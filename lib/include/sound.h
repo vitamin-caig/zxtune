@@ -14,6 +14,8 @@ namespace ZXTune
     class Receiver
     {
     public:
+      typedef std::auto_ptr<Receiver> Ptr;
+
       virtual ~Receiver()
       {
       }
