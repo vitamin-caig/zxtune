@@ -32,6 +32,20 @@ typedef std::ostream OutStream;
 
 #endif
 
+// alignment macroses
+#if defined __GNUC__
+#define PACK_PRE
+#define PACK_POST __attribute__ ((packed))
+#elif defined _MSC_VER
+#define PACK_PRE
+#define PACK_POST
+#define USE_PRAGMA_PACK
+#else
+#define PACK_PRE
+#define PACK_POST
+#endif
+
+
 //common types
 typedef std::basic_ostringstream<String::value_type> OStringStream;
 typedef std::map<String, String> StringMap;

@@ -5,16 +5,8 @@ namespace ZXTune
 {
   namespace Module
   {
-    ///Supported module types
-    enum Type
-    {
-      /// Module is a container
-      MULTITRACK_MODULE,
-      //PSG support
-      MODULE_TYPE_PSG,
-
-      MODULE_TYPE_LAST
-    };
+    /// Module capabilities
+    const unsigned CAP_MULTITRACK = 1;
 
     /// Module attributes
     const String::value_type ATTR_FILENAME[] = {'F', 'i', 'l', 'e', 'n', 'a', 'm', 'e', '\0'};

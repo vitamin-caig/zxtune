@@ -9,6 +9,12 @@ namespace ZXTune
   {
     /// Sound chunk type (by default unsigned 16bit LE)
     typedef uint16_t Sample;
+    /// Sound chunk type for intermediate operations
+    typedef unsigned BigSample;
+    /// Stereo mode
+    const std::size_t OUTPUT_CHANNELS = 2;
+    /// Precision for fixed-point calculations (num(float) = num(int) / FIXED_POINT_PRECISION)
+    const uint16_t FIXED_POINT_PRECISION = 100;
 
     /// Sound chunks mixer and consumer
     class Receiver
@@ -28,9 +34,11 @@ namespace ZXTune
     struct Parameters
     {
       /// Rendering sound frequency
-      uint32_t Frequency;
+      uint32_t SoundFreq;
       /// Basic clock frequency (for PSG,CPU etc)
       uint32_t ClockFreq;
+      /// Frame duration in ms
+      uint32_t FrameDuration;
       /// Different flags
       uint32_t Flags;
     };

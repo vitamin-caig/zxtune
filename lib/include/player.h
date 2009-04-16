@@ -19,7 +19,7 @@ namespace ZXTune
     /// Current player information
     struct Info
     {
-      Module::Type Type;
+      uint32_t Capabilities;
       StringMap Properties;
     };
 
@@ -37,7 +37,7 @@ namespace ZXTune
     virtual void GetModuleInfo(Module::Information& info) const = 0;
 
     /// Retrieving current state of loaded module
-    virtual State GetModuleState(Module::Time& timeState, Module::Tracking& trackState) const = 0;
+    virtual State GetModuleState(uint32_t& timeState, Module::Tracking& trackState) const = 0;
 
     /// Retrieving current state of sound
     virtual State GetSoundState(Sound::Analyze::Volume& volState, Sound::Analyze::Spectrum& spectrumState) const = 0;
@@ -47,10 +47,9 @@ namespace ZXTune
 
     /// Controlling
     virtual State Reset() = 0;
-    virtual State SetPosition(const Module::Time& asTime) = 0;
-    virtual State SetPosition(const Module::Tracking& asTracking) = 0;
+    virtual State SetPosition(const uint32_t& frame) = 0;
 
-    /// Common functions
+    /// Virtual ctor
     static Ptr Create(const String& filename, const Dump& data);
   };
 

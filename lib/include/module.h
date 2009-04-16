@@ -28,11 +28,11 @@ namespace ZXTune
     /// Common module information
     struct Information
     {
-      Type Type;
-      Time Duration;
+      uint32_t Duration;
       Tracking Statistic;
       std::size_t Loop;
       StringMap Properties;
+      uint32_t Capabilities;
     };
   }
 }
