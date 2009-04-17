@@ -1,53 +1,98 @@
 #include "filter.h"
 
+#include <tools.h>
+
+#include <cassert>
+
 namespace
 {
   using namespace ZXTune::Sound;
+
+  struct SampleHelper
+  {
+    SampleArray Array;
+  };
+
+  template<class C>
+  class cycled_iterator
+  {
+  public:
+    cycled_iterator(C* start, C* stop) : begin(start), end(stop), cur(start)
+    {
+    }
+
+    cycled_iterator(const cycled_iterator& rh) : begin(rh.begin), end(rh.end), cur(rh.cur)
+    {
+    }
+
+    cycled_iterator& operator ++ ()
+    {
+      if (end == ++cur)
+      {
+        cur = begin;
+      }
+      return *this;
+    }
+
+    cycled_iterator& operator -- ()
+    {
+      if (begin == cur)
+      {
+        cur = end;
+      }
+      --cur;
+      return *this;
+    }
+
+    C& operator * () const
+    {
+      return *cur;
+    }
+
+    C* operator ->() const
+    {
+      return cur;
+    }
+  private:
+    C* const begin;
+    C* const end;
+    C* cur;
+  };
 
   class FIRFilter : public Receiver
   {
   public:
     FIRFilter(const Sample* coeffs, std::size_t order, Receiver* delegate)
-      : Matrix(coeffs, coeffs + order), Order(order), Delegate(delegate), History(Order), Position(0)
+      : Matrix(coeffs, coeffs + order), Delegate(delegate), History(order), Position(&History[0], &History[order])
     {
     }
 
     virtual void ApplySample(const Sample* input, std::size_t channels)
     {
-      assert(channels == OUTPUT_CHANNELS || !"Invalid input channels for FIR filter");
-      const HistoryItem* const histFirst(&History[0]);
-      const HistoryItem* const histLast(&History[Order]);
-      const HistoryItem* const histCur(&History[Position]);
-      HistoryItem* histPos(histCur);
-      std::memcpy(histPos, input, sizeof(*histCur));
-      BigSample res[Channels] = {0};
-      for (const Sample* it = &Matrix[0], lim = &Matrix[Order]; it != lim; ++it, --histPos)
+      assert(channels == ArraySize(Position->Array) || !"Invalid input channels for FIR filter");
+      std::memcpy(&*Position, input, sizeof(SampleArray));
+      BigSampleArray res = {0};
+
+      for (std::vector<Sample>::const_iterator it = Matrix.begin(), lim = Matrix.end(); it != lim; ++it, --Position)
       {
-        for (std::size_t chan = 0; chan != Channels; ++chan)
+        for (std::size_t chan = 0; chan != OUTPUT_CHANNELS; ++chan)
         {
-          res[chan] += (*histPos)[chan] * *it;
-        }
-        if (histFirst == histPos)
-        {
-          histPos = histLast;
+          res[chan] += Position->Array[chan] * *it;
         }
       }
       for (std::size_t chan = 0; chan != OUTPUT_CHANNELS; ++chan)
       {
         Result[chan] = static_cast<Sample>(res[chan] / FIXED_POINT_PRECISION);
       }
-      Position = (Position + 1) % Order;
-      return Delegate->ApplySample(Result, Channels);
+      ++Position;
+      return Delegate->ApplySample(Result, OUTPUT_CHANNELS);
     }
   private:
-    typedef Sample[OUTPUT_CHANNELS] HistoryItem;
-    typedef std::vector<HistoryItem> HistoryArray;
     std::vector<Sample> Matrix;
-    const std::size_t Order;
     Receiver* const Delegate;
-    HistoryArray History;
-    std::size_t Position;
-    Sample Result[Channels];
+    std::vector<SampleHelper> History;
+    cycled_iterator<SampleHelper> Position;
+    SampleArray Result;
   };
 }
 

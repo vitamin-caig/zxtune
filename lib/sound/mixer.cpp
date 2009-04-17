@@ -1,5 +1,9 @@
 #include "mixer.h"
 
+#include <tools.h>
+
+#include <algorithm>
+
 namespace
 {
   using namespace ZXTune::Sound;
@@ -11,9 +15,7 @@ namespace
   class Mixer : public Receiver
   {
   public:
-    //assume that coeffs for each input channels stored sequently
-    //because quantity of input channels differs in different types of devices while output is constant
-    Mixer(const Sample* matrix, Receiver* delegate)
+    Mixer(const SampleArray* matrix, Receiver* delegate)
       : Matrix(matrix), Delegate(delegate)
     {
 
@@ -22,38 +24,45 @@ namespace
     virtual void ApplySample(const Sample* input, std::size_t channels)
     {
       assert(channels == InChannels || !"Invalid input channels mixer specified");
-      const Sample* mix(Matrix);
-      for (const Sample* out = Result; out != Result + OUTPUT_CHANNELS; ++out, ++mix)
+      const SampleArray* inChanMix(Matrix);
+
+      BigSampleArray res = {0};
+      for (const Sample* in = input; in != input + InChannels; ++in, ++inChanMix)
       {
-        BigSample res(0);
-        for (const Sample* in = input; in != input + InChannels; ++in, mix += OUTPUT_CHANNELS)
+        const Sample* outChanMix(*inChanMix);
+        for (BigSample* out = res; out != ArrayEnd(res); ++out, ++outChanMix)
         {
-          res += *in * *mix;
+          *out += *in * *outChanMix;
         }
-        mix -= OUTPUT_CHANNELS * InChannels;
-        *out = static_cast<Sample>(res / (FIXED_POINT_PRECISION * InChannels));
       }
-      return Delegate->ApplySample(Result, OUTPUT_CHANNELS);
+      std::transform(res, ArrayEnd(res), Result, std::bind2nd(std::divides<BigSample>(), FIXED_POINT_PRECISION * InChannels));
+      return Delegate->ApplySample(Result, ArraySize(Result));
     }
   private:
-    const Sample* const Matrix;
+    const SampleArray* const Matrix;
     Receiver* const Delegate;
-    Sample Result[OUTPUT_CHANNELS];
+    SampleArray Result;
   };
+}
 
-  const unsigned CHANNELS_AYM = 3;
-  const unsigned CHANNELS_BEEPER = 1;
-  const unsigned CHANNELS_SOUNDRIVE = 4;
-
-  class MixerManagerImpl : public MixerManager
+namespace ZXTune
+{
+  namespace Sound
   {
-  public:
-    MixerManagerImpl()
+    Receiver::Ptr CreateMixer(std::size_t inChannels, const SampleArray* matrix, Receiver* receiver)
     {
+      switch (inChannels)
+      {
+      case 2:
+        return Receiver::Ptr(new Mixer<2>(matrix, receiver));
+      case 3:
+        return Receiver::Ptr(new Mixer<3>(matrix, receiver));
+      case 4:
+        return Receiver::Ptr(new Mixer<4>(matrix, receiver));
+      default:
+        assert(!"Invalid channels number specified");
+        return Receiver::Ptr(0);
+      }
     }
-
-  private:
-    Sample MatrixAYMBeeper[OUTPUT_CHANNELS * (CHANNELS_AYM + CHANNELS_BEEPER)];
-    Sample MatrixSoundrive[OUTPUT_CHANNELS * CHANNELS_SOUNDRIVE];
-  };
+  }
 }

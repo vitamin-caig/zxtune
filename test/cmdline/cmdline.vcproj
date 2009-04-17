@@ -19,7 +19,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\include;..\..\lib\include"
+				AdditionalIncludeDirectories="..\..\include\boost\tr1\tr1;..\include\boost;..\..\include;..\..\lib\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
@@ -162,6 +162,9 @@
 				<File
 					RelativePath="..\..\lib\include\sound_attrs.h">
 				</File>
+				<File
+					RelativePath="..\..\lib\include\sound_types.h">
+				</File>
 			</Filter>
 			<Filter
 				Name="sound"
@@ -177,6 +180,9 @@
 				</File>
 				<File
 					RelativePath="..\..\lib\sound\mixer.h">
+				</File>
+				<File
+					RelativePath="..\..\lib\sound\renderer.cpp">
 				</File>
 				<File
 					RelativePath="..\..\lib\sound\renderer.h">

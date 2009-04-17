@@ -9,32 +9,7 @@ namespace ZXTune
 {
   namespace Sound
   {
-    class MixerManager
-    {
-    public:
-      enum Type
-      {
-        //3 channels
-        MIXER_AYM,
-        //1 channel
-        MIXER_BEEPER,
-        //4 channels
-        MIXER_SOUNDRIVE,
-      };
-
-      typedef std::auto_ptr<MixerManager> Ptr;
-
-      virtual ~MixerManager()
-      {
-      }
-
-      virtual void GetMatrix(Type type, Sample* output) const = 0;
-      virtual void SetMatrix(Type type, const Sample* input) = 0;
-
-      virtual Receiver::Ptr CreateMixer(Type type, Receiver* receiver);
-
-      static Ptr CreateMixerManager();
-    };
+    Receiver::Ptr CreateMixer(std::size_t inChannels, const SampleArray* matrix, Receiver* receiver);
   }
 }
 

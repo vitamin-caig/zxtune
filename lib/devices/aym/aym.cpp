@@ -118,8 +118,6 @@ namespace
     DataChunk LastData;
   };
 
-  typedef Sound::Sample SoundData[4];
-
   void ChipImpl::RenderData(const Sound::Parameters& params,
                             DataSource<DataChunk>* src,
                             Sound::Receiver* dst)
@@ -141,7 +139,6 @@ namespace
     uint64_t nextSampleTick = startBuffTick + ticksPerSample;
 
     // rendering context
-    SoundData result = {0};
     unsigned HighLevel = ~0;
     for (;;)
     {
@@ -206,11 +203,12 @@ namespace
         if (curTick >= nextSampleTick) //need to store sample
         {
           const bool isYM(0 != (params.Flags & Sound::PSG_TYPE_YM));
-          result[0] = GetVolume(ToneBitA & NoiseBitA & VolumeA, isYM);
-          result[1] = GetVolume(ToneBitB & NoiseBitB & VolumeB, isYM);
-          result[2] = GetVolume(ToneBitC & NoiseBitC & VolumeC, isYM);
-          result[3] = (LastData.Mask & DataChunk::BEEPER_BIT) ? ~Sound::Sample(0) : 0
-          dst->ApplySample(result, LastData.Mask & DataChunk::BEEPER_MASK ? 4 : 3);
+          const Sound::Sample result[] = {
+            GetVolume(ToneBitA & NoiseBitA & VolumeA, isYM),
+            GetVolume(ToneBitB & NoiseBitB & VolumeB, isYM),
+            GetVolume(ToneBitC & NoiseBitC & VolumeC, isYM)
+          };
+          dst->ApplySample(result, ArraySize(result));
           nextSampleTick += ticksPerSample;
         }
         if (++TimerA >= GetToneA())
@@ -274,6 +272,7 @@ namespace
 
   void ChipImpl::GetState(Sound::Analyze::Volume& volState, Sound::Analyze::Spectrum& spectrumState) const
   {
+    //TODO
   }
 }
 

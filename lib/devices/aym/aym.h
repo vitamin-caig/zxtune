@@ -44,10 +44,6 @@ namespace ZXTune
 
         //to mark all registers actual
         ALL_REGISTERS = 0x3fff,
-        // is beeper used
-        BEEPER_MASK = 0x4000,
-        // is beeper bit set (used only if BEEPER_MASK bit set)
-        BEEPER_BIT = 0x8000,
       };
       uint64_t Tick;
       uint16_t Mask;

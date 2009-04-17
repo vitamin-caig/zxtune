@@ -7,18 +7,16 @@
 #include <vector>
 #include <ostream>
 
-#ifdef _WIN32
-typedef signed __int64 int64_t;
-typedef unsigned __int64 uint64_t;
-typedef signed int int32_t;
-typedef unsigned uint32_t;
-typedef signed short int16_t;
-typedef unsigned short uint16_t;
-typedef signed char int8_t;
-typedef unsigned char uint8_t;
-#else
-#include <cstdint>
-#endif
+#include <boost/cstdint.hpp>
+
+using boost::int8_t;
+using boost::uint8_t;
+using boost::int16_t;
+using boost::uint16_t;
+using boost::int32_t;
+using boost::uint32_t;
+using boost::int64_t;
+using boost::uint64_t;
 
 #ifdef UNICODE
 

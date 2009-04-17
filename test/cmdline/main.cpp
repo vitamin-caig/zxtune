@@ -11,8 +11,6 @@
 #include <fstream>
 #include <iostream>
 
-#include "sdl/include/SDL.h"
-
 namespace
 {
   std::ostream& operator << (std::ostream& str, const StringMap& sm)
@@ -28,97 +26,6 @@ namespace
   {
     return str << "Capabilities: 0x" << std::hex << info.Capabilities << "\n" << info.Properties;
   }
-
-  template<std::size_t Channels>
-  class AutoSDL : private ZXTune::Sound::Receiver
-  {
-    class Mutex
-    {
-    public:
-      Mutex() : Locker(SDL_CreateMutex())
-      {
-      }
-
-      ~Mutex()
-      {
-        Unlock();
-        SDL_DestroyMutex(Locker);
-      }
-
-      void Lock()
-      {
-        SDL_mutexP(Locker);
-      }
-      void Unlock()
-      {
-        SDL_mutexV(Locker);
-      }
-    private:
-      SDL_mutex* Locker;
-    };
-
-    class AutoLocker
-    {
-    public:
-      AutoLocker(Mutex& mtx) : Obj(mtx)
-      {
-        Obj.Lock();
-      }
-      ~AutoLocker()
-      {
-        Obj.Unlock();
-      }
-    private:
-      Mutex& Obj;
-    };
-  public:
-    AutoSDL(const ZXTune::Sound::Parameters& params)
-    {
-      SDL_AudioSpec fmt;
-      fmt.freq = params.SoundFreq;
-      fmt.format = AUDIO_U16;
-      fmt.channels = Channels;
-      fmt.samples = 8192;
-      fmt.callback = OnSound;
-      fmt.userdata = this;
-
-      if (SDL_OpenAudio(&fmt, 0) < 0)
-      {
-        throw std::runtime_error("Failed to open audio");
-      }
-    }
-
-    virtual ~AutoSDL()
-    {
-      SDL_CloseAudio();
-    }
-
-    void Play(ZXTune::Player* player)
-    {
-      SDL_PauseAudio(0);
-      
-    }
-  private:
-    static void OnSound(void* user, Uint8* stream, int len)
-    {
-      static_cast<AutoSDL*>(user)->GetData(stream, len);
-    }
-
-    void GetData(void* data, int size)
-    {
-    }
-
-    void ApplySample(const Sample* input, std::size_t channels)
-    {
-      assert(Writer.get());
-      Writer->ApplySample(input, channels);
-    }
-  private:
-    ZXTune::Sound::Receiver::Ptr Writer;
-    int PrevSize;
-    void* PrevData;
-    ZXTune::Player* Player;
-  }; 
 
   void Writer(const void* data, std::size_t size, void* str)
   {
@@ -176,13 +83,9 @@ int main(int argc, char* argv[])
       std::cout << "Unknown format" << std::endl;
       return 1;
     }
-
-    ZXTune::Sound::Sample mixMap[4][2] = {{100, 10}, {60, 60}, {10, 100}, {50, 50}};
-    std::ofstream file((filename + ".wav").c_str(), std::ios::binary);
-    file.write(safe_ptr_cast<char*>(&header[0]), sizeof(header));
-    ZXTune::Sound::Receiver::Ptr renderer(ZXTune::Sound::CreateRenderer<2>(4096, &Writer, static_cast<std::ostream*>(&file)));
-    ZXTune::Sound::Receiver::Ptr mixer(ZXTune::Sound::CreateMixer(mixMap, renderer.get()));
+/*
     while (ZXTune::Player::MODULE_STOPPED != player->RenderFrame(sndParams, mixer.get()));
+    */
     return 0;
   }
   catch (const Error& e)

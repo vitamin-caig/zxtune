@@ -7,6 +7,18 @@ inline std::size_t ArraySize(const T (&)[D])
   return D;
 }
 
+template<class T, std::size_t D>
+inline const T* ArrayEnd(const T (&c)[D])
+{
+  return c + D;
+}
+
+template<class T, std::size_t D>
+inline T* ArrayEnd(T (&c)[D])
+{
+  return c + D;
+}
+
 template<class T, class F>
 inline T safe_ptr_cast(F* from)
 {
