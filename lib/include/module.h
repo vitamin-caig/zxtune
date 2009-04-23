@@ -22,7 +22,7 @@ namespace ZXTune
       std::size_t Pattern;
       std::size_t Note;
       std::size_t Speed;
-      unsigned Channels;
+      std::size_t Channels;
     };
 
     /// Common module information

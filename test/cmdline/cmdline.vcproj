@@ -34,8 +34,10 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="winmm.lib"
 				OutputFile="$(OutDir)/cmdline.exe"
 				LinkIncremental="2"
+				IgnoreAllDefaultLibraries="FALSE"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="$(OutDir)/cmdline.pdb"
 				SubSystem="1"
@@ -221,6 +223,42 @@
 						RelativePath="..\..\lib\devices\aym\aym.h">
 					</File>
 				</Filter>
+			</Filter>
+		</Filter>
+		<Filter
+			Name="Supplement"
+			Filter="">
+			<File
+				RelativePath="..\..\supp\ipc.h">
+			</File>
+			<File
+				RelativePath="..\..\supp\sound_backend.h">
+			</File>
+			<File
+				RelativePath="..\..\supp\sound_backend_impl.cpp">
+			</File>
+			<File
+				RelativePath="..\..\supp\sound_backend_impl.h">
+			</File>
+			<File
+				RelativePath="..\..\supp\sound_backend_types.h">
+			</File>
+			<Filter
+				Name="win"
+				Filter="">
+				<File
+					RelativePath="..\..\supp\win\ipc_win.cpp">
+				</File>
+				<File
+					RelativePath="..\..\supp\win\win32_backend.cpp">
+				</File>
+			</Filter>
+			<Filter
+				Name="cross"
+				Filter="">
+				<File
+					RelativePath="..\..\supp\cross\file_backend.cpp">
+				</File>
 			</Filter>
 		</Filter>
 		<File

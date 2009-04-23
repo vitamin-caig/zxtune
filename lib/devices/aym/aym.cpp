@@ -57,7 +57,7 @@ namespace
       Envelope = Decay = 0;
       Noise = 0;
 
-      LastData.Tick = ~uint64_t(0);
+      LastData.Tick = 0;//~uint64_t(0);
     }
 
   private:
@@ -101,10 +101,10 @@ namespace
     {
       return State.Data[DataChunk::REG_ENV];
     }
-    inline unsigned GetVolume(unsigned regVol, bool ym)
+    inline Sound::Sample GetVolume(unsigned regVol, bool ym)
     {
       assert(regVol < 32);
-      return (ym ? YMVolumeTab : AYVolumeTab)[regVol];
+      return (ym ? YMVolumeTab : AYVolumeTab)[regVol] / 2;
     }
   protected:
     //state
@@ -125,26 +125,26 @@ namespace
     assert(src);
     assert(dst);
 
-    if (~uint64_t(0) == LastData.Tick &&
-        !src->GetData(LastData)
-       )
-    {
-      return;//no data at all
-    }
-
     // tick counter and ranges
     uint64_t& curTick = State.Tick;
-    const uint64_t startBuffTick = curTick;
     const uint64_t ticksPerSample(params.ClockFreq / params.SoundFreq);
-    uint64_t nextSampleTick = startBuffTick + ticksPerSample;
+    uint64_t nextSampleTick = curTick + ticksPerSample;
 
     // rendering context
     unsigned HighLevel = ~0;
     for (;;)
     {
-      if (curTick >= LastData.Tick) //need to get data
+      while (curTick >= LastData.Tick) //need to get data
       {
+        if (! src->GetData(LastData))
+        {
+          return;//no more data
+        }
         //output dump
+        if (!LastData.Mask)
+        {
+          break;
+        }
         unsigned mask = 1;
         for (unsigned idx = 0; idx != ArraySize(LastData.Data); ++idx, mask <<= 1)
         {
@@ -176,11 +176,7 @@ namespace
             State.Data[idx] = reg;
           } //update reg
         }
-
-        if (! src->GetData(LastData))
-        {
-          return;//no more data
-        }
+        break;
       }
 
       //references to mixered bits. updated automatically
@@ -199,7 +195,6 @@ namespace
 
       while (curTick < LastData.Tick) //render cycle
       {
-        curTick += 8;//base freq divisor
         if (curTick >= nextSampleTick) //need to store sample
         {
           const bool isYM(0 != (params.Flags & Sound::PSG_TYPE_YM));
@@ -211,6 +206,7 @@ namespace
           dst->ApplySample(result, ArraySize(result));
           nextSampleTick += ticksPerSample;
         }
+        curTick += 8;//base freq divisor
         if (++TimerA >= GetToneA())
         {
           TimerA = 0;
@@ -236,9 +232,9 @@ namespace
         {
           TimerE = 0;
           Envelope += Decay;
-          if (Envelope & ~31)
+          if (Envelope & ~unsigned(31))
           {
-            unsigned envTypeMask = 1 << GetEnv();
+            const unsigned envTypeMask = 1 << GetEnv();
             if (envTypeMask & ((1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) |
                                (1 << 5) | (1 << 6) | (1 << 7) | (1 << 9) | (1 << 15)))
             {

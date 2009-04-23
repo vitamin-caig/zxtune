@@ -15,6 +15,7 @@ namespace ZXTune
     */
     typedef void (*ReadyCallback)(const void*, std::size_t, void*);
 
+    /// Size in multisamples
     Receiver::Ptr CreateCallbackRenderer(std::size_t size, ReadyCallback callback, void* data = 0);
 
     Receiver::Ptr CreateBufferRenderer(Sample* buffer, std::size_t size);

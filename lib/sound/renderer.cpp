@@ -2,6 +2,8 @@
 
 #include <tools.h>
 
+#include <boost/static_assert.hpp>
+
 namespace
 {
   using namespace ZXTune::Sound;
@@ -11,11 +13,11 @@ namespace
     SampleArray Array;
   };
 
+  BOOST_STATIC_ASSERT(sizeof(SampleHelper) == sizeof(SampleArray));
+
   class CallbackRenderer : public Receiver
   {
   public:
-    //size in bytes
-
     //size in multisamples
     CallbackRenderer(std::size_t size, ReadyCallback callback, void* userData)
       : Buffer(size), BufferEnd(&Buffer[size]), Callback(callback)
@@ -34,6 +36,14 @@ namespace
         return (*Callback)(Position, (BufferEnd - Position) * sizeof(Position->Array), UserData);
       }
     }
+
+    virtual void Flush()
+    {
+      const SampleHelper* const endOf(Position);
+      Position = &Buffer[0];
+      return (*Callback)(Position, (endOf - Position) * sizeof(Position->Array), UserData);
+    }
+
   private:
     std::vector<SampleHelper> Buffer;
     const SampleHelper* const BufferEnd;
@@ -41,7 +51,7 @@ namespace
     ReadyCallback Callback;
     void* const UserData;
   };
-
+/*
   class BufferRenderer : public Receiver
   {
   public:
@@ -65,12 +75,18 @@ namespace
         }
       }
     }
+
+    virtual void Flush()
+    {
+      Position
+    }
   private:
     SampleHelper* const Buffer;
     SampleHelper* const BufferEnd;
     SampleHelper* Position;
     const bool Cyclic;
   };
+  */
 }
 
 namespace ZXTune
@@ -81,10 +97,11 @@ namespace ZXTune
     {
       return Receiver::Ptr(new CallbackRenderer(size, callback, data));
     }
-
+/*
     Receiver::Ptr CreateBufferRenderer(Sample* buffer, std::size_t size)
     {
       return Receiver::Ptr(new BufferRenderer(buffer, size));
     }
+*/
   }
 }

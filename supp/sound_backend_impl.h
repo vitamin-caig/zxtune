@@ -1,0 +1,80 @@
+#ifndef __SOUND_BACKEND_IMPL_H_DEFINED__
+#define __SOUND_BACKEND_IMPL_H_DEFINED__
+
+#include "sound_backend.h"
+#include "ipc.h"
+
+namespace ZXTune
+{
+  namespace Sound
+  {
+    class BackendImpl : public Backend
+    {
+    public:
+      BackendImpl();
+
+      virtual ~BackendImpl();
+
+      virtual State OpenModule(const String& filename, const Dump& data);
+
+      virtual State GetState() const;
+      virtual State Play();
+      virtual State Pause();
+      virtual State Stop();
+
+      /// Information getters
+      virtual void GetPlayerInfo(ModulePlayer::Info& info) const;
+      virtual void GetModuleInfo(Module::Information& info) const;
+      virtual State GetModuleState(uint32_t& timeState, Module::Tracking& trackState) const;
+      virtual State GetSoundState(Sound::Analyze::Volume& volState, Sound::Analyze::Spectrum& spectrumState) const;
+
+      /// Seeking
+      virtual State SetPosition(const uint32_t& frame);
+      virtual void GetSoundParameters(Parameters& params) const;
+      virtual void SetSoundParameters(const Parameters& params);
+
+    protected:
+      virtual void OnBufferReady(const void* data, std::size_t sizeInBytes) = 0;
+      //changed fields
+      enum
+      {
+        DRIVER_PARAMS = 1,
+        DRIVER_FLAGS = 2,
+        SOUND_FREQ = 4,
+        SOUND_CLOCK = 8,
+        SOUND_FRAME = 16,
+        SOUND_FLAGS = 32,
+        MIXER = 64,
+        PREAMP = 128,
+        FIR_ORDER = 256,
+        FIR_LOW = 512,
+        FIR_HIGH = 1024,
+        BUFFER = 2048
+      };
+      virtual void OnParametersChanged(unsigned changedFields) = 0;
+      virtual void OnShutdown() = 0;
+    protected:
+      Parameters Params;
+
+    private:
+      static bool PlayFunc(void*);
+      void CheckState() const;
+      State UpdateCurrentState(ModulePlayer::State);
+      unsigned MatchParameters(const Parameters& params) const;
+      static void CallbackFunc(const void*, std::size_t, void*);
+    private:
+      IPC::Thread PlayerThread;
+      mutable IPC::Mutex PlayerMutex;
+    private:
+      volatile State CurrentState;
+      ModulePlayer::Ptr Player;
+      Receiver::Ptr Mixer;
+      Receiver::Ptr Filter;
+      std::vector<Sample> FilterCoeffs;
+      Receiver::Ptr Renderer;
+    };
+  }
+}
+
+
+#endif //__SOUND_BACKEND_IMPL_H_DEFINED__

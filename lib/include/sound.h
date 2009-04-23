@@ -20,6 +20,9 @@ namespace ZXTune
 
       /// Performs mixing, processing and storing
       virtual void ApplySample(const Sample* input, std::size_t channels) = 0;
+
+      /// Flush collected data
+      virtual void Flush() = 0;
     };
 
     /// Input parameters for rendering

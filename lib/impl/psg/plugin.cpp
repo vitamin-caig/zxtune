@@ -6,6 +6,8 @@
 
 #include <player_attrs.h>
 
+#include <boost/static_assert.hpp>
+
 #include <cassert>
 
 namespace
@@ -37,7 +39,9 @@ namespace
 #pragma pack(pop)
 #endif
 
-  void Information(Player::Info& info)
+  BOOST_STATIC_ASSERT(sizeof(PSGHeader) == 16);
+
+  void Information(ModulePlayer::Info& info)
   {
     info.Capabilities = CAP_AYM;
     info.Properties.clear();
@@ -74,7 +78,7 @@ namespace
     bool State;
   };
 
-  class PlayerImpl : public Player
+  class PlayerImpl : public ModulePlayer
   {
   public:
     PlayerImpl(const String& filename, const Dump& data)
@@ -115,6 +119,8 @@ namespace
             Storage.push_back(dummy);
           }
           chunk = &Storage.back();
+          ++bdata;
+          --size;
         }
         else if (MUS_END == reg)
         {
@@ -178,14 +184,23 @@ namespace
     {
       if (Position >= Storage.size())
       {
+        receiver->Flush();
         return CurrentState = MODULE_STOPPED;
       }
       assert(Device.get());
       AYM::DataChunk& data(Storage[Position++]);
-      data.Tick = TickCount;
+      data.Tick = (TickCount += uint64_t(params.ClockFreq) * params.FrameDuration / 1000);
+      /*
+      data.Mask = 1 | 2 | 128 | 256 | 2048 | 8192;
+      data.Data[0] = 109;
+      data.Data[1] = 0;
+      data.Data[7] = ~1;
+      data.Data[8] = 31;
+      data.Data[11] = 200;
+      data.Data[13] = 255;
+      */
       SingleFrameDataSource src(data);
       Device->RenderData(params, &src, receiver);
-      TickCount += params.ClockFreq * params.FrameDuration / 1000;
       return CurrentState = MODULE_PLAYING;
     }
 
@@ -221,10 +236,10 @@ namespace
   };
 
 
-  Player::Ptr Creating(const String& filename, const Dump& data)
+  ModulePlayer::Ptr Creating(const String& filename, const Dump& data)
   {
     assert(Checking(filename, data) || !"Attempt to create player on invalid data");
-    return Player::Ptr(new PlayerImpl(filename, data));
+    return ModulePlayer::Ptr(new PlayerImpl(filename, data));
   }
 
   PluginAutoRegistrator psgReg(Checking, Creating, Information);

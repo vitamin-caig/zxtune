@@ -36,17 +36,17 @@ namespace
       Plugins.push_back(descr);
     }
 
-    virtual void EnumeratePlugins(std::vector<Player::Info>& infos) const
+    virtual void EnumeratePlugins(std::vector<ModulePlayer::Info>& infos) const
     {
       infos.resize(Plugins.size());
-      std::vector<Player::Info>::iterator out(infos.begin());
+      std::vector<ModulePlayer::Info>::iterator out(infos.begin());
       for (std::vector<PluginDescriptor>::const_iterator it = Plugins.begin(), lim = Plugins.end(); it != lim; ++it, ++out)
       {
         (*it->Descriptor)(*out);
       }
     }
 
-    virtual Player::Ptr CreatePlayer(const String& filename, const Dump& data) const
+    virtual ModulePlayer::Ptr CreatePlayer(const String& filename, const Dump& data) const
     {
       for (std::vector<PluginDescriptor>::const_iterator it = Plugins.begin(), lim = Plugins.end(); it != lim; ++it)
       {
@@ -55,7 +55,7 @@ namespace
           return (*it->Creator)(filename, data);
         }
       }
-      return Player::Ptr(0);
+      return ModulePlayer::Ptr(0);
     }
   private:
     std::vector<PluginDescriptor> Plugins;
@@ -70,12 +70,12 @@ namespace ZXTune
     return instance;
   }
 
-  Player::Ptr Player::Create(const String& filename, const Dump& data)
+  ModulePlayer::Ptr ModulePlayer::Create(const String& filename, const Dump& data)
   {
     return PluginEnumerator::Instance().CreatePlayer(filename, data);
   }
 
-  void GetSupportedPlayers(std::vector<Player::Info>& infos)
+  void GetSupportedPlayers(std::vector<ModulePlayer::Info>& infos)
   {
     return PluginEnumerator::Instance().EnumeratePlugins(infos);
   }

@@ -15,7 +15,7 @@ namespace
   class Mixer : public Receiver
   {
   public:
-    Mixer(const SampleArray* matrix, Receiver* delegate)
+    Mixer(const ChannelMixer* matrix, Receiver* delegate)
       : Matrix(matrix), Delegate(delegate)
     {
 
@@ -24,22 +24,33 @@ namespace
     virtual void ApplySample(const Sample* input, std::size_t channels)
     {
       assert(channels == InChannels || !"Invalid input channels mixer specified");
-      const SampleArray* inChanMix(Matrix);
+      const ChannelMixer* inChanMix(Matrix);
 
       BigSampleArray res = {0};
+      std::size_t actChannels(0);
       for (const Sample* in = input; in != input + InChannels; ++in, ++inChanMix)
       {
-        const Sample* outChanMix(*inChanMix);
-        for (BigSample* out = res; out != ArrayEnd(res); ++out, ++outChanMix)
+        if (!inChanMix->Mute)
         {
-          *out += *in * *outChanMix;
+          ++actChannels;
+          const Sample* outChanMix(inChanMix->Matrix);
+          for (BigSample* out = res; out != ArrayEnd(res); ++out, ++outChanMix)
+          {
+            *out += *in * *outChanMix;
+          }
         }
       }
-      std::transform(res, ArrayEnd(res), Result, std::bind2nd(std::divides<BigSample>(), FIXED_POINT_PRECISION * InChannels));
+      std::transform(res, ArrayEnd(res), Result, std::bind2nd(std::divides<BigSample>(), BigSample(FIXED_POINT_PRECISION) * actChannels));
       return Delegate->ApplySample(Result, ArraySize(Result));
     }
+
+    virtual void Flush()
+    {
+      return Delegate->Flush();
+    }
+
   private:
-    const SampleArray* const Matrix;
+    const ChannelMixer* const Matrix;
     Receiver* const Delegate;
     SampleArray Result;
   };
@@ -49,16 +60,16 @@ namespace ZXTune
 {
   namespace Sound
   {
-    Receiver::Ptr CreateMixer(std::size_t inChannels, const SampleArray* matrix, Receiver* receiver)
+    Receiver::Ptr CreateMixer(const std::vector<ChannelMixer>& matrix, Receiver* receiver)
     {
-      switch (inChannels)
+      switch (matrix.size())
       {
       case 2:
-        return Receiver::Ptr(new Mixer<2>(matrix, receiver));
+        return Receiver::Ptr(new Mixer<2>(&matrix[0], receiver));
       case 3:
-        return Receiver::Ptr(new Mixer<3>(matrix, receiver));
+        return Receiver::Ptr(new Mixer<3>(&matrix[0], receiver));
       case 4:
-        return Receiver::Ptr(new Mixer<4>(matrix, receiver));
+        return Receiver::Ptr(new Mixer<4>(&matrix[0], receiver));
       default:
         assert(!"Invalid channels number specified");
         return Receiver::Ptr(0);

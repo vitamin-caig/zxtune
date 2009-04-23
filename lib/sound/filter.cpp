@@ -3,6 +3,7 @@
 #include <tools.h>
 
 #include <cassert>
+#include <boost/static_assert.hpp>
 
 namespace
 {
@@ -13,51 +14,7 @@ namespace
     SampleArray Array;
   };
 
-  template<class C>
-  class cycled_iterator
-  {
-  public:
-    cycled_iterator(C* start, C* stop) : begin(start), end(stop), cur(start)
-    {
-    }
-
-    cycled_iterator(const cycled_iterator& rh) : begin(rh.begin), end(rh.end), cur(rh.cur)
-    {
-    }
-
-    cycled_iterator& operator ++ ()
-    {
-      if (end == ++cur)
-      {
-        cur = begin;
-      }
-      return *this;
-    }
-
-    cycled_iterator& operator -- ()
-    {
-      if (begin == cur)
-      {
-        cur = end;
-      }
-      --cur;
-      return *this;
-    }
-
-    C& operator * () const
-    {
-      return *cur;
-    }
-
-    C* operator ->() const
-    {
-      return cur;
-    }
-  private:
-    C* const begin;
-    C* const end;
-    C* cur;
-  };
+  BOOST_STATIC_ASSERT(sizeof(SampleHelper) == sizeof(SampleArray));
 
   class FIRFilter : public Receiver
   {
@@ -87,11 +44,17 @@ namespace
       ++Position;
       return Delegate->ApplySample(Result, OUTPUT_CHANNELS);
     }
+
+    virtual void Flush()
+    {
+      return Delegate->Flush();
+    }
+
   private:
     std::vector<Sample> Matrix;
     Receiver* const Delegate;
     std::vector<SampleHelper> History;
-    cycled_iterator<SampleHelper> Position;
+    cycled_iterator<SampleHelper*> Position;
     SampleArray Result;
   };
 }
@@ -103,6 +66,10 @@ namespace ZXTune
     Receiver::Ptr CreateFIRFilter(const Sample* coeffs, std::size_t order, Receiver* delegate)
     {
       return Receiver::Ptr(new FIRFilter(coeffs, order, delegate));
+    }
+
+    void CalculateFIRCoefficients(std::size_t order, uint32_t freq, uint32_t lowCutoff, uint32_t highCutoff, std::vector<Sample>& coeffs)
+    {
     }
   }
 }

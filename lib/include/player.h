@@ -7,12 +7,12 @@
 namespace ZXTune
 {
   /// Player interface
-  class Player
+  class ModulePlayer
   {
   public:
-    typedef std::auto_ptr<Player> Ptr;
+    typedef std::auto_ptr<ModulePlayer> Ptr;
 
-    virtual ~Player()
+    virtual ~ModulePlayer()
     {
     }
 
@@ -54,7 +54,7 @@ namespace ZXTune
   };
 
   /// Common interface
-  void GetSupportedPlayers(std::vector<Player::Info>& infos);
+  void GetSupportedPlayers(std::vector<ModulePlayer::Info>& infos);
 }
 
 #endif //__PLAYER_H_DEFINED__
