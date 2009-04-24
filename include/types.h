@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include <ostream>
+#include <sstream>
 
 #include <boost/cstdint.hpp>
 
@@ -45,11 +46,11 @@ typedef std::ostream OutStream;
 
 
 //common types
-typedef std::basic_ostringstream<String::value_type> OStringStream;
+typedef std::basic_ostringstream<String::value_type> OutStringStream;
+typedef std::basic_istringstream<String::value_type> InStringStream;
 typedef std::map<String, String> StringMap;
 typedef std::vector<String> StringArray;
 typedef std::list<String> StringList;
-
 typedef std::vector<uint8_t> Dump;
 
 #endif //__TYPES_H_DEFINED__

@@ -106,6 +106,8 @@ int main(int argc, char* argv[])
     params.Mixer[2].Matrix[1] = 100;
 #ifdef WAVE
     params.DriverParameters = "test.wav";
+#else
+    params.DriverParameters = "2";
 #endif
 
     backend->SetSoundParameters(params);

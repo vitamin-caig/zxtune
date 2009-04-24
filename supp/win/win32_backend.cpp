@@ -11,13 +11,22 @@ namespace
 {
   using namespace ZXTune::Sound;
 
-  const std::size_t MIN_BUFFER_DEPTH = 3;
+  const std::size_t DEFAULT_BUFFER_DEPTH = 2;
+  const std::size_t MIN_BUFFER_DEPTH = 2;
   const std::size_t MAX_BUFFER_DEPTH = 4;
+
+  void CheckMMResult(::MMRESULT res)
+  {
+    if (MMSYSERR_NOERROR != res)
+    {
+      throw 1;//TODO
+    }
+  }
 
   class Event
   {
   public:
-    Event() : Handle(::CreateEvent(0, TRUE, TRUE, 0))
+    Event() : Handle(::CreateEvent(0, TRUE, FALSE, 0))
     {
     }
 
@@ -41,127 +50,154 @@ namespace
       ::ResetEvent(Handle);
     }
 
-    void Wait()
+    bool Wait()
     {
-      ::WaitForSingleObject(Handle, 10000);//TODO
-      ::ResetEvent(Handle);
+      if (WAIT_OBJECT_0 == ::WaitForSingleObject(Handle, INFINITE))
+      {
+        Reset();
+        return true;
+      }
+      return false;
     }
 
+    bool IsSet()
+    {
+      return WAIT_OBJECT_0 == ::WaitForSingleObject(Handle, 0);
+    }
   private:
     ::HANDLE Handle;
   };
 
   class BufferDescr
   {
-    BufferDescr& operator = (BufferDescr&);
   public:
-    explicit BufferDescr(const ::HWAVEOUT& handle) : Handle(handle)
+    BufferDescr(const ::HWAVEOUT& handle, std::size_t sizeInSamples) : Handle(handle), Buffer(sizeInSamples)
     {
-      std::memset(&Header, 0, sizeof(Header));
-    }
-    ~BufferDescr()
-    {
-      Unprepare();
+      Init();
     }
 
-    //copy only handler
-    BufferDescr(const BufferDescr& oth) : Handle(oth.Handle)
+    BufferDescr(const BufferDescr& rh) : Handle(rh.Handle), Buffer(rh.Buffer.size())
     {
-      std::memset(&Header, 0, sizeof(Header));
+      Init();
+    }
+
+    const BufferDescr& operator = (const BufferDescr&)
+    {
+      assert(false);
+      return *this;
+    }
+
+    ~BufferDescr()
+    {
+      try
+      {
+        assert(0 != Handle);
+        CheckMMResult(::waveOutUnprepareHeader(Handle, &Header, sizeof(Header)));
+      }
+      catch (...)
+      {
+        //TODO
+      }
     }
 
     void Fill(const void* data, std::size_t sizeInSamples)
     {
-      Unprepare();
-      Header.lpData = ::LPSTR(&Buffer[0]);
+      assert(IsReady());
+      assert(sizeInSamples <= Buffer.size());
       Header.dwBufferLength = ::DWORD(sizeInSamples) * sizeof(Buffer.front());
       std::memcpy(Header.lpData, data, Header.dwBufferLength);
-      assert(Handle);
-      ::waveOutPrepareHeader(Handle, &Header, sizeof(Header));
     }
 
     void Play()
     {
-      assert(Handle);
-      if (Header.lpData && MMSYSERR_NOERROR != ::waveOutWrite(Handle, &Header, sizeof(Header)))
-      {
-        throw 1;//TODO
-      }
+      assert(0 != Handle);
+      Header.dwFlags &= ~WHDR_DONE;
+      CheckMMResult(::waveOutWrite(Handle, &Header, sizeof(Header)));
     }
 
-    bool Ready()
+    bool IsReady() const
     {
-      return Header.lpData && 0 != (Header.dwFlags & WHDR_DONE);
+      return 0 != (Header.dwFlags & WHDR_DONE);
     }
 
-    void Stop()
-    {
-      Unprepare();
-    }
-
-    void Resize(std::size_t sizeInSamples)
-    {
-      assert(0 == Header.lpData);
-      if (sizeInSamples > Buffer.size())
-      {
-        Buffer.resize(sizeInSamples);
-      }
-    }
   private:
-    void Unprepare()
+    void Init()
     {
-      if (Header.lpData)
-      {
-        assert(Handle);
-        ::waveOutUnprepareHeader(Handle, &Header, sizeof(Header));
-        Header.lpData = 0;
-      }
+      Header.lpData = ::LPSTR(&Buffer[0]);
+      Header.dwBufferLength = ::DWORD(Buffer.size()) * sizeof(Buffer.front());
+      Header.dwUser = Header.dwLoops = Header.dwFlags = 0;
+      assert(0 != Handle);
+      CheckMMResult(::waveOutPrepareHeader(Handle, &Header, sizeof(Header)));
+      Header.dwFlags |= WHDR_DONE;
     }
   private:
     const ::HWAVEOUT& Handle;
-    ::WAVEHDR Header;
     std::vector<Sample> Buffer;
+    ::WAVEHDR Header;
   };
 
   class Win32Backend : public BackendImpl
   {
   public:
     Win32Backend()
-      : WaveHandle(0), Buffers(MAX_BUFFER_DEPTH, BufferDescr(WaveHandle))
-      , FillPtr(&Buffers[0], &Buffers[MIN_BUFFER_DEPTH])
-      , PlayPtr(FillPtr)
+      : WaveHandle(0), Device(WAVE_MAPPER)
     {
+    }
+
+    virtual ~Win32Backend()
+    {
+      try
+      {
+        Close();
+      }
+      catch (...)
+      {
+        //TODO
+      }
     }
 
     virtual void OnBufferReady(const void* data, std::size_t sizeInBytes)
     {
-      assert(WaveHandle);
-      ++FillPtr;
-      while (FillPtr == PlayPtr)
+      while (!FillPtr->IsReady())
       {
-        PlayedEvent.Wait();
+        ReadyEvent.Wait();
       }
       FillPtr->Fill(data, sizeInBytes / sizeof(Sample));
-      FilledEvent.Set();
+      FillPtr->Play();
+      ++FillPtr;
     }
 
     virtual void OnParametersChanged(unsigned changedFields)
     {
-      const bool freqChanged(0 != (changedFields & SOUND_FREQ));
-      const bool bufChanged(0 != (changedFields & BUFFER));
-      if (freqChanged || bufChanged)
-      {
-        Shutdown();
-        if (changedFields & DRIVER_FLAGS)
-        {
-          PlayPtr = FillPtr = cycled_iterator<BufferDescr*>(&Buffers[0], &Buffers[
-            clamp<std::size_t>(Params.DriverFlags, MIN_BUFFER_DEPTH, MAX_BUFFER_DEPTH)]);
-        }
+      const unsigned mask(DRIVER_PARAMS | DRIVER_FLAGS | BUFFER | SOUND_FREQ | PREAMP);
 
-        if (bufChanged)
+      if (changedFields & mask)
+      {
+        Close();
+
+        //request devices
+        while (changedFields & DRIVER_PARAMS)
         {
-          std::for_each(Buffers.begin(), Buffers.end(), std::bind2nd(std::mem_fun_ref(&BufferDescr::Resize),
-            OUTPUT_CHANNELS * (Params.SoundParameters.SoundFreq * Params.BufferInMs / 1000)));
+          if (Params.DriverParameters.empty())
+          {
+            Device = WAVE_MAPPER;
+            break;
+          }
+          InStringStream str(Params.DriverParameters);
+          unsigned id(0);
+          if (!(str >> id))
+          {
+            assert(!"Invalid parameter format");
+            break;
+          }
+          const ::UINT devs(::waveOutGetNumDevs());
+          if (devs <= id)
+          {
+            assert(!"Invalid device specified");
+            break;
+          }
+          Device = id;
+          break;
         }
 
         ::WAVEFORMATEX wfx;
@@ -174,58 +210,56 @@ namespace
         wfx.nAvgBytesPerSec = wfx.nSamplesPerSec * wfx.nBlockAlign;
         wfx.wBitsPerSample = 8 * sizeof(Sample);
 
-        if (MMSYSERR_NOERROR != 
-          ::waveOutOpen(&WaveHandle, WAVE_MAPPER, &wfx, ::DWORD_PTR(ReadyEvent.GetHandle()), 0,
-                CALLBACK_EVENT | WAVE_FORMAT_DIRECT))
+        CheckMMResult(::waveOutOpen(&WaveHandle, Device, &wfx, ::DWORD_PTR(ReadyEvent.GetHandle()), 0,
+                CALLBACK_EVENT | WAVE_FORMAT_DIRECT));
+
+        if (changedFields & PREAMP)
         {
-          throw 3;//TODO
+          ::DWORD vol(0xffff * Params.Preamp / FIXED_POINT_PRECISION);
+          CheckMMResult(::waveOutSetVolume(WaveHandle, vol | (vol << 16)));
         }
 
-        PlaybackThread.Start(PlaybackFunc, this);
+        if (changedFields & (BUFFER | SOUND_FREQ | DRIVER_FLAGS))
+        {
+          unsigned buffers(DEFAULT_BUFFER_DEPTH);
+          if (changedFields & DRIVER_FLAGS)
+          {
+            if (Params.DriverFlags < MIN_BUFFER_DEPTH || Params.DriverFlags > MAX_BUFFER_DEPTH)
+            {
+              throw 2;//TODO
+            }
+            buffers = Params.DriverFlags;
+          }
+          Buffers.assign(buffers, 
+            BufferDescr(WaveHandle, OUTPUT_CHANNELS * (Params.SoundParameters.SoundFreq * Params.BufferInMs / 1000)));
+          FillPtr = cycled_iterator<BufferDescr*>(&Buffers[0], &Buffers[Buffers.size()]);
+        }
       }
     }
 
     virtual void OnShutdown()
     {
-      Shutdown();
-    }
-  private:
-    void Shutdown()
-    {
-      std::for_each(Buffers.begin(), Buffers.end(), std::mem_fun_ref(&BufferDescr::Stop));
       if (0 != WaveHandle)
       {
-        ::waveOutClose(WaveHandle);
+        CheckMMResult(::waveOutReset(WaveHandle));
+      }
+    }
+  private:
+    void Close()
+    {
+      if (0 != WaveHandle)
+      {
+        Buffers.clear();
+        CheckMMResult(::waveOutClose(WaveHandle));
         WaveHandle = 0;
       }
     }
-
-    static bool PlaybackFunc(void* data)
-    {
-      Win32Backend* const self(static_cast<Win32Backend*>(data));
-      if (0 == self->WaveHandle)
-      {
-        return false;
-      }
-      while (self->FillPtr == self->PlayPtr)
-      {
-        self->FilledEvent.Wait();
-      }
-      self->PlayPtr->Play();
-      self->ReadyEvent.Wait();
-      ++self->PlayPtr;
-      self->PlayedEvent.Set();
-      return true;
-    }
   private:
     ::HWAVEOUT WaveHandle;
+    ::UINT Device;
     Event ReadyEvent;
-    ZXTune::IPC::Thread PlaybackThread;
-    Event FilledEvent;
-    Event PlayedEvent;
     std::vector<BufferDescr> Buffers;
     cycled_iterator<BufferDescr*> FillPtr;
-    cycled_iterator<BufferDescr*> PlayPtr;
   };
 }
 

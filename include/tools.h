@@ -38,6 +38,10 @@ template<class C>
 class cycled_iterator
 {
 public:
+  cycled_iterator() : begin(), end(), cur()
+  {
+  }
+
   cycled_iterator(C start, C stop) : begin(start), end(stop), cur(start)
   {
   }
