@@ -173,6 +173,7 @@ namespace
       const unsigned mask(DRIVER_PARAMS | DRIVER_FLAGS | BUFFER | SOUND_FREQ);
       if (changedFields & mask)
       {
+        const bool needStartup(0 != WaveHandle);
         OnShutdown();
 
         //request devices
@@ -210,7 +211,10 @@ namespace
             }
           }
         }
-        OnStartup();
+        if (needStartup)
+        {
+          OnStartup();
+        }
       }
       else if (changedFields & PREAMP)
       {
@@ -220,6 +224,7 @@ namespace
 
     virtual void OnStartup()
     {
+      assert(0 == WaveHandle);
       ::WAVEFORMATEX wfx;
 
       std::memset(&wfx, 0, sizeof(wfx));
@@ -245,6 +250,7 @@ namespace
         CheckMMResult(::waveOutReset(WaveHandle));
         Buffers.clear();
         CheckMMResult(::waveOutClose(WaveHandle));
+        WaveHandle = 0;
       }
     }
 

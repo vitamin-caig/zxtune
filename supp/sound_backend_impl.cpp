@@ -196,10 +196,10 @@ namespace ZXTune
 
     void BackendImpl::SafeStop()
     {
+      PlayerThread.Stop();
       if (PLAYING == CurrentState || PAUSED == CurrentState)
       {
         CurrentState = STOPPED;
-        PlayerThread.Stop();
         OnShutdown();
       }
     }
@@ -275,6 +275,7 @@ namespace ZXTune
           if (ModulePlayer::MODULE_STOPPED == thatState)
           {
             self->CurrentState = STOPPED;
+            self->OnShutdown();
           }
         }
         if (STOPPED == self->CurrentState)

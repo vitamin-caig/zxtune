@@ -91,15 +91,17 @@ namespace ZXTune
     void Thread::Stop()
     {
       ThreadData* const data(static_cast<ThreadData*>(Data));
-      assert(data->Handle != INVALID_HANDLE_VALUE);
-      ::DWORD res(::WaitForSingleObject(data->Handle, THREAD_WAIT_TIMEOUT));
-      if (WAIT_TIMEOUT == res)
+      if (data->Handle != INVALID_HANDLE_VALUE)
       {
-        assert(!"Failed to wait thread");
-        CheckError(FALSE != ::TerminateThread(data->Handle, 0));
+        ::DWORD res(::WaitForSingleObject(data->Handle, THREAD_WAIT_TIMEOUT));
+        if (WAIT_TIMEOUT == res)
+        {
+          assert(!"Failed to wait thread");
+          CheckError(FALSE != ::TerminateThread(data->Handle, 0));
+        }
+        CheckError(FALSE != ::CloseHandle(data->Handle));
+        data->Handle = INVALID_HANDLE_VALUE;
       }
-      CheckError(FALSE != ::CloseHandle(data->Handle));
-      data->Handle = INVALID_HANDLE_VALUE;
     }
 
     void Sleep(uint32_t milliseconds)

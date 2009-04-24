@@ -13,7 +13,7 @@ namespace ZXTune
     /// Stereo mode
     const std::size_t OUTPUT_CHANNELS = 2;
     /// Precision for fixed-point calculations (num(float) = num(int) / FIXED_POINT_PRECISION)
-    const uint16_t FIXED_POINT_PRECISION = 100;
+    const uint16_t FIXED_POINT_PRECISION = 256;
 
     /// Arrays
     typedef BigSample BigSampleArray[OUTPUT_CHANNELS];

@@ -23,7 +23,8 @@
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="5"
+				RuntimeLibrary="1"
+				DisableLanguageExtensions="FALSE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="0"
 				ExpandAttributedSource="FALSE"
@@ -71,9 +72,16 @@
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
+				GlobalOptimizations="TRUE"
+				FavorSizeOrSpeed="1"
+				OptimizeForWindowsApplication="TRUE"
+				AdditionalIncludeDirectories="..\..\include\boost\tr1\tr1;..\include\boost;..\..\include;..\..\lib\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
-				RuntimeLibrary="4"
-				UsePrecompiledHeader="3"
+				RuntimeLibrary="0"
+				EnableEnhancedInstructionSet="2"
+				DisableLanguageExtensions="FALSE"
+				DefaultCharIsUnsigned="TRUE"
+				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
 				DebugInformationFormat="3"/>
@@ -81,6 +89,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="winmm.lib"
 				OutputFile="$(OutDir)/cmdline.exe"
 				LinkIncremental="1"
 				GenerateDebugInformation="TRUE"

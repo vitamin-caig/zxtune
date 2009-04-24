@@ -77,7 +77,7 @@ int main(int argc, char* argv[])
       file.read(safe_ptr_cast<char*>(&data[0]), static_cast<std::streamsize>(data.size()));
     }
 
-//#define WAVE
+#define WAVE
 
 #ifdef WAVE
     ZXTune::Sound::Backend::Ptr backend(ZXTune::Sound::CreateFileBackend());

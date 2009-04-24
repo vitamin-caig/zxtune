@@ -50,10 +50,25 @@ namespace
       std::memcpy(Format.DataId, DATA, sizeof(DATA));
     }
 
+    virtual ~FileBackend()
+    {
+      try
+      {
+        Stop();
+      }
+      catch (...)
+      {
+        //TODO
+      }
+    }
+
     virtual void OnParametersChanged(unsigned changedFields)
     {
-      OnShutdown();
-      OnStartup();
+      if (File.is_open())
+      {
+        OnShutdown();
+        OnStartup();
+      }
     }
 
     virtual void OnStartup()

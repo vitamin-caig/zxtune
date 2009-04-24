@@ -37,10 +37,7 @@ namespace
           res[chan] += Position->Array[chan] * *it;
         }
       }
-      for (std::size_t chan = 0; chan != OUTPUT_CHANNELS; ++chan)
-      {
-        Result[chan] = static_cast<Sample>(res[chan] / FIXED_POINT_PRECISION);
-      }
+      std::transform(res, ArrayEnd(res), Result, std::bind2nd(std::divides<BigSample>(), BigSample(FIXED_POINT_PRECISION)));
       ++Position;
       return Delegate->ApplySample(Result, OUTPUT_CHANNELS);
     }
