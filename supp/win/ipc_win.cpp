@@ -77,7 +77,10 @@ namespace ZXTune
     void Thread::Start(ThreadFunc func, void* param)
     {
       ThreadData* const data(static_cast<ThreadData*>(Data));
-      assert(data->Handle == INVALID_HANDLE_VALUE);
+      if (data->Handle != INVALID_HANDLE_VALUE)
+      {
+        Stop();
+      }
       data->Function = func;
       data->Parameter = param;
       data->Handle = ::CreateThread(0, 0, ThreadFuncWrapper, Data, 0, &data->Id);

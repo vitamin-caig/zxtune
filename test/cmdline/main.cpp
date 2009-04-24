@@ -113,14 +113,31 @@ int main(int argc, char* argv[])
     backend->SetSoundParameters(params);
 
     backend->Play();
-    while (ZXTune::Sound::Backend::STOPPED != backend->GetState())
+
+    while (true)
     {
       uint32_t frame;
       ZXTune::Module::Tracking track;
       backend->GetModuleState(frame, track);
       std::cout << "\rCurrent frame: " << frame << std::flush;
-      ZXTune::IPC::Sleep(1000);
+      char sym(0);
+      std::cin >> sym;
+      if ('q' == sym || 'Q' == sym)
+      {
+        break;
+      }
+      switch (sym)
+      {
+      case 'p':
+        ZXTune::Sound::Backend::PLAYING == backend->GetState() ? backend->Pause() : backend->Play();
+        break;
+      case 's':
+        backend->Stop();
+        break;
+      }
+      //ZXTune::IPC::Sleep(1000);
     }
+    //backend->Stop();
     return 0;
   }
   catch (const Error& e)

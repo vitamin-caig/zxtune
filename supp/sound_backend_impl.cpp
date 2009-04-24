@@ -15,22 +15,24 @@ namespace
   using namespace ZXTune::Sound;
   void GetInitialParameters(Backend::Parameters& params)
   {
+    static const SampleArray MixValue = {FIXED_POINT_PRECISION};
+    static const ChannelMixer DefMixer(MixValue);
     //driver
     params.DriverParameters.clear();
     params.DriverFlags = 0;
     //sound
-    params.SoundParameters.ClockFreq = 0;
-    params.SoundParameters.SoundFreq = 0;
-    params.SoundParameters.FrameDuration = 0;
+    params.SoundParameters.ClockFreq = 1750000;
+    params.SoundParameters.SoundFreq = 44100;
+    params.SoundParameters.FrameDuration = 20;
     params.SoundParameters.Flags = 0;
     //mixing (mono by default)
-    params.Mixer.clear();
+    params.Mixer.resize(3, DefMixer);
     params.Preamp = FIXED_POINT_PRECISION;
     //FIR (no)
     params.FIROrder = 0;
     params.LowCutoff = params.HighCutoff = 0;
     //render (one frame)
-    params.BufferInMs = 0;
+    params.BufferInMs = 500;
   }
 }
 
@@ -44,13 +46,10 @@ namespace ZXTune
       GetInitialParameters(Params);
     }
 
-    BackendImpl::~BackendImpl()
-    {
-      PlayerThread.Stop();
-    }
-
     Backend::State BackendImpl::OpenModule(const String& filename, const Dump& data)
     {
+      IPC::Locker locker(PlayerMutex);
+      SafeStop();
       Player = ModulePlayer::Create(filename, data);
       if (Player.get())
       {
@@ -67,64 +66,68 @@ namespace ZXTune
 
     Backend::State BackendImpl::Play()
     {
+      IPC::Locker lock(PlayerMutex);
       CheckState();
       if (STOPPED == CurrentState)
       {
-        IPC::Locker lock(PlayerMutex);
         assert(Player.get());
         Player->Reset();
+        OnStartup();
         PlayerThread.Start(PlayFunc, this);
+      }
+      else if (PAUSED == CurrentState)
+      {
+        OnResume();
       }
       return CurrentState = PLAYING;
     }
 
     Backend::State BackendImpl::Pause()
     {
+      IPC::Locker lock(PlayerMutex);
       CheckState();
+      OnPause();
       return CurrentState = PAUSED;
     }
 
     Backend::State BackendImpl::Stop()
     {
+      //do not lock anything
       CheckState();
-      if (STOPPED != CurrentState)
-      {
-        CurrentState = STOPPED;
-        PlayerThread.Stop();
-      }
+      SafeStop();
       return CurrentState;
     }
 
     void BackendImpl::GetPlayerInfo(ModulePlayer::Info& info) const
     {
+      IPC::Locker lock(PlayerMutex);
       CheckState();
       assert(Player.get());
-      IPC::Locker lock(PlayerMutex);
       return Player->GetInfo(info);
     }
 
     void BackendImpl::GetModuleInfo(Module::Information& info) const
     {
+      IPC::Locker lock(PlayerMutex);
       CheckState();
       assert(Player.get());
-      IPC::Locker lock(PlayerMutex);
       return Player->GetModuleInfo(info);
     }
 
     Backend::State BackendImpl::GetModuleState(uint32_t& timeState, Module::Tracking& trackState) const
     {
+      IPC::Locker lock(PlayerMutex);
       CheckState();
       assert(Player.get());
-      IPC::Locker lock(PlayerMutex);
       Player->GetModuleState(timeState, trackState);
       return CurrentState;
     }
 
     Backend::State BackendImpl::GetSoundState(Sound::Analyze::Volume& volState, Sound::Analyze::Spectrum& spectrumState) const
     {
+      IPC::Locker lock(PlayerMutex);
       CheckState();
       assert(Player.get());
-      IPC::Locker lock(PlayerMutex);
       Player->GetSoundState(volState, spectrumState);
       return CurrentState;
     }
@@ -132,13 +135,13 @@ namespace ZXTune
     /// Seeking
     Backend::State BackendImpl::SetPosition(const uint32_t& frame)
     {
+      IPC::Locker lock(PlayerMutex);
       CheckState();
       if (STOPPED == CurrentState)
       {
         return CurrentState;
       }
       assert(Player.get());
-      IPC::Locker lock(PlayerMutex);
       return UpdateCurrentState(Player->SetPosition(frame));
     }
 
@@ -188,6 +191,16 @@ namespace ZXTune
       if (NOTOPENED == CurrentState)
       {
         throw 1;//TODO
+      }
+    }
+
+    void BackendImpl::SafeStop()
+    {
+      if (PLAYING == CurrentState || PAUSED == CurrentState)
+      {
+        CurrentState = STOPPED;
+        PlayerThread.Stop();
+        OnShutdown();
       }
     }
 
@@ -254,21 +267,22 @@ namespace ZXTune
     bool BackendImpl::PlayFunc(void* obj)
     {
       BackendImpl* const self(safe_ptr_cast<BackendImpl*>(obj));
-      if (PLAYING == self->CurrentState)
       {
         IPC::Locker lock(self->PlayerMutex);
-        const ModulePlayer::State thatState(self->Player->RenderFrame(self->Params.SoundParameters, self->Mixer.get()));
-        if (ModulePlayer::MODULE_STOPPED == thatState)
+        if (PLAYING == self->CurrentState)
         {
-          self->CurrentState = STOPPED;
+          const ModulePlayer::State thatState(self->Player->RenderFrame(self->Params.SoundParameters, self->Mixer.get()));
+          if (ModulePlayer::MODULE_STOPPED == thatState)
+          {
+            self->CurrentState = STOPPED;
+          }
+        }
+        if (STOPPED == self->CurrentState)
+        {
+          return false;
         }
       }
-      if (STOPPED == self->CurrentState)
-      {
-        self->OnShutdown();
-        return false;
-      }
-      else if (PAUSED == self->CurrentState)
+      if (PAUSED == self->CurrentState)
       {
         IPC::Sleep(PLAYTHREAD_SLEEP_PERIOD);
       }

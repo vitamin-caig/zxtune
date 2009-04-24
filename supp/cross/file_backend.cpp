@@ -53,7 +53,13 @@ namespace
     virtual void OnParametersChanged(unsigned changedFields)
     {
       OnShutdown();
+      OnStartup();
+    }
+
+    virtual void OnStartup()
+    {
       assert(!Params.DriverParameters.empty());
+      assert(!File.is_open());
       File.open(Params.DriverParameters.c_str(), std::ios::binary);
       assert(File.is_open());
       File.seekp(sizeof(Format));
@@ -71,8 +77,16 @@ namespace
       {
         File.seekp(0);
         File.write(safe_ptr_cast<const char*>(&Format), sizeof(Format));
-        //File.close();
+        File.close();
       }
+    }
+
+    virtual void OnPause()
+    {
+    }
+
+    virtual void OnResume()
+    {
     }
 
     virtual void OnBufferReady(const void* data, std::size_t sizeInBytes)

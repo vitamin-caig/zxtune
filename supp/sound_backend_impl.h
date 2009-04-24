@@ -13,8 +13,6 @@ namespace ZXTune
     public:
       BackendImpl();
 
-      virtual ~BackendImpl();
-
       virtual State OpenModule(const String& filename, const Dump& data);
 
       virtual State GetState() const;
@@ -52,13 +50,17 @@ namespace ZXTune
         BUFFER = 2048
       };
       virtual void OnParametersChanged(unsigned changedFields) = 0;
+      virtual void OnStartup() = 0;
       virtual void OnShutdown() = 0;
+      virtual void OnPause() = 0;
+      virtual void OnResume() = 0;
     protected:
       Parameters Params;
 
     private:
       static bool PlayFunc(void*);
       void CheckState() const;
+      void SafeStop();
       State UpdateCurrentState(ModulePlayer::State);
       unsigned MatchParameters(const Parameters& params) const;
       static void CallbackFunc(const void*, std::size_t, void*);

@@ -142,13 +142,14 @@ namespace
     Win32Backend()
       : WaveHandle(0), Device(WAVE_MAPPER)
     {
+      Params.DriverFlags = DEFAULT_BUFFER_DEPTH;
     }
 
     virtual ~Win32Backend()
     {
       try
       {
-        Close();
+        Stop();
       }
       catch (...)
       {
@@ -169,11 +170,10 @@ namespace
 
     virtual void OnParametersChanged(unsigned changedFields)
     {
-      const unsigned mask(DRIVER_PARAMS | DRIVER_FLAGS | BUFFER | SOUND_FREQ | PREAMP);
-
+      const unsigned mask(DRIVER_PARAMS | DRIVER_FLAGS | BUFFER | SOUND_FREQ);
       if (changedFields & mask)
       {
-        Close();
+        OnShutdown();
 
         //request devices
         while (changedFields & DRIVER_PARAMS)
@@ -200,41 +200,42 @@ namespace
           break;
         }
 
-        ::WAVEFORMATEX wfx;
-
-        std::memset(&wfx, 0, sizeof(wfx));
-        wfx.wFormatTag = WAVE_FORMAT_PCM;
-        wfx.nChannels = OUTPUT_CHANNELS;
-        wfx.nSamplesPerSec = Params.SoundParameters.SoundFreq;
-        wfx.nBlockAlign = sizeof(SampleArray);
-        wfx.nAvgBytesPerSec = wfx.nSamplesPerSec * wfx.nBlockAlign;
-        wfx.wBitsPerSample = 8 * sizeof(Sample);
-
-        CheckMMResult(::waveOutOpen(&WaveHandle, Device, &wfx, ::DWORD_PTR(ReadyEvent.GetHandle()), 0,
-                CALLBACK_EVENT | WAVE_FORMAT_DIRECT));
-
-        if (changedFields & PREAMP)
-        {
-          ::DWORD vol(0xffff * Params.Preamp / FIXED_POINT_PRECISION);
-          CheckMMResult(::waveOutSetVolume(WaveHandle, vol | (vol << 16)));
-        }
-
         if (changedFields & (BUFFER | SOUND_FREQ | DRIVER_FLAGS))
         {
-          unsigned buffers(DEFAULT_BUFFER_DEPTH);
           if (changedFields & DRIVER_FLAGS)
           {
             if (Params.DriverFlags < MIN_BUFFER_DEPTH || Params.DriverFlags > MAX_BUFFER_DEPTH)
             {
               throw 2;//TODO
             }
-            buffers = Params.DriverFlags;
           }
-          Buffers.assign(buffers, 
-            BufferDescr(WaveHandle, OUTPUT_CHANNELS * (Params.SoundParameters.SoundFreq * Params.BufferInMs / 1000)));
-          FillPtr = cycled_iterator<BufferDescr*>(&Buffers[0], &Buffers[Buffers.size()]);
         }
+        OnStartup();
       }
+      else if (changedFields & PREAMP)
+      {
+        SetVolume();
+      }
+    }
+
+    virtual void OnStartup()
+    {
+      ::WAVEFORMATEX wfx;
+
+      std::memset(&wfx, 0, sizeof(wfx));
+      wfx.wFormatTag = WAVE_FORMAT_PCM;
+      wfx.nChannels = OUTPUT_CHANNELS;
+      wfx.nSamplesPerSec = Params.SoundParameters.SoundFreq;
+      wfx.nBlockAlign = sizeof(SampleArray);
+      wfx.nAvgBytesPerSec = wfx.nSamplesPerSec * wfx.nBlockAlign;
+      wfx.wBitsPerSample = 8 * sizeof(Sample);
+
+      CheckMMResult(::waveOutOpen(&WaveHandle, Device, &wfx, ::DWORD_PTR(ReadyEvent.GetHandle()), 0,
+        CALLBACK_EVENT | WAVE_FORMAT_DIRECT));
+      SetVolume();
+      Buffers.assign(Params.DriverFlags, 
+        BufferDescr(WaveHandle, OUTPUT_CHANNELS * (Params.SoundParameters.SoundFreq * Params.BufferInMs / 1000)));
+      FillPtr = cycled_iterator<BufferDescr*>(&Buffers[0], &Buffers[Buffers.size()]);
     }
 
     virtual void OnShutdown()
@@ -242,17 +243,33 @@ namespace
       if (0 != WaveHandle)
       {
         CheckMMResult(::waveOutReset(WaveHandle));
+        Buffers.clear();
+        CheckMMResult(::waveOutClose(WaveHandle));
       }
     }
-  private:
-    void Close()
+
+    virtual void OnPause()
     {
       if (0 != WaveHandle)
       {
-        Buffers.clear();
-        CheckMMResult(::waveOutClose(WaveHandle));
-        WaveHandle = 0;
+        CheckMMResult(::waveOutPause(WaveHandle));
       }
+    }
+
+    virtual void OnResume()
+    {
+      if (0 != WaveHandle)
+      {
+        CheckMMResult(::waveOutRestart(WaveHandle));
+
+      }
+    }
+
+  private:
+    void SetVolume()
+    {
+      ::DWORD vol(0xffff * Params.Preamp / FIXED_POINT_PRECISION);
+      CheckMMResult(::waveOutSetVolume(WaveHandle, vol | (vol << 16)));
     }
   private:
     ::HWAVEOUT WaveHandle;
