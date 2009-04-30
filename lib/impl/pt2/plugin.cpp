@@ -72,13 +72,7 @@ namespace
   {
     uint8_t Size;
     uint8_t Loop;
-    PACK_PRE struct Line
-    {
-      uint8_t ToneDelta : 6;
-      uint8_t Dummy : 1;
-      uint8_t ToneDeltaSign : 1;
-    } PACK_POST;
-    Line Data[1];
+    int8_t Data[1];
   } PACK_POST;
 
   PACK_PRE struct PT2Pattern
@@ -149,7 +143,7 @@ namespace
         dst.Noise = src.Noise;
         dst.Level = src.Level;
         dst.Vibrato = src.VibratoLo | (signed(src.VibratoHi) << 8);
-        if (src.VibratoSign)
+        if (!src.VibratoSign)
         {
           dst.Vibrato = -dst.Vibrato;
         }
@@ -192,12 +186,9 @@ namespace
         return result_type();
       }
       const PT2Ornament* const ornament(safe_ptr_cast<const PT2Ornament*>(&Data[fromLE(arg)]));
-      result_type tmp(ornament->Size, ornament->Loop);
-      for (std::size_t idx = 0; idx != ornament->Size; ++idx)
-      {
-        const PT2Ornament::Line& src(ornament->Data[idx]);
-        tmp.Data[idx] = src.ToneDeltaSign ? -signed(src.ToneDelta) : signed(src.ToneDelta);
-      }
+      result_type tmp;
+      tmp.Loop = ornament->Loop;
+      tmp.Data.assign(ornament->Data, ornament->Data + ornament->Size);
       return tmp;
     }
   private:
@@ -442,7 +433,7 @@ namespace
         std::valarray<std::size_t> counters(std::size_t(0), ArraySize(patPos->Offsets));
         std::transform(patPos->Offsets, ArrayEnd(patPos->Offsets), offsets.begin(), std::ptr_fun<uint16_t>(&fromLE));
         pat.reserve(MAX_PATTERN_SIZE);
-        while (0 != data[offsets[0]])//first channel is control
+        do
         {
           pat.push_back(Line());
           Line& line(pat.back());
@@ -452,10 +443,8 @@ namespace
           counters -= linesToSkip;
           pat.resize(pat.size() + linesToSkip);//add dummies
         }
-        if (counters.max())//remaining lines
-        {
-          pat.resize(pat.size() + counters.max());
-        }
+        while (data[offsets[0]] || counters[0]);
+        assert(0 == counters.max());
         assert(pat.size() <= MAX_PATTERN_SIZE);
       }
       Information.Statistic.Pattern = Data.Patterns.size();
@@ -663,7 +652,7 @@ namespace
             if ((dst->Glissade > 0 && slidedTone + dst->Glissade >= dst->SlidingTarget) ||
                 (dst->Glissade < 0 && slidedTone + dst->Glissade <= dst->SlidingTarget))
             {
-              dst->Sliding += dst->SlidingTarget - dst->Sliding;
+              dst->Sliding += dst->SlidingTarget - slidedTone;
               dst->Glissade = 0;
             }
           }

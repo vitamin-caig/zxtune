@@ -92,7 +92,7 @@ int main(int argc, char* argv[])
     Sound::Backend::Parameters params;
     backend->GetSoundParameters(params);
 
-    params.SoundParameters.Flags = Sound::PSG_TYPE_YM;
+    params.SoundParameters.Flags = Sound::PSG_TYPE_YM | Sound::MOD_LOOP;
     params.SoundParameters.ClockFreq = 1750000;
     params.SoundParameters.SoundFreq = 48000;
     params.SoundParameters.FrameDuration = 20;

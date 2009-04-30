@@ -2,6 +2,8 @@
 
 #include <tools.h>
 
+#include <sound_attrs.h>
+
 #include <cassert>
 #include <fstream>
 
@@ -84,6 +86,8 @@ namespace
       Format.Align = sizeof(SampleArray);
       Format.BitsPerSample = 8 * sizeof(Sample);
       Format.DataSize = 0;
+      //loop is disabled
+      Params.SoundParameters.Flags &= MOD_LOOP;
     }
 
     virtual void OnShutdown()
