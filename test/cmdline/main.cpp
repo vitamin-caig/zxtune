@@ -15,6 +15,8 @@
 #include <fstream>
 #include <iostream>
 
+using namespace ZXTune;
+
 namespace
 {
   std::ostream& operator << (std::ostream& str, const StringMap& sm)
@@ -26,7 +28,7 @@ namespace
     return str;
   }
 
-  std::ostream& operator << (std::ostream& str, const ZXTune::ModulePlayer::Info& info)
+  std::ostream& operator << (std::ostream& str, const ModulePlayer::Info& info)
   {
     return str << "Capabilities: 0x" << std::hex << info.Capabilities << "\n" << info.Properties;
   }
@@ -48,10 +50,10 @@ int main(int argc, char* argv[])
       std::string args(argv[arg]);
       if (args == "--help")
       {
-        std::vector<ZXTune::ModulePlayer::Info> infos;
-        ZXTune::GetSupportedPlayers(infos);
+        std::vector<ModulePlayer::Info> infos;
+        GetSupportedPlayers(infos);
         std::cout << "Supported module types:\n";
-        for (std::vector<ZXTune::ModulePlayer::Info>::const_iterator it = infos.begin(), lim = infos.end(); it != lim; ++it)
+        for (std::vector<ModulePlayer::Info>::const_iterator it = infos.begin(), lim = infos.end(); it != lim; ++it)
         {
           std::cout << "Capabilities: 0x" << std::hex << it->Capabilities << '\n' << it->Properties << "\n------\n";
         }
@@ -77,20 +79,20 @@ int main(int argc, char* argv[])
       file.read(safe_ptr_cast<char*>(&data[0]), static_cast<std::streamsize>(data.size()));
     }
 
-#define WAVE
+//#define WAVE
 
 #ifdef WAVE
-    ZXTune::Sound::Backend::Ptr backend(ZXTune::Sound::CreateFileBackend());
+    Sound::Backend::Ptr backend(Sound::CreateFileBackend());
 #else
-    ZXTune::Sound::Backend::Ptr backend(ZXTune::Sound::CreateWinAPIBackend());
+    Sound::Backend::Ptr backend(Sound::CreateWinAPIBackend());
 #endif
 
     backend->OpenModule(filename, data);
 
-    ZXTune::Sound::Backend::Parameters params;
+    Sound::Backend::Parameters params;
     backend->GetSoundParameters(params);
 
-    params.SoundParameters.Flags = ZXTune::Sound::PSG_TYPE_YM;
+    params.SoundParameters.Flags = Sound::PSG_TYPE_YM;
     params.SoundParameters.ClockFreq = 1750000;
     params.SoundParameters.SoundFreq = 48000;
     params.SoundParameters.FrameDuration = 20;
@@ -98,12 +100,12 @@ int main(int argc, char* argv[])
 
     params.Mixer.resize(3);
     
-    params.Mixer[0].Matrix[0] = 100;
-    params.Mixer[0].Matrix[1] = 5;
-    params.Mixer[1].Matrix[0] = 66;
-    params.Mixer[1].Matrix[1] = 66;
-    params.Mixer[2].Matrix[0] = 5;
-    params.Mixer[2].Matrix[1] = 100;
+    params.Mixer[0].Matrix[0] = Sound::FIXED_POINT_PRECISION;
+    params.Mixer[0].Matrix[1] = 5 * Sound::FIXED_POINT_PRECISION / 100;
+    params.Mixer[1].Matrix[0] = 66 * Sound::FIXED_POINT_PRECISION / 100;
+    params.Mixer[1].Matrix[1] = 66 * Sound::FIXED_POINT_PRECISION / 100;
+    params.Mixer[2].Matrix[0] = 5 * Sound::FIXED_POINT_PRECISION / 100;
+    params.Mixer[2].Matrix[1] = Sound::FIXED_POINT_PRECISION;
 #ifdef WAVE
     params.DriverParameters = "test.wav";
 #else
@@ -117,7 +119,7 @@ int main(int argc, char* argv[])
     while (true)
     {
       uint32_t frame;
-      ZXTune::Module::Tracking track;
+      Module::Tracking track;
       backend->GetModuleState(frame, track);
       std::cout << "\rCurrent frame: " << frame << std::flush;
       char sym(0);
@@ -129,13 +131,12 @@ int main(int argc, char* argv[])
       switch (sym)
       {
       case 'p':
-        ZXTune::Sound::Backend::PLAYING == backend->GetState() ? backend->Pause() : backend->Play();
+        Sound::Backend::PLAYING == backend->GetState() ? backend->Pause() : backend->Play();
         break;
       case 's':
         backend->Stop();
         break;
       }
-      //ZXTune::IPC::Sleep(1000);
     }
     //backend->Stop();
     return 0;

@@ -215,6 +215,25 @@
 						RelativePath="..\..\lib\impl\psg\plugin.cpp">
 					</File>
 				</Filter>
+				<Filter
+					Name="pt2"
+					Filter="">
+					<File
+						RelativePath="..\..\lib\impl\pt2\plugin.cpp">
+						<FileConfiguration
+							Name="Debug|Win32">
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release|Win32">
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+						</FileConfiguration>
+					</File>
+				</Filter>
 			</Filter>
 			<Filter
 				Name="devices"

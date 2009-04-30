@@ -45,6 +45,10 @@ namespace ZXTune
         //to mark all registers actual
         ALL_REGISTERS = 0x3fff,
       };
+
+      DataChunk() : Tick(), Mask()
+      {
+      }
       uint64_t Tick;
       uint16_t Mask;
       uint8_t Data[14];

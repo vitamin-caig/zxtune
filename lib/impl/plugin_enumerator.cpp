@@ -7,6 +7,13 @@ namespace
 {
   using namespace ZXTune;
 
+  struct PluginDescriptor
+  {
+    CheckFunc Checker;
+    FactoryFunc Creator;
+    InfoFunc Descriptor;
+  };
+
   class PDFinder : public std::unary_function<PluginDescriptor, bool>
   {
   public:
@@ -30,8 +37,9 @@ namespace
     {
     }
 
-    virtual void RegisterPlugin(const PluginDescriptor& descr)
+    virtual void RegisterPlugin(CheckFunc check, FactoryFunc create, InfoFunc describe)
     {
+      const PluginDescriptor descr = {check, create, describe};
       assert(Plugins.end() == std::find_if(Plugins.begin(), Plugins.end(), PDFinder(descr)));
       Plugins.push_back(descr);
     }

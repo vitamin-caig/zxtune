@@ -44,6 +44,17 @@ typedef std::ostream OutStream;
 #define PACK_POST
 #endif
 
+//byte order macroses
+
+inline uint16_t fromLE(uint16_t a)
+{
+  return a;
+}
+
+inline uint32_t fromLE(uint32_t a)
+{
+  return a;
+}
 
 //common types
 typedef std::basic_ostringstream<String::value_type> OutStringStream;

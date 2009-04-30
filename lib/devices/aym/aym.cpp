@@ -7,6 +7,11 @@
 #include <memory>
 #include <cassert>
 
+#ifdef OUT_AY_DUMP
+#include <iostream>
+#include <iomanip>
+#endif
+
 namespace
 {
   using namespace ZXTune;
@@ -145,12 +150,18 @@ namespace
         {
           break;
         }
+#ifdef OUT_AY_DUMP
+        std::cerr << std::endl << std::setw(16) << std::hex << LastData.Tick << ">";
+#endif
         unsigned mask = 1;
         for (unsigned idx = 0; idx != ArraySize(LastData.Data); ++idx, mask <<= 1)
         {
           if (LastData.Mask & mask) //register is in dump
           {
             uint8_t reg = LastData.Data[idx];
+#ifdef OUT_AY_DUMP
+            std::cerr << std::setw(2) << std::setfill('0') << std::hex << unsigned(reg) << ' ';
+#endif
             if (mask & REGS_4BIT_SET)
             {
               reg &= 0x0f;
@@ -175,6 +186,12 @@ namespace
             }
             State.Data[idx] = reg;
           } //update reg
+#ifdef OUT_AY_DUMP
+          else
+          {
+            std::cerr << ".. ";
+          }
+#endif
         }
         break;
       }

@@ -103,4 +103,51 @@ inline T clamp(T val, T min, T max)
   return std::min<T>(std::max<T>(val, min), max);
 }
 
+template<class T>
+class Optional
+{
+public:
+  Optional() : Value(), Null(true)
+  {
+  }
+
+  /*explicit*/Optional(const T& val) : Value(val), Null(false)
+  {
+  }
+
+  Optional(const Optional<T>& rh) : Value(rh.Value), Null(rh.Null)
+  {
+  }
+
+  operator T& ()
+  {
+    return Value;
+  }
+
+  operator const T& () const
+  {
+    return Value;
+  }
+
+  Optional<T>& operator = (const T& val)
+  {
+    Value = val;
+    Null = false;
+    return *this;
+  }
+
+  bool IsNull() const
+  {
+    return Null;
+  }
+
+  void Reset()
+  {
+    Null = true;
+  }
+private:
+  T Value;
+  bool Null;
+};
+
 #endif //__TOOLS_H_DEFINED__

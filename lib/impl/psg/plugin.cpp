@@ -4,6 +4,7 @@
 
 #include <tools.h>
 
+#include <sound_attrs.h>
 #include <player_attrs.h>
 
 #include <boost/static_assert.hpp>
@@ -59,25 +60,6 @@ namespace
     return (0 == std::memcmp(header->Sign, PSG_SIGNATURE, sizeof(PSG_SIGNATURE)) && PSG_MARKER == header->Marker);
   }
 
-  class SingleFrameDataSource : public DataSource<AYM::DataChunk>
-  {
-  public:
-    SingleFrameDataSource(const AYM::DataChunk& data) : Data(data), State(true)
-    {
-    }
-
-    virtual bool GetData(AYM::DataChunk& data)
-    {
-      data = Data;
-      bool res(State);
-      State = false;
-      return res;
-    }
-  private:
-    const AYM::DataChunk& Data;
-    bool State;
-  };
-
   class PlayerImpl : public ModulePlayer
   {
   public:
@@ -94,7 +76,7 @@ namespace
       {
         throw 1;//TODO
       }
-      AYM::DataChunk dummy = {0, 0, {0}};
+      AYM::DataChunk dummy;
       AYM::DataChunk* chunk = &dummy;
       while (size)
       {
@@ -153,7 +135,7 @@ namespace
       info.Properties.clear();
       info.Loop = 0;
       info.Statistic.Channels = 3;
-      info.Statistic.Note = info.Duration = static_cast<uint32_t>(Storage.size());
+      info.Statistic.Note = info.Statistic.Frame = static_cast<uint32_t>(Storage.size());
       info.Statistic.Pattern = 1;
       info.Statistic.Position = 1;
       info.Statistic.Speed = 1;
@@ -184,22 +166,20 @@ namespace
     {
       if (Position >= Storage.size())
       {
-        receiver->Flush();
-        return CurrentState = MODULE_STOPPED;
+        if (params.Flags & Sound::MOD_LOOP)
+        {
+          Position = 0;
+        }
+        else
+        {
+          receiver->Flush();
+          return CurrentState = MODULE_STOPPED;
+        }
       }
       assert(Device.get());
       AYM::DataChunk& data(Storage[Position++]);
       data.Tick = (TickCount += uint64_t(params.ClockFreq) * params.FrameDuration / 1000);
-      /*
-      data.Mask = 1 | 2 | 128 | 256 | 2048 | 8192;
-      data.Data[0] = 109;
-      data.Data[1] = 0;
-      data.Data[7] = ~1;
-      data.Data[8] = 31;
-      data.Data[11] = 200;
-      data.Data[13] = 255;
-      */
-      SingleFrameDataSource src(data);
+      SingleFrameDataSource<AYM::DataChunk> src(data);
       Device->RenderData(params, &src, receiver);
       return CurrentState = MODULE_PLAYING;
     }
