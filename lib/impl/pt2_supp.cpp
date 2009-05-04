@@ -330,7 +330,7 @@ namespace
         }
         else if (cmd == 0x0e)//gliss
         {
-          channel.Commands.push_back(Cmd(Cmd::GLISS, data[offsets[chan]++]));
+          channel.Commands.push_back(Cmd(Cmd::GLISS, static_cast<int8_t>(data[offsets[chan]++])));
         }
         else if (cmd == 0x0d)//note gliss
         {
@@ -346,7 +346,7 @@ namespace
         }
         else //noise add
         {
-          channel.Commands.push_back(Cmd(Cmd::NOISE_ADD, data[offsets[chan]++]));
+          channel.Commands.push_back(Cmd(Cmd::NOISE_ADD, static_cast<int8_t>(data[offsets[chan]++])));
         }
       }
       counters[chan] = periods[chan];
@@ -359,7 +359,7 @@ namespace
     {
       ChannelState()
         : Enabled(false), Envelope(false), Volume(15), NoiseAdd(0), Sliding(0), 
-        SlidingTarget(0), Glissade(0)
+        SlidingTargetNote(~std::size_t(0)), Glissade(0)
       {
       }
       bool Enabled;
@@ -372,7 +372,7 @@ namespace
       std::size_t Volume;
       signed NoiseAdd;
       signed Sliding;
-      unsigned SlidingTarget;
+      std::size_t SlidingTargetNote;
       signed Glissade;
     };
     struct ModuleState
@@ -543,7 +543,8 @@ namespace
             }
             else
             {
-              dst.Sliding = dst.SlidingTarget = dst.Glissade = 0;
+              dst.Sliding = dst.Glissade = 0;
+              dst.SlidingTargetNote = ~std::size_t(0);
               dst.PosInSample = dst.PosInOrnament = 0;
             }
           }
@@ -551,7 +552,8 @@ namespace
           {
             dst.Note = src.Note;
             dst.PosInSample = dst.PosInOrnament = 0;
-            dst.Sliding = dst.SlidingTarget = dst.Glissade = 0;
+            dst.Sliding = dst.Glissade = 0;
+            dst.SlidingTargetNote = ~std::size_t(0);
           }
           if (!src.Sample.IsNull())
           {
@@ -587,7 +589,7 @@ namespace
               break;
             case Cmd::GLISS_NOTE:
               dst.Glissade = it->Param1;
-              dst.SlidingTarget = FreqTable[it->Param2];
+              dst.SlidingTargetNote = it->Param2;
               break;
             case Cmd::GLISS:
               dst.Glissade = it->Param1;
@@ -622,13 +624,16 @@ namespace
           const std::size_t halfTone(clamp<std::size_t>(dst->Note + curOrnament.Data[dst->PosInOrnament], 0, 95));
           const uint16_t slidedTone(FreqTable[halfTone] + dst->Sliding);
           const uint16_t tone(clamp<uint16_t>(slidedTone + curSampleLine.Vibrato, 0, 0xffff));
-          if (dst->SlidingTarget)
+          if (dst->SlidingTargetNote != ~std::size_t(0))
           {
-            if ((dst->Glissade > 0 && unsigned(slidedTone) + dst->Glissade >= dst->SlidingTarget) ||
-                (dst->Glissade < 0 && unsigned(slidedTone) + dst->Glissade <= dst->SlidingTarget))
+            const unsigned nextTone(FreqTable[dst->Note] + dst->Sliding + dst->Glissade);
+            const unsigned slidingTarget(FreqTable[dst->SlidingTargetNote]);
+            if ((dst->Glissade > 0 && nextTone >= slidingTarget) ||
+                (dst->Glissade < 0 && nextTone <= slidingTarget))
             {
-              dst->Sliding += dst->SlidingTarget - slidedTone;
-              dst->Glissade = 0;
+              dst->Note = dst->SlidingTargetNote;
+              dst->SlidingTargetNote = ~std::size_t(0);
+              dst->Sliding = dst->Glissade = 0;
             }
           }
           dst->Sliding += dst->Glissade;
