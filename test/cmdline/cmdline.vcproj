@@ -203,6 +203,9 @@
 				Name="impl"
 				Filter="">
 				<File
+					RelativePath="..\..\lib\impl\chi_supp.cpp">
+				</File>
+				<File
 					RelativePath="..\..\lib\impl\plugin_enumerator.cpp">
 				</File>
 				<File
@@ -213,6 +216,9 @@
 				</File>
 				<File
 					RelativePath="..\..\lib\impl\pt2_supp.cpp">
+				</File>
+				<File
+					RelativePath="..\..\lib\impl\tracking_supp.h">
 				</File>
 			</Filter>
 			<Filter

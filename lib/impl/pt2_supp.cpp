@@ -1,18 +1,17 @@
 #include "plugin_enumerator.h"
+
+#include "tracking_supp.h"
 #include "../devices/data_source.h"
 #include "../devices/aym/aym.h"
 
 #include <tools.h>
 
-#include <sound_attrs.h>
 #include <player_attrs.h>
 
 #include <boost/static_assert.hpp>
 
 #include <cassert>
 #include <valarray>
-
-#include <stdio.h>
 
 namespace
 {
@@ -24,6 +23,7 @@ namespace
 
   //hints
   const std::size_t MAX_PATTERN_SIZE = 64;
+  const std::size_t MAX_PATTERN_COUNT = 64;//TODO
 
   const uint16_t FreqTable[96] = {
     0xef8, 0xe10, 0xd60, 0xc80, 0xbd8, 0xb28, 0xa88, 0x9f0, 0x960, 0x8e0, 0x858, 0x7e0,
@@ -66,6 +66,11 @@ namespace
       uint8_t VibratoLo;
     } PACK_POST;
     Line Data[1];
+
+    operator bool () const
+    {
+      return Size >= Loop;
+    }
   } PACK_POST;
 
   PACK_PRE struct PT2Ornament
@@ -73,6 +78,11 @@ namespace
     uint8_t Size;
     uint8_t Loop;
     int8_t Data[1];
+
+    operator bool () const
+    {
+      return Size >= Loop;
+    }
   } PACK_POST;
 
   PACK_PRE struct PT2Pattern
@@ -100,11 +110,6 @@ namespace
 
     Sample(std::size_t size, std::size_t loop) : Loop(loop), Data(size)
     {
-    }
-
-    operator bool () const
-    {
-      return !Data.empty();
     }
 
     std::size_t Loop;
@@ -154,212 +159,151 @@ namespace
     const Dump& Data;
   };
 
-  struct Ornament
+  enum CmdType
   {
-    Ornament() : Loop()
-    {
-    }
-
-    Ornament(std::size_t size, std::size_t loop) : Loop(loop), Data(size)
-    {
-
-    }
-    operator bool () const
-    {
-      return !Data.empty();
-    }
-
-    std::size_t Loop;
-    std::vector<signed> Data;
+    EMPTY,
+    ENVELOPE,     //2p
+    NOENVELOPE,   //0p
+    GLISS,        //1p
+    GLISS_NOTE,   //2p
+    NOGLISS,      //0p
+    NOISE_ADD,    //1p
   };
 
-  class OrnamentCreator : public std::unary_function<uint16_t, Ornament>
+  class PlayerImpl : public Tracking::TrackPlayer<3, Sample>
   {
-  public:
-    OrnamentCreator(const Dump& data) : Data(data)
+    typedef Tracking::TrackPlayer<3, Sample> Parent;
+
+    class OrnamentCreator : public std::unary_function<uint16_t, typename Parent::Ornament>
     {
-    }
-    result_type operator () (const argument_type arg) const
-    {
-      if (0 == arg)
+    public:
+      OrnamentCreator(const Dump& data) : Data(data)
       {
-        return result_type();
       }
-      const PT2Ornament* const ornament(safe_ptr_cast<const PT2Ornament*>(&Data[fromLE(arg)]));
-      result_type tmp;
-      tmp.Loop = ornament->Loop;
-      tmp.Data.assign(ornament->Data, ornament->Data + ornament->Size);
-      return tmp;
+      result_type operator () (const argument_type arg) const
+      {
+        if (0 == arg)
+        {
+          return result_type();
+        }
+        const PT2Ornament* const ornament(safe_ptr_cast<const PT2Ornament*>(&Data[fromLE(arg)]));
+        result_type tmp;
+        tmp.Loop = ornament->Loop;
+        tmp.Data.assign(ornament->Data, ornament->Data + ornament->Size);
+        return tmp;
+      }
+    private:
+      const Dump& Data;
+    };
+
+    static void ParsePattern(const Dump& data, std::vector<std::size_t>& offsets, Parent::Line& line, 
+      std::valarray<std::size_t>& periods,
+      std::valarray<std::size_t>& counters)
+    {
+      for (std::size_t chan = 0; chan != line.Channels.size(); ++chan)
+      {
+        if (counters[chan]--)
+        {
+          continue;//has to skip
+        }
+        for (;;)
+        {
+          const uint8_t cmd(data[offsets[chan]++]);
+          Line::Chan& channel(line.Channels[chan]);
+          if (cmd >= 0xe1) //sample
+          {
+            assert(channel.Sample.IsNull());
+            channel.Sample = cmd - 0xe0;
+          }
+          else if (cmd == 0xe0) //sample 0 - shut up
+          {
+            channel.Enabled = false;
+            break;
+          }
+          else if (cmd >= 0x80 && cmd <= 0xdf)//note
+          {
+            assert(channel.Note.IsNull());
+            channel.Enabled = true;
+            const std::size_t note(cmd - 0x80);
+            //for note gliss calculate limit manually
+            CommandsArray::iterator noteGlissCmd(std::find(channel.Commands.begin(), channel.Commands.end(), GLISS_NOTE));
+            if (channel.Commands.end() != noteGlissCmd)
+            {
+              noteGlissCmd->Param2 = int(note);
+            }
+            else
+            {
+              channel.Note = note;
+            }
+            break;
+          }
+          else if (cmd == 0x7f) //env off
+          {
+            channel.Commands.push_back(NOENVELOPE);
+          }
+          else if (cmd >= 0x71 && cmd <= 0x7e) //envelope
+          {
+            channel.Commands.push_back(
+              Command(ENVELOPE, cmd - 0x70, data[offsets[chan]] | (unsigned(data[offsets[chan] + 1]) << 8)));
+            offsets[chan] += 2;
+          }
+          else if (cmd == 0x70)//quit
+          {
+            break;
+          }
+          else if (cmd >= 0x60 && cmd <= 0x6f)//ornament
+          {
+            assert(channel.Ornament.IsNull());
+            channel.Ornament = cmd - 0x60;
+          }
+          else if (cmd >= 0x20 && cmd <= 0x5f)//skip
+          {
+            periods[chan] = cmd - 0x20;
+          }
+          else if (cmd >= 0x10 && cmd <= 0x1f)//volume
+          {
+            assert(channel.Volume.IsNull());
+            channel.Volume = cmd - 0x10;
+          }
+          else if (cmd == 0x0f)//new delay
+          {
+            assert(line.Speed.IsNull());
+            line.Speed = data[offsets[chan]++];
+          }
+          else if (cmd == 0x0e)//gliss
+          {
+            channel.Commands.push_back(Command(GLISS, static_cast<int8_t>(data[offsets[chan]++])));
+          }
+          else if (cmd == 0x0d)//note gliss
+          {
+            //too late when note is filled
+            assert(channel.Note.IsNull());
+            channel.Commands.push_back(Command(GLISS_NOTE, static_cast<int8_t>(data[offsets[chan]])));
+            //ignore delta due to error
+            offsets[chan] += 3;
+          }
+          else if (cmd == 0x0c) //gliss off
+          {
+            channel.Commands.push_back(NOGLISS);
+          }
+          else //noise add
+          {
+            channel.Commands.push_back(Command(NOISE_ADD, static_cast<int8_t>(data[offsets[chan]++])));
+          }
+        }
+        counters[chan] = periods[chan];
+      }
     }
+
   private:
-    const Dump& Data;
-  };
-
-  struct Cmd
-  {
-    enum CmdType
-    {
-      EMPTY,
-      ENVELOPE,     //2p
-      NOENVELOPE,   //0p
-      GLISS,        //1p
-      GLISS_NOTE,   //2p
-      NOGLISS,      //0p
-      NOISE_ADD,    //1p
-    };
-
-    Cmd() : Type(EMPTY), Param1(), Param2()
-    {
-    }
-
-    Cmd(CmdType type, int p1 = 0, int p2 = 0) : Type(type), Param1(p1), Param2(p2)
-    {
-    }
-
-    bool operator == (CmdType type) const
-    {
-      return Type == type;
-    }
-
-    CmdType Type;
-    int Param1;
-    int Param2;
-  };
-
-  struct Line
-  {
-    //track attrs
-    Optional<std::size_t> Speed;
-
-    struct Chan
-    {
-      Optional<bool> Enabled;
-      Optional<std::size_t> Note;
-      Optional<std::size_t> Sample;
-      Optional<std::size_t> Ornament;
-      Optional<std::size_t> Volume;
-      std::vector<Cmd> Commands;
-    };
-
-    Chan Channels[3];
-  };
-
-  typedef std::vector<Line> Pattern;
-
-  struct ModuleData
-  {
-    std::vector<std::size_t> Positions;
-    std::vector<Pattern> Patterns;
-    std::vector<Sample> Samples;
-    std::vector<Ornament> Ornaments;
-  };
-
-  void ParsePattern(const Dump& data, std::vector<std::size_t>& offsets, Line& line, 
-    std::valarray<std::size_t>& periods,
-    std::valarray<std::size_t>& counters)
-  {
-    for (std::size_t chan = 0; chan != ArraySize(line.Channels); ++chan)
-    {
-      if (counters[chan]--)
-      {
-        continue;//has to skip
-      }
-      for (;;)
-      {
-        const uint8_t cmd(data[offsets[chan]++]);
-        Line::Chan& channel(line.Channels[chan]);
-        if (cmd >= 0xe1) //sample
-        {
-          assert(channel.Sample.IsNull());
-          channel.Sample = cmd - 0xe0;
-        }
-        else if (cmd == 0xe0) //sample 0 - shut up
-        {
-          channel.Enabled = false;
-          break;
-        }
-        else if (cmd >= 0x80 && cmd <= 0xdf)//note
-        {
-          assert(channel.Note.IsNull());
-          channel.Enabled = true;
-          const std::size_t note(cmd - 0x80);
-          //for note gliss calculate limit manually
-          std::vector<Cmd>::iterator noteGlissCmd(std::find(channel.Commands.begin(), channel.Commands.end(), Cmd::GLISS_NOTE));
-          if (channel.Commands.end() != noteGlissCmd)
-          {
-            noteGlissCmd->Param2 = int(note);
-          }
-          else
-          {
-            channel.Note = note;
-          }
-          break;
-        }
-        else if (cmd == 0x7f) //env off
-        {
-          channel.Commands.push_back(Cmd::NOENVELOPE);
-        }
-        else if (cmd >= 0x71 && cmd <= 0x7e) //envelope
-        {
-          channel.Commands.push_back(
-            Cmd(Cmd::ENVELOPE, cmd - 0x70, data[offsets[chan]] | (unsigned(data[offsets[chan] + 1]) << 8)));
-          offsets[chan] += 2;
-        }
-        else if (cmd == 0x70)//quit
-        {
-          break;
-        }
-        else if (cmd >= 0x60 && cmd <= 0x6f)//ornament
-        {
-          assert(channel.Ornament.IsNull());
-          channel.Ornament = cmd - 0x60;
-        }
-        else if (cmd >= 0x20 && cmd <= 0x5f)//skip
-        {
-          periods[chan] = cmd - 0x20;
-        }
-        else if (cmd >= 0x10 && cmd <= 0x1f)//volume
-        {
-          assert(channel.Volume.IsNull());
-          channel.Volume = cmd - 0x10;
-        }
-        else if (cmd == 0x0f)//new delay
-        {
-          assert(line.Speed.IsNull());
-          line.Speed = data[offsets[chan]++];
-        }
-        else if (cmd == 0x0e)//gliss
-        {
-          channel.Commands.push_back(Cmd(Cmd::GLISS, static_cast<int8_t>(data[offsets[chan]++])));
-        }
-        else if (cmd == 0x0d)//note gliss
-        {
-          //too late when note is filled
-          assert(channel.Note.IsNull());
-          channel.Commands.push_back(Cmd(Cmd::GLISS_NOTE, static_cast<int8_t>(data[offsets[chan]])));
-          //ignore delta due to error
-          offsets[chan] += 3;
-        }
-        else if (cmd == 0x0c) //gliss off
-        {
-          channel.Commands.push_back(Cmd::NOGLISS);
-        }
-        else //noise add
-        {
-          channel.Commands.push_back(Cmd(Cmd::NOISE_ADD, static_cast<int8_t>(data[offsets[chan]++])));
-        }
-      }
-      counters[chan] = periods[chan];
-    }
-  }
-
-  class PlayerImpl : public ModulePlayer
-  {
     struct ChannelState
     {
       ChannelState()
-        : Enabled(false), Envelope(false), Volume(15), NoiseAdd(0), Sliding(0), 
-        SlidingTargetNote(~std::size_t(0)), Glissade(0)
+        : Enabled(false), Envelope(false)
+        , SampleNum(0), PosInSample(0)
+        , OrnamentNum(0), PosInOrnament(0)
+        , Volume(15), NoiseAdd(0)
+        , Sliding(0), SlidingTargetNote(~std::size_t(0)), Glissade(0)
       {
       }
       bool Enabled;
@@ -375,17 +319,9 @@ namespace
       std::size_t SlidingTargetNote;
       signed Glissade;
     };
-    struct ModuleState
-    {
-      Module::Tracking Position;
-      uint32_t Frame;
-      uint64_t Tick;
-      ChannelState Channels[3];
-    };
-
   public:
     PlayerImpl(const String& filename, const Dump& data)
-      : Device(AYM::Chip::Create()), PlaybackState(MODULE_STOPPED)
+      : Device(AYM::Chip::Create())
     {
       //assume all data is correct
       const PT2Header* const header(safe_ptr_cast<const PT2Header*>(&data[0]));
@@ -411,6 +347,7 @@ namespace
       assert(header->Length == Data.Positions.size());
 
       //fill patterns
+      Data.Patterns.reserve(MAX_PATTERN_COUNT);
       for (const PT2Pattern* patPos(safe_ptr_cast<const PT2Pattern*>(&data[fromLE(header->PatternsOffset)]));
            *patPos;
            ++patPos)
@@ -448,20 +385,6 @@ namespace
       info.Properties.clear();
     }
 
-    /// Retrieving information about loaded module
-    virtual void GetModuleInfo(Module::Information& info) const
-    {
-      info = Information;
-    }
-
-    /// Retrieving current state of loaded module
-    virtual State GetModuleState(uint32_t& timeState, Module::Tracking& trackState) const
-    {
-      timeState = CurrentState.Frame;
-      trackState = CurrentState.Position;
-      return PlaybackState;
-    }
-
     /// Retrieving current state of sound
     virtual State GetSoundState(Sound::Analyze::Volume& volState, Sound::Analyze::Spectrum& spectrumState) const
     {
@@ -478,41 +401,13 @@ namespace
       SingleFrameDataSource<AYM::DataChunk> src(chunk);
       Device->RenderData(params, &src, receiver);
 
-      if (++CurrentState.Position.Frame >= CurrentState.Position.Speed)//next note
-      {
-        CurrentState.Position.Frame = 0;
-        if (++CurrentState.Position.Note >= Data.Patterns[CurrentState.Position.Pattern].size())//next position
-        {
-          CurrentState.Position.Note = 0;
-          if (++CurrentState.Position.Position >= Information.Statistic.Position)//end
-          {
-            //set to loop
-            if (params.Flags & Sound::MOD_LOOP)
-            {
-              CurrentState.Position.Pattern = Data.Positions[CurrentState.Position.Position = Information.Loop];
-            }
-            else
-            {
-              receiver->Flush();
-              return PlaybackState = MODULE_STOPPED;
-            }
-          }
-          CurrentState.Position.Pattern = Data.Positions[CurrentState.Position.Position];
-        }
-      }
-      return PlaybackState = MODULE_PLAYING;
+      return Parent::RenderFrame(params, receiver);
     }
 
-    /// Controlling
     virtual State Reset()
     {
-      CurrentState.Position = Module::Tracking();
-      CurrentState.Position.Speed = Information.Statistic.Speed;
-      CurrentState.Frame = 0;
-      CurrentState.Tick = 0;
-      CurrentState.Position.Pattern = Data.Positions[0];
       Device->Reset();
-      return PlaybackState = MODULE_STOPPED;
+      return Parent::Reset();
     }
 
     virtual State SetPosition(const uint32_t& frame)
@@ -531,10 +426,10 @@ namespace
           CurrentState.Position.Speed = line.Speed;
         }
         CurrentState.Position.Channels = 0;
-        for (std::size_t chan = 0; chan != ArraySize(line.Channels); ++chan)
+        for (std::size_t chan = 0; chan != line.Channels.size(); ++chan)
         {
           const Line::Chan& src(line.Channels[chan]);
-          ChannelState& dst(CurrentState.Channels[chan]);
+          ChannelState& dst(Channels[chan]);
           if (!src.Enabled.IsNull())
           {
             if (dst.Enabled = src.Enabled)
@@ -569,11 +464,11 @@ namespace
           {
             dst.Volume = src.Volume;
           }
-          for (std::vector<Cmd>::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
+          for (CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
           {
             switch (it->Type)
             {
-            case Cmd::ENVELOPE:
+            case ENVELOPE:
               chunk.Data[AYM::DataChunk::REG_ENV] = it->Param1;
               chunk.Data[AYM::DataChunk::REG_TONEE_L] = it->Param2 & 0xff;
               chunk.Data[AYM::DataChunk::REG_TONEE_H] = it->Param2 >> 8;
@@ -581,20 +476,20 @@ namespace
                 (1 << AYM::DataChunk::REG_TONEE_L) | (1 << AYM::DataChunk::REG_TONEE_H);
               dst.Envelope = true;
               break;
-            case Cmd::NOENVELOPE:
+            case NOENVELOPE:
               dst.Envelope = false;
               break;
-            case Cmd::NOISE_ADD:
+            case NOISE_ADD:
               dst.NoiseAdd = it->Param1;
               break;
-            case Cmd::GLISS_NOTE:
+            case GLISS_NOTE:
               dst.Glissade = it->Param1;
               dst.SlidingTargetNote = it->Param2;
               break;
-            case Cmd::GLISS:
+            case GLISS:
               dst.Glissade = it->Param1;
               break;
-            case Cmd::NOGLISS:
+            case NOGLISS:
               dst.Glissade = 0;
               break;
             default:
@@ -611,7 +506,7 @@ namespace
       std::size_t volReg = AYM::DataChunk::REG_VOLA;
       uint8_t toneMsk = AYM::DataChunk::MASK_TONEA;
       uint8_t noiseMsk = AYM::DataChunk::MASK_NOISEA;
-      for (ChannelState* dst = CurrentState.Channels; dst != ArrayEnd(CurrentState.Channels); 
+      for (ChannelState* dst = Channels; dst != ArrayEnd(Channels); 
         ++dst, toneReg += 2, ++volReg, toneMsk <<= 1, noiseMsk <<= 1)
       {
         if (dst->Enabled)
@@ -675,13 +570,8 @@ namespace
       ++CurrentState.Frame;
     }
   private:
-    Module::Information Information;
-    ModuleData Data;
-
-    ModuleState CurrentState;
-    State PlaybackState;
-
     AYM::Chip::Ptr Device;
+    ChannelState Channels[3];
   };
 
   //////////////////////////////////////////////////////////////////////////
@@ -695,6 +585,44 @@ namespace
 
   bool Checking(const String& filename, const Dump& data)
   {
+    //check for header
+    const std::size_t size(data.size());
+    if (sizeof(PT2Header) > size)
+    {
+      return false;
+    }
+    const PT2Header* const header(safe_ptr_cast<const PT2Header*>(&data[0]));
+    //check offsets
+    for (const uint16_t* sampOff = header->SamplesOffsets; sampOff != ArrayEnd(header->SamplesOffsets); ++sampOff)
+    {
+      const std::size_t offset(fromLE(*sampOff));
+      if (offset >= size || (offset && !*safe_ptr_cast<const PT2Sample*>(&data[offset])))
+      {
+        return false;
+      }
+    }
+    for (const uint16_t* ornOff = header->OrnamentsOffsets; ornOff != ArrayEnd(header->OrnamentsOffsets); ++ornOff)
+    {
+      const std::size_t offset(fromLE(*ornOff));
+      if (offset >= size || (offset && !*safe_ptr_cast<const PT2Ornament*>(&data[offset])))
+      {
+        return false;
+      }
+    }
+    if (fromLE(header->PatternsOffset) >= size)
+    {
+      return false;
+    }
+    //check patterns
+    for (const PT2Pattern* patPos(safe_ptr_cast<const PT2Pattern*>(&data[fromLE(header->PatternsOffset)]));
+      *patPos;
+      ++patPos)
+    {
+      if (! *patPos)
+      {
+        return false;
+      }
+    }
     return true;
   }
 
