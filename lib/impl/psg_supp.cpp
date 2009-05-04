@@ -1,4 +1,4 @@
-#include "../plugin_enumerator.h"
+#include "plugin_enumerator.h"
 #include "../devices/data_source.h"
 #include "../devices/aym/aym.h"
 

@@ -208,32 +208,12 @@
 				<File
 					RelativePath="..\..\lib\impl\plugin_enumerator.h">
 				</File>
-				<Filter
-					Name="psg"
-					Filter="">
-					<File
-						RelativePath="..\..\lib\impl\psg\plugin.cpp">
-					</File>
-				</Filter>
-				<Filter
-					Name="pt2"
-					Filter="">
-					<File
-						RelativePath="..\..\lib\impl\pt2\plugin.cpp">
-						<FileConfiguration
-							Name="Debug|Win32">
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)/$(InputName)1.obj"/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release|Win32">
-							<Tool
-								Name="VCCLCompilerTool"
-								ObjectFile="$(IntDir)/$(InputName)1.obj"/>
-						</FileConfiguration>
-					</File>
-				</Filter>
+				<File
+					RelativePath="..\..\lib\impl\psg_supp.cpp">
+				</File>
+				<File
+					RelativePath="..\..\lib\impl\pt2_supp.cpp">
+				</File>
 			</Filter>
 			<Filter
 				Name="devices"

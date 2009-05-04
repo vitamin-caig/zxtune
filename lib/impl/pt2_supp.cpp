@@ -1,4 +1,4 @@
-#include "../plugin_enumerator.h"
+#include "plugin_enumerator.h"
 #include "../devices/data_source.h"
 #include "../devices/aym/aym.h"
 
@@ -200,6 +200,8 @@ namespace
     enum CmdType
     {
       EMPTY,
+      ENVELOPE,     //2p
+      NOENVELOPE,   //0p
       GLISS,        //1p
       GLISS_NOTE,   //2p
       NOGLISS,      //0p
@@ -214,6 +216,11 @@ namespace
     {
     }
 
+    bool operator == (CmdType type) const
+    {
+      return Type == type;
+    }
+
     CmdType Type;
     int Param1;
     int Param2;
@@ -223,10 +230,6 @@ namespace
   {
     //track attrs
     Optional<std::size_t> Speed;
-    //single attrs
-    Optional<signed> NoiseAddon;
-    Optional<uint8_t> EnvelopeType;
-    Optional<uint16_t> EnvelopeValue;
 
     struct Chan
     {
@@ -235,8 +238,7 @@ namespace
       Optional<std::size_t> Sample;
       Optional<std::size_t> Ornament;
       Optional<std::size_t> Volume;
-      Optional<bool> Envelope;
-      Optional<Cmd> Command;
+      std::vector<Cmd> Commands;
     };
 
     Chan Channels[3];
@@ -282,17 +284,10 @@ namespace
           channel.Enabled = true;
           const std::size_t note(cmd - 0x80);
           //for note gliss calculate limit manually
-          if (!channel.Command.IsNull())
+          std::vector<Cmd>::iterator noteGlissCmd(std::find(channel.Commands.begin(), channel.Commands.end(), Cmd::GLISS_NOTE));
+          if (channel.Commands.end() != noteGlissCmd)
           {
-            Cmd& command(channel.Command);
-            if (Cmd::GLISS_NOTE == command.Type)
-            {
-              command.Param2 = note;
-            }
-            else
-            {
-              channel.Note = note;
-            }
+            noteGlissCmd->Param2 = int(note);
           }
           else
           {
@@ -302,15 +297,13 @@ namespace
         }
         else if (cmd == 0x7f) //env off
         {
-          channel.Envelope = false;
+          channel.Commands.push_back(Cmd::NOENVELOPE);
         }
         else if (cmd >= 0x71 && cmd <= 0x7e) //envelope
         {
-          assert(line.EnvelopeType.IsNull());
-          channel.Envelope = true;
-          line.EnvelopeType = cmd - 0x70;
-          line.EnvelopeValue = data[offsets[chan]++];
-          line.EnvelopeValue |= unsigned(data[offsets[chan]++]) << 8;
+          channel.Commands.push_back(
+            Cmd(Cmd::ENVELOPE, cmd - 0x70, data[offsets[chan]] | (unsigned(data[offsets[chan] + 1]) << 8)));
+          offsets[chan] += 2;
         }
         else if (cmd == 0x70)//quit
         {
@@ -337,27 +330,23 @@ namespace
         }
         else if (cmd == 0x0e)//gliss
         {
-          assert(channel.Command.IsNull());
-          channel.Command = Cmd(Cmd::GLISS, data[offsets[chan]++]);
+          channel.Commands.push_back(Cmd(Cmd::GLISS, data[offsets[chan]++]));
         }
         else if (cmd == 0x0d)//note gliss
         {
           //too late when note is filled
           assert(channel.Note.IsNull());
-          assert(channel.Command.IsNull());
-          channel.Command = Cmd(Cmd::GLISS_NOTE, /*std::abs(*/static_cast<int8_t>(data[offsets[chan]])/*)*/);
+          channel.Commands.push_back(Cmd(Cmd::GLISS_NOTE, static_cast<int8_t>(data[offsets[chan]])));
           //ignore delta due to error
           offsets[chan] += 3;
         }
         else if (cmd == 0x0c) //gliss off
         {
-          assert(channel.Command.IsNull());
-          channel.Command = Cmd(Cmd::NOGLISS);
+          channel.Commands.push_back(Cmd::NOGLISS);
         }
         else //noise add
         {
-          assert(channel.Command.IsNull());
-          channel.Command = Cmd(Cmd::NOISE_ADD, data[offsets[chan]++]);
+          channel.Commands.push_back(Cmd(Cmd::NOISE_ADD, data[offsets[chan]++]));
         }
       }
       counters[chan] = periods[chan];
@@ -537,20 +526,6 @@ namespace
       const Line& line(Data.Patterns[CurrentState.Position.Pattern][CurrentState.Position.Note]);
       if (0 == CurrentState.Position.Frame)//begin note
       {
-        printf("\n%02X>", CurrentState.Position.Note);
-        if (!line.EnvelopeType.IsNull())
-        {
-          chunk.Data[AYM::DataChunk::REG_ENV] = line.EnvelopeType;
-          chunk.Mask |= 1 << AYM::DataChunk::REG_ENV;
-        }
-        if (!line.EnvelopeValue.IsNull())
-        {
-          chunk.Data[AYM::DataChunk::REG_TONEE_L] = line.EnvelopeValue & 0xff;
-          chunk.Data[AYM::DataChunk::REG_TONEE_H] = line.EnvelopeValue >> 8;
-          chunk.Mask |= (1 << AYM::DataChunk::REG_TONEE_L) | (1 << AYM::DataChunk::REG_TONEE_H);
-        }
-        line.EnvelopeValue.IsNull() ? printf("....|") : printf("%04X|", unsigned(line.EnvelopeValue));
-
         if (!line.Speed.IsNull())
         {
           CurrentState.Position.Speed = line.Speed;
@@ -572,50 +547,50 @@ namespace
               dst.PosInSample = dst.PosInOrnament = 0;
             }
           }
-          if (!src.Enabled.IsNull() && !src.Enabled) printf("| R-- ");
           if (!src.Note.IsNull())
           {
             dst.Note = src.Note;
             dst.PosInSample = dst.PosInOrnament = 0;
             dst.Sliding = dst.SlidingTarget = dst.Glissade = 0;
           }
-          src.Note.IsNull() ? printf("| --- ") : printf("| %c%c%i ", '\?', '-', 1 + src.Note / 12);
           if (!src.Sample.IsNull())
           {
             dst.SampleNum = src.Sample;
             dst.PosInSample = 0;
           }
-          src.Sample.IsNull() ? printf(".") : printf("%X", unsigned(src.Sample));
-          if (!src.Envelope.IsNull())
-          {
-            dst.Envelope = src.Envelope;
-          }
-          src.Envelope.IsNull() ? printf(".") : printf("%X", src.Envelope ? unsigned(line.EnvelopeType) : 15);
           if (!src.Ornament.IsNull())
           {
             dst.OrnamentNum = src.Ornament;
             dst.PosInOrnament = 0;
           }
-          src.Ornament.IsNull() ? printf(".") : printf("%X", unsigned(src.Ornament));
           if (!src.Volume.IsNull())
           {
             dst.Volume = src.Volume;
           }
-          src.Volume.IsNull() ? printf(".") : printf("%X", unsigned(src.Volume));
-          if (!src.Command.IsNull())
+          for (std::vector<Cmd>::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
           {
-            const Cmd& cmd(src.Command);
-            switch (cmd.Type)
+            switch (it->Type)
             {
+            case Cmd::ENVELOPE:
+              chunk.Data[AYM::DataChunk::REG_ENV] = it->Param1;
+              chunk.Data[AYM::DataChunk::REG_TONEE_L] = it->Param2 & 0xff;
+              chunk.Data[AYM::DataChunk::REG_TONEE_H] = it->Param2 >> 8;
+              chunk.Mask |= (1 << AYM::DataChunk::REG_ENV) | 
+                (1 << AYM::DataChunk::REG_TONEE_L) | (1 << AYM::DataChunk::REG_TONEE_H);
+              dst.Envelope = true;
+              break;
+            case Cmd::NOENVELOPE:
+              dst.Envelope = false;
+              break;
             case Cmd::NOISE_ADD:
-              dst.NoiseAdd = cmd.Param1;
+              dst.NoiseAdd = it->Param1;
               break;
             case Cmd::GLISS_NOTE:
-              dst.Glissade = cmd.Param1;
-              dst.SlidingTarget = FreqTable[cmd.Param2];
+              dst.Glissade = it->Param1;
+              dst.SlidingTarget = FreqTable[it->Param2];
               break;
             case Cmd::GLISS:
-              dst.Glissade = cmd.Param1;
+              dst.Glissade = it->Param1;
               break;
             case Cmd::NOGLISS:
               dst.Glissade = 0;
@@ -649,8 +624,8 @@ namespace
           const uint16_t tone(clamp<uint16_t>(slidedTone + curSampleLine.Vibrato, 0, 0xffff));
           if (dst->SlidingTarget)
           {
-            if ((dst->Glissade > 0 && slidedTone + dst->Glissade >= dst->SlidingTarget) ||
-                (dst->Glissade < 0 && slidedTone + dst->Glissade <= dst->SlidingTarget))
+            if ((dst->Glissade > 0 && unsigned(slidedTone) + dst->Glissade >= dst->SlidingTarget) ||
+                (dst->Glissade < 0 && unsigned(slidedTone) + dst->Glissade <= dst->SlidingTarget))
             {
               dst->Sliding += dst->SlidingTarget - slidedTone;
               dst->Glissade = 0;
