@@ -60,8 +60,8 @@ namespace ZXTune
         {
           Optional<bool> Enabled;
           Optional<std::size_t> Note;
-          Optional<std::size_t> Sample;
-          Optional<std::size_t> Ornament;
+          Optional<std::size_t> SampleNum;
+          Optional<std::size_t> OrnamentNum;
           Optional<std::size_t> Volume;
           CommandsArray Commands;
         };

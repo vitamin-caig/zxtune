@@ -4,6 +4,8 @@
 #include <types.h>
 #include <sound_types.h>
 
+#include <memory>
+
 namespace ZXTune
 {
   namespace Sound

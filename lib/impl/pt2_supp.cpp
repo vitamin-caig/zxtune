@@ -174,7 +174,7 @@ namespace
   {
     typedef Tracking::TrackPlayer<3, Sample> Parent;
 
-    class OrnamentCreator : public std::unary_function<uint16_t, typename Parent::Ornament>
+    class OrnamentCreator : public std::unary_function<uint16_t, Parent::Ornament>
     {
     public:
       OrnamentCreator(const Dump& data) : Data(data)
@@ -212,8 +212,8 @@ namespace
           Line::Chan& channel(line.Channels[chan]);
           if (cmd >= 0xe1) //sample
           {
-            assert(channel.Sample.IsNull());
-            channel.Sample = cmd - 0xe0;
+            assert(channel.SampleNum.IsNull());
+            channel.SampleNum = cmd - 0xe0;
           }
           else if (cmd == 0xe0) //sample 0 - shut up
           {
@@ -253,8 +253,8 @@ namespace
           }
           else if (cmd >= 0x60 && cmd <= 0x6f)//ornament
           {
-            assert(channel.Ornament.IsNull());
-            channel.Ornament = cmd - 0x60;
+            assert(channel.OrnamentNum.IsNull());
+            channel.OrnamentNum = cmd - 0x60;
           }
           else if (cmd >= 0x20 && cmd <= 0x5f)//skip
           {
@@ -450,14 +450,14 @@ namespace
             dst.Sliding = dst.Glissade = 0;
             dst.SlidingTargetNote = ~std::size_t(0);
           }
-          if (!src.Sample.IsNull())
+          if (!src.SampleNum.IsNull())
           {
-            dst.SampleNum = src.Sample;
+            dst.SampleNum = src.SampleNum;
             dst.PosInSample = 0;
           }
-          if (!src.Ornament.IsNull())
+          if (!src.OrnamentNum.IsNull())
           {
-            dst.OrnamentNum = src.Ornament;
+            dst.OrnamentNum = src.OrnamentNum;
             dst.PosInOrnament = 0;
           }
           if (!src.Volume.IsNull())

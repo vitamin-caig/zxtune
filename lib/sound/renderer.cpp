@@ -20,8 +20,8 @@ namespace
   public:
     //size in multisamples
     CallbackRenderer(std::size_t size, ReadyCallback callback, void* userData)
-      : Buffer(size), BufferEnd(&Buffer[size]), Callback(callback)
-      , UserData(userData), Position(&Buffer[0])
+      : Buffer(size), BufferEnd(&Buffer[size]), Position(&Buffer[0])
+      , Callback(callback), UserData(userData)
     {
       assert(Callback || !"No callback specified");
     }

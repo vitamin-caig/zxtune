@@ -1,6 +1,8 @@
 #ifndef __SOUND_TYPES_H_DEFINED__
 #define __SOUND_TYPES_H_DEFINED__
 
+#include <cstring>
+
 namespace ZXTune
 {
   namespace Sound
