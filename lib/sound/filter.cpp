@@ -2,8 +2,10 @@
 
 #include <tools.h>
 
-#include <cassert>
+#include <boost/noncopyable.hpp>
 #include <boost/static_assert.hpp>
+
+#include <cassert>
 
 namespace
 {
@@ -16,7 +18,7 @@ namespace
 
   BOOST_STATIC_ASSERT(sizeof(SampleHelper) == sizeof(SampleArray));
 
-  class FIRFilter : public Receiver
+  class FIRFilter : public Receiver, private boost::noncopyable
   {
   public:
     FIRFilter(const Sample* coeffs, std::size_t order, Receiver* delegate)
@@ -65,7 +67,8 @@ namespace ZXTune
       return Receiver::Ptr(new FIRFilter(coeffs, order, delegate));
     }
 
-    void CalculateFIRCoefficients(std::size_t order, uint32_t freq, uint32_t lowCutoff, uint32_t highCutoff, std::vector<Sample>& coeffs)
+    void CalculateFIRCoefficients(std::size_t /*order*/, uint32_t /*freq*/, 
+      uint32_t /*lowCutoff*/, uint32_t /*highCutoff*/, std::vector<Sample>& /*coeffs*/)
     {
     }
   }

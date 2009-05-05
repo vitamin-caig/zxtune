@@ -50,7 +50,7 @@ namespace
     info.Properties.insert(StringMap::value_type(ATTR_VERSION, TEXT_PSG_VERSION));
   }
 
-  bool Checking(const String& filename, const Dump& data)
+  bool Checking(const String& /*filename*/, const Dump& data)
   {
     if (data.size() <= sizeof(PSGHeader))
     {
@@ -67,7 +67,7 @@ namespace
       : Device(AYM::Chip::Create()), CurrentState(MODULE_STOPPED), Filename(filename), TickCount(), Position()
     {
       assert(data.size() > sizeof(PSGHeader));
-      const PSGHeader* header(safe_ptr_cast<const PSGHeader*>(&data[0]));
+      //const PSGHeader* header(safe_ptr_cast<const PSGHeader*>(&data[0]));
       //workaround for some emulators
       std::size_t offset = data[4] == INT_BEGIN ? 4 : sizeof(PSGHeader);
       std::size_t size = data.size() - offset;

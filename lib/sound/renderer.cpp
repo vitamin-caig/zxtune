@@ -2,6 +2,7 @@
 
 #include <tools.h>
 
+#include <boost/noncopyable.hpp>
 #include <boost/static_assert.hpp>
 
 namespace
@@ -15,7 +16,7 @@ namespace
 
   BOOST_STATIC_ASSERT(sizeof(SampleHelper) == sizeof(SampleArray));
 
-  class CallbackRenderer : public Receiver
+  class CallbackRenderer : public Receiver, private boost::noncopyable
   {
   public:
     //size in multisamples

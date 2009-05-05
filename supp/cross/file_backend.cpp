@@ -4,6 +4,8 @@
 
 #include <sound_attrs.h>
 
+#include <boost/noncopyable.hpp>
+
 #include <cassert>
 #include <fstream>
 
@@ -38,7 +40,7 @@ namespace
   const uint8_t WAVEfmt[] = {'W', 'A', 'V', 'E', 'f', 'm', 't', ' '};
   const uint8_t DATA[] = {'d', 'a', 't', 'a'};
 
-  class FileBackend : public BackendImpl
+  class FileBackend : public BackendImpl, private boost::noncopyable
   {
   public:
     FileBackend()
@@ -64,7 +66,7 @@ namespace
       }
     }
 
-    virtual void OnParametersChanged(unsigned changedFields)
+    virtual void OnParametersChanged(unsigned /*changedFields*/)
     {
       if (File.is_open())
       {

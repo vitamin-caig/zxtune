@@ -73,6 +73,10 @@ int main(int argc, char* argv[])
     Dump data;
     {
       std::ifstream file(filename.c_str(), std::ios::binary);
+      if (!file)
+      {
+        return 1;//TODO
+      }
       file.seekg(0, std::ios::end);
       data.resize(file.tellg());
       file.seekg(0);
@@ -89,6 +93,8 @@ int main(int argc, char* argv[])
 
     backend->OpenModule(filename, data);
 
+    Module::Information module;
+    backend->GetModuleInfo(module);
     Sound::Backend::Parameters params;
     backend->GetSoundParameters(params);
 
@@ -98,14 +104,30 @@ int main(int argc, char* argv[])
     params.SoundParameters.FrameDuration = 20;
     params.BufferInMs = 1000;
 
-    params.Mixer.resize(3);
-    
-    params.Mixer[0].Matrix[0] = Sound::FIXED_POINT_PRECISION;
-    params.Mixer[0].Matrix[1] = 5 * Sound::FIXED_POINT_PRECISION / 100;
-    params.Mixer[1].Matrix[0] = 66 * Sound::FIXED_POINT_PRECISION / 100;
-    params.Mixer[1].Matrix[1] = 66 * Sound::FIXED_POINT_PRECISION / 100;
-    params.Mixer[2].Matrix[0] = 5 * Sound::FIXED_POINT_PRECISION / 100;
-    params.Mixer[2].Matrix[1] = Sound::FIXED_POINT_PRECISION;
+    if (3 == module.Statistic.Channels)
+    {
+      params.Mixer.resize(3);
+      
+      params.Mixer[0].Matrix[0] = Sound::FIXED_POINT_PRECISION;
+      params.Mixer[0].Matrix[1] = 5 * Sound::FIXED_POINT_PRECISION / 100;
+      params.Mixer[1].Matrix[0] = 66 * Sound::FIXED_POINT_PRECISION / 100;
+      params.Mixer[1].Matrix[1] = 66 * Sound::FIXED_POINT_PRECISION / 100;
+      params.Mixer[2].Matrix[0] = 5 * Sound::FIXED_POINT_PRECISION / 100;
+      params.Mixer[2].Matrix[1] = Sound::FIXED_POINT_PRECISION;
+    }
+    else if (4 == module.Statistic.Channels)
+    {
+      params.Mixer.resize(4);
+
+      params.Mixer[0].Matrix[0] = Sound::FIXED_POINT_PRECISION;
+      params.Mixer[0].Matrix[1] = 5 * Sound::FIXED_POINT_PRECISION / 100;
+      params.Mixer[1].Matrix[0] = Sound::FIXED_POINT_PRECISION;
+      params.Mixer[1].Matrix[1] = 5 * Sound::FIXED_POINT_PRECISION / 100;
+      params.Mixer[2].Matrix[0] = 5 * Sound::FIXED_POINT_PRECISION / 100;
+      params.Mixer[2].Matrix[1] = Sound::FIXED_POINT_PRECISION;
+      params.Mixer[3].Matrix[0] = 5 * Sound::FIXED_POINT_PRECISION / 100;
+      params.Mixer[3].Matrix[1] = Sound::FIXED_POINT_PRECISION;
+    }
 #ifdef WAVE
     params.DriverParameters = "test.wav";
 #else

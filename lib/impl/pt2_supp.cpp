@@ -131,6 +131,11 @@ namespace
     SampleCreator(const Dump& data) : Data(data)
     {
     }
+
+    SampleCreator(const SampleCreator& rh) : Data(rh.Data)
+    {
+    }
+
     result_type operator () (const argument_type arg) const
     {
       if (0 == arg)//dummy
@@ -170,6 +175,11 @@ namespace
     NOISE_ADD,    //1p
   };
 
+  uint8_t GetVolume(std::size_t volume, std::size_t level)
+  {
+    return uint8_t((volume * 17 + (volume > 7 ? 1 : 0)) * level >> 8);
+  }
+
   class PlayerImpl : public Tracking::TrackPlayer<3, Sample>
   {
     typedef Tracking::TrackPlayer<3, Sample> Parent;
@@ -180,6 +190,11 @@ namespace
       OrnamentCreator(const Dump& data) : Data(data)
       {
       }
+
+      OrnamentCreator(const OrnamentCreator& rh) : Data(rh.Data)
+      {
+      }
+
       result_type operator () (const argument_type arg) const
       {
         if (0 == arg)
@@ -386,7 +401,7 @@ namespace
     }
 
     /// Retrieving current state of sound
-    virtual State GetSoundState(Sound::Analyze::Volume& volState, Sound::Analyze::Spectrum& spectrumState) const
+    virtual State GetSoundState(Sound::Analyze::Volume& /*volState*/, Sound::Analyze::Spectrum& /*spectrumState*/) const
     {
       return PlaybackState;
     }
@@ -410,7 +425,7 @@ namespace
       return Parent::Reset();
     }
 
-    virtual State SetPosition(const uint32_t& frame)
+    virtual State SetPosition(const uint32_t& /*frame*/)
     {
       return PlaybackState;
     }
@@ -432,7 +447,7 @@ namespace
           ChannelState& dst(Channels[chan]);
           if (!src.Enabled.IsNull())
           {
-            if (dst.Enabled = src.Enabled)
+            if ( (dst.Enabled = src.Enabled) )
             {
               ++CurrentState.Position.Channels;
             }
@@ -469,9 +484,9 @@ namespace
             switch (it->Type)
             {
             case ENVELOPE:
-              chunk.Data[AYM::DataChunk::REG_ENV] = it->Param1;
-              chunk.Data[AYM::DataChunk::REG_TONEE_L] = it->Param2 & 0xff;
-              chunk.Data[AYM::DataChunk::REG_TONEE_H] = it->Param2 >> 8;
+              chunk.Data[AYM::DataChunk::REG_ENV] = uint8_t(it->Param1);
+              chunk.Data[AYM::DataChunk::REG_TONEE_L] = uint8_t(it->Param2 & 0xff);
+              chunk.Data[AYM::DataChunk::REG_TONEE_H] = uint8_t(it->Param2 >> 8);
               chunk.Mask |= (1 << AYM::DataChunk::REG_ENV) | 
                 (1 << AYM::DataChunk::REG_TONEE_L) | (1 << AYM::DataChunk::REG_TONEE_H);
               dst.Envelope = true;
@@ -517,8 +532,7 @@ namespace
         
           //calculate tone
           const std::size_t halfTone(clamp<std::size_t>(dst->Note + curOrnament.Data[dst->PosInOrnament], 0, 95));
-          const uint16_t slidedTone(FreqTable[halfTone] + dst->Sliding);
-          const uint16_t tone(clamp<uint16_t>(slidedTone + curSampleLine.Vibrato, 0, 0xffff));
+          const uint16_t tone(uint16_t(clamp(FreqTable[halfTone] + dst->Sliding + curSampleLine.Vibrato, 0, 0xffff)));
           if (dst->SlidingTargetNote != ~std::size_t(0))
           {
             const unsigned nextTone(FreqTable[dst->Note] + dst->Sliding + dst->Glissade);
@@ -532,12 +546,12 @@ namespace
             }
           }
           dst->Sliding += dst->Glissade;
-          chunk.Data[toneReg] = tone & 0xff;
-          chunk.Data[toneReg + 1] = tone >> 8;
+          chunk.Data[toneReg] = uint8_t(tone & 0xff);
+          chunk.Data[toneReg + 1] = uint8_t(tone >> 8);
           chunk.Mask |= 3 << toneReg;
           //calculate level
-          chunk.Data[volReg] = uint8_t((dst->Volume * 17 + (dst->Volume > 7 ? 1 : 0)) * curSampleLine.Level >> 8)
-            | (dst->Envelope ? AYM::DataChunk::MASK_ENV : 0);
+          chunk.Data[volReg] = GetVolume(dst->Volume, curSampleLine.Level)
+            | uint8_t(dst->Envelope ? AYM::DataChunk::MASK_ENV : 0);
           //mixer
           if (curSampleLine.ToneOff)
           {
@@ -549,7 +563,7 @@ namespace
           }
           else
           {
-            chunk.Data[AYM::DataChunk::REG_TONEN] = clamp<uint8_t>(curSampleLine.Noise + dst->NoiseAdd, 0, 31);
+            chunk.Data[AYM::DataChunk::REG_TONEN] = uint8_t(clamp<signed>(curSampleLine.Noise + dst->NoiseAdd, 0, 31));
             chunk.Mask |= 1 << AYM::DataChunk::REG_TONEN;
           }
 
@@ -583,7 +597,7 @@ namespace
     info.Properties.insert(StringMap::value_type(ATTR_VERSION, TEXT_PT2_VERSION));
   }
 
-  bool Checking(const String& filename, const Dump& data)
+  bool Checking(const String& /*filename*/, const Dump& data)
   {
     //check for header
     const std::size_t size(data.size());

@@ -21,6 +21,10 @@ namespace
     {
     }
 
+    PDFinder(const PDFinder& rh) : Val(rh.Val)
+    {
+    }
+
     result_type operator()(const argument_type& arg) const
     {
       return arg.Checker == Val.Checker && arg.Creator == Val.Creator && arg.Descriptor == Val.Descriptor;

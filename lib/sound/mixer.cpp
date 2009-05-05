@@ -2,6 +2,8 @@
 
 #include <tools.h>
 
+#include <boost/noncopyable.hpp>
+
 #include <algorithm>
 
 namespace
@@ -12,7 +14,7 @@ namespace
   Simple mixer with fixed-point calculations
   */
   template<std::size_t InChannels>
-  class Mixer : public Receiver
+  class Mixer : public Receiver, private boost::noncopyable
   {
   public:
     Mixer(const ChannelMixer* matrix, Receiver* delegate)

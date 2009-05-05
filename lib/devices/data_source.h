@@ -1,6 +1,8 @@
 #ifndef __DATA_SOURCE_H_DEFINED__
 #define __DATA_SOURCE_H_DEFINED__
 
+#include <boost/noncopyable.hpp>
+
 namespace ZXTune
 {
   template<class T>
@@ -15,7 +17,7 @@ namespace ZXTune
   };
 
   template<class T>
-  class SingleFrameDataSource : public DataSource<T>
+  class SingleFrameDataSource : public DataSource<T>, private boost::noncopyable
   {
   public:
     SingleFrameDataSource(const T& data) : Data(data), State(true)

@@ -15,8 +15,6 @@ namespace
   using namespace ZXTune::Sound;
   void GetInitialParameters(Backend::Parameters& params)
   {
-    static const SampleArray MixValue = {FIXED_POINT_PRECISION};
-    static const ChannelMixer DefMixer(MixValue);
     //driver
     params.DriverParameters.clear();
     params.DriverFlags = 0;
@@ -25,8 +23,7 @@ namespace
     params.SoundParameters.SoundFreq = 44100;
     params.SoundParameters.FrameDuration = 20;
     params.SoundParameters.Flags = 0;
-    //mixing (mono by default)
-    params.Mixer.resize(3, DefMixer);
+    //mixing (no channels)
     params.Preamp = FIXED_POINT_PRECISION;
     //FIR (no)
     params.FIROrder = 0;
@@ -48,11 +45,16 @@ namespace ZXTune
 
     Backend::State BackendImpl::OpenModule(const String& filename, const Dump& data)
     {
+      static const SampleArray MONO_MIX = {FIXED_POINT_PRECISION};
+
       IPC::Locker locker(PlayerMutex);
       SafeStop();
-      Player = ModulePlayer::Create(filename, data);
+      Player.reset(ModulePlayer::Create(filename, data).release());
       if (Player.get())
       {
+        Module::Information info;
+        Player->GetModuleInfo(info);
+        Params.Mixer.resize(info.Statistic.Channels, ChannelMixer(MONO_MIX));
         return CurrentState = STOPPED;
       }
       CurrentState = NOTOPENED;
@@ -167,7 +169,8 @@ namespace ZXTune
       Params = params;
       if (changedFields & UPDATE_RENDERER_MASK)
       {
-        Renderer = CreateCallbackRenderer(Params.SoundParameters.SoundFreq * Params.BufferInMs / 1000, CallbackFunc, this);
+        Renderer.reset(
+          CreateCallbackRenderer(Params.SoundParameters.SoundFreq * Params.BufferInMs / 1000, CallbackFunc, this).release());
       }
       Filter.reset();
       if ((changedFields & (UPDATE_RENDERER_MASK | UPDATE_FILTER_MASK)) && Params.FIROrder)
@@ -177,11 +180,13 @@ namespace ZXTune
           CalculateFIRCoefficients(Params.FIROrder, Params.SoundParameters.SoundFreq, Params.LowCutoff, Params.HighCutoff, FilterCoeffs);
         }
         
-        Filter = CreateFIRFilter(&FilterCoeffs[0], Params.FIROrder, Renderer.get());
+        Filter.reset(
+          CreateFIRFilter(&FilterCoeffs[0], Params.FIROrder, Renderer.get()).release());
       }
       if (changedFields & (UPDATE_RENDERER_MASK | UPDATE_FILTER_MASK | UPDATE_MIXER_MASK))
       {
-        Mixer = CreateMixer(Params.Mixer, Filter.get() ? Filter.get() : Renderer.get());
+        Mixer.reset(
+          CreateMixer(Params.Mixer, Filter.get() ? Filter.get() : Renderer.get()).release());
       }
       return OnParametersChanged(changedFields);
     }

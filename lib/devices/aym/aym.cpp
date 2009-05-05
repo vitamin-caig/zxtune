@@ -136,7 +136,7 @@ namespace
     uint64_t nextSampleTick = curTick + ticksPerSample;
 
     // rendering context
-    unsigned HighLevel = ~0;
+    unsigned HighLevel = ~unsigned(0);
     for (;;)
     {
       while (curTick >= LastData.Tick) //need to get data
@@ -283,7 +283,7 @@ namespace
     }//loop
   }
 
-  void ChipImpl::GetState(Sound::Analyze::Volume& volState, Sound::Analyze::Spectrum& spectrumState) const
+  void ChipImpl::GetState(Sound::Analyze::Volume& /*volState*/, Sound::Analyze::Spectrum& /*spectrumState*/) const
   {
     //TODO
   }

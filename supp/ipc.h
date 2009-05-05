@@ -3,6 +3,8 @@
 
 #include <types.h>
 
+#include <boost/noncopyable.hpp>
+
 namespace ZXTune
 {
   namespace IPC
@@ -45,7 +47,7 @@ namespace ZXTune
       void* Data;
     };
 
-    class Locker
+    class Locker : private boost::noncopyable
     {
     public:
       Locker(Mutex& mtx) : Obj(mtx)

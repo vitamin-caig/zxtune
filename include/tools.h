@@ -108,6 +108,12 @@ inline T clamp(T val, T min, T max)
 }
 
 template<class T>
+inline T align(T val, std::size_t alignment)
+{
+  return alignment * ((val - 1) / alignment + 1);
+}
+
+template<class T>
 class Optional
 {
 public:

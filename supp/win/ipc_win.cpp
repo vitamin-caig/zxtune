@@ -70,7 +70,7 @@ namespace ZXTune
 
     Thread::~Thread()
     {
-      assert(static_cast<ThreadData*>(Data)->Handle == INVALID_HANDLE_VALUE);
+      Stop();
       delete static_cast<ThreadData*>(Data);
     }
 
