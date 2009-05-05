@@ -34,7 +34,7 @@ namespace
       0x077, 0x070, 0x06b, 0x064, 0x05e, 0x059, 0x054, 0x04f, 0x04b, 0x047, 0x042, 0x03f,
       0x03b, 0x038, 0x035, 0x032, 0x02f, 0x02c, 0x02a, 0x027, 0x025, 0x023, 0x021, 0x01f,
       0x01d, 0x01c, 0x01a, 0x019, 0x017, 0x016, 0x015, 0x013, 0x012, 0x011, 0x010, 0x00f
-  }; 
+  };
   //////////////////////////////////////////////////////////////////////////
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -104,7 +104,7 @@ namespace
 
   struct Sample
   {
-    Sample() : Loop()
+    Sample() : Loop(), Data()
     {
     }
 
@@ -211,7 +211,7 @@ namespace
       const Dump& Data;
     };
 
-    static void ParsePattern(const Dump& data, std::vector<std::size_t>& offsets, Parent::Line& line, 
+    static void ParsePattern(const Dump& data, std::vector<std::size_t>& offsets, Parent::Line& line,
       std::valarray<std::size_t>& periods,
       std::valarray<std::size_t>& counters)
     {
@@ -315,7 +315,7 @@ namespace
     {
       ChannelState()
         : Enabled(false), Envelope(false)
-        , SampleNum(0), PosInSample(0)
+        , Note(), SampleNum(0), PosInSample(0)
         , OrnamentNum(0), PosInOrnament(0)
         , Volume(15), NoiseAdd(0)
         , Sliding(0), SlidingTargetNote(~std::size_t(0)), Glissade(0)
@@ -348,7 +348,7 @@ namespace
       Information.Properties.insert(StringMap::value_type(Module::ATTR_PROGRAM, TEXT_PT2_EDITOR));
 
       //fill samples
-      std::transform(header->SamplesOffsets, header->SamplesOffsets + ArraySize(header->SamplesOffsets), 
+      std::transform(header->SamplesOffsets, header->SamplesOffsets + ArraySize(header->SamplesOffsets),
         std::back_inserter(Data.Samples), SampleCreator(data));
       //fill ornaments
       std::transform(header->OrnamentsOffsets, header->OrnamentsOffsets + ArraySize(header->OrnamentsOffsets),
@@ -487,7 +487,7 @@ namespace
               chunk.Data[AYM::DataChunk::REG_ENV] = uint8_t(it->Param1);
               chunk.Data[AYM::DataChunk::REG_TONEE_L] = uint8_t(it->Param2 & 0xff);
               chunk.Data[AYM::DataChunk::REG_TONEE_H] = uint8_t(it->Param2 >> 8);
-              chunk.Mask |= (1 << AYM::DataChunk::REG_ENV) | 
+              chunk.Mask |= (1 << AYM::DataChunk::REG_ENV) |
                 (1 << AYM::DataChunk::REG_TONEE_L) | (1 << AYM::DataChunk::REG_TONEE_H);
               dst.Envelope = true;
               break;
@@ -515,13 +515,13 @@ namespace
       }
       //permanent registers
       chunk.Data[AYM::DataChunk::REG_MIXER] = 0;
-      chunk.Mask |= (1 << AYM::DataChunk::REG_MIXER) | 
+      chunk.Mask |= (1 << AYM::DataChunk::REG_MIXER) |
         (1 << AYM::DataChunk::REG_VOLA) | (1 << AYM::DataChunk::REG_VOLB) | (1 << AYM::DataChunk::REG_VOLC);
       std::size_t toneReg = AYM::DataChunk::REG_TONEA_L;
       std::size_t volReg = AYM::DataChunk::REG_VOLA;
       uint8_t toneMsk = AYM::DataChunk::MASK_TONEA;
       uint8_t noiseMsk = AYM::DataChunk::MASK_NOISEA;
-      for (ChannelState* dst = Channels; dst != ArrayEnd(Channels); 
+      for (ChannelState* dst = Channels; dst != ArrayEnd(Channels);
         ++dst, toneReg += 2, ++volReg, toneMsk <<= 1, noiseMsk <<= 1)
       {
         if (dst->Enabled)
@@ -529,7 +529,7 @@ namespace
           const Sample& curSample(Data.Samples[dst->SampleNum]);
           const Sample::Line& curSampleLine(curSample.Data[dst->PosInSample]);
           const Ornament& curOrnament(Data.Ornaments[dst->OrnamentNum]);
-        
+
           //calculate tone
           const std::size_t halfTone(clamp<std::size_t>(dst->Note + curOrnament.Data[dst->PosInOrnament], 0, 95));
           const uint16_t tone(uint16_t(clamp(FreqTable[halfTone] + dst->Sliding + curSampleLine.Vibrato, 0, 0xffff)));

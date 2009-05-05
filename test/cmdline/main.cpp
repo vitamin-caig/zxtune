@@ -88,7 +88,11 @@ int main(int argc, char* argv[])
 #ifdef WAVE
     Sound::Backend::Ptr backend(Sound::CreateFileBackend());
 #else
+#ifdef _WIN32
     Sound::Backend::Ptr backend(Sound::CreateWinAPIBackend());
+#else
+    Sound::Backend::Ptr backend(Sound::CreateOSSBackend());
+#endif
 #endif
 
     backend->OpenModule(filename, data);
@@ -107,7 +111,7 @@ int main(int argc, char* argv[])
     if (3 == module.Statistic.Channels)
     {
       params.Mixer.resize(3);
-      
+
       params.Mixer[0].Matrix[0] = Sound::FIXED_POINT_PRECISION;
       params.Mixer[0].Matrix[1] = 5 * Sound::FIXED_POINT_PRECISION / 100;
       params.Mixer[1].Matrix[0] = 66 * Sound::FIXED_POINT_PRECISION / 100;
@@ -131,7 +135,10 @@ int main(int argc, char* argv[])
 #ifdef WAVE
     params.DriverParameters = "test.wav";
 #else
+#ifdef _WIN32
     params.DriverParameters = "2";
+#else
+#endif
 #endif
 
     backend->SetSoundParameters(params);

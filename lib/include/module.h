@@ -32,6 +32,9 @@ namespace ZXTune
     /// Common module information
     struct Information
     {
+      Information() : Statistic(), Loop(), Properties(), Capabilities()
+      {
+      }
       Tracking Statistic;
       std::size_t Loop;
       StringMap Properties;

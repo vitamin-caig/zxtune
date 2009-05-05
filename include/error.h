@@ -42,10 +42,10 @@ struct Error
   typedef ErrorTag Detail;
 #endif
 
-  Error() : Dtl(), Code(0) //success
+  Error() : Dtl(), Code(0), Text() //success
   {
   }
-  Error(Detail dtl, std::size_t code) : Dtl(dtl), Code(code)
+  Error(Detail dtl, std::size_t code) : Dtl(dtl), Code(code), Text()
   {
   }
   Error(Detail dtl, std::size_t code, const String& text) : Dtl(dtl), Code(code), Text(text)

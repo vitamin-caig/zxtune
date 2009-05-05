@@ -38,7 +38,10 @@ namespace ZXTune
   namespace Sound
   {
     BackendImpl::BackendImpl()
-      : PlayerThread(), CurrentState(NOTOPENED)
+      : Params()
+      , PlayerThread(), PlayerMutex()
+      , CurrentState(NOTOPENED)
+      , Player(), Mixer(), Filter(), FilterCoeffs(), Renderer()
     {
       GetInitialParameters(Params);
     }
@@ -179,7 +182,7 @@ namespace ZXTune
         {
           CalculateFIRCoefficients(Params.FIROrder, Params.SoundParameters.SoundFreq, Params.LowCutoff, Params.HighCutoff, FilterCoeffs);
         }
-        
+
         Filter.reset(
           CreateFIRFilter(&FilterCoeffs[0], Params.FIROrder, Renderer.get()).release());
       }

@@ -9,7 +9,7 @@ namespace ZXTune
 {
   namespace IPC
   {
-    class Mutex
+    class Mutex : private boost::noncopyable
     {
     public:
       Mutex();
@@ -21,21 +21,8 @@ namespace ZXTune
       void* Data;
     };
 
-    class Event
-    {
-    public:
-      Event();
-      ~Event();
-
-      void Wait();
-      bool Wait(uint32_t timeout);
-      void Signal();
-    private:
-      void* Data;
-    };
-
     typedef bool (*ThreadFunc)(void*);
-    class Thread
+    class Thread : private boost::noncopyable
     {
     public:
       Thread();

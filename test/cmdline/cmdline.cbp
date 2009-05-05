@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="cmdline" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/cmdline" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option parameters="samples/chi/balala.chi" />
+				<Option projectIncludeDirsRelation="0" />
+				<Compiler>
+					<Add option="-W" />
+					<Add option="-Wall" />
+					<Add option="-ansi" />
+					<Add option="-g" />
+					<Add option="-funsigned-char" />
+					<Add option="-Wextra" />
+					<Add option="-Weffc++" />
+					<Add option="-pipe" />
+					<Add directory="../../include/boost/tr1/tr1" />
+					<Add directory="../../include/boost/tr1" />
+					<Add directory="../../include" />
+					<Add directory="../../lib/include" />
+				</Compiler>
+				<Linker>
+					<Add library="pthread" />
+				</Linker>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/cmdline" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-W" />
+			<Add option="-Wall" />
+			<Add option="-ansi" />
+			<Add option="-funsigned-char -Wextra -Weffc++ -pipe" />
+			<Add directory="../../include/boost/tr1/tr1" />
+			<Add directory="../../include/boost/tr1" />
+			<Add directory="../../include" />
+			<Add directory="../../lib/include" />
+		</Compiler>
+		<Linker>
+			<Add library="pthread" />
+		</Linker>
+		<Unit filename="../../include/error.h" />
+		<Unit filename="../../include/tools.h" />
+		<Unit filename="../../include/types.h" />
+		<Unit filename="../../lib/devices/aym/aym.cpp" />
+		<Unit filename="../../lib/devices/aym/aym.h" />
+		<Unit filename="../../lib/devices/data_source.h" />
+		<Unit filename="../../lib/impl/chi_supp.cpp" />
+		<Unit filename="../../lib/impl/plugin_enumerator.cpp" />
+		<Unit filename="../../lib/impl/plugin_enumerator.h" />
+		<Unit filename="../../lib/impl/psg_supp.cpp" />
+		<Unit filename="../../lib/impl/pt2_supp.cpp" />
+		<Unit filename="../../lib/impl/tracking_supp.h" />
+		<Unit filename="../../lib/include/module.h" />
+		<Unit filename="../../lib/include/module_attrs.h" />
+		<Unit filename="../../lib/include/player.h" />
+		<Unit filename="../../lib/include/player_attrs.h" />
+		<Unit filename="../../lib/include/sound.h" />
+		<Unit filename="../../lib/include/sound_attrs.h" />
+		<Unit filename="../../lib/include/sound_types.h" />
+		<Unit filename="../../lib/sound/filter.cpp" />
+		<Unit filename="../../lib/sound/filter.h" />
+		<Unit filename="../../lib/sound/mixer.cpp" />
+		<Unit filename="../../lib/sound/mixer.h" />
+		<Unit filename="../../lib/sound/renderer.cpp" />
+		<Unit filename="../../lib/sound/renderer.h" />
+		<Unit filename="../../supp/cross/file_backend.cpp" />
+		<Unit filename="../../supp/ipc.h" />
+		<Unit filename="../../supp/linux/ipc_linux.cpp" />
+		<Unit filename="../../supp/linux/oss_backend.cpp" />
+		<Unit filename="../../supp/sound_backend.h" />
+		<Unit filename="../../supp/sound_backend_impl.cpp" />
+		<Unit filename="../../supp/sound_backend_impl.h" />
+		<Unit filename="../../supp/sound_backend_types.h" />
+		<Unit filename="main.cpp" />
+		<Extensions>
+			<envvars />
+			<code_completion />
+			<lib_finder disable_auto="1" />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

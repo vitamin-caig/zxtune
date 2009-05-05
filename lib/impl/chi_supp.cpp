@@ -3,6 +3,7 @@
 
 #include <player_attrs.h>
 
+#include <boost/array.hpp>
 #include <boost/static_assert.hpp>
 
 namespace
@@ -84,7 +85,7 @@ namespace
 
   struct Sample
   {
-    explicit Sample(std::size_t loop = 0) : Loop(loop)
+    explicit Sample(std::size_t loop = 0) : Loop(loop), Data()
     {
     }
 
@@ -181,7 +182,7 @@ namespace
     }
 
   public:
-    PlayerImpl(const String& filename, const Dump& data)
+    PlayerImpl(const String& filename, const Dump& data) : TableFreq(), FreqTable()
     {
       //assume data is correct
       const CHIHeader* const header(safe_ptr_cast<const CHIHeader*>(&data[0]));
@@ -206,7 +207,7 @@ namespace
       //fill samples
       Data.Samples.reserve(ArraySize(header->Samples));
       const uint8_t* sampleData(safe_ptr_cast<const uint8_t*>(patBegin + Information.Statistic.Pattern));
-      for (const CHIHeader::SampleDescr* sample = header->Samples; 
+      for (const CHIHeader::SampleDescr* sample = header->Samples;
            sample != header->Samples + ArraySize(header->Samples);
            ++sample)
       {
@@ -354,24 +355,25 @@ namespace
         261.64, 277.16, 293.68, 311.12, 329.64, 349.20, 370.00, 392.00, 415.28, 440.00, 466.16, 493.84,
         //octave5
         523.28, 554.32, 587.36, 622.24, 659.28, 698.40, 740.00, 784.00, 830.56, 880.00, 932.32, 987.68,
-      }; 
+      };
       if (TableFreq != freq)
       {
         TableFreq = freq;
         for (std::size_t note = 0; note != NOTES; ++note)
         {
-          FreqTable[note] = static_cast<std::size_t>(FREQ_TABLE[note] * Sound::FIXED_POINT_PRECISION * BASE_FREQ 
+          FreqTable[note] = static_cast<std::size_t>(FREQ_TABLE[note] * Sound::FIXED_POINT_PRECISION * BASE_FREQ
             / (FREQ_TABLE[0] * freq));
         }
       }
       //TODO: proper sliding
-      return FreqTable[state.Note] + 
-        static_cast<std::size_t>(state.Sliding * Sound::FIXED_POINT_PRECISION * BASE_FREQ / (FREQ_TABLE[0] * freq));
+      const int resStep(int(FreqTable[state.Note]) +
+        state.Sliding * Sound::FIXED_POINT_PRECISION * BASE_FREQ / (FREQ_TABLE[0] * freq));
+      return clamp<int>(resStep, FreqTable.front(), FreqTable.back());
     }
   private:
     ChannelState Channels[4];
     std::size_t TableFreq;
-    std::size_t FreqTable[NOTES];
+    boost::array<std::size_t, NOTES> FreqTable;
   };
   //////////////////////////////////////////////////////////////////////////
   void Information(ModulePlayer::Info& info)

@@ -46,6 +46,13 @@ namespace ZXTune
       /// Parameters working
       struct Parameters
       {
+        Parameters()
+          : DriverParameters(), DriverFlags()
+          , SoundParameters(), Mixer(), Preamp()
+          , FIROrder(), LowCutoff(), HighCutoff()
+          , BufferInMs()
+        {
+        }
         /// Different driver parameters and flags
         String DriverParameters;
         uint32_t DriverFlags;

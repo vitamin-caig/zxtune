@@ -18,7 +18,7 @@ source_files := $(wildcard $(addsuffix /*.cpp,$(source_dirs))) $(cpp_texts)
 object_files := $(notdir $(source_files))
 object_files := $(addprefix $(objects_dir)/,$(object_files:.cpp=.o))
 
-CXX_FLAGS := -O2 -g0 -s -Wall -Wextra -funsigned-char -ansi \
+CXX_FLAGS := -O3 -g2 -mmmx -msse -msse2 -funroll-loops -Wall -Wextra -funsigned-char -ansi \
             $(addprefix -I, $(include_dirs)) $(addprefix -D, $(definitions)) -pipe
 
 AR_FLAGS := cru

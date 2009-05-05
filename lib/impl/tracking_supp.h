@@ -20,7 +20,7 @@ namespace ZXTune
       /// Ornament is just a set of tone offsets
       struct Ornament
       {
-        Ornament() : Loop()
+        Ornament() : Loop(), Data()
         {
         }
 
@@ -53,11 +53,17 @@ namespace ZXTune
 
       struct Line
       {
+        Line() : Speed(), Channels()
+        {
+        }
         //track attrs
         Optional<std::size_t> Speed;
 
         struct Chan
         {
+          Chan() : Enabled(), Note(), SampleNum(), OrnamentNum(), Volume(), Commands()
+          {
+          }
           Optional<bool> Enabled;
           Optional<std::size_t> Note;
           Optional<std::size_t> SampleNum;
@@ -73,6 +79,9 @@ namespace ZXTune
 
       struct ModuleData
       {
+        ModuleData() : Positions(), Patterns(), Samples(), Ornaments()
+        {
+        }
         std::vector<std::size_t> Positions;
         std::vector<Pattern> Patterns;
         std::vector<Sample> Samples;
@@ -83,12 +92,15 @@ namespace ZXTune
       //state
       struct ModuleState
       {
+        ModuleState() : Position(), Frame(), Tick()
+        {
+        }
         Module::Tracking Position;
         uint32_t Frame;
         uint64_t Tick;
       };
     public:
-      TrackPlayer() : PlaybackState(MODULE_STOPPED)
+      TrackPlayer() : Information(), Data(), CurrentState(), PlaybackState(MODULE_STOPPED)
       {
       }
 
