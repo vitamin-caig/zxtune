@@ -87,7 +87,7 @@ namespace
       Format.BitsPerSample = 8 * sizeof(Sample);
       Format.DataSize = 0;
       //loop is disabled
-      Params.SoundParameters.Flags &= MOD_LOOP;
+      Params.SoundParameters.Flags &= ~MOD_LOOP;
     }
 
     virtual void OnShutdown()

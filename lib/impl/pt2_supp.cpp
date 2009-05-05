@@ -333,10 +333,10 @@ namespace
       Information.Properties.insert(StringMap::value_type(Module::ATTR_PROGRAM, TEXT_PT2_EDITOR));
 
       //fill samples
-      std::transform(header->SamplesOffsets, ArrayEnd(header->SamplesOffsets), 
+      std::transform(header->SamplesOffsets, header->SamplesOffsets + ArraySize(header->SamplesOffsets), 
         std::back_inserter(Data.Samples), SampleCreator(data));
       //fill ornaments
-      std::transform(header->OrnamentsOffsets, ArrayEnd(header->OrnamentsOffsets),
+      std::transform(header->OrnamentsOffsets, header->OrnamentsOffsets + ArraySize(header->OrnamentsOffsets),
         std::back_inserter(Data.Ornaments), OrnamentCreator(data));
       //fill order
       const uint8_t* orderPos(header->Positions);
@@ -357,7 +357,7 @@ namespace
         std::vector<std::size_t> offsets(ArraySize(patPos->Offsets));
         std::valarray<std::size_t> periods(std::size_t(0), ArraySize(patPos->Offsets));
         std::valarray<std::size_t> counters(std::size_t(0), ArraySize(patPos->Offsets));
-        std::transform(patPos->Offsets, ArrayEnd(patPos->Offsets), offsets.begin(), std::ptr_fun<uint16_t>(&fromLE));
+        std::transform(patPos->Offsets, patPos->Offsets + ArraySize(patPos->Offsets), offsets.begin(), std::ptr_fun<uint16_t>(&fromLE));
         pat.reserve(MAX_PATTERN_SIZE);
         do
         {
@@ -593,7 +593,7 @@ namespace
     }
     const PT2Header* const header(safe_ptr_cast<const PT2Header*>(&data[0]));
     //check offsets
-    for (const uint16_t* sampOff = header->SamplesOffsets; sampOff != ArrayEnd(header->SamplesOffsets); ++sampOff)
+    for (const uint16_t* sampOff = header->SamplesOffsets; sampOff != header->SamplesOffsets + ArraySize(header->SamplesOffsets); ++sampOff)
     {
       const std::size_t offset(fromLE(*sampOff));
       if (offset >= size || (offset && !*safe_ptr_cast<const PT2Sample*>(&data[offset])))
@@ -601,7 +601,7 @@ namespace
         return false;
       }
     }
-    for (const uint16_t* ornOff = header->OrnamentsOffsets; ornOff != ArrayEnd(header->OrnamentsOffsets); ++ornOff)
+    for (const uint16_t* ornOff = header->OrnamentsOffsets; ornOff != header->OrnamentsOffsets + ArraySize(header->OrnamentsOffsets); ++ornOff)
     {
       const std::size_t offset(fromLE(*ornOff));
       if (offset >= size || (offset && !*safe_ptr_cast<const PT2Ornament*>(&data[offset])))

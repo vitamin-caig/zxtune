@@ -10,4 +10,6 @@ depends := lib supp
 
 include_path := $(path_step)/lib/include
 
+definitions := WAVE
+
 include $(path_step)/makefile.mak

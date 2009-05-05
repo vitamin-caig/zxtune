@@ -19,7 +19,7 @@ object_files := $(notdir $(source_files))
 object_files := $(addprefix $(objects_dir)/,$(object_files:.cpp=.o))
 
 CXX_FLAGS := -O2 -g0 -s -Wall -Wextra -funsigned-char -ansi \
-            $(addprefix -I, $(include_dirs)) -pipe
+            $(addprefix -I, $(include_dirs)) $(addprefix -D, $(definitions)) -pipe
 
 AR_FLAGS := cru
 LD_FLAGS := -pipe
