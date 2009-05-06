@@ -138,7 +138,7 @@ namespace
       info.Statistic.Note = info.Statistic.Frame = static_cast<uint32_t>(Storage.size());
       info.Statistic.Pattern = 1;
       info.Statistic.Position = 1;
-      info.Statistic.Speed = 1;
+      info.Statistic.Tempo = 1;
     }
 
     /// Retrieving current state of loaded module
@@ -149,7 +149,7 @@ namespace
       trackState.Note = Position;
       trackState.Pattern = 0;
       trackState.Position = 0;
-      trackState.Speed = 1;
+      trackState.Tempo = 1;
       return CurrentState;
     }
 

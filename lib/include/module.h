@@ -18,14 +18,14 @@ namespace ZXTune
     /// Track position descriptor
     struct Tracking
     {
-      Tracking() : Position(), Pattern(), Note(), Frame(), Speed(), Channels()
+      Tracking() : Position(), Pattern(), Note(), Frame(), Tempo(), Channels()
       {
       }
       std::size_t Position;
       std::size_t Pattern;
       std::size_t Note;
       std::size_t Frame;
-      std::size_t Speed;
+      std::size_t Tempo;
       std::size_t Channels;
     };
 

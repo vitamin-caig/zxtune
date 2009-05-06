@@ -28,7 +28,7 @@
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="0"
 				ExpandAttributedSource="FALSE"
-				WarningLevel="4"
+				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
 				DebugInformationFormat="3"/>
 			<Tool

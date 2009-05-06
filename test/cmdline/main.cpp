@@ -12,8 +12,16 @@
 #include <tools.h>
 #include <error.h>
 
+#include <boost/format.hpp>
+
 #include <fstream>
+#include <iomanip>
 #include <iostream>
+
+#ifdef _WIN32
+#include <conio.h>
+#include <Windows.h>
+#endif
 
 using namespace ZXTune;
 
@@ -38,6 +46,28 @@ namespace
     std::ostream* stream(static_cast<std::ostream*>(str));
     stream->write(static_cast<const char*>(data), static_cast<std::streamsize>(size));
   }
+
+#ifdef _WIN32
+  int GetKey()
+  {
+    return _kbhit() ? _getch() : 0;
+  }
+
+  COORD cpos;
+  void BeginState()
+  {
+    CONSOLE_SCREEN_BUFFER_INFO info;
+    HANDLE hdl(GetStdHandle(STD_OUTPUT_HANDLE));
+    GetConsoleScreenBufferInfo(hdl, &info);
+    cpos = info.dwCursorPosition;
+  }
+
+  void EndState()
+  {
+    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), cpos);
+  }
+#else
+#endif
 }
 
 int main(int argc, char* argv[])
@@ -106,7 +136,7 @@ int main(int argc, char* argv[])
     params.SoundParameters.ClockFreq = 1750000;
     params.SoundParameters.SoundFreq = 48000;
     params.SoundParameters.FrameDuration = 20;
-    params.BufferInMs = 1000;
+    params.BufferInMs = 20;
 
     if (3 == module.Statistic.Channels)
     {
@@ -137,6 +167,7 @@ int main(int argc, char* argv[])
 #else
 #ifdef _WIN32
     params.DriverParameters = "2";
+    params.DriverFlags = 3;
 #else
 #endif
 #endif
@@ -145,19 +176,35 @@ int main(int argc, char* argv[])
 
     backend->Play();
 
-    while (true)
+    std::cout << "Module: \n" << module.Properties;
+
+    boost::format formatter(
+      "Position: %1$2d / %2% (%3%)\n"
+      "Pattern:  %4$2d / %5%\n"
+      "Line:     %6$2d / %7%\n"
+      "Channels: %8$2d / %9%\n"
+      "Tempo:    %10$2d / %11%\n"
+      "Frame: %12$5d / %13%");
+    for (;;)
     {
       uint32_t frame;
       Module::Tracking track;
       backend->GetModuleState(frame, track);
-      std::cout << "\rCurrent frame: " << frame << std::flush;
-      char sym(0);
-      std::cin >> sym;
-      if ('q' == sym || 'Q' == sym)
+      BeginState();
+      std::cout <<
+      formatter % track.Position % module.Statistic.Position % module.Loop %
+                  track.Pattern % module.Statistic.Pattern %
+                  track.Note % module.Statistic.Note %
+                  track.Channels % module.Statistic.Channels %
+                  track.Tempo % module.Statistic.Tempo %
+                  frame % module.Statistic.Frame;
+      EndState();
+      const int key(GetKey());
+      if ('q' == key || 'Q' == key)
       {
         break;
       }
-      switch (sym)
+      switch (key)
       {
       case 'p':
         Sound::Backend::PLAYING == backend->GetState() ? backend->Pause() : backend->Play();
@@ -166,6 +213,7 @@ int main(int argc, char* argv[])
         backend->Stop();
         break;
       }
+      IPC::Sleep(20);
     }
     //backend->Stop();
     return 0;

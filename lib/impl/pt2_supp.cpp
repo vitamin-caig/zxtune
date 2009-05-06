@@ -340,7 +340,7 @@ namespace
     {
       //assume all data is correct
       const PT2Header* const header(safe_ptr_cast<const PT2Header*>(&data[0]));
-      Information.Statistic.Speed = header->Speed;
+      Information.Statistic.Tempo = header->Speed;
       Information.Statistic.Position = header->Length;
       Information.Loop = header->Loop;
       Information.Properties.insert(StringMap::value_type(Module::ATTR_FILENAME, filename));
@@ -438,7 +438,7 @@ namespace
       {
         if (!line.Speed.IsNull())
         {
-          CurrentState.Position.Speed = line.Speed;
+          CurrentState.Position.Tempo = line.Speed;
         }
         CurrentState.Position.Channels = 0;
         for (std::size_t chan = 0; chan != line.Channels.size(); ++chan)

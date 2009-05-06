@@ -120,7 +120,8 @@ namespace ZXTune
 
       virtual State RenderFrame(const Sound::Parameters& params, Sound::Receiver* receiver)
       {
-        if (++CurrentState.Position.Frame >= CurrentState.Position.Speed)//next note
+        ++CurrentState.Frame;
+        if (++CurrentState.Position.Frame >= CurrentState.Position.Tempo)//next note
         {
           CurrentState.Position.Frame = 0;
           if (++CurrentState.Position.Note >= Data.Patterns[CurrentState.Position.Pattern].size())//next position
@@ -148,7 +149,7 @@ namespace ZXTune
       virtual State Reset()
       {
         CurrentState.Position = Module::Tracking();
-        CurrentState.Position.Speed = Information.Statistic.Speed;
+        CurrentState.Position.Tempo = Information.Statistic.Tempo;
         CurrentState.Frame = 0;
         CurrentState.Tick = 0;
         CurrentState.Position.Pattern = Data.Positions[0];

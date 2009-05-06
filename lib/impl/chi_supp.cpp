@@ -186,7 +186,7 @@ namespace
     {
       //assume data is correct
       const CHIHeader* const header(safe_ptr_cast<const CHIHeader*>(&data[0]));
-      Information.Statistic.Speed = header->Tempo;
+      Information.Statistic.Tempo = header->Tempo;
       Information.Statistic.Position = header->Length;
       Information.Loop = header->Loop;
       Information.Properties.insert(StringMap::value_type(Module::ATTR_FILENAME, filename));
@@ -245,13 +245,14 @@ namespace
       {
         if (!line.Speed.IsNull())
         {
-          CurrentState.Position.Speed = line.Speed;
+          CurrentState.Position.Tempo = line.Speed;
         }
         CurrentState.Position.Channels = 0;
         for (std::size_t chan = 0; chan != line.Channels.size(); ++chan)
         {
           const Line::Chan& src(line.Channels[chan]);
           ChannelState& dst(Channels[chan]);
+          dst.Sliding = dst.Glissade = 0;
           if (!src.Enabled.IsNull())
           {
             if ( (dst.Enabled = src.Enabled) )
@@ -260,7 +261,7 @@ namespace
             }
             else
             {
-              dst.Sliding = dst.Glissade = 0;
+              //dst.Sliding = dst.Glissade = 0;
               dst.PosInSample = 0;
             }
           }
@@ -268,7 +269,6 @@ namespace
           {
             dst.Note = src.Note;
             dst.PosInSample = 0;
-            dst.Sliding = dst.Glissade = 0;
           }
           if (!src.SampleNum.IsNull() && Data.Samples[src.SampleNum])
           {
@@ -293,6 +293,12 @@ namespace
       }
 
       //render frame
+      std::size_t steps[4] = {
+        GetStep(Channels[0], params.SoundFreq),
+        GetStep(Channels[1], params.SoundFreq),
+        GetStep(Channels[2], params.SoundFreq),
+        GetStep(Channels[3], params.SoundFreq)
+      };
       Sound::Sample result[4];
       const uint64_t nextTick(CurrentState.Tick + uint64_t(params.ClockFreq) * params.FrameDuration / 1000);
       const uint64_t ticksPerSample(params.ClockFreq / params.SoundFreq);
@@ -318,7 +324,7 @@ namespace
             }
             result[chan] = scale(sampl.Data[pos]);
             //recalc using coeff
-            Channels[chan].PosInSample += GetStep(Channels[chan], params.SoundFreq);
+            Channels[chan].PosInSample += steps[chan];
           }
           else
           {
@@ -366,9 +372,9 @@ namespace
         }
       }
       //TODO: proper sliding
-      const int resStep(int(FreqTable[state.Note]) +
-        state.Sliding * Sound::FIXED_POINT_PRECISION * BASE_FREQ / (FREQ_TABLE[0] * freq));
-      return clamp<int>(resStep, FreqTable.front(), FreqTable.back());
+      const int toneStep(FreqTable[state.Note]);
+      const int toneSlide(int64_t(state.Sliding) * Sound::FIXED_POINT_PRECISION * BASE_FREQ / int(FREQ_TABLE[0] * freq));
+      return clamp<int>(toneStep + toneSlide, int(FreqTable.front()), int(FreqTable.back()));
     }
   private:
     ChannelState Channels[4];
