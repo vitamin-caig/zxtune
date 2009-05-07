@@ -1,4 +1,5 @@
 #include "../sound_backend_impl.h"
+#include "../sound_backend_types.h"
 
 #include <windows.h>
 
@@ -142,7 +143,6 @@ namespace
     Win32Backend()
       : WaveHandle(0), Device(WAVE_MAPPER)
     {
-      Params.DriverFlags = DEFAULT_BUFFER_DEPTH;
     }
 
     virtual ~Win32Backend()
@@ -205,7 +205,9 @@ namespace
         {
           if (changedFields & DRIVER_FLAGS)
           {
-            if (Params.DriverFlags < MIN_BUFFER_DEPTH || Params.DriverFlags > MAX_BUFFER_DEPTH)
+            const unsigned depth(Params.DriverFlags & BUFFER_DEPTH_MASK);
+            if (depth && 
+              (depth < MIN_BUFFER_DEPTH || depth > MAX_BUFFER_DEPTH))
             {
               throw 2;//TODO
             }
@@ -238,7 +240,8 @@ namespace
       CheckMMResult(::waveOutOpen(&WaveHandle, Device, &wfx, ::DWORD_PTR(ReadyEvent.GetHandle()), 0,
         CALLBACK_EVENT | WAVE_FORMAT_DIRECT));
       SetVolume();
-      Buffers.assign(Params.DriverFlags, 
+      const unsigned depth(Params.DriverFlags & BUFFER_DEPTH_MASK);
+      Buffers.assign(depth ? depth : MIN_BUFFER_DEPTH, 
         BufferDescr(WaveHandle, OUTPUT_CHANNELS * (Params.SoundParameters.SoundFreq * Params.BufferInMs / 1000)));
       FillPtr = cycled_iterator<BufferDescr*>(&Buffers[0], &Buffers[Buffers.size()]);
     }

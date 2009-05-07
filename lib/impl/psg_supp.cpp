@@ -64,7 +64,7 @@ namespace
   {
   public:
     PlayerImpl(const String& filename, const Dump& data)
-      : Device(AYM::Chip::Create()), CurrentState(MODULE_STOPPED), Filename(filename), TickCount(), Position()
+      : Device(AYM::CreateChip()), CurrentState(MODULE_STOPPED), Filename(filename), TickCount(), Position()
     {
       assert(data.size() > sizeof(PSGHeader));
       //const PSGHeader* header(safe_ptr_cast<const PSGHeader*>(&data[0]));

@@ -72,10 +72,12 @@ namespace ZXTune
 
       /// reset internal state to initial
       virtual void Reset() = 0;
-
-      /// Virtual constructors
-      static Ptr Create();
     };
+
+    /// Virtual constructors
+    Chip::Ptr CreateChip();
+    Chip::Ptr CreatePSGDumper();
+    Chip::Ptr CreateOUTDumper();
   }
 }
 

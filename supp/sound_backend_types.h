@@ -7,6 +7,12 @@ namespace ZXTune
 {
   namespace Sound
   {
+    /// Driver flags
+    const unsigned BUFFER_DEPTH_MASK = 7;//up to 7 levels depth
+    //for file backend
+    const unsigned RAW_STREAM = 1;
+
+
     /// Platform-independent backends
     Backend::Ptr CreateFileBackend();
     Backend::Ptr CreateSDLBackend();

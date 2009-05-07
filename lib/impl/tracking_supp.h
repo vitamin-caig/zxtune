@@ -53,11 +53,11 @@ namespace ZXTune
 
       struct Line
       {
-        Line() : Speed(), Channels()
+        Line() : Tempo(), Channels()
         {
         }
         //track attrs
-        Optional<std::size_t> Speed;
+        Optional<std::size_t> Tempo;
 
         struct Chan
         {
@@ -121,45 +121,86 @@ namespace ZXTune
       virtual State RenderFrame(const Sound::Parameters& params, Sound::Receiver* receiver)
       {
         ++CurrentState.Frame;
-        if (++CurrentState.Position.Frame >= CurrentState.Position.Tempo)//next note
+        if (Navigate(CurrentState.Position))
         {
-          CurrentState.Position.Frame = 0;
-          if (++CurrentState.Position.Note >= Data.Patterns[CurrentState.Position.Pattern].size())//next position
+          return PlaybackState = MODULE_PLAYING;
+        }
+        else
+        {
+          //set to loop
+          if (params.Flags & Sound::MOD_LOOP)
           {
-            CurrentState.Position.Note = 0;
-            if (++CurrentState.Position.Position >= Information.Statistic.Position)//end
-            {
-              //set to loop
-              if (params.Flags & Sound::MOD_LOOP)
-              {
-                CurrentState.Position.Pattern = Data.Positions[CurrentState.Position.Position = Information.Loop];
-              }
-              else
-              {
-                receiver->Flush();
-                return PlaybackState = MODULE_STOPPED;
-              }
-            }
-            CurrentState.Position.Pattern = Data.Positions[CurrentState.Position.Position];
+            CurrentState.Position.Pattern = Data.Positions[CurrentState.Position.Position = Information.Loop];
+            CurrentState.Frame = LoopFrame;
+            //do not reset ticks!
+            return PlaybackState = MODULE_PLAYING;
+          }
+          else
+          {
+            assert(receiver);
+            receiver->Flush();
+            return PlaybackState = MODULE_STOPPED;
           }
         }
-        return PlaybackState = MODULE_PLAYING;
       }
       /// Controlling
       virtual State Reset()
       {
-        CurrentState.Position = Module::Tracking();
+        CurrentState = ModuleState();
         CurrentState.Position.Tempo = Information.Statistic.Tempo;
-        CurrentState.Frame = 0;
-        CurrentState.Tick = 0;
-        CurrentState.Position.Pattern = Data.Positions[0];
+        CurrentState.Position.Pattern = Data.Positions[CurrentState.Position.Position];
         return PlaybackState = MODULE_STOPPED;
+      }
+    private:
+      bool Navigate(Module::Tracking& state)
+      {
+        if (++state.Frame >= state.Tempo)//next note
+        {
+          state.Frame = 0;
+          if (++state.Note >= Data.Patterns[state.Pattern].size())//next position
+          {
+            state.Note = 0;
+            if (++state.Position >= Data.Positions.size())//end
+            {
+              return false;
+            }
+            state.Pattern = Data.Positions[state.Position];
+          }
+        }
+        return true;
+      }
+
+    protected:
+      void InitTime()
+      {
+        Information.Statistic.Frame = 0;
+        Module::Tracking& track(CurrentState.Position);
+        track.Tempo = Information.Statistic.Tempo;
+        do
+        {
+          if (0 == track.Frame)
+          {
+            const Optional<std::size_t>& tempo(Data.Patterns[track.Pattern][track.Note].Tempo);
+            if (!tempo.IsNull())
+            {
+              track.Tempo = tempo;
+            }
+            if (0 == track.Note && track.Position == Information.Loop)
+            {
+              LoopFrame = Information.Statistic.Frame;
+            }
+          }
+          ++Information.Statistic.Frame;
+        }
+        while (Navigate(track));
+        Reset();
       }
     protected:
       Module::Information Information;
       ModuleData Data;
 
       ModuleState CurrentState;
+      uint32_t LoopFrame;
 
       State PlaybackState;
     };

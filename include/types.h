@@ -9,6 +9,7 @@
 #include <sstream>
 
 #include <boost/cstdint.hpp>
+#include <boost/detail/endian.hpp>
 
 using boost::int8_t;
 using boost::uint8_t;
@@ -46,15 +47,39 @@ typedef std::ostream OutStream;
 
 //byte order macroses
 
-inline uint16_t fromLE(uint16_t a)
+inline uint16_t swapBytes(uint16_t a)
+{
+  return ((a & 0xff) << 8) | ((a & 0xff) >> 8);
+}
+
+#ifdef BOOST_LITTLE_ENDIAN
+template<class T>
+inline T fromLE(T a)
 {
   return a;
 }
 
-inline uint32_t fromLE(uint32_t a)
+template<class T>
+inline T fromBE(T a)
+{
+  return swapBytes(a);
+}
+
+#elif defined(BOOST_BIG_ENDIAN)
+template<class T>
+inline T fromLE(T a)
+{
+  return swapBytes(a);
+}
+
+template<class T>
+inline T fromBE(T a)
 {
   return a;
 }
+#else
+#error Invalid byte order
+#endif
 
 //common types
 typedef std::basic_ostringstream<String::value_type> OutStringStream;

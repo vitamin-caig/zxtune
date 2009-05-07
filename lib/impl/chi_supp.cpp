@@ -21,7 +21,7 @@ namespace
   const std::size_t MAX_PATTERN_SIZE = 64;
 
   //all samples has base freq at 4kHz (C-1)
-  const std::size_t BASE_FREQ = 4000;
+  const std::size_t BASE_FREQ = 8448;
   const std::size_t NOTES = 60;
 
 #ifdef USE_PRAGMA_PACK
@@ -165,7 +165,7 @@ namespace
           case SPECIAL:
             if (0 == chanNum)
             {
-              dstLine.Speed = param.Parameter;
+              dstLine.Tempo = param.Parameter;
             }
             else if (3 == chanNum)
             {
@@ -187,7 +187,7 @@ namespace
       //assume data is correct
       const CHIHeader* const header(safe_ptr_cast<const CHIHeader*>(&data[0]));
       Information.Statistic.Tempo = header->Tempo;
-      Information.Statistic.Position = header->Length;
+      Information.Statistic.Position = header->Length + 1;
       Information.Loop = header->Loop;
       Information.Properties.insert(StringMap::value_type(Module::ATTR_FILENAME, filename));
       Information.Properties.insert(StringMap::value_type(Module::ATTR_TITLE, String(header->Name, ArrayEnd(header->Name))));
@@ -201,15 +201,15 @@ namespace
       Data.Patterns.resize(Information.Statistic.Pattern);
       const CHIPattern* const patBegin(safe_ptr_cast<const CHIPattern*>(&data[sizeof(CHIHeader)]));
       std::transform(patBegin,
-                     patBegin + Information.Statistic.Pattern,
-                     Data.Patterns.begin(),
-                     ParsePattern);
+        patBegin + Information.Statistic.Pattern,
+        Data.Patterns.begin(),
+        ParsePattern);
       //fill samples
       Data.Samples.reserve(ArraySize(header->Samples));
       const uint8_t* sampleData(safe_ptr_cast<const uint8_t*>(patBegin + Information.Statistic.Pattern));
       for (const CHIHeader::SampleDescr* sample = header->Samples;
-           sample != header->Samples + ArraySize(header->Samples);
-           ++sample)
+        sample != header->Samples + ArraySize(header->Samples);
+        ++sample)
       {
         Data.Samples.push_back(Sample(fromLE(sample->Loop)));
         const std::size_t size(fromLE(sample->Length));
@@ -221,8 +221,8 @@ namespace
       }
       Information.Statistic.Pattern = Data.Patterns.size();
       Information.Statistic.Channels = 4;
-      //TODO: calculate length in frames
-      Reset();
+
+      InitTime();
     }
 
     virtual void GetInfo(Info& info) const
@@ -243,9 +243,9 @@ namespace
       const Line& line(Data.Patterns[CurrentState.Position.Pattern][CurrentState.Position.Note]);
       if (0 == CurrentState.Position.Frame)//begin note
       {
-        if (!line.Speed.IsNull())
+        if (!line.Tempo.IsNull())
         {
-          CurrentState.Position.Tempo = line.Speed;
+          CurrentState.Position.Tempo = line.Tempo;
         }
         CurrentState.Position.Channels = 0;
         for (std::size_t chan = 0; chan != line.Channels.size(); ++chan)
@@ -255,11 +255,7 @@ namespace
           dst.Sliding = dst.Glissade = 0;
           if (!src.Enabled.IsNull())
           {
-            if ( (dst.Enabled = src.Enabled) )
-            {
-              ++CurrentState.Position.Channels;
-            }
-            else
+            if (!(dst.Enabled = src.Enabled))
             {
               //dst.Sliding = dst.Glissade = 0;
               dst.PosInSample = 0;
@@ -288,6 +284,10 @@ namespace
             default:
               assert(!"Invalid command");
             }
+          }
+          if (dst.Enabled)
+          {
+            ++CurrentState.Position.Channels;
           }
         }
       }
@@ -367,13 +367,14 @@ namespace
         TableFreq = freq;
         for (std::size_t note = 0; note != NOTES; ++note)
         {
-          FreqTable[note] = static_cast<std::size_t>(FREQ_TABLE[note] * Sound::FIXED_POINT_PRECISION * BASE_FREQ
-            / (FREQ_TABLE[0] * freq));
+          FreqTable[note] = static_cast<std::size_t>(FREQ_TABLE[note] * Sound::FIXED_POINT_PRECISION * BASE_FREQ /
+            (FREQ_TABLE[0] * freq * 2));
         }
       }
       //TODO: proper sliding
       const int toneStep(FreqTable[state.Note]);
-      const int toneSlide(int64_t(state.Sliding) * Sound::FIXED_POINT_PRECISION * BASE_FREQ / int(FREQ_TABLE[0] * freq));
+      const int toneSlide(int64_t(state.Sliding) * Sound::FIXED_POINT_PRECISION * BASE_FREQ /
+        int(FREQ_TABLE[0] * freq * 2));
       return clamp<int>(toneStep + toneSlide, int(FreqTable.front()), int(FreqTable.back()));
     }
   private:

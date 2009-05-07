@@ -136,7 +136,7 @@ int main(int argc, char* argv[])
     params.SoundParameters.ClockFreq = 1750000;
     params.SoundParameters.SoundFreq = 48000;
     params.SoundParameters.FrameDuration = 20;
-    params.BufferInMs = 20;
+    params.BufferInMs = 100;
 
     if (3 == module.Statistic.Channels)
     {
@@ -167,7 +167,7 @@ int main(int argc, char* argv[])
 #else
 #ifdef _WIN32
     params.DriverParameters = "2";
-    params.DriverFlags = 3;
+    params.DriverFlags = 2;
 #else
 #endif
 #endif
@@ -192,7 +192,7 @@ int main(int argc, char* argv[])
       backend->GetModuleState(frame, track);
       BeginState();
       std::cout <<
-      formatter % track.Position % module.Statistic.Position % module.Loop %
+      formatter % (track.Position + 1) % module.Statistic.Position % (1 + module.Loop) %
                   track.Pattern % module.Statistic.Pattern %
                   track.Note % module.Statistic.Note %
                   track.Channels % module.Statistic.Channels %

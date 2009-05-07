@@ -27,13 +27,13 @@ namespace
 
   const uint16_t FreqTable[96] = {
     0xef8, 0xe10, 0xd60, 0xc80, 0xbd8, 0xb28, 0xa88, 0x9f0, 0x960, 0x8e0, 0x858, 0x7e0,
-      0x77c, 0x708, 0x6b0, 0x640, 0x5ec, 0x594, 0x544, 0x4f8, 0x4b0, 0x470, 0x42c, 0x3fd,
-      0x3be, 0x384, 0x358, 0x320, 0x2f6, 0x2ca, 0x2a2, 0x27c, 0x258, 0x238, 0x216, 0x1f8,
-      0x1df, 0x1c2, 0x1ac, 0x190, 0x17b, 0x165, 0x151, 0x13e, 0x12c, 0x11c, 0x10a, 0x0fc,
-      0x0ef, 0x0e1, 0x0d6, 0x0c8, 0x0bd, 0x0b2, 0x0a8, 0x09f, 0x096, 0x08e, 0x085, 0x07e,
-      0x077, 0x070, 0x06b, 0x064, 0x05e, 0x059, 0x054, 0x04f, 0x04b, 0x047, 0x042, 0x03f,
-      0x03b, 0x038, 0x035, 0x032, 0x02f, 0x02c, 0x02a, 0x027, 0x025, 0x023, 0x021, 0x01f,
-      0x01d, 0x01c, 0x01a, 0x019, 0x017, 0x016, 0x015, 0x013, 0x012, 0x011, 0x010, 0x00f
+    0x77c, 0x708, 0x6b0, 0x640, 0x5ec, 0x594, 0x544, 0x4f8, 0x4b0, 0x470, 0x42c, 0x3fd,
+    0x3be, 0x384, 0x358, 0x320, 0x2f6, 0x2ca, 0x2a2, 0x27c, 0x258, 0x238, 0x216, 0x1f8,
+    0x1df, 0x1c2, 0x1ac, 0x190, 0x17b, 0x165, 0x151, 0x13e, 0x12c, 0x11c, 0x10a, 0x0fc,
+    0x0ef, 0x0e1, 0x0d6, 0x0c8, 0x0bd, 0x0b2, 0x0a8, 0x09f, 0x096, 0x08e, 0x085, 0x07e,
+    0x077, 0x070, 0x06b, 0x064, 0x05e, 0x059, 0x054, 0x04f, 0x04b, 0x047, 0x042, 0x03f,
+    0x03b, 0x038, 0x035, 0x032, 0x02f, 0x02c, 0x02a, 0x027, 0x025, 0x023, 0x021, 0x01f,
+    0x01d, 0x01c, 0x01a, 0x019, 0x017, 0x016, 0x015, 0x013, 0x012, 0x011, 0x010, 0x00f
   };
   //////////////////////////////////////////////////////////////////////////
 #ifdef USE_PRAGMA_PACK
@@ -41,7 +41,7 @@ namespace
 #endif
   PACK_PRE struct PT2Header
   {
-    uint8_t Speed;
+    uint8_t Tempo;
     uint8_t Length;
     uint8_t Loop;
     uint16_t SamplesOffsets[32];
@@ -50,6 +50,8 @@ namespace
     char Name[30];
     uint8_t Positions[1];
   } PACK_POST;
+
+  const uint8_t POS_END_MARKER = 0xff;
 
   PACK_PRE struct PT2Sample
   {
@@ -282,8 +284,8 @@ namespace
           }
           else if (cmd == 0x0f)//new delay
           {
-            assert(line.Speed.IsNull());
-            line.Speed = data[offsets[chan]++];
+            assert(line.Tempo.IsNull());
+            line.Tempo = data[offsets[chan]++];
           }
           else if (cmd == 0x0e)//gliss
           {
@@ -336,11 +338,11 @@ namespace
     };
   public:
     PlayerImpl(const String& filename, const Dump& data)
-      : Device(AYM::Chip::Create())
+      : Device(AYM::CreateChip())//TODO: put out
     {
       //assume all data is correct
       const PT2Header* const header(safe_ptr_cast<const PT2Header*>(&data[0]));
-      Information.Statistic.Tempo = header->Speed;
+      Information.Statistic.Tempo = header->Tempo;
       Information.Statistic.Position = header->Length;
       Information.Loop = header->Loop;
       Information.Properties.insert(StringMap::value_type(Module::ATTR_FILENAME, filename));
@@ -354,25 +356,22 @@ namespace
       std::transform(header->OrnamentsOffsets, header->OrnamentsOffsets + ArraySize(header->OrnamentsOffsets),
         std::back_inserter(Data.Ornaments), OrnamentCreator(data));
       //fill order
-      const uint8_t* orderPos(header->Positions);
-      while (*orderPos != 0xff)
-      {
-        Data.Positions.push_back(*orderPos++);
-      }
+      Data.Positions.assign(header->Positions, 
+        std::find(header->Positions, header->Positions + header->Length, POS_END_MARKER));
       assert(header->Length == Data.Positions.size());
 
       //fill patterns
       Data.Patterns.reserve(MAX_PATTERN_COUNT);
       for (const PT2Pattern* patPos(safe_ptr_cast<const PT2Pattern*>(&data[fromLE(header->PatternsOffset)]));
-           *patPos;
-           ++patPos)
+        *patPos;
+        ++patPos)
       {
         Data.Patterns.push_back(Pattern());
         Pattern& pat(Data.Patterns.back());
         std::vector<std::size_t> offsets(ArraySize(patPos->Offsets));
         std::valarray<std::size_t> periods(std::size_t(0), ArraySize(patPos->Offsets));
         std::valarray<std::size_t> counters(std::size_t(0), ArraySize(patPos->Offsets));
-        std::transform(patPos->Offsets, patPos->Offsets + ArraySize(patPos->Offsets), offsets.begin(), std::ptr_fun<uint16_t>(&fromLE));
+        std::transform(patPos->Offsets, patPos->Offsets + ArraySize(patPos->Offsets), offsets.begin(), &fromLE<uint16_t>);
         pat.reserve(MAX_PATTERN_SIZE);
         do
         {
@@ -380,9 +379,11 @@ namespace
           Line& line(pat.back());
           ParsePattern(data, offsets, line, periods, counters);
           //skip lines
-          const std::size_t linesToSkip(counters.min());
-          counters -= linesToSkip;
-          pat.resize(pat.size() + linesToSkip);//add dummies
+          if (const std::size_t linesToSkip = counters.min())
+          {
+            counters -= linesToSkip;
+            pat.resize(pat.size() + linesToSkip);//add dummies
+          }
         }
         while (data[offsets[0]] || counters[0]);
         assert(0 == counters.max());
@@ -390,8 +391,8 @@ namespace
       }
       Information.Statistic.Pattern = Data.Patterns.size();
       Information.Statistic.Channels = 3;
-      //TODO: calculate length in frames
-      Reset();
+
+      InitTime();
     }
 
     virtual void GetInfo(Info& info) const
@@ -436,9 +437,9 @@ namespace
       const Line& line(Data.Patterns[CurrentState.Position.Pattern][CurrentState.Position.Note]);
       if (0 == CurrentState.Position.Frame)//begin note
       {
-        if (!line.Speed.IsNull())
+        if (!line.Tempo.IsNull())
         {
-          CurrentState.Position.Tempo = line.Speed;
+          CurrentState.Position.Tempo = line.Tempo;
         }
         CurrentState.Position.Channels = 0;
         for (std::size_t chan = 0; chan != line.Channels.size(); ++chan)
@@ -447,11 +448,7 @@ namespace
           ChannelState& dst(Channels[chan]);
           if (!src.Enabled.IsNull())
           {
-            if ( (dst.Enabled = src.Enabled) )
-            {
-              ++CurrentState.Position.Channels;
-            }
-            else
+            if (!(dst.Enabled = src.Enabled))
             {
               dst.Sliding = dst.Glissade = 0;
               dst.SlidingTargetNote = ~std::size_t(0);
@@ -510,6 +507,10 @@ namespace
             default:
               assert(!"Invalid command");
             }
+          }
+          if (dst.Enabled)
+          {
+            ++CurrentState.Position.Channels;
           }
         }
       }
@@ -579,9 +580,10 @@ namespace
         else
         {
           chunk.Data[volReg] = 0;
+          //????
+          chunk.Data[AYM::DataChunk::REG_MIXER] |= toneMsk | noiseMsk;
         }
       }
-      ++CurrentState.Frame;
     }
   private:
     AYM::Chip::Ptr Device;
