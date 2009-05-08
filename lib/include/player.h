@@ -37,7 +37,7 @@ namespace ZXTune
     virtual void GetModuleInfo(Module::Information& info) const = 0;
 
     /// Retrieving current state of loaded module
-    virtual State GetModuleState(uint32_t& timeState, Module::Tracking& trackState) const = 0;
+    virtual State GetModuleState(std::size_t& timeState, Module::Tracking& trackState) const = 0;
 
     /// Retrieving current state of sound
     virtual State GetSoundState(Sound::Analyze::Volume& volState, Sound::Analyze::Spectrum& spectrumState) const = 0;

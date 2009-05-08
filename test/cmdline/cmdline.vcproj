@@ -203,6 +203,14 @@
 				Name="impl"
 				Filter="">
 				<File
+					RelativePath="..\..\lib\impl\asc_supp.cpp">
+					<FileConfiguration
+						Name="Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="..\..\lib\impl\chi_supp.cpp">
 				</File>
 				<File

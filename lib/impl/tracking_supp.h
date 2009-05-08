@@ -11,28 +11,30 @@ namespace ZXTune
 {
   namespace Tracking
   {
+    //common structures
+    /// Ornament is just a set of tone offsets
+    struct SimpleOrnament
+    {
+      SimpleOrnament() : Loop(), Data()
+      {
+      }
+
+      SimpleOrnament(std::size_t size, std::size_t loop) : Loop(loop), Data(size)
+      {
+
+      }
+
+      std::size_t Loop;
+      std::vector<signed> Data;
+    };
+
     //code depends on channels count and sample type
-    template<std::size_t ChannelsCount, class Sample>
+    template<std::size_t ChannelsCount, class SampleType, class OrnamentType = SimpleOrnament>
     class TrackPlayer : public ModulePlayer
     {
     protected:
-      //common structures
-      /// Ornament is just a set of tone offsets
-      struct Ornament
-      {
-        Ornament() : Loop(), Data()
-        {
-        }
-
-        Ornament(std::size_t size, std::size_t loop) : Loop(loop), Data(size)
-        {
-
-        }
-
-        std::size_t Loop;
-        std::vector<signed> Data;
-      };
-
+      typedef typename SampleType Sample;
+      typedef typename OrnamentType Ornament;
       struct Command
       {
         Command(unsigned type = 0, int p1 = 0, int p2 = 0) : Type(type), Param1(p1), Param2(p2)
@@ -96,7 +98,7 @@ namespace ZXTune
         {
         }
         Module::Tracking Position;
-        uint32_t Frame;
+        std::size_t Frame;
         uint64_t Tick;
       };
     public:
@@ -111,7 +113,7 @@ namespace ZXTune
       }
 
       /// Retrieving current state of loaded module
-      virtual State GetModuleState(uint32_t& timeState, Module::Tracking& trackState) const
+      virtual State GetModuleState(std::size_t& timeState, Module::Tracking& trackState) const
       {
         timeState = CurrentState.Frame;
         trackState = CurrentState.Position;
@@ -200,7 +202,7 @@ namespace ZXTune
       ModuleData Data;
 
       ModuleState CurrentState;
-      uint32_t LoopFrame;
+      std::size_t LoopFrame;
 
       State PlaybackState;
     };

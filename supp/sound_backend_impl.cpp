@@ -119,7 +119,7 @@ namespace ZXTune
       return Player->GetModuleInfo(info);
     }
 
-    Backend::State BackendImpl::GetModuleState(uint32_t& timeState, Module::Tracking& trackState) const
+    Backend::State BackendImpl::GetModuleState(std::size_t& timeState, Module::Tracking& trackState) const
     {
       IPC::Locker lock(PlayerMutex);
       CheckState();

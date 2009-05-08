@@ -142,7 +142,7 @@ namespace
     }
 
     /// Retrieving current state of loaded module
-    virtual State GetModuleState(uint32_t& timeState, Module::Tracking& trackState) const
+    virtual State GetModuleState(std::size_t& timeState, Module::Tracking& trackState) const
     {
       timeState = static_cast<uint32_t>(Position);
       trackState.Channels = 3;

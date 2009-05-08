@@ -57,7 +57,7 @@ namespace
     PACK_PRE struct STCPosEntry
     {
       uint8_t PatternNum;
-      uint8_t PatternHeight;
+      int8_t PatternHeight;
     } PACK_POST;
     STCPosEntry Data[1];
   } PACK_POST;
@@ -424,7 +424,7 @@ namespace
 
           //calculate tone
           const std::size_t halfTone(std::size_t(clamp<int>(
-            int(dst->Note) + curOrnament.Data[dst->PosInSample] + Transpositions[CurrentState.Position.Position], 0, 95)));
+            signed(dst->Note) + curOrnament.Data[dst->PosInSample] + Transpositions[CurrentState.Position.Position], 0, 95)));
           const uint16_t tone(uint16_t(clamp(int(FreqTable[halfTone]) + curSampleLine.Effect, 0, 0xffff)));
 
           chunk.Data[toneReg] = uint8_t(tone & 0xff);
@@ -470,7 +470,7 @@ namespace
     }
   private:
     AYM::Chip::Ptr Device;
-    std::vector<std::size_t> Transpositions;
+    std::vector<signed> Transpositions;
     ChannelState Channels[3];
   };
   //////////////////////////////////////////////////////////////////////////

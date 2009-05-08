@@ -187,7 +187,7 @@ int main(int argc, char* argv[])
       "Frame: %12$5d / %13%");
     for (;;)
     {
-      uint32_t frame;
+      std::size_t frame;
       Module::Tracking track;
       backend->GetModuleState(frame, track);
       BeginState();
