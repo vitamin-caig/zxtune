@@ -4,26 +4,33 @@
 #include <iterator>
 #include <algorithm>
 
-//WARNING: in gcc 4.3.3 works with errors on packed structs
 template<class T, std::size_t D>
 inline std::size_t ArraySize(const T (&)[D])
 {
   return D;
 }
 
-//WARNING: in gcc 4.3.3 works with errors on packed structs
+//workaround for ArrayEnd (need for packed structures)
+#undef ArrayEnd
+#if defined(__GNUC__)
+# if __GNUC__ * 100 + __GNUC_MINOR__ > 303
+#  define ArrayEnd(a) ((a) + ArraySize(a))
+# endif
+#endif
+
+#ifndef ArrayEnd
 template<class T, std::size_t D>
 inline const T* ArrayEnd(const T (&c)[D])
 {
   return c + D;
 }
 
-
 template<class T, std::size_t D>
 inline T* ArrayEnd(T (&c)[D])
 {
   return c + D;
 }
+#endif
 
 
 template<class T, class F>

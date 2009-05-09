@@ -207,9 +207,7 @@ namespace
       //fill samples
       Data.Samples.reserve(ArraySize(header->Samples));
       const uint8_t* sampleData(safe_ptr_cast<const uint8_t*>(patBegin + Information.Statistic.Pattern));
-      for (const CHIHeader::SampleDescr* sample = header->Samples;
-        sample != header->Samples + ArraySize(header->Samples);
-        ++sample)
+      for (const CHIHeader::SampleDescr* sample = header->Samples; sample != ArrayEnd(header->Samples); ++sample)
       {
         Data.Samples.push_back(Sample(fromLE(sample->Loop)));
         const std::size_t size(fromLE(sample->Length));

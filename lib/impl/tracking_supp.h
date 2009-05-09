@@ -33,8 +33,8 @@ namespace ZXTune
     class TrackPlayer : public ModulePlayer
     {
     protected:
-      typedef typename SampleType Sample;
-      typedef typename OrnamentType Ornament;
+      typedef SampleType Sample;
+      typedef OrnamentType Ornament;
       struct Command
       {
         Command(unsigned type = 0, int p1 = 0, int p2 = 0) : Type(type), Param1(p1), Param2(p2)

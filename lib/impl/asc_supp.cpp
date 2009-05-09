@@ -369,7 +369,7 @@ namespace
           }
           else if (cmd == 0xfb) //amplitude delay
           {
-            channel.Commands.push_back(Parent::Command(AMPLITUDE_DELAY, cmd & 32 ? ((cmd << 3) ^ 0xf8 + 9) : (cmd << 3)));
+            channel.Commands.push_back(Parent::Command(AMPLITUDE_DELAY, cmd & 32 ? (((cmd << 3) ^ 0xf8) + 9) : (cmd << 3)));
           }
         }
         counters[chan] = periods[chan];
@@ -380,8 +380,9 @@ namespace
     {
       ChannelState()
         : Enabled(false), Envelope(false)
-        , Note(), SampleNum(0), PosInSample(0)
-        , OrnamentNum(0), LoopedInSample(false)
+        , Note()
+	, SampleNum(0), PosInSample(0), LoopedInSample(false)
+        , OrnamentNum(0), PosInOrnament(0), LoopedInOrnament(false)
       {
       }
       bool Enabled;
@@ -422,7 +423,7 @@ namespace
       const std::size_t samplesOff(fromLE(header->SamplesOffset));
       const ASCSamples* const samples(safe_ptr_cast<const ASCSamples*>(&data[samplesOff]));
       Data.Samples.reserve(MAX_SAMPLES_COUNT);
-      for (const uint16_t* pSample = samples->Offsets; pSample != samples->Offsets + ArraySize(samples->Offsets);
+      for (const uint16_t* pSample = samples->Offsets; pSample != ArrayEnd(samples->Offsets);
         ++pSample)
       {
         assert(*pSample && *pSample < data.size());
@@ -434,7 +435,7 @@ namespace
       const std::size_t ornamentsOff(fromLE(header->OrnamentsOffset));
       const ASCOrnaments* const ornaments(safe_ptr_cast<const ASCOrnaments*>(&data[ornamentsOff]));
       Data.Ornaments.reserve(MAX_ORNAMENTS_COUNT);
-      for (const uint16_t* pOrnament = ornaments->Offsets; pOrnament != ornaments->Offsets + ArraySize(ornaments->Offsets);
+      for (const uint16_t* pOrnament = ornaments->Offsets; pOrnament != ArrayEnd(ornaments->Offsets);
         ++pOrnament)
       {
         assert(*pOrnament && *pOrnament < data.size());
@@ -453,7 +454,7 @@ namespace
         std::vector<std::size_t> offsets(ArraySize(pattern->Offsets));
         std::valarray<std::size_t> periods(std::size_t(0), ArraySize(pattern->Offsets));
         std::valarray<std::size_t> counters(std::size_t(0), ArraySize(pattern->Offsets));
-        std::transform(pattern->Offsets, pattern->Offsets + ArraySize(pattern->Offsets), offsets.begin(),
+        std::transform(pattern->Offsets, ArrayEnd(pattern->Offsets), offsets.begin(),
           boost::bind(std::plus<uint16_t>(), patternsOff, 
             boost::bind(&fromLE<uint16_t>, _1)));
         std::vector<bool> envelopes(ArraySize(pattern->Offsets));
@@ -551,9 +552,9 @@ namespace
           const Ornament& curOrnament(Data.Ornaments[dst->OrnamentNum]);
 
           //calculate tone
-          const std::size_t halfTone(std::size_t(clamp<int>(
-            int(dst->Note) + curOrnament.Data[dst->PosInSample].NoteAddon, 0, 95)));
-          const uint16_t tone(uint16_t(clamp(int(FreqTable[halfTone]), 0, 0xffff)));
+          const std::size_t halfTone(clamp(int(dst->Note) + curOrnament.Data[dst->PosInSample].NoteAddon, 0, 95));
+	  const uint16_t baseFreq(FreqTable[halfTone]);
+          const uint16_t tone(uint16_t(clamp(int(baseFreq) + 0, 0, 0xffff)));
 
           chunk.Data[toneReg] = uint8_t(tone & 0xff);
           chunk.Data[toneReg + 1] = uint8_t(tone >> 8);

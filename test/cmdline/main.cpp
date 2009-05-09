@@ -21,6 +21,8 @@
 #ifdef _WIN32
 #include <conio.h>
 #include <Windows.h>
+#else
+#include <termio.h>
 #endif
 
 using namespace ZXTune;
@@ -67,6 +69,31 @@ namespace
     SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), cpos);
   }
 #else
+  int GetKey()
+  {
+    struct termios oldt, newt;
+    int ch;
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+    newt.c_lflag &= ~(ICANON | ECHO);
+    newt.c_cc[VMIN] = 0;
+    newt.c_cc[VTIME] = 1;
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+    ch = getchar();
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+    return ch;
+  }
+  
+  void BeginState()
+  {
+    //std::cout << "\x1b[s";
+  }
+  
+  void EndState()
+  {
+    //std::cout << "\x1b[u";
+    std::cout << "\r\x1b[5A" << std::flush;
+  }
 #endif
 }
 

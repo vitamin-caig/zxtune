@@ -114,7 +114,7 @@ namespace
     }
 
     explicit Sample(const STCSample& sample)
-    : Loop(sample.Loop), LoopLimit(sample.Loop + sample.LoopSize), Data(sample.Data, sample.Data + ArraySize(sample.Data))
+    : Loop(sample.Loop), LoopLimit(sample.Loop + sample.LoopSize), Data(sample.Data, ArrayEnd(sample.Data))
     {
     }
 
@@ -275,7 +275,7 @@ namespace
       {
         assert(ornament->Number < MAX_ORNAMENTS_COUNT);
         Data.Ornaments[ornament->Number] = Parent::Ornament(ArraySize(ornament->Data), 0);
-        Data.Ornaments[ornament->Number].Data.assign(ornament->Data, ornament->Data + ArraySize(ornament->Data));
+        Data.Ornaments[ornament->Number].Data.assign(ornament->Data, ArrayEnd(ornament->Data));
       }
 
       //parse patterns
@@ -287,7 +287,7 @@ namespace
         std::vector<std::size_t> offsets(ArraySize(pattern->Offsets));
         std::valarray<std::size_t> periods(std::size_t(0), ArraySize(pattern->Offsets));
         std::valarray<std::size_t> counters(std::size_t(0), ArraySize(pattern->Offsets));
-        std::transform(pattern->Offsets, pattern->Offsets + ArraySize(pattern->Offsets), offsets.begin(), &fromLE<uint16_t>);
+        std::transform(pattern->Offsets, ArrayEnd(pattern->Offsets), offsets.begin(), &fromLE<uint16_t>);
         pat.reserve(MAX_PATTERN_SIZE);
         do
         {
@@ -425,7 +425,7 @@ namespace
           //calculate tone
           const std::size_t halfTone(std::size_t(clamp<int>(
             signed(dst->Note) + curOrnament.Data[dst->PosInSample] + Transpositions[CurrentState.Position.Position], 0, 95)));
-          const uint16_t tone(uint16_t(clamp(int(FreqTable[halfTone]) + curSampleLine.Effect, 0, 0xffff)));
+          const uint16_t tone(uint16_t(clamp(FreqTable[halfTone] + curSampleLine.Effect, 0, 0xffff)));
 
           chunk.Data[toneReg] = uint8_t(tone & 0xff);
           chunk.Data[toneReg + 1] = uint8_t(tone >> 8);
@@ -496,7 +496,6 @@ namespace
     const std::size_t ornOff(fromLE(header->OrnamentsOffset));
     const STCOrnament* const ornaments(safe_ptr_cast<const STCOrnament*>(&data[ornOff]));
     const std::size_t patOff(fromLE(header->PatternsOffset));
-    const STCPattern* const patterns(safe_ptr_cast<const STCPattern*>(&data[patOff]));
     //check offsets
     if (posOff > limit || ornOff > limit || patOff > limit)
     {
