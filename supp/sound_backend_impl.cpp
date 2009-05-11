@@ -31,6 +31,21 @@ namespace
     //render (one frame)
     params.BufferInMs = 500;
   }
+
+  class Unlocker
+  {
+  public:
+    Unlocker(ZXTune::IPC::Mutex& mtx) : Obj(mtx)
+    {
+      Obj.Unlock();
+    }
+    ~Unlocker()
+    {
+      Obj.Lock();
+    }
+  private:
+    ZXTune::IPC::Mutex& Obj;
+  };
 }
 
 namespace ZXTune
@@ -301,7 +316,9 @@ namespace ZXTune
     void BackendImpl::CallbackFunc(const void* data, std::size_t size, void* obj)
     {
       assert(obj);
-      return safe_ptr_cast<BackendImpl*>(obj)->OnBufferReady(data, size);
+      BackendImpl* const self(static_cast<BackendImpl*>(obj));
+      Unlocker ulock(self->PlayerMutex);
+      return self->OnBufferReady(data, size);
     }
   }
 }
