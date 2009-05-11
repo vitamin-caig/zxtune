@@ -6,9 +6,9 @@ libraries := snd_supp zxtune platform_supp
 
 dynamic_libs := pthread asound
 
-depends := lib supp platform
+depends := src/lib src/supp src/platform
 
-include_path := $(path_step)/lib/include
+include_path := $(path_step)/src/lib/include
 
 #definitions := WAVE
 
