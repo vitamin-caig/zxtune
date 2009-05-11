@@ -53,6 +53,11 @@ inline uint16_t swapBytes(uint16_t a)
 }
 
 #ifdef BOOST_LITTLE_ENDIAN
+inline bool isLE()
+{
+  return true;
+}
+
 template<class T>
 inline T fromLE(T a)
 {
@@ -66,6 +71,11 @@ inline T fromBE(T a)
 }
 
 #elif defined(BOOST_BIG_ENDIAN)
+inline bool isLE()
+{
+  return false;
+}
+
 template<class T>
 inline T fromLE(T a)
 {

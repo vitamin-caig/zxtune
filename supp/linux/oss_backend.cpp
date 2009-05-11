@@ -1,6 +1,7 @@
 #include "../sound_backend_impl.h"
 
 #include <tools.h>
+#include <error.h>
 
 #include <errno.h>
 #include <fcntl.h>
@@ -11,6 +12,8 @@
 #include <boost/static_assert.hpp>
 
 #include <cassert>
+
+#define FILE_TAG 69200152
 
 namespace
 {
@@ -23,7 +26,7 @@ namespace
   {
     if (!res)
     {
-      throw errno;//TODO
+      throw Error(ERROR_DETAIL, 1, ::strerror(errno));
     }
   }
 
@@ -58,7 +61,7 @@ namespace
           audio_buf_info info;
           CheckResult(-1 != ::ioctl(DevHandle, SNDCTL_DSP_GETOSPACE, &info));
           toWrite = std::min<std::size_t>(sizeInBytes, info.fragments * info.fragsize);
-          if (!toWrite || toWrite > info.bytes)
+          if (!toWrite || int(toWrite) > info.bytes)
           {
             ::usleep(1000);
           }

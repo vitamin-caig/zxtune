@@ -2,11 +2,11 @@ binary_name := cmd_test
 path_step := ../..
 source_dirs := .
 
-libraries := snd_supp zxtune
+libraries := snd_supp zxtune platform_supp
 
-dynamic_libs := pthread
+dynamic_libs := pthread asound
 
-depends := lib supp
+depends := lib supp platform
 
 include_path := $(path_step)/lib/include
 

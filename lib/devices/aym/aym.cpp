@@ -36,6 +36,11 @@ namespace
   {
   public:
     ChipImpl()
+      : State()
+      , BitA(), BitB(), BitC(), BitN()
+      , TimerA(), TimerB(), TimerC(), TimerN(), TimerE()
+      , Envelope(), Decay(), Noise()
+      , LastData()
     {
       Reset();
     }

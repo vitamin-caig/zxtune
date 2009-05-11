@@ -83,12 +83,12 @@ namespace
     tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
     return ch;
   }
-  
+
   void BeginState()
   {
-    //std::cout << "\x1b[s";
+    std::cout << '\r';
   }
-  
+
   void EndState()
   {
     //std::cout << "\x1b[u";
@@ -148,7 +148,7 @@ int main(int argc, char* argv[])
 #ifdef _WIN32
     Sound::Backend::Ptr backend(Sound::CreateWinAPIBackend());
 #else
-    Sound::Backend::Ptr backend(Sound::CreateOSSBackend());
+    Sound::Backend::Ptr backend(Sound::CreateAlsaBackend());
 #endif
 #endif
 
@@ -219,13 +219,12 @@ int main(int argc, char* argv[])
       backend->GetModuleState(frame, track);
       BeginState();
       std::cout <<
-      formatter % (track.Position + 1) % module.Statistic.Position % (1 + module.Loop) %
+      (formatter % (track.Position + 1) % module.Statistic.Position % (1 + module.Loop) %
                   track.Pattern % module.Statistic.Pattern %
                   track.Note % module.Statistic.Note %
                   track.Channels % module.Statistic.Channels %
                   track.Tempo % module.Statistic.Tempo %
-                  frame % module.Statistic.Frame;
-      EndState();
+                  frame % module.Statistic.Frame);
       const int key(GetKey());
       if ('q' == key || 'Q' == key)
       {
@@ -241,12 +240,14 @@ int main(int argc, char* argv[])
         break;
       }
       IPC::Sleep(20);
+      EndState();
     }
     //backend->Stop();
     return 0;
   }
   catch (const Error& e)
   {
+    std::cout << e.Text << std::endl;
     return static_cast<int>(e.Code);
   }
 }

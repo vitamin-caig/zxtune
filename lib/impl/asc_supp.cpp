@@ -171,7 +171,7 @@ namespace
       explicit Line(const ASCSample::Line& line)
         : Level(line.Level), ToneDeviation(line.ToneDeviation)
         , ToneMask(line.ToneMask), NoiseMask(line.NoiseMask)
-        , Adding(line.Adding)
+        , Adding(line.Adding), Command(line.Command)
       {
       }
       unsigned Level;//0-15
@@ -179,6 +179,7 @@ namespace
       bool ToneMask;
       bool NoiseMask;
       signed Adding;
+      std::size_t Command;
     };
     std::vector<Line> Data;
   };
@@ -254,12 +255,17 @@ namespace
         {
           continue;//has to skip
         }
+        bool continueSample(false);
         for (;;)
         {
           const uint8_t cmd(data[offsets[chan]++]);
           Line::Chan& channel(line.Channels[chan]);
           if (cmd <= 0x55)//note
           {
+            if (!continueSample)
+            {
+              channel.Enabled = true;
+            }
             Parent::CommandsArray::iterator cmdIt(std::find(channel.Commands.begin(), channel.Commands.end(),
               SLIDE_NOTE));
             if (channel.Commands.end() != cmdIt)
@@ -330,6 +336,7 @@ namespace
           {
             if (cmd & 1)
             {
+              continueSample = true;
               channel.Commands.push_back(Parent::Command(CONT_SAMPLE));
             }
             if (cmd & 2)
@@ -380,20 +387,21 @@ namespace
     {
       ChannelState()
         : Enabled(false), Envelope(false)
-        , Note()
-	, SampleNum(0), PosInSample(0), LoopedInSample(false)
-        , OrnamentNum(0), PosInOrnament(0), LoopedInOrnament(false)
+        , Volume(15), AddToVolume(0), Noise(), Note()
+        , SampleNum(0), PosInSample(0)
+        , OrnamentNum(0), PosInOrnament(0)
       {
       }
       bool Enabled;
       bool Envelope;
+      std::size_t Volume;
+      signed AddToVolume;
+      std::size_t Noise;
       std::size_t Note;
       std::size_t SampleNum;
       std::size_t PosInSample;
-      bool LoopedInSample;
       std::size_t OrnamentNum;
       std::size_t PosInOrnament;
-      bool LoopedInOrnament;
     };
   public:
     PlayerImpl(const String& filename, const Dump& data)
@@ -412,9 +420,9 @@ namespace
         const ASCID* const id(safe_ptr_cast<const ASCID*>(header->Positions + header->Lenght));
         if (*id)
         {
-          Information.Properties.insert(StringMap::value_type(Module::ATTR_TITLE, 
+          Information.Properties.insert(StringMap::value_type(Module::ATTR_TITLE,
             String(id->Name, ArrayEnd(id->Name))));
-          Information.Properties.insert(StringMap::value_type(Module::ATTR_AUTHOR, 
+          Information.Properties.insert(StringMap::value_type(Module::ATTR_AUTHOR,
             String(id->Author, ArrayEnd(id->Author))));
         }
       }
@@ -444,19 +452,23 @@ namespace
       }
 
       //parse patterns
+      const std::size_t patternsCount(1 + *std::max_element(Data.Positions.begin(), Data.Positions.end()));
       const uint16_t patternsOff(fromLE(header->PatternsOffset));
       const ASCPattern* pattern(safe_ptr_cast<const ASCPattern*>(&data[patternsOff]));
-      Data.Patterns.reserve(MAX_PATTERNS_COUNT);
-      for (;; ++pattern)
+      assert(patternsCount <= MAX_PATTERNS_COUNT);
+      Data.Patterns.resize(patternsCount);
+      for (std::size_t patNum = 0; patNum < patternsCount; ++patNum, ++pattern)
       {
-        Data.Patterns.push_back(Parent::Pattern());
-        Pattern& pat(Data.Patterns.back());
+        Pattern& pat(Data.Patterns[patNum]);
         std::vector<std::size_t> offsets(ArraySize(pattern->Offsets));
         std::valarray<std::size_t> periods(std::size_t(0), ArraySize(pattern->Offsets));
         std::valarray<std::size_t> counters(std::size_t(0), ArraySize(pattern->Offsets));
         std::transform(pattern->Offsets, ArrayEnd(pattern->Offsets), offsets.begin(),
-          boost::bind(std::plus<uint16_t>(), patternsOff, 
+          boost::bind(std::plus<uint16_t>(), patternsOff,
             boost::bind(&fromLE<uint16_t>, _1)));
+        assert(ArrayEnd(pattern->Offsets) == std::find(pattern->Offsets, ArrayEnd(pattern->Offsets), patternsOff));
+        assert(ArrayEnd(pattern->Offsets) == std::find_if(pattern->Offsets, ArrayEnd(pattern->Offsets),
+          std::bind2nd(std::greater<uint16_t>(), data.size())));
         std::vector<bool> envelopes(ArraySize(pattern->Offsets));
         pat.reserve(MAX_PATTERN_SIZE);
         do
@@ -523,11 +535,78 @@ namespace
       const Line& line(Data.Patterns[CurrentState.Position.Pattern][CurrentState.Position.Note]);
       if (0 == CurrentState.Position.Frame)//begin note
       {
+        if (!line.Tempo.IsNull())
+        {
+          CurrentState.Position.Tempo = line.Tempo;
+        }
         CurrentState.Position.Channels = 0;
         for (std::size_t chan = 0; chan != line.Channels.size(); ++chan)
         {
           const Line::Chan& src(line.Channels[chan]);
           ChannelState& dst(Channels[chan]);
+          if (!src.Enabled.IsNull())
+          {
+            dst.Enabled = src.Enabled;
+          }
+          bool contSample(false), contOrnament(false);
+          for (Parent::CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
+          {
+            switch (it->Type)
+            {
+            case ENVELOPE:
+              if (-1 != it->Param1)
+              {
+                chunk.Data[AYM::DataChunk::REG_ENV] = uint8_t(it->Param1);
+                chunk.Mask |= 1 << AYM::DataChunk::REG_ENV;
+              }
+              if (-1 != it->Param2)
+              {
+                chunk.Data[AYM::DataChunk::REG_TONEE_L] = uint8_t(it->Param2);
+                chunk.Mask |= 1 << AYM::DataChunk::REG_TONEE_L;
+              }
+              break;
+            case ENVELOPE_ON:
+              dst.Envelope = true;
+              break;
+            case ENVELOPE_OFF:
+              dst.Envelope = false;
+              break;
+            case CONT_SAMPLE:
+              contSample = true;
+              break;
+            case CONT_ORNAMENT:
+              contOrnament = true;
+              break;
+            case NOISE:
+              dst.Noise = it->Param1;
+            default:
+              break;
+            }
+          }
+          if (!src.Note.IsNull())
+          {
+            dst.Note = src.Note;
+            if (!contSample)
+            {
+              dst.PosInSample = 0;
+            }
+            if (!contOrnament)
+            {
+              dst.PosInOrnament = 0;
+            }
+          }
+          if (!src.SampleNum.IsNull())
+          {
+            dst.SampleNum = src.SampleNum;
+          }
+          if (!src.OrnamentNum.IsNull())
+          {
+            dst.OrnamentNum = src.OrnamentNum;
+          }
+          if (!src.Volume.IsNull())
+          {
+            dst.Volume = src.Volume;
+          }
           if (dst.Enabled)
           {
             ++CurrentState.Position.Channels;
@@ -550,17 +629,44 @@ namespace
           const Sample& curSample(Data.Samples[dst->SampleNum]);
           const Sample::Line& curSampleLine(curSample.Data[dst->PosInSample]);
           const Ornament& curOrnament(Data.Ornaments[dst->OrnamentNum]);
+          const Ornament::Line& curOrnamentLine(curOrnament.Data[dst->PosInOrnament]);
 
           //calculate tone
-          const std::size_t halfTone(clamp(int(dst->Note) + curOrnament.Data[dst->PosInSample].NoteAddon, 0, 95));
-	  const uint16_t baseFreq(FreqTable[halfTone]);
-          const uint16_t tone(uint16_t(clamp(int(baseFreq) + 0, 0, 0xffff)));
+          const std::size_t halfTone(clamp(int(dst->Note) + curOrnamentLine.NoteAddon, 0, 95));
+          const uint16_t baseFreq(FreqTable[halfTone]);
+          const uint16_t tone(uint16_t(clamp(int(baseFreq) + curSampleLine.ToneDeviation, 0, 0xffff)));
 
           chunk.Data[toneReg] = uint8_t(tone & 0xff);
           chunk.Data[toneReg + 1] = uint8_t(tone >> 8);
           chunk.Mask |= 3 << toneReg;
           //calculate level
-          chunk.Data[volReg] = curSampleLine.Level | uint8_t(dst->Envelope ? AYM::DataChunk::MASK_ENV : 0);
+          const uint8_t level((dst->Volume + 1) * curSampleLine.Level >> 4);
+          chunk.Data[volReg] = level | uint8_t((dst->Envelope && ASCSample::ENVELOPE == curSampleLine.Command) ? AYM::DataChunk::MASK_ENV : 0);
+
+          //mixer
+          if (curSampleLine.ToneMask)
+          {
+            chunk.Data[AYM::DataChunk::REG_MIXER] |= toneMsk;
+          }
+          if (curSampleLine.NoiseMask)
+          {
+            chunk.Data[AYM::DataChunk::REG_MIXER] |= noiseMsk;
+          }
+          else
+          {
+            chunk.Data[AYM::DataChunk::REG_TONEN] = dst->Noise;
+          }
+
+          //recalc positions
+          ++dst->PosInSample;
+          if (dst->PosInSample >= curSample.LoopLimit)
+          {
+            dst->PosInSample = curSample.Loop;
+          }
+          if (++dst->PosInOrnament >= curOrnament.LoopLimit)
+          {
+            dst->PosInOrnament = curOrnament.Loop;
+          }
         }
         else
         {
@@ -585,7 +691,7 @@ namespace
 
   bool Checking(const String& /*filename*/, const Dump& data)
   {
-    return true;
+    return false;
   }
 
   ModulePlayer::Ptr Creating(const String& filename, const Dump& data)

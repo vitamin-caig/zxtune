@@ -19,6 +19,9 @@ namespace ZXTune
     /// Current player information
     struct Info
     {
+      Info() : Capabilities(), Properties()
+      {
+      }
       uint32_t Capabilities;
       StringMap Properties;
     };
