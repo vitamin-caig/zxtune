@@ -70,11 +70,11 @@ namespace
 
     virtual void OnParametersChanged(unsigned /*changedFields*/)
     {
+      //loop is disabled
+      Params.SoundParameters.Flags &= ~MOD_LOOP;
       if (Stream)
       {
         OnShutdown();
-        //loop is disabled
-        Params.SoundParameters.Flags &= ~MOD_LOOP;
         //force raw mode if stdout
         RawOutput = Params.DriverParameters.empty() || (Params.DriverFlags & RAW_STREAM) ;//TODO
         OnStartup();

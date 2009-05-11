@@ -156,139 +156,150 @@
 				Name="include"
 				Filter="">
 				<File
-					RelativePath="..\..\lib\include\module.h">
+					RelativePath="..\..\src\lib\include\module.h">
 				</File>
 				<File
-					RelativePath="..\..\lib\include\module_attrs.h">
+					RelativePath="..\..\src\lib\include\module_attrs.h">
 				</File>
 				<File
-					RelativePath="..\..\lib\include\player.h">
+					RelativePath="..\..\src\lib\include\player.h">
 				</File>
 				<File
-					RelativePath="..\..\lib\include\player_attrs.h">
+					RelativePath="..\..\src\lib\include\player_attrs.h">
 				</File>
 				<File
-					RelativePath="..\..\lib\include\sound.h">
+					RelativePath="..\..\src\lib\include\sound.h">
 				</File>
 				<File
-					RelativePath="..\..\lib\include\sound_attrs.h">
+					RelativePath="..\..\src\lib\include\sound_attrs.h">
 				</File>
 				<File
-					RelativePath="..\..\lib\include\sound_types.h">
+					RelativePath="..\..\src\lib\include\sound_types.h">
 				</File>
 			</Filter>
 			<Filter
 				Name="sound"
 				Filter="">
 				<File
-					RelativePath="..\..\lib\sound\filter.cpp">
+					RelativePath="..\..\src\lib\sound\filter.cpp">
 				</File>
 				<File
-					RelativePath="..\..\lib\sound\filter.h">
+					RelativePath="..\..\src\lib\sound\filter.h">
 				</File>
 				<File
-					RelativePath="..\..\lib\sound\mixer.cpp">
+					RelativePath="..\..\src\lib\sound\mixer.cpp">
 				</File>
 				<File
-					RelativePath="..\..\lib\sound\mixer.h">
+					RelativePath="..\..\src\lib\sound\mixer.h">
 				</File>
 				<File
-					RelativePath="..\..\lib\sound\renderer.cpp">
+					RelativePath="..\..\src\lib\sound\renderer.cpp">
 				</File>
 				<File
-					RelativePath="..\..\lib\sound\renderer.h">
+					RelativePath="..\..\src\lib\sound\renderer.h">
 				</File>
 			</Filter>
 			<Filter
-				Name="impl"
+				Name="plugins"
 				Filter="">
 				<File
-					RelativePath="..\..\lib\impl\asc_supp.cpp">
-					<FileConfiguration
-						Name="Debug|Win32">
-						<Tool
-							Name="VCCLCompilerTool"/>
-					</FileConfiguration>
+					RelativePath="..\..\src\lib\plugins\asc_supp.cpp">
 				</File>
 				<File
-					RelativePath="..\..\lib\impl\chi_supp.cpp">
+					RelativePath="..\..\src\lib\plugins\chi_supp.cpp">
 				</File>
 				<File
-					RelativePath="..\..\lib\impl\plugin_enumerator.cpp">
+					RelativePath="..\..\src\lib\plugins\plugin_enumerator.cpp">
 				</File>
 				<File
-					RelativePath="..\..\lib\impl\plugin_enumerator.h">
+					RelativePath="..\..\src\lib\plugins\plugin_enumerator.h">
 				</File>
 				<File
-					RelativePath="..\..\lib\impl\psg_supp.cpp">
+					RelativePath="..\..\src\lib\plugins\psg_supp.cpp">
 				</File>
 				<File
-					RelativePath="..\..\lib\impl\pt2_supp.cpp">
+					RelativePath="..\..\src\lib\plugins\pt2_supp.cpp">
 				</File>
 				<File
-					RelativePath="..\..\lib\impl\stc_supp.cpp">
+					RelativePath="..\..\src\lib\plugins\stc_supp.cpp">
 				</File>
 				<File
-					RelativePath="..\..\lib\impl\tracking_supp.h">
+					RelativePath="..\..\src\lib\plugins\tracking_supp.h">
 				</File>
 			</Filter>
 			<Filter
 				Name="devices"
 				Filter="">
 				<File
-					RelativePath="..\..\lib\devices\data_source.h">
+					RelativePath="..\..\src\lib\devices\data_source.h">
 				</File>
 				<Filter
 					Name="aym"
 					Filter="">
 					<File
-						RelativePath="..\..\lib\devices\aym\aym.cpp">
+						RelativePath="..\..\src\lib\devices\aym\aym.cpp">
 					</File>
 					<File
-						RelativePath="..\..\lib\devices\aym\aym.h">
+						RelativePath="..\..\src\lib\devices\aym\aym.h">
 					</File>
 				</Filter>
 			</Filter>
 		</Filter>
 		<Filter
-			Name="Supplement"
+			Name="supplement"
 			Filter="">
 			<File
-				RelativePath="..\..\supp\ipc.h">
+				RelativePath="..\..\src\supp\ipc.h">
 			</File>
 			<File
-				RelativePath="..\..\supp\sound_backend.h">
+				RelativePath="..\..\src\supp\sound_backend.h">
 			</File>
 			<File
-				RelativePath="..\..\supp\sound_backend_impl.cpp">
+				RelativePath="..\..\src\supp\sound_backend_impl.cpp">
 			</File>
 			<File
-				RelativePath="..\..\supp\sound_backend_impl.h">
+				RelativePath="..\..\src\supp\sound_backend_impl.h">
 			</File>
 			<File
-				RelativePath="..\..\supp\sound_backend_types.h">
+				RelativePath="..\..\src\supp\sound_backend_types.h">
 			</File>
 			<Filter
 				Name="win"
 				Filter="">
 				<File
-					RelativePath="..\..\supp\win\ipc_win.cpp">
+					RelativePath="..\..\src\supp\win\ipc_win.cpp">
 				</File>
 				<File
-					RelativePath="..\..\supp\win\win32_backend.cpp">
+					RelativePath="..\..\src\supp\win\win32_backend.cpp">
 				</File>
 			</Filter>
 			<Filter
 				Name="cross"
 				Filter="">
 				<File
-					RelativePath="..\..\supp\cross\file_backend.cpp">
+					RelativePath="..\..\src\supp\cross\file_backend.cpp">
 				</File>
 			</Filter>
 		</Filter>
-		<File
-			RelativePath=".\ReadMe.txt">
-		</File>
+		<Filter
+			Name="platform"
+			Filter="">
+			<File
+				RelativePath="..\..\src\platform\thread\tss_null.cpp">
+			</File>
+			<File
+				RelativePath="..\..\src\platform\thread\win32\exceptions.cpp">
+			</File>
+			<File
+				RelativePath="..\..\src\platform\thread\win32\thread.cpp">
+			</File>
+			<File
+				RelativePath="..\..\src\platform\thread\win32\tss_dll.cpp">
+			</File>
+			<File
+				RelativePath="..\..\src\platform\thread\win32\tss_pe.cpp">
+			</File>
+		</Filter>
 	</Files>
 	<Globals>
 	</Globals>

@@ -1,6 +1,6 @@
 include_dirs := $(path_step)/include/boost/tr1/tr1 $(path_step)/include/boost $(path_step)/include include $(include_path)
-libs_dir := $(path_step)/libs
-objs_dir := $(path_step)/objs
+libs_dir := $(path_step)/lib
+objs_dir := $(path_step)/obj
 
 ifdef library_name
 output_dir := $(libs_dir)
@@ -9,7 +9,7 @@ target := $(output_dir)/lib$(library_name).a
 endif
 
 ifdef binary_name
-output_dir := $(path_step)/bins
+output_dir := $(path_step)/bin
 objects_dir := $(objs_dir)/$(binary_name)
 target := $(output_dir)/$(binary_name)
 endif

@@ -209,7 +209,7 @@ namespace
       PlayPtr = FillPtr = cycled_iterator<BufferDescr*>(&Buffers[0], &Buffers[Buffers.size()]);
       Stopping = false;
       PlaybackThread = boost::thread(
-        std::mem_fun(&AlsaBackend::PlayFunc),
+        std::mem_fun(&AlsaBackend::RenderFunc),
         this);
     }
 
@@ -242,7 +242,7 @@ namespace
       //CheckResult(-1 != ::ioctl(MixHandle, SOUND_MIXER_WRITE_VOLUME, &vol));
     }
 
-    void PlayFunc()
+    void RenderFunc()
     {
       while (!Stopping)
       {

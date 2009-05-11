@@ -2,7 +2,8 @@
 #define __SOUND_BACKEND_IMPL_H_DEFINED__
 
 #include "sound_backend.h"
-#include "ipc.h"
+
+#include <boost/thread.hpp>
 
 namespace ZXTune
 {
@@ -58,15 +59,16 @@ namespace ZXTune
       Parameters Params;
 
     private:
-      static bool PlayFunc(void*);
+      ModulePlayer::State SafeRenderFrame();
+      void PlayFunc();
       void CheckState() const;
       void SafeStop();
       State UpdateCurrentState(ModulePlayer::State);
       unsigned MatchParameters(const Parameters& params) const;
       static void CallbackFunc(const void*, std::size_t, void*);
     private:
-      IPC::Thread PlayerThread;
-      mutable IPC::Mutex PlayerMutex;
+      boost::thread PlayerThread;
+      mutable boost::mutex PlayerMutex;
     private:
       volatile State CurrentState;
       ModulePlayer::Ptr Player;

@@ -212,7 +212,7 @@ int main(int argc, char* argv[])
       "Channels: %8$2d / %9%\n"
       "Tempo:    %10$2d / %11%\n"
       "Frame: %12$5d / %13%");
-    for (;;)
+    while (Sound::Backend::STOPPED != backend->GetState())
     {
       std::size_t frame;
       Module::Tracking track;
