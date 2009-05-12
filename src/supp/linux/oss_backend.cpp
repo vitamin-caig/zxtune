@@ -1,4 +1,4 @@
-#include "../sound_backend_impl.h"
+#include "../sound_backend_async.h"
 
 #include <tools.h>
 #include <error.h>
@@ -30,7 +30,7 @@ namespace
     }
   }
 
-  class OSSBackend : public BackendImpl
+  class OSSBackend : public SimpleAsyncBackend
   {
   public:
     OSSBackend() : DevHandle(-1), MixHandle(-1)
@@ -39,41 +39,7 @@ namespace
 
     virtual ~OSSBackend()
     {
-      try
-      {
-        Stop();
-      }
-      catch (...)
-      {
-        //TODO
-      }
-    }
-
-    virtual void OnBufferReady(const void* data, std::size_t sizeInBytes)
-    {
-      assert(-1 != DevHandle);
-      const uint8_t* buff(static_cast<const uint8_t*>(data));
-      while (sizeInBytes)
-      {
-        std::size_t toWrite(0);
-        for (;;)
-        {
-          audio_buf_info info;
-          CheckResult(-1 != ::ioctl(DevHandle, SNDCTL_DSP_GETOSPACE, &info));
-          toWrite = std::min<std::size_t>(sizeInBytes, info.fragments * info.fragsize);
-          if (!toWrite || int(toWrite) > info.bytes)
-          {
-            ::usleep(1000);
-          }
-          else
-          {
-            break;
-          }
-        }
-        CheckResult(-1 != ::write(DevHandle, buff, toWrite));
-        buff += toWrite;
-        sizeInBytes -= toWrite;
-      }
+      assert(-1 == DevHandle || "OSSBackend was destroyed without stopping");
     }
 
     virtual void OnParametersChanged(unsigned changedFields)
@@ -84,6 +50,7 @@ namespace
         const bool needStartup(-1 != DevHandle);
         OnShutdown();
 
+        Parent::OnParametersChanged(changedFields);
         if (needStartup)
         {
           OnStartup();
@@ -98,7 +65,7 @@ namespace
     virtual void OnStartup()
     {
       assert(-1 == DevHandle);
-      DevHandle = ::open((DEVICE_NAME + Params.DriverParameters).c_str(), O_WRONLY | O_NONBLOCK, 0);
+      DevHandle = ::open((DEVICE_NAME + Params.DriverParameters).c_str(), O_WRONLY, 0);
       CheckResult(-1 != DevHandle);
       MixHandle = ::open((MIXER_NAME + Params.DriverParameters).c_str(), O_WRONLY, 0);
       CheckResult(-1 != MixHandle);
@@ -114,10 +81,13 @@ namespace
       CheckResult(-1 != ::ioctl(DevHandle, SNDCTL_DSP_SPEED, &tmp));
 
       SetVolume();
+
+      Parent::OnStartup();
     }
 
     virtual void OnShutdown()
     {
+      Parent::OnShutdown();
       if (-1 != DevHandle)
       {
         CheckResult(0 == ::close(DevHandle));
@@ -127,13 +97,19 @@ namespace
         MixHandle = -1;
       }
     }
-
-    virtual void OnPause()
+  protected:
+    virtual void PlayBuffer(const Parent::Buffer& buf)
     {
-    }
-
-    virtual void OnResume()
-    {
+      assert(-1 != DevHandle);
+      std::size_t toWrite(buf.Size * sizeof(buf.Data.front()));
+      const uint8_t* data(safe_ptr_cast<const uint8_t*>(&buf.Data[0]));
+      while (toWrite)
+      {
+        int res(::write(DevHandle, data, toWrite * sizeof(*data)));
+        CheckResult(res >= 0);
+        toWrite -= res;
+        data += res;
+      }
     }
   private:
     void SetVolume()

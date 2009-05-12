@@ -63,10 +63,14 @@ namespace ZXTune
       {
       }
 
-      /// renders sound values until target receive them
+      /// renders sound values until source is not empty
       virtual void RenderData(const Sound::Parameters& params,
-                              DataSource<DataChunk>* src,
-                              Sound::Receiver* dst) = 0;
+                              DataSource<DataChunk>& src,
+                              Sound::Receiver& dst) = 0;
+      /// render single data chunkg
+      virtual void RenderData(const Sound::Parameters& params,
+                              const DataChunk& src,
+                              Sound::Receiver& dst) = 0;
 
       virtual void GetState(Sound::Analyze::Volume& volState, Sound::Analyze::Spectrum& spectrumState) const = 0;
 

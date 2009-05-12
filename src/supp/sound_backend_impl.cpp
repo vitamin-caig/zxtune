@@ -212,12 +212,12 @@ namespace ZXTune
         }
 
         Filter.reset(
-          CreateFIRFilter(&FilterCoeffs[0], Params.FIROrder, Renderer.get()).release());
+          CreateFIRFilter(&FilterCoeffs[0], Params.FIROrder, *Renderer).release());
       }
       if (changedFields & (UPDATE_RENDERER_MASK | UPDATE_FILTER_MASK | UPDATE_MIXER_MASK))
       {
         Mixer.reset(
-          CreateMixer(Params.Mixer, Filter.get() ? Filter.get() : Renderer.get()).release());
+          CreateMixer(Params.Mixer, Filter.get() ? *Filter : *Renderer).release());
       }
       return OnParametersChanged(changedFields);
     }
@@ -303,7 +303,7 @@ namespace ZXTune
     ModulePlayer::State BackendImpl::SafeRenderFrame()
     {
       Locker lock(PlayerMutex);
-      return Player->RenderFrame(Params.SoundParameters, Mixer.get());
+      return Player->RenderFrame(Params.SoundParameters, *Mixer);
     }
 
     void BackendImpl::PlayFunc()

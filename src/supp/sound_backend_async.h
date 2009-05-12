@@ -14,6 +14,7 @@ namespace ZXTune
     class AsyncBackend : public BackendImpl
     {
     public:
+      typedef BufferType Buffer;
       AsyncBackend() : Buffers(), FillPtr(), PlayPtr(), Stopping(true)
       {
 
@@ -36,7 +37,7 @@ namespace ZXTune
         const unsigned depth(Params.DriverFlags & BUFFER_DEPTH_MASK);
         Buffers.assign(depth ? depth : MIN_BUFFER_DEPTH, BufferEntry());
         //impossible to use boost::bind
-        for (BufferEntryArray::iterator it = Buffers.begin(), lim = Buffers.end(); it != lim; ++it)
+        for (typename BufferEntryArray::iterator it = Buffers.begin(), lim = Buffers.end(); it != lim; ++it)
         {
           AllocateBuffer(it->Data);
         }
@@ -50,7 +51,7 @@ namespace ZXTune
         FilledEvent.notify_one();
         PlaybackThread.join();
         //impossible to use boost::bind
-        for (BufferEntryArray::iterator it = Buffers.begin(), lim = Buffers.end(); it != lim; ++it)
+        for (typename BufferEntryArray::iterator it = Buffers.begin(), lim = Buffers.end(); it != lim; ++it)
         {
           ReleaseBuffer(it->Data);
         }
@@ -104,7 +105,7 @@ namespace ZXTune
         {
         }
         volatile bool IsFilled;
-        typename BufferType Data;
+        BufferType Data;
       };
       typedef std::vector<BufferEntry> BufferEntryArray;
       BufferEntryArray Buffers;
@@ -117,6 +118,48 @@ namespace ZXTune
       boost::condition_variable FilledEvent;
       boost::condition_variable PlayedEvent;
       boost::thread PlaybackThread;
+    };
+
+    struct SimpleBuffer
+    {
+      SimpleBuffer() : Data(), Size()
+      {
+      }
+      std::vector<Sample> Data;
+      std::size_t Size;
+    };
+
+    class SimpleAsyncBackend : public AsyncBackend<SimpleBuffer>
+    {
+    public:
+      typedef AsyncBackend<SimpleBuffer> Parent;
+      SimpleAsyncBackend()
+      {
+      }
+
+      virtual void OnPause()
+      {
+      }
+
+      virtual void OnResume()
+      {
+      }
+    protected:
+      virtual void AllocateBuffer(Parent::Buffer& buf)
+      {
+        const std::size_t bufSize(OUTPUT_CHANNELS * Params.SoundParameters.SoundFreq * Params.BufferInMs / 1000);
+        buf.Data.resize(bufSize);
+      }
+      virtual void ReleaseBuffer(Parent::Buffer& buf)
+      {
+        std::vector<Sample> tmp;
+        buf.Data.swap(tmp);
+      }
+      virtual void FillBuffer(const void* data, std::size_t sizeInSamples, Parent::Buffer& buf)
+      {
+        assert(sizeInSamples <= buf.Data.size());
+        std::memcpy(&buf.Data[0], data, (buf.Size = sizeInSamples) * sizeof(buf.Data.front()));
+      }
     };
   }
 }

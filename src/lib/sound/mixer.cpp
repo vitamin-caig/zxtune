@@ -17,7 +17,7 @@ namespace
   class Mixer : public Receiver, private boost::noncopyable
   {
   public:
-    Mixer(const ChannelMixer* matrix, Receiver* delegate)
+    Mixer(const ChannelMixer* matrix, Receiver& delegate)
       : Matrix(matrix), Delegate(delegate)
     {
 
@@ -43,17 +43,17 @@ namespace
         }
       }
       std::transform(res, ArrayEnd(res), Result, std::bind2nd(std::divides<BigSample>(), BigSample(FIXED_POINT_PRECISION) * actChannels));
-      return Delegate->ApplySample(Result, ArraySize(Result));
+      return Delegate.ApplySample(Result, ArraySize(Result));
     }
 
     virtual void Flush()
     {
-      return Delegate->Flush();
+      return Delegate.Flush();
     }
 
   private:
     const ChannelMixer* const Matrix;
-    Receiver* const Delegate;
+    Receiver& Delegate;
     SampleArray Result;
   };
 }
@@ -62,7 +62,7 @@ namespace ZXTune
 {
   namespace Sound
   {
-    Receiver::Ptr CreateMixer(const std::vector<ChannelMixer>& matrix, Receiver* receiver)
+    Receiver::Ptr CreateMixer(const std::vector<ChannelMixer>& matrix, Receiver& receiver)
     {
       switch (matrix.size())
       {

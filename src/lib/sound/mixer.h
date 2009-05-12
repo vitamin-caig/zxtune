@@ -9,7 +9,7 @@ namespace ZXTune
 {
   namespace Sound
   {
-    Receiver::Ptr CreateMixer(const std::vector<ChannelMixer>& matrix, Receiver* receiver);
+    Receiver::Ptr CreateMixer(const std::vector<ChannelMixer>& matrix, Receiver& receiver);
   }
 }
 

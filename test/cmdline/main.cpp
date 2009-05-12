@@ -148,7 +148,7 @@ int main(int argc, char* argv[])
 #ifdef _WIN32
     Sound::Backend::Ptr backend(Sound::CreateWinAPIBackend());
 #else
-    Sound::Backend::Ptr backend(Sound::CreateAlsaBackend());
+    Sound::Backend::Ptr backend(Sound::CreateOSSBackend());
 #endif
 #endif
 
@@ -237,6 +237,20 @@ int main(int argc, char* argv[])
         break;
       case 's':
         backend->Stop();
+        break;
+      case 'z':
+        if (params.Preamp)
+        {
+          --params.Preamp;
+          backend->SetSoundParameters(params);
+        }
+        break;
+      case 'x':
+        if (params.Preamp < Sound::FIXED_POINT_PRECISION)
+        {
+          ++params.Preamp;
+          backend->SetSoundParameters(params);
+        }
         break;
       }
       boost::this_thread::sleep(boost::posix_time::milliseconds(20));

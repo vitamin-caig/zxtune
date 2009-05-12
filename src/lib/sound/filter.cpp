@@ -21,7 +21,7 @@ namespace
   class FIRFilter : public Receiver, private boost::noncopyable
   {
   public:
-    FIRFilter(const Sample* coeffs, std::size_t order, Receiver* delegate)
+    FIRFilter(const Sample* coeffs, std::size_t order, Receiver& delegate)
       : Matrix(coeffs, coeffs + order), Delegate(delegate), History(order), Position(&History[0], &History[order])
     {
     }
@@ -41,17 +41,17 @@ namespace
       }
       std::transform(res, ArrayEnd(res), Result, std::bind2nd(std::divides<BigSample>(), BigSample(FIXED_POINT_PRECISION)));
       ++Position;
-      return Delegate->ApplySample(Result, OUTPUT_CHANNELS);
+      return Delegate.ApplySample(Result, OUTPUT_CHANNELS);
     }
 
     virtual void Flush()
     {
-      return Delegate->Flush();
+      return Delegate.Flush();
     }
 
   private:
     std::vector<Sample> Matrix;
-    Receiver* const Delegate;
+    Receiver& Delegate;
     std::vector<SampleHelper> History;
     cycled_iterator<SampleHelper*> Position;
     SampleArray Result;
@@ -62,12 +62,12 @@ namespace ZXTune
 {
   namespace Sound
   {
-    Receiver::Ptr CreateFIRFilter(const Sample* coeffs, std::size_t order, Receiver* delegate)
+    Receiver::Ptr CreateFIRFilter(const Sample* coeffs, std::size_t order, Receiver& delegate)
     {
       return Receiver::Ptr(new FIRFilter(coeffs, order, delegate));
     }
 
-    void CalculateFIRCoefficients(std::size_t /*order*/, uint32_t /*freq*/, 
+    void CalculateFIRCoefficients(std::size_t /*order*/, uint32_t /*freq*/,
       uint32_t /*lowCutoff*/, uint32_t /*highCutoff*/, std::vector<Sample>& /*coeffs*/)
     {
     }

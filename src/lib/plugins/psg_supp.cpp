@@ -23,7 +23,7 @@ namespace
 
   const uint8_t INT_BEGIN = 0xff;
   const uint8_t INT_SKIP = 0xfe;
-  const uint8_t MUS_END = 0xfd; 
+  const uint8_t MUS_END = 0xfd;
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -35,7 +35,7 @@ namespace
     uint8_t Version;
     uint8_t Interrupt;
     uint8_t Padding[10];
-  } PACK_POST; 
+  } PACK_POST;
 #ifdef USE_PRAGMA_PACK
 #pragma pack(pop)
 #endif
@@ -162,7 +162,7 @@ namespace
     }
 
     /// Rendering frame
-    virtual State RenderFrame(const Sound::Parameters& params, Sound::Receiver* receiver)
+    virtual State RenderFrame(const Sound::Parameters& params, Sound::Receiver& receiver)
     {
       if (Position >= Storage.size())
       {
@@ -172,15 +172,14 @@ namespace
         }
         else
         {
-          receiver->Flush();
+          receiver.Flush();
           return CurrentState = MODULE_STOPPED;
         }
       }
       assert(Device.get());
       AYM::DataChunk& data(Storage[Position++]);
       data.Tick = (TickCount += uint64_t(params.ClockFreq) * params.FrameDuration / 1000);
-      SingleFrameDataSource<AYM::DataChunk> src(data);
-      Device->RenderData(params, &src, receiver);
+      Device->RenderData(params, data, receiver);
       return CurrentState = MODULE_PLAYING;
     }
 

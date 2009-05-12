@@ -356,7 +356,7 @@ namespace
       std::transform(header->OrnamentsOffsets, ArrayEnd(header->OrnamentsOffsets),
         std::back_inserter(Data.Ornaments), OrnamentCreator(data));
       //fill order
-      Data.Positions.assign(header->Positions, 
+      Data.Positions.assign(header->Positions,
         std::find(header->Positions, header->Positions + header->Length, POS_END_MARKER));
       assert(header->Length == Data.Positions.size());
 
@@ -408,14 +408,13 @@ namespace
     }
 
     /// Rendering frame
-    virtual State RenderFrame(const Sound::Parameters& params, Sound::Receiver* receiver)
+    virtual State RenderFrame(const Sound::Parameters& params, Sound::Receiver& receiver)
     {
       AYM::DataChunk chunk;
       chunk.Tick = (CurrentState.Tick += uint64_t(params.ClockFreq) * params.FrameDuration / 1000);
       RenderData(chunk);
 
-      SingleFrameDataSource<AYM::DataChunk> src(chunk);
-      Device->RenderData(params, &src, receiver);
+      Device->RenderData(params, chunk, receiver);
 
       return Parent::RenderFrame(params, receiver);
     }

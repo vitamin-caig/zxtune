@@ -120,7 +120,7 @@ namespace ZXTune
         return PlaybackState;
       }
 
-      virtual State RenderFrame(const Sound::Parameters& params, Sound::Receiver* receiver)
+      virtual State RenderFrame(const Sound::Parameters& params, Sound::Receiver& receiver)
       {
         ++CurrentState.Frame;
         if (Navigate(CurrentState.Position))
@@ -139,8 +139,7 @@ namespace ZXTune
           }
           else
           {
-            assert(receiver);
-            receiver->Flush();
+            receiver.Flush();
             return PlaybackState = MODULE_STOPPED;
           }
         }

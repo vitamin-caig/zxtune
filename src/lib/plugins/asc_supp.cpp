@@ -506,14 +506,13 @@ namespace
     }
 
     /// Rendering frame
-    virtual State RenderFrame(const Sound::Parameters& params, Sound::Receiver* receiver)
+    virtual State RenderFrame(const Sound::Parameters& params, Sound::Receiver& receiver)
     {
       AYM::DataChunk chunk;
       chunk.Tick = (CurrentState.Tick += uint64_t(params.ClockFreq) * params.FrameDuration / 1000);
       RenderData(chunk);
 
-      SingleFrameDataSource<AYM::DataChunk> src(chunk);
-      Device->RenderData(params, &src, receiver);
+      Device->RenderData(params, chunk, receiver);
 
       return Parent::RenderFrame(params, receiver);
     }

@@ -236,7 +236,7 @@ namespace
     }
 
     /// Rendering frame
-    virtual State RenderFrame(const Sound::Parameters& params, Sound::Receiver* receiver)
+    virtual State RenderFrame(const Sound::Parameters& params, Sound::Receiver& receiver)
     {
       const Line& line(Data.Patterns[CurrentState.Position.Pattern][CurrentState.Position.Note]);
       if (0 == CurrentState.Position.Frame)//begin note
@@ -329,7 +329,7 @@ namespace
             result[chan] = scale(128);
           }
         }
-        receiver->ApplySample(result, ArraySize(result));
+        receiver.ApplySample(result, ArraySize(result));
         CurrentState.Tick += ticksPerSample;
       }
       for (std::size_t chan = 0; chan != 4; ++chan)

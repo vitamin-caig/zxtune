@@ -36,7 +36,7 @@ namespace
     0x077, 0x070, 0x06b, 0x064, 0x05e, 0x059, 0x054, 0x04f, 0x04b, 0x047, 0x042, 0x03f,
     0x03b, 0x038, 0x035, 0x032, 0x02f, 0x02c, 0x02a, 0x027, 0x025, 0x023, 0x021, 0x01f,
     0x01d, 0x01c, 0x01a, 0x019, 0x017, 0x016, 0x015, 0x013, 0x012, 0x011, 0x010, 0x00f
-  }; 
+  };
   //////////////////////////////////////////////////////////////////////////
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -246,7 +246,7 @@ namespace
       Information.Statistic.Tempo = header->Tempo;
       Information.Loop = 0;//not supported
       Information.Properties.insert(StringMap::value_type(Module::ATTR_FILENAME, filename));
-      Information.Properties.insert(StringMap::value_type(Module::ATTR_TRACKER, 
+      Information.Properties.insert(StringMap::value_type(Module::ATTR_TRACKER,
         String(header->Identifier, ArrayEnd(header->Identifier))));
       Information.Properties.insert(StringMap::value_type(Module::ATTR_PROGRAM, TEXT_STC_EDITOR));
 
@@ -259,7 +259,7 @@ namespace
         Data.Positions.push_back(posEntry->PatternNum - 1);
         Transpositions.push_back(posEntry->PatternHeight);
       }
-      assert(Data.Positions.size() == positions->Lenght + 1);
+      assert(Data.Positions.size() == std::size_t(positions->Lenght) + 1);
 
       //parse samples
       Data.Samples.resize(MAX_SAMPLES_COUNT);
@@ -325,14 +325,13 @@ namespace
     }
 
     /// Rendering frame
-    virtual State RenderFrame(const Sound::Parameters& params, Sound::Receiver* receiver)
+    virtual State RenderFrame(const Sound::Parameters& params, Sound::Receiver& receiver)
     {
       AYM::DataChunk chunk;
       chunk.Tick = (CurrentState.Tick += uint64_t(params.ClockFreq) * params.FrameDuration / 1000);
       RenderData(chunk);
 
-      SingleFrameDataSource<AYM::DataChunk> src(chunk);
-      Device->RenderData(params, &src, receiver);
+      Device->RenderData(params, chunk, receiver);
 
       return Parent::RenderFrame(params, receiver);
     }

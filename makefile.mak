@@ -24,17 +24,15 @@ CXX_FLAGS := -O3 -g2 -mmmx -msse -msse2 -funroll-loops -Wall -Wextra -funsigned-
 AR_FLAGS := cru
 LD_FLAGS := -pipe
 
-all: deps $(objects_dir) $(output_dir) $(target)
-
-$(objects_dir):
-	mkdir -p $(objects_dir)
-
-$(output_dir):
-	mkdir -p $(output_dir)
+all: deps dirs $(target)
 
 .PHONY: deps $(depends)
 
 deps: $(depends)
+
+dirs:
+	mkdir -p $(objects_dir)
+	mkdir -p $(output_dir)
 
 $(depends):
 	$(MAKE) -C $(addprefix $(path_step)/,$@)

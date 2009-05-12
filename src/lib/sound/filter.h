@@ -10,7 +10,7 @@ namespace ZXTune
     /*
       FIR filter with fixed-point calculations
     */
-    Receiver::Ptr CreateFIRFilter(const Sample* coeffs, std::size_t order, Receiver* delegate);
+    Receiver::Ptr CreateFIRFilter(const Sample* coeffs, std::size_t order, Receiver& delegate);
 
     void CalculateFIRCoefficients(std::size_t order, uint32_t freq, uint32_t lowCutoff, uint32_t highCutoff, std::vector<Sample>& coeffs);
   }
