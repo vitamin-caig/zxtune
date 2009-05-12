@@ -5,7 +5,6 @@
 #include <../../lib/sound/mixer.h>
 #include <../../lib/sound/renderer.h>
 
-#include <../../supp/ipc.h>
 #include <../../supp/sound_backend.h>
 #include <../../supp/sound_backend_types.h>
 
@@ -13,6 +12,7 @@
 #include <error.h>
 
 #include <boost/format.hpp>
+#include <boost/thread.hpp>
 
 #include <fstream>
 #include <iomanip>
@@ -239,10 +239,10 @@ int main(int argc, char* argv[])
         backend->Stop();
         break;
       }
-      IPC::Sleep(20);
+      boost::this_thread::sleep(boost::posix_time::milliseconds(20));
       EndState();
     }
-    //backend->Stop();
+    backend->Stop();
     return 0;
   }
   catch (const Error& e)

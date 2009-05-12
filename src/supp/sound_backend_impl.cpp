@@ -63,6 +63,11 @@ namespace ZXTune
       GetInitialParameters(Params);
     }
 
+    BackendImpl::~BackendImpl()
+    {
+      assert(NOTOPENED == CurrentState || STOPPED == CurrentState || !"Backend should be stopped!");
+    }
+
     Backend::State BackendImpl::OpenModule(const String& filename, const Dump& data)
     {
       static const SampleArray MONO_MIX = {FIXED_POINT_PRECISION};

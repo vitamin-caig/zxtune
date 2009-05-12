@@ -9,7 +9,7 @@
 
 #include <boost/thread/detail/config.hpp>
 
-#if defined(BOOST_HAS_WINTHREADS) && defined(BOOST_THREAD_BUILD_LIB) 
+#if defined(BOOST_HAS_WINTHREADS)// && defined(BOOST_THREAD_BUILD_LIB) 
 
 #if defined(__MINGW32__) && !defined(_WIN64)
 

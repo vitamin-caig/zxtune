@@ -19,7 +19,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\include\boost\tr1\tr1;..\include\boost;..\..\include;..\..\lib\include"
+				AdditionalIncludeDirectories="..\..\include\boost\tr1\tr1;..\include\boost;..\..\include;..\..\src\lib\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
@@ -255,6 +255,9 @@
 				RelativePath="..\..\src\supp\sound_backend.h">
 			</File>
 			<File
+				RelativePath="..\..\src\supp\sound_backend_async.h">
+			</File>
+			<File
 				RelativePath="..\..\src\supp\sound_backend_impl.cpp">
 			</File>
 			<File
@@ -267,9 +270,6 @@
 				Name="win"
 				Filter="">
 				<File
-					RelativePath="..\..\src\supp\win\ipc_win.cpp">
-				</File>
-				<File
 					RelativePath="..\..\src\supp\win\win32_backend.cpp">
 				</File>
 			</Filter>
@@ -280,25 +280,45 @@
 					RelativePath="..\..\src\supp\cross\file_backend.cpp">
 				</File>
 			</Filter>
+			<Filter
+				Name="linux"
+				Filter="">
+				<File
+					RelativePath="..\..\src\supp\linux\alsa_backend.cpp">
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\src\supp\linux\oss_backend.cpp">
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="platform"
 			Filter="">
-			<File
-				RelativePath="..\..\src\platform\thread\tss_null.cpp">
-			</File>
-			<File
-				RelativePath="..\..\src\platform\thread\win32\exceptions.cpp">
-			</File>
-			<File
-				RelativePath="..\..\src\platform\thread\win32\thread.cpp">
-			</File>
-			<File
-				RelativePath="..\..\src\platform\thread\win32\tss_dll.cpp">
-			</File>
-			<File
-				RelativePath="..\..\src\platform\thread\win32\tss_pe.cpp">
-			</File>
+			<Filter
+				Name="win"
+				Filter="">
+				<File
+					RelativePath="..\..\src\platform\thread\win32\exceptions.cpp">
+				</File>
+				<File
+					RelativePath="..\..\src\platform\thread\win32\thread.cpp">
+				</File>
+				<File
+					RelativePath="..\..\src\platform\thread\win32\tss_pe.cpp">
+				</File>
+			</Filter>
 		</Filter>
 	</Files>
 	<Globals>

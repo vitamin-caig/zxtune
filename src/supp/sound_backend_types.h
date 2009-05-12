@@ -9,6 +9,8 @@ namespace ZXTune
   {
     /// Driver flags
     const unsigned BUFFER_DEPTH_MASK = 7;//up to 7 levels depth
+    const unsigned MIN_BUFFER_DEPTH = 2;
+    const unsigned MAX_BUFFER_DEPTH = 7;
     //for file backend
     const unsigned RAW_STREAM = 1;
 

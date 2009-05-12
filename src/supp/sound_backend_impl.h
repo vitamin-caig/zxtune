@@ -13,6 +13,7 @@ namespace ZXTune
     {
     public:
       BackendImpl();
+      virtual ~BackendImpl();
 
       virtual State OpenModule(const String& filename, const Dump& data);
 
