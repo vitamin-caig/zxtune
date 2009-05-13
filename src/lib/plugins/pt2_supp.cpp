@@ -229,7 +229,7 @@ namespace
           Line::Chan& channel(line.Channels[chan]);
           if (cmd >= 0xe1) //sample
           {
-            assert(channel.SampleNum.IsNull());
+            assert(!channel.SampleNum);
             channel.SampleNum = cmd - 0xe0;
           }
           else if (cmd == 0xe0) //sample 0 - shut up
@@ -239,7 +239,7 @@ namespace
           }
           else if (cmd >= 0x80 && cmd <= 0xdf)//note
           {
-            assert(channel.Note.IsNull());
+            assert(!channel.Note);
             channel.Enabled = true;
             const std::size_t note(cmd - 0x80);
             //for note gliss calculate limit manually
@@ -270,7 +270,7 @@ namespace
           }
           else if (cmd >= 0x60 && cmd <= 0x6f)//ornament
           {
-            assert(channel.OrnamentNum.IsNull());
+            assert(!channel.OrnamentNum);
             channel.OrnamentNum = cmd - 0x60;
           }
           else if (cmd >= 0x20 && cmd <= 0x5f)//skip
@@ -279,12 +279,12 @@ namespace
           }
           else if (cmd >= 0x10 && cmd <= 0x1f)//volume
           {
-            assert(channel.Volume.IsNull());
+            assert(!channel.Volume);
             channel.Volume = cmd - 0x10;
           }
           else if (cmd == 0x0f)//new delay
           {
-            assert(line.Tempo.IsNull());
+            assert(!line.Tempo);
             line.Tempo = data[offsets[chan]++];
           }
           else if (cmd == 0x0e)//gliss
@@ -294,7 +294,7 @@ namespace
           else if (cmd == 0x0d)//note gliss
           {
             //too late when note is filled
-            assert(channel.Note.IsNull());
+            assert(!channel.Note);
             channel.Commands.push_back(Command(GLISS_NOTE, static_cast<int8_t>(data[offsets[chan]])));
             //ignore delta due to error
             offsets[chan] += 3;
@@ -436,44 +436,39 @@ namespace
       const Line& line(Data.Patterns[CurrentState.Position.Pattern][CurrentState.Position.Note]);
       if (0 == CurrentState.Position.Frame)//begin note
       {
-        if (!line.Tempo.IsNull())
-        {
-          CurrentState.Position.Tempo = line.Tempo;
-        }
-        CurrentState.Position.Channels = 0;
         for (std::size_t chan = 0; chan != line.Channels.size(); ++chan)
         {
           const Line::Chan& src(line.Channels[chan]);
           ChannelState& dst(Channels[chan]);
-          if (!src.Enabled.IsNull())
+          if (src.Enabled)
           {
-            if (!(dst.Enabled = src.Enabled))
+            if (!(dst.Enabled = *src.Enabled))
             {
               dst.Sliding = dst.Glissade = 0;
               dst.SlidingTargetNote = ~std::size_t(0);
               dst.PosInSample = dst.PosInOrnament = 0;
             }
           }
-          if (!src.Note.IsNull())
+          if (src.Note)
           {
-            dst.Note = src.Note;
+            dst.Note = *src.Note;
             dst.PosInSample = dst.PosInOrnament = 0;
             dst.Sliding = dst.Glissade = 0;
             dst.SlidingTargetNote = ~std::size_t(0);
           }
-          if (!src.SampleNum.IsNull())
+          if (src.SampleNum)
           {
-            dst.SampleNum = src.SampleNum;
+            dst.SampleNum = *src.SampleNum;
             dst.PosInSample = 0;
           }
-          if (!src.OrnamentNum.IsNull())
+          if (src.OrnamentNum)
           {
-            dst.OrnamentNum = src.OrnamentNum;
+            dst.OrnamentNum = *src.OrnamentNum;
             dst.PosInOrnament = 0;
           }
-          if (!src.Volume.IsNull())
+          if (src.Volume)
           {
-            dst.Volume = src.Volume;
+            dst.Volume = *src.Volume;
           }
           for (CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
           {
@@ -506,10 +501,6 @@ namespace
             default:
               assert(!"Invalid command");
             }
-          }
-          if (dst.Enabled)
-          {
-            ++CurrentState.Position.Channels;
           }
         }
       }
@@ -583,6 +574,8 @@ namespace
           chunk.Data[AYM::DataChunk::REG_MIXER] |= toneMsk | noiseMsk;
         }
       }
+      CurrentState.Position.Channels = std::count_if(Channels, ArrayEnd(Channels), 
+        boost::mem_fn(&ChannelState::Enabled));
     }
   private:
     AYM::Chip::Ptr Device;

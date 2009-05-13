@@ -101,8 +101,8 @@ namespace
 
       CheckMMResult(::waveOutOpen(&WaveHandle, Device, &wfx, DWORD_PTR(Event), 0,
         CALLBACK_EVENT | WAVE_FORMAT_DIRECT));
+      ::ResetEvent(Event);
       SetVolume();
-      ::SetEvent(Event);
       Parent::OnStartup();
     }
 
@@ -171,7 +171,7 @@ namespace
   private:
     void SetVolume()
     {
-      ::DWORD vol(0xffff * Params.Preamp / FIXED_POINT_PRECISION);
+      const ::DWORD vol(0xffff * Params.Preamp / FIXED_POINT_PRECISION);
       CheckMMResult(::waveOutSetVolume(WaveHandle, vol | (vol << 16)));
     }
   private:

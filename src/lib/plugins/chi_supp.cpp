@@ -241,32 +241,26 @@ namespace
       const Line& line(Data.Patterns[CurrentState.Position.Pattern][CurrentState.Position.Note]);
       if (0 == CurrentState.Position.Frame)//begin note
       {
-        if (!line.Tempo.IsNull())
-        {
-          CurrentState.Position.Tempo = line.Tempo;
-        }
-        CurrentState.Position.Channels = 0;
         for (std::size_t chan = 0; chan != line.Channels.size(); ++chan)
         {
           const Line::Chan& src(line.Channels[chan]);
           ChannelState& dst(Channels[chan]);
           dst.Sliding = dst.Glissade = 0;
-          if (!src.Enabled.IsNull())
+          if (src.Enabled)
           {
-            if (!(dst.Enabled = src.Enabled))
+            if (!(dst.Enabled = *src.Enabled))
             {
-              //dst.Sliding = dst.Glissade = 0;
               dst.PosInSample = 0;
             }
           }
-          if (!src.Note.IsNull())
+          if (src.Note)
           {
-            dst.Note = src.Note;
+            dst.Note = *src.Note;
             dst.PosInSample = 0;
           }
-          if (!src.SampleNum.IsNull() && Data.Samples[src.SampleNum])
+          if (src.SampleNum && Data.Samples[*src.SampleNum])
           {
-            dst.SampleNum = src.SampleNum;
+            dst.SampleNum = *src.SampleNum;
             dst.PosInSample = 0;
           }
           for (CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
@@ -282,10 +276,6 @@ namespace
             default:
               assert(!"Invalid command");
             }
-          }
-          if (dst.Enabled)
-          {
-            ++CurrentState.Position.Channels;
           }
         }
       }
@@ -336,6 +326,8 @@ namespace
       {
         Channels[chan].Sliding += Channels[chan].Glissade;
       }
+      CurrentState.Position.Channels = std::count_if(Channels, ArrayEnd(Channels), 
+        boost::mem_fn(&ChannelState::Enabled));
 
       return Parent::RenderFrame(params, receiver);
     }

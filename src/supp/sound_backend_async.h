@@ -17,7 +17,6 @@ namespace ZXTune
       typedef BufferType Buffer;
       AsyncBackend() : Buffers(), FillPtr(), PlayPtr(), Stopping(true)
       {
-
       }
 
     protected:
@@ -92,7 +91,6 @@ namespace ZXTune
           PlayedEvent.notify_one();
         }
       }
-
     protected:
       virtual void AllocateBuffer(BufferType& buf) = 0;
       virtual void ReleaseBuffer(BufferType& buf) = 0;

@@ -468,7 +468,7 @@ namespace
             boost::bind(&fromLE<uint16_t>, _1)));
         assert(ArrayEnd(pattern->Offsets) == std::find(pattern->Offsets, ArrayEnd(pattern->Offsets), patternsOff));
         assert(ArrayEnd(pattern->Offsets) == std::find_if(pattern->Offsets, ArrayEnd(pattern->Offsets),
-          std::bind2nd(std::greater<uint16_t>(), data.size())));
+          std::bind2nd(std::greater<uint16_t>(), uint16_t(data.size()))));
         std::vector<bool> envelopes(ArraySize(pattern->Offsets));
         pat.reserve(MAX_PATTERN_SIZE);
         do
@@ -534,18 +534,13 @@ namespace
       const Line& line(Data.Patterns[CurrentState.Position.Pattern][CurrentState.Position.Note]);
       if (0 == CurrentState.Position.Frame)//begin note
       {
-        if (!line.Tempo.IsNull())
-        {
-          CurrentState.Position.Tempo = line.Tempo;
-        }
-        CurrentState.Position.Channels = 0;
         for (std::size_t chan = 0; chan != line.Channels.size(); ++chan)
         {
           const Line::Chan& src(line.Channels[chan]);
           ChannelState& dst(Channels[chan]);
-          if (!src.Enabled.IsNull())
+          if (src.Enabled)
           {
-            dst.Enabled = src.Enabled;
+            dst.Enabled = *src.Enabled;
           }
           bool contSample(false), contOrnament(false);
           for (Parent::CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
@@ -582,9 +577,9 @@ namespace
               break;
             }
           }
-          if (!src.Note.IsNull())
+          if (src.Note)
           {
-            dst.Note = src.Note;
+            dst.Note = *src.Note;
             if (!contSample)
             {
               dst.PosInSample = 0;
@@ -594,21 +589,17 @@ namespace
               dst.PosInOrnament = 0;
             }
           }
-          if (!src.SampleNum.IsNull())
+          if (src.SampleNum)
           {
-            dst.SampleNum = src.SampleNum;
+            dst.SampleNum = *src.SampleNum;
           }
-          if (!src.OrnamentNum.IsNull())
+          if (src.OrnamentNum)
           {
-            dst.OrnamentNum = src.OrnamentNum;
+            dst.OrnamentNum = *src.OrnamentNum;
           }
-          if (!src.Volume.IsNull())
+          if (src.Volume)
           {
-            dst.Volume = src.Volume;
-          }
-          if (dst.Enabled)
-          {
-            ++CurrentState.Position.Channels;
+            dst.Volume = *src.Volume;
           }
         }
       }
@@ -674,6 +665,8 @@ namespace
           chunk.Data[AYM::DataChunk::REG_MIXER] |= toneMsk | noiseMsk;
         }
       }
+      CurrentState.Position.Channels = std::count_if(Channels, ArrayEnd(Channels), 
+        boost::mem_fn(&ChannelState::Enabled));
     }
   private:
     AYM::Chip::Ptr Device;

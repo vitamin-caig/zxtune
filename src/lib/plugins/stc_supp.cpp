@@ -168,20 +168,20 @@ namespace
           Line::Chan& channel(line.Channels[chan]);
           if (cmd <= 0x5f)//note
           {
-            assert(channel.Note.IsNull());
+            assert(!channel.Note);
             channel.Note = cmd;
             channel.Enabled = true;
             break;
           }
           else if (cmd >= 0x60 && cmd <= 0x6f)//sample
           {
-            assert(channel.SampleNum.IsNull());
+            assert(!channel.SampleNum);
             channel.SampleNum = cmd - 0x60;
           }
           else if (cmd >= 0x70 && cmd <= 0x7f)//ornament
           {
             assert(channel.Commands.end() == std::find(channel.Commands.begin(), channel.Commands.end(), ENVELOPE));
-            assert(channel.OrnamentNum.IsNull());
+            assert(!channel.OrnamentNum);
             channel.OrnamentNum = cmd - 0x70;
             channel.Commands.push_back(Parent::Command(NOENVELOPE));
           }
@@ -197,7 +197,7 @@ namespace
           else if (cmd == 0x82)//orn 0
           {
             assert(channel.Commands.end() == std::find(channel.Commands.begin(), channel.Commands.end(), ENVELOPE));
-            assert(channel.OrnamentNum.IsNull());
+            assert(!channel.OrnamentNum);
             channel.OrnamentNum = 0;
             channel.Commands.push_back(Parent::Command(NOENVELOPE));
           }
@@ -353,32 +353,31 @@ namespace
       const Line& line(Data.Patterns[CurrentState.Position.Pattern][CurrentState.Position.Note]);
       if (0 == CurrentState.Position.Frame)//begin note
       {
-        CurrentState.Position.Channels = 0;
         for (std::size_t chan = 0; chan != line.Channels.size(); ++chan)
         {
           const Line::Chan& src(line.Channels[chan]);
           ChannelState& dst(Channels[chan]);
-          if (!src.Enabled.IsNull())
+          if (src.Enabled)
           {
-            if (!(dst.Enabled = src.Enabled))
+            if (!(dst.Enabled = *src.Enabled))
             {
               dst.PosInSample = 0;
             }
           }
-          if (!src.Note.IsNull())
+          if (src.Note)
           {
-            dst.Note = src.Note;
+            dst.Note = *src.Note;
             dst.PosInSample = 0;
             dst.LoopedInSample = false;
           }
-          if (!src.SampleNum.IsNull())
+          if (src.SampleNum)
           {
-            dst.SampleNum = src.SampleNum;
+            dst.SampleNum = *src.SampleNum;
             assert(0 == dst.PosInSample);
           }
-          if (!src.OrnamentNum.IsNull())
+          if (src.OrnamentNum)
           {
-            dst.OrnamentNum = src.OrnamentNum;
+            dst.OrnamentNum = *src.OrnamentNum;
             assert(0 == dst.PosInSample);
           }
           for (CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
@@ -397,10 +396,6 @@ namespace
             default:
               assert(!"Invalid command");
             }
-          }
-          if (dst.Enabled)
-          {
-            ++CurrentState.Position.Channels;
           }
         }
       }
@@ -466,6 +461,8 @@ namespace
           chunk.Data[AYM::DataChunk::REG_MIXER] |= toneMsk | noiseMsk;
         }
       }
+      CurrentState.Position.Channels = std::count_if(Channels, ArrayEnd(Channels), 
+        boost::mem_fn(&ChannelState::Enabled));
     }
   private:
     AYM::Chip::Ptr Device;

@@ -6,6 +6,7 @@
 #include <sound_attrs.h>
 
 #include <boost/array.hpp>
+#include <boost/optional.hpp>
 
 namespace ZXTune
 {
@@ -59,18 +60,18 @@ namespace ZXTune
         {
         }
         //track attrs
-        Optional<std::size_t> Tempo;
+        boost::optional<std::size_t> Tempo;
 
         struct Chan
         {
           Chan() : Enabled(), Note(), SampleNum(), OrnamentNum(), Volume(), Commands()
           {
           }
-          Optional<bool> Enabled;
-          Optional<std::size_t> Note;
-          Optional<std::size_t> SampleNum;
-          Optional<std::size_t> OrnamentNum;
-          Optional<std::size_t> Volume;
+          boost::optional<bool> Enabled;
+          boost::optional<std::size_t> Note;
+          boost::optional<std::size_t> SampleNum;
+          boost::optional<std::size_t> OrnamentNum;
+          boost::optional<std::size_t> Volume;
           CommandsArray Commands;
         };
 
@@ -134,6 +135,7 @@ namespace ZXTune
           {
             CurrentState.Position.Pattern = Data.Positions[CurrentState.Position.Position = Information.Loop];
             CurrentState.Frame = LoopFrame;
+            UpdateTempo(CurrentState.Position);
             //do not reset ticks!
             return PlaybackState = MODULE_PLAYING;
           }
@@ -150,6 +152,7 @@ namespace ZXTune
         CurrentState = ModuleState();
         CurrentState.Position.Tempo = Information.Statistic.Tempo;
         CurrentState.Position.Pattern = Data.Positions[CurrentState.Position.Position];
+        UpdateTempo(CurrentState.Position);
         return PlaybackState = MODULE_STOPPED;
       }
     private:
@@ -167,25 +170,31 @@ namespace ZXTune
             }
             state.Pattern = Data.Positions[state.Position];
           }
+          UpdateTempo(state);
         }
         return true;
       }
 
+      void UpdateTempo(Module::Tracking& track)
+      {
+        assert(0 == track.Frame);
+        const boost::optional<std::size_t>& tempo(Data.Patterns[track.Pattern][track.Note].Tempo);
+        if (tempo)
+        {
+          track.Tempo = *tempo;
+        }
+      }
     protected:
       void InitTime()
       {
         Information.Statistic.Frame = 0;
+        Reset();
         Module::Tracking& track(CurrentState.Position);
-        track.Tempo = Information.Statistic.Tempo;
         do
         {
           if (0 == track.Frame)
           {
-            const Optional<std::size_t>& tempo(Data.Patterns[track.Pattern][track.Note].Tempo);
-            if (!tempo.IsNull())
-            {
-              track.Tempo = tempo;
-            }
+            UpdateTempo(track);
             if (0 == track.Note && track.Position == Information.Loop)
             {
               LoopFrame = Information.Statistic.Frame;
