@@ -61,7 +61,7 @@ public:
   {
   }
 
-  cycled_iterator<C>& operator = (const cycled_iterator<C>& rh)
+  const cycled_iterator<C>& operator = (const cycled_iterator<C>& rh)
   {
     begin = rh.begin;
     end = rh.end;
@@ -72,6 +72,11 @@ public:
   bool operator == (const cycled_iterator<C>& rh) const
   {
     return begin == rh.begin && end == rh.end && cur == rh.cur;
+  }
+
+  bool operator != (const cycled_iterator<C>& rh) const
+  {
+    return !(*this == rh);
   }
 
   cycled_iterator<C>& operator ++ ()

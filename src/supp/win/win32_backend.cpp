@@ -155,16 +155,16 @@ namespace
     virtual void FillBuffer(const void* data, std::size_t sizeInSamples, WaveBuffer& buf)
     {
       assert(sizeInSamples <= buf.Buffer.size());
+      while (!(buf.Header.dwFlags & WHDR_DONE))
+      {
+        ::WaitForSingleObject(Event, INFINITE);
+      }
       buf.Header.dwBufferLength = ::DWORD(sizeInSamples) * sizeof(buf.Buffer.front());
       std::memcpy(buf.Header.lpData, data, buf.Header.dwBufferLength);
     }
     virtual void PlayBuffer(const WaveBuffer& buf)
     {
       assert(0 != WaveHandle);
-      while (!(buf.Header.dwFlags & WHDR_DONE))
-      {
-        ::WaitForSingleObject(Event, INFINITE);
-      }
       buf.Header.dwFlags &= ~WHDR_DONE;
       CheckMMResult(::waveOutWrite(WaveHandle, &buf.Header, sizeof(buf.Header)));
     }
