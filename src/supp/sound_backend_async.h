@@ -145,8 +145,7 @@ namespace ZXTune
     protected:
       virtual void AllocateBuffer(Parent::Buffer& buf)
       {
-        const std::size_t bufSize(OUTPUT_CHANNELS * Params.SoundParameters.SoundFreq * Params.BufferInMs / 1000);
-        buf.Data.resize(bufSize);
+        buf.Data.resize(OUTPUT_CHANNELS * Params.BufferInMultisamples());
       }
       virtual void ReleaseBuffer(Parent::Buffer& buf)
       {

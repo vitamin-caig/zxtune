@@ -178,7 +178,7 @@ namespace
       }
       assert(Device.get());
       AYM::DataChunk& data(Storage[Position++]);
-      data.Tick = (TickCount += uint64_t(params.ClockFreq) * params.FrameDuration / 1000);
+      data.Tick = (TickCount += params.ClocksPerFrame());
       Device->RenderData(params, data, receiver);
       return CurrentState = MODULE_PLAYING;
     }

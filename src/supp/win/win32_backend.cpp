@@ -137,8 +137,8 @@ namespace
   protected:
     virtual void AllocateBuffer(WaveBuffer& buf)
     {
-      const std::size_t bufSize(OUTPUT_CHANNELS * Params.SoundParameters.SoundFreq * Params.BufferInMs / 1000);
-      buf.Buffer.resize(bufSize);
+      const std::size_t bufSize(OUTPUT_CHANNELS * Params.BufferInMultisamples());
+      buf.Buffer.resize(OUTPUT_CHANNELS * bufSize);
       buf.Header.lpData = ::LPSTR(&buf.Buffer[0]);
       buf.Header.dwBufferLength = ::DWORD(bufSize) * sizeof(buf.Buffer.front());
       buf.Header.dwUser = buf.Header.dwLoops = buf.Header.dwFlags = 0;

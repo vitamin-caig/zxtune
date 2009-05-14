@@ -509,7 +509,7 @@ namespace
     virtual State RenderFrame(const Sound::Parameters& params, Sound::Receiver& receiver)
     {
       AYM::DataChunk chunk;
-      chunk.Tick = (CurrentState.Tick += uint64_t(params.ClockFreq) * params.FrameDuration / 1000);
+      chunk.Tick = (CurrentState.Tick += params.ClocksPerFrame());
       RenderData(chunk);
 
       Device->RenderData(params, chunk, receiver);

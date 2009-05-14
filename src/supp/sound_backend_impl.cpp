@@ -200,8 +200,7 @@ namespace ZXTune
       Params = params;
       if (changedFields & UPDATE_RENDERER_MASK)
       {
-        Renderer.reset(
-          CreateCallbackRenderer(Params.SoundParameters.SoundFreq * Params.BufferInMs / 1000, CallbackFunc, this).release());
+        Renderer.reset(CreateCallbackRenderer(Params.BufferInMultisamples(), CallbackFunc, this).release());
       }
       Filter.reset();
       if ((changedFields & (UPDATE_RENDERER_MASK | UPDATE_FILTER_MASK)) && Params.FIROrder)
@@ -211,13 +210,11 @@ namespace ZXTune
           CalculateFIRCoefficients(Params.FIROrder, Params.SoundParameters.SoundFreq, Params.LowCutoff, Params.HighCutoff, FilterCoeffs);
         }
 
-        Filter.reset(
-          CreateFIRFilter(&FilterCoeffs[0], Params.FIROrder, *Renderer).release());
+        Filter.reset(CreateFIRFilter(&FilterCoeffs[0], Params.FIROrder, *Renderer).release());
       }
       if (changedFields & (UPDATE_RENDERER_MASK | UPDATE_FILTER_MASK | UPDATE_MIXER_MASK))
       {
-        Mixer.reset(
-          CreateMixer(Params.Mixer, Filter.get() ? *Filter : *Renderer).release());
+        Mixer.reset(CreateMixer(Params.Mixer, Filter.get() ? *Filter : *Renderer).release());
       }
       return OnParametersChanged(changedFields);
     }

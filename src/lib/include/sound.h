@@ -38,6 +38,12 @@ namespace ZXTune
       uint32_t FrameDuration;
       /// Different flags
       uint32_t Flags;
+
+      /// Helper functions
+      uint32_t ClocksPerFrame() const
+      {
+        return uint32_t(uint64_t(ClockFreq) * FrameDuration / 1000);
+      }
     };
 
     namespace Analyze

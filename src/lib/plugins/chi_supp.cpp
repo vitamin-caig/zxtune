@@ -288,7 +288,7 @@ namespace
         GetStep(Channels[3], params.SoundFreq)
       };
       Sound::Sample result[4];
-      const uint64_t nextTick(CurrentState.Tick + uint64_t(params.ClockFreq) * params.FrameDuration / 1000);
+      const uint64_t nextTick(CurrentState.Tick + params.ClocksPerFrame());
       const uint64_t ticksPerSample(params.ClockFreq / params.SoundFreq);
       while (CurrentState.Tick < nextTick)
       {

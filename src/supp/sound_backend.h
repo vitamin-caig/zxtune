@@ -67,6 +67,12 @@ namespace ZXTune
         uint32_t HighCutoff;
         /// Rendering parameters
         std::size_t BufferInMs;
+
+        /// Helper functions
+        std::size_t BufferInMultisamples() const
+        {
+          return SoundParameters.SoundFreq * BufferInMs / 1000;
+        }
       };
       virtual void GetSoundParameters(Parameters& params) const = 0;
       virtual void SetSoundParameters(const Parameters& params) = 0;
