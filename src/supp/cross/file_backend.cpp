@@ -58,14 +58,7 @@ namespace
 
     virtual ~FileBackend()
     {
-      try
-      {
-        Stop();
-      }
-      catch (...)
-      {
-        //TODO
-      }
+      assert((!Stream && !File.is_open()) || !"FileBackend::Stop should be called before exit");
     }
 
     virtual void OnParametersChanged(unsigned /*changedFields*/)

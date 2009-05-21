@@ -89,7 +89,7 @@ namespace
   {
     PACK_PRE struct Line
     {
-      int8_t NoiseOffset : 5;//?? signed
+      int8_t NoiseOffset : 5;//signed!!!
       uint8_t Finished : 1;//???????????
       uint8_t LoopEnd : 1;//64
       uint8_t LoopBegin : 1;//128
@@ -107,7 +107,7 @@ namespace
   {
     PACK_PRE struct Line
     {
-      int8_t Adding : 5;//?? signed...
+      int8_t Adding : 5;//signed!!!
       uint8_t Finished : 1;
       uint8_t LoopEnd : 1;
       uint8_t LoopBegin : 1;
@@ -152,15 +152,16 @@ namespace
         }
         if (line->LoopEnd)
         {
-          LoopLimit = Loop + sline;
+          LoopLimit = sline;
         }
         if (line->Finished)
         {
           break;
         }
       }
-      assert(Data.size() && line->Finished);
+      //warning
       assert(Loop <= LoopLimit);
+      assert(LoopLimit <= Data.size());
     }
 
     std::size_t Loop;
@@ -171,7 +172,7 @@ namespace
       explicit Line(const ASCSample::Line& line)
         : Level(line.Level), ToneDeviation(line.ToneDeviation)
         , ToneMask(line.ToneMask), NoiseMask(line.NoiseMask)
-        , Adding(line.Adding), Command(line.Command)
+        , Adding((line.Adding << 3) / 8), Command(line.Command)
       {
       }
       unsigned Level;//0-15
@@ -200,15 +201,16 @@ namespace
         }
         if (line->LoopEnd)
         {
-          LoopLimit = Loop + sline;
+          LoopLimit = sline;
         }
         if (line->Finished)
         {
           break;
         }
       }
-      assert(Data.size() && line->Finished);
+      //warning
       assert(Loop <= LoopLimit);
+      assert(LoopLimit <= Data.size());
     }
     std::size_t Loop;
     std::size_t LoopLimit;
@@ -216,7 +218,7 @@ namespace
     {
       explicit Line(const ASCOrnament::Line& line)
         : NoteAddon(line.NoteOffset)
-        , NoiseAddon(line.NoiseOffset)
+        , NoiseAddon((line.NoiseOffset << 3) / 8)
       {
       }
       signed NoteAddon;
@@ -234,9 +236,10 @@ namespace
     NOISE,        //1p
     CONT_SAMPLE,  //0p
     CONT_ORNAMENT,//0p
+    GLISS,        //1p
     SLIDE,        //1p
     SLIDE_NOTE,   //2p
-    AMPLITUDE_DELAY,//1p
+    AMPLITUDE_SLIDE,//2p
     BREAK_SAMPLE  //0p
   };
 
@@ -266,11 +269,12 @@ namespace
             {
               channel.Enabled = true;
             }
-            Parent::CommandsArray::iterator cmdIt(std::find(channel.Commands.begin(), channel.Commands.end(),
-              SLIDE_NOTE));
-            if (channel.Commands.end() != cmdIt)
+            if (!channel.Commands.empty() && SLIDE == channel.Commands.back().Type)
             {
-              cmdIt->Param2 = cmd;
+              //set slide to note
+              Parent::Command& command(channel.Commands.back());
+              command.Type = SLIDE_NOTE;
+              command.Param2 = cmd;
             }
             else
             {
@@ -279,7 +283,8 @@ namespace
             if (envelopes[chan])
             {
               //modify existing
-              cmdIt = std::find(channel.Commands.begin(), channel.Commands.end(), ENVELOPE);
+              Parent::CommandsArray::iterator cmdIt(std::find(channel.Commands.begin(), 
+                channel.Commands.end(), ENVELOPE));
               if (channel.Commands.end() == cmdIt)
               {
                 channel.Commands.push_back(Parent::Command(ENVELOPE, -1, data[offsets[chan]++]));
@@ -303,6 +308,7 @@ namespace
           else if (cmd == 0x5f) //shut
           {
             channel.Enabled = false;
+            break;
           }
           else if (cmd >= 0x60 && cmd <= 0x9f) //skip
           {
@@ -350,7 +356,7 @@ namespace
           }
           else if (cmd == 0xf5 || cmd == 0xf6) //slide
           {
-            channel.Commands.push_back(Parent::Command(SLIDE, ((cmd == 0xf5) ? -16 : 16) * static_cast<int8_t>(data[offsets[chan]++])));
+            channel.Commands.push_back(Parent::Command(GLISS, ((cmd == 0xf5) ? -16 : 16) * static_cast<int8_t>(data[offsets[chan]++])));
           }
           else if (cmd == 0xf7 || cmd == 0xf9) //stepped slide
           {
@@ -358,7 +364,7 @@ namespace
             {
               channel.Commands.push_back(Parent::Command(CONT_SAMPLE));
             }
-            channel.Commands.push_back(Parent::Command(SLIDE_NOTE, static_cast<int8_t>(data[offsets[chan]++])));
+            channel.Commands.push_back(Parent::Command(SLIDE, static_cast<int8_t>(data[offsets[chan]++])));
           }
           else if (cmd == 0xf8 || cmd == 0xfa || cmd == 0xfc || cmd == 0xfe) //envelope
           {
@@ -376,7 +382,8 @@ namespace
           }
           else if (cmd == 0xfb) //amplitude delay
           {
-            channel.Commands.push_back(Parent::Command(AMPLITUDE_DELAY, cmd & 32 ? (((cmd << 3) ^ 0xf8) + 9) : (cmd << 3)));
+            const uint8_t step(data[offsets[chan]++]);
+            channel.Commands.push_back(Parent::Command(AMPLITUDE_SLIDE, step & 31, step & 32));
           }
         }
         counters[chan] = periods[chan];
@@ -386,22 +393,37 @@ namespace
     struct ChannelState
     {
       ChannelState()
-        : Enabled(false), Envelope(false)
-        , Volume(15), AddToVolume(0), Noise(), Note()
+        : Enabled(false), Envelope(false), EnvelopeTone(0)
+        , Volume(15), VolumeAddon(0), VolSlideDelay(0), VolSlideDown(), VolSlideCounter(0)
+        , BaseNoise(0), CurrentNoise(0)
+        , Note(0), NoteAddon(0)
         , SampleNum(0), PosInSample(0)
         , OrnamentNum(0), PosInOrnament(0)
+        , ToneDeviation(0)
+        , SlidingSteps(0), Sliding(0), SlidingTargetNote(~std::size_t(0)), Glissade(0)
       {
       }
       bool Enabled;
       bool Envelope;
+      std::size_t EnvelopeTone;
       std::size_t Volume;
-      signed AddToVolume;
-      std::size_t Noise;
+      signed VolumeAddon;
+      std::size_t VolSlideDelay;
+      bool VolSlideDown;
+      std::size_t VolSlideCounter;
+      std::size_t BaseNoise;
+      signed CurrentNoise;
       std::size_t Note;
+      signed NoteAddon;
       std::size_t SampleNum;
       std::size_t PosInSample;
       std::size_t OrnamentNum;
       std::size_t PosInOrnament;
+      signed ToneDeviation;
+      signed SlidingSteps;//may be infinite (negative)
+      signed Sliding;
+      std::size_t SlidingTargetNote;
+      signed Glissade;
     };
   public:
     PlayerImpl(const String& filename, const Dump& data)
@@ -466,7 +488,6 @@ namespace
         std::transform(pattern->Offsets, ArrayEnd(pattern->Offsets), offsets.begin(),
           boost::bind(std::plus<uint16_t>(), patternsOff,
             boost::bind(&fromLE<uint16_t>, _1)));
-        assert(ArrayEnd(pattern->Offsets) == std::find(pattern->Offsets, ArrayEnd(pattern->Offsets), patternsOff));
         assert(ArrayEnd(pattern->Offsets) == std::find_if(pattern->Offsets, ArrayEnd(pattern->Offsets),
           std::bind2nd(std::greater<uint16_t>(), uint16_t(data.size()))));
         std::vector<bool> envelopes(ArraySize(pattern->Offsets));
@@ -484,6 +505,7 @@ namespace
           }
         }
         while (0xff != data[offsets[0]] || counters[0]);
+        //as warnings
         assert(0 == counters.max());
         assert(pat.size() <= MAX_PATTERN_SIZE);
       }
@@ -532,16 +554,27 @@ namespace
     void RenderData(AYM::DataChunk& chunk)
     {
       const Line& line(Data.Patterns[CurrentState.Position.Pattern][CurrentState.Position.Note]);
+      bool breakSample[3] = {false};
       if (0 == CurrentState.Position.Frame)//begin note
       {
         for (std::size_t chan = 0; chan != line.Channels.size(); ++chan)
         {
           const Line::Chan& src(line.Channels[chan]);
           ChannelState& dst(Channels[chan]);
+          if (0 == CurrentState.Position.Note)
+          {
+            dst.BaseNoise = 0;
+          }
+          if (src.Empty())
+          {
+            continue;
+          }
           if (src.Enabled)
           {
             dst.Enabled = *src.Enabled;
           }
+          dst.VolSlideCounter = 0;
+          dst.SlidingSteps = 0;
           bool contSample(false), contOrnament(false);
           for (Parent::CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
           {
@@ -555,7 +588,7 @@ namespace
               }
               if (-1 != it->Param2)
               {
-                chunk.Data[AYM::DataChunk::REG_TONEE_L] = uint8_t(it->Param2);
+                chunk.Data[AYM::DataChunk::REG_TONEE_L] = uint8_t(dst.EnvelopeTone = it->Param2);
                 chunk.Mask |= 1 << AYM::DataChunk::REG_TONEE_L;
               }
               break;
@@ -565,36 +598,76 @@ namespace
             case ENVELOPE_OFF:
               dst.Envelope = false;
               break;
+            case NOISE:
+              dst.BaseNoise = it->Param1;
+              break;
             case CONT_SAMPLE:
               contSample = true;
               break;
             case CONT_ORNAMENT:
               contOrnament = true;
               break;
-            case NOISE:
-              dst.Noise = it->Param1;
+            case GLISS:
+              dst.Glissade = it->Param1;
+              dst.SlidingSteps = -1;//infinite sliding
+              break;
+            case SLIDE:
+            {
+              dst.SlidingSteps = it->Param1;
+              const signed newSliding(dst.Sliding & ~0xf);
+              dst.Glissade = -newSliding / dst.SlidingSteps;
+              dst.Sliding = dst.Glissade * dst.SlidingSteps;
+              break;
+            }
+            case SLIDE_NOTE:
+            {
+              dst.SlidingSteps = it->Param1;
+              dst.SlidingTargetNote = it->Param2;
+              const signed newSliding(signed(FreqTable[dst.Note]) + (contSample ? dst.Sliding / 16 : 0)
+                - FreqTable[dst.SlidingTargetNote]);
+              dst.Glissade = -16 * newSliding / dst.SlidingSteps;
+              break;
+            }
+            case AMPLITUDE_SLIDE:
+              dst.VolSlideCounter = dst.VolSlideDelay = it->Param1;
+              dst.VolSlideDown = it->Param2;
+              break;
+            case BREAK_SAMPLE:
+              breakSample[chan] = true;
+              break;
             default:
+              assert(!"Invalid cmd");
               break;
             }
           }
           if (src.Note)
           {
             dst.Note = *src.Note;
+            dst.CurrentNoise = dst.BaseNoise;
+            if (dst.SlidingSteps <= 0)
+            {
+              dst.Sliding = 0;
+            }
             if (!contSample)
             {
               dst.PosInSample = 0;
+              dst.VolumeAddon = 0;
+              dst.ToneDeviation = 0;
             }
             if (!contOrnament)
             {
               dst.PosInOrnament = 0;
+              dst.NoteAddon = 0;
             }
           }
           if (src.SampleNum)
           {
+            assert(!contSample);
             dst.SampleNum = *src.SampleNum;
           }
           if (src.OrnamentNum)
           {
+            assert(!contOrnament);
             dst.OrnamentNum = *src.OrnamentNum;
           }
           if (src.Volume)
@@ -621,39 +694,96 @@ namespace
           const Ornament& curOrnament(Data.Ornaments[dst->OrnamentNum]);
           const Ornament::Line& curOrnamentLine(curOrnament.Data[dst->PosInOrnament]);
 
+          //calculate volume addon
+          if (dst->VolSlideCounter >= 2)
+          {
+            dst->VolSlideCounter--;
+          }
+          else if (dst->VolSlideCounter)
+          {
+            dst->VolumeAddon += dst->VolSlideDown ? -1 : +1;
+            dst->VolSlideCounter = dst->VolSlideDelay;
+          }
+          if (ASCSample::INCVOLADD == curSampleLine.Command)
+          {
+            dst->VolumeAddon++;
+          }
+          else if (ASCSample::DECVOLADD == curSampleLine.Command)
+          {
+            dst->VolumeAddon--;
+          }
+          dst->VolumeAddon = clamp(dst->VolumeAddon, -15, 15);
           //calculate tone
-          const std::size_t halfTone(clamp(int(dst->Note) + curOrnamentLine.NoteAddon, 0, 95));
+          dst->ToneDeviation += curSampleLine.ToneDeviation;
+          dst->NoteAddon += curOrnamentLine.NoteAddon;
+          const std::size_t halfTone(clamp(int(dst->Note) + dst->NoteAddon, 0, 85));
           const uint16_t baseFreq(FreqTable[halfTone]);
-          const uint16_t tone(uint16_t(clamp(int(baseFreq) + curSampleLine.ToneDeviation, 0, 0xffff)));
-
+          const uint16_t tone((baseFreq + dst->ToneDeviation + dst->Sliding / 16) & 0xfff);
+          if (dst->SlidingSteps)
+          {
+            if (dst->SlidingSteps > 0)
+            {
+              if (!--dst->SlidingSteps && 
+                  ~std::size_t(0) != dst->SlidingTargetNote) //finish slide to note
+              {
+                dst->Note = dst->SlidingTargetNote;
+                dst->SlidingTargetNote = ~std::size_t(0);
+                dst->Sliding = dst->Glissade = 0;
+              }
+            }
+            dst->Sliding += dst->Glissade;
+          }
           chunk.Data[toneReg] = uint8_t(tone & 0xff);
           chunk.Data[toneReg + 1] = uint8_t(tone >> 8);
           chunk.Mask |= 3 << toneReg;
+
+          const bool sampleEnvelope(ASCSample::ENVELOPE == curSampleLine.Command);
           //calculate level
-          const uint8_t level((dst->Volume + 1) * curSampleLine.Level >> 4);
-          chunk.Data[volReg] = level | uint8_t((dst->Envelope && ASCSample::ENVELOPE == curSampleLine.Command) ? AYM::DataChunk::MASK_ENV : 0);
+          const uint8_t level((dst->Volume + 1) * clamp<signed>(dst->VolumeAddon + curSampleLine.Level, 0, 15) >> 4);
+          chunk.Data[volReg] = level | uint8_t(dst->Envelope && sampleEnvelope ? AYM::DataChunk::MASK_ENV : 0);
+
+          //calculate noise
+          dst->CurrentNoise += curOrnamentLine.NoiseAddon;
 
           //mixer
           if (curSampleLine.ToneMask)
           {
             chunk.Data[AYM::DataChunk::REG_MIXER] |= toneMsk;
           }
+          if (curSampleLine.NoiseMask && sampleEnvelope)
+          {
+            dst->EnvelopeTone += curSampleLine.Adding;
+            chunk.Data[AYM::DataChunk::REG_TONEE_L] = uint8_t(dst->EnvelopeTone & 0xff);
+            chunk.Mask |= 1 << AYM::DataChunk::REG_TONEE_L;
+          }
+          else
+          {
+            dst->CurrentNoise += curSampleLine.Adding;
+          }
+
           if (curSampleLine.NoiseMask)
           {
             chunk.Data[AYM::DataChunk::REG_MIXER] |= noiseMsk;
           }
           else
           {
-            chunk.Data[AYM::DataChunk::REG_TONEN] = dst->Noise;
+            chunk.Data[AYM::DataChunk::REG_TONEN] = (dst->CurrentNoise + dst->Sliding / 256) & 0x1f;
+            chunk.Mask |= 1 << AYM::DataChunk::REG_TONEN;
           }
 
           //recalc positions
-          ++dst->PosInSample;
-          if (dst->PosInSample >= curSample.LoopLimit)
+          if (dst->PosInSample++ >= curSample.LoopLimit)
           {
-            dst->PosInSample = curSample.Loop;
+            if (!breakSample[dst - Channels])
+            {
+              dst->PosInSample = curSample.Loop;
+            }
+            else if (dst->PosInSample >= curSample.Data.size())
+            {
+              dst->Enabled = false;
+            }
           }
-          if (++dst->PosInOrnament >= curOrnament.LoopLimit)
+          if (dst->PosInOrnament++ >= curOrnament.LoopLimit)
           {
             dst->PosInOrnament = curOrnament.Loop;
           }
@@ -683,12 +813,28 @@ namespace
 
   bool Checking(const String& /*filename*/, const Dump& data)
   {
-    return false;
+    const std::size_t limit(data.size());
+    if (limit < sizeof(ASCHeader))
+    {
+      return false;
+    }
+    const ASCHeader* const header(safe_ptr_cast<const ASCHeader*>(&data[0]));
+
+    if (limit < sizeof(*header) + header->Lenght ||
+        limit < header->OrnamentsOffset || header->OrnamentsOffset < sizeof(*header) ||
+        limit < header->PatternsOffset || header->PatternsOffset < sizeof(*header) ||
+        limit < header->SamplesOffset || header->SamplesOffset < sizeof(*header)
+        )
+    {
+      return false;
+    }
+    //TODO
+    return true;
   }
 
   ModulePlayer::Ptr Creating(const String& filename, const Dump& data)
   {
-    assert(Checking(filename, data) || !"Attempt to create pt2 player on invalid data");
+    assert(Checking(filename, data) || !"Attempt to create asc player on invalid data");
     return ModulePlayer::Ptr(new PlayerImpl(filename, data));
   }
 

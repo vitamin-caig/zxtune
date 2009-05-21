@@ -135,19 +135,17 @@ namespace
   {
     for (;;)
     {
-      while (State.Tick >= LastData.Tick) //need to get data
+      if (State.Tick >= LastData.Tick) //need to get data
       {
         if (! src.GetData(LastData))
         {
           return;//no more data
         }
         //output dump
-        if (!LastData.Mask)
+        if (LastData.Mask)
         {
-          break;
+          ApplyLastData();
         }
-        ApplyLastData();
-        break;
       }
       DoRender(params, dst);
     }
@@ -155,16 +153,14 @@ namespace
 
   void ChipImpl::RenderData(const Sound::Parameters& params, const DataChunk& src, Sound::Receiver& dst)
   {
-    while (State.Tick >= LastData.Tick) //need to get data
+    if (State.Tick >= LastData.Tick) //need to get data
     {
       LastData = src;
       //output dump
-      if (!LastData.Mask)
+      if (LastData.Mask)
       {
-        break;
+        ApplyLastData();
       }
-      ApplyLastData();
-      break;
     }
     DoRender(params, dst);
   }

@@ -101,10 +101,13 @@ int main(int argc, char* argv[])
 {
   try
   {
+    Sound::Backend::Ptr backend;
+    String driverParam;
+    bool silent(false);
     String filename;
     for (int arg = 1; arg != argc; ++arg)
     {
-      std::string args(argv[arg]);
+      const std::string& args(argv[arg]);
       if (args == "--help")
       {
         std::vector<ModulePlayer::Info> infos;
@@ -116,8 +119,52 @@ int main(int argc, char* argv[])
         }
         return 0;
       }
-
-      if (arg == argc - 1)
+      else if (args == "--silent")
+      {
+        silent = true;
+      }
+      else if (args == "--null")
+      {
+        backend = Sound::CreateNullBackend();
+      }
+      else if (args == "--file")
+      {
+        if (arg == argc - 1)
+        {
+          std::cout << "Invalid output name specified" << std::endl;
+          return 1;
+        }
+        backend = Sound::CreateFileBackend();
+        driverParam = argv[++arg];
+      }
+#ifdef _WIN32
+      else if (args == "--win32")
+      {
+        if (arg < argc - 2)
+        {
+          driverParam = argv[++arg];
+        }
+        backend = Sound::CreateWinAPIBackend();
+      }
+#else
+      else if (args == "--oss")
+      {
+        if (arg < argc - 2)
+        {
+          driverParam = argv[++arg];
+        }
+        backend = Sound::CreateOSSBackend();
+      }
+      else if (args == "--alsa")
+      {
+        if (arg < argc - 2)
+        {
+          driverParam = argv[++arg];
+        }
+        backend = Sound::CreateAlsaBackend();
+      }
+#endif
+      else if (arg == argc - 1)
       {
         filename = args;
       }
@@ -134,6 +181,7 @@ int main(int argc, char* argv[])
       {
         return 1;//TODO
       }
+      std::cout << "Reading " << filename << std::endl;
       file.seekg(0, std::ios::end);
       data.resize(file.tellg());
       file.seekg(0);
@@ -142,16 +190,14 @@ int main(int argc, char* argv[])
 
 //#define WAVE
 
-#ifdef WAVE
-    Sound::Backend::Ptr backend(Sound::CreateFileBackend());
-#else
+    if (!backend.get())
+    {
 #ifdef _WIN32
-    Sound::Backend::Ptr backend(Sound::CreateWinAPIBackend());
+      backend = Sound::CreateWinAPIBackend();
 #else
-    Sound::Backend::Ptr backend(Sound::CreateOSSBackend());
+      backend = Sound::CreateOSSBackend();
 #endif
-#endif
-
+    }
     backend->OpenModule(filename, data);
 
     Module::Information module;
@@ -189,21 +235,17 @@ int main(int argc, char* argv[])
       params.Mixer[3].Matrix[0] = 5 * Sound::FIXED_POINT_PRECISION / 100;
       params.Mixer[3].Matrix[1] = Sound::FIXED_POINT_PRECISION;
     }
-#ifdef WAVE
-    params.DriverParameters = "test.wav";
-#else
-#ifdef _WIN32
-    params.DriverParameters = "2";
+    params.DriverParameters = driverParam;
     params.DriverFlags = 2;
-#else
-#endif
-#endif
 
     backend->SetSoundParameters(params);
 
     backend->Play();
 
-    std::cout << "Module: \n" << module.Properties;
+    if (!silent)
+    {
+      std::cout << "Module: \n" << module.Properties;
+    }
 
     boost::format formatter(
       "Position: %1$2d / %2% (%3%)\n"
@@ -217,14 +259,19 @@ int main(int argc, char* argv[])
       std::size_t frame;
       Module::Tracking track;
       backend->GetModuleState(frame, track);
-      BeginState();
-      std::cout <<
-      (formatter % (track.Position + 1) % module.Statistic.Position % (1 + module.Loop) %
-                  track.Pattern % module.Statistic.Pattern %
-                  track.Note % module.Statistic.Note %
-                  track.Channels % module.Statistic.Channels %
-                  track.Tempo % module.Statistic.Tempo %
-                  frame % module.Statistic.Frame);
+      if (!silent)
+      {
+        BeginState();
+        std::cout <<
+        (formatter % (track.Position + 1) % module.Statistic.Position % (1 + module.Loop) %
+                    track.Pattern % module.Statistic.Pattern %
+                    track.Note % module.Statistic.Note %
+                    track.Channels % module.Statistic.Channels %
+                    track.Tempo % module.Statistic.Tempo %
+                    frame % module.Statistic.Frame);
+        EndState();
+      }
+      boost::this_thread::sleep(boost::posix_time::milliseconds(20));
       const int key(GetKey());
       if ('q' == key || 'Q' == key)
       {
@@ -253,8 +300,6 @@ int main(int argc, char* argv[])
         }
         break;
       }
-      boost::this_thread::sleep(boost::posix_time::milliseconds(20));
-      EndState();
     }
     backend->Stop();
     return 0;

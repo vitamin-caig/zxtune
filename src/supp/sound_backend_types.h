@@ -18,6 +18,7 @@ namespace ZXTune
     /// Platform-independent backends
     Backend::Ptr CreateFileBackend();
     Backend::Ptr CreateSDLBackend();
+    Backend::Ptr CreateNullBackend();
 
     /// Windows-specific backends
     Backend::Ptr CreateWinAPIBackend();

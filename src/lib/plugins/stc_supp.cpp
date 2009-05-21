@@ -114,8 +114,10 @@ namespace
     }
 
     explicit Sample(const STCSample& sample)
-    : Loop(sample.Loop), LoopLimit(sample.Loop + sample.LoopSize), Data(sample.Data, ArrayEnd(sample.Data))
+    : Loop(sample.Loop), LoopLimit(sample.Loop + sample.LoopSize + 1), Data(sample.Data, ArrayEnd(sample.Data))
     {
+      assert(Loop <= LoopLimit);
+      assert(LoopLimit <= Data.size());
     }
 
     std::size_t Loop;

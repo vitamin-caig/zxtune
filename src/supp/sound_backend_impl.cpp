@@ -231,6 +231,10 @@ namespace ZXTune
     {
       if (PLAYING == CurrentState || PAUSED == CurrentState)
       {
+        if (PAUSED == CurrentState)
+        {
+          OnResume();
+        }
         CurrentState = STOPPED;
         PlayerThread.join();
         OnShutdown();

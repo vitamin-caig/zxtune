@@ -135,9 +135,10 @@ namespace
       info.Properties.clear();
       info.Loop = 0;
       info.Statistic.Channels = 3;
-      info.Statistic.Note = info.Statistic.Frame = static_cast<uint32_t>(Storage.size());
-      info.Statistic.Pattern = 1;
-      info.Statistic.Position = 1;
+      info.Statistic.Note = 0;
+      info.Statistic.Frame = static_cast<uint32_t>(Storage.size());
+      info.Statistic.Pattern = 0;
+      info.Statistic.Position = 0;
       info.Statistic.Tempo = 1;
     }
 
@@ -146,7 +147,7 @@ namespace
     {
       timeState = static_cast<uint32_t>(Position);
       trackState.Channels = 3;
-      trackState.Note = Position;
+      trackState.Note = 0;
       trackState.Pattern = 0;
       trackState.Position = 0;
       trackState.Tempo = 1;

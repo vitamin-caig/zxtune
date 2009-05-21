@@ -67,6 +67,12 @@ namespace ZXTune
           Chan() : Enabled(), Note(), SampleNum(), OrnamentNum(), Volume(), Commands()
           {
           }
+
+          bool Empty() const
+          {
+            return !Enabled && !Note && !SampleNum && !OrnamentNum && !Volume && Commands.empty();
+          }
+
           boost::optional<bool> Enabled;
           boost::optional<std::size_t> Note;
           boost::optional<std::size_t> SampleNum;
