@@ -18,6 +18,8 @@ namespace
 
     virtual void OnParametersChanged(unsigned /*changedFields*/)
     {
+      //loop is disabled
+      Params.SoundParameters.Flags &= ~MOD_LOOP;
     }
 
     virtual void OnStartup()

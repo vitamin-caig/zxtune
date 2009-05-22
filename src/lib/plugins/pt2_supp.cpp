@@ -21,6 +21,8 @@ namespace
   const String TEXT_PT2_VERSION("0.1");
   const String TEXT_PT2_EDITOR("ProTracker v2");
 
+  const std::size_t LIMITER(~std::size_t(0));
+
   //hints
   const std::size_t MAX_PATTERN_SIZE = 64;
   const std::size_t MAX_PATTERN_COUNT = 64;//TODO
@@ -68,11 +70,6 @@ namespace
       uint8_t VibratoLo;
     } PACK_POST;
     Line Data[1];
-
-    operator bool () const
-    {
-      return Size >= Loop;
-    }
   } PACK_POST;
 
   PACK_PRE struct PT2Ornament
@@ -80,11 +77,6 @@ namespace
     uint8_t Size;
     uint8_t Loop;
     int8_t Data[1];
-
-    operator bool () const
-    {
-      return Size >= Loop;
-    }
   } PACK_POST;
 
   PACK_PRE struct PT2Pattern
@@ -130,7 +122,7 @@ namespace
   class SampleCreator : public std::unary_function<uint16_t, Sample>
   {
   public:
-    SampleCreator(const Dump& data) : Data(data)
+    explicit SampleCreator(const Dump& data) : Data(data)
     {
     }
 
@@ -140,11 +132,11 @@ namespace
 
     result_type operator () (const argument_type arg) const
     {
-      if (0 == arg)//dummy
-      {
-        return result_type();
-      }
       const PT2Sample* const sample(safe_ptr_cast<const PT2Sample*>(&Data[fromLE(arg)]));
+      if (0 == arg || !sample->Size)
+      {
+        return result_type(1, 0);//safe
+      }
       result_type tmp(sample->Size, sample->Loop);
       for (std::size_t idx = 0; idx != sample->Size; ++idx)
       {
@@ -189,7 +181,7 @@ namespace
     class OrnamentCreator : public std::unary_function<uint16_t, Parent::Ornament>
     {
     public:
-      OrnamentCreator(const Dump& data) : Data(data)
+      explicit OrnamentCreator(const Dump& data) : Data(data)
       {
       }
 
@@ -199,14 +191,14 @@ namespace
 
       result_type operator () (const argument_type arg) const
       {
-        if (0 == arg)
+        if (0 == arg || arg >= Data.size())
         {
-          return result_type();
+          return result_type(1, 0);//safe version
         }
         const PT2Ornament* const ornament(safe_ptr_cast<const PT2Ornament*>(&Data[fromLE(arg)]));
         result_type tmp;
         tmp.Loop = ornament->Loop;
-        tmp.Data.assign(ornament->Data, ornament->Data + ornament->Size);
+        tmp.Data.assign(ornament->Data, ornament->Data + (ornament->Size ? ornament->Size : 1));
         return tmp;
       }
     private:
@@ -320,7 +312,7 @@ namespace
         , Note(), SampleNum(0), PosInSample(0)
         , OrnamentNum(0), PosInOrnament(0)
         , Volume(15), NoiseAdd(0)
-        , Sliding(0), SlidingTargetNote(~std::size_t(0)), Glissade(0)
+        , Sliding(0), SlidingTargetNote(LIMITER), Glissade(0)
       {
       }
       bool Enabled;
@@ -386,6 +378,7 @@ namespace
           }
         }
         while (data[offsets[0]] || counters[0]);
+        //as warnings
         assert(0 == counters.max());
         assert(pat.size() <= MAX_PATTERN_SIZE);
       }
@@ -414,7 +407,7 @@ namespace
       chunk.Tick = (CurrentState.Tick += params.ClocksPerFrame());
       RenderData(chunk);
 
-      Device->RenderData(params, chunk, receiver);
+      //Device->RenderData(params, chunk, receiver);
 
       return Parent::RenderFrame(params, receiver);
     }
@@ -445,7 +438,7 @@ namespace
             if (!(dst.Enabled = *src.Enabled))
             {
               dst.Sliding = dst.Glissade = 0;
-              dst.SlidingTargetNote = ~std::size_t(0);
+              dst.SlidingTargetNote = LIMITER;
               dst.PosInSample = dst.PosInOrnament = 0;
             }
           }
@@ -454,7 +447,7 @@ namespace
             dst.Note = *src.Note;
             dst.PosInSample = dst.PosInOrnament = 0;
             dst.Sliding = dst.Glissade = 0;
-            dst.SlidingTargetNote = ~std::size_t(0);
+            dst.SlidingTargetNote = LIMITER;
           }
           if (src.SampleNum)
           {
@@ -515,16 +508,18 @@ namespace
       for (ChannelState* dst = Channels; dst != ArrayEnd(Channels);
         ++dst, toneReg += 2, ++volReg, toneMsk <<= 1, noiseMsk <<= 1)
       {
-        if (dst->Enabled)
+        //sample0 - disable channel
+        if (dst->Enabled && dst->SampleNum)
         {
           const Sample& curSample(Data.Samples[dst->SampleNum]);
           const Sample::Line& curSampleLine(curSample.Data[dst->PosInSample]);
           const Ornament& curOrnament(Data.Ornaments[dst->OrnamentNum]);
 
+          assert(!curOrnament.Data.empty());
           //calculate tone
           const std::size_t halfTone(clamp<std::size_t>(dst->Note + curOrnament.Data[dst->PosInOrnament], 0, 95));
           const uint16_t tone(uint16_t(clamp(FreqTable[halfTone] + dst->Sliding + curSampleLine.Vibrato, 0, 0xffff)));
-          if (dst->SlidingTargetNote != ~std::size_t(0))
+          if (dst->SlidingTargetNote != LIMITER)
           {
             const unsigned nextTone(FreqTable[dst->Note] + dst->Sliding + dst->Glissade);
             const unsigned slidingTarget(FreqTable[dst->SlidingTargetNote]);
@@ -532,7 +527,7 @@ namespace
                 (dst->Glissade < 0 && nextTone <= slidingTarget))
             {
               dst->Note = dst->SlidingTargetNote;
-              dst->SlidingTargetNote = ~std::size_t(0);
+              dst->SlidingTargetNote = LIMITER;
               dst->Sliding = dst->Glissade = 0;
             }
           }
@@ -604,7 +599,12 @@ namespace
     for (const uint16_t* sampOff = header->SamplesOffsets; sampOff != ArrayEnd(header->SamplesOffsets); ++sampOff)
     {
       const std::size_t offset(fromLE(*sampOff));
-      if (offset >= size || (offset && !*safe_ptr_cast<const PT2Sample*>(&data[offset])))
+      if (offset >= size)
+      {
+        return false;
+      }
+      const PT2Sample* const sample(safe_ptr_cast<const PT2Sample*>(&data[offset]));
+      if (offset + sizeof(*sample) + (sample->Size - 1) * sizeof(PT2Sample::Line) > size)
       {
         return false;
       }
@@ -612,7 +612,12 @@ namespace
     for (const uint16_t* ornOff = header->OrnamentsOffsets; ornOff != ArrayEnd(header->OrnamentsOffsets); ++ornOff)
     {
       const std::size_t offset(fromLE(*ornOff));
-      if (offset >= size || (offset && !*safe_ptr_cast<const PT2Ornament*>(&data[offset])))
+      if (offset >= size)
+      {
+        return false;
+      }
+      const PT2Ornament* const ornament(safe_ptr_cast<const PT2Ornament*>(&data[offset]));
+      if (offset + sizeof(*ornament) + ornament->Size - 1 > size)
       {
         return false;
       }

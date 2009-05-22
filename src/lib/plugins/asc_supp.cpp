@@ -22,6 +22,8 @@ namespace
   const String TEXT_ASC_VERSION("0.1");
   const String TEXT_ASC_EDITOR("Asc Sound Master");
 
+  const std::size_t LIMITER(~std::size_t(0));
+
   //hints
   const std::size_t MAX_SAMPLES_COUNT = 32;
   const std::size_t MAX_SAMPLE_SIZE = 150;
@@ -397,10 +399,10 @@ namespace
         , Volume(15), VolumeAddon(0), VolSlideDelay(0), VolSlideDown(), VolSlideCounter(0)
         , BaseNoise(0), CurrentNoise(0)
         , Note(0), NoteAddon(0)
-        , SampleNum(0), PosInSample(0)
-        , OrnamentNum(0), PosInOrnament(0)
+        , SampleNum(0), CurrentSampleNum(0), PosInSample(0)
+        , OrnamentNum(0), CurrentOrnamentNum(0), PosInOrnament(0)
         , ToneDeviation(0)
-        , SlidingSteps(0), Sliding(0), SlidingTargetNote(~std::size_t(0)), Glissade(0)
+        , SlidingSteps(0), Sliding(0), SlidingTargetNote(LIMITER), Glissade(0)
       {
       }
       bool Enabled;
@@ -416,8 +418,10 @@ namespace
       std::size_t Note;
       signed NoteAddon;
       std::size_t SampleNum;
+      std::size_t CurrentSampleNum;
       std::size_t PosInSample;
       std::size_t OrnamentNum;
+      std::size_t CurrentOrnamentNum;
       std::size_t PosInOrnament;
       signed ToneDeviation;
       signed SlidingSteps;//may be infinite (negative)
@@ -640,6 +644,14 @@ namespace
               break;
             }
           }
+          if (src.OrnamentNum)
+          {
+            dst.OrnamentNum = *src.OrnamentNum;
+          }
+          if (src.SampleNum)
+          {
+            dst.SampleNum = *src.SampleNum;
+          }
           if (src.Note)
           {
             dst.Note = *src.Note;
@@ -650,25 +662,17 @@ namespace
             }
             if (!contSample)
             {
+              dst.CurrentSampleNum = dst.SampleNum;
               dst.PosInSample = 0;
               dst.VolumeAddon = 0;
               dst.ToneDeviation = 0;
             }
             if (!contOrnament)
             {
+              dst.CurrentOrnamentNum = dst.OrnamentNum;
               dst.PosInOrnament = 0;
               dst.NoteAddon = 0;
             }
-          }
-          if (src.SampleNum)
-          {
-            assert(!contSample);
-            dst.SampleNum = *src.SampleNum;
-          }
-          if (src.OrnamentNum)
-          {
-            assert(!contOrnament);
-            dst.OrnamentNum = *src.OrnamentNum;
           }
           if (src.Volume)
           {
@@ -689,9 +693,9 @@ namespace
       {
         if (dst->Enabled)
         {
-          const Sample& curSample(Data.Samples[dst->SampleNum]);
+          const Sample& curSample(Data.Samples[dst->CurrentSampleNum]);
           const Sample::Line& curSampleLine(curSample.Data[dst->PosInSample]);
-          const Ornament& curOrnament(Data.Ornaments[dst->OrnamentNum]);
+          const Ornament& curOrnament(Data.Ornaments[dst->CurrentOrnamentNum]);
           const Ornament::Line& curOrnamentLine(curOrnament.Data[dst->PosInOrnament]);
 
           //calculate volume addon
@@ -724,10 +728,10 @@ namespace
             if (dst->SlidingSteps > 0)
             {
               if (!--dst->SlidingSteps && 
-                  ~std::size_t(0) != dst->SlidingTargetNote) //finish slide to note
+                  LIMITER != dst->SlidingTargetNote) //finish slide to note
               {
                 dst->Note = dst->SlidingTargetNote;
-                dst->SlidingTargetNote = ~std::size_t(0);
+                dst->SlidingTargetNote = LIMITER;
                 dst->Sliding = dst->Glissade = 0;
               }
             }
