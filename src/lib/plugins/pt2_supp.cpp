@@ -407,7 +407,7 @@ namespace
       chunk.Tick = (CurrentState.Tick += params.ClocksPerFrame());
       RenderData(chunk);
 
-      //Device->RenderData(params, chunk, receiver);
+      Device->RenderData(params, chunk, receiver);
 
       return Parent::RenderFrame(params, receiver);
     }

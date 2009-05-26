@@ -49,7 +49,7 @@ typedef std::ostream OutStream;
 
 inline uint16_t swapBytes(uint16_t a)
 {
-  return ((a & 0xff) << 8) | ((a & 0xff) >> 8);
+  return ((a & 0xff) << 8) | ((a & 0xff00) >> 8);
 }
 
 #ifdef BOOST_LITTLE_ENDIAN

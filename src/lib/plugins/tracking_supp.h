@@ -38,7 +38,8 @@ namespace ZXTune
       typedef OrnamentType Ornament;
       struct Command
       {
-        Command(unsigned type = 0, int p1 = 0, int p2 = 0) : Type(type), Param1(p1), Param2(p2)
+        Command(unsigned type = 0, int p1 = 0, int p2 = 0, int p3 = 0)
+          : Type(type), Param1(p1), Param2(p2), Param3(p3)
         {
         }
 
@@ -50,6 +51,7 @@ namespace ZXTune
         unsigned Type;
         int Param1;
         int Param2;
+        int Param3;
       };
 
       typedef std::vector<Command> CommandsArray;

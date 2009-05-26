@@ -221,6 +221,9 @@
 					RelativePath="..\..\src\lib\plugins\pt2_supp.cpp">
 				</File>
 				<File
+					RelativePath="..\..\src\lib\plugins\pt3_supp.cpp">
+				</File>
+				<File
 					RelativePath="..\..\src\lib\plugins\stc_supp.cpp">
 				</File>
 				<File
