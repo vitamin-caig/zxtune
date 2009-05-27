@@ -395,8 +395,10 @@ namespace
     }
 
     /// Retrieving current state of sound
-    virtual State GetSoundState(Sound::Analyze::Volume& /*volState*/, Sound::Analyze::Spectrum& /*spectrumState*/) const
+    virtual State GetSoundState(Sound::Analyze::Volume& volState, Sound::Analyze::Spectrum& spectrumState) const
     {
+      assert(Device.get());
+      Device->GetState(volState, spectrumState);
       return PlaybackState;
     }
 
@@ -631,7 +633,7 @@ namespace
       *patPos;
       ++patPos)
     {
-      if (! *patPos)
+      if (! *patPos || fromLE(patPos->Offsets[0]) >= size || fromLE(patPos->Offsets[1]) >= size || fromLE(patPos->Offsets[2]) >= size)
       {
         return false;
       }

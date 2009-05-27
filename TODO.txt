@@ -1,7 +1,7 @@
 For preview:
 
 + finish asc support
-- add pt3 support
++ add pt3 support
 - change data source concept (Dump -> SourceProvider)
 - add trd/scl support (as a concept, to continue previous todo)
 - commandline test: full setup via cmd

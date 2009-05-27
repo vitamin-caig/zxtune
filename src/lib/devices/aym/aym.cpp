@@ -40,7 +40,7 @@ namespace
       , BitA(), BitB(), BitC(), BitN()
       , TimerA(), TimerB(), TimerC(), TimerN(), TimerE()
       , Envelope(), Decay(), Noise()
-      , LastData()
+      , LastData(), LastTicksPerSec()
     {
       Reset();
     }
@@ -127,6 +127,7 @@ namespace
     uint32_t Noise;
 
     DataChunk LastData;
+    uint32_t LastTicksPerSec;
   };
 
   void ChipImpl::RenderData(const Sound::Parameters& params,
@@ -202,6 +203,7 @@ namespace
 
   void ChipImpl::DoRender(const Sound::Parameters& params, Sound::Receiver& dst)
   {
+    LastTicksPerSec = params.ClockFreq;
     uint64_t& curTick = State.Tick;
     const uint64_t ticksPerSample(params.ClockFreq / params.SoundFreq);
     uint64_t nextSampleTick = curTick + ticksPerSample;
@@ -293,9 +295,47 @@ namespace
     }
   }
 
-  void ChipImpl::GetState(Sound::Analyze::Volume& /*volState*/, Sound::Analyze::Spectrum& /*spectrumState*/) const
+  void ChipImpl::GetState(Sound::Analyze::Volume& volState, Sound::Analyze::Spectrum& spectrumState) const
   {
-    //TODO
+    //table in Hz*100
+    static const unsigned FREQ_TABLE[Sound::Analyze::TonesCount] = {
+      //octave1
+      3270,   3465,   3671,   3889,   4120,   4365,   4625,   4900,   5191,   5500,   5827,   6173,
+      //octave2
+      6541,   6929,   7342,   7778,   8241,   8730,   9250,   9800,  10382,  11000,  11654,  12346,
+      //octave3
+      13082,  13858,  14684,  15556,  16482,  17460,  18500,  19600,  20764,  22000,  23308,  24692,
+      //octave4
+      26164,  27716,  29368,  31112,  32964,  34920,  37000,  39200,  41528,  44000,  46616,  49384,
+      //octave5
+      52328,  55432,  58736,  62224,  65928,  69840,  74000,  78400,  83056,  88000,  93232,  98768,
+      //octave6
+      104650, 110860, 117470, 124450, 131860, 139680, 148000, 156800, 166110, 176000, 186460, 197540,
+      //octave7
+      209310, 221720, 234940, 248890, 263710, 279360, 296000, 313600, 332220, 352000, 372930, 395070,
+      //octave8
+      418620, 443460, 469890, 497790, 527420, 558720, 592000, 627200, 664450, 704000, 745860, 790140
+    }; 
+    volState.Array.resize(3);
+    volState.ChannelsMask = 0;
+    const std::size_t mixer(~GetMixer());
+    for (std::size_t chan = 0; chan != 3; ++chan)
+    {
+      if (mixer & ((DataChunk::MASK_TONEA | DataChunk::MASK_NOISEA) << chan))
+      {
+        volState.ChannelsMask |= 1 << chan;
+        const Sound::Analyze::Level level((State.Data[DataChunk::REG_VOLA + chan] & 0xf) * 
+          std::numeric_limits<Sound::Analyze::Level>::max() / 15);
+        volState.Array[chan] = level;
+        if (mixer & (DataChunk::MASK_TONEA << chan))//tone
+        {
+          const uint16_t period = (uint16_t(State.Data[DataChunk::REG_TONEA_H + chan * 2]) << 8) |
+            State.Data[DataChunk::REG_TONEA_L + chan * 2];
+          const std::size_t freq(uint64_t(LastTicksPerSec) * 100 / (16 * (period ? period : 1)));
+          spectrumState.Array[std::lower_bound(FREQ_TABLE, ArrayEnd(FREQ_TABLE), freq) - FREQ_TABLE] = level;
+        }
+      }
+    }
   }
 }
 

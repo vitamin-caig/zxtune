@@ -526,8 +526,10 @@ namespace
     }
 
     /// Retrieving current state of sound
-    virtual State GetSoundState(Sound::Analyze::Volume& /*volState*/, Sound::Analyze::Spectrum& /*spectrumState*/) const
+    virtual State GetSoundState(Sound::Analyze::Volume& volState, Sound::Analyze::Spectrum& spectrumState) const
     {
+      assert(Device.get());
+      Device->GetState(volState, spectrumState);
       return PlaybackState;
     }
 
@@ -823,12 +825,20 @@ namespace
       return false;
     }
     const ASCHeader* const header(safe_ptr_cast<const ASCHeader*>(&data[0]));
-
+    const std::size_t samplesOffset(fromLE(header->SamplesOffset));
+    const std::size_t ornamentsOffset(fromLE(header->OrnamentsOffset));
+    const std::size_t patternsOffset(fromLE(header->PatternsOffset));
     if (limit < sizeof(*header) + header->Lenght ||
-        limit < header->OrnamentsOffset || header->OrnamentsOffset < sizeof(*header) ||
-        limit < header->PatternsOffset || header->PatternsOffset < sizeof(*header) ||
-        limit < header->SamplesOffset || header->SamplesOffset < sizeof(*header)
+        limit < ornamentsOffset || ornamentsOffset < sizeof(*header) ||
+        limit < patternsOffset || patternsOffset < sizeof(*header) ||
+        limit < samplesOffset || samplesOffset < sizeof(*header)
         )
+    {
+      return false;
+    }
+    const ASCSamples* const samples(safe_ptr_cast<const ASCSamples*>(&data[samplesOffset]));
+    if (ArrayEnd(samples->Offsets) != 
+      std::find_if(samples->Offsets, ArrayEnd(samples->Offsets), std::not1(std::negate<uint16_t>())))
     {
       return false;
     }

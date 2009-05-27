@@ -17,10 +17,13 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <limits>
 
 #ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
 #include <conio.h>
-#include <Windows.h>
+#include <windows.h>
 #else
 #include <termio.h>
 #endif
@@ -55,18 +58,14 @@ namespace
     return _kbhit() ? _getch() : 0;
   }
 
-  COORD cpos;
-  void BeginState()
+  void MoveUp(std::size_t lines)
   {
     CONSOLE_SCREEN_BUFFER_INFO info;
     HANDLE hdl(GetStdHandle(STD_OUTPUT_HANDLE));
     GetConsoleScreenBufferInfo(hdl, &info);
-    cpos = info.dwCursorPosition;
-  }
-
-  void EndState()
-  {
-    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), cpos);
+    info.dwCursorPosition.Y -= lines;
+    info.dwCursorPosition.X = 0;
+    SetConsoleCursorPosition(hdl, info.dwCursorPosition);
   }
 #else
   int GetKey()
@@ -95,6 +94,12 @@ namespace
     std::cout << "\r\x1b[5A" << std::flush;
   }
 #endif
+
+  template<class T>
+  T Decrease(T val, T speed)
+  {
+    return val >= speed ? val - speed : 0;
+  }
 }
 
 int main(int argc, char* argv[])
@@ -254,6 +259,8 @@ int main(int argc, char* argv[])
       "Channels: %8$2d / %9%\n"
       "Tempo:    %10$2d / %11%\n"
       "Frame: %12$5d / %13%");
+    Sound::Analyze::Volume volState;
+    Sound::Analyze::Spectrum specState;
     while (Sound::Backend::STOPPED != backend->GetState())
     {
       std::size_t frame;
@@ -261,7 +268,6 @@ int main(int argc, char* argv[])
       backend->GetModuleState(frame, track);
       if (!silent)
       {
-        BeginState();
         std::cout <<
         (formatter % (track.Position + 1) % module.Statistic.Position % (1 + module.Loop) %
                     track.Pattern % module.Statistic.Pattern %
@@ -269,7 +275,36 @@ int main(int argc, char* argv[])
                     track.Channels % module.Statistic.Channels %
                     track.Tempo % module.Statistic.Tempo %
                     frame % module.Statistic.Frame);
-        EndState();
+        backend->GetSoundState(volState, specState);
+        const std::size_t WIDTH = 60;
+        const std::size_t HEIGTH = 16;
+        const std::size_t LIMIT = std::numeric_limits<Sound::Analyze::Level>::max();
+        const std::size_t FALLSPEED = 8;
+        static char filler[WIDTH + 1];
+        const std::size_t specShift(4/*volState.Array.size()*/ + 1);
+        static std::size_t levels[Sound::Analyze::TonesCount / 2 + specShift];
+        for (std::size_t tone = 0; tone != ArraySize(levels); ++tone)
+        {
+          const std::size_t value(tone >= specShift ?
+            std::max(specState.Array[(tone - specShift) * 2], specState.Array[(tone - specShift) * 2 + 1])
+            :
+            (tone < volState.Array.size() ? volState.Array[tone] : 0));
+          levels[tone] = value * HEIGTH / LIMIT;
+        }
+        for (std::size_t y = HEIGTH; y; --y)
+        {
+          for (std::size_t i = 0; i < std::min(WIDTH, ArraySize(levels)); ++i)
+          {
+            filler[i] = levels[i] > y ? '#' : ' ';
+            filler[i + 1] = 0;
+          }
+          std::cout << std::endl << filler;
+        }
+        std::transform(volState.Array.begin(), volState.Array.end(), volState.Array.begin(),
+          std::bind2nd(std::ptr_fun(Decrease<Sound::Analyze::Level>), FALLSPEED));
+        std::transform(specState.Array.begin(), specState.Array.end(), specState.Array.begin(), 
+          std::bind2nd(std::ptr_fun(Decrease<Sound::Analyze::Level>), FALLSPEED));
+        MoveUp(5 + HEIGTH);
       }
       boost::this_thread::sleep(boost::posix_time::milliseconds(20));
       const int key(GetKey());

@@ -161,9 +161,10 @@ namespace
     FREQ_TABLE_ASM,
     FREQ_TABLE_REAL
   };
+
   PACK_PRE struct PT3Header
   {
-    uint8_t Id[13];
+    uint8_t Id[13];        //'ProTracker 3.'
     uint8_t Subversion;
     uint8_t Optional1[16]; //' compilation of '
     uint8_t TrackName[32];
@@ -603,7 +604,7 @@ namespace
       Information.Properties.insert(StringMap::value_type(Module::ATTR_PROGRAM, String(header->Id, 1 + ArrayEnd(header->Id))));
       
       //version-dependent operations
-      Version = header->Subversion - '0';
+      Version = isdigit(header->Subversion) ? header->Subversion - '0' : 6;
       VolumeTable = Version <= 4 ? VolumeTable_33_34 : VolumeTable_35;
       switch (header->FreqTableNum)
       {
@@ -676,8 +677,10 @@ namespace
     }
 
     /// Retrieving current state of sound
-    virtual State GetSoundState(Sound::Analyze::Volume& /*volState*/, Sound::Analyze::Spectrum& /*spectrumState*/) const
+    virtual State GetSoundState(Sound::Analyze::Volume& volState, Sound::Analyze::Spectrum& spectrumState) const
     {
+      assert(Device.get());
+      Device->GetState(volState, spectrumState);
       return PlaybackState;
     }
 
@@ -753,7 +756,10 @@ namespace
               dst.ToneSlider.Delta = it->Param2;
               dst.SlidingTargetNote = LIMITER;
               dst.VibrateCounter = 0;
-              //TODO: correct tone counter according to version
+              if (0 == dst.ToneSlider.Counter && Version >= 7)
+              {
+                ++dst.ToneSlider.Counter;
+              }
               break;
             case GLISS_NOTE:
               dst.ToneSlider.Period = dst.ToneSlider.Counter = it->Param1;
@@ -928,7 +934,24 @@ namespace
 
   bool Checking(const String& /*filename*/, const Dump& data)
   {
-    return true;//TODO
+    const std::size_t limit(data.size());
+    if (limit < sizeof(PT3Header))
+    {
+      return false;
+    }
+    const PT3Header* const header(safe_ptr_cast<const PT3Header*>(&data[0]));
+    const std::size_t patOff(fromLE(header->PatternsOffset));
+    if (patOff >= limit ||
+        0xff != data[patOff - 1] ||
+        &data[patOff - 1] != std::find_if(header->Positions, &data[patOff - 1], 
+          std::bind2nd(std::modulus<uint8_t>(), 3)) ||
+        &header->Positions[header->Lenght] != &data[patOff - 1] ||
+        fromLE(header->OrnamentsOffsets[0]) + sizeof(PT3Ornament) > limit
+        )
+    {
+      return false;
+    }
+    return true;
   }
 
   ModulePlayer::Ptr Creating(const String& filename, const Dump& data)

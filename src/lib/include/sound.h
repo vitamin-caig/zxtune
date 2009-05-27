@@ -4,6 +4,8 @@
 #include <types.h>
 #include <sound_types.h>
 
+#include <boost/array.hpp>
+
 #include <memory>
 
 namespace ZXTune
@@ -54,6 +56,9 @@ namespace ZXTune
       /// Volume analyze result
       struct Volume
       {
+        Volume() : ChannelsMask(), Array()
+        {
+        }
         /// Now active channels masks
         unsigned ChannelsMask;
         /// Volumes for ALL channels
@@ -67,7 +72,10 @@ namespace ZXTune
       /// Spectrum analyze result
       struct Spectrum
       {
-        Level Array[TonesCount];
+        Spectrum() : Array()
+        {
+        }
+        boost::array<Level, TonesCount> Array;
       };
     }
   }
