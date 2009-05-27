@@ -4,6 +4,7 @@
 
 #include <sound_attrs.h>
 
+#include <limits>
 #include <memory>
 #include <cassert>
 

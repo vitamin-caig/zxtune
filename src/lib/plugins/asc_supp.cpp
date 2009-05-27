@@ -629,7 +629,7 @@ namespace
             {
               dst.SlidingSteps = it->Param1;
               dst.SlidingTargetNote = it->Param2;
-              const signed newSliding(signed(FreqTable[dst.Note]) + (contSample ? dst.Sliding / 16 : 0)
+              const signed newSliding((contSample ? dst.Sliding / 16 : 0) + FreqTable[dst.Note]
                 - FreqTable[dst.SlidingTargetNote]);
               dst.Glissade = -16 * newSliding / dst.SlidingSteps;
               break;

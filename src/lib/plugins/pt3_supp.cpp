@@ -393,7 +393,7 @@ namespace
           {
             channel.Commands.push_back(Parent::Command(TEMPO));
           }
-          else if (cmd == 0x10 || (cmd >= 0xf0 && cmd <= 0xff))
+          else if (cmd == 0x10 || cmd >= 0xf0)
           {
             const uint8_t doubleSampNum(data[offsets[chan]++]);
             assert(doubleSampNum <= MAX_SAMPLES_COUNT * 2 && 0 == (doubleSampNum & 1));
@@ -910,8 +910,8 @@ namespace
   private:
     uint8_t GetVolume(std::size_t volume, std::size_t level)
     {
-      assert(volume >= 0 && volume <= 15);
-      assert(level >= 0 && level <= 15);
+      assert(volume <= 15);
+      assert(level <= 15);
       return VolumeTable[volume * 16 + level];
     }
   private:

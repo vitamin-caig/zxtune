@@ -83,15 +83,9 @@ namespace
     return ch;
   }
 
-  void BeginState()
+  void MoveUp(std::size_t lines)
   {
-    std::cout << '\r';
-  }
-
-  void EndState()
-  {
-    //std::cout << "\x1b[u";
-    std::cout << "\r\x1b[5A" << std::flush;
+    std::cout << "\r\x1b[" << lines << 'A';
   }
 #endif
 
