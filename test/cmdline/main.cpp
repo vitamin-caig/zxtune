@@ -1,6 +1,7 @@
 #include <sound.h>
 #include <player.h>
 #include <sound_attrs.h>
+#include <player_attrs.h>
 
 #include <../../lib/sound/mixer.h>
 #include <../../lib/sound/renderer.h>
@@ -190,6 +191,12 @@ int main(int argc, char* argv[])
 
     Module::Information module;
     backend->GetModuleInfo(module);
+    if (module.Capabilities & CAP_MULTITRACK)
+    {
+      std::cout << module.Properties[Module::ATTR_SUBMODULES];
+      return 0;
+    }
+
     Sound::Backend::Parameters params;
     backend->GetSoundParameters(params);
 
@@ -285,7 +292,7 @@ int main(int argc, char* argv[])
         }
         std::transform(volState.Array.begin(), volState.Array.end(), volState.Array.begin(),
           std::bind2nd(std::ptr_fun(Decrease<Sound::Analyze::Level>), FALLSPEED));
-        std::transform(specState.Array.begin(), specState.Array.end(), specState.Array.begin(), 
+        std::transform(specState.Array.begin(), specState.Array.end(), specState.Array.begin(),
           std::bind2nd(std::ptr_fun(Decrease<Sound::Analyze::Level>), FALLSPEED));
         MoveUp(5 + HEIGTH);
       }

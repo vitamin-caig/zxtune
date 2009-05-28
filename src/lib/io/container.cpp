@@ -72,7 +72,7 @@ namespace
     virtual Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
     {
       assert(offset + size <= Start + Length);
-      return Ptr(Cache.get() ? 
+      return Ptr(Cache.get() ?
         static_cast<DataContainer*>(new MemoryContainerImpl(Cache, offset, size))
         :
         static_cast<DataContainer*>(new FileContainerImpl(Stream, Start + offset, size)));
@@ -102,7 +102,7 @@ namespace ZXTune
   {
     DataContainer::Ptr DataContainer::Create(const String& filename)
     {
-      FileContainerImpl::SharedStream stream(new std::ifstream(ExtractFirst(filename).c_str(), std::ios::binary));
+      FileContainerImpl::SharedStream stream(new std::ifstream(ExtractFSPath(filename).c_str(), std::ios::binary));
       if (stream->bad())
       {
         throw 1;//TODO

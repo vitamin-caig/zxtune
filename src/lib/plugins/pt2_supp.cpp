@@ -576,7 +576,7 @@ namespace
           chunk.Data[AYM::DataChunk::REG_MIXER] |= toneMsk | noiseMsk;
         }
       }
-      CurrentState.Position.Channels = std::count_if(Channels, ArrayEnd(Channels), 
+      CurrentState.Position.Channels = std::count_if(Channels, ArrayEnd(Channels),
         boost::mem_fn(&ChannelState::Enabled));
     }
   private:

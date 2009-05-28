@@ -20,14 +20,20 @@ namespace ZXTune
    */
     const String::value_type SUBPATH_DELIMITER = '\?';
 
-    String ExtractFirst(const String& path)
+    inline String ExtractFSPath(const String& path)
     {
       return path.substr(0, path.find(SUBPATH_DELIMITER));
     }
 
-    void SplitPath(const String& path, StringArray& result)
+    inline String ExtractSubpath(const String& path)
     {
-      result.reserve(1 + std::count_if(path.begin(), path.end(), 
+      String::size_type pos(path.find(SUBPATH_DELIMITER));
+      return String::npos == pos ? String() : path.substr(pos + 1);
+    }
+
+    inline void SplitPath(const String& path, StringArray& result)
+    {
+      result.reserve(1 + std::count_if(path.begin(), path.end(),
         std::bind2nd(std::equal_to<String::value_type>(), SUBPATH_DELIMITER)));
       for (String::size_type begin = 0; String::npos != begin;)
       {
@@ -37,21 +43,26 @@ namespace ZXTune
       }
     }
 
-    String CombinePath(const StringArray& subpathes)
+    inline String CombinePath(StringArray::const_iterator begin, StringArray::const_iterator end)
     {
       String result;
-      for (StringArray::const_iterator it = subpathes.begin(), lim = subpathes.end(); it != lim; ++it)
+      for (; begin != end; ++begin)
       {
         if (!result.empty())
         {
           result += SUBPATH_DELIMITER;
         }
-        result += *it;
+        result += *begin;
       }
       return result;
     }
 
-    String CombinePath(const String& lh, const String& rh)
+    inline String CombinePath(const StringArray& subpathes)
+    {
+      return CombinePath(subpathes.begin(), subpathes.end());
+    }
+
+    inline String CombinePath(const String& lh, const String& rh)
     {
       return lh + SUBPATH_DELIMITER + rh;
     }

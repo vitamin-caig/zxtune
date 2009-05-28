@@ -227,7 +227,7 @@ namespace ZXTune
 
     void BackendImpl::CheckState() const
     {
-      if (NOTOPENED == CurrentState)
+      if (NOTOPENED == CurrentState && !Player.get())
       {
         throw 1;//TODO
       }
