@@ -270,17 +270,17 @@ int main(int argc, char* argv[])
                     track.Tempo % module.Statistic.Tempo %
                     frame % module.Statistic.Frame);
         backend->GetSoundState(volState, specState);
-        const std::size_t WIDTH = 60;
+        const std::size_t WIDTH = 75;
         const std::size_t HEIGTH = 16;
         const std::size_t LIMIT = std::numeric_limits<Sound::Analyze::Level>::max();
         const std::size_t FALLSPEED = 8;
         static char filler[WIDTH + 1];
         const std::size_t specShift(4/*volState.Array.size()*/ + 1);
-        static std::size_t levels[Sound::Analyze::TonesCount / 2 + specShift];
+        static std::size_t levels[Sound::Analyze::TonesCount + specShift];
         for (std::size_t tone = 0; tone != ArraySize(levels); ++tone)
         {
           const std::size_t value(tone >= specShift ?
-            std::max(specState.Array[(tone - specShift) * 2], specState.Array[(tone - specShift) * 2 + 1])
+            specState.Array[tone - specShift]
             :
             (tone < volState.Array.size() ? volState.Array[tone] : 0));
           levels[tone] = value * HEIGTH / LIMIT;

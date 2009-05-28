@@ -36,6 +36,7 @@ namespace
 
   class PluginEnumeratorImpl : public PluginEnumerator
   {
+    typedef std::list<PluginDescriptor> PluginsStorage;
   public:
     PluginEnumeratorImpl()
     {
@@ -45,14 +46,24 @@ namespace
     {
       const PluginDescriptor descr = {check, create, describe};
       assert(Plugins.end() == std::find_if(Plugins.begin(), Plugins.end(), PDFinder(descr)));
-      Plugins.push_back(descr);
+      ModulePlayer::Info info;
+      describe(info);
+      //store multitrack plugins to beginning
+      if (info.Capabilities & Module::CAP_MULTITRACK)
+      {
+        Plugins.push_front(descr);
+      }
+      else
+      {
+        Plugins.push_back(descr);
+      }
     }
 
     virtual void EnumeratePlugins(std::vector<ModulePlayer::Info>& infos) const
     {
       infos.resize(Plugins.size());
       std::vector<ModulePlayer::Info>::iterator out(infos.begin());
-      for (std::vector<PluginDescriptor>::const_iterator it = Plugins.begin(), lim = Plugins.end(); it != lim; ++it, ++out)
+      for (PluginsStorage::const_iterator it = Plugins.begin(), lim = Plugins.end(); it != lim; ++it, ++out)
       {
         (*it->Descriptor)(*out);
       }
@@ -60,7 +71,7 @@ namespace
 
     virtual ModulePlayer::Ptr CreatePlayer(const String& filename, const Dump& data) const
     {
-      for (std::vector<PluginDescriptor>::const_iterator it = Plugins.begin(), lim = Plugins.end(); it != lim; ++it)
+      for (PluginsStorage::const_iterator it = Plugins.begin(), lim = Plugins.end(); it != lim; ++it)
       {
         if ((*it->Checker)(filename, data))
         {
@@ -70,7 +81,7 @@ namespace
       return ModulePlayer::Ptr(0);
     }
   private:
-    std::vector<PluginDescriptor> Plugins;
+    PluginsStorage Plugins;
   };
 }
 

@@ -1,6 +1,8 @@
 #ifndef __TOOLS_H_DEFINED__
 #define __TOOLS_H_DEFINED__
 
+#include <boost/call_traits.hpp>
+
 #include <iterator>
 #include <algorithm>
 
@@ -117,6 +119,14 @@ template<class T>
 inline T clamp(T val, T min, T max)
 {
   return std::min<T>(std::max<T>(val, min), max);
+}
+
+template<class T>
+inline bool in_range(typename boost::call_traits<T>::param_type val, 
+                     typename boost::call_traits<T>::param_type min, 
+                     typename boost::call_traits<T>::param_type max)
+{
+  return val >= min && val <= max;
 }
 
 template<class T>

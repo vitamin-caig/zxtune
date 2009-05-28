@@ -9,6 +9,7 @@
 #include <player_attrs.h>
 
 #include <boost/bind.hpp>
+#include <boost/function.hpp>
 #include <boost/static_assert.hpp>
 
 #include <cassert>
@@ -636,7 +637,7 @@ namespace
             }
             case AMPLITUDE_SLIDE:
               dst.VolSlideCounter = dst.VolSlideDelay = it->Param1;
-              dst.VolSlideDown = it->Param2;
+              dst.VolSlideDown = 0 != it->Param2;
               break;
             case BREAK_SAMPLE:
               breakSample[chan] = true;
@@ -828,17 +829,25 @@ namespace
     const std::size_t samplesOffset(fromLE(header->SamplesOffset));
     const std::size_t ornamentsOffset(fromLE(header->OrnamentsOffset));
     const std::size_t patternsOffset(fromLE(header->PatternsOffset));
+    boost::function<bool(std::size_t)> checker = !boost::bind(&in_range<std::size_t>, _1, sizeof(*header), limit - 1);
+      
     if (limit < sizeof(*header) + header->Lenght ||
-        limit < ornamentsOffset || ornamentsOffset < sizeof(*header) ||
-        limit < patternsOffset || patternsOffset < sizeof(*header) ||
-        limit < samplesOffset || samplesOffset < sizeof(*header)
+        checker(ornamentsOffset) ||
+        checker(patternsOffset) ||
+        checker(samplesOffset)
         )
     {
       return false;
     }
     const ASCSamples* const samples(safe_ptr_cast<const ASCSamples*>(&data[samplesOffset]));
     if (ArrayEnd(samples->Offsets) != 
-      std::find_if(samples->Offsets, ArrayEnd(samples->Offsets), std::not1(std::negate<uint16_t>())))
+      std::find_if(samples->Offsets, ArrayEnd(samples->Offsets), checker))
+    {
+      return false;
+    }
+    const ASCOrnaments* const ornaments(safe_ptr_cast<const ASCOrnaments*>(&data[ornamentsOffset]));
+    if (ArrayEnd(ornaments->Offsets) != 
+      std::find_if(ornaments->Offsets, ArrayEnd(ornaments->Offsets), checker))
     {
       return false;
     }

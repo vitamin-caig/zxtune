@@ -6,6 +6,9 @@
 #include <boost/array.hpp>
 #include <boost/static_assert.hpp>
 
+#include <limits>
+#include <numeric>
+
 namespace
 {
   using namespace ZXTune;
@@ -96,11 +99,17 @@ namespace
 
     std::size_t Loop;
     std::vector<uint8_t> Data;
+    Sound::Analyze::Level Gain;
   };
 
   inline Sound::Sample scale(uint8_t inSample)
   {
     return inSample << (8 * (sizeof(Sound::Sample) - sizeof(inSample)) - 1);
+  }
+
+  inline uint32_t GainAdder(uint32_t sum, uint8_t sample)
+  {
+    return sum + abs(int(sample) - 128);
   }
 
   class PlayerImpl : public Tracking::TrackPlayer<4, Sample>
@@ -213,7 +222,9 @@ namespace
         const std::size_t size(fromLE(sample->Length));
         if (size)
         {
-          Data.Samples.back().Data.assign(sampleData, sampleData + size);
+          Sample& result(Data.Samples.back());
+          result.Data.assign(sampleData, sampleData + size);
+          result.Gain = std::accumulate(sampleData, sampleData + size, uint32_t(0), GainAdder) / size;
           sampleData += align(size, 256);
         }
       }
@@ -230,8 +241,21 @@ namespace
     }
 
     /// Retrieving current state of sound
-    virtual State GetSoundState(Sound::Analyze::Volume& /*volState*/, Sound::Analyze::Spectrum& /*spectrumState*/) const
+    virtual State GetSoundState(Sound::Analyze::Volume& volState, Sound::Analyze::Spectrum& spectrumState) const
     {
+      volState.Array.resize(4);
+      volState.ChannelsMask = 0;
+      for (std::size_t chan = 0; chan != 4; ++chan)
+      {
+        if (Channels[chan].Enabled)
+        {
+          const Sound::Analyze::Level level(Data.Samples[Channels[chan].SampleNum].Gain * 
+            std::numeric_limits<Sound::Analyze::Level>::max() / 128);
+          volState.Array[chan] = level;
+          volState.ChannelsMask |= 1 << chan;
+          spectrumState.Array[Channels[chan].Note] = level;
+        }
+      }
       return PlaybackState;
     }
 
