@@ -204,9 +204,19 @@
 				Filter="">
 				<File
 					RelativePath="..\..\src\lib\plugins\asc_supp.cpp">
+					<FileConfiguration
+						Name="Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\src\lib\plugins\chi_supp.cpp">
+					<FileConfiguration
+						Name="Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\src\lib\plugins\plugin_enumerator.cpp">
@@ -216,9 +226,19 @@
 				</File>
 				<File
 					RelativePath="..\..\src\lib\plugins\psg_supp.cpp">
+					<FileConfiguration
+						Name="Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\src\lib\plugins\pt2_supp.cpp">
+					<FileConfiguration
+						Name="Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\src\lib\plugins\pt3_supp.cpp">
@@ -228,6 +248,9 @@
 				</File>
 				<File
 					RelativePath="..\..\src\lib\plugins\tracking_supp.h">
+				</File>
+				<File
+					RelativePath="..\..\src\lib\plugins\trd_supp.cpp">
 				</File>
 			</Filter>
 			<Filter
@@ -246,6 +269,19 @@
 						RelativePath="..\..\src\lib\devices\aym\aym.h">
 					</File>
 				</Filter>
+			</Filter>
+			<Filter
+				Name="io"
+				Filter="">
+				<File
+					RelativePath="..\..\src\lib\io\container.cpp">
+				</File>
+				<File
+					RelativePath="..\..\src\lib\io\container.h">
+				</File>
+				<File
+					RelativePath="..\..\src\lib\io\location.h">
+				</File>
 			</Filter>
 		</Filter>
 		<Filter

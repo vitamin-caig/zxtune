@@ -3,6 +3,7 @@
 #include "tracking_supp.h"
 #include "../devices/data_source.h"
 #include "../devices/aym/aym.h"
+#include "../io/container.h"
 
 #include <tools.h>
 
@@ -26,12 +27,15 @@ namespace
   const std::size_t LIMITER(~std::size_t(0));
 
   //hints
+  const std::size_t MAX_MODULE_SIZE = 16384;
   const std::size_t MAX_SAMPLES_COUNT = 32;
   const std::size_t MAX_SAMPLE_SIZE = 150;
   const std::size_t MAX_ORNAMENTS_COUNT = 32;
   const std::size_t MAX_ORNAMENT_SIZE = 30;
   const std::size_t MAX_PATTERN_SIZE = 64;//???
   const std::size_t MAX_PATTERNS_COUNT = 32;//TODO
+
+  typedef IO::FastDump<uint8_t> FastDump;
 
   const uint16_t FreqTable[96] = {//TODO
     0xedc, 0xe07, 0xd3e, 0xc80, 0xbcc, 0xb22, 0xa82, 0x9ec, 0x95c, 0x8d6, 0x858, 0x7e0,
@@ -246,11 +250,13 @@ namespace
     BREAK_SAMPLE  //0p
   };
 
+  void Describing(ModulePlayer::Info& info);
+
   class PlayerImpl : public Tracking::TrackPlayer<3, Sample, Ornament>
   {
     typedef Tracking::TrackPlayer<3, Sample, Ornament> Parent;
 
-    static void ParsePattern(const Dump& data, std::vector<std::size_t>& offsets, Parent::Line& line,
+    static void ParsePattern(const FastDump& data, std::vector<std::size_t>& offsets, Parent::Line& line,
       std::valarray<std::size_t>& periods,
       std::valarray<std::size_t>& counters,
       std::vector<bool>& envelopes)
@@ -431,7 +437,7 @@ namespace
       signed Glissade;
     };
   public:
-    PlayerImpl(const String& filename, const Dump& data)
+    PlayerImpl(const String& filename, const FastDump& data)
       : Device(AYM::CreateChip())//TODO: put out
     {
       //assume data is ok
@@ -461,7 +467,7 @@ namespace
       for (const uint16_t* pSample = samples->Offsets; pSample != ArrayEnd(samples->Offsets);
         ++pSample)
       {
-        assert(*pSample && *pSample < data.size());
+        assert(*pSample && *pSample < data.Size());
         const ASCSample* const sample(safe_ptr_cast<const ASCSample*>(&data[samplesOff + fromLE(*pSample)]));
         Data.Samples.push_back(Sample(*sample));
       }
@@ -473,7 +479,7 @@ namespace
       for (const uint16_t* pOrnament = ornaments->Offsets; pOrnament != ArrayEnd(ornaments->Offsets);
         ++pOrnament)
       {
-        assert(*pOrnament && *pOrnament < data.size());
+        assert(*pOrnament && *pOrnament < data.Size());
         const ASCOrnament* const ornament(safe_ptr_cast<const ASCOrnament*>(&data[ornamentsOff + fromLE(*pOrnament)]));
         Data.Ornaments.push_back(Parent::Ornament(*ornament));
       }
@@ -494,7 +500,7 @@ namespace
           boost::bind(std::plus<uint16_t>(), patternsOff,
             boost::bind(&fromLE<uint16_t>, _1)));
         assert(ArrayEnd(pattern->Offsets) == std::find_if(pattern->Offsets, ArrayEnd(pattern->Offsets),
-          std::bind2nd(std::greater<uint16_t>(), uint16_t(data.size()))));
+          std::bind2nd(std::greater<uint16_t>(), uint16_t(data.Size()))));
         std::vector<bool> envelopes(ArraySize(pattern->Offsets));
         pat.reserve(MAX_PATTERN_SIZE);
         do
@@ -522,8 +528,7 @@ namespace
 
     virtual void GetInfo(Info& info) const
     {
-      info.Capabilities = CAP_AYM;
-      info.Properties.clear();
+      Describing(info);
     }
 
     /// Retrieving current state of sound
@@ -810,7 +815,7 @@ namespace
     ChannelState Channels[3];
   };
   //////////////////////////////////////////////////////////////////////////
-  void Information(ModulePlayer::Info& info)
+  void Describing(ModulePlayer::Info& info)
   {
     info.Capabilities = CAP_AYM;
     info.Properties.clear();
@@ -818,14 +823,16 @@ namespace
     info.Properties.insert(StringMap::value_type(ATTR_VERSION, TEXT_ASC_VERSION));
   }
 
-  bool Checking(const String& /*filename*/, const Dump& data)
+  bool Checking(const String& /*filename*/, const IO::DataContainer& source)
   {
-    const std::size_t limit(data.size());
-    if (limit < sizeof(ASCHeader))
+    const std::size_t limit(source.Size());
+    if (limit < sizeof(ASCHeader) || limit > MAX_MODULE_SIZE)
     {
       return false;
     }
-    const ASCHeader* const header(safe_ptr_cast<const ASCHeader*>(&data[0]));
+
+    const uint8_t* const data(static_cast<const uint8_t*>(source.Data()));
+    const ASCHeader* const header(safe_ptr_cast<const ASCHeader*>(data));
     const std::size_t samplesOffset(fromLE(header->SamplesOffset));
     const std::size_t ornamentsOffset(fromLE(header->OrnamentsOffset));
     const std::size_t patternsOffset(fromLE(header->PatternsOffset));
@@ -839,13 +846,13 @@ namespace
     {
       return false;
     }
-    const ASCSamples* const samples(safe_ptr_cast<const ASCSamples*>(&data[samplesOffset]));
+    const ASCSamples* const samples(safe_ptr_cast<const ASCSamples*>(data + samplesOffset));
     if (ArrayEnd(samples->Offsets) != 
       std::find_if(samples->Offsets, ArrayEnd(samples->Offsets), checker))
     {
       return false;
     }
-    const ASCOrnaments* const ornaments(safe_ptr_cast<const ASCOrnaments*>(&data[ornamentsOffset]));
+    const ASCOrnaments* const ornaments(safe_ptr_cast<const ASCOrnaments*>(data + ornamentsOffset));
     if (ArrayEnd(ornaments->Offsets) != 
       std::find_if(ornaments->Offsets, ArrayEnd(ornaments->Offsets), checker))
     {
@@ -855,11 +862,11 @@ namespace
     return true;
   }
 
-  ModulePlayer::Ptr Creating(const String& filename, const Dump& data)
+  ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data)
   {
     assert(Checking(filename, data) || !"Attempt to create asc player on invalid data");
-    return ModulePlayer::Ptr(new PlayerImpl(filename, data));
+    return ModulePlayer::Ptr(new PlayerImpl(filename, FastDump(data)));
   }
 
-  PluginAutoRegistrator ascReg(Checking, Creating, Information);
+  PluginAutoRegistrator ascReg(Checking, Creating, Describing);
 }

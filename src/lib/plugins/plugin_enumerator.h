@@ -5,8 +5,13 @@
 
 namespace ZXTune
 {
-  typedef bool (*CheckFunc)(const String& filename, const Dump& data);
-  typedef ModulePlayer::Ptr (*FactoryFunc)(const String& filename, const Dump& data);
+  namespace IO
+  {
+    class DataContainer;
+  }
+
+  typedef bool (*CheckFunc)(const String& filename, const IO::DataContainer& data);
+  typedef ModulePlayer::Ptr (*FactoryFunc)(const String& filename, const IO::DataContainer& data);
   typedef void (*InfoFunc)(ModulePlayer::Info& info);
 
   class PluginEnumerator
@@ -18,7 +23,7 @@ namespace ZXTune
 
     virtual void RegisterPlugin(CheckFunc check, FactoryFunc create, InfoFunc describe) = 0;
     virtual void EnumeratePlugins(std::vector<ModulePlayer::Info>& infos) const = 0;
-    virtual ModulePlayer::Ptr CreatePlayer(const String& filename, const Dump& data) const = 0;
+    virtual ModulePlayer::Ptr CreatePlayer(const String& filename, const IO::DataContainer& data) const = 0;
 
     static PluginEnumerator& Instance();
   };

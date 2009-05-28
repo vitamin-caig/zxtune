@@ -1,5 +1,7 @@
 #include "plugin_enumerator.h"
 
+#include <player_attrs.h>
+
 #include <cassert>
 #include <algorithm>
 
@@ -49,7 +51,7 @@ namespace
       ModulePlayer::Info info;
       describe(info);
       //store multitrack plugins to beginning
-      if (info.Capabilities & Module::CAP_MULTITRACK)
+      if (info.Capabilities & CAP_MULTITRACK)
       {
         Plugins.push_front(descr);
       }
@@ -69,7 +71,7 @@ namespace
       }
     }
 
-    virtual ModulePlayer::Ptr CreatePlayer(const String& filename, const Dump& data) const
+    virtual ModulePlayer::Ptr CreatePlayer(const String& filename, const IO::DataContainer& data) const
     {
       for (PluginsStorage::const_iterator it = Plugins.begin(), lim = Plugins.end(); it != lim; ++it)
       {
@@ -93,7 +95,7 @@ namespace ZXTune
     return instance;
   }
 
-  ModulePlayer::Ptr ModulePlayer::Create(const String& filename, const Dump& data)
+  ModulePlayer::Ptr ModulePlayer::Create(const String& filename, const IO::DataContainer& data)
   {
     return PluginEnumerator::Instance().CreatePlayer(filename, data);
   }

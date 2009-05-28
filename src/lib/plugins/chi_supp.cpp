@@ -1,5 +1,6 @@
 #include "plugin_enumerator.h"
 #include "tracking_supp.h"
+#include "../io/container.h"
 
 #include <player_attrs.h>
 
@@ -21,9 +22,11 @@ namespace
 
   const uint8_t CHI_SIGNATURE[] = {'C', 'H', 'I', 'P', 'v', '1', '.', '0'};
 
+  const std::size_t MAX_MODULE_SIZE = 65536;
   const std::size_t MAX_PATTERN_SIZE = 64;
 
-  //all samples has base freq at 4kHz (C-1)
+  typedef IO::FastDump<uint8_t> FastDump;
+  //all samples has base freq at 8kHz (C-1)
   const std::size_t BASE_FREQ = 8448;
   const std::size_t NOTES = 60;
 
@@ -112,6 +115,8 @@ namespace
     return sum + abs(int(sample) - 128);
   }
 
+  void Describing(ModulePlayer::Info& info);
+
   class PlayerImpl : public Tracking::TrackPlayer<4, Sample>
   {
     typedef Tracking::TrackPlayer<4, Sample> Parent;
@@ -191,7 +196,7 @@ namespace
     }
 
   public:
-    PlayerImpl(const String& filename, const Dump& data) : TableFreq(), FreqTable()
+    PlayerImpl(const String& filename, const FastDump& data) : TableFreq(), FreqTable()
     {
       //assume data is correct
       const CHIHeader* const header(safe_ptr_cast<const CHIHeader*>(&data[0]));
@@ -236,8 +241,7 @@ namespace
 
     virtual void GetInfo(Info& info) const
     {
-      info.Capabilities = CAP_SOUNDRIVE;
-      info.Properties.clear();
+      Describing(info);
     }
 
     /// Retrieving current state of sound
@@ -397,7 +401,7 @@ namespace
     boost::array<std::size_t, NOTES> FreqTable;
   };
   //////////////////////////////////////////////////////////////////////////
-  void Information(ModulePlayer::Info& info)
+  void Describing(ModulePlayer::Info& info)
   {
     info.Capabilities = CAP_SOUNDRIVE;
     info.Properties.clear();
@@ -405,24 +409,24 @@ namespace
     info.Properties.insert(StringMap::value_type(ATTR_VERSION, TEXT_CHI_VERSION));
   }
 
-  bool Checking(const String& /*filename*/, const Dump& data)
+  bool Checking(const String& /*filename*/, const IO::DataContainer& data)
   {
     //check for header
-    const std::size_t size(data.size());
-    if (sizeof(CHIHeader) > size)
+    const std::size_t size(data.Size());
+    if (sizeof(CHIHeader) > size || size > MAX_MODULE_SIZE)
     {
       return false;
     }
-    const CHIHeader* const header(safe_ptr_cast<const CHIHeader*>(&data[0]));
+    const CHIHeader* const header(safe_ptr_cast<const CHIHeader*>(data.Data()));
     return 0 == std::memcmp(header->Signature, CHI_SIGNATURE, sizeof(CHI_SIGNATURE));
     //TODO: additional checks
   }
 
-  ModulePlayer::Ptr Creating(const String& filename, const Dump& data)
+  ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data)
   {
     assert(Checking(filename, data) || !"Attempt to create chi player on invalid data");
-    return ModulePlayer::Ptr(new PlayerImpl(filename, data));
+    return ModulePlayer::Ptr(new PlayerImpl(filename, FastDump(data)));
   }
 
-  PluginAutoRegistrator chiReg(Checking, Creating, Information);
+  PluginAutoRegistrator chiReg(Checking, Creating, Describing);
 }

@@ -1,6 +1,7 @@
 #include "sound_backend_impl.h"
 
 #include <tools.h>
+#include <player_attrs.h>
 
 #include "../lib/sound/mixer.h"
 #include "../lib/sound/filter.h"
@@ -68,7 +69,7 @@ namespace ZXTune
       assert(NOTOPENED == CurrentState || STOPPED == CurrentState || !"Backend should be stopped!");
     }
 
-    Backend::State BackendImpl::OpenModule(const String& filename, const Dump& data)
+    Backend::State BackendImpl::OpenModule(const String& filename, const IO::DataContainer& data)
     {
       static const SampleArray MONO_MIX = {FIXED_POINT_PRECISION};
 
@@ -77,13 +78,18 @@ namespace ZXTune
       Player.reset(ModulePlayer::Create(filename, data).release());
       if (Player.get())
       {
+        ModulePlayer::Info playInfo;
+        Player->GetInfo(playInfo);
+        if (playInfo.Capabilities & CAP_MULTITRACK)
+        {
+          return CurrentState = NOTOPENED;//TODO
+        }
         Module::Information info;
         Player->GetModuleInfo(info);
         Params.Mixer.resize(info.Statistic.Channels, ChannelMixer(MONO_MIX));
         return CurrentState = STOPPED;
       }
-      CurrentState = NOTOPENED;
-      throw 1;//TODO
+      return CurrentState = NOTOPENED;
     }
 
     Backend::State BackendImpl::GetState() const

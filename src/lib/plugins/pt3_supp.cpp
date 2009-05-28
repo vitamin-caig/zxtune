@@ -4,6 +4,8 @@
 #include "../devices/data_source.h"
 #include "../devices/aym/aym.h"
 
+#include "../io/container.h"
+
 #include <tools.h>
 
 #include <player_attrs.h>
@@ -22,9 +24,12 @@ namespace
 
   const std::size_t LIMITER(~std::size_t(0));
 
+  const std::size_t MAX_MODULE_SIZE = 1 << 16;
   const std::size_t MAX_PATTERNS_COUNT = 48;
   const std::size_t MAX_PATTERN_SIZE = 64;
   const std::size_t MAX_SAMPLES_COUNT = 32;
+
+  typedef IO::FastDump<uint8_t> FastDump;
 
   //Table #0 of Pro Tracker 3.3x - 3.4r
   const uint16_t FreqTable_PT_33_34r[96] = {
@@ -216,7 +221,7 @@ namespace
     uint8_t Loop;
     uint8_t Size;
     int8_t Data[1];
-  };
+  } PACK_POST;
 #ifdef USE_PRAGMA_PACK
 #pragma pack(pop)
 #endif
@@ -261,7 +266,7 @@ namespace
   class SampleCreator : public std::unary_function<uint16_t, Sample>
   {
   public:
-    explicit SampleCreator(const Dump& data) : Data(data)
+    explicit SampleCreator(const FastDump& data) : Data(data)
     {
     }
 
@@ -302,7 +307,7 @@ namespace
       return tmp;
     }
   private:
-    const Dump& Data;
+    const FastDump& Data;
   };
 
   enum CmdType
@@ -320,6 +325,8 @@ namespace
     TEMPO,        //1p - pseudo-effect
   };
 
+  void Describing(ModulePlayer::Info& info);
+
   class PlayerImpl : public Tracking::TrackPlayer<3, Sample>
   {
     typedef Tracking::TrackPlayer<3, Sample> Parent;
@@ -327,7 +334,7 @@ namespace
     class OrnamentCreator : public std::unary_function<uint16_t, Parent::Ornament>
     {
     public:
-      explicit OrnamentCreator(const Dump& data) : Data(data)
+      explicit OrnamentCreator(const FastDump& data) : Data(data)
       {
       }
 
@@ -337,7 +344,7 @@ namespace
 
       result_type operator () (const argument_type arg) const
       {
-        if (0 == arg || arg >= Data.size())
+        if (0 == arg || arg >= Data.Size())
         {
           return result_type(1, 0);//safe version
         }
@@ -348,10 +355,10 @@ namespace
         return tmp;
       }
     private:
-      const Dump& Data;
+      const FastDump& Data;
     };
 
-    static void ParsePattern(const Dump& data, std::vector<std::size_t>& offsets, Parent::Line& line,
+    static void ParsePattern(const FastDump& data, std::vector<std::size_t>& offsets, Parent::Line& line,
       std::valarray<std::size_t>& periods,
       std::valarray<std::size_t>& counters)
     {
@@ -589,7 +596,7 @@ namespace
       signed NoiseAddon;
     };
   public:
-    PlayerImpl(const String& filename, const Dump& data)
+    PlayerImpl(const String& filename, const FastDump& data)
       : Device(AYM::CreateChip())//TODO: put out
       , Version(0), FreqTable(0), VolumeTable(0)
     {
@@ -672,8 +679,7 @@ namespace
 
     virtual void GetInfo(Info& info) const
     {
-      info.Capabilities = CAP_AYM;
-      info.Properties.clear();
+      Describing(info);
     }
 
     /// Retrieving current state of sound
@@ -924,7 +930,7 @@ namespace
   };
 
   //////////////////////////////////////////////////////////////////////////
-  void Information(ModulePlayer::Info& info)
+  void Describing(ModulePlayer::Info& info)
   {
     info.Capabilities = CAP_AYM;
     info.Properties.clear();
@@ -932,20 +938,22 @@ namespace
     info.Properties.insert(StringMap::value_type(ATTR_VERSION, TEXT_PT3_VERSION));
   }
 
-  bool Checking(const String& /*filename*/, const Dump& data)
+  bool Checking(const String& /*filename*/, const IO::DataContainer& source)
   {
-    const std::size_t limit(data.size());
-    if (limit < sizeof(PT3Header))
+    const std::size_t limit(source.Size());
+    if (limit < sizeof(PT3Header) || limit >= MAX_MODULE_SIZE)
     {
       return false;
     }
-    const PT3Header* const header(safe_ptr_cast<const PT3Header*>(&data[0]));
+    
+    const uint8_t* const data(static_cast<const uint8_t*>(source.Data()));
+    const PT3Header* const header(safe_ptr_cast<const PT3Header*>(data));
     const std::size_t patOff(fromLE(header->PatternsOffset));
     if (patOff >= limit ||
         0xff != data[patOff - 1] ||
-        &data[patOff - 1] != std::find_if(header->Positions, &data[patOff - 1], 
+        &data[patOff - 1] != std::find_if(header->Positions, data + patOff - 1, 
           std::bind2nd(std::modulus<uint8_t>(), 3)) ||
-        &header->Positions[header->Lenght] != &data[patOff - 1] ||
+        &header->Positions[header->Lenght] != data + patOff - 1 ||
         fromLE(header->OrnamentsOffsets[0]) + sizeof(PT3Ornament) > limit
         )
     {
@@ -954,11 +962,11 @@ namespace
     return true;
   }
 
-  ModulePlayer::Ptr Creating(const String& filename, const Dump& data)
+  ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data)
   {
     assert(Checking(filename, data) || !"Attempt to create pt3 player on invalid data");
-    return ModulePlayer::Ptr(new PlayerImpl(filename, data));
+    return ModulePlayer::Ptr(new PlayerImpl(filename, FastDump(data)));
   }
 
-  PluginAutoRegistrator pt3Reg(Checking, Creating, Information);
+  PluginAutoRegistrator pt3Reg(Checking, Creating, Describing);
 }

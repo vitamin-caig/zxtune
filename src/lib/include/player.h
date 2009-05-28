@@ -6,6 +6,10 @@
 
 namespace ZXTune
 {
+  namespace IO
+  {
+    class DataContainer;
+  }
   /// Player interface
   class ModulePlayer
   {
@@ -53,7 +57,7 @@ namespace ZXTune
     virtual State SetPosition(const uint32_t& frame) = 0;
 
     /// Virtual ctor
-    static Ptr Create(const String& filename, const Dump& data);
+    static Ptr Create(const String& filename, const IO::DataContainer& data);
   };
 
   /// Common interface

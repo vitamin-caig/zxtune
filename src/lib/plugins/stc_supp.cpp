@@ -4,6 +4,8 @@
 #include "../devices/data_source.h"
 #include "../devices/aym/aym.h"
 
+#include "../io/container.h"
+
 #include <tools.h>
 
 #include <player_attrs.h>
@@ -22,10 +24,13 @@ namespace
   const String TEXT_STC_EDITOR("SoundTracker");
 
   //hints
+  const std::size_t MAX_MODULE_SIZE = 16384;
   const std::size_t MAX_SAMPLES_COUNT = 16;
   const std::size_t MAX_ORNAMENTS_COUNT = 16;
   const std::size_t MAX_PATTERN_SIZE = 64;
   const std::size_t MAX_PATTERN_COUNT = 32;//TODO
+
+  typedef IO::FastDump<uint8_t> FastDump;
 
   const uint16_t FreqTable[96] = {//TODO
     0xef8, 0xe10, 0xd60, 0xc80, 0xbd8, 0xb28, 0xa88, 0x9f0, 0x960, 0x8e0, 0x858, 0x7e0,
@@ -150,11 +155,13 @@ namespace
     NOENVELOPE,   //0p
   };
 
+  void Describing(ModulePlayer::Info& info);
+
   class PlayerImpl : public Tracking::TrackPlayer<3, Sample>
   {
     typedef Tracking::TrackPlayer<3, Sample> Parent;
 
-    static void ParsePattern(const Dump& data, std::vector<std::size_t>& offsets, Parent::Line& line,
+    static void ParsePattern(const FastDump& data, std::vector<std::size_t>& offsets, Parent::Line& line,
       std::valarray<std::size_t>& periods,
       std::valarray<std::size_t>& counters)
     {
@@ -235,7 +242,7 @@ namespace
       bool LoopedInSample;
     };
   public:
-    PlayerImpl(const String& filename, const Dump& data)
+    PlayerImpl(const String& filename, const FastDump& data)
       : Device(AYM::CreateChip())//TODO: put out
     {
       //assume that data is ok
@@ -316,8 +323,7 @@ namespace
 
     virtual void GetInfo(Info& info) const
     {
-      info.Capabilities = CAP_AYM;
-      info.Properties.clear();
+      Describing(info);
     }
 
     /// Retrieving current state of sound
@@ -474,7 +480,7 @@ namespace
     ChannelState Channels[3];
   };
   //////////////////////////////////////////////////////////////////////////
-  void Information(ModulePlayer::Info& info)
+  void Describing(ModulePlayer::Info& info)
   {
     info.Capabilities = CAP_AYM;
     info.Properties.clear();
@@ -482,19 +488,20 @@ namespace
     info.Properties.insert(StringMap::value_type(ATTR_VERSION, TEXT_STC_VERSION));
   }
 
-  bool Checking(const String& /*filename*/, const Dump& data)
+  bool Checking(const String& /*filename*/, const IO::DataContainer& source)
   {
-    const std::size_t limit(data.size());
-    if (sizeof(STCHeader) > limit)
+    const std::size_t limit(source.Size());
+    if (sizeof(STCHeader) > limit || limit > MAX_MODULE_SIZE)
     {
       return false;
     }
-    const STCHeader* const header(safe_ptr_cast<const STCHeader*>(&data[0]));
+    const uint8_t* const data(static_cast<const uint8_t*>(source.Data()));
+    const STCHeader* const header(safe_ptr_cast<const STCHeader*>(data));
     const std::size_t samOff(sizeof(STCHeader));
     const std::size_t posOff(fromLE(header->PositionsOffset));
-    const STCPositions* const positions(safe_ptr_cast<const STCPositions*>(&data[posOff]));
+    const STCPositions* const positions(safe_ptr_cast<const STCPositions*>(data + posOff));
     const std::size_t ornOff(fromLE(header->OrnamentsOffset));
-    const STCOrnament* const ornaments(safe_ptr_cast<const STCOrnament*>(&data[ornOff]));
+    const STCOrnament* const ornaments(safe_ptr_cast<const STCOrnament*>(data + ornOff));
     const std::size_t patOff(fromLE(header->PatternsOffset));
     //check offsets
     if (posOff > limit || ornOff > limit || patOff > limit)
@@ -517,11 +524,11 @@ namespace
     return true;
   }
 
-  ModulePlayer::Ptr Creating(const String& filename, const Dump& data)
+  ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data)
   {
     assert(Checking(filename, data) || !"Attempt to create pt2 player on invalid data");
-    return ModulePlayer::Ptr(new PlayerImpl(filename, data));
+    return ModulePlayer::Ptr(new PlayerImpl(filename, FastDump(data)));
   }
 
-  PluginAutoRegistrator stcReg(Checking, Creating, Information);
+  PluginAutoRegistrator stcReg(Checking, Creating, Describing);
 }

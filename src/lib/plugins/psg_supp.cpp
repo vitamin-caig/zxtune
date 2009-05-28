@@ -1,6 +1,7 @@
 #include "plugin_enumerator.h"
 #include "../devices/data_source.h"
 #include "../devices/aym/aym.h"
+#include "../io/container.h"
 
 #include <tools.h>
 
@@ -17,6 +18,10 @@ namespace
 
   const String TEXT_PSG_INFO("PSG modules support");
   const String TEXT_PSG_VERSION("0.1");
+
+  const std::size_t MAX_MODULE_SIZE = 65536;
+
+  typedef IO::FastDump<uint8_t> FastDump;
 
   const uint8_t PSG_SIGNATURE[] = {'P', 'S', 'G'};
   const uint8_t PSG_MARKER = 0x1a;
@@ -42,36 +47,18 @@ namespace
 
   BOOST_STATIC_ASSERT(sizeof(PSGHeader) == 16);
 
-  void Information(ModulePlayer::Info& info)
-  {
-    info.Capabilities = CAP_AYM;
-    info.Properties.clear();
-    info.Properties.insert(StringMap::value_type(ATTR_DESCRIPTION, TEXT_PSG_INFO));
-    info.Properties.insert(StringMap::value_type(ATTR_VERSION, TEXT_PSG_VERSION));
-  }
-
-  bool Checking(const String& /*filename*/, const Dump& data)
-  {
-    if (data.size() <= sizeof(PSGHeader))
-    {
-      return false;
-    }
-    const PSGHeader* header(safe_ptr_cast<const PSGHeader*>(&data[0]));
-    return (0 == std::memcmp(header->Sign, PSG_SIGNATURE, sizeof(PSG_SIGNATURE)) && PSG_MARKER == header->Marker);
-  }
+  void Describing(ModulePlayer::Info& info);
 
   class PlayerImpl : public ModulePlayer
   {
   public:
-    PlayerImpl(const String& filename, const Dump& data)
+    PlayerImpl(const String& filename, const FastDump& data)
       : Device(AYM::CreateChip()), CurrentState(MODULE_STOPPED), Filename(filename), TickCount(), Position()
     {
-      assert(data.size() > sizeof(PSGHeader));
-      //const PSGHeader* header(safe_ptr_cast<const PSGHeader*>(&data[0]));
       //workaround for some emulators
       std::size_t offset = data[4] == INT_BEGIN ? 4 : sizeof(PSGHeader);
-      std::size_t size = data.size() - offset;
-      Dump::const_iterator bdata = data.begin() + offset;
+      std::size_t size = data.Size() - offset;
+      const uint8_t* bdata = &data[offset];
       if (INT_BEGIN != *bdata)
       {
         throw 1;//TODO
@@ -124,8 +111,7 @@ namespace
 
     virtual void GetInfo(Info& info) const
     {
-      info.Capabilities = CAP_AYM;
-      info.Properties.clear();
+      Describing(info);
     }
 
     /// Retrieving information about loaded module
@@ -216,11 +202,29 @@ namespace
   };
 
 
-  ModulePlayer::Ptr Creating(const String& filename, const Dump& data)
+  void Describing(ModulePlayer::Info& info)
   {
-    assert(Checking(filename, data) || !"Attempt to create player on invalid data");
-    return ModulePlayer::Ptr(new PlayerImpl(filename, data));
+    info.Capabilities = CAP_AYM;
+    info.Properties.clear();
+    info.Properties.insert(StringMap::value_type(ATTR_DESCRIPTION, TEXT_PSG_INFO));
+    info.Properties.insert(StringMap::value_type(ATTR_VERSION, TEXT_PSG_VERSION));
   }
 
-  PluginAutoRegistrator psgReg(Checking, Creating, Information);
+  bool Checking(const String& /*filename*/, const IO::DataContainer& data)
+  {
+    if (data.Size() <= sizeof(PSGHeader) || data.Size() > MAX_MODULE_SIZE)
+    {
+      return false;
+    }
+    const PSGHeader* header(safe_ptr_cast<const PSGHeader*>(data.Data()));
+    return (0 == std::memcmp(header->Sign, PSG_SIGNATURE, sizeof(PSG_SIGNATURE)) && PSG_MARKER == header->Marker);
+  }
+
+  ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data)
+  {
+    assert(Checking(filename, data) || !"Attempt to create player on invalid data");
+    return ModulePlayer::Ptr(new PlayerImpl(filename, FastDump(data)));
+  }
+
+  PluginAutoRegistrator psgReg(Checking, Creating, Describing);
 }

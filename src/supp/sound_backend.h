@@ -5,6 +5,11 @@
 
 namespace ZXTune
 {
+  namespace IO
+  {
+    class DataContainer;
+  }
+
   namespace Sound
   {
     /// Asynchronous and thread-safe playing backend interface
@@ -26,7 +31,7 @@ namespace ZXTune
       };
 
       /// Trying to open module
-      virtual State OpenModule(const String& filename, const Dump& data) = 0;
+      virtual State OpenModule(const String& filename, const IO::DataContainer& data) = 0;
 
       /// Playback control
       virtual State GetState() const = 0;

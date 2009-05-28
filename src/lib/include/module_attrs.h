@@ -5,9 +5,6 @@ namespace ZXTune
 {
   namespace Module
   {
-    /// Module capabilities
-    const unsigned CAP_MULTITRACK = 1;
-
     /// Module attributes
     const String::value_type ATTR_FILENAME[] = {'F', 'i', 'l', 'e', 'n', 'a', 'm', 'e', '\0'};
     const String::value_type ATTR_AUTHOR[] = {'A', 'u', 't', 'h', 'o', 'r', '\0'};

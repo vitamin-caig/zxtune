@@ -4,9 +4,11 @@
 
 #include <../../lib/sound/mixer.h>
 #include <../../lib/sound/renderer.h>
+#include <../../lib/io/container.h>
 
 #include <../../supp/sound_backend.h>
 #include <../../supp/sound_backend_types.h>
+
 
 #include <tools.h>
 #include <error.h>
@@ -173,21 +175,8 @@ int main(int argc, char* argv[])
       std::cout << "Invalid file name specified" << std::endl;
       return 1;
     }
-    Dump data;
-    {
-      std::ifstream file(filename.c_str(), std::ios::binary);
-      if (!file)
-      {
-        return 1;//TODO
-      }
-      std::cout << "Reading " << filename << std::endl;
-      file.seekg(0, std::ios::end);
-      data.resize(file.tellg());
-      file.seekg(0);
-      file.read(safe_ptr_cast<char*>(&data[0]), static_cast<std::streamsize>(data.size()));
-    }
 
-//#define WAVE
+    IO::DataContainer::Ptr source(IO::DataContainer::Create(filename));
 
     if (!backend.get())
     {
@@ -197,7 +186,7 @@ int main(int argc, char* argv[])
       backend = Sound::CreateOSSBackend();
 #endif
     }
-    backend->OpenModule(filename, data);
+    backend->OpenModule(filename, *source);
 
     Module::Information module;
     backend->GetModuleInfo(module);

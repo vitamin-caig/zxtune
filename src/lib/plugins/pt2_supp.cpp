@@ -3,6 +3,7 @@
 #include "tracking_supp.h"
 #include "../devices/data_source.h"
 #include "../devices/aym/aym.h"
+#include "../io/container.h"
 
 #include <tools.h>
 
@@ -24,8 +25,11 @@ namespace
   const std::size_t LIMITER(~std::size_t(0));
 
   //hints
+  const std::size_t MAX_MODULE_SIZE = 16384;
   const std::size_t MAX_PATTERN_SIZE = 64;
   const std::size_t MAX_PATTERN_COUNT = 64;//TODO
+
+  typedef IO::FastDump<uint8_t> FastDump;
 
   const uint16_t FreqTable[96] = {
     0xef8, 0xe10, 0xd60, 0xc80, 0xbd8, 0xb28, 0xa88, 0x9f0, 0x960, 0x8e0, 0x858, 0x7e0,
@@ -122,7 +126,7 @@ namespace
   class SampleCreator : public std::unary_function<uint16_t, Sample>
   {
   public:
-    explicit SampleCreator(const Dump& data) : Data(data)
+    explicit SampleCreator(const FastDump& data) : Data(data)
     {
     }
 
@@ -155,7 +159,7 @@ namespace
       return tmp;
     }
   private:
-    const Dump& Data;
+    const FastDump& Data;
   };
 
   enum CmdType
@@ -174,6 +178,8 @@ namespace
     return uint8_t((volume * 17 + (volume > 7 ? 1 : 0)) * level >> 8);
   }
 
+  void Describing(ModulePlayer::Info& info);
+
   class PlayerImpl : public Tracking::TrackPlayer<3, Sample>
   {
     typedef Tracking::TrackPlayer<3, Sample> Parent;
@@ -181,7 +187,7 @@ namespace
     class OrnamentCreator : public std::unary_function<uint16_t, Parent::Ornament>
     {
     public:
-      explicit OrnamentCreator(const Dump& data) : Data(data)
+      explicit OrnamentCreator(const FastDump& data) : Data(data)
       {
       }
 
@@ -191,7 +197,7 @@ namespace
 
       result_type operator () (const argument_type arg) const
       {
-        if (0 == arg || arg >= Data.size())
+        if (0 == arg || arg >= Data.Size())
         {
           return result_type(1, 0);//safe version
         }
@@ -202,10 +208,10 @@ namespace
         return tmp;
       }
     private:
-      const Dump& Data;
+      const FastDump& Data;
     };
 
-    static void ParsePattern(const Dump& data, std::vector<std::size_t>& offsets, Parent::Line& line,
+    static void ParsePattern(const FastDump& data, std::vector<std::size_t>& offsets, Parent::Line& line,
       std::valarray<std::size_t>& periods,
       std::valarray<std::size_t>& counters)
     {
@@ -329,7 +335,7 @@ namespace
       signed Glissade;
     };
   public:
-    PlayerImpl(const String& filename, const Dump& data)
+    PlayerImpl(const String& filename, const FastDump& data)
       : Device(AYM::CreateChip())//TODO: put out
     {
       //assume all data is correct
@@ -390,8 +396,7 @@ namespace
 
     virtual void GetInfo(Info& info) const
     {
-      info.Capabilities = CAP_AYM;
-      info.Properties.clear();
+      Describing(info);
     }
 
     /// Retrieving current state of sound
@@ -580,7 +585,7 @@ namespace
   };
 
   //////////////////////////////////////////////////////////////////////////
-  void Information(ModulePlayer::Info& info)
+  void Describing(ModulePlayer::Info& info)
   {
     info.Capabilities = CAP_AYM;
     info.Properties.clear();
@@ -588,15 +593,17 @@ namespace
     info.Properties.insert(StringMap::value_type(ATTR_VERSION, TEXT_PT2_VERSION));
   }
 
-  bool Checking(const String& /*filename*/, const Dump& data)
+  bool Checking(const String& /*filename*/, const IO::DataContainer& source)
   {
     //check for header
-    const std::size_t size(data.size());
-    if (sizeof(PT2Header) > size)
+    const std::size_t size(source.Size());
+    if (sizeof(PT2Header) > size || size > MAX_MODULE_SIZE)
     {
       return false;
     }
-    const PT2Header* const header(safe_ptr_cast<const PT2Header*>(&data[0]));
+
+    const uint8_t* const data(static_cast<const uint8_t*>(source.Data()));
+    const PT2Header* const header(safe_ptr_cast<const PT2Header*>(data));
     //check offsets
     for (const uint16_t* sampOff = header->SamplesOffsets; sampOff != ArrayEnd(header->SamplesOffsets); ++sampOff)
     {
@@ -605,7 +612,7 @@ namespace
       {
         return false;
       }
-      const PT2Sample* const sample(safe_ptr_cast<const PT2Sample*>(&data[offset]));
+      const PT2Sample* const sample(safe_ptr_cast<const PT2Sample*>(data + offset));
       if (offset + sizeof(*sample) + (sample->Size - 1) * sizeof(PT2Sample::Line) > size)
       {
         return false;
@@ -618,7 +625,7 @@ namespace
       {
         return false;
       }
-      const PT2Ornament* const ornament(safe_ptr_cast<const PT2Ornament*>(&data[offset]));
+      const PT2Ornament* const ornament(safe_ptr_cast<const PT2Ornament*>(data + offset));
       if (offset + sizeof(*ornament) + ornament->Size - 1 > size)
       {
         return false;
@@ -629,7 +636,7 @@ namespace
       return false;
     }
     //check patterns
-    for (const PT2Pattern* patPos(safe_ptr_cast<const PT2Pattern*>(&data[fromLE(header->PatternsOffset)]));
+    for (const PT2Pattern* patPos(safe_ptr_cast<const PT2Pattern*>(data + fromLE(header->PatternsOffset)));
       *patPos;
       ++patPos)
     {
@@ -641,11 +648,11 @@ namespace
     return true;
   }
 
-  ModulePlayer::Ptr Creating(const String& filename, const Dump& data)
+  ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data)
   {
     assert(Checking(filename, data) || !"Attempt to create pt2 player on invalid data");
-    return ModulePlayer::Ptr(new PlayerImpl(filename, data));
+    return ModulePlayer::Ptr(new PlayerImpl(filename, FastDump(data)));
   }
 
-  PluginAutoRegistrator pt2Reg(Checking, Creating, Information);
+  PluginAutoRegistrator pt2Reg(Checking, Creating, Describing);
 }
