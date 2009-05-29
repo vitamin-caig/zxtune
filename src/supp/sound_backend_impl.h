@@ -15,7 +15,7 @@ namespace ZXTune
       BackendImpl();
       virtual ~BackendImpl();
 
-      virtual State OpenModule(const String& filename, const IO::DataContainer& data);
+      virtual State SetPlayer(ModulePlayer::Ptr player);
 
       virtual State GetState() const;
       virtual State Play();

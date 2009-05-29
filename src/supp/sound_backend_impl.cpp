@@ -69,20 +69,20 @@ namespace ZXTune
       assert(NOTOPENED == CurrentState || STOPPED == CurrentState || !"Backend should be stopped!");
     }
 
-    Backend::State BackendImpl::OpenModule(const String& filename, const IO::DataContainer& data)
+    Backend::State BackendImpl::SetPlayer(ModulePlayer::Ptr player)
     {
       static const SampleArray MONO_MIX = {FIXED_POINT_PRECISION};
 
       Locker lock(PlayerMutex);
       SafeStop();
-      Player.reset(ModulePlayer::Create(filename, data).release());
+      Player = player;
       if (Player.get())
       {
         ModulePlayer::Info playInfo;
         Player->GetInfo(playInfo);
         if (playInfo.Capabilities & CAP_MULTITRACK)
         {
-          return CurrentState = NOTOPENED;//TODO
+          throw 1;//TODO
         }
         Module::Information info;
         Player->GetModuleInfo(info);

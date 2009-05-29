@@ -1,6 +1,7 @@
 #include "plugin_enumerator.h"
 #include "tracking_supp.h"
 #include "../io/container.h"
+#include "../io/warnings_collector.h"
 
 #include <player_attrs.h>
 
@@ -117,6 +118,9 @@ namespace
 
   void Describing(ModulePlayer::Info& info);
 
+  typedef Log::WarningsCollector::AutoPrefixParam<std::size_t> IndexPrefix;
+  typedef Log::WarningsCollector::AutoPrefixParam2<std::size_t, std::size_t> DoublePrefix;
+
   class PlayerImpl : public Tracking::TrackPlayer<4, Sample>
   {
     typedef Tracking::TrackPlayer<4, Sample> Parent;
@@ -135,7 +139,7 @@ namespace
       signed Glissade;
     };
 
-    static Parent::Pattern ParsePattern(const CHIPattern& src)
+    static Parent::Pattern ParsePattern(const CHIPattern& src, Log::WarningsCollector& warner)
     {
       Parent::Pattern result;
       result.reserve(MAX_PATTERN_SIZE);
@@ -146,6 +150,7 @@ namespace
         Parent::Line& dstLine(result.back());
         for (std::size_t chanNum = 0; chanNum != 4; ++chanNum)
         {
+          DoublePrefix pfx(warner, "Line %1%: Channel %2%: ", lineNum, chanNum);
           Parent::Line::Chan& dstChan(dstLine.Channels[chanNum]);
           const CHINote& note(src.Notes[lineNum][chanNum]);
           const CHINoteParam& param(src.Params[lineNum][chanNum]);
@@ -179,6 +184,7 @@ namespace
           case SPECIAL:
             if (0 == chanNum)
             {
+              warner.Assert(!dstLine.Tempo, "duplicated tempo");
               dstLine.Tempo = param.Parameter;
             }
             else if (3 == chanNum)
@@ -187,11 +193,12 @@ namespace
             }
             else
             {
-              assert(!"Special command in invalid channel");
+              warner.Warning("special command in invalid channel");
             }
           }
         }
       }
+      warner.Assert(result.size() <= MAX_PATTERN_SIZE, "too long");
       return result;
     }
 
@@ -207,17 +214,19 @@ namespace
       Information.Properties.insert(StringMap::value_type(Module::ATTR_TITLE, String(header->Name, ArrayEnd(header->Name))));
       Information.Properties.insert(StringMap::value_type(Module::ATTR_PROGRAM, TEXT_CHI_EDITOR));
 
+      Log::WarningsCollector warner;
       //fill order
       Data.Positions.resize(header->Length + 1);
       std::copy(header->Positions, header->Positions + header->Length + 1, Data.Positions.begin());
       //fill patterns
       Information.Statistic.Pattern = 1 + *std::max_element(Data.Positions.begin(), Data.Positions.end());
-      Data.Patterns.resize(Information.Statistic.Pattern);
+      Data.Patterns.reserve(Information.Statistic.Pattern);
       const CHIPattern* const patBegin(safe_ptr_cast<const CHIPattern*>(&data[sizeof(CHIHeader)]));
-      std::transform(patBegin,
-        patBegin + Information.Statistic.Pattern,
-        Data.Patterns.begin(),
-        ParsePattern);
+      for (const CHIPattern* pat = patBegin; pat != patBegin + Information.Statistic.Pattern; ++pat)
+      {
+        IndexPrefix pfx(warner, "Pattern %1%: ", pat - patBegin);
+        Data.Patterns.push_back(ParsePattern(*pat, warner));
+      }
       //fill samples
       Data.Samples.reserve(ArraySize(header->Samples));
       const uint8_t* sampleData(safe_ptr_cast<const uint8_t*>(patBegin + Information.Statistic.Pattern));
@@ -235,7 +244,11 @@ namespace
       }
       Information.Statistic.Pattern = Data.Patterns.size();
       Information.Statistic.Channels = 4;
-
+      const String& warnings(warner.GetWarnings());
+      if (!warnings.empty())
+      {
+        Information.Properties.insert(StringMap::value_type(Module::ATTR_WARNINGS, warnings));
+      }
       InitTime();
     }
 

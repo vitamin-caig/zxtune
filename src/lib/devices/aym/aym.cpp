@@ -333,7 +333,8 @@ namespace
           const uint16_t period = (uint16_t(State.Data[DataChunk::REG_TONEA_H + chan * 2]) << 8) |
             State.Data[DataChunk::REG_TONEA_L + chan * 2];
           const std::size_t freq(uint64_t(LastTicksPerSec) * 100 / (16 * (period ? period : 1)));
-          spectrumState.Array[std::lower_bound(FREQ_TABLE, ArrayEnd(FREQ_TABLE), freq) - FREQ_TABLE] = level;
+          const std::size_t band(std::min<std::size_t>(std::lower_bound(FREQ_TABLE, ArrayEnd(FREQ_TABLE), freq) - FREQ_TABLE, ArraySize(FREQ_TABLE) - 1));
+          spectrumState.Array[band] = level;
         }
       }
     }

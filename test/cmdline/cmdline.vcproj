@@ -282,6 +282,9 @@
 				<File
 					RelativePath="..\..\src\lib\io\location.h">
 				</File>
+				<File
+					RelativePath="..\..\src\lib\io\warnings_collector.h">
+				</File>
 			</Filter>
 		</Filter>
 		<Filter

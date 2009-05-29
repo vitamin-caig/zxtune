@@ -30,8 +30,7 @@ namespace ZXTune
         PLAYING,
       };
 
-      /// Trying to open module
-      virtual State OpenModule(const String& filename, const IO::DataContainer& data) = 0;
+      virtual State SetPlayer(ModulePlayer::Ptr player) = 0;
 
       /// Playback control
       virtual State GetState() const = 0;

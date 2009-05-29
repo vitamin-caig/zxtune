@@ -4,6 +4,7 @@
 #include "../devices/data_source.h"
 #include "../devices/aym/aym.h"
 #include "../io/container.h"
+#include "../io/warnings_collector.h"
 
 #include <tools.h>
 
@@ -180,6 +181,8 @@ namespace
 
   void Describing(ModulePlayer::Info& info);
 
+  typedef Log::WarningsCollector::AutoPrefixParam<std::size_t> IndexPrefix;
+
   class PlayerImpl : public Tracking::TrackPlayer<3, Sample>
   {
     typedef Tracking::TrackPlayer<3, Sample> Parent;
@@ -213,7 +216,8 @@ namespace
 
     static void ParsePattern(const FastDump& data, std::vector<std::size_t>& offsets, Parent::Line& line,
       std::valarray<std::size_t>& periods,
-      std::valarray<std::size_t>& counters)
+      std::valarray<std::size_t>& counters,
+      Log::WarningsCollector& warner)
     {
       for (std::size_t chan = 0; chan != line.Channels.size(); ++chan)
       {
@@ -221,23 +225,25 @@ namespace
         {
           continue;//has to skip
         }
+        IndexPrefix pfx(warner, "Channel %1%: ", chan);
         for (;;)
         {
           const uint8_t cmd(data[offsets[chan]++]);
           Line::Chan& channel(line.Channels[chan]);
           if (cmd >= 0xe1) //sample
           {
-            assert(!channel.SampleNum);
+            warner.Assert(!channel.SampleNum, "duplicated sample number");
             channel.SampleNum = cmd - 0xe0;
           }
           else if (cmd == 0xe0) //sample 0 - shut up
           {
+            warner.Assert(!channel.Enabled, "duplicated channel state");
             channel.Enabled = false;
             break;
           }
           else if (cmd >= 0x80 && cmd <= 0xdf)//note
           {
-            assert(!channel.Note);
+            warner.Assert(!channel.Enabled, "duplicated channel state");
             channel.Enabled = true;
             const std::size_t note(cmd - 0x80);
             //for note gliss calculate limit manually
@@ -248,6 +254,7 @@ namespace
             }
             else
             {
+              warner.Assert(!channel.Note, "duplicated note");
               channel.Note = note;
             }
             break;
@@ -268,7 +275,7 @@ namespace
           }
           else if (cmd >= 0x60 && cmd <= 0x6f)//ornament
           {
-            assert(!channel.OrnamentNum);
+            warner.Assert(!channel.OrnamentNum, "duplicated ornament");
             channel.OrnamentNum = cmd - 0x60;
           }
           else if (cmd >= 0x20 && cmd <= 0x5f)//skip
@@ -277,12 +284,12 @@ namespace
           }
           else if (cmd >= 0x10 && cmd <= 0x1f)//volume
           {
-            assert(!channel.Volume);
+            warner.Assert(!channel.Volume, "duplicated volume");
             channel.Volume = cmd - 0x10;
           }
           else if (cmd == 0x0f)//new delay
           {
-            assert(!line.Tempo);
+            warner.Assert(!line.Tempo, "duplicated tempo");
             line.Tempo = data[offsets[chan]++];
           }
           else if (cmd == 0x0e)//gliss
@@ -292,7 +299,7 @@ namespace
           else if (cmd == 0x0d)//note gliss
           {
             //too late when note is filled
-            assert(!channel.Note);
+            warner.Assert(!channel.Note, "invalid gliss to note effect");
             channel.Commands.push_back(Command(GLISS_NOTE, static_cast<int8_t>(data[offsets[chan]])));
             //ignore delta due to error
             offsets[chan] += 3;
@@ -347,6 +354,8 @@ namespace
       Information.Properties.insert(StringMap::value_type(Module::ATTR_TITLE, String(header->Name, ArrayEnd(header->Name))));
       Information.Properties.insert(StringMap::value_type(Module::ATTR_PROGRAM, TEXT_PT2_EDITOR));
 
+      Log::WarningsCollector warner;
+
       //fill samples
       std::transform(header->SamplesOffsets, ArrayEnd(header->SamplesOffsets),
         std::back_inserter(Data.Samples), SampleCreator(data));
@@ -356,14 +365,16 @@ namespace
       //fill order
       Data.Positions.assign(header->Positions,
         std::find(header->Positions, header->Positions + header->Length, POS_END_MARKER));
-      assert(header->Length == Data.Positions.size());
+      warner.Assert(header->Length == Data.Positions.size(), "Invalid length in header");
 
       //fill patterns
       Data.Patterns.reserve(MAX_PATTERN_COUNT);
+      std::size_t index(0);
       for (const PT2Pattern* patPos(safe_ptr_cast<const PT2Pattern*>(&data[fromLE(header->PatternsOffset)]));
         *patPos;
-        ++patPos)
+        ++patPos, ++index)
       {
+        IndexPrefix pfx(warner, "Pattern %1%: ", index);
         Data.Patterns.push_back(Pattern());
         Pattern& pat(Data.Patterns.back());
         std::vector<std::size_t> offsets(ArraySize(patPos->Offsets));
@@ -373,9 +384,10 @@ namespace
         pat.reserve(MAX_PATTERN_SIZE);
         do
         {
+          IndexPrefix pfx(warner, "Line %1%: ", pat.size());
           pat.push_back(Line());
           Line& line(pat.back());
-          ParsePattern(data, offsets, line, periods, counters);
+          ParsePattern(data, offsets, line, periods, counters, warner);
           //skip lines
           if (const std::size_t linesToSkip = counters.min())
           {
@@ -385,12 +397,16 @@ namespace
         }
         while (data[offsets[0]] || counters[0]);
         //as warnings
-        assert(0 == counters.max());
-        assert(pat.size() <= MAX_PATTERN_SIZE);
+        warner.Assert(0 == counters.max(), "not all channels periods are reached");
+        warner.Assert(pat.size() <= MAX_PATTERN_SIZE, "too long");
       }
       Information.Statistic.Pattern = Data.Patterns.size();
       Information.Statistic.Channels = 3;
-
+      const String& warnings(warner.GetWarnings());
+      if (!warnings.empty())
+      {
+        Information.Properties.insert(StringMap::value_type(Module::ATTR_WARNINGS, warnings));
+      }
       InitTime();
     }
 

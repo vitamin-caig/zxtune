@@ -187,16 +187,18 @@ int main(int argc, char* argv[])
       backend = Sound::CreateOSSBackend();
 #endif
     }
-    backend->OpenModule(filename, *source);
+
+    ModulePlayer::Ptr player(ModulePlayer::Create(filename, *source));
 
     Module::Information module;
-    backend->GetModuleInfo(module);
+    player->GetModuleInfo(module);
     if (module.Capabilities & CAP_MULTITRACK)
     {
       std::cout << module.Properties[Module::ATTR_SUBMODULES];
       return 0;
     }
 
+    backend->SetPlayer(player);
     Sound::Backend::Parameters params;
     backend->GetSoundParameters(params);
 
@@ -251,6 +253,7 @@ int main(int argc, char* argv[])
       "Frame: %12$5d / %13%");
     Sound::Analyze::Volume volState;
     Sound::Analyze::Spectrum specState;
+    bool quit(false);
     while (Sound::Backend::STOPPED != backend->GetState())
     {
       std::size_t frame;
@@ -294,13 +297,21 @@ int main(int argc, char* argv[])
           std::bind2nd(std::ptr_fun(Decrease<Sound::Analyze::Level>), FALLSPEED));
         std::transform(specState.Array.begin(), specState.Array.end(), specState.Array.begin(),
           std::bind2nd(std::ptr_fun(Decrease<Sound::Analyze::Level>), FALLSPEED));
+        if (quit)
+        {
+          break;
+        }
         MoveUp(5 + HEIGTH);
       }
       boost::this_thread::sleep(boost::posix_time::milliseconds(20));
       const int key(GetKey());
       if ('q' == key || 'Q' == key)
       {
-        break;
+        if (silent)
+        {
+          break;
+        }
+        quit = true;
       }
       switch (key)
       {

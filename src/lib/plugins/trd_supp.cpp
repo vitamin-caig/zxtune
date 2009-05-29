@@ -7,6 +7,7 @@
 
 #include <player_attrs.h>
 
+#include <boost/bind.hpp>
 #include <boost/static_assert.hpp>
 
 #include <cassert>
@@ -84,13 +85,14 @@ namespace
   struct FileDescr
   {
     explicit FileDescr(const CatEntry& entry)
-     : Name(entry.Filename, ArrayEnd(entry.Filename))
+     : Name()
      , Offset(entry.Offset())
      , Size(entry.Length)
     {
-      Name += '.';
-      std::replace_copy_if(entry.Filetype, ArrayEnd(entry.Filetype), std::back_inserter(Name),
-        std::not1(std::ptr_fun(&isprint)), '_');
+      const String& name = String(entry.Filename, ArrayEnd(entry.Filename));
+      Name = name.substr(0, name.find_last_not_of(' ') + 1) + '.' + 
+        String(entry.Filetype, std::find_if(entry.Filetype, ArrayEnd(entry.Filetype),
+          !boost::bind(&isalpha, _1) && !boost::bind(&isdigit, _1)));
     }
 
     bool IsMergeable(const CatEntry& rh)
