@@ -73,6 +73,7 @@
 		<Unit filename="../../src/lib/io/container.cpp" />
 		<Unit filename="../../src/lib/io/container.h" />
 		<Unit filename="../../src/lib/io/location.h" />
+		<Unit filename="../../src/lib/io/warnings_collector.h" />
 		<Unit filename="../../src/lib/plugins/asc_supp.cpp" />
 		<Unit filename="../../src/lib/plugins/chi_supp.cpp" />
 		<Unit filename="../../src/lib/plugins/plugin_enumerator.cpp" />

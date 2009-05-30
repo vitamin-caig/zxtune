@@ -5,6 +5,7 @@
 #include "../devices/aym/aym.h"
 
 #include "../io/container.h"
+#include "../io/warnings_collector.h"
 
 #include <tools.h>
 
@@ -157,13 +158,16 @@ namespace
 
   void Describing(ModulePlayer::Info& info);
 
+  typedef Log::WarningsCollector::AutoPrefixParam<std::size_t> IndexPrefix;
+
   class PlayerImpl : public Tracking::TrackPlayer<3, Sample>
   {
     typedef Tracking::TrackPlayer<3, Sample> Parent;
 
     static void ParsePattern(const FastDump& data, std::vector<std::size_t>& offsets, Parent::Line& line,
       std::valarray<std::size_t>& periods,
-      std::valarray<std::size_t>& counters)
+      std::valarray<std::size_t>& counters,
+      Log::WarningsCollector& warner)
     {
       for (std::size_t chan = 0; chan != line.Channels.size(); ++chan)
       {
@@ -171,31 +175,34 @@ namespace
         {
           continue;//has to skip
         }
+        IndexPrefix pfx(warner, "Channel %1%: ", chan);
         for (;;)
         {
           const uint8_t cmd(data[offsets[chan]++]);
           Line::Chan& channel(line.Channels[chan]);
           if (cmd <= 0x5f)//note
           {
-            assert(!channel.Note);
+            warner.Assert(!channel.Note, "duplicated note");
             channel.Note = cmd;
             channel.Enabled = true;
             break;
           }
           else if (cmd >= 0x60 && cmd <= 0x6f)//sample
           {
-            assert(!channel.SampleNum);
+            warner.Assert(!channel.SampleNum, "duplicated sample");
             channel.SampleNum = cmd - 0x60;
           }
           else if (cmd >= 0x70 && cmd <= 0x7f)//ornament
           {
-            assert(channel.Commands.end() == std::find(channel.Commands.begin(), channel.Commands.end(), ENVELOPE));
-            assert(!channel.OrnamentNum);
+            warner.Assert(channel.Commands.end() == std::find(channel.Commands.begin(), channel.Commands.end(), ENVELOPE),
+              "duplicated envelope command");
+            warner.Assert(!channel.OrnamentNum, "duplicated ornament");
             channel.OrnamentNum = cmd - 0x70;
             channel.Commands.push_back(Parent::Command(NOENVELOPE));
           }
           else if (cmd == 0x80)//reset
           {
+            warner.Assert(!channel.Enabled, "duplicated channel state");
             channel.Enabled = false;
             break;
           }
@@ -205,14 +212,17 @@ namespace
           }
           else if (cmd == 0x82)//orn 0
           {
-            assert(channel.Commands.end() == std::find(channel.Commands.begin(), channel.Commands.end(), ENVELOPE));
-            assert(!channel.OrnamentNum);
+            warner.Assert(channel.Commands.end() == std::find(channel.Commands.begin(), channel.Commands.end(), ENVELOPE),
+              "duplicated envelope command");
+            warner.Assert(!channel.OrnamentNum, "duplicated ornament");
             channel.OrnamentNum = 0;
             channel.Commands.push_back(Parent::Command(NOENVELOPE));
           }
           else if (cmd >= 0x83 && cmd <= 0x8e)//orn 0 with envelope
           {
-            assert(channel.Commands.end() == std::find(channel.Commands.begin(), channel.Commands.end(), NOENVELOPE));
+            warner.Assert(channel.Commands.end() == std::find(channel.Commands.begin(), channel.Commands.end(), NOENVELOPE),
+              "duplicated envelope command");
+            warner.Assert(!channel.OrnamentNum, "duplicated ornament");
             channel.Commands.push_back(Parent::Command(ENVELOPE, cmd - 0x80, data[offsets[chan]++]));
             channel.OrnamentNum = 0;
           }
@@ -259,6 +269,7 @@ namespace
         String(header->Identifier, ArrayEnd(header->Identifier))));
       Information.Properties.insert(StringMap::value_type(Module::ATTR_PROGRAM, TEXT_STC_EDITOR));
 
+      Log::WarningsCollector warner;
       //parse positions
       Data.Positions.reserve(positions->Lenght + 1);
       Transpositions.reserve(positions->Lenght + 1);
@@ -268,31 +279,32 @@ namespace
         Data.Positions.push_back(posEntry->PatternNum - 1);
         Transpositions.push_back(posEntry->PatternHeight);
       }
-      assert(Data.Positions.size() == std::size_t(positions->Lenght) + 1);
+      warner.Assert(Data.Positions.size() == std::size_t(positions->Lenght) + 1, "header lenght mismatch");
 
       //parse samples
-      Data.Samples.resize(MAX_SAMPLES_COUNT);
+      Data.Samples.reserve(MAX_SAMPLES_COUNT);
       for (const STCSample* sample = samples; static_cast<const void*>(sample) < static_cast<const void*>(positions); ++sample)
       {
-        assert(sample->Number < MAX_SAMPLES_COUNT);
-        Data.Samples[sample->Number] = Sample(*sample);
+        Data.Samples.push_back(Sample(*sample));
       }
+      warner.Assert(Data.Samples.size() <= MAX_SAMPLES_COUNT, "invalid samples count");
 
       //parse ornaments
-      Data.Ornaments.resize(MAX_ORNAMENTS_COUNT);
+      Data.Ornaments.reserve(MAX_ORNAMENTS_COUNT);
       for (const STCOrnament* ornament = ornaments; static_cast<const void*>(ornament) < static_cast<const void*>(patterns); ++ornament)
       {
-        assert(ornament->Number < MAX_ORNAMENTS_COUNT);
-        Data.Ornaments[ornament->Number] = Parent::Ornament(ArraySize(ornament->Data), 0);
-        Data.Ornaments[ornament->Number].Data.assign(ornament->Data, ArrayEnd(ornament->Data));
+        Data.Ornaments.push_back(Parent::Ornament(ArraySize(ornament->Data), 0));
+        Data.Ornaments.back().Data.assign(ornament->Data, ArrayEnd(ornament->Data));
       }
+      warner.Assert(Data.Ornaments.size() <= MAX_ORNAMENTS_COUNT, "invalid ornaments count");
 
       //parse patterns
-      Data.Patterns.resize(MAX_PATTERN_COUNT);
+      Data.Patterns.reserve(MAX_PATTERN_COUNT);
       for (const STCPattern* pattern = patterns; *pattern; ++pattern)
       {
-        assert(pattern->Number && pattern->Number < Data.Patterns.size());
-        Pattern& pat(Data.Patterns[pattern->Number - 1]);
+        IndexPrefix patPfx(warner, "Pattern %1%: ", pattern - patterns);
+        Data.Patterns.push_back(Parent::Pattern());
+        Pattern& pat(Data.Patterns.back());
         std::vector<std::size_t> offsets(ArraySize(pattern->Offsets));
         std::valarray<std::size_t> periods(std::size_t(0), ArraySize(pattern->Offsets));
         std::valarray<std::size_t> counters(std::size_t(0), ArraySize(pattern->Offsets));
@@ -300,9 +312,10 @@ namespace
         pat.reserve(MAX_PATTERN_SIZE);
         do
         {
+          IndexPrefix linePfx(warner, "Line %1%: ", pat.size());
           pat.push_back(Line());
           Line& line(pat.back());
-          ParsePattern(data, offsets, line, periods, counters);
+          ParsePattern(data, offsets, line, periods, counters, warner);
           //skip lines
           if (const std::size_t linesToSkip = counters.min())
           {
@@ -311,13 +324,19 @@ namespace
           }
         }
         while (0xff != data[offsets[0]] || counters[0]);
-        assert(0 == counters.max());
-        assert(pat.size() <= MAX_PATTERN_SIZE);
+        warner.Assert(0 == counters.max(), "not all channels counters reached");
+        warner.Assert(pat.size() <= MAX_PATTERN_SIZE, "invalid pattern size");
       }
+      warner.Assert(Data.Patterns.size() <= MAX_PATTERN_COUNT, "invalid patterns count");
       Information.Statistic.Position = Data.Positions.size();
       Information.Statistic.Pattern = Data.Patterns.size();
       Information.Statistic.Channels = 3;
 
+      const String& warnings(warner.GetWarnings());
+      if (!warnings.empty())
+      {
+        Information.Properties.insert(StringMap::value_type(Module::ATTR_WARNINGS, warnings));
+      }
       InitTime();
     }
 
@@ -471,7 +490,7 @@ namespace
           chunk.Data[AYM::DataChunk::REG_MIXER] |= toneMsk | noiseMsk;
         }
       }
-      CurrentState.Position.Channels = std::count_if(Channels, ArrayEnd(Channels), 
+      CurrentState.Position.Channels = std::count_if(Channels, ArrayEnd(Channels),
         boost::mem_fn(&ChannelState::Enabled));
     }
   private:

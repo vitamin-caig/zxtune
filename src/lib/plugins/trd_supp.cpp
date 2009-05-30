@@ -7,7 +7,6 @@
 
 #include <player_attrs.h>
 
-#include <boost/bind.hpp>
 #include <boost/static_assert.hpp>
 
 #include <cassert>
@@ -90,9 +89,9 @@ namespace
      , Size(entry.Length)
     {
       const String& name = String(entry.Filename, ArrayEnd(entry.Filename));
-      Name = name.substr(0, name.find_last_not_of(' ') + 1) + '.' + 
+      Name = name.substr(0, name.find_last_not_of(' ') + 1) + '.' +
         String(entry.Filetype, std::find_if(entry.Filetype, ArrayEnd(entry.Filetype),
-          !boost::bind(&isalpha, _1) && !boost::bind(&isdigit, _1)));
+          std::not1(std::ptr_fun(&isalnum))));
     }
 
     bool IsMergeable(const CatEntry& rh)

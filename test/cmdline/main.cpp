@@ -299,6 +299,7 @@ int main(int argc, char* argv[])
           std::bind2nd(std::ptr_fun(Decrease<Sound::Analyze::Level>), FALLSPEED));
         if (quit)
         {
+          std::cout << std::endl;
           break;
         }
         MoveUp(5 + HEIGTH);
