@@ -282,29 +282,43 @@ namespace
       warner.Assert(Data.Positions.size() == std::size_t(positions->Lenght) + 1, "header lenght mismatch");
 
       //parse samples
-      Data.Samples.reserve(MAX_SAMPLES_COUNT);
+      Data.Samples.resize(MAX_SAMPLES_COUNT);
       for (const STCSample* sample = samples; static_cast<const void*>(sample) < static_cast<const void*>(positions); ++sample)
       {
-        Data.Samples.push_back(Sample(*sample));
+        if (sample->Number >= Data.Samples.size())
+        {
+          warner.Warning("invalid sample number");
+          continue;
+        }
+        Data.Samples[sample->Number] = Sample(*sample);
       }
       warner.Assert(Data.Samples.size() <= MAX_SAMPLES_COUNT, "invalid samples count");
 
       //parse ornaments
-      Data.Ornaments.reserve(MAX_ORNAMENTS_COUNT);
+      Data.Ornaments.resize(MAX_ORNAMENTS_COUNT);
       for (const STCOrnament* ornament = ornaments; static_cast<const void*>(ornament) < static_cast<const void*>(patterns); ++ornament)
       {
-        Data.Ornaments.push_back(Parent::Ornament(ArraySize(ornament->Data), 0));
-        Data.Ornaments.back().Data.assign(ornament->Data, ArrayEnd(ornament->Data));
+        if (ornament->Number >= Data.Ornaments.size())
+        {
+          warner.Warning("invalid ornament number");
+          continue;
+        }
+        Data.Ornaments[ornament->Number] = Parent::Ornament(ArraySize(ornament->Data), 0);
+        Data.Ornaments[ornament->Number].Data.assign(ornament->Data, ArrayEnd(ornament->Data));
       }
       warner.Assert(Data.Ornaments.size() <= MAX_ORNAMENTS_COUNT, "invalid ornaments count");
 
       //parse patterns
-      Data.Patterns.reserve(MAX_PATTERN_COUNT);
+      Data.Patterns.resize(MAX_PATTERN_COUNT);
       for (const STCPattern* pattern = patterns; *pattern; ++pattern)
       {
-        IndexPrefix patPfx(warner, "Pattern %1%: ", pattern - patterns);
-        Data.Patterns.push_back(Parent::Pattern());
-        Pattern& pat(Data.Patterns.back());
+        IndexPrefix patPfx(warner, "Pattern %1%: ", pattern->Number - 1);
+        if (!pattern->Number || pattern->Number >= Data.Patterns.size())
+        {
+          warner.Warning("invalid pattern number");
+          continue;
+        }
+        Pattern& pat(Data.Patterns[pattern->Number - 1]);
         std::vector<std::size_t> offsets(ArraySize(pattern->Offsets));
         std::valarray<std::size_t> periods(std::size_t(0), ArraySize(pattern->Offsets));
         std::valarray<std::size_t> counters(std::size_t(0), ArraySize(pattern->Offsets));

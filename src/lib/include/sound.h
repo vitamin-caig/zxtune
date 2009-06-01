@@ -16,7 +16,7 @@ namespace ZXTune
     class Receiver
     {
     public:
-      typedef std::auto_ptr<Receiver> Ptr;
+      typedef boost::shared_ptr<Receiver> Ptr;
 
       virtual ~Receiver()
       {
@@ -27,6 +27,15 @@ namespace ZXTune
 
       /// Flush collected data
       virtual void Flush() = 0;
+    };
+
+    /// Receiver interface extention for special cases
+    class Convertor : public Receiver
+    {
+    public:
+      typedef boost::shared_ptr<Convertor> Ptr;
+      //change endpoint
+      virtual void SetEndpoint(Receiver::Ptr rcv) = 0;
     };
 
     /// Input parameters for rendering

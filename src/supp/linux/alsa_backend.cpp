@@ -33,7 +33,7 @@ namespace
   class AlsaBackend : public SimpleAsyncBackend
   {
   public:
-    AlsaBackend() : DevHandle(0)/*, MixHandle(0)*/
+    AlsaBackend() : DevHandle(0)
     {
     }
 
@@ -55,10 +55,6 @@ namespace
         {
           OnStartup();
         }
-      }
-      else if (changedFields & PREAMP)
-      {
-        SetVolume();
       }
     }
 
@@ -86,7 +82,6 @@ namespace
       }
       CheckAlsa(::snd_pcm_set_params(DevHandle, fmt, SND_PCM_ACCESS_RW_INTERLEAVED,
         OUTPUT_CHANNELS, Params.SoundParameters.SoundFreq, 0/*no resample*/, std::max(Params.BufferInMs * 1000, MINIMAL_LATENCY)));
-      SetVolume();
       Parent::OnStartup();
     }
 
@@ -97,9 +92,6 @@ namespace
       {
         CheckAlsa(::snd_pcm_close(DevHandle));
         DevHandle = 0;
-        //assert(0 != MixHandle);
-        //CheckResult(0 == ::close(MixHandle));
-        //MixHandle = -1;
       }
     }
   private:
@@ -124,16 +116,7 @@ namespace
       }
     }
   private:
-    void SetVolume()
-    {
-      int vol(100 * Params.Preamp / FIXED_POINT_PRECISION);
-      vol |= vol << 16;
-      //CheckResult(-1 != ::ioctl(MixHandle, SOUND_MIXER_WRITE_VOLUME, &vol));
-    }
-
-  private:
     snd_pcm_t* DevHandle;
-    //int MixHandle;
   };
 }
 

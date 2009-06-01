@@ -73,8 +73,8 @@ namespace ZXTune
     private:
       volatile State CurrentState;
       ModulePlayer::Ptr Player;
-      Receiver::Ptr Mixer;
-      Receiver::Ptr Filter;
+      Convertor::Ptr Mixer;
+      Convertor::Ptr Filter;
       std::vector<Sample> FilterCoeffs;
       Receiver::Ptr Renderer;
     };

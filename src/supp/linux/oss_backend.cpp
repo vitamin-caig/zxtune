@@ -20,7 +20,6 @@ namespace
   using namespace ZXTune::Sound;
 
   const char DEVICE_NAME[] = "/dev/dsp";
-  const char MIXER_NAME[] = "/dev/mixer";
 
   inline void CheckResult(bool res)
   {
@@ -33,7 +32,7 @@ namespace
   class OSSBackend : public SimpleAsyncBackend
   {
   public:
-    OSSBackend() : DevHandle(-1), MixHandle(-1)
+    OSSBackend() : DevHandle(-1)
     {
     }
 
@@ -56,10 +55,6 @@ namespace
           OnStartup();
         }
       }
-      else if (changedFields & PREAMP)
-      {
-        SetVolume();
-      }
     }
 
     virtual void OnStartup()
@@ -67,8 +62,6 @@ namespace
       assert(-1 == DevHandle);
       DevHandle = ::open((DEVICE_NAME + Params.DriverParameters).c_str(), O_WRONLY, 0);
       CheckResult(-1 != DevHandle);
-      MixHandle = ::open((MIXER_NAME + Params.DriverParameters).c_str(), O_WRONLY, 0);
-      CheckResult(-1 != MixHandle);
 
       BOOST_STATIC_ASSERT(1 == sizeof(Sample) || 2 == sizeof(Sample));
       int tmp(2 == sizeof(Sample) ? AFMT_S16_NE : AFMT_S8);
@@ -80,8 +73,6 @@ namespace
       tmp = Params.SoundParameters.SoundFreq;
       CheckResult(-1 != ::ioctl(DevHandle, SNDCTL_DSP_SPEED, &tmp));
 
-      SetVolume();
-
       Parent::OnStartup();
     }
 
@@ -92,9 +83,6 @@ namespace
       {
         CheckResult(0 == ::close(DevHandle));
         DevHandle = -1;
-        assert(-1 != MixHandle);
-        CheckResult(0 == ::close(MixHandle));
-        MixHandle = -1;
       }
     }
   protected:
@@ -112,15 +100,7 @@ namespace
       }
     }
   private:
-    void SetVolume()
-    {
-      int vol(100 * Params.Preamp / FIXED_POINT_PRECISION);
-      vol |= vol << 16;
-      CheckResult(-1 != ::ioctl(MixHandle, SOUND_MIXER_WRITE_VOLUME, &vol));
-    }
-  private:
     int DevHandle;
-    int MixHandle;
   };
 }
 

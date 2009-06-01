@@ -80,10 +80,6 @@ namespace
           OnStartup();
         }
       }
-      else if (changedFields & PREAMP)
-      {
-        SetVolume();
-      }
     }
 
     virtual void OnStartup()
@@ -167,12 +163,6 @@ namespace
       assert(0 != WaveHandle);
       buf.Header.dwFlags &= ~WHDR_DONE;
       CheckMMResult(::waveOutWrite(WaveHandle, &buf.Header, sizeof(buf.Header)));
-    }
-  private:
-    void SetVolume()
-    {
-      const ::DWORD vol(0xffff * Params.Preamp / FIXED_POINT_PRECISION);
-      CheckMMResult(::waveOutSetVolume(WaveHandle, vol | (vol << 16)));
     }
   private:
     ::HWAVEOUT WaveHandle;

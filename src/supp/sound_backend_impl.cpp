@@ -194,7 +194,7 @@ namespace ZXTune
     {
       const unsigned UPDATE_RENDERER_MASK(BUFFER | SOUND_FRAME);
       const unsigned UPDATE_FILTER_MASK(FIR_ORDER | FIR_LOW | FIR_HIGH | SOUND_FREQ);
-      const unsigned UPDATE_MIXER_MASK(MIXER);
+      const unsigned UPDATE_MIXER_MASK(MIXER | PREAMP);
 
       if (Params.Mixer.size() && params.Mixer.size() != Params.Mixer.size())
       {
@@ -206,21 +206,29 @@ namespace ZXTune
       Params = params;
       if (changedFields & UPDATE_RENDERER_MASK)
       {
-        Renderer.reset(CreateCallbackRenderer(Params.BufferInMultisamples(), CallbackFunc, this).release());
+        Renderer = CreateCallbackRenderer(Params.BufferInMultisamples(), CallbackFunc, this);
       }
-      Filter.reset();
-      if ((changedFields & (UPDATE_RENDERER_MASK | UPDATE_FILTER_MASK)) && Params.FIROrder)
+      if ((changedFields & UPDATE_FILTER_MASK) && Params.FIROrder)
       {
         if (changedFields & UPDATE_FILTER_MASK)
         {
           CalculateFIRCoefficients(Params.FIROrder, Params.SoundParameters.SoundFreq, Params.LowCutoff, Params.HighCutoff, FilterCoeffs);
         }
 
-        Filter.reset(CreateFIRFilter(&FilterCoeffs[0], Params.FIROrder, *Renderer).release());
+        Filter = CreateFIRFilter(&FilterCoeffs[0], Params.FIROrder);
       }
-      if (changedFields & (UPDATE_RENDERER_MASK | UPDATE_FILTER_MASK | UPDATE_MIXER_MASK))
+
+      if (Filter.get())
       {
-        Mixer.reset(CreateMixer(Params.Mixer, Filter.get() ? *Filter : *Renderer).release());
+        Filter->SetEndpoint(Renderer);
+      }
+      if (changedFields & UPDATE_MIXER_MASK)
+      {
+        Mixer = CreateMixer(Params.Mixer, Params.Preamp);
+      }
+      if (Mixer.get())
+      {
+        Mixer->SetEndpoint(Filter.get() ? Filter : Renderer);
       }
       return OnParametersChanged(changedFields);
     }
@@ -310,7 +318,14 @@ namespace ZXTune
     ModulePlayer::State BackendImpl::SafeRenderFrame()
     {
       Locker lock(PlayerMutex);
-      return Player->RenderFrame(Params.SoundParameters, *Mixer);
+      if (Convertor::Ptr mixer = Mixer)
+      {
+        return Player->RenderFrame(Params.SoundParameters, *mixer);
+      }
+      else
+      {
+        return ModulePlayer::MODULE_PLAYING;//null playback
+      }
     }
 
     void BackendImpl::PlayFunc()
