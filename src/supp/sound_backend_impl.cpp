@@ -334,8 +334,7 @@ namespace ZXTune
       {
         if (PLAYING == CurrentState)
         {
-          const ModulePlayer::State thatState(SafeRenderFrame());
-          if (ModulePlayer::MODULE_STOPPED == thatState)
+          if (ModulePlayer::MODULE_STOPPED == SafeRenderFrame())
           {
             CurrentState = STOPPED;
             OnShutdown();

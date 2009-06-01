@@ -23,6 +23,7 @@ namespace
   const std::size_t BYTES_PER_SECTOR = 256;
   const std::size_t SECTORS_IN_TRACK = 16;
   const std::size_t MAX_FILES_COUNT = 128;
+  const std::size_t SERVICE_SECTOR_NUM = 8;
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -121,7 +122,7 @@ namespace
   class PlayerImpl : public ModulePlayer
   {
   public:
-    PlayerImpl(const String& filename, const IO::DataContainer& data)
+    PlayerImpl(const String& filename, const IO::DataContainer& data) : Filename(filename)
     {
       std::vector<FileDescr> files;
       const CatEntry* catEntry(static_cast<const CatEntry*>(data.Data()));
@@ -174,6 +175,7 @@ namespace
         Information.Capabilities = CAP_MULTITRACK;
         Information.Loop = 0;
         Information.Statistic = Module::Tracking();
+        Information.Properties.insert(StringMap::value_type(Module::ATTR_FILENAME, Filename));
         Information.Properties.insert(StringMap::value_type(Module::ATTR_SUBMODULES, submodules));
       }
       else
@@ -211,6 +213,15 @@ namespace
       if (Delegate.get())
       {
         Delegate->GetModuleInfo(info);
+        StringMap::iterator filenameIt(info.Properties.find(Module::ATTR_FILENAME));
+        if (filenameIt != info.Properties.end())
+        {
+          filenameIt->second = Filename;
+        }
+        else
+        {
+          assert(!"No filename properties");
+        }
       }
       else
       {
@@ -248,6 +259,7 @@ namespace
       return Delegate.get() ? Delegate->SetPosition(frame) : MODULE_STOPPED;
     }
   private:
+    const String Filename;
     ModulePlayer::Ptr Delegate;
     Module::Information Information;
   };
@@ -270,8 +282,8 @@ namespace
       return false;
     }
     const uint8_t* const data(static_cast<const uint8_t*>(source.Data()));
-    //TODO
-    return true;
+    const ServiceSector* const sector(safe_ptr_cast<const ServiceSector*>(data + SERVICE_SECTOR_NUM * BYTES_PER_SECTOR));
+    return sector->ID == TRD_ID && sector->Type == DS_DD;
   }
 
   ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data)

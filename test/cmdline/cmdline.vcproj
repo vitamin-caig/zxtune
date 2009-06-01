@@ -75,7 +75,7 @@
 				GlobalOptimizations="TRUE"
 				FavorSizeOrSpeed="1"
 				OptimizeForWindowsApplication="TRUE"
-				AdditionalIncludeDirectories="..\..\include\boost\tr1\tr1;..\include\boost;..\..\include;..\..\lib\include"
+				AdditionalIncludeDirectories="..\..\include\boost\tr1\tr1;..\include\boost;..\..\include;..\..\src\lib\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="0"
 				EnableEnhancedInstructionSet="2"
@@ -92,6 +92,8 @@
 				AdditionalDependencies="winmm.lib"
 				OutputFile="$(OutDir)/cmdline.exe"
 				LinkIncremental="1"
+				IgnoreAllDefaultLibraries="FALSE"
+				IgnoreDefaultLibraryNames="kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.libole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib"
 				GenerateDebugInformation="TRUE"
 				SubSystem="1"
 				OptimizeReferences="2"
@@ -333,11 +335,23 @@
 						<Tool
 							Name="VCCLCompilerTool"/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\src\supp\linux\oss_backend.cpp">
 					<FileConfiguration
 						Name="Debug|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCLCompilerTool"/>

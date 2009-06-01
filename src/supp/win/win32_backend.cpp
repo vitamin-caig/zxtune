@@ -98,7 +98,6 @@ namespace
       CheckMMResult(::waveOutOpen(&WaveHandle, Device, &wfx, DWORD_PTR(Event), 0,
         CALLBACK_EVENT | WAVE_FORMAT_DIRECT));
       ::ResetEvent(Event);
-      SetVolume();
       Parent::OnStartup();
     }
 
