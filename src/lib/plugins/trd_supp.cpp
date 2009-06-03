@@ -236,9 +236,9 @@ namespace
     }
 
     /// Retrieving current state of sound
-    virtual State GetSoundState(Sound::Analyze::Volume& volState, Sound::Analyze::Spectrum& spectrumState) const
+    virtual State GetSoundState(Sound::Analyze::ChannelsState& state) const
     {
-      return Delegate.get() ? Delegate->GetSoundState(volState, spectrumState) : MODULE_STOPPED;
+      return Delegate.get() ? Delegate->GetSoundState(state) : MODULE_STOPPED;
     }
 
 

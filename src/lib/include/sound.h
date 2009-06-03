@@ -60,32 +60,20 @@ namespace ZXTune
     namespace Analyze
     {
       /// Level type (by default 0...255 is enough)
-      typedef uint8_t Level;
+      typedef uint8_t LevelType;
 
-      /// Volume analyze result
-      struct Volume
+      /// Channel voice characteristics
+      struct Channel
       {
-        Volume() : ChannelsMask(), Array()
+        Channel() : Enabled(), Level(), Band()
         {
         }
-        /// Now active channels masks
-        unsigned ChannelsMask;
-        /// Volumes for ALL channels
-        std::vector<Level> Array;
+        bool Enabled;
+        LevelType Level;
+        std::size_t Band;
       };
 
-      /// Spectrum analyzing constants
-      const std::size_t OctavesCount = 8;
-      const std::size_t BandsCount = 12;
-      const std::size_t TonesCount = OctavesCount * BandsCount;
-      /// Spectrum analyze result
-      struct Spectrum
-      {
-        Spectrum() : Array()
-        {
-        }
-        boost::array<Level, TonesCount> Array;
-      };
+      typedef std::vector<Channel> ChannelsState;
     }
   }
 }

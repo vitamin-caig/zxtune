@@ -103,7 +103,7 @@ namespace ZXTune
     DataContainer::Ptr DataContainer::Create(const String& filename)
     {
       FileContainerImpl::SharedStream stream(new std::ifstream(ExtractFSPath(filename).c_str(), std::ios::binary));
-      if (stream->bad())
+      if (!*stream)
       {
         throw 1;//TODO
       }

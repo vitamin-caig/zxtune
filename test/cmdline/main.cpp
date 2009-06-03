@@ -249,7 +249,6 @@ int main(int argc, char* argv[])
     StringArray filesToPlay;
     {
       ModulePlayer::Ptr player(ModulePlayer::Create(filename, *source));
-
       Module::Information module;
       player->GetModuleInfo(module);
       if (module.Capabilities & CAP_MULTITRACK)
@@ -269,8 +268,8 @@ int main(int argc, char* argv[])
       "Channels: %8$2d / %9%\n"
       "Tempo:    %10$2d / %11%\n"
       "Frame: %12$5d / %13%");
-    Sound::Analyze::Volume volState;
-    Sound::Analyze::Spectrum specState;
+
+    std::size_t dump[100] = {0};
     bool quit(false);
 
     for (StringArray::const_iterator it = filesToPlay.begin(), lim = filesToPlay.end(); it != lim && !quit; ++it)
@@ -336,35 +335,33 @@ int main(int argc, char* argv[])
                       track.Channels % module.Statistic.Channels %
                       track.Tempo % module.Statistic.Tempo %
                       frame % module.Statistic.Frame);
-          backend->GetSoundState(volState, specState);
+          Sound::Analyze::ChannelsState state;
+          backend->GetSoundState(state);
           const std::size_t WIDTH = 75;
           const std::size_t HEIGTH = 16;
-          const std::size_t LIMIT = std::numeric_limits<Sound::Analyze::Level>::max();
+          const std::size_t LIMIT = std::numeric_limits<Sound::Analyze::LevelType>::max();
           const std::size_t FALLSPEED = 8;
           static char filler[WIDTH + 1];
-          const std::size_t specShift(4/*volState.Array.size()*/ + 1);
-          static std::size_t levels[Sound::Analyze::TonesCount + specShift];
-          for (std::size_t tone = 0; tone != ArraySize(levels); ++tone)
+          for (std::size_t chan = 0; chan != state.size(); ++chan)
           {
-            const std::size_t value(tone >= specShift ?
-              specState.Array[tone - specShift]
-              :
-              (tone < volState.Array.size() ? volState.Array[tone] : 0));
-            levels[tone] = value * HEIGTH / LIMIT;
+            if (state[chan].Enabled)
+            {
+              dump[std::min(state.size() + 1 + state[chan].Band, ArraySize(dump) - 1)] = 
+                dump[chan] = state[chan].Level;
+            }
           }
           for (std::size_t y = HEIGTH; y; --y)
           {
-            for (std::size_t i = 0; i < std::min(WIDTH, ArraySize(levels)); ++i)
+            for (std::size_t i = 0; i < std::min(WIDTH, ArraySize(dump)) - 1; ++i)
             {
-              filler[i] = levels[i] > y ? '#' : ' ';
+              const std::size_t level(dump[i] * HEIGTH / LIMIT);
+              filler[i] = level > y ? '#' : ' ';
               filler[i + 1] = 0;
             }
             std::cout << std::endl << filler;
           }
-          std::transform(volState.Array.begin(), volState.Array.end(), volState.Array.begin(),
-            std::bind2nd(std::ptr_fun(Decrease<Sound::Analyze::Level>), FALLSPEED));
-          std::transform(specState.Array.begin(), specState.Array.end(), specState.Array.begin(),
-            std::bind2nd(std::ptr_fun(Decrease<Sound::Analyze::Level>), FALLSPEED));
+          std::transform(dump, ArrayEnd(dump), dump, 
+            std::bind2nd(std::ptr_fun(Decrease<Sound::Analyze::LevelType>), FALLSPEED));
           if (quit)
           {
             std::cout << std::endl;

@@ -162,12 +162,12 @@ namespace ZXTune
       return CurrentState;
     }
 
-    Backend::State BackendImpl::GetSoundState(Sound::Analyze::Volume& volState, Sound::Analyze::Spectrum& spectrumState) const
+    Backend::State BackendImpl::GetSoundState(Sound::Analyze::ChannelsState& state) const
     {
       Locker lock(PlayerMutex);
       CheckState();
       assert(Player.get());
-      Player->GetSoundState(volState, spectrumState);
+      Player->GetSoundState(state);
       return CurrentState;
     }
 

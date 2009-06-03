@@ -141,10 +141,10 @@ namespace
     }
 
     /// Retrieving current state of sound
-    virtual State GetSoundState(Sound::Analyze::Volume& volState, Sound::Analyze::Spectrum& spectrumState) const
+    virtual State GetSoundState(Sound::Analyze::ChannelsState& state) const
     {
       assert(Device.get());
-      Device->GetState(volState, spectrumState);
+      Device->GetState(state);
       return CurrentState;
     }
 

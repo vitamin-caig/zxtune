@@ -42,7 +42,7 @@ namespace ZXTune
       virtual void GetPlayerInfo(ModulePlayer::Info& info) const = 0;
       virtual void GetModuleInfo(Module::Information& info) const = 0;
       virtual State GetModuleState(std::size_t& timeState, Module::Tracking& trackState) const = 0;
-      virtual State GetSoundState(Sound::Analyze::Volume& volState, Sound::Analyze::Spectrum& spectrumState) const = 0;
+      virtual State GetSoundState(Sound::Analyze::ChannelsState& state) const = 0;
 
       /// Seeking
       virtual State SetPosition(const uint32_t& frame) = 0;

@@ -53,7 +53,7 @@ namespace
                             const DataChunk& src,
                             Sound::Receiver& dst);
 
-    virtual void GetState(Sound::Analyze::Volume& volState, Sound::Analyze::Spectrum& spectrumState) const;
+    virtual void GetState(Sound::Analyze::ChannelsState& state) const;
 
     virtual void Reset()
     {
@@ -118,6 +118,7 @@ namespace
       assert(regVol < 32);
       return (ym ? YMVolumeTab : AYVolumeTab)[regVol] / 2;
     }
+    std::size_t GetBandByPeriod(std::size_t regVal) const;
   protected:
     //state
     DataChunk State; //time and registers
@@ -296,10 +297,43 @@ namespace
     }
   }
 
-  void ChipImpl::GetState(Sound::Analyze::Volume& volState, Sound::Analyze::Spectrum& spectrumState) const
+  void ChipImpl::GetState(Sound::Analyze::ChannelsState& state) const
+  {
+    state.resize(4);
+    Sound::Analyze::Channel& envChan(state[3]);
+    envChan = Sound::Analyze::Channel();
+    envChan.Band = GetBandByPeriod((uint16_t(State.Data[DataChunk::REG_TONEE_H]) << 8) |
+      State.Data[DataChunk::REG_TONEE_L]);
+
+    const std::size_t mixer(~GetMixer());
+    for (std::size_t chan = 0; chan != 3; ++chan)
+    {
+      if (State.Data[DataChunk::REG_VOLA + chan] & DataChunk::MASK_ENV)
+      {
+        envChan.Enabled = true;
+        envChan.Level += std::numeric_limits<Sound::Analyze::LevelType>::max() / 3;
+      }
+
+      Sound::Analyze::Channel& channel(state[chan]);
+      channel.Enabled = false;
+      if (mixer & ((DataChunk::MASK_TONEA | DataChunk::MASK_NOISEA) << chan))
+      {
+        channel.Enabled = true;
+        channel.Level = (State.Data[DataChunk::REG_VOLA + chan] & 0xf) * 
+          std::numeric_limits<Sound::Analyze::LevelType>::max() / 15;
+        if (mixer & (DataChunk::MASK_TONEA << chan))//tone
+        {
+          channel.Band = GetBandByPeriod((uint16_t(State.Data[DataChunk::REG_TONEA_H + chan * 2]) << 8) |
+            State.Data[DataChunk::REG_TONEA_L + chan * 2]);
+        }
+      }
+    }
+  }
+
+  std::size_t ChipImpl::GetBandByPeriod(std::size_t period) const
   {
     //table in Hz*100
-    static const unsigned FREQ_TABLE[Sound::Analyze::TonesCount] = {
+    static const unsigned FREQ_TABLE[] = {
       //octave1
       3270,   3465,   3671,   3889,   4120,   4365,   4625,   4900,   5191,   5500,   5827,   6173,
       //octave2
@@ -317,27 +351,9 @@ namespace
       //octave8
       418620, 443460, 469890, 497790, 527420, 558720, 592000, 627200, 664450, 704000, 745860, 790140
     }; 
-    volState.Array.resize(3);
-    volState.ChannelsMask = 0;
-    const std::size_t mixer(~GetMixer());
-    for (std::size_t chan = 0; chan != 3; ++chan)
-    {
-      if (mixer & ((DataChunk::MASK_TONEA | DataChunk::MASK_NOISEA) << chan))
-      {
-        volState.ChannelsMask |= 1 << chan;
-        const Sound::Analyze::Level level((State.Data[DataChunk::REG_VOLA + chan] & 0xf) * 
-          std::numeric_limits<Sound::Analyze::Level>::max() / 15);
-        volState.Array[chan] = level;
-        if (mixer & (DataChunk::MASK_TONEA << chan))//tone
-        {
-          const uint16_t period = (uint16_t(State.Data[DataChunk::REG_TONEA_H + chan * 2]) << 8) |
-            State.Data[DataChunk::REG_TONEA_L + chan * 2];
-          const std::size_t freq(uint64_t(LastTicksPerSec) * 100 / (16 * (period ? period : 1)));
-          const std::size_t band(std::min<std::size_t>(std::lower_bound(FREQ_TABLE, ArrayEnd(FREQ_TABLE), freq) - FREQ_TABLE, ArraySize(FREQ_TABLE) - 1));
-          spectrumState.Array[band] = level;
-        }
-      }
-    }
+    const std::size_t freq(uint64_t(LastTicksPerSec) * 100 / (16 * (period ? period : 1)));
+    return std::min<std::size_t>(std::lower_bound(FREQ_TABLE, ArrayEnd(FREQ_TABLE), freq) - FREQ_TABLE, 
+                                 ArraySize(FREQ_TABLE) - 1);
   }
 }
 

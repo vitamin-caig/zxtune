@@ -47,7 +47,7 @@ namespace ZXTune
     virtual State GetModuleState(std::size_t& timeState, Module::Tracking& trackState) const = 0;
 
     /// Retrieving current state of sound
-    virtual State GetSoundState(Sound::Analyze::Volume& volState, Sound::Analyze::Spectrum& spectrumState) const = 0;
+    virtual State GetSoundState(Sound::Analyze::ChannelsState& state) const = 0;
 
     /// Rendering frame
     virtual State RenderFrame(const Sound::Parameters& params, Sound::Receiver& receiver) = 0;

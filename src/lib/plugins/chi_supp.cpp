@@ -103,7 +103,7 @@ namespace
 
     std::size_t Loop;
     std::vector<uint8_t> Data;
-    Sound::Analyze::Level Gain;
+    Sound::Analyze::LevelType Gain;
   };
 
   inline Sound::Sample scale(uint8_t inSample)
@@ -258,19 +258,17 @@ namespace
     }
 
     /// Retrieving current state of sound
-    virtual State GetSoundState(Sound::Analyze::Volume& volState, Sound::Analyze::Spectrum& spectrumState) const
+    virtual State GetSoundState(Sound::Analyze::ChannelsState& state) const
     {
-      volState.Array.resize(4);
-      volState.ChannelsMask = 0;
+      state.resize(4);
       for (std::size_t chan = 0; chan != 4; ++chan)
       {
-        if (Channels[chan].Enabled)
+        Sound::Analyze::Channel& channel(state[chan]);
+        if ((channel.Enabled = Channels[chan].Enabled))
         {
-          const Sound::Analyze::Level level(Data.Samples[Channels[chan].SampleNum].Gain * 
-            std::numeric_limits<Sound::Analyze::Level>::max() / 128);
-          volState.Array[chan] = level;
-          volState.ChannelsMask |= 1 << chan;
-          spectrumState.Array[Channels[chan].Note] = level;
+          channel.Level = Data.Samples[Channels[chan].SampleNum].Gain * 
+            std::numeric_limits<Sound::Analyze::LevelType>::max() / 128;
+          channel.Band = Channels[chan].Note;
         }
       }
       return PlaybackState;

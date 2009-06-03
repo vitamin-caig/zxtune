@@ -72,7 +72,7 @@ namespace ZXTune
                               const DataChunk& src,
                               Sound::Receiver& dst) = 0;
 
-      virtual void GetState(Sound::Analyze::Volume& volState, Sound::Analyze::Spectrum& spectrumState) const = 0;
+      virtual void GetState(Sound::Analyze::ChannelsState& state) const = 0;
 
       /// reset internal state to initial
       virtual void Reset() = 0;
