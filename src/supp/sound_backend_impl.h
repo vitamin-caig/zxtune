@@ -45,11 +45,10 @@ namespace ZXTune
         SOUND_FRAME = 16,
         SOUND_FLAGS = 32,
         MIXER = 64,
-        PREAMP = 128,
-        FIR_ORDER = 256,
-        FIR_LOW = 512,
-        FIR_HIGH = 1024,
-        BUFFER = 2048
+        FIR_ORDER = 128,
+        FIR_LOW = 256,
+        FIR_HIGH = 512,
+        BUFFER = 1024
       };
       virtual void OnParametersChanged(unsigned changedFields) = 0;
       virtual void OnStartup() = 0;
@@ -75,7 +74,7 @@ namespace ZXTune
       ModulePlayer::Ptr Player;
       Convertor::Ptr Mixer;
       Convertor::Ptr Filter;
-      std::vector<Sample> FilterCoeffs;
+      std::vector<signed> FilterCoeffs;
       Receiver::Ptr Renderer;
     };
   }

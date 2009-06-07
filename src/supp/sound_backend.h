@@ -3,6 +3,8 @@
 
 #include <player.h>
 
+#include "../sound/mixer.h"
+
 namespace ZXTune
 {
   namespace IO
@@ -52,7 +54,7 @@ namespace ZXTune
       {
         Parameters()
           : DriverParameters(), DriverFlags()
-          , SoundParameters(), Mixer(), Preamp()
+          , SoundParameters(), Mixer()
           , FIROrder(), LowCutoff(), HighCutoff()
           , BufferInMs()
         {
@@ -63,8 +65,7 @@ namespace ZXTune
         /// Basic sound and/or PSG parameters
         Sound::Parameters SoundParameters;
         /// Mixing parameters
-        std::vector<ChannelMixer> Mixer;
-        Sample Preamp;
+        Sound::MixerData::Ptr Mixer;
         /// FIR parameters
         std::size_t FIROrder;
         uint32_t LowCutoff;

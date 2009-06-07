@@ -24,8 +24,6 @@ namespace
     params.SoundParameters.SoundFreq = 44100;
     params.SoundParameters.FrameDuration = 20;
     params.SoundParameters.Flags = 0;
-    //mixing (no channels)
-    params.Preamp = FIXED_POINT_PRECISION;
     //FIR (no)
     params.FIROrder = 0;
     params.LowCutoff = params.HighCutoff = 0;
@@ -86,7 +84,9 @@ namespace ZXTune
         }
         Module::Information info;
         Player->GetModuleInfo(info);
-        Params.Mixer.resize(info.Statistic.Channels, ChannelMixer(MONO_MIX));
+        Params.Mixer.reset(new MixerData);
+        Params.Mixer->InMatrix.resize(info.Statistic.Channels, ChannelMixer(MONO_MIX));
+        Params.Mixer->Preamp = FIXED_POINT_PRECISION;
         return CurrentState = STOPPED;
       }
       return CurrentState = NOTOPENED;
@@ -194,9 +194,9 @@ namespace ZXTune
     {
       const unsigned UPDATE_RENDERER_MASK(BUFFER | SOUND_FRAME);
       const unsigned UPDATE_FILTER_MASK(FIR_ORDER | FIR_LOW | FIR_HIGH | SOUND_FREQ);
-      const unsigned UPDATE_MIXER_MASK(MIXER | PREAMP);
+      const unsigned UPDATE_MIXER_MASK(MIXER);
 
-      if (Params.Mixer.size() && params.Mixer.size() != Params.Mixer.size())
+      if (Params.Mixer && params.Mixer->InMatrix.size() != Params.Mixer->InMatrix.size())
       {
         throw 2;//TODO
       }
@@ -222,9 +222,9 @@ namespace ZXTune
       {
         Filter->SetEndpoint(Renderer);
       }
-      if (changedFields & UPDATE_MIXER_MASK)
+      if ((changedFields & UPDATE_MIXER_MASK) && Params.Mixer)
       {
-        Mixer = CreateMixer(Params.Mixer, Params.Preamp);
+        Mixer = CreateMixer(Params.Mixer);
       }
       if (Mixer.get())
       {
@@ -291,10 +291,6 @@ namespace ZXTune
       if (Params.Mixer != after.Mixer)
       {
         res |= MIXER;
-      }
-      if (Params.Preamp != after.Preamp)
-      {
-        res |= PREAMP;
       }
       if (Params.FIROrder != after.FIROrder)
       {

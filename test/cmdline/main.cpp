@@ -109,7 +109,6 @@ int main(int argc, char* argv[])
     parameters.SoundParameters.SoundFreq = 48000;
     parameters.SoundParameters.FrameDuration = 20;
     parameters.DriverFlags = 3;
-    parameters.Preamp = Sound::FIXED_POINT_PRECISION;
     parameters.BufferInMs = 100;
 
     for (int arg = 1; arg != argc; ++arg)
@@ -272,6 +271,29 @@ int main(int argc, char* argv[])
     std::size_t dump[100] = {0};
     bool quit(false);
 
+    //generate mixers
+    Sound::MixerData::Ptr mixer3(new Sound::MixerData);
+    mixer3->Preamp = Sound::FIXED_POINT_PRECISION;
+    mixer3->InMatrix.resize(3);
+    mixer3->InMatrix[0].OutMatrix[0] = Sound::FIXED_POINT_PRECISION;
+    mixer3->InMatrix[0].OutMatrix[1] = 5 * Sound::FIXED_POINT_PRECISION / 100;
+    mixer3->InMatrix[1].OutMatrix[0] = 66 * Sound::FIXED_POINT_PRECISION / 100;
+    mixer3->InMatrix[1].OutMatrix[1] = 66 * Sound::FIXED_POINT_PRECISION / 100;
+    mixer3->InMatrix[2].OutMatrix[0] = 5 * Sound::FIXED_POINT_PRECISION / 100;
+    mixer3->InMatrix[2].OutMatrix[1] = Sound::FIXED_POINT_PRECISION;
+
+    Sound::MixerData::Ptr mixer4(new Sound::MixerData);
+    mixer4->Preamp = Sound::FIXED_POINT_PRECISION;
+    mixer4->InMatrix.resize(4);
+    mixer4->InMatrix[0].OutMatrix[0] = Sound::FIXED_POINT_PRECISION;
+    mixer4->InMatrix[0].OutMatrix[1] = 5 * Sound::FIXED_POINT_PRECISION / 100;
+    mixer4->InMatrix[1].OutMatrix[0] = Sound::FIXED_POINT_PRECISION;
+    mixer4->InMatrix[1].OutMatrix[1] = 5 * Sound::FIXED_POINT_PRECISION / 100;
+    mixer4->InMatrix[2].OutMatrix[0] = 5 * Sound::FIXED_POINT_PRECISION / 100;
+    mixer4->InMatrix[2].OutMatrix[1] = Sound::FIXED_POINT_PRECISION;
+    mixer4->InMatrix[3].OutMatrix[0] = 5 * Sound::FIXED_POINT_PRECISION / 100;
+    mixer4->InMatrix[3].OutMatrix[1] = Sound::FIXED_POINT_PRECISION;
+
     for (StringArray::const_iterator it = filesToPlay.begin(), lim = filesToPlay.end(); it != lim && !quit; ++it)
     {
       ModulePlayer::Ptr player(ModulePlayer::Create(*it, *source));
@@ -287,31 +309,18 @@ int main(int argc, char* argv[])
 
       params = parameters;
 
-      if (3 == module.Statistic.Channels)
+      switch (module.Statistic.Channels)
       {
-        params.Mixer.resize(3);
-
-        params.Mixer[0].Matrix[0] = Sound::FIXED_POINT_PRECISION;
-        params.Mixer[0].Matrix[1] = 5 * Sound::FIXED_POINT_PRECISION / 100;
-        params.Mixer[1].Matrix[0] = 66 * Sound::FIXED_POINT_PRECISION / 100;
-        params.Mixer[1].Matrix[1] = 66 * Sound::FIXED_POINT_PRECISION / 100;
-        params.Mixer[2].Matrix[0] = 5 * Sound::FIXED_POINT_PRECISION / 100;
-        params.Mixer[2].Matrix[1] = Sound::FIXED_POINT_PRECISION;
+      case 3:
+        params.Mixer = mixer3;
+        break;
+      case 4:
+        params.Mixer = mixer4;
+        break;
+      default:
+        std::cerr << "Invalid channels count" << std::endl;
+        return 1;
       }
-      else if (4 == module.Statistic.Channels)
-      {
-        params.Mixer.resize(4);
-
-        params.Mixer[0].Matrix[0] = Sound::FIXED_POINT_PRECISION;
-        params.Mixer[0].Matrix[1] = 5 * Sound::FIXED_POINT_PRECISION / 100;
-        params.Mixer[1].Matrix[0] = Sound::FIXED_POINT_PRECISION;
-        params.Mixer[1].Matrix[1] = 5 * Sound::FIXED_POINT_PRECISION / 100;
-        params.Mixer[2].Matrix[0] = 5 * Sound::FIXED_POINT_PRECISION / 100;
-        params.Mixer[2].Matrix[1] = Sound::FIXED_POINT_PRECISION;
-        params.Mixer[3].Matrix[0] = 5 * Sound::FIXED_POINT_PRECISION / 100;
-        params.Mixer[3].Matrix[1] = Sound::FIXED_POINT_PRECISION;
-      }
-
       backend->SetSoundParameters(params);
 
       backend->Play();
@@ -388,17 +397,15 @@ int main(int argc, char* argv[])
           backend->Stop();
           break;
         case 'z':
-          if (params.Preamp)
+          if (params.Mixer->Preamp)
           {
-            --params.Preamp;
-            backend->SetSoundParameters(params);
+            --params.Mixer->Preamp;
           }
           break;
         case 'x':
-          if (params.Preamp < Sound::FIXED_POINT_PRECISION)
+          if (params.Mixer->Preamp < Sound::FIXED_POINT_PRECISION)
           {
-            ++params.Preamp;
-            backend->SetSoundParameters(params);
+            ++params.Mixer->Preamp;
           }
           break;
         }

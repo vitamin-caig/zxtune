@@ -10,9 +10,9 @@ namespace ZXTune
     /*
       FIR filter with fixed-point calculations
     */
-    Convertor::Ptr CreateFIRFilter(const Sample* coeffs, std::size_t order);
+    Convertor::Ptr CreateFIRFilter(const signed* coeffs, std::size_t order);
 
-    void CalculateFIRCoefficients(std::size_t order, uint32_t freq, uint32_t lowCutoff, uint32_t highCutoff, std::vector<Sample>& coeffs);
+    void CalculateFIRCoefficients(std::size_t order, uint32_t freq, uint32_t lowCutoff, uint32_t highCutoff, std::vector<signed>& coeffs);
   }
 }
 

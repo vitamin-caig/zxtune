@@ -18,10 +18,15 @@ namespace
 
   BOOST_STATIC_ASSERT(sizeof(SampleHelper) == sizeof(SampleArray));
 
+  template<class C>
   class FIRFilter : public Convertor, private boost::noncopyable
   {
+    typedef int64_t BigSample;
+    typedef BigSample BigSampleArray[OUTPUT_CHANNELS];
   public:
-    FIRFilter(const Sample* coeffs, std::size_t order)
+    static const std::size_t MAX_ORDER = 
+      std::numeric_limits<BigSample>::max() / (std::numeric_limits<C>::max() * std::numeric_limits<Sample>::max());
+    FIRFilter(const C* coeffs, std::size_t order)
       : Matrix(coeffs, coeffs + order), Delegate(), History(order), Position(&History[0], &History[order])
     {
     }
@@ -34,11 +39,11 @@ namespace
         std::memcpy(&*Position, input, sizeof(SampleArray));
         BigSampleArray res = {0};
 
-        for (std::vector<Sample>::const_iterator it = Matrix.begin(), lim = Matrix.end(); it != lim; ++it, --Position)
+        for (std::vector<C>::const_iterator it = Matrix.begin(), lim = Matrix.end(); it != lim; ++it, --Position)
         {
           for (std::size_t chan = 0; chan != OUTPUT_CHANNELS; ++chan)
           {
-            res[chan] += Position->Array[chan] * *it;
+            res[chan] += BigSample(*it) * Position->Array[chan];
           }
         }
         std::transform(res, ArrayEnd(res), Result, std::bind2nd(std::divides<BigSample>(), BigSample(FIXED_POINT_PRECISION)));
@@ -60,7 +65,7 @@ namespace
       Delegate = delegate;
     }
   private:
-    std::vector<Sample> Matrix;
+    std::vector<C> Matrix;
     Receiver::Ptr Delegate;
     std::vector<SampleHelper> History;
     cycled_iterator<SampleHelper*> Position;
@@ -72,13 +77,13 @@ namespace ZXTune
 {
   namespace Sound
   {
-    Convertor::Ptr CreateFIRFilter(const Sample* coeffs, std::size_t order)
+    Convertor::Ptr CreateFIRFilter(const signed* coeffs, std::size_t order)
     {
-      return Convertor::Ptr(new FIRFilter(coeffs, order));
+      return Convertor::Ptr(new FIRFilter<signed>(coeffs, order));
     }
 
     void CalculateFIRCoefficients(std::size_t /*order*/, uint32_t /*freq*/,
-      uint32_t /*lowCutoff*/, uint32_t /*highCutoff*/, std::vector<Sample>& /*coeffs*/)
+      uint32_t /*lowCutoff*/, uint32_t /*highCutoff*/, std::vector<signed>& /*coeffs*/)
     {
     }
   }

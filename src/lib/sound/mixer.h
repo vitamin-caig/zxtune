@@ -9,7 +9,32 @@ namespace ZXTune
 {
   namespace Sound
   {
-    Convertor::Ptr CreateMixer(const std::vector<ChannelMixer>& matrix, Sample preamp);
+    /// Mixing point for one input channel to all outputs
+    struct ChannelMixer
+    {
+      ChannelMixer() : Mute(false)
+      {
+      }
+      explicit ChannelMixer(const SampleArray& ar) : Mute(false)
+      {
+        std::memcpy(OutMatrix, &ar[0], sizeof(OutMatrix));
+      }
+      bool Mute;
+      SampleArray OutMatrix;
+    };
+
+    struct MixerData
+    {
+      typedef boost::shared_ptr<MixerData> Ptr;
+
+      MixerData() : InMatrix(), Preamp()
+      {
+      }
+      std::vector<ChannelMixer> InMatrix;
+      Sample Preamp;
+    };
+
+    Convertor::Ptr CreateMixer(MixerData::Ptr data);
   }
 }
 
