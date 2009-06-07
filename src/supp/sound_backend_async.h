@@ -48,6 +48,7 @@ namespace ZXTune
       {
         Stopping = true;
         FilledEvent.notify_one();
+        PlayedEvent.notify_one();
         PlaybackThread.join();
         //impossible to use boost::bind
         for (typename BufferEntryArray::iterator it = Buffers.begin(), lim = Buffers.end(); it != lim; ++it)
@@ -58,17 +59,24 @@ namespace ZXTune
       }
       virtual void OnBufferReady(const void* data, std::size_t sizeInBytes)
       {
-        while (FillPtr->IsFilled)
+        if (!Stopping)
         {
-          //overrun
-          Locker lock(QueueLock);
-          PlayedEvent.wait(lock);
+          while (FillPtr->IsFilled)
+          {
+            //overrun
+            Locker lock(QueueLock);
+            PlayedEvent.wait(lock);
+            if (Stopping)
+            {
+              return;
+            }
+          }
+          assert(0 == sizeInBytes % sizeof(Sample));
+          FillBuffer(data, sizeInBytes / sizeof(Sample), FillPtr->Data);
+          FillPtr->IsFilled = true;
+          ++FillPtr;
+          FilledEvent.notify_one();
         }
-        assert(0 == sizeInBytes % sizeof(Sample));
-        FillBuffer(data, sizeInBytes / sizeof(Sample), FillPtr->Data);
-        FillPtr->IsFilled = true;
-        ++FillPtr;
-        FilledEvent.notify_one();
       }
     private:
       void PlaybackFunc()

@@ -330,8 +330,11 @@ int main(int argc, char* argv[])
         std::cout << "Module: \n" << module.Properties;
       }
 
-      while (Sound::Backend::STOPPED != backend->GetState())
+      for (;;)
       {
+        const bool stop(Sound::Backend::STOPPED == backend->GetState() || 
+          Sound::Backend::STOPPING == backend->GetState());
+
         std::size_t frame;
         Module::Tracking track;
         backend->GetModuleState(frame, track);
@@ -371,7 +374,7 @@ int main(int argc, char* argv[])
           }
           std::transform(dump, ArrayEnd(dump), dump, 
             std::bind2nd(std::ptr_fun(Decrease<Sound::Analyze::LevelType>), FALLSPEED));
-          if (quit)
+          if (quit || stop)
           {
             std::cout << std::endl;
             break;
@@ -380,9 +383,9 @@ int main(int argc, char* argv[])
         }
         boost::this_thread::sleep(boost::posix_time::milliseconds(20));
         const int key(tolower(GetKey()));
-        if ('q' == key)
+        quit = 'q' == key;
+        if (quit || stop)
         {
-          quit = true;
           if (silent)//actual break after display
           {
             break;
@@ -391,7 +394,7 @@ int main(int argc, char* argv[])
         switch (key)
         {
         case 'p':
-          Sound::Backend::PLAYING == backend->GetState() ? backend->Pause() : backend->Play();
+          Sound::Backend::STARTED == backend->GetState() ? backend->Pause() : backend->Play();
           break;
         case ' ':
           backend->Stop();

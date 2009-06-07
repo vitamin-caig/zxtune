@@ -69,6 +69,8 @@ namespace ZXTune
     private:
       boost::thread PlayerThread;
       mutable boost::mutex PlayerMutex;
+      boost::barrier SyncBarrier;
+      class PlayThreadRAII;
     private:
       volatile State CurrentState;
       ModulePlayer::Ptr Player;

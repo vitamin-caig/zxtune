@@ -13,6 +13,9 @@ namespace
 {
   const boost::posix_time::milliseconds PLAYTHREAD_SLEEP_PERIOD(1000);
 
+  //playing thread and starting/stopping thread
+  const std::size_t TOTAL_WORKING_THREADS = 2;
+
   using namespace ZXTune::Sound;
   void GetInitialParameters(Backend::Parameters& params)
   {
@@ -53,9 +56,30 @@ namespace ZXTune
 {
   namespace Sound
   {
+    class BackendImpl::PlayThreadRAII
+    {
+    public:
+      explicit PlayThreadRAII(BackendImpl& impl) : Object(impl)
+      {
+        Object.SyncBarrier.wait();
+        Object.CurrentState = Object.STARTED;
+        Object.OnStartup();
+      }
+
+      ~PlayThreadRAII()
+      {
+        Object.OnShutdown();
+        Object.SyncBarrier.wait();
+        Object.CurrentState = Object.STOPPED;
+      }
+
+    private:
+      BackendImpl& Object;
+    };
+
     BackendImpl::BackendImpl()
       : Params()
-      , PlayerThread(), PlayerMutex()
+      , PlayerThread(), PlayerMutex(), SyncBarrier(TOTAL_WORKING_THREADS)
       , CurrentState(NOTOPENED)
       , Player(), Mixer(), Filter(), FilterCoeffs(), Renderer()
     {
@@ -102,21 +126,18 @@ namespace ZXTune
       Locker lock(PlayerMutex);
       CheckState();
       const State prevState(CurrentState);
-      CurrentState = PLAYING;
+      CurrentState = STARTING;
       if (STOPPED == prevState)
       {
         assert(Player.get());
         Player->Reset();
-        OnStartup();
-        if (PlayerThread.joinable())
-        {
-          PlayerThread.join();
-        }
         PlayerThread = boost::thread(std::mem_fun(&BackendImpl::PlayFunc), this);
+        SyncBarrier.wait();//wait for real starting
       }
       else if (PAUSED == prevState)
       {
         OnResume();
+        CurrentState = STARTED;
       }
       return CurrentState;
     }
@@ -131,7 +152,7 @@ namespace ZXTune
 
     Backend::State BackendImpl::Stop()
     {
-      //do not lock anything
+      Locker lock(PlayerMutex);
       CheckState();
       SafeStop();
       return CurrentState;
@@ -243,15 +264,18 @@ namespace ZXTune
 
     void BackendImpl::SafeStop()
     {
-      if (PLAYING == CurrentState || PAUSED == CurrentState)
+      if (STARTED == CurrentState || PAUSED == CurrentState || STOPPING == CurrentState)
       {
         if (PAUSED == CurrentState)
         {
           OnResume();
         }
-        CurrentState = STOPPED;
-        PlayerThread.join();
-        OnShutdown();
+        CurrentState = STOPPING;
+        {
+          Unlocker unlock(PlayerMutex);//TODO: use condvariable
+          SyncBarrier.wait();//wait for thread stop
+          PlayerThread.join();//cleanup thread
+        }
       }
     }
 
@@ -326,18 +350,18 @@ namespace ZXTune
 
     void BackendImpl::PlayFunc()
     {
-      while (STOPPED != CurrentState)
+      PlayThreadRAII raii(*this);
+      while (STOPPING != CurrentState)
       {
-        if (PLAYING == CurrentState)
+        if (STARTED == CurrentState)
         {
           if (ModulePlayer::MODULE_STOPPED == SafeRenderFrame())
           {
-            CurrentState = STOPPED;
-            OnShutdown();
+            CurrentState = STOPPING;
             break;
           }
-        }
-        if (PAUSED == CurrentState)
+        } 
+        else if (PAUSED == CurrentState)
         {
           boost::this_thread::sleep(PLAYTHREAD_SLEEP_PERIOD);
         }
