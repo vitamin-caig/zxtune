@@ -145,7 +145,7 @@ int main(int argc, char* argv[])
         std::cout << "Supported module types:\n";
         for (std::vector<ModulePlayer::Info>::const_iterator it = infos.begin(), lim = infos.end(); it != lim; ++it)
         {
-          std::cout << it->Properties << 
+          std::cout << it->Properties <<
             "Capabilities: 0x" << std::hex << it->Capabilities << "\n------\n";
         }
         return 0;
@@ -235,6 +235,12 @@ int main(int argc, char* argv[])
     }
 
     IO::DataContainer::Ptr source(IO::DataContainer::Create(filename));
+
+    if (!ModulePlayer::Check(filename, *source))
+    {
+      std::cerr << "Unsupported module type" << std::endl;
+      return 1;
+    }
 
     if (!backend.get())
     {
@@ -332,7 +338,7 @@ int main(int argc, char* argv[])
 
       for (;;)
       {
-        const bool stop(Sound::Backend::STOPPED == backend->GetState() || 
+        const bool stop(Sound::Backend::STOPPED == backend->GetState() ||
           Sound::Backend::STOPPING == backend->GetState());
 
         std::size_t frame;
@@ -358,7 +364,7 @@ int main(int argc, char* argv[])
           {
             if (state[chan].Enabled)
             {
-              dump[std::min(state.size() + 1 + state[chan].Band, ArraySize(dump) - 1)] = 
+              dump[std::min(state.size() + 1 + state[chan].Band, ArraySize(dump) - 1)] =
                 dump[chan] = state[chan].Level;
             }
           }
@@ -372,7 +378,7 @@ int main(int argc, char* argv[])
             }
             std::cout << std::endl << filler;
           }
-          std::transform(dump, ArrayEnd(dump), dump, 
+          std::transform(dump, ArrayEnd(dump), dump,
             std::bind2nd(std::ptr_fun(Decrease<Sound::Analyze::LevelType>), FALLSPEED));
           if (quit || stop)
           {

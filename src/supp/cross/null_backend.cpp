@@ -38,7 +38,7 @@ namespace
     {
     }
 
-    virtual void OnBufferReady(const void* data, std::size_t sizeInBytes)
+    virtual void OnBufferReady(const void* /*data*/, std::size_t /*sizeInBytes*/)
     {
     }
   };

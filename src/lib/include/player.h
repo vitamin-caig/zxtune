@@ -58,6 +58,8 @@ namespace ZXTune
 
     /// Virtual ctor
     static Ptr Create(const String& filename, const IO::DataContainer& data);
+    /// Checker
+    static bool Check(const String& filename, const IO::DataContainer& data);
   };
 
   /// Common interface

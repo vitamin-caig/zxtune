@@ -71,11 +71,23 @@ namespace
       }
     }
 
+    virtual bool CheckModule(const String& filename, const IO::DataContainer& data) const
+    {
+      for (PluginsStorage::const_iterator it = Plugins.begin(), lim = Plugins.end(); it != lim; ++it)
+      {
+        if ((it->Checker)(filename, data))
+        {
+          return true;
+        }
+      }
+      return false;
+    }
+
     virtual ModulePlayer::Ptr CreatePlayer(const String& filename, const IO::DataContainer& data) const
     {
       for (PluginsStorage::const_iterator it = Plugins.begin(), lim = Plugins.end(); it != lim; ++it)
       {
-        if ((*it->Checker)(filename, data))
+        if ((it->Checker)(filename, data))
         {
           return (*it->Creator)(filename, data);
         }
@@ -98,6 +110,11 @@ namespace ZXTune
   ModulePlayer::Ptr ModulePlayer::Create(const String& filename, const IO::DataContainer& data)
   {
     return PluginEnumerator::Instance().CreatePlayer(filename, data);
+  }
+
+  bool ModulePlayer::Check(const String& filename, const IO::DataContainer& data)
+  {
+    return PluginEnumerator::Instance().CheckModule(filename, data);
   }
 
   void GetSupportedPlayers(std::vector<ModulePlayer::Info>& infos)

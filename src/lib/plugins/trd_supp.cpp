@@ -163,8 +163,15 @@ namespace
             }
             else
             {
-              submodules += modPath;
-              submodules += '\n';//TODO
+              if (submodules.empty())
+              {
+                submodules = modPath;
+              }
+              else
+              {
+                submodules += '\n';//TODO
+                submodules += modPath;
+              }
             }
           }
         }

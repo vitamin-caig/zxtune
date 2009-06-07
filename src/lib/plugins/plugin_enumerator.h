@@ -23,6 +23,8 @@ namespace ZXTune
 
     virtual void RegisterPlugin(CheckFunc check, FactoryFunc create, InfoFunc describe) = 0;
     virtual void EnumeratePlugins(std::vector<ModulePlayer::Info>& infos) const = 0;
+
+    virtual bool CheckModule(const String& filename, const IO::DataContainer& data) const = 0;
     virtual ModulePlayer::Ptr CreatePlayer(const String& filename, const IO::DataContainer& data) const = 0;
 
     static PluginEnumerator& Instance();

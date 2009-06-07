@@ -86,10 +86,11 @@ namespace
         Stream->seekg(Start);
         Cache.reset(new uint8_t[Length]);
         Stream->read(safe_ptr_cast<char*>(Cache.get()), Length);
+        Stream.reset();
       }
     }
   private:
-    SharedStream Stream;
+    mutable SharedStream Stream;
     std::size_t Start;
     std::size_t Length;
     mutable boost::shared_array<uint8_t> Cache;

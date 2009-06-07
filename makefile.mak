@@ -18,6 +18,8 @@ source_files := $(wildcard $(addsuffix /*.cpp,$(source_dirs))) $(cpp_texts)
 object_files := $(notdir $(source_files))
 object_files := $(addprefix $(objects_dir)/,$(object_files:.cpp=.o))
 
+CXX := g++
+
 CXX_FLAGS := -O3 -g2 -mmmx -msse -msse2 -funroll-loops -W -Wall -funsigned-char -ansi \
             $(addprefix -I, $(include_dirs)) $(addprefix -D, $(definitions)) -pipe
 
@@ -37,19 +39,20 @@ dirs:
 $(depends):
 	$(MAKE) -C $(addprefix $(path_step)/,$@)
 
-$(target): $(object_files)
 ifdef binary_name
-	g++ $(LD_FLAGS) -o $@ $^ \
+$(target): $(object_files) $(addprefix $(libs_dir)/lib, $(addsuffix .a, $(libraries)))
+	$(CXX) $(LD_FLAGS) -o $@ $(object_files) \
     -Wl,--whole-archive -L$(libs_dir) $(addprefix -l, $(libraries)) -Wl,--no-whole-archive \
     $(addprefix -l, $(dynamic_libs))
 else
+$(target): $(object_files)
 	ar $(AR_FLAGS) $@ $^
 endif
 
 VPATH := $(source_dirs)
 
 $(objects_dir)/%.o: %.cpp
-	g++ $(CXX_FLAGS) -c -MD $< -o $@
+	$(CXX) $(CXX_FLAGS) -c -MD $< -o $@
 
 clean:
 	rm -f $(target)
