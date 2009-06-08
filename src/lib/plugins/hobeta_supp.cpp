@@ -41,8 +41,6 @@ namespace
   BOOST_STATIC_ASSERT(sizeof(Header) == 17);
 
   //////////////////////////////////////////////////////////////////////////
-  void Describing(ModulePlayer::Info& info);
-
   class PlayerImpl : public ModulePlayer
   {
   public:
@@ -130,8 +128,11 @@ namespace
     }
     const uint8_t* const data(static_cast<const uint8_t*>(source.Data()));
     const Header* const header(safe_ptr_cast<const Header*>(data));
+    ModulePlayer::Info info;
+    const IO::DataContainer& subcontainer(*source.GetSubcontainer(sizeof(*header), 
+      source.Size() - sizeof(*header)));
     return fromLE(header->CRC) == ((105 + 257 * std::accumulate(data, data + 15, 0)) & 0xffff) &&
-           ModulePlayer::Check(filename, *source.GetSubcontainer(sizeof(*header), source.Size() - sizeof(*header)));
+           ModulePlayer::Check(filename, subcontainer, info);
   }
 
   ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data)

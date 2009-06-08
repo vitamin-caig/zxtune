@@ -235,8 +235,8 @@ int main(int argc, char* argv[])
     }
 
     IO::DataContainer::Ptr source(IO::DataContainer::Create(filename));
-
-    if (!ModulePlayer::Check(filename, *source))
+    ModulePlayer::Info playerInfo;
+    if (!ModulePlayer::Check(filename, *source, playerInfo))
     {
       std::cerr << "Unsupported module type" << std::endl;
       return 1;

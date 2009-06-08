@@ -211,6 +211,12 @@
 					RelativePath="..\..\src\lib\plugins\chi_supp.cpp">
 				</File>
 				<File
+					RelativePath="..\..\src\lib\plugins\detector.cpp">
+				</File>
+				<File
+					RelativePath="..\..\src\lib\plugins\detector.h">
+				</File>
+				<File
 					RelativePath="..\..\src\lib\plugins\hobeta_supp.cpp">
 				</File>
 				<File

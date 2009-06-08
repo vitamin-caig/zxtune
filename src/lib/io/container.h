@@ -38,25 +38,31 @@ namespace ZXTune
     class FastDump
     {
     public:
-      explicit FastDump(const DataContainer& data)
-        : Ptr(safe_ptr_cast<const T*>(data.Data())), Lenght(data.Size() / sizeof(T))
+      explicit FastDump(const DataContainer& data, std::size_t offset = 0)
+        : Ptr(safe_ptr_cast<const T*>(data.Data())), Lenght(data.Size() / sizeof(T)), Offset(offset / sizeof(T))
       {
-        assert(0 == Lenght % sizeof(T));
+        assert(0 == Lenght % sizeof(T) && 0 == Offset % sizeof(T));
+      }
+
+      FastDump(const FastDump& other, std::size_t offset)
+        : Ptr(other.Ptr), Lenght(other.Lenght), Offset(offset)
+      {
       }
 
       const T& operator [] (std::size_t idx) const
       {
-        assert(idx < Lenght);
-        return Ptr[idx];
+        assert(idx + Offset < Lenght);
+        return Ptr[idx + Offset];
       }
 
       std::size_t Size() const
       {
-        return Lenght;
+        return Lenght - Offset;
       }
     private:
       const T* const Ptr;
       const std::size_t Lenght;
+      const std::size_t Offset;
     };
   }
 }

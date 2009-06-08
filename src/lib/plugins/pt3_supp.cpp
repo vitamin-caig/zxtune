@@ -1,5 +1,6 @@
 #include "plugin_enumerator.h"
 
+#include "detector.h"
 #include "tracking_supp.h"
 #include "../devices/data_source.h"
 #include "../devices/aym/aym.h"
@@ -31,6 +32,14 @@ namespace
   const std::size_t MAX_SAMPLES_COUNT = 32;
 
   typedef IO::FastDump<uint8_t> FastDump;
+
+
+  //pt3
+  const std::size_t PT3X_PLAYER_SIZE = 0xe21;
+  const std::string PT3XPlayerDetector("21??18?c3??c3+35+f322??22??22??22??01640009");
+
+  const std::size_t PT35X_PLAYER_SIZE = 0x30f;//0xce
+  const std::string PT35XPlayerDetector("21??18?c3??c3+37+f3ed73??22??22??22??22??01640009");
 
   //Table #0 of Pro Tracker 3.3x - 3.4r
   const uint16_t FreqTable_PT_33_34r[96] = {
@@ -955,6 +964,23 @@ namespace
     info.Properties.insert(StringMap::value_type(ATTR_VERSION, TEXT_PT3_VERSION));
   }
 
+  bool Check(const uint8_t* data, std::size_t limit)
+  {
+    const PT3Header* const header(safe_ptr_cast<const PT3Header*>(data));
+    const std::size_t patOff(fromLE(header->PatternsOffset));
+    if (patOff >= limit ||
+      0xff != data[patOff - 1] ||
+      &data[patOff - 1] != std::find_if(header->Positions, data + patOff - 1,
+      std::bind2nd(std::modulus<uint8_t>(), 3)) ||
+      &header->Positions[header->Lenght] != data + patOff - 1 ||
+      fromLE(header->OrnamentsOffsets[0]) + sizeof(PT3Ornament) > limit
+      )
+    {
+      return false;
+    }
+    return true;
+  }
+
   bool Checking(const String& /*filename*/, const IO::DataContainer& source)
   {
     const std::size_t limit(source.Size());
@@ -964,25 +990,24 @@ namespace
     }
 
     const uint8_t* const data(static_cast<const uint8_t*>(source.Data()));
-    const PT3Header* const header(safe_ptr_cast<const PT3Header*>(data));
-    const std::size_t patOff(fromLE(header->PatternsOffset));
-    if (patOff >= limit ||
-        0xff != data[patOff - 1] ||
-        &data[patOff - 1] != std::find_if(header->Positions, data + patOff - 1,
-          std::bind2nd(std::modulus<uint8_t>(), 3)) ||
-        &header->Positions[header->Lenght] != data + patOff - 1 ||
-        fromLE(header->OrnamentsOffsets[0]) + sizeof(PT3Ornament) > limit
-        )
-    {
-      return false;
-    }
-    return true;
+    return Check(data, limit) ||
+      (Module::Detect(data, limit, PT3XPlayerDetector) && 
+       Check(data + PT3X_PLAYER_SIZE, limit - PT3X_PLAYER_SIZE)) ||
+      (Module::Detect(data, limit, PT35XPlayerDetector) &&
+       Check(data + PT35X_PLAYER_SIZE, limit - PT35X_PLAYER_SIZE));
   }
 
   ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data)
   {
     assert(Checking(filename, data) || !"Attempt to create pt3 player on invalid data");
-    return ModulePlayer::Ptr(new PlayerImpl(filename, FastDump(data)));
+    const uint8_t* const buf(static_cast<const uint8_t*>(data.Data()));
+    const std::size_t size(data.Size());
+    const std::size_t offset(Module::Detect(buf, size, PT3XPlayerDetector) ?
+      PT3X_PLAYER_SIZE
+      :
+      (Module::Detect(buf, size, PT35XPlayerDetector) ? PT35X_PLAYER_SIZE : 0)
+      );
+    return ModulePlayer::Ptr(new PlayerImpl(filename, FastDump(data, offset)));
   }
 
   PluginAutoRegistrator pt3Reg(Checking, Creating, Describing);
