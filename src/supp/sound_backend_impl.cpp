@@ -62,7 +62,7 @@ namespace ZXTune
       explicit PlayThreadRAII(BackendImpl& impl) : Object(impl)
       {
         Object.SyncBarrier.wait();
-        Object.CurrentState = Object.STARTED;
+        Object.InProcess = false;//starting finished
         Object.OnStartup();
       }
 
@@ -70,7 +70,7 @@ namespace ZXTune
       {
         Object.OnShutdown();
         Object.SyncBarrier.wait();
-        Object.CurrentState = Object.STOPPED;
+        Object.InProcess = false; //stopping finished
       }
 
     private:
@@ -80,7 +80,7 @@ namespace ZXTune
     BackendImpl::BackendImpl()
       : Params()
       , PlayerThread(), PlayerMutex(), SyncBarrier(TOTAL_WORKING_THREADS)
-      , CurrentState(NOTOPENED)
+      , CurrentState(NOTOPENED), InProcess(false)
       , Player(), Mixer(), Filter(), FilterCoeffs(), Renderer()
     {
       GetInitialParameters(Params);
@@ -88,7 +88,8 @@ namespace ZXTune
 
     BackendImpl::~BackendImpl()
     {
-      assert(NOTOPENED == CurrentState || STOPPED == CurrentState || !"Backend should be stopped!");
+      assert(NOTOPENED == CurrentState || (STOPPED == CurrentState && !InProcess) 
+        || !"Backend should be stopped!");
     }
 
     Backend::State BackendImpl::SetPlayer(ModulePlayer::Ptr player)
@@ -126,7 +127,8 @@ namespace ZXTune
       Locker lock(PlayerMutex);
       CheckState();
       const State prevState(CurrentState);
-      CurrentState = STARTING;
+      CurrentState = STARTED;
+      InProcess = true;//starting now
       if (STOPPED == prevState)
       {
         assert(Player.get());
@@ -264,13 +266,14 @@ namespace ZXTune
 
     void BackendImpl::SafeStop()
     {
-      if (STARTED == CurrentState || PAUSED == CurrentState || STOPPING == CurrentState)
+      if (STARTED == CurrentState || PAUSED == CurrentState || (STOPPED == CurrentState && InProcess))
       {
         if (PAUSED == CurrentState)
         {
           OnResume();
         }
-        CurrentState = STOPPING;
+        CurrentState = STOPPED;
+        InProcess = true;//stopping now
         {
           Unlocker unlock(PlayerMutex);//TODO: use condvariable
           SyncBarrier.wait();//wait for thread stop
@@ -351,13 +354,14 @@ namespace ZXTune
     void BackendImpl::PlayFunc()
     {
       PlayThreadRAII raii(*this);
-      while (STOPPING != CurrentState)
+      while (STOPPED != CurrentState)
       {
         if (STARTED == CurrentState)
         {
           if (ModulePlayer::MODULE_STOPPED == SafeRenderFrame())
           {
-            CurrentState = STOPPING;
+            CurrentState = STOPPED;
+            InProcess = true;//stopping now
             break;
           }
         } 

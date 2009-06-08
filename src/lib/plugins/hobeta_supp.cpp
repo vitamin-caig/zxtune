@@ -3,6 +3,7 @@
 
 #include <tools.h>
 
+#include <module_attrs.h>
 #include <player_attrs.h>
 
 #include <boost/static_assert.hpp>
@@ -16,6 +17,8 @@ namespace
 
   const String TEXT_HOB_INFO("Hobeta modules support");
   const String TEXT_HOB_VERSION("0.1");
+  const String TEXT_HOB_CONTAINER("Hobeta");
+  const String TEXT_CONTAINER_DELIMITER("=>");
 
   const std::size_t HOBETA_MAX_SIZE = 0xff00 + 17;
 
@@ -58,7 +61,17 @@ namespace
     virtual void GetModuleInfo(Module::Information& info) const
     {
       assert(Delegate.get());
-      return Delegate->GetModuleInfo(info);
+      Delegate->GetModuleInfo(info);
+      StringMap::iterator ctrIter(info.Properties.find(Module::ATTR_CONTAINER));
+      if (ctrIter == info.Properties.end())
+      {
+        info.Properties.insert(StringMap::value_type(Module::ATTR_CONTAINER, TEXT_HOB_CONTAINER));
+      }
+      else
+      {
+        ctrIter->second += TEXT_CONTAINER_DELIMITER;
+        ctrIter->second += TEXT_HOB_CONTAINER;
+      }
     }
 
     /// Retrieving current state of loaded module

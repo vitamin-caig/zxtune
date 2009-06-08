@@ -15,6 +15,7 @@ namespace ZXTune
     const String::value_type ATTR_DATE[] = {'D', 'a', 't', 'e', '\0'};
     const String::value_type ATTR_COMMENT[] = {'C', 'o', 'm', 'm', 'e', 'n', 't', '\0'};
     const String::value_type ATTR_SUBMODULES[] = {'S', 'u', 'b', 'm', 'o', 'd', 'u', 'l', 'e', 's', '\0'};
+    const String::value_type ATTR_CONTAINER[] = {'C', 'o', 'n', 't', 'a', 'i', 'n', 'e', 'r', '\0'};
     const String::value_type ATTR_WARNINGS[] = {'W', 'a', 'r', 'n', 'i', 'n', 'g', 's', '\0'};
   }
 }

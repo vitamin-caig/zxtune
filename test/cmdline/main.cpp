@@ -338,8 +338,7 @@ int main(int argc, char* argv[])
 
       for (;;)
       {
-        const bool stop(Sound::Backend::STOPPED == backend->GetState() ||
-          Sound::Backend::STOPPING == backend->GetState());
+        const bool stop(Sound::Backend::STOPPED == backend->GetState());
 
         std::size_t frame;
         Module::Tracking track;

@@ -24,15 +24,11 @@ namespace ZXTune
       {
       }
 
-      //NOTOPENED <-> STOPPED -> STARTING -> STARTED <-> PAUSED
-      //                      <- STOPPING <-
       enum State
       {
         NOTOPENED,
-        STOPPING,
         STOPPED,
         PAUSED,
-        STARTING,
         STARTED,
       };
 

@@ -206,19 +206,12 @@
 				Filter="">
 				<File
 					RelativePath="..\..\src\lib\plugins\asc_supp.cpp">
-					<FileConfiguration
-						Name="Debug|Win32">
-						<Tool
-							Name="VCCLCompilerTool"/>
-					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\src\lib\plugins\chi_supp.cpp">
-					<FileConfiguration
-						Name="Debug|Win32">
-						<Tool
-							Name="VCCLCompilerTool"/>
-					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\src\lib\plugins\hobeta_supp.cpp">
 				</File>
 				<File
 					RelativePath="..\..\src\lib\plugins\plugin_enumerator.cpp">
@@ -228,19 +221,9 @@
 				</File>
 				<File
 					RelativePath="..\..\src\lib\plugins\psg_supp.cpp">
-					<FileConfiguration
-						Name="Debug|Win32">
-						<Tool
-							Name="VCCLCompilerTool"/>
-					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\src\lib\plugins\pt2_supp.cpp">
-					<FileConfiguration
-						Name="Debug|Win32">
-						<Tool
-							Name="VCCLCompilerTool"/>
-					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\src\lib\plugins\pt3_supp.cpp">

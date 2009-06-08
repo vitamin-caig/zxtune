@@ -73,6 +73,7 @@ namespace ZXTune
       class PlayThreadRAII;
     private:
       volatile State CurrentState;
+      volatile bool InProcess;//STOP => STOPPING, STARTED => STARTING
       ModulePlayer::Ptr Player;
       Convertor::Ptr Mixer;
       Convertor::Ptr Filter;
