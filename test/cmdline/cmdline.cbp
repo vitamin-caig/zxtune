@@ -11,7 +11,7 @@
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="samples/trd/tiden.trd?EricGift.m!_" />
+				<Option parameters="samples/hobeta/23_59.\$m" />
 				<Option projectIncludeDirsRelation="0" />
 				<Compiler>
 					<Add option="-W" />
@@ -76,6 +76,7 @@
 		<Unit filename="../../src/lib/io/warnings_collector.h" />
 		<Unit filename="../../src/lib/plugins/asc_supp.cpp" />
 		<Unit filename="../../src/lib/plugins/chi_supp.cpp" />
+		<Unit filename="../../src/lib/plugins/hobeta_supp.cpp" />
 		<Unit filename="../../src/lib/plugins/plugin_enumerator.cpp" />
 		<Unit filename="../../src/lib/plugins/plugin_enumerator.h" />
 		<Unit filename="../../src/lib/plugins/psg_supp.cpp" />

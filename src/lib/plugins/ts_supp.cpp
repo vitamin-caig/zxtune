@@ -40,6 +40,13 @@ namespace
   const uint8_t TS_ID[] = {'0', '2', 'T', 'S'};
   BOOST_STATIC_ASSERT(sizeof(Footer) == 16);
 
+  
+  template<class T>
+  inline T avg(T val1, T val2)
+  {
+    return (val1 + val2) / 2;
+  }
+  
   class TSMixer : public Sound::Receiver
   {
   public:
@@ -52,13 +59,13 @@ namespace
       if (!Channels)
       {
         Channels = channels;
-        Buffer.resize(Channels * Samples);
+        Buffer.resize(Channels * Samples, 0);
         Cursor = &Buffer[0];//TODO
       }
       assert(Cursor && Cursor < &Buffer[Buffer.size()]);
       if (Receiver) //mix and out
       {
-        std::transform(input, input + channels, Cursor, Cursor, std::max<Sound::Sample>);
+        std::transform(input, input + channels, Cursor, Cursor, avg<Sound::Sample>);
         Receiver->ApplySample(Cursor, channels);
       }
       else //store
@@ -76,7 +83,8 @@ namespace
     void Reset(const Sound::Parameters& params)
     {
       Receiver = 0;
-      Samples = 2 * params.SoundFreq * params.FrameDuration / 1000;
+      Samples = 2 * params.SoundFreq * params.FrameDuration / 1000;//TODO
+      Channels = 0;
     }
 
     void Switch(Sound::Receiver& receiver)

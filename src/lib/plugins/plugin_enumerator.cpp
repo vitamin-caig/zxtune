@@ -2,9 +2,10 @@
 
 #include <player_attrs.h>
 
-#include <set>
+#include <list>
 #include <cassert>
 #include <algorithm>
+#include <functional>
 
 namespace
 {
@@ -19,20 +20,32 @@ namespace
     unsigned Priority;
   };
 
-  bool operator < (const PluginDescriptor& lh, const PluginDescriptor& rh)
+  unsigned GetPriorityFromCaps(unsigned caps)
   {
-    return lh.Priority < rh.Priority ||
-        lh.Checker < rh.Checker || lh.Creator < rh.Creator || lh.Descriptor < rh.Descriptor;
+    if (caps & CAP_MULTITRACK)
+    {
+      return 100;
+    }
+    else if (caps & CAP_CONTAINER)
+    {
+      return 50;
+    }
+    return 0;
   }
 
   bool operator == (const PluginDescriptor& lh, const PluginDescriptor& rh)
   {
     return lh.Checker == rh.Checker && lh.Creator == rh.Creator && lh.Descriptor == rh.Descriptor;
   }
+  
+  bool operator < (const PluginDescriptor& lh, const PluginDescriptor& rh)
+  {
+    return lh.Priority < rh.Priority;
+  }
 
   class PluginEnumeratorImpl : public PluginEnumerator
   {
-    typedef std::set<PluginDescriptor> PluginsStorage;
+    typedef std::list<PluginDescriptor> PluginsStorage;
   public:
     PluginEnumeratorImpl()
     {
@@ -40,24 +53,11 @@ namespace
 
     virtual void RegisterPlugin(CheckFunc check, FactoryFunc create, InfoFunc describe)
     {
-      PluginDescriptor descr = {check, create, describe};
-      assert(Plugins.end() == std::find(Plugins.begin(), Plugins.end(), descr));
       ModulePlayer::Info info;
       describe(info);
-      //store multitrack plugins to beginning
-      if (info.Capabilities & CAP_MULTITRACK)
-      {
-        descr.Priority = 0;
-      }
-      else if (info.Capabilities & CAP_CONTAINER)
-      {
-        descr.Priority = 50;
-      }
-      else
-      {
-        descr.Priority = 100;
-      }
-      Plugins.insert(descr);
+      const PluginDescriptor descr = {check, create, describe, GetPriorityFromCaps(info.Capabilities)};
+      assert(Plugins.end() == std::find(Plugins.begin(), Plugins.end(), descr));
+      Plugins.insert(std::find_if(Plugins.begin(), Plugins.end(), std::bind2nd(std::less<PluginDescriptor>(), descr)), descr);
     }
 
     virtual void EnumeratePlugins(std::vector<ModulePlayer::Info>& infos) const
