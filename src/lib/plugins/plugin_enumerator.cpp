@@ -2,6 +2,7 @@
 
 #include <player_attrs.h>
 
+#include <set>
 #include <cassert>
 #include <algorithm>
 
@@ -14,31 +15,24 @@ namespace
     CheckFunc Checker;
     FactoryFunc Creator;
     InfoFunc Descriptor;
+    //cached
+    unsigned Priority;
   };
 
-  class PDFinder : public std::unary_function<PluginDescriptor, bool>
+  bool operator < (const PluginDescriptor& lh, const PluginDescriptor& rh)
   {
-  public:
-    PDFinder(const argument_type& val) : Val(val)
-    {
-    }
+    return lh.Priority < rh.Priority ||
+        lh.Checker < rh.Checker || lh.Creator < rh.Creator || lh.Descriptor < rh.Descriptor;
+  }
 
-    PDFinder(const PDFinder& rh) : Val(rh.Val)
-    {
-    }
-
-    result_type operator()(const argument_type& arg) const
-    {
-      return arg.Checker == Val.Checker && arg.Creator == Val.Creator && arg.Descriptor == Val.Descriptor;
-    }
-
-  private:
-    const argument_type& Val;
-  };
+  bool operator == (const PluginDescriptor& lh, const PluginDescriptor& rh)
+  {
+    return lh.Checker == rh.Checker && lh.Creator == rh.Creator && lh.Descriptor == rh.Descriptor;
+  }
 
   class PluginEnumeratorImpl : public PluginEnumerator
   {
-    typedef std::list<PluginDescriptor> PluginsStorage;
+    typedef std::set<PluginDescriptor> PluginsStorage;
   public:
     PluginEnumeratorImpl()
     {
@@ -46,19 +40,24 @@ namespace
 
     virtual void RegisterPlugin(CheckFunc check, FactoryFunc create, InfoFunc describe)
     {
-      const PluginDescriptor descr = {check, create, describe};
-      assert(Plugins.end() == std::find_if(Plugins.begin(), Plugins.end(), PDFinder(descr)));
+      PluginDescriptor descr = {check, create, describe};
+      assert(Plugins.end() == std::find(Plugins.begin(), Plugins.end(), descr));
       ModulePlayer::Info info;
       describe(info);
       //store multitrack plugins to beginning
       if (info.Capabilities & CAP_MULTITRACK)
       {
-        Plugins.push_front(descr);
+        descr.Priority = 0;
+      }
+      else if (info.Capabilities & CAP_CONTAINER)
+      {
+        descr.Priority = 50;
       }
       else
       {
-        Plugins.push_back(descr);
+        descr.Priority = 100;
       }
+      Plugins.insert(descr);
     }
 
     virtual void EnumeratePlugins(std::vector<ModulePlayer::Info>& infos) const

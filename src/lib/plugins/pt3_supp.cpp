@@ -33,13 +33,63 @@ namespace
 
   typedef IO::FastDump<uint8_t> FastDump;
 
+  struct DetectChain
+  {
+    const std::string PlayerFP;
+    const std::size_t PlayerSize;
+  };
 
-  //pt3
-  const std::size_t PT3X_PLAYER_SIZE = 0xe21;
-  const std::string PT3XPlayerDetector("21??18?c3??c3+35+f322??22??22??22??01640009");
-
-  const std::size_t PT35X_PLAYER_SIZE = 0x30f;//0xce
-  const std::string PT35XPlayerDetector("21??18?c3??c3+37+f3ed73??22??22??22??22??01640009");
+  DetectChain Players[] = {
+    //PT3x
+    {
+      "21??18?c3??c3+35+f322??22??22??22??01640009",
+      0xe21
+    },
+    //PT3.5x
+    {
+      "21??18?c3??c3+37+f3ed73??22??22??22??22??01640009",
+      0x30f
+    },
+    /*Vortex1
+    21 ??     ld hl,xxxx
+    18 ?      jr xx
+    c3 ??     jp xxxx
+    18        jr xx
+              db xx
+    ?x25      dw xxxx
+              ds 21
+    21 ??     ld hl,xxxx
+    cb fe     set 7,(hl)
+    cb 46     bit 0,(hl)
+    c8        ret z
+    e1        pop hl
+    21 ??     ld hl,xxxx
+    34        inc (hl)
+    21 ??     ld hl,xxxx
+    34        inc (hl)
+    af        xor a
+    67        ld h,a
+    6f        ld l,a
+    32 ??     ld (xxxx),a
+    22 ??     ld (xxxx),hl
+    c3        jp xxxx
+    */
+    {
+      "21??18?c3??18+25+21??cbfecb46c8e121??3421??34af676f32??22??c3",
+      0x86e
+    }
+    /*Vortex2
+    21 ??     ld hl,xxxx
+    18 ?      jr xx
+    c3 ??     jp xxxx
+    18 ?      jr xx
+    72 f3 ed 73 4d c0 22 ae c4 44 4d 11 64
+    {
+      "21??18?c3??18",
+      0xc00
+    }
+    */
+  };
 
   //Table #0 of Pro Tracker 3.3x - 3.4r
   const uint16_t FreqTable_PT_33_34r[96] = {
@@ -981,6 +1031,23 @@ namespace
     return true;
   }
 
+  class Detector : public std::unary_function<DetectChain, bool>
+  {
+  public:
+    Detector(const uint8_t* data, std::size_t limit) : Data(data), Limit(limit)
+    {
+    }
+
+    result_type operator()(const argument_type& arg) const
+    {
+      return Module::Detect(Data, Limit, arg.PlayerFP) &&
+        Check(Data + arg.PlayerSize, Limit - arg.PlayerSize);
+    }
+  private:
+    const uint8_t* const Data;
+    const std::size_t Limit;
+  };
+
   bool Checking(const String& /*filename*/, const IO::DataContainer& source)
   {
     const std::size_t limit(source.Size());
@@ -991,22 +1058,15 @@ namespace
 
     const uint8_t* const data(static_cast<const uint8_t*>(source.Data()));
     return Check(data, limit) ||
-      (Module::Detect(data, limit, PT3XPlayerDetector) && 
-       Check(data + PT3X_PLAYER_SIZE, limit - PT3X_PLAYER_SIZE)) ||
-      (Module::Detect(data, limit, PT35XPlayerDetector) &&
-       Check(data + PT35X_PLAYER_SIZE, limit - PT35X_PLAYER_SIZE));
+      ArrayEnd(Players) != std::find_if(Players, ArrayEnd(Players), Detector(data, limit));
   }
 
   ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data)
   {
     assert(Checking(filename, data) || !"Attempt to create pt3 player on invalid data");
     const uint8_t* const buf(static_cast<const uint8_t*>(data.Data()));
-    const std::size_t size(data.Size());
-    const std::size_t offset(Module::Detect(buf, size, PT3XPlayerDetector) ?
-      PT3X_PLAYER_SIZE
-      :
-      (Module::Detect(buf, size, PT35XPlayerDetector) ? PT35X_PLAYER_SIZE : 0)
-      );
+    const DetectChain* const playerIt(std::find_if(Players, ArrayEnd(Players), Detector(buf, data.Size())));
+    const std::size_t offset(ArrayEnd(Players) == playerIt ? 0 : playerIt->PlayerSize);
     return ModulePlayer::Ptr(new PlayerImpl(filename, FastDump(data, offset)));
   }
 

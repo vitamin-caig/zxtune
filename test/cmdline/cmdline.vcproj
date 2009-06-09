@@ -243,6 +243,9 @@
 				<File
 					RelativePath="..\..\src\lib\plugins\trd_supp.cpp">
 				</File>
+				<File
+					RelativePath="..\..\src\lib\plugins\ts_supp.cpp">
+				</File>
 			</Filter>
 			<Filter
 				Name="devices"
