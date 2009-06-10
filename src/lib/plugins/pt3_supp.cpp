@@ -857,9 +857,8 @@ namespace
               dst.PosInOrnament = it->Param1;
               break;
             case VIBRATE:
-              dst.VibrateOn = it->Param1;
+              dst.VibrateCounter = dst.VibrateOn = it->Param1;
               dst.VibrateOff = it->Param2;
-              dst.VibrateCounter = 0;
               dst.ToneSlider.Value = 0;
               dst.ToneSlider.Counter = 0;
               break;
@@ -872,6 +871,7 @@ namespace
               Commons.EnvBase = it->Param2;
               chunk.Mask |= (1 << AYM::DataChunk::REG_ENV);
               dst.Envelope = true;
+              Commons.EnvSlider.Reset();
               break;
             case NOENVELOPE:
               dst.Envelope = false;
