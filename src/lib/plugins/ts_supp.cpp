@@ -100,6 +100,24 @@ namespace
     Sound::Receiver* Receiver;
   };
 
+  void MergeMap(const StringMap& lh, const StringMap& rh, StringMap& result)
+  {
+    result = lh;
+    for (StringMap::const_iterator it = rh.begin(), lim = rh.end(); it != lim; ++it)
+    {
+      StringMap::iterator fnd(result.find(it->first));
+      if (fnd == result.end() || fnd->second.empty())//new or was empty
+      {
+        result.insert(*it);
+      }
+      else if (it->second != fnd->second && !it->second.empty())
+      {
+        fnd->second += '/'; //TODO
+        fnd->second += it->second;
+      }
+    }
+  }
+
   //////////////////////////////////////////////////////////////////////////
   class PlayerImpl : public ModulePlayer
   {
@@ -113,29 +131,52 @@ namespace
       IO::DataContainer::Ptr cont2(data.GetSubcontainer(footer->Size1, footer->Size2));
       Delegate1 = ModulePlayer::Create(filename, *cont1);
       Delegate2 = ModulePlayer::Create(filename, *cont2);
+      {
+        Info info1, info2;
+        Delegate1->GetInfo(info1);
+        Delegate2->GetInfo(info2);
+        if (info1.Capabilities != info2.Capabilities)
+        {
+          throw 1;//TODO
+        }
+        MergedInfo.Capabilities = info1.Capabilities;
+        MergeMap(info1.Properties, info2.Properties, MergedInfo.Properties);
+      }
+      {
+        Module::Information info1, info2;
+        Delegate1->GetModuleInfo(info1);
+        Delegate2->GetModuleInfo(info2);
+        if (info1.Capabilities != info2.Capabilities || info1.Statistic.Channels != info2.Statistic.Channels)
+        {
+          throw 1;//TODO
+        }
+        MergedModuleInfo.Loop = info1.Loop;
+        MergedModuleInfo.Capabilities = info1.Capabilities;
+        MergedModuleInfo.Statistic = info1.Statistic;
+        MergedModuleInfo.Statistic.Frame = std::min(info1.Statistic.Frame, info2.Statistic.Frame);
+        MergeMap(info1.Properties, info2.Properties, MergedModuleInfo.Properties);
+        StringMap::iterator ctrIter(MergedModuleInfo.Properties.find(Module::ATTR_CONTAINER));
+        if (ctrIter == MergedModuleInfo.Properties.end())
+        {
+          MergedModuleInfo.Properties.insert(StringMap::value_type(Module::ATTR_CONTAINER, TEXT_TS_CONTAINER));
+        }
+        else
+        {
+          ctrIter->second += TEXT_CONTAINER_DELIMITER;
+          ctrIter->second += TEXT_TS_CONTAINER;
+        }
+      }
     }
     /// Retrieving player info itself
     virtual void GetInfo(Info& info) const
     {
-      assert(Delegate1.get());
-      return Delegate1->GetInfo(info);
+      info = MergedInfo;
     }
 
     /// Retrieving information about loaded module
     virtual void GetModuleInfo(Module::Information& info) const
     {
-      assert(Delegate1.get());
-      Delegate1->GetModuleInfo(info);
-      StringMap::iterator ctrIter(info.Properties.find(Module::ATTR_CONTAINER));
-      if (ctrIter == info.Properties.end())
-      {
-        info.Properties.insert(StringMap::value_type(Module::ATTR_CONTAINER, TEXT_TS_CONTAINER));
-      }
-      else
-      {
-        ctrIter->second += TEXT_CONTAINER_DELIMITER;
-        ctrIter->second += TEXT_TS_CONTAINER;
-      }
+      info = MergedModuleInfo;
     }
 
     /// Retrieving current state of loaded module
@@ -182,6 +223,8 @@ namespace
     ModulePlayer::Ptr Delegate1;
     ModulePlayer::Ptr Delegate2;
     TSMixer Mixer;
+    Info MergedInfo;
+    Module::Information MergedModuleInfo;
   };
 
   //////////////////////////////////////////////////////////////////////////

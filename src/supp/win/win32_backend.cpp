@@ -21,7 +21,8 @@ namespace
 
   struct WaveBuffer
   {
-    std::vector<Sample> Buffer;
+    typedef std::vector<Sample> BufType;
+    BufType Buffer;
     mutable ::WAVEHDR Header;
   };
 
@@ -145,7 +146,8 @@ namespace
     {
       assert(0 != WaveHandle);
       CheckMMResult(::waveOutUnprepareHeader(WaveHandle, &buf.Header, sizeof(buf.Header)));
-      buf.Buffer.swap(std::vector<Sample>());
+      //hot swap is not accepted by some compilers
+      buf.Buffer.clear();
     }
     virtual void FillBuffer(const void* data, std::size_t sizeInSamples, WaveBuffer& buf)
     {

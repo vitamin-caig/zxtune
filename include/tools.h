@@ -1,7 +1,11 @@
 #ifndef __TOOLS_H_DEFINED__
 #define __TOOLS_H_DEFINED__
 
+#include <boost/mpl/if.hpp>
 #include <boost/call_traits.hpp>
+#include <boost/static_assert.hpp>
+#include <boost/type_traits/is_const.hpp>
+#include <boost/type_traits/remove_pointer.hpp>
 
 #include <iterator>
 #include <algorithm>
@@ -36,16 +40,14 @@ inline T* ArrayEnd(T (&c)[D])
 
 
 template<class T, class F>
-inline T safe_ptr_cast(F* from)
+inline T safe_ptr_cast(F from)
 {
-  return static_cast<T>(static_cast<void*>(from));
+  using namespace boost;
+  BOOST_STATIC_ASSERT(is_pointer<F>::value);
+  BOOST_STATIC_ASSERT(is_pointer<T>::value);
+  typedef typename mpl::if_c<is_const<typename remove_pointer<T>::type>::value, const void*, void*>::type MidType;
+  return static_cast<T>(static_cast<MidType>(from));
 }
-
-template<class T, class F>
-inline T safe_ptr_cast(const F* from)
-{
-  return static_cast<T>(static_cast<const void*>(from));
-} 
 
 template<class C>
 class cycled_iterator
