@@ -106,11 +106,11 @@ int main(int argc, char* argv[])
 
     //default parameters
     parameters.SoundParameters.ClockFreq = 1750000;
-    parameters.SoundParameters.SoundFreq = 48000;
+    parameters.SoundParameters.SoundFreq = 44100;
     parameters.SoundParameters.FrameDuration = 20;
     parameters.DriverFlags = 3;
     parameters.BufferInMs = 100;
-
+    
     for (int arg = 1; arg != argc; ++arg)
     {
       const std::string& args(argv[arg]);
@@ -130,8 +130,9 @@ int main(int argc, char* argv[])
           "--silent          -- do not produce any output\n"
           "--ym              -- use YM PSG\n"
           "--loop            -- loop modules playback\n"
-          "--clock value     -- set PSG clock (1750000 default)\n"
-          "--sound value     -- set sound frequency (48000 default)\n"
+          "--clock value     -- set PSG clock (" << parameters.SoundParameters.ClockFreq << " default)\n"
+          "--sound value     -- set sound frequency (" << parameters.SoundParameters.SoundFreq << " default)\n"
+          "--fir order,a-b   -- use FIR with order and range from a to b\n"
 
           "\nModes:\n"
           "--help            -- this page\n"
@@ -222,6 +223,16 @@ int main(int argc, char* argv[])
         }
         InStringStream str(argv[++arg]);
         str >> parameters.SoundParameters.SoundFreq;
+      }
+      else if (args == "--fir")
+      {
+        if (arg == argc - 1)
+        {
+          std::cout << "Invalid fir params specified" << std::endl;
+        }
+        InStringStream str(argv[++arg]);
+        char tmp;
+        str >> parameters.FIROrder >> tmp >> parameters.LowCutoff >> tmp >> parameters.HighCutoff;
       }
       else if (arg == argc - 1)
       {

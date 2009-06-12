@@ -24,7 +24,7 @@ namespace
   {
     typedef int64_t BigSample;
     typedef BigSample BigSampleArray[OUTPUT_CHANNELS];
-    typedef std::vector<C> MatrixType;
+    typedef std::vector<BigSample> MatrixType;
   public:
     static const std::size_t MAX_ORDER = 1 <<
       8 * (sizeof(BigSample) - sizeof(C) - sizeof(Sample));
@@ -45,7 +45,7 @@ namespace
         {
           for (std::size_t chan = 0; chan != OUTPUT_CHANNELS; ++chan)
           {
-            res[chan] += BigSample(*it) * Position->Array[chan];
+            res[chan] += *it * Position->Array[chan];
           }
         }
         std::transform(res, ArrayEnd(res), Result, std::bind2nd(std::divides<BigSample>(), BigSample(FIXED_POINT_PRECISION)));
@@ -73,6 +73,42 @@ namespace
     cycled_iterator<SampleHelper*> Position;
     SampleArray Result;
   };
+
+  //TODO: use from boost
+  double bessel(double alpha)
+  {
+    const double delta = 1e-14;
+    double term = 0.5;
+    double f = 1.0;
+    std::size_t k = 0;
+    double result = 0.0;
+    while (term < -delta || term > delta)
+    {
+      ++k;           //step
+      f *= (alpha / 2) / k;  //f(k+1) = f(k)*(c/k),f(0)=1 c=alpha/2
+      term = f * f;
+      result += term;
+    }
+    return result;
+  }
+
+  //kaiser implementation
+  void DoFFT(const double alpha, std::vector<double>& coeffs)
+  {
+    const double denom = bessel(alpha);
+    const double center = double(coeffs.size() - 1) / 2;
+    for (std::size_t tap = 0; tap < coeffs.size(); ++tap)
+    {
+      const double kg = (double(tap) - center) / center;
+      const double kd = alpha * sqrt(1.0 - kg * kg);
+      coeffs[tap] *= bessel(kd) / denom;
+    }
+  }
+
+  signed DoubleToSigned(double val)
+  {
+    return static_cast<signed>(val * FIXED_POINT_PRECISION);
+  }
 }
 
 namespace ZXTune
@@ -84,9 +120,51 @@ namespace ZXTune
       return Convertor::Ptr(new FIRFilter<signed>(coeffs, order));
     }
 
-    void CalculateFIRCoefficients(std::size_t /*order*/, uint32_t /*freq*/,
-      uint32_t /*lowCutoff*/, uint32_t /*highCutoff*/, std::vector<signed>& /*coeffs*/)
+    void CalculateFIRCoefficients(std::size_t order, uint32_t freq,
+      uint32_t lowCutoff, uint32_t highCutoff, std::vector<signed>& coeffs)
     {
+      //input parameters
+      //gain = 10 ^^ (dB / 20)
+      const double PASSGAIN = 1.0, STOPGAIN = 0;
+      const double PI = 3.14159265359;
+
+      //check parameters
+      if (order > FIRFilter<signed>::MAX_ORDER)
+      {
+        throw 1;
+      }
+      highCutoff = std::min(highCutoff, freq / 2);
+      lowCutoff = std::min(lowCutoff, highCutoff);
+      order &= ~1;//even
+
+      //create freq responses
+      std::vector<double> freqResponse(order, 0.0);
+      const std::size_t midOrder(order / 2);
+      for (std::size_t tap = 0; tap < midOrder; ++tap)
+      {
+        const uint32_t tapFreq(freq * (tap + 1) / order);
+        freqResponse[tap] = freqResponse[order - tap - 1] = 
+          (tapFreq < lowCutoff || tapFreq > highCutoff) ? STOPGAIN : PASSGAIN;
+      }
+
+      //transform coeffs from freq response
+      std::vector<double> firCoeffs(order, 0.0);
+      for (std::size_t tap = 0; tap < midOrder; ++tap)
+      {
+        double tmpCoeff = 0.0;
+        for (std::size_t subtap = 0; subtap < order; ++subtap)
+        {
+          const double omega = 2.0 * PI * tap * subtap / order;
+          tmpCoeff += freqResponse[subtap] * cos(omega);
+        }
+        firCoeffs[midOrder - tap] = firCoeffs[midOrder + tap] = tmpCoeff / order;
+      }
+      //do FFT transformation
+      const double ALPHA = 8.0;
+      DoFFT(ALPHA, firCoeffs);
+      //put result
+      coeffs.resize(order);
+      std::transform(firCoeffs.begin(), firCoeffs.end(), coeffs.begin(), DoubleToSigned);
     }
   }
 }
