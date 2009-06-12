@@ -235,10 +235,11 @@ namespace ZXTune
       {
         if (changedFields & UPDATE_FILTER_MASK)
         {
-          CalculateFIRCoefficients(Params.FIROrder, Params.SoundParameters.SoundFreq, Params.LowCutoff, Params.HighCutoff, FilterCoeffs);
+          FilterCoeffs.resize(Params.FIROrder);
+          CalculateFIRCoefficients(Params.SoundParameters.SoundFreq, Params.LowCutoff, Params.HighCutoff, FilterCoeffs);
         }
 
-        Filter = CreateFIRFilter(&FilterCoeffs[0], Params.FIROrder);
+        Filter = CreateFIRFilter(FilterCoeffs);
       }
 
       if (Filter.get())

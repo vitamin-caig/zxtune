@@ -28,8 +28,9 @@ namespace
   public:
     static const std::size_t MAX_ORDER = 1 <<
       8 * (sizeof(BigSample) - sizeof(C) - sizeof(Sample));
-    FIRFilter(const C* coeffs, std::size_t order)
-      : Matrix(coeffs, coeffs + order), Delegate(), History(order), Position(&History[0], &History[order])
+    FIRFilter(const std::vector<C>& coeffs)
+      : Matrix(coeffs.begin(), coeffs.end()), Delegate()
+      , History(coeffs.size()), Position(&History[0], &History.back() + 1)
     {
     }
 
@@ -115,12 +116,12 @@ namespace ZXTune
 {
   namespace Sound
   {
-    Convertor::Ptr CreateFIRFilter(const signed* coeffs, std::size_t order)
+    Convertor::Ptr CreateFIRFilter(const std::vector<signed>& coeffs)
     {
-      return Convertor::Ptr(new FIRFilter<signed>(coeffs, order));
+      return Convertor::Ptr(new FIRFilter<signed>(coeffs));
     }
 
-    void CalculateFIRCoefficients(std::size_t order, uint32_t freq,
+    void CalculateFIRCoefficients(uint32_t freq,
       uint32_t lowCutoff, uint32_t highCutoff, std::vector<signed>& coeffs)
     {
       //input parameters
@@ -129,13 +130,13 @@ namespace ZXTune
       const double PI = 3.14159265359;
 
       //check parameters
+      const std::size_t order = coeffs.size();
       if (order > FIRFilter<signed>::MAX_ORDER)
       {
         throw 1;
       }
       highCutoff = std::min(highCutoff, freq / 2);
       lowCutoff = std::min(lowCutoff, highCutoff);
-      order &= ~1;//even
 
       //create freq responses
       std::vector<double> freqResponse(order, 0.0);
@@ -163,7 +164,6 @@ namespace ZXTune
       const double ALPHA = 8.0;
       DoFFT(ALPHA, firCoeffs);
       //put result
-      coeffs.resize(order);
       std::transform(firCoeffs.begin(), firCoeffs.end(), coeffs.begin(), DoubleToSigned);
     }
   }
