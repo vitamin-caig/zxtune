@@ -42,6 +42,8 @@ namespace
   const uint8_t WAVEfmt[] = {'W', 'A', 'V', 'E', 'f', 'm', 't', ' '};
   const uint8_t DATA[] = {'d', 'a', 't', 'a'};
 
+  const String::value_type STDIN_NAME[] = {'-', '\0'};
+
   class FileBackend : public BackendImpl, private boost::noncopyable
   {
   public:
@@ -65,11 +67,16 @@ namespace
     {
       //loop is disabled
       Params.SoundParameters.Flags &= ~MOD_LOOP;
-      if (Stream)
+      const bool needStartup(Stream != 0);
+      if (needStartup)
       {
         OnShutdown();
-        //force raw mode if stdout
-        RawOutput = Params.DriverParameters.empty() || (Params.DriverFlags & RAW_STREAM) ;//TODO
+      }
+      //force raw mode if stdout
+      RawOutput = Params.DriverParameters.empty() || Params.DriverParameters == STDIN_NAME ||
+        (Params.DriverFlags & RAW_STREAM);
+      if (needStartup)
+      {
         OnStartup();
       }
     }
@@ -77,7 +84,7 @@ namespace
     virtual void OnStartup()
     {
       assert(!Stream);
-      if (Params.DriverParameters.empty())
+      if (RawOutput)
       {
         //not unicode or smth version
         Stream = &std::cout;
@@ -86,12 +93,8 @@ namespace
       {
         File.open(Params.DriverParameters.c_str(), std::ios::binary);
         assert(File.is_open());
-        Stream = &File;
-      }
-      if (!RawOutput)
-      {
-        assert(File.is_open());
         File.seekp(sizeof(Format));
+        Stream = &File;
       }
 
       Format.Samplerate = Params.SoundParameters.SoundFreq;

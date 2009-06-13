@@ -541,7 +541,7 @@ namespace
           assert(!curOrnament.Data.empty());
           //calculate tone
           const std::size_t halfTone(clamp<std::size_t>(dst->Note + curOrnament.Data[dst->PosInOrnament], 0, 95));
-          const uint16_t tone(uint16_t(clamp(FreqTable[halfTone] + dst->Sliding + curSampleLine.Vibrato, 0, 0xffff)));
+          const uint16_t tone = static_cast<uint16_t>(clamp(FreqTable[halfTone] + dst->Sliding + curSampleLine.Vibrato, 0, 0xffff));
           if (dst->SlidingTargetNote != LIMITER)
           {
             const unsigned nextTone(FreqTable[dst->Note] + dst->Sliding + dst->Glissade);

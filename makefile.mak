@@ -20,7 +20,7 @@ object_files := $(addprefix $(objects_dir)/,$(object_files:.cpp=.o))
 
 CXX := g++
 
-CXX_FLAGS := -O3 -g2 -mmmx -msse -msse2 -funroll-loops -W -Wall -funsigned-char -ansi \
+CXX_FLAGS := -O3 -g2 -mmmx -msse -msse2 -funroll-loops -W -Wall -funsigned-char -ansi -pthread \
             $(addprefix -I, $(include_dirs)) $(addprefix -D, $(definitions)) -pipe
 
 AR_FLAGS := cru

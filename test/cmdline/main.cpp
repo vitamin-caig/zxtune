@@ -168,6 +168,7 @@ int main(int argc, char* argv[])
         }
         backend = Sound::CreateFileBackend();
         parameters.DriverParameters = argv[++arg];
+        parameters.DriverFlags = 0;
       }
 #ifdef _WIN32
       else if (args == "--win32")

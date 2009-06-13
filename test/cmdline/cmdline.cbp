@@ -76,6 +76,8 @@
 		<Unit filename="../../src/lib/io/warnings_collector.h" />
 		<Unit filename="../../src/lib/plugins/asc_supp.cpp" />
 		<Unit filename="../../src/lib/plugins/chi_supp.cpp" />
+		<Unit filename="../../src/lib/plugins/detector.cpp" />
+		<Unit filename="../../src/lib/plugins/detector.h" />
 		<Unit filename="../../src/lib/plugins/hobeta_supp.cpp" />
 		<Unit filename="../../src/lib/plugins/plugin_enumerator.cpp" />
 		<Unit filename="../../src/lib/plugins/plugin_enumerator.h" />
@@ -85,6 +87,7 @@
 		<Unit filename="../../src/lib/plugins/stc_supp.cpp" />
 		<Unit filename="../../src/lib/plugins/tracking_supp.h" />
 		<Unit filename="../../src/lib/plugins/trd_supp.cpp" />
+		<Unit filename="../../src/lib/plugins/ts_supp.cpp" />
 		<Unit filename="../../src/lib/sound/filter.cpp" />
 		<Unit filename="../../src/lib/sound/filter.h" />
 		<Unit filename="../../src/lib/sound/mixer.cpp" />

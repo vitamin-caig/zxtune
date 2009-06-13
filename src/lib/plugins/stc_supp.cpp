@@ -460,9 +460,9 @@ namespace
           const Ornament& curOrnament(Data.Ornaments[dst->OrnamentNum]);
 
           //calculate tone
-          const std::size_t halfTone(std::size_t(clamp<int>(
-            signed(dst->Note) + curOrnament.Data[dst->PosInSample] + Transpositions[CurrentState.Position.Position], 0, 95)));
-          const uint16_t tone(uint16_t(clamp(FreqTable[halfTone] + curSampleLine.Effect, 0, 0xffff)));
+          const std::size_t halfTone = static_cast<std::size_t>(clamp<int>(
+            signed(dst->Note) + curOrnament.Data[dst->PosInSample] + Transpositions[CurrentState.Position.Position], 0, 95));
+          const uint16_t tone = static_cast<uint16_t>(clamp(FreqTable[halfTone] + curSampleLine.Effect, 0, 0xffff));
 
           chunk.Data[toneReg] = uint8_t(tone & 0xff);
           chunk.Data[toneReg + 1] = uint8_t(tone >> 8);

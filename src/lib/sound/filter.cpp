@@ -5,6 +5,7 @@
 #include <boost/noncopyable.hpp>
 #include <boost/static_assert.hpp>
 
+#include <cmath>
 #include <limits>
 #include <cassert>
 
@@ -39,7 +40,7 @@ namespace
       if (Receiver::Ptr delegate = Delegate)
       {
         assert(channels == ArraySize(Position->Array) || !"Invalid input channels for FIR filter");
-        std::memcpy(&*Position, input, sizeof(SampleArray));
+        std::memcpy(Position->Array, input, sizeof(SampleArray));
         BigSampleArray res = {0};
 
         for (typename MatrixType::const_iterator it = Matrix.begin(), lim = Matrix.end(); it != lim; ++it, --Position)
@@ -144,7 +145,7 @@ namespace ZXTune
       for (std::size_t tap = 0; tap < midOrder; ++tap)
       {
         const uint32_t tapFreq(freq * (tap + 1) / order);
-        freqResponse[tap] = freqResponse[order - tap - 1] = 
+        freqResponse[tap] = freqResponse[order - tap - 1] =
           (tapFreq < lowCutoff || tapFreq > highCutoff) ? STOPGAIN : PASSGAIN;
       }
 
