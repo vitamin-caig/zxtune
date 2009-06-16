@@ -22,15 +22,17 @@ namespace
 
   unsigned GetPriorityFromCaps(unsigned caps)
   {
-    if (caps & CAP_MULTITRACK)
+    switch (caps & (CAP_MULTITRACK | CAP_CONTAINER | CAP_SCANER))
     {
+    case CAP_MULTITRACK:
       return 100;
+    case CAP_SCANER:
+      return 66;
+    case CAP_CONTAINER:
+      return 33;
+    default:
+      return 0;
     }
-    else if (caps & CAP_CONTAINER)
-    {
-      return 50;
-    }
-    return 0;
   }
 
   bool operator == (const PluginDescriptor& lh, const PluginDescriptor& rh)

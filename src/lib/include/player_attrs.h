@@ -13,6 +13,7 @@ namespace ZXTune
   const unsigned CAP_FM = 16;
   const unsigned CAP_CONTAINER = 32;
   const unsigned CAP_MULTITRACK = 64;
+  const unsigned CAP_SCANER = CAP_CONTAINER | CAP_MULTITRACK;
 
   /// Attributes for players
   const String::value_type ATTR_DESCRIPTION[] = {'D', 'e', 's', 'c', 'r', 'i', 'p', 't', 'i', 'o', 'n', '\0'};

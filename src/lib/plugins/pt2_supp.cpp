@@ -620,11 +620,15 @@ namespace
 
     const uint8_t* const data(static_cast<const uint8_t*>(source.Data()));
     const PT2Header* const header(safe_ptr_cast<const PT2Header*>(data));
+    if (header->Length < 1 || header->Tempo < 2)
+    {
+      return false;
+    }
     //check offsets
     for (const uint16_t* sampOff = header->SamplesOffsets; sampOff != ArrayEnd(header->SamplesOffsets); ++sampOff)
     {
       const std::size_t offset(fromLE(*sampOff));
-      if (offset >= size)
+      if (offset >= size || (offset < sizeof(*header) && 0 != offset))
       {
         return false;
       }
@@ -637,7 +641,7 @@ namespace
     for (const uint16_t* ornOff = header->OrnamentsOffsets; ornOff != ArrayEnd(header->OrnamentsOffsets); ++ornOff)
     {
       const std::size_t offset(fromLE(*ornOff));
-      if (offset >= size)
+      if (offset >= size || (offset < sizeof(*header) && 0 != offset))
       {
         return false;
       }
@@ -647,12 +651,13 @@ namespace
         return false;
       }
     }
-    if (fromLE(header->PatternsOffset) >= size)
+    const std::size_t patOff(fromLE(header->PatternsOffset));
+    if (patOff >= size || patOff < sizeof(*header))
     {
       return false;
     }
     //check patterns
-    for (const PT2Pattern* patPos(safe_ptr_cast<const PT2Pattern*>(data + fromLE(header->PatternsOffset)));
+    for (const PT2Pattern* patPos(safe_ptr_cast<const PT2Pattern*>(data + patOff));
       *patPos;
       ++patPos)
     {
