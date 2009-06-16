@@ -59,17 +59,11 @@ inline uint32_t swapBytes(uint32_t a)
 
 inline uint64_t swapBytes(uint64_t a)
 {
-  union H1
-  {
-    uint64_t Qword;
-    struct H2
-    {
-      uint32_t Dword[2];
-    } Dwords;
-  } Helper;
-  Helper.Dwords.Dword[0] = swapBytes(uint32_t(a >> 32));
-  Helper.Dwords.Dword[1] = swapBytes(uint32_t(a));
-  return Helper.Qword;
+  const uint64_t a1 = ((a & UINT64_C(0x00ff00ff00ff00ff)) << 8) |
+                      ((a & UINT64_C(0xff00ff00ff00ff00)) >> 8);
+  const uint64_t a2 = ((a1 & UINT64_C(0x0000ffff0000ffff)) << 16) |
+                      ((a1 & UINT64_C(0xffff0000ffff0000)) >> 16);
+  return (a2 << 32) | (a2 >> 32);
 }
 
 #ifdef BOOST_LITTLE_ENDIAN
