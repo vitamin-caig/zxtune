@@ -46,10 +46,30 @@ typedef std::ostream OutStream;
 #endif
 
 //byte order macroses
-
 inline uint16_t swapBytes(uint16_t a)
 {
-  return ((a & 0xff) << 8) | ((a & 0xff00) >> 8);
+  return (a << 8) | (a >> 8);
+}
+
+inline uint32_t swapBytes(uint32_t a)
+{
+  const uint32_t tmp((((a >> 8) ^ (a << 8)) & 0xff00ff) ^ (a << 8));
+  return (tmp << 16) | (tmp >> 16);
+}
+
+inline uint64_t swapBytes(uint64_t a)
+{
+  union H1
+  {
+    uint64_t Qword;
+    struct H2
+    {
+      uint32_t Dword[2];
+    } Dwords;
+  } Helper;
+  Helper.Dwords.Dword[0] = swapBytes(uint32_t(a >> 32));
+  Helper.Dwords.Dword[1] = swapBytes(uint32_t(a));
+  return Helper.Qword;
 }
 
 #ifdef BOOST_LITTLE_ENDIAN
