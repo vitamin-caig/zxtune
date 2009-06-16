@@ -624,11 +624,14 @@ namespace
     {
       return false;
     }
+    const std::size_t lowlimit(1 + std::find(header->Positions, data + size, POS_END_MARKER) - data);
+    boost::function<bool(std::size_t)> checker = !boost::bind(&in_range<std::size_t>, _1, lowlimit, size - 1);
+
     //check offsets
     for (const uint16_t* sampOff = header->SamplesOffsets; sampOff != ArrayEnd(header->SamplesOffsets); ++sampOff)
     {
       const std::size_t offset(fromLE(*sampOff));
-      if (offset >= size || (offset < sizeof(*header) && 0 != offset))
+      if (!offset && checker(offset))
       {
         return false;
       }
@@ -641,7 +644,7 @@ namespace
     for (const uint16_t* ornOff = header->OrnamentsOffsets; ornOff != ArrayEnd(header->OrnamentsOffsets); ++ornOff)
     {
       const std::size_t offset(fromLE(*ornOff));
-      if (offset >= size || (offset < sizeof(*header) && 0 != offset))
+      if (!offset && checker(offset))
       {
         return false;
       }
@@ -652,7 +655,7 @@ namespace
       }
     }
     const std::size_t patOff(fromLE(header->PatternsOffset));
-    if (patOff >= size || patOff < sizeof(*header))
+    if (checker(patOff))
     {
       return false;
     }
@@ -661,7 +664,8 @@ namespace
       *patPos;
       ++patPos)
     {
-      if (! *patPos || fromLE(patPos->Offsets[0]) >= size || fromLE(patPos->Offsets[1]) >= size || fromLE(patPos->Offsets[2]) >= size)
+      if (! *patPos || 
+        ArrayEnd(patPos->Offsets) != std::find_if(patPos->Offsets, ArrayEnd(patPos->Offsets), checker))
       {
         return false;
       }

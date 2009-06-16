@@ -25,7 +25,7 @@ namespace
     //sound
     params.SoundParameters.ClockFreq = 1750000;
     params.SoundParameters.SoundFreq = 44100;
-    params.SoundParameters.FrameDuration = 20;
+    params.SoundParameters.FrameDurationMicrosec = 20000;
     params.SoundParameters.Flags = 0;
     //FIR (no)
     params.FIROrder = 0;
@@ -308,7 +308,7 @@ namespace ZXTune
       {
         res |= SOUND_CLOCK;
       }
-      if (Params.SoundParameters.FrameDuration != after.SoundParameters.FrameDuration)
+      if (Params.SoundParameters.FrameDurationMicrosec != after.SoundParameters.FrameDurationMicrosec)
       {
         res |= SOUND_FRAME;
       }

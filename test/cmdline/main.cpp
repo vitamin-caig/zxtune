@@ -107,7 +107,7 @@ int main(int argc, char* argv[])
     //default parameters
     parameters.SoundParameters.ClockFreq = 1750000;
     parameters.SoundParameters.SoundFreq = 44100;
-    parameters.SoundParameters.FrameDuration = 20;
+    parameters.SoundParameters.FrameDurationMicrosec = 20000;
     parameters.DriverFlags = 3;
     parameters.BufferInMs = 100;
     

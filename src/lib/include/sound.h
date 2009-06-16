@@ -45,15 +45,20 @@ namespace ZXTune
       uint32_t SoundFreq;
       /// Basic clock frequency (for PSG,CPU etc)
       uint32_t ClockFreq;
-      /// Frame duration in ms
-      uint32_t FrameDuration;
+      /// Frame duration in us
+      uint32_t FrameDurationMicrosec;
       /// Different flags
       uint32_t Flags;
 
       /// Helper functions
       uint32_t ClocksPerFrame() const
       {
-        return uint32_t(uint64_t(ClockFreq) * FrameDuration / 1000);
+        return uint32_t(uint64_t(ClockFreq) * FrameDurationMicrosec / 1e6);
+      }
+
+      uint32_t SamplesPerFrame() const
+      {
+        return uint32_t(uint64_t(SoundFreq) * FrameDurationMicrosec / 1e6);
       }
     };
 

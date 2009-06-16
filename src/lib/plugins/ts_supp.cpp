@@ -83,7 +83,7 @@ namespace
     void Reset(const Sound::Parameters& params)
     {
       Receiver = 0;
-      Samples = 2 * params.SoundFreq * params.FrameDuration / 1000;//TODO
+      Samples = 2 * params.SamplesPerFrame();//TODO
       Channels = 0;
     }
 

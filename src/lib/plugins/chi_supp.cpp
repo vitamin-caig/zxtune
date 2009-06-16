@@ -238,7 +238,8 @@ namespace
         {
           Sample& result(Data.Samples.back());
           result.Data.assign(sampleData, sampleData + size);
-          result.Gain = std::accumulate(sampleData, sampleData + size, uint32_t(0), GainAdder) / size;
+          result.Gain = Sound::Analyze::LevelType(std::accumulate(sampleData, sampleData + size, uint32_t(0), 
+            GainAdder) / size);
           sampleData += align(size, 256);
         }
       }
@@ -396,14 +397,14 @@ namespace
         TableFreq = freq;
         for (std::size_t note = 0; note != NOTES; ++note)
         {
-          FreqTable[note] = static_cast<std::size_t>(FREQ_TABLE[note] * Sound::FIXED_POINT_PRECISION * BASE_FREQ /
-            (FREQ_TABLE[0] * freq * 2));
+          FreqTable[note] = static_cast<std::size_t>(FREQ_TABLE[note] * Sound::FIXED_POINT_PRECISION * 
+            BASE_FREQ / (FREQ_TABLE[0] * freq * 2));
         }
       }
       //TODO: proper sliding
-      const int toneStep(FreqTable[state.Note]);
+      const int toneStep = static_cast<int>(FreqTable[state.Note]);
       const int toneSlide(int64_t(state.Sliding) * Sound::FIXED_POINT_PRECISION * BASE_FREQ /
-        int(FREQ_TABLE[0] * freq * 2));
+        int64_t(FREQ_TABLE[0] * freq * 2));
       return clamp<int>(toneStep + toneSlide, int(FreqTable.front()), int(FreqTable.back()));
     }
   private:

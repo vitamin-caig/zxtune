@@ -30,6 +30,8 @@ namespace
   const std::size_t MAX_PATTERNS_COUNT = 48;
   const std::size_t MAX_PATTERN_SIZE = 64;
   const std::size_t MAX_SAMPLES_COUNT = 32;
+  const std::size_t MAX_SAMPLE_SIZE = 64;
+  const std::size_t MAX_ORNAMENT_SIZE = 64;
 
   typedef IO::FastDump<uint8_t> FastDump;
 
@@ -420,11 +422,13 @@ namespace
       const FastDump& Data;
     };
 
-    static void ParsePattern(const FastDump& data, std::vector<std::size_t>& offsets, Parent::Line& line,
+    void ParsePattern(const FastDump& data, std::vector<std::size_t>& offsets, Parent::Line& line,
       std::valarray<std::size_t>& periods,
       std::valarray<std::size_t>& counters,
       Log::WarningsCollector& warner)
     {
+      const std::size_t maxSamples(Data.Samples.size());
+      const std::size_t maxOrnaments(Data.Ornaments.size());
       for (std::size_t chan = 0; chan != line.Channels.size(); ++chan)
       {
         if (counters[chan]--)
@@ -467,13 +471,16 @@ namespace
           else if (cmd == 0x10 || cmd >= 0xf0)
           {
             const uint8_t doubleSampNum(data[offsets[chan]++]);
-            warner.Assert(doubleSampNum <= MAX_SAMPLES_COUNT * 2 && 0 == (doubleSampNum & 1), "invalid sample index");
+            const bool sampValid(doubleSampNum < maxSamples * 2);
+            warner.Assert(sampValid && 0 == (doubleSampNum & 1), "invalid sample index");
             warner.Assert(!channel.SampleNum, "duplicated sample");
-            channel.SampleNum = doubleSampNum / 2;
+            channel.SampleNum = sampValid ? (doubleSampNum / 2) : 0;
             if (cmd != 0x10)
             {
+              const bool ornValid(cmd - 0xf0 < maxOrnaments);
+              warner.Assert(ornValid, "invalid ornament index");
               warner.Assert(!channel.OrnamentNum, "duplicated ornament");
-              channel.OrnamentNum = cmd - 0xf0;
+              channel.OrnamentNum = ornValid ? (cmd - 0xf0) : 0;
             }
             else
             {
@@ -489,9 +496,10 @@ namespace
             {
               channel.Commands.push_back(Parent::Command(ENVELOPE, cmd - 0x10, envPeriod));
               const uint8_t doubleSampNum(data[offsets[chan]++]);
-              warner.Assert(doubleSampNum <= MAX_SAMPLES_COUNT * 2 && 0 == (doubleSampNum & 1), "invalid sample index");
+              const bool sampValid(doubleSampNum < maxSamples * 2);
+              warner.Assert(sampValid && 0 == (doubleSampNum & 1), "invalid sample index");
               warner.Assert(!channel.SampleNum, "invalid sample");
-              channel.SampleNum = doubleSampNum / 2;
+              channel.SampleNum = sampValid ? (doubleSampNum / 2) : 0;
             }
             else
             {
@@ -507,8 +515,10 @@ namespace
           }
           else if (cmd >= 0x40 && cmd <= 0x4f)
           {
+            const bool ornValid(cmd - 0x40 < maxOrnaments);
+            warner.Assert(ornValid, "invalid ornament index");
             warner.Assert(!channel.OrnamentNum, "duplicated ornament");
-            channel.OrnamentNum = cmd - 0x40;
+            channel.OrnamentNum = ornValid ? (cmd - 0x40) : 0;
           }
           else if (cmd >= 0x50 && cmd <= 0xaf)
           {
@@ -552,8 +562,10 @@ namespace
           }
           else if (cmd >= 0xd1 && cmd <= 0xef)
           {
+            const bool sampValid(cmd - 0xd0 < maxSamples);
+            warner.Assert(sampValid, "invalid sample index");
             warner.Assert(!channel.SampleNum, "duplicated sample");
-            channel.SampleNum = cmd - 0xd0;
+            channel.SampleNum = sampValid ? (cmd - 0xd0) : 0;
           }
         }
         //parse parameters
@@ -578,10 +590,23 @@ namespace
             it->Param2 = data[offsets[chan]++];
             break;
           case ORNAMENTOFFSET:
+            if (-1 == it->Param1)
+            {
+              const uint8_t offset(data[offsets[chan]++]);
+              const bool isValid(offset < (channel.OrnamentNum ? 
+                Data.Ornaments[*channel.OrnamentNum].Data.size() : MAX_ORNAMENT_SIZE));
+              warner.Assert(isValid, "invalid ornament offset");
+              it->Param1 = isValid ? offset : 0;
+            }
+            break;
           case SAMPLEOFFSET:
             if (-1 == it->Param1)
             {
-              it->Param1 = data[offsets[chan]++];
+              const uint8_t offset(data[offsets[chan]++]);
+              const bool isValid(offset < (channel.SampleNum ? 
+                Data.Samples[*channel.SampleNum].Data.size() : MAX_SAMPLE_SIZE));
+              warner.Assert(isValid, "invalid sample offset");
+              it->Param1 = isValid ? offset : 0;
             }
             break;
           case GLISS_NOTE:
@@ -979,7 +1004,7 @@ namespace
           dst->VibrateCounter = dst->Enabled ? dst->VibrateOn : dst->VibrateOff;
         }
       }
-      const signed envPeriod(envelopeAddon + Commons.EnvSlider.Value + Commons.EnvBase);
+      const signed envPeriod(envelopeAddon + Commons.EnvSlider.Value + signed(Commons.EnvBase));
       chunk.Data[AYM::DataChunk::REG_TONEN] = uint8_t(Commons.NoiseBase + Commons.NoiseAddon) & 0x1f;
       chunk.Data[AYM::DataChunk::REG_TONEE_L] = uint8_t(envPeriod & 0xff);
       chunk.Data[AYM::DataChunk::REG_TONEE_H] = uint8_t(envPeriod >> 8);
