@@ -9,6 +9,7 @@
 
 #include <boost/static_assert.hpp>
 
+#include <cctype>
 #include <cassert>
 #include <valarray>
 
@@ -81,6 +82,10 @@ namespace
   BOOST_STATIC_ASSERT(sizeof(CatEntry) == 16);
   BOOST_STATIC_ASSERT(sizeof(ServiceSector) == 256);
 
+  inline bool IsValidSym(String::value_type sym)
+  {
+    return std::isprint(sym) && sym != '?';
+  }
 
   struct FileDescr
   {
@@ -93,6 +98,7 @@ namespace
       Name = name.substr(0, name.find_last_not_of(' ') + 1) + '.' +
         String(entry.Filetype, std::find_if(entry.Filetype, ArrayEnd(entry.Filetype),
           std::not1(std::ptr_fun(&isalnum))));
+      std::replace_if(Name.begin(), Name.end(), std::not1(std::ptr_fun(IsValidSym)), '_');
     }
 
     bool IsMergeable(const CatEntry& rh)

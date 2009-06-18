@@ -21,15 +21,14 @@ using boost::int64_t;
 using boost::uint64_t;
 
 #ifdef UNICODE
-
 typedef std::wstring String;
 typedef std::wostream OutStream;
-
+typedef std::wistream InStream;
 #else
 
 typedef std::string String;
 typedef std::ostream OutStream;
-
+typedef std::istream InStream;
 #endif
 
 // alignment macroses

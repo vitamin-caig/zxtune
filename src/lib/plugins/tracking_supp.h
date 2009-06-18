@@ -3,10 +3,13 @@
 
 #include <tools.h>
 
+#include <player.h>
 #include <sound_attrs.h>
 
 #include <boost/array.hpp>
 #include <boost/optional.hpp>
+
+#include <vector>
 
 namespace ZXTune
 {
@@ -33,7 +36,7 @@ namespace ZXTune
     template<std::size_t ChannelsCount, class SampleType, class OrnamentType = SimpleOrnament>
     class TrackPlayer : public ModulePlayer
     {
-    protected:
+    public:
       typedef SampleType Sample;
       typedef OrnamentType Ornament;
       struct Command
@@ -83,7 +86,8 @@ namespace ZXTune
           CommandsArray Commands;
         };
 
-        boost::array<Chan, ChannelsCount> Channels;
+        typedef boost::array<Chan, ChannelsCount> ChannelsArray;
+        ChannelsArray Channels;
       };
 
       typedef std::vector<Line> Pattern;

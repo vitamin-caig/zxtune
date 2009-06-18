@@ -44,6 +44,14 @@ namespace
 
   const String::value_type STDIN_NAME[] = {'-', '\0'};
 
+#ifdef BOOST_BIG_ENDIAN
+  //helper
+  inline Sample SwapSample(Sample data)
+  {
+    return swapBytes(data);
+  }
+#endif
+
   class FileBackend : public BackendImpl, private boost::noncopyable
   {
   public:
@@ -133,10 +141,11 @@ namespace
       if (sizeof(Sample) > 1)
       {
         assert(0 == sizeInBytes % sizeof(Sample));
-        std::vector<Sample> tmp(sizeInBytes / sizeof(Sample));
+        Buffer.resize(sizeInBytes / sizeof(Sample));
         const Sample* const sampleData(static_cast<const Sample*>(data));
-        std::transform(sampleData, sampleData + sizeInBytes / sizeof(Sample), tmp.begin(), &bytesSwap<Sample>);
-        Stream->write(safe_ptr_cast<const char*>(&tmp[0]), static_cast<std::streamsize>(sizeInBytes));
+        std::transform(sampleData, sampleData + sizeInBytes / sizeof(Sample), Buffer.begin(), 
+          &SwapSample);
+        Stream->write(safe_ptr_cast<const char*>(&Buffer[0]), static_cast<std::streamsize>(sizeInBytes));
       }
       else
       {
@@ -153,6 +162,9 @@ namespace
     std::ofstream File;
     bool RawOutput;
     WaveFormat Format;
+#ifdef BOOST_BIG_ENDIAN
+    std::vector<Sample> Buffer;
+#endif
   };
 }
 

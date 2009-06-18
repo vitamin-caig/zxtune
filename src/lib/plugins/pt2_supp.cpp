@@ -620,18 +620,23 @@ namespace
 
     const uint8_t* const data(static_cast<const uint8_t*>(source.Data()));
     const PT2Header* const header(safe_ptr_cast<const PT2Header*>(data));
-    if (header->Length < 1 || header->Tempo < 2)
+    if (header->Length < 1 || header->Tempo < 2 || header->Loop >= header->Length)
     {
       return false;
     }
     const std::size_t lowlimit(1 + std::find(header->Positions, data + size, POS_END_MARKER) - data);
+    if (lowlimit - sizeof(*header) != header->Length)//too big positions list
+    {
+      return false;
+    }
+
     boost::function<bool(std::size_t)> checker = !boost::bind(&in_range<std::size_t>, _1, lowlimit, size - 1);
 
     //check offsets
     for (const uint16_t* sampOff = header->SamplesOffsets; sampOff != ArrayEnd(header->SamplesOffsets); ++sampOff)
     {
       const std::size_t offset(fromLE(*sampOff));
-      if (!offset && checker(offset))
+      if (offset && checker(offset))
       {
         return false;
       }
@@ -644,7 +649,7 @@ namespace
     for (const uint16_t* ornOff = header->OrnamentsOffsets; ornOff != ArrayEnd(header->OrnamentsOffsets); ++ornOff)
     {
       const std::size_t offset(fromLE(*ornOff));
-      if (!offset && checker(offset))
+      if (offset && checker(offset))
       {
         return false;
       }

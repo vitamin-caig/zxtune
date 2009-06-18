@@ -210,7 +210,7 @@ namespace
       (1 == pathes.size() || !ParseFilename(pathes.back(), offset)))
     {
       unsigned modules(0);
-      for (std::size_t off = 0; off < limit - MIN_SCAN_SIZE; off += SCAN_STEP)
+      for (std::size_t off = SCAN_STEP; off < limit - MIN_SCAN_SIZE; off += SCAN_STEP)
       {
         const String& modPath(IO::CombinePath(filename, MakeFilename(off)));
         ModulePlayer::Info info;
@@ -219,7 +219,7 @@ namespace
           ++modules;
         }
       }
-      return modules > 1;//TODO: duplicated module with aligned players
+      return modules > 0;//TODO: duplicated module with aligned players
     }
     return false;
   }
