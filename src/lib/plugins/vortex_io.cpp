@@ -55,7 +55,7 @@ namespace
   inline bool CheckStr(boost::call_traits<uint64_t>::param_type setof, const String& str)
   {
     return str.end() == std::find_if(str.begin(), str.end(), !boost::bind(&CheckSym, setof, 
-      boost::bind(&std::toupper, _1)));
+      boost::bind(static_cast<int (*)(int)>(&std::toupper), _1)));
   }
 
   inline bool Match(const uint64_t* pattern, const String& str)
@@ -319,7 +319,7 @@ namespace ZXTune
       const uint64_t NOTE2 = Symbol<'-'>::Mask | Symbol<'#'>::Mask;
       const uint64_t NOTE3 = Range<'1', '8'>::Mask | Symbol<'-'>::Mask;
       const uint64_t SAMPLE = DIGITS | Range<'A', 'V'>::Mask | Symbol<'.'>::Mask;
-      const uint64_t CMD = DIG & ~Range<'7', '8'>::Mask | Range<'A', 'B'>::Mask;
+      const uint64_t CMD = (DIG & ~Range<'7', '8'>::Mask) | Range<'A', 'B'>::Mask;
       static const uint64_t PATTERN[] = {
         XDIG, XDIG, XDIG, XDIG, //envbase
         ANY, XDIG, XDIG, //noisebase

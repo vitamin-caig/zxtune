@@ -20,8 +20,9 @@ object_files := $(addprefix $(objects_dir)/,$(object_files:.cpp=.o))
 
 CXX := g++
 
-CXX_FLAGS := -O3 -g2 -mmmx -msse -msse2 -funroll-loops -W -Wall -funsigned-char -ansi -pthread \
-            $(addprefix -I, $(include_dirs)) $(addprefix -D, $(definitions)) -pipe
+CXX_FLAGS := -O3 -g1 -DNDEBUG -D__STDC_CONSTANT_MACROS -mmmx -msse -msse2 -funroll-loops -fomit-frame-pointer -funsigned-char \
+	    -W -Wall -ansi -pthread \
+	    $(addprefix -I, $(include_dirs)) $(addprefix -D, $(definitions)) -pipe
 
 AR_FLAGS := cru
 LD_FLAGS := -pipe

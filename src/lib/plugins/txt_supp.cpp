@@ -85,7 +85,7 @@ namespace
       Tracking::VortexDescr descr;
 
       StringArray lines;
-      boost::algorithm::split(lines, asString, std::iscntrl, boost::algorithm::token_compress_on);
+      boost::algorithm::split(lines, asString, boost::algorithm::is_cntrl(), boost::algorithm::token_compress_on);
 
       for (StringArray::const_iterator it = lines.begin(), lim = lines.end(); it != lim;)
       {
