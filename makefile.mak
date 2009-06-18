@@ -18,14 +18,20 @@ source_files := $(wildcard $(addsuffix /*.cpp,$(source_dirs))) $(cpp_texts)
 object_files := $(notdir $(source_files))
 object_files := $(addprefix $(objects_dir)/,$(object_files:.cpp=.o))
 
+#TODO: autoconfigure
+ARCH := k8
+
 CXX := g++
 
-CXX_FLAGS := -O3 -g1 -DNDEBUG -D__STDC_CONSTANT_MACROS -mmmx -msse -msse2 -funroll-loops -fomit-frame-pointer -funsigned-char \
-	    -W -Wall -ansi -pthread \
-	    $(addprefix -I, $(include_dirs)) $(addprefix -D, $(definitions)) -pipe
+CXX_FLAGS := -O3 -g1 -DNDEBUG -D__STDC_CONSTANT_MACROS -march=$(ARCH) -funroll-loops -funsigned-char \
+	    -W -Wall -ansi -pthread -pipe \
+	    $(addprefix -I, $(include_dirs)) $(addprefix -D, $(definitions))
 
 AR_FLAGS := cru
 LD_FLAGS := -pipe
+
+LD_SOLID_BEFORE := -Wl,--whole-archive
+LD_SOLID_AFTER := -Wl,--no-whole-archive
 
 all: deps dirs $(target)
 
@@ -42,9 +48,10 @@ $(depends):
 
 ifdef binary_name
 $(target): $(object_files) $(addprefix $(libs_dir)/lib, $(addsuffix .a, $(libraries)))
-	$(CXX) $(LD_FLAGS) -o $@ $(object_files) \
-    -Wl,--whole-archive -L$(libs_dir) $(addprefix -l, $(libraries)) -Wl,--no-whole-archive \
-    $(addprefix -l, $(dynamic_libs))
+	   $(CXX) $(LD_FLAGS) -o $@ $(object_files) \
+	   -L$(libs_dir) $(addprefix -l, $(libraries)) \
+	   $(LD_SOLID_BEFORE) $(addprefix -l,$(solid_libs)) $(LD_SOLID_AFTER) \
+	   $(addprefix -l, $(dynamic_libs))
 else
 $(target): $(object_files)
 	ar $(AR_FLAGS) $@ $^
