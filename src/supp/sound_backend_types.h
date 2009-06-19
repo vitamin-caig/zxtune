@@ -12,22 +12,7 @@ namespace ZXTune
     const unsigned MIN_BUFFER_DEPTH = 2;
     const unsigned MAX_BUFFER_DEPTH = 7;
     //for file backend
-    const unsigned RAW_STREAM = 1;
-
-
-    /// Platform-independent backends
-    Backend::Ptr CreateFileBackend();
-    Backend::Ptr CreateSDLBackend();
-    Backend::Ptr CreateNullBackend();
-
-    /// Windows-specific backends
-    Backend::Ptr CreateWinAPIBackend();
-    Backend::Ptr CreateDirectXBackend();
-
-    /// *nix-specific backends
-    Backend::Ptr CreateAlsaBackend();
-    Backend::Ptr CreateOSSBackend();
-    Backend::Ptr CreatePhononBackend();
+    const unsigned RAW_STREAM = 8;
   }
 }
 

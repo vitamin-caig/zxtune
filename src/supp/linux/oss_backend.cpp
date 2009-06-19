@@ -1,3 +1,4 @@
+#include "../backend_enumerator.h"
 #include "../sound_backend_async.h"
 
 #include <tools.h>
@@ -18,6 +19,9 @@
 namespace
 {
   using namespace ZXTune::Sound;
+  //TODO
+  const String::value_type TEXT_OSS_BACKEND_DESCRIPTON[] = "OSS sound system backend";
+  const String::value_type OSS_BACKEND_KEY[] = {'o', 's', 's', 0};
 
   const char DEVICE_NAME[] = "/dev/dsp";
 
@@ -28,6 +32,8 @@ namespace
       throw Error(ERROR_DETAIL, 1, ::strerror(errno));
     }
   }
+
+  void Descriptor(Backend::Info& info);
 
   class OSSBackend : public SimpleAsyncBackend
   {
@@ -102,15 +108,17 @@ namespace
   private:
     int DevHandle;
   };
-}
 
-namespace ZXTune
-{
-  namespace Sound
+  void Descriptor(Backend::Info& info)
   {
-    Backend::Ptr CreateOSSBackend()
-    {
-      return Backend::Ptr(new OSSBackend);
-    }
+    info.Description = TEXT_OSS_BACKEND_DESCRIPTON;
+    info.Key = OSS_BACKEND_KEY;
   }
+
+  Backend::Ptr Creator()
+  {
+    return Backend::Ptr(new OSSBackend);
+  }
+
+  BackendAutoRegistrator registrator(Creator, Descriptor);
 }

@@ -1,3 +1,4 @@
+#include "../backend_enumerator.h"
 #include "../sound_backend_impl.h"
 #include "../sound_backend_types.h"
 
@@ -8,12 +9,22 @@
 namespace
 {
   using namespace ZXTune::Sound;
+  //TODO
+  const String::value_type TEXT_NULL_BACKEND_DESCRIPTON[] = "Null output backend";
+  const String::value_type NULL_BACKEND_KEY[] = {'n', 'u', 'l', 'l', 0};
+
+  void Descriptor(Backend::Info& info);
 
   class NullBackend : public BackendImpl, private boost::noncopyable
   {
   public:
     NullBackend()
     {
+    }
+
+    virtual void GetInfo(Info& info) const
+    {
+      return Descriptor(info);
     }
 
     virtual void OnParametersChanged(unsigned /*changedFields*/)
@@ -42,15 +53,17 @@ namespace
     {
     }
   };
-}
 
-namespace ZXTune
-{
-  namespace Sound
+  void Descriptor(Backend::Info& info)
   {
-    Backend::Ptr CreateNullBackend()
-    {
-      return Backend::Ptr(new NullBackend);
-    }
+    info.Description = TEXT_NULL_BACKEND_DESCRIPTON;
+    info.Key = NULL_BACKEND_KEY;
   }
+
+  Backend::Ptr Creator()
+  {
+    return Backend::Ptr(new NullBackend);
+  }
+
+  BackendAutoRegistrator registrator(Creator, Descriptor);
 }

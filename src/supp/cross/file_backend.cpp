@@ -1,9 +1,13 @@
+#include "../backend_enumerator.h"
 #include "../sound_backend_impl.h"
 #include "../sound_backend_types.h"
 
 #include <tools.h>
 
+#include <module.h>
+#include <module_attrs.h>
 #include <sound_attrs.h>
+#include <../../lib/io/location.h>
 
 #include <boost/noncopyable.hpp>
 
@@ -13,7 +17,15 @@
 
 namespace
 {
+  using namespace ZXTune;
   using namespace ZXTune::Sound;
+  //TODO
+  const String::value_type TEXT_FILE_BACKEND_DESCRIPTON[] = "File output backend";
+  const String::value_type FILE_BACKEND_KEY[] = {'f', 'i', 'l', 'e', 0};
+
+  const String::value_type TEMPLATE_LASTNAME[] = {'$', '1', 0};
+  const String::value_type TEMPLATE_FIRSTNAME[] = {'$', '2', 0};
+  const String::value_type DEFAULT_FILE_NAME[] = {'$', '1', '.', 'w', 'a', 'v', 0};
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -52,23 +64,35 @@ namespace
   }
 #endif
 
+  template<class T, class F>
+  void Assign(T& dst, F src)
+  {
+    dst = fromLE(static_cast<T>(src));
+  }
+
+  void Descriptor(Backend::Info& info);
   class FileBackend : public BackendImpl, private boost::noncopyable
   {
   public:
     FileBackend() : Stream(0), File(), RawOutput(false)
     {
       std::memcpy(Format.Id, RIFF, sizeof(RIFF));
-      Format.Size = sizeof(Format) - 8;
       std::memcpy(Format.Type, WAVEfmt, sizeof(WAVEfmt));
-      Format.ChunkSize = 16;
-      Format.Compression = 1;//PCM
-      Format.Channels = OUTPUT_CHANNELS;
+      //??? TODO
+      Assign(Format.ChunkSize, 16);
+      Assign(Format.Compression, 1);//PCM
+      Assign(Format.Channels, OUTPUT_CHANNELS);
       std::memcpy(Format.DataId, DATA, sizeof(DATA));
     }
 
     virtual ~FileBackend()
     {
       assert((!Stream && !File.is_open()) || !"FileBackend::Stop should be called before exit");
+    }
+
+    virtual void GetInfo(Info& info) const
+    {
+      return Descriptor(info);
     }
 
     virtual void OnParametersChanged(unsigned /*changedFields*/)
@@ -81,8 +105,12 @@ namespace
         OnShutdown();
       }
       //force raw mode if stdout
-      RawOutput = Params.DriverParameters.empty() || Params.DriverParameters == STDIN_NAME ||
+      RawOutput = Params.DriverParameters == STDIN_NAME ||
         (Params.DriverFlags & RAW_STREAM);
+      if (!RawOutput && Params.DriverParameters.empty())
+      {
+        Params.DriverParameters = DEFAULT_FILE_NAME;
+      }
       if (needStartup)
       {
         OnStartup();
@@ -99,16 +127,34 @@ namespace
       }
       else
       {
-        File.open(Params.DriverParameters.c_str(), std::ios::binary);
+        Module::Information info;
+        GetModuleInfo(info);
+        StringMap::const_iterator it(info.Properties.find(Module::ATTR_FILENAME));
+        assert(it != info.Properties.end());
+        StringArray subpathes;
+        IO::SplitPath(it->second, subpathes);
+        //cut filename
+        String& fname(subpathes.front());
+        const String::size_type dpos(fname.find_last_of("\\/"));
+        if (String::npos != dpos)
+        {
+          fname = fname.substr(dpos + 1);
+        }
+        String filename(Params.DriverParameters);
+        boost::algorithm::replace_all(filename, TEMPLATE_LASTNAME, subpathes.back());
+        boost::algorithm::replace_all(filename, TEMPLATE_FIRSTNAME, fname);
+        File.open(filename.c_str(), std::ios::binary);
         assert(File.is_open());
         File.seekp(sizeof(Format));
         Stream = &File;
       }
 
-      Format.Samplerate = Params.SoundParameters.SoundFreq;
-      Format.BytesPerSec = Format.Samplerate * sizeof(SampleArray);
-      Format.Align = sizeof(SampleArray);
-      Format.BitsPerSample = 8 * sizeof(Sample);
+      //??? TODO
+      Assign(Format.Samplerate, Params.SoundParameters.SoundFreq);
+      Assign(Format.BytesPerSec, Format.Samplerate * sizeof(SampleArray));
+      Assign(Format.Align, sizeof(SampleArray));
+      Assign(Format.BitsPerSample, 8 * sizeof(Sample));
+      Format.Size =  sizeof(Format) - 8;
       Format.DataSize = 0;
     }
 
@@ -119,6 +165,9 @@ namespace
         if (!RawOutput)
         {
           File.seekp(0);
+          //??? TODO
+          Assign(Format.Size, Format.Size);
+          Assign(Format.DataSize, Format.DataSize);
           File.write(safe_ptr_cast<const char*>(&Format), sizeof(Format));
         }
         File.close();
@@ -166,15 +215,17 @@ namespace
     std::vector<Sample> Buffer;
 #endif
   };
-}
 
-namespace ZXTune
-{
-  namespace Sound
+  void Descriptor(Backend::Info& info)
   {
-    Backend::Ptr CreateFileBackend()
-    {
-      return Backend::Ptr(new FileBackend);
-    }
+    info.Description = TEXT_FILE_BACKEND_DESCRIPTON;
+    info.Key = FILE_BACKEND_KEY;
   }
+
+  Backend::Ptr Creator()
+  {
+    return Backend::Ptr(new FileBackend);
+  }
+
+  BackendAutoRegistrator registrator(Creator, Descriptor);
 }

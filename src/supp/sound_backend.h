@@ -32,6 +32,13 @@ namespace ZXTune
         STARTED,
       };
 
+      struct Info
+      {
+        String Description;
+        String Key;
+      };
+      virtual void GetInfo(Info& info) const = 0;
+
       virtual State SetPlayer(ModulePlayer::Ptr player) = 0;
 
       /// Playback control
@@ -81,7 +88,13 @@ namespace ZXTune
       };
       virtual void GetSoundParameters(Parameters& params) const = 0;
       virtual void SetSoundParameters(const Parameters& params) = 0;
+
+      //virtual ctor
+      static Backend::Ptr Create(const String& key);
     };
+
+    //common interface
+    void EnumerateBackends(std::vector<Backend::Info>& info);
   }
 }
 

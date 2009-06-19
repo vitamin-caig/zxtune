@@ -51,6 +51,16 @@ namespace
     return str << "Capabilities: 0x" << std::hex << info.Capabilities << "\n" << info.Properties;
   }
 
+  std::ostream& operator << (std::ostream& str, const std::vector<Sound::Backend::Info>& infos)
+  {
+    for (std::vector<Sound::Backend::Info>::const_iterator it = infos.begin(), lim = infos.end(); 
+      it != lim; ++it)
+    {
+      str << "--" << std::left << std::setw(16) << it->Key << "-- " << it->Description << std::endl;
+    }
+    return str;
+  }
+
 #ifdef _WIN32
   int GetKey()
   {
@@ -66,7 +76,7 @@ namespace
     info.dwCursorPosition.X = 0;
     SetConsoleCursorPosition(hdl, info.dwCursorPosition);
   }
-#else
+#elif defined __linux_
   int GetKey()
   {
     struct termios oldt, newt;
@@ -86,6 +96,15 @@ namespace
   {
     std::cout << "\r\x1b[" << lines << 'A';
   }
+#else
+  int GetKey()
+  {
+    return 0;
+  }
+
+  void MoveUp(std::size_t)
+  {
+  }
 #endif
 
   template<class T>
@@ -93,51 +112,82 @@ namespace
   {
     return val >= speed ? val - speed : 0;
   }
-}
 
-int main(int argc, char* argv[])
-{
-  try
+  struct PlaybackContext
   {
-    Sound::Backend::Ptr backend;
-    bool silent(false);
-    String filename;
-    Sound::Backend::Parameters parameters;
+    PlaybackContext() : Silent(false), Quiet(false), Mixer3(new Sound::MixerData), Mixer4(new Sound::MixerData)
+    {
+      //default parameters
+      Parameters.SoundParameters.ClockFreq = 1750000;
+      Parameters.SoundParameters.SoundFreq = 44100;
+      Parameters.SoundParameters.FrameDurationMicrosec = 20000;
+      Parameters.DriverFlags = 3;
+      Parameters.BufferInMs = 100;
+      //generate mixers
+      Mixer3->Preamp = Sound::FIXED_POINT_PRECISION;
+      Mixer3->InMatrix.resize(3);
+      Mixer3->InMatrix[0].OutMatrix[0] = Sound::FIXED_POINT_PRECISION;
+      Mixer3->InMatrix[0].OutMatrix[1] = 5 * Sound::FIXED_POINT_PRECISION / 100;
+      Mixer3->InMatrix[1].OutMatrix[0] = 66 * Sound::FIXED_POINT_PRECISION / 100;
+      Mixer3->InMatrix[1].OutMatrix[1] = 66 * Sound::FIXED_POINT_PRECISION / 100;
+      Mixer3->InMatrix[2].OutMatrix[0] = 5 * Sound::FIXED_POINT_PRECISION / 100;
+      Mixer3->InMatrix[2].OutMatrix[1] = Sound::FIXED_POINT_PRECISION;
 
-    //default parameters
-    parameters.SoundParameters.ClockFreq = 1750000;
-    parameters.SoundParameters.SoundFreq = 44100;
-    parameters.SoundParameters.FrameDurationMicrosec = 20000;
-    parameters.DriverFlags = 3;
-    parameters.BufferInMs = 100;
-    
+      Mixer4->Preamp = Sound::FIXED_POINT_PRECISION;
+      Mixer4->InMatrix.resize(4);
+      Mixer4->InMatrix[0].OutMatrix[0] = Sound::FIXED_POINT_PRECISION;
+      Mixer4->InMatrix[0].OutMatrix[1] = 5 * Sound::FIXED_POINT_PRECISION / 100;
+      Mixer4->InMatrix[1].OutMatrix[0] = Sound::FIXED_POINT_PRECISION;
+      Mixer4->InMatrix[1].OutMatrix[1] = 5 * Sound::FIXED_POINT_PRECISION / 100;
+      Mixer4->InMatrix[2].OutMatrix[0] = 5 * Sound::FIXED_POINT_PRECISION / 100;
+      Mixer4->InMatrix[2].OutMatrix[1] = Sound::FIXED_POINT_PRECISION;
+      Mixer4->InMatrix[3].OutMatrix[0] = 5 * Sound::FIXED_POINT_PRECISION / 100;
+      Mixer4->InMatrix[3].OutMatrix[1] = Sound::FIXED_POINT_PRECISION;
+    }
+
+    enum ParseState
+    {
+      PARSE_ERROR,
+      PARSE_EXIT,
+      PARSE_CONTINUE
+    };
+
+    ParseState Parse(int argc, char* argv[]);
+    bool DoPlayback(ModulePlayer::Ptr player);
+
+    Sound::Backend::Ptr Backend;
+    String Filename;
+    Sound::Backend::Parameters Parameters;
+    bool Silent, Quiet;
+    Sound::MixerData::Ptr Mixer3, Mixer4;
+  };
+
+  PlaybackContext::ParseState PlaybackContext::Parse(int argc, char* argv[])
+  {
     for (int arg = 1; arg != argc; ++arg)
     {
       const std::string& args(argv[arg]);
       if (args == "--help")
       {
+        std::vector<Sound::Backend::Info> infos;
+        Sound::EnumerateBackends(infos);
         std::cout << argv[0] << " [parameters] filename\n"
-          "Parameters. Playbacks:\n"
-          "--null            -- use null backend. No sound\n"
-          "--file filename   -- write to wav file\n"
-#ifdef _WIN32
-          "--win32 [devnum]  -- use win32 mapper (default)\n"
-#else
-          "--oss [device]    -- use OSS playback (default)\n"
-          "--alsa [device]   -- use ALSA playback\n"
-#endif
+          "Parameters. Backends:\n";
+        std::cout << infos;
+        std::cout <<
           "\nOther parameters:\n"
           "--silent          -- do not produce any output\n"
+          "--quiet           -- do not produce dynamic output\n"
           "--ym              -- use YM PSG\n"
           "--loop            -- loop modules playback\n"
-          "--clock value     -- set PSG clock (" << parameters.SoundParameters.ClockFreq << " default)\n"
-          "--sound value     -- set sound frequency (" << parameters.SoundParameters.SoundFreq << " default)\n"
+          "--clock value     -- set PSG clock (" << Parameters.SoundParameters.ClockFreq << " default)\n"
+          "--sound value     -- set sound frequency (" << Parameters.SoundParameters.SoundFreq << " default)\n"
           "--fir order,a-b   -- use FIR with order and range from a to b\n"
 
           "\nModes:\n"
           "--help            -- this page\n"
           "--info            -- supported formats list\n";
-        return 0;
+        return PARSE_EXIT;
       }
       else if (args == "--info")
       {
@@ -149,134 +199,96 @@ int main(int argc, char* argv[])
           std::cout << it->Properties <<
             "Capabilities: 0x" << std::hex << it->Capabilities << "\n------\n";
         }
-        return 0;
+        return PARSE_EXIT;
       }
       else if (args == "--silent")
       {
-        silent = true;
+        Silent = true;
       }
-      else if (args == "--null")
+      else if (args == "--quiet")
       {
-        backend = Sound::CreateNullBackend();
+        Quiet = true;
       }
-      else if (args == "--file")
+      else if (args[0] == '-' && args[1] == '-') //test for backend
       {
-        if (arg == argc - 1)
+        Backend = Sound::Backend::Create(args.substr(2));
+        if (Backend.get() && 
+            arg < argc - 2 && (argv[arg + 1][0] != '-' ||
+            (strlen(argv[arg + 1]) > 1 && argv[arg + 1][1] != '-')))
         {
-          std::cout << "Invalid output name specified" << std::endl;
-          return 1;
+          Parameters.DriverParameters = argv[++arg];
         }
-        backend = Sound::CreateFileBackend();
-        parameters.DriverParameters = argv[++arg];
-        parameters.DriverFlags = 0;
       }
-#ifdef _WIN32
-      else if (args == "--win32")
-      {
-        if (arg < argc - 2 && *argv[arg + 1] != '-')
-        {
-          parameters.DriverParameters = argv[++arg];
-        }
-        backend = Sound::CreateWinAPIBackend();
-      }
-#else
-      else if (args == "--oss")
-      {
-        if (arg < argc - 2 && *argv[arg + 1] != '-')
-        {
-          parameters.DriverParameters = argv[++arg];
-        }
-        backend = Sound::CreateOSSBackend();
-      }
-      else if (args == "--alsa")
-      {
-        if (arg < argc - 2 && *argv[arg + 1] != '-')
-        {
-          parameters.DriverParameters = argv[++arg];
-        }
-        backend = Sound::CreateAlsaBackend();
-      }
-#endif
       else if (args == "--ym")
       {
-        parameters.SoundParameters.Flags |= Sound::PSG_TYPE_YM;
+        Parameters.SoundParameters.Flags |= Sound::PSG_TYPE_YM;
       }
       else if (args == "--loop")
       {
-        parameters.SoundParameters.Flags |= Sound::MOD_LOOP;
+        Parameters.SoundParameters.Flags |= Sound::MOD_LOOP;
       }
       else if (args == "--clock")
       {
         if (arg == argc - 1)
         {
           std::cout << "Invalid psg clock freq specified" << std::endl;
-          return 1;
+          return PARSE_ERROR;
         }
         InStringStream str(argv[++arg]);
-        str >> parameters.SoundParameters.ClockFreq;
+        str >> Parameters.SoundParameters.ClockFreq;
       }
       else if (args == "--sound")
       {
         if (arg == argc - 1)
         {
           std::cout << "Invalid sound freq specified" << std::endl;
-          return 1;
+          return PARSE_ERROR;
         }
         InStringStream str(argv[++arg]);
-        str >> parameters.SoundParameters.SoundFreq;
+        str >> Parameters.SoundParameters.SoundFreq;
       }
       else if (args == "--fir")
       {
         if (arg == argc - 1)
         {
           std::cout << "Invalid fir params specified" << std::endl;
+          return PARSE_ERROR;
         }
         InStringStream str(argv[++arg]);
         char tmp;
-        str >> parameters.FIROrder >> tmp >> parameters.LowCutoff >> tmp >> parameters.HighCutoff;
+        str >> Parameters.FIROrder >> tmp >> Parameters.LowCutoff >> tmp >> Parameters.HighCutoff;
       }
       else if (arg == argc - 1)
       {
-        filename = args;
+        Filename = args;
       }
     }
-    if (filename.empty())
-    {
-      std::cout << "Invalid file name specified" << std::endl;
-      return 1;
-    }
+    return PARSE_CONTINUE;
+  }
 
-    IO::DataContainer::Ptr source(IO::DataContainer::Create(filename));
-    ModulePlayer::Info playerInfo;
-    if (!ModulePlayer::Check(filename, *source, playerInfo))
-    {
-      std::cerr << "Unsupported module type" << std::endl;
-      return 1;
-    }
+  bool PlaybackContext::DoPlayback(ModulePlayer::Ptr player)
+  {
+    Module::Information module;
+    player->GetModuleInfo(module);
+    Backend->SetPlayer(player);
+    Sound::Backend::Parameters params;
+    Backend->GetSoundParameters(params);
 
-    if (!backend.get())
-    {
-#ifdef _WIN32
-      backend = Sound::CreateWinAPIBackend();
-#else
-      backend = Sound::CreateOSSBackend();
-#endif
-    }
+    params = Parameters;
 
-    StringArray filesToPlay;
+    switch (module.Statistic.Channels)
     {
-      ModulePlayer::Ptr player(ModulePlayer::Create(filename, *source));
-      Module::Information module;
-      player->GetModuleInfo(module);
-      if (module.Capabilities & CAP_MULTITRACK)
-      {
-        boost::algorithm::split(filesToPlay, module.Properties[Module::ATTR_SUBMODULES], boost::algorithm::is_cntrl());
-      }
-      else
-      {
-        filesToPlay.push_back(filename);
-      }
+    case 3:
+      params.Mixer = Mixer3;
+      break;
+    case 4:
+      params.Mixer = Mixer4;
+      break;
+    default:
+      std::cerr << "Invalid channels count" << std::endl;
+      return false;
     }
+    Backend->SetSoundParameters(params);
 
     boost::format formatter(
       "Position: %1$2d / %2% (%3%)\n"
@@ -289,148 +301,169 @@ int main(int argc, char* argv[])
     std::size_t dump[100] = {0};
     bool quit(false);
 
-    //generate mixers
-    Sound::MixerData::Ptr mixer3(new Sound::MixerData);
-    mixer3->Preamp = Sound::FIXED_POINT_PRECISION;
-    mixer3->InMatrix.resize(3);
-    mixer3->InMatrix[0].OutMatrix[0] = Sound::FIXED_POINT_PRECISION;
-    mixer3->InMatrix[0].OutMatrix[1] = 5 * Sound::FIXED_POINT_PRECISION / 100;
-    mixer3->InMatrix[1].OutMatrix[0] = 66 * Sound::FIXED_POINT_PRECISION / 100;
-    mixer3->InMatrix[1].OutMatrix[1] = 66 * Sound::FIXED_POINT_PRECISION / 100;
-    mixer3->InMatrix[2].OutMatrix[0] = 5 * Sound::FIXED_POINT_PRECISION / 100;
-    mixer3->InMatrix[2].OutMatrix[1] = Sound::FIXED_POINT_PRECISION;
+    Backend->Play();
 
-    Sound::MixerData::Ptr mixer4(new Sound::MixerData);
-    mixer4->Preamp = Sound::FIXED_POINT_PRECISION;
-    mixer4->InMatrix.resize(4);
-    mixer4->InMatrix[0].OutMatrix[0] = Sound::FIXED_POINT_PRECISION;
-    mixer4->InMatrix[0].OutMatrix[1] = 5 * Sound::FIXED_POINT_PRECISION / 100;
-    mixer4->InMatrix[1].OutMatrix[0] = Sound::FIXED_POINT_PRECISION;
-    mixer4->InMatrix[1].OutMatrix[1] = 5 * Sound::FIXED_POINT_PRECISION / 100;
-    mixer4->InMatrix[2].OutMatrix[0] = 5 * Sound::FIXED_POINT_PRECISION / 100;
-    mixer4->InMatrix[2].OutMatrix[1] = Sound::FIXED_POINT_PRECISION;
-    mixer4->InMatrix[3].OutMatrix[0] = 5 * Sound::FIXED_POINT_PRECISION / 100;
-    mixer4->InMatrix[3].OutMatrix[1] = Sound::FIXED_POINT_PRECISION;
-
-    for (StringArray::const_iterator it = filesToPlay.begin(), lim = filesToPlay.end(); it != lim && !quit; ++it)
+    if (!Silent)
     {
-      ModulePlayer::Ptr player(ModulePlayer::Create(*it, *source));
+      std::cout << "Module: \n" << module.Properties;
+    }
+
+    for (;;)
+    {
+      const bool stop(Sound::Backend::STOPPED == Backend->GetState());
+      if (!Silent && !Quiet)
+      {
+        std::size_t frame;
+        Module::Tracking track;
+        Backend->GetModuleState(frame, track);
+
+        std::cout <<
+          (formatter % (track.Position + 1) % module.Statistic.Position % (1 + module.Loop) %
+          track.Pattern % module.Statistic.Pattern %
+          track.Note % module.Statistic.Note %
+          track.Channels % module.Statistic.Channels %
+          track.Tempo % module.Statistic.Tempo %
+          frame % module.Statistic.Frame);
+        Sound::Analyze::ChannelsState state;
+        Backend->GetSoundState(state);
+        const std::size_t WIDTH = 75;
+        const std::size_t HEIGTH = 16;
+        const std::size_t LIMIT = std::numeric_limits<Sound::Analyze::LevelType>::max();
+        const std::size_t FALLSPEED = 8;
+        static char filler[WIDTH + 1];
+        for (std::size_t chan = 0; chan != state.size(); ++chan)
+        {
+          if (state[chan].Enabled)
+          {
+            dump[std::min(state.size() + 1 + state[chan].Band, ArraySize(dump) - 1)] =
+              dump[chan] = state[chan].Level;
+          }
+        }
+        for (std::size_t y = HEIGTH; y; --y)
+        {
+          for (std::size_t i = 0; i < std::min(WIDTH, ArraySize(dump)) - 1; ++i)
+          {
+            const std::size_t level(dump[i] * HEIGTH / LIMIT);
+            filler[i] = level > y ? '#' : ' ';
+            filler[i + 1] = 0;
+          }
+          std::cout << std::endl << filler;
+        }
+        std::transform(dump, ArrayEnd(dump), dump,
+          std::bind2nd(std::ptr_fun(Decrease<Sound::Analyze::LevelType>), FALLSPEED));
+        if (quit || stop)
+        {
+          std::cout << std::endl;
+          break;
+        }
+        MoveUp(5 + HEIGTH);
+      }
+      boost::this_thread::sleep(boost::posix_time::milliseconds(20));
+      const int key(tolower(GetKey()));
+      quit = 'q' == key;
+      if (quit || stop)
+      {
+        if (Silent || Quiet)//actual break after display
+        {
+          break;
+        }
+      }
+      switch (key)
+      {
+      case 'p':
+        Sound::Backend::STARTED == Backend->GetState() ? Backend->Pause() : Backend->Play();
+        break;
+      case ' ':
+        Backend->Stop();
+        break;
+      case 'z':
+        if (params.Mixer->Preamp)
+        {
+          --params.Mixer->Preamp;
+        }
+        break;
+      case 'x':
+        if (params.Mixer->Preamp < Sound::FIXED_POINT_PRECISION)
+        {
+          ++params.Mixer->Preamp;
+        }
+        break;
+      }
+    }
+    Backend->Stop();
+    return !quit;
+  }
+}
+
+int main(int argc, char* argv[])
+{
+  try
+  {
+    PlaybackContext context;
+
+    switch (context.Parse(argc, argv))
+    {
+    case PlaybackContext::PARSE_ERROR:
+      return 1;
+    case PlaybackContext::PARSE_EXIT:
+      return 0;
+    }
+
+    if (context.Filename.empty())
+    {
+      std::cout << "Invalid file name specified" << std::endl;
+      return 1;
+    }
+
+    IO::DataContainer::Ptr source(IO::DataContainer::Create(context.Filename));
+    ModulePlayer::Info playerInfo;
+    if (!ModulePlayer::Check(context.Filename, *source, playerInfo))
+    {
+      std::cerr << "Unsupported module type" << std::endl;
+      return 1;
+    }
+
+    if (!context.Backend.get())
+    {
+#ifdef _WIN32
+      context.Backend = Sound::Backend::Create("win32");
+#elif defined __linux__
+      context.Backend = Sound::Backend::Create("oss");
+#else
+      context.Backend = Sound::Backend::Create("");//null
+#endif
+    }
+
+    StringArray filesToPlay;
+    {
+      ModulePlayer::Ptr player(ModulePlayer::Create(context.Filename, *source));
       if (!player.get())
       {
-        continue;
+        std::cerr << "Invalid module specified" << std::endl;
+        return 1;
       }
       Module::Information module;
       player->GetModuleInfo(module);
-      backend->SetPlayer(player);
-      Sound::Backend::Parameters params;
-      backend->GetSoundParameters(params);
-
-      params = parameters;
-
-      switch (module.Statistic.Channels)
+      if (module.Capabilities & CAP_MULTITRACK)
       {
-      case 3:
-        params.Mixer = mixer3;
-        break;
-      case 4:
-        params.Mixer = mixer4;
-        break;
-      default:
-        std::cerr << "Invalid channels count" << std::endl;
-        return 1;
+        boost::algorithm::split(filesToPlay, module.Properties[Module::ATTR_SUBMODULES], 
+          boost::algorithm::is_cntrl());
       }
-      backend->SetSoundParameters(params);
-
-      backend->Play();
-
-      if (!silent)
+      else
       {
-        std::cout << "Module: \n" << module.Properties;
+        context.DoPlayback(player);
+        return 0;
       }
+    }
 
-      for (;;)
+    for (StringArray::const_iterator it = filesToPlay.begin(), lim = filesToPlay.end(); it != lim; ++it)
+    {
+      ModulePlayer::Ptr player(ModulePlayer::Create(*it, *source));
+      if (!player.get() || context.DoPlayback(player))
       {
-        const bool stop(Sound::Backend::STOPPED == backend->GetState());
-
-        std::size_t frame;
-        Module::Tracking track;
-        backend->GetModuleState(frame, track);
-        if (!silent)
-        {
-          std::cout <<
-          (formatter % (track.Position + 1) % module.Statistic.Position % (1 + module.Loop) %
-                      track.Pattern % module.Statistic.Pattern %
-                      track.Note % module.Statistic.Note %
-                      track.Channels % module.Statistic.Channels %
-                      track.Tempo % module.Statistic.Tempo %
-                      frame % module.Statistic.Frame);
-          Sound::Analyze::ChannelsState state;
-          backend->GetSoundState(state);
-          const std::size_t WIDTH = 75;
-          const std::size_t HEIGTH = 16;
-          const std::size_t LIMIT = std::numeric_limits<Sound::Analyze::LevelType>::max();
-          const std::size_t FALLSPEED = 8;
-          static char filler[WIDTH + 1];
-          for (std::size_t chan = 0; chan != state.size(); ++chan)
-          {
-            if (state[chan].Enabled)
-            {
-              dump[std::min(state.size() + 1 + state[chan].Band, ArraySize(dump) - 1)] =
-                dump[chan] = state[chan].Level;
-            }
-          }
-          for (std::size_t y = HEIGTH; y; --y)
-          {
-            for (std::size_t i = 0; i < std::min(WIDTH, ArraySize(dump)) - 1; ++i)
-            {
-              const std::size_t level(dump[i] * HEIGTH / LIMIT);
-              filler[i] = level > y ? '#' : ' ';
-              filler[i + 1] = 0;
-            }
-            std::cout << std::endl << filler;
-          }
-          std::transform(dump, ArrayEnd(dump), dump,
-            std::bind2nd(std::ptr_fun(Decrease<Sound::Analyze::LevelType>), FALLSPEED));
-          if (quit || stop)
-          {
-            std::cout << std::endl;
-            break;
-          }
-          MoveUp(5 + HEIGTH);
-        }
-        boost::this_thread::sleep(boost::posix_time::milliseconds(20));
-        const int key(tolower(GetKey()));
-        quit = 'q' == key;
-        if (quit || stop)
-        {
-          if (silent)//actual break after display
-          {
-            break;
-          }
-        }
-        switch (key)
-        {
-        case 'p':
-          Sound::Backend::STARTED == backend->GetState() ? backend->Pause() : backend->Play();
-          break;
-        case ' ':
-          backend->Stop();
-          break;
-        case 'z':
-          if (params.Mixer->Preamp)
-          {
-            --params.Mixer->Preamp;
-          }
-          break;
-        case 'x':
-          if (params.Mixer->Preamp < Sound::FIXED_POINT_PRECISION)
-          {
-            ++params.Mixer->Preamp;
-          }
-          break;
-        }
+        continue;
       }
-      backend->Stop();
+      break;
     }
     return 0;
   }

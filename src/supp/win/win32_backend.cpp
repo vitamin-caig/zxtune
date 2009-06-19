@@ -1,3 +1,4 @@
+#include "../backend_enumerator.h"
 #include "../sound_backend_async.h"
 
 #include <windows.h>
@@ -10,6 +11,10 @@
 namespace
 {
   using namespace ZXTune::Sound;
+
+  //TODO
+  const String::value_type TEXT_WIN32_BACKEND_DESCRIPTON[] = "Win32 sound system backend";
+  const String::value_type WIN32_BACKEND_KEY[] = {'w', 'i', 'n', '3', '2', 0};
 
   void CheckMMResult(::MMRESULT res)
   {
@@ -26,6 +31,8 @@ namespace
     mutable ::WAVEHDR Header;
   };
 
+  void Descriptor(Backend::Info& info);
+
   class Win32Backend : public AsyncBackend<WaveBuffer>
   {
     typedef AsyncBackend<WaveBuffer> Parent;
@@ -39,6 +46,11 @@ namespace
     {
       assert(0 == WaveHandle || !"Win32Backend::Stop should be called before exit");
       ::CloseHandle(Event);
+    }
+
+    virtual void GetInfo(Info& info) const
+    {
+      return Descriptor(info);
     }
 
     virtual void OnParametersChanged(unsigned changedFields)
@@ -170,15 +182,17 @@ namespace
     ::UINT Device;
     ::HANDLE Event;
   };
-}
 
-namespace ZXTune
-{
-  namespace Sound
+  void Descriptor(Backend::Info& info)
   {
-    Backend::Ptr CreateWinAPIBackend()
-    {
-      return Backend::Ptr(new Win32Backend);
-    }
+    info.Description = TEXT_WIN32_BACKEND_DESCRIPTON;
+    info.Key = WIN32_BACKEND_KEY;
   }
+
+  Backend::Ptr Creator()
+  {
+    return Backend::Ptr(new Win32Backend);
+  }
+
+  BackendAutoRegistrator registrator(Creator, Descriptor);
 }

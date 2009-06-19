@@ -1,5 +1,6 @@
 #include "plugin_enumerator.h"
 
+#include <error.h>
 #include <player_attrs.h>
 
 #include <list>
@@ -13,9 +14,9 @@ namespace
 
   struct PluginDescriptor
   {
-    CheckFunc Checker;
-    FactoryFunc Creator;
-    InfoFunc Descriptor;
+    ModuleCheckFunc Checker;
+    ModuleFactoryFunc Creator;
+    ModuleInfoFunc Descriptor;
     //cached
     unsigned Priority;
   };
@@ -35,12 +36,12 @@ namespace
     }
   }
 
-  bool operator == (const PluginDescriptor& lh, const PluginDescriptor& rh)
+  inline bool operator == (const PluginDescriptor& lh, const PluginDescriptor& rh)
   {
     return lh.Checker == rh.Checker && lh.Creator == rh.Creator && lh.Descriptor == rh.Descriptor;
   }
   
-  bool operator < (const PluginDescriptor& lh, const PluginDescriptor& rh)
+  inline bool operator < (const PluginDescriptor& lh, const PluginDescriptor& rh)
   {
     return lh.Priority < rh.Priority;
   }
@@ -53,7 +54,7 @@ namespace
     {
     }
 
-    virtual void RegisterPlugin(CheckFunc check, FactoryFunc create, InfoFunc describe)
+    virtual void RegisterPlugin(ModuleCheckFunc check, ModuleFactoryFunc create, ModuleInfoFunc describe)
     {
       ModulePlayer::Info info;
       describe(info);
@@ -91,7 +92,14 @@ namespace
       {
         if ((it->Checker)(filename, data))
         {
-          return (it->Creator)(filename, data);
+          try
+          {
+            return (it->Creator)(filename, data);
+          }
+          catch (const Error& /*e*/)//just skip in case of detailed check fail
+          {
+            //TODO: log
+          }
         }
       }
       return ModulePlayer::Ptr(0);

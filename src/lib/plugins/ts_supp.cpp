@@ -1,6 +1,7 @@
 #include "plugin_enumerator.h"
 #include "../io/container.h"
 
+#include <error.h>
 #include <tools.h>
 
 #include <module_attrs.h>
@@ -11,10 +12,13 @@
 #include <cassert>
 #include <numeric>
 
+#define FILE_TAG 83089B6F
+
 namespace
 {
   using namespace ZXTune;
 
+  //TODO
   const String TEXT_TS_INFO("TurboSound modules support");
   const String TEXT_TS_VERSION("0.1");
   const String TEXT_TS_CONTAINER("TurboSound");
@@ -39,7 +43,6 @@ namespace
 
   const uint8_t TS_ID[] = {'0', '2', 'T', 'S'};
   BOOST_STATIC_ASSERT(sizeof(Footer) == 16);
-
   
   template<class T>
   inline T avg(T val1, T val2)
@@ -131,13 +134,18 @@ namespace
       IO::DataContainer::Ptr cont2(data.GetSubcontainer(footer->Size1, footer->Size2));
       Delegate1 = ModulePlayer::Create(filename, *cont1);
       Delegate2 = ModulePlayer::Create(filename, *cont2);
+
+      if (!Delegate1.get() || !Delegate2.get())
+      {
+        throw Error(ERROR_DETAIL, 1);//TODO
+      }
       {
         Info info1, info2;
         Delegate1->GetInfo(info1);
         Delegate2->GetInfo(info2);
         if (info1.Capabilities != info2.Capabilities)
         {
-          throw 1;//TODO
+          throw Error(ERROR_DETAIL, 1);//TODO
         }
         MergedInfo.Capabilities = info1.Capabilities;
         MergeMap(info1.Properties, info2.Properties, MergedInfo.Properties);
@@ -148,7 +156,7 @@ namespace
         Delegate2->GetModuleInfo(info2);
         if (info1.Capabilities != info2.Capabilities || info1.Statistic.Channels != info2.Statistic.Channels)
         {
-          throw 1;//TODO
+          throw Error(ERROR_DETAIL, 1);//TODO
         }
         MergedModuleInfo.Loop = info1.Loop;
         MergedModuleInfo.Capabilities = info1.Capabilities;

@@ -1,3 +1,4 @@
+#include "../backend_enumerator.h"
 #include "../sound_backend_async.h"
 
 #include <tools.h>
@@ -18,6 +19,10 @@ namespace
 {
   using namespace ZXTune::Sound;
 
+  //TODO
+  const String::value_type TEXT_ALSA_BACKEND_DESCRIPTON[] = "ALSA sound system backend";
+  const String::value_type ALSA_BACKEND_KEY[] = {'a', 'l', 's', 'a', 0};
+
   const char DEFAULT_DEVICE[] = "default";
   const std::size_t MINIMAL_LATENCY = 1000;
 
@@ -29,6 +34,8 @@ namespace
       throw Error(ERROR_DETAIL, 1, ::snd_strerror(res));
     }
   }
+
+  void Descriptor(Backend::Info& info);
 
   class AlsaBackend : public SimpleAsyncBackend
   {
@@ -118,16 +125,17 @@ namespace
   private:
     snd_pcm_t* DevHandle;
   };
-}
 
-namespace ZXTune
-{
-  namespace Sound
+  void Descriptor(Backend::Info& info)
   {
-    Backend::Ptr CreateAlsaBackend()
-    {
-      return Backend::Ptr(new AlsaBackend);
-    }
+    info.Description = TEXT_ALSA_BACKEND_DESCRIPTON;
+    info.Key = ALSA_BACKEND_KEY;
   }
-}
 
+  Backend::Ptr Creator()
+  {
+    return Backend::Ptr(new AlsaBackend);
+  }
+
+  BackendAutoRegistrator registrator(Creator, Descriptor);
+}

@@ -8,6 +8,7 @@
 #include <ostream>
 #include <sstream>
 
+#include <boost/format.hpp>
 #include <boost/cstdint.hpp>
 #include <boost/detail/endian.hpp>
 
@@ -111,5 +112,6 @@ typedef std::map<String, String> StringMap;
 typedef std::vector<String> StringArray;
 typedef std::list<String> StringList;
 typedef std::vector<uint8_t> Dump;
+typedef boost::basic_format<String::value_type> Formatter;
 
 #endif //__TYPES_H_DEFINED__

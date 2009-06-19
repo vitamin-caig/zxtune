@@ -84,7 +84,7 @@ namespace
 
   inline bool IsValidSym(String::value_type sym)
   {
-    return std::isprint(sym) && sym != '?';
+    return std::isprint(sym) && sym != '?' && sym != '/' && sym != '\\';
   }
 
   struct FileDescr

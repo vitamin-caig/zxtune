@@ -10,9 +10,9 @@ namespace ZXTune
     class DataContainer;
   }
 
-  typedef bool (*CheckFunc)(const String& filename, const IO::DataContainer& data);
-  typedef ModulePlayer::Ptr (*FactoryFunc)(const String& filename, const IO::DataContainer& data);
-  typedef void (*InfoFunc)(ModulePlayer::Info& info);
+  typedef bool (*ModuleCheckFunc)(const String& filename, const IO::DataContainer& data);
+  typedef ModulePlayer::Ptr (*ModuleFactoryFunc)(const String& filename, const IO::DataContainer& data);
+  typedef void (*ModuleInfoFunc)(ModulePlayer::Info& info);
 
   class PluginEnumerator
   {
@@ -21,7 +21,7 @@ namespace ZXTune
     {
     }
 
-    virtual void RegisterPlugin(CheckFunc check, FactoryFunc create, InfoFunc describe) = 0;
+    virtual void RegisterPlugin(ModuleCheckFunc check, ModuleFactoryFunc create, ModuleInfoFunc describe) = 0;
     virtual void EnumeratePlugins(std::vector<ModulePlayer::Info>& infos) const = 0;
 
     virtual bool CheckModule(const String& filename, const IO::DataContainer& data, ModulePlayer::Info& info) const = 0;
@@ -32,7 +32,7 @@ namespace ZXTune
 
   struct PluginAutoRegistrator
   {
-    PluginAutoRegistrator(CheckFunc check, FactoryFunc create, InfoFunc describe)
+    PluginAutoRegistrator(ModuleCheckFunc check, ModuleFactoryFunc create, ModuleInfoFunc describe)
     {
       PluginEnumerator::Instance().RegisterPlugin(check, create, describe);
     }

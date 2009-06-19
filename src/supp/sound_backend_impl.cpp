@@ -107,11 +107,13 @@ namespace ZXTune
         {
           throw 1;//TODO
         }
+        /*
         Module::Information info;
         Player->GetModuleInfo(info);
         Params.Mixer.reset(new MixerData);
         Params.Mixer->InMatrix.resize(info.Statistic.Channels, ChannelMixer(MONO_MIX));
         Params.Mixer->Preamp = FIXED_POINT_PRECISION;
+        */
         return CurrentState = STOPPED;
       }
       return CurrentState = NOTOPENED;

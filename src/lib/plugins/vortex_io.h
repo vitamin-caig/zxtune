@@ -11,7 +11,7 @@ namespace ZXTune
     bool SampleLineFromString(const String& str, VortexPlayer::Sample::Line& line, bool& looped);
 
     template<class Iterator>
-    bool SampleFromStrings(Iterator it, Iterator lim, VortexPlayer::Sample& sample)
+    Iterator SampleFromStrings(Iterator it, Iterator lim, VortexPlayer::Sample& sample)
     {
       VortexPlayer::Sample tmp;
       for (; it != lim; ++it)
@@ -24,7 +24,7 @@ namespace ZXTune
         bool loop(false);
         if (!SampleLineFromString(*it, tmp.Data.back(), loop))
         {
-          return false;
+          return it;
         }
         if (loop)
         {
@@ -33,7 +33,7 @@ namespace ZXTune
       }
       sample.Loop = tmp.Loop;
       sample.Data.swap(tmp.Data);
-      return true;
+      return it;
     }
 
     bool OrnamentFromString(const String& str, VortexPlayer::Ornament& ornament);
@@ -41,7 +41,7 @@ namespace ZXTune
     bool PatternLineFromString(const String& str, VortexPlayer::Line& line);
 
     template<class Iterator>
-    bool PatternFromStrings(Iterator it, Iterator lim, VortexPlayer::Pattern& pat)
+    Iterator PatternFromStrings(Iterator it, Iterator lim, VortexPlayer::Pattern& pat)
     {
       VortexPlayer::Pattern tmp;
       for (; it != lim; ++it)
@@ -53,11 +53,11 @@ namespace ZXTune
         tmp.push_back(VortexPlayer::Line());
         if (!PatternLineFromString(*it, tmp.back()))
         {
-          return false;
+          return it;
         }
       }
       pat.swap(tmp);
-      return true;
+      return it;
     }
 
     struct VortexDescr
@@ -77,14 +77,14 @@ namespace ZXTune
     bool PropertyFromString(const String& str, VortexDescr& descr);
 
     template<class Iterator>
-    bool DescriptionFromStrings(Iterator it, Iterator lim, VortexDescr& descr)
+    Iterator DescriptionFromStrings(Iterator it, Iterator lim, VortexDescr& descr)
     {
       VortexDescr tmp;
       for (; it != lim; ++it)
       {
         if (!PropertyFromString(*it, tmp))
         {
-          return false;
+          return it;
         }
       }
       //TODO: perform checking
@@ -95,7 +95,7 @@ namespace ZXTune
       descr.Tempo = tmp.Tempo;
       descr.Loop = tmp.Loop;
       descr.Order.swap(tmp.Order);
-      return true;
+      return it;
     }
 
     //TODO serialization

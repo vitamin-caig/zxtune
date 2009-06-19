@@ -303,6 +303,12 @@
 			Name="supplement"
 			Filter="">
 			<File
+				RelativePath="..\..\src\supp\backend_enumerator.cpp">
+			</File>
+			<File
+				RelativePath="..\..\src\supp\backend_enumerator.h">
+			</File>
+			<File
 				RelativePath="..\..\src\supp\sound_backend.h">
 			</File>
 			<File

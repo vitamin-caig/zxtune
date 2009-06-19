@@ -1,6 +1,10 @@
 #ifndef __LOCATION_H_DEFINED__
 #define __LOCATION_H_DEFINED__
 
+#include <boost/algorithm/string.hpp>
+
+#include <functional>
+
 namespace ZXTune
 {
   namespace IO
@@ -33,14 +37,8 @@ namespace ZXTune
 
     inline void SplitPath(const String& path, StringArray& result)
     {
-      result.reserve(1 + std::count_if(path.begin(), path.end(),
-        std::bind2nd(std::equal_to<String::value_type>(), SUBPATH_DELIMITER)));
-      for (String::size_type begin = 0; String::npos != begin;)
-      {
-        const String::size_type end(path.find(SUBPATH_DELIMITER, begin));
-        result.push_back(path.substr(begin, String::npos == end ? end : end - begin));
-        begin = String::npos == end ? end : end + 1;
-      }
+      boost::algorithm::split(result, path, 
+        std::bind1st(std::equal_to<String::value_type>(), SUBPATH_DELIMITER));
     }
 
     inline String CombinePath(StringArray::const_iterator begin, StringArray::const_iterator end)
@@ -68,6 +66,5 @@ namespace ZXTune
     }
   }
 }
-
 
 #endif //__LOCATION_H_DEFINED__
