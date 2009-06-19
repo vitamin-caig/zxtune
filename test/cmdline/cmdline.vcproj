@@ -392,6 +392,23 @@
 				</File>
 			</Filter>
 		</Filter>
+		<Filter
+			Name="archives"
+			Filter="">
+			<File
+				RelativePath="..\..\src\archives\archive.h">
+			</File>
+			<Filter
+				Name="formats"
+				Filter="">
+				<File
+					RelativePath="..\..\src\archives\formats\formats_enumerator.cpp">
+				</File>
+				<File
+					RelativePath="..\..\src\archives\formats\formats_enumerator.h">
+				</File>
+			</Filter>
+		</Filter>
 	</Files>
 	<Globals>
 	</Globals>
