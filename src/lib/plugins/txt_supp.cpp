@@ -84,10 +84,10 @@ namespace
       : Parent()
     {
       const String::value_type* const dataIt(static_cast<const String::value_type*>(data.Data()));
-      const String::value_type* const dataLim(dataIt + data.Size() / sizeof(String::value_type));
+      const boost::iterator_range<const String::value_type*> range(dataIt, dataIt + data.Size() / sizeof(String::value_type));
 
       StringArray lines;
-      boost::algorithm::split(lines, std::make_pair(dataIt, dataLim), boost::algorithm::is_cntrl(), 
+      boost::algorithm::split(lines, range, boost::algorithm::is_cntrl(), 
         boost::algorithm::token_compress_on);
 
       Tracking::VortexDescr descr;

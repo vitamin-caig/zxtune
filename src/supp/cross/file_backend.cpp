@@ -79,9 +79,9 @@ namespace
       std::memcpy(Format.Id, RIFF, sizeof(RIFF));
       std::memcpy(Format.Type, WAVEfmt, sizeof(WAVEfmt));
       //??? TODO
-      Assign(Format.ChunkSize, 16);
-      Assign(Format.Compression, 1);//PCM
-      Assign(Format.Channels, OUTPUT_CHANNELS);
+      Format.ChunkSize = fromLE<uint32_t>(16);
+      Format.Compression = fromLE<uint16_t>(1);//PCM
+      Format.Channels = fromLE<uint16_t>(OUTPUT_CHANNELS);
       std::memcpy(Format.DataId, DATA, sizeof(DATA));
     }
 
@@ -150,10 +150,11 @@ namespace
       }
 
       //??? TODO
-      Assign(Format.Samplerate, Params.SoundParameters.SoundFreq);
-      Assign(Format.BytesPerSec, Format.Samplerate * sizeof(SampleArray));
-      Assign(Format.Align, sizeof(SampleArray));
-      Assign(Format.BitsPerSample, 8 * sizeof(Sample));
+      Format.Samplerate = fromLE<uint32_t>(Params.SoundParameters.SoundFreq);
+      Format.BytesPerSec = fromLE<uint32_t>(Params.SoundParameters.SoundFreq * sizeof(SampleArray));
+      Format.Align = fromLE<uint16_t>(sizeof(SampleArray));
+      Format.BitsPerSample = fromLE<uint16_t>(8 * sizeof(Sample));
+      //swap on final
       Format.Size =  sizeof(Format) - 8;
       Format.DataSize = 0;
     }
@@ -166,8 +167,8 @@ namespace
         {
           File.seekp(0);
           //??? TODO
-          Assign(Format.Size, Format.Size);
-          Assign(Format.DataSize, Format.DataSize);
+          Format.Size = fromLE(Format.Size);
+          Format.DataSize = fromLE(Format.DataSize);
           File.write(safe_ptr_cast<const char*>(&Format), sizeof(Format));
         }
         File.close();

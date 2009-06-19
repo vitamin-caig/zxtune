@@ -47,6 +47,11 @@ namespace
       assert(-1 == DevHandle || "OSSBackend was destroyed without stopping");
     }
 
+    virtual void GetInfo(Backend::Info& info) const
+    {
+      return Descriptor(info);
+    }
+
     virtual void OnParametersChanged(unsigned changedFields)
     {
       const unsigned mask(DRIVER_PARAMS | BUFFER | SOUND_FREQ);

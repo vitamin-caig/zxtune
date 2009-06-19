@@ -2,8 +2,8 @@ binary_name := cmd_test
 path_step := ../..
 source_dirs := .
 
-libraries := snd_supp platform_supp
-solid_libs := zxtune
+libraries := platform_supp
+solid_libs := zxtune snd_supp
 dynamic_libs := pthread asound
 
 depends := src/lib src/supp src/platform

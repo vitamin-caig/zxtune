@@ -48,6 +48,11 @@ namespace
     {
       assert(0 == DevHandle || "AlsaBackend was destroyed without stopping");
     }
+    
+    virtual void GetInfo(Backend::Info& info) const
+    {
+      return Descriptor(info);
+    }
 
     virtual void OnParametersChanged(unsigned changedFields)
     {
