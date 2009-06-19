@@ -76,7 +76,7 @@
 				FavorSizeOrSpeed="1"
 				OptimizeForWindowsApplication="TRUE"
 				AdditionalIncludeDirectories="..\..\include\boost\tr1\tr1;..\include\boost;..\..\include;..\..\src\lib\include"
-				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;__STDC_CONSTANT_MACROS"
 				RuntimeLibrary="0"
 				EnableEnhancedInstructionSet="2"
 				DisableLanguageExtensions="FALSE"
