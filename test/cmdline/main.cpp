@@ -53,7 +53,7 @@ namespace
 
   std::ostream& operator << (std::ostream& str, const std::vector<Sound::Backend::Info>& infos)
   {
-    for (std::vector<Sound::Backend::Info>::const_iterator it = infos.begin(), lim = infos.end(); 
+    for (std::vector<Sound::Backend::Info>::const_iterator it = infos.begin(), lim = infos.end();
       it != lim; ++it)
     {
       str << "--" << std::left << std::setw(16) << it->Key << "-- " << it->Description << std::endl;
@@ -76,7 +76,7 @@ namespace
     info.dwCursorPosition.X = 0;
     SetConsoleCursorPosition(hdl, info.dwCursorPosition);
   }
-#elif defined __linux_
+#elif defined __linux__
   int GetKey()
   {
     struct termios oldt, newt;
@@ -182,6 +182,8 @@ namespace
           "--loop            -- loop modules playback\n"
           "--clock value     -- set PSG clock (" << Parameters.SoundParameters.ClockFreq << " default)\n"
           "--sound value     -- set sound frequency (" << Parameters.SoundParameters.SoundFreq << " default)\n"
+          "--fps value       -- set framerate (" << 1e6f / Parameters.SoundParameters.FrameDurationMicrosec << " default)\n"
+          "--frame value     -- set frame duration in uS (" << Parameters.SoundParameters.FrameDurationMicrosec << " default)\n"
           "--fir order,a-b   -- use FIR with order and range from a to b\n"
 
           "\nModes:\n"
@@ -208,16 +210,6 @@ namespace
       else if (args == "--quiet")
       {
         Quiet = true;
-      }
-      else if (args[0] == '-' && args[1] == '-') //test for backend
-      {
-        Backend = Sound::Backend::Create(args.substr(2));
-        if (Backend.get() && 
-            arg < argc - 2 && (argv[arg + 1][0] != '-' ||
-            (strlen(argv[arg + 1]) > 1 && argv[arg + 1][1] != '-')))
-        {
-          Parameters.DriverParameters = argv[++arg];
-        }
       }
       else if (args == "--ym")
       {
@@ -247,6 +239,28 @@ namespace
         InStringStream str(argv[++arg]);
         str >> Parameters.SoundParameters.SoundFreq;
       }
+      else if (args == "--fps")
+      {
+        if (arg == argc - 1)
+        {
+          std::cout << "Invalid fps specified" << std::endl;
+          return PARSE_ERROR;
+        }
+        InStringStream str(argv[++arg]);
+        double tmp;
+        str >> tmp;
+        Parameters.SoundParameters.FrameDurationMicrosec = std::size_t(1e6f / tmp);
+      }
+      else if (args == "--frame")
+      {
+        if (arg == argc - 1)
+        {
+          std::cout << "Invalid framesize specified" << std::endl;
+          return PARSE_ERROR;
+        }
+        InStringStream str(argv[++arg]);
+        str >> Parameters.SoundParameters.FrameDurationMicrosec;
+      }
       else if (args == "--fir")
       {
         if (arg == argc - 1)
@@ -258,7 +272,17 @@ namespace
         char tmp;
         str >> Parameters.FIROrder >> tmp >> Parameters.LowCutoff >> tmp >> Parameters.HighCutoff;
       }
-      else if (arg == argc - 1)
+      else if (args[0] == '-' && args[1] == '-') //test for backend
+      {
+        Backend = Sound::Backend::Create(args.substr(2));
+        if (Backend.get() &&
+            arg < argc - 2 && (argv[arg + 1][0] != '-' ||
+            (strlen(argv[arg + 1]) > 1 && argv[arg + 1][1] != '-')))
+        {
+          Parameters.DriverParameters = argv[++arg];
+        }
+      }
+      if (arg == argc - 1)
       {
         Filename = args;
       }
@@ -446,7 +470,7 @@ int main(int argc, char* argv[])
       player->GetModuleInfo(module);
       if (module.Capabilities & CAP_MULTITRACK)
       {
-        boost::algorithm::split(filesToPlay, module.Properties[Module::ATTR_SUBMODULES], 
+        boost::algorithm::split(filesToPlay, module.Properties[Module::ATTR_SUBMODULES],
           boost::algorithm::is_cntrl());
       }
       else
