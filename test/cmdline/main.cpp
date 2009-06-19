@@ -29,7 +29,7 @@
 #define NOMINMAX
 #include <conio.h>
 #include <windows.h>
-#else
+#elif defined __linux__
 #include <termio.h>
 #endif
 

@@ -11,7 +11,7 @@
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="samples/hobeta/23_59.\$m" />
+				<Option parameters="--fps 100 samples/psg/Illusion.psg" />
 				<Option projectIncludeDirsRelation="0" />
 				<Compiler>
 					<Add option="-W" />
@@ -48,6 +48,7 @@
 			<Add option="-Wall" />
 			<Add option="-ansi" />
 			<Add option="-funsigned-char -Wextra -pipe" />
+			<Add option="-D__STDC_CONSTANT_MACROS" />
 			<Add directory="../../include/boost/tr1/tr1" />
 			<Add directory="../../include/boost/tr1" />
 			<Add directory="../../include" />
@@ -60,6 +61,9 @@
 		<Unit filename="../../include/error.h" />
 		<Unit filename="../../include/tools.h" />
 		<Unit filename="../../include/types.h" />
+		<Unit filename="../../src/archives/archive.h" />
+		<Unit filename="../../src/archives/formats/formats_enumerator.cpp" />
+		<Unit filename="../../src/archives/formats/formats_enumerator.h" />
 		<Unit filename="../../src/lib/devices/aym/aym.cpp" />
 		<Unit filename="../../src/lib/devices/aym/aym.h" />
 		<Unit filename="../../src/lib/devices/data_source.h" />
@@ -84,10 +88,16 @@
 		<Unit filename="../../src/lib/plugins/psg_supp.cpp" />
 		<Unit filename="../../src/lib/plugins/pt2_supp.cpp" />
 		<Unit filename="../../src/lib/plugins/pt3_supp.cpp" />
+		<Unit filename="../../src/lib/plugins/raw_supp.cpp" />
 		<Unit filename="../../src/lib/plugins/stc_supp.cpp" />
 		<Unit filename="../../src/lib/plugins/tracking_supp.h" />
 		<Unit filename="../../src/lib/plugins/trd_supp.cpp" />
 		<Unit filename="../../src/lib/plugins/ts_supp.cpp" />
+		<Unit filename="../../src/lib/plugins/txt_supp.cpp" />
+		<Unit filename="../../src/lib/plugins/vortex_base.cpp" />
+		<Unit filename="../../src/lib/plugins/vortex_base.h" />
+		<Unit filename="../../src/lib/plugins/vortex_io.cpp" />
+		<Unit filename="../../src/lib/plugins/vortex_io.h" />
 		<Unit filename="../../src/lib/sound/filter.cpp" />
 		<Unit filename="../../src/lib/sound/filter.h" />
 		<Unit filename="../../src/lib/sound/mixer.cpp" />
@@ -97,13 +107,18 @@
 		<Unit filename="../../src/platform/thread/pthread/exceptions.cpp" />
 		<Unit filename="../../src/platform/thread/pthread/once.cpp" />
 		<Unit filename="../../src/platform/thread/pthread/thread.cpp" />
+		<Unit filename="../../src/platform/thread/pthread/timeconv.inl" />
 		<Unit filename="../../src/platform/thread/tss_null.cpp" />
+		<Unit filename="../../src/supp/backend_enumerator.cpp" />
+		<Unit filename="../../src/supp/backend_enumerator.h" />
 		<Unit filename="../../src/supp/cross/file_backend.cpp" />
 		<Unit filename="../../src/supp/cross/null_backend.cpp" />
 		<Unit filename="../../src/supp/linux/alsa_backend.cpp" />
 		<Unit filename="../../src/supp/linux/oss_backend.cpp" />
 		<Unit filename="../../src/supp/sound_backend.h" />
+		<Unit filename="../../src/supp/sound_backend_async.h" />
 		<Unit filename="../../src/supp/sound_backend_impl.cpp" />
+		<Unit filename="../../src/supp/sound_backend_impl.cpp.save" />
 		<Unit filename="../../src/supp/sound_backend_impl.h" />
 		<Unit filename="../../src/supp/sound_backend_types.h" />
 		<Unit filename="main.cpp" />

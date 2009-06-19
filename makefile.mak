@@ -47,11 +47,12 @@ $(depends):
 	$(MAKE) -C $(addprefix $(path_step)/,$@)
 
 ifdef binary_name
+#put solid libraries to an end
 $(target): $(object_files) $(addprefix $(libs_dir)/lib, $(addsuffix .a, $(libraries)))
 	   $(CXX) $(LD_FLAGS) -o $@ $(object_files) \
 	   -L$(libs_dir) $(addprefix -l, $(libraries)) \
-	   $(LD_SOLID_BEFORE) $(addprefix -l,$(solid_libs)) $(LD_SOLID_AFTER) \
-	   $(addprefix -l, $(dynamic_libs))
+	   $(addprefix -l, $(dynamic_libs)) \
+	   $(LD_SOLID_BEFORE) $(addprefix -l,$(solid_libs)) $(LD_SOLID_AFTER)
 else
 $(target): $(object_files)
 	ar $(AR_FLAGS) $@ $^
@@ -62,8 +63,13 @@ VPATH := $(source_dirs)
 $(objects_dir)/%.o: %.cpp
 	$(CXX) $(CXX_FLAGS) -c -MD $< -o $@
 
-clean:
+clean: clean_deps
 	rm -f $(target)
 	rm -Rf $(objects_dir)
+
+.PHONY: clean_deps
+
+clean_deps:
+	$(foreach dep,$(depends),$(MAKE) -C $(path_step)/$(dep) clean &&) exit 0
 
 include $(wildcard $(objects_dir)/*.d)
