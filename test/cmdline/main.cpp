@@ -172,9 +172,13 @@ namespace
         std::vector<Sound::Backend::Info> infos;
         Sound::EnumerateBackends(infos);
         std::cout << argv[0] << " [parameters] filename\n"
-          "Parameters. Backends:\n";
+          "Available backends:\n";
         std::cout << infos;
         std::cout <<
+          "Backend-specific parameters:\n"
+          "--raw             -- produce raw output (file backend)\n"
+          "--annotate        -- annotate file (file backend)\n"
+
           "\nOther parameters:\n"
           "--silent          -- do not produce any output\n"
           "--quiet           -- do not produce dynamic output\n"
@@ -218,6 +222,14 @@ namespace
       else if (args == "--loop")
       {
         Parameters.SoundParameters.Flags |= Sound::MOD_LOOP;
+      }
+      else if (args == "--raw")
+      {
+        Parameters.DriverFlags |= Sound::RAW_STREAM;
+      }
+      else if (args == "--annotate")
+      {
+        Parameters.DriverFlags |= Sound::ANNOTATE_STREAM;
       }
       else if (args == "--clock")
       {

@@ -13,6 +13,7 @@ namespace ZXTune
     const unsigned MAX_BUFFER_DEPTH = 7;
     //for file backend
     const unsigned RAW_STREAM = 8;
+    const unsigned ANNOTATE_STREAM = 16;
   }
 }
 

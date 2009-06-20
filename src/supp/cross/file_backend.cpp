@@ -13,6 +13,7 @@
 
 #include <cassert>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 
 namespace
@@ -64,13 +65,80 @@ namespace
   }
 #endif
 
-  template<class T, class F>
-  void Assign(T& dst, F src)
+  void CutFilename(String& fname)
   {
-    dst = fromLE(static_cast<T>(src));
+    const String::size_type dpos(fname.find_last_of("\\/"));
+    if (String::npos != dpos)
+    {
+      fname = fname.substr(dpos + 1);
+    }
+  }
+
+  const String::value_type ANNOTATION_EXT[] = {'.', 'i', 'n', 'f', 'o', 0};
+
+  //custom tags
+  const String::value_type ATTR_ALBUM[] = {'A', 'l', 'b', 'u', 'm', 0};
+  const String::value_type ATTR_TIME[] = {'T', 'i', 'm', 'e', 0};
+  const String::value_type ATTR_CHANNELS[] = {'C', 'h', 'a', 'n', 'n', 'e', 'l', 's', 0};
+  const String::value_type ATTR_CLOCKFREQ[] = {'C', 'l', 'o', 'c', 'k', 'F', 'r', 'e', 'q', 0};
+  const String::value_type ATTR_FPS[] = {'F', 'P', 'S', 0};
+  const String::value_type ATTR_CHIP[] = {'C', 'h', 'i', 'p', 0};
+  const String::value_type CHIP_YM[] = {'Y', 'M', 0};
+  const String::value_type ATTR_GAIN[] = {'G', 'a', 'i', 'n', 0};
+  const String::value_type ATTR_FILTER[] = {'F', 'i', 'l', 't', 'e', 'r', 0};
+  const String::value_type DECIBELL[] = {'d', 'B', 0};
+
+  void Annotate(const Module::Information& modInfo, Backend::Parameters& playInfo, const String& filename)
+  {
+    std::basic_ofstream<String::value_type> infoFile(filename.c_str());
+    Formatter fmt("%1%=%2%\n");
+    //store module information
+    for (StringMap::const_iterator it = modInfo.Properties.begin(), lim = modInfo.Properties.end(); it != lim; ++it)
+    {
+      if (it->first == Module::ATTR_FILENAME)
+      {
+        StringArray subpathes;
+        IO::SplitPath(it->second, subpathes);
+        CutFilename(subpathes.front());
+        infoFile << fmt % Module::ATTR_FILENAME % subpathes.back();
+        if (subpathes.size() != 1)
+        {
+          infoFile << fmt % ATTR_ALBUM % subpathes.front();
+        }
+      }
+      else if (it->first != Module::ATTR_WARNINGS)
+      {
+        infoFile << fmt % it->first % it->second;
+      }
+    }
+    const std::size_t realFramesTotal = modInfo.Statistic.Frame * playInfo.SoundParameters.FrameDurationMicrosec / 20000;
+    const std::size_t secondsTotal = realFramesTotal / 50;
+    const std::size_t minutesTotal = secondsTotal / 60;
+    const std::size_t hoursTotal = secondsTotal / 3600;
+    infoFile << fmt % ATTR_TIME % boost::io::group(
+      hoursTotal, ':',
+      minutesTotal % 60, ':',
+      secondsTotal % 60, '.', realFramesTotal % 50);
+    infoFile << fmt % ATTR_CHANNELS % modInfo.Statistic.Channels;
+    //store playback information
+    infoFile << fmt % ATTR_CLOCKFREQ % playInfo.SoundParameters.ClockFreq;
+    infoFile << fmt % ATTR_FPS % boost::io::group(std::setprecision(3), 1e6f / playInfo.SoundParameters.FrameDurationMicrosec);
+    if (playInfo.SoundParameters.Flags & PSG_TYPE_YM)
+    {
+      infoFile << fmt % ATTR_CHIP % CHIP_YM;
+    }
+    if (playInfo.Mixer->Preamp != FIXED_POINT_PRECISION)
+    {
+      infoFile << fmt % ATTR_GAIN % boost::io::group(std::setprecision(3), 20.0 * log(double(FIXED_POINT_PRECISION) / playInfo.Mixer->Preamp), DECIBELL);
+    }
+    if (playInfo.FIROrder)
+    {
+      infoFile << fmt % ATTR_FILTER % boost::io::group(playInfo.LowCutoff, '-', playInfo.HighCutoff, '@', playInfo.FIROrder);
+    }
   }
 
   void Descriptor(Backend::Info& info);
+
   class FileBackend : public BackendImpl, private boost::noncopyable
   {
   public:
@@ -133,16 +201,15 @@ namespace
         assert(it != info.Properties.end());
         StringArray subpathes;
         IO::SplitPath(it->second, subpathes);
-        //cut filename
-        String& fname(subpathes.front());
-        const String::size_type dpos(fname.find_last_of("\\/"));
-        if (String::npos != dpos)
-        {
-          fname = fname.substr(dpos + 1);
-        }
+        CutFilename(subpathes.front());
         String filename(Params.DriverParameters);
         boost::algorithm::replace_all(filename, TEMPLATE_LASTNAME, subpathes.back());
-        boost::algorithm::replace_all(filename, TEMPLATE_FIRSTNAME, fname);
+        boost::algorithm::replace_all(filename, TEMPLATE_FIRSTNAME, subpathes.front());
+        if (!RawOutput && (Params.DriverFlags & ANNOTATE_STREAM))
+        {
+          //do annotation
+          Annotate(info, Params, filename + ANNOTATION_EXT);
+        }
         File.open(filename.c_str(), std::ios::binary);
         assert(File.is_open());
         File.seekp(sizeof(Format));
@@ -193,7 +260,7 @@ namespace
         assert(0 == sizeInBytes % sizeof(Sample));
         Buffer.resize(sizeInBytes / sizeof(Sample));
         const Sample* const sampleData(static_cast<const Sample*>(data));
-        std::transform(sampleData, sampleData + sizeInBytes / sizeof(Sample), Buffer.begin(), 
+        std::transform(sampleData, sampleData + sizeInBytes / sizeof(Sample), Buffer.begin(),
           &SwapSample);
         Stream->write(safe_ptr_cast<const char*>(&Buffer[0]), static_cast<std::streamsize>(sizeInBytes));
       }
