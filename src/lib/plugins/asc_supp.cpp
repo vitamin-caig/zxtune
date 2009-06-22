@@ -293,7 +293,7 @@ namespace
             if (envelopes[chan])
             {
               //modify existing
-              Parent::CommandsArray::iterator cmdIt(std::find(channel.Commands.begin(), 
+              Parent::CommandsArray::iterator cmdIt(std::find(channel.Commands.begin(),
                 channel.Commands.end(), ENVELOPE));
               if (channel.Commands.end() == cmdIt)
               {
@@ -478,7 +478,7 @@ namespace
       for (const uint16_t* pSample = samples->Offsets; pSample != ArrayEnd(samples->Offsets);
         ++pSample, ++index)
       {
-        assert(*pSample && *pSample < data.Size());
+        assert(*pSample && fromLE(*pSample) < data.Size());
         const ASCSample* const sample(safe_ptr_cast<const ASCSample*>(&data[samplesOff + fromLE(*pSample)]));
         Data.Samples.push_back(Sample(*sample));
         const Sample& smp(Data.Samples.back());
@@ -495,7 +495,7 @@ namespace
       for (const uint16_t* pOrnament = ornaments->Offsets; pOrnament != ArrayEnd(ornaments->Offsets);
         ++pOrnament, ++index)
       {
-        assert(*pOrnament && *pOrnament < data.Size());
+        assert(*pOrnament && fromLE(*pOrnament) < data.Size());
         const ASCOrnament* const ornament(safe_ptr_cast<const ASCOrnament*>(&data[ornamentsOff + fromLE(*pOrnament)]));
         Data.Ornaments.push_back(Parent::Ornament(*ornament));
         const Ornament& orn(Data.Ornaments.back());
@@ -761,7 +761,7 @@ namespace
           {
             if (dst->SlidingSteps > 0)
             {
-              if (!--dst->SlidingSteps && 
+              if (!--dst->SlidingSteps &&
                   LIMITER != dst->SlidingTargetNote) //finish slide to note
               {
                 dst->Note = dst->SlidingTargetNote;
@@ -833,7 +833,7 @@ namespace
           chunk.Data[AYM::DataChunk::REG_MIXER] |= toneMsk | noiseMsk;
         }
       }
-      CurrentState.Position.Channels = std::count_if(Channels, ArrayEnd(Channels), 
+      CurrentState.Position.Channels = std::count_if(Channels, ArrayEnd(Channels),
         boost::mem_fn(&ChannelState::Enabled));
     }
   private:
@@ -863,7 +863,7 @@ namespace
     const std::size_t ornamentsOffset(fromLE(header->OrnamentsOffset));
     const std::size_t patternsOffset(fromLE(header->PatternsOffset));
     boost::function<bool(std::size_t)> checker = !boost::bind(&in_range<std::size_t>, _1, sizeof(*header), limit - 1);
-      
+
     if (limit < sizeof(*header) + header->Lenght ||
         checker(ornamentsOffset) ||
         checker(patternsOffset) ||
@@ -873,14 +873,14 @@ namespace
       return false;
     }
     const ASCSamples* const samples(safe_ptr_cast<const ASCSamples*>(data + samplesOffset));
-    if (ArrayEnd(samples->Offsets) != 
-      std::find_if(samples->Offsets, ArrayEnd(samples->Offsets), checker))
+    if (ArrayEnd(samples->Offsets) !=
+      std::find_if(samples->Offsets, ArrayEnd(samples->Offsets), boost::bind(checker, boost::bind(&fromLE<uint16_t>, _1))))
     {
       return false;
     }
     const ASCOrnaments* const ornaments(safe_ptr_cast<const ASCOrnaments*>(data + ornamentsOffset));
-    if (ArrayEnd(ornaments->Offsets) != 
-      std::find_if(ornaments->Offsets, ArrayEnd(ornaments->Offsets), checker))
+    if (ArrayEnd(ornaments->Offsets) !=
+      std::find_if(ornaments->Offsets, ArrayEnd(ornaments->Offsets), boost::bind(checker, boost::bind(&fromLE<uint16_t>, _1))))
     {
       return false;
     }

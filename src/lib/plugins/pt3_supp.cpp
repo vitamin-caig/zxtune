@@ -204,7 +204,7 @@ namespace
 
           dst.Level = src.Level;
           dst.VolSlideAddon = src.VolSlide ? (src.VolSlideUp ? +1 : -1) : 0;
-          dst.ToneOffset = fromLE(src.ToneOffset);
+          dst.ToneOffset = static_cast<int16_t>(fromLE(static_cast<uint16_t>(src.ToneOffset)));
         }
         return tmp;
       }
@@ -410,7 +410,7 @@ namespace
             if (-1 == it->Param1)
             {
               const uint8_t offset(data[offsets[chan]++]);
-              const bool isValid(offset < (channel.OrnamentNum ? 
+              const bool isValid(offset < (channel.OrnamentNum ?
                 Data.Ornaments[*channel.OrnamentNum].Data.size() : MAX_ORNAMENT_SIZE));
               warner.Assert(isValid, "invalid ornament offset");
               it->Param1 = isValid ? offset : 0;
@@ -420,7 +420,7 @@ namespace
             if (-1 == it->Param1)
             {
               const uint8_t offset(data[offsets[chan]++]);
-              const bool isValid(offset < (channel.SampleNum ? 
+              const bool isValid(offset < (channel.SampleNum ?
                 Data.Samples[*channel.SampleNum].Data.size() : MAX_SAMPLE_SIZE));
               warner.Assert(isValid, "invalid sample offset");
               it->Param1 = isValid ? offset : 0;
@@ -505,7 +505,7 @@ namespace
         Information.Properties.insert(StringMap::value_type(Module::ATTR_WARNINGS, warnings));
       }
 
-      Parent::Initialize(isdigit(header->Subversion) ? header->Subversion - '0' : 6, 
+      Parent::Initialize(isdigit(header->Subversion) ? header->Subversion - '0' : 6,
         static_cast<Parent::NoteTable>(header->FreqTableNum));
     }
 

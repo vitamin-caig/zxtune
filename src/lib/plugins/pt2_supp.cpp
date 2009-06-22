@@ -200,11 +200,11 @@ namespace
 
       result_type operator () (const argument_type arg) const
       {
-        if (0 == arg || arg >= Data.Size())
+        const PT2Ornament* const ornament(safe_ptr_cast<const PT2Ornament*>(&Data[fromLE(arg)]));
+        if (0 == arg || !ornament->Size)
         {
           return result_type(1, 0);//safe version
         }
-        const PT2Ornament* const ornament(safe_ptr_cast<const PT2Ornament*>(&Data[fromLE(arg)]));
         result_type tmp;
         tmp.Loop = ornament->Loop;
         tmp.Data.assign(ornament->Data, ornament->Data + (ornament->Size ? ornament->Size : 1));
@@ -669,7 +669,7 @@ namespace
       *patPos;
       ++patPos)
     {
-      if (! *patPos || 
+      if (! *patPos ||
         ArrayEnd(patPos->Offsets) != std::find_if(patPos->Offsets, ArrayEnd(patPos->Offsets), checker))
       {
         return false;

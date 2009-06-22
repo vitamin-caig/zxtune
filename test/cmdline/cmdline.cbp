@@ -11,7 +11,7 @@
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="--fps 100 samples/psg/Illusion.psg" />
+				<Option parameters="--quiet --annotate --file samples/trd/CHIMORAN.TRD?npogon.CHI" />
 				<Option projectIncludeDirsRelation="0" />
 				<Compiler>
 					<Add option="-W" />
@@ -83,6 +83,7 @@
 		<Unit filename="../../src/lib/plugins/detector.cpp" />
 		<Unit filename="../../src/lib/plugins/detector.h" />
 		<Unit filename="../../src/lib/plugins/hobeta_supp.cpp" />
+		<Unit filename="../../src/lib/plugins/packed_supp.cpp" />
 		<Unit filename="../../src/lib/plugins/plugin_enumerator.cpp" />
 		<Unit filename="../../src/lib/plugins/plugin_enumerator.h" />
 		<Unit filename="../../src/lib/plugins/psg_supp.cpp" />
