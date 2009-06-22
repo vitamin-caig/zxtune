@@ -31,6 +31,7 @@ namespace
     {
       const FormatDescr format = {id, checker, depacker};
       assert(Formats.end() == std::find(Formats.begin(), Formats.end(), format));
+      Formats.push_back(format);
     }
 
     virtual void GetRegisteredFormats(StringArray& formats) const
@@ -75,11 +76,13 @@ namespace ZXTune
 
     bool Check(const void* data, std::size_t size, String& depacker)
     {
+      assert(data);
       return FormatsEnumerator::Instance().CheckDump(data, size, depacker);
     }
 
     bool Depack(const void* data, std::size_t size, Dump& target, String& depacker)
     {
+      assert(data);
       return FormatsEnumerator::Instance().DepackDump(data, size, target, depacker);
     }
 

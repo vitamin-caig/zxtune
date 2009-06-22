@@ -29,6 +29,8 @@ namespace
 
   const String::value_type EXTENTION[] = {'.', 'r', 'a', 'w', '\0'};
 
+  const String::value_type FORBIDDEN_FILENAME[] = {'*', '*', '*', '*', 0};
+
   String MakeFilename(std::size_t offset)
   {
     OutStringStream str;
@@ -55,7 +57,7 @@ namespace
       StringArray pathes;
       IO::SplitPath(filename, pathes);
       std::size_t offset(0);
-      if (1 == pathes.size() || !ParseFilename(pathes.back(), offset))
+      if (!ParseFilename(pathes.back(), offset))
       {
         //enumerate
         String submodules;
@@ -99,11 +101,18 @@ namespace
       }
       else
       {
+        //TODO
+        //WORKAROUND
+        //CRUTCH
+        //!!!
+        const String& subname(pathes.size() == 1 ? FORBIDDEN_FILENAME : IO::ExtractSubpath(filename));
+
         //open existing
-        Delegate = ModulePlayer::Create(IO::ExtractSubpath(filename), *data.GetSubcontainer(offset, limit - offset));
+        IO::DataContainer::Ptr subContainer(data.GetSubcontainer(offset, limit - offset));
+        Delegate = ModulePlayer::Create(subname, *subContainer);
         if (!Delegate.get())
         {
-          throw 1;//TODO: invalid file
+          throw Error(ERROR_DETAIL, 1);//TODO
         }
       }
     }
@@ -206,8 +215,19 @@ namespace
     StringArray pathes;
     IO::SplitPath(filename, pathes);
     std::size_t offset(0);
-    if (limit >= MIN_SCAN_SIZE && limit <= MAX_MODULE_SIZE &&
-      (1 == pathes.size() || !ParseFilename(pathes.back(), offset)))
+    if (ParseFilename(pathes.back(), offset))
+    {
+      return offset + MIN_SCAN_SIZE < limit;
+    }
+    //TODO
+    //WARNING
+    //CRUTCH
+    //!!!
+    if (pathes.size() == 1 && pathes.front() == FORBIDDEN_FILENAME)
+    {
+      return false;
+    }
+    if (limit >= MIN_SCAN_SIZE && limit <= MAX_MODULE_SIZE)
     {
       unsigned modules(0);
       for (std::size_t off = SCAN_STEP; off < limit - MIN_SCAN_SIZE; off += SCAN_STEP)
@@ -230,5 +250,6 @@ namespace
     return ModulePlayer::Ptr(new PlayerImpl(filename, data));
   }
 
-  PluginAutoRegistrator rawReg(Checking, Creating, Describing);
+  //temporary disabled
+  //PluginAutoRegistrator rawReg(Checking, Creating, Describing);
 }

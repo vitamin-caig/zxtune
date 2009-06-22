@@ -8,7 +8,7 @@ namespace ZXTune
   namespace Archive
   {
     typedef bool (*CheckDumpFunc)(const void*, std::size_t);
-    typedef bool (*DepackDumpFunc)(const void*, std::size_t, Dump& dst);
+    typedef bool (*DepackDumpFunc)(const void*, std::size_t, Dump&);
 
     class FormatsEnumerator
     {

@@ -328,7 +328,7 @@ namespace
           {
             channel.Commands.push_back(Parent::Command(NOISEBASE, cmd - 0x20));
             //warning
-            warner.Assert(chan == 2, "noise base in invalid channel");
+            warner.Assert(chan == 1, "noise base in invalid channel");
           }
           else if (cmd >= 0x40 && cmd <= 0x4f)
           {

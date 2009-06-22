@@ -220,6 +220,9 @@
 					RelativePath="..\..\src\lib\plugins\hobeta_supp.cpp">
 				</File>
 				<File
+					RelativePath="..\..\src\lib\plugins\packed_supp.cpp">
+				</File>
+				<File
 					RelativePath="..\..\src\lib\plugins\plugin_enumerator.cpp">
 				</File>
 				<File
@@ -406,6 +409,9 @@
 				</File>
 				<File
 					RelativePath="..\..\src\archives\formats\formats_enumerator.h">
+				</File>
+				<File
+					RelativePath="..\..\src\archives\formats\hrust_1x.cpp">
 				</File>
 			</Filter>
 		</Filter>

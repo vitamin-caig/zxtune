@@ -4,6 +4,7 @@
 #include "../io/location.h"
 
 #include <tools.h>
+#include <error.h>
 
 #include <player_attrs.h>
 
@@ -12,6 +13,8 @@
 #include <cctype>
 #include <cassert>
 #include <valarray>
+
+#define FILE_TAG A1239034
 
 namespace
 {
@@ -92,7 +95,8 @@ namespace
     explicit FileDescr(const CatEntry& entry)
      : Name()
      , Offset(entry.Offset())
-     , Size(entry.Length)
+     , Size(entry.SizeInSectors == ((entry.Length - 1) / BYTES_PER_SECTOR) ?
+      entry.Length : BYTES_PER_SECTOR * entry.SizeInSectors)
     {
       const String& name = String(entry.Filename, ArrayEnd(entry.Filename));
       Name = name.substr(0, name.find_last_not_of(' ') + 1) + '.' +
@@ -134,7 +138,7 @@ namespace
       const CatEntry* catEntry(static_cast<const CatEntry*>(data.Data()));
       for (std::size_t idx = 0; idx != MAX_FILES_COUNT && NOENTRY != *catEntry->Filename; ++idx, ++catEntry)
       {
-        if (DELETED != *catEntry->Filename && catEntry->Length)
+        if (DELETED != *catEntry->Filename && catEntry->SizeInSectors)
         {
           if (files.empty() || !files.back().IsMergeable(*catEntry))
           {
@@ -183,7 +187,7 @@ namespace
         }
         if (submodules.empty())
         {
-          throw 1;//TODO: no files
+          throw Error(ERROR_DETAIL, 1);//TODO: no files
         }
         Information.Capabilities = CAP_MULTITRACK;
         Information.Loop = 0;
@@ -197,12 +201,13 @@ namespace
         std::vector<FileDescr>::const_iterator iter(std::find(files.begin(), files.end(), pathes[1]));
         if (files.end() == iter)
         {
-          throw 1;//TODO: file not found
+          throw Error(ERROR_DETAIL, 1);//TODO: invalid file
         }
-        Delegate = ModulePlayer::Create(IO::ExtractSubpath(filename), *data.GetSubcontainer(iter->Offset, iter->Size));
+        IO::DataContainer::Ptr subContainer(data.GetSubcontainer(iter->Offset, iter->Size));
+        Delegate = ModulePlayer::Create(IO::ExtractSubpath(filename), *subContainer);
         if (!Delegate.get())
         {
-          throw 1;//TODO: invalid file
+          throw Error(ERROR_DETAIL, 1);//TODO: invalid file
         }
       }
     }
