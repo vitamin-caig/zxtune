@@ -220,6 +220,9 @@
 					RelativePath="..\..\src\lib\plugins\hobeta_supp.cpp">
 				</File>
 				<File
+					RelativePath="..\..\src\lib\plugins\hrip_supp.cpp">
+				</File>
+				<File
 					RelativePath="..\..\src\lib\plugins\packed_supp.cpp">
 				</File>
 				<File
@@ -296,6 +299,9 @@
 				</File>
 				<File
 					RelativePath="..\..\src\lib\io\location.h">
+				</File>
+				<File
+					RelativePath="..\..\src\lib\io\trdos.h">
 				</File>
 				<File
 					RelativePath="..\..\src\lib\io\warnings_collector.h">
@@ -411,7 +417,13 @@
 					RelativePath="..\..\src\archives\formats\formats_enumerator.h">
 				</File>
 				<File
+					RelativePath="..\..\src\archives\formats\hrip.h">
+				</File>
+				<File
 					RelativePath="..\..\src\archives\formats\hrust_1x.cpp">
+				</File>
+				<File
+					RelativePath="..\..\src\archives\formats\hrust_2x.cpp">
 				</File>
 			</Filter>
 		</Filter>

@@ -9,6 +9,8 @@ namespace
 
   const String::value_type HRUST_1X_ID[] = {'H', 'r', 'u', 's', 't', '1', '.', 'x', 0};
 
+  const std::size_t DEPACKER_SIZE = 0x103;
+
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif
@@ -107,9 +109,9 @@ namespace
 
     bool Process(Dump& dst)
     {
-      dst.reserve(Header->DataSize);
+      dst.reserve(fromLE(Header->DataSize));
 
-      Bitstream stream(Header->BitStream, fromLE(Header->PackedSize) - 4);
+      Bitstream stream(Header->BitStream, fromLE(Header->PackedSize) - 12);
       //put first byte
       dst.push_back(stream.GetByte());
       unsigned refBits(2);
@@ -268,13 +270,13 @@ namespace
       }
       //put remaining bytes
       std::copy(Header->LastBytes, ArrayEnd(Header->LastBytes), std::back_inserter(dst));
-      return dst.size() == Header->DataSize;//valid if match
+      return dst.size() == fromLE(Header->DataSize);//valid if match
     }
   private:
     const Hrust1xHeader* const Header;
   };
 
-  bool DoCheck(const void* data, unsigned size)
+  bool DoCheck(const void* data, std::size_t size)
   {
     const Hrust1xHeader* const header(static_cast<const Hrust1xHeader*>(data));
     return (size >= sizeof(*header) && 
@@ -286,7 +288,8 @@ namespace
   bool Checker(const void* data, std::size_t size)
   {
     return DoCheck(data, size) || 
-      (size >= 0x103 && DoCheck(0x103 + static_cast<const uint8_t*>(data), size - 0x103));
+      (size >= DEPACKER_SIZE && DoCheck(DEPACKER_SIZE + static_cast<const uint8_t*>(data), 
+        size - DEPACKER_SIZE));
   }
 
   bool Depacker(const void* data, std::size_t size, Dump& dst)
@@ -294,7 +297,7 @@ namespace
     assert(Checker(data, size) || !"Attempt to unpack non-checked data");
     const Hrust1xHeader* const header1(static_cast<const Hrust1xHeader*>(data));
     const Hrust1xHeader* const header2(safe_ptr_cast<const Hrust1xHeader*>(static_cast<const uint8_t*>(data) + 
-      0x103));
+      DEPACKER_SIZE));
     Decoder decoder(header1->ID[0] == 'H' && header1->ID[1] == 'R' ? header1 : header2);
     return decoder.Process(dst);
   }

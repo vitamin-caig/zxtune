@@ -18,6 +18,7 @@ namespace ZXTune
   /// Attributes for players
   const String::value_type ATTR_DESCRIPTION[] = {'D', 'e', 's', 'c', 'r', 'i', 'p', 't', 'i', 'o', 'n', '\0'};
   const String::value_type ATTR_VERSION[] = {'V', 'e', 'r', 's', 'i', 'o', 'n', '\0'};
+  const String::value_type ATTR_SUBFORMATS[] = {'S', 'u', 'b', 'f', 'o', 'r', 'm', 'a', 't', 's', '\0'};
 }
 
 #endif //__PLAYER_ATTRS_H_DEFINED__

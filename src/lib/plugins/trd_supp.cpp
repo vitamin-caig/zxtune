@@ -2,6 +2,7 @@
 
 #include "../io/container.h"
 #include "../io/location.h"
+#include "../io/trdos.h"
 
 #include <tools.h>
 #include <error.h>
@@ -40,8 +41,7 @@ namespace
   };
   PACK_PRE struct CatEntry
   {
-    uint8_t Filename[8];
-    uint8_t Filetype[3];
+    IO::TRDosName Name;
     uint16_t Length;
     uint8_t SizeInSectors;
     uint8_t Sector;
@@ -85,24 +85,14 @@ namespace
   BOOST_STATIC_ASSERT(sizeof(CatEntry) == 16);
   BOOST_STATIC_ASSERT(sizeof(ServiceSector) == 256);
 
-  inline bool IsValidSym(String::value_type sym)
-  {
-    return std::isprint(sym) && sym != '?' && sym != '/' && sym != '\\';
-  }
-
   struct FileDescr
   {
     explicit FileDescr(const CatEntry& entry)
-     : Name()
+     : Name(GetFileName(entry.Name))
      , Offset(entry.Offset())
      , Size(entry.SizeInSectors == ((entry.Length - 1) / BYTES_PER_SECTOR) ?
       entry.Length : BYTES_PER_SECTOR * entry.SizeInSectors)
     {
-      const String& name = String(entry.Filename, ArrayEnd(entry.Filename));
-      Name = name.substr(0, name.find_last_not_of(' ') + 1) + '.' +
-        String(entry.Filetype, std::find_if(entry.Filetype, ArrayEnd(entry.Filetype),
-          std::not1(std::ptr_fun(&isalnum))));
-      std::replace_if(Name.begin(), Name.end(), std::not1(std::ptr_fun(IsValidSym)), '_');
     }
 
     bool IsMergeable(const CatEntry& rh)
@@ -136,9 +126,9 @@ namespace
     {
       std::vector<FileDescr> files;
       const CatEntry* catEntry(static_cast<const CatEntry*>(data.Data()));
-      for (std::size_t idx = 0; idx != MAX_FILES_COUNT && NOENTRY != *catEntry->Filename; ++idx, ++catEntry)
+      for (std::size_t idx = 0; idx != MAX_FILES_COUNT && NOENTRY != *catEntry->Name.Filename; ++idx, ++catEntry)
       {
-        if (DELETED != *catEntry->Filename && catEntry->SizeInSectors)
+        if (DELETED != *catEntry->Name.Filename && catEntry->SizeInSectors)
         {
           if (files.empty() || !files.back().IsMergeable(*catEntry))
           {
@@ -160,7 +150,8 @@ namespace
         for (std::vector<FileDescr>::const_iterator it = files.begin(), lim = files.end(); it != lim; ++it)
         {
           const String& modPath(IO::CombinePath(filename, it->Name));
-          ModulePlayer::Ptr tmp(ModulePlayer::Create(modPath, *data.GetSubcontainer(it->Offset, it->Size)));
+          IO::DataContainer::Ptr subContainer(data.GetSubcontainer(it->Offset, it->Size));
+          ModulePlayer::Ptr tmp(ModulePlayer::Create(modPath, *subContainer));
           if (tmp.get())//detected module
           {
             ModulePlayer::Info info;

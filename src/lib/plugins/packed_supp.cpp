@@ -108,6 +108,13 @@ namespace
     info.Properties.clear();
     info.Properties.insert(StringMap::value_type(ATTR_DESCRIPTION, TEXT_PCK_INFO));
     info.Properties.insert(StringMap::value_type(ATTR_VERSION, TEXT_PCK_VERSION));
+    StringArray packfmts;
+    Archive::GetDepackersList(packfmts);
+    OutStringStream str;
+    static const String::value_type DELIMITER[] = {' ', 0};
+    std::copy(packfmts.begin(), packfmts.end(), 
+      std::ostream_iterator<String, String::value_type>(str, DELIMITER));
+    info.Properties.insert(StringMap::value_type(ATTR_SUBFORMATS, str.str()));
   }
 
   //checking top-level container

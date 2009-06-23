@@ -76,18 +76,38 @@ namespace
     {
       "21??18?c3??18+25+21??cbfecb46c8e121??3421??34af676f32??22??c3",
       0x86e
-    }
+    },
     /*Vortex2
     21 ??     ld hl,xxxx
     18 ?      jr xx
     c3 ??     jp xxxx
     18 ?      jr xx
-    72 f3 ed 73 4d c0 22 ae c4 44 4d 11 64
+    ?         db xx
+    f3        di
+    ed 73 ??  ld (..),sp
+    22 ??     ld (..),hl
+    44        ld b,h
+    4d        ld c,l
+    11 ??     ld de,xx
+    19        add hl,de
+    7e        ld a,(hl)
+    23        inc hl
+    32 ??     ld (..),a
+    f9        ld sp,hl
+    19        add hl,de
+    22 ??     ld (..),hl
+    f1        pop af
+    5f        ld e,a
+    19        add hl,de
+    22 ??     ld (..),hl
+    e1        pop hl
+    09        add hl,bc
+    22 ??     ld (..),hl
+    */
     {
-      "21??18?c3??18",
+      "21??18?c3??18?f3ed73??22??444d11??197e2332??f91922??f15f1922??e109",
       0xc00
     }
-    */
   };
   //////////////////////////////////////////////////////////////////////////
 #ifdef USE_PRAGMA_PACK
