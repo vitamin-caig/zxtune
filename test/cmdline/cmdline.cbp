@@ -11,7 +11,7 @@
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="--quiet --annotate --file samples/trd/CHIMORAN.TRD?npogon.CHI" />
+				<Option parameters="samples/hobeta/TWILIGHT.\$B" />
 				<Option projectIncludeDirsRelation="0" />
 				<Compiler>
 					<Add option="-W" />
@@ -64,6 +64,9 @@
 		<Unit filename="../../src/archives/archive.h" />
 		<Unit filename="../../src/archives/formats/formats_enumerator.cpp" />
 		<Unit filename="../../src/archives/formats/formats_enumerator.h" />
+		<Unit filename="../../src/archives/formats/hrip.h" />
+		<Unit filename="../../src/archives/formats/hrust_1x.cpp" />
+		<Unit filename="../../src/archives/formats/hrust_2x.cpp" />
 		<Unit filename="../../src/lib/devices/aym/aym.cpp" />
 		<Unit filename="../../src/lib/devices/aym/aym.h" />
 		<Unit filename="../../src/lib/devices/data_source.h" />
@@ -77,12 +80,15 @@
 		<Unit filename="../../src/lib/io/container.cpp" />
 		<Unit filename="../../src/lib/io/container.h" />
 		<Unit filename="../../src/lib/io/location.h" />
+		<Unit filename="../../src/lib/io/trdos.h" />
 		<Unit filename="../../src/lib/io/warnings_collector.h" />
 		<Unit filename="../../src/lib/plugins/asc_supp.cpp" />
 		<Unit filename="../../src/lib/plugins/chi_supp.cpp" />
 		<Unit filename="../../src/lib/plugins/detector.cpp" />
 		<Unit filename="../../src/lib/plugins/detector.h" />
 		<Unit filename="../../src/lib/plugins/hobeta_supp.cpp" />
+		<Unit filename="../../src/lib/plugins/hrip_supp.cpp" />
+		<Unit filename="../../src/lib/plugins/multitrack_supp.h" />
 		<Unit filename="../../src/lib/plugins/packed_supp.cpp" />
 		<Unit filename="../../src/lib/plugins/plugin_enumerator.cpp" />
 		<Unit filename="../../src/lib/plugins/plugin_enumerator.h" />
@@ -110,6 +116,7 @@
 		<Unit filename="../../src/platform/thread/pthread/thread.cpp" />
 		<Unit filename="../../src/platform/thread/pthread/timeconv.inl" />
 		<Unit filename="../../src/platform/thread/tss_null.cpp" />
+		<Unit filename="../../src/platform/thread/win32/timeconv.inl" />
 		<Unit filename="../../src/supp/backend_enumerator.cpp" />
 		<Unit filename="../../src/supp/backend_enumerator.h" />
 		<Unit filename="../../src/supp/cross/file_backend.cpp" />

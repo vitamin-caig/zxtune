@@ -87,7 +87,7 @@ namespace
       const boost::iterator_range<const String::value_type*> range(dataIt, dataIt + data.Size() / sizeof(String::value_type));
 
       StringArray lines;
-      boost::algorithm::split(lines, range, boost::algorithm::is_cntrl(), 
+      boost::algorithm::split(lines, range, boost::algorithm::is_cntrl(),
         boost::algorithm::token_compress_on);
 
       Tracking::VortexDescr descr;
@@ -138,7 +138,7 @@ namespace
       Information.Properties.insert(StringMap::value_type(Module::ATTR_FILENAME, filename));
       Information.Properties.insert(StringMap::value_type(Module::ATTR_TITLE, descr.Title));
       Information.Properties.insert(StringMap::value_type(Module::ATTR_AUTHOR, descr.Author));
-      Information.Properties.insert(StringMap::value_type(Module::ATTR_PROGRAM, 
+      Information.Properties.insert(StringMap::value_type(Module::ATTR_PROGRAM,
         (boost::format(TEXT_VORTEX_TRACKER) % int(descr.Version / 10) % int(descr.Version % 10)).str()));
       Information.Statistic.Tempo = descr.Tempo;
       Information.Statistic.Position = descr.Order.size();
@@ -170,7 +170,7 @@ namespace
   }
 
   //checking top-level container
-  bool Checking(const String& filename, const IO::DataContainer& source)
+  bool Checking(const String& /*filename*/, const IO::DataContainer& source, uint32_t /*capFilter*/)
   {
     const std::size_t limit(source.Size());
     if (limit >= TEXT_MAX_SIZE)
@@ -181,11 +181,11 @@ namespace
     return 0 == memcmp(data, SECTION_MODULE, sizeof(SECTION_MODULE) - 1);
   }
 
-  ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data)
+  ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data, uint32_t /*capFilter*/)
   {
-    assert(Checking(filename, data) || !"Attempt to create text player on invalid data");
+    assert(Checking(filename, data, 0) || !"Attempt to create text player on invalid data");
     return ModulePlayer::Ptr(new PlayerImpl(filename, data));
   }
 
-  PluginAutoRegistrator txtReg(Checking, Creating, Describing);
+  PluginAutoRegistrator registrator(Checking, Creating, Describing);
 }

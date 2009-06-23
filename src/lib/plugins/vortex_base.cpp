@@ -133,7 +133,7 @@ namespace ZXTune
 {
   namespace Tracking
   {
-    VortexPlayer::ChannelState::ChannelState()          
+    VortexPlayer::ChannelState::ChannelState()
       : Enabled(false), Envelope(false)
       , Note(), SampleNum(0), PosInSample(0)
       , OrnamentNum(0), PosInOrnament(0)
@@ -180,7 +180,7 @@ namespace ZXTune
     }
 
     /// Rendering frame
-    VortexPlayer::State VortexPlayer::RenderFrame(const Sound::Parameters& params, 
+    VortexPlayer::State VortexPlayer::RenderFrame(const Sound::Parameters& params,
       Sound::Receiver& receiver)
     {
       AYM::DataChunk chunk;
@@ -198,7 +198,7 @@ namespace ZXTune
       return Parent::Reset();
     }
 
-    VortexPlayer::State VortexPlayer::SetPosition(const uint32_t& /*frame*/)
+    VortexPlayer::State VortexPlayer::SetPosition(std::size_t /*frame*/)
     {
       return PlaybackState;
     }

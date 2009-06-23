@@ -131,7 +131,7 @@ namespace ZXTune
       virtual State GetSoundState(Sound::Analyze::ChannelsState& state) const;
       virtual State RenderFrame(const Sound::Parameters& params, Sound::Receiver& receiver);
       virtual State Reset();
-      virtual State SetPosition(const uint32_t& frame);
+      virtual State SetPosition(std::size_t frame);
     private:
       void RenderData(AYM::DataChunk& chunk);
       uint8_t GetVolume(std::size_t volume, std::size_t level);

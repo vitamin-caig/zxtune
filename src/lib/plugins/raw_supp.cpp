@@ -20,16 +20,12 @@ namespace
 
   const String TEXT_RAW_INFO("RAW modules scanner");
   const String TEXT_RAW_VERSION("0.1");
-  const String TEXT_RAW_CONTAINER("Raw");
-  const String TEXT_CONTAINER_DELIMITER("=>");
 
   const std::size_t MAX_MODULE_SIZE = 1048576;//1Mb
   const std::size_t SCAN_STEP = 256;
   const std::size_t MIN_SCAN_SIZE = 512;
 
   const String::value_type EXTENTION[] = {'.', 'r', 'a', 'w', '\0'};
-
-  const String::value_type FORBIDDEN_FILENAME[] = {'*', '*', '*', '*', 0};
 
   String MakeFilename(std::size_t offset)
   {
@@ -45,13 +41,25 @@ namespace
     return (str >> offset) && (str >> ext) && ext == EXTENTION && 0 == (offset % SCAN_STEP);
   }
 
+  void Merge(String& val, const String& add)
+  {
+    if (val.empty())
+    {
+      val = add;
+    }
+    else
+    {
+      val += '\n';//TODO
+      val += add;
+    }
+  }
   //////////////////////////////////////////////////////////////////////////
   void Describing(ModulePlayer::Info& info);
 
   class PlayerImpl : public ModulePlayer
   {
   public:
-    PlayerImpl(const String& filename, const IO::DataContainer& data) : Filename(filename)
+    PlayerImpl(const String& filename, const IO::DataContainer& data, uint32_t capFilter) : Filename(filename)
     {
       const std::size_t limit(data.Size());
       StringArray pathes;
@@ -61,10 +69,10 @@ namespace
       {
         //enumerate
         String submodules;
-        for (std::size_t off = 0; off < limit - MIN_SCAN_SIZE; off += SCAN_STEP)
+        for (std::size_t off = SCAN_STEP; off <= limit - MIN_SCAN_SIZE; off += SCAN_STEP)
         {
           const String& modPath(IO::CombinePath(filename, MakeFilename(off)));
-          ModulePlayer::Ptr tmp(ModulePlayer::Create(modPath, *data.GetSubcontainer(off, limit - off)));
+          ModulePlayer::Ptr tmp(ModulePlayer::Create(modPath, *data.GetSubcontainer(off, limit - off), capFilter));
           if (tmp.get())//detected module
           {
             ModulePlayer::Info info;
@@ -73,19 +81,11 @@ namespace
             {
               Module::Information modInfo;
               tmp->GetModuleInfo(modInfo);
-              submodules += modInfo.Properties[Module::ATTR_SUBMODULES];
+              Merge(submodules, modInfo.Properties[Module::ATTR_SUBMODULES]);
             }
             else
             {
-              if (submodules.empty())
-              {
-                submodules = modPath;
-              }
-              else
-              {
-                submodules += '\n';//TODO
-                submodules += modPath;
-              }
+              Merge(submodules, modPath);
             }
           }
         }
@@ -93,7 +93,7 @@ namespace
         {
           throw Error(ERROR_DETAIL, 1);//TODO
         }
-        Information.Capabilities = CAP_SCANER;
+        Information.Capabilities = CAP_SCANER | CAP_MULTITRACK;
         Information.Loop = 0;
         Information.Statistic = Module::Tracking();
         Information.Properties.insert(StringMap::value_type(Module::ATTR_FILENAME, Filename));
@@ -101,15 +101,9 @@ namespace
       }
       else
       {
-        //TODO
-        //WORKAROUND
-        //CRUTCH
-        //!!!
-        const String& subname(pathes.size() == 1 ? FORBIDDEN_FILENAME : IO::ExtractSubpath(filename));
-
         //open existing
         IO::DataContainer::Ptr subContainer(data.GetSubcontainer(offset, limit - offset));
-        Delegate = ModulePlayer::Create(subname, *subContainer);
+        Delegate = ModulePlayer::Create(IO::ExtractSubpath(filename), *subContainer, capFilter);
         if (!Delegate.get())
         {
           throw Error(ERROR_DETAIL, 1);//TODO
@@ -135,28 +129,7 @@ namespace
     {
       if (Delegate.get())
       {
-        Delegate->GetModuleInfo(info);
-        /*
-        StringMap::iterator filenameIt(info.Properties.find(Module::ATTR_FILENAME));
-        if (filenameIt != info.Properties.end())
-        {
-          filenameIt->second = Filename;
-        }
-        else
-        {
-          assert(!"No filename properties");
-        }
-        */
-        StringMap::iterator ctrIter(info.Properties.find(Module::ATTR_CONTAINER));
-        if (ctrIter == info.Properties.end())
-        {
-          info.Properties.insert(StringMap::value_type(Module::ATTR_CONTAINER, TEXT_RAW_CONTAINER));
-        }
-        else
-        {
-          ctrIter->second += TEXT_CONTAINER_DELIMITER;
-          ctrIter->second += TEXT_RAW_CONTAINER;
-        }
+        return Delegate->GetModuleInfo(info);
       }
       else
       {
@@ -189,7 +162,7 @@ namespace
       return Delegate.get() ? Delegate->Reset() : MODULE_STOPPED;
     }
 
-    virtual State SetPosition(const uint32_t& frame)
+    virtual State SetPosition(std::size_t frame)
     {
       return Delegate.get() ? Delegate->SetPosition(frame) : MODULE_STOPPED;
     }
@@ -202,14 +175,14 @@ namespace
   //////////////////////////////////////////////////////////////////////////
   void Describing(ModulePlayer::Info& info)
   {
-    info.Capabilities = CAP_SCANER;
+    info.Capabilities = CAP_SCANER | CAP_MULTITRACK;
     info.Properties.clear();
     info.Properties.insert(StringMap::value_type(ATTR_DESCRIPTION, TEXT_RAW_INFO));
     info.Properties.insert(StringMap::value_type(ATTR_VERSION, TEXT_RAW_VERSION));
   }
 
   //checking top-level container
-  bool Checking(const String& filename, const IO::DataContainer& source)
+  bool Checking(const String& filename, const IO::DataContainer& source, uint32_t capFilter)
   {
     const std::size_t limit(source.Size());
     StringArray pathes;
@@ -219,22 +192,19 @@ namespace
     {
       return offset + MIN_SCAN_SIZE < limit;
     }
-    //TODO
-    //WARNING
-    //CRUTCH
-    //!!!
-    if (pathes.size() == 1 && pathes.front() == FORBIDDEN_FILENAME)
+    if (!(capFilter & CAP_SCANER))
     {
-      return false;
+      return false;//scaner is not allowed here
     }
     if (limit >= MIN_SCAN_SIZE && limit <= MAX_MODULE_SIZE)
     {
       unsigned modules(0);
-      for (std::size_t off = SCAN_STEP; off < limit - MIN_SCAN_SIZE; off += SCAN_STEP)
+      for (std::size_t off = SCAN_STEP; off <= limit - MIN_SCAN_SIZE; off += SCAN_STEP)
       {
         const String& modPath(IO::CombinePath(filename, MakeFilename(off)));
         ModulePlayer::Info info;
-        if (ModulePlayer::Check(modPath, *source.GetSubcontainer(off, limit - off), info))
+        //disable selfmates while scanning
+        if (ModulePlayer::Check(modPath, *source.GetSubcontainer(off, limit - off), info, capFilter & ~CAP_SCANER))
         {
           ++modules;
         }
@@ -244,12 +214,11 @@ namespace
     return false;
   }
 
-  ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data)
+  ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data, uint32_t capFilter)
   {
-    assert(Checking(filename, data) || !"Attempt to create raw player on invalid data");
-    return ModulePlayer::Ptr(new PlayerImpl(filename, data));
+    assert(Checking(filename, data, capFilter) || !"Attempt to create raw player on invalid data");
+    return ModulePlayer::Ptr(new PlayerImpl(filename, data, capFilter & ~CAP_SCANER));
   }
 
-  //temporary disabled
-  //PluginAutoRegistrator rawReg(Checking, Creating, Describing);
+  PluginAutoRegistrator registrator(Checking, Creating, Describing);
 }

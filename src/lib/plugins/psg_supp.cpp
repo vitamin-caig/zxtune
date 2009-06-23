@@ -179,7 +179,7 @@ namespace
       Device->Reset();
       return CurrentState = MODULE_STOPPED;
     }
-    virtual State SetPosition(const uint32_t& frame)
+    virtual State SetPosition(std::size_t frame)
     {
       if (frame >= Storage.size())
       {
@@ -210,7 +210,7 @@ namespace
     info.Properties.insert(StringMap::value_type(ATTR_VERSION, TEXT_PSG_VERSION));
   }
 
-  bool Checking(const String& /*filename*/, const IO::DataContainer& data)
+  bool Checking(const String& /*filename*/, const IO::DataContainer& data, uint32_t /*capFilter*/)
   {
     if (data.Size() <= sizeof(PSGHeader) || data.Size() > MAX_MODULE_SIZE)
     {
@@ -220,11 +220,11 @@ namespace
     return (0 == std::memcmp(header->Sign, PSG_SIGNATURE, sizeof(PSG_SIGNATURE)) && PSG_MARKER == header->Marker);
   }
 
-  ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data)
+  ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data, uint32_t /*capFilter*/)
   {
-    assert(Checking(filename, data) || !"Attempt to create player on invalid data");
+    assert(Checking(filename, data, 0) || !"Attempt to create player on invalid data");
     return ModulePlayer::Ptr(new PlayerImpl(filename, FastDump(data)));
   }
 
-  PluginAutoRegistrator psgReg(Checking, Creating, Describing);
+  PluginAutoRegistrator registrator(Checking, Creating, Describing);
 }

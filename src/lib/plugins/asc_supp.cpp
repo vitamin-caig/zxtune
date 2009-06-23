@@ -583,11 +583,6 @@ namespace
       return Parent::Reset();
     }
 
-    virtual State SetPosition(const uint32_t& /*frame*/)
-    {
-      return PlaybackState;
-    }
-
   private:
     void RenderData(AYM::DataChunk& chunk)
     {
@@ -849,7 +844,7 @@ namespace
     info.Properties.insert(StringMap::value_type(ATTR_VERSION, TEXT_ASC_VERSION));
   }
 
-  bool Checking(const String& /*filename*/, const IO::DataContainer& source)
+  bool Checking(const String& /*filename*/, const IO::DataContainer& source, uint32_t /*capFilter*/)
   {
     const std::size_t limit(source.Size());
     if (limit < sizeof(ASCHeader) || limit > MAX_MODULE_SIZE)
@@ -888,11 +883,11 @@ namespace
     return true;
   }
 
-  ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data)
+  ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data, uint32_t /*capFilter*/)
   {
-    assert(Checking(filename, data) || !"Attempt to create asc player on invalid data");
+    assert(Checking(filename, data, 0) || !"Attempt to create asc player on invalid data");
     return ModulePlayer::Ptr(new PlayerImpl(filename, FastDump(data)));
   }
 
-  PluginAutoRegistrator ascReg(Checking, Creating, Describing);
+  PluginAutoRegistrator registrator(Checking, Creating, Describing);
 }

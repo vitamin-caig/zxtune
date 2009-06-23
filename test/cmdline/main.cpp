@@ -443,6 +443,8 @@ int main(int argc, char* argv[])
       return 1;
     case PlaybackContext::PARSE_EXIT:
       return 0;
+    default:
+      break;
     }
 
     if (context.Filename.empty())

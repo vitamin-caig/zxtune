@@ -90,14 +90,14 @@ namespace
     explicit FileDescr(const CatEntry& entry)
      : Name(GetFileName(entry.Name))
      , Offset(entry.Offset())
-     , Size(entry.SizeInSectors == ((entry.Length - 1) / BYTES_PER_SECTOR) ?
-      entry.Length : BYTES_PER_SECTOR * entry.SizeInSectors)
+     , Size(entry.SizeInSectors == ((fromLE(entry.Length) - 1) / BYTES_PER_SECTOR) ?
+      fromLE(entry.Length) : BYTES_PER_SECTOR * entry.SizeInSectors)
     {
     }
 
     bool IsMergeable(const CatEntry& rh)
     {
-      return Size == 255 * BYTES_PER_SECTOR && Offset + Size == rh.Offset();
+      return 0 == (Size % (BYTES_PER_SECTOR * 255)) && Offset + Size == rh.Offset();
     }
 
     void Merge(const CatEntry& rh)
@@ -116,13 +116,27 @@ namespace
     std::size_t Size;
   };
 
+  void Merge(String& val, const String& add)
+  {
+    if (val.empty())
+    {
+      val = add;
+    }
+    else
+    {
+      val += '\n';//TODO
+      val += add;
+    }
+  }
+
+
   //////////////////////////////////////////////////////////////////////////
   void Describing(ModulePlayer::Info& info);
 
   class PlayerImpl : public ModulePlayer
   {
   public:
-    PlayerImpl(const String& filename, const IO::DataContainer& data) : Filename(filename)
+    PlayerImpl(const String& filename, const IO::DataContainer& data, uint32_t capFilter) : Filename(filename)
     {
       std::vector<FileDescr> files;
       const CatEntry* catEntry(static_cast<const CatEntry*>(data.Data()));
@@ -151,7 +165,7 @@ namespace
         {
           const String& modPath(IO::CombinePath(filename, it->Name));
           IO::DataContainer::Ptr subContainer(data.GetSubcontainer(it->Offset, it->Size));
-          ModulePlayer::Ptr tmp(ModulePlayer::Create(modPath, *subContainer));
+          ModulePlayer::Ptr tmp(ModulePlayer::Create(modPath, *subContainer, capFilter));
           if (tmp.get())//detected module
           {
             ModulePlayer::Info info;
@@ -160,19 +174,11 @@ namespace
             {
               Module::Information modInfo;
               tmp->GetModuleInfo(modInfo);
-              submodules += modInfo.Properties[Module::ATTR_SUBMODULES];
+              Merge(submodules, modInfo.Properties[Module::ATTR_SUBMODULES]);
             }
             else
             {
-              if (submodules.empty())
-              {
-                submodules = modPath;
-              }
-              else
-              {
-                submodules += '\n';//TODO
-                submodules += modPath;
-              }
+              Merge(submodules, modPath);
             }
           }
         }
@@ -195,7 +201,7 @@ namespace
           throw Error(ERROR_DETAIL, 1);//TODO: invalid file
         }
         IO::DataContainer::Ptr subContainer(data.GetSubcontainer(iter->Offset, iter->Size));
-        Delegate = ModulePlayer::Create(IO::ExtractSubpath(filename), *subContainer);
+        Delegate = ModulePlayer::Create(IO::ExtractSubpath(filename), *subContainer, capFilter);
         if (!Delegate.get())
         {
           throw Error(ERROR_DETAIL, 1);//TODO: invalid file
@@ -263,7 +269,7 @@ namespace
       return Delegate.get() ? Delegate->Reset() : MODULE_STOPPED;
     }
 
-    virtual State SetPosition(const uint32_t& frame)
+    virtual State SetPosition(std::size_t frame)
     {
       return Delegate.get() ? Delegate->SetPosition(frame) : MODULE_STOPPED;
     }
@@ -283,7 +289,7 @@ namespace
   }
 
   //checking top-level container
-  bool Checking(const String& /*filename*/, const IO::DataContainer& source)
+  bool Checking(const String& /*filename*/, const IO::DataContainer& source, uint32_t /*capFilter*/)
   {
     const std::size_t limit(source.Size());
     if (limit != TRD_MODULE_SIZE)
@@ -295,11 +301,11 @@ namespace
     return sector->ID == TRD_ID && sector->Type == DS_DD;
   }
 
-  ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data)
+  ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data, uint32_t capFilter)
   {
-    assert(Checking(filename, data) || !"Attempt to create trd player on invalid data");
-    return ModulePlayer::Ptr(new PlayerImpl(filename, data));
+    assert(Checking(filename, data, capFilter) || !"Attempt to create trd player on invalid data");
+    return ModulePlayer::Ptr(new PlayerImpl(filename, data, capFilter));
   }
 
-  PluginAutoRegistrator trdReg(Checking, Creating, Describing);
+  PluginAutoRegistrator registrator(Checking, Creating, Describing);
 }

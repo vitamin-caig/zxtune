@@ -88,14 +88,12 @@ namespace ZXTune
 
     BackendImpl::~BackendImpl()
     {
-      assert(NOTOPENED == CurrentState || (STOPPED == CurrentState && !InProcess) 
+      assert(NOTOPENED == CurrentState || (STOPPED == CurrentState && !InProcess)
         || !"Backend should be stopped!");
     }
 
     Backend::State BackendImpl::SetPlayer(ModulePlayer::Ptr player)
     {
-      static const SampleArray MONO_MIX = {FIXED_POINT_PRECISION};
-
       Locker lock(PlayerMutex);
       SafeStop();
       Player = player;
@@ -367,7 +365,7 @@ namespace ZXTune
             InProcess = true;//stopping now
             break;
           }
-        } 
+        }
         else if (PAUSED == CurrentState)
         {
           boost::this_thread::sleep(PLAYTHREAD_SLEEP_PERIOD);

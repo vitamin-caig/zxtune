@@ -2,6 +2,7 @@
 #include "../io/container.h"
 
 #include <tools.h>
+#include <error.h>
 
 #include <module_attrs.h>
 #include <player_attrs.h>
@@ -10,6 +11,8 @@
 
 #include <cassert>
 #include <numeric>
+
+#define FILE_TAG 1CF1A62A
 
 namespace
 {
@@ -44,9 +47,13 @@ namespace
   class PlayerImpl : public ModulePlayer
   {
   public:
-    PlayerImpl(const String& filename, const IO::DataContainer& data)
-     : Delegate(ModulePlayer::Create(filename, *data.GetSubcontainer(sizeof(Header), data.Size() - sizeof(Header))))
+    PlayerImpl(const String& filename, const IO::DataContainer& data, uint32_t capFilter)
+     : Delegate(ModulePlayer::Create(filename, *data.GetSubcontainer(sizeof(Header), data.Size() - sizeof(Header)), capFilter))
     {
+      if (!Delegate.get())
+      {
+        throw Error(ERROR_DETAIL, 1);//TODO
+      }
     }
     /// Retrieving player info itself
     virtual void GetInfo(Info& info) const
@@ -67,8 +74,7 @@ namespace
       }
       else
       {
-        ctrIter->second += TEXT_CONTAINER_DELIMITER;
-        ctrIter->second += TEXT_HOB_CONTAINER;
+        ctrIter->second = String(TEXT_HOB_CONTAINER) + TEXT_CONTAINER_DELIMITER + ctrIter->second;
       }
     }
 
@@ -100,7 +106,7 @@ namespace
       return Delegate->Reset();
     }
 
-    virtual State SetPosition(const uint32_t& frame)
+    virtual State SetPosition(std::size_t frame)
     {
       assert(Delegate.get());
       return Delegate->SetPosition(frame);
@@ -119,7 +125,7 @@ namespace
   }
 
   //checking top-level container
-  bool Checking(const String& filename, const IO::DataContainer& source)
+  bool Checking(const String& filename, const IO::DataContainer& source, uint32_t capFilter)
   {
     const std::size_t limit(source.Size());
     if (limit >= HOBETA_MAX_SIZE)
@@ -129,17 +135,17 @@ namespace
     const uint8_t* const data(static_cast<const uint8_t*>(source.Data()));
     const Header* const header(safe_ptr_cast<const Header*>(data));
     ModulePlayer::Info info;
-    IO::DataContainer::Ptr subcontainer(source.GetSubcontainer(sizeof(*header), 
+    IO::DataContainer::Ptr subcontainer(source.GetSubcontainer(sizeof(*header),
       source.Size() - sizeof(*header)));
     return fromLE(header->CRC) == ((105 + 257 * std::accumulate(data, data + 15, 0)) & 0xffff) &&
-           ModulePlayer::Check(filename, *subcontainer, info);
+           ModulePlayer::Check(filename, *subcontainer, info, capFilter);
   }
 
-  ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data)
+  ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data, uint32_t capFilter)
   {
-    assert(Checking(filename, data) || !"Attempt to create hobeta player on invalid data");
-    return ModulePlayer::Ptr(new PlayerImpl(filename, data));
+    assert(Checking(filename, data, capFilter) || !"Attempt to create hobeta player on invalid data");
+    return ModulePlayer::Ptr(new PlayerImpl(filename, data, capFilter));
   }
 
-  PluginAutoRegistrator hobReg(Checking, Creating, Describing);
+  PluginAutoRegistrator registrator(Checking, Creating, Describing);
 }

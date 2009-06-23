@@ -43,13 +43,13 @@ namespace
 
   const uint8_t TS_ID[] = {'0', '2', 'T', 'S'};
   BOOST_STATIC_ASSERT(sizeof(Footer) == 16);
-  
+
   template<class T>
   inline T avg(T val1, T val2)
   {
     return (val1 + val2) / 2;
   }
-  
+
   class TSMixer : public Sound::Receiver
   {
   public:
@@ -125,15 +125,15 @@ namespace
   class PlayerImpl : public ModulePlayer
   {
   public:
-    PlayerImpl(const String& filename, const IO::DataContainer& data)
+    PlayerImpl(const String& filename, const IO::DataContainer& data, uint32_t capFilter)
     {
       //assume all is correct
       const uint8_t* buf(static_cast<const uint8_t*>(data.Data()));
       const Footer* const footer(safe_ptr_cast<const Footer*>(buf + data.Size() - sizeof(Footer)));
       IO::DataContainer::Ptr cont1(data.GetSubcontainer(0, footer->Size1));
       IO::DataContainer::Ptr cont2(data.GetSubcontainer(footer->Size1, footer->Size2));
-      Delegate1 = ModulePlayer::Create(filename, *cont1);
-      Delegate2 = ModulePlayer::Create(filename, *cont2);
+      Delegate1 = ModulePlayer::Create(filename, *cont1, capFilter);
+      Delegate2 = ModulePlayer::Create(filename, *cont2, capFilter);
 
       if (!Delegate1.get() || !Delegate2.get())
       {
@@ -222,7 +222,7 @@ namespace
       return std::min(Delegate1->Reset(), Delegate2->Reset());
     }
 
-    virtual State SetPosition(const uint32_t& frame)
+    virtual State SetPosition(std::size_t frame)
     {
       assert(Delegate1.get() && Delegate2.get());
       return std::min(Delegate1->SetPosition(frame), Delegate2->SetPosition(frame));
@@ -245,8 +245,9 @@ namespace
   }
 
   //checking top-level container
-  bool Checking(const String& filename, const IO::DataContainer& source)
+  bool Checking(const String& /*filename*/, const IO::DataContainer& source, uint32_t /*capFilter*/)
   {
+    //TODO: vortex text files check
     const std::size_t limit(source.Size());
     if (limit >= TS_MAX_SIZE || limit < sizeof(Footer))
     {
@@ -255,15 +256,15 @@ namespace
     const uint8_t* buf(static_cast<const uint8_t*>(source.Data()));
     const Footer* const footer(safe_ptr_cast<const Footer*>(buf + limit - sizeof(Footer)));
     return 0 == std::memcmp(footer->ID3, TS_ID, sizeof(TS_ID)) &&
-        footer->Size1 < limit && footer->Size2 < limit && 
+        footer->Size1 < limit && footer->Size2 < limit &&
         footer->Size1 + footer->Size2 + sizeof(*footer) == limit;
   }
 
-  ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data)
+  ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data, uint32_t capFilter)
   {
-    assert(Checking(filename, data) || !"Attempt to create TS player on invalid data");
-    return ModulePlayer::Ptr(new PlayerImpl(filename, data));
+    assert(Checking(filename, data, capFilter) || !"Attempt to create TS player on invalid data");
+    return ModulePlayer::Ptr(new PlayerImpl(filename, data, capFilter));
   }
 
-  PluginAutoRegistrator tsReg(Checking, Creating, Describing);
+  PluginAutoRegistrator registrator(Checking, Creating, Describing);
 }

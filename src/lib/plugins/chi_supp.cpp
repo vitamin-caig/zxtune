@@ -238,7 +238,7 @@ namespace
         {
           Sample& result(Data.Samples.back());
           result.Data.assign(sampleData, sampleData + size);
-          result.Gain = Sound::Analyze::LevelType(std::accumulate(sampleData, sampleData + size, uint32_t(0), 
+          result.Gain = Sound::Analyze::LevelType(std::accumulate(sampleData, sampleData + size, uint32_t(0),
             GainAdder) / size);
           sampleData += align(size, 256);
         }
@@ -267,7 +267,7 @@ namespace
         Sound::Analyze::Channel& channel(state[chan]);
         if ((channel.Enabled = Channels[chan].Enabled))
         {
-          channel.Level = Data.Samples[Channels[chan].SampleNum].Gain * 
+          channel.Level = Data.Samples[Channels[chan].SampleNum].Gain *
             std::numeric_limits<Sound::Analyze::LevelType>::max() / 128;
           channel.Band = Channels[chan].Note;
         }
@@ -366,14 +366,15 @@ namespace
       {
         Channels[chan].Sliding += Channels[chan].Glissade;
       }
-      CurrentState.Position.Channels = std::count_if(Channels, ArrayEnd(Channels), 
+      CurrentState.Position.Channels = std::count_if(Channels, ArrayEnd(Channels),
         boost::mem_fn(&ChannelState::Enabled));
 
       return Parent::RenderFrame(params, receiver);
     }
 
-    virtual State SetPosition(const uint32_t& /*frame*/)
+    virtual State SetPosition(std::size_t /*frame*/)
     {
+      //TODO
       return PlaybackState;
     }
   private:
@@ -397,7 +398,7 @@ namespace
         TableFreq = freq;
         for (std::size_t note = 0; note != NOTES; ++note)
         {
-          FreqTable[note] = static_cast<std::size_t>(FREQ_TABLE[note] * Sound::FIXED_POINT_PRECISION * 
+          FreqTable[note] = static_cast<std::size_t>(FREQ_TABLE[note] * Sound::FIXED_POINT_PRECISION *
             BASE_FREQ / (FREQ_TABLE[0] * freq * 2));
         }
       }
@@ -421,7 +422,7 @@ namespace
     info.Properties.insert(StringMap::value_type(ATTR_VERSION, TEXT_CHI_VERSION));
   }
 
-  bool Checking(const String& /*filename*/, const IO::DataContainer& data)
+  bool Checking(const String& /*filename*/, const IO::DataContainer& data, uint32_t /*capFilter*/)
   {
     //check for header
     const std::size_t size(data.Size());
@@ -434,11 +435,11 @@ namespace
     //TODO: additional checks
   }
 
-  ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data)
+  ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data, uint32_t /*capFilter*/)
   {
-    assert(Checking(filename, data) || !"Attempt to create chi player on invalid data");
+    assert(Checking(filename, data, 0) || !"Attempt to create chi player on invalid data");
     return ModulePlayer::Ptr(new PlayerImpl(filename, FastDump(data)));
   }
 
-  PluginAutoRegistrator chiReg(Checking, Creating, Describing);
+  PluginAutoRegistrator registrator(Checking, Creating, Describing);
 }

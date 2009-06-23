@@ -30,8 +30,8 @@ namespace
   class PlayerImpl : public ModulePlayer
   {
   public:
-    PlayerImpl(const String& filename, const IO::DataContainer& data, const String& subcontainers)
-      : Delegate(ModulePlayer::Create(filename, data))
+    PlayerImpl(const String& filename, const IO::DataContainer& data, const String& subcontainers, uint32_t capFilter)
+      : Delegate(ModulePlayer::Create(filename, data, capFilter))
       , Subcontainers(subcontainers)
     {
       if (!Delegate.get())
@@ -58,8 +58,7 @@ namespace
       }
       else
       {
-        ctrIter->second += TEXT_CONTAINER_DELIMITER;
-        ctrIter->second += Subcontainers;
+        ctrIter->second = String(Subcontainers) + TEXT_CONTAINER_DELIMITER + ctrIter->second;
       }
     }
 
@@ -91,7 +90,7 @@ namespace
       return Delegate->Reset();
     }
 
-    virtual State SetPosition(const uint32_t& frame)
+    virtual State SetPosition(std::size_t frame)
     {
       assert(Delegate.get());
       return Delegate->SetPosition(frame);
@@ -112,13 +111,13 @@ namespace
     Archive::GetDepackersList(packfmts);
     OutStringStream str;
     static const String::value_type DELIMITER[] = {' ', 0};
-    std::copy(packfmts.begin(), packfmts.end(), 
+    std::copy(packfmts.begin(), packfmts.end(),
       std::ostream_iterator<String, String::value_type>(str, DELIMITER));
     info.Properties.insert(StringMap::value_type(ATTR_SUBFORMATS, str.str()));
   }
 
   //checking top-level container
-  bool Checking(const String& filename, const IO::DataContainer& source)
+  bool Checking(const String& /*filename*/, const IO::DataContainer& source, uint32_t /*capFilter*/)
   {
     const std::size_t limit(source.Size());
     if (limit >= PACKED_MAX_SIZE)
@@ -129,12 +128,13 @@ namespace
     return Archive::Check(source.Data(), limit, tmp);
   }
 
-  ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data)
+  ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data, uint32_t capFilter)
   {
     String subcontainers, container;
     const uint8_t* const ptr(static_cast<const uint8_t*>(data.Data()));
     Dump data1(ptr, ptr + data.Size()), data2;
-    while (Archive::Check(&data1[0], data1.size(), container) && 
+    //process possibly nested files
+    while (Archive::Check(&data1[0], data1.size(), container) &&
       Archive::Depack(&data1[0], data1.size(), data2, container))
     {
       if (!subcontainers.empty())
@@ -149,8 +149,8 @@ namespace
       throw Error(ERROR_DETAIL, 1);//TODO
     }
     IO::DataContainer::Ptr asContainer(IO::DataContainer::Create(data1));
-    return ModulePlayer::Ptr(new PlayerImpl(filename, *asContainer, subcontainers));
+    return ModulePlayer::Ptr(new PlayerImpl(filename, *asContainer, subcontainers, capFilter));
   }
 
-  PluginAutoRegistrator pckReg(Checking, Creating, Describing);
+  PluginAutoRegistrator registrator(Checking, Creating, Describing);
 }

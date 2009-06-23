@@ -3,6 +3,7 @@
 
 #include <sound.h>
 #include <module.h>
+#include <player_attrs.h>
 
 namespace ZXTune
 {
@@ -54,12 +55,12 @@ namespace ZXTune
 
     /// Controlling
     virtual State Reset() = 0;
-    virtual State SetPosition(const uint32_t& frame) = 0;
+    virtual State SetPosition(std::size_t frame) = 0;
 
     /// Virtual ctor
-    static Ptr Create(const String& filename, const IO::DataContainer& data);
+    static Ptr Create(const String& filename, const IO::DataContainer& data, uint32_t capFilter = CAP_ANY);
     /// Checker
-    static bool Check(const String& filename, const IO::DataContainer& data, Info& info);
+    static bool Check(const String& filename, const IO::DataContainer& data, Info& info, uint32_t capFilter = CAP_ANY);
   };
 
   /// Common interface

@@ -578,10 +578,10 @@ namespace
     const std::size_t Limit;
   };
 
-  bool Checking(const String& /*filename*/, const IO::DataContainer& source)
+  bool Checking(const String& /*filename*/, const IO::DataContainer& source, uint32_t /*capFilter*/)
   {
     const std::size_t limit(source.Size());
-    if (limit < sizeof(PT3Header) || limit >= MAX_MODULE_SIZE)
+    if (limit < sizeof(PT3Header) || limit > MAX_MODULE_SIZE)
     {
       return false;
     }
@@ -591,14 +591,14 @@ namespace
       ArrayEnd(Players) != std::find_if(Players, ArrayEnd(Players), Detector(data, limit));
   }
 
-  ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data)
+  ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data, uint32_t /*capFilter*/)
   {
-    assert(Checking(filename, data) || !"Attempt to create pt3 player on invalid data");
+    assert(Checking(filename, data, 0) || !"Attempt to create pt3 player on invalid data");
     const uint8_t* const buf(static_cast<const uint8_t*>(data.Data()));
     const DetectChain* const playerIt(std::find_if(Players, ArrayEnd(Players), Detector(buf, data.Size())));
     const std::size_t offset(ArrayEnd(Players) == playerIt ? 0 : playerIt->PlayerSize);
     return ModulePlayer::Ptr(new PlayerImpl(filename, FastDump(data, offset)));
   }
 
-  PluginAutoRegistrator pt3Reg(Checking, Creating, Describing);
+  PluginAutoRegistrator registrator(Checking, Creating, Describing);
 }

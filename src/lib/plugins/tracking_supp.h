@@ -167,6 +167,12 @@ namespace ZXTune
         UpdateTempo(CurrentState.Position);
         return PlaybackState = MODULE_STOPPED;
       }
+
+      State SetPosition(std::size_t /*frame*/)
+      {
+        //TODO
+        return PlaybackState;
+      }
     private:
       bool Navigate(Module::Tracking& state)
       {

@@ -32,7 +32,7 @@ namespace
   class PlayerImpl : public ModulePlayer
   {
   public:
-    PlayerImpl(const String& filename, const IO::DataContainer& data) : Filename(filename)
+    PlayerImpl(const String& filename, const IO::DataContainer& data, uint32_t capFilter) : Filename(filename)
     {
       StringArray pathes;
       IO::SplitPath(filename, pathes);
@@ -52,7 +52,7 @@ namespace
             throw 1;//TODO
           }
           IO::DataContainer::Ptr container(IO::DataContainer::Create(dump));
-          ModulePlayer::Ptr tmp(ModulePlayer::Create(modPath, *container));
+          ModulePlayer::Ptr tmp(ModulePlayer::Create(modPath, *container, capFilter));
           if (tmp.get())//detected module
           {
             ModulePlayer::Info info;
@@ -96,7 +96,7 @@ namespace
           throw 1;//TODO
         }
         IO::DataContainer::Ptr subContainer(IO::DataContainer::Create(dump));
-        Delegate = ModulePlayer::Create(IO::ExtractSubpath(filename), *subContainer);
+        Delegate = ModulePlayer::Create(IO::ExtractSubpath(filename), *subContainer, capFilter);
         if (!Delegate.get())
         {
           throw Error(ERROR_DETAIL, 1);//TODO: invalid file
@@ -164,7 +164,7 @@ namespace
       return Delegate.get() ? Delegate->Reset() : MODULE_STOPPED;
     }
 
-    virtual State SetPosition(const uint32_t& frame)
+    virtual State SetPosition(std::size_t frame)
     {
       return Delegate.get() ? Delegate->SetPosition(frame) : MODULE_STOPPED;
     }
@@ -184,7 +184,7 @@ namespace
   }
 
   //checking top-level container
-  bool Checking(const String& /*filename*/, const IO::DataContainer& source)
+  bool Checking(const String& /*filename*/, const IO::DataContainer& source, uint32_t /*capFilter*/)
   {
     const std::size_t limit(source.Size());
     if (limit >= HRP_MODULE_SIZE)
@@ -195,11 +195,11 @@ namespace
     return Archive::OK == Archive::CheckHrip(source.Data(), source.Size(), files) && !files.empty();
   }
 
-  ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data)
+  ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data, uint32_t capFilter)
   {
-    assert(Checking(filename, data) || !"Attempt to create hrp player on invalid data");
-    return ModulePlayer::Ptr(new PlayerImpl(filename, data));
+    assert(Checking(filename, data, capFilter) || !"Attempt to create hrp player on invalid data");
+    return ModulePlayer::Ptr(new PlayerImpl(filename, data, capFilter));
   }
 
-  PluginAutoRegistrator hrpReg(Checking, Creating, Describing);
+  PluginAutoRegistrator registrator(Checking, Creating, Describing);
 }

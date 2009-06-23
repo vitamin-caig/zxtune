@@ -6,14 +6,17 @@
 namespace ZXTune
 {
   /// Capabilities for players
-  const unsigned CAP_AYM = 1;
-  const unsigned CAP_TS = 2;
-  const unsigned CAP_BEEPER = 4;
-  const unsigned CAP_SOUNDRIVE = 8;
-  const unsigned CAP_FM = 16;
-  const unsigned CAP_CONTAINER = 32;
-  const unsigned CAP_MULTITRACK = 64;
-  const unsigned CAP_SCANER = CAP_CONTAINER | CAP_MULTITRACK;
+  const uint32_t CAP_AYM = 1;
+  const uint32_t CAP_TS = 2;
+  const uint32_t CAP_BEEPER = 4;
+  const uint32_t CAP_SOUNDRIVE = 8;
+  const uint32_t CAP_FM = 16;
+  const uint32_t CAP_CONTAINER = 32;
+  const uint32_t CAP_MULTITRACK = 64;
+  const uint32_t CAP_SCANER = 128;
+
+  //for filtering
+  const uint32_t CAP_ANY = ~uint32_t(0);
 
   /// Attributes for players
   const String::value_type ATTR_DESCRIPTION[] = {'D', 'e', 's', 'c', 'r', 'i', 'p', 't', 'i', 'o', 'n', '\0'};

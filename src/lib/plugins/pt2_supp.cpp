@@ -441,11 +441,6 @@ namespace
       return Parent::Reset();
     }
 
-    virtual State SetPosition(const uint32_t& /*frame*/)
-    {
-      return PlaybackState;
-    }
-
   private:
     void RenderData(AYM::DataChunk& chunk)
     {
@@ -609,7 +604,7 @@ namespace
     info.Properties.insert(StringMap::value_type(ATTR_VERSION, TEXT_PT2_VERSION));
   }
 
-  bool Checking(const String& /*filename*/, const IO::DataContainer& source)
+  bool Checking(const String& /*filename*/, const IO::DataContainer& source, uint32_t /*capFilter*/)
   {
     //check for header
     const std::size_t size(source.Size());
@@ -678,11 +673,11 @@ namespace
     return true;
   }
 
-  ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data)
+  ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data, uint32_t /*capFilter*/)
   {
-    assert(Checking(filename, data) || !"Attempt to create pt2 player on invalid data");
+    assert(Checking(filename, data, 0) || !"Attempt to create pt2 player on invalid data");
     return ModulePlayer::Ptr(new PlayerImpl(filename, FastDump(data)));
   }
 
-  PluginAutoRegistrator pt2Reg(Checking, Creating, Describing);
+  PluginAutoRegistrator registrator(Checking, Creating, Describing);
 }

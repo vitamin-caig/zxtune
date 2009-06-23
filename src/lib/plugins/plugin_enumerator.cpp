@@ -18,20 +18,26 @@ namespace
     ModuleFactoryFunc Creator;
     ModuleInfoFunc Descriptor;
     //cached
+    uint32_t Capabilities;
     unsigned Priority;
   };
 
   unsigned GetPriorityFromCaps(unsigned caps)
   {
-    switch (caps & (CAP_MULTITRACK | CAP_CONTAINER | CAP_SCANER))
+    if (caps & CAP_MULTITRACK)
     {
-    case CAP_MULTITRACK:
       return 100;
-    case CAP_SCANER:
+    }
+    else if (caps & CAP_SCANER)
+    {
       return 66;
-    case CAP_CONTAINER:
+    }
+    else if (caps & CAP_CONTAINER)
+    {
       return 33;
-    default:
+    }
+    else
+    {
       return 0;
     }
   }
@@ -40,7 +46,7 @@ namespace
   {
     return lh.Checker == rh.Checker && lh.Creator == rh.Creator && lh.Descriptor == rh.Descriptor;
   }
-  
+
   inline bool operator < (const PluginDescriptor& lh, const PluginDescriptor& rh)
   {
     return lh.Priority < rh.Priority;
@@ -58,7 +64,7 @@ namespace
     {
       ModulePlayer::Info info;
       describe(info);
-      const PluginDescriptor descr = {check, create, describe, GetPriorityFromCaps(info.Capabilities)};
+      const PluginDescriptor descr = {check, create, describe, info.Capabilities, GetPriorityFromCaps(info.Capabilities)};
       assert(Plugins.end() == std::find(Plugins.begin(), Plugins.end(), descr));
       Plugins.insert(std::find_if(Plugins.begin(), Plugins.end(), std::bind2nd(std::less<PluginDescriptor>(), descr)), descr);
     }
@@ -73,11 +79,11 @@ namespace
       }
     }
 
-    virtual bool CheckModule(const String& filename, const IO::DataContainer& data, ModulePlayer::Info& info) const
+    virtual bool CheckModule(const String& filename, const IO::DataContainer& data, ModulePlayer::Info& info, uint32_t capFilter) const
     {
       for (PluginsStorage::const_iterator it = Plugins.begin(), lim = Plugins.end(); it != lim; ++it)
       {
-        if ((it->Checker)(filename, data))
+        if ((it->Capabilities & capFilter) && (it->Checker)(filename, data, capFilter))
         {
           (it->Descriptor)(info);
           return true;
@@ -86,15 +92,15 @@ namespace
       return false;
     }
 
-    virtual ModulePlayer::Ptr CreatePlayer(const String& filename, const IO::DataContainer& data) const
+    virtual ModulePlayer::Ptr CreatePlayer(const String& filename, const IO::DataContainer& data, uint32_t capFilter) const
     {
       for (PluginsStorage::const_iterator it = Plugins.begin(), lim = Plugins.end(); it != lim; ++it)
       {
-        if ((it->Checker)(filename, data))
+        if ((it->Capabilities & capFilter) && (it->Checker)(filename, data, capFilter))
         {
           try
           {
-            return (it->Creator)(filename, data);
+            return (it->Creator)(filename, data, capFilter);
           }
           catch (const Error& /*e*/)//just skip in case of detailed check fail
           {
@@ -117,14 +123,14 @@ namespace ZXTune
     return instance;
   }
 
-  ModulePlayer::Ptr ModulePlayer::Create(const String& filename, const IO::DataContainer& data)
+  ModulePlayer::Ptr ModulePlayer::Create(const String& filename, const IO::DataContainer& data, uint32_t capFilter)
   {
-    return PluginEnumerator::Instance().CreatePlayer(filename, data);
+    return PluginEnumerator::Instance().CreatePlayer(filename, data, capFilter);
   }
 
-  bool ModulePlayer::Check(const String& filename, const IO::DataContainer& data, ModulePlayer::Info& info)
+  bool ModulePlayer::Check(const String& filename, const IO::DataContainer& data, ModulePlayer::Info& info, uint32_t capFilter)
   {
-    return PluginEnumerator::Instance().CheckModule(filename, data, info);
+    return PluginEnumerator::Instance().CheckModule(filename, data, info, capFilter);
   }
 
   void GetSupportedPlayers(std::vector<ModulePlayer::Info>& infos)

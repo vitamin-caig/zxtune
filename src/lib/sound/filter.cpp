@@ -52,7 +52,7 @@ namespace
         }
         std::transform(res, ArrayEnd(res), Result, std::bind2nd(std::divides<BigSample>(), BigSample(FIXED_POINT_PRECISION)));
         ++Position;
-        return delegate->ApplySample(Result, OUTPUT_CHANNELS);
+        return delegate->ApplySample(Result, channels);
       }
     }
 
