@@ -249,7 +249,8 @@ namespace
   {
     //TODO: vortex text files check
     const std::size_t limit(source.Size());
-    if (limit >= TS_MAX_SIZE || limit < sizeof(Footer))
+    //TODO: scan for id
+    if (/*limit >= TS_MAX_SIZE || */limit < sizeof(Footer))
     {
       return false;
     }

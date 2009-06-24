@@ -607,8 +607,8 @@ namespace
   bool Checking(const String& /*filename*/, const IO::DataContainer& source, uint32_t /*capFilter*/)
   {
     //check for header
-    const std::size_t size(source.Size());
-    if (sizeof(PT2Header) > size || size > MAX_MODULE_SIZE)
+    const std::size_t size(std::min(source.Size(), MAX_MODULE_SIZE));
+    if (sizeof(PT2Header) > size/* || size > MAX_MODULE_SIZE*/)
     {
       return false;
     }

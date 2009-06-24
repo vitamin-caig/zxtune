@@ -120,10 +120,12 @@ namespace
   bool Checking(const String& /*filename*/, const IO::DataContainer& source, uint32_t /*capFilter*/)
   {
     const std::size_t limit(source.Size());
+    /*
     if (limit >= PACKED_MAX_SIZE)
     {
       return false;
     }
+    */
     String tmp;
     return Archive::Check(source.Data(), limit, tmp);
   }

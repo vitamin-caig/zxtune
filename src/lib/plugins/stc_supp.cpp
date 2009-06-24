@@ -518,8 +518,8 @@ namespace
 
   bool Checking(const String& /*filename*/, const IO::DataContainer& source, uint32_t /*capFilter*/)
   {
-    const std::size_t limit(source.Size());
-    if (sizeof(STCHeader) > limit || limit > MAX_MODULE_SIZE)
+    const std::size_t limit(std::min(source.Size(), MAX_MODULE_SIZE));
+    if (limit < sizeof(STCHeader)/* || limit > MAX_MODULE_SIZE*/)
     {
       return false;
     }

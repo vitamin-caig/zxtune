@@ -1,0 +1,156 @@
+#include "multitrack_supp.h"
+
+#include "../io/location.h"
+
+#include <player_attrs.h>
+
+#include <error.h>
+
+#include <boost/bind.hpp>
+#include <boost/algorithm/string.hpp>
+
+#define FILE_TAG 509C5C50
+
+namespace
+{
+  void Explode(const String& asString, StringArray& asArray)
+  {
+    boost::algorithm::split(asArray, asString, &std::iscntrl);
+  }
+
+  String Join(const StringArray& asArray)
+  {
+    String result;
+    for (StringArray::const_iterator it = asArray.begin(), lim = asArray.end(); it != lim; ++it)
+    {
+      if (it != asArray.begin())
+      {
+        result += '\n';//TODO
+      }
+      result += *it;
+    }
+    return result;
+  }
+}
+
+namespace ZXTune
+{
+  MultitrackBase::MultitrackBase(const String& selfName) : Filename(selfName)
+  {
+  }
+
+  bool MultitrackBase::GetPlayerInfo(Info& info) const
+  {
+    if (Delegate.get())
+    {
+      Delegate->GetInfo(info);
+      return true;
+    }
+    return false;
+  }
+
+  void MultitrackBase::GetModuleInfo(Module::Information& info) const
+  {
+    if (Delegate.get())
+    {
+      Delegate->GetModuleInfo(info);
+      StringMap::iterator fnameIt(info.Properties.find(Module::ATTR_FILENAME));
+      if (fnameIt != info.Properties.end())
+      {
+        fnameIt->second = Filename;
+      }
+      else
+      {
+        assert(!"Invalid case");
+      }
+    }
+    else
+    {
+      info = Information;
+    }
+  }
+
+  ModulePlayer::State MultitrackBase::GetModuleState(std::size_t& timeState, Module::Tracking& trackState) const
+  {
+    return Delegate.get() ? Delegate->GetModuleState(timeState, trackState) : MODULE_STOPPED;
+  }
+
+  ModulePlayer::State MultitrackBase::GetSoundState(Sound::Analyze::ChannelsState& state) const
+  {
+    return Delegate.get() ? Delegate->GetSoundState(state) : MODULE_STOPPED;
+  }
+
+  ModulePlayer::State MultitrackBase::RenderFrame(const Sound::Parameters& params, Sound::Receiver& receiver)
+  {
+    return Delegate.get() ? Delegate->RenderFrame(params, receiver) : MODULE_STOPPED;
+  }
+
+  ModulePlayer::State MultitrackBase::Reset()
+  {
+    return Delegate.get() ? Delegate->Reset() : MODULE_STOPPED;
+  }
+
+  ModulePlayer::State MultitrackBase::SetPosition(std::size_t frame)
+  {
+    return Delegate.get() ? Delegate->SetPosition(frame) : MODULE_STOPPED;
+  }
+
+  void MultitrackBase::Process(SubmodulesIterator& iterator, uint32_t capFilter)
+  {
+    StringArray pathes;
+    IO::SplitPath(Filename, pathes);
+    if (1 == pathes.size()) //enumerate
+    {
+      StringArray submodules;
+      String file;
+      IO::DataContainer::Ptr container;
+      for (iterator.Reset(); iterator.Get(file, container); iterator.Next())
+      {
+        ModulePlayer::Ptr tmp(ModulePlayer::Create(file, *container, capFilter));
+        if (tmp.get())//detected module
+        {
+          ModulePlayer::Info info;
+          tmp->GetInfo(info);
+          if (info.Capabilities & CAP_MULTITRACK)
+          {
+            Module::Information modInfo;
+            tmp->GetModuleInfo(modInfo);
+
+            StringArray subsubmodules;
+            Explode(modInfo.Properties[Module::ATTR_SUBMODULES], subsubmodules);
+            std::transform(subsubmodules.begin(), subsubmodules.end(), std::back_inserter(submodules), 
+              boost::bind(static_cast<String (*)(const String&, const String&)>(&IO::CombinePath), 
+                Filename, _1));
+          }
+          else
+          {
+            submodules.push_back(IO::CombinePath(Filename, file));
+          }
+        }
+      }
+      if (submodules.empty())
+      {
+        throw Error(ERROR_DETAIL, 1);//TODO
+      }
+      Information.Capabilities = CAP_MULTITRACK;
+      Information.Loop = 0;
+      Information.Statistic = Module::Tracking();
+      Information.Properties.insert(StringMap::value_type(Module::ATTR_FILENAME, Filename));
+      Information.Properties.insert(StringMap::value_type(Module::ATTR_SUBMODULES, Join(submodules)));
+    }
+    else
+    {
+      iterator.Reset(pathes[1]);
+      String file;
+      IO::DataContainer::Ptr container;
+      if (iterator.Get(file, container))
+      {
+        Delegate = ModulePlayer::Create(IO::ExtractSubpath(Filename), *container, capFilter);
+      }
+      if (!Delegate.get())
+      {
+        throw Error(ERROR_DETAIL, 1);//TODO
+      }
+    }
+  }
+}

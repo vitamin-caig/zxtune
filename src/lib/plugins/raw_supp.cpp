@@ -1,4 +1,5 @@
 #include "plugin_enumerator.h"
+#include "multitrack_supp.h"
 
 #include "../io/container.h"
 #include "../io/location.h"
@@ -25,6 +26,8 @@ namespace
   const std::size_t SCAN_STEP = 256;
   const std::size_t MIN_SCAN_SIZE = 512;
 
+  const std::size_t LIMITER = ~std::size_t(0);
+
   const String::value_type EXTENTION[] = {'.', 'r', 'a', 'w', '\0'};
 
   String MakeFilename(std::size_t offset)
@@ -41,26 +44,64 @@ namespace
     return (str >> offset) && (str >> ext) && ext == EXTENTION && 0 == (offset % SCAN_STEP);
   }
 
-  void Merge(String& val, const String& add)
-  {
-    if (val.empty())
-    {
-      val = add;
-    }
-    else
-    {
-      val += '\n';//TODO
-      val += add;
-    }
-  }
   //////////////////////////////////////////////////////////////////////////
   void Describing(ModulePlayer::Info& info);
 
-  class PlayerImpl : public ModulePlayer
+  class RawContainer : public MultitrackBase
   {
-  public:
-    PlayerImpl(const String& filename, const IO::DataContainer& data, uint32_t capFilter) : Filename(filename)
+    class RawIterator : public MultitrackBase::SubmodulesIterator
     {
+    public:
+      explicit RawIterator(const IO::DataContainer& data) : Data(data), Offset(LIMITER)
+      {
+      }
+
+      virtual void Reset()
+      {
+        Offset = 0;
+      }
+
+      virtual void Reset(const String& filename)
+      {
+        if (!ParseFilename(filename, Offset))
+        {
+          Offset = LIMITER;
+        }
+      }
+
+      virtual bool Get(String& filename, IO::DataContainer::Ptr& container) const
+      {
+        if (LIMITER == Offset || Offset > Data.Size() - MIN_SCAN_SIZE)
+        {
+          return false;
+        }
+        filename = MakeFilename(Offset);
+        container = Data.GetSubcontainer(Offset, Data.Size() - Offset);
+        return true;
+      }
+      virtual void Next()
+      {
+        if (LIMITER != Offset)
+        {
+          Offset += SCAN_STEP;
+        }
+        else
+        {
+          assert(!"Invalid logic");
+        }
+      }
+
+    private:
+      const IO::DataContainer& Data;
+      std::size_t Offset;
+    };
+  public:
+    RawContainer(const String& filename, const IO::DataContainer& data, uint32_t capFilter)
+      : MultitrackBase(filename)
+    {
+      RawIterator iterator(data);
+      Process(iterator, capFilter & ~CAP_SCANER);
+      /*
       const std::size_t limit(data.Size());
       StringArray pathes;
       IO::SplitPath(filename, pathes);
@@ -109,67 +150,17 @@ namespace
           throw Error(ERROR_DETAIL, 1);//TODO
         }
       }
+      */
     }
 
     /// Retrieving player info itself
     virtual void GetInfo(Info& info) const
     {
-      if (Delegate.get())
-      {
-        Delegate->GetInfo(info);
-      }
-      else
+      if (!GetPlayerInfo(info))
       {
         Describing(info);
       }
     }
-
-    /// Retrieving information about loaded module
-    virtual void GetModuleInfo(Module::Information& info) const
-    {
-      if (Delegate.get())
-      {
-        return Delegate->GetModuleInfo(info);
-      }
-      else
-      {
-        info = Information;
-      }
-    }
-
-    /// Retrieving current state of loaded module
-    virtual State GetModuleState(std::size_t& timeState, Module::Tracking& trackState) const
-    {
-      return Delegate.get() ? Delegate->GetModuleState(timeState, trackState) : MODULE_STOPPED;
-    }
-
-    /// Retrieving current state of sound
-    virtual State GetSoundState(Sound::Analyze::ChannelsState& state) const
-    {
-      return Delegate.get() ? Delegate->GetSoundState(state) : MODULE_STOPPED;
-    }
-
-
-    /// Rendering frame
-    virtual State RenderFrame(const Sound::Parameters& params, Sound::Receiver& receiver)
-    {
-      return Delegate.get() ? Delegate->RenderFrame(params, receiver) : MODULE_STOPPED;
-    }
-
-    /// Controlling
-    virtual State Reset()
-    {
-      return Delegate.get() ? Delegate->Reset() : MODULE_STOPPED;
-    }
-
-    virtual State SetPosition(std::size_t frame)
-    {
-      return Delegate.get() ? Delegate->SetPosition(frame) : MODULE_STOPPED;
-    }
-  private:
-    const String Filename;
-    ModulePlayer::Ptr Delegate;
-    Module::Information Information;
   };
 
   //////////////////////////////////////////////////////////////////////////
@@ -184,7 +175,11 @@ namespace
   //checking top-level container
   bool Checking(const String& filename, const IO::DataContainer& source, uint32_t capFilter)
   {
-    const std::size_t limit(source.Size());
+    if (!(capFilter & CAP_SCANER))
+    {
+      return false;//scaner is not allowed here
+    }
+    const std::size_t limit(std::min(source.Size(), MAX_MODULE_SIZE));
     StringArray pathes;
     IO::SplitPath(filename, pathes);
     std::size_t offset(0);
@@ -192,11 +187,7 @@ namespace
     {
       return offset + MIN_SCAN_SIZE < limit;
     }
-    if (!(capFilter & CAP_SCANER))
-    {
-      return false;//scaner is not allowed here
-    }
-    if (limit >= MIN_SCAN_SIZE && limit <= MAX_MODULE_SIZE)
+    if (limit >= MIN_SCAN_SIZE)
     {
       unsigned modules(0);
       for (std::size_t off = SCAN_STEP; off <= limit - MIN_SCAN_SIZE; off += SCAN_STEP)
@@ -204,7 +195,8 @@ namespace
         const String& modPath(IO::CombinePath(filename, MakeFilename(off)));
         ModulePlayer::Info info;
         //disable selfmates while scanning
-        if (ModulePlayer::Check(modPath, *source.GetSubcontainer(off, limit - off), info, capFilter & ~CAP_SCANER))
+        if (ModulePlayer::Check(modPath, *source.GetSubcontainer(off, limit - off), info, 
+          capFilter & ~CAP_SCANER))
         {
           ++modules;
         }
@@ -217,7 +209,7 @@ namespace
   ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data, uint32_t capFilter)
   {
     assert(Checking(filename, data, capFilter) || !"Attempt to create raw player on invalid data");
-    return ModulePlayer::Ptr(new PlayerImpl(filename, data, capFilter & ~CAP_SCANER));
+    return ModulePlayer::Ptr(new RawContainer(filename, data, capFilter & ~CAP_SCANER));
   }
 
   PluginAutoRegistrator registrator(Checking, Creating, Describing);

@@ -107,6 +107,11 @@ namespace
     {
       "21??18?c3??18?f3ed73??22??444d11??197e2332??f91922??f15f1922??e109",
       0xc00
+    },
+    //Another Vortex
+    {
+      "21??18?c3??18?f3ed73??22??444d11??197e2332??f91922??f15f1922??e109",
+      0xc89
     }
   };
   //////////////////////////////////////////////////////////////////////////
@@ -580,8 +585,8 @@ namespace
 
   bool Checking(const String& /*filename*/, const IO::DataContainer& source, uint32_t /*capFilter*/)
   {
-    const std::size_t limit(source.Size());
-    if (limit < sizeof(PT3Header) || limit > MAX_MODULE_SIZE)
+    const std::size_t limit(std::min(source.Size(), MAX_MODULE_SIZE));
+    if (limit < sizeof(PT3Header)/* || limit > MAX_MODULE_SIZE*/)
     {
       return false;
     }

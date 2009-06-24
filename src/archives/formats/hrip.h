@@ -24,6 +24,11 @@ namespace ZXTune
       }
       String Filename;
       std::size_t Size;
+
+      bool operator == (const String& name) const
+      {
+        return Filename == name;
+      }
     };
     typedef std::vector<HripFile> HripFiles;
     HripResult CheckHrip(const void* data, std::size_t size, HripFiles& files);

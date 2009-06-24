@@ -223,6 +223,12 @@
 					RelativePath="..\..\src\lib\plugins\hrip_supp.cpp">
 				</File>
 				<File
+					RelativePath="..\..\src\lib\plugins\multitrack_supp.cpp">
+				</File>
+				<File
+					RelativePath="..\..\src\lib\plugins\multitrack_supp.h">
+				</File>
+				<File
 					RelativePath="..\..\src\lib\plugins\packed_supp.cpp">
 				</File>
 				<File
@@ -242,6 +248,9 @@
 				</File>
 				<File
 					RelativePath="..\..\src\lib\plugins\raw_supp.cpp">
+				</File>
+				<File
+					RelativePath="..\..\src\lib\plugins\scl_supp.cpp">
 				</File>
 				<File
 					RelativePath="..\..\src\lib\plugins\stc_supp.cpp">

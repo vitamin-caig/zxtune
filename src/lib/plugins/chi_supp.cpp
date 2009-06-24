@@ -426,7 +426,7 @@ namespace
   {
     //check for header
     const std::size_t size(data.Size());
-    if (sizeof(CHIHeader) > size || size > MAX_MODULE_SIZE)
+    if (sizeof(CHIHeader) > size/* || size > MAX_MODULE_SIZE*/)
     {
       return false;
     }

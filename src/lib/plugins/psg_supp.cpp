@@ -212,7 +212,7 @@ namespace
 
   bool Checking(const String& /*filename*/, const IO::DataContainer& data, uint32_t /*capFilter*/)
   {
-    if (data.Size() <= sizeof(PSGHeader) || data.Size() > MAX_MODULE_SIZE)
+    if (data.Size() <= sizeof(PSGHeader)/* || data.Size() > MAX_MODULE_SIZE*/)
     {
       return false;
     }

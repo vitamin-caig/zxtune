@@ -1,4 +1,5 @@
 #include "plugin_enumerator.h"
+#include "multitrack_supp.h"
 
 #include "../io/container.h"
 #include "../io/location.h"
@@ -13,7 +14,6 @@
 
 #include <cctype>
 #include <cassert>
-#include <valarray>
 
 #define FILE_TAG A1239034
 
@@ -50,6 +50,12 @@ namespace
     std::size_t Offset() const
     {
       return BYTES_PER_SECTOR * (SECTORS_IN_TRACK * Track + Sector);
+    }
+
+    std::size_t Size() const
+    {
+      return SizeInSectors == ((fromLE(Length) - 1) / BYTES_PER_SECTOR) ?
+        fromLE(Length) : BYTES_PER_SECTOR * SizeInSectors;
     }
   } PACK_POST;
 
@@ -90,8 +96,7 @@ namespace
     explicit FileDescr(const CatEntry& entry)
      : Name(GetFileName(entry.Name))
      , Offset(entry.Offset())
-     , Size(entry.SizeInSectors == ((fromLE(entry.Length) - 1) / BYTES_PER_SECTOR) ?
-      fromLE(entry.Length) : BYTES_PER_SECTOR * entry.SizeInSectors)
+     , Size(entry.Size())
     {
     }
 
@@ -103,7 +108,7 @@ namespace
     void Merge(const CatEntry& rh)
     {
       assert(IsMergeable(rh));
-      Size += rh.Length;
+      Size += rh.Size();
     }
 
     bool operator == (const String& name) const
@@ -116,167 +121,89 @@ namespace
     std::size_t Size;
   };
 
-  void Merge(String& val, const String& add)
-  {
-    if (val.empty())
-    {
-      val = add;
-    }
-    else
-    {
-      val += '\n';//TODO
-      val += add;
-    }
-  }
-
+  typedef std::vector<FileDescr> FileDescriptions;
 
   //////////////////////////////////////////////////////////////////////////
   void Describing(ModulePlayer::Info& info);
 
-  class PlayerImpl : public ModulePlayer
+  class TRDContainer : public MultitrackBase
   {
-  public:
-    PlayerImpl(const String& filename, const IO::DataContainer& data, uint32_t capFilter) : Filename(filename)
+    class TRDIterator : public MultitrackBase::SubmodulesIterator
     {
-      std::vector<FileDescr> files;
-      const CatEntry* catEntry(static_cast<const CatEntry*>(data.Data()));
-      for (std::size_t idx = 0; idx != MAX_FILES_COUNT && NOENTRY != *catEntry->Name.Filename; ++idx, ++catEntry)
+    public:
+      explicit TRDIterator(const IO::DataContainer& data) : Data(data)
       {
-        if (DELETED != *catEntry->Name.Filename && catEntry->SizeInSectors)
+        const CatEntry* catEntry(static_cast<const CatEntry*>(data.Data()));
+        for (std::size_t idx = 0; idx != MAX_FILES_COUNT && NOENTRY != *catEntry->Name.Filename; ++idx, ++catEntry)
         {
-          if (files.empty() || !files.back().IsMergeable(*catEntry))
+          if (DELETED != *catEntry->Name.Filename && catEntry->SizeInSectors)
           {
-            files.push_back(FileDescr(*catEntry));
-          }
-          else
-          {
-            files.back().Merge(*catEntry);
-          }
-        }
-      }
-
-      StringArray pathes;
-      IO::SplitPath(filename, pathes);
-      if (1 == pathes.size())
-      {
-        //enumerate
-        String submodules;
-        for (std::vector<FileDescr>::const_iterator it = files.begin(), lim = files.end(); it != lim; ++it)
-        {
-          const String& modPath(IO::CombinePath(filename, it->Name));
-          IO::DataContainer::Ptr subContainer(data.GetSubcontainer(it->Offset, it->Size));
-          ModulePlayer::Ptr tmp(ModulePlayer::Create(modPath, *subContainer, capFilter));
-          if (tmp.get())//detected module
-          {
-            ModulePlayer::Info info;
-            tmp->GetInfo(info);
-            if (info.Capabilities & CAP_MULTITRACK)
+            if (Descrs.empty() || !Descrs.back().IsMergeable(*catEntry))
             {
-              Module::Information modInfo;
-              tmp->GetModuleInfo(modInfo);
-              Merge(submodules, modInfo.Properties[Module::ATTR_SUBMODULES]);
+              Descrs.push_back(FileDescr(*catEntry));
             }
             else
             {
-              Merge(submodules, modPath);
+              Descrs.back().Merge(*catEntry);
             }
           }
         }
-        if (submodules.empty())
-        {
-          throw Error(ERROR_DETAIL, 1);//TODO: no files
-        }
-        Information.Capabilities = CAP_MULTITRACK;
-        Information.Loop = 0;
-        Information.Statistic = Module::Tracking();
-        Information.Properties.insert(StringMap::value_type(Module::ATTR_FILENAME, Filename));
-        Information.Properties.insert(StringMap::value_type(Module::ATTR_SUBMODULES, submodules));
+        Iterator = Descrs.end();
       }
-      else
+
+      virtual void Reset()
       {
-        //open existing
-        std::vector<FileDescr>::const_iterator iter(std::find(files.begin(), files.end(), pathes[1]));
-        if (files.end() == iter)
+        Iterator = Descrs.begin();
+      }
+
+      virtual void Reset(const String& filename)
+      {
+        Iterator = std::find(Descrs.begin(), Descrs.end(), filename);
+      }
+
+      virtual bool Get(String& filename, IO::DataContainer::Ptr& container) const
+      {
+        if (Iterator == Descrs.end())
         {
-          throw Error(ERROR_DETAIL, 1);//TODO: invalid file
+          return false;
         }
-        IO::DataContainer::Ptr subContainer(data.GetSubcontainer(iter->Offset, iter->Size));
-        Delegate = ModulePlayer::Create(IO::ExtractSubpath(filename), *subContainer, capFilter);
-        if (!Delegate.get())
+        filename = Iterator->Name;
+        container = Data.GetSubcontainer(Iterator->Offset, Iterator->Size);
+        return true;
+      }
+      virtual void Next()
+      {
+        if (Iterator != Descrs.end())
         {
-          throw Error(ERROR_DETAIL, 1);//TODO: invalid file
+          ++Iterator;
+        }
+        else
+        {
+          assert(!"Invalid logic");
         }
       }
+
+    private:
+      const IO::DataContainer& Data;
+      FileDescriptions Descrs;
+      FileDescriptions::const_iterator Iterator;
+    };
+  public:
+    TRDContainer(const String& filename, const IO::DataContainer& data, uint32_t capFilter)
+      : MultitrackBase(filename)
+    {
+      TRDIterator iterator(data);
+      Process(iterator, capFilter);
     }
 
     /// Retrieving player info itself
     virtual void GetInfo(Info& info) const
     {
-      if (Delegate.get())
-      {
-        Delegate->GetInfo(info);
-      }
-      else
+      if (!GetPlayerInfo(info))
       {
         Describing(info);
       }
     }
-
-    /// Retrieving information about loaded module
-    virtual void GetModuleInfo(Module::Information& info) const
-    {
-      if (Delegate.get())
-      {
-        Delegate->GetModuleInfo(info);
-        StringMap::iterator filenameIt(info.Properties.find(Module::ATTR_FILENAME));
-        if (filenameIt != info.Properties.end())
-        {
-          filenameIt->second = Filename;
-        }
-        else
-        {
-          assert(!"No filename properties");
-        }
-      }
-      else
-      {
-        info = Information;
-      }
-    }
-
-    /// Retrieving current state of loaded module
-    virtual State GetModuleState(std::size_t& timeState, Module::Tracking& trackState) const
-    {
-      return Delegate.get() ? Delegate->GetModuleState(timeState, trackState) : MODULE_STOPPED;
-    }
-
-    /// Retrieving current state of sound
-    virtual State GetSoundState(Sound::Analyze::ChannelsState& state) const
-    {
-      return Delegate.get() ? Delegate->GetSoundState(state) : MODULE_STOPPED;
-    }
-
-
-    /// Rendering frame
-    virtual State RenderFrame(const Sound::Parameters& params, Sound::Receiver& receiver)
-    {
-      return Delegate.get() ? Delegate->RenderFrame(params, receiver) : MODULE_STOPPED;
-    }
-
-    /// Controlling
-    virtual State Reset()
-    {
-      return Delegate.get() ? Delegate->Reset() : MODULE_STOPPED;
-    }
-
-    virtual State SetPosition(std::size_t frame)
-    {
-      return Delegate.get() ? Delegate->SetPosition(frame) : MODULE_STOPPED;
-    }
-  private:
-    const String Filename;
-    ModulePlayer::Ptr Delegate;
-    Module::Information Information;
   };
 
   //////////////////////////////////////////////////////////////////////////
@@ -292,7 +219,7 @@ namespace
   bool Checking(const String& /*filename*/, const IO::DataContainer& source, uint32_t /*capFilter*/)
   {
     const std::size_t limit(source.Size());
-    if (limit != TRD_MODULE_SIZE)
+    if (limit < TRD_MODULE_SIZE)
     {
       return false;
     }
@@ -304,7 +231,7 @@ namespace
   ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data, uint32_t capFilter)
   {
     assert(Checking(filename, data, capFilter) || !"Attempt to create trd player on invalid data");
-    return ModulePlayer::Ptr(new PlayerImpl(filename, data, capFilter));
+    return ModulePlayer::Ptr(new TRDContainer(filename, data, capFilter));
   }
 
   PluginAutoRegistrator registrator(Checking, Creating, Describing);
