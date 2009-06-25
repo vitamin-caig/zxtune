@@ -560,13 +560,13 @@ namespace
       {
         Information.Properties.insert(StringMap::value_type(Module::ATTR_WARNINGS, warnings));
       }
-      InitTime();
-      RawData = Dump(&data[0], &data[0] + rawSize);
+      RawData.assign(&data[0], &data[0] + rawSize);
+      assert(rawSize <= data.Size());
       boost::crc_32_type crcCalc;
       crcCalc.process_bytes(&RawData[0], rawSize);
-      OutStringStream str;
-      str << crcCalc.checksum();
-      Information.Properties.insert(StringMap::value_type(Module::ATTR_CRC, str.str()));
+      Information.Properties.insert(StringMap::value_type(Module::ATTR_CRC, 
+        string_cast(std::hex, crcCalc.checksum())));
+      InitTime();
     }
 
     virtual void GetInfo(Info& info) const
@@ -603,7 +603,7 @@ namespace
     virtual void Convert(const Conversion::Parameter& param, Dump& dst) const
     {
       using namespace Conversion;
-      if (const Parameter* const p = parameter_cast<RawConvertParam>(&param))
+      if (const RawConvertParam* const p = parameter_cast<RawConvertParam>(&param))
       {
         dst = RawData;
       }

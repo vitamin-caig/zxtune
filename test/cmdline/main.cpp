@@ -118,7 +118,8 @@ namespace
   struct PlaybackContext
   {
     PlaybackContext()
-      : Silent(false), Quiet(false), Mixer3(new Sound::MixerData), Mixer4(new Sound::MixerData)
+      : CapFilter(CAP_ANY)
+      , Silent(false), Quiet(false), Mixer3(new Sound::MixerData), Mixer4(new Sound::MixerData)
       , ConvertMask(0), ConvertParam(0)
     {
       //default parameters
@@ -159,6 +160,9 @@ namespace
     ParseState Parse(int argc, char* argv[]);
     bool DoPlayback(ModulePlayer::Ptr player);
 
+    //processing
+    uint32_t CapFilter;
+    //output
     Sound::Backend::Ptr Backend;
     String Filename;
     Sound::Backend::Parameters Parameters;
@@ -188,6 +192,9 @@ namespace
           "--annotate        -- annotate file (file backend)\n"
 
           "\nOther parameters:\n"
+          "--noscan          -- do not perform detailed scanning\n"
+          "--nomultitrack    -- do not perform in-depth containers analyze\n"
+          "--nocontainer     -- do not parse containers\n"
           "--silent          -- do not produce any output\n"
           "--quiet           -- do not produce dynamic output\n"
           "--ym              -- use YM PSG\n"
@@ -220,6 +227,18 @@ namespace
         }
         return PARSE_EXIT;
       }
+      else if (args == "--noscan")
+      {
+        CapFilter &= ~CAP_STOR_SCANER;
+      }
+      else if (args == "--nomultitrack")
+      {
+        CapFilter &= ~CAP_STOR_MULTITRACK;
+      }
+      else if (args == "--nocontainer")
+      {
+        CapFilter &= ~CAP_STOR_CONTAINER;
+      }
       else if (args == "--silent")
       {
         Silent = true;
@@ -251,8 +270,7 @@ namespace
           std::cout << "Invalid psg clock freq specified" << std::endl;
           return PARSE_ERROR;
         }
-        InStringStream str(argv[++arg]);
-        str >> Parameters.SoundParameters.ClockFreq;
+        Parameters.SoundParameters.ClockFreq = string_cast<uint32_t>(argv[++arg]);
       }
       else if (args == "--sound")
       {
@@ -261,8 +279,7 @@ namespace
           std::cout << "Invalid sound freq specified" << std::endl;
           return PARSE_ERROR;
         }
-        InStringStream str(argv[++arg]);
-        str >> Parameters.SoundParameters.SoundFreq;
+        Parameters.SoundParameters.SoundFreq = string_cast<uint32_t>(argv[++arg]);
       }
       else if (args == "--fps")
       {
@@ -271,10 +288,8 @@ namespace
           std::cout << "Invalid fps specified" << std::endl;
           return PARSE_ERROR;
         }
-        InStringStream str(argv[++arg]);
-        double tmp;
-        str >> tmp;
-        Parameters.SoundParameters.FrameDurationMicrosec = std::size_t(1e6f / tmp);
+        const double val = string_cast<double>(argv[++arg]);
+        Parameters.SoundParameters.FrameDurationMicrosec = std::size_t(1e6f / std::max(val, 1.0));
       }
       else if (args == "--frame")
       {
@@ -283,8 +298,8 @@ namespace
           std::cout << "Invalid framesize specified" << std::endl;
           return PARSE_ERROR;
         }
-        InStringStream str(argv[++arg]);
-        str >> Parameters.SoundParameters.FrameDurationMicrosec;
+        Parameters.SoundParameters.FrameDurationMicrosec = 
+          std::max(string_cast<uint32_t>(argv[++arg]), uint32_t(1));
       }
       else if (args == "--fir")
       {
@@ -347,9 +362,7 @@ namespace
         player->Convert(*ConvertParam, dump);
         boost::crc_32_type crcCalc;
         crcCalc.process_bytes(&dump[0], dump.size());
-        std::ostringstream str;
-        str << std::hex << crcCalc.checksum() << ".bin";
-        const std::string& name(str.str());
+        const String& name(string_cast(std::hex, crcCalc.checksum()) + ".bin");
         std::ofstream test(name.c_str(), std::ios::binary);
         test.write(safe_ptr_cast<const char*>(&dump[0]), dump.size());
         std::cout << "converted " << name << std::endl;
@@ -512,7 +525,7 @@ int main(int argc, char* argv[])
 
     IO::DataContainer::Ptr source(IO::DataContainer::Create(context.Filename));
     ModulePlayer::Info playerInfo;
-    if (!ModulePlayer::Check(context.Filename, *source, playerInfo))
+    if (!ModulePlayer::Check(context.Filename, *source, playerInfo, context.CapFilter))
     {
       std::cerr << "Unsupported module type" << std::endl;
       return 1;
@@ -531,7 +544,7 @@ int main(int argc, char* argv[])
 
     StringArray filesToPlay;
     {
-      ModulePlayer::Ptr player(ModulePlayer::Create(context.Filename, *source));
+      ModulePlayer::Ptr player(ModulePlayer::Create(context.Filename, *source, context.CapFilter));
       if (!player.get())
       {
         std::cerr << "Invalid module specified" << std::endl;
@@ -553,7 +566,7 @@ int main(int argc, char* argv[])
 
     for (StringArray::const_iterator it = filesToPlay.begin(), lim = filesToPlay.end(); it != lim; ++it)
     {
-      ModulePlayer::Ptr player(ModulePlayer::Create(*it, *source));
+      ModulePlayer::Ptr player(ModulePlayer::Create(*it, *source, context.CapFilter));
       if (!player.get() || context.DoPlayback(player))
       {
         continue;

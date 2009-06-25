@@ -8,7 +8,9 @@
 
 #include <sound_attrs.h>
 #include <player_attrs.h>
+#include <convert_parameters.h>
 
+#include <boost/crc.hpp>
 #include <boost/static_assert.hpp>
 
 #include <cassert>
@@ -59,7 +61,7 @@ namespace
       : Device(AYM::CreateChip()), CurrentState(MODULE_STOPPED), Filename(filename), TickCount(), Position()
     {
       //workaround for some emulators
-      std::size_t offset = data[4] == INT_BEGIN ? 4 : sizeof(PSGHeader);
+      const std::size_t offset = data[4] == INT_BEGIN ? 4 : sizeof(PSGHeader);
       std::size_t size = data.Size() - offset;
       const uint8_t* bdata = &data[offset];
       if (INT_BEGIN != *bdata)
@@ -110,6 +112,22 @@ namespace
           --size;
         }
       }
+      const std::size_t rawSize = data.Size() - size;
+      RawData.assign(&data[0], &data[0] + rawSize);
+      assert(rawSize <= data.Size());
+      boost::crc_32_type crcCalc;
+      crcCalc.process_bytes(&RawData[0], rawSize);
+      Information.Properties.insert(StringMap::value_type(Module::ATTR_CRC, 
+        string_cast(std::hex, crcCalc.checksum())));
+      Information.Capabilities = 0;
+      Information.Properties.clear();
+      Information.Loop = 0;
+      Information.Statistic.Channels = 3;
+      Information.Statistic.Note = 0;
+      Information.Statistic.Frame = static_cast<uint32_t>(Storage.size());
+      Information.Statistic.Pattern = 0;
+      Information.Statistic.Position = 0;
+      Information.Statistic.Tempo = 1;
     }
 
     virtual void GetInfo(Info& info) const
@@ -120,15 +138,7 @@ namespace
     /// Retrieving information about loaded module
     virtual void GetModuleInfo(Module::Information& info) const
     {
-      info.Capabilities = 0;
-      info.Properties.clear();
-      info.Loop = 0;
-      info.Statistic.Channels = 3;
-      info.Statistic.Note = 0;
-      info.Statistic.Frame = static_cast<uint32_t>(Storage.size());
-      info.Statistic.Pattern = 0;
-      info.Statistic.Position = 0;
-      info.Statistic.Tempo = 1;
+      info = Information;
     }
 
     /// Retrieving current state of loaded module
@@ -197,11 +207,21 @@ namespace
 
     virtual void Convert(const Conversion::Parameter& param, Dump& dst) const
     {
-      throw Error(ERROR_DETAIL, 1);//TODO
+      using namespace Conversion;
+      if (const RawConvertParam* const p = parameter_cast<RawConvertParam>(&param))
+      {
+        dst = RawData;
+      }
+      else
+      {
+        throw Error(ERROR_DETAIL, 1);//TODO
+      }
     }
 
   private:
+    Module::Information Information;
     AYM::Chip::Ptr Device;
+    Dump RawData;
     State CurrentState;
     String Filename;
     uint64_t TickCount;
@@ -212,7 +232,7 @@ namespace
 
   void Describing(ModulePlayer::Info& info)
   {
-    info.Capabilities = CAP_DEV_AYM;
+    info.Capabilities = CAP_DEV_AYM | CAP_CONV_RAW;
     info.Properties.clear();
     info.Properties.insert(StringMap::value_type(ATTR_DESCRIPTION, TEXT_PSG_INFO));
     info.Properties.insert(StringMap::value_type(ATTR_VERSION, TEXT_PSG_VERSION));

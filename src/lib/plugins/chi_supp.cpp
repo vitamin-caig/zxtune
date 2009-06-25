@@ -6,7 +6,9 @@
 #include <error.h>
 
 #include <player_attrs.h>
+#include <convert_parameters.h>
 
+#include <boost/crc.hpp>
 #include <boost/array.hpp>
 #include <boost/static_assert.hpp>
 
@@ -234,10 +236,11 @@ namespace
       //fill samples
       Data.Samples.reserve(ArraySize(header->Samples));
       const uint8_t* sampleData(safe_ptr_cast<const uint8_t*>(patBegin + Information.Statistic.Pattern));
+      std::size_t memLeft(data.Size() - (sampleData - &data[0]));
       for (const CHIHeader::SampleDescr* sample = header->Samples; sample != ArrayEnd(header->Samples); ++sample)
       {
         Data.Samples.push_back(Sample(fromLE(sample->Loop)));
-        const std::size_t size(fromLE(sample->Length));
+        const std::size_t size(std::min<std::size_t>(memLeft, fromLE(sample->Length)));
         if (size)
         {
           Sample& result(Data.Samples.back());
@@ -245,6 +248,12 @@ namespace
           result.Gain = Sound::Analyze::LevelType(std::accumulate(sampleData, sampleData + size, uint32_t(0),
             GainAdder) / size);
           sampleData += align(size, 256);
+          if (size != fromLE(sample->Length))
+          {
+            warner.Warning("unexpected end of file");
+            break;
+          }
+          memLeft -= align(size, 256);
         }
       }
       Information.Statistic.Pattern = Data.Patterns.size();
@@ -254,6 +263,12 @@ namespace
       {
         Information.Properties.insert(StringMap::value_type(Module::ATTR_WARNINGS, warnings));
       }
+      RawData.assign(&data[0], sampleData);
+      assert(sampleData <= &data[0] + data.Size());
+      boost::crc_32_type crcCalc;
+      crcCalc.process_block(&data[0], sampleData);
+      Information.Properties.insert(StringMap::value_type(Module::ATTR_CRC, 
+        string_cast(std::hex, crcCalc.checksum())));
       InitTime();
     }
 
@@ -384,7 +399,15 @@ namespace
 
     virtual void Convert(const Conversion::Parameter& param, Dump& dst) const
     {
-      throw Error(ERROR_DETAIL, 1);//TODO
+      using namespace Conversion;
+      if (const RawConvertParam* const p = parameter_cast<RawConvertParam>(&param))
+      {
+        dst = RawData;
+      }
+      else
+      {
+        throw Error(ERROR_DETAIL, 1);//TODO
+      }
     }
 
   private:
@@ -420,13 +443,14 @@ namespace
     }
   private:
     ChannelState Channels[4];
+    Dump RawData;
     std::size_t TableFreq;
     boost::array<std::size_t, NOTES> FreqTable;
   };
   //////////////////////////////////////////////////////////////////////////
   void Describing(ModulePlayer::Info& info)
   {
-    info.Capabilities = CAP_DEV_SOUNDRIVE;
+    info.Capabilities = CAP_DEV_SOUNDRIVE | CAP_CONV_RAW;
     info.Properties.clear();
     info.Properties.insert(StringMap::value_type(ATTR_DESCRIPTION, TEXT_CHI_INFO));
     info.Properties.insert(StringMap::value_type(ATTR_VERSION, TEXT_CHI_VERSION));

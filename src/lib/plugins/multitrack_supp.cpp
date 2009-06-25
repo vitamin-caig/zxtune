@@ -9,6 +9,8 @@
 #include <boost/bind.hpp>
 #include <boost/algorithm/string.hpp>
 
+#include <set>
+
 #define FILE_TAG 509C5C50
 
 namespace
@@ -119,6 +121,7 @@ namespace ZXTune
   {
     StringArray pathes;
     IO::SplitPath(Filename, pathes);
+    std::set<String> uniques;
     if (1 == pathes.size()) //enumerate
     {
       StringArray submodules;
@@ -129,13 +132,13 @@ namespace ZXTune
         ModulePlayer::Ptr tmp(ModulePlayer::Create(file, *container, capFilter));
         if (tmp.get())//detected module
         {
+          Module::Information modInfo;
+          tmp->GetModuleInfo(modInfo);
+
           ModulePlayer::Info info;
           tmp->GetInfo(info);
           if (info.Capabilities & CAP_STOR_MULTITRACK)
           {
-            Module::Information modInfo;
-            tmp->GetModuleInfo(modInfo);
-
             StringArray subsubmodules;
             Explode(modInfo.Properties[Module::ATTR_SUBMODULES], subsubmodules);
             std::transform(subsubmodules.begin(), subsubmodules.end(), std::back_inserter(submodules), 
@@ -144,7 +147,11 @@ namespace ZXTune
           }
           else
           {
-            submodules.push_back(IO::CombinePath(Filename, file));
+            const String& crc(modInfo.Properties[Module::ATTR_CRC]);
+            if (crc.empty() || uniques.insert(crc).second)
+            {
+              submodules.push_back(IO::CombinePath(Filename, file));
+            }
           }
         }
       }

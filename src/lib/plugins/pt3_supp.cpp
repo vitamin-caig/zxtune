@@ -10,7 +10,9 @@
 #include <tools.h>
 
 #include <player_attrs.h>
+#include <convert_parameters.h>
 
+#include <boost/crc.hpp>
 #include <boost/static_assert.hpp>
 
 #include <cassert>
@@ -488,6 +490,8 @@ namespace
       std::transform(header->Positions, header->Positions + header->Lenght,
         Data.Positions.begin(), std::bind2nd(std::divides<uint8_t>(), 3));
 
+      std::size_t rawSize(0);
+
       //fill patterns
       Data.Patterns.resize(1 + *std::max_element(Data.Positions.begin(), Data.Positions.end()));
       const PT3Pattern* patPos(safe_ptr_cast<const PT3Pattern*>(&data[fromLE(header->PatternsOffset)]));
@@ -520,7 +524,15 @@ namespace
         //as warnings
         warner.Assert(0 == counters.max(), "not all channel periods are reached");
         warner.Assert(pat.size() <= MAX_PATTERN_SIZE, "too long");
+        rawSize = std::max(rawSize, *std::max_element(offsets.begin(), offsets.end()));
       }
+      assert(rawSize <= data.Size());
+      RawData.assign(&data[0], &data[0] + rawSize);
+      boost::crc_32_type crcCalc;
+      crcCalc.process_bytes(&RawData[0], rawSize);
+      Information.Properties.insert(StringMap::value_type(Module::ATTR_CRC, 
+        string_cast(std::hex, crcCalc.checksum())));
+
       Information.Statistic.Pattern = Data.Patterns.size();
       Information.Statistic.Channels = 3;
 
@@ -538,12 +550,28 @@ namespace
     {
       Describing(info);
     }
+
+    virtual void Convert(const Conversion::Parameter& param, Dump& dst) const
+    {
+      using namespace Conversion;
+      if (const RawConvertParam* const p = parameter_cast<RawConvertParam>(&param))
+      {
+        dst = RawData;
+      }
+      else
+      {
+        return Parent::Convert(param, dst);
+      }
+    }
+
+  private:
+    Dump RawData;
   };
 
   //////////////////////////////////////////////////////////////////////////
   void Describing(ModulePlayer::Info& info)
   {
-    info.Capabilities = CAP_DEV_AYM;
+    info.Capabilities = CAP_DEV_AYM | CAP_CONV_RAW;
     info.Properties.clear();
     info.Properties.insert(StringMap::value_type(ATTR_DESCRIPTION, TEXT_PT3_INFO));
     info.Properties.insert(StringMap::value_type(ATTR_VERSION, TEXT_PT3_VERSION));
