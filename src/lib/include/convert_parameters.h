@@ -9,7 +9,7 @@ namespace ZXTune
   {
     struct RawConvertParam : public Parameter
     {
-      static const uint64_t TYPE_ID = ParamID('R', 'a', 'w', 'D', 'a', 't', 'a');
+      static const uint64_t TYPE_ID = ParamID7<'R', 'a', 'w', 'D', 'a', 't', 'a'>::Value;
       RawConvertParam() : Parameter(TYPE_ID)
       {
       }
