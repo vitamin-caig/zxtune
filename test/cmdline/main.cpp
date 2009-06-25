@@ -2,6 +2,7 @@
 #include <player.h>
 #include <sound_attrs.h>
 #include <player_attrs.h>
+#include <convert_parameters.h>
 
 #include <../../lib/sound/mixer.h>
 #include <../../lib/sound/renderer.h>
@@ -14,6 +15,7 @@
 #include <tools.h>
 #include <error.h>
 
+#include <boost/crc.hpp>
 #include <boost/format.hpp>
 #include <boost/thread.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -115,7 +117,9 @@ namespace
 
   struct PlaybackContext
   {
-    PlaybackContext() : Silent(false), Quiet(false), Mixer3(new Sound::MixerData), Mixer4(new Sound::MixerData)
+    PlaybackContext()
+      : Silent(false), Quiet(false), Mixer3(new Sound::MixerData), Mixer4(new Sound::MixerData)
+      , ConvertMask(0), ConvertParam(0)
     {
       //default parameters
       Parameters.SoundParameters.ClockFreq = 1750000;
@@ -160,6 +164,10 @@ namespace
     Sound::Backend::Parameters Parameters;
     bool Silent, Quiet;
     Sound::MixerData::Ptr Mixer3, Mixer4;
+    //conversion
+    uint32_t ConvertMask;
+    Conversion::Parameter* ConvertParam;
+    Conversion::RawConvertParam RawParam;
   };
 
   PlaybackContext::ParseState PlaybackContext::Parse(int argc, char* argv[])
@@ -189,6 +197,11 @@ namespace
           "--fps value       -- set framerate (" << 1e6f / Parameters.SoundParameters.FrameDurationMicrosec << " default)\n"
           "--frame value     -- set frame duration in uS (" << Parameters.SoundParameters.FrameDurationMicrosec << " default)\n"
           "--fir order,a-b   -- use FIR with order and range from a to b\n"
+
+          "\nConversion:\n"
+          "--convert mode... -- convert modules to specified mode\n"
+          "mode:\n"
+          " raw              -- save raw file version: without player\n"
 
           "\nModes:\n"
           "--help            -- this page\n"
@@ -284,6 +297,26 @@ namespace
         char tmp;
         str >> Parameters.FIROrder >> tmp >> Parameters.LowCutoff >> tmp >> Parameters.HighCutoff;
       }
+      else if (args == "--convert")
+      {
+        if (arg == argc - 1)
+        {
+          std::cout << "Invalid conversion parameter specified" << std::endl;
+          return PARSE_ERROR;
+        }
+        StringArray params;
+        boost::algorithm::split(params, argv[++arg], boost::algorithm::is_any_of(","));
+        if (params[0] == "raw")
+        {
+          ConvertMask = CAP_CONV_RAW;
+          ConvertParam = &RawParam;
+        }
+        else
+        {
+          std::cout << "Unknown conversion mode" << std::endl;
+          return PARSE_ERROR;
+        }
+      }
       else if (args[0] == '-' && args[1] == '-') //test for backend
       {
         Backend = Sound::Backend::Create(args.substr(2));
@@ -304,6 +337,30 @@ namespace
 
   bool PlaybackContext::DoPlayback(ModulePlayer::Ptr player)
   {
+    if (ConvertParam)
+    {
+      ModulePlayer::Info playerInfo;
+      player->GetInfo(playerInfo);
+      if (playerInfo.Capabilities & ConvertMask)
+      {
+        Dump dump;
+        player->Convert(*ConvertParam, dump);
+        boost::crc_32_type crcCalc;
+        crcCalc.process_bytes(&dump[0], dump.size());
+        std::ostringstream str;
+        str << std::hex << crcCalc.checksum() << ".bin";
+        const std::string& name(str.str());
+        std::ofstream test(name.c_str(), std::ios::binary);
+        test.write(safe_ptr_cast<const char*>(&dump[0]), dump.size());
+        std::cout << "converted " << name << std::endl;
+      }
+      else
+      {
+        std::cout << "skipped" << std::endl;
+      }
+      return true;
+    }
+
     Module::Information module;
     player->GetModuleInfo(module);
     Backend->SetPlayer(player);

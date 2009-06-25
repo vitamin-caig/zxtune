@@ -158,6 +158,9 @@
 				Name="include"
 				Filter="">
 				<File
+					RelativePath="..\..\src\lib\include\convert_parameters.h">
+				</File>
+				<File
 					RelativePath="..\..\src\lib\include\module.h">
 				</File>
 				<File

@@ -10,7 +10,9 @@
 #include <tools.h>
 
 #include <player_attrs.h>
+#include <convert_parameters.h>
 
+#include <boost/crc.hpp>
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
 #include <boost/static_assert.hpp>
@@ -451,6 +453,8 @@ namespace
     PlayerImpl(const String& filename, const FastDump& data)
       : Device(AYM::CreateChip())//TODO: put out
     {
+      std::size_t rawSize(0);
+
       //assume data is ok
       const ASCHeader* const header(safe_ptr_cast<const ASCHeader*>(&data[0]));
 
@@ -488,6 +492,7 @@ namespace
         IndexPrefix pfx(warner, "Sample %1%: ", index);
         warner.Assert(smp.Loop <= smp.LoopLimit, "loop is more than loop limit");
         warner.Assert(smp.LoopLimit < smp.Data.size(), "loop limit is out of bounds");
+        rawSize = std::max(rawSize, samplesOff + fromLE(*pSample) + smp.Data.size() * sizeof(sample->Data));
       }
 
       //parse ornaments
@@ -505,6 +510,8 @@ namespace
         IndexPrefix pfx(warner, "Ornament %1%: ", index);
         warner.Assert(orn.Loop <= orn.LoopLimit, "Loop is more than loop limit");
         warner.Assert(orn.LoopLimit < orn.Data.size(), "Loop limit is out of bounds");
+        rawSize = std::max(rawSize, ornamentsOff + fromLE(*pOrnament) + 
+          orn.Data.size() * sizeof(ornament->Data));
       }
 
       //parse patterns
@@ -543,6 +550,7 @@ namespace
         while (0xff != data[offsets[0]] || counters[0]);
         warner.Assert(0 == counters.max(), "not all channel periods are reached");
         warner.Assert(pat.size() <= MAX_PATTERN_SIZE, "too long");
+        rawSize = std::max(rawSize, *std::max_element(offsets.begin(), offsets.end()));
       }
       Information.Statistic.Position = Data.Positions.size();
       Information.Statistic.Pattern = Data.Patterns.size();
@@ -553,6 +561,12 @@ namespace
         Information.Properties.insert(StringMap::value_type(Module::ATTR_WARNINGS, warnings));
       }
       InitTime();
+      RawData = Dump(&data[0], &data[0] + rawSize);
+      boost::crc_32_type crcCalc;
+      crcCalc.process_bytes(&RawData[0], rawSize);
+      OutStringStream str;
+      str << crcCalc.checksum();
+      Information.Properties.insert(StringMap::value_type(Module::ATTR_CRC, str.str()));
     }
 
     virtual void GetInfo(Info& info) const
@@ -588,7 +602,15 @@ namespace
 
     virtual void Convert(const Conversion::Parameter& param, Dump& dst) const
     {
-      throw Error(ERROR_DETAIL, 1);//TODO
+      using namespace Conversion;
+      if (const Parameter* const p = parameter_cast<RawConvertParam>(&param))
+      {
+        dst = RawData;
+      }
+      else
+      {
+        throw Error(ERROR_DETAIL, 1);//TODO
+      }
     }
   private:
     void RenderData(AYM::DataChunk& chunk)
@@ -841,11 +863,12 @@ namespace
   private:
     AYM::Chip::Ptr Device;
     ChannelState Channels[3];
+    Dump RawData;
   };
   //////////////////////////////////////////////////////////////////////////
   void Describing(ModulePlayer::Info& info)
   {
-    info.Capabilities = CAP_DEV_AYM;
+    info.Capabilities = CAP_DEV_AYM | CAP_CONV_RAW;
     info.Properties.clear();
     info.Properties.insert(StringMap::value_type(ATTR_DESCRIPTION, TEXT_ASC_INFO));
     info.Properties.insert(StringMap::value_type(ATTR_VERSION, TEXT_ASC_VERSION));
