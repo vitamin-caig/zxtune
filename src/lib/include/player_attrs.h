@@ -6,14 +6,31 @@
 namespace ZXTune
 {
   /// Capabilities for players
-  const uint32_t CAP_AYM = 1;
-  const uint32_t CAP_TS = 2;
-  const uint32_t CAP_BEEPER = 4;
-  const uint32_t CAP_SOUNDRIVE = 8;
-  const uint32_t CAP_FM = 16;
-  const uint32_t CAP_CONTAINER = 32;
-  const uint32_t CAP_MULTITRACK = 64;
-  const uint32_t CAP_SCANER = 128;
+  enum
+  {
+    //devices
+    CAP_DEVICE_MASK 	= 0xff,
+    CAP_AYM 		= 0x1,
+    CAP_BEEPER 		= 0x2,
+    CAP_SOUNDRIVE 	= 0x4,
+    CAP_FM 		= 0x8,
+    
+    //storages
+    CAP_STORAGE_MASK 	= 0xff00,
+    CAP_CONTAINER 	=  0x100,
+    CAP_MULTITRACK 	=  0x200,
+    CAP_SCANER 		=  0x400,
+    
+    //conversions
+    CAP_CONVERSION_MASK = 0xffff0000,
+    CAP_CONV_RAW 	=  0x10000,
+    CAP_CONV_OUT 	=  0x20000,
+    CAP_CONV_PSG 	=  0x40000,
+    CAP_CONV_YM 	=  0x80000,
+    CAP_CONV_ZX50 	= 0x100000,
+    CAP_CONV_ZXAY 	= 0x200000,
+    CAP_CONV_VORTEX 	= 0x400000,
+  };
 
   //for filtering
   const uint32_t CAP_ANY = ~uint32_t(0);

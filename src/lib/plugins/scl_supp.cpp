@@ -71,7 +71,7 @@ namespace
     {
     }
 
-    bool IsMergeable(const SCLEntry& rh)
+    bool IsMergeable(const SCLEntry& /*rh*/)
     {
       return 0 == (Size % (BYTES_PER_SECTOR * 255));
     }

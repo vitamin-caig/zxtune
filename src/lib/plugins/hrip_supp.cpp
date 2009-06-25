@@ -112,13 +112,6 @@ namespace
   //checking top-level container
   bool Checking(const String& /*filename*/, const IO::DataContainer& source, uint32_t /*capFilter*/)
   {
-    const std::size_t limit(source.Size());
-    /*
-    if (limit >= HRP_MODULE_SIZE)
-    {
-      return false;
-    }
-    */
     Archive::HripFiles files;
     return Archive::OK == Archive::CheckHrip(source.Data(), source.Size(), files) && !files.empty();
   }

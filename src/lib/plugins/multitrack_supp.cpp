@@ -15,7 +15,7 @@ namespace
 {
   void Explode(const String& asString, StringArray& asArray)
   {
-    boost::algorithm::split(asArray, asString, &std::iscntrl);
+    boost::algorithm::split(asArray, asString, boost::algorithm::is_cntrl());
   }
 
   String Join(const StringArray& asArray)

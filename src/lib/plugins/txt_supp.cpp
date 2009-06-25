@@ -172,13 +172,6 @@ namespace
   //checking top-level container
   bool Checking(const String& /*filename*/, const IO::DataContainer& source, uint32_t /*capFilter*/)
   {
-    const std::size_t limit(source.Size());
-    /*
-    if (limit >= TEXT_MAX_SIZE)
-    {
-      return false;
-    }
-    */
     const String::value_type* const data(static_cast<const String::value_type*>(source.Data()));
     return 0 == memcmp(data, SECTION_MODULE, sizeof(SECTION_MODULE) - 1);
   }

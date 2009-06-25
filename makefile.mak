@@ -23,7 +23,8 @@ ARCH := k8
 
 CXX := g++
 
-CXX_FLAGS := -O3 -g1 -DNDEBUG -D__STDC_CONSTANT_MACROS -march=$(ARCH) -funroll-loops -funsigned-char \
+CXX_FLAGS := -O3 -g1 -DNDEBUG -D__STDC_CONSTANT_MACROS -march=$(ARCH) \
+	    -funroll-loops -funsigned-char -fno-strict-aliasing \
 	    -W -Wall -ansi -pthread -pipe \
 	    $(addprefix -I, $(include_dirs)) $(addprefix -D, $(definitions))
 
