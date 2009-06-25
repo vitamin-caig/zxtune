@@ -106,6 +106,15 @@ namespace ZXTune
     return Delegate.get() ? Delegate->SetPosition(frame) : MODULE_STOPPED;
   }
 
+  void MultitrackBase::Convert(const Conversion::Parameter& param, Dump& dst) const
+  {
+    if (Delegate.get())
+    {
+      return Delegate->Convert(param, dst);
+    }
+    throw Error(ERROR_DETAIL, 1);//TODO
+  }
+
   void MultitrackBase::Process(SubmodulesIterator& iterator, uint32_t capFilter)
   {
     StringArray pathes;

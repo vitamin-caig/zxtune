@@ -3,6 +3,8 @@
 #include "../io/container.h"
 #include "../io/warnings_collector.h"
 
+#include <error.h>
+
 #include <player_attrs.h>
 
 #include <boost/array.hpp>
@@ -10,6 +12,8 @@
 
 #include <limits>
 #include <numeric>
+
+#define FILE_TAG AB8BEC8B
 
 namespace
 {
@@ -377,6 +381,12 @@ namespace
       //TODO
       return PlaybackState;
     }
+
+    virtual void Convert(const Conversion::Parameter& param, Dump& dst) const
+    {
+      throw Error(ERROR_DETAIL, 1);//TODO
+    }
+
   private:
     std::size_t GetStep(const ChannelState& state, std::size_t freq)
     {

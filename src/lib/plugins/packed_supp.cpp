@@ -95,6 +95,13 @@ namespace
       assert(Delegate.get());
       return Delegate->SetPosition(frame);
     }
+
+    virtual void Convert(const Conversion::Parameter& param, Dump& dst) const
+    {
+      assert(Delegate.get());
+      return Delegate->Convert(param, dst);
+    }
+
   private:
     ModulePlayer::Ptr Delegate;
     const String Subcontainers;

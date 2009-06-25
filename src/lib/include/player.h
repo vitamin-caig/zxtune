@@ -4,6 +4,7 @@
 #include <sound.h>
 #include <module.h>
 #include <player_attrs.h>
+#include <player_convert.h>
 
 namespace ZXTune
 {
@@ -56,6 +57,9 @@ namespace ZXTune
     /// Controlling
     virtual State Reset() = 0;
     virtual State SetPosition(std::size_t frame) = 0;
+
+    /// Converting
+    virtual void Convert(const Conversion::Parameter& param, Dump& dst) const = 0;
 
     /// Virtual ctor
     static Ptr Create(const String& filename, const IO::DataContainer& data, uint32_t capFilter = CAP_ANY);

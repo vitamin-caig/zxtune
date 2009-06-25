@@ -281,7 +281,7 @@ namespace
         Line::Chan& channel(line.Channels[chan]);
         for (;;)
         {
-          const std::size_t cmd(data[offsets[chan]++]);
+          const unsigned cmd(data[offsets[chan]++]);
           if (cmd == 1)//gliss
           {
             channel.Commands.push_back(Parent::Command(GLISS));

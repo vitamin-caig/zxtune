@@ -6,6 +6,7 @@
 #include "../io/container.h"
 #include "../io/warnings_collector.h"
 
+#include <error.h>
 #include <tools.h>
 
 #include <player_attrs.h>
@@ -14,6 +15,8 @@
 
 #include <cassert>
 #include <valarray>
+
+#define FILE_TAG 77C8579
 
 namespace
 {
@@ -439,6 +442,11 @@ namespace
     {
       Device->Reset();
       return Parent::Reset();
+    }
+
+    virtual void Convert(const Conversion::Parameter& param, Dump& dst) const
+    {
+      throw Error(ERROR_DETAIL, 1);//TODO
     }
 
   private:

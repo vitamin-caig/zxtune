@@ -3,6 +3,7 @@
 #include "../devices/aym/aym.h"
 #include "../io/container.h"
 
+#include <error.h>
 #include <tools.h>
 
 #include <sound_attrs.h>
@@ -11,6 +12,8 @@
 #include <boost/static_assert.hpp>
 
 #include <cassert>
+
+#define FILE_TAG 59843902
 
 namespace
 {
@@ -190,6 +193,11 @@ namespace
       TickCount = 0;
       Device->Reset();
       return CurrentState;
+    }
+
+    virtual void Convert(const Conversion::Parameter& param, Dump& dst) const
+    {
+      throw Error(ERROR_DETAIL, 1);//TODO
     }
 
   private:

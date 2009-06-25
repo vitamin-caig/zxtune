@@ -1,5 +1,9 @@
 #include "vortex_base.h"
 
+#include <error.h>
+
+#define FILE_TAG 23C2245
+
 namespace
 {
   const std::size_t LIMITER(~std::size_t(0));
@@ -201,6 +205,11 @@ namespace ZXTune
     VortexPlayer::State VortexPlayer::SetPosition(std::size_t /*frame*/)
     {
       return PlaybackState;
+    }
+
+    void VortexPlayer::Convert(const Conversion::Parameter& param, Dump& dst) const
+    {
+      throw Error(ERROR_DETAIL, 1);//TODO
     }
 
     void VortexPlayer::RenderData(AYM::DataChunk& chunk)

@@ -29,6 +29,9 @@ namespace ZXTune
     /// Controlling
     virtual State Reset();
     virtual State SetPosition(std::size_t frame);
+
+    /// Converting
+    virtual void Convert(const Conversion::Parameter& param, Dump& dst) const;
   protected:
     class SubmodulesIterator
     {

@@ -6,6 +6,7 @@
 #include "../io/container.h"
 #include "../io/warnings_collector.h"
 
+#include <error.h>
 #include <tools.h>
 
 #include <player_attrs.h>
@@ -16,6 +17,8 @@
 
 #include <cassert>
 #include <valarray>
+
+#define FILE_TAG 45B26E38
 
 namespace
 {
@@ -428,7 +431,7 @@ namespace
       std::size_t VolSlideDelay;
       bool VolSlideDown;
       std::size_t VolSlideCounter;
-      std::size_t BaseNoise;
+      signed BaseNoise;
       signed CurrentNoise;
       std::size_t Note;
       signed NoteAddon;
@@ -583,6 +586,10 @@ namespace
       return Parent::Reset();
     }
 
+    virtual void Convert(const Conversion::Parameter& param, Dump& dst) const
+    {
+      throw Error(ERROR_DETAIL, 1);//TODO
+    }
   private:
     void RenderData(AYM::DataChunk& chunk)
     {

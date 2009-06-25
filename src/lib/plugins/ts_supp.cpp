@@ -227,6 +227,12 @@ namespace
       assert(Delegate1.get() && Delegate2.get());
       return std::min(Delegate1->SetPosition(frame), Delegate2->SetPosition(frame));
     }
+
+    virtual void Convert(const Conversion::Parameter& param, Dump& dst) const
+    {
+      throw Error(ERROR_DETAIL, 1);//TODO
+    }
+
   private:
     ModulePlayer::Ptr Delegate1;
     ModulePlayer::Ptr Delegate2;

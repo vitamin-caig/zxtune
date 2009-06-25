@@ -5,7 +5,7 @@
 
 namespace ZXTune
 {
-  namespace Convert
+  namespace Conversion
   {
     struct Parameter
     {
@@ -15,79 +15,45 @@ namespace ZXTune
       const uint64_t ID;
     };
     
-    
-    template<uint8_t I1, uint8_t I2, uint8_t I3>
-    struct ParamID
+    inline uint64_t ParamID(uint8_t a, uint8_t b, uint8_t c)
     {
-      static const uint64_t Value = 
-        uint64_t(I1) | (uint64_t(I2) << 8) | (uint64_t(I3) << 16);
+      return uint64_t(a) | (uint64_t(b) << 8) | (uint64_t(c) << 16);
     };
     
-    template<uint8_t I1, uint8_t I2, uint8_t I3, uint8_t I4>
-    struct ParamID
+    inline uint64_t ParamID(uint8_t a, uint8_t b, uint8_t c, uint8_t d)
     {
-      static const uint64_t Value = ParamID<I1, I2, I3>::Value | (uint64_t(I4) << 24);
+      return ParamID(a, b, c) | (uint64_t(d) << 24);
     };
     
-    template<uint8_t I1, uint8_t I2, uint8_t I3, uint8_t I4, uint8_t I5>
-    struct ParamID
+    inline uint64_t ParamID(uint8_t a, uint8_t b, uint8_t c, uint8_t d, uint8_t e)
     {
-      static const uint64_t Value = ParamID<I1, I2, I3, I4>::Value | (uint64_t(I5) << 32);
+      return ParamID(a, b, c, d) | (uint64_t(e) << 32);
     };
     
-    template<uint8_t I1, uint8_t I2, uint8_t I3, uint8_t I4, uint8_t I5, uint8_t I6>
-    struct ParamID
+    inline uint64_t ParamID(uint8_t a, uint8_t b, uint8_t c, uint8_t d, uint8_t e, uint8_t f)
     {
-      static const uint64_t Value = ParamID<I1, I2, I3, I4, I5>::Value | (uint64_t(I6) << 40);
+      return ParamID(a, b, c, d, e) | (uint64_t(f) << 40);
     };
 
-    template<uint8_t I1, uint8_t I2, uint8_t I3, uint8_t I4, uint8_t I5, uint8_t I6, uint8_t I7>
-    struct ParamID
+    inline uint64_t ParamID(uint8_t a, uint8_t b, uint8_t c, uint8_t d, uint8_t e, uint8_t f, uint8_t g)
     {
-      static const uint64_t Value = ParamID<I1, I2, I3, I4, I5, I6>::Value | (uint64_t(I7) << 48);
+      return ParamID(a, b, c, d, e, f) | (uint64_t(g) << 48);
     };
 
-    template<uint8_t I1, uint8_t I2, uint8_t I3, uint8_t I4, uint8_t I5, uint8_t I6, uint8_t I7, uint8_t I8>
-    struct ParamID
+    inline uint64_t ParamID(uint8_t a, uint8_t b, uint8_t c, uint8_t d, uint8_t e, uint8_t f, uint8_t g, uint8_t h)
     {
-      static const uint64_t Value = ParamID<I1, I2, I3, I4, I5, I6, I7>::Value | (uint64_t(I8) << 56);
+      return ParamID(a, b, c, d, e, f, g) | (uint64_t(h) << 56);
     };
 
     /// Default parameter
     struct DummyParameter : public Parameter
     {
-      static const uint64_t TYPE_ID = ParamID<'D', 'u', 'm', 'm', 'y'>::Value;
+      static const uint64_t TYPE_ID = ParamID('D', 'u', 'm', 'm', 'y');
       DummyParameter() : Parameter(TYPE_ID)
       {
       }
     };
-    /*
-    struct OUTAYParameter : public Parameter
-    {
-      static const uint64_t TYPE_ID = ParamID<'O', 'U', 'T', 'A', 'Y'>::Value;
-      OUTAYParameter() : Parameter(TYPE_ID)
-      {
-      }
-      uint16_t PortSelect;
-      uint16_t PortOutput;
-    };
-    
-    struct OUTSoundriveParameter : public Parameter
-    {
-      static const uint64_t TYPE_ID = ParamID<'O', 'U', 'T', 'S', 'D'>::Value;
-      uint16_t Ports[4];
-    };
-    
-    struct PSGParameter : public Parameter
-    {
-      static const uint64_t TYPE_ID = ParamID<'P', 'S', 'G'>::Value;
-      PSGParameter() : Parameter(TYPE_ID)
-      {
-      }
-      bool Compress;
-    };
-    */
-    
+
     template<class T>
     const T* parameter_cast(const Parameter* in)
     {
