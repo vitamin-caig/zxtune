@@ -25,6 +25,8 @@ namespace
   const String TEXT_SCL_INFO("SCL modules support");
   const String TEXT_SCL_VERSION("0.1");
 
+  const String::value_type SCL_ID[] = {'S', 'C', 'L', 0};
+
   const std::size_t BYTES_PER_SECTOR = 256;
 
 #ifdef USE_PRAGMA_PACK
@@ -53,7 +55,7 @@ namespace
 #pragma pack(pop)
 #endif
 
-  const uint8_t SCL_ID[] = {'S', 'I', 'N', 'C', 'L', 'A', 'I', 'R'};
+  const uint8_t SINCLAIR_ID[] = {'S', 'I', 'N', 'C', 'L', 'A', 'I', 'R'};
 
   const std::size_t SCL_MIN_SIZE = sizeof(SCLHeader) + 255 + 4;
   const std::size_t SCL_MODULE_SIZE = sizeof(SCLHeader) - sizeof(SCLEntry) + 
@@ -162,7 +164,7 @@ namespace
     };
   public:
     SCLContainer(const String& filename, const IO::DataContainer& data, uint32_t capFilter)
-      : MultitrackBase(filename)
+      : MultitrackBase(filename, SCL_ID)
     {
       SCLIterator iterator(data);
       Process(iterator, capFilter);
@@ -197,7 +199,7 @@ namespace
     }
     const SCLHeader* const header(safe_ptr_cast<const SCLHeader*>(source.Data()));
     //TODO: checksum???
-    if (0 != std::memcmp(header->ID, SCL_ID, sizeof(SCL_ID)) ||
+    if (0 != std::memcmp(header->ID, SINCLAIR_ID, sizeof(SINCLAIR_ID)) ||
         limit < sizeof(*header) + sizeof(header->Blocks) * (header->BlocksCount - 1))
     {
       return false;

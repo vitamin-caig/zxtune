@@ -24,6 +24,8 @@ namespace
   const String TEXT_TRD_INFO("TRD modules support");
   const String TEXT_TRD_VERSION("0.1");
 
+  const String::value_type TRD_ID[] = {'T', 'R', 'D', 0};
+
   const std::size_t TRD_MODULE_SIZE = 655360;
   const std::size_t BYTES_PER_SECTOR = 256;
   const std::size_t SECTORS_IN_TRACK = 16;
@@ -61,7 +63,7 @@ namespace
 
   enum
   {
-    TRD_ID = 0x10,
+    TRDOS_ID = 0x10,
 
     DS_DD = 0x16,
     DS_SD = 0x17,
@@ -190,7 +192,7 @@ namespace
     };
   public:
     TRDContainer(const String& filename, const IO::DataContainer& data, uint32_t capFilter)
-      : MultitrackBase(filename)
+      : MultitrackBase(filename, TRD_ID)
     {
       TRDIterator iterator(data);
       Process(iterator, capFilter);
@@ -225,7 +227,7 @@ namespace
     }
     const uint8_t* const data(static_cast<const uint8_t*>(source.Data()));
     const ServiceSector* const sector(safe_ptr_cast<const ServiceSector*>(data + SERVICE_SECTOR_NUM * BYTES_PER_SECTOR));
-    return sector->ID == TRD_ID && sector->Type == DS_DD;
+    return sector->ID == TRDOS_ID && sector->Type == DS_DD;
   }
 
   ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data, uint32_t capFilter)

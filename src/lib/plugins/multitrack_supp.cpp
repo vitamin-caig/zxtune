@@ -13,6 +13,8 @@
 
 namespace
 {
+  const String::value_type TEXT_CONTAINER_DELIMITER[] = {'=', '>', 0};
+
   void Explode(const String& asString, StringArray& asArray)
   {
     boost::algorithm::split(asArray, asString, boost::algorithm::is_cntrl());
@@ -35,7 +37,7 @@ namespace
 
 namespace ZXTune
 {
-  MultitrackBase::MultitrackBase(const String& selfName) : Filename(selfName)
+  MultitrackBase::MultitrackBase(const String& selfName, const String& id) : Filename(selfName), Id(id)
   {
   }
 
@@ -54,14 +56,23 @@ namespace ZXTune
     if (Delegate.get())
     {
       Delegate->GetModuleInfo(info);
-      StringMap::iterator fnameIt(info.Properties.find(Module::ATTR_FILENAME));
-      if (fnameIt != info.Properties.end())
+      StringMap::iterator propIt(info.Properties.find(Module::ATTR_FILENAME));
+      if (propIt != info.Properties.end())
       {
-        fnameIt->second = Filename;
+        propIt->second = Filename;
       }
       else
       {
         assert(!"Invalid case");
+      }
+      propIt = info.Properties.find(Module::ATTR_CONTAINER);
+      if (propIt != info.Properties.end())
+      {
+        propIt->second = Id + TEXT_CONTAINER_DELIMITER + propIt->second;
+      }
+      else
+      {
+        info.Properties.insert(StringMap::value_type(Module::ATTR_CONTAINER, Id));
       }
     }
     else

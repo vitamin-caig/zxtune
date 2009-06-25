@@ -10,7 +10,7 @@ namespace ZXTune
   class MultitrackBase : public ModulePlayer
   {
   public:
-    explicit MultitrackBase(const String& selfName);
+    MultitrackBase(const String& selfName, const String& id);
 
     bool GetPlayerInfo(Info& info) const;
 
@@ -46,6 +46,7 @@ namespace ZXTune
     void Process(SubmodulesIterator& iterator, uint32_t capFilter);
   private:
     const String Filename;
+    const String Id;
     ModulePlayer::Ptr Delegate;
     Module::Information Information;
   };

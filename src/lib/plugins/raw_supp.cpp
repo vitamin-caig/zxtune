@@ -22,6 +22,8 @@ namespace
   const String TEXT_RAW_INFO("RAW modules scanner");
   const String TEXT_RAW_VERSION("0.1");
 
+  const String::value_type RAW_ID[] = {'R', 'a', 'w', 0};
+
   const std::size_t MAX_MODULE_SIZE = 1048576;//1Mb
   const std::size_t SCAN_STEP = 256;
   const std::size_t MIN_SCAN_SIZE = 512;
@@ -97,60 +99,10 @@ namespace
     };
   public:
     RawContainer(const String& filename, const IO::DataContainer& data, uint32_t capFilter)
-      : MultitrackBase(filename)
+      : MultitrackBase(filename, RAW_ID)
     {
       RawIterator iterator(data);
       Process(iterator, capFilter & ~CAP_STOR_SCANER);
-      /*
-      const std::size_t limit(data.Size());
-      StringArray pathes;
-      IO::SplitPath(filename, pathes);
-      std::size_t offset(0);
-      if (!ParseFilename(pathes.back(), offset))
-      {
-        //enumerate
-        String submodules;
-        for (std::size_t off = SCAN_STEP; off <= limit - MIN_SCAN_SIZE; off += SCAN_STEP)
-        {
-          const String& modPath(IO::CombinePath(filename, MakeFilename(off)));
-          ModulePlayer::Ptr tmp(ModulePlayer::Create(modPath, *data.GetSubcontainer(off, limit - off), capFilter));
-          if (tmp.get())//detected module
-          {
-            ModulePlayer::Info info;
-            tmp->GetInfo(info);
-            if (info.Capabilities & CAP_STOR_MULTITRACK)
-            {
-              Module::Information modInfo;
-              tmp->GetModuleInfo(modInfo);
-              Merge(submodules, modInfo.Properties[Module::ATTR_SUBMODULES]);
-            }
-            else
-            {
-              Merge(submodules, modPath);
-            }
-          }
-        }
-        if (submodules.empty())
-        {
-          throw Error(ERROR_DETAIL, 1);//TODO
-        }
-        Information.Capabilities = CAP_STOR_SCANER | CAP_STOR_MULTITRACK;
-        Information.Loop = 0;
-        Information.Statistic = Module::Tracking();
-        Information.Properties.insert(StringMap::value_type(Module::ATTR_FILENAME, Filename));
-        Information.Properties.insert(StringMap::value_type(Module::ATTR_SUBMODULES, submodules));
-      }
-      else
-      {
-        //open existing
-        IO::DataContainer::Ptr subContainer(data.GetSubcontainer(offset, limit - offset));
-        Delegate = ModulePlayer::Create(IO::ExtractSubpath(filename), *subContainer, capFilter);
-        if (!Delegate.get())
-        {
-          throw Error(ERROR_DETAIL, 1);//TODO
-        }
-      }
-      */
     }
 
     /// Retrieving player info itself

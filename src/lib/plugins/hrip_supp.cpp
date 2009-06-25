@@ -25,6 +25,8 @@ namespace
   const String TEXT_HRP_INFO("HRiP modules support");
   const String TEXT_HRP_VERSION("0.1");
 
+  const String::value_type HRIP_ID[] = {'H', 'r', 'i', 'p', 0};
+
   const std::size_t HRP_MODULE_SIZE = 655360;
 
   //////////////////////////////////////////////////////////////////////////
@@ -84,7 +86,7 @@ namespace
 
   public:
     HripContainer(const String& filename, const IO::DataContainer& data, uint32_t capFilter)
-      : MultitrackBase(filename)
+      : MultitrackBase(filename, HRIP_ID)
     {
       HripIterator iterator(data);
       Process(iterator, capFilter);
