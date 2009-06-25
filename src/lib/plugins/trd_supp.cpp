@@ -209,7 +209,7 @@ namespace
   //////////////////////////////////////////////////////////////////////////
   void Describing(ModulePlayer::Info& info)
   {
-    info.Capabilities = CAP_MULTITRACK;
+    info.Capabilities = CAP_STOR_MULTITRACK;
     info.Properties.clear();
     info.Properties.insert(StringMap::value_type(ATTR_DESCRIPTION, TEXT_TRD_INFO));
     info.Properties.insert(StringMap::value_type(ATTR_VERSION, TEXT_TRD_VERSION));

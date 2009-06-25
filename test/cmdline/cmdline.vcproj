@@ -170,6 +170,9 @@
 					RelativePath="..\..\src\lib\include\player_attrs.h">
 				</File>
 				<File
+					RelativePath="..\..\src\lib\include\player_convert.h">
+				</File>
+				<File
 					RelativePath="..\..\src\lib\include\sound.h">
 				</File>
 				<File

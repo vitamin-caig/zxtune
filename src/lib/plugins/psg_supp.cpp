@@ -204,7 +204,7 @@ namespace
 
   void Describing(ModulePlayer::Info& info)
   {
-    info.Capabilities = CAP_AYM;
+    info.Capabilities = CAP_DEV_AYM;
     info.Properties.clear();
     info.Properties.insert(StringMap::value_type(ATTR_DESCRIPTION, TEXT_PSG_INFO));
     info.Properties.insert(StringMap::value_type(ATTR_VERSION, TEXT_PSG_VERSION));

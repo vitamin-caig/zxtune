@@ -238,7 +238,7 @@ namespace
   //////////////////////////////////////////////////////////////////////////
   void Describing(ModulePlayer::Info& info)
   {
-    info.Capabilities = CAP_CONTAINER;
+    info.Capabilities = CAP_STOR_CONTAINER;
     info.Properties.clear();
     info.Properties.insert(StringMap::value_type(ATTR_DESCRIPTION, TEXT_TS_INFO));
     info.Properties.insert(StringMap::value_type(ATTR_VERSION, TEXT_TS_VERSION));

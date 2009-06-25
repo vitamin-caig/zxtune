@@ -24,15 +24,15 @@ namespace
 
   unsigned GetPriorityFromCaps(unsigned caps)
   {
-    if (caps & CAP_SCANER)
+    if (caps & CAP_STOR_SCANER)
     {
       return 66;
     }
-    else if (caps & CAP_MULTITRACK)
+    else if (caps & CAP_STOR_MULTITRACK)
     {
       return 100;
     }
-    else if (caps & CAP_CONTAINER)
+    else if (caps & CAP_STOR_CONTAINER)
     {
       return 33;
     }

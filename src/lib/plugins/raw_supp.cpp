@@ -100,7 +100,7 @@ namespace
       : MultitrackBase(filename)
     {
       RawIterator iterator(data);
-      Process(iterator, capFilter & ~CAP_SCANER);
+      Process(iterator, capFilter & ~CAP_STOR_SCANER);
       /*
       const std::size_t limit(data.Size());
       StringArray pathes;
@@ -118,7 +118,7 @@ namespace
           {
             ModulePlayer::Info info;
             tmp->GetInfo(info);
-            if (info.Capabilities & CAP_MULTITRACK)
+            if (info.Capabilities & CAP_STOR_MULTITRACK)
             {
               Module::Information modInfo;
               tmp->GetModuleInfo(modInfo);
@@ -134,7 +134,7 @@ namespace
         {
           throw Error(ERROR_DETAIL, 1);//TODO
         }
-        Information.Capabilities = CAP_SCANER | CAP_MULTITRACK;
+        Information.Capabilities = CAP_STOR_SCANER | CAP_STOR_MULTITRACK;
         Information.Loop = 0;
         Information.Statistic = Module::Tracking();
         Information.Properties.insert(StringMap::value_type(Module::ATTR_FILENAME, Filename));
@@ -166,7 +166,7 @@ namespace
   //////////////////////////////////////////////////////////////////////////
   void Describing(ModulePlayer::Info& info)
   {
-    info.Capabilities = CAP_SCANER | CAP_MULTITRACK;
+    info.Capabilities = CAP_STOR_SCANER | CAP_STOR_MULTITRACK;
     info.Properties.clear();
     info.Properties.insert(StringMap::value_type(ATTR_DESCRIPTION, TEXT_RAW_INFO));
     info.Properties.insert(StringMap::value_type(ATTR_VERSION, TEXT_RAW_VERSION));
@@ -175,7 +175,7 @@ namespace
   //checking top-level container
   bool Checking(const String& filename, const IO::DataContainer& source, uint32_t capFilter)
   {
-    if (!(capFilter & CAP_SCANER))
+    if (!(capFilter & CAP_STOR_SCANER))
     {
       return false;//scaner is not allowed here
     }
@@ -196,7 +196,7 @@ namespace
         ModulePlayer::Info info;
         //disable selfmates while scanning
         if (ModulePlayer::Check(modPath, *source.GetSubcontainer(off, limit - off), info, 
-          capFilter & ~CAP_SCANER))
+          capFilter & ~CAP_STOR_SCANER))
         {
           ++modules;
         }
@@ -209,7 +209,7 @@ namespace
   ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data, uint32_t capFilter)
   {
     assert(Checking(filename, data, capFilter) || !"Attempt to create raw player on invalid data");
-    return ModulePlayer::Ptr(new RawContainer(filename, data, capFilter & ~CAP_SCANER));
+    return ModulePlayer::Ptr(new RawContainer(filename, data, capFilter & ~CAP_STOR_SCANER));
   }
 
   PluginAutoRegistrator registrator(Checking, Creating, Describing);

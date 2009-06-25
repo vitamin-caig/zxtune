@@ -416,7 +416,7 @@ namespace
   //////////////////////////////////////////////////////////////////////////
   void Describing(ModulePlayer::Info& info)
   {
-    info.Capabilities = CAP_SOUNDRIVE;
+    info.Capabilities = CAP_DEV_SOUNDRIVE;
     info.Properties.clear();
     info.Properties.insert(StringMap::value_type(ATTR_DESCRIPTION, TEXT_CHI_INFO));
     info.Properties.insert(StringMap::value_type(ATTR_VERSION, TEXT_CHI_VERSION));

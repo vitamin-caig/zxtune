@@ -111,7 +111,7 @@ namespace ZXTune
         {
           ModulePlayer::Info info;
           tmp->GetInfo(info);
-          if (info.Capabilities & CAP_MULTITRACK)
+          if (info.Capabilities & CAP_STOR_MULTITRACK)
           {
             Module::Information modInfo;
             tmp->GetModuleInfo(modInfo);
@@ -132,7 +132,7 @@ namespace ZXTune
       {
         throw Error(ERROR_DETAIL, 1);//TODO
       }
-      Information.Capabilities = CAP_MULTITRACK;
+      Information.Capabilities = CAP_STOR_MULTITRACK;
       Information.Loop = 0;
       Information.Statistic = Module::Tracking();
       Information.Properties.insert(StringMap::value_type(Module::ATTR_FILENAME, Filename));

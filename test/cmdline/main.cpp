@@ -482,7 +482,7 @@ int main(int argc, char* argv[])
       }
       Module::Information module;
       player->GetModuleInfo(module);
-      if (module.Capabilities & CAP_MULTITRACK)
+      if (module.Capabilities & CAP_STOR_MULTITRACK)
       {
         boost::algorithm::split(filesToPlay, module.Properties[Module::ATTR_SUBMODULES],
           boost::algorithm::is_cntrl());

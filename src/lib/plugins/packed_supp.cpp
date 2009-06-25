@@ -103,7 +103,7 @@ namespace
   //////////////////////////////////////////////////////////////////////////
   void Describing(ModulePlayer::Info& info)
   {
-    info.Capabilities = CAP_CONTAINER;
+    info.Capabilities = CAP_STOR_CONTAINER;
     info.Properties.clear();
     info.Properties.insert(StringMap::value_type(ATTR_DESCRIPTION, TEXT_PCK_INFO));
     info.Properties.insert(StringMap::value_type(ATTR_VERSION, TEXT_PCK_VERSION));

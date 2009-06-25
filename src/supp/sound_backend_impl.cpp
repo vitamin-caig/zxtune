@@ -101,7 +101,7 @@ namespace ZXTune
       {
         ModulePlayer::Info playInfo;
         Player->GetInfo(playInfo);
-        if (playInfo.Capabilities & CAP_MULTITRACK)
+        if (playInfo.Capabilities & CAP_STOR_MULTITRACK)
         {
           throw 1;//TODO
         }
