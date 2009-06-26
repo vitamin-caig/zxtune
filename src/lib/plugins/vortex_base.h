@@ -125,7 +125,7 @@ namespace ZXTune
 
     protected:
       typedef Tracking::TrackPlayer<3, VortexSample, VortexOrnament> Parent;
-      VortexPlayer();
+      VortexPlayer(const String& filename);
       void Initialize(std::size_t version, NoteTable table);
     public:
       virtual State GetSoundState(Sound::Analyze::ChannelsState& state) const;
@@ -141,6 +141,7 @@ namespace ZXTune
       ChannelState Channels[3];
       CommonState Commons;
       std::size_t Version;
+      std::size_t Notetable;
       const uint16_t* FreqTable;
       const uint8_t* VolumeTable;
     };

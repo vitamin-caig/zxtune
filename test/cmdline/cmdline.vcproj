@@ -238,6 +238,12 @@
 					RelativePath="..\..\src\lib\plugins\packed_supp.cpp">
 				</File>
 				<File
+					RelativePath="..\..\src\lib\plugins\player_base.cpp">
+				</File>
+				<File
+					RelativePath="..\..\src\lib\plugins\player_base.h">
+				</File>
+				<File
 					RelativePath="..\..\src\lib\plugins\plugin_enumerator.cpp">
 				</File>
 				<File

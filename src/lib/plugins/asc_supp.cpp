@@ -12,7 +12,6 @@
 #include <player_attrs.h>
 #include <convert_parameters.h>
 
-#include <boost/crc.hpp>
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
 #include <boost/static_assert.hpp>
@@ -29,6 +28,9 @@ namespace
   const String TEXT_ASC_INFO("ASC modules support");
   const String TEXT_ASC_VERSION("0.1");
   const String TEXT_ASC_EDITOR("Asc Sound Master");
+
+  //TODO
+  const String::value_type TEXT_EMPTY[] = {'\0'};
 
   const std::size_t LIMITER(~std::size_t(0));
 
@@ -75,7 +77,7 @@ namespace
   PACK_PRE struct ASCID
   {
     uint8_t Identifier1[19];//'ASM COMPILATION OF '
-    uint8_t Name[20];
+    uint8_t Title[20];
     uint8_t Identifier2[4];//' BY '
     uint8_t Author[20];
 
@@ -451,7 +453,8 @@ namespace
     };
   public:
     PlayerImpl(const String& filename, const FastDump& data)
-      : Device(AYM::CreateChip())//TODO: put out
+      : Parent(filename)
+      , Device(AYM::CreateChip())//TODO: put out
     {
       std::size_t rawSize(0);
 
@@ -462,18 +465,6 @@ namespace
       Information.Loop = header->Loop;
       //copy positions
       Data.Positions.assign(header->Positions, header->Positions + header->Lenght);
-      { //fill main and additional (if any) information
-        Information.Properties.insert(StringMap::value_type(Module::ATTR_FILENAME, filename));
-        Information.Properties.insert(StringMap::value_type(Module::ATTR_PROGRAM, TEXT_ASC_EDITOR));
-        const ASCID* const id(safe_ptr_cast<const ASCID*>(header->Positions + header->Lenght));
-        if (*id)
-        {
-          Information.Properties.insert(StringMap::value_type(Module::ATTR_TITLE,
-            String(id->Name, ArrayEnd(id->Name))));
-          Information.Properties.insert(StringMap::value_type(Module::ATTR_AUTHOR,
-            String(id->Author, ArrayEnd(id->Author))));
-        }
-      }
 
       Log::WarningsCollector warner;
 
@@ -560,12 +551,11 @@ namespace
       {
         Information.Properties.insert(StringMap::value_type(Module::ATTR_WARNINGS, warnings));
       }
-      RawData.assign(&data[0], &data[0] + rawSize);
-      assert(rawSize <= data.Size());
-      boost::crc_32_type crcCalc;
-      crcCalc.process_bytes(&RawData[0], rawSize);
-      Information.Properties.insert(StringMap::value_type(Module::ATTR_CRC, 
-        string_cast(std::hex, crcCalc.checksum())));
+
+      const ASCID* const id(safe_ptr_cast<const ASCID*>(header->Positions + header->Lenght));
+      FillProperties(TEXT_ASC_EDITOR, *id ? String(id->Author, ArrayEnd(id->Author)) : TEXT_EMPTY, 
+        *id ? String(id->Title, ArrayEnd(id->Title)) : TEXT_EMPTY, &data[0], rawSize);
+
       InitTime();
     }
 
@@ -600,18 +590,6 @@ namespace
       return Parent::Reset();
     }
 
-    virtual void Convert(const Conversion::Parameter& param, Dump& dst) const
-    {
-      using namespace Conversion;
-      if (const RawConvertParam* const p = parameter_cast<RawConvertParam>(&param))
-      {
-        dst = RawData;
-      }
-      else
-      {
-        throw Error(ERROR_DETAIL, 1);//TODO
-      }
-    }
   private:
     void RenderData(AYM::DataChunk& chunk)
     {
@@ -863,7 +841,6 @@ namespace
   private:
     AYM::Chip::Ptr Device;
     ChannelState Channels[3];
-    Dump RawData;
   };
   //////////////////////////////////////////////////////////////////////////
   void Describing(ModulePlayer::Info& info)
@@ -888,11 +865,11 @@ namespace
     const std::size_t ornamentsOffset(fromLE(header->OrnamentsOffset));
     const std::size_t patternsOffset(fromLE(header->PatternsOffset));
     boost::function<bool(std::size_t)> checker = !boost::bind(&in_range<std::size_t>, _1, sizeof(*header), limit - 1);
-
-    if (limit < sizeof(*header) + header->Lenght ||
-        checker(ornamentsOffset) ||
-        checker(patternsOffset) ||
-        checker(samplesOffset)
+    const std::size_t headerBusy(sizeof(*header) + header->Lenght);
+    if (limit < headerBusy ||
+        checker(ornamentsOffset) || ornamentsOffset < headerBusy ||
+        checker(patternsOffset) || patternsOffset < headerBusy ||
+        checker(samplesOffset) || samplesOffset < headerBusy
         )
     {
       return false;

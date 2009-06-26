@@ -27,6 +27,9 @@ namespace
   const String TEXT_STC_VERSION("0.1");
   const String TEXT_STC_EDITOR("SoundTracker");
 
+  //TODO
+  const String::value_type TEXT_EMPTY[] = {0};
+
   //hints
   const std::size_t MAX_MODULE_SIZE = 16384;
   const std::size_t MAX_SAMPLES_COUNT = 16;
@@ -256,7 +259,8 @@ namespace
     };
   public:
     PlayerImpl(const String& filename, const FastDump& data)
-      : Device(AYM::CreateChip())//TODO: put out
+      : Parent(filename)
+      , Device(AYM::CreateChip())//TODO: put out
     {
       //assume that data is ok
       const STCHeader* const header(safe_ptr_cast<const STCHeader*>(&data[0]));
@@ -267,10 +271,6 @@ namespace
 
       Information.Statistic.Tempo = header->Tempo;
       Information.Loop = 0;//not supported
-      Information.Properties.insert(StringMap::value_type(Module::ATTR_FILENAME, filename));
-      Information.Properties.insert(StringMap::value_type(Module::ATTR_TRACKER,
-        String(header->Identifier, ArrayEnd(header->Identifier))));
-      Information.Properties.insert(StringMap::value_type(Module::ATTR_PROGRAM, TEXT_STC_EDITOR));
 
       Log::WarningsCollector warner;
       //parse positions
@@ -312,6 +312,7 @@ namespace
       warner.Assert(Data.Ornaments.size() <= MAX_ORNAMENTS_COUNT, "invalid ornaments count");
 
       //parse patterns
+      std::size_t rawSize(0);
       Data.Patterns.resize(MAX_PATTERN_COUNT);
       for (const STCPattern* pattern = patterns; *pattern; ++pattern)
       {
@@ -343,6 +344,7 @@ namespace
         while (0xff != data[offsets[0]] || counters[0]);
         warner.Assert(0 == counters.max(), "not all channels counters reached");
         warner.Assert(pat.size() <= MAX_PATTERN_SIZE, "invalid pattern size");
+        rawSize = std::max(rawSize, *std::max_element(offsets.begin(), offsets.end()));
       }
       warner.Assert(Data.Patterns.size() <= MAX_PATTERN_COUNT, "invalid patterns count");
       Information.Statistic.Position = Data.Positions.size();
@@ -354,6 +356,10 @@ namespace
       {
         Information.Properties.insert(StringMap::value_type(Module::ATTR_WARNINGS, warnings));
       }
+
+      FillProperties(TEXT_STC_EDITOR, TEXT_EMPTY, TEXT_EMPTY, &data[0], rawSize);
+      Information.Properties.insert(StringMap::value_type(Module::ATTR_PROGRAM, 
+        String(header->Identifier, ArrayEnd(header->Identifier))));
       InitTime();
     }
 
@@ -386,11 +392,6 @@ namespace
     {
       Device->Reset();
       return Parent::Reset();
-    }
-
-    virtual void Convert(const Conversion::Parameter& param, Dump& dst) const
-    {
-      throw Error(ERROR_DETAIL, 1);//TODO
     }
 
   private:
@@ -518,7 +519,7 @@ namespace
   //////////////////////////////////////////////////////////////////////////
   void Describing(ModulePlayer::Info& info)
   {
-    info.Capabilities = CAP_DEV_AYM;
+    info.Capabilities = CAP_DEV_AYM | CAP_CONV_RAW;
     info.Properties.clear();
     info.Properties.insert(StringMap::value_type(ATTR_DESCRIPTION, TEXT_STC_INFO));
     info.Properties.insert(StringMap::value_type(ATTR_VERSION, TEXT_STC_VERSION));

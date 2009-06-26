@@ -8,6 +8,9 @@ namespace
 {
   using namespace ZXTune;
 
+  const std::size_t SAMPLE_STRING_SIZE = 17;
+  const std::size_t PATTERN_CHANNEL_STRING_SIZE = 13;
+
   const String::value_type DELIMITER = ',';
   const String::value_type LOOP_MARK = 'L';
 
@@ -79,6 +82,16 @@ namespace
     return isdigit(sym) ? (sym - '0') : (sym == '.' ? 0 :(sym - 'A' + 10));
   }
 
+  inline String::value_type ToHex(int val)
+  {
+    return val >= 10 ? val - 10 + 'A' : val + '0';
+  }
+
+  inline String::value_type ToHexSym(int val)
+  {
+    return val ? ToHex(val) : '.';
+  }
+
   template<class T>
   inline T FromHex(const String& str)
   {
@@ -98,16 +111,38 @@ namespace
     return negate ? -result : result;
   }
 
+  inline String ToHex(signed val, unsigned width)
+  {
+    String res(width + 1, '0');
+    res[0] = val < 0 ? '-' : '+';
+    val = abs(val);
+    for (String::iterator it(res.end()); val; val >>= 4)
+    {
+      *--it = ToHex(val & 15);
+    }
+    return res;
+  }
+
   inline bool IsResetNote(const String& str)
   {
     assert(str.size() == 3);
     return str[0] == 'R' && str[1] == '-' && str[2] == '-';
   }
 
+  inline String GetResetNote()
+  {
+    return "R--";
+  }
+
   inline bool IsEmptyNote(const String& str)
   {
     assert(str.size() == 3);
     return str[0] == '-' && str[1] == '-' && str[2] == '-';
+  }
+
+  inline String GetEmptyNote()
+  {
+    return "---";
   }
 
   inline bool IsNote(const String& str, int& note)
@@ -124,6 +159,14 @@ namespace
       return true;
     }
     return false;
+  }
+
+  inline String GetNote(unsigned note)
+  {
+    static const char TONES[] = "C-C#D-D#E-F-F#G-G#A-A#B-";
+    const unsigned octave(note / 12);
+    const unsigned halftone(note % 12);
+    return String(TONES + halftone * 2, TONES + halftone * 2 + 1) + String::value_type('0' + octave);
   }
 
   bool ParseChannel(const String& str, Tracking::VortexPlayer::Line::Chan& chan)
@@ -211,6 +254,89 @@ namespace
     return true;
   }
 
+  String UnparseChannel(const Tracking::VortexPlayer::Line::Chan& chan, unsigned tempo, 
+    unsigned& envBase, unsigned& noiseBase)
+  {
+    using namespace Tracking;
+
+    unsigned envType(0);
+    signed targetNote(-1);
+
+    String commands(4, '.');
+    for (VortexPlayer::CommandsArray::const_iterator it = chan.Commands.begin(), lim = chan.Commands.end();
+      it != lim; ++it)
+    {
+      //1,2 or 9,10
+      switch (it->Type)
+      {
+      case VortexPlayer::GLISS:
+      case VortexPlayer::SLIDEENV:
+        commands[0] = (VortexPlayer::SLIDEENV == it->Type ? '9' : '1') + (it->Param2 > 0 ? 0 : 1);
+        commands[1] = ToHexSym(it->Param1);
+        commands[2] = '0' + abs(it->Param2) / 10;
+        commands[3] = '0' + abs(it->Param2) % 10;
+        break;
+      case VortexPlayer::GLISS_NOTE:
+        commands[0] = '3';
+        commands[1] = ToHexSym(it->Param1);
+        commands[2] = ToHexSym(it->Param2 / 10);
+        commands[3] = ToHexSym(it->Param2 % 10);
+        targetNote = it->Param3;
+        break;
+      case VortexPlayer::SAMPLEOFFSET:
+      case VortexPlayer::ORNAMENTOFFSET:
+        commands[0] = VortexPlayer::SAMPLEOFFSET == it->Type ? '4' : '5';
+        commands[2] = '0' + it->Param2 / 10;
+        commands[3] =  '0' + it->Param2 % 10;
+        break;
+      case VortexPlayer::VIBRATE:
+        commands[0] = '6';
+        commands[1] = ToHexSym(it->Param1);
+        commands[2] = ToHexSym(it->Param2);
+        break;
+      case VortexPlayer::ENVELOPE:
+        envType = it->Param1;
+        envBase = it->Param2;
+        break;
+      case VortexPlayer::NOENVELOPE:
+        envType = 15;
+        break;
+      case VortexPlayer::NOISEBASE:
+        noiseBase = it->Param1;
+        break;
+      }
+    }
+    if (commands[0] == '.')
+    {
+      commands[0] = 'B';
+      commands[2] = '0' + tempo / 10;
+      commands[3] = '0' + tempo % 10;
+    }
+
+    String result;
+    if (chan.Enabled && !*chan.Enabled)
+    {
+      result = GetResetNote();
+    }
+    else if (chan.Note || -1 != targetNote)
+    {
+      result = GetNote(chan.Note ? *chan.Note : targetNote);
+    }
+    else
+    {
+      result = GetEmptyNote();
+    }
+    result += ' ';
+    result += ToHexSym(chan.SampleNum ? *chan.SampleNum : 0);
+    result += ToHexSym(envType);
+    result += ToHexSym(chan.OrnamentNum ? *chan.OrnamentNum : 0);
+    result += ToHexSym(chan.Volume ? *chan.Volume : 0);
+    result += ' ';
+    result += commands;
+    assert(result.size() == PATTERN_CHANNEL_STRING_SIZE);
+    return result;
+  }
+
   inline bool IsLooped(const String& str)
   {
     assert(!str.empty());
@@ -239,8 +365,28 @@ namespace
       loop = 0;
     }
     list.resize(parts.size());
-    std::transform(parts.begin(), parts.end(), list.begin(), FromHex<signed>);
+    std::transform(parts.begin(), parts.end(), list.begin(), 
+      static_cast<signed(*)(const String&)>(&string_cast<signed>));
     return true;
+  }
+
+  template<class T>
+  String UnparseLoopedList(const std::vector<T>& list, std::size_t loop)
+  {
+    OutStringStream result;
+    for (std::size_t idx = 0; idx != list.size(); ++idx)
+    {
+      if (!idx)
+      {
+        result << ',';
+      }
+      if (idx == loop)
+      {
+        result << LOOP_MARK;
+      }
+      result << list[idx];
+    }
+    return result.str();
   }
 }
 
@@ -261,7 +407,7 @@ namespace ZXTune
     bool SampleLineFromString(const String& str, VortexPlayer::Sample::Line& line, bool& looped)
     {
       const uint64_t SIGNS = Symbol<'-'>::Mask | Symbol<'+'>::Mask;
-      static const uint64_t PATTERN[] = {
+      static const uint64_t PATTERN[SAMPLE_STRING_SIZE + 1] = {
         //masks
         Symbol<'T'>::Mask, Symbol<'N'>::Mask, Symbol<'E'>::Mask, SPACE,
         //tone
@@ -375,7 +521,7 @@ namespace ZXTune
       return true;
     }
 
-    bool PropertyFromString(const String& str, VortexDescr& descr)
+    bool VortexDescr::PropertyFromString(const String& str)
     {
       const String::size_type delim(str.find(MODULE_DELIMITER));
       if (String::npos == delim)
@@ -386,29 +532,98 @@ namespace ZXTune
       const String& value(str.substr(delim + 1));
       if (param == MODULE_VERSION)
       {
-        descr.Version = std::size_t(10 * std::atof(value.c_str()));
+        Version = std::size_t(10 * std::atof(value.c_str()));
       }
       else if (param == MODULE_TITLE)
       {
-        descr.Title = value;
+        Title = value;
       }
       else if (param == MODULE_AUTHOR && !value.empty())
       {
-        descr.Author = value;
+        Author = value;
       }
       else if (param == MODULE_NOTETABLE)
       {
-        descr.Notetable = std::atoi(value.c_str());
+        Notetable = string_cast<std::size_t>(value);
       }
       else if (param == MODULE_SPEED)
       {
-        descr.Tempo = std::atoi(value.c_str());
+        Tempo = string_cast<std::size_t>(value);
       }
       else if (param == MODULE_PLAYORDER)
       {
-        return ParseLoopedList(value, descr.Order, descr.Loop);
+        return ParseLoopedList(value, Order, Loop);
       }
       return true;
+    }
+
+    String VortexDescr::PropertyToString(std::size_t idx) const
+    {
+      switch (idx)
+      {
+      case 0:
+        return MODULE_VERSION + MODULE_DELIMITER + 
+          String::value_type('0' + Version / 10) + '.' + String::value_type('0' + Version % 10);
+      case 1:
+        return MODULE_TITLE + MODULE_DELIMITER + Title;
+      case 2:
+        return MODULE_AUTHOR + MODULE_DELIMITER + Author;
+      case 3:
+        return MODULE_NOTETABLE + MODULE_DELIMITER + string_cast(Notetable);
+      case 4:
+        return MODULE_SPEED + MODULE_DELIMITER + string_cast(Tempo);
+      case 5:
+        return MODULE_PLAYORDER + MODULE_DELIMITER + UnparseLoopedList(Order, Loop);
+      default:
+        return String();
+      }
+    }
+
+
+    //Serialization
+    String SampleLineToString(const VortexPlayer::Sample::Line& line, bool looped)
+    {
+      String result;
+      result += line.ToneMask ? 't' : 'T';
+      result += line.NoiseMask ? 'n' : 'N';
+      result += line.EnvMask ? 'e' : 'E';
+      result += ' ';
+      //tone offset
+      result += ToHex(line.ToneOffset, 4);
+      result += line.KeepToneOffset ? '^' : '_';
+      result += ' ';
+      //neoffset
+      result += ToHex(line.NEOffset, 3);
+      result += line.KeepNEOffset ? '^' : '_';
+      result += ' ';
+      //volume
+      result += string_cast(std::hex, line.Level);
+      result += line.VolSlideAddon > 0 ? '+' : (line.VolSlideAddon < 0 ? '-' : '_');
+      if (looped)
+      {
+        result += ' ';
+        result += LOOP_MARK;
+      }
+      return result;
+    }
+
+    String OrnamentToString(const VortexPlayer::Ornament& ornament)
+    {
+      return UnparseLoopedList(ornament.Data, ornament.Loop);
+    }
+
+    String PatternLineToString(const VortexPlayer::Line& line)
+    {
+      String result;
+      unsigned envBase(0), noiseBase(0);
+      StringArray channels(line.Channels.size());
+      for (std::size_t chan = line.Channels.size(); chan; --chan)
+      {
+        const VortexPlayer::Line::Chan& channel(line.Channels[chan - 1]);
+        result = String("|") + UnparseChannel(channel, !chan && line.Tempo ? *line.Tempo : 0, envBase, noiseBase)
+          + result;
+      }
+      return ToHex(envBase, 4) + '|' + ToHex(noiseBase, 2) + result;
     }
   }
 }

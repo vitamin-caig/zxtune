@@ -37,6 +37,8 @@
 
 using namespace ZXTune;
 
+#define FILE_TAG 97E5F6ED
+
 namespace
 {
   std::ostream& operator << (std::ostream& str, const StringMap& sm)
@@ -113,6 +115,46 @@ namespace
   T Decrease(T val, T speed)
   {
     return val >= speed ? val - speed : 0;
+  }
+
+  void MonoChannel(Sound::ChannelMixer& mixer)
+  {
+    mixer.Mute = false;
+    std::fill(mixer.OutMatrix, ArrayEnd(mixer.OutMatrix), Sound::FIXED_POINT_PRECISION);
+  }
+
+  void MuteChannel(Sound::ChannelMixer& mixer)
+  {
+    mixer.Mute = true;
+    std::memset(mixer.OutMatrix, 0, sizeof(mixer.OutMatrix));
+  }
+
+  void FillMixerMatrix(const String& mix, std::vector<Sound::ChannelMixer>& matrix)
+  {
+    if (mix == "*")//mono
+    {
+      std::for_each(matrix.begin(), matrix.end(), MonoChannel);
+      return;
+    }
+    if (mix.empty() || mix.size() > matrix.size() || mix.end() != std::find_if(mix.begin(), mix.end(), 
+      !boost::bind(&in_range<String::value_type>, _1, 'A', 'A' + matrix.size() - 1)))
+    {
+      throw Error(ERROR_DETAIL, 1, "Invalid mixer matrix");
+    }
+    std::for_each(matrix.begin(), matrix.end(), MuteChannel);
+    for (String::size_type letpos = 0, letters = mix.size(); letpos != letters; ++letpos)
+    {
+      const unsigned leftWeight = Sound::FIXED_POINT_PRECISION * (letters > 1? 
+        (letters - letpos - 1) / (letters - 1) : 1);
+      const unsigned rightWeight = Sound::FIXED_POINT_PRECISION * (letters > 1?
+        letpos / (letters - 1) : 1);
+      const unsigned chan = mix[letpos] - 'A';
+      matrix[chan].Mute = false;
+      matrix[chan].OutMatrix[0] = std::max<Sound::Sample>(Sound::FIXED_POINT_PRECISION, 
+        matrix[chan].OutMatrix[0] + leftWeight);
+      matrix[chan].OutMatrix[1] = std::max<Sound::Sample>(Sound::FIXED_POINT_PRECISION, 
+        matrix[chan].OutMatrix[1] + rightWeight);
+    }
   }
 
   struct PlaybackContext
@@ -203,6 +245,7 @@ namespace
           "--sound value     -- set sound frequency (" << Parameters.SoundParameters.SoundFreq << " default)\n"
           "--fps value       -- set framerate (" << 1e6f / Parameters.SoundParameters.FrameDurationMicrosec << " default)\n"
           "--frame value     -- set frame duration in uS (" << Parameters.SoundParameters.FrameDurationMicrosec << " default)\n"
+          "--mix3/--mix4 ... -- setup mixers ('A', 'AC', 'ABC' etc, '*' for mono)\n"
           "--fir order,a-b   -- use FIR with order and range from a to b\n"
 
           "\nConversion:\n"
@@ -300,6 +343,15 @@ namespace
         }
         Parameters.SoundParameters.FrameDurationMicrosec = 
           std::max(string_cast<uint32_t>(argv[++arg]), uint32_t(1));
+      }
+      else if (args == "--mix3" || args == "--mix4")
+      {
+        if (arg == argc - 1)
+        {
+          std::cout << "Invalid mixer specified" << std::endl;
+          return PARSE_ERROR;
+        }
+        FillMixerMatrix(argv[++arg], args == "--mix3" ? Mixer3->InMatrix : Mixer4->InMatrix);
       }
       else if (args == "--fir")
       {

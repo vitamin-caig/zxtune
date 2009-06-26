@@ -81,7 +81,7 @@ namespace
     typedef Tracking::VortexPlayer Parent;
   public:
     PlayerImpl(const String& filename, const IO::DataContainer& data)
-      : Parent()
+      : Parent(filename)
     {
       const String::value_type* const dataIt(static_cast<const String::value_type*>(data.Data()));
       const boost::iterator_range<const String::value_type*> range(dataIt, dataIt + data.Size() / sizeof(String::value_type));
@@ -135,11 +135,6 @@ namespace
         it = next;
       }
 
-      Information.Properties.insert(StringMap::value_type(Module::ATTR_FILENAME, filename));
-      Information.Properties.insert(StringMap::value_type(Module::ATTR_TITLE, descr.Title));
-      Information.Properties.insert(StringMap::value_type(Module::ATTR_AUTHOR, descr.Author));
-      Information.Properties.insert(StringMap::value_type(Module::ATTR_PROGRAM,
-        (boost::format(TEXT_VORTEX_TRACKER) % int(descr.Version / 10) % int(descr.Version % 10)).str()));
       Information.Statistic.Tempo = descr.Tempo;
       Information.Statistic.Position = descr.Order.size();
       Data.Positions.swap(descr.Order);
@@ -150,6 +145,8 @@ namespace
       std::for_each(Data.Ornaments.begin(), Data.Ornaments.end(), FixEntity<Parent::Ornament>);
       std::for_each(Data.Samples.begin(), Data.Samples.end(), FixEntity<Parent::Sample>);
 
+      FillProperties((boost::format(TEXT_VORTEX_TRACKER) % int(descr.Version / 10) % int(descr.Version % 10)).str(),
+        descr.Author, descr.Title, static_cast<const uint8_t*>(data.Data()), data.Size());
       Parent::Initialize(descr.Version % 10, static_cast<NoteTable>(descr.Notetable));
     }
 
@@ -163,7 +160,7 @@ namespace
   //////////////////////////////////////////////////////////////////////////
   void Describing(ModulePlayer::Info& info)
   {
-    info.Capabilities = CAP_DEV_AYM;
+    info.Capabilities = CAP_DEV_AYM | CAP_CONV_RAW;
     info.Properties.clear();
     info.Properties.insert(StringMap::value_type(ATTR_DESCRIPTION, TEXT_TXT_INFO));
     info.Properties.insert(StringMap::value_type(ATTR_VERSION, TEXT_TXT_VERSION));

@@ -72,9 +72,11 @@ namespace ZXTune
       std::size_t Tempo;
       std::size_t Loop;
       std::vector<std::size_t> Order;
+
+      bool PropertyFromString(const String& str);
+      String PropertyToString(std::size_t idx) const;
     };
 
-    bool PropertyFromString(const String& str, VortexDescr& descr);
 
     template<class Iterator>
     Iterator DescriptionFromStrings(Iterator it, Iterator lim, VortexDescr& descr)
@@ -82,7 +84,7 @@ namespace ZXTune
       VortexDescr tmp;
       for (; it != lim; ++it)
       {
-        if (!PropertyFromString(*it, tmp))
+        if (!tmp.PropertyFromString(*it))
         {
           return it;
         }
@@ -98,7 +100,45 @@ namespace ZXTune
       return it;
     }
 
-    //TODO serialization
+    //Serialization
+    String SampleLineToString(const VortexPlayer::Sample::Line& line, bool looped);
+
+    template<class Iterator>
+    Iterator SampleToStrings(const VortexPlayer::Sample& sample, Iterator it)
+    {
+      std::size_t lpos(sample.Loop);
+      for (std::vector<VortexPlayer::Sample::Line>::const_iterator sit = sample.Data.begin(), 
+        slim = sample.Data.end(); sit != slim; ++sit, --lpos, ++it)
+      {
+        *it = SampleLineToString(*sit, !lpos);
+      }
+      return it;//empty line at end
+    }
+
+    String OrnamentToString(const VortexPlayer::Ornament& ornament);
+
+    String PatternLineToString(const VortexPlayer::Line& line);
+
+    template<class Iterator>
+    Iterator PatternToStrings(const VortexPlayer::Pattern& pat, Iterator it)
+    {
+      return std::transform(pat.begin(), pat.end(), it, PatternLineToString);
+    }
+
+    template<class Iterator>
+    Iterator DescriptionToStrings(const VortexDescr& descr, Iterator it)
+    {
+      for (std::size_t propIdx = 0; ; ++propIdx, ++it)
+      {
+        const String& propVal = descr.PropertyToString(propIdx);
+        if (propVal.empty())
+        {
+          break;
+        }
+        *it = propVal;
+      }
+      return it;
+    }
   }
 }
 

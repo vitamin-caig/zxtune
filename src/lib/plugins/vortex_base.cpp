@@ -1,6 +1,11 @@
 #include "vortex_base.h"
+#include "vortex_io.h"
+
+#include <convert_parameters.h>
 
 #include <error.h>
+
+#include <boost/algorithm/string.hpp>
 
 #define FILE_TAG 23C2245
 
@@ -148,13 +153,16 @@ namespace ZXTune
     {
     }
 
-    VortexPlayer::VortexPlayer() : Device(AYM::CreateChip()), Version(), FreqTable(), VolumeTable()
+    VortexPlayer::VortexPlayer(const String& filename)
+      : Parent(filename)
+      , Device(AYM::CreateChip()), Version(), FreqTable(), VolumeTable()
     {
     }
 
     void VortexPlayer::Initialize(std::size_t version, NoteTable table)
     {
       Version = version;
+      Notetable = table;
       VolumeTable = Version <= 4 ? VolumeTable_33_34 : VolumeTable_35;
       switch (table)
       {
@@ -209,7 +217,66 @@ namespace ZXTune
 
     void VortexPlayer::Convert(const Conversion::Parameter& param, Dump& dst) const
     {
-      throw Error(ERROR_DETAIL, 1);//TODO
+      using namespace Conversion;
+      if (const VortexTextParam* const p = parameter_cast<VortexTextParam>(&param))
+      {
+        VortexDescr descr;
+        const String::value_type DELIMITER[] = {'\n', 0};
+        StringMap::const_iterator it(Information.Properties.find(Module::ATTR_TITLE));
+        if (Information.Properties.end() != it)
+        {
+          descr.Title = it->second;
+        }
+        it = Information.Properties.find(Module::ATTR_AUTHOR);
+        if (Information.Properties.end() != it)
+        {
+          descr.Author = it->second;
+        }
+        descr.Version = 30 + Version;
+        descr.Notetable = Notetable;
+        descr.Tempo = Information.Statistic.Tempo;
+        descr.Loop = Information.Loop;
+        descr.Order = Data.Positions;
+        StringArray asArray;
+        std::back_insert_iterator<StringArray> iter(asArray);
+        *iter = "[Module]"; ++iter;
+        iter = DescriptionToStrings(descr, iter);
+        ++iter;//free
+        for (std::size_t idx = 0; idx != Data.Ornaments.size(); ++idx)
+        {
+          if (Data.Ornaments[idx].Data.size())
+          {
+            *iter = (Formatter("[Ornament%1%]") % (idx + 1)).str();
+            *++iter = OrnamentToString(Data.Ornaments[idx]);
+            ++iter;//free
+          }
+        }
+        for (std::size_t idx = 0; idx != Data.Samples.size(); ++idx)
+        {
+          if (Data.Samples[idx].Data.size())
+          {
+            *iter = (Formatter("[Sample%1%]") % (idx + 1)).str();
+            iter = SampleToStrings(Data.Samples[idx], ++iter);
+            ++iter;//free
+          }
+        }
+        for (std::size_t idx = 0; idx != Data.Patterns.size(); ++idx)
+        {
+          if (Data.Patterns[idx].size())
+          {
+            *iter = (Formatter("[Pattern%1%]") % (idx + 1)).str();
+            iter = PatternToStrings(Data.Patterns[idx], ++iter);
+            ++iter;//free
+          }
+        }
+        const String& result(boost::algorithm::join(asArray, DELIMITER));
+        dst.resize(result.size() * sizeof(String::value_type));
+        std::memcpy(&dst[0], &result[0], dst.size());
+      }
+      else
+      {
+        Parent::Convert(param, dst);
+      }
     }
 
     void VortexPlayer::RenderData(AYM::DataChunk& chunk)

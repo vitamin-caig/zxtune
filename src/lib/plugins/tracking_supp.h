@@ -1,9 +1,10 @@
 #ifndef __TRACKING_SUPP_H_DEFINED__
 #define __TRACKING_SUPP_H_DEFINED__
 
+#include "player_base.h"
+
 #include <tools.h>
 
-#include <player.h>
 #include <sound_attrs.h>
 
 #include <boost/array.hpp>
@@ -34,7 +35,7 @@ namespace ZXTune
 
     //code depends on channels count and sample type
     template<std::size_t ChannelsCount, class SampleType, class OrnamentType = SimpleOrnament>
-    class TrackPlayer : public ModulePlayer
+    class TrackPlayer : public PlayerBase
     {
     public:
       typedef SampleType Sample;
@@ -115,14 +116,9 @@ namespace ZXTune
         uint64_t Tick;
       };
     public:
-      TrackPlayer() : Information(), Data(), CurrentState(), PlaybackState(MODULE_STOPPED)
+      TrackPlayer(const String& filename)
+        : PlayerBase(filename), Data(), CurrentState(), PlaybackState(MODULE_STOPPED)
       {
-      }
-
-      /// Retrieving information about loaded module
-      virtual void GetModuleInfo(Module::Information& info) const
-      {
-        info = Information;
       }
 
       /// Retrieving current state of loaded module
@@ -224,7 +220,6 @@ namespace ZXTune
         Reset();
       }
     protected:
-      Module::Information Information;
       ModuleData Data;
 
       ModuleState CurrentState;

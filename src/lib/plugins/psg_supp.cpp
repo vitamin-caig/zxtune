@@ -1,4 +1,5 @@
 #include "plugin_enumerator.h"
+#include "player_base.h"
 #include "../devices/data_source.h"
 #include "../devices/aym/aym.h"
 #include "../io/container.h"
@@ -10,7 +11,6 @@
 #include <player_attrs.h>
 #include <convert_parameters.h>
 
-#include <boost/crc.hpp>
 #include <boost/static_assert.hpp>
 
 #include <cassert>
@@ -23,6 +23,9 @@ namespace
 
   const String TEXT_PSG_INFO("PSG modules support");
   const String TEXT_PSG_VERSION("0.1");
+
+  //TODO
+  const String::value_type TEXT_EMPTY[] = {0};
 
   const std::size_t MAX_MODULE_SIZE = 65536;
 
@@ -54,11 +57,12 @@ namespace
 
   void Describing(ModulePlayer::Info& info);
 
-  class PlayerImpl : public ModulePlayer
+  class PlayerImpl : public PlayerBase
   {
   public:
     PlayerImpl(const String& filename, const FastDump& data)
-      : Device(AYM::CreateChip()), CurrentState(MODULE_STOPPED), Filename(filename), TickCount(), Position()
+      : PlayerBase(filename)
+      , Device(AYM::CreateChip()), CurrentState(MODULE_STOPPED), Filename(filename), TickCount(), Position()
     {
       //workaround for some emulators
       const std::size_t offset = data[4] == INT_BEGIN ? 4 : sizeof(PSGHeader);
@@ -113,12 +117,7 @@ namespace
         }
       }
       const std::size_t rawSize = data.Size() - size;
-      RawData.assign(&data[0], &data[0] + rawSize);
-      assert(rawSize <= data.Size());
-      boost::crc_32_type crcCalc;
-      crcCalc.process_bytes(&RawData[0], rawSize);
-      Information.Properties.insert(StringMap::value_type(Module::ATTR_CRC, 
-        string_cast(std::hex, crcCalc.checksum())));
+
       Information.Capabilities = 0;
       Information.Properties.clear();
       Information.Loop = 0;
@@ -128,6 +127,8 @@ namespace
       Information.Statistic.Pattern = 0;
       Information.Statistic.Position = 0;
       Information.Statistic.Tempo = 1;
+
+      FillProperties(TEXT_EMPTY, TEXT_EMPTY, TEXT_EMPTY, &data[0], rawSize);
     }
 
     virtual void GetInfo(Info& info) const

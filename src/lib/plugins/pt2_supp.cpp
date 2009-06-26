@@ -26,6 +26,9 @@ namespace
   const String TEXT_PT2_VERSION("0.1");
   const String TEXT_PT2_EDITOR("ProTracker v2");
 
+  //TODO
+  const String::value_type TEXT_EMPTY[] = {0};
+
   const std::size_t LIMITER(~std::size_t(0));
 
   //hints
@@ -346,16 +349,14 @@ namespace
     };
   public:
     PlayerImpl(const String& filename, const FastDump& data)
-      : Device(AYM::CreateChip())//TODO: put out
+      : Parent(filename)
+      , Device(AYM::CreateChip())//TODO: put out
     {
       //assume all data is correct
       const PT2Header* const header(safe_ptr_cast<const PT2Header*>(&data[0]));
       Information.Statistic.Tempo = header->Tempo;
       Information.Statistic.Position = header->Length;
       Information.Loop = header->Loop;
-      Information.Properties.insert(StringMap::value_type(Module::ATTR_FILENAME, filename));
-      Information.Properties.insert(StringMap::value_type(Module::ATTR_TITLE, String(header->Name, ArrayEnd(header->Name))));
-      Information.Properties.insert(StringMap::value_type(Module::ATTR_PROGRAM, TEXT_PT2_EDITOR));
 
       Log::WarningsCollector warner;
 
@@ -371,6 +372,7 @@ namespace
       warner.Assert(header->Length == Data.Positions.size(), "Invalid length in header");
 
       //fill patterns
+      std::size_t rawSize(0);
       Data.Patterns.reserve(MAX_PATTERN_COUNT);
       std::size_t index(0);
       for (const PT2Pattern* patPos(safe_ptr_cast<const PT2Pattern*>(&data[fromLE(header->PatternsOffset)]));
@@ -402,6 +404,7 @@ namespace
         //as warnings
         warner.Assert(0 == counters.max(), "not all channels periods are reached");
         warner.Assert(pat.size() <= MAX_PATTERN_SIZE, "too long");
+        rawSize = std::max(rawSize, *std::max_element(offsets.begin(), offsets.end()));
       }
       Information.Statistic.Pattern = Data.Patterns.size();
       Information.Statistic.Channels = 3;
@@ -410,6 +413,10 @@ namespace
       {
         Information.Properties.insert(StringMap::value_type(Module::ATTR_WARNINGS, warnings));
       }
+
+      FillProperties(TEXT_PT2_EDITOR, TEXT_EMPTY, String(header->Name, ArrayEnd(header->Name)),
+        &data[0], rawSize);
+
       InitTime();
     }
 
@@ -442,11 +449,6 @@ namespace
     {
       Device->Reset();
       return Parent::Reset();
-    }
-
-    virtual void Convert(const Conversion::Parameter& param, Dump& dst) const
-    {
-      throw Error(ERROR_DETAIL, 1);//TODO
     }
 
   private:
@@ -606,7 +608,7 @@ namespace
   //////////////////////////////////////////////////////////////////////////
   void Describing(ModulePlayer::Info& info)
   {
-    info.Capabilities = CAP_DEV_AYM;
+    info.Capabilities = CAP_DEV_AYM | CAP_CONV_RAW;
     info.Properties.clear();
     info.Properties.insert(StringMap::value_type(ATTR_DESCRIPTION, TEXT_PT2_INFO));
     info.Properties.insert(StringMap::value_type(ATTR_VERSION, TEXT_PT2_VERSION));

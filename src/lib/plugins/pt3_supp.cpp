@@ -12,7 +12,6 @@
 #include <player_attrs.h>
 #include <convert_parameters.h>
 
-#include <boost/crc.hpp>
 #include <boost/static_assert.hpp>
 
 #include <cassert>
@@ -465,17 +464,14 @@ namespace
     }
 
   public:
-    PlayerImpl(const String& filename, const FastDump& data) : Parent()
+    PlayerImpl(const String& filename, const FastDump& data)
+      : Parent(filename)
     {
       //assume all data is correct
       const PT3Header* const header(safe_ptr_cast<const PT3Header*>(&data[0]));
       Information.Statistic.Tempo = header->Tempo;
       Information.Statistic.Position = header->Lenght;
       Information.Loop = header->Loop;
-      Information.Properties.insert(StringMap::value_type(Module::ATTR_FILENAME, filename));
-      Information.Properties.insert(StringMap::value_type(Module::ATTR_TITLE, String(header->TrackName, ArrayEnd(header->TrackName))));
-      Information.Properties.insert(StringMap::value_type(Module::ATTR_AUTHOR, String(header->TrackAuthor, ArrayEnd(header->TrackAuthor))));
-      Information.Properties.insert(StringMap::value_type(Module::ATTR_PROGRAM, String(header->Id, 1 + ArrayEnd(header->Id))));
 
       Log::WarningsCollector warner;
 
@@ -527,11 +523,6 @@ namespace
         rawSize = std::max(rawSize, *std::max_element(offsets.begin(), offsets.end()));
       }
       assert(rawSize <= data.Size());
-      RawData.assign(&data[0], &data[0] + rawSize);
-      boost::crc_32_type crcCalc;
-      crcCalc.process_bytes(&RawData[0], rawSize);
-      Information.Properties.insert(StringMap::value_type(Module::ATTR_CRC, 
-        string_cast(std::hex, crcCalc.checksum())));
 
       Information.Statistic.Pattern = Data.Patterns.size();
       Information.Statistic.Channels = 3;
@@ -542,6 +533,11 @@ namespace
         Information.Properties.insert(StringMap::value_type(Module::ATTR_WARNINGS, warnings));
       }
 
+      FillProperties(String(header->Id, 1 + ArrayEnd(header->Id)), 
+        String(header->TrackAuthor, ArrayEnd(header->TrackAuthor)),
+        String(header->TrackName, ArrayEnd(header->TrackName)),
+        &data[0], rawSize);
+
       Parent::Initialize(isdigit(header->Subversion) ? header->Subversion - '0' : 6,
         static_cast<Parent::NoteTable>(header->FreqTableNum));
     }
@@ -550,22 +546,6 @@ namespace
     {
       Describing(info);
     }
-
-    virtual void Convert(const Conversion::Parameter& param, Dump& dst) const
-    {
-      using namespace Conversion;
-      if (const RawConvertParam* const p = parameter_cast<RawConvertParam>(&param))
-      {
-        dst = RawData;
-      }
-      else
-      {
-        return Parent::Convert(param, dst);
-      }
-    }
-
-  private:
-    Dump RawData;
   };
 
   //////////////////////////////////////////////////////////////////////////

@@ -8,7 +8,6 @@
 #include <player_attrs.h>
 #include <convert_parameters.h>
 
-#include <boost/crc.hpp>
 #include <boost/array.hpp>
 #include <boost/static_assert.hpp>
 
@@ -25,6 +24,8 @@ namespace
   const String TEXT_CHI_VERSION("0.1");
   const String TEXT_CHI_EDITOR("ChipTracker");
 
+  //TODO
+  const String::value_type TEXT_EMPTY[] = {0};
   //////////////////////////////////////////////////////////////////////////
 
   const uint8_t CHI_SIGNATURE[] = {'C', 'H', 'I', 'P', 'v', '1', '.', '0'};
@@ -209,16 +210,14 @@ namespace
     }
 
   public:
-    PlayerImpl(const String& filename, const FastDump& data) : TableFreq(), FreqTable()
+    PlayerImpl(const String& filename, const FastDump& data)
+      : Parent(filename), TableFreq(), FreqTable()
     {
       //assume data is correct
       const CHIHeader* const header(safe_ptr_cast<const CHIHeader*>(&data[0]));
       Information.Statistic.Tempo = header->Tempo;
       Information.Statistic.Position = header->Length + 1;
       Information.Loop = header->Loop;
-      Information.Properties.insert(StringMap::value_type(Module::ATTR_FILENAME, filename));
-      Information.Properties.insert(StringMap::value_type(Module::ATTR_TITLE, String(header->Name, ArrayEnd(header->Name))));
-      Information.Properties.insert(StringMap::value_type(Module::ATTR_PROGRAM, TEXT_CHI_EDITOR));
 
       Log::WarningsCollector warner;
       //fill order
@@ -263,12 +262,10 @@ namespace
       {
         Information.Properties.insert(StringMap::value_type(Module::ATTR_WARNINGS, warnings));
       }
-      RawData.assign(&data[0], sampleData);
-      assert(sampleData <= &data[0] + data.Size());
-      boost::crc_32_type crcCalc;
-      crcCalc.process_block(&data[0], sampleData);
-      Information.Properties.insert(StringMap::value_type(Module::ATTR_CRC, 
-        string_cast(std::hex, crcCalc.checksum())));
+
+      FillProperties(TEXT_CHI_EDITOR, TEXT_EMPTY, String(header->Name, ArrayEnd(header->Name)), 
+        &data[0], sampleData - &data[0]);
+
       InitTime();
     }
 
@@ -397,19 +394,6 @@ namespace
       return PlaybackState;
     }
 
-    virtual void Convert(const Conversion::Parameter& param, Dump& dst) const
-    {
-      using namespace Conversion;
-      if (const RawConvertParam* const p = parameter_cast<RawConvertParam>(&param))
-      {
-        dst = RawData;
-      }
-      else
-      {
-        throw Error(ERROR_DETAIL, 1);//TODO
-      }
-    }
-
   private:
     std::size_t GetStep(const ChannelState& state, std::size_t freq)
     {
@@ -443,7 +427,6 @@ namespace
     }
   private:
     ChannelState Channels[4];
-    Dump RawData;
     std::size_t TableFreq;
     boost::array<std::size_t, NOTES> FreqTable;
   };
