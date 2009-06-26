@@ -1,0 +1,100 @@
+< __HEADER__
+> "Generated from '$Id: $'"
+
+< __RAWHEADER__
+__cpp> "#ifndef __PLUGINS_H_DEFINED__\n"
+__cpp> "#define __PLUGINS_H_DEFINED__\n"
+__cpp> "#include <types.h>\n\n"
+
+< __RAWFOOTER__
+__cpp> "#endif //__PLUGINS_H_DEFINED__\n"
+
+#ASC
+< TEXT_ASC_INFO
+> "ASC modules support"
+
+< TEXT_ASC_EDITOR
+> "ASC Sound Master"
+
+#CHI
+< TEXT_CHI_INFO
+> "CHI modules support"
+
+< TEXT_CHI_EDITOR
+> "ChipTracker"
+
+#Hobeta
+< TEXT_HOB_INFO
+> "Hobeta containers support"
+
+< TEXT_HOB_CONTAINER
+> "Hobeta"
+
+#Hrip
+< TEXT_HRIP_INFO
+> "HRiP archives support"
+
+< TEXT_HRIP_CONTAINER
+> "HRiP"
+
+#Packed
+< TEXT_PACKED_INFO
+> "Packed modules support"
+
+#PSG
+< TEXT_PSG_INFO
+> "PSG modules support"
+
+#PT2
+< TEXT_PT2_INFO
+> "PT2 modules support"
+
+< TEXT_PT2_EDITOR
+> "ProTracker v2.x"
+
+#PT3
+< TEXT_PT3_INFO
+> "PT3 modules support"
+
+#RAW
+< TEXT_RAW_INFO
+> "Raw modules scaner"
+
+< TEXT_RAW_CONTAINER
+> "Raw"
+
+#SCL
+< TEXT_SCL_INFO
+> "SCL containers support"
+
+< TEXT_SCL_CONTAINER
+> "SCL"
+
+#STC
+< TEXT_STC_INFO
+> "STC modules support"
+
+< TEXT_STC_EDITOR
+> "SoundTracker"
+
+#TRD
+< TEXT_TRD_INFO
+> "TRD containers support"
+
+< TEXT_TRD_CONTAINER
+> "TRD"
+
+#TS
+< TEXT_TS_INFO
+> "TurboSound modules support"
+
+< TEXT_TS_CONTAINER
+> "TurboSound"
+
+#TXT
+< TEXT_TXT_INFO
+> "Text (Vortex) modules support"
+
+< TEXT_VORTEX_EDITOR
+> "VortexTracker (ProTracker v%1%.%2% compatible)"
+

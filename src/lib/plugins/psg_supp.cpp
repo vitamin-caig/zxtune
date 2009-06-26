@@ -15,17 +15,16 @@
 
 #include <cassert>
 
+#include <text/errors.h>
+#include <text/plugins.h>
+
 #define FILE_TAG 59843902
 
 namespace
 {
   using namespace ZXTune;
 
-  const String TEXT_PSG_INFO("PSG modules support");
-  const String TEXT_PSG_VERSION("0.1");
-
-  //TODO
-  const String::value_type TEXT_EMPTY[] = {0};
+  const String TEXT_PSG_VERSION(FromChar("Revision: $Rev:$"));
 
   const std::size_t MAX_MODULE_SIZE = 65536;
 
@@ -57,10 +56,10 @@ namespace
 
   void Describing(ModulePlayer::Info& info);
 
-  class PlayerImpl : public PlayerBase
+  class PSGPlayer : public PlayerBase
   {
   public:
-    PlayerImpl(const String& filename, const FastDump& data)
+    PSGPlayer(const String& filename, const FastDump& data)
       : PlayerBase(filename)
       , Device(AYM::CreateChip()), CurrentState(MODULE_STOPPED), Filename(filename), TickCount(), Position()
     {
@@ -70,7 +69,7 @@ namespace
       const uint8_t* bdata = &data[offset];
       if (INT_BEGIN != *bdata)
       {
-        throw 1;//TODO
+        throw Error(ERROR_DETAIL, 1, TEXT_ERROR_INVALID_MODULE);//TODO: code
       }
       AYM::DataChunk dummy;
       AYM::DataChunk* chunk = &dummy;
@@ -88,7 +87,7 @@ namespace
         {
           if (size < 1)
           {
-            throw 1;//TODO
+            throw Error(ERROR_DETAIL, 1, TEXT_ERROR_INVALID_MODULE);//TODO: code
           }
           std::size_t count = 4 * *bdata;
           while (count--)
@@ -108,7 +107,7 @@ namespace
         {
           if (size < 1)
           {
-            throw 1;//TODO
+            throw Error(ERROR_DETAIL, 1, TEXT_ERROR_INVALID_MODULE);//TODO: code
           }
           chunk->Data[reg] = *bdata;
           chunk->Mask |= 1 << reg;
@@ -128,7 +127,7 @@ namespace
       Information.Statistic.Position = 0;
       Information.Statistic.Tempo = 1;
 
-      FillProperties(TEXT_EMPTY, TEXT_EMPTY, TEXT_EMPTY, &data[0], rawSize);
+      FillProperties(String(), String(), String(), &data[0], rawSize);
     }
 
     virtual void GetInfo(Info& info) const
@@ -215,7 +214,7 @@ namespace
       }
       else
       {
-        throw Error(ERROR_DETAIL, 1);//TODO
+        throw Error(ERROR_DETAIL, 1, TEXT_ERROR_CONVERSION_UNSUPPORTED);//TODO: coe
       }
     }
 
@@ -251,8 +250,8 @@ namespace
 
   ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data, uint32_t /*capFilter*/)
   {
-    assert(Checking(filename, data, 0) || !"Attempt to create player on invalid data");
-    return ModulePlayer::Ptr(new PlayerImpl(filename, FastDump(data)));
+    assert(Checking(filename, data, 0) || !"Attempt to create psg player on invalid data");
+    return ModulePlayer::Ptr(new PSGPlayer(filename, FastDump(data)));
   }
 
   PluginAutoRegistrator registrator(Checking, Creating, Describing);

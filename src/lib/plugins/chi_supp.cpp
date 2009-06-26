@@ -14,18 +14,18 @@
 #include <limits>
 #include <numeric>
 
+#include <text/common.h>
+#include <text/plugins.h>
+#include <text/warnings.h>
+
 #define FILE_TAG AB8BEC8B
 
 namespace
 {
   using namespace ZXTune;
 
-  const String TEXT_CHI_INFO("ChipTracker modules support");
-  const String TEXT_CHI_VERSION("0.1");
-  const String TEXT_CHI_EDITOR("ChipTracker");
+  const String TEXT_CHI_VERSION(FromChar("Revision: $Rev:$"));
 
-  //TODO
-  const String::value_type TEXT_EMPTY[] = {0};
   //////////////////////////////////////////////////////////////////////////
 
   const uint8_t CHI_SIGNATURE[] = {'C', 'H', 'I', 'P', 'v', '1', '.', '0'};
@@ -128,7 +128,7 @@ namespace
   typedef Log::WarningsCollector::AutoPrefixParam<std::size_t> IndexPrefix;
   typedef Log::WarningsCollector::AutoPrefixParam2<std::size_t, std::size_t> DoublePrefix;
 
-  class PlayerImpl : public Tracking::TrackPlayer<4, Sample>
+  class CHIPlayer : public Tracking::TrackPlayer<4, Sample>
   {
     typedef Tracking::TrackPlayer<4, Sample> Parent;
 
@@ -157,7 +157,7 @@ namespace
         Parent::Line& dstLine(result.back());
         for (std::size_t chanNum = 0; chanNum != 4; ++chanNum)
         {
-          DoublePrefix pfx(warner, "Line %1%: Channel %2%: ", lineNum, chanNum);
+          DoublePrefix pfx(warner, TEXT_LINE_CHANNEL_WARN_PREFIX, lineNum, chanNum);
           Parent::Line::Chan& dstChan(dstLine.Channels[chanNum]);
           const CHINote& note(src.Notes[lineNum][chanNum]);
           const CHINoteParam& param(src.Params[lineNum][chanNum]);
@@ -191,7 +191,7 @@ namespace
           case SPECIAL:
             if (0 == chanNum)
             {
-              warner.Assert(!dstLine.Tempo, "duplicated tempo");
+              warner.Assert(!dstLine.Tempo, TEXT_WARNING_DUPLICATE_TEMPO);
               dstLine.Tempo = param.Parameter;
             }
             else if (3 == chanNum)
@@ -200,17 +200,17 @@ namespace
             }
             else
             {
-              warner.Warning("special command in invalid channel");
+              warner.Warning(TEXT_WARNING_INVALID_CHANNEL);
             }
           }
         }
       }
-      warner.Assert(result.size() <= MAX_PATTERN_SIZE, "too long");
+      warner.Assert(result.size() <= MAX_PATTERN_SIZE, TEXT_WARNING_TOO_LONG);
       return result;
     }
 
   public:
-    PlayerImpl(const String& filename, const FastDump& data)
+    CHIPlayer(const String& filename, const FastDump& data)
       : Parent(filename), TableFreq(), FreqTable()
     {
       //assume data is correct
@@ -229,7 +229,7 @@ namespace
       const CHIPattern* const patBegin(safe_ptr_cast<const CHIPattern*>(&data[sizeof(CHIHeader)]));
       for (const CHIPattern* pat = patBegin; pat != patBegin + Information.Statistic.Pattern; ++pat)
       {
-        IndexPrefix pfx(warner, "Pattern %1%: ", pat - patBegin);
+        IndexPrefix pfx(warner, TEXT_PATTERN_WARN_PREFIX, pat - patBegin);
         Data.Patterns.push_back(ParsePattern(*pat, warner));
       }
       //fill samples
@@ -249,7 +249,7 @@ namespace
           sampleData += align(size, 256);
           if (size != fromLE(sample->Length))
           {
-            warner.Warning("unexpected end of file");
+            warner.Warning(TEXT_WARNING_UNEXPECTED_END);
             break;
           }
           memLeft -= align(size, 256);
@@ -263,7 +263,7 @@ namespace
         Information.Properties.insert(StringMap::value_type(Module::ATTR_WARNINGS, warnings));
       }
 
-      FillProperties(TEXT_CHI_EDITOR, TEXT_EMPTY, String(header->Name, ArrayEnd(header->Name)), 
+      FillProperties(TEXT_CHI_EDITOR, String(), String(header->Name, ArrayEnd(header->Name)), 
         &data[0], sampleData - &data[0]);
 
       InitTime();
@@ -455,7 +455,7 @@ namespace
   ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data, uint32_t /*capFilter*/)
   {
     assert(Checking(filename, data, 0) || !"Attempt to create chi player on invalid data");
-    return ModulePlayer::Ptr(new PlayerImpl(filename, FastDump(data)));
+    return ModulePlayer::Ptr(new CHIPlayer(filename, FastDump(data)));
   }
 
   PluginAutoRegistrator registrator(Checking, Creating, Describing);

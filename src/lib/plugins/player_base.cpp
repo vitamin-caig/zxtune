@@ -6,6 +6,8 @@
 
 #include <boost/crc.hpp>
 
+#include <text/errors.h>
+
 #define FILE_TAG BBFD2A96
 
 using namespace ZXTune;
@@ -29,7 +31,7 @@ void PlayerBase::Convert(const Conversion::Parameter& param, Dump& dst) const
   }
   else
   {
-    throw Error(ERROR_DETAIL, 1);
+    throw Error(ERROR_DETAIL, 1, TEXT_ERROR_CONVERSION_UNSUPPORTED);//TODO: code
   }
 }
 

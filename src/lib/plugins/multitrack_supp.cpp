@@ -11,12 +11,13 @@
 
 #include <set>
 
+#include <text/common.h>
+#include <text/errors.h>
+
 #define FILE_TAG 509C5C50
 
 namespace
 {
-  const String::value_type TEXT_CONTAINER_DELIMITER[] = {'=', '>', 0};
-
   void Explode(const String& asString, StringArray& asArray)
   {
     boost::algorithm::split(asArray, asString, boost::algorithm::is_cntrl());
@@ -114,7 +115,7 @@ namespace ZXTune
     {
       return Delegate->Convert(param, dst);
     }
-    throw Error(ERROR_DETAIL, 1);//TODO
+    throw Error(ERROR_DETAIL, 1, TEXT_ERROR_CONVERSION_UNSUPPORTED);//TODO: code
   }
 
   void MultitrackBase::Process(SubmodulesIterator& iterator, uint32_t capFilter)
@@ -157,7 +158,7 @@ namespace ZXTune
       }
       if (submodules.empty())
       {
-        throw Error(ERROR_DETAIL, 1);//TODO
+        throw Error(ERROR_DETAIL, 1, TEXT_ERROR_CONTAINER_EMPTY);//TODO: code
       }
       Information.Capabilities = CAP_STOR_MULTITRACK;
       Information.Loop = 0;
@@ -176,7 +177,7 @@ namespace ZXTune
       }
       if (!Delegate.get())
       {
-        throw Error(ERROR_DETAIL, 1);//TODO
+        throw Error(ERROR_DETAIL, 1, TEXT_ERROR_CONTAINER_PLAYER);//TODO: code
       }
     }
   }

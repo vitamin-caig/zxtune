@@ -17,18 +17,16 @@
 #include <cassert>
 #include <valarray>
 
+#include <text/plugins.h>
+#include <text/warnings.h>
+
 #define FILE_TAG D9281D1D
 
 namespace
 {
   using namespace ZXTune;
 
-  const String TEXT_STC_INFO("SoundTracker modules support");
-  const String TEXT_STC_VERSION("0.1");
-  const String TEXT_STC_EDITOR("SoundTracker");
-
-  //TODO
-  const String::value_type TEXT_EMPTY[] = {0};
+  const String TEXT_STC_VERSION(FromChar("Revision: $Rev:$"));
 
   //hints
   const std::size_t MAX_MODULE_SIZE = 16384;
@@ -39,7 +37,7 @@ namespace
 
   typedef IO::FastDump<uint8_t> FastDump;
 
-  const uint16_t FreqTable[96] = {//TODO
+  const uint16_t FreqTable[96] = {
     0xef8, 0xe10, 0xd60, 0xc80, 0xbd8, 0xb28, 0xa88, 0x9f0, 0x960, 0x8e0, 0x858, 0x7e0,
     0x77c, 0x708, 0x6b0, 0x640, 0x5ec, 0x594, 0x544, 0x4f8, 0x4b0, 0x470, 0x42c, 0x3f0,
     0x3be, 0x384, 0x358, 0x320, 0x2f6, 0x2ca, 0x2a2, 0x27c, 0x258, 0x238, 0x216, 0x1f8,
@@ -166,7 +164,7 @@ namespace
 
   typedef Log::WarningsCollector::AutoPrefixParam<std::size_t> IndexPrefix;
 
-  class PlayerImpl : public Tracking::TrackPlayer<3, Sample>
+  class STCPlayer : public Tracking::TrackPlayer<3, Sample>
   {
     typedef Tracking::TrackPlayer<3, Sample> Parent;
 
@@ -181,34 +179,34 @@ namespace
         {
           continue;//has to skip
         }
-        IndexPrefix pfx(warner, "Channel %1%: ", chan);
+        IndexPrefix pfx(warner, TEXT_CHANNEL_WARN_PREFIX, chan);
         for (;;)
         {
           const uint8_t cmd(data[offsets[chan]++]);
           Line::Chan& channel(line.Channels[chan]);
           if (cmd <= 0x5f)//note
           {
-            warner.Assert(!channel.Note, "duplicated note");
+            warner.Assert(!channel.Note, TEXT_WARNING_DUPLICATE_NOTE);
             channel.Note = cmd;
             channel.Enabled = true;
             break;
           }
           else if (cmd >= 0x60 && cmd <= 0x6f)//sample
           {
-            warner.Assert(!channel.SampleNum, "duplicated sample");
+            warner.Assert(!channel.SampleNum, TEXT_WARNING_DUPLICATE_SAMPLE);
             channel.SampleNum = cmd - 0x60;
           }
           else if (cmd >= 0x70 && cmd <= 0x7f)//ornament
           {
             warner.Assert(channel.Commands.end() == std::find(channel.Commands.begin(), channel.Commands.end(), ENVELOPE),
-              "duplicated envelope command");
-            warner.Assert(!channel.OrnamentNum, "duplicated ornament");
+              TEXT_WARNING_DUPLICATE_ENVELOPE);
+            warner.Assert(!channel.OrnamentNum, TEXT_WARNING_DUPLICATE_ORNAMENT);
             channel.OrnamentNum = cmd - 0x70;
             channel.Commands.push_back(Parent::Command(NOENVELOPE));
           }
           else if (cmd == 0x80)//reset
           {
-            warner.Assert(!channel.Enabled, "duplicated channel state");
+            warner.Assert(!channel.Enabled, TEXT_WARNING_DUPLICATE_STATE);
             channel.Enabled = false;
             break;
           }
@@ -219,16 +217,16 @@ namespace
           else if (cmd == 0x82)//orn 0
           {
             warner.Assert(channel.Commands.end() == std::find(channel.Commands.begin(), channel.Commands.end(), ENVELOPE),
-              "duplicated envelope command");
-            warner.Assert(!channel.OrnamentNum, "duplicated ornament");
+              TEXT_WARNING_DUPLICATE_ENVELOPE);
+            warner.Assert(!channel.OrnamentNum, TEXT_WARNING_DUPLICATE_ORNAMENT);
             channel.OrnamentNum = 0;
             channel.Commands.push_back(Parent::Command(NOENVELOPE));
           }
           else if (cmd >= 0x83 && cmd <= 0x8e)//orn 0 with envelope
           {
             warner.Assert(channel.Commands.end() == std::find(channel.Commands.begin(), channel.Commands.end(), NOENVELOPE),
-              "duplicated envelope command");
-            warner.Assert(!channel.OrnamentNum, "duplicated ornament");
+              TEXT_WARNING_DUPLICATE_ENVELOPE);
+            warner.Assert(!channel.OrnamentNum, TEXT_WARNING_DUPLICATE_ORNAMENT);
             channel.Commands.push_back(Parent::Command(ENVELOPE, cmd - 0x80, data[offsets[chan]++]));
             channel.OrnamentNum = 0;
           }
@@ -258,9 +256,9 @@ namespace
       bool LoopedInSample;
     };
   public:
-    PlayerImpl(const String& filename, const FastDump& data)
+    STCPlayer(const String& filename, const FastDump& data)
       : Parent(filename)
-      , Device(AYM::CreateChip())//TODO: put out
+      , Device(AYM::CreateChip())
     {
       //assume that data is ok
       const STCHeader* const header(safe_ptr_cast<const STCHeader*>(&data[0]));
@@ -282,7 +280,7 @@ namespace
         Data.Positions.push_back(posEntry->PatternNum - 1);
         Transpositions.push_back(posEntry->PatternHeight);
       }
-      warner.Assert(Data.Positions.size() == std::size_t(positions->Lenght) + 1, "header lenght mismatch");
+      warner.Assert(Data.Positions.size() == std::size_t(positions->Lenght) + 1, TEXT_WARNING_INVALID_LENGTH);
 
       //parse samples
       Data.Samples.resize(MAX_SAMPLES_COUNT);
@@ -290,12 +288,11 @@ namespace
       {
         if (sample->Number >= Data.Samples.size())
         {
-          warner.Warning("invalid sample number");
+          warner.Warning(TEXT_WARNING_INVALID_SAMPLE);
           continue;
         }
         Data.Samples[sample->Number] = Sample(*sample);
       }
-      warner.Assert(Data.Samples.size() <= MAX_SAMPLES_COUNT, "invalid samples count");
 
       //parse ornaments
       Data.Ornaments.resize(MAX_ORNAMENTS_COUNT);
@@ -303,23 +300,22 @@ namespace
       {
         if (ornament->Number >= Data.Ornaments.size())
         {
-          warner.Warning("invalid ornament number");
+          warner.Warning(TEXT_WARNING_INVALID_ORNAMENT);
           continue;
         }
         Data.Ornaments[ornament->Number] = Parent::Ornament(ArraySize(ornament->Data), 0);
         Data.Ornaments[ornament->Number].Data.assign(ornament->Data, ArrayEnd(ornament->Data));
       }
-      warner.Assert(Data.Ornaments.size() <= MAX_ORNAMENTS_COUNT, "invalid ornaments count");
 
       //parse patterns
       std::size_t rawSize(0);
       Data.Patterns.resize(MAX_PATTERN_COUNT);
       for (const STCPattern* pattern = patterns; *pattern; ++pattern)
       {
-        IndexPrefix patPfx(warner, "Pattern %1%: ", pattern->Number - 1);
+        IndexPrefix patPfx(warner, TEXT_PATTERN_WARN_PREFIX, pattern->Number - 1);
         if (!pattern->Number || pattern->Number >= Data.Patterns.size())
         {
-          warner.Warning("invalid pattern number");
+          warner.Warning(TEXT_WARNING_INVALID_PATTERN);
           continue;
         }
         Pattern& pat(Data.Patterns[pattern->Number - 1]);
@@ -330,7 +326,7 @@ namespace
         pat.reserve(MAX_PATTERN_SIZE);
         do
         {
-          IndexPrefix linePfx(warner, "Line %1%: ", pat.size());
+          IndexPrefix linePfx(warner, TEXT_LINE_WARN_PREFIX, pat.size());
           pat.push_back(Line());
           Line& line(pat.back());
           ParsePattern(data, offsets, line, periods, counters, warner);
@@ -342,11 +338,10 @@ namespace
           }
         }
         while (0xff != data[offsets[0]] || counters[0]);
-        warner.Assert(0 == counters.max(), "not all channels counters reached");
-        warner.Assert(pat.size() <= MAX_PATTERN_SIZE, "invalid pattern size");
+        warner.Assert(0 == counters.max(), TEXT_WARNING_PERIODS);
+        warner.Assert(pat.size() <= MAX_PATTERN_SIZE, TEXT_WARNING_INVALID_PATTERN_SIZE);
         rawSize = std::max(rawSize, *std::max_element(offsets.begin(), offsets.end()));
       }
-      warner.Assert(Data.Patterns.size() <= MAX_PATTERN_COUNT, "invalid patterns count");
       Information.Statistic.Position = Data.Positions.size();
       Information.Statistic.Pattern = Data.Patterns.size();
       Information.Statistic.Channels = 3;
@@ -357,7 +352,7 @@ namespace
         Information.Properties.insert(StringMap::value_type(Module::ATTR_WARNINGS, warnings));
       }
 
-      FillProperties(TEXT_STC_EDITOR, TEXT_EMPTY, TEXT_EMPTY, &data[0], rawSize);
+      FillProperties(TEXT_STC_EDITOR, String(), String(), &data[0], rawSize);
       Information.Properties.insert(StringMap::value_type(Module::ATTR_PROGRAM, 
         String(header->Identifier, ArrayEnd(header->Identifier))));
       InitTime();
@@ -528,7 +523,7 @@ namespace
   bool Checking(const String& /*filename*/, const IO::DataContainer& source, uint32_t /*capFilter*/)
   {
     const std::size_t limit(std::min(source.Size(), MAX_MODULE_SIZE));
-    if (limit < sizeof(STCHeader)/* || limit > MAX_MODULE_SIZE*/)
+    if (limit < sizeof(STCHeader))
     {
       return false;
     }
@@ -564,7 +559,7 @@ namespace
   ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data, uint32_t /*capFilter*/)
   {
     assert(Checking(filename, data, 0) || !"Attempt to create stc player on invalid data");
-    return ModulePlayer::Ptr(new PlayerImpl(filename, FastDump(data)));
+    return ModulePlayer::Ptr(new STCPlayer(filename, FastDump(data)));
   }
 
   PluginAutoRegistrator registrator(Checking, Creating, Describing);

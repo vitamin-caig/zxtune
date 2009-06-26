@@ -16,16 +16,15 @@
 #include <cassert>
 #include <numeric>
 
+#include <text/plugins.h>
+
 #define FILE_TAG 10F03BAF
 
 namespace
 {
   using namespace ZXTune;
 
-  const String TEXT_SCL_INFO("SCL modules support");
-  const String TEXT_SCL_VERSION("0.1");
-
-  const String::value_type SCL_ID[] = {'S', 'C', 'L', 0};
+  const String TEXT_SCL_VERSION(FromChar("Revision: $Rev:$"));
 
   const std::size_t BYTES_PER_SECTOR = 256;
 
@@ -164,7 +163,7 @@ namespace
     };
   public:
     SCLContainer(const String& filename, const IO::DataContainer& data, uint32_t capFilter)
-      : MultitrackBase(filename, SCL_ID)
+      : MultitrackBase(filename, TEXT_SCL_CONTAINER)
     {
       SCLIterator iterator(data);
       Process(iterator, capFilter);

@@ -1,0 +1,28 @@
+< __HEADER__
+> "Generated from '$Id: $'"
+
+< __RAWHEADER__
+__cpp> "#ifndef __ERRORS_H_DEFINED__\n"
+__cpp> "#define __ERRORS_H_DEFINED__\n"
+__cpp> "#include <types.h>\n\n"
+
+< __RAWFOOTER__
+__cpp> "#endif //__ERRORS_H_DEFINED__\n"
+
+< TEXT_ERROR_OPEN_FILE
+> "Failed to open %1%"
+
+< TEXT_ERROR_CONTAINER_PLAYER
+> "Failed to create container player"
+
+< TEXT_ERROR_CONTAINER_EMPTY
+> "No elements in container"
+
+< TEXT_ERROR_CONVERSION_UNSUPPORTED
+> "Failed to convert to unsupported format"
+
+< TEXT_ERROR_INVALID_MODULE
+> "Invalid module format"
+
+< TEXT_ERROR_INVALID_STRING
+> "Invalid string: '%1%'"

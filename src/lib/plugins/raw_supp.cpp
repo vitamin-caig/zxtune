@@ -13,16 +13,15 @@
 
 #include <cassert>
 
+#include <text/plugins.h>
+
 #define FILE_TAG 4100118E
 
 namespace
 {
   using namespace ZXTune;
 
-  const String TEXT_RAW_INFO("RAW modules scanner");
-  const String TEXT_RAW_VERSION("0.1");
-
-  const String::value_type RAW_ID[] = {'R', 'a', 'w', 0};
+  const String TEXT_RAW_VERSION(FromChar("Revision: $Rev:$"));
 
   const std::size_t MAX_MODULE_SIZE = 1048576;//1Mb
   const std::size_t SCAN_STEP = 256;
@@ -99,7 +98,7 @@ namespace
     };
   public:
     RawContainer(const String& filename, const IO::DataContainer& data, uint32_t capFilter)
-      : MultitrackBase(filename, RAW_ID)
+      : MultitrackBase(filename, TEXT_RAW_CONTAINER)
     {
       RawIterator iterator(data);
       Process(iterator, capFilter & ~CAP_STOR_SCANER);
@@ -153,7 +152,7 @@ namespace
           ++modules;
         }
       }
-      return modules > 0;//TODO: duplicated module with aligned players
+      return modules > 0;
     }
     return false;
   }

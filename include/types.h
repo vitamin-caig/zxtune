@@ -25,11 +25,21 @@ using boost::uint64_t;
 typedef std::wstring String;
 typedef std::wostream OutStream;
 typedef std::wistream InStream;
-#else
 
+template<std::size_t D>
+inline String FromChar(const char (str&)[D])
+{
+  return String(str, str + D);
+}
+#else
 typedef std::string String;
 typedef std::ostream OutStream;
 typedef std::istream InStream;
+
+inline String FromChar(const char* str)
+{
+  return str;
+}
 #endif
 
 // alignment macroses

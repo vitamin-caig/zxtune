@@ -3,10 +3,10 @@ path_step := ../..
 source_dirs := .
 
 libraries := platform_supp
-solid_libs := zxtune snd_supp archives
+solid_libs := zxtune snd_supp archives texts
 dynamic_libs := pthread asound
 
-depends := src/lib src/supp src/archives src/platform
+depends := text src/lib src/supp src/archives src/platform
 
 include_path := $(path_step)/src/lib/include
 

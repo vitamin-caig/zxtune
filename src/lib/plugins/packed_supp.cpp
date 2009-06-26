@@ -14,29 +14,31 @@
 #include <cassert>
 #include <numeric>
 
+#include <text/common.h>
+#include <text/errors.h>
+#include <text/plugins.h>
+
 #define FILE_TAG DE9E5D02
 
 namespace
 {
   using namespace ZXTune;
 
-  const String TEXT_PCK_INFO("Packed modules support");
-  const String TEXT_PCK_VERSION("0.1");
-  const String TEXT_CONTAINER_DELIMITER("=>");
+  const String TEXT_PACKED_VERSION(FromChar("Revision: $Rev:$"));
 
   const std::size_t PACKED_MAX_SIZE = 1 << 16;
 
   //////////////////////////////////////////////////////////////////////////
-  class PlayerImpl : public ModulePlayer
+  class PackedContainer : public ModulePlayer
   {
   public:
-    PlayerImpl(const String& filename, const IO::DataContainer& data, const String& subcontainers, uint32_t capFilter)
+    PackedContainer(const String& filename, const IO::DataContainer& data, const String& subcontainers, uint32_t capFilter)
       : Delegate(ModulePlayer::Create(filename, data, capFilter))
       , Subcontainers(subcontainers)
     {
       if (!Delegate.get())
       {
-        throw Error(ERROR_DETAIL, 1);//TODO
+        throw Error(ERROR_DETAIL, 1, TEXT_ERROR_CONTAINER_PLAYER);//TODO: code
       }
     }
     /// Retrieving player info itself
@@ -112,8 +114,8 @@ namespace
   {
     info.Capabilities = CAP_STOR_CONTAINER;
     info.Properties.clear();
-    info.Properties.insert(StringMap::value_type(ATTR_DESCRIPTION, TEXT_PCK_INFO));
-    info.Properties.insert(StringMap::value_type(ATTR_VERSION, TEXT_PCK_VERSION));
+    info.Properties.insert(StringMap::value_type(ATTR_DESCRIPTION, TEXT_PACKED_INFO));
+    info.Properties.insert(StringMap::value_type(ATTR_VERSION, TEXT_PACKED_VERSION));
     StringArray packfmts;
     Archive::GetDepackersList(packfmts);
     OutStringStream str;
@@ -126,13 +128,7 @@ namespace
   //checking top-level container
   bool Checking(const String& /*filename*/, const IO::DataContainer& source, uint32_t /*capFilter*/)
   {
-    const std::size_t limit(source.Size());
-    /*
-    if (limit >= PACKED_MAX_SIZE)
-    {
-      return false;
-    }
-    */
+    const std::size_t limit(std::min(source.Size(), PACKED_MAX_SIZE));
     String tmp;
     return Archive::Check(source.Data(), limit, tmp);
   }
@@ -155,10 +151,10 @@ namespace
     }
     if (subcontainers.empty())
     {
-      throw Error(ERROR_DETAIL, 1);//TODO
+      throw Error(ERROR_DETAIL, 1, TEXT_ERROR_CONTAINER_EMPTY);//TODO: code
     }
     IO::DataContainer::Ptr asContainer(IO::DataContainer::Create(data1));
-    return ModulePlayer::Ptr(new PlayerImpl(filename, *asContainer, subcontainers, capFilter));
+    return ModulePlayer::Ptr(new PackedContainer(filename, *asContainer, subcontainers, capFilter));
   }
 
   PluginAutoRegistrator registrator(Checking, Creating, Describing);

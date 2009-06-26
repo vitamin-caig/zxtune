@@ -12,16 +12,17 @@
 #include <cassert>
 #include <numeric>
 
+#include <text/common.h>
+#include <text/errors.h>
+#include <text/plugins.h>
+
 #define FILE_TAG 1CF1A62A
 
 namespace
 {
   using namespace ZXTune;
 
-  const String TEXT_HOB_INFO("Hobeta modules support");
-  const String TEXT_HOB_VERSION("0.1");
-  const String TEXT_HOB_CONTAINER("Hobeta");
-  const String TEXT_CONTAINER_DELIMITER("=>");
+  const String TEXT_HOB_VERSION(FromChar("Revision: $Rev:$"));
 
   const std::size_t HOBETA_MAX_SIZE = 0xff00 + 17;
 
@@ -44,15 +45,15 @@ namespace
   BOOST_STATIC_ASSERT(sizeof(Header) == 17);
 
   //////////////////////////////////////////////////////////////////////////
-  class PlayerImpl : public ModulePlayer
+  class HobetaContainer : public ModulePlayer
   {
   public:
-    PlayerImpl(const String& filename, const IO::DataContainer& data, uint32_t capFilter)
+    HobetaContainer(const String& filename, const IO::DataContainer& data, uint32_t capFilter)
      : Delegate(ModulePlayer::Create(filename, *data.GetSubcontainer(sizeof(Header), data.Size() - sizeof(Header)), capFilter))
     {
       if (!Delegate.get())
       {
-        throw Error(ERROR_DETAIL, 1);//TODO
+        throw Error(ERROR_DETAIL, 1, TEXT_ERROR_CONTAINER_PLAYER);//TODO: code
       }
     }
     /// Retrieving player info itself
@@ -151,7 +152,7 @@ namespace
   ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data, uint32_t capFilter)
   {
     assert(Checking(filename, data, capFilter) || !"Attempt to create hobeta player on invalid data");
-    return ModulePlayer::Ptr(new PlayerImpl(filename, data, capFilter));
+    return ModulePlayer::Ptr(new HobetaContainer(filename, data, capFilter));
   }
 
   PluginAutoRegistrator registrator(Checking, Creating, Describing);

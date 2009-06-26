@@ -1,0 +1,95 @@
+< __HEADER__
+> "Generated from '$Id: $'"
+
+< __RAWHEADER__
+__cpp> "#ifndef __WARNINGS_H_DEFINED__\n"
+__cpp> "#define __WARNINGS_H_DEFINED__\n"
+__cpp> "#include <types.h>\n\n"
+
+< __RAWFOOTER__
+__cpp> "#endif //__WARNINGS_H_DEFINED__\n"
+
+< TEXT_CHANNEL_WARN_PREFIX
+> "Channel %1%: "
+
+< TEXT_SAMPLE_WARN_PREFIX
+> "Sample %1%: "
+
+< TEXT_ORNAMENT_WARN_PREFIX
+> "Ornament %1%: "
+
+< TEXT_PATTERN_WARN_PREFIX
+> "Pattern %1%: "
+
+< TEXT_LINE_WARN_PREFIX
+> "Line %1%: "
+
+< TEXT_LINE_CHANNEL_WARN_PREFIX
+> TEXT_LINE_WARN_PREFIX TEXT_CHANNEL_WARN_PREFIX
+
+< TEXT_WARNING_DUPLICATE_STATE
+> "duplicated channel state"
+
+< TEXT_WARNING_DUPLICATE_NOTE
+> "duplicated note"
+
+< TEXT_WARNING_DUPLICATE_SAMPLE
+> "duplicated sample"
+
+< TEXT_WARNING_DUPLICATE_ORNAMENT
+> "duplicated ornament"
+
+< TEXT_WARNING_DUPLICATE_VOLUME
+> "duplicated volume"
+
+< TEXT_WARNING_DUPLICATE_TEMPO
+> "duplicated tempo"
+
+< TEXT_WARNING_DUPLICATE_ENVELOPE
+> "duplicated envelope"
+
+< TEXT_WARNING_LOOP_OUT_LIMIT
+> "loop is out of loop limit"
+
+< TEXT_WARNING_LOOP_OUT_BOUND
+> "loop is out of bounds"
+
+< TEXT_WARNING_PERIODS
+> "not all channels periods are reached"
+
+< TEXT_WARNING_TOO_LONG
+> "too long"
+
+< TEXT_WARNING_INVALID_CHANNEL
+> "invalid channel"
+
+< TEXT_WARNING_UNEXPECTED_END
+> "unexpected end of file"
+
+< TEXT_WARNING_INVALID_NOTE_GLISS
+> "invalid gliss to note effect"
+
+< TEXT_WARNING_INVALID_LENGTH
+> "Invalid length in header"
+
+< TEXT_WARNING_INVALID_SAMPLE
+> "invalid sample number"
+
+< TEXT_WARNING_INVALID_ORNAMENT
+> "invalid ornament number"
+
+< TEXT_WARNING_INVALID_PATTERN
+> "invalid pattern number"
+
+< TEXT_WARNING_INVALID_PATTERN_SIZE
+> "invalid pattern size"
+
+< TEXT_WARNING_INVALID_NOISE_BASE
+> "noise base in invalid channel"
+
+< TEXT_WARNING_INVALID_ORNAMENT_OFFSET
+> "invalid ornament offset"
+
+< TEXT_WARNING_INVALID_SAMPLE_OFFSET
+> "invalid sample offset"
+

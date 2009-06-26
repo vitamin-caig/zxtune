@@ -16,16 +16,15 @@
 #include <cassert>
 #include <valarray>
 
+#include <text/plugins.h>
+
 #define FILE_TAG 942A64CC
 
 namespace
 {
   using namespace ZXTune;
 
-  const String TEXT_HRP_INFO("HRiP modules support");
-  const String TEXT_HRP_VERSION("0.1");
-
-  const String::value_type HRIP_ID[] = {'H', 'r', 'i', 'p', 0};
+  const String TEXT_HRIP_VERSION(FromChar("Revision: $Rev:$"));
 
   const std::size_t HRP_MODULE_SIZE = 655360;
 
@@ -86,7 +85,7 @@ namespace
 
   public:
     HripContainer(const String& filename, const IO::DataContainer& data, uint32_t capFilter)
-      : MultitrackBase(filename, HRIP_ID)
+      : MultitrackBase(filename, TEXT_HRIP_CONTAINER)
     {
       HripIterator iterator(data);
       Process(iterator, capFilter);
@@ -107,8 +106,8 @@ namespace
   {
     info.Capabilities = CAP_STOR_MULTITRACK;
     info.Properties.clear();
-    info.Properties.insert(StringMap::value_type(ATTR_DESCRIPTION, TEXT_HRP_INFO));
-    info.Properties.insert(StringMap::value_type(ATTR_VERSION, TEXT_HRP_VERSION));
+    info.Properties.insert(StringMap::value_type(ATTR_DESCRIPTION, TEXT_HRIP_INFO));
+    info.Properties.insert(StringMap::value_type(ATTR_VERSION, TEXT_HRIP_VERSION));
   }
 
   //checking top-level container

@@ -16,18 +16,16 @@
 #include <cassert>
 #include <valarray>
 
+#include <text/plugins.h>
+#include <text/warnings.h>
+
 #define FILE_TAG 77C8579
 
 namespace
 {
   using namespace ZXTune;
 
-  const String TEXT_PT2_INFO("ProTracker v2 modules support");
-  const String TEXT_PT2_VERSION("0.1");
-  const String TEXT_PT2_EDITOR("ProTracker v2");
-
-  //TODO
-  const String::value_type TEXT_EMPTY[] = {0};
+  const String TEXT_PT2_VERSION(FromChar("Revision: $Rev:$"));
 
   const std::size_t LIMITER(~std::size_t(0));
 
@@ -189,7 +187,7 @@ namespace
 
   typedef Log::WarningsCollector::AutoPrefixParam<std::size_t> IndexPrefix;
 
-  class PlayerImpl : public Tracking::TrackPlayer<3, Sample>
+  class PT2Player : public Tracking::TrackPlayer<3, Sample>
   {
     typedef Tracking::TrackPlayer<3, Sample> Parent;
 
@@ -231,25 +229,25 @@ namespace
         {
           continue;//has to skip
         }
-        IndexPrefix pfx(warner, "Channel %1%: ", chan);
+        IndexPrefix pfx(warner, TEXT_CHANNEL_WARN_PREFIX, chan);
         for (;;)
         {
           const uint8_t cmd(data[offsets[chan]++]);
           Line::Chan& channel(line.Channels[chan]);
           if (cmd >= 0xe1) //sample
           {
-            warner.Assert(!channel.SampleNum, "duplicated sample number");
+            warner.Assert(!channel.SampleNum, TEXT_WARNING_DUPLICATE_SAMPLE);
             channel.SampleNum = cmd - 0xe0;
           }
           else if (cmd == 0xe0) //sample 0 - shut up
           {
-            warner.Assert(!channel.Enabled, "duplicated channel state");
+            warner.Assert(!channel.Enabled, TEXT_WARNING_DUPLICATE_STATE);
             channel.Enabled = false;
             break;
           }
           else if (cmd >= 0x80 && cmd <= 0xdf)//note
           {
-            warner.Assert(!channel.Enabled, "duplicated channel state");
+            warner.Assert(!channel.Enabled, TEXT_WARNING_DUPLICATE_STATE);
             channel.Enabled = true;
             const std::size_t note(cmd - 0x80);
             //for note gliss calculate limit manually
@@ -260,7 +258,7 @@ namespace
             }
             else
             {
-              warner.Assert(!channel.Note, "duplicated note");
+              warner.Assert(!channel.Note, TEXT_WARNING_DUPLICATE_NOTE);
               channel.Note = note;
             }
             break;
@@ -281,7 +279,7 @@ namespace
           }
           else if (cmd >= 0x60 && cmd <= 0x6f)//ornament
           {
-            warner.Assert(!channel.OrnamentNum, "duplicated ornament");
+            warner.Assert(!channel.OrnamentNum, TEXT_WARNING_DUPLICATE_ORNAMENT);
             channel.OrnamentNum = cmd - 0x60;
           }
           else if (cmd >= 0x20 && cmd <= 0x5f)//skip
@@ -290,12 +288,12 @@ namespace
           }
           else if (cmd >= 0x10 && cmd <= 0x1f)//volume
           {
-            warner.Assert(!channel.Volume, "duplicated volume");
+            warner.Assert(!channel.Volume, TEXT_WARNING_DUPLICATE_VOLUME);
             channel.Volume = cmd - 0x10;
           }
           else if (cmd == 0x0f)//new delay
           {
-            warner.Assert(!line.Tempo, "duplicated tempo");
+            warner.Assert(!line.Tempo, TEXT_WARNING_DUPLICATE_TEMPO);
             line.Tempo = data[offsets[chan]++];
           }
           else if (cmd == 0x0e)//gliss
@@ -305,7 +303,7 @@ namespace
           else if (cmd == 0x0d)//note gliss
           {
             //too late when note is filled
-            warner.Assert(!channel.Note, "invalid gliss to note effect");
+            warner.Assert(!channel.Note, TEXT_WARNING_INVALID_NOTE_GLISS);
             channel.Commands.push_back(Command(GLISS_NOTE, static_cast<int8_t>(data[offsets[chan]])));
             //ignore delta due to error
             offsets[chan] += 3;
@@ -348,7 +346,7 @@ namespace
       signed Glissade;
     };
   public:
-    PlayerImpl(const String& filename, const FastDump& data)
+    PT2Player(const String& filename, const FastDump& data)
       : Parent(filename)
       , Device(AYM::CreateChip())//TODO: put out
     {
@@ -369,7 +367,7 @@ namespace
       //fill order
       Data.Positions.assign(header->Positions,
         std::find(header->Positions, header->Positions + header->Length, POS_END_MARKER));
-      warner.Assert(header->Length == Data.Positions.size(), "Invalid length in header");
+      warner.Assert(header->Length == Data.Positions.size(), TEXT_WARNING_INVALID_LENGTH);
 
       //fill patterns
       std::size_t rawSize(0);
@@ -379,7 +377,7 @@ namespace
         *patPos;
         ++patPos, ++index)
       {
-        IndexPrefix pfx(warner, "Pattern %1%: ", index);
+        IndexPrefix pfx(warner, TEXT_PATTERN_WARN_PREFIX, index);
         Data.Patterns.push_back(Pattern());
         Pattern& pat(Data.Patterns.back());
         std::vector<std::size_t> offsets(ArraySize(patPos->Offsets));
@@ -389,7 +387,7 @@ namespace
         pat.reserve(MAX_PATTERN_SIZE);
         do
         {
-          IndexPrefix pfx(warner, "Line %1%: ", pat.size());
+          IndexPrefix pfx(warner, TEXT_LINE_WARN_PREFIX, pat.size());
           pat.push_back(Line());
           Line& line(pat.back());
           ParsePattern(data, offsets, line, periods, counters, warner);
@@ -402,8 +400,8 @@ namespace
         }
         while (data[offsets[0]] || counters[0]);
         //as warnings
-        warner.Assert(0 == counters.max(), "not all channels periods are reached");
-        warner.Assert(pat.size() <= MAX_PATTERN_SIZE, "too long");
+        warner.Assert(0 == counters.max(), TEXT_WARNING_PERIODS);
+        warner.Assert(pat.size() <= MAX_PATTERN_SIZE, TEXT_WARNING_TOO_LONG);
         rawSize = std::max(rawSize, *std::max_element(offsets.begin(), offsets.end()));
       }
       Information.Statistic.Pattern = Data.Patterns.size();
@@ -414,7 +412,7 @@ namespace
         Information.Properties.insert(StringMap::value_type(Module::ATTR_WARNINGS, warnings));
       }
 
-      FillProperties(TEXT_PT2_EDITOR, TEXT_EMPTY, String(header->Name, ArrayEnd(header->Name)),
+      FillProperties(TEXT_PT2_EDITOR, String(), String(header->Name, ArrayEnd(header->Name)),
         &data[0], rawSize);
 
       InitTime();
@@ -686,7 +684,7 @@ namespace
   ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data, uint32_t /*capFilter*/)
   {
     assert(Checking(filename, data, 0) || !"Attempt to create pt2 player on invalid data");
-    return ModulePlayer::Ptr(new PlayerImpl(filename, FastDump(data)));
+    return ModulePlayer::Ptr(new PT2Player(filename, FastDump(data)));
   }
 
   PluginAutoRegistrator registrator(Checking, Creating, Describing);

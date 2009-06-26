@@ -17,12 +17,14 @@
 #include <cassert>
 #include <valarray>
 
+#include <text/plugins.h>
+#include <text/warnings.h>
+
 namespace
 {
   using namespace ZXTune;
 
-  const String TEXT_PT3_INFO("ProTracker v3 modules support");
-  const String TEXT_PT3_VERSION("0.1");
+  const String TEXT_PT3_VERSION(FromChar("Revision: $Rev:$"));
 
   const std::size_t MAX_MODULE_SIZE = 1 << 16;
   const std::size_t MAX_PATTERNS_COUNT = 48;
@@ -187,7 +189,7 @@ namespace
 
   typedef Log::WarningsCollector::AutoPrefixParam<std::size_t> IndexPrefix;
 
-  class PlayerImpl : public Tracking::VortexPlayer
+  class PT3Player : public Tracking::VortexPlayer
   {
     typedef Tracking::VortexPlayer Parent;
 
@@ -218,14 +220,7 @@ namespace
           dst.ToneMask = src.ToneMask;
           dst.EnvMask = src.EnvMask;
           dst.KeepToneOffset = src.KeepToneOffset;
-//          if (src.NoiseMask)
-//          {
-            dst.NEOffset =  static_cast<int8_t>(src.NoiseOrEnvOffset & 16 ? src.NoiseOrEnvOffset | 0xf8 : src.NoiseOrEnvOffset);
-//          }
-//          else
-//          {
-//            dst.NEOffset = src.NoiseOrEnvOffset;
-//          }
+          dst.NEOffset =  static_cast<int8_t>(src.NoiseOrEnvOffset & 16 ? src.NoiseOrEnvOffset | 0xf8 : src.NoiseOrEnvOffset);
           dst.KeepNEOffset = src.KeepNoiseOrEnvOffset;
 
           dst.Level = src.Level;
@@ -278,7 +273,7 @@ namespace
         {
           continue;//has to skip
         }
-        IndexPrefix pfx(warner, "Channel %1%: ", chan);
+        IndexPrefix pfx(warner, TEXT_CHANNEL_WARN_PREFIX, chan);
         Line::Chan& channel(line.Channels[chan]);
         for (;;)
         {
@@ -315,14 +310,14 @@ namespace
           {
             const uint8_t doubleSampNum(data[offsets[chan]++]);
             const bool sampValid(doubleSampNum < maxSamples * 2);
-            warner.Assert(sampValid && 0 == (doubleSampNum & 1), "invalid sample index");
-            warner.Assert(!channel.SampleNum, "duplicated sample");
+            warner.Assert(sampValid && 0 == (doubleSampNum & 1), TEXT_WARNING_INVALID_SAMPLE);
+            warner.Assert(!channel.SampleNum, TEXT_WARNING_DUPLICATE_SAMPLE);
             channel.SampleNum = sampValid ? (doubleSampNum / 2) : 0;
             if (cmd != 0x10)
             {
               const bool ornValid(cmd - 0xf0 < maxOrnaments);
-              warner.Assert(ornValid, "invalid ornament index");
-              warner.Assert(!channel.OrnamentNum, "duplicated ornament");
+              warner.Assert(ornValid, TEXT_WARNING_INVALID_ORNAMENT);
+              warner.Assert(!channel.OrnamentNum, TEXT_WARNING_DUPLICATE_ORNAMENT);
               channel.OrnamentNum = ornValid ? (cmd - 0xf0) : 0;
             }
             else
@@ -340,8 +335,8 @@ namespace
               channel.Commands.push_back(Parent::Command(ENVELOPE, cmd - 0x10, envPeriod));
               const uint8_t doubleSampNum(data[offsets[chan]++]);
               const bool sampValid(doubleSampNum < maxSamples * 2);
-              warner.Assert(sampValid && 0 == (doubleSampNum & 1), "invalid sample index");
-              warner.Assert(!channel.SampleNum, "invalid sample");
+              warner.Assert(sampValid && 0 == (doubleSampNum & 1), TEXT_WARNING_INVALID_SAMPLE);
+              warner.Assert(!channel.SampleNum, TEXT_WARNING_DUPLICATE_SAMPLE);
               channel.SampleNum = sampValid ? (doubleSampNum / 2) : 0;
             }
             else
@@ -354,13 +349,13 @@ namespace
           {
             channel.Commands.push_back(Parent::Command(NOISEBASE, cmd - 0x20));
             //warning
-            warner.Assert(chan == 1, "noise base in invalid channel");
+            warner.Assert(chan == 1, TEXT_WARNING_INVALID_NOISE_BASE);
           }
           else if (cmd >= 0x40 && cmd <= 0x4f)
           {
             const bool ornValid(cmd - 0x40 < maxOrnaments);
-            warner.Assert(ornValid, "invalid ornament index");
-            warner.Assert(!channel.OrnamentNum, "duplicated ornament");
+            warner.Assert(ornValid, TEXT_WARNING_INVALID_ORNAMENT);
+            warner.Assert(!channel.OrnamentNum, TEXT_WARNING_DUPLICATE_ORNAMENT);
             channel.OrnamentNum = ornValid ? (cmd - 0x40) : 0;
           }
           else if (cmd >= 0x50 && cmd <= 0xaf)
@@ -372,10 +367,10 @@ namespace
             }
             else
             {
-              warner.Assert(!channel.Note, "duplicated note");
+              warner.Assert(!channel.Note, TEXT_WARNING_DUPLICATE_NOTE);
               channel.Note = cmd - 0x50;
             }
-            warner.Assert(!channel.Enabled, "duplicated channel state");
+            warner.Assert(!channel.Enabled, TEXT_WARNING_DUPLICATE_STATE);
             channel.Enabled = true;
             break;
           }
@@ -390,13 +385,13 @@ namespace
           }
           else if (cmd == 0xc0)
           {
-            warner.Assert(!channel.Enabled, "duplicated channel state");
+            warner.Assert(!channel.Enabled, TEXT_WARNING_DUPLICATE_STATE);
             channel.Enabled = false;
             break;
           }
           else if (cmd >= 0xc1 && cmd <= 0xcf)
           {
-            warner.Assert(!channel.Volume, "duplicated volume");
+            warner.Assert(!channel.Volume, TEXT_WARNING_DUPLICATE_VOLUME);
             channel.Volume = cmd - 0xc0;
           }
           else if (cmd == 0xd0)
@@ -406,8 +401,8 @@ namespace
           else if (cmd >= 0xd1 && cmd <= 0xef)
           {
             const bool sampValid(cmd - 0xd0 < maxSamples);
-            warner.Assert(sampValid, "invalid sample index");
-            warner.Assert(!channel.SampleNum, "duplicated sample");
+            warner.Assert(sampValid, TEXT_WARNING_INVALID_SAMPLE);
+            warner.Assert(!channel.SampleNum, TEXT_WARNING_DUPLICATE_SAMPLE);
             channel.SampleNum = sampValid ? (cmd - 0xd0) : 0;
           }
         }
@@ -419,7 +414,7 @@ namespace
           {
           case TEMPO:
             //warning
-            warner.Assert(!line.Tempo, "duplicated tempo");
+            warner.Assert(!line.Tempo, TEXT_WARNING_DUPLICATE_TEMPO);
             line.Tempo = data[offsets[chan]++];
             break;
           case SLIDEENV:
@@ -438,7 +433,7 @@ namespace
               const uint8_t offset(data[offsets[chan]++]);
               const bool isValid(offset < (channel.OrnamentNum ?
                 Data.Ornaments[*channel.OrnamentNum].Data.size() : MAX_ORNAMENT_SIZE));
-              warner.Assert(isValid, "invalid ornament offset");
+              warner.Assert(isValid, TEXT_WARNING_INVALID_ORNAMENT_OFFSET);
               it->Param1 = isValid ? offset : 0;
             }
             break;
@@ -448,7 +443,7 @@ namespace
               const uint8_t offset(data[offsets[chan]++]);
               const bool isValid(offset < (channel.SampleNum ?
                 Data.Samples[*channel.SampleNum].Data.size() : MAX_SAMPLE_SIZE));
-              warner.Assert(isValid, "invalid sample offset");
+              warner.Assert(isValid, TEXT_WARNING_INVALID_SAMPLE_OFFSET);
               it->Param1 = isValid ? offset : 0;
             }
             break;
@@ -464,7 +459,7 @@ namespace
     }
 
   public:
-    PlayerImpl(const String& filename, const FastDump& data)
+    PT3Player(const String& filename, const FastDump& data)
       : Parent(filename)
     {
       //assume all data is correct
@@ -496,7 +491,7 @@ namespace
         it != lim;
         ++it, ++patPos, ++index)
       {
-        IndexPrefix patPfx(warner, "Pattern %1%: ", index);
+        IndexPrefix patPfx(warner, TEXT_PATTERN_WARN_PREFIX, index);
         Pattern& pat(*it);
         std::vector<std::size_t> offsets(ArraySize(patPos->Offsets));
         std::valarray<std::size_t> periods(std::size_t(0), ArraySize(patPos->Offsets));
@@ -505,7 +500,7 @@ namespace
         pat.reserve(MAX_PATTERN_SIZE);
         do
         {
-          IndexPrefix notePfx(warner, "Line %1%: ", pat.size());
+          IndexPrefix notePfx(warner, TEXT_LINE_WARN_PREFIX, pat.size());
           pat.push_back(Line());
           Line& line(pat.back());
           ParsePattern(data, offsets, line, periods, counters, warner);
@@ -518,8 +513,8 @@ namespace
         }
         while (data[offsets[0]] || counters[0]);
         //as warnings
-        warner.Assert(0 == counters.max(), "not all channel periods are reached");
-        warner.Assert(pat.size() <= MAX_PATTERN_SIZE, "too long");
+        warner.Assert(0 == counters.max(), TEXT_WARNING_PERIODS);
+        warner.Assert(pat.size() <= MAX_PATTERN_SIZE, TEXT_WARNING_TOO_LONG);
         rawSize = std::max(rawSize, *std::max_element(offsets.begin(), offsets.end()));
       }
       assert(rawSize <= data.Size());
@@ -571,6 +566,7 @@ namespace
     {
       return false;
     }
+    //TODO
     return true;
   }
 
@@ -594,7 +590,7 @@ namespace
   bool Checking(const String& /*filename*/, const IO::DataContainer& source, uint32_t /*capFilter*/)
   {
     const std::size_t limit(std::min(source.Size(), MAX_MODULE_SIZE));
-    if (limit < sizeof(PT3Header)/* || limit > MAX_MODULE_SIZE*/)
+    if (limit < sizeof(PT3Header))
     {
       return false;
     }
@@ -610,7 +606,7 @@ namespace
     const uint8_t* const buf(static_cast<const uint8_t*>(data.Data()));
     const DetectChain* const playerIt(std::find_if(Players, ArrayEnd(Players), Detector(buf, data.Size())));
     const std::size_t offset(ArrayEnd(Players) == playerIt ? 0 : playerIt->PlayerSize);
-    return ModulePlayer::Ptr(new PlayerImpl(filename, FastDump(data, offset)));
+    return ModulePlayer::Ptr(new PT3Player(filename, FastDump(data, offset)));
   }
 
   PluginAutoRegistrator registrator(Checking, Creating, Describing);

@@ -1,0 +1,14 @@
+< __HEADER__
+> "Generated from '$Id: $'"
+
+< __RAWHEADER__
+__cpp> "#ifndef __COMMON_H_DEFINED__\n"
+__cpp> "#define __COMMON_H_DEFINED__\n"
+__cpp> "#include <types.h>\n\n"
+
+< __RAWFOOTER__
+__cpp> "#endif //__COMMON_H_DEFINED__\n"
+
+#common texts
+< TEXT_CONTAINER_DELIMITER
+> ">"

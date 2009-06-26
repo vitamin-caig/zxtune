@@ -19,18 +19,18 @@
 #include <cassert>
 #include <valarray>
 
+#include <text/common.h>
+#include <text/plugins.h>
+#include <text/warnings.h>
+
 #define FILE_TAG 45B26E38
 
 namespace
 {
   using namespace ZXTune;
 
-  const String TEXT_ASC_INFO("ASC modules support");
-  const String TEXT_ASC_VERSION("0.1");
-  const String TEXT_ASC_EDITOR("Asc Sound Master");
+  const String TEXT_ASC_VERSION(FromChar("Revision: $Rev$"));
 
-  //TODO
-  const String::value_type TEXT_EMPTY[] = {'\0'};
 
   const std::size_t LIMITER(~std::size_t(0));
 
@@ -45,7 +45,7 @@ namespace
 
   typedef IO::FastDump<uint8_t> FastDump;
 
-  const uint16_t FreqTable[96] = {//TODO
+  const uint16_t FreqTable[96] = {
     0xedc, 0xe07, 0xd3e, 0xc80, 0xbcc, 0xb22, 0xa82, 0x9ec, 0x95c, 0x8d6, 0x858, 0x7e0,
     0x76e, 0x704, 0x69f, 0x640, 0x5e6, 0x591, 0x541, 0x4f6, 0x4ae, 0x46b, 0x42c, 0x3f0,
     0x3b7, 0x382, 0x34f, 0x320, 0x2f3, 0x2c8, 0x2a1, 0x27b, 0x257, 0x236, 0x216, 0x1f8,
@@ -256,7 +256,7 @@ namespace
 
   typedef Log::WarningsCollector::AutoPrefixParam<std::size_t> IndexPrefix;
 
-  class PlayerImpl : public Tracking::TrackPlayer<3, Sample, Ornament>
+  class ASCPlayer : public Tracking::TrackPlayer<3, Sample, Ornament>
   {
     typedef Tracking::TrackPlayer<3, Sample, Ornament> Parent;
 
@@ -272,7 +272,7 @@ namespace
         {
           continue;//has to skip
         }
-        IndexPrefix pfx(warner, "Channel %1%: ", chan);
+        IndexPrefix pfx(warner, TEXT_CHANNEL_WARN_PREFIX, chan);
         bool continueSample(false);
         for (;;)
         {
@@ -282,7 +282,7 @@ namespace
           {
             if (!continueSample)
             {
-              warner.Assert(!channel.Enabled, "duplicated channel state");
+              warner.Assert(!channel.Enabled, TEXT_WARNING_DUPLICATE_STATE);
               channel.Enabled = true;
             }
             if (!channel.Commands.empty() && SLIDE == channel.Commands.back().Type)
@@ -294,7 +294,7 @@ namespace
             }
             else
             {
-              warner.Assert(!channel.Note, "duplicated channel note");
+              warner.Assert(!channel.Note, TEXT_WARNING_DUPLICATE_NOTE);
               channel.Note = cmd;
             }
             if (envelopes[chan])
@@ -324,7 +324,7 @@ namespace
           }
           else if (cmd == 0x5f) //shut
           {
-            warner.Assert(!channel.Enabled, "duplicated channel state");
+            warner.Assert(!channel.Enabled, TEXT_WARNING_DUPLICATE_STATE);
             channel.Enabled = false;
             break;
           }
@@ -334,24 +334,24 @@ namespace
           }
           else if (cmd >= 0xa0 && cmd <= 0xbf) //sample
           {
-            warner.Assert(!channel.SampleNum, "duplicated sample");
+            warner.Assert(!channel.SampleNum, TEXT_WARNING_DUPLICATE_SAMPLE);
             channel.SampleNum = cmd - 0xa0;
           }
           else if (cmd >= 0xc0 && cmd <= 0xdf) //ornament
           {
-            warner.Assert(!channel.OrnamentNum, "duplicated ornament");
+            warner.Assert(!channel.OrnamentNum, TEXT_WARNING_DUPLICATE_ORNAMENT);
             channel.OrnamentNum = cmd - 0xc0;
           }
           else if (cmd == 0xe0) // envelope full vol
           {
-            warner.Assert(!channel.Volume, "duplicated volume");
+            warner.Assert(!channel.Volume, TEXT_WARNING_DUPLICATE_VOLUME);
             channel.Volume = 15;
             channel.Commands.push_back(Parent::Command(ENVELOPE_ON));
             envelopes[chan] = true;
           }
           else if (cmd >= 0xe1 && cmd <= 0xef) // noenvelope vol
           {
-            warner.Assert(!channel.Volume, "duplicated volume");
+            warner.Assert(!channel.Volume, TEXT_WARNING_DUPLICATE_VOLUME);
             channel.Volume = cmd - 0xe0;
             channel.Commands.push_back(Parent::Command(ENVELOPE_OFF));
             envelopes[chan] = false;
@@ -374,7 +374,7 @@ namespace
           }
           else if (cmd == 0xf4) //tempo
           {
-            warner.Assert(!line.Tempo, "duplicated tempo");
+            warner.Assert(!line.Tempo, TEXT_WARNING_DUPLICATE_TEMPO);
             line.Tempo = data[offsets[chan]++];
           }
           else if (cmd == 0xf5 || cmd == 0xf6) //slide
@@ -400,7 +400,7 @@ namespace
             else
             {
               //strange situation...
-              warner.Warning("duplicated envelope type");
+              warner.Warning(TEXT_WARNING_DUPLICATE_ENVELOPE);
               cmdIt->Param1 = cmd & 0xf;
             }
           }
@@ -452,9 +452,9 @@ namespace
       signed Glissade;
     };
   public:
-    PlayerImpl(const String& filename, const FastDump& data)
+    ASCPlayer(const String& filename, const FastDump& data)
       : Parent(filename)
-      , Device(AYM::CreateChip())//TODO: put out
+      , Device(AYM::CreateChip())
     {
       std::size_t rawSize(0);
 
@@ -480,9 +480,9 @@ namespace
         const ASCSample* const sample(safe_ptr_cast<const ASCSample*>(&data[samplesOff + fromLE(*pSample)]));
         Data.Samples.push_back(Sample(*sample));
         const Sample& smp(Data.Samples.back());
-        IndexPrefix pfx(warner, "Sample %1%: ", index);
-        warner.Assert(smp.Loop <= smp.LoopLimit, "loop is more than loop limit");
-        warner.Assert(smp.LoopLimit < smp.Data.size(), "loop limit is out of bounds");
+        IndexPrefix pfx(warner, TEXT_SAMPLE_WARN_PREFIX, index);
+        warner.Assert(smp.Loop <= smp.LoopLimit, TEXT_WARNING_LOOP_OUT_LIMIT);
+        warner.Assert(smp.LoopLimit < smp.Data.size(), TEXT_WARNING_LOOP_OUT_BOUND);
         rawSize = std::max(rawSize, samplesOff + fromLE(*pSample) + smp.Data.size() * sizeof(sample->Data));
       }
 
@@ -498,9 +498,9 @@ namespace
         const ASCOrnament* const ornament(safe_ptr_cast<const ASCOrnament*>(&data[ornamentsOff + fromLE(*pOrnament)]));
         Data.Ornaments.push_back(Parent::Ornament(*ornament));
         const Ornament& orn(Data.Ornaments.back());
-        IndexPrefix pfx(warner, "Ornament %1%: ", index);
-        warner.Assert(orn.Loop <= orn.LoopLimit, "Loop is more than loop limit");
-        warner.Assert(orn.LoopLimit < orn.Data.size(), "Loop limit is out of bounds");
+        IndexPrefix pfx(warner, TEXT_ORNAMENT_WARN_PREFIX, index);
+        warner.Assert(orn.Loop <= orn.LoopLimit, TEXT_WARNING_LOOP_OUT_LIMIT);
+        warner.Assert(orn.LoopLimit < orn.Data.size(), TEXT_WARNING_LOOP_OUT_BOUND);
         rawSize = std::max(rawSize, ornamentsOff + fromLE(*pOrnament) + 
           orn.Data.size() * sizeof(ornament->Data));
       }
@@ -513,7 +513,7 @@ namespace
       Data.Patterns.resize(patternsCount);
       for (std::size_t patNum = 0; patNum < patternsCount; ++patNum, ++pattern)
       {
-        IndexPrefix patPfx(warner, "Pattern %1%: ", patNum);
+        IndexPrefix patPfx(warner, TEXT_PATTERN_WARN_PREFIX, patNum);
         Pattern& pat(Data.Patterns[patNum]);
         std::vector<std::size_t> offsets(ArraySize(pattern->Offsets));
         std::valarray<std::size_t> periods(std::size_t(0), ArraySize(pattern->Offsets));
@@ -527,7 +527,7 @@ namespace
         pat.reserve(MAX_PATTERN_SIZE);
         do
         {
-          IndexPrefix notePfx(warner, "Line %1%: ", pat.size());
+          IndexPrefix notePfx(warner, TEXT_LINE_WARN_PREFIX, pat.size());
           pat.push_back(Line());
           Line& line(pat.back());
           ParsePattern(data, offsets, line, periods, counters, envelopes, warner);
@@ -539,8 +539,8 @@ namespace
           }
         }
         while (0xff != data[offsets[0]] || counters[0]);
-        warner.Assert(0 == counters.max(), "not all channel periods are reached");
-        warner.Assert(pat.size() <= MAX_PATTERN_SIZE, "too long");
+        warner.Assert(0 == counters.max(), TEXT_WARNING_PERIODS);
+        warner.Assert(pat.size() <= MAX_PATTERN_SIZE, TEXT_WARNING_TOO_LONG);
         rawSize = std::max(rawSize, *std::max_element(offsets.begin(), offsets.end()));
       }
       Information.Statistic.Position = Data.Positions.size();
@@ -553,8 +553,8 @@ namespace
       }
 
       const ASCID* const id(safe_ptr_cast<const ASCID*>(header->Positions + header->Lenght));
-      FillProperties(TEXT_ASC_EDITOR, *id ? String(id->Author, ArrayEnd(id->Author)) : TEXT_EMPTY, 
-        *id ? String(id->Title, ArrayEnd(id->Title)) : TEXT_EMPTY, &data[0], rawSize);
+      FillProperties(TEXT_ASC_EDITOR, *id ? String(id->Author, ArrayEnd(id->Author)) : String(), 
+        *id ? String(id->Title, ArrayEnd(id->Title)) : String(), &data[0], rawSize);
 
       InitTime();
     }
@@ -893,7 +893,7 @@ namespace
   ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data, uint32_t /*capFilter*/)
   {
     assert(Checking(filename, data, 0) || !"Attempt to create asc player on invalid data");
-    return ModulePlayer::Ptr(new PlayerImpl(filename, FastDump(data)));
+    return ModulePlayer::Ptr(new ASCPlayer(filename, FastDump(data)));
   }
 
   PluginAutoRegistrator registrator(Checking, Creating, Describing);

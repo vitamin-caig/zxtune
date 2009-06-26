@@ -15,16 +15,15 @@
 #include <cctype>
 #include <cassert>
 
+#include <text/plugins.h>
+
 #define FILE_TAG A1239034
 
 namespace
 {
   using namespace ZXTune;
 
-  const String TEXT_TRD_INFO("TRD modules support");
-  const String TEXT_TRD_VERSION("0.1");
-
-  const String::value_type TRD_ID[] = {'T', 'R', 'D', 0};
+  const String TEXT_TRD_VERSION(FromChar("Revision: $Rev:$"));
 
   const std::size_t TRD_MODULE_SIZE = 655360;
   const std::size_t BYTES_PER_SECTOR = 256;
@@ -192,7 +191,7 @@ namespace
     };
   public:
     TRDContainer(const String& filename, const IO::DataContainer& data, uint32_t capFilter)
-      : MultitrackBase(filename, TRD_ID)
+      : MultitrackBase(filename, TEXT_TRD_CONTAINER)
     {
       TRDIterator iterator(data);
       Process(iterator, capFilter);

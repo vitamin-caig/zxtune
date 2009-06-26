@@ -15,16 +15,16 @@
 #include <cctype>
 #include <cassert>
 
+#include <text/errors.h>
+#include <text/plugins.h>
+
 #define FILE_TAG 24577A20
 
 namespace
 {
   using namespace ZXTune;
 
-  //TODO
-  const String TEXT_TXT_INFO("Text (vortex) modules support");
-  const String TEXT_TXT_VERSION("0.1");
-  const String TEXT_VORTEX_TRACKER("Vortex Tracker (PT%1%.%2% compatible)");
+  const String TEXT_TXT_VERSION(FromChar("Revision: $Rev:$"));
 
   const std::size_t TEXT_MAX_SIZE = 1048576;//1M is more than enough
 
@@ -76,11 +76,11 @@ namespace
   ////////////////////////////////////////////
   void Describing(ModulePlayer::Info& info);
 
-  class PlayerImpl : public Tracking::VortexPlayer
+  class TXTPlayer : public Tracking::VortexPlayer
   {
     typedef Tracking::VortexPlayer Parent;
   public:
-    PlayerImpl(const String& filename, const IO::DataContainer& data)
+    TXTPlayer(const String& filename, const IO::DataContainer& data)
       : Parent(filename)
     {
       const String::value_type* const dataIt(static_cast<const String::value_type*>(data.Data()));
@@ -92,6 +92,7 @@ namespace
 
       Tracking::VortexDescr descr;
 
+      Formatter fmt(TEXT_ERROR_INVALID_STRING);
       for (StringArray::const_iterator it = lines.begin(), lim = lines.end(); it != lim;)
       {
         const String& string(*it);
@@ -99,9 +100,10 @@ namespace
         std::size_t idx(0);
         if (string == SECTION_MODULE)
         {
-          if (next != DescriptionFromStrings(it, next, descr))
+	  const StringArray::const_iterator stop(DescriptionFromStrings(it, next, descr));
+          if (next != stop)
           {
-            throw Error(ERROR_DETAIL, 1);//TODO
+            throw Error(ERROR_DETAIL, 1, (fmt % *stop).str());//TODO:code
           }
         }
         else if (IsOrnamentSection(string, idx))
@@ -109,28 +111,30 @@ namespace
           Data.Ornaments.resize(idx + 1);
           if (!OrnamentFromString(*it, Data.Ornaments[idx]))
           {
-            throw Error(ERROR_DETAIL, 1);//TODO
+            throw Error(ERROR_DETAIL, 1, (fmt % *it).str());//TODO:code
           }
         }
         else if (IsSampleSection(string, idx))
         {
           Data.Samples.resize(idx + 1);
-          if (next != SampleFromStrings(it, next, Data.Samples[idx]))
+	  const StringArray::const_iterator stop(SampleFromStrings(it, next, Data.Samples[idx]));
+          if (next != stop)
           {
-            throw Error(ERROR_DETAIL, 1);//TODO
+            throw Error(ERROR_DETAIL, 1, (fmt % *stop).str());//TODO:code
           }
         }
         else if (IsPatternSection(string, idx))
         {
           Data.Patterns.resize(idx + 1);
-          if (next != PatternFromStrings(it, next, Data.Patterns[idx]))
+	  const StringArray::const_iterator stop(PatternFromStrings(it, next, Data.Patterns[idx]));
+          if (next != stop)
           {
-            throw Error(ERROR_DETAIL, 1);//TODO
+            throw Error(ERROR_DETAIL, 1, (fmt % *stop).str());//TODO:code
           }
         }
         else
         {
-          throw Error(ERROR_DETAIL, 1);//TODO
+          throw Error(ERROR_DETAIL, 1, (fmt % string).str());//TODO
         }
         it = next;
       }
@@ -145,7 +149,7 @@ namespace
       std::for_each(Data.Ornaments.begin(), Data.Ornaments.end(), FixEntity<Parent::Ornament>);
       std::for_each(Data.Samples.begin(), Data.Samples.end(), FixEntity<Parent::Sample>);
 
-      FillProperties((boost::format(TEXT_VORTEX_TRACKER) % int(descr.Version / 10) % int(descr.Version % 10)).str(),
+      FillProperties((Formatter(TEXT_VORTEX_EDITOR) % int(descr.Version / 10) % int(descr.Version % 10)).str(),
         descr.Author, descr.Title, static_cast<const uint8_t*>(data.Data()), data.Size());
       Parent::Initialize(descr.Version % 10, static_cast<NoteTable>(descr.Notetable));
     }
@@ -176,7 +180,7 @@ namespace
   ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data, uint32_t /*capFilter*/)
   {
     assert(Checking(filename, data, 0) || !"Attempt to create text player on invalid data");
-    return ModulePlayer::Ptr(new PlayerImpl(filename, data));
+    return ModulePlayer::Ptr(new TXTPlayer(filename, data));
   }
 
   PluginAutoRegistrator registrator(Checking, Creating, Describing);

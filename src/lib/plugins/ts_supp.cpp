@@ -12,17 +12,17 @@
 #include <cassert>
 #include <numeric>
 
+#include <text/common.h>
+#include <text/errors.h>
+#include <text/plugins.h>
+
 #define FILE_TAG 83089B6F
 
 namespace
 {
   using namespace ZXTune;
 
-  //TODO
-  const String TEXT_TS_INFO("TurboSound modules support");
-  const String TEXT_TS_VERSION("0.1");
-  const String TEXT_TS_CONTAINER("TurboSound");
-  const String TEXT_CONTAINER_DELIMITER("=>");
+  const String TEXT_TS_VERSION(FromChar("Revision: $Rev:$"));
 
   const std::size_t TS_MAX_SIZE = 1 << 17;
 
@@ -80,7 +80,6 @@ namespace
 
     virtual void Flush()
     {
-
     }
 
     void Reset(const Sound::Parameters& params)
@@ -122,10 +121,10 @@ namespace
   }
 
   //////////////////////////////////////////////////////////////////////////
-  class PlayerImpl : public ModulePlayer
+  class TSPlayer : public ModulePlayer
   {
   public:
-    PlayerImpl(const String& filename, const IO::DataContainer& data, uint32_t capFilter)
+    TSPlayer(const String& filename, const IO::DataContainer& data, uint32_t capFilter)
     {
       //assume all is correct
       const uint8_t* buf(static_cast<const uint8_t*>(data.Data()));
@@ -137,7 +136,7 @@ namespace
 
       if (!Delegate1.get() || !Delegate2.get())
       {
-        throw Error(ERROR_DETAIL, 1);//TODO
+        throw Error(ERROR_DETAIL, 1, TEXT_ERROR_CONTAINER_PLAYER);//TODO: code
       }
       {
         Info info1, info2;
@@ -145,7 +144,7 @@ namespace
         Delegate2->GetInfo(info2);
         if (info1.Capabilities != info2.Capabilities)
         {
-          throw Error(ERROR_DETAIL, 1);//TODO
+          throw Error(ERROR_DETAIL, 1, TEXT_ERROR_INVALID_MODULE);//TODO: code
         }
         MergedInfo.Capabilities = info1.Capabilities;
         MergeMap(info1.Properties, info2.Properties, MergedInfo.Properties);
@@ -156,7 +155,7 @@ namespace
         Delegate2->GetModuleInfo(info2);
         if (info1.Capabilities != info2.Capabilities || info1.Statistic.Channels != info2.Statistic.Channels)
         {
-          throw Error(ERROR_DETAIL, 1);//TODO
+          throw Error(ERROR_DETAIL, 1, TEXT_ERROR_INVALID_MODULE);//TODO: code
         }
         MergedModuleInfo.Loop = info1.Loop;
         MergedModuleInfo.Capabilities = info1.Capabilities;
@@ -256,7 +255,7 @@ namespace
     //TODO: vortex text files check
     const std::size_t limit(source.Size());
     //TODO: scan for id
-    if (/*limit >= TS_MAX_SIZE || */limit < sizeof(Footer))
+    if (limit < sizeof(Footer))
     {
       return false;
     }
@@ -270,7 +269,7 @@ namespace
   ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data, uint32_t capFilter)
   {
     assert(Checking(filename, data, capFilter) || !"Attempt to create TS player on invalid data");
-    return ModulePlayer::Ptr(new PlayerImpl(filename, data, capFilter));
+    return ModulePlayer::Ptr(new TSPlayer(filename, data, capFilter));
   }
 
   PluginAutoRegistrator registrator(Checking, Creating, Describing);
