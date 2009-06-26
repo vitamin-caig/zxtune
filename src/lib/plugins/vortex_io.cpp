@@ -123,6 +123,16 @@ namespace
     return res;
   }
 
+  inline String ToHex(unsigned val, unsigned width)
+  {
+    String res(width, '.');
+    for (String::iterator it(res.end()); val; val >>= 4)
+    {
+      *--it = ToHex(val & 15);
+    }
+    return res;
+  }
+
   inline bool IsResetNote(const String& str)
   {
     assert(str.size() == 3);
@@ -166,7 +176,7 @@ namespace
     static const char TONES[] = "C-C#D-D#E-F-F#G-G#A-A#B-";
     const unsigned octave(note / 12);
     const unsigned halftone(note % 12);
-    return String(TONES + halftone * 2, TONES + halftone * 2 + 1) + String::value_type('0' + octave);
+    return String(TONES + halftone * 2, TONES + halftone * 2 + 2) + String::value_type('1' + octave);
   }
 
   bool ParseChannel(const String& str, Tracking::VortexPlayer::Line::Chan& chan)
@@ -219,7 +229,8 @@ namespace
     const int delay = int(FromHex(str[10]));
     const int param1 = int(FromHex(str[11]));
     const int param2 = int(FromHex(str[12]));
-    const int twoParam(10 * param1 + param2);
+    const int twoParam10(10 * param1 + param2);
+    const int twoParam16(16 * param1 + param2);
     switch (const int cmd = FromHex(str[9]))
     {
     case 0:
@@ -230,23 +241,24 @@ namespace
     case 10:
       chan.Commands.push_back(VortexPlayer::Command(
         cmd >= 9 ? VortexPlayer::SLIDEENV : VortexPlayer::GLISS, delay, 
-        (cmd & 1 ? +1 : -1) * twoParam));
+        (cmd & 1 ? +1 : -1) * twoParam16));
       break;
     case 3:
       assert(chan.Note);
-      chan.Commands.push_back(VortexPlayer::Command(VortexPlayer::GLISS_NOTE, delay, twoParam, int(*chan.Note)));
+      chan.Commands.push_back(VortexPlayer::Command(VortexPlayer::GLISS_NOTE, delay, twoParam16,
+        int(*chan.Note)));
       chan.Note.reset();
       break;
     case 4:
     case 5:
       chan.Commands.push_back(VortexPlayer::Command(
-        cmd == 4 ? VortexPlayer::SAMPLEOFFSET : VortexPlayer::ORNAMENTOFFSET, twoParam));
+        cmd == 4 ? VortexPlayer::SAMPLEOFFSET : VortexPlayer::ORNAMENTOFFSET, twoParam16));
       break;
     case 6:
       chan.Commands.push_back(VortexPlayer::Command(VortexPlayer::VIBRATE, param1, param2));
       break;
     case 11:
-      chan.Commands.push_back(VortexPlayer::Command(VortexPlayer::TEMPO, twoParam));
+      chan.Commands.push_back(VortexPlayer::Command(VortexPlayer::TEMPO, twoParam10));
       break;
     default:
       assert(!"Invalid command");
@@ -273,26 +285,29 @@ namespace
       case VortexPlayer::SLIDEENV:
         commands[0] = (VortexPlayer::SLIDEENV == it->Type ? '9' : '1') + (it->Param2 > 0 ? 0 : 1);
         commands[1] = ToHexSym(it->Param1);
-        commands[2] = '0' + abs(it->Param2) / 10;
-        commands[3] = '0' + abs(it->Param2) % 10;
+        commands[2] = ToHexSym(abs(it->Param2) / 16);
+        commands[3] = ToHex(abs(it->Param2) % 16);
         break;
       case VortexPlayer::GLISS_NOTE:
         commands[0] = '3';
         commands[1] = ToHexSym(it->Param1);
-        commands[2] = ToHexSym(it->Param2 / 10);
-        commands[3] = ToHexSym(it->Param2 % 10);
+        commands[2] = ToHexSym(abs(it->Param2) / 16);
+        commands[3] = ToHex(abs(it->Param2) % 16);
         targetNote = it->Param3;
         break;
       case VortexPlayer::SAMPLEOFFSET:
       case VortexPlayer::ORNAMENTOFFSET:
-        commands[0] = VortexPlayer::SAMPLEOFFSET == it->Type ? '4' : '5';
-        commands[2] = '0' + it->Param2 / 10;
-        commands[3] =  '0' + it->Param2 % 10;
+        if (it->Param2)
+        {
+          commands[0] = VortexPlayer::SAMPLEOFFSET == it->Type ? '4' : '5';
+          commands[2] = ToHexSym(it->Param2 / 16);
+          commands[3] = ToHex(it->Param2 % 16);
+        }
         break;
       case VortexPlayer::VIBRATE:
         commands[0] = '6';
         commands[1] = ToHexSym(it->Param1);
-        commands[2] = ToHexSym(it->Param2);
+        commands[2] = ToHex(it->Param2);
         break;
       case VortexPlayer::ENVELOPE:
         envType = it->Param1;
@@ -306,11 +321,11 @@ namespace
         break;
       }
     }
-    if (commands[0] == '.')
+    if (commands[0] == '.' && tempo)
     {
       commands[0] = 'B';
-      commands[2] = '0' + tempo / 10;
-      commands[3] = '0' + tempo % 10;
+      commands[2] = ToHexSym(tempo / 10);
+      commands[3] = ToHex(tempo % 10);
     }
 
     String result;
@@ -376,7 +391,7 @@ namespace
     OutStringStream result;
     for (std::size_t idx = 0; idx != list.size(); ++idx)
     {
-      if (!idx)
+      if (idx)
       {
         result << ',';
       }
@@ -469,9 +484,9 @@ namespace ZXTune
       static const uint64_t PATTERN[] = {
         XDIG, XDIG, XDIG, XDIG, //envbase
         ANY, XDIG, XDIG, //noisebase
-        ANY, NOTE1, NOTE2, NOTE3, SPACE, SAMPLE, XDIG, XDIG, XDIG, SPACE, CMD, DIG, DIG, DIG,
-        ANY, NOTE1, NOTE2, NOTE3, SPACE, SAMPLE, XDIG, XDIG, XDIG, SPACE, CMD, DIG, DIG, DIG,
-        ANY, NOTE1, NOTE2, NOTE3, SPACE, SAMPLE, XDIG, XDIG, XDIG, SPACE, CMD, DIG, DIG, DIG,
+        ANY, NOTE1, NOTE2, NOTE3, SPACE, SAMPLE, XDIG, XDIG, XDIG, SPACE, CMD, DIG, XDIG, XDIG,
+        ANY, NOTE1, NOTE2, NOTE3, SPACE, SAMPLE, XDIG, XDIG, XDIG, SPACE, CMD, DIG, XDIG, XDIG,
+        ANY, NOTE1, NOTE2, NOTE3, SPACE, SAMPLE, XDIG, XDIG, XDIG, SPACE, CMD, DIG, XDIG, XDIG,
         0//limiter
       };
 
@@ -562,18 +577,18 @@ namespace ZXTune
       switch (idx)
       {
       case 0:
-        return MODULE_VERSION + MODULE_DELIMITER + 
+        return String(MODULE_VERSION) + MODULE_DELIMITER + 
           String::value_type('0' + Version / 10) + '.' + String::value_type('0' + Version % 10);
       case 1:
-        return MODULE_TITLE + MODULE_DELIMITER + Title;
+        return String(MODULE_TITLE) + MODULE_DELIMITER + Title;
       case 2:
-        return MODULE_AUTHOR + MODULE_DELIMITER + Author;
+        return String(MODULE_AUTHOR) + MODULE_DELIMITER + Author;
       case 3:
-        return MODULE_NOTETABLE + MODULE_DELIMITER + string_cast(Notetable);
+        return String(MODULE_NOTETABLE) + MODULE_DELIMITER + string_cast(Notetable);
       case 4:
-        return MODULE_SPEED + MODULE_DELIMITER + string_cast(Tempo);
+        return String(MODULE_SPEED) + MODULE_DELIMITER + string_cast(Tempo);
       case 5:
-        return MODULE_PLAYORDER + MODULE_DELIMITER + UnparseLoopedList(Order, Loop);
+        return String(MODULE_PLAYORDER) + MODULE_DELIMITER + UnparseLoopedList(Order, Loop);
       default:
         return String();
       }
@@ -589,15 +604,15 @@ namespace ZXTune
       result += line.EnvMask ? 'e' : 'E';
       result += ' ';
       //tone offset
-      result += ToHex(line.ToneOffset, 4);
+      result += ToHex(line.ToneOffset, 3);
       result += line.KeepToneOffset ? '^' : '_';
       result += ' ';
       //neoffset
-      result += ToHex(line.NEOffset, 3);
+      result += ToHex(line.NEOffset, 2);
       result += line.KeepNEOffset ? '^' : '_';
       result += ' ';
       //volume
-      result += string_cast(std::hex, line.Level);
+      result += ToHex(line.Level);
       result += line.VolSlideAddon > 0 ? '+' : (line.VolSlideAddon < 0 ? '-' : '_');
       if (looped)
       {

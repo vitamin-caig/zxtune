@@ -218,14 +218,14 @@ namespace
           dst.ToneMask = src.ToneMask;
           dst.EnvMask = src.EnvMask;
           dst.KeepToneOffset = src.KeepToneOffset;
-          if (src.NoiseMask)
-          {
+//          if (src.NoiseMask)
+//          {
             dst.NEOffset =  static_cast<int8_t>(src.NoiseOrEnvOffset & 16 ? src.NoiseOrEnvOffset | 0xf8 : src.NoiseOrEnvOffset);
-          }
-          else
-          {
-            dst.NEOffset = src.NoiseOrEnvOffset;
-          }
+//          }
+//          else
+//          {
+//            dst.NEOffset = src.NoiseOrEnvOffset;
+//          }
           dst.KeepNEOffset = src.KeepNoiseOrEnvOffset;
 
           dst.Level = src.Level;
@@ -551,7 +551,7 @@ namespace
   //////////////////////////////////////////////////////////////////////////
   void Describing(ModulePlayer::Info& info)
   {
-    info.Capabilities = CAP_DEV_AYM | CAP_CONV_RAW;
+    info.Capabilities = CAP_DEV_AYM | CAP_CONV_RAW | CAP_CONV_VORTEX;
     info.Properties.clear();
     info.Properties.insert(StringMap::value_type(ATTR_DESCRIPTION, TEXT_PT3_INFO));
     info.Properties.insert(StringMap::value_type(ATTR_VERSION, TEXT_PT3_VERSION));

@@ -13,6 +13,9 @@ namespace
 {
   const std::size_t LIMITER(~std::size_t(0));
 
+  //TODO
+  const String::value_type TEXT_EMPTY[] = {0};
+
   //Table #0 of Pro Tracker 3.3x - 3.4r
   const uint16_t FreqTable_PT_33_34r[96] = {
     0x0c21, 0x0b73, 0x0ace, 0x0a33, 0x09a0, 0x0916, 0x0893, 0x0818, 0x07a4, 0x0736, 0x06ce, 0x066d,
@@ -241,32 +244,32 @@ namespace ZXTune
         std::back_insert_iterator<StringArray> iter(asArray);
         *iter = "[Module]"; ++iter;
         iter = DescriptionToStrings(descr, iter);
-        ++iter;//free
-        for (std::size_t idx = 0; idx != Data.Ornaments.size(); ++idx)
+        *iter = TEXT_EMPTY;//free
+        for (std::size_t idx = 1; idx != Data.Ornaments.size(); ++idx)
         {
           if (Data.Ornaments[idx].Data.size())
           {
-            *iter = (Formatter("[Ornament%1%]") % (idx + 1)).str();
-            *++iter = OrnamentToString(Data.Ornaments[idx]);
-            ++iter;//free
+            *iter = (Formatter("[Ornament%1%]") % idx).str();
+            *iter = OrnamentToString(Data.Ornaments[idx]);
+            *iter = TEXT_EMPTY;//free
           }
         }
-        for (std::size_t idx = 0; idx != Data.Samples.size(); ++idx)
+        for (std::size_t idx = 1; idx != Data.Samples.size(); ++idx)
         {
           if (Data.Samples[idx].Data.size())
           {
-            *iter = (Formatter("[Sample%1%]") % (idx + 1)).str();
+            *iter = (Formatter("[Sample%1%]") % idx).str();
             iter = SampleToStrings(Data.Samples[idx], ++iter);
-            ++iter;//free
+            *iter = TEXT_EMPTY;
           }
         }
         for (std::size_t idx = 0; idx != Data.Patterns.size(); ++idx)
         {
           if (Data.Patterns[idx].size())
           {
-            *iter = (Formatter("[Pattern%1%]") % (idx + 1)).str();
+            *iter = (Formatter("[Pattern%1%]") % idx).str();
             iter = PatternToStrings(Data.Patterns[idx], ++iter);
-            ++iter;//free
+            *iter = TEXT_EMPTY;
           }
         }
         const String& result(boost::algorithm::join(asArray, DELIMITER));

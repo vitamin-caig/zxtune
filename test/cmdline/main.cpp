@@ -214,6 +214,7 @@ namespace
     uint32_t ConvertMask;
     Conversion::Parameter* ConvertParam;
     Conversion::RawConvertParam RawParam;
+    Conversion::VortexTextParam VtxtParam;
   };
 
   PlaybackContext::ParseState PlaybackContext::Parse(int argc, char* argv[])
@@ -252,6 +253,7 @@ namespace
           "--convert mode... -- convert modules to specified mode\n"
           "mode:\n"
           " raw              -- save raw file version: without player\n"
+          " text             -- save in text format\n"
 
           "\nModes:\n"
           "--help            -- this page\n"
@@ -377,6 +379,11 @@ namespace
         {
           ConvertMask = CAP_CONV_RAW;
           ConvertParam = &RawParam;
+        }
+        else if (params[0] == "text")
+        {
+          ConvertMask = CAP_CONV_VORTEX;
+          ConvertParam = &VtxtParam;
         }
         else
         {

@@ -160,7 +160,7 @@ namespace
   //////////////////////////////////////////////////////////////////////////
   void Describing(ModulePlayer::Info& info)
   {
-    info.Capabilities = CAP_DEV_AYM | CAP_CONV_RAW;
+    info.Capabilities = CAP_DEV_AYM | CAP_CONV_RAW | CAP_CONV_VORTEX;
     info.Properties.clear();
     info.Properties.insert(StringMap::value_type(ATTR_DESCRIPTION, TEXT_TXT_INFO));
     info.Properties.insert(StringMap::value_type(ATTR_VERSION, TEXT_TXT_VERSION));
