@@ -1,4 +1,4 @@
-// Generated from '$Id: $'
+// Generated from '$Id$'
 #ifndef __WARNINGS_H_DEFINED__
 #define __WARNINGS_H_DEFINED__
 #include <types.h>

@@ -24,7 +24,7 @@ namespace
 {
   using namespace ZXTune;
 
-  const String TEXT_HRIP_VERSION(FromChar("Revision: $Rev:$"));
+  const String TEXT_HRIP_VERSION(FromChar("Revision: $Rev$"));
 
   const std::size_t HRP_MODULE_SIZE = 655360;
 

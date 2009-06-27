@@ -1,4 +1,4 @@
-// Generated from '$Id: $'
+// Generated from '$Id$'
 #ifndef __PLUGINS_H_DEFINED__
 #define __PLUGINS_H_DEFINED__
 #include <types.h>

@@ -24,7 +24,7 @@ namespace
 {
   using namespace ZXTune;
 
-  const String TEXT_PACKED_VERSION(FromChar("Revision: $Rev:$"));
+  const String TEXT_PACKED_VERSION(FromChar("Revision: $Rev$"));
 
   const std::size_t PACKED_MAX_SIZE = 1 << 16;
 

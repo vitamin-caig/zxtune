@@ -3,7 +3,7 @@ Abstract:
   Error subsystem definitions
 
 Last changed:
-  $Id: error.h 67 2009-04-13 08:26:23Z vitamin.caig $
+  $Id$
 
 Author:
   (C) Vitamin/CAIG/2001

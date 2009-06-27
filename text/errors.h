@@ -1,4 +1,4 @@
-// Generated from '$Id: $'
+// Generated from '$Id$'
 #ifndef __ERRORS_H_DEFINED__
 #define __ERRORS_H_DEFINED__
 #include <types.h>

@@ -24,7 +24,7 @@ namespace
 {
   using namespace ZXTune;
 
-  const String TEXT_SCL_VERSION(FromChar("Revision: $Rev:$"));
+  const String TEXT_SCL_VERSION(FromChar("Revision: $Rev$"));
 
   const std::size_t BYTES_PER_SECTOR = 256;
 

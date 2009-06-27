@@ -22,7 +22,7 @@ namespace
 {
   using namespace ZXTune;
 
-  const String TEXT_HOB_VERSION(FromChar("Revision: $Rev:$"));
+  const String TEXT_HOB_VERSION(FromChar("Revision: $Rev$"));
 
   const std::size_t HOBETA_MAX_SIZE = 0xff00 + 17;
 

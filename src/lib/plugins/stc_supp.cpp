@@ -26,7 +26,7 @@ namespace
 {
   using namespace ZXTune;
 
-  const String TEXT_STC_VERSION(FromChar("Revision: $Rev:$"));
+  const String TEXT_STC_VERSION(FromChar("Revision: $Rev$"));
 
   //hints
   const std::size_t MAX_MODULE_SIZE = 16384;

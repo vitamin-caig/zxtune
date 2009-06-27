@@ -23,7 +23,7 @@ namespace
 {
   using namespace ZXTune;
 
-  const String TEXT_TRD_VERSION(FromChar("Revision: $Rev:$"));
+  const String TEXT_TRD_VERSION(FromChar("Revision: $Rev$"));
 
   const std::size_t TRD_MODULE_SIZE = 655360;
   const std::size_t BYTES_PER_SECTOR = 256;

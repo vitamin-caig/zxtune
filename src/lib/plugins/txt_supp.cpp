@@ -24,7 +24,7 @@ namespace
 {
   using namespace ZXTune;
 
-  const String TEXT_TXT_VERSION(FromChar("Revision: $Rev:$"));
+  const String TEXT_TXT_VERSION(FromChar("Revision: $Rev$"));
 
   const std::size_t TEXT_MAX_SIZE = 1048576;//1M is more than enough
 

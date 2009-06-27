@@ -21,7 +21,7 @@ namespace
 {
   using namespace ZXTune;
 
-  const String TEXT_RAW_VERSION(FromChar("Revision: $Rev:$"));
+  const String TEXT_RAW_VERSION(FromChar("Revision: $Rev$"));
 
   const std::size_t MAX_MODULE_SIZE = 1048576;//1Mb
   const std::size_t SCAN_STEP = 256;

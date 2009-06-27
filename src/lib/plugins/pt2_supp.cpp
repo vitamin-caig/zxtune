@@ -25,7 +25,7 @@ namespace
 {
   using namespace ZXTune;
 
-  const String TEXT_PT2_VERSION(FromChar("Revision: $Rev:$"));
+  const String TEXT_PT2_VERSION(FromChar("Revision: $Rev$"));
 
   const std::size_t LIMITER(~std::size_t(0));
 

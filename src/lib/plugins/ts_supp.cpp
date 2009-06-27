@@ -22,7 +22,7 @@ namespace
 {
   using namespace ZXTune;
 
-  const String TEXT_TS_VERSION(FromChar("Revision: $Rev:$"));
+  const String TEXT_TS_VERSION(FromChar("Revision: $Rev$"));
 
   const std::size_t TS_MAX_SIZE = 1 << 17;
 

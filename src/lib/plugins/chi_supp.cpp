@@ -24,7 +24,7 @@ namespace
 {
   using namespace ZXTune;
 
-  const String TEXT_CHI_VERSION(FromChar("Revision: $Rev:$"));
+  const String TEXT_CHI_VERSION(FromChar("Revision: $Rev$"));
 
   //////////////////////////////////////////////////////////////////////////
 

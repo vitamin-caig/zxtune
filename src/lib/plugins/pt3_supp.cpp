@@ -24,7 +24,7 @@ namespace
 {
   using namespace ZXTune;
 
-  const String TEXT_PT3_VERSION(FromChar("Revision: $Rev:$"));
+  const String TEXT_PT3_VERSION(FromChar("Revision: $Rev$"));
 
   const std::size_t MAX_MODULE_SIZE = 1 << 16;
   const std::size_t MAX_PATTERNS_COUNT = 48;
