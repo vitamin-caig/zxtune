@@ -22,6 +22,12 @@ namespace ZXTune
 
       struct Line
       {
+        Line()
+         : Level(), VolSlideAddon(), ToneMask(true), ToneOffset(), KeepToneOffset()
+         , NoiseMask(true), EnvMask(true), NEOffset(), KeepNEOffset()
+        {
+        }
+
         unsigned Level;//0-15
         signed VolSlideAddon;
 

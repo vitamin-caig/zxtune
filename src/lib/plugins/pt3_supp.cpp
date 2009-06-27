@@ -220,7 +220,7 @@ namespace
           dst.ToneMask = src.ToneMask;
           dst.EnvMask = src.EnvMask;
           dst.KeepToneOffset = src.KeepToneOffset;
-          dst.NEOffset =  static_cast<int8_t>(src.NoiseOrEnvOffset & 16 ? src.NoiseOrEnvOffset | 0xf8 : src.NoiseOrEnvOffset);
+          dst.NEOffset =  static_cast<int8_t>(src.NoiseOrEnvOffset & 16 ? src.NoiseOrEnvOffset | 0xf0 : src.NoiseOrEnvOffset);
           dst.KeepNEOffset = src.KeepNoiseOrEnvOffset;
 
           dst.Level = src.Level;
@@ -260,13 +260,15 @@ namespace
       const FastDump& Data;
     };
 
-    void ParsePattern(const FastDump& data, std::vector<std::size_t>& offsets, Parent::Line& line,
+    void ParsePattern(const FastDump& data, std::vector<std::size_t>& offsets, std::vector<std::size_t>& ornaments,
+      Parent::Line& line,
       std::valarray<std::size_t>& periods,
       std::valarray<std::size_t>& counters,
       Log::WarningsCollector& warner)
     {
       const std::size_t maxSamples(Data.Samples.size());
       const std::size_t maxOrnaments(Data.Ornaments.size());
+      bool wasEnvelope(false), wasNoisebase(false);
       for (std::size_t chan = 0; chan != line.Channels.size(); ++chan)
       {
         if (counters[chan]--)
@@ -292,7 +294,7 @@ namespace
           }
           else if (cmd == 4)//ornament offset
           {
-            channel.Commands.push_back(Parent::Command(ORNAMENTOFFSET, -1));
+            channel.Commands.push_back(Parent::Command(ORNAMENTOFFSET));
           }
           else if (cmd == 5)//vibrate
           {
@@ -318,11 +320,11 @@ namespace
               const bool ornValid(cmd - 0xf0 < maxOrnaments);
               warner.Assert(ornValid, TEXT_WARNING_INVALID_ORNAMENT);
               warner.Assert(!channel.OrnamentNum, TEXT_WARNING_DUPLICATE_ORNAMENT);
-              channel.OrnamentNum = ornValid ? (cmd - 0xf0) : 0;
+              channel.OrnamentNum = ornaments[chan] = ornValid ? (cmd - 0xf0) : 0;
             }
             else
             {
-              channel.Commands.push_back(Parent::Command(ORNAMENTOFFSET, 0));
+              channel.OrnamentNum = ornaments[chan];
             }
             channel.Commands.push_back(Parent::Command(NOENVELOPE));
           }
@@ -332,7 +334,9 @@ namespace
             offsets[chan] += 2;
             if (cmd >= 0x11 && cmd <= 0x1f)
             {
+              warner.Assert(!wasEnvelope, TEXT_WARNING_DUPLICATE_ENVELOPE);
               channel.Commands.push_back(Parent::Command(ENVELOPE, cmd - 0x10, envPeriod));
+              wasEnvelope = true;
               const uint8_t doubleSampNum(data[offsets[chan]++]);
               const bool sampValid(doubleSampNum < maxSamples * 2);
               warner.Assert(sampValid && 0 == (doubleSampNum & 1), TEXT_WARNING_INVALID_SAMPLE);
@@ -341,14 +345,17 @@ namespace
             }
             else
             {
+              warner.Assert(!wasEnvelope, TEXT_WARNING_DUPLICATE_ENVELOPE);
               channel.Commands.push_back(Parent::Command(ENVELOPE, cmd - 0xb1, envPeriod));
+              wasEnvelope = true;
             }
-            channel.Commands.push_back(Parent::Command(ORNAMENTOFFSET, 0));
+            channel.OrnamentNum = ornaments[chan];
           }
           else if (cmd >= 0x20 && cmd <= 0x3f)
           {
+            warner.Assert(!wasNoisebase, TEXT_WARNING_DUPLICATE_NOISEBASE);
             channel.Commands.push_back(Parent::Command(NOISEBASE, cmd - 0x20));
-            //warning
+            wasNoisebase = true;
             warner.Assert(chan == 1, TEXT_WARNING_INVALID_NOISE_BASE);
           }
           else if (cmd >= 0x40 && cmd <= 0x4f)
@@ -356,7 +363,14 @@ namespace
             const bool ornValid(cmd - 0x40 < maxOrnaments);
             warner.Assert(ornValid, TEXT_WARNING_INVALID_ORNAMENT);
             warner.Assert(!channel.OrnamentNum, TEXT_WARNING_DUPLICATE_ORNAMENT);
-            channel.OrnamentNum = ornValid ? (cmd - 0x40) : 0;
+            channel.OrnamentNum = ornaments[chan] = ornValid ? (cmd - 0x40) : 0;
+            //In despite of oficial documentation, editor cannot insert 0x40 command without
+            //envelope switch off. But there's no 0xb0 command in stream... Dumn optimization...
+            if (!*channel.OrnamentNum)
+            {
+              assert(channel.Commands.end() == std::find(channel.Commands.begin(), channel.Commands.end(), NOENVELOPE));
+              channel.Commands.push_back(Parent::Command(NOENVELOPE));
+            }
           }
           else if (cmd >= 0x50 && cmd <= 0xaf)
           {
@@ -377,7 +391,7 @@ namespace
           else if (cmd == 0xb0)
           {
             channel.Commands.push_back(Parent::Command(NOENVELOPE));
-            channel.Commands.push_back(Parent::Command(ORNAMENTOFFSET, 0));
+            channel.OrnamentNum = ornaments[chan];
           }
           else if (cmd == 0xb1)
           {
@@ -428,15 +442,14 @@ namespace
             it->Param2 = data[offsets[chan]++];
             break;
           case ORNAMENTOFFSET:
-            if (-1 == it->Param1)
-            {
-              const uint8_t offset(data[offsets[chan]++]);
-              const bool isValid(offset < (channel.OrnamentNum ?
-                Data.Ornaments[*channel.OrnamentNum].Data.size() : MAX_ORNAMENT_SIZE));
-              warner.Assert(isValid, TEXT_WARNING_INVALID_ORNAMENT_OFFSET);
-              it->Param1 = isValid ? offset : 0;
-            }
+          {
+            const uint8_t offset(data[offsets[chan]++]);
+            const bool isValid(offset < (channel.OrnamentNum ?
+              Data.Ornaments[*channel.OrnamentNum].Data.size() : MAX_ORNAMENT_SIZE));
+            warner.Assert(isValid, TEXT_WARNING_INVALID_ORNAMENT_OFFSET);
+            it->Param1 = isValid ? offset : 0;
             break;
+          }
           case SAMPLEOFFSET:
             if (-1 == it->Param1)
             {
@@ -494,6 +507,7 @@ namespace
         IndexPrefix patPfx(warner, TEXT_PATTERN_WARN_PREFIX, index);
         Pattern& pat(*it);
         std::vector<std::size_t> offsets(ArraySize(patPos->Offsets));
+        std::vector<std::size_t> ornaments(ArraySize(patPos->Offsets));
         std::valarray<std::size_t> periods(std::size_t(0), ArraySize(patPos->Offsets));
         std::valarray<std::size_t> counters(std::size_t(0), ArraySize(patPos->Offsets));
         std::transform(patPos->Offsets, ArrayEnd(patPos->Offsets), offsets.begin(), &fromLE<uint16_t>);
@@ -503,7 +517,7 @@ namespace
           IndexPrefix notePfx(warner, TEXT_LINE_WARN_PREFIX, pat.size());
           pat.push_back(Line());
           Line& line(pat.back());
-          ParsePattern(data, offsets, line, periods, counters, warner);
+          ParsePattern(data, offsets, ornaments, line, periods, counters, warner);
           //skip lines
           if (const std::size_t linesToSkip = counters.min())
           {
@@ -528,7 +542,7 @@ namespace
         Information.Properties.insert(StringMap::value_type(Module::ATTR_WARNINGS, warnings));
       }
 
-      FillProperties(String(header->Id, 1 + ArrayEnd(header->Id)), 
+      FillProperties(String(header->Id, 1 + ArrayEnd(header->Id)),
         String(header->TrackAuthor, ArrayEnd(header->TrackAuthor)),
         String(header->TrackName, ArrayEnd(header->TrackName)),
         &data[0], rawSize);

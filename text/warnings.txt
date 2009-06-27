@@ -48,6 +48,9 @@ __cpp> "#endif //__WARNINGS_H_DEFINED__\n"
 < TEXT_WARNING_DUPLICATE_ENVELOPE
 > "duplicated envelope"
 
+< TEXT_WARNING_DUPLICATE_NOISEBASE
+> "duplicated noise base"
+
 < TEXT_WARNING_LOOP_OUT_LIMIT
 > "loop is out of loop limit"
 

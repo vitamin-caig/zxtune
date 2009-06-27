@@ -52,7 +52,21 @@ namespace
 
   std::ostream& operator << (std::ostream& str, const ModulePlayer::Info& info)
   {
-    return str << "Capabilities: 0x" << std::hex << info.Capabilities << "\n" << info.Properties;
+    static const std::string CAPABILITIES[] = {
+      "CAP_AYM", "CAP_BEEPER", "CAP_SOUNDRIVE", "CAP_FM", "?", "?", "?", "?",
+      "CAP_CONTAINER", "CAP_MULTITRACK", "CAP_SCANER", "?", "?", "?", "?", "?",
+      "CAP_RAW", "CAP_OUT", "CAP_PSG", "CAP_YM", "CAP_ZX50", "CAP_ZXAY", "CAP_VORTEX", "?"
+      "?", "?", "?", "?", "?", "?", "?", "?"};
+    str << info.Properties << "Capabilities:";
+    const std::string* capTxt(CAPABILITIES);
+    for (uint32_t capMsk = info.Capabilities; capMsk; capMsk >>= 1, ++capTxt)
+    {
+      if (capMsk & 1)
+      {
+        str << ' ' << *capTxt;
+      }
+    }
+    return str;
   }
 
   std::ostream& operator << (std::ostream& str, const std::vector<Sound::Backend::Info>& infos)
@@ -267,8 +281,7 @@ namespace
         std::cout << "Supported module types:\n";
         for (std::vector<ModulePlayer::Info>::const_iterator it = infos.begin(), lim = infos.end(); it != lim; ++it)
         {
-          std::cout << it->Properties <<
-            "Capabilities: 0x" << std::hex << it->Capabilities << "\n------\n";
+          std::cout << *it << "\n------\n";
         }
         return PARSE_EXIT;
       }

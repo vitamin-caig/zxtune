@@ -10,6 +10,7 @@ extern const String::value_type TEXT_ORNAMENT_WARN_PREFIX[];
 extern const String::value_type TEXT_PATTERN_WARN_PREFIX[];
 extern const String::value_type TEXT_SAMPLE_WARN_PREFIX[];
 extern const String::value_type TEXT_WARNING_DUPLICATE_ENVELOPE[];
+extern const String::value_type TEXT_WARNING_DUPLICATE_NOISEBASE[];
 extern const String::value_type TEXT_WARNING_DUPLICATE_NOTE[];
 extern const String::value_type TEXT_WARNING_DUPLICATE_ORNAMENT[];
 extern const String::value_type TEXT_WARNING_DUPLICATE_SAMPLE[];

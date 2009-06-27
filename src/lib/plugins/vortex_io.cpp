@@ -57,7 +57,7 @@ namespace
 
   inline bool CheckStr(boost::call_traits<uint64_t>::param_type setof, const String& str)
   {
-    return str.end() == std::find_if(str.begin(), str.end(), !boost::bind(&CheckSym, setof, 
+    return str.end() == std::find_if(str.begin(), str.end(), !boost::bind(&CheckSym, setof,
       boost::bind(static_cast<int (*)(int)>(&std::toupper), _1)));
   }
 
@@ -212,7 +212,7 @@ namespace
     const int orn = FromHex(str[6]);
     if (env)
     {
-      chan.Commands.push_back(env != 0xf ? 
+      chan.Commands.push_back(env != 0xf ?
         VortexPlayer::Command(VortexPlayer::ENVELOPE, env)
         :
         VortexPlayer::Command(VortexPlayer::NOENVELOPE));
@@ -240,7 +240,7 @@ namespace
     case 9:
     case 10:
       chan.Commands.push_back(VortexPlayer::Command(
-        cmd >= 9 ? VortexPlayer::SLIDEENV : VortexPlayer::GLISS, delay, 
+        cmd >= 9 ? VortexPlayer::SLIDEENV : VortexPlayer::GLISS, delay,
         (cmd & 1 ? +1 : -1) * twoParam16));
       break;
     case 3:
@@ -266,7 +266,13 @@ namespace
     return true;
   }
 
-  String UnparseChannel(const Tracking::VortexPlayer::Line::Chan& chan, unsigned tempo, 
+  void ToHexPair(unsigned val, String& cmd)
+  {
+    cmd[2] = ToHexSym(val / 16);
+    cmd[3] = val ? ToHex(val % 16) : '.';
+  }
+
+  String UnparseChannel(const Tracking::VortexPlayer::Line::Chan& chan, unsigned& tempo,
     unsigned& envBase, unsigned& noiseBase)
   {
     using namespace Tracking;
@@ -278,36 +284,30 @@ namespace
     for (VortexPlayer::CommandsArray::const_iterator it = chan.Commands.begin(), lim = chan.Commands.end();
       it != lim; ++it)
     {
-      //1,2 or 9,10
       switch (it->Type)
       {
       case VortexPlayer::GLISS:
       case VortexPlayer::SLIDEENV:
-        commands[0] = (VortexPlayer::SLIDEENV == it->Type ? '9' : '1') + (it->Param2 > 0 ? 0 : 1);
+      //1,2 or 9,10
+        commands[0] = (VortexPlayer::SLIDEENV == it->Type ? '9' : '1') + (it->Param2 >= 0 ? 0 : 1);
         commands[1] = ToHexSym(it->Param1);
-        commands[2] = ToHexSym(abs(it->Param2) / 16);
-        commands[3] = ToHex(abs(it->Param2) % 16);
+        ToHexPair(abs(it->Param2), commands);
         break;
       case VortexPlayer::GLISS_NOTE:
         commands[0] = '3';
         commands[1] = ToHexSym(it->Param1);
-        commands[2] = ToHexSym(abs(it->Param2) / 16);
-        commands[3] = ToHex(abs(it->Param2) % 16);
+        ToHexPair(abs(it->Param2), commands);
         targetNote = it->Param3;
         break;
       case VortexPlayer::SAMPLEOFFSET:
       case VortexPlayer::ORNAMENTOFFSET:
-        if (it->Param2)
-        {
-          commands[0] = VortexPlayer::SAMPLEOFFSET == it->Type ? '4' : '5';
-          commands[2] = ToHexSym(it->Param2 / 16);
-          commands[3] = ToHex(it->Param2 % 16);
-        }
+        commands[0] = VortexPlayer::SAMPLEOFFSET == it->Type ? '4' : '5';
+        ToHexPair(it->Param2, commands);
         break;
       case VortexPlayer::VIBRATE:
         commands[0] = '6';
         commands[1] = ToHexSym(it->Param1);
-        commands[2] = ToHex(it->Param2);
+        commands[2] = ToHexSym(it->Param2);
         break;
       case VortexPlayer::ENVELOPE:
         envType = it->Param1;
@@ -326,6 +326,7 @@ namespace
       commands[0] = 'B';
       commands[2] = ToHexSym(tempo / 10);
       commands[3] = ToHex(tempo % 10);
+      tempo = 0;
     }
 
     String result;
@@ -380,7 +381,7 @@ namespace
       loop = 0;
     }
     list.resize(parts.size());
-    std::transform(parts.begin(), parts.end(), list.begin(), 
+    std::transform(parts.begin(), parts.end(), list.begin(),
       static_cast<signed(*)(const String&)>(&string_cast<signed>));
     return true;
   }
@@ -410,7 +411,7 @@ namespace ZXTune
   namespace Tracking
   {
     //Deserialization
- 
+
     /*Sample:
     [SampleN] //not parsed/unparsed
        0   1   23   4       567   89   a        bc   de      f    g hi
@@ -504,7 +505,7 @@ namespace ZXTune
         }
         if (!line.Tempo)
         {
-          VortexPlayer::CommandsArray::const_iterator cmdit(std::find(line.Channels[chan].Commands.begin(), 
+          VortexPlayer::CommandsArray::const_iterator cmdit(std::find(line.Channels[chan].Commands.begin(),
             line.Channels[chan].Commands.end(),
             VortexPlayer::TEMPO));
           if (cmdit != line.Channels[chan].Commands.end())
@@ -577,7 +578,7 @@ namespace ZXTune
       switch (idx)
       {
       case 0:
-        return String(MODULE_VERSION) + MODULE_DELIMITER + 
+        return String(MODULE_VERSION) + MODULE_DELIMITER +
           String::value_type('0' + Version / 10) + '.' + String::value_type('0' + Version % 10);
       case 1:
         return String(MODULE_TITLE) + MODULE_DELIMITER + Title;
@@ -632,10 +633,11 @@ namespace ZXTune
       String result;
       unsigned envBase(0), noiseBase(0);
       StringArray channels(line.Channels.size());
+      unsigned tempo(line.Tempo ? *line.Tempo : 0);
       for (std::size_t chan = line.Channels.size(); chan; --chan)
       {
         const VortexPlayer::Line::Chan& channel(line.Channels[chan - 1]);
-        result = String("|") + UnparseChannel(channel, !chan && line.Tempo ? *line.Tempo : 0, envBase, noiseBase)
+        result = String("|") + UnparseChannel(channel, tempo, envBase, noiseBase)
           + result;
       }
       return ToHex(envBase, 4) + '|' + ToHex(noiseBase, 2) + result;

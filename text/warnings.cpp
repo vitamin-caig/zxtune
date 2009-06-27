@@ -24,6 +24,9 @@ extern const String::value_type TEXT_SAMPLE_WARN_PREFIX[] = {
 extern const String::value_type TEXT_WARNING_DUPLICATE_ENVELOPE[] = {
   'd','u','p','l','i','c','a','t','e','d',' ','e','n','v','e','l','o','p','e',0
 };
+extern const String::value_type TEXT_WARNING_DUPLICATE_NOISEBASE[] = {
+  'd','u','p','l','i','c','a','t','e','d',' ','n','o','i','s','e',' ','b','a','s','e',0
+};
 extern const String::value_type TEXT_WARNING_DUPLICATE_NOTE[] = {
   'd','u','p','l','i','c','a','t','e','d',' ','n','o','t','e',0
 };
