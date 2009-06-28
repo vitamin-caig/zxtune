@@ -8,19 +8,20 @@
 #include <cassert>
 #include <algorithm>
 
+#include <text/errors.h>
+#include <text/backends.h>
+
+#define FILE_TAG 5E3F141A
+
 namespace
 {
   using namespace ZXTune::Sound;
-
-  //TODO
-  const String::value_type TEXT_WIN32_BACKEND_DESCRIPTON[] = "Win32 sound system backend";
-  const String::value_type WIN32_BACKEND_KEY[] = {'w', 'i', 'n', '3', '2', 0};
 
   void CheckMMResult(::MMRESULT res)
   {
     if (MMSYSERR_NOERROR != res)
     {
-      throw 1;//TODO
+      throw Error(ERROR_DETAIL, 1, (Formatter(TEXT_ERROR_BACKEND_INIT_WIN32) % res).str());//TODO
     }
   }
 
@@ -185,7 +186,7 @@ namespace
 
   void Descriptor(Backend::Info& info)
   {
-    info.Description = TEXT_WIN32_BACKEND_DESCRIPTON;
+    info.Description = TEXT_WIN32_BACKEND_DESCRIPTION;
     info.Key = WIN32_BACKEND_KEY;
   }
 

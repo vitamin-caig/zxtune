@@ -260,7 +260,7 @@ namespace
       const FastDump& Data;
     };
 
-    void ParsePattern(const FastDump& data, std::vector<std::size_t>& offsets, std::vector<std::size_t>& ornaments,
+    void ParsePattern(const FastDump& data, std::vector<std::size_t>& offsets, std::vector<std::size_t>& ornaments, unsigned& noiseBase,
       Parent::Line& line,
       std::valarray<std::size_t>& periods,
       std::valarray<std::size_t>& counters,
@@ -354,7 +354,7 @@ namespace
           else if (cmd >= 0x20 && cmd <= 0x3f)
           {
             warner.Assert(!wasNoisebase, TEXT_WARNING_DUPLICATE_NOISEBASE);
-            channel.Commands.push_back(Parent::Command(NOISEBASE, cmd - 0x20));
+            channel.Commands.push_back(Parent::Command(NOISEBASE, noiseBase = cmd - 0x20));
             wasNoisebase = true;
             warner.Assert(chan == 1, TEXT_WARNING_INVALID_NOISE_BASE);
           }
@@ -469,6 +469,11 @@ namespace
         }
         counters[chan] = periods[chan];
       }
+      if (!wasNoisebase && noiseBase)
+      {
+        line.Channels.back().Commands.push_back(Parent::Command(NOISEBASE, noiseBase));
+      }
+
     }
 
   public:
@@ -508,6 +513,7 @@ namespace
         Pattern& pat(*it);
         std::vector<std::size_t> offsets(ArraySize(patPos->Offsets));
         std::vector<std::size_t> ornaments(ArraySize(patPos->Offsets));
+        unsigned noiseBase(0);
         std::valarray<std::size_t> periods(std::size_t(0), ArraySize(patPos->Offsets));
         std::valarray<std::size_t> counters(std::size_t(0), ArraySize(patPos->Offsets));
         std::transform(patPos->Offsets, ArrayEnd(patPos->Offsets), offsets.begin(), &fromLE<uint16_t>);
@@ -517,7 +523,7 @@ namespace
           IndexPrefix notePfx(warner, TEXT_LINE_WARN_PREFIX, pat.size());
           pat.push_back(Line());
           Line& line(pat.back());
-          ParsePattern(data, offsets, ornaments, line, periods, counters, warner);
+          ParsePattern(data, offsets, ornaments, noiseBase, line, periods, counters, warner);
           //skip lines
           if (const std::size_t linesToSkip = counters.min())
           {

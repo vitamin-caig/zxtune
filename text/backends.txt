@@ -1,0 +1,63 @@
+< __HEADER__
+> "Generated from '$Id: $'"
+
+< __RAWHEADER__
+__cpp> "#ifndef __BACKENDS_H_DEFINED__\n"
+__cpp> "#define __BACKENDS_H_DEFINED__\n"
+__cpp> "#include <types.h>\n\n"
+
+< __RAWFOOTER__
+__cpp> "#endif //__BACKENDS_H_DEFINED__\n"
+
+
+#file backend
+< TEXT_FILE_BACKEND_DESCRIPTION
+> "File output backend"
+
+< FILE_BACKEND_KEY
+> "file"
+
+< TEXT_LASTNAME_TEMPLATE
+> "$1"
+
+< TEXT_FIRSTNAME_TEMPLATE
+> "$2"
+
+< TEXT_DEFAULT_FILENAME_TEMPLATE
+> "$1.wav"
+
+#tags
+< FILE_ANNOTATION_EXT
+> ".info"
+
+< FILE_ANNOTATION_FORMAT
+> "%1%=%2%\n"
+
+#null backend
+< TEXT_NULL_BACKEND_DESCRIPTION
+> "Null output backend"
+
+< NULL_BACKEND_KEY
+> "null"
+
+#alsa backend
+< TEXT_ALSA_BACKEND_DESCRIPTION
+> "ALSA sound system backend"
+
+< ALSA_BACKEND_KEY
+> "alsa"
+
+#oss backend
+< TEXT_OSS_BACKEND_DESCRIPTION
+> "OSS sound system backend"
+
+< OSS_BACKEND_KEY
+> "oss"
+
+#win32 backend
+< TEXT_WIN32_BACKEND_DESCRIPTION
+> "Win32 sound system backend"
+
+< WIN32_BACKEND_KEY
+> "win32"
+

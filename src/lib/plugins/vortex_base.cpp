@@ -269,8 +269,6 @@ namespace ZXTune
             *iter = String();
           }
         }
-        //remove last empty string
-        asArray.pop_back();
         const String& result(boost::algorithm::join(asArray, DELIMITER));
         dst.resize(result.size() * sizeof(String::value_type));
         std::memcpy(&dst[0], &result[0], dst.size());

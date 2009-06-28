@@ -11,17 +11,14 @@
 #include <boost/bind.hpp>
 #include <boost/thread.hpp>
 
-#define FILE_TAG 8B5627E4
+#include <text/errors.h>
+#include <text/backends.h>
 
-#include <iostream>
+#define FILE_TAG 8B5627E4
 
 namespace
 {
   using namespace ZXTune::Sound;
-
-  //TODO
-  const String::value_type TEXT_ALSA_BACKEND_DESCRIPTON[] = "ALSA sound system backend";
-  const String::value_type ALSA_BACKEND_KEY[] = {'a', 'l', 's', 'a', 0};
 
   const char DEFAULT_DEVICE[] = "default";
   const std::size_t MINIMAL_LATENCY = 1000;
@@ -30,8 +27,7 @@ namespace
   {
     if (res < 0)
     {
-      std::cout << ::snd_strerror(res);
-      throw Error(ERROR_DETAIL, 1, ::snd_strerror(res));
+      throw Error(ERROR_DETAIL, 1, (Formatter(TEXT_ERROR_BACKEND_INIT_ALSA) % ::snd_strerror(res)).str());
     }
   }
 
@@ -40,6 +36,7 @@ namespace
   class AlsaBackend : public SimpleAsyncBackend
   {
   public:
+    typedef SimpleAsyncBackend Parent;
     AlsaBackend() : DevHandle(0)
     {
     }
@@ -48,7 +45,7 @@ namespace
     {
       assert(0 == DevHandle || "AlsaBackend was destroyed without stopping");
     }
-    
+
     virtual void GetInfo(Backend::Info& info) const
     {
       return Descriptor(info);
@@ -133,7 +130,7 @@ namespace
 
   void Descriptor(Backend::Info& info)
   {
-    info.Description = TEXT_ALSA_BACKEND_DESCRIPTON;
+    info.Description = TEXT_ALSA_BACKEND_DESCRIPTION;
     info.Key = ALSA_BACKEND_KEY;
   }
 

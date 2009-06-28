@@ -1,6 +1,8 @@
 #include "sound_backend_impl.h"
 
+#include <error.h>
 #include <tools.h>
+
 #include <player_attrs.h>
 
 #include "../lib/sound/mixer.h"
@@ -8,6 +10,10 @@
 #include "../lib/sound/renderer.h"
 
 #include <cassert>
+
+#include <text/errors.h>
+
+#define FILE_TAG B3D60DB5
 
 namespace
 {
@@ -103,15 +109,8 @@ namespace ZXTune
         Player->GetInfo(playInfo);
         if (playInfo.Capabilities & CAP_STOR_MULTITRACK)
         {
-          throw 1;//TODO
+          throw Error(ERROR_DETAIL, 1, TEXT_ERROR_BACKEND_INVALID_PLAYER);//TODO: code
         }
-        /*
-        Module::Information info;
-        Player->GetModuleInfo(info);
-        Params.Mixer.reset(new MixerData);
-        Params.Mixer->InMatrix.resize(info.Statistic.Channels, ChannelMixer(MONO_MIX));
-        Params.Mixer->Preamp = FIXED_POINT_PRECISION;
-        */
         return CurrentState = STOPPED;
       }
       return CurrentState = NOTOPENED;
@@ -221,7 +220,7 @@ namespace ZXTune
 
       if (Params.Mixer && params.Mixer->InMatrix.size() != Params.Mixer->InMatrix.size())
       {
-        throw 2;//TODO
+        throw Error(ERROR_DETAIL, 1, TEXT_ERROR_BACKEND_INVALID_MIXER);//TODO: code
       }
 
       Locker lock(PlayerMutex);
@@ -261,7 +260,7 @@ namespace ZXTune
     {
       if (NOTOPENED == CurrentState && !Player.get())
       {
-        throw 1;//TODO
+        throw Error(ERROR_DETAIL, 1, TEXT_ERROR_BACKEND_INVALID_STATE);//TODO: code
       }
     }
 

@@ -6,12 +6,11 @@
 
 #include <boost/noncopyable.hpp>
 
+#include <text/backends.h>
+
 namespace
 {
   using namespace ZXTune::Sound;
-  //TODO
-  const String::value_type TEXT_NULL_BACKEND_DESCRIPTON[] = "Null output backend";
-  const String::value_type NULL_BACKEND_KEY[] = {'n', 'u', 'l', 'l', 0};
 
   void Descriptor(Backend::Info& info);
 
@@ -56,7 +55,7 @@ namespace
 
   void Descriptor(Backend::Info& info)
   {
-    info.Description = TEXT_NULL_BACKEND_DESCRIPTON;
+    info.Description = TEXT_NULL_BACKEND_DESCRIPTION;
     info.Key = NULL_BACKEND_KEY;
   }
 

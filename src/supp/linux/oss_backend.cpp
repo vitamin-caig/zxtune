@@ -14,14 +14,14 @@
 
 #include <cassert>
 
+#include <text/errors.h>
+#include <text/backends.h>
+
 #define FILE_TAG 69200152
 
 namespace
 {
   using namespace ZXTune::Sound;
-  //TODO
-  const String::value_type TEXT_OSS_BACKEND_DESCRIPTON[] = "OSS sound system backend";
-  const String::value_type OSS_BACKEND_KEY[] = {'o', 's', 's', 0};
 
   const char DEVICE_NAME[] = "/dev/dsp";
 
@@ -29,7 +29,7 @@ namespace
   {
     if (!res)
     {
-      throw Error(ERROR_DETAIL, 1, ::strerror(errno));
+      throw Error(ERROR_DETAIL, 1, (Formatter(TEXT_ERROR_BACKEND_INIT_OSS) % ::strerror(errno)).str());
     }
   }
 
@@ -38,6 +38,7 @@ namespace
   class OSSBackend : public SimpleAsyncBackend
   {
   public:
+    typedef SimpleAsyncBackend Parent;
     OSSBackend() : DevHandle(-1)
     {
     }
@@ -116,7 +117,7 @@ namespace
 
   void Descriptor(Backend::Info& info)
   {
-    info.Description = TEXT_OSS_BACKEND_DESCRIPTON;
+    info.Description = TEXT_OSS_BACKEND_DESCRIPTION;
     info.Key = OSS_BACKEND_KEY;
   }
 

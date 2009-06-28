@@ -11,7 +11,7 @@
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="samples/hobeta/TWILIGHT.\$B" />
+				<Option parameters="ReCaLlYD.pt3" />
 				<Option projectIncludeDirsRelation="0" />
 				<Compiler>
 					<Add option="-W" />
@@ -49,6 +49,7 @@
 			<Add option="-ansi" />
 			<Add option="-funsigned-char -Wextra -pipe" />
 			<Add option="-D__STDC_CONSTANT_MACROS" />
+			<Add directory="../.." />
 			<Add directory="../../include/boost/tr1/tr1" />
 			<Add directory="../../include/boost/tr1" />
 			<Add directory="../../include" />
@@ -70,10 +71,12 @@
 		<Unit filename="../../src/lib/devices/aym/aym.cpp" />
 		<Unit filename="../../src/lib/devices/aym/aym.h" />
 		<Unit filename="../../src/lib/devices/data_source.h" />
+		<Unit filename="../../src/lib/include/convert_parameters.h" />
 		<Unit filename="../../src/lib/include/module.h" />
 		<Unit filename="../../src/lib/include/module_attrs.h" />
 		<Unit filename="../../src/lib/include/player.h" />
 		<Unit filename="../../src/lib/include/player_attrs.h" />
+		<Unit filename="../../src/lib/include/player_convert.h" />
 		<Unit filename="../../src/lib/include/sound.h" />
 		<Unit filename="../../src/lib/include/sound_attrs.h" />
 		<Unit filename="../../src/lib/include/sound_types.h" />
@@ -88,14 +91,18 @@
 		<Unit filename="../../src/lib/plugins/detector.h" />
 		<Unit filename="../../src/lib/plugins/hobeta_supp.cpp" />
 		<Unit filename="../../src/lib/plugins/hrip_supp.cpp" />
+		<Unit filename="../../src/lib/plugins/multitrack_supp.cpp" />
 		<Unit filename="../../src/lib/plugins/multitrack_supp.h" />
 		<Unit filename="../../src/lib/plugins/packed_supp.cpp" />
+		<Unit filename="../../src/lib/plugins/player_base.cpp" />
+		<Unit filename="../../src/lib/plugins/player_base.h" />
 		<Unit filename="../../src/lib/plugins/plugin_enumerator.cpp" />
 		<Unit filename="../../src/lib/plugins/plugin_enumerator.h" />
 		<Unit filename="../../src/lib/plugins/psg_supp.cpp" />
 		<Unit filename="../../src/lib/plugins/pt2_supp.cpp" />
 		<Unit filename="../../src/lib/plugins/pt3_supp.cpp" />
 		<Unit filename="../../src/lib/plugins/raw_supp.cpp" />
+		<Unit filename="../../src/lib/plugins/scl_supp.cpp" />
 		<Unit filename="../../src/lib/plugins/stc_supp.cpp" />
 		<Unit filename="../../src/lib/plugins/tracking_supp.h" />
 		<Unit filename="../../src/lib/plugins/trd_supp.cpp" />
@@ -124,12 +131,21 @@
 		<Unit filename="../../src/supp/linux/alsa_backend.cpp" />
 		<Unit filename="../../src/supp/linux/oss_backend.cpp" />
 		<Unit filename="../../src/supp/sound_backend.h" />
+		<Unit filename="../../src/supp/sound_backend_async.cpp" />
 		<Unit filename="../../src/supp/sound_backend_async.h" />
 		<Unit filename="../../src/supp/sound_backend_impl.cpp" />
 		<Unit filename="../../src/supp/sound_backend_impl.cpp.save" />
 		<Unit filename="../../src/supp/sound_backend_impl.h" />
 		<Unit filename="../../src/supp/sound_backend_types.h" />
 		<Unit filename="main.cpp" />
+		<Unit filename="../../text/common.cpp" />
+		<Unit filename="../../text/common.h" />
+		<Unit filename="../../text/errors.cpp" />
+		<Unit filename="../../text/errors.h" />
+		<Unit filename="../../text/plugins.cpp" />
+		<Unit filename="../../text/plugins.h" />
+		<Unit filename="../../text/warnings.cpp" />
+		<Unit filename="../../text/warnings.h" />
 		<Extensions>
 			<envvars />
 			<code_completion />

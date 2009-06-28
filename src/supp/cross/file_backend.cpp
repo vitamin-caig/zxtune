@@ -16,17 +16,12 @@
 #include <iomanip>
 #include <iostream>
 
+#include <text/backends.h>
+
 namespace
 {
   using namespace ZXTune;
   using namespace ZXTune::Sound;
-  //TODO
-  const String::value_type TEXT_FILE_BACKEND_DESCRIPTON[] = "File output backend";
-  const String::value_type FILE_BACKEND_KEY[] = {'f', 'i', 'l', 'e', 0};
-
-  const String::value_type TEMPLATE_LASTNAME[] = {'$', '1', 0};
-  const String::value_type TEMPLATE_FIRSTNAME[] = {'$', '2', 0};
-  const String::value_type DEFAULT_FILE_NAME[] = {'$', '1', '.', 'w', 'a', 'v', 0};
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -67,31 +62,21 @@ namespace
 
   void CutFilename(String& fname)
   {
-    const String::size_type dpos(fname.find_last_of("\\/"));
+    const String::size_type dpos(fname.find_last_of("\\/"));//TODO
     if (String::npos != dpos)
     {
       fname = fname.substr(dpos + 1);
     }
   }
 
-  const String::value_type ANNOTATION_EXT[] = {'.', 'i', 'n', 'f', 'o', 0};
-
-  //custom tags
-  const String::value_type ATTR_ALBUM[] = {'A', 'l', 'b', 'u', 'm', 0};
-  const String::value_type ATTR_TIME[] = {'T', 'i', 'm', 'e', 0};
-  const String::value_type ATTR_CHANNELS[] = {'C', 'h', 'a', 'n', 'n', 'e', 'l', 's', 0};
-  const String::value_type ATTR_CLOCKFREQ[] = {'C', 'l', 'o', 'c', 'k', 'F', 'r', 'e', 'q', 0};
-  const String::value_type ATTR_FPS[] = {'F', 'P', 'S', 0};
-  const String::value_type ATTR_CHIP[] = {'C', 'h', 'i', 'p', 0};
+  //custom tags values
   const String::value_type CHIP_YM[] = {'Y', 'M', 0};
-  const String::value_type ATTR_GAIN[] = {'G', 'a', 'i', 'n', 0};
-  const String::value_type ATTR_FILTER[] = {'F', 'i', 'l', 't', 'e', 'r', 0};
   const String::value_type DECIBELL[] = {'d', 'B', 0};
 
   void Annotate(const Module::Information& modInfo, Backend::Parameters& playInfo, const String& filename)
   {
     std::basic_ofstream<String::value_type> infoFile(filename.c_str());
-    Formatter fmt("%1%=%2%\n");
+    Formatter fmt(FILE_ANNOTATION_FORMAT);
     //store module information
     for (StringMap::const_iterator it = modInfo.Properties.begin(), lim = modInfo.Properties.end(); it != lim; ++it)
     {
@@ -103,7 +88,7 @@ namespace
         infoFile << fmt % Module::ATTR_FILENAME % subpathes.back();
         if (subpathes.size() != 1)
         {
-          infoFile << fmt % ATTR_ALBUM % subpathes.front();
+          infoFile << fmt % Module::ATTR_ALBUM % subpathes.front();
         }
       }
       else if (it->first != Module::ATTR_WARNINGS)
@@ -115,25 +100,26 @@ namespace
     const std::size_t secondsTotal = realFramesTotal / 50;
     const std::size_t minutesTotal = secondsTotal / 60;
     const std::size_t hoursTotal = secondsTotal / 3600;
-    infoFile << fmt % ATTR_TIME % boost::io::group(
+    infoFile << fmt % Module::ATTR_DURATION % boost::io::group(
       hoursTotal, ':',
       minutesTotal % 60, ':',
       secondsTotal % 60, '.', realFramesTotal % 50);
-    infoFile << fmt % ATTR_CHANNELS % modInfo.Statistic.Channels;
+    infoFile << fmt % Module::ATTR_CHANNELS % modInfo.Statistic.Channels;
     //store playback information
-    infoFile << fmt % ATTR_CLOCKFREQ % playInfo.SoundParameters.ClockFreq;
-    infoFile << fmt % ATTR_FPS % boost::io::group(std::setprecision(3), 1e6f / playInfo.SoundParameters.FrameDurationMicrosec);
+    infoFile << fmt % Module::ATTR_CLOCKFREQ % playInfo.SoundParameters.ClockFreq;
+    infoFile << fmt % Module::ATTR_FPS % boost::io::group(std::setprecision(3), 1e6f / playInfo.SoundParameters.FrameDurationMicrosec);
     if (playInfo.SoundParameters.Flags & PSG_TYPE_YM)
     {
-      infoFile << fmt % ATTR_CHIP % CHIP_YM;
+      infoFile << fmt % Module::ATTR_CHIP % CHIP_YM;
     }
     if (playInfo.Mixer->Preamp != FIXED_POINT_PRECISION)
     {
-      infoFile << fmt % ATTR_GAIN % boost::io::group(std::setprecision(3), 20.0 * log(double(FIXED_POINT_PRECISION) / playInfo.Mixer->Preamp), DECIBELL);
+      infoFile << fmt % Module::ATTR_GAIN %
+        boost::io::group(std::setprecision(3), 20.0 * log(double(FIXED_POINT_PRECISION) / playInfo.Mixer->Preamp), DECIBELL);
     }
     if (playInfo.FIROrder)
     {
-      infoFile << fmt % ATTR_FILTER % boost::io::group(playInfo.LowCutoff, '-', playInfo.HighCutoff, '@', playInfo.FIROrder);
+      infoFile << fmt % Module::ATTR_FILTER % boost::io::group(playInfo.LowCutoff, '-', playInfo.HighCutoff, '@', playInfo.FIROrder);
     }
   }
 
@@ -177,7 +163,7 @@ namespace
         (Params.DriverFlags & RAW_STREAM);
       if (!RawOutput && Params.DriverParameters.empty())
       {
-        Params.DriverParameters = DEFAULT_FILE_NAME;
+        Params.DriverParameters = TEXT_DEFAULT_FILENAME_TEMPLATE;
       }
       if (needStartup)
       {
@@ -203,12 +189,12 @@ namespace
         IO::SplitPath(it->second, subpathes);
         CutFilename(subpathes.front());
         String filename(Params.DriverParameters);
-        boost::algorithm::replace_all(filename, TEMPLATE_LASTNAME, subpathes.back());
-        boost::algorithm::replace_all(filename, TEMPLATE_FIRSTNAME, subpathes.front());
+        boost::algorithm::replace_all(filename, String(TEXT_LASTNAME_TEMPLATE), subpathes.back());
+        boost::algorithm::replace_all(filename, String(TEXT_FIRSTNAME_TEMPLATE), subpathes.front());
         if (!RawOutput && (Params.DriverFlags & ANNOTATE_STREAM))
         {
           //do annotation
-          Annotate(info, Params, filename + ANNOTATION_EXT);
+          Annotate(info, Params, filename + FILE_ANNOTATION_EXT);
         }
         File.open(filename.c_str(), std::ios::binary);
         assert(File.is_open());
@@ -286,7 +272,7 @@ namespace
 
   void Descriptor(Backend::Info& info)
   {
-    info.Description = TEXT_FILE_BACKEND_DESCRIPTON;
+    info.Description = TEXT_FILE_BACKEND_DESCRIPTION;
     info.Key = FILE_BACKEND_KEY;
   }
 

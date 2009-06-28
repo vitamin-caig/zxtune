@@ -3,6 +3,13 @@
 #define __ERRORS_H_DEFINED__
 #include <types.h>
 
+extern const String::value_type TEXT_ERROR_BACKEND_INIT_ALSA[];
+extern const String::value_type TEXT_ERROR_BACKEND_INIT_OSS[];
+extern const String::value_type TEXT_ERROR_BACKEND_INIT_WIN32[];
+extern const String::value_type TEXT_ERROR_BACKEND_INVALID_BUFFER_DEPTH[];
+extern const String::value_type TEXT_ERROR_BACKEND_INVALID_MIXER[];
+extern const String::value_type TEXT_ERROR_BACKEND_INVALID_PLAYER[];
+extern const String::value_type TEXT_ERROR_BACKEND_INVALID_STATE[];
 extern const String::value_type TEXT_ERROR_CONTAINER_EMPTY[];
 extern const String::value_type TEXT_ERROR_CONTAINER_PLAYER[];
 extern const String::value_type TEXT_ERROR_CONVERSION_UNSUPPORTED[];
