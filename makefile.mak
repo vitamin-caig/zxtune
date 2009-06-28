@@ -23,13 +23,13 @@ ARCH := k8
 
 CXX := g++
 
-CXX_FLAGS := -O3 -g -DNDEBUG -D__STDC_CONSTANT_MACROS -march=$(ARCH) \
+CXX_FLAGS := -O3 -g1 -DNDEBUG -D__STDC_CONSTANT_MACROS -march=$(ARCH) \
 	    -funroll-loops -funsigned-char -fno-strict-aliasing \
 	    -W -Wall -ansi -pthread -pipe \
 	    $(addprefix -I, $(include_dirs)) $(addprefix -D, $(definitions))
 
 AR_FLAGS := cru
-LD_FLAGS := -s -pipe
+LD_FLAGS := -pipe
 
 LD_SOLID_BEFORE := -Wl,--whole-archive
 LD_SOLID_AFTER := -Wl,--no-whole-archive

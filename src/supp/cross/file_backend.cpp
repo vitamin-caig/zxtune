@@ -182,15 +182,19 @@ namespace
       else
       {
         Module::Information info;
-        GetModuleInfo(info);
-        StringMap::const_iterator it(info.Properties.find(Module::ATTR_FILENAME));
-        assert(it != info.Properties.end());
+        assert(Player);
+        Player->GetModuleInfo(info);
         StringArray subpathes;
-        IO::SplitPath(it->second, subpathes);
+        IO::SplitPath(info.Properties[Module::ATTR_FILENAME], subpathes);
         CutFilename(subpathes.front());
         String filename(Params.DriverParameters);
         boost::algorithm::replace_all(filename, String(TEXT_LASTNAME_TEMPLATE), subpathes.back());
         boost::algorithm::replace_all(filename, String(TEXT_FIRSTNAME_TEMPLATE), subpathes.front());
+        StringMap::const_iterator it(info.Properties.find(Module::ATTR_CRC));
+        if (it != info.Properties.end())
+        {
+          boost::algorithm::replace_all(filename, String(TEXT_CRC_TEMPLATE), it->second);
+        }
         if (!RawOutput && (Params.DriverFlags & ANNOTATE_STREAM))
         {
           //do annotation

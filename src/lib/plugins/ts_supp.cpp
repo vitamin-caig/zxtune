@@ -229,7 +229,7 @@ namespace
 
     virtual void Convert(const Conversion::Parameter& param, Dump& dst) const
     {
-      throw Error(ERROR_DETAIL, 1);//TODO
+      throw Error(ERROR_DETAIL, 1, TEXT_ERROR_CONVERSION_UNSUPPORTED);//TODO
     }
 
   private:

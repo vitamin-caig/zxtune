@@ -27,6 +27,9 @@ __cpp> "#endif //__ERRORS_H_DEFINED__\n"
 < TEXT_ERROR_INVALID_STRING
 > "Invalid string: '%1%'"
 
+< TEXT_ERROR_INVALID_FILTER
+> "Invalid FIR filter parameters specified"
+
 < TEXT_ERROR_BACKEND_INVALID_BUFFER_DEPTH
 > "Invalid buffer depth specified"
 

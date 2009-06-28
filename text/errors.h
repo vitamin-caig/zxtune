@@ -13,6 +13,7 @@ extern const String::value_type TEXT_ERROR_BACKEND_INVALID_STATE[];
 extern const String::value_type TEXT_ERROR_CONTAINER_EMPTY[];
 extern const String::value_type TEXT_ERROR_CONTAINER_PLAYER[];
 extern const String::value_type TEXT_ERROR_CONVERSION_UNSUPPORTED[];
+extern const String::value_type TEXT_ERROR_INVALID_FILTER[];
 extern const String::value_type TEXT_ERROR_INVALID_MODULE[];
 extern const String::value_type TEXT_ERROR_INVALID_STRING[];
 extern const String::value_type TEXT_ERROR_OPEN_FILE[];

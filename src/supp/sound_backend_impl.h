@@ -34,6 +34,7 @@ namespace ZXTune
       virtual void SetSoundParameters(const Parameters& params);
 
     protected:
+      //internal usage functions. Should not call external interface funcs due to sync
       virtual void OnBufferReady(const void* data, std::size_t sizeInBytes) = 0;
       //changed fields
       enum
@@ -57,6 +58,7 @@ namespace ZXTune
       virtual void OnResume() = 0;
     protected:
       Parameters Params;
+      ModulePlayer::Ptr Player;
 
     private:
       ModulePlayer::State SafeRenderFrame();
@@ -70,11 +72,9 @@ namespace ZXTune
       boost::thread PlayerThread;
       mutable boost::mutex PlayerMutex;
       boost::barrier SyncBarrier;
-      class PlayThreadRAII;
     private:
       volatile State CurrentState;
       volatile bool InProcess;//STOP => STOPPING, STARTED => STARTING
-      ModulePlayer::Ptr Player;
       Convertor::Ptr Mixer;
       Convertor::Ptr Filter;
       std::vector<signed> FilterCoeffs;

@@ -59,7 +59,7 @@ namespace
 
       virtual void Reset()
       {
-        Offset = 0;
+        Offset = SCAN_STEP;
       }
 
       virtual void Reset(const String& filename)

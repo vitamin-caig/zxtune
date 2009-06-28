@@ -245,6 +245,7 @@ namespace
         std::cout << infos;
         std::cout <<
           "Backend-specific parameters:\n"
+          "--file <name>     -- specify result name template. Supported [name], [container] and [crc] fields\n"
           "--raw             -- produce raw output (file backend)\n"
           "--annotate        -- annotate file (file backend)\n"
 

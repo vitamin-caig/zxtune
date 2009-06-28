@@ -25,17 +25,21 @@ extern const String::value_type OSS_BACKEND_KEY[] = {
 extern const String::value_type TEXT_ALSA_BACKEND_DESCRIPTION[] = {
   'A','L','S','A',' ','s','o','u','n','d',' ','s','y','s','t','e','m',' ','b','a','c','k','e','n','d',0
 };
+extern const String::value_type TEXT_CRC_TEMPLATE[] = {
+  '[','c','r','c',']',0
+};
 extern const String::value_type TEXT_DEFAULT_FILENAME_TEMPLATE[] = {
-  '$','1','.','w','a','v',0
+  '[','c','o','n','t','a','i','n','e','r',']',' ','-',' ','[','n','a','m','e',']',' ','(','[','c','r','c',']',
+  ')','.','w','a','v',0
 };
 extern const String::value_type TEXT_FILE_BACKEND_DESCRIPTION[] = {
   'F','i','l','e',' ','o','u','t','p','u','t',' ','b','a','c','k','e','n','d',0
 };
 extern const String::value_type TEXT_FIRSTNAME_TEMPLATE[] = {
-  '$','2',0
+  '[','c','o','n','t','a','i','n','e','r',']',0
 };
 extern const String::value_type TEXT_LASTNAME_TEMPLATE[] = {
-  '$','1',0
+  '[','n','a','m','e',']',0
 };
 extern const String::value_type TEXT_NULL_BACKEND_DESCRIPTION[] = {
   'N','u','l','l',' ','o','u','t','p','u','t',' ','b','a','c','k','e','n','d',0

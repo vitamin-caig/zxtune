@@ -1,6 +1,7 @@
 #include "filter.h"
 
 #include <tools.h>
+#include <error.h>
 
 #include <boost/noncopyable.hpp>
 #include <boost/static_assert.hpp>
@@ -8,6 +9,10 @@
 #include <cmath>
 #include <limits>
 #include <cassert>
+
+#include <text/errors.h>
+
+#define FILE_TAG 8A9585D9
 
 namespace
 {
@@ -134,7 +139,7 @@ namespace ZXTune
       const std::size_t order = coeffs.size();
       if (order > FIRFilter<signed>::MAX_ORDER)
       {
-        throw 1;
+        throw Error(ERROR_DETAIL, 1, TEXT_ERROR_INVALID_FILTER);//TODO: code
       }
       highCutoff = std::min(highCutoff, freq / 2);
       lowCutoff = std::min(lowCutoff, highCutoff);

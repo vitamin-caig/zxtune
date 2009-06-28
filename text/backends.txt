@@ -18,13 +18,16 @@ __cpp> "#endif //__BACKENDS_H_DEFINED__\n"
 > "file"
 
 < TEXT_LASTNAME_TEMPLATE
-> "$1"
+> "[name]"
 
 < TEXT_FIRSTNAME_TEMPLATE
-> "$2"
+> "[container]"
+
+< TEXT_CRC_TEMPLATE
+> "[crc]"
 
 < TEXT_DEFAULT_FILENAME_TEMPLATE
-> "$1.wav"
+> "[container] - [name] ([crc]).wav"
 
 #tags
 < FILE_ANNOTATION_EXT

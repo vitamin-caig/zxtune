@@ -62,44 +62,11 @@ namespace ZXTune
 {
   namespace Sound
   {
-    class BackendImpl::PlayThreadRAII
-    {
-    public:
-      explicit PlayThreadRAII(BackendImpl& impl) : Object(impl)
-      {
-        Object.OnStartup();
-        Object.CurrentState = STARTED;
-        Object.InProcess = false;//starting finished
-        Object.SyncBarrier.wait();
-      }
-
-      ~PlayThreadRAII()
-      {
-        try
-        {
-          Object.OnShutdown();
-          Object.CurrentState = STOPPED;
-          Object.InProcess = false; //stopping finished
-          Object.SyncBarrier.wait();
-        }
-        catch (const Error&)
-        {
-        //TODO: logging or storing error
-          Object.CurrentState = ERROR;
-          Object.InProcess = false;
-          Object.SyncBarrier.wait();
-        }
-      }
-
-    private:
-      BackendImpl& Object;
-    };
-
     BackendImpl::BackendImpl()
-      : Params()
+      : Params(), Player()
       , PlayerThread(), PlayerMutex(), SyncBarrier(TOTAL_WORKING_THREADS)
       , CurrentState(NOTOPENED), InProcess(false)
-      , Player(), Mixer(), Filter(), FilterCoeffs(), Renderer()
+      , Mixer(), Filter(), FilterCoeffs(), Renderer()
     {
       GetInitialParameters(Params);
     }
@@ -138,14 +105,12 @@ namespace ZXTune
       Locker lock(PlayerMutex);
       CheckState();
       const State prevState(CurrentState);
-      //CurrentState = STARTED;
-      InProcess = true;//starting now
       if (STOPPED == prevState)
       {
         assert(Player.get());
         Player->Reset();
         PlayerThread = boost::thread(std::mem_fun(&BackendImpl::PlayFunc), this);
-        SyncBarrier.wait();//wait for real starting
+        SyncBarrier.wait();//wait until real start
       }
       else if (PAUSED == prevState)
       {
@@ -367,15 +332,19 @@ namespace ZXTune
     {
       try
       {
-        PlayThreadRAII raii(*this);
+        CurrentState = STARTED;
+        InProcess = true;//starting begin
+        OnStartup();//throw
+        SyncBarrier.wait();
+        InProcess = false;//starting finished
         while (STOPPED != CurrentState)
         {
           if (STARTED == CurrentState)
           {
-            if (ModulePlayer::MODULE_STOPPED == SafeRenderFrame())
+            if (ModulePlayer::MODULE_STOPPED == SafeRenderFrame())//throw
             {
               CurrentState = STOPPED;
-              InProcess = true;//stopping now
+              InProcess = true; //stopping begin
               break;
             }
           }
@@ -384,12 +353,15 @@ namespace ZXTune
             boost::this_thread::sleep(PLAYTHREAD_SLEEP_PERIOD);
           }
         }
+        OnShutdown();//throw
+        SyncBarrier.wait();
+        InProcess = false; //stopping finished
       }
       catch (const Error& e)
       {
         CurrentState = ERROR;
-        InProcess = false;
         SyncBarrier.wait();
+        InProcess = false;
         //TODO: store error
       }
     }

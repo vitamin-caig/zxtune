@@ -10,6 +10,7 @@ extern const String::value_type FILE_BACKEND_KEY[];
 extern const String::value_type NULL_BACKEND_KEY[];
 extern const String::value_type OSS_BACKEND_KEY[];
 extern const String::value_type TEXT_ALSA_BACKEND_DESCRIPTION[];
+extern const String::value_type TEXT_CRC_TEMPLATE[];
 extern const String::value_type TEXT_DEFAULT_FILENAME_TEMPLATE[];
 extern const String::value_type TEXT_FILE_BACKEND_DESCRIPTION[];
 extern const String::value_type TEXT_FIRSTNAME_TEMPLATE[];

@@ -41,6 +41,10 @@ extern const String::value_type TEXT_ERROR_CONVERSION_UNSUPPORTED[] = {
   'F','a','i','l','e','d',' ','t','o',' ','c','o','n','v','e','r','t',' ','t','o',' ','u','n','s','u','p','p',
   'o','r','t','e','d',' ','f','o','r','m','a','t',0
 };
+extern const String::value_type TEXT_ERROR_INVALID_FILTER[] = {
+  'I','n','v','a','l','i','d',' ','F','I','R',' ','f','i','l','t','e','r',' ','p','a','r','a','m','e','t','e',
+  'r','s',' ','s','p','e','c','i','f','i','e','d',0
+};
 extern const String::value_type TEXT_ERROR_INVALID_MODULE[] = {
   'I','n','v','a','l','i','d',' ','m','o','d','u','l','e',' ','f','o','r','m','a','t',0
 };

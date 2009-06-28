@@ -4,7 +4,13 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/shared_array.hpp>
 
+#include <error.h>
+
 #include <fstream>
+
+#include <text/errors.h>
+
+#define FILE_TAG 3C7E1CB7
 
 namespace
 {
@@ -106,7 +112,7 @@ namespace ZXTune
       FileContainerImpl::SharedStream stream(new std::ifstream(ExtractFSPath(filename).c_str(), std::ios::binary));
       if (!*stream)
       {
-        throw 1;//TODO
+        throw Error(ERROR_DETAIL, 1, (Formatter(TEXT_ERROR_OPEN_FILE) % filename).str());
       }
       //std::cout << "Reading " << filename << std::endl;
       stream->seekg(0, std::ios::end);
