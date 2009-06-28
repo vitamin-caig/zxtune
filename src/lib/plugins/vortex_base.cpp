@@ -7,7 +7,7 @@
 
 #include <boost/algorithm/string.hpp>
 
-#define FILE_TAG 23C2245
+#define FILE_TAG 023C2245
 
 namespace
 {

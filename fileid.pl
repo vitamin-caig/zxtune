@@ -23,10 +23,11 @@ sub scan
       my $val = join '',@cont;
       if ($val =~ /define\s+FILE_TAG\s+([a-fA-F0-9]+)/)
       {
+        die "Duplicated tags in files ${TagHash{hex $1}} and $file" if exists $TagHash{hex $1};
         $TagHash{hex $1} = $file;
         print "Matched in $file\n";
-	my $size = length $1;
-	print "Warning! Tag size invalid ($size)\n" if $size != 8;
+        my $size = length $1;
+        print "Warning! Tag size invalid ($size)\n" if $size != 8;
       }
     }
   }
@@ -35,7 +36,7 @@ sub scan
 if (0 == scalar @ARGV) #no params
 {
   srand(time());
-  printf "#define FILE_TAG %X\n", rand(1 << 32);
+  printf "#define FILE_TAG %08X\n", rand(1 << 32);
   exit 0;
 }
 

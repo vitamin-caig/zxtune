@@ -19,7 +19,7 @@
 #include <text/plugins.h>
 #include <text/warnings.h>
 
-#define FILE_TAG 77C8579
+#define FILE_TAG 077C8579
 
 namespace
 {
