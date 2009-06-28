@@ -112,7 +112,7 @@ namespace ZXTune
       FileContainerImpl::SharedStream stream(new std::ifstream(ExtractFSPath(filename).c_str(), std::ios::binary));
       if (!*stream)
       {
-        throw Error(ERROR_DETAIL, 1, (Formatter(TEXT_ERROR_OPEN_FILE) % filename).str());
+        throw MakeFormattedError(ERROR_DETAIL, 1, TEXT_ERROR_OPEN_FILE, filename);
       }
       //std::cout << "Reading " << filename << std::endl;
       stream->seekg(0, std::ios::end);

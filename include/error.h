@@ -38,17 +38,19 @@ struct Error
     const char* Function;
     std::size_t Line;
   };
+  typedef const Detail& DetailRef;
 #else
   typedef ErrorTag Detail;
+  typedef Detail DetailRef;
 #endif
 
   Error() : Dtl(), Code(0), Text() //success
   {
   }
-  Error(Detail dtl, std::size_t code) : Dtl(dtl), Code(code), Text()
+  Error(DetailRef dtl, std::size_t code) : Dtl(dtl), Code(code), Text()
   {
   }
-  Error(Detail dtl, std::size_t code, const String& text) : Dtl(dtl), Code(code), Text(text)
+  Error(DetailRef dtl, std::size_t code, const String& text) : Dtl(dtl), Code(code), Text(text)
   {
   }
   operator bool () const
@@ -63,6 +65,20 @@ struct Error
   std::size_t Code;
   String Text;
 };
+
+template<class P1>
+inline Error MakeFormattedError(Error::DetailRef dtl, std::size_t code, const String::value_type* fmt, 
+  const P1& p1)
+{
+  return Error(dtl, code, (Formatter(fmt) % p1).str());
+}
+
+template<class P1, class P2>
+inline Error MakeFormattedError(Error::DetailRef dtl, std::size_t code, const String::value_type* fmt, 
+  const P1& p1, const P2& p2)
+{
+  return Error(dtl, code, (Formatter(fmt) % p1 % p2).str());
+}
 
 #define MKTAG1(a) 0x ## a
 #define MKTAG(a) MKTAG1(a)

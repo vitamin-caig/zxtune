@@ -27,7 +27,7 @@ namespace
   {
     if (res < 0)
     {
-      throw Error(ERROR_DETAIL, 1, (Formatter(TEXT_ERROR_BACKEND_INIT_ALSA) % ::snd_strerror(res)).str());
+      throw MakeFormattedError(ERROR_DETAIL, 1, TEXT_ERROR_BACKEND_INIT_ALSA, ::snd_strerror(res));
     }
   }
 

@@ -21,7 +21,7 @@ namespace
   {
     if (MMSYSERR_NOERROR != res)
     {
-      throw Error(ERROR_DETAIL, 1, (Formatter(TEXT_ERROR_BACKEND_INIT_WIN32) % res).str());//TODO
+      throw MakeFormattedError(ERROR_DETAIL, 1, TEXT_ERROR_BACKEND_INIT_WIN32, res);//TODO
     }
   }
 

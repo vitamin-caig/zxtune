@@ -2,6 +2,7 @@
 #include "../sound_backend_impl.h"
 #include "../sound_backend_types.h"
 
+#include <error.h>
 #include <tools.h>
 
 #include <module.h>
@@ -16,7 +17,10 @@
 #include <iomanip>
 #include <iostream>
 
+#include <text/errors.h>
 #include <text/backends.h>
+
+#define FILE_TAG EF5CB4C6
 
 namespace
 {
@@ -76,6 +80,10 @@ namespace
   void Annotate(const Module::Information& modInfo, Backend::Parameters& playInfo, const String& filename)
   {
     std::basic_ofstream<String::value_type> infoFile(filename.c_str());
+    if (!infoFile)
+    {
+      throw MakeFormattedError(ERROR_DETAIL, 1, TEXT_ERROR_OPEN_FILE, filename);
+    }
     Formatter fmt(FILE_ANNOTATION_FORMAT);
     //store module information
     for (StringMap::const_iterator it = modInfo.Properties.begin(), lim = modInfo.Properties.end(); it != lim; ++it)
@@ -201,7 +209,10 @@ namespace
           Annotate(info, Params, filename + FILE_ANNOTATION_EXT);
         }
         File.open(filename.c_str(), std::ios::binary);
-        assert(File.is_open());
+        if (!File.is_open())
+        {
+          throw MakeFormattedError(ERROR_DETAIL, 1, TEXT_ERROR_OPEN_FILE, filename);
+        }
         File.seekp(sizeof(Format));
         Stream = &File;
       }
