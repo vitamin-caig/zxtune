@@ -30,6 +30,7 @@ namespace ZXTune
         STOPPED,
         PAUSED,
         STARTED,
+        ERROR
       };
 
       struct Info

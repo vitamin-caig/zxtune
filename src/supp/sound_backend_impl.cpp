@@ -67,16 +67,28 @@ namespace ZXTune
     public:
       explicit PlayThreadRAII(BackendImpl& impl) : Object(impl)
       {
-        Object.SyncBarrier.wait();
-        Object.InProcess = false;//starting finished
         Object.OnStartup();
+        Object.CurrentState = STARTED;
+        Object.InProcess = false;//starting finished
+        Object.SyncBarrier.wait();
       }
 
       ~PlayThreadRAII()
       {
-        Object.OnShutdown();
-        Object.SyncBarrier.wait();
-        Object.InProcess = false; //stopping finished
+        try
+        {
+          Object.OnShutdown();
+          Object.CurrentState = STOPPED;
+          Object.InProcess = false; //stopping finished
+          Object.SyncBarrier.wait();
+        }
+        catch (const Error&)
+        {
+        //TODO: logging or storing error
+          Object.CurrentState = ERROR;
+          Object.InProcess = false;
+          Object.SyncBarrier.wait();
+        }
       }
 
     private:
@@ -126,7 +138,7 @@ namespace ZXTune
       Locker lock(PlayerMutex);
       CheckState();
       const State prevState(CurrentState);
-      CurrentState = STARTED;
+      //CurrentState = STARTED;
       InProcess = true;//starting now
       if (STOPPED == prevState)
       {
@@ -353,22 +365,32 @@ namespace ZXTune
 
     void BackendImpl::PlayFunc()
     {
-      PlayThreadRAII raii(*this);
-      while (STOPPED != CurrentState)
+      try
       {
-        if (STARTED == CurrentState)
+        PlayThreadRAII raii(*this);
+        while (STOPPED != CurrentState)
         {
-          if (ModulePlayer::MODULE_STOPPED == SafeRenderFrame())
+          if (STARTED == CurrentState)
           {
-            CurrentState = STOPPED;
-            InProcess = true;//stopping now
-            break;
+            if (ModulePlayer::MODULE_STOPPED == SafeRenderFrame())
+            {
+              CurrentState = STOPPED;
+              InProcess = true;//stopping now
+              break;
+            }
+          }
+          else if (PAUSED == CurrentState)
+          {
+            boost::this_thread::sleep(PLAYTHREAD_SLEEP_PERIOD);
           }
         }
-        else if (PAUSED == CurrentState)
-        {
-          boost::this_thread::sleep(PLAYTHREAD_SLEEP_PERIOD);
-        }
+      }
+      catch (const Error& e)
+      {
+        CurrentState = ERROR;
+        InProcess = false;
+        SyncBarrier.wait();
+        //TODO: store error
       }
     }
 

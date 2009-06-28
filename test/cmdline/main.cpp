@@ -479,7 +479,10 @@ namespace
     std::size_t dump[100] = {0};
     bool quit(false);
 
-    Backend->Play();
+    if (Sound::Backend::ERROR == Backend->Play())
+    {
+      return false;
+    }
 
     if (!Silent)
     {
@@ -488,7 +491,7 @@ namespace
 
     for (;;)
     {
-      const bool stop(Sound::Backend::STOPPED == Backend->GetState());
+      const bool stop(Sound::Backend::STOPPED == Backend->GetState() || Sound::Backend::ERROR == Backend->GetState());
       if (!Silent && !Quiet)
       {
         std::size_t frame;

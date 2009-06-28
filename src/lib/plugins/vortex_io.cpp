@@ -344,7 +344,7 @@ namespace
     }
     result += ' ';
     result += ToHexSym(chan.SampleNum ? *chan.SampleNum : 0);
-    result += ToHexSym(envType);
+    result += ToHexSym(envType ? envType : (chan.OrnamentNum && !*chan.OrnamentNum ? 15 : 0));
     result += ToHexSym(chan.OrnamentNum ? *chan.OrnamentNum : 0);
     result += ToHexSym(chan.Volume ? *chan.Volume : 0);
     result += ' ';

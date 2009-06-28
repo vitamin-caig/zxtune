@@ -277,6 +277,7 @@ namespace
         }
         IndexPrefix pfx(warner, TEXT_CHANNEL_WARN_PREFIX, chan);
         Line::Chan& channel(line.Channels[chan]);
+        bool wasOrnament(false);
         for (;;)
         {
           const unsigned cmd(data[offsets[chan]++]);
@@ -319,8 +320,9 @@ namespace
             {
               const bool ornValid(cmd - 0xf0 < maxOrnaments);
               warner.Assert(ornValid, TEXT_WARNING_INVALID_ORNAMENT);
-              warner.Assert(!channel.OrnamentNum, TEXT_WARNING_DUPLICATE_ORNAMENT);
+              warner.Assert(!wasOrnament, TEXT_WARNING_DUPLICATE_ORNAMENT);
               channel.OrnamentNum = ornaments[chan] = ornValid ? (cmd - 0xf0) : 0;
+              wasOrnament = true;
             }
             else
             {
@@ -362,15 +364,9 @@ namespace
           {
             const bool ornValid(cmd - 0x40 < maxOrnaments);
             warner.Assert(ornValid, TEXT_WARNING_INVALID_ORNAMENT);
-            warner.Assert(!channel.OrnamentNum, TEXT_WARNING_DUPLICATE_ORNAMENT);
+            warner.Assert(!wasOrnament, TEXT_WARNING_DUPLICATE_ORNAMENT);
             channel.OrnamentNum = ornaments[chan] = ornValid ? (cmd - 0x40) : 0;
-            //In despite of oficial documentation, editor cannot insert 0x40 command without
-            //envelope switch off. But there's no 0xb0 command in stream... Dumn optimization...
-            if (!*channel.OrnamentNum)
-            {
-              assert(channel.Commands.end() == std::find(channel.Commands.begin(), channel.Commands.end(), NOENVELOPE));
-              channel.Commands.push_back(Parent::Command(NOENVELOPE));
-            }
+            wasOrnament = true;
           }
           else if (cmd >= 0x50 && cmd <= 0xaf)
           {
@@ -473,7 +469,6 @@ namespace
       {
         line.Channels.back().Commands.push_back(Parent::Command(NOISEBASE, noiseBase));
       }
-
     }
 
   public:
@@ -524,12 +519,6 @@ namespace
           pat.push_back(Line());
           Line& line(pat.back());
           ParsePattern(data, offsets, ornaments, noiseBase, line, periods, counters, warner);
-          //skip lines
-          if (const std::size_t linesToSkip = counters.min())
-          {
-            counters -= linesToSkip;
-            pat.resize(pat.size() + linesToSkip);//add dummies
-          }
         }
         while (data[offsets[0]] || counters[0]);
         //as warnings
