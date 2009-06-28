@@ -28,39 +28,9 @@ namespace
 
   const std::size_t TEXT_MAX_SIZE = 1048576;//1M is more than enough
 
-  const String::value_type SECTION_MODULE[] = {'[', 'M', 'o', 'd', 'u', 'l', 'e', ']', 0};
-  const String::value_type SECTION_ORNAMENT[] = {'[', 'O', 'r', 'n', 'a', 'm', 'e', 'n', 't', 0};
-  const String::value_type SECTION_SAMPLE[] = {'[', 'S', 'a', 'm', 'p', 'l', 'e', 0};
-  const String::value_type SECTION_PATTERN[] = {'[', 'P', 'a', 't', 't', 'e', 'r', 'n', 0};
-
   inline bool FindSection(const String& str)
   {
     return str.size() >= 3 && str[0] == '[' && str[str.size() - 1] == ']';
-  }
-
-  inline bool FindSectionIt(StringArray::const_iterator it)
-  {
-    return it->size() >= 3 && (*it)[0] == '[' && (*it)[it->size() - 1] == ']';
-  }
-
-  inline bool IsSection(const String& templ, const String& str, std::size_t& idx)
-  {
-    return 0 == str.find(templ) && (idx = std::atoi(str.substr(templ.size()).c_str()), true);
-  }
-
-  inline bool IsOrnamentSection(const String& str, std::size_t& idx)
-  {
-    return IsSection(SECTION_ORNAMENT, str, idx);
-  }
-
-  inline bool IsSampleSection(const String& str, std::size_t& idx)
-  {
-    return IsSection(SECTION_SAMPLE, str, idx);
-  }
-
-  inline bool IsPatternSection(const String& str, std::size_t& idx)
-  {
-    return IsSection(SECTION_PATTERN, str, idx);
   }
 
   template<class T>
@@ -98,15 +68,15 @@ namespace
         const String& string(*it);
         const StringArray::const_iterator next(std::find_if(++it, lim, FindSection));
         std::size_t idx(0);
-        if (string == SECTION_MODULE)
+        if (Tracking::DescriptionHeaderFromString(string))
         {
-	  const StringArray::const_iterator stop(DescriptionFromStrings(it, next, descr));
+          const StringArray::const_iterator stop(DescriptionFromStrings(it, next, descr));
           if (next != stop)
           {
             throw Error(ERROR_DETAIL, 1, (fmt % *stop).str());//TODO:code
           }
         }
-        else if (IsOrnamentSection(string, idx))
+        else if (Tracking::OrnamentHeaderFromString(string, idx))
         {
           Data.Ornaments.resize(idx + 1);
           if (!OrnamentFromString(*it, Data.Ornaments[idx]))
@@ -114,19 +84,19 @@ namespace
             throw Error(ERROR_DETAIL, 1, (fmt % *it).str());//TODO:code
           }
         }
-        else if (IsSampleSection(string, idx))
+        else if (Tracking::SampleHeaderFromString(string, idx))
         {
           Data.Samples.resize(idx + 1);
-	  const StringArray::const_iterator stop(SampleFromStrings(it, next, Data.Samples[idx]));
+          const StringArray::const_iterator stop(SampleFromStrings(it, next, Data.Samples[idx]));
           if (next != stop)
           {
             throw Error(ERROR_DETAIL, 1, (fmt % *stop).str());//TODO:code
           }
         }
-        else if (IsPatternSection(string, idx))
+        else if (Tracking::PatternHeaderFromString(string, idx))
         {
           Data.Patterns.resize(idx + 1);
-	  const StringArray::const_iterator stop(PatternFromStrings(it, next, Data.Patterns[idx]));
+          const StringArray::const_iterator stop(PatternFromStrings(it, next, Data.Patterns[idx]));
           if (next != stop)
           {
             throw Error(ERROR_DETAIL, 1, (fmt % *stop).str());//TODO:code
@@ -174,7 +144,8 @@ namespace
   bool Checking(const String& /*filename*/, const IO::DataContainer& source, uint32_t /*capFilter*/)
   {
     const String::value_type* const data(static_cast<const String::value_type*>(source.Data()));
-    return 0 == memcmp(data, SECTION_MODULE, sizeof(SECTION_MODULE) - 1);
+    return Tracking::DescriptionHeaderFromString(String(data, std::find_if(data, data + source.Size(),
+      static_cast<int(*)(int)>(&std::iscntrl))));
   }
 
   ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data, uint32_t /*capFilter*/)

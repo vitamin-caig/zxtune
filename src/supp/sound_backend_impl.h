@@ -1,6 +1,8 @@
 #ifndef __SOUND_BACKEND_IMPL_H_DEFINED__
 #define __SOUND_BACKEND_IMPL_H_DEFINED__
 
+#include <error.h>
+
 #include "sound_backend.h"
 
 #include <boost/thread.hpp>
@@ -75,6 +77,7 @@ namespace ZXTune
     private:
       volatile State CurrentState;
       volatile bool InProcess;//STOP => STOPPING, STARTED => STARTING
+      Error CurrentError;
       Convertor::Ptr Mixer;
       Convertor::Ptr Filter;
       std::vector<signed> FilterCoeffs;

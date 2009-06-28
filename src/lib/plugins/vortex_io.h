@@ -8,6 +8,7 @@ namespace ZXTune
   namespace Tracking
   {
     //Deserialization
+    bool SampleHeaderFromString(const String& str, std::size_t& idx);
     bool SampleLineFromString(const String& str, VortexPlayer::Sample::Line& line, bool& looped);
 
     template<class Iterator>
@@ -36,8 +37,10 @@ namespace ZXTune
       return it;
     }
 
+    bool OrnamentHeaderFromString(const String& str, std::size_t& idx);
     bool OrnamentFromString(const String& str, VortexPlayer::Ornament& ornament);
 
+    bool PatternHeaderFromString(const String& str, std::size_t& idx);
     bool PatternLineFromString(const String& str, VortexPlayer::Line& line);
 
     template<class Iterator>
@@ -77,6 +80,7 @@ namespace ZXTune
       String PropertyToString(std::size_t idx) const;
     };
 
+    bool DescriptionHeaderFromString(const String& str);
 
     template<class Iterator>
     Iterator DescriptionFromStrings(Iterator it, Iterator lim, VortexDescr& descr)
@@ -101,13 +105,14 @@ namespace ZXTune
     }
 
     //Serialization
+    String SampleHeaderToString(std::size_t idx);
     String SampleLineToString(const VortexPlayer::Sample::Line& line, bool looped);
 
     template<class Iterator>
     Iterator SampleToStrings(const VortexPlayer::Sample& sample, Iterator it)
     {
       std::size_t lpos(sample.Loop);
-      for (std::vector<VortexPlayer::Sample::Line>::const_iterator sit = sample.Data.begin(), 
+      for (std::vector<VortexPlayer::Sample::Line>::const_iterator sit = sample.Data.begin(),
         slim = sample.Data.end(); sit != slim; ++sit, --lpos, ++it)
       {
         *it = SampleLineToString(*sit, !lpos);
@@ -115,8 +120,10 @@ namespace ZXTune
       return it;//empty line at end
     }
 
+    String OrnamentHeaderToString(std::size_t idx);
     String OrnamentToString(const VortexPlayer::Ornament& ornament);
 
+    String PatternHeaderToString(std::size_t idx);
     String PatternLineToString(const VortexPlayer::Line& line);
 
     template<class Iterator>
@@ -125,6 +132,7 @@ namespace ZXTune
       return std::transform(pat.begin(), pat.end(), it, PatternLineToString);
     }
 
+    String DescriptionHeaderToString();
     template<class Iterator>
     Iterator DescriptionToStrings(const VortexDescr& descr, Iterator it)
     {

@@ -239,34 +239,34 @@ namespace ZXTune
         descr.Order = Data.Positions;
         StringArray asArray;
         std::back_insert_iterator<StringArray> iter(asArray);
-        *iter = "[Module]"; ++iter;
-        iter = DescriptionToStrings(descr, iter);
+        *iter = DescriptionHeaderToString();
+        iter = DescriptionToStrings(descr, ++iter);
         *iter = String();//free
         for (std::size_t idx = 1; idx != Data.Ornaments.size(); ++idx)
         {
           if (Data.Ornaments[idx].Data.size())
           {
-            *iter = (Formatter("[Ornament%1%]") % idx).str();
-            *iter = OrnamentToString(Data.Ornaments[idx]);
-            *iter = String();//free
+            *++iter = OrnamentHeaderToString(idx);
+            *++iter = OrnamentToString(Data.Ornaments[idx]);
+            *++iter = String();//free
           }
         }
         for (std::size_t idx = 1; idx != Data.Samples.size(); ++idx)
         {
           if (Data.Samples[idx].Data.size())
           {
-            *iter = (Formatter("[Sample%1%]") % idx).str();
+            *++iter = SampleHeaderToString(idx);
             iter = SampleToStrings(Data.Samples[idx], ++iter);
-            *iter = String();
+            *++iter = String();
           }
         }
         for (std::size_t idx = 0; idx != Data.Patterns.size(); ++idx)
         {
           if (Data.Patterns[idx].size())
           {
-            *iter = (Formatter("[Pattern%1%]") % idx).str();
+            *++iter = PatternHeaderToString(idx);
             iter = PatternToStrings(Data.Patterns[idx], ++iter);
-            *iter = String();
+            *++iter = String();
           }
         }
         const String& result(boost::algorithm::join(asArray, DELIMITER));

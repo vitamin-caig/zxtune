@@ -190,7 +190,7 @@ namespace
       else
       {
         Module::Information info;
-        assert(Player);
+        assert(Player.get());
         Player->GetModuleInfo(info);
         StringArray subpathes;
         IO::SplitPath(info.Properties[Module::ATTR_FILENAME], subpathes);

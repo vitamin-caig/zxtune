@@ -11,7 +11,7 @@
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="ReCaLlYD.pt3" />
+				<Option parameters="e7e2f78b.txt" />
 				<Option projectIncludeDirsRelation="0" />
 				<Compiler>
 					<Add option="-W" />
@@ -137,7 +137,14 @@
 		<Unit filename="../../src/supp/sound_backend_impl.cpp.save" />
 		<Unit filename="../../src/supp/sound_backend_impl.h" />
 		<Unit filename="../../src/supp/sound_backend_types.h" />
+		<Unit filename="../../src/supp/win/win32_backend.cpp">
+			<Option compile="0" />
+			<Option link="0" />
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
 		<Unit filename="main.cpp" />
+		<Unit filename="../../text/backends.cpp" />
+		<Unit filename="../../text/backends.h" />
 		<Unit filename="../../text/common.cpp" />
 		<Unit filename="../../text/common.h" />
 		<Unit filename="../../text/errors.cpp" />

@@ -1,6 +1,5 @@
 #include "sound_backend_impl.h"
 
-#include <error.h>
 #include <tools.h>
 
 #include <player_attrs.h>
@@ -65,7 +64,7 @@ namespace ZXTune
     BackendImpl::BackendImpl()
       : Params(), Player()
       , PlayerThread(), PlayerMutex(), SyncBarrier(TOTAL_WORKING_THREADS)
-      , CurrentState(NOTOPENED), InProcess(false)
+      , CurrentState(NOTOPENED), InProcess(false), CurrentError()
       , Mixer(), Filter(), FilterCoeffs(), Renderer()
     {
       GetInitialParameters(Params);
@@ -80,6 +79,7 @@ namespace ZXTune
     Backend::State BackendImpl::SetPlayer(ModulePlayer::Ptr player)
     {
       Locker lock(PlayerMutex);
+      CurrentError = Error();
       SafeStop();
       Player = player;
       if (Player.get())
@@ -111,6 +111,10 @@ namespace ZXTune
         Player->Reset();
         PlayerThread = boost::thread(std::mem_fun(&BackendImpl::PlayFunc), this);
         SyncBarrier.wait();//wait until real start
+        if (STARTED != CurrentState && CurrentError)
+        {
+          throw CurrentError;
+        }
       }
       else if (PAUSED == prevState)
       {
@@ -235,6 +239,10 @@ namespace ZXTune
 
     void BackendImpl::CheckState() const
     {
+      if (CurrentError)
+      {
+        throw CurrentError;
+      }
       if (NOTOPENED == CurrentState && !Player.get())
       {
         throw Error(ERROR_DETAIL, 1, TEXT_ERROR_BACKEND_INVALID_STATE);//TODO: code
@@ -359,10 +367,10 @@ namespace ZXTune
       }
       catch (const Error& e)
       {
-        CurrentState = ERROR;
+        CurrentError = e;
+        CurrentState = STOPPED;
         SyncBarrier.wait();
         InProcess = false;
-        //TODO: store error
       }
     }
 

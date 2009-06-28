@@ -22,6 +22,12 @@ namespace
   const String::value_type MODULE_SPEED[] = {'S', 'p', 'e', 'e', 'd', 0};
   const String::value_type MODULE_PLAYORDER[] = {'P', 'l', 'a', 'y', 'O', 'r', 'd', 'e', 'r', 0};
 
+  const String::value_type SECTION_MODULE[] = {'[', 'M', 'o', 'd', 'u', 'l', 'e', ']', 0};
+  const String::value_type SECTION_ORNAMENT[] = {'[', 'O', 'r', 'n', 'a', 'm', 'e', 'n', 't', 0};
+  const String::value_type SECTION_SAMPLE[] = {'[', 'S', 'a', 'm', 'p', 'l', 'e', 0};
+  const String::value_type SECTION_PATTERN[] = {'[', 'P', 'a', 't', 't', 'e', 'r', 'n', 0};
+  const String::value_type SECTION_END[] = {']', 0};
+
   //start symbol
   const uint64_t SPACE = 1;
   //wildcard
@@ -77,6 +83,7 @@ namespace
     return !*pattern;//
   }
 
+  //conversions
   inline int FromHex(String::value_type sym)
   {
     return isdigit(sym) ? (sym - '0') : (sym == '.' ? 0 :(sym - 'A' + 10));
@@ -133,6 +140,7 @@ namespace
     return res;
   }
 
+  //notes
   inline bool IsResetNote(const String& str)
   {
     assert(str.size() == 3);
@@ -179,6 +187,7 @@ namespace
     return String(TONES + halftone * 2, TONES + halftone * 2 + 2) + String::value_type('1' + octave);
   }
 
+  //channels
   bool ParseChannel(const String& str, Tracking::VortexPlayer::Line::Chan& chan)
   {
     using namespace Tracking;
@@ -266,7 +275,7 @@ namespace
     return true;
   }
 
-  void ToHexPair(unsigned val, String& cmd)
+  inline void ToHexPair(unsigned val, String& cmd)
   {
     cmd[2] = ToHexSym(val / 16);
     cmd[3] = val ? ToHex(val % 16) : '.';
@@ -353,6 +362,7 @@ namespace
     return result;
   }
 
+  //other
   inline bool IsLooped(const String& str)
   {
     assert(!str.empty());
@@ -404,6 +414,11 @@ namespace
     }
     return result.str();
   }
+
+  inline bool IsSection(const String& templ, const String& str, std::size_t& idx)
+  {
+    return 0 == str.find(templ) && (idx = string_cast<std::size_t>(str.substr(templ.size())), true);
+  }
 }
 
 namespace ZXTune
@@ -411,6 +426,10 @@ namespace ZXTune
   namespace Tracking
   {
     //Deserialization
+    bool SampleHeaderFromString(const String& str, std::size_t& idx)
+    {
+      return IsSection(SECTION_SAMPLE, str, idx);
+    }
 
     /*Sample:
     [SampleN] //not parsed/unparsed
@@ -455,6 +474,10 @@ namespace ZXTune
       return true;
     }
 
+    bool OrnamentHeaderFromString(const String& str, std::size_t& idx)
+    {
+      return IsSection(SECTION_ORNAMENT, str, idx);
+    }
     /*Ornament:
     [OrnamentN] //not parsed/unparsed
     L?-?\d+(,L?-?\d+)*
@@ -466,6 +489,10 @@ namespace ZXTune
       return ParseLoopedList(str, ornament.Data, ornament.Loop);
     }
 
+    bool PatternHeaderFromString(const String& str, std::size_t& idx)
+    {
+      return IsSection(SECTION_PATTERN, str, idx);
+    }
     /*Pattern:
     [PatternN] //not parsed/unparsed
     [.:hex:]{4}\|[.:hex:]{2}(\|[-A-CR][-#][-1-8] [.0-9A-V][.1-F][.1-F][.1-F] [.1-69-b][.\d]{3}){3}
@@ -537,6 +564,11 @@ namespace ZXTune
       return true;
     }
 
+    bool DescriptionHeaderFromString(const String& str)
+    {
+      return str == SECTION_MODULE;
+    }
+
     bool VortexDescr::PropertyFromString(const String& str)
     {
       const String::size_type delim(str.find(MODULE_DELIMITER));
@@ -573,6 +605,11 @@ namespace ZXTune
       return true;
     }
 
+    String DescriptionHeaderToString()
+    {
+      return SECTION_MODULE;
+    }
+
     String VortexDescr::PropertyToString(std::size_t idx) const
     {
       switch (idx)
@@ -597,6 +634,11 @@ namespace ZXTune
 
 
     //Serialization
+    String SampleHeaderToString(std::size_t idx)
+    {
+      return SECTION_SAMPLE + string_cast(idx) + SECTION_END;
+    }
+
     String SampleLineToString(const VortexPlayer::Sample::Line& line, bool looped)
     {
       String result;
@@ -623,9 +665,19 @@ namespace ZXTune
       return result;
     }
 
+    String OrnamentHeaderToString(std::size_t idx)
+    {
+      return SECTION_ORNAMENT + string_cast(idx) + SECTION_END;
+    }
+
     String OrnamentToString(const VortexPlayer::Ornament& ornament)
     {
       return UnparseLoopedList(ornament.Data, ornament.Loop);
+    }
+
+    String PatternHeaderToString(std::size_t idx)
+    {
+      return SECTION_PATTERN + string_cast(idx) + SECTION_END;
     }
 
     String PatternLineToString(const VortexPlayer::Line& line)

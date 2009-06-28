@@ -29,8 +29,7 @@ namespace ZXTune
         NOTOPENED,
         STOPPED,
         PAUSED,
-        STARTED,
-        ERROR
+        STARTED
       };
 
       struct Info
