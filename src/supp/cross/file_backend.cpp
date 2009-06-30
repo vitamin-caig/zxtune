@@ -8,6 +8,7 @@
 #include <module.h>
 #include <module_attrs.h>
 #include <sound_attrs.h>
+#include <../../lib/io/fs_tools.h>
 #include <../../lib/io/location.h>
 
 #include <boost/noncopyable.hpp>
@@ -17,6 +18,7 @@
 #include <iomanip>
 #include <iostream>
 
+#include <text/common.h>
 #include <text/errors.h>
 #include <text/backends.h>
 
@@ -64,15 +66,6 @@ namespace
   }
 #endif
 
-  void CutFilename(String& fname)
-  {
-    const String::size_type dpos(fname.find_last_of("\\/"));//TODO
-    if (String::npos != dpos)
-    {
-      fname = fname.substr(dpos + 1);
-    }
-  }
-
   //custom tags values
   const String::value_type CHIP_YM[] = {'Y', 'M', 0};
   const String::value_type DECIBELL[] = {'d', 'B', 0};
@@ -90,13 +83,16 @@ namespace
     {
       if (it->first == Module::ATTR_FILENAME)
       {
-        StringArray subpathes;
-        IO::SplitPath(it->second, subpathes);
-        CutFilename(subpathes.front());
-        infoFile << fmt % Module::ATTR_FILENAME % subpathes.back();
-        if (subpathes.size() != 1)
+        String dir, filename, subname;
+        IO::SplitFSName(it->second, dir, filename, subname);
+        if (subname.empty())//no subname
         {
-          infoFile << fmt % Module::ATTR_ALBUM % subpathes.front();
+          infoFile << fmt % Module::ATTR_FILENAME % filename;
+        }
+        else
+        {
+          infoFile << fmt % Module::ATTR_ALBUM % filename;
+          infoFile << fmt % Module::ATTR_FILENAME % subname;
         }
       }
       else if (it->first != Module::ATTR_WARNINGS)
@@ -171,7 +167,7 @@ namespace
         (Params.DriverFlags & RAW_STREAM);
       if (!RawOutput && Params.DriverParameters.empty())
       {
-        Params.DriverParameters = TEXT_DEFAULT_FILENAME_TEMPLATE;
+        Params.DriverParameters = String(TEXT_DEFAULT_FILENAME_TEMPLATE) + FILE_WAVE_EXT;
       }
       if (needStartup)
       {
@@ -192,17 +188,8 @@ namespace
         Module::Information info;
         assert(Player.get());
         Player->GetModuleInfo(info);
-        StringArray subpathes;
-        IO::SplitPath(info.Properties[Module::ATTR_FILENAME], subpathes);
-        CutFilename(subpathes.front());
-        String filename(Params.DriverParameters);
-        boost::algorithm::replace_all(filename, String(TEXT_LASTNAME_TEMPLATE), subpathes.back());
-        boost::algorithm::replace_all(filename, String(TEXT_FIRSTNAME_TEMPLATE), subpathes.front());
-        StringMap::const_iterator it(info.Properties.find(Module::ATTR_CRC));
-        if (it != info.Properties.end())
-        {
-          boost::algorithm::replace_all(filename, String(TEXT_CRC_TEMPLATE), it->second);
-        }
+        const String filename(IO::BuildNameTemplate(info.Properties[Module::ATTR_FILENAME], 
+          Params.DriverParameters, info.Properties));
         if (!RawOutput && (Params.DriverFlags & ANNOTATE_STREAM))
         {
           //do annotation

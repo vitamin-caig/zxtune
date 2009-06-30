@@ -17,19 +17,9 @@ __cpp> "#endif //__BACKENDS_H_DEFINED__\n"
 < FILE_BACKEND_KEY
 > "file"
 
-< TEXT_LASTNAME_TEMPLATE
-> "[name]"
+< FILE_WAVE_EXT
+> ".wav"
 
-< TEXT_FIRSTNAME_TEMPLATE
-> "[container]"
-
-< TEXT_CRC_TEMPLATE
-> "[crc]"
-
-< TEXT_DEFAULT_FILENAME_TEMPLATE
-> "[container] - [name] ([crc]).wav"
-
-#tags
 < FILE_ANNOTATION_EXT
 > ".info"
 
@@ -63,4 +53,3 @@ __cpp> "#endif //__BACKENDS_H_DEFINED__\n"
 
 < WIN32_BACKEND_KEY
 > "win32"
-

@@ -19,7 +19,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\include\boost\tr1\tr1;..\include\boost;..\..\include;..\..\src\lib\include"
+				AdditionalIncludeDirectories="..\..;..\..\include\boost\tr1\tr1;..\include\boost;..\..\include;..\..\src\lib\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;__STDC_CONSTANT_MACROS"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
@@ -75,7 +75,7 @@
 				GlobalOptimizations="TRUE"
 				FavorSizeOrSpeed="1"
 				OptimizeForWindowsApplication="TRUE"
-				AdditionalIncludeDirectories="..\..\include\boost\tr1\tr1;..\include\boost;..\..\include;..\..\src\lib\include"
+				AdditionalIncludeDirectories="..\..;..\..\include\boost\tr1\tr1;..\include\boost;..\..\include;..\..\src\lib\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;__STDC_CONSTANT_MACROS"
 				RuntimeLibrary="0"
 				EnableEnhancedInstructionSet="2"
@@ -319,6 +319,12 @@
 					RelativePath="..\..\src\lib\io\container.h">
 				</File>
 				<File
+					RelativePath="..\..\src\lib\io\fs_tools.cpp">
+				</File>
+				<File
+					RelativePath="..\..\src\lib\io\fs_tools.h">
+				</File>
+				<File
 					RelativePath="..\..\src\lib\io\location.h">
 				</File>
 				<File
@@ -340,6 +346,9 @@
 			</File>
 			<File
 				RelativePath="..\..\src\supp\sound_backend.h">
+			</File>
+			<File
+				RelativePath="..\..\src\supp\sound_backend_async.cpp">
 			</File>
 			<File
 				RelativePath="..\..\src\supp\sound_backend_async.h">
@@ -447,6 +456,40 @@
 					RelativePath="..\..\src\archives\formats\hrust_2x.cpp">
 				</File>
 			</Filter>
+		</Filter>
+		<Filter
+			Name="text"
+			Filter="">
+			<File
+				RelativePath="..\..\text\backends.cpp">
+			</File>
+			<File
+				RelativePath="..\..\text\backends.h">
+			</File>
+			<File
+				RelativePath="..\..\text\common.cpp">
+			</File>
+			<File
+				RelativePath="..\..\text\common.h">
+			</File>
+			<File
+				RelativePath="..\..\text\errors.cpp">
+			</File>
+			<File
+				RelativePath="..\..\text\errors.h">
+			</File>
+			<File
+				RelativePath="..\..\text\plugins.cpp">
+			</File>
+			<File
+				RelativePath="..\..\text\plugins.h">
+			</File>
+			<File
+				RelativePath="..\..\text\warnings.cpp">
+			</File>
+			<File
+				RelativePath="..\..\text\warnings.h">
+			</File>
 		</Filter>
 	</Files>
 	<Globals>

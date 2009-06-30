@@ -7,6 +7,7 @@
 #include <../../lib/sound/mixer.h>
 #include <../../lib/sound/renderer.h>
 #include <../../lib/io/container.h>
+#include <../../lib/io/fs_tools.h>
 
 #include <../../supp/sound_backend.h>
 #include <../../supp/sound_backend_types.h>
@@ -34,6 +35,8 @@
 #elif defined __linux__
 #include <termio.h>
 #endif
+
+#include <text/common.h>
 
 using namespace ZXTune;
 
@@ -245,7 +248,8 @@ namespace
         std::cout << infos;
         std::cout <<
           "Backend-specific parameters:\n"
-          "--file <name>     -- specify result name template. Supported [name], [container] and [crc] fields\n"
+          "--file <name>     -- specify result name template. Default '" << TEXT_DEFAULT_FILENAME_TEMPLATE 
+            << ".wav'\n"
           "--raw             -- produce raw output (file backend)\n"
           "--annotate        -- annotate file (file backend)\n"
 
@@ -425,6 +429,8 @@ namespace
 
   bool PlaybackContext::DoPlayback(ModulePlayer::Ptr player)
   {
+    Module::Information module;
+    player->GetModuleInfo(module);
     if (ConvertParam)
     {
       ModulePlayer::Info playerInfo;
@@ -433,9 +439,8 @@ namespace
       {
         Dump dump;
         player->Convert(*ConvertParam, dump);
-        boost::crc_32_type crcCalc;
-        crcCalc.process_bytes(&dump[0], dump.size());
-        const String& name(string_cast(std::hex, crcCalc.checksum()) + ".bin");
+        const String& name(IO::BuildNameTemplate(module.Properties[Module::ATTR_FILENAME], 
+          String(TEXT_DEFAULT_FILENAME_TEMPLATE) + ".bin", module.Properties));
         std::ofstream test(name.c_str(), std::ios::binary);
         test.write(safe_ptr_cast<const char*>(&dump[0]), dump.size());
         std::cout << "converted " << name << std::endl;
@@ -447,8 +452,6 @@ namespace
       return true;
     }
 
-    Module::Information module;
-    player->GetModuleInfo(module);
     Backend->SetPlayer(player);
     Sound::Backend::Parameters params;
     Backend->GetSoundParameters(params);
