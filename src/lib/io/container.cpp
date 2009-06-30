@@ -89,9 +89,10 @@ namespace
       if (!Cache.get())
       {
         assert(Length <= MAX_CACHED_SIZE);
-        Stream->seekg(Start);
+        Stream->seekg(std::streamoff(Start));
         Cache.reset(new uint8_t[Length]);
-        Stream->read(safe_ptr_cast<char*>(Cache.get()), Length);
+        Stream->read(safe_ptr_cast<char*>(Cache.get()), std::streamsize(Length));
+        //TODO: check result
         Stream.reset();
       }
     }
