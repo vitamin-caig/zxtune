@@ -25,7 +25,7 @@ __cpp> "#endif //__WARNINGS_H_DEFINED__\n"
 > "Line %1%: "
 
 < TEXT_LINE_CHANNEL_WARN_PREFIX
-> TEXT_LINE_WARN_PREFIX TEXT_CHANNEL_WARN_PREFIX
+> TEXT_LINE_WARN_PREFIX "Channel %2%: "
 
 < TEXT_WARNING_DUPLICATE_STATE
 > "duplicated channel state"

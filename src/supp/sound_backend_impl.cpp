@@ -108,6 +108,14 @@ namespace ZXTune
       if (STOPPED == prevState)
       {
         assert(Player.get());
+        //check for mixer
+        Module::Information modInfo;
+        Player->GetModuleInfo(modInfo);
+        if (!Params.Mixer || modInfo.Statistic.Channels != Params.Mixer->InMatrix.size())
+        {
+          throw Error(ERROR_DETAIL, 1, TEXT_ERROR_BACKEND_INVALID_MIXER);//TODO: code
+        }
+
         Player->Reset();
         PlayerThread = boost::thread(std::mem_fun(&BackendImpl::PlayFunc), this);
         SyncBarrier.wait();//wait until real start
@@ -198,11 +206,6 @@ namespace ZXTune
       const unsigned UPDATE_RENDERER_MASK(BUFFER | SOUND_FRAME);
       const unsigned UPDATE_FILTER_MASK(FIR_ORDER | FIR_LOW | FIR_HIGH | SOUND_FREQ);
       const unsigned UPDATE_MIXER_MASK(MIXER);
-
-      if (Params.Mixer && params.Mixer->InMatrix.size() != Params.Mixer->InMatrix.size())
-      {
-        throw Error(ERROR_DETAIL, 1, TEXT_ERROR_BACKEND_INVALID_MIXER);//TODO: code
-      }
 
       Locker lock(PlayerMutex);
       const unsigned changedFields(MatchParameters(params));

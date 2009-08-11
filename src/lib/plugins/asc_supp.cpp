@@ -501,7 +501,7 @@ namespace
         IndexPrefix pfx(warner, TEXT_ORNAMENT_WARN_PREFIX, index);
         warner.Assert(orn.Loop <= orn.LoopLimit, TEXT_WARNING_LOOP_OUT_LIMIT);
         warner.Assert(orn.LoopLimit < orn.Data.size(), TEXT_WARNING_LOOP_OUT_BOUND);
-        rawSize = std::max(rawSize, ornamentsOff + fromLE(*pOrnament) + 
+        rawSize = std::max(rawSize, ornamentsOff + fromLE(*pOrnament) +
           orn.Data.size() * sizeof(ornament->Data));
       }
 
@@ -522,7 +522,7 @@ namespace
           boost::bind(std::plus<uint16_t>(), patternsOff,
             boost::bind(&fromLE<uint16_t>, _1)));
         assert(ArrayEnd(pattern->Offsets) == std::find_if(pattern->Offsets, ArrayEnd(pattern->Offsets),
-          std::bind2nd(std::greater<uint16_t>(), uint16_t(data.Size()))));
+            boost::bind(&fromLE<uint16_t>, _1) > data.Size()));
         std::vector<bool> envelopes(ArraySize(pattern->Offsets));
         pat.reserve(MAX_PATTERN_SIZE);
         do
@@ -553,7 +553,7 @@ namespace
       }
 
       const ASCID* const id(safe_ptr_cast<const ASCID*>(header->Positions + header->Lenght));
-      FillProperties(TEXT_ASC_EDITOR, *id ? String(id->Author, ArrayEnd(id->Author)) : String(), 
+      FillProperties(TEXT_ASC_EDITOR, *id ? String(id->Author, ArrayEnd(id->Author)) : String(),
         *id ? String(id->Title, ArrayEnd(id->Title)) : String(), &data[0], rawSize);
 
       InitTime();
@@ -864,6 +864,10 @@ namespace
     const std::size_t samplesOffset(fromLE(header->SamplesOffset));
     const std::size_t ornamentsOffset(fromLE(header->OrnamentsOffset));
     const std::size_t patternsOffset(fromLE(header->PatternsOffset));
+    if (!header->Lenght || samplesOffset == ornamentsOffset || samplesOffset == patternsOffset || ornamentsOffset == patternsOffset)
+    {
+      return false;
+    }
     boost::function<bool(std::size_t)> checker = !boost::bind(&in_range<std::size_t>, _1, sizeof(*header), limit - 1);
     const std::size_t headerBusy(sizeof(*header) + header->Lenght);
     if (limit < headerBusy ||
@@ -885,6 +889,16 @@ namespace
       std::find_if(ornaments->Offsets, ArrayEnd(ornaments->Offsets), boost::bind(checker, boost::bind(&fromLE<uint16_t>, _1))))
     {
       return false;
+    }
+    const std::size_t patternsCount(1 + *std::max_element(header->Positions, header->Positions + header->Lenght));
+    const ASCPattern* pattern(safe_ptr_cast<const ASCPattern*>(&data[patternsOffset]));
+    for (std::size_t patNum = 0; patNum < patternsCount; ++patNum, ++pattern)
+    {
+      if (ArrayEnd(pattern->Offsets) != std::find_if(pattern->Offsets, ArrayEnd(pattern->Offsets),
+        boost::bind(checker, boost::bind(&fromLE<uint16_t>, _1))))
+      {
+        return false;
+      }
     }
     //TODO
     return true;

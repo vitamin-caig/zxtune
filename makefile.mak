@@ -23,7 +23,7 @@ ARCH := k8
 
 CXX := g++
 
-CXX_FLAGS := -O3 -g1 -DNDEBUG -D__STDC_CONSTANT_MACROS -march=$(ARCH) \
+CXX_FLAGS := -O3 -g3 -DNDEBUG -D__STDC_CONSTANT_MACROS -march=$(ARCH) \
 	    -funroll-loops -funsigned-char -fno-strict-aliasing \
 	    -W -Wall -ansi -pthread -pipe \
 	    $(addprefix -I, $(include_dirs)) $(addprefix -D, $(definitions))
@@ -54,6 +54,9 @@ $(target): $(object_files) $(addprefix $(libs_dir)/lib, $(addsuffix .a, $(librar
 	   -L$(libs_dir) $(addprefix -l, $(libraries)) \
 	   $(addprefix -l, $(dynamic_libs)) \
 	   $(LD_SOLID_BEFORE) $(addprefix -l,$(solid_libs)) $(LD_SOLID_AFTER)
+	   objcopy --only-keep-debug $@ $@.pdb
+	   strip $@
+	   objcopy --add-gnu-debuglink=$@.pdb  $@
 else
 $(target): $(object_files)
 	ar $(AR_FLAGS) $@ $^

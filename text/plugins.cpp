@@ -30,6 +30,13 @@ extern const String::value_type TEXT_HRIP_INFO[] = {
 extern const String::value_type TEXT_PACKED_INFO[] = {
   'P','a','c','k','e','d',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
 };
+extern const String::value_type TEXT_PDT_EDITOR[] = {
+  'P','r','o','D','i','g','i',' ','T','r','a','c','k','e','r',' ','v','0','.','0','x',0
+};
+extern const String::value_type TEXT_PDT_INFO[] = {
+  'P','r','o','D','i','g','i',' ','T','r','a','c','k','e','r',' ','m','o','d','u','l','e','s',' ','s','u','p',
+  'p','o','r','t',0
+};
 extern const String::value_type TEXT_PSG_INFO[] = {
   'P','S','G',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
 };

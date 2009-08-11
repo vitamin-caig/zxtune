@@ -80,8 +80,8 @@ namespace
 
   PACK_PRE struct CHIPattern
   {
-    CHINote Notes[64][4];
-    CHINoteParam Params[64][4];
+    CHINote Notes[MAX_PATTERN_SIZE][4];
+    CHINoteParam Params[MAX_PATTERN_SIZE][4];
   } PACK_POST;
 #ifdef USE_PRAGMA_PACK
 #pragma pack(pop)
@@ -263,7 +263,7 @@ namespace
         Information.Properties.insert(StringMap::value_type(Module::ATTR_WARNINGS, warnings));
       }
 
-      FillProperties(TEXT_CHI_EDITOR, String(), String(header->Name, ArrayEnd(header->Name)), 
+      FillProperties(TEXT_CHI_EDITOR, String(), String(header->Name, ArrayEnd(header->Name)),
         &data[0], sampleData - &data[0]);
 
       InitTime();

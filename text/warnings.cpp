@@ -7,7 +7,7 @@ extern const String::value_type TEXT_CHANNEL_WARN_PREFIX[] = {
   'C','h','a','n','n','e','l',' ','%','1','%',':',' ',0
 };
 extern const String::value_type TEXT_LINE_CHANNEL_WARN_PREFIX[] = {
-  'L','i','n','e',' ','%','1','%',':',' ','C','h','a','n','n','e','l',' ','%','1','%',':',' ',0
+  'L','i','n','e',' ','%','1','%',':',' ','C','h','a','n','n','e','l',' ','%','2','%',':',' ',0
 };
 extern const String::value_type TEXT_LINE_WARN_PREFIX[] = {
   'L','i','n','e',' ','%','1','%',':',' ',0

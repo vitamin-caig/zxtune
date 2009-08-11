@@ -11,7 +11,7 @@
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="e7e2f78b.txt" />
+				<Option parameters="samples/pdt/4+.M" />
 				<Option projectIncludeDirsRelation="0" />
 				<Compiler>
 					<Add option="-W" />
@@ -82,6 +82,8 @@
 		<Unit filename="../../src/lib/include/sound_types.h" />
 		<Unit filename="../../src/lib/io/container.cpp" />
 		<Unit filename="../../src/lib/io/container.h" />
+		<Unit filename="../../src/lib/io/fs_tools.cpp" />
+		<Unit filename="../../src/lib/io/fs_tools.h" />
 		<Unit filename="../../src/lib/io/location.h" />
 		<Unit filename="../../src/lib/io/trdos.h" />
 		<Unit filename="../../src/lib/io/warnings_collector.h" />
@@ -94,6 +96,7 @@
 		<Unit filename="../../src/lib/plugins/multitrack_supp.cpp" />
 		<Unit filename="../../src/lib/plugins/multitrack_supp.h" />
 		<Unit filename="../../src/lib/plugins/packed_supp.cpp" />
+		<Unit filename="../../src/lib/plugins/pdt_supp.cpp" />
 		<Unit filename="../../src/lib/plugins/player_base.cpp" />
 		<Unit filename="../../src/lib/plugins/player_base.h" />
 		<Unit filename="../../src/lib/plugins/plugin_enumerator.cpp" />

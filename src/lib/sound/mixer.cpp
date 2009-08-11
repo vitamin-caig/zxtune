@@ -21,7 +21,7 @@ namespace
   class Mixer : public Convertor, private boost::noncopyable
   {
     //determine type for intermediate value
-    static const std::size_t INTERMEDIATE_BITS_MIN = 
+    static const std::size_t INTERMEDIATE_BITS_MIN =
       8 * sizeof(Sample) +                               //input sample
       boost::static_log2<FIXED_POINT_PRECISION>::value + //mixer
       boost::static_log2<FIXED_POINT_PRECISION>::value + //preamp

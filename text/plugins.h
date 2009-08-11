@@ -12,6 +12,8 @@ extern const String::value_type TEXT_HOB_INFO[];
 extern const String::value_type TEXT_HRIP_CONTAINER[];
 extern const String::value_type TEXT_HRIP_INFO[];
 extern const String::value_type TEXT_PACKED_INFO[];
+extern const String::value_type TEXT_PDT_EDITOR[];
+extern const String::value_type TEXT_PDT_INFO[];
 extern const String::value_type TEXT_PSG_INFO[];
 extern const String::value_type TEXT_PT2_EDITOR[];
 extern const String::value_type TEXT_PT2_INFO[];

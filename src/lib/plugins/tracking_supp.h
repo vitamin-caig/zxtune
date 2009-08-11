@@ -180,6 +180,7 @@ namespace ZXTune
             state.Note = 0;
             if (++state.Position >= Data.Positions.size())//end
             {
+              --state.Position;
               return false;
             }
             state.Pattern = Data.Positions[state.Position];

@@ -41,6 +41,13 @@ __cpp> "#endif //__PLUGINS_H_DEFINED__\n"
 < TEXT_PACKED_INFO
 > "Packed modules support"
 
+#ProDigi
+< TEXT_PDT_INFO
+> "ProDigi Tracker modules support"
+
+< TEXT_PDT_EDITOR
+> "ProDigi Tracker v0.0x"
+
 #PSG
 < TEXT_PSG_INFO
 > "PSG modules support"
