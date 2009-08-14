@@ -66,16 +66,17 @@ namespace
     uint8_t Padding;
   } PACK_POST;
 
+  PACK_PRE struct PDTNote
+  {
+    uint8_t Note : 6;
+    uint8_t Command : 2;
+    uint8_t Parameter : 4;
+    uint8_t Sample : 4;
+  } PACK_POST;
+
   PACK_PRE struct PDTPattern
   {
-    PACK_PRE struct Note
-    {
-      unsigned Note : 6;
-      unsigned Command : 2;
-      unsigned Parameter : 4;
-      unsigned Sample : 4;
-    } PACK_POST;
-    Note Notes[PATTERN_SIZE][CHANNELS_COUNT];
+    PDTNote Notes[PATTERN_SIZE][CHANNELS_COUNT];
   } PACK_POST;
 
   const unsigned NOTE_EMPTY = 0;
@@ -117,6 +118,7 @@ namespace
   BOOST_STATIC_ASSERT(sizeof(PDTOrnament) == 16);
   BOOST_STATIC_ASSERT(sizeof(PDTOrnamentLoop) == 2);
   BOOST_STATIC_ASSERT(sizeof(PDTSample) == 16);
+  BOOST_STATIC_ASSERT(sizeof(PDTNote) == 2);
   BOOST_STATIC_ASSERT(sizeof(PDTPattern) == 512);
   BOOST_STATIC_ASSERT(sizeof(PDTHeader) == 0x4300);
 
@@ -226,7 +228,7 @@ namespace
         {
           DoublePrefix pfx(warner, TEXT_LINE_CHANNEL_WARN_PREFIX, lineNum, chanNum);
           Parent::Line::Chan& dstChan(dstLine.Channels[chanNum]);
-          const PDTPattern::Note& note(src.Notes[lineNum][chanNum]);
+          const PDTNote& note(src.Notes[lineNum][chanNum]);
           if (note.Note != NOTE_EMPTY)
           {
             dstChan.Enabled = true;
@@ -507,7 +509,7 @@ namespace
 
   inline bool CheckOrnament(const PDTOrnament& orn)
   {
-    return ArrayEnd(orn) != std::find_if(orn, ArrayEnd(orn), std::bind2nd(std::modulus<uint8_t>(), 1));
+    return ArrayEnd(orn) != std::find_if(orn, ArrayEnd(orn), std::bind2nd(std::modulus<uint8_t>(), 2));
   }
 
   inline bool CheckSample(const PDTSample& samp)
@@ -533,6 +535,11 @@ namespace
     if (ArrayEnd(header->Ornaments) != std::find_if(header->Ornaments, ArrayEnd(header->Ornaments), CheckOrnament) ||
         ArrayEnd(header->Samples) != std::find_if(header->Samples, ArrayEnd(header->Samples), CheckSample)
     )
+    {
+      return false;
+    }
+    if (ArrayEnd(header->LastDatas) != std::find_if(header->LastDatas, ArrayEnd(header->LastDatas),
+      boost::bind(&fromLE<uint16_t>, _1) < 0xc000))
     {
       return false;
     }

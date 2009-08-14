@@ -23,6 +23,13 @@ __cpp> "#endif //__PLUGINS_H_DEFINED__\n"
 < TEXT_CHI_EDITOR
 > "ChipTracker"
 
+#FDI
+< TEXT_FDI_INFO
+> "FDI modules support"
+
+< TEXT_FDI_CONTAINER
+> "FDI"
+
 #Hobeta
 < TEXT_HOB_INFO
 > "Hobeta containers support"
@@ -84,6 +91,13 @@ __cpp> "#endif //__PLUGINS_H_DEFINED__\n"
 < TEXT_STC_EDITOR
 > "SoundTracker"
 
+#STP
+< TEXT_STP_INFO
+> "STP modules support"
+
+< TEXT_STP_EDITOR
+> "SoundTrackerPro"
+
 #TRD
 < TEXT_TRD_INFO
 > "TRD containers support"
@@ -104,4 +118,3 @@ __cpp> "#endif //__PLUGINS_H_DEFINED__\n"
 
 < TEXT_VORTEX_EDITOR
 > "VortexTracker (ProTracker v%1%.%2% compatible)"
-

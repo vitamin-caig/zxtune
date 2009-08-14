@@ -79,6 +79,11 @@ namespace ZXTune
             return !Enabled && !Note && !SampleNum && !OrnamentNum && !Volume && Commands.empty();
           }
 
+          bool FindCommand(unsigned type) const
+          {
+            return Commands.end() != std::find(Commands.begin(), Commands.end(), type);
+          }
+
           boost::optional<bool> Enabled;
           boost::optional<std::size_t> Note;
           boost::optional<std::size_t> SampleNum;

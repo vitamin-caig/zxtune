@@ -226,7 +226,22 @@ namespace
     }
     const uint8_t* const data(static_cast<const uint8_t*>(source.Data()));
     const ServiceSector* const sector(safe_ptr_cast<const ServiceSector*>(data + SERVICE_SECTOR_NUM * BYTES_PER_SECTOR));
-    return sector->ID == TRDOS_ID && sector->Type == DS_DD;
+    if (sector->ID != TRDOS_ID || sector->Type != DS_DD || 0 != sector->Zero)
+    {
+      return false;
+    }
+    const CatEntry* catEntry(static_cast<const CatEntry*>(source.Data()));
+    for (std::size_t idx = 0; idx != MAX_FILES_COUNT && NOENTRY != *catEntry->Name.Filename; ++idx, ++catEntry)
+    {
+      if (DELETED != *catEntry->Name.Filename && catEntry->SizeInSectors)
+      {
+        if (catEntry->Offset() + catEntry->Size() > TRD_MODULE_SIZE)
+        {
+          return false;
+        }
+      }
+    }
+    return true;
   }
 
   ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data, uint32_t capFilter)

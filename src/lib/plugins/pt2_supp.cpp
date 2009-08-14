@@ -1,5 +1,6 @@
 #include "plugin_enumerator.h"
 
+#include "detector.h"
 #include "tracking_supp.h"
 #include "../devices/data_source.h"
 #include "../devices/aym/aym.h"
@@ -46,6 +47,46 @@ namespace
     0x03b, 0x038, 0x035, 0x032, 0x02f, 0x02c, 0x02a, 0x027, 0x025, 0x023, 0x021, 0x01f,
     0x01d, 0x01c, 0x01a, 0x019, 0x017, 0x016, 0x015, 0x013, 0x012, 0x011, 0x010, 0x00f
   };
+
+  //checkers
+
+  static const std::string PT2_PLAYER();
+  const std::size_t PLAYER_SIZE = 2629;
+
+  Module::DetectChain Players[] = {
+    /*PT20
+    {
+      "21??c3??c3+563+f3e522??e57e32",
+
+    },
+    */
+    //PT21
+    {
+      "21??c3??c3+14+322e31",
+      0xa2f
+    },
+    //
+    /*
+    PT24
+    21 ? ?  ld hl,xx
+    18 03   jr $+3
+    c3 ? ?  jp xx
+    f3      di
+    e5      push hl
+    7e      ld a,(hl)
+    32 ? ?  ld (xx),a
+    32 ? ?  ld (xx),a
+    23      inc hl
+    23      inc hl
+    7e      ld a,(hl)
+    23      inc hl
+    */
+    {
+      "21??1803c3??f3e57e32??32??23237e23",
+      2629
+    }
+  };
+
   //////////////////////////////////////////////////////////////////////////
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -612,16 +653,13 @@ namespace
     info.Properties.insert(StringMap::value_type(ATTR_VERSION, TEXT_PT2_VERSION));
   }
 
-  bool Checking(const String& /*filename*/, const IO::DataContainer& source, uint32_t /*capFilter*/)
+  bool Check(const uint8_t* data, std::size_t size)
   {
-    //check for header
-    const std::size_t size(std::min(source.Size(), MAX_MODULE_SIZE));
     if (sizeof(PT2Header) > size/* || size > MAX_MODULE_SIZE*/)
     {
       return false;
     }
 
-    const uint8_t* const data(static_cast<const uint8_t*>(source.Data()));
     const PT2Header* const header(safe_ptr_cast<const PT2Header*>(data));
     if (header->Length < 1 || header->Tempo < 2 || header->Loop >= header->Length)
     {
@@ -668,23 +706,35 @@ namespace
       return false;
     }
     //check patterns
+    std::size_t patternsCount(0);
     for (const PT2Pattern* patPos(safe_ptr_cast<const PT2Pattern*>(data + patOff));
       *patPos;
-      ++patPos)
+      ++patPos, ++patternsCount)
     {
-      if (! *patPos ||
-        ArrayEnd(patPos->Offsets) != std::find_if(patPos->Offsets, ArrayEnd(patPos->Offsets), checker))
+      if (ArrayEnd(patPos->Offsets) != std::find_if(patPos->Offsets, ArrayEnd(patPos->Offsets), checker))
       {
         return false;
       }
     }
-    return true;
+    return patternsCount != 0;
+  }
+
+  bool Checking(const String& /*filename*/, const IO::DataContainer& source, uint32_t /*capFilter*/)
+  {
+    const uint8_t* data(static_cast<const uint8_t*>(source.Data()));
+    const std::size_t size(source.Size());
+    return Check(data, size) || 
+      ArrayEnd(Players) != std::find_if(Players, ArrayEnd(Players), Module::Detector(Check, data, size));
   }
 
   ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data, uint32_t /*capFilter*/)
   {
     assert(Checking(filename, data, 0) || !"Attempt to create pt2 player on invalid data");
-    return ModulePlayer::Ptr(new PT2Player(filename, FastDump(data)));
+    const uint8_t* const buf(static_cast<const uint8_t*>(data.Data()));
+    const Module::DetectChain* const playerIt(std::find_if(Players, ArrayEnd(Players), 
+      Module::Detector(Check, buf, data.Size())));
+    const std::size_t offset(ArrayEnd(Players) == playerIt ? 0 : playerIt->PlayerSize);
+    return ModulePlayer::Ptr(new PT2Player(filename, FastDump(data, offset)));
   }
 
   PluginAutoRegistrator registrator(Checking, Creating, Describing);

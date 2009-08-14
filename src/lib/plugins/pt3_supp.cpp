@@ -35,13 +35,7 @@ namespace
 
   typedef IO::FastDump<uint8_t> FastDump;
 
-  struct DetectChain
-  {
-    const std::string PlayerFP;
-    const std::size_t PlayerSize;
-  };
-
-  DetectChain Players[] = {
+  Module::DetectChain Players[] = {
     //PT3x
     {
       "21??18?c3??c3+35+f322??22??22??22??01640009",
@@ -579,23 +573,6 @@ namespace
     return true;
   }
 
-  class Detector : public std::unary_function<DetectChain, bool>
-  {
-  public:
-    Detector(const uint8_t* data, std::size_t limit) : Data(data), Limit(limit)
-    {
-    }
-
-    result_type operator()(const argument_type& arg) const
-    {
-      return Module::Detect(Data, Limit, arg.PlayerFP) &&
-        Check(Data + arg.PlayerSize, Limit - arg.PlayerSize);
-    }
-  private:
-    const uint8_t* const Data;
-    const std::size_t Limit;
-  };
-
   bool Checking(const String& /*filename*/, const IO::DataContainer& source, uint32_t /*capFilter*/)
   {
     const std::size_t limit(std::min(source.Size(), MAX_MODULE_SIZE));
@@ -606,14 +583,15 @@ namespace
 
     const uint8_t* const data(static_cast<const uint8_t*>(source.Data()));
     return Check(data, limit) ||
-      ArrayEnd(Players) != std::find_if(Players, ArrayEnd(Players), Detector(data, limit));
+      ArrayEnd(Players) != std::find_if(Players, ArrayEnd(Players), Module::Detector(Check, data, limit));
   }
 
   ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data, uint32_t /*capFilter*/)
   {
     assert(Checking(filename, data, 0) || !"Attempt to create pt3 player on invalid data");
     const uint8_t* const buf(static_cast<const uint8_t*>(data.Data()));
-    const DetectChain* const playerIt(std::find_if(Players, ArrayEnd(Players), Detector(buf, data.Size())));
+    const Module::DetectChain* const playerIt(std::find_if(Players, ArrayEnd(Players), 
+      Module::Detector(Check, buf, data.Size())));
     const std::size_t offset(ArrayEnd(Players) == playerIt ? 0 : playerIt->PlayerSize);
     return ModulePlayer::Ptr(new PT3Player(filename, FastDump(data, offset)));
   }

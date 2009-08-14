@@ -521,8 +521,6 @@ namespace
         std::transform(pattern->Offsets, ArrayEnd(pattern->Offsets), offsets.begin(),
           boost::bind(std::plus<uint16_t>(), patternsOff,
             boost::bind(&fromLE<uint16_t>, _1)));
-        assert(ArrayEnd(pattern->Offsets) == std::find_if(pattern->Offsets, ArrayEnd(pattern->Offsets),
-            boost::bind(&fromLE<uint16_t>, _1) > data.Size()));
         std::vector<bool> envelopes(ArraySize(pattern->Offsets));
         pat.reserve(MAX_PATTERN_SIZE);
         do
@@ -536,6 +534,11 @@ namespace
           {
             counters -= linesToSkip;
             pat.resize(pat.size() + linesToSkip);//add dummies
+          }
+          if (offsets.end() != std::find_if(offsets.begin(), offsets.end(),
+            std::bind2nd(std::greater_equal<std::size_t>(), data.Size())))
+          {
+            break;
           }
         }
         while (0xff != data[offsets[0]] || counters[0]);
@@ -864,43 +867,49 @@ namespace
     const std::size_t samplesOffset(fromLE(header->SamplesOffset));
     const std::size_t ornamentsOffset(fromLE(header->OrnamentsOffset));
     const std::size_t patternsOffset(fromLE(header->PatternsOffset));
-    if (!header->Lenght || samplesOffset == ornamentsOffset || samplesOffset == patternsOffset || ornamentsOffset == patternsOffset)
+    if (!header->Lenght || samplesOffset >= ornamentsOffset || ornamentsOffset >= patternsOffset)
     {
       return false;
     }
-    boost::function<bool(std::size_t)> checker = !boost::bind(&in_range<std::size_t>, _1, sizeof(*header), limit - 1);
     const std::size_t headerBusy(sizeof(*header) + header->Lenght);
-    if (limit < headerBusy ||
-        checker(ornamentsOffset) || ornamentsOffset < headerBusy ||
-        checker(patternsOffset) || patternsOffset < headerBusy ||
-        checker(samplesOffset) || samplesOffset < headerBusy
+    boost::function<bool(std::size_t)> checker = !boost::bind(&in_range<std::size_t>, _1, headerBusy, limit - 1);
+    boost::function<bool(uint16_t)> leChecker = boost::bind(checker, boost::bind(&fromLE<uint16_t>, _1));
+    if (!header->Lenght ||
+        limit < headerBusy ||
+        checker(ornamentsOffset) ||
+        checker(patternsOffset) ||
+        checker(samplesOffset)
         )
     {
       return false;
     }
     const ASCSamples* const samples(safe_ptr_cast<const ASCSamples*>(data + samplesOffset));
     if (ArrayEnd(samples->Offsets) !=
-      std::find_if(samples->Offsets, ArrayEnd(samples->Offsets), boost::bind(checker, boost::bind(&fromLE<uint16_t>, _1))))
+      std::find_if(samples->Offsets, ArrayEnd(samples->Offsets), leChecker))
     {
       return false;
     }
     const ASCOrnaments* const ornaments(safe_ptr_cast<const ASCOrnaments*>(data + ornamentsOffset));
     if (ArrayEnd(ornaments->Offsets) !=
-      std::find_if(ornaments->Offsets, ArrayEnd(ornaments->Offsets), boost::bind(checker, boost::bind(&fromLE<uint16_t>, _1))))
+      std::find_if(ornaments->Offsets, ArrayEnd(ornaments->Offsets), leChecker))
     {
       return false;
     }
-    const std::size_t patternsCount(1 + *std::max_element(header->Positions, header->Positions + header->Lenght));
-    const ASCPattern* pattern(safe_ptr_cast<const ASCPattern*>(&data[patternsOffset]));
-    for (std::size_t patNum = 0; patNum < patternsCount; ++patNum, ++pattern)
+    const std::size_t patternsCount(1 + *std::max_element(header->Positions,
+      header->Positions + header->Lenght));
+    if (checker(patternsOffset + patternsCount * sizeof(ASCPattern)))
     {
-      if (ArrayEnd(pattern->Offsets) != std::find_if(pattern->Offsets, ArrayEnd(pattern->Offsets),
-        boost::bind(checker, boost::bind(&fromLE<uint16_t>, _1))))
+      return false;
+    }
+    const ASCPattern* pattern(safe_ptr_cast<const ASCPattern*>(data + patternsOffset));
+    for (std::size_t patternNum = 0 ; patternNum < patternsCount; ++patternNum, ++pattern)
+    {
+      if (ArrayEnd(pattern->Offsets) !=
+        std::find_if(pattern->Offsets, ArrayEnd(pattern->Offsets), leChecker))
       {
         return false;
       }
     }
-    //TODO
     return true;
   }
 

@@ -223,6 +223,9 @@
 					RelativePath="..\..\src\lib\plugins\detector.h">
 				</File>
 				<File
+					RelativePath="..\..\src\lib\plugins\fdi_supp.cpp">
+				</File>
+				<File
 					RelativePath="..\..\src\lib\plugins\hobeta_supp.cpp">
 				</File>
 				<File
@@ -236,6 +239,9 @@
 				</File>
 				<File
 					RelativePath="..\..\src\lib\plugins\packed_supp.cpp">
+				</File>
+				<File
+					RelativePath="..\..\src\lib\plugins\pdt_supp.cpp">
 				</File>
 				<File
 					RelativePath="..\..\src\lib\plugins\player_base.cpp">
@@ -266,6 +272,9 @@
 				</File>
 				<File
 					RelativePath="..\..\src\lib\plugins\stc_supp.cpp">
+				</File>
+				<File
+					RelativePath="..\..\src\lib\plugins\stp_supp.cpp">
 				</File>
 				<File
 					RelativePath="..\..\src\lib\plugins\tracking_supp.h">

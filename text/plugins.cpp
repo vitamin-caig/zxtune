@@ -15,6 +15,12 @@ extern const String::value_type TEXT_CHI_EDITOR[] = {
 extern const String::value_type TEXT_CHI_INFO[] = {
   'C','H','I',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
 };
+extern const String::value_type TEXT_FDI_CONTAINER[] = {
+  'F','D','I',0
+};
+extern const String::value_type TEXT_FDI_INFO[] = {
+  'F','D','I',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
+};
 extern const String::value_type TEXT_HOB_CONTAINER[] = {
   'H','o','b','e','t','a',0
 };
@@ -66,6 +72,12 @@ extern const String::value_type TEXT_STC_EDITOR[] = {
 };
 extern const String::value_type TEXT_STC_INFO[] = {
   'S','T','C',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
+};
+extern const String::value_type TEXT_STP_EDITOR[] = {
+  'S','o','u','n','d','T','r','a','c','k','e','r','P','r','o',0
+};
+extern const String::value_type TEXT_STP_INFO[] = {
+  'S','T','P',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
 };
 extern const String::value_type TEXT_TRD_CONTAINER[] = {
   'T','R','D',0
