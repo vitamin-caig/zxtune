@@ -317,6 +317,16 @@
 						RelativePath="..\..\src\lib\devices\aym\aym.h">
 					</File>
 				</Filter>
+				<Filter
+					Name="dac"
+					Filter="">
+					<File
+						RelativePath="..\..\src\lib\devices\dac\dac.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\lib\devices\dac\dac.h">
+					</File>
+				</Filter>
 			</Filter>
 			<Filter
 				Name="io"

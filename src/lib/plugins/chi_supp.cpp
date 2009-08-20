@@ -1,5 +1,7 @@
 #include "plugin_enumerator.h"
 #include "tracking_supp.h"
+
+#include "../devices/dac/dac.h"
 #include "../io/container.h"
 #include "../io/warnings_collector.h"
 
@@ -36,7 +38,9 @@ namespace
   typedef IO::FastDump<uint8_t> FastDump;
   //all samples has base freq at 8kHz (C-1)
   const std::size_t BASE_FREQ = 8448;
-  const std::size_t NOTES = 60;
+
+  const std::size_t CHANNELS_COUNT = 4;
+  const std::size_t SAMPLES_COUNT = 16;
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -53,9 +57,9 @@ namespace
       uint16_t Loop;
       uint16_t Length;
     } PACK_POST;
-    SampleDescr Samples[16];
+    SampleDescr Samples[SAMPLES_COUNT];
     uint8_t Reserved[21];
-    uint8_t SampleNames[16][8];
+    uint8_t SampleNames[SAMPLES_COUNT][8];
     uint8_t Positions[256];
   } PACK_POST;
 
@@ -80,8 +84,8 @@ namespace
 
   PACK_PRE struct CHIPattern
   {
-    CHINote Notes[MAX_PATTERN_SIZE][4];
-    CHINoteParam Params[MAX_PATTERN_SIZE][4];
+    CHINote Notes[MAX_PATTERN_SIZE][CHANNELS_COUNT];
+    CHINoteParam Params[MAX_PATTERN_SIZE][CHANNELS_COUNT];
   } PACK_POST;
 #ifdef USE_PRAGMA_PACK
 #pragma pack(pop)
@@ -97,53 +101,29 @@ namespace
     SLIDE,          //1p
   };
 
-  struct Sample
-  {
-    explicit Sample(std::size_t loop = 0) : Loop(loop), Data()
-    {
-    }
-
-    operator bool () const
-    {
-      return !Data.empty();
-    }
-
-    std::size_t Loop;
-    std::vector<uint8_t> Data;
-    Sound::Analyze::LevelType Gain;
-  };
-
-  inline Sound::Sample scale(uint8_t inSample)
-  {
-    return inSample << (8 * (sizeof(Sound::Sample) - sizeof(inSample)) - 1);
-  }
-
-  inline uint32_t GainAdder(uint32_t sum, uint8_t sample)
-  {
-    return sum + abs(int(sample) - 128);
-  }
-
   void Describing(ModulePlayer::Info& info);
 
   typedef Log::WarningsCollector::AutoPrefixParam<std::size_t> IndexPrefix;
   typedef Log::WarningsCollector::AutoPrefixParam2<std::size_t, std::size_t> DoublePrefix;
 
-  class CHIPlayer : public Tracking::TrackPlayer<4, Sample>
-  {
-    typedef Tracking::TrackPlayer<4, Sample> Parent;
+  struct VoidType {};
 
-    struct ChannelState
+  class CHIPlayer : public Tracking::TrackPlayer<CHANNELS_COUNT, VoidType>
+  {
+    typedef Tracking::TrackPlayer<CHANNELS_COUNT, VoidType> Parent;
+
+    struct GlissData
     {
-      ChannelState() : Enabled(false), Note(), SampleNum(), PosInSample(), Sliding(), Glissade()
+      GlissData() : Sliding(), Glissade()
       {
       }
-      bool Enabled;
-      std::size_t Note;
-      std::size_t SampleNum;
-      //fixed-point
-      std::size_t PosInSample;
-      signed Sliding;
-      signed Glissade;
+      int Sliding;
+      int Glissade;
+
+      void Update()
+      {
+        Sliding += Glissade;
+      }
     };
 
     static Parent::Pattern ParsePattern(const CHIPattern& src, Log::WarningsCollector& warner)
@@ -155,7 +135,7 @@ namespace
       {
         result.push_back(Parent::Line());
         Parent::Line& dstLine(result.back());
-        for (std::size_t chanNum = 0; chanNum != 4; ++chanNum)
+        for (std::size_t chanNum = 0; chanNum != CHANNELS_COUNT; ++chanNum)
         {
           DoublePrefix pfx(warner, TEXT_LINE_CHANNEL_WARN_PREFIX, lineNum, chanNum);
           Parent::Line::Chan& dstChan(dstLine.Channels[chanNum]);
@@ -211,7 +191,7 @@ namespace
 
   public:
     CHIPlayer(const String& filename, const FastDump& data)
-      : Parent(filename), TableFreq(), FreqTable()
+      : Parent(filename), Chip(DAC::CreateChip(CHANNELS_COUNT, SAMPLES_COUNT, BASE_FREQ))
     {
       //assume data is correct
       const CHIHeader* const header(safe_ptr_cast<const CHIHeader*>(&data[0]));
@@ -233,19 +213,14 @@ namespace
         Data.Patterns.push_back(ParsePattern(*pat, warner));
       }
       //fill samples
-      Data.Samples.reserve(ArraySize(header->Samples));
       const uint8_t* sampleData(safe_ptr_cast<const uint8_t*>(patBegin + Information.Statistic.Pattern));
       std::size_t memLeft(data.Size() - (sampleData - &data[0]));
       for (const CHIHeader::SampleDescr* sample = header->Samples; sample != ArrayEnd(header->Samples); ++sample)
       {
-        Data.Samples.push_back(Sample(fromLE(sample->Loop)));
         const std::size_t size(std::min<std::size_t>(memLeft, fromLE(sample->Length)));
         if (size)
         {
-          Sample& result(Data.Samples.back());
-          result.Data.assign(sampleData, sampleData + size);
-          result.Gain = Sound::Analyze::LevelType(std::accumulate(sampleData, sampleData + size, uint32_t(0),
-            GainAdder) / size);
+          Chip->SetSample(sample - header->Samples, Dump(sampleData, sampleData + size), fromLE(sample->Loop));
           sampleData += align(size, 256);
           if (size != fromLE(sample->Length))
           {
@@ -256,7 +231,7 @@ namespace
         }
       }
       Information.Statistic.Pattern = Data.Patterns.size();
-      Information.Statistic.Channels = 4;
+      Information.Statistic.Channels = CHANNELS_COUNT;
       const String& warnings(warner.GetWarnings());
       if (!warnings.empty())
       {
@@ -277,158 +252,96 @@ namespace
     /// Retrieving current state of sound
     virtual State GetSoundState(Sound::Analyze::ChannelsState& state) const
     {
-      state.resize(4);
-      for (std::size_t chan = 0; chan != 4; ++chan)
-      {
-        Sound::Analyze::Channel& channel(state[chan]);
-        if ((channel.Enabled = Channels[chan].Enabled))
-        {
-          channel.Level = Data.Samples[Channels[chan].SampleNum].Gain *
-            std::numeric_limits<Sound::Analyze::LevelType>::max() / 128;
-          channel.Band = Channels[chan].Note;
-        }
-      }
+      Chip->GetState(state);
       return PlaybackState;
     }
 
     /// Rendering frame
     virtual State RenderFrame(const Sound::Parameters& params, Sound::Receiver& receiver)
     {
+      DAC::DataChunk data;
+      data.Tick = CurrentState.Tick += params.ClocksPerFrame();
+
       const Line& line(Data.Patterns[CurrentState.Position.Pattern][CurrentState.Position.Note]);
       if (0 == CurrentState.Position.Frame)//begin note
       {
         for (std::size_t chan = 0; chan != line.Channels.size(); ++chan)
         {
           const Line::Chan& src(line.Channels[chan]);
-          ChannelState& dst(Channels[chan]);
-          dst.Sliding = dst.Glissade = 0;
+
+          GlissData& gliss(Gliss[chan]);
+          DAC::DataChunk::ChannelData dst;
+          dst.Channel = chan;
+          if (gliss.Sliding)
+          {
+            dst.FreqSlideHz = gliss.Sliding = gliss.Glissade = 0;
+            dst.Mask |= DAC::DataChunk::ChannelData::MASK_FREQSLIDE;
+          }
+
           if (src.Enabled)
           {
             if (!(dst.Enabled = *src.Enabled))
             {
               dst.PosInSample = 0;
+              dst.Mask |= DAC::DataChunk::ChannelData::MASK_POSITION;
             }
+            dst.Mask |= DAC::DataChunk::ChannelData::MASK_ENABLED;
           }
           if (src.Note)
           {
             dst.Note = *src.Note;
             dst.PosInSample = 0;
+            dst.Mask |= DAC::DataChunk::ChannelData::MASK_NOTE | DAC::DataChunk::ChannelData::MASK_POSITION;
           }
-          if (src.SampleNum && Data.Samples[*src.SampleNum])
+          if (src.SampleNum)
           {
             dst.SampleNum = *src.SampleNum;
             dst.PosInSample = 0;
+            dst.Mask |= DAC::DataChunk::ChannelData::MASK_SAMPLE | DAC::DataChunk::ChannelData::MASK_POSITION;
           }
           for (CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
           {
             switch (it->Type)
             {
             case SAMPLE_OFFSET:
-              dst.PosInSample = it->Param1 * Sound::FIXED_POINT_PRECISION;
+              dst.PosInSample = it->Param1;
+              dst.Mask |= DAC::DataChunk::ChannelData::MASK_POSITION;
               break;
             case SLIDE:
-              dst.Glissade = it->Param1;
+              gliss.Glissade = it->Param1;
               break;
             default:
               assert(!"Invalid command");
             }
           }
+
+          if (dst.Mask)
+          {
+            data.Channels.push_back(dst);
+          }
         }
       }
 
-      //render frame
-      std::size_t steps[4] = {
-        GetStep(Channels[0], params.SoundFreq),
-        GetStep(Channels[1], params.SoundFreq),
-        GetStep(Channels[2], params.SoundFreq),
-        GetStep(Channels[3], params.SoundFreq)
-      };
-      Sound::Sample result[4];
-      const uint64_t nextTick(CurrentState.Tick + params.ClocksPerFrame());
-      const uint64_t ticksPerSample(params.ClockFreq / params.SoundFreq);
-      while (CurrentState.Tick < nextTick)
-      {
-        for (std::size_t chan = 0; chan != 4; ++chan)
-        {
-          if (Channels[chan].Enabled)
-          {
-            const Sample& sampl(Data.Samples[Channels[chan].SampleNum]);
-            std::size_t pos(Channels[chan].PosInSample / Sound::FIXED_POINT_PRECISION);
-            if (pos >= sampl.Data.size())//end
-            {
-              if (sampl.Loop >= sampl.Data.size())//not looped
-              {
-                Channels[chan].Enabled = false;
-              }
-              else
-              {
-                pos = sampl.Loop;
-                Channels[chan].PosInSample = pos * Sound::FIXED_POINT_PRECISION;
-              }
-            }
-            result[chan] = scale(sampl.Data[pos]);
-            //recalc using coeff
-            Channels[chan].PosInSample += steps[chan];
-          }
-          else
-          {
-            result[chan] = scale(128);
-          }
-        }
-        receiver.ApplySample(result, ArraySize(result));
-        CurrentState.Tick += ticksPerSample;
-      }
-      for (std::size_t chan = 0; chan != 4; ++chan)
-      {
-        Channels[chan].Sliding += Channels[chan].Glissade;
-      }
-      CurrentState.Position.Channels = std::count_if(Channels, ArrayEnd(Channels),
-        boost::mem_fn(&ChannelState::Enabled));
+      Chip->RenderData(params, data, receiver);
 
+      std::for_each(Gliss.begin(), Gliss.end(), std::mem_fun_ref(&GlissData::Update));
+      Sound::Analyze::ChannelsState state;
+      Chip->GetState(state);
+      
+      CurrentState.Position.Channels = std::count_if(state.begin(), state.end(),
+        boost::mem_fn(&Sound::Analyze::Channel::Enabled));
+      
       return Parent::RenderFrame(params, receiver);
     }
 
-    virtual State SetPosition(std::size_t /*frame*/)
+    virtual State Reset()
     {
-      //TODO
-      return PlaybackState;
-    }
-
-  private:
-    std::size_t GetStep(const ChannelState& state, std::size_t freq)
-    {
-      //table in Hz
-      static const double FREQ_TABLE[NOTES] = {
-        //octave1
-        32.70,  34.65,  36.71,  38.89,  41.20,  43.65,  46.25,  49.00,  51.91,  55.00,  58.27,  61.73,
-        //octave2
-        65.41,  69.29,  73.42,  77.78,  82.41,  87.30,  92.50,  98.00, 103.82, 110.00, 116.54, 123.46,
-        //octave3
-        130.82, 138.58, 146.84, 155.56, 164.82, 174.60, 185.00, 196.00, 207.64, 220.00, 233.08, 246.92,
-        //octave4
-        261.64, 277.16, 293.68, 311.12, 329.64, 349.20, 370.00, 392.00, 415.28, 440.00, 466.16, 493.84,
-        //octave5
-        523.28, 554.32, 587.36, 622.24, 659.28, 698.40, 740.00, 784.00, 830.56, 880.00, 932.32, 987.68,
-      };
-      if (TableFreq != freq)
-      {
-        TableFreq = freq;
-        for (std::size_t note = 0; note != NOTES; ++note)
-        {
-          FreqTable[note] = static_cast<std::size_t>(FREQ_TABLE[note] * Sound::FIXED_POINT_PRECISION *
-            BASE_FREQ / (FREQ_TABLE[0] * freq * 2));
-        }
-      }
-      //TODO: proper sliding
-      const int toneStep = static_cast<int>(FreqTable[state.Note]);
-      const int toneSlide(int64_t(state.Sliding) * Sound::FIXED_POINT_PRECISION * BASE_FREQ /
-        int64_t(FREQ_TABLE[0] * freq * 2));
-      return clamp<int>(toneStep + toneSlide, int(FreqTable.front()), int(FreqTable.back()));
+      Chip->Reset();
+      return Parent::Reset();
     }
   private:
-    ChannelState Channels[4];
-    std::size_t TableFreq;
-    boost::array<std::size_t, NOTES> FreqTable;
+    DAC::Chip::Ptr Chip;
+    boost::array<GlissData, CHANNELS_COUNT> Gliss;
   };
   //////////////////////////////////////////////////////////////////////////
   void Describing(ModulePlayer::Info& info)

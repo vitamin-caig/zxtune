@@ -1,6 +1,8 @@
 #include "plugin_enumerator.h"
 #include "plugin_enumerator.h"
 #include "tracking_supp.h"
+
+#include "../devices/dac/dac.h"
 #include "../io/container.h"
 #include "../io/warnings_collector.h"
 
@@ -40,10 +42,8 @@ namespace
   const std::size_t PATTERNS_COUNT = 32;
 
   typedef IO::FastDump<uint8_t> FastDump;
-  //all samples has base freq at 8kHz (C-1)
-  //const std::size_t BASE_FREQ = 8448;
+  //all samples has base freq at 4kHz (C-1)
   const std::size_t BASE_FREQ = 4000;
-  const std::size_t NOTES = 63;
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -124,22 +124,6 @@ namespace
 
   const std::size_t MODULE_SIZE = sizeof(PDTHeader) + PAGES_COUNT * PAGE_SIZE;
 
-  struct Sample
-  {
-    explicit Sample(std::size_t loop = 0) : Loop(loop), Data()
-    {
-    }
-
-    operator bool () const
-    {
-      return !Data.empty();
-    }
-
-    std::size_t Loop;
-    std::vector<uint8_t> Data;
-    Sound::Analyze::LevelType Gain;
-  };
-
   struct Ornament
   {
     Ornament()
@@ -159,16 +143,6 @@ namespace
   inline Ornament MakeOrnament(const PDTOrnament& orn, const PDTOrnamentLoop& loop)
   {
     return Ornament(orn, loop);
-  }
-
-  inline Sound::Sample scale(uint8_t inSample)
-  {
-    return inSample << (8 * (sizeof(Sound::Sample) - sizeof(inSample)) - 1);
-  }
-
-  inline uint32_t GainAdder(uint32_t sum, uint8_t sample)
-  {
-    return sum + abs(int(sample) - 128);
   }
 
   inline std::size_t GetPageOrder(std::size_t page)
@@ -197,22 +171,32 @@ namespace
   typedef Log::WarningsCollector::AutoPrefixParam<std::size_t> IndexPrefix;
   typedef Log::WarningsCollector::AutoPrefixParam2<std::size_t, std::size_t> DoublePrefix;
 
-  class PDTPlayer : public Tracking::TrackPlayer<4, Sample, Ornament>
-  {
-    typedef Tracking::TrackPlayer<CHANNELS_COUNT, Sample, Ornament> Parent;
+  struct VoidType {};
 
-    struct ChannelState
+  class PDTPlayer : public Tracking::TrackPlayer<CHANNELS_COUNT, VoidType, Ornament>
+  {
+    typedef Tracking::TrackPlayer<CHANNELS_COUNT, VoidType, Ornament> Parent;
+
+    struct OrnamentState
     {
-      ChannelState() : Enabled(false), Note(), SampleNum(), PosInSample(), OrnamentNum(), PosInOrnament()
+      OrnamentState() : Object(), Position()
       {
       }
-      bool Enabled;
-      std::size_t Note;
-      std::size_t SampleNum;
-      //fixed-point
-      std::size_t PosInSample;
-      std::size_t OrnamentNum;
-      std::size_t PosInOrnament;
+      const Ornament* Object;
+      std::size_t Position;
+
+      signed GetOffset() const
+      {
+        return Object ? Object->Data[Position] / 2: 0;
+      }
+
+      void Update()
+      {
+        if (Object && Position++ == Object->LoopEnd)
+        {
+          Position = Object->LoopBegin;
+        }
+      }
     };
 
     static Parent::Pattern ParsePattern(const PDTPattern& src, Log::WarningsCollector& warner)
@@ -282,7 +266,8 @@ namespace
 
   public:
     PDTPlayer(const String& filename, const FastDump& data)
-      : Parent(filename), TableFreq(), FreqTable()
+      : Parent(filename), Chip(DAC::CreateChip(CHANNELS_COUNT, SAMPLES_COUNT, BASE_FREQ))
+      //, TableFreq(), FreqTable()
     {
       //assume data is correct
       const PDTHeader* const header(safe_ptr_cast<const PDTHeader*>(&data[0]));
@@ -303,27 +288,18 @@ namespace
         Data.Patterns.push_back(ParsePattern(*pat, warner));
       }
       //fill samples
-      Data.Samples.reserve(ArraySize(header->Samples));
       const uint8_t* samplesData(safe_ptr_cast<const uint8_t*>(header) + sizeof(*header));
       for (const PDTSample* sample = header->Samples; sample != ArrayEnd(header->Samples); ++sample)
       {
         if (sample->Page < PAGES_COUNT && fromLE(sample->Start) >= 0xc000)
         {
-          const uint8_t* sampleData(samplesData + PAGE_SIZE * GetPageOrder(sample->Page) + (fromLE(sample->Start) - 0xc000));
-          Data.Samples.push_back(Sample(fromLE(sample->Loop)));
+          const uint8_t* sampleData(samplesData + PAGE_SIZE * GetPageOrder(sample->Page) + 
+            (fromLE(sample->Start) - 0xc000));
           const std::size_t size(fromLE(sample->Size));
           if (size)
           {
-            Sample& result(Data.Samples.back());
-            result.Data.assign(sampleData, sampleData + size);
-            result.Gain = Sound::Analyze::LevelType(std::accumulate(sampleData, sampleData + size, uint32_t(0),
-              GainAdder) / size);
+            Chip->SetSample(sample - header->Samples, Dump(sampleData, sampleData + size), sample->Loop);
           }
-        }
-        else
-        {
-          Data.Samples.push_back(Sample());
-          Data.Samples.back().Data.resize(1, 128);
         }
       }
       Information.Statistic.Pattern = Data.Patterns.size();
@@ -332,8 +308,8 @@ namespace
       //fill ornaments
       Data.Ornaments.reserve(ORNAMENTS_COUNT + 1);
       Data.Ornaments.push_back(Ornament());
-      std::transform(header->Ornaments, ArrayEnd(header->Ornaments), header->OrnLoops, std::back_inserter(Data.Ornaments),
-        MakeOrnament);
+      std::transform(header->Ornaments, ArrayEnd(header->Ornaments), header->OrnLoops, 
+        std::back_inserter(Data.Ornaments), MakeOrnament);
 
       const String& warnings(warner.GetWarnings());
       if (!warnings.empty())
@@ -355,148 +331,88 @@ namespace
     /// Retrieving current state of sound
     virtual State GetSoundState(Sound::Analyze::ChannelsState& state) const
     {
-      state.resize(4);
-      for (std::size_t chan = 0; chan != 4; ++chan)
-      {
-        Sound::Analyze::Channel& channel(state[chan]);
-        if ((channel.Enabled = Channels[chan].Enabled))
-        {
-          channel.Level = Data.Samples[Channels[chan].SampleNum].Gain *
-            std::numeric_limits<Sound::Analyze::LevelType>::max() / 128;
-          channel.Band = Channels[chan].Note;
-        }
-      }
+      Chip->GetState(state);
       return PlaybackState;
     }
 
     /// Rendering frame
     virtual State RenderFrame(const Sound::Parameters& params, Sound::Receiver& receiver)
     {
-      const Line& line(Data.Patterns[CurrentState.Position.Pattern][CurrentState.Position.Note]);
-      if (0 == CurrentState.Position.Frame)//begin note
+      DAC::DataChunk data;
+      data.Tick = CurrentState.Tick += params.ClocksPerFrame();
+
+      for (std::size_t chan = 0; chan != CHANNELS_COUNT; ++chan)
       {
-        for (std::size_t chan = 0; chan != line.Channels.size(); ++chan)
+        DAC::DataChunk::ChannelData dst;
+        dst.Channel = chan;
+        OrnamentState& ornament(Ornaments[chan]);
+        const signed prevOffset(ornament.GetOffset());
+        ornament.Update();
+        if (0 == CurrentState.Position.Frame)//begin note
         {
+          const Line& line(Data.Patterns[CurrentState.Position.Pattern][CurrentState.Position.Note]);
           const Line::Chan& src(line.Channels[chan]);
-          ChannelState& dst(Channels[chan]);
+
+          //ChannelState& dst(Channels[chan]);
           if (src.Enabled)
           {
             if (!(dst.Enabled = *src.Enabled))
             {
               dst.PosInSample = 0;
+              dst.Mask |= DAC::DataChunk::ChannelData::MASK_POSITION;
             }
+            dst.Mask |= DAC::DataChunk::ChannelData::MASK_ENABLED;
           }
+
           if (src.Note)
           {
+            if (src.OrnamentNum)
+            {
+              Ornaments[chan].Object = &Data.Ornaments[*src.OrnamentNum > ORNAMENTS_COUNT ? 0 :
+                *src.OrnamentNum];
+              Ornaments[chan].Position = 0;
+            }
+            if (src.SampleNum)
+            {
+              dst.SampleNum = *src.SampleNum;
+              dst.Mask |= DAC::DataChunk::ChannelData::MASK_SAMPLE;
+            }
             dst.Note = *src.Note;
             dst.PosInSample = 0;
-          if (src.SampleNum && Data.Samples[*src.SampleNum])
-          {
-            dst.SampleNum = *src.SampleNum;
-            dst.PosInSample = 0;
+            dst.Mask |= DAC::DataChunk::ChannelData::MASK_NOTE | DAC::DataChunk::ChannelData::MASK_POSITION;
           }
-          if (src.OrnamentNum)
-          {
-            dst.OrnamentNum = *src.OrnamentNum;
-            dst.PosInOrnament = 0;
-          }
-          }
+        }
+        const signed newOffset(ornament.GetOffset());
+        if (newOffset != prevOffset)
+        {
+          dst.NoteSlide = newOffset;
+          dst.Mask |= DAC::DataChunk::ChannelData::MASK_NOTESLIDE;
+        }
+
+        if (dst.Mask)
+        {
+          data.Channels.push_back(dst);
         }
       }
 
-      //render frame
-      std::size_t steps[CHANNELS_COUNT] = {
-        GetStep(Channels[0], params.SoundFreq),
-        GetStep(Channels[1], params.SoundFreq),
-        GetStep(Channels[2], params.SoundFreq),
-        GetStep(Channels[3], params.SoundFreq)
-      };
-      Sound::Sample result[4];
-      const uint64_t nextTick(CurrentState.Tick + params.ClocksPerFrame());
-      const uint64_t ticksPerSample(params.ClockFreq / params.SoundFreq);
-      while (CurrentState.Tick < nextTick)
-      {
-        for (std::size_t chan = 0; chan != CHANNELS_COUNT; ++chan)
-        {
-          if (Channels[chan].Enabled)
-          {
-            const Sample& sampl(Data.Samples[Channels[chan].SampleNum]);
-            std::size_t pos(Channels[chan].PosInSample / Sound::FIXED_POINT_PRECISION);
-            if (pos >= sampl.Data.size() || !sampl.Data[pos])//end
-            {
-              if (sampl.Loop >= sampl.Data.size())//not looped
-              {
-                Channels[chan].Enabled = false;
-              }
-              else
-              {
-                pos = sampl.Loop;
-                Channels[chan].PosInSample = pos * Sound::FIXED_POINT_PRECISION;
-              }
-            }
-            result[chan] = scale(sampl.Data[pos]);
-            //recalc using coeff
-            Channels[chan].PosInSample += steps[chan];
-          }
-          else
-          {
-            result[chan] = scale(128);
-          }
-        }
-        receiver.ApplySample(result, ArraySize(result));
-        CurrentState.Tick += ticksPerSample;
-      }
-      CurrentState.Position.Channels = std::count_if(Channels, ArrayEnd(Channels),
-        boost::mem_fn(&ChannelState::Enabled));
+      Chip->RenderData(params, data, receiver);
+      Sound::Analyze::ChannelsState state;
+      Chip->GetState(state);
+
+      CurrentState.Position.Channels = std::count_if(state.begin(), state.end(),
+        boost::mem_fn(&Sound::Analyze::Channel::Enabled));
 
       return Parent::RenderFrame(params, receiver);
     }
 
-    virtual State SetPosition(std::size_t /*frame*/)
+    virtual State Reset()
     {
-      //TODO
-      return PlaybackState;
-    }
-
-  private:
-    std::size_t GetStep(ChannelState& state, std::size_t freq)
-    {
-      //table in Hz
-      static const double FREQ_TABLE[NOTES] = {
-        //octave1
-        32.70,  34.65,  36.71,  38.89,  41.20,  43.65,  46.25,  49.00,  51.91,  55.00,  58.27,  61.73,
-        //octave2
-        65.41,  69.29,  73.42,  77.78,  82.41,  87.30,  92.50,  98.00, 103.82, 110.00, 116.54, 123.46,
-        //octave3
-        130.82, 138.58, 146.84, 155.56, 164.82, 174.60, 185.00, 196.00, 207.64, 220.00, 233.08, 246.92,
-        //octave4
-        261.64, 277.16, 293.68, 311.12, 329.64, 349.20, 370.00, 392.00, 415.28, 440.00, 466.16, 493.84,
-        //octave5
-        523.28, 554.32, 587.36, 622.24, 659.28, 698.40, 740.00, 784.00, 830.56, 880.00, 932.32, 987.68,
-        //octave6
-        1046.5, 1108.6, 1174.7
-      };
-      if (TableFreq != freq)
-      {
-        TableFreq = freq;
-        for (std::size_t note = 0; note != NOTES; ++note)
-        {
-          FreqTable[note] = static_cast<std::size_t>(FREQ_TABLE[note] * Sound::FIXED_POINT_PRECISION *
-            BASE_FREQ / (FREQ_TABLE[0] * freq * 2));
-        }
-      }
-      const Ornament& orn(Data.Ornaments[state.OrnamentNum]);
-      const int toneStep = static_cast<int>(FreqTable[clamp<int>(state.Note + orn.Data[state.PosInOrnament] / 2, 0, NOTES - 1)]);
-      if (state.PosInOrnament++ == orn.LoopEnd)
-      {
-        state.PosInOrnament = orn.LoopBegin;
-      }
-      return toneStep;
+      Chip->Reset();
+      return Parent::Reset();
     }
   private:
-    ChannelState Channels[CHANNELS_COUNT];
-    std::size_t TableFreq;
-    boost::array<std::size_t, NOTES> FreqTable;
+    DAC::Chip::Ptr Chip;
+    boost::array<OrnamentState, CHANNELS_COUNT> Ornaments;
   };
   //////////////////////////////////////////////////////////////////////////
   void Describing(ModulePlayer::Info& info)
@@ -534,7 +450,7 @@ namespace
     }
     if (ArrayEnd(header->Ornaments) != std::find_if(header->Ornaments, ArrayEnd(header->Ornaments), CheckOrnament) ||
         ArrayEnd(header->Samples) != std::find_if(header->Samples, ArrayEnd(header->Samples), CheckSample)
-    )
+      )
     {
       return false;
     }
