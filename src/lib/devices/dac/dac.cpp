@@ -2,6 +2,8 @@
 
 #include <tools.h>
 
+#include <boost/array.hpp>
+
 #include <numeric>
 
 namespace
@@ -70,8 +72,8 @@ namespace
 
   struct ChannelState
   {
-    explicit ChannelState(const Sample& sample)
-      : Enabled(), Note(), NoteSlide(), FreqSlide(), CurSample(&sample), PosInSample(), SampleStep(1)
+    explicit ChannelState(const Sample* sample = 0)
+      : Enabled(), Note(), NoteSlide(), FreqSlide(), CurSample(sample), PosInSample(), SampleStep(1)
     {
     }
 
@@ -91,6 +93,7 @@ namespace
 
     void SkipConstSteps(std::size_t steps)
     {
+      assert(CurSample);
       PosInSample += steps * SampleStep;
       const std::size_t pos(PosInSample / Sound::FIXED_POINT_PRECISION);
       assert(CurSample);
@@ -127,13 +130,15 @@ namespace
     }
   };
 
+  template<std::size_t Channels>
   class ChipImpl : public Chip
   {
   public:
-    ChipImpl(std::size_t channels, std::size_t samples, std::size_t sampleFreq)
-      : Samples(samples), MaxGain(0), CurrentTick(0), State(channels, ChannelState(Samples.front()))
+    ChipImpl(std::size_t samples, std::size_t sampleFreq)
+      : Samples(samples), MaxGain(0), CurrentTick(0)
       , SampleFreq(sampleFreq)
     {
+      Reset();
     }
 
     /// Set sample for work
@@ -147,8 +152,7 @@ namespace
     }
 
     /// render single data chunk
-    virtual void RenderData(const Sound::Parameters& params,
-      const DataChunk& src,
+    virtual void RenderData(const Sound::Parameters& params, const DataChunk& src,
       Sound::Receiver& dst)
     {
       std::for_each(src.Channels.begin(), src.Channels.end(),
@@ -158,9 +162,9 @@ namespace
         boost::bind(&ChipImpl::CalcSampleStep, this, params.SoundFreq, _1));
 
       const uint64_t ticksPerSample(params.ClockFreq / params.SoundFreq);
-      std::vector<Sound::Sample> result(State.size());
-
-      std::vector<std::size_t> constSteps(State.size());
+      boost::array<Sound::Sample, Channels> result;
+      
+      boost::array<std::size_t, Channels> constSteps;
       while (CurrentTick < src.Tick)
       {
         std::transform(State.begin(), State.end(), result.begin(),
@@ -174,7 +178,7 @@ namespace
           std::bind2nd(std::mem_fun_ref(&ChannelState::SkipConstSteps), safeSkips));
         while (safeSkips--)
         {
-          dst.ApplySample(&result[0], result.size());
+          dst.ApplySample(&result.front(), result.size());
         }
       }
     }
@@ -189,7 +193,8 @@ namespace
     /// reset internal state to initial
     virtual void Reset()
     {
-      //TODO
+      CurrentTick = 0;
+      std::fill(State.begin(), State.end(), ChannelState(&Samples.front()));
     }
 
   private:
@@ -253,7 +258,7 @@ namespace
     std::vector<Sample> Samples;
     Sound::Analyze::LevelType MaxGain;
     uint64_t CurrentTick;
-    std::vector<ChannelState> State;
+    boost::array<ChannelState, Channels> State;
     const std::size_t SampleFreq;
     //steps calc
     std::size_t TableFreq;
@@ -268,7 +273,14 @@ namespace ZXTune
   {
     Chip::Ptr CreateChip(std::size_t channels, std::size_t samples, std::size_t sampleFreq)
     {
-      return Chip::Ptr(new ChipImpl(channels, samples, sampleFreq));
+      switch (channels)
+      {
+      case 4:
+        return Chip::Ptr(new ChipImpl<4>(samples, sampleFreq));
+      default:
+        assert(!"Invalid channels count");
+	return Chip::Ptr();
+      }
     }
   }
 }

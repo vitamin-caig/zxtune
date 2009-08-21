@@ -295,10 +295,14 @@ namespace
         {
           const uint8_t* sampleData(samplesData + PAGE_SIZE * GetPageOrder(sample->Page) + 
             (fromLE(sample->Start) - 0xc000));
-          const std::size_t size(fromLE(sample->Size));
+          std::size_t size(fromLE(sample->Size));
           if (size)
           {
-            Chip->SetSample(sample - header->Samples, Dump(sampleData, sampleData + size), sample->Loop);
+	    while (size && !sampleData[size])
+	    {
+	      --size;
+	    }
+            Chip->SetSample(sample - header->Samples, Dump(sampleData, sampleData + size + 1), sample->Loop);
           }
         }
       }

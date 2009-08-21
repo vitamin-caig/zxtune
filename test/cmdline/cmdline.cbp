@@ -70,6 +70,8 @@
 		<Unit filename="../../src/archives/formats/hrust_2x.cpp" />
 		<Unit filename="../../src/lib/devices/aym/aym.cpp" />
 		<Unit filename="../../src/lib/devices/aym/aym.h" />
+		<Unit filename="../../src/lib/devices/dac/dac.cpp" />
+		<Unit filename="../../src/lib/devices/dac/dac.h" />
 		<Unit filename="../../src/lib/devices/data_source.h" />
 		<Unit filename="../../src/lib/include/convert_parameters.h" />
 		<Unit filename="../../src/lib/include/module.h" />
@@ -91,6 +93,7 @@
 		<Unit filename="../../src/lib/plugins/chi_supp.cpp" />
 		<Unit filename="../../src/lib/plugins/detector.cpp" />
 		<Unit filename="../../src/lib/plugins/detector.h" />
+		<Unit filename="../../src/lib/plugins/fdi_supp.cpp" />
 		<Unit filename="../../src/lib/plugins/hobeta_supp.cpp" />
 		<Unit filename="../../src/lib/plugins/hrip_supp.cpp" />
 		<Unit filename="../../src/lib/plugins/multitrack_supp.cpp" />
@@ -107,6 +110,7 @@
 		<Unit filename="../../src/lib/plugins/raw_supp.cpp" />
 		<Unit filename="../../src/lib/plugins/scl_supp.cpp" />
 		<Unit filename="../../src/lib/plugins/stc_supp.cpp" />
+		<Unit filename="../../src/lib/plugins/stp_supp.cpp" />
 		<Unit filename="../../src/lib/plugins/tracking_supp.h" />
 		<Unit filename="../../src/lib/plugins/trd_supp.cpp" />
 		<Unit filename="../../src/lib/plugins/ts_supp.cpp" />
