@@ -897,7 +897,8 @@ namespace
     }
     const std::size_t patternsCount(1 + *std::max_element(header->Positions,
       header->Positions + header->Lenght));
-    if (checker(patternsOffset + patternsCount * sizeof(ASCPattern)))
+    if (patternsCount >= MAX_PATTERNS_COUNT ||
+        checker(patternsOffset + patternsCount * sizeof(ASCPattern)))
     {
       return false;
     }
@@ -910,7 +911,9 @@ namespace
         return false;
       }
     }
-    return true;
+    return header->Positions + header->Lenght == 
+      std::find_if(header->Positions, header->Positions + header->Lenght, std::bind2nd(std::greater_equal<uint8_t>(),
+        patternsCount));
   }
 
   ModulePlayer::Ptr Creating(const String& filename, const IO::DataContainer& data, uint32_t /*capFilter*/)

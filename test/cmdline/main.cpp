@@ -48,7 +48,10 @@ namespace
   {
     for (StringMap::const_iterator it = sm.begin(), lim = sm.end(); it != lim; ++it)
     {
-      str << it->first << ": " << it->second << '\n';
+      if (it->second.size() < 1024)
+      {
+        str << it->first << ": " << it->second << '\n';
+      }
     }
     return str;
   }

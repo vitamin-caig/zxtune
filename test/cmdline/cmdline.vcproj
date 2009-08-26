@@ -214,6 +214,12 @@
 					RelativePath="..\..\src\lib\plugins\asc_supp.cpp">
 				</File>
 				<File
+					RelativePath="..\..\src\lib\plugins\checker.cpp">
+				</File>
+				<File
+					RelativePath="..\..\src\lib\plugins\checker.h">
+				</File>
+				<File
 					RelativePath="..\..\src\lib\plugins\chi_supp.cpp">
 				</File>
 				<File

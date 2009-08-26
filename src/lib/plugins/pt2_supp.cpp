@@ -716,7 +716,13 @@ namespace
         return false;
       }
     }
-    return patternsCount != 0;
+    if (!patternsCount)
+    {
+      return false;
+    }
+    return header->Positions + header->Length == 
+      std::find_if(header->Positions, header->Positions + header->Length, std::bind2nd(std::greater_equal<uint8_t>(),
+        patternsCount));
   }
 
   bool Checking(const String& /*filename*/, const IO::DataContainer& source, uint32_t /*capFilter*/)
