@@ -3,7 +3,7 @@ Abstract:
   Helper functions for byteorder working
 
 Last changed:
-  $Id: $
+  $Id$
 
 Author:
   (C) Vitamin/CAIG/2001

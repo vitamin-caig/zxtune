@@ -3,7 +3,7 @@ Abstract:
   Strings type definition
 
 Last changed:
-  $Id: $
+  $Id$
 
 Author:
   (C) Vitamin/CAIG/2001

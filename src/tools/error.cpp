@@ -3,7 +3,7 @@ Abstract:
   Error subsystem implementation
 
 Last changed:
-  $Id: $
+  $Id$
 
 Author:
   (C) Vitamin/CAIG/2001
