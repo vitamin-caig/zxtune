@@ -1,5 +1,7 @@
 #include "checker.h"
 
+#include <set>
+
 namespace
 {
   using namespace ZXTune;
@@ -24,6 +26,7 @@ namespace
       {
         return false;
       }
+      /*TODO:implement
       RangeSet::iterator bound(Ranges.lower_bound(rng.first));
       //bound->first >= rng.first
       if (bound == Ranges.end() || rng.first + rng.second <= bound->first)
@@ -35,6 +38,7 @@ namespace
         Ranges.insert(rng);
         return true;
       }
+      */
       return false;
     }
 
