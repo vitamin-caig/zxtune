@@ -4,7 +4,7 @@ arch := $(if $(arch),$(arch),native)
 CXX := $(if $(CXX),$(CXX),g++)
 
 #set directories
-include_dirs := $(path_step) $(path_step)/include/boost/tr1/tr1 $(path_step)/include/boost $(path_step)/include include $(include_path)
+include_dirs := $(path_step) $(path_step)/include $(include_path)
 libs_dir := $(path_step)/lib/$(mode)
 objs_dir := $(path_step)/obj/$(mode)
 bins_dir := $(path_step)/bin/$(mode)

@@ -1,7 +1,7 @@
 // Generated from '$Id$'
-#ifndef __PLUGINS_H_DEFINED__
-#define __PLUGINS_H_DEFINED__
-#include <types.h>
+#ifndef __TEXT_PLUGINS_H_DEFINED__
+#define __TEXT_PLUGINS_H_DEFINED__
+#include <string_type.h>
 
 extern const String::value_type TEXT_ASC_EDITOR[] = {
   'A','S','C',' ','S','o','u','n','d',' ','M','a','s','t','e','r',0
@@ -99,4 +99,4 @@ extern const String::value_type TEXT_VORTEX_EDITOR[] = {
   'V','o','r','t','e','x','T','r','a','c','k','e','r',' ','(','P','r','o','T','r','a','c','k','e','r',' ','v',
   '%','1','%','.','%','2','%',' ','c','o','m','p','a','t','i','b','l','e',')',0
 };
-#endif //__PLUGINS_H_DEFINED__
+#endif //__TEXT_PLUGINS_H_DEFINED__

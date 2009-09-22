@@ -1,7 +1,7 @@
 // Generated from '$Id$'
-#ifndef __PLUGINS_H_DEFINED__
-#define __PLUGINS_H_DEFINED__
-#include <types.h>
+#ifndef __TEXT_PLUGINS_H_DEFINED__
+#define __TEXT_PLUGINS_H_DEFINED__
+#include <string_type.h>
 
 extern const String::value_type TEXT_ASC_EDITOR[];
 extern const String::value_type TEXT_ASC_INFO[];
@@ -34,4 +34,4 @@ extern const String::value_type TEXT_TS_CONTAINER[];
 extern const String::value_type TEXT_TS_INFO[];
 extern const String::value_type TEXT_TXT_INFO[];
 extern const String::value_type TEXT_VORTEX_EDITOR[];
-#endif //__PLUGINS_H_DEFINED__
+#endif //__TEXT_PLUGINS_H_DEFINED__

@@ -1,7 +1,7 @@
 // Generated from '$Id$'
-#ifndef __ERRORS_H_DEFINED__
-#define __ERRORS_H_DEFINED__
-#include <types.h>
+#ifndef __TEXT_ERRORS_H_DEFINED__
+#define __TEXT_ERRORS_H_DEFINED__
+#include <string_type.h>
 
 extern const String::value_type TEXT_ERROR_BACKEND_INIT_ALSA[] = {
   'F','a','i','l','e','d',' ','t','o',' ','i','n','i','t','i','a','l','i','z','e',' ','A','L','S','A',' ','b',
@@ -54,4 +54,4 @@ extern const String::value_type TEXT_ERROR_INVALID_STRING[] = {
 extern const String::value_type TEXT_ERROR_OPEN_FILE[] = {
   'F','a','i','l','e','d',' ','t','o',' ','o','p','e','n',' ','%','1','%',0
 };
-#endif //__ERRORS_H_DEFINED__
+#endif //__TEXT_ERRORS_H_DEFINED__

@@ -2,12 +2,12 @@
 > "Generated from '$Id: $'"
 
 < __RAWHEADER__
-__cpp> "#ifndef __PLUGINS_H_DEFINED__\n"
-__cpp> "#define __PLUGINS_H_DEFINED__\n"
-__cpp> "#include <types.h>\n\n"
+__cpp> "#ifndef __TEXT_PLUGINS_H_DEFINED__\n"
+__cpp> "#define __TEXT_PLUGINS_H_DEFINED__\n"
+__cpp> "#include <string_type.h>\n\n"
 
 < __RAWFOOTER__
-__cpp> "#endif //__PLUGINS_H_DEFINED__\n"
+__cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 
 #ASC
 < TEXT_ASC_INFO

@@ -1,7 +1,7 @@
 // Generated from '$Id: $'
-#ifndef __BACKENDS_H_DEFINED__
-#define __BACKENDS_H_DEFINED__
-#include <types.h>
+#ifndef __TEXT_BACKENDS_H_DEFINED__
+#define __TEXT_BACKENDS_H_DEFINED__
+#include <string_type.h>
 
 extern const String::value_type ALSA_BACKEND_KEY[];
 extern const String::value_type FILE_ANNOTATION_EXT[];
@@ -16,4 +16,4 @@ extern const String::value_type TEXT_NULL_BACKEND_DESCRIPTION[];
 extern const String::value_type TEXT_OSS_BACKEND_DESCRIPTION[];
 extern const String::value_type TEXT_WIN32_BACKEND_DESCRIPTION[];
 extern const String::value_type WIN32_BACKEND_KEY[];
-#endif //__BACKENDS_H_DEFINED__
+#endif //__TEXT_BACKENDS_H_DEFINED__

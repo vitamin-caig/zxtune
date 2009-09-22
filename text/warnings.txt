@@ -2,12 +2,12 @@
 > "Generated from '$Id: $'"
 
 < __RAWHEADER__
-__cpp> "#ifndef __WARNINGS_H_DEFINED__\n"
-__cpp> "#define __WARNINGS_H_DEFINED__\n"
-__cpp> "#include <types.h>\n\n"
+__cpp> "#ifndef __TEXT_WARNINGS_H_DEFINED__\n"
+__cpp> "#define __TEXT_WARNINGS_H_DEFINED__\n"
+__cpp> "#include <string_type.h>\n\n"
 
 < __RAWFOOTER__
-__cpp> "#endif //__WARNINGS_H_DEFINED__\n"
+__cpp> "#endif //__TEXT_WARNINGS_H_DEFINED__\n"
 
 < TEXT_CHANNEL_WARN_PREFIX
 > "Channel %1%: "

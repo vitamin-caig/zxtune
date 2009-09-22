@@ -2,14 +2,21 @@
 > "Generated from '$Id: $'"
 
 < __RAWHEADER__
-__cpp> "#ifndef __COMMON_H_DEFINED__\n"
-__cpp> "#define __COMMON_H_DEFINED__\n"
-__cpp> "#include <types.h>\n\n"
+__cpp> "#ifndef __TEXT_COMMON_H_DEFINED__\n"
+__cpp> "#define __TEXT_COMMON_H_DEFINED__\n"
+__cpp> "#include <string_type.h>\n\n"
 
 < __RAWFOOTER__
-__cpp> "#endif //__COMMON_H_DEFINED__\n"
+__cpp> "#endif //__TEXT_COMMON_H_DEFINED__\n"
 
 #common texts
+< TEXT_ERROR_LOCATION_FORMAT
+> "%1$08x"
+
+< TEXT_ERROR_LOCATION_FORMAT_DEBUG
+> TEXT_ERROR_LOCATION_FORMAT " (%2%:%3%, %4%)"
+
+
 < TEXT_CONTAINER_DELIMITER
 > ">"
 

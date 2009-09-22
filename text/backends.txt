@@ -2,12 +2,12 @@
 > "Generated from '$Id: $'"
 
 < __RAWHEADER__
-__cpp> "#ifndef __BACKENDS_H_DEFINED__\n"
-__cpp> "#define __BACKENDS_H_DEFINED__\n"
-__cpp> "#include <types.h>\n\n"
+__cpp> "#ifndef __TEXT_BACKENDS_H_DEFINED__\n"
+__cpp> "#define __TEXT_BACKENDS_H_DEFINED__\n"
+__cpp> "#include <string_type.h>\n\n"
 
 < __RAWFOOTER__
-__cpp> "#endif //__BACKENDS_H_DEFINED__\n"
+__cpp> "#endif //__TEXT_BACKENDS_H_DEFINED__\n"
 
 
 #file backend

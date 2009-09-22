@@ -1,7 +1,7 @@
 // Generated from '$Id$'
-#ifndef __WARNINGS_H_DEFINED__
-#define __WARNINGS_H_DEFINED__
-#include <types.h>
+#ifndef __TEXT_WARNINGS_H_DEFINED__
+#define __TEXT_WARNINGS_H_DEFINED__
+#include <string_type.h>
 
 extern const String::value_type TEXT_CHANNEL_WARN_PREFIX[] = {
   'C','h','a','n','n','e','l',' ','%','1','%',':',' ',0
@@ -93,4 +93,4 @@ extern const String::value_type TEXT_WARNING_TOO_LONG[] = {
 extern const String::value_type TEXT_WARNING_UNEXPECTED_END[] = {
   'u','n','e','x','p','e','c','t','e','d',' ','e','n','d',' ','o','f',' ','f','i','l','e',0
 };
-#endif //__WARNINGS_H_DEFINED__
+#endif //__TEXT_WARNINGS_H_DEFINED__

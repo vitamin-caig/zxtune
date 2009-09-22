@@ -1,7 +1,7 @@
 // Generated from '$Id$'
-#ifndef __WARNINGS_H_DEFINED__
-#define __WARNINGS_H_DEFINED__
-#include <types.h>
+#ifndef __TEXT_WARNINGS_H_DEFINED__
+#define __TEXT_WARNINGS_H_DEFINED__
+#include <string_type.h>
 
 extern const String::value_type TEXT_CHANNEL_WARN_PREFIX[];
 extern const String::value_type TEXT_LINE_CHANNEL_WARN_PREFIX[];
@@ -32,4 +32,4 @@ extern const String::value_type TEXT_WARNING_LOOP_OUT_LIMIT[];
 extern const String::value_type TEXT_WARNING_PERIODS[];
 extern const String::value_type TEXT_WARNING_TOO_LONG[];
 extern const String::value_type TEXT_WARNING_UNEXPECTED_END[];
-#endif //__WARNINGS_H_DEFINED__
+#endif //__TEXT_WARNINGS_H_DEFINED__

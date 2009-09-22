@@ -1,7 +1,7 @@
 // Generated from '$Id: $'
-#ifndef __BACKENDS_H_DEFINED__
-#define __BACKENDS_H_DEFINED__
-#include <types.h>
+#ifndef __TEXT_BACKENDS_H_DEFINED__
+#define __TEXT_BACKENDS_H_DEFINED__
+#include <string_type.h>
 
 extern const String::value_type ALSA_BACKEND_KEY[] = {
   'a','l','s','a',0
@@ -43,4 +43,4 @@ extern const String::value_type TEXT_WIN32_BACKEND_DESCRIPTION[] = {
 extern const String::value_type WIN32_BACKEND_KEY[] = {
   'w','i','n','3','2',0
 };
-#endif //__BACKENDS_H_DEFINED__
+#endif //__TEXT_BACKENDS_H_DEFINED__
