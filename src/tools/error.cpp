@@ -19,13 +19,13 @@ struct Error::Meta
   {
   }
   
-  Meta(LocationRef loc, Code code, const String& txt)
+  Meta(LocationRef loc, CodeType code, const String& txt)
     : Location(loc), Code(code), Text(txt)
   {
     assert(Code);
   }
   Error::Location Location;
-  Error::Code Code;
+  Error::CodeType Code;
   String Text;
   MetaPtr Suberror;
 
@@ -40,7 +40,7 @@ Error::Error() : ErrorMeta(new Meta(), Meta::Delete)
 {
 }
 
-Error::Error(LocationRef loc, Code code, const String& txt)
+Error::Error(LocationRef loc, CodeType code, const String& txt)
   : ErrorMeta(new Meta(loc, code, txt), Meta::Delete)
 {
 }
@@ -56,7 +56,7 @@ Error& Error::AddSuberror(const Error& e)
   return *this;
 }
 
-Error Error::FindSuberror(Code code) const
+Error Error::FindSuberror(CodeType code) const
 {
   MetaPtr ptr = ErrorMeta;
   while (ptr && ptr->Code != code)
@@ -66,7 +66,7 @@ Error Error::FindSuberror(Code code) const
   return ptr ? Error(ptr) : Error();
 }
 
-void Error::WalkSuberrors(const boost::function<void(unsigned, LocationRef, Code, const String&)>& callback) const
+void Error::WalkSuberrors(const boost::function<void(unsigned, LocationRef, CodeType, const String&)>& callback) const
 {
   MetaPtr ptr = ErrorMeta;
   for (unsigned level = 0; ptr; ++level, ptr = ptr->Suberror)
@@ -81,12 +81,12 @@ String Error::GetText() const
   return ErrorMeta->Text;
 }
 
-Error::Code Error::GetCode() const
+Error::CodeType Error::GetCode() const
 {
   return ErrorMeta->Code;
 }
 
-Error::operator Code () const
+Error::operator CodeType () const
 {
   return ErrorMeta->Code;
 }

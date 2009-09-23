@@ -43,7 +43,7 @@ endif
 
 CXX_FLAGS := $(compiler_flags) -g3 -D__STDC_CONSTANT_MACROS -march=$(arch) \
 	    -funroll-loops -funsigned-char -fno-strict-aliasing \
-	    -W -Wall -ansi -pthread -pipe \
+	    -W -Wall -ansi -pipe \
 	    $(addprefix -I, $(include_dirs)) $(addprefix -D, $(definitions))
 
 AR_FLAGS := cru
@@ -72,9 +72,12 @@ $(target): $(object_files) $(addprefix $(libs_dir)/lib, $(addsuffix .a, $(librar
 	   -L$(libs_dir) $(addprefix -l, $(libraries)) \
 	   $(addprefix -l, $(dynamic_libs)) \
 	   $(LD_SOLID_BEFORE) $(addprefix -l,$(solid_libs)) $(LD_SOLID_AFTER)
-	   objcopy --only-keep-debug $@ $@.pdb
-	   strip $@
-	   objcopy --add-gnu-debuglink=$@.pdb $@
+	   if test -e $@
+	   then
+	     objcopy --only-keep-debug $@ $@.pdb
+	     strip $@
+	     objcopy --add-gnu-debuglink=$@.pdb $@
+	   fi
 else
 $(target): $(object_files)
 	ar $(AR_FLAGS) $@ $^

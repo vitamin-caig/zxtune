@@ -27,7 +27,7 @@ public:
   //assume __LINE__ < 65536
   typedef unsigned LineTag;
   //type for code
-  typedef unsigned Code;
+  typedef unsigned CodeType;
 
 #ifndef NDEBUG
   struct Location
@@ -52,7 +52,7 @@ public:
 
   //ctors
   Error();//success
-  Error(LocationRef loc, Code code, const String& text);
+  Error(LocationRef loc, CodeType code, const String& text);
   ~Error()
   {
   }
@@ -69,17 +69,17 @@ public:
   
   //hierarchy members
   Error& AddSuberror(const Error& e);
-  Error FindSuberror(Code code) const;
+  Error FindSuberror(CodeType code) const;
   //walk through all nested suberrors
   //callback(level, detail, code, text)
-  void WalkSuberrors(const boost::function<void(unsigned, LocationRef, Code, const String&)>& callback) const;
+  void WalkSuberrors(const boost::function<void(unsigned, LocationRef, CodeType, const String&)>& callback) const;
   
   //getters
   String GetText() const;
-  Code GetCode() const;
+  CodeType GetCode() const;
   
   //checkers
-  operator Code () const;
+  operator CodeType () const;
   bool operator ! () const;
   
   //serialize
@@ -93,14 +93,14 @@ private:
 };
 
 template<class P1>
-inline Error MakeFormattedError(Error::LocationRef loc, Error::Code code, const String& fmt, 
+inline Error MakeFormattedError(Error::LocationRef loc, Error::CodeType code, const String& fmt,
   const P1& p1)
 {
   return Error(loc, code, (Formatter(fmt) % p1).str());
 }
 
 template<class P1, class P2>
-inline Error MakeFormattedError(Error::LocationRef loc, Error::Code code, const String& fmt, 
+inline Error MakeFormattedError(Error::LocationRef loc, Error::CodeType code, const String& fmt,
   const P1& p1, const P2& p2)
 {
   return Error(loc, code, (Formatter(fmt) % p1 % p2).str());

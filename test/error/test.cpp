@@ -7,7 +7,7 @@
 
 namespace
 {
-  void ErrOuter(unsigned /*level*/, Error::LocationRef loc, Error::Code code, const String& text)
+  void ErrOuter(unsigned /*level*/, Error::LocationRef loc, Error::CodeType code, const String& text)
   {
     const String txt = (Formatter("%1%\n\nCode: %2%\nAt: %3%\n--------\n") % text % code % Error::LocationToString(loc)).str();
     std::cout << txt;
