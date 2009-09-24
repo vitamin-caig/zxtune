@@ -20,8 +20,7 @@ namespace ZXTune
   {
     enum Error
     {
-      SUCCESS = Error::ModuleCode<'I', 'O'>::Value,
-      NOT_FOUND,
+      NOT_FOUND  = Error::ModuleCode<'I', 'O'>::Value,
       CANCELLED,
       NO_ACCESS,
       IO_ERROR,

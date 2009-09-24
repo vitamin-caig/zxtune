@@ -2,9 +2,11 @@ library_name := texts
 path_step := ..
 source_dirs := .
 
-text_files := $(wildcard *.txt)
-cpp_texts :=  $(text_files:.txt=.cpp)
-h_texts := $(text_files:.txt=.h)
+text_files := common
+
+#dependent targets
+source_files :=  $(text_files:=.cpp)
+h_texts := $(text_files:=.h)
 
 #textator can be get from
 #http://code.google.com/p/textator
@@ -13,7 +15,7 @@ h_texts := $(text_files:.txt=.h)
 TEXTATOR := ~/bin/textator
 TEXTATOR_FLAGS := --process --cpp --symboltype "Char" --memtype "extern const" --tab 2 --width 112
 
-texts: $(h_texts) $(cpp_texts)
+texts: $(h_texts) $(source_files)
 	$(MAKE) all
 
 %.cpp: %.txt

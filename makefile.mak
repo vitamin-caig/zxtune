@@ -22,7 +22,13 @@ else
 $(error Invalid target)
 endif
 
-source_files := $(wildcard $(addsuffix /*.cpp,$(source_dirs))) $(cpp_texts)
+ifdef source_dirs
+source_files := $(wildcard $(addsuffix /*.cpp,$(source_dirs)))
+else ifdef source_files
+source_files := $(source_files:=.cpp)
+else
+$(error Not source_dirs or source_files defined at all)
+endif
 object_files := $(notdir $(source_files))
 object_files := $(addprefix $(objects_dir)/,$(object_files:.cpp=.o))
 

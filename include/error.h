@@ -50,6 +50,11 @@ public:
     const char* File;
     const char* Function;
     std::size_t Line;
+    
+    bool operator == (const Location& rh) const
+    {
+      return Tag == rh.Tag;
+    }
   };
   typedef const Location& LocationRef;
 #else
