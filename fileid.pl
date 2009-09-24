@@ -62,6 +62,10 @@ else
 
 my $tag = undef;
 
+if ($ARGV[0] =~ /([a-fA-F0-9]{8})$/)
+{
+  $tag = hex($1);
+}
 if ($ARGV[0] =~ /^0x([a-fA-F0-9]+)$/)
 {
   $tag = hex($1);

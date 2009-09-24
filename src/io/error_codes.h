@@ -3,7 +3,7 @@ Abstract:
   Error codes for IO subsystem
 
 Last changed:
-  $Id: $
+  $Id$
 
 Author:
   (C) Vitamin/CAIG/2001

@@ -1,3 +1,14 @@
+/*
+Abstract:
+  Commonly used tools
+
+Last changed:
+  $Id$
+
+Author:
+  (C) Vitamin/CAIG/2001
+*/
+
 #ifndef __TOOLS_H_DEFINED__
 #define __TOOLS_H_DEFINED__
 
