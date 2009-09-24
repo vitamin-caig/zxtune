@@ -72,12 +72,10 @@ $(target): $(object_files) $(addprefix $(libs_dir)/lib, $(addsuffix .a, $(librar
 	   -L$(libs_dir) $(addprefix -l, $(libraries)) \
 	   $(addprefix -l, $(dynamic_libs)) \
 	   $(LD_SOLID_BEFORE) $(addprefix -l,$(solid_libs)) $(LD_SOLID_AFTER)
-	   if test -e $@
-	   then
-	     objcopy --only-keep-debug $@ $@.pdb
-	     strip $@
-	     objcopy --add-gnu-debuglink=$@.pdb $@
-	   fi
+	   test -e $@ && \
+	   objcopy --only-keep-debug $@ $@.pdb && \
+	   strip $@ && \
+	   objcopy --add-gnu-debuglink=$@.pdb $@
 else
 $(target): $(object_files)
 	ar $(AR_FLAGS) $@ $^

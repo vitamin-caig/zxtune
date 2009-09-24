@@ -12,6 +12,12 @@
 #include <iterator>
 #include <algorithm>
 
+template<std::size_t D>
+inline String FromChar(const Char (str&)[D])
+{
+  return String(str, str + D);
+}
+
 template<class T, std::size_t D>
 inline std::size_t ArraySize(const T (&)[D])
 {

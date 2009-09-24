@@ -12,10 +12,11 @@ Author:
 #ifndef __TYPES_H_DEFINED__
 #define __TYPES_H_DEFINED__
 
-#include <string_type.h>
+#include <char_type.h>
 
 #include <map>
 #include <list>
+#include <string>
 #include <vector>
 #include <ostream>
 #include <sstream>
@@ -46,14 +47,15 @@ using boost::uint64_t;
 #endif
 
 //common types
-typedef std::basic_ostream<String::value_type> OutStream;
-typedef std::basic_istream<String::value_type> InStream;
-typedef std::basic_ostringstream<String::value_type> OutStringStream;
-typedef std::basic_istringstream<String::value_type> InStringStream;
+typedef std::basic_string<Char> String;
+typedef std::basic_ostream<Char> OutStream;
+typedef std::basic_istream<Char> InStream;
+typedef std::basic_ostringstream<Char> OutStringStream;
+typedef std::basic_istringstream<Char> InStringStream;
 typedef std::map<String, String> StringMap;
 typedef std::vector<String> StringArray;
 typedef std::list<String> StringList;
 typedef std::vector<uint8_t> Dump;
-typedef boost::basic_format<String::value_type> Formatter;
+typedef boost::basic_format<Char> Formatter;
 
 #endif //__TYPES_H_DEFINED__

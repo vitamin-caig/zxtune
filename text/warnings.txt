@@ -4,7 +4,7 @@
 < __RAWHEADER__
 __cpp> "#ifndef __TEXT_WARNINGS_H_DEFINED__\n"
 __cpp> "#define __TEXT_WARNINGS_H_DEFINED__\n"
-__cpp> "#include <string_type.h>\n\n"
+__cpp> "#include <char_type.h>\n\n"
 
 < __RAWFOOTER__
 __cpp> "#endif //__TEXT_WARNINGS_H_DEFINED__\n"
