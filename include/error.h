@@ -25,9 +25,16 @@ public:
   //Datatype for source text line identification
   //LineTag=FILE_TAG+__LINE__
   //assume __LINE__ < 65536
-  typedef unsigned LineTag;
+  typedef uint32_t LineTag;
   //type for code
-  typedef unsigned CodeType;
+  typedef uint32_t CodeType;
+
+  //helper template used for generate per-module base error code
+  template<uint8_t p1, uint8_t p2>
+  struct ModuleCode
+  {
+    static const CodeType Value = (CodeType(p1) | (CodeType(p2) << 8)) << (8 * (sizeof(CodeType) - 2));
+  };
 
 #ifndef NDEBUG
   struct Location
