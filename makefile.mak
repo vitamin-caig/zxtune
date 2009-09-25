@@ -59,7 +59,8 @@ endif
 object_files := $(notdir $(source_files))
 object_files := $(addprefix $(objects_dir)/,$(object_files:.cpp=.o))
 
-CXX_FLAGS := $(cxx_mode_flags) $(cxx_flags) $(if $(pic),-fPIC,) -g3 -D__STDC_CONSTANT_MACROS -march=$(arch) \
+CXX_FLAGS := $(cxx_mode_flags) $(cxx_flags) $(if $(pic),-fPIC,) -g3 -D__STDC_CONSTANT_MACROS $(addprefix -D, $(definitions)) \
+	    -march=$(arch) \
 	    -funroll-loops -funsigned-char -fno-strict-aliasing \
 	    -W -Wall -ansi -pipe \
 	    $(addprefix -I, $(include_dirs)) $(addprefix -D, $(definitions))

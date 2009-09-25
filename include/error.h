@@ -87,7 +87,7 @@ public:
   void WalkSuberrors(const boost::function<void(unsigned, LocationRef, CodeType, const String&)>& callback) const;
   
   //getters
-  String GetText() const;
+  const String& GetText() const;
   CodeType GetCode() const;
   
   //checkers

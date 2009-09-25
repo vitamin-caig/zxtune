@@ -76,7 +76,7 @@ void Error::WalkSuberrors(const boost::function<void(unsigned, LocationRef, Code
   }
 }
 
-String Error::GetText() const
+const String& Error::GetText() const
 {
   return ErrorMeta->Text;
 }

@@ -73,7 +73,8 @@ int main()
     std::cout << "Displaying catched error stack" << std::endl;
     ShowError(e);
   }
-  
+
+#ifdef DYNAMIC_ERROR_TEST  
   try
   {
     Error errBase(THIS_LINE, Error::ModuleCode<'b', 'i'>::Value, "Base error from binary");
@@ -89,4 +90,5 @@ int main()
     std::cout << "Displaying catched mixed error stack" << std::endl;
     ShowError(e);
   }
+#endif
 }
