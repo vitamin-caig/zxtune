@@ -1,3 +1,5 @@
+#include "../error_dynamic/error_dynamic.h"
+
 #include <error.h>
 
 #include <iostream>
@@ -48,6 +50,7 @@ int main()
     Test(Error::ModuleCode<'0', '0'>::Value == 0x30300000, "ModuleCode#1", __LINE__);
     Test(Error::ModuleCode<'A', 'B'>::Value == 0x42410000, "ModuleCode#2", __LINE__);
     Error err0;
+    Test(!err0, "!err0", __LINE__);
     Error err1(LOCATIONS[0], 1, "Error1");
     Test(err1 == 1,"Error1 == 1", __LINE__);
     Error err2(LOCATIONS[1], 2, "Error2");
@@ -68,6 +71,22 @@ int main()
   catch (const Error& e)
   {
     std::cout << "Displaying catched error stack" << std::endl;
+    ShowError(e);
+  }
+  
+  try
+  {
+    Error errBase(THIS_LINE, Error::ModuleCode<'b', 'i'>::Value, "Base error from binary");
+    errBase.AddSuberror(ReturnErrorByValue());
+    errBase.AddSuberror(Error(THIS_LINE, Error::ModuleCode<'i', 'n'>::Value, "Intermediate error from binary"));
+    Error err;
+    ReturnErrorByReference(err);
+    errBase.AddSuberror(err);
+    throw errBase;
+  }
+  catch (const Error& e)
+  {
+    std::cout << "Displaying catched mixed error stack" << std::endl;
     ShowError(e);
   }
 }
