@@ -11,7 +11,7 @@ Author:
 
 #include <error.h>
 
-#include <text/common.h>
+#include <text/tools.h>
 
 struct Error::Meta
 {

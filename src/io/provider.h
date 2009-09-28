@@ -3,7 +3,7 @@ Abstract:
   Data provider interface
 
 Last changed:
-  $Id: $
+  $Id$
 
 Author:
   (C) Vitamin/CAIG/2001
@@ -12,11 +12,11 @@ Author:
 #ifndef __IO_PROVIDER_H_DEFINED__
 #define __IO_PROVIDER_H_DEFINED__
 
-#include <io/container.h>
+#include "container.h"
 
 #include <error.h>
 
-#include <boost/functions.h>
+#include <boost/function.hpp>
 
 #include <vector>
 
@@ -44,8 +44,6 @@ namespace ZXTune
     
       //progress callback. In case if result Error is not success, it used as a suberror of 'cancelled' error
       boost::function<Error(const String&, unsigned)> ProgressCallback;
-      //credentials callback
-      boost::function<Error(const String&, String&, String&)> CredentialsCallback;
       //flags
       uint32_t Flags;
       //custom parameters
@@ -53,9 +51,11 @@ namespace ZXTune
     };
   
     Error OpenData(const String& uri, const OpenDataParameters& params, DataContainer::Ptr& data, String& subpath);
-    
+
     Error SplitUri(const String& uri, String& baseUri, String& subpath);
-    
+
+    Error CombineUri(const String& baseUri, const String& subpath, String& uri);
+
     struct ProviderInfo
     {
       String Name;

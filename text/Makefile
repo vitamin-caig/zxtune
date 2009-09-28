@@ -2,7 +2,7 @@ library_name := texts
 path_step := ..
 source_dirs := .
 
-text_files := common
+text_files := tools io
 
 #dependent targets
 source_files :=  $(text_files:=.cpp)

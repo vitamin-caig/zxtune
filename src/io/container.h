@@ -13,7 +13,6 @@ Author:
 #define __IO_CONTAINER_H_DEFINED__
 
 #include <tools.h>
-#include <types.h>
 
 #include <memory>
 
@@ -44,7 +43,7 @@ namespace ZXTune
     {
     public:
       FastDump(const DataContainer& data, std::size_t offset = 0)
-        : Ptr(safe_ptr_cast<const T*>(static_cast<const uint8_t*>(data.Data()) + offset)
+        : Ptr(safe_ptr_cast<const T*>(static_cast<const uint8_t*>(data.Data()) + offset))
 	, Lenght((data.Size() - offset) / sizeof(T))
       {
         assert(0 == (data.Size() - offset) % sizeof(T));

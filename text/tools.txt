@@ -2,12 +2,12 @@
 > "Generated from '$Id: $'"
 
 < __RAWHEADER__
-__cpp> "#ifndef __TEXT_COMMON_H_DEFINED__\n"
-__cpp> "#define __TEXT_COMMON_H_DEFINED__\n"
+__cpp> "#ifndef __TEXT_TOOLS_H_DEFINED__\n"
+__cpp> "#define __TEXT_TOOLS_H_DEFINED__\n"
 __cpp> "#include <char_type.h>\n\n"
 
 < __RAWFOOTER__
-__cpp> "#endif //__TEXT_COMMON_H_DEFINED__\n"
+__cpp> "#endif //__TEXT_TOOLS_H_DEFINED__\n"
 
 #common texts
 < TEXT_ERROR_LOCATION_FORMAT

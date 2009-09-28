@@ -1,0 +1,13 @@
+< __HEADER__
+> "Generated from '$Id: $'"
+
+< __RAWHEADER__
+__cpp> "#ifndef __TEXT_IO_H_DEFINED__\n"
+__cpp> "#define __TEXT_IO_H_DEFINED__\n"
+__cpp> "#include <char_type.h>\n\n"
+
+< __RAWFOOTER__
+__cpp> "#endif //__TEXT_IO_H_DEFINED__\n"
+
+< TEXT_IO_ERROR_NOT_SUPPORTED_URI
+> "Specified uri scheme does not supported."
