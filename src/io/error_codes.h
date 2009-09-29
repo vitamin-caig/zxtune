@@ -21,6 +21,7 @@ namespace ZXTune
     enum
     {
       NOT_SUPPORTED = Error::ModuleCode<'I', 'O'>::Value,
+      NOT_OPENED,
       NOT_FOUND,
       CANCELLED,
       NO_ACCESS,

@@ -2,7 +2,8 @@ binary_name := io_test
 path_step := ../..
 source_files := test
 
-libraries := io tools texts
-depends := text src/io src/tools
+libraries := tools
+solid_libs := texts io
+depends := src/tools text src/io
 
 include $(path_step)/makefile.mak

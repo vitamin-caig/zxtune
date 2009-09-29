@@ -27,6 +27,11 @@ namespace
 {
   using namespace ZXTune::IO;
   
+  inline bool CompareInfos(const ProviderInfo& lh, const ProviderInfo& rh)
+  {
+    return lh.Name == rh.Name;
+  }
+  
   class ProvidersEnumeratorImpl : public ProvidersEnumerator
   {
     struct ProviderEntry
@@ -55,7 +60,8 @@ namespace
     virtual void RegisterProvider(const ProviderInfo& info,
 	Provider::CheckFunc detector, Provider::OpenFunc opener, Provider::SplitFunc splitter, Provider::CombineFunc combiner)
     {
-      assert(Providers.end() == std::find_if(Providers.begin(), Providers.end(), boost::bind(&ProviderEntry::Info) == info));
+      assert(Providers.end() == std::find_if(Providers.begin(), Providers.end(), 
+        boost::bind(CompareInfos, info, boost::bind<ProviderInfo>(&ProviderEntry::Info, _1))));
       Providers.push_back(ProviderEntry(info, detector, opener, splitter, combiner));
     }
       

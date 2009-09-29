@@ -9,5 +9,25 @@ __cpp> "#include <char_type.h>\n\n"
 < __RAWFOOTER__
 __cpp> "#endif //__TEXT_IO_H_DEFINED__\n"
 
+#common errors
 < TEXT_IO_ERROR_NOT_SUPPORTED_URI
 > "Specified uri scheme does not supported."
+
+< TEXT_IO_ERROR_NOT_OPENED
+> "Failed to open file '%1%'."
+
+< TEXT_IO_ERROR_NO_ACCESS
+> "Failed to get access."
+
+< TEXT_IO_ERROR_NOT_FOUND
+> "Failed to find specified file."
+
+< TEXT_IO_ERROR_IO_ERROR
+> "I/O error happends."
+
+#providers description
+< TEXT_IO_FILE_PROVIDER_NAME
+> "file"
+
+< TEXT_IO_FILE_PROVIDER_DESCRIPTION
+> "Supporting for local files and file:// scheme."

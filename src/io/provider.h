@@ -58,6 +58,12 @@ namespace ZXTune
 
     struct ProviderInfo
     {
+      ProviderInfo()
+      {
+      }
+      ProviderInfo(const String& name, const String& descr) : Name(name), Description(descr)
+      {
+      }
       String Name;
       String Description;
     };
