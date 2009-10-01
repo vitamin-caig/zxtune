@@ -13,6 +13,7 @@ Author:
 
 #include <text/tools.h>
 
+// implementation of error's core used to keep data
 struct Error::Meta
 {
   Meta() : Location(), Code(), Text()
@@ -29,6 +30,7 @@ struct Error::Meta
   String Text;
   MetaPtr Suberror;
 
+  // static destructor to release error in allocate place (workaround against multiple runtimes)
   static void Delete(Meta* obj)
   {
     delete obj;
@@ -47,12 +49,16 @@ Error::Error(LocationRef loc, CodeType code, const String& txt)
 
 Error& Error::AddSuberror(const Error& e)
 {
-  MetaPtr ptr = ErrorMeta;
-  while (ptr->Suberror)
+  //do not add/add to 'success' error
+  if (e.GetCode() && GetCode())
   {
-    ptr = ptr->Suberror;
+    MetaPtr ptr = ErrorMeta;
+    while (ptr->Suberror)
+    {
+      ptr = ptr->Suberror;
+    }
+    ptr->Suberror = e.ErrorMeta;
   }
-  ptr->Suberror = e.ErrorMeta;
   return *this;
 }
 

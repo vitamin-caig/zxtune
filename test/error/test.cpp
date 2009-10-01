@@ -2,6 +2,8 @@
 
 #include <error.h>
 
+#include <boost/bind.hpp>
+
 #include <iostream>
 #include <iomanip>
 
@@ -37,10 +39,25 @@ namespace
     Test(loc == LOCATIONS[level], "Nested errors location test", __LINE__);
   }
   
+  void CountDepth(unsigned& maxlevel, unsigned level, Error::LocationRef /*loc*/, Error::CodeType /*code*/, const String& /*text*/)
+  {
+    maxlevel = std::max(maxlevel, level);
+  }
+  
+  unsigned GetDepth(const Error& e)
+  {
+    unsigned lvl(0);
+    e.WalkSuberrors(boost::bind(CountDepth, boost::ref(lvl), _1, _2, _3, _4));
+    return lvl + 1;
+  }
+  
   void ShowError(const Error& e)
   {
     e.WalkSuberrors(ErrOuter);
   }
+  
+  #define TEST(a) \
+    Test(a, # a, __LINE__)
 }
 
 int main()
@@ -50,27 +67,31 @@ int main()
     Test(Error::ModuleCode<'0', '0'>::Value == 0x30300000, "ModuleCode#1", __LINE__);
     Test(Error::ModuleCode<'A', 'B'>::Value == 0x42410000, "ModuleCode#2", __LINE__);
     Error err0;
-    Test(!err0, "!err0", __LINE__);
+    TEST(!err0);
     Error err1(LOCATIONS[0], 1, "Error1");
-    Test(err1 == 1,"Error1 == 1", __LINE__);
+    TEST(err1 == 1);
     Error err2(LOCATIONS[1], 2, "Error2");
-    Test(err2 == 2, "Error2 == 2", __LINE__);
-    Test(err2 != err1, "err2 != err1", __LINE__);
+    TEST(err2 == 2);
+    TEST(err2 != err1);
     err1.AddSuberror(err2);
     const Error& err3 = GetError();
-    Test(err3 == 3, "err3 == 3", __LINE__);
+    TEST(err3 == 3);
     err1.AddSuberror(err3);
-    Test(err1.FindSuberror(1) == 1, "err1.FindSuberror(1) == 1", __LINE__);
-    Test(err1.FindSuberror(2) == err2, "err1.FindSuberror(2) == err2", __LINE__);
-    Test(err1.FindSuberror(100) == 0, "err1.FindSuberror(0) == 0", __LINE__);
-    Test(!err0, "!err0", __LINE__);
-    Test(err1, "err1", __LINE__);
+    TEST(err1.FindSuberror(1) == 1);
+    TEST(err1.FindSuberror(2) == err2);
+    TEST(err1.FindSuberror(100) == 0);
+    TEST(!err0);
+    TEST(err1);
     err1.WalkSuberrors(TestError);
+    const unsigned curDepth(GetDepth(err1));
+    TEST(curDepth == 3);
+    TEST(GetDepth(err1.AddSuberror(Error())) == curDepth);
+    TEST(GetDepth(Error().AddSuberror(err1)) == 1);
     throw err1;
   }
   catch (const Error& e)
   {
-    std::cout << "Displaying catched error stack" << std::endl;
+    std::cout << "\n\nDisplaying catched error stack" << std::endl;
     ShowError(e);
   }
 
