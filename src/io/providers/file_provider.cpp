@@ -195,7 +195,12 @@ namespace
     {
       return Error(THIS_LINE, NOT_SUPPORTED, TEXT_IO_ERROR_NOT_SUPPORTED_URI);
     }
-    uri = baseUri + SUBPATH_DELIMITER + subpath;
+    uri = baseUri;
+    if (!subpath.empty())
+    {
+      uri += SUBPATH_DELIMITER;
+      uri += subpath;
+    }
     return Error();
   }
   

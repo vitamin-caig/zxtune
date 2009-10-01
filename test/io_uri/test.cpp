@@ -35,10 +35,6 @@ namespace
   const char HTTP_URI_BASE[] = "http://example.com";
   const char HTTP_URI_SUBPATH[] = "subpath";
 
-  const char EXISTING_FILE[] = "Makefile";
-  const char NONEXISTING_FILE[] = "non_existing_file";
-  const char LOCKED_FILE[] = "/etc/shadow";
-
   void ErrOuter(unsigned /*level*/, Error::LocationRef loc, Error::CodeType code, const String& text)
   {
     const String txt = (Formatter("\t%1%\n\tCode: %2$#x\n\tAt: %3%\n\t--------\n") % text % code % Error::LocationToString(loc)).str();
@@ -77,10 +73,24 @@ namespace
   void TestSplitUri(const String& uri, const String& baseEq, const String& subEq, const String& type)
   {
     String base, subpath;
-    if (Test(ZXTune::IO::SplitUri(uri, base, subpath), String("Splitting ") + type + ": " + uri, __LINE__))
+    if (Test(ZXTune::IO::SplitUri(uri, base, subpath), String("Splitting ") + type + ": `" + uri + '`', __LINE__))
     {
       Test(base == baseEq, " testing base", __LINE__);
       Test(subpath == subEq, " testing subpath", __LINE__);
+      String result;
+      if (Test(ZXTune::IO::CombineUri(base, subpath, result), String("Combining ") + type + ": `" + base + "` + `" + subpath + '`', __LINE__))
+      {
+	Test(String::npos != uri.find(result), String(" testing result: `") + result + "`<=`" + uri + '`', __LINE__);
+      }
+      else
+      {
+	std::cout << "Skipped result test" << std::endl;
+      }
+    }
+    else
+    {
+      std::cout << "Skipped result test" << std::endl;
+      std::cout << "Skipped combining test" << std::endl;
     }
   }
 }
@@ -88,10 +98,12 @@ namespace
 int main()
 {
   using namespace ZXTune::IO;
+  std::cout << "------ test for enumeration -------\n";
   std::vector<ProviderInfo> providers;
   GetSupportedProviders(providers);
   std::for_each(providers.begin(), providers.end(), OutProvider);
   String base, subpath;
+  std::cout << "------ test for splitters/combiners ------\n";
   Test(SplitUri(INVALID_URI, base, subpath) == NOT_SUPPORTED, "Splitting invalid uri", __LINE__);
   TestSplitUri(FILE_URI_EMPTY, FILE_URI_EMPTY, EMPTY, "uri without subpath");
   TestSplitUri(FILE_URI1, FILE_URI1_BASE, FILE_URI_SUBPATH, "windows file uri");
@@ -102,13 +114,7 @@ int main()
   TestSplitUri(HTTP_URI, HTTP_URI_BASE, HTTP_URI_SUBPATH, "http uri");
   Test(SplitUri(FILE_URI_NO, base, subpath) == NOT_SUPPORTED, "Splitting uri with no base uri", __LINE__);
   
-  OpenDataParameters params;
-  DataContainer::Ptr data;
-  Test(OpenData(EXISTING_FILE, params, data, subpath), "Opening in buffer mode", __LINE__);
-  Test(ShowIfError(OpenData(NONEXISTING_FILE, params, data, subpath)), "Open non-existent in buffer mode", __LINE__);
-  Test(ShowIfError(OpenData(LOCKED_FILE, params, data, subpath)), "Open locked in buffer mode", __LINE__);
-  params.Flags = USE_MMAP;
-  Test(OpenData(EXISTING_FILE, params, data, subpath), "Opening in mmap mode", __LINE__);
-  Test(ShowIfError(OpenData(NONEXISTING_FILE, params, data, subpath)), "Open non-existent in shared mode", __LINE__);  
-  Test(ShowIfError(OpenData(LOCKED_FILE, params, data, subpath)), "Open locked in shared mode", __LINE__);
+  std::cout << "------ test for combiners --------\n";
+  Test(CombineUri(INVALID_URI, FILE_URI_SUBPATH, base) == NOT_SUPPORTED, "Combining invalid uri", __LINE__);
+  Test(CombineUri(FILE_URI1, FILE_URI_SUBPATH, base) == NOT_SUPPORTED, "Combining redundant uri", __LINE__);
 }
