@@ -73,14 +73,14 @@ namespace
   void TestSplitUri(const String& uri, const String& baseEq, const String& subEq, const String& type)
   {
     String base, subpath;
-    if (Test(ZXTune::IO::SplitUri(uri, base, subpath), String("Splitting ") + type + ": `" + uri + '`', __LINE__))
+    if (Test(ZXTune::IO::SplitUri(uri, base, subpath), String("Splitting ") + type, __LINE__))
     {
       Test(base == baseEq, " testing base", __LINE__);
       Test(subpath == subEq, " testing subpath", __LINE__);
       String result;
-      if (Test(ZXTune::IO::CombineUri(base, subpath, result), String("Combining ") + type + ": `" + base + "` + `" + subpath + '`', __LINE__))
+      if (Test(ZXTune::IO::CombineUri(base, subpath, result), String("Combining ") + type, __LINE__))
       {
-	Test(String::npos != uri.find(result), String(" testing result: `") + result + "`<=`" + uri + '`', __LINE__);
+	Test(String::npos != uri.find(result), String(" testing result"), __LINE__);
       }
       else
       {

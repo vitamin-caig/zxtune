@@ -23,6 +23,7 @@ Author:
 
 #include <boost/format.hpp>
 #include <boost/cstdint.hpp>
+#include <boost/variant.hpp>
 
 using boost::int8_t;
 using boost::uint8_t;
@@ -57,5 +58,9 @@ typedef std::vector<String> StringArray;
 typedef std::list<String> StringList;
 typedef std::vector<uint8_t> Dump;
 typedef boost::basic_format<Char> Formatter;
+
+//specific types
+typedef boost::variant<int64_t, String, Dump> CommonParameter;
+typedef std::map<String, CommonParameter> ParametersMap;
 
 #endif //__TYPES_H_DEFINED__

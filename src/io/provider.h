@@ -47,7 +47,7 @@ namespace ZXTune
       //flags
       uint32_t Flags;
       //custom parameters
-      StringMap Parameters;
+      ParametersMap Parameters;
     };
   
     Error OpenData(const String& uri, const OpenDataParameters& params, DataContainer::Ptr& data, String& subpath);
