@@ -1,4 +1,15 @@
-#include "filter.h"
+/*
+Abstract:
+  FIR-filter implementation
+
+Last changed:
+  $Id$
+
+Author:
+  (C) Vitamin/CAIG/2001
+*/
+#include "../filter.h"
+#include "../error_codes.h"
 
 #include <tools.h>
 #include <error.h>
@@ -10,7 +21,7 @@
 #include <limits>
 #include <cassert>
 
-#include <text/errors.h>
+#include <text/sound.h>
 
 #define FILE_TAG 8A9585D9
 
@@ -18,15 +29,8 @@ namespace
 {
   using namespace ZXTune::Sound;
 
-  struct SampleHelper
-  {
-    SampleArray Array;
-  };
-
-  BOOST_STATIC_ASSERT(sizeof(SampleHelper) == sizeof(SampleArray));
-
   template<class C>
-  class FIRFilter : public Convertor, private boost::noncopyable
+  class FIRFilter : public ChainedReceiver, private boost::noncopyable
   {
     typedef int64_t BigSample;
     typedef BigSample BigSampleArray[OUTPUT_CHANNELS];
@@ -34,25 +38,28 @@ namespace
   public:
     static const std::size_t MAX_ORDER = 1 <<
       8 * (sizeof(BigSample) - sizeof(C) - sizeof(Sample));
-    FIRFilter(const std::vector<C>& coeffs)
+    explicit FIRFilter(const std::vector<C>& coeffs)
       : Matrix(coeffs.begin(), coeffs.end()), Delegate()
       , History(coeffs.size()), Position(&History[0], &History.back() + 1)
     {
     }
 
-    virtual void ApplySample(const Sample* input, std::size_t channels)
+    virtual void ApplySample(const Sample* input, unsigned channels)
     {
-      if (Receiver::Ptr delegate = Delegate)
+      if (Receiver::Ptr delegate = Delegate.lock())
       {
-        assert(channels == ArraySize(Position->Array) || !"Invalid input channels for FIR filter");
-        std::memcpy(Position->Array, input, sizeof(SampleArray));
+        if (channels != ArraySize(Position->Data))
+	{
+	  throw MakeFormattedError(THIS_LINE, CHANNELS_MISMATCH, TEXT_SOUND_ERROR_CHANNELS_MISMATCH, "filter", channels, ArraySize(Position->Data));
+	}
+        std::memcpy(Position->Data, input, sizeof(Position->Data));
         BigSampleArray res = {0};
 
         for (typename MatrixType::const_iterator it = Matrix.begin(), lim = Matrix.end(); it != lim; ++it, --Position)
         {
           for (std::size_t chan = 0; chan != OUTPUT_CHANNELS; ++chan)
           {
-            res[chan] += *it * Position->Array[chan];
+            res[chan] += *it * Position->Data[chan];
           }
         }
         std::transform(res, ArrayEnd(res), Result, std::bind2nd(std::divides<BigSample>(), BigSample(FIXED_POINT_PRECISION)));
@@ -63,7 +70,7 @@ namespace
 
     virtual void Flush()
     {
-      if (Receiver::Ptr delegate = Delegate)
+      if (Receiver::Ptr delegate = Delegate.lock())
       {
         return delegate->Flush();
       }
@@ -75,9 +82,9 @@ namespace
     }
   private:
     MatrixType Matrix;
-    Receiver::Ptr Delegate;
-    std::vector<SampleHelper> History;
-    cycled_iterator<SampleHelper*> Position;
+    Receiver::WeakPtr Delegate;
+    std::vector<Multisample> History;
+    cycled_iterator<Multisample*> Position;
     SampleArray Result;
   };
 
@@ -116,19 +123,28 @@ namespace
   {
     return static_cast<signed>(val * FIXED_POINT_PRECISION);
   }
+  
+  template<class T>
+  void CheckParams(T val, T limit, Error::LocationRef loc, const Char* text)
+  {
+    if (val > limit)
+    {
+      throw MakeFormattedError(loc, FILTER_INVALID_PARAMS, text, val, limit);
+    }
+  }
 }
 
 namespace ZXTune
 {
   namespace Sound
   {
-    Convertor::Ptr CreateFIRFilter(const std::vector<signed>& coeffs)
+    ChainedReceiver::Ptr CreateFIRFilter(const std::vector<signed>& coeffs)
     {
-      return Convertor::Ptr(new FIRFilter<signed>(coeffs));
+      return ChainedReceiver::Ptr(new FIRFilter<signed>(coeffs));
     }
 
-    void CalculateFIRCoefficients(uint32_t freq,
-      uint32_t lowCutoff, uint32_t highCutoff, std::vector<signed>& coeffs)
+    void CalculateBandpassFilter(unsigned freq,
+      unsigned lowCutoff, unsigned highCutoff, std::vector<signed>& coeffs)
     {
       //input parameters
       //gain = 10 ^^ (dB / 20)
@@ -137,19 +153,16 @@ namespace ZXTune
 
       //check parameters
       const std::size_t order = coeffs.size();
-      if (order > FIRFilter<signed>::MAX_ORDER)
-      {
-        throw Error(ERROR_DETAIL, 1, TEXT_ERROR_INVALID_FILTER);//TODO: code
-      }
-      highCutoff = std::min(highCutoff, freq / 2);
-      lowCutoff = std::min(lowCutoff, highCutoff);
+      CheckParams(order, FIRFilter<signed>::MAX_ORDER, THIS_LINE, TEXT_SOUND_ERROR_FILTER_ORDER);
+      CheckParams(highCutoff, freq / 2, THIS_LINE, TEXT_SOUND_ERROR_FILTER_HIGH_CUTOFF);
+      CheckParams(lowCutoff, highCutoff, THIS_LINE, TEXT_SOUND_ERROR_FILTER_LOW_CUTOFF);
 
       //create freq responses
       std::vector<double> freqResponse(order, 0.0);
       const std::size_t midOrder(order / 2);
       for (std::size_t tap = 0; tap < midOrder; ++tap)
       {
-        const uint32_t tapFreq(freq * (tap + 1) / order);
+        const unsigned tapFreq(freq * (tap + 1) / order);
         freqResponse[tap] = freqResponse[order - tap - 1] =
           (tapFreq < lowCutoff || tapFreq > highCutoff) ? STOPGAIN : PASSGAIN;
       }

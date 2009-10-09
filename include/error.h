@@ -118,6 +118,27 @@ inline Error MakeFormattedError(Error::LocationRef loc, Error::CodeType code, co
   return Error(loc, code, (Formatter(fmt) % p1 % p2).str());
 }
 
+template<class P1, class P2, class P3>
+inline Error MakeFormattedError(Error::LocationRef loc, Error::CodeType code, const String& fmt,
+  const P1& p1, const P2& p2, const P3& p3)
+{
+  return Error(loc, code, (Formatter(fmt) % p1 % p2 % p3).str());
+}
+
+template<class P1, class P2, class P3, class P4>
+inline Error MakeFormattedError(Error::LocationRef loc, Error::CodeType code, const String& fmt,
+  const P1& p1, const P2& p2, const P3& p3, const P4& p4)
+{
+  return Error(loc, code, (Formatter(fmt) % p1 % p2 % p3 % p4).str());
+}
+
+template<class P1, class P2, class P3, class P4, class P5>
+inline Error MakeFormattedError(Error::LocationRef loc, Error::CodeType code, const String& fmt,
+  const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5)
+{
+  return Error(loc, code, (Formatter(fmt) % p1 % p2 % p3 % p4 % p5).str());
+}
+
 #define MKTAG1(a) 0x ## a
 #define MKTAG(a) MKTAG1(a)
 #define MAKETAG (MKTAG(FILE_TAG) + __LINE__)

@@ -62,7 +62,7 @@ namespace
       {
         if (channels != InChannels)
 	{
-	  throw Error(THIS_LINE, MIXER_CHANNELS_MISMATCH, TEXT_SOUND_ERROR_MIXER_MISMATCH);
+	  throw MakeFormattedError(THIS_LINE, CHANNELS_MISMATCH, TEXT_SOUND_ERROR_CHANNELS_MISMATCH, "mixer", channels, InChannels);
 	}
         const ChannelMixer* inChanMix(&Data->InMatrix[0]);
         const Sample preamp(Data->Preamp);

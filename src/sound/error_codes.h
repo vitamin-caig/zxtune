@@ -20,8 +20,12 @@ namespace ZXTune
   {
     enum
     {
-      MIXER_CHANNELS_MISMATCH = Error::ModuleCode<'M', 'X'>::Value,
-      MIXER_UNSUPPORTED
+      //common errors
+      CHANNELS_MISMATCH = Error::ModuleCode<'S', 'N'>::Value,
+      //mixer-specific errors
+      MIXER_UNSUPPORTED = Error::ModuleCode<'M', 'X'>::Value,
+      //filter-specific errors
+      FILTER_INVALID_PARAMS = Error::ModuleCode<'F', 'L'>::Value
     };
   }
 }

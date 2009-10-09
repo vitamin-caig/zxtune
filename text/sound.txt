@@ -9,9 +9,20 @@ __cpp> "#include <char_type.h>\n\n"
 < __RAWFOOTER__
 __cpp> "#endif //__TEXT_SOUND_H_DEFINED__\n"
 
-#mixer errors
-< TEXT_SOUND_ERROR_MIXER_MISMATCH
-> "Invalid data for mixer: channels mismatch."
+#common errors
+< TEXT_SOUND_ERROR_CHANNELS_MISMATCH
+> "Channels mismatch in %1%: input data has %2% channels while %3% is supported."
 
+#mixer errors
 < TEXT_SOUND_ERROR_MIXER_UNSUPPORTED
 > "Failed to create unsupported mixer with %1% channels."
+
+#filter errors
+< TEXT_SOUND_ERROR_FILTER_ORDER
+> "Specified filter order (%1%) is more than allowed (%2%)."
+
+< TEXT_SOUND_ERROR_FILTER_HIGH_CUTOFF
+> "Specified filter high cutoff frequency (%1%Hz) is more than allowed (%2%Hz)."
+
+< TEXT_SOUND_ERROR_FILTER_LOW_CUTOFF
+> "Specified filter low cutoff frequency (%1%Hz) is more than allowed (%2%Hz)."
