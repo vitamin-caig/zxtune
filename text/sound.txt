@@ -1,0 +1,17 @@
+< __HEADER__
+> "Generated from '$Id: $'"
+
+< __RAWHEADER__
+__cpp> "#ifndef __TEXT_SOUND_H_DEFINED__\n"
+__cpp> "#define __TEXT_SOUND_H_DEFINED__\n"
+__cpp> "#include <char_type.h>\n\n"
+
+< __RAWFOOTER__
+__cpp> "#endif //__TEXT_SOUND_H_DEFINED__\n"
+
+#mixer errors
+< TEXT_SOUND_ERROR_MIXER_MISMATCH
+> "Invalid data for mixer: channels mismatch."
+
+< TEXT_SOUND_ERROR_MIXER_UNSUPPORTED
+> "Failed to create unsupported mixer with %1% channels."

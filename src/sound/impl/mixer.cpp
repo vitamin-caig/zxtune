@@ -1,4 +1,16 @@
-#include "mixer.h"
+/*
+Abstract:
+  Mixer implementation
+
+Last changed:
+  $Id$
+
+Author:
+  (C) Vitamin/CAIG/2001
+*/
+
+#include "../mixer.h"
+#include "../error_codes.h"
 
 #include <tools.h>
 
@@ -7,6 +19,10 @@
 #include <boost/integer/static_log2.hpp>
 
 #include <algorithm>
+
+#include <text/sound.h>
+
+#define FILE_TAG 278565B1
 
 namespace
 {
@@ -18,10 +34,10 @@ namespace
   Simple mixer with fixed-point calculations
   */
   template<std::size_t InChannels>
-  class Mixer : public Convertor, private boost::noncopyable
+  class Mixer : public ChainedReceiver, private boost::noncopyable
   {
     //determine type for intermediate value
-    static const std::size_t INTERMEDIATE_BITS_MIN =
+    static const unsigned INTERMEDIATE_BITS_MIN =
       8 * sizeof(Sample) +                               //input sample
       boost::static_log2<FIXED_POINT_PRECISION>::value + //mixer
       boost::static_log2<FIXED_POINT_PRECISION>::value + //preamp
@@ -35,16 +51,19 @@ namespace
     >::type BigSample;
     typedef BigSample BigSampleArray[OUTPUT_CHANNELS];
   public:
-    Mixer(MixerData::Ptr data)
+    explicit Mixer(MixerData::Ptr data)
       : Data(data), Delegate()
     {
     }
 
-    virtual void ApplySample(const Sample* input, std::size_t channels)
+    virtual void ApplySample(const Sample* input, unsigned channels)
     {
-      if (Receiver::Ptr delegate = Delegate)
+      if (Receiver::Ptr delegate = Delegate.lock())
       {
-        assert(channels == InChannels || !"Invalid input channels mixer specified");
+        if (channels != InChannels)
+	{
+	  throw Error(THIS_LINE, MIXER_CHANNELS_MISMATCH, TEXT_SOUND_ERROR_MIXER_MISMATCH);
+	}
         const ChannelMixer* inChanMix(&Data->InMatrix[0]);
         const Sample preamp(Data->Preamp);
 
@@ -55,7 +74,7 @@ namespace
           if (!inChanMix->Mute)
           {
             ++actChannels;
-            const Sample* outChanMix(inChanMix->OutMatrix);
+            const Sample* outChanMix(inChanMix->OutMatrix.Data);
             for (BigSample* out = res; out != ArrayEnd(res); ++out, ++outChanMix)
             {
               *out += *in * *outChanMix * preamp;
@@ -70,7 +89,7 @@ namespace
 
     virtual void Flush()
     {
-      if (Receiver::Ptr delegate = Delegate)
+      if (Receiver::Ptr delegate = Delegate.lock())
       {
         return delegate->Flush();
       }
@@ -82,7 +101,7 @@ namespace
     }
   private:
     MixerData::Ptr Data;
-    Receiver::Ptr Delegate;
+    Receiver::WeakPtr Delegate;
     SampleArray Result;
   };
 }
@@ -91,19 +110,18 @@ namespace ZXTune
 {
   namespace Sound
   {
-    Convertor::Ptr CreateMixer(MixerData::Ptr data)
+    ChainedReceiver::Ptr CreateMixer(MixerData::Ptr data)
     {
-      switch (data->InMatrix.size())
+      switch (const std::size_t size = data->InMatrix.size())
       {
       case 2:
-        return Convertor::Ptr(new Mixer<2>(data));
+        return ChainedReceiver::Ptr(new Mixer<2>(data));
       case 3:
-        return Convertor::Ptr(new Mixer<3>(data));
+        return ChainedReceiver::Ptr(new Mixer<3>(data));
       case 4:
-        return Convertor::Ptr(new Mixer<4>(data));
+        return ChainedReceiver::Ptr(new Mixer<4>(data));
       default:
-        assert(!"Invalid channels number specified");
-        return Convertor::Ptr();
+        throw MakeFormattedError(THIS_LINE, MIXER_UNSUPPORTED, TEXT_SOUND_ERROR_MIXER_UNSUPPORTED, size);
       }
     }
   }

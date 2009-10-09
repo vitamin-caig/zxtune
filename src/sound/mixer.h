@@ -1,9 +1,19 @@
-#ifndef __MIXER_H_DEFINED__
-#define __MIXER_H_DEFINED__
+/*
+Abstract:
+  Defenition of mixing-related functionality
 
-#include <sound.h>
+Last changed:
+  $Id$
 
-#include <cassert>
+Author:
+  (C) Vitamin/CAIG/2001
+*/
+
+#ifndef __SOUND_MIXER_H_DEFINED__
+#define __SOUND_MIXER_H_DEFINED__
+
+#include "sound_types.h"
+#include "receiver.h"
 
 namespace ZXTune
 {
@@ -15,12 +25,11 @@ namespace ZXTune
       ChannelMixer() : Mute(false)
       {
       }
-      explicit ChannelMixer(const SampleArray& ar) : Mute(false)
+      explicit ChannelMixer(const Multisample& ms) : Mute(false), OutMatrix(ms)
       {
-        std::memcpy(OutMatrix, &ar[0], sizeof(OutMatrix));
       }
       bool Mute;
-      SampleArray OutMatrix;
+      Multisample OutMatrix;
     };
 
     struct MixerData
@@ -34,8 +43,8 @@ namespace ZXTune
       Sample Preamp;
     };
 
-    Convertor::Ptr CreateMixer(MixerData::Ptr data);
+    ChainedReceiver::Ptr CreateMixer(MixerData::Ptr data);
   }
 }
 
-#endif //__MIXER_H_DEFINED__
+#endif //__SOUND_MIXER_H_DEFINED__
