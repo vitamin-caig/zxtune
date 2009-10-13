@@ -1,5 +1,5 @@
 < __HEADER__
-> "Generated from '$Id: $'"
+> "Generated from '$Id$'"
 
 < __RAWHEADER__
 __cpp> "#ifndef __TEXT_SOUND_H_DEFINED__\n"
@@ -10,12 +10,16 @@ __cpp> "#include <char_type.h>\n\n"
 __cpp> "#endif //__TEXT_SOUND_H_DEFINED__\n"
 
 #common errors
-< TEXT_SOUND_ERROR_CHANNELS_MISMATCH
-> "Channels mismatch in %1%: input data has %2% channels while %3% is supported."
 
 #mixer errors
 < TEXT_SOUND_ERROR_MIXER_UNSUPPORTED
 > "Failed to create unsupported mixer with %1% channels."
+
+< TEXT_SOUND_ERROR_MIXER_INVALID_MATRIX
+> "Failed to set mixing matrix for mixer- gain is out of range."
+
+< TEXT_SOUND_ERROR_MIXER_CHANNELS_MISMATCH
+> "Mixer channels mismatch: input data has %1% channels while %2% is supported."
 
 #filter errors
 < TEXT_SOUND_ERROR_FILTER_ORDER

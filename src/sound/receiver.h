@@ -15,32 +15,44 @@ Author:
 #include "sound_types.h"
 
 #include <boost/shared_ptr.hpp>
-#include <boost/weak_ptr.hpp>
+
+#include <vector>
 
 namespace ZXTune
 {
   namespace Sound
   {
-    /// Main sound consuming interface
-    class Receiver
+    /// Multichannel sound consuming interface
+    class MultichannelReceiver
     {
     public:
-      typedef boost::shared_ptr<Receiver> Ptr;
-      typedef boost::weak_ptr<Receiver> WeakPtr;
+      typedef boost::shared_ptr<MultichannelReceiver> Ptr;
       
-      virtual ~Receiver() {}
+      virtual ~MultichannelReceiver() {}
       
-      virtual void ApplySample(const Sample* data, unsigned channels) = 0;
+      virtual void ApplySample(const std::vector<Sample>& data) = 0;
       virtual void Flush() = 0;
     };
     
-    /// Supporting for chain receivers
-    class ChainedReceiver : public Receiver
+    /// Sound consuming interface
+    class SoundReceiver
     {
     public:
-      typedef boost::shared_ptr<ChainedReceiver> Ptr;
+      typedef boost::shared_ptr<SoundReceiver> Ptr;
       
-      virtual void SetEndpoint(Receiver::Ptr endpoint) = 0;
+      virtual ~SoundReceiver() {}
+      
+      virtual void ApplySample(const MultiSample& data) = 0;
+      virtual void Flush() = 0;
+    };
+    
+    /// Sound converting interface
+    class SoundConverter : public SoundReceiver
+    {
+    public:
+      typedef boost::shared_ptr<SoundConverter> Ptr;
+      
+      virtual void SetEndpoint(SoundReceiver::Ptr endpoint) = 0;
     };
   }
 }

@@ -20,10 +20,10 @@ namespace ZXTune
   {
     enum
     {
-      //common errors
-      CHANNELS_MISMATCH = Error::ModuleCode<'S', 'N'>::Value,
       //mixer-specific errors
       MIXER_UNSUPPORTED = Error::ModuleCode<'M', 'X'>::Value,
+      MIXER_INVALID_MATRIX,
+      MIXER_CHANNELS_MISMATCH,
       //filter-specific errors
       FILTER_INVALID_PARAMS = Error::ModuleCode<'F', 'L'>::Value
     };

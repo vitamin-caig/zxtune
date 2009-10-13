@@ -11,6 +11,8 @@ Author:
 #include "../filter.h"
 #include "../error_codes.h"
 
+#include "internal_types.h"
+
 #include <tools.h>
 #include <error.h>
 
@@ -30,10 +32,10 @@ namespace
   using namespace ZXTune::Sound;
 
   template<class C>
-  class FIRFilter : public ChainedReceiver, private boost::noncopyable
+  class FIRFilter : public SoundConverter, private boost::noncopyable
   {
     typedef int64_t BigSample;
-    typedef BigSample BigSampleArray[OUTPUT_CHANNELS];
+    typedef boost::array<BigSample, OUTPUT_CHANNELS> MultiBigSample;
     typedef std::vector<BigSample> MatrixType;
   public:
     static const std::size_t MAX_ORDER = 1 <<
@@ -44,48 +46,50 @@ namespace
     {
     }
 
-    virtual void ApplySample(const Sample* input, unsigned channels)
+    virtual void ApplySample(const MultiSample& data)
     {
-      if (Receiver::Ptr delegate = Delegate.lock())
+      if (Delegate)
       {
-        if (channels != ArraySize(Position->Data))
-	{
-	  throw MakeFormattedError(THIS_LINE, CHANNELS_MISMATCH, TEXT_SOUND_ERROR_CHANNELS_MISMATCH, "filter", channels, ArraySize(Position->Data));
-	}
-        std::memcpy(Position->Data, input, sizeof(Position->Data));
-        BigSampleArray res = {0};
-
-        for (typename MatrixType::const_iterator it = Matrix.begin(), lim = Matrix.end(); it != lim; ++it, --Position)
         {
-          for (std::size_t chan = 0; chan != OUTPUT_CHANNELS; ++chan)
+          MultiSample& src(*Position);
+          src = data;
+          
+          MultiBigSample res = { {0} };
+
+          for (typename MatrixType::const_iterator it = Matrix.begin(), lim = Matrix.end(); it != lim; ++it, --Position)
           {
-            res[chan] += *it * Position->Data[chan];
+            const typename MatrixType::value_type val(*it);
+            for (unsigned chan = 0; chan != OUTPUT_CHANNELS; ++chan)
+            {
+              res[chan] += val * src[chan];
+            }
           }
+          std::transform(res.begin(), res.end(), Result.begin(),
+            std::bind2nd(std::divides<BigSample>(), BigSample(FIXED_POINT_PRECISION)));
         }
-        std::transform(res, ArrayEnd(res), Result, std::bind2nd(std::divides<BigSample>(), BigSample(FIXED_POINT_PRECISION)));
         ++Position;
-        return delegate->ApplySample(Result, channels);
+        return Delegate->ApplySample(Result);
       }
     }
 
     virtual void Flush()
     {
-      if (Receiver::Ptr delegate = Delegate.lock())
+      if (Delegate)
       {
-        return delegate->Flush();
+        return Delegate->Flush();
       }
     }
 
-    virtual void SetEndpoint(Receiver::Ptr delegate)
+    virtual void SetEndpoint(SoundReceiver::Ptr delegate)
     {
       Delegate = delegate;
     }
   private:
     MatrixType Matrix;
-    Receiver::WeakPtr Delegate;
-    std::vector<Multisample> History;
-    cycled_iterator<Multisample*> Position;
-    SampleArray Result;
+    SoundReceiver::Ptr Delegate;
+    std::vector<MultiSample> History;
+    cycled_iterator<MultiSample*> Position;
+    MultiSample Result;
   };
 
   //TODO: use from boost
@@ -119,11 +123,6 @@ namespace
     }
   }
 
-  signed DoubleToSigned(double val)
-  {
-    return static_cast<signed>(val * FIXED_POINT_PRECISION);
-  }
-  
   template<class T>
   void CheckParams(T val, T limit, Error::LocationRef loc, const Char* text)
   {
@@ -138,9 +137,9 @@ namespace ZXTune
 {
   namespace Sound
   {
-    ChainedReceiver::Ptr CreateFIRFilter(const std::vector<signed>& coeffs)
+    SoundConverter::Ptr CreateFIRFilter(const std::vector<signed>& coeffs)
     {
-      return ChainedReceiver::Ptr(new FIRFilter<signed>(coeffs));
+      return SoundConverter::Ptr(new FIRFilter<signed>(coeffs));
     }
 
     void CalculateBandpassFilter(unsigned freq,
@@ -148,7 +147,7 @@ namespace ZXTune
     {
       //input parameters
       //gain = 10 ^^ (dB / 20)
-      const double PASSGAIN = 1.0, STOPGAIN = 0;
+      const Gain PASSGAIN = 1.0, STOPGAIN = 0;
       const double PI = 3.14159265359;
 
       //check parameters
@@ -158,7 +157,7 @@ namespace ZXTune
       CheckParams(lowCutoff, highCutoff, THIS_LINE, TEXT_SOUND_ERROR_FILTER_LOW_CUTOFF);
 
       //create freq responses
-      std::vector<double> freqResponse(order, 0.0);
+      std::vector<Gain> freqResponse(order, 0.0);
       const std::size_t midOrder(order / 2);
       for (std::size_t tap = 0; tap < midOrder; ++tap)
       {
@@ -183,7 +182,7 @@ namespace ZXTune
       const double ALPHA = 8.0;
       DoFFT(ALPHA, firCoeffs);
       //put result
-      std::transform(firCoeffs.begin(), firCoeffs.end(), coeffs.begin(), DoubleToSigned);
+      std::transform(firCoeffs.begin(), firCoeffs.end(), coeffs.begin(), Gain2Fixed<signed>);
     }
   }
 }

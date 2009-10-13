@@ -12,38 +12,21 @@ Author:
 #ifndef __SOUND_MIXER_H_DEFINED__
 #define __SOUND_MIXER_H_DEFINED__
 
-#include "sound_types.h"
 #include "receiver.h"
 
 namespace ZXTune
 {
   namespace Sound
   {
-    /// Mixing point for one input channel to all outputs
-    struct ChannelMixer
+    class Mixer : public MultichannelReceiver
     {
-      ChannelMixer() : Mute(false)
-      {
-      }
-      explicit ChannelMixer(const Multisample& ms) : Mute(false), OutMatrix(ms)
-      {
-      }
-      bool Mute;
-      Multisample OutMatrix;
+    public:
+      typedef boost::shared_ptr<Mixer> Ptr;
+      
+      virtual void SetMatrix(const std::vector<MultiGain>& data) = 0;
+      
+      static Ptr Create(SoundReceiver::Ptr receiver);
     };
-
-    struct MixerData
-    {
-      typedef boost::shared_ptr<MixerData> Ptr;
-
-      MixerData() : InMatrix(), Preamp()
-      {
-      }
-      std::vector<ChannelMixer> InMatrix;
-      Sample Preamp;
-    };
-
-    ChainedReceiver::Ptr CreateMixer(MixerData::Ptr data);
   }
 }
 

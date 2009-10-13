@@ -139,6 +139,14 @@ inline Error MakeFormattedError(Error::LocationRef loc, Error::CodeType code, co
   return Error(loc, code, (Formatter(fmt) % p1 % p2 % p3 % p4 % p5).str());
 }
 
+inline void ThrowIfError(const Error& e)
+{
+  if (e)
+  {
+    throw e;
+  }
+}
+
 #define MKTAG1(a) 0x ## a
 #define MKTAG(a) MKTAG1(a)
 #define MAKETAG (MKTAG(FILE_TAG) + __LINE__)
