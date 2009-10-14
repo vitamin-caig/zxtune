@@ -1,4 +1,6 @@
+#ifdef DYNAMIC_ERROR_TEST
 #include "../error_dynamic/error_dynamic.h"
+#endif
 
 #include <error.h>
 
@@ -95,7 +97,7 @@ int main()
     ShowError(e);
   }
 
-#ifdef DYNAMIC_ERROR_TEST  
+#ifdef DYNAMIC_ERROR_TEST
   try
   {
     Error errBase(THIS_LINE, Error::ModuleCode<'b', 'i'>::Value, "Base error from binary");

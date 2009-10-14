@@ -1,14 +1,7 @@
 #set default parameters
-ifdef platform
-include $(path_step)/$(platform).mak
-else
-include $(path_step)/linux.mak
-endif
+platform := $(if $(platform),$(platform),linux)
 
 mode := $(if $(mode),$(mode),release)
-arch := $(if $(arch),$(arch),native)
-CXX := $(if $(CXX),$(CXX),g++)
-LDD := $(if $(LDD),$(LDD),g++)
 
 ifneq ($(or $(pic),$(dynamic_name)),)
 pic := 1
@@ -21,19 +14,7 @@ libs_dir := $(path_step)/lib/$(mode)$(suffix)
 objs_dir := $(path_step)/obj/$(mode)$(suffix)
 bins_dir := $(path_step)/bin/$(mode)
 
-#set options according to mode
-ifeq ($(mode),release)
-cxx_mode_flags := -O3 -DNDEBUG
-else ifeq ($(mode),debug)
-cxx_mode_flags := -O0
-else
-$(error Invalid mode)
-endif
-
-ifdef profile
-cxx_mode_flags := $(cxx_mode_flags) -pg
-ld_mode_flags := $(ld_mode_flags) -pg
-endif
+include $(path_step)/make/platforms/$(platform).mak
 
 #tune output according to type
 ifdef library_name
@@ -48,11 +29,15 @@ else ifdef dynamic_name
 output_dir := $(bins_dir)
 objects_dir := $(objs_dir)/$(dynamic_name)
 target := $(output_dir)/$(call makedyn_name,$(dynamic_name))
-ld_mode_flags := $(ld_mode_flags) -shared
 pic := 1
 else
 $(error Invalid target)
 endif
+
+#setup environment
+definitions := $(definitions) __STDC_CONSTANT_MACROS
+
+include $(path_step)/make/compilers/$(compiler).mak
 
 ifdef source_dirs
 source_files := $(wildcard $(addsuffix /*.cpp,$(source_dirs)))
@@ -63,19 +48,7 @@ $(error Not source_dirs or source_files defined at all)
 endif
 
 object_files := $(notdir $(source_files))
-object_files := $(addprefix $(objects_dir)/,$(object_files:.cpp=.o))
-
-CXX_FLAGS := $(cxx_mode_flags) $(cxx_flags) $(if $(pic),-fPIC,) -g3 -D__STDC_CONSTANT_MACROS $(addprefix -D, $(definitions)) \
-	    -march=$(arch) \
-	    -funroll-loops -funsigned-char -fno-strict-aliasing \
-	    -W -Wall -ansi -pipe \
-	    $(addprefix -I, $(include_dirs)) $(addprefix -D, $(definitions))
-
-AR_FLAGS := cru
-LD_FLAGS := $(ld_mode_flags) $(ld_flags) -pipe
-
-LD_SOLID_BEFORE := -Wl,--whole-archive
-LD_SOLID_AFTER := -Wl,--no-whole-archive
+object_files := $(addprefix $(objects_dir)/,$(object_files:.cpp=$(call makeobj_name,)))
 
 all: deps dirs $(target)
 
@@ -92,24 +65,19 @@ $(depends):
 
 ifdef library_name
 $(target): $(object_files)
-	ar $(AR_FLAGS) $@ $^
+	$(build_lib_cmd)
 else
 #binary and dynamic libraries
 #put solid libraries to an end
 $(target): $(object_files) $(foreach lib,$(libraries),$(libs_dir)/$(call makelib_name,$(lib)))
-	   $(LDD) $(LD_FLAGS) -o $@ $(object_files) \
-	   -L$(libs_dir) $(addprefix -l, $(libraries)) \
-	   -L$(output_dir) $(addprefix -l, $(dynamic_libs)) \
-	   $(LD_SOLID_BEFORE) $(addprefix -l,$(solid_libs)) $(LD_SOLID_AFTER)
-	   objcopy --only-keep-debug $@ $@.pdb
-	   strip $@
-	   objcopy --add-gnu-debuglink=$@.pdb $@
+	$(link_cmd)
+	$(postlink_cmd)
 endif
 
 VPATH := $(source_dirs)
 
-$(objects_dir)/%.o: %.cpp
-	$(CXX) $(CXX_FLAGS) -c -MD $< -o $@
+$(objects_dir)/%$(call makeobj_name,): %.cpp
+	$(build_obj_cmd)
 
 clean: clean_deps
 	rm -f $(target)
@@ -135,5 +103,3 @@ help:
 	@echo " cxx_flags - some specific compilation flags"
 	@echo " LD - used linker. Default is 'g++'"
 	@echo " ld_flags - some specific linking flags"
-
-include $(wildcard $(objects_dir)/*.d)
