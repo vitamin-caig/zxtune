@@ -42,14 +42,14 @@ public:
     Location() : Tag(0), File(0), Function(0), Line(0)
     {
     }
-    Location(LineTag tag, const char* file, const char* function, std::size_t line)
+    Location(LineTag tag, const char* file, const char* function, unsigned line)
       : Tag(tag), File(file), Function(function), Line(line)
     {
     }
     LineTag Tag;
     const char* File;
     const char* Function;
-    std::size_t Line;
+    unsigned Line;
     
     bool operator == (const Location& rh) const
     {

@@ -92,7 +92,7 @@ Error::CodeType Error::GetCode() const
   return ErrorMeta->Code;
 }
 
-Error::operator CodeType () const
+Error::operator Error::CodeType () const
 {
   return ErrorMeta->Code;
 }

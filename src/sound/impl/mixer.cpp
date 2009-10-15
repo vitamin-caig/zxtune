@@ -106,7 +106,7 @@ namespace
   
   MixerCore::Ptr CreateMixerCore(const std::vector<MultiGain>& data)
   {
-    switch (const std::size_t size = data.size())
+    switch (const unsigned size = unsigned(data.size()))
     {
     case 1:
       return MixerCore::Ptr(new FastMixerCore<1>(data));
@@ -147,7 +147,7 @@ namespace
       {
         throw Error(THIS_LINE, MIXER_INVALID_MATRIX, TEXT_SOUND_ERROR_MIXER_INVALID_MATRIX);
       }
-      Core = CreateMixerCore(data);
+      Core.reset(CreateMixerCore(data).release());
     }
   private:
     const SoundReceiver::Ptr Receiver;

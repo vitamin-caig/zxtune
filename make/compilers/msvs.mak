@@ -19,7 +19,8 @@ ld_mode_flags := $(ld_mode_flags) /DLL
 endif
 
 CXX_FLAGS := $(cxx_mode_flags) $(cxx_flags) /FC /TP /nologo /Gy \
-	/Wall /W2 /Wp64 /wd4224 /wd4710 /wd4711 \
+	/W3 /Wp64 /wd4224 /wd4710 /wd4711 \
+	/D_SECURE_SCL=0 \
 	$(addprefix /D, $(definitions)) \
 	/J /Zc:wchar_t,forScope /Zi /Za /EHsc /GR \
 	$(addprefix /I, $(include_dirs))

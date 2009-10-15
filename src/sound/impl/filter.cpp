@@ -52,7 +52,7 @@ namespace
     
     inline static Sample Integral2Sample(BigSample smp)
     {
-      return Denormalize(smp / FIXED_POINT_PRECISION);
+      return Denormalize(IntSample(smp / FIXED_POINT_PRECISION));
     }
   public:
     static const unsigned MIN_ORDER = 2;
@@ -130,9 +130,10 @@ namespace
   //kaiser implementation
   inline void DoFFT(const double alpha, std::vector<double>& coeffs)
   {
+    const unsigned order = unsigned(coeffs.size());
     const double denom = bessel(alpha);
-    const double center = double(coeffs.size() - 1) / 2;
-    for (std::size_t tap = 0; tap < coeffs.size(); ++tap)
+    const double center = double(order - 1) / 2;
+    for (unsigned tap = 0; tap < order; ++tap)
     {
       const double kg = (double(tap) - center) / center;
       const double kd = alpha * sqrt(1.0 - kg * kg);
@@ -167,7 +168,7 @@ namespace ZXTune
       const Gain PASSGAIN = 1.0, STOPGAIN = 0;
 
       //check parameters
-      const unsigned order = coeffs.size();
+      const unsigned order = unsigned(coeffs.size());
       CheckParams(order, FIRFilter<signed>::MIN_ORDER, FIRFilter<signed>::MAX_ORDER, THIS_LINE, TEXT_SOUND_ERROR_FILTER_ORDER);
       CheckParams(highCutoff, unsigned(freq / order), freq / 2, THIS_LINE, TEXT_SOUND_ERROR_FILTER_HIGH_CUTOFF);
       CheckParams(lowCutoff, 0u, highCutoff, THIS_LINE, TEXT_SOUND_ERROR_FILTER_LOW_CUTOFF);
@@ -177,7 +178,7 @@ namespace ZXTune
       const unsigned midOrder(order / 2);
       for (unsigned tap = 0; tap < midOrder; ++tap)
       {
-        const unsigned tapFreq(uint64_t(freq) * (tap + 1) / order);
+        const unsigned tapFreq = unsigned(uint64_t(freq) * (tap + 1) / order);
         freqResponse[tap] = freqResponse[order - tap - 1] =
           (tapFreq < lowCutoff || tapFreq > highCutoff) ? STOPGAIN : PASSGAIN;
       }
@@ -189,7 +190,7 @@ namespace ZXTune
         double tmpCoeff = 0.0;
         for (unsigned subtap = 0; subtap < order; ++subtap)
         {
-          const double omega = 2.0 * M_PI * tap * subtap / order;
+          const double omega = 2.0 * 3.14159265358 * tap * subtap / order;
           tmpCoeff += freqResponse[subtap] * cos(omega);
         }
         firCoeffs[midOrder - tap] = firCoeffs[midOrder + tap] = tmpCoeff / order;

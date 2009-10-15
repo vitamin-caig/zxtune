@@ -43,7 +43,7 @@ namespace
   {
     for (unsigned tick = 0; tick != FREQ * MSECS / 1000; ++tick)
     {
-      const Sample smp = SAMPLE_MID + (SAMPLE_MID - 1) * sin(tick * freq * 2 * M_PI / FREQ);
+      const Sample smp = SAMPLE_MID + (SAMPLE_MID - 1) * sin(tick * freq * 2 * 3.14159265358 / FREQ);
       const MultiSample msmp = { {smp, smp} };
       analyzer.ApplySample(msmp);
       rcv.ApplySample(msmp);
