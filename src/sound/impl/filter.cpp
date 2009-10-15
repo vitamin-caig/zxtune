@@ -31,16 +31,34 @@ namespace
 {
   using namespace ZXTune::Sound;
 
-  template<class C>
+  template<class IntSample>
   class FIRFilter : public SoundConverter, private boost::noncopyable
   {
     typedef int64_t BigSample;
     typedef boost::array<BigSample, OUTPUT_CHANNELS> MultiBigSample;
     typedef std::vector<BigSample> MatrixType;
+    
+    typedef boost::array<IntSample, OUTPUT_CHANNELS> MultiIntSample;
+    
+    inline static IntSample Normalize(Sample smp)
+    {
+      return IntSample(smp) - SAMPLE_MID;
+    }
+    
+    inline static Sample Denormalize(IntSample smp)
+    {
+      return smp + SAMPLE_MID;
+    }
+    
+    inline static Sample Integral2Sample(BigSample smp)
+    {
+      return Denormalize(smp / FIXED_POINT_PRECISION);
+    }
   public:
-    static const std::size_t MAX_ORDER = 1 <<
-      8 * (sizeof(BigSample) - sizeof(C) - sizeof(Sample));
-    explicit FIRFilter(const std::vector<C>& coeffs)
+    static const unsigned MIN_ORDER = 2;
+    static const unsigned MAX_ORDER = 1u <<
+      8 * (sizeof(BigSample) - sizeof(IntSample) - sizeof(Sample));
+    explicit FIRFilter(const std::vector<IntSample>& coeffs)
       : Matrix(coeffs.begin(), coeffs.end()), Delegate()
       , History(coeffs.size()), Position(&History[0], &History.back() + 1)
     {
@@ -51,21 +69,20 @@ namespace
       if (Delegate)
       {
         {
-          MultiSample& src(*Position);
-          src = data;
+	  std::transform(data.begin(), data.end(), Position->begin(), Normalize);
           
           MultiBigSample res = { {0} };
 
           for (typename MatrixType::const_iterator it = Matrix.begin(), lim = Matrix.end(); it != lim; ++it, --Position)
           {
             const typename MatrixType::value_type val(*it);
+            const MultiIntSample& src(*Position);
             for (unsigned chan = 0; chan != OUTPUT_CHANNELS; ++chan)
             {
               res[chan] += val * src[chan];
             }
           }
-          std::transform(res.begin(), res.end(), Result.begin(),
-            std::bind2nd(std::divides<BigSample>(), BigSample(FIXED_POINT_PRECISION)));
+          std::transform(res.begin(), res.end(), Result.begin(), Integral2Sample);
         }
         ++Position;
         return Delegate->ApplySample(Result);
@@ -87,13 +104,13 @@ namespace
   private:
     MatrixType Matrix;
     SoundReceiver::Ptr Delegate;
-    std::vector<MultiSample> History;
-    cycled_iterator<MultiSample*> Position;
+    std::vector<MultiIntSample> History;
+    cycled_iterator<MultiIntSample*> Position;
     MultiSample Result;
   };
 
   //TODO: use from boost
-  double bessel(double alpha)
+  inline double bessel(double alpha)
   {
     const double delta = 1e-14;
     double term = 0.5;
@@ -111,7 +128,7 @@ namespace
   }
 
   //kaiser implementation
-  void DoFFT(const double alpha, std::vector<double>& coeffs)
+  inline void DoFFT(const double alpha, std::vector<double>& coeffs)
   {
     const double denom = bessel(alpha);
     const double center = double(coeffs.size() - 1) / 2;
@@ -124,11 +141,11 @@ namespace
   }
 
   template<class T>
-  void CheckParams(T val, T limit, Error::LocationRef loc, const Char* text)
+  inline void CheckParams(T val, T min, T max, Error::LocationRef loc, const Char* text)
   {
-    if (val > limit)
+    if (!in_range<T>(val, min, max))
     {
-      throw MakeFormattedError(loc, FILTER_INVALID_PARAMS, text, val, limit);
+      throw MakeFormattedError(loc, FILTER_INVALID_PARAMS, text, val, min, max);
     }
   }
 }
@@ -148,32 +165,31 @@ namespace ZXTune
       //input parameters
       //gain = 10 ^^ (dB / 20)
       const Gain PASSGAIN = 1.0, STOPGAIN = 0;
-      const double PI = 3.14159265359;
 
       //check parameters
-      const std::size_t order = coeffs.size();
-      CheckParams(order, FIRFilter<signed>::MAX_ORDER, THIS_LINE, TEXT_SOUND_ERROR_FILTER_ORDER);
-      CheckParams(highCutoff, freq / 2, THIS_LINE, TEXT_SOUND_ERROR_FILTER_HIGH_CUTOFF);
-      CheckParams(lowCutoff, highCutoff, THIS_LINE, TEXT_SOUND_ERROR_FILTER_LOW_CUTOFF);
+      const unsigned order = coeffs.size();
+      CheckParams(order, FIRFilter<signed>::MIN_ORDER, FIRFilter<signed>::MAX_ORDER, THIS_LINE, TEXT_SOUND_ERROR_FILTER_ORDER);
+      CheckParams(highCutoff, unsigned(freq / order), freq / 2, THIS_LINE, TEXT_SOUND_ERROR_FILTER_HIGH_CUTOFF);
+      CheckParams(lowCutoff, 0u, highCutoff, THIS_LINE, TEXT_SOUND_ERROR_FILTER_LOW_CUTOFF);
 
       //create freq responses
       std::vector<Gain> freqResponse(order, 0.0);
-      const std::size_t midOrder(order / 2);
-      for (std::size_t tap = 0; tap < midOrder; ++tap)
+      const unsigned midOrder(order / 2);
+      for (unsigned tap = 0; tap < midOrder; ++tap)
       {
-        const unsigned tapFreq(freq * (tap + 1) / order);
+        const unsigned tapFreq(uint64_t(freq) * (tap + 1) / order);
         freqResponse[tap] = freqResponse[order - tap - 1] =
           (tapFreq < lowCutoff || tapFreq > highCutoff) ? STOPGAIN : PASSGAIN;
       }
 
       //transform coeffs from freq response
       std::vector<double> firCoeffs(order, 0.0);
-      for (std::size_t tap = 0; tap < midOrder; ++tap)
+      for (unsigned tap = 0; tap < midOrder; ++tap)
       {
         double tmpCoeff = 0.0;
-        for (std::size_t subtap = 0; subtap < order; ++subtap)
+        for (unsigned subtap = 0; subtap < order; ++subtap)
         {
-          const double omega = 2.0 * PI * tap * subtap / order;
+          const double omega = 2.0 * M_PI * tap * subtap / order;
           tmpCoeff += freqResponse[subtap] * cos(omega);
         }
         firCoeffs[midOrder - tap] = firCoeffs[midOrder + tap] = tmpCoeff / order;

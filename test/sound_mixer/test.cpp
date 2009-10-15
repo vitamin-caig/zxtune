@@ -8,6 +8,8 @@
 namespace
 {
   using namespace ZXTune::Sound;
+
+  BOOST_STATIC_ASSERT(SAMPLE_MIN == 0 && SAMPLE_MID == 32768 && SAMPLE_MAX == 65535);
   
   const MultiGain GAINS[] = {
     { {0.0f, 0.0f} },

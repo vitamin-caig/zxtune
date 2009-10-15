@@ -27,6 +27,11 @@ namespace ZXTune
     typedef uint16_t Sample;
     typedef boost::array<Sample, OUTPUT_CHANNELS> MultiSample;
     
+    /// Sample attributes (better to specify exactly)
+    const Sample SAMPLE_MIN = 0;
+    const Sample SAMPLE_MID = 32768;
+    const Sample SAMPLE_MAX = 65535;
+    
     /// Gain specification type
     typedef double Gain;
     typedef boost::array<Gain, OUTPUT_CHANNELS> MultiGain;

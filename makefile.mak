@@ -1,7 +1,7 @@
 #set default parameters
 platform := $(if $(platform),$(platform),linux)
 
-mode := $(if $(mode),$(mode),release)
+mode := $(if $(mode),$(mode),debug)
 
 ifneq ($(or $(pic),$(dynamic_name)),)
 pic := 1

@@ -23,10 +23,10 @@ __cpp> "#endif //__TEXT_SOUND_H_DEFINED__\n"
 
 #filter errors
 < TEXT_SOUND_ERROR_FILTER_ORDER
-> "Specified filter order (%1%) is more than allowed (%2%)."
+> "Specified filter order (%1%) is out of range (%2%...%3%)."
 
 < TEXT_SOUND_ERROR_FILTER_HIGH_CUTOFF
-> "Specified filter high cutoff frequency (%1%Hz) is more than allowed (%2%Hz)."
+> "Specified filter high cutoff frequency (%1%Hz) is out of range (%2%...%3%Hz)."
 
 < TEXT_SOUND_ERROR_FILTER_LOW_CUTOFF
-> "Specified filter low cutoff frequency (%1%Hz) is more than allowed (%2%Hz)."
+> "Specified filter low cutoff frequency (%1%Hz) is out of range (%2%...%3%Hz)."
