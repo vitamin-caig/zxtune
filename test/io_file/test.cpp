@@ -43,6 +43,12 @@ namespace
     std::cout << (res ? "Passed" : "Failed") << " test '" << text << "' at " << line << std::endl;
     return res;
   }
+  
+  void CheckError(const Error& e, Error::CodeType code, const String& text, unsigned line)
+  {
+    Test(e == code, text, line);
+    ShowIfError(e);
+  }
 }
 
 int main()
@@ -53,10 +59,10 @@ int main()
   OpenDataParameters params;
   DataContainer::Ptr data;
   Test(OpenData(EXISTING_FILE, params, data, subpath), "Opening in buffer mode", __LINE__);
-  Test(ShowIfError(OpenData(NONEXISTING_FILE, params, data, subpath)), "Open non-existent in buffer mode", __LINE__);
-  Test(ShowIfError(OpenData(LOCKED_FILE, params, data, subpath)), "Open locked in buffer mode", __LINE__);
+  CheckError(OpenData(NONEXISTING_FILE, params, data, subpath), NOT_OPENED, "Open non-existent in buffer mode", __LINE__);
+  CheckError(OpenData(LOCKED_FILE, params, data, subpath), NOT_OPENED, "Open locked in buffer mode", __LINE__);
   params.Flags = USE_MMAP;
   Test(OpenData(EXISTING_FILE, params, data, subpath), "Opening in mmap mode", __LINE__);
-  Test(ShowIfError(OpenData(NONEXISTING_FILE, params, data, subpath)), "Open non-existent in shared mode", __LINE__);  
-  Test(ShowIfError(OpenData(LOCKED_FILE, params, data, subpath)), "Open locked in shared mode", __LINE__);
+  CheckError(OpenData(NONEXISTING_FILE, params, data, subpath), NOT_OPENED, "Open non-existent in shared mode", __LINE__);  
+  CheckError(OpenData(LOCKED_FILE, params, data, subpath), NOT_OPENED, "Open locked in shared mode", __LINE__);
 }

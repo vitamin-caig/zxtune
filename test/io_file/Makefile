@@ -2,7 +2,7 @@ binary_name := io_file_test
 path_step := ../..
 source_files := test
 
-libraries := tools texts io
+libraries := tools io texts
 depends := src/tools text src/io
 
 windows_libraries := advapi32.lib
