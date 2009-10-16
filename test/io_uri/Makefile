@@ -2,8 +2,9 @@ binary_name := io_uri_test
 path_step := ../..
 source_files := test
 
-libraries := tools
-solid_libs := texts io
+libraries := tools texts io
 depends := src/tools text src/io
+
+windows_libraries := advapi32.lib
 
 include $(path_step)/makefile.mak

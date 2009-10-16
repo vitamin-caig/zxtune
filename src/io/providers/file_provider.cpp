@@ -29,15 +29,7 @@ namespace
   const Char SCHEME_SIGN[] = {':', '/', '/', 0};
   const Char SCHEME_FILE[] = {'f', 'i', 'l', 'e', 0};
   const Char SUBPATH_DELIMITER = '\?';
-/*
-#ifdef UNICODE
-  typedef boost::filesystem::wpath Path;
-  typedef boost::filesystem::wfilesystem_error FilesysError;
-#else
-  typedef boost::filesystem::path Path;
-  typedef boost::filesystem::filesystem_error FIlesysError;
-#endif
-*/
+
   class FileDataContainer : public DataContainer
   {
     class Holder
@@ -94,7 +86,7 @@ namespace
 	{
 	  throw Error(THIS_LINE, IO_ERROR, TEXT_IO_ERROR_IO_ERROR);
 	}
-        file.read(safe_ptr_cast<char*>(&Buffer[0]), Buffer.size());
+        file.read(safe_ptr_cast<char*>(&Buffer[0]), std::streamsize(Buffer.size()));
       }
       
       virtual std::size_t Size() const
@@ -224,5 +216,15 @@ namespace
   }
 }
 
-Provider::AutoRegistrator registrator(ProviderInfo(TEXT_IO_FILE_PROVIDER_NAME, TEXT_IO_FILE_PROVIDER_DESCRIPTION),
-                                      FileChecker, FileOpener, FileSplitter, FileCombiner);
+namespace ZXTune
+{
+  namespace IO
+  {
+    void RegisterFileProvider(ProvidersEnumerator& enumerator)
+    {
+      enumerator.RegisterProvider(
+        ProviderInfo(TEXT_IO_FILE_PROVIDER_NAME, TEXT_IO_FILE_PROVIDER_DESCRIPTION),
+        FileChecker, FileOpener, FileSplitter, FileCombiner);
+    }
+  }
+}

@@ -22,23 +22,20 @@ CXX_FLAGS := $(cxx_mode_flags) $(cxx_flags) /FC /TP /nologo /Gy \
 	/W3 /Wp64 /wd4224 /wd4710 /wd4711 \
 	/D_SECURE_SCL=0 \
 	$(addprefix /D, $(definitions)) \
-	/J /Zc:wchar_t,forScope /Zi /Za /EHsc /GR \
+	/J /Zc:wchar_t,forScope /Zi /EHsc /GR \
 	$(addprefix /I, $(include_dirs))
 
 LD_FLAGS := $(ld_mode_flags) /NODEFAULTLIB
 
-LD_SOLID_BEFORE := /OPT:NOREF
-LD_SOLID_AFTER := /OPT:REF
-
 build_obj_cmd = $(CXX) $(CXX_FLAGS) /c /Fo$@ $<
 build_lib_cmd = $(AR) /NOLOGO /OUT:$@ $^
 link_cmd = $(LDD) $(LD_FLAGS) /NOLOGO /INCREMENTAL:NO /FIXED:NO /DEBUG \
+        /OPT:REF \
         /OUT:$@ $(object_files) \
-	kernel32.lib delayimp.lib \
+	kernel32.lib $(windows_libraries) \
 	/LIBPATH:$(libs_dir) $(addsuffix .lib,$(libraries)) \
 	/LIBPATH:$(output_dir) $(addprefix /DELAYLOAD:,$(addsuffix .dll,$(dynamic_libs))) \
 	$(addsuffix .lib,$(dynamic_libs)) \
-	$(LD_SOLID_BEFORE) $(addsuffix .lib,$(solid_libs)) $(LD_SOLID_AFTER) \
 	/PDB:$@.pdb
 
 #postlink_cmd = 

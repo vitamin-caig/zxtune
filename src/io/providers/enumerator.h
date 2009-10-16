@@ -18,18 +18,10 @@ namespace ZXTune
 {
   namespace IO
   {
-    namespace Provider
-    {
-      typedef bool (*CheckFunc)(const String&);
-      typedef Error (*OpenFunc)(const String&, const OpenDataParameters&, DataContainer::Ptr&, String&);
-      typedef Error (*SplitFunc)(const String&, String&, String&);
-      typedef Error (*CombineFunc)(const String&, const String&, String&);
-      
-      struct AutoRegistrator
-      {
-        AutoRegistrator(const ProviderInfo&, CheckFunc, OpenFunc, SplitFunc, CombineFunc);
-      };
-    }
+    typedef bool (*ProviderCheckFunc)(const String&);
+    typedef Error (*ProviderOpenFunc)(const String&, const OpenDataParameters&, DataContainer::Ptr&, String&);
+    typedef Error (*ProviderSplitFunc)(const String&, String&, String&);
+    typedef Error (*ProviderCombineFunc)(const String&, const String&, String&);
   
     class ProvidersEnumerator
     {
@@ -37,7 +29,7 @@ namespace ZXTune
       virtual ~ProvidersEnumerator() {}
       //registration
       virtual void RegisterProvider(const ProviderInfo& info,
-	Provider::CheckFunc detector, Provider::OpenFunc opener, Provider::SplitFunc splitter, Provider::CombineFunc combiner) = 0;
+	ProviderCheckFunc detector, ProviderOpenFunc opener, ProviderSplitFunc splitter, ProviderCombineFunc combiner) = 0;
       
       virtual Error OpenUri(const String& uri, const OpenDataParameters& params, DataContainer::Ptr& result, String& subpath) const = 0;
       virtual Error SplitUri(const String& uri, String& baseUri, String& subpath) const = 0;

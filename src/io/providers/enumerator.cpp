@@ -12,6 +12,7 @@ Author:
 #include "../error_codes.h"
 
 #include "enumerator.h"
+#include "providers.h"
 
 #include <error.h>
 
@@ -41,24 +42,25 @@ namespace
       }
       
       ProviderEntry(const ProviderInfo& info, 
-        Provider::CheckFunc checker, Provider::OpenFunc opener, Provider::SplitFunc splitter, Provider::CombineFunc combiner)
+        ProviderCheckFunc checker, ProviderOpenFunc opener, ProviderSplitFunc splitter, ProviderCombineFunc combiner)
 	: Info(info), Checker(checker), Opener(opener), Splitter(splitter), Combiner(combiner)
       {
       }
       ProviderInfo Info;
-      Provider::CheckFunc Checker;
-      Provider::OpenFunc Opener;
-      Provider::SplitFunc Splitter;
-      Provider::CombineFunc Combiner;
+      ProviderCheckFunc Checker;
+      ProviderOpenFunc Opener;
+      ProviderSplitFunc Splitter;
+      ProviderCombineFunc Combiner;
     };
     typedef std::list<ProviderEntry> ProvidersList;
   public:
     ProvidersEnumeratorImpl()
     {
+      RegisterProviders(*this);
     }
     
     virtual void RegisterProvider(const ProviderInfo& info,
-	Provider::CheckFunc detector, Provider::OpenFunc opener, Provider::SplitFunc splitter, Provider::CombineFunc combiner)
+	ProviderCheckFunc detector, ProviderOpenFunc opener, ProviderSplitFunc splitter, ProviderCombineFunc combiner)
     {
       assert(Providers.end() == std::find_if(Providers.begin(), Providers.end(), 
         boost::bind(CompareInfos, info, boost::bind<ProviderInfo>(&ProviderEntry::Info, _1))));
@@ -119,15 +121,6 @@ namespace ZXTune
     {
       static ProvidersEnumeratorImpl instance;
       return instance;
-    }
-    
-    namespace Provider
-    {
-      AutoRegistrator::AutoRegistrator(const ProviderInfo& info, 
-        CheckFunc checker, OpenFunc opener, SplitFunc splitter, CombineFunc combiner)
-      {
-        ProvidersEnumerator::Instance().RegisterProvider(info, checker, opener, splitter, combiner);
-      }
     }
     
     Error OpenData(const String& uri, const OpenDataParameters& params, DataContainer::Ptr& data, String& subpath)

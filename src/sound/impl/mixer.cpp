@@ -147,7 +147,7 @@ namespace
       {
         throw Error(THIS_LINE, MIXER_INVALID_MATRIX, TEXT_SOUND_ERROR_MIXER_INVALID_MATRIX);
       }
-      Core.reset(CreateMixerCore(data).release());
+      Core = CreateMixerCore(data);
     }
   private:
     const SoundReceiver::Ptr Receiver;

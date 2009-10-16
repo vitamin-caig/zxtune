@@ -10,8 +10,12 @@ namespace
 {
   const char EXISTING_FILE[] = "Makefile";
   const char NONEXISTING_FILE[] = "non_existing_file";
+#ifdef _WIN32
+  const char LOCKED_FILE[] = "C:\\pagefile.sys";
+#else
   const char LOCKED_FILE[] = "/etc/shadow";
-
+#endif
+  
   void ErrOuter(unsigned /*level*/, Error::LocationRef loc, Error::CodeType code, const String& text)
   {
     const String txt = (Formatter("\t%1%\n\tCode: %2$#x\n\tAt: %3%\n\t--------\n") % text % code % Error::LocationToString(loc)).str();
