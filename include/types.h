@@ -63,4 +63,7 @@ typedef boost::basic_format<Char> Formatter;
 typedef boost::variant<int64_t, String, Dump> CommonParameter;
 typedef std::map<String, CommonParameter> ParametersMap;
 
+//assertions
+BOOST_STATIC_ASSERT(sizeof(unsigned) >= sizeof(uint32_t));
+
 #endif //__TYPES_H_DEFINED__

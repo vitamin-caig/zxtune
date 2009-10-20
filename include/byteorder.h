@@ -15,25 +15,49 @@ Author:
 #include "types.h"
 #include <boost/detail/endian.hpp>
 
-//byte order macroses
-inline uint16_t swapBytes(uint16_t a)
-{
-  return (a << 8) | (a >> 8);
-}
+template<unsigned size>
+struct ByteSwap;
 
-inline uint32_t swapBytes(uint32_t a)
+template<>
+struct ByteSwap<2>
 {
-  const uint32_t tmp((((a >> 8) ^ (a << 8)) & 0xff00ff) ^ (a << 8));
-  return (tmp << 16) | (tmp >> 16);
-}
+  typedef uint16_t Type;
+  inline static Type Swap(Type a)
+  {
+    return (a << 8) | (a >> 8);
+  }
+};
 
-inline uint64_t swapBytes(uint64_t a)
+template<>
+struct ByteSwap<4>
 {
-  const uint64_t a1 = ((a & UINT64_C(0x00ff00ff00ff00ff)) << 8) |
-                      ((a & UINT64_C(0xff00ff00ff00ff00)) >> 8);
-  const uint64_t a2 = ((a1 & UINT64_C(0x0000ffff0000ffff)) << 16) |
-                      ((a1 & UINT64_C(0xffff0000ffff0000)) >> 16);
-  return (a2 << 32) | (a2 >> 32);
+  typedef uint32_t Type;
+  inline static Type Swap(Type a)
+  {
+    const Type tmp((((a >> 8) ^ (a << 8)) & 0xff00ff) ^ (a << 8));
+    return (tmp << 16) | (tmp >> 16);
+  }
+};
+
+template<>
+struct ByteSwap<8>
+{
+  typedef uint64_t Type;
+  inline static Type Swap(Type a)
+  {
+    const Type a1 = ((a & UINT64_C(0x00ff00ff00ff00ff)) << 8) |
+                    ((a & UINT64_C(0xff00ff00ff00ff00)) >> 8);
+    const Type a2 = ((a1 & UINT64_C(0x0000ffff0000ffff)) << 16) |
+                    ((a1 & UINT64_C(0xffff0000ffff0000)) >> 16);
+    return (a2 << 32) | (a2 >> 32);
+  }
+};
+
+template<class T>
+inline T swapBytes(T a)
+{
+  typedef ByteSwap<sizeof(T)> Swapper;
+  return static_cast<T>(Swapper::Swap(static_cast<typename Swapper::Type>(a)));
 }
 
 #ifdef BOOST_LITTLE_ENDIAN
