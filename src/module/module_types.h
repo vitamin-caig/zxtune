@@ -55,6 +55,25 @@ namespace ZXTune
       /// Special capabilities
       uint32_t Capabilities;
     };
+    
+    namespace Analyze
+    {
+      /// Level type (by default 0...255 is enough)
+      typedef uint8_t LevelType;
+
+      /// Channel voice characteristics
+      struct Channel
+      {
+        Channel() : Enabled(), Level(), Band()
+        {
+        }
+        bool Enabled;
+        LevelType Level;
+        unsigned Band;
+      };
+
+      typedef std::vector<Channel> ChannelsState;
+    }
   }
 }
 
