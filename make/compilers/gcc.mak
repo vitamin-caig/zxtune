@@ -35,7 +35,7 @@ LD_FLAGS := $(ld_mode_flags) $(ld_flags) -pipe
 build_obj_cmd = $(CXX) $(CXX_FLAGS) -c -MD $< -o $@
 build_lib_cmd = $(AR) $(AR_FLAGS) $@ $^
 link_cmd = $(LDD) $(LD_FLAGS) -o $@ $(object_files) \
-	-L$(libs_dir) $(addprefix -l,$(libraries)) \
+	$(if $(libraries),-L$(libs_dir) $(addprefix -l,$(libraries)),) \
 	$(if $(dynamic_libs),-L$(output_dir) $(addprefix -l,$(dynamic_libs)),)
 
 postlink_cmd = objcopy --only-keep-debug $@ $@.pdb && \

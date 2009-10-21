@@ -33,9 +33,8 @@ link_cmd = $(LDD) $(LD_FLAGS) /NOLOGO /INCREMENTAL:NO /FIXED:NO /DEBUG \
         /OPT:REF \
         /OUT:$@ $(object_files) \
 	kernel32.lib $(windows_libraries) \
-	/LIBPATH:$(libs_dir) $(addsuffix .lib,$(libraries)) \
-	/LIBPATH:$(output_dir) $(addprefix /DELAYLOAD:,$(addsuffix .dll,$(dynamic_libs))) \
-	$(addsuffix .lib,$(dynamic_libs)) \
+	$(if $(libraries),/LIBPATH:$(libs_dir) $(addsuffix .lib,$(libraries)),) \
+	$(if $(dynamic_libs),/LIBPATH:$(output_dir) $(addprefix /DELAYLOAD:,$(addsuffix .dll,$(dynamic_libs))) $(addsuffix .lib,$(dynamic_libs)),) \
 	/PDB:$@.pdb
 
 #postlink_cmd = 
