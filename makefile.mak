@@ -51,7 +51,7 @@ object_files := $(notdir $(source_files))
 object_files := $(addprefix $(objects_dir)/,$(object_files:.cpp=$(call makeobj_name,)))
 
 all: dirs $(target)
-.PHONY: all
+.PHONY: all dirs
 
 dirs:
 	mkdir -p $(objects_dir)

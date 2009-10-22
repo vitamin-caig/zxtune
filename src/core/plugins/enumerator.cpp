@@ -15,6 +15,7 @@ Author:
 #include "players/plugins_list.h"
 
 #include <io/container.h>
+#include <io/fs_tools.h>
 
 namespace
 {
@@ -48,6 +49,9 @@ namespace
     {
       try
       {
+        const String& thisPath(params.Subpath);
+	const String& frontComponent(IO::GetFirstPathComponent(thisPath));
+
         ScanForPlayers(data, params);
         return Error();//success
       }

@@ -1,24 +1,35 @@
-#include "fs_tools.h"
-#include "location.h"
+/*
+Abstract:
+  Different io-related tools implementation
 
-#include <text/common.h>
+Last changed:
+  $Id$
+
+Author:
+  (C) Vitamin/CAIG/2001
+*/
+
+#include "../fs_tools.h"
 
 namespace
 {
   const String::value_type TEMPLATE_BEGIN = '[';
   const String::value_type TEMPLATE_END = ']';
 
-#ifdef _WIN32
-  const String::value_type FS_DELIMITERS[] = {'/', '\\', 0};
-#else
-  const String::value_type FS_DELIMITERS[] = {'/', 0};
-#endif
+  const String::value_type FS_DELIMITER = '/';
 }
 
 namespace ZXTune
 {
   namespace IO
   {
+    String GetFirstPathComponent(const String& path)
+    {
+      const String::size_type delimPos(path.find_first_of(FS_DELIMITER));
+      return String::npos == delimPos ? path : path.substr(0, delimPos);
+    }
+
+    /*
     void SplitFSName(const String& fullpath, String& dir, String& filename, String& subname)
     {
       StringArray parts;
@@ -80,5 +91,6 @@ namespace ZXTune
       }
       return result;
     }
+    */
   }
 }
