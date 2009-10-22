@@ -1,14 +1,30 @@
+/*
+Abstract:
+  AY/YM chips interface
+
+Last changed:
+  $Id$
+
+Author:
+  (C) Vitamin/CAIG/2001
+*/
 #ifndef __AYM_H_DEFINED__
 #define __AYM_H_DEFINED__
 
 #include <types.h>
-#include <sound.h>
 
-#include "../data_source.h"
+#include <core/module_types.h>
 
 //supporting for AY/YM-based modules
 namespace ZXTune
 {
+  //forward declaration
+  namespace Sound
+  {
+    class MultichannelReceiver;
+    struct RenderParameters;
+  }
+  
   namespace AYM
   {
     struct DataChunk
@@ -63,16 +79,12 @@ namespace ZXTune
       {
       }
 
-      /// renders sound values until source is not empty
-      virtual void RenderData(const Sound::Parameters& params,
-                              DataSource<DataChunk>& src,
-                              Sound::Receiver& dst) = 0;
       /// render single data chunkg
-      virtual void RenderData(const Sound::Parameters& params,
+      virtual void RenderData(const Sound::RenderParameters& params,
                               const DataChunk& src,
-                              Sound::Receiver& dst) = 0;
+                              Sound::MultichannelReceiver& dst) = 0;
 
-      virtual void GetState(Sound::Analyze::ChannelsState& state) const = 0;
+      virtual void GetState(Module::Analyze::ChannelsState& state) const = 0;
 
       /// reset internal state to initial
       virtual void Reset() = 0;

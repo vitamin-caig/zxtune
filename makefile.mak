@@ -9,7 +9,7 @@ suffix := _pic
 endif
 
 #set directories
-include_dirs := $(path_step) $(path_step)/include $(include_path)
+include_dirs := $(path_step)/include $(path_step)/src $(path_step) $(include_path)
 libs_dir := $(path_step)/lib/$(mode)$(suffix)
 objs_dir := $(path_step)/obj/$(mode)$(suffix)
 bins_dir := $(path_step)/bin/$(mode)

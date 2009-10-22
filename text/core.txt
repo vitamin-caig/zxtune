@@ -1,0 +1,22 @@
+< __HEADER__
+> "Generated from '$Id$'"
+
+< __RAWHEADER__
+__cpp> "#ifndef __TEXT_CORE_H_DEFINED__\n"
+__cpp> "#define __TEXT_CORE_H_DEFINED__\n"
+__cpp> "#include <char_type.h>\n\n"
+
+< __RAWFOOTER__
+__cpp> "#endif //__TEXT_CORE_H_DEFINED__\n"
+
+< TEXT_MODULE_ERROR_INVALID_FORMAT
+> "Invalid module format."
+
+< TEXT_MODULE_ERROR_MODULE_END
+> "Module end is reached."
+
+< TEXT_MODULE_ERROR_OVERSEEK
+> "Seek position is out of bounds."
+
+< TEXT_MODULE_ERROR_CONVERSION_UNSUPPORTED
+> "Unsupported conversion mode."

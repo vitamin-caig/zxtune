@@ -38,18 +38,16 @@ namespace ZXTune
     };
 
     //fast std::vector-alike wrapper around DataContainer
-    template<class T>
     class FastDump
     {
     public:
       FastDump(const DataContainer& data, std::size_t offset = 0)
-        : Ptr(safe_ptr_cast<const T*>(static_cast<const uint8_t*>(data.Data()) + offset))
-	, Lenght((data.Size() - offset) / sizeof(T))
+        : Ptr(static_cast<const uint8_t*>(data.Data()) + offset)
+	, Lenght(data.Size() - offset)
       {
-        assert(0 == (data.Size() - offset) % sizeof(T));
       }
 
-      const T& operator [] (std::size_t idx) const
+      const uint8_t& operator [] (std::size_t idx) const
       {
         assert(idx < Lenght);
         return Ptr[idx];
@@ -59,8 +57,13 @@ namespace ZXTune
       {
         return Lenght;
       }
+      
+      const uint8_t* Data() const
+      {
+        return Ptr;
+      }
     private:
-      const T* const Ptr;
+      const uint8_t* const Ptr;
       const std::size_t Lenght;
     };
   }

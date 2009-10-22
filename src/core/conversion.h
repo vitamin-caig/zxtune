@@ -1,6 +1,6 @@
 /*
 Abstract:
-  Modules types definitions
+  Conversion base support types
 
 Last changed:
   $Id$
@@ -8,8 +8,8 @@ Last changed:
 Author:
   (C) Vitamin/CAIG/2001
 */
-#ifndef __MODULE_CONVERSION_H_DEFINED__
-#define __MODULE_CONVERSION_H_DEFINED__
+#ifndef __CORE_CONVERSION_H_DEFINED__
+#define __CORE_CONVERSION_H_DEFINED__
 
 #include <tools.h>
 
@@ -82,4 +82,4 @@ namespace ZXTune
   }
 }
 
-#endif //__MODULE_CONVERSION_H_DEFINED__
+#endif //__CORE_CONVERSION_H_DEFINED__

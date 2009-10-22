@@ -9,8 +9,8 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-#ifndef __MODULE_TYPES_H_DEFINED__
-#define __MODULE_TYPES_H_DEFINED__
+#ifndef __CORE_MODULE_TYPES_H_DEFINED__
+#define __CORE_MODULE_TYPES_H_DEFINED__
 
 #include <types.h>
 
@@ -77,4 +77,4 @@ namespace ZXTune
   }
 }
 
-#endif //__MODULE_TYPES_H_DEFINED__
+#endif //__CORE_MODULE_TYPES_H_DEFINED__

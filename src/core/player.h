@@ -8,12 +8,20 @@ Last changed:
 Author:
   (C) Vitamin/CAIG/2001
 */
-#ifndef __MODULE_PLAYER_H_DEFINED__
-#define __MODULE_PLAYER_H_DEFINED__
+#ifndef __CORE_PLAYER_H_DEFINED__
+#define __CORE_PLAYER_H_DEFINED__
+
+#include "module_types.h"
+
+#include <error.h>
+
+#include <boost/function.hpp>
 
 namespace ZXTune
 {
   //forward declarations
+  struct PluginInformation;
+  
   namespace IO
   {
     class DataContainer;
@@ -21,7 +29,8 @@ namespace ZXTune
   
   namespace Sound
   {
-    struct Parameters;
+    class MultichannelReceiver;
+    struct RenderParameters;
   }
   
   namespace Module
@@ -39,16 +48,6 @@ namespace ZXTune
 
       virtual ~Player() {}
 
-      /// Current player information
-      struct Information
-      {
-        Information() : Capabilities()
-        {
-        }
-        uint32_t Capabilities;
-        ParametersMap Properties;
-      };
-
       /// Module playing state
       enum PlaybackState
       {
@@ -57,7 +56,7 @@ namespace ZXTune
       };
 
       /// Retrieving player info itself
-      virtual void GetPlayerInfo(Player::Information& info) const = 0;
+      virtual void GetPlayerInfo(PluginInformation& info) const = 0;
 
       /// Retrieving information about loaded module
       virtual void GetModuleInformation(Module::Information& info) const = 0;
@@ -69,7 +68,7 @@ namespace ZXTune
                                    ) const = 0;
 
       /// Rendering frame
-      virtual Error RenderFrame(const Sound::Parameters& params, //parameters for rendering
+      virtual Error RenderFrame(const Sound::RenderParameters& params, //parameters for rendering
                                 PlaybackState& state, //playback state
                                 Sound::MultichannelReceiver& receiver //sound stream reciever
                                 ) = 0;
@@ -82,14 +81,12 @@ namespace ZXTune
       virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const = 0;
     };
   }
-    
-  /// Enumeration
-  void GetSupportedPlayers(std::vector<Module::Player::Information>& players);
-  
+
   /// Creating
   struct DetectParameters
   {
-    boost::function<bool(const Module::Player::Information&)> Filter;
+    typedef boost::function<bool(const PluginInformation&)> FilterFunc;
+    FilterFunc Filter;
     String Subpath;
     boost::function<Error(const String&, Module::Player::Ptr player)> Callback;
   };
@@ -97,4 +94,4 @@ namespace ZXTune
   Error DetectModules(const IO::DataContainer& data, const DetectParameters& params);
 }
 
-#endif //__MODULE_PLAYER_H_DEFINED__
+#endif //__CORE_PLAYER_H_DEFINED__

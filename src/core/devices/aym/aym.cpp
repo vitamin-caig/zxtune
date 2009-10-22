@@ -1,12 +1,28 @@
+/*
+Abstract:
+  AY/YM chips interface implementation
+
+Last changed:
+  $Id$
+
+Author:
+  (C) Vitamin/CAIG/2001
+
+  Based on sources of UnrealSpeccy by SMT
+*/
 #include "aym.h"
 
 #include <tools.h>
 
-#include <sound_attrs.h>
+#include <sound/receiver.h>
+#include <sound/sound_attrs.h>
+#include <sound/sound_types.h>
+#include <sound/sound_params.h>
 
 #include <limits>
 #include <memory>
 #include <cassert>
+#include <cstring>
 
 namespace
 {
@@ -21,7 +37,6 @@ namespace
                     (1 << DataChunk::REG_VOLB) | (1 << DataChunk::REG_VOLC),
   };
 
-  //from US sources
   const Sound::Sample AYVolumeTab[32] = {
     0x0000, 0x0000, 0x0340, 0x0340, 0x04C0, 0x04C0, 0x06F2, 0x06F2,
     0x0A44, 0x0A44, 0x0F13, 0x0F13, 0x1510, 0x1510, 0x227E, 0x227E,
@@ -37,7 +52,8 @@ namespace
   {
   public:
     ChipImpl()
-      : State()
+      : Result(3)
+      , State()
       , BitA(), BitB(), BitC(), BitN()
       , TimerA(), TimerB(), TimerC(), TimerN(), TimerE()
       , Envelope(), Decay(), Noise()
@@ -46,14 +62,11 @@ namespace
       Reset();
     }
 
-    virtual void RenderData(const Sound::Parameters& params,
-                            DataSource<DataChunk>& src,
-                            Sound::Receiver& dst);
-    virtual void RenderData(const Sound::Parameters& params,
+    virtual void RenderData(const Sound::RenderParameters& params,
                             const DataChunk& src,
-                            Sound::Receiver& dst);
+                            Sound::MultichannelReceiver& dst);
 
-    virtual void GetState(Sound::Analyze::ChannelsState& state) const;
+    virtual void GetState(Module::Analyze::ChannelsState& state) const;
 
     virtual void Reset()
     {
@@ -71,7 +84,7 @@ namespace
 
   private:
     void ApplyLastData();
-    void DoRender(const Sound::Parameters& params, Sound::Receiver& dst);
+    void DoRender(const Sound::RenderParameters& params, Sound::MultichannelReceiver& dst);
   private:
     inline uint16_t GetToneA() const
     {
@@ -118,8 +131,10 @@ namespace
       assert(regVol < 32);
       return (ym ? YMVolumeTab : AYVolumeTab)[regVol] / 2;
     }
-    std::size_t GetBandByPeriod(std::size_t regVal) const;
+    unsigned GetBandByPeriod(unsigned regVal) const;
   protected:
+    //result buffer
+    std::vector<Sound::Sample> Result;
     //state
     DataChunk State; //time and registers
     unsigned BitA, BitB, BitC, BitN;
@@ -132,29 +147,7 @@ namespace
     uint32_t LastTicksPerSec;
   };
 
-  void ChipImpl::RenderData(const Sound::Parameters& params,
-                            DataSource<DataChunk>& src,
-                            Sound::Receiver& dst)
-  {
-    for (;;)
-    {
-      if (State.Tick >= LastData.Tick) //need to get data
-      {
-        if (! src.GetData(LastData))
-        {
-          return;//no more data
-        }
-        //output dump
-        if (LastData.Mask)
-        {
-          ApplyLastData();
-        }
-      }
-      DoRender(params, dst);
-    }
-  }
-
-  void ChipImpl::RenderData(const Sound::Parameters& params, const DataChunk& src, Sound::Receiver& dst)
+  void ChipImpl::RenderData(const Sound::RenderParameters& params, const DataChunk& src, Sound::MultichannelReceiver& dst)
   {
     if (State.Tick >= LastData.Tick) //need to get data
     {
@@ -203,7 +196,7 @@ namespace
     }
   }
 
-  void ChipImpl::DoRender(const Sound::Parameters& params, Sound::Receiver& dst)
+  void ChipImpl::DoRender(const Sound::RenderParameters& params, Sound::MultichannelReceiver& dst)
   {
     LastTicksPerSec = params.ClockFreq;
     uint64_t& curTick = State.Tick;
@@ -230,12 +223,11 @@ namespace
       if (curTick >= nextSampleTick) //need to store sample
       {
         const bool isYM(0 != (params.Flags & Sound::PSG_TYPE_YM));
-        const Sound::Sample result[] = {
-          GetVolume(ToneBitA & NoiseBitA & VolumeA, isYM),
-          GetVolume(ToneBitB & NoiseBitB & VolumeB, isYM),
-          GetVolume(ToneBitC & NoiseBitC & VolumeC, isYM)
-        };
-        dst.ApplySample(result, ArraySize(result));
+	Result[0] = GetVolume(ToneBitA & NoiseBitA & VolumeA, isYM);
+        Result[1] = GetVolume(ToneBitB & NoiseBitB & VolumeB, isYM);
+        Result[2] = GetVolume(ToneBitC & NoiseBitC & VolumeC, isYM);
+    
+        dst.ApplySample(Result);
         nextSampleTick += ticksPerSample;
       }
       curTick += 8;//base freq divisor
@@ -297,30 +289,30 @@ namespace
     }
   }
 
-  void ChipImpl::GetState(Sound::Analyze::ChannelsState& state) const
+  void ChipImpl::GetState(Module::Analyze::ChannelsState& state) const
   {
     state.resize(4);
-    Sound::Analyze::Channel& envChan(state[3]);
-    envChan = Sound::Analyze::Channel();
+    Module::Analyze::Channel& envChan(state[3]);
+    envChan = Module::Analyze::Channel();
     envChan.Band = GetBandByPeriod((uint16_t(State.Data[DataChunk::REG_TONEE_H]) << 8) |
       State.Data[DataChunk::REG_TONEE_L]);
 
-    const std::size_t mixer(~GetMixer());
-    for (std::size_t chan = 0; chan != 3; ++chan)
+    const unsigned mixer(~GetMixer());
+    for (unsigned chan = 0; chan != 3; ++chan)
     {
       if (State.Data[DataChunk::REG_VOLA + chan] & DataChunk::MASK_ENV)
       {
         envChan.Enabled = true;
-        envChan.Level += std::numeric_limits<Sound::Analyze::LevelType>::max() / 3;
+        envChan.Level += std::numeric_limits<Module::Analyze::LevelType>::max() / 3;
       }
 
-      Sound::Analyze::Channel& channel(state[chan]);
+      Module::Analyze::Channel& channel(state[chan]);
       channel.Enabled = false;
       if (mixer & ((DataChunk::MASK_TONEA | DataChunk::MASK_NOISEA) << chan))
       {
         channel.Enabled = true;
         channel.Level = (State.Data[DataChunk::REG_VOLA + chan] & 0xf) * 
-          std::numeric_limits<Sound::Analyze::LevelType>::max() / 15;
+          std::numeric_limits<Module::Analyze::LevelType>::max() / 15;
         if (mixer & (DataChunk::MASK_TONEA << chan))//tone
         {
           channel.Band = GetBandByPeriod((uint16_t(State.Data[DataChunk::REG_TONEA_H + chan * 2]) << 8) |
@@ -330,7 +322,7 @@ namespace
     }
   }
 
-  std::size_t ChipImpl::GetBandByPeriod(std::size_t period) const
+  unsigned ChipImpl::GetBandByPeriod(unsigned period) const
   {
     //table in Hz*100
     static const unsigned FREQ_TABLE[] = {
@@ -351,9 +343,9 @@ namespace
       //octave8
       418620, 443460, 469890, 497790, 527420, 558720, 592000, 627200, 664450, 704000, 745860, 790140
     }; 
-    const std::size_t freq(uint64_t(LastTicksPerSec) * 100 / (16 * (period ? period : 1)));
-    return std::min<std::size_t>(std::lower_bound(FREQ_TABLE, ArrayEnd(FREQ_TABLE), freq) - FREQ_TABLE, 
-                                 ArraySize(FREQ_TABLE) - 1);
+    const unsigned freq(uint64_t(LastTicksPerSec) * 100 / (16 * (period ? period : 1)));
+    return std::min<unsigned>(std::lower_bound(FREQ_TABLE, ArrayEnd(FREQ_TABLE), freq) - FREQ_TABLE, 
+                              ArraySize(FREQ_TABLE) - 1);
   }
 }
 
