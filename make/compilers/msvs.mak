@@ -14,8 +14,8 @@ $(error Invalid mode)
 endif
 
 ifdef pic
-cxx_mode_flags := $(cxx_mode_flags) /LD
-ld_mode_flags := $(ld_mode_flags) /DLL
+cxx_mode_flags += /LD
+ld_mode_flags += /DLL
 endif
 
 CXX_FLAGS := $(cxx_mode_flags) $(cxx_flags) /FC /TP /nologo /Gy \

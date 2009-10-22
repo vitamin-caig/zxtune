@@ -73,7 +73,7 @@ namespace
   {
     info.Capabilities = CAP_DEV_AYM | CAP_CONV_RAW;
     info.Properties.clear();
-    info.Properties.insert(ParametersMap::value_type(ATTR_DESCRIPTION, TEXT_PSG_INFO));
+    info.Properties.insert(ParametersMap::value_type(ATTR_DESCRIPTION, String(TEXT_PSG_INFO)));
     info.Properties.insert(ParametersMap::value_type(ATTR_VERSION, TEXT_PSG_VERSION));
   }  
   
@@ -144,11 +144,11 @@ namespace
       MakeDump(data, region, RawData);
       
       //fill properties
-      Information.Statistic.Frame = Storage.size();
-      Information.Statistic.Tempo = 1;
-      Information.Statistic.Channels = 3;
-      Information.PhysicalChannels = 3;
-      Information.Properties.insert(ParametersMap::value_type(ATTR_FILENAME, filename));
+      ModInfo.Statistic.Frame = unsigned(Storage.size());
+      ModInfo.Statistic.Tempo = 1;
+      ModInfo.Statistic.Channels = 3;
+      ModInfo.PhysicalChannels = 3;
+      ModInfo.Properties.insert(ParametersMap::value_type(ATTR_FILENAME, filename));
     }
 
     virtual void GetPlayerInfo(PluginInformation& info) const
@@ -158,7 +158,7 @@ namespace
 
     virtual void GetModuleInformation(Information& info) const
     {
-      info = Information;
+      info = ModInfo;
     }
 
     virtual Error GetModuleState(unsigned& timeState,
@@ -166,7 +166,7 @@ namespace
                                  Analyze::ChannelsState& analyzeState) const
     {
       timeState = static_cast<uint32_t>(Position);
-      trackState = Information.Statistic;
+      trackState = ModInfo.Statistic;
       trackState.Line = timeState;
       Device->GetState(analyzeState);
       return Error();
@@ -227,7 +227,7 @@ namespace
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
     {
       using namespace Conversion;
-      if (const RawConvertParam* const p = parameter_cast<RawConvertParam>(&param))
+      if (parameter_cast<RawConvertParam>(&param))
       {
         dst = RawData;
         return Error();
@@ -239,7 +239,7 @@ namespace
     }
 
   private:
-    Module::Information Information;
+    Module::Information ModInfo;
     AYM::Chip::Ptr Device;
     Dump RawData;
     PlaybackState CurrentState;

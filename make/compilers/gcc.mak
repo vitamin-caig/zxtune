@@ -13,13 +13,13 @@ $(error Invalid mode)
 endif
 
 ifdef profile
-cxx_mode_flags := $(cxx_mode_flags) -pg
-ld_mode_flags := $(ld_mode_flags) -pg
+cxx_mode_flags += -pg
+ld_mode_flags += -pg
 endif
 
 ifdef pic
-cxx_mode_flags := $(cxx_mode_flags) -fPIC
-ld_mode_flags := $(ld_mode_flags) -shared
+cxx_mode_flags += -fPIC
+ld_mode_flags += -shared
 endif
 
 CXX_FLAGS := $(cxx_mode_flags) $(cxx_flags) -g3 \

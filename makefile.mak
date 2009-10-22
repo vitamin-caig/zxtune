@@ -35,7 +35,7 @@ $(error Invalid target)
 endif
 
 #setup environment
-definitions := $(definitions) __STDC_CONSTANT_MACROS
+definitions += __STDC_CONSTANT_MACROS
 
 include $(path_step)/make/compilers/$(compiler).mak
 
@@ -50,15 +50,16 @@ endif
 object_files := $(notdir $(source_files))
 object_files := $(addprefix $(objects_dir)/,$(object_files:.cpp=$(call makeobj_name,)))
 
-all: deps dirs $(target)
+all: dirs $(target)
+.PHONY: all
+
+dirs:
+	mkdir -p $(objects_dir)
+	mkdir -p $(output_dir)
 
 .PHONY: deps $(depends)
 
 deps: $(depends)
-
-dirs:
-	test -d $(objects_dir) || mkdir -p $(objects_dir)
-	test -d $(output_dir) || mkdir -p $(output_dir)
 
 $(depends):
 	$(MAKE) -C $(addprefix $(path_step)/,$@) $(if $(pic),pic=1,)
@@ -69,7 +70,7 @@ $(target): $(object_files)
 else
 #binary and dynamic libraries
 #put solid libraries to an end
-$(target): $(object_files) $(foreach lib,$(libraries),$(libs_dir)/$(call makelib_name,$(lib)))
+$(target): deps $(object_files) $(foreach lib,$(libraries),$(libs_dir)/$(call makelib_name,$(lib)))
 	$(link_cmd)
 	$(postlink_cmd)
 endif
@@ -79,11 +80,11 @@ VPATH := $(source_dirs)
 $(objects_dir)/%$(call makeobj_name,): %.cpp
 	$(build_obj_cmd)
 
+.PHONY: clean clean_deps
+
 clean: clean_deps
 	rm -f $(target)
 	rm -Rf $(objects_dir)
-
-.PHONY: clean_deps
 
 clean_deps:
 	$(foreach dep,$(depends),$(MAKE) -C $(path_step)/$(dep) clean &&) exit 0
