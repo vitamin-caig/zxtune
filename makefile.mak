@@ -1,6 +1,5 @@
 #set default parameters
 platform := $(if $(platform),$(platform),linux)
-
 mode := $(if $(mode),$(mode),debug)
 
 ifneq ($(or $(pic),$(dynamic_name)),)
@@ -14,6 +13,7 @@ libs_dir := $(path_step)/lib/$(mode)$(suffix)
 objs_dir := $(path_step)/obj/$(mode)$(suffix)
 bins_dir := $(path_step)/bin/$(mode)
 
+#set platform-specific parameters
 include $(path_step)/make/platforms/$(platform).mak
 
 #tune output according to type
@@ -34,11 +34,17 @@ else
 $(error Invalid target)
 endif
 
+#main target
+all: dirs $(target)
+.PHONY: all dirs
+
 #setup environment
 definitions += __STDC_CONSTANT_MACROS
 
+#set compiler-specific parameters
 include $(path_step)/make/compilers/$(compiler).mak
 
+#calculate input source files
 ifdef source_dirs
 source_files := $(wildcard $(addsuffix /*.cpp,$(source_dirs)))
 else ifdef source_files
@@ -47,29 +53,29 @@ else
 $(error Not source_dirs or source_files defined at all)
 endif
 
+#calculate object files from sources
 object_files := $(notdir $(source_files))
 object_files := $(addprefix $(objects_dir)/,$(object_files:.cpp=$(call makeobj_name,)))
 
-all: dirs $(target)
-.PHONY: all dirs
-
+#make objects and binaries dir
 dirs:
 	mkdir -p $(objects_dir)
 	mkdir -p $(output_dir)
 
+#build target
+ifdef library_name
+#simple libraries
+$(target): $(object_files)
+	$(build_lib_cmd)
+else
+#binary and dynamic libraries with dependencies
 .PHONY: deps $(depends)
 
 deps: $(depends)
 
 $(depends):
-	$(MAKE) -C $(addprefix $(path_step)/,$@) $(if $(pic),pic=1,)
+	$(MAKE) -C $(addprefix $(path_step)/,$@) $(if $(pic),pic=1,) $(MAKECMDGOALS)
 
-ifdef library_name
-$(target): $(object_files)
-	$(build_lib_cmd)
-else
-#binary and dynamic libraries
-#put solid libraries to an end
 $(target): deps $(object_files) $(foreach lib,$(libraries),$(libs_dir)/$(call makelib_name,$(lib)))
 	$(link_cmd)
 	$(postlink_cmd)
@@ -80,14 +86,15 @@ VPATH := $(source_dirs)
 $(objects_dir)/%$(call makeobj_name,): %.cpp
 	$(build_obj_cmd)
 
-.PHONY: clean clean_deps
+.PHONY: clean clean_all
 
-clean: clean_deps
+clean:
 	rm -f $(target)
 	rm -Rf $(objects_dir)
 
-clean_deps:
-	$(foreach dep,$(depends),$(MAKE) -C $(path_step)/$(dep) clean &&) exit 0
+clean_all: clean clean_deps
+
+clean_deps: $(depends)
 
 #show some help
 help:

@@ -1,3 +1,4 @@
+#basic definitions for tools
 arch := $(if $(arch),$(arch),native)
 CXX := $(if $(CXX),$(CXX),g++)
 LDD := $(if $(LDD),$(LDD),g++)
@@ -12,16 +13,19 @@ else
 $(error Invalid mode)
 endif
 
+#setup profiling
 ifdef profile
 cxx_mode_flags += -pg
 ld_mode_flags += -pg
 endif
 
+#setup PIC code
 ifdef pic
 cxx_mode_flags += -fPIC
 ld_mode_flags += -shared
 endif
 
+#setup flags
 CXX_FLAGS := $(cxx_mode_flags) $(cxx_flags) -g3 \
 	$(addprefix -D, $(definitions)) \
 	-march=$(arch) \
@@ -32,15 +36,17 @@ CXX_FLAGS := $(cxx_mode_flags) $(cxx_flags) -g3 \
 AR_FLAGS := cru
 LD_FLAGS := $(ld_mode_flags) $(ld_flags) -pipe
 
+#specify endpoint commands
 build_obj_cmd = $(CXX) $(CXX_FLAGS) -c -MD $< -o $@
 build_lib_cmd = $(AR) $(AR_FLAGS) $@ $^
 link_cmd = $(LDD) $(LD_FLAGS) -o $@ $(object_files) \
 	$(if $(libraries),-L$(libs_dir) $(addprefix -l,$(libraries)),) \
 	$(if $(dynamic_libs),-L$(output_dir) $(addprefix -l,$(dynamic_libs)),)
 
+#specify postlink command- generate pdb file
 postlink_cmd = objcopy --only-keep-debug $@ $@.pdb && \
 	strip $@ && \
 	objcopy --add-gnu-debuglink=$@.pdb $@
 
-
+#include generated dependensies
 include $(wildcard $(objects_dir)/*.d)
