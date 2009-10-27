@@ -59,6 +59,9 @@ __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 < TEXT_PSG_INFO
 > "PSG modules support"
 
+< TEXT_PSG_ID
+> "PSG"
+
 #PT2
 < TEXT_PT2_INFO
 > "PT2 modules support"

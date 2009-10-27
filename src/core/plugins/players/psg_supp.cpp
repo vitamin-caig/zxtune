@@ -63,26 +63,21 @@ namespace
 
   BOOST_STATIC_ASSERT(sizeof(PSGHeader) == 16);
 
-  inline void MakeDump(const IO::FastDump& data, const ModuleRegion& region, Dump& dst)
-  {
-    dst = Dump(data.Data() + region.Offset, data.Data() + region.Offset + region.Size);
-  }
-  
-  
   void DescribePlugin(PluginInformation& info)
   {
+    info.Id = TEXT_PSG_ID;
+    info.Description = TEXT_PSG_INFO;
+    info.Version = TEXT_PSG_VERSION;
     info.Capabilities = CAP_DEV_AYM | CAP_CONV_RAW;
-    info.Properties.clear();
-    info.Properties.insert(ParametersMap::value_type(ATTR_DESCRIPTION, String(TEXT_PSG_INFO)));
-    info.Properties.insert(ParametersMap::value_type(ATTR_VERSION, TEXT_PSG_VERSION));
   }  
   
   class PSGPlayer : public Player
   {
   public:
-    PSGPlayer(const String& filename, const IO::FastDump& data, ModuleRegion& region)
+    PSGPlayer(const MetaContainer& container, ModuleRegion& region)
       : Device(AYM::CreateChip()), CurrentState(MODULE_STOPPED), TickCount(), Position()
     {
+      const IO::FastDump data(*container.Data);
       //workaround for some emulators
       const std::size_t offset = (data[4] == INT_BEGIN) ? 4 : sizeof(PSGHeader);
       std::size_t size = data.Size() - offset;
@@ -140,15 +135,14 @@ namespace
       region.Offset = 0;
       region.Size = data.Size() - size;
       
-      //copy raw dump
-      MakeDump(data, region, RawData);
+      //extract properties
+      ExtractMetaProperties(container, region, ModInfo.Properties, RawData);
       
       //fill properties
       ModInfo.Statistic.Frame = unsigned(Storage.size());
       ModInfo.Statistic.Tempo = 1;
       ModInfo.Statistic.Channels = 3;
       ModInfo.PhysicalChannels = 3;
-      ModInfo.Properties.insert(ParametersMap::value_type(ATTR_FILENAME, filename));
     }
 
     virtual void GetPlayerInfo(PluginInformation& info) const
@@ -248,9 +242,10 @@ namespace
     std::vector<AYM::DataChunk> Storage;
   };
   
-  bool CreatePlayer(const String& filename, const IO::FastDump& data, ModuleRegion& region, Player::Ptr& player)
+  bool CreatePlayer(const MetaContainer& container, Player::Ptr& player, ModuleRegion& region)
   {
     //perform fast check
+    const IO::DataContainer& data(*container.Data);
     if (data.Size() <= sizeof(PSGHeader))
     {
       return false;
@@ -261,7 +256,7 @@ namespace
     {
       try
       {
-        player.reset(new PSGPlayer(filename, data, region));
+        player.reset(new PSGPlayer(container, region));
         return true;
       }
       catch (const Error&/*e*/)

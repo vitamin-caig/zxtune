@@ -21,8 +21,10 @@ namespace ZXTune
     PluginInformation() : Capabilities()
     {
     }
+    String Id;
+    String Description;
+    String Version;
     uint32_t Capabilities;
-    ParametersMap Properties;
   };
     
   /// Enumeration

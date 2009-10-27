@@ -43,6 +43,9 @@ extern const Char TEXT_PDT_INFO[] = {
   'P','r','o','D','i','g','i',' ','T','r','a','c','k','e','r',' ','m','o','d','u','l','e','s',' ','s','u','p',
   'p','o','r','t',0
 };
+extern const Char TEXT_PSG_ID[] = {
+  'P','S','G',0
+};
 extern const Char TEXT_PSG_INFO[] = {
   'P','S','G',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
 };

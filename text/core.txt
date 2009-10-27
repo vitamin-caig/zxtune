@@ -9,6 +9,9 @@ __cpp> "#include <char_type.h>\n\n"
 < __RAWFOOTER__
 __cpp> "#endif //__TEXT_CORE_H_DEFINED__\n"
 
+< TEXT_MODULE_CONTAINERS_DELIMITER
+> ">"
+
 < TEXT_MODULE_ERROR_INVALID_FORMAT
 > "Invalid module format."
 
@@ -20,3 +23,21 @@ __cpp> "#endif //__TEXT_CORE_H_DEFINED__\n"
 
 < TEXT_MODULE_ERROR_CONVERSION_UNSUPPORTED
 > "Unsupported conversion mode."
+
+< TEXT_MODULE_ERROR_CANCELED
+> "Canceled."
+
+< TEXT_MODULE_ERROR_FIND_SUBMODULE
+> "Failed to find specified submodule starting from path '%1%'."
+
+< TEXT_MODULE_MESSAGE_OPEN_IMPLICIT
+> "Opening implicit container '%2%' at path '%1%'."
+
+< TEXT_MODULE_MESSAGE_OPEN_NESTED
+> "Opening nested container '%2%' at path '%1%'."
+
+< TEXT_MODULE_MESSAGE_DETECT_IMPLICIT
+> "Detected implicit container '%2%' at path '%1%'."
+
+< TEXT_MODULE_MESSAGE_DETECT_PLAYER
+> "Detected player module '%2%' at path '%1%'."

@@ -16,6 +16,7 @@ extern const Char TEXT_HRIP_INFO[];
 extern const Char TEXT_PACKED_INFO[];
 extern const Char TEXT_PDT_EDITOR[];
 extern const Char TEXT_PDT_INFO[];
+extern const Char TEXT_PSG_ID[];
 extern const Char TEXT_PSG_INFO[];
 extern const Char TEXT_PT2_EDITOR[];
 extern const Char TEXT_PT2_INFO[];

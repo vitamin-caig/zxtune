@@ -87,11 +87,13 @@ namespace ZXTune
   {
     typedef boost::function<bool(const PluginInformation&)> FilterFunc;
     FilterFunc Filter;
-    String Subpath;
-    boost::function<Error(const String&, Module::Player::Ptr player)> Callback;
+    typedef boost::function<Error(Module::Player::Ptr player)> CallbackFunc;
+    CallbackFunc Callback;
+    typedef boost::function<void(const String&)> LogFunc;
+    LogFunc Logger;
   };
   
-  Error DetectModules(const IO::DataContainer& data, const DetectParameters& params);
+  Error DetectModules(const IO::DataContainer& data, const DetectParameters& params, const String& startSubpath);
 }
 
 #endif //__CORE_PLAYER_H_DEFINED__

@@ -41,11 +41,6 @@ namespace ZXTune
     CAP_CONV_ZXAY       = 0x00200000,
     CAP_CONV_VORTEX     = 0x00400000,
   };
-
-  /// Attributes for players
-  const String::value_type ATTR_DESCRIPTION[] = {'D', 'e', 's', 'c', 'r', 'i', 'p', 't', 'i', 'o', 'n', '\0'};
-  const String::value_type ATTR_VERSION[] = {'V', 'e', 'r', 's', 'i', 'o', 'n', '\0'};
-  const String::value_type ATTR_SUBFORMATS[] = {'S', 'u', 'b', 'f', 'o', 'r', 'm', 'a', 't', 's', '\0'};
 }
 
 #endif //__CORE_PLUGINS_ATTRS_H_DEFINED__
