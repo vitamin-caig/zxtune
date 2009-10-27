@@ -64,6 +64,7 @@ public:
 
   //ctors
   Error();//success
+  Error(LocationRef loc, CodeType code);
   Error(LocationRef loc, CodeType code, const String& text);
   ~Error()
   {

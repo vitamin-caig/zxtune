@@ -25,6 +25,11 @@ struct Error::Meta
   {
     assert(Code);
   }
+  Meta(LocationRef loc, CodeType code)
+    : Location(loc), Code(code)
+  {
+    assert(Code);
+  }
   Error::Location Location;
   Error::CodeType Code;
   String Text;
@@ -39,6 +44,11 @@ struct Error::Meta
 
 
 Error::Error() : ErrorMeta(new Meta(), Meta::Delete)
+{
+}
+
+Error::Error(LocationRef loc, CodeType code)
+  : ErrorMeta(new Meta(loc, code), Meta::Delete)
 {
 }
 
