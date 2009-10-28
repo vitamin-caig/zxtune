@@ -343,9 +343,10 @@ namespace
       //octave8
       418620, 443460, 469890, 497790, 527420, 558720, 592000, 627200, 664450, 704000, 745860, 790140
     }; 
-    const unsigned freq(uint64_t(LastTicksPerSec) * 100 / (16 * (period ? period : 1)));
-    return std::min<unsigned>(std::lower_bound(FREQ_TABLE, ArrayEnd(FREQ_TABLE), freq) - FREQ_TABLE, 
-                              ArraySize(FREQ_TABLE) - 1);
+    const unsigned freq = unsigned(uint64_t(LastTicksPerSec) * 100 / (16 * (period ? period : 1)));
+    const unsigned maxBand = unsigned(ArraySize(FREQ_TABLE) - 1);
+    const unsigned currentBand = unsigned(std::lower_bound(FREQ_TABLE, ArrayEnd(FREQ_TABLE), freq) - FREQ_TABLE);
+    return std::min(currentBand, maxBand);
   }
 }
 
