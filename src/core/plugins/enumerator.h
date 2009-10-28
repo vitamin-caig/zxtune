@@ -14,8 +14,6 @@ Author:
 
 #include "../player.h"
 
-#include <io/container.h>
-
 #include <boost/function.hpp>
 
 namespace ZXTune
@@ -70,7 +68,7 @@ namespace ZXTune
     
     //private interface
     //resolve subpath
-    virtual Error ResolveSubpath(const IO::DataContainer& data, const String& subpath, const DetectParameters::LogFunc& logger,
+    virtual Error ResolveSubpath(IO::DataContainer::Ptr data, const String& subpath, const DetectParameters::LogFunc& logger,
       MetaContainer& result) const = 0;
     //full module detection
     virtual Error DetectModules(const DetectParameters& params, const MetaContainer& data, 

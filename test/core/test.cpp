@@ -1,29 +1,75 @@
 #include <io/provider.h>
 #include <core/player.h>
 #include <core/plugin.h>
+#include <core/error_codes.h>
 #include <iostream>
+
+#include <boost/bind.hpp>
 
 using namespace ZXTune;
 
-
-
 namespace
 {
-  const char PSG_TEST[] = "../cmdline/samples/psg/Illusion.psg";
-
+  const unsigned char PSG_DUMP[] = {
+    0, 0, 0, 0, 0, 0, 0, 0,//skip
+    //offset=8 size=24 crc=1720746500
+    'P', 'S', 'G', 0x1a, 1, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0xff, 
+    0, 0, 1, 1, //0x100
+    7, 0xfe,
+    0xfd,//end
+    
+    0, 0, 0, 0, 0, 0, 0, 0,//skip
+    //offset=40 size=24 crc=799865041
+    'P', 'S', 'G', 0x1a, 1, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0xff,
+    0, 0xff,
+    6, 10,
+    7, ~(1 | 8),
+    0xfd,
+    
+    0, 0//skip
+  };
+    
+  class FixedContainer : public IO::DataContainer
+  {
+  public:
+    FixedContainer(const uint8_t* data, std::size_t size)
+      : Ptr(data), Len(size)
+    {
+    }
+    
+    virtual std::size_t Size() const
+    {
+      return Len;
+    }
+    virtual const void* Data() const
+    {
+      return Ptr;
+    }
+    Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
+    {
+      assert(offset + size < Len);
+      return DataContainer::Ptr(new FixedContainer(Ptr + offset, size));
+    }
+  private:
+    const uint8_t* const Ptr;
+    const std::size_t Len;
+  };
+  
   void ErrOuter(unsigned /*level*/, Error::LocationRef loc, Error::CodeType code, const String& text)
   {
-    const String txt = (Formatter("%1%\n\nCode: %2%\nAt: %3%\n--------\n") % text % code % Error::LocationToString(loc)).str();
-    std::cout << txt;
+    std::cout << Error::AttributesToString(loc, code, text);;
   }
   
   void ShowPluginInfo(const PluginInformation& info)
   {
-    std::cout << "Plugin:\n"
-      "Id: " << info.Id << "\n"
-      "Descr: " << info.Description << "\n"
-      "Vers: " << info.Version << "\n"
-      "Caps: 0x" << std::hex << info.Capabilities << "\n";
+    std::cout << 
+      " Plugin:\n"
+      "  Id: " << info.Id << "\n"
+      "  Descr: " << info.Description << "\n"
+      "  Vers: " << info.Version << "\n"
+      "  Caps: 0x" << std::hex << info.Capabilities << std::dec << "\n";
   }
 
   class OutVisitor : public boost::static_visitor<String>
@@ -46,27 +92,26 @@ namespace
 
   void OutProp(const ParametersMap::value_type& val)
   {
-    std::cout << val.first << ": " << boost::apply_visitor(OutVisitor(), val.second) << "\n";
+    std::cout << "  " << val.first << ": " << boost::apply_visitor(OutVisitor(), val.second) << "\n";
   }
   
   void ShowModuleInfo(const Module::Information& info)
   {
-    std::cout << "Module:\n"
-      "Stat.Position: " << info.Statistic.Position << "\n"
-      "Stat.Pattern: " << info.Statistic.Pattern << "\n"
-      "Stat.Line: " << info.Statistic.Line << "\n"
-      "Stat.Frame: " << info.Statistic.Frame << "\n"
-      "Stat.Tempo: " << info.Statistic.Tempo << "\n"
-      "Stat.Channels: " << info.Statistic.Channels << "\n"
-      "Loop: " << info.Loop << "\n"
-      "Channels: " << info.PhysicalChannels << "\n"
-      "Caps: 0x" << std::hex << info.Capabilities << "\n";
+    std::cout << " Module:\n"
+      "  Stat.Position: " << info.Statistic.Position << "\n"
+      "  Stat.Pattern: " << info.Statistic.Pattern << "\n"
+      "  Stat.Line: " << info.Statistic.Line << "\n"
+      "  Stat.Frame: " << info.Statistic.Frame << "\n"
+      "  Stat.Tempo: " << info.Statistic.Tempo << "\n"
+      "  Stat.Channels: " << info.Statistic.Channels << "\n"
+      "  Loop: " << info.Loop << "\n"
+      "  Channels: " << info.PhysicalChannels << "\n";
     std::for_each(info.Properties.begin(), info.Properties.end(), OutProp);
   }
   
-  bool PluginFilter(const PluginInformation&)
+  bool PluginFilter(const PluginInformation& info)
   {
-    return true;
+    return info.Id == "PSG";
   }
   
   void PluginLogger(const String& str)
@@ -74,15 +119,28 @@ namespace
     std::cout << str << std::endl;
   }
   
-  Error PluginCallback(Module::Player::Ptr player)
+  Error PluginCallback(Module::Player::Ptr player, unsigned& count)
   {
     PluginInformation plugInfo;
     player->GetPlayerInfo(plugInfo);
-    ShowPluginInfo(plugInfo);
+    std::cout << " Plugin: " << plugInfo.Id << std::endl;
     Module::Information modInfo;
     player->GetModuleInformation(modInfo);
     ShowModuleInfo(modInfo);
+    ++count;
     return Error();
+  }
+  
+  void Test(bool res, const String& txt, unsigned line)
+  {
+    if (res)
+    {
+      std::cout << "Passed test for " << txt << std::endl;
+    }
+    else
+    {
+      std::cout << "Failed test for " << txt << " at line " << line << std::endl;
+    }
   }
 }
 
@@ -90,16 +148,34 @@ int main()
 {
   try
   {
-    String subpath;
-    IO::OpenDataParameters openParams;
-    IO::DataContainer::Ptr data;
-    ThrowIfError(OpenData(PSG_TEST, openParams, data, subpath));
+    std::vector<PluginInformation> plugins;
+    GetSupportedPlugins(plugins);
+    std::cout << "Supported plugins:" << std::endl;
+    std::for_each(plugins.begin(), plugins.end(), ShowPluginInfo);
     
+    IO::DataContainer::Ptr data(new FixedContainer(PSG_DUMP + 8, ArraySize(PSG_DUMP) - 8));
+    unsigned count = 0;
     DetectParameters detectParams;
+    Test(DetectModules(data, detectParams, String()) == Module::ERROR_INVALID_PARAMETERS, "no callback", __LINE__);
+    
+    detectParams.Callback = boost::bind(PluginCallback, _1, boost::ref(count));
+    Test(DetectModules(IO::DataContainer::Ptr(), detectParams, String()) == Module::ERROR_INVALID_PARAMETERS, "no data", __LINE__);
+    
     detectParams.Logger = PluginLogger;
-    //detectParams.Filter = PluginFilter;
-    detectParams.Callback = PluginCallback;
-    ThrowIfError(DetectModules(*data, detectParams, subpath));
+    data.reset(new FixedContainer(PSG_DUMP + 8, ArraySize(PSG_DUMP) - 8));
+    ThrowIfError(DetectModules(data, detectParams, String()));
+    Test(count == 1, "simple opening", __LINE__);
+    detectParams.Filter = PluginFilter;
+    count = 0;
+    data.reset(new FixedContainer(PSG_DUMP + 8, ArraySize(PSG_DUMP) - 8));
+    ThrowIfError(DetectModules(data, detectParams, String()));
+    
+    Test(count == 0, "filtered opening", __LINE__);
+    detectParams.Filter = 0;
+    count = 0;
+    data.reset(new FixedContainer(PSG_DUMP, ArraySize(PSG_DUMP)));
+    ThrowIfError(DetectModules(data, detectParams, String()));
+    Test(count == 2, "raw scanning opening", __LINE__);
   }
   catch (const Error& e)
   {

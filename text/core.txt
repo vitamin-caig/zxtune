@@ -12,6 +12,9 @@ __cpp> "#endif //__TEXT_CORE_H_DEFINED__\n"
 < TEXT_MODULE_CONTAINERS_DELIMITER
 > ">"
 
+< TEXT_MODULE_ERROR_PARAMETERS
+> "Invalid input parameters specified."
+
 < TEXT_MODULE_ERROR_INVALID_FORMAT
 > "Invalid module format."
 

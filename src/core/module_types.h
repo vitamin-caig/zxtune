@@ -41,7 +41,7 @@ namespace ZXTune
     /// Common module information
     struct Information
     {
-      Information() : Loop(), PhysicalChannels(), Capabilities()
+      Information() : Loop(), PhysicalChannels()
       {
       }
       /// Tracking statistic (values are used in second meaning)
@@ -52,8 +52,6 @@ namespace ZXTune
       unsigned PhysicalChannels;
       /// Different parameters
       ParametersMap Properties;
-      /// Special capabilities
-      uint32_t Capabilities;
     };
     
     namespace Analyze

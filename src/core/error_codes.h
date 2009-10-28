@@ -20,7 +20,8 @@ namespace ZXTune
   {
     enum
     {
-      ERROR_INVALID_FORMAT = Error::ModuleCode<'M', 'O'>::Value,
+      ERROR_INVALID_PARAMETERS = Error::ModuleCode<'M', 'O'>::Value,
+      ERROR_INVALID_FORMAT,
       ERROR_MODULE_END,
       ERROR_MODULE_OVERSEEK,
       ERROR_MODULE_CONVERT,

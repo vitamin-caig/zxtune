@@ -45,30 +45,6 @@ namespace
   
   const Char ROOT_SUBPATH[] = {'/', 0};
 
-  class ContainerWrapper : public IO::DataContainer
-  {
-  public:
-    explicit ContainerWrapper(const IO::DataContainer& container)
-      : Container(container)
-    {
-    }
-    
-    virtual std::size_t Size() const
-    {
-      return Container.Size();
-    }
-    virtual const void* Data() const
-    {
-      return Container.Data();
-    }
-    virtual Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
-    {
-      return Container.GetSubcontainer(offset, size);
-    }
-  private:
-    const IO::DataContainer& Container;
-  };
-  
   template<class P>
   inline void DoLog(const DetectParameters::LogFunc& logger, const Char* format, const P& param)
   {
@@ -121,11 +97,12 @@ namespace
     }
 
     // Open subpath in despite of filter and other
-    virtual Error ResolveSubpath(const IO::DataContainer& data, const String& subpath, const DetectParameters::LogFunc& logger,
+    virtual Error ResolveSubpath(IO::DataContainer::Ptr data, const String& subpath, const DetectParameters::LogFunc& logger,
                               MetaContainer& result) const
     {
       try
       {
+        assert(data.get());
         // Navigate through known path
         StringArray containersTmp;
         String openedPath(ROOT_SUBPATH), pathToOpen(subpath);
@@ -136,7 +113,7 @@ namespace
           {
             IO::DataContainer::Ptr fromImplicit;
             String containerId;
-            while (CheckForImplicitContainer((subContainer.get() ? *subContainer : data), fromImplicit, containerId))
+            while (CheckForImplicitContainer((subContainer.get() ? *subContainer : *data), fromImplicit, containerId))
             {
               DoLog(logger, TEXT_MODULE_MESSAGE_OPEN_IMPLICIT, openedPath, containerId);
               subContainer = fromImplicit;
@@ -147,7 +124,7 @@ namespace
           IO::DataContainer::Ptr fromNestedContainer;
           String restPath;
           String containerId;
-          const IO::DataContainer& input(subContainer.get() ? *subContainer : data);
+          const IO::DataContainer& input(subContainer.get() ? *subContainer : *data);
           if (CheckForNestedContainer(input, pathToOpen, fromNestedContainer, restPath, containerId))
           {
             DoLog(logger, TEXT_MODULE_MESSAGE_OPEN_NESTED, openedPath, containerId);
@@ -161,7 +138,7 @@ namespace
             return MakeFormattedError(THIS_LINE, Module::ERROR_FIND_SUBMODULE, TEXT_MODULE_ERROR_FIND_SUBMODULE, pathToOpen);
           }
         }
-        result.Data = subContainer.get() ? subContainer : IO::DataContainer::Ptr(new ContainerWrapper(data));
+        result.Data = subContainer.get() ? subContainer : data;
         result.Path = subpath;
         result.PluginsChain.swap(containersTmp);
         return Error();
@@ -174,6 +151,7 @@ namespace
 
     virtual Error DetectModules(const DetectParameters& params, const MetaContainer& data, ModuleRegion& region) const
     {
+      assert(params.Callback);
       //try to detect nested container and pass control there
       {
         const Error& e = DetectNestedContainer(params, data, region);
@@ -370,8 +348,12 @@ namespace ZXTune
     PluginsEnumerator::Instance().EnumeratePlugins(plugins);
   }
 
-  Error DetectModules(const IO::DataContainer& data, const DetectParameters& params, const String& startSubpath)
+  Error DetectModules(IO::DataContainer::Ptr data, const DetectParameters& params, const String& startSubpath)
   {
+    if (!data.get() || !params.Callback)
+    {
+      return Error(THIS_LINE, Module::ERROR_INVALID_PARAMETERS, TEXT_MODULE_ERROR_PARAMETERS);
+    }
     const PluginsEnumerator& enumerator(PluginsEnumerator::Instance());
     MetaContainer subcontainer;
     if (const Error& e = enumerator.ResolveSubpath(data, startSubpath, params.Logger, subcontainer))

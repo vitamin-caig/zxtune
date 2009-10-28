@@ -13,6 +13,8 @@ Author:
 
 #include "module_types.h"
 
+#include <io/container.h>
+
 #include <error.h>
 
 #include <boost/function.hpp>
@@ -21,11 +23,6 @@ namespace ZXTune
 {
   //forward declarations
   struct PluginInformation;
-  
-  namespace IO
-  {
-    class DataContainer;
-  }
   
   namespace Sound
   {
@@ -93,7 +90,7 @@ namespace ZXTune
     LogFunc Logger;
   };
   
-  Error DetectModules(const IO::DataContainer& data, const DetectParameters& params, const String& startSubpath);
+  Error DetectModules(IO::DataContainer::Ptr data, const DetectParameters& params, const String& startSubpath);
 }
 
 #endif //__CORE_PLAYER_H_DEFINED__

@@ -28,6 +28,10 @@ extern const Char TEXT_MODULE_ERROR_OVERSEEK[] = {
   'S','e','e','k',' ','p','o','s','i','t','i','o','n',' ','i','s',' ','o','u','t',' ','o','f',' ','b','o','u',
   'n','d','s','.',0
 };
+extern const Char TEXT_MODULE_ERROR_PARAMETERS[] = {
+  'I','n','v','a','l','i','d',' ','i','n','p','u','t',' ','p','a','r','a','m','e','t','e','r','s',' ','s','p',
+  'e','c','i','f','i','e','d','.',0
+};
 extern const Char TEXT_MODULE_MESSAGE_DETECT_IMPLICIT[] = {
   'D','e','t','e','c','t','e','d',' ','i','m','p','l','i','c','i','t',' ','c','o','n','t','a','i','n','e','r',
   ' ','\'','%','2','%','\'',' ','a','t',' ','p','a','t','h',' ','\'','%','1','%','\'','.',0
