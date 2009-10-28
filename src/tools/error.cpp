@@ -112,6 +112,11 @@ bool Error::operator ! () const
   return ErrorMeta->Code == 0;
 }
 
+String Error::AttributesToString(LocationRef loc, CodeType code, const String& text)
+{
+  return (Formatter(TEXT_ERROR_DEFAULT_FORMAT) % text % code % LocationToString(loc)).str();
+}
+
 String Error::LocationToString(Error::LocationRef loc)
 {
 #ifdef NDEBUG

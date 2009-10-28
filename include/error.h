@@ -97,6 +97,8 @@ public:
   
   //serialize
   static String LocationToString(LocationRef loc);
+  static String AttributesToString(LocationRef loc, CodeType code, const String& text);
+  
 private:
   Error(MetaPtr ptr) : ErrorMeta(ptr)
   {
