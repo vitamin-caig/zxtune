@@ -47,15 +47,20 @@ namespace
     {
       return Ptr;
     }
-    Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
+    virtual Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
     {
-      assert(offset + size < Len);
+      assert(offset + size <= Len);
       return DataContainer::Ptr(new FixedContainer(Ptr + offset, size));
     }
   private:
     const uint8_t* const Ptr;
     const std::size_t Len;
   };
+  
+  inline IO::DataContainer::Ptr CreateContainer(std::size_t offset = 0)
+  {
+    return IO::DataContainer::Ptr(new FixedContainer(PSG_DUMP + offset, ArraySize(PSG_DUMP) - offset));
+  }
   
   void ErrOuter(unsigned /*level*/, Error::LocationRef loc, Error::CodeType code, const String& text)
   {
@@ -116,7 +121,7 @@ namespace
   
   void PluginLogger(const String& str)
   {
-    std::cout << str << std::endl;
+    std::cout << " >" << str << std::endl;
   }
   
   Error PluginCallback(Module::Player::Ptr player, unsigned& count)
@@ -142,6 +147,12 @@ namespace
       std::cout << "Failed test for " << txt << " at line " << line << std::endl;
     }
   }
+  
+  void TestError(const Error& err, Error::CodeType code, const String& txt, unsigned line)
+  {
+    Test(err == code, txt + ":", line);
+    err.WalkSuberrors(ErrOuter);
+  }
 }
 
 int main()
@@ -153,29 +164,37 @@ int main()
     std::cout << "Supported plugins:" << std::endl;
     std::for_each(plugins.begin(), plugins.end(), ShowPluginInfo);
     
-    IO::DataContainer::Ptr data(new FixedContainer(PSG_DUMP + 8, ArraySize(PSG_DUMP) - 8));
     unsigned count = 0;
     DetectParameters detectParams;
-    Test(DetectModules(data, detectParams, String()) == Module::ERROR_INVALID_PARAMETERS, "no callback", __LINE__);
+    TestError(DetectModules(CreateContainer(8), detectParams, String()), Module::ERROR_INVALID_PARAMETERS, "no callback", __LINE__);
     
     detectParams.Callback = boost::bind(PluginCallback, _1, boost::ref(count));
-    Test(DetectModules(IO::DataContainer::Ptr(), detectParams, String()) == Module::ERROR_INVALID_PARAMETERS, "no data", __LINE__);
+    TestError(DetectModules(IO::DataContainer::Ptr(), detectParams, String()), Module::ERROR_INVALID_PARAMETERS, "no data", __LINE__);
     
     detectParams.Logger = PluginLogger;
-    data.reset(new FixedContainer(PSG_DUMP + 8, ArraySize(PSG_DUMP) - 8));
-    ThrowIfError(DetectModules(data, detectParams, String()));
+    
+    TestError(DetectModules(CreateContainer(), detectParams, "invalid_path"), Module::ERROR_FIND_SUBMODULE, "invalid path", __LINE__);
+    
+    ThrowIfError(DetectModules(CreateContainer(40), detectParams, String()));
     Test(count == 1, "simple opening", __LINE__);
     detectParams.Filter = PluginFilter;
     count = 0;
-    data.reset(new FixedContainer(PSG_DUMP + 8, ArraySize(PSG_DUMP) - 8));
-    ThrowIfError(DetectModules(data, detectParams, String()));
+    ThrowIfError(DetectModules(CreateContainer(8), detectParams, String()));
     
     Test(count == 0, "filtered opening", __LINE__);
     detectParams.Filter = 0;
     count = 0;
-    data.reset(new FixedContainer(PSG_DUMP, ArraySize(PSG_DUMP)));
-    ThrowIfError(DetectModules(data, detectParams, String()));
+    ThrowIfError(DetectModules(CreateContainer(), detectParams, String()));
     Test(count == 2, "raw scanning opening", __LINE__);
+    count = 0;
+    ThrowIfError(DetectModules(CreateContainer(8), detectParams, String()));
+    Test(count == 2, "raw scanning starting from begin", __LINE__);
+    count = 0;
+    ThrowIfError(DetectModules(CreateContainer(), detectParams, "8.raw"));
+    Test(count == 1, "detect from startpoint", __LINE__);
+    count = 0;
+    ThrowIfError(DetectModules(CreateContainer(), detectParams, "1.raw"));
+    Test(count == 0, "detect from invalid offset", __LINE__);
   }
   catch (const Error& e)
   {

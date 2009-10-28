@@ -1,5 +1,5 @@
 library_name := core
 path_step := ../..
-source_dirs := plugins plugins/players devices/aym
+source_dirs := plugins plugins/nested plugins/players devices/aym
 
 include $(path_step)/makefile.mak

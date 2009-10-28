@@ -63,7 +63,7 @@ namespace
 
   BOOST_STATIC_ASSERT(sizeof(PSGHeader) == 16);
 
-  void DescribePlugin(PluginInformation& info)
+  void DescribePSGPlugin(PluginInformation& info)
   {
     info.Id = TEXT_PSG_ID;
     info.Description = TEXT_PSG_INFO;
@@ -147,7 +147,7 @@ namespace
 
     virtual void GetPlayerInfo(PluginInformation& info) const
     {
-      DescribePlugin(info);
+      DescribePSGPlugin(info);
     }
 
     virtual void GetModuleInformation(Information& info) const
@@ -242,7 +242,7 @@ namespace
     std::vector<AYM::DataChunk> Storage;
   };
   
-  bool CreatePlayer(const MetaContainer& container, Player::Ptr& player, ModuleRegion& region)
+  bool CreatePSGPlayer(const MetaContainer& container, Player::Ptr& player, ModuleRegion& region)
   {
     //perform fast check
     const IO::DataContainer& data(*container.Data);
@@ -273,7 +273,7 @@ namespace ZXTune
   void RegisterPSGPlayer(PluginsEnumerator& enumerator)
   {
     PluginInformation info;
-    DescribePlugin(info);
-    enumerator.RegisterPlayerPlugin(info, CreatePlayer);
+    DescribePSGPlugin(info);
+    enumerator.RegisterPlayerPlugin(info, CreatePSGPlayer);
   }
 }

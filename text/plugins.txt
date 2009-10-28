@@ -77,7 +77,7 @@ __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 < TEXT_RAW_INFO
 > "Raw modules scaner"
 
-< TEXT_RAW_CONTAINER
+< TEXT_RAW_ID
 > "Raw"
 
 #SCL

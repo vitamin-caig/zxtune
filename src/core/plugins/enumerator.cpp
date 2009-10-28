@@ -15,6 +15,7 @@ Author:
 #include "../module_attrs.h"
 
 #include "players/plugins_list.h"
+#include "nested/plugins_list.h"
 
 #include <io/container.h>
 #include <io/fs_tools.h>
@@ -68,6 +69,7 @@ namespace
   public:
     PluginsEnumeratorImpl()
     {
+      RegisterNestedPlugins(*this);
       RegisterPlayerPlugins(*this);
     }
 
@@ -172,7 +174,8 @@ namespace
           nested.Path = data.Path;
           nested.PluginsChain = data.PluginsChain;
           nested.PluginsChain.push_back(pluginId);
-          return DetectModules(params, nested, region/*invalid affecting*/);
+          ModuleRegion implRegion;
+          return DetectModules(params, nested, implRegion);
         }
         if (e != Module::ERROR_FIND_IMPLICIT_MODULE)
         {
@@ -187,7 +190,15 @@ namespace
       if (e)
       {
         //find ok if nothing found -> it's not error
-        return e == Module::ERROR_FIND_PLAYER_MODULE ? Error() : e;
+        if (e == Module::ERROR_FIND_PLAYER_MODULE)
+        {
+          region = ModuleRegion();
+          return Error();
+        }
+        else
+        {
+          return e;
+        }
       }
       DoLog(params.Logger, TEXT_MODULE_MESSAGE_DETECT_PLAYER, data.Path, pluginId);
       if (const Error& e = params.Callback(player))

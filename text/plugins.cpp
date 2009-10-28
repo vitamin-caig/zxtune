@@ -58,7 +58,7 @@ extern const Char TEXT_PT2_INFO[] = {
 extern const Char TEXT_PT3_INFO[] = {
   'P','T','3',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
 };
-extern const Char TEXT_RAW_CONTAINER[] = {
+extern const Char TEXT_RAW_ID[] = {
   'R','a','w',0
 };
 extern const Char TEXT_RAW_INFO[] = {
