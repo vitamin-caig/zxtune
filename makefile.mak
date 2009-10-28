@@ -59,6 +59,8 @@ object_files := $(addprefix $(objects_dir)/,$(object_files:.cpp=$(call makeobj_n
 
 #make objects and binaries dir
 dirs:
+	@echo Building $(if $(library_name),library $(library_name),\
+	  $(if $(binary_name),executable $(binary_name),dynamic object $(dynamic_name)))
 	mkdir -p $(objects_dir)
 	mkdir -p $(output_dir)
 
