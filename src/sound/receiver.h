@@ -35,24 +35,24 @@ namespace ZXTune
     };
     
     /// Sound consuming interface
-    class SoundReceiver
+    class Receiver
     {
     public:
-      typedef boost::shared_ptr<SoundReceiver> Ptr;
+      typedef boost::shared_ptr<Receiver> Ptr;
       
-      virtual ~SoundReceiver() {}
+      virtual ~Receiver() {}
       
       virtual void ApplySample(const MultiSample& data) = 0;
       virtual void Flush() = 0;
     };
     
     /// Sound converting interface
-    class SoundConverter : public SoundReceiver
+    class Converter : public Receiver
     {
     public:
-      typedef boost::shared_ptr<SoundConverter> Ptr;
+      typedef boost::shared_ptr<Converter> Ptr;
       
-      virtual void SetEndpoint(SoundReceiver::Ptr endpoint) = 0;
+      virtual void SetEndpoint(Receiver::Ptr endpoint) = 0;
     };
   }
 }

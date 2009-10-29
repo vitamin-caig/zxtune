@@ -75,7 +75,7 @@ namespace
     return e;
   }
 
-  class Target : public SoundReceiver
+  class Target : public Receiver
   {
   public:
     Target()
@@ -114,7 +114,7 @@ int main()
   try
   {
     Target* tgt = 0;
-    SoundReceiver::Ptr receiver(tgt = new Target);
+    Receiver::Ptr receiver(tgt = new Target);
   
     Mixer::Ptr mixer(Mixer::Create(receiver));
   

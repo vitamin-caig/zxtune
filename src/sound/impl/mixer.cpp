@@ -48,7 +48,7 @@ namespace
     typedef std::auto_ptr<MixerCore> Ptr;
     
     virtual ~MixerCore() {}
-    virtual void ApplySample(const std::vector<Sample>& /*input*/, SoundReceiver& /*rcv*/) const {}
+    virtual void ApplySample(const std::vector<Sample>& /*input*/, Receiver& /*rcv*/) const {}
   };
   
   template<unsigned InChannels>
@@ -76,7 +76,7 @@ namespace
       std::transform(matrix.begin(), matrix.end(), Matrix.begin(), MultiGain2MultiFixed<NativeType>);
     }
 
-    virtual void ApplySample(const std::vector<Sample>& inData, SoundReceiver& rcv) const
+    virtual void ApplySample(const std::vector<Sample>& inData, Receiver& rcv) const
     {
       if (inData.size() != InChannels)
       {
@@ -124,19 +124,19 @@ namespace
   class MixerImpl : public Mixer
   {
   public:
-    explicit MixerImpl(SoundReceiver::Ptr receiver)
-      : Receiver(receiver), Core(new MixerCore())
+    explicit MixerImpl(Receiver::Ptr endpoint)
+      : Endpoint(endpoint), Core(new MixerCore())
     {
     }
     
     virtual void ApplySample(const std::vector<Sample>& data)
     {
-      return Core->ApplySample(data, *Receiver);
+      return Core->ApplySample(data, *Endpoint);
     }
     
     virtual void Flush()
     {
-      return Receiver->Flush();
+      return Endpoint->Flush();
     }
     
     virtual void SetMatrix(const std::vector<MultiGain>& data)
@@ -150,7 +150,7 @@ namespace
       Core = CreateMixerCore(data);
     }
   private:
-    const SoundReceiver::Ptr Receiver;
+    const Receiver::Ptr Endpoint;
     MixerCore::Ptr Core;
   };
 }
@@ -159,9 +159,9 @@ namespace ZXTune
 {
   namespace Sound
   {
-    Mixer::Ptr Mixer::Create(SoundReceiver::Ptr receiver)
+    Mixer::Ptr Mixer::Create(Receiver::Ptr endpoint)
     {
-      return Mixer::Ptr(new MixerImpl(receiver));
+      return Mixer::Ptr(new MixerImpl(endpoint));
     }
   }
 }

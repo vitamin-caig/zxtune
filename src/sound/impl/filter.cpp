@@ -32,7 +32,7 @@ namespace
   using namespace ZXTune::Sound;
 
   template<class IntSample>
-  class FIRFilter : public SoundConverter, private boost::noncopyable
+  class FIRFilter : public Converter, private boost::noncopyable
   {
     typedef int64_t BigSample;
     typedef boost::array<BigSample, OUTPUT_CHANNELS> MultiBigSample;
@@ -69,7 +69,7 @@ namespace
       if (Delegate)
       {
         {
-	  std::transform(data.begin(), data.end(), Position->begin(), Normalize);
+          std::transform(data.begin(), data.end(), Position->begin(), Normalize);
           
           MultiBigSample res = { {0} };
 
@@ -97,13 +97,13 @@ namespace
       }
     }
 
-    virtual void SetEndpoint(SoundReceiver::Ptr delegate)
+    virtual void SetEndpoint(Receiver::Ptr delegate)
     {
       Delegate = delegate;
     }
   private:
     MatrixType Matrix;
-    SoundReceiver::Ptr Delegate;
+    Receiver::Ptr Delegate;
     std::vector<MultiIntSample> History;
     cycled_iterator<MultiIntSample*> Position;
     MultiSample Result;
@@ -155,9 +155,9 @@ namespace ZXTune
 {
   namespace Sound
   {
-    SoundConverter::Ptr CreateFIRFilter(const std::vector<signed>& coeffs)
+    Converter::Ptr CreateFIRFilter(const std::vector<signed>& coeffs)
     {
-      return SoundConverter::Ptr(new FIRFilter<signed>(coeffs));
+      return Converter::Ptr(new FIRFilter<signed>(coeffs));
     }
 
     void CalculateBandpassFilter(unsigned freq,

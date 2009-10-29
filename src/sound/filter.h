@@ -21,7 +21,7 @@ namespace ZXTune
     /*
       FIR filter with fixed-point calculations
     */
-    SoundConverter::Ptr CreateFIRFilter(const std::vector<signed>& coeffs);
+    Converter::Ptr CreateFIRFilter(const std::vector<signed>& coeffs);
 
     void CalculateBandpassFilter(unsigned freq, unsigned lowCutoff, unsigned highCutoff, std::vector<signed>& coeffs);
   }

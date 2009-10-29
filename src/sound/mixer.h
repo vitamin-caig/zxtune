@@ -25,7 +25,7 @@ namespace ZXTune
       
       virtual void SetMatrix(const std::vector<MultiGain>& data) = 0;
       
-      static Ptr Create(SoundReceiver::Ptr receiver);
+      static Ptr Create(Receiver::Ptr receiver);
     };
   }
 }

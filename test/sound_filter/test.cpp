@@ -39,7 +39,7 @@ namespace
     20000, 21000, 22000, 23000
   };
   
-  void Generate(unsigned freq, SoundReceiver& rcv, SoundReceiver& analyzer)
+  void Generate(unsigned freq, Receiver& rcv, Receiver& analyzer)
   {
     for (unsigned tick = 0; tick != FREQ * MSECS / 1000; ++tick)
     {
@@ -56,7 +56,7 @@ namespace
     return lvl * lvl;
   }
 
-  class Target : public SoundReceiver
+  class Target : public Receiver
   {
   public:
     Target()
@@ -112,8 +112,8 @@ namespace
     for (const unsigned* fr = FREQS; fr != ArrayEnd(FREQS); ++fr)
     {
       Target* tgt = 0;
-      SoundReceiver::Ptr receiver(tgt = new Target);
-      SoundConverter::Ptr filter(CreateFIRFilter(coeffs));
+      Receiver::Ptr receiver(tgt = new Target);
+      Converter::Ptr filter(CreateFIRFilter(coeffs));
       filter->SetEndpoint(receiver);
     
       Generate(*fr, *filter, *receiver);
@@ -124,8 +124,6 @@ namespace
 
 int main()
 {
-  using namespace ZXTune::Sound;
-  
   try
   {
     TestInvalid("order too low", 0, 0, 0);
