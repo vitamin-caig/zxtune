@@ -15,7 +15,7 @@ Author:
 #include "../module_attrs.h"
 
 #include "players/plugins_list.h"
-#include "nested/plugins_list.h"
+#include "containers/plugins_list.h"
 
 #include <io/container.h>
 #include <io/fs_tools.h>
@@ -36,10 +36,10 @@ namespace
   using namespace ZXTune;
 
   typedef std::pair<PluginInformation, CreatePlayerFunc> PlayerPluginDescriptor;
-  typedef std::pair<PluginInformation, ImplicitContainerFunc> ImplicitPluginDescription;
-  typedef boost::tuple<PluginInformation, OpenNestedFunc, ProcessNestedFunc> NestedPluginDescription;
+  typedef std::pair<PluginInformation, ProcessImplicitFunc> ImplicitPluginDescription;
+  typedef boost::tuple<PluginInformation, OpenContainerFunc, ProcessContainerFunc> ContainerPluginDescription;
 
-  inline const OpenNestedFunc& GetOpener(const NestedPluginDescription& npd)
+  inline const OpenContainerFunc& GetOpener(const ContainerPluginDescription& npd)
   {
     return npd.get<1>();
   }
@@ -69,7 +69,7 @@ namespace
   public:
     PluginsEnumeratorImpl()
     {
-      RegisterNestedPlugins(*this);
+      RegisterContainerPlugins(*this);
       RegisterPlayerPlugins(*this);
     }
 
@@ -79,17 +79,17 @@ namespace
       PlayerPlugins.push_back(PlayerPluginDescriptor(info, func));
     }
 
-    virtual void RegisterImplicitPlugin(const PluginInformation& info, const ImplicitContainerFunc& func)
+    virtual void RegisterImplicitPlugin(const PluginInformation& info, const ProcessImplicitFunc& func)
     {
       AllPlugins.push_back(info);
       ImplicitPlugins.push_back(ImplicitPluginDescription(info, func));
     }
     
-    virtual void RegisterNestedPlugin(const PluginInformation& info, 
-      const OpenNestedFunc& opener, const ProcessNestedFunc& processor)
+    virtual void RegisterContainerPlugin(const PluginInformation& info, 
+      const OpenContainerFunc& opener, const ProcessContainerFunc& processor)
     {
       AllPlugins.push_back(info);
-      NestedPlugins.push_back(boost::make_tuple(info, opener, processor));
+      ContainerPlugins.push_back(boost::make_tuple(info, opener, processor));
     }
 
     //public interface
@@ -115,7 +115,7 @@ namespace
           {
             IO::DataContainer::Ptr fromImplicit;
             String containerId;
-            while (CheckForImplicitContainer((subContainer.get() ? *subContainer : *data), fromImplicit, containerId))
+            while (CheckForImplicit((subContainer.get() ? *subContainer : *data), fromImplicit, containerId))
             {
               DoLog(logger, TEXT_MODULE_MESSAGE_OPEN_IMPLICIT, openedPath, containerId);
               subContainer = fromImplicit;
@@ -123,14 +123,14 @@ namespace
             }
           }
           //check for other subcontainers
-          IO::DataContainer::Ptr fromNestedContainer;
+          IO::DataContainer::Ptr fromContainer;
           String restPath;
           String containerId;
           const IO::DataContainer& input(subContainer.get() ? *subContainer : *data);
-          if (CheckForNestedContainer(input, pathToOpen, fromNestedContainer, restPath, containerId))
+          if (CheckForContainer(input, pathToOpen, fromContainer, restPath, containerId))
           {
             DoLog(logger, TEXT_MODULE_MESSAGE_OPEN_NESTED, openedPath, containerId);
-            subContainer = fromNestedContainer;
+            subContainer = fromContainer;
             pathToOpen = restPath;
             openedPath = subpath.substr(0, subpath.find(restPath));
             containersTmp.push_back(containerId);
@@ -154,10 +154,10 @@ namespace
     virtual Error DetectModules(const DetectParameters& params, const MetaContainer& data, ModuleRegion& region) const
     {
       assert(params.Callback);
-      //try to detect nested container and pass control there
+      //try to detect container and pass control there
       {
-        const Error& e = DetectNestedContainer(params, data, region);
-        if (e != Module::ERROR_FIND_NESTED_MODULE)
+        const Error& e = DetectContainer(params, data, region);
+        if (e != Module::ERROR_FIND_CONTAINER_PLUGIN)
         {
           return e;
         }
@@ -167,7 +167,7 @@ namespace
       {
         MetaContainer nested;
         String pluginId;
-        const Error& e = DetectImplicitContainer(params.Filter, *data.Data, nested.Data, region, pluginId);
+        const Error& e = DetectImplicit(params.Filter, *data.Data, nested.Data, region, pluginId);
         if (!e)
         {
           DoLog(params.Logger, TEXT_MODULE_MESSAGE_DETECT_IMPLICIT, data.Path, pluginId);
@@ -177,7 +177,7 @@ namespace
           ModuleRegion implRegion;
           return DetectModules(params, nested, implRegion);
         }
-        if (e != Module::ERROR_FIND_IMPLICIT_MODULE)
+        if (e != Module::ERROR_FIND_IMPLICIT_PLUGIN)
         {
           return e;
         }
@@ -190,7 +190,7 @@ namespace
       if (e)
       {
         //find ok if nothing found -> it's not error
-        if (e == Module::ERROR_FIND_PLAYER_MODULE)
+        if (e == Module::ERROR_FIND_PLAYER_PLUGIN)
         {
           region = ModuleRegion();
           return Error();
@@ -209,12 +209,12 @@ namespace
       return Error();
     }
     
-    virtual Error DetectNestedContainer(const DetectParameters& params, const MetaContainer& input,
+    virtual Error DetectContainer(const DetectParameters& params, const MetaContainer& input,
       ModuleRegion& region) const
     {
       try
       {
-        for (std::vector<NestedPluginDescription>::const_iterator it = NestedPlugins.begin(), lim = NestedPlugins.end();
+        for (std::vector<ContainerPluginDescription>::const_iterator it = ContainerPlugins.begin(), lim = ContainerPlugins.end();
           it != lim; ++it)
         {
           if (params.Filter && params.Filter(it->get<0>()))
@@ -228,7 +228,7 @@ namespace
             return e;
           }
         }
-        return Error(THIS_LINE, Module::ERROR_FIND_NESTED_MODULE);//no detailed info (not need)
+        return Error(THIS_LINE, Module::ERROR_FIND_CONTAINER_PLUGIN);//no detailed info (not need)
       }
       catch (const Error& e)
       {
@@ -236,7 +236,7 @@ namespace
       }
     }
     
-    virtual Error DetectImplicitContainer(const DetectParameters::FilterFunc& filter, const IO::DataContainer& input,
+    virtual Error DetectImplicit(const DetectParameters::FilterFunc& filter, const IO::DataContainer& input,
       IO::DataContainer::Ptr& output, ModuleRegion& region, String& pluginId) const
     {
       try
@@ -255,7 +255,7 @@ namespace
             return Error();
           }
         }
-        return Error(THIS_LINE, Module::ERROR_FIND_IMPLICIT_MODULE);//no detailed info (not need)
+        return Error(THIS_LINE, Module::ERROR_FIND_IMPLICIT_PLUGIN);//no detailed info (not need)
       }
       catch (const Error& e)
       {
@@ -282,7 +282,7 @@ namespace
             return Error();
           }
         }
-        return Error(THIS_LINE, Module::ERROR_FIND_PLAYER_MODULE);//no detailed info (not need)
+        return Error(THIS_LINE, Module::ERROR_FIND_PLAYER_PLUGIN);//no detailed info (not need)
       }
       catch (const Error& e)
       {
@@ -290,7 +290,7 @@ namespace
       }
     }
   private:
-    bool CheckForImplicitContainer(const IO::DataContainer& input, IO::DataContainer::Ptr& output, String& containerId) const
+    bool CheckForImplicit(const IO::DataContainer& input, IO::DataContainer::Ptr& output, String& containerId) const
     {
       using namespace boost;
       ModuleRegion region;
@@ -304,14 +304,14 @@ namespace
       return false;
     }
 
-    bool CheckForNestedContainer(const IO::DataContainer& input, const String& pathToOpen,
+    bool CheckForContainer(const IO::DataContainer& input, const String& pathToOpen,
                                  IO::DataContainer::Ptr& output, String& restPath, String& containerId) const
     {
       using namespace boost;
-      const std::vector<NestedPluginDescription>::const_iterator it = std::find_if(NestedPlugins.begin(), NestedPlugins.end(),
+      const std::vector<ContainerPluginDescription>::const_iterator it = std::find_if(ContainerPlugins.begin(), ContainerPlugins.end(),
         bind(apply<bool>(), bind(GetOpener, _1), cref(input), cref(pathToOpen), 
           ref(output), ref(restPath)));
-      if (it != NestedPlugins.end())
+      if (it != ContainerPlugins.end())
       {
         containerId = it->get<0>().Id;
         return true;
@@ -320,7 +320,7 @@ namespace
     }
   private:
     std::vector<PluginInformation> AllPlugins;
-    std::vector<NestedPluginDescription> NestedPlugins;
+    std::vector<ContainerPluginDescription> ContainerPlugins;
     std::vector<ImplicitPluginDescription> ImplicitPlugins;
     std::vector<PlayerPluginDescriptor> PlayerPlugins;
   };

@@ -73,7 +73,7 @@ namespace
     //do not search right after previous raw plugin
     if (!data.PluginsChain.empty() && *data.PluginsChain.rbegin() == RAW_PLUGIN_ID)
     {
-      return Error(THIS_LINE, Module::ERROR_FIND_NESTED_MODULE);
+      return Error(THIS_LINE, Module::ERROR_FIND_CONTAINER_PLUGIN);
     }
     const PluginsEnumerator& enumerator(PluginsEnumerator::Instance());
     DetectParameters filteredParams;
@@ -111,7 +111,7 @@ namespace
     }
     else
     {
-      return Error(THIS_LINE, Module::ERROR_FIND_NESTED_MODULE);
+      return Error(THIS_LINE, Module::ERROR_FIND_CONTAINER_PLUGIN);
     }
   }
   
@@ -136,6 +136,6 @@ namespace ZXTune
   {
     PluginInformation info;
     DescribeRawPlugin(info);
-    enumerator.RegisterNestedPlugin(info, OpenRawContainer, ProcessRawContainer);
+    enumerator.RegisterContainerPlugin(info, OpenRawContainer, ProcessRawContainer);
   }
 }

@@ -1,6 +1,6 @@
 /*
 Abstract:
-  Nested containers plugins list
+  Containers plugins list
 
 Last changed:
   $Id$
@@ -9,8 +9,8 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-#ifndef __CORE_PLUGINS_NESTED_LIST_H_DEFINED__
-#define __CORE_PLUGINS_NESTED_LIST_H_DEFINED__
+#ifndef __CORE_PLUGINS_CONTAINERS_LIST_H_DEFINED__
+#define __CORE_PLUGINS_CONTAINERS_LIST_H_DEFINED__
 
 namespace ZXTune
 {
@@ -19,10 +19,10 @@ namespace ZXTune
   
   void RegisterRawContainer(PluginsEnumerator& enumerator);
   
-  void RegisterNestedPlugins(PluginsEnumerator& enumerator)
+  void RegisterContainerPlugins(PluginsEnumerator& enumerator)
   {
     RegisterRawContainer(enumerator);
   }
 }
 
-#endif //__CORE_PLUGINS_NESTED_LIST_H_DEFINED__
+#endif //__CORE_PLUGINS_CONTAINERS_LIST_H_DEFINED__

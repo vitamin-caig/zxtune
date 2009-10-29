@@ -42,13 +42,13 @@ namespace ZXTune
   typedef boost::function<bool(const MetaContainer&, Module::Player::Ptr&, ModuleRegion&)> CreatePlayerFunc;
   //in: data
   //output: data, region
-  typedef boost::function<bool(const IO::DataContainer&, IO::DataContainer::Ptr&, ModuleRegion&)> ImplicitContainerFunc;
+  typedef boost::function<bool(const IO::DataContainer&, IO::DataContainer::Ptr&, ModuleRegion&)> ProcessImplicitFunc;
   //in: metacontainer, parameters+callback
   //out: region
-  typedef boost::function<Error(const MetaContainer&, const DetectParameters&, ModuleRegion&)> ProcessNestedFunc;
+  typedef boost::function<Error(const MetaContainer&, const DetectParameters&, ModuleRegion&)> ProcessContainerFunc;
   //in: container, path
   //out: container, rest path
-  typedef boost::function<bool(const IO::DataContainer&, const String&, IO::DataContainer::Ptr&, String&)> OpenNestedFunc;
+  typedef boost::function<bool(const IO::DataContainer&, const String&, IO::DataContainer::Ptr&, String&)> OpenContainerFunc;
 
   class PluginsEnumerator
   {
@@ -58,10 +58,10 @@ namespace ZXTune
     //endpoint modules support
     virtual void RegisterPlayerPlugin(const PluginInformation& info, const CreatePlayerFunc& func) = 0;
     //implicit containers support
-    virtual void RegisterImplicitPlugin(const PluginInformation& info, const ImplicitContainerFunc& func) = 0;
+    virtual void RegisterImplicitPlugin(const PluginInformation& info, const ProcessImplicitFunc& func) = 0;
     //nested containers support
-    virtual void RegisterNestedPlugin(const PluginInformation& info, 
-      const OpenNestedFunc& opener, const ProcessNestedFunc& processor) = 0;
+    virtual void RegisterContainerPlugin(const PluginInformation& info, 
+      const OpenContainerFunc& opener, const ProcessContainerFunc& processor) = 0;
     
     //public interface
     virtual void EnumeratePlugins(std::vector<PluginInformation>& plugins) const = 0;
@@ -74,10 +74,10 @@ namespace ZXTune
     virtual Error DetectModules(const DetectParameters& params, const MetaContainer& data, 
       ModuleRegion& region) const = 0;
     //nested containers detection
-    virtual Error DetectNestedContainer(const DetectParameters& params, const MetaContainer& input,
+    virtual Error DetectContainer(const DetectParameters& params, const MetaContainer& input,
       ModuleRegion& region) const = 0;
     //implicit containers detection
-    virtual Error DetectImplicitContainer(const DetectParameters::FilterFunc& filter, const IO::DataContainer& input,
+    virtual Error DetectImplicit(const DetectParameters::FilterFunc& filter, const IO::DataContainer& input,
       IO::DataContainer::Ptr& output, ModuleRegion& region, String& pluginId) const = 0;
     //players detection
     virtual Error DetectPlayer(const DetectParameters::FilterFunc& filter, const MetaContainer& data,
