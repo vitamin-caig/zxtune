@@ -37,6 +37,8 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Module;
 
+  const Char PSG_PLUGIN_ID[] = {'P', 'S', 'G', 0};
+  
   const String TEXT_PSG_VERSION(FromChar("Revision: $Rev$"));
 
   const uint8_t PSG_SIGNATURE[] = {'P', 'S', 'G'};
@@ -65,7 +67,7 @@ namespace
 
   void DescribePSGPlugin(PluginInformation& info)
   {
-    info.Id = TEXT_PSG_ID;
+    info.Id = PSG_PLUGIN_ID;
     info.Description = TEXT_PSG_INFO;
     info.Version = TEXT_PSG_VERSION;
     info.Capabilities = CAP_DEV_AYM | CAP_CONV_RAW;

@@ -31,6 +31,8 @@ namespace
 {
   using namespace ZXTune;
 
+  const Char RAW_PLUGIN_ID[] = {'R', 'a', 'w', 0};
+  
   const String TEXT_RAW_VERSION(FromChar("Revision: $Rev$"));
   
   const std::size_t MINIMAL_RAW_SIZE = 16;
@@ -39,7 +41,7 @@ namespace
   
   bool ChainedFilter(const PluginInformation& info, const DetectParameters::FilterFunc& nextFilter)
   {
-    return info.Id == TEXT_RAW_ID || (nextFilter && nextFilter(info));
+    return info.Id == RAW_PLUGIN_ID || (nextFilter && nextFilter(info));
   }
   
   //\d+\.raw
@@ -60,7 +62,7 @@ namespace
   
   void DescribeRawPlugin(PluginInformation& info)
   {
-    info.Id = TEXT_RAW_ID;
+    info.Id = RAW_PLUGIN_ID;
     info.Description = TEXT_RAW_INFO;
     info.Version = TEXT_RAW_VERSION;
     info.Capabilities = CAP_STOR_SCANER;
@@ -69,7 +71,7 @@ namespace
   Error ProcessRawContainer(const MetaContainer& data, const DetectParameters& params, ModuleRegion& region)
   {
     //do not search right after previous raw plugin
-    if (!data.PluginsChain.empty() && *data.PluginsChain.rbegin() == TEXT_RAW_ID)
+    if (!data.PluginsChain.empty() && *data.PluginsChain.rbegin() == RAW_PLUGIN_ID)
     {
       return Error(THIS_LINE, Module::ERROR_FIND_NESTED_MODULE);
     }
@@ -94,7 +96,7 @@ namespace
       subcontainer.Data = data.Data->GetSubcontainer(offset, limit - offset);
       subcontainer.Path = IO::AppendPath(data.Path, CreateRawPart(offset));
       subcontainer.PluginsChain = data.PluginsChain;
-      subcontainer.PluginsChain.push_back(TEXT_RAW_ID);
+      subcontainer.PluginsChain.push_back(RAW_PLUGIN_ID);
       if (const Error& err = enumerator.DetectModules(filteredParams, subcontainer, curRegion))
       {
         return err;
