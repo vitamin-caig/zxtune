@@ -58,6 +58,7 @@ namespace
     static const unsigned MIN_ORDER = 2;
     static const unsigned MAX_ORDER = 1u <<
       8 * (sizeof(BigSample) - sizeof(IntSample) - sizeof(Sample));
+      
     explicit FIRFilter(const std::vector<IntSample>& coeffs)
       : Matrix(coeffs.begin(), coeffs.end()), Delegate()
       , History(coeffs.size()), Position(&History[0], &History.back() + 1)
@@ -68,22 +69,20 @@ namespace
     {
       if (Delegate)
       {
-        {
-          std::transform(data.begin(), data.end(), Position->begin(), Normalize);
-          
-          MultiBigSample res = { {0} };
+        std::transform(data.begin(), data.end(), Position->begin(), Normalize);
+        
+        MultiBigSample res = { {0} };
 
-          for (typename MatrixType::const_iterator it = Matrix.begin(), lim = Matrix.end(); it != lim; ++it, --Position)
+        for (typename MatrixType::const_iterator it = Matrix.begin(), lim = Matrix.end(); it != lim; ++it, --Position)
+        {
+          const typename MatrixType::value_type val(*it);
+          const MultiIntSample& src(*Position);
+          for (unsigned chan = 0; chan != OUTPUT_CHANNELS; ++chan)
           {
-            const typename MatrixType::value_type val(*it);
-            const MultiIntSample& src(*Position);
-            for (unsigned chan = 0; chan != OUTPUT_CHANNELS; ++chan)
-            {
-              res[chan] += val * src[chan];
-            }
+            res[chan] += val * src[chan];
           }
-          std::transform(res.begin(), res.end(), Result.begin(), Integral2Sample);
         }
+        std::transform(res.begin(), res.end(), Result.begin(), Integral2Sample);
         ++Position;
         return Delegate->ApplySample(Result);
       }
@@ -157,6 +156,8 @@ namespace ZXTune
   {
     Converter::Ptr CreateFIRFilter(const std::vector<signed>& coeffs)
     {
+      CheckParams<unsigned>(coeffs.size(), FIRFilter<signed>::MIN_ORDER, FIRFilter<signed>::MAX_ORDER, 
+        THIS_LINE, TEXT_SOUND_ERROR_FILTER_ORDER);
       return Converter::Ptr(new FIRFilter<signed>(coeffs));
     }
 

@@ -75,17 +75,17 @@ namespace
       explicit FileHolder(const String& path)
       {
         std::ifstream file(path.c_str(), std::ios::binary);
-	if (!file)
-	{
-	  throw Error(THIS_LINE, NO_ACCESS, TEXT_IO_ERROR_NO_ACCESS);
-	}
-	file.seekg(0, std::ios::end);
-	Buffer.resize(file.tellg());
-	file.seekg(0);
-	if (!Buffer.size() || !file)
-	{
-	  throw Error(THIS_LINE, IO_ERROR, TEXT_IO_ERROR_IO_ERROR);
-	}
+        if (!file)
+        {
+          throw Error(THIS_LINE, NO_ACCESS, TEXT_IO_ERROR_NO_ACCESS);
+        }
+        file.seekg(0, std::ios::end);
+        Buffer.resize(file.tellg());
+        file.seekg(0);
+        if (!Buffer.size() || !file)
+        {
+          throw Error(THIS_LINE, IO_ERROR, TEXT_IO_ERROR_IO_ERROR);
+        }
         file.read(safe_ptr_cast<char*>(&Buffer[0]), std::streamsize(Buffer.size()));
       }
       
@@ -105,9 +105,9 @@ namespace
     FileDataContainer(const String& path, const OpenDataParameters& params)
       : CoreHolder((params.Flags & USE_MMAP) ? 
           static_cast<Holder*>(new MMapHolder(path))
-	  :
-	  static_cast<Holder*>(new FileHolder(path)))
-      , Offset(0), Length(CoreHolder->Size())
+          :
+          static_cast<Holder*>(new FileHolder(path)))
+          , Offset(0), Length(CoreHolder->Size())
     {
     }
     

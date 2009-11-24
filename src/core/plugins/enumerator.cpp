@@ -51,6 +51,7 @@ namespace
   {
     if (logger)
     {
+      assert(format);
       logger((Formatter(format) % param).str());
     }
   }
@@ -60,6 +61,7 @@ namespace
   {
     if (logger)
     {
+      assert(format);
       logger((Formatter(format) % param1 % param2).str());
     }
   }

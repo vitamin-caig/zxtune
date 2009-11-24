@@ -80,6 +80,7 @@ namespace
     {
       if (inData.size() != InChannels)
       {
+        assert(!"Mixer::ApplySample channels mismatch");
         throw MakeFormattedError(THIS_LINE, MIXER_CHANNELS_MISMATCH, 
           TEXT_SOUND_ERROR_MIXER_CHANNELS_MISMATCH, inData.size(), InChannels);
       }
@@ -117,6 +118,7 @@ namespace
     case 4:
       return MixerCore::Ptr(new FastMixerCore<4>(data));
     default:
+      assert(!"Mixer: invalid channels count specified");
       throw MakeFormattedError(THIS_LINE, MIXER_UNSUPPORTED, TEXT_SOUND_ERROR_MIXER_UNSUPPORTED, size);
     }
   }

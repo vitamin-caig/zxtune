@@ -25,14 +25,6 @@ namespace ZXTune
 
       virtual ~Backend() {}
 
-      enum State
-      {
-        NOTOPENED,
-        STOPPED,
-        PAUSED,
-        STARTED
-      };
-
       // informational part
       struct Info
       {
@@ -53,6 +45,13 @@ namespace ZXTune
       virtual Error SetPosition(unsigned frame) = 0;
       
       // state getting function
+      enum State
+      {
+        NOTOPENED,
+        STOPPED,
+        PAUSED,
+        STARTED
+      };
       virtual State GetCurrentState() const = 0;
 
       // adding/changing mixer
@@ -60,18 +59,22 @@ namespace ZXTune
       // adding filter
       virtual Error SetFilter(Converter::Ptr converter) = 0;
 
-      // setting driver parameters
+      // driver parameters
       virtual Error SetDriverParameters(const ParametersMap& params) = 0;
-      // setting rendering parameters
+      virtual Error GetDriverParameters(ParametersMap& params) const = 0;
+      // rendering parameters
       virtual Error SetRenderParameters(const RenderParameters& params) = 0;
+      virtual Error GetRenderParameters(RenderParameters& params) const = 0;
       
       // hardware volume control
       virtual Error GetVolume(MultiGain& volume) const = 0;
       virtual Error SetVolume(const MultiGain& volume) = 0;
+      
+      //virtual ctor
+      Backend::Ptr Create(const String& id);
     };
 
     //common interface
-    Error CreateBackend(const String& id, Backend::Ptr& result);
     void EnumerateBackends(std::vector<Backend::Info>& backends);
   }
 }

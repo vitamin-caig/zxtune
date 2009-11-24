@@ -28,11 +28,6 @@ namespace
 {
   using namespace ZXTune::IO;
   
-  inline bool CompareInfos(const ProviderInfo& lh, const ProviderInfo& rh)
-  {
-    return lh.Name == rh.Name;
-  }
-  
   class ProvidersEnumeratorImpl : public ProvidersEnumerator
   {
     struct ProviderEntry
@@ -43,7 +38,7 @@ namespace
       
       ProviderEntry(const ProviderInfo& info, 
         ProviderCheckFunc checker, ProviderOpenFunc opener, ProviderSplitFunc splitter, ProviderCombineFunc combiner)
-	: Info(info), Checker(checker), Opener(opener), Splitter(splitter), Combiner(combiner)
+        : Info(info), Checker(checker), Opener(opener), Splitter(splitter), Combiner(combiner)
       {
       }
       ProviderInfo Info;
@@ -60,10 +55,10 @@ namespace
     }
     
     virtual void RegisterProvider(const ProviderInfo& info,
-	ProviderCheckFunc detector, ProviderOpenFunc opener, ProviderSplitFunc splitter, ProviderCombineFunc combiner)
+      ProviderCheckFunc detector, ProviderOpenFunc opener, ProviderSplitFunc splitter, ProviderCombineFunc combiner)
     {
       assert(Providers.end() == std::find_if(Providers.begin(), Providers.end(), 
-        boost::bind(CompareInfos, info, boost::bind<ProviderInfo>(&ProviderEntry::Info, _1))));
+        boost::bind(&ProviderInfo::Name, boost::bind<ProviderInfo>(&ProviderEntry::Info, _1)) == info.Name));
       Providers.push_back(ProviderEntry(info, detector, opener, splitter, combiner));
     }
       
@@ -106,7 +101,8 @@ namespace
   private:
     ProvidersList::const_iterator FindProvider(const String& uri) const
     {
-      return std::find_if(Providers.begin(), Providers.end(), boost::bind(boost::apply<bool>(), boost::bind(&ProviderEntry::Checker, _1), uri));
+      return std::find_if(Providers.begin(), Providers.end(), 
+        boost::bind(boost::apply<bool>(), boost::bind(&ProviderEntry::Checker, _1), uri));
     }
   private:
     ProvidersList Providers;
