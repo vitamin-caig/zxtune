@@ -9,8 +9,8 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-#ifndef __IO_PROVIDERS_H_DEFINED__
-#define __IO_PROVIDERS_H_DEFINED__
+#ifndef __IO_PROVIDERS_LIST_H_DEFINED__
+#define __IO_PROVIDERS_LIST_H_DEFINED__
 
 namespace ZXTune
 {
@@ -28,4 +28,4 @@ namespace ZXTune
   }
 }
 
-#endif //__IO_PROVIDERS_H_DEFINED__
+#endif //__IO_PROVIDERS_LIST_H_DEFINED__

@@ -12,7 +12,7 @@ Author:
 #include "../error_codes.h"
 
 #include "enumerator.h"
-#include "providers.h"
+#include "providers_list.h"
 
 #include <error.h>
 
@@ -55,8 +55,10 @@ namespace
     }
     
     virtual void RegisterProvider(const ProviderInfo& info,
-      ProviderCheckFunc detector, ProviderOpenFunc opener, ProviderSplitFunc splitter, ProviderCombineFunc combiner)
+      const ProviderCheckFunc& detector, const ProviderOpenFunc& opener,
+      const ProviderSplitFunc& splitter, const ProviderCombineFunc& combiner)
     {
+      assert(detector && opener && splitter && combiner);
       assert(Providers.end() == std::find_if(Providers.begin(), Providers.end(), 
         boost::bind(&ProviderInfo::Name, boost::bind<ProviderInfo>(&ProviderEntry::Info, _1)) == info.Name));
       Providers.push_back(ProviderEntry(info, detector, opener, splitter, combiner));

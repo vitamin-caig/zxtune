@@ -14,14 +14,16 @@ Author:
 
 #include "../provider.h"
 
+#include <boost/function.hpp>
+
 namespace ZXTune
 {
   namespace IO
   {
-    typedef bool (*ProviderCheckFunc)(const String&);
-    typedef Error (*ProviderOpenFunc)(const String&, const OpenDataParameters&, DataContainer::Ptr&, String&);
-    typedef Error (*ProviderSplitFunc)(const String&, String&, String&);
-    typedef Error (*ProviderCombineFunc)(const String&, const String&, String&);
+    typedef boost::function<bool(const String&)> ProviderCheckFunc;
+    typedef boost::function<Error(const String&, const OpenDataParameters&, DataContainer::Ptr&, String&)> ProviderOpenFunc;
+    typedef boost::function<Error(const String&, String&, String&)> ProviderSplitFunc;
+    typedef boost::function<Error(const String&, const String&, String&)> ProviderCombineFunc;
   
     class ProvidersEnumerator
     {
@@ -29,7 +31,8 @@ namespace ZXTune
       virtual ~ProvidersEnumerator() {}
       //registration
       virtual void RegisterProvider(const ProviderInfo& info,
-	ProviderCheckFunc detector, ProviderOpenFunc opener, ProviderSplitFunc splitter, ProviderCombineFunc combiner) = 0;
+	const ProviderCheckFunc& detector, const ProviderOpenFunc& opener,
+	const ProviderSplitFunc& splitter, const ProviderCombineFunc& combiner) = 0;
       
       virtual Error OpenUri(const String& uri, const OpenDataParameters& params, DataContainer::Ptr& result, String& subpath) const = 0;
       virtual Error SplitUri(const String& uri, String& baseUri, String& subpath) const = 0;
