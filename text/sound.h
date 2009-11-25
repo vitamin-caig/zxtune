@@ -3,6 +3,8 @@
 #define __TEXT_SOUND_H_DEFINED__
 #include <char_type.h>
 
+extern const Char TEXT_SOUND_ERROR_BACKEND_FAILED[];
+extern const Char TEXT_SOUND_ERROR_BACKEND_NOT_FOUND[];
 extern const Char TEXT_SOUND_ERROR_FILTER_HIGH_CUTOFF[];
 extern const Char TEXT_SOUND_ERROR_FILTER_LOW_CUTOFF[];
 extern const Char TEXT_SOUND_ERROR_FILTER_ORDER[];

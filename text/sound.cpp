@@ -3,6 +3,14 @@
 #define __TEXT_SOUND_H_DEFINED__
 #include <char_type.h>
 
+extern const Char TEXT_SOUND_ERROR_BACKEND_FAILED[] = {
+  'F','a','i','l','e','d',' ','t','o',' ','c','r','e','a','t','e',' ','b','a','c','k','e','n','d',' ','\'','%',
+  '1','%','\'','.',0
+};
+extern const Char TEXT_SOUND_ERROR_BACKEND_NOT_FOUND[] = {
+  'R','e','q','u','e','s','t','e','d',' ','b','a','c','k','e','n','d',' ','\'','%','1','%','\'',' ','i','s',' ',
+  'n','o','t',' ','s','u','p','p','o','r','t','e','d','.',0
+};
 extern const Char TEXT_SOUND_ERROR_FILTER_HIGH_CUTOFF[] = {
   'S','p','e','c','i','f','i','e','d',' ','f','i','l','t','e','r',' ','h','i','g','h',' ','c','u','t','o','f',
   'f',' ','f','r','e','q','u','e','n','c','y',' ','(','%','1','%','H','z',')',' ','i','s',' ','o','u','t',' ',

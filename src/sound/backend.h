@@ -12,7 +12,17 @@ Author:
 #ifndef __SOUND_BACKEND_H_DEFINED__
 #define __SOUND_BACKEND_H_DEFINED__
 
-#include "player.h"
+#include "receiver.h"
+#include "sound_types.h"
+
+#include <core/player.h>
+
+#include <error.h>
+#include <types.h>
+
+#include <memory>
+
+#include <boost/weak_ptr.hpp>
 
 namespace ZXTune
 {
@@ -69,13 +79,11 @@ namespace ZXTune
       // hardware volume control
       virtual Error GetVolume(MultiGain& volume) const = 0;
       virtual Error SetVolume(const MultiGain& volume) = 0;
-      
-      //virtual ctor
-      Backend::Ptr Create(const String& id);
-    };
+          };
 
     //common interface
     void EnumerateBackends(std::vector<Backend::Info>& backends);
+    Error CreateBackend(const String& id, Backend::Ptr& result);
   }
 }
 

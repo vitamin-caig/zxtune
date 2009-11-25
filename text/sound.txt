@@ -30,3 +30,10 @@ __cpp> "#endif //__TEXT_SOUND_H_DEFINED__\n"
 
 < TEXT_SOUND_ERROR_FILTER_LOW_CUTOFF
 > "Specified filter low cutoff frequency (%1%Hz) is out of range (%2%...%3%Hz)."
+
+#backend errors
+< TEXT_SOUND_ERROR_BACKEND_NOT_FOUND
+> "Requested backend '%1%' is not supported."
+
+< TEXT_SOUND_ERROR_BACKEND_FAILED
+> "Failed to create backend '%1%'."
