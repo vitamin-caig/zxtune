@@ -81,8 +81,7 @@ namespace
       if (inData.size() != InChannels)
       {
         assert(!"Mixer::ApplySample channels mismatch");
-        throw MakeFormattedError(THIS_LINE, MIXER_CHANNELS_MISMATCH, 
-          TEXT_SOUND_ERROR_MIXER_CHANNELS_MISMATCH, inData.size(), InChannels);
+        return;//do not do anything
       }
       // pass along input channels due to input data structure
       const Sample* const input(&inData[0]);
@@ -105,22 +104,27 @@ namespace
     boost::array<MultiFixed, InChannels> Matrix;
   };
   
-  MixerCore::Ptr CreateMixerCore(const std::vector<MultiGain>& data)
+  Error CreateMixerCore(const std::vector<MultiGain>& data, MixerCore::Ptr& ptr)
   {
     switch (const unsigned size = unsigned(data.size()))
     {
     case 1:
-      return MixerCore::Ptr(new FastMixerCore<1>(data));
+      ptr.reset(new FastMixerCore<1>(data));
+      break;
     case 2:
-      return MixerCore::Ptr(new FastMixerCore<2>(data));
+      ptr.reset(new FastMixerCore<2>(data));
+      break;
     case 3:
-      return MixerCore::Ptr(new FastMixerCore<3>(data));
+      ptr.reset(new FastMixerCore<3>(data));
+      break;
     case 4:
-      return MixerCore::Ptr(new FastMixerCore<4>(data));
+      ptr.reset(new FastMixerCore<4>(data));
+      break;
     default:
       assert(!"Mixer: invalid channels count specified");
-      throw MakeFormattedError(THIS_LINE, MIXER_UNSUPPORTED, TEXT_SOUND_ERROR_MIXER_UNSUPPORTED, size);
+      return MakeFormattedError(THIS_LINE, MIXER_UNSUPPORTED, TEXT_SOUND_ERROR_MIXER_UNSUPPORTED, size);
     }
+    return Error();
   }
   
   class MixerImpl : public Mixer
@@ -141,15 +145,15 @@ namespace
       return Endpoint->Flush();
     }
     
-    virtual void SetMatrix(const std::vector<MultiGain>& data)
+    virtual Error SetMatrix(const std::vector<MultiGain>& data)
     {
       const std::vector<MultiGain>::const_iterator it(std::find_if(data.begin(), data.end(),
         FindOverloadedGain));
       if (it != data.end())
       {
-        throw Error(THIS_LINE, MIXER_INVALID_MATRIX, TEXT_SOUND_ERROR_MIXER_INVALID_MATRIX);
+        return Error(THIS_LINE, MIXER_INVALID_MATRIX, TEXT_SOUND_ERROR_MIXER_INVALID_MATRIX);
       }
-      Core = CreateMixerCore(data);
+      return CreateMixerCore(data, Core);
     }
   private:
     const Receiver::Ptr Endpoint;

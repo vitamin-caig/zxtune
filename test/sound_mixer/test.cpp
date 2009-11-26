@@ -118,16 +118,15 @@ int main()
   
     Mixer::Ptr mixer(Mixer::Create(receiver));
   
-    try
-    {
-      std::cout << "--- Test for invalid matrix---\n";
-      mixer->SetMatrix(MakeMatrix(INVALID_GAIN));
-      std::cout << " Failed\n";
-    }
-    catch (const Error& e)
+    std::cout << "--- Test for invalid matrix---\n";
+    if (const Error& e = mixer->SetMatrix(MakeMatrix(INVALID_GAIN)))
     {
       std::cout << " Passed\n";
       e.WalkSuberrors(ErrOuter);
+    }
+    else
+    {
+      std::cout << " Failed\n";
     }
     
     assert(ArraySize(OUTS) == ArraySize(GAINS) * ArraySize(INPUTS));
@@ -138,7 +137,7 @@ int main()
     for (unsigned matrix = 0; matrix != ArraySize(GAINS); ++matrix)
     {
       std::cout << "--- Test for " << GAIN_NAMES[matrix] << " matrix ---\n";
-      mixer->SetMatrix(MakeMatrix(GAINS[matrix]));
+      ThrowIfError(mixer->SetMatrix(MakeMatrix(GAINS[matrix])));
       for (unsigned input = 0; input != ArraySize(INPUTS); ++input, ++result)
       {
         tgt->SetData(*result);

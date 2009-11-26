@@ -14,6 +14,8 @@ Author:
 
 #include "receiver.h"
 
+#include <error.h>
+
 namespace ZXTune
 {
   namespace Sound
@@ -23,7 +25,7 @@ namespace ZXTune
     public:
       typedef boost::shared_ptr<Mixer> Ptr;
       
-      virtual void SetMatrix(const std::vector<MultiGain>& data) = 0;
+      virtual Error SetMatrix(const std::vector<MultiGain>& data) = 0;
       
       static Ptr Create(Receiver::Ptr receiver);
     };
