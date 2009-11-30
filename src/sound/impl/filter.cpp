@@ -31,83 +31,6 @@ namespace
 {
   using namespace ZXTune::Sound;
 
-  template<class IntSample>
-  class FIRFilter : public Converter, private boost::noncopyable
-  {
-    typedef int64_t BigSample;
-    typedef boost::array<BigSample, OUTPUT_CHANNELS> MultiBigSample;
-    typedef std::vector<BigSample> MatrixType;
-    
-    typedef boost::array<IntSample, OUTPUT_CHANNELS> MultiIntSample;
-    
-    inline static IntSample Normalize(Sample smp)
-    {
-      return IntSample(smp) - SAMPLE_MID;
-    }
-    
-    inline static Sample Denormalize(IntSample smp)
-    {
-      return smp + SAMPLE_MID;
-    }
-    
-    inline static Sample Integral2Sample(BigSample smp)
-    {
-      return Denormalize(IntSample(smp / FIXED_POINT_PRECISION));
-    }
-  public:
-    static const unsigned MIN_ORDER = 2;
-    static const unsigned MAX_ORDER = 1u <<
-      8 * (sizeof(BigSample) - sizeof(IntSample) - sizeof(Sample));
-      
-    explicit FIRFilter(const std::vector<IntSample>& coeffs)
-      : Matrix(coeffs.begin(), coeffs.end()), Delegate()
-      , History(coeffs.size()), Position(&History[0], &History.back() + 1)
-    {
-    }
-
-    virtual void ApplySample(const MultiSample& data)
-    {
-      if (Delegate)
-      {
-        std::transform(data.begin(), data.end(), Position->begin(), Normalize);
-        
-        MultiBigSample res = { {0} };
-
-        for (typename MatrixType::const_iterator it = Matrix.begin(), lim = Matrix.end(); it != lim; ++it, --Position)
-        {
-          const typename MatrixType::value_type val(*it);
-          const MultiIntSample& src(*Position);
-          for (unsigned chan = 0; chan != OUTPUT_CHANNELS; ++chan)
-          {
-            res[chan] += val * src[chan];
-          }
-        }
-        std::transform(res.begin(), res.end(), Result.begin(), Integral2Sample);
-        ++Position;
-        return Delegate->ApplySample(Result);
-      }
-    }
-
-    virtual void Flush()
-    {
-      if (Delegate)
-      {
-        return Delegate->Flush();
-      }
-    }
-
-    virtual void SetEndpoint(Receiver::Ptr delegate)
-    {
-      Delegate = delegate;
-    }
-  private:
-    MatrixType Matrix;
-    Receiver::Ptr Delegate;
-    std::vector<MultiIntSample> History;
-    cycled_iterator<MultiIntSample*> Position;
-    MultiSample Result;
-  };
-
   //TODO: use from boost
   inline double bessel(double alpha)
   {
@@ -148,59 +71,157 @@ namespace
       throw MakeFormattedError(loc, FILTER_INVALID_PARAMS, text, val, min, max);
     }
   }
+  
+  template<class IntSample>
+  class FIRFilter : public Filter, private boost::noncopyable
+  {
+    typedef int64_t BigSample;
+    typedef boost::array<BigSample, OUTPUT_CHANNELS> MultiBigSample;
+    typedef std::vector<BigSample> MatrixType;
+    
+    typedef boost::array<IntSample, OUTPUT_CHANNELS> MultiIntSample;
+    
+    inline static IntSample Normalize(Sample smp)
+    {
+      return IntSample(smp) - SAMPLE_MID;
+    }
+    
+    inline static Sample Denormalize(IntSample smp)
+    {
+      return smp + SAMPLE_MID;
+    }
+    
+    inline static Sample Integral2Sample(BigSample smp)
+    {
+      return Denormalize(IntSample(smp / FIXED_POINT_PRECISION));
+    }
+  public:
+    static const unsigned MIN_ORDER = 2;
+    static const unsigned MAX_ORDER = 1u <<
+      8 * (sizeof(BigSample) - sizeof(IntSample) - sizeof(Sample));
+      
+    explicit FIRFilter(unsigned order)
+      : Matrix(order), Delegate()
+      , History(order), Position(&History[0], &History.back() + 1)
+    {
+      assert(in_range<unsigned>(order, MIN_ORDER, MAX_ORDER));
+    }
+
+    virtual void ApplySample(const MultiSample& data)
+    {
+      if (Delegate)
+      {
+        std::transform(data.begin(), data.end(), Position->begin(), Normalize);
+        
+        MultiBigSample res = { {0} };
+
+        for (typename MatrixType::const_iterator it = Matrix.begin(), lim = Matrix.end(); it != lim; ++it, --Position)
+        {
+          const typename MatrixType::value_type val(*it);
+          const MultiIntSample& src(*Position);
+          for (unsigned chan = 0; chan != OUTPUT_CHANNELS; ++chan)
+          {
+            res[chan] += val * src[chan];
+          }
+        }
+        MultiSample result;
+        std::transform(res.begin(), res.end(), result.begin(), Integral2Sample);
+        ++Position;
+        return Delegate->ApplySample(result);
+      }
+    }
+
+    virtual void Flush()
+    {
+      if (Delegate)
+      {
+        return Delegate->Flush();
+      }
+    }
+
+    virtual void SetEndpoint(Receiver::Ptr delegate)
+    {
+      Delegate = delegate;
+    }
+    
+    virtual Error SetBandpassParameters(unsigned freq, unsigned lowCutoff, unsigned highCutoff)
+    {
+      try
+      {
+        //input parameters
+        //gain = 10 ^^ (dB / 20)
+        const Gain PASSGAIN = 1.0, STOPGAIN = 0;
+
+        //check parameters
+        const unsigned order = unsigned(Matrix.size());
+        CheckParams(order, MIN_ORDER, MAX_ORDER, THIS_LINE, TEXT_SOUND_ERROR_FILTER_ORDER);
+        CheckParams(highCutoff, unsigned(freq / order), freq / 2, THIS_LINE, TEXT_SOUND_ERROR_FILTER_HIGH_CUTOFF);
+        CheckParams(lowCutoff, 0u, highCutoff, THIS_LINE, TEXT_SOUND_ERROR_FILTER_LOW_CUTOFF);
+
+        //create freq responses
+        std::vector<Gain> freqResponse(order, 0.0);
+        const unsigned midOrder(order / 2);
+        for (unsigned tap = 0; tap < midOrder; ++tap)
+        {
+          const unsigned tapFreq = unsigned(uint64_t(freq) * (tap + 1) / order);
+          freqResponse[tap] = freqResponse[order - tap - 1] =
+            (tapFreq < lowCutoff || tapFreq > highCutoff) ? STOPGAIN : PASSGAIN;
+        }
+
+        //transform coeffs from freq response
+        std::vector<double> firCoeffs(order, 0.0);
+        for (unsigned tap = 0; tap < midOrder; ++tap)
+        {
+          double tmpCoeff = 0.0;
+          for (unsigned subtap = 0; subtap < order; ++subtap)
+          {
+            const double omega = 2.0 * 3.14159265358 * tap * subtap / order;
+            tmpCoeff += freqResponse[subtap] * cos(omega);
+          }
+          firCoeffs[midOrder - tap] = firCoeffs[midOrder + tap] = tmpCoeff / order;
+        }
+        //do FFT transformation
+        const double ALPHA = 8.0;
+        DoFFT(ALPHA, firCoeffs);
+        //put result
+        std::transform(firCoeffs.begin(), firCoeffs.end(), Matrix.begin(), Gain2Fixed<IntSample>);
+        //reset
+        History.clear();
+        History.resize(order);
+        Position = cycled_iterator<MultiIntSample*>(&History[0], &History.back() + 1);
+        return Error();
+      }
+      catch (const Error& e)
+      {
+        return e;
+      }
+    }
+  private:
+    MatrixType Matrix;
+    Receiver::Ptr Delegate;
+    std::vector<MultiIntSample> History;
+    cycled_iterator<MultiIntSample*> Position;
+  };  
 }
 
 namespace ZXTune
 {
   namespace Sound
   {
-    Converter::Ptr CreateFIRFilter(const std::vector<signed>& coeffs)
+    Error CreateFIRFilter(unsigned order, Filter::Ptr& result)
     {
-      CheckParams<unsigned>(coeffs.size(), FIRFilter<signed>::MIN_ORDER, FIRFilter<signed>::MAX_ORDER, 
-        THIS_LINE, TEXT_SOUND_ERROR_FILTER_ORDER);
-      return Converter::Ptr(new FIRFilter<signed>(coeffs));
-    }
-
-    void CalculateBandpassFilter(unsigned freq,
-      unsigned lowCutoff, unsigned highCutoff, std::vector<signed>& coeffs)
-    {
-      //input parameters
-      //gain = 10 ^^ (dB / 20)
-      const Gain PASSGAIN = 1.0, STOPGAIN = 0;
-
-      //check parameters
-      const unsigned order = unsigned(coeffs.size());
-      CheckParams(order, FIRFilter<signed>::MIN_ORDER, FIRFilter<signed>::MAX_ORDER, THIS_LINE, TEXT_SOUND_ERROR_FILTER_ORDER);
-      CheckParams(highCutoff, unsigned(freq / order), freq / 2, THIS_LINE, TEXT_SOUND_ERROR_FILTER_HIGH_CUTOFF);
-      CheckParams(lowCutoff, 0u, highCutoff, THIS_LINE, TEXT_SOUND_ERROR_FILTER_LOW_CUTOFF);
-
-      //create freq responses
-      std::vector<Gain> freqResponse(order, 0.0);
-      const unsigned midOrder(order / 2);
-      for (unsigned tap = 0; tap < midOrder; ++tap)
+      typedef FIRFilter<signed> FIRFilterType;
+    
+      try
       {
-        const unsigned tapFreq = unsigned(uint64_t(freq) * (tap + 1) / order);
-        freqResponse[tap] = freqResponse[order - tap - 1] =
-          (tapFreq < lowCutoff || tapFreq > highCutoff) ? STOPGAIN : PASSGAIN;
+        CheckParams(order, FIRFilterType::MIN_ORDER, FIRFilterType::MAX_ORDER, THIS_LINE, TEXT_SOUND_ERROR_FILTER_ORDER);
+        result.reset(new FIRFilterType(order));
+        return Error();
       }
-
-      //transform coeffs from freq response
-      std::vector<double> firCoeffs(order, 0.0);
-      for (unsigned tap = 0; tap < midOrder; ++tap)
+      catch (const Error& e)
       {
-        double tmpCoeff = 0.0;
-        for (unsigned subtap = 0; subtap < order; ++subtap)
-        {
-          const double omega = 2.0 * 3.14159265358 * tap * subtap / order;
-          tmpCoeff += freqResponse[subtap] * cos(omega);
-        }
-        firCoeffs[midOrder - tap] = firCoeffs[midOrder + tap] = tmpCoeff / order;
+        return e;
       }
-      //do FFT transformation
-      const double ALPHA = 8.0;
-      DoFFT(ALPHA, firCoeffs);
-      //put result
-      std::transform(firCoeffs.begin(), firCoeffs.end(), coeffs.begin(), Gain2Fixed<signed>);
     }
   }
 }

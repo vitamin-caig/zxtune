@@ -14,16 +14,24 @@ Author:
 
 #include "receiver.h"
 
+#include <error.h>
+
 namespace ZXTune
 {
   namespace Sound
   {
+    class Filter : public Converter
+    {
+    public:
+      typedef boost::shared_ptr<Filter> Ptr;
+      
+      virtual Error SetBandpassParameters(unsigned freq, unsigned lowCutoff, unsigned highCutoff) = 0;
+    };
+    
     /*
       FIR filter with fixed-point calculations
     */
-    Converter::Ptr CreateFIRFilter(const std::vector<signed>& coeffs);
-
-    void CalculateBandpassFilter(unsigned freq, unsigned lowCutoff, unsigned highCutoff, std::vector<signed>& coeffs);
+    Error CreateFIRFilter(unsigned order, Filter::Ptr& filter);
   }
 }
 

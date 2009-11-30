@@ -127,10 +127,12 @@ public:
 
   cycled_iterator(C start, C stop) : begin(start), end(stop), cur(start)
   {
+    assert(std::distance(begin, end) > 0);
   }
 
   cycled_iterator(const cycled_iterator<C>& rh) : begin(rh.begin), end(rh.end), cur(rh.cur)
   {
+    assert(std::distance(begin, end) > 0);
   }
 
   const cycled_iterator<C>& operator = (const cycled_iterator<C>& rh)
@@ -138,6 +140,7 @@ public:
     begin = rh.begin;
     end = rh.end;
     cur = rh.cur;
+    assert(std::distance(begin, end) > 0);
     return *this;
   }
 

@@ -61,8 +61,7 @@ namespace
   public:
     Target()
     {
-      Count = 0;
-      RMSOrig = RMSNew = 0;
+      Flush();
     }
     
     virtual void ApplySample(const MultiSample& data)
@@ -73,6 +72,8 @@ namespace
     
     virtual void Flush()
     {
+      Count = 0;
+      RMSOrig = RMSNew = 0;
     }
     
     void Report(unsigned freq) const
@@ -89,11 +90,12 @@ namespace
   
   void TestInvalid(const char* text, unsigned order, unsigned lo, unsigned hi)
   {
-    std::vector<signed> coeffs(order);
+    std::cout << "--- Test for " << text << " ---\n";
+    Filter::Ptr filt;
     try
     {
-      std::cout << "--- Test for " << text << " ---\n";
-      CalculateBandpassFilter(FREQ, lo, hi, coeffs);
+      ThrowIfError(CreateFIRFilter(order, filt));
+      ThrowIfError(filt->SetBandpassParameters(FREQ, lo, hi));
       std::cout << " Failed\n";
     }
     catch (const Error& e)
@@ -106,16 +108,16 @@ namespace
   void TestFilter(unsigned lo, unsigned hi)
   {
     std::cout << "--- Testing for bandpass " << lo << "..." << hi << " ---\n";
-    std::vector<signed> coeffs(ORDER);
-    CalculateBandpassFilter(FREQ, lo, hi, coeffs);
+    Filter::Ptr filter;
+    ThrowIfError(CreateFIRFilter(ORDER, filter));
+    ThrowIfError(filter->SetBandpassParameters(FREQ, lo, hi));
+    Target* tgt = 0;
+    Receiver::Ptr receiver(tgt = new Target);
+    filter->SetEndpoint(receiver);
     
     for (const unsigned* fr = FREQS; fr != ArrayEnd(FREQS); ++fr)
     {
-      Target* tgt = 0;
-      Receiver::Ptr receiver(tgt = new Target);
-      Converter::Ptr filter(CreateFIRFilter(coeffs));
-      filter->SetEndpoint(receiver);
-    
+      filter->Flush();
       Generate(*fr, *filter, *receiver);
       tgt->Report(*fr);
     }
