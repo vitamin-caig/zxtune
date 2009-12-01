@@ -101,7 +101,7 @@ namespace
       8 * (sizeof(BigSample) - sizeof(IntSample) - sizeof(Sample));
       
     explicit FIRFilter(unsigned order)
-      : Matrix(order), Delegate()
+      : Matrix(order), Delegate(CreateDummyReceiver())
       , History(order), Position(&History[0], &History.back() + 1)
     {
       assert(in_range<unsigned>(order, MIN_ORDER, MAX_ORDER));
@@ -109,34 +109,28 @@ namespace
 
     virtual void ApplySample(const MultiSample& data)
     {
-      if (Delegate)
-      {
-        std::transform(data.begin(), data.end(), Position->begin(), Normalize);
-        
-        MultiBigSample res = { {0} };
+      std::transform(data.begin(), data.end(), Position->begin(), Normalize);
+      
+      MultiBigSample res = { {0} };
 
-        for (typename MatrixType::const_iterator it = Matrix.begin(), lim = Matrix.end(); it != lim; ++it, --Position)
+      for (typename MatrixType::const_iterator it = Matrix.begin(), lim = Matrix.end(); it != lim; ++it, --Position)
+      {
+        const typename MatrixType::value_type val(*it);
+        const MultiIntSample& src(*Position);
+        for (unsigned chan = 0; chan != OUTPUT_CHANNELS; ++chan)
         {
-          const typename MatrixType::value_type val(*it);
-          const MultiIntSample& src(*Position);
-          for (unsigned chan = 0; chan != OUTPUT_CHANNELS; ++chan)
-          {
-            res[chan] += val * src[chan];
-          }
+          res[chan] += val * src[chan];
         }
-        MultiSample result;
-        std::transform(res.begin(), res.end(), result.begin(), Integral2Sample);
-        ++Position;
-        return Delegate->ApplySample(result);
       }
+      MultiSample result;
+      std::transform(res.begin(), res.end(), result.begin(), Integral2Sample);
+      ++Position;
+      return Delegate->ApplySample(result);
     }
 
     virtual void Flush()
     {
-      if (Delegate)
-      {
-        return Delegate->Flush();
-      }
+      Delegate->Flush();
     }
 
     virtual void SetEndpoint(Receiver::Ptr delegate)

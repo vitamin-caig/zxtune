@@ -20,15 +20,15 @@ namespace ZXTune
 {
   namespace Sound
   {
-    class Mixer : public MultichannelReceiver
+    class Mixer : public BasicConverter<std::vector<Sample>, MultiSample>
     {
     public:
       typedef boost::shared_ptr<Mixer> Ptr;
       
       virtual Error SetMatrix(const std::vector<MultiGain>& data) = 0;
-      
-      static Ptr Create(Receiver::Ptr receiver);
     };
+    
+    Error CreateMixer(unsigned channels, Mixer::Ptr& result);
   }
 }
 

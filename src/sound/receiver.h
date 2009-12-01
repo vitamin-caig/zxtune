@@ -22,38 +22,32 @@ namespace ZXTune
 {
   namespace Sound
   {
-    /// Multichannel sound consuming interface
-    class MultichannelReceiver
+    /// Template sound consuming interface
+    template<class T>
+    class BasicReceiver
     {
     public:
-      typedef boost::shared_ptr<MultichannelReceiver> Ptr;
+      typedef typename boost::shared_ptr<BasicReceiver<T> > Ptr;
       
-      virtual ~MultichannelReceiver() {}
+      virtual ~BasicReceiver() {}
       
-      virtual void ApplySample(const std::vector<Sample>& data) = 0;
+      virtual void ApplySample(const T& data) = 0;
       virtual void Flush() = 0;
     };
     
-    /// Sound consuming interface
-    class Receiver
+    template<class S, class T = S>
+    class BasicConverter : public BasicReceiver<S>
     {
     public:
-      typedef boost::shared_ptr<Receiver> Ptr;
+      typedef typename boost::shared_ptr<BasicConverter<S, T> > Ptr;
       
-      virtual ~Receiver() {}
-      
-      virtual void ApplySample(const MultiSample& data) = 0;
-      virtual void Flush() = 0;
+      virtual void SetEndpoint(typename BasicReceiver<T>::Ptr endpoint) = 0;
     };
     
-    /// Sound converting interface
-    class Converter : public Receiver
-    {
-    public:
-      typedef boost::shared_ptr<Converter> Ptr;
-      
-      virtual void SetEndpoint(Receiver::Ptr endpoint) = 0;
-    };
+    typedef BasicReceiver<MultiSample> Receiver;
+    typedef BasicConverter<MultiSample> Converter;
+
+    Receiver::Ptr CreateDummyReceiver();
   }
 }
 

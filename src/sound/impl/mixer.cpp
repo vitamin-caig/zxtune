@@ -42,17 +42,8 @@ namespace
     return mg.end() != std::find_if(mg.begin(), mg.end(), !boost::bind(in_range<Gain>, _1, 0.0f, 1.0f));
   }
     
-  class MixerCore
-  {
-  public:
-    typedef std::auto_ptr<MixerCore> Ptr;
-    
-    virtual ~MixerCore() {}
-    virtual void ApplySample(const std::vector<Sample>& /*input*/, Receiver& /*rcv*/) const {}
-  };
-  
   template<unsigned InChannels>
-  class FastMixerCore : public MixerCore, private boost::noncopyable
+  class FastMixer : public Mixer, private boost::noncopyable
   {
     //determine type for intermediate value
     static const unsigned INTERMEDIATE_BITS_MIN =
@@ -70,13 +61,12 @@ namespace
     
     typedef boost::array<NativeType, OUTPUT_CHANNELS> MultiFixed;
   public:
-    explicit FastMixerCore(const std::vector<MultiGain>& matrix)
+    FastMixer()
+      : Endpoint(CreateDummyReceiver())
     {
-      assert(matrix.size() == InChannels);
-      std::transform(matrix.begin(), matrix.end(), Matrix.begin(), MultiGain2MultiFixed<NativeType>);
     }
 
-    virtual void ApplySample(const std::vector<Sample>& inData, Receiver& rcv) const
+    virtual void ApplySample(const std::vector<Sample>& inData)
     {
       if (inData.size() != InChannels)
       {
@@ -98,66 +88,38 @@ namespace
       MultiSample result;
       std::transform(res.begin(), res.end(), result.begin(), std::bind2nd(std::divides<BigSample>(),
         BigSample(FIXED_POINT_PRECISION) * InChannels));
-      return rcv.ApplySample(result);
-    }
-  private:
-    boost::array<MultiFixed, InChannels> Matrix;
-  };
-  
-  Error CreateMixerCore(const std::vector<MultiGain>& data, MixerCore::Ptr& ptr)
-  {
-    switch (const unsigned size = unsigned(data.size()))
-    {
-    case 1:
-      ptr.reset(new FastMixerCore<1>(data));
-      break;
-    case 2:
-      ptr.reset(new FastMixerCore<2>(data));
-      break;
-    case 3:
-      ptr.reset(new FastMixerCore<3>(data));
-      break;
-    case 4:
-      ptr.reset(new FastMixerCore<4>(data));
-      break;
-    default:
-      assert(!"Mixer: invalid channels count specified");
-      return MakeFormattedError(THIS_LINE, MIXER_UNSUPPORTED, TEXT_SOUND_ERROR_MIXER_UNSUPPORTED, size);
-    }
-    return Error();
-  }
-  
-  class MixerImpl : public Mixer
-  {
-  public:
-    explicit MixerImpl(Receiver::Ptr endpoint)
-      : Endpoint(endpoint), Core(new MixerCore())
-    {
-    }
-    
-    virtual void ApplySample(const std::vector<Sample>& data)
-    {
-      return Core->ApplySample(data, *Endpoint);
+      return Endpoint->ApplySample(result);
     }
     
     virtual void Flush()
     {
-      return Endpoint->Flush();
+      Endpoint->Flush();
+    }
+    
+    virtual void SetEndpoint(Receiver::Ptr rcv)
+    {
+      Endpoint = rcv ? rcv : CreateDummyReceiver();
     }
     
     virtual Error SetMatrix(const std::vector<MultiGain>& data)
     {
+      if (data.size() != InChannels)
+      {
+        return Error(THIS_LINE, MIXER_INVALID_MATRIX, TEXT_SOUND_ERROR_MIXER_INVALID_MATRIX_CHANNELS);
+      }
       const std::vector<MultiGain>::const_iterator it(std::find_if(data.begin(), data.end(),
         FindOverloadedGain));
       if (it != data.end())
       {
-        return Error(THIS_LINE, MIXER_INVALID_MATRIX, TEXT_SOUND_ERROR_MIXER_INVALID_MATRIX);
+        return Error(THIS_LINE, MIXER_INVALID_MATRIX, TEXT_SOUND_ERROR_MIXER_INVALID_MATRIX_GAIN);
       }
-      return CreateMixerCore(data, Core);
+      std::transform(data.begin(), data.end(), Matrix.begin(), MultiGain2MultiFixed<NativeType>);
+      return Error();
     }
+    
   private:
-    const Receiver::Ptr Endpoint;
-    MixerCore::Ptr Core;
+    Receiver::Ptr Endpoint;
+    boost::array<MultiFixed, InChannels> Matrix;
   };
 }
 
@@ -165,9 +127,27 @@ namespace ZXTune
 {
   namespace Sound
   {
-    Mixer::Ptr Mixer::Create(Receiver::Ptr endpoint)
+    Error CreateMixer(unsigned channels, Mixer::Ptr& ptr)
     {
-      return Mixer::Ptr(new MixerImpl(endpoint));
+      switch (channels)
+      {
+      case 1:
+        ptr.reset(new FastMixer<1>());
+        break;
+      case 2:
+        ptr.reset(new FastMixer<2>());
+        break;
+      case 3:
+        ptr.reset(new FastMixer<3>());
+        break;
+      case 4:
+        ptr.reset(new FastMixer<4>());
+        break;
+      default:
+        assert(!"Mixer: invalid channels count specified");
+        return MakeFormattedError(THIS_LINE, MIXER_UNSUPPORTED, TEXT_SOUND_ERROR_MIXER_UNSUPPORTED, channels);
+      }
+      return Error();
     }
   }
 }

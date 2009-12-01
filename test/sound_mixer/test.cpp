@@ -116,7 +116,10 @@ int main()
     Target* tgt = 0;
     Receiver::Ptr receiver(tgt = new Target);
   
-    Mixer::Ptr mixer(Mixer::Create(receiver));
+    Mixer::Ptr mixer;
+    ThrowIfError(CreateMixer(1, mixer));
+    
+    mixer->SetEndpoint(receiver);
   
     std::cout << "--- Test for invalid matrix---\n";
     if (const Error& e = mixer->SetMatrix(MakeMatrix(INVALID_GAIN)))
