@@ -26,10 +26,14 @@ extern const Char TEXT_SOUND_ERROR_FILTER_ORDER[] = {
   ')',' ','i','s',' ','o','u','t',' ','o','f',' ','r','a','n','g','e',' ','(','%','2','%','.','.','.','%','3',
   '%',')','.',0
 };
-extern const Char TEXT_SOUND_ERROR_MIXER_INVALID_MATRIX[] = {
-  'F','a','i','l','e','d',' ','t','o',' ','s','e','t',' ','m','i','x','i','n','g',' ','m','a','t','r','i','x',
-  ' ','f','o','r',' ','m','i','x','e','r','-',' ','g','a','i','n',' ','i','s',' ','o','u','t',' ','o','f',' ',
-  'r','a','n','g','e','.',0
+extern const Char TEXT_SOUND_ERROR_MIXER_INVALID_MATRIX_CHANNELS[] = {
+  'F','a','i','l','e','d',' ','t','o',' ','s','e','t',' ','m','i','x','e','r',' ','m','a','t','r','i','x','-',
+  ' ','i','n','v','a','l','i','d',' ','c','h','a','n','n','e','l','s',' ','c','o','u','n','t',' ','s','p','e',
+  'c','i','f','i','e','d','.',0
+};
+extern const Char TEXT_SOUND_ERROR_MIXER_INVALID_MATRIX_GAIN[] = {
+  'F','a','i','l','e','d',' ','t','o',' ','s','e','t',' ','m','i','x','e','r',' ','m','a','t','r','i','x','-',
+  ' ','g','a','i','n',' ','i','s',' ','o','u','t',' ','o','f',' ','r','a','n','g','e','.',0
 };
 extern const Char TEXT_SOUND_ERROR_MIXER_UNSUPPORTED[] = {
   'F','a','i','l','e','d',' ','t','o',' ','c','r','e','a','t','e',' ','u','n','s','u','p','p','o','r','t','e',

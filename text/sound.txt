@@ -15,8 +15,11 @@ __cpp> "#endif //__TEXT_SOUND_H_DEFINED__\n"
 < TEXT_SOUND_ERROR_MIXER_UNSUPPORTED
 > "Failed to create unsupported mixer with %1% channels."
 
-< TEXT_SOUND_ERROR_MIXER_INVALID_MATRIX
-> "Failed to set mixing matrix for mixer- gain is out of range."
+< TEXT_SOUND_ERROR_MIXER_INVALID_MATRIX_GAIN
+> "Failed to set mixer matrix- gain is out of range."
+
+< TEXT_SOUND_ERROR_MIXER_INVALID_MATRIX_CHANNELS
+> "Failed to set mixer matrix- invalid channels count specified."
 
 #filter errors
 < TEXT_SOUND_ERROR_FILTER_ORDER
