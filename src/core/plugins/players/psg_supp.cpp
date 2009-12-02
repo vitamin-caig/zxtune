@@ -21,7 +21,6 @@ Author:
 #include <core/devices/aym/aym.h>
 #include <core/convert_parameters.h>
 
-#include <sound/receiver.h>
 #include <sound/sound_attrs.h>
 #include <sound/sound_params.h>
 
@@ -71,7 +70,7 @@ namespace
     info.Description = TEXT_PSG_INFO;
     info.Version = TEXT_PSG_VERSION;
     info.Capabilities = CAP_DEV_AYM | CAP_CONV_RAW;
-  }  
+  }
   
   class PSGPlayer : public Player
   {
@@ -253,7 +252,7 @@ namespace
       return false;
     }
     const PSGHeader* const header(safe_ptr_cast<const PSGHeader*>(data.Data()));
-    if (0 == std::memcmp(header->Sign, PSG_SIGNATURE, sizeof(PSG_SIGNATURE)) && 
+    if (0 == std::memcmp(header->Sign, PSG_SIGNATURE, sizeof(PSG_SIGNATURE)) &&
         PSG_MARKER == header->Marker)
     {
       try

@@ -56,7 +56,7 @@ namespace
   inline String CreateRawPart(std::size_t offset)
   {
     OutStringStream stream;
-    stream << offset << RAW_REST_PART;
+    stream << static_cast<unsigned>(offset) << RAW_REST_PART;
     return stream.str();
   }
   

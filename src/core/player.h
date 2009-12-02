@@ -14,6 +14,7 @@ Author:
 #include "module_types.h"
 
 #include <io/container.h>
+#include <sound/receiver.h>
 
 #include <error.h>
 
@@ -26,7 +27,6 @@ namespace ZXTune
   
   namespace Sound
   {
-    class MultichannelReceiver;
     struct RenderParameters;
   }
   

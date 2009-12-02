@@ -46,6 +46,7 @@ namespace ZXTune
     
     typedef BasicReceiver<MultiSample> Receiver;
     typedef BasicConverter<MultiSample> Converter;
+    typedef BasicReceiver<std::vector<Sample> > MultichannelReceiver;
 
     Receiver::Ptr CreateDummyReceiver();
   }

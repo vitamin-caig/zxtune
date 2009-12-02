@@ -14,7 +14,6 @@ Author:
 
 #include <tools.h>
 
-#include <sound/receiver.h>
 #include <sound/sound_attrs.h>
 #include <sound/sound_types.h>
 #include <sound/sound_params.h>
@@ -223,7 +222,7 @@ namespace
       if (curTick >= nextSampleTick) //need to store sample
       {
         const bool isYM(0 != (params.Flags & Sound::PSG_TYPE_YM));
-	Result[0] = GetVolume(ToneBitA & NoiseBitA & VolumeA, isYM);
+        Result[0] = GetVolume(ToneBitA & NoiseBitA & VolumeA, isYM);
         Result[1] = GetVolume(ToneBitB & NoiseBitB & VolumeB, isYM);
         Result[2] = GetVolume(ToneBitC & NoiseBitC & VolumeC, isYM);
     
@@ -311,7 +310,7 @@ namespace
       if (mixer & ((DataChunk::MASK_TONEA | DataChunk::MASK_NOISEA) << chan))
       {
         channel.Enabled = true;
-        channel.Level = (State.Data[DataChunk::REG_VOLA + chan] & 0xf) * 
+        channel.Level = (State.Data[DataChunk::REG_VOLA + chan] & 0xf) *
           std::numeric_limits<Module::Analyze::LevelType>::max() / 15;
         if (mixer & (DataChunk::MASK_TONEA << chan))//tone
         {
@@ -342,7 +341,7 @@ namespace
       209310, 221720, 234940, 248890, 263710, 279360, 296000, 313600, 332220, 352000, 372930, 395070,
       //octave8
       418620, 443460, 469890, 497790, 527420, 558720, 592000, 627200, 664450, 704000, 745860, 790140
-    }; 
+    };
     const unsigned freq = unsigned(uint64_t(LastTicksPerSec) * 100 / (16 * (period ? period : 1)));
     const unsigned maxBand = unsigned(ArraySize(FREQ_TABLE) - 1);
     const unsigned currentBand = unsigned(std::lower_bound(FREQ_TABLE, ArrayEnd(FREQ_TABLE), freq) - FREQ_TABLE);

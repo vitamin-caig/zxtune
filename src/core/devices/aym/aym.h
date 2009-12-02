@@ -13,6 +13,7 @@ Author:
 
 #include <types.h>
 
+#include <sound/receiver.h>
 #include <core/module_types.h>
 
 //supporting for AY/YM-based modules
@@ -21,7 +22,6 @@ namespace ZXTune
   //forward declaration
   namespace Sound
   {
-    class MultichannelReceiver;
     struct RenderParameters;
   }
   
