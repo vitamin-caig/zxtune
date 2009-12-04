@@ -25,6 +25,12 @@ cxx_mode_flags += -fPIC
 ld_mode_flags += -shared
 endif
 
+#setup code coverage
+ifdef coverage
+cxx_mode_flags += --coverage
+ld_mode_flags += --coverage
+endif
+
 #setup flags
 CXX_FLAGS := $(cxx_mode_flags) $(cxx_flags) -g3 \
 	$(addprefix -D, $(definitions)) \
@@ -50,3 +56,15 @@ postlink_cmd = objcopy --only-keep-debug $@ $@.pdb && \
 
 #include generated dependensies
 include $(wildcard $(objects_dir)/*.d)
+
+.PHONY: analyze analyze_all
+
+analyze:
+	@echo "Analyzing $(target)" > coverage.log
+	@for i in $(source_files);do gcov -lp -o $(objects_dir) $$i >> coverage.log; done
+	@echo `pwd`
+	@perl $(path_step)/make/compilers/gcc_coverage.pl
+
+analyze_deps: $(depends)
+
+analyze_all: analyze analyze_deps

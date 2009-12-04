@@ -1,4 +1,4 @@
-// Generated from '$Id: $'
+// Generated from '$Id$'
 #ifndef __TEXT_BACKENDS_H_DEFINED__
 #define __TEXT_BACKENDS_H_DEFINED__
 #include <char_type.h>

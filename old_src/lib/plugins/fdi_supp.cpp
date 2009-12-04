@@ -22,7 +22,7 @@ namespace
 {
   using namespace ZXTune;
 
-  const String TEXT_FDI_VERSION(FromChar("Revision: $Rev: $"));
+  const String TEXT_FDI_VERSION(FromChar("Revision: $Rev$"));
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)

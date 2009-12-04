@@ -1,5 +1,5 @@
 < __HEADER__
-> "Generated from '$Id: $'"
+> "Generated from '$Id$'"
 
 < __RAWHEADER__
 __cpp> "#ifndef __TEXT_ERRORS_H_DEFINED__\n"
