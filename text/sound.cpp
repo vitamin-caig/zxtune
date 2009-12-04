@@ -7,9 +7,43 @@ extern const Char TEXT_SOUND_ERROR_BACKEND_FAILED[] = {
   'F','a','i','l','e','d',' ','t','o',' ','c','r','e','a','t','e',' ','b','a','c','k','e','n','d',' ','\'','%',
   '1','%','\'','.',0
 };
+extern const Char TEXT_SOUND_ERROR_BACKEND_INVALID_CHANNELS[] = {
+  'S','p','e','c','i','f','i','e','d',' ','m','o','d','u','l','e',' ','o','r',' ','m','i','x','e','r',' ','c',
+  'h','a','n','n','e','l','s',' ','(','%','1','%',')',' ','i','s',' ','o','u','t',' ','o','f',' ','r','a','n',
+  'g','e',' ','(','%','2','%','.','.','.','%','3','%',')','.',0
+};
+extern const Char TEXT_SOUND_ERROR_BACKEND_INVALID_FILTER[] = {
+  'I','n','v','a','l','i','d',' ','f','i','l','t','e','r',' ','s','p','e','c','i','f','i','e','d',' ','f','o',
+  'r',' ','b','a','c','k','e','n','d','.',0
+};
+extern const Char TEXT_SOUND_ERROR_BACKEND_INVALID_PLAYER[] = {
+  'I','n','v','a','l','i','d',' ','p','l','a','y','e','r',' ','s','p','e','c','i','f','i','e','d',' ','f','o',
+  'r',' ','b','a','c','k','e','n','d','.',0
+};
+extern const Char TEXT_SOUND_ERROR_BACKEND_INVALID_STATE[] = {
+  'F','a','i','l','e','d',' ','t','o',' ','p','e','r','f','o','r','m',' ','o','p','e','r','a','t','i','o','n',
+  ' ','i','n',' ','i','n','v','a','l','i','d',' ','s','t','a','t','e','.',0
+};
 extern const Char TEXT_SOUND_ERROR_BACKEND_NOT_FOUND[] = {
   'R','e','q','u','e','s','t','e','d',' ','b','a','c','k','e','n','d',' ','\'','%','1','%','\'',' ','i','s',' ',
   'n','o','t',' ','s','u','p','p','o','r','t','e','d','.',0
+};
+extern const Char TEXT_SOUND_ERROR_BACKEND_PAUSE[] = {
+  'F','a','i','l','e','d',' ','t','o',' ','p','a','u','s','e',' ','p','l','a','y','b','a','c','k','.',0
+};
+extern const Char TEXT_SOUND_ERROR_BACKEND_PLAYBACK[] = {
+  'F','a','i','l','e','d',' ','t','o',' ','s','t','a','r','t','/','c','o','n','t','i','n','u','e',' ','p','l',
+  'a','y','b','a','c','k','.',0
+};
+extern const Char TEXT_SOUND_ERROR_BACKEND_SEEK[] = {
+  'F','a','i','l','e','d',' ','t','o',' ','s','e','t',' ','p','l','a','y','b','a','c','k',' ','p','o','s','i',
+  't','i','o','n','.',0
+};
+extern const Char TEXT_SOUND_ERROR_BACKEND_SETUP_BACKEND[] = {
+  'F','a','i','l','e','d',' ','t','o',' ','s','e','t','u','p',' ','b','a','c','k','e','n','d','.',0
+};
+extern const Char TEXT_SOUND_ERROR_BACKEND_STOP[] = {
+  'F','a','i','l','e','d',' ','t','o',' ','s','t','o','p',' ','p','l','a','y','b','a','c','k','.',0
 };
 extern const Char TEXT_SOUND_ERROR_FILTER_HIGH_CUTOFF[] = {
   'S','p','e','c','i','f','i','e','d',' ','f','i','l','t','e','r',' ','h','i','g','h',' ','c','u','t','o','f',

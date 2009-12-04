@@ -37,3 +37,30 @@ __cpp> "#endif //__TEXT_SOUND_H_DEFINED__\n"
 
 < TEXT_SOUND_ERROR_BACKEND_FAILED
 > "Failed to create backend '%1%'."
+
+< TEXT_SOUND_ERROR_BACKEND_INVALID_PLAYER
+> "Invalid player specified for backend."
+
+< TEXT_SOUND_ERROR_BACKEND_INVALID_FILTER
+> "Invalid filter specified for backend."
+
+< TEXT_SOUND_ERROR_BACKEND_SETUP_BACKEND
+> "Failed to setup backend."
+
+< TEXT_SOUND_ERROR_BACKEND_PLAYBACK
+> "Failed to start/continue playback."
+
+< TEXT_SOUND_ERROR_BACKEND_PAUSE
+> "Failed to pause playback."
+
+< TEXT_SOUND_ERROR_BACKEND_STOP
+> "Failed to stop playback."
+
+< TEXT_SOUND_ERROR_BACKEND_SEEK
+> "Failed to set playback position."
+
+< TEXT_SOUND_ERROR_BACKEND_INVALID_CHANNELS
+> "Specified module or mixer channels (%1%) is out of range (%2%...%3%)."
+
+< TEXT_SOUND_ERROR_BACKEND_INVALID_STATE
+> "Failed to perform operation in invalid state."

@@ -56,11 +56,11 @@ namespace ZXTune
       virtual void GetPlayerInfo(PluginInformation& info) const = 0;
 
       /// Retrieving information about loaded module
-      virtual void GetModuleInformation(Module::Information& info) const = 0;
+      virtual void GetModuleInformation(Information& info) const = 0;
 
       /// Retrieving current state of loaded module
       virtual Error GetModuleState(unsigned& timeState, //current frame
-                                   Module::Tracking& trackState, //current track position
+                                   Tracking& trackState, //current track position
                                    Analyze::ChannelsState& analyzeState //current analyzed state
                                    ) const = 0;
 

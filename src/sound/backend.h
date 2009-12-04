@@ -62,7 +62,7 @@ namespace ZXTune
         PAUSED,
         STARTED
       };
-      virtual State GetCurrentState() const = 0;
+      virtual Error GetCurrentState(State& state) const = 0;
 
       // adding/changing mixer
       virtual Error SetMixer(const std::vector<MultiGain>& data) = 0;
@@ -79,7 +79,7 @@ namespace ZXTune
       // hardware volume control
       virtual Error GetVolume(MultiGain& volume) const = 0;
       virtual Error SetVolume(const MultiGain& volume) = 0;
-          };
+    };
 
     //common interface
     void EnumerateBackends(std::vector<Backend::Info>& backends);

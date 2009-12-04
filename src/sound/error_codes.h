@@ -28,6 +28,9 @@ namespace ZXTune
       //backend-specific errors
       BACKEND_NOT_FOUND = Error::ModuleCode<'B', 'D'>::Value,
       BACKEND_FAILED_CREATE,
+      BACKEND_INVALID_PARAMETER,
+      BACKEND_SETUP_ERROR,
+      BACKEND_CONTROL_ERROR,
     };
   }
 }

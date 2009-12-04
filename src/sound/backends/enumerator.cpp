@@ -9,6 +9,7 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 #include "enumerator.h"
+#include "backends_list.h"
 #include "../error_codes.h"
 
 #include <map>
@@ -37,6 +38,7 @@ namespace
     BackendsEnumeratorImpl()
       : Backends(BackendsStorage(BackendInfoComparator))
     {
+      RegisterBackends(*this);
     }
 
     virtual void RegisterBackend(const Backend::Info& info, const CreateBackendFunc& creator)
