@@ -52,7 +52,7 @@ namespace
   //kaiser implementation
   inline void DoFFT(const double alpha, std::vector<double>& coeffs)
   {
-    const unsigned order = unsigned(coeffs.size());
+    const unsigned order = static_cast<unsigned>(coeffs.size());
     const double denom = bessel(alpha);
     const double center = double(order - 1) / 2;
     for (unsigned tap = 0; tap < order; ++tap)
@@ -147,9 +147,9 @@ namespace
         const Gain PASSGAIN = 1.0, STOPGAIN = 0;
 
         //check parameters
-        const unsigned order = unsigned(Matrix.size());
+        const unsigned order = static_cast<unsigned>(Matrix.size());
         CheckParams(order, MIN_ORDER, MAX_ORDER, THIS_LINE, TEXT_SOUND_ERROR_FILTER_ORDER);
-        CheckParams(highCutoff, unsigned(freq / order), freq / 2, THIS_LINE, TEXT_SOUND_ERROR_FILTER_HIGH_CUTOFF);
+        CheckParams(highCutoff, static_cast<unsigned>(freq / order), freq / 2, THIS_LINE, TEXT_SOUND_ERROR_FILTER_HIGH_CUTOFF);
         CheckParams(lowCutoff, 0u, highCutoff, THIS_LINE, TEXT_SOUND_ERROR_FILTER_LOW_CUTOFF);
 
         //create freq responses
@@ -157,7 +157,7 @@ namespace
         const unsigned midOrder(order / 2);
         for (unsigned tap = 0; tap < midOrder; ++tap)
         {
-          const unsigned tapFreq = unsigned(uint64_t(freq) * (tap + 1) / order);
+          const unsigned tapFreq = static_cast<unsigned>(uint64_t(freq) * (tap + 1) / order);
           freqResponse[tap] = freqResponse[order - tap - 1] =
             (tapFreq < lowCutoff || tapFreq > highCutoff) ? STOPGAIN : PASSGAIN;
         }
@@ -195,7 +195,7 @@ namespace
     Receiver::Ptr Delegate;
     std::vector<MultiIntSample> History;
     cycled_iterator<MultiIntSample*> Position;
-  };  
+  };
 }
 
 namespace ZXTune

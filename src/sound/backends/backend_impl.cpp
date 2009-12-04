@@ -33,9 +33,9 @@ namespace
   
   inline void CheckChannels(unsigned chans)
   {
-    if (chans < MIN_MIXERS_COUNT || chans > MAX_MIXERS_COUNT)
+    if (!in_range<unsigned>(chans, MIN_MIXERS_COUNT, MAX_MIXERS_COUNT))
     {
-      throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER, 
+      throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
         TEXT_SOUND_ERROR_BACKEND_INVALID_CHANNELS, chans, MIN_MIXERS_COUNT, MAX_MIXERS_COUNT);
     }
   }
@@ -275,10 +275,10 @@ namespace ZXTune
     {
       try
       {
-        CheckChannels(data.size());
+        CheckChannels(static_cast<unsigned>(data.size()));
         
         Locker lock(PlayerMutex);
-        const std::size_t mixChannels = data.size();
+        const unsigned mixChannels = static_cast<unsigned>(data.size());
         
         Mixer::Ptr& curMixer(MixersSet[mixChannels - 1]);
         if (!curMixer)
@@ -349,7 +349,7 @@ namespace ZXTune
       {
         Locker lock(PlayerMutex);
         ParametersMap updates;
-        std::set_difference(params.begin(), params.end(), 
+        std::set_difference(params.begin(), params.end(),
           DriverParameters.begin(), DriverParameters.end(), std::inserter(updates, updates.end()),
           CompareParameter);
         OnParametersChanged(updates);
@@ -395,8 +395,8 @@ namespace ZXTune
     void BackendImpl::StopPlayback()
     {
       const State curState(CurrentState);
-      if (STARTED == curState || 
-          PAUSED == curState || 
+      if (STARTED == curState ||
+          PAUSED == curState ||
           (STOPPED == curState && InProcess))
       {
         if (PAUSED == curState)

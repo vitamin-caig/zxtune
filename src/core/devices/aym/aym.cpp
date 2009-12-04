@@ -78,7 +78,7 @@ namespace
       Envelope = Decay = 0;
       Noise = 0;
 
-      LastData.Tick = 0;//~uint64_t(0);
+      LastData.Tick = 0;
     }
 
   private:
@@ -202,7 +202,7 @@ namespace
     const uint64_t ticksPerSample(params.ClockFreq / params.SoundFreq);
     uint64_t nextSampleTick = curTick + ticksPerSample;
 
-    unsigned HighLevel = ~unsigned(0);
+    unsigned HighLevel = ~0u;
     //references to mixered bits. updated automatically
     unsigned volA = (((GetVolA() & DataChunk::MASK_VOL) << 1) + 1);
     unsigned volB = (((GetVolB() & DataChunk::MASK_VOL) << 1) + 1);
@@ -255,7 +255,7 @@ namespace
       {
         TimerE = 0;
         Envelope += Decay;
-        if (Envelope & ~unsigned(31))
+        if (Envelope & ~31u)
         {
           const unsigned envTypeMask = 1 << GetEnv();
           if (envTypeMask & ((1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) |
@@ -342,9 +342,9 @@ namespace
       //octave8
       418620, 443460, 469890, 497790, 527420, 558720, 592000, 627200, 664450, 704000, 745860, 790140
     };
-    const unsigned freq = unsigned(uint64_t(LastTicksPerSec) * 100 / (16 * (period ? period : 1)));
-    const unsigned maxBand = unsigned(ArraySize(FREQ_TABLE) - 1);
-    const unsigned currentBand = unsigned(std::lower_bound(FREQ_TABLE, ArrayEnd(FREQ_TABLE), freq) - FREQ_TABLE);
+    const unsigned freq = static_cast<unsigned>(uint64_t(LastTicksPerSec) * 100 / (16 * (period ? period : 1)));
+    const unsigned maxBand = static_cast<unsigned>(ArraySize(FREQ_TABLE) - 1);
+    const unsigned currentBand = static_cast<unsigned>(std::lower_bound(FREQ_TABLE, ArrayEnd(FREQ_TABLE), freq) - FREQ_TABLE);
     return std::min(currentBand, maxBand);
   }
 }

@@ -32,12 +32,12 @@ namespace ZXTune
       /// Helper functions
       unsigned ClocksPerFrame() const
       {
-        return unsigned(uint64_t(ClockFreq) * FrameDurationMicrosec / 1e6);
+        return static_cast<unsigned>(uint64_t(ClockFreq) * FrameDurationMicrosec / 1e6);
       }
 
       unsigned SamplesPerFrame() const
       {
-        return unsigned(uint64_t(SoundFreq) * FrameDurationMicrosec / 1e6);
+        return static_cast<unsigned>(uint64_t(SoundFreq) * FrameDurationMicrosec / 1e6);
       }
     };
   }

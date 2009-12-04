@@ -140,7 +140,7 @@ namespace
       ExtractMetaProperties(container, region, ModInfo.Properties, RawData);
       
       //fill properties
-      ModInfo.Statistic.Frame = unsigned(Storage.size());
+      ModInfo.Statistic.Frame = static_cast<unsigned>(Storage.size());
       ModInfo.Statistic.Tempo = 1;
       ModInfo.Statistic.Channels = 3;
       ModInfo.PhysicalChannels = 3;

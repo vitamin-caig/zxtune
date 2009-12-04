@@ -191,20 +191,21 @@ private:
 template<class T>
 inline T clamp(T val, T min, T max)
 {
+  BOOST_STATIC_ASSERT(boost::is_arithmetic<T>::value);
   return std::min<T>(std::max<T>(val, min), max);
 }
 
 template<class T>
-inline bool in_range(typename boost::call_traits<T>::param_type val, 
-                     typename boost::call_traits<T>::param_type min, 
-                     typename boost::call_traits<T>::param_type max)
+inline bool in_range(T val, T min, T max)
 {
+  BOOST_STATIC_ASSERT(boost::is_arithmetic<T>::value);
   return val >= min && val <= max;
 }
 
 template<class T>
 inline T align(T val, std::size_t alignment)
 {
+  BOOST_STATIC_ASSERT(boost::is_arithmetic<T>::value);
   return alignment * ((val - 1) / alignment + 1);
 }
 
