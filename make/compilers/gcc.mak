@@ -47,7 +47,8 @@ build_obj_cmd = $(CXX) $(CXX_FLAGS) -c -MD $< -o $@
 build_lib_cmd = $(AR) $(AR_FLAGS) $@ $^
 link_cmd = $(LDD) $(LD_FLAGS) -o $@ $(object_files) \
 	$(if $(libraries),-L$(libs_dir) $(addprefix -l,$(libraries)),) \
-	$(if $(dynamic_libs),-L$(output_dir) $(addprefix -l,$(dynamic_libs)),)
+	$(if $(dynamic_libs),-L$(output_dir) $(addprefix -l,$(dynamic_libs)),) \
+	$(if $($(platform)_libraries),$(addprefix -l,$($(platform)_libraries)),)
 
 #specify postlink command- generate pdb file
 postlink_cmd = objcopy --only-keep-debug $@ $@.pdb && \
