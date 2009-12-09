@@ -26,7 +26,7 @@ namespace ZXTune
 {
   namespace Sound
   {
-    class BackendImpl : public Backend, private Receiver
+    class BackendImpl : public Backend
     {
     public:
       BackendImpl();
@@ -53,12 +53,12 @@ namespace ZXTune
       virtual Error GetRenderParameters(RenderParameters& params) const;
     protected:
       //internal usage functions. Should not call external interface funcs due to sync
-      virtual void OnBufferReady(const void* data, std::size_t sizeInBytes) = 0;
       virtual void OnStartup() = 0;
       virtual void OnShutdown() = 0;
       virtual void OnPause() = 0;
       virtual void OnResume() = 0;
       virtual void OnParametersChanged(const ParametersMap& updates) = 0;
+      virtual void OnBufferReady(std::vector<MultiSample>& buffer) = 0;
     private:
       void CheckState() const;
       void StopPlayback();
@@ -75,12 +75,14 @@ namespace ZXTune
       //state
       volatile State CurrentState;
       volatile bool InProcess;//STOP => STOPPING, STARTED => STARTING
-      Error PlaybackError;
+      Error RenderError;
       //context
       unsigned Channels;
       boost::shared_ptr<Module::Player> Player;
       Converter::Ptr FilterObject;
       std::vector<Mixer::Ptr> MixersSet;
+      Receiver::Ptr Renderer;
+      std::vector<MultiSample> Buffer;
     };
   }
 }

@@ -19,9 +19,11 @@ namespace ZXTune
     class BackendsEnumerator;
     
     //forward declaration of supported backends
+    void RegisterNullBackend(BackendsEnumerator& enumerator);
     
     inline void RegisterBackends(BackendsEnumerator& enumerator)
     {
+      RegisterNullBackend(enumerator);
     }
   }
 }

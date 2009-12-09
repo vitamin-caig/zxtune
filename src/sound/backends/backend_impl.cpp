@@ -118,6 +118,25 @@ namespace
   private:
     boost::mutex& Obj;
   };
+  
+  class BufferRenderer : public Receiver
+  {
+  public:
+    explicit BufferRenderer(std::vector<MultiSample>& buf) : Buffer(buf)
+    {
+    }
+    
+    virtual void ApplySample(const MultiSample& samp)
+    {
+      Buffer.push_back(samp);
+    }
+    
+    void Flush()
+    {
+    }
+  private:
+    std::vector<MultiSample>& Buffer;
+  };
 }
 
 namespace ZXTune
@@ -127,17 +146,17 @@ namespace ZXTune
     BackendImpl::BackendImpl()
       : DriverParameters(), RenderingParameters()
       , SyncBarrier(TOTAL_WORKING_THREADS)
-      , CurrentState(NOTOPENED), InProcess(false), PlaybackError()
-      , Channels(0), Player(), FilterObject()
+      , CurrentState(NOTOPENED), InProcess(false), RenderError()
+      , Channels(0), Player(), FilterObject(), Renderer(new BufferRenderer(Buffer))
     {
-      MixersSet.reserve(MAX_MIXERS_COUNT);
+      MixersSet.resize(MAX_MIXERS_COUNT);
       GetInitialParameters(RenderingParameters);
     }
 
     BackendImpl::~BackendImpl()
     {
-      //TODO: log if error
-      Stop();
+      assert(STOPPED == CurrentState ||
+          NOTOPENED == CurrentState);
     }
 
     Error BackendImpl::SetPlayer(Module::Player::Ptr player)
@@ -162,10 +181,7 @@ namespace ZXTune
         {
           ThrowIfError(CreateMixer(Channels, curMixer));
         }
-        if (FilterObject)
-        {
-          curMixer->SetEndpoint(FilterObject);
-        }
+        curMixer->SetEndpoint(FilterObject ? FilterObject : Renderer);
         return Error();
       }
       catch (const Error& e)
@@ -196,7 +212,7 @@ namespace ZXTune
           SyncBarrier.wait();//wait until real start
           if (STARTED != CurrentState)
           {
-            ThrowIfError(PlaybackError);
+            ThrowIfError(RenderError);
           }
         }
         else if (PAUSED == prevState)
@@ -268,7 +284,7 @@ namespace ZXTune
     {
       Locker lock(PlayerMutex);
       state = CurrentState;
-      return PlaybackError;
+      return RenderError;
     }
 
     Error BackendImpl::SetMixer(const std::vector<MultiGain>& data)
@@ -287,9 +303,9 @@ namespace ZXTune
         }
         ThrowIfError(curMixer->SetMatrix(data));
         //update only if current mutex updated
-        if (Channels && FilterObject)
+        if (Channels)
         {
-          curMixer->SetEndpoint(FilterObject);
+          curMixer->SetEndpoint(FilterObject ? FilterObject : Renderer);
         }
         return Error();
       }
@@ -309,6 +325,7 @@ namespace ZXTune
         }
         Locker lock(PlayerMutex);
         FilterObject = converter;
+        FilterObject->SetEndpoint(Renderer);
         if (Channels)
         {
           MixersSet[Channels]->SetEndpoint(FilterObject);
@@ -385,7 +402,7 @@ namespace ZXTune
 
     void BackendImpl::CheckState() const
     {
-      ThrowIfError(PlaybackError);
+      ThrowIfError(RenderError);
       if (NOTOPENED == CurrentState)
       {
         throw Error(THIS_LINE, BACKEND_CONTROL_ERROR, TEXT_SOUND_ERROR_BACKEND_INVALID_STATE);
@@ -417,8 +434,10 @@ namespace ZXTune
     bool BackendImpl::SafeRenderFrame()
     {
       Locker lock(PlayerMutex);
-      if (Mixer::Ptr mixer = MixersSet[Channels])
+      if (Mixer::Ptr mixer = MixersSet[Channels - 1])
       {
+        Buffer.reserve(RenderingParameters.SamplesPerFrame());
+        Buffer.clear();
         Module::Player::PlaybackState state;
         ThrowIfError(Player->RenderFrame(RenderingParameters, state, *mixer));
         return Module::Player::MODULE_PLAYING == state;
@@ -445,7 +464,9 @@ namespace ZXTune
           }
           else if (STARTED == curState)
           {
-            if (!SafeRenderFrame())//throw
+            const bool cont = SafeRenderFrame();
+            OnBufferReady(Buffer);
+            if (!cont)//throw
             {
               CurrentState = STOPPED;
               InProcess = true; //stopping begin
@@ -463,7 +484,7 @@ namespace ZXTune
       }
       catch (const Error& e)
       {
-        PlaybackError = e;
+        RenderError = e;
         CurrentState = STOPPED;
         SyncBarrier.wait();
         InProcess = false;

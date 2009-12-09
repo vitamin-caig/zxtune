@@ -5,4 +5,6 @@ source_files := test
 libraries := sound tools texts
 depends := src/sound src/tools text
 
+linux_libraries := boost_thread-mt
+
 include $(path_step)/makefile.mak

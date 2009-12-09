@@ -9,6 +9,9 @@ __cpp> "#include <char_type.h>\n\n"
 < __RAWFOOTER__
 __cpp> "#endif //__TEXT_BACKENDS_H_DEFINED__\n"
 
+#null backend
+< TEXT_NULL_BACKEND_DESCRIPTION
+> "Null output backend"
 
 #file backend
 < TEXT_FILE_BACKEND_DESCRIPTION
@@ -25,13 +28,6 @@ __cpp> "#endif //__TEXT_BACKENDS_H_DEFINED__\n"
 
 < FILE_ANNOTATION_FORMAT
 > "%1%=%2%\n"
-
-#null backend
-< TEXT_NULL_BACKEND_DESCRIPTION
-> "Null output backend"
-
-< NULL_BACKEND_KEY
-> "null"
 
 #alsa backend
 < TEXT_ALSA_BACKEND_DESCRIPTION

@@ -19,9 +19,6 @@ extern const Char FILE_BACKEND_KEY[] = {
 extern const Char FILE_WAVE_EXT[] = {
   '.','w','a','v',0
 };
-extern const Char NULL_BACKEND_KEY[] = {
-  'n','u','l','l',0
-};
 extern const Char OSS_BACKEND_KEY[] = {
   'o','s','s',0
 };
