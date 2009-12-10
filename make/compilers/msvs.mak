@@ -30,11 +30,11 @@ LD_FLAGS := $(ld_mode_flags) /NODEFAULTLIB
 build_obj_cmd = $(CXX) $(CXX_FLAGS) /c /Fo$@ $<
 build_lib_cmd = $(AR) /NOLOGO /OUT:$@ $^
 link_cmd = $(LDD) $(LD_FLAGS) /NOLOGO /INCREMENTAL:NO /FIXED:NO /DEBUG \
-        /OPT:REF \
-        /OUT:$@ $(object_files) \
+	/OPT:REF \
+	/OUT:$@ $(object_files) \
 	kernel32.lib $(windows_libraries) \
 	$(if $(libraries),/LIBPATH:$(libs_dir) $(addsuffix .lib,$(libraries)),) \
 	$(if $(dynamic_libs),/LIBPATH:$(output_dir) $(addprefix /DELAYLOAD:,$(addsuffix .dll,$(dynamic_libs))) $(addsuffix .lib,$(dynamic_libs)),) \
 	/PDB:$@.pdb
 
-#postlink_cmd = 
+#postlink_cmd =
