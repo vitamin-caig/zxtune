@@ -89,7 +89,6 @@ namespace
       if (++Frames > 500)
       {
         state = MODULE_STOPPED;
-        std::cout << "Stop!";
       }
       else
       {
@@ -155,7 +154,7 @@ namespace
     for (;;)
     {
       boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
-      std::cout << '.';
+      std::cout << '.' << std::flush;
       ThrowIfError(backend->GetCurrentState(state));
       if (state == Backend::STOPPED)
       {

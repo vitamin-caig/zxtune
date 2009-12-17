@@ -5,6 +5,9 @@ makeobj_name = $(1).obj
 
 compiler := $(if $(compiler),$(compiler),msvs)
 
+# built-in features
+support_waveout = 1
+
 # installable boost names convention used
 # [prefix]boost_[lib]-[msvs]-mt[-gd]-[version].lib
 # prefix - 'lib' for static libraries

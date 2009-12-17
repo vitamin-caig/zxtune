@@ -259,7 +259,7 @@ namespace ZXTune
 {
   namespace Sound
   {
-    void RegisterWin32Backend(/*BackendsEnumerator& enumerator*/)
+    void RegisterWin32Backend(class BackendsEnumerator& /*enumerator*/)
     {
       //do nothing
     }
