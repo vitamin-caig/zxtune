@@ -16,6 +16,9 @@ bins_dir := $(path_step)/bin/$(mode)
 #set platform-specific parameters
 include $(path_step)/make/platforms/$(platform).mak
 
+#set features
+include $(path_step)/features.mak
+
 #tune output according to type
 ifdef library_name
 output_dir := $(libs_dir)

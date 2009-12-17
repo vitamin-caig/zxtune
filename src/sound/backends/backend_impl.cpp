@@ -342,17 +342,17 @@ namespace ZXTune
         : public boost::static_visitor<bool>
     {
     public:
-        template <typename T, typename U>
-        bool operator()( const T &, const U & ) const
-        {
-            return false; // cannot compare different types
-        }
+      template <typename T, typename U>
+      bool operator()( const T &, const U & ) const
+      {
+          return false; // cannot compare different types
+      }
 
-        template <typename T>
-        bool operator()( const T & lhs, const T & rhs ) const
-        {
-            return lhs == rhs;
-        }
+      template <typename T>
+      bool operator()( const T & lhs, const T & rhs ) const
+      {
+          return lhs == rhs;
+      }
     };
 
     bool CompareParameter(const ParametersMap::value_type& lh, const ParametersMap::value_type& rh)
@@ -464,9 +464,9 @@ namespace ZXTune
           }
           else if (STARTED == curState)
           {
-            const bool cont = SafeRenderFrame();
+            const bool stopping = !SafeRenderFrame();
             OnBufferReady(Buffer);
-            if (!cont)//throw
+            if (stopping)
             {
               CurrentState = STOPPED;
               InProcess = true; //stopping begin

@@ -13,7 +13,6 @@ Author:
 #include "backend_wrapper.h"
 #include "enumerator.h"
 
-#include <boost/thread.hpp>
 #include <boost/noncopyable.hpp>
 
 #include <text/backends.h>

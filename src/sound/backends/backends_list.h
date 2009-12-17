@@ -20,10 +20,12 @@ namespace ZXTune
     
     //forward declaration of supported backends
     void RegisterNullBackend(BackendsEnumerator& enumerator);
+    void RegisterWin32Backend(BackendsEnumerator& enumerator);
     
     inline void RegisterBackends(BackendsEnumerator& enumerator)
     {
       RegisterNullBackend(enumerator);
+      RegisterWin32Backend(enumerator);
     }
   }
 }

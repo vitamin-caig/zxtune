@@ -56,7 +56,7 @@ namespace
       , BitA(), BitB(), BitC(), BitN()
       , TimerA(), TimerB(), TimerC(), TimerN(), TimerE()
       , Envelope(), Decay(), Noise()
-      , LastData(), LastTicksPerSec()
+      , LastData(), LastTicksPerSec(), LastStartTicks(), LastSamplesDone()
     {
       Reset();
     }
@@ -79,6 +79,7 @@ namespace
       Noise = 0;
 
       LastData.Tick = 0;
+      LastTicksPerSec = 0;
     }
 
   private:
@@ -144,6 +145,8 @@ namespace
 
     DataChunk LastData;
     uint32_t LastTicksPerSec;
+    uint64_t LastStartTicks;
+    unsigned LastSamplesDone;
   };
 
   void ChipImpl::RenderData(const Sound::RenderParameters& params, const DataChunk& src, Sound::MultichannelReceiver& dst)
@@ -197,10 +200,15 @@ namespace
 
   void ChipImpl::DoRender(const Sound::RenderParameters& params, Sound::MultichannelReceiver& dst)
   {
-    LastTicksPerSec = params.ClockFreq;
+    //for more precise rendering
+    if (LastTicksPerSec != params.ClockFreq)
+    {
+      LastStartTicks = State.Tick;
+      LastSamplesDone = 1;
+      LastTicksPerSec = params.ClockFreq;
+    }
     uint64_t& curTick = State.Tick;
-    const uint64_t ticksPerSample(params.ClockFreq / params.SoundFreq);
-    uint64_t nextSampleTick = curTick + ticksPerSample;
+    uint64_t nextSampleTick = LastStartTicks + params.ClockFreq / params.SoundFreq;
 
     unsigned HighLevel = ~0u;
     //references to mixered bits. updated automatically
@@ -227,7 +235,7 @@ namespace
         Result[2] = GetVolume(ToneBitC & NoiseBitC & VolumeC, isYM);
     
         dst.ApplySample(Result);
-        nextSampleTick += ticksPerSample;
+        nextSampleTick = LastStartTicks + params.ClockFreq * ++LastSamplesDone / params.SoundFreq;
       }
       curTick += 8;//base freq divisor
       if (++TimerA >= GetToneA())
