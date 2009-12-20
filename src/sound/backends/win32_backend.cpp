@@ -14,7 +14,7 @@ Author:
 #include "backend_impl.h"
 #include "backend_wrapper.h"
 #include "enumerator.h"
-#include "../error_codes.h"
+#include <sound/error_codes.h>
 
 #include <boost/noncopyable.hpp>
 

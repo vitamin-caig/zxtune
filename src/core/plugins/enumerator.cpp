@@ -10,9 +10,9 @@ Author:
 */
 
 #include "enumerator.h"
-#include "../plugin.h"
-#include "../error_codes.h"
-#include "../module_attrs.h"
+#include <core/plugin.h>
+#include <core/error_codes.h>
+#include <core/module_attrs.h>
 
 #include "players/plugins_list.h"
 #include "containers/plugins_list.h"

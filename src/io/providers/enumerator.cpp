@@ -9,7 +9,7 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-#include "../error_codes.h"
+#include <io/error_codes.h>
 
 #include "enumerator.h"
 #include "providers_list.h"
@@ -64,12 +64,12 @@ namespace
       Providers.push_back(ProviderEntry(info, detector, opener, splitter, combiner));
     }
       
-    virtual Error OpenUri(const String& uri, const OpenDataParameters& params, DataContainer::Ptr& result, String& subpath) const
+    virtual Error OpenUri(const String& uri, const ParametersMap& params, const ProgressCallback& cb, DataContainer::Ptr& result, String& subpath) const
     {
       const ProvidersList::const_iterator it = FindProvider(uri);
       if (it != Providers.end())
       {
-        return it->Opener(uri, params, result, subpath);
+        return it->Opener(uri, params, cb, result, subpath);
       }
       return Error(THIS_LINE, NOT_SUPPORTED, TEXT_IO_ERROR_NOT_SUPPORTED_URI);
     }
@@ -121,9 +121,9 @@ namespace ZXTune
       return instance;
     }
     
-    Error OpenData(const String& uri, const OpenDataParameters& params, DataContainer::Ptr& data, String& subpath)
+    Error OpenData(const String& uri, const ParametersMap& params, const ProgressCallback& cb, DataContainer::Ptr& data, String& subpath)
     {
-      return ProvidersEnumerator::Instance().OpenUri(uri, params, data, subpath);
+      return ProvidersEnumerator::Instance().OpenUri(uri, params, cb, data, subpath);
     }
     
     Error SplitUri(const String& uri, String& baseUri, String& subpath)

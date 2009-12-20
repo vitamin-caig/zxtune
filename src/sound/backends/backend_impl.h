@@ -16,9 +16,8 @@ Author:
 
 #include <core/player.h>
 #include <sound/mixer.h>
+#include <sound/backend.h>
 #include <sound/render_params.h>
-
-#include "../backend.h"
 
 #include <boost/thread.hpp>
 

@@ -9,7 +9,7 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-#include "../backend.h"
+#include <sound/backend.h>
 
 #include <memory>
 

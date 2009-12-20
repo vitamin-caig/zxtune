@@ -11,7 +11,8 @@ Author:
 
 #include "enumerator.h"
 
-#include "../error_codes.h"
+#include <io/error_codes.h>
+#include <io/providers_parameters.h>
 
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
@@ -22,10 +23,11 @@ Author:
 
 #define FILE_TAG 0D4CB3DA
 
-using namespace ZXTune::IO;
-
 namespace
 {
+  using namespace ZXTune;
+  using namespace ZXTune::IO;
+
   const Char SCHEME_SIGN[] = {':', '/', '/', 0};
   const Char SCHEME_FILE[] = {'f', 'i', 'l', 'e', 0};
   const Char SUBPATH_DELIMITER = '\?';
@@ -69,10 +71,11 @@ namespace
       boost::interprocess::mapped_region Region;
     };
     
-    class FileHolder : public Holder
+    class SmartFileHolder : public Holder
     {
     public:
-      explicit FileHolder(const String& path)
+      SmartFileHolder(const String& path, const ParametersMap& params)
+        : Delegate(0)
       {
         std::ifstream file(path.c_str(), std::ios::binary);
         if (!file)
@@ -80,34 +83,47 @@ namespace
           throw Error(THIS_LINE, NO_ACCESS, TEXT_IO_ERROR_NO_ACCESS);
         }
         file.seekg(0, std::ios::end);
-        Buffer.resize(file.tellg());
-        file.seekg(0);
-        if (!Buffer.size() || !file)
+        const std::streampos fileSize = file.tellg();
+        if (!fileSize || !file)
         {
           throw Error(THIS_LINE, IO_ERROR, TEXT_IO_ERROR_IO_ERROR);
         }
-        file.read(safe_ptr_cast<char*>(&Buffer[0]), std::streamsize(Buffer.size()));
+        int64_t threshold = Parameters::IO::Providers::File::MMAP_THRESHOLD_DEFAULT;
+        if (const int64_t* val = FindParameter<int64_t>(params, Parameters::IO::Providers::File::MMAP_THRESHOLD))
+        {
+          threshold = *val;
+        }
+        if (threshold >= fileSize)
+        {
+          file.close();
+          //use mmap
+          Delegate = new MMapHolder(path);
+        }
+        else
+        {
+          Buffer.resize(fileSize);
+          file.seekg(0);
+          file.read(safe_ptr_cast<char*>(&Buffer[0]), std::streamsize(Buffer.size()));
+        }
       }
       
       virtual std::size_t Size() const
       {
-        return Buffer.size();
+        return Delegate ? Delegate->Size() : Buffer.size();
       }
       
       virtual const uint8_t* Data() const
       {
-        return &Buffer[0];
+        return Delegate ? Delegate->Data() : &Buffer[0];
       }
     private:
+      Holder* Delegate;
       Dump Buffer;
     };
   public:
-    FileDataContainer(const String& path, const OpenDataParameters& params)
-      : CoreHolder((params.Flags & USE_MMAP) ? 
-          static_cast<Holder*>(new MMapHolder(path))
-          :
-          static_cast<Holder*>(new FileHolder(path)))
-          , Offset(0), Length(CoreHolder->Size())
+    FileDataContainer(const String& path, const ParametersMap& params)
+      : CoreHolder(new SmartFileHolder(path, params))
+      , Offset(0), Length(CoreHolder->Size())
     {
     }
     
@@ -196,7 +212,8 @@ namespace
     return Error();
   }
   
-  Error FileOpener(const String& uri, const OpenDataParameters& params, DataContainer::Ptr& result, String& subpath)
+  //no callback
+  Error FileOpener(const String& uri, const ParametersMap& params, const ProgressCallback& /*cb*/, DataContainer::Ptr& result, String& subpath)
   {
     String openUri, openSub;
     if (const Error& e = FileSplitter(uri, openUri, openSub))

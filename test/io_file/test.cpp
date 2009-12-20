@@ -1,5 +1,6 @@
 #include <src/io/provider.h>
 #include <src/io/error_codes.h>
+#include <src/io/providers_parameters.h>
 
 #include <error.h>
 
@@ -56,13 +57,14 @@ int main()
   using namespace ZXTune::IO;
   std::cout << "------ test for openers --------\n";
   String subpath;
-  OpenDataParameters params;
+  ParametersMap params;
   DataContainer::Ptr data;
-  Test(OpenData(EXISTING_FILE, params, data, subpath), "Opening in buffer mode", __LINE__);
-  CheckError(OpenData(NONEXISTING_FILE, params, data, subpath), NOT_OPENED, "Open non-existent in buffer mode", __LINE__);
-  CheckError(OpenData(LOCKED_FILE, params, data, subpath), NOT_OPENED, "Open locked in buffer mode", __LINE__);
-  params.Flags = USE_MMAP;
-  Test(OpenData(EXISTING_FILE, params, data, subpath), "Opening in mmap mode", __LINE__);
-  CheckError(OpenData(NONEXISTING_FILE, params, data, subpath), NOT_OPENED, "Open non-existent in shared mode", __LINE__);  
-  CheckError(OpenData(LOCKED_FILE, params, data, subpath), NOT_OPENED, "Open locked in shared mode", __LINE__);
+  params[ZXTune::Parameters::IO::Providers::File::MMAP_THRESHOLD] = std::numeric_limits<int64_t>::max();//set always buffered
+  Test(OpenData(EXISTING_FILE, params, ProgressCallback(), data, subpath), "Opening in buffer mode", __LINE__);
+  CheckError(OpenData(NONEXISTING_FILE, params, ProgressCallback(), data, subpath), NOT_OPENED, "Open non-existent in buffer mode", __LINE__);
+  CheckError(OpenData(LOCKED_FILE, params, ProgressCallback(), data, subpath), NOT_OPENED, "Open locked in buffer mode", __LINE__);
+  params[ZXTune::Parameters::IO::Providers::File::MMAP_THRESHOLD] = 0;//set always mmaped
+  Test(OpenData(EXISTING_FILE, params, ProgressCallback(), data, subpath), "Opening in mmap mode", __LINE__);
+  CheckError(OpenData(NONEXISTING_FILE, params, ProgressCallback(), data, subpath), NOT_OPENED, "Open non-existent in shared mode", __LINE__);  
+  CheckError(OpenData(LOCKED_FILE, params, ProgressCallback(), data, subpath), NOT_OPENED, "Open locked in shared mode", __LINE__);
 }

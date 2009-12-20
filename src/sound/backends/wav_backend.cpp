@@ -9,15 +9,13 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-#define FILE_TAG EF5CB4C6
-
 #include "backend_impl.h"
 #include "backend_wrapper.h"
-#include "backends_parameters.h"
 #include "enumerator.h"
 
 #include <io/error_codes.h>
 #include <sound/error_codes.h>
+#include <sound/backends_parameters.h>
 
 #include <byteorder.h>
 
@@ -27,6 +25,8 @@ Author:
 #include <algorithm>
 
 #include <text/backends.h>
+
+#define FILE_TAG EF5CB4C6
 
 namespace
 {

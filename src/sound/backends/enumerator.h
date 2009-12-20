@@ -11,7 +11,7 @@ Author:
 #ifndef __SOUND_BACKENDS_ENUMERATOR_H_DEFINED__
 #define __SOUND_BACKENDS_ENUMERATOR_H_DEFINED__
 
-#include "../backend.h"
+#include <sound/backend.h>
 
 #include <boost/function.hpp>
 
