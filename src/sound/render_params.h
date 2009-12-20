@@ -13,6 +13,8 @@ Author:
 
 #include <types.h>
 
+#include "sound_parameters.h"
+
 namespace ZXTune
 {
   namespace Sound
@@ -22,9 +24,9 @@ namespace ZXTune
     {
       /// Fill with the default parameters
       RenderParameters()
-        : ClockFreq(1750000)//1.75MHz
-	, SoundFreq(44100)//44.1kHz
-	, FrameDurationMicrosec(20000)//50Hz
+        : ClockFreq(Parameters::Sound::CLOCKRATE_DEFAULT)
+	, SoundFreq(Parameters::Sound::FREQUENCY_DEFAULT)
+	, FrameDurationMicrosec(Parameters::Sound::FRAMEDURATION_DEFAULT)
       {
       }
     
