@@ -5,4 +5,7 @@ makeobj_name = $(1).o
 
 compiler=gcc
 
+#built-in features
+support_oss = 1
+
 linux_libraries += $(foreach lib,$(boost_libraries),boost_$(lib)-mt)

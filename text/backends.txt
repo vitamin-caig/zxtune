@@ -40,8 +40,8 @@ __cpp> "#endif //__TEXT_BACKENDS_H_DEFINED__\n"
 < TEXT_OSS_BACKEND_DESCRIPTION
 > "OSS sound system backend"
 
-< OSS_BACKEND_KEY
-> "oss"
+< TEXT_SOUND_ERROR_OSS_BACKEND_ERROR
+> "Error in OSS backend: %1%."
 
 #win32 backend
 < TEXT_WIN32_BACKEND_DESCRIPTION

@@ -68,17 +68,13 @@ namespace ZXTune
       virtual Error SetMixer(const std::vector<MultiGain>& data) = 0;
       // adding filter
       virtual Error SetFilter(Converter::Ptr converter) = 0;
-
-      // driver parameters
-      virtual Error SetDriverParameters(const ParametersMap& params) = 0;
-      virtual Error GetDriverParameters(ParametersMap& params) const = 0;
-      // rendering parameters
-      virtual Error SetRenderParameters(const RenderParameters& params) = 0;
-      virtual Error GetRenderParameters(RenderParameters& params) const = 0;
-      
       // hardware volume control
       virtual Error GetVolume(MultiGain& volume) const = 0;
       virtual Error SetVolume(const MultiGain& volume) = 0;
+
+      // common parameters
+      virtual Error SetParameters(const ParametersMap& params) = 0;
+      virtual Error GetParameters(ParametersMap& params) const = 0;
     };
 
     //common interface

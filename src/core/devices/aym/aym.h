@@ -60,6 +60,9 @@ namespace ZXTune
 
         //to mark all registers actual
         ALL_REGISTERS = 0x3fff,
+	
+	//use YM chip
+	YM_CHIP = 0x4000
       };
 
       DataChunk() : Tick(), Mask()

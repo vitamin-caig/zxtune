@@ -14,9 +14,8 @@ Author:
 
 #include <tools.h>
 
-#include <sound/sound_attrs.h>
 #include <sound/sound_types.h>
-#include <sound/sound_params.h>
+#include <sound/render_params.h>
 
 #include <limits>
 #include <memory>
@@ -126,10 +125,10 @@ namespace
     {
       return State.Data[DataChunk::REG_ENV];
     }
-    inline Sound::Sample GetVolume(unsigned regVol, bool ym)
+    inline Sound::Sample GetVolume(unsigned regVol)
     {
       assert(regVol < 32);
-      return (ym ? YMVolumeTab : AYVolumeTab)[regVol] / 2;
+      return ((LastData.Mask & DataChunk::YM_CHIP) ? YMVolumeTab : AYVolumeTab)[regVol] / 2;
     }
     unsigned GetBandByPeriod(unsigned regVal) const;
   protected:
@@ -144,8 +143,9 @@ namespace
     uint32_t Noise;
 
     DataChunk LastData;
-    uint32_t LastTicksPerSec;
+    uint64_t LastTicksPerSec;
     uint64_t LastStartTicks;
+    unsigned LastSoundFreq;
     unsigned LastSamplesDone;
   };
 
@@ -155,7 +155,7 @@ namespace
     {
       LastData = src;
       //output dump
-      if (LastData.Mask)
+      if (LastData.Mask & DataChunk::ALL_REGISTERS)
       {
         ApplyLastData();
       }
@@ -165,8 +165,7 @@ namespace
 
   void ChipImpl::ApplyLastData()
   {
-    unsigned mask = 1;
-    for (unsigned idx = 0; idx != ArraySize(LastData.Data); ++idx, mask <<= 1)
+    for (unsigned idx = 0, mask = 1; idx != ArraySize(LastData.Data); ++idx, mask <<= 1)
     {
       if (LastData.Mask & mask) //register is in dump
       {
@@ -201,14 +200,15 @@ namespace
   void ChipImpl::DoRender(const Sound::RenderParameters& params, Sound::MultichannelReceiver& dst)
   {
     //for more precise rendering
-    if (LastTicksPerSec != params.ClockFreq)
+    if (LastTicksPerSec != params.ClockFreq || LastSoundFreq != params.SoundFreq)
     {
       LastStartTicks = State.Tick;
-      LastSamplesDone = 1;
+      LastSoundFreq = params.SoundFreq;
       LastTicksPerSec = params.ClockFreq;
+      LastSamplesDone = 1;
     }
     uint64_t& curTick = State.Tick;
-    uint64_t nextSampleTick = LastStartTicks + params.ClockFreq / params.SoundFreq;
+    uint64_t nextSampleTick = LastStartTicks + LastTicksPerSec * LastSamplesDone / LastSoundFreq;
 
     unsigned HighLevel = ~0u;
     //references to mixered bits. updated automatically
@@ -229,13 +229,12 @@ namespace
     {
       if (curTick >= nextSampleTick) //need to store sample
       {
-        const bool isYM(0 != (params.Flags & Sound::PSG_TYPE_YM));
-        Result[0] = GetVolume(ToneBitA & NoiseBitA & VolumeA, isYM);
-        Result[1] = GetVolume(ToneBitB & NoiseBitB & VolumeB, isYM);
-        Result[2] = GetVolume(ToneBitC & NoiseBitC & VolumeC, isYM);
+        Result[0] = GetVolume(ToneBitA & NoiseBitA & VolumeA);
+        Result[1] = GetVolume(ToneBitB & NoiseBitB & VolumeB);
+        Result[2] = GetVolume(ToneBitC & NoiseBitC & VolumeC);
     
         dst.ApplySample(Result);
-        nextSampleTick = LastStartTicks + params.ClockFreq * ++LastSamplesDone / params.SoundFreq;
+        nextSampleTick = LastStartTicks + LastTicksPerSec * ++LastSamplesDone / LastSoundFreq;
       }
       curTick += 8;//base freq divisor
       if (++TimerA >= GetToneA())

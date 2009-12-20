@@ -80,26 +80,6 @@ namespace ZXTune
         return Delegate->SetFilter(converter);
       }
 
-      virtual Error SetDriverParameters(const ParametersMap& params)
-      {
-        return Delegate->SetDriverParameters(params);
-      }
-      
-      virtual Error GetDriverParameters(ParametersMap& params) const
-      {
-        return Delegate->GetDriverParameters(params);
-      }
-      
-      virtual Error SetRenderParameters(const RenderParameters& params)
-      {
-        return Delegate->SetRenderParameters(params);
-      }
-      
-      virtual Error GetRenderParameters(RenderParameters& params) const
-      {
-        return Delegate->GetRenderParameters(params);
-      }
-      
       virtual Error GetVolume(MultiGain& volume) const
       {
         return Delegate->GetVolume(volume);
@@ -109,6 +89,17 @@ namespace ZXTune
       {
         return Delegate->SetVolume(volume);
       }
+
+      virtual Error SetParameters(const ParametersMap& params)
+      {
+        return Delegate->SetParameters(params);
+      }
+      
+      virtual Error GetParameters(ParametersMap& params) const
+      {
+        return Delegate->GetParameters(params);
+      }
+      
     private:
       std::auto_ptr<Impl> Delegate;
     };

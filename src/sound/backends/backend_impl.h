@@ -16,7 +16,7 @@ Author:
 
 #include <core/player.h>
 #include <sound/mixer.h>
-#include <sound/sound_params.h>
+#include <sound/render_params.h>
 
 #include "../backend.h"
 
@@ -46,11 +46,8 @@ namespace ZXTune
       virtual Error SetMixer(const std::vector<MultiGain>& data);
       virtual Error SetFilter(Converter::Ptr converter);
       
-      virtual Error SetDriverParameters(const ParametersMap& params);
-      virtual Error GetDriverParameters(ParametersMap& params) const;
-
-      virtual Error SetRenderParameters(const RenderParameters& params);
-      virtual Error GetRenderParameters(RenderParameters& params) const;
+      virtual Error SetParameters(const ParametersMap& params);
+      virtual Error GetParameters(ParametersMap& params) const;
     protected:
       //internal usage functions. Should not call external interface funcs due to sync
       virtual void OnStartup() = 0;
@@ -65,7 +62,7 @@ namespace ZXTune
       bool SafeRenderFrame();
       void RenderFunc();
     protected:
-      ParametersMap DriverParameters;
+      ParametersMap CommonParameters;
       RenderParameters RenderingParameters;
     private:
       //sync

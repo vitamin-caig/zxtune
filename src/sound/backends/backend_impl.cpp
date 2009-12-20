@@ -12,6 +12,7 @@ Author:
 #include "backend_impl.h"
 
 #include "../error_codes.h"
+#include "../sound_parameters.h"
 
 #include <text/sound.h>
 
@@ -85,6 +86,12 @@ namespace
       //do not lock
       return Delegate->SetPosition(frame);
     }
+    
+    virtual Error SetParameters(const ParametersMap& params)
+    {
+      //do not lock
+      return Delegate->SetParameters(params);
+    }
 
     virtual Error Convert(const Module::Conversion::Parameter& param, Dump& dst) const
     {
@@ -96,12 +103,30 @@ namespace
     boost::mutex& Mutex;
   };
   
-  void GetInitialParameters(RenderParameters& params)
+  void CopyInitialParameters(const RenderParameters& renderParams, ParametersMap& commonParams)
   {
-    params.SoundFreq = 44100;
-    params.ClockFreq = 1750000;
-    params.FrameDurationMicrosec = 20000;//50Hz
-    params.Flags = 0;
+    commonParams[Parameters::FREQUENCY] = renderParams.SoundFreq;
+    assert(FindParameter<int64_t>(commonParams, Parameters::FREQUENCY));
+    commonParams[Parameters::CLOCKRATE] = renderParams.ClockFreq;
+    assert(FindParameter<int64_t>(commonParams, Parameters::CLOCKRATE));
+    commonParams[Parameters::FRAMEDURATION] = renderParams.FrameDurationMicrosec;
+    assert(FindParameter<int64_t>(commonParams, Parameters::FRAMEDURATION));
+  }
+  
+  void UpdateRenderParameters(const ParametersMap& updates, RenderParameters& renderParams)
+  {
+    if (const int64_t* freq = FindParameter<int64_t>(updates, Parameters::FREQUENCY))
+    {
+      renderParams.SoundFreq = static_cast<unsigned>(*freq);
+    }
+    if (const int64_t* clock = FindParameter<int64_t>(updates, Parameters::CLOCKRATE))
+    {
+      renderParams.ClockFreq = static_cast<uint64_t>(*clock);
+    }
+    if (const int64_t* frame = FindParameter<int64_t>(updates, Parameters::FRAMEDURATION))
+    {
+      renderParams.FrameDurationMicrosec = static_cast<unsigned>(*frame);
+    }
   }
   
   class Unlocker
@@ -144,13 +169,13 @@ namespace ZXTune
   namespace Sound
   {
     BackendImpl::BackendImpl()
-      : DriverParameters(), RenderingParameters()
+      : RenderingParameters()
       , SyncBarrier(TOTAL_WORKING_THREADS)
       , CurrentState(NOTOPENED), InProcess(false), RenderError()
       , Channels(0), Player(), FilterObject(), Renderer(new BufferRenderer(Buffer))
     {
       MixersSet.resize(MAX_MIXERS_COUNT);
-      GetInitialParameters(RenderingParameters);
+      CopyInitialParameters(RenderingParameters, CommonParameters);
     }
 
     BackendImpl::~BackendImpl()
@@ -360,17 +385,26 @@ namespace ZXTune
       return lh.first < rh.first || !boost::apply_visitor(are_strict_equals(), lh.second, rh.second);
     }
 
-    Error BackendImpl::SetDriverParameters(const ParametersMap& params)
+    Error BackendImpl::SetParameters(const ParametersMap& params)
     {
       try
       {
         Locker lock(PlayerMutex);
         ParametersMap updates;
         std::set_difference(params.begin(), params.end(),
-          DriverParameters.begin(), DriverParameters.end(), std::inserter(updates, updates.end()),
+          CommonParameters.begin(), CommonParameters.end(), std::inserter(updates, updates.end()),
           CompareParameter);
+        UpdateRenderParameters(updates, RenderingParameters);
         OnParametersChanged(updates);
-        DriverParameters = params;
+        Player->SetParameters(updates);
+        //merge result back
+        {
+          ParametersMap merged;
+          std::set_union(updates.begin(), updates.end(),
+            CommonParameters.begin(), CommonParameters.end(), std::inserter(merged, merged.end()),
+            CompareParameter);
+          CommonParameters.swap(merged);
+        }
         return Error();
       }
       catch (const Error& e)
@@ -379,27 +413,14 @@ namespace ZXTune
       }
     }
     
-    Error BackendImpl::GetDriverParameters(ParametersMap& params) const
+    Error BackendImpl::GetParameters(ParametersMap& params) const
     {
       Locker lock(PlayerMutex);
-      params = DriverParameters;
+      params = CommonParameters;
       return Error();
     }
 
-    Error BackendImpl::SetRenderParameters(const RenderParameters& params)
-    {
-      Locker lock(PlayerMutex);
-      RenderingParameters = params;
-      return Error();
-    }
-    
-    Error BackendImpl::GetRenderParameters(RenderParameters& params) const
-    {
-      Locker lock(PlayerMutex);
-      params = RenderingParameters;
-      return Error();
-    }
-
+    //internal functions
     void BackendImpl::CheckState() const
     {
       ThrowIfError(RenderError);

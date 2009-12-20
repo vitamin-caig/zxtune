@@ -21,8 +21,7 @@ Author:
 #include <core/devices/aym/aym.h>
 #include <core/convert_parameters.h>
 
-#include <sound/sound_attrs.h>
-#include <sound/sound_params.h>
+#include <sound/render_params.h>
 
 #include <io/container.h>
 
@@ -76,7 +75,7 @@ namespace
   {
   public:
     PSGPlayer(const MetaContainer& container, ModuleRegion& region)
-      : Device(AYM::CreateChip()), CurrentState(MODULE_STOPPED), TickCount(), Position()
+      : Device(AYM::CreateChip()), CurrentState(MODULE_STOPPED), TickCount(), Position(), Looped()
     {
       const IO::FastDump data(*container.Data);
       //workaround for some emulators
@@ -177,7 +176,7 @@ namespace
         {
           return Error(THIS_LINE, ERROR_MODULE_END, TEXT_MODULE_ERROR_MODULE_END);
         }
-        if (params.Flags & Sound::MOD_LOOP)
+        if (Looped)
         {
           Position = 0;
         }
@@ -219,6 +218,11 @@ namespace
       return Error();
     }
 
+    virtual Error SetParameters(const ParametersMap& /*params*/)
+    {
+      return Error();//TODO
+    }
+
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
     {
       using namespace Conversion;
@@ -240,6 +244,7 @@ namespace
     PlaybackState CurrentState;
     uint64_t TickCount;
     std::size_t Position;
+    bool Looped;
     std::vector<AYM::DataChunk> Storage;
   };
   

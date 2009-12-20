@@ -73,6 +73,7 @@ namespace ZXTune
       /// Controlling
       virtual Error Reset() = 0;
       virtual Error SetPosition(unsigned frame) = 0;
+      virtual Error SetParameters(const ParametersMap& params) = 0;
 
       /// Converting
       virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const = 0;

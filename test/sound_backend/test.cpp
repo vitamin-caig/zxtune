@@ -3,7 +3,7 @@
 #include <core/devices/aym/aym.h>
 #include <sound/backend.h>
 #include <sound/error_codes.h>
-#include <sound/sound_params.h>
+#include <sound/render_params.h>
 
 #include <iostream>
 #include <iomanip>
@@ -76,8 +76,8 @@ namespace
     virtual Error RenderFrame(const RenderParameters& params, PlaybackState& state, MultichannelReceiver& receiver)
     {
       const uint16_t toneA(Frames);
-      const uint16_t toneB(Frames * 2);
-      const uint16_t toneC(Frames * 3);
+      const uint16_t toneB(Frames / 3);
+      const uint16_t toneC(Frames / 5);
       Chunk.Data[AYM::DataChunk::REG_TONEA_L] = toneA & 0xff;
       Chunk.Data[AYM::DataChunk::REG_TONEA_H] = toneA >> 8;
       Chunk.Data[AYM::DataChunk::REG_TONEB_L] = toneB & 0xff;
@@ -86,6 +86,7 @@ namespace
       Chunk.Data[AYM::DataChunk::REG_TONEC_H] = toneC >> 8;
       Chunk.Tick += params.ClocksPerFrame();
       Chip->RenderData(params, Chunk, receiver);
+      Chunk.Mask &= ~(AYM::DataChunk::REG_VOLA | AYM::DataChunk::REG_VOLB | AYM::DataChunk::REG_VOLC);
       if (++Frames > 500)
       {
         state = MODULE_STOPPED;
@@ -104,6 +105,11 @@ namespace
     }
     
     virtual Error SetPosition(unsigned frame)
+    {
+      return Error();
+    }
+    
+    virtual Error SetParameters(const ParametersMap& params)
     {
       return Error();
     }
