@@ -13,9 +13,14 @@ Author:
 #include "backend_wrapper.h"
 #include "enumerator.h"
 
+#include <sound/error_codes.h>
+
 #include <boost/noncopyable.hpp>
 
+#include <text/sound.h>
 #include <text/backends.h>
+
+#define FILE_TAG 9A6FD87F
 
 namespace
 {
@@ -45,12 +50,12 @@ namespace
 
     virtual Error GetVolume(MultiGain& /*volume*/) const
     {
-      return Error();
+      return Error(THIS_LINE, BACKEND_UNSUPPORTED_FUNC, TEXT_SOUND_ERROR_BACKEND_UNSUPPORTED_VOLUME);
     }
     
     virtual Error SetVolume(const MultiGain& /*volume*/)
     {
-      return Error();
+      return Error(THIS_LINE, BACKEND_UNSUPPORTED_FUNC, TEXT_SOUND_ERROR_BACKEND_UNSUPPORTED_VOLUME);
     }
 
     virtual void OnStartup()
@@ -75,7 +80,6 @@ namespace
     
     virtual void OnBufferReady(std::vector<MultiSample>& /*buffer*/)
     {
-      //boost::this_thread::sleep(boost::posix_time::milliseconds(RenderingParameters.FrameDurationMicrosec / 1000));
     }
   };
 

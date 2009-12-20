@@ -13,17 +13,17 @@ Author:
 #include "backend_wrapper.h"
 #include "enumerator.h"
 
+#include <byteorder.h>
 #include <io/error_codes.h>
 #include <sound/error_codes.h>
 #include <sound/backends_parameters.h>
-
-#include <byteorder.h>
 
 #include <boost/noncopyable.hpp>
 
 #include <fstream>
 #include <algorithm>
 
+#include <text/sound.h>
 #include <text/backends.h>
 
 #define FILE_TAG EF5CB4C6
@@ -161,12 +161,12 @@ namespace
 
     virtual Error GetVolume(MultiGain& /*volume*/) const
     {
-      return Error(THIS_LINE, BACKEND_UNSUPPORTED_FUNC);//TODO
+      return Error(THIS_LINE, BACKEND_UNSUPPORTED_FUNC, TEXT_SOUND_ERROR_BACKEND_UNSUPPORTED_VOLUME);
     }
 
     virtual Error SetVolume(const MultiGain& /*volume*/)
     {
-      return Error(THIS_LINE, BACKEND_UNSUPPORTED_FUNC);//TODO
+      return Error(THIS_LINE, BACKEND_UNSUPPORTED_FUNC, TEXT_SOUND_ERROR_BACKEND_UNSUPPORTED_VOLUME);
     }
 
     virtual void OnStartup()
@@ -220,28 +220,14 @@ namespace
     }
 
 
-    virtual void OnParametersChanged(const ParametersMap& /*updates*/)
+    virtual void OnParametersChanged(const ParametersMap& updates)
     {
-      /*
-      //loop is disabled
-      Params.SoundParameters.Flags &= ~MOD_LOOP;
-      const bool needStartup(Stream != 0);
-      if (needStartup)
+      if (File.is_open() &&
+          (FindParameter<int64_t>(updates, Parameters::Sound::FREQUENCY) ||
+           FindParameter<String>(updates, Parameters::Sound::Backends::FILENAME)))
       {
-        OnShutdown();
+        throw Error(THIS_LINE, BACKEND_INVALID_PARAMETER, TEXT_SOUND_ERROR_BACKEND_INVALID_STATE);
       }
-      //force raw mode if stdout
-      RawOutput = Params.DriverParameters == STDIN_NAME ||
-        (Params.DriverFlags & RAW_STREAM);
-      if (!RawOutput && Params.DriverParameters.empty())
-      {
-        Params.DriverParameters = String(TEXT_DEFAULT_FILENAME_TEMPLATE) + FILE_WAVE_EXT;
-      }
-      if (needStartup)
-      {
-        OnStartup();
-      }
-      */
     }
 
 

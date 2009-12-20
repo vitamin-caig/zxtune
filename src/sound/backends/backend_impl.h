@@ -63,8 +63,11 @@ namespace ZXTune
     protected:
       ParametersMap CommonParameters;
       RenderParameters RenderingParameters;
-    private:
+    protected:
       //sync
+      typedef boost::lock_guard<boost::mutex> Locker;
+      mutable boost::mutex BackendMutex;
+    private:
       mutable boost::mutex PlayerMutex;
       boost::thread RenderThread;
       boost::barrier SyncBarrier;

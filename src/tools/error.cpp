@@ -30,20 +30,29 @@ struct Error::Meta
   {
     assert(Code);
   }
+
   Error::Location Location;
   Error::CodeType Code;
   String Text;
   MetaPtr Suberror;
 
+  static Meta* Success()
+  {
+    static Meta Success;
+    return &Success;
+  }
+
   // static destructor to release error in allocate place (workaround against multiple runtimes)
   static void Delete(Meta* obj)
   {
-    delete obj;
+    if (obj != Success())
+    {
+      delete obj;
+    }
   }
 };
 
-
-Error::Error() : ErrorMeta(new Meta(), Meta::Delete)
+Error::Error() : ErrorMeta(Meta::Success(), Meta::Delete)
 {
 }
 

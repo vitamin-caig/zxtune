@@ -23,7 +23,25 @@ namespace ZXTune
       namespace Backends
       {
         //! template, String
-        const Char FILENAME[] = {'s', 'o', 'u', 'n', 'd', '.', 'b', 'a', 'c', 'k', 'e', 'n', 'd', 's', '.', 'f', 'i', 'l', 'e', 'n', 'a', 'm', 'e', 0};
+        const Char FILENAME[] = 
+        {
+          's', 'o', 'u', 'n', 'd', '.', 'b', 'a', 'c', 'k', 'e', 'n', 'd', 's', '.', 'f', 'i', 'l', 'e', 'n', 'a', 'm', 'e', '\0'
+        };
+        
+        //parameters for OSS backend
+        namespace OSS
+        {
+          const Char DEVICE_DEFAULT[] = {'/', 'd', 'e', 'v', '/', 'd', 's', 'p', '\0'};
+          const Char DEVICE[] =
+          {
+            's', 'o', 'u', 'n', 'd', '.', 'b', 'a', 'c', 'k', 'e', 'n', 'd', 's', '.', 'o', 's', 's', '.', 'd', 'e', 'v', 'i', 'c', 'e', '\0'
+          };
+          const Char MIXER_DEFAULT[] = {'/', 'd', 'e', 'v', '/', 'm', 'i', 'x', 'e', 'r', '\0'};
+          const Char MIXER[] = 
+          {
+            's', 'o', 'u', 'n', 'd', '.', 'b', 'a', 'c', 'k', 'e', 'n', 'd', 's', '.', 'o', 's', 's', '.', 'm', 'i', 'x', 'e', 'r', '\0'
+          };
+        }
       }
     }
   }

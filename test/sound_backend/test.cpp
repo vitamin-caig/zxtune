@@ -146,16 +146,37 @@ namespace
 
     Backend::Ptr backend;
     ThrowIfError(CreateBackend(info.Id, backend));
-    /*
-    std::vector<MultiGain> mixer(3);
-    mixer[0][0] = 1.0;
-    mixer[0][1] = 0.1;
-    mixer[1][0] = 0.6;
-    mixer[1][1] = 0.6;
-    mixer[2][0] = 0.1;
-    mixer[2][1] = 1.0;
-    ThrowIfError(backend->SetMixer(mixer));
-    */
+    
+    std::cout << "Check for volume get: ";
+    MultiGain volume;
+    if (const Error& e = backend->GetVolume(volume))
+    {
+      if (e != BACKEND_UNSUPPORTED_FUNC)
+      {
+        throw e;
+      }
+      std::cout << "unsupported\n";
+    }
+    else
+    {
+      std::cout << "{" << volume[0] << "," << volume[1] << "}\n";
+    }
+    MultiGain newVol = { {1.0, 1.0} };
+    std::cout << "Check for volume set: ";
+    if (const Error& e = backend->SetVolume(newVol))
+    {
+      if (e != BACKEND_UNSUPPORTED_FUNC)
+      {
+        throw e;
+      }
+      std::cout << "unsuported\n";
+    }
+    else
+    {
+      std::cout << "passed\n";
+    }
+    //return previous
+    backend->SetVolume(volume);
     TestSuccess("Player set", backend->SetPlayer(Module::Player::Ptr(new DummyPlayer)));
     /*
     TestSuccess("Play", backend->Play());
