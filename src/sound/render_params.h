@@ -22,7 +22,7 @@ namespace ZXTune
     {
       /// Fill with the default parameters
       RenderParameters()
-        : ClockFreq(17500000)//1.75MHz
+        : ClockFreq(1750000)//1.75MHz
 	, SoundFreq(44100)//44.1kHz
 	, FrameDurationMicrosec(20000)//50Hz
       {

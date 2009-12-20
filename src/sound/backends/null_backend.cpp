@@ -75,7 +75,7 @@ namespace
     
     virtual void OnBufferReady(std::vector<MultiSample>& /*buffer*/)
     {
-      boost::this_thread::sleep(boost::posix_time::milliseconds(RenderingParameters.FrameDurationMicrosec / 1000));
+      //boost::this_thread::sleep(boost::posix_time::milliseconds(RenderingParameters.FrameDurationMicrosec / 1000));
     }
   };
 

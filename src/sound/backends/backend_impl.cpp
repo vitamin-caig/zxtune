@@ -105,25 +105,25 @@ namespace
   
   void CopyInitialParameters(const RenderParameters& renderParams, ParametersMap& commonParams)
   {
-    commonParams[Parameters::FREQUENCY] = renderParams.SoundFreq;
-    assert(FindParameter<int64_t>(commonParams, Parameters::FREQUENCY));
-    commonParams[Parameters::CLOCKRATE] = renderParams.ClockFreq;
-    assert(FindParameter<int64_t>(commonParams, Parameters::CLOCKRATE));
-    commonParams[Parameters::FRAMEDURATION] = renderParams.FrameDurationMicrosec;
-    assert(FindParameter<int64_t>(commonParams, Parameters::FRAMEDURATION));
+    commonParams[Parameters::Sound::FREQUENCY] = renderParams.SoundFreq;
+    assert(FindParameter<int64_t>(commonParams, Parameters::Sound::FREQUENCY));
+    commonParams[Parameters::Sound::CLOCKRATE] = renderParams.ClockFreq;
+    assert(FindParameter<int64_t>(commonParams, Parameters::Sound::CLOCKRATE));
+    commonParams[Parameters::Sound::FRAMEDURATION] = renderParams.FrameDurationMicrosec;
+    assert(FindParameter<int64_t>(commonParams, Parameters::Sound::FRAMEDURATION));
   }
   
   void UpdateRenderParameters(const ParametersMap& updates, RenderParameters& renderParams)
   {
-    if (const int64_t* freq = FindParameter<int64_t>(updates, Parameters::FREQUENCY))
+    if (const int64_t* freq = FindParameter<int64_t>(updates, Parameters::Sound::FREQUENCY))
     {
       renderParams.SoundFreq = static_cast<unsigned>(*freq);
     }
-    if (const int64_t* clock = FindParameter<int64_t>(updates, Parameters::CLOCKRATE))
+    if (const int64_t* clock = FindParameter<int64_t>(updates, Parameters::Sound::CLOCKRATE))
     {
       renderParams.ClockFreq = static_cast<uint64_t>(*clock);
     }
-    if (const int64_t* frame = FindParameter<int64_t>(updates, Parameters::FRAMEDURATION))
+    if (const int64_t* frame = FindParameter<int64_t>(updates, Parameters::Sound::FRAMEDURATION))
     {
       renderParams.FrameDurationMicrosec = static_cast<unsigned>(*frame);
     }
@@ -316,10 +316,10 @@ namespace ZXTune
     {
       try
       {
-        CheckChannels(static_cast<unsigned>(data.size()));
+        const unsigned mixChannels = static_cast<unsigned>(data.size());
+        CheckChannels(static_cast<unsigned>(mixChannels));
         
         Locker lock(PlayerMutex);
-        const unsigned mixChannels = static_cast<unsigned>(data.size());
         
         Mixer::Ptr& curMixer(MixersSet[mixChannels - 1]);
         if (!curMixer)

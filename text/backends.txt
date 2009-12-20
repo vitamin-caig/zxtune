@@ -13,21 +13,21 @@ __cpp> "#endif //__TEXT_BACKENDS_H_DEFINED__\n"
 < TEXT_NULL_BACKEND_DESCRIPTION
 > "Null output backend"
 
-#file backend
-< TEXT_FILE_BACKEND_DESCRIPTION
-> "File output backend"
+#wav backend
+< TEXT_WAV_BACKEND_DESCRIPTION
+> "WAV-output backend"
 
-< FILE_BACKEND_KEY
-> "file"
+< FILE_DEFAULT_NAME
+> "output"
 
 < FILE_WAVE_EXT
 > ".wav"
 
-< FILE_ANNOTATION_EXT
-> ".info"
+#< FILE_ANNOTATION_EXT
+#> ".info"
 
-< FILE_ANNOTATION_FORMAT
-> "%1%=%2%\n"
+#< FILE_ANNOTATION_FORMAT
+#> "%1%=%2%\n"
 
 #alsa backend
 < TEXT_ALSA_BACKEND_DESCRIPTION

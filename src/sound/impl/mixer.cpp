@@ -64,6 +64,8 @@ namespace
     FastMixer()
       : Endpoint(CreateDummyReceiver())
     {
+      std::fill(Matrix.front().begin(), Matrix.front().end(), FIXED_POINT_PRECISION);
+      std::fill(Matrix.begin(), Matrix.end(), Matrix.front());
     }
 
     virtual void ApplySample(const std::vector<Sample>& inData)

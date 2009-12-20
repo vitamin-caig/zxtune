@@ -75,9 +75,9 @@ namespace
     
     virtual Error RenderFrame(const RenderParameters& params, PlaybackState& state, MultichannelReceiver& receiver)
     {
-      const uint16_t toneA(Frames);
-      const uint16_t toneB(Frames / 3);
-      const uint16_t toneC(Frames / 5);
+      const uint16_t toneA((Frames + 1) * 1);
+      const uint16_t toneB((Frames + 1) * 2);
+      const uint16_t toneC((Frames + 1) * 3);
       Chunk.Data[AYM::DataChunk::REG_TONEA_L] = toneA & 0xff;
       Chunk.Data[AYM::DataChunk::REG_TONEA_H] = toneA >> 8;
       Chunk.Data[AYM::DataChunk::REG_TONEB_L] = toneB & 0xff;
@@ -146,7 +146,16 @@ namespace
 
     Backend::Ptr backend;
     ThrowIfError(CreateBackend(info.Id, backend));
-
+    /*
+    std::vector<MultiGain> mixer(3);
+    mixer[0][0] = 1.0;
+    mixer[0][1] = 0.1;
+    mixer[1][0] = 0.6;
+    mixer[1][1] = 0.6;
+    mixer[2][0] = 0.1;
+    mixer[2][1] = 1.0;
+    ThrowIfError(backend->SetMixer(mixer));
+    */
     TestSuccess("Player set", backend->SetPlayer(Module::Player::Ptr(new DummyPlayer)));
     /*
     TestSuccess("Play", backend->Play());

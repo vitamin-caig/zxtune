@@ -44,8 +44,8 @@ namespace
     virtual void RegisterBackend(const Backend::Info& info, const CreateBackendFunc& creator)
     {
       assert(creator);
-      const bool inserted = Backends.insert(BackendsStorage::value_type(info, creator)).second;
-      assert(inserted);
+      assert(Backends.end() == Backends.find(info) || !"Duplicated backend found");
+      Backends.insert(BackendsStorage::value_type(info, creator));
     }
 
     virtual void EnumerateBackends(std::vector<Backend::Info>& infos) const

@@ -1,6 +1,6 @@
 /*
 Abstract:
-  Render parameters attributes
+  Render parameters names
 
 Last changed:
   $Id$
@@ -8,14 +8,18 @@ Last changed:
 Author:
   (C) Vitamin/CAIG/2001
 */
-#ifndef __SOUND_ATTRS_H_DEFINED__
-#define __SOUND_ATTRS_H_DEFINED__
+#ifndef __SOUND_PARAMETERS_H_DEFINED__
+#define __SOUND_PARAMETERS_H_DEFINED__
+
+#include "backends/backends_parameters.h"
+
+#include <char_type.h>
 
 namespace ZXTune
 {
-  namespace Sound
+  namespace Parameters
   {
-    namespace Parameters
+    namespace Sound
     {
       //rendering-related parameters
       //! Hz, int64_t
@@ -28,4 +32,4 @@ namespace ZXTune
   }
 }
 
-#endif //__SOUND_ATTRS_H_DEFINED__
+#endif //__SOUND_PARAMETERS_H_DEFINED__

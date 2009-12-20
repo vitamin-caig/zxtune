@@ -1,33 +1,47 @@
-#include "../backend_enumerator.h"
-#include "../sound_backend_impl.h"
-#include "../sound_backend_types.h"
+/*
+Abstract:
+  Wave file backend implementation
 
-#include <error.h>
-#include <tools.h>
+Last changed:
+  $Id$
 
-#include <module.h>
-#include <module_attrs.h>
-#include <sound_attrs.h>
-#include <../../lib/io/fs_tools.h>
-#include <../../lib/io/location.h>
+Author:
+  (C) Vitamin/CAIG/2001
+*/
+
+#define FILE_TAG EF5CB4C6
+
+#include "backend_impl.h"
+#include "backend_wrapper.h"
+#include "backends_parameters.h"
+#include "enumerator.h"
+
+#include <io/error_codes.h>
+#include <sound/error_codes.h>
+
+#include <byteorder.h>
 
 #include <boost/noncopyable.hpp>
 
-#include <cassert>
 #include <fstream>
-#include <iomanip>
-#include <iostream>
+#include <algorithm>
 
-#include <text/common.h>
-#include <text/errors.h>
 #include <text/backends.h>
-
-#define FILE_TAG EF5CB4C6
 
 namespace
 {
   using namespace ZXTune;
   using namespace ZXTune::Sound;
+
+  const Char BACKEND_ID[] = {'w', 'a', 'v', 0};
+  const String BACKEND_VERSION(FromChar("$Rev$"));
+
+  static const Backend::Info BACKEND_INFO =
+  {
+    BACKEND_ID,
+    BACKEND_VERSION,
+    TEXT_WAV_BACKEND_DESCRIPTION
+  };
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -56,16 +70,9 @@ namespace
   const uint8_t WAVEfmt[] = {'W', 'A', 'V', 'E', 'f', 'm', 't', ' '};
   const uint8_t DATA[] = {'d', 'a', 't', 'a'};
 
-  const String::value_type STDIN_NAME[] = {'-', '\0'};
+  //const String::value_type STDIN_NAME[] = {'-', '\0'};
 
-#ifdef BOOST_BIG_ENDIAN
-  //helper
-  inline Sample SwapSample(Sample data)
-  {
-    return swapBytes(data);
-  }
-#endif
-
+/*
   //custom tags values
   const String::value_type CHIP_YM[] = {'Y', 'M', 0};
   const String::value_type DECIBELL[] = {'d', 'B', 0};
@@ -128,33 +135,94 @@ namespace
   }
 
   void Descriptor(Backend::Info& info);
-
-  class FileBackend : public BackendImpl, private boost::noncopyable
+*/
+  class WAVBackend : public BackendImpl, private boost::noncopyable
   {
   public:
-    FileBackend() : Stream(0), File(), RawOutput(false)
+    WAVBackend() : File()
     {
       std::memcpy(Format.Id, RIFF, sizeof(RIFF));
       std::memcpy(Format.Type, WAVEfmt, sizeof(WAVEfmt));
-      //??? TODO
       Format.ChunkSize = fromLE<uint32_t>(16);
       Format.Compression = fromLE<uint16_t>(1);//PCM
       Format.Channels = fromLE<uint16_t>(OUTPUT_CHANNELS);
       std::memcpy(Format.DataId, DATA, sizeof(DATA));
     }
 
-    virtual ~FileBackend()
+    virtual ~WAVBackend()
     {
-      assert((!Stream && !File.is_open()) || !"FileBackend::Stop should be called before exit");
+      assert(!File.is_open() || !"FileBackend::Stop should be called before exit");
     }
 
     virtual void GetInfo(Info& info) const
     {
-      return Descriptor(info);
+      info = BACKEND_INFO;
     }
 
-    virtual void OnParametersChanged(unsigned /*changedFields*/)
+    virtual Error GetVolume(MultiGain& /*volume*/) const
     {
+      return Error(THIS_LINE, BACKEND_UNSUPPORTED_FUNC);//TODO
+    }
+
+    virtual Error SetVolume(const MultiGain& /*volume*/)
+    {
+      return Error(THIS_LINE, BACKEND_UNSUPPORTED_FUNC);//TODO
+    }
+
+    virtual void OnStartup()
+    {
+      assert(!File.is_open());
+    
+      String nameTemplate;
+      if (const String* wavname = FindParameter<String>(CommonParameters, Parameters::Sound::Backends::FILENAME))
+      {
+        nameTemplate = *wavname;
+      }
+      else
+      {
+        nameTemplate = FILE_DEFAULT_NAME;
+      }
+      const String filename(nameTemplate + FILE_WAVE_EXT);//TODO
+      File.open(filename.c_str(), std::ios::binary);
+      if (!File.is_open())
+      {
+        throw Error(THIS_LINE, IO::NOT_OPENED);//TODO
+      }
+      File.seekp(sizeof(Format));
+
+      Format.Samplerate = fromLE<uint32_t>(RenderingParameters.SoundFreq);
+      Format.BytesPerSec = fromLE<uint32_t>(RenderingParameters.SoundFreq * sizeof(MultiSample));
+      Format.Align = fromLE<uint16_t>(sizeof(MultiSample));
+      Format.BitsPerSample = fromLE<uint16_t>(8 * sizeof(Sample));
+      //swap on final
+      Format.Size =  sizeof(Format) - 8;
+      Format.DataSize = 0;
+    }
+
+    virtual void OnShutdown()
+    {
+      if (File.is_open())
+      {
+        File.seekp(0);
+        Format.Size = fromLE(Format.Size);
+        Format.DataSize = fromLE(Format.DataSize);
+        File.write(safe_ptr_cast<const char*>(&Format), sizeof(Format));
+        File.close();
+      }
+    }
+
+    virtual void OnPause()
+    {
+    }
+
+    virtual void OnResume()
+    {
+    }
+
+
+    virtual void OnParametersChanged(const ParametersMap& /*updates*/)
+    {
+      /*
       //loop is disabled
       Params.SoundParameters.Flags &= ~MOD_LOOP;
       const bool needStartup(Stream != 0);
@@ -173,115 +241,44 @@ namespace
       {
         OnStartup();
       }
+      */
     }
 
-    virtual void OnStartup()
-    {
-      assert(!Stream);
-      if (RawOutput)
-      {
-        //not unicode or smth version
-        Stream = &std::cout;
-      }
-      else
-      {
-        Module::Information info;
-        assert(Player.get());
-        Player->GetModuleInfo(info);
-        const String filename(IO::BuildNameTemplate(info.Properties[Module::ATTR_FILENAME], 
-          Params.DriverParameters, info.Properties));
-        if (!RawOutput && (Params.DriverFlags & ANNOTATE_STREAM))
-        {
-          //do annotation
-          Annotate(info, Params, filename + FILE_ANNOTATION_EXT);
-        }
-        File.open(filename.c_str(), std::ios::binary);
-        if (!File.is_open())
-        {
-          throw MakeFormattedError(ERROR_DETAIL, 1, TEXT_ERROR_OPEN_FILE, filename);
-        }
-        File.seekp(sizeof(Format));
-        Stream = &File;
-      }
 
-      //??? TODO
-      Format.Samplerate = fromLE<uint32_t>(Params.SoundParameters.SoundFreq);
-      Format.BytesPerSec = fromLE<uint32_t>(Params.SoundParameters.SoundFreq * sizeof(SampleArray));
-      Format.Align = fromLE<uint16_t>(sizeof(SampleArray));
-      Format.BitsPerSample = fromLE<uint16_t>(8 * sizeof(Sample));
-      //swap on final
-      Format.Size =  sizeof(Format) - 8;
-      Format.DataSize = 0;
-    }
-
-    virtual void OnShutdown()
+    virtual void OnBufferReady(std::vector<MultiSample>& buffer)
     {
-      if (File.is_open())
-      {
-        if (!RawOutput)
-        {
-          File.seekp(0);
-          //??? TODO
-          Format.Size = fromLE(Format.Size);
-          Format.DataSize = fromLE(Format.DataSize);
-          File.write(safe_ptr_cast<const char*>(&Format), sizeof(Format));
-        }
-        File.close();
-      }
-      Stream = 0;
-    }
-
-    virtual void OnPause()
-    {
-    }
-
-    virtual void OnResume()
-    {
-    }
-
-    virtual void OnBufferReady(const void* data, std::size_t sizeInBytes)
-    {
-      assert(Stream);
+      const std::size_t sizeInBytes = buffer.size() * sizeof(buffer.front());
 #ifdef BOOST_BIG_ENDIAN
-      if (sizeof(Sample) > 1)
-      {
-        assert(0 == sizeInBytes % sizeof(Sample));
-        Buffer.resize(sizeInBytes / sizeof(Sample));
-        const Sample* const sampleData(static_cast<const Sample*>(data));
-        std::transform(sampleData, sampleData + sizeInBytes / sizeof(Sample), Buffer.begin(),
-          &SwapSample);
-        Stream->write(safe_ptr_cast<const char*>(&Buffer[0]), static_cast<std::streamsize>(sizeInBytes));
-      }
-      else
-      {
-        Stream->write(static_cast<const char*>(data), static_cast<std::streamsize>(sizeInBytes));
-      }
+      Buffer.resize(buffer.size());
+      std::transform(buffer.begin().begin(), buffer.end().end(), Buffer.begin().begin(), &swapBytes<Sample>);
+      File.write(safe_ptr_cast<const char*>(&Buffer[0]), static_cast<std::streamsize>(sizeInBytes)));
 #else
-      Stream->write(static_cast<const char*>(data), static_cast<std::streamsize>(sizeInBytes));
+      File.write(safe_ptr_cast<const char*>(&buffer[0]), static_cast<std::streamsize>(sizeInBytes));
 #endif
       Format.Size += static_cast<uint32_t>(sizeInBytes);
       Format.DataSize += static_cast<uint32_t>(sizeInBytes);
     }
   private:
-    std::ostream* Stream;
     std::ofstream File;
-    bool RawOutput;
     WaveFormat Format;
 #ifdef BOOST_BIG_ENDIAN
-    std::vector<Sample> Buffer;
+    std::vector<MultiSample> Buffer;
 #endif
   };
-
-  void Descriptor(Backend::Info& info)
+  
+  Backend::Ptr WAVBackendCreator()
   {
-    info.Description = TEXT_FILE_BACKEND_DESCRIPTION;
-    info.Key = FILE_BACKEND_KEY;
+    return Backend::Ptr(new SafeBackendWrapper<WAVBackend>());
   }
+}
 
-  Backend::Ptr Creator()
+namespace ZXTune
+{
+  namespace Sound
   {
-    return Backend::Ptr(new FileBackend);
+    void RegisterWAVBackend(BackendsEnumerator& enumerator)
+    {
+      enumerator.RegisterBackend(BACKEND_INFO, WAVBackendCreator);
+    }
   }
-
-  BackendAutoRegistrator registrator(Creator, Descriptor);
 }
