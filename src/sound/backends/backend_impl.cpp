@@ -44,8 +44,8 @@ namespace
   class SafePlayerWrapper : public Module::Player
   {
   public:
-    SafePlayerWrapper(Module::Player::Ptr player, boost::mutex& sync)
-      : Delegate(player), Mutex(sync)
+    explicit SafePlayerWrapper(Module::Player::Ptr player)
+      : Delegate(player)
     {
       if (!Delegate.get())
       {
@@ -69,30 +69,30 @@ namespace
     virtual Error RenderFrame(const Sound::RenderParameters& params, PlaybackState& state,
       Sound::MultichannelReceiver& receiver)
     {
-      //do not lock
+      Locker lock(Mutex);
       return Delegate->RenderFrame(params, state, receiver);
     }
     
     virtual Error Reset()
     {
-      //do not lock
+      Locker lock(Mutex);
       return Delegate->Reset();
     }
     
     virtual Error SetPosition(unsigned frame)
     {
-      //do not lock
+      Locker lock(Mutex);
       return Delegate->SetPosition(frame);
     }
     
     virtual Error SetParameters(const ParametersMap& params)
     {
-      //do not lock
+      Locker lock(Mutex);
       return Delegate->SetParameters(params);
     }
   private:
     const Module::Player::Ptr Delegate;
-    boost::mutex& Mutex;
+    mutable boost::mutex Mutex;
   };
   
   void CopyInitialParameters(const RenderParameters& renderParams, ParametersMap& commonParams)
@@ -164,7 +164,7 @@ namespace ZXTune
       : RenderingParameters()
       , SyncBarrier(TOTAL_WORKING_THREADS)
       , CurrentState(NOTOPENED), InProcess(false), RenderError()
-      , Channels(0), Holder(), Player(), FilterObject(), Renderer(new BufferRenderer(Buffer))
+      , Channels(0), Player(), FilterObject(), Renderer(new BufferRenderer(Buffer))
     {
       MixersSet.resize(MAX_MIXERS_COUNT);
       CopyInitialParameters(RenderingParameters, CommonParameters);
@@ -188,10 +188,9 @@ namespace ZXTune
         holder->GetModuleInformation(modInfo);
         CheckChannels(modInfo.PhysicalChannels);
         
-        boost::shared_ptr<Module::Player> tmpPlayer = boost::shared_ptr<Module::Player>(new SafePlayerWrapper(holder->CreatePlayer(), PlayerMutex));
+        boost::shared_ptr<Module::Player> tmpPlayer(new SafePlayerWrapper(holder->CreatePlayer()));
         Locker lock(PlayerMutex);
         StopPlayback();
-        Holder.swap(holder);
         Player.swap(tmpPlayer);
 
         Channels = modInfo.PhysicalChannels;
@@ -422,7 +421,7 @@ namespace ZXTune
       {
         throw Error(THIS_LINE, BACKEND_CONTROL_ERROR, TEXT_SOUND_ERROR_BACKEND_INVALID_STATE);
       }
-      assert(Holder && Player);
+      assert(Player);
     }
 
     void BackendImpl::StopPlayback()

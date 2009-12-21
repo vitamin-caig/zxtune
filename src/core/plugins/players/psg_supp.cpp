@@ -25,6 +25,8 @@ Author:
 
 #include <io/container.h>
 
+#include <boost/enable_shared_from_this.hpp>
+
 #include <text/core.h>
 #include <text/plugins.h>
 
@@ -72,9 +74,9 @@ namespace
   }
   
   class PSGHolder;
-  Player::Ptr CreatePSGPlayer(const PSGHolder& mod);
+  Player::Ptr CreatePSGPlayer(boost::shared_ptr<const PSGHolder> mod);
   
-  class PSGHolder : public Holder
+  class PSGHolder : public Holder, public boost::enable_shared_from_this<PSGHolder>
   {
   public:
     PSGHolder(const MetaContainer& container, ModuleRegion& region)
@@ -159,7 +161,7 @@ namespace
     
     virtual Player::Ptr CreatePlayer() const
     {
-      return CreatePSGPlayer(*this);
+      return CreatePSGPlayer(shared_from_this());
     }
     
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -185,7 +187,7 @@ namespace
   class PSGPlayer : public Player
   {
   public:
-    explicit PSGPlayer(const PSGHolder& holder)
+    explicit PSGPlayer(boost::shared_ptr<const PSGHolder> holder)
        : Module(holder)
        , Device(AYM::CreateChip())
        , CurrentState(MODULE_STOPPED)
@@ -197,7 +199,7 @@ namespace
 
     virtual const Holder& GetModule() const
     {
-      return Module;
+      return *Module;
     }
 
     virtual Error GetPlaybackState(unsigned& timeState,
@@ -205,7 +207,7 @@ namespace
                                    Analyze::ChannelsState& analyzeState) const
     {
       timeState = static_cast<uint32_t>(Position);
-      trackState = Module.ModInfo.Statistic;
+      trackState = Module->ModInfo.Statistic;
       trackState.Line = timeState;
       Device->GetState(analyzeState);
       return Error();
@@ -215,7 +217,7 @@ namespace
                               PlaybackState& state,
                               Sound::MultichannelReceiver& receiver)
     {
-      if (Position >= Module.Storage.size())
+      if (Position >= Module->Storage.size())
       {
         if (MODULE_STOPPED == CurrentState)
         {
@@ -233,7 +235,7 @@ namespace
         }
       }
       assert(Device.get());
-      AYM::DataChunk data(Module.Storage[Position++]);
+      AYM::DataChunk data(Module->Storage[Position++]);
       data.Tick = (TickCount += params.ClocksPerFrame());
       Device->RenderData(params, data, receiver);
       state = CurrentState = MODULE_PLAYING;
@@ -252,7 +254,7 @@ namespace
     
     virtual Error SetPosition(unsigned frame)
     {
-      if (frame >= Module.Storage.size())
+      if (frame >= Module->Storage.size())
       {
         return Error(THIS_LINE, ERROR_MODULE_OVERSEEK, TEXT_MODULE_ERROR_OVERSEEK);
       }
@@ -268,7 +270,7 @@ namespace
       return Error();//TODO
     }
   private:
-    const PSGHolder& Module;
+    const boost::shared_ptr<const PSGHolder> Module;
     AYM::Chip::Ptr Device;
     PlaybackState CurrentState;
     uint64_t TickCount;
@@ -276,7 +278,7 @@ namespace
     bool Looped;
   };
   
-  Player::Ptr CreatePSGPlayer(const PSGHolder& holder)
+  Player::Ptr CreatePSGPlayer(boost::shared_ptr<const PSGHolder> holder)
   {
     return Player::Ptr(new PSGPlayer(holder));
   }
