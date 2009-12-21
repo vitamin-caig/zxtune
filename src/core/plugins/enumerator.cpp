@@ -15,6 +15,7 @@ Author:
 #include <core/module_attrs.h>
 
 #include "players/plugins_list.h"
+#include "implicit/plugins_list.h"
 #include "containers/plugins_list.h"
 
 #include <io/container.h>
@@ -72,6 +73,7 @@ namespace
     PluginsEnumeratorImpl()
     {
       RegisterContainerPlugins(*this);
+      RegisterImplicitPlugins(*this);
       RegisterPlayerPlugins(*this);
     }
 
@@ -87,7 +89,7 @@ namespace
       ImplicitPlugins.push_back(ImplicitPluginDescription(info, func));
     }
     
-    virtual void RegisterContainerPlugin(const PluginInformation& info, 
+    virtual void RegisterContainerPlugin(const PluginInformation& info,
       const OpenContainerFunc& opener, const ProcessContainerFunc& processor)
     {
       AllPlugins.push_back(info);
@@ -164,7 +166,7 @@ namespace
           return e;
         }
       }
-        
+       
       //try to process implicit
       {
         MetaContainer nested;
@@ -184,7 +186,7 @@ namespace
           return e;
         }
       }
-        
+       
       //try to detect and process single modules
       Module::Holder::Ptr holder;
       String pluginId;
@@ -210,8 +212,9 @@ namespace
       }
       return Error();
     }
-    
-    virtual Error DetectContainer(const DetectParameters& params, const MetaContainer& input,
+
+  private:
+    Error DetectContainer(const DetectParameters& params, const MetaContainer& input,
       ModuleRegion& region) const
     {
       try
@@ -238,7 +241,7 @@ namespace
       }
     }
     
-    virtual Error DetectImplicit(const DetectParameters::FilterFunc& filter, const IO::DataContainer& input,
+    Error DetectImplicit(const DetectParameters::FilterFunc& filter, const IO::DataContainer& input,
       IO::DataContainer::Ptr& output, ModuleRegion& region, String& pluginId) const
     {
       try
@@ -265,7 +268,7 @@ namespace
       }
     }
 
-    virtual Error DetectModule(const DetectParameters::FilterFunc& filter, const MetaContainer& data,
+    Error DetectModule(const DetectParameters::FilterFunc& filter, const MetaContainer& data,
       Module::Holder::Ptr& holder, ModuleRegion& region, String& pluginId) const
     {
       try
@@ -291,7 +294,7 @@ namespace
         return e;
       }
     }
-  private:
+
     bool CheckForImplicit(const IO::DataContainer& input, IO::DataContainer::Ptr& output, String& containerId) const
     {
       using namespace boost;
@@ -311,7 +314,7 @@ namespace
     {
       using namespace boost;
       const std::vector<ContainerPluginDescription>::const_iterator it = std::find_if(ContainerPlugins.begin(), ContainerPlugins.end(),
-        bind(apply<bool>(), bind(GetOpener, _1), cref(input), cref(pathToOpen), 
+        bind(apply<bool>(), bind(GetOpener, _1), cref(input), cref(pathToOpen),
           ref(output), ref(restPath)));
       if (it != ContainerPlugins.end())
       {
@@ -330,7 +333,7 @@ namespace
 
 namespace ZXTune
 {
-  void ExtractMetaProperties(const MetaContainer& container, const ModuleRegion& region, 
+  void ExtractMetaProperties(const MetaContainer& container, const ModuleRegion& region,
                              ParametersMap& properties, Dump& rawData)
   {
     if (!container.Path.empty())
@@ -339,7 +342,7 @@ namespace ZXTune
     }
     if (!container.PluginsChain.empty())
     {
-      properties.insert(ParametersMap::value_type(Module::ATTR_CONTAINER, 
+      properties.insert(ParametersMap::value_type(Module::ATTR_CONTAINER,
         boost::algorithm::join(container.PluginsChain, String(TEXT_MODULE_CONTAINERS_DELIMITER))));
     }
     const uint8_t* data(static_cast<const uint8_t*>(container.Data->Data()));

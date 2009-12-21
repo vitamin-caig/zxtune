@@ -21,10 +21,7 @@ extern const Char TEXT_FDI_CONTAINER[] = {
 extern const Char TEXT_FDI_INFO[] = {
   'F','D','I',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
 };
-extern const Char TEXT_HOB_CONTAINER[] = {
-  'H','o','b','e','t','a',0
-};
-extern const Char TEXT_HOB_INFO[] = {
+extern const Char TEXT_HOBETA_INFO[] = {
   'H','o','b','e','t','a',' ','c','o','n','t','a','i','n','e','r','s',' ','s','u','p','p','o','r','t',0
 };
 extern const Char TEXT_HRIP_CONTAINER[] = {

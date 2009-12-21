@@ -8,19 +8,40 @@
 
 using namespace ZXTune;
 
+#define FILE_TAG 25CBBADB
+
 namespace
 {
+  const unsigned PSG_SIZE = 24;
+  const unsigned SKIP_SIZE = 8;
+  const unsigned HOBETA_HDR_SIZE = 17;
+
+  const unsigned SKIP1_OFFSET = 0;
+  const unsigned HOBETA1_OFFSET = SKIP_SIZE;
+  const unsigned PSG1_OFFSET = HOBETA1_OFFSET + HOBETA_HDR_SIZE;
+  const unsigned HOBETA2_OFFSET = PSG1_OFFSET + PSG_SIZE;
+  const unsigned SKIP2_OFFSET = HOBETA2_OFFSET + HOBETA_HDR_SIZE;
+  const unsigned PSG2_OFFSET = SKIP2_OFFSET + SKIP_SIZE;
+  const unsigned SKIP3_OFFSET = PSG2_OFFSET + PSG_SIZE;
+
+  const unsigned HOB_CRC1 = 257 * (unsigned('f') + 'i' + 'l' + 'e' + 'n' + 'a' + 'm' + 'e' + 'e' + 'x' + 't' + 1 + PSG_SIZE) + 105;
+  const unsigned HOB_CRC2 = 257 * (unsigned('f') + 'i' + 'l' + 'e' + 'n' + 'a' + 'm' + 'e' + 'e' + 'x' + 't' + 1 + PSG_SIZE + SKIP_SIZE) + 105;
   const unsigned char PSG_DUMP[] = {
-    0, 0, 0, 0, 0, 0, 0, 0,//skip
-    //offset=8 size=24 crc=1720746500
+    //skip size=8
+    0, 0, 0, 0, 0, 0, 0, 0,
+    //hobeta header size=17 crc=105+257*Ea[0..14]=
+    'f', 'i', 'l', 'e', 'n', 'a', 'm', 'e', 'e', 'x', 't', PSG_SIZE, 0,  0,  1,  HOB_CRC1 & 0xff, HOB_CRC1 >> 8,
+    //offset size=24 crc=1720746500
     'P', 'S', 'G', 0x1a, 1, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0xff, 
+    0xff,
     0, 0, 1, 1, //0x100
     7, 0xfe,
     0xfd,//end
-    
-    0, 0, 0, 0, 0, 0, 0, 0,//skip
-    //offset=40 size=24 crc=799865041
+    //hobeta header size=17
+    'f', 'i', 'l', 'e', 'n', 'a', 'm', 'e', 'e', 'x', 't', PSG_SIZE + SKIP_SIZE, 0,  0,  1,  HOB_CRC2 & 0xff, HOB_CRC2 >> 8,
+    //skip size=8
+    0, 0, 0, 0, 0, 0, 0, 0,
+    //size=24 crc=799865041
     'P', 'S', 'G', 0x1a, 1, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0xff,
     0, 0xff,
@@ -69,7 +90,7 @@ namespace
   
   void ShowPluginInfo(const PluginInformation& info)
   {
-    std::cout << 
+    std::cout <<
       " Plugin:\n"
       "  Id: " << info.Id << "\n"
       "  Descr: " << info.Description << "\n"
@@ -118,7 +139,12 @@ namespace
   {
     return info.Id == "PSG";
   }
-  
+
+  bool NoHobeta(const PluginInformation& info)
+  {
+    return info.Id == "Hobeta";
+  }
+
   void PluginLogger(const String& str)
   {
     std::cout << " >" << str << std::endl;
@@ -136,9 +162,23 @@ namespace
     return Error();
   }
   
-  void Test(bool res, const String& txt, unsigned line)
+  void TestPlayers(unsigned players, unsigned expected, const String& txt, unsigned line)
   {
-    if (res)
+    if (players == expected)
+    {
+      std::cout << "Passed test for " << txt << std::endl;
+    }
+    else
+    {
+      std::cout << "Failed test for " << txt << " at line " << line << std::endl;
+      std::cout << "Found " << players << " players while " << expected << " expected" << std::endl;
+      throw Error(THIS_LINE, 1);
+    }
+  }
+  
+  void TestError(const Error& err, Error::CodeType code, const String& txt, unsigned line)
+  {
+    if (err == code)
     {
       std::cout << "Passed test for " << txt << std::endl;
     }
@@ -146,11 +186,6 @@ namespace
     {
       std::cout << "Failed test for " << txt << " at line " << line << std::endl;
     }
-  }
-  
-  void TestError(const Error& err, Error::CodeType code, const String& txt, unsigned line)
-  {
-    Test(err == code, txt + ":", line);
     err.WalkSuberrors(ErrOuter);
   }
 }
@@ -166,7 +201,7 @@ int main()
     
     unsigned count = 0;
     DetectParameters detectParams;
-    TestError(DetectModules(CreateContainer(8), detectParams, String()), Module::ERROR_INVALID_PARAMETERS, "no callback", __LINE__);
+    TestError(DetectModules(CreateContainer(PSG1_OFFSET), detectParams, String()), Module::ERROR_INVALID_PARAMETERS, "no callback", __LINE__);
     
     detectParams.Callback = boost::bind(PluginCallback, _1, boost::ref(count));
     TestError(DetectModules(IO::DataContainer::Ptr(), detectParams, String()), Module::ERROR_INVALID_PARAMETERS, "no data", __LINE__);
@@ -174,27 +209,45 @@ int main()
     detectParams.Logger = PluginLogger;
     
     TestError(DetectModules(CreateContainer(), detectParams, "invalid_path"), Module::ERROR_FIND_SUBMODULE, "invalid path", __LINE__);
-    
-    ThrowIfError(DetectModules(CreateContainer(40), detectParams, String()));
-    Test(count == 1, "simple opening", __LINE__);
+
+    count = 0;
+    ThrowIfError(DetectModules(CreateContainer(PSG2_OFFSET), detectParams, String()));
+    TestPlayers(count, 1, "simple opening", __LINE__);
     detectParams.Filter = PluginFilter;
     count = 0;
-    ThrowIfError(DetectModules(CreateContainer(8), detectParams, String()));
-    
-    Test(count == 0, "filtered opening", __LINE__);
+    ThrowIfError(DetectModules(CreateContainer(PSG1_OFFSET), detectParams, String()));
+    TestPlayers(count, 0, "filtered opening", __LINE__);
+
+    //testing without hobeta
+    detectParams.Filter = NoHobeta;
+    count = 0;
+    ThrowIfError(DetectModules(CreateContainer(), detectParams, String()));
+    TestPlayers(count, 2, "raw scanning opening (no implicit)", __LINE__);
+    count = 0;
+    ThrowIfError(DetectModules(CreateContainer(PSG1_OFFSET), detectParams, String()));
+    TestPlayers(count, 2, "raw scanning starting from begin (no implicit)", __LINE__);
+    count = 0;
+    ThrowIfError(DetectModules(CreateContainer(), detectParams, (Formatter("%1%.raw") % PSG2_OFFSET).str()));
+    TestPlayers(count, 1, "detect from startpoint (no implicit)", __LINE__);
+    count = 0;
+    ThrowIfError(DetectModules(CreateContainer(), detectParams, "1.raw"));
+    TestPlayers(count, 0, "detect from invalid offset (no implicit)", __LINE__);
+
     detectParams.Filter = 0;
     count = 0;
     ThrowIfError(DetectModules(CreateContainer(), detectParams, String()));
-    Test(count == 2, "raw scanning opening", __LINE__);
+    //1 detected- second hobeta has raw inside
+    TestPlayers(count, 1, "raw scanning opening", __LINE__);
     count = 0;
-    ThrowIfError(DetectModules(CreateContainer(8), detectParams, String()));
-    Test(count == 2, "raw scanning starting from begin", __LINE__);
+    ThrowIfError(DetectModules(CreateContainer(PSG1_OFFSET), detectParams, String()));
+    //1 detected
+    TestPlayers(count, 1, "raw scanning starting from begin", __LINE__);
     count = 0;
-    ThrowIfError(DetectModules(CreateContainer(), detectParams, "8.raw"));
-    Test(count == 1, "detect from startpoint", __LINE__);
+    ThrowIfError(DetectModules(CreateContainer(), detectParams, (Formatter("%1%.raw") % PSG2_OFFSET).str()));
+    TestPlayers(count, 1, "detect from startpoint", __LINE__);
     count = 0;
     ThrowIfError(DetectModules(CreateContainer(), detectParams, "1.raw"));
-    Test(count == 0, "detect from invalid offset", __LINE__);
+    TestPlayers(count, 0, "detect from invalid offset", __LINE__);
   }
   catch (const Error& e)
   {

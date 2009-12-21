@@ -31,11 +31,8 @@ __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 > "FDI"
 
 #Hobeta
-< TEXT_HOB_INFO
+< TEXT_HOBETA_INFO
 > "Hobeta containers support"
-
-< TEXT_HOB_CONTAINER
-> "Hobeta"
 
 #Hrip
 < TEXT_HRIP_INFO

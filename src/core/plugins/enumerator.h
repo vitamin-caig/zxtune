@@ -34,7 +34,7 @@ namespace ZXTune
     StringArray PluginsChain;
   };
   
-  void ExtractMetaProperties(const MetaContainer& container, const ModuleRegion& region, 
+  void ExtractMetaProperties(const MetaContainer& container, const ModuleRegion& region,
                              ParametersMap& properties, Dump& rawData);
   
   //in: metacontainer
@@ -60,7 +60,7 @@ namespace ZXTune
     //implicit containers support
     virtual void RegisterImplicitPlugin(const PluginInformation& info, const ProcessImplicitFunc& func) = 0;
     //nested containers support
-    virtual void RegisterContainerPlugin(const PluginInformation& info, 
+    virtual void RegisterContainerPlugin(const PluginInformation& info,
       const OpenContainerFunc& opener, const ProcessContainerFunc& processor) = 0;
     
     //public interface
@@ -71,18 +71,9 @@ namespace ZXTune
     virtual Error ResolveSubpath(IO::DataContainer::Ptr data, const String& subpath, const DetectParameters::LogFunc& logger,
       MetaContainer& result) const = 0;
     //full module detection
-    virtual Error DetectModules(const DetectParameters& params, const MetaContainer& data, 
+    virtual Error DetectModules(const DetectParameters& params, const MetaContainer& data,
       ModuleRegion& region) const = 0;
-    //nested containers detection
-    virtual Error DetectContainer(const DetectParameters& params, const MetaContainer& input,
-      ModuleRegion& region) const = 0;
-    //implicit containers detection
-    virtual Error DetectImplicit(const DetectParameters::FilterFunc& filter, const IO::DataContainer& input,
-      IO::DataContainer::Ptr& output, ModuleRegion& region, String& pluginId) const = 0;
-    //modules detection
-    virtual Error DetectModule(const DetectParameters::FilterFunc& filter, const MetaContainer& data,
-      Module::Holder::Ptr& player, ModuleRegion& region, String& pluginId) const = 0;
-                                        
+
     //instantiator
     static PluginsEnumerator& Instance();
   };
