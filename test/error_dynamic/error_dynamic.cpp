@@ -4,10 +4,10 @@
 
 Error ReturnErrorByValue()
 {
-  return Error(THIS_LINE, Error::ModuleCode<'S', 'O'>::Value, "Error from dynamic object by value");
+  return Error(THIS_LINE, Error::ModuleCode<'S', 'O', 'b'>::Value, "Error from dynamic object by value");
 }
   
 void ReturnErrorByReference(Error& err)
 {
-  err = Error(THIS_LINE, Error::ModuleCode<'S', 'O'>::Value, "Error from dynamic object by reference");
+  err = Error(THIS_LINE, Error::ModuleCode<'S', 'O', 'b'>::Value, "Error from dynamic object by reference");
 }

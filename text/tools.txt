@@ -11,7 +11,7 @@ __cpp> "#endif //__TEXT_TOOLS_H_DEFINED__\n"
 
 #common texts
 < TEXT_ERROR_DEFAULT_FORMAT
-> "%1%\n\nCode: %2%(%2$#x)\nAt: %3%\n--------\n"
+> "%1%\n\nCode: %2%\nAt: %3%\n--------\n"
 
 < TEXT_ERROR_LOCATION_FORMAT
 > "%1$08x"

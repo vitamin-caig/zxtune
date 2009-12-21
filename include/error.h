@@ -30,10 +30,10 @@ public:
   typedef uint32_t CodeType;
 
   //helper template used for generate per-module base error code
-  template<uint8_t p1, uint8_t p2>
+  template<uint8_t p1, uint8_t p2, uint8_t p3>
   struct ModuleCode
   {
-    static const CodeType Value = (CodeType(p1) | (CodeType(p2) << 8)) << (8 * (sizeof(CodeType) - 2));
+    static const CodeType Value = (CodeType(p1) | (CodeType(p2) << 8) | (CodeType(p3) << 16)) << (8 * (sizeof(CodeType) - 3));
   };
 
 #ifndef NDEBUG
@@ -97,6 +97,7 @@ public:
   
   //serialize
   static String LocationToString(LocationRef loc);
+  static String CodeToString(CodeType code);
   static String AttributesToString(LocationRef loc, CodeType code, const String& text);
   
 private:

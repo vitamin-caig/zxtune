@@ -12,7 +12,7 @@ namespace
 
   void ErrOuter(unsigned /*level*/, Error::LocationRef loc, Error::CodeType code, const String& text)
   {
-    const String txt = (Formatter("\t%1%\n\tCode: %2$#x\n\tAt: %3%\n\t--------\n") % text % code % Error::LocationToString(loc)).str();
+    const String txt = (Formatter("\t%1%\n\tCode: %2%\n\tAt: %3%\n\t--------\n") % text % Error::CodeToString(code) % Error::LocationToString(loc)).str();
     std::cout << txt;
   }
   

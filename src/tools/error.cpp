@@ -11,6 +11,8 @@ Author:
 
 #include <error.h>
 
+#include <iomanip>
+
 #include <text/tools.h>
 
 // implementation of error's core used to keep data
@@ -121,9 +123,28 @@ bool Error::operator ! () const
   return ErrorMeta->Code == 0;
 }
 
+String Error::CodeToString(CodeType code)
+{
+  const unsigned codeBytes(sizeof(code) - 3);
+  const CodeType syms = code >> (8 * codeBytes);
+  const uint8_t p1 = syms & 0xff;
+  const uint8_t p2 = (syms >> 8) & 0xff;
+  const uint8_t p3 = (syms >> 16) & 0xff;
+  OutStringStream str;
+  if (std::isalnum(p1) && std::isalnum(p2) && std::isalnum(p3))
+  {
+    str << char(p1) << char(p2) << char(p3) << '#' << std::setw(2 * codeBytes) << std::setfill('0') << std::hex << (code & ((1 << 8 * codeBytes) - 1));
+  }
+  else
+  {
+    str << '0' << 'x' << std::setw(2 * sizeof(code)) << std::setfill('0') << std::hex << code;
+  }
+  return str.str();
+}
+
 String Error::AttributesToString(LocationRef loc, CodeType code, const String& text)
 {
-  return (Formatter(TEXT_ERROR_DEFAULT_FORMAT) % text % code % LocationToString(loc)).str();
+  return (Formatter(TEXT_ERROR_DEFAULT_FORMAT) % text % CodeToString(code) % LocationToString(loc)).str();
 }
 
 String Error::LocationToString(Error::LocationRef loc)
