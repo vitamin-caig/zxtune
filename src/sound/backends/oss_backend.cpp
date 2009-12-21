@@ -93,7 +93,7 @@ namespace
         Locker lock(BackendMutex);
         assert(-1 != MixHandle);
         boost::array<uint8_t, sizeof(int)> buf;
-        CheckResult(-1 == ::ioctl(MixHandle, SOUND_MIXER_READ_VOLUME, safe_ptr_cast<int*>(&buf[0])), THIS_LINE);
+        CheckResult(-1 != ::ioctl(MixHandle, SOUND_MIXER_READ_VOLUME, safe_ptr_cast<int*>(&buf[0])), THIS_LINE);
         std::transform(buf.begin(), buf.begin() + OUTPUT_CHANNELS, volume.begin(),
           std::bind2nd(std::divides<Gain>(), MAX_OSS_VOLUME));
         return Error();
@@ -149,7 +149,7 @@ namespace
     virtual void OnParametersChanged(const ParametersMap& updates)
     {
       //check for parameters requires restarting
-      const String* const mixer = FindParameter<String>(updates, Parameters::Sound::Backends::OSS::MIXER)
+      const String* const mixer = FindParameter<String>(updates, Parameters::Sound::Backends::OSS::MIXER);
       const String* const device = FindParameter<String>(updates, Parameters::Sound::Backends::OSS::DEVICE);
       const int64_t* const freq = FindParameter<int64_t>(updates, Parameters::Sound::FREQUENCY);
       if (mixer || device || freq)
