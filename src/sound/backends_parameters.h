@@ -23,11 +23,21 @@ namespace ZXTune
       namespace Backends
       {
         //! template, String
-        const Char FILENAME[] = 
+        const Char FILENAME[] =
         {
           's', 'o', 'u', 'n', 'd', '.', 'b', 'a', 'c', 'k', 'e', 'n', 'd', 's', '.', 'f', 'i', 'l', 'e', 'n', 'a', 'm', 'e', '\0'
         };
-        
+
+        //parameters for Win32 backend
+        namespace Win32
+        {
+          const int64_t DEVICE_DEFAULT = -1;
+          const char DEVICE[] =
+          {
+            's', 'o', 'u', 'n', 'd', '.', 'b', 'a', 'c', 'k', 'e', 'n', 'd', 's', '.', 'w', 'i', 'n', '3', '2', '.', 'd', 'e', 'v', 'i', 'c', 'e', '\0'
+          };
+        }
+
         //parameters for OSS backend
         namespace OSS
         {
@@ -37,7 +47,7 @@ namespace ZXTune
             's', 'o', 'u', 'n', 'd', '.', 'b', 'a', 'c', 'k', 'e', 'n', 'd', 's', '.', 'o', 's', 's', '.', 'd', 'e', 'v', 'i', 'c', 'e', '\0'
           };
           const Char MIXER_DEFAULT[] = {'/', 'd', 'e', 'v', '/', 'm', 'i', 'x', 'e', 'r', '\0'};
-          const Char MIXER[] = 
+          const Char MIXER[] =
           {
             's', 'o', 'u', 'n', 'd', '.', 'b', 'a', 'c', 'k', 'e', 'n', 'd', 's', '.', 'o', 's', 's', '.', 'm', 'i', 'x', 'e', 'r', '\0'
           };

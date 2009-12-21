@@ -14,21 +14,31 @@ Author:
 #include "backend_impl.h"
 #include "backend_wrapper.h"
 #include "enumerator.h"
+
 #include <sound/error_codes.h>
+#include <sound/backends_parameters.h>
 
 #include <boost/noncopyable.hpp>
 
+//platform-dependent
 #include <windows.h>
+
+#include <boost/ref.hpp>
+#include <boost/bind.hpp>
 
 #include <algorithm>
 
+#include <text/sound.h>
 #include <text/backends.h>
 
 #define FILE_TAG 5E3F141A
 
 namespace
 {
+  using namespace ZXTune;
   using namespace ZXTune::Sound;
+
+  const unsigned MAX_WIN32_VOLUME = 0xffff;
 
   const Char BACKEND_ID[] = {'w', 'i', 'n', '3', '2', 0};
   const String BACKEND_VERSION(FromChar("$Rev$"));
@@ -40,11 +50,19 @@ namespace
     TEXT_WIN32_BACKEND_DESCRIPTION
   };
 
-  void CheckMMResult(::MMRESULT res)
+  inline void CheckMMResult(::MMRESULT res, Error::LocationRef loc)
   {
     if (MMSYSERR_NOERROR != res)
     {
-      throw MakeFormattedError(THIS_LINE, BACKEND_PLATFORM_ERROR, TEXT_SOUND_ERROR_WIN32_BACKEND_ERROR, res);//TODO
+      throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR, TEXT_SOUND_ERROR_WIN32_BACKEND_ERROR, res);//TODO
+    }
+  }
+
+  inline void CheckPlatformResult(bool val, Error::LocationRef loc)
+  {
+    if (!val)
+    {
+      throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR, TEXT_SOUND_ERROR_WIN32_BACKEND_ERROR, ::GetLastError());//TODO
     }
   }
 
@@ -52,59 +70,72 @@ namespace
   {
   public:
     WaveBuffer()
-      : Header(), Buffer()
+      : Header(), Buffer(), Handle(0), Event(INVALID_HANDLE_VALUE)
     {
     }
 
-    void Allocate(::HWAVEOUT handle, const RenderParameters& params)
+    ~WaveBuffer()
     {
+      assert(0 == Handle);
+    }
+
+    void Allocate(::HWAVEOUT handle, ::HANDLE event, const RenderParameters& params)
+    {
+      assert(0 == Handle && INVALID_HANDLE_VALUE == Event);
       const std::size_t bufSize(params.SamplesPerFrame());
       Buffer.resize(bufSize);
       Header.lpData = ::LPSTR(&Buffer[0]);
       Header.dwBufferLength = ::DWORD(bufSize) * sizeof(Buffer.front());
       Header.dwUser = Header.dwLoops = Header.dwFlags = 0;
-      CheckMMResult(::waveOutPrepareHeader(handle, &Header, sizeof(Header)));
+      CheckMMResult(::waveOutPrepareHeader(handle, &Header, sizeof(Header)), THIS_LINE);
       Header.dwFlags |= WHDR_DONE;
+      Handle = handle;
+      Event = event;
     }
 
-    void Release(::HWAVEOUT handle, ::HANDLE event)
+    void Release()
     {
-      while (!(Header.dwFlags & WHDR_DONE))
-      {
-        ::WaitForSingleObject(event, INFINITE);
-      }
-      CheckMMResult(::waveOutUnprepareHeader(handle, &Header, sizeof(Header)));
+      Wait();
+      CheckMMResult(::waveOutUnprepareHeader(Handle, &Header, sizeof(Header)), THIS_LINE);
       std::vector<MultiSample>().swap(Buffer);
+      Handle = 0;
+      Event = INVALID_HANDLE_VALUE;
     }
 
-
-    void Fill(::HANDLE event, const std::vector<MultiSample>& buf)
+    void Process(const std::vector<MultiSample>& buf)
     {
-      while (!(Header.dwFlags & WHDR_DONE))
-      {
-        ::WaitForSingleObject(event, INFINITE);
-      }
+      Wait();
+      assert(Header.dwFlags & WHDR_DONE);
       assert(buf.size() <= Buffer.size());
       Header.dwBufferLength = static_cast< ::DWORD>(std::min<std::size_t>(buf.size(), Buffer.size())) * sizeof(Buffer.front());
       std::memcpy(Header.lpData, &buf[0], Header.dwBufferLength);
-    }
-
-    void Play(::HWAVEOUT handle)
-    {
       Header.dwFlags &= ~WHDR_DONE;
-      CheckMMResult(::waveOutWrite(handle, &Header, sizeof(Header)));
+      CheckMMResult(::waveOutWrite(Handle, &Header, sizeof(Header)), THIS_LINE);
+    }
+  private:
+    void Wait()
+    {
+      while (!(Header.dwFlags & WHDR_DONE))
+      {
+        CheckPlatformResult(WAIT_OBJECT_0 == ::WaitForSingleObject(Event, INFINITE), THIS_LINE);
+      }
     }
   private:
     ::WAVEHDR Header;
     std::vector<MultiSample> Buffer;
+    ::HWAVEOUT Handle;
+    ::HANDLE Event;
   };
 
   class Win32Backend : public BackendImpl, private boost::noncopyable
   {
   public:
     Win32Backend()
-      : WaveHandle(0), Device(WAVE_MAPPER), Event(::CreateEvent(0, FALSE, FALSE, 0))
-      , PlayBuffer(new WaveBuffer()), FillBuffer(new WaveBuffer())
+      : CurrentBuffer(Buffers.begin(), Buffers.end())
+      , Event(::CreateEvent(0, FALSE, FALSE, 0))
+      //device identifier used for opening and volume control
+      , Device(Parameters::Sound::Backends::Win32::DEVICE_DEFAULT)
+      , WaveHandle(0)
     {
     }
 
@@ -119,67 +150,89 @@ namespace
       info = BACKEND_INFO;
     }
 
-    virtual Error GetVolume(MultiGain& /*volume*/) const
+    virtual Error GetVolume(MultiGain& volume) const
     {
-      return Error();//TODO
+      try
+      {
+        Locker lock(BackendMutex);
+        boost::array<uint16_t, OUTPUT_CHANNELS> buffer;
+        BOOST_STATIC_ASSERT(sizeof(buffer) == sizeof(DWORD));
+        CheckMMResult(::waveOutGetVolume(reinterpret_cast< ::HWAVEOUT>(Device), safe_ptr_cast<LPDWORD>(&buffer[0])), THIS_LINE);
+        std::transform(buffer.begin(), buffer.end(), volume.begin(), std::bind2nd(std::divides<Gain>(), MAX_WIN32_VOLUME));
+        return Error();
+      }
+      catch (const Error& e)
+      {
+        return e;
+      }
     }
 
-    virtual Error SetVolume(const MultiGain& /*volume*/)
+    virtual Error SetVolume(const MultiGain& volume)
     {
-      return Error();//TODO
+      if (volume.end() != std::find_if(volume.begin(), volume.end(), std::bind2nd(std::greater<Gain>(), Gain(1.0))))
+      {
+        return Error(THIS_LINE, BACKEND_INVALID_PARAMETER, TEXT_SOUND_ERROR_BACKEND_INVALID_GAIN);
+      }
+      try
+      {
+        Locker lock(BackendMutex);
+        boost::array<uint16_t, OUTPUT_CHANNELS> buffer;
+        std::transform(volume.begin(), volume.end(), buffer.begin(), std::bind2nd(std::multiplies<Gain>(), MAX_WIN32_VOLUME));
+        BOOST_STATIC_ASSERT(sizeof(buffer) == sizeof(DWORD));
+        CheckMMResult(::waveOutSetVolume(reinterpret_cast< ::HWAVEOUT>(Device), *safe_ptr_cast<LPDWORD>(&buffer[0])), THIS_LINE);
+        return Error();
+      }
+      catch (const Error& e)
+      {
+        return e;
+      }
     }
 
     virtual void OnStartup()
     {
-      assert(0 == WaveHandle);
-      ::WAVEFORMATEX wfx;
-
-      std::memset(&wfx, 0, sizeof(wfx));
-      wfx.wFormatTag = WAVE_FORMAT_PCM;
-      wfx.nChannels = OUTPUT_CHANNELS;
-      wfx.nSamplesPerSec = RenderingParameters.SoundFreq;
-      wfx.nBlockAlign = sizeof(MultiSample);
-      wfx.nAvgBytesPerSec = wfx.nSamplesPerSec * wfx.nBlockAlign;
-      wfx.wBitsPerSample = 8 * sizeof(Sample);
-
-      CheckMMResult(::waveOutOpen(&WaveHandle, Device, &wfx, DWORD_PTR(Event), 0,
-        CALLBACK_EVENT | WAVE_FORMAT_DIRECT));
-      PlayBuffer->Allocate(WaveHandle, RenderingParameters);
-      FillBuffer->Allocate(WaveHandle, RenderingParameters);
-      ::ResetEvent(Event);
+      Locker lock(BackendMutex);
+      DoStartup();
     }
 
     virtual void OnShutdown()
     {
-      ::ResetEvent(Event);
-      PlayBuffer->Release(WaveHandle, Event);
-      FillBuffer->Release(WaveHandle, Event);
-      if (0 != WaveHandle)
-      {
-        CheckMMResult(::waveOutReset(WaveHandle));
-        CheckMMResult(::waveOutClose(WaveHandle));
-        WaveHandle = 0;
-      }
+      Locker lock(BackendMutex);
+      DoShutdown();
     }
 
     virtual void OnPause()
     {
+      Locker lock(BackendMutex);
       if (0 != WaveHandle)
       {
-        CheckMMResult(::waveOutPause(WaveHandle));
+        CheckMMResult(::waveOutPause(WaveHandle), THIS_LINE);
       }
     }
 
     virtual void OnResume()
     {
+      Locker lock(BackendMutex);
       if (0 != WaveHandle)
       {
-        CheckMMResult(::waveOutRestart(WaveHandle));
+        CheckMMResult(::waveOutRestart(WaveHandle), THIS_LINE);
       }
     }
 
-    virtual void OnParametersChanged(const ParametersMap& /*updates*/)
+    virtual void OnParametersChanged(const ParametersMap& updates)
     {
+      const int64_t* const device = FindParameter<int64_t>(updates, Parameters::Sound::Backends::Win32::DEVICE);
+      const int64_t* const freq = FindParameter<int64_t>(updates, Parameters::Sound::FREQUENCY);
+      if (device || freq)
+      {
+        Locker lock(BackendMutex);
+        const bool needStartup(0 != WaveHandle);
+        DoShutdown();
+        Device = *device;
+        if (needStartup)
+        {
+          DoStartup();
+        }
+      }
       /*
       const unsigned mask(DRIVER_PARAMS | DRIVER_FLAGS | BUFFER | SOUND_FREQ);
       if (changedFields & mask)
@@ -224,16 +277,47 @@ namespace
 
     virtual void OnBufferReady(std::vector<MultiSample>& buffer)
     {
-      FillBuffer->Fill(Event, buffer);
-      FillBuffer->Play(WaveHandle);
-      PlayBuffer.swap(FillBuffer);
+      Locker lock(BackendMutex);
+      CurrentBuffer->Process(buffer);
+      ++CurrentBuffer;
     }
   private:
-    ::HWAVEOUT WaveHandle;
-    ::UINT Device;
+    void DoStartup()
+    {
+      assert(0 == WaveHandle);
+      ::WAVEFORMATEX wfx;
+
+      std::memset(&wfx, 0, sizeof(wfx));
+      wfx.wFormatTag = WAVE_FORMAT_PCM;
+      wfx.nChannels = OUTPUT_CHANNELS;
+      wfx.nSamplesPerSec = RenderingParameters.SoundFreq;
+      wfx.nBlockAlign = sizeof(MultiSample);
+      wfx.nAvgBytesPerSec = wfx.nSamplesPerSec * wfx.nBlockAlign;
+      wfx.wBitsPerSample = 8 * sizeof(Sample);
+
+      CheckMMResult(::waveOutOpen(&WaveHandle, static_cast< ::UINT>(Device), &wfx, DWORD_PTR(Event), 0,
+        CALLBACK_EVENT | WAVE_FORMAT_DIRECT), THIS_LINE);
+      std::for_each(Buffers.begin(), Buffers.end(), boost::bind(&WaveBuffer::Allocate, _1, WaveHandle, Event, boost::cref(RenderingParameters)));
+      CheckPlatformResult(0 != ::ResetEvent(Event), THIS_LINE);
+    }
+
+    void DoShutdown()
+    {
+      std::for_each(Buffers.begin(), Buffers.end(), boost::mem_fn(&WaveBuffer::Release));
+      if (0 != WaveHandle)
+      {
+        CheckMMResult(::waveOutReset(WaveHandle), THIS_LINE);
+        CheckMMResult(::waveOutClose(WaveHandle), THIS_LINE);
+        WaveHandle = 0;
+      }
+    }
+  private:
+    //TODO: setup buffer depth
+    boost::array<WaveBuffer, 3> Buffers;
+    cycled_iterator<WaveBuffer*> CurrentBuffer;
     ::HANDLE Event;
-    boost::scoped_ptr<WaveBuffer> PlayBuffer;
-    boost::scoped_ptr<WaveBuffer> FillBuffer;
+    int64_t Device;
+    ::HWAVEOUT WaveHandle;
   };
 
   Backend::Ptr Win32BackendCreator()

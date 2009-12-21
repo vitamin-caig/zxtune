@@ -56,18 +56,9 @@ namespace
   {
     if (!res)
     {
-      throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR, 
+      throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR,
         TEXT_SOUND_ERROR_OSS_BACKEND_ERROR, ::strerror(errno));
     }
-  }
-  
-  inline Error GetResult(bool res, Error::LocationRef loc)
-  {
-    return res ? 
-      Error()
-      : 
-      MakeFormattedError(loc, BACKEND_PLATFORM_ERROR, 
-        TEXT_SOUND_ERROR_OSS_BACKEND_ERROR, ::strerror(errno));
   }
   
   class OSSBackend : public BackendImpl, private boost::noncopyable
@@ -97,35 +88,113 @@ namespace
 
     virtual Error GetVolume(MultiGain& volume) const
     {
-      Locker lock(BackendMutex);
-      assert(-1 != MixHandle);
-      boost::array<uint8_t, sizeof(int)> buf;
-      if (-1 == ::ioctl(MixHandle, SOUND_MIXER_READ_VOLUME, safe_ptr_cast<int*>(&buf[0])))
+      try
       {
-        return GetResult(false, THIS_LINE);
+        Locker lock(BackendMutex);
+        assert(-1 != MixHandle);
+        boost::array<uint8_t, sizeof(int)> buf;
+        CheckResult(-1 == ::ioctl(MixHandle, SOUND_MIXER_READ_VOLUME, safe_ptr_cast<int*>(&buf[0])), THIS_LINE);
+        std::transform(buf.begin(), buf.begin() + OUTPUT_CHANNELS, volume.begin(),
+          std::bind2nd(std::divides<Gain>(), MAX_OSS_VOLUME));
+        return Error();
       }
-      std::transform(buf.begin(), buf.begin() + OUTPUT_CHANNELS, volume.begin(), 
-        std::bind2nd(std::divides<Gain>(), MAX_OSS_VOLUME));
-      return Error();
+      catch (const Error& e)
+      {
+        return e;
+      }
     }
 
     virtual Error SetVolume(const MultiGain& volume)
     {
-      Locker lock(BackendMutex);
       if (volume.end() != std::find_if(volume.begin(), volume.end(), std::bind2nd(std::greater<Gain>(), Gain(1.0))))
       {
         return Error(THIS_LINE, BACKEND_INVALID_PARAMETER, TEXT_SOUND_ERROR_BACKEND_INVALID_GAIN);
       }
-      assert(-1 != MixHandle);
-      boost::array<uint8_t, sizeof(int)> buf = { {0} };
-      std::transform(volume.begin(), volume.end(), buf.begin(), 
-        std::bind2nd(std::multiplies<Gain>(), MAX_OSS_VOLUME));
-      return GetResult(-1 != ::ioctl(MixHandle, SOUND_MIXER_WRITE_VOLUME, safe_ptr_cast<int*>(&buf[0])), THIS_LINE);
+      try
+      {
+        Locker lock(BackendMutex);
+        assert(-1 != MixHandle);
+        boost::array<uint8_t, sizeof(int)> buf = { {0} };
+        std::transform(volume.begin(), volume.end(), buf.begin(),
+          std::bind2nd(std::multiplies<Gain>(), MAX_OSS_VOLUME));
+        CheckResult(-1 != ::ioctl(MixHandle, SOUND_MIXER_WRITE_VOLUME, safe_ptr_cast<int*>(&buf[0])), THIS_LINE);
+        return Error();
+      }
+      catch (const Error& e)
+      {
+        return e;
+      }
     }
 
     virtual void OnStartup()
     {
       Locker lock(BackendMutex);
+      DoStartup();
+    }
+
+    virtual void OnShutdown()
+    {
+      Locker lock(BackendMutex);
+      DoShutdown();
+    }
+
+    virtual void OnPause()
+    {
+    }
+
+    virtual void OnResume()
+    {
+    }
+
+    virtual void OnParametersChanged(const ParametersMap& updates)
+    {
+      //check for parameters requires restarting
+      const String* const mixer = FindParameter<String>(updates, Parameters::Sound::Backends::OSS::MIXER)
+      const String* const device = FindParameter<String>(updates, Parameters::Sound::Backends::OSS::DEVICE);
+      const int64_t* const freq = FindParameter<int64_t>(updates, Parameters::Sound::FREQUENCY);
+      if (mixer || device || freq)
+      {
+        Locker lock(BackendMutex);
+        if (mixer)
+        {
+          MixerName = *mixer;
+          CheckResult(0 == ::close(MixHandle), THIS_LINE);
+          MixHandle = ::open(MixerName.c_str(), O_RDWR, 0);
+          CheckResult(-1 != MixHandle, THIS_LINE);
+        }
+        if (device || freq)
+        {
+          const bool needStartup(-1 != DevHandle);
+          DoShutdown();
+          DeviceName = *device;
+          if (needStartup)
+          {
+            DoStartup();
+          }
+        }
+      }
+    }
+
+    virtual void OnBufferReady(std::vector<MultiSample>& buffer)
+    {
+      Locker lock(BackendMutex);
+      std::vector<MultiSample>& buf(*CurrentBuffer);
+      buf.swap(buffer);
+      assert(-1 != DevHandle);
+      std::size_t toWrite(buf.size() * sizeof(buf.front()));
+      const uint8_t* data(safe_ptr_cast<const uint8_t*>(&buf[0]));
+      while (toWrite)
+      {
+        int res(::write(DevHandle, data, toWrite * sizeof(*data)));
+        CheckResult(res >= 0, THIS_LINE);
+        toWrite -= res;
+        data += res;
+      }
+      ++CurrentBuffer;
+    }
+  private:
+    void DoStartup()
+    {
       assert(-1 == DevHandle);
       DevHandle = ::open(DeviceName.c_str(), O_WRONLY, 0);
       CheckResult(-1 != DevHandle, THIS_LINE);
@@ -141,70 +210,14 @@ namespace
       CheckResult(-1 != ::ioctl(DevHandle, SNDCTL_DSP_SPEED, &tmp), THIS_LINE);
     }
 
-    virtual void OnShutdown()
+    void DoShutdown()
     {
-      Locker lock(BackendMutex);
       if (-1 != DevHandle)
       {
         CheckResult(0 == ::close(DevHandle), THIS_LINE);
         DevHandle = -1;
       }
     }
-
-    virtual void OnPause()
-    {
-    }
-
-    virtual void OnResume()
-    {
-    }
-
-    virtual void OnParametersChanged(const ParametersMap& updates)
-    {
-      //process mutex
-      {
-        Locker lock(BackendMutex);
-        //update mixer
-        if (const String* mixer = FindParameter<String>(updates, Parameters::Sound::Backends::OSS::MIXER))
-        {
-          MixerName = *mixer;
-          CheckResult(0 == ::close(MixHandle), THIS_LINE);
-          MixHandle = ::open(MixerName.c_str(), O_RDWR, 0);
-          CheckResult(-1 != MixHandle, THIS_LINE);
-        }
-      }
-      //check for parameters requires restarting
-      const String* const device = FindParameter<String>(updates, Parameters::Sound::Backends::OSS::DEVICE);
-      const int64_t* const freq = FindParameter<int64_t>(updates, Parameters::Sound::FREQUENCY);
-      if (device || freq)
-      {
-        DeviceName = *device;
-        const bool needStartup(-1 != DevHandle);
-        OnShutdown();
-        if (needStartup)
-        {
-          OnStartup();
-        }
-      }
-    }
-
-    virtual void OnBufferReady(std::vector<MultiSample>& buffer)
-    {
-      std::vector<MultiSample>& buf(*CurrentBuffer);
-      buf.swap(buffer);
-      assert(-1 != DevHandle);
-      std::size_t toWrite(buf.size() * sizeof(buf.front()));
-      const uint8_t* data(safe_ptr_cast<const uint8_t*>(&buf[0]));
-      while (toWrite)
-      {
-        int res(::write(DevHandle, data, toWrite * sizeof(*data)));
-        CheckResult(res >= 0, THIS_LINE);
-        toWrite -= res;
-        data += res;
-      }
-      ++CurrentBuffer;
-    }
-
   private:
     String MixerName;
     int MixHandle;
