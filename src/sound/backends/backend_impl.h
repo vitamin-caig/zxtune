@@ -31,7 +31,7 @@ namespace ZXTune
       BackendImpl();
       virtual ~BackendImpl();
 
-      virtual Error SetPlayer(Module::Player::Ptr player);
+      virtual Error SetModule(Module::Holder::Ptr holder);
       virtual boost::weak_ptr<const Module::Player> GetPlayer() const;
       
       // playback control functions
@@ -44,6 +44,7 @@ namespace ZXTune
 
       virtual Error SetMixer(const std::vector<MultiGain>& data);
       virtual Error SetFilter(Converter::Ptr converter);
+      //volume management should be implemented in ancestors explicitly
       
       virtual Error SetParameters(const ParametersMap& params);
       virtual Error GetParameters(ParametersMap& params) const;
@@ -77,6 +78,7 @@ namespace ZXTune
       Error RenderError;
       //context
       unsigned Channels;
+      boost::shared_ptr<Module::Holder> Holder;
       boost::shared_ptr<Module::Player> Player;
       Converter::Ptr FilterObject;
       std::vector<Mixer::Ptr> MixersSet;

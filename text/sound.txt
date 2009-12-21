@@ -38,8 +38,8 @@ __cpp> "#endif //__TEXT_SOUND_H_DEFINED__\n"
 < TEXT_SOUND_ERROR_BACKEND_FAILED
 > "Failed to create backend '%1%'."
 
-< TEXT_SOUND_ERROR_BACKEND_INVALID_PLAYER
-> "Invalid player specified for backend."
+< TEXT_SOUND_ERROR_BACKEND_INVALID_MODULE
+> "Invalid module specified for backend."
 
 < TEXT_SOUND_ERROR_BACKEND_INVALID_FILTER
 > "Invalid filter specified for backend."

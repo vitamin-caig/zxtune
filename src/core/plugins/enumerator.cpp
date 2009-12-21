@@ -185,10 +185,10 @@ namespace
         }
       }
         
-      //try to detect and process players
-      Module::Player::Ptr player;
+      //try to detect and process single modules
+      Module::Holder::Ptr holder;
       String pluginId;
-      const Error& e = DetectPlayer(params.Filter, data, player, region, pluginId);
+      const Error& e = DetectModule(params.Filter, data, holder, region, pluginId);
       if (e)
       {
         //find ok if nothing found -> it's not error
@@ -203,7 +203,7 @@ namespace
         }
       }
       DoLog(params.Logger, TEXT_MODULE_MESSAGE_DETECT_PLAYER, data.Path, pluginId);
-      if (const Error& e = params.Callback(player))
+      if (const Error& e = params.Callback(holder))
       {
         Error err(THIS_LINE, Module::ERROR_DETECT_CANCELED, TEXT_MODULE_ERROR_CANCELED);
         return err.AddSuberror(e);
@@ -265,8 +265,8 @@ namespace
       }
     }
 
-    virtual Error DetectPlayer(const DetectParameters::FilterFunc& filter, const MetaContainer& data,
-      Module::Player::Ptr& player, ModuleRegion& region, String& pluginId) const
+    virtual Error DetectModule(const DetectParameters::FilterFunc& filter, const MetaContainer& data,
+      Module::Holder::Ptr& holder, ModuleRegion& region, String& pluginId) const
     {
       try
       {
@@ -278,7 +278,7 @@ namespace
             continue;//filtered plugin
           }
           //find first suitable
-          if (it->second(data, player, region))
+          if (it->second(data, holder, region))
           {
             pluginId = it->first.Id;
             return Error();

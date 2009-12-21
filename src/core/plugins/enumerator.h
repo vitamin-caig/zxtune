@@ -38,8 +38,8 @@ namespace ZXTune
                              ParametersMap& properties, Dump& rawData);
   
   //in: metacontainer
-  //out: player, region
-  typedef boost::function<bool(const MetaContainer&, Module::Player::Ptr&, ModuleRegion&)> CreatePlayerFunc;
+  //out: holder, region
+  typedef boost::function<bool(const MetaContainer&, Module::Holder::Ptr&, ModuleRegion&)> CreatePlayerFunc;
   //in: data
   //output: data, region
   typedef boost::function<bool(const IO::DataContainer&, IO::DataContainer::Ptr&, ModuleRegion&)> ProcessImplicitFunc;
@@ -79,9 +79,9 @@ namespace ZXTune
     //implicit containers detection
     virtual Error DetectImplicit(const DetectParameters::FilterFunc& filter, const IO::DataContainer& input,
       IO::DataContainer::Ptr& output, ModuleRegion& region, String& pluginId) const = 0;
-    //players detection
-    virtual Error DetectPlayer(const DetectParameters::FilterFunc& filter, const MetaContainer& data,
-      Module::Player::Ptr& player, ModuleRegion& region, String& pluginId) const = 0;
+    //modules detection
+    virtual Error DetectModule(const DetectParameters::FilterFunc& filter, const MetaContainer& data,
+      Module::Holder::Ptr& player, ModuleRegion& region, String& pluginId) const = 0;
                                         
     //instantiator
     static PluginsEnumerator& Instance();

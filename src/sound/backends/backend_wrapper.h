@@ -35,9 +35,9 @@ namespace ZXTune
         return Delegate->GetInfo(info);
       }
 
-      virtual Error SetPlayer(Module::Player::Ptr player)
+      virtual Error SetModule(Module::Holder::Ptr holder)
       {
-        return Delegate->SetPlayer(player);
+        return Delegate->SetModule(holder);
       }
       
       virtual boost::weak_ptr<const Module::Player> GetPlayer() const

@@ -44,28 +44,26 @@ namespace
   class SafePlayerWrapper : public Module::Player
   {
   public:
-    SafePlayerWrapper(Module::Player::Ptr delegate, boost::mutex& sync)
-      : Delegate(delegate), Mutex(sync)
+    SafePlayerWrapper(Module::Player::Ptr player, boost::mutex& sync)
+      : Delegate(player), Mutex(sync)
     {
-    }
-    
-    virtual void GetPlayerInfo(PluginInformation& info) const
-    {
-      Locker lock(Mutex);
-      return Delegate->GetPlayerInfo(info);
+      if (!Delegate.get())
+      {
+        throw Error(THIS_LINE, BACKEND_FAILED_CREATE, TEXT_SOUND_ERROR_BACKEND_INVALID_MODULE);
+      }
     }
 
-    virtual void GetModuleInformation(Module::Information& info) const
+    virtual const Module::Holder& GetModule() const
     {
-      Locker lock(Mutex);
-      return Delegate->GetModuleInformation(info);
+      //do not sync
+      return Delegate->GetModule();
     }
 
-    virtual Error GetModuleState(unsigned& timeState, Module::Tracking& trackState,
+    virtual Error GetPlaybackState(unsigned& timeState, Module::Tracking& trackState,
       Module::Analyze::ChannelsState& analyzeState) const
     {
       Locker lock(Mutex);
-      return Delegate->GetModuleState(timeState, trackState, analyzeState);
+      return Delegate->GetPlaybackState(timeState, trackState, analyzeState);
     }
 
     virtual Error RenderFrame(const Sound::RenderParameters& params, PlaybackState& state,
@@ -91,12 +89,6 @@ namespace
     {
       //do not lock
       return Delegate->SetParameters(params);
-    }
-
-    virtual Error Convert(const Module::Conversion::Parameter& param, Dump& dst) const
-    {
-      //do not lock
-      return Delegate->Convert(param, dst);
     }
   private:
     const Module::Player::Ptr Delegate;
@@ -172,7 +164,7 @@ namespace ZXTune
       : RenderingParameters()
       , SyncBarrier(TOTAL_WORKING_THREADS)
       , CurrentState(NOTOPENED), InProcess(false), RenderError()
-      , Channels(0), Player(), FilterObject(), Renderer(new BufferRenderer(Buffer))
+      , Channels(0), Holder(), Player(), FilterObject(), Renderer(new BufferRenderer(Buffer))
     {
       MixersSet.resize(MAX_MIXERS_COUNT);
       CopyInitialParameters(RenderingParameters, CommonParameters);
@@ -184,22 +176,25 @@ namespace ZXTune
           NOTOPENED == CurrentState);
     }
 
-    Error BackendImpl::SetPlayer(Module::Player::Ptr player)
+    Error BackendImpl::SetModule(Module::Holder::Ptr holder)
     {
       try
       {
-        if (!player.get())
+        if (!holder.get())
         {
-          throw Error(THIS_LINE, BACKEND_INVALID_PARAMETER, TEXT_SOUND_ERROR_BACKEND_INVALID_PLAYER);
+          throw Error(THIS_LINE, BACKEND_INVALID_PARAMETER, TEXT_SOUND_ERROR_BACKEND_INVALID_MODULE);
         }
         Module::Information modInfo;
-        player->GetModuleInformation(modInfo);
+        holder->GetModuleInformation(modInfo);
         CheckChannels(modInfo.PhysicalChannels);
         
+        boost::shared_ptr<Module::Player> tmpPlayer = boost::shared_ptr<Module::Player>(new SafePlayerWrapper(holder->CreatePlayer(), PlayerMutex));
         Locker lock(PlayerMutex);
         StopPlayback();
+        Holder.swap(holder);
+        Player.swap(tmpPlayer);
+
         Channels = modInfo.PhysicalChannels;
-        Player = Module::Player::Ptr(new SafePlayerWrapper(player, PlayerMutex));
         CurrentState = STOPPED;
         Mixer::Ptr& curMixer(MixersSet[Channels - 1]);
         if (!curMixer)
@@ -295,7 +290,6 @@ namespace ZXTune
         {
           return Error();
         }
-        assert(Player.get());
         ThrowIfError(Player->SetPosition(frame));
         return Error();
       }
@@ -428,6 +422,7 @@ namespace ZXTune
       {
         throw Error(THIS_LINE, BACKEND_CONTROL_ERROR, TEXT_SOUND_ERROR_BACKEND_INVALID_STATE);
       }
+      assert(Holder && Player);
     }
 
     void BackendImpl::StopPlayback()

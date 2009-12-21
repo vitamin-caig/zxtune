@@ -20,8 +20,8 @@ extern const Char TEXT_SOUND_ERROR_BACKEND_INVALID_GAIN[] = {
   'F','a','i','l','e','d',' ','t','o',' ','s','e','t',' ','v','o','l','u','m','e','-',' ','g','a','i','n',' ',
   'i','s',' ','o','u','t',' ','o','f',' ','r','a','n','g','e','.',0
 };
-extern const Char TEXT_SOUND_ERROR_BACKEND_INVALID_PLAYER[] = {
-  'I','n','v','a','l','i','d',' ','p','l','a','y','e','r',' ','s','p','e','c','i','f','i','e','d',' ','f','o',
+extern const Char TEXT_SOUND_ERROR_BACKEND_INVALID_MODULE[] = {
+  'I','n','v','a','l','i','d',' ','m','o','d','u','l','e',' ','s','p','e','c','i','f','i','e','d',' ','f','o',
   'r',' ','b','a','c','k','e','n','d','.',0
 };
 extern const Char TEXT_SOUND_ERROR_BACKEND_INVALID_STATE[] = {

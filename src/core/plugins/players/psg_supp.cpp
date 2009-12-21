@@ -71,11 +71,13 @@ namespace
     info.Capabilities = CAP_DEV_AYM | CAP_CONV_RAW;
   }
   
-  class PSGPlayer : public Player
+  class PSGHolder;
+  Player::Ptr CreatePSGPlayer(const PSGHolder& mod);
+  
+  class PSGHolder : public Holder
   {
   public:
-    PSGPlayer(const MetaContainer& container, ModuleRegion& region)
-      : Device(AYM::CreateChip()), CurrentState(MODULE_STOPPED), TickCount(), Position(), Looped()
+    PSGHolder(const MetaContainer& container, ModuleRegion& region)
     {
       const IO::FastDump data(*container.Data);
       //workaround for some emulators
@@ -154,13 +156,56 @@ namespace
     {
       info = ModInfo;
     }
+    
+    virtual Player::Ptr CreatePlayer() const
+    {
+      return CreatePSGPlayer(*this);
+    }
+    
+    virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
+    {
+      using namespace Conversion;
+      if (parameter_cast<RawConvertParam>(&param))
+      {
+        dst = RawData;
+        return Error();
+      }
+      else
+      {
+        return Error(THIS_LINE, ERROR_MODULE_CONVERT, TEXT_MODULE_ERROR_CONVERSION_UNSUPPORTED);
+      }
+    }    
+  private:
+    friend class PSGPlayer;
+    Module::Information ModInfo;
+    Dump RawData;
+    std::vector<AYM::DataChunk> Storage;
+  };
+  
+  class PSGPlayer : public Player
+  {
+  public:
+    explicit PSGPlayer(const PSGHolder& holder)
+       : Module(holder)
+       , Device(AYM::CreateChip())
+       , CurrentState(MODULE_STOPPED)
+       , TickCount()
+       , Position()
+       , Looped()
+    {
+    }
 
-    virtual Error GetModuleState(unsigned& timeState,
-                                 Tracking& trackState,
-                                 Analyze::ChannelsState& analyzeState) const
+    virtual const Holder& GetModule() const
+    {
+      return Module;
+    }
+
+    virtual Error GetPlaybackState(unsigned& timeState,
+                                   Tracking& trackState,
+                                   Analyze::ChannelsState& analyzeState) const
     {
       timeState = static_cast<uint32_t>(Position);
-      trackState = ModInfo.Statistic;
+      trackState = Module.ModInfo.Statistic;
       trackState.Line = timeState;
       Device->GetState(analyzeState);
       return Error();
@@ -170,7 +215,7 @@ namespace
                               PlaybackState& state,
                               Sound::MultichannelReceiver& receiver)
     {
-      if (Position >= Storage.size())
+      if (Position >= Module.Storage.size())
       {
         if (MODULE_STOPPED == CurrentState)
         {
@@ -188,7 +233,7 @@ namespace
         }
       }
       assert(Device.get());
-      AYM::DataChunk& data(Storage[Position++]);
+      AYM::DataChunk data(Module.Storage[Position++]);
       data.Tick = (TickCount += params.ClocksPerFrame());
       Device->RenderData(params, data, receiver);
       state = CurrentState = MODULE_PLAYING;
@@ -207,7 +252,7 @@ namespace
     
     virtual Error SetPosition(unsigned frame)
     {
-      if (frame >= Storage.size())
+      if (frame >= Module.Storage.size())
       {
         return Error(THIS_LINE, ERROR_MODULE_OVERSEEK, TEXT_MODULE_ERROR_OVERSEEK);
       }
@@ -222,33 +267,21 @@ namespace
     {
       return Error();//TODO
     }
-
-    virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
-    {
-      using namespace Conversion;
-      if (parameter_cast<RawConvertParam>(&param))
-      {
-        dst = RawData;
-        return Error();
-      }
-      else
-      {
-        return Error(THIS_LINE, ERROR_MODULE_CONVERT, TEXT_MODULE_ERROR_CONVERSION_UNSUPPORTED);
-      }
-    }
-
   private:
-    Module::Information ModInfo;
+    const PSGHolder& Module;
     AYM::Chip::Ptr Device;
-    Dump RawData;
     PlaybackState CurrentState;
     uint64_t TickCount;
     std::size_t Position;
     bool Looped;
-    std::vector<AYM::DataChunk> Storage;
   };
   
-  bool CreatePSGPlayer(const MetaContainer& container, Player::Ptr& player, ModuleRegion& region)
+  Player::Ptr CreatePSGPlayer(const PSGHolder& holder)
+  {
+    return Player::Ptr(new PSGPlayer(holder));
+  }
+  
+  bool CreatePSGModule(const MetaContainer& container, Holder::Ptr& holder, ModuleRegion& region)
   {
     //perform fast check
     const IO::DataContainer& data(*container.Data);
@@ -262,7 +295,7 @@ namespace
     {
       try
       {
-        player.reset(new PSGPlayer(container, region));
+        holder.reset(new PSGHolder(container, region));
         return true;
       }
       catch (const Error&/*e*/)
@@ -276,10 +309,10 @@ namespace
 
 namespace ZXTune
 {
-  void RegisterPSGPlayer(PluginsEnumerator& enumerator)
+  void RegisterPSGSupport(PluginsEnumerator& enumerator)
   {
     PluginInformation info;
     DescribePSGPlugin(info);
-    enumerator.RegisterPlayerPlugin(info, CreatePSGPlayer);
+    enumerator.RegisterPlayerPlugin(info, CreatePSGModule);
   }
 }

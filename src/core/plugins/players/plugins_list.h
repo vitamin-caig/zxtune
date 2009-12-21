@@ -17,11 +17,11 @@ namespace ZXTune
   //forward declaration
   class PluginsEnumerator;
   
-  void RegisterPSGPlayer(PluginsEnumerator& enumerator);
+  void RegisterPSGSupport(PluginsEnumerator& enumerator);
   
   void RegisterPlayerPlugins(PluginsEnumerator& enumerator)
   {
-    RegisterPSGPlayer(enumerator);
+    RegisterPSGSupport(enumerator);
   }
 }
 

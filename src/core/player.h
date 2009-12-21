@@ -37,6 +37,7 @@ namespace ZXTune
       struct Parameter;
     }
     
+    class Holder;
     /// Player interface
     class Player
     {
@@ -45,6 +46,9 @@ namespace ZXTune
 
       virtual ~Player() {}
 
+      /// Retrieving module holder instance
+      virtual const Holder& GetModule() const = 0;
+
       /// Module playing state
       enum PlaybackState
       {
@@ -52,17 +56,11 @@ namespace ZXTune
         MODULE_STOPPED
       };
 
-      /// Retrieving player info itself
-      virtual void GetPlayerInfo(PluginInformation& info) const = 0;
-
-      /// Retrieving information about loaded module
-      virtual void GetModuleInformation(Information& info) const = 0;
-
-      /// Retrieving current state of loaded module
-      virtual Error GetModuleState(unsigned& timeState, //current frame
-                                   Tracking& trackState, //current track position
-                                   Analyze::ChannelsState& analyzeState //current analyzed state
-                                   ) const = 0;
+      /// Retrieving current playback state of loaded module
+      virtual Error GetPlaybackState(unsigned& timeState, //current frame
+                                     Tracking& trackState, //current track position
+                                     Analyze::ChannelsState& analyzeState //current analyzed state
+                                     ) const = 0;
 
       /// Rendering frame
       virtual Error RenderFrame(const Sound::RenderParameters& params, //parameters for rendering
@@ -74,7 +72,25 @@ namespace ZXTune
       virtual Error Reset() = 0;
       virtual Error SetPosition(unsigned frame) = 0;
       virtual Error SetParameters(const ParametersMap& params) = 0;
+    };
 
+    /// Module holder interface
+    class Holder
+    {
+    public:
+      typedef boost::shared_ptr<Holder> Ptr;
+      
+      virtual ~Holder() {}
+
+      /// Retrieving player info
+      virtual void GetPlayerInfo(PluginInformation& info) const = 0;
+
+      /// Retrieving information about loaded module
+      virtual void GetModuleInformation(Information& info) const = 0;
+
+      /// Building player from holder
+      virtual Player::Ptr CreatePlayer() const = 0;
+      
       /// Converting
       virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const = 0;
     };
@@ -85,7 +101,7 @@ namespace ZXTune
   {
     typedef boost::function<bool(const PluginInformation&)> FilterFunc;
     FilterFunc Filter;
-    typedef boost::function<Error(Module::Player::Ptr player)> CallbackFunc;
+    typedef boost::function<Error(Module::Holder::Ptr player)> CallbackFunc;
     CallbackFunc Callback;
     typedef boost::function<void(const String&)> LogFunc;
     LogFunc Logger;

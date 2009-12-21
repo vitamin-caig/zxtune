@@ -124,13 +124,13 @@ namespace
     std::cout << " >" << str << std::endl;
   }
   
-  Error PluginCallback(Module::Player::Ptr player, unsigned& count)
+  Error PluginCallback(Module::Holder::Ptr holder, unsigned& count)
   {
     PluginInformation plugInfo;
-    player->GetPlayerInfo(plugInfo);
+    holder->GetPlayerInfo(plugInfo);
     std::cout << " Plugin: " << plugInfo.Id << std::endl;
     Module::Information modInfo;
-    player->GetModuleInformation(modInfo);
+    holder->GetModuleInformation(modInfo);
     ShowModuleInfo(modInfo);
     ++count;
     return Error();

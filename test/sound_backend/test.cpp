@@ -46,18 +46,13 @@ namespace
     std::cout << msg << " test: " << (res ? "failed" : "passed") << "\n";
   }
   
-  class DummyPlayer : public Module::Player
+  class DummyHolder;
+  Module::Player::Ptr CreateDummyPlayer(const DummyHolder& holder);
+  
+  class DummyHolder : public Module::Holder
   {
   public:
-    DummyPlayer()
-      : Chip(AYM::CreateChip())
-      , Chunk()
-      , Frames()
-    {
-      Chunk.Mask = AYM::DataChunk::ALL_REGISTERS ^ (1 << AYM::DataChunk::REG_TONEN);
-      Chunk.Data[AYM::DataChunk::REG_MIXER] = ~7;
-      Chunk.Data[AYM::DataChunk::REG_VOLA] = Chunk.Data[AYM::DataChunk::REG_VOLB] = Chunk.Data[AYM::DataChunk::REG_VOLC] = 15;
-    }
+    DummyHolder() {}
     
     virtual void GetPlayerInfo(PluginInformation& info) const
     {
@@ -68,7 +63,38 @@ namespace
       info.PhysicalChannels = 3;
     }
     
-    virtual Error GetModuleState(unsigned&, Module::Tracking&, Module::Analyze::ChannelsState&) const
+    virtual Module::Player::Ptr CreatePlayer() const
+    {
+      return CreateDummyPlayer(*this);
+    }
+
+    virtual Error Convert(const Module::Conversion::Parameter& param, Dump& dst) const
+    {
+      return Error();
+    }
+  };
+
+  
+  class DummyPlayer : public Module::Player
+  {
+  public:
+    explicit DummyPlayer(const DummyHolder& holder)
+      : Holder(holder)
+      , Chip(AYM::CreateChip())
+      , Chunk()
+      , Frames()
+    {
+      Chunk.Mask = AYM::DataChunk::ALL_REGISTERS ^ (1 << AYM::DataChunk::REG_TONEN);
+      Chunk.Data[AYM::DataChunk::REG_MIXER] = ~7;
+      Chunk.Data[AYM::DataChunk::REG_VOLA] = Chunk.Data[AYM::DataChunk::REG_VOLB] = Chunk.Data[AYM::DataChunk::REG_VOLC] = 15;
+    }
+        
+    virtual const Module::Holder& GetModule() const
+    {
+      return Holder;
+    }
+    
+    virtual Error GetPlaybackState(unsigned&, Module::Tracking&, Module::Analyze::ChannelsState&) const
     {
       return Error();
     }
@@ -114,15 +140,18 @@ namespace
       return Error();
     }
     
-    virtual Error Convert(const Module::Conversion::Parameter& param, Dump& dst) const
-    {
-      return Error();
-    }
   private:
+    const DummyHolder& Holder;
     const AYM::Chip::Ptr Chip;
     AYM::DataChunk Chunk;
     unsigned Frames;
   };
+  
+  Module::Player::Ptr CreateDummyPlayer(const DummyHolder& holder)
+  {
+    return Module::Player::Ptr(new DummyPlayer(holder));
+  }
+  
 
   void TestErrors()
   {
@@ -134,7 +163,7 @@ namespace
     TestError("Pause", backend->Pause());
     TestError("Stop", backend->Stop());
     TestError("SetPosition", backend->SetPosition(0));
-    TestError("Null player set", backend->SetPlayer(Module::Player::Ptr()));
+    TestError("Null player set", backend->SetModule(Module::Holder::Ptr()));
   }
 
   void TestBackend(const Backend::Info& info)
@@ -177,7 +206,7 @@ namespace
     }
     //return previous
     backend->SetVolume(volume);
-    TestSuccess("Player set", backend->SetPlayer(Module::Player::Ptr(new DummyPlayer)));
+    TestSuccess("Player set", backend->SetModule(Module::Holder::Ptr(new DummyHolder())));
     /*
     TestSuccess("Play", backend->Play());
     TestSuccess("Pause", backend->Pause());
