@@ -39,16 +39,16 @@ namespace ZXTune
   
   //in: metacontainer
   //out: holder, region
-  typedef boost::function<bool(const MetaContainer&, Module::Holder::Ptr&, ModuleRegion&)> CreatePlayerFunc;
+  typedef boost::function<bool(const MetaContainer&, Module::Holder::Ptr&, ModuleRegion&)> CreateModuleFunc;
   //in: data
   //output: data, region
-  typedef boost::function<bool(const IO::DataContainer&, IO::DataContainer::Ptr&, ModuleRegion&)> ProcessImplicitFunc;
+  typedef boost::function<bool(const MetaContainer&, IO::DataContainer::Ptr&, ModuleRegion&)> ProcessImplicitFunc;
   //in: metacontainer, parameters+callback
   //out: region
   typedef boost::function<Error(const MetaContainer&, const DetectParameters&, ModuleRegion&)> ProcessContainerFunc;
   //in: container, path
   //out: container, rest path
-  typedef boost::function<bool(const IO::DataContainer&, const String&, IO::DataContainer::Ptr&, String&)> OpenContainerFunc;
+  typedef boost::function<bool(const MetaContainer&, const String&, IO::DataContainer::Ptr&, String&)> OpenContainerFunc;
 
   class PluginsEnumerator
   {
@@ -56,7 +56,7 @@ namespace ZXTune
     virtual ~PluginsEnumerator() {}
 
     //endpoint modules support
-    virtual void RegisterPlayerPlugin(const PluginInformation& info, const CreatePlayerFunc& func) = 0;
+    virtual void RegisterPlayerPlugin(const PluginInformation& info, const CreateModuleFunc& func) = 0;
     //implicit containers support
     virtual void RegisterImplicitPlugin(const PluginInformation& info, const ProcessImplicitFunc& func) = 0;
     //nested containers support

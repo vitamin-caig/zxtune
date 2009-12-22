@@ -25,7 +25,7 @@ namespace
   const unsigned SKIP3_OFFSET = PSG2_OFFSET + PSG_SIZE;
 
   const unsigned HOB_CRC1 = 257 * (unsigned('f') + 'i' + 'l' + 'e' + 'n' + 'a' + 'm' + 'e' + 'e' + 'x' + 't' + 1 + PSG_SIZE) + 105;
-  const unsigned HOB_CRC2 = 257 * (unsigned('f') + 'i' + 'l' + 'e' + 'n' + 'a' + 'm' + 'e' + 'e' + 'x' + 't' + 1 + PSG_SIZE + SKIP_SIZE) + 105;
+  const unsigned HOB_CRC2 = 257 * (unsigned('f') + 'i' + 'l' + 'e' + 'n' + 'a' + 'm' + 'e' + 'e' + 'x' + 't' + 1 + PSG_SIZE + SKIP_SIZE * 2) + 105;
   const unsigned char PSG_DUMP[] = {
     //skip size=8
     0, 0, 0, 0, 0, 0, 0, 0,
@@ -38,7 +38,7 @@ namespace
     7, 0xfe,
     0xfd,//end
     //hobeta header size=17
-    'f', 'i', 'l', 'e', 'n', 'a', 'm', 'e', 'e', 'x', 't', PSG_SIZE + SKIP_SIZE, 0,  0,  1,  HOB_CRC2 & 0xff, HOB_CRC2 >> 8,
+    'f', 'i', 'l', 'e', 'n', 'a', 'm', 'e', 'e', 'x', 't', PSG_SIZE + 2 * SKIP_SIZE, 0,  0,  1,  HOB_CRC2 & 0xff, HOB_CRC2 >> 8,
     //skip size=8
     0, 0, 0, 0, 0, 0, 0, 0,
     //size=24 crc=799865041
@@ -49,7 +49,7 @@ namespace
     7, ~(1 | 8),
     0xfd,
     
-    0, 0//skip
+    0, 0, 0, 0, 0, 0, 0, 0//skip
   };
     
   class FixedContainer : public IO::DataContainer
@@ -150,14 +150,17 @@ namespace
     std::cout << " >" << str << std::endl;
   }
   
-  Error PluginCallback(Module::Holder::Ptr holder, unsigned& count)
+  Error PluginCallback(Module::Holder::Ptr holder, unsigned& count, const bool& detailed)
   {
     PluginInformation plugInfo;
     holder->GetPlayerInfo(plugInfo);
     std::cout << " Plugin: " << plugInfo.Id << std::endl;
-    Module::Information modInfo;
-    holder->GetModuleInformation(modInfo);
-    ShowModuleInfo(modInfo);
+    if (detailed)
+    {
+      Module::Information modInfo;
+      holder->GetModuleInformation(modInfo);
+      ShowModuleInfo(modInfo);
+    }
     ++count;
     return Error();
   }
@@ -194,22 +197,24 @@ int main()
 {
   try
   {
+    unsigned count = 0;
+    bool detailed = true;
+    
     std::vector<PluginInformation> plugins;
     GetSupportedPlugins(plugins);
     std::cout << "Supported plugins:" << std::endl;
     std::for_each(plugins.begin(), plugins.end(), ShowPluginInfo);
-    
-    unsigned count = 0;
     DetectParameters detectParams;
+    
     TestError(DetectModules(CreateContainer(PSG1_OFFSET), detectParams, String()), Module::ERROR_INVALID_PARAMETERS, "no callback", __LINE__);
     
-    detectParams.Callback = boost::bind(PluginCallback, _1, boost::ref(count));
-    TestError(DetectModules(IO::DataContainer::Ptr(), detectParams, String()), Module::ERROR_INVALID_PARAMETERS, "no data", __LINE__);
-    
+    detectParams.Callback = boost::bind(&PluginCallback, _1, boost::ref(count), boost::cref(detailed));
     detectParams.Logger = PluginLogger;
     
+    TestError(DetectModules(IO::DataContainer::Ptr(), detectParams, String()), Module::ERROR_INVALID_PARAMETERS, "no data", __LINE__);
+    
+    
     TestError(DetectModules(CreateContainer(), detectParams, "invalid_path"), Module::ERROR_FIND_SUBMODULE, "invalid path", __LINE__);
-
     count = 0;
     ThrowIfError(DetectModules(CreateContainer(PSG2_OFFSET), detectParams, String()));
     TestPlayers(count, 1, "simple opening", __LINE__);
@@ -219,8 +224,9 @@ int main()
     TestPlayers(count, 0, "filtered opening", __LINE__);
 
     //testing without hobeta
+    detailed = false;
+    
     detectParams.Filter = NoHobeta;
-    count = 0;
     ThrowIfError(DetectModules(CreateContainer(), detectParams, String()));
     TestPlayers(count, 2, "raw scanning opening (no implicit)", __LINE__);
     count = 0;
@@ -235,13 +241,12 @@ int main()
 
     detectParams.Filter = 0;
     count = 0;
+    //
     ThrowIfError(DetectModules(CreateContainer(), detectParams, String()));
-    //1 detected- second hobeta has raw inside
-    TestPlayers(count, 1, "raw scanning opening", __LINE__);
+    TestPlayers(count, 2, "raw scanning opening", __LINE__);
     count = 0;
     ThrowIfError(DetectModules(CreateContainer(PSG1_OFFSET), detectParams, String()));
-    //1 detected
-    TestPlayers(count, 1, "raw scanning starting from begin", __LINE__);
+    TestPlayers(count, 2, "raw scanning starting from begin", __LINE__);
     count = 0;
     ThrowIfError(DetectModules(CreateContainer(), detectParams, (Formatter("%1%.raw") % PSG2_OFFSET).str()));
     TestPlayers(count, 1, "detect from startpoint", __LINE__);

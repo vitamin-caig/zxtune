@@ -63,25 +63,28 @@ namespace
   Error ProcessRawContainer(const MetaContainer& data, const DetectParameters& params, ModuleRegion& region)
   {
     //do not search right after previous raw plugin
-    if (!data.PluginsChain.empty() && *data.PluginsChain.rbegin() == RAW_PLUGIN_ID)
+    if (!data.PluginsChain.empty() && data.PluginsChain.back() == RAW_PLUGIN_ID)
     {
       return Error(THIS_LINE, Module::ERROR_FIND_CONTAINER_PLUGIN);
     }
     const PluginsEnumerator& enumerator(PluginsEnumerator::Instance());
-    DetectParameters filteredParams;
-    filteredParams.Filter = boost::bind(ChainedFilter, _1, params.Filter);
-    filteredParams.Callback = params.Callback;
-    filteredParams.Logger = params.Logger;
     
     //process without offset
     ModuleRegion curRegion;
-    if (const Error& err = enumerator.DetectModules(filteredParams, data, curRegion))
     {
-      return err;
+      DetectParameters filteredParams;
+      filteredParams.Filter = boost::bind(ChainedFilter, _1, params.Filter);
+      filteredParams.Callback = params.Callback;
+      filteredParams.Logger = params.Logger;
+      
+      if (const Error& err = enumerator.DetectModules(filteredParams, data, curRegion))
+      {
+        return err;
+      }
     }
     bool wasResult = curRegion.Size != 0;
     const std::size_t limit(data.Data->Size());
-    for (std::size_t offset = curRegion.Offset + curRegion.Size;
+    for (std::size_t offset = std::max(curRegion.Offset + curRegion.Size, std::size_t(1));
       offset < limit - MINIMAL_RAW_SIZE; offset += std::max(curRegion.Offset + curRegion.Size, std::size_t(1)))
     {
       MetaContainer subcontainer;
@@ -89,7 +92,7 @@ namespace
       subcontainer.Path = IO::AppendPath(data.Path, CreateRawPart(offset));
       subcontainer.PluginsChain = data.PluginsChain;
       subcontainer.PluginsChain.push_back(RAW_PLUGIN_ID);
-      if (const Error& err = enumerator.DetectModules(filteredParams, subcontainer, curRegion))
+      if (const Error& err = enumerator.DetectModules(params, subcontainer, curRegion))
       {
         return err;
       }
@@ -107,14 +110,19 @@ namespace
     }
   }
   
-  bool OpenRawContainer(const IO::DataContainer& inData, const String& inPath, IO::DataContainer::Ptr& outData, String& restPath)
+  bool OpenRawContainer(const MetaContainer& inData, const String& inPath, IO::DataContainer::Ptr& outData, String& restPath)
   {
+    //do not open right after self
+    if (!inData.PluginsChain.empty() && inData.PluginsChain.back() == RAW_PLUGIN_ID)
+    {
+      return false;
+    }
     String restComp;
     const String& pathComp = IO::ExtractFirstPathComponent(inPath, restComp);
     std::size_t offset(0);
     if (CheckIfRawPart(pathComp, offset))
     {
-      outData = inData.GetSubcontainer(offset, inData.Size() - offset);
+      outData = inData.Data->GetSubcontainer(offset, inData.Data->Size() - offset);
       restPath = restComp;
       return true;
     }

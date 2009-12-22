@@ -51,10 +51,11 @@ namespace
   const std::size_t HOBETA_MAX_SIZE = 0xff00;
 
   //////////////////////////////////////////////////////////////////////////
-  bool ProcessHobeta(const IO::DataContainer& input, IO::DataContainer::Ptr& output, ModuleRegion& region)
+  bool ProcessHobeta(const MetaContainer& input, IO::DataContainer::Ptr& output, ModuleRegion& region)
   {
-    const std::size_t limit(input.Size());
-    const uint8_t* const data(static_cast<const uint8_t*>(input.Data()));
+    const IO::DataContainer& inputData(*input.Data);
+    const std::size_t limit(inputData.Size());
+    const uint8_t* const data(static_cast<const uint8_t*>(inputData.Data()));
     const Header* const header(safe_ptr_cast<const Header*>(data));
     const unsigned dataSize(fromLE(header->Length));
     if (dataSize > HOBETA_MAX_SIZE ||
@@ -66,7 +67,7 @@ namespace
     {
       region.Offset = 0;
       region.Size = dataSize + sizeof(*header);
-      output = input.GetSubcontainer(sizeof(*header), dataSize);
+      output = inputData.GetSubcontainer(sizeof(*header), dataSize);
       return true;
     }
     return false;

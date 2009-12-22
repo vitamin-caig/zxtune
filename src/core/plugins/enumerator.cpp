@@ -9,6 +9,8 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+#include <logging.h>
+
 #include "enumerator.h"
 #include <core/plugin.h>
 #include <core/error_codes.h>
@@ -36,7 +38,9 @@ namespace
 {
   using namespace ZXTune;
 
-  typedef std::pair<PluginInformation, CreatePlayerFunc> PlayerPluginDescriptor;
+  const std::string THIS_MODULE("Core::Enumerator");
+  
+  typedef std::pair<PluginInformation, CreateModuleFunc> PlayerPluginDescriptor;
   typedef std::pair<PluginInformation, ProcessImplicitFunc> ImplicitPluginDescription;
   typedef boost::tuple<PluginInformation, OpenContainerFunc, ProcessContainerFunc> ContainerPluginDescription;
 
@@ -77,16 +81,18 @@ namespace
       RegisterPlayerPlugins(*this);
     }
 
-    virtual void RegisterPlayerPlugin(const PluginInformation& info, const CreatePlayerFunc& func)
+    virtual void RegisterPlayerPlugin(const PluginInformation& info, const CreateModuleFunc& func)
     {
       AllPlugins.push_back(info);
       PlayerPlugins.push_back(PlayerPluginDescriptor(info, func));
+      Log::Debug(THIS_MODULE, "Registered player %1%", info.Id);
     }
 
     virtual void RegisterImplicitPlugin(const PluginInformation& info, const ProcessImplicitFunc& func)
     {
       AllPlugins.push_back(info);
       ImplicitPlugins.push_back(ImplicitPluginDescription(info, func));
+      Log::Debug(THIS_MODULE, "Registered implicit container %1%", info.Id);
     }
     
     virtual void RegisterContainerPlugin(const PluginInformation& info,
@@ -94,6 +100,7 @@ namespace
     {
       AllPlugins.push_back(info);
       ContainerPlugins.push_back(boost::make_tuple(info, opener, processor));
+      Log::Debug(THIS_MODULE, "Registered container %1%", info.Id);
     }
 
     //public interface
@@ -110,43 +117,48 @@ namespace
       {
         assert(data.get());
         // Navigate through known path
-        StringArray containersTmp;
-        String openedPath(ROOT_SUBPATH), pathToOpen(subpath);
-        IO::DataContainer::Ptr subContainer;
+        String pathToOpen(subpath);
+        
+        MetaContainer tmpResult;
+        tmpResult.Path = ROOT_SUBPATH;
+        tmpResult.Data = data;
         while (!pathToOpen.empty())
         {
+          Log::Debug(THIS_MODULE, "Resolving subpath '%1%'", pathToOpen);
           //check for implicit containers
           {
             IO::DataContainer::Ptr fromImplicit;
             String containerId;
-            while (CheckForImplicit((subContainer.get() ? *subContainer : *data), fromImplicit, containerId))
+            if (CheckForImplicit(tmpResult, fromImplicit, containerId))
             {
-              DoLog(logger, TEXT_MODULE_MESSAGE_OPEN_IMPLICIT, openedPath, containerId);
-              subContainer = fromImplicit;
-              containersTmp.push_back(containerId);
+              Log::Debug(THIS_MODULE, "Detected implicit plugin %1% at '%2%'", containerId, tmpResult.Path);
+              DoLog(logger, TEXT_MODULE_MESSAGE_OPEN_IMPLICIT, tmpResult.Path, containerId);
+              tmpResult.Data = fromImplicit;
+              tmpResult.PluginsChain.push_back(containerId);
             }
           }
           //check for other subcontainers
           IO::DataContainer::Ptr fromContainer;
           String restPath;
           String containerId;
-          const IO::DataContainer& input(subContainer.get() ? *subContainer : *data);
-          if (CheckForContainer(input, pathToOpen, fromContainer, restPath, containerId))
+          if (CheckForContainer(tmpResult, pathToOpen, fromContainer, restPath, containerId))
           {
-            DoLog(logger, TEXT_MODULE_MESSAGE_OPEN_NESTED, openedPath, containerId);
-            subContainer = fromContainer;
+            Log::Debug(THIS_MODULE, "Detected nested container %1% at '%2%'", containerId, tmpResult.Path);
+            DoLog(logger, TEXT_MODULE_MESSAGE_OPEN_NESTED, tmpResult.Path, containerId);
+            tmpResult.Data = fromContainer;
             pathToOpen = restPath;
-            openedPath = subpath.substr(0, subpath.find(restPath));
-            containersTmp.push_back(containerId);
+            tmpResult.Path = subpath.substr(0, subpath.find(restPath));
+            tmpResult.PluginsChain.push_back(containerId);
           }
           else
           {
             return MakeFormattedError(THIS_LINE, Module::ERROR_FIND_SUBMODULE, TEXT_MODULE_ERROR_FIND_SUBMODULE, pathToOpen);
           }
         }
-        result.Data = subContainer.get() ? subContainer : data;
+        Log::Debug(THIS_MODULE, "Resolved path '%1%'", subpath);
+        result.Data = tmpResult.Data;
         result.Path = subpath;
-        result.PluginsChain.swap(containersTmp);
+        result.PluginsChain.swap(tmpResult.PluginsChain);
         return Error();
       }
       catch (const Error& e)
@@ -157,6 +169,7 @@ namespace
 
     virtual Error DetectModules(const DetectParameters& params, const MetaContainer& data, ModuleRegion& region) const
     {
+      Log::Debug(THIS_MODULE, "Detecting modules in data of size %1%, path '%2%'", data.Data->Size(), data.Path);
       assert(params.Callback);
       //try to detect container and pass control there
       {
@@ -171,7 +184,7 @@ namespace
       {
         MetaContainer nested;
         String pluginId;
-        const Error& e = DetectImplicit(params.Filter, *data.Data, nested.Data, region, pluginId);
+        const Error& e = DetectImplicit(params.Filter, data, nested.Data, region, pluginId);
         if (!e)
         {
           DoLog(params.Logger, TEXT_MODULE_MESSAGE_DETECT_IMPLICIT, data.Path, pluginId);
@@ -204,6 +217,7 @@ namespace
           return e;
         }
       }
+      Log::Debug(THIS_MODULE, "Detected player plugin %1%", pluginId);
       DoLog(params.Logger, TEXT_MODULE_MESSAGE_DETECT_PLAYER, data.Path, pluginId);
       if (const Error& e = params.Callback(holder))
       {
@@ -222,14 +236,23 @@ namespace
         for (std::vector<ContainerPluginDescription>::const_iterator it = ContainerPlugins.begin(), lim = ContainerPlugins.end();
           it != lim; ++it)
         {
-          if (params.Filter && params.Filter(it->get<0>()))
+          const PluginInformation& plugInfo(it->get<0>());
+          if (params.Filter && params.Filter(plugInfo))
           {
             continue;//filtered plugin
           }
+          Log::Debug(THIS_MODULE, " Checking container plugin %1% for path '%2%'", plugInfo.Id, input.Path);
           const Error& e = (it->get<2>())(input, params, region);
           //stop on success or canceling
-          if (!e || e == Module::ERROR_DETECT_CANCELED)
+          if (!e)
           {
+            Log::Debug(THIS_MODULE, "  Container plugin %1% for path %2% detected at region (%3%;%4%)", 
+              plugInfo.Id, input.Path, region.Offset, region.Size);
+            return e;
+          }
+          if (e == Module::ERROR_DETECT_CANCELED)
+          {
+            Log::Debug(THIS_MODULE, "  Canceled");
             return e;
           }
         }
@@ -241,7 +264,7 @@ namespace
       }
     }
     
-    Error DetectImplicit(const DetectParameters::FilterFunc& filter, const IO::DataContainer& input,
+    Error DetectImplicit(const DetectParameters::FilterFunc& filter, const MetaContainer& input,
       IO::DataContainer::Ptr& output, ModuleRegion& region, String& pluginId) const
     {
       try
@@ -254,8 +277,10 @@ namespace
             continue;//filtered plugin
           }
           //find first suitable
+          Log::Debug(THIS_MODULE, " Checking implicit container %1% at path '%2%'", it->first.Id, input.Path);
           if (it->second(input, output, region))
           {
+            Log::Debug(THIS_MODULE, "  Detected at region (%1%;%2%)", region.Offset, region.Size);
             pluginId = it->first.Id;
             return Error();
           }
@@ -268,7 +293,7 @@ namespace
       }
     }
 
-    Error DetectModule(const DetectParameters::FilterFunc& filter, const MetaContainer& data,
+    Error DetectModule(const DetectParameters::FilterFunc& filter, const MetaContainer& input,
       Module::Holder::Ptr& holder, ModuleRegion& region, String& pluginId) const
     {
       try
@@ -281,8 +306,10 @@ namespace
             continue;//filtered plugin
           }
           //find first suitable
-          if (it->second(data, holder, region))
+          Log::Debug(THIS_MODULE, " Checking module plugin %1% at path '%2%'", it->first.Id, input.Path);
+          if (it->second(input, holder, region))
           {
+            Log::Debug(THIS_MODULE, "  Detected at region (%1%;%2%)", region.Offset, region.Size);
             pluginId = it->first.Id;
             return Error();
           }
@@ -295,7 +322,7 @@ namespace
       }
     }
 
-    bool CheckForImplicit(const IO::DataContainer& input, IO::DataContainer::Ptr& output, String& containerId) const
+    bool CheckForImplicit(const MetaContainer& input, IO::DataContainer::Ptr& output, String& containerId) const
     {
       using namespace boost;
       ModuleRegion region;
@@ -309,7 +336,7 @@ namespace
       return false;
     }
 
-    bool CheckForContainer(const IO::DataContainer& input, const String& pathToOpen,
+    bool CheckForContainer(const MetaContainer& input, const String& pathToOpen,
                                  IO::DataContainer::Ptr& output, String& restPath, String& containerId) const
     {
       using namespace boost;

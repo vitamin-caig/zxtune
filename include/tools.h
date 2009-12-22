@@ -15,7 +15,6 @@ Author:
 #include <types.h>
 
 #include <boost/mpl/if.hpp>
-#include <boost/call_traits.hpp>
 #include <boost/static_assert.hpp>
 #include <boost/type_traits/is_const.hpp>
 #include <boost/type_traits/remove_pointer.hpp>
