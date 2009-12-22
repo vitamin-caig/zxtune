@@ -11,6 +11,7 @@ Author:
 
 #include <error.h>
 
+#include <cctype>
 #include <iomanip>
 
 #include <text/tools.h>
@@ -127,9 +128,9 @@ String Error::CodeToString(CodeType code)
 {
   const unsigned codeBytes(sizeof(code) - 3);
   const CodeType syms = code >> (8 * codeBytes);
-  const uint8_t p1 = syms & 0xff;
-  const uint8_t p2 = (syms >> 8) & 0xff;
-  const uint8_t p3 = (syms >> 16) & 0xff;
+  const int p1 = syms & 0xff;
+  const int p2 = (syms >> 8) & 0xff;
+  const int p3 = (syms >> 16) & 0xff;
   OutStringStream str;
   if (std::isalnum(p1) && std::isalnum(p2) && std::isalnum(p3))
   {

@@ -23,11 +23,11 @@ namespace ZXTune
     CAP_DEV_AYM        = 0x01,
     CAP_DEV_BEEPER     = 0x02,
     CAP_DEV_SOUNDRIVE  = 0x04,
-    CAP_DEV_FM 	       = 0x08,
+    CAP_DEV_FM         = 0x08,
     
     //storages
     CAP_STORAGE_MASK    = 0xff00,
-    CAP_STOR_CONTAINER 	= 0x0100,
+    CAP_STOR_CONTAINER  = 0x0100,
     CAP_STOR_MULTITRACK = 0x0200,
     CAP_STOR_SCANER     = 0x0400,
     

@@ -60,14 +60,6 @@ namespace
     return stream.str();
   }
   
-  void DescribeRawPlugin(PluginInformation& info)
-  {
-    info.Id = RAW_PLUGIN_ID;
-    info.Description = TEXT_RAW_INFO;
-    info.Version = TEXT_RAW_VERSION;
-    info.Capabilities = CAP_STOR_SCANER;
-  }
-  
   Error ProcessRawContainer(const MetaContainer& data, const DetectParameters& params, ModuleRegion& region)
   {
     //do not search right after previous raw plugin
@@ -135,7 +127,10 @@ namespace ZXTune
   void RegisterRawContainer(PluginsEnumerator& enumerator)
   {
     PluginInformation info;
-    DescribeRawPlugin(info);
+    info.Id = RAW_PLUGIN_ID;
+    info.Description = TEXT_RAW_INFO;
+    info.Version = TEXT_RAW_VERSION;
+    info.Capabilities = CAP_STOR_MULTITRACK | CAP_STOR_SCANER;
     enumerator.RegisterContainerPlugin(info, OpenRawContainer, ProcessRawContainer);
   }
 }

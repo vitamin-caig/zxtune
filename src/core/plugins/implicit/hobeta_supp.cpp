@@ -51,14 +51,6 @@ namespace
   const std::size_t HOBETA_MAX_SIZE = 0xff00;
 
   //////////////////////////////////////////////////////////////////////////
-  void DescribeHobetaPlugin(PluginInformation& info)
-  {
-    info.Id = HOBETA_PLUGIN_ID;
-    info.Description = TEXT_HOBETA_INFO;
-    info.Version = TEXT_HOBETA_VERSION;
-    info.Capabilities = 0;//TODO
-  }
-
   bool ProcessHobeta(const IO::DataContainer& input, IO::DataContainer::Ptr& output, ModuleRegion& region)
   {
     const std::size_t limit(input.Size());
@@ -86,7 +78,10 @@ namespace ZXTune
   void RegisterHobetaConvertor(PluginsEnumerator& enumerator)
   {
     PluginInformation info;
-    DescribeHobetaPlugin(info);
+    info.Id = HOBETA_PLUGIN_ID;
+    info.Description = TEXT_HOBETA_INFO;
+    info.Version = TEXT_HOBETA_VERSION;
+    info.Capabilities = CAP_STOR_CONTAINER;
     enumerator.RegisterImplicitPlugin(info, ProcessHobeta);
   }
 }
