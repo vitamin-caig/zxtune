@@ -18,11 +18,12 @@ cxx_mode_flags += /LD
 ld_mode_flags += /DLL
 endif
 
-CXX_FLAGS := $(cxx_mode_flags) $(cxx_flags) /FC /TP /nologo /Gy \
+CXX_FLAGS := $(cxx_mode_flags) $(cxx_flags) /nologo \
 	/W3 /Wp64 /wd4224 /wd4710 /wd4711 \
 	/D_SECURE_SCL=0 \
 	$(addprefix /D, $(definitions)) \
-	/J /Zc:wchar_t,forScope /Zi /EHsc /GR \
+	/J /Zc:wchar_t,forScope /Fd /Z7 /Zl /EHsc \
+	/GA /GL /GF /Gy /Y- \
 	$(addprefix /I, $(include_dirs))
 
 LD_FLAGS := $(ld_mode_flags) /NODEFAULTLIB
