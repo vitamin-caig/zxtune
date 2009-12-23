@@ -29,9 +29,9 @@ CXX_FLAGS := $(cxx_mode_flags) $(cxx_flags) /nologo \
 LD_FLAGS := $(ld_mode_flags) /NODEFAULTLIB
 
 build_obj_cmd = $(CXX) $(CXX_FLAGS) /c /Fo$@ $<
-build_lib_cmd = $(AR) /NOLOGO /OUT:$@ $^
+build_lib_cmd = $(AR) /NOLOGO /NODEFAULTLIB /OUT:$@ $^
 link_cmd = $(LDD) $(LD_FLAGS) /NOLOGO /INCREMENTAL:NO /FIXED:NO /DEBUG \
-	/OPT:REF \
+	/OPT:REF,NOWIN98 /NODEFAULTLIB /LTCG \
 	/OUT:$@ $(object_files) \
 	kernel32.lib $(windows_libraries) \
 	$(if $(libraries),/LIBPATH:$(libs_dir) $(addsuffix .lib,$(libraries)),) \
