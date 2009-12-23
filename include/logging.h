@@ -21,6 +21,24 @@ namespace Log
 
   void Message(const std::string& module, const std::string& msg);
 
+  template<class T>
+  inline const T& AdaptType(const T& param)
+  {
+    return param;
+  }
+
+  inline unsigned AdaptType(std::size_t param)
+  {
+    return static_cast<unsigned>(param);
+  }
+
+  #ifdef UNICODE
+  inline const std::string& AdaptType(const String& param)
+  {
+    return std::string(param.begin(), param.end());
+  }
+  #endif
+
   inline void Debug(const std::string& module, const char* msg)
   {
     assert(msg);
@@ -36,7 +54,7 @@ namespace Log
     assert(msg);
     if (IsDebuggingEnabled())
     {
-      Message(module, (boost::format(msg) % p1).str());
+      Message(module, (boost::format(msg) % AdaptType(p1)).str());
     }
   }
   
@@ -46,7 +64,9 @@ namespace Log
     assert(msg);
     if (IsDebuggingEnabled())
     {
-      Message(module, (boost::format(msg) % p1 % p2).str());
+      Message(module, (boost::format(msg)
+        % AdaptType(p1)
+        % AdaptType(p2)).str());
     }
   }
 
@@ -56,7 +76,10 @@ namespace Log
     assert(msg);
     if (IsDebuggingEnabled())
     {
-      Message(module, (boost::format(msg) % p1 % p2 % p3).str());
+      Message(module, (boost::format(msg)
+        % AdaptType(p1)
+        % AdaptType(p2)
+        % AdaptType(p3)).str());
     }
   }
 
@@ -66,18 +89,27 @@ namespace Log
     assert(msg);
     if (IsDebuggingEnabled())
     {
-      Message(module, (boost::format(msg) % p1 % p2 % p3 % p4).str());
+      Message(module, (boost::format(msg)
+        % AdaptType(p1)
+        % AdaptType(p2)
+        % AdaptType(p3)
+        % AdaptType(p4)).str());
     }
   }
 
   template<class P1, class P2, class P3, class P4, class P5>
-  inline void Debug(const std::string& module, const char* msg, 
+  inline void Debug(const std::string& module, const char* msg,
                     const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5)
   {
     assert(msg);
     if (IsDebuggingEnabled())
     {
-      Message(module, (boost::format(msg) % p1 % p2 % p3 % p4 % p5).str());
+      Message(module, (boost::format(msg)
+        % AdaptType(p1)
+        % AdaptType(p2)
+        % AdaptType(p3)
+        % AdaptType(p4)
+        % AdaptType(p5)).str());
     }
   }
 }

@@ -10,6 +10,9 @@ Author:
 */
 #include "enumerator.h"
 #include "backends_list.h"
+
+#include <logging.h>
+
 #include <sound/error_codes.h>
 
 #include <map>
@@ -24,6 +27,8 @@ Author:
 namespace
 {
   using namespace ZXTune::Sound;
+
+  const std::string THIS_MODULE("Sound::Enumerator");
 
   inline bool BackendInfoComparator(const Backend::Info& lh, const Backend::Info& rh)
   {
@@ -46,6 +51,7 @@ namespace
       assert(creator);
       assert(Backends.end() == Backends.find(info) || !"Duplicated backend found");
       Backends.insert(BackendsStorage::value_type(info, creator));
+      Log::Debug(THIS_MODULE, "Registered backend '%1%'", info.Id);
     }
 
     virtual void EnumerateBackends(std::vector<Backend::Info>& infos) const
@@ -57,6 +63,7 @@ namespace
 
     virtual Error CreateBackend(const String& id, Backend::Ptr& result) const
     {
+      Log::Debug(THIS_MODULE, "Creating backend '%1%'", id);
       const Backend::Info key = {id, String(), String()};
       const BackendsStorage::const_iterator it(Backends.find(key));
       if (Backends.end() == it)
