@@ -15,7 +15,6 @@ Author:
 
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
-
 #include <io/container.h>
 
 #include <numeric>
@@ -82,7 +81,7 @@ namespace ZXTune
     info.Id = HOBETA_PLUGIN_ID;
     info.Description = TEXT_HOBETA_INFO;
     info.Version = TEXT_HOBETA_VERSION;
-    info.Capabilities = CAP_STOR_CONTAINER;
+    info.Capabilities = CAP_STOR_CONTAINER | CAP_STOR_PLAIN;
     enumerator.RegisterImplicitPlugin(info, ProcessHobeta);
   }
 }

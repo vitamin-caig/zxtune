@@ -12,7 +12,7 @@ Author:
 #ifndef __SOUND_IMPL_INTERNAL_TYPES_H_DEFINED__
 #define __SOUND_IMPL_INTERNAL_TYPES_H_DEFINED__
 
-#include "../sound_types.h"
+#include <sound/sound_types.h>
 
 namespace ZXTune
 {
@@ -40,4 +40,3 @@ namespace ZXTune
 }
 
 #endif //__SOUND_IMPL_INTERNAL_TYPES_H_DEFINED__
-

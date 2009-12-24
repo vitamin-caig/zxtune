@@ -15,21 +15,21 @@ Author:
 #include "backend_wrapper.h"
 #include "enumerator.h"
 
-#include <sound/error_codes.h>
 #include <sound/backends_parameters.h>
+#include <sound/error_codes.h>
 
 #include <boost/noncopyable.hpp>
 
 //platform-dependent
 #include <windows.h>
 
-#include <boost/ref.hpp>
 #include <boost/bind.hpp>
+#include <boost/ref.hpp>
 
 #include <algorithm>
 
-#include <text/sound.h>
 #include <text/backends.h>
+#include <text/sound.h>
 
 #define FILE_TAG 5E3F141A
 

@@ -15,16 +15,16 @@ Author:
 
 #include <byteorder.h>
 #include <io/error_codes.h>
-#include <sound/error_codes.h>
 #include <sound/backends_parameters.h>
+#include <sound/error_codes.h>
 
 #include <boost/noncopyable.hpp>
 
-#include <fstream>
 #include <algorithm>
+#include <fstream>
 
-#include <text/sound.h>
 #include <text/backends.h>
+#include <text/sound.h>
 
 #define FILE_TAG EF5CB4C6
 

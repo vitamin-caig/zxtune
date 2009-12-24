@@ -16,8 +16,8 @@ Author:
 #include "enumerator.h"
 
 #include <tools.h>
-#include <sound/error_codes.h>
 #include <sound/backends_parameters.h>
+#include <sound/error_codes.h>
 
 //platform-specific
 #include <errno.h>
@@ -30,8 +30,8 @@ Author:
 
 #include <algorithm>
 
-#include <text/sound.h>
 #include <text/backends.h>
+#include <text/sound.h>
 
 #define FILE_TAG 69200152
 

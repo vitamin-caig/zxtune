@@ -12,8 +12,7 @@ Author:
 #define __RENDER_PARAMS_H_DEFINED__
 
 #include <types.h>
-
-#include "sound_parameters.h"
+#include <sound/sound_parameters.h>
 
 namespace ZXTune
 {
@@ -25,8 +24,8 @@ namespace ZXTune
       /// Fill with the default parameters
       RenderParameters()
         : ClockFreq(Parameters::Sound::CLOCKRATE_DEFAULT)
-	, SoundFreq(Parameters::Sound::FREQUENCY_DEFAULT)
-	, FrameDurationMicrosec(Parameters::Sound::FRAMEDURATION_DEFAULT)
+        , SoundFreq(Parameters::Sound::FREQUENCY_DEFAULT)
+        , FrameDurationMicrosec(Parameters::Sound::FRAMEDURATION_DEFAULT)
       {
       }
     

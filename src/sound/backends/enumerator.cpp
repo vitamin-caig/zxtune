@@ -12,11 +12,10 @@ Author:
 #include "backends_list.h"
 
 #include <logging.h>
-
 #include <sound/error_codes.h>
 
-#include <map>
 #include <cassert>
+#include <map>
 
 #include <boost/bind.hpp>
 

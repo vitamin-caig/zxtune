@@ -9,7 +9,7 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-#include "../receiver.h"
+#include <sound/receiver.h>
 
 namespace
 {

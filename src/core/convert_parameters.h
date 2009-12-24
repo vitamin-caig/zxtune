@@ -11,7 +11,7 @@ Author:
 #ifndef __CORE_CONVERT_PARAMETERS_H_DEFINED__
 #define __CORE_CONVERT_PARAMETERS_H_DEFINED__
 
-#include "conversion.h"
+#include <core/conversion.h>
 
 namespace ZXTune
 {

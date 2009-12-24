@@ -12,10 +12,9 @@ Author:
 #include "enumerator.h"
 #include "providers_list.h"
 
-#include <io/error_codes.h>
-
 #include <error.h>
 #include <logging.h>
+#include <io/error_codes.h>
 
 #include <algorithm>
 #include <boost/bind.hpp>

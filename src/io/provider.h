@@ -12,9 +12,8 @@ Author:
 #ifndef __IO_PROVIDER_H_DEFINED__
 #define __IO_PROVIDER_H_DEFINED__
 
-#include "container.h"
-
 #include <error.h>
+#include <io/container.h>
 
 #include <boost/function.hpp>
 

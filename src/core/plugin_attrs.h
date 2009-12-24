@@ -11,27 +11,44 @@ Author:
 #ifndef __CORE_PLUGIN_ATTRS_H_DEFINED__
 #define __CORE_PLUGIN_ATTRS_H_DEFINED__
 
-#include <types.h>
-
 namespace ZXTune
 {
-  /// Capabilities for plugins
+  //! Capabilities for plugins
   enum
   {
-    //devices
+    //! Device-related capabilities
     CAP_DEVICE_MASK    = 0xff,
+    //! Supporting for AY/YM (count of supported devices)
+    CAP_DEV_AYM_MASK   = 0x03,
+    //! Single AYM support
     CAP_DEV_AYM        = 0x01,
-    CAP_DEV_BEEPER     = 0x02,
-    CAP_DEV_SOUNDRIVE  = 0x04,
+    //! Double AYM support
+    CAP_DEV_TS         = 0x02,
+    //! Supporting for beeper
+    CAP_DEV_BEEPER     = 0x04,
+    //! Supporting for FM
     CAP_DEV_FM         = 0x08,
-    
-    //storages
+    //! Supporting for DAC (count of supported channels)
+    CAP_DEV_DAC_MASK   = 0x70,
+    CAP_DEV_1DAC       = 0x10,
+    CAP_DEV_2DAC       = 0x20,
+    CAP_DEV_3DAC       = 0x30,
+    CAP_DEV_4DAC       = 0x40,
+
+    //! Storages-related capabilities
     CAP_STORAGE_MASK    = 0xff00,
-    CAP_STOR_CONTAINER  = 0x0100,
-    CAP_STOR_MULTITRACK = 0x0200,
-    CAP_STOR_SCANER     = 0x0400,
+    //! Single module
+    CAP_STOR_MODULE     = 0x0100,
+    //! Supporting for container feature- raw dump transformation
+    CAP_STOR_CONTAINER  = 0x0200,
+    //! Supporting for multitrack feature
+    CAP_STOR_MULTITRACK = 0x0400,
+    //! Supporting for scanning feature
+    CAP_STOR_SCANER     = 0x0800,
+    //! Use plain transformation, can be covered by scaner
+    CAP_STOR_PLAIN      = 0x1000,
     
-    //conversions
+    //! Conversion-related capabilities
     CAP_CONVERSION_MASK = 0xffff0000,
     CAP_CONV_RAW        = 0x00010000,
     CAP_CONV_OUT        = 0x00020000,

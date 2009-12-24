@@ -12,10 +12,9 @@ Author:
 #ifndef __SOUND_BACKEND_H_DEFINED__
 #define __SOUND_BACKEND_H_DEFINED__
 
-#include "receiver.h"
-#include "sound_types.h"
-
 #include <core/player.h>
+#include <sound/receiver.h>
+#include <sound/sound_types.h>
 
 #include <error.h>
 #include <types.h>

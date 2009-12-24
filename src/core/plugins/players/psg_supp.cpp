@@ -13,17 +13,15 @@ Author:
 
 #include <tools.h>
 
-#include <core/plugin.h>
-#include <core/plugin_attrs.h>
+#include <core/convert_parameters.h>
+#include <core/devices/aym/aym.h>
+#include <core/error_codes.h>
 #include <core/module_attrs.h>
 #include <core/module_types.h>
-#include <core/error_codes.h>
-#include <core/devices/aym/aym.h>
-#include <core/convert_parameters.h>
-
-#include <sound/render_params.h>
-
+#include <core/plugin.h>
+#include <core/plugin_attrs.h>
 #include <io/container.h>
+#include <sound/render_params.h>
 
 #include <boost/enable_shared_from_this.hpp>
 
@@ -70,7 +68,7 @@ namespace
     info.Id = PSG_PLUGIN_ID;
     info.Description = TEXT_PSG_INFO;
     info.Version = TEXT_PSG_VERSION;
-    info.Capabilities = CAP_DEV_AYM | CAP_CONV_RAW;
+    info.Capabilities = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW;
   }
   
   class PSGHolder;
@@ -176,7 +174,7 @@ namespace
       {
         return Error(THIS_LINE, ERROR_MODULE_CONVERT, TEXT_MODULE_ERROR_CONVERSION_UNSUPPORTED);
       }
-    }    
+    }
   private:
     friend class PSGPlayer;
     Module::Information ModInfo;

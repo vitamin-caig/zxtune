@@ -12,9 +12,7 @@ Author:
 #ifndef __SOUND_FILTER_H_DEFINED__
 #define __SOUND_FILTER_H_DEFINED__
 
-#include "receiver.h"
-
-#include <error.h>
+#include <sound/receiver.h>
 
 namespace ZXTune
 {

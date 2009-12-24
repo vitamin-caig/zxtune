@@ -15,14 +15,15 @@ Author:
 #include "containers/plugins_list.h"
 
 #include <logging.h>
-#include <io/fs_tools.h>
-#include <io/container.h>
-#include <core/plugin.h>
+
 #include <core/error_codes.h>
 #include <core/module_attrs.h>
+#include <core/plugin.h>
+#include <io/container.h>
+#include <io/fs_tools.h>
 
-#include <boost/crc.hpp>
 #include <boost/bind.hpp>
+#include <boost/crc.hpp>
 #include <boost/ref.hpp>
 #include <boost/bind/apply.hpp>
 #include <boost/tuple/tuple.hpp>

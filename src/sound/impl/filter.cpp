@@ -8,20 +8,19 @@ Last changed:
 Author:
   (C) Vitamin/CAIG/2001
 */
-#include "../filter.h"
-#include "../error_codes.h"
-
 #include "internal_types.h"
 
-#include <tools.h>
 #include <error.h>
+#include <tools.h>
+#include <sound/error_codes.h>
+#include <sound/filter.h>
 
 #include <boost/noncopyable.hpp>
 #include <boost/static_assert.hpp>
 
+#include <cassert>
 #include <cmath>
 #include <limits>
-#include <cassert>
 
 #include <text/sound.h>
 

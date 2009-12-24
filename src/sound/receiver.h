@@ -12,7 +12,7 @@ Author:
 #ifndef __SOUND_RECEIVER_H_DEFINED__
 #define __SOUND_RECEIVER_H_DEFINED__
 
-#include "sound_types.h"
+#include <sound/sound_types.h>
 
 #include <boost/shared_ptr.hpp>
 

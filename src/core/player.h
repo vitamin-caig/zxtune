@@ -11,12 +11,12 @@ Author:
 #ifndef __CORE_PLAYER_H_DEFINED__
 #define __CORE_PLAYER_H_DEFINED__
 
-#include "module_types.h"
-
-#include <io/container.h>
-#include <sound/receiver.h>
 
 #include <error.h>
+
+#include <core/module_types.h>
+#include <io/container.h>
+#include <sound/receiver.h>
 
 #include <boost/function.hpp>
 

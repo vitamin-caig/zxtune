@@ -12,15 +12,14 @@ Author:
 */
 #include "aym.h"
 
-#include <tools.h>
-
 #include <sound/sound_types.h>
 #include <sound/render_params.h>
+#include <tools.h>
 
-#include <limits>
-#include <memory>
 #include <cassert>
 #include <cstring>
+#include <limits>
+#include <memory>
 
 namespace
 {

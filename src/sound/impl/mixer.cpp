@@ -8,18 +8,16 @@ Last changed:
 Author:
   (C) Vitamin/CAIG/2001
 */
-
-#include "../mixer.h"
-#include "../error_codes.h"
-
 #include "internal_types.h"
 
 #include <tools.h>
+#include <sound/error_codes.h>
+#include <sound/mixer.h>
 
 #include <boost/bind.hpp>
-#include <boost/mpl/if.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/integer/static_log2.hpp>
+#include <boost/mpl/if.hpp>
 
 #include <algorithm>
 
@@ -34,14 +32,14 @@ namespace
   typedef unsigned NativeType;
   typedef uint64_t MaxBigType;
 
-  const MaxBigType MAX_MIXER_CHANNELS = MaxBigType(1) << (8 * sizeof(MaxBigType) - 8 * sizeof(Sample) - 
+  const MaxBigType MAX_MIXER_CHANNELS = MaxBigType(1) << (8 * sizeof(MaxBigType) - 8 * sizeof(Sample) -
     boost::static_log2<FIXED_POINT_PRECISION>::value);
   
   inline bool FindOverloadedGain(const MultiGain& mg)
   {
     return mg.end() != std::find_if(mg.begin(), mg.end(), !boost::bind(in_range<Gain>, _1, 0.0f, 1.0f));
   }
-    
+   
   template<unsigned InChannels>
   class FastMixer : public Mixer, private boost::noncopyable
   {

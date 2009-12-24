@@ -13,10 +13,9 @@ Author:
 #define __SOUND_BACKEND_IMPL_H_DEFINED__
 
 #include <error.h>
-
 #include <core/player.h>
-#include <sound/mixer.h>
 #include <sound/backend.h>
+#include <sound/mixer.h>
 #include <sound/render_params.h>
 
 #include <boost/thread.hpp>
