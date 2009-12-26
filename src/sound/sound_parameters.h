@@ -11,7 +11,7 @@ Author:
 #ifndef __SOUND_PARAMETERS_H_DEFINED__
 #define __SOUND_PARAMETERS_H_DEFINED__
 
-#include <char_type.h>
+#include <types.h>
 
 namespace ZXTune
 {
