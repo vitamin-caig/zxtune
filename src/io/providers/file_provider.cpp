@@ -71,60 +71,64 @@ namespace
       boost::interprocess::mapped_region Region;
     };
     
-    class SmartFileHolder : public Holder
+    class DumpHolder : public Holder
     {
     public:
-      SmartFileHolder(const String& path, const ParametersMap& params)
-        : Delegate(0)
+      DumpHolder(const boost::shared_array<uint8_t>& dump, std::size_t size)
+        : Dump(dump), Length(size)
       {
-        std::ifstream file(path.c_str(), std::ios::binary);
-        if (!file)
-        {
-          throw Error(THIS_LINE, NO_ACCESS, TEXT_IO_ERROR_NO_ACCESS);
-        }
-        file.seekg(0, std::ios::end);
-        const std::streampos fileSize = file.tellg();
-        if (!fileSize || !file)
-        {
-          throw Error(THIS_LINE, IO_ERROR, TEXT_IO_ERROR_IO_ERROR);
-        }
-        int64_t threshold = Parameters::IO::Providers::File::MMAP_THRESHOLD_DEFAULT;
-        if (const int64_t* val = FindParameter<int64_t>(params, Parameters::IO::Providers::File::MMAP_THRESHOLD))
-        {
-          threshold = *val;
-        }
-        if (threshold >= fileSize)
-        {
-          file.close();
-          //use mmap
-          Delegate = new MMapHolder(path);
-        }
-        else
-        {
-          Buffer.resize(fileSize);
-          file.seekg(0);
-          file.read(safe_ptr_cast<char*>(&Buffer[0]), std::streamsize(Buffer.size()));
-        }
       }
       
       virtual std::size_t Size() const
       {
-        return Delegate ? Delegate->Size() : Buffer.size();
+        return Length;
       }
       
       virtual const uint8_t* Data() const
       {
-        return Delegate ? Delegate->Data() : &Buffer[0];
+        return Dump.get();
       }
     private:
-      Holder* Delegate;
-      Dump Buffer;
+      const boost::shared_array<uint8_t> Dump;
+      const std::size_t Length;
     };
   public:
     FileDataContainer(const String& path, const ParametersMap& params)
-      : CoreHolder(new SmartFileHolder(path, params))
-      , Offset(0), Length(CoreHolder->Size())
+      : CoreHolder()
+      , Offset(0), Length(0)
     {
+      std::ifstream file(path.c_str(), std::ios::binary);
+      if (!file)
+      {
+        throw Error(THIS_LINE, NO_ACCESS, TEXT_IO_ERROR_NO_ACCESS);
+      }
+      file.seekg(0, std::ios::end);
+      const std::streampos fileSize = file.tellg();
+      if (!fileSize || !file)
+      {
+        throw Error(THIS_LINE, IO_ERROR, TEXT_IO_ERROR_IO_ERROR);
+      }
+      int64_t threshold = Parameters::IO::Providers::File::MMAP_THRESHOLD_DEFAULT;
+      if (const int64_t* val = FindParameter<int64_t>(params, Parameters::IO::Providers::File::MMAP_THRESHOLD))
+      {
+        threshold = *val;
+      }
+      if (fileSize >= threshold)
+      {
+        file.close();
+        //use mmap
+        CoreHolder.reset(new MMapHolder(path));
+      }
+      else
+      {
+        boost::shared_array<uint8_t> buffer(new uint8_t[fileSize]);
+        file.seekg(0);
+        file.read(safe_ptr_cast<char*>(buffer.get()), std::streamsize(fileSize));
+        file.close();
+        //use dump
+        CoreHolder.reset(new DumpHolder(buffer, fileSize));
+      }
+      Length = fileSize;
     }
     
     virtual std::size_t Size() const
@@ -151,7 +155,7 @@ namespace
   private:
     Holder::Ptr CoreHolder;
     const std::size_t Offset;
-    const std::size_t Length;
+    std::size_t Length;
   };
 
 

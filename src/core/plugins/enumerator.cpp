@@ -340,8 +340,7 @@ namespace
     {
       using namespace boost;
       const std::vector<ContainerPluginDescription>::const_iterator it = std::find_if(ContainerPlugins.begin(), ContainerPlugins.end(),
-        bind(apply<bool>(), bind(GetOpener, _1), cref(input), cref(pathToOpen),
-          ref(output), ref(restPath)));
+        bind(apply<bool>(), bind(GetOpener, _1), cref(input), cref(pathToOpen), ref(output), ref(restPath)));
       if (it != ContainerPlugins.end())
       {
         containerId = it->get<0>().Id;

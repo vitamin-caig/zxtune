@@ -14,7 +14,7 @@ Author:
 
 #include <tools.h>
 
-#include <memory>
+#include <boost/shared_ptr.hpp>
 
 namespace ZXTune
 {
@@ -23,7 +23,7 @@ namespace ZXTune
     class DataContainer
     {
     public:
-      typedef std::auto_ptr<DataContainer> Ptr;
+      typedef boost::shared_ptr<DataContainer> Ptr;
       
       virtual ~DataContainer()
       {
