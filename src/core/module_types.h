@@ -41,13 +41,15 @@ namespace ZXTune
     /// Common module information
     struct Information
     {
-      Information() : Loop(), PhysicalChannels()
+      Information() : LoopPosition(), LoopFrame(), PhysicalChannels()
       {
       }
       /// Tracking statistic (values are used in second meaning)
       Tracking Statistic;
       /// Loop position index
-      unsigned Loop;
+      unsigned LoopPosition;
+      /// Loop position frame
+      unsigned LoopFrame;
       /// Actual channels for playback
       unsigned PhysicalChannels;
       /// Different parameters

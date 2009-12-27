@@ -143,8 +143,8 @@ namespace
       //fill properties
       ModInfo.Statistic.Frame = static_cast<unsigned>(Storage.size());
       ModInfo.Statistic.Tempo = 1;
-      ModInfo.Statistic.Channels = 3;
-      ModInfo.PhysicalChannels = 3;
+      ModInfo.Statistic.Channels = AYM::CHANNELS;
+      ModInfo.PhysicalChannels = AYM::CHANNELS;
     }
 
     virtual void GetPlayerInfo(PluginInformation& info) const
@@ -187,10 +187,11 @@ namespace
   public:
     explicit PSGPlayer(boost::shared_ptr<const PSGHolder> holder)
        : Module(holder)
+       , Storage(Module->Storage)
        , Device(AYM::CreateChip())
        , CurrentState(MODULE_STOPPED)
        , TickCount()
-       , Position()
+       , Position(Storage.begin())
        , Looped()
     {
     }
@@ -204,7 +205,7 @@ namespace
                                    Tracking& trackState,
                                    Analyze::ChannelsState& analyzeState) const
     {
-      timeState = static_cast<uint32_t>(Position);
+      timeState = static_cast<unsigned>(std::distance(Storage.begin(), Position));
       trackState = Module->ModInfo.Statistic;
       trackState.Line = timeState;
       Device->GetState(analyzeState);
@@ -215,7 +216,7 @@ namespace
                               PlaybackState& state,
                               Sound::MultichannelReceiver& receiver)
     {
-      if (Position >= Module->Storage.size())
+      if (Storage.end() == Position)
       {
         if (MODULE_STOPPED == CurrentState)
         {
@@ -223,7 +224,7 @@ namespace
         }
         if (Looped)
         {
-          Position = 0;
+          Position = Storage.begin();
         }
         else
         {
@@ -233,7 +234,8 @@ namespace
         }
       }
       assert(Device.get());
-      AYM::DataChunk data(Module->Storage[Position++]);
+      AYM::DataChunk data(*Position);
+      ++Position;
       data.Tick = (TickCount += params.ClocksPerFrame());
       Device->RenderData(params, data, receiver);
       state = CurrentState = MODULE_PLAYING;
@@ -243,7 +245,7 @@ namespace
     virtual Error Reset()
     {
       assert(Device.get());
-      Position = 0;
+      Position = Storage.begin();
       TickCount = 0;
       Device->Reset();
       CurrentState = MODULE_STOPPED;
@@ -252,12 +254,13 @@ namespace
     
     virtual Error SetPosition(unsigned frame)
     {
-      if (frame >= Module->Storage.size())
+      if (frame >= Storage.size())
       {
         return Error(THIS_LINE, ERROR_MODULE_OVERSEEK, TEXT_MODULE_ERROR_OVERSEEK);
       }
       assert(Device.get());
-      Position = frame;
+      Position = Storage.begin();
+      std::advance(Position, frame);
       TickCount = 0;
       Device->Reset();
       return Error();
@@ -269,10 +272,11 @@ namespace
     }
   private:
     const boost::shared_ptr<const PSGHolder> Module;
+    const std::vector<AYM::DataChunk>& Storage;
     AYM::Chip::Ptr Device;
     PlaybackState CurrentState;
     uint64_t TickCount;
-    std::size_t Position;
+    std::vector<AYM::DataChunk>::const_iterator Position;
     bool Looped;
   };
   

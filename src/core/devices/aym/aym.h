@@ -29,6 +29,8 @@ namespace ZXTune
   
   namespace AYM
   {
+    const unsigned CHANNELS = 3;
+    
     struct DataChunk
     {
       enum

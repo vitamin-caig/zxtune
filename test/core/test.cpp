@@ -130,7 +130,7 @@ namespace
       "  Stat.Frame: " << info.Statistic.Frame << "\n"
       "  Stat.Tempo: " << info.Statistic.Tempo << "\n"
       "  Stat.Channels: " << info.Statistic.Channels << "\n"
-      "  Loop: " << info.Loop << "\n"
+      "  Loop (p/f): " << info.LoopPosition << '/' << info.LoopFrame << "\n"
       "  Channels: " << info.PhysicalChannels << "\n";
     std::for_each(info.Properties.begin(), info.Properties.end(), OutProp);
   }

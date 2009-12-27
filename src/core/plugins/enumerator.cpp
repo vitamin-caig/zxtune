@@ -245,7 +245,7 @@ namespace
           //stop on success or canceling
           if (!e)
           {
-            Log::Debug(THIS_MODULE, "  Container plugin %1% for path %2% detected at region (%3%;%4%)",
+            Log::Debug(THIS_MODULE, "  Container plugin %1% for path '%2%' detected at region (%3%;%4%)",
               plugInfo.Id, input.Path, region.Offset, region.Size);
             return e;
           }
