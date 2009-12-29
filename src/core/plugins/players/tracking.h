@@ -128,7 +128,7 @@ namespace ZXTune
         {
         }
         Module::Tracking Track;
-        std::size_t Frame;
+        unsigned Frame;
         uint64_t Tick;
       };
       
@@ -141,7 +141,7 @@ namespace ZXTune
         Module::Tracking& track(state.Track);
         do
         {
-          if (0 == track.Line && 
+          if (0 == track.Line &&
               0 == track.Frame &&
               data.Info.LoopPosition == track.Position)
           {
@@ -151,7 +151,7 @@ namespace ZXTune
         while (UpdateState(data, state, false));
         framesCount = state.Frame;
       }
-            
+       
       static inline void InitState(const ModuleData& data, ModuleState& state)
       {
         //reset state
