@@ -16,6 +16,7 @@ Author:
 #include <core/error_codes.h>
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
+#include <core/plugins_parameters.h>
 #include <io/container.h>
 #include <io/fs_tools.h>
 
@@ -59,7 +60,7 @@ namespace
     return stream.str();
   }
   
-  Error ProcessRawContainer(const MetaContainer& data, const DetectParameters& params, ModuleRegion& region)
+  Error ProcessRawContainer(const ParametersMap& commonParams, const DetectParameters& detectParams, const MetaContainer& data, ModuleRegion& region)
   {
     //do not search right after previous raw plugin
     if (!data.PluginsChain.empty() && data.PluginsChain.back() == RAW_PLUGIN_ID)
@@ -72,14 +73,19 @@ namespace
     ModuleRegion curRegion;
     {
       DetectParameters filteredParams;
-      filteredParams.Filter = boost::bind(ChainedFilter, _1, params.Filter);
-      filteredParams.Callback = params.Callback;
-      filteredParams.Logger = params.Logger;
+      filteredParams.Filter = boost::bind(ChainedFilter, _1, detectParams.Filter);
+      filteredParams.Callback = detectParams.Callback;
+      filteredParams.Logger = detectParams.Logger;
       
-      if (const Error& err = enumerator.DetectModules(filteredParams, data, curRegion))
+      if (const Error& err = enumerator.DetectModules(commonParams, filteredParams, data, curRegion))
       {
         return err;
       }
+    }
+    std::size_t scanStep = static_cast<std::size_t>(Parameters::Core::Plugins::Raw::SCAN_STEP_DEFAULT);
+    if (const int64_t* const stepParam = FindParameter<int64_t>(commonParams, Parameters::Core::Plugins::Raw::SCAN_STEP))
+    {
+      scanStep = static_cast<std::size_t>(*stepParam);
     }
     bool wasResult = curRegion.Size != 0;
     const std::size_t limit(data.Data->Size());
@@ -91,7 +97,7 @@ namespace
       subcontainer.Path = IO::AppendPath(data.Path, CreateRawPart(offset));
       subcontainer.PluginsChain = data.PluginsChain;
       subcontainer.PluginsChain.push_back(RAW_PLUGIN_ID);
-      if (const Error& err = enumerator.DetectModules(params, subcontainer, curRegion))
+      if (const Error& err = enumerator.DetectModules(commonParams, detectParams, subcontainer, curRegion))
       {
         return err;
       }
@@ -109,7 +115,8 @@ namespace
     }
   }
   
-  bool OpenRawContainer(const MetaContainer& inData, const String& inPath, IO::DataContainer::Ptr& outData, String& restPath)
+  bool OpenRawContainer(const ParametersMap& /*commonParams*/, const MetaContainer& inData, const String& inPath, 
+    IO::DataContainer::Ptr& outData, String& restPath)
   {
     //do not open right after self
     if (!inData.PluginsChain.empty() && inData.PluginsChain.back() == RAW_PLUGIN_ID)

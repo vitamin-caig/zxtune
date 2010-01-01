@@ -285,7 +285,7 @@ namespace
     return Player::Ptr(new PSGPlayer(holder));
   }
   
-  bool CreatePSGModule(const MetaContainer& container, Holder::Ptr& holder, ModuleRegion& region)
+  bool CreatePSGModule(const ParametersMap& /*commonParams*/, const MetaContainer& container, Holder::Ptr& holder, ModuleRegion& region)
   {
     //perform fast check
     const IO::DataContainer& data(*container.Data);

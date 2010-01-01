@@ -50,7 +50,7 @@ namespace
   const std::size_t HOBETA_MAX_SIZE = 0xff00;
 
   //////////////////////////////////////////////////////////////////////////
-  bool ProcessHobeta(const MetaContainer& input, IO::DataContainer::Ptr& output, ModuleRegion& region)
+  bool ProcessHobeta(const ParametersMap& /*commonParams*/, const MetaContainer& input, IO::DataContainer::Ptr& output, ModuleRegion& region)
   {
     const IO::DataContainer& inputData(*input.Data);
     const std::size_t limit(inputData.Size());

@@ -29,7 +29,7 @@ namespace ZXTune
           const int64_t MMAP_THRESHOLD_DEFAULT = 16384;
           const Char MMAP_THRESHOLD[] = 
           {
-            'i', 'o', '.', 'p', 'r', 'o', 'v', 'i', 'd', 'e', 'r', 's', '.', 'f', 'i', 'l', 'e', '.', 'm', 'm', 'a', 'p', '_', 't', 'h', 'r', 'e', 's', 'h', 'o', 'l', 'd', '\0'
+            'z','x','t','u','n','e','.','i','o','.','p','r','o','v','i','d','e','r','s','.','f','i','l','e','.','m','m','a','p','_','t','h','r','e','s','h','o','l','d','\0'
           };
         }
       }

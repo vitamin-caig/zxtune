@@ -39,16 +39,16 @@ namespace ZXTune
   
   //in: metacontainer
   //out: holder, region
-  typedef boost::function<bool(const MetaContainer&, Module::Holder::Ptr&, ModuleRegion&)> CreateModuleFunc;
+  typedef boost::function<bool(const ParametersMap&, const MetaContainer&, Module::Holder::Ptr&, ModuleRegion&)> CreateModuleFunc;
   //in: data
   //output: data, region
-  typedef boost::function<bool(const MetaContainer&, IO::DataContainer::Ptr&, ModuleRegion&)> ProcessImplicitFunc;
+  typedef boost::function<bool(const ParametersMap&, const MetaContainer&, IO::DataContainer::Ptr&, ModuleRegion&)> ProcessImplicitFunc;
   //in: metacontainer, parameters+callback
   //out: region
-  typedef boost::function<Error(const MetaContainer&, const DetectParameters&, ModuleRegion&)> ProcessContainerFunc;
+  typedef boost::function<Error(const ParametersMap&, const DetectParameters&, const MetaContainer&, ModuleRegion&)> ProcessContainerFunc;
   //in: container, path
   //out: container, rest path
-  typedef boost::function<bool(const MetaContainer&, const String&, IO::DataContainer::Ptr&, String&)> OpenContainerFunc;
+  typedef boost::function<bool(const ParametersMap&, const MetaContainer&, const String&, IO::DataContainer::Ptr&, String&)> OpenContainerFunc;
 
   class PluginsEnumerator
   {
@@ -68,10 +68,10 @@ namespace ZXTune
     
     //private interface
     //resolve subpath
-    virtual Error ResolveSubpath(IO::DataContainer::Ptr data, const String& subpath, const DetectParameters::LogFunc& logger,
-      MetaContainer& result) const = 0;
+    virtual Error ResolveSubpath(const ParametersMap& commonParams, IO::DataContainer::Ptr data, 
+      const String& subpath, const DetectParameters::LogFunc& logger, MetaContainer& result) const = 0;
     //full module detection
-    virtual Error DetectModules(const DetectParameters& params, const MetaContainer& data,
+    virtual Error DetectModules(const ParametersMap&, const DetectParameters& params, const MetaContainer& data,
       ModuleRegion& region) const = 0;
 
     //instantiator

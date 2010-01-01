@@ -107,7 +107,7 @@ namespace ZXTune
     LogFunc Logger;
   };
   
-  Error DetectModules(IO::DataContainer::Ptr data, const DetectParameters& params, const String& startSubpath);
+  Error DetectModules(const ParametersMap& commonParams, const DetectParameters& detectParams, IO::DataContainer::Ptr data, const String& startSubpath);
 }
 
 #endif //__CORE_PLAYER_H_DEFINED__

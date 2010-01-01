@@ -204,54 +204,56 @@ int main()
     GetSupportedPlugins(plugins);
     std::cout << "Supported plugins:" << std::endl;
     std::for_each(plugins.begin(), plugins.end(), ShowPluginInfo);
+    
+    ParametersMap commonParams;
     DetectParameters detectParams;
     
-    TestError(DetectModules(CreateContainer(PSG1_OFFSET), detectParams, String()), Module::ERROR_INVALID_PARAMETERS, "no callback", __LINE__);
+    TestError(DetectModules(commonParams, detectParams, CreateContainer(PSG1_OFFSET), String()), Module::ERROR_INVALID_PARAMETERS, "no callback", __LINE__);
     
     detectParams.Callback = boost::bind(&PluginCallback, _1, boost::ref(count), boost::cref(detailed));
     detectParams.Logger = PluginLogger;
     
-    TestError(DetectModules(IO::DataContainer::Ptr(), detectParams, String()), Module::ERROR_INVALID_PARAMETERS, "no data", __LINE__);
+    TestError(DetectModules(commonParams, detectParams, IO::DataContainer::Ptr(), String()), Module::ERROR_INVALID_PARAMETERS, "no data", __LINE__);
     
     
-    TestError(DetectModules(CreateContainer(), detectParams, "invalid_path"), Module::ERROR_FIND_SUBMODULE, "invalid path", __LINE__);
+    TestError(DetectModules(commonParams, detectParams, CreateContainer(), "invalid_path"), Module::ERROR_FIND_SUBMODULE, "invalid path", __LINE__);
     count = 0;
-    ThrowIfError(DetectModules(CreateContainer(PSG2_OFFSET), detectParams, String()));
+    ThrowIfError(DetectModules(commonParams, detectParams, CreateContainer(PSG2_OFFSET), String()));
     TestPlayers(count, 1, "simple opening", __LINE__);
     detectParams.Filter = PluginFilter;
     count = 0;
-    ThrowIfError(DetectModules(CreateContainer(PSG1_OFFSET), detectParams, String()));
+    ThrowIfError(DetectModules(commonParams, detectParams, CreateContainer(PSG1_OFFSET), String()));
     TestPlayers(count, 0, "filtered opening", __LINE__);
 
     //testing without hobeta
     detailed = false;
     
     detectParams.Filter = NoHobeta;
-    ThrowIfError(DetectModules(CreateContainer(), detectParams, String()));
+    ThrowIfError(DetectModules(commonParams, detectParams, CreateContainer(), String()));
     TestPlayers(count, 2, "raw scanning opening (no implicit)", __LINE__);
     count = 0;
-    ThrowIfError(DetectModules(CreateContainer(PSG1_OFFSET), detectParams, String()));
+    ThrowIfError(DetectModules(commonParams, detectParams, CreateContainer(PSG1_OFFSET), String()));
     TestPlayers(count, 2, "raw scanning starting from begin (no implicit)", __LINE__);
     count = 0;
-    ThrowIfError(DetectModules(CreateContainer(), detectParams, (Formatter("%1%.raw") % PSG2_OFFSET).str()));
+    ThrowIfError(DetectModules(commonParams, detectParams, CreateContainer(), (Formatter("%1%.raw") % PSG2_OFFSET).str()));
     TestPlayers(count, 1, "detect from startpoint (no implicit)", __LINE__);
     count = 0;
-    ThrowIfError(DetectModules(CreateContainer(), detectParams, "1.raw"));
+    ThrowIfError(DetectModules(commonParams, detectParams, CreateContainer(), "1.raw"));
     TestPlayers(count, 0, "detect from invalid offset (no implicit)", __LINE__);
 
     detectParams.Filter = 0;
     count = 0;
     //
-    ThrowIfError(DetectModules(CreateContainer(), detectParams, String()));
+    ThrowIfError(DetectModules(commonParams, detectParams, CreateContainer(), String()));
     TestPlayers(count, 2, "raw scanning opening", __LINE__);
     count = 0;
-    ThrowIfError(DetectModules(CreateContainer(PSG1_OFFSET), detectParams, String()));
+    ThrowIfError(DetectModules(commonParams, detectParams, CreateContainer(PSG1_OFFSET), String()));
     TestPlayers(count, 2, "raw scanning starting from begin", __LINE__);
     count = 0;
-    ThrowIfError(DetectModules(CreateContainer(), detectParams, (Formatter("%1%.raw") % PSG2_OFFSET).str()));
+    ThrowIfError(DetectModules(commonParams, detectParams, CreateContainer(), (Formatter("%1%.raw") % PSG2_OFFSET).str()));
     TestPlayers(count, 1, "detect from startpoint", __LINE__);
     count = 0;
-    ThrowIfError(DetectModules(CreateContainer(), detectParams, "1.raw"));
+    ThrowIfError(DetectModules(commonParams, detectParams, CreateContainer(), "1.raw"));
     TestPlayers(count, 0, "detect from invalid offset", __LINE__);
   }
   catch (const Error& e)
