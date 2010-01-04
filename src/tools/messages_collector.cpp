@@ -34,7 +34,7 @@ namespace
 
     virtual String GetMessages(Char delimiter) const
     {
-      return boost::join(Messages, String(delimiter, 1));
+      return boost::join(Messages, String(1, delimiter));
     }
 
   private:

@@ -2,7 +2,7 @@ binary_name := common_test
 path_step := ../..
 source_files := test
 
-#libraries := tools texts
-#depends := text src/tools
+libraries := tools
+depends := src/tools
 
 include $(path_step)/makefile.mak
