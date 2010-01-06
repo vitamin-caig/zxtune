@@ -11,8 +11,8 @@ Author:
 #ifndef __CORE_PLAYER_H_DEFINED__
 #define __CORE_PLAYER_H_DEFINED__
 
-
 #include <error.h>
+#include <parameters_types.h>
 
 #include <core/module_types.h>
 #include <io/container.h>
@@ -71,7 +71,7 @@ namespace ZXTune
       /// Controlling
       virtual Error Reset() = 0;
       virtual Error SetPosition(unsigned frame) = 0;
-      virtual Error SetParameters(const ParametersMap& params) = 0;
+      virtual Error SetParameters(const Parameters::Map& params) = 0;
     };
 
     /// Module holder interface
@@ -107,7 +107,8 @@ namespace ZXTune
     LogFunc Logger;
   };
   
-  Error DetectModules(const ParametersMap& commonParams, const DetectParameters& detectParams, IO::DataContainer::Ptr data, const String& startSubpath);
+  Error DetectModules(const Parameters::Map& commonParams, const DetectParameters& detectParams, 
+    IO::DataContainer::Ptr data, const String& startSubpath);
 }
 
 #endif //__CORE_PLAYER_H_DEFINED__

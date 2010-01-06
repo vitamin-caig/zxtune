@@ -109,7 +109,7 @@ namespace
     }
 
     // Open subpath in despite of filter and other
-    virtual Error ResolveSubpath(const ParametersMap& commonParams, IO::DataContainer::Ptr data, 
+    virtual Error ResolveSubpath(const Parameters::Map& commonParams, IO::DataContainer::Ptr data, 
       const String& subpath, const DetectParameters::LogFunc& logger, MetaContainer& result) const
     {
       try
@@ -166,7 +166,7 @@ namespace
       }
     }
 
-    virtual Error DetectModules(const ParametersMap& commonParams, const DetectParameters& detectParams, 
+    virtual Error DetectModules(const Parameters::Map& commonParams, const DetectParameters& detectParams, 
       const MetaContainer& data, ModuleRegion& region) const
     {
       Log::Debug(THIS_MODULE, "Detecting modules in data of size %1%, path '%2%'", data.Data->Size(), data.Path);
@@ -228,7 +228,7 @@ namespace
     }
 
   private:
-    Error DetectContainer(const ParametersMap& commonParams, const DetectParameters& detectParams, const MetaContainer& input,
+    Error DetectContainer(const Parameters::Map& commonParams, const DetectParameters& detectParams, const MetaContainer& input,
       ModuleRegion& region) const
     {
       try
@@ -264,7 +264,7 @@ namespace
       }
     }
     
-    Error DetectImplicit(const ParametersMap& commonParams, const DetectParameters::FilterFunc& filter, const MetaContainer& input,
+    Error DetectImplicit(const Parameters::Map& commonParams, const DetectParameters::FilterFunc& filter, const MetaContainer& input,
       IO::DataContainer::Ptr& output, ModuleRegion& region, String& pluginId) const
     {
       try
@@ -293,7 +293,7 @@ namespace
       }
     }
 
-    Error DetectModule(const ParametersMap& commonParams, const DetectParameters::FilterFunc& filter, const MetaContainer& input,
+    Error DetectModule(const Parameters::Map& commonParams, const DetectParameters::FilterFunc& filter, const MetaContainer& input,
       Module::Holder::Ptr& holder, ModuleRegion& region, String& pluginId) const
     {
       try
@@ -322,7 +322,7 @@ namespace
       }
     }
 
-    bool CheckForImplicit(const ParametersMap& commonParams, const MetaContainer& input, IO::DataContainer::Ptr& output, String& containerId) const
+    bool CheckForImplicit(const Parameters::Map& commonParams, const MetaContainer& input, IO::DataContainer::Ptr& output, String& containerId) const
     {
       using namespace boost;
       ModuleRegion region;
@@ -336,7 +336,7 @@ namespace
       return false;
     }
 
-    bool CheckForContainer(const ParametersMap& commonParams, const MetaContainer& input, const String& pathToOpen,
+    bool CheckForContainer(const Parameters::Map& commonParams, const MetaContainer& input, const String& pathToOpen,
       IO::DataContainer::Ptr& output, String& restPath, String& containerId) const
     {
       using namespace boost;
@@ -360,23 +360,23 @@ namespace
 namespace ZXTune
 {
   void ExtractMetaProperties(const MetaContainer& container, const ModuleRegion& region,
-                             ParametersMap& properties, Dump& rawData)
+                             Parameters::Map& properties, Dump& rawData)
   {
     if (!container.Path.empty())
     {
-      properties.insert(ParametersMap::value_type(Module::ATTR_SUBPATH, container.Path));
+      properties.insert(Parameters::Map::value_type(Module::ATTR_SUBPATH, container.Path));
     }
     if (!container.PluginsChain.empty())
     {
-      properties.insert(ParametersMap::value_type(Module::ATTR_CONTAINER,
+      properties.insert(Parameters::Map::value_type(Module::ATTR_CONTAINER,
         boost::algorithm::join(container.PluginsChain, String(TEXT_MODULE_CONTAINERS_DELIMITER))));
     }
     const uint8_t* data(static_cast<const uint8_t*>(container.Data->Data()));
     rawData.assign(data + region.Offset, data + region.Offset + region.Size);
     boost::crc_32_type crcCalc;
     crcCalc.process_bytes(&rawData[0], region.Size);
-    properties.insert(ParametersMap::value_type(Module::ATTR_CRC, crcCalc.checksum()));
-    properties.insert(ParametersMap::value_type(Module::ATTR_SIZE, region.Size));
+    properties.insert(Parameters::Map::value_type(Module::ATTR_CRC, crcCalc.checksum()));
+    properties.insert(Parameters::Map::value_type(Module::ATTR_SIZE, region.Size));
   }
   
   PluginsEnumerator& PluginsEnumerator::Instance()
@@ -390,7 +390,8 @@ namespace ZXTune
     PluginsEnumerator::Instance().EnumeratePlugins(plugins);
   }
 
-  Error DetectModules(const ParametersMap& commonParams, const DetectParameters& detectParams, IO::DataContainer::Ptr data, const String& startSubpath)
+  Error DetectModules(const Parameters::Map& commonParams, const DetectParameters& detectParams, 
+    IO::DataContainer::Ptr data, const String& startSubpath)
   {
     if (!data.get() || !detectParams.Callback)
     {

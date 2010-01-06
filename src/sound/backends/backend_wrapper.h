@@ -90,12 +90,12 @@ namespace ZXTune
         return Delegate->SetVolume(volume);
       }
 
-      virtual Error SetParameters(const ParametersMap& params)
+      virtual Error SetParameters(const Parameters::Map& params)
       {
         return Delegate->SetParameters(params);
       }
       
-      virtual Error GetParameters(ParametersMap& params) const
+      virtual Error GetParameters(Parameters::Map& params) const
       {
         return Delegate->GetParameters(params);
       }

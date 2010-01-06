@@ -519,7 +519,7 @@ namespace
       return Error();
     }
 
-    virtual Error SetParameters(const ParametersMap& /*params*/)
+    virtual Error SetParameters(const Parameters::Map& /*params*/)
     {
       return Error();//TODO
     }
@@ -666,7 +666,8 @@ namespace
   }
 
   //////////////////////////////////////////////////////////////////////////
-  bool CreateSTCModule(const ParametersMap& /*commonParams*/, const MetaContainer& container, Holder::Ptr& holder, ModuleRegion& region)
+  bool CreateSTCModule(const Parameters::Map& /*commonParams*/, const MetaContainer& container, 
+    Holder::Ptr& holder, ModuleRegion& region)
   {
     //perform fast check
     const std::size_t limit(std::min(container.Data->Size(), MAX_MODULE_SIZE));

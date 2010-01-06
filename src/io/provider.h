@@ -13,6 +13,8 @@ Author:
 #define __IO_PROVIDER_H_DEFINED__
 
 #include <error.h>
+#include <parameters_types.h>
+
 #include <io/container.h>
 
 #include <boost/function.hpp>
@@ -25,7 +27,7 @@ namespace ZXTune
   {
       //progress callback. In case if result Error is not success, it used as a suberror of 'cancelled' error
     typedef boost::function<Error(const String&, unsigned)> ProgressCallback;
-    Error OpenData(const String& uri, const ParametersMap& params, const ProgressCallback& cb, DataContainer::Ptr& data, String& subpath);
+    Error OpenData(const String& uri, const Parameters::Map& params, const ProgressCallback& cb, DataContainer::Ptr& data, String& subpath);
 
     Error SplitUri(const String& uri, String& baseUri, String& subpath);
 

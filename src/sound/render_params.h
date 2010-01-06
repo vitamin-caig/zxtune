@@ -23,9 +23,9 @@ namespace ZXTune
     {
       /// Fill with the default parameters
       RenderParameters()
-        : ClockFreq(Parameters::Sound::CLOCKRATE_DEFAULT)
-        , SoundFreq(Parameters::Sound::FREQUENCY_DEFAULT)
-        , FrameDurationMicrosec(Parameters::Sound::FRAMEDURATION_DEFAULT)
+        : ClockFreq(Parameters::ZXTune::Sound::CLOCKRATE_DEFAULT)
+        , SoundFreq(Parameters::ZXTune::Sound::FREQUENCY_DEFAULT)
+        , FrameDurationMicrosec(Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT)
       {
       }
     

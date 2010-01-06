@@ -60,7 +60,8 @@ namespace
     return stream.str();
   }
   
-  Error ProcessRawContainer(const ParametersMap& commonParams, const DetectParameters& detectParams, const MetaContainer& data, ModuleRegion& region)
+  Error ProcessRawContainer(const Parameters::Map& commonParams, const DetectParameters& detectParams, 
+    const MetaContainer& data, ModuleRegion& region)
   {
     //do not search right after previous raw plugin
     if (!data.PluginsChain.empty() && data.PluginsChain.back() == RAW_PLUGIN_ID)
@@ -82,8 +83,9 @@ namespace
         return err;
       }
     }
-    std::size_t scanStep = static_cast<std::size_t>(Parameters::Core::Plugins::Raw::SCAN_STEP_DEFAULT);
-    if (const int64_t* const stepParam = FindParameter<int64_t>(commonParams, Parameters::Core::Plugins::Raw::SCAN_STEP))
+    std::size_t scanStep = static_cast<std::size_t>(Parameters::ZXTune::Core::Plugins::Raw::SCAN_STEP_DEFAULT);
+    if (const Parameters::IntType* const stepParam = 
+      Parameters::FindByName<Parameters::IntType>(commonParams, Parameters::ZXTune::Core::Plugins::Raw::SCAN_STEP))
     {
       scanStep = static_cast<std::size_t>(*stepParam);
     }
@@ -115,7 +117,7 @@ namespace
     }
   }
   
-  bool OpenRawContainer(const ParametersMap& /*commonParams*/, const MetaContainer& inData, const String& inPath, 
+  bool OpenRawContainer(const Parameters::Map& /*commonParams*/, const MetaContainer& inData, const String& inPath, 
     IO::DataContainer::Ptr& outData, String& restPath)
   {
     //do not open right after self

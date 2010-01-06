@@ -11,11 +11,11 @@ Author:
 #ifndef __SOUND_BACKENDS_PARAMETERS_H_DEFINED__
 #define __SOUND_BACKENDS_PARAMETERS_H_DEFINED__
 
-#include <types.h>
+#include <parameters_types.h>
 
-namespace ZXTune
+namespace Parameters
 {
-  namespace Parameters
+  namespace ZXTune
   {
     namespace Sound
     {
@@ -31,7 +31,7 @@ namespace ZXTune
         //parameters for Win32 backend
         namespace Win32
         {
-          const int64_t DEVICE_DEFAULT = -1;
+          const IntType DEVICE_DEFAULT = -1;
           const char DEVICE[] =
           {
             'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','w','i','n','3','2','.','d','e','v','i','c','e','\0'

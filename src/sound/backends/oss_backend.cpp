@@ -65,9 +65,9 @@ namespace
   {
   public:
     OSSBackend()
-      : MixerName(Parameters::Sound::Backends::OSS::MIXER_DEFAULT)
+      : MixerName(Parameters::ZXTune::Sound::Backends::OSS::MIXER_DEFAULT)
       , MixHandle(-1)
-      , DeviceName(Parameters::Sound::Backends::OSS::DEVICE_DEFAULT)
+      , DeviceName(Parameters::ZXTune::Sound::Backends::OSS::DEVICE_DEFAULT)
       , DevHandle(-1)
       , CurrentBuffer(Buffers.begin(), Buffers.end())
     {
@@ -146,12 +146,15 @@ namespace
     {
     }
 
-    virtual void OnParametersChanged(const ParametersMap& updates)
+    virtual void OnParametersChanged(const Parameters::Map& updates)
     {
       //check for parameters requires restarting
-      const String* const mixer = FindParameter<String>(updates, Parameters::Sound::Backends::OSS::MIXER);
-      const String* const device = FindParameter<String>(updates, Parameters::Sound::Backends::OSS::DEVICE);
-      const int64_t* const freq = FindParameter<int64_t>(updates, Parameters::Sound::FREQUENCY);
+      const Parameters::StringType* const mixer = 
+        Parameters::FindByName<Parameters::StringType>(updates, Parameters::ZXTune::Sound::Backends::OSS::MIXER);
+      const Parameters::StringType* const device = 
+        Parameters::FindByName<Parameters::StringType>(updates, Parameters::ZXTune::Sound::Backends::OSS::DEVICE);
+      const Parameters::IntType* const freq = 
+        Parameters::FindByName<Parameters::IntType>(updates, Parameters::ZXTune::Sound::FREQUENCY);
       if (mixer || device || freq)
       {
         Locker lock(BackendMutex);

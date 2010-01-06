@@ -12,7 +12,7 @@ Author:
 #ifndef __CORE_MODULE_TYPES_H_DEFINED__
 #define __CORE_MODULE_TYPES_H_DEFINED__
 
-#include <types.h>
+#include <parameters_types.h>
 
 namespace ZXTune
 {
@@ -53,7 +53,7 @@ namespace ZXTune
       /// Actual channels for playback
       unsigned PhysicalChannels;
       /// Different parameters
-      ParametersMap Properties;
+      Parameters::Map Properties;
     };
     
     namespace Analyze

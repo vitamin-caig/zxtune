@@ -93,7 +93,7 @@ namespace
       const std::size_t Length;
     };
   public:
-    FileDataContainer(const String& path, const ParametersMap& params)
+    FileDataContainer(const String& path, const Parameters::Map& params)
       : CoreHolder()
       , Offset(0), Length(0)
     {
@@ -108,10 +108,11 @@ namespace
       {
         throw Error(THIS_LINE, IO_ERROR, TEXT_IO_ERROR_IO_ERROR);
       }
-      int64_t threshold = Parameters::IO::Providers::File::MMAP_THRESHOLD_DEFAULT;
-      if (const int64_t* val = FindParameter<int64_t>(params, Parameters::IO::Providers::File::MMAP_THRESHOLD))
+      std::streampos threshold = static_cast<std::streampos>(Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD_DEFAULT);
+      if (const Parameters::IntType* val = 
+        Parameters::FindByName<Parameters::IntType>(params, Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD))
       {
-        threshold = *val;
+        threshold = static_cast<std::streampos>(*val);
       }
       if (fileSize >= threshold)
       {
@@ -217,7 +218,8 @@ namespace
   }
   
   //no callback
-  Error FileOpener(const String& uri, const ParametersMap& params, const ProgressCallback& /*cb*/, DataContainer::Ptr& result, String& subpath)
+  Error FileOpener(const String& uri, const Parameters::Map& params, const ProgressCallback& /*cb*/, 
+    DataContainer::Ptr& result, String& subpath)
   {
     String openUri, openSub;
     if (const Error& e = FileSplitter(uri, openUri, openSub))

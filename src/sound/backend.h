@@ -72,8 +72,8 @@ namespace ZXTune
       virtual Error SetVolume(const MultiGain& volume) = 0;
 
       // common parameters
-      virtual Error SetParameters(const ParametersMap& params) = 0;
-      virtual Error GetParameters(ParametersMap& params) const = 0;
+      virtual Error SetParameters(const Parameters::Map& params) = 0;
+      virtual Error GetParameters(Parameters::Map& params) const = 0;
     };
 
     //common interface

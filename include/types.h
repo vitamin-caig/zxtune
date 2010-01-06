@@ -23,7 +23,6 @@ Author:
 
 #include <boost/format.hpp>
 #include <boost/cstdint.hpp>
-#include <boost/variant.hpp>
 
 using boost::int8_t;
 using boost::uint8_t;
@@ -58,17 +57,6 @@ typedef std::vector<String> StringArray;
 typedef std::list<String> StringList;
 typedef std::vector<uint8_t> Dump;
 typedef boost::basic_format<Char> Formatter;
-
-//specific types
-typedef boost::variant<int64_t, String, Dump> CommonParameter;
-typedef std::map<String, CommonParameter> ParametersMap;
-//working with parameters map
-template<class T>
-inline const T* FindParameter(const ParametersMap& params, const String& name)
-{
-  const ParametersMap::const_iterator it(params.find(name));
-  return it != params.end() ? boost::get<T>(&(it->second)) : 0;
-}
 
 //assertions
 BOOST_STATIC_ASSERT(sizeof(unsigned) >= sizeof(uint32_t));

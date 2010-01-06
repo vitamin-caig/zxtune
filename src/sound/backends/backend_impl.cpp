@@ -85,7 +85,7 @@ namespace
       return Delegate->SetPosition(frame);
     }
     
-    virtual Error SetParameters(const ParametersMap& params)
+    virtual Error SetParameters(const Parameters::Map& params)
     {
       Locker lock(Mutex);
       return Delegate->SetParameters(params);
@@ -95,27 +95,30 @@ namespace
     mutable boost::mutex Mutex;
   };
   
-  void CopyInitialParameters(const RenderParameters& renderParams, ParametersMap& commonParams)
+  void CopyInitialParameters(const RenderParameters& renderParams, Parameters::Map& commonParams)
   {
-    commonParams[Parameters::Sound::FREQUENCY] = renderParams.SoundFreq;
-    assert(FindParameter<int64_t>(commonParams, Parameters::Sound::FREQUENCY));
-    commonParams[Parameters::Sound::CLOCKRATE] = renderParams.ClockFreq;
-    assert(FindParameter<int64_t>(commonParams, Parameters::Sound::CLOCKRATE));
-    commonParams[Parameters::Sound::FRAMEDURATION] = renderParams.FrameDurationMicrosec;
-    assert(FindParameter<int64_t>(commonParams, Parameters::Sound::FRAMEDURATION));
+    commonParams[Parameters::ZXTune::Sound::FREQUENCY] = renderParams.SoundFreq;
+    assert(Parameters::FindByName<Parameters::IntType>(commonParams, Parameters::ZXTune::Sound::FREQUENCY));
+    commonParams[Parameters::ZXTune::Sound::CLOCKRATE] = renderParams.ClockFreq;
+    assert(Parameters::FindByName<Parameters::IntType>(commonParams, Parameters::ZXTune::Sound::CLOCKRATE));
+    commonParams[Parameters::ZXTune::Sound::FRAMEDURATION] = renderParams.FrameDurationMicrosec;
+    assert(Parameters::FindByName<Parameters::IntType>(commonParams, Parameters::ZXTune::Sound::FRAMEDURATION));
   }
   
-  void UpdateRenderParameters(const ParametersMap& updates, RenderParameters& renderParams)
+  void UpdateRenderParameters(const Parameters::Map& updates, RenderParameters& renderParams)
   {
-    if (const int64_t* freq = FindParameter<int64_t>(updates, Parameters::Sound::FREQUENCY))
+    if (const Parameters::IntType* freq = 
+      Parameters::FindByName<Parameters::IntType>(updates, Parameters::ZXTune::Sound::FREQUENCY))
     {
       renderParams.SoundFreq = static_cast<unsigned>(*freq);
     }
-    if (const int64_t* clock = FindParameter<int64_t>(updates, Parameters::Sound::CLOCKRATE))
+    if (const Parameters::IntType* clock = 
+      Parameters::FindByName<Parameters::IntType>(updates, Parameters::ZXTune::Sound::CLOCKRATE))
     {
       renderParams.ClockFreq = static_cast<uint64_t>(*clock);
     }
-    if (const int64_t* frame = FindParameter<int64_t>(updates, Parameters::Sound::FRAMEDURATION))
+    if (const Parameters::IntType* frame = 
+      Parameters::FindByName<Parameters::IntType>(updates, Parameters::ZXTune::Sound::FRAMEDURATION))
     {
       renderParams.FrameDurationMicrosec = static_cast<unsigned>(*frame);
     }
@@ -373,17 +376,17 @@ namespace ZXTune
       }
     };
 
-    bool CompareParameter(const ParametersMap::value_type& lh, const ParametersMap::value_type& rh)
+    inline bool CompareParameter(const Parameters::Map::value_type& lh, const Parameters::Map::value_type& rh)
     {
       return lh.first < rh.first || !boost::apply_visitor(are_strict_equals(), lh.second, rh.second);
     }
 
-    Error BackendImpl::SetParameters(const ParametersMap& params)
+    Error BackendImpl::SetParameters(const Parameters::Map& params)
     {
       try
       {
         Locker lock(PlayerMutex);
-        ParametersMap updates;
+        Parameters::Map updates;
         std::set_difference(params.begin(), params.end(),
           CommonParameters.begin(), CommonParameters.end(), std::inserter(updates, updates.end()),
           CompareParameter);
@@ -392,7 +395,7 @@ namespace ZXTune
         Player->SetParameters(updates);
         //merge result back
         {
-          ParametersMap merged;
+          Parameters::Map merged;
           std::set_union(updates.begin(), updates.end(),
             CommonParameters.begin(), CommonParameters.end(), std::inserter(merged, merged.end()),
             CompareParameter);
@@ -406,7 +409,7 @@ namespace ZXTune
       }
     }
     
-    Error BackendImpl::GetParameters(ParametersMap& params) const
+    Error BackendImpl::GetParameters(Parameters::Map& params) const
     {
       Locker lock(PlayerMutex);
       params = CommonParameters;

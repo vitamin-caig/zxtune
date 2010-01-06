@@ -266,7 +266,7 @@ namespace
       return Error();
     }
 
-    virtual Error SetParameters(const ParametersMap& /*params*/)
+    virtual Error SetParameters(const Parameters::Map& /*params*/)
     {
       return Error();//TODO
     }
@@ -285,7 +285,8 @@ namespace
     return Player::Ptr(new PSGPlayer(holder));
   }
   
-  bool CreatePSGModule(const ParametersMap& /*commonParams*/, const MetaContainer& container, Holder::Ptr& holder, ModuleRegion& region)
+  bool CreatePSGModule(const Parameters::Map& /*commonParams*/, const MetaContainer& container, 
+    Holder::Ptr& holder, ModuleRegion& region)
   {
     //perform fast check
     const IO::DataContainer& data(*container.Data);

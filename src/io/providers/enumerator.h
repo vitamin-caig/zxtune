@@ -21,7 +21,7 @@ namespace ZXTune
   namespace IO
   {
     typedef boost::function<bool(const String&)> ProviderCheckFunc;
-    typedef boost::function<Error(const String&, const ParametersMap&, const ProgressCallback&, DataContainer::Ptr&, String&)> ProviderOpenFunc;
+    typedef boost::function<Error(const String&, const Parameters::Map&, const ProgressCallback&, DataContainer::Ptr&, String&)> ProviderOpenFunc;
     typedef boost::function<Error(const String&, String&, String&)> ProviderSplitFunc;
     typedef boost::function<Error(const String&, const String&, String&)> ProviderCombineFunc;
   
@@ -34,7 +34,7 @@ namespace ZXTune
 	                                  const ProviderCheckFunc& detector, const ProviderOpenFunc& opener,
                                     const ProviderSplitFunc& splitter, const ProviderCombineFunc& combiner) = 0;
       
-      virtual Error OpenUri(const String& uri, const ParametersMap& params, const ProgressCallback& cb, 
+      virtual Error OpenUri(const String& uri, const Parameters::Map& params, const ProgressCallback& cb, 
                             DataContainer::Ptr& result, String& subpath) const = 0;
       virtual Error SplitUri(const String& uri, String& baseUri, String& subpath) const = 0;
       virtual Error CombineUri(const String& baseUri, const String& subpath, String& uri) const = 0;

@@ -74,7 +74,7 @@ namespace
     {
     }
     
-    virtual void OnParametersChanged(const ParametersMap& /*updates*/)
+    virtual void OnParametersChanged(const Parameters::Map& /*updates*/)
     {
     }
     

@@ -45,15 +45,15 @@ namespace ZXTune
       virtual Error SetFilter(Converter::Ptr converter);
       //volume management should be implemented in ancestors explicitly
       
-      virtual Error SetParameters(const ParametersMap& params);
-      virtual Error GetParameters(ParametersMap& params) const;
+      virtual Error SetParameters(const Parameters::Map& params);
+      virtual Error GetParameters(Parameters::Map& params) const;
     protected:
       //internal usage functions. Should not call external interface funcs due to sync
       virtual void OnStartup() = 0;
       virtual void OnShutdown() = 0;
       virtual void OnPause() = 0;
       virtual void OnResume() = 0;
-      virtual void OnParametersChanged(const ParametersMap& updates) = 0;
+      virtual void OnParametersChanged(const Parameters::Map& updates) = 0;
       virtual void OnBufferReady(std::vector<MultiSample>& buffer) = 0;
     private:
       void CheckState() const;
@@ -61,7 +61,7 @@ namespace ZXTune
       bool SafeRenderFrame();
       void RenderFunc();
     protected:
-      ParametersMap CommonParameters;
+      Parameters::Map CommonParameters;
       RenderParameters RenderingParameters;
     protected:
       //sync

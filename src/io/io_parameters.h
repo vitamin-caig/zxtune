@@ -11,11 +11,11 @@ Author:
 #ifndef __IO_PARAMETERS_H_DEFINED__
 #define __IO_PARAMETERS_H_DEFINED__
 
-#include <char_type.h>
+#include <parameters_types.h>
 
-namespace ZXTune
+namespace Parameters
 {
-  namespace Parameters
+  namespace ZXTune
   {
     namespace IO
     {

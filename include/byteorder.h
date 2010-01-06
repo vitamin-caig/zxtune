@@ -12,7 +12,8 @@ Author:
 #ifndef __BYTEORDER_H_DEFINED__
 #define __BYTEORDER_H_DEFINED__
 
-#include "types.h"
+#include <types.h>
+
 #include <boost/detail/endian.hpp>
 
 template<unsigned size>

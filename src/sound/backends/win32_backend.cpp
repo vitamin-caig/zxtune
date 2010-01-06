@@ -134,7 +134,7 @@ namespace
       : CurrentBuffer(Buffers.begin(), Buffers.end())
       , Event(::CreateEvent(0, FALSE, FALSE, 0))
       //device identifier used for opening and volume control
-      , Device(Parameters::Sound::Backends::Win32::DEVICE_DEFAULT)
+      , Device(Parameters::ZXTune::Sound::Backends::Win32::DEVICE_DEFAULT)
       , WaveHandle(0)
     {
     }
@@ -218,10 +218,12 @@ namespace
       }
     }
 
-    virtual void OnParametersChanged(const ParametersMap& updates)
+    virtual void OnParametersChanged(const Parameters::Map& updates)
     {
-      const int64_t* const device = FindParameter<int64_t>(updates, Parameters::Sound::Backends::Win32::DEVICE);
-      const int64_t* const freq = FindParameter<int64_t>(updates, Parameters::Sound::FREQUENCY);
+      const Parameters::IntType* const device = 
+        Parameters::FindByName<Parameters::IntType>(updates, Parameters::ZXTune::Sound::Backends::Win32::DEVICE);
+      const Parameters::IntType* const freq = 
+        Parameters::FindByName<Parameters::IntType>(updates, Parameters::ZXTune::Sound::FREQUENCY);
       if (device || freq)
       {
         Locker lock(BackendMutex);
@@ -233,46 +235,6 @@ namespace
           DoStartup();
         }
       }
-      /*
-      const unsigned mask(DRIVER_PARAMS | DRIVER_FLAGS | BUFFER | SOUND_FREQ);
-      if (changedFields & mask)
-      {
-        const bool needStartup(0 != WaveHandle);
-        OnShutdown();
-
-        //request devices
-        while (changedFields & DRIVER_PARAMS)
-        {
-          if (Params.DriverParameters.empty())
-          {
-            Device = WAVE_MAPPER;
-            break;
-          }
-          InStringStream str(Params.DriverParameters);
-          unsigned id(0);
-          if (!(str >> id))
-          {
-            assert(!"Invalid parameter format");
-            break;
-          }
-          const ::UINT devs(::waveOutGetNumDevs());
-          if (devs <= id)
-          {
-            assert(!"Invalid device specified");
-            break;
-          }
-          Device = id;
-          break;
-        }
-
-        //check
-        Parent::OnParametersChanged(changedFields);
-        if (needStartup)
-        {
-          OnStartup();
-        }
-      }
-      */
     }
 
     virtual void OnBufferReady(std::vector<MultiSample>& buffer)

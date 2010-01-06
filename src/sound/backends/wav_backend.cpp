@@ -174,7 +174,8 @@ namespace
       assert(!File.is_open());
     
       String nameTemplate;
-      if (const String* wavname = FindParameter<String>(CommonParameters, Parameters::Sound::Backends::FILENAME))
+      if (const Parameters::StringType* wavname = 
+        Parameters::FindByName<Parameters::StringType>(CommonParameters, Parameters::ZXTune::Sound::Backends::FILENAME))
       {
         nameTemplate = *wavname;
       }
@@ -220,11 +221,11 @@ namespace
     }
 
 
-    virtual void OnParametersChanged(const ParametersMap& updates)
+    virtual void OnParametersChanged(const Parameters::Map& updates)
     {
       if (File.is_open() &&
-          (FindParameter<int64_t>(updates, Parameters::Sound::FREQUENCY) ||
-           FindParameter<String>(updates, Parameters::Sound::Backends::FILENAME)))
+          (Parameters::FindByName<Parameters::IntType>(updates, Parameters::ZXTune::Sound::FREQUENCY) ||
+           Parameters::FindByName<Parameters::StringType>(updates, Parameters::ZXTune::Sound::Backends::FILENAME)))
       {
         throw Error(THIS_LINE, BACKEND_INVALID_PARAMETER, TEXT_SOUND_ERROR_BACKEND_INVALID_STATE);
       }

@@ -101,7 +101,7 @@ namespace
   class OutVisitor : public boost::static_visitor<String>
   {
   public:
-    String operator()(const Dump& dmp) const
+    String operator()(const Parameters::DataType& dmp) const
     {
       OutStringStream str;
       str << "<array of size " << dmp.size() << ">";
@@ -116,7 +116,7 @@ namespace
     }
   };
 
-  void OutProp(const ParametersMap::value_type& val)
+  void OutProp(const Parameters::Map::value_type& val)
   {
     std::cout << "  " << val.first << ": " << boost::apply_visitor(OutVisitor(), val.second) << "\n";
   }
@@ -205,7 +205,7 @@ int main()
     std::cout << "Supported plugins:" << std::endl;
     std::for_each(plugins.begin(), plugins.end(), ShowPluginInfo);
     
-    ParametersMap commonParams;
+    Parameters::Map commonParams;
     DetectParameters detectParams;
     
     TestError(DetectModules(commonParams, detectParams, CreateContainer(PSG1_OFFSET), String()), Module::ERROR_INVALID_PARAMETERS, "no callback", __LINE__);

@@ -135,7 +135,7 @@ namespace
       return Error();
     }
     
-    virtual Error SetParameters(const ParametersMap& params)
+    virtual Error SetParameters(const Parameters::Map& params)
     {
       return Error();
     }
