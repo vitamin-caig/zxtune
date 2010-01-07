@@ -70,6 +70,11 @@ namespace ZXTune
         return Delegate->GetCurrentState(state);
       }
 
+      virtual Event WaitForEvent(Event evt, unsigned timeoutMs) const
+      {
+        return Delegate->WaitForEvent(evt, timeoutMs);
+      }
+
       virtual Error SetMixer(const std::vector<MultiGain>& data)
       {
         return Delegate->SetMixer(data);

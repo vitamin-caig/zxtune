@@ -206,6 +206,7 @@ namespace ZXTune
           ThrowIfError(CreateMixer(Channels, curMixer));
         }
         curMixer->SetEndpoint(FilterObject ? FilterObject : Renderer);
+        SendEvent(OPEN);
         return Error();
       }
       catch (const Error& e)
@@ -241,7 +242,7 @@ namespace ZXTune
         }
         else if (PAUSED == prevState)
         {
-          OnResume();
+          DoResume();
           CurrentState = STARTED;
         }
         
@@ -259,7 +260,7 @@ namespace ZXTune
       {
         Locker lock(PlayerMutex);
         CheckState();
-        OnPause();
+        DoPause();
         CurrentState = PAUSED;
         return Error();
       }
@@ -308,6 +309,15 @@ namespace ZXTune
       Locker lock(PlayerMutex);
       state = CurrentState;
       return RenderError;
+    }
+
+    Backend::Event BackendImpl::WaitForEvent(Event evt, unsigned timeoutMs) const
+    {
+      boost::mutex localMutex;
+      boost::unique_lock<boost::mutex> locker(localMutex);
+      return evt > TIMEOUT && evt < LAST_EVENT && timeoutMs > 0 && 
+        Events[evt].timed_wait(locker, boost::posix_time::milliseconds(timeoutMs))
+        ? evt : TIMEOUT;
     }
 
     Error BackendImpl::SetMixer(const std::vector<MultiGain>& data)
@@ -419,6 +429,36 @@ namespace ZXTune
     }
 
     //internal functions
+    void BackendImpl::DoStartup()
+    {
+      SendEvent(START);
+      OnStartup();
+    }
+    
+    void BackendImpl::DoShutdown()
+    {
+      SendEvent(STOP);
+      OnShutdown();
+    }
+    
+    void BackendImpl::DoPause()
+    {
+      SendEvent(STOP);
+      OnPause();
+    }
+    
+    void BackendImpl::DoResume()
+    {
+      SendEvent(START);
+      OnResume();
+    }
+    
+    void BackendImpl::DoBufferReady(std::vector<MultiSample>& buffer)
+    {
+      SendEvent(FRAME);
+      OnBufferReady(buffer);
+    }
+
     void BackendImpl::CheckState() const
     {
       ThrowIfError(RenderError);
@@ -438,7 +478,7 @@ namespace ZXTune
       {
         if (PAUSED == curState)
         {
-          OnResume();
+          DoResume();
         }
         CurrentState = STOPPED;
         InProcess = true;//stopping now
@@ -472,7 +512,7 @@ namespace ZXTune
       {
         CurrentState = STARTED;
         InProcess = true;//starting begin
-        OnStartup();//throw
+        DoStartup();//throw
         SyncBarrier.wait();
         InProcess = false;//starting finished
         for (;;)
@@ -485,7 +525,7 @@ namespace ZXTune
           else if (STARTED == curState)
           {
             const bool stopping = !SafeRenderFrame();
-            OnBufferReady(Buffer);
+            DoBufferReady(Buffer);
             if (stopping)
             {
               CurrentState = STOPPED;
@@ -498,7 +538,7 @@ namespace ZXTune
             boost::this_thread::sleep(PLAYTHREAD_SLEEP_PERIOD);
           }
         }
-        OnShutdown();//throw
+        DoShutdown();//throw
         SyncBarrier.wait();
         InProcess = false; //stopping finished
       }
@@ -506,9 +546,16 @@ namespace ZXTune
       {
         RenderError = e;
         CurrentState = STOPPED;
+        SendEvent(STOP);
         SyncBarrier.wait();
         InProcess = false;
       }
+    }
+    
+    void BackendImpl::SendEvent(Event evt)
+    {
+      assert(evt > TIMEOUT && evt < LAST_EVENT);
+      Events[evt].notify_all();
     }
   }
 }

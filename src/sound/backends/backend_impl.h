@@ -39,6 +39,7 @@ namespace ZXTune
       virtual Error SetPosition(unsigned frame);
       
       virtual Error GetCurrentState(State& state) const;
+      virtual Event WaitForEvent(Event evt, unsigned timeoutMs) const;
 
       virtual Error SetMixer(const std::vector<MultiGain>& data);
       virtual Error SetFilter(Converter::Ptr converter);
@@ -55,10 +56,17 @@ namespace ZXTune
       virtual void OnParametersChanged(const Parameters::Map& updates) = 0;
       virtual void OnBufferReady(std::vector<MultiSample>& buffer) = 0;
     private:
+      void DoStartup();
+      void DoShutdown();
+      void DoPause();
+      void DoResume();
+      void DoBufferReady(std::vector<MultiSample>& buffer);
+    private:
       void CheckState() const;
       void StopPlayback();
       bool SafeRenderFrame();
       void RenderFunc();
+      void SendEvent(Event evt);
     protected:
       Parameters::Map CommonParameters;
       RenderParameters RenderingParameters;
@@ -66,6 +74,7 @@ namespace ZXTune
       //sync
       typedef boost::lock_guard<boost::mutex> Locker;
       mutable boost::mutex BackendMutex;
+      mutable boost::array<boost::condition_variable, LAST_EVENT> Events;
     private:
       mutable boost::mutex PlayerMutex;
       boost::thread RenderThread;

@@ -62,6 +62,19 @@ namespace ZXTune
       };
       virtual Error GetCurrentState(State& state) const = 0;
 
+      // synchronizing function
+      enum Event
+      {
+        TIMEOUT,
+        OPEN,
+        STOP,
+        START,
+        FRAME,
+        
+        LAST_EVENT
+      };
+      virtual Event WaitForEvent(Event evt, unsigned timeoutMs) const = 0;
+      
       // adding/changing mixer
       virtual Error SetMixer(const std::vector<MultiGain>& data) = 0;
       // adding filter
