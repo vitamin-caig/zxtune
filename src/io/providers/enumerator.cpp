@@ -12,11 +12,11 @@ Author:
 #include "enumerator.h"
 #include "providers_list.h"
 
-#include <error.h>
 #include <logging.h>
 #include <io/error_codes.h>
 
 #include <algorithm>
+#include <list>
 #include <boost/bind.hpp>
 #include <boost/bind/apply.hpp>
 
@@ -106,9 +106,9 @@ namespace
       return Error(THIS_LINE, NOT_SUPPORTED, TEXT_IO_ERROR_NOT_SUPPORTED_URI);
     }
      
-    virtual void Enumerate(std::vector<ProviderInfo>& infos) const
+    virtual void Enumerate(ProviderInfoArray& infos) const
     {
-      std::vector<ProviderInfo> result(Providers.size());
+      ProviderInfoArray result(Providers.size());
       std::transform(Providers.begin(), Providers.end(), result.begin(), boost::bind<ProviderInfo>(&ProviderEntry::Info, _1));
       infos.swap(result);
     }
@@ -148,7 +148,7 @@ namespace ZXTune
       return ProvidersEnumerator::Instance().CombineUri(baseUri, subpath, uri);
     }
     
-    void GetSupportedProviders(std::vector<ProviderInfo>& infos)
+    void GetSupportedProviders(ProviderInfoArray& infos)
     {
       return ProvidersEnumerator::Instance().Enumerate(infos);
     }

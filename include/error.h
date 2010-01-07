@@ -12,10 +12,11 @@ Author:
 #ifndef __ERROR_H_DEFINED__
 #define __ERROR_H_DEFINED__
 
+#include <string_type.h>
 #include <types.h>
 
 #include <boost/function.hpp>
-#include <boost/smart_ptr.hpp>
+#include <boost/shared_ptr.hpp>
 
 class Error
 {
@@ -107,41 +108,6 @@ private:
 private:
   MetaPtr ErrorMeta;
 };
-
-template<class P1>
-inline Error MakeFormattedError(Error::LocationRef loc, Error::CodeType code, const String& fmt,
-  const P1& p1)
-{
-  return Error(loc, code, (Formatter(fmt) % p1).str());
-}
-
-template<class P1, class P2>
-inline Error MakeFormattedError(Error::LocationRef loc, Error::CodeType code, const String& fmt,
-  const P1& p1, const P2& p2)
-{
-  return Error(loc, code, (Formatter(fmt) % p1 % p2).str());
-}
-
-template<class P1, class P2, class P3>
-inline Error MakeFormattedError(Error::LocationRef loc, Error::CodeType code, const String& fmt,
-  const P1& p1, const P2& p2, const P3& p3)
-{
-  return Error(loc, code, (Formatter(fmt) % p1 % p2 % p3).str());
-}
-
-template<class P1, class P2, class P3, class P4>
-inline Error MakeFormattedError(Error::LocationRef loc, Error::CodeType code, const String& fmt,
-  const P1& p1, const P2& p2, const P3& p3, const P4& p4)
-{
-  return Error(loc, code, (Formatter(fmt) % p1 % p2 % p3 % p4).str());
-}
-
-template<class P1, class P2, class P3, class P4, class P5>
-inline Error MakeFormattedError(Error::LocationRef loc, Error::CodeType code, const String& fmt,
-  const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5)
-{
-  return Error(loc, code, (Formatter(fmt) % p1 % p2 % p3 % p4 % p5).str());
-}
 
 inline void ThrowIfError(const Error& e)
 {

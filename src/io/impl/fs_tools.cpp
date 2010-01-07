@@ -13,10 +13,7 @@ Author:
 
 namespace
 {
-  const String::value_type TEMPLATE_BEGIN = '[';
-  const String::value_type TEMPLATE_END = ']';
-
-  const String::value_type FS_DELIMITER = '/';
+  const Char FS_DELIMITER = '/';
 }
 
 namespace ZXTune
@@ -49,18 +46,5 @@ namespace ZXTune
       result += path2;
       return result;
     }
-    
-    /*
-    void SplitFSName(const String& fullpath, String& dir, String& filename, String& subname)
-    {
-      StringArray parts;
-      SplitPath(fullpath, parts);
-      const String& fspath(parts.front());
-      const String::size_type slpos(fspath.find_last_of(FS_DELIMITERS));
-      dir = fspath.substr(0, String::npos == slpos ? 0 : slpos);
-      filename = fspath.substr(String::npos == slpos ? 0 : slpos + 1);
-      subname = 1 == parts.size() ? String() : parts.back();
-    }
-    */
   }
 }

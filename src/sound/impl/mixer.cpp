@@ -11,6 +11,7 @@ Author:
 #include "internal_types.h"
 
 #include <tools.h>
+#include <error_tools.h>
 #include <sound/error_codes.h>
 #include <sound/mixer.h>
 

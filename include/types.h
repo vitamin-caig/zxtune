@@ -12,17 +12,10 @@ Author:
 #ifndef __TYPES_H_DEFINED__
 #define __TYPES_H_DEFINED__
 
-#include <char_type.h>
-
-#include <map>
-#include <list>
-#include <string>
 #include <vector>
-#include <ostream>
-#include <sstream>
 
-#include <boost/format.hpp>
 #include <boost/cstdint.hpp>
+#include <boost/static_assert.hpp>
 
 using boost::int8_t;
 using boost::uint8_t;
@@ -46,17 +39,8 @@ using boost::uint64_t;
 #define PACK_POST
 #endif
 
-//common types
-typedef std::basic_string<Char> String;
-typedef std::basic_ostream<Char> OutStream;
-typedef std::basic_istream<Char> InStream;
-typedef std::basic_ostringstream<Char> OutStringStream;
-typedef std::basic_istringstream<Char> InStringStream;
-typedef std::map<String, String> StringMap;
-typedef std::vector<String> StringArray;
-typedef std::list<String> StringList;
-typedef std::vector<uint8_t> Dump;
-typedef boost::basic_format<Char> Formatter;
+//other types
+typedef std::vector<unsigned char> Dump;
 
 //assertions
 BOOST_STATIC_ASSERT(sizeof(unsigned) >= sizeof(uint32_t));

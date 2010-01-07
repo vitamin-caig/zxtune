@@ -9,10 +9,16 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-#ifndef __LOG_H_DEFINED__
-#define __LOG_H_DEFINED__
+#ifndef __LOGGING_H_DEFINED__
+#define __LOGGING_H_DEFINED__
 
 #include <string>
+#ifdef UNICODE
+#include <string_type.h>
+#endif
+
+#include <cassert>
+
 #include <boost/format.hpp>
 
 namespace Log
@@ -113,4 +119,4 @@ namespace Log
     }
   }
 }
-#endif //__LOG_H_DEFINED__
+#endif //__LOGGING_H_DEFINED__

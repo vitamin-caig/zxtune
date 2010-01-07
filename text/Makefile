@@ -2,7 +2,7 @@ library_name := texts
 path_step := ..
 source_dirs := .
 
-text_files := tools io sound core plugins backends
+text_files := tools io sound core plugins backends warnings
 
 #dependent targets
 source_files :=  $(text_files:=.cpp)

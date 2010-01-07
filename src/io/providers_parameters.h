@@ -11,7 +11,7 @@ Author:
 #ifndef __IO_PROVIDERS_PARAMETERS_H_DEFINED__
 #define __IO_PROVIDERS_PARAMETERS_H_DEFINED__
 
-#include <parameters_types.h>
+#include <parameters.h>
 
 namespace Parameters
 {

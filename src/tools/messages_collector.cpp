@@ -10,6 +10,7 @@ Author:
 */
 
 #include <messages_collector.h>
+#include <string_helpers.h>
 
 #include <boost/algorithm/string/join.hpp>
 

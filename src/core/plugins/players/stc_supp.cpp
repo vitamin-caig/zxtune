@@ -20,8 +20,6 @@ Author:
 #include <core/devices/aym/aym.h>
 #include <core/error_codes.h>
 #include <core/module_attrs.h>
-#include <core/module_types.h>
-#include <core/plugin.h>
 #include <core/plugin_attrs.h>
 #include <io/container.h>
 #include <sound/render_params.h>

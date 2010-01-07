@@ -12,7 +12,8 @@ Author:
 #ifndef __MESSAGES_COLLECTOR_H_DEFINED__
 #define __MESSAGES_COLLECTOR_H_DEFINED__
 
-#include <types.h>
+#include <formatter.h>
+#include <string_type.h>
 
 #include <memory>
 

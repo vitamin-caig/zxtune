@@ -12,16 +12,15 @@ Author:
 #ifndef __SOUND_BACKEND_H_DEFINED__
 #define __SOUND_BACKEND_H_DEFINED__
 
+// for Module::Holder::Ptr, Converter::Ptr and other
 #include <core/player.h>
-#include <sound/receiver.h>
-#include <sound/sound_types.h>
-
-#include <error.h>
-#include <types.h>
 
 #include <memory>
 
 #include <boost/weak_ptr.hpp>
+
+//forward declarations
+class Error;
 
 namespace ZXTune
 {

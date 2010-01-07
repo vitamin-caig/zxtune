@@ -12,7 +12,11 @@ Author:
 #ifndef __CORE_PLUGINS_ENUMERATOR_H_DEFINED__
 #define __CORE_PLUGINS_ENUMERATOR_H_DEFINED__
 
+#include <string_helpers.h>
+// for Module::Holder::Ptr and related
 #include <core/player.h>
+// for PluginInformationArray
+#include <core/plugin.h>
 
 #include <boost/function.hpp>
 
@@ -64,7 +68,7 @@ namespace ZXTune
       const OpenContainerFunc& opener, const ProcessContainerFunc& processor) = 0;
     
     //public interface
-    virtual void EnumeratePlugins(std::vector<PluginInformation>& plugins) const = 0;
+    virtual void EnumeratePlugins(PluginInformationArray& plugins) const = 0;
     
     //private interface
     //resolve subpath

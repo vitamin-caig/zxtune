@@ -12,8 +12,10 @@ Author:
 #ifndef __SOUND_MIXER_H_DEFINED__
 #define __SOUND_MIXER_H_DEFINED__
 
-#include <error.h>
 #include <sound/receiver.h>
+
+//forward declarations
+class Error;
 
 namespace ZXTune
 {

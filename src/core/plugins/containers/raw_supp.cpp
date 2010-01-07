@@ -14,7 +14,6 @@ Author:
 #include <tools.h>
 
 #include <core/error_codes.h>
-#include <core/plugin.h>
 #include <core/plugin_attrs.h>
 #include <core/plugins_parameters.h>
 #include <io/container.h>

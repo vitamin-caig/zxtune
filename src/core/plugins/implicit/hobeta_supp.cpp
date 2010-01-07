@@ -12,8 +12,7 @@ Author:
 #include "../enumerator.h"
 
 #include <byteorder.h>
-
-#include <core/plugin.h>
+#include <tools.h>
 #include <core/plugin_attrs.h>
 #include <io/container.h>
 

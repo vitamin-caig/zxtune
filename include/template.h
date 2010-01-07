@@ -12,7 +12,7 @@ Author:
 #ifndef __TEMPLATE_H_DEFINED__
 #define __TEMPLATE_H_DEFINED__
 
-#include <types.h>
+#include <string_helpers.h>
 
 String InstantiateTemplate(const String& templ, const StringMap& properties, Char beginMark = '[', Char endMark = ']');
 

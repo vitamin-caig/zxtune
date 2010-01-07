@@ -1,4 +1,5 @@
 #include <tools.h>
+#include <formatter.h>
 #include <core/player.h>
 #include <core/devices/aym/aym.h>
 #include <sound/backend.h>

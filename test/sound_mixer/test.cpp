@@ -1,4 +1,5 @@
 #include <tools.h>
+#include <formatter.h>
 #include <src/sound/mixer.h>
 #include <src/sound/error_codes.h>
 

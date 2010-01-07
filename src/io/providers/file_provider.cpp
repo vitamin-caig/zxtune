@@ -11,13 +11,15 @@ Author:
 
 #include "enumerator.h"
 
+#include <tools.h>
+#include <error_tools.h>
 #include <io/error_codes.h>
 #include <io/providers_parameters.h>
 
+#include <fstream>
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
-
-#include <fstream>
+#include <boost/shared_array.hpp>
 
 #include <text/io.h>
 

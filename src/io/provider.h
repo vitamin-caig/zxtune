@@ -12,15 +12,17 @@ Author:
 #ifndef __IO_PROVIDER_H_DEFINED__
 #define __IO_PROVIDER_H_DEFINED__
 
-#include <error.h>
-#include <parameters_types.h>
-
+// for Parameters::Map
+#include <parameters.h>
+// for IO::DataContainer::Ptr
 #include <io/container.h>
 
 #include <boost/function.hpp>
 
 #include <vector>
 
+//forward declarations
+class Error;
 namespace ZXTune
 {
   namespace IO
@@ -45,7 +47,9 @@ namespace ZXTune
       String Description;
     };
     
-    void GetSupportedProviders(std::vector<ProviderInfo>& providers);
+    typedef std::vector<ProviderInfo> ProviderInfoArray;
+    
+    void GetSupportedProviders(ProviderInfoArray& providers);
   }
 }
 

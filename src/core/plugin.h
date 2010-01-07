@@ -11,7 +11,10 @@ Author:
 #ifndef __CORE_PLUGIN_H_DEFINED__
 #define __CORE_PLUGIN_H_DEFINED__
 
+#include <string_type.h>
 #include <types.h>
+
+#include <vector>
 
 namespace ZXTune
 {
@@ -26,9 +29,11 @@ namespace ZXTune
     String Version;
     uint32_t Capabilities;
   };
-    
+  
+  typedef std::vector<PluginInformation> PluginInformationArray;
+  
   /// Enumeration
-  void GetSupportedPlugins(std::vector<PluginInformation>& plugins);
+  void GetSupportedPlugins(PluginInformationArray& plugins);
 }
 
 #endif //__CORE_PLUGIN_H_DEFINED__

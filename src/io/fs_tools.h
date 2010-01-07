@@ -12,7 +12,7 @@ Author:
 #ifndef __IO_FS_TOOLS_H_DEFINED__
 #define __IO_FS_TOOLS_H_DEFINED__
 
-#include <types.h>
+#include <string_type.h>
 
 namespace ZXTune
 {
@@ -20,7 +20,6 @@ namespace ZXTune
   {
     String ExtractFirstPathComponent(const String& path, String& restPart);
     String AppendPath(const String& path1, const String& path2);
-    //void SplitFSName(const String& fullpath, String& dir, String& filename, String& subname);
   }
 }
 

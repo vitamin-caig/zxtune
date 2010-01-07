@@ -12,7 +12,7 @@ Author:
 #ifndef __CORE_MODULE_TYPES_H_DEFINED__
 #define __CORE_MODULE_TYPES_H_DEFINED__
 
-#include <parameters_types.h>
+#include <parameters.h>
 
 namespace ZXTune
 {

@@ -12,8 +12,6 @@ Author:
 #ifndef __IO_CONTAINER_H_DEFINED__
 #define __IO_CONTAINER_H_DEFINED__
 
-#include <tools.h>
-
 #include <boost/shared_ptr.hpp>
 
 namespace ZXTune
@@ -42,12 +40,12 @@ namespace ZXTune
     {
     public:
       FastDump(const DataContainer& data, std::size_t offset = 0)
-        : Ptr(static_cast<const uint8_t*>(data.Data()) + offset)
+        : Ptr(static_cast<const unsigned char*>(data.Data()) + offset)
         , Lenght(data.Size() - offset)
       {
       }
 
-      const uint8_t& operator [] (std::size_t idx) const
+      const unsigned char& operator [] (std::size_t idx) const
       {
         assert(idx < Lenght);
         return Ptr[idx];
@@ -58,12 +56,12 @@ namespace ZXTune
         return Lenght;
       }
       
-      const uint8_t* Data() const
+      const unsigned char* Data() const
       {
         return Ptr;
       }
     private:
-      const uint8_t* const Ptr;
+      const unsigned char* const Ptr;
       const std::size_t Lenght;
     };
   }

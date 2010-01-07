@@ -9,7 +9,8 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-#include <error.h>
+#include <error_tools.h>
+#include <string_helpers.h>
 
 #include <cctype>
 #include <iomanip>

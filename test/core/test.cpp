@@ -1,3 +1,6 @@
+#include <tools.h>
+#include <formatter.h>
+#include <string_helpers.h>
 #include <io/provider.h>
 #include <core/player.h>
 #include <core/plugin.h>

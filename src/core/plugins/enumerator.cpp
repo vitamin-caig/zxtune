@@ -14,11 +14,10 @@ Author:
 #include "implicit/plugins_list.h"
 #include "containers/plugins_list.h"
 
+#include <error_tools.h>
 #include <logging.h>
-
 #include <core/error_codes.h>
 #include <core/module_attrs.h>
-#include <core/plugin.h>
 #include <io/container.h>
 #include <io/fs_tools.h>
 
@@ -103,7 +102,7 @@ namespace
     }
 
     //public interface
-    virtual void EnumeratePlugins(std::vector<PluginInformation>& plugins) const
+    virtual void EnumeratePlugins(PluginInformationArray& plugins) const
     {
       plugins = AllPlugins;
     }
@@ -350,7 +349,7 @@ namespace
       return false;
     }
   private:
-    std::vector<PluginInformation> AllPlugins;
+    PluginInformationArray AllPlugins;
     std::vector<ContainerPluginDescription> ContainerPlugins;
     std::vector<ImplicitPluginDescription> ImplicitPlugins;
     std::vector<PlayerPluginDescriptor> PlayerPlugins;

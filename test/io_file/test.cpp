@@ -1,3 +1,4 @@
+#include <formatter.h>
 #include <src/io/provider.h>
 #include <src/io/error_codes.h>
 #include <src/io/providers_parameters.h>

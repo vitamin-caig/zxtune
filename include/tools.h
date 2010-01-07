@@ -12,21 +12,17 @@ Author:
 #ifndef __TOOLS_H_DEFINED__
 #define __TOOLS_H_DEFINED__
 
-#include <types.h>
+#include <string_type.h>
 
 #include <boost/mpl/if.hpp>
 #include <boost/static_assert.hpp>
+#include <boost/type_traits/is_arithmetic.hpp>
 #include <boost/type_traits/is_const.hpp>
+#include <boost/type_traits/is_pointer.hpp>
 #include <boost/type_traits/remove_pointer.hpp>
 
 #include <iterator>
 #include <algorithm>
-
-template<std::size_t D>
-inline String FromChar(const Char (&str)[D])
-{
-  return String(str, str + D);
-}
 
 template<class T, std::size_t D>
 inline std::size_t ArraySize(const T (&)[D])
@@ -66,55 +62,6 @@ inline T safe_ptr_cast(F from)
   typedef typename mpl::if_c<is_const<typename remove_pointer<T>::type>::value, const void*, void*>::type MidType;
   return static_cast<T>(static_cast<MidType>(from));
 }
-
-template<class T>
-inline String string_cast(const T& val)
-{
-  OutStringStream str;
-  str << val;
-  return str.str();
-}
-
-template<class P, class T>
-inline String string_cast(const P& p, const T& val)
-{
-  OutStringStream str;
-  str << p << val;
-  return str.str();
-}
-
-template<class T>
-inline String string_cast(std::ios_base& (*M)(std::ios_base&), const T& val)
-{
-  OutStringStream str;
-  str << M << val;
-  return str.str();
-}
-
-template<class T>
-inline T string_cast(const String& s)
-{
-  T val = T();
-  InStringStream str(s);
-  if (str >> val)
-  {
-    return val;
-  }
-  return T();//TODO
-}
-
-template<class T>
-inline T string_cast(const String& s, T def)
-{
-  T val = T();
-  InStringStream str(s);
-  if (str >> val)
-  {
-    return val;
-  }
-  return def;//TODO
-}
-
 
 template<class C>
 class cycled_iterator

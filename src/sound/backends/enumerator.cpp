@@ -12,6 +12,7 @@ Author:
 #include "backends_list.h"
 
 #include <logging.h>
+#include <error_tools.h>
 #include <sound/error_codes.h>
 
 #include <cassert>

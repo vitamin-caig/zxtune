@@ -16,6 +16,7 @@ Author:
 #include "enumerator.h"
 
 #include <tools.h>
+#include <error_tools.h>
 #include <sound/backends_parameters.h>
 #include <sound/error_codes.h>
 

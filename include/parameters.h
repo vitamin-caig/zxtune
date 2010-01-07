@@ -12,7 +12,10 @@ Author:
 #ifndef __PARAMETERS_TYPES_H_DEFINED__
 #define __PARAMETERS_TYPES_H_DEFINED__
 
+#include <string_type.h>
 #include <types.h>
+
+#include <map>
 
 #include <boost/variant.hpp>
 
@@ -22,19 +25,20 @@ namespace Parameters
   typedef String StringType;
   typedef Dump DataType;
   
-  typedef boost::variant<IntType, StringType, DataType> VariantType;
-  typedef std::map<String, VariantType> Map;
+  typedef String NameType;
+  typedef boost::variant<IntType, StringType, DataType> ValueType;
+  typedef std::map<NameType, ValueType> Map;
   
   //working with parameters map
   template<class T>
-  inline const T* FindByName(const Map& params, const String& name)
+  inline const T* FindByName(const Map& params, const NameType& name)
   {
     const Map::const_iterator it(params.find(name));
     return it != params.end() ? boost::get<T>(&(it->second)) : 0;
   }
   
   template<class T>
-  inline bool FindByName(const Map& params, const String& name, T& result)
+  inline bool FindByName(const Map& params, const NameType& name, T& result)
   {
     const T* const val = FindByName<T>(params, name);
     return val ? (result = *val, true) : false;

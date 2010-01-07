@@ -11,14 +11,20 @@ Author:
 #ifndef __CORE_PLAYER_H_DEFINED__
 #define __CORE_PLAYER_H_DEFINED__
 
-#include <error.h>
-#include <parameters_types.h>
+//for typedef'ed Parameters::Map
+#include <parameters.h>
 
+//for Module::Analyze::ChannelsState
 #include <core/module_types.h>
+//for IO::DataContainer::Ptr
 #include <io/container.h>
+//for Sound::MultichannelReceiver
 #include <sound/receiver.h>
 
 #include <boost/function.hpp>
+
+//forward declarations
+class Error;
 
 namespace ZXTune
 {

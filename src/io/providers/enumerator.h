@@ -12,6 +12,7 @@ Author:
 #ifndef __IO_ENUMERATOR_H_DEFINED__
 #define __IO_ENUMERATOR_H_DEFINED__
 
+// for ProviderInfoArray
 #include <io/provider.h>
 
 #include <boost/function.hpp>
@@ -39,7 +40,7 @@ namespace ZXTune
       virtual Error SplitUri(const String& uri, String& baseUri, String& subpath) const = 0;
       virtual Error CombineUri(const String& baseUri, const String& subpath, String& uri) const = 0;
       
-      virtual void Enumerate(std::vector<ProviderInfo>& infos) const = 0;
+      virtual void Enumerate(ProviderInfoArray& infos) const = 0;
       
       static ProvidersEnumerator& Instance();
     };

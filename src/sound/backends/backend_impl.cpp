@@ -11,6 +11,8 @@ Author:
 
 #include "backend_impl.h"
 
+#include <tools.h>
+#include <error_tools.h>
 #include <sound/error_codes.h>
 #include <sound/sound_parameters.h>
 
