@@ -36,7 +36,7 @@ CXX_FLAGS := $(cxx_mode_flags) $(cxx_flags) -g3 \
 	$(addprefix -D, $(definitions)) \
 	-march=$(arch) \
 	-funroll-loops -funsigned-char -fno-strict-aliasing \
-	-W -Wall -ansi -pipe \
+	-W -Wall -Wextra -ansi -pipe \
 	$(addprefix -I, $(include_dirs))
 
 AR_FLAGS := cru

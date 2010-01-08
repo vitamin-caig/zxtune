@@ -52,8 +52,26 @@ ifdef source_dirs
 source_files := $(wildcard $(addsuffix /*.cpp,$(source_dirs)))
 else ifdef source_files
 source_files := $(source_files:=.cpp)
-else
-$(error Not source_dirs or source_files defined at all)
+else ifndef text_files
+$(error Not source_dirs or source_files or text_files defined at all)
+endif
+
+#process texts if required
+ifdef text_files
+source_files += $(text_files:=.cpp)
+h_texts := $(text_files:=.h)
+
+#textator can be get from
+#http://code.google.com/p/textator
+#if were no changes in txt files, just touch .h and .cpp files in this folder or change TEXTATOR to true
+TEXTATOR := ~/bin/textator
+TEXTATOR_FLAGS := --process --cpp --symboltype "Char" --memtype "extern const" --tab 2 --width 112
+
+%.cpp: %.txt
+	$(TEXTATOR) $(TEXTATOR_FLAGS) --inline --output $@ $^
+
+%.h: %.txt
+	$(TEXTATOR) $(TEXTATOR_FLAGS) --noinline --output $@ $^
 endif
 
 #calculate object files from sources
@@ -70,7 +88,7 @@ dirs:
 #build target
 ifdef library_name
 #simple libraries
-$(target): $(object_files)
+$(target): $(object_files) $(h_texts)
 	$(build_lib_cmd)
 else
 #binary and dynamic libraries with dependencies
@@ -78,7 +96,7 @@ else
 
 deps: $(depends)
 
-$(depends):
+$(depends): $(h_texts)
 	$(MAKE) -C $(addprefix $(path_step)/,$@) $(if $(pic),pic=1,) $(MAKECMDGOALS)
 
 $(target): deps $(object_files) $(foreach lib,$(libraries),$(libs_dir)/$(call makelib_name,$(lib)))
