@@ -95,7 +95,7 @@ namespace ZXTune
   {
     void RegisterNullBackend(BackendsEnumerator& enumerator)
     {
-      enumerator.RegisterBackend(BACKEND_INFO, NullBackendCreator);
+      enumerator.RegisterBackend(BACKEND_INFO, NullBackendCreator, BACKEND_PRIORITY_MID);
     }
   }
 }

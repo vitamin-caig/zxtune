@@ -176,7 +176,7 @@ namespace
     
       String nameTemplate;
       if (const Parameters::StringType* wavname = 
-        Parameters::FindByName<Parameters::StringType>(CommonParameters, Parameters::ZXTune::Sound::Backends::FILENAME))
+        Parameters::FindByName<Parameters::StringType>(CommonParameters, Parameters::ZXTune::Sound::Backends::Wav::FILENAME))
       {
         nameTemplate = *wavname;
       }
@@ -226,7 +226,7 @@ namespace
     {
       if (File.is_open() &&
           (Parameters::FindByName<Parameters::IntType>(updates, Parameters::ZXTune::Sound::FREQUENCY) ||
-           Parameters::FindByName<Parameters::StringType>(updates, Parameters::ZXTune::Sound::Backends::FILENAME)))
+           Parameters::FindByName<Parameters::StringType>(updates, Parameters::ZXTune::Sound::Backends::Wav::FILENAME)))
       {
         throw Error(THIS_LINE, BACKEND_INVALID_PARAMETER, TEXT_SOUND_ERROR_BACKEND_INVALID_STATE);
       }
@@ -266,7 +266,7 @@ namespace ZXTune
   {
     void RegisterWAVBackend(BackendsEnumerator& enumerator)
     {
-      enumerator.RegisterBackend(BACKEND_INFO, WAVBackendCreator);
+      enumerator.RegisterBackend(BACKEND_INFO, WAVBackendCreator, BACKEND_PRIORITY_LOW);
     }
   }
 }

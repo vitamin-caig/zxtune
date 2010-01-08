@@ -26,10 +26,13 @@ namespace ZXTune
     
     inline void RegisterBackends(BackendsEnumerator& enumerator)
     {
-      RegisterNullBackend(enumerator);
-      RegisterWAVBackend(enumerator);
-      RegisterWin32Backend(enumerator);
+      //potentially unsafe backends
       RegisterOSSBackend(enumerator);
+      RegisterWin32Backend(enumerator);
+      //stub
+      RegisterNullBackend(enumerator);
+      //never default backends
+      RegisterWAVBackend(enumerator);
     }
   }
 }

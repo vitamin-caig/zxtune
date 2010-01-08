@@ -74,6 +74,9 @@ namespace
     {
       MixHandle = ::open(MixerName.c_str(), O_RDWR, 0);
       CheckResult(-1 != MixHandle, THIS_LINE);
+      //perform check
+      DoStartup();
+      DoShutdown();
     }
 
     virtual ~OSSBackend()
@@ -243,7 +246,7 @@ namespace ZXTune
   {
     void RegisterOSSBackend(BackendsEnumerator& enumerator)
     {
-      enumerator.RegisterBackend(BACKEND_INFO, OSSBackendCreator);
+      enumerator.RegisterBackend(BACKEND_INFO, OSSBackendCreator, BACKEND_PRIORITY_HIGH);
     }
   }
 }

@@ -30,27 +30,22 @@ namespace
 
   const std::string THIS_MODULE("Sound::Enumerator");
 
-  inline bool BackendInfoComparator(const BackendInfo& lh, const BackendInfo& rh)
-  {
-    return lh.Id < rh.Id;
-  }
-
   class BackendsEnumeratorImpl : public BackendsEnumerator
   {
-    typedef std::map<BackendInfo, CreateBackendFunc,
-      bool(*)(const BackendInfo& lh, const BackendInfo& rh)> BackendsStorage;
+    typedef std::multimap<unsigned, BackendInfo> BackendsStorage;
+    typedef std::map<String, CreateBackendFunc> CreatorsStorage;
   public:
     BackendsEnumeratorImpl()
-      : Backends(BackendsStorage(BackendInfoComparator))
     {
       RegisterBackends(*this);
     }
 
-    virtual void RegisterBackend(const BackendInfo& info, const CreateBackendFunc& creator)
+    virtual void RegisterBackend(const BackendInfo& info, const CreateBackendFunc& creator, unsigned priority)
     {
       assert(creator);
-      assert(Backends.end() == Backends.find(info) || !"Duplicated backend found");
-      Backends.insert(BackendsStorage::value_type(info, creator));
+      assert(Creators.end() == Creators.find(info.Id) || !"Duplicated backend found");
+      Backends.insert(BackendsStorage::value_type(priority, info));
+      Creators.insert(CreatorsStorage::value_type(info.Id, creator));
       Log::Debug(THIS_MODULE, "Registered backend '%1%'", info.Id);
     }
 
@@ -58,15 +53,14 @@ namespace
     {
       infos.resize(Backends.size());
       std::transform(Backends.begin(), Backends.end(), infos.begin(),
-        boost::bind(&BackendsStorage::value_type::first, _1));
+        boost::mem_fn(&BackendsStorage::value_type::second));
     }
 
     virtual Error CreateBackend(const String& id, Backend::Ptr& result) const
     {
       Log::Debug(THIS_MODULE, "Creating backend '%1%'", id);
-      const BackendInfo key = {id, String(), String()};
-      const BackendsStorage::const_iterator it(Backends.find(key));
-      if (Backends.end() == it)
+      const CreatorsStorage::const_iterator it(Creators.find(id));
+      if (Creators.end() == it)
       {
         return MakeFormattedError(THIS_LINE, BACKEND_NOT_FOUND, TEXT_SOUND_ERROR_BACKEND_NOT_FOUND, id);
       }
@@ -82,6 +76,7 @@ namespace
     }
   private:
     BackendsStorage Backends;
+    CreatorsStorage Creators;
   };
 }
 

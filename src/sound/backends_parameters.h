@@ -22,11 +22,21 @@ namespace Parameters
       //per-backend parameters
       namespace Backends
       {
-        //! template, String
-        const Char FILENAME[] =
+        //! namespace prefix
+        const Char PREFIX[] =
         {
-          'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','f','i','l','e','n','a','m','e','\0'
+          'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','\0'
         };
+        
+        //parameters for Wav backend
+        namespace Wav
+        {
+          //! template, String
+          const Char FILENAME[] =
+          {
+            'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','w','a','v','.','f','i','l','e','n','a','m','e','\0'
+          };
+        }
 
         //parameters for Win32 backend
         namespace Win32
