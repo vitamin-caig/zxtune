@@ -371,26 +371,9 @@ namespace ZXTune
       }
     }
 
-    class are_strict_equals
-        : public boost::static_visitor<bool>
-    {
-    public:
-      template <typename T, typename U>
-      bool operator()( const T &, const U & ) const
-      {
-          return false; // cannot compare different types
-      }
-
-      template <typename T>
-      bool operator()( const T & lhs, const T & rhs ) const
-      {
-          return lhs == rhs;
-      }
-    };
-
     inline bool CompareParameter(const Parameters::Map::value_type& lh, const Parameters::Map::value_type& rh)
     {
-      return lh.first < rh.first || !boost::apply_visitor(are_strict_equals(), lh.second, rh.second);
+      return lh.first < rh.first || !(lh.second == rh.second);
     }
 
     Error BackendImpl::SetParameters(const Parameters::Map& params)

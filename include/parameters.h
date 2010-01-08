@@ -12,12 +12,13 @@ Author:
 #ifndef __PARAMETERS_TYPES_H_DEFINED__
 #define __PARAMETERS_TYPES_H_DEFINED__
 
-#include <string_type.h>
+#include <string_helpers.h>
 #include <types.h>
 
 #include <map>
 
-#include <boost/variant.hpp>
+#include <boost/variant/get.hpp>
+#include <boost/variant/variant.hpp>
 
 namespace Parameters
 {
@@ -43,6 +44,11 @@ namespace Parameters
     const T* const val = FindByName<T>(params, name);
     return val ? (result = *val, true) : false;
   }
+  
+  String ConvertToString(const ValueType& val);
+  ValueType ConvertFromString(const String& val);
+  void ConvertMap(const Map& input, StringMap& output);
+  void ConvertMap(const StringMap& input, Map& output);
 }
 
 #endif //__PARAMETERS_TYPES_H_DEFINED__

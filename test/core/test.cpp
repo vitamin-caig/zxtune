@@ -101,27 +101,9 @@ namespace
       "  Caps: 0x" << std::hex << info.Capabilities << std::dec << "\n";
   }
 
-  class OutVisitor : public boost::static_visitor<String>
-  {
-  public:
-    String operator()(const Parameters::DataType& dmp) const
-    {
-      OutStringStream str;
-      str << "<array of size " << dmp.size() << ">";
-      return str.str();
-    }
-    template<class T>
-    String operator()(const T& var) const
-    {
-      OutStringStream str;
-      str << var;
-      return str.str();
-    }
-  };
-
   void OutProp(const Parameters::Map::value_type& val)
   {
-    std::cout << "  " << val.first << ": " << boost::apply_visitor(OutVisitor(), val.second) << "\n";
+    std::cout << "  " << val.first << ": " << Parameters::ConvertToString(val.second) << "\n";
   }
   
   void ShowModuleInfo(const Module::Information& info)

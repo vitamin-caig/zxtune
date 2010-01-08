@@ -1,8 +1,10 @@
 #include <byteorder.h>
 #include <template.h>
+#include <parameters.h>
 #include <messages_collector.h>
 
 #include <iostream>
+#include <boost/bind.hpp>
 
 namespace
 {
@@ -37,6 +39,29 @@ namespace
     {
       std::cout << "Failed test for '" << templ << "' (result is '" << res << "')" << std::endl;
     }
+  }
+  
+  void TestMap(const StringMap& input, const String& idx, const String& reference)
+  {
+    const StringMap::const_iterator it = input.find(idx);
+    if (it == input.end())
+    {
+      std::cout << "Failed (no such key)";
+    }
+    else if (it->second != reference)
+    {
+      std::cout << "Failed (" << it->second << "!=" << reference << ")";
+    }
+    else
+    {
+      std::cout << "Passed";
+    }
+    std::cout << " testing for " << idx << std::endl;
+  }
+  
+  inline bool CompareMap(const Parameters::Map::value_type& lh, const Parameters::Map::value_type& rh)
+  {
+    return lh.first == rh.first && lh.second == rh.second;
   }
 }
 
@@ -73,5 +98,41 @@ int main()
     params["value"] = "name";
     TestTemplate("multiple [name] and [value] test", params, "multiple value and name test");
     TestTemplate("syntax error [name test", params, "syntax error [name test");
+  }
+  
+  std::cout << "---- Test for parameters map converting ----" << std::endl;
+  {
+    Dump data(3);
+    data[0] = 0x12;
+    data[1] = 0x34;
+    data[2] = 0x56;
+    {
+      Parameters::Map input;
+      input["integer"] = 123;
+      input["string"] = "hello";
+      input["data"] = data;
+      input["strAsInt"] = "456";
+      input["strAsData"] = "#00";
+      input["strAsIntInvalid"] = "678a";
+      input["strAsDataInvalid"] = "#00a";
+      input["strAsStrQuoted"] = "'test'";
+      StringMap output;
+      Parameters::ConvertMap(input, output);
+      Test("p2m convert size", input.size() == output.size());
+      TestMap(output, "integer", "123");
+      TestMap(output, "string", "hello");
+      TestMap(output, "data", "#123456");
+      TestMap(output, "strAsInt", "'456'");
+      TestMap(output, "strAsData", "'#00'");
+      TestMap(output, "strAsIntInvalid", "678a");
+      TestMap(output, "strAsDataInvalid", "#00a");
+      TestMap(output, "strAsStrQuoted", "''test''");
+      Parameters::Map result;
+      Parameters::ConvertMap(output, result);
+      Test("m2p convert size", output.size() == result.size());
+      const std::pair<Parameters::Map::iterator, Parameters::Map::iterator> compared = 
+        std::mismatch(input.begin(), input.end(), result.begin(), CompareMap);
+      Test("m2p convert result", compared.first == input.end());
+    }
   }
 }
