@@ -204,7 +204,7 @@ int main()
     bool detailed = true;
     
     std::vector<PluginInformation> plugins;
-    GetSupportedPlugins(plugins);
+    EnumeratePlugins(plugins);
     std::cout << "Supported plugins:" << std::endl;
     std::for_each(plugins.begin(), plugins.end(), ShowPluginInfo);
     

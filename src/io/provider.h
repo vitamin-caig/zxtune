@@ -37,19 +37,14 @@ namespace ZXTune
 
     struct ProviderInfo
     {
-      ProviderInfo()
-      {
-      }
-      ProviderInfo(const String& name, const String& descr) : Name(name), Description(descr)
-      {
-      }
       String Name;
       String Description;
+      String Version;
     };
     
     typedef std::vector<ProviderInfo> ProviderInfoArray;
     
-    void GetSupportedProviders(ProviderInfoArray& providers);
+    void EnumerateProviders(ProviderInfoArray& providers);
   }
 }
 

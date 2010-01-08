@@ -35,7 +35,7 @@ namespace
 
   const Char PSG_PLUGIN_ID[] = {'P', 'S', 'G', 0};
   
-  const String TEXT_PSG_VERSION(FromChar("Revision: $Rev$"));
+  const String TEXT_PSG_VERSION(FromChar("$Rev$"));
 
   const uint8_t PSG_SIGNATURE[] = {'P', 'S', 'G'};
   const uint8_t PSG_MARKER = 0x1a;

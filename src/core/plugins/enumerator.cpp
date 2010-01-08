@@ -102,7 +102,7 @@ namespace
     }
 
     //public interface
-    virtual void EnumeratePlugins(PluginInformationArray& plugins) const
+    virtual void Enumerate(PluginInformationArray& plugins) const
     {
       plugins = AllPlugins;
     }
@@ -384,9 +384,9 @@ namespace ZXTune
     return instance;
   }
 
-  void GetSupportedPlugins(std::vector<PluginInformation>& plugins)
+  void EnumeratePlugins(std::vector<PluginInformation>& plugins)
   {
-    PluginsEnumerator::Instance().EnumeratePlugins(plugins);
+    PluginsEnumerator::Instance().Enumerate(plugins);
   }
 
   Error DetectModules(const Parameters::Map& commonParams, const DetectParameters& detectParams, 

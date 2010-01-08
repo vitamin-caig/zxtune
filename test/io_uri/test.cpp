@@ -68,7 +68,8 @@ namespace
   {
     std::cout << 
       "Provider: " << info.Name << std::endl <<
-      "Description: " << info.Description << std::endl;
+      "Description: " << info.Description << std::endl <<
+      "Version: " << info.Version << std::endl;
   }
   
   void TestSplitUri(const String& uri, const String& baseEq, const String& subEq, const String& type)
@@ -101,7 +102,7 @@ int main()
   using namespace ZXTune::IO;
   std::cout << "------ test for enumeration -------\n";
   std::vector<ProviderInfo> providers;
-  GetSupportedProviders(providers);
+  EnumerateProviders(providers);
   std::for_each(providers.begin(), providers.end(), OutProvider);
   String base, subpath;
   std::cout << "------ test for splitters/combiners ------\n";

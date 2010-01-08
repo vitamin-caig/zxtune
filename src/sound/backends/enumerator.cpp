@@ -30,15 +30,15 @@ namespace
 
   const std::string THIS_MODULE("Sound::Enumerator");
 
-  inline bool BackendInfoComparator(const Backend::Info& lh, const Backend::Info& rh)
+  inline bool BackendInfoComparator(const BackendInfo& lh, const BackendInfo& rh)
   {
     return lh.Id < rh.Id;
   }
 
   class BackendsEnumeratorImpl : public BackendsEnumerator
   {
-    typedef std::map<Backend::Info, CreateBackendFunc,
-      bool(*)(const Backend::Info& lh, const Backend::Info& rh)> BackendsStorage;
+    typedef std::map<BackendInfo, CreateBackendFunc,
+      bool(*)(const BackendInfo& lh, const BackendInfo& rh)> BackendsStorage;
   public:
     BackendsEnumeratorImpl()
       : Backends(BackendsStorage(BackendInfoComparator))
@@ -46,7 +46,7 @@ namespace
       RegisterBackends(*this);
     }
 
-    virtual void RegisterBackend(const Backend::Info& info, const CreateBackendFunc& creator)
+    virtual void RegisterBackend(const BackendInfo& info, const CreateBackendFunc& creator)
     {
       assert(creator);
       assert(Backends.end() == Backends.find(info) || !"Duplicated backend found");
@@ -54,7 +54,7 @@ namespace
       Log::Debug(THIS_MODULE, "Registered backend '%1%'", info.Id);
     }
 
-    virtual void EnumerateBackends(std::vector<Backend::Info>& infos) const
+    virtual void EnumerateBackends(BackendInfoArray& infos) const
     {
       infos.resize(Backends.size());
       std::transform(Backends.begin(), Backends.end(), infos.begin(),
@@ -64,7 +64,7 @@ namespace
     virtual Error CreateBackend(const String& id, Backend::Ptr& result) const
     {
       Log::Debug(THIS_MODULE, "Creating backend '%1%'", id);
-      const Backend::Info key = {id, String(), String()};
+      const BackendInfo key = {id, String(), String()};
       const BackendsStorage::const_iterator it(Backends.find(key));
       if (Backends.end() == it)
       {
@@ -95,7 +95,7 @@ namespace ZXTune
       return instance;
     }
 
-    void EnumerateBackends(std::vector<Backend::Info>& infos)
+    void EnumerateBackends(BackendInfoArray& infos)
     {
       return BackendsEnumerator::Instance().EnumerateBackends(infos);
     }

@@ -148,7 +148,7 @@ namespace ZXTune
       return ProvidersEnumerator::Instance().CombineUri(baseUri, subpath, uri);
     }
     
-    void GetSupportedProviders(ProviderInfoArray& infos)
+    void EnumerateProviders(ProviderInfoArray& infos)
     {
       return ProvidersEnumerator::Instance().Enumerate(infos);
     }

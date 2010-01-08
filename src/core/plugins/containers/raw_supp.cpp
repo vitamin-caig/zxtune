@@ -32,7 +32,7 @@ namespace
 
   const Char RAW_PLUGIN_ID[] = {'R', 'a', 'w', 0};
   
-  const String TEXT_RAW_VERSION(FromChar("Revision: $Rev$"));
+  const String TEXT_RAW_VERSION(FromChar("$Rev$"));
   
   const std::size_t MINIMAL_RAW_SIZE = 16;
   

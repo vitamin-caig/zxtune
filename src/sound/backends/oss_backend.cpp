@@ -46,11 +46,11 @@ namespace
   const Char BACKEND_ID[] = {'o', 's', 's', 0};
   const String BACKEND_VERSION(FromChar("$Rev$"));
 
-  static const Backend::Info BACKEND_INFO =
+  static const BackendInfo BACKEND_INFO =
   {
     BACKEND_ID,
+    TEXT_OSS_BACKEND_DESCRIPTION,
     BACKEND_VERSION,
-    TEXT_OSS_BACKEND_DESCRIPTION
   };
   
   inline void CheckResult(bool res, Error::LocationRef loc)
@@ -82,7 +82,7 @@ namespace
       assert(-1 == DevHandle || "OSSBackend was destroyed without stopping");
     }
 
-    virtual void GetInfo(Backend::Info& info) const
+    virtual void GetInfo(BackendInfo& info) const
     {
       info = BACKEND_INFO;
     }

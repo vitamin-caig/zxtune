@@ -33,7 +33,7 @@ namespace ZXTune
   typedef std::vector<PluginInformation> PluginInformationArray;
   
   /// Enumeration
-  void GetSupportedPlugins(PluginInformationArray& plugins);
+  void EnumeratePlugins(PluginInformationArray& plugins);
 }
 
 #endif //__CORE_PLUGIN_H_DEFINED__

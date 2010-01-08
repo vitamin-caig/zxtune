@@ -41,7 +41,7 @@ namespace
   using namespace ZXTune::Module;
 
   const Char STC_PLUGIN_ID[] = {'S', 'T', 'C', 0};
-  const String TEXT_STC_VERSION(FromChar("Revision: $Rev$"));
+  const String TEXT_STC_VERSION(FromChar("$Rev$"));
 
   //hints
   const std::size_t MAX_MODULE_SIZE = 16384;

@@ -68,7 +68,7 @@ namespace ZXTune
       const OpenContainerFunc& opener, const ProcessContainerFunc& processor) = 0;
     
     //public interface
-    virtual void EnumeratePlugins(PluginInformationArray& plugins) const = 0;
+    virtual void Enumerate(PluginInformationArray& plugins) const = 0;
     
     //private interface
     //resolve subpath

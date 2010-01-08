@@ -30,6 +30,15 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::IO;
 
+  const String PROVIDER_VERSION(FromChar("$Rev$"));
+  
+  static const ProviderInfo PROVIDER_INFO =
+  {
+    TEXT_IO_FILE_PROVIDER_NAME, 
+    TEXT_IO_FILE_PROVIDER_DESCRIPTION,
+    PROVIDER_VERSION,
+  };
+
   const Char SCHEME_SIGN[] = {':', '/', '/', 0};
   const Char SCHEME_FILE[] = {'f', 'i', 'l', 'e', 0};
   const Char SUBPATH_DELIMITER = '\?';
@@ -248,7 +257,7 @@ namespace ZXTune
     void RegisterFileProvider(ProvidersEnumerator& enumerator)
     {
       enumerator.RegisterProvider(
-        ProviderInfo(TEXT_IO_FILE_PROVIDER_NAME, TEXT_IO_FILE_PROVIDER_DESCRIPTION),
+        PROVIDER_INFO,
         FileChecker, FileOpener, FileSplitter, FileCombiner);
     }
   }

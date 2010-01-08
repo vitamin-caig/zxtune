@@ -29,11 +29,11 @@ namespace
   const Char BACKEND_ID[] = {'n', 'u', 'l', 'l', 0};
   const String BACKEND_VERSION(FromChar("$Rev$"));
   
-  static const Backend::Info BACKEND_INFO =
+  static const BackendInfo BACKEND_INFO =
   {
     BACKEND_ID,
+    TEXT_NULL_BACKEND_DESCRIPTION,
     BACKEND_VERSION,
-    TEXT_NULL_BACKEND_DESCRIPTION
   };
   
   class NullBackend : public BackendImpl, private boost::noncopyable
@@ -43,7 +43,7 @@ namespace
     {
     }
 
-    virtual void GetInfo(Info& info) const
+    virtual void GetInfo(BackendInfo& info) const
     {
       info = BACKEND_INFO;
     }

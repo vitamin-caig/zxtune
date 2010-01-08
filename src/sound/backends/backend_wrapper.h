@@ -30,7 +30,7 @@ namespace ZXTune
         Delegate->Stop();//TODO: warn if error
       }
       
-      virtual void GetInfo(Info& info) const
+      virtual void GetInfo(BackendInfo& info) const
       {
         return Delegate->GetInfo(info);
       }
