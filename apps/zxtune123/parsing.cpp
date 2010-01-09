@@ -46,7 +46,7 @@ String UnparseFrameTime(unsigned timeInFrames, unsigned frameDurationMicrosec)
   const unsigned minutes = (allSeconds / 60) % 60;
   const unsigned hours = allSeconds / 3600;
   return hours ?
-  (Formatter("%1%:%2$02:%3$02u.%4%") % hours % minutes % seconds % frames).str()
+  (Formatter("%1%:%2$02:%3$02u.%4$02u") % hours % minutes % seconds % frames).str()
   :
-  (Formatter("%1%:%2$02u.%3%") % minutes % seconds % frames).str();
+  (Formatter("%1%:%2$02u.%3$02u") % minutes % seconds % frames).str();
 }
