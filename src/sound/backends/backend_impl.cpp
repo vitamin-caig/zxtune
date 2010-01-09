@@ -193,7 +193,7 @@ namespace ZXTune
         holder->GetModuleInformation(modInfo);
         CheckChannels(modInfo.PhysicalChannels);
         
-        boost::shared_ptr<Module::Player> tmpPlayer(new SafePlayerWrapper(holder->CreatePlayer()));
+        Module::Player::Ptr tmpPlayer(new SafePlayerWrapper(holder->CreatePlayer()));
         Locker lock(PlayerMutex);
         StopPlayback();
         Player.swap(tmpPlayer);
@@ -215,7 +215,7 @@ namespace ZXTune
       }
     }
     
-    boost::weak_ptr<const Module::Player> BackendImpl::GetPlayer() const
+    Module::Player::ConstWeakPtr BackendImpl::GetPlayer() const
     {
       Locker lock(PlayerMutex);
       assert(Player);
@@ -387,7 +387,10 @@ namespace ZXTune
           CompareParameter);
         UpdateRenderParameters(updates, RenderingParameters);
         OnParametersChanged(updates);
-        Player->SetParameters(updates);
+        if (Player)
+        {
+          Player->SetParameters(updates);
+        }
         //merge result back
         {
           Parameters::Map merged;
@@ -414,32 +417,32 @@ namespace ZXTune
     //internal functions
     void BackendImpl::DoStartup()
     {
-      SendEvent(START);
       OnStartup();
+      SendEvent(START);
     }
     
     void BackendImpl::DoShutdown()
     {
-      SendEvent(STOP);
       OnShutdown();
+      SendEvent(STOP);
     }
     
     void BackendImpl::DoPause()
     {
-      SendEvent(STOP);
       OnPause();
+      SendEvent(STOP);
     }
     
     void BackendImpl::DoResume()
     {
-      SendEvent(START);
       OnResume();
+      SendEvent(START);
     }
     
     void BackendImpl::DoBufferReady(std::vector<MultiSample>& buffer)
     {
-      SendEvent(FRAME);
       OnBufferReady(buffer);
+      SendEvent(FRAME);
     }
 
     void BackendImpl::CheckState() const

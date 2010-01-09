@@ -218,7 +218,7 @@ namespace
       }
       Log::Debug(THIS_MODULE, "Detected player plugin %1%", pluginId);
       DoLog(detectParams.Logger, TEXT_MODULE_MESSAGE_DETECT_PLAYER, data.Path, pluginId);
-      if (const Error& e = detectParams.Callback(holder))
+      if (const Error& e = detectParams.Callback(data.Path, holder))
       {
         Error err(THIS_LINE, Module::ERROR_DETECT_CANCELED, TEXT_MODULE_ERROR_CANCELED);
         return err.AddSuberror(e);

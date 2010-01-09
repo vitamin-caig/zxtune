@@ -48,7 +48,9 @@ namespace ZXTune
     class Player
     {
     public:
-      typedef std::auto_ptr<Player> Ptr;
+      typedef boost::shared_ptr<Player> Ptr;
+      typedef boost::shared_ptr<const Player> ConstPtr;
+      typedef boost::weak_ptr<const Player> ConstWeakPtr;
 
       virtual ~Player() {}
 
@@ -107,7 +109,7 @@ namespace ZXTune
   {
     typedef boost::function<bool(const PluginInformation&)> FilterFunc;
     FilterFunc Filter;
-    typedef boost::function<Error(Module::Holder::Ptr player)> CallbackFunc;
+    typedef boost::function<Error(const String&, Module::Holder::Ptr player)> CallbackFunc;
     CallbackFunc Callback;
     typedef boost::function<void(const String&)> LogFunc;
     LogFunc Logger;

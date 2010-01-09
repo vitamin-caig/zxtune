@@ -30,6 +30,8 @@ namespace Parameters
   typedef boost::variant<IntType, StringType, DataType> ValueType;
   typedef std::map<NameType, ValueType> Map;
   
+  const NameType::value_type NAMESPACE_DELIMITER = '.';
+  
   //working with parameters map
   template<class T>
   inline const T* FindByName(const Map& params, const NameType& name)

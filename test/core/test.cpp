@@ -135,11 +135,11 @@ namespace
     std::cout << " >" << str << std::endl;
   }
   
-  Error PluginCallback(Module::Holder::Ptr holder, unsigned& count, const bool& detailed)
+  Error PluginCallback(const String& subpath, Module::Holder::Ptr holder, unsigned& count, const bool& detailed)
   {
     PluginInformation plugInfo;
     holder->GetPlayerInfo(plugInfo);
-    std::cout << " Plugin: " << plugInfo.Id << std::endl;
+    std::cout << " Plugin " << plugInfo.Id << " at '" << subpath << "'" << std::endl;
     if (detailed)
     {
       Module::Information modInfo;
@@ -195,7 +195,7 @@ int main()
     
     TestError(DetectModules(commonParams, detectParams, CreateContainer(PSG1_OFFSET), String()), Module::ERROR_INVALID_PARAMETERS, "no callback", __LINE__);
     
-    detectParams.Callback = boost::bind(&PluginCallback, _1, boost::ref(count), boost::cref(detailed));
+    detectParams.Callback = boost::bind(&PluginCallback, _1, _2, boost::ref(count), boost::cref(detailed));
     detectParams.Logger = PluginLogger;
     
     TestError(DetectModules(commonParams, detectParams, IO::DataContainer::Ptr(), String()), Module::ERROR_INVALID_PARAMETERS, "no data", __LINE__);

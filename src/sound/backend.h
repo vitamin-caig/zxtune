@@ -47,7 +47,7 @@ namespace ZXTune
 
       // modules/players manipulation functions
       virtual Error SetModule(Module::Holder::Ptr holder) = 0;
-      virtual boost::weak_ptr<const Module::Player> GetPlayer() const = 0;
+      virtual Module::Player::ConstWeakPtr GetPlayer() const = 0;
       
       // playback control functions
       virtual Error Play() = 0;
