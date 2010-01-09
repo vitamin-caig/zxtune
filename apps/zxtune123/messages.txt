@@ -1,0 +1,116 @@
+< __HEADER__
+> "Generated from '$Id$'"
+
+< __RAWHEADER__
+__cpp> "#ifndef __TEXT_MESSAGES_H_DEFINED__\n"
+__cpp> "#define __TEXT_MESSAGES_H_DEFINED__\n"
+__cpp> "#include <char_type.h>\n\n"
+
+< __RAWFOOTER__
+__cpp> "#endif //__TEXT_MESSAGES_H_DEFINED__\n"
+
+< TEXT_USAGE_SECTION
+> "Usage:\n"
+> "%1% <" TEXT_INFORMATIONAL_SECTION ">\n"
+> "%1% <" TEXT_SOUND_SECTION "> <" TEXT_INPUT_SECTION "> files...\n"
+> "\nParameters"
+
+< TEXT_HELP_KEY
+> "help"
+
+< TEXT_HELP_DESC
+> "show this message"
+
+< TEXT_INFORMATIONAL_SECTION
+> "Information keys"
+
+< TEXT_INFO_PLUGINS_KEY
+> "plugins"
+
+< TEXT_INFO_PLUGINS_DESC
+> "show the list of supported plugins"
+
+< TEXT_INFO_BACKENDS_KEY
+> "backends"
+
+< TEXT_INFO_BACKENDS_DESC
+> "show the list of supported backends"
+
+< TEXT_INFO_PROVIDERS_KEY
+> "providers"
+
+< TEXT_INFO_PROVIDERS_DESC
+> "show the list of supported i/o providers"
+
+< TEXT_INFO_CAP_AYM
+> "AYM"
+
+< TEXT_INFO_CAP_TS
+> "TS"
+
+< TEXT_INFO_CAP_BEEPER
+> "BEEPER"
+
+< TEXT_INFO_CAP_FM
+> "FM"
+
+< TEXT_INFO_CAP_DAC1
+> "DAC1"
+
+< TEXT_INFO_CAP_DAC2
+> "DAC2"
+
+< TEXT_INFO_CAP_DAC4
+> "DAC4"
+
+< TEXT_INFO_CAP_MODULE
+> "MODULE"
+
+< TEXT_INFO_CAP_CONTAINER
+> "CONTAINER"
+
+< TEXT_INFO_CAP_MULTITRACK
+> "MULTITRACK"
+
+< TEXT_INFO_CAP_SCANER
+> "SCANER"
+
+< TEXT_INFO_CAP_PLAIN
+> "PLAIN"
+
+< TEXT_INFO_CAP_RAW
+> "RAW"
+
+< TEXT_INFO_PLUGIN_INFO
+> "Plugin:       %1%\n"
+> "Description:  %2%\n"
+> "Version:      %3%\n"
+> "Capabilities: %4%\n\n"
+
+< TEXT_INFO_BACKEND_INFO
+> "Backend:     %1%\n"
+> "Description: %2%\n"
+> "Version:     %3%\n\n"
+
+< TEXT_INFO_PROVIDER_INFO
+> "Provider:    %1%\n"
+> "Description: %2%\n"
+> "Version:     %3%\n"
+
+< TEXT_SOUND_SECTION
+> "Sound options"
+
+< TEXT_SOUND_BACKEND_PARAMS
+> "parameters"
+
+< TEXT_INPUT_SECTION
+> "Input options"
+
+< TEXT_INPUT_FILE_KEY
+> "file"
+
+< TEXT_INPUT_FILE_DESC
+> "file to process"
+
+< TEXT_INPUT_ERROR_NO_FILES
+> "No files to process."
