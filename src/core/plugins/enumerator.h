@@ -38,7 +38,8 @@ namespace ZXTune
     StringArray PluginsChain;
   };
   
-  void ExtractMetaProperties(const MetaContainer& container, const ModuleRegion& region,
+  void ExtractMetaProperties(const String& type,
+                             const MetaContainer& container, const ModuleRegion& region,
                              Parameters::Map& properties, Dump& rawData);
   
   //in: metacontainer

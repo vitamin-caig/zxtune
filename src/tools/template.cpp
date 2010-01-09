@@ -11,7 +11,8 @@ Author:
 
 #include <template.h>
 
-String InstantiateTemplate(const String& templ, const StringMap& properties, Char beginMark, Char endMark)
+String InstantiateTemplate(const String& templ, const StringMap& properties, 
+  InstantiateMode mode, Char beginMark, Char endMark)
 {
   bool inField(false);
   String field;
@@ -34,11 +35,15 @@ String InstantiateTemplate(const String& templ, const StringMap& properties, Cha
         {
           result += propIt->second;
         }
-        else
+        else if (KEEP_NONEXISTING == mode)
         {
           result += beginMark;
           result += field;
           result += *it;
+        }
+        else if (FILL_NONEXISTING == mode)
+        {
+          result += String(field.size() + 2, ' ');
         }
         inField = false;
       }

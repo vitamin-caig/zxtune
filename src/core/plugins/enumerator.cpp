@@ -358,9 +358,11 @@ namespace
 
 namespace ZXTune
 {
-  void ExtractMetaProperties(const MetaContainer& container, const ModuleRegion& region,
+  void ExtractMetaProperties(const String& type,
+                             const MetaContainer& container, const ModuleRegion& region,
                              Parameters::Map& properties, Dump& rawData)
   {
+    properties.insert(Parameters::Map::value_type(Module::ATTR_TYPE, type));
     if (!container.Path.empty())
     {
       properties.insert(Parameters::Map::value_type(Module::ATTR_SUBPATH, container.Path));

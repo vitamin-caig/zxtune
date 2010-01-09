@@ -14,6 +14,14 @@ Author:
 
 #include <string_helpers.h>
 
-String InstantiateTemplate(const String& templ, const StringMap& properties, Char beginMark = '[', Char endMark = ']');
+enum InstantiateMode
+{
+  KEEP_NONEXISTING,
+  SKIP_NONEXISTING,
+  FILL_NONEXISTING
+};
+
+String InstantiateTemplate(const String& templ, const StringMap& properties, 
+  InstantiateMode mode = KEEP_NONEXISTING, Char beginMark = '[', Char endMark = ']');
 
 #endif //__TEMPLATE_H_DEFINED__

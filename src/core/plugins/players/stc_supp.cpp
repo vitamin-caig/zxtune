@@ -376,7 +376,7 @@ namespace
       region.Size = rawSize;
       
       //meta properties
-      ExtractMetaProperties(container, region, Data.Info.Properties, RawData);
+      ExtractMetaProperties(STC_PLUGIN_ID, container, region, Data.Info.Properties, RawData);
       Data.Info.Properties.insert(StringMap::value_type(Module::ATTR_PROGRAM,
         String(header->Identifier, ArrayEnd(header->Identifier))));
       
