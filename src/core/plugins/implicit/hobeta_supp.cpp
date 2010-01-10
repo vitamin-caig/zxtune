@@ -46,7 +46,8 @@ namespace
 #endif
 
   BOOST_STATIC_ASSERT(sizeof(Header) == 17);
-  const std::size_t HOBETA_MAX_SIZE = 0xff00;
+  const unsigned HOBETA_MIN_SIZE = 0x100;
+  const unsigned HOBETA_MAX_SIZE = 0xff00;
 
   //////////////////////////////////////////////////////////////////////////
   bool ProcessHobeta(const Parameters::Map& /*commonParams*/, const MetaContainer& input, 
@@ -57,7 +58,8 @@ namespace
     const uint8_t* const data(static_cast<const uint8_t*>(inputData.Data()));
     const Header* const header(safe_ptr_cast<const Header*>(data));
     const unsigned dataSize(fromLE(header->Length));
-    if (dataSize > HOBETA_MAX_SIZE ||
+    if (dataSize < HOBETA_MIN_SIZE ||
+        dataSize > HOBETA_MAX_SIZE ||
         dataSize + sizeof(*header) > limit)
     {
       return false;

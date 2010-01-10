@@ -154,19 +154,16 @@ namespace
 
   struct Sample
   {
-    Sample() : Loop(), LoopLimit(), Data()
+    Sample() : Data(), Loop(), LoopLimit()
     {
     }
 
     explicit Sample(const STCSample& sample)
-    : Loop(sample.Loop), LoopLimit(sample.Loop + sample.LoopSize + 1), Data(sample.Data, ArrayEnd(sample.Data))
+      : Data(sample.Data, ArrayEnd(sample.Data))
+      , Loop(std::min<unsigned>(sample.Loop, Data.size()))
+      , LoopLimit(std::min<unsigned>(sample.Loop + sample.LoopSize + 1, Data.size()))
     {
-      assert(Loop <= LoopLimit);
-      assert(LoopLimit <= Data.size());
     }
-
-    unsigned Loop;
-    unsigned LoopLimit;
 
     struct Line
     {
@@ -181,7 +178,10 @@ namespace
       bool EnvelopeMask;
       signed Effect;
     };
+    
     std::vector<Line> Data;
+    unsigned Loop;
+    unsigned LoopLimit;
   };
 
   enum CmdType
@@ -225,6 +225,7 @@ namespace
         for (;;)
         {
           const uint8_t cmd(data[offsets[chan]++]);
+          const std::size_t restbytes = data.Size() - offsets[chan];
           STCTrack::Line::Chan& channel(line.Channels[chan]);
           if (cmd <= 0x5f)//note
           {
@@ -266,15 +267,27 @@ namespace
           }
           else if (cmd >= 0x83 && cmd <= 0x8e)//orn 0 with envelope
           {
+            if (!restbytes)
+            {
+              throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
+            }
             Log::Assert(channelWarner, channel.Commands.end() == std::find(channel.Commands.begin(), channel.Commands.end(), NOENVELOPE),
               TEXT_WARNING_DUPLICATE_ENVELOPE);
             Log::Assert(channelWarner, !channel.OrnamentNum, TEXT_WARNING_DUPLICATE_ORNAMENT);
             channel.Commands.push_back(STCTrack::Command(ENVELOPE, cmd - 0x80, data[offsets[chan]++]));
             channel.OrnamentNum = 0;
           }
+          else if (cmd < 0xa1)
+          {
+            throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
+          }
           else //skip
           {
             periods[chan] = cmd - 0xa1;
+          }
+          if (!restbytes)
+          {
+            throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
           }
         }
         counters[chan] = periods[chan];
@@ -333,7 +346,7 @@ namespace
       Data.Patterns.resize(MAX_PATTERN_COUNT);
       for (const STCPattern* pattern = patterns; *pattern; ++pattern)
       {
-        if (!pattern->Number || pattern->Number >= Data.Patterns.size())
+        if (!pattern->Number || pattern->Number >= MAX_PATTERN_COUNT)
         {
           warner->AddMessage(TEXT_WARNING_INVALID_PATTERN);
           continue;
@@ -725,6 +738,19 @@ namespace
         )
     {
       return false;
+    }
+    //check patterns
+    for (const STCPattern* pattern = safe_ptr_cast<const STCPattern*>(data + patOff); *pattern; ++pattern)
+    {
+      if (!pattern->Number || pattern->Number >= MAX_PATTERN_COUNT)
+      {
+        continue;
+      }
+      if (ArrayEnd(pattern->Offsets) != std::find_if(pattern->Offsets, ArrayEnd(pattern->Offsets),
+        boost::bind(&fromLE<uint16_t>, _1) > limit - 1))
+      {
+        return false;
+      }
     }
     //try to create holder
     try
