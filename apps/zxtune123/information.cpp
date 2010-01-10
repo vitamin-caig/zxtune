@@ -12,6 +12,7 @@
 
 #include <iostream>
 
+#include "cmdline.h"
 #include "messages.h"
 
 namespace

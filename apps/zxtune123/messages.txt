@@ -9,39 +9,6 @@ __cpp> "#include <char_type.h>\n\n"
 < __RAWFOOTER__
 __cpp> "#endif //__TEXT_MESSAGES_H_DEFINED__\n"
 
-< TEXT_USAGE_SECTION
-> "Usage:\n"
-> "%1% <" TEXT_INFORMATIONAL_SECTION ">\n"
-> "%1% <" TEXT_SOUND_SECTION "> <" TEXT_INPUT_SECTION "> files...\n"
-> "\nParameters"
-
-< TEXT_HELP_KEY
-> "help"
-
-< TEXT_HELP_DESC
-> "show this message"
-
-< TEXT_INFORMATIONAL_SECTION
-> "Information keys"
-
-< TEXT_INFO_PLUGINS_KEY
-> "plugins"
-
-< TEXT_INFO_PLUGINS_DESC
-> "show the list of supported plugins"
-
-< TEXT_INFO_BACKENDS_KEY
-> "backends"
-
-< TEXT_INFO_BACKENDS_DESC
-> "show the list of supported backends"
-
-< TEXT_INFO_PROVIDERS_KEY
-> "providers"
-
-< TEXT_INFO_PROVIDERS_DESC
-> "show the list of supported i/o providers"
-
 < TEXT_INFO_CAP_AYM
 > "AYM"
 
@@ -97,20 +64,24 @@ __cpp> "#endif //__TEXT_MESSAGES_H_DEFINED__\n"
 > "Description: %2%\n"
 > "Version:     %3%\n"
 
-< TEXT_SOUND_SECTION
-> "Sound options"
-
-< TEXT_SOUND_BACKEND_PARAMS
-> "parameters"
-
-< TEXT_INPUT_SECTION
-> "Input options"
-
-< TEXT_INPUT_FILE_KEY
-> "file"
-
-< TEXT_INPUT_FILE_DESC
-> "file to process"
-
 < TEXT_INPUT_ERROR_NO_FILES
 > "No files to process."
+
+< TEXT_PLAYBACK_STATUS
+> "[%1%] [%2%]\n\n"
+
+< TEXT_TRACKING_STATUS
+> "Position: %1%  \t\tPattern:  %2%  \n"
+> "Line:     %3%  \t\tFrame:    %4%  \n"
+> "Tempo:    %5%  \t\tChannels: %6%  \n"
+> "\n"
+
+< TEXT_ITEM_INFO
+> "Playing: %1%\n"
+> "Type:  [Type]\t"  "Container: [Container]\n"
+> "Title: [Title]\t" "Program:   [Program]\n"
+> "Time:  %2%\t"     "Channels:  %3%\n"
+> "\n"
+
+< TEXT_COMMON_ERROR
+> "Error: %1%"

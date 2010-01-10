@@ -7,7 +7,9 @@
 
 #include <error_tools.h>
 #include <template.h>
+#include <core/core_parameters.h>
 #include <core/module_attrs.h>
+#include <io/providers_parameters.h>
 
 #include <boost/bind.hpp>
 #include <boost/program_options.hpp>
@@ -23,6 +25,7 @@
 #include <termio.h>
 #endif
 
+#include "cmdline.h"
 #include "messages.h"
 
 #define FILE_TAG 81C76E7D
@@ -72,12 +75,7 @@ namespace
   {
     StringMap strProps;
     Parameters::ConvertMap(info.Properties, strProps);
-    const String& infoFmt(InstantiateTemplate(
-        "Playing: %1%\n"
-        "Type:  [Type]\t"  "Container: [Container]\n"
-        "Title: [Title]\t" "Program:   [Program]\n"
-        "Time:  %2%\t"     "Channels:  %3%\n"
-        "\n", strProps, FILL_NONEXISTING));
+    const String& infoFmt(InstantiateTemplate(TEXT_ITEM_INFO, strProps, FILL_NONEXISTING));
 
     assert(INFORMATION_HEIGHT == std::count(infoFmt.begin(), infoFmt.end(), '\n'));
     std::cout << (Formatter(infoFmt)
@@ -86,12 +84,7 @@ namespace
   
   void ShowTrackingStatus(const ZXTune::Module::Tracking& track)
   {
-    const String& dump = (Formatter(
-      "Position: %1%  \t\tPattern:  %2%  \n"
-      "Line:     %3%  \t\tFrame:    %4%  \n"
-      "Tempo:    %5%  \t\tChannels: %6%  \n"
-      "\n"
-      )
+    const String& dump = (Formatter(TEXT_TRACKING_STATUS)
       % track.Position % track.Pattern % track.Line % track.Frame % track.Tempo % track.Channels).str();
     assert(TRACKING_HEIGHT == std::count(dump.begin(), dump.end(), '\n'));
     std::cout << dump;
@@ -113,8 +106,7 @@ namespace
   void ShowPlaybackStatus(unsigned frame, unsigned allframe, ZXTune::Sound::Backend::State state, unsigned width)
   {
     const Char MARKER = '\x1';
-    String data((Formatter(
-      "[%1%] [%2%]\n\n") % UnparseFrameTime(frame, 20000) % MARKER).str());
+    String data((Formatter(TEXT_PLAYBACK_STATUS) % UnparseFrameTime(frame, 20000) % MARKER).str());
     const String::size_type totalSize = data.size() - 1 - PLAYING_HEIGHT;
     const String::size_type markerPos = data.find(MARKER);
     
@@ -167,6 +159,9 @@ namespace
       : Informer(InformationComponent::Create())
       , Sourcer(SourceComponent::Create(GlobalParams))
       , Sounder(SoundComponent::Create(GlobalParams))
+      , Silent(false)
+      , Quiet(false)
+      , Analyzer(false)
     {
     }
     
@@ -201,14 +196,29 @@ namespace
       {
         using namespace boost::program_options;
 
+        String providersOptions, coreOptions;
         options_description options((Formatter(TEXT_USAGE_SECTION) % *argv).str());
-        options.add_options()(TEXT_HELP_KEY, TEXT_HELP_DESC);
+        options.add_options()
+          (TEXT_HELP_KEY, TEXT_HELP_DESC)
+          (TEXT_IO_PROVIDERS_OPTS_KEY, boost::program_options::value<String>(&providersOptions), TEXT_IO_PROVIDERS_OPTS_DESC)
+          (TEXT_CORE_OPTS_KEY, boost::program_options::value<String>(&coreOptions), TEXT_CORE_OPTS_DESC)
+        ;
+        
         options.add(Informer->GetOptionsDescription());
         options.add(Sourcer->GetOptionsDescription());
         options.add(Sounder->GetOptionsDescription());
         //add positional parameters for input
         positional_options_description inputPositional;
         inputPositional.add(TEXT_INPUT_FILE_KEY, -1);
+        
+        //cli options
+        options_description cliOptions(TEXT_CLI_SECTION);
+        cliOptions.add_options()
+          (TEXT_SILENT_KEY, bool_switch(&Silent), TEXT_SILENT_DESC)
+          (TEXT_QUIET_KEY, bool_switch(&Quiet), TEXT_QUIET_DESC)
+          (TEXT_ANALYZER_KEY, bool_switch(&Analyzer), TEXT_ANALYZER_DESC)
+        ;
+        options.add(cliOptions);
         
         variables_map vars;
         store(command_line_parser(argc, argv).options(options).positional(inputPositional).run(), vars);
@@ -218,11 +228,23 @@ namespace
           std::cout << options << std::endl;
           return true;
         }
+        if (!providersOptions.empty())
+        {
+          Parameters::Map ioParams;
+          ThrowIfError(ParseParametersString(Parameters::ZXTune::IO::Providers::PREFIX, providersOptions, ioParams));
+          GlobalParams.insert(ioParams.begin(), ioParams.end());
+        }
+        if (!coreOptions.empty())
+        {
+          Parameters::Map coreParams;
+          ThrowIfError(ParseParametersString(Parameters::ZXTune::Core::PREFIX, coreOptions, coreParams));
+          GlobalParams.insert(coreParams.begin(), coreParams.end());
+        }
         return false;
       }
       catch (const std::exception& e)
       {
-        throw MakeFormattedError(THIS_LINE, UNKNOWN_ERROR, "Error: %1%", e.what());
+        throw MakeFormattedError(THIS_LINE, UNKNOWN_ERROR, TEXT_COMMON_ERROR, e.what());
       }
     }
     
@@ -232,7 +254,10 @@ namespace
       item.Module->GetModuleInformation(info);
 
       //show startup info
-      ShowItemInfo(item.Id, info);
+      if (!Silent)
+      {
+        ShowItemInfo(item.Id, info);
+      }
       //calculate and apply parameters
       Parameters::Map perItemParams(GlobalParams);
       perItemParams.insert(item.Params.begin(), item.Params.end());
@@ -246,8 +271,14 @@ namespace
       std::pair<int, int> scrSize;
       while (ZXTune::Module::Player::ConstPtr player = backend.GetPlayer().lock()) 
       {
-        GetConsoleSize(scrSize);
-        analyzer.resize(scrSize.first);
+        if (!Silent && !Quiet)
+        {
+          GetConsoleSize(scrSize);
+          if (!scrSize.first || !scrSize.second)
+          {
+            Silent = true;
+          }
+        }
         ZXTune::Sound::Backend::State state;
         ThrowIfError(backend.GetCurrentState(state));
         
@@ -256,17 +287,25 @@ namespace
         ZXTune::Module::Analyze::ChannelsState curAnalyze;
         ThrowIfError(player->GetPlaybackState(curFrame, curTracking, curAnalyze));
         
-        ShowTrackingStatus(curTracking);
-        ShowPlaybackStatus(curFrame, info.Statistic.Frame, state, scrSize.first);
-        
-        UpdateAnalyzer(curAnalyze, 10, analyzer);
-        ShowAnalyzer(analyzer, scrSize.second - INFORMATION_HEIGHT - TRACKING_HEIGHT - PLAYING_HEIGHT - 1);
-        
+        if (!Silent && !Quiet)
+        {
+          ShowTrackingStatus(curTracking);
+          ShowPlaybackStatus(curFrame, info.Statistic.Frame, state, scrSize.first);
+          if (Analyzer)
+          {
+            analyzer.resize(scrSize.first);
+            UpdateAnalyzer(curAnalyze, 10, analyzer);
+            ShowAnalyzer(analyzer, scrSize.second - INFORMATION_HEIGHT - TRACKING_HEIGHT - PLAYING_HEIGHT - 1);
+          }
+        }
         if (ZXTune::Sound::Backend::STOP == backend.WaitForEvent(ZXTune::Sound::Backend::STOP, 100))
         {
           break;
         }
-        MoveCursorUp(scrSize.second - INFORMATION_HEIGHT - 1);
+        if (!Silent && !Quiet)
+        {
+          MoveCursorUp(Analyzer ? scrSize.second - INFORMATION_HEIGHT - 1 : TRACKING_HEIGHT + PLAYING_HEIGHT);
+        }
       }
     }
   private:
@@ -274,6 +313,9 @@ namespace
     std::auto_ptr<InformationComponent> Informer;
     std::auto_ptr<SourceComponent> Sourcer;
     std::auto_ptr<SoundComponent> Sounder;
+    bool Silent;
+    bool Quiet;
+    bool Analyzer;
   };
 }
 

@@ -4,12 +4,16 @@
 
 #include <error_tools.h>
 #include <logging.h>
+#include <core/core_parameters.h>
 #include <sound/backends_parameters.h>
+#include <sound/sound_parameters.h>
 
+#include <algorithm>
+#include <boost/bind.hpp>
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/value_semantic.hpp>
 
-#include "messages.h"
+#include "cmdline.h"
 
 #define FILE_TAG DAEDAE2A
 
@@ -24,17 +28,26 @@ namespace
     explicit Sound(Parameters::Map& globalParams)
       : GlobalParams(globalParams) 
       , OptionsDescription(TEXT_SOUND_SECTION)
+      , YM(false)
     {
+      using namespace boost::program_options;
       ZXTune::Sound::BackendInfoArray backends;
       ZXTune::Sound::EnumerateBackends(backends);
       for (ZXTune::Sound::BackendInfoArray::const_iterator it = backends.begin(), lim = backends.end(); it != lim; ++it)
       {
-        UnparsedOptions.push_back(std::make_pair(it->Id, NOTUSED_MARK));
-        OptionsDescription.add(boost::shared_ptr<boost::program_options::option_description>(
-          new boost::program_options::option_description(it->Id.c_str(), 
-            boost::program_options::value<String>(&UnparsedOptions.back().second)->implicit_value(String(), TEXT_SOUND_BACKEND_PARAMS),
+        BackendOptions.push_back(std::make_pair(it->Id, NOTUSED_MARK));
+        OptionsDescription.add(boost::shared_ptr<option_description>(
+          new option_description(it->Id.c_str(), 
+            value<String>(&BackendOptions.back().second)->implicit_value(String(), TEXT_SOUND_BACKEND_PARAMS),
             it->Description.c_str())));
       }
+     
+      OptionsDescription.add_options()
+        (TEXT_FREQUENCY_KEY, value<String>(&SoundOptions[Parameters::ZXTune::Sound::FREQUENCY]), TEXT_FREQUENCY_DESC)
+        (TEXT_CLOCKRATE_KEY, value<String>(&SoundOptions[Parameters::ZXTune::Sound::CLOCKRATE]), TEXT_CLOCKRATE_DESC)
+        (TEXT_FRAMEDURATION_KEY, value<String>(&SoundOptions[Parameters::ZXTune::Sound::FRAMEDURATION]), TEXT_FRAMEDURATION_DESC)
+        (TEXT_FREQTABLE_KEY, value<String>(&SoundOptions[Parameters::ZXTune::Core::AYM::TABLE]), TEXT_FREQTABLE_DESC)
+      ;
     }
     
     virtual const boost::program_options::options_description& GetOptionsDescription() const
@@ -48,7 +61,7 @@ namespace
       StringArray backends;
       {
         Parameters::Map params;
-        for (PerBackendOptions::const_iterator it = UnparsedOptions.begin(), lim = UnparsedOptions.end(); it != lim; ++it)
+        for (PerBackendOptions::const_iterator it = BackendOptions.begin(), lim = BackendOptions.end(); it != lim; ++it)
         {
           if (it->second != NOTUSED_MARK)
           {
@@ -64,10 +77,21 @@ namespace
         }
         GlobalParams.insert(params.begin(), params.end());
       }
+      {
+        StringMap optimized;
+        std::remove_copy_if(SoundOptions.begin(), SoundOptions.end(), std::inserter(optimized, optimized.end()),
+          boost::bind(&String::empty, boost::bind(&StringMap::value_type::second, _1)));
+        if (!optimized.empty())
+        {
+          Parameters::Map sndparams;
+          Parameters::ConvertMap(optimized, sndparams);
+          GlobalParams.insert(sndparams.begin(), sndparams.end());
+        }
+      }
       if (backends.empty())
       {
-        backends.resize(UnparsedOptions.size());
-        std::transform(UnparsedOptions.begin(), UnparsedOptions.end(), backends.begin(),
+        backends.resize(BackendOptions.size());
+        std::transform(BackendOptions.begin(), BackendOptions.end(), backends.begin(),
           boost::mem_fn(&PerBackendOptions::value_type::first));
       }
       
@@ -95,8 +119,10 @@ namespace
   private:
     Parameters::Map& GlobalParams;
     boost::program_options::options_description OptionsDescription;
-    PerBackendOptions UnparsedOptions;
+    PerBackendOptions BackendOptions;
+    StringMap SoundOptions;
     ZXTune::Sound::Backend::Ptr Backend;
+    bool YM;
   };
 }
 

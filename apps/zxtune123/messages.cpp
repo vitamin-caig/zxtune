@@ -3,21 +3,8 @@
 #define __TEXT_MESSAGES_H_DEFINED__
 #include <char_type.h>
 
-extern const Char TEXT_HELP_DESC[] = {
-  's','h','o','w',' ','t','h','i','s',' ','m','e','s','s','a','g','e',0
-};
-extern const Char TEXT_HELP_KEY[] = {
-  'h','e','l','p',0
-};
-extern const Char TEXT_INFORMATIONAL_SECTION[] = {
-  'I','n','f','o','r','m','a','t','i','o','n',' ','k','e','y','s',0
-};
-extern const Char TEXT_INFO_BACKENDS_DESC[] = {
-  's','h','o','w',' ','t','h','e',' ','l','i','s','t',' ','o','f',' ','s','u','p','p','o','r','t','e','d',' ',
-  'b','a','c','k','e','n','d','s',0
-};
-extern const Char TEXT_INFO_BACKENDS_KEY[] = {
-  'b','a','c','k','e','n','d','s',0
+extern const Char TEXT_COMMON_ERROR[] = {
+  'E','r','r','o','r',':',' ','%','1','%',0
 };
 extern const Char TEXT_INFO_BACKEND_INFO[] = {
   'B','a','c','k','e','n','d',':',' ',' ',' ',' ',' ','%','1','%','\n',
@@ -65,13 +52,6 @@ extern const Char TEXT_INFO_CAP_SCANER[] = {
 extern const Char TEXT_INFO_CAP_TS[] = {
   'T','S',0
 };
-extern const Char TEXT_INFO_PLUGINS_DESC[] = {
-  's','h','o','w',' ','t','h','e',' ','l','i','s','t',' ','o','f',' ','s','u','p','p','o','r','t','e','d',' ',
-  'p','l','u','g','i','n','s',0
-};
-extern const Char TEXT_INFO_PLUGINS_KEY[] = {
-  'p','l','u','g','i','n','s',0
-};
 extern const Char TEXT_INFO_PLUGIN_INFO[] = {
   'P','l','u','g','i','n',':',' ',' ',' ',' ',' ',' ',' ','%','1','%','\n',
   'D','e','s','c','r','i','p','t','i','o','n',':',' ',' ','%','2','%','\n',
@@ -79,13 +59,6 @@ extern const Char TEXT_INFO_PLUGIN_INFO[] = {
   'C','a','p','a','b','i','l','i','t','i','e','s',':',' ','%','4','%','\n',
   '\n',
   0
-};
-extern const Char TEXT_INFO_PROVIDERS_DESC[] = {
-  's','h','o','w',' ','t','h','e',' ','l','i','s','t',' ','o','f',' ','s','u','p','p','o','r','t','e','d',' ',
-  'i','/','o',' ','p','r','o','v','i','d','e','r','s',0
-};
-extern const Char TEXT_INFO_PROVIDERS_KEY[] = {
-  'p','r','o','v','i','d','e','r','s',0
 };
 extern const Char TEXT_INFO_PROVIDER_INFO[] = {
   'P','r','o','v','i','d','e','r',':',' ',' ',' ',' ','%','1','%','\n',
@@ -96,27 +69,29 @@ extern const Char TEXT_INFO_PROVIDER_INFO[] = {
 extern const Char TEXT_INPUT_ERROR_NO_FILES[] = {
   'N','o',' ','f','i','l','e','s',' ','t','o',' ','p','r','o','c','e','s','s','.',0
 };
-extern const Char TEXT_INPUT_FILE_DESC[] = {
-  'f','i','l','e',' ','t','o',' ','p','r','o','c','e','s','s',0
-};
-extern const Char TEXT_INPUT_FILE_KEY[] = {
-  'f','i','l','e',0
-};
-extern const Char TEXT_INPUT_SECTION[] = {
-  'I','n','p','u','t',' ','o','p','t','i','o','n','s',0
-};
-extern const Char TEXT_SOUND_BACKEND_PARAMS[] = {
-  'p','a','r','a','m','e','t','e','r','s',0
-};
-extern const Char TEXT_SOUND_SECTION[] = {
-  'S','o','u','n','d',' ','o','p','t','i','o','n','s',0
-};
-extern const Char TEXT_USAGE_SECTION[] = {
-  'U','s','a','g','e',':','\n',
-  '%','1','%',' ','<','I','n','f','o','r','m','a','t','i','o','n',' ','k','e','y','s','>','\n',
-  '%','1','%',' ','<','S','o','u','n','d',' ','o','p','t','i','o','n','s','>',' ','<','I','n','p','u','t',' ',
-  'o','p','t','i','o','n','s','>',' ','f','i','l','e','s','.','.','.','\n',
+extern const Char TEXT_ITEM_INFO[] = {
+  'P','l','a','y','i','n','g',':',' ','%','1','%','\n',
+  'T','y','p','e',':',' ',' ','[','T','y','p','e',']','\t','C','o','n','t','a','i','n','e','r',':',' ','[','C',
+  'o','n','t','a','i','n','e','r',']','\n',
+  'T','i','t','l','e',':',' ','[','T','i','t','l','e',']','\t','P','r','o','g','r','a','m',':',' ',' ',' ','[',
+  'P','r','o','g','r','a','m',']','\n',
+  'T','i','m','e',':',' ',' ','%','2','%','\t','C','h','a','n','n','e','l','s',':',' ',' ','%','3','%','\n',
   '\n',
-  'P','a','r','a','m','e','t','e','r','s',0
+  0
+};
+extern const Char TEXT_PLAYBACK_STATUS[] = {
+  '[','%','1','%',']',' ','[','%','2','%',']','\n',
+  '\n',
+  0
+};
+extern const Char TEXT_TRACKING_STATUS[] = {
+  'P','o','s','i','t','i','o','n',':',' ','%','1','%',' ',' ','\t','\t','P','a','t','t','e','r','n',':',' ',' ',
+  '%','2','%',' ',' ','\n',
+  'L','i','n','e',':',' ',' ',' ',' ',' ','%','3','%',' ',' ','\t','\t','F','r','a','m','e',':',' ',' ',' ',' ',
+  '%','4','%',' ',' ','\n',
+  'T','e','m','p','o',':',' ',' ',' ',' ','%','5','%',' ',' ','\t','\t','C','h','a','n','n','e','l','s',':',' ',
+  '%','6','%',' ',' ','\n',
+  '\n',
+  0
 };
 #endif //__TEXT_MESSAGES_H_DEFINED__

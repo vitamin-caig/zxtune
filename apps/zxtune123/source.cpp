@@ -7,6 +7,7 @@
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/value_semantic.hpp>
 
+#include "cmdline.h"
 #include "messages.h"
 
 #define FILE_TAG 9EDFE3AF

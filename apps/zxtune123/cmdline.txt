@@ -1,0 +1,115 @@
+< __HEADER__
+> "Generated from '$Id$'"
+
+< __RAWHEADER__
+__cpp> "#ifndef __TEXT_CMDLINE_H_DEFINED__\n"
+__cpp> "#define __TEXT_CMDLINE_H_DEFINED__\n"
+__cpp> "#include <char_type.h>\n\n"
+
+< __RAWFOOTER__
+__cpp> "#endif //__TEXT_CMDLINE_H_DEFINED__\n"
+
+< TEXT_USAGE_SECTION
+> "Usage:\n"
+> "%1% <" TEXT_INFORMATIONAL_SECTION ">\n"
+> "%1% <Parameters> <" TEXT_CLI_SECTION "> <" TEXT_SOUND_SECTION "> <" TEXT_INPUT_SECTION "> files...\n"
+> "\nParameters"
+
+< TEXT_HELP_KEY
+> "help"
+
+< TEXT_HELP_DESC
+> "show this message"
+
+< TEXT_IO_PROVIDERS_OPTS_KEY
+> "providers-options"
+
+< TEXT_IO_PROVIDERS_OPTS_DESC
+> "options for i/o providers"
+
+< TEXT_CORE_OPTS_KEY
+> "core-options"
+
+< TEXT_CORE_OPTS_DESC
+> "options for core"
+
+< TEXT_INFORMATIONAL_SECTION
+> "Information keys"
+
+< TEXT_INFO_PLUGINS_KEY
+> "plugins"
+
+< TEXT_INFO_PLUGINS_DESC
+> "show the list of supported plugins"
+
+< TEXT_INFO_BACKENDS_KEY
+> "backends"
+
+< TEXT_INFO_BACKENDS_DESC
+> "show the list of supported backends"
+
+< TEXT_INFO_PROVIDERS_KEY
+> "providers"
+
+< TEXT_INFO_PROVIDERS_DESC
+> "show the list of supported i/o providers"
+
+< TEXT_SOUND_SECTION
+> "Sound options"
+
+< TEXT_SOUND_BACKEND_PARAMS
+> "parameters"
+
+< TEXT_FREQUENCY_KEY
+> "frequency"
+
+< TEXT_FREQUENCY_DESC
+> "specify sound frequency in Hz"
+
+< TEXT_CLOCKRATE_KEY
+> "clockrate"
+
+< TEXT_CLOCKRATE_DESC
+> "specify CPU and PSG clock rate in Hz"
+
+< TEXT_FRAMEDURATION_KEY
+> "frameduration"
+
+< TEXT_FRAMEDURATION_DESC
+> "specify frame duration in uS"
+
+< TEXT_FREQTABLE_KEY
+> "freqtable"
+
+< TEXT_FREQTABLE_DESC
+> "specify frequency table"
+
+< TEXT_INPUT_SECTION
+> "Input options"
+
+< TEXT_INPUT_FILE_KEY
+> "file"
+
+< TEXT_INPUT_FILE_DESC
+> "file to process"
+
+< TEXT_CLI_SECTION
+> "Other options"
+
+< TEXT_SILENT_KEY
+> "silent"
+
+< TEXT_SILENT_DESC
+> "disable all output"
+
+< TEXT_QUIET_KEY
+> "quiet"
+
+< TEXT_QUIET_DESC
+> "disable dynamic output"
+
+< TEXT_ANALYZER_KEY
+> "analyzer"
+
+< TEXT_ANALYZER_DESC
+> "enable spectrum analyzer"

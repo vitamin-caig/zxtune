@@ -1,7 +1,7 @@
 binary_name := zxtune123
 path_step := ../..
 source_files := main parsing information sound source
-text_files := messages
+text_files := messages cmdline
 
 source_files += cli_app
 
