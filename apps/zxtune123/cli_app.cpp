@@ -37,9 +37,9 @@
 
 namespace
 {
-  const unsigned INFORMATION_HEIGHT = 5;
-  const unsigned TRACKING_HEIGHT = 4;
-  const unsigned PLAYING_HEIGHT = 2;
+  const int INFORMATION_HEIGHT = 5;
+  const int TRACKING_HEIGHT = 4;
+  const int PLAYING_HEIGHT = 2;
   
 #ifdef __linux__
   void ThrowIfError(int res, Error::LocationRef loc)
@@ -87,8 +87,15 @@ namespace
     info.dwCursorPosition.X = 0;
     SetConsoleCursorPosition(hdl, info.dwCursorPosition);
   }
-#elif
-#error Unknown platform
+#else
+  void GetConsoleSize(std::pair<int, int>& sizes)
+  {
+    sizes = std::make_pair(0, 0);
+  }
+
+  void MoveCursorUp(int /*lines*/)
+  {
+  }
 #endif
   
   void ErrOuter(unsigned /*level*/, Error::LocationRef loc, Error::CodeType code, const String& text)

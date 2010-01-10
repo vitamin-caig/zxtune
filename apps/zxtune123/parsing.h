@@ -9,4 +9,5 @@ class Error;
 Error ParseParametersString(const String& prefix, const String& str, Parameters::Map& result);
 //format time
 String UnparseFrameTime(unsigned timeInFrames, unsigned frameDurationMicrosec);
-#endif
+
+#endif //ZXTUNE123_PARSING_H_DEFINED

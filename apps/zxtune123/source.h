@@ -27,6 +27,7 @@ namespace boost
 class SourceComponent
 {
 public:
+  virtual ~SourceComponent() {}
   // commandline-related part
   virtual const boost::program_options::options_description& GetOptionsDescription() const = 0;
   // throw

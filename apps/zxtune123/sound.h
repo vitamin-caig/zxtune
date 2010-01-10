@@ -17,6 +17,7 @@ namespace boost
 class SoundComponent
 {
 public:
+  virtual ~SoundComponent() {}
   // commandline-related part
   virtual const boost::program_options::options_description& GetOptionsDescription() const = 0;
   // throw

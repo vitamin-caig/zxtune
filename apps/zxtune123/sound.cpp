@@ -26,7 +26,7 @@ namespace
     typedef std::list<std::pair<String, String> > PerBackendOptions;
   public:
     explicit Sound(Parameters::Map& globalParams)
-      : GlobalParams(globalParams) 
+      : GlobalParams(globalParams)
       , OptionsDescription(TEXT_SOUND_SECTION)
       , YM(false)
     {
@@ -37,7 +37,7 @@ namespace
       {
         BackendOptions.push_back(std::make_pair(it->Id, NOTUSED_MARK));
         OptionsDescription.add(boost::shared_ptr<option_description>(
-          new option_description(it->Id.c_str(), 
+          new option_description(it->Id.c_str(),
             value<String>(&BackendOptions.back().second)->implicit_value(String(), TEXT_SOUND_BACKEND_PARAMS),
             it->Description.c_str())));
       }
