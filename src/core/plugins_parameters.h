@@ -1,6 +1,6 @@
 /*
 Abstract:
-  Core parameters names
+  Plugins parameters names
 
 Last changed:
   $Id$
@@ -8,8 +8,8 @@ Last changed:
 Author:
   (C) Vitamin/CAIG/2001
 */
-#ifndef __CORE_PARAMETERS_H_DEFINED__
-#define __CORE_PARAMETERS_H_DEFINED__
+#ifndef __CORE_PLUGINS_PARAMETERS_H_DEFINED__
+#define __CORE_PLUGINS_PARAMETERS_H_DEFINED__
 
 #include <parameters.h>
 
@@ -21,8 +21,10 @@ namespace Parameters
     {
       namespace Plugins
       {
+        //raw scanner's attributes
         namespace Raw
         {
+          //! Scanning step
           const IntType SCAN_STEP_DEFAULT = 1;
           const Char SCAN_STEP[] =
           {
@@ -33,4 +35,4 @@ namespace Parameters
     }
   }
 }
-#endif //__IO_PROVIDERS_PARAMETERS_H_DEFINED__
+#endif //__CORE_PLUGINS_PARAMETERS_H_DEFINED__

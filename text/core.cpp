@@ -21,6 +21,14 @@ extern const Char TEXT_MODULE_ERROR_FIND_SUBMODULE[] = {
 extern const Char TEXT_MODULE_ERROR_INVALID_FORMAT[] = {
   'I','n','v','a','l','i','d',' ','m','o','d','u','l','e',' ','f','o','r','m','a','t','.',0
 };
+extern const Char TEXT_MODULE_ERROR_INVALID_FREQ_TABLE_NAME[] = {
+  'I','n','v','a','l','i','d',' ','f','r','e','q','u','e','n','c','y',' ','t','a','b','l','e',' ','\'','%','1',
+  '%','\'','.',0
+};
+extern const Char TEXT_MODULE_ERROR_INVALID_FREQ_TABLE_SIZE[] = {
+  'I','n','v','a','l','i','d',' ','f','r','e','q','u','e','n','c','y',' ','t','a','b','l','e',' ','s','i','z',
+  'e',' ','(','%','1','%',')','.',0
+};
 extern const Char TEXT_MODULE_ERROR_MODULE_END[] = {
   'M','o','d','u','l','e',' ','e','n','d',' ','i','s',' ','r','e','a','c','h','e','d','.',0
 };

@@ -33,6 +33,12 @@ __cpp> "#endif //__TEXT_CORE_H_DEFINED__\n"
 < TEXT_MODULE_ERROR_FIND_SUBMODULE
 > "Failed to find specified submodule starting from path '%1%'."
 
+< TEXT_MODULE_ERROR_INVALID_FREQ_TABLE_NAME
+> "Invalid frequency table '%1%'."
+
+< TEXT_MODULE_ERROR_INVALID_FREQ_TABLE_SIZE
+> "Invalid frequency table size (%1%)."
+
 < TEXT_MODULE_MESSAGE_OPEN_IMPLICIT
 > "Opening implicit container '%2%' at path '%1%'."
 

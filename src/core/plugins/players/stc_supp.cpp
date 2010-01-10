@@ -9,14 +9,16 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+#include "freq_tables.h"
 #include "tracking.h"
 #include "../enumerator.h"
 
 #include <byteorder.h>
+#include <error_tools.h>
 #include <messages_collector.h>
 #include <tools.h>
-
 #include <core/convert_parameters.h>
+#include <core/core_parameters.h>
 #include <core/devices/aym/aym.h>
 #include <core/error_codes.h>
 #include <core/module_attrs.h>
@@ -50,17 +52,7 @@ namespace
   const std::size_t MAX_PATTERN_SIZE = 64;
   const std::size_t MAX_PATTERN_COUNT = 32;//TODO
 
-  const boost::array<uint16_t, 96> FreqTable = { {
-    0xef8, 0xe10, 0xd60, 0xc80, 0xbd8, 0xb28, 0xa88, 0x9f0, 0x960, 0x8e0, 0x858, 0x7e0,
-    0x77c, 0x708, 0x6b0, 0x640, 0x5ec, 0x594, 0x544, 0x4f8, 0x4b0, 0x470, 0x42c, 0x3f0,
-    0x3be, 0x384, 0x358, 0x320, 0x2f6, 0x2ca, 0x2a2, 0x27c, 0x258, 0x238, 0x216, 0x1f8,
-    0x1df, 0x1c2, 0x1ac, 0x190, 0x17b, 0x165, 0x151, 0x13e, 0x12c, 0x11c, 0x10b, 0x0fc,
-    0x0ef, 0x0e1, 0x0d6, 0x0c8, 0x0bd, 0x0b2, 0x0a8, 0x09f, 0x096, 0x08e, 0x085, 0x07e,
-    0x077, 0x070, 0x06b, 0x064, 0x05e, 0x059, 0x054, 0x04f, 0x04b, 0x047, 0x042, 0x03f,
-    0x03b, 0x038, 0x035, 0x032, 0x02f, 0x02c, 0x02a, 0x027, 0x025, 0x023, 0x021, 0x01f,
-    0x01d, 0x01c, 0x01a, 0x019, 0x017, 0x016, 0x015, 0x013, 0x012, 0x011, 0x010, 0x00f
-  } };
-  //////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif
@@ -454,10 +446,12 @@ namespace
        : Module(holder)
        , Data(Module->Data)
        , Transpositions(Module->Transpositions)
+       , YMChip(false)
        , Device(AYM::CreateChip())
        , Looped()
        , CurrentState(MODULE_STOPPED)
     {
+      ThrowIfError(GetFreqTable(TABLE_SOUNDTRACKER, FreqTable));
     }
 
     virtual const Holder& GetModule() const
@@ -489,6 +483,10 @@ namespace
       ModState.Tick += params.ClocksPerFrame();
       chunk.Tick = ModState.Tick;
       RenderData(chunk);
+      if (YMChip)
+      {
+        chunk.Mask |= AYM::DataChunk::YM_CHIP;
+      }
       Device->RenderData(params, chunk, receiver);
       if (STCTrack::UpdateState(Data, ModState, Looped))
       {
@@ -514,12 +512,32 @@ namespace
     virtual Error SetPosition(unsigned /*frame*/)
     {
       //TODO
-      return Error();
+      return Error(THIS_LINE, 1, "Not implemented");
     }
 
-    virtual Error SetParameters(const Parameters::Map& /*params*/)
+    virtual Error SetParameters(const Parameters::Map& params)
     {
-      return Error();//TODO
+      if (const Parameters::IntType* const type = Parameters::FindByName<Parameters::IntType>(params,
+        Parameters::ZXTune::Core::AYM::TYPE))
+      {
+        YMChip = 0 != (*type & 1);//only one chip
+      }
+      if (const Parameters::StringType* const table = Parameters::FindByName<Parameters::StringType>(params, 
+        Parameters::ZXTune::Core::AYM::TABLE))
+      {
+        return GetFreqTable(*table, FreqTable);
+      }
+      else if (const Parameters::DataType* const table = Parameters::FindByName<Parameters::DataType>(params,
+        Parameters::ZXTune::Core::AYM::TABLE))
+      {
+        if (table->size() != FreqTable.size() * sizeof(FreqTable.front()))
+        {
+          return MakeFormattedError(THIS_LINE, ERROR_INVALID_PARAMETERS, 
+            TEXT_MODULE_ERROR_INVALID_FREQ_TABLE_SIZE, table->size());
+        }
+        std::memcpy(&FreqTable.front(), &table->front(), table->size());
+      }
+      return Error();
     }
   private:
     void RenderData(AYM::DataChunk& chunk)
@@ -651,6 +669,8 @@ namespace
     const STCTrack::ModuleData& Data;
     const std::vector<signed>& Transpositions;
 
+    FrequencyTable FreqTable;
+    bool YMChip;
     AYM::Chip::Ptr Device;
     bool Looped;
     PlaybackState CurrentState;
