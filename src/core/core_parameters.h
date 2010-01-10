@@ -19,6 +19,10 @@ namespace Parameters
   {
     namespace Core
     {
+      const Char PREFIX[] =
+      {
+        'z','x','t','u','n','e','.','c','o','r','e','.','\0'
+      };
       namespace AYM
       {
         //! Chip type, integer, every bit is type for specific chip

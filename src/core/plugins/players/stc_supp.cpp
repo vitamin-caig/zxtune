@@ -517,27 +517,34 @@ namespace
 
     virtual Error SetParameters(const Parameters::Map& params)
     {
-      if (const Parameters::IntType* const type = Parameters::FindByName<Parameters::IntType>(params,
-        Parameters::ZXTune::Core::AYM::TYPE))
+      try
       {
-        YMChip = 0 != (*type & 1);//only one chip
-      }
-      if (const Parameters::StringType* const table = Parameters::FindByName<Parameters::StringType>(params, 
-        Parameters::ZXTune::Core::AYM::TABLE))
-      {
-        return GetFreqTable(*table, FreqTable);
-      }
-      else if (const Parameters::DataType* const table = Parameters::FindByName<Parameters::DataType>(params,
-        Parameters::ZXTune::Core::AYM::TABLE))
-      {
-        if (table->size() != FreqTable.size() * sizeof(FreqTable.front()))
+        if (const Parameters::IntType* const type = Parameters::FindByName<Parameters::IntType>(params,
+          Parameters::ZXTune::Core::AYM::TYPE))
         {
-          return MakeFormattedError(THIS_LINE, ERROR_INVALID_PARAMETERS, 
-            TEXT_MODULE_ERROR_INVALID_FREQ_TABLE_SIZE, table->size());
+          YMChip = 0 != (*type & 1);//only one chip
         }
-        std::memcpy(&FreqTable.front(), &table->front(), table->size());
+        if (const Parameters::StringType* const table = Parameters::FindByName<Parameters::StringType>(params, 
+          Parameters::ZXTune::Core::AYM::TABLE))
+        {
+          ThrowIfError(GetFreqTable(*table, FreqTable));
+        }
+        else if (const Parameters::DataType* const table = Parameters::FindByName<Parameters::DataType>(params,
+          Parameters::ZXTune::Core::AYM::TABLE))
+        {
+          if (table->size() != FreqTable.size() * sizeof(FreqTable.front()))
+          {
+            throw MakeFormattedError(THIS_LINE, ERROR_INVALID_PARAMETERS, 
+              TEXT_MODULE_ERROR_INVALID_FREQ_TABLE_SIZE, table->size());
+          }
+          std::memcpy(&FreqTable.front(), &table->front(), table->size());
+        }
+        return Error();
       }
-      return Error();
+      catch (const Error& e)
+      {
+        return Error(THIS_LINE, ERROR_INVALID_PARAMETERS, TEXT_MODULE_ERROR_SET_PLAYER_PARAMETERS).AddSuberror(e);
+      }
     }
   private:
     void RenderData(AYM::DataChunk& chunk)

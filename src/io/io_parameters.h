@@ -19,6 +19,10 @@ namespace Parameters
   {
     namespace IO
     {
+      const Char PREFIX[] = 
+      {
+        'z','x','t','u','n','e','.','i','o','.','\0'
+      };
       //IO-related parameters
     }
   }

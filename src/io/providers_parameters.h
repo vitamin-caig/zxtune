@@ -22,6 +22,11 @@ namespace Parameters
       //per-backend parameters
       namespace Providers
       {
+        const Char PREFIX[] = 
+        {
+          'z','x','t','u','n','e','.','i','o','.','p','r','o','v','i','d','e','r','s','.','\0'
+        };
+
         //parameters for file provider
         namespace File
         {

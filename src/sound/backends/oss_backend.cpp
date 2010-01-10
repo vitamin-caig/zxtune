@@ -173,7 +173,10 @@ namespace
         {
           const bool needStartup(-1 != DevHandle);
           DoShutdown();
-          DeviceName = *device;
+          if (device)
+          {
+            DeviceName = *device;
+          }
           if (needStartup)
           {
             DoStartup();

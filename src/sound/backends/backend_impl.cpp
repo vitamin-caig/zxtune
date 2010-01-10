@@ -389,7 +389,7 @@ namespace ZXTune
         OnParametersChanged(updates);
         if (Player)
         {
-          Player->SetParameters(updates);
+          ThrowIfError(Player->SetParameters(updates));
         }
         //merge result back
         {
