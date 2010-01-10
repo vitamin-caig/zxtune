@@ -13,9 +13,12 @@ struct ModuleItem
 };
 typedef std::vector<ModuleItem> ModuleItemsArray;
 
-Error GetModuleItems(const StringArray& files, const Parameters::Map& params, const ZXTune::DetectParameters::FilterFunc& filter,
-                    ModuleItemsArray& result);
+typedef boost::function<void(const ModuleItem&)> OnItemCallback;
 
+Error ProcessModuleItems(const StringArray& files, const Parameters::Map& params, const ZXTune::DetectParameters::FilterFunc& filter,
+                    const OnItemCallback& callback);
+                    
+                    
 namespace boost
 {
   namespace program_options
@@ -32,8 +35,7 @@ public:
   virtual const boost::program_options::options_description& GetOptionsDescription() const = 0;
   // throw
   virtual void Initialize() = 0;
-  // functional part
-  virtual void GetItems(ModuleItemsArray& result) = 0;
+  virtual void ProcessItems(const OnItemCallback& callback) = 0;
   
   static std::auto_ptr<SourceComponent> Create(Parameters::Map& globalParams);
 };

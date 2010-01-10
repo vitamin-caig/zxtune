@@ -5,6 +5,8 @@
 
 extern const Char TEXT_ANALYZER_DESC[];
 extern const Char TEXT_ANALYZER_KEY[];
+extern const Char TEXT_CACHE_DESC[];
+extern const Char TEXT_CACHE_KEY[];
 extern const Char TEXT_CLI_SECTION[];
 extern const Char TEXT_CLOCKRATE_DESC[];
 extern const Char TEXT_CLOCKRATE_KEY[];

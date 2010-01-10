@@ -194,6 +194,7 @@ namespace
       , Silent(false)
       , Quiet(false)
       , Analyzer(false)
+      , Cached(false)
     {
     }
     
@@ -210,9 +211,17 @@ namespace
         Sourcer->Initialize();
         Sounder->Initialize();
         
-        ModuleItemsArray playlist;
-        Sourcer->GetItems(playlist);
-        std::for_each(playlist.begin(), playlist.end(), boost::bind(&CLIApplication::PlayItem, this, _1));
+        if (Cached)
+        {
+          ModuleItemsArray playlist;
+          Sourcer->ProcessItems(boost::bind(&ModuleItemsArray::push_back, boost::ref(playlist), _1));
+          std::cout << "Detected " << playlist.size() << " items" << std::endl;
+          std::for_each(playlist.begin(), playlist.end(), boost::bind(&CLIApplication::PlayItem, this, _1));
+        }
+        else
+        {
+          Sourcer->ProcessItems(boost::bind(&CLIApplication::PlayItem, this, _1));
+        }
       }
       catch (const Error& e)
       {
@@ -249,6 +258,7 @@ namespace
           (TEXT_SILENT_KEY, bool_switch(&Silent), TEXT_SILENT_DESC)
           (TEXT_QUIET_KEY, bool_switch(&Quiet), TEXT_QUIET_DESC)
           (TEXT_ANALYZER_KEY, bool_switch(&Analyzer), TEXT_ANALYZER_DESC)
+          (TEXT_CACHE_KEY, bool_switch(&Cached), TEXT_CACHE_DESC);
         ;
         options.add(cliOptions);
         
@@ -360,6 +370,7 @@ namespace
     bool Silent;
     bool Quiet;
     bool Analyzer;
+    bool Cached;
   };
 }
 

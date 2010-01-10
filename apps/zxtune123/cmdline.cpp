@@ -9,6 +9,14 @@ extern const Char TEXT_ANALYZER_DESC[] = {
 extern const Char TEXT_ANALYZER_KEY[] = {
   'a','n','a','l','y','z','e','r',0
 };
+extern const Char TEXT_CACHE_DESC[] = {
+  'c','o','l','l','e','c','t',' ','a','l','l',' ','m','o','d','u','l','e','s',' ','t','o',' ','l','i','s','t',
+  ' ','b','e','f','o','r','e',' ','p','l','a','y','b','a','c','k',' ','(','s','l','o','w',',',' ','r','e','q',
+  'u','i','r','e','s',' ','m','u','c','h',' ','m','e','m','o','r','y',')','.',0
+};
+extern const Char TEXT_CACHE_KEY[] = {
+  'c','a','c','h','e',0
+};
 extern const Char TEXT_CLI_SECTION[] = {
   'O','t','h','e','r',' ','o','p','t','i','o','n','s',0
 };

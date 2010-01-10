@@ -113,3 +113,9 @@ __cpp> "#endif //__TEXT_CMDLINE_H_DEFINED__\n"
 
 < TEXT_ANALYZER_DESC
 > "enable spectrum analyzer"
+
+< TEXT_CACHE_KEY
+> "cache"
+
+< TEXT_CACHE_DESC
+> "collect all modules to list before playback (slow, requires much memory)."

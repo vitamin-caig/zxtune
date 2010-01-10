@@ -14,8 +14,8 @@
 
 namespace
 {
-  Error EnqueueModule(const String& path, const String& subpath, const ZXTune::Module::Holder::Ptr& module,
-    ModuleItemsArray& items)
+  Error FormModule(const String& path, const String& subpath, const ZXTune::Module::Holder::Ptr& module,
+    const OnItemCallback& callback)
   {
     String uri;
     if (const Error& e = ZXTune::IO::CombineUri(path, subpath, uri))
@@ -25,10 +25,9 @@ namespace
     ModuleItem item;
     item.Id = uri;
     item.Module = module;
-    //no specific parameters supported
-    items.push_back(item);
+    callback(item);
     return Error();
-  }    
+  }
   
   class Source : public SourceComponent
   {
@@ -56,10 +55,12 @@ namespace
       }
     }
     
-    virtual void GetItems(ModuleItemsArray& result)
+    virtual void ProcessItems(const OnItemCallback& callback)
     {
-      ThrowIfError(GetModuleItems(Files, GlobalParams, 0, result));//no filter
+      assert(callback);
+      ThrowIfError(ProcessModuleItems(Files, GlobalParams, 0, callback));
     }
+
   private:
     Parameters::Map& GlobalParams;
     boost::program_options::options_description OptionsDescription;
@@ -67,10 +68,9 @@ namespace
   };
 }
 
-Error GetModuleItems(const StringArray& files, const Parameters::Map& params, const ZXTune::DetectParameters::FilterFunc& filter,
-                    ModuleItemsArray& result)
+Error ProcessModuleItems(const StringArray& files, const Parameters::Map& params, const ZXTune::DetectParameters::FilterFunc& filter,
+                    const boost::function<void(const ModuleItem&)>& callback)
 {
-  ModuleItemsArray res;
   //TODO: optimize
   for (StringArray::const_iterator it = files.begin(), lim = files.end(); it != lim; ++it)
   {
@@ -82,13 +82,12 @@ Error GetModuleItems(const StringArray& files, const Parameters::Map& params, co
     }
     ZXTune::DetectParameters detectParams;
     detectParams.Filter = filter;
-    detectParams.Callback = boost::bind(&EnqueueModule, *it, _1, _2, boost::ref(res));
+    detectParams.Callback = boost::bind(&FormModule, *it, _1, _2, callback);
     if (const Error& e = ZXTune::DetectModules(params, detectParams, data, subpath))
     {
       return e;
     }
   }
-  result.swap(res);
   return Error();
 }
 
