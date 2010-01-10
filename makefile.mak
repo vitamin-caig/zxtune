@@ -37,8 +37,11 @@ else
 $(error Invalid target)
 endif
 
+h_texts := $(text_files:=.h)
+cpp_texts := $(text_files:=.cpp)
+
 #main target
-all: dirs $(target)
+all: dirs $(h_texts) $(cpp_texts) $(target)
 .PHONY: all dirs
 
 #setup environment
@@ -58,8 +61,7 @@ endif
 
 #process texts if required
 ifdef text_files
-source_files += $(text_files:=.cpp)
-h_texts := $(text_files:=.h)
+source_files += $(cpp_texts)
 
 #textator can be get from
 #http://code.google.com/p/textator
@@ -88,7 +90,7 @@ dirs:
 #build target
 ifdef library_name
 #simple libraries
-$(target): $(object_files) $(h_texts)
+$(target): $(object_files)
 	$(build_lib_cmd)
 else
 #binary and dynamic libraries with dependencies
@@ -96,7 +98,7 @@ else
 
 deps: $(depends)
 
-$(depends): $(h_texts)
+$(depends):
 	$(MAKE) -C $(addprefix $(path_step)/,$@) $(if $(pic),pic=1,) $(MAKECMDGOALS)
 
 $(target): deps $(object_files) $(foreach lib,$(libraries),$(libs_dir)/$(call makelib_name,$(lib)))

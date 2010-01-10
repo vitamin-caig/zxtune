@@ -15,6 +15,8 @@ Author:
 #include "backend_wrapper.h"
 #include "enumerator.h"
 
+#include <tools.h>
+#include <error_tools.h>
 #include <sound/backends_parameters.h>
 #include <sound/error_codes.h>
 
@@ -43,11 +45,11 @@ namespace
   const Char BACKEND_ID[] = {'w', 'i', 'n', '3', '2', 0};
   const String BACKEND_VERSION(FromChar("$Rev$"));
 
-  static const Backend::Info BACKEND_INFO =
+  static const BackendInfo BACKEND_INFO =
   {
     BACKEND_ID,
-    BACKEND_VERSION,
-    TEXT_WIN32_BACKEND_DESCRIPTION
+    TEXT_WIN32_BACKEND_DESCRIPTION,
+    BACKEND_VERSION
   };
 
   inline void CheckMMResult(::MMRESULT res, Error::LocationRef loc)
@@ -145,7 +147,7 @@ namespace
       ::CloseHandle(Event);
     }
 
-    virtual void GetInfo(Info& info) const
+    virtual void GetInfo(BackendInfo& info) const
     {
       info = BACKEND_INFO;
     }
@@ -220,9 +222,9 @@ namespace
 
     virtual void OnParametersChanged(const Parameters::Map& updates)
     {
-      const Parameters::IntType* const device = 
+      const Parameters::IntType* const device =
         Parameters::FindByName<Parameters::IntType>(updates, Parameters::ZXTune::Sound::Backends::Win32::DEVICE);
-      const Parameters::IntType* const freq = 
+      const Parameters::IntType* const freq =
         Parameters::FindByName<Parameters::IntType>(updates, Parameters::ZXTune::Sound::FREQUENCY);
       if (device || freq)
       {
@@ -294,7 +296,7 @@ namespace ZXTune
   {
     void RegisterWin32Backend(BackendsEnumerator& enumerator)
     {
-      enumerator.RegisterBackend(BACKEND_INFO, Win32BackendCreator);
+      enumerator.RegisterBackend(BACKEND_INFO, Win32BackendCreator, BACKEND_PRIORITY_HIGH);
     }
   }
 }

@@ -39,8 +39,8 @@ Error ParseParametersString(const String& pfx, const String& str, Parameters::Ma
 
 String UnparseFrameTime(unsigned timeInFrames, unsigned frameDurationMicrosec)
 {
-  const unsigned fpsRough = 1e6 / frameDurationMicrosec;
-  const unsigned allSeconds = uint64_t(timeInFrames) * frameDurationMicrosec / 1e6;
+  const unsigned fpsRough = 1000000u / frameDurationMicrosec;
+  const unsigned allSeconds = static_cast<unsigned>(uint64_t(timeInFrames) * frameDurationMicrosec / 1000000u);
   const unsigned frames = timeInFrames % fpsRough;
   const unsigned seconds = allSeconds % 60;
   const unsigned minutes = (allSeconds / 60) % 60;

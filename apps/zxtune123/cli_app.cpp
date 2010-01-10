@@ -21,8 +21,13 @@
 
 //platform-dependend
 #ifdef __linux__
-#include <errno.h>
-#include <termio.h>
+# include <errno.h>
+# include <termio.h>
+#elif defined(_WIN32)
+# define WIN32_LEAN_AND_MEAN
+# define NOMINMAX
+# include <conio.h>
+# include <windows.h>
 #endif
 
 #include "cmdline.h"
@@ -64,6 +69,26 @@ namespace
   {
     std::cout << "\x1b[" << lines << 'A' << std::flush;
   }
+#elif defined(_WIN32)
+  void GetConsoleSize(std::pair<int, int>& sizes)
+  {
+    CONSOLE_SCREEN_BUFFER_INFO info;
+    HANDLE hdl(GetStdHandle(STD_OUTPUT_HANDLE));
+    GetConsoleScreenBufferInfo(hdl, &info);
+    sizes = std::pair<int, int>(info.srWindow.Right - info.srWindow.Left - 1, info.srWindow.Bottom - info.srWindow.Top - 1);
+  }
+
+  void MoveCursorUp(int lines)
+  {
+    CONSOLE_SCREEN_BUFFER_INFO info;
+    HANDLE hdl(GetStdHandle(STD_OUTPUT_HANDLE));
+    GetConsoleScreenBufferInfo(hdl, &info);
+    info.dwCursorPosition.Y -= lines;
+    info.dwCursorPosition.X = 0;
+    SetConsoleCursorPosition(hdl, info.dwCursorPosition);
+  }
+#elif
+#error Unknown platform
 #endif
   
   void ErrOuter(unsigned /*level*/, Error::LocationRef loc, Error::CodeType code, const String& text)
@@ -123,7 +148,7 @@ namespace
   {
     std::transform(outState.begin(), outState.end(), outState.begin(),
       std::bind2nd(std::minus<int>(), fallspeed));
-    for (unsigned chan = 0, lim = inState.size(); chan != lim; ++chan)
+    for (unsigned chan = 0, lim = static_cast<unsigned>(inState.size()); chan != lim; ++chan)
     {
       const ZXTune::Module::Analyze::Channel& state(inState[chan]);
       if (state.Enabled && state.Band < outState.size())
@@ -269,12 +294,12 @@ namespace
       
       std::vector<int> analyzer;
       std::pair<int, int> scrSize;
-      while (ZXTune::Module::Player::ConstPtr player = backend.GetPlayer().lock()) 
+      while (ZXTune::Module::Player::ConstPtr player = backend.GetPlayer().lock())
       {
         if (!Silent && !Quiet)
         {
           GetConsoleSize(scrSize);
-          if (!scrSize.first || !scrSize.second)
+          if (scrSize.first <= 0 || scrSize.second <= 0)
           {
             Silent = true;
           }
@@ -286,16 +311,28 @@ namespace
         ZXTune::Module::Tracking curTracking;
         ZXTune::Module::Analyze::ChannelsState curAnalyze;
         ThrowIfError(player->GetPlaybackState(curFrame, curTracking, curAnalyze));
-        
+
         if (!Silent && !Quiet)
         {
-          ShowTrackingStatus(curTracking);
-          ShowPlaybackStatus(curFrame, info.Statistic.Frame, state, scrSize.first);
-          if (Analyzer)
+          const int spectrumHeight = scrSize.second - INFORMATION_HEIGHT - TRACKING_HEIGHT - PLAYING_HEIGHT - 1;
+          if (spectrumHeight < 4)//minimal spectrum height
           {
-            analyzer.resize(scrSize.first);
-            UpdateAnalyzer(curAnalyze, 10, analyzer);
-            ShowAnalyzer(analyzer, scrSize.second - INFORMATION_HEIGHT - TRACKING_HEIGHT - PLAYING_HEIGHT - 1);
+            Analyzer = false;
+          }
+          else if (scrSize.second < TRACKING_HEIGHT + PLAYING_HEIGHT)
+          {
+            Quiet = true;
+          }
+          else
+          {
+            ShowTrackingStatus(curTracking);
+            ShowPlaybackStatus(curFrame, info.Statistic.Frame, state, scrSize.first);
+            if (Analyzer)
+            {
+              analyzer.resize(scrSize.first);
+              UpdateAnalyzer(curAnalyze, 10, analyzer);
+              ShowAnalyzer(analyzer, spectrumHeight);
+            }
           }
         }
         if (ZXTune::Sound::Backend::STOP == backend.WaitForEvent(ZXTune::Sound::Backend::STOP, 100))

@@ -28,7 +28,7 @@ namespace
 
   inline bool IsDump(const String& str)
   {
-    return str.size() >= 3 && DUMP_MARKER == *str.begin() && 0 == (str.size() - 1) % 2 && 
+    return str.size() >= 3 && DUMP_MARKER == *str.begin() && 0 == (str.size() - 1) % 2 &&
       str.end() == std::find_if(str.begin() + 1, str.end(), std::not1(std::ptr_fun<int, int>(&std::isxdigit)));
   }
   
@@ -86,7 +86,7 @@ namespace
       String res;
       do
       {
-        res += '0' + var % RADIX;
+        res += ToHex(static_cast<unsigned>(var % RADIX));
       }
       while (var /= RADIX);
       return String(res.rbegin(), res.rend());
@@ -137,8 +137,8 @@ namespace Parameters
   void ConvertMap(const Map& input, StringMap& output)
   {
     StringMap res;
-    std::transform(input.begin(), input.end(), std::inserter(res, res.end()), 
-      boost::bind(&std::make_pair<const StringMap::key_type, StringMap::mapped_type>, 
+    std::transform(input.begin(), input.end(), std::inserter(res, res.end()),
+      boost::bind(&std::make_pair<const StringMap::key_type, StringMap::mapped_type>,
         boost::bind<Map::key_type>(&Map::value_type::first, _1),
         boost::bind(ConvertToString, boost::bind<Map::mapped_type>(&Map::value_type::second, _1))));
     output.swap(res);
@@ -148,7 +148,7 @@ namespace Parameters
   {
     Map res;
     std::transform(input.begin(), input.end(), std::inserter(res, res.end()),
-      boost::bind(&std::make_pair<const Map::key_type, Map::mapped_type>, 
+      boost::bind(&std::make_pair<const Map::key_type, Map::mapped_type>,
         boost::bind<StringMap::key_type>(&StringMap::value_type::first, _1),
         boost::bind(ConvertFromString, boost::bind<StringMap::mapped_type>(&StringMap::value_type::second, _1))));
     
