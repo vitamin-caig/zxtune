@@ -27,6 +27,7 @@ namespace ZXTune
     const Char ATTR_DATE[] = {'D', 'a', 't', 'e', '\0'};
     const Char ATTR_COMMENT[] = {'C', 'o', 'm', 'm', 'e', 'n', 't', '\0'};
     const Char ATTR_WARNINGS[] = {'W', 'a', 'r', 'n', 'i', 'n', 'g', 's', '\0'};
+    const Char ATTR_WARNINGS_COUNT[] = {'W', 'a', 'r', 'n', 'i', 'n', 'g', 's', 'C', 'o', 'u', 'n', 't', '\0'};
     const Char ATTR_CRC[] = {'C', 'R', 'C', '\0'};
     const Char ATTR_SIZE[] = {'S', 'i', 'z', 'e', '\0'};
   }

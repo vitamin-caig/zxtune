@@ -28,9 +28,9 @@ namespace
       Messages.push_back(message);
     }
 
-    virtual bool HasMessages() const
+    virtual unsigned CountMessages() const
     {
-      return !Messages.empty();
+      return static_cast<unsigned>(Messages.size());
     }
 
     virtual String GetMessages(Char delimiter) const

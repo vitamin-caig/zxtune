@@ -71,6 +71,9 @@ extern const Char TEXT_WARNING_INVALID_PATTERN[] = {
 extern const Char TEXT_WARNING_INVALID_PATTERN_SIZE[] = {
   'i','n','v','a','l','i','d',' ','p','a','t','t','e','r','n',' ','s','i','z','e',0
 };
+extern const Char TEXT_WARNING_INVALID_POSITIONS[] = {
+  'I','n','v','a','l','i','d',' ','p','o','s','i','t','i','o','n','s',' ','i','n',' ','l','i','s','t',0
+};
 extern const Char TEXT_WARNING_INVALID_SAMPLE[] = {
   'i','n','v','a','l','i','d',' ','s','a','m','p','l','e',' ','n','u','m','b','e','r',0
 };

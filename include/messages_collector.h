@@ -28,7 +28,7 @@ namespace Log
 
     virtual void AddMessage(const String& message) = 0;
 
-    virtual bool HasMessages() const = 0;
+    virtual unsigned CountMessages() const = 0;
 
     virtual String GetMessages(Char delimiter) const = 0;
 
@@ -56,9 +56,9 @@ namespace Log
       Delegate.AddMessage(Prefix + message);
     }
 
-    virtual bool HasMessages() const
+    virtual unsigned CountMessages() const
     {
-      return Delegate.HasMessages();
+      return Delegate.CountMessages();
     }
 
     virtual String GetMessages(Char delimiter) const

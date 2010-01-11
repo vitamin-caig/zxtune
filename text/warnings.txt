@@ -75,6 +75,9 @@ __cpp> "#endif //__TEXT_WARNINGS_H_DEFINED__\n"
 < TEXT_WARNING_INVALID_LENGTH
 > "Invalid length in header"
 
+< TEXT_WARNING_INVALID_POSITIONS
+> "Invalid positions in list"
+
 < TEXT_WARNING_INVALID_SAMPLE
 > "invalid sample number"
 

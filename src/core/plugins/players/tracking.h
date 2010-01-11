@@ -33,6 +33,14 @@ namespace ZXTune
       SimpleOrnament(unsigned size, unsigned loop) : Loop(loop), Data(size)
       {
       }
+      
+      void Fix()
+      {
+        if (Data.empty())
+        {
+          Data.resize(1);
+        }
+      }
 
       unsigned Loop;
       std::vector<signed> Data;

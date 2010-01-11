@@ -50,7 +50,7 @@ namespace
   const unsigned MAX_SAMPLES_COUNT = 16;
   const unsigned MAX_ORNAMENTS_COUNT = 16;
   const unsigned MAX_PATTERN_SIZE = 64;
-  const unsigned MAX_PATTERN_COUNT = 32;//TODO
+  const unsigned MAX_PATTERN_COUNT = 32;
 
 //////////////////////////////////////////////////////////////////////////
 #ifdef USE_PRAGMA_PACK
@@ -165,8 +165,20 @@ namespace
     {
     }
 
+    void Fix()
+    {
+      if (Data.empty())
+      {
+        Data.resize(1);
+      }
+    }
+
     struct Line
     {
+      Line() : Level(), Noise(), NoiseMask(), EnvelopeMask(), Effect()
+      {
+      }
+      
       /*explicit*/Line(const STCSample::Line& line)
         : Level(line.GetLevel()), Noise(line.GetNoise()), NoiseMask(line.GetNoiseMask())
         , EnvelopeMask(line.GetEnvelopeMask()), Effect(line.GetEffect())
@@ -201,12 +213,15 @@ namespace
 
   typedef TrackingSupport<AYM::CHANNELS, Sample> STCTrack;
   
+  #ifndef NDEBUG
+  #define SELF_TEST
+  #endif
   class STCHolder;
   Player::Ptr CreateSTCPlayer(boost::shared_ptr<const STCHolder> mod);
 
   class STCHolder : public Holder, public boost::enable_shared_from_this<STCHolder>
   {
-    static void ParsePattern(const IO::FastDump& data
+    void ParsePattern(const IO::FastDump& data
       , std::vector<std::size_t>& offsets
       , STCTrack::Line& line
       , std::valarray<std::size_t>& periods
@@ -227,25 +242,32 @@ namespace
           const uint8_t cmd(data[offsets[chan]++]);
           const std::size_t restbytes = data.Size() - offsets[chan];
           STCTrack::Line::Chan& channel(line.Channels[chan]);
+          //ornament==0 and sample==0 are valid - no ornament and no sample respectively
           if (cmd <= 0x5f)//note
           {
             Log::Assert(channelWarner, !channel.Note, TEXT_WARNING_DUPLICATE_NOTE);
             channel.Note = cmd;
+            Log::Assert(channelWarner, !channel.Enabled, TEXT_WARNING_DUPLICATE_STATE);
             channel.Enabled = true;
             break;
           }
           else if (cmd >= 0x60 && cmd <= 0x6f)//sample
           {
             Log::Assert(channelWarner, !channel.SampleNum, TEXT_WARNING_DUPLICATE_SAMPLE);
-            channel.SampleNum = cmd - 0x60;
+            const unsigned num = cmd - 0x60;
+            const bool invalid = num >= MAX_SAMPLES_COUNT;
+            channel.SampleNum = invalid ? 0 : num;
+            Log::Assert(channelWarner, invalid || (num && Data.Samples[num].Data.empty()), TEXT_WARNING_INVALID_SAMPLE);
           }
           else if (cmd >= 0x70 && cmd <= 0x7f)//ornament
           {
-            Log::Assert(channelWarner, channel.Commands.end() == std::find(channel.Commands.begin(), channel.Commands.end(), ENVELOPE),
-              TEXT_WARNING_DUPLICATE_ENVELOPE);
-            Log::Assert(channelWarner, !channel.OrnamentNum, TEXT_WARNING_DUPLICATE_ORNAMENT);
-            channel.OrnamentNum = cmd - 0x70;
+            Log::Assert(channelWarner, !channel.FindCommand(ENVELOPE), TEXT_WARNING_DUPLICATE_ENVELOPE);
             channel.Commands.push_back(STCTrack::Command(NOENVELOPE));
+            Log::Assert(channelWarner, !channel.OrnamentNum, TEXT_WARNING_DUPLICATE_ORNAMENT);
+            const unsigned num = cmd - 0x70;
+            const bool invalid = num >= MAX_ORNAMENTS_COUNT;
+            channel.OrnamentNum = invalid ? 0 : num;
+            Log::Assert(channelWarner, invalid || (num && Data.Ornaments[num].Data.empty()), TEXT_WARNING_INVALID_ORNAMENT);
           }
           else if (cmd == 0x80)//reset
           {
@@ -257,37 +279,32 @@ namespace
           {
             break;
           }
-          else if (cmd == 0x82)//orn 0
+          else if (cmd >= 0x82 && cmd <= 0x8e)//orn 0, without/with envelope
           {
-            Log::Assert(channelWarner, channel.Commands.end() == std::find(channel.Commands.begin(), channel.Commands.end(), ENVELOPE),
-              TEXT_WARNING_DUPLICATE_ENVELOPE);
             Log::Assert(channelWarner, !channel.OrnamentNum, TEXT_WARNING_DUPLICATE_ORNAMENT);
             channel.OrnamentNum = 0;
-            channel.Commands.push_back(STCTrack::Command(NOENVELOPE));
-          }
-          else if (cmd >= 0x83 && cmd <= 0x8e)//orn 0 with envelope
-          {
-            if (!restbytes)
+            Log::Assert(channelWarner, !channel.FindCommand(ENVELOPE) && !channel.FindCommand(NOENVELOPE),
+              TEXT_WARNING_DUPLICATE_ENVELOPE);
+            if (cmd == 0x82)
+            {
+              channel.Commands.push_back(STCTrack::Command(NOENVELOPE));
+            }
+            else if (!restbytes)
             {
               throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
             }
-            Log::Assert(channelWarner, channel.Commands.end() == std::find(channel.Commands.begin(), channel.Commands.end(), NOENVELOPE),
-              TEXT_WARNING_DUPLICATE_ENVELOPE);
-            Log::Assert(channelWarner, !channel.OrnamentNum, TEXT_WARNING_DUPLICATE_ORNAMENT);
-            channel.Commands.push_back(STCTrack::Command(ENVELOPE, cmd - 0x80, data[offsets[chan]++]));
-            channel.OrnamentNum = 0;
+            else
+            {
+              channel.Commands.push_back(STCTrack::Command(ENVELOPE, cmd - 0x80, data[offsets[chan]++]));
+            }
           }
-          else if (cmd < 0xa1)
+          else if (cmd < 0xa1 || !restbytes)
           {
             throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
           }
           else //skip
           {
             periods[chan] = cmd - 0xa1;
-          }
-          if (!restbytes)
-          {
-            throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
           }
         }
         counters[chan] = periods[chan];
@@ -305,16 +322,6 @@ namespace
       const STCPattern* const patterns(safe_ptr_cast<const STCPattern*>(&data[fromLE(header->PatternsOffset)]));
 
       Log::MessagesCollector::Ptr warner(Log::MessagesCollector::Create());
-      //parse positions
-      Data.Positions.reserve(positions->Lenght + 1);
-      Transpositions.reserve(positions->Lenght + 1);
-      for (const STCPositions::STCPosEntry* posEntry(positions->Data);
-        static_cast<const void*>(posEntry) < static_cast<const void*>(ornaments); ++posEntry)
-      {
-        Data.Positions.push_back(posEntry->PatternNum - 1);
-        Transpositions.push_back(posEntry->PatternHeight);
-      }
-      Log::Assert(*warner, Data.Positions.size() == std::size_t(positions->Lenght) + 1, TEXT_WARNING_INVALID_LENGTH);
 
       //parse samples
       Data.Samples.resize(MAX_SAMPLES_COUNT);
@@ -376,6 +383,25 @@ namespace
         Log::Assert(patternWarner, pat.size() <= MAX_PATTERN_SIZE, TEXT_WARNING_INVALID_PATTERN_SIZE);
         rawSize = std::max<std::size_t>(rawSize, 1 + *std::max_element(offsets.begin(), offsets.end()));
       }
+      //parse positions
+      Data.Positions.reserve(positions->Lenght + 1);
+      Transpositions.reserve(positions->Lenght + 1);
+      for (const STCPositions::STCPosEntry* posEntry(positions->Data);
+        static_cast<const void*>(posEntry) < static_cast<const void*>(ornaments); ++posEntry)
+      {
+        const unsigned pattern = posEntry->PatternNum - 1;
+        if (pattern < MAX_PATTERN_COUNT && !Data.Patterns[pattern].empty())
+        {
+          Data.Positions.push_back(pattern);
+          Transpositions.push_back(posEntry->PatternHeight);
+        }
+      }
+      Log::Assert(*warner, Data.Positions.size() == std::size_t(positions->Lenght) + 1, TEXT_WARNING_INVALID_POSITIONS);
+
+      //fix samples and ornaments
+      std::for_each(Data.Ornaments.begin(), Data.Ornaments.end(), std::mem_fun_ref(&STCTrack::Ornament::Fix));
+      std::for_each(Data.Samples.begin(), Data.Samples.end(), std::mem_fun_ref(&STCTrack::Sample::Fix));
+      
       //fill region
       region.Offset = 0;
       region.Size = rawSize;
@@ -394,9 +420,10 @@ namespace
         !boost::bind(&STCTrack::Pattern::empty, _1)));
       Data.Info.Statistic.Channels = AYM::CHANNELS;
       STCTrack::CalculateTimings(Data, Data.Info.Statistic.Frame, Data.Info.LoopFrame);
-      if (warner->HasMessages())
+      if (const unsigned msgs = warner->CountMessages())
       {
-        Data.Info.Properties.insert(StringMap::value_type(Module::ATTR_WARNINGS, warner->GetMessages('\n')));
+        Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS_COUNT, msgs));
+        Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS, warner->GetMessages('\n')));
       }
     }
 
@@ -465,6 +492,21 @@ namespace
        , CurrentState(MODULE_STOPPED)
     {
       ThrowIfError(GetFreqTable(TABLE_SOUNDTRACKER, FreqTable));
+      Reset();
+#ifdef SELF_TEST
+//perform self-test
+      AYM::DataChunk chunk;
+      for(;;)
+      {
+        assert(Data.Positions.size() > ModState.Track.Position);
+        RenderData(chunk);
+        if (!STCTrack::UpdateState(Data, ModState, false))
+        {
+          break;
+        }
+      }
+      Reset();
+#endif
     }
 
     virtual const Holder& GetModule() const
@@ -559,6 +601,7 @@ namespace
         return Error(THIS_LINE, ERROR_INVALID_PARAMETERS, TEXT_MODULE_ERROR_SET_PLAYER_PARAMETERS).AddSuberror(e);
       }
     }
+    
   private:
     void RenderData(AYM::DataChunk& chunk)
     {
@@ -708,7 +751,7 @@ namespace
     Holder::Ptr& holder, ModuleRegion& region)
   {
     //perform fast check
-    const std::size_t limit(std::min(container.Data->Size(), MAX_STC_MODULE_SIZE));
+    const std::size_t limit(std::min<std::size_t>(container.Data->Size(), MAX_STC_MODULE_SIZE));
     if (limit < sizeof(STCHeader))
     {
       return false;
@@ -756,6 +799,9 @@ namespace
     try
     {
       holder.reset(new STCHolder(container, region));
+#ifdef SELF_TEST
+      holder->CreatePlayer();
+#endif
       return true;
     }
     catch (const Error&/*e*/)
