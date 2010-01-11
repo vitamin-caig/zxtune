@@ -1,4 +1,5 @@
 #include "app.h"
+#include "console.h"
 #include "error_codes.h"
 #include "information.h"
 #include "parsing.h"
@@ -19,17 +20,6 @@
 #include <iostream>
 #include <limits>
 
-//platform-dependend
-#ifdef __linux__
-# include <errno.h>
-# include <termio.h>
-#elif defined(_WIN32)
-# define WIN32_LEAN_AND_MEAN
-# define NOMINMAX
-# include <conio.h>
-# include <windows.h>
-#endif
-
 #include "cmdline.h"
 #include "messages.h"
 
@@ -40,63 +30,6 @@ namespace
   const int INFORMATION_HEIGHT = 5;
   const int TRACKING_HEIGHT = 4;
   const int PLAYING_HEIGHT = 2;
-  
-#ifdef __linux__
-  void ThrowIfError(int res, Error::LocationRef loc)
-  {
-    if (res)
-    {
-      throw Error(loc, UNKNOWN_ERROR, ::strerror(errno));
-    }
-  }
-  
-  void GetConsoleSize(std::pair<int, int>& sizes)
-  {
-#if defined TIOCGSIZE
-    struct ttysize ts;
-    ThrowIfError(ioctl(STDOUT_FILENO, TIOCGSIZE, &ts), THIS_LINE);
-    sizes = std::make_pair(ts.ts_cols, ts.rs_rows);
-#elif defined TIOCGWINSZ
-    struct winsize ws;
-    ThrowIfError(ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws), THIS_LINE);
-    sizes = std::make_pair(ws.ws_col, ws.ws_row);
-#else
-#error Unknown console mode for linux
-#endif
-  }
-  
-  void MoveCursorUp(int lines)
-  {
-    std::cout << "\x1b[" << lines << 'A' << std::flush;
-  }
-#elif defined(_WIN32)
-  void GetConsoleSize(std::pair<int, int>& sizes)
-  {
-    CONSOLE_SCREEN_BUFFER_INFO info;
-    HANDLE hdl(GetStdHandle(STD_OUTPUT_HANDLE));
-    GetConsoleScreenBufferInfo(hdl, &info);
-    sizes = std::pair<int, int>(info.srWindow.Right - info.srWindow.Left - 1, info.srWindow.Bottom - info.srWindow.Top - 1);
-  }
-
-  void MoveCursorUp(int lines)
-  {
-    CONSOLE_SCREEN_BUFFER_INFO info;
-    HANDLE hdl(GetStdHandle(STD_OUTPUT_HANDLE));
-    GetConsoleScreenBufferInfo(hdl, &info);
-    info.dwCursorPosition.Y -= lines;
-    info.dwCursorPosition.X = 0;
-    SetConsoleCursorPosition(hdl, info.dwCursorPosition);
-  }
-#else
-  void GetConsoleSize(std::pair<int, int>& sizes)
-  {
-    sizes = std::make_pair(0, 0);
-  }
-
-  void MoveCursorUp(int /*lines*/)
-  {
-  }
-#endif
   
   void ErrOuter(unsigned /*level*/, Error::LocationRef loc, Error::CodeType code, const String& text)
   {
