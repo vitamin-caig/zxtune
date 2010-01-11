@@ -1,9 +1,8 @@
 binary_name := zxtune123
 path_step := ../..
-source_files := main parsing information sound source
+include $(path_step)/default.mak
+source_files := main parsing information sound source cli_app console_$(platform)
 text_files := messages cmdline
-
-source_files += cli_app console_$(platform)
 
 libraries := core sound tools io texts
 depends := text src/tools src/core src/sound src/io

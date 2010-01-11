@@ -1,6 +1,4 @@
-#set default parameters
-platform := $(if $(platform),$(platform),linux)
-mode := $(if $(mode),$(mode),debug)
+include $(path_step)/default.mak
 
 ifneq ($(or $(pic),$(dynamic_name)),)
 pic := 1
