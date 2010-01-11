@@ -33,7 +33,7 @@ build_lib_cmd = $(AR) /NOLOGO /NODEFAULTLIB /OUT:$@ $^
 link_cmd = $(LDD) $(LD_FLAGS) /NOLOGO /INCREMENTAL:NO /FIXED:NO /DEBUG \
 	/OPT:REF,NOWIN98 /NODEFAULTLIB /LTCG \
 	/OUT:$@ $(object_files) \
-	kernel32.lib $(windows_libraries) \
+	kernel32.lib $(addsuffix .lib,$(windows_libraries)) \
 	$(if $(libraries),/LIBPATH:$(libs_dir) $(addsuffix .lib,$(libraries)),) \
 	$(if $(dynamic_libs),/LIBPATH:$(output_dir) $(addprefix /DELAYLOAD:,$(addsuffix .dll,$(dynamic_libs))) $(addsuffix .lib,$(dynamic_libs)),) \
 	/PDB:$@.pdb

@@ -9,9 +9,9 @@ endif
 
 #set directories
 include_dirs := $(path_step)/include $(path_step)/src $(path_step) $(include_path)
-libs_dir := $(path_step)/lib/$(mode)$(suffix)
-objs_dir := $(path_step)/obj/$(mode)$(suffix)
-bins_dir := $(path_step)/bin/$(mode)
+libs_dir := $(path_step)/lib/$(platform)/$(mode)$(suffix)
+objs_dir := $(path_step)/obj/$(platform)/$(mode)$(suffix)
+bins_dir := $(path_step)/bin/$(platform)/$(mode)
 
 #set platform-specific parameters
 include $(path_step)/make/platforms/$(platform).mak

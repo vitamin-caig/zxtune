@@ -37,7 +37,7 @@ CXX_FLAGS := $(cxx_mode_flags) $(cxx_flags) -g3 \
 	-march=$(arch) \
 	-funroll-loops -funsigned-char -fno-strict-aliasing \
 	-W -Wall -Wextra -ansi -pipe \
-	$(addprefix -I, $(include_dirs))
+	$(addprefix -I, $(include_dirs) $($(platform)_include_dirs))
 
 AR_FLAGS := cru
 LD_FLAGS := $(ld_mode_flags) $(ld_flags) -pipe
@@ -48,7 +48,7 @@ build_lib_cmd = $(AR) $(AR_FLAGS) $@ $^
 link_cmd = $(LDD) $(LD_FLAGS) -o $@ $(object_files) \
 	$(if $(libraries),-L$(libs_dir) $(addprefix -l,$(libraries)),) \
 	$(if $(dynamic_libs),-L$(output_dir) $(addprefix -l,$(dynamic_libs)),) \
-	$(if $($(platform)_libraries),$(addprefix -l,$($(platform)_libraries)),)
+	$(addprefix -L,$($(platform)_libraries_dirs)) $(addprefix -l,$($(platform)_libraries))
 
 #specify postlink command- generate pdb file
 postlink_cmd = objcopy --only-keep-debug $@ $@.pdb && \

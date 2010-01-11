@@ -15,4 +15,4 @@ support_waveout = 1
 # msvs - version of MSVS used to compile and link
 # -gd - used for debug libraries
 # version - boost version major_minor
-windows_libraries += $(foreach lib,$(boost_libraries),$(if $(boost_dynamic),,lib)boost_$(lib)-$(MSVS_VERSION)-mt$(if $(mode) eq debug,-gd,)-$(BOOST_VERSION).lib)
+windows_libraries += $(foreach lib,$(boost_libraries),$(if $(boost_dynamic),,lib)boost_$(lib)-$(MSVS_VERSION)-mt$(if $(mode) eq debug,-gd,)-$(BOOST_VERSION))
