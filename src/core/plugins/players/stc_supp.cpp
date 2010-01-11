@@ -46,11 +46,11 @@ namespace
   const String TEXT_STC_VERSION(FromChar("$Rev$"));
 
   //hints
-  const std::size_t MAX_MODULE_SIZE = 16384;
-  const std::size_t MAX_SAMPLES_COUNT = 16;
-  const std::size_t MAX_ORNAMENTS_COUNT = 16;
-  const std::size_t MAX_PATTERN_SIZE = 64;
-  const std::size_t MAX_PATTERN_COUNT = 32;//TODO
+  const unsigned MAX_STC_MODULE_SIZE = 16384;
+  const unsigned MAX_SAMPLES_COUNT = 16;
+  const unsigned MAX_ORNAMENTS_COUNT = 16;
+  const unsigned MAX_PATTERN_SIZE = 64;
+  const unsigned MAX_PATTERN_COUNT = 32;//TODO
 
 //////////////////////////////////////////////////////////////////////////
 #ifdef USE_PRAGMA_PACK
@@ -160,8 +160,8 @@ namespace
 
     explicit Sample(const STCSample& sample)
       : Data(sample.Data, ArrayEnd(sample.Data))
-      , Loop(std::min<unsigned>(sample.Loop, Data.size()))
-      , LoopLimit(std::min<unsigned>(sample.Loop + sample.LoopSize + 1, Data.size()))
+      , Loop(std::min<unsigned>(sample.Loop, static_cast<unsigned>(Data.size())))
+      , LoopLimit(std::min<unsigned>(sample.Loop + sample.LoopSize + 1, static_cast<unsigned>(Data.size())))
     {
     }
 
@@ -537,7 +537,7 @@ namespace
         {
           YMChip = 0 != (*type & 1);//only one chip
         }
-        if (const Parameters::StringType* const table = Parameters::FindByName<Parameters::StringType>(params, 
+        if (const Parameters::StringType* const table = Parameters::FindByName<Parameters::StringType>(params,
           Parameters::ZXTune::Core::AYM::TABLE))
         {
           ThrowIfError(GetFreqTable(*table, FreqTable));
@@ -547,7 +547,7 @@ namespace
         {
           if (table->size() != FreqTable.size() * sizeof(FreqTable.front()))
           {
-            throw MakeFormattedError(THIS_LINE, ERROR_INVALID_PARAMETERS, 
+            throw MakeFormattedError(THIS_LINE, ERROR_INVALID_PARAMETERS,
               TEXT_MODULE_ERROR_INVALID_FREQ_TABLE_SIZE, table->size());
           }
           std::memcpy(&FreqTable.front(), &table->front(), table->size());
@@ -704,11 +704,11 @@ namespace
   }
 
   //////////////////////////////////////////////////////////////////////////
-  bool CreateSTCModule(const Parameters::Map& /*commonParams*/, const MetaContainer& container, 
+  bool CreateSTCModule(const Parameters::Map& /*commonParams*/, const MetaContainer& container,
     Holder::Ptr& holder, ModuleRegion& region)
   {
     //perform fast check
-    const std::size_t limit(std::min(container.Data->Size(), MAX_MODULE_SIZE));
+    const std::size_t limit(std::min(container.Data->Size(), MAX_STC_MODULE_SIZE));
     if (limit < sizeof(STCHeader))
     {
       return false;

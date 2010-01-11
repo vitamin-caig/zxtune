@@ -35,7 +35,7 @@ namespace
   
   static const FreqTableEntry TABLES[] = {
     //SoundTracker
-    { 
+    {
       TABLE_SOUNDTRACKER,
       { {
         0xef8, 0xe10, 0xd60, 0xc80, 0xbd8, 0xb28, 0xa88, 0x9f0, 0x960, 0x8e0, 0x858, 0x7e0,

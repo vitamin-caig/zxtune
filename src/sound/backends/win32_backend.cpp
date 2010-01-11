@@ -179,7 +179,7 @@ namespace
       {
         Locker lock(BackendMutex);
         boost::array<uint16_t, OUTPUT_CHANNELS> buffer;
-        std::transform(volume.begin(), volume.end(), buffer.begin(), std::bind2nd(std::multiplies<Gain>(), MAX_WIN32_VOLUME));
+        std::transform(volume.begin(), volume.end(), buffer.begin(), std::bind2nd(std::multiplies<Gain>(), Gain(MAX_WIN32_VOLUME)));
         BOOST_STATIC_ASSERT(sizeof(buffer) == sizeof(DWORD));
         CheckMMResult(::waveOutSetVolume(reinterpret_cast< ::HWAVEOUT>(Device), *safe_ptr_cast<LPDWORD>(&buffer[0])), THIS_LINE);
         return Error();
