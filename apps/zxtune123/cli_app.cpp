@@ -11,6 +11,7 @@
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
 #include <io/providers_parameters.h>
+#include <sound/sound_parameters.h>
 
 #include <boost/bind.hpp>
 #include <boost/program_options.hpp>
@@ -36,7 +37,7 @@ namespace
     std::cout << Error::AttributesToString(loc, code, text);
   }
 
-  void ShowItemInfo(const String& id, const ZXTune::Module::Information& info)
+  void ShowItemInfo(const String& id, const ZXTune::Module::Information& info, unsigned frameDuration)
   {
     StringMap strProps;
     Parameters::ConvertMap(info.Properties, strProps);
@@ -44,7 +45,7 @@ namespace
 
     assert(INFORMATION_HEIGHT == std::count(infoFmt.begin(), infoFmt.end(), '\n'));
     std::cout << (Formatter(infoFmt)
-      % id % UnparseFrameTime(info.Statistic.Frame, 20000) % info.PhysicalChannels).str();
+      % id % UnparseFrameTime(info.Statistic.Frame, frameDuration) % info.PhysicalChannels).str();
   }
   
   void ShowTrackingStatus(const ZXTune::Module::Tracking& track)
@@ -68,10 +69,11 @@ namespace
     }
   }
   
-  void ShowPlaybackStatus(unsigned frame, unsigned allframe, ZXTune::Sound::Backend::State state, unsigned width)
+  void ShowPlaybackStatus(unsigned frame, unsigned allframe, ZXTune::Sound::Backend::State state, unsigned width,
+                          unsigned frameDuration)
   {
     const Char MARKER = '\x1';
-    String data((Formatter(TEXT_PLAYBACK_STATUS) % UnparseFrameTime(frame, 20000) % MARKER).str());
+    String data((Formatter(TEXT_PLAYBACK_STATUS) % UnparseFrameTime(frame, frameDuration) % MARKER).str());
     const String::size_type totalSize = data.size() - 1 - PLAYING_HEIGHT;
     const String::size_type markerPos = data.find(MARKER);
     
@@ -128,6 +130,8 @@ namespace
       , Quiet(false)
       , Analyzer(false)
       , Cached(false)
+      , SeekStep(10)
+      , Updatefps(10)
     {
     }
     
@@ -194,7 +198,9 @@ namespace
           (TEXT_SILENT_KEY, bool_switch(&Silent), TEXT_SILENT_DESC)
           (TEXT_QUIET_KEY, bool_switch(&Quiet), TEXT_QUIET_DESC)
           (TEXT_ANALYZER_KEY, bool_switch(&Analyzer), TEXT_ANALYZER_DESC)
-          (TEXT_CACHE_KEY, bool_switch(&Cached), TEXT_CACHE_DESC);
+          (TEXT_CACHE_KEY, bool_switch(&Cached), TEXT_CACHE_DESC)
+          (TEXT_SEEKSTEP_KEY, value<unsigned>(&SeekStep), TEXT_SEEKSTEP_DESC)
+          (TEXT_UPDATEFPS_KEY, value<unsigned>(&Updatefps), TEXT_UPDATEFPS_DESC)
         ;
         options.add(cliOptions);
         
@@ -228,24 +234,29 @@ namespace
     
     void PlayItem(const ModuleItem& item)
     {
-      ZXTune::Module::Information info;
-      item.Module->GetModuleInformation(info);
-
-      //show startup info
-      if (!Silent)
-      {
-        ShowItemInfo(item.Id, info);
-      }
       //calculate and apply parameters
       Parameters::Map perItemParams(GlobalParams);
       perItemParams.insert(item.Params.begin(), item.Params.end());
       ZXTune::Sound::Backend& backend(Sounder->GetBackend());
       ThrowIfError(backend.SetModule(item.Module));
       ThrowIfError(backend.SetParameters(perItemParams));
+
+      Parameters::IntType frameDuration = 0;
+      if (!Parameters::FindByName(perItemParams, Parameters::ZXTune::Sound::FRAMEDURATION, frameDuration))
+      {
+        frameDuration = Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT;
+      }
+      ZXTune::Module::Information info;
+      item.Module->GetModuleInformation(info);
+
+      //show startup info
+      if (!Silent)
+      {
+        ShowItemInfo(item.Id, info, static_cast<unsigned>(frameDuration));
+      }
+      const unsigned seekStepFrames(info.Statistic.Frame * SeekStep / 100);
+      const unsigned waitPeriod(std::max(1u, 1000u / std::max(Updatefps, 1u)));
       ThrowIfError(backend.Play());
-
-      const unsigned seekStep(info.Statistic.Frame / 20);
-
       std::vector<int> analyzer;
       std::pair<int, int> scrSize;
       ZXTune::Module::Player::ConstWeakPtr weakPlayer(backend.GetPlayer());
@@ -253,7 +264,7 @@ namespace
       {
         if (!Silent && !Quiet)
         {
-          GetConsoleSize(scrSize);
+          scrSize = Console::Self().GetSize();
           if (scrSize.first <= 0 || scrSize.second <= 0)
           {
             Silent = true;
@@ -281,7 +292,7 @@ namespace
           else
           {
             ShowTrackingStatus(curTracking);
-            ShowPlaybackStatus(curFrame, info.Statistic.Frame, state, scrSize.first);
+            ShowPlaybackStatus(curFrame, info.Statistic.Frame, state, scrSize.first, static_cast<unsigned>(frameDuration));
             if (Analyzer)
             {
               analyzer.resize(scrSize.first);
@@ -290,48 +301,48 @@ namespace
             }
           }
         }
-        if (const unsigned key = GetPressedKey())
+        if (const unsigned key = Console::Self().GetPressedKey())
         {
           switch (key)
           {
-          case KEY_CANCEL:
+          case Console::KEY_CANCEL:
           case 'Q':
             throw Error(THIS_LINE, CANCELED);
             break;
-          case KEY_LEFT:
-            ThrowIfError(backend.SetPosition(curFrame < seekStep ? 0 : curFrame - seekStep));
+          case Console::KEY_LEFT:
+            ThrowIfError(backend.SetPosition(curFrame < seekStepFrames ? 0 : curFrame - seekStepFrames));
             break;
-          case KEY_RIGHT:
-            ThrowIfError(backend.SetPosition(curFrame + seekStep));
+          case Console::KEY_RIGHT:
+            ThrowIfError(backend.SetPosition(curFrame + seekStepFrames));
             break;
-          case KEY_ENTER:
+          case Console::KEY_ENTER:
             if (ZXTune::Sound::Backend::STARTED == state)
             {
               ThrowIfError(backend.Pause());
-              while (GetPressedKey()) {};
+              Console::Self().WaitForKeyRelease();
             }
             else
             {
-              while (GetPressedKey()) {};
+              Console::Self().WaitForKeyRelease();
               ThrowIfError(backend.Play());
             }
             break;
           case ' ':
             ThrowIfError(backend.Stop());
             state = ZXTune::Sound::Backend::STOPPED;
-            while (GetPressedKey()) {};
+            Console::Self().WaitForKeyRelease();
             break;
           }
         }
 
         if (ZXTune::Sound::Backend::STOPPED == state ||
-            ZXTune::Sound::Backend::STOP == backend.WaitForEvent(ZXTune::Sound::Backend::STOP, 100))
+            ZXTune::Sound::Backend::STOP == backend.WaitForEvent(ZXTune::Sound::Backend::STOP, waitPeriod))
         {
           break;
         }
         if (!Silent && !Quiet)
         {
-          MoveCursorUp(Analyzer ? scrSize.second - INFORMATION_HEIGHT - 1 : TRACKING_HEIGHT + PLAYING_HEIGHT);
+          Console::Self().MoveCursorUp(Analyzer ? scrSize.second - INFORMATION_HEIGHT - 1 : TRACKING_HEIGHT + PLAYING_HEIGHT);
         }
       }
     }
@@ -344,6 +355,8 @@ namespace
     bool Quiet;
     bool Analyzer;
     bool Cached;
+    unsigned SeekStep;
+    unsigned Updatefps;
   };
 }
 

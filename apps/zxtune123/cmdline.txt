@@ -84,6 +84,18 @@ __cpp> "#endif //__TEXT_CMDLINE_H_DEFINED__\n"
 < TEXT_FREQTABLE_DESC
 > "specify frequency table"
 
+< TEXT_YM_KEY
+> "ym"
+
+< TEXT_YM_DESC
+> "use YM chip for playback"
+
+< TEXT_LOOP_KEY
+> "loop"
+
+< TEXT_LOOP_DESC
+> "loop playback"
+
 < TEXT_INPUT_SECTION
 > "Input options"
 
@@ -119,3 +131,15 @@ __cpp> "#endif //__TEXT_CMDLINE_H_DEFINED__\n"
 
 < TEXT_CACHE_DESC
 > "collect all modules to list before playback (slow, requires much memory)."
+
+< TEXT_SEEKSTEP_KEY
+> "seekstep"
+
+< TEXT_SEEKSTEP_DESC
+> "seeking step in percents"
+
+< TEXT_UPDATEFPS_KEY
+> "updatefps"
+
+< TEXT_UPDATEFPS_DESC
+> "update rate"

@@ -6,6 +6,7 @@
 #include <logging.h>
 #include <core/core_parameters.h>
 #include <sound/backends_parameters.h>
+#include <sound/render_params.h>
 #include <sound/sound_parameters.h>
 
 #include <algorithm>
@@ -29,6 +30,7 @@ namespace
       : GlobalParams(globalParams)
       , OptionsDescription(TEXT_SOUND_SECTION)
       , YM(false)
+      , Looped(false)
     {
       using namespace boost::program_options;
       ZXTune::Sound::BackendInfoArray backends;
@@ -47,6 +49,8 @@ namespace
         (TEXT_CLOCKRATE_KEY, value<String>(&SoundOptions[Parameters::ZXTune::Sound::CLOCKRATE]), TEXT_CLOCKRATE_DESC)
         (TEXT_FRAMEDURATION_KEY, value<String>(&SoundOptions[Parameters::ZXTune::Sound::FRAMEDURATION]), TEXT_FRAMEDURATION_DESC)
         (TEXT_FREQTABLE_KEY, value<String>(&SoundOptions[Parameters::ZXTune::Core::AYM::TABLE]), TEXT_FREQTABLE_DESC)
+        (TEXT_YM_KEY, bool_switch(&YM), TEXT_YM_DESC)
+        (TEXT_LOOP_KEY, bool_switch(&Looped), TEXT_LOOP_DESC)
       ;
     }
     
@@ -87,6 +91,14 @@ namespace
           Parameters::ConvertMap(optimized, sndparams);
           GlobalParams.insert(sndparams.begin(), sndparams.end());
         }
+        if (YM)
+        {
+          GlobalParams.insert(Parameters::Map::value_type(Parameters::ZXTune::Core::AYM::TYPE, -1));
+        }
+        if (Looped)
+        {
+          GlobalParams.insert(Parameters::Map::value_type(Parameters::ZXTune::Sound::LOOPMODE, ZXTune::Sound::LOOP_NORMAL));
+        }
       }
       if (backends.empty())
       {
@@ -123,6 +135,7 @@ namespace
     StringMap SoundOptions;
     ZXTune::Sound::Backend::Ptr Backend;
     bool YM;
+    bool Looped;
   };
 }
 

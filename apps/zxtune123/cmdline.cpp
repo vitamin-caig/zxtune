@@ -98,11 +98,23 @@ extern const Char TEXT_IO_PROVIDERS_OPTS_DESC[] = {
 extern const Char TEXT_IO_PROVIDERS_OPTS_KEY[] = {
   'p','r','o','v','i','d','e','r','s','-','o','p','t','i','o','n','s',0
 };
+extern const Char TEXT_LOOP_DESC[] = {
+  'l','o','o','p',' ','p','l','a','y','b','a','c','k',0
+};
+extern const Char TEXT_LOOP_KEY[] = {
+  'l','o','o','p',0
+};
 extern const Char TEXT_QUIET_DESC[] = {
   'd','i','s','a','b','l','e',' ','d','y','n','a','m','i','c',' ','o','u','t','p','u','t',0
 };
 extern const Char TEXT_QUIET_KEY[] = {
   'q','u','i','e','t',0
+};
+extern const Char TEXT_SEEKSTEP_DESC[] = {
+  's','e','e','k','i','n','g',' ','s','t','e','p',' ','i','n',' ','p','e','r','c','e','n','t','s',0
+};
+extern const Char TEXT_SEEKSTEP_KEY[] = {
+  's','e','e','k','s','t','e','p',0
 };
 extern const Char TEXT_SILENT_DESC[] = {
   'd','i','s','a','b','l','e',' ','a','l','l',' ','o','u','t','p','u','t',0
@@ -116,6 +128,12 @@ extern const Char TEXT_SOUND_BACKEND_PARAMS[] = {
 extern const Char TEXT_SOUND_SECTION[] = {
   'S','o','u','n','d',' ','o','p','t','i','o','n','s',0
 };
+extern const Char TEXT_UPDATEFPS_DESC[] = {
+  'u','p','d','a','t','e',' ','r','a','t','e',0
+};
+extern const Char TEXT_UPDATEFPS_KEY[] = {
+  'u','p','d','a','t','e','f','p','s',0
+};
 extern const Char TEXT_USAGE_SECTION[] = {
   'U','s','a','g','e',':','\n',
   '%','1','%',' ','<','I','n','f','o','r','m','a','t','i','o','n',' ','k','e','y','s','>','\n',
@@ -124,5 +142,11 @@ extern const Char TEXT_USAGE_SECTION[] = {
   't',' ','o','p','t','i','o','n','s','>',' ','f','i','l','e','s','.','.','.','\n',
   '\n',
   'P','a','r','a','m','e','t','e','r','s',0
+};
+extern const Char TEXT_YM_DESC[] = {
+  'u','s','e',' ','Y','M',' ','c','h','i','p',' ','f','o','r',' ','p','l','a','y','b','a','c','k',0
+};
+extern const Char TEXT_YM_KEY[] = {
+  'y','m',0
 };
 #endif //__TEXT_CMDLINE_H_DEFINED__
