@@ -29,8 +29,6 @@ Author:
 #include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
 
-#include <valarray>
-
 #include <text/core.h>
 #include <text/plugins.h>
 #include <text/warnings.h>
@@ -42,6 +40,7 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Module;
 
+  //plugin attributes
   const Char STC_PLUGIN_ID[] = {'S', 'T', 'C', 0};
   const String TEXT_STC_VERSION(FromChar("$Rev$"));
 
@@ -80,7 +79,7 @@ namespace
   PACK_PRE struct STCPattern
   {
     uint8_t Number;
-    uint16_t Offsets[3];
+    boost::array<uint16_t, AYM::CHANNELS> Offsets;
 
     operator bool () const
     {
@@ -152,6 +151,7 @@ namespace
   BOOST_STATIC_ASSERT(sizeof(STCOrnament) == 33);
   BOOST_STATIC_ASSERT(sizeof(STCSample) == 99);
 
+  // currently used sample
   struct Sample
   {
     Sample() : Data(), Loop(), LoopLimit()
@@ -165,6 +165,7 @@ namespace
     {
     }
 
+    //make safe sample
     void Fix()
     {
       if (Data.empty())
@@ -213,66 +214,98 @@ namespace
 
   typedef TrackingSupport<AYM::CHANNELS, Sample> STCTrack;
   
+  // perform module 'playback' right after creating (debug purposes)
   #ifndef NDEBUG
   #define SELF_TEST
   #endif
+  
+  // forward declaration
   class STCHolder;
   Player::Ptr CreateSTCPlayer(boost::shared_ptr<const STCHolder> mod);
 
   class STCHolder : public Holder, public boost::enable_shared_from_this<STCHolder>
   {
+    struct PatternCursor
+    {
+      /*explicit*/PatternCursor(unsigned offset = 0)
+        : Offset(offset), Period(), Counter()
+      {
+      }
+      unsigned Offset;
+      unsigned Period;
+      unsigned Counter;
+
+      void SkipLines(unsigned lines)
+      {
+        Counter -= lines;
+      }
+
+      static bool CompareByOffset(const PatternCursor& lh, const PatternCursor& rh)
+      {
+        return lh.Offset < rh.Offset;
+      }
+
+      static bool CompareByCounter(const PatternCursor& lh, const PatternCursor& rh)
+      {
+        return lh.Counter < rh.Counter;
+      }
+    };
+    typedef boost::array<PatternCursor, AYM::CHANNELS> PatternCursors;
+
+    
     void ParsePattern(const IO::FastDump& data
-      , std::vector<std::size_t>& offsets
+      , PatternCursors& cursors
       , STCTrack::Line& line
-      , std::valarray<std::size_t>& periods
-      , std::valarray<std::size_t>& counters
       , Log::MessagesCollector& warner
       )
     {
-      for (unsigned chan = 0; chan != line.Channels.size(); ++chan)
+      assert(line.Channels.size() == cursors.size());
+      STCTrack::Line::ChannelsArray::iterator channel(line.Channels.begin());
+      for (PatternCursors::iterator cur = cursors.begin(); cur != cursors.end(); ++cur, ++channel)
       {
-        if (counters[chan]--)
+        if (cur->Counter--)
         {
           continue;//has to skip
         }
 
-        Log::ParamPrefixedCollector channelWarner(warner, TEXT_CHANNEL_WARN_PREFIX, chan);
+        Log::ParamPrefixedCollector channelWarner(warner, TEXT_CHANNEL_WARN_PREFIX,
+          static_cast<unsigned>(std::distance(line.Channels.begin(), channel)));
         for (;;)
         {
-          const uint8_t cmd(data[offsets[chan]++]);
-          const std::size_t restbytes = data.Size() - offsets[chan];
-          STCTrack::Line::Chan& channel(line.Channels[chan]);
+          const uint8_t cmd(data[cur->Offset++]);
+          const std::size_t restbytes = data.Size() - cur->Offset;
+          //ornament==0 and sample==0 are valid - no ornament and no sample respectively
           //ornament==0 and sample==0 are valid - no ornament and no sample respectively
           if (cmd <= 0x5f)//note
           {
-            Log::Assert(channelWarner, !channel.Note, TEXT_WARNING_DUPLICATE_NOTE);
-            channel.Note = cmd;
-            Log::Assert(channelWarner, !channel.Enabled, TEXT_WARNING_DUPLICATE_STATE);
-            channel.Enabled = true;
+            Log::Assert(channelWarner, !channel->Note, TEXT_WARNING_DUPLICATE_NOTE);
+            channel->Note = cmd;
+            Log::Assert(channelWarner, !channel->Enabled, TEXT_WARNING_DUPLICATE_STATE);
+            channel->Enabled = true;
             break;
           }
           else if (cmd >= 0x60 && cmd <= 0x6f)//sample
           {
-            Log::Assert(channelWarner, !channel.SampleNum, TEXT_WARNING_DUPLICATE_SAMPLE);
+            Log::Assert(channelWarner, !channel->SampleNum, TEXT_WARNING_DUPLICATE_SAMPLE);
             const unsigned num = cmd - 0x60;
             const bool invalid = num >= MAX_SAMPLES_COUNT;
-            channel.SampleNum = invalid ? 0 : num;
-            Log::Assert(channelWarner, invalid || (num && Data.Samples[num].Data.empty()), TEXT_WARNING_INVALID_SAMPLE);
+            channel->SampleNum = invalid ? 0 : num;
+            Log::Assert(channelWarner, !invalid && !(num && Data.Samples[num].Data.empty()), TEXT_WARNING_INVALID_SAMPLE);
           }
           else if (cmd >= 0x70 && cmd <= 0x7f)//ornament
           {
-            Log::Assert(channelWarner, !channel.FindCommand(ENVELOPE), TEXT_WARNING_DUPLICATE_ENVELOPE);
-            channel.Commands.push_back(STCTrack::Command(NOENVELOPE));
-            Log::Assert(channelWarner, !channel.OrnamentNum, TEXT_WARNING_DUPLICATE_ORNAMENT);
+            Log::Assert(channelWarner, !channel->FindCommand(ENVELOPE), TEXT_WARNING_DUPLICATE_ENVELOPE);
+            channel->Commands.push_back(STCTrack::Command(NOENVELOPE));
+            Log::Assert(channelWarner, !channel->OrnamentNum, TEXT_WARNING_DUPLICATE_ORNAMENT);
             const unsigned num = cmd - 0x70;
             const bool invalid = num >= MAX_ORNAMENTS_COUNT;
-            channel.OrnamentNum = invalid ? 0 : num;
-            Log::Assert(channelWarner, invalid || (num && Data.Ornaments[num].Data.empty()), TEXT_WARNING_INVALID_ORNAMENT);
+            channel->OrnamentNum = invalid ? 0 : num;
+            Log::Assert(channelWarner, !invalid && !(num && Data.Ornaments[num].Data.empty()), TEXT_WARNING_INVALID_ORNAMENT);
           }
           else if (cmd == 0x80)//reset
           {
-            Log::Assert(channelWarner, !channel.Enabled, TEXT_WARNING_DUPLICATE_STATE);
-            channel.Enabled = false;
+            Log::Assert(channelWarner, !channel->Enabled, TEXT_WARNING_DUPLICATE_STATE);
+            channel->Enabled = false;
             break;
           }
           else if (cmd == 0x81)//empty
@@ -281,13 +314,13 @@ namespace
           }
           else if (cmd >= 0x82 && cmd <= 0x8e)//orn 0, without/with envelope
           {
-            Log::Assert(channelWarner, !channel.OrnamentNum, TEXT_WARNING_DUPLICATE_ORNAMENT);
-            channel.OrnamentNum = 0;
-            Log::Assert(channelWarner, !channel.FindCommand(ENVELOPE) && !channel.FindCommand(NOENVELOPE),
+            Log::Assert(channelWarner, !channel->OrnamentNum, TEXT_WARNING_DUPLICATE_ORNAMENT);
+            channel->OrnamentNum = 0;
+            Log::Assert(channelWarner, !channel->FindCommand(ENVELOPE) && !channel->FindCommand(NOENVELOPE),
               TEXT_WARNING_DUPLICATE_ENVELOPE);
             if (cmd == 0x82)
             {
-              channel.Commands.push_back(STCTrack::Command(NOENVELOPE));
+              channel->Commands.push_back(STCTrack::Command(NOENVELOPE));
             }
             else if (!restbytes)
             {
@@ -295,7 +328,7 @@ namespace
             }
             else
             {
-              channel.Commands.push_back(STCTrack::Command(ENVELOPE, cmd - 0x80, data[offsets[chan]++]));
+              channel->Commands.push_back(STCTrack::Command(ENVELOPE, cmd - 0x80, data[cur->Offset++]));
             }
           }
           else if (cmd < 0xa1 || !restbytes)
@@ -304,10 +337,10 @@ namespace
           }
           else //skip
           {
-            periods[chan] = cmd - 0xa1;
+            cur->Period = cmd - 0xa1;
           }
         }
-        counters[chan] = periods[chan];
+        cur->Counter = cur->Period;
       }
     }
   public:
@@ -360,28 +393,27 @@ namespace
         }
         Log::ParamPrefixedCollector patternWarner(*warner, TEXT_PATTERN_WARN_PREFIX, static_cast<unsigned>(pattern->Number - 1));
         STCTrack::Pattern& pat(Data.Patterns[pattern->Number - 1]);
-        std::vector<std::size_t> offsets(ArraySize(pattern->Offsets));
-        std::valarray<std::size_t> periods(std::size_t(0), ArraySize(pattern->Offsets));
-        std::valarray<std::size_t> counters(std::size_t(0), ArraySize(pattern->Offsets));
-        std::transform(pattern->Offsets, ArrayEnd(pattern->Offsets), offsets.begin(), &fromLE<uint16_t>);
+        PatternCursors cursors;
+        std::transform(pattern->Offsets.begin(), pattern->Offsets.end(), cursors.begin(), &fromLE<uint16_t>);
         pat.reserve(MAX_PATTERN_SIZE);
         do
         {
           Log::ParamPrefixedCollector patLineWarner(*warner, TEXT_LINE_WARN_PREFIX, static_cast<unsigned>(pat.size()));
           pat.push_back(STCTrack::Line());
           STCTrack::Line& line(pat.back());
-          ParsePattern(data, offsets, line, periods, counters, patLineWarner);
+          ParsePattern(data, cursors, line, patLineWarner);
           //skip lines
-          if (const std::size_t linesToSkip = counters.min())
+          if (const unsigned linesToSkip = std::min_element(cursors.begin(), cursors.end(), PatternCursor::CompareByCounter)->Counter)
           {
-            counters -= linesToSkip;
+            std::for_each(cursors.begin(), cursors.end(), std::bind2nd(std::mem_fun_ref(&PatternCursor::SkipLines), linesToSkip));
             pat.resize(pat.size() + linesToSkip);//add dummies
           }
         }
-        while (0xff != data[offsets[0]] || counters[0]);
-        Log::Assert(patternWarner, 0 == counters.max(), TEXT_WARNING_PERIODS);
+        while (0xff != data[cursors.front().Offset] || cursors.front().Counter);
+        Log::Assert(patternWarner, 0 == std::max_element(cursors.begin(), cursors.end(), PatternCursor::CompareByCounter)->Counter,
+          TEXT_WARNING_PERIODS);
         Log::Assert(patternWarner, pat.size() <= MAX_PATTERN_SIZE, TEXT_WARNING_INVALID_PATTERN_SIZE);
-        rawSize = std::max<std::size_t>(rawSize, 1 + *std::max_element(offsets.begin(), offsets.end()));
+        rawSize = std::max<std::size_t>(rawSize, 1 + std::max_element(cursors.begin(), cursors.end(), PatternCursor::CompareByOffset)->Offset);
       }
       //parse positions
       Data.Positions.reserve(positions->Lenght + 1);
@@ -789,7 +821,7 @@ namespace
       {
         continue;
       }
-      if (ArrayEnd(pattern->Offsets) != std::find_if(pattern->Offsets, ArrayEnd(pattern->Offsets),
+      if (pattern->Offsets.end() != std::find_if(pattern->Offsets.begin(), pattern->Offsets.end(),
         boost::bind(&fromLE<uint16_t>, _1) > limit - 1))
       {
         return false;
