@@ -76,8 +76,8 @@ namespace
     const String::size_type markerPos = data.find(MARKER);
     
     String prog(width - totalSize, '-');
-    const unsigned pos = frame * (width - totalSize - 1) / allframe;
-    prog[pos + 1] = StateSymbol(state);
+    const unsigned pos = frame * (width - totalSize) / allframe;
+    prog[pos] = StateSymbol(state);
     data.replace(markerPos, 1, prog);
     assert(PLAYING_HEIGHT == std::count(data.begin(), data.end(), '\n'));
     std::cout << data << std::flush;
@@ -158,7 +158,10 @@ namespace
       }
       catch (const Error& e)
       {
-        e.WalkSuberrors(ErrOuter);
+        if (!e.FindSuberror(CANCELED))
+        {
+          e.WalkSuberrors(ErrOuter);
+        }
         return -1;
       }
       return 0;
@@ -239,12 +242,14 @@ namespace
       ZXTune::Sound::Backend& backend(Sounder->GetBackend());
       ThrowIfError(backend.SetModule(item.Module));
       ThrowIfError(backend.SetParameters(perItemParams));
-      
       ThrowIfError(backend.Play());
-      
+
+      const unsigned seekStep(info.Statistic.Frame / 20);
+
       std::vector<int> analyzer;
       std::pair<int, int> scrSize;
-      while (ZXTune::Module::Player::ConstPtr player = backend.GetPlayer().lock())
+      ZXTune::Module::Player::ConstWeakPtr weakPlayer(backend.GetPlayer());
+      for (;;)
       {
         if (!Silent && !Quiet)
         {
@@ -256,11 +261,11 @@ namespace
         }
         ZXTune::Sound::Backend::State state;
         ThrowIfError(backend.GetCurrentState(state));
-        
+
         unsigned curFrame = 0;
         ZXTune::Module::Tracking curTracking;
         ZXTune::Module::Analyze::ChannelsState curAnalyze;
-        ThrowIfError(player->GetPlaybackState(curFrame, curTracking, curAnalyze));
+        ThrowIfError(weakPlayer.lock()->GetPlaybackState(curFrame, curTracking, curAnalyze));
 
         if (!Silent && !Quiet)
         {
@@ -285,7 +290,42 @@ namespace
             }
           }
         }
-        if (ZXTune::Sound::Backend::STOP == backend.WaitForEvent(ZXTune::Sound::Backend::STOP, 100))
+        if (const unsigned key = GetPressedKey())
+        {
+          switch (key)
+          {
+          case KEY_CANCEL:
+          case 'Q':
+            throw Error(THIS_LINE, CANCELED);
+            break;
+          case KEY_LEFT:
+            ThrowIfError(backend.SetPosition(curFrame < seekStep ? 0 : curFrame - seekStep));
+            break;
+          case KEY_RIGHT:
+            ThrowIfError(backend.SetPosition(curFrame + seekStep));
+            break;
+          case KEY_ENTER:
+            if (ZXTune::Sound::Backend::STARTED == state)
+            {
+              ThrowIfError(backend.Pause());
+              while (GetPressedKey()) {};
+            }
+            else
+            {
+              while (GetPressedKey()) {};
+              ThrowIfError(backend.Play());
+            }
+            break;
+          case ' ':
+            ThrowIfError(backend.Stop());
+            state = ZXTune::Sound::Backend::STOPPED;
+            while (GetPressedKey()) {};
+            break;
+          }
+        }
+
+        if (ZXTune::Sound::Backend::STOPPED == state ||
+            ZXTune::Sound::Backend::STOP == backend.WaitForEvent(ZXTune::Sound::Backend::STOP, 100))
         {
           break;
         }

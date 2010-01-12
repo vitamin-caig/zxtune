@@ -36,12 +36,12 @@ namespace
       for (ZXTune::Sound::BackendInfoArray::const_iterator it = backends.begin(), lim = backends.end(); it != lim; ++it)
       {
         BackendOptions.push_back(std::make_pair(it->Id, NOTUSED_MARK));
-        OptionsDescription.add(boost::shared_ptr<option_description>(
-          new option_description(it->Id.c_str(),
-            value<String>(&BackendOptions.back().second)->implicit_value(String(), TEXT_SOUND_BACKEND_PARAMS),
-            it->Description.c_str())));
+        OptionsDescription.add_options()
+          (it->Id.c_str(), value<String>(&BackendOptions.back().second)->implicit_value(String(),
+            TEXT_SOUND_BACKEND_PARAMS), it->Description.c_str())
+          ;
       }
-     
+
       OptionsDescription.add_options()
         (TEXT_FREQUENCY_KEY, value<String>(&SoundOptions[Parameters::ZXTune::Sound::FREQUENCY]), TEXT_FREQUENCY_DESC)
         (TEXT_CLOCKRATE_KEY, value<String>(&SoundOptions[Parameters::ZXTune::Sound::CLOCKRATE]), TEXT_CLOCKRATE_DESC)
