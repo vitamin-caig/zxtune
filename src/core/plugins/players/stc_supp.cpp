@@ -596,10 +596,29 @@ namespace
       return Error();
     }
 
-    virtual Error SetPosition(unsigned /*frame*/)
+    virtual Error SetPosition(unsigned frame)
     {
-      //TODO
-      return Error(THIS_LINE, 1, "Not implemented");
+      if (frame < ModState.Frame)
+      {
+        //reset to beginning in case of moving back
+        const uint64_t keepTicks = ModState.Tick;
+        STCTrack::InitState(Data, ModState);
+        std::fill(ChanState.begin(), ChanState.end(), ChannelState());
+        ModState.Tick = keepTicks;
+      }
+      //fast forward
+      AYM::DataChunk chunk;
+      while (ModState.Frame < frame)
+      {
+        //do not update tick for proper rendering
+        assert(Data.Positions.size() > ModState.Track.Position);
+        RenderData(chunk);
+        if (!STCTrack::UpdateState(Data, ModState, false))
+        {
+          break;
+        }
+      }
+      return Error();
     }
 
     virtual Error SetParameters(const Parameters::Map& params)

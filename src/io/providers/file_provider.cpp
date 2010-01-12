@@ -34,7 +34,7 @@ namespace
   
   static const ProviderInfo PROVIDER_INFO =
   {
-    TEXT_IO_FILE_PROVIDER_NAME, 
+    TEXT_IO_FILE_PROVIDER_NAME,
     TEXT_IO_FILE_PROVIDER_DESCRIPTION,
     PROVIDER_VERSION,
   };
@@ -120,7 +120,7 @@ namespace
         throw Error(THIS_LINE, IO_ERROR, TEXT_IO_ERROR_IO_ERROR);
       }
       std::streampos threshold = static_cast<std::streampos>(Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD_DEFAULT);
-      if (const Parameters::IntType* val = 
+      if (const Parameters::IntType* val =
         Parameters::FindByName<Parameters::IntType>(params, Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD))
       {
         threshold = static_cast<std::streampos>(*val);
@@ -215,11 +215,7 @@ namespace
     {
       return e;
     }
-    if (!sub.empty())
-    {
-      return Error(THIS_LINE, NOT_SUPPORTED, TEXT_IO_ERROR_NOT_SUPPORTED_URI);
-    }
-    uri = baseUri;
+    uri = base;
     if (!subpath.empty())
     {
       uri += SUBPATH_DELIMITER;
@@ -229,7 +225,7 @@ namespace
   }
   
   //no callback
-  Error FileOpener(const String& uri, const Parameters::Map& params, const ProgressCallback& /*cb*/, 
+  Error FileOpener(const String& uri, const Parameters::Map& params, const ProgressCallback& /*cb*/,
     DataContainer::Ptr& result, String& subpath)
   {
     String openUri, openSub;
