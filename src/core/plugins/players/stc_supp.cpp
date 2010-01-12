@@ -523,7 +523,6 @@ namespace
        , Transpositions(Module->Transpositions)
        , YMChip(false)
        , Device(AYM::CreateChip())
-       , Looped()
        , CurrentState(MODULE_STOPPED)
     {
       ThrowIfError(GetFreqTable(TABLE_SOUNDTRACKER, FreqTable));
@@ -531,15 +530,12 @@ namespace
 #ifdef SELF_TEST
 //perform self-test
       AYM::DataChunk chunk;
-      for(;;)
+      do
       {
         assert(Data.Positions.size() > ModState.Track.Position);
         RenderData(chunk);
-        if (!STCTrack::UpdateState(Data, ModState, false))
-        {
-          break;
-        }
       }
+      while (STCTrack::UpdateState(Data, ModState, false))
       Reset();
 #endif
     }
@@ -578,7 +574,7 @@ namespace
         chunk.Mask |= AYM::DataChunk::YM_CHIP;
       }
       Device->RenderData(params, chunk, receiver);
-      if (STCTrack::UpdateState(Data, ModState, Looped))
+      if (STCTrack::UpdateState(Data, ModState, params.Looping))
       {
         state = CurrentState = MODULE_PLAYING;
       }
@@ -616,7 +612,7 @@ namespace
         //do not update tick for proper rendering
         assert(Data.Positions.size() > ModState.Track.Position);
         RenderData(chunk);
-        if (!STCTrack::UpdateState(Data, ModState, false))
+        if (!STCTrack::UpdateState(Data, ModState, Sound::LOOP_NONE))
         {
           break;
         }
@@ -628,10 +624,10 @@ namespace
     {
       try
       {
-        if (const Parameters::IntType* const type = Parameters::FindByName<Parameters::IntType>(params,
-          Parameters::ZXTune::Core::AYM::TYPE))
+        Parameters::IntType intParam = 0;
+        if (Parameters::FindByName(params, Parameters::ZXTune::Core::AYM::TYPE, intParam))
         {
-          YMChip = 0 != (*type & 1);//only one chip
+          YMChip = 0 != (intParam & 1);//only one chip
         }
         if (const Parameters::StringType* const table = Parameters::FindByName<Parameters::StringType>(params,
           Parameters::ZXTune::Core::AYM::TABLE))
@@ -789,7 +785,6 @@ namespace
     FrequencyTable FreqTable;
     bool YMChip;
     AYM::Chip::Ptr Device;
-    bool Looped;
     PlaybackState CurrentState;
     STCTrack::ModuleState ModState;
     boost::array<ChannelState, AYM::CHANNELS> ChanState;

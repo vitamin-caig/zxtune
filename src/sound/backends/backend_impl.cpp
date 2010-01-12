@@ -99,30 +99,36 @@ namespace
   
   void CopyInitialParameters(const RenderParameters& renderParams, Parameters::Map& commonParams)
   {
+    Parameters::IntType intVal = 0;
     commonParams[Parameters::ZXTune::Sound::FREQUENCY] = renderParams.SoundFreq;
-    assert(Parameters::FindByName<Parameters::IntType>(commonParams, Parameters::ZXTune::Sound::FREQUENCY));
+    assert(Parameters::FindByName(commonParams, Parameters::ZXTune::Sound::FREQUENCY, intVal));
     commonParams[Parameters::ZXTune::Sound::CLOCKRATE] = renderParams.ClockFreq;
-    assert(Parameters::FindByName<Parameters::IntType>(commonParams, Parameters::ZXTune::Sound::CLOCKRATE));
+    assert(Parameters::FindByName(commonParams, Parameters::ZXTune::Sound::CLOCKRATE, intVal));
     commonParams[Parameters::ZXTune::Sound::FRAMEDURATION] = renderParams.FrameDurationMicrosec;
-    assert(Parameters::FindByName<Parameters::IntType>(commonParams, Parameters::ZXTune::Sound::FRAMEDURATION));
+    assert(Parameters::FindByName(commonParams, Parameters::ZXTune::Sound::FRAMEDURATION, intVal));
+    intVal = renderParams.Looping;
+    commonParams[Parameters::ZXTune::Sound::LOOPMODE] = intVal;
+    assert(Parameters::FindByName(commonParams, Parameters::ZXTune::Sound::FRAMEDURATION, intVal));
   }
   
   void UpdateRenderParameters(const Parameters::Map& updates, RenderParameters& renderParams)
   {
-    if (const Parameters::IntType* freq = 
-      Parameters::FindByName<Parameters::IntType>(updates, Parameters::ZXTune::Sound::FREQUENCY))
+    Parameters::IntType intVal = 0;
+    if (Parameters::FindByName(updates, Parameters::ZXTune::Sound::FREQUENCY, intVal))
     {
-      renderParams.SoundFreq = static_cast<unsigned>(*freq);
+      renderParams.SoundFreq = static_cast<unsigned>(intVal);
     }
-    if (const Parameters::IntType* clock = 
-      Parameters::FindByName<Parameters::IntType>(updates, Parameters::ZXTune::Sound::CLOCKRATE))
+    if (Parameters::FindByName(updates, Parameters::ZXTune::Sound::CLOCKRATE, intVal))
     {
-      renderParams.ClockFreq = static_cast<uint64_t>(*clock);
+      renderParams.ClockFreq = static_cast<uint64_t>(intVal);
     }
-    if (const Parameters::IntType* frame = 
-      Parameters::FindByName<Parameters::IntType>(updates, Parameters::ZXTune::Sound::FRAMEDURATION))
+    if (Parameters::FindByName(updates, Parameters::ZXTune::Sound::FRAMEDURATION, intVal))
     {
-      renderParams.FrameDurationMicrosec = static_cast<unsigned>(*frame);
+      renderParams.FrameDurationMicrosec = static_cast<unsigned>(intVal);
+    }
+    if (Parameters::FindByName(updates, Parameters::ZXTune::Sound::LOOPMODE, intVal))
+    {
+      renderParams.Looping = static_cast<LoopMode>(intVal);
     }
   }
   

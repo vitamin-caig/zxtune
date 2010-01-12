@@ -38,6 +38,12 @@ namespace Parameters
       {
         'z','x','t','u','n','e','.','s','o','u','n','d','.','f','r','a','m','e','d','u','r','a','t','i','o','n','\0'
       };
+      //! LoopMode
+      const IntType LOOPMODE_DEFAULT = 0;
+      const Char LOOPMODE[] =
+      {
+        'z','x','t','u','n','e','.','s','o','u','n','d','.','l','o','o','p','m','o','d','e','\0'
+      };
     }
   }
 }

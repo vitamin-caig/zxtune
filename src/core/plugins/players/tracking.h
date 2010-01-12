@@ -13,6 +13,8 @@ Author:
 #define __CORE_PLUGINS_PLAYERS_TRACKING_H_DEFINED__
 
 #include <core/module_types.h>
+// for LoopMode
+#include <sound/render_params.h>
 
 #include <boost/array.hpp>
 #include <boost/optional.hpp>
@@ -156,7 +158,7 @@ namespace ZXTune
             loopFrame = state.Frame;
           }
         }
-        while (UpdateState(data, state, false));
+        while (UpdateState(data, state, Sound::LOOP_NONE));
         framesCount = state.Frame;
       }
        
@@ -177,7 +179,7 @@ namespace ZXTune
         }
       }
       
-      static inline bool UpdateState(const ModuleData& data, ModuleState& state, bool looped)
+      static inline bool UpdateState(const ModuleData& data, ModuleState& state, Sound::LoopMode loopMode)
       {
         //update tick outside of this func
         ++state.Frame;
@@ -195,13 +197,21 @@ namespace ZXTune
             {
               --trackState.Position;
               //check if looped
-              if (!looped)
+              //do not reset ticks in state!!!
+              if (Sound::LOOP_NORMAL == loopMode)
+              {
+                state.Frame = data.Info.LoopFrame;
+                trackState.Position = data.Info.LoopPosition;
+              }
+              else if (Sound::LOOP_BEGIN == loopMode)
+              {
+                state.Frame = 0;
+                trackState.Position = 0;
+              }
+              else
               {
                 return false;
               }
-              //do not reset ticks in state!!!
-              state.Frame = data.Info.LoopFrame;
-              trackState.Position = data.Info.LoopPosition;
             }
             trackState.Pattern = data.Positions[trackState.Position];
           }

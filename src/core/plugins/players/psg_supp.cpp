@@ -190,7 +190,6 @@ namespace
        , CurrentState(MODULE_STOPPED)
        , TickCount()
        , Position(Storage.begin())
-       , Looped()
     {
     }
 
@@ -220,15 +219,15 @@ namespace
         {
           return Error(THIS_LINE, ERROR_MODULE_END, TEXT_MODULE_ERROR_MODULE_END);
         }
-        if (Looped)
-        {
-          Position = Storage.begin();
-        }
-        else
+        if (Sound::LOOP_NONE == params.Looping)
         {
           receiver.Flush();
           state = CurrentState = MODULE_STOPPED;
           return Error();
+        }
+        else
+        {
+          Position = Storage.begin();
         }
       }
       assert(Device.get());

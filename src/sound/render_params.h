@@ -17,6 +17,14 @@ namespace ZXTune
 {
   namespace Sound
   {
+    /// Looping mode
+    enum LoopMode
+    {
+      LOOP_NONE = 0,
+      LOOP_NORMAL,
+      LOOP_BEGIN
+    };
+
     /// Input parameters for rendering
     struct RenderParameters
     {
@@ -25,6 +33,7 @@ namespace ZXTune
         : ClockFreq(Parameters::ZXTune::Sound::CLOCKRATE_DEFAULT)
         , SoundFreq(Parameters::ZXTune::Sound::FREQUENCY_DEFAULT)
         , FrameDurationMicrosec(Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT)
+        , Looping(static_cast<LoopMode>(Parameters::ZXTune::Sound::LOOPMODE_DEFAULT))
       {
       }
     
@@ -34,6 +43,8 @@ namespace ZXTune
       unsigned SoundFreq;
       /// Frame duration in us
       unsigned FrameDurationMicrosec;
+      /// Loop mode
+      LoopMode Looping;
 
       /// Helper functions
       unsigned ClocksPerFrame() const
