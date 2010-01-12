@@ -193,10 +193,12 @@ namespace ZXTune
         holder->GetModuleInformation(modInfo);
         CheckChannels(modInfo.PhysicalChannels);
         
-        Module::Player::Ptr tmpPlayer(new SafePlayerWrapper(holder->CreatePlayer()));
         Locker lock(PlayerMutex);
-        StopPlayback();
-        Player.swap(tmpPlayer);
+        {
+          Module::Player::Ptr tmpPlayer(new SafePlayerWrapper(holder->CreatePlayer()));
+          StopPlayback();
+          Player = tmpPlayer;
+        }
 
         Channels = modInfo.PhysicalChannels;
         CurrentState = STOPPED;
@@ -218,7 +220,6 @@ namespace ZXTune
     Module::Player::ConstWeakPtr BackendImpl::GetPlayer() const
     {
       Locker lock(PlayerMutex);
-      assert(Player);
       return boost::weak_ptr<const Module::Player>(Player);
     }
     
@@ -452,7 +453,6 @@ namespace ZXTune
       {
         throw Error(THIS_LINE, BACKEND_CONTROL_ERROR, TEXT_SOUND_ERROR_BACKEND_INVALID_STATE);
       }
-      assert(Player);
     }
 
     void BackendImpl::StopPlayback()

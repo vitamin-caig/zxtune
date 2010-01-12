@@ -149,7 +149,7 @@ inline bool in_range(T val, T min, T max)
 }
 
 template<class T>
-inline T align(T val, std::size_t alignment)
+inline T align(T val, T alignment)
 {
   BOOST_STATIC_ASSERT(boost::is_arithmetic<T>::value);
   return alignment * ((val - 1) / alignment + 1);

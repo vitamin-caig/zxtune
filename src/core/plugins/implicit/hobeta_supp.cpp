@@ -37,8 +37,7 @@ namespace
     uint8_t Filename[8];
     uint8_t Filetype[3];
     uint16_t Length;
-    uint8_t Zero;
-    uint8_t SizeInSectors;
+    uint16_t FullLength;
     uint16_t CRC;
   } PACK_POST;
 #ifdef USE_PRAGMA_PACK
@@ -50,7 +49,7 @@ namespace
   const unsigned HOBETA_MAX_SIZE = 0xff00;
 
   //////////////////////////////////////////////////////////////////////////
-  bool ProcessHobeta(const Parameters::Map& /*commonParams*/, const MetaContainer& input, 
+  bool ProcessHobeta(const Parameters::Map& /*commonParams*/, const MetaContainer& input,
     IO::DataContainer::Ptr& output, ModuleRegion& region)
   {
     const IO::DataContainer& inputData(*input.Data);
@@ -58,16 +57,21 @@ namespace
     const uint8_t* const data(static_cast<const uint8_t*>(inputData.Data()));
     const Header* const header(safe_ptr_cast<const Header*>(data));
     const unsigned dataSize(fromLE(header->Length));
+    const unsigned fullSize(fromLE(header->FullLength));
     if (dataSize < HOBETA_MIN_SIZE ||
         dataSize > HOBETA_MAX_SIZE ||
-        dataSize + sizeof(*header) > limit)
+        dataSize + sizeof(*header) > limit ||
+        fullSize != align(dataSize, 256u) ||
+        header->Filetype + 1 != std::find_if(header->Filename, header->Filetype + 1, 
+          std::bind2nd(std::less<uint8_t>(), uint8_t(' ')))
+        )
     {
       return false;
     }
     if (fromLE(header->CRC) == ((105 + 257 * std::accumulate(data, data + 15, 0u)) & 0xffff))
     {
       region.Offset = 0;
-      region.Size = dataSize + sizeof(*header);
+      region.Size = fullSize + sizeof(*header);
       output = inputData.GetSubcontainer(sizeof(*header), dataSize);
       return true;
     }

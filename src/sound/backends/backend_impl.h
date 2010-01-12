@@ -85,7 +85,7 @@ namespace ZXTune
       Error RenderError;
       //context
       unsigned Channels;
-      boost::shared_ptr<Module::Player> Player;
+      Module::Player::Ptr Player;
       Converter::Ptr FilterObject;
       std::vector<Mixer::Ptr> MixersSet;
       Receiver::Ptr Renderer;

@@ -26,6 +26,8 @@ Author:
 #include <io/container.h>
 #include <sound/render_params.h>
 
+#include <cctype>
+
 #include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
 
@@ -440,8 +442,9 @@ namespace
       
       //meta properties
       ExtractMetaProperties(STC_PLUGIN_ID, container, region, Data.Info.Properties, RawData);
-      Data.Info.Properties.insert(StringMap::value_type(Module::ATTR_PROGRAM,
-        String(header->Identifier, ArrayEnd(header->Identifier))));
+      String prog(header->Identifier, ArrayEnd(header->Identifier));
+      std::replace_if(prog.begin(), prog.end(), std::ptr_fun<int, int>(&std::iscntrl), '\?');
+      Data.Info.Properties.insert(StringMap::value_type(Module::ATTR_PROGRAM, prog));
       
       //tracking properties
       Data.Info.LoopPosition = 0;//not supported here
