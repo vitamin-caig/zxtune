@@ -535,7 +535,7 @@ namespace
         assert(Data.Positions.size() > ModState.Track.Position);
         RenderData(chunk);
       }
-      while (STCTrack::UpdateState(Data, ModState, false))
+      while (STCTrack::UpdateState(Data, ModState, Sound::LOOP_NONE));
       Reset();
 #endif
     }
@@ -559,7 +559,8 @@ namespace
                               PlaybackState& state,
                               Sound::MultichannelReceiver& receiver)
     {
-      if (Data.Positions.size() <= ModState.Track.Position + 1 &&
+      const bool finished(ModState.Frame >= Data.Info.Statistic.Frame);
+      if (finished &&
           MODULE_STOPPED == CurrentState)
       {
         return Error(THIS_LINE, ERROR_MODULE_END, TEXT_MODULE_ERROR_MODULE_END);
@@ -574,7 +575,7 @@ namespace
         chunk.Mask |= AYM::DataChunk::YM_CHIP;
       }
       Device->RenderData(params, chunk, receiver);
-      if (STCTrack::UpdateState(Data, ModState, params.Looping))
+      if (!finished && STCTrack::UpdateState(Data, ModState, params.Looping))
       {
         state = CurrentState = MODULE_PLAYING;
       }

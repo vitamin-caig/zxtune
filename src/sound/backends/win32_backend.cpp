@@ -56,7 +56,16 @@ namespace
   {
     if (MMSYSERR_NOERROR != res)
     {
-      throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR, TEXT_SOUND_ERROR_WIN32_BACKEND_ERROR, res);//TODO
+      std::vector<char> buffer(1024);
+      if (MMSYSERR_NOERROR == ::waveOutGetErrorText(res, &buffer[0], buffer.size()))
+      {
+        throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR, TEXT_SOUND_ERROR_WIN32_BACKEND_ERROR, 
+          String(buffer.begin(), std::find(buffer.begin(), buffer.end(), '\0')));
+      }
+      else
+      {
+        throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR, TEXT_SOUND_ERROR_WIN32_BACKEND_ERROR, res);
+      }
     }
   }
 

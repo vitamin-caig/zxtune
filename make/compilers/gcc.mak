@@ -34,13 +34,13 @@ endif
 #setup flags
 CXX_FLAGS := $(cxx_mode_flags) $(cxx_flags) -g3 \
 	$(addprefix -D, $(definitions)) \
-	-march=$(arch) \
+	-march=$(arch) -fdata-sections -ffunction-sections \
 	-funroll-loops -funsigned-char -fno-strict-aliasing \
 	-W -Wall -Wextra -ansi -pipe \
 	$(addprefix -I, $(include_dirs) $($(platform)_include_dirs))
 
 AR_FLAGS := cru
-LD_FLAGS := $(ld_mode_flags) $(ld_flags) -pipe
+LD_FLAGS := $(ld_mode_flags) $(ld_flags) -pipe --gc-sections 
 
 #specify endpoint commands
 build_obj_cmd = $(CXX) $(CXX_FLAGS) -c -MMD $< -o $@
