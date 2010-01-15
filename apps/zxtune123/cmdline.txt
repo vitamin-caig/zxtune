@@ -1,14 +1,3 @@
-< __HEADER__
-> "Generated from '$Id$'"
-
-< __RAWHEADER__
-__cpp> "#ifndef __TEXT_CMDLINE_H_DEFINED__\n"
-__cpp> "#define __TEXT_CMDLINE_H_DEFINED__\n"
-__cpp> "#include <char_type.h>\n\n"
-
-< __RAWFOOTER__
-__cpp> "#endif //__TEXT_CMDLINE_H_DEFINED__\n"
-
 +conversion.txt
 
 < TEXT_USAGE_SECTION
@@ -48,23 +37,59 @@ __cpp> "#endif //__TEXT_CMDLINE_H_DEFINED__\n"
 < TEXT_INFORMATIONAL_SECTION
 > "Information keys"
 
-< TEXT_INFO_PLUGINS_KEY
-> "plugins"
+< TEXT_INFO_LIST_PLUGINS_KEY
+> "list-plugins"
 
-< TEXT_INFO_PLUGINS_DESC
+< TEXT_INFO_LIST_PLUGINS_DESC
 > "show the list of supported plugins"
 
-< TEXT_INFO_BACKENDS_KEY
-> "backends"
+< TEXT_INFO_LIST_PLUGINS_TITLE
+> "Supported plugins:"
 
-< TEXT_INFO_BACKENDS_DESC
+< TEXT_INFO_LIST_BACKENDS_KEY
+> "list-backends"
+
+< TEXT_INFO_LIST_BACKENDS_DESC
 > "show the list of supported backends"
 
-< TEXT_INFO_PROVIDERS_KEY
-> "providers"
+< TEXT_INFO_LIST_BACKENDS_TITLE
+> "Supported backends:"
 
-< TEXT_INFO_PROVIDERS_DESC
-> "show the list of supported i/o providers"
+< TEXT_INFO_LIST_PROVIDERS_KEY
+> "list-providers"
+
+< TEXT_INFO_LIST_PROVIDERS_DESC
+> "show the list of supported IO providers"
+
+< TEXT_INFO_LIST_PROVIDERS_TITLE
+> "Supported IO providers"
+
+< TEXT_INFO_LIST_OPTIONS_KEY
+> "list-options"
+
+< TEXT_INFO_LIST_OPTIONS_DESC
+> "show the list of supported options"
+
+< TEXT_INFO_LIST_OPTIONS_TITLE
+> "Supported zxtune options:"
+
+< TEXT_INFO_LIST_ATTRIBUTES_KEY
+> "list-attributes"
+
+< TEXT_INFO_LIST_ATTRIBUTES_DESC
+> "show the list of supported attributes"
+
+< TEXT_INFO_LIST_ATTRIBUTES_TITLE
+> "Supported module attributes:"
+
+< TEXT_INFO_LIST_FREQTABLES_KEY
+> "list-freqtables"
+
+< TEXT_INFO_LIST_FREQTABLES_DESC
+> "show the list of supported frequency tables"
+
+< TEXT_INFO_LIST_FREQTABLES_TITLE
+> "Supported frequency tables: "
 
 < TEXT_SOUND_SECTION
 > "Sound options"

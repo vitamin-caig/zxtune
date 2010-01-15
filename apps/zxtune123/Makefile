@@ -8,7 +8,8 @@ else
 source_files += console_$(platform)
 endif
 
-text_files := messages cmdline
+text_files := text
+other_text_files := cmdline messages conversion
 
 libraries := core sound tools io texts
 depends := text src/tools src/core src/sound src/io

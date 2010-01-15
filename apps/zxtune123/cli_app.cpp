@@ -26,8 +26,7 @@
 #include <iostream>
 #include <limits>
 
-#include "cmdline.h"
-#include "messages.h"
+#include "text.h"
 
 #define FILE_TAG 81C76E7D
 

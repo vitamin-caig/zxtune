@@ -1,14 +1,3 @@
-< __HEADER__
-> "Generated from '$Id$'"
-
-< __RAWHEADER__
-__cpp> "#ifndef __TEXT_MESSAGES_H_DEFINED__\n"
-__cpp> "#define __TEXT_MESSAGES_H_DEFINED__\n"
-__cpp> "#include <char_type.h>\n\n"
-
-< __RAWFOOTER__
-__cpp> "#endif //__TEXT_MESSAGES_H_DEFINED__\n"
-
 < TEXT_INFO_CAP_DEVICES
 > "Devices:"
 
@@ -70,6 +59,106 @@ __cpp> "#endif //__TEXT_MESSAGES_H_DEFINED__\n"
 > "Description: %2%\n"
 > "Version:     %3%\n"
 
+< TEXT_INFO_OPTION_INFO
+> " %|1$-40|- %2%.\n"
+
+< TEXT_INFO_OPTION_INFO_DEFAULTS
+> " %|1$-40|- %2% (default value is %3%).\n"
+
+< TEXT_INFO_ATTRIBUTE_INFO
+> "  %|1$-20|- %2%\n"
+
+< TEXT_INFO_OPTIONS_IO_PROVIDERS_TITLE
+> " IO providers options:"
+
+< TEXT_INFO_OPTIONS_IO_PROVIDERS_FILE_MMAP_THRESHOLD
+> "minimal size for use memory mapping"
+
+< TEXT_INFO_OPTIONS_SOUND_TITLE
+> " Sound options:"
+
+< TEXT_INFO_OPTIONS_SOUND_FREQUENCY
+> "sound frequency in Hz"
+
+< TEXT_INFO_OPTIONS_SOUND_CLOCKRATE
+> "clock rate for PSG in Hz"
+
+< TEXT_INFO_OPTIONS_SOUND_FRAMEDURATION
+> "frame duration in microseconds"
+
+< TEXT_INFO_OPTIONS_SOUND_LOOPMODE
+> "loop mode while playback (0- none, 1- normal, 2- from beginning)"
+
+< TEXT_INFO_OPTIONS_SOUND_BACKENDS_TITLE
+> " Sound backends options:"
+
+< TEXT_INFO_OPTIONS_SOUND_BACKENDS_WAV_FILENAME
+> "filename template to save wav file (see --" TEXT_INFO_LIST_ATTRIBUTES_KEY " command)"
+
+< TEXT_INFO_OPTIONS_SOUND_BACKENDS_WIN32_DEVICE
+> "device index for win32 backend"
+
+< TEXT_INFO_OPTIONS_SOUND_BACKENDS_OSS_DEVICE
+> "playback device for OSS backend"
+
+< TEXT_INFO_OPTIONS_SOUND_BACKENDS_OSS_MIXER
+> "mixer device for OSS backend"
+
+< TEXT_INFO_OPTIONS_CORE_TITLE
+> " Core options:"
+
+< TEXT_INFO_OPTIONS_CORE_AYM_TYPE
+> "chip type for playback. Each bit switches on YM chip for respectively device"
+
+< TEXT_INFO_OPTIONS_CORE_AYM_TABLE
+> "frequency table name to use in AY-based players. Can be name (--" TEXT_INFO_LIST_FREQTABLES_KEY ") or dump. Use '~' to revert"
+
+< TEXT_INFO_OPTIONS_CORE_PLUGINS_TITLE
+> " Core plugins options:"
+
+< TEXT_INFO_OPTIONS_CORE_PLUGINS_RAW_SCAN_STEP
+> "scanning step in bytes"
+
+< TEXT_INFO_ATTRIBUTES_TYPE
+> "module type (plugin id)"
+
+< TEXT_INFO_ATTRIBUTES_CONTAINER
+> "nested containers chain"
+
+< TEXT_INFO_ATTRIBUTES_SUBPATH
+> "module subpath in top-level data container"
+
+< TEXT_INFO_ATTRIBUTES_AUTHOR
+> "module author"
+
+< TEXT_INFO_ATTRIBUTES_TITLE
+> "module title"
+
+< TEXT_INFO_ATTRIBUTES_PROGRAM
+> "program module was created"
+
+< TEXT_INFO_ATTRIBUTES_COMPUTER
+> "computer-specific information about module"
+
+< TEXT_INFO_ATTRIBUTES_DATE
+> "module date information"
+
+< TEXT_INFO_ATTRIBUTES_COMMENT
+> "embedded module comment"
+
+< TEXT_INFO_ATTRIBUTES_WARNINGS
+> "warnings about module structure (multistring)"
+
+< TEXT_INFO_ATTRIBUTES_WARNINGS_COUNT
+> "module structure warnings count"
+
+< TEXT_INFO_ATTRIBUTES_CRC
+> "original module data crc32 checksum"
+
+< TEXT_INFO_ATTRIBUTES_SIZE
+> "original module data size"
+
+#runtime texts
 < TEXT_PLAYBACK_STATUS
 > "[%1%] [%2%]\n\n"
 
