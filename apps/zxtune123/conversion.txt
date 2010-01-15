@@ -1,0 +1,25 @@
+#convertion-related include texts
+
+#modes
+< CONVERSION_MODE_RAW
+> "raw"
+
+< CONVERSION_MODE_PSG
+> "psg"
+
+< CONVERSION_MODE_ALL
+> CONVERSION_MODE_RAW "," CONVERSION_MODE_PSG
+
+#parameters
+< CONVERSION_PARAM_MODE
+> "mode"
+
+< CONVERSION_PARAM_FILENAME
+> "name"
+
+#fields
+< CONVERSION_FIELD_FULLPATH
+> "fullpath"
+
+< CONVERSION_FIELD_ESCAPEDPATH
+> "escapedpath"

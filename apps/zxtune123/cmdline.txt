@@ -9,6 +9,8 @@ __cpp> "#include <char_type.h>\n\n"
 < __RAWFOOTER__
 __cpp> "#endif //__TEXT_CMDLINE_H_DEFINED__\n"
 
++conversion.txt
+
 < TEXT_USAGE_SECTION
 > "Usage:\n"
 > "%1% <" TEXT_INFORMATIONAL_SECTION ">\n"
@@ -25,13 +27,23 @@ __cpp> "#endif //__TEXT_CMDLINE_H_DEFINED__\n"
 > "providers-options"
 
 < TEXT_IO_PROVIDERS_OPTS_DESC
-> "options for i/o providers"
+> "options for i/o providers. Implies 'zxtune.io.providers.' prefix to all options in map."
 
 < TEXT_CORE_OPTS_KEY
 > "core-options"
 
 < TEXT_CORE_OPTS_DESC
-> "options for core"
+> "options for core. Implies 'zxtune.core.' prefix to all options in map."
+
+< TEXT_CONVERT_KEY
+> "convert"
+
+< TEXT_CONVERT_DESC
+> "Perform conversion instead of playback.\n"
+> "Parameter is map with the next mandatory parameters:\n"
+> " " CONVERSION_PARAM_MODE " - specify conversion mode. Currently supported are: " CONVERSION_MODE_ALL "\n"
+> " " CONVERSION_PARAM_FILENAME " - filename template with fields, ["
+> CONVERSION_FIELD_FULLPATH "] and [" CONVERSION_FIELD_ESCAPEDPATH "] and any module's parameters."
 
 < TEXT_INFORMATIONAL_SECTION
 > "Information keys"

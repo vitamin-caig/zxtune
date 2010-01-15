@@ -23,6 +23,7 @@ namespace
     
     static const CapsPair KNOWN_CAPS[] = {
       //device caps
+      CapsPair(ZXTune::CAP_DEVICE_MASK, TEXT_INFO_CAP_DEVICES),
       CapsPair(ZXTune::CAP_DEV_AYM, TEXT_INFO_CAP_AYM),
       CapsPair(ZXTune::CAP_DEV_TS, TEXT_INFO_CAP_TS),
       CapsPair(ZXTune::CAP_DEV_BEEPER, TEXT_INFO_CAP_BEEPER),
@@ -31,13 +32,16 @@ namespace
       CapsPair(ZXTune::CAP_DEV_2DAC, TEXT_INFO_CAP_DAC2),
       CapsPair(ZXTune::CAP_DEV_4DAC, TEXT_INFO_CAP_DAC4),
       //storage caps
+      CapsPair(ZXTune::CAP_STORAGE_MASK, TEXT_INFO_CAP_STORAGES),
       CapsPair(ZXTune::CAP_STOR_MODULE, TEXT_INFO_CAP_MODULE),
       CapsPair(ZXTune::CAP_STOR_CONTAINER, TEXT_INFO_CAP_CONTAINER),
       CapsPair(ZXTune::CAP_STOR_MULTITRACK, TEXT_INFO_CAP_MULTITRACK),
       CapsPair(ZXTune::CAP_STOR_SCANER, TEXT_INFO_CAP_SCANER),
       CapsPair(ZXTune::CAP_STOR_PLAIN, TEXT_INFO_CAP_PLAIN),
       //conversion caps
-      CapsPair(ZXTune::CAP_CONV_RAW, TEXT_INFO_CAP_RAW)
+      CapsPair(ZXTune::CAP_CONVERSION_MASK, TEXT_INFO_CAP_CONVERSION),
+      CapsPair(ZXTune::CAP_CONV_RAW, CONVERSION_MODE_RAW),
+      CapsPair(ZXTune::CAP_CONV_PSG, CONVERSION_MODE_PSG)
     };
     
     String result;

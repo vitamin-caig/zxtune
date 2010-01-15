@@ -3,6 +3,27 @@
 #define __TEXT_CMDLINE_H_DEFINED__
 #include <char_type.h>
 
+extern const Char CONVERSION_FIELD_ESCAPEDPATH[] = {
+  'e','s','c','a','p','e','d','p','a','t','h',0
+};
+extern const Char CONVERSION_FIELD_FULLPATH[] = {
+  'f','u','l','l','p','a','t','h',0
+};
+extern const Char CONVERSION_MODE_ALL[] = {
+  'r','a','w',',','p','s','g',0
+};
+extern const Char CONVERSION_MODE_PSG[] = {
+  'p','s','g',0
+};
+extern const Char CONVERSION_MODE_RAW[] = {
+  'r','a','w',0
+};
+extern const Char CONVERSION_PARAM_FILENAME[] = {
+  'n','a','m','e',0
+};
+extern const Char CONVERSION_PARAM_MODE[] = {
+  'm','o','d','e',0
+};
 extern const Char TEXT_ANALYZER_DESC[] = {
   'e','n','a','b','l','e',' ','s','p','e','c','t','r','u','m',' ','a','n','a','l','y','z','e','r',0
 };
@@ -27,8 +48,26 @@ extern const Char TEXT_CLOCKRATE_DESC[] = {
 extern const Char TEXT_CLOCKRATE_KEY[] = {
   'c','l','o','c','k','r','a','t','e',0
 };
+extern const Char TEXT_CONVERT_DESC[] = {
+  'P','e','r','f','o','r','m',' ','c','o','n','v','e','r','s','i','o','n',' ','i','n','s','t','e','a','d',' ',
+  'o','f',' ','p','l','a','y','b','a','c','k','.','\n',
+  'P','a','r','a','m','e','t','e','r',' ','i','s',' ','m','a','p',' ','w','i','t','h',' ','t','h','e',' ','n',
+  'e','x','t',' ','m','a','n','d','a','t','o','r','y',' ','p','a','r','a','m','e','t','e','r','s',':','\n',
+  ' ','m','o','d','e',' ','-',' ','s','p','e','c','i','f','y',' ','c','o','n','v','e','r','s','i','o','n',' ',
+  'm','o','d','e','.',' ','C','u','r','r','e','n','t','l','y',' ','s','u','p','p','o','r','t','e','d',' ','a',
+  'r','e',':',' ','r','a','w',',','p','s','g','\n',
+  ' ','n','a','m','e',' ','-',' ','f','i','l','e','n','a','m','e',' ','t','e','m','p','l','a','t','e',' ','w',
+  'i','t','h',' ','f','i','e','l','d','s',',',' ','[','f','u','l','l','p','a','t','h',']',' ','a','n','d',' ',
+  '[','e','s','c','a','p','e','d','p','a','t','h',']',' ','a','n','d',' ','a','n','y',' ','m','o','d','u','l',
+  'e','\'','s',' ','p','a','r','a','m','e','t','e','r','s','.',0
+};
+extern const Char TEXT_CONVERT_KEY[] = {
+  'c','o','n','v','e','r','t',0
+};
 extern const Char TEXT_CORE_OPTS_DESC[] = {
-  'o','p','t','i','o','n','s',' ','f','o','r',' ','c','o','r','e',0
+  'o','p','t','i','o','n','s',' ','f','o','r',' ','c','o','r','e','.',' ','I','m','p','l','i','e','s',' ','\'',
+  'z','x','t','u','n','e','.','c','o','r','e','.','\'',' ','p','r','e','f','i','x',' ','t','o',' ','a','l','l',
+  ' ','o','p','t','i','o','n','s',' ','i','n',' ','m','a','p','.',0
 };
 extern const Char TEXT_CORE_OPTS_KEY[] = {
   'c','o','r','e','-','o','p','t','i','o','n','s',0
@@ -93,7 +132,10 @@ extern const Char TEXT_INPUT_SECTION[] = {
   'I','n','p','u','t',' ','o','p','t','i','o','n','s',0
 };
 extern const Char TEXT_IO_PROVIDERS_OPTS_DESC[] = {
-  'o','p','t','i','o','n','s',' ','f','o','r',' ','i','/','o',' ','p','r','o','v','i','d','e','r','s',0
+  'o','p','t','i','o','n','s',' ','f','o','r',' ','i','/','o',' ','p','r','o','v','i','d','e','r','s','.',' ',
+  'I','m','p','l','i','e','s',' ','\'','z','x','t','u','n','e','.','i','o','.','p','r','o','v','i','d','e','r',
+  's','.','\'',' ','p','r','e','f','i','x',' ','t','o',' ','a','l','l',' ','o','p','t','i','o','n','s',' ','i',
+  'n',' ','m','a','p','.',0
 };
 extern const Char TEXT_IO_PROVIDERS_OPTS_KEY[] = {
   'p','r','o','v','i','d','e','r','s','-','o','p','t','i','o','n','s',0

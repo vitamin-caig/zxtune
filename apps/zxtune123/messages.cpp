@@ -6,6 +6,29 @@
 extern const Char TEXT_COMMON_ERROR[] = {
   'E','r','r','o','r',':',' ','%','1','%',0
 };
+extern const Char TEXT_CONVERT_DONE[] = {
+  'C','o','n','v','e','r','t','e','d',' ','\'','%','1','%','\'',' ','=','>',' ','\'','%','2','%','\'',0
+};
+extern const Char TEXT_CONVERT_ERROR_INVALID_MODE[] = {
+  'U','n','k','n','o','w','n',' ','c','o','n','v','e','r','s','i','o','n',' ','m','o','d','e',' ','s','p','e',
+  'c','i','f','i','e','d','.',0
+};
+extern const Char TEXT_CONVERT_ERROR_NO_FILENAME[] = {
+  'O','u','t','p','u','t',' ','f','i','l','e','n','a','m','e',' ','t','e','m','p','l','a','t','e',' ','i','s',
+  ' ','n','o','t',' ','s','p','e','c','i','f','i','e','d','.',0
+};
+extern const Char TEXT_CONVERT_ERROR_NO_MODE[] = {
+  'C','o','n','v','e','r','s','i','o','n',' ','m','o','d','e',' ','i','s',' ','n','o','t',' ','s','p','e','c',
+  'i','f','i','e','d','.',0
+};
+extern const Char TEXT_CONVERT_ERROR_WRITE_FILE[] = {
+  'F','a','i','l','e','d',' ','t','o',' ','w','r','i','t','e',' ','f','i','l','e',' ','\'','%','1','%','\'','.',0
+};
+extern const Char TEXT_CONVERT_SKIPPED[] = {
+  'S','k','i','p','p','i','n','g',' ','\'','%','1','%','\'',' ','(','p','l','u','g','i','n',' ','\'','%','2',
+  '%','\'',')',' ','d','u','e',' ','t','o',' ','c','o','n','v','e','r','t',' ','i','m','p','o','s','s','i','b',
+  'i','l','i','t','y','.',0
+};
 extern const Char TEXT_INFO_BACKEND_INFO[] = {
   'B','a','c','k','e','n','d',':',' ',' ',' ',' ',' ','%','1','%','\n',
   'D','e','s','c','r','i','p','t','i','o','n',':',' ','%','2','%','\n',
@@ -17,10 +40,13 @@ extern const Char TEXT_INFO_CAP_AYM[] = {
   'A','Y','M',0
 };
 extern const Char TEXT_INFO_CAP_BEEPER[] = {
-  'B','E','E','P','E','R',0
+  'B','e','e','p','e','r',0
 };
 extern const Char TEXT_INFO_CAP_CONTAINER[] = {
-  'C','O','N','T','A','I','N','E','R',0
+  'c','o','n','t','a','i','n','e','r',0
+};
+extern const Char TEXT_INFO_CAP_CONVERSION[] = {
+  'C','o','n','v','e','r','s','i','o','n',':',0
 };
 extern const Char TEXT_INFO_CAP_DAC1[] = {
   'D','A','C','1',0
@@ -31,23 +57,26 @@ extern const Char TEXT_INFO_CAP_DAC2[] = {
 extern const Char TEXT_INFO_CAP_DAC4[] = {
   'D','A','C','4',0
 };
+extern const Char TEXT_INFO_CAP_DEVICES[] = {
+  'D','e','v','i','c','e','s',':',0
+};
 extern const Char TEXT_INFO_CAP_FM[] = {
   'F','M',0
 };
 extern const Char TEXT_INFO_CAP_MODULE[] = {
-  'M','O','D','U','L','E',0
+  'm','o','d','u','l','e',0
 };
 extern const Char TEXT_INFO_CAP_MULTITRACK[] = {
-  'M','U','L','T','I','T','R','A','C','K',0
+  'm','u','l','t','i','t','r','a','c','k',0
 };
 extern const Char TEXT_INFO_CAP_PLAIN[] = {
-  'P','L','A','I','N',0
-};
-extern const Char TEXT_INFO_CAP_RAW[] = {
-  'R','A','W',0
+  'p','l','a','i','n',0
 };
 extern const Char TEXT_INFO_CAP_SCANER[] = {
-  'S','C','A','N','E','R',0
+  's','c','a','n','e','r',0
+};
+extern const Char TEXT_INFO_CAP_STORAGES[] = {
+  'C','o','n','t','e','n','t',':',0
 };
 extern const Char TEXT_INFO_CAP_TS[] = {
   'T','S',0
@@ -85,11 +114,11 @@ extern const Char TEXT_PLAYBACK_STATUS[] = {
   0
 };
 extern const Char TEXT_TRACKING_STATUS[] = {
-  'P','o','s','i','t','i','o','n',':',' ','%','1','%',' ',' ','\t','\t','P','a','t','t','e','r','n',':',' ',' ',
+  'P','o','s','i','t','i','o','n',':',' ','%','|','1','$','-','6','|','P','a','t','t','e','r','n',':',' ',' ',
   '%','2','%',' ',' ','\n',
-  'L','i','n','e',':',' ',' ',' ',' ',' ','%','3','%',' ',' ','\t','\t','F','r','a','m','e',':',' ',' ',' ',' ',
+  'L','i','n','e',':',' ',' ',' ',' ',' ','%','|','3','$','-','6','|','F','r','a','m','e',':',' ',' ',' ',' ',
   '%','4','%',' ',' ','\n',
-  'T','e','m','p','o',':',' ',' ',' ',' ','%','5','%',' ',' ','\t','\t','C','h','a','n','n','e','l','s',':',' ',
+  'T','e','m','p','o',':',' ',' ',' ',' ','%','|','5','$','-','6','|','C','h','a','n','n','e','l','s',':',' ',
   '%','6','%',' ',' ','\n',
   '\n',
   0

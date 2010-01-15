@@ -3,6 +3,13 @@
 #define __TEXT_CMDLINE_H_DEFINED__
 #include <char_type.h>
 
+extern const Char CONVERSION_FIELD_ESCAPEDPATH[];
+extern const Char CONVERSION_FIELD_FULLPATH[];
+extern const Char CONVERSION_MODE_ALL[];
+extern const Char CONVERSION_MODE_PSG[];
+extern const Char CONVERSION_MODE_RAW[];
+extern const Char CONVERSION_PARAM_FILENAME[];
+extern const Char CONVERSION_PARAM_MODE[];
 extern const Char TEXT_ANALYZER_DESC[];
 extern const Char TEXT_ANALYZER_KEY[];
 extern const Char TEXT_CACHE_DESC[];
@@ -10,6 +17,8 @@ extern const Char TEXT_CACHE_KEY[];
 extern const Char TEXT_CLI_SECTION[];
 extern const Char TEXT_CLOCKRATE_DESC[];
 extern const Char TEXT_CLOCKRATE_KEY[];
+extern const Char TEXT_CONVERT_DESC[];
+extern const Char TEXT_CONVERT_KEY[];
 extern const Char TEXT_CORE_OPTS_DESC[];
 extern const Char TEXT_CORE_OPTS_KEY[];
 extern const Char TEXT_FRAMEDURATION_DESC[];

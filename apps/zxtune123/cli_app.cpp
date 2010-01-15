@@ -8,8 +8,11 @@
 
 #include <error_tools.h>
 #include <template.h>
+#include <core/convert_parameters.h>
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
+#include <core/plugin.h>
+#include <core/plugin_attrs.h>
 #include <io/providers_parameters.h>
 #include <sound/sound_parameters.h>
 
@@ -17,7 +20,9 @@
 #include <boost/program_options.hpp>
 
 #include <algorithm>
+#include <cctype>
 #include <functional>
+#include <fstream>
 #include <iostream>
 #include <limits>
 
@@ -119,6 +124,98 @@ namespace
     std::cout << std::flush;
   }
   
+  class Convertor
+  {
+  public:
+    Convertor(const String& paramsStr, bool silent)
+      : Silent(silent)
+    {
+      assert(!paramsStr.empty());
+      Parameters::Map paramsMap;
+      ThrowIfError(ParseParametersString(String(), paramsStr, paramsMap));
+      Parameters::StringType mode;
+      if (!Parameters::FindByName(paramsMap, CONVERSION_PARAM_MODE, mode))
+      {
+        throw Error(THIS_LINE, CONVERT_PARAMETERS, TEXT_CONVERT_ERROR_NO_MODE);
+      }
+      if (!Parameters::FindByName(paramsMap, CONVERSION_PARAM_FILENAME, NameTemplate))
+      {
+        throw Error(THIS_LINE, CONVERT_PARAMETERS, TEXT_CONVERT_ERROR_NO_FILENAME);
+      }
+      if (mode == CONVERSION_MODE_RAW)
+      {
+        ConversionParameter.reset(new ZXTune::Module::Conversion::RawConvertParam());
+        CapabilityMask = ZXTune::CAP_CONV_RAW;
+      }
+      else if (mode == CONVERSION_MODE_PSG)
+      {
+        ConversionParameter.reset(new ZXTune::Module::Conversion::PSGConvertParam());
+        CapabilityMask = ZXTune::CAP_CONV_PSG;
+      }
+      else
+      {
+        throw Error(THIS_LINE, CONVERT_PARAMETERS, TEXT_CONVERT_ERROR_INVALID_MODE);
+      }
+    }
+    void ProcessItem(const ModuleItem& item) const
+    {
+      {
+        ZXTune::PluginInformation info;
+        item.Module->GetPlayerInfo(info);
+        if (!(info.Capabilities & CapabilityMask))
+        {
+          Message(TEXT_CONVERT_SKIPPED, item.Id, info.Id);
+          return;
+        }
+      }
+      Dump result;
+      ThrowIfError(item.Module->Convert(*ConversionParameter, result));
+      //prepare result filename
+      ZXTune::Module::Information info;
+      item.Module->GetModuleInformation(info);
+      StringMap fields;
+      Parameters::ConvertMap(info.Properties, fields);
+      fields.insert(StringMap::value_type(CONVERSION_FIELD_FULLPATH, item.Id));
+      {
+        String escaped(item.Id);
+        std::replace_if(escaped.begin(), escaped.end(), std::not1(std::ptr_fun<int, int>(&std::isalnum)), Char('_'));
+        fields.insert(StringMap::value_type(CONVERSION_FIELD_ESCAPEDPATH, escaped));
+      }
+      const String& filename = InstantiateTemplate(NameTemplate, fields, SKIP_NONEXISTING);
+      std::ofstream file(filename.c_str());
+      file.write(safe_ptr_cast<const char*>(&result[0]), result.size() * sizeof(result.front()));
+      if (!file)
+      {
+        throw MakeFormattedError(THIS_LINE, CONVERT_PARAMETERS, 
+          TEXT_CONVERT_ERROR_WRITE_FILE, filename);
+      }
+      Message(TEXT_CONVERT_DONE, item.Id, filename);
+    }
+  private:
+    template<class P1, class P2>
+    void Message(const String& format, const P1& p1, const P2& p2) const
+    {
+      if (!Silent)
+      {
+        std::cout << (Formatter(format) % p1 % p2).str() << std::endl;
+      }
+    }
+
+    template<class P1, class P2, class P3>
+    void Message(const String& format, const P1& p1, const P2& p2, const P3& p3) const
+    {
+      if (!Silent)
+      {
+        std::cout << (Formatter(format) % p1 % p2 % p3).str() << std::endl;
+      }
+    }
+  private:
+    const bool Silent;
+    std::auto_ptr<ZXTune::Module::Conversion::Parameter> ConversionParameter;
+    unsigned CapabilityMask;
+    String NameTemplate;
+  };
+  
   class CLIApplication : public Application
   {
   public:
@@ -148,16 +245,24 @@ namespace
         Sourcer->Initialize();
         Sounder->Initialize();
         
-        if (Cached)
+        if (!ConvertParams.empty())
         {
-          ModuleItemsArray playlist;
-          Sourcer->ProcessItems(boost::bind(&ModuleItemsArray::push_back, boost::ref(playlist), _1));
-          std::cout << "Detected " << playlist.size() << " items" << std::endl;
-          std::for_each(playlist.begin(), playlist.end(), boost::bind(&CLIApplication::PlayItem, this, _1));
+          Convertor cnv(ConvertParams, Silent);
+          Sourcer->ProcessItems(boost::bind(&Convertor::ProcessItem, &cnv, _1));
         }
         else
         {
-          Sourcer->ProcessItems(boost::bind(&CLIApplication::PlayItem, this, _1));
+          if (Cached)
+          {
+            ModuleItemsArray playlist;
+            Sourcer->ProcessItems(boost::bind(&ModuleItemsArray::push_back, boost::ref(playlist), _1));
+            std::cout << "Detected " << playlist.size() << " items" << std::endl;
+            std::for_each(playlist.begin(), playlist.end(), boost::bind(&CLIApplication::PlayItem, this, _1));
+          }
+          else
+          {
+            Sourcer->ProcessItems(boost::bind(&CLIApplication::PlayItem, this, _1));
+          }
         }
       }
       catch (const Error& e)
@@ -183,6 +288,7 @@ namespace
           (TEXT_HELP_KEY, TEXT_HELP_DESC)
           (TEXT_IO_PROVIDERS_OPTS_KEY, boost::program_options::value<String>(&providersOptions), TEXT_IO_PROVIDERS_OPTS_DESC)
           (TEXT_CORE_OPTS_KEY, boost::program_options::value<String>(&coreOptions), TEXT_CORE_OPTS_DESC)
+          (TEXT_CONVERT_KEY, boost::program_options::value<String>(&ConvertParams), TEXT_CONVERT_DESC)
         ;
         
         options.add(Informer->GetOptionsDescription());
@@ -348,6 +454,7 @@ namespace
     }
   private:
     Parameters::Map GlobalParams;
+    String ConvertParams;
     std::auto_ptr<InformationComponent> Informer;
     std::auto_ptr<SourceComponent> Sourcer;
     std::auto_ptr<SoundComponent> Sounder;

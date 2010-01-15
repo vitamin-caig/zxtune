@@ -9,6 +9,9 @@ __cpp> "#include <char_type.h>\n\n"
 < __RAWFOOTER__
 __cpp> "#endif //__TEXT_MESSAGES_H_DEFINED__\n"
 
+< TEXT_INFO_CAP_DEVICES
+> "Devices:"
+
 < TEXT_INFO_CAP_AYM
 > "AYM"
 
@@ -16,7 +19,7 @@ __cpp> "#endif //__TEXT_MESSAGES_H_DEFINED__\n"
 > "TS"
 
 < TEXT_INFO_CAP_BEEPER
-> "BEEPER"
+> "Beeper"
 
 < TEXT_INFO_CAP_FM
 > "FM"
@@ -30,23 +33,26 @@ __cpp> "#endif //__TEXT_MESSAGES_H_DEFINED__\n"
 < TEXT_INFO_CAP_DAC4
 > "DAC4"
 
+< TEXT_INFO_CAP_STORAGES
+> "Content:"
+
 < TEXT_INFO_CAP_MODULE
-> "MODULE"
+> "module"
 
 < TEXT_INFO_CAP_CONTAINER
-> "CONTAINER"
+> "container"
 
 < TEXT_INFO_CAP_MULTITRACK
-> "MULTITRACK"
+> "multitrack"
 
 < TEXT_INFO_CAP_SCANER
-> "SCANER"
+> "scaner"
 
 < TEXT_INFO_CAP_PLAIN
-> "PLAIN"
+> "plain"
 
-< TEXT_INFO_CAP_RAW
-> "RAW"
+< TEXT_INFO_CAP_CONVERSION
+> "Conversion:"
 
 < TEXT_INFO_PLUGIN_INFO
 > "Plugin:       %1%\n"
@@ -64,16 +70,13 @@ __cpp> "#endif //__TEXT_MESSAGES_H_DEFINED__\n"
 > "Description: %2%\n"
 > "Version:     %3%\n"
 
-< TEXT_INPUT_ERROR_NO_FILES
-> "No files to process."
-
 < TEXT_PLAYBACK_STATUS
 > "[%1%] [%2%]\n\n"
 
 < TEXT_TRACKING_STATUS
-> "Position: %1%  \t\tPattern:  %2%  \n"
-> "Line:     %3%  \t\tFrame:    %4%  \n"
-> "Tempo:    %5%  \t\tChannels: %6%  \n"
+> "Position: %|1$-6|Pattern:  %2%  \n"
+> "Line:     %|3$-6|Frame:    %4%  \n"
+> "Tempo:    %|5$-6|Channels: %6%  \n"
 > "\n"
 
 < TEXT_ITEM_INFO
@@ -83,5 +86,26 @@ __cpp> "#endif //__TEXT_MESSAGES_H_DEFINED__\n"
 > "Time:  %2%\t"     "Channels:  %3%\n"
 > "\n"
 
+< TEXT_INPUT_ERROR_NO_FILES
+> "No files to process."
+
 < TEXT_COMMON_ERROR
 > "Error: %1%"
+
+< TEXT_CONVERT_ERROR_NO_MODE
+> "Conversion mode is not specified."
+
+< TEXT_CONVERT_ERROR_NO_FILENAME
+> "Output filename template is not specified."
+
+< TEXT_CONVERT_ERROR_INVALID_MODE
+> "Unknown conversion mode specified."
+
+< TEXT_CONVERT_ERROR_WRITE_FILE
+> "Failed to write file '%1%'."
+
+< TEXT_CONVERT_SKIPPED
+> "Skipping '%1%' (plugin '%2%') due to convert impossibility."
+
+< TEXT_CONVERT_DONE
+> "Converted '%1%' => '%2%'"
