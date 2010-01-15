@@ -27,6 +27,7 @@ namespace ZXTune
     class BasicReceiver
     {
     public:
+      typedef T DataType;
       typedef typename boost::shared_ptr<BasicReceiver<T> > Ptr;
       
       virtual ~BasicReceiver() {}
@@ -48,6 +49,23 @@ namespace ZXTune
     typedef BasicConverter<MultiSample> Converter;
     typedef BasicReceiver<std::vector<Sample> > MultichannelReceiver;
 
+    template<class T>
+    class DummyReceiverObject : public T
+    {
+    public:
+      DummyReceiverObject()
+      {
+      }
+      
+      virtual void ApplySample(const typename T::DataType& /*data*/)
+      {
+      }
+      
+      virtual void Flush()
+      {
+      }
+    };
+    
     Receiver::Ptr CreateDummyReceiver();
   }
 }

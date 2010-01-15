@@ -223,7 +223,7 @@ namespace
   
   // forward declaration
   class STCHolder;
-  Player::Ptr CreateSTCPlayer(boost::shared_ptr<const STCHolder> mod);
+  Player::Ptr CreateSTCPlayer(boost::shared_ptr<const STCHolder> mod, AYM::Chip::Ptr device);
 
   class STCHolder : public Holder, public boost::enable_shared_from_this<STCHolder>
   {
@@ -474,7 +474,7 @@ namespace
     
     virtual Player::Ptr CreatePlayer() const
     {
-      return CreateSTCPlayer(shared_from_this());
+      return CreateSTCPlayer(shared_from_this(), AYM::CreateChip());
     }
     
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -483,12 +483,27 @@ namespace
       if (parameter_cast<RawConvertParam>(&param))
       {
         dst = RawData;
-        return Error();
+      }
+      else if (parameter_cast<PSGConvertParam>(&param))
+      {
+        Dump tmp;
+        Player::Ptr player(CreateSTCPlayer(shared_from_this(), AYM::CreatePSGDumper(tmp)));
+        Sound::DummyReceiverObject<Sound::MultichannelReceiver> receiver;
+        Sound::RenderParameters params;
+        for (Player::PlaybackState state = Player::MODULE_PLAYING; Player::MODULE_PLAYING == state;)
+        {
+          if (const Error& err = player->RenderFrame(params, state, receiver))
+          {
+            return Error(THIS_LINE, ERROR_MODULE_CONVERT, TEXT_MODULE_ERROR_CONVERT_PSG).AddSuberror(err);
+          }
+        }
+        dst.swap(tmp);
       }
       else
       {
         return Error(THIS_LINE, ERROR_MODULE_CONVERT, TEXT_MODULE_ERROR_CONVERSION_UNSUPPORTED);
       }
+      return Error();
     }
   private:
     friend class STCPlayer;
@@ -517,12 +532,12 @@ namespace
       bool LoopedInSample;
     };
   public:
-    explicit STCPlayer(boost::shared_ptr<const STCHolder> holder)
+    STCPlayer(boost::shared_ptr<const STCHolder> holder, AYM::Chip::Ptr device)
        : Module(holder)
        , Data(Module->Data)
        , Transpositions(Module->Transpositions)
        , YMChip(false)
-       , Device(AYM::CreateChip())
+       , Device(device)
        , CurrentState(MODULE_STOPPED)
     {
       ThrowIfError(GetFreqTable(TABLE_SOUNDTRACKER, FreqTable));
@@ -791,9 +806,9 @@ namespace
     boost::array<ChannelState, AYM::CHANNELS> ChanState;
   };
   
-  Player::Ptr CreateSTCPlayer(boost::shared_ptr<const STCHolder> holder)
+  Player::Ptr CreateSTCPlayer(boost::shared_ptr<const STCHolder> holder, AYM::Chip::Ptr device)
   {
-    return Player::Ptr(new STCPlayer(holder));
+    return Player::Ptr(new STCPlayer(holder, device));
   }
 
   //////////////////////////////////////////////////////////////////////////

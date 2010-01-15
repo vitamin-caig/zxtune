@@ -27,6 +27,14 @@ namespace ZXTune
         }
       };
 
+      struct PSGConvertParam : public Parameter
+      {
+        static const uint64_t TYPE_ID = ParamID7<'P', 'S', 'G', 'D', 'a', 't', 'a'>::Value;
+        PSGConvertParam() : Parameter(TYPE_ID)
+        {
+        }
+      };
+      
       struct VortexTextParam : public Parameter
       {
         static const uint64_t TYPE_ID = ParamID8<'V', 'o', 'r', 't', 'T', 'e', 'x', 't'>::Value;

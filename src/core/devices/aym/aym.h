@@ -99,7 +99,7 @@ namespace ZXTune
 
     /// Virtual constructors
     Chip::Ptr CreateChip();
-    Chip::Ptr CreatePSGDumper();
+    Chip::Ptr CreatePSGDumper(Dump& data);
     Chip::Ptr CreateOUTDumper();
   }
 }

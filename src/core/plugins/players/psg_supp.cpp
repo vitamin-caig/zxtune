@@ -251,10 +251,7 @@ namespace
     
     virtual Error SetPosition(unsigned frame)
     {
-      if (frame >= Storage.size())
-      {
-        return Error(THIS_LINE, ERROR_MODULE_OVERSEEK, TEXT_MODULE_ERROR_OVERSEEK);
-      }
+      frame = std::min<unsigned>(frame, Storage.size());
       assert(Device.get());
       Position = Storage.begin();
       std::advance(Position, frame);
