@@ -91,7 +91,7 @@ namespace ZXTune
       virtual ~Holder() {}
 
       /// Retrieving player info
-      virtual void GetPlayerInfo(PluginInformation& info) const = 0;
+      virtual void GetPluginInformation(PluginInformation& info) const = 0;
 
       /// Retrieving information about loaded module
       virtual void GetModuleInformation(Information& info) const = 0;

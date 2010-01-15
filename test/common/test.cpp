@@ -80,11 +80,11 @@ int main()
   std::cout << "---- Test for messages collector ----" << std::endl;
   {
     Log::MessagesCollector::Ptr msg = Log::MessagesCollector::Create();
-    Test("Empty messages", !msg->HasMessages() && msg->GetMessages('\n') == String());
+    Test("Empty messages", !msg->CountMessages() && msg->GetMessages('\n') == String());
     msg->AddMessage("1");
-    Test("Single message", msg->HasMessages() && msg->GetMessages('\n') == "1");
+    Test("Single message", msg->CountMessages() && msg->GetMessages('\n') == "1");
     msg->AddMessage("2");
-    Test("Multiple message", msg->HasMessages() && msg->GetMessages('\n') == "1\n2");
+    Test("Multiple message", msg->CountMessages() && msg->GetMessages('\n') == "1\n2");
   }
   
   std::cout << "---- Test for string template ----" << std::endl;

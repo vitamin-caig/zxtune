@@ -55,7 +55,7 @@ namespace
   public:
     DummyHolder() {}
     
-    virtual void GetPlayerInfo(PluginInformation& info) const
+    virtual void GetPluginInformation(PluginInformation& info) const
     {
     }
     

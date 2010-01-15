@@ -161,7 +161,7 @@ namespace
     {
       {
         ZXTune::PluginInformation info;
-        item.Module->GetPlayerInfo(info);
+        item.Module->GetPluginInformation(info);
         if (!(info.Capabilities & CapabilityMask))
         {
           Message(TEXT_CONVERT_SKIPPED, item.Id, info.Id);

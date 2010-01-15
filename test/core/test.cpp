@@ -138,7 +138,7 @@ namespace
   Error PluginCallback(const String& subpath, Module::Holder::Ptr holder, unsigned& count, const bool& detailed)
   {
     PluginInformation plugInfo;
-    holder->GetPlayerInfo(plugInfo);
+    holder->GetPluginInformation(plugInfo);
     std::cout << " Plugin " << plugInfo.Id << " at '" << subpath << "'" << std::endl;
     if (detailed)
     {

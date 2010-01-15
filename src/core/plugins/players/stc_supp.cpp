@@ -462,7 +462,7 @@ namespace
       }
     }
 
-    virtual void GetPlayerInfo(PluginInformation& info) const
+    virtual void GetPluginInformation(PluginInformation& info) const
     {
       DescribeSTCPlugin(info);
     }

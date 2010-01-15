@@ -145,7 +145,7 @@ namespace
       ModInfo.PhysicalChannels = AYM::CHANNELS;
     }
 
-    virtual void GetPlayerInfo(PluginInformation& info) const
+    virtual void GetPluginInformation(PluginInformation& info) const
     {
       DescribePSGPlugin(info);
     }
