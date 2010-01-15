@@ -37,6 +37,7 @@ endif
 
 h_texts := $(text_files:=.h)
 cpp_texts := $(text_files:=.cpp)
+dep_texts := $(other_text_files:=.txt)
 
 #main target
 all: dirs $(h_texts) $(cpp_texts) $(target)
@@ -65,13 +66,13 @@ source_files += $(cpp_texts)
 #http://code.google.com/p/textator
 #if were no changes in txt files, just touch .h and .cpp files in this folder or change TEXTATOR to true
 TEXTATOR := ~/bin/textator
-TEXTATOR_FLAGS := --process --cpp --symboltype "Char" --memtype "extern const" --tab 2 --width 112
+TEXTATOR_FLAGS := --verbose --process --cpp --symboltype "Char" --memtype "extern const" --tab 2 --width 112
 
-%.cpp: %.txt
-	$(TEXTATOR) $(TEXTATOR_FLAGS) --inline --output $@ $^
+%.cpp: %.txt $(dep_texts)
+	$(TEXTATOR) $(TEXTATOR_FLAGS) --inline --output $@ $<
 
-%.h: %.txt
-	$(TEXTATOR) $(TEXTATOR_FLAGS) --noinline --output $@ $^
+%.h: %.txt $(dep_texts)
+	$(TEXTATOR) $(TEXTATOR_FLAGS) --noinline --output $@ $<
 endif
 
 #calculate object files from sources

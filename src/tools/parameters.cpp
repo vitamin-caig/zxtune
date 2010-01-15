@@ -26,16 +26,21 @@ namespace
 
   BOOST_STATIC_ASSERT(1 == sizeof(Parameters::DataType::value_type));
 
+  inline bool DoTest(const String::const_iterator it, const String::const_iterator lim, int(*Fun)(int))
+  {
+    return lim == std::find_if(it, lim, std::not1(std::ptr_fun(Fun)));
+  }
+
   inline bool IsDump(const String& str)
   {
     return str.size() >= 3 && DUMP_MARKER == *str.begin() && 0 == (str.size() - 1) % 2 &&
-      str.end() == std::find_if(str.begin() + 1, str.end(), std::not1(std::ptr_fun<int, int>(&std::isxdigit)));
+      DoTest(str.begin() + 1, str.end(), &std::isxdigit);
   }
   
   inline bool IsInteger(const String& str)
   {
     return !str.empty() &&
-      str.end() == std::find_if(str.begin(), str.end(), std::not1(std::ptr_fun<int, int>(&std::isdigit)));
+      DoTest(str.begin() + (*str.begin() == '-' || *str.begin() == '+' ? 1 : 0), str.end(), &std::isdigit);
   }
   
   inline bool IsQuoted(const String& str)
@@ -84,11 +89,21 @@ namespace
     {
       //integer may be so long, so it's better to convert here
       String res;
+      const bool negate(var < 0);
+      
+      if (negate)
+      {
+        var =- var;
+      }
       do
       {
         res += ToHex(static_cast<unsigned>(var % RADIX));
       }
       while (var /= RADIX);
+      if (negate)
+      {
+        res += '-';
+      }
       return String(res.rbegin(), res.rend());
     }
   };
@@ -118,12 +133,18 @@ namespace Parameters
     else if (IsInteger(val))
     {
       IntType res = 0;
-      for (String::const_iterator it = val.begin(), lim = val.end(); it != lim; ++it)
+      String::const_iterator it = val.begin();
+      const bool negate(*it == '-');
+      if (negate || *it == '+')
+      {
+        ++it;
+      }
+      for (String::const_iterator lim = val.end(); it != lim; ++it)
       {
         res *= RADIX;
         res += *it - '0';
       }
-      return ValueType(res);
+      return ValueType(negate ? -res : res);
     }
     else
     {

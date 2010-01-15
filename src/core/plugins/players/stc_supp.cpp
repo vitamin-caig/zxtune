@@ -9,7 +9,7 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-#include "freq_tables.h"
+#include "freq_tables_internal.h"
 #include "tracking.h"
 #include "../enumerator.h"
 
