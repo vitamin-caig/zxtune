@@ -175,7 +175,7 @@ namespace
       assert(!File.is_open());
     
       String nameTemplate;
-      if (const Parameters::StringType* wavname = 
+      if (const Parameters::StringType* wavname =
         Parameters::FindByName<Parameters::StringType>(CommonParameters, Parameters::ZXTune::Sound::Backends::Wav::FILENAME))
       {
         nameTemplate = *wavname;
@@ -197,7 +197,7 @@ namespace
       Format.Align = fromLE<uint16_t>(sizeof(MultiSample));
       Format.BitsPerSample = fromLE<uint16_t>(8 * sizeof(Sample));
       //swap on final
-      Format.Size =  sizeof(Format) - 8;
+      Format.Size = sizeof(Format) - 8;
       Format.DataSize = 0;
     }
 
@@ -238,8 +238,8 @@ namespace
       const std::size_t sizeInBytes = buffer.size() * sizeof(buffer.front());
 #ifdef BOOST_BIG_ENDIAN
       Buffer.resize(buffer.size());
-      std::transform(buffer.begin().begin(), buffer.end().end(), Buffer.begin().begin(), &swapBytes<Sample>);
-      File.write(safe_ptr_cast<const char*>(&Buffer[0]), static_cast<std::streamsize>(sizeInBytes)));
+      std::transform(buffer.begin()->begin(), buffer.end()->end(), Buffer.begin()->begin(), &swapBytes<Sample>);
+      File.write(safe_ptr_cast<const char*>(&Buffer[0]), static_cast<std::streamsize>(sizeInBytes));
 #else
       File.write(safe_ptr_cast<const char*>(&buffer[0]), static_cast<std::streamsize>(sizeInBytes));
 #endif
