@@ -15,6 +15,7 @@ Author:
 #include <string_type.h>
 
 #include <map>
+#include <set>
 #include <list>
 #include <vector>
 #include <sstream>
@@ -23,6 +24,7 @@ Author:
 typedef std::basic_ostringstream<Char> OutStringStream;
 typedef std::basic_istringstream<Char> InStringStream;
 typedef std::map<String, String> StringMap;
+typedef std::set<String> StringSet;
 typedef std::vector<String> StringArray;
 typedef std::list<String> StringList;
 

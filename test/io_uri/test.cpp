@@ -64,7 +64,7 @@ namespace
     return res;
   }
   
-  void OutProvider(const ZXTune::IO::ProviderInfo& info)
+  void OutProvider(const ZXTune::IO::ProviderInformation& info)
   {
     std::cout << 
       "Provider: " << info.Name << std::endl <<
@@ -101,7 +101,7 @@ int main()
 {
   using namespace ZXTune::IO;
   std::cout << "------ test for enumeration -------\n";
-  std::vector<ProviderInfo> providers;
+  ProviderInformationArray providers;
   EnumerateProviders(providers);
   std::for_each(providers.begin(), providers.end(), OutProvider);
   String base, subpath;

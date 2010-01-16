@@ -31,8 +31,8 @@ namespace ZXTune
     public:
       virtual ~ProvidersEnumerator() {}
       //registration
-      virtual void RegisterProvider(const ProviderInfo& info,
-	                                  const ProviderCheckFunc& detector, const ProviderOpenFunc& opener,
+      virtual void RegisterProvider(const ProviderInformation& info,
+                                    const ProviderCheckFunc& detector, const ProviderOpenFunc& opener,
                                     const ProviderSplitFunc& splitter, const ProviderCombineFunc& combiner) = 0;
       
       virtual Error OpenUri(const String& uri, const Parameters::Map& params, const ProgressCallback& cb, 
@@ -40,7 +40,7 @@ namespace ZXTune
       virtual Error SplitUri(const String& uri, String& baseUri, String& subpath) const = 0;
       virtual Error CombineUri(const String& baseUri, const String& subpath, String& uri) const = 0;
       
-      virtual void Enumerate(ProviderInfoArray& infos) const = 0;
+      virtual void Enumerate(ProviderInformationArray& infos) const = 0;
       
       static ProvidersEnumerator& Instance();
     };

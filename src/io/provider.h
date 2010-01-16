@@ -35,16 +35,16 @@ namespace ZXTune
 
     Error CombineUri(const String& baseUri, const String& subpath, String& uri);
 
-    struct ProviderInfo
+    struct ProviderInformation
     {
       String Name;
       String Description;
       String Version;
     };
     
-    typedef std::vector<ProviderInfo> ProviderInfoArray;
+    typedef std::vector<ProviderInformation> ProviderInformationArray;
     
-    void EnumerateProviders(ProviderInfoArray& providers);
+    void EnumerateProviders(ProviderInformationArray& providers);
   }
 }
 

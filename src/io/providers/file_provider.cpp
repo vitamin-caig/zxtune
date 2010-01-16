@@ -32,7 +32,7 @@ namespace
 
   const String PROVIDER_VERSION(FromChar("$Rev$"));
   
-  static const ProviderInfo PROVIDER_INFO =
+  static const ProviderInformation PROVIDER_INFO =
   {
     TEXT_IO_FILE_PROVIDER_NAME,
     TEXT_IO_FILE_PROVIDER_DESCRIPTION,

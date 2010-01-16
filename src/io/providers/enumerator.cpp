@@ -38,12 +38,12 @@ namespace
       {
       }
       
-      ProviderEntry(const ProviderInfo& info,
+      ProviderEntry(const ProviderInformation& info,
         ProviderCheckFunc checker, ProviderOpenFunc opener, ProviderSplitFunc splitter, ProviderCombineFunc combiner)
         : Info(info), Checker(checker), Opener(opener), Splitter(splitter), Combiner(combiner)
       {
       }
-      ProviderInfo Info;
+      ProviderInformation Info;
       ProviderCheckFunc Checker;
       ProviderOpenFunc Opener;
       ProviderSplitFunc Splitter;
@@ -56,13 +56,13 @@ namespace
       RegisterProviders(*this);
     }
     
-    virtual void RegisterProvider(const ProviderInfo& info,
+    virtual void RegisterProvider(const ProviderInformation& info,
       const ProviderCheckFunc& detector, const ProviderOpenFunc& opener,
       const ProviderSplitFunc& splitter, const ProviderCombineFunc& combiner)
     {
       assert(detector && opener && splitter && combiner);
       assert(Providers.end() == std::find_if(Providers.begin(), Providers.end(),
-        boost::bind(&ProviderInfo::Name, boost::bind<ProviderInfo>(&ProviderEntry::Info, _1)) == info.Name));
+        boost::bind(&ProviderInformation::Name,  boost::bind(&ProviderEntry::Info,_1)) == info.Name));
       Providers.push_back(ProviderEntry(info, detector, opener, splitter, combiner));
       Log::Debug(THIS_MODULE, "Registered provider '%1%'", info.Name);
     }
@@ -106,10 +106,10 @@ namespace
       return Error(THIS_LINE, NOT_SUPPORTED, TEXT_IO_ERROR_NOT_SUPPORTED_URI);
     }
      
-    virtual void Enumerate(ProviderInfoArray& infos) const
+    virtual void Enumerate(ProviderInformationArray& infos) const
     {
-      ProviderInfoArray result(Providers.size());
-      std::transform(Providers.begin(), Providers.end(), result.begin(), boost::bind<ProviderInfo>(&ProviderEntry::Info, _1));
+      ProviderInformationArray result(Providers.size());
+      std::transform(Providers.begin(), Providers.end(), result.begin(), boost::mem_fn(&ProviderEntry::Info));
       infos.swap(result);
     }
   private:
@@ -148,7 +148,7 @@ namespace ZXTune
       return ProvidersEnumerator::Instance().CombineUri(baseUri, subpath, uri);
     }
     
-    void EnumerateProviders(ProviderInfoArray& infos)
+    void EnumerateProviders(ProviderInformationArray& infos)
     {
       return ProvidersEnumerator::Instance().Enumerate(infos);
     }

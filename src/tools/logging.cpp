@@ -11,21 +11,51 @@ Author:
 
 #include <logging.h>
 
+#include <cstdio>
 #include <iostream>
+
+namespace
+{
+  const char DEBUG_LOG_VARIABLE[] = "ZXTUNE_DEBUG_LOG";
+  
+  class Logger
+  {
+  public:
+    bool IsDebuggingEnabled()
+    {
+      return Debugging;
+    }
+    
+    void Message(const std::string& module, const std::string& msg)
+    {
+      std::cerr << '[' << module << "]: " << msg << std::endl;
+    }
+  
+    static Logger& Instance()
+    {
+      static Logger instance;
+      return instance;
+    }
+  private:
+    Logger()
+      : Debugging(0 != ::getenv(DEBUG_LOG_VARIABLE))
+    {
+    }
+    
+  private:
+    const bool Debugging;
+  };
+}
 
 namespace Log
 {
   bool IsDebuggingEnabled()
   {
-#ifdef NDEBUG
-    return false;//TODO: check environment variables
-#else
-    return true;
-#endif
+    return Logger::Instance().IsDebuggingEnabled();
   }
 
   void Message(const std::string& module, const std::string& msg)
   {
-    std::cerr << '[' << module << "]: " << msg << std::endl;
+    return Logger::Instance().Message(module, msg);
   }
 }
