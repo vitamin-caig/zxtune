@@ -7,7 +7,7 @@ makedir_cmd = mkdir -p $(1)
 #for other
 #makedir_cmd = if NOT EXIST $(subst /,\,$(1)) mkdir $(subst /,\,$(1))
 
-compiler := $(if $(compiler),$(compiler),msvs)
+compiler := msvs
 
 # built-in features
 support_waveout = 1
