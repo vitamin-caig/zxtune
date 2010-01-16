@@ -387,6 +387,21 @@ extern const Char TEXT_INFO_PROVIDER_INFO[] = {
   'V','e','r','s','i','o','n',':',' ',' ',' ',' ',' ','%','3','%','\n',
   0
 };
+extern const Char TEXT_INPUT_ALLOW_PLUGIN_DESC[] = {
+  'p','l','u','g','i','n','s',' ','a','n','d','/','o','r',' ','a','t','t','r','i','b','u','t','e','s',' ','t',
+  'o',' ','a','l','l','o','w',' ','(','i','d','s',' ','a','n','d','/','o','r',' ','c','a','p','a','b','i','l',
+  'i','t','i','e','s',')',0
+};
+extern const Char TEXT_INPUT_ALLOW_PLUGIN_KEY[] = {
+  'a','l','l','o','w','-','p','l','u','g','i','n','s',0
+};
+extern const Char TEXT_INPUT_DENY_PLUGIN_DESC[] = {
+  'p','l','u','g','i','n','s',' ','a','n','d','/','o','r',' ','a','t','t','r','i','b','u','t','e','s',' ','t',
+  'o',' ','d','e','n','y',0
+};
+extern const Char TEXT_INPUT_DENY_PLUGIN_KEY[] = {
+  'd','e','n','y','-','p','l','u','g','i','n','s',0
+};
 extern const Char TEXT_INPUT_ERROR_NO_FILES[] = {
   'N','o',' ','f','i','l','e','s',' ','t','o',' ','p','r','o','c','e','s','s','.',0
 };

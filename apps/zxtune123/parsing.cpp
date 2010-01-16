@@ -1,3 +1,15 @@
+/*
+Abstract:
+  Parsing tools implementation
+
+Last changed:
+  $Id$
+
+Author:
+  (C) Vitamin/CAIG/2001
+  
+  This file is a part of zxtune123 application based on zxtune library
+*/
 #include "parsing.h"
 #include "error_codes.h"
 

@@ -1,3 +1,16 @@
+/*
+Abstract:
+  Informational component implementation
+
+Last changed:
+  $Id$
+
+Author:
+  (C) Vitamin/CAIG/2001
+  
+  This file is a part of zxtune123 application based on zxtune library
+*/
+
 #include "information.h"
 
 #include <tools.h>
@@ -92,7 +105,7 @@ namespace
     std::for_each(backends.begin(), backends.end(), ShowBackend);
   }
   
-  void ShowProvider(const ZXTune::IO::ProviderInfo& info)
+  void ShowProvider(const ZXTune::IO::ProviderInformation& info)
   {
     std::cout << (Formatter(TEXT_INFO_PROVIDER_INFO)
       % info.Name % info.Description % info.Version).str();
@@ -100,7 +113,7 @@ namespace
   
   void ShowProviders()
   {
-    ZXTune::IO::ProviderInfoArray providers;
+    ZXTune::IO::ProviderInformationArray providers;
     ZXTune::IO::EnumerateProviders(providers);
     std::cout << TEXT_INFO_LIST_PROVIDERS_TITLE << std::endl;
     std::for_each(providers.begin(), providers.end(), ShowProvider);

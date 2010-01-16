@@ -1,3 +1,15 @@
+/*
+Abstract:
+  Source data provider declaration and related functions
+
+Last changed:
+  $Id$
+
+Author:
+  (C) Vitamin/CAIG/2001
+  
+  This file is a part of zxtune123 application based on zxtune library
+*/
 #ifndef ZXTUNE123_SOURCE_H_DEFINED
 #define ZXTUNE123_SOURCE_H_DEFINED
 

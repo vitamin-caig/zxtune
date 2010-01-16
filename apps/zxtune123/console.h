@@ -1,3 +1,15 @@
+/*
+Abstract:
+  Console operation interface
+
+Last changed:
+  $Id$
+
+Author:
+  (C) Vitamin/CAIG/2001
+  
+  This file is a part of zxtune123 application based on zxtune library
+*/
 #ifndef ZXTUNE123_CONSOLE_H_DEFINED
 #define ZXTUNE123_CONSOLE_H_DEFINED
 
