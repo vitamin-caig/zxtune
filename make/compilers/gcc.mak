@@ -1,12 +1,12 @@
 #basic definitions for tools
-arch := $(if $(arch),$(arch),native)
 CXX := $(if $(CXX),$(CXX),g++)
 LDD := $(if $(LDD),$(LDD),g++)
 AR := $(if $(AR),$(AR),ar)
 
 #set options according to mode
 ifeq ($(mode),release)
-cxx_mode_flags := -O3 -DNDEBUG
+cxx_mode_flags := -O3 -DNDEBUG -fdata-sections -ffunction-sections 
+ld_mode_flags := --gc-sections 
 else ifeq ($(mode),debug)
 cxx_mode_flags := -O0
 else
@@ -34,13 +34,12 @@ endif
 #setup flags
 CXX_FLAGS := $(cxx_mode_flags) $(cxx_flags) -g3 \
 	$(addprefix -D, $(definitions)) \
-	-march=$(arch) -fdata-sections -ffunction-sections \
 	-funroll-loops -funsigned-char -fno-strict-aliasing \
 	-W -Wall -Wextra -ansi -pipe \
 	$(addprefix -I, $(include_dirs) $($(platform)_include_dirs))
 
 AR_FLAGS := cru
-LD_FLAGS := $(ld_mode_flags) $(ld_flags) -pipe --gc-sections 
+LD_FLAGS := $(ld_mode_flags) $(ld_flags) -pipe
 
 #specify endpoint commands
 build_obj_cmd = $(CXX) $(CXX_FLAGS) -c -MMD $< -o $@

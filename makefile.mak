@@ -129,7 +129,6 @@ help:
 	@echo "Accepted flags via flag=value options for make:"
 	@echo " mode - compilation mode (release,debug). Default is 'release'"
 	@echo " profile - enable profiling. Default no"
-	@echo " arch - selected architecture. Default is 'native'"
 	@echo " platform - selected platform. Default is 'linux'"
 	@echo " CXX - used compiler. Default is 'g++'"
 	@echo " cxx_flags - some specific compilation flags"

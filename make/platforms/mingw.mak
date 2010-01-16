@@ -4,8 +4,8 @@ makedyn_name = $(1).dll
 makeobj_name = $(1).o
 makedir_cmd = if NOT EXIST $(subst /,\,$(1)) mkdir $(subst /,\,$(1))
 
-arch=native
 compiler=gcc
+cxx_options += -march=native
 
 #built-in features
 support_waveout = 1
