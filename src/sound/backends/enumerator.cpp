@@ -32,7 +32,7 @@ namespace
 
   class BackendsEnumeratorImpl : public BackendsEnumerator
   {
-    typedef std::multimap<unsigned, BackendInfo> BackendsStorage;
+    typedef std::multimap<unsigned, BackendInformation> BackendsStorage;
     typedef std::map<String, CreateBackendFunc> CreatorsStorage;
   public:
     BackendsEnumeratorImpl()
@@ -40,7 +40,7 @@ namespace
       RegisterBackends(*this);
     }
 
-    virtual void RegisterBackend(const BackendInfo& info, const CreateBackendFunc& creator, unsigned priority)
+    virtual void RegisterBackend(const BackendInformation& info, const CreateBackendFunc& creator, unsigned priority)
     {
       assert(creator);
       assert(Creators.end() == Creators.find(info.Id) || !"Duplicated backend found");
@@ -49,7 +49,7 @@ namespace
       Log::Debug(THIS_MODULE, "Registered backend '%1%'", info.Id);
     }
 
-    virtual void EnumerateBackends(BackendInfoArray& infos) const
+    virtual void EnumerateBackends(BackendInformationArray& infos) const
     {
       infos.resize(Backends.size());
       std::transform(Backends.begin(), Backends.end(), infos.begin(),
@@ -90,7 +90,7 @@ namespace ZXTune
       return instance;
     }
 
-    void EnumerateBackends(BackendInfoArray& infos)
+    void EnumerateBackends(BackendInformationArray& infos)
     {
       return BackendsEnumerator::Instance().EnumerateBackends(infos);
     }

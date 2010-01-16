@@ -37,7 +37,7 @@ namespace
   const Char BACKEND_ID[] = {'w', 'a', 'v', 0};
   const String BACKEND_VERSION(FromChar("$Rev$"));
 
-  static const BackendInfo BACKEND_INFO =
+  static const BackendInformation BACKEND_INFO =
   {
     BACKEND_ID,
     TEXT_WAV_BACKEND_DESCRIPTION,
@@ -155,7 +155,7 @@ namespace
       assert(!File.is_open() || !"FileBackend::Stop should be called before exit");
     }
 
-    virtual void GetInfo(BackendInfo& info) const
+    virtual void GetInformation(BackendInformation& info) const
     {
       info = BACKEND_INFO;
     }

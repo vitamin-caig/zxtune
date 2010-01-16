@@ -29,7 +29,7 @@ namespace
   const Char BACKEND_ID[] = {'n', 'u', 'l', 'l', 0};
   const String BACKEND_VERSION(FromChar("$Rev$"));
   
-  static const BackendInfo BACKEND_INFO =
+  static const BackendInformation BACKEND_INFO =
   {
     BACKEND_ID,
     TEXT_NULL_BACKEND_DESCRIPTION,
@@ -43,7 +43,7 @@ namespace
     {
     }
 
-    virtual void GetInfo(BackendInfo& info) const
+    virtual void GetInformation(BackendInformation& info) const
     {
       info = BACKEND_INFO;
     }

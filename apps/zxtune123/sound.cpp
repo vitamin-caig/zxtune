@@ -33,9 +33,9 @@ namespace
       , Looped(false)
     {
       using namespace boost::program_options;
-      ZXTune::Sound::BackendInfoArray backends;
+      ZXTune::Sound::BackendInformationArray backends;
       ZXTune::Sound::EnumerateBackends(backends);
-      for (ZXTune::Sound::BackendInfoArray::const_iterator it = backends.begin(), lim = backends.end(); it != lim; ++it)
+      for (ZXTune::Sound::BackendInformationArray::const_iterator it = backends.begin(), lim = backends.end(); it != lim; ++it)
       {
         BackendOptions.push_back(std::make_pair(it->Id, NOTUSED_MARK));
         OptionsDescription.add_options()

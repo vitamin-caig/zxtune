@@ -167,7 +167,7 @@ namespace
     TestError("Null player set", backend->SetModule(Module::Holder::Ptr()));
   }
 
-  void TestBackend(const BackendInfo& info)
+  void TestBackend(const BackendInformation& info)
   {
     std::cout << "Backend:\n"
     " Id: " << info.Id << "\n"
@@ -242,7 +242,7 @@ int main()
     TestErrors();
 
     std::cout << "---- Test for backends ---" << std::endl;
-    BackendInfoArray infos;
+    BackendInformationArray infos;
     EnumerateBackends(infos);
     std::for_each(infos.begin(), infos.end(), TestBackend);
   }

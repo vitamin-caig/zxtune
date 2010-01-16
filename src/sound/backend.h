@@ -26,14 +26,14 @@ namespace ZXTune
 {
   namespace Sound
   {
-    struct BackendInfo
+    struct BackendInformation
     {
       String Id;
       String Description;
       String Version;
     };
     
-    typedef std::vector<BackendInfo> BackendInfoArray;
+    typedef std::vector<BackendInformation> BackendInformationArray;
     
     class Backend
     {
@@ -43,7 +43,7 @@ namespace ZXTune
       virtual ~Backend() {}
 
       // informational part
-      virtual void GetInfo(BackendInfo& info) const = 0;
+      virtual void GetInformation(BackendInformation& info) const = 0;
 
       // modules/players manipulation functions
       virtual Error SetModule(Module::Holder::Ptr holder) = 0;
@@ -92,7 +92,7 @@ namespace ZXTune
     };
 
     //common interface
-    void EnumerateBackends(BackendInfoArray& backends);
+    void EnumerateBackends(BackendInformationArray& backends);
     Error CreateBackend(const String& id, Backend::Ptr& result);
   }
 }

@@ -78,7 +78,7 @@ namespace
     std::for_each(plugins.begin(), plugins.end(), ShowPlugin);
   }
   
-  void ShowBackend(const ZXTune::Sound::BackendInfo& info)
+  void ShowBackend(const ZXTune::Sound::BackendInformation& info)
   {
     std::cout << (Formatter(TEXT_INFO_BACKEND_INFO)
       % info.Id % info.Description % info.Version).str();
@@ -86,7 +86,7 @@ namespace
   
   void ShowBackends()
   {
-    ZXTune::Sound::BackendInfoArray backends;
+    ZXTune::Sound::BackendInformationArray backends;
     ZXTune::Sound::EnumerateBackends(backends);
     std::cout << TEXT_INFO_LIST_BACKENDS_TITLE << std::endl;
     std::for_each(backends.begin(), backends.end(), ShowBackend);

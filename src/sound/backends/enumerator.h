@@ -35,8 +35,8 @@ namespace ZXTune
       {
       }
 
-      virtual void RegisterBackend(const BackendInfo& info, const CreateBackendFunc& creator, unsigned priority) = 0;
-      virtual void EnumerateBackends(BackendInfoArray& infos) const = 0;
+      virtual void RegisterBackend(const BackendInformation& info, const CreateBackendFunc& creator, unsigned priority) = 0;
+      virtual void EnumerateBackends(BackendInformationArray& infos) const = 0;
 
       virtual Error CreateBackend(const String& id, Backend::Ptr& result) const = 0;
 

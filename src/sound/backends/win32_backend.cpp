@@ -45,7 +45,7 @@ namespace
   const Char BACKEND_ID[] = {'w', 'i', 'n', '3', '2', 0};
   const String BACKEND_VERSION(FromChar("$Rev$"));
 
-  static const BackendInfo BACKEND_INFO =
+  static const BackendInformation BACKEND_INFO =
   {
     BACKEND_ID,
     TEXT_WIN32_BACKEND_DESCRIPTION,
@@ -156,7 +156,7 @@ namespace
       ::CloseHandle(Event);
     }
 
-    virtual void GetInfo(BackendInfo& info) const
+    virtual void GetInformation(BackendInformation& info) const
     {
       info = BACKEND_INFO;
     }

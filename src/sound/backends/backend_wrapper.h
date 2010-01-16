@@ -30,9 +30,9 @@ namespace ZXTune
         Delegate->Stop();//TODO: warn if error
       }
       
-      virtual void GetInfo(BackendInfo& info) const
+      virtual void GetInformation(BackendInformation& info) const
       {
-        return Delegate->GetInfo(info);
+        return Delegate->GetInformation(info);
       }
 
       virtual Error SetModule(Module::Holder::Ptr holder)
