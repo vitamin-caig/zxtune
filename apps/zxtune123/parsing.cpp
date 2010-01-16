@@ -6,6 +6,8 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 
+#include "text.h"
+
 #define FILE_TAG 0DBA1FA8
 
 namespace
@@ -29,7 +31,7 @@ Error ParseParametersString(const String& pfx, const String& str, Parameters::Ma
     if (String::npos == eqpos)
     {
       return MakeFormattedError(THIS_LINE, INVALID_PARAMETER,
-        "Invalid parameter '%1%' in parameter string '%2%'.", *pit, str);
+        TEXT_ERROR_INVALID_PARAMETER, *pit, str);
     }
     res.insert(Parameters::Map::value_type(prefix + pit->substr(0, eqpos), Parameters::ConvertFromString(pit->substr(eqpos + 1))));
   }
@@ -46,7 +48,7 @@ String UnparseFrameTime(unsigned timeInFrames, unsigned frameDurationMicrosec)
   const unsigned minutes = (allSeconds / 60) % 60;
   const unsigned hours = allSeconds / 3600;
   return hours ?
-  (Formatter("%1%:%2$02:%3$02u.%4$02u") % hours % minutes % seconds % frames).str()
+  (Formatter(TEXT_TIME_FORMAT_HOURS) % hours % minutes % seconds % frames).str()
   :
-  (Formatter("%1%:%2$02u.%3$02u") % minutes % seconds % frames).str();
+  (Formatter(TEXT_TIME_FORMAT) % minutes % seconds % frames).str();
 }

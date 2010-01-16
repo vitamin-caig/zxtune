@@ -13,6 +13,9 @@
 < TEXT_INFO_CAP_FM
 > "FM"
 
+< TEXT_INFO_CAP_DAC
+> "DAC"
+
 < TEXT_INFO_CAP_DAC1
 > "DAC1"
 
@@ -175,8 +178,17 @@
 > "Time:  %2%\t"     "Channels:  %3%\n"
 > "\n"
 
+< TEXT_TIME_FORMAT_HOURS
+> "%1%:%2$02:%3$02u.%4$02u"
+
+< TEXT_TIME_FORMAT
+> "%1%:%2$02u.%3$02u"
+
 < TEXT_INPUT_ERROR_NO_FILES
 > "No files to process."
+
+< TEXT_ERROR_INVALID_PARAMETER
+> "Invalid parameter '%1%' in parameter string '%2%'."
 
 < TEXT_COMMON_ERROR
 > "Error: %1%"

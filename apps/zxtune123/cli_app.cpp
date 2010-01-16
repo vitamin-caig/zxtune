@@ -178,7 +178,8 @@ namespace
       {
         String escaped(item.Id);
         std::replace_if(escaped.begin(), escaped.end(), std::not1(std::ptr_fun<int, int>(&std::isalnum)), Char('_'));
-        fields.insert(StringMap::value_type(CONVERSION_FIELD_ESCAPEDPATH, escaped));
+        fields.insert(StringMap::value_type(CONVERSION_FIELD_ESCAPEDPATH, 
+          escaped.substr(escaped.find_first_not_of('_'))));
       }
       const String& filename = InstantiateTemplate(NameTemplate, fields, SKIP_NONEXISTING);
       std::ofstream file(filename.c_str());
