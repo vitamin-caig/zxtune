@@ -211,7 +211,7 @@ namespace
     info.Id = STC_PLUGIN_ID;
     info.Description = TEXT_STC_INFO;
     info.Version = TEXT_STC_VERSION;
-    info.Capabilities = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW;
+    info.Capabilities = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | CAP_CONV_PSG;
   }
 
   typedef TrackingSupport<AYM::CHANNELS, Sample> STCTrack;

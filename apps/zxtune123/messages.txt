@@ -1,5 +1,5 @@
 < TEXT_INFO_CAP_DEVICES
-> "Devices:"
+> "\n\tDevices:"
 
 < TEXT_INFO_CAP_AYM
 > "AYM"
@@ -23,7 +23,7 @@
 > "DAC4"
 
 < TEXT_INFO_CAP_STORAGES
-> "Content:"
+> "\n\tContent:"
 
 < TEXT_INFO_CAP_MODULE
 > "module"
@@ -41,7 +41,7 @@
 > "plain"
 
 < TEXT_INFO_CAP_CONVERSION
-> "Conversion:"
+> "\n\tConversion:"
 
 < TEXT_INFO_PLUGIN_INFO
 > "Plugin:       %1%\n"

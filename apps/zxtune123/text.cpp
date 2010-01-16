@@ -192,7 +192,8 @@ extern const Char TEXT_INFO_CAP_CONTAINER[] = {
   'c','o','n','t','a','i','n','e','r',0
 };
 extern const Char TEXT_INFO_CAP_CONVERSION[] = {
-  'C','o','n','v','e','r','s','i','o','n',':',0
+  '\n',
+  '\t','C','o','n','v','e','r','s','i','o','n',':',0
 };
 extern const Char TEXT_INFO_CAP_DAC1[] = {
   'D','A','C','1',0
@@ -204,7 +205,8 @@ extern const Char TEXT_INFO_CAP_DAC4[] = {
   'D','A','C','4',0
 };
 extern const Char TEXT_INFO_CAP_DEVICES[] = {
-  'D','e','v','i','c','e','s',':',0
+  '\n',
+  '\t','D','e','v','i','c','e','s',':',0
 };
 extern const Char TEXT_INFO_CAP_FM[] = {
   'F','M',0
@@ -222,7 +224,8 @@ extern const Char TEXT_INFO_CAP_SCANER[] = {
   's','c','a','n','e','r',0
 };
 extern const Char TEXT_INFO_CAP_STORAGES[] = {
-  'C','o','n','t','e','n','t',':',0
+  '\n',
+  '\t','C','o','n','t','e','n','t',':',0
 };
 extern const Char TEXT_INFO_CAP_TS[] = {
   'T','S',0

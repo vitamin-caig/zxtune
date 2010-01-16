@@ -66,7 +66,7 @@ namespace
     info.Id = PSG_PLUGIN_ID;
     info.Description = TEXT_PSG_INFO;
     info.Version = TEXT_PSG_VERSION;
-    info.Capabilities = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW;
+    info.Capabilities = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | CAP_CONV_PSG;
   }
   
   class PSGHolder;
@@ -163,7 +163,7 @@ namespace
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
     {
       using namespace Conversion;
-      if (parameter_cast<RawConvertParam>(&param))
+      if (parameter_cast<RawConvertParam>(&param) || parameter_cast<PSGConvertParam>(&param))
       {
         dst = RawData;
         return Error();
