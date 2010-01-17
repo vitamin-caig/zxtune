@@ -51,8 +51,8 @@ namespace
       CapsPair(ZXTune::CAP_STOR_SCANER, TEXT_INFO_CAP_SCANER),
       CapsPair(ZXTune::CAP_STOR_PLAIN, TEXT_INFO_CAP_PLAIN),
 
-      CapsPair(ZXTune::CAP_CONV_RAW, CONVERSION_MODE_RAW),
-      CapsPair(ZXTune::CAP_CONV_PSG, CONVERSION_MODE_PSG)
+      CapsPair(ZXTune::CAP_CONV_RAW, TEXT_INFO_CONV_RAW),
+      CapsPair(ZXTune::CAP_CONV_PSG, TEXT_INFO_CONV_PSG)
     };
     
     StringSet tmpPlugs;

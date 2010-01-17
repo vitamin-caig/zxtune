@@ -187,55 +187,49 @@ extern const Char TEXT_INFO_BACKEND_INFO[] = {
   0
 };
 extern const Char TEXT_INFO_CAP_AYM[] = {
-  'A','Y','M',0
+  'd','e','v','_','a','y','m',0
 };
 extern const Char TEXT_INFO_CAP_BEEPER[] = {
-  'B','e','e','p','e','r',0
+  'd','e','v','_','b','e','e','p','e','r',0
 };
 extern const Char TEXT_INFO_CAP_CONTAINER[] = {
-  'c','o','n','t','a','i','n','e','r',0
-};
-extern const Char TEXT_INFO_CAP_CONVERSION[] = {
-  '\n',
-  '\t','C','o','n','v','e','r','s','i','o','n',':',0
+  's','t','o','r','_','c','o','n','t','a','i','n','e','r',0
 };
 extern const Char TEXT_INFO_CAP_DAC[] = {
-  'D','A','C',0
+  'd','e','v','_','d','a','c',0
 };
 extern const Char TEXT_INFO_CAP_DAC1[] = {
-  'D','A','C','1',0
+  'd','e','v','_','d','a','c','1',0
 };
 extern const Char TEXT_INFO_CAP_DAC2[] = {
-  'D','A','C','2',0
+  'd','e','v','_','d','a','c','2',0
 };
 extern const Char TEXT_INFO_CAP_DAC4[] = {
-  'D','A','C','4',0
-};
-extern const Char TEXT_INFO_CAP_DEVICES[] = {
-  '\n',
-  '\t','D','e','v','i','c','e','s',':',0
+  'd','e','v','_','d','a','c','4',0
 };
 extern const Char TEXT_INFO_CAP_FM[] = {
-  'F','M',0
+  'd','e','v','_','f','m',0
 };
 extern const Char TEXT_INFO_CAP_MODULE[] = {
-  'm','o','d','u','l','e',0
+  's','t','o','r','_','m','o','d','u','l','e',0
 };
 extern const Char TEXT_INFO_CAP_MULTITRACK[] = {
-  'm','u','l','t','i','t','r','a','c','k',0
+  's','t','o','r','_','m','u','l','t','i','t','r','a','c','k',0
 };
 extern const Char TEXT_INFO_CAP_PLAIN[] = {
-  'p','l','a','i','n',0
+  's','t','o','r','_','p','l','a','i','n',0
 };
 extern const Char TEXT_INFO_CAP_SCANER[] = {
-  's','c','a','n','e','r',0
-};
-extern const Char TEXT_INFO_CAP_STORAGES[] = {
-  '\n',
-  '\t','C','o','n','t','e','n','t',':',0
+  's','t','o','r','_','s','c','a','n','e','r',0
 };
 extern const Char TEXT_INFO_CAP_TS[] = {
-  'T','S',0
+  'd','e','v','_','t','s',0
+};
+extern const Char TEXT_INFO_CONV_PSG[] = {
+  'c','o','n','v','_','p','s','g',0
+};
+extern const Char TEXT_INFO_CONV_RAW[] = {
+  'c','o','n','v','_','r','a','w',0
 };
 extern const Char TEXT_INFO_LIST_ATTRIBUTES_DESC[] = {
   's','h','o','w',' ','t','h','e',' ','l','i','s','t',' ','o','f',' ','s','u','p','p','o','r','t','e','d',' ',
