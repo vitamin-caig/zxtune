@@ -62,7 +62,7 @@ namespace
       {
         return;
       }
-      if (const unsigned intsPassed = (src.Tick - CurTicks) / params.ClocksPerFrame())
+      if (const unsigned intsPassed = static_cast<unsigned>((src.Tick - CurTicks) / params.ClocksPerFrame()))
       {
         Dump frame;
         std::back_insert_iterator<Dump> inserter(frame);
@@ -94,7 +94,7 @@ namespace
     virtual void Reset()
     {
       static const uint8_t HEADER[] = {
-        'P', 'S', 'G', 0x1a, 
+        'P', 'S', 'G', 0x1a,
         0,//version
         0,//freq rate
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0//padding

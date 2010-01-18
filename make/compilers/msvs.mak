@@ -23,7 +23,7 @@ CXX_FLAGS := $(cxx_mode_flags) $(cxx_flags) /nologo \
 	/D_SECURE_SCL=0 \
 	$(addprefix /D, $(definitions)) \
 	/J /Zc:wchar_t,forScope /Fd /Z7 /Zl /EHsc \
-	/GA /GL /GF /Gy /Y- \
+	/GA /GF /Gy /Y- \
 	$(addprefix /I, $(include_dirs))
 
 LD_FLAGS := $(ld_mode_flags) /NODEFAULTLIB
@@ -31,7 +31,7 @@ LD_FLAGS := $(ld_mode_flags) /NODEFAULTLIB
 build_obj_cmd = $(CXX) $(CXX_FLAGS) /c /Fo$@ $<
 build_lib_cmd = $(AR) /NOLOGO /NODEFAULTLIB /OUT:$@ $^
 link_cmd = $(LDD) $(LD_FLAGS) /NOLOGO /INCREMENTAL:NO /FIXED:NO /DEBUG \
-	/OPT:REF,NOWIN98 /NODEFAULTLIB /LTCG \
+	/OPT:REF,NOWIN98 /NODEFAULTLIB \
 	/OUT:$@ $(object_files) \
 	kernel32.lib $(addsuffix .lib,$(windows_libraries)) \
 	$(if $(libraries),/LIBPATH:$(libs_dir) $(addsuffix .lib,$(libraries)),) \

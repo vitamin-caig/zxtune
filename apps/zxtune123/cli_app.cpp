@@ -191,15 +191,15 @@ namespace
       {
         String escaped(item.Id);
         std::replace_if(escaped.begin(), escaped.end(), std::not1(std::ptr_fun<int, int>(&std::isalnum)), Char('_'));
-        fields.insert(StringMap::value_type(CONVERSION_FIELD_ESCAPEDPATH, 
+        fields.insert(StringMap::value_type(CONVERSION_FIELD_ESCAPEDPATH,
           escaped.substr(escaped.find_first_not_of('_'))));
       }
       const String& filename = InstantiateTemplate(NameTemplate, fields, SKIP_NONEXISTING);
       std::ofstream file(filename.c_str());
-      file.write(safe_ptr_cast<const char*>(&result[0]), result.size() * sizeof(result.front()));
+      file.write(safe_ptr_cast<const char*>(&result[0]), static_cast<std::streamsize>(result.size() * sizeof(result.front())));
       if (!file)
       {
-        throw MakeFormattedError(THIS_LINE, CONVERT_PARAMETERS, 
+        throw MakeFormattedError(THIS_LINE, CONVERT_PARAMETERS,
           TEXT_CONVERT_ERROR_WRITE_FILE, filename);
       }
       Message(TEXT_CONVERT_DONE, item.Id, filename);

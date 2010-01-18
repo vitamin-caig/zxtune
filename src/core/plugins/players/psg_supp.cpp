@@ -251,7 +251,7 @@ namespace
     
     virtual Error SetPosition(unsigned frame)
     {
-      frame = std::min<unsigned>(frame, Storage.size());
+      frame = std::min<unsigned>(frame, static_cast<unsigned>(Storage.size()));
       assert(Device.get());
       Position = Storage.begin();
       std::advance(Position, frame);
@@ -279,7 +279,7 @@ namespace
     return Player::Ptr(new PSGPlayer(holder));
   }
   
-  bool CreatePSGModule(const Parameters::Map& /*commonParams*/, const MetaContainer& container, 
+  bool CreatePSGModule(const Parameters::Map& /*commonParams*/, const MetaContainer& container,
     Holder::Ptr& holder, ModuleRegion& region)
   {
     //perform fast check

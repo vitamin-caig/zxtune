@@ -123,7 +123,7 @@ namespace
       if (const Parameters::IntType* val =
         Parameters::FindByName<Parameters::IntType>(params, Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD))
       {
-        threshold = static_cast<std::streampos>(*val);
+        threshold = static_cast<std::streamoff>(*val);
       }
       if (fileSize >= threshold)
       {
