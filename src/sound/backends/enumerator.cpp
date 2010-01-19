@@ -51,9 +51,10 @@ namespace
 
     virtual void EnumerateBackends(BackendInformationArray& infos) const
     {
-      infos.resize(Backends.size());
-      std::transform(Backends.begin(), Backends.end(), infos.begin(),
+      BackendInformationArray tmp(Backends.size());
+      std::transform(Backends.begin(), Backends.end(), tmp.begin(),
         boost::mem_fn(&BackendsStorage::value_type::second));
+      infos.swap(tmp);
     }
 
     virtual Error CreateBackend(const String& id, Backend::Ptr& result) const

@@ -380,7 +380,7 @@ namespace ZXTune
 
     inline bool CompareParameter(const Parameters::Map::value_type& lh, const Parameters::Map::value_type& rh)
     {
-      return lh.first < rh.first || !(lh.second == rh.second);
+      return lh.first == rh.first ? !(lh.second == rh.second) : lh.first < rh.first;
     }
 
     Error BackendImpl::SetParameters(const Parameters::Map& params)

@@ -52,6 +52,7 @@ namespace
   const unsigned MAX_ORNAMENTS_COUNT = 16;
   const unsigned MAX_PATTERN_SIZE = 64;
   const unsigned MAX_PATTERN_COUNT = 32;
+  const unsigned SAMPLE_ORNAMENT_SIZE = 32;
 
 //////////////////////////////////////////////////////////////////////////
 #ifdef USE_PRAGMA_PACK
@@ -92,7 +93,7 @@ namespace
   PACK_PRE struct STCOrnament
   {
     uint8_t Number;
-    int8_t Data[32];
+    int8_t Data[SAMPLE_ORNAMENT_SIZE];
   } PACK_POST;
 
   PACK_PRE struct STCSample
@@ -138,7 +139,7 @@ namespace
         return 0 != (NoiseAndMasks & 64);
       }
     } PACK_POST;
-    Line Data[32];
+    Line Data[SAMPLE_ORNAMENT_SIZE];
     uint8_t Loop;
     uint8_t LoopSize;
   } PACK_POST;
@@ -775,7 +776,7 @@ namespace
 
         if (++dst.PosInSample >= (dst.LoopedInSample ? curSample.LoopLimit : curSample.Data.size()))
         {
-          if (curSample.Loop)
+          if (curSample.Loop && curSample.Loop < curSample.Data.size())
           {
             dst.PosInSample = curSample.Loop;
             dst.LoopedInSample = true;
