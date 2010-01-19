@@ -67,7 +67,7 @@ namespace
   {
     if (!in_range<T>(val, min, max))
     {
-      throw MakeFormattedError(loc, FILTER_INVALID_PARAMS, text, val, min, max);
+      throw MakeFormattedError(loc, FILTER_INVALID_PARAMETER, text, val, min, max);
     }
   }
   

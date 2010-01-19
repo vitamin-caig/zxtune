@@ -41,6 +41,8 @@ namespace
   using namespace ZXTune::Sound;
 
   const unsigned MAX_WIN32_VOLUME = 0xffff;
+  const unsigned BUFFERS_MIN = 3;
+  const unsigned BUFFERS_MAX = 10;
 
   const Char BACKEND_ID[] = {'w', 'i', 'n', '3', '2', 0};
   const String BACKEND_VERSION(FromChar("$Rev$"));
@@ -142,7 +144,8 @@ namespace
   {
   public:
     Win32Backend()
-      : CurrentBuffer(Buffers.begin(), Buffers.end())
+      : Buffers(Parameters::ZXTune::Sound::Backends::Win32::BUFFERS_DEFAULT)
+      , CurrentBuffer(&Buffers.front(), &Buffers.back() + 1)
       , Event(::CreateEvent(0, FALSE, FALSE, 0))
       //device identifier used for opening and volume control
       , Device(Parameters::ZXTune::Sound::Backends::Win32::DEVICE_DEFAULT)
@@ -233,14 +236,29 @@ namespace
     {
       const Parameters::IntType* const device =
         Parameters::FindByName<Parameters::IntType>(updates, Parameters::ZXTune::Sound::Backends::Win32::DEVICE);
+      const Parameters::IntType* const buffs =
+        Parameters::FindByName<Parameters::IntType>(updates, Parameters::ZXTune::Sound::Backends::Win32::BUFFERS);
       const Parameters::IntType* const freq =
         Parameters::FindByName<Parameters::IntType>(updates, Parameters::ZXTune::Sound::FREQUENCY);
-      if (device || freq)
+      if (device || freq || buffs)
       {
         Locker lock(BackendMutex);
         const bool needStartup(0 != WaveHandle);
         DoShutdown();
-        Device = *device;
+        if (device)
+        {
+          Device = *device;
+        }
+        if (buffs)
+        {
+          if (!in_range<Parameters::IntType>(*buffs, BUFFERS_MIN, BUFFERS_MAX))
+          {
+            throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
+              TEXT_SOUND_ERROR_WIN32_BACKEND_INVALID_BUFFERS, static_cast<int>(*buffs), BUFFERS_MIN, BUFFERS_MAX);
+          }
+          Buffers.resize(static_cast<std::size_t>(*buffs));
+          CurrentBuffer = cycled_iterator<WaveBuffer*>(&Buffers.front(), &Buffers.back() + 1);
+        }
         if (needStartup)
         {
           DoStartup();
@@ -276,17 +294,16 @@ namespace
 
     void DoShutdown()
     {
-      std::for_each(Buffers.begin(), Buffers.end(), boost::mem_fn(&WaveBuffer::Release));
       if (0 != WaveHandle)
       {
+        std::for_each(Buffers.begin(), Buffers.end(), boost::mem_fn(&WaveBuffer::Release));
         CheckMMResult(::waveOutReset(WaveHandle), THIS_LINE);
         CheckMMResult(::waveOutClose(WaveHandle), THIS_LINE);
         WaveHandle = 0;
       }
     }
   private:
-    //TODO: setup buffer depth
-    boost::array<WaveBuffer, 3> Buffers;
+    std::vector<WaveBuffer> Buffers;
     cycled_iterator<WaveBuffer*> CurrentBuffer;
     ::HANDLE Event;
     int64_t Device;

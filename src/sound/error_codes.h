@@ -22,9 +22,9 @@ namespace ZXTune
     {
       //mixer-specific errors
       MIXER_UNSUPPORTED = Error::ModuleCode<'M', 'I', 'X'>::Value,
-      MIXER_INVALID_MATRIX,
+      MIXER_INVALID_PARAMETER,
       //filter-specific errors
-      FILTER_INVALID_PARAMS = Error::ModuleCode<'F', 'L', 'T'>::Value,
+      FILTER_INVALID_PARAMETER = Error::ModuleCode<'F', 'L', 'T'>::Value,
       //backend-specific errors
       BACKEND_NOT_FOUND = Error::ModuleCode<'B', 'N', 'D'>::Value,
       BACKEND_FAILED_CREATE,

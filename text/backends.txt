@@ -49,3 +49,6 @@ __cpp> "#endif //__TEXT_BACKENDS_H_DEFINED__\n"
 
 < TEXT_SOUND_ERROR_WIN32_BACKEND_ERROR
 > "Error in win32 backend: %1%."
+
+< TEXT_SOUND_ERROR_WIN32_BACKEND_INVALID_BUFFERS
+> "Win32 backend error: buffers count (%1%) is out of range (%2%..%3%)."

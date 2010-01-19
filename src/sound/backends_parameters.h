@@ -46,6 +46,11 @@ namespace Parameters
           {
             'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','w','i','n','3','2','.','d','e','v','i','c','e','\0'
           };
+          const IntType BUFFERS_DEFAULT = 3;
+          const char BUFFERS[] =
+          {
+            'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','w','i','n','3','2','.','b','u','f','f','e','r','s','\0'
+          };
         }
 
         //parameters for OSS backend

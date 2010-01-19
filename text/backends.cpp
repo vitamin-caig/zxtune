@@ -28,6 +28,11 @@ extern const Char TEXT_SOUND_ERROR_WIN32_BACKEND_ERROR[] = {
   'E','r','r','o','r',' ','i','n',' ','w','i','n','3','2',' ','b','a','c','k','e','n','d',':',' ','%','1','%',
   '.',0
 };
+extern const Char TEXT_SOUND_ERROR_WIN32_BACKEND_INVALID_BUFFERS[] = {
+  'W','i','n','3','2',' ','b','a','c','k','e','n','d',' ','e','r','r','o','r',':',' ','b','u','f','f','e','r',
+  's',' ','c','o','u','n','t',' ','(','%','1','%',')',' ','i','s',' ','o','u','t',' ','o','f',' ','r','a','n',
+  'g','e',' ','(','%','2','%','.','.','%','3','%',')','.',0
+};
 extern const Char TEXT_WAV_BACKEND_DESCRIPTION[] = {
   'W','A','V','-','o','u','t','p','u','t',' ','b','a','c','k','e','n','d',0
 };
