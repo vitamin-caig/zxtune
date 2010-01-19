@@ -196,6 +196,12 @@
 < TEXT_ERROR_INVALID_PARAMETER
 > "Invalid parameter '%1%' in parameter string '%2%'."
 
+< TEXT_SOUND_ERROR_NO_BACKEND
+> "Failed to create any backend."
+
+< TEXT_SOUND_ERROR_INVALID_MIXER
+> "Invalid mixer matrix: '%1%'."
+
 < TEXT_COMMON_ERROR
 > "Error: %1%"
 

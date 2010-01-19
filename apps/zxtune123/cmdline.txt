@@ -133,6 +133,12 @@
 < TEXT_LOOP_DESC
 > "loop playback"
 
+< TEXT_MIXER_KEY
+> "mixer"
+
+< TEXT_MIXER_DESC
+> "specify mixer by layout or matrix"
+
 < TEXT_INPUT_SECTION
 > "Input options"
 

@@ -433,6 +433,13 @@ extern const Char TEXT_LOOP_DESC[] = {
 extern const Char TEXT_LOOP_KEY[] = {
   'l','o','o','p',0
 };
+extern const Char TEXT_MIXER_DESC[] = {
+  's','p','e','c','i','f','y',' ','m','i','x','e','r',' ','b','y',' ','l','a','y','o','u','t',' ','o','r',' ',
+  'm','a','t','r','i','x',0
+};
+extern const Char TEXT_MIXER_KEY[] = {
+  'm','i','x','e','r',0
+};
 extern const Char TEXT_PLAYBACK_STATUS[] = {
   '[','%','1','%',']',' ','[','%','2','%',']','\n',
   '\n',
@@ -458,6 +465,14 @@ extern const Char TEXT_SILENT_KEY[] = {
 };
 extern const Char TEXT_SOUND_BACKEND_PARAMS[] = {
   'p','a','r','a','m','e','t','e','r','s',0
+};
+extern const Char TEXT_SOUND_ERROR_INVALID_MIXER[] = {
+  'I','n','v','a','l','i','d',' ','m','i','x','e','r',' ','m','a','t','r','i','x',':',' ','\'','%','1','%','\'',
+  '.',0
+};
+extern const Char TEXT_SOUND_ERROR_NO_BACKEND[] = {
+  'F','a','i','l','e','d',' ','t','o',' ','c','r','e','a','t','e',' ','a','n','y',' ','b','a','c','k','e','n',
+  'd','.',0
 };
 extern const Char TEXT_SOUND_SECTION[] = {
   'S','o','u','n','d',' ','o','p','t','i','o','n','s',0

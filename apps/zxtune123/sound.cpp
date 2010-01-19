@@ -16,12 +16,16 @@ Author:
 
 #include <error_tools.h>
 #include <logging.h>
+#include <string_helpers.h>
 #include <core/core_parameters.h>
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
 
 #include <algorithm>
+#include <cctype>
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/split.hpp>
 #include <boost/bind.hpp>
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/value_semantic.hpp>
@@ -32,8 +36,85 @@ Author:
 
 namespace
 {
+  const Char DEFAULT_MIXER_3[] = {'A', 'B', 'C', '\0'};
+  const Char DEFAULT_MIXER_4[] = {'A', 'B', 'C', 'D', '\0'};
+
   static const String NOTUSED_MARK("\x01\x02");
-  
+
+  const unsigned MIN_CHANNELS = 2;
+  const unsigned MAX_CHANNELS = 6;
+
+  const Char MATRIX_DELIMITERS[] = {';', ',', '-', '\0'};
+
+  inline bool InvalidChannelLetter(unsigned channels, Char letter)
+  {
+    if (channels < MIN_CHANNELS || channels > MAX_CHANNELS)
+    {
+      return true;
+    }
+    return (letter < Char('A') || letter > Char('A' + channels)) &&
+           (letter < Char('a') || letter > Char('a' + channels)) &&
+           letter != Char('-');
+  }
+
+  inline double DoubleFromString(const String& str)
+  {
+    InStringStream stream(str);
+    double res = 0;
+    if (stream >> res)
+    {
+      return res;
+    }
+    throw MakeFormattedError(THIS_LINE, INVALID_PARAMETER, TEXT_SOUND_ERROR_INVALID_MIXER, str);
+  }
+
+  //ABC: 1.0,0.0,0.5,0.5,0.0,1.0
+  std::vector<ZXTune::Sound::MultiGain> ParseMixerMatrix(const String& str)
+  {
+    //check for layout
+    if (str.end() == std::find_if(str.begin(), str.end(), std::bind1st(std::ptr_fun(&InvalidChannelLetter), static_cast<unsigned>(str.size()))))
+    {
+      const unsigned channels = static_cast<unsigned>(str.size());
+      //letter- position in result matrix
+      //letter position- output channel
+      //letter case- level
+      std::vector<ZXTune::Sound::MultiGain> result(channels);
+      for (unsigned inChannel = 0; inChannel != channels; ++inChannel)
+      {
+        if (str[inChannel] == '-')
+        {
+          continue;
+        }
+        const double inPos(1.0 * inChannel / (channels - 1));
+        const bool gained(str[inChannel] < 'a');
+        ZXTune::Sound::MultiGain& res(result[toupper(str[inChannel]) - 'A']);
+        for (unsigned outChannel = 0; outChannel != res.size(); ++outChannel)
+        {
+          const double outPos(1.0 * outChannel / (res.size() - 1));
+          res[outChannel] += (gained ? 1.0 : 0.6) * (1 - abs(inPos - outPos));
+        }
+      }
+      std::vector<ZXTune::Sound::MultiGain>::iterator endone(result.end());
+      --endone;
+      const double maxGain(*std::max_element(result.begin()->begin(), endone->end()));
+      if (maxGain > 0)
+      {
+        std::transform(result.begin()->begin(), endone->end(), result.begin()->begin(), std::bind2nd(std::divides<double>(), maxGain));
+      }
+      return result;
+    }
+    StringArray splitted;
+    boost::algorithm::split(splitted, str, boost::algorithm::is_any_of(MATRIX_DELIMITERS));
+    if (splitted.size() < MAX_CHANNELS * ZXTune::Sound::OUTPUT_CHANNELS ||
+        splitted.size() > MIN_CHANNELS * ZXTune::Sound::OUTPUT_CHANNELS)
+    {
+      std::vector<ZXTune::Sound::MultiGain> result(splitted.size() / ZXTune::Sound::OUTPUT_CHANNELS);
+      std::transform(splitted.begin(), splitted.end(), result.begin()->begin(), &DoubleFromString);
+      return result;
+    }
+    throw MakeFormattedError(THIS_LINE, INVALID_PARAMETER, TEXT_SOUND_ERROR_INVALID_MIXER, str);
+  }
+
   class Sound : public SoundComponent
   {
     typedef std::list<std::pair<String, String> > PerBackendOptions;
@@ -63,6 +144,8 @@ namespace
         (TEXT_FREQTABLE_KEY, value<String>(&SoundOptions[Parameters::ZXTune::Core::AYM::TABLE]), TEXT_FREQTABLE_DESC)
         (TEXT_YM_KEY, bool_switch(&YM), TEXT_YM_DESC)
         (TEXT_LOOP_KEY, bool_switch(&Looped), TEXT_LOOP_DESC)
+        (TEXT_MIXER_KEY, value<StringArray>(&Mixers), TEXT_MIXER_DESC)
+        //("bandpass", value<String>(&Filter), "bandpass filter ranges in Hz.")
       ;
     }
     
@@ -130,9 +213,23 @@ namespace
         }
         Log::Debug(THIS_MODULE, "Success!");
         Backend = backend;
-        return;
+        break;
       }
-      throw Error(THIS_LINE, NO_BACKENDS, "Failed to create backend.");
+      if (!Backend.get())
+      {
+        throw Error(THIS_LINE, NO_BACKENDS, TEXT_SOUND_ERROR_NO_BACKEND);
+      }
+
+      //setup mixers
+      if (Mixers.empty())
+      {
+        Mixers.push_back(DEFAULT_MIXER_3);
+        Mixers.push_back(DEFAULT_MIXER_4);
+      }
+      std::vector<std::vector<ZXTune::Sound::MultiGain> > matrixes(Mixers.size());
+      std::transform(Mixers.begin(), Mixers.end(), matrixes.begin(), ParseMixerMatrix);
+      std::for_each(matrixes.begin(), matrixes.end(),
+        boost::bind(&ThrowIfError, boost::bind(&ZXTune::Sound::Backend::SetMixer, Backend.get(), _1)));
     }
 
     virtual ZXTune::Sound::Backend& GetBackend()
@@ -148,6 +245,8 @@ namespace
     ZXTune::Sound::Backend::Ptr Backend;
     bool YM;
     bool Looped;
+    StringArray Mixers;
+    String Filter;
   };
 }
 
