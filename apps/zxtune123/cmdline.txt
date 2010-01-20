@@ -139,6 +139,12 @@
 < TEXT_MIXER_DESC
 > "specify mixer by layout or matrix"
 
+< TEXT_FILTER_KEY
+> "filter"
+
+< TEXT_FILTER_DESC
+> "specify bandpass filter ([order,]low-high)"
+
 < TEXT_INPUT_SECTION
 > "Input options"
 

@@ -19,6 +19,7 @@ Author:
 #include <string_helpers.h>
 #include <core/core_parameters.h>
 #include <sound/backends_parameters.h>
+#include <sound/filter.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
 
@@ -43,6 +44,7 @@ namespace
 
   const unsigned MIN_CHANNELS = 2;
   const unsigned MAX_CHANNELS = 6;
+  const unsigned DEFAULT_FILTER_ORDER = 10;
 
   const Char MATRIX_DELIMITERS[] = {';', ',', '-', '\0'};
 
@@ -57,15 +59,16 @@ namespace
            letter != Char('-');
   }
 
-  inline double DoubleFromString(const String& str)
+  template<class T>
+  inline T FromString(const String& str)
   {
     InStringStream stream(str);
-    double res = 0;
+    T res = 0;
     if (stream >> res)
     {
       return res;
     }
-    throw MakeFormattedError(THIS_LINE, INVALID_PARAMETER, TEXT_SOUND_ERROR_INVALID_MIXER, str);
+    throw MakeFormattedError(THIS_LINE, INVALID_PARAMETER, TEXT_ERROR_INVALID_FORMAT, str);
   }
 
   //ABC: 1.0,0.0,0.5,0.5,0.0,1.0
@@ -94,12 +97,10 @@ namespace
           res[outChannel] += (gained ? 1.0 : 0.6) * (1 - abs(inPos - outPos));
         }
       }
-      std::vector<ZXTune::Sound::MultiGain>::iterator endone(result.end());
-      --endone;
-      const double maxGain(*std::max_element(result.begin()->begin(), endone->end()));
+      const double maxGain(*std::max_element(result.front().begin(), result.back().end()));
       if (maxGain > 0)
       {
-        std::transform(result.begin()->begin(), endone->end(), result.begin()->begin(), std::bind2nd(std::divides<double>(), maxGain));
+        std::transform(result.front().begin(), result.back().end(), result.front().begin(), std::bind2nd(std::divides<double>(), maxGain));
       }
       return result;
     }
@@ -109,10 +110,35 @@ namespace
         splitted.size() > MIN_CHANNELS * ZXTune::Sound::OUTPUT_CHANNELS)
     {
       std::vector<ZXTune::Sound::MultiGain> result(splitted.size() / ZXTune::Sound::OUTPUT_CHANNELS);
-      std::transform(splitted.begin(), splitted.end(), result.begin()->begin(), &DoubleFromString);
+      std::transform(splitted.begin(), splitted.end(), result.begin()->begin(), &FromString<double>);
       return result;
     }
     throw MakeFormattedError(THIS_LINE, INVALID_PARAMETER, TEXT_SOUND_ERROR_INVALID_MIXER, str);
+  }
+
+  ZXTune::Sound::Converter::Ptr CreateFilter(unsigned freq, const String& str)
+  {
+    //[order,]low-hi
+    const Char PARAM_DELIMITER(',');
+    const Char BANDPASS_DELIMITER('-');
+    if (1 == std::count(str.begin(), str.end(), BANDPASS_DELIMITER) &&
+        1 >= std::count(str.begin(), str.end(), PARAM_DELIMITER))
+    {
+      const String::size_type paramDPos(str.find(PARAM_DELIMITER));
+      const String::size_type rangeDPos(str.find(BANDPASS_DELIMITER));
+      if (String::npos == paramDPos || paramDPos < rangeDPos)
+      {
+        const unsigned order = String::npos == paramDPos ? DEFAULT_FILTER_ORDER : FromString<unsigned>(str.substr(0, paramDPos));
+        const String::size_type rangeBegin(String::npos == paramDPos ? 0 : paramDPos + 1);
+        const unsigned lowCutoff = FromString<unsigned>(str.substr(rangeBegin, rangeDPos - rangeBegin));
+        const unsigned highCutoff = FromString<unsigned>(str.substr(rangeDPos + 1));
+        ZXTune::Sound::Filter::Ptr filter;
+        ThrowIfError(ZXTune::Sound::CreateFIRFilter(order, filter));
+        ThrowIfError(filter->SetBandpassParameters(freq, lowCutoff, highCutoff));
+        return filter;
+      }
+    }
+    throw MakeFormattedError(THIS_LINE, INVALID_PARAMETER, TEXT_SOUND_ERROR_INVALID_FILTER, str);
   }
 
   class Sound : public SoundComponent
@@ -145,7 +171,7 @@ namespace
         (TEXT_YM_KEY, bool_switch(&YM), TEXT_YM_DESC)
         (TEXT_LOOP_KEY, bool_switch(&Looped), TEXT_LOOP_DESC)
         (TEXT_MIXER_KEY, value<StringArray>(&Mixers), TEXT_MIXER_DESC)
-        //("bandpass", value<String>(&Filter), "bandpass filter ranges in Hz.")
+        (TEXT_FILTER_KEY, value<String>(&Filter), TEXT_FILTER_DESC)
       ;
     }
     
@@ -230,6 +256,13 @@ namespace
       std::transform(Mixers.begin(), Mixers.end(), matrixes.begin(), ParseMixerMatrix);
       std::for_each(matrixes.begin(), matrixes.end(),
         boost::bind(&ThrowIfError, boost::bind(&ZXTune::Sound::Backend::SetMixer, Backend.get(), _1)));
+      //setup filter
+      if (!Filter.empty())
+      {
+        Parameters::IntType freq = Parameters::ZXTune::Sound::FREQUENCY_DEFAULT;
+        Parameters::FindByName(GlobalParams, Parameters::ZXTune::Sound::FREQUENCY, freq);
+        ThrowIfError(Backend->SetFilter(CreateFilter(static_cast<unsigned>(freq), Filter)));
+      }
     }
 
     virtual ZXTune::Sound::Backend& GetBackend()
