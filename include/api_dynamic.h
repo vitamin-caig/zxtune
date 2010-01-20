@@ -1,13 +1,11 @@
-/*
-Abstract:
-  Helper macros for dynamic objects' api specification
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file     api_dynamic.h
+* @brief    Helper macros for dynamic objects' api specification
+* @version  $Id$
+* @author   (C) Vitamin/CAIG/2001
+*
+**/
 
 #ifndef __API_DYNAMIC_H_DEFINED__
 #define __API_DYNAMIC_H_DEFINED__

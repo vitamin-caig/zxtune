@@ -1,13 +1,11 @@
-/*
-Abstract:
-  Basic types definitions
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file     types.h
+* @file     Basic types definitions
+* @version  $Id$
+* @author   (C) Vitamin/CAIG/2001
+*
+**/
 
 #ifndef __TYPES_H_DEFINED__
 #define __TYPES_H_DEFINED__
@@ -17,6 +15,8 @@ Author:
 #include <boost/cstdint.hpp>
 #include <boost/static_assert.hpp>
 
+//@{
+//! @brief Integer types
 using boost::int8_t;
 using boost::uint8_t;
 using boost::int16_t;
@@ -25,8 +25,26 @@ using boost::int32_t;
 using boost::uint32_t;
 using boost::int64_t;
 using boost::uint64_t;
+//@}
 
-// alignment macroses
+//! @brief Structure packing macros
+//! @code
+//! #ifdef USE_PRAGMA_PACK
+//! #pragma pack(push,1)
+//! #endif
+//! PACK_PRE struct Foo
+//! {
+//! ...
+//! } PACK_POST;
+//!
+//! PACK_PRE struct Bar
+//! {
+//! ...
+//! } PACK_POST;
+//! #ifdef USE_PRAGMA_PACK
+//! #pragma pack(pop)
+//! #endif
+//! @endcode
 #if defined __GNUC__
 #define PACK_PRE
 #define PACK_POST __attribute__ ((packed))
@@ -39,7 +57,7 @@ using boost::uint64_t;
 #define PACK_POST
 #endif
 
-//other types
+//! @brief Plain data type
 typedef std::vector<unsigned char> Dump;
 
 //assertions

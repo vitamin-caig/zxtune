@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Error subsystem tools
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file     error_tools.h
+* @brief    Error subsystem tools
+* @version  $Id$
+* @author   (C) Vitamin/CAIG/2001
+*
+* @see @ref Formatter type for format string specification
+**/
 
 #ifndef __ERROR_TOOLS_H_DEFINED__
 #define __ERROR_TOOLS_H_DEFINED__
@@ -15,6 +14,7 @@ Author:
 #include <error.h>
 #include <formatter.h>
 
+//! @brief Building error object with formatted text using up to 5 parameters
 template<class P1>
 inline Error MakeFormattedError(Error::LocationRef loc, Error::CodeType code, const String& fmt,
   const P1& p1)

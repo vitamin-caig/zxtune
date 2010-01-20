@@ -1,13 +1,11 @@
-/*
-Abstract:
-  Helper functions for byteorder working
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file     byteorder.h
+* @brief    Helper functions for byteorder working
+* @version  $Id$
+* @author   (C) Vitamin/CAIG/2001
+*
+**/
 
 #ifndef __BYTEORDER_H_DEFINED__
 #define __BYTEORDER_H_DEFINED__
@@ -54,6 +52,7 @@ struct ByteSwap<8>
   }
 };
 
+//! @brief Swapping byteorder of integer type value
 template<class T>
 inline T swapBytes(T a)
 {
@@ -62,17 +61,20 @@ inline T swapBytes(T a)
 }
 
 #ifdef BOOST_LITTLE_ENDIAN
+//! @brief Checking if current platform is Little-Endian
 inline bool isLE()
 {
   return true;
 }
 
+//! @brief Converting input data from Little-Endian byteorder
 template<class T>
 inline T fromLE(T a)
 {
   return a;
 }
 
+//! @brief Converting input data from Big-Endian byteorder
 template<class T>
 inline T fromBE(T a)
 {

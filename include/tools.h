@@ -1,13 +1,11 @@
-/*
-Abstract:
-  Commonly used tools
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file     tools.h
+* @brief    Commonly used tools
+* @version  $Id$
+* @author   (C) Vitamin/CAIG/2001
+*
+**/
 
 #ifndef __TOOLS_H_DEFINED__
 #define __TOOLS_H_DEFINED__
@@ -24,11 +22,15 @@ Author:
 #include <iterator>
 #include <algorithm>
 
+//! @brief Calculating size of fixed-size array
 template<class T, std::size_t D>
 inline std::size_t ArraySize(const T (&)[D])
 {
   return D;
 }
+
+//! @fn template<class T, std::size_t D>inline const T* ArrayEnd(const T (&c)[D])
+//! @brief Calculating end iterator of fixed-size array
 
 //workaround for ArrayEnd (need for packed structures)
 #undef ArrayEnd
@@ -52,7 +54,7 @@ inline T* ArrayEnd(T (&c)[D])
 }
 #endif
 
-
+//! @brief Performing safe pointer casting
 template<class T, class F>
 inline T safe_ptr_cast(F from)
 {
@@ -63,6 +65,14 @@ inline T safe_ptr_cast(F from)
   return static_cast<T>(static_cast<MidType>(from));
 }
 
+//! @brief Cycled iterator implementation
+//! @code
+//! std::vector<T> values;
+//! //.. fill values
+//! cycled_iterator<T*> ptr_iterator(&values.front(), &values.back() + 1);
+//! cycled_iterator<std::vector<T>::const_iterator> it_iterator(values.begin(), values.end());
+//! @endcode
+//! @invariant Distance between input iterators is more than 1
 template<class C>
 class cycled_iterator
 {
@@ -134,6 +144,7 @@ private:
   C cur;
 };
 
+//! @brief Clamping value into specified range
 template<class T>
 inline T clamp(T val, T min, T max)
 {
@@ -141,6 +152,7 @@ inline T clamp(T val, T min, T max)
   return std::min<T>(std::max<T>(val, min), max);
 }
 
+//! @brief Checking if value is in specified range (inclusive)
 template<class T>
 inline bool in_range(T val, T min, T max)
 {
@@ -148,6 +160,7 @@ inline bool in_range(T val, T min, T max)
   return val >= min && val <= max;
 }
 
+//! @brief Align numeric with specified alignment
 template<class T>
 inline T align(T val, T alignment)
 {

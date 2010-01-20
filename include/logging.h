@@ -1,13 +1,11 @@
-/*
-Abstract:
-  Logging functions interface
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file     logging.h
+* @brief    Logging functions interface
+* @version  $Id$
+* @author   (C) Vitamin/CAIG/2001
+* 
+**/
 
 #ifndef __LOGGING_H_DEFINED__
 #define __LOGGING_H_DEFINED__
@@ -21,10 +19,13 @@ Author:
 
 #include <boost/format.hpp>
 
+//! @brief Namespace is used for logging and other informational purposes
 namespace Log
 {
+  //! @brief Checks if debugging messages output is enabled
   bool IsDebuggingEnabled();
 
+  //! @brief Unconditionally outputs debug message
   void Message(const std::string& module, const std::string& msg);
 
   template<class T>
@@ -45,6 +46,7 @@ namespace Log
   }
   #endif
 
+  //! @brief Conditionally outputs debug message from specified module
   inline void Debug(const std::string& module, const char* msg)
   {
     assert(msg);
@@ -54,13 +56,14 @@ namespace Log
     }
   }
 
+  //! @brief Conditionally outputs formatted (up to 5 parameters) debug message from specified module
   template<class P1>
   inline void Debug(const std::string& module, const char* msg, const P1& p1)
   {
     assert(msg);
     if (IsDebuggingEnabled())
     {
-      Message(module, (boost::format(msg) % AdaptType(p1)).str());
+      Message(module, AdaptType((boost::format(msg) % AdaptType(p1)).str()));
     }
   }
   
@@ -70,9 +73,9 @@ namespace Log
     assert(msg);
     if (IsDebuggingEnabled())
     {
-      Message(module, (boost::format(msg)
+      Message(module, AdaptType((boost::format(msg)
         % AdaptType(p1)
-        % AdaptType(p2)).str());
+        % AdaptType(p2)).str()));
     }
   }
 
@@ -82,10 +85,10 @@ namespace Log
     assert(msg);
     if (IsDebuggingEnabled())
     {
-      Message(module, (boost::format(msg)
+      Message(module, AdaptType((boost::format(msg)
         % AdaptType(p1)
         % AdaptType(p2)
-        % AdaptType(p3)).str());
+        % AdaptType(p3)).str()));
     }
   }
 
@@ -95,11 +98,11 @@ namespace Log
     assert(msg);
     if (IsDebuggingEnabled())
     {
-      Message(module, (boost::format(msg)
+      Message(module, AdaptType((boost::format(msg)
         % AdaptType(p1)
         % AdaptType(p2)
         % AdaptType(p3)
-        % AdaptType(p4)).str());
+        % AdaptType(p4)).str()));
     }
   }
 
@@ -110,12 +113,12 @@ namespace Log
     assert(msg);
     if (IsDebuggingEnabled())
     {
-      Message(module, (boost::format(msg)
+      Message(module, AdaptType((boost::format(msg)
         % AdaptType(p1)
         % AdaptType(p2)
         % AdaptType(p3)
         % AdaptType(p4)
-        % AdaptType(p5)).str());
+        % AdaptType(p5)).str()));
     }
   }
 }

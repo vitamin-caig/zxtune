@@ -1,13 +1,11 @@
-/*
-Abstract:
-  Parameters-related types definitions
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file     parameters.h
+* @brief    Parameters-related types definitions
+* @version  $Id$
+* @author   (C) Vitamin/CAIG/2001
+*
+**/
 
 #ifndef __PARAMETERS_TYPES_H_DEFINED__
 #define __PARAMETERS_TYPES_H_DEFINED__
@@ -20,19 +18,42 @@ Author:
 #include <boost/variant/get.hpp>
 #include <boost/variant/variant.hpp>
 
+//! @brief Namespace is used to keep parameters-working related types and functions
 namespace Parameters
 {
+  //@{
+  //! @name Value types
+  
+  //! @brief Integer parameters type
   typedef int64_t IntType;
+  //! @brief String parameters type
   typedef String StringType;
+  //! @brief Data parameters type
   typedef Dump DataType;
+  //@}
   
+  //@{
+  //! @name Other types
+  
+  //! @brief Parameters name type
   typedef String NameType;
+  //! @brief Complex variant value type
   typedef boost::variant<IntType, StringType, DataType> ValueType;
+  //! @brief Parameters map type
   typedef std::map<NameType, ValueType> Map;
+  //@}
   
+  //! @brief Delimiter between namespaces in parameters' names
   const NameType::value_type NAMESPACE_DELIMITER = '.';
   
-  //working with parameters map
+  //@{
+  //! @name Working with map
+
+  //! @brief Searching for the parameter of specified type and name
+  //! @tparam T Parameter type
+  //! @param params Input map
+  //! @param name Parameter name
+  //! @return 0 if not found
   template<class T>
   inline const T* FindByName(const Map& params, const NameType& name)
   {
@@ -40,6 +61,11 @@ namespace Parameters
     return it != params.end() ? boost::get<T>(&(it->second)) : 0;
   }
   
+  //! @brief Searching for the parameter of specified type and name
+  //! @param params Input map
+  //! @param name Parameter name
+  //! @param result return value
+  //! @return true if parameter is found and copied to result
   template<class T>
   inline bool FindByName(const Map& params, const NameType& name, T& result)
   {
@@ -47,9 +73,13 @@ namespace Parameters
     return val ? (result = *val, true) : false;
   }
   
+  //! @brief Converting parameter value to string
   String ConvertToString(const ValueType& val);
+  //! @brief Converting string to parameter value
   ValueType ConvertFromString(const String& val);
+  //! @brief Converting Parameters::Map to StringMap
   void ConvertMap(const Map& input, StringMap& output);
+  //! @brief Converting StringMap to Parameters::Map
   void ConvertMap(const StringMap& input, Map& output);
 }
 
