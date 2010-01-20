@@ -21,6 +21,7 @@ Author:
 #include <cassert>
 #include <cmath>
 #include <limits>
+#include <numeric>
 
 #include <text/sound.h>
 
@@ -70,6 +71,34 @@ namespace
       throw MakeFormattedError(loc, FILTER_INVALID_PARAMETER, text, val, min, max);
     }
   }
+
+  //TODO: use IIR filter to remove DC
+  template<class T>
+  class Integrator
+  {
+  public:
+    explicit Integrator(unsigned size)
+      : Size(size), Buffer(size), Current(Buffer.begin()), Sum()
+    {
+    }
+
+    T Update(T val)
+    {
+      Sum -= *Current;
+      Sum += val;
+      *Current = val;
+      if (++Current == Buffer.end())
+      {
+        Current = Buffer.begin();
+      }
+      return Sum / Size;
+    }
+  private:
+    const unsigned Size;
+    std::vector<T> Buffer;
+    typename std::vector<T>::iterator Current;
+    T Sum;
+  };
   
   template<class IntSample>
   class FIRFilter : public Filter, private boost::noncopyable
@@ -80,19 +109,9 @@ namespace
     
     typedef boost::array<IntSample, OUTPUT_CHANNELS> MultiIntSample;
     
-    inline static IntSample Normalize(Sample smp)
+    inline static Sample Integral2Sample(BigSample smp, IntSample mid)
     {
-      return IntSample(smp) - SAMPLE_MID;
-    }
-    
-    inline static Sample Denormalize(IntSample smp)
-    {
-      return smp + SAMPLE_MID;
-    }
-    
-    inline static Sample Integral2Sample(BigSample smp)
-    {
-      return Denormalize(IntSample(smp / FIXED_POINT_PRECISION));
+      return IntSample(smp / FIXED_POINT_PRECISION) + mid;
     }
   public:
     static const unsigned MIN_ORDER = 2;
@@ -102,14 +121,16 @@ namespace
     explicit FIRFilter(unsigned order)
       : Matrix(order), Delegate(CreateDummyReceiver())
       , History(order), Position(&History[0], &History.back() + 1)
+      , Midval(4096)
     {
       assert(in_range<unsigned>(order, MIN_ORDER, MAX_ORDER));
     }
 
     virtual void ApplySample(const MultiSample& data)
     {
-      std::transform(data.begin(), data.end(), Position->begin(), Normalize);
-      
+      std::copy(data.begin(), data.end(), Position->begin());
+      const IntSample avg = Midval.Update(std::accumulate(Position->begin(), Position->end(), 0)) / OUTPUT_CHANNELS;
+      std::transform(Position->begin(), Position->end(), Position->begin(), std::bind2nd(std::minus<IntSample>(), avg));
       MultiBigSample res = { {0} };
 
       for (typename MatrixType::const_iterator it = Matrix.begin(), lim = Matrix.end(); it != lim; ++it, --Position)
@@ -122,7 +143,7 @@ namespace
         }
       }
       MultiSample result;
-      std::transform(res.begin(), res.end(), result.begin(), Integral2Sample);
+      std::transform(res.begin(), res.end(), result.begin(), std::bind2nd(std::ptr_fun(&Integral2Sample), avg));
       ++Position;
       return Delegate->ApplySample(result);
     }
@@ -194,6 +215,7 @@ namespace
     Receiver::Ptr Delegate;
     std::vector<MultiIntSample> History;
     cycled_iterator<MultiIntSample*> Position;
+    Integrator<IntSample> Midval;
   };
 }
 

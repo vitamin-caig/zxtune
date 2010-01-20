@@ -232,13 +232,12 @@ namespace
       }
     }
 
-
     virtual void OnBufferReady(std::vector<MultiSample>& buffer)
     {
       const std::size_t sizeInBytes = buffer.size() * sizeof(buffer.front());
 #ifdef BOOST_BIG_ENDIAN
       Buffer.resize(buffer.size());
-      std::transform(buffer.begin()->begin(), buffer.end()->end(), Buffer.begin()->begin(), &swapBytes<Sample>);
+      std::transform(buffer.front().begin(), buffer.back().end(), Buffer.front().begin(), &swapBytes<Sample>);
       File.write(safe_ptr_cast<const char*>(&Buffer[0]), static_cast<std::streamsize>(sizeInBytes));
 #else
       File.write(safe_ptr_cast<const char*>(&buffer[0]), static_cast<std::streamsize>(sizeInBytes));

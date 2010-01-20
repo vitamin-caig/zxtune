@@ -15,12 +15,13 @@ Author:
 #include <sound/error_codes.h>
 #include <sound/mixer.h>
 
+#include <algorithm>
+#include <numeric>
+
 #include <boost/bind.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/integer/static_log2.hpp>
 #include <boost/mpl/if.hpp>
-
-#include <algorithm>
 
 #include <text/sound.h>
 
@@ -59,12 +60,20 @@ namespace
     typedef boost::array<BigSample, OUTPUT_CHANNELS> MultiBigSample;
     
     typedef boost::array<NativeType, OUTPUT_CHANNELS> MultiFixed;
+
+    static MultiBigSample AddBigsamples(const MultiFixed& lh, const MultiBigSample& rh)
+    {
+      MultiBigSample res;
+      std::transform(lh.begin(), lh.end(), rh.begin(), res.begin(), std::plus<BigSample>());
+      return res;
+    }
   public:
     FastMixer()
       : Endpoint(CreateDummyReceiver())
     {
       std::fill(Matrix.front().begin(), Matrix.front().end(), FIXED_POINT_PRECISION);
       std::fill(Matrix.begin(), Matrix.end(), Matrix.front());
+      std::fill(Dividers.begin(), Dividers.end(), FIXED_POINT_PRECISION * InChannels);
     }
 
     virtual void ApplySample(const std::vector<Sample>& inData)
@@ -87,8 +96,7 @@ namespace
         }
       }
       MultiSample result;
-      std::transform(res.begin(), res.end(), result.begin(), std::bind2nd(std::divides<BigSample>(),
-        BigSample(FIXED_POINT_PRECISION) * InChannels));
+      std::transform(res.begin(), res.end(), Dividers.begin(), result.begin(), std::divides<BigSample>());
       return Endpoint->ApplySample(result);
     }
     
@@ -115,12 +123,14 @@ namespace
         return Error(THIS_LINE, MIXER_INVALID_PARAMETER, TEXT_SOUND_ERROR_MIXER_INVALID_MATRIX_GAIN);
       }
       std::transform(data.begin(), data.end(), Matrix.begin(), MultiGain2MultiFixed<NativeType>);
+      Dividers = std::accumulate(Matrix.begin(), Matrix.end(), MultiBigSample(), AddBigsamples);
       return Error();
     }
     
   private:
     Receiver::Ptr Endpoint;
     boost::array<MultiFixed, InChannels> Matrix;
+    MultiBigSample Dividers;
   };
 }
 
