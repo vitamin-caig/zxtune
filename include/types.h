@@ -1,7 +1,7 @@
 /**
 *
 * @file     types.h
-* @file     Basic types definitions
+* @brief    Basic types definitions
 * @version  $Id$
 * @author   (C) Vitamin/CAIG/2001
 *
@@ -27,7 +27,8 @@ using boost::int64_t;
 using boost::uint64_t;
 //@}
 
-//! @brief Structure packing macros
+//@{
+//! Structure packing macros
 //! @code
 //! #ifdef USE_PRAGMA_PACK
 //! #pragma pack(push,1)
@@ -56,6 +57,7 @@ using boost::uint64_t;
 #define PACK_PRE
 #define PACK_POST
 #endif
+//@}
 
 //! @brief Plain data type
 typedef std::vector<unsigned char> Dump;

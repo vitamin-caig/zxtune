@@ -1,7 +1,7 @@
 /**
 *
 * @file     error_tools.h
-* @brief    Error subsystem tools
+* @brief    %Error subsystem tools
 * @version  $Id$
 * @author   (C) Vitamin/CAIG/2001
 *

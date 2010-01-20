@@ -11,9 +11,10 @@
 #define __CHAR_TYPE_H_DEFINED__
 
 #ifdef UNICODE
-//! @brief Character type used for strings
+//! @brief Character type used for strings in unicode mode
 typedef wchar_t Char;
 #else
+//! @brief Character type used for strings
 typedef char Char;
 #endif
 

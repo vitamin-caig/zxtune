@@ -1,7 +1,7 @@
 /**
 *
 * @file     error.h
-* @brief    Error subsystem definitions
+* @brief    %Error subsystem definitions
 * @version  $Id$
 * @author   (C) Vitamin/CAIG/2001
 *
@@ -49,9 +49,11 @@ public:
   //! @brief %Location type for debug builds
   struct Location
   {
+    //! Default constructor
     Location() : Tag(0), File(0), Function(0), Line(0)
     {
     }
+    //! Full parameters list constructor
     Location(LineTag tag, const char* file, const char* function, unsigned line)
       : Tag(tag), File(file), Function(function), Line(line)
     {

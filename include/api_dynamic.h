@@ -10,6 +10,12 @@
 #ifndef __API_DYNAMIC_H_DEFINED__
 #define __API_DYNAMIC_H_DEFINED__
 
+//! @def PUBLIC_API_EXPORT
+//! @brief Macro used for defining exported symbols
+
+//! @def PUBLIC_API_IMPORT
+//! @brief Macro used for defining imported symbols
+
 #if defined(_WIN32)
 #define PUBLIC_API_EXPORT __declspec(dllexport)
 #define PUBLIC_API_IMPORT __declspec(dllimport)
