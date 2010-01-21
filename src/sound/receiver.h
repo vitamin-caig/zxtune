@@ -48,25 +48,6 @@ namespace ZXTune
     typedef BasicReceiver<MultiSample> Receiver;
     typedef BasicConverter<MultiSample> Converter;
     typedef BasicReceiver<std::vector<Sample> > MultichannelReceiver;
-
-    template<class T>
-    class DummyReceiverObject : public T
-    {
-    public:
-      DummyReceiverObject()
-      {
-      }
-      
-      virtual void ApplySample(const typename T::DataType& /*data*/)
-      {
-      }
-      
-      virtual void Flush()
-      {
-      }
-    };
-    
-    Receiver::Ptr CreateDummyReceiver();
   }
 }
 

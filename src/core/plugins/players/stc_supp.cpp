@@ -24,6 +24,7 @@ Author:
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
 #include <io/container.h>
+#include <sound/dummy_receiver.h>
 #include <sound/render_params.h>
 
 #include <cctype>

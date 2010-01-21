@@ -12,6 +12,7 @@ Author:
 
 #include <tools.h>
 #include <error_tools.h>
+#include <sound/dummy_receiver.h>
 #include <sound/error_codes.h>
 #include <sound/mixer.h>
 
