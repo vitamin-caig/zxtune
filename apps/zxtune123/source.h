@@ -13,7 +13,7 @@ Author:
 #ifndef ZXTUNE123_SOURCE_H_DEFINED
 #define ZXTUNE123_SOURCE_H_DEFINED
 
-#include <core/player.h>
+#include <core/module_detect.h>
 
 #include <memory>
 

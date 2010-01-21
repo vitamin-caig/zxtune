@@ -13,9 +13,7 @@ Author:
 #define __CORE_PLUGINS_ENUMERATOR_H_DEFINED__
 
 #include <string_helpers.h>
-// for Module::Holder::Ptr and related
-#include <core/player.h>
-// for PluginInformationArray
+#include <core/module_detect.h>
 #include <core/plugin.h>
 
 #include <boost/function.hpp>
@@ -73,7 +71,7 @@ namespace ZXTune
     
     //private interface
     //resolve subpath
-    virtual Error ResolveSubpath(const Parameters::Map& commonParams, IO::DataContainer::Ptr data, 
+    virtual Error ResolveSubpath(const Parameters::Map& commonParams, IO::DataContainer::Ptr data,
       const String& subpath, const DetectParameters::LogFunc& logger, MetaContainer& result) const = 0;
     //full module detection
     virtual Error DetectModules(const Parameters::Map&, const DetectParameters& params, const MetaContainer& data,

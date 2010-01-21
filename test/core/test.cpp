@@ -2,7 +2,8 @@
 #include <formatter.h>
 #include <string_helpers.h>
 #include <io/provider.h>
-#include <core/player.h>
+#include <core/module_detect.h>
+#include <core/module_player.h>
 #include <core/plugin.h>
 #include <core/error_codes.h>
 #include <iostream>

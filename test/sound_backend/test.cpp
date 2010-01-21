@@ -1,6 +1,6 @@
 #include <tools.h>
 #include <formatter.h>
-#include <core/player.h>
+#include <core/module_holder.h>
 #include <core/devices/aym/aym.h>
 #include <sound/backend.h>
 #include <sound/error_codes.h>
@@ -89,7 +89,7 @@ namespace
       Chunk.Data[AYM::DataChunk::REG_MIXER] = ~7;
       Chunk.Data[AYM::DataChunk::REG_VOLA] = Chunk.Data[AYM::DataChunk::REG_VOLB] = Chunk.Data[AYM::DataChunk::REG_VOLC] = 15;
     }
-        
+     
     virtual const Module::Holder& GetModule() const
     {
       return Holder;

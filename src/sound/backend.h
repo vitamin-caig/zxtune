@@ -13,7 +13,7 @@ Author:
 #define __SOUND_BACKEND_H_DEFINED__
 
 // for Module::Holder::Ptr, Converter::Ptr and other
-#include <core/player.h>
+#include <core/module_holder.h>
 
 #include <memory>
 
