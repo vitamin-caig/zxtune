@@ -1,19 +1,18 @@
-/*
-Abstract:
-  Plugins attributes
+/**
+*
+* @file     plugin_attrs.h
+* @brief    Plugins attributes
+* @version  $Id$
+* @author   (C) Vitamin/CAIG/2001
+*
+**/
 
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
 #ifndef __CORE_PLUGIN_ATTRS_H_DEFINED__
 #define __CORE_PLUGIN_ATTRS_H_DEFINED__
 
 namespace ZXTune
 {
-  //! Capabilities for plugins
+  //! @brief Set of capabilities for plugins
   enum
   {
     //! Device-related capabilities
@@ -50,12 +49,19 @@ namespace ZXTune
     
     //! Conversion-related capabilities
     CAP_CONVERSION_MASK = 0xffff0000,
+    //! Support raw conversion (save ripped data)
     CAP_CONV_RAW        = 0x00010000,
+    //! Support .out format conversion
     CAP_CONV_OUT        = 0x00020000,
+    //! Support .psg format conversion
     CAP_CONV_PSG        = 0x00040000,
+    //! Support .ym format conversion
     CAP_CONV_YM         = 0x00080000,
+    //! Support .zx50 format conversion
     CAP_CONV_ZX50       = 0x00100000,
+    //! Support .zxay format conversion
     CAP_CONV_ZXAY       = 0x00200000,
+    //! Support binary vortex format conversion
     CAP_CONV_VORTEX     = 0x00400000,
   };
 }

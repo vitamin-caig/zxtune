@@ -33,9 +33,9 @@ public:
   //! @brief Type for code
   typedef uint32_t CodeType;
 
-  //! @struct ModuleCode 
+  //! @struct ModuleCode
   //! @brief Template used for generate per-module base error code:
-  //! @code 
+  //! @code
   //! const Error::CodeType ThisModuleCode = Error::ModuleCode<'A', 'B', 'C'>::Value;
   //! @endcode
   template<uint8_t p1, uint8_t p2, uint8_t p3>
@@ -45,7 +45,7 @@ public:
   };
 
 #ifndef NDEBUG
-  //! @struct Location 
+  //! @struct Location
   //! @brief %Location type for debug builds
   struct Location
   {
@@ -83,7 +83,7 @@ public:
   //! @brief Reference type for release location
   typedef Location LocationRef;
 #endif
-  //@{ 
+  //@{
   //! @name Error initializers
   Error();//success
   Error(LocationRef loc, CodeType code);
@@ -140,11 +140,11 @@ public:
   //! @name Serialization-related functions
   
   //! @brief Converting location to string
-  //! @note @ref Location::Tag (hex) format is used for release
-  //! @note @ref Location::Tag (hex) (@ref Location::File : @ref Location::Line, @ref Location::Function) format is used for debug
+  //! @note Location#Tag (hex) format is used for release
+  //! @note Location#Tag (hex) (Location#File : Location#Line, Location#Function) format is used for debug
   static String LocationToString(LocationRef loc);
   //! @brief Converting code to string
-  //! @note ABC#HHHH if code is composed using ModuleCode<'A', 'B', 'C'>::Value + DDD
+  //! @note ABC\#HHHH if code is composed using ModuleCode<'A', 'B', 'C'> :: Value + DDD
   //! @note 0xHHHHHHHH else
   static String CodeToString(CodeType code);
   //! @brief Converts all the attributes to single string using internal format

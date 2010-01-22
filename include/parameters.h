@@ -35,11 +35,11 @@ namespace Parameters
   //@{
   //! @name Other types
   
-  //! @brief Parameters name type
+  //! @brief %Parameters name type
   typedef String NameType;
   //! @brief Complex variant value type
   typedef boost::variant<IntType, StringType, DataType> ValueType;
-  //! @brief Parameters map type
+  //! @brief %Parameters map type
   typedef std::map<NameType, ValueType> Map;
   //@}
   
@@ -77,9 +77,9 @@ namespace Parameters
   String ConvertToString(const ValueType& val);
   //! @brief Converting string to parameter value
   ValueType ConvertFromString(const String& val);
-  //! @brief Converting Parameters::Map to StringMap
+  //! @brief Converting Map to #StringMap
   void ConvertMap(const Map& input, StringMap& output);
-  //! @brief Converting StringMap to Parameters::Map
+  //! @brief Converting #StringMap to Map
   void ConvertMap(const StringMap& input, Map& output);
 }
 

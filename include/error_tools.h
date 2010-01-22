@@ -5,7 +5,7 @@
 * @version  $Id$
 * @author   (C) Vitamin/CAIG/2001
 *
-* @see @ref Formatter type for format string specification
+* @see #Formatter type for format string specification
 **/
 
 #ifndef __ERROR_TOOLS_H_DEFINED__
