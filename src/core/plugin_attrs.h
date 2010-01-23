@@ -1,6 +1,6 @@
 /**
 *
-* @file     plugin_attrs.h
+* @file     core/plugin_attrs.h
 * @brief    Plugins attributes
 * @version  $Id$
 * @author   (C) Vitamin/CAIG/2001

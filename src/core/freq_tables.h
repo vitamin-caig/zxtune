@@ -1,6 +1,6 @@
 /**
 *
-* @file     freq_tables.h
+* @file     core/freq_tables.h
 * @brief    Frequency tables for AY-trackers
 * @version  $Id$
 * @author   (C) Vitamin/CAIG/2001

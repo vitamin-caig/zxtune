@@ -1,6 +1,6 @@
 /**
 *
-* @file     module_player.h
+* @file     core/module_player.h
 * @brief    Modules player interface definition
 * @version  $Id$
 * @author   (C) Vitamin/CAIG/2001

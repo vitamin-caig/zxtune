@@ -1,6 +1,6 @@
 /**
 *
-* @file     module_attrs.h
+* @file     core/module_attrs.h
 * @brief    Module attributes names
 * @version  $Id$
 * @author   (C) Vitamin/CAIG/2001
@@ -14,7 +14,6 @@
 
 namespace ZXTune
 {
-  //! @brief %Module-related functionality namespace
   namespace Module
   {
     //! %Module type attribute @see PluginInformation#Id

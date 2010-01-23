@@ -1,13 +1,12 @@
-/*
-Abstract:
-  IO parameters names
+/**
+*
+* @file      io/io_parameters.h
+* @brief     IO parameters names
+* @version   $Id$
+* @author    (C) Vitamin/CAIG/2001
+*
+**/
 
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
 #ifndef __IO_PARAMETERS_H_DEFINED__
 #define __IO_PARAMETERS_H_DEFINED__
 
@@ -17,8 +16,10 @@ namespace Parameters
 {
   namespace ZXTune
   {
+    //! @brief IO-parameters namespace
     namespace IO
     {
+      //! @brief Parameters#ZXTune#IO namespace prefix
       const Char PREFIX[] = 
       {
         'z','x','t','u','n','e','.','i','o','.','\0'

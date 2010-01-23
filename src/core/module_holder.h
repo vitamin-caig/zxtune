@@ -1,6 +1,6 @@
 /**
 *
-* @file     module_holder.h
+* @file     core/module_holder.h
 * @brief    Modules holder interface definition
 * @version  $Id$
 * @author   (C) Vitamin/CAIG/2001

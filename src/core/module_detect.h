@@ -1,6 +1,6 @@
 /**
 *
-* @file     module_detect.h
+* @file     core/module_detect.h
 * @brief    Modules detecting functionality
 * @version  $Id$
 * @author   (C) Vitamin/CAIG/2001

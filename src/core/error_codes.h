@@ -1,6 +1,6 @@
 /**
 *
-* @file     error_codes.h
+* @file     core/error_codes.h
 * @brief    %Error codes for core subsystem
 * @version  $Id$
 * @author   (C) Vitamin/CAIG/2001
@@ -14,6 +14,7 @@
 
 namespace ZXTune
 {
+  //! @brief %Module-related functionality namespace
   namespace Module
   {
     //! @brief Module-related error codes

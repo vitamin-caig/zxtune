@@ -1,6 +1,6 @@
 /**
 *
-* @file     core_parameters.h
+* @file     core/core_parameters.h
 * @brief    Core parameters names
 * @version  $Id$
 * @author   (C) Vitamin/CAIG/2001

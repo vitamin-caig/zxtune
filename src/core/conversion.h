@@ -1,6 +1,6 @@
 /**
 *
-* @file     conversion.h
+* @file     core/conversion.h
 * @brief    Conversion base support types
 * @version  $Id$
 * @author   (C) Vitamin/CAIG/2001

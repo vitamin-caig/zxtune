@@ -1,6 +1,6 @@
 /**
 *
-* @file     module_types.h
+* @file     core/module_types.h
 * @brief    Modules types definitions
 * @version  $Id$
 * @author   (C) Vitamin/CAIG/2001
