@@ -1,14 +1,32 @@
+/*
+Abstract:
+  DAC interface
+
+Last changed:
+  $Id$
+
+Author:
+  (C) Vitamin/CAIG/2001
+*/
 #ifndef __DAC_H_DEFINED__
 #define __DAC_H_DEFINED__
 
 #include <types.h>
-#include <sound.h>
 
-#include "../data_source.h"
+#include <core/module_types.h>
+#include <sound/receiver.h>
+
+#include <memory>
 
 //supporting for multichannel sample-based DAC
 namespace ZXTune
 {
+  //forward declarations
+  namespace Sound
+  {
+    struct RenderParameters;
+  }
+  
   namespace DAC
   {
     struct DataChunk
@@ -18,7 +36,7 @@ namespace ZXTune
         ChannelData() : Channel(), Mask(), Enabled(), Note(), FreqSlideHz(), SampleNum()
         {
         }
-        std::size_t Channel;
+        unsigned Channel;
         unsigned Mask;
 
         enum
@@ -32,11 +50,11 @@ namespace ZXTune
         };
 
         bool Enabled;
-        std::size_t Note;
+        unsigned Note;
         signed NoteSlide;
         signed FreqSlideHz;
-        std::size_t SampleNum;
-        std::size_t PosInSample;
+        unsigned SampleNum;
+        unsigned PosInSample;
       };
 
       DataChunk() : Tick()
@@ -56,21 +74,21 @@ namespace ZXTune
       }
 
       /// Set sample for work
-      virtual void SetSample(std::size_t idx, const Dump& data, std::size_t loop) = 0;
+      virtual void SetSample(unsigned idx, const Dump& data, unsigned loop) = 0;
 
       /// render single data chunk
-      virtual void RenderData(const Sound::Parameters& params,
-        const DataChunk& src,
-        Sound::Receiver& dst) = 0;
+      virtual void RenderData(const Sound::RenderParameters& params,
+                              const DataChunk& src,
+                              Sound::MultichannelReceiver& dst) = 0;
 
-      virtual void GetState(Sound::Analyze::ChannelsState& state) const = 0;
+      virtual void GetState(Module::Analyze::ChannelsState& state) const = 0;
 
       /// reset internal state to initial
       virtual void Reset() = 0;
     };
 
     /// Virtual constructors
-    Chip::Ptr CreateChip(std::size_t channels, std::size_t samples, std::size_t sampleFreq);
+    Chip::Ptr CreateChip(unsigned channels, unsigned samples, unsigned sampleFreq);
   }
 }
 

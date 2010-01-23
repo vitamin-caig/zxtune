@@ -1,10 +1,25 @@
+/*
+Abstract:
+  DAC implementation
+
+Last changed:
+  $Id$
+
+Author:
+  (C) Vitamin/CAIG/2001
+*/
 #include "dac.h"
 
 #include <tools.h>
+#include <sound/sound_types.h>
+#include <sound/render_params.h>
+#include <sound/impl/internal_types.h>
+
+#include <limits>
+#include <numeric>
 
 #include <boost/array.hpp>
-
-#include <numeric>
+#include <boost/bind.hpp>
 
 namespace
 {
@@ -13,9 +28,10 @@ namespace
 
   const int SILENT = 128;
 
-  const std::size_t NOTES = 64;
+  const unsigned NOTES = 64;
   //table in Hz
-  const double FREQ_TABLE[NOTES] = {
+  const boost::array<double, NOTES> FREQ_TABLE = {
+    {
     //octave1
     32.70,  34.65,  36.71,  38.89,  41.20,  43.65,  46.25,  49.00,  51.91,  55.00,  58.27,  61.73,
     //octave2
@@ -27,7 +43,8 @@ namespace
     //octave5
     523.28, 554.32, 587.36, 622.24, 659.28, 698.40, 740.00, 784.00, 830.56, 880.00, 932.32, 987.68,
     //octave6
-    1046.50, 1108.60, 1174.70, 1244.50
+    1046.5, 1108.6, 1174.7, 1244.5/*, 1318.6, 1396.8, 1480.0, 1568.0, 1661.1, 1760.0, 1864.6, 1975.4*/
+    }
   };
 
   template<class T>
@@ -36,13 +53,13 @@ namespace
     return val > 0 ? 1 : (val < 0 ? -1 : 0);
   }
 
-  inline std::size_t GetStepByFrequency(double note, std::size_t soundFreq, std::size_t sampleFreq)
+  inline unsigned GetStepByFrequency(unsigned note, unsigned soundFreq, unsigned sampleFreq)
   {
-    return static_cast<std::size_t>(note * Sound::FIXED_POINT_PRECISION *
+    return static_cast<unsigned>(note * Sound::FIXED_POINT_PRECISION *
       sampleFreq / (FREQ_TABLE[0] * soundFreq * 2));
   }
 
-  inline uint32_t GainAdder(uint32_t sum, uint8_t sample)
+  inline unsigned GainAdder(unsigned sum, uint8_t sample)
   {
     return sum + abs(int(sample) - SILENT);
   }
@@ -58,16 +75,16 @@ namespace
     {
     }
 
-    Sample(const Dump& data, std::size_t loop)
-      : Size(data.size()), Loop(loop), Data(data)
-      , Gain(Sound::Analyze::LevelType(std::accumulate(&Data[0], &Data[0] + Size, uint32_t(0), GainAdder) / Size))
+    Sample(const Dump& data, unsigned loop)
+      : Size(static_cast<unsigned>(data.size())), Loop(loop), Data(data)
+      , Gain(Module::Analyze::LevelType(std::accumulate(&Data[0], &Data[0] + Size, unsigned(0), GainAdder) / Size))
     {
     }
 
-    std::size_t Size;
-    std::size_t Loop;
+    unsigned Size;
+    unsigned Loop;
     Dump Data;
-    Sound::Analyze::LevelType Gain;
+    Module::Analyze::LevelType Gain;
   };
 
   struct ChannelState
@@ -78,25 +95,24 @@ namespace
     }
 
     bool Enabled;
-    std::size_t Note;
+    unsigned Note;
     signed NoteSlide;
     signed FreqSlide;
     const Sample* CurSample;
-    std::size_t PosInSample;//in fixed point
-    std::size_t SampleStep;
+    unsigned PosInSample;//in fixed point
+    unsigned SampleStep;
 
-    std::size_t GetConstSteps() const
+    unsigned GetConstSteps() const
     {
       return (Sound::FIXED_POINT_PRECISION * (PosInSample / Sound::FIXED_POINT_PRECISION + 1) - PosInSample) /
         SampleStep;
     }
 
-    void SkipConstSteps(std::size_t steps)
+    void SkipConstSteps(unsigned steps)
     {
       assert(CurSample);
       PosInSample += steps * SampleStep;
-      const std::size_t pos(PosInSample / Sound::FIXED_POINT_PRECISION);
-      assert(CurSample);
+      const unsigned pos(PosInSample / Sound::FIXED_POINT_PRECISION);
       if (pos >= CurSample->Size)
       {
         Enabled = false;
@@ -107,7 +123,7 @@ namespace
     {
       if (Enabled)
       {
-        const std::size_t pos(PosInSample / Sound::FIXED_POINT_PRECISION);
+        const unsigned pos(PosInSample / Sound::FIXED_POINT_PRECISION);
         assert(CurSample && pos < CurSample->Size);
         return scale(CurSample->Data[pos]);
       }
@@ -117,24 +133,24 @@ namespace
       }
     }
 
-    Sound::Analyze::Channel Analyze(Sound::Analyze::LevelType maxGain) const
+    Module::Analyze::Channel Analyze(Module::Analyze::LevelType maxGain) const
     {
-      Sound::Analyze::Channel result;
+      Module::Analyze::Channel result;
       if ((result.Enabled = Enabled))
       {
         result.Band = Note;
         assert(CurSample);
-        result.Level = CurSample->Gain * std::numeric_limits<Sound::Analyze::LevelType>::max() / maxGain;
+        result.Level = CurSample->Gain * std::numeric_limits<Module::Analyze::LevelType>::max() / maxGain;
       }
       return result;
     }
   };
 
-  template<std::size_t Channels>
+  template<unsigned Channels>
   class ChipImpl : public Chip
   {
   public:
-    ChipImpl(std::size_t samples, std::size_t sampleFreq)
+    ChipImpl(unsigned samples, unsigned sampleFreq)
       : Samples(samples), MaxGain(0), CurrentTick(0)
       , SampleFreq(sampleFreq)
     {
@@ -142,7 +158,7 @@ namespace
     }
 
     /// Set sample for work
-    virtual void SetSample(std::size_t idx, const Dump& data, std::size_t loop)
+    virtual void SetSample(unsigned idx, const Dump& data, unsigned loop)
     {
       if (idx >= Samples.size())
         throw 1;//TODO
@@ -151,9 +167,9 @@ namespace
       MaxGain = std::max(MaxGain, res.Gain);
     }
 
-    /// render single data chunk
-    virtual void RenderData(const Sound::Parameters& params, const DataChunk& src,
-      Sound::Receiver& dst)
+    virtual void RenderData(const Sound::RenderParameters& params,
+                              const DataChunk& src,
+                              Sound::MultichannelReceiver& dst)
     {
       std::for_each(src.Channels.begin(), src.Channels.end(),
         boost::bind(&ChipImpl::UpdateState, this, _1));
@@ -162,28 +178,28 @@ namespace
         boost::bind(&ChipImpl::CalcSampleStep, this, params.SoundFreq, _1));
 
       const uint64_t ticksPerSample(params.ClockFreq / params.SoundFreq);
-      boost::array<Sound::Sample, Channels> result;
+      std::vector<Sound::Sample> result(Channels);
       
-      boost::array<std::size_t, Channels> constSteps;
+      boost::array<unsigned, Channels> constSteps;
       while (CurrentTick < src.Tick)
       {
         std::transform(State.begin(), State.end(), result.begin(),
           std::mem_fun_ref(&ChannelState::GetValue));
         std::transform(State.begin(), State.end(), constSteps.begin(), 
           std::mem_fun_ref(&ChannelState::GetConstSteps));
-        std::size_t safeSkips(1 + std::min(std::size_t((src.Tick - CurrentTick) / ticksPerSample),
+        unsigned safeSkips(1 + std::min(unsigned((src.Tick - CurrentTick) / ticksPerSample),
           *std::min_element(constSteps.begin(), constSteps.end())));
         CurrentTick += safeSkips * ticksPerSample;
         std::for_each(State.begin(), State.end(), 
           std::bind2nd(std::mem_fun_ref(&ChannelState::SkipConstSteps), safeSkips));
         while (safeSkips--)
         {
-          dst.ApplySample(&result.front(), result.size());
+          dst.ApplySample(result);
         }
       }
     }
 
-    virtual void GetState(Sound::Analyze::ChannelsState& state) const
+    virtual void GetState(Module::Analyze::ChannelsState& state) const
     {
       state.resize(State.size());
       std::transform(State.begin(), State.end(), state.begin(),
@@ -236,12 +252,12 @@ namespace
       }
     }
 
-    void CalcSampleStep(std::size_t freq, ChannelState& state)
+    void CalcSampleStep(unsigned freq, ChannelState& state)
     {
       if (TableFreq != freq)
       {
         TableFreq = freq;
-        std::transform(FREQ_TABLE, ArrayEnd(FREQ_TABLE), FreqTable.begin(),
+        std::transform(FREQ_TABLE.begin(), FREQ_TABLE.end(), FreqTable.begin(),
           boost::bind(GetStepByFrequency, _1, TableFreq, SampleFreq));
         MaxNotes = std::distance(FreqTable.begin(), std::find(FreqTable.begin(), FreqTable.end(), 0));
       }
@@ -256,14 +272,14 @@ namespace
     }
   private:
     std::vector<Sample> Samples;
-    Sound::Analyze::LevelType MaxGain;
+    Module::Analyze::LevelType MaxGain;
     uint64_t CurrentTick;
     boost::array<ChannelState, Channels> State;
-    const std::size_t SampleFreq;
+    const unsigned SampleFreq;
     //steps calc
-    std::size_t TableFreq;
-    std::size_t MaxNotes;
-    boost::array<std::size_t, NOTES> FreqTable;
+    unsigned TableFreq;
+    unsigned MaxNotes;
+    boost::array<unsigned, NOTES> FreqTable;
   };
 }
 
@@ -271,7 +287,7 @@ namespace ZXTune
 {
   namespace DAC
   {
-    Chip::Ptr CreateChip(std::size_t channels, std::size_t samples, std::size_t sampleFreq)
+    Chip::Ptr CreateChip(unsigned channels, unsigned samples, unsigned sampleFreq)
     {
       switch (channels)
       {
@@ -279,7 +295,7 @@ namespace ZXTune
         return Chip::Ptr(new ChipImpl<4>(samples, sampleFreq));
       default:
         assert(!"Invalid channels count");
-	return Chip::Ptr();
+        return Chip::Ptr();
       }
     }
   }

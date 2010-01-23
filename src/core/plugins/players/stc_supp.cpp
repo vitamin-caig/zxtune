@@ -19,13 +19,13 @@ Author:
 #include <tools.h>
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
-#include <core/devices/aym/aym.h>
 #include <core/error_codes.h>
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
 #include <io/container.h>
 #include <sound/dummy_receiver.h>
 #include <sound/render_params.h>
+#include <core/devices/aym/aym.h>
 
 #include <cctype>
 
@@ -576,11 +576,15 @@ namespace
                               PlaybackState& state,
                               Sound::MultichannelReceiver& receiver)
     {
-      const bool finished(ModState.Frame >= Data.Info.Statistic.Frame);
-      if (finished &&
-          MODULE_STOPPED == CurrentState)
+      if (ModState.Frame >= Data.Info.Statistic.Frame)
       {
-        return Error(THIS_LINE, ERROR_MODULE_END, TEXT_MODULE_ERROR_MODULE_END);
+        if (MODULE_STOPPED == CurrentState)
+        {
+          return Error(THIS_LINE, ERROR_MODULE_END, TEXT_MODULE_ERROR_MODULE_END);
+        }
+        receiver.Flush();
+        state = CurrentState = MODULE_STOPPED;
+        return Error();
       }
 
       AYM::DataChunk chunk;
@@ -592,15 +596,16 @@ namespace
         chunk.Mask |= AYM::DataChunk::YM_CHIP;
       }
       Device->RenderData(params, chunk, receiver);
-      if (!finished && STCTrack::UpdateState(Data, ModState, params.Looping))
+      if (STCTrack::UpdateState(Data, ModState, params.Looping))
       {
-        state = CurrentState = MODULE_PLAYING;
+        CurrentState = MODULE_PLAYING;
       }
       else
       {
         receiver.Flush();
-        state = CurrentState = MODULE_STOPPED;
+        CurrentState = MODULE_STOPPED;
       }
+      state = CurrentState;
       return Error();
     }
 

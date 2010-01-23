@@ -12,9 +12,9 @@ Author:
 */
 #include "aym.h"
 
+#include <tools.h>
 #include <sound/sound_types.h>
 #include <sound/render_params.h>
-#include <tools.h>
 
 #include <cassert>
 #include <cstring>
