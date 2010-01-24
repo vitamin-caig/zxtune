@@ -9,6 +9,7 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 #include "tracking.h"
+#include "utils.h"
 #include "../enumerator.h"
 
 #include <byteorder.h>
@@ -81,22 +82,22 @@ namespace
     //n- note
     //p- parameter
     //s- sample
-    inline unsigned GetNote() const
+    unsigned GetNote() const
     {
       return NoteComm & 63;
     }
     
-    inline unsigned GetCommand() const
+    unsigned GetCommand() const
     {
       return (NoteComm & 192) >> 6;
     }
     
-    inline unsigned GetParameter() const
+    unsigned GetParameter() const
     {
       return ParamSample & 15;
     }
     
-    inline unsigned GetSample() const
+    unsigned GetSample() const
     {
       return (ParamSample & 240) >> 4;
     }
@@ -226,7 +227,7 @@ namespace
 
   class PDTHolder : public Holder, public boost::enable_shared_from_this<PDTHolder>
   {
-    static PDTTrack::Pattern ParsePattern(const PDTPattern& src, Log::MessagesCollector& warner)
+    static void ParsePattern(const PDTPattern& src, Log::MessagesCollector& warner, PDTTrack::Pattern& res)
     {
       PDTTrack::Pattern result;
       result.reserve(PATTERN_SIZE);
@@ -290,7 +291,7 @@ namespace
         }
       }
       Log::Assert(warner, result.size() <= PATTERN_SIZE, TEXT_WARNING_TOO_LONG);
-      return result;
+      result.swap(res);
     }
 
   public:
@@ -301,40 +302,42 @@ namespace
       const PDTHeader* const header(safe_ptr_cast<const PDTHeader*>(data.Data()));
 
       Log::MessagesCollector::Ptr warner(Log::MessagesCollector::Create());
+      
       //fill order
       Data.Positions.resize(header->Lenght);
       std::copy(header->Positions.begin(), header->Positions.begin() + header->Lenght, Data.Positions.begin());
+      
       //fill patterns
-      Data.Patterns.reserve(PATTERNS_COUNT);
+      Data.Patterns.resize(header->Patterns.size());
       for (unsigned patIdx = 0; patIdx != header->Patterns.size(); ++patIdx)
       {
         Log::ParamPrefixedCollector patternWarner(*warner, TEXT_PATTERN_WARN_PREFIX, patIdx);
-        Data.Patterns.push_back(ParsePattern(header->Patterns[patIdx], patternWarner));
+        ParsePattern(header->Patterns[patIdx], patternWarner, Data.Patterns[patIdx]);
       }
+      
       //fill samples
-      Data.Samples.resize(header->Samples.size());
       const uint8_t* samplesData(safe_ptr_cast<const uint8_t*>(header) + sizeof(*header));
+      Data.Samples.resize(header->Samples.size());
       for (unsigned samIdx = 0; samIdx != header->Samples.size(); ++samIdx)
       {
         const PDTSample& sample(header->Samples[samIdx]);
-        if (sample.Page < PAGES_COUNT && fromLE(sample.Start) >= 0xc000)
+        if (sample.Page < PAGES_COUNT && fromLE(sample.Start) >= 0xc000 && sample.Size)
         {
           const uint8_t* sampleData(samplesData + PAGE_SIZE * GetPageOrder(sample.Page) + 
             (fromLE(sample.Start) - 0xc000));
-          if (unsigned size = fromLE(sample.Size))
+          unsigned size = fromLE(sample.Size);
+          while (size && !sampleData[size])
           {
-            while (size && !sampleData[size])
-            {
-              --size;
-            }
-            Data.Samples[samIdx].Loop = sample.Loop;
-            Data.Samples[samIdx].Data.assign(sampleData, sampleData + size);
+            --size;
           }
+          Data.Samples[samIdx].Loop = sample.Loop;
+          Data.Samples[samIdx].Data.assign(sampleData, sampleData + size);
         }
       }
+      
       //fill ornaments
       Data.Ornaments.reserve(ORNAMENTS_COUNT + 1);
-      Data.Ornaments.push_back(Ornament());
+      Data.Ornaments.push_back(Ornament());//first empty ornament
       std::transform(header->Ornaments.begin(), header->Ornaments.end(), header->OrnLoops.begin(), 
         std::back_inserter(Data.Ornaments), MakeOrnament);
       
@@ -345,13 +348,10 @@ namespace
       //meta properties
       ExtractMetaProperties(PDT_PLUGIN_ID, container, region, Data.Info.Properties, RawData);
       Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_PROGRAM, TEXT_PDT_EDITOR));
+      const String& title(OptimizeString(String(header->Title.begin(), header->Title.end())));
+      if (!title.empty())
       {
-        const uint8_t* const titEnd = &*std::find_if(header->Title.rbegin(), header->Title.rend(), 
-          std::bind2nd(std::greater<uint8_t>(), ' '));
-        if (header->Title.begin() != titEnd)
-        {
-          Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_TITLE, String(header->Title.begin(), titEnd + 1)));
-        }
+        Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_TITLE, title));
       }
       
       //tracking properties
@@ -436,6 +436,11 @@ namespace
           Position = Object->LoopBegin;
         }
       }
+      
+      void Reset()
+      {
+        Position = 0;
+      }
     };
   public:
     PDTPlayer(boost::shared_ptr<const PDTHolder> holder, DAC::Chip::Ptr device)
@@ -477,6 +482,7 @@ namespace
                               PlaybackState& state,
                               Sound::MultichannelReceiver& receiver)
     {
+      // check if finished
       if (ModState.Frame >= Data.Info.Statistic.Frame)
       {
         if (MODULE_STOPPED == CurrentState)
@@ -515,6 +521,7 @@ namespace
     {
       Device->Reset();
       PDTTrack::InitState(Data, ModState);
+      std::for_each(Ornaments.begin(), Ornaments.end(), std::mem_fun_ref(&OrnamentState::Reset));
       CurrentState = MODULE_STOPPED;
       return Error();
     }
@@ -526,6 +533,7 @@ namespace
         //reset to beginning in case of moving back
         const uint64_t keepTicks = ModState.Tick;
         PDTTrack::InitState(Data, ModState);
+        std::for_each(Ornaments.begin(), Ornaments.end(), std::mem_fun_ref(&OrnamentState::Reset));
         ModState.Tick = keepTicks;
       }
       //fast forward

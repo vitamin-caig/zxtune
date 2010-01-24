@@ -11,6 +11,7 @@ Author:
 
 #include "freq_tables_internal.h"
 #include "tracking.h"
+#include "utils.h"
 #include "../enumerator.h"
 
 #include <byteorder.h>
@@ -26,8 +27,6 @@ Author:
 #include <sound/dummy_receiver.h>
 #include <sound/render_params.h>
 #include <core/devices/aym.h>
-
-#include <cctype>
 
 #include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
@@ -444,9 +443,11 @@ namespace
       
       //meta properties
       ExtractMetaProperties(STC_PLUGIN_ID, container, region, Data.Info.Properties, RawData);
-      String prog(header->Identifier, ArrayEnd(header->Identifier));
-      std::replace_if(prog.begin(), prog.end(), std::ptr_fun<int, int>(&std::iscntrl), '\?');
-      Data.Info.Properties.insert(StringMap::value_type(Module::ATTR_PROGRAM, prog));
+      const String& prog(OptimizeString(String(header->Identifier, ArrayEnd(header->Identifier))));
+      if (!prog.empty())
+      {
+        Data.Info.Properties.insert(StringMap::value_type(Module::ATTR_PROGRAM, prog));
+      }
       
       //tracking properties
       Data.Info.LoopPosition = 0;//not supported here
