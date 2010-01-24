@@ -8,9 +8,9 @@ Last changed:
 Author:
   (C) Vitamin/CAIG/2001
 */
-#include "dac.h"
 
 #include <tools.h>
+#include <core/devices/dac.h>
 #include <sound/sound_types.h>
 #include <sound/render_params.h>
 #include <sound/impl/internal_types.h>

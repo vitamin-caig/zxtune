@@ -19,7 +19,7 @@ Author:
 #include <core/error_codes.h>
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
-#include <core/devices/dac/dac.h>
+#include <core/devices/dac.h>
 
 #include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>

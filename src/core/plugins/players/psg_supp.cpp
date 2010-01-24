@@ -14,12 +14,12 @@ Author:
 #include <tools.h>
 
 #include <core/convert_parameters.h>
-#include <core/devices/aym/aym.h>
 #include <core/error_codes.h>
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
 #include <io/container.h>
 #include <sound/render_params.h>
+#include <core/devices/aym.h>
 
 #include <boost/enable_shared_from_this.hpp>
 

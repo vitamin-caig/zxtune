@@ -9,9 +9,8 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-#include "aym.h"
-
 #include <tools.h>
+#include <core/devices/aym.h>
 #include <sound/render_params.h>
 
 #include <algorithm>

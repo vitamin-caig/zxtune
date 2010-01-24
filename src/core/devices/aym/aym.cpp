@@ -10,9 +10,8 @@ Author:
 
   Based on sources of UnrealSpeccy by SMT
 */
-#include "aym.h"
-
 #include <tools.h>
+#include <core/devices/aym.h>
 #include <sound/sound_types.h>
 #include <sound/render_params.h>
 

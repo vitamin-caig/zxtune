@@ -74,9 +74,6 @@ namespace
     {
       MixHandle = ::open(MixerName.c_str(), O_RDWR, 0);
       CheckResult(-1 != MixHandle, THIS_LINE);
-      //perform check
-      DoStartup();
-      DoShutdown();
     }
 
     virtual ~OSSBackend()

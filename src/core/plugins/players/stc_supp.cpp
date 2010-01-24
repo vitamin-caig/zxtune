@@ -25,7 +25,7 @@ Author:
 #include <io/container.h>
 #include <sound/dummy_receiver.h>
 #include <sound/render_params.h>
-#include <core/devices/aym/aym.h>
+#include <core/devices/aym.h>
 
 #include <cctype>
 
