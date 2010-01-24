@@ -38,6 +38,7 @@ Author:
 #include <fstream>
 #include <iostream>
 #include <limits>
+#include <numeric>
 
 #include "text.h"
 
@@ -379,6 +380,13 @@ namespace
       std::vector<int> analyzer;
       std::pair<int, int> scrSize;
       ZXTune::Module::Player::ConstWeakPtr weakPlayer(backend.GetPlayer());
+      ZXTune::Sound::Gain curVolume = ZXTune::Sound::Gain();
+      ZXTune::Sound::MultiGain allVolume;
+      const bool noVolume = backend.GetVolume(allVolume) != 0;
+      if (!noVolume)
+      {
+        curVolume = std::accumulate(allVolume.begin(), allVolume.end(), curVolume) / allVolume.size();
+      }
       for (;;)
       {
         if (!Silent && !Quiet)
@@ -433,6 +441,22 @@ namespace
             break;
           case Console::KEY_RIGHT:
             ThrowIfError(backend.SetPosition(curFrame + seekStepFrames));
+            break;
+          case Console::KEY_DOWN:
+            if (!noVolume)
+            {
+              curVolume = std::max(0.0, curVolume - 0.05);
+              const ZXTune::Sound::MultiGain allVol = { {curVolume} };
+              ThrowIfError(backend.SetVolume(allVol));
+            }
+            break;
+          case Console::KEY_UP:
+            if (!noVolume)
+            {
+              curVolume = std::min(1.0, curVolume + 0.05);
+              const ZXTune::Sound::MultiGain allVol = { {curVolume} };
+              ThrowIfError(backend.SetVolume(allVol));
+            }
             break;
           case Console::KEY_ENTER:
             if (ZXTune::Sound::Backend::STARTED == state)
