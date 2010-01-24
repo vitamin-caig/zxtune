@@ -179,9 +179,10 @@
 
 < TEXT_ITEM_INFO
 > "Playing: %1%\n"
-> "Type:  [Type]\t"  "Container: [Container]\n"
-> "Title: [Title]\t" "Program:   [Program]\n"
-> "Time:  %2%\t"     "Channels:  %3%\n"
+> "Type:    [Type]\t"  "Container: [Container]\n"
+> "Title:   [Title]\n"
+> "Program: [Program]\n"
+> "Time:    %2%\t"     "Channels:  %3%\n"
 > "\n"
 
 < TEXT_TIME_FORMAT_HOURS

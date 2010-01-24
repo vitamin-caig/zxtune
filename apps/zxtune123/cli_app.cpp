@@ -45,7 +45,7 @@ Author:
 
 namespace
 {
-  const int INFORMATION_HEIGHT = 5;
+  const int INFORMATION_HEIGHT = 6;
   const int TRACKING_HEIGHT = 4;
   const int PLAYING_HEIGHT = 2;
   
