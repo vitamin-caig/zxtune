@@ -18,7 +18,7 @@ namespace Parameters
   {
     namespace IO
     {
-      //! @brief Providers-related IO parameters namespace
+      //! @brief Providers-related %IO parameters namespace
       namespace Providers
       {
         //! @brief Parameters#ZXTune#IO#Provders namespace prefix
@@ -27,7 +27,7 @@ namespace Parameters
           'z','x','t','u','n','e','.','i','o','.','p','r','o','v','i','d','e','r','s','.','\0'
         };
 
-        //! @brief File provider parameters namespace
+        //! @brief %File provider parameters namespace
         namespace File
         {
           //@{

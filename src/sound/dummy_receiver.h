@@ -1,13 +1,11 @@
-/*
-Abstract:
-  Dummy sound receiver helper
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file      sound/dummy_receiver.h
+* @brief     Dummy sound receiver helper
+* @version   $Id$
+* @author    (C) Vitamin/CAIG/2001
+*
+**/
 
 #ifndef __SOUND_DUMMY_RECEIVER_H_DEFINED__
 #define __SOUND_DUMMY_RECEIVER_H_DEFINED__
@@ -18,6 +16,7 @@ namespace ZXTune
 {
   namespace Sound
   {
+    //! @brief Simple dummy template implementation
     template<class T>
     class DummyReceiverObject : public T
     {
@@ -35,6 +34,7 @@ namespace ZXTune
       }
     };
 
+    //! @brief Creating instance of dummy receiver
     inline Receiver::Ptr CreateDummyReceiver()
     {
       return Receiver::Ptr(new DummyReceiverObject<Receiver>());

@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Rendering parameters definition. Used as POD-helper
+/**
+*
+* @file      sound/render_params.h
+* @brief     Rendering parameters definition. Used as POD-helper
+* @version   $Id$
+* @author    (C) Vitamin/CAIG/2001
+*
+**/
 
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
 #ifndef __RENDER_PARAMS_H_DEFINED__
 #define __RENDER_PARAMS_H_DEFINED__
 
@@ -17,18 +16,21 @@ namespace ZXTune
 {
   namespace Sound
   {
-    /// Looping mode
+    //! @brief Looping mode
     enum LoopMode
     {
+      //! Stop right after reaching the end
       LOOP_NONE = 0,
+      //! Continue playback from internally defined position (beginning if not supported)
       LOOP_NORMAL,
+      //! Continue playback from the beginning
       LOOP_BEGIN
     };
 
-    /// Input parameters for rendering
+    //! @brief Input parameters for rendering
     struct RenderParameters
     {
-      /// Fill with the default parameters
+      // Fill with the default parameters
       RenderParameters()
         : ClockFreq(Parameters::ZXTune::Sound::CLOCKRATE_DEFAULT)
         , SoundFreq(Parameters::ZXTune::Sound::FREQUENCY_DEFAULT)
@@ -37,21 +39,22 @@ namespace ZXTune
       {
       }
     
-      /// Basic clock frequency (for PSG,CPU etc)
+      //! Basic clock frequency for PSG
       uint64_t ClockFreq;
-      /// Rendering sound frequency
+      //! Rendering sound frequency
       unsigned SoundFreq;
-      /// Frame duration in us
+      //! Frame duration in us
       unsigned FrameDurationMicrosec;
-      /// Loop mode
+      //! Loop mode
       LoopMode Looping;
 
-      /// Helper functions
+      //! Calculating PSG clocks count per one frame
       unsigned ClocksPerFrame() const
       {
         return static_cast<unsigned>(ClockFreq * FrameDurationMicrosec / 1000000);
       }
 
+      //! Calculating sound samples count per one frame
       unsigned SamplesPerFrame() const
       {
         return static_cast<unsigned>(SoundFreq * FrameDurationMicrosec / 1000000);

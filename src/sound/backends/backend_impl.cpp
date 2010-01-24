@@ -267,8 +267,11 @@ namespace ZXTune
       {
         Locker lock(PlayerMutex);
         CheckState();
-        DoPause();
-        CurrentState = PAUSED;
+        if (STARTED == CurrentState)
+        {
+          DoPause();
+          CurrentState = PAUSED;
+        }
         return Error();
       }
       catch (const Error& e)
@@ -283,7 +286,10 @@ namespace ZXTune
       {
         Locker lock(PlayerMutex);
         CheckState();
-        StopPlayback();
+        if (STOPPED != CurrentState)
+        {
+          StopPlayback();
+        }
         return Error();
       }
       catch (const Error& e)

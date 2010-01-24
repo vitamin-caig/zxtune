@@ -1,7 +1,7 @@
 /**
 *
 * @file      io/error_codes.h
-* @brief     Error codes for IO subsystem
+* @brief     IO subsystem error codes
 * @version   $Id$
 * @author    (C) Vitamin/CAIG/2001
 *
@@ -14,7 +14,7 @@
 
 namespace ZXTune
 {
-  //! @brief IO functions and types namespace
+  //! @brief %IO functions and types namespace
   namespace IO
   {
     //! @brief IO-related error codes

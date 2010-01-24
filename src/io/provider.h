@@ -52,7 +52,7 @@ namespace ZXTune
     //! @return Error() in case of success
     Error CombineUri(const String& baseUri, const String& subpath, String& uri);
 
-    //! @brief Structure describing supported IO data provider
+    //! @brief Structure describing supported %IO data provider
     struct ProviderInformation
     {
       //! Provider's name
