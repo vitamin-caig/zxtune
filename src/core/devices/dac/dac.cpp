@@ -66,7 +66,7 @@ namespace
 
   inline Sound::Sample scale(uint8_t inSample)
   {
-    return inSample << (8 * (sizeof(Sound::Sample) - sizeof(inSample)) - 1);
+    return Sound::Sample(inSample) << (8 * (sizeof(Sound::Sample) - sizeof(inSample)) - 1);
   }
 
   struct Sample
@@ -115,7 +115,14 @@ namespace
       const unsigned pos(PosInSample / Sound::FIXED_POINT_PRECISION);
       if (pos >= CurSample->Size)
       {
-        Enabled = false;
+        if (CurSample->Loop >= CurSample->Size)
+        {
+          Enabled = false;
+        }
+        else
+        {
+          PosInSample = CurSample->Loop * Sound::FIXED_POINT_PRECISION;
+        }
       }
     }
 

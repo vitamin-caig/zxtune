@@ -227,7 +227,7 @@ namespace
 
   class PDTHolder : public Holder, public boost::enable_shared_from_this<PDTHolder>
   {
-    static void ParsePattern(const PDTPattern& src, Log::MessagesCollector& warner, PDTTrack::Pattern& res)
+    void ParsePattern(const PDTPattern& src, Log::MessagesCollector& warner, PDTTrack::Pattern& res)
     {
       PDTTrack::Pattern result;
       result.reserve(PATTERN_SIZE);
@@ -314,24 +314,28 @@ namespace
         Log::ParamPrefixedCollector patternWarner(*warner, TEXT_PATTERN_WARN_PREFIX, patIdx);
         ParsePattern(header->Patterns[patIdx], patternWarner, Data.Patterns[patIdx]);
       }
-      
+            
       //fill samples
       const uint8_t* samplesData(safe_ptr_cast<const uint8_t*>(header) + sizeof(*header));
       Data.Samples.resize(header->Samples.size());
       for (unsigned samIdx = 0; samIdx != header->Samples.size(); ++samIdx)
       {
-        const PDTSample& sample(header->Samples[samIdx]);
-        if (sample.Page < PAGES_COUNT && fromLE(sample.Start) >= 0xc000 && sample.Size)
+        const PDTSample& srcSample(header->Samples[samIdx]);
+        Sample& dstSample(Data.Samples[samIdx]);
+        const unsigned start(fromLE(srcSample.Start));
+        if (srcSample.Page < PAGES_COUNT && start >= 0xc000 && srcSample.Size)
         {
-          const uint8_t* sampleData(samplesData + PAGE_SIZE * GetPageOrder(sample.Page) + 
-            (fromLE(sample.Start) - 0xc000));
-          unsigned size = fromLE(sample.Size);
-          while (size && !sampleData[size])
+          const uint8_t* const sampleData(samplesData + PAGE_SIZE * GetPageOrder(srcSample.Page) + 
+            (start - 0xc000));
+          unsigned size = fromLE(srcSample.Size) - 1;
+          while (size && sampleData[size] == 0)
           {
             --size;
           }
-          Data.Samples[samIdx].Loop = sample.Loop;
-          Data.Samples[samIdx].Data.assign(sampleData, sampleData + size);
+          ++size;
+          const unsigned loop(fromLE(srcSample.Loop));
+          dstSample.Loop = loop >= start ? loop - start : size;
+          dstSample.Data.assign(sampleData, sampleData + size);
         }
       }
       
@@ -340,7 +344,7 @@ namespace
       Data.Ornaments.push_back(Ornament());//first empty ornament
       std::transform(header->Ornaments.begin(), header->Ornaments.end(), header->OrnLoops.begin(), 
         std::back_inserter(Data.Ornaments), MakeOrnament);
-      
+
       //fill region
       region.Offset = 0;
       region.Size = MODULE_SIZE;
@@ -665,6 +669,11 @@ namespace
     }
     if (ArrayEnd(header->LastDatas) != std::find_if(header->LastDatas, ArrayEnd(header->LastDatas),
       boost::bind(&fromLE<uint16_t>, _1) < 0xc000))
+    {
+      return false;
+    }
+    if (header->Positions.end() != std::find_if(header->Positions.begin(), header->Positions.end(),
+      std::bind2nd(std::greater_equal<uint8_t>(), static_cast<uint8_t>(PATTERNS_COUNT))))
     {
       return false;
     }
