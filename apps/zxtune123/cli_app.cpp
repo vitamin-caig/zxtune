@@ -196,7 +196,7 @@ namespace
           escaped.substr(escaped.find_first_not_of('_'))));
       }
       const String& filename = InstantiateTemplate(NameTemplate, fields, SKIP_NONEXISTING);
-      std::ofstream file(filename.c_str());
+      std::ofstream file(filename.c_str(), std::ios::binary);
       file.write(safe_ptr_cast<const char*>(&result[0]), static_cast<std::streamsize>(result.size() * sizeof(result.front())));
       if (!file)
       {
