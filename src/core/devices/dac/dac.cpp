@@ -53,7 +53,7 @@ namespace
     return val > 0 ? 1 : (val < 0 ? -1 : 0);
   }
 
-  inline unsigned GetStepByFrequency(unsigned note, unsigned soundFreq, unsigned sampleFreq)
+  inline unsigned GetStepByFrequency(double note, unsigned soundFreq, unsigned sampleFreq)
   {
     return static_cast<unsigned>(note * Sound::FIXED_POINT_PRECISION *
       sampleFreq / (FREQ_TABLE[0] * soundFreq * 2));
@@ -196,10 +196,10 @@ namespace
         boost::bind(&ChipImpl::CalcSampleStep, this, params.SoundFreq, _1));
 
       const uint64_t ticksPerSample(params.ClockFreq / params.SoundFreq);
-      const unsigned doSamples(static_cast<unsigned>((src.Tick - CurrentTick) * params.SoundFreq / params.ClockFreq));
+      const unsigned doSamples(static_cast<unsigned>(uint64_t(src.Tick - CurrentTick) * params.SoundFreq / params.ClockFreq));
 
       const std::const_mem_fun_ref_t<Sound::Sample, ChannelState> getter = src.Interpolate ?
-        std::mem_fun_ref(&ChannelState::GetValue) : std::mem_fun_ref(&ChannelState::GetInterpolatedValue);
+        std::mem_fun_ref(&ChannelState::GetInterpolatedValue) : std::mem_fun_ref(&ChannelState::GetValue);
       std::vector<Sound::Sample> result(Channels);
       for (unsigned smp = 0; smp != doSamples; ++smp)
       {
@@ -207,7 +207,7 @@ namespace
         std::for_each(State.begin(), State.end(), std::mem_fun_ref(&ChannelState::SkipStep));
         dst.ApplySample(result);
       }
-      CurrentTick += doSamples * ticksPerSample;
+      CurrentTick = src.Tick;
     }
 
     virtual void GetState(Module::Analyze::ChannelsState& state) const
@@ -270,9 +270,9 @@ namespace
         TableFreq = freq;
         std::transform(FREQ_TABLE.begin(), FREQ_TABLE.end(), FreqTable.begin(),
           boost::bind(GetStepByFrequency, _1, TableFreq, SampleFreq));
-        MaxNotes = std::distance(FreqTable.begin(), std::find(FreqTable.begin(), FreqTable.end(), 0));
+        MaxNotes = static_cast<unsigned>(std::distance(FreqTable.begin(), std::find(FreqTable.begin(), FreqTable.end(), 0)));
       }
-      const int toneStep = static_cast<int>(FreqTable[clamp<signed>(signed(state.Note) + state.NoteSlide, 
+      const int toneStep = static_cast<int>(FreqTable[clamp<signed>(signed(state.Note) + state.NoteSlide,
         0, MaxNotes - 1)]);
       state.SampleStep = state.FreqSlide ?
         clamp<int>(toneStep + sign(state.FreqSlide) * GetStepByFrequency(abs(state.FreqSlide),
