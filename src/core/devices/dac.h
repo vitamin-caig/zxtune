@@ -57,10 +57,11 @@ namespace ZXTune
         unsigned PosInSample;
       };
 
-      DataChunk() : Tick()
+      DataChunk() : Tick(), Interpolate()
       {
       }
       uint64_t Tick;
+      bool Interpolate;
       std::vector<ChannelData> Channels;
     };
 

@@ -102,16 +102,10 @@ namespace
     unsigned PosInSample;//in fixed point
     unsigned SampleStep;
 
-    unsigned GetConstSteps() const
-    {
-      return (Sound::FIXED_POINT_PRECISION * (PosInSample / Sound::FIXED_POINT_PRECISION + 1) - PosInSample) /
-        SampleStep;
-    }
-
-    void SkipConstSteps(unsigned steps)
+    void SkipStep()
     {
       assert(CurSample);
-      PosInSample += steps * SampleStep;
+      PosInSample += SampleStep;
       const unsigned pos(PosInSample / Sound::FIXED_POINT_PRECISION);
       if (pos >= CurSample->Size)
       {
@@ -139,7 +133,24 @@ namespace
         return scale(SILENT);
       }
     }
-
+    
+    Sound::Sample GetInterpolatedValue() const
+    {
+      if (Enabled)
+      {
+        const unsigned pos(PosInSample / Sound::FIXED_POINT_PRECISION);
+        assert(CurSample && pos < CurSample->Size);
+        const Sound::Sample cur(scale(CurSample->Data[pos]));
+        const Sound::Sample next(pos >= CurSample->Size ? cur : scale(CurSample->Data[pos + 1]));
+        const int delta = int(next) - cur;
+        return cur + delta * (PosInSample % Sound::FIXED_POINT_PRECISION) / Sound::FIXED_POINT_PRECISION;
+      }
+      else
+      {
+        return scale(SILENT);
+      }
+    }
+    
     Module::Analyze::Channel Analyze(Module::Analyze::LevelType maxGain) const
     {
       Module::Analyze::Channel result;
@@ -175,8 +186,8 @@ namespace
     }
 
     virtual void RenderData(const Sound::RenderParameters& params,
-                              const DataChunk& src,
-                              Sound::MultichannelReceiver& dst)
+                            const DataChunk& src,
+                            Sound::MultichannelReceiver& dst)
     {
       std::for_each(src.Channels.begin(), src.Channels.end(),
         boost::bind(&ChipImpl::UpdateState, this, _1));
@@ -185,25 +196,18 @@ namespace
         boost::bind(&ChipImpl::CalcSampleStep, this, params.SoundFreq, _1));
 
       const uint64_t ticksPerSample(params.ClockFreq / params.SoundFreq);
+      const unsigned doSamples(static_cast<unsigned>((src.Tick - CurrentTick) * params.SoundFreq / params.ClockFreq));
+
+      const std::const_mem_fun_ref_t<Sound::Sample, ChannelState> getter = src.Interpolate ?
+        std::mem_fun_ref(&ChannelState::GetValue) : std::mem_fun_ref(&ChannelState::GetInterpolatedValue);
       std::vector<Sound::Sample> result(Channels);
-      
-      boost::array<unsigned, Channels> constSteps;
-      while (CurrentTick < src.Tick)
+      for (unsigned smp = 0; smp != doSamples; ++smp)
       {
-        std::transform(State.begin(), State.end(), result.begin(),
-          std::mem_fun_ref(&ChannelState::GetValue));
-        std::transform(State.begin(), State.end(), constSteps.begin(), 
-          std::mem_fun_ref(&ChannelState::GetConstSteps));
-        unsigned safeSkips(1 + std::min(unsigned((src.Tick - CurrentTick) / ticksPerSample),
-          *std::min_element(constSteps.begin(), constSteps.end())));
-        CurrentTick += safeSkips * ticksPerSample;
-        std::for_each(State.begin(), State.end(), 
-          std::bind2nd(std::mem_fun_ref(&ChannelState::SkipConstSteps), safeSkips));
-        while (safeSkips--)
-        {
-          dst.ApplySample(result);
-        }
+        std::transform(State.begin(), State.end(), result.begin(), getter);
+        std::for_each(State.begin(), State.end(), std::mem_fun_ref(&ChannelState::SkipStep));
+        dst.ApplySample(result);
       }
+      CurrentTick += doSamples * ticksPerSample;
     }
 
     virtual void GetState(Module::Analyze::ChannelsState& state) const
@@ -282,6 +286,7 @@ namespace
     Module::Analyze::LevelType MaxGain;
     uint64_t CurrentTick;
     boost::array<ChannelState, Channels> State;
+    
     const unsigned SampleFreq;
     //steps calc
     unsigned TableFreq;

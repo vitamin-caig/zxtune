@@ -41,6 +41,17 @@ namespace Parameters
           'z','x','t','u','n','e','.','c','o','r','e','.','a','y','m','.','t','a','b','l','e','\0'
         };
       }
+      
+      //! @brief DAC-realated parameters namespace
+      namespace DAC
+      {
+        //! @brief Use interpolation
+        //! @details Integer value
+        const Char INTERPOLATION[] =
+        {
+          'z','x','t','u','n','e','.','c','o','r','e','.','d','a','c','.','i','n','t','e','r','p','o','l','a','t','i','o','n','\0'
+        };
+      }
     }
   }
 }

@@ -17,6 +17,7 @@ Author:
 #include <messages_collector.h>
 #include <tools.h>
 #include <core/convert_parameters.h>
+#include <core/core_parameters.h>
 #include <core/error_codes.h>
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
@@ -351,7 +352,7 @@ namespace
       
       //meta properties
       ExtractMetaProperties(PDT_PLUGIN_ID, container, region, Data.Info.Properties, RawData);
-      Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_PROGRAM, TEXT_PDT_EDITOR));
+      Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_PROGRAM, String(TEXT_PDT_EDITOR)));
       const String& title(OptimizeString(String(header->Title.begin(), header->Title.end())));
       if (!title.empty())
       {
@@ -452,6 +453,7 @@ namespace
       , Data(Module->Data)
       , Device(device)
       , CurrentState(MODULE_STOPPED)
+      , Interpolation(false)
     {
       Reset();
 #ifdef SELF_TEST
@@ -501,6 +503,7 @@ namespace
       DAC::DataChunk chunk;
       ModState.Tick += params.ClocksPerFrame();
       chunk.Tick = ModState.Tick;
+      chunk.Interpolate = Interpolation;
       RenderData(chunk);
       Device->RenderData(params, chunk, receiver);
       Device->GetState(ChanState);
@@ -555,8 +558,13 @@ namespace
       return Error();
     }
 
-    virtual Error SetParameters(const Parameters::Map& /*params*/)
+    virtual Error SetParameters(const Parameters::Map& params)
     {
+      if (const Parameters::IntType* interpolation = Parameters::FindByName<Parameters::IntType>(params,
+        Parameters::ZXTune::Core::DAC::INTERPOLATION))
+      {
+        Interpolation = (0 != *interpolation);
+      }
       return Error();
     }
     
@@ -628,6 +636,7 @@ namespace
     PDTTrack::ModuleState ModState;
     boost::array<OrnamentState, CHANNELS_COUNT> Ornaments;
     Analyze::ChannelsState ChanState;
+    bool Interpolation;
   };
   
   Player::Ptr CreatePDTPlayer(boost::shared_ptr<const PDTHolder> holder, DAC::Chip::Ptr device)
