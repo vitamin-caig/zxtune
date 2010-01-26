@@ -195,7 +195,6 @@ namespace
       std::for_each(State.begin(), State.end(),
         boost::bind(&ChipImpl::CalcSampleStep, this, params.SoundFreq, _1));
 
-      const uint64_t ticksPerSample(params.ClockFreq / params.SoundFreq);
       const unsigned doSamples(static_cast<unsigned>(uint64_t(src.Tick - CurrentTick) * params.SoundFreq / params.ClockFreq));
 
       const std::const_mem_fun_ref_t<Sound::Sample, ChannelState> getter = src.Interpolate ?

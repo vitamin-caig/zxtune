@@ -14,6 +14,8 @@ Author:
 
 #include <types.h>
 
+#include <string>
+
 namespace ZXTune
 {
   //Pattern format
