@@ -19,7 +19,7 @@ extern const Char CONVERSION_MODE_RAW[] = {
   'r','a','w',0
 };
 extern const Char CONVERSION_PARAM_FILENAME[] = {
-  'n','a','m','e',0
+  'f','i','l','e','n','a','m','e',0
 };
 extern const Char CONVERSION_PARAM_MODE[] = {
   'm','o','d','e',0
@@ -59,10 +59,10 @@ extern const Char TEXT_CONVERT_DESC[] = {
   ' ','m','o','d','e',' ','-',' ','s','p','e','c','i','f','y',' ','c','o','n','v','e','r','s','i','o','n',' ',
   'm','o','d','e','.',' ','C','u','r','r','e','n','t','l','y',' ','s','u','p','p','o','r','t','e','d',' ','a',
   'r','e',':',' ','r','a','w',',','p','s','g','\n',
-  ' ','n','a','m','e',' ','-',' ','f','i','l','e','n','a','m','e',' ','t','e','m','p','l','a','t','e',' ','w',
-  'i','t','h',' ','f','i','e','l','d','s',',',' ','[','f','u','l','l','p','a','t','h',']',' ','a','n','d',' ',
-  '[','e','s','c','a','p','e','d','p','a','t','h',']',' ','a','n','d',' ','a','n','y',' ','m','o','d','u','l',
-  'e','\'','s',' ','p','a','r','a','m','e','t','e','r','s','.',0
+  ' ','f','i','l','e','n','a','m','e',' ','-',' ','f','i','l','e','n','a','m','e',' ','t','e','m','p','l','a',
+  't','e',' ','w','i','t','h',' ','f','i','e','l','d','s',',',' ','[','f','u','l','l','p','a','t','h',']',' ',
+  'a','n','d',' ','[','e','s','c','a','p','e','d','p','a','t','h',']',' ','a','n','d',' ','a','n','y',' ','m',
+  'o','d','u','l','e','\'','s',' ','p','a','r','a','m','e','t','e','r','s','.',0
 };
 extern const Char TEXT_CONVERT_DONE[] = {
   'C','o','n','v','e','r','t','e','d',' ','\'','%','1','%','\'',' ','=','>',' ','\'','%','2','%','\'',0
@@ -187,7 +187,7 @@ extern const Char TEXT_INFO_ATTRIBUTES_WARNINGS_COUNT[] = {
   'o','u','n','t',0
 };
 extern const Char TEXT_INFO_ATTRIBUTE_INFO[] = {
-  ' ',' ','%','|','1','$','-','2','0','|','-',' ','%','2','%','\n',
+  ' ','%','|','1','$','-','2','0','|','-',' ','%','2','%','\n',
   0
 };
 extern const Char TEXT_INFO_BACKEND_INFO[] = {
@@ -315,6 +315,10 @@ extern const Char TEXT_INFO_OPTIONS_CORE_AYM_TYPE[] = {
   'h',' ','b','i','t',' ','s','w','i','t','c','h','e','s',' ','o','n',' ','Y','M',' ','c','h','i','p',' ','f',
   'o','r',' ','r','e','s','p','e','c','t','i','v','e','l','y',' ','d','e','v','i','c','e',0
 };
+extern const Char TEXT_INFO_OPTIONS_CORE_DAC_INTERPOLATION[] = {
+  'u','s','e',' ','i','n','t','e','r','p','o','l','a','t','i','o','n',' ','f','o','r',' ','D','A','C',' ','r',
+  'e','n','d','e','r','i','n','g',0
+};
 extern const Char TEXT_INFO_OPTIONS_CORE_PLUGINS_RAW_SCAN_STEP[] = {
   's','c','a','n','n','i','n','g',' ','s','t','e','p',' ','i','n',' ','b','y','t','e','s',0
 };
@@ -347,6 +351,9 @@ extern const Char TEXT_INFO_OPTIONS_SOUND_BACKENDS_WAV_FILENAME[] = {
   'a','v',' ','f','i','l','e',' ','(','s','e','e',' ','-','-','l','i','s','t','-','a','t','t','r','i','b','u',
   't','e','s',' ','c','o','m','m','a','n','d',')',0
 };
+extern const Char TEXT_INFO_OPTIONS_SOUND_BACKENDS_WIN32_BUFFERS[] = {
+  'p','l','a','y','b','a','c','k',' ','b','u','f','f','e','r','s',' ','c','o','u','n','t',0
+};
 extern const Char TEXT_INFO_OPTIONS_SOUND_BACKENDS_WIN32_DEVICE[] = {
   'd','e','v','i','c','e',' ','i','n','d','e','x',' ','f','o','r',' ','w','i','n','3','2',' ','b','a','c','k',
   'e','n','d',0
@@ -370,12 +377,12 @@ extern const Char TEXT_INFO_OPTIONS_SOUND_TITLE[] = {
   ' ','S','o','u','n','d',' ','o','p','t','i','o','n','s',':',0
 };
 extern const Char TEXT_INFO_OPTION_INFO[] = {
-  ' ','%','|','1','$','-','4','0','|','-',' ','%','2','%','.','\n',
+  ' ',' ','%','|','1','$','-','4','0','|','-',' ','%','2','%','.','\n',
   0
 };
 extern const Char TEXT_INFO_OPTION_INFO_DEFAULTS[] = {
-  ' ','%','|','1','$','-','4','0','|','-',' ','%','2','%',' ','(','d','e','f','a','u','l','t',' ','v','a','l',
-  'u','e',' ','i','s',' ','%','3','%',')','.','\n',
+  ' ',' ','%','|','1','$','-','4','0','|','-',' ','%','2','%',' ','(','d','e','f','a','u','l','t',' ','v','a',
+  'l','u','e',' ','i','s',' ','%','3','%',')','.','\n',
   0
 };
 extern const Char TEXT_INFO_PLUGIN_INFO[] = {

@@ -15,7 +15,7 @@
 > "mode"
 
 < CONVERSION_PARAM_FILENAME
-> "name"
+> "filename"
 
 #fields
 < CONVERSION_FIELD_FULLPATH

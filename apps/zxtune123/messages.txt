@@ -69,13 +69,13 @@
 > "Version:     %3%\n"
 
 < TEXT_INFO_OPTION_INFO
-> " %|1$-40|- %2%.\n"
+> "  %|1$-40|- %2%.\n"
 
 < TEXT_INFO_OPTION_INFO_DEFAULTS
-> " %|1$-40|- %2% (default value is %3%).\n"
+> "  %|1$-40|- %2% (default value is %3%).\n"
 
 < TEXT_INFO_ATTRIBUTE_INFO
-> "  %|1$-20|- %2%\n"
+> " %|1$-20|- %2%\n"
 
 < TEXT_INFO_OPTIONS_IO_PROVIDERS_TITLE
 > " IO providers options:"
@@ -107,6 +107,9 @@
 < TEXT_INFO_OPTIONS_SOUND_BACKENDS_WIN32_DEVICE
 > "device index for win32 backend"
 
+< TEXT_INFO_OPTIONS_SOUND_BACKENDS_WIN32_BUFFERS
+> "playback buffers count"
+
 < TEXT_INFO_OPTIONS_SOUND_BACKENDS_OSS_DEVICE
 > "playback device for OSS backend"
 
@@ -121,6 +124,9 @@
 
 < TEXT_INFO_OPTIONS_CORE_AYM_TABLE
 > "frequency table name to use in AY-based players. Can be name (--" TEXT_INFO_LIST_FREQTABLES_KEY ") or dump. Use '~' to revert"
+
+< TEXT_INFO_OPTIONS_CORE_DAC_INTERPOLATION
+> "use interpolation for DAC rendering"
 
 < TEXT_INFO_OPTIONS_CORE_PLUGINS_TITLE
 > " Core plugins options:"
