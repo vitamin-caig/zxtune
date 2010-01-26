@@ -12,6 +12,7 @@ Author:
 #include "freq_tables_internal.h"
 #include "tracking.h"
 #include "utils.h"
+#include "../detector.h"
 #include "../enumerator.h"
 
 #include <byteorder.h>
@@ -53,6 +54,63 @@ namespace
   const unsigned MAX_PATTERN_SIZE = 64;
   const unsigned MAX_PATTERN_COUNT = 32;
   const unsigned SAMPLE_ORNAMENT_SIZE = 32;
+
+  //detectors
+  static const DetectFormatChain DETECTORS[] =
+  {
+    {
+      "21??"   //ld hl,xxxx
+      "c3??"   //jp xxxx
+      "c3??"   //jp xxxx
+      "f3"     //di
+      "7e"     //ld a,(hl)
+      "32??"   //ld (xxxx),a
+      "22??"   //ld (xxxx),hl
+      "23"     //inc hl
+      "cd??"   //call xxxx
+      "1a"     //ld a,(de)
+      "13"     //inc de
+      "3c"     //inc a
+      "32??"   //ld (xxxx),a
+      "ed53??" //ld (xxxx),de
+      "cd??"   //call xxxx
+      "ed53??" //ld (xxxx),de
+      "d5"     //push de
+      "cd??"   //call xxxx
+      "ed53??" //ld (xxxx),de
+      "21??"   //ld hl,xxxx
+      "cd??"   //call xxxx
+      "eb"     //ex de,hl
+      "22??"   //ld (xxxx),hl
+      "21??"   //ld hl,xxxx
+      "22??"   //ld(xxxx),hl
+      "21??"   //ld hl,xxxx
+      "11??"   //ld de,xxxx
+      "01??"   //ld bc,xxxx
+      "70"     //ld (hl),b
+      "edb0"   //ldir
+      "e1"     //pop hl
+      "01??"   //ld bc,xxxx
+      "af"     //xor a
+      "cd??"   //call xxxx
+      "3d"     //dec a
+      "32??"   //ld (xxxx),a
+      "32??"   //ld (xxxx),a
+      "32??"   //ld (xxxx),a
+      "3e?"    //ld a,x
+      "32??"   //ld (xxxx),a
+      "23"     //inc hl
+      "22??"   //ld (xxxx),hl
+      "22??"   //ld (xxxx),hl
+      "22??"   //ld (xxxx),hl
+      "cd??"   //call xxxx
+      "fb"     //ei
+      "c9"     //ret
+      ,
+      0x43c
+    }
+  };
+
 
 //////////////////////////////////////////////////////////////////////////
 #ifdef USE_PRAGMA_PACK
@@ -350,7 +408,7 @@ namespace
     STCHolder(const MetaContainer& container, ModuleRegion& region)
     {
       //assume that data is ok
-      const IO::FastDump& data(*container.Data);
+      const IO::FastDump& data = IO::FastDump(*container.Data, region.Offset);
       const STCHeader* const header(safe_ptr_cast<const STCHeader*>(data.Data()));
       const STCSample* const samples(safe_ptr_cast<const STCSample*>(header + 1));
       const STCPositions* const positions(safe_ptr_cast<const STCPositions*>(&data[fromLE(header->PositionsOffset)]));
@@ -438,7 +496,6 @@ namespace
       std::for_each(Data.Samples.begin(), Data.Samples.end(), std::mem_fun_ref(&STCTrack::Sample::Fix));
       
       //fill region
-      region.Offset = 0;
       region.Size = rawSize;
       
       //meta properties
@@ -819,17 +876,13 @@ namespace
     return Player::Ptr(new STCPlayer(holder, device));
   }
 
-  //////////////////////////////////////////////////////////////////////////
-  bool CreateSTCModule(const Parameters::Map& /*commonParams*/, const MetaContainer& container,
+  bool Check(const uint8_t* data, std::size_t limit, const MetaContainer& container,
     Holder::Ptr& holder, ModuleRegion& region)
   {
-    //perform fast check
-    const std::size_t limit(std::min<std::size_t>(container.Data->Size(), MAX_STC_MODULE_SIZE));
     if (limit < sizeof(STCHeader))
     {
       return false;
     }
-    const uint8_t* const data(static_cast<const uint8_t*>(container.Data->Data()));
     const STCHeader* const header(safe_ptr_cast<const STCHeader*>(data));
     const std::size_t samOff(sizeof(STCHeader));
     const std::size_t posOff(fromLE(header->PositionsOffset));
@@ -880,6 +933,33 @@ namespace
     catch (const Error&/*e*/)
     {
       //TODO: log error
+    }
+    return false;
+  }
+
+  //////////////////////////////////////////////////////////////////////////
+  bool CreateSTCModule(const Parameters::Map& /*commonParams*/, const MetaContainer& container,
+    Holder::Ptr& holder, ModuleRegion& region)
+  {
+    const std::size_t limit(std::min<std::size_t>(container.Data->Size(), MAX_STC_MODULE_SIZE));
+    const uint8_t* const data(static_cast<const uint8_t*>(container.Data->Data()));
+
+    ModuleRegion tmpRegion;
+    //try to detect without player
+    if (Check(data, limit, container, holder, tmpRegion))
+    {
+      region = tmpRegion;
+      return true;
+    }
+    for (const DetectFormatChain* chain = DETECTORS; chain != ArrayEnd(DETECTORS); ++chain)
+    {
+      tmpRegion.Offset = chain->PlayerSize;
+      if (DetectFormat(data, limit, chain->PlayerFP) &&
+          Check(data + chain->PlayerSize, limit - region.Offset, container, holder, tmpRegion))
+      {
+        region = tmpRegion;
+        return true;
+      }
     }
     return false;
   }
