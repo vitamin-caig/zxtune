@@ -286,34 +286,8 @@ namespace
 
   class STCHolder : public Holder, public boost::enable_shared_from_this<STCHolder>
   {
-    struct PatternCursor
-    {
-      /*explicit*/PatternCursor(unsigned offset = 0)
-        : Offset(offset), Period(), Counter()
-      {
-      }
-      unsigned Offset;
-      unsigned Period;
-      unsigned Counter;
-
-      void SkipLines(unsigned lines)
-      {
-        Counter -= lines;
-      }
-
-      static bool CompareByOffset(const PatternCursor& lh, const PatternCursor& rh)
-      {
-        return lh.Offset < rh.Offset;
-      }
-
-      static bool CompareByCounter(const PatternCursor& lh, const PatternCursor& rh)
-      {
-        return lh.Counter < rh.Counter;
-      }
-    };
     typedef boost::array<PatternCursor, AYM::CHANNELS> PatternCursors;
 
-    
     void ParsePattern(const IO::FastDump& data
       , PatternCursors& cursors
       , STCTrack::Line& line
@@ -349,9 +323,8 @@ namespace
           {
             Log::Assert(channelWarner, !channel->SampleNum, TEXT_WARNING_DUPLICATE_SAMPLE);
             const unsigned num = cmd - 0x60;
-            const bool invalid = num >= MAX_SAMPLES_COUNT;
-            channel->SampleNum = invalid ? 0 : num;
-            Log::Assert(channelWarner, !invalid && !(num && Data.Samples[num].Data.empty()), TEXT_WARNING_INVALID_SAMPLE);
+            channel->SampleNum = num;
+            Log::Assert(channelWarner, !(num && Data.Samples[num].Data.empty()), TEXT_WARNING_INVALID_SAMPLE);
           }
           else if (cmd >= 0x70 && cmd <= 0x7f)//ornament
           {
@@ -359,9 +332,8 @@ namespace
             channel->Commands.push_back(STCTrack::Command(NOENVELOPE));
             Log::Assert(channelWarner, !channel->OrnamentNum, TEXT_WARNING_DUPLICATE_ORNAMENT);
             const unsigned num = cmd - 0x70;
-            const bool invalid = num >= MAX_ORNAMENTS_COUNT;
-            channel->OrnamentNum = invalid ? 0 : num;
-            Log::Assert(channelWarner, !invalid && !(num && Data.Ornaments[num].Data.empty()), TEXT_WARNING_INVALID_ORNAMENT);
+            channel->OrnamentNum = num;
+            Log::Assert(channelWarner, !(num && Data.Ornaments[num].Data.empty()), TEXT_WARNING_INVALID_ORNAMENT);
           }
           else if (cmd == 0x80)//reset
           {
@@ -438,8 +410,8 @@ namespace
           warner->AddMessage(TEXT_WARNING_INVALID_ORNAMENT);
           continue;
         }
-        Data.Ornaments[ornament->Number] = STCTrack::Ornament(static_cast<unsigned>(ArraySize(ornament->Data)), 0);
-        Data.Ornaments[ornament->Number].Data.assign(ornament->Data, ArrayEnd(ornament->Data));
+        Data.Ornaments[ornament->Number] = 
+          STCTrack::Ornament(ornament->Data, ArrayEnd(ornament->Data), static_cast<unsigned>(ArraySize(ornament->Data)));
       }
 
       //parse patterns
@@ -459,7 +431,7 @@ namespace
         pat.reserve(MAX_PATTERN_SIZE);
         do
         {
-          Log::ParamPrefixedCollector patLineWarner(*warner, TEXT_LINE_WARN_PREFIX, static_cast<unsigned>(pat.size()));
+          Log::ParamPrefixedCollector patLineWarner(patternWarner, TEXT_LINE_WARN_PREFIX, static_cast<unsigned>(pat.size()));
           pat.push_back(STCTrack::Line());
           STCTrack::Line& line(pat.back());
           ParsePattern(data, cursors, line, patLineWarner);

@@ -36,6 +36,11 @@ namespace ZXTune
       {
       }
       
+      template<class It>
+      SimpleOrnament(It from, It to, unsigned loop) : Loop(loop), Data(from, to)
+      {
+      }
+      
       void Fix()
       {
         if (Data.empty())
@@ -222,6 +227,33 @@ namespace ZXTune
           }
         }
         return true;
+      }
+    };
+    
+    //helper class to easy parse patterns
+    struct PatternCursor
+    {
+      /*explicit*/PatternCursor(unsigned offset = 0)
+        : Offset(offset), Period(), Counter()
+      {
+      }
+      unsigned Offset;
+      unsigned Period;
+      unsigned Counter;
+
+      void SkipLines(unsigned lines)
+      {
+        Counter -= lines;
+      }
+
+      static bool CompareByOffset(const PatternCursor& lh, const PatternCursor& rh)
+      {
+        return lh.Offset < rh.Offset;
+      }
+
+      static bool CompareByCounter(const PatternCursor& lh, const PatternCursor& rh)
+      {
+        return lh.Counter < rh.Counter;
       }
     };
   }

@@ -19,12 +19,14 @@ namespace ZXTune
   
   void RegisterPSGSupport(PluginsEnumerator& enumerator);
   void RegisterSTCSupport(PluginsEnumerator& enumerator);
+  void RegisterPT2Support(PluginsEnumerator& enumerator);
   void RegisterPDTSupport(PluginsEnumerator& enumerator);
   
   void RegisterPlayerPlugins(PluginsEnumerator& enumerator)
   {
     RegisterPSGSupport(enumerator);
     RegisterSTCSupport(enumerator);
+    RegisterPT2Support(enumerator);
     RegisterPDTSupport(enumerator);
   }
 }
