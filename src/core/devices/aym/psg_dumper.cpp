@@ -48,7 +48,6 @@ namespace
   public:
     explicit PSGDumper(Dump& data)
       : Data(data)
-      , CurTicks(0)
     {
       Reset();
     }
@@ -57,30 +56,50 @@ namespace
                             const DataChunk& src,
                             Sound::MultichannelReceiver& /*dst*/)
     {
-      if (!(src.Mask & DataChunk::ALL_REGISTERS))
+      if (0 == (src.Mask & DataChunk::ALL_REGISTERS))
       {
         return;
       }
-      if (const unsigned intsPassed = static_cast<unsigned>((src.Tick - CurTicks) / params.ClocksPerFrame()))
+      //check for difference
+      {
+        unsigned mask = src.Mask & DataChunk::ALL_REGISTERS;
+        for (unsigned reg = 0; mask; ++reg, mask >>= 1)
+        {
+          if ((mask & 1) && (reg == DataChunk::REG_ENV || src.Data[reg] != CurChunk.Data[reg]))
+          {
+            break;
+          }
+        }
+        if (!mask)
+        {
+          return;//no differences
+        }
+      }
+      if (const unsigned intsPassed = static_cast<unsigned>((src.Tick - CurChunk.Tick) / params.ClocksPerFrame()))
       {
         Dump frame;
         std::back_insert_iterator<Dump> inserter(frame);
         frame.reserve(intsPassed / 4 + (intsPassed % 4) + 2 * CountBits(src.Mask & DataChunk::ALL_REGISTERS) + 1);
-        std::fill_n(inserter, intsPassed / 4, SKIP_INTS);
+        if (const unsigned fourSkips = intsPassed / 4)
+        {
+          *inserter = SKIP_INTS;
+          *inserter = fourSkips;
+        }
         std::fill_n(inserter, intsPassed % 4, INTERRUPT);
         unsigned mask = src.Mask;
         for (unsigned reg = 0; mask; ++reg, mask >>= 1)
         {
-          if (mask & 1)
+          if ((mask & 1) && src.Data[reg] != CurChunk.Data[reg])
           {
             *inserter = reg;
             *inserter = src.Data[reg];
+            CurChunk.Data[reg] = src.Data[reg];
           }
         }
         *inserter = END_MUS;
         Data.pop_back();//delete limiter
         std::copy(frame.begin(), frame.end(), std::back_inserter(Data));
-        CurTicks = src.Tick;
+        CurChunk.Tick = src.Tick;
       }
     }
 
@@ -101,12 +120,12 @@ namespace
       BOOST_STATIC_ASSERT(sizeof(HEADER) == 16);
       Data.resize(sizeof(HEADER) + 1);
       *std::copy(HEADER, ArrayEnd(HEADER), Data.begin()) = END_MUS;
-      CurTicks = 0;
+      CurChunk = DataChunk();
     }
 
   private:
     Dump& Data;
-    uint64_t CurTicks;
+    DataChunk CurChunk;
   };
 }
 
