@@ -9,6 +9,7 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+#include "convert_helpers.h"
 #include "freq_tables_internal.h"
 #include "tracking.h"
 #include "utils.h"
@@ -25,7 +26,6 @@ Author:
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
 #include <io/container.h>
-#include <sound/dummy_receiver.h>
 #include <sound/render_params.h>
 #include <core/devices/aym.h>
 
@@ -528,30 +528,16 @@ namespace
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
     {
       using namespace Conversion;
+      Error result;
       if (parameter_cast<RawConvertParam>(&param))
       {
         dst = RawData;
       }
-      else if (parameter_cast<PSGConvertParam>(&param))
-      {
-        Dump tmp;
-        Player::Ptr player(CreatePT2Player(shared_from_this(), AYM::CreatePSGDumper(tmp)));
-        Sound::DummyReceiverObject<Sound::MultichannelReceiver> receiver;
-        Sound::RenderParameters params;
-        for (Player::PlaybackState state = Player::MODULE_PLAYING; Player::MODULE_PLAYING == state;)
-        {
-          if (const Error& err = player->RenderFrame(params, state, receiver))
-          {
-            return Error(THIS_LINE, ERROR_MODULE_CONVERT, TEXT_MODULE_ERROR_CONVERT_PSG).AddSuberror(err);
-          }
-        }
-        dst.swap(tmp);
-      }
-      else
+      else if (!ConvertAYMFormat(boost::bind(&CreatePT2Player, shared_from_this(), _1), param, dst, result))
       {
         return Error(THIS_LINE, ERROR_MODULE_CONVERT, TEXT_MODULE_ERROR_CONVERSION_UNSUPPORTED);
       }
-      return Error();
+      return result;
     }
   private:
     friend class PT2Player;
@@ -831,7 +817,7 @@ namespace
         const SimpleOrnament& curOrnament(Data.Ornaments[dst.OrnamentNum]);
 
         //calculate tone
-        const unsigned halfTone(clamp<unsigned>(dst.Note + curOrnament.Data[dst.PosInOrnament], 0, 95));
+        const unsigned halfTone(clamp(dst.Note + curOrnament.Data[dst.PosInOrnament], 0u, static_cast<unsigned>(FreqTable.size())));
         const uint16_t tone = static_cast<uint16_t>(clamp(FreqTable[halfTone] + dst.Sliding + curSampleLine.Vibrato, 0, 0xffff));
         if (dst.SlidingTargetNote != LIMITER)
         {
@@ -914,7 +900,7 @@ namespace
     {
       return false;
     }
-    const unsigned lowlimit(1 + std::find(header->Positions, data + size, POS_END_MARKER) - data);
+    const unsigned lowlimit(1 + static_cast<unsigned>(std::find(header->Positions, data + size, POS_END_MARKER) - data));
     if (lowlimit - sizeof(*header) != header->Length)//too big positions list
     {
       return false;
@@ -969,7 +955,7 @@ namespace
     {
       return false;
     }
-    if (header->Positions + header->Length != 
+    if (header->Positions + header->Length !=
       std::find_if(header->Positions, header->Positions + header->Length, std::bind2nd(std::greater_equal<uint8_t>(),
         patternsCount)))
     {

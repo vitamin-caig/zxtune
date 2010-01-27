@@ -9,6 +9,7 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+#include "convert_helpers.h"
 #include "freq_tables_internal.h"
 #include "tracking.h"
 #include "utils.h"
@@ -25,7 +26,6 @@ Author:
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
 #include <io/container.h>
-#include <sound/dummy_receiver.h>
 #include <sound/render_params.h>
 #include <core/devices/aym.h>
 
@@ -410,7 +410,7 @@ namespace
           warner->AddMessage(TEXT_WARNING_INVALID_ORNAMENT);
           continue;
         }
-        Data.Ornaments[ornament->Number] = 
+        Data.Ornaments[ornament->Number] =
           STCTrack::Ornament(ornament->Data, ArrayEnd(ornament->Data), static_cast<unsigned>(ArraySize(ornament->Data)));
       }
 
@@ -512,30 +512,16 @@ namespace
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
     {
       using namespace Conversion;
+      Error result;
       if (parameter_cast<RawConvertParam>(&param))
       {
         dst = RawData;
       }
-      else if (parameter_cast<PSGConvertParam>(&param))
-      {
-        Dump tmp;
-        Player::Ptr player(CreateSTCPlayer(shared_from_this(), AYM::CreatePSGDumper(tmp)));
-        Sound::DummyReceiverObject<Sound::MultichannelReceiver> receiver;
-        Sound::RenderParameters params;
-        for (Player::PlaybackState state = Player::MODULE_PLAYING; Player::MODULE_PLAYING == state;)
-        {
-          if (const Error& err = player->RenderFrame(params, state, receiver))
-          {
-            return Error(THIS_LINE, ERROR_MODULE_CONVERT, TEXT_MODULE_ERROR_CONVERT_PSG).AddSuberror(err);
-          }
-        }
-        dst.swap(tmp);
-      }
-      else
+      else if (!ConvertAYMFormat(boost::bind(&CreateSTCPlayer, shared_from_this(), _1), param, dst, result))
       {
         return Error(THIS_LINE, ERROR_MODULE_CONVERT, TEXT_MODULE_ERROR_CONVERSION_UNSUPPORTED);
       }
-      return Error();
+      return result;
     }
   private:
     friend class STCPlayer;
