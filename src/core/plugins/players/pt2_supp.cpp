@@ -113,6 +113,12 @@ namespace
   {
     uint8_t Size;
     uint8_t Loop;
+
+    unsigned GetSize() const
+    {
+      return sizeof(PT2Sample) + (Size - 1) * sizeof(Line);
+    }
+
     PACK_PRE struct Line
     {
       //nnnnnsTN
@@ -163,6 +169,11 @@ namespace
     uint8_t Size;
     uint8_t Loop;
     int8_t Data[1];
+
+    unsigned GetSize() const
+    {
+      return sizeof(PT2Ornament) + (Size - 1);
+    }
   } PACK_POST;
 
   PACK_PRE struct PT2Pattern
@@ -223,25 +234,29 @@ namespace
     std::vector<Line> Data;
   };
 
-  inline Sample CreateSample(const IO::FastDump& data, uint16_t offset)
+  inline Sample ParseSample(const IO::FastDump& data, uint16_t offset, std::size_t& rawSize)
   {
-    const PT2Sample* const sample(safe_ptr_cast<const PT2Sample*>(&data[fromLE(offset)]));
+    const unsigned off(fromLE(offset));
+    const PT2Sample* const sample(safe_ptr_cast<const PT2Sample*>(&data[off]));
     if (0 == offset || !sample->Size)
     {
       return Sample(1, 0);//safe
     }
     Sample tmp(sample->Size, sample->Loop);
     std::copy(sample->Data, sample->Data + sample->Size, tmp.Data.begin());
+    rawSize = std::max(rawSize, off + sample->GetSize());
     return tmp;
   }
   
-  inline SimpleOrnament CreateOrnament(const IO::FastDump& data, uint16_t offset)
+  inline SimpleOrnament ParseOrnament(const IO::FastDump& data, uint16_t offset, std::size_t& rawSize)
   {
-    const PT2Ornament* const ornament(safe_ptr_cast<const PT2Ornament*>(&data[fromLE(offset)]));
+    const unsigned off(fromLE(offset));
+    const PT2Ornament* const ornament(safe_ptr_cast<const PT2Ornament*>(&data[off]));
     if (0 == offset || !ornament->Size)
     {
       return SimpleOrnament(1, 0);//safe version
     }
+    rawSize = std::max(rawSize, off + ornament->GetSize());
     return SimpleOrnament(ornament->Data, ornament->Data + ornament->Size, ornament->Loop);
   }
 
@@ -416,7 +431,7 @@ namespace
             {
               throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
             }
-            channel->Commands.push_back(PT2Track::Command(NOISE_ADD, static_cast<int8_t>(data[cur->Offset])));
+            channel->Commands.push_back(PT2Track::Command(NOISE_ADD, static_cast<int8_t>(data[cur->Offset++])));
           }
         }
         cur->Counter = cur->Period;
@@ -433,17 +448,17 @@ namespace
 
       Log::MessagesCollector::Ptr warner(Log::MessagesCollector::Create());
 
+      std::size_t rawSize(0);
       //fill samples
       Data.Samples.reserve(header->SamplesOffsets.size());
       std::transform(header->SamplesOffsets.begin(), header->SamplesOffsets.end(),
-        std::back_inserter(Data.Samples), boost::bind(&CreateSample, boost::cref(data), _1));
+        std::back_inserter(Data.Samples), boost::bind(&ParseSample, boost::cref(data), _1, boost::ref(rawSize)));
       //fill ornaments
       Data.Ornaments.reserve(header->OrnamentsOffsets.size());
       std::transform(header->OrnamentsOffsets.begin(), header->OrnamentsOffsets.end(),
-        std::back_inserter(Data.Ornaments), boost::bind(&CreateOrnament, boost::cref(data), _1));
-        
+        std::back_inserter(Data.Ornaments), boost::bind(&ParseOrnament, boost::cref(data), _1, boost::ref(rawSize)));
+
       //fill patterns
-      std::size_t rawSize(0);
       Data.Patterns.resize(MAX_PATTERN_COUNT);
       unsigned index(0);
       for (const PT2Pattern* pattern = patterns; pattern->Check(); ++pattern, ++index)
@@ -472,7 +487,7 @@ namespace
         Log::Assert(patternWarner, 0 == std::max_element(cursors.begin(), cursors.end(), PatternCursor::CompareByCounter)->Counter,
           TEXT_WARNING_PERIODS);
         Log::Assert(patternWarner, pat.size() <= MAX_PATTERN_SIZE, TEXT_WARNING_INVALID_PATTERN_SIZE);
-        rawSize = std::max<std::size_t>(rawSize, 1 + std::max_element(cursors.begin(), cursors.end(), PatternCursor::CompareByOffset)->Offset);
+        rawSize = std::max(rawSize, 1 + std::max_element(cursors.begin(), cursors.end(), PatternCursor::CompareByOffset)->Offset);
       }
 
       //fill order
@@ -817,7 +832,7 @@ namespace
         const SimpleOrnament& curOrnament(Data.Ornaments[dst.OrnamentNum]);
 
         //calculate tone
-        const unsigned halfTone(clamp(dst.Note + curOrnament.Data[dst.PosInOrnament], 0u, static_cast<unsigned>(FreqTable.size())));
+        const unsigned halfTone(clamp(dst.Note + curOrnament.Data[dst.PosInOrnament], 0u, static_cast<unsigned>(FreqTable.size()) - 1));
         const uint16_t tone = static_cast<uint16_t>(clamp(FreqTable[halfTone] + dst.Sliding + curSampleLine.Vibrato, 0, 0xffff));
         if (dst.SlidingTargetNote != LIMITER)
         {
@@ -951,7 +966,7 @@ namespace
         return false;
       }
     }
-    if (!patternsCount)
+    if (!patternsCount || patternsCount > MAX_PATTERN_COUNT)
     {
       return false;
     }
