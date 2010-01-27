@@ -69,7 +69,7 @@ namespace ZXTune
         YM_CHIP = 0x4000
       };
 
-      DataChunk() : Tick(), Mask()
+      DataChunk() : Tick(), Mask(), Data()
       {
       }
       uint64_t Tick;

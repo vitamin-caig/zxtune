@@ -11,6 +11,7 @@ Author:
 
 #include "../enumerator.h"
 
+#include <formatter.h>
 #include <tools.h>
 
 #include <core/error_codes.h>
@@ -88,11 +89,21 @@ namespace
     {
       scanStep = static_cast<std::size_t>(*stepParam);
     }
+    
+    const bool showProgress(data.PluginsChain.end() == std::find(data.PluginsChain.begin(), data.PluginsChain.end(), RAW_PLUGIN_ID) &&
+      detectParams.Logger);
+    unsigned progress = 0;
     bool wasResult = curRegion.Size != 0;
     const std::size_t limit(data.Data->Size());
     for (std::size_t offset = std::max(curRegion.Offset + curRegion.Size, std::size_t(1));
       offset < limit - MINIMAL_RAW_SIZE; offset += std::max(curRegion.Offset + curRegion.Size, std::size_t(1)))
     {
+      const unsigned curProg = offset * 100 / limit;
+      if (showProgress && curProg != progress)
+      {  
+        detectParams.Logger((Formatter(TEXT_PLUGIN_RAW_MESSAGE_PROGRESS) % curProg).str());
+        progress = curProg;
+      }  
       MetaContainer subcontainer;
       subcontainer.Data = data.Data->GetSubcontainer(offset, limit - offset);
       subcontainer.Path = IO::AppendPath(data.Path, CreateRawPart(offset));

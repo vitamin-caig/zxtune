@@ -244,7 +244,7 @@ namespace
     }
     Sample tmp(sample->Size, sample->Loop);
     std::copy(sample->Data, sample->Data + sample->Size, tmp.Data.begin());
-    rawSize = std::max(rawSize, off + sample->GetSize());
+    rawSize = std::max<std::size_t>(rawSize, off + sample->GetSize());
     return tmp;
   }
   
@@ -256,7 +256,7 @@ namespace
     {
       return SimpleOrnament(1, 0);//safe version
     }
-    rawSize = std::max(rawSize, off + ornament->GetSize());
+    rawSize = std::max<std::size_t>(rawSize, off + ornament->GetSize());
     return SimpleOrnament(ornament->Data, ornament->Data + ornament->Size, ornament->Loop);
   }
 
@@ -487,12 +487,17 @@ namespace
         Log::Assert(patternWarner, 0 == std::max_element(cursors.begin(), cursors.end(), PatternCursor::CompareByCounter)->Counter,
           TEXT_WARNING_PERIODS);
         Log::Assert(patternWarner, pat.size() <= MAX_PATTERN_SIZE, TEXT_WARNING_INVALID_PATTERN_SIZE);
-        rawSize = std::max(rawSize, 1 + std::max_element(cursors.begin(), cursors.end(), PatternCursor::CompareByOffset)->Offset);
+        rawSize = std::max<std::size_t>(rawSize, 1 + std::max_element(cursors.begin(), cursors.end(), PatternCursor::CompareByOffset)->Offset);
       }
 
       //fill order
-      Data.Positions.assign(header->Positions,
-        std::find(header->Positions, header->Positions + header->Length, POS_END_MARKER));
+      for (const uint8_t* curPos = header->Positions; POS_END_MARKER != *curPos; ++curPos)
+      {
+        if (!Data.Patterns[*curPos].empty())
+        {
+          Data.Positions.push_back(*curPos);
+        }
+      }
       Log::Assert(*warner, header->Length == Data.Positions.size(), TEXT_WARNING_INVALID_LENGTH);
 
       //fix samples and ornaments
@@ -932,7 +937,7 @@ namespace
         return false;
       }
       const PT2Sample* const sample(safe_ptr_cast<const PT2Sample*>(data + offset));
-      if (offset + sizeof(*sample) + (sample->Size - 1) * sizeof(PT2Sample::Line) > size)
+      if (offset + sample->GetSize() > size)
       {
         return false;
       }
@@ -945,7 +950,7 @@ namespace
         return false;
       }
       const PT2Ornament* const ornament(safe_ptr_cast<const PT2Ornament*>(data + offset));
-      if (offset + sizeof(*ornament) + ornament->Size - 1 > size)
+      if (offset + ornament->GetSize() > size)
       {
         return false;
       }
