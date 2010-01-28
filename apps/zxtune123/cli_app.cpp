@@ -26,6 +26,7 @@ Author:
 #include <core/module_attrs.h>
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
+#include <io/fs_tools.h>
 #include <io/providers_parameters.h>
 #include <sound/sound_parameters.h>
 
@@ -187,14 +188,17 @@ namespace
       ZXTune::Module::Information info;
       item.Module->GetModuleInformation(info);
       StringMap fields;
-      Parameters::ConvertMap(info.Properties, fields);
-      fields.insert(StringMap::value_type(CONVERSION_FIELD_FULLPATH, item.Id));
       {
-        String escaped(item.Id);
-        std::replace_if(escaped.begin(), escaped.end(), std::not1(std::ptr_fun<int, int>(&std::isalnum)), Char('_'));
-        fields.insert(StringMap::value_type(CONVERSION_FIELD_ESCAPEDPATH,
-          escaped.substr(escaped.find_first_not_of('_'))));
-      }
+        StringMap origFields;
+        Parameters::ConvertMap(info.Properties, origFields);
+        origFields.insert(StringMap::value_type(CONVERSION_FIELD_ESCAPEDPATH, item.Id));
+        std::transform(origFields.begin(), origFields.end(), std::inserter(fields, fields.end()),
+          boost::bind(&std::make_pair<String, String>, 
+            boost::bind<String>(&StringMap::value_type::first, _1),
+            boost::bind<String>(&ZXTune::IO::MakePathFromString, 
+              boost::bind<String>(&StringMap::value_type::second, _1), '_')));
+      }      
+      fields.insert(StringMap::value_type(CONVERSION_FIELD_FULLPATH, item.Id));
       const String& filename = InstantiateTemplate(NameTemplate, fields, SKIP_NONEXISTING);
       std::ofstream file(filename.c_str(), std::ios::binary);
       file.write(safe_ptr_cast<const char*>(&result[0]), static_cast<std::streamsize>(result.size() * sizeof(result.front())));
