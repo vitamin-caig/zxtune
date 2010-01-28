@@ -72,14 +72,11 @@ namespace
       , DevHandle(-1)
       , CurrentBuffer(Buffers.begin(), Buffers.end())
     {
-      MixHandle = ::open(MixerName.c_str(), O_RDWR, 0);
-      CheckResult(-1 != MixHandle, THIS_LINE);
     }
 
     virtual ~OSSBackend()
     {
-      ::close(MixHandle);
-      assert(-1 == DevHandle || "OSSBackend was destroyed without stopping");
+      assert((-1 == DevHandle && -1 == MixHandle) || "OSSBackend was destroyed without stopping");
     }
 
     virtual void GetInformation(BackendInformation& info) const
@@ -159,25 +156,19 @@ namespace
       if (mixer || device || freq)
       {
         Locker lock(BackendMutex);
+        const bool needStartup(-1 != DevHandle);
+        DoShutdown();
         if (mixer)
         {
           MixerName = *mixer;
-          CheckResult(0 == ::close(MixHandle), THIS_LINE);
-          MixHandle = ::open(MixerName.c_str(), O_RDWR, 0);
-          CheckResult(-1 != MixHandle, THIS_LINE);
         }
-        if (device || freq)
+        if (device)
         {
-          const bool needStartup(-1 != DevHandle);
-          DoShutdown();
-          if (device)
-          {
-            DeviceName = *device;
-          }
-          if (needStartup)
-          {
-            DoStartup();
-          }
+          DeviceName = *device;
+        }
+        if (needStartup)
+        {
+          DoStartup();
         }
       }
     }
@@ -202,6 +193,10 @@ namespace
   private:
     void DoStartup()
     {
+      assert(-1 == MixHandle);
+      MixHandle = ::open(MixerName.c_str(), O_RDWR, 0);
+      CheckResult(-1 != MixHandle, THIS_LINE);
+
       assert(-1 == DevHandle);
       DevHandle = ::open(DeviceName.c_str(), O_WRONLY, 0);
       CheckResult(-1 != DevHandle, THIS_LINE);
@@ -224,6 +219,11 @@ namespace
         CheckResult(0 == ::close(DevHandle), THIS_LINE);
         DevHandle = -1;
       }
+      if (-1 == MixHandle)
+      {
+        CheckResult(0 == ::close(MixHandle), THIS_LINE);
+        MixHandle = -1;
+      }
     }
   private:
     String MixerName;
@@ -234,9 +234,9 @@ namespace
     cycled_iterator<std::vector<MultiSample>*> CurrentBuffer;
   };
   
-  Backend::Ptr OSSBackendCreator()
+  Backend::Ptr OSSBackendCreator(const Parameters::Map& params)
   {
-    return Backend::Ptr(new SafeBackendWrapper<OSSBackend>());
+    return Backend::Ptr(new SafeBackendWrapper<OSSBackend>(params));
   }
 }
 

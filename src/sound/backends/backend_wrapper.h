@@ -21,8 +21,13 @@ namespace ZXTune
     class SafeBackendWrapper : public Backend
     {
     public:
-      SafeBackendWrapper() : Delegate(new Impl())
+      explicit SafeBackendWrapper(const Parameters::Map& params) : Delegate(new Impl())
       {
+        //apply parameters to delegate
+        ThrowIfError(Delegate->SetParameters(params));
+        //perform fast test to detect if parameters are correct
+        Delegate->OnStartup();
+        Delegate->OnShutdown();
       }
       
       virtual ~SafeBackendWrapper()

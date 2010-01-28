@@ -155,6 +155,7 @@ namespace
 
     virtual ~Win32Backend()
     {
+      Locker lock(BackendMutex);
       assert(0 == WaveHandle || !"Win32Backend::Stop should be called before exit");
       ::CloseHandle(Event);
     }
@@ -272,6 +273,7 @@ namespace
       CurrentBuffer->Process(buffer);
       ++CurrentBuffer;
     }
+
   private:
     void DoStartup()
     {
@@ -310,9 +312,9 @@ namespace
     ::HWAVEOUT WaveHandle;
   };
 
-  Backend::Ptr Win32BackendCreator()
+  Backend::Ptr Win32BackendCreator(const Parameters::Map& params)
   {
-    return Backend::Ptr(new SafeBackendWrapper<Win32Backend>());
+    return Backend::Ptr(new SafeBackendWrapper<Win32Backend>(params));
   }
 }
 

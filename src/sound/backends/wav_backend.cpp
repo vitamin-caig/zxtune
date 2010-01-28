@@ -253,9 +253,9 @@ namespace
 #endif
   };
   
-  Backend::Ptr WAVBackendCreator()
+  Backend::Ptr WAVBackendCreator(const Parameters::Map& params)
   {
-    return Backend::Ptr(new SafeBackendWrapper<WAVBackend>());
+    return Backend::Ptr(new SafeBackendWrapper<WAVBackend>(params));
   }
 }
 

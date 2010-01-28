@@ -1,7 +1,7 @@
 #include <tools.h>
 #include <formatter.h>
 #include <core/module_holder.h>
-#include <core/devices/aym/aym.h>
+#include <core/devices/aym.h>
 #include <sound/backend.h>
 #include <sound/error_codes.h>
 #include <sound/render_params.h>
@@ -85,7 +85,7 @@ namespace
       , Chunk()
       , Frames()
     {
-      Chunk.Mask = AYM::DataChunk::ALL_REGISTERS ^ (1 << AYM::DataChunk::REG_TONEN);
+      Chunk.Mask = AYM::DataChunk::MASK_ALL_REGISTERS ^ (1 << AYM::DataChunk::REG_TONEN);
       Chunk.Data[AYM::DataChunk::REG_MIXER] = ~7;
       Chunk.Data[AYM::DataChunk::REG_VOLA] = Chunk.Data[AYM::DataChunk::REG_VOLB] = Chunk.Data[AYM::DataChunk::REG_VOLC] = 15;
     }
@@ -157,8 +157,9 @@ namespace
   void TestErrors()
   {
     using namespace ZXTune::Sound;
+    Parameters::Map params;
     Backend::Ptr backend;
-    ThrowIfError(CreateBackend("null", backend));
+    ThrowIfError(CreateBackend("null", params, backend));
 
     TestError("Play", backend->Play());
     TestError("Pause", backend->Pause());
@@ -174,8 +175,9 @@ namespace
     " Version: " << info.Version << "\n"
     " Description: " << info.Description << "\n";
 
+    Parameters::Map params;
     Backend::Ptr backend;
-    ThrowIfError(CreateBackend(info.Id, backend));
+    ThrowIfError(CreateBackend(info.Id, params, backend));
     
     std::cout << "Check for volume get: ";
     MultiGain volume;

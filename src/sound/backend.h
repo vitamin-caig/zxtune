@@ -162,9 +162,10 @@ namespace ZXTune
     
     //! @brief Creating new backend
     //! @param id Identificator of specific backend @see BackendInformation#Id
+    //! @param params Map of backend-related parameters
     //! @param result Reference to result value
     //! @return Error() in case of success
-    Error CreateBackend(const String& id, Backend::Ptr& result);
+    Error CreateBackend(const String& id, const Parameters::Map& params, Backend::Ptr& result);
   }
 }
 

@@ -83,9 +83,9 @@ namespace
     }
   };
 
-  Backend::Ptr NullBackendCreator()
+  Backend::Ptr NullBackendCreator(const Parameters::Map& params)
   {
-    return Backend::Ptr(new SafeBackendWrapper<NullBackend>());
+    return Backend::Ptr(new SafeBackendWrapper<NullBackend>(params));
   }
 }
 

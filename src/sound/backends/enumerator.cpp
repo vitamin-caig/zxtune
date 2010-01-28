@@ -57,7 +57,7 @@ namespace
       infos.swap(tmp);
     }
 
-    virtual Error CreateBackend(const String& id, Backend::Ptr& result) const
+    virtual Error CreateBackend(const String& id, const Parameters::Map& params, Backend::Ptr& result) const
     {
       Log::Debug(THIS_MODULE, "Creating backend '%1%'", id);
       const CreatorsStorage::const_iterator it(Creators.find(id));
@@ -67,7 +67,7 @@ namespace
       }
       try
       {
-        result = (it->second)();
+        result = (it->second)(params);
         return Error();
       }
       catch (const Error& e)
@@ -96,9 +96,9 @@ namespace ZXTune
       return BackendsEnumerator::Instance().EnumerateBackends(infos);
     }
 
-    Error CreateBackend(const String& id, Backend::Ptr& result)
+    Error CreateBackend(const String& id, const Parameters::Map& params, Backend::Ptr& result)
     {
-      return BackendsEnumerator::Instance().CreateBackend(id, result);
+      return BackendsEnumerator::Instance().CreateBackend(id, params, result);
     }
   }
 }
