@@ -30,7 +30,7 @@ namespace ZXTune
       virtual ~BackendImpl();
 
       virtual Error SetModule(Module::Holder::Ptr holder);
-      virtual boost::weak_ptr<const Module::Player> GetPlayer() const;
+      virtual Module::Player::ConstWeakPtr GetPlayer() const;
       
       // playback control functions
       virtual Error Play();
@@ -68,8 +68,10 @@ namespace ZXTune
       void RenderFunc();
       void SendEvent(Event evt);
     protected:
+      //inheritances' context
       Parameters::Map CommonParameters;
       RenderParameters RenderingParameters;
+      Module::Player::Ptr Player;
     protected:
       //sync
       typedef boost::lock_guard<boost::mutex> Locker;
@@ -85,7 +87,6 @@ namespace ZXTune
       Error RenderError;
       //context
       unsigned Channels;
-      Module::Player::Ptr Player;
       Converter::Ptr FilterObject;
       std::vector<Mixer::Ptr> MixersSet;
       Receiver::Ptr Renderer;

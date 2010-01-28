@@ -17,8 +17,8 @@ __cpp> "#endif //__TEXT_BACKENDS_H_DEFINED__\n"
 < TEXT_WAV_BACKEND_DESCRIPTION
 > "WAV-output backend"
 
-< FILE_DEFAULT_NAME
-> "output"
+< TEXT_SOUND_ERROR_WAV_BACKEND_NO_FILENAME
+> "Output filename template is not specified."
 
 < FILE_WAVE_EXT
 > ".wav"

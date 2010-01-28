@@ -6,9 +6,6 @@
 extern const Char ALSA_BACKEND_KEY[] = {
   'a','l','s','a',0
 };
-extern const Char FILE_DEFAULT_NAME[] = {
-  'o','u','t','p','u','t',0
-};
 extern const Char FILE_WAVE_EXT[] = {
   '.','w','a','v',0
 };
@@ -23,6 +20,10 @@ extern const Char TEXT_OSS_BACKEND_DESCRIPTION[] = {
 };
 extern const Char TEXT_SOUND_ERROR_OSS_BACKEND_ERROR[] = {
   'E','r','r','o','r',' ','i','n',' ','O','S','S',' ','b','a','c','k','e','n','d',':',' ','%','1','%','.',0
+};
+extern const Char TEXT_SOUND_ERROR_WAV_BACKEND_NO_FILENAME[] = {
+  'O','u','t','p','u','t',' ','f','i','l','e','n','a','m','e',' ','t','e','m','p','l','a','t','e',' ','i','s',
+  ' ','n','o','t',' ','s','p','e','c','i','f','i','e','d','.',0
 };
 extern const Char TEXT_SOUND_ERROR_WIN32_BACKEND_ERROR[] = {
   'E','r','r','o','r',' ','i','n',' ','w','i','n','3','2',' ','b','a','c','k','e','n','d',':',' ','%','1','%',

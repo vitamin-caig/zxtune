@@ -12,6 +12,9 @@
 
 #include <string_type.h>
 
+#include <fstream>
+#include <memory>
+
 namespace ZXTune
 {
   namespace IO
@@ -27,6 +30,19 @@ namespace ZXTune
     //! @param path2 Additional component
     //! @return Merged path
     String AppendPath(const String& path1, const String& path2);
+
+    //! @brief Converting any string to suitable filename
+    //! @param input Source string
+    //! @param replacing Character to replace invalid symbols (0 to simply skip)
+    //! @return Path string
+    String MakePathFromString(const String& input, Char replacing);
+
+    //! @brief Creates file
+    //! @param path Path to the file
+    //! @param overwrite Force to overwrite if file already exists
+    //! @return File stream
+    //! @note Throws exception if file is already exists and overwrite flag is not set
+    std::auto_ptr<std::ofstream> CreateFile(const String& path, bool overwrite);
   }
 }
 

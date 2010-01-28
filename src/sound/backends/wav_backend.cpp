@@ -14,8 +14,10 @@ Author:
 #include "enumerator.h"
 
 #include <byteorder.h>
+#include <logging.h>
+#include <template.h>
 #include <tools.h>
-#include <io/error_codes.h>
+#include <io/fs_tools.h>
 #include <sound/backends_parameters.h>
 #include <sound/error_codes.h>
 
@@ -33,6 +35,8 @@ namespace
 {
   using namespace ZXTune;
   using namespace ZXTune::Sound;
+
+  const std::string THIS_MODULE("WavBackend");
 
   const Char BACKEND_ID[] = {'w', 'a', 'v', 0};
   const String BACKEND_VERSION(FromChar("$Rev$"));
@@ -152,7 +156,7 @@ namespace
 
     virtual ~WAVBackend()
     {
-      assert(!File.is_open() || !"FileBackend::Stop should be called before exit");
+      assert(!File.get() || !"FileBackend::Stop should be called before exit");
     }
 
     virtual void GetInformation(BackendInformation& info) const
@@ -172,44 +176,61 @@ namespace
 
     virtual void OnStartup()
     {
-      assert(!File.is_open());
+      assert(!File.get());
     
       String nameTemplate;
-      if (const Parameters::StringType* wavname =
-        Parameters::FindByName<Parameters::StringType>(CommonParameters, Parameters::ZXTune::Sound::Backends::Wav::FILENAME))
+      if (!Parameters::FindByName(CommonParameters, Parameters::ZXTune::Sound::Backends::Wav::FILENAME, nameTemplate))
       {
-        nameTemplate = *wavname;
+        throw Error(THIS_LINE, BACKEND_INVALID_PARAMETER, TEXT_SOUND_ERROR_WAV_BACKEND_NO_FILENAME);
       }
-      else
-      {
-        nameTemplate = FILE_DEFAULT_NAME;
-      }
-      const String filename(nameTemplate + FILE_WAVE_EXT);//TODO
-      File.open(filename.c_str(), std::ios::binary);
-      if (!File.is_open())
-      {
-        throw Error(THIS_LINE, IO::NOT_OPENED);//TODO
-      }
-      File.seekp(sizeof(Format));
 
-      Format.Samplerate = fromLE<uint32_t>(RenderingParameters.SoundFreq);
-      Format.BytesPerSec = fromLE<uint32_t>(RenderingParameters.SoundFreq * sizeof(MultiSample));
-      Format.Align = fromLE<uint16_t>(sizeof(MultiSample));
-      Format.BitsPerSample = fromLE<uint16_t>(8 * sizeof(Sample));
-      //swap on final
-      Format.Size = sizeof(Format) - 8;
-      Format.DataSize = 0;
+      //if playback now
+      if (Player)
+      {
+        const String extention(FILE_WAVE_EXT);
+        const String::size_type extPos = nameTemplate.find(extention);
+        if (String::npos == extPos || extPos + extention.size() != nameTemplate.size())
+        {
+          nameTemplate += extention;
+        }
+
+        Module::Information info;
+        Player->GetModule().GetModuleInformation(info);
+        StringMap strProps;
+        {
+          StringMap tmpProps;
+          Parameters::ConvertMap(info.Properties, tmpProps);
+          std::transform(tmpProps.begin(), tmpProps.end(), std::inserter(strProps, strProps.end()),
+            boost::bind(&std::make_pair<String, String>, 
+              boost::bind<String>(&StringMap::value_type::first, _1),
+              boost::bind<String>(&IO::MakePathFromString, 
+                boost::bind<String>(&StringMap::value_type::second, _1), '_')));
+        }
+        const String& fileName = InstantiateTemplate(nameTemplate, strProps, SKIP_NONEXISTING);
+        Log::Debug(THIS_MODULE, "Opening file '%1%'", fileName);
+        File = IO::CreateFile(fileName, false);
+
+        File->seekp(sizeof(Format));
+
+        Format.Samplerate = fromLE<uint32_t>(RenderingParameters.SoundFreq);
+        Format.BytesPerSec = fromLE<uint32_t>(RenderingParameters.SoundFreq * sizeof(MultiSample));
+        Format.Align = fromLE<uint16_t>(sizeof(MultiSample));
+        Format.BitsPerSample = fromLE<uint16_t>(8 * sizeof(Sample));
+        //swap on final
+        Format.Size = sizeof(Format) - 8;
+        Format.DataSize = 0;
+      }
     }
 
     virtual void OnShutdown()
     {
-      if (File.is_open())
+      if (File.get())
       {
-        File.seekp(0);
+        File->seekp(0);
         Format.Size = fromLE(Format.Size);
         Format.DataSize = fromLE(Format.DataSize);
-        File.write(safe_ptr_cast<const char*>(&Format), sizeof(Format));
-        File.close();
+        File->write(safe_ptr_cast<const char*>(&Format), sizeof(Format));
+        File.reset();
       }
     }
 
@@ -224,7 +245,7 @@ namespace
 
     virtual void OnParametersChanged(const Parameters::Map& updates)
     {
-      if (File.is_open() &&
+      if (File.get() &&
           (Parameters::FindByName<Parameters::IntType>(updates, Parameters::ZXTune::Sound::FREQUENCY) ||
            Parameters::FindByName<Parameters::StringType>(updates, Parameters::ZXTune::Sound::Backends::Wav::FILENAME)))
       {
@@ -238,15 +259,15 @@ namespace
 #ifdef BOOST_BIG_ENDIAN
       Buffer.resize(buffer.size());
       std::transform(buffer.front().begin(), buffer.back().end(), Buffer.front().begin(), &swapBytes<Sample>);
-      File.write(safe_ptr_cast<const char*>(&Buffer[0]), static_cast<std::streamsize>(sizeInBytes));
+      File->write(safe_ptr_cast<const char*>(&Buffer[0]), static_cast<std::streamsize>(sizeInBytes));
 #else
-      File.write(safe_ptr_cast<const char*>(&buffer[0]), static_cast<std::streamsize>(sizeInBytes));
+      File->write(safe_ptr_cast<const char*>(&buffer[0]), static_cast<std::streamsize>(sizeInBytes));
 #endif
       Format.Size += static_cast<uint32_t>(sizeInBytes);
       Format.DataSize += static_cast<uint32_t>(sizeInBytes);
     }
   private:
-    std::ofstream File;
+    std::auto_ptr<std::ofstream> File;
     WaveFormat Format;
 #ifdef BOOST_BIG_ENDIAN
     std::vector<MultiSample> Buffer;

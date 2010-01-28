@@ -32,6 +32,8 @@ namespace ZXTune
       NO_ACCESS,
       //! IO error happends while opening the file
       IO_ERROR,
+      //! File already exists
+      FILE_EXISTS
     };
   }
 }

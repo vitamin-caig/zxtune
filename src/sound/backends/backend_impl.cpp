@@ -226,7 +226,7 @@ namespace ZXTune
     Module::Player::ConstWeakPtr BackendImpl::GetPlayer() const
     {
       Locker lock(PlayerMutex);
-      return boost::weak_ptr<const Module::Player>(Player);
+      return Module::Player::ConstWeakPtr(Player);
     }
     
     Error BackendImpl::Play()

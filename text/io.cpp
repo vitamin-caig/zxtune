@@ -3,6 +3,9 @@
 #define __TEXT_IO_H_DEFINED__
 #include <char_type.h>
 
+extern const Char TEXT_IO_ERROR_FILE_EXISTS[] = {
+  'F','i','l','e',' ','\'','%','1','%','\'',' ','a','l','r','e','a','d','y',' ','e','x','i','s','t','s','.',0
+};
 extern const Char TEXT_IO_ERROR_IO_ERROR[] = {
   'I','/','O',' ','e','r','r','o','r',' ','h','a','p','p','e','n','d','s','.',0
 };
