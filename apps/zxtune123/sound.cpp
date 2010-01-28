@@ -31,6 +31,8 @@ Author:
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/value_semantic.hpp>
 
+#include <iostream>
+
 #include "text.h"
 
 #define FILE_TAG DAEDAE2A
@@ -48,6 +50,11 @@ namespace
 
   const Char MATRIX_DELIMITERS[] = {';', ',', '-', '\0'};
 
+  void ErrOuter(unsigned /*level*/, Error::LocationRef loc, Error::CodeType code, const String& text)
+  {
+    std::cout << Error::AttributesToString(loc, code, text);
+  }
+  
   inline bool InvalidChannelLetter(unsigned channels, Char letter)
   {
     if (channels < MIN_CHANNELS || channels > MAX_CHANNELS)
@@ -239,6 +246,7 @@ namespace
           {
             throw e;
           }
+          e.WalkSuberrors(ErrOuter);
           continue;
         }
         Log::Debug(THIS_MODULE, "Success!");

@@ -13,6 +13,7 @@ Author:
 
 #include <tools.h>
 #include <error_tools.h>
+#include <logging.h>
 #include <sound/error_codes.h>
 #include <sound/sound_parameters.h>
 
@@ -24,6 +25,8 @@ namespace
 {
   using namespace ZXTune;
   using namespace ZXTune::Sound;
+  
+  const std::string THIS_MODULE("BackendBase");
 
   typedef boost::lock_guard<boost::mutex> Locker;
 
@@ -172,10 +175,9 @@ namespace ZXTune
   namespace Sound
   {
     BackendImpl::BackendImpl()
-      : RenderingParameters()
-      , SyncBarrier(TOTAL_WORKING_THREADS)
-      , CurrentState(NOTOPENED), InProcess(false), RenderError()
-      , Channels(0), Player(), FilterObject(), Renderer(new BufferRenderer(Buffer))
+      : SyncBarrier(TOTAL_WORKING_THREADS)
+      , CurrentState(NOTOPENED), InProcess(false)
+      , Channels(0), Renderer(new BufferRenderer(Buffer))
     {
       MixersSet.resize(MAX_MIXERS_COUNT);
       CopyInitialParameters(RenderingParameters, CommonParameters);
@@ -191,6 +193,7 @@ namespace ZXTune
     {
       try
       {
+        Log::Debug(THIS_MODULE, "Opening the holder");
         if (!holder.get())
         {
           throw Error(THIS_LINE, BACKEND_INVALID_PARAMETER, TEXT_SOUND_ERROR_BACKEND_INVALID_MODULE);
@@ -201,7 +204,9 @@ namespace ZXTune
         
         Locker lock(PlayerMutex);
         {
+          Log::Debug(THIS_MODULE, "Creating the player");
           Module::Player::Ptr tmpPlayer(new SafePlayerWrapper(holder->CreatePlayer()));
+          ThrowIfError(tmpPlayer->SetParameters(CommonParameters));
           StopPlayback();
           Player = tmpPlayer;
         }
@@ -215,6 +220,7 @@ namespace ZXTune
         }
         curMixer->SetEndpoint(FilterObject ? FilterObject : Renderer);
         SendEvent(OPEN);
+        Log::Debug(THIS_MODULE, "Done!");
         return Error();
       }
       catch (const Error& e)
@@ -239,6 +245,7 @@ namespace ZXTune
         const State prevState(CurrentState);
         if (STOPPED == prevState)
         {
+          Log::Debug(THIS_MODULE, "Starting playback");
           Player->Reset();
           RenderThread = boost::thread(std::mem_fun(&BackendImpl::RenderFunc), this);
           SyncBarrier.wait();//wait until real start
@@ -246,9 +253,11 @@ namespace ZXTune
           {
             ThrowIfError(RenderError);
           }
+          Log::Debug(THIS_MODULE, "Started");
         }
         else if (PAUSED == prevState)
         {
+          Log::Debug(THIS_MODULE, "Resuming playback");
           DoResume();
           CurrentState = STARTED;
         }
@@ -271,6 +280,7 @@ namespace ZXTune
         {
           DoPause();
           CurrentState = PAUSED;
+          Log::Debug(THIS_MODULE, "Paused");
         }
         return Error();
       }
@@ -286,10 +296,7 @@ namespace ZXTune
       {
         Locker lock(PlayerMutex);
         CheckState();
-        if (STOPPED != CurrentState)
-        {
-          StopPlayback();
-        }
+        StopPlayback();
         return Error();
       }
       catch (const Error& e)
@@ -474,6 +481,7 @@ namespace ZXTune
           PAUSED == curState ||
           (STOPPED == curState && InProcess))
       {
+        Log::Debug(THIS_MODULE, "Stopping playback");
         if (PAUSED == curState)
         {
           DoResume();
@@ -486,6 +494,7 @@ namespace ZXTune
           SyncBarrier.wait();//wait for thread stop
           RenderThread.join();//cleanup thread
         }
+        Log::Debug(THIS_MODULE, "Stopped");
       }
     }
 
@@ -506,6 +515,7 @@ namespace ZXTune
 
     void BackendImpl::RenderFunc()
     {
+      Log::Debug(THIS_MODULE, "Started playback thread");
       try
       {
         CurrentState = STARTED;
@@ -536,18 +546,21 @@ namespace ZXTune
             boost::this_thread::sleep(PLAYTHREAD_SLEEP_PERIOD);
           }
         }
+        Log::Debug(THIS_MODULE, "Stopping playback thread");
         DoShutdown();//throw
         SyncBarrier.wait();
         InProcess = false; //stopping finished
       }
       catch (const Error& e)
       {
+        Log::Debug(THIS_MODULE, "Stopping playback thread by error");
         RenderError = e;
         CurrentState = STOPPED;
         SendEvent(STOP);
         SyncBarrier.wait();
         InProcess = false;
       }
+      Log::Debug(THIS_MODULE, "Stopped playback thread");
     }
     
     void BackendImpl::SendEvent(Event evt)

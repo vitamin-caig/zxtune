@@ -19,7 +19,9 @@ extern const Char TEXT_OSS_BACKEND_DESCRIPTION[] = {
   'O','S','S',' ','s','o','u','n','d',' ','s','y','s','t','e','m',' ','b','a','c','k','e','n','d',0
 };
 extern const Char TEXT_SOUND_ERROR_OSS_BACKEND_ERROR[] = {
-  'E','r','r','o','r',' ','i','n',' ','O','S','S',' ','b','a','c','k','e','n','d',':',' ','%','1','%','.',0
+  'E','r','r','o','r',' ','i','n',' ','O','S','S',' ','b','a','c','k','e','n','d',' ','w','h','i','l','e',' ',
+  'w','o','r','k','i','n','g',' ','w','i','t','h',' ','d','e','v','i','c','e',' ','\'','%','1','%','\'',':',' ',
+  '%','2','%','.',0
 };
 extern const Char TEXT_SOUND_ERROR_WAV_BACKEND_NO_FILENAME[] = {
   'O','u','t','p','u','t',' ','f','i','l','e','n','a','m','e',' ','t','e','m','p','l','a','t','e',' ','i','s',

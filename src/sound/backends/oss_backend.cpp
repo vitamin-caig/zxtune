@@ -17,6 +17,7 @@ Author:
 
 #include <tools.h>
 #include <error_tools.h>
+#include <logging.h>
 #include <sound/backends_parameters.h>
 #include <sound/error_codes.h>
 
@@ -40,6 +41,8 @@ namespace
 {
   using namespace ZXTune;
   using namespace ZXTune::Sound;
+  
+  const std::string THIS_MODULE("OSSBackend");
 
   const unsigned MAX_OSS_VOLUME = 100;
   
@@ -52,31 +55,80 @@ namespace
     TEXT_OSS_BACKEND_DESCRIPTION,
     BACKEND_VERSION,
   };
-  
-  inline void CheckResult(bool res, Error::LocationRef loc)
+ 
+  class AutoDescriptor
   {
-    if (!res)
+    AutoDescriptor(AutoDescriptor& rh);
+    AutoDescriptor& operator = (AutoDescriptor& rh);
+  public:
+    AutoDescriptor()
+      : Handle(-1)
     {
-      throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR,
-        TEXT_SOUND_ERROR_OSS_BACKEND_ERROR, ::strerror(errno));
     }
-  }
+    AutoDescriptor(const String& name, int mode)
+      : Name(name)
+      , Handle(::open(name.c_str(), mode, 0))
+    {
+      CheckResult(-1 != Handle, THIS_LINE);
+    }
+    
+    ~AutoDescriptor()
+    {
+      if (-1 != Handle)
+      {
+        ::close(Handle);
+        Handle = -1;
+        Name.clear();
+      }
+    }
+    
+    void CheckResult(bool res, Error::LocationRef loc) const
+    {
+      if (!res)
+      {
+        throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR,
+          TEXT_SOUND_ERROR_OSS_BACKEND_ERROR, Name, ::strerror(errno));
+      }
+    }
+
+    void Swap(AutoDescriptor& rh)
+    {
+      std::swap(rh.Handle, Handle);
+      std::swap(rh.Name, Name);
+    }
+    
+    void Close()
+    {
+      if (-1 != Handle)
+      {
+        CheckResult(0 == ::close(Handle), THIS_LINE);
+        Handle = -1;
+        Name.clear();
+      }
+    }
+    
+    int Get() const
+    {
+      return Handle;
+    }
+  private:
+    String Name;
+    int Handle;
+  };
   
   class OSSBackend : public BackendImpl, private boost::noncopyable
   {
   public:
     OSSBackend()
       : MixerName(Parameters::ZXTune::Sound::Backends::OSS::MIXER_DEFAULT)
-      , MixHandle(-1)
       , DeviceName(Parameters::ZXTune::Sound::Backends::OSS::DEVICE_DEFAULT)
-      , DevHandle(-1)
       , CurrentBuffer(Buffers.begin(), Buffers.end())
     {
     }
 
     virtual ~OSSBackend()
     {
-      assert((-1 == DevHandle && -1 == MixHandle) || "OSSBackend was destroyed without stopping");
+      assert(-1 == DevHandle.Get() || !"OSSBackend should be stopped before destruction.");
     }
 
     virtual void GetInformation(BackendInformation& info) const
@@ -89,11 +141,18 @@ namespace
       try
       {
         Locker lock(BackendMutex);
-        assert(-1 != MixHandle);
-        boost::array<uint8_t, sizeof(int)> buf;
-        CheckResult(-1 != ::ioctl(MixHandle, SOUND_MIXER_READ_VOLUME, safe_ptr_cast<int*>(&buf[0])), THIS_LINE);
-        std::transform(buf.begin(), buf.begin() + OUTPUT_CHANNELS, volume.begin(),
-          std::bind2nd(std::divides<Gain>(), MAX_OSS_VOLUME));
+        if (-1 != MixHandle.Get())
+        {
+          boost::array<uint8_t, sizeof(int)> buf;
+          MixHandle.CheckResult(-1 != ::ioctl(MixHandle.Get(), SOUND_MIXER_READ_VOLUME, 
+            safe_ptr_cast<int*>(&buf[0])), THIS_LINE);
+          std::transform(buf.begin(), buf.begin() + OUTPUT_CHANNELS, volume.begin(),
+            std::bind2nd(std::divides<Gain>(), MAX_OSS_VOLUME));
+        }
+        else
+        {
+          volume = MultiGain();
+        }
         return Error();
       }
       catch (const Error& e)
@@ -111,11 +170,14 @@ namespace
       try
       {
         Locker lock(BackendMutex);
-        assert(-1 != MixHandle);
-        boost::array<uint8_t, sizeof(int)> buf = { {0} };
-        std::transform(volume.begin(), volume.end(), buf.begin(),
-          std::bind2nd(std::multiplies<Gain>(), MAX_OSS_VOLUME));
-        CheckResult(-1 != ::ioctl(MixHandle, SOUND_MIXER_WRITE_VOLUME, safe_ptr_cast<int*>(&buf[0])), THIS_LINE);
+        if (-1 != MixHandle.Get())
+        {
+          boost::array<uint8_t, sizeof(int)> buf = { {0} };
+          std::transform(volume.begin(), volume.end(), buf.begin(),
+            std::bind2nd(std::multiplies<Gain>(), MAX_OSS_VOLUME));
+          MixHandle.CheckResult(-1 != ::ioctl(MixHandle.Get(), SOUND_MIXER_WRITE_VOLUME, 
+            safe_ptr_cast<int*>(&buf[0])), THIS_LINE);
+        }
         return Error();
       }
       catch (const Error& e)
@@ -156,7 +218,7 @@ namespace
       if (mixer || device || freq)
       {
         Locker lock(BackendMutex);
-        const bool needStartup(-1 != DevHandle);
+        const bool needStartup(-1 != DevHandle.Get());
         DoShutdown();
         if (mixer)
         {
@@ -178,13 +240,13 @@ namespace
       Locker lock(BackendMutex);
       std::vector<MultiSample>& buf(*CurrentBuffer);
       buf.swap(buffer);
-      assert(-1 != DevHandle);
+      assert(-1 != DevHandle.Get());
       std::size_t toWrite(buf.size() * sizeof(buf.front()));
       const uint8_t* data(safe_ptr_cast<const uint8_t*>(&buf[0]));
       while (toWrite)
       {
-        int res(::write(DevHandle, data, toWrite * sizeof(*data)));
-        CheckResult(res >= 0, THIS_LINE);
+        int res(::write(DevHandle.Get(), data, toWrite * sizeof(*data)));
+        DevHandle.CheckResult(res >= 0, THIS_LINE);
         toWrite -= res;
         data += res;
       }
@@ -193,43 +255,39 @@ namespace
   private:
     void DoStartup()
     {
-      assert(-1 == MixHandle);
-      MixHandle = ::open(MixerName.c_str(), O_RDWR, 0);
-      CheckResult(-1 != MixHandle, THIS_LINE);
-
-      assert(-1 == DevHandle);
-      DevHandle = ::open(DeviceName.c_str(), O_WRONLY, 0);
-      CheckResult(-1 != DevHandle, THIS_LINE);
-
+      Log::Debug(THIS_MODULE, "Opening mixer='%1%' and device='%2%'", MixerName, DeviceName);
+      assert(-1 == MixHandle.Get() && -1 == DevHandle.Get());
+      
+      AutoDescriptor tmpMixer(MixerName, O_RDWR);
+      AutoDescriptor tmpDevice(DeviceName, O_WRONLY);
+      
       BOOST_STATIC_ASSERT(1 == sizeof(Sample) || 2 == sizeof(Sample));
       int tmp(2 == sizeof(Sample) ? AFMT_S16_NE : AFMT_S8);
-      CheckResult(-1 != ::ioctl(DevHandle, SNDCTL_DSP_SETFMT, &tmp), THIS_LINE);
+      tmpDevice.CheckResult(-1 != ::ioctl(tmpDevice.Get(), SNDCTL_DSP_SETFMT, &tmp), THIS_LINE);
 
       tmp = OUTPUT_CHANNELS;
-      CheckResult(-1 != ::ioctl(DevHandle, SNDCTL_DSP_CHANNELS, &tmp), THIS_LINE);
+      tmpDevice.CheckResult(-1 != ::ioctl(tmpDevice.Get(), SNDCTL_DSP_CHANNELS, &tmp), THIS_LINE);
 
       tmp = RenderingParameters.SoundFreq;
-      CheckResult(-1 != ::ioctl(DevHandle, SNDCTL_DSP_SPEED, &tmp), THIS_LINE);
+      tmpDevice.CheckResult(-1 != ::ioctl(tmpDevice.Get(), SNDCTL_DSP_SPEED, &tmp), THIS_LINE);
+      
+      DevHandle.Swap(tmpDevice);
+      MixHandle.Swap(tmpMixer);
+      Log::Debug(THIS_MODULE, "Successfully opened");
     }
 
     void DoShutdown()
     {
-      if (-1 != DevHandle)
-      {
-        CheckResult(0 == ::close(DevHandle), THIS_LINE);
-        DevHandle = -1;
-      }
-      if (-1 == MixHandle)
-      {
-        CheckResult(0 == ::close(MixHandle), THIS_LINE);
-        MixHandle = -1;
-      }
+      Log::Debug(THIS_MODULE, "Closing all the devices");
+      DevHandle.Close();
+      MixHandle.Close();
+      Log::Debug(THIS_MODULE, "Successfully closed");
     }
   private:
     String MixerName;
-    int MixHandle;
+    AutoDescriptor MixHandle;
     String DeviceName;
-    int DevHandle;
+    AutoDescriptor DevHandle;
     boost::array<std::vector<MultiSample>, 2> Buffers;
     cycled_iterator<std::vector<MultiSample>*> CurrentBuffer;
   };
