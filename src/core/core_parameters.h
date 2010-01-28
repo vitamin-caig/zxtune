@@ -29,7 +29,7 @@ namespace Parameters
       namespace AYM
       {
         //! @brief Chip type
-        //! @details Integer, every bit is type for specific chip
+        //! @details 0 is AY, else is YM
         const Char TYPE[] =
         {
           'z','x','t','u','n','e','.','c','o','r','e','.','a','y','m','.','t','y','p','e','\0'
@@ -39,6 +39,18 @@ namespace Parameters
         const Char TABLE[] =
         {
           'z','x','t','u','n','e','.','c','o','r','e','.','a','y','m','.','t','a','b','l','e','\0'
+        };
+        //! @brief Duty cycle in percents
+        //! @details Integer. Valid values are 1..99. Default is 50
+        const Char DUTY_CYCLE[] =
+        {
+          'z','x','t','u','n','e','.','c','o','r','e','.','a','y','m','.','d','u','t','y','_','c','y','c','l','e','\0'
+        };
+        //! @brief Duty cycle applied channels masks
+        //! @details @see core/devices/aym.h
+        const Char DUTY_CYCLE_MASK[] =
+        {
+          'z','x','t','u','n','e','.','c','o','r','e','.','a','y','m','.','d','u','t','y','_','c','y','c','l','e','_','m','a','s','k','\0'
         };
       }
       

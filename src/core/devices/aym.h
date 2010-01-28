@@ -16,6 +16,8 @@ Author:
 #include <core/module_types.h>
 #include <sound/receiver.h>
 
+#include <boost/static_assert.hpp>
+
 #include <memory>
 
 //supporting for AY/YM-based modules
@@ -51,31 +53,44 @@ namespace ZXTune
         REG_TONEE_H,
         REG_ENV,
 
-        //bits in REG_VOL*
-        MASK_VOL = 0x0f,
-        MASK_ENV = 0x10,
-        //bits in REG_MIXER
-        MASK_TONEA = 0x01,
-        MASK_NOISEA = 0x08,
-        MASK_TONEB = 0x02,
-        MASK_NOISEB = 0x10,
-        MASK_TONEC = 0x04,
-        MASK_NOISEC = 0x20,
+        //parameters offsets in data
+        PARAM_DUTY_CYCLE,
+        PARAM_DUTY_CYCLE_MASK,
 
         //to mark all registers actual
-        ALL_REGISTERS = 0x3fff,
-        
+        MASK_ALL_REGISTERS = (1 << (REG_ENV + 1)) - 1,
+
         //use YM chip
-        YM_CHIP = 0x4000
+        YM_CHIP = 1 << 20,//only bits, no data
+
+        //bits in REG_VOL*
+        REG_MASK_VOL = 0x0f,
+        REG_MASK_ENV = 0x10,
+        //bits in REG_MIXER
+        REG_MASK_TONEA = 0x01,
+        REG_MASK_NOISEA = 0x08,
+        REG_MASK_TONEB = 0x02,
+        REG_MASK_NOISEB = 0x10,
+        REG_MASK_TONEC = 0x04,
+        REG_MASK_NOISEC = 0x20,
+
+        //bits in PARAM_RATIO_MASK
+        DUTY_CYCLE_MASK_A = 1,
+        DUTY_CYCLE_MASK_B = 2,
+        DUTY_CYCLE_MASK_C = 4,
+        DUTY_CYCLE_MASK_N = 8,
+        DUTY_CYCLE_MASK_E = 16
       };
 
       DataChunk() : Tick(), Mask(), Data()
       {
       }
       uint64_t Tick;
-      uint16_t Mask;
-      uint8_t Data[14];
-    }; //24 bytes total
+      uint32_t Mask;
+      uint8_t Data[20];
+    }; //32 bytes total
+
+    BOOST_STATIC_ASSERT(sizeof(DataChunk) % 8 == 0);
 
     class Chip
     {

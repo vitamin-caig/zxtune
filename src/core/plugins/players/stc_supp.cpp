@@ -10,7 +10,6 @@ Author:
 */
 
 #include "convert_helpers.h"
-#include "freq_tables_internal.h"
 #include "tracking.h"
 #include "utils.h"
 #include "../detector.h"
@@ -28,6 +27,7 @@ Author:
 #include <io/container.h>
 #include <sound/render_params.h>
 #include <core/devices/aym.h>
+#include <core/devices/aym_parameters_helper.h>
 
 #include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
@@ -554,11 +554,10 @@ namespace
        : Module(holder)
        , Data(Module->Data)
        , Transpositions(Module->Transpositions)
-       , YMChip(false)
+       , AYMHelper(AYM::ParametersHelper::Create(TABLE_SOUNDTRACKER))
        , Device(device)
        , CurrentState(MODULE_STOPPED)
     {
-      ThrowIfError(GetFreqTable(TABLE_SOUNDTRACKER, FreqTable));
       Reset();
 #ifdef SELF_TEST
 //perform self-test
@@ -604,13 +603,11 @@ namespace
       }
 
       AYM::DataChunk chunk;
+      AYMHelper->GetDataChunk(chunk);
       ModState.Tick += params.ClocksPerFrame();
       chunk.Tick = ModState.Tick;
       RenderData(chunk);
-      if (YMChip)
-      {
-        chunk.Mask |= AYM::DataChunk::YM_CHIP;
-      }
+
       Device->RenderData(params, chunk, receiver);
       if (STCTrack::UpdateState(Data, ModState, params.Looping))
       {
@@ -663,26 +660,7 @@ namespace
     {
       try
       {
-        Parameters::IntType intParam = 0;
-        if (Parameters::FindByName(params, Parameters::ZXTune::Core::AYM::TYPE, intParam))
-        {
-          YMChip = 0 != (intParam & 1);//only one chip
-        }
-        if (const Parameters::StringType* const table = Parameters::FindByName<Parameters::StringType>(params,
-          Parameters::ZXTune::Core::AYM::TABLE))
-        {
-          ThrowIfError(GetFreqTable(*table, FreqTable));
-        }
-        else if (const Parameters::DataType* const table = Parameters::FindByName<Parameters::DataType>(params,
-          Parameters::ZXTune::Core::AYM::TABLE))
-        {
-          if (table->size() != FreqTable.size() * sizeof(FreqTable.front()))
-          {
-            throw MakeFormattedError(THIS_LINE, ERROR_INVALID_PARAMETERS,
-              TEXT_MODULE_ERROR_INVALID_FREQ_TABLE_SIZE, table->size());
-          }
-          std::memcpy(&FreqTable.front(), &table->front(), table->size());
-        }
+        AYMHelper->SetParameters(params);
         return Error();
       }
       catch (const Error& e)
@@ -761,9 +739,10 @@ namespace
       ChannelState& dst(ChanState[chan]);
       const unsigned toneReg(AYM::DataChunk::REG_TONEA_L + 2 * chan);
       const unsigned volReg = AYM::DataChunk::REG_VOLA + chan;
-      const unsigned toneMsk = AYM::DataChunk::MASK_TONEA << chan;
-      const unsigned noiseMsk = AYM::DataChunk::MASK_NOISEA << chan;
+      const unsigned toneMsk = AYM::DataChunk::REG_MASK_TONEA << chan;
+      const unsigned noiseMsk = AYM::DataChunk::REG_MASK_NOISEA << chan;
 
+      const FrequencyTable& freqTable(AYMHelper->GetFreqTable());
       if (dst.Enabled)
       {
         const STCTrack::Sample& curSample(Data.Samples[dst.SampleNum]);
@@ -773,14 +752,14 @@ namespace
         //calculate tone
         const unsigned halfTone = static_cast<unsigned>(clamp<int>(
           signed(dst.Note) + curOrnament.Data[dst.PosInSample] + Transpositions[ModState.Track.Position],
-          0, static_cast<int>(FreqTable.size() - 1)));
-        const uint16_t tone = static_cast<uint16_t>(clamp(FreqTable[halfTone] + curSampleLine.Effect, 0, 0xffff));
+          0, static_cast<int>(freqTable.size() - 1)));
+        const uint16_t tone = static_cast<uint16_t>(clamp(freqTable[halfTone] + curSampleLine.Effect, 0, 0xffff));
 
         chunk.Data[toneReg] = static_cast<uint8_t>(tone & 0xff);
         chunk.Data[toneReg + 1] = static_cast<uint8_t>(tone >> 8);
         chunk.Mask |= 3 << toneReg;
         //calculate level
-        chunk.Data[volReg] = curSampleLine.Level | static_cast<uint8_t>(dst.Envelope ? AYM::DataChunk::MASK_ENV : 0);
+        chunk.Data[volReg] = curSampleLine.Level | static_cast<uint8_t>(dst.Envelope ? AYM::DataChunk::REG_MASK_ENV : 0);
         //mixer
         if (curSampleLine.EnvelopeMask)
         {
@@ -821,9 +800,9 @@ namespace
     const STCTrack::ModuleData& Data;
     const std::vector<signed>& Transpositions;
 
-    FrequencyTable FreqTable;
-    bool YMChip;
+    AYM::ParametersHelper::Ptr AYMHelper;
     AYM::Chip::Ptr Device;
+
     PlaybackState CurrentState;
     STCTrack::ModuleState ModState;
     boost::array<ChannelState, AYM::CHANNELS> ChanState;

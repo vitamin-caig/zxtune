@@ -50,7 +50,7 @@ namespace
     ChipImpl()
       : Result(3)
       , State()
-      , BitA(), BitB(), BitC(), BitN()
+      , BitA(), BitB(), BitC(), BitN(), BitE()
       , TimerA(), TimerB(), TimerC(), TimerN(), TimerE()
       , Envelope(), Decay(), Noise()
       , LastData(), LastTicksPerSec(), LastStartTicks(), LastSamplesDone()
@@ -67,7 +67,7 @@ namespace
     virtual void Reset()
     {
       State.Tick = 0;
-      State.Mask = DataChunk::ALL_REGISTERS;
+      State.Mask = DataChunk::MASK_ALL_REGISTERS;
       std::memset(State.Data, 0, sizeof(State.Data));
       State.Data[DataChunk::REG_MIXER] = 0xff;
       BitA = BitB = BitC = BitN = 0;
@@ -80,50 +80,65 @@ namespace
     }
 
   private:
-    void ApplyLastData();
+    void ApplyRegistersData();
     void DoRender(const Sound::RenderParameters& params, Sound::MultichannelReceiver& dst);
   private:
-    inline uint16_t GetToneA() const
+    static inline unsigned GetDutedTone(unsigned duty, unsigned state, unsigned tone)
+    {
+      assert(duty > 0 && duty < 100);
+      return (state ? 100 - duty : duty) * tone * 2/ 100;
+    }
+    bool DoCycle(bool duted, unsigned tone, unsigned& timer, unsigned& bit)
+    {
+      if (++timer >= (duted ? GetDutedTone(LastData.Data[DataChunk::PARAM_DUTY_CYCLE], bit, tone) : tone))
+      {
+        timer = 0;
+        bit = ~bit;
+        return true;
+      }
+      return false;
+    }
+    unsigned GetToneA() const
     {
       return (State.Data[DataChunk::REG_TONEA_H] << 8) + State.Data[DataChunk::REG_TONEA_L];
     }
-    inline uint16_t GetToneB() const
+    unsigned GetToneB() const
     {
       return (State.Data[DataChunk::REG_TONEB_H] << 8) + State.Data[DataChunk::REG_TONEB_L];
     }
-    inline uint16_t GetToneC() const
+    unsigned GetToneC() const
     {
       return (State.Data[DataChunk::REG_TONEC_H] << 8) + State.Data[DataChunk::REG_TONEC_L];
     }
-    inline uint8_t GetToneN() const
+    unsigned GetToneN() const
     {
       return 2 * State.Data[DataChunk::REG_TONEN];//for optimization
     }
-    inline uint16_t GetToneE() const
+    unsigned GetToneE() const
     {
       return (State.Data[DataChunk::REG_TONEE_H] << 8) + State.Data[DataChunk::REG_TONEE_L];
     }
-    inline uint8_t GetVolA() const
+    unsigned GetVolA() const
     {
       return State.Data[DataChunk::REG_VOLA];
     }
-    inline uint8_t GetVolB() const
+    unsigned GetVolB() const
     {
       return State.Data[DataChunk::REG_VOLB];
     }
-    inline uint8_t GetVolC() const
+    unsigned GetVolC() const
     {
       return State.Data[DataChunk::REG_VOLC];
     }
-    inline uint8_t GetMixer() const
+    unsigned GetMixer() const
     {
       return State.Data[DataChunk::REG_MIXER];
     }
-    inline uint8_t GetEnv() const
+    unsigned GetEnv() const
     {
       return State.Data[DataChunk::REG_ENV];
     }
-    inline Sound::Sample GetVolume(unsigned regVol)
+    Sound::Sample GetVolume(unsigned regVol)
     {
       assert(regVol < 32);
       return ((LastData.Mask & DataChunk::YM_CHIP) ? YMVolumeTab : AYVolumeTab)[regVol] / 2;
@@ -134,8 +149,8 @@ namespace
     std::vector<Sound::Sample> Result;
     //state
     DataChunk State; //time and registers
-    unsigned BitA, BitB, BitC, BitN;
-    uint16_t TimerA, TimerB, TimerC, TimerN, TimerE;
+    unsigned BitA, BitB, BitC, BitN, BitE/*fake*/;
+    unsigned TimerA, TimerB, TimerC, TimerN, TimerE;
     unsigned Envelope;
     signed Decay;
     uint32_t Noise;
@@ -147,21 +162,22 @@ namespace
     unsigned LastSamplesDone;
   };
 
-  void ChipImpl::RenderData(const Sound::RenderParameters& params, const DataChunk& src, Sound::MultichannelReceiver& dst)
+  void ChipImpl::RenderData(const Sound::RenderParameters& params, const DataChunk& src, 
+    Sound::MultichannelReceiver& dst)
   {
     if (State.Tick >= LastData.Tick) //need to get data
     {
       LastData = src;
       //output dump
-      if (LastData.Mask & DataChunk::ALL_REGISTERS)
+      if (LastData.Mask & DataChunk::MASK_ALL_REGISTERS)
       {
-        ApplyLastData();
+        ApplyRegistersData();
       }
     }
     DoRender(params, dst);
   }
 
-  void ChipImpl::ApplyLastData()
+  void ChipImpl::ApplyRegistersData()
   {
     for (unsigned idx = 0, mask = 1; idx != ArraySize(LastData.Data); ++idx, mask <<= 1)
     {
@@ -210,18 +226,18 @@ namespace
 
     unsigned HighLevel = ~0u;
     //references to mixered bits. updated automatically
-    unsigned volA = (((GetVolA() & DataChunk::MASK_VOL) << 1) + 1);
-    unsigned volB = (((GetVolB() & DataChunk::MASK_VOL) << 1) + 1);
-    unsigned volC = (((GetVolC() & DataChunk::MASK_VOL) << 1) + 1);
-    unsigned& ToneBitA = (GetMixer() & DataChunk::MASK_TONEA) ? HighLevel : BitA;
-    unsigned& NoiseBitA = (GetMixer() & DataChunk::MASK_NOISEA) ? HighLevel : BitN;
-    unsigned& VolumeA = (GetVolA() & DataChunk::MASK_ENV) ? Envelope : volA;
-    unsigned& ToneBitB = (GetMixer() & DataChunk::MASK_TONEB) ? HighLevel : BitB;
-    unsigned& NoiseBitB = (GetMixer() & DataChunk::MASK_NOISEB) ? HighLevel : BitN;
-    unsigned& VolumeB = (GetVolB() & DataChunk::MASK_ENV) ? Envelope : volB;
-    unsigned& ToneBitC = (GetMixer() & DataChunk::MASK_TONEC) ? HighLevel : BitC;
-    unsigned& NoiseBitC = (GetMixer() & DataChunk::MASK_NOISEC) ? HighLevel : BitN;
-    unsigned& VolumeC = (GetVolC() & DataChunk::MASK_ENV) ? Envelope : volC;
+    unsigned volA = (((GetVolA() & DataChunk::REG_MASK_VOL) << 1) + 1);
+    unsigned volB = (((GetVolB() & DataChunk::REG_MASK_VOL) << 1) + 1);
+    unsigned volC = (((GetVolC() & DataChunk::REG_MASK_VOL) << 1) + 1);
+    unsigned& ToneBitA = (GetMixer() & DataChunk::REG_MASK_TONEA) ? HighLevel : BitA;
+    unsigned& NoiseBitA = (GetMixer() & DataChunk::REG_MASK_NOISEA) ? HighLevel : BitN;
+    unsigned& VolumeA = (GetVolA() & DataChunk::REG_MASK_ENV) ? Envelope : volA;
+    unsigned& ToneBitB = (GetMixer() & DataChunk::REG_MASK_TONEB) ? HighLevel : BitB;
+    unsigned& NoiseBitB = (GetMixer() & DataChunk::REG_MASK_NOISEB) ? HighLevel : BitN;
+    unsigned& VolumeB = (GetVolB() & DataChunk::REG_MASK_ENV) ? Envelope : volB;
+    unsigned& ToneBitC = (GetMixer() & DataChunk::REG_MASK_TONEC) ? HighLevel : BitC;
+    unsigned& NoiseBitC = (GetMixer() & DataChunk::REG_MASK_NOISEC) ? HighLevel : BitN;
+    unsigned& VolumeC = (GetVolC() & DataChunk::REG_MASK_ENV) ? Envelope : volC;
 
     while (curTick < LastData.Tick) //render cycle
     {
@@ -235,30 +251,22 @@ namespace
         nextSampleTick = LastStartTicks + LastTicksPerSec * ++LastSamplesDone / LastSoundFreq;
       }
       curTick += 8;//base freq divisor
-      if (++TimerA >= GetToneA())
-      {
-        TimerA = 0;
-        BitA = ~BitA;
-      }
-      if (++TimerB >= GetToneB())
-      {
-        TimerB = 0;
-        BitB = ~BitB;
-      }
-      if (++TimerC >= GetToneC())
-      {
-        TimerC = 0;
-        BitC = ~BitC;
-      }
-      if (++TimerN >= GetToneN())
+      const unsigned duty(LastData.Data[DataChunk::PARAM_DUTY_CYCLE]);
+      const unsigned dutyMask(duty > 0 && duty < 100 && duty != 50 ? 
+        LastData.Data[DataChunk::PARAM_DUTY_CYCLE_MASK] : 0);
+
+      DoCycle(0 != (dutyMask & DataChunk::DUTY_CYCLE_MASK_A), GetToneA(), TimerA, BitA);
+      DoCycle(0 != (dutyMask & DataChunk::DUTY_CYCLE_MASK_B), GetToneB(), TimerB, BitB);
+      DoCycle(0 != (dutyMask & DataChunk::DUTY_CYCLE_MASK_C), GetToneC(), TimerC, BitC);
+
+      if (DoCycle(0 != (dutyMask & DataChunk::DUTY_CYCLE_MASK_N), GetToneN(), TimerN, BitN))
       {
         TimerN = 0;
         Noise = (Noise * 2 + 1) ^ (((Noise >> 16) ^ (Noise >> 13)) & 1);
         BitN = (Noise & 0x10000) ? ~0 : 0;
       }
-      if (++TimerE >= GetToneE())
+      if (DoCycle(0 != (dutyMask & DataChunk::DUTY_CYCLE_MASK_E), GetToneE(), TimerE, BitE))
       {
-        TimerE = 0;
         Envelope += Decay;
         if (Envelope & ~31u)
         {
@@ -304,7 +312,7 @@ namespace
     const unsigned mixer(~GetMixer());
     for (unsigned chan = 0; chan != 3; ++chan)
     {
-      if (State.Data[DataChunk::REG_VOLA + chan] & DataChunk::MASK_ENV)
+      if (State.Data[DataChunk::REG_VOLA + chan] & DataChunk::REG_MASK_ENV)
       {
         envChan.Enabled = true;
         envChan.Level += std::numeric_limits<Module::Analyze::LevelType>::max() / 3;
@@ -312,12 +320,12 @@ namespace
 
       Module::Analyze::Channel& channel(state[chan]);
       channel.Enabled = false;
-      if (mixer & ((DataChunk::MASK_TONEA | DataChunk::MASK_NOISEA) << chan))
+      if (mixer & ((DataChunk::REG_MASK_TONEA | DataChunk::REG_MASK_NOISEA) << chan))
       {
         channel.Enabled = true;
         channel.Level = (State.Data[DataChunk::REG_VOLA + chan] & 0xf) *
           std::numeric_limits<Module::Analyze::LevelType>::max() / 15;
-        if (mixer & (DataChunk::MASK_TONEA << chan))//tone
+        if (mixer & (DataChunk::REG_MASK_TONEA << chan))//tone
         {
           channel.Band = GetBandByPeriod((uint16_t(State.Data[DataChunk::REG_TONEA_H + chan * 2]) << 8) |
             State.Data[DataChunk::REG_TONEA_L + chan * 2]);

@@ -56,13 +56,13 @@ namespace
                             const DataChunk& src,
                             Sound::MultichannelReceiver& /*dst*/)
     {
-      if (0 == (src.Mask & DataChunk::ALL_REGISTERS))
+      if (0 == (src.Mask & DataChunk::MASK_ALL_REGISTERS))
       {
         return;
       }
       //check for difference
       {
-        unsigned mask = src.Mask & DataChunk::ALL_REGISTERS;
+        unsigned mask = src.Mask & DataChunk::MASK_ALL_REGISTERS;
         for (unsigned reg = 0; mask; ++reg, mask >>= 1)
         {
           if ((mask & 1) && (reg == DataChunk::REG_ENV || src.Data[reg] != CurChunk.Data[reg]))
@@ -79,7 +79,7 @@ namespace
       {
         Dump frame;
         std::back_insert_iterator<Dump> inserter(frame);
-        frame.reserve(intsPassed / 4 + (intsPassed % 4) + 2 * CountBits(src.Mask & DataChunk::ALL_REGISTERS) + 1);
+        frame.reserve(intsPassed / 4 + (intsPassed % 4) + 2 * CountBits(src.Mask & DataChunk::MASK_ALL_REGISTERS) + 1);
         if (const unsigned fourSkips = intsPassed / 4)
         {
           *inserter = SKIP_INTS;

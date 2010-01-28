@@ -10,7 +10,6 @@ Author:
 */
 
 #include "convert_helpers.h"
-#include "freq_tables_internal.h"
 #include "tracking.h"
 #include "utils.h"
 #include "../detector.h"
@@ -28,6 +27,7 @@ Author:
 #include <io/container.h>
 #include <sound/render_params.h>
 #include <core/devices/aym.h>
+#include <core/devices/aym_parameters_helper.h>
 
 #include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
@@ -599,11 +599,10 @@ namespace
     PT2Player(boost::shared_ptr<const PT2Holder> holder, AYM::Chip::Ptr device)
        : Module(holder)
        , Data(Module->Data)
-       , YMChip(false)
+       , AYMHelper(AYM::ParametersHelper::Create(TABLE_PROTRACKER2))
        , Device(device)
        , CurrentState(MODULE_STOPPED)
     {
-      ThrowIfError(GetFreqTable(TABLE_PROTRACKER2, FreqTable));
       Reset();
 #ifdef SELF_TEST
 //perform self-test
@@ -649,13 +648,11 @@ namespace
       }
 
       AYM::DataChunk chunk;
+      AYMHelper->GetDataChunk(chunk);
       ModState.Tick += params.ClocksPerFrame();
       chunk.Tick = ModState.Tick;
       RenderData(chunk);
-      if (YMChip)
-      {
-        chunk.Mask |= AYM::DataChunk::YM_CHIP;
-      }
+
       Device->RenderData(params, chunk, receiver);
       if (PT2Track::UpdateState(Data, ModState, params.Looping))
       {
@@ -708,26 +705,7 @@ namespace
     {
       try
       {
-        Parameters::IntType intParam = 0;
-        if (Parameters::FindByName(params, Parameters::ZXTune::Core::AYM::TYPE, intParam))
-        {
-          YMChip = 0 != (intParam & 1);//only one chip
-        }
-        if (const Parameters::StringType* const table = Parameters::FindByName<Parameters::StringType>(params,
-          Parameters::ZXTune::Core::AYM::TABLE))
-        {
-          ThrowIfError(GetFreqTable(*table, FreqTable));
-        }
-        else if (const Parameters::DataType* const table = Parameters::FindByName<Parameters::DataType>(params,
-          Parameters::ZXTune::Core::AYM::TABLE))
-        {
-          if (table->size() != FreqTable.size() * sizeof(FreqTable.front()))
-          {
-            throw MakeFormattedError(THIS_LINE, ERROR_INVALID_PARAMETERS,
-              TEXT_MODULE_ERROR_INVALID_FREQ_TABLE_SIZE, table->size());
-          }
-          std::memcpy(&FreqTable.front(), &table->front(), table->size());
-        }
+        AYMHelper->SetParameters(params);
         return Error();
       }
       catch (const Error& e)
@@ -827,9 +805,10 @@ namespace
       ChannelState& dst(ChanState[chan]);
       const unsigned toneReg(AYM::DataChunk::REG_TONEA_L + 2 * chan);
       const unsigned volReg = AYM::DataChunk::REG_VOLA + chan;
-      const unsigned toneMsk = AYM::DataChunk::MASK_TONEA << chan;
-      const unsigned noiseMsk = AYM::DataChunk::MASK_NOISEA << chan;
+      const unsigned toneMsk = AYM::DataChunk::REG_MASK_TONEA << chan;
+      const unsigned noiseMsk = AYM::DataChunk::REG_MASK_NOISEA << chan;
 
+      const FrequencyTable& freqTable(AYMHelper->GetFreqTable());
       if (dst.Enabled && dst.SampleNum)
       {
         const Sample& curSample(Data.Samples[dst.SampleNum]);
@@ -837,12 +816,12 @@ namespace
         const SimpleOrnament& curOrnament(Data.Ornaments[dst.OrnamentNum]);
 
         //calculate tone
-        const unsigned halfTone(clamp(dst.Note + curOrnament.Data[dst.PosInOrnament], 0u, static_cast<unsigned>(FreqTable.size()) - 1));
-        const uint16_t tone = static_cast<uint16_t>(clamp(FreqTable[halfTone] + dst.Sliding + curSampleLine.Vibrato, 0, 0xffff));
+        const unsigned halfTone(clamp(dst.Note + curOrnament.Data[dst.PosInOrnament], 0u, static_cast<unsigned>(freqTable.size()) - 1));
+        const uint16_t tone = static_cast<uint16_t>(clamp(freqTable[halfTone] + dst.Sliding + curSampleLine.Vibrato, 0, 0xffff));
         if (dst.SlidingTargetNote != LIMITER)
         {
-          const unsigned nextTone(FreqTable[dst.Note] + dst.Sliding + dst.Glissade);
-          const unsigned slidingTarget(FreqTable[dst.SlidingTargetNote]);
+          const unsigned nextTone(freqTable[dst.Note] + dst.Sliding + dst.Glissade);
+          const unsigned slidingTarget(freqTable[dst.SlidingTargetNote]);
           if ((dst.Glissade > 0 && nextTone >= slidingTarget) ||
               (dst.Glissade < 0 && nextTone <= slidingTarget))
           {
@@ -857,7 +836,7 @@ namespace
         chunk.Mask |= 3 << toneReg;
         //calculate level
         chunk.Data[volReg] = GetVolume(dst.Volume, curSampleLine.Level)
-          | uint8_t(dst.Envelope ? AYM::DataChunk::MASK_ENV : 0);
+          | uint8_t(dst.Envelope ? AYM::DataChunk::REG_MASK_ENV : 0);
         //mixer
         if (curSampleLine.ToneOff)
         {
@@ -893,9 +872,9 @@ namespace
     const boost::shared_ptr<const PT2Holder> Module;
     const PT2Track::ModuleData& Data;
 
-    FrequencyTable FreqTable;
-    bool YMChip;
+    AYM::ParametersHelper::Ptr AYMHelper;
     AYM::Chip::Ptr Device;
+
     PlaybackState CurrentState;
     PT2Track::ModuleState ModState;
     boost::array<ChannelState, AYM::CHANNELS> ChanState;
