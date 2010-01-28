@@ -15,16 +15,13 @@ Author:
 
 #include <error_tools.h>
 
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
-
 #include "text.h"
 
 #define FILE_TAG 0DBA1FA8
 
 namespace
 {
-  static const Char PARAMETERS_DELIMITERS[] = {';', '|', '\0'};
+  static const Char PARAMETERS_DELIMITER = ',';
 }
 
 Error ParseParametersString(const String& pfx, const String& str, Parameters::Map& result)
@@ -35,17 +32,86 @@ Error ParseParametersString(const String& pfx, const String& str, Parameters::Ma
     prefix += Parameters::NAMESPACE_DELIMITER;
   }
   Parameters::Map res;
-  StringArray splitted;
-  boost::algorithm::split(splitted, str, boost::algorithm::is_any_of(PARAMETERS_DELIMITERS));
-  for (StringArray::const_iterator pit = splitted.begin(), plim = splitted.end(); pit != plim; ++pit)
+  
+  enum
   {
-    const String::size_type eqpos = pit->find_first_of('=');
-    if (String::npos == eqpos)
+    IN_NAME,
+    IN_VALUE,
+    IN_VALSTR,
+    IN_NOWHERE
+  } mode = IN_NAME;
+  
+  String paramName, paramValue;
+  for (String::const_iterator it = str.begin(), lim = str.end(); it != lim; ++it)
+  {
+    bool doApply = false;
+    const Char sym(*it);
+    switch (mode)
     {
-      return MakeFormattedError(THIS_LINE, INVALID_PARAMETER,
-        TEXT_ERROR_INVALID_PARAMETER, *pit, str);
+    case IN_NOWHERE:
+      if (sym == PARAMETERS_DELIMITER)
+      {
+        break;
+      }
+    case IN_NAME:
+      if (sym == '=')
+      {
+        mode = IN_VALUE;
+      }
+      else if (std::isalnum(sym) || Parameters::NAMESPACE_DELIMITER == sym || sym == '_')
+      {
+        paramName += sym;
+      }
+      else
+      {
+        return MakeFormattedError(THIS_LINE, INVALID_PARAMETER,
+          TEXT_ERROR_INVALID_FORMAT, str);
+      }
+      break;
+    case IN_VALUE:
+      if (Parameters::STRING_QUOTE == sym)
+      {
+        paramValue += sym;
+        mode = IN_VALSTR;
+      }
+      else if (sym == PARAMETERS_DELIMITER)
+      {
+        doApply = true;
+        mode = IN_NOWHERE;
+        --it;
+      }
+      else
+      {
+        paramValue += sym;
+      }
+      break;
+    case IN_VALSTR:
+      paramValue += sym;
+      if (Parameters::STRING_QUOTE == sym)
+      {
+        doApply = true;
+        mode = IN_NOWHERE;
+      }
+      break;
+    default:
+      assert(!"Invalid state");
+    };
+
+    if (doApply)
+    {
+      res.insert(Parameters::Map::value_type(prefix + paramName, Parameters::ConvertFromString(paramValue)));
+      paramName.clear();
+      paramValue.clear();
     }
-    res.insert(Parameters::Map::value_type(prefix + pit->substr(0, eqpos), Parameters::ConvertFromString(pit->substr(eqpos + 1))));
+  }
+  if (IN_VALUE == mode)
+  {
+    res.insert(Parameters::Map::value_type(prefix + paramName, Parameters::ConvertFromString(paramValue)));
+  }
+  else if (IN_NOWHERE != mode)
+  {
+    return MakeFormattedError(THIS_LINE, INVALID_PARAMETER,
+      TEXT_ERROR_INVALID_FORMAT, str);
   }
   result.swap(res);
   return Error();

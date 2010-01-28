@@ -20,8 +20,6 @@ Author:
 
 namespace
 {
-  const Char DUMP_MARKER = '#';
-  const Char STRING_MARKER = '\'';
   const Parameters::IntType RADIX(10);
 
   BOOST_STATIC_ASSERT(1 == sizeof(Parameters::DataType::value_type));
@@ -33,7 +31,7 @@ namespace
 
   inline bool IsDump(const String& str)
   {
-    return str.size() >= 3 && DUMP_MARKER == *str.begin() && 0 == (str.size() - 1) % 2 &&
+    return str.size() >= 3 && Parameters::DATA_PREFIX == *str.begin() && 0 == (str.size() - 1) % 2 &&
       DoTest(str.begin() + 1, str.end(), &std::isxdigit);
   }
   
@@ -45,7 +43,7 @@ namespace
   
   inline bool IsQuoted(const String& str)
   {
-    return !str.empty() && STRING_MARKER == *str.begin()  && STRING_MARKER == *str.rbegin();
+    return !str.empty() && Parameters::STRING_QUOTE == *str.begin()  && Parameters::STRING_QUOTE == *str.rbegin();
   }
 
   inline Char ToHex(unsigned val)
@@ -65,7 +63,7 @@ namespace
   public:
     String operator()(const Parameters::DataType& dmp) const
     {
-      String res(dmp.size() * 2 + 1, DUMP_MARKER);
+      String res(dmp.size() * 2 + 1, Parameters::DATA_PREFIX);
       String::iterator dstit(res.begin());
       for (Parameters::DataType::const_iterator srcit = dmp.begin(), srclim = dmp.end(); srcit != srclim; ++srcit)
       {
@@ -80,7 +78,7 @@ namespace
     {
       if (IsDump(str) || IsInteger(str) || IsQuoted(str))
       {
-        return String(1, STRING_MARKER) + str + STRING_MARKER;
+        return String(1, Parameters::STRING_QUOTE) + str + Parameters::STRING_QUOTE;
       }
       return str;
     }

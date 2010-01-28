@@ -45,6 +45,10 @@ namespace Parameters
   
   //! @brief Delimiter between namespaces in parameters' names
   const NameType::value_type NAMESPACE_DELIMITER = '.';
+  //! @brief Optional string quiotes
+  const String::value_type STRING_QUOTE = '\'';
+  //! @brief Mandatory data prefix
+  const String::value_type DATA_PREFIX = '#';
   
   //@{
   //! @name Working with map
