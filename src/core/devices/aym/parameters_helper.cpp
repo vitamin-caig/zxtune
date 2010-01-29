@@ -12,11 +12,14 @@ Author:
 #include "freq_tables_internal.h"
 
 #include <error_tools.h>
+#include <tools.h>
 #include <core/error_codes.h>
 #include <core/core_parameters.h>
 #include <core/freq_tables.h>
 #include <core/devices/aym.h>
 #include <core/devices/aym_parameters_helper.h>
+
+#include <numeric>
 
 #include <text/core.h>
 
@@ -26,6 +29,26 @@ namespace
 {
   using namespace ZXTune;
   using namespace ZXTune::AYM;
+
+  inline uint8_t LetterToMask(uint8_t val, const Char letter)
+  {
+    static const Char LETTERS[] = {'A', 'B', 'C', 'N', 'E'};
+    static const uint8_t MASKS[] = {
+      DataChunk::DUTY_CYCLE_MASK_A,
+      DataChunk::DUTY_CYCLE_MASK_B,
+      DataChunk::DUTY_CYCLE_MASK_C,
+      DataChunk::DUTY_CYCLE_MASK_N,
+      DataChunk::DUTY_CYCLE_MASK_E
+    };
+    BOOST_STATIC_ASSERT(sizeof(LETTERS) == sizeof(MASKS));
+    const unsigned pos = std::find(LETTERS, ArrayEnd(LETTERS), letter) - LETTERS;
+    if (pos == ArraySize(LETTERS))
+    {
+      throw MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,
+        TEXT_MODULE_ERROR_INVALID_DUTY_CYCLE_MASK_ITEM, String(1, letter));
+    }
+    return val | MASKS[pos];
+  }
 
   class ParametersHelperImpl : public ParametersHelper
   {
@@ -39,6 +62,7 @@ namespace
     virtual void SetParameters(const Parameters::Map& params)
     {
       Parameters::IntType intParam = 0;
+      Parameters::StringType strParam;
       if (Parameters::FindByName(params, Parameters::ZXTune::Core::AYM::TYPE, intParam))
       {
         if (intParam)
@@ -50,10 +74,9 @@ namespace
           Chunk.Mask &= ~AYM::DataChunk::YM_CHIP;
         }
       } 
-      if (const Parameters::StringType* const table = 
-        Parameters::FindByName<Parameters::StringType>(params, Parameters::ZXTune::Core::AYM::TABLE))
+      if (Parameters::FindByName(params, Parameters::ZXTune::Core::AYM::TABLE, strParam))
       {
-        ThrowIfError(Module::GetFreqTable(*table, FreqTable));
+        ThrowIfError(Module::GetFreqTable(strParam, FreqTable));
       }
       else if (const Parameters::DataType* const table = Parameters::FindByName<Parameters::DataType>(params,
         Parameters::ZXTune::Core::AYM::TABLE))
@@ -67,10 +90,18 @@ namespace
       }
       if (Parameters::FindByName(params, Parameters::ZXTune::Core::AYM::DUTY_CYCLE, intParam))
       {
-        //TODO: check range
+        if (intParam < 1 || intParam > 99)
+        {
+          throw MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,
+            TEXT_MODULE_ERROR_INVALID_DUTY_CYCLE, intParam);
+        }
         Chunk.Data[DataChunk::PARAM_DUTY_CYCLE] = static_cast<uint8_t>(intParam);
       }
-      if (Parameters::FindByName(params, Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MASK, intParam))
+      if (Parameters::FindByName(params, Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MASK, strParam))
+      {
+        Chunk.Data[DataChunk::PARAM_DUTY_CYCLE_MASK] = std::accumulate(strParam.begin(), strParam.end(), 0, LetterToMask);
+      }
+      else if (Parameters::FindByName(params, Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MASK, intParam))
       {
         Chunk.Data[DataChunk::PARAM_DUTY_CYCLE_MASK] = static_cast<uint8_t>(intParam);
       }

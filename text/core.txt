@@ -39,6 +39,12 @@ __cpp> "#endif //__TEXT_CORE_H_DEFINED__\n"
 < TEXT_MODULE_ERROR_INVALID_FREQ_TABLE_SIZE
 > "Invalid frequency table size (%1%)."
 
+< TEXT_MODULE_ERROR_INVALID_DUTY_CYCLE
+> "Invalid duty cycle value (%1%)."
+
+< TEXT_MODULE_ERROR_INVALID_DUTY_CYCLE_MASK_ITEM
+> "Invalid duty cycle mask item: '%1%'."
+
 < TEXT_MODULE_ERROR_SET_PLAYER_PARAMETERS
 > "Failed to set player parameters."
 

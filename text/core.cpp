@@ -22,6 +22,14 @@ extern const Char TEXT_MODULE_ERROR_FIND_SUBMODULE[] = {
   'b','m','o','d','u','l','e',' ','s','t','a','r','t','i','n','g',' ','f','r','o','m',' ','p','a','t','h',' ',
   '\'','%','1','%','\'','.',0
 };
+extern const Char TEXT_MODULE_ERROR_INVALID_DUTY_CYCLE[] = {
+  'I','n','v','a','l','i','d',' ','d','u','t','y',' ','c','y','c','l','e',' ','v','a','l','u','e',' ','(','%',
+  '1','%',')','.',0
+};
+extern const Char TEXT_MODULE_ERROR_INVALID_DUTY_CYCLE_MASK_ITEM[] = {
+  'I','n','v','a','l','i','d',' ','d','u','t','y',' ','c','y','c','l','e',' ','m','a','s','k',' ','i','t','e',
+  'm',':',' ','\'','%','1','%','\'','.',0
+};
 extern const Char TEXT_MODULE_ERROR_INVALID_FORMAT[] = {
   'I','n','v','a','l','i','d',' ','m','o','d','u','l','e',' ','f','o','r','m','a','t','.',0
 };
