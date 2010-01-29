@@ -26,6 +26,8 @@ Author:
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/value_semantic.hpp>
 
+#include <iostream>
+
 #include "text.h"
 
 #define FILE_TAG 9EDFE3AF
@@ -33,6 +35,11 @@ Author:
 namespace
 {
   const Char DELIMITERS[] = {',', ';', ':', '\0'};
+ 
+  void DoLog(const String& str)
+  {
+    std::cout << str << std::endl;
+  }
   
   void Parse(const StringSet& allplugs, const String& str, StringSet& plugs, uint32_t& caps)
   {
@@ -106,12 +113,13 @@ namespace
     explicit Source(Parameters::Map& globalParams)
       : GlobalParams(globalParams)
       , OptionsDescription(TEXT_INPUT_SECTION)
-      , EnabledCaps(0), DisabledCaps(0)
+      , EnabledCaps(0), DisabledCaps(0), ShowProgress(false)
     {
       OptionsDescription.add_options()
         (TEXT_INPUT_FILE_KEY, boost::program_options::value<StringArray>(&Files), TEXT_INPUT_FILE_DESC)
         (TEXT_INPUT_ALLOW_PLUGIN_KEY, boost::program_options::value<String>(&Allowed), TEXT_INPUT_ALLOW_PLUGIN_DESC)
         (TEXT_INPUT_DENY_PLUGIN_KEY, boost::program_options::value<String>(&Denied), TEXT_INPUT_DENY_PLUGIN_DESC)
+        (TEXT_INPUT_PROGRESS_KEY, boost::program_options::bool_switch(&ShowProgress), TEXT_INPUT_PROGRESS_DESC)
       ;
     }
 
@@ -143,7 +151,9 @@ namespace
       assert(callback);
       const bool hasFilter(!EnabledPlugins.empty() || !DisabledPlugins.empty() || 0 != EnabledCaps || 0 != DisabledCaps);
       ThrowIfError(ProcessModuleItems(Files, GlobalParams, 
-        hasFilter ? boost::bind(&Source::DoFilter, this, _1) : ZXTune::DetectParameters::FilterFunc(), callback));
+        hasFilter ? boost::bind(&Source::DoFilter, this, _1) : ZXTune::DetectParameters::FilterFunc(), 
+        ShowProgress ? DoLog : 0,
+        callback));
     }
 
     bool DoFilter(const ZXTune::PluginInformation& info)
@@ -171,11 +181,12 @@ namespace
     StringSet DisabledPlugins;
     uint32_t EnabledCaps;
     uint32_t DisabledCaps;
+    bool ShowProgress;
   };
 }
 
 Error ProcessModuleItems(const StringArray& files, const Parameters::Map& params, const ZXTune::DetectParameters::FilterFunc& filter,
-                    const boost::function<void(const ModuleItem&)>& callback)
+  const ZXTune::DetectParameters::LogFunc& logger, const boost::function<void(const ModuleItem&)>& callback)
 {
   //TODO: optimize
   for (StringArray::const_iterator it = files.begin(), lim = files.end(); it != lim; ++it)
@@ -188,6 +199,7 @@ Error ProcessModuleItems(const StringArray& files, const Parameters::Map& params
     }
     ZXTune::DetectParameters detectParams;
     detectParams.Filter = filter;
+    detectParams.Logger = logger;
     detectParams.Callback = boost::bind(&FormModule, *it, _1, _2, callback);
     if (const Error& e = ZXTune::DetectModules(params, detectParams, data, subpath))
     {

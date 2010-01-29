@@ -121,6 +121,8 @@ extern const Char TEXT_INPUT_DENY_PLUGIN_KEY[];
 extern const Char TEXT_INPUT_ERROR_NO_FILES[];
 extern const Char TEXT_INPUT_FILE_DESC[];
 extern const Char TEXT_INPUT_FILE_KEY[];
+extern const Char TEXT_INPUT_PROGRESS_DESC[];
+extern const Char TEXT_INPUT_PROGRESS_KEY[];
 extern const Char TEXT_INPUT_SECTION[];
 extern const Char TEXT_IO_PROVIDERS_OPTS_DESC[];
 extern const Char TEXT_IO_PROVIDERS_OPTS_KEY[];

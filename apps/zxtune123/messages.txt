@@ -69,10 +69,10 @@
 > "Version:     %3%\n"
 
 < TEXT_INFO_OPTION_INFO
-> "  %|1$-40|- %2%.\n"
+> "  %|1$-36|- %2%.\n"
 
 < TEXT_INFO_OPTION_INFO_DEFAULTS
-> "  %|1$-40|- %2% (default value is %3%).\n"
+> "  %|1$-36|- %2% (default value is %3%).\n"
 
 < TEXT_INFO_ATTRIBUTE_INFO
 > " %|1$-20|- %2%\n"
@@ -120,16 +120,16 @@
 > " Core options:"
 
 < TEXT_INFO_OPTIONS_CORE_AYM_TYPE
-> "chip type for playback. All != 0 is treated as YM mode."
+> "chip type for playback. All != 0 is treated as YM mode"
 
 < TEXT_INFO_OPTIONS_CORE_AYM_TABLE
-> "frequency table name to use in AY-based players. Can be name (--" TEXT_INFO_LIST_FREQTABLES_KEY ") or dump (#xxxx...). Use '~' to revert"
+> "frequency table name to use in AY-based players. Can be name (--" TEXT_INFO_LIST_FREQTABLES_KEY ") or dump (#..). Use '~' to revert"
 
 < TEXT_INFO_OPTIONS_CORE_AYM_DUTY_CYCLE
-> "chip duty cycle value in percent. Should be in range 1..99."
+> "chip duty cycle value in percent. Should be in range 1..99"
 
 < TEXT_INFO_OPTIONS_CORE_AYM_DUTY_CYCLE_MASK
-> "chip channels mask where duty cycle will be applied. Can be set of letters (A,B,C,N,E) or numeric mask."
+> "chip channels mask where duty cycle will be applied. Can be set of letters (A,B,C,N,E) or numeric mask"
 
 < TEXT_INFO_OPTIONS_CORE_DAC_INTERPOLATION
 > "use interpolation for DAC rendering"

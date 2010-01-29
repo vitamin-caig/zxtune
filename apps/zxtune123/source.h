@@ -27,8 +27,9 @@ typedef std::vector<ModuleItem> ModuleItemsArray;
 
 typedef boost::function<void(const ModuleItem&)> OnItemCallback;
 
-Error ProcessModuleItems(const StringArray& files, const Parameters::Map& params, const ZXTune::DetectParameters::FilterFunc& filter,
-                    const OnItemCallback& callback);
+Error ProcessModuleItems(const StringArray& files, const Parameters::Map& params, 
+  const ZXTune::DetectParameters::FilterFunc& filter, const ZXTune::DetectParameters::LogFunc& logger,
+  const OnItemCallback& callback);
                     
                     
 namespace boost

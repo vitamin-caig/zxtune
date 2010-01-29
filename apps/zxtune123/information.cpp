@@ -237,6 +237,7 @@ namespace
     static const String FREQTABLES[] =
     {
       ZXTune::Module::TABLE_SOUNDTRACKER,
+      ZXTune::Module::TABLE_PROTRACKER2,
       ZXTune::Module::TABLE_ASM
     };
     std::cout << TEXT_INFO_LIST_FREQTABLES_TITLE;

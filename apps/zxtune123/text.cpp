@@ -307,25 +307,24 @@ extern const Char TEXT_INFO_LIST_PROVIDERS_TITLE[] = {
 extern const Char TEXT_INFO_OPTIONS_CORE_AYM_DUTY_CYCLE[] = {
   'c','h','i','p',' ','d','u','t','y',' ','c','y','c','l','e',' ','v','a','l','u','e',' ','i','n',' ','p','e',
   'r','c','e','n','t','.',' ','S','h','o','u','l','d',' ','b','e',' ','i','n',' ','r','a','n','g','e',' ','1',
-  '.','.','9','9','.',0
+  '.','.','9','9',0
 };
 extern const Char TEXT_INFO_OPTIONS_CORE_AYM_DUTY_CYCLE_MASK[] = {
   'c','h','i','p',' ','c','h','a','n','n','e','l','s',' ','m','a','s','k',' ','w','h','e','r','e',' ','d','u',
   't','y',' ','c','y','c','l','e',' ','w','i','l','l',' ','b','e',' ','a','p','p','l','i','e','d','.',' ','C',
   'a','n',' ','b','e',' ','s','e','t',' ','o','f',' ','l','e','t','t','e','r','s',' ','(','A',',','B',',','C',
-  ',','N',',','E',')',' ','o','r',' ','n','u','m','e','r','i','c',' ','m','a','s','k','.',0
+  ',','N',',','E',')',' ','o','r',' ','n','u','m','e','r','i','c',' ','m','a','s','k',0
 };
 extern const Char TEXT_INFO_OPTIONS_CORE_AYM_TABLE[] = {
   'f','r','e','q','u','e','n','c','y',' ','t','a','b','l','e',' ','n','a','m','e',' ','t','o',' ','u','s','e',
   ' ','i','n',' ','A','Y','-','b','a','s','e','d',' ','p','l','a','y','e','r','s','.',' ','C','a','n',' ','b',
   'e',' ','n','a','m','e',' ','(','-','-','l','i','s','t','-','f','r','e','q','t','a','b','l','e','s',')',' ',
-  'o','r',' ','d','u','m','p',' ','(','#','x','x','x','x','.','.','.',')','.',' ','U','s','e',' ','\'','~','\'',
-  ' ','t','o',' ','r','e','v','e','r','t',0
+  'o','r',' ','d','u','m','p',' ','(','#','.','.',')','.',' ','U','s','e',' ','\'','~','\'',' ','t','o',' ','r',
+  'e','v','e','r','t',0
 };
 extern const Char TEXT_INFO_OPTIONS_CORE_AYM_TYPE[] = {
   'c','h','i','p',' ','t','y','p','e',' ','f','o','r',' ','p','l','a','y','b','a','c','k','.',' ','A','l','l',
-  ' ','!','=',' ','0',' ','i','s',' ','t','r','e','a','t','e','d',' ','a','s',' ','Y','M',' ','m','o','d','e',
-  '.',0
+  ' ','!','=',' ','0',' ','i','s',' ','t','r','e','a','t','e','d',' ','a','s',' ','Y','M',' ','m','o','d','e',0
 };
 extern const Char TEXT_INFO_OPTIONS_CORE_DAC_INTERPOLATION[] = {
   'u','s','e',' ','i','n','t','e','r','p','o','l','a','t','i','o','n',' ','f','o','r',' ','D','A','C',' ','r',
@@ -389,11 +388,11 @@ extern const Char TEXT_INFO_OPTIONS_SOUND_TITLE[] = {
   ' ','S','o','u','n','d',' ','o','p','t','i','o','n','s',':',0
 };
 extern const Char TEXT_INFO_OPTION_INFO[] = {
-  ' ',' ','%','|','1','$','-','4','0','|','-',' ','%','2','%','.','\n',
+  ' ',' ','%','|','1','$','-','3','6','|','-',' ','%','2','%','.','\n',
   0
 };
 extern const Char TEXT_INFO_OPTION_INFO_DEFAULTS[] = {
-  ' ',' ','%','|','1','$','-','4','0','|','-',' ','%','2','%',' ','(','d','e','f','a','u','l','t',' ','v','a',
+  ' ',' ','%','|','1','$','-','3','6','|','-',' ','%','2','%',' ','(','d','e','f','a','u','l','t',' ','v','a',
   'l','u','e',' ','i','s',' ','%','3','%',')','.','\n',
   0
 };
@@ -434,6 +433,13 @@ extern const Char TEXT_INPUT_FILE_DESC[] = {
 };
 extern const Char TEXT_INPUT_FILE_KEY[] = {
   'f','i','l','e',0
+};
+extern const Char TEXT_INPUT_PROGRESS_DESC[] = {
+  'S','h','o','w',' ','p','r','o','g','r','e','s','s',' ','w','h','i','l','e',' ','p','r','o','c','e','s','s',
+  'i','n','g',' ','i','n','p','u','t',' ','f','i','l','e','s','.',0
+};
+extern const Char TEXT_INPUT_PROGRESS_KEY[] = {
+  'p','r','o','g','r','e','s','s',0
 };
 extern const Char TEXT_INPUT_SECTION[] = {
   'I','n','p','u','t',' ','o','p','t','i','o','n','s',0

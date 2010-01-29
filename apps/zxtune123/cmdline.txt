@@ -166,6 +166,12 @@
 < TEXT_INPUT_DENY_PLUGIN_DESC
 > "plugins and/or attributes to deny"
 
+< TEXT_INPUT_PROGRESS_KEY
+> "progress"
+
+< TEXT_INPUT_PROGRESS_DESC
+> "Show progress while processing input files."
+
 < TEXT_CLI_SECTION
 > "Other options"
 
