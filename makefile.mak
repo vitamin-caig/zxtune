@@ -11,6 +11,9 @@ libs_dir := $(path_step)/lib/$(platform)/$(mode)$(suffix)
 objs_dir := $(path_step)/obj/$(platform)/$(mode)$(suffix)
 bins_dir := $(path_step)/bin/$(platform)/$(mode)
 
+#setup environment
+definitions = $(defines) __STDC_CONSTANT_MACROS
+
 #set platform-specific parameters
 include $(path_step)/make/platforms/$(platform).mak
 
@@ -38,9 +41,6 @@ endif
 h_texts := $(text_files:=.h)
 cpp_texts := $(text_files:=.cpp)
 dep_texts := $(other_text_files:=.txt)
-
-#setup environment
-definitions = $(defines) __STDC_CONSTANT_MACROS
 
 #main target
 all: dirs $(h_texts) $(cpp_texts) $(target)

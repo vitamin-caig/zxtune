@@ -44,7 +44,7 @@ namespace
   using namespace ZXTune::Module;
 
   const Char PT2_PLUGIN_ID[] = {'P', 'T', '2', 0};
-  const String TEXT_PT2_VERSION(FromChar("Revision: $Rev$"));
+  const String TEXT_PT2_VERSION(FromChar("$Rev$"));
 
   const std::size_t LIMITER(~0u);
 

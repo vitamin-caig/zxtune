@@ -39,7 +39,7 @@ namespace
 
   //plugin attributes
   const Char PDT_PLUGIN_ID[] = {'P', 'D', 'T', 0};
-  const String TEXT_PDT_VERSION(FromChar("Revision: $Rev$"));
+  const String TEXT_PDT_VERSION(FromChar("$Rev$"));
 
   //////////////////////////////////////////////////////////////////////////
   const unsigned ORNAMENTS_COUNT = 11;
@@ -315,7 +315,7 @@ namespace
         Log::ParamPrefixedCollector patternWarner(*warner, TEXT_PATTERN_WARN_PREFIX, patIdx);
         ParsePattern(header->Patterns[patIdx], patternWarner, Data.Patterns[patIdx]);
       }
-            
+       
       //fill samples
       const uint8_t* samplesData(safe_ptr_cast<const uint8_t*>(header) + sizeof(*header));
       Data.Samples.resize(header->Samples.size());
@@ -326,7 +326,7 @@ namespace
         const unsigned start(fromLE(srcSample.Start));
         if (srcSample.Page < PAGES_COUNT && start >= 0xc000 && srcSample.Size)
         {
-          const uint8_t* const sampleData(samplesData + PAGE_SIZE * GetPageOrder(srcSample.Page) + 
+          const uint8_t* const sampleData(samplesData + PAGE_SIZE * GetPageOrder(srcSample.Page) +
             (start - 0xc000));
           unsigned size = fromLE(srcSample.Size) - 1;
           while (size && sampleData[size] == 0)
@@ -343,7 +343,7 @@ namespace
       //fill ornaments
       Data.Ornaments.reserve(ORNAMENTS_COUNT + 1);
       Data.Ornaments.push_back(Ornament());//first empty ornament
-      std::transform(header->Ornaments.begin(), header->Ornaments.end(), header->OrnLoops.begin(), 
+      std::transform(header->Ornaments.begin(), header->Ornaments.end(), header->OrnLoops.begin(),
         std::back_inserter(Data.Ornaments), MakeOrnament);
 
       //fill region
