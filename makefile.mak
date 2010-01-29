@@ -65,7 +65,7 @@ source_files += $(cpp_texts)
 #textator can be get from
 #http://code.google.com/p/textator
 #if were no changes in txt files, just touch .h and .cpp files in this folder or change TEXTATOR to true
-TEXTATOR := ~/bin/textator
+TEXTATOR := textator
 TEXTATOR_FLAGS := --verbose --process --cpp --symboltype "Char" --memtype "extern const" --tab 2 --width 112
 
 %.cpp: %.txt $(dep_texts)
