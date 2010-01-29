@@ -549,6 +549,12 @@ extern const Char TEXT_USAGE_SECTION[] = {
   '\n',
   'P','a','r','a','m','e','t','e','r','s',0
 };
+extern const Char TEXT_VERSION_DESC[] = {
+  's','h','o','w',' ','v','e','r','s','i','o','n',0
+};
+extern const Char TEXT_VERSION_KEY[] = {
+  'v','e','r','s','i','o','n',0
+};
 extern const Char TEXT_YM_DESC[] = {
   'u','s','e',' ','Y','M',' ','c','h','i','p',' ','f','o','r',' ','p','l','a','y','b','a','c','k',0
 };

@@ -45,6 +45,14 @@ Author:
 
 #define FILE_TAG 81C76E7D
 
+#ifndef ZXTUNE_VERSION
+#define ZXTUNE_VERSION develop
+#endif
+
+#define STR(a) #a
+
+#define VERSION_STRING(a) STR(a)
+
 namespace
 {
   const int INFORMATION_HEIGHT = 6;
@@ -193,11 +201,11 @@ namespace
         Parameters::ConvertMap(info.Properties, origFields);
         origFields.insert(StringMap::value_type(CONVERSION_FIELD_ESCAPEDPATH, item.Id));
         std::transform(origFields.begin(), origFields.end(), std::inserter(fields, fields.end()),
-          boost::bind(&std::make_pair<String, String>, 
+          boost::bind(&std::make_pair<String, String>,
             boost::bind<String>(&StringMap::value_type::first, _1),
-            boost::bind<String>(&ZXTune::IO::MakePathFromString, 
+            boost::bind<String>(&ZXTune::IO::MakePathFromString,
               boost::bind<String>(&StringMap::value_type::second, _1), '_')));
-      }      
+      }
       fields.insert(StringMap::value_type(CONVERSION_FIELD_FULLPATH, item.Id));
       const String& filename = InstantiateTemplate(NameTemplate, fields, SKIP_NONEXISTING);
       std::ofstream file(filename.c_str(), std::ios::binary);
@@ -304,6 +312,7 @@ namespace
         options_description options((Formatter(TEXT_USAGE_SECTION) % *argv).str());
         options.add_options()
           (TEXT_HELP_KEY, TEXT_HELP_DESC)
+          (TEXT_VERSION_KEY, TEXT_VERSION_DESC)
           (TEXT_IO_PROVIDERS_OPTS_KEY, boost::program_options::value<String>(&providersOptions), TEXT_IO_PROVIDERS_OPTS_DESC)
           (TEXT_CORE_OPTS_KEY, boost::program_options::value<String>(&coreOptions), TEXT_CORE_OPTS_DESC)
           (TEXT_CONVERT_KEY, boost::program_options::value<String>(&ConvertParams), TEXT_CONVERT_DESC)
@@ -334,6 +343,11 @@ namespace
         if (vars.count(TEXT_HELP_KEY))
         {
           std::cout << options << std::endl;
+          return true;
+        }
+        else if (vars.count(TEXT_VERSION_KEY))
+        {
+          std::cout << VERSION_STRING(ZXTUNE_VERSION) << std::endl;
           return true;
         }
         if (!providersOptions.empty())

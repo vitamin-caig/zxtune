@@ -39,12 +39,12 @@ h_texts := $(text_files:=.h)
 cpp_texts := $(text_files:=.cpp)
 dep_texts := $(other_text_files:=.txt)
 
+#setup environment
+definitions = $(defines) __STDC_CONSTANT_MACROS
+
 #main target
 all: dirs $(h_texts) $(cpp_texts) $(target)
 .PHONY: all dirs
-
-#setup environment
-definitions += __STDC_CONSTANT_MACROS
 
 #set compiler-specific parameters
 include $(path_step)/make/compilers/$(compiler).mak
@@ -134,3 +134,4 @@ help:
 	@echo " cxx_flags - some specific compilation flags"
 	@echo " LD - used linker. Default is 'g++'"
 	@echo " ld_flags - some specific linking flags"
+	@echo " defines - additional defines"

@@ -149,6 +149,8 @@ extern const Char TEXT_TRACKING_STATUS[];
 extern const Char TEXT_UPDATEFPS_DESC[];
 extern const Char TEXT_UPDATEFPS_KEY[];
 extern const Char TEXT_USAGE_SECTION[];
+extern const Char TEXT_VERSION_DESC[];
+extern const Char TEXT_VERSION_KEY[];
 extern const Char TEXT_YM_DESC[];
 extern const Char TEXT_YM_KEY[];
 #endif //__TEXT_TEXT_H_DEFINED__

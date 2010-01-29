@@ -15,6 +15,8 @@ Author:
 
 #include <error_tools.h>
 
+#include <cctype>
+
 #include "text.h"
 
 #define FILE_TAG 0DBA1FA8

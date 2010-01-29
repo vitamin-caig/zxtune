@@ -12,6 +12,12 @@
 < TEXT_HELP_DESC
 > "show this message"
 
+< TEXT_VERSION_KEY
+> "version"
+
+< TEXT_VERSION_DESC
+> "show version"
+
 < TEXT_IO_PROVIDERS_OPTS_KEY
 > "providers-options"
 

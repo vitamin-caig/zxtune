@@ -41,7 +41,7 @@ namespace
       DataChunk::DUTY_CYCLE_MASK_E
     };
     BOOST_STATIC_ASSERT(sizeof(LETTERS) == sizeof(MASKS));
-    const unsigned pos = std::find(LETTERS, ArrayEnd(LETTERS), letter) - LETTERS;
+    const std::size_t pos = std::find(LETTERS, ArrayEnd(LETTERS), letter) - LETTERS;
     if (pos == ArraySize(LETTERS))
     {
       throw MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,
@@ -73,7 +73,7 @@ namespace
         {
           Chunk.Mask &= ~AYM::DataChunk::YM_CHIP;
         }
-      } 
+      }
       if (Parameters::FindByName(params, Parameters::ZXTune::Core::AYM::TABLE, strParam))
       {
         ThrowIfError(Module::GetFreqTable(strParam, FreqTable));
