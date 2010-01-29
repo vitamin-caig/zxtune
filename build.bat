@@ -36,7 +36,7 @@ ECHO Building
 make mode=release platform=%Platform% defines=ZXTUNE_VERSION=rev%Revision% -C apps\zxtune123 > %TargetDir%\build.log
 ::IF %ERRORLEVEL% NEQ 0 GOTO Error
 
-SET ZipFile=%TargetDir%\%Binary%_r%Revision%%Suffix%.zip
+SET ZipFile=%TargetDir%\%Binary%_r%Suffix%.zip
 ECHO Compressing %ZipFile%
 zip -9Dj %ZipFile% bin\%Platform%\release\%Binary%.exe
 IF %ERRORLEVEL% NEQ 0 GOTO Error
