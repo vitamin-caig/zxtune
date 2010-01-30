@@ -105,6 +105,11 @@ namespace
       return String(res.rbegin(), res.rend());
     }
   };
+  
+  inline bool CompareParameter(const Parameters::Map::value_type& lh, const Parameters::Map::value_type& rh)
+  {
+    return lh.first == rh.first ? !(lh.second == rh.second) : lh.first < rh.first;
+  }
 }
 
 namespace Parameters
@@ -172,5 +177,33 @@ namespace Parameters
         boost::bind(ConvertFromString, boost::bind<StringMap::mapped_type>(&StringMap::value_type::second, _1))));
     
     output.swap(res);
+  }
+  
+  void DifferMaps(const Map& newOne, const Map& oldOne, Map& updates)
+  {
+    Map result;
+    std::set_difference(newOne.begin(), newOne.end(),
+      oldOne.begin(), oldOne.end(), std::inserter(result, result.end()),
+      CompareParameter);
+    updates.swap(result);
+  }
+  
+  void MergeMaps(const Map& oldOne, const Map& newOne, Map& merged, bool replaceExisting)
+  {
+    Parameters::Map result;
+    if (replaceExisting)
+    {
+      std::set_union(newOne.begin(), newOne.end(),
+                     oldOne.begin(), oldOne.end(),
+                     std::inserter(result, result.end()), 
+                     CompareParameter);
+    }
+    else
+    {
+      std::set_union(oldOne.begin(), oldOne.end(),
+                     newOne.begin(), newOne.end(),
+                     std::inserter(result, result.end()), CompareParameter);
+    }
+    merged.swap(result);
   }
 }

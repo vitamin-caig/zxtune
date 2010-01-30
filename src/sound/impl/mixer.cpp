@@ -62,10 +62,17 @@ namespace
     
     typedef boost::array<NativeType, OUTPUT_CHANNELS> MultiFixed;
 
-    static MultiBigSample AddBigsamples(const MultiFixed& lh, const MultiBigSample& rh)
+    //divider+matrix
+    static inline BigSample AddDivider(BigSample divider, NativeType matrix)
+    {
+      return divider + (matrix ? FIXED_POINT_PRECISION : 0);
+    }
+    
+    //divider+matrix
+    static inline MultiBigSample AddBigsamples(const MultiBigSample& lh, const MultiFixed& rh)
     {
       MultiBigSample res;
-      std::transform(lh.begin(), lh.end(), rh.begin(), res.begin(), std::plus<BigSample>());
+      std::transform(lh.begin(), lh.end(), rh.begin(), res.begin(), AddDivider);
       return res;
     }
   public:
@@ -125,6 +132,8 @@ namespace
       }
       std::transform(data.begin(), data.end(), Matrix.begin(), MultiGain2MultiFixed<NativeType>);
       Dividers = std::accumulate(Matrix.begin(), Matrix.end(), MultiBigSample(), AddBigsamples);
+      // prevent empty dividers
+      std::transform(Dividers.begin(), Dividers.end(), Dividers.begin(), boost::bind<BigSample>(&std::max<BigSample>, _1, BigSample(1)));
       return Error();
     }
     

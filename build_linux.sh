@@ -28,7 +28,7 @@ mkdir -p ${TargetDir}
 echo "Building"
 make mode=release platform=${Platform} defines=ZXTUNE_VERSION=rev${Revision} -C apps/zxtune123 > ${TargetDir}/build.log || exit 1;
 
-ZipFile=${TargetDir}/${Binary}_${Suffix}.zip
+ZipFile=${TargetDir}/${Binary}_r${Suffix}.zip
 echo "Compressing ${ZipFile}"
 zip -9Dj ${ZipFile} bin/${Platform}/release/${Binary} || exit 1;
 

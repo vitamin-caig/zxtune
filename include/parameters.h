@@ -85,6 +85,10 @@ namespace Parameters
   void ConvertMap(const Map& input, StringMap& output);
   //! @brief Converting #StringMap to Map
   void ConvertMap(const StringMap& input, Map& output);
+  //! @brief Calculating difference between to maps
+  void DifferMaps(const Map& newOne, const Map& oldOne, Map& updates);
+  //! @brief Merging two maps
+  void MergeMaps(const Map& oldOne, const Map& newOne, Map& merged, bool replaceExisting);
 }
 
 #endif //__PARAMETERS_TYPES_H_DEFINED__

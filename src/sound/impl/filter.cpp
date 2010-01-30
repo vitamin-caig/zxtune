@@ -165,7 +165,7 @@ namespace
       {
         //input parameters
         //gain = 10 ^^ (dB / 20)
-        const Gain PASSGAIN = 1.0, STOPGAIN = 0;
+        const Gain PASSGAIN = 0.99, STOPGAIN = 0;
 
         //check parameters
         const unsigned order = static_cast<unsigned>(Matrix.size());

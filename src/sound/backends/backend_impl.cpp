@@ -391,20 +391,13 @@ namespace ZXTune
       }
     }
 
-    inline bool CompareParameter(const Parameters::Map::value_type& lh, const Parameters::Map::value_type& rh)
-    {
-      return lh.first == rh.first ? !(lh.second == rh.second) : lh.first < rh.first;
-    }
-
     Error BackendImpl::SetParameters(const Parameters::Map& params)
     {
       try
       {
         Locker lock(PlayerMutex);
         Parameters::Map updates;
-        std::set_difference(params.begin(), params.end(),
-          CommonParameters.begin(), CommonParameters.end(), std::inserter(updates, updates.end()),
-          CompareParameter);
+        Parameters::DifferMaps(params, CommonParameters, updates);
         UpdateRenderParameters(updates, RenderingParameters);
         OnParametersChanged(updates);
         if (Player)
@@ -412,13 +405,7 @@ namespace ZXTune
           ThrowIfError(Player->SetParameters(updates));
         }
         //merge result back
-        {
-          Parameters::Map merged;
-          std::set_union(updates.begin(), updates.end(),
-            CommonParameters.begin(), CommonParameters.end(), std::inserter(merged, merged.end()),
-            CompareParameter);
-          CommonParameters.swap(merged);
-        }
+        Parameters::MergeMaps(CommonParameters, params, CommonParameters, true);
         return Error();
       }
       catch (const Error& e)

@@ -118,5 +118,5 @@ int main()
   
   std::cout << "------ test for combiners --------\n";
   Test(CombineUri(INVALID_URI, FILE_URI_SUBPATH, base) == NOT_SUPPORTED, "Combining invalid uri", __LINE__);
-  Test(CombineUri(FILE_URI1, FILE_URI_SUBPATH, base) == NOT_SUPPORTED, "Combining redundant uri", __LINE__);
+  Test(!CombineUri(FILE_URI1, FILE_URI_SUBPATH, base) && base == FILE_URI1, "Combining redundant uri", __LINE__);
 }

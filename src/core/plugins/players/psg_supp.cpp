@@ -154,7 +154,12 @@ namespace
     {
       info = ModInfo;
     }
-    
+
+    virtual void ModifyCustomAttributes(const Parameters::Map& attrs, bool replaceExisting)
+    {
+      return Parameters::MergeMaps(ModInfo.Properties, attrs, ModInfo.Properties, replaceExisting);
+    }
+
     virtual Player::Ptr CreatePlayer() const
     {
       return CreatePSGPlayer(shared_from_this());

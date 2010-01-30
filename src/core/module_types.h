@@ -50,7 +50,7 @@ namespace ZXTune
       unsigned LoopFrame;
       //! Actual physical channels for playback
       unsigned PhysicalChannels;
-      //! Different parameters
+      //! Module properties @see core/module_attrs.h
       Parameters::Map Properties;
     };
 

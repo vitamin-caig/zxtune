@@ -63,6 +63,17 @@ namespace
   {
     return lh.first == rh.first && lh.second == rh.second;
   }
+  
+  void TestMaps(const std::string& title, const Parameters::Map& result, const Parameters::Map& etalon)
+  {
+    Test(title + " size", result.size() == etalon.size());
+    Test(title, etalon.end() == std::mismatch(etalon.begin(), etalon.end(), result.begin(), CompareMap).first);
+  }
+  
+  void OutMap(const Parameters::Map::value_type& val)
+  {
+    std::cout << '[' << val.first << "]=" << Parameters::ConvertToString(val.second) << std::endl;
+  }
 }
 
 int main()
@@ -129,10 +140,47 @@ int main()
       TestMap(output, "strAsStrQuoted", "''test''");
       Parameters::Map result;
       Parameters::ConvertMap(output, result);
-      Test("m2p convert size", output.size() == result.size());
-      const std::pair<Parameters::Map::iterator, Parameters::Map::iterator> compared = 
-        std::mismatch(input.begin(), input.end(), result.begin(), CompareMap);
-      Test("m2p convert result", compared.first == input.end());
+      TestMaps("m2p convert", result, input);
+    }
+  }
+  std::cout << "---- Test for parameters map processing ----" << std::endl;
+  {
+    Parameters::Map first;
+    first["key1"] = "val1";
+    first["key2"] = "val2";
+    first["key3"] = "val3";
+    Parameters::Map second;
+    second["key1"] = "val1";
+    second["key2"] = "val2_new";
+    second["key4"] = "val4";
+    
+    Parameters::Map updInSecond;
+    updInSecond["key2"] = "val2_new";
+    updInSecond["key4"] = "val4";
+    
+    {
+      Parameters::Map test;
+      Parameters::DifferMaps(second, first, test);
+      TestMaps("differ test", test, updInSecond);
+    }
+    
+    Parameters::Map merged;
+    merged["key1"] = "val1";
+    merged["key2"] = "val2";
+    merged["key3"] = "val3";
+    merged["key4"] = "val4";
+    {
+      Parameters::Map test;
+      Parameters::MergeMaps(first, second, test, false);
+      TestMaps("merge keep test", test, merged);
+      //std::for_each(test.begin(), test.end(), OutMap);
+    }
+    merged["key2"] = "val2_new";
+    {
+      Parameters::Map test;
+      Parameters::MergeMaps(first, second, test, true);
+      TestMaps("merge replace test", test, merged);
+      //std::for_each(test.begin(), test.end(), OutMap);
     }
   }
 }

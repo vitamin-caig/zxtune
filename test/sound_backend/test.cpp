@@ -64,6 +64,10 @@ namespace
       info.PhysicalChannels = 3;
     }
     
+    void ModifyCustomAttributes(const Parameters::Map&, bool)
+    {
+    }
+    
     virtual Module::Player::Ptr CreatePlayer() const
     {
       return CreateDummyPlayer(*this);
