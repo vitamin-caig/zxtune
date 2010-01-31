@@ -10,6 +10,8 @@ echo "Building ${Binary} for platform ${Platform}_${Arch}"
 textator --version > /dev/null || exit 1;
 
 # get current build and vesion
+echo "Updating"
+svn up > /dev/null || (echo "Failed to update"; exit 1)
 Revision=`svn info | grep Revision | cut -f 2 -d " "`
 Revision=`printf %04u $Revision`
 svn st 2>/dev/null | grep -q "\w  " && Revision=${Revision}-devel
@@ -26,7 +28,8 @@ echo "Creating build dir"
 mkdir -p ${TargetDir}
 
 echo "Building"
-make mode=release platform=${Platform} defines=ZXTUNE_VERSION=rev${Revision} -C apps/zxtune123 > ${TargetDir}/build.log || exit 1;
+time make -j `grep processor /proc/cpuinfo | wc -l` mode=release platform=${Platform} defines=ZXTUNE_VERSION=rev${Revision} \
+     -C apps/zxtune123 > ${TargetDir}/build.log || exit 1;
 
 ZipFile=${TargetDir}/${Binary}_r${Suffix}.zip
 echo "Compressing ${ZipFile}"

@@ -62,6 +62,12 @@ namespace
     
     typedef boost::array<NativeType, OUTPUT_CHANNELS> MultiFixed;
 
+    //to prevent zero divider
+    static inline BigSample FixDivider(BigSample divider)
+    {
+      return divider ? divider : 1;
+    }
+    
     //divider+matrix
     static inline BigSample AddDivider(BigSample divider, NativeType matrix)
     {
@@ -133,7 +139,7 @@ namespace
       std::transform(data.begin(), data.end(), Matrix.begin(), MultiGain2MultiFixed<NativeType>);
       Dividers = std::accumulate(Matrix.begin(), Matrix.end(), MultiBigSample(), AddBigsamples);
       // prevent empty dividers
-      std::transform(Dividers.begin(), Dividers.end(), Dividers.begin(), boost::bind<BigSample>(&std::max<BigSample>, _1, BigSample(1)));
+      std::transform(Dividers.begin(), Dividers.end(), Dividers.begin(), FixDivider);
       return Error();
     }
     
