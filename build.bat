@@ -8,6 +8,9 @@ ECHO Building %Binary% for platform %Platform%_%Arch%
 textator --version > NUL || GOTO Error
 zip -v > NUL || GOTO Error
 
+echo Updating
+svn up > NUL || GOTO Error
+
 :: determine current build version
 SET Revision=
 FOR /F "tokens=2" %%R IN ('svn info ^| FIND "Revision"') DO SET Revision=000%%R
@@ -22,15 +25,14 @@ SET TargetDir=Builds\Revision%Suffix%
 echo Target dir %TargetDir%
 
 ECHO Clearing
-IF EXIST %TargetDir% RMDIR /S /Q %TargetDir%
-IF %ERRORLEVEL% NEQ 0 GOTO Error
+IF EXIST %TargetDir% RMDIR /S /Q %TargetDir% || GOTO Error
 RMDIR /S /Q bin\%Platform%\release lib\%Platform%\release obj\%Platform%\release
 
 ECHO Creating build dir
 mkdir %TargetDir% || GOTO Error
 
 ECHO Building
-make mode=release platform=%Platform% defines=ZXTUNE_VERSION=rev%Revision% -C apps\zxtune123 > %TargetDir%\build.log || GOTO Error
+make -j %NUMBER_OF_PROCESSORS% mode=release platform=%Platform% defines=ZXTUNE_VERSION=rev%Revision% -C apps\zxtune123 > %TargetDir%\build.log || GOTO Error
 
 SET ZipFile=%TargetDir%\%Binary%_r%Suffix%.zip
 ECHO Compressing %ZipFile%

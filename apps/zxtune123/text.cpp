@@ -108,7 +108,7 @@ extern const Char TEXT_ENV_HOMEDIR_NIX[] = {
   'H','O','M','E',0
 };
 extern const Char TEXT_ENV_HOMEDIR_WIN[] = {
-  'U','S','E','R','P','R','O','F','I','L','E',0
+  'A','P','P','D','A','T','A',0
 };
 extern const Char TEXT_ERROR_CONFIG_FILE[] = {
   'F','a','i','l','e','d',' ','t','o',' ','o','p','e','n',' ','c','o','n','f','i','g','u','r','a','t','i','o',
