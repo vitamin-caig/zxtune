@@ -3,12 +3,6 @@
 #define __TEXT_TEXT_H_DEFINED__
 #include <char_type.h>
 
-extern const Char CONVERSION_FIELD_ESCAPEDPATH[] = {
-  'e','s','c','a','p','e','d','p','a','t','h',0
-};
-extern const Char CONVERSION_FIELD_FULLPATH[] = {
-  'f','u','l','l','p','a','t','h',0
-};
 extern const Char CONVERSION_MODE_ALL[] = {
   'r','a','w',',','p','s','g',0
 };
@@ -51,6 +45,19 @@ extern const Char TEXT_CLOCKRATE_KEY[] = {
 extern const Char TEXT_COMMON_ERROR[] = {
   'E','r','r','o','r',':',' ','%','1','%',0
 };
+extern const Char TEXT_CONFIG_DESC[] = {
+  'c','o','n','f','i','g','u','r','a','t','i','o','n',' ','f','i','l','e',' ','(','d','e','f','a','u','l','t',
+  ' ','i','s',' ','%','1','%',')',0
+};
+extern const Char TEXT_CONFIG_FILENAME[] = {
+  'z','x','t','u','n','e','.','c','o','n','f',0
+};
+extern const Char TEXT_CONFIG_KEY[] = {
+  'c','o','n','f','i','g',0
+};
+extern const Char TEXT_CONFIG_PATH[] = {
+  '/','z','x','t','u','n','e','/','z','x','t','u','n','e','.','c','o','n','f',0
+};
 extern const Char TEXT_CONVERT_DESC[] = {
   'P','e','r','f','o','r','m',' ','c','o','n','v','e','r','s','i','o','n',' ','i','n','s','t','e','a','d',' ',
   'o','f',' ','p','l','a','y','b','a','c','k','.','\n',
@@ -60,9 +67,8 @@ extern const Char TEXT_CONVERT_DESC[] = {
   'm','o','d','e','.',' ','C','u','r','r','e','n','t','l','y',' ','s','u','p','p','o','r','t','e','d',' ','a',
   'r','e',':',' ','r','a','w',',','p','s','g','\n',
   ' ','f','i','l','e','n','a','m','e',' ','-',' ','f','i','l','e','n','a','m','e',' ','t','e','m','p','l','a',
-  't','e',' ','w','i','t','h',' ','f','i','e','l','d','s',',',' ','[','f','u','l','l','p','a','t','h',']',' ',
-  'a','n','d',' ','[','e','s','c','a','p','e','d','p','a','t','h',']',' ','a','n','d',' ','a','n','y',' ','m',
-  'o','d','u','l','e','\'','s',' ','p','a','r','a','m','e','t','e','r','s','.',0
+  't','e',' ','w','i','t','h',' ','a','n','y',' ','m','o','d','u','l','e','\'','s',' ','a','t','t','r','i','b',
+  'u','t','e','s','.',0
 };
 extern const Char TEXT_CONVERT_DONE[] = {
   'C','o','n','v','e','r','t','e','d',' ','\'','%','1','%','\'',' ','=','>',' ','\'','%','2','%','\'',0
@@ -97,6 +103,16 @@ extern const Char TEXT_CORE_OPTS_DESC[] = {
 };
 extern const Char TEXT_CORE_OPTS_KEY[] = {
   'c','o','r','e','-','o','p','t','i','o','n','s',0
+};
+extern const Char TEXT_ENV_HOMEDIR_NIX[] = {
+  'H','O','M','E',0
+};
+extern const Char TEXT_ENV_HOMEDIR_WIN[] = {
+  'U','S','E','R','P','R','O','F','I','L','E',0
+};
+extern const Char TEXT_ERROR_CONFIG_FILE[] = {
+  'F','a','i','l','e','d',' ','t','o',' ','o','p','e','n',' ','c','o','n','f','i','g','u','r','a','t','i','o',
+  'n',' ','f','i','l','e','.',0
 };
 extern const Char TEXT_ERROR_INVALID_FORMAT[] = {
   'I','n','v','a','l','i','d',' ','p','a','r','a','m','e','t','e','r',' ','f','o','r','m','a','t',' ','\'','%',
@@ -161,6 +177,17 @@ extern const Char TEXT_INFO_ATTRIBUTES_CRC[] = {
 };
 extern const Char TEXT_INFO_ATTRIBUTES_DATE[] = {
   'm','o','d','u','l','e',' ','d','a','t','e',' ','i','n','f','o','r','m','a','t','i','o','n',0
+};
+extern const Char TEXT_INFO_ATTRIBUTES_FILENAME[] = {
+  's','h','o','r','t',' ','s','o','u','r','c','e',' ','f','i','l','e',' ','n','a','m','e',0
+};
+extern const Char TEXT_INFO_ATTRIBUTES_FULLPATH[] = {
+  'f','u','l','l',' ','s','o','u','r','c','e',' ','d','a','t','a',' ','i','d','e','n','t','i','f','i','e','r',
+  ' ','i','n','c','l','u','d','i','n','g',' ','f','u','l','l',' ','f','i','l','e','n','a','m','e',' ','a','n',
+  'd',' ','s','u','b','p','a','t','h',0
+};
+extern const Char TEXT_INFO_ATTRIBUTES_PATH[] = {
+  'f','u','l','l',' ','s','o','u','r','c','e',' ','f','i','l','e',' ','n','a','m','e',0
 };
 extern const Char TEXT_INFO_ATTRIBUTES_PROGRAM[] = {
   'p','r','o','g','r','a','m',' ','m','o','d','u','l','e',' ','w','a','s',' ','c','r','e','a','t','e','d',0
@@ -454,12 +481,12 @@ extern const Char TEXT_IO_PROVIDERS_OPTS_KEY[] = {
   'p','r','o','v','i','d','e','r','s','-','o','p','t','i','o','n','s',0
 };
 extern const Char TEXT_ITEM_INFO[] = {
-  'P','l','a','y','i','n','g',':',' ','%','1','%','\n',
+  'P','l','a','y','i','n','g',':',' ','[','F','u','l','l','P','a','t','h',']','\n',
   'T','y','p','e',':',' ',' ',' ',' ','[','T','y','p','e',']','\t','C','o','n','t','a','i','n','e','r',':',' ',
   '[','C','o','n','t','a','i','n','e','r',']','\n',
   'T','i','t','l','e',':',' ',' ',' ','[','T','i','t','l','e',']','\n',
   'P','r','o','g','r','a','m',':',' ','[','P','r','o','g','r','a','m',']','\n',
-  'T','i','m','e',':',' ',' ',' ',' ','%','2','%','\t','C','h','a','n','n','e','l','s',':',' ',' ','%','3','%',
+  'T','i','m','e',':',' ',' ',' ',' ','%','1','%','\t','C','h','a','n','n','e','l','s',':',' ',' ','%','2','%',
   '\n',
   '\n',
   0

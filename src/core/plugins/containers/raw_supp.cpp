@@ -11,7 +11,7 @@ Author:
 
 #include "../enumerator.h"
 
-#include <formatter.h>
+#include <error_tools.h>
 #include <tools.h>
 
 #include <core/error_codes.h>
@@ -35,6 +35,8 @@ namespace
   
   const String TEXT_RAW_VERSION(FromChar("$Rev$"));
   
+  const int MIN_SCAN_STEP = 1;
+  const int MAX_SCAN_STEP = 256;
   const std::size_t MINIMAL_RAW_SIZE = 16;
   
   const Char RAW_REST_PART[] = {'.', 'r', 'a', 'w', 0};
@@ -87,6 +89,11 @@ namespace
     if (const Parameters::IntType* const stepParam = 
       Parameters::FindByName<Parameters::IntType>(commonParams, Parameters::ZXTune::Core::Plugins::Raw::SCAN_STEP))
     {
+      if (*stepParam < MIN_SCAN_STEP || *stepParam > MAX_SCAN_STEP)
+      {
+        throw MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS, 
+          TEXT_RAW_ERROR_INVALID_STEP, *stepParam, MIN_SCAN_STEP, MAX_SCAN_STEP);
+      }
       scanStep = static_cast<std::size_t>(*stepParam);
     }
     

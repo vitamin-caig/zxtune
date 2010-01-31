@@ -16,10 +16,3 @@
 
 < CONVERSION_PARAM_FILENAME
 > "filename"
-
-#fields
-< CONVERSION_FIELD_FULLPATH
-> "fullpath"
-
-< CONVERSION_FIELD_ESCAPEDPATH
-> "escapedpath"

@@ -19,6 +19,7 @@ extern const Char TEXT_PSG_INFO[];
 extern const Char TEXT_PT2_EDITOR[];
 extern const Char TEXT_PT2_INFO[];
 extern const Char TEXT_PT3_INFO[];
+extern const Char TEXT_RAW_ERROR_INVALID_STEP[];
 extern const Char TEXT_RAW_INFO[];
 extern const Char TEXT_SCL_CONTAINER[];
 extern const Char TEXT_SCL_INFO[];

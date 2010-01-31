@@ -140,6 +140,15 @@
 < TEXT_INFO_OPTIONS_CORE_PLUGINS_RAW_SCAN_STEP
 > "scanning step in bytes"
 
+< TEXT_INFO_ATTRIBUTES_FILENAME
+> "short source file name"
+
+< TEXT_INFO_ATTRIBUTES_PATH
+> "full source file name"
+
+< TEXT_INFO_ATTRIBUTES_FULLPATH
+> "full source data identifier including full filename and subpath"
+
 < TEXT_INFO_ATTRIBUTES_TYPE
 > "module type (plugin id)"
 
@@ -190,11 +199,11 @@
 > "\n"
 
 < TEXT_ITEM_INFO
-> "Playing: %1%\n"
+> "Playing: [FullPath]\n"
 > "Type:    [Type]\t"  "Container: [Container]\n"
 > "Title:   [Title]\n"
 > "Program: [Program]\n"
-> "Time:    %2%\t"     "Channels:  %3%\n"
+> "Time:    %1%\t"     "Channels:  %2%\n"
 > "\n"
 
 < TEXT_TIME_FORMAT_HOURS
@@ -202,6 +211,21 @@
 
 < TEXT_TIME_FORMAT
 > "%1%:%2$02u.%3$02u"
+
+< TEXT_ENV_HOMEDIR_WIN
+> "USERPROFILE"
+
+< TEXT_ENV_HOMEDIR_NIX
+> "HOME"
+
+< TEXT_CONFIG_FILENAME
+> "zxtune.conf"
+
+< TEXT_CONFIG_PATH
+> "/zxtune/" TEXT_CONFIG_FILENAME
+
+< TEXT_ERROR_CONFIG_FILE
+> "Failed to open configuration file."
 
 < TEXT_INPUT_ERROR_NO_FILES
 > "No files to process."

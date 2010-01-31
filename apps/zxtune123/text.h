@@ -3,8 +3,6 @@
 #define __TEXT_TEXT_H_DEFINED__
 #include <char_type.h>
 
-extern const Char CONVERSION_FIELD_ESCAPEDPATH[];
-extern const Char CONVERSION_FIELD_FULLPATH[];
 extern const Char CONVERSION_MODE_ALL[];
 extern const Char CONVERSION_MODE_PSG[];
 extern const Char CONVERSION_MODE_RAW[];
@@ -18,6 +16,10 @@ extern const Char TEXT_CLI_SECTION[];
 extern const Char TEXT_CLOCKRATE_DESC[];
 extern const Char TEXT_CLOCKRATE_KEY[];
 extern const Char TEXT_COMMON_ERROR[];
+extern const Char TEXT_CONFIG_DESC[];
+extern const Char TEXT_CONFIG_FILENAME[];
+extern const Char TEXT_CONFIG_KEY[];
+extern const Char TEXT_CONFIG_PATH[];
 extern const Char TEXT_CONVERT_DESC[];
 extern const Char TEXT_CONVERT_DONE[];
 extern const Char TEXT_CONVERT_ERROR_INVALID_MODE[];
@@ -28,6 +30,9 @@ extern const Char TEXT_CONVERT_KEY[];
 extern const Char TEXT_CONVERT_SKIPPED[];
 extern const Char TEXT_CORE_OPTS_DESC[];
 extern const Char TEXT_CORE_OPTS_KEY[];
+extern const Char TEXT_ENV_HOMEDIR_NIX[];
+extern const Char TEXT_ENV_HOMEDIR_WIN[];
+extern const Char TEXT_ERROR_CONFIG_FILE[];
 extern const Char TEXT_ERROR_INVALID_FORMAT[];
 extern const Char TEXT_ERROR_INVALID_PARAMETER[];
 extern const Char TEXT_FILTER_DESC[];
@@ -47,6 +52,9 @@ extern const Char TEXT_INFO_ATTRIBUTES_COMPUTER[];
 extern const Char TEXT_INFO_ATTRIBUTES_CONTAINER[];
 extern const Char TEXT_INFO_ATTRIBUTES_CRC[];
 extern const Char TEXT_INFO_ATTRIBUTES_DATE[];
+extern const Char TEXT_INFO_ATTRIBUTES_FILENAME[];
+extern const Char TEXT_INFO_ATTRIBUTES_FULLPATH[];
+extern const Char TEXT_INFO_ATTRIBUTES_PATH[];
 extern const Char TEXT_INFO_ATTRIBUTES_PROGRAM[];
 extern const Char TEXT_INFO_ATTRIBUTES_SIZE[];
 extern const Char TEXT_INFO_ATTRIBUTES_SUBPATH[];

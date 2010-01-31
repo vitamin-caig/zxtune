@@ -52,6 +52,10 @@ extern const Char TEXT_PT2_INFO[] = {
 extern const Char TEXT_PT3_INFO[] = {
   'P','T','3',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
 };
+extern const Char TEXT_RAW_ERROR_INVALID_STEP[] = {
+  'S','p','e','c','i','f','i','e','d',' ','s','c','a','n',' ','s','t','e','p',' ','(','%','1','%',')',' ','i',
+  's',' ','o','u','t',' ','o','f',' ','r','a','n','g','e',' ','%','2','%','.','.','%','3','%','.',0
+};
 extern const Char TEXT_RAW_INFO[] = {
   'R','a','w',' ','m','o','d','u','l','e','s',' ','s','c','a','n','e','r',0
 };

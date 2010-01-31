@@ -16,7 +16,9 @@ Author:
 #include <error_tools.h>
 #include <string_helpers.h>
 #include <tools.h>
+#include <io/fs_tools.h>
 #include <io/provider.h>
+#include <core/module_attrs.h>
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
 
@@ -103,6 +105,14 @@ namespace
     ModuleItem item;
     item.Id = uri;
     item.Module = module;
+    //add additional attributes
+    Parameters::Map attrs;
+    String tmp;
+    attrs.insert(Parameters::Map::value_type(ZXTune::Module::ATTR_FILENAME, 
+      ZXTune::IO::ExtractLastPathComponent(path, tmp)));
+    attrs.insert(Parameters::Map::value_type(ZXTune::Module::ATTR_PATH, path));
+    attrs.insert(Parameters::Map::value_type(ZXTune::Module::ATTR_FULLPATH, uri));
+    item.Module->ModifyCustomAttributes(attrs, false);
     callback(item);
     return Error();
   }

@@ -214,6 +214,11 @@ namespace
   {
     static const AttrType ATTRIBUTES[] =
     {
+      //external
+      AttrType(ZXTune::Module::ATTR_FILENAME, TEXT_INFO_ATTRIBUTES_FILENAME),
+      AttrType(ZXTune::Module::ATTR_PATH, TEXT_INFO_ATTRIBUTES_PATH),
+      AttrType(ZXTune::Module::ATTR_FULLPATH, TEXT_INFO_ATTRIBUTES_FULLPATH),
+      //internal
       AttrType(ZXTune::Module::ATTR_TYPE, TEXT_INFO_ATTRIBUTES_TYPE),
       AttrType(ZXTune::Module::ATTR_CONTAINER, TEXT_INFO_ATTRIBUTES_CONTAINER),
       AttrType(ZXTune::Module::ATTR_SUBPATH, TEXT_INFO_ATTRIBUTES_SUBPATH),

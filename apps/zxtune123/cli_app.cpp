@@ -59,12 +59,71 @@ namespace
   const int TRACKING_HEIGHT = 4;
   const int PLAYING_HEIGHT = 2;
   
+  inline String GetDefaultConfigFile()
+  {
+#ifdef _WIN32
+    const String HOME(TEXT_ENV_HOMEDIR_WIN);
+#else
+    const String HOME(TEXT_ENV_HOMEDIR_NIX);
+#endif
+    if (const char* homeDir = ::getenv(std::string(HOME.begin(), HOME.end()).c_str()))
+    {
+      return String(homeDir, homeDir + std::strlen(homeDir)) + TEXT_CONFIG_PATH;
+    }
+    return TEXT_CONFIG_PATH;
+  }
+  
+  void ReadConfigFile(const String& filename, Parameters::Map& params)
+  {
+    Parameters::Map res;
+    
+    const String configName(filename.empty() ? TEXT_CONFIG_FILENAME : filename);
+    
+    typedef std::basic_ifstream<Char> FileStream;
+    std::auto_ptr<FileStream> configFile(new FileStream(configName.c_str()));
+    if (!*configFile)
+    {
+      if (!filename.empty())
+      {
+        throw Error(THIS_LINE, CONFIG_FILE, TEXT_ERROR_CONFIG_FILE);
+      }
+      configFile.reset(new FileStream(GetDefaultConfigFile().c_str()));
+    }
+    if (*configFile)
+    {
+      String lines;
+      std::vector<Char> buffer(1024);
+      for (;;)
+      {
+        configFile->getline(&buffer[0], buffer.size());
+        const std::streamsize lineSize(configFile->gcount() - 1);
+        std::vector<Char>::const_iterator endof(buffer.begin() + lineSize);
+        std::vector<Char>::const_iterator beginof(std::find_if<std::vector<Char>::const_iterator>(buffer.begin(), endof, 
+          std::not1(std::ptr_fun<int, int>(&std::isspace))));
+        if (beginof != endof && *beginof != Char('#'))
+        {
+          if (!lines.empty())
+          {
+            lines += Char(',');
+          }
+          lines += String(beginof, endof);
+        }
+        if (configFile->eof())
+        {
+          break;
+        }
+      }
+      ThrowIfError(ParseParametersString(String(), lines, res));
+    }
+    res.swap(params);
+  }
+  
   void ErrOuter(unsigned /*level*/, Error::LocationRef loc, Error::CodeType code, const String& text)
   {
     std::cout << Error::AttributesToString(loc, code, text);
   }
 
-  void ShowItemInfo(const String& id, const ZXTune::Module::Information& info, unsigned frameDuration)
+  void ShowItemInfo(const ZXTune::Module::Information& info, unsigned frameDuration)
   {
     StringMap strProps;
     Parameters::ConvertMap(info.Properties, strProps);
@@ -72,7 +131,7 @@ namespace
 
     assert(INFORMATION_HEIGHT == std::count(infoFmt.begin(), infoFmt.end(), '\n'));
     std::cout << (Formatter(infoFmt)
-      % id % UnparseFrameTime(info.Statistic.Frame, frameDuration) % info.PhysicalChannels).str();
+      % UnparseFrameTime(info.Statistic.Frame, frameDuration) % info.PhysicalChannels).str();
   }
   
   void ShowTrackingStatus(const ZXTune::Module::Tracking& track)
@@ -199,14 +258,12 @@ namespace
       {
         StringMap origFields;
         Parameters::ConvertMap(info.Properties, origFields);
-        origFields.insert(StringMap::value_type(CONVERSION_FIELD_ESCAPEDPATH, item.Id));
         std::transform(origFields.begin(), origFields.end(), std::inserter(fields, fields.end()),
           boost::bind(&std::make_pair<String, String>,
             boost::bind<String>(&StringMap::value_type::first, _1),
             boost::bind<String>(&ZXTune::IO::MakePathFromString,
               boost::bind<String>(&StringMap::value_type::second, _1), '_')));
       }
-      fields.insert(StringMap::value_type(CONVERSION_FIELD_FULLPATH, item.Id));
       const String& filename = InstantiateTemplate(NameTemplate, fields, SKIP_NONEXISTING);
       std::ofstream file(filename.c_str(), std::ios::binary);
       file.write(safe_ptr_cast<const char*>(&result[0]), static_cast<std::streamsize>(result.size() * sizeof(result.front())));
@@ -308,11 +365,14 @@ namespace
       {
         using namespace boost::program_options;
 
+        String configFile;
         String providersOptions, coreOptions;
         options_description options((Formatter(TEXT_USAGE_SECTION) % *argv).str());
         options.add_options()
           (TEXT_HELP_KEY, TEXT_HELP_DESC)
           (TEXT_VERSION_KEY, TEXT_VERSION_DESC)
+          (TEXT_CONFIG_KEY, boost::program_options::value<String>(&configFile), 
+            (Formatter(TEXT_CONFIG_DESC) % GetDefaultConfigFile()).str().c_str())
           (TEXT_IO_PROVIDERS_OPTS_KEY, boost::program_options::value<String>(&providersOptions), TEXT_IO_PROVIDERS_OPTS_DESC)
           (TEXT_CORE_OPTS_KEY, boost::program_options::value<String>(&coreOptions), TEXT_CORE_OPTS_DESC)
           (TEXT_CONVERT_KEY, boost::program_options::value<String>(&ConvertParams), TEXT_CONVERT_DESC)
@@ -362,6 +422,11 @@ namespace
           ThrowIfError(ParseParametersString(Parameters::ZXTune::Core::PREFIX, coreOptions, coreParams));
           GlobalParams.insert(coreParams.begin(), coreParams.end());
         }
+        {
+          Parameters::Map configParams;
+          ReadConfigFile(configFile, configParams);
+          Parameters::MergeMaps(GlobalParams, configParams, GlobalParams, false);
+        }
         return false;
       }
       catch (const std::exception& e)
@@ -390,7 +455,7 @@ namespace
       //show startup info
       if (!Silent)
       {
-        ShowItemInfo(item.Id, info, static_cast<unsigned>(frameDuration));
+        ShowItemInfo(info, static_cast<unsigned>(frameDuration));
       }
       const unsigned seekStepFrames(info.Statistic.Frame * SeekStep / 100);
       const unsigned waitPeriod(std::max(1u, 1000u / std::max(Updatefps, 1u)));

@@ -33,7 +33,7 @@ time make -j `grep processor /proc/cpuinfo | wc -l` mode=release platform=${Plat
 
 ZipFile=${TargetDir}/${Binary}_r${Suffix}.zip
 echo "Compressing ${ZipFile}"
-zip -9Dj ${ZipFile} bin/${Platform}/release/${Binary} || exit 1;
+zip -9Dj ${ZipFile} bin/${Platform}/release/${Binary} apps/zxtune.conf || exit 1;
 
 echo "Copy additional files"
 cp bin/${Platform}/release/${Binary}*.pdb ${TargetDir} || exit 1;

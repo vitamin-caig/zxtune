@@ -25,6 +25,12 @@ namespace ZXTune
     //! @return The first component of specified path
     String ExtractFirstPathComponent(const String& path, String& restPart);
     
+    //! @brief Extracting last component from complex path (usually filename)
+    //! @param path Input path
+    //! @param restPart The rest part before the last component
+    //! @return The last component of specified path
+    String ExtractLastPathComponent(const String& path, String& restPart);
+    
     //! @brief Appending component to existing path
     //! @param path1 Base path
     //! @param path2 Additional component

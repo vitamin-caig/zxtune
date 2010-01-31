@@ -5,10 +5,8 @@ SET Arch=%3%
 ECHO Building %Binary% for platform %Platform%_%Arch%
 
 :: checking for textator
-textator --version > NUL
-IF %ERRORLEVEL% NEQ 0 GOTO Error
-zip -v > NUL
-IF %ERRORLEVEL% NEQ 0 GOTO Error
+textator --version > NUL || GOTO Error
+zip -v > NUL || GOTO Error
 
 :: determine current build version
 SET Revision=
@@ -29,17 +27,14 @@ IF %ERRORLEVEL% NEQ 0 GOTO Error
 RMDIR /S /Q bin\%Platform%\release lib\%Platform%\release obj\%Platform%\release
 
 ECHO Creating build dir
-mkdir %TargetDir%
-IF %ERRORLEVEL% NEQ 0 GOTO Error
+mkdir %TargetDir% || GOTO Error
 
 ECHO Building
-make mode=release platform=%Platform% defines=ZXTUNE_VERSION=rev%Revision% -C apps\zxtune123 > %TargetDir%\build.log
-::IF %ERRORLEVEL% NEQ 0 GOTO Error
+make mode=release platform=%Platform% defines=ZXTUNE_VERSION=rev%Revision% -C apps\zxtune123 > %TargetDir%\build.log || GOTO Error
 
 SET ZipFile=%TargetDir%\%Binary%_r%Suffix%.zip
 ECHO Compressing %ZipFile%
-zip -9Dj %ZipFile% bin\%Platform%\release\%Binary%.exe
-IF %ERRORLEVEL% NEQ 0 GOTO Error
+zip -9Dj %ZipFile% bin\%Platform%\release\%Binary%.exe apps\zxtune.conf || GOTO Error
 
 ECHO Copy additional files
 copy bin\%Platform%\release\%Binary%.exe.pdb %TargetDir%

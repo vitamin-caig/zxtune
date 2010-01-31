@@ -21,8 +21,12 @@ Author:
 
 namespace
 {
-  const Char FS_DELIMITER = '/';
-
+  const Char FS_DELIMITERS[] = {
+  #ifdef _WIN32
+  '\\',
+  #endif
+  '/', '\0'};
+  
   inline bool IsFSSymbol(Char sym)
   {
     return std::isalnum(sym) || sym == '_' || sym =='(' || sym == ')';
@@ -35,7 +39,7 @@ namespace ZXTune
   {
     String ExtractFirstPathComponent(const String& path, String& restPart)
     {
-      const String::size_type delimPos(path.find_first_of(FS_DELIMITER));
+      const String::size_type delimPos(path.find_first_of(FS_DELIMITERS));
       if (String::npos == delimPos)
       {
         restPart.clear();
@@ -48,13 +52,29 @@ namespace ZXTune
       }
     }
 
+    String ExtractLastPathComponent(const String& path, String& restPart)
+    {
+      const String::size_type delimPos(path.find_last_of(FS_DELIMITERS));
+      if (String::npos == delimPos)
+      {
+        restPart.clear();
+        return path;
+      }
+      else
+      {
+        restPart = path.substr(0, delimPos);
+        return path.substr(delimPos + 1);
+      }
+    }
+    
     String AppendPath(const String& path1, const String& path2)
     {
+      static const String DELIMS(FS_DELIMITERS);
       String result(path1);
-      if (!path1.empty() && *path1.rbegin() != FS_DELIMITER &&
-          !path2.empty() && *path2.begin() != FS_DELIMITER)
+      if (!path1.empty() && String::npos == DELIMS.find(*path1.rbegin()) &&
+          !path2.empty() && String::npos == DELIMS.find(*path2.begin()))
       {
-        result += FS_DELIMITER;
+        result += FS_DELIMITERS[0];
       }
       result += path2;
       return result;

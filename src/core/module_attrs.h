@@ -16,6 +16,9 @@ namespace ZXTune
 {
   namespace Module
   {
+    //@{
+    //! @name Built-in attributes
+    
     //! %Module type attribute @see PluginInformation#Id
     const Char ATTR_TYPE[] = {'T', 'y', 'p', 'e', '\0'};
     //! %Module containers chain
@@ -42,6 +45,16 @@ namespace ZXTune
     const Char ATTR_CRC[] = {'C', 'R', 'C', '\0'};
     //! Raw module size in bytes
     const Char ATTR_SIZE[] = {'S', 'i', 'z', 'e', '\0'};
+    //@}
+    
+    //@{
+    //! @name External attributes
+    //! Module's input data filename
+    const Char ATTR_FILENAME[] = {'F', 'i', 'l', 'e', 'n', 'a', 'm', 'e', '\0'};
+    //! Path of module's input data
+    const Char ATTR_PATH[] = {'P', 'a', 't', 'h', '\0'};
+    //! Full path of module including path of input data
+    const Char ATTR_FULLPATH[] = {'F', 'u', 'l', 'l', 'P', 'a', 't', 'h', '\0'};
   }
 }
 

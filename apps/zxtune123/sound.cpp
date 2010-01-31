@@ -207,7 +207,7 @@ namespace
             }
           }
         }
-        GlobalParams.insert(params.begin(), params.end());
+        Parameters::MergeMaps(GlobalParams, params, GlobalParams, true);
       }
       {
         StringMap optimized;
@@ -217,15 +217,15 @@ namespace
         {
           Parameters::Map sndparams;
           Parameters::ConvertMap(optimized, sndparams);
-          GlobalParams.insert(sndparams.begin(), sndparams.end());
+          Parameters::MergeMaps(GlobalParams, sndparams, GlobalParams, true);
         }
         if (YM)
         {
-          GlobalParams.insert(Parameters::Map::value_type(Parameters::ZXTune::Core::AYM::TYPE, -1));
+          GlobalParams[Parameters::ZXTune::Core::AYM::TYPE] = 1;
         }
         if (Looped)
         {
-          GlobalParams.insert(Parameters::Map::value_type(Parameters::ZXTune::Sound::LOOPMODE, ZXTune::Sound::LOOP_NORMAL));
+          GlobalParams[Parameters::ZXTune::Sound::LOOPMODE] = static_cast<Parameters::IntType>(ZXTune::Sound::LOOP_NORMAL);
         }
       }
       if (backends.empty())
