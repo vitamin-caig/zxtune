@@ -49,12 +49,14 @@ namespace ZXTune
     
     //@{
     //! @name External attributes
+    
     //! Module's input data filename
     const Char ATTR_FILENAME[] = {'F', 'i', 'l', 'e', 'n', 'a', 'm', 'e', '\0'};
     //! Path of module's input data
     const Char ATTR_PATH[] = {'P', 'a', 't', 'h', '\0'};
-    //! Full path of module including path of input data
-    const Char ATTR_FULLPATH[] = {'F', 'u', 'l', 'l', 'P', 'a', 't', 'h', '\0'};
+    //! Full path of module including path of input data and subpath
+    const Char ATTR_FULLPATH[] = {'F', 'u', 'l', 'l', 'p', 'a', 't', 'h', '\0'};
+    //@}
   }
 }
 

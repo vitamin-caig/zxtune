@@ -30,7 +30,7 @@ namespace ZXTune
       CANCELED,
       //! Access to file is denied by OS
       NO_ACCESS,
-      //! IO error happends while opening the file
+      //! %IO error happends while opening the file
       IO_ERROR,
       //! File already exists
       FILE_EXISTS

@@ -42,7 +42,7 @@ namespace ZXTune
       Information() : LoopPosition(), LoopFrame(), PhysicalChannels()
       {
       }
-      //! Tracking statistic (values are used in second meaning)
+      //! %Tracking statistic (values are used in second meaning)
       Tracking Statistic;
       //! Loop position index
       unsigned LoopPosition;
@@ -50,7 +50,7 @@ namespace ZXTune
       unsigned LoopFrame;
       //! Actual physical channels for playback
       unsigned PhysicalChannels;
-      //! Module properties @see core/module_attrs.h
+      //! %Module properties @see core/module_attrs.h
       Parameters::Map Properties;
     };
 

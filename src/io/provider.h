@@ -66,7 +66,7 @@ namespace ZXTune
     //! @brief Set of the provider information structures
     typedef std::vector<ProviderInformation> ProviderInformationArray;
     
-    //! @brief Enumerating supported IO providers
+    //! @brief Enumerating supported %IO providers
     //! @param providers Reference to result set
     void EnumerateProviders(ProviderInformationArray& providers);
   }

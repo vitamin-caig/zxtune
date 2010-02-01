@@ -22,11 +22,11 @@ namespace ZXTune
     //! @brief Frequency table type- 96 words
     typedef boost::array<uint16_t, 96> FrequencyTable;
     
-    //! Sount Tracker frequency table
+    //! Sound Tracker frequency table
     const Char TABLE_SOUNDTRACKER[] = {'S', 'o', 'u', 'n', 'd', 'T', 'r', 'a', 'c', 'k', 'e', 'r', '\0'};
     //! Pro Tracker v2.x frequency table
     const Char TABLE_PROTRACKER2[] = {'P', 'r', 'o', 'T', 'r', 'a', 'c', 'k', 'e', 'r', '2', '\0'};
-    //! ASC Sound Master frequency table
+    //! ASC %Sound Master frequency table
     const Char TABLE_ASM[] = {'A', 'S', 'M', '\0'};
   }
 }

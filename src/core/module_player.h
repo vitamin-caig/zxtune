@@ -52,7 +52,9 @@ namespace ZXTune
       //! @brief Playing state
       enum PlaybackState
       {
+        //! Currently playing
         MODULE_PLAYING,
+        //! Currently stopped
         MODULE_STOPPED
       };
 
