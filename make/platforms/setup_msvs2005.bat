@@ -1,9 +1,11 @@
-@echo off
+@ECHO OFF
 
-set BOOST_VERSION=1_40
-set BOOST_DIR=c:\Boost_%BOOST_VERSION%
-set VS_PATH=%PROGRAMFILES%\Microsoft Visual Studio .NET 2003
-set PATH=%VS_PATH%\Vc7\bin;%VS_PATH%\Common7\IDE;%PATH%
-set LIB=%BOOST_DIR%\lib;%VS_PATH%\Vc7\lib;%VS_PATH%\Vc7\PlatformSDK\Lib
-set INCLUDE=%BOOST_DIR%;%VS_PATH%\Vc7\include;%VS_PATH%\Vc7\PlatformSDK\Include
-set MSVS_VERSION=vc71
+SET VS_PATH=%PROGRAMFILES%\Microsoft Visual Studio .NET 2003
+ECHO %PATH% | FIND "%VS_PATH%" > NUL && GOTO Quit
+SET BOOST_VERSION=1_40
+SET BOOST_DIR=c:\Boost_%BOOST_VERSION%
+SET PATH=%VS_PATH%\Vc7\bin;%VS_PATH%\Common7\IDE;%PATH%
+SET LIB=%BOOST_DIR%\lib;%VS_PATH%\Vc7\lib;%VS_PATH%\Vc7\PlatformSDK\Lib
+SET INCLUDE=%BOOST_DIR%;%VS_PATH%\Vc7\include;%VS_PATH%\Vc7\PlatformSDK\Include
+SET MSVS_VERSION=vc71
+:Quit

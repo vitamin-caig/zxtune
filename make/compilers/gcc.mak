@@ -5,7 +5,7 @@ AR := $(if $(AR),$(AR),ar)
 
 #set options according to mode
 ifeq ($(mode),release)
-cxx_mode_flags := -O3 -DNDEBUG -fdata-sections -ffunction-sections 
+cxx_mode_flags := -O2 -DNDEBUG -fdata-sections -ffunction-sections 
 ld_mode_flags := --gc-sections 
 else ifeq ($(mode),debug)
 cxx_mode_flags := -O0

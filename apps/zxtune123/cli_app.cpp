@@ -529,7 +529,8 @@ namespace
             if (!noVolume)
             {
               curVolume = std::max(0.0, curVolume - 0.05);
-              const ZXTune::Sound::MultiGain allVol = { {curVolume} };
+              ZXTune::Sound::MultiGain allVol;
+              allVol.assign(curVolume);
               ThrowIfError(backend.SetVolume(allVol));
             }
             break;
@@ -537,7 +538,8 @@ namespace
             if (!noVolume)
             {
               curVolume = std::min(1.0, curVolume + 0.05);
-              const ZXTune::Sound::MultiGain allVol = { {curVolume} };
+              ZXTune::Sound::MultiGain allVol;
+              allVol.assign(curVolume);
               ThrowIfError(backend.SetVolume(allVol));
             }
             break;
