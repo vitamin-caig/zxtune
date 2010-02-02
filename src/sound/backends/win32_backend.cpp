@@ -45,7 +45,7 @@ namespace
   const unsigned BUFFERS_MAX = 10;
 
   const Char BACKEND_ID[] = {'w', 'i', 'n', '3', '2', 0};
-  const String BACKEND_VERSION(FromChar("$Rev$"));
+  const String BACKEND_VERSION(FromStdString("$Rev$"));
 
   static const BackendInformation BACKEND_INFO =
   {

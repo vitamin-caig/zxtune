@@ -45,7 +45,7 @@ namespace
 
   //plugin attributes
   const Char STC_PLUGIN_ID[] = {'S', 'T', 'C', 0};
-  const String TEXT_STC_VERSION(FromChar("$Rev$"));
+  const String TEXT_STC_VERSION(FromStdString("$Rev$"));
 
   //hints
   const unsigned MAX_STC_MODULE_SIZE = 16384;
@@ -122,7 +122,7 @@ namespace
     uint16_t PositionsOffset;
     uint16_t OrnamentsOffset;
     uint16_t PatternsOffset;
-    uint8_t Identifier[18];
+    char Identifier[18];
     uint16_t Size;
   } PACK_POST;
 
@@ -472,7 +472,7 @@ namespace
       
       //meta properties
       ExtractMetaProperties(STC_PLUGIN_ID, container, region, Data.Info.Properties, RawData);
-      const String& prog(OptimizeString(String(header->Identifier, ArrayEnd(header->Identifier))));
+      const String& prog(OptimizeString(FromStdString(header->Identifier)));
       if (!prog.empty())
       {
         Data.Info.Properties.insert(StringMap::value_type(Module::ATTR_PROGRAM, prog));

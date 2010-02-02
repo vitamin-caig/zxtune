@@ -39,7 +39,7 @@ namespace
   const std::string THIS_MODULE("WavBackend");
 
   const Char BACKEND_ID[] = {'w', 'a', 'v', 0};
-  const String BACKEND_VERSION(FromChar("$Rev$"));
+  const String BACKEND_VERSION(FromStdString("$Rev$"));
 
   static const BackendInformation BACKEND_INFO =
   {

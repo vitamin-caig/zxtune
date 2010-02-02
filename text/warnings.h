@@ -33,4 +33,5 @@ extern const Char TEXT_WARNING_LOOP_OUT_LIMIT[];
 extern const Char TEXT_WARNING_PERIODS[];
 extern const Char TEXT_WARNING_TOO_LONG[];
 extern const Char TEXT_WARNING_UNEXPECTED_END[];
+extern const Char TEXT_WARNING_UNSUPPORTED_COMMAND[];
 #endif //__TEXT_WARNINGS_H_DEFINED__

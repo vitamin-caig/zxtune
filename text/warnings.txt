@@ -99,3 +99,5 @@ __cpp> "#endif //__TEXT_WARNINGS_H_DEFINED__\n"
 < TEXT_WARNING_INVALID_SAMPLE_OFFSET
 > "invalid sample offset"
 
+< TEXT_WARNING_UNSUPPORTED_COMMAND
+> "unsupported command"

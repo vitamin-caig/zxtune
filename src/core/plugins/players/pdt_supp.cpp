@@ -39,7 +39,7 @@ namespace
 
   //plugin attributes
   const Char PDT_PLUGIN_ID[] = {'P', 'D', 'T', 0};
-  const String TEXT_PDT_VERSION(FromChar("$Rev$"));
+  const String TEXT_PDT_VERSION(FromStdString("$Rev$"));
 
   //////////////////////////////////////////////////////////////////////////
   const unsigned ORNAMENTS_COUNT = 11;
@@ -129,7 +129,7 @@ namespace
     boost::array<PDTOrnament, ORNAMENTS_COUNT> Ornaments;
     boost::array<PDTOrnamentLoop, ORNAMENTS_COUNT> OrnLoops;
     uint8_t Padding1[6];
-    boost::array<uint8_t, 32> Title;
+    char Title[32];
     uint8_t Tempo;
     uint8_t Start;
     uint8_t Loop;
@@ -287,7 +287,7 @@ namespace
             }
             break;
           default:
-            channelWarner.AddMessage("Unsupported command");
+            channelWarner.AddMessage(TEXT_WARNING_UNSUPPORTED_COMMAND);
           }
         }
       }
@@ -353,7 +353,7 @@ namespace
       //meta properties
       ExtractMetaProperties(PDT_PLUGIN_ID, container, region, Data.Info.Properties, RawData);
       Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_PROGRAM, String(TEXT_PDT_EDITOR)));
-      const String& title(OptimizeString(String(header->Title.begin(), header->Title.end())));
+      const String& title(OptimizeString(FromStdString(header->Title)));
       if (!title.empty())
       {
         Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_TITLE, title));

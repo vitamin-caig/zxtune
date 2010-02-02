@@ -19,6 +19,11 @@ namespace ZXTune
 {
   namespace IO
   {
+    //! @brief Converting filename to single-char string
+    //! @param str Input filename
+    //! @return Equivalent filename in single-char format
+    std::string ConvertToFilename(const String& str);
+    
     //! @brief Extracting first component from complex path
     //! @param path Input path
     //! @param restPart The rest part besides the first component

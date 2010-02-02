@@ -37,6 +37,16 @@ namespace ZXTune
 {
   namespace IO
   {
+    std::string ConvertToFilename(const String& str)
+    {
+#ifdef UNICODE
+      //TODO: ut8 convertor
+      return std::string(str.begin(), str.end());
+#else
+      return str;
+#endif
+    }
+    
     String ExtractFirstPathComponent(const String& path, String& restPart)
     {
       const String::size_type delimPos(path.find_first_of(FS_DELIMITERS));
@@ -99,11 +109,12 @@ namespace ZXTune
 
     std::auto_ptr<std::ofstream> CreateFile(const String& path, bool overwrite)
     {
-      if (!overwrite && std::ifstream(path.c_str()))
+      const std::string pathC(ConvertToFilename(path));
+      if (!overwrite && std::ifstream(pathC.c_str()))
       {
         throw MakeFormattedError(THIS_LINE, FILE_EXISTS, TEXT_IO_ERROR_FILE_EXISTS, path);
       }
-      std::auto_ptr<std::ofstream> res(new std::ofstream(path.c_str(), std::ios::binary));
+      std::auto_ptr<std::ofstream> res(new std::ofstream(pathC.c_str(), std::ios::binary));
       if (res.get() && res->good())
       {
         return res;

@@ -135,11 +135,11 @@ String Error::CodeToString(CodeType code)
   OutStringStream str;
   if (std::isalnum(p1) && std::isalnum(p2) && std::isalnum(p3))
   {
-    str << char(p1) << char(p2) << char(p3) << '#' << std::setw(2 * codeBytes) << std::setfill('0') << std::hex << (code & ((1 << 8 * codeBytes) - 1));
+    str << Char(p1) << Char(p2) << Char(p3) << Char('#') << std::setw(2 * codeBytes) << std::setfill(Char('0')) << std::hex << (code & ((1 << 8 * codeBytes) - 1));
   }
   else
   {
-    str << '0' << 'x' << std::setw(2 * sizeof(code)) << std::setfill('0') << std::hex << code;
+    str << Char('0') << Char('x') << std::setw(2 * sizeof(code)) << std::setfill(Char('0')) << std::hex << code;
   }
   return str.str();
 }

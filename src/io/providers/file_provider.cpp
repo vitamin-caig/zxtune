@@ -14,6 +14,7 @@ Author:
 #include <tools.h>
 #include <error_tools.h>
 #include <io/error_codes.h>
+#include <io/fs_tools.h>
 #include <io/providers_parameters.h>
 
 #include <fstream>
@@ -30,7 +31,7 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::IO;
 
-  const String PROVIDER_VERSION(FromChar("$Rev$"));
+  const String PROVIDER_VERSION(FromStdString("$Rev$"));
   
   static const ProviderInformation PROVIDER_INFO =
   {
@@ -60,12 +61,12 @@ namespace
     public:
       explicit MMapHolder(const String& path)
       try
-        : File(path.c_str(), boost::interprocess::read_only), Region(File, boost::interprocess::read_only)
+        : File(ConvertToFilename(path).c_str(), boost::interprocess::read_only), Region(File, boost::interprocess::read_only)
       {
       }
       catch (const boost::interprocess::interprocess_exception& e)
       {
-        throw Error(THIS_LINE, IO_ERROR, e.what());
+        throw Error(THIS_LINE, IO_ERROR, FromStdString(e.what()));
       }
 
       virtual std::size_t Size() const
@@ -108,7 +109,7 @@ namespace
       : CoreHolder()
       , Offset(0), Length(0)
     {
-      std::ifstream file(path.c_str(), std::ios::binary);
+      std::ifstream file(ConvertToFilename(path).c_str(), std::ios::binary);
       if (!file)
       {
         throw Error(THIS_LINE, NO_ACCESS, TEXT_IO_ERROR_NO_ACCESS);

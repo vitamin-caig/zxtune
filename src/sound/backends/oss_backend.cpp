@@ -18,6 +18,7 @@ Author:
 #include <tools.h>
 #include <error_tools.h>
 #include <logging.h>
+#include <io/fs_tools.h>
 #include <sound/backends_parameters.h>
 #include <sound/error_codes.h>
 
@@ -47,7 +48,7 @@ namespace
   const unsigned MAX_OSS_VOLUME = 100;
   
   const Char BACKEND_ID[] = {'o', 's', 's', 0};
-  const String BACKEND_VERSION(FromChar("$Rev$"));
+  const String BACKEND_VERSION(FromStdString("$Rev$"));
 
   static const BackendInformation BACKEND_INFO =
   {
@@ -67,7 +68,7 @@ namespace
     }
     AutoDescriptor(const String& name, int mode)
       : Name(name)
-      , Handle(::open(name.c_str(), mode, 0))
+      , Handle(::open(IO::ConvertToFilename(name).c_str(), mode, 0))
     {
       CheckResult(-1 != Handle, THIS_LINE);
     }

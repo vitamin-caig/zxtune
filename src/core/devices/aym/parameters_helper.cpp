@@ -40,7 +40,7 @@ namespace
       DataChunk::DUTY_CYCLE_MASK_N,
       DataChunk::DUTY_CYCLE_MASK_E
     };
-    BOOST_STATIC_ASSERT(sizeof(LETTERS) == sizeof(MASKS));
+    BOOST_STATIC_ASSERT(sizeof(LETTERS) / sizeof(*LETTERS) == sizeof(MASKS) / sizeof(*MASKS));
     const std::size_t pos = std::find(LETTERS, ArrayEnd(LETTERS), letter) - LETTERS;
     if (pos == ArraySize(LETTERS))
     {

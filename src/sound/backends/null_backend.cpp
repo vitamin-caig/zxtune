@@ -27,7 +27,7 @@ namespace
   using namespace ZXTune::Sound;
 
   const Char BACKEND_ID[] = {'n', 'u', 'l', 'l', 0};
-  const String BACKEND_VERSION(FromChar("$Rev$"));
+  const String BACKEND_VERSION(FromStdString("$Rev$"));
   
   static const BackendInformation BACKEND_INFO =
   {

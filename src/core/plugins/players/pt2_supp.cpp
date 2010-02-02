@@ -44,7 +44,7 @@ namespace
   using namespace ZXTune::Module;
 
   const Char PT2_PLUGIN_ID[] = {'P', 'T', '2', 0};
-  const String TEXT_PT2_VERSION(FromChar("$Rev$"));
+  const String TEXT_PT2_VERSION(FromStdString("$Rev$"));
 
   const std::size_t LIMITER(~0u);
 
@@ -103,7 +103,7 @@ namespace
     boost::array<uint16_t, 32> SamplesOffsets;
     boost::array<uint16_t, 16> OrnamentsOffsets;
     uint16_t PatternsOffset;
-    boost::array<char, 30> Name;
+    char Name[30];
     uint8_t Positions[1];
   } PACK_POST;
 
@@ -509,7 +509,7 @@ namespace
       
       //meta properties
       ExtractMetaProperties(PT2_PLUGIN_ID, container, region, Data.Info.Properties, RawData);
-      const String& title(OptimizeString(String(header->Name.begin(), header->Name.end())));
+      const String& title(OptimizeString(FromStdString(header->Name)));
       if (!title.empty())
       {
         Data.Info.Properties.insert(StringMap::value_type(Module::ATTR_TITLE, title));

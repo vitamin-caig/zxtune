@@ -96,4 +96,7 @@ extern const Char TEXT_WARNING_TOO_LONG[] = {
 extern const Char TEXT_WARNING_UNEXPECTED_END[] = {
   'u','n','e','x','p','e','c','t','e','d',' ','e','n','d',' ','o','f',' ','f','i','l','e',0
 };
+extern const Char TEXT_WARNING_UNSUPPORTED_COMMAND[] = {
+  'u','n','s','u','p','p','o','r','t','e','d',' ','c','o','m','m','a','n','d',0
+};
 #endif //__TEXT_WARNINGS_H_DEFINED__

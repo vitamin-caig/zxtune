@@ -40,9 +40,9 @@ namespace Log
   }
 
   #ifdef UNICODE
-  inline const std::string& AdaptType(const String& param)
+  inline std::string AdaptType(const String& param)
   {
-    return std::string(param.begin(), param.end());
+    return ToStdString(param);
   }
   #endif
 
