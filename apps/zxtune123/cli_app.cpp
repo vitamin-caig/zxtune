@@ -62,13 +62,12 @@ namespace
   inline String GetDefaultConfigFile()
   {
 #ifdef _WIN32
-    const String HOME(TEXT_ENV_HOMEDIR_WIN);
+    if (const char* homeDir = ::getenv(ToStdString(TEXT_ENV_HOMEDIR_WIN).c_str()))
 #else
-    const String HOME(TEXT_ENV_HOMEDIR_NIX);
+    if (const char* homeDir = ::getenv(ToStdString(TEXT_ENV_HOMEDIR_NIX).c_str()))
 #endif
-    if (const char* homeDir = ::getenv(std::string(HOME.begin(), HOME.end()).c_str()))
     {
-      return String(homeDir, homeDir + std::strlen(homeDir)) + TEXT_CONFIG_PATH;
+      return FromStdString(homeDir);
     }
     return TEXT_CONFIG_PATH;
   }
@@ -120,7 +119,7 @@ namespace
   
   void ErrOuter(unsigned /*level*/, Error::LocationRef loc, Error::CodeType code, const String& text)
   {
-    std::cout << Error::AttributesToString(loc, code, text);
+    StdOut << Error::AttributesToString(loc, code, text);
   }
 
   void ShowItemInfo(const ZXTune::Module::Information& info, unsigned frameDuration)
@@ -130,7 +129,7 @@ namespace
     const String& infoFmt(InstantiateTemplate(TEXT_ITEM_INFO, strProps, FILL_NONEXISTING));
 
     assert(INFORMATION_HEIGHT == std::count(infoFmt.begin(), infoFmt.end(), '\n'));
-    std::cout << (Formatter(infoFmt)
+    StdOut << (Formatter(infoFmt)
       % UnparseFrameTime(info.Statistic.Frame, frameDuration) % info.PhysicalChannels).str();
   }
   
@@ -139,7 +138,7 @@ namespace
     const String& dump = (Formatter(TEXT_TRACKING_STATUS)
       % track.Position % track.Pattern % track.Line % track.Frame % track.Tempo % track.Channels).str();
     assert(TRACKING_HEIGHT == std::count(dump.begin(), dump.end(), '\n'));
-    std::cout << dump;
+    StdOut << dump;
   }
   
   inline Char StateSymbol(ZXTune::Sound::Backend::State state)
@@ -168,7 +167,7 @@ namespace
     prog[pos] = StateSymbol(state);
     data.replace(markerPos, 1, prog);
     assert(PLAYING_HEIGHT == std::count(data.begin(), data.end(), '\n'));
-    std::cout << data << std::flush;
+    StdOut << data << std::flush;
   }
   
   void UpdateAnalyzer(const ZXTune::Module::Analyze::ChannelsState& inState,
@@ -200,9 +199,9 @@ namespace
     {
       const int limit = (y - 1) * std::numeric_limits<ZXTune::Module::Analyze::LevelType>::max() / high;
       std::transform(state.begin(), state.end(), buffer.begin(), boost::bind(SymIfGreater, _1, limit));
-      std::cout << buffer << '\n';
+      StdOut << buffer << '\n';
     }
-    std::cout << std::flush;
+    StdOut << std::flush;
   }
   
   class Convertor
@@ -280,7 +279,7 @@ namespace
     {
       if (!Silent)
       {
-        std::cout << (Formatter(format) % p1 % p2).str() << std::endl;
+        StdOut << (Formatter(format) % p1 % p2).str() << std::endl;
       }
     }
 
@@ -289,7 +288,7 @@ namespace
     {
       if (!Silent)
       {
-        std::cout << (Formatter(format) % p1 % p2 % p3).str() << std::endl;
+        StdOut << (Formatter(format) % p1 % p2 % p3).str() << std::endl;
       }
     }
   private:
@@ -339,7 +338,7 @@ namespace
           {
             ModuleItemsArray playlist;
             Sourcer->ProcessItems(boost::bind(&ModuleItemsArray::push_back, boost::ref(playlist), _1));
-            std::cout << "Detected " << playlist.size() << " items" << std::endl;
+            StdOut << "Detected " << playlist.size() << " items" << std::endl;
             std::for_each(playlist.begin(), playlist.end(), boost::bind(&CLIApplication::PlayItem, this, _1));
           }
           else
@@ -402,12 +401,12 @@ namespace
         notify(vars);
         if (vars.count(TEXT_HELP_KEY))
         {
-          std::cout << options << std::endl;
+          StdOut << options << std::endl;
           return true;
         }
         else if (vars.count(TEXT_VERSION_KEY))
         {
-          std::cout << VERSION_STRING(ZXTUNE_VERSION) << std::endl;
+          StdOut << VERSION_STRING(ZXTUNE_VERSION) << std::endl;
           return true;
         }
         if (!providersOptions.empty())

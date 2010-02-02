@@ -10,6 +10,8 @@ Author:
   
   This file is a part of zxtune123 application based on zxtune library
 */
+
+#include "app.h"
 #include "error_codes.h"
 #include "source.h"
 
@@ -40,7 +42,7 @@ namespace
  
   void DoLog(const String& str)
   {
-    std::cout << str << std::endl;
+    StdOut << str << std::endl;
   }
   
   void Parse(const StringSet& allplugs, const String& str, StringSet& plugs, uint32_t& caps)

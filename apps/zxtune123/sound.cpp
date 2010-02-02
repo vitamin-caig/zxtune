@@ -10,6 +10,8 @@ Author:
   
   This file is a part of zxtune123 application based on zxtune library
 */
+
+#include "app.h"
 #include "error_codes.h"
 #include "parsing.h"
 #include "sound.h"
@@ -52,7 +54,7 @@ namespace
 
   void ErrOuter(unsigned /*level*/, Error::LocationRef loc, Error::CodeType code, const String& text)
   {
-    std::cout << Error::AttributesToString(loc, code, text);
+    StdOut << Error::AttributesToString(loc, code, text);
   }
   
   inline bool InvalidChannelLetter(unsigned channels, Char letter)

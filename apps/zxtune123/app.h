@@ -13,7 +13,13 @@ Author:
 #ifndef ZXTUNE123_APP_H_DEFINED
 #define ZXTUNE123_APP_H_DEFINED
 
+#include <char_type.h>
+
+#include <iostream>
 #include <memory>
+
+// standart stream
+extern std::basic_ostream<Char>& StdOut;
 
 class Application
 {

@@ -10,6 +10,8 @@ Author:
   
   This file is a part of zxtune123 application based on zxtune library
 */
+
+#include "app.h"
 #include "console.h"
 #include "error_codes.h"
 
@@ -85,7 +87,7 @@ namespace
     {
       if (IsConsoleOut)
       {
-        std::cout << "\x1b[" << lines << 'A' << std::flush;
+        StdOut << "\x1b[" << lines << 'A' << std::flush;
       }
     }
 

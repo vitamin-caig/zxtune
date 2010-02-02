@@ -11,6 +11,7 @@ Author:
   This file is a part of zxtune123 application based on zxtune library
 */
 
+#include "app.h"
 #include "information.h"
 
 #include <tools.h>
@@ -67,7 +68,7 @@ namespace
     {
       if (cap->first & caps)
       {
-        result += " ";
+        result += Char(' ');
         result += cap->second;
       }
     }
@@ -76,7 +77,7 @@ namespace
   
   void ShowPlugin(const ZXTune::PluginInformation& info)
   {
-    std::cout << (Formatter(TEXT_INFO_PLUGIN_INFO)
+    StdOut << (Formatter(TEXT_INFO_PLUGIN_INFO)
        % info.Id % info.Description % info.Version % PluginCaps(info.Capabilities)).str();
   }
 
@@ -84,13 +85,13 @@ namespace
   {
     ZXTune::PluginInformationArray plugins;
     ZXTune::EnumeratePlugins(plugins);
-    std::cout << TEXT_INFO_LIST_PLUGINS_TITLE << std::endl;
+    StdOut << TEXT_INFO_LIST_PLUGINS_TITLE << std::endl;
     std::for_each(plugins.begin(), plugins.end(), ShowPlugin);
   }
   
   void ShowBackend(const ZXTune::Sound::BackendInformation& info)
   {
-    std::cout << (Formatter(TEXT_INFO_BACKEND_INFO)
+    StdOut << (Formatter(TEXT_INFO_BACKEND_INFO)
       % info.Id % info.Description % info.Version).str();
   }
   
@@ -98,13 +99,13 @@ namespace
   {
     ZXTune::Sound::BackendInformationArray backends;
     ZXTune::Sound::EnumerateBackends(backends);
-    std::cout << TEXT_INFO_LIST_BACKENDS_TITLE << std::endl;
+    StdOut << TEXT_INFO_LIST_BACKENDS_TITLE << std::endl;
     std::for_each(backends.begin(), backends.end(), ShowBackend);
   }
   
   void ShowProvider(const ZXTune::IO::ProviderInformation& info)
   {
-    std::cout << (Formatter(TEXT_INFO_PROVIDER_INFO)
+    StdOut << (Formatter(TEXT_INFO_PROVIDER_INFO)
       % info.Name % info.Description % info.Version).str();
   }
   
@@ -112,7 +113,7 @@ namespace
   {
     ZXTune::IO::ProviderInformationArray providers;
     ZXTune::IO::EnumerateProviders(providers);
-    std::cout << TEXT_INFO_LIST_PROVIDERS_TITLE << std::endl;
+    StdOut << TEXT_INFO_LIST_PROVIDERS_TITLE << std::endl;
     std::for_each(providers.begin(), providers.end(), ShowProvider);
   }
   
@@ -123,18 +124,18 @@ namespace
     //section
     if (opt.get<1>().empty())
     {
-      std::cout << opt.get<0>() << std::endl;
+      StdOut << opt.get<0>() << std::endl;
     }
     else
     {
       const String& defVal(Parameters::ConvertToString(opt.get<2>()));
       if (defVal.empty())
       {
-        std::cout << (Formatter(TEXT_INFO_OPTION_INFO) % opt.get<0>() % opt.get<1>()).str();
+        StdOut << (Formatter(TEXT_INFO_OPTION_INFO) % opt.get<0>() % opt.get<1>()).str();
       }
       else
       {
-        std::cout << (Formatter(TEXT_INFO_OPTION_INFO_DEFAULTS)
+        StdOut << (Formatter(TEXT_INFO_OPTION_INFO_DEFAULTS)
           % opt.get<0>() % opt.get<1>() % defVal).str();
       }
     }
@@ -200,14 +201,14 @@ namespace
                  TEXT_INFO_OPTIONS_CORE_PLUGINS_RAW_SCAN_STEP,
                  Parameters::ZXTune::Core::Plugins::Raw::SCAN_STEP_DEFAULT)
     };
-    std::cout << TEXT_INFO_LIST_OPTIONS_TITLE << std::endl;
+    StdOut << TEXT_INFO_LIST_OPTIONS_TITLE << std::endl;
     std::for_each(OPTIONS, ArrayEnd(OPTIONS), ShowOption);
   }
   
   typedef std::pair<String, String> AttrType;
   void ShowAttribute(const AttrType& arg)
   {
-    std::cout << (Formatter(TEXT_INFO_ATTRIBUTE_INFO) % arg.first % arg.second).str();
+    StdOut << (Formatter(TEXT_INFO_ATTRIBUTE_INFO) % arg.first % arg.second).str();
   }
   
   void ShowAttributes()
@@ -233,7 +234,7 @@ namespace
       AttrType(ZXTune::Module::ATTR_CRC, TEXT_INFO_ATTRIBUTES_CRC),
       AttrType(ZXTune::Module::ATTR_SIZE, TEXT_INFO_ATTRIBUTES_SIZE)
     };
-    std::cout << TEXT_INFO_LIST_ATTRIBUTES_TITLE << std::endl;
+    StdOut << TEXT_INFO_LIST_ATTRIBUTES_TITLE << std::endl;
     std::for_each(ATTRIBUTES, ArrayEnd(ATTRIBUTES), ShowAttribute);
   }
   
@@ -245,9 +246,9 @@ namespace
       ZXTune::Module::TABLE_PROTRACKER2,
       ZXTune::Module::TABLE_ASM
     };
-    std::cout << TEXT_INFO_LIST_FREQTABLES_TITLE;
-    std::copy(FREQTABLES, ArrayEnd(FREQTABLES), std::ostream_iterator<String>(std::cout, " "));
-    std::cout << std::endl;
+    StdOut << TEXT_INFO_LIST_FREQTABLES_TITLE;
+    std::copy(FREQTABLES, ArrayEnd(FREQTABLES), std::ostream_iterator<String>(StdOut, " "));
+    StdOut << std::endl;
   }
 
   class Information : public InformationComponent
