@@ -62,20 +62,20 @@ namespace
   inline String GetDefaultConfigFile()
   {
 #ifdef _WIN32
+    const String configPath(TEXT_CONFIG_PATH_WIN);
     if (const char* homeDir = ::getenv(ToStdString(TEXT_ENV_HOMEDIR_WIN).c_str()))
 #else
+    const String configPath(TEXT_CONFIG_PATH_NIX);
     if (const char* homeDir = ::getenv(ToStdString(TEXT_ENV_HOMEDIR_NIX).c_str()))
 #endif
     {
-      return FromStdString(homeDir);
+      return ZXTune::IO::AppendPath(FromStdString(homeDir), configPath);
     }
-    return TEXT_CONFIG_PATH;
+    return TEXT_CONFIG_FILENAME;
   }
   
   void ReadConfigFile(const String& filename, Parameters::Map& params)
   {
-    Parameters::Map res;
-    
     const String configName(filename.empty() ? TEXT_CONFIG_FILENAME : filename);
     
     typedef std::basic_ifstream<Char> FileStream;
@@ -88,15 +88,20 @@ namespace
       }
       configFile.reset(new FileStream(GetDefaultConfigFile().c_str()));
     }
-    if (*configFile)
+    if (!*configFile)
     {
-      String lines;
-      std::vector<Char> buffer(1024);
-      for (;;)
-      {
-        configFile->getline(&buffer[0], buffer.size());
-        const std::streamsize lineSize(configFile->gcount() - 1);
-        std::vector<Char>::const_iterator endof(buffer.begin() + lineSize);
+      params.clear();
+      return;
+    }
+
+    String lines;
+    std::vector<Char> buffer(1024);
+    for (;;)
+    {
+      configFile->getline(&buffer[0], buffer.size());
+      if (const std::streamsize lineSize = configFile->gcount())
+	    {
+        std::vector<Char>::const_iterator endof(buffer.begin() + lineSize - 1);
         std::vector<Char>::const_iterator beginof(std::find_if<std::vector<Char>::const_iterator>(buffer.begin(), endof, 
           std::not1(std::ptr_fun<int, int>(&std::isspace))));
         if (beginof != endof && *beginof != Char('#'))
@@ -107,14 +112,20 @@ namespace
           }
           lines += String(beginof, endof);
         }
-        if (configFile->eof())
-        {
-          break;
-        }
       }
-      ThrowIfError(ParseParametersString(String(), lines, res));
+      else
+      {
+        break;
+      }
     }
-    res.swap(params);
+    if (lines.empty())
+    {
+      params.clear();
+    }
+    else
+    {
+      ThrowIfError(ParseParametersString(String(), lines, params));
+    }
   }
   
   void ErrOuter(unsigned /*level*/, Error::LocationRef loc, Error::CodeType code, const String& text)

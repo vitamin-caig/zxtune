@@ -212,17 +212,20 @@
 < TEXT_TIME_FORMAT
 > "%1%:%2$02u.%3$02u"
 
+< TEXT_CONFIG_FILENAME
+> "zxtune.conf"
+
 < TEXT_ENV_HOMEDIR_WIN
 > "APPDATA"
 
 < TEXT_ENV_HOMEDIR_NIX
 > "HOME"
 
-< TEXT_CONFIG_FILENAME
-> "zxtune.conf"
+< TEXT_CONFIG_PATH_WIN
+> "\\zxtune\\" TEXT_CONFIG_FILENAME
 
-< TEXT_CONFIG_PATH
-> "/zxtune/" TEXT_CONFIG_FILENAME
+< TEXT_CONFIG_PATH_NIX
+> "/.zxtune/" TEXT_CONFIG_FILENAME
 
 < TEXT_ERROR_CONFIG_FILE
 > "Failed to open configuration file."

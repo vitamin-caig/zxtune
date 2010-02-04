@@ -55,8 +55,11 @@ extern const Char TEXT_CONFIG_FILENAME[] = {
 extern const Char TEXT_CONFIG_KEY[] = {
   'c','o','n','f','i','g',0
 };
-extern const Char TEXT_CONFIG_PATH[] = {
-  '/','z','x','t','u','n','e','/','z','x','t','u','n','e','.','c','o','n','f',0
+extern const Char TEXT_CONFIG_PATH_NIX[] = {
+  '/','.','z','x','t','u','n','e','/','z','x','t','u','n','e','.','c','o','n','f',0
+};
+extern const Char TEXT_CONFIG_PATH_WIN[] = {
+  '\\','z','x','t','u','n','e','\\','z','x','t','u','n','e','.','c','o','n','f',0
 };
 extern const Char TEXT_CONVERT_DESC[] = {
   'P','e','r','f','o','r','m',' ','c','o','n','v','e','r','s','i','o','n',' ','i','n','s','t','e','a','d',' ',
