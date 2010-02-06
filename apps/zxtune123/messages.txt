@@ -199,10 +199,10 @@
 > "\n"
 
 < TEXT_ITEM_INFO
-> "Playing: [FullPath]\n"
-> "Type:    [Type]\t"  "Container: [Container]\n"
+> "Playing: [Fullpath]\n"
+> "Type:    [Type]\t"  "Container: [Container]\t" "Program: [Program]\n"
 > "Title:   [Title]\n"
-> "Program: [Program]\n"
+> "Author:  [Author]\n"
 > "Time:    %1%\t"     "Channels:  %2%\n"
 > "\n"
 

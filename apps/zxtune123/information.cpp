@@ -244,6 +244,12 @@ namespace
     {
       ZXTune::Module::TABLE_SOUNDTRACKER,
       ZXTune::Module::TABLE_PROTRACKER2,
+      ZXTune::Module::TABLE_PROTRACKER3_3,
+      ZXTune::Module::TABLE_PROTRACKER3_4,
+      ZXTune::Module::TABLE_PROTRACKER3_3_ASM,
+      ZXTune::Module::TABLE_PROTRACKER3_4_ASM,
+      ZXTune::Module::TABLE_PROTRACKER3_3_REAL,
+      ZXTune::Module::TABLE_PROTRACKER3_4_REAL,
       ZXTune::Module::TABLE_ASM
     };
     StdOut << TEXT_INFO_LIST_FREQTABLES_TITLE;

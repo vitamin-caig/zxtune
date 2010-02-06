@@ -133,17 +133,26 @@ namespace
     StdOut << Error::AttributesToString(loc, code, text);
   }
 
+  void OutProp(const StringMap::value_type& prop)
+  {
+    StdOut << prop.first << '=' << prop.second << std::endl;
+  }
+
   void ShowItemInfo(const ZXTune::Module::Information& info, unsigned frameDuration)
   {
     StringMap strProps;
     Parameters::ConvertMap(info.Properties, strProps);
+#if 1
     const String& infoFmt(InstantiateTemplate(TEXT_ITEM_INFO, strProps, FILL_NONEXISTING));
 
     assert(INFORMATION_HEIGHT == std::count(infoFmt.begin(), infoFmt.end(), '\n'));
     StdOut << (Formatter(infoFmt)
       % UnparseFrameTime(info.Statistic.Frame, frameDuration) % info.PhysicalChannels).str();
+#else
+    std::for_each(strProps.begin(), strProps.end(), OutProp);
+#endif
   }
-  
+
   void ShowTrackingStatus(const ZXTune::Module::Tracking& track)
   {
     const String& dump = (Formatter(TEXT_TRACKING_STATUS)
