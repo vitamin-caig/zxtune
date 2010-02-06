@@ -23,9 +23,21 @@ namespace ZXTune
     typedef boost::array<uint16_t, 96> FrequencyTable;
     
     //! Sound Tracker frequency table
-    const Char TABLE_SOUNDTRACKER[] = {'S', 'o', 'u', 'n', 'd', 'T', 'r', 'a', 'c', 'k', 'e', 'r', '\0'};
+    const Char TABLE_SOUNDTRACKER[] = {'S','o','u','n','d','T','r','a','c','k','e','r','\0'};
     //! Pro Tracker v2.x frequency table
-    const Char TABLE_PROTRACKER2[] = {'P', 'r', 'o', 'T', 'r', 'a', 'c', 'k', 'e', 'r', '2', '\0'};
+    const Char TABLE_PROTRACKER2[] = {'P','r','o','T','r','a','c','k','e','r','2','\0'};
+    //! Pro Tracker v3.3 native frequency table
+    const Char TABLE_PROTRACKER3_3[] = {'P','r','o','T','r','a','c','k','e','r','3','.','3','\0'};
+    //! Pro Tracker v3.4 native frequency table
+    const Char TABLE_PROTRACKER3_4[] = {'P','r','o','T','r','a','c','k','e','r','3','.','4','\0'};
+    //! Pro Tracker v3.3 ASM frequency table
+    const Char TABLE_PROTRACKER3_3_ASM[] = {'P','r','o','T','r','a','c','k','e','r','3','.','3','_','A','S','M','\0'};
+    //! Pro Tracker v3.4 ASM frequency table
+    const Char TABLE_PROTRACKER3_4_ASM[] = {'P','r','o','T','r','a','c','k','e','r','3','.','4','_','A','S','M','\0'};
+    //! Pro Tracker v3.3 real frequency table
+    const Char TABLE_PROTRACKER3_3_REAL[] = {'P','r','o','T','r','a','c','k','e','r','3','.','3','_','R','e','a','l','\0'};
+    //! Pro Tracker v3.4 real frequency table
+    const Char TABLE_PROTRACKER3_4_REAL[] = {'P','r','o','T','r','a','c','k','e','r','3','.','4','_','R','e','a','l','\0'};
     //! ASC %Sound Master frequency table
     const Char TABLE_ASM[] = {'A', 'S', 'M', '\0'};
   }
