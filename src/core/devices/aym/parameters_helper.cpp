@@ -15,7 +15,6 @@ Author:
 #include <tools.h>
 #include <core/error_codes.h>
 #include <core/core_parameters.h>
-#include <core/freq_tables.h>
 #include <core/devices/aym.h>
 #include <core/devices/aym_parameters_helper.h>
 

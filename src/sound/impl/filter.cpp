@@ -18,6 +18,7 @@ Author:
 
 #include <boost/noncopyable.hpp>
 #include <boost/static_assert.hpp>
+#include <boost/integer/static_log2.hpp>
 
 #include <cassert>
 #include <cmath>
@@ -38,7 +39,7 @@ namespace
     const double delta = 1e-14;
     double term = 0.5;
     double f = 1.0;
-    std::size_t k = 0;
+    uint_t k = 0;
     double result = 0.0;
     while (term < -delta || term > delta)
     {
@@ -53,10 +54,10 @@ namespace
   //kaiser implementation
   inline void DoFFT(const double alpha, std::vector<double>& coeffs)
   {
-    const unsigned order = static_cast<unsigned>(coeffs.size());
+    const uint_t order = coeffs.size();
     const double denom = bessel(alpha);
     const double center = double(order - 1) / 2;
-    for (unsigned tap = 0; tap < order; ++tap)
+    for (uint_t tap = 0; tap < order; ++tap)
     {
       const double kg = (double(tap) - center) / center;
       const double kd = alpha * sqrt(1.0 - kg * kg);
@@ -78,9 +79,11 @@ namespace
   class Integrator
   {
   public:
-    explicit Integrator(unsigned size)
-      : Size(size), Buffer(size), Current(Buffer.begin()), Sum()
+    explicit Integrator(uint_t size)
+      : Size(size), Buffer(size), Current(Buffer.begin())
+      , Sum(SAMPLE_MID)
     {
+      std::fill(Buffer.begin(), Buffer.end(), Sum);
     }
 
     T Update(T val)
@@ -95,36 +98,37 @@ namespace
       return Sum / Size;
     }
   private:
-    const unsigned Size;
+    const uint_t Size;
     std::vector<T> Buffer;
     typename std::vector<T>::iterator Current;
     T Sum;
   };
   
-  template<class IntSample>
+  template<class IntSample, class BigSample>
   class FIRFilter : public Filter, private boost::noncopyable
   {
-    typedef int64_t BigSample;
+    //intermediate type
     typedef boost::array<BigSample, OUTPUT_CHANNELS> MultiBigSample;
-    typedef std::vector<BigSample> MatrixType;
-    
+    //main working type
     typedef boost::array<IntSample, OUTPUT_CHANNELS> MultiIntSample;
+    typedef std::vector<IntSample> MatrixType;
     
     inline static Sample Integral2Sample(BigSample smp, IntSample mid)
     {
       return IntSample(smp / FIXED_POINT_PRECISION) + mid;
     }
   public:
-    static const unsigned MIN_ORDER = 2;
-    static const unsigned MAX_ORDER = 1u <<
-      8 * (sizeof(BigSample) - sizeof(IntSample) - sizeof(Sample));
+    static const uint_t MIN_ORDER = 2;
+    //all bits = SampleBits + 1 + FixedBits + 1 + OrderBits
+    static const uint_t MAX_ORDER = uint_t(1) <<
+      (8 * sizeof(BigSample) - (8 * sizeof(Sample) + 1) - (boost::static_log2<FIXED_POINT_PRECISION>::value + 1));
       
-    explicit FIRFilter(unsigned order)
+    explicit FIRFilter(uint_t order)
       : Matrix(order), Delegate(CreateDummyReceiver())
       , History(order), Position(&History[0], &History.back() + 1)
-      , Midval(4096)
+      , Midval(std::min(uint_t(4096), uint_t(1) << (8 * sizeof(IntSample) - 8 * sizeof(Sample) - boost::static_log2<OUTPUT_CHANNELS>::value)))
     {
-      assert(in_range<unsigned>(order, MIN_ORDER, MAX_ORDER));
+      assert(in_range<uint_t>(order, MIN_ORDER, MAX_ORDER));
     }
 
     virtual void ApplySample(const MultiSample& data)
@@ -138,7 +142,7 @@ namespace
       {
         const typename MatrixType::value_type val(*it);
         const MultiIntSample& src(*Position);
-        for (unsigned chan = 0; chan != OUTPUT_CHANNELS; ++chan)
+        for (uint_t chan = 0; chan != OUTPUT_CHANNELS; ++chan)
         {
           res[chan] += val * src[chan];
         }
@@ -159,36 +163,36 @@ namespace
       Delegate = delegate;
     }
     
-    virtual Error SetBandpassParameters(unsigned freq, unsigned lowCutoff, unsigned highCutoff)
+    virtual Error SetBandpassParameters(uint_t freq, uint_t lowCutoff, uint_t highCutoff)
     {
       try
       {
         //input parameters
         //gain = 10 ^^ (dB / 20)
-        const Gain PASSGAIN = 0.99, STOPGAIN = 0;
+        const Gain PASSGAIN = 0.90, STOPGAIN = 0;
 
         //check parameters
-        const unsigned order = static_cast<unsigned>(Matrix.size());
+        const uint_t order = Matrix.size();
         CheckParams(order, MIN_ORDER, MAX_ORDER, THIS_LINE, TEXT_SOUND_ERROR_FILTER_ORDER);
-        CheckParams(highCutoff, static_cast<unsigned>(freq / order), freq / 2, THIS_LINE, TEXT_SOUND_ERROR_FILTER_HIGH_CUTOFF);
-        CheckParams(lowCutoff, 0u, highCutoff, THIS_LINE, TEXT_SOUND_ERROR_FILTER_LOW_CUTOFF);
+        CheckParams(highCutoff, freq / order, freq / 2, THIS_LINE, TEXT_SOUND_ERROR_FILTER_HIGH_CUTOFF);
+        CheckParams(lowCutoff, uint_t(0), highCutoff, THIS_LINE, TEXT_SOUND_ERROR_FILTER_LOW_CUTOFF);
 
         //create freq responses
         std::vector<Gain> freqResponse(order, 0.0);
-        const unsigned midOrder(order / 2);
-        for (unsigned tap = 0; tap < midOrder; ++tap)
+        const uint_t midOrder(order / 2);
+        for (uint_t tap = 0; tap < midOrder; ++tap)
         {
-          const unsigned tapFreq = static_cast<unsigned>(uint64_t(freq) * (tap + 1) / order);
+          const uint_t tapFreq = static_cast<uint_t>(uint64_t(freq) * (tap + 1) / order);
           freqResponse[tap] = freqResponse[order - tap - 1] =
             (tapFreq < lowCutoff || tapFreq > highCutoff) ? STOPGAIN : PASSGAIN;
         }
 
         //transform coeffs from freq response
         std::vector<double> firCoeffs(order, 0.0);
-        for (unsigned tap = 0; tap < midOrder; ++tap)
+        for (uint_t tap = 0; tap < midOrder; ++tap)
         {
           double tmpCoeff = 0.0;
-          for (unsigned subtap = 0; subtap < order; ++subtap)
+          for (uint_t subtap = 0; subtap < order; ++subtap)
           {
             const double omega = 2.0 * 3.14159265358 * tap * subtap / order;
             tmpCoeff += freqResponse[subtap] * cos(omega);
@@ -224,9 +228,9 @@ namespace ZXTune
 {
   namespace Sound
   {
-    Error CreateFIRFilter(unsigned order, Filter::Ptr& result)
+    Error CreateFIRFilter(uint_t order, Filter::Ptr& result)
     {
-      typedef FIRFilter<signed> FIRFilterType;
+      typedef FIRFilter<uint_t, uint_t> FIRFilterType;
     
       try
       {

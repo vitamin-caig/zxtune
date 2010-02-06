@@ -95,10 +95,10 @@ Error Error::FindSuberror(CodeType code) const
   return ptr ? Error(ptr) : Error();
 }
 
-void Error::WalkSuberrors(const boost::function<void(unsigned, LocationRef, CodeType, const String&)>& callback) const
+void Error::WalkSuberrors(const boost::function<void(uint_t, LocationRef, CodeType, const String&)>& callback) const
 {
   MetaPtr ptr = ErrorMeta;
-  for (unsigned level = 0; ptr; ++level, ptr = ptr->Suberror)
+  for (uint_t level = 0; ptr; ++level, ptr = ptr->Suberror)
   {
     const Meta& Meta(*ptr);
     callback(level, Meta.Location, Meta.Code, Meta.Text);
@@ -127,15 +127,15 @@ bool Error::operator ! () const
 
 String Error::CodeToString(CodeType code)
 {
-  const unsigned codeBytes(sizeof(code) - 3);
+  const std::size_t codeBytes(sizeof(code) - 3);
   const CodeType syms = code >> (8 * codeBytes);
-  const int p1 = syms & 0xff;
-  const int p2 = (syms >> 8) & 0xff;
-  const int p3 = (syms >> 16) & 0xff;
+  const Char p1 = syms & 0xff;
+  const Char p2 = (syms >> 8) & 0xff;
+  const Char p3 = (syms >> 16) & 0xff;
   OutStringStream str;
   if (std::isalnum(p1) && std::isalnum(p2) && std::isalnum(p3))
   {
-    str << Char(p1) << Char(p2) << Char(p3) << Char('#') << std::setw(2 * codeBytes) << std::setfill(Char('0')) << std::hex << (code & ((1 << 8 * codeBytes) - 1));
+    str << p1 << p2 << p3 << Char('#') << std::setw(2 * codeBytes) << std::setfill(Char('0')) << std::hex << (code & ((uint_t(1) << 8 * codeBytes) - 1));
   }
   else
   {

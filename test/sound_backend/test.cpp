@@ -99,7 +99,7 @@ namespace
       return Holder;
     }
     
-    virtual Error GetPlaybackState(unsigned&, Module::Tracking&, Module::Analyze::ChannelsState&) const
+    virtual Error GetPlaybackState(uint_t&, Module::Tracking&, Module::Analyze::ChannelsState&) const
     {
       return Error();
     }
@@ -135,7 +135,7 @@ namespace
       return Error();
     }
     
-    virtual Error SetPosition(unsigned frame)
+    virtual Error SetPosition(uint_t frame)
     {
       return Error();
     }

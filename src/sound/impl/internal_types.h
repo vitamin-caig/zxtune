@@ -21,7 +21,7 @@ namespace ZXTune
     // fixed point procession-related
 
     /// Precision for fixed-point calculations (num(float) = num(int) / FIXED_POINT_PRECISION)
-    const unsigned FIXED_POINT_PRECISION = 256;
+    const uint_t FIXED_POINT_PRECISION = 256;
         
     template<class T>
     inline T Gain2Fixed(Gain gain)

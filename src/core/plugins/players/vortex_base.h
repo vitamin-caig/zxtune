@@ -27,7 +27,7 @@ namespace ZXTune
       {
       }
 
-      VortexSample(unsigned size, unsigned loop) : Loop(loop), Data(size)
+      VortexSample(uint_t size, uint_t loop) : Loop(loop), Data(size)
       {
       }
 
@@ -49,20 +49,20 @@ namespace ZXTune
         }
 
         // level-related
-        unsigned Level;//0-15
-        signed VolumeSlideAddon;
+        uint_t Level;//0-15
+        int_t VolumeSlideAddon;
         // tone-related
         bool ToneMask;
-        signed ToneOffset;
+        int_t ToneOffset;
         bool KeepToneOffset;
         // noise/enelope-related
         bool NoiseMask;
         bool EnvMask;
-        signed NoiseOrEnvelopeOffset;
+        int_t NoiseOrEnvelopeOffset;
         bool KeepNoiseOrEnvelopeOffset;
       };
 
-      unsigned Loop;
+      uint_t Loop;
       std::vector<Line> Data;
     };
     
@@ -85,7 +85,7 @@ namespace ZXTune
     typedef TrackingSupport<AYM::CHANNELS, VortexSample> VortexTrack;
 
     Player::Ptr CreateVortexPlayer(Holder::ConstPtr holder, const VortexTrack::ModuleData& data, 
-       unsigned version, const String& freqTableName, AYM::Chip::Ptr device);
+       uint_t version, const String& freqTableName, AYM::Chip::Ptr device);
   }
 }
 

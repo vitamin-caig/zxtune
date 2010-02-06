@@ -24,14 +24,12 @@ class Error
   struct Meta;
   typedef boost::shared_ptr<struct Meta> MetaPtr;
 public:
-  //! @typedef uint32_t LineTag
   //! @brief Datatype for source text line identification\n
   //! LineTag = FILE_TAG + __LINE__\n
   //! assume __LINE__ < 65536
   typedef uint32_t LineTag;
-  //! @typedef uint32_t CodeType
   //! @brief Type for code
-  typedef uint32_t CodeType;
+  typedef uint_t CodeType;
 
   //! @struct ModuleCode
   //! @brief Template used for generate per-module base error code:
@@ -54,7 +52,7 @@ public:
     {
     }
     //! Full parameters list constructor
-    Location(LineTag tag, const char* file, const char* function, unsigned line)
+    Location(LineTag tag, const char* file, const char* function, uint_t line)
       : Tag(tag), File(file), Function(function), Line(line)
     {
     }
@@ -65,7 +63,7 @@ public:
     //! Source function
     const char* Function;
     //! Source line
-    unsigned Line;
+    uint_t Line;
     
     bool operator == (const Location& rh) const
     {
@@ -119,7 +117,7 @@ public:
   Error FindSuberror(CodeType code) const;
   //! @brief Walking through all nested suberrors
   //! @param callback Callback which will be called on each level by stack starting from 0
-  void WalkSuberrors(const boost::function<void(unsigned, LocationRef, CodeType, const String&)>& callback) const;
+  void WalkSuberrors(const boost::function<void(uint_t, LocationRef, CodeType, const String&)>& callback) const;
   //@}
   
   //@{

@@ -164,7 +164,7 @@ inline bool in_range(T val, T min, T max)
 template<class T>
 inline T align(T val, T alignment)
 {
-  BOOST_STATIC_ASSERT(boost::is_arithmetic<T>::value);
+  BOOST_STATIC_ASSERT(boost::is_integral<T>::value);
   return alignment * ((val - 1) / alignment + 1);
 }
 

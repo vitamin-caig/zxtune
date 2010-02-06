@@ -17,6 +17,7 @@ Author:
 
 #include <byteorder.h>
 #include <error_tools.h>
+#include <logging.h>
 #include <messages_collector.h>
 #include <tools.h>
 #include <core/convert_parameters.h>
@@ -26,7 +27,6 @@ Author:
 #include <core/plugin_attrs.h>
 #include <io/container.h>
 #include <sound/render_params.h>
-#include <core/devices/aym.h>
 #include <core/devices/aym_parameters_helper.h>
 
 #include <boost/bind.hpp>
@@ -46,13 +46,13 @@ namespace
   const Char PT3_PLUGIN_ID[] = {'P', 'T', '3', 0};
   const String TEXT_PT3_VERSION(FromStdString("$Rev$"));
 
-  const std::size_t MAX_MODULE_SIZE = 1 << 16;
-  const std::size_t MAX_PATTERNS_COUNT = 48;
-  const std::size_t MAX_PATTERN_SIZE = 64;
-  const std::size_t MAX_SAMPLES_COUNT = 32;
-  const std::size_t MAX_SAMPLE_SIZE = 64;
-  const std::size_t MAX_ORNAMENTS_COUNT = 16;
-  const std::size_t MAX_ORNAMENT_SIZE = 64;
+  const std::size_t MAX_MODULE_SIZE = 16384;
+  const uint_t MAX_PATTERNS_COUNT = 48;
+  const uint_t MAX_PATTERN_SIZE = 64;
+  const uint_t MAX_SAMPLES_COUNT = 32;
+  const uint_t MAX_SAMPLE_SIZE = 64;
+  const uint_t MAX_ORNAMENTS_COUNT = 16;
+  const uint_t MAX_ORNAMENT_SIZE = 64;
 
   //checkers
   static const DetectFormatChain DETECTORS[] = {
@@ -209,7 +209,7 @@ namespace
     uint8_t Loop;
     uint8_t Size;
     
-    unsigned GetSize() const
+    uint_t GetSize() const
     {
       return sizeof(*this) + (Size - 1) * sizeof(Data[0]);
     }
@@ -239,18 +239,18 @@ namespace
         return 0 != (VolSlideEnv & 1);
       }
       
-      signed GetNoiseOrEnvelopeOffset() const
+      int_t GetNoiseOrEnvelopeOffset() const
       {
         const uint8_t noeoff = (VolSlideEnv & 62) >> 1;
         return static_cast<int8_t>(noeoff & 16 ? noeoff | 0xf0 : noeoff);
       }
       
-      signed GetVolSlide() const
+      int_t GetVolSlide() const
       {
         return (VolSlideEnv & 128) ? ((VolSlideEnv & 64) ? +1 : -1) : 0;
       }
       
-      unsigned GetLevel() const
+      uint_t GetLevel() const
       {
         return LevelKeepers & 15;
       }
@@ -275,7 +275,7 @@ namespace
         return 0 != (LevelKeepers & 128);
       }
       
-      signed GetToneOffset() const
+      int_t GetToneOffset() const
       {
         return ToneOffset;
       }
@@ -289,7 +289,7 @@ namespace
     uint8_t Size;
     int8_t Data[1];
     
-    unsigned GetSize() const
+    uint_t GetSize() const
     {
       return sizeof(*this) + (Size - 1) * sizeof(Data[0]);
     }
@@ -320,7 +320,7 @@ namespace
   
   inline VortexSample ParseSample(const IO::FastDump& data, uint16_t offset, std::size_t& rawSize)
   {
-    const unsigned off(fromLE(offset));
+    const uint_t off(fromLE(offset));
     const PT3Sample* const sample(safe_ptr_cast<const PT3Sample*>(&data[off]));
     if (0 == offset || !sample->Size)
     {
@@ -334,13 +334,13 @@ namespace
 
   inline SimpleOrnament ParseOrnament(const IO::FastDump& data, uint16_t offset, std::size_t& rawSize)
   {
-    const unsigned off(fromLE(offset));
+    const uint_t off(fromLE(offset));
     const PT3Ornament* const ornament(safe_ptr_cast<const PT3Ornament*>(&data[off]));
     if (0 == offset || !ornament->Size)
     {
       return SimpleOrnament(1, 0);//safe version
     }
-    rawSize = std::max<std::size_t>(rawSize, off + ornament->GetSize());
+    rawSize = std::max(rawSize, off + ornament->GetSize());
     return SimpleOrnament(ornament->Data, ornament->Data + ornament->Size, ornament->Loop);
   }
   
@@ -360,7 +360,7 @@ namespace
       , PatternCursors& cursors
       , VortexTrack::Line& line
       , Log::MessagesCollector& warner
-      , unsigned& noiseBase
+      , uint_t& noiseBase
       )
     {
       bool wasEnvelope(false), wasNoisebase(false);
@@ -373,12 +373,10 @@ namespace
           continue;//has to skip
         }
 
-        Log::ParamPrefixedCollector channelWarner(warner, TEXT_CHANNEL_WARN_PREFIX,
-          static_cast<unsigned>(std::distance(line.Channels.begin(), channel)));
-        bool wasOrnament(false);
+        Log::ParamPrefixedCollector channelWarner(warner, TEXT_CHANNEL_WARN_PREFIX, std::distance(line.Channels.begin(), channel));
         for (;;)
         {
-          const unsigned cmd(data[cur->Offset++]);
+          const uint_t cmd(data[cur->Offset++]);
           const std::size_t restbytes = data.Size() - cur->Offset;
           if (cmd == 1)//gliss
           {
@@ -423,7 +421,7 @@ namespace
             
             if (hasEnv) //has envelope command
             {
-              const unsigned envPeriod(data[cur->Offset + 1] + (unsigned(data[cur->Offset]) << 8));
+              const uint_t envPeriod(data[cur->Offset + 1] + (uint_t(data[cur->Offset]) << 8));
               cur->Offset += 2;
               Log::Assert(channelWarner, !wasEnvelope, TEXT_WARNING_DUPLICATE_ENVELOPE);
               channel->Commands.push_back(VortexTrack::Command(ENVELOPE, cmd - (cmd >= 0xb2 ? 0xb1 : 0x10), envPeriod));
@@ -436,16 +434,15 @@ namespace
            
             if (hasOrn) //has ornament command
             {
-              const unsigned num(cmd - 0xf0);
+              const uint_t num(cmd - 0xf0);
               Log::Assert(channelWarner, !(num && Data.Ornaments[num].Data.empty()), TEXT_WARNING_INVALID_ORNAMENT);
-              Log::Assert(channelWarner, !wasOrnament, TEXT_WARNING_DUPLICATE_ORNAMENT);
+              Log::Assert(channelWarner, !channel->OrnamentNum, TEXT_WARNING_DUPLICATE_ORNAMENT);
               channel->OrnamentNum = num;
-              wasOrnament = true;
             }
             
             if (hasSmp)
             {
-              const unsigned doubleSampNum(data[cur->Offset++]);
+              const uint_t doubleSampNum(data[cur->Offset++]);
               const bool sampValid(doubleSampNum < MAX_SAMPLES_COUNT * 2 && 0 == (doubleSampNum & 1));
               Log::Assert(channelWarner, sampValid, TEXT_WARNING_INVALID_SAMPLE);
               Log::Assert(channelWarner, !channel->SampleNum, TEXT_WARNING_DUPLICATE_SAMPLE);
@@ -462,15 +459,14 @@ namespace
           }
           else if (cmd >= 0x40 && cmd <= 0x4f)
           {
-            const unsigned num(cmd - 0x40);
+            const uint_t num(cmd - 0x40);
             Log::Assert(channelWarner, !(num && Data.Ornaments[num].Data.empty()), TEXT_WARNING_INVALID_ORNAMENT);
-            Log::Assert(channelWarner, !wasOrnament, TEXT_WARNING_DUPLICATE_ORNAMENT);
+            Log::Assert(channelWarner, !channel->OrnamentNum, TEXT_WARNING_DUPLICATE_ORNAMENT);
             channel->OrnamentNum = num;
-            wasOrnament = true;
           }
           else if (cmd >= 0x50 && cmd <= 0xaf)
           {
-            const unsigned note(cmd - 0x50);
+            const uint_t note(cmd - 0x50);
             VortexTrack::CommandsArray::iterator it(std::find(channel->Commands.begin(), channel->Commands.end(), GLISS_NOTE));
             if (channel->Commands.end() != it)
             {
@@ -536,12 +532,12 @@ namespace
             break;
           case SLIDEENV:
           case GLISS:
-            if (restbytes < 2)
+            if (restbytes < 3)
             {
               throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
             }
             it->Param1 = data[cur->Offset++];
-            it->Param2 = data[cur->Offset] + (unsigned(static_cast<int8_t>(data[cur->Offset + 1])) << 8);
+            it->Param2 = data[cur->Offset] + (uint_t(static_cast<int8_t>(data[cur->Offset + 1])) << 8);
             cur->Offset += 2;
             break;
           case VIBRATE:
@@ -558,7 +554,7 @@ namespace
             {
               throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
             }
-            const unsigned offset(data[cur->Offset++]);
+            const uint_t offset(data[cur->Offset++]);
             const bool isValid(offset < (channel->OrnamentNum ?
               Data.Ornaments[*channel->OrnamentNum].Data.size() : MAX_ORNAMENT_SIZE));
             Log::Assert(channelWarner, isValid, TEXT_WARNING_INVALID_ORNAMENT_OFFSET);
@@ -572,7 +568,7 @@ namespace
               {
                 throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
               }
-              const unsigned offset(data[cur->Offset++]);
+              const uint_t offset(data[cur->Offset++]);
               const bool isValid(offset < (channel->SampleNum ?
                 Data.Samples[*channel->SampleNum].Data.size() : MAX_SAMPLE_SIZE));
               Log::Assert(channelWarner, isValid, TEXT_WARNING_INVALID_SAMPLE_OFFSET);
@@ -585,7 +581,7 @@ namespace
               throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
             }
             it->Param1 = data[cur->Offset++];
-            it->Param2 = static_cast<int16_t>(data[cur->Offset + 3] + (unsigned(data[cur->Offset + 2]) << 8));
+            it->Param2 = 256 * data[cur->Offset + 2] + data[cur->Offset + 3];
             cur->Offset += 4;
             break;
           }
@@ -619,7 +615,7 @@ namespace
 
       //fill patterns
       Data.Patterns.resize(MAX_PATTERNS_COUNT);
-      unsigned index(0);
+      uint_t index(0);
       Data.Patterns.resize(1 + *std::max_element(header->Positions, header->Positions + header->Lenght) / 3);
       const PT3Pattern* patterns(safe_ptr_cast<const PT3Pattern*>(&data[fromLE(header->PatternsOffset)]));
       for (const PT3Pattern* pattern = patterns; pattern->Check() && index < Data.Patterns.size(); ++pattern, ++index)
@@ -630,15 +626,15 @@ namespace
         PatternCursors cursors;
         std::transform(pattern->Offsets.begin(), pattern->Offsets.end(), cursors.begin(), &fromLE<uint16_t>);
         pat.reserve(MAX_PATTERN_SIZE);
-        unsigned noiseBase(0);
+        uint_t noiseBase(0);
         do
         {
-          Log::ParamPrefixedCollector patLineWarner(patternWarner, TEXT_LINE_WARN_PREFIX, static_cast<unsigned>(pat.size()));
+          Log::ParamPrefixedCollector patLineWarner(patternWarner, TEXT_LINE_WARN_PREFIX, static_cast<uint_t>(pat.size()));
           pat.push_back(VortexTrack::Line());
           VortexTrack::Line& line(pat.back());
           ParsePattern(data, cursors, line, patLineWarner, noiseBase);
           //skip lines
-          if (const unsigned linesToSkip = std::min_element(cursors.begin(), cursors.end(), PatternCursor::CompareByCounter)->Counter)
+          if (const uint_t linesToSkip = std::min_element(cursors.begin(), cursors.end(), PatternCursor::CompareByCounter)->Counter)
           {
             std::for_each(cursors.begin(), cursors.end(), std::bind2nd(std::mem_fun_ref(&PatternCursor::SkipLines), linesToSkip));
             pat.resize(pat.size() + linesToSkip);//add dummies
@@ -649,7 +645,7 @@ namespace
         Log::Assert(patternWarner, 0 == std::max_element(cursors.begin(), cursors.end(), PatternCursor::CompareByCounter)->Counter,
           TEXT_WARNING_PERIODS);
         Log::Assert(patternWarner, pat.size() <= MAX_PATTERN_SIZE, TEXT_WARNING_INVALID_PATTERN_SIZE);
-        rawSize = std::max<std::size_t>(rawSize, 1 + std::max_element(cursors.begin(), cursors.end(), PatternCursor::CompareByOffset)->Offset);
+        rawSize = std::max(rawSize, std::max_element(cursors.begin(), cursors.end(), PatternCursor::CompareByOffset)->Offset + 1);
       }
       //fill order
       for (const uint8_t* curPos = header->Positions; curPos != header->Positions + header->Lenght; ++curPos)
@@ -706,12 +702,12 @@ namespace
       Data.Info.LoopPosition = header->Loop;
       Data.Info.PhysicalChannels = AYM::CHANNELS;
       Data.Info.Statistic.Tempo = header->Tempo;
-      Data.Info.Statistic.Position = static_cast<unsigned>(Data.Positions.size());
-      Data.Info.Statistic.Pattern = static_cast<unsigned>(std::count_if(Data.Patterns.begin(), Data.Patterns.end(),
-        !boost::bind(&VortexTrack::Pattern::empty, _1)));
+      Data.Info.Statistic.Position = Data.Positions.size();
+      Data.Info.Statistic.Pattern = std::count_if(Data.Patterns.begin(), Data.Patterns.end(),
+        !boost::bind(&VortexTrack::Pattern::empty, _1));
       Data.Info.Statistic.Channels = AYM::CHANNELS;
       VortexTrack::CalculateTimings(Data, Data.Info.Statistic.Frame, Data.Info.LoopFrame);
-      if (const unsigned msgs = warner->CountMessages())
+      if (const uint_t msgs = warner->CountMessages())
       {
         Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS_COUNT, msgs));
         Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS, warner->GetMessages('\n')));
@@ -755,7 +751,7 @@ namespace
   private:
     Dump RawData;
     VortexTrack::ModuleData Data;
-    unsigned Version;
+    uint_t Version;
     String FreqTableName;
   };
 
@@ -765,7 +761,8 @@ namespace
   {
     const PT3Header* const header(safe_ptr_cast<const PT3Header*>(data));
     const std::size_t patOff(fromLE(header->PatternsOffset));
-    if (patOff >= size ||
+    if (!header->Lenght ||
+      patOff >= size ||
       0xff != data[patOff - 1] ||
       &data[patOff - 1] != std::find_if(header->Positions, data + patOff - 1,
       std::bind2nd(std::modulus<uint8_t>(), 3)) ||
@@ -787,7 +784,7 @@ namespace
     }
     catch (const Error&/*e*/)
     {
-      //TODO: log error
+      Log::Debug("PT3Supp", "Failed to create holder");
     }
     return false;
   }

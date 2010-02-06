@@ -12,8 +12,6 @@ Author:
 */
 #include "console.h"
 
-#include <types.h>
-
 #ifndef _WIN32
 #error Invalid platform specified
 #endif

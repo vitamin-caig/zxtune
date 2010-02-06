@@ -32,6 +32,7 @@ namespace
 {
   using namespace ZXTune::Sound;
 
+  //using unsigned as a native type gives better performance (very strange...), at least at gcc
   typedef unsigned NativeType;
   typedef uint64_t MaxBigType;
 
@@ -43,11 +44,11 @@ namespace
     return mg.end() != std::find_if(mg.begin(), mg.end(), !boost::bind(in_range<Gain>, _1, 0.0f, 1.0f));
   }
    
-  template<unsigned InChannels>
+  template<uint_t InChannels>
   class FastMixer : public Mixer, private boost::noncopyable
   {
     //determine type for intermediate value
-    static const unsigned INTERMEDIATE_BITS_MIN =
+    static const uint_t INTERMEDIATE_BITS_MIN =
       8 * sizeof(Sample) +                               //input sample
       boost::static_log2<FIXED_POINT_PRECISION>::value + //mixer
       boost::static_log2<InChannels>::value;             //channels count
@@ -98,13 +99,12 @@ namespace
         return;//do not do anything
       }
       // pass along input channels due to input data structure
-      const Sample* const input(&inData[0]);
       MultiBigSample res = { {0} };
-      for (unsigned inChan = 0; inChan != InChannels; ++inChan)
+      for (uint_t inChan = 0; inChan != InChannels; ++inChan)
       {
-        const Sample in(input[inChan]);
+        const NativeType in(inData[inChan]);
         const MultiFixed& inChanMix(Matrix[inChan]);
-        for (unsigned outChan = 0; outChan != OUTPUT_CHANNELS; ++outChan)
+        for (uint_t outChan = 0; outChan != OUTPUT_CHANNELS; ++outChan)
         {
           res[outChan] += inChanMix[outChan] * in;
         }
@@ -154,7 +154,7 @@ namespace ZXTune
 {
   namespace Sound
   {
-    Error CreateMixer(unsigned channels, Mixer::Ptr& ptr)
+    Error CreateMixer(uint_t channels, Mixer::Ptr& ptr)
     {
       switch (channels)
       {

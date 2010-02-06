@@ -29,9 +29,9 @@ namespace
   };
   
   template<class T>
-  unsigned CountBits(T val)
+  uint_t CountBits(T val)
   {
-    unsigned res = 0;
+    uint_t res = 0;
     while (val)
     {
       if (val & 1)
@@ -62,8 +62,8 @@ namespace
       }
       //check for difference
       {
-        unsigned mask = src.Mask & DataChunk::MASK_ALL_REGISTERS;
-        for (unsigned reg = 0; mask; ++reg, mask >>= 1)
+        uint_t mask = src.Mask & DataChunk::MASK_ALL_REGISTERS;
+        for (uint_t reg = 0; mask; ++reg, mask >>= 1)
         {
           if ((mask & 1) && (reg == DataChunk::REG_ENV || src.Data[reg] != CurChunk.Data[reg]))
           {
@@ -75,19 +75,18 @@ namespace
           return;//no differences
         }
       }
-      if (const unsigned intsPassed = static_cast<unsigned>((src.Tick - CurChunk.Tick) / params.ClocksPerFrame()))
+      if (const uint_t intsPassed = static_cast<uint_t>((src.Tick - CurChunk.Tick) / params.ClocksPerFrame()))
       {
         Dump frame;
         std::back_insert_iterator<Dump> inserter(frame);
         frame.reserve(intsPassed / 4 + (intsPassed % 4) + 2 * CountBits(src.Mask & DataChunk::MASK_ALL_REGISTERS) + 1);
-        if (const unsigned fourSkips = intsPassed / 4)
+        if (const uint_t fourSkips = intsPassed / 4)
         {
           *inserter = SKIP_INTS;
           *inserter = fourSkips;
         }
         std::fill_n(inserter, intsPassed % 4, INTERRUPT);
-        unsigned mask = src.Mask;
-        for (unsigned reg = 0; mask; ++reg, mask >>= 1)
+        for (uint_t reg = 0, mask = src.Mask; mask; ++reg, mask >>= 1)
         {
           if ((mask & 1) && src.Data[reg] != CurChunk.Data[reg])
           {

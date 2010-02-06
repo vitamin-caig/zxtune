@@ -17,6 +17,7 @@ Author:
 
 #include <byteorder.h>
 #include <error_tools.h>
+#include <logging.h>
 #include <messages_collector.h>
 #include <tools.h>
 #include <core/convert_parameters.h>
@@ -25,8 +26,6 @@ Author:
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
 #include <io/container.h>
-#include <sound/render_params.h>
-#include <core/devices/aym.h>
 #include <core/devices/aym_parameters_helper.h>
 
 #include <boost/bind.hpp>
@@ -48,12 +47,12 @@ namespace
   const String TEXT_STC_VERSION(FromStdString("$Rev$"));
 
   //hints
-  const unsigned MAX_STC_MODULE_SIZE = 16384;
-  const unsigned MAX_SAMPLES_COUNT = 16;
-  const unsigned MAX_ORNAMENTS_COUNT = 16;
-  const unsigned MAX_PATTERN_SIZE = 64;
-  const unsigned MAX_PATTERN_COUNT = 32;
-  const unsigned SAMPLE_ORNAMENT_SIZE = 32;
+  const std::size_t MAX_STC_MODULE_SIZE = 16384;
+  const uint_t MAX_SAMPLES_COUNT = 16;
+  const uint_t MAX_ORNAMENTS_COUNT = 16;
+  const uint_t MAX_PATTERN_SIZE = 64;
+  const uint_t MAX_PATTERN_COUNT = 32;
+  const uint_t SAMPLE_ORNAMENT_SIZE = 32;
 
   //detectors
   static const DetectFormatChain DETECTORS[] =
@@ -171,18 +170,18 @@ namespace
       uint8_t NoiseAndMasks;
       uint8_t EffLo;
       
-      unsigned GetLevel() const
+      uint_t GetLevel() const
       {
         return EffHiAndLevel & 15;
       }
       
-      signed GetEffect() const
+      int_t GetEffect() const
       {
-        const signed val = EffLo + (signed(EffHiAndLevel & 240) << 4);
+        const int_t val = int_t(EffHiAndLevel & 240) * 16 + EffLo;
         return (NoiseAndMasks & 32) ? val : -val;
       }
       
-      unsigned GetNoise() const
+      uint_t GetNoise() const
       {
         return NoiseAndMasks & 31;
       }
@@ -221,8 +220,8 @@ namespace
 
     explicit Sample(const STCSample& sample)
       : Data(sample.Data, ArrayEnd(sample.Data))
-      , Loop(std::min<unsigned>(sample.Loop, static_cast<unsigned>(Data.size())))
-      , LoopLimit(std::min<unsigned>(sample.Loop + sample.LoopSize + 1, static_cast<unsigned>(Data.size())))
+      , Loop(std::min<uint_t>(sample.Loop, Data.size()))
+      , LoopLimit(std::min<uint_t>(sample.Loop + sample.LoopSize + 1, Data.size()))
     {
     }
 
@@ -246,16 +245,16 @@ namespace
         , EnvelopeMask(line.GetEnvelopeMask()), Effect(line.GetEffect())
       {
       }
-      unsigned Level;//0-15
-      unsigned Noise;//0-31
+      uint_t Level;//0-15
+      uint_t Noise;//0-31
       bool NoiseMask;
       bool EnvelopeMask;
-      signed Effect;
+      int_t Effect;
     };
     
     std::vector<Line> Data;
-    unsigned Loop;
-    unsigned LoopLimit;
+    uint_t Loop;
+    uint_t LoopLimit;
   };
 
   enum CmdType
@@ -303,11 +302,10 @@ namespace
           continue;//has to skip
         }
 
-        Log::ParamPrefixedCollector channelWarner(warner, TEXT_CHANNEL_WARN_PREFIX,
-          static_cast<unsigned>(std::distance(line.Channels.begin(), channel)));
+        Log::ParamPrefixedCollector channelWarner(warner, TEXT_CHANNEL_WARN_PREFIX, std::distance(line.Channels.begin(), channel));
         for (;;)
         {
-          const uint8_t cmd(data[cur->Offset++]);
+          const uint_t cmd(data[cur->Offset++]);
           const std::size_t restbytes = data.Size() - cur->Offset;
           //ornament==0 and sample==0 are valid - no ornament and no sample respectively
           //ornament==0 and sample==0 are valid - no ornament and no sample respectively
@@ -322,7 +320,7 @@ namespace
           else if (cmd >= 0x60 && cmd <= 0x6f)//sample
           {
             Log::Assert(channelWarner, !channel->SampleNum, TEXT_WARNING_DUPLICATE_SAMPLE);
-            const unsigned num = cmd - 0x60;
+            const uint_t num = cmd - 0x60;
             channel->SampleNum = num;
             Log::Assert(channelWarner, !(num && Data.Samples[num].Data.empty()), TEXT_WARNING_INVALID_SAMPLE);
           }
@@ -331,7 +329,7 @@ namespace
             Log::Assert(channelWarner, !channel->FindCommand(ENVELOPE), TEXT_WARNING_DUPLICATE_ENVELOPE);
             channel->Commands.push_back(STCTrack::Command(NOENVELOPE));
             Log::Assert(channelWarner, !channel->OrnamentNum, TEXT_WARNING_DUPLICATE_ORNAMENT);
-            const unsigned num = cmd - 0x70;
+            const uint_t num = cmd - 0x70;
             channel->OrnamentNum = num;
             Log::Assert(channelWarner, !(num && Data.Ornaments[num].Data.empty()), TEXT_WARNING_INVALID_ORNAMENT);
           }
@@ -411,7 +409,7 @@ namespace
           continue;
         }
         Data.Ornaments[ornament->Number] =
-          STCTrack::Ornament(ornament->Data, ArrayEnd(ornament->Data), static_cast<unsigned>(ArraySize(ornament->Data)));
+          STCTrack::Ornament(ornament->Data, ArrayEnd(ornament->Data), ArraySize(ornament->Data));
       }
 
       //parse patterns
@@ -424,19 +422,19 @@ namespace
           warner->AddMessage(TEXT_WARNING_INVALID_PATTERN);
           continue;
         }
-        Log::ParamPrefixedCollector patternWarner(*warner, TEXT_PATTERN_WARN_PREFIX, static_cast<unsigned>(pattern->Number - 1));
+        Log::ParamPrefixedCollector patternWarner(*warner, TEXT_PATTERN_WARN_PREFIX, pattern->Number - 1);
         STCTrack::Pattern& pat(Data.Patterns[pattern->Number - 1]);
         PatternCursors cursors;
         std::transform(pattern->Offsets.begin(), pattern->Offsets.end(), cursors.begin(), &fromLE<uint16_t>);
         pat.reserve(MAX_PATTERN_SIZE);
         do
         {
-          Log::ParamPrefixedCollector patLineWarner(patternWarner, TEXT_LINE_WARN_PREFIX, static_cast<unsigned>(pat.size()));
+          Log::ParamPrefixedCollector patLineWarner(patternWarner, TEXT_LINE_WARN_PREFIX, pat.size());
           pat.push_back(STCTrack::Line());
           STCTrack::Line& line(pat.back());
           ParsePattern(data, cursors, line, patLineWarner);
           //skip lines
-          if (const unsigned linesToSkip = std::min_element(cursors.begin(), cursors.end(), PatternCursor::CompareByCounter)->Counter)
+          if (const uint_t linesToSkip = std::min_element(cursors.begin(), cursors.end(), PatternCursor::CompareByCounter)->Counter)
           {
             std::for_each(cursors.begin(), cursors.end(), std::bind2nd(std::mem_fun_ref(&PatternCursor::SkipLines), linesToSkip));
             pat.resize(pat.size() + linesToSkip);//add dummies
@@ -446,7 +444,7 @@ namespace
         Log::Assert(patternWarner, 0 == std::max_element(cursors.begin(), cursors.end(), PatternCursor::CompareByCounter)->Counter,
           TEXT_WARNING_PERIODS);
         Log::Assert(patternWarner, pat.size() <= MAX_PATTERN_SIZE, TEXT_WARNING_INVALID_PATTERN_SIZE);
-        rawSize = std::max<std::size_t>(rawSize, 1 + std::max_element(cursors.begin(), cursors.end(), PatternCursor::CompareByOffset)->Offset);
+        rawSize = std::max(rawSize, 1 + std::max_element(cursors.begin(), cursors.end(), PatternCursor::CompareByOffset)->Offset);
       }
       //parse positions
       Data.Positions.reserve(positions->Lenght + 1);
@@ -454,14 +452,14 @@ namespace
       for (const STCPositions::STCPosEntry* posEntry(positions->Data);
         static_cast<const void*>(posEntry) < static_cast<const void*>(ornaments); ++posEntry)
       {
-        const unsigned pattern = posEntry->PatternNum - 1;
+        const uint_t pattern = posEntry->PatternNum - 1;
         if (pattern < MAX_PATTERN_COUNT && !Data.Patterns[pattern].empty())
         {
           Data.Positions.push_back(pattern);
           Transpositions.push_back(posEntry->PatternHeight);
         }
       }
-      Log::Assert(*warner, Data.Positions.size() == std::size_t(positions->Lenght) + 1, TEXT_WARNING_INVALID_POSITIONS);
+      Log::Assert(*warner, Data.Positions.size() == uint_t(positions->Lenght + 1), TEXT_WARNING_INVALID_POSITIONS);
 
       //fix samples and ornaments
       std::for_each(Data.Ornaments.begin(), Data.Ornaments.end(), std::mem_fun_ref(&STCTrack::Ornament::Fix));
@@ -482,12 +480,12 @@ namespace
       Data.Info.LoopPosition = 0;//not supported here
       Data.Info.PhysicalChannels = AYM::CHANNELS;
       Data.Info.Statistic.Tempo = header->Tempo;
-      Data.Info.Statistic.Position = static_cast<unsigned>(Data.Positions.size());
-      Data.Info.Statistic.Pattern = static_cast<unsigned>(std::count_if(Data.Patterns.begin(), Data.Patterns.end(),
-        !boost::bind(&STCTrack::Pattern::empty, _1)));
+      Data.Info.Statistic.Position = Data.Positions.size();
+      Data.Info.Statistic.Pattern = std::count_if(Data.Patterns.begin(), Data.Patterns.end(),
+        !boost::bind(&STCTrack::Pattern::empty, _1));
       Data.Info.Statistic.Channels = AYM::CHANNELS;
       STCTrack::CalculateTimings(Data, Data.Info.Statistic.Frame, Data.Info.LoopFrame);
-      if (const unsigned msgs = warner->CountMessages())
+      if (const uint_t msgs = warner->CountMessages())
       {
         Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS_COUNT, msgs));
         Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS, warner->GetMessages('\n')));
@@ -532,7 +530,7 @@ namespace
     friend class STCPlayer;
     Dump RawData;
     STCTrack::ModuleData Data;
-    std::vector<signed> Transpositions;
+    std::vector<int_t> Transpositions;
   };
 
   
@@ -548,10 +546,10 @@ namespace
       }
       bool Enabled;
       bool Envelope;
-      unsigned Note;
-      unsigned SampleNum;
-      unsigned PosInSample;
-      unsigned OrnamentNum;
+      uint_t Note;
+      uint_t SampleNum;
+      uint_t PosInSample;
+      uint_t OrnamentNum;
       bool LoopedInSample;
     };
   public:
@@ -582,7 +580,7 @@ namespace
       return *Module;
     }
 
-    virtual Error GetPlaybackState(unsigned& timeState,
+    virtual Error GetPlaybackState(uint_t& timeState,
                                    Tracking& trackState,
                                    Analyze::ChannelsState& analyzeState) const
     {
@@ -636,7 +634,7 @@ namespace
       return Error();
     }
 
-    virtual Error SetPosition(unsigned frame)
+    virtual Error SetPosition(uint_t frame)
     {
       if (frame < ModState.Frame)
       {
@@ -680,7 +678,7 @@ namespace
       const STCTrack::Line& line(Data.Patterns[ModState.Track.Pattern][ModState.Track.Line]);
       if (0 == ModState.Track.Frame)//begin note
       {
-        for (unsigned chan = 0; chan != line.Channels.size(); ++chan)
+        for (uint_t chan = 0; chan != line.Channels.size(); ++chan)
         {
           const STCTrack::Line::Chan& src(line.Channels[chan]);
           ChannelState& dst(ChanState[chan]);
@@ -730,22 +728,21 @@ namespace
       chunk.Data[AYM::DataChunk::REG_MIXER] = 0;
       chunk.Mask |= (1 << AYM::DataChunk::REG_MIXER) |
         (1 << AYM::DataChunk::REG_VOLA) | (1 << AYM::DataChunk::REG_VOLB) | (1 << AYM::DataChunk::REG_VOLC);
-      for (unsigned chan = 0; chan < AYM::CHANNELS; ++chan)
+      for (uint_t chan = 0; chan < AYM::CHANNELS; ++chan)
       {
         ApplyData(chan, chunk);
       }
       //count actually enabled channels
-      ModState.Track.Channels = static_cast<unsigned>(std::count_if(ChanState.begin(), ChanState.end(),
-        boost::mem_fn(&ChannelState::Enabled)));
+      ModState.Track.Channels = std::count_if(ChanState.begin(), ChanState.end(), boost::mem_fn(&ChannelState::Enabled));
     }
      
-    void ApplyData(unsigned chan, AYM::DataChunk& chunk)
+    void ApplyData(uint_t chan, AYM::DataChunk& chunk)
     {
       ChannelState& dst(ChanState[chan]);
-      const unsigned toneReg(AYM::DataChunk::REG_TONEA_L + 2 * chan);
-      const unsigned volReg = AYM::DataChunk::REG_VOLA + chan;
-      const unsigned toneMsk = AYM::DataChunk::REG_MASK_TONEA << chan;
-      const unsigned noiseMsk = AYM::DataChunk::REG_MASK_NOISEA << chan;
+      const uint_t toneReg(AYM::DataChunk::REG_TONEA_L + 2 * chan);
+      const uint_t volReg = AYM::DataChunk::REG_VOLA + chan;
+      const uint_t toneMsk = AYM::DataChunk::REG_MASK_TONEA << chan;
+      const uint_t noiseMsk = AYM::DataChunk::REG_MASK_NOISEA << chan;
 
       const FrequencyTable& freqTable(AYMHelper->GetFreqTable());
       if (dst.Enabled)
@@ -755,10 +752,9 @@ namespace
         const STCTrack::Ornament& curOrnament(Data.Ornaments[dst.OrnamentNum]);
 
         //calculate tone
-        const unsigned halfTone = static_cast<unsigned>(clamp<int>(
-          signed(dst.Note) + curOrnament.Data[dst.PosInSample] + Transpositions[ModState.Track.Position],
-          0, static_cast<int>(freqTable.size() - 1)));
-        const uint16_t tone = static_cast<uint16_t>(clamp(freqTable[halfTone] + curSampleLine.Effect, 0, 0xffff));
+        const uint_t halfTone = static_cast<uint_t>(clamp<int_t>(int_t(dst.Note) + curOrnament.Data[dst.PosInSample] + Transpositions[ModState.Track.Position],
+          0, freqTable.size() - 1));
+        const uint_t tone = static_cast<uint_t>(clamp<int_t>(int_t(freqTable[halfTone]) + curSampleLine.Effect, 0, 0xfff));
 
         chunk.Data[toneReg] = static_cast<uint8_t>(tone & 0xff);
         chunk.Data[toneReg + 1] = static_cast<uint8_t>(tone >> 8);
@@ -803,7 +799,7 @@ namespace
   private:
     const boost::shared_ptr<const STCHolder> Module;
     const STCTrack::ModuleData& Data;
-    const std::vector<signed>& Transpositions;
+    const std::vector<int_t>& Transpositions;
 
     AYM::ParametersHelper::Ptr AYMHelper;
     AYM::Chip::Ptr Device;
@@ -883,7 +879,7 @@ namespace
   bool CreateSTCModule(const Parameters::Map& /*commonParams*/, const MetaContainer& container,
     Holder::Ptr& holder, ModuleRegion& region)
   {
-    const std::size_t limit(std::min<std::size_t>(container.Data->Size(), MAX_STC_MODULE_SIZE));
+    const std::size_t limit(std::min(container.Data->Size(), MAX_STC_MODULE_SIZE));
     const uint8_t* const data(static_cast<const uint8_t*>(container.Data->Data()));
 
     ModuleRegion tmpRegion;

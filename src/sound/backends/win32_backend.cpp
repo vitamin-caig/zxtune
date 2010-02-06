@@ -40,9 +40,9 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Sound;
 
-  const unsigned MAX_WIN32_VOLUME = 0xffff;
-  const unsigned BUFFERS_MIN = 3;
-  const unsigned BUFFERS_MAX = 10;
+  const uint_t MAX_WIN32_VOLUME = 0xffff;
+  const uint_t BUFFERS_MIN = 3;
+  const uint_t BUFFERS_MAX = 10;
 
   const Char BACKEND_ID[] = {'w', 'i', 'n', '3', '2', 0};
   const String BACKEND_VERSION(FromStdString("$Rev$"));
@@ -255,7 +255,7 @@ namespace
           if (!in_range<Parameters::IntType>(*buffs, BUFFERS_MIN, BUFFERS_MAX))
           {
             throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
-              TEXT_SOUND_ERROR_WIN32_BACKEND_INVALID_BUFFERS, static_cast<int>(*buffs), BUFFERS_MIN, BUFFERS_MAX);
+              TEXT_SOUND_ERROR_WIN32_BACKEND_INVALID_BUFFERS, static_cast<int_t>(*buffs), BUFFERS_MIN, BUFFERS_MAX);
           }
           Buffers.resize(static_cast<std::size_t>(*buffs));
           CurrentBuffer = cycled_iterator<WaveBuffer*>(&Buffers.front(), &Buffers.back() + 1);

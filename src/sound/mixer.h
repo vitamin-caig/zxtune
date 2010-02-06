@@ -37,7 +37,7 @@ namespace ZXTune
     //! @param result Reference to result value
     //! @return Error() in case of success
     //! @note For any of the created mixers, SetMatrix parameter size should be equal to channels parameter while creating
-    Error CreateMixer(unsigned channels, Mixer::Ptr& result);
+    Error CreateMixer(uint_t channels, Mixer::Ptr& result);
   }
 }
 

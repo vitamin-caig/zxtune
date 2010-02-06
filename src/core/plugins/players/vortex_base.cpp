@@ -25,7 +25,7 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Module;
   
-  const unsigned LIMITER(~0u);
+  const uint_t LIMITER(~uint_t(0));
 
   typedef boost::array<uint8_t, 256> VolumeTable;
   
@@ -81,10 +81,10 @@ namespace
       Slider() : Period(), Value(), Counter(), Delta()
       {
       }
-      unsigned Period;
-      signed Value;
-      unsigned Counter;
-      signed Delta;
+      uint_t Period;
+      int_t Value;
+      uint_t Counter;
+      int_t Delta;
 
       bool Update()
       {
@@ -119,21 +119,21 @@ namespace
       
       bool Enabled;
       bool Envelope;
-      unsigned Note;
-      unsigned SampleNum;
-      unsigned PosInSample;
-      unsigned OrnamentNum;
-      unsigned PosInOrnament;
-      unsigned Volume;
-      signed VolSlide;
+      uint_t Note;
+      uint_t SampleNum;
+      uint_t PosInSample;
+      uint_t OrnamentNum;
+      uint_t PosInOrnament;
+      uint_t Volume;
+      int_t VolSlide;
       Slider ToneSlider;
-      unsigned SlidingTargetNote;
-      signed ToneAccumulator;
-      signed EnvSliding;
-      signed NoiseSliding;
-      unsigned VibrateCounter;
-      unsigned VibrateOn;
-      unsigned VibrateOff;
+      uint_t SlidingTargetNote;
+      int_t ToneAccumulator;
+      int_t EnvSliding;
+      int_t NoiseSliding;
+      uint_t VibrateCounter;
+      uint_t VibrateOn;
+      uint_t VibrateOff;
     };
     struct CommonState
     {
@@ -144,14 +144,14 @@ namespace
       {
       }
       
-      unsigned EnvBase;
+      uint_t EnvBase;
       Slider EnvSlider;
-      unsigned NoiseBase;
-      signed NoiseAddon;
+      uint_t NoiseBase;
+      int_t NoiseAddon;
     };
   public:
     VortexPlayer(Holder::ConstPtr holder, const VortexTrack::ModuleData& data, 
-       unsigned version, const String& freqTableName, AYM::Chip::Ptr device)
+       uint_t version, const String& freqTableName, AYM::Chip::Ptr device)
       : Module(holder)       
       , Data(data)
       , Version(version)
@@ -179,7 +179,7 @@ namespace
       return *Module;
     }
 
-    virtual Error GetPlaybackState(unsigned& timeState,
+    virtual Error GetPlaybackState(uint_t& timeState,
                                    Tracking& trackState,
                                    Analyze::ChannelsState& analyzeState) const
     {
@@ -234,7 +234,7 @@ namespace
       return Error();
     }
 
-    virtual Error SetPosition(unsigned frame)
+    virtual Error SetPosition(uint_t frame)
     {
       if (frame < ModState.Frame)
       {
@@ -282,7 +282,7 @@ namespace
         {
           CommState.NoiseBase = 0;
         }
-        for (unsigned chan = 0; chan != line.Channels.size(); ++chan)
+        for (uint_t chan = 0; chan != line.Channels.size(); ++chan)
         {
           const VortexTrack::Line::Chan& src(line.Channels[chan]);
           ChannelState& dst(ChanState[chan]);
@@ -381,30 +381,30 @@ namespace
       chunk.Data[AYM::DataChunk::REG_MIXER] = 0;
       chunk.Mask |= (1 << AYM::DataChunk::REG_MIXER) |
         (1 << AYM::DataChunk::REG_VOLA) | (1 << AYM::DataChunk::REG_VOLB) | (1 << AYM::DataChunk::REG_VOLC);
-      signed envelopeAddon(0);
-      for (unsigned chan = 0; chan < AYM::CHANNELS; ++chan)
+      int_t envelopeAddon(0);
+      for (uint_t chan = 0; chan < AYM::CHANNELS; ++chan)
       {
         ApplyData(chan, chunk, envelopeAddon);
       }
-      const signed envPeriod(envelopeAddon + CommState.EnvSlider.Value + signed(CommState.EnvBase));
-      chunk.Data[AYM::DataChunk::REG_TONEN] = uint8_t(CommState.NoiseBase + CommState.NoiseAddon) & 0x1f;
-      chunk.Data[AYM::DataChunk::REG_TONEE_L] = uint8_t(envPeriod & 0xff);
-      chunk.Data[AYM::DataChunk::REG_TONEE_H] = uint8_t(envPeriod >> 8);
+      const int_t envPeriod(envelopeAddon + CommState.EnvSlider.Value + int_t(CommState.EnvBase));
+      chunk.Data[AYM::DataChunk::REG_TONEN] = static_cast<uint8_t>(CommState.NoiseBase + CommState.NoiseAddon) & 0x1f;
+      chunk.Data[AYM::DataChunk::REG_TONEE_L] = static_cast<uint8_t>(envPeriod & 0xff);
+      chunk.Data[AYM::DataChunk::REG_TONEE_H] = static_cast<uint8_t>(envPeriod / 256);
       chunk.Mask |= (1 << AYM::DataChunk::REG_TONEN) |
         (1 << AYM::DataChunk::REG_TONEE_L) | (1 << AYM::DataChunk::REG_TONEE_H);
       CommState.EnvSlider.Update();
       //count actually enabled channels
-      ModState.Track.Channels = static_cast<unsigned>(std::count_if(ChanState.begin(), ChanState.end(),
-        boost::mem_fn(&ChannelState::Enabled)));
+      ModState.Track.Channels = std::count_if(ChanState.begin(), ChanState.end(),
+        boost::mem_fn(&ChannelState::Enabled));
     }
     
-    void ApplyData(unsigned chan, AYM::DataChunk& chunk, signed& envelopeAddon)
+    void ApplyData(uint_t chan, AYM::DataChunk& chunk, int_t& envelopeAddon)
     {
       ChannelState& dst(ChanState[chan]);
-      const unsigned toneReg(AYM::DataChunk::REG_TONEA_L + 2 * chan);
-      const unsigned volReg = AYM::DataChunk::REG_VOLA + chan;
-      const unsigned toneMsk = AYM::DataChunk::REG_MASK_TONEA << chan;
-      const unsigned noiseMsk = AYM::DataChunk::REG_MASK_NOISEA << chan;
+      const uint_t toneReg(AYM::DataChunk::REG_TONEA_L + 2 * chan);
+      const uint_t volReg = AYM::DataChunk::REG_VOLA + chan;
+      const uint_t toneMsk = AYM::DataChunk::REG_MASK_TONEA << chan;
+      const uint_t noiseMsk = AYM::DataChunk::REG_MASK_NOISEA << chan;
 
       const FrequencyTable& freqTable(AYMHelper->GetFreqTable());
       if (dst.Enabled)
@@ -415,17 +415,17 @@ namespace
 
         assert(!curOrnament.Data.empty());
         //calculate tone
-        const signed toneAddon(curSampleLine.ToneOffset + dst.ToneAccumulator);
+        const int_t toneAddon(curSampleLine.ToneOffset + dst.ToneAccumulator);
         if (curSampleLine.KeepToneOffset)
         {
           dst.ToneAccumulator = toneAddon;
         }
-        const unsigned halfTone(static_cast<unsigned>(clamp(int(dst.Note) + curOrnament.Data[dst.PosInOrnament], 0, 95)));
-        const uint16_t tone((freqTable[halfTone] + dst.ToneSlider.Value + toneAddon) & 0xfff);
+        const uint_t halfTone = static_cast<uint_t>(clamp<int_t>(int_t(dst.Note) + curOrnament.Data[dst.PosInOrnament], 0, 95));
+        const uint_t tone = static_cast<uint_t>(freqTable[halfTone] + dst.ToneSlider.Value + toneAddon) & 0xfff;
         if (dst.ToneSlider.Update() && 
             LIMITER != dst.SlidingTargetNote)
         {
-          const uint16_t targetTone(freqTable[dst.SlidingTargetNote]);
+          const uint_t targetTone(freqTable[dst.SlidingTargetNote]);
           if ((dst.ToneSlider.Delta > 0 && tone + dst.ToneSlider.Delta > targetTone) ||
             (dst.ToneSlider.Delta < 0 && tone + dst.ToneSlider.Delta < targetTone))
           {
@@ -436,12 +436,12 @@ namespace
             dst.ToneSlider.Counter = 0;
           }
         }
-        chunk.Data[toneReg] = uint8_t(tone & 0xff);
-        chunk.Data[toneReg + 1] = uint8_t(tone >> 8);
+        chunk.Data[toneReg] = static_cast<uint8_t>(tone & 0xff);
+        chunk.Data[toneReg + 1] = static_cast<uint8_t>(tone >> 8);
         chunk.Mask |= 3 << toneReg;
-        dst.VolSlide = clamp(dst.VolSlide + curSampleLine.VolumeSlideAddon, -15, 15);
+        dst.VolSlide = clamp<int_t>(dst.VolSlide + curSampleLine.VolumeSlideAddon, -15, 15);
         //calculate level
-        chunk.Data[volReg] = GetVolume(dst.Volume, clamp<signed>(dst.VolSlide + curSampleLine.Level, 0, 15))
+        chunk.Data[volReg] = GetVolume(dst.Volume, clamp<int_t>(dst.VolSlide + curSampleLine.Level, 0, 15))
           | uint8_t(dst.Envelope && !curSampleLine.EnvMask ? AYM::DataChunk::REG_MASK_ENV : 0);
         //mixer
         if (curSampleLine.ToneMask)
@@ -488,16 +488,14 @@ namespace
       }
     }
     
-    unsigned GetVolume(unsigned volume, unsigned level)
+    uint_t GetVolume(uint_t volume, uint_t level)
     {
-      assert(volume <= 15);
-      assert(level <= 15);
       return VolTable[volume * 16 + level];
     }
   private:
     const Holder::ConstPtr Module;
     const VortexTrack::ModuleData& Data;
-    const unsigned Version;
+    const uint_t Version;
     const VolumeTable& VolTable;
 
     AYM::ParametersHelper::Ptr AYMHelper;
@@ -515,7 +513,7 @@ namespace ZXTune
   namespace Module
   {
     Player::Ptr CreateVortexPlayer(Holder::ConstPtr holder, const VortexTrack::ModuleData& data, 
-       unsigned version, const String& freqTableName, AYM::Chip::Ptr device)
+       uint_t version, const String& freqTableName, AYM::Chip::Ptr device)
     {
       return Player::Ptr(new VortexPlayer(holder, data, version, freqTableName, device));
     }

@@ -46,13 +46,13 @@ namespace
     return !str.empty() && Parameters::STRING_QUOTE == *str.begin()  && Parameters::STRING_QUOTE == *str.rbegin();
   }
 
-  inline Char ToHex(unsigned val)
+  inline Char ToHex(uint_t val)
   {
     assert(val < 16);
     return val >= 10 ? val + 'A' - 10 : val + '0';
   }
   
-  inline unsigned FromHex(Char val)
+  inline uint_t FromHex(Char val)
   {
     assert(std::isxdigit(val));
     return val >= 'A' ? val - 'A' + 10 : val - '0';
@@ -95,7 +95,7 @@ namespace
       }
       do
       {
-        res += ToHex(static_cast<unsigned>(var % RADIX));
+        res += ToHex(static_cast<uint_t>(var % RADIX));
       }
       while (var /= RADIX);
       if (negate)

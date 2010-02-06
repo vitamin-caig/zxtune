@@ -30,7 +30,7 @@ namespace ZXTune
     //! Current version string
     String Version;
     //! Plugin capabilities @see plugin_attrs.h
-    uint32_t Capabilities;
+    uint_t Capabilities;
   };
 
   //! @brief Set of plugins information

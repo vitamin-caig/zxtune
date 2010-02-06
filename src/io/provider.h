@@ -27,7 +27,7 @@ namespace ZXTune
   namespace IO
   {
     //! @brief Progress callback. In case if result Error is not success, it used as a suberror of #CANCELED error
-    typedef boost::function<Error(const String&, unsigned)> ProgressCallback;
+    typedef boost::function<Error(const String&, uint_t)> ProgressCallback;
     
     //! @brief Performs opening specified uri
     //! @param uri Full path including external data identifier and raw data subpath delimited by scheme-specific delimiter

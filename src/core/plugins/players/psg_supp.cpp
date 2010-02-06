@@ -12,7 +12,7 @@ Author:
 #include "../enumerator.h"
 
 #include <tools.h>
-
+#include <logging.h>
 #include <core/convert_parameters.h>
 #include <core/error_codes.h>
 #include <core/module_attrs.h>
@@ -38,11 +38,15 @@ namespace
   const String TEXT_PSG_VERSION(FromStdString("$Rev$"));
 
   const uint8_t PSG_SIGNATURE[] = {'P', 'S', 'G'};
-  const uint8_t PSG_MARKER = 0x1a;
+  
+  enum
+  {
+    PSG_MARKER = 0x1a,
 
-  const uint8_t INT_BEGIN = 0xff;
-  const uint8_t INT_SKIP = 0xfe;
-  const uint8_t MUS_END = 0xfd;
+    INT_BEGIN = 0xff,
+    INT_SKIP = 0xfe,
+    MUS_END = 0xfd
+  };
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -84,13 +88,13 @@ namespace
       const uint8_t* bdata = &data[offset];
       if (INT_BEGIN != *bdata)
       {
-        throw Error(THIS_LINE, ERROR_INVALID_FORMAT, TEXT_MODULE_ERROR_INVALID_FORMAT);
+        throw Error(THIS_LINE, ERROR_INVALID_FORMAT);
       }
       AYM::DataChunk dummy;
       AYM::DataChunk* chunk = &dummy;
       while (size)
       {
-        unsigned reg = *bdata;
+        const uint_t reg = *bdata;
         ++bdata;
         --size;
         if (INT_BEGIN == reg)
@@ -102,7 +106,7 @@ namespace
         {
           if (size < 1)
           {
-            throw Error(THIS_LINE, ERROR_INVALID_FORMAT, TEXT_MODULE_ERROR_INVALID_FORMAT);
+            throw Error(THIS_LINE, ERROR_INVALID_FORMAT);
           }
           std::size_t count = 4 * *bdata;
           while (count--)
@@ -122,7 +126,7 @@ namespace
         {
           if (size < 1)
           {
-            throw Error(THIS_LINE, ERROR_INVALID_FORMAT, TEXT_MODULE_ERROR_INVALID_FORMAT);
+            throw Error(THIS_LINE, ERROR_INVALID_FORMAT);
           }
           chunk->Data[reg] = *bdata;
           chunk->Mask |= 1 << reg;
@@ -139,7 +143,7 @@ namespace
       ExtractMetaProperties(PSG_PLUGIN_ID, container, region, ModInfo.Properties, RawData);
       
       //fill properties
-      ModInfo.Statistic.Frame = static_cast<unsigned>(Storage.size());
+      ModInfo.Statistic.Frame = Storage.size();
       ModInfo.Statistic.Tempo = 1;
       ModInfo.Statistic.Channels = AYM::CHANNELS;
       ModInfo.PhysicalChannels = AYM::CHANNELS;
@@ -203,11 +207,11 @@ namespace
       return *Module;
     }
 
-    virtual Error GetPlaybackState(unsigned& timeState,
+    virtual Error GetPlaybackState(uint_t& timeState,
                                    Tracking& trackState,
                                    Analyze::ChannelsState& analyzeState) const
     {
-      timeState = static_cast<unsigned>(std::distance(Storage.begin(), Position));
+      timeState = std::distance(Storage.begin(), Position);
       trackState = Module->ModInfo.Statistic;
       trackState.Line = timeState;
       Device->GetState(analyzeState);
@@ -254,9 +258,9 @@ namespace
       return Error();
     }
     
-    virtual Error SetPosition(unsigned frame)
+    virtual Error SetPosition(uint_t frame)
     {
-      frame = std::min<unsigned>(frame, static_cast<unsigned>(Storage.size()));
+      frame = std::min(frame, Storage.size());
       assert(Device.get());
       Position = Storage.begin();
       std::advance(Position, frame);
@@ -304,7 +308,7 @@ namespace
       }
       catch (const Error&/*e*/)
       {
-        //TODO: log error
+        Log::Debug("PSGSupp", "Failed to create holder");
       }
     }
     return false;

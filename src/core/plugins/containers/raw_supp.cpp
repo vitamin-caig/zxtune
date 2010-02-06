@@ -35,8 +35,8 @@ namespace
   
   const String TEXT_RAW_VERSION(FromStdString("$Rev$"));
   
-  const int MIN_SCAN_STEP = 1;
-  const int MAX_SCAN_STEP = 256;
+  const uint_t MIN_SCAN_STEP = 1;
+  const uint_t MAX_SCAN_STEP = 256;
   const std::size_t MINIMAL_RAW_SIZE = 16;
   
   const Char RAW_REST_PART[] = {'.', 'r', 'a', 'w', 0};
@@ -58,7 +58,7 @@ namespace
   inline String CreateRawPart(std::size_t offset)
   {
     OutStringStream stream;
-    stream << static_cast<unsigned>(offset) << RAW_REST_PART;
+    stream << offset << RAW_REST_PART;
     return stream.str();
   }
   
@@ -89,7 +89,8 @@ namespace
     if (const Parameters::IntType* const stepParam = 
       Parameters::FindByName<Parameters::IntType>(commonParams, Parameters::ZXTune::Core::Plugins::Raw::SCAN_STEP))
     {
-      if (*stepParam < MIN_SCAN_STEP || *stepParam > MAX_SCAN_STEP)
+      if (*stepParam < Parameters::IntType(MIN_SCAN_STEP) ||
+          *stepParam > Parameters::IntType(MAX_SCAN_STEP))
       {
         throw MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS, 
           TEXT_RAW_ERROR_INVALID_STEP, *stepParam, MIN_SCAN_STEP, MAX_SCAN_STEP);
@@ -99,13 +100,13 @@ namespace
     
     const bool showProgress(data.PluginsChain.end() == std::find(data.PluginsChain.begin(), data.PluginsChain.end(), RAW_PLUGIN_ID) &&
       detectParams.Logger);
-    unsigned progress = 0;
+    uint_t progress = 0;
     bool wasResult = curRegion.Size != 0;
     const std::size_t limit(data.Data->Size());
     for (std::size_t offset = std::max(curRegion.Offset + curRegion.Size, std::size_t(1));
       offset < limit - MINIMAL_RAW_SIZE; offset += std::max(curRegion.Offset + curRegion.Size, std::size_t(1)))
     {
-      const unsigned curProg = offset * 100 / limit;
+      const uint_t curProg = offset * 100 / limit;
       if (showProgress && curProg != progress)
       {  
         detectParams.Logger((Formatter(TEXT_PLUGIN_RAW_MESSAGE_PROGRESS) % curProg).str());

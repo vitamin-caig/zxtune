@@ -65,7 +65,7 @@ namespace ZXTune
         return Delegate->Stop();
       }
       
-      virtual Error SetPosition(unsigned frame)
+      virtual Error SetPosition(uint_t frame)
       {
         return Delegate->SetPosition(frame);
       }
@@ -75,7 +75,7 @@ namespace ZXTune
         return Delegate->GetCurrentState(state);
       }
 
-      virtual Event WaitForEvent(Event evt, unsigned timeoutMs) const
+      virtual Event WaitForEvent(Event evt, uint_t timeoutMs) const
       {
         return Delegate->WaitForEvent(evt, timeoutMs);
       }

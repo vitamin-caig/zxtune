@@ -17,6 +17,7 @@ Author:
 
 #include <byteorder.h>
 #include <error_tools.h>
+#include <logging.h>
 #include <messages_collector.h>
 #include <tools.h>
 #include <core/convert_parameters.h>
@@ -25,8 +26,6 @@ Author:
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
 #include <io/container.h>
-#include <sound/render_params.h>
-#include <core/devices/aym.h>
 #include <core/devices/aym_parameters_helper.h>
 
 #include <boost/bind.hpp>
@@ -46,13 +45,12 @@ namespace
   const Char PT2_PLUGIN_ID[] = {'P', 'T', '2', 0};
   const String TEXT_PT2_VERSION(FromStdString("$Rev$"));
 
-  const std::size_t LIMITER(~0u);
+  const uint_t LIMITER(~uint_t(0));
 
   //hints
   const std::size_t MAX_MODULE_SIZE = 16384;
-  const std::size_t MAX_PATTERN_SIZE = 64;
-  const std::size_t MAX_PATTERN_COUNT = 64;//TODO
-
+  const uint_t MAX_PATTERN_SIZE = 64;
+  const uint_t MAX_PATTERN_COUNT = 64;//TODO
 
   //checkers
   static const DetectFormatChain DETECTORS[] = {
@@ -114,7 +112,7 @@ namespace
     uint8_t Size;
     uint8_t Loop;
 
-    unsigned GetSize() const
+    uint_t GetSize() const
     {
       return sizeof(PT2Sample) + (Size - 1) * sizeof(Line);
     }
@@ -145,19 +143,19 @@ namespace
         return 0 != (NoiseAndFlags & 2);
       }
       
-      unsigned GetNoise() const
+      uint_t GetNoise() const
       {
         return NoiseAndFlags >> 3;
       }
       
-      unsigned GetLevel() const
+      uint_t GetLevel() const
       {
         return LevelHiVibrato >> 4;
       }
       
-      signed GetVibrato() const
+      int_t GetVibrato() const
       {
-        const signed val(((LevelHiVibrato & 0x0f) << 8) | LoVibrato);
+        const int_t val(((LevelHiVibrato & 0x0f) << 8) | LoVibrato);
         return (NoiseAndFlags & 4) ? val : -val;
       }
     } PACK_POST;
@@ -170,7 +168,7 @@ namespace
     uint8_t Loop;
     int8_t Data[1];
 
-    unsigned GetSize() const
+    uint_t GetSize() const
     {
       return sizeof(PT2Ornament) + (Size - 1);
     }
@@ -199,7 +197,7 @@ namespace
     {
     }
 
-    Sample(unsigned size, unsigned loop) : Loop(loop), Data(size)
+    Sample(uint_t size, uint_t loop) : Loop(loop), Data(size)
     {
     }
 
@@ -223,20 +221,20 @@ namespace
         , Vibrato(src.GetVibrato())
       {
       }
-      unsigned Level;//0-15
-      unsigned Noise;//0-31
+      uint_t Level;//0-15
+      uint_t Noise;//0-31
       bool ToneOff;
       bool NoiseOff;
-      signed Vibrato;
+      int_t Vibrato;
     };
     
-    unsigned Loop;
+    uint_t Loop;
     std::vector<Line> Data;
   };
 
   inline Sample ParseSample(const IO::FastDump& data, uint16_t offset, std::size_t& rawSize)
   {
-    const unsigned off(fromLE(offset));
+    const uint_t off(fromLE(offset));
     const PT2Sample* const sample(safe_ptr_cast<const PT2Sample*>(&data[off]));
     if (0 == offset || !sample->Size)
     {
@@ -250,7 +248,7 @@ namespace
   
   inline SimpleOrnament ParseOrnament(const IO::FastDump& data, uint16_t offset, std::size_t& rawSize)
   {
-    const unsigned off(fromLE(offset));
+    const uint_t off(fromLE(offset));
     const PT2Ornament* const ornament(safe_ptr_cast<const PT2Ornament*>(&data[off]));
     if (0 == offset || !ornament->Size)
     {
@@ -286,9 +284,7 @@ namespace
   #define SELF_TEST
   #endif
   
-  // forward declaration
-  class PT2Holder;
-  Player::Ptr CreatePT2Player(boost::shared_ptr<const PT2Holder> mod, AYM::Chip::Ptr device);
+  Player::Ptr CreatePT2Player(Holder::ConstPtr mod, const PT2Track::ModuleData& data, AYM::Chip::Ptr device);
 
   class PT2Holder : public Holder, public boost::enable_shared_from_this<PT2Holder>
   {
@@ -309,16 +305,15 @@ namespace
           continue;//has to skip
         }
 
-        Log::ParamPrefixedCollector channelWarner(warner, TEXT_CHANNEL_WARN_PREFIX,
-          static_cast<unsigned>(std::distance(line.Channels.begin(), channel)));
+        Log::ParamPrefixedCollector channelWarner(warner, TEXT_CHANNEL_WARN_PREFIX, std::distance(line.Channels.begin(), channel));
         for (;;)
         {
-          const uint8_t cmd(data[cur->Offset++]);
+          const uint_t cmd(data[cur->Offset++]);
           const std::size_t restbytes = data.Size() - cur->Offset;
           if (cmd >= 0xe1) //sample
           {
             Log::Assert(channelWarner, !channel->SampleNum, TEXT_WARNING_DUPLICATE_SAMPLE);
-            const unsigned num = cmd - 0xe0;
+            const uint_t num = cmd - 0xe0;
             channel->SampleNum = num;
             Log::Assert(channelWarner, !Data.Samples[num].Data.empty(), TEXT_WARNING_INVALID_SAMPLE);
           }
@@ -332,13 +327,13 @@ namespace
           {
             Log::Assert(channelWarner, !channel->Enabled, TEXT_WARNING_DUPLICATE_STATE);
             channel->Enabled = true;
-            const unsigned note(cmd - 0x80);
+            const uint_t note(cmd - 0x80);
             //for note gliss calculate limit manually
             const PT2Track::CommandsArray::iterator noteGlissCmd(
               std::find(channel->Commands.begin(), channel->Commands.end(), GLISS_NOTE));
             if (channel->Commands.end() != noteGlissCmd)
             {
-              noteGlissCmd->Param2 = int(note);
+              noteGlissCmd->Param2 = int_t(note);
             }
             else
             {
@@ -363,7 +358,7 @@ namespace
             Log::Assert(channelWarner, !channel->FindCommand(ENVELOPE) && !channel->FindCommand(NOENVELOPE),
               TEXT_WARNING_DUPLICATE_ENVELOPE);
             channel->Commands.push_back(
-              PT2Track::Command(ENVELOPE, cmd - 0x70, data[cur->Offset] | (unsigned(data[cur->Offset + 1]) << 8)));
+              PT2Track::Command(ENVELOPE, cmd - 0x70, data[cur->Offset] | (uint_t(data[cur->Offset + 1]) << 8)));
             cur->Offset += 2;
           }
           else if (cmd == 0x70)//quit
@@ -373,7 +368,7 @@ namespace
           else if (cmd >= 0x60 && cmd <= 0x6f)//ornament
           {
             Log::Assert(channelWarner, !channel->OrnamentNum, TEXT_WARNING_DUPLICATE_ORNAMENT);
-            const unsigned num = cmd - 0x60;
+            const uint_t num = cmd - 0x60;
             channel->OrnamentNum = num;
             Log::Assert(channelWarner, !(num && Data.Ornaments[num].Data.empty()), TEXT_WARNING_INVALID_ORNAMENT);
           }
@@ -460,7 +455,7 @@ namespace
 
       //fill patterns
       Data.Patterns.resize(MAX_PATTERN_COUNT);
-      unsigned index(0);
+      uint_t index(0);
       for (const PT2Pattern* pattern = patterns; pattern->Check(); ++pattern, ++index)
       {
         Log::ParamPrefixedCollector patternWarner(*warner, TEXT_PATTERN_WARN_PREFIX, index);
@@ -471,12 +466,12 @@ namespace
         pat.reserve(MAX_PATTERN_SIZE);
         do
         {
-          Log::ParamPrefixedCollector patLineWarner(patternWarner, TEXT_LINE_WARN_PREFIX, static_cast<unsigned>(pat.size()));
+          Log::ParamPrefixedCollector patLineWarner(patternWarner, TEXT_LINE_WARN_PREFIX, static_cast<uint_t>(pat.size()));
           pat.push_back(PT2Track::Line());
           PT2Track::Line& line(pat.back());
           ParsePattern(data, cursors, line, patLineWarner);
           //skip lines
-          if (const unsigned linesToSkip = std::min_element(cursors.begin(), cursors.end(), PatternCursor::CompareByCounter)->Counter)
+          if (const uint_t linesToSkip = std::min_element(cursors.begin(), cursors.end(), PatternCursor::CompareByCounter)->Counter)
           {
             std::for_each(cursors.begin(), cursors.end(), std::bind2nd(std::mem_fun_ref(&PatternCursor::SkipLines), linesToSkip));
             pat.resize(pat.size() + linesToSkip);//add dummies
@@ -487,7 +482,7 @@ namespace
         Log::Assert(patternWarner, 0 == std::max_element(cursors.begin(), cursors.end(), PatternCursor::CompareByCounter)->Counter,
           TEXT_WARNING_PERIODS);
         Log::Assert(patternWarner, pat.size() <= MAX_PATTERN_SIZE, TEXT_WARNING_INVALID_PATTERN_SIZE);
-        rawSize = std::max<std::size_t>(rawSize, 1 + std::max_element(cursors.begin(), cursors.end(), PatternCursor::CompareByOffset)->Offset);
+        rawSize = std::max(rawSize, 1 + std::max_element(cursors.begin(), cursors.end(), PatternCursor::CompareByOffset)->Offset);
       }
 
       //fill order
@@ -519,12 +514,12 @@ namespace
       Data.Info.LoopPosition = header->Loop;
       Data.Info.PhysicalChannels = AYM::CHANNELS;
       Data.Info.Statistic.Tempo = header->Tempo;
-      Data.Info.Statistic.Position = static_cast<unsigned>(Data.Positions.size());
-      Data.Info.Statistic.Pattern = static_cast<unsigned>(std::count_if(Data.Patterns.begin(), Data.Patterns.end(),
-        !boost::bind(&PT2Track::Pattern::empty, _1)));
+      Data.Info.Statistic.Position = Data.Positions.size();
+      Data.Info.Statistic.Pattern = std::count_if(Data.Patterns.begin(), Data.Patterns.end(),
+        !boost::bind(&PT2Track::Pattern::empty, _1));
       Data.Info.Statistic.Channels = AYM::CHANNELS;
       PT2Track::CalculateTimings(Data, Data.Info.Statistic.Frame, Data.Info.LoopFrame);
-      if (const unsigned msgs = warner->CountMessages())
+      if (const uint_t msgs = warner->CountMessages())
       {
         Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS_COUNT, msgs));
         Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS, warner->GetMessages('\n')));
@@ -547,7 +542,7 @@ namespace
 
     virtual Player::Ptr CreatePlayer() const
     {
-      return CreatePT2Player(shared_from_this(), AYM::CreateChip());
+      return CreatePT2Player(shared_from_this(), Data, AYM::CreateChip());
     }
     
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -558,7 +553,7 @@ namespace
       {
         dst = RawData;
       }
-      else if (!ConvertAYMFormat(boost::bind(&CreatePT2Player, shared_from_this(), _1), param, dst, result))
+      else if (!ConvertAYMFormat(boost::bind(&CreatePT2Player, shared_from_this(), boost::cref(Data), _1), param, dst, result))
       {
         return Error(THIS_LINE, ERROR_MODULE_CONVERT, TEXT_MODULE_ERROR_CONVERSION_UNSUPPORTED);
       }
@@ -570,9 +565,9 @@ namespace
     PT2Track::ModuleData Data;
   };
 
-  inline uint8_t GetVolume(unsigned volume, unsigned level)
+  inline uint_t GetVolume(uint_t volume, uint_t level)
   {
-    return static_cast<uint8_t>((volume * 17 + (volume > 7 ? 1 : 0)) * level >> 8);
+    return (volume * 17 + (volume > 7 ? 1 : 0)) * level / 256;
   }
 
   class PT2Player : public Player
@@ -589,21 +584,21 @@ namespace
       }
       bool Enabled;
       bool Envelope;
-      unsigned Note;
-      unsigned SampleNum;
-      unsigned PosInSample;
-      unsigned OrnamentNum;
-      unsigned PosInOrnament;
-      unsigned Volume;
-      signed NoiseAdd;
-      signed Sliding;
-      unsigned SlidingTargetNote;
-      signed Glissade;
+      uint_t Note;
+      uint_t SampleNum;
+      uint_t PosInSample;
+      uint_t OrnamentNum;
+      uint_t PosInOrnament;
+      uint_t Volume;
+      int_t NoiseAdd;
+      int_t Sliding;
+      uint_t SlidingTargetNote;
+      int_t Glissade;
     };
   public:
-    PT2Player(boost::shared_ptr<const PT2Holder> holder, AYM::Chip::Ptr device)
+    PT2Player(Holder::ConstPtr holder, const PT2Track::ModuleData& data, AYM::Chip::Ptr device)
        : Module(holder)
-       , Data(Module->Data)
+       , Data(data)
        , AYMHelper(AYM::ParametersHelper::Create(TABLE_PROTRACKER2))
        , Device(device)
        , CurrentState(MODULE_STOPPED)
@@ -627,7 +622,7 @@ namespace
       return *Module;
     }
 
-    virtual Error GetPlaybackState(unsigned& timeState,
+    virtual Error GetPlaybackState(uint_t& timeState,
                                    Tracking& trackState,
                                    Analyze::ChannelsState& analyzeState) const
     {
@@ -681,7 +676,7 @@ namespace
       return Error();
     }
 
-    virtual Error SetPosition(unsigned frame)
+    virtual Error SetPosition(uint_t frame)
     {
       if (frame < ModState.Frame)
       {
@@ -724,7 +719,7 @@ namespace
       const PT2Track::Line& line(Data.Patterns[ModState.Track.Pattern][ModState.Track.Line]);
       if (0 == ModState.Track.Frame)//begin note
       {
-        for (unsigned chan = 0; chan != line.Channels.size(); ++chan)
+        for (uint_t chan = 0; chan != line.Channels.size(); ++chan)
         {
           const PT2Track::Line::Chan& src(line.Channels[chan]);
           ChannelState& dst(ChanState[chan]);
@@ -763,9 +758,9 @@ namespace
             switch (it->Type)
             {
             case ENVELOPE:
-              chunk.Data[AYM::DataChunk::REG_ENV] = uint8_t(it->Param1);
-              chunk.Data[AYM::DataChunk::REG_TONEE_L] = uint8_t(it->Param2 & 0xff);
-              chunk.Data[AYM::DataChunk::REG_TONEE_H] = uint8_t(it->Param2 >> 8);
+              chunk.Data[AYM::DataChunk::REG_ENV] = static_cast<uint8_t>(it->Param1);
+              chunk.Data[AYM::DataChunk::REG_TONEE_L] = static_cast<uint8_t>(it->Param2 & 0xff);
+              chunk.Data[AYM::DataChunk::REG_TONEE_H] = static_cast<uint8_t>(it->Param2 >> 8);
               chunk.Mask |= (1 << AYM::DataChunk::REG_ENV) |
                 (1 << AYM::DataChunk::REG_TONEE_L) | (1 << AYM::DataChunk::REG_TONEE_H);
               dst.Envelope = true;
@@ -796,22 +791,22 @@ namespace
       chunk.Data[AYM::DataChunk::REG_MIXER] = 0;
       chunk.Mask |= (1 << AYM::DataChunk::REG_MIXER) |
         (1 << AYM::DataChunk::REG_VOLA) | (1 << AYM::DataChunk::REG_VOLB) | (1 << AYM::DataChunk::REG_VOLC);
-      for (unsigned chan = 0; chan < AYM::CHANNELS; ++chan)
+      for (uint_t chan = 0; chan < AYM::CHANNELS; ++chan)
       {
         ApplyData(chan, chunk);
       }
       //count actually enabled channels
-      ModState.Track.Channels = static_cast<unsigned>(std::count_if(ChanState.begin(), ChanState.end(),
+      ModState.Track.Channels = static_cast<uint_t>(std::count_if(ChanState.begin(), ChanState.end(),
         boost::mem_fn(&ChannelState::Enabled)));
     }
     
-    void ApplyData(unsigned chan, AYM::DataChunk& chunk)
+    void ApplyData(uint_t chan, AYM::DataChunk& chunk)
     {
       ChannelState& dst(ChanState[chan]);
-      const unsigned toneReg(AYM::DataChunk::REG_TONEA_L + 2 * chan);
-      const unsigned volReg = AYM::DataChunk::REG_VOLA + chan;
-      const unsigned toneMsk = AYM::DataChunk::REG_MASK_TONEA << chan;
-      const unsigned noiseMsk = AYM::DataChunk::REG_MASK_NOISEA << chan;
+      const uint_t toneReg(AYM::DataChunk::REG_TONEA_L + 2 * chan);
+      const uint_t volReg = AYM::DataChunk::REG_VOLA + chan;
+      const uint_t toneMsk = AYM::DataChunk::REG_MASK_TONEA << chan;
+      const uint_t noiseMsk = AYM::DataChunk::REG_MASK_NOISEA << chan;
 
       const FrequencyTable& freqTable(AYMHelper->GetFreqTable());
       if (dst.Enabled && dst.SampleNum)
@@ -821,12 +816,12 @@ namespace
         const SimpleOrnament& curOrnament(Data.Ornaments[dst.OrnamentNum]);
 
         //calculate tone
-        const unsigned halfTone(clamp(dst.Note + curOrnament.Data[dst.PosInOrnament], 0u, static_cast<unsigned>(freqTable.size()) - 1));
-        const uint16_t tone = static_cast<uint16_t>(clamp(freqTable[halfTone] + dst.Sliding + curSampleLine.Vibrato, 0, 0xffff));
+        const uint_t halfTone = static_cast<uint_t>(clamp<int_t>(int_t(dst.Note) + curOrnament.Data[dst.PosInOrnament], 0, freqTable.size() - 1));
+        const uint_t tone = static_cast<uint_t>(clamp<int_t>(int_t(freqTable[halfTone]) + dst.Sliding + curSampleLine.Vibrato, 0, 0xfff));
         if (dst.SlidingTargetNote != LIMITER)
         {
-          const unsigned nextTone(freqTable[dst.Note] + dst.Sliding + dst.Glissade);
-          const unsigned slidingTarget(freqTable[dst.SlidingTargetNote]);
+          const uint_t nextTone(freqTable[dst.Note] + dst.Sliding + dst.Glissade);
+          const uint_t slidingTarget(freqTable[dst.SlidingTargetNote]);
           if ((dst.Glissade > 0 && nextTone >= slidingTarget) ||
               (dst.Glissade < 0 && nextTone <= slidingTarget))
           {
@@ -836,8 +831,8 @@ namespace
           }
         }
         dst.Sliding += dst.Glissade;
-        chunk.Data[toneReg] = uint8_t(tone & 0xff);
-        chunk.Data[toneReg + 1] = uint8_t(tone >> 8);
+        chunk.Data[toneReg] = static_cast<uint8_t>(tone & 0xff);
+        chunk.Data[toneReg + 1] = static_cast<uint8_t>(tone >> 8);
         chunk.Mask |= 3 << toneReg;
         //calculate level
         chunk.Data[volReg] = GetVolume(dst.Volume, curSampleLine.Level)
@@ -853,7 +848,7 @@ namespace
         }
         else
         {
-          chunk.Data[AYM::DataChunk::REG_TONEN] = uint8_t(clamp<signed>(curSampleLine.Noise + dst.NoiseAdd, 0, 31));
+          chunk.Data[AYM::DataChunk::REG_TONEN] = static_cast<uint8_t>(clamp<int_t>(curSampleLine.Noise + dst.NoiseAdd, 0, 31));
           chunk.Mask |= 1 << AYM::DataChunk::REG_TONEN;
         }
 
@@ -874,7 +869,7 @@ namespace
       }
     }
   private:
-    const boost::shared_ptr<const PT2Holder> Module;
+    const Holder::ConstPtr Module;
     const PT2Track::ModuleData& Data;
 
     AYM::ParametersHelper::Ptr AYMHelper;
@@ -885,9 +880,9 @@ namespace
     boost::array<ChannelState, AYM::CHANNELS> ChanState;
   };
 
-  Player::Ptr CreatePT2Player(boost::shared_ptr<const PT2Holder> holder, AYM::Chip::Ptr device)
+  Player::Ptr CreatePT2Player(Holder::ConstPtr holder, const PT2Track::ModuleData& data, AYM::Chip::Ptr device)
   {
-    return Player::Ptr(new PT2Player(holder, device));
+    return Player::Ptr(new PT2Player(holder, data, device));
   }
 
   //////////////////////////////////////////////////
@@ -904,18 +899,18 @@ namespace
     {
       return false;
     }
-    const unsigned lowlimit(1 + static_cast<unsigned>(std::find(header->Positions, data + size, POS_END_MARKER) - data));
+    const uint_t lowlimit(1 + std::find(header->Positions, data + size, POS_END_MARKER) - data);
     if (lowlimit - sizeof(*header) != header->Length)//too big positions list
     {
       return false;
     }
 
-    const boost::function<bool(unsigned)> checker = !boost::bind(&in_range<unsigned>, _1, lowlimit, size - 1);
+    const boost::function<bool(uint_t)> checker = !boost::bind(&in_range<uint_t>, _1, lowlimit, size - 1);
 
     //check offsets
     for (const uint16_t* sampOff = header->SamplesOffsets.begin(); sampOff != header->SamplesOffsets.end(); ++sampOff)
     {
-      const unsigned offset(fromLE(*sampOff));
+      const uint_t offset(fromLE(*sampOff));
       if (offset && checker(offset))
       {
         return false;
@@ -928,7 +923,7 @@ namespace
     }
     for (const uint16_t* ornOff = header->OrnamentsOffsets.begin(); ornOff != header->OrnamentsOffsets.end(); ++ornOff)
     {
-      const unsigned offset(fromLE(*ornOff));
+      const uint_t offset(fromLE(*ornOff));
       if (offset && checker(offset))
       {
         return false;
@@ -939,13 +934,13 @@ namespace
         return false;
       }
     }
-    const unsigned patOff(fromLE(header->PatternsOffset));
+    const uint_t patOff(fromLE(header->PatternsOffset));
     if (checker(patOff))
     {
       return false;
     }
     //check patterns
-    unsigned patternsCount(0);
+    uint_t patternsCount(0);
     for (const PT2Pattern* patPos(safe_ptr_cast<const PT2Pattern*>(data + patOff));
       patPos->Check();
       ++patPos, ++patternsCount)
@@ -976,7 +971,7 @@ namespace
     }
     catch (const Error&/*e*/)
     {
-      //TODO: log error
+      Log::Debug("PT2Supp", "Failed to create holder");
     }
     return false;
   }
@@ -985,7 +980,7 @@ namespace
   bool CreatePT2Module(const Parameters::Map& /*commonParams*/, const MetaContainer& container,
     Holder::Ptr& holder, ModuleRegion& region)
   {
-    const std::size_t limit(std::min<std::size_t>(container.Data->Size(), MAX_MODULE_SIZE));
+    const std::size_t limit(std::min(container.Data->Size(), MAX_MODULE_SIZE));
     const uint8_t* const data(static_cast<const uint8_t*>(container.Data->Data()));
 
     ModuleRegion tmpRegion;

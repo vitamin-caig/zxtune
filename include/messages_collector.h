@@ -12,6 +12,7 @@
 
 #include <formatter.h>
 #include <string_type.h>
+#include <types.h>
 
 #include <memory>
 
@@ -28,7 +29,7 @@ namespace Log
     //! @brief Adding message to collection
     virtual void AddMessage(const String& message) = 0;
     //! @brief Counting messages
-    virtual unsigned CountMessages() const = 0;
+    virtual uint_t CountMessages() const = 0;
     //! @brief Merging messages together using specified delimiter
     virtual String GetMessages(Char delimiter) const = 0;
 
@@ -59,7 +60,7 @@ namespace Log
       Delegate.AddMessage(Prefix + message);
     }
 
-    virtual unsigned CountMessages() const
+    virtual uint_t CountMessages() const
     {
       return Delegate.CountMessages();
     }

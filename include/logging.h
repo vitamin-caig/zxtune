@@ -34,11 +34,6 @@ namespace Log
     return param;
   }
 
-  inline unsigned AdaptType(std::size_t param)
-  {
-    return static_cast<unsigned>(param);
-  }
-
   #ifdef UNICODE
   inline std::string AdaptType(const String& param)
   {
@@ -63,7 +58,7 @@ namespace Log
     assert(msg);
     if (IsDebuggingEnabled())
     {
-      Message(module, AdaptType((boost::format(msg) % AdaptType(p1)).str()));
+      Message(module, (boost::format(msg) % AdaptType(p1)).str());
     }
   }
   
@@ -73,9 +68,9 @@ namespace Log
     assert(msg);
     if (IsDebuggingEnabled())
     {
-      Message(module, AdaptType((boost::format(msg)
+      Message(module, (boost::format(msg)
         % AdaptType(p1)
-        % AdaptType(p2)).str()));
+        % AdaptType(p2)).str());
     }
   }
 
@@ -85,10 +80,10 @@ namespace Log
     assert(msg);
     if (IsDebuggingEnabled())
     {
-      Message(module, AdaptType((boost::format(msg)
+      Message(module, (boost::format(msg)
         % AdaptType(p1)
         % AdaptType(p2)
-        % AdaptType(p3)).str()));
+        % AdaptType(p3)).str());
     }
   }
 
@@ -98,11 +93,11 @@ namespace Log
     assert(msg);
     if (IsDebuggingEnabled())
     {
-      Message(module, AdaptType((boost::format(msg)
+      Message(module, (boost::format(msg)
         % AdaptType(p1)
         % AdaptType(p2)
         % AdaptType(p3)
-        % AdaptType(p4)).str()));
+        % AdaptType(p4)).str());
     }
   }
 
@@ -113,12 +108,12 @@ namespace Log
     assert(msg);
     if (IsDebuggingEnabled())
     {
-      Message(module, AdaptType((boost::format(msg)
+      Message(module, (boost::format(msg)
         % AdaptType(p1)
         % AdaptType(p2)
         % AdaptType(p3)
         % AdaptType(p4)
-        % AdaptType(p5)).str()));
+        % AdaptType(p5)).str());
     }
   }
 }

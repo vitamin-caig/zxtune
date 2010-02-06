@@ -45,7 +45,7 @@ namespace
   
   const std::string THIS_MODULE("OSSBackend");
 
-  const unsigned MAX_OSS_VOLUME = 100;
+  const uint_t MAX_OSS_VOLUME = 100;
   
   const Char BACKEND_ID[] = {'o', 's', 's', 0};
   const String BACKEND_VERSION(FromStdString("$Rev$"));
@@ -114,6 +114,7 @@ namespace
     }
   private:
     String Name;
+    //leave handle as int
     int Handle;
   };
   

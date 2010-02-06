@@ -19,7 +19,7 @@ namespace ZXTune
   namespace Sound
   {
     //! @brief Output channels count
-    const unsigned OUTPUT_CHANNELS = 2;
+    const std::size_t OUTPUT_CHANNELS = 2;
     
     //! @brief Sample type
     typedef uint16_t Sample;

@@ -36,8 +36,8 @@ namespace ZXTune
         ChannelData() : Channel(), Mask(), Enabled(), Note(), FreqSlideHz(), SampleNum()
         {
         }
-        unsigned Channel;
-        unsigned Mask;
+        uint_t Channel;
+        uint32_t Mask;
 
         enum
         {
@@ -50,11 +50,11 @@ namespace ZXTune
         };
 
         bool Enabled;
-        unsigned Note;
-        signed NoteSlide;
-        signed FreqSlideHz;
-        unsigned SampleNum;
-        unsigned PosInSample;
+        uint_t Note;
+        int_t NoteSlide;
+        int_t FreqSlideHz;
+        uint_t SampleNum;
+        uint_t PosInSample;
       };
 
       DataChunk() : Tick(), Interpolate()
@@ -75,7 +75,7 @@ namespace ZXTune
       }
 
       /// Set sample for work
-      virtual void SetSample(unsigned idx, const Dump& data, unsigned loop) = 0;
+      virtual void SetSample(uint_t idx, const Dump& data, uint_t loop) = 0;
 
       /// render single data chunk
       virtual void RenderData(const Sound::RenderParameters& params,
@@ -89,7 +89,7 @@ namespace ZXTune
     };
 
     /// Virtual constructors
-    Chip::Ptr CreateChip(unsigned channels, unsigned samples, unsigned sampleFreq);
+    Chip::Ptr CreateChip(uint_t channels, uint_t samples, uint_t sampleFreq);
   }
 }
 

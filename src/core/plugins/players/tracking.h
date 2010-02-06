@@ -32,12 +32,12 @@ namespace ZXTune
       {
       }
 
-      SimpleOrnament(unsigned size, unsigned loop) : Loop(loop), Data(size)
+      SimpleOrnament(uint_t size, uint_t loop) : Loop(loop), Data(size)
       {
       }
       
       template<class It>
-      SimpleOrnament(It from, It to, unsigned loop) : Loop(loop), Data(from, to)
+      SimpleOrnament(It from, It to, uint_t loop) : Loop(loop), Data(from, to)
       {
       }
       
@@ -49,12 +49,12 @@ namespace ZXTune
         }
       }
 
-      unsigned Loop;
-      std::vector<signed> Data;
+      uint_t Loop;
+      std::vector<int_t> Data;
     };
 
     // Basic template class for tracking support (used as simple parametrized namespace)
-    template<unsigned ChannelsCount, class SampleType, class OrnamentType = SimpleOrnament>
+    template<uint_t ChannelsCount, class SampleType, class OrnamentType = SimpleOrnament>
     class TrackingSupport
     {
     public:
@@ -67,20 +67,20 @@ namespace ZXTune
         Command() : Type(), Param1(), Param2(), Param3()
         {
         }
-        Command(unsigned type, int p1 = 0, int p2 = 0, int p3 = 0)
+        Command(uint_t type, int_t p1 = 0, int_t p2 = 0, int_t p3 = 0)
           : Type(type), Param1(p1), Param2(p2), Param3(p3)
         {
         }
 
-        bool operator == (unsigned type) const
+        bool operator == (uint_t type) const
         {
           return Type == type;
         }
 
-        unsigned Type;
-        int Param1;
-        int Param2;
-        int Param3;
+        uint_t Type;
+        int_t Param1;
+        int_t Param2;
+        int_t Param3;
       };
 
       typedef std::vector<Command> CommandsArray;
@@ -91,7 +91,7 @@ namespace ZXTune
         {
         }
         //track attrs
-        boost::optional<unsigned> Tempo;
+        boost::optional<uint_t> Tempo;
 
         struct Chan
         {
@@ -104,16 +104,16 @@ namespace ZXTune
             return !Enabled && !Note && !SampleNum && !OrnamentNum && !Volume && Commands.empty();
           }
 
-          bool FindCommand(unsigned type) const
+          bool FindCommand(uint_t type) const
           {
             return Commands.end() != std::find(Commands.begin(), Commands.end(), type);
           }
 
           boost::optional<bool> Enabled;
-          boost::optional<unsigned> Note;
-          boost::optional<unsigned> SampleNum;
-          boost::optional<unsigned> OrnamentNum;
-          boost::optional<unsigned> Volume;
+          boost::optional<uint_t> Note;
+          boost::optional<uint_t> SampleNum;
+          boost::optional<uint_t> OrnamentNum;
+          boost::optional<uint_t> Volume;
           CommandsArray Commands;
         };
 
@@ -129,7 +129,7 @@ namespace ZXTune
         ModuleData() : Positions(), Patterns(), Samples(), Ornaments(), Info()
         {
         }
-        std::vector<unsigned> Positions;
+        std::vector<uint_t> Positions;
         std::vector<Pattern> Patterns;
         std::vector<SampleType> Samples;
         std::vector<OrnamentType> Ornaments;
@@ -143,12 +143,12 @@ namespace ZXTune
         {
         }
         Module::Tracking Track;
-        unsigned Frame;
+        uint_t Frame;
         uint64_t Tick;
       };
       
       // Service functions
-      static inline void CalculateTimings(const ModuleData& data, unsigned& framesCount, unsigned& loopFrame)
+      static inline void CalculateTimings(const ModuleData& data, uint_t& framesCount, uint_t& loopFrame)
       {
         //emulate playback
         ModuleState state;
@@ -174,7 +174,7 @@ namespace ZXTune
         //set pattern to start
         state.Track.Pattern = data.Positions[state.Track.Position];
         //set tempo to start
-        if (const boost::optional<unsigned>& tempo = data.Patterns[state.Track.Pattern][state.Track.Line].Tempo)
+        if (const boost::optional<uint_t>& tempo = data.Patterns[state.Track.Pattern][state.Track.Line].Tempo)
         {
           state.Track.Tempo = *tempo;
         }
@@ -221,7 +221,7 @@ namespace ZXTune
             trackState.Pattern = data.Positions[trackState.Position];
           }
           //update tempo if required
-          if (const boost::optional<unsigned>& tempo = data.Patterns[trackState.Pattern][trackState.Line].Tempo)
+          if (const boost::optional<uint_t>& tempo = data.Patterns[trackState.Pattern][trackState.Line].Tempo)
           {
             trackState.Tempo = *tempo;
           }
@@ -233,15 +233,15 @@ namespace ZXTune
     //helper class to easy parse patterns
     struct PatternCursor
     {
-      /*explicit*/PatternCursor(unsigned offset = 0)
+      /*explicit*/PatternCursor(uint_t offset = 0)
         : Offset(offset), Period(), Counter()
       {
       }
-      unsigned Offset;
-      unsigned Period;
-      unsigned Counter;
+      uint_t Offset;
+      uint_t Period;
+      uint_t Counter;
 
-      void SkipLines(unsigned lines)
+      void SkipLines(uint_t lines)
       {
         Counter -= lines;
       }

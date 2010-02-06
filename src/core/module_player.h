@@ -63,7 +63,7 @@ namespace ZXTune
       //! @param trackState Reference to store tracking position
       //! @param analyzeState Reference to store analyze result
       //! @return Error() in case of success
-      virtual Error GetPlaybackState(unsigned& timeState, Tracking& trackState,
+      virtual Error GetPlaybackState(uint_t& timeState, Tracking& trackState,
         Analyze::ChannelsState& analyzeState) const = 0;
 
       //! @brief Rendering single frame and modifying internal state
@@ -83,7 +83,7 @@ namespace ZXTune
       //! @return Error() in case of success
       //! @note Seeking out of range is safe, but state will be MODULE_PLAYING untill next RenderFrame call happends.
       //! @note It produces only the flush
-      virtual Error SetPosition(unsigned frame) = 0;
+      virtual Error SetPosition(uint_t frame) = 0;
 
       //! @brief Changing runtime parameters
       //! @param params Map with parameters

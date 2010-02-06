@@ -31,7 +31,7 @@ namespace ZXTune
   
   namespace AYM
   {
-    const unsigned CHANNELS = 3;
+    const uint_t CHANNELS = 3;
     
     struct DataChunk
     {

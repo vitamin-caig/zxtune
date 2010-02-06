@@ -80,7 +80,7 @@ namespace ZXTune
       //! @param frame Number of specified frame 
       //! @return Error() in case of success
       //! @note If parameter is out of range, playback will be stopped
-      virtual Error SetPosition(unsigned frame) = 0;
+      virtual Error SetPosition(uint_t frame) = 0;
       
       //! @brief Current playback state
       enum State
@@ -119,7 +119,7 @@ namespace ZXTune
       //! @param evt Interested event. TIMEOUT value will cause immediate return with the same value
       //! @param timeoutMs Timeout in milliseconds to wait for specified event. Should be > 0
       //! @return Same value as evt in case of occured event or TIMEOUT in other case
-      virtual Event WaitForEvent(Event evt, unsigned timeoutMs) const = 0;
+      virtual Event WaitForEvent(Event evt, uint_t timeoutMs) const = 0;
       
       //! @brief Setting the mixers to use
       //! @param data Input mixer matrix

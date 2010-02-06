@@ -31,14 +31,14 @@ namespace ZXTune
       //! @param lowCutoff Low cutoff edge in Hz
       //! @param highCutoff High cutoff edge in Hz
       //! @return Error() in case of success
-      virtual Error SetBandpassParameters(unsigned freq, unsigned lowCutoff, unsigned highCutoff) = 0;
+      virtual Error SetBandpassParameters(uint_t freq, uint_t lowCutoff, uint_t highCutoff) = 0;
     };
     
     //! @brief Creating FIR-filter instance
     //! @param order Filter order
     //! @param filter Reference to result value
     //! @return Error() in case of success
-    Error CreateFIRFilter(unsigned order, Filter::Ptr& filter);
+    Error CreateFIRFilter(uint_t order, Filter::Ptr& filter);
   }
 }
 

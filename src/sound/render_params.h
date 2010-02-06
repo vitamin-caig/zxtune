@@ -42,22 +42,22 @@ namespace ZXTune
       //! Basic clock frequency for PSG
       uint64_t ClockFreq;
       //! Rendering sound frequency
-      unsigned SoundFreq;
+      uint_t SoundFreq;
       //! Frame duration in us
-      unsigned FrameDurationMicrosec;
+      uint_t FrameDurationMicrosec;
       //! Loop mode
       LoopMode Looping;
 
       //! Calculating PSG clocks count per one frame
-      unsigned ClocksPerFrame() const
+      uint_t ClocksPerFrame() const
       {
-        return static_cast<unsigned>(ClockFreq * FrameDurationMicrosec / 1000000);
+        return static_cast<uint_t>(ClockFreq * FrameDurationMicrosec / 1000000);
       }
 
       //! Calculating sound samples count per one frame
-      unsigned SamplesPerFrame() const
+      uint_t SamplesPerFrame() const
       {
-        return static_cast<unsigned>(SoundFreq * FrameDurationMicrosec / 1000000);
+        return static_cast<uint_t>(SoundFreq * FrameDurationMicrosec / 1000000);
       }
     };
   }

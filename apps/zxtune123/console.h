@@ -13,6 +13,8 @@ Author:
 #ifndef ZXTUNE123_CONSOLE_H_DEFINED
 #define ZXTUNE123_CONSOLE_H_DEFINED
 
+#include <types.h>
+
 #include <utility>
 
 class Console
@@ -20,8 +22,9 @@ class Console
 public:
   virtual ~Console() {}
 
-  virtual std::pair<int, int> GetSize() const = 0;
-  virtual void MoveCursorUp(int lines) = 0;
+  typedef std::pair<int_t, int_t> SizeType;
+  virtual SizeType GetSize() const = 0;
+  virtual void MoveCursorUp(uint_t lines) = 0;
 
   enum
   {
@@ -33,7 +36,7 @@ public:
     KEY_CANCEL = 12,
     KEY_ENTER = 13,
   };
-  virtual unsigned GetPressedKey() const = 0;
+  virtual uint_t GetPressedKey() const = 0;
   
   virtual void WaitForKeyRelease() const = 0;
   

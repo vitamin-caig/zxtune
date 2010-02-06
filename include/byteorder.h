@@ -14,7 +14,7 @@
 
 #include <boost/detail/endian.hpp>
 
-template<unsigned size>
+template<std::size_t size>
 struct ByteSwap;
 
 template<>

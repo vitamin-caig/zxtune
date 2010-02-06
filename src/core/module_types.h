@@ -23,17 +23,17 @@ namespace ZXTune
       {
       }
       //! Position in order list or total positions count
-      unsigned Position;
+      uint_t Position;
       //! Current pattern or total patterns count
-      unsigned Pattern;
+      uint_t Pattern;
       //! Current line
-      unsigned Line;
+      uint_t Line;
       //! Current frame or total frames count
-      unsigned Frame;
+      uint_t Frame;
       //! Current tempo or initial tempo
-      unsigned Tempo;
+      uint_t Tempo;
       //! Currently active channels or total channels count (logical)
-      unsigned Channels;
+      uint_t Channels;
     };
 
     //! @brief Common module information
@@ -45,11 +45,11 @@ namespace ZXTune
       //! %Tracking statistic (values are used in second meaning)
       Tracking Statistic;
       //! Loop position index
-      unsigned LoopPosition;
+      uint_t LoopPosition;
       //! Loop position frame
-      unsigned LoopFrame;
+      uint_t LoopFrame;
       //! Actual physical channels for playback
-      unsigned PhysicalChannels;
+      uint_t PhysicalChannels;
       //! %Module properties @see core/module_attrs.h
       Parameters::Map Properties;
     };
@@ -71,7 +71,7 @@ namespace ZXTune
         //! Current level
         LevelType Level;
         //! Tone band (in halftones)
-        unsigned Band;
+        uint_t Band;
       };
 
       //! @brief All channels' state

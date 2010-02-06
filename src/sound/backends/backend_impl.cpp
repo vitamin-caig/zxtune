@@ -34,12 +34,12 @@ namespace
   //playing thread and starting/stopping thread
   const std::size_t TOTAL_WORKING_THREADS = 2;
   
-  const unsigned MIN_MIXERS_COUNT = 1;
-  const unsigned MAX_MIXERS_COUNT = 8;
+  const uint_t MIN_MIXERS_COUNT = 1;
+  const uint_t MAX_MIXERS_COUNT = 8;
   
-  inline void CheckChannels(unsigned chans)
+  inline void CheckChannels(uint_t chans)
   {
-    if (!in_range<unsigned>(chans, MIN_MIXERS_COUNT, MAX_MIXERS_COUNT))
+    if (!in_range(chans, MIN_MIXERS_COUNT, MAX_MIXERS_COUNT))
     {
       throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
         TEXT_SOUND_ERROR_BACKEND_INVALID_CHANNELS, chans, MIN_MIXERS_COUNT, MAX_MIXERS_COUNT);
@@ -64,7 +64,7 @@ namespace
       return Delegate->GetModule();
     }
 
-    virtual Error GetPlaybackState(unsigned& timeState, Module::Tracking& trackState,
+    virtual Error GetPlaybackState(uint_t& timeState, Module::Tracking& trackState,
       Module::Analyze::ChannelsState& analyzeState) const
     {
       Locker lock(Mutex);
@@ -84,7 +84,7 @@ namespace
       return Delegate->Reset();
     }
     
-    virtual Error SetPosition(unsigned frame)
+    virtual Error SetPosition(uint_t frame)
     {
       Locker lock(Mutex);
       return Delegate->SetPosition(frame);
@@ -119,7 +119,7 @@ namespace
     Parameters::IntType intVal = 0;
     if (Parameters::FindByName(updates, Parameters::ZXTune::Sound::FREQUENCY, intVal))
     {
-      renderParams.SoundFreq = static_cast<unsigned>(intVal);
+      renderParams.SoundFreq = static_cast<uint_t>(intVal);
     }
     if (Parameters::FindByName(updates, Parameters::ZXTune::Sound::CLOCKRATE, intVal))
     {
@@ -127,7 +127,7 @@ namespace
     }
     if (Parameters::FindByName(updates, Parameters::ZXTune::Sound::FRAMEDURATION, intVal))
     {
-      renderParams.FrameDurationMicrosec = static_cast<unsigned>(intVal);
+      renderParams.FrameDurationMicrosec = static_cast<uint_t>(intVal);
     }
     if (Parameters::FindByName(updates, Parameters::ZXTune::Sound::LOOPMODE, intVal))
     {
@@ -305,7 +305,7 @@ namespace ZXTune
       }
     }
 
-    Error BackendImpl::SetPosition(unsigned frame)
+    Error BackendImpl::SetPosition(uint_t frame)
     {
       try
       {
@@ -331,7 +331,7 @@ namespace ZXTune
       return RenderError;
     }
 
-    Backend::Event BackendImpl::WaitForEvent(Event evt, unsigned timeoutMs) const
+    Backend::Event BackendImpl::WaitForEvent(Event evt, uint_t timeoutMs) const
     {
       boost::mutex localMutex;
       boost::unique_lock<boost::mutex> locker(localMutex);
@@ -344,8 +344,8 @@ namespace ZXTune
     {
       try
       {
-        const unsigned mixChannels = static_cast<unsigned>(data.size());
-        CheckChannels(static_cast<unsigned>(mixChannels));
+        const uint_t mixChannels = data.size();
+        CheckChannels(mixChannels);
         
         Locker lock(PlayerMutex);
         

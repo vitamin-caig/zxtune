@@ -64,26 +64,26 @@ namespace
       }
     }
     
-    virtual std::pair<int, int> GetSize() const
+    virtual SizeType GetSize() const
     {
       if (!IsConsoleOut)
       {
-        return std::make_pair(-1, -1);
+        return SizeType(-1, -1);
       }
 #if defined TIOCGSIZE
       struct ttysize ts;
       ThrowIfError(ioctl(STDOUT_FILENO, TIOCGSIZE, &ts), THIS_LINE);
-      return std::make_pair(ts.ts_cols, ts.rs_rows);
+      return SizeType(ts.ts_cols, ts.rs_rows);
 #elif defined TIOCGWINSZ
       struct winsize ws;
       ThrowIfError(ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws), THIS_LINE);
-      return std::make_pair(ws.ws_col, ws.ws_row);
+      return SizeType(ws.ws_col, ws.ws_row);
 #else
 #error Unknown console mode for linux
 #endif
     }
     
-    virtual void MoveCursorUp(int lines)
+    virtual void MoveCursorUp(uint_t lines)
     {
       if (IsConsoleOut)
       {
@@ -91,7 +91,7 @@ namespace
       }
     }
 
-    virtual unsigned GetPressedKey() const
+    virtual uint_t GetPressedKey() const
     {
       if (!IsConsoleIn)
       {

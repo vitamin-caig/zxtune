@@ -25,6 +25,11 @@ using boost::int32_t;
 using boost::uint32_t;
 using boost::int64_t;
 using boost::uint64_t;
+
+/// Use unsigned memtype as unsigned integer
+typedef std::size_t uint_t;
+/// Use signed memtype as signed integer
+typedef std::ptrdiff_t int_t;
 //@}
 
 //@{
@@ -60,9 +65,10 @@ using boost::uint64_t;
 //@}
 
 //! @brief Plain data type
-typedef std::vector<unsigned char> Dump;
+typedef std::vector<uint8_t> Dump;
 
 //assertions
-BOOST_STATIC_ASSERT(sizeof(unsigned) >= sizeof(uint32_t));
+BOOST_STATIC_ASSERT(sizeof(uint_t) >= sizeof(uint32_t));
+BOOST_STATIC_ASSERT(sizeof(int_t) >= sizeof(int32_t));
 
 #endif //__TYPES_H_DEFINED__

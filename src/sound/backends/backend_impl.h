@@ -36,10 +36,10 @@ namespace ZXTune
       virtual Error Play();
       virtual Error Pause();
       virtual Error Stop();
-      virtual Error SetPosition(unsigned frame);
+      virtual Error SetPosition(uint_t frame);
       
       virtual Error GetCurrentState(State& state) const;
-      virtual Event WaitForEvent(Event evt, unsigned timeoutMs) const;
+      virtual Event WaitForEvent(Event evt, uint_t timeoutMs) const;
 
       virtual Error SetMixer(const std::vector<MultiGain>& data);
       virtual Error SetFilter(Converter::Ptr converter);
@@ -86,7 +86,7 @@ namespace ZXTune
       volatile bool InProcess;//STOP => STOPPING, STARTED => STARTING
       Error RenderError;
       //context
-      unsigned Channels;
+      uint_t Channels;
       Converter::Ptr FilterObject;
       std::vector<Mixer::Ptr> MixersSet;
       Receiver::Ptr Renderer;

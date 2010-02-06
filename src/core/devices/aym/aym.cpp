@@ -83,12 +83,12 @@ namespace
     void ApplyRegistersData();
     void DoRender(const Sound::RenderParameters& params, Sound::MultichannelReceiver& dst);
   private:
-    static inline unsigned GetDutedTone(unsigned duty, unsigned state, unsigned tone)
+    static inline uint_t GetDutedTone(uint_t duty, uint_t state, uint_t tone)
     {
       assert(duty > 0 && duty < 100);
-      return (state ? 100 - duty : duty) * tone * 2/ 100;
+      return (state ? 100 - duty : duty) * tone * 2 / 100;
     }
-    bool DoCycle(bool duted, unsigned tone, unsigned& timer, unsigned& bit)
+    bool DoCycle(bool duted, uint_t tone, uint_t& timer, uint_t& bit)
     {
       if (++timer >= (duted ? GetDutedTone(LastData.Data[DataChunk::PARAM_DUTY_CYCLE], bit, tone) : tone))
       {
@@ -98,68 +98,68 @@ namespace
       }
       return false;
     }
-    unsigned GetToneA() const
+    uint_t GetToneA() const
     {
-      return (State.Data[DataChunk::REG_TONEA_H] << 8) + State.Data[DataChunk::REG_TONEA_L];
+      return 256 * State.Data[DataChunk::REG_TONEA_H] + State.Data[DataChunk::REG_TONEA_L];
     }
-    unsigned GetToneB() const
+    uint_t GetToneB() const
     {
-      return (State.Data[DataChunk::REG_TONEB_H] << 8) + State.Data[DataChunk::REG_TONEB_L];
+      return 256 * State.Data[DataChunk::REG_TONEB_H] + State.Data[DataChunk::REG_TONEB_L];
     }
-    unsigned GetToneC() const
+    uint_t GetToneC() const
     {
-      return (State.Data[DataChunk::REG_TONEC_H] << 8) + State.Data[DataChunk::REG_TONEC_L];
+      return 256 * State.Data[DataChunk::REG_TONEC_H] + State.Data[DataChunk::REG_TONEC_L];
     }
-    unsigned GetToneN() const
+    uint_t GetToneN() const
     {
       return 2 * State.Data[DataChunk::REG_TONEN];//for optimization
     }
-    unsigned GetToneE() const
+    uint_t GetToneE() const
     {
-      return (State.Data[DataChunk::REG_TONEE_H] << 8) + State.Data[DataChunk::REG_TONEE_L];
+      return 256 * State.Data[DataChunk::REG_TONEE_H] + State.Data[DataChunk::REG_TONEE_L];
     }
-    unsigned GetVolA() const
+    uint_t GetVolA() const
     {
       return State.Data[DataChunk::REG_VOLA];
     }
-    unsigned GetVolB() const
+    uint_t GetVolB() const
     {
       return State.Data[DataChunk::REG_VOLB];
     }
-    unsigned GetVolC() const
+    uint_t GetVolC() const
     {
       return State.Data[DataChunk::REG_VOLC];
     }
-    unsigned GetMixer() const
+    uint_t GetMixer() const
     {
       return State.Data[DataChunk::REG_MIXER];
     }
-    unsigned GetEnv() const
+    uint_t GetEnv() const
     {
       return State.Data[DataChunk::REG_ENV];
     }
-    Sound::Sample GetVolume(unsigned regVol)
+    Sound::Sample GetVolume(uint_t regVol)
     {
       assert(regVol < 32);
       return ((LastData.Mask & DataChunk::YM_CHIP) ? YMVolumeTab : AYVolumeTab)[regVol] / 2;
     }
-    unsigned GetBandByPeriod(unsigned regVal) const;
+    uint_t GetBandByPeriod(uint_t regVal) const;
   protected:
     //result buffer
     std::vector<Sound::Sample> Result;
     //state
     DataChunk State; //time and registers
-    unsigned BitA, BitB, BitC, BitN, BitE/*fake*/;
-    unsigned TimerA, TimerB, TimerC, TimerN, TimerE;
-    unsigned Envelope;
-    signed Decay;
+    uint_t BitA, BitB, BitC, BitN, BitE/*fake*/;
+    uint_t TimerA, TimerB, TimerC, TimerN, TimerE;
+    uint_t Envelope;
+    int_t Decay;
     uint32_t Noise;
 
     DataChunk LastData;
     uint64_t LastTicksPerSec;
     uint64_t LastStartTicks;
-    unsigned LastSoundFreq;
-    unsigned LastSamplesDone;
+    uint_t LastSoundFreq;
+    uint_t LastSamplesDone;
   };
 
   void ChipImpl::RenderData(const Sound::RenderParameters& params, const DataChunk& src, 
@@ -179,7 +179,7 @@ namespace
 
   void ChipImpl::ApplyRegistersData()
   {
-    for (unsigned idx = 0, mask = 1; idx != ArraySize(LastData.Data); ++idx, mask <<= 1)
+    for (uint_t idx = 0, mask = 1; idx != ArraySize(LastData.Data); ++idx, mask <<= 1)
     {
       if (LastData.Mask & mask) //register is in dump
       {
@@ -224,20 +224,20 @@ namespace
     uint64_t& curTick = State.Tick;
     uint64_t nextSampleTick = LastStartTicks + LastTicksPerSec * LastSamplesDone / LastSoundFreq;
 
-    unsigned HighLevel = ~0u;
+    uint_t HighLevel = ~0u;
     //references to mixered bits. updated automatically
-    unsigned volA = (((GetVolA() & DataChunk::REG_MASK_VOL) << 1) + 1);
-    unsigned volB = (((GetVolB() & DataChunk::REG_MASK_VOL) << 1) + 1);
-    unsigned volC = (((GetVolC() & DataChunk::REG_MASK_VOL) << 1) + 1);
-    unsigned& ToneBitA = (GetMixer() & DataChunk::REG_MASK_TONEA) ? HighLevel : BitA;
-    unsigned& NoiseBitA = (GetMixer() & DataChunk::REG_MASK_NOISEA) ? HighLevel : BitN;
-    unsigned& VolumeA = (GetVolA() & DataChunk::REG_MASK_ENV) ? Envelope : volA;
-    unsigned& ToneBitB = (GetMixer() & DataChunk::REG_MASK_TONEB) ? HighLevel : BitB;
-    unsigned& NoiseBitB = (GetMixer() & DataChunk::REG_MASK_NOISEB) ? HighLevel : BitN;
-    unsigned& VolumeB = (GetVolB() & DataChunk::REG_MASK_ENV) ? Envelope : volB;
-    unsigned& ToneBitC = (GetMixer() & DataChunk::REG_MASK_TONEC) ? HighLevel : BitC;
-    unsigned& NoiseBitC = (GetMixer() & DataChunk::REG_MASK_NOISEC) ? HighLevel : BitN;
-    unsigned& VolumeC = (GetVolC() & DataChunk::REG_MASK_ENV) ? Envelope : volC;
+    uint_t volA = (((GetVolA() & DataChunk::REG_MASK_VOL) << 1) + 1);
+    uint_t volB = (((GetVolB() & DataChunk::REG_MASK_VOL) << 1) + 1);
+    uint_t volC = (((GetVolC() & DataChunk::REG_MASK_VOL) << 1) + 1);
+    uint_t& ToneBitA = (GetMixer() & DataChunk::REG_MASK_TONEA) ? HighLevel : BitA;
+    uint_t& NoiseBitA = (GetMixer() & DataChunk::REG_MASK_NOISEA) ? HighLevel : BitN;
+    uint_t& VolumeA = (GetVolA() & DataChunk::REG_MASK_ENV) ? Envelope : volA;
+    uint_t& ToneBitB = (GetMixer() & DataChunk::REG_MASK_TONEB) ? HighLevel : BitB;
+    uint_t& NoiseBitB = (GetMixer() & DataChunk::REG_MASK_NOISEB) ? HighLevel : BitN;
+    uint_t& VolumeB = (GetVolB() & DataChunk::REG_MASK_ENV) ? Envelope : volB;
+    uint_t& ToneBitC = (GetMixer() & DataChunk::REG_MASK_TONEC) ? HighLevel : BitC;
+    uint_t& NoiseBitC = (GetMixer() & DataChunk::REG_MASK_NOISEC) ? HighLevel : BitN;
+    uint_t& VolumeC = (GetVolC() & DataChunk::REG_MASK_ENV) ? Envelope : volC;
 
     while (curTick < LastData.Tick) //render cycle
     {
@@ -251,8 +251,8 @@ namespace
         nextSampleTick = LastStartTicks + LastTicksPerSec * ++LastSamplesDone / LastSoundFreq;
       }
       curTick += 8;//base freq divisor
-      const unsigned duty(LastData.Data[DataChunk::PARAM_DUTY_CYCLE]);
-      const unsigned dutyMask(duty > 0 && duty < 100 && duty != 50 ? 
+      const uint_t duty(LastData.Data[DataChunk::PARAM_DUTY_CYCLE]);
+      const uint_t dutyMask(duty > 0 && duty < 100 && duty != 50 ? 
         LastData.Data[DataChunk::PARAM_DUTY_CYCLE_MASK] : 0);
 
       DoCycle(0 != (dutyMask & DataChunk::DUTY_CYCLE_MASK_A), GetToneA(), TimerA, BitA);
@@ -270,7 +270,7 @@ namespace
         Envelope += Decay;
         if (Envelope & ~31u)
         {
-          const unsigned envTypeMask = 1 << GetEnv();
+          const uint_t envTypeMask = 1 << GetEnv();
           if (envTypeMask & ((1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) |
                              (1 << 5) | (1 << 6) | (1 << 7) | (1 << 9) | (1 << 15)))
           {
@@ -309,8 +309,8 @@ namespace
     envChan.Band = GetBandByPeriod((uint16_t(State.Data[DataChunk::REG_TONEE_H]) << 8) |
       State.Data[DataChunk::REG_TONEE_L]);
 
-    const unsigned mixer(~GetMixer());
-    for (unsigned chan = 0; chan != 3; ++chan)
+    const uint_t mixer(~GetMixer());
+    for (uint_t chan = 0; chan != CHANNELS; ++chan)
     {
       if (State.Data[DataChunk::REG_VOLA + chan] & DataChunk::REG_MASK_ENV)
       {
@@ -327,17 +327,17 @@ namespace
           std::numeric_limits<Module::Analyze::LevelType>::max() / 15;
         if (mixer & (DataChunk::REG_MASK_TONEA << chan))//tone
         {
-          channel.Band = GetBandByPeriod((uint16_t(State.Data[DataChunk::REG_TONEA_H + chan * 2]) << 8) |
+          channel.Band = GetBandByPeriod((uint_t(State.Data[DataChunk::REG_TONEA_H + chan * 2]) << 8) |
             State.Data[DataChunk::REG_TONEA_L + chan * 2]);
         }
       }
     }
   }
 
-  unsigned ChipImpl::GetBandByPeriod(unsigned period) const
+  uint_t ChipImpl::GetBandByPeriod(uint_t period) const
   {
     //table in Hz*100
-    static const unsigned FREQ_TABLE[] = {
+    static const uint_t FREQ_TABLE[] = {
       //octave1
       3270,   3465,   3671,   3889,   4120,   4365,   4625,   4900,   5191,   5500,   5827,   6173,
       //octave2
@@ -357,9 +357,9 @@ namespace
       //octave9
       837200, 886980, 939730, 995610,1054800,1117500,1184000,1254400,1329000,1408000,1491700,1580400
     };
-    const unsigned freq = static_cast<unsigned>(uint64_t(LastTicksPerSec) * 100 / (16 * (period ? period : 1)));
-    const unsigned maxBand = static_cast<unsigned>(ArraySize(FREQ_TABLE) - 1);
-    const unsigned currentBand = static_cast<unsigned>(std::lower_bound(FREQ_TABLE, ArrayEnd(FREQ_TABLE), freq) - FREQ_TABLE);
+    const uint_t freq = static_cast<uint_t>(uint64_t(LastTicksPerSec) * 100 / (16 * (period ? period : 1)));
+    const uint_t maxBand = ArraySize(FREQ_TABLE) - 1;
+    const uint_t currentBand = std::lower_bound(FREQ_TABLE, ArrayEnd(FREQ_TABLE), freq) - FREQ_TABLE;
     return std::min(currentBand, maxBand);
   }
 }

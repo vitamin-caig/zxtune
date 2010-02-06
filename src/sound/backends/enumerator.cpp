@@ -32,7 +32,7 @@ namespace
 
   class BackendsEnumeratorImpl : public BackendsEnumerator
   {
-    typedef std::multimap<unsigned, BackendInformation> BackendsStorage;
+    typedef std::multimap<uint_t, BackendInformation> BackendsStorage;
     typedef std::map<String, CreateBackendFunc> CreatorsStorage;
   public:
     BackendsEnumeratorImpl()
@@ -40,7 +40,7 @@ namespace
       RegisterBackends(*this);
     }
 
-    virtual void RegisterBackend(const BackendInformation& info, const CreateBackendFunc& creator, unsigned priority)
+    virtual void RegisterBackend(const BackendInformation& info, const CreateBackendFunc& creator, uint_t priority)
     {
       assert(creator);
       assert(Creators.end() == Creators.find(info.Id) || !"Duplicated backend found");
