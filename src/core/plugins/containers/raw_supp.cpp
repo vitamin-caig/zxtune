@@ -103,6 +103,10 @@ namespace
     uint_t progress = 0;
     bool wasResult = curRegion.Size != 0;
     const std::size_t limit(data.Data->Size());
+
+    MetaContainer subcontainer;
+    subcontainer.PluginsChain = data.PluginsChain;
+    subcontainer.PluginsChain.push_back(RAW_PLUGIN_ID);
     for (std::size_t offset = std::max(curRegion.Offset + curRegion.Size, std::size_t(1));
       offset < limit - MINIMAL_RAW_SIZE; offset += std::max(curRegion.Offset + curRegion.Size, std::size_t(1)))
     {
@@ -112,11 +116,8 @@ namespace
         detectParams.Logger((Formatter(TEXT_PLUGIN_RAW_MESSAGE_PROGRESS) % curProg).str());
         progress = curProg;
       }  
-      MetaContainer subcontainer;
       subcontainer.Data = data.Data->GetSubcontainer(offset, limit - offset);
       subcontainer.Path = IO::AppendPath(data.Path, CreateRawPart(offset));
-      subcontainer.PluginsChain = data.PluginsChain;
-      subcontainer.PluginsChain.push_back(RAW_PLUGIN_ID);
       if (const Error& err = enumerator.DetectModules(commonParams, detectParams, subcontainer, curRegion))
       {
         return err;

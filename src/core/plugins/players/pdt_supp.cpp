@@ -9,8 +9,8 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 #include "tracking.h"
-#include "utils.h"
 #include "../enumerator.h"
+#include "../utils.h"
 
 #include <byteorder.h>
 #include <error_tools.h>

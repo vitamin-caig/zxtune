@@ -11,9 +11,9 @@ Author:
 
 #include "convert_helpers.h"
 #include "tracking.h"
-#include "utils.h"
 #include "../detector.h"
 #include "../enumerator.h"
+#include "../utils.h"
 
 #include <byteorder.h>
 #include <error_tools.h>

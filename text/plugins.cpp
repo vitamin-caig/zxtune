@@ -77,9 +77,6 @@ extern const Char TEXT_STP_EDITOR[] = {
 extern const Char TEXT_STP_INFO[] = {
   'S','T','P',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
 };
-extern const Char TEXT_TRD_CONTAINER[] = {
-  'T','R','D',0
-};
 extern const Char TEXT_TRD_INFO[] = {
   'T','R','D',' ','c','o','n','t','a','i','n','e','r','s',' ','s','u','p','p','o','r','t',0
 };

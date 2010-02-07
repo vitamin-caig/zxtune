@@ -10,10 +10,10 @@ Author:
 */
 
 #include "convert_helpers.h"
-#include "utils.h"
 #include "vortex_base.h"
 #include "../detector.h"
 #include "../enumerator.h"
+#include "../utils.h"
 
 #include <byteorder.h>
 #include <error_tools.h>

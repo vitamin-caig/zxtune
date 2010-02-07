@@ -99,9 +99,6 @@ __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 < TEXT_TRD_INFO
 > "TRD containers support"
 
-< TEXT_TRD_CONTAINER
-> "TRD"
-
 #TS
 < TEXT_TS_INFO
 > "TurboSound modules support"
