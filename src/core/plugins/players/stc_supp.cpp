@@ -473,7 +473,7 @@ namespace
       const String& prog(OptimizeString(FromStdString(header->Identifier)));
       if (!prog.empty())
       {
-        Data.Info.Properties.insert(StringMap::value_type(Module::ATTR_PROGRAM, prog));
+        Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_PROGRAM, prog));
       }
       
       //tracking properties

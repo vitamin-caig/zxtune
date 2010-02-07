@@ -60,7 +60,7 @@ __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 < TEXT_PT2_INFO
 > "PT2 modules support"
 
-< TEXT_PT2_EDITOR
+< TEXT_PT2_PROGRAM
 > "ProTracker v2.x"
 
 #PT3

@@ -507,8 +507,9 @@ namespace
       const String& title(OptimizeString(FromStdString(header->Name)));
       if (!title.empty())
       {
-        Data.Info.Properties.insert(StringMap::value_type(Module::ATTR_TITLE, title));
+        Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_TITLE, title));
       }
+      Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_PROGRAM, String(TEXT_PT2_PROGRAM)));
       
       //tracking properties
       Data.Info.LoopPosition = header->Loop;

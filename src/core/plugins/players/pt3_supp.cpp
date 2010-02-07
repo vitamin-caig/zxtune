@@ -177,7 +177,7 @@ namespace
 #endif
   PACK_PRE struct PT3Header
   {
-    char Id[13];        //'ProTracker 3.'
+    uint8_t Id[13];        //'ProTracker 3.'
     uint8_t Subversion;
     uint8_t Optional1[16]; //' compilation of '
     char TrackName[32];
@@ -678,10 +678,10 @@ namespace
       {
         Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_AUTHOR, author));
       }
-      const String& prog(OptimizeString(FromStdString(header->Id)));
+      const String& prog(OptimizeString(String(header->Id, header->Optional1)));
       if (!prog.empty())
       {
-        Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_PROGRAM, prog.substr(0, prog.find(Char(' ')))));
+        Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_PROGRAM, prog));
       }
       
       //tracking properties
