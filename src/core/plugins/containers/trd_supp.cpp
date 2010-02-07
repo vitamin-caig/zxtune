@@ -105,32 +105,7 @@ namespace
   BOOST_STATIC_ASSERT(sizeof(CatEntry) == 16);
   BOOST_STATIC_ASSERT(sizeof(ServiceSector) == 256);
 
-  struct FileDescr
-  {
-    explicit FileDescr(const CatEntry& entry)
-     : Name(GetTRDosName(entry.Name, entry.Type))
-     , Offset(entry.Offset())
-     , Size(entry.Size())
-    {
-    }
-
-    bool IsMergeable(const CatEntry& rh) const
-    {
-      return 0 == (Size % (BYTES_PER_SECTOR * 255)) && Offset + Size == rh.Offset();
-    }
-
-    void Merge(const CatEntry& rh)
-    {
-      assert(IsMergeable(rh));
-      Size += rh.Size();
-    }
-
-    String Name;
-    uint_t Offset;
-    uint_t Size;
-  };
-
-  typedef std::vector<FileDescr> FileDescriptions;
+  typedef std::vector<TRDFileEntry> FileDescriptions;
 
   bool ParseTRDFile(const IO::FastDump& data, FileDescriptions& descrs)
   {
@@ -156,13 +131,15 @@ namespace
         {
           return false;
         }
-        if (!res.empty() && res.back().IsMergeable(*catEntry))
+        const TRDFileEntry& newOne = 
+          TRDFileEntry(GetTRDosName(catEntry->Name, catEntry->Type), catEntry->Offset(), catEntry->Size());
+        if (!res.empty() && res.back().IsMergeable(newOne))
         {
-          res.back().Merge(*catEntry);
+          res.back().Merge(newOne);
         }
         else
         {
-          res.push_back(FileDescr(*catEntry));
+          res.push_back(newOne);
         }
       }
     }
@@ -217,7 +194,7 @@ namespace
       return false;
     }
     const FileDescriptions::const_iterator fileIt(std::find_if(files.begin(), files.end(),
-      boost::bind(&FileDescr::Name, _1) == pathComp));
+      boost::bind(&TRDFileEntry::Name, _1) == pathComp));
     if (fileIt != files.end())
     {
       outData = inData.Data->GetSubcontainer(fileIt->Offset, fileIt->Size);

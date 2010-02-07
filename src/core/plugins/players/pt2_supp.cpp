@@ -54,12 +54,37 @@ namespace
 
   //checkers
   static const DetectFormatChain DETECTORS[] = {
-    /*PT20
+    //PT20
     {
-      "21??c3??c3+563+f3e522??e57e32",
-
+      "21??"    //ld hl,xxxx
+      "c3??"    //jp xxxx
+      "c3+563+" //jp xxxx:ds 561
+      "f3"      //di
+      "e5"      //push hl
+      "22??"    //ld (xxxx),hl
+      "e5"      //push hl
+      "7e"      //ld a,(hl)
+      "32??"    //ld (xxxx),a
+      "32??"    //ld (xxxx),a
+      "23"      //inc hl
+      "23"      //inc hl
+      "7e"      //ld a,(hl)
+      "23"      //inc hl
+      "22??"    //ld (xxxx),hl
+      "11??"    //ld de,xxxx(32)
+      "19"      //add hl,de
+      "19"      //add hl,de
+      "22??"    //ld (xxxx),hl
+      "19"      //add hl,de
+      "5e"      //ld e,(hl)
+      "23"      //inc hl
+      "56"      //ld d,(hl)
+      "23"      //inc hl
+      "01??"    //ld bc,xxxx(30)
+      "09"      //add hl,bc
+      ,
+      2591
     },
-    */
     //PT21
     {
       "21??"    //ld hl,xxxx
