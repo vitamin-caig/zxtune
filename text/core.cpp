@@ -44,6 +44,10 @@ extern const Char TEXT_MODULE_ERROR_INVALID_FREQ_TABLE_SIZE[] = {
 extern const Char TEXT_MODULE_ERROR_MODULE_END[] = {
   'M','o','d','u','l','e',' ','e','n','d',' ','i','s',' ','r','e','a','c','h','e','d','.',0
 };
+extern const Char TEXT_MODULE_ERROR_NO_MEMORY[] = {
+  'F','a','i','l','e','d',' ','t','o',' ','a','l','l','o','c','a','t','e',' ','m','e','m','o','r','y',' ','w',
+  'h','i','l','e',' ','p','r','o','c','e','s','s','i','n','g',' ','m','o','d','u','l','e','s','.',0
+};
 extern const Char TEXT_MODULE_ERROR_PARAMETERS[] = {
   'I','n','v','a','l','i','d',' ','i','n','p','u','t',' ','p','a','r','a','m','e','t','e','r','s',' ','s','p',
   'e','c','i','f','i','e','d','.',0

@@ -47,6 +47,9 @@ __cpp> "#endif //__TEXT_SOUND_H_DEFINED__\n"
 < TEXT_SOUND_ERROR_BACKEND_SETUP_BACKEND
 > "Failed to setup backend."
 
+< TEXT_SOUND_ERROR_BACKEND_NO_MEMORY
+> "Failed to work with backend- no memory."
+
 < TEXT_SOUND_ERROR_BACKEND_PLAYBACK
 > "Failed to start/continue playback."
 

@@ -21,19 +21,21 @@ namespace ZXTune
     enum ErrorCode
     {
       //! Specified access scheme is not supported
-      NOT_SUPPORTED = Error::ModuleCode<'I', 'O', 'S'>::Value,
+      ERROR_NOT_SUPPORTED = Error::ModuleCode<'I', 'O', 'S'>::Value,
       //! Failt to open data container
-      NOT_OPENED,
+      ERROR_NOT_OPENED,
       //! Specified file is not found
-      NOT_FOUND,
+      ERROR_NOT_FOUND,
       //! Data retrieving is canceled
-      CANCELED,
+      ERROR_CANCELED,
       //! Access to file is denied by OS
-      NO_ACCESS,
+      ERROR_NO_ACCESS,
       //! %IO error happends while opening the file
-      IO_ERROR,
+      ERROR_IO_ERROR,
       //! File already exists
-      FILE_EXISTS
+      ERROR_FILE_EXISTS,
+      //! Failed to allocate memory
+      ERROR_NO_MEMORY
     };
   }
 }

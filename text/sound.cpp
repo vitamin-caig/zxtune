@@ -32,6 +32,10 @@ extern const Char TEXT_SOUND_ERROR_BACKEND_NOT_FOUND[] = {
   'R','e','q','u','e','s','t','e','d',' ','b','a','c','k','e','n','d',' ','\'','%','1','%','\'',' ','i','s',' ',
   'n','o','t',' ','s','u','p','p','o','r','t','e','d','.',0
 };
+extern const Char TEXT_SOUND_ERROR_BACKEND_NO_MEMORY[] = {
+  'F','a','i','l','e','d',' ','t','o',' ','w','o','r','k',' ','w','i','t','h',' ','b','a','c','k','e','n','d',
+  '-',' ','n','o',' ','m','e','m','o','r','y','.',0
+};
 extern const Char TEXT_SOUND_ERROR_BACKEND_PAUSE[] = {
   'F','a','i','l','e','d',' ','t','o',' ','p','a','u','s','e',' ','p','l','a','y','b','a','c','k','.',0
 };

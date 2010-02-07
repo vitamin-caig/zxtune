@@ -28,6 +28,9 @@ __cpp> "#endif //__TEXT_IO_H_DEFINED__\n"
 < TEXT_IO_ERROR_FILE_EXISTS
 > "File '%1%' already exists."
 
+< TEXT_IO_ERROR_NO_MEMORY
+> "Failed to allocate memory to open data."
+
 #providers description
 < TEXT_IO_FILE_PROVIDER_NAME
 > "file"

@@ -30,6 +30,9 @@ __cpp> "#endif //__TEXT_CORE_H_DEFINED__\n"
 < TEXT_MODULE_ERROR_CANCELED
 > "Canceled."
 
+< TEXT_MODULE_ERROR_NO_MEMORY
+> "Failed to allocate memory while processing modules."
+
 < TEXT_MODULE_ERROR_FIND_SUBMODULE
 > "Failed to find specified submodule starting from path '%1%'."
 

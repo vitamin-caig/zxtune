@@ -268,6 +268,10 @@ namespace ZXTune
       {
         return Error(THIS_LINE, BACKEND_CONTROL_ERROR, TEXT_SOUND_ERROR_BACKEND_PLAYBACK).AddSuberror(e);
       }
+      catch (const boost::thread_resource_error&)
+      {
+        return Error(THIS_LINE, BACKEND_NO_MEMORY, TEXT_SOUND_ERROR_BACKEND_NO_MEMORY);
+      }
     }
     
     Error BackendImpl::Pause()

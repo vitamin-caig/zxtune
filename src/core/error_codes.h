@@ -32,6 +32,8 @@ namespace ZXTune
       ERROR_FIND_SUBMODULE,
       //! Module detection is canceled
       ERROR_DETECT_CANCELED,
+      //! No memory
+      ERROR_NO_MEMORY,
       //! @internal Failed to find container plugin
       ERROR_FIND_CONTAINER_PLUGIN,
       //! @internal Failed to find implicit plugin

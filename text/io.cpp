@@ -23,6 +23,10 @@ extern const Char TEXT_IO_ERROR_NOT_SUPPORTED_URI[] = {
 extern const Char TEXT_IO_ERROR_NO_ACCESS[] = {
   'F','a','i','l','e','d',' ','t','o',' ','g','e','t',' ','a','c','c','e','s','s','.',0
 };
+extern const Char TEXT_IO_ERROR_NO_MEMORY[] = {
+  'F','a','i','l','e','d',' ','t','o',' ','a','l','l','o','c','a','t','e',' ','m','e','m','o','r','y',' ','t',
+  'o',' ','o','p','e','n',' ','d','a','t','a','.',0
+};
 extern const Char TEXT_IO_FILE_PROVIDER_DESCRIPTION[] = {
   'S','u','p','p','o','r','t','i','n','g',' ','f','o','r',' ','l','o','c','a','l',' ','f','i','l','e','s',' ',
   'a','n','d',' ','f','i','l','e',':','/','/',' ','s','c','h','e','m','e','.',0

@@ -39,7 +39,9 @@ namespace ZXTune
       //! Platform-specific error
       BACKEND_PLATFORM_ERROR,
       //! Function is not supported
-      BACKEND_UNSUPPORTED_FUNC
+      BACKEND_UNSUPPORTED_FUNC,
+      //! No memory
+      BACKEND_NO_MEMORY
     };
   }
 }

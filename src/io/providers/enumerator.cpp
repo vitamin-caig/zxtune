@@ -77,7 +77,7 @@ namespace
         return it->Opener(uri, params, cb, result, subpath);
       }
       Log::Debug(THIS_MODULE, " No suitable provider found");
-      return Error(THIS_LINE, NOT_SUPPORTED, TEXT_IO_ERROR_NOT_SUPPORTED_URI);
+      return Error(THIS_LINE, ERROR_NOT_SUPPORTED, TEXT_IO_ERROR_NOT_SUPPORTED_URI);
     }
     
     virtual Error SplitUri(const String& uri, String& baseUri, String& subpath) const
@@ -90,7 +90,7 @@ namespace
         return it->Splitter(uri, baseUri, subpath);
       }
       Log::Debug(THIS_MODULE, " No suitable provider found");
-      return Error(THIS_LINE, NOT_SUPPORTED, TEXT_IO_ERROR_NOT_SUPPORTED_URI);
+      return Error(THIS_LINE, ERROR_NOT_SUPPORTED, TEXT_IO_ERROR_NOT_SUPPORTED_URI);
     }
     
     virtual Error CombineUri(const String& baseUri, const String& subpath, String& uri) const
@@ -103,7 +103,7 @@ namespace
         return it->Combiner(baseUri, subpath, uri);
       }
       Log::Debug(THIS_MODULE, " No suitable provider found");
-      return Error(THIS_LINE, NOT_SUPPORTED, TEXT_IO_ERROR_NOT_SUPPORTED_URI);
+      return Error(THIS_LINE, ERROR_NOT_SUPPORTED, TEXT_IO_ERROR_NOT_SUPPORTED_URI);
     }
      
     virtual void Enumerate(ProviderInformationArray& infos) const
@@ -135,7 +135,14 @@ namespace ZXTune
     
     Error OpenData(const String& uri, const Parameters::Map& params, const ProgressCallback& cb, DataContainer::Ptr& data, String& subpath)
     {
-      return ProvidersEnumerator::Instance().OpenUri(uri, params, cb, data, subpath);
+      try
+      {
+        return ProvidersEnumerator::Instance().OpenUri(uri, params, cb, data, subpath);
+      }
+      catch (const std::bad_alloc& e)
+      {
+        return Error(THIS_LINE, ERROR_NO_MEMORY, TEXT_IO_ERROR_NO_MEMORY);
+      }
     }
     
     Error SplitUri(const String& uri, String& baseUri, String& subpath)

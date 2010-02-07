@@ -98,7 +98,14 @@ namespace ZXTune
 
     Error CreateBackend(const String& id, const Parameters::Map& params, Backend::Ptr& result)
     {
-      return BackendsEnumerator::Instance().CreateBackend(id, params, result);
+      try
+      {
+        return BackendsEnumerator::Instance().CreateBackend(id, params, result);
+      }
+      catch (const std::bad_alloc&)
+      {
+        return Error(THIS_LINE, BACKEND_NO_MEMORY, TEXT_SOUND_ERROR_BACKEND_NO_MEMORY);
+      }
     }
   }
 }

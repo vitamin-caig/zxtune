@@ -66,7 +66,7 @@ namespace
       }
       catch (const boost::interprocess::interprocess_exception& e)
       {
-        throw Error(THIS_LINE, IO_ERROR, FromStdString(e.what()));
+        throw Error(THIS_LINE, ERROR_IO_ERROR, FromStdString(e.what()));
       }
 
       virtual std::size_t Size() const
@@ -112,13 +112,13 @@ namespace
       std::ifstream file(ConvertToFilename(path).c_str(), std::ios::binary);
       if (!file)
       {
-        throw Error(THIS_LINE, NO_ACCESS, TEXT_IO_ERROR_NO_ACCESS);
+        throw Error(THIS_LINE, ERROR_NO_ACCESS, TEXT_IO_ERROR_NO_ACCESS);
       }
       file.seekg(0, std::ios::end);
       const std::streampos fileSize = file.tellg();
       if (!fileSize || !file)
       {
-        throw Error(THIS_LINE, IO_ERROR, TEXT_IO_ERROR_IO_ERROR);
+        throw Error(THIS_LINE, ERROR_IO_ERROR, TEXT_IO_ERROR_IO_ERROR);
       }
       std::streampos threshold = static_cast<std::streampos>(Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD_DEFAULT);
       if (const Parameters::IntType* val =
@@ -194,7 +194,7 @@ namespace
     const String::size_type subPos(uri.find_first_of(SUBPATH_DELIMITER));
     if ((String::npos != schemePos && uri.substr(0, schemePos) != SCHEME_FILE) || !IsOrdered(basePos, subPos))
     {
-      return Error(THIS_LINE, NOT_SUPPORTED, TEXT_IO_ERROR_NOT_SUPPORTED_URI);
+      return Error(THIS_LINE, ERROR_NOT_SUPPORTED, TEXT_IO_ERROR_NOT_SUPPORTED_URI);
     }
     if (String::npos != subPos)
     {
@@ -242,7 +242,7 @@ namespace
     }
     catch (const Error& e)
     {
-      return MakeFormattedError(THIS_LINE, NOT_OPENED, TEXT_IO_ERROR_NOT_OPENED, openUri).AddSuberror(e);
+      return MakeFormattedError(THIS_LINE, ERROR_NOT_OPENED, TEXT_IO_ERROR_NOT_OPENED, openUri).AddSuberror(e);
     }
   }
 }

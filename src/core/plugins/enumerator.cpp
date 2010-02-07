@@ -398,13 +398,20 @@ namespace ZXTune
     {
       return Error(THIS_LINE, Module::ERROR_INVALID_PARAMETERS, TEXT_MODULE_ERROR_PARAMETERS);
     }
-    const PluginsEnumerator& enumerator(PluginsEnumerator::Instance());
-    MetaContainer subcontainer;
-    if (const Error& e = enumerator.ResolveSubpath(commonParams, data, startSubpath, detectParams.Logger, subcontainer))
+    try
     {
-      return e;
+      const PluginsEnumerator& enumerator(PluginsEnumerator::Instance());
+      MetaContainer subcontainer;
+      if (const Error& e = enumerator.ResolveSubpath(commonParams, data, startSubpath, detectParams.Logger, subcontainer))
+      {
+        return e;
+      }
+      ModuleRegion region;
+      return enumerator.DetectModules(commonParams, detectParams, subcontainer, region);
     }
-    ModuleRegion region;
-    return enumerator.DetectModules(commonParams, detectParams, subcontainer, region);
+    catch (const std::bad_alloc&)
+    {
+      return Error(THIS_LINE, Module::ERROR_NO_MEMORY, TEXT_MODULE_ERROR_NO_MEMORY);
+    }
   }
 }
