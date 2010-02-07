@@ -537,7 +537,7 @@ namespace
               throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
             }
             it->Param1 = data[cur->Offset++];
-            it->Param2 = data[cur->Offset] + (uint_t(static_cast<int8_t>(data[cur->Offset + 1])) << 8);
+            it->Param2 = static_cast<int16_t>(256 * data[cur->Offset + 1] + data[cur->Offset]);
             cur->Offset += 2;
             break;
           case VIBRATE:
@@ -576,13 +576,15 @@ namespace
             }
             break;
           case GLISS_NOTE:
-            if (restbytes < 4)
+            if (restbytes < 5)
             {
               throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
             }
             it->Param1 = data[cur->Offset++];
-            it->Param2 = 256 * data[cur->Offset + 2] + data[cur->Offset + 3];
-            cur->Offset += 4;
+            //skip limiter
+            cur->Offset += 2;
+            it->Param2 = static_cast<int16_t>(256 * data[cur->Offset + 1] + data[cur->Offset]);
+            cur->Offset += 2;
             break;
           }
         }
@@ -629,7 +631,7 @@ namespace
         uint_t noiseBase(0);
         do
         {
-          Log::ParamPrefixedCollector patLineWarner(patternWarner, TEXT_LINE_WARN_PREFIX, static_cast<uint_t>(pat.size()));
+          Log::ParamPrefixedCollector patLineWarner(patternWarner, TEXT_LINE_WARN_PREFIX, pat.size());
           pat.push_back(VortexTrack::Line());
           VortexTrack::Line& line(pat.back());
           ParsePattern(data, cursors, line, patLineWarner, noiseBase);
