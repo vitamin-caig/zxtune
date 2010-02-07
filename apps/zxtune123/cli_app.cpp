@@ -143,11 +143,9 @@ namespace
     StringMap strProps;
     Parameters::ConvertMap(info.Properties, strProps);
 #if 1
-    const String& infoFmt(InstantiateTemplate(TEXT_ITEM_INFO, strProps, FILL_NONEXISTING));
-
-    assert(INFORMATION_HEIGHT == std::count(infoFmt.begin(), infoFmt.end(), '\n'));
-    StdOut << (Formatter(infoFmt)
-      % UnparseFrameTime(info.Statistic.Frame, frameDuration) % info.PhysicalChannels).str();
+    StdOut 
+      << InstantiateTemplate(TEXT_ITEM_INFO, strProps, FILL_NONEXISTING) 
+      << (Formatter(TEXT_ITEM_INFO_ADDON) % UnparseFrameTime(info.Statistic.Frame, frameDuration) % info.PhysicalChannels).str();
 #else
     std::for_each(strProps.begin(), strProps.end(), OutProp);
 #endif
@@ -157,7 +155,7 @@ namespace
   {
     const String& dump = (Formatter(TEXT_TRACKING_STATUS)
       % track.Position % track.Pattern % track.Line % track.Frame % track.Tempo % track.Channels).str();
-    assert(TRACKING_HEIGHT == std::count(dump.begin(), dump.end(), '\n'));
+    assert(TRACKING_HEIGHT == static_cast<std::size_t>(std::count(dump.begin(), dump.end(), '\n')));
     StdOut << dump;
   }
   
@@ -186,7 +184,7 @@ namespace
     const uint_t pos = frame * (width - totalSize) / allframe;
     prog[pos] = StateSymbol(state);
     data.replace(markerPos, 1, prog);
-    assert(PLAYING_HEIGHT == std::count(data.begin(), data.end(), '\n'));
+    assert(PLAYING_HEIGHT == static_cast<std::size_t>(std::count(data.begin(), data.end(), '\n')));
     StdOut << data << std::flush;
   }
   

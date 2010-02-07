@@ -136,6 +136,7 @@ extern const Char TEXT_INPUT_SECTION[];
 extern const Char TEXT_IO_PROVIDERS_OPTS_DESC[];
 extern const Char TEXT_IO_PROVIDERS_OPTS_KEY[];
 extern const Char TEXT_ITEM_INFO[];
+extern const Char TEXT_ITEM_INFO_ADDON[];
 extern const Char TEXT_LOOP_DESC[];
 extern const Char TEXT_LOOP_KEY[];
 extern const Char TEXT_MIXER_DESC[];

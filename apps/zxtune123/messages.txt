@@ -203,6 +203,8 @@
 > "Type:    [Type]\t"  "Container: [Container]\t" "Program: [Program]\n"
 > "Title:   [Title]\n"
 > "Author:  [Author]\n"
+
+< TEXT_ITEM_INFO_ADDON
 > "Time:    %1%\t"     "Channels:  %2%\n"
 > "\n"
 
