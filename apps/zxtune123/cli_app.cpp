@@ -23,6 +23,7 @@ Author:
 #include <template.h>
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
+#include <core/error_codes.h>
 #include <core/module_attrs.h>
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
@@ -367,7 +368,7 @@ namespace
       }
       catch (const Error& e)
       {
-        if (!e.FindSuberror(CANCELED))
+        if (!e.FindSuberror(ZXTune::Module::ERROR_DETECT_CANCELED))
         {
           e.WalkSuberrors(ErrOuter);
         }
@@ -534,7 +535,7 @@ namespace
           {
           case Console::KEY_CANCEL:
           case 'Q':
-            throw Error(THIS_LINE, CANCELED);
+            throw Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
             break;
           case Console::KEY_LEFT:
             ThrowIfError(backend.SetPosition(curFrame < seekStepFrames ? 0 : curFrame - seekStepFrames));

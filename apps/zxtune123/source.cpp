@@ -115,8 +115,15 @@ namespace
     attrs.insert(Parameters::Map::value_type(ZXTune::Module::ATTR_PATH, path));
     attrs.insert(Parameters::Map::value_type(ZXTune::Module::ATTR_FULLPATH, uri));
     item.Module->ModifyCustomAttributes(attrs, false);
-    callback(item);
-    return Error();
+    try
+    {
+      callback(item);
+      return Error();
+    }
+    catch (const Error& e)
+    {
+      return e;
+    }
   }
   
   class Source : public SourceComponent
