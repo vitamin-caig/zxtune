@@ -36,14 +36,15 @@ namespace
     {
     }
 
-    virtual std::pair<int, int> GetSize() const
+    virtual SizeType GetSize() const
     {
       CONSOLE_SCREEN_BUFFER_INFO info;
       ::GetConsoleScreenBufferInfo(Handle, &info);
-      return std::pair<int, int>(info.srWindow.Right - info.srWindow.Left - 1, info.srWindow.Bottom - info.srWindow.Top - 1);
+      return SizeType(info.srWindow.Right - info.srWindow.Left - 1, 
+        info.srWindow.Bottom - info.srWindow.Top - 1);
     }
 
-    virtual void MoveCursorUp(int lines)
+    virtual void MoveCursorUp(uint_t lines)
     {
       CONSOLE_SCREEN_BUFFER_INFO info;
       ::GetConsoleScreenBufferInfo(Handle, &info);
@@ -52,7 +53,7 @@ namespace
       ::SetConsoleCursorPosition(Handle, info.dwCursorPosition);
     }
 
-    virtual unsigned GetPressedKey() const
+    virtual uint_t GetPressedKey() const
     {
       if (::_kbhit())
       {
