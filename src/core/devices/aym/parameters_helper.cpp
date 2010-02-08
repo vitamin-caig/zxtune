@@ -83,7 +83,7 @@ namespace
         if (table->size() != FreqTable.size() * sizeof(FreqTable.front()))
         {
           throw MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,
-            TEXT_MODULE_ERROR_INVALID_FREQ_TABLE_SIZE, static_cast<unsigned>(table->size()));
+            TEXT_MODULE_ERROR_INVALID_FREQ_TABLE_SIZE, table->size());
         }
         std::memcpy(&FreqTable.front(), &table->front(), table->size());
       }

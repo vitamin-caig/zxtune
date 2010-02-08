@@ -20,6 +20,6 @@ class Error;
 //result will be overwritten
 Error ParseParametersString(const String& prefix, const String& str, Parameters::Map& result);
 //format time
-String UnparseFrameTime(unsigned timeInFrames, unsigned frameDurationMicrosec);
+String UnparseFrameTime(uint_t timeInFrames, uint_t frameDurationMicrosec);
 
 #endif //ZXTUNE123_PARSING_H_DEFINED

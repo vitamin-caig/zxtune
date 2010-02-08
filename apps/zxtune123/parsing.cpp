@@ -119,14 +119,15 @@ Error ParseParametersString(const String& pfx, const String& str, Parameters::Ma
   return Error();
 }
 
-String UnparseFrameTime(unsigned timeInFrames, unsigned frameDurationMicrosec)
+String UnparseFrameTime(uint_t timeInFrames, uint_t frameDurationMicrosec)
 {
-  const unsigned fpsRough = 1000000u / frameDurationMicrosec;
-  const unsigned allSeconds = static_cast<unsigned>(uint64_t(timeInFrames) * frameDurationMicrosec / 1000000u);
-  const unsigned frames = timeInFrames % fpsRough;
-  const unsigned seconds = allSeconds % 60;
-  const unsigned minutes = (allSeconds / 60) % 60;
-  const unsigned hours = allSeconds / 3600;
+  const uint_t US_PER_SEC = 1000000;
+  const uint_t fpsRough = US_PER_SEC / frameDurationMicrosec;
+  const uint_t allSeconds = static_cast<uint_t>(uint64_t(timeInFrames) * frameDurationMicrosec / US_PER_SEC);
+  const uint_t frames = timeInFrames % fpsRough;
+  const uint_t seconds = allSeconds % 60;
+  const uint_t minutes = (allSeconds / 60) % 60;
+  const uint_t hours = allSeconds / 3600;
   return hours ?
   (Formatter(TEXT_TIME_FORMAT_HOURS) % hours % minutes % seconds % frames).str()
   :

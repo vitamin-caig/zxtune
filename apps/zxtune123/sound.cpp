@@ -45,18 +45,18 @@ namespace
 
   static const String NOTUSED_MARK("\x01\x02");
 
-  const unsigned MIN_CHANNELS = 2;
-  const unsigned MAX_CHANNELS = 6;
-  const unsigned DEFAULT_FILTER_ORDER = 10;
+  const uint_t MIN_CHANNELS = 2;
+  const uint_t MAX_CHANNELS = 6;
+  const uint_t DEFAULT_FILTER_ORDER = 10;
 
   const Char MATRIX_DELIMITERS[] = {';', ',', '-', '\0'};
 
-  void ErrOuter(unsigned /*level*/, Error::LocationRef loc, Error::CodeType code, const String& text)
+  void ErrOuter(uint_t /*level*/, Error::LocationRef loc, Error::CodeType code, const String& text)
   {
     StdOut << Error::AttributesToString(loc, code, text);
   }
   
-  inline bool InvalidChannelLetter(unsigned channels, Char letter)
+  inline bool InvalidChannelLetter(uint_t channels, Char letter)
   {
     if (channels < MIN_CHANNELS || channels > MAX_CHANNELS)
     {
@@ -83,9 +83,9 @@ namespace
   std::vector<ZXTune::Sound::MultiGain> ParseMixerMatrix(const String& str)
   {
     //check for layout
-    if (str.end() == std::find_if(str.begin(), str.end(), std::bind1st(std::ptr_fun(&InvalidChannelLetter), static_cast<unsigned>(str.size()))))
+    if (str.end() == std::find_if(str.begin(), str.end(), std::bind1st(std::ptr_fun(&InvalidChannelLetter), str.size())))
     {
-      const unsigned channels = static_cast<unsigned>(str.size());
+      const uint_t channels = str.size();
       //letter- position in result matrix
       //letter position- output channel
       //letter case- level
@@ -274,7 +274,7 @@ namespace
       {
         Parameters::IntType freq = Parameters::ZXTune::Sound::FREQUENCY_DEFAULT;
         Parameters::FindByName(GlobalParams, Parameters::ZXTune::Sound::FREQUENCY, freq);
-        ThrowIfError(Backend->SetFilter(CreateFilter(static_cast<unsigned>(freq), Filter)));
+        ThrowIfError(Backend->SetFilter(CreateFilter(static_cast<uint_t>(freq), Filter)));
       }
     }
 

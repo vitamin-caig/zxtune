@@ -491,7 +491,7 @@ namespace
         pat.reserve(MAX_PATTERN_SIZE);
         do
         {
-          Log::ParamPrefixedCollector patLineWarner(patternWarner, TEXT_LINE_WARN_PREFIX, static_cast<uint_t>(pat.size()));
+          Log::ParamPrefixedCollector patLineWarner(patternWarner, TEXT_LINE_WARN_PREFIX, pat.size());
           pat.push_back(PT2Track::Line());
           PT2Track::Line& line(pat.back());
           ParsePattern(data, cursors, line, patLineWarner);

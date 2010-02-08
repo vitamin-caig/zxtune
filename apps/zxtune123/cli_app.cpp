@@ -508,7 +508,7 @@ namespace
 
         if (!Silent && !Quiet)
         {
-          const int spectrumHeight = scrSize.second - INFORMATION_HEIGHT - TRACKING_HEIGHT - PLAYING_HEIGHT - 1;
+          const int_t spectrumHeight = scrSize.second - INFORMATION_HEIGHT - TRACKING_HEIGHT - PLAYING_HEIGHT - 1;
           if (spectrumHeight < 4)//minimal spectrum height
           {
             Analyzer = false;
