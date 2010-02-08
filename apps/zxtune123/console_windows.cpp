@@ -40,7 +40,7 @@ namespace
     {
       CONSOLE_SCREEN_BUFFER_INFO info;
       ::GetConsoleScreenBufferInfo(Handle, &info);
-      return SizeType(info.srWindow.Right - info.srWindow.Left - 1, 
+      return SizeType(info.srWindow.Right - info.srWindow.Left - 1,
         info.srWindow.Bottom - info.srWindow.Top - 1);
     }
 
@@ -48,7 +48,7 @@ namespace
     {
       CONSOLE_SCREEN_BUFFER_INFO info;
       ::GetConsoleScreenBufferInfo(Handle, &info);
-      info.dwCursorPosition.Y -= lines;
+      info.dwCursorPosition.Y -= static_cast< ::SHORT>(lines);
       info.dwCursorPosition.X = 0;
       ::SetConsoleCursorPosition(Handle, info.dwCursorPosition);
     }

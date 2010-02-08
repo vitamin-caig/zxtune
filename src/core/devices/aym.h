@@ -57,6 +57,9 @@ namespace ZXTune
         PARAM_DUTY_CYCLE,
         PARAM_DUTY_CYCLE_MASK,
 
+        //limiter
+        PARAM_LAST,
+
         //to mark all registers actual
         MASK_ALL_REGISTERS = (1 << (REG_ENV + 1)) - 1,
 
@@ -86,11 +89,9 @@ namespace ZXTune
       {
       }
       uint64_t Tick;
-      uint32_t Mask;
-      uint8_t Data[20];
-    }; //32 bytes total
-
-    BOOST_STATIC_ASSERT(sizeof(DataChunk) % 8 == 0);
+      uint_t Mask;
+      boost::array<uint8_t, PARAM_LAST> Data;
+    };
 
     class Chip
     {

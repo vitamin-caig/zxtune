@@ -16,7 +16,6 @@ Author:
 #include <sound/render_params.h>
 
 #include <cassert>
-#include <cstring>
 #include <limits>
 #include <memory>
 
@@ -68,7 +67,7 @@ namespace
     {
       State.Tick = 0;
       State.Mask = DataChunk::MASK_ALL_REGISTERS;
-      std::memset(State.Data, 0, sizeof(State.Data));
+      std::fill(State.Data.begin(), State.Data.end(), 0);
       State.Data[DataChunk::REG_MIXER] = 0xff;
       BitA = BitB = BitC = BitN = 0;
       TimerA = TimerB = TimerC = TimerN = TimerE = 0;
@@ -162,7 +161,7 @@ namespace
     uint_t LastSamplesDone;
   };
 
-  void ChipImpl::RenderData(const Sound::RenderParameters& params, const DataChunk& src, 
+  void ChipImpl::RenderData(const Sound::RenderParameters& params, const DataChunk& src,
     Sound::MultichannelReceiver& dst)
   {
     if (State.Tick >= LastData.Tick) //need to get data
@@ -179,7 +178,7 @@ namespace
 
   void ChipImpl::ApplyRegistersData()
   {
-    for (uint_t idx = 0, mask = 1; idx != ArraySize(LastData.Data); ++idx, mask <<= 1)
+    for (uint_t idx = 0, mask = 1; idx != LastData.Data.size(); ++idx, mask <<= 1)
     {
       if (LastData.Mask & mask) //register is in dump
       {
@@ -252,7 +251,7 @@ namespace
       }
       curTick += 8;//base freq divisor
       const uint_t duty(LastData.Data[DataChunk::PARAM_DUTY_CYCLE]);
-      const uint_t dutyMask(duty > 0 && duty < 100 && duty != 50 ? 
+      const uint_t dutyMask(duty > 0 && duty < 100 && duty != 50 ?
         LastData.Data[DataChunk::PARAM_DUTY_CYCLE_MASK] : 0);
 
       DoCycle(0 != (dutyMask & DataChunk::DUTY_CYCLE_MASK_A), GetToneA(), TimerA, BitA);
@@ -320,12 +319,12 @@ namespace
 
       Module::Analyze::Channel& channel(state[chan]);
       channel.Enabled = false;
-      if (mixer & ((DataChunk::REG_MASK_TONEA | DataChunk::REG_MASK_NOISEA) << chan))
+      if (mixer & (uint_t(DataChunk::REG_MASK_TONEA | DataChunk::REG_MASK_NOISEA) << chan))
       {
         channel.Enabled = true;
         channel.Level = (State.Data[DataChunk::REG_VOLA + chan] & 0xf) *
           std::numeric_limits<Module::Analyze::LevelType>::max() / 15;
-        if (mixer & (DataChunk::REG_MASK_TONEA << chan))//tone
+        if (mixer & (uint_t(DataChunk::REG_MASK_TONEA) << chan))//tone
         {
           channel.Band = GetBandByPeriod((uint_t(State.Data[DataChunk::REG_TONEA_H + chan * 2]) << 8) |
             State.Data[DataChunk::REG_TONEA_L + chan * 2]);

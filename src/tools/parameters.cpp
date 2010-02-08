@@ -49,10 +49,10 @@ namespace
   inline Char ToHex(uint_t val)
   {
     assert(val < 16);
-    return val >= 10 ? val + 'A' - 10 : val + '0';
+    return static_cast<Char>(val >= 10 ? val + 'A' - 10 : val + '0');
   }
   
-  inline uint_t FromHex(Char val)
+  inline uint8_t FromHex(Char val)
   {
     assert(std::isxdigit(val));
     return val >= 'A' ? val - 'A' + 10 : val - '0';
@@ -195,7 +195,7 @@ namespace Parameters
     {
       std::set_union(newOne.begin(), newOne.end(),
                      oldOne.begin(), oldOne.end(),
-                     std::inserter(result, result.end()), 
+                     std::inserter(result, result.end()),
                      CompareParameter);
     }
     else

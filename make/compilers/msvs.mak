@@ -19,7 +19,7 @@ ld_mode_flags += /DLL
 endif
 
 CXX_FLAGS := $(cxx_mode_flags) $(cxx_flags) /nologo \
-	/W3 /Wp64 /wd4224 /wd4710 /wd4711 \
+	/W3 \
 	/D_SCL_SECURE_NO_WARNINGS \
 	$(addprefix /D, $(definitions)) \
 	/J /Zc:wchar_t,forScope /Fd /Z7 /Zl /EHsc \

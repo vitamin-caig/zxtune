@@ -18,7 +18,7 @@ namespace
     }
     else
     {
-      std::cout << "Failed test for " << typeid(orig).name() << 
+      std::cout << "Failed test for " << typeid(orig).name() <<
         " has=0x" << std::hex << result << " expected=0x" << std::hex << test << std::endl;
     }
   }
@@ -78,6 +78,8 @@ namespace
 
 int main()
 {
+  std::cout << "sizeof(int_t)=" << sizeof(int_t) << std::endl;
+  std::cout << "sizeof(uint_t)=" << sizeof(uint_t) << std::endl;
   std::cout << "---- Test for byteorder working ----" << std::endl;
   TestOrder<int16_t>(-30875, 0x6587);
   TestOrder<uint16_t>(0x1234, 0x3412);

@@ -861,8 +861,8 @@ namespace
         chunk.Data[toneReg + 1] = static_cast<uint8_t>(tone >> 8);
         chunk.Mask |= 3 << toneReg;
         //calculate level
-        chunk.Data[volReg] = GetVolume(dst.Volume, curSampleLine.Level)
-          | uint8_t(dst.Envelope ? AYM::DataChunk::REG_MASK_ENV : 0);
+        chunk.Data[volReg] = static_cast<uint8_t>(GetVolume(dst.Volume, curSampleLine.Level)
+          | uint8_t(dst.Envelope ? AYM::DataChunk::REG_MASK_ENV : 0));
         //mixer
         if (curSampleLine.ToneOff)
         {
@@ -981,7 +981,7 @@ namespace
       return false;
     }
     if (header->Positions + header->Length !=
-      std::find_if(header->Positions, header->Positions + header->Length, std::bind2nd(std::greater_equal<uint8_t>(),
+      std::find_if(header->Positions, header->Positions + header->Length, std::bind2nd(std::greater_equal<uint_t>(),
         patternsCount)))
     {
       return false;

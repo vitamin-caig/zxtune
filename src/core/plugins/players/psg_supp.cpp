@@ -129,7 +129,7 @@ namespace
             throw Error(THIS_LINE, ERROR_INVALID_FORMAT);
           }
           chunk->Data[reg] = *bdata;
-          chunk->Mask |= 1 << reg;
+          chunk->Mask |= uint_t(1) << reg;
           ++bdata;
           --size;
         }

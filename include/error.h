@@ -29,7 +29,7 @@ public:
   //! assume __LINE__ < 65536
   typedef uint32_t LineTag;
   //! @brief Type for code
-  typedef uint_t CodeType;
+  typedef uint32_t CodeType;
 
   //! @struct ModuleCode
   //! @brief Template used for generate per-module base error code:

@@ -129,9 +129,9 @@ String Error::CodeToString(CodeType code)
 {
   const std::size_t codeBytes(sizeof(code) - 3);
   const CodeType syms = code >> (8 * codeBytes);
-  const Char p1 = syms & 0xff;
-  const Char p2 = (syms >> 8) & 0xff;
-  const Char p3 = (syms >> 16) & 0xff;
+  const Char p1 = static_cast<Char>(syms & 0xff);
+  const Char p2 = static_cast<Char>((syms >> 8) & 0xff);
+  const Char p3 = static_cast<Char>((syms >> 16) & 0xff);
   OutStringStream str;
   if (std::isalnum(p1) && std::isalnum(p2) && std::isalnum(p3))
   {

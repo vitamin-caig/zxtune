@@ -283,7 +283,7 @@ namespace
       std::memset(&wfx, 0, sizeof(wfx));
       wfx.wFormatTag = WAVE_FORMAT_PCM;
       wfx.nChannels = OUTPUT_CHANNELS;
-      wfx.nSamplesPerSec = RenderingParameters.SoundFreq;
+      wfx.nSamplesPerSec = static_cast< ::DWORD>(RenderingParameters.SoundFreq);
       wfx.nBlockAlign = sizeof(MultiSample);
       wfx.nAvgBytesPerSec = wfx.nSamplesPerSec * wfx.nBlockAlign;
       wfx.wBitsPerSample = 8 * sizeof(Sample);

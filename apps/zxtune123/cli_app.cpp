@@ -101,9 +101,9 @@ namespace
     {
       configFile->getline(&buffer[0], buffer.size());
       if (const std::streamsize lineSize = configFile->gcount())
-	    {
+            {
         std::vector<Char>::const_iterator endof(buffer.begin() + lineSize - 1);
-        std::vector<Char>::const_iterator beginof(std::find_if<std::vector<Char>::const_iterator>(buffer.begin(), endof, 
+        std::vector<Char>::const_iterator beginof(std::find_if<std::vector<Char>::const_iterator>(buffer.begin(), endof,
           std::not1(std::ptr_fun<int, int>(&std::isspace))));
         if (beginof != endof && *beginof != Char('#'))
         {
@@ -144,8 +144,8 @@ namespace
     StringMap strProps;
     Parameters::ConvertMap(info.Properties, strProps);
 #if 1
-    StdOut 
-      << InstantiateTemplate(TEXT_ITEM_INFO, strProps, FILL_NONEXISTING) 
+    StdOut
+      << InstantiateTemplate(TEXT_ITEM_INFO, strProps, FILL_NONEXISTING)
       << (Formatter(TEXT_ITEM_INFO_ADDON) % UnparseFrameTime(info.Statistic.Frame, frameDuration) % info.PhysicalChannels).str();
 #else
     std::for_each(strProps.begin(), strProps.end(), OutProp);
@@ -389,7 +389,7 @@ namespace
         options.add_options()
           (TEXT_HELP_KEY, TEXT_HELP_DESC)
           (TEXT_VERSION_KEY, TEXT_VERSION_DESC)
-          (TEXT_CONFIG_KEY, boost::program_options::value<String>(&configFile), 
+          (TEXT_CONFIG_KEY, boost::program_options::value<String>(&configFile),
             (Formatter(TEXT_CONFIG_DESC) % GetDefaultConfigFile()).str().c_str())
           (TEXT_IO_PROVIDERS_OPTS_KEY, boost::program_options::value<String>(&providersOptions), TEXT_IO_PROVIDERS_OPTS_DESC)
           (TEXT_CORE_OPTS_KEY, boost::program_options::value<String>(&coreOptions), TEXT_CORE_OPTS_DESC)
@@ -520,7 +520,7 @@ namespace
           else
           {
             ShowTrackingStatus(curTracking);
-            ShowPlaybackStatus(curFrame, info.Statistic.Frame, state, scrSize.first, frameDuration);
+            ShowPlaybackStatus(curFrame, info.Statistic.Frame, state, scrSize.first, static_cast<uint_t>(frameDuration));
             if (Analyzer)
             {
               analyzer.resize(scrSize.first);

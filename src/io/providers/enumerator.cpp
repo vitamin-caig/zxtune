@@ -139,7 +139,7 @@ namespace ZXTune
       {
         return ProvidersEnumerator::Instance().OpenUri(uri, params, cb, data, subpath);
       }
-      catch (const std::bad_alloc& e)
+      catch (const std::bad_alloc&)
       {
         return Error(THIS_LINE, ERROR_NO_MEMORY, TEXT_IO_ERROR_NO_MEMORY);
       }

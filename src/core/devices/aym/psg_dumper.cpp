@@ -83,14 +83,14 @@ namespace
         if (const uint_t fourSkips = intsPassed / 4)
         {
           *inserter = SKIP_INTS;
-          *inserter = fourSkips;
+          *inserter = static_cast<Dump::value_type>(fourSkips);
         }
         std::fill_n(inserter, intsPassed % 4, INTERRUPT);
         for (uint_t reg = 0, mask = src.Mask; mask; ++reg, mask >>= 1)
         {
           if ((mask & 1) && src.Data[reg] != CurChunk.Data[reg])
           {
-            *inserter = reg;
+            *inserter = static_cast<Dump::value_type>(reg);
             *inserter = src.Data[reg];
             CurChunk.Data[reg] = src.Data[reg];
           }

@@ -26,7 +26,7 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::DAC;
 
-  const uint_t SILENT = 128;
+  const int_t SILENT = 128;
 
   const uint_t NOTES = 64;
   //table in Hz
@@ -51,6 +51,11 @@ namespace
   inline T sign(T val)
   {
     return val > 0 ? 1 : (val < 0 ? -1 : 0);
+  }
+
+  inline int_t abs(int_t val)
+  {
+    return val >= 0 ? val : -val;
   }
 
   inline uint_t GetStepByFrequency(double note, uint_t soundFreq, uint_t sampleFreq)
@@ -140,10 +145,10 @@ namespace
       {
         const uint_t pos(PosInSample / Sound::FIXED_POINT_PRECISION);
         assert(CurSample && pos < CurSample->Size);
-        const Sound::Sample cur(scale(CurSample->Data[pos]));
-        const Sound::Sample next(pos >= CurSample->Size ? cur : scale(CurSample->Data[pos + 1]));
-        const int_t delta = int_t(next) - cur;
-        return cur + delta * (PosInSample % Sound::FIXED_POINT_PRECISION) / Sound::FIXED_POINT_PRECISION;
+        const int_t cur(scale(CurSample->Data[pos]));
+        const int_t next(pos >= CurSample->Size ? cur : scale(CurSample->Data[pos + 1]));
+        const int_t delta = next - cur;
+        return static_cast<Sound::Sample>(cur + delta * (PosInSample % Sound::FIXED_POINT_PRECISION) / Sound::FIXED_POINT_PRECISION);
       }
       else
       {
@@ -274,8 +279,8 @@ namespace
       const int_t toneStep = static_cast<int_t>(FreqTable[clamp<int_t>(int_t(state.Note) + state.NoteSlide,
         0, MaxNotes - 1)]);
       state.SampleStep = state.FreqSlide ?
-        clamp<int_t>(toneStep + sign(state.FreqSlide) * GetStepByFrequency(abs(state.FreqSlide),
-          TableFreq, SampleFreq), int_t(FreqTable.front()), int_t(FreqTable.back()))
+        clamp<int_t>(toneStep + sign(state.FreqSlide) * static_cast<int_t>(GetStepByFrequency(double(abs(state.FreqSlide)), TableFreq, SampleFreq)),
+          int_t(FreqTable.front()), int_t(FreqTable.back()))
         :
         toneStep;
       assert(state.SampleStep);

@@ -39,7 +39,7 @@ Author:
 
 namespace
 {
-  String PluginCaps(uint32_t caps)
+  String PluginCaps(uint_t caps)
   {
     typedef std::pair<uint32_t, String> CapsPair;
     
@@ -145,10 +145,10 @@ namespace
   {
     static const String EMPTY;
     
-    static const OptionDesc OPTIONS[] = 
+    static const OptionDesc OPTIONS[] =
     {
       OptionDesc(TEXT_INFO_OPTIONS_IO_PROVIDERS_TITLE, EMPTY, 0),
-      OptionDesc(Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD, 
+      OptionDesc(Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD,
                  TEXT_INFO_OPTIONS_IO_PROVIDERS_FILE_MMAP_THRESHOLD,
                  Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD_DEFAULT),
       OptionDesc(TEXT_INFO_OPTIONS_SOUND_TITLE, EMPTY, 0),

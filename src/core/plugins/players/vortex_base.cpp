@@ -150,9 +150,9 @@ namespace
       int_t NoiseAddon;
     };
   public:
-    VortexPlayer(Holder::ConstPtr holder, const VortexTrack::ModuleData& data, 
+    VortexPlayer(Holder::ConstPtr holder, const VortexTrack::ModuleData& data,
        uint_t version, const String& freqTableName, AYM::Chip::Ptr device)
-      : Module(holder)       
+      : Module(holder)
       , Data(data)
       , Version(version)
       , VolTable(version <= 4 ? Vol33_34 : Vol35)
@@ -422,7 +422,7 @@ namespace
         }
         const uint_t halfTone = static_cast<uint_t>(clamp<int_t>(int_t(dst.Note) + curOrnament.Data[dst.PosInOrnament], 0, 95));
         const uint_t tone = static_cast<uint_t>(freqTable[halfTone] + dst.ToneSlider.Value + toneAddon) & 0xfff;
-        if (dst.ToneSlider.Update() && 
+        if (dst.ToneSlider.Update() &&
             LIMITER != dst.SlidingTargetNote)
         {
           const uint_t targetTone(freqTable[dst.SlidingTargetNote]);
@@ -441,8 +441,8 @@ namespace
         chunk.Mask |= 3 << toneReg;
         dst.VolSlide = clamp<int_t>(dst.VolSlide + curSampleLine.VolumeSlideAddon, -15, 15);
         //calculate level
-        chunk.Data[volReg] = GetVolume(dst.Volume, clamp<int_t>(dst.VolSlide + curSampleLine.Level, 0, 15))
-          | uint8_t(dst.Envelope && !curSampleLine.EnvMask ? AYM::DataChunk::REG_MASK_ENV : 0);
+        chunk.Data[volReg] = static_cast<uint8_t>(GetVolume(dst.Volume, clamp<int_t>(dst.VolSlide + curSampleLine.Level, 0, 15))
+          | uint8_t(dst.Envelope && !curSampleLine.EnvMask ? AYM::DataChunk::REG_MASK_ENV : 0));
         //mixer
         if (curSampleLine.ToneMask)
         {
@@ -512,7 +512,7 @@ namespace ZXTune
 {
   namespace Module
   {
-    Player::Ptr CreateVortexPlayer(Holder::ConstPtr holder, const VortexTrack::ModuleData& data, 
+    Player::Ptr CreateVortexPlayer(Holder::ConstPtr holder, const VortexTrack::ModuleData& data,
        uint_t version, const String& freqTableName, AYM::Chip::Ptr device)
     {
       return Player::Ptr(new VortexPlayer(holder, data, version, freqTableName, device));

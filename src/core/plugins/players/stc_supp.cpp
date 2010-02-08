@@ -760,7 +760,7 @@ namespace
         chunk.Data[toneReg + 1] = static_cast<uint8_t>(tone >> 8);
         chunk.Mask |= 3 << toneReg;
         //calculate level
-        chunk.Data[volReg] = curSampleLine.Level | static_cast<uint8_t>(dst.Envelope ? AYM::DataChunk::REG_MASK_ENV : 0);
+        chunk.Data[volReg] = static_cast<uint8_t>(curSampleLine.Level | (dst.Envelope ? AYM::DataChunk::REG_MASK_ENV : 0));
         //mixer
         if (curSampleLine.EnvelopeMask)
         {
@@ -772,7 +772,7 @@ namespace
         }
         else
         {
-          chunk.Data[AYM::DataChunk::REG_TONEN] = curSampleLine.Noise;
+          chunk.Data[AYM::DataChunk::REG_TONEN] = static_cast<uint8_t>(curSampleLine.Noise);
           chunk.Mask |= 1 << AYM::DataChunk::REG_TONEN;
         }
 

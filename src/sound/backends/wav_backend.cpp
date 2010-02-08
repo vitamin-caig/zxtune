@@ -201,9 +201,9 @@ namespace
           StringMap tmpProps;
           Parameters::ConvertMap(info.Properties, tmpProps);
           std::transform(tmpProps.begin(), tmpProps.end(), std::inserter(strProps, strProps.end()),
-            boost::bind(&std::make_pair<String, String>, 
+            boost::bind(&std::make_pair<String, String>,
               boost::bind<String>(&StringMap::value_type::first, _1),
-              boost::bind<String>(&IO::MakePathFromString, 
+              boost::bind<String>(&IO::MakePathFromString,
                 boost::bind<String>(&StringMap::value_type::second, _1), '_')));
         }
         const String& fileName = InstantiateTemplate(nameTemplate, strProps, SKIP_NONEXISTING);
@@ -212,8 +212,8 @@ namespace
 
         File->seekp(sizeof(Format));
 
-        Format.Samplerate = fromLE<uint32_t>(RenderingParameters.SoundFreq);
-        Format.BytesPerSec = fromLE<uint32_t>(RenderingParameters.SoundFreq * sizeof(MultiSample));
+        Format.Samplerate = fromLE(static_cast<uint32_t>(RenderingParameters.SoundFreq));
+        Format.BytesPerSec = fromLE(static_cast<uint32_t>(RenderingParameters.SoundFreq * sizeof(MultiSample)));
         Format.Align = fromLE<uint16_t>(sizeof(MultiSample));
         Format.BitsPerSample = fromLE<uint16_t>(8 * sizeof(Sample));
         //swap on final

@@ -90,7 +90,7 @@ namespace
       //letter position- output channel
       //letter case- level
       std::vector<ZXTune::Sound::MultiGain> result(channels);
-      for (unsigned inChannel = 0; inChannel != channels; ++inChannel)
+      for (uint_t inChannel = 0; inChannel != channels; ++inChannel)
       {
         if (str[inChannel] == '-')
         {
@@ -99,7 +99,7 @@ namespace
         const double inPos(1.0 * inChannel / (channels - 1));
         const bool gained(str[inChannel] < 'a');
         ZXTune::Sound::MultiGain& res(result[toupper(str[inChannel]) - 'A']);
-        for (unsigned outChannel = 0; outChannel != res.size(); ++outChannel)
+        for (uint_t outChannel = 0; outChannel != res.size(); ++outChannel)
         {
           const double outPos(1.0 * outChannel / (res.size() - 1));
           res[outChannel] += (gained ? 1.0 : 0.6) * (1 - abs(inPos - outPos));
@@ -124,7 +124,7 @@ namespace
     throw MakeFormattedError(THIS_LINE, INVALID_PARAMETER, TEXT_SOUND_ERROR_INVALID_MIXER, str);
   }
 
-  ZXTune::Sound::Converter::Ptr CreateFilter(unsigned freq, const String& str)
+  ZXTune::Sound::Converter::Ptr CreateFilter(uint_t freq, const String& str)
   {
     //[order,]low-hi
     const Char PARAM_DELIMITER(',');
@@ -136,10 +136,10 @@ namespace
       const String::size_type rangeDPos(str.find(BANDPASS_DELIMITER));
       if (String::npos == paramDPos || paramDPos < rangeDPos)
       {
-        const unsigned order = String::npos == paramDPos ? DEFAULT_FILTER_ORDER : FromString<unsigned>(str.substr(0, paramDPos));
+        const uint_t order = String::npos == paramDPos ? DEFAULT_FILTER_ORDER : FromString<unsigned>(str.substr(0, paramDPos));
         const String::size_type rangeBegin(String::npos == paramDPos ? 0 : paramDPos + 1);
-        const unsigned lowCutoff = FromString<unsigned>(str.substr(rangeBegin, rangeDPos - rangeBegin));
-        const unsigned highCutoff = FromString<unsigned>(str.substr(rangeDPos + 1));
+        const uint_t lowCutoff = FromString<uint_t>(str.substr(rangeBegin, rangeDPos - rangeBegin));
+        const uint_t highCutoff = FromString<uint_t>(str.substr(rangeDPos + 1));
         ZXTune::Sound::Filter::Ptr filter;
         ThrowIfError(ZXTune::Sound::CreateFIRFilter(order, filter));
         ThrowIfError(filter->SetBandpassParameters(freq, lowCutoff, highCutoff));

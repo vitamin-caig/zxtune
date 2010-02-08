@@ -115,7 +115,7 @@ namespace
     
     inline static Sample Integral2Sample(BigSample smp, IntSample mid)
     {
-      return IntSample(smp / FIXED_POINT_PRECISION) + mid;
+      return static_cast<Sample>(IntSample(smp / FIXED_POINT_PRECISION) + mid);
     }
   public:
     static const uint_t MIN_ORDER = 2;
@@ -134,7 +134,7 @@ namespace
     virtual void ApplySample(const MultiSample& data)
     {
       std::copy(data.begin(), data.end(), Position->begin());
-      const IntSample avg = Midval.Update(std::accumulate(Position->begin(), Position->end(), 0)) / OUTPUT_CHANNELS;
+      const IntSample avg = Midval.Update(std::accumulate(Position->begin(), Position->end(), IntSample(0))) / OUTPUT_CHANNELS;
       std::transform(Position->begin(), Position->end(), Position->begin(), std::bind2nd(std::minus<IntSample>(), avg));
       MultiBigSample res = { {0} };
 
