@@ -56,6 +56,20 @@ namespace
 
   //checkers
   static const DetectFormatChain DETECTORS[] = {
+    //PT3.4 without signatures
+    {
+      "21??"    // ld hl,xxxx
+      "18?"     // jr xx
+      "c3??"    // jp xxxx
+      "f3"      // di
+      "ed73??"  // ld (xxxx),sp
+      "22??"    // ld (xxxx),hl
+      "e5"      // push hl
+      "01??"    // ld bc,xxxx(0x63)
+      "09"      // add hl,bc
+      ,
+      3559
+    },
     //PT3x
     {
       "21??"    // ld hl,xxxx
@@ -406,7 +420,7 @@ namespace
           {
             channel->Commands.push_back(VortexTrack::Command(TEMPO));
           }
-          else if ((cmd >= 0x10 && cmd <= 0x1f) || 
+          else if ((cmd >= 0x10 && cmd <= 0x1f) ||
                    (cmd >= 0xb2 && cmd <= 0xbf) ||
                     cmd >= 0xf0)
           {
