@@ -968,16 +968,16 @@ namespace
       }
     }
     const uint_t patOff(fromLE(header->PatternsOffset));
-    if (!checker->AddRange(patOff, sizeof(PT2Pattern)))
-    {
-      return false;
-    }
     //check patterns
     uint_t patternsCount(0);
     for (const PT2Pattern* patPos(safe_ptr_cast<const PT2Pattern*>(data + patOff));
       patPos->Check();
       ++patPos, ++patternsCount)
     {
+      if (!checker->AddRange(patOff + sizeof(PT2Pattern) * patternsCount, sizeof(PT2Pattern)))
+      {
+        return false;
+      }
       //at least 1 byte for pattern
       if (patPos->Offsets.end() != std::find_if(patPos->Offsets.begin(), patPos->Offsets.end(),
         !boost::bind(&RangeChecker::AddRange, checker.get(), boost::bind(&fromLE<uint16_t>, _1), 1)))

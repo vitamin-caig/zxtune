@@ -19,6 +19,7 @@ Author:
 #include <error_tools.h>
 #include <logging.h>
 #include <messages_collector.h>
+#include <range_checker.h>
 #include <tools.h>
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
@@ -200,7 +201,7 @@ namespace
     uint8_t Optional3;
     uint8_t FreqTableNum;
     uint8_t Tempo;
-    uint8_t Lenght;
+    uint8_t Length;
     uint8_t Loop;
     uint16_t PatternsOffset;
     boost::array<uint16_t, MAX_SAMPLES_COUNT> SamplesOffsets;
@@ -632,7 +633,7 @@ namespace
       //fill patterns
       Data.Patterns.resize(MAX_PATTERNS_COUNT);
       uint_t index(0);
-      Data.Patterns.resize(1 + *std::max_element(header->Positions, header->Positions + header->Lenght) / 3);
+      Data.Patterns.resize(1 + *std::max_element(header->Positions, header->Positions + header->Length) / 3);
       const PT3Pattern* patterns(safe_ptr_cast<const PT3Pattern*>(&data[fromLE(header->PatternsOffset)]));
       for (const PT3Pattern* pattern = patterns; pattern->Check() && index < Data.Patterns.size(); ++pattern, ++index)
       {
@@ -664,14 +665,14 @@ namespace
         rawSize = std::max(rawSize, std::max_element(cursors.begin(), cursors.end(), PatternCursor::CompareByOffset)->Offset + 1);
       }
       //fill order
-      for (const uint8_t* curPos = header->Positions; curPos != header->Positions + header->Lenght; ++curPos)
+      for (const uint8_t* curPos = header->Positions; curPos != header->Positions + header->Length; ++curPos)
       {
         if (0 == *curPos % 3 && !Data.Patterns[*curPos / 3].empty())
         {
           Data.Positions.push_back(*curPos / 3);
         }
       }
-      Log::Assert(*warner, header->Lenght == Data.Positions.size(), TEXT_WARNING_INVALID_LENGTH);
+      Log::Assert(*warner, header->Length == Data.Positions.size(), TEXT_WARNING_INVALID_LENGTH);
 
       //fix samples and ornaments
       std::for_each(Data.Ornaments.begin(), Data.Ornaments.end(), std::mem_fun_ref(&VortexTrack::Ornament::Fix));
@@ -777,26 +778,79 @@ namespace
   {
     const PT3Header* const header(safe_ptr_cast<const PT3Header*>(data));
     const std::size_t patOff(fromLE(header->PatternsOffset));
-    if (!header->Lenght ||
+    if (!header->Length ||
       patOff >= size ||
       0xff != data[patOff - 1] ||
       &data[patOff - 1] != std::find_if(header->Positions, data + patOff - 1,
         std::bind2nd(std::modulus<uint8_t>(), 3)) ||
-      &header->Positions[header->Lenght] != data + patOff - 1
+      &header->Positions[header->Length] != data + patOff - 1
       )
     {
       return false;
     }
-    const boost::function<bool(uint_t)> checker = !boost::bind(&in_range<uint_t>, _1, 0, size - 1);
-    
-    if (header->SamplesOffsets.end() != std::find_if(header->SamplesOffsets.begin(), header->SamplesOffsets.end(),
-      checker) ||
-        header->OrnamentsOffsets.end() != std::find_if(header->OrnamentsOffsets.begin(), header->OrnamentsOffsets.end(),
-      checker))
+    //patOff is start of patterns and other data
+    RangeChecker::Ptr checker(RangeChecker::CreateShared(size));
+    checker->AddRange(0, patOff);
+
+    //check samples
+    for (const uint16_t* sampOff = header->SamplesOffsets.begin(); sampOff != header->SamplesOffsets.end(); ++sampOff)
+    {
+      if (const uint_t offset = fromLE(*sampOff))
+      {
+        if (!checker->AddRange(offset, sizeof(PT3Sample)))
+        {
+          return false;
+        }
+        const PT3Sample* const sample(safe_ptr_cast<const PT3Sample*>(data + offset));
+        if (!checker->AddRange(offset + sizeof(PT3Sample), sample->GetSize() - sizeof(PT3Sample)))
+        {
+          return false;
+        }
+      }
+    }
+    //check ornaments
+    for (const uint16_t* ornOff = header->OrnamentsOffsets.begin(); ornOff != header->OrnamentsOffsets.end(); ++ornOff)
+    {
+      if (const uint_t offset = fromLE(*ornOff))
+      {
+        if (!checker->AddRange(offset, sizeof(PT3Ornament)))
+        {
+          return false;
+        }
+        const PT3Ornament* const ornament(safe_ptr_cast<const PT3Ornament*>(data + offset));
+        if (!checker->AddRange(offset + sizeof(PT3Ornament), ornament->GetSize() - sizeof(PT3Ornament)))
+        {
+          return false;
+        }
+      }
+    }
+    //find invalid patterns in position
+    if (header->Positions + header->Length !=
+        std::find_if(header->Positions, header->Positions + header->Length, 
+          boost::bind(std::modulus<uint8_t>(), _1, 3) != 0))
     {
       return false;
     }
-    //TODO: continue check
+    //check patterns
+    const uint_t patternsCount = 1 + *std::max_element(header->Positions, header->Positions + header->Length) / 3;
+    if (!patternsCount || patternsCount > MAX_PATTERNS_COUNT)
+    {
+      return false;
+    }
+    const PT3Pattern* patPos(safe_ptr_cast<const PT3Pattern*>(data + patOff));
+    for (uint_t patIdx = 0; patPos->Check() && patIdx < patternsCount; ++patPos, ++patIdx)
+    {
+      if (!checker->AddRange(patOff + sizeof(PT3Pattern) * patIdx, sizeof(PT3Pattern)))
+      {
+        return false;
+      }
+      //at least 1 byte for pattern
+      if (patPos->Offsets.end() != std::find_if(patPos->Offsets.begin(), patPos->Offsets.end(),
+        !boost::bind(&RangeChecker::AddRange, checker.get(), boost::bind(&fromLE<uint16_t>, _1), 1)))
+      {
+        return false;
+      }
+    }
     //try to create holder
     try
     {
