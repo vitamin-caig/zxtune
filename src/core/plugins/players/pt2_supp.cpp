@@ -19,6 +19,7 @@ Author:
 #include <error_tools.h>
 #include <logging.h>
 #include <messages_collector.h>
+#include <range_checker.h>
 #include <tools.h>
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
@@ -931,37 +932,43 @@ namespace
       return false;
     }
 
-    const boost::function<bool(uint_t)> checker = !boost::bind(&in_range<uint_t>, _1, lowlimit, size - 1);
+    RangeChecker::Ptr checker(RangeChecker::CreateShared(size));
+    checker->AddRange(0, lowlimit);
 
-    //check offsets
+    //check samples
     for (const uint16_t* sampOff = header->SamplesOffsets.begin(); sampOff != header->SamplesOffsets.end(); ++sampOff)
     {
-      const uint_t offset(fromLE(*sampOff));
-      if (offset && checker(offset))
+      if (const uint_t offset = fromLE(*sampOff))
       {
-        return false;
-      }
-      const PT2Sample* const sample(safe_ptr_cast<const PT2Sample*>(data + offset));
-      if (offset + sample->GetSize() > size)
-      {
-        return false;
+        if (!checker->AddRange(offset, sizeof(PT2Sample)))
+        {
+          return false;
+        }
+        const PT2Sample* const sample(safe_ptr_cast<const PT2Sample*>(data + offset));
+        if (!checker->AddRange(offset + sizeof(PT2Sample), sample->GetSize() - sizeof(PT2Sample)))
+        {
+          return false;
+        }
       }
     }
+    //check ornaments
     for (const uint16_t* ornOff = header->OrnamentsOffsets.begin(); ornOff != header->OrnamentsOffsets.end(); ++ornOff)
     {
-      const uint_t offset(fromLE(*ornOff));
-      if (offset && checker(offset))
+      if (const uint_t offset = fromLE(*ornOff))
       {
-        return false;
-      }
-      const PT2Ornament* const ornament(safe_ptr_cast<const PT2Ornament*>(data + offset));
-      if (offset + ornament->GetSize() > size)
-      {
-        return false;
+        if (!checker->AddRange(offset, sizeof(PT2Ornament)))
+        {
+          return false;
+        }
+        const PT2Ornament* const ornament(safe_ptr_cast<const PT2Ornament*>(data + offset));
+        if (!checker->AddRange(offset + sizeof(PT2Ornament), ornament->GetSize() - sizeof(PT2Ornament)))
+        {
+          return false;
+        }
       }
     }
     const uint_t patOff(fromLE(header->PatternsOffset));
-    if (checker(patOff))
+    if (!checker->AddRange(patOff, sizeof(PT2Pattern)))
     {
       return false;
     }
@@ -971,7 +978,9 @@ namespace
       patPos->Check();
       ++patPos, ++patternsCount)
     {
-      if (patPos->Offsets.end() != std::find_if(patPos->Offsets.begin(), patPos->Offsets.end(), checker))
+      //at least 1 byte for pattern
+      if (patPos->Offsets.end() != std::find_if(patPos->Offsets.begin(), patPos->Offsets.end(),
+        !boost::bind(&RangeChecker::AddRange, checker.get(), boost::bind(&fromLE<uint16_t>, _1), 1)))
       {
         return false;
       }
@@ -980,8 +989,9 @@ namespace
     {
       return false;
     }
+    //find invalid patterns in position
     if (header->Positions + header->Length !=
-      std::find_if(header->Positions, header->Positions + header->Length, std::bind2nd(std::greater_equal<uint_t>(),
+        std::find_if(header->Positions, header->Positions + header->Length, std::bind2nd(std::greater_equal<uint_t>(),
         patternsCount)))
     {
       return false;
