@@ -70,7 +70,7 @@ namespace
       "016400"  // ld bc,0x64
       "09"      // add hl,bc
       ,
-      0xe21
+      3617
     },
     //PT3.5x
     {
@@ -87,7 +87,7 @@ namespace
       "016400"  // ld bc,0x64
       "09"      // add hl,bc
       ,
-      0x30f
+      3462
     },
     //Vortex1
     {
@@ -767,14 +767,22 @@ namespace
       patOff >= size ||
       0xff != data[patOff - 1] ||
       &data[patOff - 1] != std::find_if(header->Positions, data + patOff - 1,
-      std::bind2nd(std::modulus<uint8_t>(), 3)) ||
-      &header->Positions[header->Lenght] != data + patOff - 1 ||
-      fromLE(header->OrnamentsOffsets[0]) + sizeof(PT3Ornament) > size
+        std::bind2nd(std::modulus<uint8_t>(), 3)) ||
+      &header->Positions[header->Lenght] != data + patOff - 1
       )
     {
       return false;
     }
-    //TODO
+    const boost::function<bool(uint_t)> checker = !boost::bind(&in_range<uint_t>, _1, 0, size - 1);
+    
+    if (header->SamplesOffsets.end() != std::find_if(header->SamplesOffsets.begin(), header->SamplesOffsets.end(),
+      checker) ||
+        header->OrnamentsOffsets.end() != std::find_if(header->OrnamentsOffsets.begin(), header->OrnamentsOffsets.end(),
+      checker))
+    {
+      return false;
+    }
+    //TODO: continue check
     //try to create holder
     try
     {
