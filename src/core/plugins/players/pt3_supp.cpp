@@ -777,9 +777,13 @@ namespace
     Holder::Ptr& holder, ModuleRegion& region)
   {
     const PT3Header* const header(safe_ptr_cast<const PT3Header*>(data));
+    if (size < sizeof(*header))
+    {
+      return false;
+    }
     const std::size_t patOff(fromLE(header->PatternsOffset));
     if (!header->Length ||
-      patOff >= size ||
+      patOff >= size || patOff < sizeof(*header) ||
       0xff != data[patOff - 1] ||
       &data[patOff - 1] != std::find_if(header->Positions, data + patOff - 1,
         std::bind2nd(std::modulus<uint8_t>(), 3)) ||
