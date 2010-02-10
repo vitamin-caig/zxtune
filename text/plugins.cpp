@@ -30,6 +30,10 @@ extern const Char TEXT_HRIP_CONTAINER[] = {
 extern const Char TEXT_HRIP_INFO[] = {
   'H','R','i','P',' ','a','r','c','h','i','v','e','s',' ','s','u','p','p','o','r','t',0
 };
+extern const Char TEXT_HRUST1X_INFO[] = {
+  'H','r','u','s','t','1','.','x',' ','p','a','c','k','e','d',' ','d','a','t','a',' ','s','u','p','p','o','r',
+  't',0
+};
 extern const Char TEXT_PACKED_INFO[] = {
   'P','a','c','k','e','d',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
 };

@@ -34,6 +34,10 @@ __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 < TEXT_HOBETA_INFO
 > "Hobeta containers support"
 
+#Hrust1x
+< TEXT_HRUST1X_INFO
+> "Hrust1.x packed data support"
+
 #Hrip
 < TEXT_HRIP_INFO
 > "HRiP archives support"
