@@ -13,6 +13,8 @@ Author:
 
 #include <boost/shared_array.hpp>
 
+#include <cstring>
+
 namespace
 {
   using namespace ZXTune::IO;
