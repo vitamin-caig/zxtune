@@ -10,6 +10,8 @@
 #ifndef __IO_CONTAINER_H_DEFINED__
 #define __IO_CONTAINER_H_DEFINED__
 
+#include <types.h>
+
 #include <boost/shared_ptr.hpp>
 
 namespace ZXTune
@@ -34,6 +36,9 @@ namespace ZXTune
       //! @brief Provides isolated access to nested subcontainers should be able even after parent container destruction
       virtual Ptr GetSubcontainer(std::size_t offset, std::size_t size) const = 0;
     };
+
+    //! @brief Creating data container based on raw data
+    DataContainer::Ptr CreateDataContainer(const Dump& data);
 
     //! @brief Fast std::vector-alike wrapper around DataContainer
     class FastDump
