@@ -1,6 +1,8 @@
 SET Binary=%1%
 SET Platform=%2%
 SET Arch=%3%
+SET Languages=en
+SET Formats=txt
 
 ECHO Building %Binary% for platform %Platform%_%Arch%
 
@@ -8,21 +10,21 @@ ECHO Building %Binary% for platform %Platform%_%Arch%
 textator --version > NUL || GOTO Error
 zip -v > NUL || GOTO Error
 
-echo Updating
+ECHO Updating
 svn up > NUL || GOTO Error
 
 :: determine current build version
-SET Revision=
+SET Revision=00000
 FOR /F "tokens=2" %%R IN ('svn info ^| FIND "Revision"') DO SET Revision=000%%R
 SET Revision=%Revision:~-4%
 FOR /F %%M IN ('svn st ^| FIND "M  "') DO SET Revision=%Revision%-devel
-echo Revision %Revision%
+ECHO Revision %Revision%
 
 SET Suffix=%Revision%_%Platform%_%Arch%
 
 :: calculate target dir
 SET TargetDir=Builds\Revision%Suffix%
-echo Target dir %TargetDir%
+ECHO Target dir %TargetDir%
 
 ECHO Clearing
 IF EXIST %TargetDir% RMDIR /S /Q %TargetDir% || GOTO Error
@@ -37,6 +39,13 @@ make -j %NUMBER_OF_PROCESSORS% mode=release platform=%Platform% defines=ZXTUNE_V
 SET ZipFile=%TargetDir%\%Binary%_r%Suffix%.zip
 ECHO Compressing %ZipFile%
 zip -9Dj %ZipFile% bin\%Platform%\release\%Binary%.exe apps\zxtune.conf || GOTO Error
+ECHO Generating manuals
+FOR /D %%F IN (%Formats%) DO (
+FOR /D %%L IN (%Languages%) DO (
+textator --process --keys %%L,%%F --asm --output bin\%Binary%_%%L.%%F apps\%Binary%.txt || GOTO Error
+zip -9Dj %ZipFile% bin\%Binary%_%%L.%%F || GOTO Error
+)
+)
 
 ECHO Copy additional files
 copy bin\%Platform%\release\%Binary%.exe.pdb %TargetDir%
