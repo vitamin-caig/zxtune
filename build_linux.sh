@@ -3,6 +3,8 @@
 Binary=zxtune123
 Platform=linux
 Arch=`arch`
+Formats=txt
+Languages=en
 
 echo "Building ${Binary} for platform ${Platform}_${Arch}"
 
@@ -34,6 +36,16 @@ time make -j `grep processor /proc/cpuinfo | wc -l` mode=release platform=${Plat
 ZipFile=${TargetDir}/${Binary}_r${Suffix}.zip
 echo "Compressing ${ZipFile}"
 zip -9Dj ${ZipFile} bin/${Platform}/release/${Binary} apps/zxtune.conf || exit 1;
+echo "Generating manuals"
+for Fmt in $Formats
+do
+  for Lng in $Languages
+  do
+    textator --process --keys $Lng,$Fmt --asm \
+    --output bin/${Binary}_${Lng}.${Fmt} apps/${Binary}.txt || exit 1;
+    zip -9Dj ${ZipFile} bin/${Binary}_${Lng}.${Fmt} || exit 1;
+  done
+done
 
 echo "Copy additional files"
 cp bin/${Platform}/release/${Binary}*.pdb ${TargetDir} || exit 1;
