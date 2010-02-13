@@ -359,7 +359,7 @@ namespace
 namespace ZXTune
 {
   void ExtractMetaProperties(const String& type,
-                             const MetaContainer& container, const ModuleRegion& region,
+                             const MetaContainer& container, const ModuleRegion& region, const ModuleRegion& fixedRegion,
                              Parameters::Map& properties, Dump& rawData)
   {
     properties.insert(Parameters::Map::value_type(Module::ATTR_TYPE, type));
@@ -374,9 +374,20 @@ namespace ZXTune
     }
     const uint8_t* data(static_cast<const uint8_t*>(container.Data->Data()));
     rawData.assign(data + region.Offset, data + region.Offset + region.Size);
-    boost::crc_32_type crcCalc;
-    crcCalc.process_bytes(&rawData[0], region.Size);
-    properties.insert(Parameters::Map::value_type(Module::ATTR_CRC, crcCalc.checksum()));
+    //calculate total checksum
+    {
+      boost::crc_32_type crcCalc;
+      crcCalc.process_bytes(&rawData[0], region.Size);
+      properties.insert(Parameters::Map::value_type(Module::ATTR_CRC, crcCalc.checksum()));
+    }
+    //calculate fixed checksum
+    if (fixedRegion.Offset != 0 || fixedRegion.Size != region.Size)
+    {
+      assert(fixedRegion.Offset + fixedRegion.Size <= region.Size);
+      boost::crc_32_type crcCalc;
+      crcCalc.process_bytes(&rawData[fixedRegion.Offset], fixedRegion.Size);
+      properties.insert(Parameters::Map::value_type(Module::ATTR_FIXEDCRC, crcCalc.checksum()));
+    }
     properties.insert(Parameters::Map::value_type(Module::ATTR_SIZE, region.Size));
   }
   

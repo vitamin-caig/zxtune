@@ -682,7 +682,9 @@ namespace
       region.Size = rawSize;
       
       //meta properties
-      ExtractMetaProperties(PT3_PLUGIN_ID, container, region, Data.Info.Properties, RawData);
+      const std::size_t fixedOffset(sizeof(PT3Header) + header->Length - 1);
+      ExtractMetaProperties(PT3_PLUGIN_ID, container, region, ModuleRegion(fixedOffset, rawSize - fixedOffset), 
+        Data.Info.Properties, RawData);
       const String& title(OptimizeString(FromStdString(header->TrackName)));
       if (!title.empty())
       {

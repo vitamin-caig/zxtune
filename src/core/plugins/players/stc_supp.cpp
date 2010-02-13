@@ -469,7 +469,8 @@ namespace
       region.Size = rawSize;
       
       //meta properties
-      ExtractMetaProperties(STC_PLUGIN_ID, container, region, Data.Info.Properties, RawData);
+      ExtractMetaProperties(STC_PLUGIN_ID, container, region, ModuleRegion(sizeof(STCHeader), rawSize - sizeof(STCHeader)), 
+        Data.Info.Properties, RawData);
       const String& prog(OptimizeString(FromStdString(header->Identifier)));
       if (!prog.empty())
       {

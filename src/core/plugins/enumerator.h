@@ -25,6 +25,10 @@ namespace ZXTune
     ModuleRegion() : Offset(), Size()
     {
     }
+    ModuleRegion(std::size_t off, std::size_t sz)
+      : Offset(off), Size(sz)
+    {
+    }
     std::size_t Offset;
     std::size_t Size;
   };
@@ -37,7 +41,7 @@ namespace ZXTune
   };
   
   void ExtractMetaProperties(const String& type,
-                             const MetaContainer& container, const ModuleRegion& region,
+                             const MetaContainer& container, const ModuleRegion& region, const ModuleRegion& fixedRegion,
                              Parameters::Map& properties, Dump& rawData);
   
   //in: metacontainer

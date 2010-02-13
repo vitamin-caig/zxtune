@@ -529,7 +529,9 @@ namespace
       region.Size = rawSize;
       
       //meta properties
-      ExtractMetaProperties(PT2_PLUGIN_ID, container, region, Data.Info.Properties, RawData);
+      const std::size_t fixedOffset(sizeof(PT2Header) + header->Length - 1);
+      ExtractMetaProperties(PT2_PLUGIN_ID, container, region, ModuleRegion(fixedOffset, rawSize - fixedOffset), 
+        Data.Info.Properties, RawData);
       const String& title(OptimizeString(FromStdString(header->Name)));
       if (!title.empty())
       {

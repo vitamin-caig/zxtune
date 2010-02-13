@@ -43,6 +43,8 @@ namespace ZXTune
     const Char ATTR_WARNINGS_COUNT[] = {'W', 'a', 'r', 'n', 'i', 'n', 'g', 's', 'C', 'o', 'u', 'n', 't', '\0'};
     //! Raw module data crc32 checksum
     const Char ATTR_CRC[] = {'C', 'R', 'C', '\0'};
+    //! Constant (without any headers) module data crc32 checksum
+    const Char ATTR_FIXEDCRC[] = {'F', 'i', 'x', 'e', 'd', 'C', 'R', 'C', '\0'};
     //! Raw module size in bytes
     const Char ATTR_SIZE[] = {'S', 'i', 'z', 'e', '\0'};
     //@}

@@ -140,7 +140,7 @@ namespace
       region.Size = data.Size() - size;
       
       //extract properties
-      ExtractMetaProperties(PSG_PLUGIN_ID, container, region, ModInfo.Properties, RawData);
+      ExtractMetaProperties(PSG_PLUGIN_ID, container, region, region, ModInfo.Properties, RawData);
       
       //fill properties
       ModInfo.Statistic.Frame = Storage.size();

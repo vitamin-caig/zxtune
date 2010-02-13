@@ -354,7 +354,8 @@ namespace
       region.Size = MODULE_SIZE;
       
       //meta properties
-      ExtractMetaProperties(PDT_PLUGIN_ID, container, region, Data.Info.Properties, RawData);
+      ExtractMetaProperties(PDT_PLUGIN_ID, container, region, ModuleRegion(sizeof(PDTHeader) - sizeof(header->Patterns), sizeof(header->Patterns)), 
+        Data.Info.Properties, RawData);
       Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_PROGRAM, String(TEXT_PDT_EDITOR)));
       const String& title(OptimizeString(FromStdString(header->Title)));
       if (!title.empty())
