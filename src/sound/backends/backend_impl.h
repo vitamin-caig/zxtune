@@ -81,6 +81,8 @@ namespace ZXTune
       mutable boost::mutex PlayerMutex;
       boost::thread RenderThread;
       boost::barrier SyncBarrier;
+      boost::mutex PauseMutex;
+      boost::condition_variable PauseEvent;
       //state
       volatile State CurrentState;
       volatile bool InProcess;//STOP => STOPPING, STARTED => STARTING

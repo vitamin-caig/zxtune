@@ -30,7 +30,6 @@ namespace
 
   typedef boost::lock_guard<boost::mutex> Locker;
 
-  const boost::posix_time::milliseconds PLAYTHREAD_SLEEP_PERIOD(1000);
   //playing thread and starting/stopping thread
   const std::size_t TOTAL_WORKING_THREADS = 2;
   
@@ -258,8 +257,11 @@ namespace ZXTune
         else if (PAUSED == prevState)
         {
           Log::Debug(THIS_MODULE, "Resuming playback");
-          DoResume();
-          CurrentState = STARTED;
+          PauseEvent.notify_one();
+          boost::unique_lock<boost::mutex> locker(PauseMutex);
+          //wait until really resumed
+          PauseEvent.wait(locker);
+          Log::Debug(THIS_MODULE, "Resumed");
         }
         
         return Error();
@@ -282,8 +284,11 @@ namespace ZXTune
         CheckState();
         if (STARTED == CurrentState)
         {
-          DoPause();
+          Log::Debug(THIS_MODULE, "Pausing playback");
           CurrentState = PAUSED;
+          boost::unique_lock<boost::mutex> locker(PauseMutex);
+          //wait until really paused
+          PauseEvent.wait(locker);
           Log::Debug(THIS_MODULE, "Paused");
         }
         return Error();
@@ -339,7 +344,7 @@ namespace ZXTune
     {
       boost::mutex localMutex;
       boost::unique_lock<boost::mutex> locker(localMutex);
-      return evt > TIMEOUT && evt < LAST_EVENT && timeoutMs > 0 && 
+      return evt > TIMEOUT && evt < LAST_EVENT && timeoutMs > 0 &&
         Events[evt].timed_wait(locker, boost::posix_time::milliseconds(timeoutMs))
         ? evt : TIMEOUT;
     }
@@ -475,7 +480,10 @@ namespace ZXTune
         Log::Debug(THIS_MODULE, "Stopping playback");
         if (PAUSED == curState)
         {
-          DoResume();
+          PauseEvent.notify_one();
+          boost::unique_lock<boost::mutex> locker(PauseMutex);
+          //wait until really resumed
+          PauseEvent.wait(locker);
         }
         CurrentState = STOPPED;
         InProcess = true;//stopping now
@@ -534,7 +542,16 @@ namespace ZXTune
           }
           else if (PAUSED == curState)
           {
-            boost::this_thread::sleep(PLAYTHREAD_SLEEP_PERIOD);
+            DoPause();
+            //pausing finished
+            PauseEvent.notify_one();
+            boost::unique_lock<boost::mutex> locker(PauseMutex);
+            //wait until unpause
+            PauseEvent.wait(locker);
+            DoResume();
+            CurrentState = STARTED;
+            //unpausing finished
+            PauseEvent.notify_one();
           }
         }
         Log::Debug(THIS_MODULE, "Stopping playback thread");
