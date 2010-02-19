@@ -16,6 +16,7 @@ Author:
 #include "source.h"
 
 #include <error_tools.h>
+#include <logging.h>
 #include <string_helpers.h>
 #include <tools.h>
 #include <io/fs_tools.h>
@@ -40,15 +41,23 @@ namespace
 {
   const Char DELIMITERS[] = {',', ';', ':', '\0'};
  
-  void DoLog(const String& str)
+  void DoLog(const Log::MessageData& msg)
   {
-    StdOut << str << std::endl;
+    if (msg.Text)
+    {
+      StdOut << *msg.Text;
+    }
+    if (msg.Progress)
+    {
+      StdOut << (Formatter(TEXT_PROGRESS_FORMAT) % *msg.Progress).str();
+    }
+    StdOut << std::endl;
   }
   
   void Parse(const StringSet& allplugs, const String& str, StringSet& plugs, uint32_t& caps)
   {
     typedef std::pair<uint32_t, String> CapsPair;
-    static const CapsPair CAPABILITIES[] = 
+    static const CapsPair CAPABILITIES[] =
     {
       CapsPair(ZXTune::CAP_DEV_AYM, TEXT_INFO_CAP_AYM),
       CapsPair(ZXTune::CAP_DEV_TS, TEXT_INFO_CAP_TS),
@@ -110,7 +119,7 @@ namespace
     //add additional attributes
     Parameters::Map attrs;
     String tmp;
-    attrs.insert(Parameters::Map::value_type(ZXTune::Module::ATTR_FILENAME, 
+    attrs.insert(Parameters::Map::value_type(ZXTune::Module::ATTR_FILENAME,
       ZXTune::IO::ExtractLastPathComponent(path, tmp)));
     attrs.insert(Parameters::Map::value_type(ZXTune::Module::ATTR_PATH, path));
     attrs.insert(Parameters::Map::value_type(ZXTune::Module::ATTR_FULLPATH, uri));
@@ -169,8 +178,8 @@ namespace
     {
       assert(callback);
       const bool hasFilter(!EnabledPlugins.empty() || !DisabledPlugins.empty() || 0 != EnabledCaps || 0 != DisabledCaps);
-      ThrowIfError(ProcessModuleItems(Files, GlobalParams, 
-        hasFilter ? boost::bind(&Source::DoFilter, this, _1) : ZXTune::DetectParameters::FilterFunc(), 
+      ThrowIfError(ProcessModuleItems(Files, GlobalParams,
+        hasFilter ? boost::bind(&Source::DoFilter, this, _1) : ZXTune::DetectParameters::FilterFunc(),
         ShowProgress ? DoLog : 0,
         callback));
     }

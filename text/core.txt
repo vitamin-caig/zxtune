@@ -62,6 +62,3 @@ __cpp> "#endif //__TEXT_CORE_H_DEFINED__\n"
 
 < TEXT_MODULE_MESSAGE_DETECT_PLAYER
 > "Detected player module '%2%' at path '%1%'."
-
-< TEXT_PLUGIN_RAW_MESSAGE_PROGRESS
-> "Scanning: %1%%%"

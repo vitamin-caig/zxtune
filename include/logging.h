@@ -4,7 +4,7 @@
 * @brief    Logging functions interface
 * @version  $Id$
 * @author   (C) Vitamin/CAIG/2001
-* 
+*
 **/
 
 #ifndef __LOGGING_H_DEFINED__
@@ -18,10 +18,18 @@
 #include <cassert>
 
 #include <boost/format.hpp>
+#include <boost/optional.hpp>
 
 //! @brief Namespace is used for logging and other informational purposes
 namespace Log
 {
+  //! @brief Message structure
+  struct MessageData
+  {
+    boost::optional<String> Text;
+    boost::optional<uint_t> Progress;
+  };
+
   //! @brief Checks if debugging messages output is enabled
   bool IsDebuggingEnabled();
 

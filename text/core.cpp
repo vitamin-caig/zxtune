@@ -72,7 +72,4 @@ extern const Char TEXT_MODULE_MESSAGE_OPEN_NESTED[] = {
   'O','p','e','n','i','n','g',' ','n','e','s','t','e','d',' ','c','o','n','t','a','i','n','e','r',' ','\'','%',
   '2','%','\'',' ','a','t',' ','p','a','t','h',' ','\'','%','1','%','\'','.',0
 };
-extern const Char TEXT_PLUGIN_RAW_MESSAGE_PROGRESS[] = {
-  'S','c','a','n','n','i','n','g',':',' ','%','1','%','%','%',0
-};
 #endif //__TEXT_CORE_H_DEFINED__

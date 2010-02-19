@@ -16,6 +16,7 @@ extern const Char TEXT_HRUST1X_INFO[];
 extern const Char TEXT_PACKED_INFO[];
 extern const Char TEXT_PDT_EDITOR[];
 extern const Char TEXT_PDT_INFO[];
+extern const Char TEXT_PLUGIN_RAW_MESSAGE_SCANNING[];
 extern const Char TEXT_PSG_INFO[];
 extern const Char TEXT_PT2_INFO[];
 extern const Char TEXT_PT2_PROGRAM[];

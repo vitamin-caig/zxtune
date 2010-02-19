@@ -21,6 +21,11 @@
 
 class Error;
 
+namespace Log
+{
+  struct MessageData;
+}
+
 //! @brief Global library namespace
 namespace ZXTune
 {
@@ -36,7 +41,7 @@ namespace ZXTune
     typedef boost::function<Error(const String&, Module::Holder::Ptr player)> CallbackFunc;
     //! Called on each detected module. Passed subpath and Module#Holder object. Return nonempty error to cancel processing. Mandatory
     CallbackFunc Callback;
-    typedef boost::function<void(const String&)> LogFunc;
+    typedef boost::function<void(const Log::MessageData&)> LogFunc;
     //! Simple logger callback. Optional
     LogFunc Logger;
   };

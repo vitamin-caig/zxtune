@@ -12,6 +12,7 @@ Author:
 #include "../enumerator.h"
 
 #include <error_tools.h>
+#include <logging.h>
 #include <tools.h>
 
 #include <core/error_codes.h>
@@ -62,7 +63,7 @@ namespace
     return stream.str();
   }
   
-  Error ProcessRawContainer(const Parameters::Map& commonParams, const DetectParameters& detectParams, 
+  Error ProcessRawContainer(const Parameters::Map& commonParams, const DetectParameters& detectParams,
     const MetaContainer& data, ModuleRegion& region)
   {
     //do not search right after previous raw plugin
@@ -86,21 +87,29 @@ namespace
       }
     }
     std::size_t scanStep = static_cast<std::size_t>(Parameters::ZXTune::Core::Plugins::Raw::SCAN_STEP_DEFAULT);
-    if (const Parameters::IntType* const stepParam = 
+    if (const Parameters::IntType* const stepParam =
       Parameters::FindByName<Parameters::IntType>(commonParams, Parameters::ZXTune::Core::Plugins::Raw::SCAN_STEP))
     {
       if (*stepParam < Parameters::IntType(MIN_SCAN_STEP) ||
           *stepParam > Parameters::IntType(MAX_SCAN_STEP))
       {
-        throw MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS, 
+        throw MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,
           TEXT_RAW_ERROR_INVALID_STEP, *stepParam, MIN_SCAN_STEP, MAX_SCAN_STEP);
       }
       scanStep = static_cast<std::size_t>(*stepParam);
     }
-    
+
+    // progress-related
     const bool showProgress(data.PluginsChain.end() == std::find(data.PluginsChain.begin(), data.PluginsChain.end(), RAW_PLUGIN_ID) &&
       detectParams.Logger);
-    uint_t progress = 0;
+    Log::MessageData message;
+    message.Text = (Formatter(TEXT_PLUGIN_RAW_MESSAGE_SCANNING) % data.Path).str();
+    if (showProgress)
+    {
+      message.Progress = 0;
+      detectParams.Logger(message);
+    }
+
     bool wasResult = curRegion.Size != 0;
     const std::size_t limit(data.Data->Size());
 
@@ -111,11 +120,11 @@ namespace
       offset < limit - MINIMAL_RAW_SIZE; offset += std::max(curRegion.Offset + curRegion.Size, std::size_t(1)))
     {
       const uint_t curProg = offset * 100 / limit;
-      if (showProgress && curProg != progress)
-      {  
-        detectParams.Logger((Formatter(TEXT_PLUGIN_RAW_MESSAGE_PROGRESS) % curProg).str());
-        progress = curProg;
-      }  
+      if (showProgress && curProg != *message.Progress)
+      {
+        detectParams.Logger(message);
+        message.Progress = curProg;
+      }
       subcontainer.Data = data.Data->GetSubcontainer(offset, limit - offset);
       subcontainer.Path = IO::AppendPath(data.Path, CreateRawPart(offset));
       if (const Error& err = enumerator.DetectModules(commonParams, detectParams, subcontainer, curRegion))
@@ -136,7 +145,7 @@ namespace
     }
   }
   
-  bool OpenRawContainer(const Parameters::Map& /*commonParams*/, const MetaContainer& inData, const String& inPath, 
+  bool OpenRawContainer(const Parameters::Map& /*commonParams*/, const MetaContainer& inData, const String& inPath,
     IO::DataContainer::Ptr& outData, String& restPath)
   {
     //do not open right after self

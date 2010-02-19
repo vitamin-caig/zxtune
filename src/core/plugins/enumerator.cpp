@@ -65,7 +65,9 @@ namespace
     if (logger)
     {
       assert(format);
-      logger((Formatter(format) % param1 % param2).str());
+      Log::MessageData msg;
+      msg.Text = (Formatter(format) % param1 % param2).str();
+      logger(msg);
     }
   }
   
@@ -108,7 +110,7 @@ namespace
     }
 
     // Open subpath in despite of filter and other
-    virtual Error ResolveSubpath(const Parameters::Map& commonParams, IO::DataContainer::Ptr data, 
+    virtual Error ResolveSubpath(const Parameters::Map& commonParams, IO::DataContainer::Ptr data,
       const String& subpath, const DetectParameters::LogFunc& logger, MetaContainer& result) const
     {
       try
@@ -165,7 +167,7 @@ namespace
       }
     }
 
-    virtual Error DetectModules(const Parameters::Map& commonParams, const DetectParameters& detectParams, 
+    virtual Error DetectModules(const Parameters::Map& commonParams, const DetectParameters& detectParams,
       const MetaContainer& data, ModuleRegion& region) const
     {
       Log::Debug(THIS_MODULE, "Detecting modules in data of size %1%, path '%2%'", data.Data->Size(), data.Path);
@@ -402,7 +404,7 @@ namespace ZXTune
     PluginsEnumerator::Instance().Enumerate(plugins);
   }
 
-  Error DetectModules(const Parameters::Map& commonParams, const DetectParameters& detectParams, 
+  Error DetectModules(const Parameters::Map& commonParams, const DetectParameters& detectParams,
     IO::DataContainer::Ptr data, const String& startSubpath)
   {
     if (!data.get() || !detectParams.Callback)

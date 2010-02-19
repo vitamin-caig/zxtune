@@ -516,6 +516,9 @@ extern const Char TEXT_PLAYBACK_STATUS[] = {
   '\n',
   0
 };
+extern const Char TEXT_PROGRESS_FORMAT[] = {
+  ' ','[','%','1','%','%','%',']',0
+};
 extern const Char TEXT_QUIET_DESC[] = {
   'd','i','s','a','b','l','e',' ','d','y','n','a','m','i','c',' ','o','u','t','p','u','t',0
 };

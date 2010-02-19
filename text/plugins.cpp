@@ -44,6 +44,10 @@ extern const Char TEXT_PDT_INFO[] = {
   'P','r','o','D','i','g','i',' ','T','r','a','c','k','e','r',' ','m','o','d','u','l','e','s',' ','s','u','p',
   'p','o','r','t',0
 };
+extern const Char TEXT_PLUGIN_RAW_MESSAGE_SCANNING[] = {
+  'R','a','w',' ','s','c','a','n','e','r',' ','p','r','o','c','e','s','s','i','n','g',' ','i','n',' ','\'','%',
+  '1','%','\'',0
+};
 extern const Char TEXT_PSG_INFO[] = {
   'P','S','G',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
 };

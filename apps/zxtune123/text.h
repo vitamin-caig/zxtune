@@ -142,6 +142,7 @@ extern const Char TEXT_LOOP_KEY[];
 extern const Char TEXT_MIXER_DESC[];
 extern const Char TEXT_MIXER_KEY[];
 extern const Char TEXT_PLAYBACK_STATUS[];
+extern const Char TEXT_PROGRESS_FORMAT[];
 extern const Char TEXT_QUIET_DESC[];
 extern const Char TEXT_QUIET_KEY[];
 extern const Char TEXT_SEEKSTEP_DESC[];

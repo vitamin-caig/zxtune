@@ -270,3 +270,6 @@
 
 < TEXT_CONVERT_DONE
 > "Converted '%1%' => '%2%'"
+
+< TEXT_PROGRESS_FORMAT
+> " [%1%%%]"

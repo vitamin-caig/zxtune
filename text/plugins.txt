@@ -78,6 +78,9 @@ __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 < TEXT_RAW_ERROR_INVALID_STEP
 > "Specified scan step (%1%) is out of range %2%..%3%."
 
+< TEXT_PLUGIN_RAW_MESSAGE_SCANNING
+> "Raw scaner processing in '%1%'"
+
 #SCL
 < TEXT_SCL_INFO
 > "SCL containers support"
