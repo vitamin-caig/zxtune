@@ -10,12 +10,11 @@
 #ifndef __LOGGING_H_DEFINED__
 #define __LOGGING_H_DEFINED__
 
-#include <string>
-#ifdef UNICODE
 #include <string_type.h>
-#endif
+#include <types.h>
 
 #include <cassert>
+#include <string>
 
 #include <boost/format.hpp>
 #include <boost/optional.hpp>

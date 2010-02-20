@@ -104,11 +104,7 @@ namespace
       detectParams.Logger);
     Log::MessageData message;
     message.Text = (Formatter(TEXT_PLUGIN_RAW_MESSAGE_SCANNING) % data.Path).str();
-    if (showProgress)
-    {
-      message.Progress = 0;
-      detectParams.Logger(message);
-    }
+    message.Progress = 0;
 
     bool wasResult = curRegion.Size != 0;
     const std::size_t limit(data.Data->Size());
