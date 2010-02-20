@@ -33,8 +33,11 @@ __cpp> "#endif //__TEXT_BACKENDS_H_DEFINED__\n"
 < TEXT_ALSA_BACKEND_DESCRIPTION
 > "ALSA sound system backend"
 
-< ALSA_BACKEND_KEY
-> "alsa"
+< TEXT_SOUND_ERROR_ALSA_BACKEND_ERROR
+> "Error in ALSA backend: %1%."
+
+< TEXT_SOUND_ERROR_ALSA_BACKEND_DEVICE_ERROR
+> "Error in ALSA backend while working with device '%1%': %2%."
 
 #oss backend
 < TEXT_OSS_BACKEND_DESCRIPTION

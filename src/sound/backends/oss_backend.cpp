@@ -57,10 +57,8 @@ namespace
     BACKEND_VERSION,
   };
  
-  class AutoDescriptor
+  class AutoDescriptor : public boost::noncopyable
   {
-    AutoDescriptor(AutoDescriptor& rh);
-    AutoDescriptor& operator = (AutoDescriptor& rh);
   public:
     AutoDescriptor()
       : Handle(-1)
@@ -78,8 +76,6 @@ namespace
       if (-1 != Handle)
       {
         ::close(Handle);
-        Handle = -1;
-        Name.clear();
       }
     }
     
@@ -247,7 +243,7 @@ namespace
       const uint8_t* data(safe_ptr_cast<const uint8_t*>(&buf[0]));
       while (toWrite)
       {
-        int res(::write(DevHandle.Get(), data, toWrite * sizeof(*data)));
+        const int res = ::write(DevHandle.Get(), data, toWrite * sizeof(*data));
         DevHandle.CheckResult(res >= 0, THIS_LINE);
         toWrite -= res;
         data += res;

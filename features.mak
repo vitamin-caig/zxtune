@@ -6,3 +6,8 @@ endif
 ifdef support_oss
 definitions += OSS_SUPPORT
 endif
+
+ifdef support_alsa
+definitions += ALSA_SUPPORT
+$(platform)_libraries += asound
+endif

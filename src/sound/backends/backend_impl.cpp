@@ -494,6 +494,7 @@ namespace ZXTune
           RenderThread.join();//cleanup thread
         }
         Log::Debug(THIS_MODULE, "Stopped");
+        ThrowIfError(RenderError);
       }
     }
 
@@ -561,8 +562,10 @@ namespace ZXTune
       }
       catch (const Error& e)
       {
-        Log::Debug(THIS_MODULE, "Stopping playback thread by error");
         RenderError = e;
+        //if any...
+        PauseEvent.notify_all();
+        Log::Debug(THIS_MODULE, "Stopping playback thread by error");
         CurrentState = STOPPED;
         SendEvent(STOP);
         SyncBarrier.wait();

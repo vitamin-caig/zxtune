@@ -3,9 +3,6 @@
 #define __TEXT_BACKENDS_H_DEFINED__
 #include <char_type.h>
 
-extern const Char ALSA_BACKEND_KEY[] = {
-  'a','l','s','a',0
-};
 extern const Char FILE_WAVE_EXT[] = {
   '.','w','a','v',0
 };
@@ -17,6 +14,14 @@ extern const Char TEXT_NULL_BACKEND_DESCRIPTION[] = {
 };
 extern const Char TEXT_OSS_BACKEND_DESCRIPTION[] = {
   'O','S','S',' ','s','o','u','n','d',' ','s','y','s','t','e','m',' ','b','a','c','k','e','n','d',0
+};
+extern const Char TEXT_SOUND_ERROR_ALSA_BACKEND_DEVICE_ERROR[] = {
+  'E','r','r','o','r',' ','i','n',' ','A','L','S','A',' ','b','a','c','k','e','n','d',' ','w','h','i','l','e',
+  ' ','w','o','r','k','i','n','g',' ','w','i','t','h',' ','d','e','v','i','c','e',' ','\'','%','1','%','\'',':',
+  ' ','%','2','%','.',0
+};
+extern const Char TEXT_SOUND_ERROR_ALSA_BACKEND_ERROR[] = {
+  'E','r','r','o','r',' ','i','n',' ','A','L','S','A',' ','b','a','c','k','e','n','d',':',' ','%','1','%','.',0
 };
 extern const Char TEXT_SOUND_ERROR_OSS_BACKEND_ERROR[] = {
   'E','r','r','o','r',' ','i','n',' ','O','S','S',' ','b','a','c','k','e','n','d',' ','w','h','i','l','e',' ',

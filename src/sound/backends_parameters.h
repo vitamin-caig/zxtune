@@ -89,6 +89,29 @@ namespace Parameters
           };
           //@}
         }
+        
+        //! @brief %ALSA backend parameters
+        namespace ALSA
+        {
+          //@{
+          //! @name ALSA backend parameters
+          
+          //! Default value
+          const Char DEVICE_DEFAULT[] = {'d', 'e', 'f', 'a', 'u', 'l', 't', '\0'};
+          //! Device name
+          const Char DEVICE[] =
+          {
+            'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','a','l','s','a','.','d','e','v','i','c','e','\0'
+          };
+          
+          //! Default value
+          const Char BUFFERS_DEFAULT = 2;
+          //! Buffers count
+          const Char BUFFERS[] =
+          {
+            'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','a','l','s','a','.','b','u','f','f','e','r','s','\0'
+          };
+        }
       }
     }
   }
