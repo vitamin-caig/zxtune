@@ -21,4 +21,16 @@
 //! <A HREF="http://www.boost.org/doc/libs/1_41_0/libs/format/doc/format.html#syntax">Syntax of format string</A>
 typedef boost::basic_format<Char> Formatter;
 
+class SafeFormatter : public Formatter
+{
+public:
+  template<class T>
+  SafeFormatter(const T str)
+    : Formatter(str)
+  {
+    using namespace boost::io;
+    exceptions(all_error_bits ^ (too_many_args_bit | too_few_args_bit));
+  }
+};
+
 #endif //__FORMATTER_TYPE_H_DEFINED__

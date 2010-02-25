@@ -49,24 +49,15 @@ namespace
   
   const Char ROOT_SUBPATH[] = {'/', 0};
 
-  template<class P>
-  inline void DoLog(const DetectParameters::LogFunc& logger, const Char* format, const P& param)
-  {
-    if (logger)
-    {
-      assert(format);
-      logger((Formatter(format) % param).str());
-    }
-  }
-
   template<class P1, class P2>
-  inline void DoLog(const DetectParameters::LogFunc& logger, const Char* format, const P1& param1, const P2& param2)
+  inline void DoLog(const DetectParameters::LogFunc& logger, uint_t level, const Char* format, const P1& param1, const P2& param2)
   {
     if (logger)
     {
       assert(format);
       Log::MessageData msg;
-      msg.Text = (Formatter(format) % param1 % param2).str();
+      msg.Level = level;
+      msg.Text = (SafeFormatter(format) % param1 % param2).str();
       logger(msg);
     }
   }
@@ -132,7 +123,6 @@ namespace
             if (CheckForImplicit(commonParams, tmpResult, fromImplicit, containerId))
             {
               Log::Debug(THIS_MODULE, "Detected implicit plugin %1% at '%2%'", containerId, tmpResult.Path);
-              DoLog(logger, TEXT_MODULE_MESSAGE_OPEN_IMPLICIT, tmpResult.Path, containerId);
               tmpResult.Data = fromImplicit;
               tmpResult.PluginsChain.push_back(containerId);
             }
@@ -144,7 +134,6 @@ namespace
           if (CheckForContainer(commonParams, tmpResult, pathToOpen, fromContainer, restPath, containerId))
           {
             Log::Debug(THIS_MODULE, "Detected nested container %1% at '%2%'", containerId, tmpResult.Path);
-            DoLog(logger, TEXT_MODULE_MESSAGE_OPEN_NESTED, tmpResult.Path, containerId);
             tmpResult.Data = fromContainer;
             pathToOpen = restPath;
             tmpResult.Path = subpath.substr(0, subpath.find(restPath));
@@ -180,7 +169,8 @@ namespace
           return e;
         }
       }
-       
+
+      const uint_t level(data.PluginsChain.size());
       //try to process implicit
       {
         MetaContainer nested;
@@ -188,7 +178,9 @@ namespace
         const Error& e = DetectImplicit(commonParams, detectParams.Filter, data, nested.Data, region, pluginId);
         if (!e)
         {
-          DoLog(detectParams.Logger, TEXT_MODULE_MESSAGE_DETECT_IMPLICIT, data.Path, pluginId);
+          DoLog(detectParams.Logger, level,
+            data.Path.empty() ? TEXT_MODULE_PROGRESS_DETECT_IMPLICIT_NOPATH : TEXT_MODULE_PROGRESS_DETECT_IMPLICIT,
+            pluginId, data.Path);
           nested.Path = data.Path;
           nested.PluginsChain = data.PluginsChain;
           nested.PluginsChain.push_back(pluginId);
@@ -219,7 +211,8 @@ namespace
         }
       }
       Log::Debug(THIS_MODULE, "Detected player plugin %1%", pluginId);
-      DoLog(detectParams.Logger, TEXT_MODULE_MESSAGE_DETECT_PLAYER, data.Path, pluginId);
+      DoLog(detectParams.Logger, level, data.Path.empty() ? TEXT_MODULE_PROGRESS_DETECT_PLAYER_NOPATH : TEXT_MODULE_PROGRESS_DETECT_PLAYER,
+        pluginId, data.Path);
       if (const Error& e = detectParams.Callback(data.Path, holder))
       {
         Error err(THIS_LINE, Module::ERROR_DETECT_CANCELED, TEXT_MODULE_ERROR_CANCELED);
@@ -392,14 +385,14 @@ namespace ZXTune
     }
     properties.insert(Parameters::Map::value_type(Module::ATTR_SIZE, region.Size));
   }
-  
+
   PluginsEnumerator& PluginsEnumerator::Instance()
   {
     static PluginsEnumeratorImpl instance;
     return instance;
   }
 
-  void EnumeratePlugins(std::vector<PluginInformation>& plugins)
+  void EnumeratePlugins(PluginInformationArray& plugins)
   {
     PluginsEnumerator::Instance().Enumerate(plugins);
   }

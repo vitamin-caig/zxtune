@@ -56,20 +56,24 @@ extern const Char TEXT_MODULE_ERROR_SET_PLAYER_PARAMETERS[] = {
   'F','a','i','l','e','d',' ','t','o',' ','s','e','t',' ','p','l','a','y','e','r',' ','p','a','r','a','m','e',
   't','e','r','s','.',0
 };
-extern const Char TEXT_MODULE_MESSAGE_DETECT_IMPLICIT[] = {
+extern const Char TEXT_MODULE_PROGRESS_DETECT_IMPLICIT[] = {
   'D','e','t','e','c','t','e','d',' ','i','m','p','l','i','c','i','t',' ','c','o','n','t','a','i','n','e','r',
-  ' ','\'','%','2','%','\'',' ','a','t',' ','p','a','t','h',' ','\'','%','1','%','\'','.',0
+  ' ','\'','%','1','%','\'',' ','a','t',' ','s','u','b','p','a','t','h',' ','\'','%','2','%','\'',0
 };
-extern const Char TEXT_MODULE_MESSAGE_DETECT_PLAYER[] = {
-  'D','e','t','e','c','t','e','d',' ','p','l','a','y','e','r',' ','m','o','d','u','l','e',' ','\'','%','2','%',
-  '\'',' ','a','t',' ','p','a','t','h',' ','\'','%','1','%','\'','.',0
+extern const Char TEXT_MODULE_PROGRESS_DETECT_IMPLICIT_NOPATH[] = {
+  'D','e','t','e','c','t','e','d',' ','i','m','p','l','i','c','i','t',' ','c','o','n','t','a','i','n','e','r',
+  ' ','\'','%','1','%','\'',0
 };
-extern const Char TEXT_MODULE_MESSAGE_OPEN_IMPLICIT[] = {
+extern const Char TEXT_MODULE_PROGRESS_DETECT_PLAYER[] = {
+  'D','e','t','e','c','t','e','d',' ','p','l','a','y','e','r',' ','m','o','d','u','l','e',' ','\'','%','1','%',
+  '\'',' ','a','t',' ','s','u','b','p','a','t','h',' ','\'','%','2','%','\'',0
+};
+extern const Char TEXT_MODULE_PROGRESS_DETECT_PLAYER_NOPATH[] = {
+  'D','e','t','e','c','t','e','d',' ','p','l','a','y','e','r',' ','m','o','d','u','l','e',' ','\'','%','1','%',
+  '\'',0
+};
+extern const Char TEXT_MODULE_PROGRESS_OPEN_IMPLICIT_NOPATH[] = {
   'O','p','e','n','i','n','g',' ','i','m','p','l','i','c','i','t',' ','c','o','n','t','a','i','n','e','r',' ',
-  '\'','%','2','%','\'',' ','a','t',' ','p','a','t','h',' ','\'','%','1','%','\'','.',0
-};
-extern const Char TEXT_MODULE_MESSAGE_OPEN_NESTED[] = {
-  'O','p','e','n','i','n','g',' ','n','e','s','t','e','d',' ','c','o','n','t','a','i','n','e','r',' ','\'','%',
-  '2','%','\'',' ','a','t',' ','p','a','t','h',' ','\'','%','1','%','\'','.',0
+  '\'','%','1','%','\'',0
 };
 #endif //__TEXT_CORE_H_DEFINED__

@@ -25,7 +25,16 @@ namespace Log
   //! @brief Message structure
   struct MessageData
   {
+    MessageData()
+      : Level(0)
+    {
+    }
+
+    //! Message level, 0-based
+    uint_t Level;
+    //! Optional text
     boost::optional<String> Text;
+    //! Optional progress in percents
     boost::optional<uint_t> Progress;
   };
 

@@ -14,6 +14,7 @@ Author:
 
 #include <byteorder.h>
 #include <error_tools.h>
+#include <logging.h>
 #include <tools.h>
 
 #include <core/error_codes.h>
@@ -131,7 +132,7 @@ namespace
         {
           return false;
         }
-        const TRDFileEntry& newOne = 
+        const TRDFileEntry& newOne =
           TRDFileEntry(GetTRDosName(catEntry->Name, catEntry->Type), catEntry->Offset(), catEntry->Size());
         if (!res.empty() && res.back().IsMergeable(newOne))
         {
@@ -148,11 +149,11 @@ namespace
   }
   
   
-  Error ProcessTRDContainer(const Parameters::Map& commonParams, const DetectParameters& detectParams, 
+  Error ProcessTRDContainer(const Parameters::Map& commonParams, const DetectParameters& detectParams,
     const MetaContainer& data, ModuleRegion& region)
   {
     //do not search if there's already TRD plugin (cannot be nested...)
-    if (!data.PluginsChain.empty() && 
+    if (!data.PluginsChain.empty() &&
         data.PluginsChain.end() != std::find(data.PluginsChain.begin(), data.PluginsChain.end(), TRD_PLUGIN_ID))
     {
       return Error(THIS_LINE, Module::ERROR_FIND_CONTAINER_PLUGIN);
@@ -162,16 +163,34 @@ namespace
     {
       return Error(THIS_LINE, Module::ERROR_FIND_CONTAINER_PLUGIN);
     }
-    
+
+    // progress-related
+    const bool showMessage(detectParams.Logger);
+    Log::MessageData message;
+    if (showMessage)
+    {
+      message.Level = data.PluginsChain.size();
+      message.Progress = -1;
+    }
+
     const PluginsEnumerator& enumerator(PluginsEnumerator::Instance());
     MetaContainer subcontainer;
     subcontainer.PluginsChain = data.PluginsChain;
     subcontainer.PluginsChain.push_back(TRD_PLUGIN_ID);
     ModuleRegion curRegion;
-    for (FileDescriptions::const_iterator it = files.begin(), lim = files.end(); it != lim; ++it)
+    const uint_t totalCount(files.size());
+    uint_t curCount = 0;
+    for (FileDescriptions::const_iterator it = files.begin(), lim = files.end(); it != lim; ++it, ++curCount)
     {
       subcontainer.Data = data.Data->GetSubcontainer(it->Offset, it->Size);
       subcontainer.Path = IO::AppendPath(data.Path, it->Name);
+      //show progress
+      if (showMessage)
+      {
+        message.Progress = 100 * curCount / totalCount;
+        message.Text = (SafeFormatter(data.Path.empty() ? TEXT_PLUGIN_TRD_PROGRESS_NOPATH : TEXT_PLUGIN_TRD_PROGRESS) % it->Name % data.Path).str();
+        detectParams.Logger(message);
+      }
       if (const Error& err = enumerator.DetectModules(commonParams, detectParams, subcontainer, curRegion))
       {
         return err;
@@ -182,7 +201,7 @@ namespace
     return Error();
   }
   
-  bool OpenTRDContainer(const Parameters::Map& /*commonParams*/, const MetaContainer& inData, const String& inPath, 
+  bool OpenTRDContainer(const Parameters::Map& /*commonParams*/, const MetaContainer& inData, const String& inPath,
     IO::DataContainer::Ptr& outData, String& restPath)
   {
     String restComp;

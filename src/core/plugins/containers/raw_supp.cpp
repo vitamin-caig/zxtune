@@ -38,7 +38,7 @@ namespace
   
   const uint_t MIN_SCAN_STEP = 1;
   const uint_t MAX_SCAN_STEP = 256;
-  const std::size_t MINIMAL_RAW_SIZE = 16;
+  const std::size_t MINIMAL_RAW_SIZE = 128;
   
   const Char RAW_REST_PART[] = {'.', 'r', 'a', 'w', 0};
   
@@ -100,11 +100,14 @@ namespace
     }
 
     // progress-related
-    const bool showProgress(data.PluginsChain.end() == std::find(data.PluginsChain.begin(), data.PluginsChain.end(), RAW_PLUGIN_ID) &&
-      detectParams.Logger);
+    const bool showMessage(detectParams.Logger);
     Log::MessageData message;
-    message.Text = (Formatter(TEXT_PLUGIN_RAW_MESSAGE_SCANNING) % data.Path).str();
-    message.Progress = 0;
+    if (showMessage)
+    {
+      message.Level = data.PluginsChain.size();
+      message.Text = data.Path.empty() ? String(TEXT_PLUGIN_RAW_PROGRESS_NOPATH) : (Formatter(TEXT_PLUGIN_RAW_PROGRESS) % data.Path).str();
+      message.Progress = -1;
+    }
 
     bool wasResult = curRegion.Size != 0;
     const std::size_t limit(data.Data->Size());
@@ -116,10 +119,10 @@ namespace
       offset < limit - MINIMAL_RAW_SIZE; offset += std::max(curRegion.Offset + curRegion.Size, std::size_t(1)))
     {
       const uint_t curProg = offset * 100 / limit;
-      if (showProgress && curProg != *message.Progress)
+      if (showMessage && curProg != *message.Progress)
       {
-        detectParams.Logger(message);
         message.Progress = curProg;
+        detectParams.Logger(message);
       }
       subcontainer.Data = data.Data->GetSubcontainer(offset, limit - offset);
       subcontainer.Path = IO::AppendPath(data.Path, CreateRawPart(offset));

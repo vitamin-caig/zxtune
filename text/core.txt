@@ -51,14 +51,20 @@ __cpp> "#endif //__TEXT_CORE_H_DEFINED__\n"
 < TEXT_MODULE_ERROR_SET_PLAYER_PARAMETERS
 > "Failed to set player parameters."
 
-< TEXT_MODULE_MESSAGE_OPEN_IMPLICIT
-> "Opening implicit container '%2%' at path '%1%'."
+< TEXT_MODULE_PROGRESS_OPEN_IMPLICIT_NOPATH
+> "Opening implicit container '%1%'"
 
-< TEXT_MODULE_MESSAGE_OPEN_NESTED
-> "Opening nested container '%2%' at path '%1%'."
+= TEXT_MODULE_PROGRESS_SUBPATH
+> " at subpath '%2%'"
 
-< TEXT_MODULE_MESSAGE_DETECT_IMPLICIT
-> "Detected implicit container '%2%' at path '%1%'."
+< TEXT_MODULE_PROGRESS_DETECT_IMPLICIT_NOPATH
+> "Detected implicit container '%1%'"
 
-< TEXT_MODULE_MESSAGE_DETECT_PLAYER
-> "Detected player module '%2%' at path '%1%'."
+< TEXT_MODULE_PROGRESS_DETECT_IMPLICIT
+> TEXT_MODULE_PROGRESS_DETECT_IMPLICIT_NOPATH TEXT_MODULE_PROGRESS_SUBPATH
+
+< TEXT_MODULE_PROGRESS_DETECT_PLAYER_NOPATH
+> "Detected player module '%1%'"
+
+< TEXT_MODULE_PROGRESS_DETECT_PLAYER
+> TEXT_MODULE_PROGRESS_DETECT_PLAYER_NOPATH TEXT_MODULE_PROGRESS_SUBPATH

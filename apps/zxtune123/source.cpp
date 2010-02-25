@@ -31,6 +31,7 @@ Author:
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/value_semantic.hpp>
 
+#include <iomanip>
 #include <iostream>
 
 #include "text.h"
@@ -43,15 +44,19 @@ namespace
  
   void DoLog(const Log::MessageData& msg)
   {
-    if (msg.Text)
+    //show only first-level messages
+    if (!msg.Level)
     {
-      StdOut << *msg.Text;
+      if (msg.Text)
+      {
+        StdOut << *msg.Text;
+      }
+      if (msg.Progress)
+      {
+        StdOut << (Formatter(TEXT_PROGRESS_FORMAT) % *msg.Progress).str();
+      }
+      StdOut << std::endl;
     }
-    if (msg.Progress)
-    {
-      StdOut << (Formatter(TEXT_PROGRESS_FORMAT) % *msg.Progress).str();
-    }
-    StdOut << std::endl;
   }
   
   void Parse(const StringSet& allplugs, const String& str, StringSet& plugs, uint32_t& caps)

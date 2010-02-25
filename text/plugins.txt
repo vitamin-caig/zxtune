@@ -9,6 +9,9 @@ __cpp> "#include <char_type.h>\n\n"
 < __RAWFOOTER__
 __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 
+= TEXT_PLUGIN_SUBPATH
+> " at subpath '%2%'"
+
 #ASC
 < TEXT_ASC_INFO
 > "ASC modules support"
@@ -78,8 +81,11 @@ __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 < TEXT_RAW_ERROR_INVALID_STEP
 > "Specified scan step (%1%) is out of range %2%..%3%."
 
-< TEXT_PLUGIN_RAW_MESSAGE_SCANNING
-> "Raw scaner processing in '%1%'"
+< TEXT_PLUGIN_RAW_PROGRESS_NOPATH
+> "Raw scaner processing"
+
+< TEXT_PLUGIN_RAW_PROGRESS
+> TEXT_PLUGIN_RAW_PROGRESS_NOPATH " at subpath '%1%'"
 
 #SCL
 < TEXT_SCL_INFO
@@ -105,6 +111,12 @@ __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 #TRD
 < TEXT_TRD_INFO
 > "TRD containers support"
+
+< TEXT_PLUGIN_TRD_PROGRESS_NOPATH
+> "TRD container processing for '%1%'"
+
+< TEXT_PLUGIN_TRD_PROGRESS
+> TEXT_PLUGIN_TRD_PROGRESS_NOPATH TEXT_PLUGIN_SUBPATH
 
 #TS
 < TEXT_TS_INFO
