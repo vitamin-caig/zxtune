@@ -38,6 +38,16 @@ namespace ZXTune
         }
       };
 
+      //! @brief %Parameter for conversion to ZX50 format
+      //! @see CAP_CONV_ZX50
+      struct ZX50ConvertParam : public Parameter
+      {
+        static const uint64_t TYPE_ID = ParamID8<'Z', 'X', '5', '0', 'D', 'a', 't', 'a'>::Value;
+        ZX50ConvertParam() : Parameter(TYPE_ID)
+        {
+        }
+      };
+
       //! @brief %Parameter for conversion to Vortex binary format
       //! @see CAP_CONV_VORTEX
       struct VortexTextParam : public Parameter

@@ -24,8 +24,14 @@ __cpp> "#endif //__TEXT_CORE_H_DEFINED__\n"
 < TEXT_MODULE_ERROR_CONVERSION_UNSUPPORTED
 > "Unsupported conversion mode."
 
+= TEXT_MODULE_ERROR_CONVERT
+> "Failed to convert to "
+
 < TEXT_MODULE_ERROR_CONVERT_PSG
-> "Failed to convert to PSG format."
+> TEXT_MODULE_ERROR_CONVERT "PSG format."
+
+< TEXT_MODULE_ERROR_CONVERT_ZX50
+> TEXT_MODULE_ERROR_CONVERT "ZX50 format."
 
 < TEXT_MODULE_ERROR_CANCELED
 > "Canceled."

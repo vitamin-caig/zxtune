@@ -4,13 +4,16 @@
 #include <char_type.h>
 
 extern const Char CONVERSION_MODE_ALL[] = {
-  'r','a','w',',','p','s','g',0
+  'r','a','w',',','p','s','g',',','z','x','5','0',0
 };
 extern const Char CONVERSION_MODE_PSG[] = {
   'p','s','g',0
 };
 extern const Char CONVERSION_MODE_RAW[] = {
   'r','a','w',0
+};
+extern const Char CONVERSION_MODE_ZX50[] = {
+  'z','x','5','0',0
 };
 extern const Char CONVERSION_PARAM_FILENAME[] = {
   'f','i','l','e','n','a','m','e',0
@@ -68,7 +71,7 @@ extern const Char TEXT_CONVERT_DESC[] = {
   'e','x','t',' ','m','a','n','d','a','t','o','r','y',' ','p','a','r','a','m','e','t','e','r','s',':','\n',
   ' ','m','o','d','e',' ','-',' ','s','p','e','c','i','f','y',' ','c','o','n','v','e','r','s','i','o','n',' ',
   'm','o','d','e','.',' ','C','u','r','r','e','n','t','l','y',' ','s','u','p','p','o','r','t','e','d',' ','a',
-  'r','e',':',' ','r','a','w',',','p','s','g','\n',
+  'r','e',':',' ','r','a','w',',','p','s','g',',','z','x','5','0','\n',
   ' ','f','i','l','e','n','a','m','e',' ','-',' ','f','i','l','e','n','a','m','e',' ','t','e','m','p','l','a',
   't','e',' ','w','i','t','h',' ','a','n','y',' ','m','o','d','u','l','e','\'','s',' ','a','t','t','r','i','b',
   'u','t','e','s','.',0
@@ -272,6 +275,9 @@ extern const Char TEXT_INFO_CONV_PSG[] = {
 extern const Char TEXT_INFO_CONV_RAW[] = {
   'c','o','n','v','_','r','a','w',0
 };
+extern const Char TEXT_INFO_CONV_ZX50[] = {
+  'c','o','n','v','_','z','x','5','0',0
+};
 extern const Char TEXT_INFO_LIST_ATTRIBUTES_DESC[] = {
   's','h','o','w',' ','t','h','e',' ','l','i','s','t',' ','o','f',' ','s','u','p','p','o','r','t','e','d',' ',
   'a','t','t','r','i','b','u','t','e','s',0
@@ -376,6 +382,14 @@ extern const Char TEXT_INFO_OPTIONS_IO_PROVIDERS_FILE_MMAP_THRESHOLD[] = {
 extern const Char TEXT_INFO_OPTIONS_IO_PROVIDERS_TITLE[] = {
   ' ','I','O',' ','p','r','o','v','i','d','e','r','s',' ','o','p','t','i','o','n','s',':',0
 };
+extern const Char TEXT_INFO_OPTIONS_SOUND_BACKENDS_ALSA_BUFFERS[] = {
+  'b','u','f','f','e','r','s',' ','c','o','u','n','t',' ','f','o','r',' ','A','L','S','A',' ','b','a','c','k',
+  'e','n','d',0
+};
+extern const Char TEXT_INFO_OPTIONS_SOUND_BACKENDS_ALSA_DEVICE[] = {
+  'p','l','a','y','b','a','c','k',' ','d','e','v','i','c','e',' ','f','o','r',' ','A','L','S','A',' ','b','a',
+  'c','k','e','n','d',0
+};
 extern const Char TEXT_INFO_OPTIONS_SOUND_BACKENDS_OSS_DEVICE[] = {
   'p','l','a','y','b','a','c','k',' ','d','e','v','i','c','e',' ','f','o','r',' ','O','S','S',' ','b','a','c',
   'k','e','n','d',0
@@ -423,7 +437,7 @@ extern const Char TEXT_INFO_OPTION_INFO[] = {
 };
 extern const Char TEXT_INFO_OPTION_INFO_DEFAULTS[] = {
   ' ',' ','%','|','1','$','-','3','6','|','-',' ','%','2','%',' ','(','d','e','f','a','u','l','t',' ','v','a',
-  'l','u','e',' ','i','s',' ','%','3','%',')','.','\n',
+  'l','u','e',' ','i','s',' ','\'','%','3','%','\'',')','.','\n',
   0
 };
 extern const Char TEXT_INFO_PLUGIN_INFO[] = {

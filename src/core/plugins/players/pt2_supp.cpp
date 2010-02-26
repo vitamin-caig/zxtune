@@ -300,7 +300,7 @@ namespace
     info.Id = PT2_PLUGIN_ID;
     info.Description = TEXT_PT2_INFO;
     info.Version = TEXT_PT2_VERSION;
-    info.Capabilities = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | CAP_CONV_PSG;
+    info.Capabilities = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
   }
 
   typedef TrackingSupport<AYM::CHANNELS, Sample> PT2Track;
@@ -530,7 +530,7 @@ namespace
       
       //meta properties
       const std::size_t fixedOffset(sizeof(PT2Header) + header->Length - 1);
-      ExtractMetaProperties(PT2_PLUGIN_ID, container, region, ModuleRegion(fixedOffset, rawSize - fixedOffset), 
+      ExtractMetaProperties(PT2_PLUGIN_ID, container, region, ModuleRegion(fixedOffset, rawSize - fixedOffset),
         Data.Info.Properties, RawData);
       const String& title(OptimizeString(FromStdString(header->Name)));
       if (!title.empty())

@@ -116,7 +116,7 @@ namespace ZXTune
     /// Virtual constructors
     Chip::Ptr CreateChip();
     Chip::Ptr CreatePSGDumper(Dump& data);
-    Chip::Ptr CreateOUTDumper();
+    Chip::Ptr CreateZX50Dumper(Dump& data);
   }
 }
 

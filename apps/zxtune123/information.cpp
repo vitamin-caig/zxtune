@@ -60,7 +60,8 @@ namespace
       CapsPair(ZXTune::CAP_STOR_PLAIN, TEXT_INFO_CAP_PLAIN),
       //conversion caps
       CapsPair(ZXTune::CAP_CONV_RAW, TEXT_INFO_CONV_RAW),
-      CapsPair(ZXTune::CAP_CONV_PSG, TEXT_INFO_CONV_PSG)
+      CapsPair(ZXTune::CAP_CONV_PSG, TEXT_INFO_CONV_PSG),
+      CapsPair(ZXTune::CAP_CONV_ZX50, TEXT_INFO_CONV_ZX50)
     };
     
     String result;
@@ -180,6 +181,12 @@ namespace
       OptionDesc(Parameters::ZXTune::Sound::Backends::OSS::MIXER,
                  TEXT_INFO_OPTIONS_SOUND_BACKENDS_OSS_MIXER,
                  Parameters::ZXTune::Sound::Backends::OSS::MIXER_DEFAULT),
+      OptionDesc(Parameters::ZXTune::Sound::Backends::ALSA::DEVICE,
+                 TEXT_INFO_OPTIONS_SOUND_BACKENDS_ALSA_DEVICE,
+                 Parameters::ZXTune::Sound::Backends::ALSA::DEVICE_DEFAULT),
+      OptionDesc(Parameters::ZXTune::Sound::Backends::ALSA::BUFFERS,
+                 TEXT_INFO_OPTIONS_SOUND_BACKENDS_ALSA_BUFFERS,
+                 Parameters::ZXTune::Sound::Backends::ALSA::BUFFERS_DEFAULT),
       OptionDesc(TEXT_INFO_OPTIONS_CORE_TITLE, EMPTY, 0),
       OptionDesc(Parameters::ZXTune::Core::AYM::TYPE,
                  TEXT_INFO_OPTIONS_CORE_AYM_TYPE,

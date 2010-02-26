@@ -269,7 +269,7 @@ namespace
     info.Id = STC_PLUGIN_ID;
     info.Description = TEXT_STC_INFO;
     info.Version = TEXT_STC_VERSION;
-    info.Capabilities = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | CAP_CONV_PSG;
+    info.Capabilities = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
   }
 
   typedef TrackingSupport<AYM::CHANNELS, Sample> STCTrack;
@@ -469,7 +469,7 @@ namespace
       region.Size = rawSize;
       
       //meta properties
-      ExtractMetaProperties(STC_PLUGIN_ID, container, region, ModuleRegion(sizeof(STCHeader), rawSize - sizeof(STCHeader)), 
+      ExtractMetaProperties(STC_PLUGIN_ID, container, region, ModuleRegion(sizeof(STCHeader), rawSize - sizeof(STCHeader)),
         Data.Info.Properties, RawData);
       const String& prog(OptimizeString(FromStdString(header->Identifier)));
       if (!prog.empty())

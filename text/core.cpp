@@ -17,6 +17,10 @@ extern const Char TEXT_MODULE_ERROR_CONVERT_PSG[] = {
   'F','a','i','l','e','d',' ','t','o',' ','c','o','n','v','e','r','t',' ','t','o',' ','P','S','G',' ','f','o',
   'r','m','a','t','.',0
 };
+extern const Char TEXT_MODULE_ERROR_CONVERT_ZX50[] = {
+  'F','a','i','l','e','d',' ','t','o',' ','c','o','n','v','e','r','t',' ','t','o',' ','Z','X','5','0',' ','f',
+  'o','r','m','a','t','.',0
+};
 extern const Char TEXT_MODULE_ERROR_FIND_SUBMODULE[] = {
   'F','a','i','l','e','d',' ','t','o',' ','f','i','n','d',' ','s','p','e','c','i','f','i','e','d',' ','s','u',
   'b','m','o','d','u','l','e',' ','s','t','a','r','t','i','n','g',' ','f','r','o','m',' ','p','a','t','h',' ',

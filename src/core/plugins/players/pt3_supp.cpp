@@ -364,7 +364,7 @@ namespace
     info.Id = PT3_PLUGIN_ID;
     info.Description = TEXT_PT3_INFO;
     info.Version = TEXT_PT3_VERSION;
-    info.Capabilities = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | CAP_CONV_PSG;
+    info.Capabilities = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
   }
 
   class PT3Holder : public Holder, public boost::enable_shared_from_this<PT3Holder>
@@ -683,7 +683,7 @@ namespace
       
       //meta properties
       const std::size_t fixedOffset(sizeof(PT3Header) + header->Length - 1);
-      ExtractMetaProperties(PT3_PLUGIN_ID, container, region, ModuleRegion(fixedOffset, rawSize - fixedOffset), 
+      ExtractMetaProperties(PT3_PLUGIN_ID, container, region, ModuleRegion(fixedOffset, rawSize - fixedOffset),
         Data.Info.Properties, RawData);
       const String& title(OptimizeString(FromStdString(header->TrackName)));
       if (!title.empty())
@@ -832,7 +832,7 @@ namespace
     }
     //find invalid patterns in position
     if (header->Positions + header->Length !=
-        std::find_if(header->Positions, header->Positions + header->Length, 
+        std::find_if(header->Positions, header->Positions + header->Length,
           boost::bind(std::modulus<uint8_t>(), _1, 3) != 0))
     {
       return false;

@@ -251,6 +251,11 @@ namespace
         ConversionParameter.reset(new ZXTune::Module::Conversion::PSGConvertParam());
         CapabilityMask = ZXTune::CAP_CONV_PSG;
       }
+      else if (mode == CONVERSION_MODE_ZX50)
+      {
+        ConversionParameter.reset(new ZXTune::Module::Conversion::ZX50ConvertParam());
+        CapabilityMask = ZXTune::CAP_CONV_ZX50;
+      }
       else
       {
         throw Error(THIS_LINE, CONVERT_PARAMETERS, TEXT_CONVERT_ERROR_INVALID_MODE);

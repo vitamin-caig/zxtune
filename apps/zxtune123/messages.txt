@@ -52,6 +52,9 @@
 < TEXT_INFO_CONV_PSG
 > TEXT_INFO_CONV_PREFIX CONVERSION_MODE_PSG
 
+< TEXT_INFO_CONV_ZX50
+> TEXT_INFO_CONV_PREFIX CONVERSION_MODE_ZX50
+
 < TEXT_INFO_PLUGIN_INFO
 > "Plugin:       %1%\n"
 > "Description:  %2%\n"
@@ -72,7 +75,7 @@
 > "  %|1$-36|- %2%.\n"
 
 < TEXT_INFO_OPTION_INFO_DEFAULTS
-> "  %|1$-36|- %2% (default value is %3%).\n"
+> "  %|1$-36|- %2% (default value is '%3%').\n"
 
 < TEXT_INFO_ATTRIBUTE_INFO
 > " %|1$-20|- %2%\n"
@@ -115,6 +118,12 @@
 
 < TEXT_INFO_OPTIONS_SOUND_BACKENDS_OSS_MIXER
 > "mixer device for OSS backend"
+
+< TEXT_INFO_OPTIONS_SOUND_BACKENDS_ALSA_DEVICE
+> "playback device for ALSA backend"
+
+< TEXT_INFO_OPTIONS_SOUND_BACKENDS_ALSA_BUFFERS
+> "buffers count for ALSA backend"
 
 < TEXT_INFO_OPTIONS_CORE_TITLE
 > " Core options:"

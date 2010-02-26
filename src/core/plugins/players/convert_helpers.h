@@ -34,6 +34,9 @@ namespace ZXTune
     //! @param result Result state
     //! @return true if parameter is processed
     bool ConvertAYMFormat(const boost::function<Player::Ptr(AYM::Chip::Ptr)>& creator, const Conversion::Parameter& param, Dump& dst, Error& result);
+
+    //! @brief Mask for supported AYM-related formats
+    uint_t GetSupportedAYMFormatConvertors();
   }
 }
 

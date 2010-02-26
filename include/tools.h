@@ -168,4 +168,21 @@ inline T align(T val, T alignment)
   return alignment * ((val - 1) / alignment + 1);
 }
 
+//! @brief Counting set bits in integer value
+template<class T>
+inline T CountBits(T val)
+{
+  BOOST_STATIC_ASSERT(boost::is_integral<T>::value);
+  T res = 0;
+  while (val)
+  {
+    if (val & 1)
+    {
+      ++res;
+    }
+    val >>= 1;
+  }
+  return res;
+}
+
 #endif //__TOOLS_H_DEFINED__

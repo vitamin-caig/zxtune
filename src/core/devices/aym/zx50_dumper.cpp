@@ -1,6 +1,6 @@
 /*
 Abstract:
-  PSG dumper imlementation
+  ZX50 dumper imlementation
 
 Last changed:
   $Id$
@@ -21,17 +21,10 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::AYM;
   
-  enum Codes
-  {
-    INTERRUPT = 0xff,
-    SKIP_INTS = 0xfe,
-    END_MUS = 0xfd
-  };
-  
-  class PSGDumper : public Chip
+  class ZX50Dumper : public Chip
   {
   public:
-    explicit PSGDumper(Dump& data)
+    explicit ZX50Dumper(Dump& data)
       : Data(data)
     {
       Reset();
@@ -63,25 +56,20 @@ namespace
       if (const uint_t intsPassed = static_cast<uint_t>((src.Tick - CurChunk.Tick) / params.ClocksPerFrame()))
       {
         Dump frame;
+        frame.reserve(intsPassed * sizeof(uint16_t) + CountBits(src.Mask));
         std::back_insert_iterator<Dump> inserter(frame);
-        frame.reserve(intsPassed / 4 + (intsPassed % 4) + 2 * CountBits(src.Mask & DataChunk::MASK_ALL_REGISTERS) + 1);
-        if (const uint_t fourSkips = intsPassed / 4)
-        {
-          *inserter = SKIP_INTS;
-          *inserter = static_cast<Dump::value_type>(fourSkips);
-        }
-        std::fill_n(inserter, intsPassed % 4, INTERRUPT);
+        //skipped frames
+        std::fill_n(inserter, sizeof(uint16_t) * (intsPassed - 1), 0);
+        *inserter = static_cast<Dump::value_type>(src.Mask & 0xff);
+        *inserter = static_cast<Dump::value_type>(src.Mask >> 8);
         for (uint_t reg = 0, mask = src.Mask; mask; ++reg, mask >>= 1)
         {
           if ((mask & 1) && (reg == DataChunk::REG_ENV || src.Data[reg] != CurChunk.Data[reg]))
           {
-            *inserter = static_cast<Dump::value_type>(reg);
             *inserter = src.Data[reg];
             CurChunk.Data[reg] = src.Data[reg];
           }
         }
-        *inserter = END_MUS;
-        Data.pop_back();//delete limiter
         std::copy(frame.begin(), frame.end(), std::back_inserter(Data));
         CurChunk.Tick = src.Tick;
       }
@@ -95,15 +83,7 @@ namespace
       /// reset internal state to initial
     virtual void Reset()
     {
-      static const uint8_t HEADER[] = {
-        'P', 'S', 'G', 0x1a,
-        0,//version
-        0,//freq rate
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0//padding
-      };
-      BOOST_STATIC_ASSERT(sizeof(HEADER) == 16);
-      Data.resize(sizeof(HEADER) + 1);
-      *std::copy(HEADER, ArrayEnd(HEADER), Data.begin()) = END_MUS;
+      Data.clear();
       CurChunk = DataChunk();
     }
 
@@ -117,9 +97,9 @@ namespace ZXTune
 {
   namespace AYM
   {
-    Chip::Ptr CreatePSGDumper(Dump& data)
+    Chip::Ptr CreateZX50Dumper(Dump& data)
     {
-      return Chip::Ptr(new PSGDumper(data));
+      return Chip::Ptr(new ZX50Dumper(data));
     }
   }
 }
