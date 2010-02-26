@@ -1,6 +1,10 @@
 < __HEADER__
 > "$Revision$"
 
+#shared cmdline keys
+#TODO: make share capabilities keys
++zxtune123/cmd_keys_local.txt
+
 #markup
 = HEAD_BEGIN
 > "\n"
@@ -30,7 +34,7 @@
 = SAMPLE_SYNOPSIS
 > SAMPLE_SECT_BEGIN
 > SAMPLE_BEGIN "zxtune123 <information keys>" SAMPLE_END
-> SAMPLE_BEGIN "zxtune123 [parameters] [--file] file1 [file2 ...]" SAMPLE_END
+> SAMPLE_BEGIN "zxtune123 [parameters] [--" CMD_INPUT_FILE_KEY "] file1 [file2 ...]" SAMPLE_END
 > SAMPLE_SECT_END
 
 = SAMPLE_CONFSTRING
@@ -40,7 +44,7 @@
 
 = SAMPLE_CORE_OPTIONS
 > SAMPLE_SECT_BEGIN
-> SAMPLE_BEGIN "--core-options aym.type=1,dac.interpolation=1" SAMPLE_END
+> SAMPLE_BEGIN "--" CMD_CORE_OPTS_KEY " aym.type=1,dac.interpolation=1" SAMPLE_END
 > SAMPLE_SECT_END
 
 = SAMPLE_CONFIG_FILE
@@ -71,12 +75,12 @@
 
 = SAMPLE_PLUGIN_ALLOW
 > SAMPLE_SECT_BEGIN
-> SAMPLE_BEGIN "--allow-plugins stor_module" SAMPLE_END
+> SAMPLE_BEGIN "--" CMD_INPUT_ALLOW_PLUGIN_KEY " stor_module" SAMPLE_END
 > SAMPLE_SECT_END
 
 = SAMPLE_PLUGIN_DENY
 > SAMPLE_SECT_BEGIN
-> SAMPLE_BEGIN "--deny-plugins PSG,stor_plain" SAMPLE_END
+> SAMPLE_BEGIN "--" CMD_INPUT_DENY_PLUGIN_KEY " PSG,stor_plain" SAMPLE_END
 > SAMPLE_SECT_END
 
 = SAMPLE_FILTER_PLUGIN
@@ -128,8 +132,8 @@ en> "platforms (both 32- and 64-bit).\n"
 
 en> HEAD_BEGIN "COMMON INFORMATIONAL KEYS" HEAD_END
 en> SAMPLE_SECT_BEGIN
-en> SAMPLE_BEGIN "--help\t\tUsed to display brief help about supported options." SAMPLE_END
-en> SAMPLE_BEGIN "--version\tShowing repository revision program builded from." SAMPLE_END
+en> SAMPLE_BEGIN "--" CMD_HELP_KEY "\t\tUsed to display brief help about supported options." SAMPLE_END
+en> SAMPLE_BEGIN "--" CMD_VERSION_KEY "\tShowing repository revision program builded from." SAMPLE_END
 en> SAMPLE_SECT_END
 
 en> HEAD_BEGIN "PARAMETERS CONCEPT" HEAD_END
@@ -147,7 +151,7 @@ en> "expression notation):\n"
 
 en> SAMPLE_SECT_BEGIN
 en> SAMPLE_BEGIN "#([:xdigit:][:xdigit])+\t\t- blob data" SAMPLE_END
-en> SAMPLE_BEGIN "[-+]?[:digit:]+\t\t\t- integer value (up to 64 bit)" SAMPLE_END
+en> SAMPLE_BEGIN "[-+]?[:digit:]+\t\t\t- integer value (64 bit signed integer)" SAMPLE_END
 en> SAMPLE_BEGIN "any other\t\t\t- string value" SAMPLE_END
 en> SAMPLE_SECT_END
 
@@ -163,10 +167,10 @@ en> SAMPLE_CONFSTRING
 
 en> HEAD_BEGIN "OPTIONS" HEAD_END
 en> "To show all the options, supported by zxtune123 application, run it with the "
-en> PRE_BEGIN "--list-options parameter" PRE_END ". As you will see, they can be simple grouped by "
+en> PRE_BEGIN "--" CMD_INFO_LIST_OPTIONS_KEY " parameter" PRE_END ". As you will see, they can be simple grouped by "
 en> "quite long prefix which represents options' category. There're some of the "
 en> "specific keys which are used to specify options for one category only. E.g. "
-en> PRE_BEGIN "--core-options" PRE_END " key is used to setup options with "
+en> PRE_BEGIN "--" CMD_CORE_OPTS_KEY PRE_END " key is used to setup options with "
 en> PRE_BEGIN "\"zxtune.core.\"" PRE_END " prefix:\n"
 
 en> SAMPLE_CORE_OPTIONS
@@ -180,10 +184,10 @@ en> "of them into configuration file which has the simple form:\n"
 
 en> SAMPLE_CONFIG_FILE
 
-en> "Pay attention, that in configuration file options should be specified by the "
+en> "Pay attention, that configuration file options should be specified by the "
 en> "full name.\n"
-en> "Configuration file is searched due to the next sequence:\n"
-en> "- exactly specified file via " PRE_BEGIN "--config <name>" PRE_END " parameter. If file is not "
+en> "Configuration file is searched according to the next sequence:\n"
+en> "- exactly specified file via " PRE_BEGIN "--" CMD_CONFIG_KEY " <name>" PRE_END " parameter. If file is not "
 en> "accessible, error ocurred\n"
 en> "- " PRE_BEGIN "zxtune.conf" PRE_END " in current working directory\n"
 en> "- " PRE_BEGIN "zxtune.conf" PRE_END " in home directory ("
@@ -192,15 +196,15 @@ en> PRE_BEGIN "%APPDATA%\\zxtune\\zxtune.conf" PRE_END " in windows systems)\n"
 
 en> HEAD_BEGIN "INPUT/OUTPUT" HEAD_END
 en> "IO subsystem is used to provide source data to work with. It's implemented "
-en> "via \"provider\" abstraction. To list supported providers use " PRE_BEGIN "--list-providers" PRE_END
+en> "via \"provider\" abstraction. To list supported providers use " PRE_BEGIN "--" CMD_INFO_LIST_PROVIDERS_KEY PRE_END
 en> " key. Here you can get the name of some provider to setup it using "
-en> PRE_BEGIN "--providers-options" PRE_END " key which adds "
+en> PRE_BEGIN "--" CMD_IO_PROVIDERS_OPTS_KEY PRE_END " key which adds "
 en> PRE_BEGIN "\"zxtune.io.providers.\"" PRE_END " prefix to all the "
 en> "parameters specified.\n"
 en> "Input data path is usually consists of two parts- data path itself and "
 en> "optional virtual path inside the accessed data. First part is used to choose "
 en> "appropriate provider and get the data using the path. Second part is used to "
-en> "specify some of the subdata inside (e.g. path inside archive):\n"
+en> "specify some of the subdata inside (e.g. path inside archive and so):\n"
 
 en> SAMPLE_PATH_VIEW
 
@@ -217,7 +221,7 @@ en> "but locks write access to opened file during its processing).\n"
 en> HEAD_BEGIN "MODULES PROCESSING" HEAD_END
 en> "After the source data is opened, it's passed into library core to detect all "
 en> "of the supported chiptunes inside using plugin subsystem. To list all the "
-en> "currently supported plugins use " PRE_BEGIN "--list-plugins" PRE_END "key. Here you can get the "
+en> "currently supported plugins use " PRE_BEGIN "--" CMD_INFO_LIST_PLUGINS_KEY PRE_END "key. Here you can get the "
 en> "plugin identifier, some of the additional information and supported "
 en> "capabilities. There're three categories of plugins.\n"
 
@@ -239,7 +243,7 @@ en> "section below.\n\n"
 
 en> "There's one more plugin, which is formally \"container\", but has some specific "
 en> "meaning- raw scaner. It's used to search modules inside raw data dump. It has "
-en> PRE_BEGIN "stor_multitrack" PRE_END " and stor_scaner capabilities and uses " PRE_BEGIN "<number>.raw" PRE_END " virtual "
+en> PRE_BEGIN "stor_multitrack" PRE_END " and " PRE_BEGIN "stor_scaner" PRE_END " capabilities and uses " PRE_BEGIN "<number>.raw" PRE_END " virtual "
 en> "\"filenames\" to specify internal data path, where \"number\" is just an offset "
 en> "of data in bytes (btw, zero offset can be specified, but never returned).\n"
 en> "Some of the container plugins has " PRE_BEGIN "stor_plain" PRE_END " capability, which means that "
@@ -276,8 +280,8 @@ en> SAMPLE_PATH_1_2
 
 en> "in common case, because of implicit plugins.\n"
 
-en> "While processing input data you can use " PRE_BEGIN "--allow-plugins" PRE_END " key to explicitly "
-en> "specify what plugins you want to use and/or " PRE_BEGIN "--deny-plugins" PRE_END " to explicitly "
+en> "While processing input data you can use " PRE_BEGIN "--" CMD_INPUT_ALLOW_PLUGIN_KEY PRE_END " key to explicitly "
+en> "specify what plugins you want to use and/or " PRE_BEGIN "--" CMD_INPUT_DENY_PLUGIN_KEY PRE_END " to explicitly "
 en> "disable some plugins. Plugin identifiers or capabilities can be specified as "
 en> "parameters. E.g.\n"
 
@@ -298,17 +302,17 @@ en> "path is specified:\n"
 
 en> SAMPLE_PATH_1_2
 
-en> "TRD and Raw plugins will be affected even if they are disabled.\n"
+en> "TRD and Raw plugins will be used to resolve initial path even if they are disabled.\n"
 
 en> HEAD_BEGIN "ATTRIBUTES" HEAD_END
 en> "Every module has variable set of attributes which is filled while processing. "
-en> "To see all the supported attributes use " PRE_BEGIN "--list-attributes" PRE_END " key. Attributes are "
+en> "To see all the supported attributes use " PRE_BEGIN "--" CMD_INFO_LIST_ATTRIBUTES_KEY PRE_END " key. Attributes are "
 en> "used to setup file-based backends and conversion (see below). "
 
 en> HEAD_BEGIN "SOUND" HEAD_END
 en> "To playback opened and detected module you should specify way to do it- "
 en> "specify backend and its optional parameters. To list currently supported "
-en> "backends use " PRE_BEGIN "--list-backends" PRE_END " key. After program is started, it tries "
+en> "backends use " PRE_BEGIN "--" CMD_INFO_LIST_BACKENDS_KEY PRE_END " key. After program is started, it tries "
 en> "different backends to playback and stops when attempt finished successfully. "
 en> "Specified backend forcing and parameters specifying can be done using key "
 en> PRE_BEGIN "--<name>" PRE_END ", where \"name\" is backend's identifier. Optional parameters are used "
@@ -350,3 +354,6 @@ en> SAMPLE_WAV_RESULT_1
 en> "file (if extention is not specified exactly, it's added automatically).\n"
 
 en> "Nonexisting fields are skipped.\n"
+
+
+en> "\nTo be continued.\n"

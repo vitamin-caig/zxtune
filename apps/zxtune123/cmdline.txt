@@ -1,4 +1,5 @@
 +conversion.txt
++cmd_keys_local.txt
 
 < TEXT_USAGE_SECTION
 > "Usage:\n"
@@ -13,31 +14,31 @@
 > "show this message"
 
 < TEXT_VERSION_KEY
-> "version"
+> CMD_VERSION_KEY
 
 < TEXT_VERSION_DESC
 > "show version"
 
 < TEXT_CONFIG_KEY
-> "config"
+> CMD_CONFIG_KEY
 
 < TEXT_CONFIG_DESC
 > "configuration file (default is %1%)"
 
 < TEXT_IO_PROVIDERS_OPTS_KEY
-> "providers-options"
+> CMD_IO_PROVIDERS_OPTS_KEY
 
 < TEXT_IO_PROVIDERS_OPTS_DESC
 > "options for i/o providers. Implies 'zxtune.io.providers.' prefix to all options in map."
 
 < TEXT_CORE_OPTS_KEY
-> "core-options"
+> CMD_CORE_OPTS_KEY
 
 < TEXT_CORE_OPTS_DESC
 > "options for core. Implies 'zxtune.core.' prefix to all options in map."
 
 < TEXT_CONVERT_KEY
-> "convert"
+> CMD_CONVERT_KEY
 
 < TEXT_CONVERT_DESC
 > "Perform conversion instead of playback.\n"
@@ -49,7 +50,7 @@
 > "Information keys"
 
 < TEXT_INFO_LIST_PLUGINS_KEY
-> "list-plugins"
+> CMD_INFO_LIST_PLUGINS_KEY
 
 < TEXT_INFO_LIST_PLUGINS_DESC
 > "show the list of supported plugins"
@@ -58,7 +59,7 @@
 > "Supported plugins:"
 
 < TEXT_INFO_LIST_BACKENDS_KEY
-> "list-backends"
+> CMD_INFO_LIST_BACKENDS_KEY
 
 < TEXT_INFO_LIST_BACKENDS_DESC
 > "show the list of supported backends"
@@ -67,7 +68,7 @@
 > "Supported backends:"
 
 < TEXT_INFO_LIST_PROVIDERS_KEY
-> "list-providers"
+> CMD_INFO_LIST_PROVIDERS_KEY
 
 < TEXT_INFO_LIST_PROVIDERS_DESC
 > "show the list of supported IO providers"
@@ -76,7 +77,7 @@
 > "Supported IO providers"
 
 < TEXT_INFO_LIST_OPTIONS_KEY
-> "list-options"
+> CMD_INFO_LIST_OPTIONS_KEY
 
 < TEXT_INFO_LIST_OPTIONS_DESC
 > "show the list of supported options"
@@ -85,7 +86,7 @@
 > "Supported zxtune options:"
 
 < TEXT_INFO_LIST_ATTRIBUTES_KEY
-> "list-attributes"
+> CMD_INFO_LIST_ATTRIBUTES_KEY
 
 < TEXT_INFO_LIST_ATTRIBUTES_DESC
 > "show the list of supported attributes"
@@ -94,7 +95,7 @@
 > "Supported module attributes:"
 
 < TEXT_INFO_LIST_FREQTABLES_KEY
-> "list-freqtables"
+> CMD_INFO_LIST_FREQTABLES_KEY
 
 < TEXT_INFO_LIST_FREQTABLES_DESC
 > "show the list of supported frequency tables"
@@ -109,49 +110,49 @@
 > "parameters"
 
 < TEXT_FREQUENCY_KEY
-> "frequency"
+> CMD_FREQUENCY_KEY
 
 < TEXT_FREQUENCY_DESC
 > "specify sound frequency in Hz"
 
 < TEXT_CLOCKRATE_KEY
-> "clockrate"
+> CMD_CLOCKRATE_KEY
 
 < TEXT_CLOCKRATE_DESC
 > "specify CPU and PSG clock rate in Hz"
 
 < TEXT_FRAMEDURATION_KEY
-> "frameduration"
+> CMD_FRAMEDURATION_KEY
 
 < TEXT_FRAMEDURATION_DESC
 > "specify frame duration in uS"
 
 < TEXT_FREQTABLE_KEY
-> "freqtable"
+> CMD_FREQTABLE_KEY
 
 < TEXT_FREQTABLE_DESC
 > "specify frequency table"
 
 < TEXT_YM_KEY
-> "ym"
+> CMD_YM_KEY
 
 < TEXT_YM_DESC
 > "use YM chip for playback"
 
 < TEXT_LOOP_KEY
-> "loop"
+> CMD_LOOP_KEY
 
 < TEXT_LOOP_DESC
 > "loop playback"
 
 < TEXT_MIXER_KEY
-> "mixer"
+> CMD_MIXER_KEY
 
 < TEXT_MIXER_DESC
 > "specify mixer by layout or matrix"
 
 < TEXT_FILTER_KEY
-> "filter"
+> CMD_FILTER_KEY
 
 < TEXT_FILTER_DESC
 > "specify bandpass filter ([order,]low-high)"
@@ -160,25 +161,25 @@
 > "Input options"
 
 < TEXT_INPUT_FILE_KEY
-> "file"
+> CMD_INPUT_FILE_KEY
 
 < TEXT_INPUT_FILE_DESC
 > "file to process"
 
 < TEXT_INPUT_ALLOW_PLUGIN_KEY
-> "allow-plugins"
+> CMD_INPUT_ALLOW_PLUGIN_KEY
 
 < TEXT_INPUT_ALLOW_PLUGIN_DESC
 > "plugins and/or attributes to allow (ids and/or capabilities)"
 
 < TEXT_INPUT_DENY_PLUGIN_KEY
-> "deny-plugins"
+> CMD_INPUT_DENY_PLUGIN_KEY
 
 < TEXT_INPUT_DENY_PLUGIN_DESC
 > "plugins and/or attributes to deny"
 
 < TEXT_INPUT_PROGRESS_KEY
-> "progress"
+> CMD_INPUT_PROGRESS_KEY
 
 < TEXT_INPUT_PROGRESS_DESC
 > "Show progress while processing input files."
@@ -187,37 +188,37 @@
 > "Other options"
 
 < TEXT_SILENT_KEY
-> "silent"
+> CMD_SILENT_KEY
 
 < TEXT_SILENT_DESC
 > "disable all output"
 
 < TEXT_QUIET_KEY
-> "quiet"
+> CMD_QUIET_KEY
 
 < TEXT_QUIET_DESC
 > "disable dynamic output"
 
 < TEXT_ANALYZER_KEY
-> "analyzer"
+> CMD_ANALYZER_KEY
 
 < TEXT_ANALYZER_DESC
 > "enable spectrum analyzer"
 
 < TEXT_CACHE_KEY
-> "cache"
+> CMD_CACHE_KEY
 
 < TEXT_CACHE_DESC
 > "collect all modules to list before playback (slow, requires much memory)."
 
 < TEXT_SEEKSTEP_KEY
-> "seekstep"
+> CMD_SEEKSTEP_KEY
 
 < TEXT_SEEKSTEP_DESC
 > "seeking step in percents"
 
 < TEXT_UPDATEFPS_KEY
-> "updatefps"
+> CMD_UPDATEFPS_KEY
 
 < TEXT_UPDATEFPS_DESC
 > "update rate"

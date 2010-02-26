@@ -1,0 +1,89 @@
+= CMD_HELP_KEY
+> "help"
+
+= CMD_VERSION_KEY
+> "version"
+
+= CMD_CONFIG_KEY
+> "config"
+
+= CMD_IO_PROVIDERS_OPTS_KEY
+> "providers-options"
+
+= CMD_CORE_OPTS_KEY
+> "core-options"
+
+= CMD_CONVERT_KEY
+> "convert"
+
+= CMD_INFO_LIST_PLUGINS_KEY
+> "list-plugins"
+
+= CMD_INFO_LIST_BACKENDS_KEY
+> "list-backends"
+
+= CMD_INFO_LIST_PROVIDERS_KEY
+> "list-providers"
+
+= CMD_INFO_LIST_OPTIONS_KEY
+> "list-options"
+
+= CMD_INFO_LIST_ATTRIBUTES_KEY
+> "list-attributes"
+
+= CMD_INFO_LIST_FREQTABLES_KEY
+> "list-freqtables"
+
+= CMD_FREQUENCY_KEY
+> "frequency"
+
+= CMD_CLOCKRATE_KEY
+> "clockrate"
+
+= CMD_FRAMEDURATION_KEY
+> "frameduration"
+
+= CMD_FREQTABLE_KEY
+> "freqtable"
+
+= CMD_YM_KEY
+> "ym"
+
+= CMD_LOOP_KEY
+> "loop"
+
+= CMD_MIXER_KEY
+> "mixer"
+
+= CMD_FILTER_KEY
+> "filter"
+
+= CMD_INPUT_FILE_KEY
+> "file"
+
+= CMD_INPUT_ALLOW_PLUGIN_KEY
+> "allow-plugins"
+
+= CMD_INPUT_DENY_PLUGIN_KEY
+> "deny-plugins"
+
+= CMD_INPUT_PROGRESS_KEY
+> "progress"
+
+= CMD_SILENT_KEY
+> "silent"
+
+= CMD_QUIET_KEY
+> "quiet"
+
+= CMD_ANALYZER_KEY
+> "analyzer"
+
+= CMD_CACHE_KEY
+> "cache"
+
+= CMD_SEEKSTEP_KEY
+> "seekstep"
+
+= CMD_UPDATEFPS_KEY
+> "updatefps"
