@@ -98,7 +98,7 @@ else
 deps: $(depends)
 
 $(depends):
-	$(MAKE) -C $(addprefix $(path_step)/,$@) $(if $(pic),pic=1,) $(MAKECMDGOALS)
+	$(MAKE) -C $(addprefix $(path_step)/,$@) $(if $(pic),pic=1,) $(if $(defines),defines="$(defines)",) $(MAKECMDGOALS)
 
 $(target): deps $(object_files) $(foreach lib,$(libraries),$(libs_dir)/$(call makelib_name,$(lib)))
 	$(link_cmd)
