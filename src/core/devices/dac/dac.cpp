@@ -146,7 +146,7 @@ namespace
         const uint_t pos(PosInSample / Sound::FIXED_POINT_PRECISION);
         assert(CurSample && pos < CurSample->Size);
         const int_t cur(scale(CurSample->Data[pos]));
-        const int_t next(pos >= CurSample->Size ? cur : scale(CurSample->Data[pos + 1]));
+        const int_t next(pos + 1 >= CurSample->Size ? cur : scale(CurSample->Data[pos + 1]));
         const int_t delta = next - cur;
         return static_cast<Sound::Sample>(cur + delta * (PosInSample % Sound::FIXED_POINT_PRECISION) / Sound::FIXED_POINT_PRECISION);
       }
@@ -176,6 +176,7 @@ namespace
     ChipImpl(uint_t samples, uint_t sampleFreq)
       : Samples(samples), MaxGain(0), CurrentTick(0)
       , SampleFreq(sampleFreq)
+      , TableFreq(0)
     {
       Reset();
     }
@@ -290,7 +291,7 @@ namespace
     Module::Analyze::LevelType MaxGain;
     uint64_t CurrentTick;
     boost::array<ChannelState, Channels> State;
-    
+
     const uint_t SampleFreq;
     //steps calc
     uint_t TableFreq;
