@@ -39,6 +39,12 @@ __cpp> "#endif //__TEXT_BACKENDS_H_DEFINED__\n"
 < TEXT_SOUND_ERROR_ALSA_BACKEND_DEVICE_ERROR
 > "Error in ALSA backend while working with device '%1%': %2%."
 
+< TEXT_SOUND_ERROR_ALSA_BACKEND_NO_MIXER
+> "Failed to found mixer '%1%' for ALSA backend."
+
+< TEXT_SOUND_ERROR_ALSA_BACKEND_INVALID_BUFFERS
+> "ALSA backend error: buffers count (%1%) is out of range (%2%..%3%)."
+
 #oss backend
 < TEXT_OSS_BACKEND_DESCRIPTION
 > "OSS sound system backend"

@@ -23,6 +23,15 @@ extern const Char TEXT_SOUND_ERROR_ALSA_BACKEND_DEVICE_ERROR[] = {
 extern const Char TEXT_SOUND_ERROR_ALSA_BACKEND_ERROR[] = {
   'E','r','r','o','r',' ','i','n',' ','A','L','S','A',' ','b','a','c','k','e','n','d',':',' ','%','1','%','.',0
 };
+extern const Char TEXT_SOUND_ERROR_ALSA_BACKEND_INVALID_BUFFERS[] = {
+  'A','L','S','A',' ','b','a','c','k','e','n','d',' ','e','r','r','o','r',':',' ','b','u','f','f','e','r','s',
+  ' ','c','o','u','n','t',' ','(','%','1','%',')',' ','i','s',' ','o','u','t',' ','o','f',' ','r','a','n','g',
+  'e',' ','(','%','2','%','.','.','%','3','%',')','.',0
+};
+extern const Char TEXT_SOUND_ERROR_ALSA_BACKEND_NO_MIXER[] = {
+  'F','a','i','l','e','d',' ','t','o',' ','f','o','u','n','d',' ','m','i','x','e','r',' ','\'','%','1','%','\'',
+  ' ','f','o','r',' ','A','L','S','A',' ','b','a','c','k','e','n','d','.',0
+};
 extern const Char TEXT_SOUND_ERROR_OSS_BACKEND_ERROR[] = {
   'E','r','r','o','r',' ','i','n',' ','O','S','S',' ','b','a','c','k','e','n','d',' ','w','h','i','l','e',' ',
   'w','o','r','k','i','n','g',' ','w','i','t','h',' ','d','e','v','i','c','e',' ','\'','%','1','%','\'',':',' ',

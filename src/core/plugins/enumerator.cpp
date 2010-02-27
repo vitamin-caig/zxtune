@@ -102,7 +102,7 @@ namespace
 
     // Open subpath in despite of filter and other
     virtual Error ResolveSubpath(const Parameters::Map& commonParams, IO::DataContainer::Ptr data,
-      const String& subpath, const DetectParameters::LogFunc& logger, MetaContainer& result) const
+      const String& subpath, const DetectParameters::LogFunc& /*logger*/, MetaContainer& result) const
     {
       try
       {

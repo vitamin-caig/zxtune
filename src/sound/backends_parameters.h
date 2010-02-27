@@ -103,7 +103,13 @@ namespace Parameters
           {
             'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','a','l','s','a','.','d','e','v','i','c','e','\0'
           };
-          
+
+          //! Mixer name
+          const Char MIXER[] =
+          {
+            'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','a','l','s','a','.','m','i','x','e','r','\0'
+          };
+
           //! Default value
           const Char BUFFERS_DEFAULT = 2;
           //! Buffers count

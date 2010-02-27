@@ -122,6 +122,9 @@
 < TEXT_INFO_OPTIONS_SOUND_BACKENDS_ALSA_DEVICE
 > "playback device for ALSA backend"
 
+< TEXT_INFO_OPTIONS_SOUND_BACKENDS_ALSA_MIXER
+> "mixer for ALSA backend (taking the first one if not specified)"
+
 < TEXT_INFO_OPTIONS_SOUND_BACKENDS_ALSA_BUFFERS
 > "buffers count for ALSA backend"
 

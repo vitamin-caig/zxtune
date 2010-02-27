@@ -29,23 +29,23 @@ namespace ZXTune
     {
       using namespace Conversion;
       Dump tmp;
-      AYM::Chip::Ptr player;
+      AYM::Chip::Ptr chip;
       String errMsg;
 
       if (parameter_cast<PSGConvertParam>(&param))
       {
-        player = AYM::CreatePSGDumper(tmp);
+        chip = AYM::CreatePSGDumper(tmp);
         errMsg = TEXT_MODULE_ERROR_CONVERT_PSG;
       }
       else if (parameter_cast<ZX50ConvertParam>(&param))
       {
-        player = AYM::CreateZX50Dumper(tmp);
+        chip = AYM::CreateZX50Dumper(tmp);
         errMsg = TEXT_MODULE_ERROR_CONVERT_ZX50;
       }
 
-      if (player.get())
+      if (chip.get())
       {
-        Player::Ptr player(creator(player));
+        Player::Ptr player(creator(chip));
         Sound::DummyReceiverObject<Sound::MultichannelReceiver> receiver;
         Sound::RenderParameters params;
         for (Player::PlaybackState state = Player::MODULE_PLAYING; Player::MODULE_PLAYING == state;)

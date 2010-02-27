@@ -49,6 +49,9 @@ namespace
     BACKEND_VERSION,
   };
 
+  const uint_t BUFFERS_MIN = 2;
+  const uint_t BUFFERS_MAX = 10;
+
   inline void CheckResult(int res, Error::LocationRef loc)
   {
     if (res < 0)
@@ -149,12 +152,161 @@ namespace
     {
       if (Handle)
       {
-        CheckResult(::snd_pcm_drain(Handle), THIS_LINE);
+        //do not break if error while drain- we need to close
+        ::snd_pcm_drain(Handle);
         CheckResult(::snd_pcm_close(Handle), THIS_LINE);
         Handle = 0;
         Name.clear();
       }
     }
+  };
+  
+  class AutoMixer : public AutoHandle<snd_mixer_t>
+  {
+  public:
+    AutoMixer()
+      : MixerElement(0)
+    {
+    }
+    
+    explicit AutoMixer(const String& deviceName, const String& mixerName)
+      : AutoHandle<snd_mixer_t>(deviceName)
+      , MixerName(mixerName)
+      , MixerElement(0)
+    {
+      CheckResult(::snd_mixer_open(&Handle, 0), THIS_LINE);
+      CheckResult(::snd_mixer_attach(Handle, IO::ConvertToFilename(Name).c_str()), THIS_LINE);
+      CheckResult(::snd_mixer_selem_register(Handle, 0, 0), THIS_LINE);
+      CheckResult(::snd_mixer_load(Handle), THIS_LINE);
+      //find mixer element
+      {
+        snd_mixer_elem_t* elem = ::snd_mixer_first_elem(Handle);
+        snd_mixer_selem_id_t* sid = 0;
+        snd_mixer_selem_id_alloca(&sid);
+        while (elem)
+        {
+          const snd_mixer_elem_type_t type = ::snd_mixer_elem_get_type(elem);
+          if (type == SND_MIXER_ELEM_SIMPLE &&
+              ::snd_mixer_selem_has_playback_volume(elem) != 0 &&
+              ::snd_mixer_selem_has_common_volume(elem) == 0)
+          {
+            ::snd_mixer_selem_get_id(elem, sid);
+            const String mixName(FromStdString(::snd_mixer_selem_id_get_name(sid)));
+            if (MixerName.empty())
+            {
+              Log::Debug(THIS_MODULE, "Using first mixer: %1%", mixName);
+              MixerName = mixName;
+              break;
+            }
+            else if (MixerName == mixName)
+            {
+              break;
+            }
+          }
+          elem = ::snd_mixer_elem_next(elem);
+        }
+        if (!elem)
+        {
+          throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
+            TEXT_SOUND_ERROR_ALSA_BACKEND_NO_MIXER, MixerName);
+        }
+        MixerElement = elem;
+      }
+    }
+    
+    ~AutoMixer()
+    {
+      if (Handle)
+      {
+        ::snd_mixer_detach(Handle, IO::ConvertToFilename(Name).c_str());
+        ::snd_mixer_close(Handle);
+        Handle = 0;
+        MixerElement = 0;
+      }
+    }
+
+    void Swap(AutoMixer& rh)
+    {
+      std::swap(rh.Handle, Handle);
+      std::swap(rh.Name, Name);
+      std::swap(rh.MixerName, MixerName);
+      std::swap(rh.MixerElement, MixerElement);
+    }
+
+    void Close()
+    {
+      if (Handle)
+      {
+        //do not break while detach
+        ::snd_mixer_detach(Handle, IO::ConvertToFilename(Name).c_str());
+        CheckResult(::snd_mixer_close(Handle), THIS_LINE);
+        Handle = 0;
+        MixerElement = 0;
+        Name.clear();
+        MixerName.clear();
+      }
+    }
+    
+    virtual Error GetVolume(MultiGain& volume) const
+    {
+      if (!Handle)
+      {
+        volume = MultiGain();
+        return Error();
+      }
+      try
+      {
+        BOOST_STATIC_ASSERT(MultiGain::static_size == 2);
+        long minVol = 0, maxVol = 0;
+        CheckResult(::snd_mixer_selem_get_playback_volume_range(MixerElement, &minVol, &maxVol), THIS_LINE);
+        const long volRange = maxVol - minVol;
+        
+        long leftVol = 0, rightVol = 0;
+        CheckResult(::snd_mixer_selem_get_playback_volume(MixerElement, SND_MIXER_SCHN_FRONT_LEFT, &leftVol), THIS_LINE);
+        CheckResult(::snd_mixer_selem_get_playback_volume(MixerElement, SND_MIXER_SCHN_FRONT_RIGHT, &rightVol), THIS_LINE);
+        volume[0] = Gain(leftVol - minVol) / volRange;
+        volume[1] = Gain(rightVol - minVol) / volRange;
+        return Error();
+      }
+      catch (const Error& e)
+      {
+        return e;
+      }
+    }
+    
+    virtual Error SetVolume(const MultiGain& volume)
+    {
+      if (volume.end() != std::find_if(volume.begin(), volume.end(), std::bind2nd(std::greater<Gain>(), Gain(1.0))))
+      {
+        return Error(THIS_LINE, BACKEND_INVALID_PARAMETER, TEXT_SOUND_ERROR_BACKEND_INVALID_GAIN);
+      }
+      if (!Handle)
+      {
+        return Error();
+      }
+      try
+      {
+        BOOST_STATIC_ASSERT(MultiGain::static_size == 2);
+        long minVol = 0, maxVol = 0;
+        CheckResult(::snd_mixer_selem_get_playback_volume_range(MixerElement, &minVol, &maxVol), THIS_LINE);
+        const long volRange = maxVol - minVol;
+        
+        const long leftVol = static_cast<long>(volume[0] * volRange) + minVol;
+        const long rightVol = static_cast<long>(volume[1] * volRange) + minVol;
+        CheckResult(::snd_mixer_selem_set_playback_volume(MixerElement, SND_MIXER_SCHN_FRONT_LEFT, leftVol), THIS_LINE);
+        CheckResult(::snd_mixer_selem_set_playback_volume(MixerElement, SND_MIXER_SCHN_FRONT_RIGHT, rightVol), THIS_LINE);
+        
+        return Error();
+      }
+      catch (const Error& e)
+      {
+        return e;
+      }
+    }
+    
+  private:
+    String MixerName;
+    snd_mixer_elem_t* MixerElement;
   };
 
   class AlsaBackend : public BackendImpl, private boost::noncopyable
@@ -180,12 +332,12 @@ namespace
 
     virtual Error GetVolume(MultiGain& volume) const
     {
-      return Error();
+      return MixHandle.GetVolume(volume);
     }
     
     virtual Error SetVolume(const MultiGain& volume)
     {
-      return Error();
+      return MixHandle.SetVolume(volume);
     }
     
     virtual void OnStartup()
@@ -221,11 +373,13 @@ namespace
       //check for parameters requires restarting
       const Parameters::StringType* const device = 
         Parameters::FindByName<Parameters::StringType>(updates, Parameters::ZXTune::Sound::Backends::ALSA::DEVICE);
+      const Parameters::StringType* const mixer =
+        Parameters::FindByName<Parameters::StringType>(updates, Parameters::ZXTune::Sound::Backends::ALSA::MIXER);
       const Parameters::IntType* const buffers =
         Parameters::FindByName<Parameters::IntType>(updates, Parameters::ZXTune::Sound::Backends::ALSA::BUFFERS);
       const Parameters::IntType* const freq = 
         Parameters::FindByName<Parameters::IntType>(updates, Parameters::ZXTune::Sound::FREQUENCY);
-      if (device || buffers || freq)
+      if (device || mixer || buffers || freq)
       {
         Locker lock(BackendMutex);
         const bool needStartup(DevHandle.Get() != 0);
@@ -234,9 +388,17 @@ namespace
         {
           DeviceName = *device;
         }
+        if (mixer)
+        {
+          MixerName = *mixer;
+        }
         if (buffers)
         {
-          //TODO: check if in range
+          if (!in_range<Parameters::IntType>(*buffers, BUFFERS_MIN, BUFFERS_MAX))
+          {
+            throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
+              TEXT_SOUND_ERROR_ALSA_BACKEND_INVALID_BUFFERS, static_cast<int_t>(*buffers), BUFFERS_MIN, BUFFERS_MAX);
+          }
           Buffers = static_cast<unsigned>(*buffers);
         }
         if (needStartup)
@@ -316,8 +478,10 @@ namespace
       CanPause = ::snd_pcm_hw_params_can_pause(hwParams) != 0;
       Log::Debug(THIS_MODULE, CanPause ? "Hardware support pause" : "Hardware doesn't support pause");
       tmpDevice.CheckedCall(&::snd_pcm_prepare, THIS_LINE);
+      AutoMixer tmpMixer(DeviceName, MixerName);
         
       DevHandle.Swap(tmpDevice);
+      MixHandle.Swap(tmpMixer);
       Log::Debug(THIS_MODULE, "Successfully opened");
     }
 
@@ -331,8 +495,10 @@ namespace
 
   private:
     String DeviceName;
+    String MixerName;
     unsigned Buffers;
     AutoDevice DevHandle;
+    AutoMixer MixHandle;
     bool CanPause;
   };
 
