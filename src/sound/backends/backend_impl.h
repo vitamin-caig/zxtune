@@ -54,6 +54,7 @@ namespace ZXTune
       virtual void OnResume() = 0;
       virtual void OnParametersChanged(const Parameters::Map& updates) = 0;
       virtual void OnBufferReady(std::vector<MultiSample>& buffer) = 0;
+      virtual bool OnRenderFrame();
     private:
       void DoStartup();
       void DoShutdown();

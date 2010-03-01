@@ -498,7 +498,7 @@ namespace ZXTune
       }
     }
 
-    bool BackendImpl::SafeRenderFrame()
+    bool BackendImpl::OnRenderFrame()
     {
       Locker lock(PlayerMutex);
       if (Mixer::Ptr mixer = MixersSet[Channels - 1])
@@ -507,6 +507,7 @@ namespace ZXTune
         Buffer.clear();
         Module::Player::PlaybackState state;
         ThrowIfError(Player->RenderFrame(RenderingParameters, state, *mixer));
+        DoBufferReady(Buffer);
         return Module::Player::MODULE_PLAYING == state;
       }
       assert(!"Never get here");
@@ -532,9 +533,7 @@ namespace ZXTune
           }
           else if (STARTED == curState)
           {
-            const bool stopping = !SafeRenderFrame();
-            DoBufferReady(Buffer);
-            if (stopping)
+            if (!OnRenderFrame())
             {
               CurrentState = STOPPED;
               InProcess = true; //stopping begin
