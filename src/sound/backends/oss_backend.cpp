@@ -114,31 +114,19 @@ namespace
     int Handle;
   };
   
-  class OSSBackend : public BackendImpl, private boost::noncopyable
+  class OSSVolumeControl : public VolumeControl
   {
   public:
-    OSSBackend()
-      : MixerName(Parameters::ZXTune::Sound::Backends::OSS::MIXER_DEFAULT)
-      , DeviceName(Parameters::ZXTune::Sound::Backends::OSS::DEVICE_DEFAULT)
-      , CurrentBuffer(Buffers.begin(), Buffers.end())
+    OSSVolumeControl(boost::mutex& backendMutex, AutoDescriptor& mixer)
+      : BackendMutex(backendMutex), MixHandle(mixer)
     {
-    }
-
-    virtual ~OSSBackend()
-    {
-      assert(-1 == DevHandle.Get() || !"OSSBackend should be stopped before destruction.");
-    }
-
-    virtual void GetInformation(BackendInformation& info) const
-    {
-      info = BACKEND_INFO;
     }
 
     virtual Error GetVolume(MultiGain& volume) const
     {
       try
       {
-        Locker lock(BackendMutex);
+        boost::lock_guard<boost::mutex> lock(BackendMutex);
         if (-1 != MixHandle.Get())
         {
           boost::array<uint8_t, sizeof(int)> buf;
@@ -167,7 +155,7 @@ namespace
       }
       try
       {
-        Locker lock(BackendMutex);
+        boost::lock_guard<boost::mutex> lock(BackendMutex);
         if (-1 != MixHandle.Get())
         {
           boost::array<uint8_t, sizeof(int)> buf = { {0} };
@@ -183,7 +171,37 @@ namespace
         return e;
       }
     }
+  private:
+    boost::mutex& BackendMutex;
+    AutoDescriptor& MixHandle;
+  };
+  
+  class OSSBackend : public BackendImpl, private boost::noncopyable
+  {
+  public:
+    OSSBackend()
+      : MixerName(Parameters::ZXTune::Sound::Backends::OSS::MIXER_DEFAULT)
+      , DeviceName(Parameters::ZXTune::Sound::Backends::OSS::DEVICE_DEFAULT)
+      , CurrentBuffer(Buffers.begin(), Buffers.end())
+      , VolumeController(new OSSVolumeControl(BackendMutex, MixHandle))
+    {
+    }
 
+    virtual ~OSSBackend()
+    {
+      assert(-1 == DevHandle.Get() || !"OSSBackend should be stopped before destruction.");
+    }
+
+    virtual void GetInformation(BackendInformation& info) const
+    {
+      info = BACKEND_INFO;
+    }
+
+    virtual VolumeControl::Ptr GetVolumeControl() const
+    {
+      return VolumeController;
+    }
+    
     virtual void OnStartup()
     {
       Locker lock(BackendMutex);
@@ -288,6 +306,7 @@ namespace
     AutoDescriptor DevHandle;
     boost::array<std::vector<MultiSample>, 2> Buffers;
     cycled_iterator<std::vector<MultiSample>*> CurrentBuffer;
+    VolumeControl::Ptr VolumeController;
   };
   
   Backend::Ptr OSSBackendCreator(const Parameters::Map& params)

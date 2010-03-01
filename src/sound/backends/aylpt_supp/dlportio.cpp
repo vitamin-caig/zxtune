@@ -8,9 +8,12 @@ Last changed:
 Author:
   (C) Vitamin/CAIG/2001
 */
-#ifdef DLPORTIO_AYLPT_SUPPORT
 
 #include "dumper.h"
+
+#include <cassert>
+
+#ifdef DLPORTIO_AYLPT_SUPPORT
 
 #include <core/devices/aym.h>
 

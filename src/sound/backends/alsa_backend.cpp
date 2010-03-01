@@ -308,6 +308,30 @@ namespace
     String MixerName;
     snd_mixer_elem_t* MixerElement;
   };
+  
+  class AlsaVolumeControl : public VolumeControl
+  {
+  public:
+    AlsaVolumeControl(boost::mutex& backendMutex, AutoMixer& mixer)
+      : BackendMutex(backendMutex), Mixer(mixer)
+    {
+    }
+    
+    virtual Error GetVolume(MultiGain& volume) const
+    {
+      boost::lock_guard<boost::mutex> lock(BackendMutex);
+      return Mixer.GetVolume(volume);
+    }
+    
+    virtual Error SetVolume(const MultiGain& volume)
+    {
+      boost::lock_guard<boost::mutex> lock(BackendMutex);
+      return Mixer.SetVolume(volume);
+    }
+  private:
+    boost::mutex& BackendMutex;
+    AutoMixer& Mixer;
+  };
 
   class AlsaBackend : public BackendImpl, private boost::noncopyable
   {
@@ -316,7 +340,9 @@ namespace
       : DeviceName(Parameters::ZXTune::Sound::Backends::ALSA::DEVICE_DEFAULT)
       , Buffers(Parameters::ZXTune::Sound::Backends::ALSA::BUFFERS_DEFAULT)
       , DevHandle()
+      , MixHandle()
       , CanPause(0)
+      , VolumeController(new AlsaVolumeControl(BackendMutex, MixHandle))
     {
     }
 
@@ -329,15 +355,10 @@ namespace
     {
       info = BACKEND_INFO;
     }
-
-    virtual Error GetVolume(MultiGain& volume) const
-    {
-      return MixHandle.GetVolume(volume);
-    }
     
-    virtual Error SetVolume(const MultiGain& volume)
+    virtual VolumeControl::Ptr GetVolumeControl() const
     {
-      return MixHandle.SetVolume(volume);
+      return VolumeController;
     }
     
     virtual void OnStartup()
@@ -500,6 +521,7 @@ namespace
     AutoDevice DevHandle;
     AutoMixer MixHandle;
     bool CanPause;
+    VolumeControl::Ptr VolumeController;
   };
 
   Backend::Ptr AlsaBackendCreator(const Parameters::Map& params)
