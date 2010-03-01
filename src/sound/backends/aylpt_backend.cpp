@@ -113,7 +113,8 @@ namespace
       Locker lock(PlayerMutex);
       //to update state
       Module::Player::PlaybackState state;
-      ThrowIfError(Player->RenderFrame(RenderingParameters, state, DummyReceiverObject<MultichannelReceiver>()));
+      DummyReceiverObject<MultichannelReceiver> dummy;
+      ThrowIfError(Player->RenderFrame(RenderingParameters, state, dummy));
       return Module::Player::MODULE_PLAYING == state &&
              DoOutput();
     }

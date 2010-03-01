@@ -257,8 +257,8 @@ namespace ZXTune
         else if (PAUSED == prevState)
         {
           Log::Debug(THIS_MODULE, "Resuming playback");
-          PauseEvent.notify_one();
           boost::unique_lock<boost::mutex> locker(PauseMutex);
+          PauseEvent.notify_one();
           //wait until really resumed
           PauseEvent.wait(locker);
           Log::Debug(THIS_MODULE, "Resumed");
@@ -285,8 +285,8 @@ namespace ZXTune
         if (STARTED == CurrentState)
         {
           Log::Debug(THIS_MODULE, "Pausing playback");
-          CurrentState = PAUSED;
           boost::unique_lock<boost::mutex> locker(PauseMutex);
+          CurrentState = PAUSED;
           //wait until really paused
           PauseEvent.wait(locker);
           Log::Debug(THIS_MODULE, "Paused");
@@ -480,8 +480,8 @@ namespace ZXTune
         Log::Debug(THIS_MODULE, "Stopping playback");
         if (PAUSED == curState)
         {
-          PauseEvent.notify_one();
           boost::unique_lock<boost::mutex> locker(PauseMutex);
+          PauseEvent.notify_one();
           //wait until really resumed
           PauseEvent.wait(locker);
         }
@@ -544,10 +544,10 @@ namespace ZXTune
           }
           else if (PAUSED == curState)
           {
+            boost::unique_lock<boost::mutex> locker(PauseMutex);
             DoPause();
             //pausing finished
             PauseEvent.notify_one();
-            boost::unique_lock<boost::mutex> locker(PauseMutex);
             //wait until unpause
             PauseEvent.wait(locker);
             DoResume();
