@@ -24,6 +24,7 @@ namespace ZXTune
     void RegisterWin32Backend(BackendsEnumerator& enumerator);
     void RegisterOSSBackend(BackendsEnumerator& enumerator);
     void RegisterAlsaBackend(BackendsEnumerator& enumerator);
+    void RegisterAYLPTBackend(BackendsEnumerator& enumerator);
     
     inline void RegisterBackends(BackendsEnumerator& enumerator)
     {
@@ -35,6 +36,7 @@ namespace ZXTune
       RegisterNullBackend(enumerator);
       //never default backends
       RegisterWAVBackend(enumerator);
+      RegisterAYLPTBackend(enumerator);
     }
   }
 }

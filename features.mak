@@ -11,3 +11,7 @@ ifdef support_alsa
 definitions += ALSA_SUPPORT
 $(platform)_libraries += asound
 endif
+
+ifdef support_aylpt_dlportio
+definitions += DLPORTIO_AYLPT_SUPPORT
+endif

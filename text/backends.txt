@@ -61,3 +61,10 @@ __cpp> "#endif //__TEXT_BACKENDS_H_DEFINED__\n"
 
 < TEXT_SOUND_ERROR_WIN32_BACKEND_INVALID_BUFFERS
 > "Win32 backend error: buffers count (%1%) is out of range (%2%..%3%)."
+
+#aylpt backend
+< TEXT_AYLPT_BACKEND_DESCRIPTION
+> "AYLPT support backend"
+
+< TEXT_SOUND_ERROR_AYLPT_BACKEND_DUMP
+> "Specified module does not supports dumping to AY-LPT device."

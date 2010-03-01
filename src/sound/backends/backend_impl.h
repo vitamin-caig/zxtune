@@ -76,9 +76,9 @@ namespace ZXTune
       //sync
       typedef boost::lock_guard<boost::mutex> Locker;
       mutable boost::mutex BackendMutex;
+      mutable boost::mutex PlayerMutex;
     private:
       mutable boost::array<boost::condition_variable, LAST_EVENT> Events;
-      mutable boost::mutex PlayerMutex;
       boost::thread RenderThread;
       boost::barrier SyncBarrier;
       boost::mutex PauseMutex;

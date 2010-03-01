@@ -9,6 +9,9 @@ extern const Char FILE_WAVE_EXT[] = {
 extern const Char TEXT_ALSA_BACKEND_DESCRIPTION[] = {
   'A','L','S','A',' ','s','o','u','n','d',' ','s','y','s','t','e','m',' ','b','a','c','k','e','n','d',0
 };
+extern const Char TEXT_AYLPT_BACKEND_DESCRIPTION[] = {
+  'A','Y','L','P','T',' ','s','u','p','p','o','r','t',' ','b','a','c','k','e','n','d',0
+};
 extern const Char TEXT_NULL_BACKEND_DESCRIPTION[] = {
   'N','u','l','l',' ','o','u','t','p','u','t',' ','b','a','c','k','e','n','d',0
 };
@@ -31,6 +34,11 @@ extern const Char TEXT_SOUND_ERROR_ALSA_BACKEND_INVALID_BUFFERS[] = {
 extern const Char TEXT_SOUND_ERROR_ALSA_BACKEND_NO_MIXER[] = {
   'F','a','i','l','e','d',' ','t','o',' ','f','o','u','n','d',' ','m','i','x','e','r',' ','\'','%','1','%','\'',
   ' ','f','o','r',' ','A','L','S','A',' ','b','a','c','k','e','n','d','.',0
+};
+extern const Char TEXT_SOUND_ERROR_AYLPT_BACKEND_DUMP[] = {
+  'S','p','e','c','i','f','i','e','d',' ','m','o','d','u','l','e',' ','d','o','e','s',' ','n','o','t',' ','s',
+  'u','p','p','o','r','t','s',' ','d','u','m','p','i','n','g',' ','t','o',' ','A','Y','-','L','P','T',' ','d',
+  'e','v','i','c','e','.',0
 };
 extern const Char TEXT_SOUND_ERROR_OSS_BACKEND_ERROR[] = {
   'E','r','r','o','r',' ','i','n',' ','O','S','S',' ','b','a','c','k','e','n','d',' ','w','h','i','l','e',' ',

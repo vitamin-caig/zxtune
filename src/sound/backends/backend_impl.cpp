@@ -500,18 +500,20 @@ namespace ZXTune
 
     bool BackendImpl::OnRenderFrame()
     {
-      Locker lock(PlayerMutex);
-      if (Mixer::Ptr mixer = MixersSet[Channels - 1])
+      bool res = false;
       {
-        Buffer.reserve(RenderingParameters.SamplesPerFrame());
-        Buffer.clear();
-        Module::Player::PlaybackState state;
-        ThrowIfError(Player->RenderFrame(RenderingParameters, state, *mixer));
-        DoBufferReady(Buffer);
-        return Module::Player::MODULE_PLAYING == state;
+        Locker lock(PlayerMutex);
+        if (Mixer::Ptr mixer = MixersSet[Channels - 1])
+        {
+          Buffer.reserve(RenderingParameters.SamplesPerFrame());
+          Buffer.clear();
+          Module::Player::PlaybackState state;
+          ThrowIfError(Player->RenderFrame(RenderingParameters, state, *mixer));
+          res = Module::Player::MODULE_PLAYING == state;
+        }
       }
-      assert(!"Never get here");
-      return false;
+      DoBufferReady(Buffer);
+      return res;
     }
 
     void BackendImpl::RenderFunc()

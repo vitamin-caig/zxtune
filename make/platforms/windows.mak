@@ -11,6 +11,7 @@ compiler := msvs
 
 # built-in features
 support_waveout = 1
+support_aylpt_dlportio = 1
 
 # installable boost names convention used
 # [prefix]boost_[lib]-[msvs]-mt[-gd]-[version].lib
