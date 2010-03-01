@@ -116,7 +116,7 @@ namespace
     subcontainer.PluginsChain = data.PluginsChain;
     subcontainer.PluginsChain.push_back(RAW_PLUGIN_ID);
     for (std::size_t offset = std::max(curRegion.Offset + curRegion.Size, std::size_t(1));
-      offset < limit - MINIMAL_RAW_SIZE; offset += std::max(curRegion.Offset + curRegion.Size, std::size_t(1)))
+      offset + MINIMAL_RAW_SIZE < limit; offset += std::max(curRegion.Offset + curRegion.Size, std::size_t(1)))
     {
       const uint_t curProg = offset * 100 / limit;
       if (showMessage && curProg != *message.Progress)

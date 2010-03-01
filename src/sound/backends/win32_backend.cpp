@@ -140,36 +140,19 @@ namespace
     ::HANDLE Event;
   };
 
-  class Win32Backend : public BackendImpl, private boost::noncopyable
+  class Win32VolumeController : public VolumeControl
   {
   public:
-    Win32Backend()
-      : Buffers(Parameters::ZXTune::Sound::Backends::Win32::BUFFERS_DEFAULT)
-      , CurrentBuffer(&Buffers.front(), &Buffers.back() + 1)
-      , Event(::CreateEvent(0, FALSE, FALSE, 0))
-      //device identifier used for opening and volume control
-      , Device(Parameters::ZXTune::Sound::Backends::Win32::DEVICE_DEFAULT)
-      , WaveHandle(0)
+    Win32VolumeController(boost::mutex& backendMutex, int_t& device)
+      : BackendMutex(backendMutex), Device(device)
     {
-    }
-
-    virtual ~Win32Backend()
-    {
-      Locker lock(BackendMutex);
-      assert(0 == WaveHandle || !"Win32Backend::Stop should be called before exit");
-      ::CloseHandle(Event);
-    }
-
-    virtual void GetInformation(BackendInformation& info) const
-    {
-      info = BACKEND_INFO;
     }
 
     virtual Error GetVolume(MultiGain& volume) const
     {
       try
       {
-        Locker lock(BackendMutex);
+        boost::lock_guard<boost::mutex> lock(BackendMutex);
         boost::array<uint16_t, OUTPUT_CHANNELS> buffer;
         BOOST_STATIC_ASSERT(sizeof(buffer) == sizeof(DWORD));
         CheckMMResult(::waveOutGetVolume(reinterpret_cast< ::HWAVEOUT>(Device), safe_ptr_cast<LPDWORD>(&buffer[0])), THIS_LINE);
@@ -190,7 +173,7 @@ namespace
       }
       try
       {
-        Locker lock(BackendMutex);
+        boost::lock_guard<boost::mutex> lock(BackendMutex);
         boost::array<uint16_t, OUTPUT_CHANNELS> buffer;
         std::transform(volume.begin(), volume.end(), buffer.begin(), std::bind2nd(std::multiplies<Gain>(), Gain(MAX_WIN32_VOLUME)));
         BOOST_STATIC_ASSERT(sizeof(buffer) == sizeof(DWORD));
@@ -201,6 +184,42 @@ namespace
       {
         return e;
       }
+    }
+
+  private:
+    boost::mutex& BackendMutex;
+    int_t& Device;
+  };
+
+  class Win32Backend : public BackendImpl, private boost::noncopyable
+  {
+  public:
+    Win32Backend()
+      : Buffers(Parameters::ZXTune::Sound::Backends::Win32::BUFFERS_DEFAULT)
+      , CurrentBuffer(&Buffers.front(), &Buffers.back() + 1)
+      , Event(::CreateEvent(0, FALSE, FALSE, 0))
+      //device identifier used for opening and volume control
+      , Device(Parameters::ZXTune::Sound::Backends::Win32::DEVICE_DEFAULT)
+      , WaveHandle(0)
+      , VolumeController(new Win32VolumeController(BackendMutex, Device))
+    {
+    }
+
+    virtual ~Win32Backend()
+    {
+      Locker lock(BackendMutex);
+      assert(0 == WaveHandle || !"Win32Backend::Stop should be called before exit");
+      ::CloseHandle(Event);
+    }
+
+    virtual void GetInformation(BackendInformation& info) const
+    {
+      info = BACKEND_INFO;
+    }
+
+    virtual VolumeControl::Ptr GetVolumeControl() const
+    {
+      return VolumeController;
     }
 
     virtual void OnStartup()
@@ -248,7 +267,7 @@ namespace
         DoShutdown();
         if (device)
         {
-          Device = *device;
+          Device = static_cast<int_t>(*device);
         }
         if (buffs)
         {
@@ -308,8 +327,9 @@ namespace
     std::vector<WaveBuffer> Buffers;
     cycled_iterator<WaveBuffer*> CurrentBuffer;
     ::HANDLE Event;
-    int64_t Device;
+    int_t Device;
     ::HWAVEOUT WaveHandle;
+    VolumeControl::Ptr VolumeController;
   };
 
   Backend::Ptr Win32BackendCreator(const Parameters::Map& params)

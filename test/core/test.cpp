@@ -1,5 +1,6 @@
 #include <tools.h>
 #include <formatter.h>
+#include <logging.h>
 #include <string_helpers.h>
 #include <io/provider.h>
 #include <core/module_detect.h>
@@ -7,6 +8,7 @@
 #include <core/plugin.h>
 #include <core/error_codes.h>
 #include <iostream>
+#include <iomanip>
 
 #include <boost/bind.hpp>
 
@@ -52,8 +54,16 @@ namespace
     6, 10,
     7, ~(1 | 8),
     0xfd,
-    
-    0, 0, 0, 0, 0, 0, 0, 0//skip
+
+    //skip
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
   };
     
   class FixedContainer : public IO::DataContainer
@@ -131,11 +141,24 @@ namespace
     return info.Id == "Hobeta";
   }
 
-  void PluginLogger(const String& str)
+  void PluginLogger(const Log::MessageData& msg)
   {
-    std::cout << " >" << str << std::endl;
+    //show only first-level messages
+    if (msg.Level)
+    {
+      std::cout << std::setw(msg.Level) << ' ';
+    }
+    if (msg.Text)
+    {
+      std::cout << *msg.Text;
+    }
+    if (msg.Progress)
+    {
+      std::cout << ' ' << *msg.Progress << '%';
+    }
+    std::cout << std::endl;
   }
-  
+
   Error PluginCallback(const String& subpath, Module::Holder::Ptr holder, unsigned& count, const bool& detailed)
   {
     PluginInformation plugInfo;

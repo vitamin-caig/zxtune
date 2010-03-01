@@ -43,8 +43,7 @@ namespace ZXTune
 
       virtual Error SetMixer(const std::vector<MultiGain>& data);
       virtual Error SetFilter(Converter::Ptr converter);
-      //volume management should be implemented in ancestors explicitly
-      
+      //volume control should be implemented explicitly
       virtual Error SetParameters(const Parameters::Map& params);
       virtual Error GetParameters(Parameters::Map& params) const;
     protected:
@@ -76,8 +75,8 @@ namespace ZXTune
       //sync
       typedef boost::lock_guard<boost::mutex> Locker;
       mutable boost::mutex BackendMutex;
-      mutable boost::array<boost::condition_variable, LAST_EVENT> Events;
     private:
+      mutable boost::array<boost::condition_variable, LAST_EVENT> Events;
       mutable boost::mutex PlayerMutex;
       boost::thread RenderThread;
       boost::barrier SyncBarrier;

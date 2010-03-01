@@ -182,37 +182,25 @@ namespace
     Parameters::Map params;
     Backend::Ptr backend;
     ThrowIfError(CreateBackend(info.Id, params, backend));
-    
-    std::cout << "Check for volume get: ";
-    MultiGain volume;
-    if (const Error& e = backend->GetVolume(volume))
+
+    std::cout << "Check for volume support: ";
+    if (const VolumeControl::Ptr volCtrl = backend->GetVolumeControl())
     {
-      if (e != BACKEND_UNSUPPORTED_FUNC)
-      {
-        throw e;
-      }
+      std::cout << " checking for get: ";
+      MultiGain volume;
+      ThrowIfError(volCtrl->GetVolume(volume));
+      std::cout << "{" << volume[0] << "," << volume[1] << "}\n";
+      MultiGain newVol = { {1.0, 1.0} };
+      std::cout << " checkinf for set: ";
+      ThrowIfError(volCtrl->SetVolume(newVol));
+      std::cout << "passed\n";
+      //return previous
+      ThrowIfError(volCtrl->SetVolume(volume));
+    }
+    else
+    {
       std::cout << "unsupported\n";
     }
-    else
-    {
-      std::cout << "{" << volume[0] << "," << volume[1] << "}\n";
-    }
-    MultiGain newVol = { {1.0, 1.0} };
-    std::cout << "Check for volume set: ";
-    if (const Error& e = backend->SetVolume(newVol))
-    {
-      if (e != BACKEND_UNSUPPORTED_FUNC)
-      {
-        throw e;
-      }
-      std::cout << "unsuported\n";
-    }
-    else
-    {
-      std::cout << "passed\n";
-    }
-    //return previous
-    backend->SetVolume(volume);
     TestSuccess("Player set", backend->SetModule(Module::Holder::Ptr(new DummyHolder())));
     /*
     TestSuccess("Play", backend->Play());

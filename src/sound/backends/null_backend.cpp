@@ -48,14 +48,9 @@ namespace
       info = BACKEND_INFO;
     }
 
-    virtual Error GetVolume(MultiGain& /*volume*/) const
+    virtual VolumeControl::Ptr GetVolumeControl() const
     {
-      return Error(THIS_LINE, BACKEND_UNSUPPORTED_FUNC, TEXT_SOUND_ERROR_BACKEND_UNSUPPORTED_VOLUME);
-    }
-    
-    virtual Error SetVolume(const MultiGain& /*volume*/)
-    {
-      return Error(THIS_LINE, BACKEND_UNSUPPORTED_FUNC, TEXT_SOUND_ERROR_BACKEND_UNSUPPORTED_VOLUME);
+      return VolumeControl::Ptr();
     }
 
     virtual void OnStartup()

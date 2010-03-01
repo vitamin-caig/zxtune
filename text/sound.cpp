@@ -53,10 +53,6 @@ extern const Char TEXT_SOUND_ERROR_BACKEND_SETUP_BACKEND[] = {
 extern const Char TEXT_SOUND_ERROR_BACKEND_STOP[] = {
   'F','a','i','l','e','d',' ','t','o',' ','s','t','o','p',' ','p','l','a','y','b','a','c','k','.',0
 };
-extern const Char TEXT_SOUND_ERROR_BACKEND_UNSUPPORTED_VOLUME[] = {
-  'V','o','l','u','m','e',' ','c','o','n','t','r','o','l','l','i','n','g',' ','i','s',' ','n','o','t',' ','s',
-  'u','p','p','o','r','t','e','d','.',0
-};
 extern const Char TEXT_SOUND_ERROR_FILTER_HIGH_CUTOFF[] = {
   'S','p','e','c','i','f','i','e','d',' ','f','i','l','t','e','r',' ','h','i','g','h',' ','c','u','t','o','f',
   'f',' ','f','r','e','q','u','e','n','c','y',' ','(','%','1','%','H','z',')',' ','i','s',' ','o','u','t',' ',

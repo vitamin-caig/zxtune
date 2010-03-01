@@ -37,7 +37,27 @@ namespace ZXTune
     
     //! @brief Set of backend descriptors
     typedef std::vector<BackendInformation> BackendInformationArray;
-    
+
+    //! @brief Volume control interface
+    class VolumeControl
+    {
+    public:
+      //! @brief Pointer types
+      typedef boost::shared_ptr<VolumeControl> Ptr;
+
+      virtual ~VolumeControl() {}
+
+      //! @brief Getting current hardware mixer volume
+      //! @param volume Reference to return value
+      //! @return Error() in case of success
+      virtual Error GetVolume(MultiGain& volume) const = 0;
+
+      //! @brief Setting hardware mixer volume
+      //! @param volume Levels value
+      //! @return Error() in case of success
+      virtual Error SetVolume(const MultiGain& volume) = 0;
+    };
+
     //! @brief %Sound backend interface
     class Backend
     {
@@ -77,7 +97,7 @@ namespace ZXTune
       virtual Error Stop() = 0;
       
       //! @brief Seeking
-      //! @param frame Number of specified frame 
+      //! @param frame Number of specified frame
       //! @return Error() in case of success
       //! @note If parameter is out of range, playback will be stopped
       virtual Error SetPosition(uint_t frame) = 0;
@@ -128,21 +148,13 @@ namespace ZXTune
       virtual Error SetMixer(const std::vector<MultiGain>& data) = 0;
       
       //! @brief Setting the filter to sound stream post-process
-      //! @brief converter Filter object
+      //! @param converter Filter object
       //! @return Error() in case of success
       virtual Error SetFilter(Converter::Ptr converter) = 0;
-      
-      //! @brief Getting current hardware mixer volume
-      //! @param volume Reference to return value
-      //! @return Error() in case of success
-      //! @note Implementation-specific, not all the backends supports this functionality
-      virtual Error GetVolume(MultiGain& volume) const = 0;
-      
-      //! @brief Setting hardware mixer volume
-      //! @param volume Levels value
-      //! @return Error() in case of success
-      //! @note Implementation-specific. not all the backends supports this functionality
-      virtual Error SetVolume(const MultiGain& volume) = 0;
+
+      //! @brief Getting volume controller
+      //! @return Pointer to volume control object if supported, empty pointer if not
+      virtual VolumeControl::Ptr GetVolumeControl() const = 0;
 
       //! @brief Setting parameters backend and player
       //! @param params Specified parameters map

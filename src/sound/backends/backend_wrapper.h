@@ -90,14 +90,9 @@ namespace ZXTune
         return Delegate->SetFilter(converter);
       }
 
-      virtual Error GetVolume(MultiGain& volume) const
+      virtual VolumeControl::Ptr GetVolumeControl() const
       {
-        return Delegate->GetVolume(volume);
-      }
-      
-      virtual Error SetVolume(const MultiGain& volume)
-      {
-        return Delegate->SetVolume(volume);
+        return Delegate->GetVolumeControl();
       }
 
       virtual Error SetParameters(const Parameters::Map& params)

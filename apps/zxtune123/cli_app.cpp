@@ -488,9 +488,11 @@ namespace
       ZXTune::Module::Player::ConstWeakPtr weakPlayer(backend.GetPlayer());
       ZXTune::Sound::Gain curVolume = ZXTune::Sound::Gain();
       ZXTune::Sound::MultiGain allVolume;
-      const bool noVolume = backend.GetVolume(allVolume) != 0;
+      ZXTune::Sound::VolumeControl::Ptr volCtrl(backend.GetVolumeControl());
+      const bool noVolume = volCtrl.get() == 0;
       if (!noVolume)
       {
+        ThrowIfError(volCtrl->GetVolume(allVolume));
         curVolume = std::accumulate(allVolume.begin(), allVolume.end(), curVolume) / allVolume.size();
       }
       for (;;)
@@ -554,7 +556,7 @@ namespace
               curVolume = std::max(0.0, curVolume - 0.05);
               ZXTune::Sound::MultiGain allVol;
               allVol.assign(curVolume);
-              ThrowIfError(backend.SetVolume(allVol));
+              ThrowIfError(volCtrl->SetVolume(allVol));
             }
             break;
           case Console::KEY_UP:
@@ -563,7 +565,7 @@ namespace
               curVolume = std::min(1.0, curVolume + 0.05);
               ZXTune::Sound::MultiGain allVol;
               allVol.assign(curVolume);
-              ThrowIfError(backend.SetVolume(allVol));
+              ThrowIfError(volCtrl->SetVolume(allVol));
             }
             break;
           case Console::KEY_ENTER:
