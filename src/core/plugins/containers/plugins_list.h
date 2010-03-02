@@ -18,11 +18,13 @@ namespace ZXTune
   class PluginsEnumerator;
   
   void RegisterTRDContainer(PluginsEnumerator& enumerator);
+  void RegisterHRIPContainer(PluginsEnumerator& enumerator);
   void RegisterRawContainer(PluginsEnumerator& enumerator);
   
   void RegisterContainerPlugins(PluginsEnumerator& enumerator)
   {
     RegisterTRDContainer(enumerator);
+    RegisterHRIPContainer(enumerator);
     RegisterRawContainer(enumerator);
   }
 }

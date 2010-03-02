@@ -36,6 +36,17 @@ namespace Parameters
           };
           //@}
         }
+
+        //! @brief HRIP container parameters namespace
+        namespace Hrip
+        {
+          //! @brief Ignore corrupted blocks
+          //! @details 1 if do so
+          const Char IGNORE_CORRUPTED[] =
+          {
+            'z','x','t','u','n','e','.','c','o','r','e','.','p','l','u','g','i','n','s','.','h','r','i','p','.','i','g','n','o','r','e','_','c','o','r','r','u','p','t','e','d','\0'
+          };
+        }
       }
     }
   }

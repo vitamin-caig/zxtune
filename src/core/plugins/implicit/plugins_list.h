@@ -19,11 +19,13 @@ namespace ZXTune
   
   void RegisterHobetaConvertor(PluginsEnumerator& enumerator);
   void RegisterHrust1xConvertor(PluginsEnumerator& enumerator);
+  void RegisterHrust2xConvertor(PluginsEnumerator& enumerator);
 
   void RegisterImplicitPlugins(PluginsEnumerator& enumerator)
   {
     RegisterHobetaConvertor(enumerator);
     RegisterHrust1xConvertor(enumerator);
+    RegisterHrust2xConvertor(enumerator);
   }
 }
 

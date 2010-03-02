@@ -13,6 +13,7 @@ extern const Char TEXT_HOBETA_INFO[];
 extern const Char TEXT_HRIP_CONTAINER[];
 extern const Char TEXT_HRIP_INFO[];
 extern const Char TEXT_HRUST1X_INFO[];
+extern const Char TEXT_HRUST2X_INFO[];
 extern const Char TEXT_PACKED_INFO[];
 extern const Char TEXT_PDT_EDITOR[];
 extern const Char TEXT_PDT_INFO[];

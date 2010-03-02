@@ -34,6 +34,10 @@ extern const Char TEXT_HRUST1X_INFO[] = {
   'H','r','u','s','t','1','.','x',' ','p','a','c','k','e','d',' ','d','a','t','a',' ','s','u','p','p','o','r',
   't',0
 };
+extern const Char TEXT_HRUST2X_INFO[] = {
+  'H','r','u','s','t','2','.','x',' ','p','a','c','k','e','d',' ','d','a','t','a',' ','s','u','p','p','o','r',
+  't',0
+};
 extern const Char TEXT_PACKED_INFO[] = {
   'P','a','c','k','e','d',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
 };
