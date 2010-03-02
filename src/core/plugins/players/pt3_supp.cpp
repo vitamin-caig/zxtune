@@ -775,7 +775,7 @@ namespace
   };
 
   //////////////////////////////////////////////////
-  bool Check(const uint8_t* data, std::size_t size, const MetaContainer& container,
+  bool CheckPT3Module(const uint8_t* data, std::size_t size, const MetaContainer& container,
     Holder::Ptr& holder, ModuleRegion& region)
   {
     const PT3Header* const header(safe_ptr_cast<const PT3Header*>(data));
@@ -787,9 +787,9 @@ namespace
     if (!header->Length ||
       patOff >= size || patOff < sizeof(*header) ||
       0xff != data[patOff - 1] ||
+      &header->Positions[header->Length] != data + patOff - 1 ||
       &data[patOff - 1] != std::find_if(header->Positions, data + patOff - 1,
-        std::bind2nd(std::modulus<uint8_t>(), 3)) ||
-      &header->Positions[header->Length] != data + patOff - 1
+        std::bind2nd(std::modulus<uint8_t>(), 3))
       )
     {
       return false;
@@ -882,7 +882,7 @@ namespace
 
     ModuleRegion tmpRegion;
     //try to detect without player
-    if (Check(data, limit, container, holder, tmpRegion))
+    if (CheckPT3Module(data, limit, container, holder, tmpRegion))
     {
       region = tmpRegion;
       return true;
@@ -891,7 +891,7 @@ namespace
     {
       tmpRegion.Offset = chain->PlayerSize;
       if (DetectFormat(data, limit, chain->PlayerFP) &&
-          Check(data + chain->PlayerSize, limit - region.Offset, container, holder, tmpRegion))
+          CheckPT3Module(data + chain->PlayerSize, limit - region.Offset, container, holder, tmpRegion))
       {
         region = tmpRegion;
         return true;

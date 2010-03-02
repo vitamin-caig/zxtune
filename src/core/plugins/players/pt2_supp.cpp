@@ -915,7 +915,7 @@ namespace
   }
 
   //////////////////////////////////////////////////
-  bool Check(const uint8_t* data, std::size_t size, const MetaContainer& container,
+  bool CheckPT2Module(const uint8_t* data, std::size_t size, const MetaContainer& container,
     Holder::Ptr& holder, ModuleRegion& region)
   {
     if (sizeof(PT2Header) > size)
@@ -936,6 +936,35 @@ namespace
 
     RangeChecker::Ptr checker(RangeChecker::CreateShared(size));
     checker->AddRange(0, lowlimit);
+    {
+      //check patterns
+      const uint_t patOff(fromLE(header->PatternsOffset));
+      uint_t patternsCount(0);
+      for (const PT2Pattern* patPos(safe_ptr_cast<const PT2Pattern*>(data + patOff));
+        patPos->Check();
+        ++patPos, ++patternsCount)
+      {
+        if (patternsCount > MAX_PATTERN_COUNT ||
+            !checker->AddRange(patOff + sizeof(PT2Pattern) * patternsCount, sizeof(PT2Pattern)) ||
+            //simple check if in range- performance issue
+            patPos->Offsets.end() != std::find_if(patPos->Offsets.begin(), patPos->Offsets.end(),
+              !boost::bind(&in_range<uint_t>, boost::bind(&fromLE<uint16_t>, _1), lowlimit, size)))
+        {
+          return false;
+        }
+      }
+      if (!patternsCount)
+      {
+        return false;
+      }
+      //find invalid patterns in position
+      if (header->Positions + header->Length !=
+          std::find_if(header->Positions, header->Positions + header->Length, std::bind2nd(std::greater_equal<uint_t>(),
+          patternsCount)))
+      {
+        return false;
+      }
+    }
 
     //check samples
     for (const uint16_t* sampOff = header->SamplesOffsets.begin(); sampOff != header->SamplesOffsets.end(); ++sampOff)
@@ -969,35 +998,6 @@ namespace
         }
       }
     }
-    const uint_t patOff(fromLE(header->PatternsOffset));
-    //check patterns
-    uint_t patternsCount(0);
-    for (const PT2Pattern* patPos(safe_ptr_cast<const PT2Pattern*>(data + patOff));
-      patPos->Check();
-      ++patPos, ++patternsCount)
-    {
-      if (!checker->AddRange(patOff + sizeof(PT2Pattern) * patternsCount, sizeof(PT2Pattern)))
-      {
-        return false;
-      }
-      //at least 1 byte for pattern
-      if (patPos->Offsets.end() != std::find_if(patPos->Offsets.begin(), patPos->Offsets.end(),
-        !boost::bind(&RangeChecker::AddRange, checker.get(), boost::bind(&fromLE<uint16_t>, _1), 1)))
-      {
-        return false;
-      }
-    }
-    if (!patternsCount || patternsCount > MAX_PATTERN_COUNT)
-    {
-      return false;
-    }
-    //find invalid patterns in position
-    if (header->Positions + header->Length !=
-        std::find_if(header->Positions, header->Positions + header->Length, std::bind2nd(std::greater_equal<uint_t>(),
-        patternsCount)))
-    {
-      return false;
-    }
     //try to create holder
     try
     {
@@ -1023,7 +1023,7 @@ namespace
 
     ModuleRegion tmpRegion;
     //try to detect without player
-    if (Check(data, limit, container, holder, tmpRegion))
+    if (CheckPT2Module(data, limit, container, holder, tmpRegion))
     {
       region = tmpRegion;
       return true;
@@ -1032,7 +1032,7 @@ namespace
     {
       tmpRegion.Offset = chain->PlayerSize;
       if (DetectFormat(data, limit, chain->PlayerFP) &&
-          Check(data + chain->PlayerSize, limit - region.Offset, container, holder, tmpRegion))
+          CheckPT2Module(data + chain->PlayerSize, limit - region.Offset, container, holder, tmpRegion))
       {
         region = tmpRegion;
         return true;
