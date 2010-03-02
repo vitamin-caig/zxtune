@@ -24,9 +24,6 @@ extern const Char TEXT_FDI_INFO[] = {
 extern const Char TEXT_HOBETA_INFO[] = {
   'H','o','b','e','t','a',' ','c','o','n','t','a','i','n','e','r','s',' ','s','u','p','p','o','r','t',0
 };
-extern const Char TEXT_HRIP_CONTAINER[] = {
-  'H','R','i','P',0
-};
 extern const Char TEXT_HRIP_INFO[] = {
   'H','R','i','P',' ','a','r','c','h','i','v','e','s',' ','s','u','p','p','o','r','t',0
 };
@@ -47,6 +44,14 @@ extern const Char TEXT_PDT_EDITOR[] = {
 extern const Char TEXT_PDT_INFO[] = {
   'P','r','o','D','i','g','i',' ','T','r','a','c','k','e','r',' ','m','o','d','u','l','e','s',' ','s','u','p',
   'p','o','r','t',0
+};
+extern const Char TEXT_PLUGIN_HRIP_PROGRESS[] = {
+  'H','R','i','P',' ','c','o','n','t','a','i','n','e','r',' ','p','r','o','c','e','s','s','i','n','g',' ','f',
+  'o','r',' ','\'','%','1','%','\'',' ','a','t',' ','s','u','b','p','a','t','h',' ','\'','%','2','%','\'',0
+};
+extern const Char TEXT_PLUGIN_HRIP_PROGRESS_NOPATH[] = {
+  'H','R','i','P',' ','c','o','n','t','a','i','n','e','r',' ','p','r','o','c','e','s','s','i','n','g',' ','f',
+  'o','r',' ','\'','%','1','%','\'',0
 };
 extern const Char TEXT_PLUGIN_RAW_PROGRESS[] = {
   'R','a','w',' ','s','c','a','n','e','r',' ','p','r','o','c','e','s','s','i','n','g',' ','a','t',' ','s','u',

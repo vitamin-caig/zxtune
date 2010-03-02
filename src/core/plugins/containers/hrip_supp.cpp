@@ -113,40 +113,43 @@ namespace
     CORRUPTED
   };
 
-  class HripCallback
+  enum CallbackState
   {
-  public:
-    virtual ~HripCallback() {}
-
-    // true if ignore block
-    virtual bool IgnoreCorruptedBlock() const = 0;
-
-    enum CallbackState
-    {
-      CONTINUE,
-      EXIT,
-      ERROR,
-    };
-
-    virtual CallbackState ProcessFile(const std::vector<const HripBlockHeader*>& blocks) = 0;
+    CONTINUE,
+    EXIT,
+    ERROR,
   };
-
-  HripResult ParseHrip(const void* data, std::size_t size, HripCallback& callback)
+  
+  typedef boost::function<CallbackState(uint_t, const std::vector<const HripBlockHeader*>&)> HripCallback;
+  
+  HripResult CheckHrip(const void* data, std::size_t dataSize, uint_t& files, uint_t& archiveSize)
   {
-    if (size < sizeof(HripHeader))
+    if (dataSize < sizeof(HripHeader))
     {
       return INVALID;
     }
     const HripHeader* const hripHeader(static_cast<const HripHeader*>(data));
-    if (0 != std::memcmp(hripHeader->ID, HRIP_ID, sizeof(HRIP_ID)) &&
+    if (0 != std::memcmp(hripHeader->ID, HRIP_ID, sizeof(HRIP_ID)) ||
       !(0 == hripHeader->Catalogue || 1 == hripHeader->Catalogue))
     {
       return INVALID;
     }
-    const std::size_t archiveSize(256 * (fromLE(hripHeader->ArchiveSectors) - 1) + hripHeader->UsedInLastSector);
+    files = hripHeader->FilesCount;
+    archiveSize = 256 * (fromLE(hripHeader->ArchiveSectors) - 1) + hripHeader->UsedInLastSector;
+    return OK;
+  }
+
+  HripResult ParseHrip(const void* data, std::size_t size, const HripCallback& callback, bool ignoreCorrupted)
+  {
+    uint_t files = 0, archiveSize = 0;
+    const HripResult checkRes = CheckHrip(data, size, files, archiveSize);
+    if (checkRes != OK)
+    {
+      return checkRes;
+    }
     const uint8_t* const ptr(static_cast<const uint8_t*>(data));
-    std::size_t offset(sizeof(*hripHeader));
-    for (uint_t fileNum = 0; fileNum < hripHeader->FilesCount; ++fileNum)
+    std::size_t offset(sizeof(HripHeader));
+    for (uint_t fileNum = 0; fileNum < files; ++fileNum)
     {
       std::vector<const HripBlockHeader*> blocks;
       for (;;)//for blocks of file
@@ -164,7 +167,7 @@ namespace
         }
         if (blockHdr->AdditionalSize > 2 && //here's CRC
             fromLE(blockHdr->PackedCRC) != CalcCRC(packedData, fromLE(blockHdr->PackedSize)) &&
-            !callback.IgnoreCorruptedBlock())
+            !ignoreCorrupted)
         {
           return CORRUPTED;
         }
@@ -175,14 +178,14 @@ namespace
           break;
         }
       }
-      const HripCallback::CallbackState state(callback.ProcessFile(blocks));
-      if (HripCallback::ERROR == state)
+      switch (callback(fileNum, blocks))
       {
+      case ERROR:
         return CORRUPTED;
-      }
-      else if (HripCallback::EXIT == state)
-      {
+      case EXIT:
         return OK;
+      default:
+        break;
       }
     }
     return OK;
@@ -204,85 +207,113 @@ namespace
       dst.size() == sizeBefore + fromLE(header->DataSize);
   }
 
-  class BasicCallback : public HripCallback
+  inline bool CheckIgnoreCorrupted(const Parameters::Map& params)
+  {
+    Parameters::IntType val;
+    return Parameters::FindByName(params, Parameters::ZXTune::Core::Plugins::Hrip::IGNORE_CORRUPTED, val) && val != 0;
+  }
+
+  class Enumerator
   {
   public:
-    explicit BasicCallback(const Parameters::Map& params)
-      : IgnoreCorrupted(false)
+    Enumerator(const Parameters::Map& commonParams, const DetectParameters& detectParams,
+      const MetaContainer& data)
+      : Params(commonParams)
+      , IgnoreCorrupted(CheckIgnoreCorrupted(commonParams))
+      , DetectParams(detectParams)
+      , Container(data.Data)
+      , Path(data.Path)
+      , SubMetacontainer(data)
     {
-      Parameters::IntType val;
-      IgnoreCorrupted = Parameters::FindByName(params, Parameters::ZXTune::Core::Plugins::Hrip::IGNORE_CORRUPTED, val) && val != 0;
+      SubMetacontainer.PluginsChain.push_back(HRIP_PLUGIN_ID);
     }
-
-    virtual bool IgnoreCorruptedBlock() const
+    
+    Error Process(ModuleRegion& region)
     {
-      return IgnoreCorrupted;
-    }
-  protected:
-    bool IgnoreCorrupted;
-  };
-
-  /*
-  class EnumerateCallback : public HripCallback
-  {
-  public:
-    EnumerateCallback()
-    {
-    }
-
-    virtual CallbackState OnFile(const std::vector<const HripBlockHeader*>& headers)
-    {
-      const HripBlockHeader* const header(headers.front());
-      Files.push_back(HripFile(IO::GetFileName(header->Filename), header->Filesize));
-      return CONTINUE;
-    }
-
-    void GetFiles(HripFiles& files)
-    {
-      files.swap(Files);
-    }
-  private:
-    HripFiles Files;
-  };
-  */
-
-  class OpenFileCallback : public BasicCallback
-  {
-  public:
-    OpenFileCallback(const Parameters::Map& params, const String& filename, Dump& dst)
-      : BasicCallback(params)
-      , Filename(filename), Dst(dst)
-    {
-    }
-
-    virtual CallbackState ProcessFile(const std::vector<const HripBlockHeader*>& headers)
-    {
-      if (!headers.empty() &&
-          Filename == GetTRDosName(headers.front()->Name, headers.front()->Type))//found file
+      try
       {
-        Dump tmp;
-        if (headers.end() == std::find_if(headers.begin(), headers.end(),
-          !boost::bind(&DecodeHripBlock, _1, boost::ref(tmp))) && !IgnoreCorrupted)
+        uint_t totalFiles = 0, archiveSize = 0;
+        
+        if (CheckHrip(Container->Data(), Container->Size(), totalFiles, archiveSize) != OK ||
+            ParseHrip(Container->Data(), archiveSize, 
+              boost::bind(&Enumerator::ProcessFile, this, totalFiles, _1, _2), IgnoreCorrupted) != OK)
         {
-          Dst.swap(tmp);
-          return EXIT;
+          return Error(THIS_LINE, Module::ERROR_FIND_CONTAINER_PLUGIN);
         }
+        region.Offset = 0;
+        region.Size = archiveSize;
+        return Error();
+      }
+      catch (const Error& e)
+      {
+        return e;
+      }
+    }
+
+  private:
+    CallbackState ProcessFile(uint_t totalFiles, uint_t fileNum, const std::vector<const HripBlockHeader*>& headers)
+    {
+      if (headers.empty())
+      {
         return ERROR;
       }
+      const String filename(GetTRDosName(headers.front()->Name, headers.front()->Type));
+      //decode
+      {
+        Dump tmp;
+        if (headers.end() != std::find_if(headers.begin(), headers.end(),
+              !boost::bind(&DecodeHripBlock, _1, boost::ref(tmp))) && !IgnoreCorrupted)
+        {
+          return ERROR;
+        }
+        SubMetacontainer.Data = IO::CreateDataContainer(tmp);
+        SubMetacontainer.Path = IO::AppendPath(Path, filename);
+      }
+      if (DetectParams.Logger)
+      {
+        Log::MessageData message;
+        message.Level = SubMetacontainer.PluginsChain.size() - 1;
+        message.Progress = 100 * (fileNum + 1) / totalFiles;
+        message.Text = (SafeFormatter(Path.empty() ? TEXT_PLUGIN_HRIP_PROGRESS_NOPATH : TEXT_PLUGIN_HRIP_PROGRESS) % filename % Path).str();
+        DetectParams.Logger(message);
+      }
+
+      ModuleRegion curRegion;
+      ThrowIfError(PluginsEnumerator::Instance().DetectModules(Params, DetectParams, SubMetacontainer, curRegion));
       return CONTINUE;
     }
   private:
-    const String Filename;
-    Dump& Dst;
+    const Parameters::Map& Params;
+    const bool IgnoreCorrupted;
+    const DetectParameters& DetectParams;
+    const IO::DataContainer::Ptr Container;
+    const String Path;
+    MetaContainer SubMetacontainer;
   };
-}
 
-namespace ZXTune
-{
   Error ProcessHRIPContainer(const Parameters::Map& commonParams, const DetectParameters& detectParams,
     const MetaContainer& data, ModuleRegion& region)
   {
-    return Error(THIS_LINE, Module::ERROR_FIND_CONTAINER_PLUGIN);
+    Enumerator cb(commonParams, detectParams, data);
+    return cb.Process(region);
+  }
+
+  CallbackState FindFileCallback(const String& filename, bool ignoreCorrupted, uint_t /*fileNum*/, 
+    const std::vector<const HripBlockHeader*>& headers, Dump& dst)
+  {
+    if (!headers.empty() &&
+        filename == GetTRDosName(headers.front()->Name, headers.front()->Type))//found file
+    {
+      Dump tmp;
+      if (headers.end() == std::find_if(headers.begin(), headers.end(),
+        !boost::bind(&DecodeHripBlock, _1, boost::ref(tmp))) && !ignoreCorrupted)
+      {
+        dst.swap(tmp);
+        return EXIT;
+      }
+      return ERROR;
+    }
+    return CONTINUE;
   }
 
   bool OpenHRIPContainer(const Parameters::Map& commonParams, const MetaContainer& inData, const String& inPath,
@@ -291,10 +322,12 @@ namespace ZXTune
     String restComp;
     const String& pathComp = IO::ExtractFirstPathComponent(inPath, restComp);
     Dump dmp;
-    OpenFileCallback cb(commonParams, pathComp, dmp);
+    const bool ignoreCorrupted = CheckIgnoreCorrupted(commonParams);
     const IO::DataContainer& container(*inData.Data);
     if (pathComp.empty() ||
-        ParseHrip(container.Data(), container.Size(), cb) != OK)
+        ParseHrip(container.Data(), container.Size(), 
+          boost::bind(&FindFileCallback, pathComp, ignoreCorrupted, _1, _2, boost::ref(dmp)), ignoreCorrupted) != OK ||
+        dmp.empty())
     {
       return false;
     }
