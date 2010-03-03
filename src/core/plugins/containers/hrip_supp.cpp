@@ -166,8 +166,9 @@ namespace
           break;
         }
         if (blockHdr->AdditionalSize > 2 && //here's CRC
-            fromLE(blockHdr->PackedCRC) != CalcCRC(packedData, fromLE(blockHdr->PackedSize)) &&
-            !ignoreCorrupted)
+            !ignoreCorrupted &&
+            fromLE(blockHdr->PackedCRC) != CalcCRC(packedData, fromLE(blockHdr->PackedSize))
+           )
         {
           return CORRUPTED;
         }
@@ -257,7 +258,12 @@ namespace
       {
         return ERROR;
       }
-      const String filename(GetTRDosName(headers.front()->Name, headers.front()->Type));
+      const HripBlockHeader& header(*headers.front());
+      if (header.AdditionalSize < 15)
+      {
+        return ERROR;
+      }
+      const String filename(GetTRDosName(header.Name, header.Type));
       //decode
       {
         Dump tmp;

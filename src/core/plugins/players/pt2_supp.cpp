@@ -928,7 +928,8 @@ namespace
     {
       return false;
     }
-    const uint_t lowlimit(1 + std::find(header->Positions, data + size, POS_END_MARKER) - data);
+    const uint_t lowlimit(1 + 
+      std::find(header->Positions, data + header->Length + sizeof(*header) + 1, POS_END_MARKER) - data);
     if (lowlimit - sizeof(*header) != header->Length)//too big positions list
     {
       return false;
