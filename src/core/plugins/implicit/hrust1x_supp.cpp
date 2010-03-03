@@ -26,7 +26,7 @@ namespace
 {
   using namespace ZXTune;
 
-  const Char HRUST1X_PLUGIN_ID[] = {'H', 'r', 'u', 's', 't', '1', '.', 'x', '\0'};
+  const Char HRUST1X_PLUGIN_ID[] = {'H', 'R', 'U', 'S', 'T', '1', '\0'};
   const String TEXT_HRUST1X_VERSION(FromStdString("$Rev$"));
 
   const std::size_t DEPACKER_SIZE = 0x103;

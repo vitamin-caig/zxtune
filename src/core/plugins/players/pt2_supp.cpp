@@ -940,6 +940,10 @@ namespace
     {
       //check patterns
       const uint_t patOff(fromLE(header->PatternsOffset));
+      if (!in_range(patOff, lowlimit, size))
+      {
+        return false;
+      }
       uint_t patternsCount(0);
       for (const PT2Pattern* patPos(safe_ptr_cast<const PT2Pattern*>(data + patOff));
         patPos->Check();

@@ -17,15 +17,16 @@ namespace ZXTune
   //forward declaration
   class PluginsEnumerator;
   
+  void RegisterRawContainer(PluginsEnumerator& enumerator);
   void RegisterTRDContainer(PluginsEnumerator& enumerator);
   void RegisterHRIPContainer(PluginsEnumerator& enumerator);
-  void RegisterRawContainer(PluginsEnumerator& enumerator);
   
   void RegisterContainerPlugins(PluginsEnumerator& enumerator)
   {
+    //process raw container first
+    RegisterRawContainer(enumerator);
     RegisterTRDContainer(enumerator);
     RegisterHRIPContainer(enumerator);
-    RegisterRawContainer(enumerator);
   }
 }
 

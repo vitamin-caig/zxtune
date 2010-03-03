@@ -32,7 +32,7 @@ namespace
 {
   using namespace ZXTune;
 
-  const Char RAW_PLUGIN_ID[] = {'R', 'a', 'w', 0};
+  const Char RAW_PLUGIN_ID[] = {'R', 'A', 'W', 0};
   
   const String TEXT_RAW_VERSION(FromStdString("$Rev$"));
   

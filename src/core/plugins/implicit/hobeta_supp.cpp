@@ -26,7 +26,7 @@ namespace
 {
   using namespace ZXTune;
 
-  const Char HOBETA_PLUGIN_ID[] = {'H', 'o', 'b', 'e', 't', 'a', '\0'};
+  const Char HOBETA_PLUGIN_ID[] = {'H', 'O', 'B', 'E', 'T', 'A', '\0'};
   const String TEXT_HOBETA_VERSION(FromStdString("$Rev$"));
 
 #ifdef USE_PRAGMA_PACK

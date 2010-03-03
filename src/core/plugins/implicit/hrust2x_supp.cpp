@@ -25,7 +25,7 @@ namespace
 {
   using namespace ZXTune;
 
-  const Char HRUST2X_PLUGIN_ID[] = {'H', 'r', 'u', 's', 't', '2', '.', 'x', '\0'};
+  const Char HRUST2X_PLUGIN_ID[] = {'H', 'R', 'U', 'S', 'T', '2', '\0'};
   const String TEXT_HRUST2X_VERSION(FromStdString("$Rev$"));
 
 #ifdef USE_PRAGMA_PACK
