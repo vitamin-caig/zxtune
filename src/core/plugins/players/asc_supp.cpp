@@ -1,0 +1,1242 @@
+/*
+Abstract:
+  ASC modules playback support
+
+Last changed:
+  $Id$
+
+Author:
+  (C) Vitamin/CAIG/2001
+*/
+
+#include "convert_helpers.h"
+#include "tracking.h"
+#include "../detector.h"
+#include "../enumerator.h"
+#include "../utils.h"
+
+#include <byteorder.h>
+#include <error_tools.h>
+#include <logging.h>
+#include <messages_collector.h>
+#include <tools.h>
+#include <core/convert_parameters.h>
+#include <core/core_parameters.h>
+#include <core/error_codes.h>
+#include <core/module_attrs.h>
+#include <core/plugin_attrs.h>
+#include <io/container.h>
+#include <core/devices/aym_parameters_helper.h>
+
+#include <boost/bind.hpp>
+#include <boost/enable_shared_from_this.hpp>
+
+#include <text/core.h>
+#include <text/plugins.h>
+#include <text/warnings.h>
+
+#define FILE_TAG 45B26E38
+
+namespace
+{
+  using namespace ZXTune;
+  using namespace ZXTune::Module;
+
+  //plugin attributes
+  const Char ASC_PLUGIN_ID[] = {'A', 'S', 'C', 0};
+  const String TEXT_ASC_VERSION(FromStdString("$Rev$"));
+
+  const uint_t LIMITER(~uint_t(0));
+
+  //hints
+  const std::size_t MAX_MODULE_SIZE = 16384;
+  const uint_t MAX_SAMPLES_COUNT = 32;
+  const uint_t MAX_SAMPLE_SIZE = 150;
+  const uint_t MAX_ORNAMENTS_COUNT = 32;
+  const uint_t MAX_ORNAMENT_SIZE = 30;
+  const uint_t MAX_PATTERN_SIZE = 64;//???
+  const uint_t MAX_PATTERNS_COUNT = 32;//TODO
+
+  //////////////////////////////////////////////////////////////////////////
+#ifdef USE_PRAGMA_PACK
+#pragma pack(push,1)
+#endif
+  PACK_PRE struct ASCHeader
+  {
+    uint8_t Tempo;
+    uint8_t Loop;
+    uint16_t PatternsOffset;
+    uint16_t SamplesOffset;
+    uint16_t OrnamentsOffset;
+    uint8_t Lenght;
+    uint8_t Positions[1];
+  } PACK_POST;
+
+  const uint8_t ASC_ID_1[] = {'A', 'S', 'M', ' ', 'C', 'O', 'M', 'P', 'I', 'L', 'A', 'T', 'I', 'O', 'N', ' ',
+    'O', 'F', ' '};
+  const uint8_t ASC_ID_2[] = {' ', 'B', 'Y', ' '};
+
+  PACK_PRE struct ASCID
+  {
+    uint8_t Identifier1[19];//'ASM COMPILATION OF '
+    char Title[20];
+    uint8_t Identifier2[4];//' BY '
+    char Author[20];
+
+    bool Check() const
+    {
+      BOOST_STATIC_ASSERT(sizeof(ASC_ID_1) == sizeof(Identifier1));
+      BOOST_STATIC_ASSERT(sizeof(ASC_ID_2) == sizeof(Identifier2));
+      return 0 == std::memcmp(Identifier1, ASC_ID_1, sizeof(Identifier1)) &&
+             0 == std::memcmp(Identifier2, ASC_ID_2, sizeof(Identifier2));
+    }
+  } PACK_POST;
+
+  PACK_PRE struct ASCPattern
+  {
+    boost::array<uint16_t, 3> Offsets;//from start of patterns
+  } PACK_POST;
+
+  PACK_PRE struct ASCOrnaments
+  {
+    boost::array<uint16_t, MAX_ORNAMENTS_COUNT> Offsets;
+  } PACK_POST;
+
+  PACK_PRE struct ASCOrnament
+  {
+    PACK_PRE struct Line
+    {
+      //BEFooooo
+      //OOOOOOOO
+
+      //o - noise offset (signed)
+      //B - loop begin
+      //E - loop end
+      //F - finished
+      //O - note offset (signed)
+      uint8_t LoopAndNoiseOffset;
+      int8_t NoteOffset;
+
+      bool IsLoopBegin() const
+      {
+        return 0 != (LoopAndNoiseOffset & 128);
+      }
+
+      bool IsLoopEnd() const
+      {
+        return 0 != (LoopAndNoiseOffset & 64);
+      }
+
+      bool IsFinished() const
+      {
+        return 0 != (LoopAndNoiseOffset & 32);
+      }
+
+      int_t GetNoiseOffset() const
+      {
+        return static_cast<int8_t>(LoopAndNoiseOffset * 8) / 8;
+      }
+    } PACK_POST;
+    Line Data[1];
+  } PACK_POST;
+
+  PACK_PRE struct ASCSamples
+  {
+    boost::array<uint16_t, MAX_SAMPLES_COUNT> Offsets;
+  } PACK_POST;
+
+  PACK_PRE struct ASCSample
+  {
+    PACK_PRE struct Line
+    {
+      //BEFaaaaa
+      //TTTTTTTT
+      //LLLLnCCt
+      //a - adding
+      //B - loop begin
+      //E - loop end
+      //F - finished
+      //T - tone deviation
+      //L - level
+      //n - noise mask
+      //C - command
+      //t - tone mask
+
+      uint8_t LoopAndAdding;
+      int8_t ToneDeviation;
+      uint8_t LevelAndMasks;
+
+      bool IsLoopBegin() const
+      {
+        return 0 != (LoopAndAdding & 128);
+      }
+
+      bool IsLoopEnd() const
+      {
+        return 0 != (LoopAndAdding & 64);
+      }
+
+      bool IsFinished() const
+      {
+        return 0 != (LoopAndAdding & 32);
+      }
+
+      int_t GetAdding() const
+      {
+        return static_cast<int8_t>(LoopAndAdding * 8) / 8;
+      }
+
+      uint_t GetLevel() const
+      {
+        return LevelAndMasks >> 4;
+      }
+
+      bool GetNoiseMask() const
+      {
+        return 0 != (LevelAndMasks & 8);
+      }
+
+      uint_t GetCommand() const
+      {
+        return (LevelAndMasks & 6) >> 1;
+      }
+
+      bool GetToneMask() const
+      {
+        return 0 != (LevelAndMasks & 1);
+      }
+    } PACK_POST;
+    enum
+    {
+      EMPTY,
+      ENVELOPE,
+      DECVOLADD,
+      INCVOLADD
+    };
+    Line Data[1];
+  } PACK_POST;
+
+#ifdef USE_PRAGMA_PACK
+#pragma pack(pop)
+#endif
+
+  BOOST_STATIC_ASSERT(sizeof(ASCHeader) == 10);
+  BOOST_STATIC_ASSERT(sizeof(ASCPattern) == 6);
+  BOOST_STATIC_ASSERT(sizeof(ASCOrnament) == 2);
+  BOOST_STATIC_ASSERT(sizeof(ASCSample) == 3);
+
+  struct Sample
+  {
+    explicit Sample(const ASCSample& sample)
+      : Loop(), LoopLimit(), Data()
+    {
+      Data.reserve(MAX_SAMPLE_SIZE);
+      for (uint_t sline = 0; sline != MAX_SAMPLE_SIZE; ++sline)
+      {
+        const ASCSample::Line& line(sample.Data[sline]);
+        Data.push_back(Line(line));
+        if (line.IsLoopBegin())
+        {
+          Loop = sline;
+        }
+        if (line.IsLoopEnd())
+        {
+          LoopLimit = sline;
+        }
+        if (line.IsFinished())
+        {
+          break;
+        }
+      }
+    }
+
+    uint_t Loop;
+    uint_t LoopLimit;
+
+    struct Line
+    {
+      explicit Line(const ASCSample::Line& line)
+        : Level(line.GetLevel()), ToneDeviation(line.ToneDeviation)
+        , ToneMask(line.GetToneMask()), NoiseMask(line.GetNoiseMask())
+        , Adding(line.GetAdding()), Command(line.GetCommand())
+      {
+      }
+      uint_t Level;//0-15
+      int_t ToneDeviation;
+      bool ToneMask;
+      bool NoiseMask;
+      int_t Adding;
+      uint_t Command;
+    };
+    std::vector<Line> Data;
+  };
+
+  struct Ornament
+  {
+    explicit Ornament(const ASCOrnament& ornament)
+      : Loop(), LoopLimit(), Data()
+    {
+      Data.reserve(MAX_ORNAMENT_SIZE);
+      for (uint_t sline = 0; sline != MAX_ORNAMENT_SIZE; ++sline)
+      {
+        const ASCOrnament::Line& line(ornament.Data[sline]);
+        Data.push_back(Line(line));
+        if (line.IsLoopBegin())
+        {
+          Loop = sline;
+        }
+        if (line.IsLoopEnd())
+        {
+          LoopLimit = sline;
+        }
+        if (line.IsFinished())
+        {
+          break;
+        }
+      }
+    }
+    uint_t Loop;
+    uint_t LoopLimit;
+    struct Line
+    {
+      explicit Line(const ASCOrnament::Line& line)
+        : NoteAddon(line.NoteOffset)
+        , NoiseAddon(line.GetNoiseOffset())
+      {
+      }
+      int_t NoteAddon;
+      int_t NoiseAddon;
+    };
+    std::vector<Line> Data;
+  };
+
+  enum CmdType
+  {
+    EMPTY,
+    ENVELOPE,        //2p
+    ENVELOPE_ON,     //0p
+    ENVELOPE_OFF,    //0p
+    NOISE,           //1p
+    CONT_SAMPLE,     //0p
+    CONT_ORNAMENT,   //0p
+    GLISS,           //1p
+    SLIDE,           //1p
+    SLIDE_NOTE,      //2p
+    AMPLITUDE_SLIDE, //2p
+    BREAK_SAMPLE     //0p
+  };
+
+  void DescribeASCPlugin(PluginInformation& info)
+  {
+    info.Id = ASC_PLUGIN_ID;
+    info.Description = TEXT_ASC_INFO;
+    info.Version = TEXT_ASC_VERSION;
+    info.Capabilities = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
+  }
+
+  typedef TrackingSupport<AYM::CHANNELS, Sample, Ornament> ASCTrack;
+
+  // perform module 'playback' right after creating (debug purposes)
+  #ifndef NDEBUG
+  #define SELF_TEST
+  #endif
+  
+  Player::Ptr CreateASCPlayer(Holder::ConstPtr mod, const ASCTrack::ModuleData& data, AYM::Chip::Ptr device);
+
+  class ASCHolder : public Holder, public boost::enable_shared_from_this<ASCHolder>
+  {
+    typedef boost::array<PatternCursor, AYM::CHANNELS> PatternCursors;
+
+    void ParsePattern(const IO::FastDump& data
+      , PatternCursors& cursors
+      , ASCTrack::Line& line
+      , Log::MessagesCollector& warner
+      , std::vector<bool>& envelopes
+      )
+    {
+      assert(line.Channels.size() == cursors.size());
+      ASCTrack::Line::ChannelsArray::iterator channel(line.Channels.begin());
+      for (PatternCursors::iterator cur = cursors.begin(); cur != cursors.end(); ++cur, ++channel)
+      {
+        if (cur->Counter--)
+        {
+          continue;//has to skip
+        }
+
+        const uint_t idx(std::distance(line.Channels.begin(), channel));
+        Log::ParamPrefixedCollector channelWarner(warner, TEXT_CHANNEL_WARN_PREFIX, idx);
+        bool continueSample(false);
+        for (;;)
+        {
+          const uint_t cmd(data[cur->Offset++]);
+          const std::size_t restbytes = data.Size() - cur->Offset;
+          if (cmd <= 0x55)//note
+          {
+            if (!continueSample)
+            {
+              Log::Assert(channelWarner, !channel->Enabled, TEXT_WARNING_DUPLICATE_STATE);
+              channel->Enabled = true;
+            }
+            if (!channel->Commands.empty() && SLIDE == channel->Commands.back().Type)
+            {
+              //set slide to note
+              ASCTrack::Command& command(channel->Commands.back());
+              command.Type = SLIDE_NOTE;
+              command.Param2 = cmd;
+            }
+            else
+            {
+              Log::Assert(channelWarner, !channel->Note, TEXT_WARNING_DUPLICATE_NOTE);
+              channel->Note = cmd;
+            }
+            if (envelopes[idx])
+            {
+              //modify existing
+              ASCTrack::CommandsArray::iterator cmdIt(std::find(channel->Commands.begin(),
+                channel->Commands.end(), ENVELOPE));
+              //TODO: check
+              if (channel->Commands.end() == cmdIt)
+              {
+                channel->Commands.push_back(ASCTrack::Command(ENVELOPE, -1, data[cur->Offset++]));
+              }
+              else
+              {
+                cmdIt->Param2 = data[cur->Offset++];
+              }
+            }
+            break;
+          }
+          else if (cmd >= 0x56 && cmd <= 0x5d) //stop
+          {
+            break;
+          }
+          else if (cmd == 0x5e) //break sample loop
+          {
+            channel->Commands.push_back(ASCTrack::Command(BREAK_SAMPLE));
+            break;
+          }
+          else if (cmd == 0x5f) //shut
+          {
+            Log::Assert(channelWarner, !channel->Enabled, TEXT_WARNING_DUPLICATE_STATE);
+            channel->Enabled = false;
+            break;
+          }
+          else if (cmd >= 0x60 && cmd <= 0x9f) //skip
+          {
+            //TODO: check
+            cur->Period = cmd - 0x60;
+          }
+          else if (cmd >= 0xa0 && cmd <= 0xbf) //sample
+          {
+            Log::Assert(channelWarner, !channel->SampleNum, TEXT_WARNING_DUPLICATE_SAMPLE);
+            channel->SampleNum = cmd - 0xa0;
+          }
+          else if (cmd >= 0xc0 && cmd <= 0xdf) //ornament
+          {
+            Log::Assert(channelWarner, !channel->OrnamentNum, TEXT_WARNING_DUPLICATE_ORNAMENT);
+            channel->OrnamentNum = cmd - 0xc0;
+          }
+          else if (cmd == 0xe0) // envelope full vol
+          {
+            Log::Assert(channelWarner, !channel->Volume, TEXT_WARNING_DUPLICATE_VOLUME);
+            channel->Volume = 15;
+            channel->Commands.push_back(ASCTrack::Command(ENVELOPE_ON));
+            envelopes[idx] = true;
+          }
+          else if (cmd >= 0xe1 && cmd <= 0xef) // noenvelope vol
+          {
+            Log::Assert(channelWarner, !channel->Volume, TEXT_WARNING_DUPLICATE_VOLUME);
+            channel->Volume = cmd - 0xe0;
+            channel->Commands.push_back(ASCTrack::Command(ENVELOPE_OFF));
+            envelopes[idx] = false;
+          }
+          else if (cmd == 0xf0) //initial noise
+          {
+            //TODO: check
+            channel->Commands.push_back(ASCTrack::Command(NOISE, data[cur->Offset++]));
+          }
+          else if (cmd == 0xf1 || cmd == 0xf2 || cmd == 0xf3)
+          {
+            if (cmd & 1)
+            {
+              continueSample = true;
+              channel->Commands.push_back(ASCTrack::Command(CONT_SAMPLE));
+            }
+            if (cmd & 2)
+            {
+              channel->Commands.push_back(ASCTrack::Command(CONT_ORNAMENT));
+            }
+          }
+          else if (cmd == 0xf4) //tempo
+          {
+            //TODO: check
+            Log::Assert(channelWarner, !line.Tempo, TEXT_WARNING_DUPLICATE_TEMPO);
+            line.Tempo = data[cur->Offset++];
+          }
+          else if (cmd == 0xf5 || cmd == 0xf6) //slide
+          {
+            //TODO: check
+            channel->Commands.push_back(ASCTrack::Command(GLISS, 
+              ((cmd == 0xf5) ? -16 : 16) * static_cast<int8_t>(data[cur->Offset++])));
+          }
+          else if (cmd == 0xf7 || cmd == 0xf9) //stepped slide
+          {
+            if (cmd == 0xf7)
+            {
+              channel->Commands.push_back(ASCTrack::Command(CONT_SAMPLE));
+            }
+            //TODO: check
+            channel->Commands.push_back(ASCTrack::Command(SLIDE, static_cast<int8_t>(data[cur->Offset++])));
+          }
+          else if (cmd == 0xf8 || cmd == 0xfa || cmd == 0xfc || cmd == 0xfe) //envelope
+          {
+            ASCTrack::CommandsArray::iterator cmdIt(std::find(channel->Commands.begin(), channel->Commands.end(),
+              ENVELOPE));
+            if (channel->Commands.end() == cmdIt)
+            {
+              channel->Commands.push_back(ASCTrack::Command(ENVELOPE, cmd & 0xf, -1));
+            }
+            else
+            {
+              //strange situation...
+              channelWarner.AddMessage(TEXT_WARNING_DUPLICATE_ENVELOPE);
+              cmdIt->Param1 = cmd & 0xf;
+            }
+          }
+          else if (cmd == 0xfb) //amplitude delay
+          {
+            //TODO: check
+            const uint_t step(data[cur->Offset++]);
+            channel->Commands.push_back(ASCTrack::Command(AMPLITUDE_SLIDE, step & 31, step & 32 ? -1 : 1));
+          }
+        }
+        cur->Counter = cur->Period;
+      }
+    }
+  public:
+    ASCHolder(const MetaContainer& container, ModuleRegion& region)
+    {
+      //assume all data is correct
+      const IO::FastDump& data = IO::FastDump(*container.Data, region.Offset);
+
+      const ASCHeader* const header(safe_ptr_cast<const ASCHeader*>(&data[0]));
+
+      Log::MessagesCollector::Ptr warner(Log::MessagesCollector::Create());
+
+      std::size_t rawSize(0);
+      //parse samples
+      {
+        const std::size_t samplesOff(fromLE(header->SamplesOffset));
+        const ASCSamples* const samples(safe_ptr_cast<const ASCSamples*>(&data[samplesOff]));
+        Data.Samples.reserve(samples->Offsets.size());
+        uint_t index = 0;
+        for (const uint16_t* pSample = samples->Offsets.begin(); pSample != samples->Offsets.end();
+          ++pSample, ++index)
+        {
+          assert(*pSample && fromLE(*pSample) < data.Size());
+          const std::size_t sampleOffset(fromLE(*pSample));
+          const ASCSample* const sample(safe_ptr_cast<const ASCSample*>(&data[samplesOff + sampleOffset]));
+          Data.Samples.push_back(Sample(*sample));
+          const Sample& smp(Data.Samples.back());
+          if (smp.Loop > smp.LoopLimit || smp.LoopLimit >= smp.Data.size())
+          {
+            Log::ParamPrefixedCollector lineWarner(*warner, TEXT_SAMPLE_WARN_PREFIX, index);
+            Log::Assert(lineWarner, smp.Loop <= smp.LoopLimit, TEXT_WARNING_LOOP_OUT_LIMIT);
+            Log::Assert(lineWarner, smp.LoopLimit < smp.Data.size(), TEXT_WARNING_LOOP_OUT_BOUND);
+          }
+          rawSize = std::max(rawSize, samplesOff + sampleOffset + smp.Data.size() * sizeof(ASCSample::Line));
+        }
+      }
+
+      //parse ornaments
+      {
+        const std::size_t ornamentsOff(fromLE(header->OrnamentsOffset));
+        const ASCOrnaments* const ornaments(safe_ptr_cast<const ASCOrnaments*>(&data[ornamentsOff]));
+        Data.Ornaments.reserve(ornaments->Offsets.size());
+        uint_t index = 0;
+        for (const uint16_t* pOrnament = ornaments->Offsets.begin(); pOrnament != ornaments->Offsets.end();
+          ++pOrnament, ++index)
+        {
+          assert(*pOrnament && fromLE(*pOrnament) < data.Size());
+          const std::size_t ornamentOffset(fromLE(*pOrnament));
+          const ASCOrnament* const ornament(safe_ptr_cast<const ASCOrnament*>(&data[ornamentsOff + ornamentOffset]));
+          Data.Ornaments.push_back(ASCTrack::Ornament(*ornament));
+          const Ornament& orn(Data.Ornaments.back());
+          if (orn.Loop > orn.LoopLimit || orn.LoopLimit >= orn.Data.size())
+          {
+            Log::ParamPrefixedCollector lineWarner(*warner, TEXT_ORNAMENT_WARN_PREFIX, index);
+            Log::Assert(lineWarner, orn.Loop <= orn.LoopLimit, TEXT_WARNING_LOOP_OUT_LIMIT);
+            Log::Assert(lineWarner, orn.LoopLimit < orn.Data.size(), TEXT_WARNING_LOOP_OUT_BOUND);
+          }
+          rawSize = std::max(rawSize, ornamentsOff + ornamentOffset + orn.Data.size() * sizeof(ASCOrnament::Line));
+        }
+      }
+
+      //fill order
+      Data.Positions.assign(header->Positions, header->Positions + header->Lenght);
+      //parse patterns
+      const std::size_t patternsCount(1 + *std::max_element(Data.Positions.begin(), Data.Positions.end()));
+      const uint16_t patternsOff(fromLE(header->PatternsOffset));
+      const ASCPattern* pattern(safe_ptr_cast<const ASCPattern*>(&data[patternsOff]));
+      assert(patternsCount <= MAX_PATTERNS_COUNT);
+      Data.Patterns.resize(patternsCount);
+      for (uint_t patNum = 0; patNum < patternsCount; ++patNum, ++pattern)
+      {
+        Log::ParamPrefixedCollector patWarner(*warner, TEXT_PATTERN_WARN_PREFIX, patNum);
+        ASCTrack::Pattern& pat(Data.Patterns[patNum]);
+
+        PatternCursors cursors;
+        std::transform(pattern->Offsets.begin(), pattern->Offsets.end(), cursors.begin(),
+          boost::bind(std::plus<uint_t>(), patternsOff, boost::bind(&fromLE<uint16_t>, _1)));
+        std::vector<bool> envelopes(cursors.size());
+        pat.reserve(MAX_PATTERN_SIZE);
+        do
+        {
+          Log::ParamPrefixedCollector patLineWarner(patWarner, TEXT_LINE_WARN_PREFIX, pat.size());
+          pat.push_back(ASCTrack::Line());
+          ASCTrack::Line& line(pat.back());
+          ParsePattern(data, cursors, line, patLineWarner, envelopes);
+          //skip lines
+          if (const uint_t linesToSkip = std::min_element(cursors.begin(), cursors.end(), PatternCursor::CompareByCounter)->Counter)
+          {
+            std::for_each(cursors.begin(), cursors.end(), std::bind2nd(std::mem_fun_ref(&PatternCursor::SkipLines), linesToSkip));
+            pat.resize(pat.size() + linesToSkip);//add dummies
+          }
+        }
+        while (0xff != data[cursors.front().Offset] || cursors.front().Counter);
+        //as warnings
+        Log::Assert(patWarner, 0 == std::max_element(cursors.begin(), cursors.end(), PatternCursor::CompareByCounter)->Counter,
+          TEXT_WARNING_PERIODS);
+        Log::Assert(patWarner, pat.size() <= MAX_PATTERN_SIZE, TEXT_WARNING_INVALID_PATTERN_SIZE);
+        rawSize = std::max(rawSize, std::max_element(cursors.begin(), cursors.end(), PatternCursor::CompareByOffset)->Offset + 1);
+      }
+
+      //fill region
+      region.Size = rawSize;
+
+      //meta properties
+      {
+        const ASCID* const id(safe_ptr_cast<const ASCID*>(header->Positions + header->Lenght));
+        const bool validId(id->Check());
+        const std::size_t fixedOffset(sizeof(ASCHeader) + validId ? sizeof(*id) : 0);
+        ExtractMetaProperties(ASC_PLUGIN_ID, container, region, ModuleRegion(fixedOffset, rawSize - fixedOffset),
+          Data.Info.Properties, RawData);
+        if (validId)
+        {
+          const String& title(OptimizeString(FromStdString(id->Title)));
+          if (!title.empty())
+          {
+            Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_TITLE, title));
+          }
+          const String& author(OptimizeString(FromStdString(id->Author)));
+          if (!author.empty())
+          {
+            Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_AUTHOR, author));
+          }
+        }
+      }
+
+      //tracking properties
+      Data.Info.LoopPosition = header->Loop;
+      Data.Info.PhysicalChannels = AYM::CHANNELS;
+      Data.Info.Statistic.Tempo = header->Tempo;
+      Data.Info.Statistic.Position = Data.Positions.size();
+      Data.Info.Statistic.Pattern = std::count_if(Data.Patterns.begin(), Data.Patterns.end(),
+        !boost::bind(&ASCTrack::Pattern::empty, _1));
+      Data.Info.Statistic.Channels = AYM::CHANNELS;
+      ASCTrack::CalculateTimings(Data, Data.Info.Statistic.Frame, Data.Info.LoopFrame);
+      if (const uint_t msgs = warner->CountMessages())
+      {
+        Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS_COUNT, msgs));
+        Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS, warner->GetMessages('\n')));
+      }
+    }
+    virtual void GetPluginInformation(PluginInformation& info) const
+    {
+      DescribeASCPlugin(info);
+    }
+
+    virtual void GetModuleInformation(Information& info) const
+    {
+      info = Data.Info;
+    }
+    
+    virtual void ModifyCustomAttributes(const Parameters::Map& attrs, bool replaceExisting)
+    {
+      return Parameters::MergeMaps(Data.Info.Properties, attrs, Data.Info.Properties, replaceExisting);
+    }
+
+    virtual Player::Ptr CreatePlayer() const
+    {
+      return CreateASCPlayer(shared_from_this(), Data, AYM::CreateChip());
+    }
+    
+    virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
+    {
+      using namespace Conversion;
+      Error result;
+      if (parameter_cast<RawConvertParam>(&param))
+      {
+        dst = RawData;
+      }
+      else if (!ConvertAYMFormat(boost::bind(&CreateASCPlayer, shared_from_this(), boost::cref(Data), _1),
+        param, dst, result))
+      {
+        return Error(THIS_LINE, ERROR_MODULE_CONVERT, TEXT_MODULE_ERROR_CONVERSION_UNSUPPORTED);
+      }
+      return result;
+    }
+  private:
+    Dump RawData;
+    ASCTrack::ModuleData Data;
+  };
+
+  class ASCPlayer : public Player
+  {
+    struct ChannelState
+    {
+      ChannelState()
+        : Enabled(false), Envelope(false), EnvelopeTone(0)
+        , Volume(15), VolumeAddon(0), VolSlideDelay(0), VolSlideAddon(), VolSlideCounter(0)
+        , BaseNoise(0), CurrentNoise(0)
+        , Note(0), NoteAddon(0)
+        , SampleNum(0), CurrentSampleNum(0), PosInSample(0)
+        , OrnamentNum(0), CurrentOrnamentNum(0), PosInOrnament(0)
+        , ToneDeviation(0)
+        , SlidingSteps(0), Sliding(0), SlidingTargetNote(LIMITER), Glissade(0)
+      {
+      }
+      bool Enabled;
+      bool Envelope;
+      uint_t EnvelopeTone;
+      uint_t Volume;
+      int_t VolumeAddon;
+      uint_t VolSlideDelay;
+      int_t VolSlideAddon;
+      uint_t VolSlideCounter;
+      int_t BaseNoise;
+      int_t CurrentNoise;
+      uint_t Note;
+      int_t NoteAddon;
+      uint_t SampleNum;
+      uint_t CurrentSampleNum;
+      uint_t PosInSample;
+      uint_t OrnamentNum;
+      uint_t CurrentOrnamentNum;
+      uint_t PosInOrnament;
+      int_t ToneDeviation;
+      int_t SlidingSteps;//may be infinite (negative)
+      int_t Sliding;
+      uint_t SlidingTargetNote;
+      int_t Glissade;
+    };
+  public:
+    ASCPlayer(Holder::ConstPtr holder, const ASCTrack::ModuleData& data, AYM::Chip::Ptr device)
+      : Module(holder)
+      , Data(data)
+      , AYMHelper(AYM::ParametersHelper::Create(TABLE_ASM))
+      , Device(device)
+      , CurrentState(MODULE_STOPPED)
+    {
+      Reset();
+#ifdef SELF_TEST
+//perform self-test
+      AYM::DataChunk chunk;
+      do
+      {
+        assert(Data.Positions.size() > ModState.Track.Position);
+        RenderData(chunk);
+      }
+      while (ASCTrack::UpdateState(Data, ModState, Sound::LOOP_NONE));
+      Reset();
+#endif
+    }
+
+    virtual const Holder& GetModule() const
+    {
+      return *Module;
+    }
+
+    virtual Error GetPlaybackState(uint_t& timeState,
+                                   Tracking& trackState,
+                                   Analyze::ChannelsState& analyzeState) const
+    {
+      timeState = ModState.Frame;
+      trackState = ModState.Track;
+      Device->GetState(analyzeState);
+      return Error();
+    }
+
+    virtual Error RenderFrame(const Sound::RenderParameters& params,
+                              PlaybackState& state,
+                              Sound::MultichannelReceiver& receiver)
+    {
+      if (ModState.Frame >= Data.Info.Statistic.Frame)
+      {
+        if (MODULE_STOPPED == CurrentState)
+        {
+          return Error(THIS_LINE, ERROR_MODULE_END, TEXT_MODULE_ERROR_MODULE_END);
+        }
+        receiver.Flush();
+        state = CurrentState = MODULE_STOPPED;
+        return Error();
+      }
+
+      AYM::DataChunk chunk;
+      AYMHelper->GetDataChunk(chunk);
+      ModState.Tick += params.ClocksPerFrame();
+      chunk.Tick = ModState.Tick;
+      RenderData(chunk);
+
+      Device->RenderData(params, chunk, receiver);
+      if (ASCTrack::UpdateState(Data, ModState, params.Looping))
+      {
+        CurrentState = MODULE_PLAYING;
+      }
+      else
+      {
+        receiver.Flush();
+        CurrentState = MODULE_STOPPED;
+      }
+      state = CurrentState;
+      return Error();
+    }
+
+    virtual Error Reset()
+    {
+      Device->Reset();
+      ASCTrack::InitState(Data, ModState);
+      std::fill(ChanState.begin(), ChanState.end(), ChannelState());
+      CurrentState = MODULE_STOPPED;
+      return Error();
+    }
+
+    virtual Error SetPosition(uint_t frame)
+    {
+      if (frame < ModState.Frame)
+      {
+        //reset to beginning in case of moving back
+        const uint64_t keepTicks = ModState.Tick;
+        ASCTrack::InitState(Data, ModState);
+        std::fill(ChanState.begin(), ChanState.end(), ChannelState());
+        ModState.Tick = keepTicks;
+      }
+      //fast forward
+      AYM::DataChunk chunk;
+      while (ModState.Frame < frame)
+      {
+        //do not update tick for proper rendering
+        assert(Data.Positions.size() > ModState.Track.Position);
+        RenderData(chunk);
+        if (!ASCTrack::UpdateState(Data, ModState, Sound::LOOP_NONE))
+        {
+          break;
+        }
+      }
+      return Error();
+    }
+
+    virtual Error SetParameters(const Parameters::Map& params)
+    {
+      try
+      {
+        AYMHelper->SetParameters(params);
+        return Error();
+      }
+      catch (const Error& e)
+      {
+        return Error(THIS_LINE, ERROR_INVALID_PARAMETERS, TEXT_MODULE_ERROR_SET_PLAYER_PARAMETERS).AddSuberror(e);
+      }
+    }
+  private:
+    void RenderData(AYM::DataChunk& chunk)
+    {
+      const ASCTrack::Line& line(Data.Patterns[ModState.Track.Pattern][ModState.Track.Line]);
+      bool breakSample[AYM::CHANNELS] = {false};
+      if (0 == ModState.Track.Frame)//begin note
+      {
+        for (uint_t chan = 0; chan != line.Channels.size(); ++chan)
+        {
+          const ASCTrack::Line::Chan& src(line.Channels[chan]);
+          ChannelState& dst(ChanState[chan]);
+          if (0 == ModState.Track.Line)
+          {
+            dst.BaseNoise = 0;
+          }
+          if (src.Empty())
+          {
+            continue;
+          }
+          if (src.Enabled)
+          {
+            dst.Enabled = *src.Enabled;
+          }
+          dst.VolSlideCounter = 0;
+          dst.SlidingSteps = 0;
+          bool contSample(false), contOrnament(false);
+          for (ASCTrack::CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); 
+            it != lim; ++it)
+          {
+            switch (it->Type)
+            {
+            case ENVELOPE:
+              if (-1 != it->Param1)
+              {
+                chunk.Data[AYM::DataChunk::REG_ENV] = static_cast<uint8_t>(it->Param1);
+                chunk.Mask |= 1 << AYM::DataChunk::REG_ENV;
+              }
+              if (-1 != it->Param2)
+              {
+                chunk.Data[AYM::DataChunk::REG_TONEE_L] = static_cast<uint8_t>(dst.EnvelopeTone = it->Param2);
+                chunk.Mask |= 1 << AYM::DataChunk::REG_TONEE_L;
+              }
+              break;
+            case ENVELOPE_ON:
+              dst.Envelope = true;
+              break;
+            case ENVELOPE_OFF:
+              dst.Envelope = false;
+              break;
+            case NOISE:
+              dst.BaseNoise = it->Param1;
+              break;
+            case CONT_SAMPLE:
+              contSample = true;
+              break;
+            case CONT_ORNAMENT:
+              contOrnament = true;
+              break;
+            case GLISS:
+              dst.Glissade = it->Param1;
+              dst.SlidingSteps = -1;//infinite sliding
+              break;
+            case SLIDE:
+            {
+              dst.SlidingSteps = it->Param1;
+              const int_t newSliding((dst.Sliding | 0xf) ^ 0xf);
+              dst.Glissade = -newSliding / dst.SlidingSteps;
+              dst.Sliding = dst.Glissade * dst.SlidingSteps;
+              break;
+            }
+            case SLIDE_NOTE:
+            {
+              dst.SlidingSteps = it->Param1;
+              dst.SlidingTargetNote = it->Param2;
+              const FrequencyTable& freqTable(AYMHelper->GetFreqTable());
+              const int_t newSliding((contSample ? dst.Sliding / 16 : 0) + freqTable[dst.Note]
+                - freqTable[dst.SlidingTargetNote]);
+              dst.Glissade = -16 * newSliding / dst.SlidingSteps;
+              break;
+            }
+            case AMPLITUDE_SLIDE:
+              dst.VolSlideCounter = dst.VolSlideDelay = it->Param1;
+              dst.VolSlideAddon = it->Param2;
+              break;
+            case BREAK_SAMPLE:
+              breakSample[chan] = true;
+              break;
+            default:
+              assert(!"Invalid cmd");
+              break;
+            }
+          }
+          if (src.OrnamentNum)
+          {
+            dst.OrnamentNum = *src.OrnamentNum;
+          }
+          if (src.SampleNum)
+          {
+            dst.SampleNum = *src.SampleNum;
+          }
+          if (src.Note)
+          {
+            dst.Note = *src.Note;
+            dst.CurrentNoise = dst.BaseNoise;
+            if (dst.SlidingSteps <= 0)
+            {
+              dst.Sliding = 0;
+            }
+            if (!contSample)
+            {
+              dst.CurrentSampleNum = dst.SampleNum;
+              dst.PosInSample = 0;
+              dst.VolumeAddon = 0;
+              dst.ToneDeviation = 0;
+            }
+            if (!contOrnament)
+            {
+              dst.CurrentOrnamentNum = dst.OrnamentNum;
+              dst.PosInOrnament = 0;
+              dst.NoteAddon = 0;
+            }
+          }
+          if (src.Volume)
+          {
+            dst.Volume = *src.Volume;
+          }
+        }
+      }
+      //permanent registers
+      chunk.Data[AYM::DataChunk::REG_MIXER] = 0;
+      chunk.Mask |= (1 << AYM::DataChunk::REG_MIXER) |
+        (1 << AYM::DataChunk::REG_VOLA) | (1 << AYM::DataChunk::REG_VOLB) | (1 << AYM::DataChunk::REG_VOLC);
+      for (uint_t chan = 0; chan < AYM::CHANNELS; ++chan)
+      {
+        ApplyData(chan, breakSample[chan], chunk);
+      }
+      //count actually enabled channels
+      ModState.Track.Channels = static_cast<uint_t>(std::count_if(ChanState.begin(), ChanState.end(),
+        boost::mem_fn(&ChannelState::Enabled)));
+    }
+    
+    void ApplyData(uint_t chan, bool breakSample, AYM::DataChunk& chunk)
+    {
+      ChannelState& dst(ChanState[chan]);
+      const uint_t toneReg = AYM::DataChunk::REG_TONEA_L + 2 * chan;
+      const uint_t volReg = AYM::DataChunk::REG_VOLA + chan;
+      const uint_t toneMsk = AYM::DataChunk::REG_MASK_TONEA << chan;
+      const uint_t noiseMsk = AYM::DataChunk::REG_MASK_NOISEA << chan;
+
+      const FrequencyTable& freqTable(AYMHelper->GetFreqTable());
+      if (dst.Enabled)
+      {
+        const Sample& curSample(Data.Samples[dst.CurrentSampleNum]);
+        const Sample::Line& curSampleLine(curSample.Data[dst.PosInSample]);
+        const Ornament& curOrnament(Data.Ornaments[dst.CurrentOrnamentNum]);
+        const Ornament::Line& curOrnamentLine(curOrnament.Data[dst.PosInOrnament]);
+
+        //calculate volume addon
+        if (dst.VolSlideCounter >= 2)
+        {
+          dst.VolSlideCounter--;
+        }
+        else if (dst.VolSlideCounter)
+        {
+          dst.VolumeAddon += dst.VolSlideAddon;
+          dst.VolSlideCounter = dst.VolSlideDelay;
+        }
+        if (ASCSample::INCVOLADD == curSampleLine.Command)
+        {
+          dst.VolumeAddon++;
+        }
+        else if (ASCSample::DECVOLADD == curSampleLine.Command)
+        {
+          dst.VolumeAddon--;
+        }
+        dst.VolumeAddon = clamp(dst.VolumeAddon, -15, 15);
+        //calculate tone
+        dst.ToneDeviation += curSampleLine.ToneDeviation;
+        dst.NoteAddon += curOrnamentLine.NoteAddon;
+        const uint_t halfTone = static_cast<uint_t>(clamp<int_t>(int_t(dst.Note) + dst.NoteAddon, 0, 85));
+        const uint_t baseFreq(freqTable[halfTone]);
+        const uint_t tone((baseFreq + dst.ToneDeviation + dst.Sliding / 16) & 0xfff);
+        if (dst.SlidingSteps)
+        {
+          if (dst.SlidingSteps > 0)
+          {
+            if (!--dst.SlidingSteps &&
+                LIMITER != dst.SlidingTargetNote) //finish slide to note
+            {
+              dst.Note = dst.SlidingTargetNote;
+              dst.SlidingTargetNote = LIMITER;
+              dst.Sliding = dst.Glissade = 0;
+            }
+          }
+          dst.Sliding += dst.Glissade;
+        }
+        chunk.Data[toneReg] = static_cast<uint8_t>(tone & 0xff);
+        chunk.Data[toneReg + 1] = static_cast<uint8_t>(tone >> 8);
+        chunk.Mask |= 3 << toneReg;
+
+        const bool sampleEnvelope(ASCSample::ENVELOPE == curSampleLine.Command);
+        //calculate level
+        const uint_t level = static_cast<uint_t>((dst.Volume + 1) * clamp<int_t>(dst.VolumeAddon + curSampleLine.Level, 0, 15) / 16);
+        chunk.Data[volReg] = static_cast<uint8_t>(level | (dst.Envelope && sampleEnvelope ? 
+          AYM::DataChunk::REG_MASK_ENV : 0));
+
+        //calculate noise
+        dst.CurrentNoise += curOrnamentLine.NoiseAddon;
+
+        //mixer
+        if (curSampleLine.ToneMask)
+        {
+          chunk.Data[AYM::DataChunk::REG_MIXER] |= toneMsk;
+        }
+        if (curSampleLine.NoiseMask && sampleEnvelope)
+        {
+          dst.EnvelopeTone += curSampleLine.Adding;
+          chunk.Data[AYM::DataChunk::REG_TONEE_L] = static_cast<uint8_t>(dst.EnvelopeTone & 0xff);
+          chunk.Mask |= 1 << AYM::DataChunk::REG_TONEE_L;
+        }
+        else
+        {
+          dst.CurrentNoise += curSampleLine.Adding;
+        }
+
+        if (curSampleLine.NoiseMask)
+        {
+          chunk.Data[AYM::DataChunk::REG_MIXER] |= noiseMsk;
+        }
+        else
+        {
+          chunk.Data[AYM::DataChunk::REG_TONEN] = static_cast<uint8_t>((dst.CurrentNoise + dst.Sliding / 256) & 0x1f);
+          chunk.Mask |= 1 << AYM::DataChunk::REG_TONEN;
+        }
+
+        //recalc positions
+        if (dst.PosInSample++ >= curSample.LoopLimit)
+        {
+          if (!breakSample)
+          {
+            dst.PosInSample = curSample.Loop;
+          }
+          else if (dst.PosInSample >= curSample.Data.size())
+          {
+            dst.Enabled = false;
+          }
+        }
+        if (dst.PosInOrnament++ >= curOrnament.LoopLimit)
+        {
+          dst.PosInOrnament = curOrnament.Loop;
+        }
+      }
+      else
+      {
+        chunk.Data[volReg] = 0;
+        //????
+        chunk.Data[AYM::DataChunk::REG_MIXER] |= toneMsk | noiseMsk;
+      }
+    }
+  private:
+    const Holder::ConstPtr Module;
+    const ASCTrack::ModuleData& Data;
+
+    AYM::ParametersHelper::Ptr AYMHelper;
+    AYM::Chip::Ptr Device;
+
+    PlaybackState CurrentState;
+    ASCTrack::ModuleState ModState;
+    boost::array<ChannelState, AYM::CHANNELS> ChanState;
+  };
+
+  Player::Ptr CreateASCPlayer(Holder::ConstPtr holder, const ASCTrack::ModuleData& data, AYM::Chip::Ptr device)
+  {
+    return Player::Ptr(new ASCPlayer(holder, data, device));
+  }
+
+  //////////////////////////////////////////////////////////////////////////
+  bool CheckASCModule(const uint8_t* data, std::size_t limit, const MetaContainer& container,
+    Holder::Ptr& holder, ModuleRegion& region)
+  {
+    if (limit < sizeof(ASCHeader))
+    {
+      return false;
+    }
+
+    const ASCHeader* const header(safe_ptr_cast<const ASCHeader*>(data));
+    const std::size_t samplesOffset(fromLE(header->SamplesOffset));
+    const std::size_t ornamentsOffset(fromLE(header->OrnamentsOffset));
+    const std::size_t patternsOffset(fromLE(header->PatternsOffset));
+
+    const std::size_t headerBusy(sizeof(*header) + header->Lenght);
+    boost::function<bool(std::size_t)> checker = !boost::bind(&in_range<std::size_t>, _1, headerBusy, limit - 1);
+    boost::function<bool(uint16_t)> leChecker = boost::bind(checker, boost::bind(&fromLE<uint16_t>, _1));
+    if (!header->Lenght ||
+        limit < headerBusy ||
+        checker(ornamentsOffset) ||
+        checker(patternsOffset) ||
+        checker(samplesOffset)
+        )
+    {
+      return false;
+    }
+    const ASCSamples* const samples(safe_ptr_cast<const ASCSamples*>(data + samplesOffset));
+    if (samples->Offsets.end() !=
+      std::find_if(samples->Offsets.begin(), samples->Offsets.end(), leChecker))
+    {
+      return false;
+    }
+    const ASCOrnaments* const ornaments(safe_ptr_cast<const ASCOrnaments*>(data + ornamentsOffset));
+    if (ornaments->Offsets.end() !=
+      std::find_if(ornaments->Offsets.begin(), ornaments->Offsets.end(), leChecker))
+    {
+      return false;
+    }
+    const uint_t patternsCount(1 + *std::max_element(header->Positions,
+      header->Positions + header->Lenght));
+    if (patternsCount >= MAX_PATTERNS_COUNT ||
+        checker(patternsOffset + patternsCount * sizeof(ASCPattern)))
+    {
+      return false;
+    }
+    const ASCPattern* pattern(safe_ptr_cast<const ASCPattern*>(data + patternsOffset));
+    for (uint_t patternNum = 0 ; patternNum < patternsCount; ++patternNum, ++pattern)
+    {
+      if (pattern->Offsets.end() !=
+        std::find_if(pattern->Offsets.begin(), pattern->Offsets.end(), leChecker))
+      {
+        return false;
+      }
+    }
+    if (header->Positions + header->Lenght != 
+      std::find_if(header->Positions, header->Positions + header->Lenght, std::bind2nd(std::greater_equal<uint8_t>(),
+        patternsCount)))
+    {
+      return false;
+    }
+
+    //try to create holder
+    try
+    {
+      holder.reset(new ASCHolder(container, region));
+#ifdef SELF_TEST
+      holder->CreatePlayer();
+#endif
+      return true;
+    }
+    catch (const Error&/*e*/)
+    {
+      Log::Debug("ASCSupp", "Failed to create holder");
+    }
+    return false;
+  }
+
+  //////////////////////////////////////////////////////////////////////////
+  bool CreateASCModule(const Parameters::Map& /*commonParams*/, const MetaContainer& container,
+    Holder::Ptr& holder, ModuleRegion& region)
+  {
+    const std::size_t limit(std::min(container.Data->Size(), MAX_MODULE_SIZE));
+    const uint8_t* const data(static_cast<const uint8_t*>(container.Data->Data()));
+
+    ModuleRegion tmpRegion;
+    //try to detect without player
+    if (CheckASCModule(data, limit, container, holder, tmpRegion))
+    {
+      region = tmpRegion;
+      return true;
+    }
+    /*
+    for (const DetectFormatChain* chain = DETECTORS; chain != ArrayEnd(DETECTORS); ++chain)
+    {
+      tmpRegion.Offset = chain->PlayerSize;
+      if (DetectFormat(data, limit, chain->PlayerFP) &&
+          CheckASCModule(data + chain->PlayerSize, limit - region.Offset, container, holder, tmpRegion))
+      {
+        region = tmpRegion;
+        return true;
+      }
+    }
+    */
+    return false;
+  }
+}
+
+namespace ZXTune
+{
+  void RegisterASCSupport(PluginsEnumerator& enumerator)
+  {
+    PluginInformation info;
+    DescribeASCPlugin(info);
+    enumerator.RegisterPlayerPlugin(info, CreateASCModule);
+  }
+}
