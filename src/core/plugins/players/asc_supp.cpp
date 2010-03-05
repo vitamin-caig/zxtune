@@ -11,7 +11,7 @@ Author:
 
 #include "convert_helpers.h"
 #include "tracking.h"
-#include "../detector.h"
+#include "../detect_helper.h"
 #include "../enumerator.h"
 #include "../utils.h"
 
@@ -19,6 +19,7 @@ Author:
 #include <error_tools.h>
 #include <logging.h>
 #include <messages_collector.h>
+#include <range_checker.h>
 #include <tools.h>
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
@@ -1023,7 +1024,7 @@ namespace
         {
           dst.VolumeAddon--;
         }
-        dst.VolumeAddon = clamp(dst.VolumeAddon, -15, 15);
+        dst.VolumeAddon = clamp<int_t>(dst.VolumeAddon, -15, 15);
         //calculate tone
         dst.ToneDeviation += curSampleLine.ToneDeviation;
         dst.NoteAddon += curOrnamentLine.NoteAddon;
@@ -1133,54 +1134,70 @@ namespace
       return false;
     }
 
+    limit = std::min(limit, MAX_MODULE_SIZE);
     const ASCHeader* const header(safe_ptr_cast<const ASCHeader*>(data));
+    const std::size_t headerBusy(sizeof(*header) + header->Lenght - 1);
+
+    if (!header->Lenght || limit < headerBusy)
+    {
+      return false;
+    }
+
     const std::size_t samplesOffset(fromLE(header->SamplesOffset));
     const std::size_t ornamentsOffset(fromLE(header->OrnamentsOffset));
     const std::size_t patternsOffset(fromLE(header->PatternsOffset));
 
-    const std::size_t headerBusy(sizeof(*header) + header->Lenght);
-    boost::function<bool(std::size_t)> checker = !boost::bind(&in_range<std::size_t>, _1, headerBusy, limit - 1);
-    boost::function<bool(uint16_t)> leChecker = boost::bind(checker, boost::bind(&fromLE<uint16_t>, _1));
-    if (!header->Lenght ||
-        limit < headerBusy ||
-        checker(ornamentsOffset) ||
-        checker(patternsOffset) ||
-        checker(samplesOffset)
+    RangeChecker::Ptr checker(RangeChecker::Create(limit));
+    checker->AddRange(0, headerBusy);
+    const uint_t patternsCount(1 + *std::max_element(header->Positions, header->Positions + header->Lenght));
+
+    if (!patternsCount || patternsCount >= MAX_PATTERNS_COUNT ||
+        !checker->AddRange(patternsOffset, sizeof(ASCPattern) * patternsCount) ||
+        !checker->AddRange(samplesOffset, sizeof(ASCSamples)) ||
+        !checker->AddRange(ornamentsOffset, sizeof(ASCOrnaments))
         )
     {
       return false;
     }
-    const ASCSamples* const samples(safe_ptr_cast<const ASCSamples*>(data + samplesOffset));
-    if (samples->Offsets.end() !=
-      std::find_if(samples->Offsets.begin(), samples->Offsets.end(), leChecker))
     {
-      return false;
-    }
-    const ASCOrnaments* const ornaments(safe_ptr_cast<const ASCOrnaments*>(data + ornamentsOffset));
-    if (ornaments->Offsets.end() !=
-      std::find_if(ornaments->Offsets.begin(), ornaments->Offsets.end(), leChecker))
-    {
-      return false;
-    }
-    const uint_t patternsCount(1 + *std::max_element(header->Positions,
-      header->Positions + header->Lenght));
-    if (patternsCount >= MAX_PATTERNS_COUNT ||
-        checker(patternsOffset + patternsCount * sizeof(ASCPattern)))
-    {
-      return false;
-    }
-    const ASCPattern* pattern(safe_ptr_cast<const ASCPattern*>(data + patternsOffset));
-    for (uint_t patternNum = 0 ; patternNum < patternsCount; ++patternNum, ++pattern)
-    {
-      if (pattern->Offsets.end() !=
-        std::find_if(pattern->Offsets.begin(), pattern->Offsets.end(), leChecker))
+      const ASCSamples* const samples(safe_ptr_cast<const ASCSamples*>(data + samplesOffset));
+      if (samples->Offsets.end() !=
+        std::find_if(samples->Offsets.begin(), samples->Offsets.end(),
+          !boost::bind(&RangeChecker::AddRange, checker.get(), 
+             boost::bind(std::plus<uint_t>(), samplesOffset, boost::bind(&fromLE<uint16_t>, _1)),
+             sizeof(ASCSample::Line))))
       {
         return false;
       }
     }
+    {
+      const ASCOrnaments* const ornaments(safe_ptr_cast<const ASCOrnaments*>(data + ornamentsOffset));
+      if (ornaments->Offsets.end() !=
+        std::find_if(ornaments->Offsets.begin(), ornaments->Offsets.end(), 
+          !boost::bind(&RangeChecker::AddRange, checker.get(), 
+            boost::bind(std::plus<uint_t>(), ornamentsOffset, boost::bind(&fromLE<uint16_t>, _1)),
+            sizeof(ASCOrnament::Line))))
+      {
+        return false;
+      }
+    }
+    {
+      const ASCPattern* pattern(safe_ptr_cast<const ASCPattern*>(data + patternsOffset));
+      for (uint_t patternNum = 0 ; patternNum < patternsCount; ++patternNum, ++pattern)
+      {
+        //at least 1 byte
+        if (pattern->Offsets.end() !=
+          std::find_if(pattern->Offsets.begin(), pattern->Offsets.end(),  
+          !boost::bind(&RangeChecker::AddRange, checker.get(), 
+             boost::bind(std::plus<uint_t>(), patternsOffset, boost::bind(&fromLE<uint16_t>, _1)), 1)))
+        {
+          return false;
+        }
+      }
+    }
     if (header->Positions + header->Lenght != 
-      std::find_if(header->Positions, header->Positions + header->Lenght, std::bind2nd(std::greater_equal<uint8_t>(),
-        patternsCount)))
+        std::find_if(header->Positions, header->Positions + header->Lenght, std::bind2nd(std::greater_equal<uint8_t>(),
+          patternsCount)))
     {
       return false;
     }
@@ -1205,29 +1222,8 @@ namespace
   bool CreateASCModule(const Parameters::Map& /*commonParams*/, const MetaContainer& container,
     Holder::Ptr& holder, ModuleRegion& region)
   {
-    const std::size_t limit(std::min(container.Data->Size(), MAX_MODULE_SIZE));
-    const uint8_t* const data(static_cast<const uint8_t*>(container.Data->Data()));
-
-    ModuleRegion tmpRegion;
-    //try to detect without player
-    if (CheckASCModule(data, limit, container, holder, tmpRegion))
-    {
-      region = tmpRegion;
-      return true;
-    }
-    /*
-    for (const DetectFormatChain* chain = DETECTORS; chain != ArrayEnd(DETECTORS); ++chain)
-    {
-      tmpRegion.Offset = chain->PlayerSize;
-      if (DetectFormat(data, limit, chain->PlayerFP) &&
-          CheckASCModule(data + chain->PlayerSize, limit - region.Offset, container, holder, tmpRegion))
-      {
-        region = tmpRegion;
-        return true;
-      }
-    }
-    */
-    return false;
+    return PerformDetect(&CheckASCModule, 0, 0, 
+      container, holder, region);
   }
 }
 

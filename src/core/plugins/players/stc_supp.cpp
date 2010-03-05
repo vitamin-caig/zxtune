@@ -11,7 +11,7 @@ Author:
 
 #include "convert_helpers.h"
 #include "tracking.h"
-#include "../detector.h"
+#include "../detect_helper.h"
 #include "../enumerator.h"
 #include "../utils.h"
 
@@ -815,7 +815,7 @@ namespace
     return Player::Ptr(new STCPlayer(holder, device));
   }
 
-  bool Check(const uint8_t* data, std::size_t limit, const MetaContainer& container,
+  bool CheckSTCModule(const uint8_t* data, std::size_t limit, const MetaContainer& container,
     Holder::Ptr& holder, ModuleRegion& region)
   {
     if (limit < sizeof(STCHeader))
@@ -880,27 +880,8 @@ namespace
   bool CreateSTCModule(const Parameters::Map& /*commonParams*/, const MetaContainer& container,
     Holder::Ptr& holder, ModuleRegion& region)
   {
-    const std::size_t limit(std::min(container.Data->Size(), MAX_STC_MODULE_SIZE));
-    const uint8_t* const data(static_cast<const uint8_t*>(container.Data->Data()));
-
-    ModuleRegion tmpRegion;
-    //try to detect without player
-    if (Check(data, limit, container, holder, tmpRegion))
-    {
-      region = tmpRegion;
-      return true;
-    }
-    for (const DetectFormatChain* chain = DETECTORS; chain != ArrayEnd(DETECTORS); ++chain)
-    {
-      tmpRegion.Offset = chain->PlayerSize;
-      if (DetectFormat(data, limit, chain->PlayerFP) &&
-          Check(data + chain->PlayerSize, limit - region.Offset, container, holder, tmpRegion))
-      {
-        region = tmpRegion;
-        return true;
-      }
-    }
-    return false;
+    return PerformDetect(&CheckSTCModule, DETECTORS, ArrayEnd(DETECTORS),
+      container, holder, region);
   }
 }
 

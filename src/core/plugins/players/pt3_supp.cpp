@@ -11,7 +11,7 @@ Author:
 
 #include "convert_helpers.h"
 #include "vortex_base.h"
-#include "../detector.h"
+#include "../detect_helper.h"
 #include "../enumerator.h"
 #include "../utils.h"
 
@@ -877,27 +877,8 @@ namespace
   bool CreatePT3Module(const Parameters::Map& /*commonParams*/, const MetaContainer& container,
     Holder::Ptr& holder, ModuleRegion& region)
   {
-    const std::size_t limit(std::min<std::size_t>(container.Data->Size(), MAX_MODULE_SIZE));
-    const uint8_t* const data(static_cast<const uint8_t*>(container.Data->Data()));
-
-    ModuleRegion tmpRegion;
-    //try to detect without player
-    if (CheckPT3Module(data, limit, container, holder, tmpRegion))
-    {
-      region = tmpRegion;
-      return true;
-    }
-    for (const DetectFormatChain* chain = DETECTORS; chain != ArrayEnd(DETECTORS); ++chain)
-    {
-      tmpRegion.Offset = chain->PlayerSize;
-      if (DetectFormat(data, limit, chain->PlayerFP) &&
-          CheckPT3Module(data + chain->PlayerSize, limit - region.Offset, container, holder, tmpRegion))
-      {
-        region = tmpRegion;
-        return true;
-      }
-    }
-    return false;
+    return PerformDetect(&CheckPT3Module, DETECTORS, ArrayEnd(DETECTORS),
+      container, holder, region);
   }
 }
 

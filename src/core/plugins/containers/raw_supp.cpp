@@ -72,7 +72,8 @@ namespace
       return Error(THIS_LINE, Module::ERROR_FIND_CONTAINER_PLUGIN);
     }
     const PluginsEnumerator& enumerator(PluginsEnumerator::Instance());
-    
+
+    const std::size_t limit(data.Data->Size());
     //process without offset
     ModuleRegion curRegion;
     {
@@ -86,6 +87,15 @@ namespace
         return err;
       }
     }
+    //check for furhter scanning possibility
+    if (curRegion.Size != 0 &&
+        curRegion.Offset + curRegion.Size + MINIMAL_RAW_SIZE >= limit)
+    {
+      region.Offset = 0;
+      region.Size = limit;
+      return Error();
+    }
+
     std::size_t scanStep = static_cast<std::size_t>(Parameters::ZXTune::Core::Plugins::Raw::SCAN_STEP_DEFAULT);
     if (const Parameters::IntType* const stepParam =
       Parameters::FindByName<Parameters::IntType>(commonParams, Parameters::ZXTune::Core::Plugins::Raw::SCAN_STEP))
@@ -110,13 +120,12 @@ namespace
     }
 
     bool wasResult = curRegion.Size != 0;
-    const std::size_t limit(data.Data->Size());
 
     MetaContainer subcontainer;
     subcontainer.PluginsChain = data.PluginsChain;
     subcontainer.PluginsChain.push_back(RAW_PLUGIN_ID);
     for (std::size_t offset = std::max(curRegion.Offset + curRegion.Size, std::size_t(1));
-      offset + MINIMAL_RAW_SIZE < limit; offset += std::max(curRegion.Offset + curRegion.Size, std::size_t(1)))
+      offset + MINIMAL_RAW_SIZE < limit; offset += std::max(curRegion.Offset + curRegion.Size, std::size_t(scanStep)))
     {
       const uint_t curProg = offset * 100 / limit;
       if (showMessage && curProg != *message.Progress)
