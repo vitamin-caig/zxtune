@@ -2,6 +2,7 @@
 CXX := $(if $(CXX),$(CXX),g++)
 LDD := $(if $(LDD),$(LDD),g++)
 AR := $(if $(AR),$(AR),ar)
+OBJCOPY := $(if $(OBJCOPY),$(OBJCOPY),objcopy)
 
 #set options according to mode
 ifeq ($(mode),release)
@@ -39,7 +40,7 @@ CXX_FLAGS := $(cxx_mode_flags) $(cxx_flags) -g3 \
 	$(addprefix -I, $(include_dirs) $($(platform)_include_dirs))
 
 AR_FLAGS := cru
-LD_FLAGS := $(ld_mode_flags) $(ld_flags) -pipe
+LD_FLAGS := $(ld_mode_flags) $(ld_flags)
 
 #specify endpoint commands
 build_obj_cmd = $(CXX) $(CXX_FLAGS) -c -MMD $< -o $@
@@ -50,9 +51,9 @@ link_cmd = $(LDD) $(LD_FLAGS) -o $@ $(object_files) \
 	$(addprefix -L,$($(platform)_libraries_dirs)) $(addprefix -l,$($(platform)_libraries))
 
 #specify postlink command- generate pdb file
-postlink_cmd = objcopy --only-keep-debug $@ $@.pdb && \
-	strip $@ && \
-	objcopy --add-gnu-debuglink=$@.pdb $@
+postlink_cmd = $(OBJCOPY) --only-keep-debug $@ $@.pdb && \
+	$(OBJCOPY) -g $@ && \
+	$(OBJCOPY) --add-gnu-debuglink=$@.pdb $@
 
 #include generated dependensies
 include $(wildcard $(objects_dir)/*.d)
