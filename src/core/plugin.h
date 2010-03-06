@@ -10,7 +10,6 @@
 #ifndef __CORE_PLUGIN_H_DEFINED__
 #define __CORE_PLUGIN_H_DEFINED__
 
-#include <string_type.h>
 #include <types.h>
 
 #include <vector>

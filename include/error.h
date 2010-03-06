@@ -10,7 +10,6 @@
 #ifndef __ERROR_H_DEFINED__
 #define __ERROR_H_DEFINED__
 
-#include <string_type.h>
 #include <types.h>
 
 #include <boost/function.hpp>

@@ -11,7 +11,6 @@
 #define __MESSAGES_COLLECTOR_H_DEFINED__
 
 #include <formatter.h>
-#include <string_type.h>
 #include <types.h>
 
 #include <memory>

@@ -12,7 +12,6 @@ Author:
 #include "convert_helpers.h"
 #include "tracking.h"
 #include "../detect_helper.h"
-#include "../enumerator.h"
 #include "../utils.h"
 
 #include <byteorder.h>

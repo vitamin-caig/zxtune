@@ -10,7 +10,7 @@
 #ifndef __IO_FS_TOOLS_H_DEFINED__
 #define __IO_FS_TOOLS_H_DEFINED__
 
-#include <string_type.h>
+#include <types.h>
 
 #include <fstream>
 #include <memory>

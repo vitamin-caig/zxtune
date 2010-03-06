@@ -10,7 +10,6 @@
 #ifndef __LOGGING_H_DEFINED__
 #define __LOGGING_H_DEFINED__
 
-#include <string_type.h>
 #include <types.h>
 
 #include <cassert>

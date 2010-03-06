@@ -10,7 +10,6 @@
 #ifndef __CORE_FREQ_TABLES_H_DEFINED__
 #define __CORE_FREQ_TABLES_H_DEFINED__
 
-#include <string_type.h>
 #include <types.h>
 
 #include <boost/array.hpp>

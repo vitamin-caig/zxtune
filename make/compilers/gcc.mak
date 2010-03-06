@@ -3,6 +3,7 @@ CXX := $(if $(CXX),$(CXX),g++)
 LDD := $(if $(LDD),$(LDD),g++)
 AR := $(if $(AR),$(AR),ar)
 OBJCOPY := $(if $(OBJCOPY),$(OBJCOPY),objcopy)
+STRIP := $(if $(STRIP),$(STRIP),strip)
 
 #set options according to mode
 ifeq ($(mode),release)
@@ -52,7 +53,7 @@ link_cmd = $(LDD) $(LD_FLAGS) -o $@ $(object_files) \
 
 #specify postlink command- generate pdb file
 postlink_cmd = $(OBJCOPY) --only-keep-debug $@ $@.pdb && \
-	$(OBJCOPY) -g $@ && \
+	$(STRIP) $@ && \
 	$(OBJCOPY) --add-gnu-debuglink=$@.pdb $@
 
 #include generated dependensies

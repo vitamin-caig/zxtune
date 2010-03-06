@@ -4,6 +4,8 @@ include $(path_step)/default.mak
 source_files := main parsing information sound source cli_app
 ifeq ($(platform),mingw)
 source_files += console_windows
+else ifeq ($(platform),dingux)
+source_files += console_linux
 else
 source_files += console_$(platform)
 endif

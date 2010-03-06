@@ -10,6 +10,9 @@
 #ifndef __TYPES_H_DEFINED__
 #define __TYPES_H_DEFINED__
 
+#include <char_type.h>
+
+#include <string>
 #include <vector>
 
 #include <boost/cstdint.hpp>
@@ -21,8 +24,7 @@ using boost::int8_t;
 using boost::uint8_t;
 using boost::int16_t;
 using boost::uint16_t;
-using boost::int32_t;
-using boost::uint32_t;
+// int32_t/uint32_t are already defined by environment
 using boost::int64_t;
 using boost::uint64_t;
 
@@ -31,6 +33,37 @@ typedef std::size_t uint_t;
 /// Use signed memtype as signed integer
 typedef std::ptrdiff_t int_t;
 //@}
+
+/// String-related types
+
+//! @brief %String type
+typedef std::basic_string<Char> String;
+
+//! @brief Helper for creating String from the array of chars
+template<std::size_t D>
+inline String FromStdString(const char (&str)[D])
+{
+  return String(str, str + D);
+}
+
+//! @brief Helper for creating String from ordinary std::string
+inline String FromStdString(const std::string& str)
+{
+  return String(str.begin(), str.end());
+}
+
+//! @brief Helper for creating ordinary std::string from the array of Chars
+template<std::size_t D>
+inline std::string ToStdString(const Char (&str)[D])
+{
+  return std::string(str, str + D);
+}
+
+//! @brief Helper for creating ordinary std::string from the String
+inline std::string ToStdString(const String& str)
+{
+  return std::string(str.begin(), str.end());
+}
 
 //@{
 //! Structure packing macros
