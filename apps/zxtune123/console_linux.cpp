@@ -11,9 +11,9 @@ Author:
   This file is a part of zxtune123 application based on zxtune library
 */
 
-#include "app.h"
 #include "console.h"
-#include "error_codes.h"
+#include <apps/base/app.h>
+#include <apps/base/error_codes.h>
 
 #ifndef __linux__
 #error Invalid platform specified

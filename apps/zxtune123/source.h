@@ -13,25 +13,10 @@ Author:
 #ifndef ZXTUNE123_SOURCE_H_DEFINED
 #define ZXTUNE123_SOURCE_H_DEFINED
 
-#include <core/module_detect.h>
+#include <apps/base/moduleitem.h>
 
 #include <memory>
 
-struct ModuleItem
-{
-  String Id;
-  ZXTune::Module::Holder::Ptr Module;
-  Parameters::Map Params;
-};
-typedef std::vector<ModuleItem> ModuleItemsArray;
-
-typedef boost::function<void(const ModuleItem&)> OnItemCallback;
-
-Error ProcessModuleItems(const StringArray& files, const Parameters::Map& params, 
-  const ZXTune::DetectParameters::FilterFunc& filter, const ZXTune::DetectParameters::LogFunc& logger,
-  const OnItemCallback& callback);
-                    
-                    
 namespace boost
 {
   namespace program_options

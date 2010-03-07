@@ -7,23 +7,93 @@ Last changed:
 
 Author:
   (C) Vitamin/CAIG/2001
-  
-  This file is a part of zxtune123 application based on zxtune library
 */
-#include "parsing.h"
-#include "error_codes.h"
+
+#include <apps/base/parsing.h>
+#include <apps/base/error_codes.h>
 
 #include <error_tools.h>
+#include <io/fs_tools.h>
 
 #include <cctype>
 
-#include "text.h"
+#include <apps/base/base_text.h>
 
 #define FILE_TAG 0DBA1FA8
 
 namespace
 {
   static const Char PARAMETERS_DELIMITER = ',';
+
+  inline String GetDefaultConfigFile()
+  {
+#ifdef _WIN32
+    const String configPath(TEXT_CONFIG_PATH_WIN);
+    if (const char* homeDir = ::getenv(ToStdString(TEXT_ENV_HOMEDIR_WIN).c_str()))
+#else
+    const String configPath(TEXT_CONFIG_PATH_NIX);
+    if (const char* homeDir = ::getenv(ToStdString(TEXT_ENV_HOMEDIR_NIX).c_str()))
+#endif
+    {
+      return ZXTune::IO::AppendPath(FromStdString(homeDir), configPath);
+    }
+    return TEXT_CONFIG_FILENAME;
+  }
+}
+
+Error ParseConfigFile(const String& filename, Parameters::Map& params)
+{
+  const String configName(filename.empty() ? TEXT_CONFIG_FILENAME : filename);
+
+  typedef std::basic_ifstream<Char> FileStream;
+  std::auto_ptr<FileStream> configFile(new FileStream(configName.c_str()));
+  if (!*configFile)
+  {
+    if (!filename.empty())
+    {
+      return Error(THIS_LINE, CONFIG_FILE, TEXT_ERROR_CONFIG_FILE);
+    }
+    configFile.reset(new FileStream(GetDefaultConfigFile().c_str()));
+  }
+  if (!*configFile)
+  {
+    params.clear();
+    return Error();
+  }
+
+  String lines;
+  std::vector<Char> buffer(1024);
+  for (;;)
+  {
+    configFile->getline(&buffer[0], buffer.size());
+    if (const std::streamsize lineSize = configFile->gcount())
+    {
+      std::vector<Char>::const_iterator endof(buffer.begin() + lineSize - 1);
+      std::vector<Char>::const_iterator beginof(std::find_if<std::vector<Char>::const_iterator>(buffer.begin(), endof,
+      std::not1(std::ptr_fun<int, int>(&std::isspace))));
+      if (beginof != endof && *beginof != Char('#'))
+      {
+        if (!lines.empty())
+        {
+          lines += Char(',');
+        }
+        lines += String(beginof, endof);
+      }
+    }
+    else
+    {
+      break;
+    }
+  }
+  if (lines.empty())
+  {
+    params.clear();
+  }
+  else if (const Error& e = ParseParametersString(String(), lines, params))
+  {
+    return e;
+  }
+  return Error();
 }
 
 Error ParseParametersString(const String& pfx, const String& str, Parameters::Map& result)

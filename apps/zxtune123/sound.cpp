@@ -11,10 +11,10 @@ Author:
   This file is a part of zxtune123 application based on zxtune library
 */
 
-#include "app.h"
-#include "error_codes.h"
-#include "parsing.h"
 #include "sound.h"
+#include <apps/base/app.h>
+#include <apps/base/error_codes.h>
+#include <apps/base/parsing.h>
 
 #include <error_tools.h>
 #include <logging.h>
@@ -35,6 +35,7 @@ Author:
 #include <iostream>
 
 #include "text.h"
+#include <apps/base/base_text.h>
 
 #define FILE_TAG DAEDAE2A
 

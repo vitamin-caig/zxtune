@@ -23,7 +23,7 @@
 > CMD_CONFIG_KEY
 
 < TEXT_CONFIG_DESC
-> "configuration file (default is %1%)"
+> "configuration file"
 
 < TEXT_IO_PROVIDERS_OPTS_KEY
 > CMD_IO_PROVIDERS_OPTS_KEY

@@ -11,8 +11,8 @@ Author:
   This file is a part of zxtune123 application based on zxtune library
 */
 
-#include "app.h"
 #include "information.h"
+#include <apps/base/app.h>
 
 #include <tools.h>
 #include <formatter.h>

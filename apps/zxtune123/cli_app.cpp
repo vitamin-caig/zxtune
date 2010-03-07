@@ -11,13 +11,13 @@ Author:
   This file is a part of zxtune123 application based on zxtune library
 */
 
-#include "app.h"
 #include "console.h"
-#include "error_codes.h"
 #include "information.h"
-#include "parsing.h"
 #include "sound.h"
 #include "source.h"
+#include <apps/base/app.h>
+#include <apps/base/error_codes.h>
+#include <apps/base/parsing.h>
 
 #include <error_tools.h>
 #include <template.h>
@@ -59,75 +59,6 @@ namespace
   const std::size_t INFORMATION_HEIGHT = 6;
   const std::size_t TRACKING_HEIGHT = 4;
   const std::size_t PLAYING_HEIGHT = 2;
-  
-  inline String GetDefaultConfigFile()
-  {
-#ifdef _WIN32
-    const String configPath(TEXT_CONFIG_PATH_WIN);
-    if (const char* homeDir = ::getenv(ToStdString(TEXT_ENV_HOMEDIR_WIN).c_str()))
-#else
-    const String configPath(TEXT_CONFIG_PATH_NIX);
-    if (const char* homeDir = ::getenv(ToStdString(TEXT_ENV_HOMEDIR_NIX).c_str()))
-#endif
-    {
-      return ZXTune::IO::AppendPath(FromStdString(homeDir), configPath);
-    }
-    return TEXT_CONFIG_FILENAME;
-  }
-  
-  void ReadConfigFile(const String& filename, Parameters::Map& params)
-  {
-    const String configName(filename.empty() ? TEXT_CONFIG_FILENAME : filename);
-    
-    typedef std::basic_ifstream<Char> FileStream;
-    std::auto_ptr<FileStream> configFile(new FileStream(configName.c_str()));
-    if (!*configFile)
-    {
-      if (!filename.empty())
-      {
-        throw Error(THIS_LINE, CONFIG_FILE, TEXT_ERROR_CONFIG_FILE);
-      }
-      configFile.reset(new FileStream(GetDefaultConfigFile().c_str()));
-    }
-    if (!*configFile)
-    {
-      params.clear();
-      return;
-    }
-
-    String lines;
-    std::vector<Char> buffer(1024);
-    for (;;)
-    {
-      configFile->getline(&buffer[0], buffer.size());
-      if (const std::streamsize lineSize = configFile->gcount())
-            {
-        std::vector<Char>::const_iterator endof(buffer.begin() + lineSize - 1);
-        std::vector<Char>::const_iterator beginof(std::find_if<std::vector<Char>::const_iterator>(buffer.begin(), endof,
-          std::not1(std::ptr_fun<int, int>(&std::isspace))));
-        if (beginof != endof && *beginof != Char('#'))
-        {
-          if (!lines.empty())
-          {
-            lines += Char(',');
-          }
-          lines += String(beginof, endof);
-        }
-      }
-      else
-      {
-        break;
-      }
-    }
-    if (lines.empty())
-    {
-      params.clear();
-    }
-    else
-    {
-      ThrowIfError(ParseParametersString(String(), lines, params));
-    }
-  }
   
   void ErrOuter(uint_t /*level*/, Error::LocationRef loc, Error::CodeType code, const String& text)
   {
@@ -394,8 +325,7 @@ namespace
         options.add_options()
           (TEXT_HELP_KEY, TEXT_HELP_DESC)
           (TEXT_VERSION_KEY, TEXT_VERSION_DESC)
-          (TEXT_CONFIG_KEY, boost::program_options::value<String>(&configFile),
-            (Formatter(TEXT_CONFIG_DESC) % GetDefaultConfigFile()).str().c_str())
+          (TEXT_CONFIG_KEY, boost::program_options::value<String>(&configFile), TEXT_CONFIG_DESC)
           (TEXT_IO_PROVIDERS_OPTS_KEY, boost::program_options::value<String>(&providersOptions), TEXT_IO_PROVIDERS_OPTS_DESC)
           (TEXT_CORE_OPTS_KEY, boost::program_options::value<String>(&coreOptions), TEXT_CORE_OPTS_DESC)
           (TEXT_CONVERT_KEY, boost::program_options::value<String>(&ConvertParams), TEXT_CONVERT_DESC)
@@ -447,7 +377,7 @@ namespace
         }
         {
           Parameters::Map configParams;
-          ReadConfigFile(configFile, configParams);
+          ThrowIfError(ParseConfigFile(configFile, configParams));
           Parameters::MergeMaps(GlobalParams, configParams, GlobalParams, false);
         }
         return false;
@@ -613,6 +543,8 @@ namespace
     uint_t Updatefps;
   };
 }
+
+const std::string THIS_MODULE("zxtune123");
 
 std::auto_ptr<Application> Application::Create()
 {

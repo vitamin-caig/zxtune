@@ -7,10 +7,9 @@ Last changed:
 
 Author:
   (C) Vitamin/CAIG/2001
-  
-  This file is a part of zxtune123 application based on zxtune library
 */
-#include "app.h"
+
+#include <apps/base/app.h>
 
 #ifdef UNICODE
 std::basic_ostream<Char>& StdOut = std::wcout;
