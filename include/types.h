@@ -20,13 +20,16 @@
 
 //@{
 //! @brief Integer types
+#ifndef BOOST_HAS_STDINT_H
 using boost::int8_t;
 using boost::uint8_t;
 using boost::int16_t;
 using boost::uint16_t;
-// int32_t/uint32_t are already defined by environment
+using boost::int32_t;
+using boost::uint32_t;
 using boost::int64_t;
 using boost::uint64_t;
+#endif
 
 /// Use unsigned memtype as unsigned integer
 typedef std::size_t uint_t;
@@ -103,5 +106,13 @@ typedef std::vector<uint8_t> Dump;
 //assertions
 BOOST_STATIC_ASSERT(sizeof(uint_t) >= sizeof(uint32_t));
 BOOST_STATIC_ASSERT(sizeof(int_t) >= sizeof(int32_t));
+BOOST_STATIC_ASSERT(sizeof(uint8_t) == 1);
+BOOST_STATIC_ASSERT(sizeof(int8_t) == 1);
+BOOST_STATIC_ASSERT(sizeof(uint16_t) == 2);
+BOOST_STATIC_ASSERT(sizeof(int16_t) == 2);
+BOOST_STATIC_ASSERT(sizeof(uint32_t) == 4);
+BOOST_STATIC_ASSERT(sizeof(int32_t) == 4);
+BOOST_STATIC_ASSERT(sizeof(uint64_t) == 8);
+BOOST_STATIC_ASSERT(sizeof(int64_t) == 8);
 
 #endif //__TYPES_H_DEFINED__
