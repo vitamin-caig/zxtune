@@ -394,14 +394,18 @@ namespace
               //modify existing
               ASCTrack::CommandsArray::iterator cmdIt(std::find(channel->Commands.begin(),
                 channel->Commands.end(), ENVELOPE));
-              //TODO: check
+              if (restbytes < 1)
+              {
+                throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
+              }
+              const uint_t param = data[cur->Offset++];
               if (channel->Commands.end() == cmdIt)
               {
-                channel->Commands.push_back(ASCTrack::Command(ENVELOPE, -1, data[cur->Offset++]));
+                channel->Commands.push_back(ASCTrack::Command(ENVELOPE, -1, param));
               }
               else
               {
-                cmdIt->Param2 = data[cur->Offset++];
+                cmdIt->Param2 = param;
               }
             }
             break;
@@ -452,7 +456,10 @@ namespace
           }
           else if (cmd == 0xf0) //initial noise
           {
-            //TODO: check
+            if (restbytes < 1)
+            {
+              throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
+            }
             channel->Commands.push_back(ASCTrack::Command(NOISE, data[cur->Offset++]));
           }
           else if (cmd == 0xf1 || cmd == 0xf2 || cmd == 0xf3)
@@ -469,13 +476,19 @@ namespace
           }
           else if (cmd == 0xf4) //tempo
           {
-            //TODO: check
+            if (restbytes < 1)
+            {
+              throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
+            }
             Log::Assert(channelWarner, !line.Tempo, TEXT_WARNING_DUPLICATE_TEMPO);
             line.Tempo = data[cur->Offset++];
           }
           else if (cmd == 0xf5 || cmd == 0xf6) //slide
           {
-            //TODO: check
+            if (restbytes < 1)
+            {
+              throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
+            }
             channel->Commands.push_back(ASCTrack::Command(GLISS, 
               ((cmd == 0xf5) ? -16 : 16) * static_cast<int8_t>(data[cur->Offset++])));
           }
@@ -485,7 +498,10 @@ namespace
             {
               channel->Commands.push_back(ASCTrack::Command(CONT_SAMPLE));
             }
-            //TODO: check
+            if (restbytes < 1)
+            {
+              throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
+            }
             channel->Commands.push_back(ASCTrack::Command(SLIDE, static_cast<int8_t>(data[cur->Offset++])));
           }
           else if (cmd == 0xf8 || cmd == 0xfa || cmd == 0xfc || cmd == 0xfe) //envelope
@@ -505,7 +521,10 @@ namespace
           }
           else if (cmd == 0xfb) //amplitude delay
           {
-            //TODO: check
+            if (restbytes < 1)
+            {
+              throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
+            }
             const uint_t step(data[cur->Offset++]);
             channel->Commands.push_back(ASCTrack::Command(AMPLITUDE_SLIDE, step & 31, step & 32 ? -1 : 1));
           }

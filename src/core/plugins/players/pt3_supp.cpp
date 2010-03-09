@@ -103,6 +103,34 @@ namespace
       ,
       3462
     },
+    //PT3.5 without player text
+    {
+      "21??"    // ld hl,xxxx
+      "18?"     // jr xx
+      "c3??"    // jp xxxx
+      "18?"     // jr xx
+      "f3"      // di
+      "ed73??"  // ld (xxxx),sp
+      "22??"    // ld (xxxx),hl
+      "44"      // ld b,h
+      "4d"      // ld c,l
+      "11??"    // ld de,xxxx
+      "19"      // add hl,de
+      "7e"      // ld a,(hl)
+      "23"      // inc hl
+      "32??"    // ld (xxxx),a
+      "f9"      // ld sp,hl
+      "19"      // add hl,de
+      "22??"    // ld (xxxx),hl
+      "f1"      // pop af
+      "5f"      // ld e,a
+      "19"      // add hl,de
+      "22??"    // ld (xxxx),hl
+      "e1"      // pop hl
+      "09"      // add hl,bc
+      ,
+      0xc89
+    },
     //Vortex1
     {
       "21??"    // ld hl,xxxx
