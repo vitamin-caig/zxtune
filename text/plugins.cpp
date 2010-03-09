@@ -35,9 +35,6 @@ extern const Char TEXT_HRUST2X_INFO[] = {
   'H','r','u','s','t','2','.','x',' ','p','a','c','k','e','d',' ','d','a','t','a',' ','s','u','p','p','o','r',
   't',0
 };
-extern const Char TEXT_PACKED_INFO[] = {
-  'P','a','c','k','e','d',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
-};
 extern const Char TEXT_PDT_EDITOR[] = {
   'P','r','o','D','i','g','i',' ','T','r','a','c','k','e','r',' ','v','0','.','0','x',0
 };
@@ -59,6 +56,14 @@ extern const Char TEXT_PLUGIN_RAW_PROGRESS[] = {
 };
 extern const Char TEXT_PLUGIN_RAW_PROGRESS_NOPATH[] = {
   'R','a','w',' ','s','c','a','n','e','r',' ','p','r','o','c','e','s','s','i','n','g',0
+};
+extern const Char TEXT_PLUGIN_SCL_PROGRESS[] = {
+  'S','C','L',' ','c','o','n','t','a','i','n','e','r',' ','p','r','o','c','e','s','s','i','n','g',' ','f','o',
+  'r',' ','\'','%','1','%','\'',' ','a','t',' ','s','u','b','p','a','t','h',' ','\'','%','2','%','\'',0
+};
+extern const Char TEXT_PLUGIN_SCL_PROGRESS_NOPATH[] = {
+  'S','C','L',' ','c','o','n','t','a','i','n','e','r',' ','p','r','o','c','e','s','s','i','n','g',' ','f','o',
+  'r',' ','\'','%','1','%','\'',0
 };
 extern const Char TEXT_PLUGIN_TRD_PROGRESS[] = {
   'T','R','D',' ','c','o','n','t','a','i','n','e','r',' ','p','r','o','c','e','s','s','i','n','g',' ','f','o',
@@ -86,9 +91,6 @@ extern const Char TEXT_RAW_ERROR_INVALID_STEP[] = {
 };
 extern const Char TEXT_RAW_INFO[] = {
   'R','a','w',' ','m','o','d','u','l','e','s',' ','s','c','a','n','e','r',0
-};
-extern const Char TEXT_SCL_CONTAINER[] = {
-  'S','C','L',0
 };
 extern const Char TEXT_SCL_INFO[] = {
   'S','C','L',' ','c','o','n','t','a','i','n','e','r','s',' ','s','u','p','p','o','r','t',0

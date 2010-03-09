@@ -19,6 +19,7 @@ namespace ZXTune
   
   void RegisterRawContainer(PluginsEnumerator& enumerator);
   void RegisterTRDContainer(PluginsEnumerator& enumerator);
+  void RegisterSCLContainer(PluginsEnumerator& enumerator);
   void RegisterHRIPContainer(PluginsEnumerator& enumerator);
   
   void RegisterContainerPlugins(PluginsEnumerator& enumerator)
@@ -26,6 +27,7 @@ namespace ZXTune
     //process raw container first
     RegisterRawContainer(enumerator);
     RegisterTRDContainer(enumerator);
+    RegisterSCLContainer(enumerator);
     RegisterHRIPContainer(enumerator);
   }
 }
