@@ -77,7 +77,8 @@ namespace
 #if 1
     StdOut
       << InstantiateTemplate(TEXT_ITEM_INFO, strProps, FILL_NONEXISTING)
-      << (Formatter(TEXT_ITEM_INFO_ADDON) % UnparseFrameTime(info.Statistic.Frame, frameDuration) % info.PhysicalChannels).str();
+      << (Formatter(TEXT_ITEM_INFO_ADDON) % UnparseFrameTime(info.Statistic.Frame, frameDuration) %
+        info.Statistic.Channels % info.PhysicalChannels).str();
 #else
     std::for_each(strProps.begin(), strProps.end(), OutProp);
 #endif

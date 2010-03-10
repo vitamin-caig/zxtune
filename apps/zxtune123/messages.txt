@@ -217,7 +217,7 @@
 > "Author:  [Author]\n"
 
 < TEXT_ITEM_INFO_ADDON
-> "Time:    %1%\t"     "Channels:  %2%\n"
+> "Time:    %1%\t"     "Channels:  %2%\t" "Real channels: %3%\n"
 > "\n"
 
 < TEXT_INPUT_ERROR_NO_FILES
