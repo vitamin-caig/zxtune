@@ -16,7 +16,8 @@ namespace ZXTune
 {
   //forward declaration
   class PluginsEnumerator;
-  
+
+  void RegisterTSSupport(PluginsEnumerator& enumerator);
   void RegisterPSGSupport(PluginsEnumerator& enumerator);
   void RegisterSTCSupport(PluginsEnumerator& enumerator);
   void RegisterPT2Support(PluginsEnumerator& enumerator);
@@ -26,6 +27,8 @@ namespace ZXTune
   
   void RegisterPlayerPlugins(PluginsEnumerator& enumerator)
   {
+    //try TS first
+    RegisterTSSupport(enumerator);
     RegisterPT3Support(enumerator);
     RegisterPT2Support(enumerator);
     RegisterSTCSupport(enumerator);
