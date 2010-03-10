@@ -18,7 +18,7 @@ cxx_mode_flags += /LD
 ld_mode_flags += /DLL
 endif
 
-CXX_FLAGS := $(cxx_mode_flags) $(cxx_flags) /nologo \
+cxx_mode_flags += \
 	/W3 \
 	/D_SCL_SECURE_NO_WARNINGS \
 	$(addprefix /D, $(definitions)) \
@@ -26,12 +26,10 @@ CXX_FLAGS := $(cxx_mode_flags) $(cxx_flags) /nologo \
 	/GA /GF /Gy /Y- \
 	$(addprefix /I, $(include_dirs))
 
-LD_FLAGS := $(ld_mode_flags) /NODEFAULTLIB
-
-build_obj_cmd = $(CXX) $(CXX_FLAGS) /c /Fo$@ $<
+build_obj_cmd = $(CXX) $(cxx_flags) $(cxx_mode_flags) /nologo /c /Fo$@ $<
 build_lib_cmd = $(AR) /NOLOGO /NODEFAULTLIB /OUT:$@ $^
-link_cmd = $(LDD) $(LD_FLAGS) /NOLOGO /INCREMENTAL:NO /FIXED:NO /DEBUG \
-	/OPT:REF,NOWIN98 /NODEFAULTLIB \
+link_cmd = $(LDD) $(ld_mode_flags) /NOLOGO /INCREMENTAL:NO /DEBUG \
+	/OPT:REF,NOWIN98,ICF=5 /NODEFAULTLIB \
 	/OUT:$@ $(object_files) \
 	kernel32.lib $(addsuffix .lib,$(windows_libraries)) \
 	$(if $(libraries),/LIBPATH:$(libs_dir) $(addsuffix .lib,$(libraries)),) \
