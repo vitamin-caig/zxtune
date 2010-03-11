@@ -24,7 +24,7 @@ __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 > "CHI modules support"
 
 < TEXT_CHI_EDITOR
-> "ChipTracker"
+> "ChipTracker v%1%"
 
 #FDI
 < TEXT_FDI_INFO
@@ -127,9 +127,6 @@ __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 #TS
 < TEXT_TS_INFO
 > "TurboSound modules support"
-
-< TEXT_TS_CONTAINER
-> "TurboSound"
 
 #TXT
 < TEXT_TXT_INFO

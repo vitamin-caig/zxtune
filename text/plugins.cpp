@@ -10,7 +10,7 @@ extern const Char TEXT_ASC_INFO[] = {
   'A','S','C',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
 };
 extern const Char TEXT_CHI_EDITOR[] = {
-  'C','h','i','p','T','r','a','c','k','e','r',0
+  'C','h','i','p','T','r','a','c','k','e','r',' ','v','%','1','%',0
 };
 extern const Char TEXT_CHI_INFO[] = {
   'C','H','I',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
@@ -109,9 +109,6 @@ extern const Char TEXT_STP_INFO[] = {
 };
 extern const Char TEXT_TRD_INFO[] = {
   'T','R','D',' ','c','o','n','t','a','i','n','e','r','s',' ','s','u','p','p','o','r','t',0
-};
-extern const Char TEXT_TS_CONTAINER[] = {
-  'T','u','r','b','o','S','o','u','n','d',0
 };
 extern const Char TEXT_TS_INFO[] = {
   'T','u','r','b','o','S','o','u','n','d',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0

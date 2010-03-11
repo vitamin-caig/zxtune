@@ -35,7 +35,6 @@ extern const Char TEXT_STC_INFO[];
 extern const Char TEXT_STP_EDITOR[];
 extern const Char TEXT_STP_INFO[];
 extern const Char TEXT_TRD_INFO[];
-extern const Char TEXT_TS_CONTAINER[];
 extern const Char TEXT_TS_INFO[];
 extern const Char TEXT_TXT_INFO[];
 extern const Char TEXT_VORTEX_EDITOR[];

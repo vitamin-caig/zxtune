@@ -24,7 +24,8 @@ namespace ZXTune
   void RegisterPT3Support(PluginsEnumerator& enumerator);
   void RegisterASCSupport(PluginsEnumerator& enumerator);
   void RegisterPDTSupport(PluginsEnumerator& enumerator);
-  
+  void RegisterCHISupport(PluginsEnumerator& enumerator);
+
   void RegisterPlayerPlugins(PluginsEnumerator& enumerator)
   {
     //try TS first
@@ -35,6 +36,7 @@ namespace ZXTune
     RegisterASCSupport(enumerator);
     RegisterPSGSupport(enumerator);
     RegisterPDTSupport(enumerator);
+    RegisterCHISupport(enumerator);
   }
 }
 
