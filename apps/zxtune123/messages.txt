@@ -72,10 +72,12 @@
 > "Version:     %3%\n"
 
 < TEXT_INFO_OPTION_INFO
-> "  %|1$-36|- %2%.\n"
+> "  %1%\n"
+> "  - %2%.\n"
 
 < TEXT_INFO_OPTION_INFO_DEFAULTS
-> "  %|1$-36|- %2% (default value is '%3%').\n"
+> "  %1%\n"
+> "  - %2% (default value is '%3%').\n"
 
 < TEXT_INFO_ATTRIBUTE_INFO
 > " %|1$-20|- %2%\n"
@@ -132,7 +134,10 @@
 > " Core options:"
 
 < TEXT_INFO_OPTIONS_CORE_AYM_TYPE
-> "chip type for playback. All != 0 is treated as YM mode"
+> "use YM chip type for AYM rendering"
+
+< TEXT_INFO_OPTIONS_CORE_AYM_INTERPOLATION
+> "use interpolation for AYM rendering"
 
 < TEXT_INFO_OPTIONS_CORE_AYM_TABLE
 > "frequency table name to use in AY-based players. Can be name (--" TEXT_INFO_LIST_FREQTABLES_KEY ") or dump (#..). Use '~' to revert"
@@ -151,6 +156,9 @@
 
 < TEXT_INFO_OPTIONS_CORE_PLUGINS_RAW_SCAN_STEP
 > "scanning step in bytes"
+
+< TEXT_INFO_OPTIONS_CORE_PLUGINS_HRIP_IGNORE_CORRUPTED
+> "ignore corrupted blocks in HRiP archive"
 
 < TEXT_INFO_ATTRIBUTES_FILENAME
 > "short source file name"

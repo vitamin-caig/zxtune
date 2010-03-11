@@ -194,6 +194,9 @@ namespace
       OptionDesc(Parameters::ZXTune::Core::AYM::TYPE,
                  TEXT_INFO_OPTIONS_CORE_AYM_TYPE,
                  EMPTY),
+      OptionDesc(Parameters::ZXTune::Core::AYM::INTERPOLATION,
+                 TEXT_INFO_OPTIONS_CORE_AYM_INTERPOLATION,
+                 EMPTY),
       OptionDesc(Parameters::ZXTune::Core::AYM::TABLE,
                  TEXT_INFO_OPTIONS_CORE_AYM_TABLE,
                  EMPTY),
@@ -209,7 +212,10 @@ namespace
       OptionDesc(TEXT_INFO_OPTIONS_CORE_PLUGINS_TITLE, EMPTY,0),
       OptionDesc(Parameters::ZXTune::Core::Plugins::Raw::SCAN_STEP,
                  TEXT_INFO_OPTIONS_CORE_PLUGINS_RAW_SCAN_STEP,
-                 Parameters::ZXTune::Core::Plugins::Raw::SCAN_STEP_DEFAULT)
+                 Parameters::ZXTune::Core::Plugins::Raw::SCAN_STEP_DEFAULT),
+      OptionDesc(Parameters::ZXTune::Core::Plugins::Hrip::IGNORE_CORRUPTED,
+                 TEXT_INFO_OPTIONS_CORE_PLUGINS_HRIP_IGNORE_CORRUPTED,
+                 EMPTY)
     };
     StdOut << TEXT_INFO_LIST_OPTIONS_TITLE << std::endl;
     std::for_each(OPTIONS, ArrayEnd(OPTIONS), ShowOption);

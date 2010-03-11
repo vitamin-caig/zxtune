@@ -327,6 +327,10 @@ extern const Char TEXT_INFO_OPTIONS_CORE_AYM_DUTY_CYCLE_MASK[] = {
   'a','n',' ','b','e',' ','s','e','t',' ','o','f',' ','l','e','t','t','e','r','s',' ','(','A',',','B',',','C',
   ',','N',',','E',')',' ','o','r',' ','n','u','m','e','r','i','c',' ','m','a','s','k',0
 };
+extern const Char TEXT_INFO_OPTIONS_CORE_AYM_INTERPOLATION[] = {
+  'u','s','e',' ','i','n','t','e','r','p','o','l','a','t','i','o','n',' ','f','o','r',' ','A','Y','M',' ','r',
+  'e','n','d','e','r','i','n','g',0
+};
 extern const Char TEXT_INFO_OPTIONS_CORE_AYM_TABLE[] = {
   'f','r','e','q','u','e','n','c','y',' ','t','a','b','l','e',' ','n','a','m','e',' ','t','o',' ','u','s','e',
   ' ','i','n',' ','A','Y','-','b','a','s','e','d',' ','p','l','a','y','e','r','s','.',' ','C','a','n',' ','b',
@@ -335,12 +339,16 @@ extern const Char TEXT_INFO_OPTIONS_CORE_AYM_TABLE[] = {
   'e','v','e','r','t',0
 };
 extern const Char TEXT_INFO_OPTIONS_CORE_AYM_TYPE[] = {
-  'c','h','i','p',' ','t','y','p','e',' ','f','o','r',' ','p','l','a','y','b','a','c','k','.',' ','A','l','l',
-  ' ','!','=',' ','0',' ','i','s',' ','t','r','e','a','t','e','d',' ','a','s',' ','Y','M',' ','m','o','d','e',0
+  'u','s','e',' ','Y','M',' ','c','h','i','p',' ','t','y','p','e',' ','f','o','r',' ','A','Y','M',' ','r','e',
+  'n','d','e','r','i','n','g',0
 };
 extern const Char TEXT_INFO_OPTIONS_CORE_DAC_INTERPOLATION[] = {
   'u','s','e',' ','i','n','t','e','r','p','o','l','a','t','i','o','n',' ','f','o','r',' ','D','A','C',' ','r',
   'e','n','d','e','r','i','n','g',0
+};
+extern const Char TEXT_INFO_OPTIONS_CORE_PLUGINS_HRIP_IGNORE_CORRUPTED[] = {
+  'i','g','n','o','r','e',' ','c','o','r','r','u','p','t','e','d',' ','b','l','o','c','k','s',' ','i','n',' ',
+  'H','R','i','P',' ','a','r','c','h','i','v','e',0
 };
 extern const Char TEXT_INFO_OPTIONS_CORE_PLUGINS_RAW_SCAN_STEP[] = {
   's','c','a','n','n','i','n','g',' ','s','t','e','p',' ','i','n',' ','b','y','t','e','s',0
@@ -413,12 +421,14 @@ extern const Char TEXT_INFO_OPTIONS_SOUND_TITLE[] = {
   ' ','S','o','u','n','d',' ','o','p','t','i','o','n','s',':',0
 };
 extern const Char TEXT_INFO_OPTION_INFO[] = {
-  ' ',' ','%','|','1','$','-','3','6','|','-',' ','%','2','%','.','\n',
+  ' ',' ','%','1','%','\n',
+  ' ',' ','-',' ','%','2','%','.','\n',
   0
 };
 extern const Char TEXT_INFO_OPTION_INFO_DEFAULTS[] = {
-  ' ',' ','%','|','1','$','-','3','6','|','-',' ','%','2','%',' ','(','d','e','f','a','u','l','t',' ','v','a',
-  'l','u','e',' ','i','s',' ','\'','%','3','%','\'',')','.','\n',
+  ' ',' ','%','1','%','\n',
+  ' ',' ','-',' ','%','2','%',' ','(','d','e','f','a','u','l','t',' ','v','a','l','u','e',' ','i','s',' ','\'',
+  '%','3','%','\'',')','.','\n',
   0
 };
 extern const Char TEXT_INFO_PLUGIN_INFO[] = {
