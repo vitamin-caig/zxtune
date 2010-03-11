@@ -34,6 +34,12 @@ namespace Parameters
         {
           'z','x','t','u','n','e','.','c','o','r','e','.','a','y','m','.','t','y','p','e','\0'
         };
+        //! @brief Use interpolation
+        //! @details integer value
+        const Char INTERPOLATION[] =
+        {
+          'z','x','t','u','n','e','.','c','o','r','e','.','a','y','m','.','i','n','t','e','r','p','o','l','a','t','i','o','n','\0'
+        };
         //! @brief Frequency table for ay-based plugins
         //! @details String- table name or dump @see freq_tables.h
         const Char TABLE[] =

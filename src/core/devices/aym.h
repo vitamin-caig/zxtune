@@ -63,8 +63,11 @@ namespace ZXTune
         //to mark all registers actual
         MASK_ALL_REGISTERS = (1 << (REG_ENV + 1)) - 1,
 
+        //only bits, no data
         //use YM chip
-        YM_CHIP = 1 << 20,//only bits, no data
+        YM_CHIP = 1 << (REG_ENV + 1),
+        //use interpolation
+        INTERPOLATE = YM_CHIP << 1,
 
         //bits in REG_VOL*
         REG_MASK_VOL = 0x0f,
@@ -77,7 +80,7 @@ namespace ZXTune
         REG_MASK_TONEC = 0x04,
         REG_MASK_NOISEC = 0x20,
 
-        //bits in PARAM_RATIO_MASK
+        //bits in PARAM_DUTY_CYCLE_MASK
         DUTY_CYCLE_MASK_A = 1,
         DUTY_CYCLE_MASK_B = 2,
         DUTY_CYCLE_MASK_C = 4,

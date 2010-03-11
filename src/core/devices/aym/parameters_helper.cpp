@@ -73,6 +73,17 @@ namespace
           Chunk.Mask &= ~AYM::DataChunk::YM_CHIP;
         }
       }
+      if (Parameters::FindByName(params, Parameters::ZXTune::Core::AYM::INTERPOLATION, intParam))
+      {
+        if (intParam)
+        {
+          Chunk.Mask |= AYM::DataChunk::INTERPOLATE;
+        }
+        else
+        {
+          Chunk.Mask &= ~AYM::DataChunk::INTERPOLATE;
+        }
+      }
       if (Parameters::FindByName(params, Parameters::ZXTune::Core::AYM::TABLE, strParam))
       {
         ThrowIfError(Module::GetFreqTable(strParam, FreqTable));

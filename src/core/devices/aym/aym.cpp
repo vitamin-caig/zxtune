@@ -16,6 +16,7 @@ Author:
 #include <sound/render_params.h>
 
 #include <cassert>
+#include <functional>
 #include <limits>
 #include <memory>
 
@@ -65,6 +66,9 @@ namespace
 
     virtual void Reset()
     {
+      std::fill(Accumulators.begin(), Accumulators.end(), 0);
+      AccumulatedSamples = 0;
+
       State.Tick = 0;
       State.Mask = DataChunk::MASK_ALL_REGISTERS;
       std::fill(State.Data.begin(), State.Data.end(), 0);
@@ -146,6 +150,10 @@ namespace
   protected:
     //result buffer
     std::vector<Sound::Sample> Result;
+    //interpolation-related
+    uint_t AccumulatedSamples;
+    //TODO: calculate type
+    boost::array<uint_t, CHANNELS> Accumulators;
     //state
     DataChunk State; //time and registers
     uint_t BitA, BitB, BitC, BitN, BitE/*fake*/;
@@ -238,14 +246,31 @@ namespace
     uint_t& NoiseBitC = (GetMixer() & DataChunk::REG_MASK_NOISEC) ? HighLevel : BitN;
     uint_t& VolumeC = (GetVolC() & DataChunk::REG_MASK_ENV) ? Envelope : volC;
 
+    const bool interpolate(0 != (LastData.Mask & DataChunk::INTERPOLATE));
     while (curTick < LastData.Tick) //render cycle
     {
+      if (interpolate)
+      {
+        Accumulators[0] += GetVolume(ToneBitA & NoiseBitA & VolumeA);
+        Accumulators[1] += GetVolume(ToneBitB & NoiseBitB & VolumeB);
+        Accumulators[2] += GetVolume(ToneBitC & NoiseBitC & VolumeC);
+        ++AccumulatedSamples;
+      }
       if (curTick >= nextSampleTick) //need to store sample
       {
-        Result[0] = GetVolume(ToneBitA & NoiseBitA & VolumeA);
-        Result[1] = GetVolume(ToneBitB & NoiseBitB & VolumeB);
-        Result[2] = GetVolume(ToneBitC & NoiseBitC & VolumeC);
-    
+        if (interpolate)
+        {
+          std::transform(Accumulators.begin(), Accumulators.end(), Result.begin(), std::bind2nd(std::divides<uint_t>(), AccumulatedSamples));
+          std::fill(Accumulators.begin(), Accumulators.end(), 0);
+          AccumulatedSamples = 0;
+        }
+        else
+        {
+          Result[0] = GetVolume(ToneBitA & NoiseBitA & VolumeA);
+          Result[1] = GetVolume(ToneBitB & NoiseBitB & VolumeB);
+          Result[2] = GetVolume(ToneBitC & NoiseBitC & VolumeC);
+        }
+
         dst.ApplySample(Result);
         nextSampleTick = LastStartTicks + LastTicksPerSec * ++LastSamplesDone / LastSoundFreq;
       }
