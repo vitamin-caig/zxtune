@@ -21,71 +21,77 @@ namespace ZXTune
 {
   namespace Module
   {
-    struct VortexSample
+    namespace Vortex
     {
-      VortexSample() : Loop(), Data()
+      struct Sample
       {
-      }
-
-      VortexSample(uint_t size, uint_t loop) : Loop(loop), Data(size)
-      {
-      }
-
-      //make safe sample
-      void Fix()
-      {
-        if (Data.empty())
-        {
-          Data.resize(1);
-        }
-      }
-
-      struct Line
-      {
-        Line()
-         : Level(), VolumeSlideAddon(), ToneMask(true), ToneOffset(), KeepToneOffset()
-         , NoiseMask(true), EnvMask(true), NoiseOrEnvelopeOffset(), KeepNoiseOrEnvelopeOffset()
+        Sample() : Loop(), Data()
         {
         }
 
-        // level-related
-        uint_t Level;//0-15
-        int_t VolumeSlideAddon;
-        // tone-related
-        bool ToneMask;
-        int_t ToneOffset;
-        bool KeepToneOffset;
-        // noise/enelope-related
-        bool NoiseMask;
-        bool EnvMask;
-        int_t NoiseOrEnvelopeOffset;
-        bool KeepNoiseOrEnvelopeOffset;
+        Sample(uint_t size, uint_t loop) : Loop(loop), Data(size)
+        {
+        }
+
+        //make safe sample
+        void Fix()
+        {
+          if (Data.empty())
+          {
+            Data.resize(1);
+          }
+        }
+
+        struct Line
+        {
+          Line()
+           : Level(), VolumeSlideAddon(), ToneMask(true), ToneOffset(), KeepToneOffset()
+           , NoiseMask(true), EnvMask(true), NoiseOrEnvelopeOffset(), KeepNoiseOrEnvelopeOffset()
+          {
+          }
+
+          // level-related
+          uint_t Level;//0-15
+          int_t VolumeSlideAddon;
+          // tone-related
+          bool ToneMask;
+          int_t ToneOffset;
+          bool KeepToneOffset;
+          // noise/enelope-related
+          bool NoiseMask;
+          bool EnvMask;
+          int_t NoiseOrEnvelopeOffset;
+          bool KeepNoiseOrEnvelopeOffset;
+        };
+
+        uint_t Loop;
+        std::vector<Line> Data;
       };
 
-      uint_t Loop;
-      std::vector<Line> Data;
-    };
-    
-    //commands set
-    enum VortexCommands
-    {
-      EMPTY,
-      GLISS,        //2p: period,delta
-      GLISS_NOTE,   //3p: period,delta,note
-      SAMPLEOFFSET, //1p: offset
-      ORNAMENTOFFSET,//1p:offset
-      VIBRATE,      //2p: yestime,notime
-      SLIDEENV,     //2p: period,delta
-      NOENVELOPE,   //0p
-      ENVELOPE,     //2p: type, base
-      NOISEBASE,    //1p: base
-      TEMPO,        //1p - pseudo-effect
-    };
+      //commands set
+      enum Commands
+      {
+        EMPTY,
+        GLISS,        //2p: period,delta
+        GLISS_NOTE,   //3p: period,delta,note
+        SAMPLEOFFSET, //1p: offset
+        ORNAMENTOFFSET,//1p:offset
+        VIBRATE,      //2p: yestime,notime
+        SLIDEENV,     //2p: period,delta
+        NOENVELOPE,   //0p
+        ENVELOPE,     //2p: type, base
+        NOISEBASE,    //1p: base
+        TEMPO,        //1p - pseudo-effect
+      };
 
-    typedef TrackingSupport<AYM::CHANNELS, VortexSample> VortexTrack;
+      //for unification
+      typedef SimpleOrnament Ornament;
 
-    Player::Ptr CreateVortexPlayer(Holder::ConstPtr holder, const VortexTrack::ModuleData& data, 
-       uint_t version, const String& freqTableName, AYM::Chip::Ptr device);
+      typedef TrackingSupport<AYM::CHANNELS, Sample, Ornament> Track;
+
+      Player::Ptr CreatePlayer(Holder::ConstPtr holder, const Track::ModuleData& data,
+         uint_t version, const String& freqTableName, AYM::Chip::Ptr device);
+    }
   }
 }
 

@@ -345,9 +345,9 @@ namespace
   BOOST_STATIC_ASSERT(sizeof(PT3Sample) == 6);
   BOOST_STATIC_ASSERT(sizeof(PT3Ornament) == 3);
 
-  inline VortexSample::Line ParseSampleLine(const PT3Sample::Line& line)
+  inline Vortex::Sample::Line ParseSampleLine(const PT3Sample::Line& line)
   {
-    VortexSample::Line res;
+    Vortex::Sample::Line res;
     res.Level = line.GetLevel();
     res.VolumeSlideAddon = line.GetVolSlide();
     res.ToneMask = line.GetToneMask();
@@ -360,15 +360,15 @@ namespace
     return res;
   }
   
-  inline VortexSample ParseSample(const IO::FastDump& data, uint16_t offset, std::size_t& rawSize)
+  inline Vortex::Sample ParseSample(const IO::FastDump& data, uint16_t offset, std::size_t& rawSize)
   {
     const uint_t off(fromLE(offset));
     const PT3Sample* const sample(safe_ptr_cast<const PT3Sample*>(&data[off]));
     if (0 == offset || !sample->Size)
     {
-      return VortexSample(1, 0);//safe
+      return Vortex::Sample(1, 0);//safe
     }
-    VortexSample tmp(sample->Size, sample->Loop);
+    Vortex::Sample tmp(sample->Size, sample->Loop);
     std::transform(sample->Data, sample->Data + sample->Size, tmp.Data.begin(), ParseSampleLine);
     rawSize = std::max<std::size_t>(rawSize, off + sample->GetSize());
     return tmp;
@@ -400,14 +400,14 @@ namespace
     
     void ParsePattern(const IO::FastDump& data
       , PatternCursors& cursors
-      , VortexTrack::Line& line
+      , Vortex::Track::Line& line
       , Log::MessagesCollector& warner
       , uint_t& noiseBase
       )
     {
       bool wasEnvelope(false), wasNoisebase(false);
       assert(line.Channels.size() == cursors.size());
-      VortexTrack::Line::ChannelsArray::iterator channel(line.Channels.begin());
+      Vortex::Track::Line::ChannelsArray::iterator channel(line.Channels.begin());
       for (PatternCursors::iterator cur = cursors.begin(); cur != cursors.end(); ++cur, ++channel)
       {
         if (cur->Counter--)
@@ -422,31 +422,31 @@ namespace
           const std::size_t restbytes = data.Size() - cur->Offset;
           if (cmd == 1)//gliss
           {
-            channel->Commands.push_back(VortexTrack::Command(GLISS));
+            channel->Commands.push_back(Vortex::Track::Command(Vortex::GLISS));
           }
           else if (cmd == 2)//portamento
           {
-            channel->Commands.push_back(VortexTrack::Command(GLISS_NOTE));
+            channel->Commands.push_back(Vortex::Track::Command(Vortex::GLISS_NOTE));
           }
           else if (cmd == 3)//sample offset
           {
-            channel->Commands.push_back(VortexTrack::Command(SAMPLEOFFSET, -1));
+            channel->Commands.push_back(Vortex::Track::Command(Vortex::SAMPLEOFFSET, -1));
           }
           else if (cmd == 4)//ornament offset
           {
-            channel->Commands.push_back(VortexTrack::Command(ORNAMENTOFFSET));
+            channel->Commands.push_back(Vortex::Track::Command(Vortex::ORNAMENTOFFSET));
           }
           else if (cmd == 5)//vibrate
           {
-            channel->Commands.push_back(VortexTrack::Command(VIBRATE));
+            channel->Commands.push_back(Vortex::Track::Command(Vortex::VIBRATE));
           }
           else if (cmd == 8)//slide envelope
           {
-            channel->Commands.push_back(VortexTrack::Command(SLIDEENV));
+            channel->Commands.push_back(Vortex::Track::Command(Vortex::SLIDEENV));
           }
           else if (cmd == 9)//tempo
           {
-            channel->Commands.push_back(VortexTrack::Command(TEMPO));
+            channel->Commands.push_back(Vortex::Track::Command(Vortex::TEMPO));
           }
           else if ((cmd >= 0x10 && cmd <= 0x1f) ||
                    (cmd >= 0xb2 && cmd <= 0xbf) ||
@@ -466,12 +466,12 @@ namespace
               const uint_t envPeriod(data[cur->Offset + 1] + (uint_t(data[cur->Offset]) << 8));
               cur->Offset += 2;
               Log::Assert(channelWarner, !wasEnvelope, TEXT_WARNING_DUPLICATE_ENVELOPE);
-              channel->Commands.push_back(VortexTrack::Command(ENVELOPE, cmd - (cmd >= 0xb2 ? 0xb1 : 0x10), envPeriod));
+              channel->Commands.push_back(Vortex::Track::Command(Vortex::ENVELOPE, cmd - (cmd >= 0xb2 ? 0xb1 : 0x10), envPeriod));
               wasEnvelope = true;
             }
             else
             {
-              channel->Commands.push_back(VortexTrack::Command(NOENVELOPE));
+              channel->Commands.push_back(Vortex::Track::Command(Vortex::NOENVELOPE));
             }
            
             if (hasOrn) //has ornament command
@@ -509,7 +509,7 @@ namespace
           else if (cmd >= 0x50 && cmd <= 0xaf)
           {
             const uint_t note(cmd - 0x50);
-            VortexTrack::CommandsArray::iterator it(std::find(channel->Commands.begin(), channel->Commands.end(), GLISS_NOTE));
+            Vortex::Track::CommandsArray::iterator it(std::find(channel->Commands.begin(), channel->Commands.end(), Vortex::GLISS_NOTE));
             if (channel->Commands.end() != it)
             {
               it->Param3 = note;
@@ -525,7 +525,7 @@ namespace
           }
           else if (cmd == 0xb0)
           {
-            channel->Commands.push_back(VortexTrack::Command(NOENVELOPE));
+            channel->Commands.push_back(Vortex::Track::Command(Vortex::NOENVELOPE));
           }
           else if (cmd == 0xb1)
           {
@@ -559,12 +559,12 @@ namespace
         }
         //parse parameters
         const std::size_t restbytes = data.Size() - cur->Offset;
-        for (VortexTrack::CommandsArray::reverse_iterator it = channel->Commands.rbegin(), lim = channel->Commands.rend();
+        for (Vortex::Track::CommandsArray::reverse_iterator it = channel->Commands.rbegin(), lim = channel->Commands.rend();
           it != lim; ++it)
         {
           switch (it->Type)
           {
-          case TEMPO:
+          case Vortex::TEMPO:
             if (restbytes < 1)
             {
               throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
@@ -572,8 +572,8 @@ namespace
             Log::Assert(channelWarner, !line.Tempo, TEXT_WARNING_DUPLICATE_TEMPO);
             line.Tempo = data[cur->Offset++];
             break;
-          case SLIDEENV:
-          case GLISS:
+          case Vortex::SLIDEENV:
+          case Vortex::GLISS:
             if (restbytes < 3)
             {
               throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
@@ -582,7 +582,7 @@ namespace
             it->Param2 = static_cast<int16_t>(256 * data[cur->Offset + 1] + data[cur->Offset]);
             cur->Offset += 2;
             break;
-          case VIBRATE:
+          case Vortex::VIBRATE:
             if (restbytes < 2)
             {
               throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
@@ -590,7 +590,7 @@ namespace
             it->Param1 = data[cur->Offset++];
             it->Param2 = data[cur->Offset++];
             break;
-          case ORNAMENTOFFSET:
+          case Vortex::ORNAMENTOFFSET:
           {
             if (restbytes < 1)
             {
@@ -603,7 +603,7 @@ namespace
             it->Param1 = isValid ? offset : 0;
             break;
           }
-          case SAMPLEOFFSET:
+          case Vortex::SAMPLEOFFSET:
             if (-1 == it->Param1)
             {
               if (restbytes < 1)
@@ -617,7 +617,7 @@ namespace
               it->Param1 = isValid ? offset : 0;
             }
             break;
-          case GLISS_NOTE:
+          case Vortex::GLISS_NOTE:
             if (restbytes < 5)
             {
               throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
@@ -635,7 +635,7 @@ namespace
       if (noiseBase)
       {
         //place to channel B
-        line.Channels[1].Commands.push_back(VortexTrack::Command(NOISEBASE, noiseBase));
+        line.Channels[1].Commands.push_back(Vortex::Track::Command(Vortex::NOISEBASE, noiseBase));
       }
     }
   public:
@@ -665,7 +665,7 @@ namespace
       for (const PT3Pattern* pattern = patterns; pattern->Check() && index < Data.Patterns.size(); ++pattern, ++index)
       {
         Log::ParamPrefixedCollector patternWarner(*warner, TEXT_PATTERN_WARN_PREFIX, index);
-        VortexTrack::Pattern& pat(Data.Patterns[index]);
+        Vortex::Track::Pattern& pat(Data.Patterns[index]);
         
         PatternCursors cursors;
         std::transform(pattern->Offsets.begin(), pattern->Offsets.end(), cursors.begin(), &fromLE<uint16_t>);
@@ -674,8 +674,8 @@ namespace
         do
         {
           Log::ParamPrefixedCollector patLineWarner(patternWarner, TEXT_LINE_WARN_PREFIX, pat.size());
-          pat.push_back(VortexTrack::Line());
-          VortexTrack::Line& line(pat.back());
+          pat.push_back(Vortex::Track::Line());
+          Vortex::Track::Line& line(pat.back());
           ParsePattern(data, cursors, line, patLineWarner, noiseBase);
           //skip lines
           if (const uint_t linesToSkip = std::min_element(cursors.begin(), cursors.end(), PatternCursor::CompareByCounter)->Counter)
@@ -702,8 +702,8 @@ namespace
       Log::Assert(*warner, header->Length == Data.Positions.size(), TEXT_WARNING_INVALID_LENGTH);
 
       //fix samples and ornaments
-      std::for_each(Data.Ornaments.begin(), Data.Ornaments.end(), std::mem_fun_ref(&VortexTrack::Ornament::Fix));
-      std::for_each(Data.Samples.begin(), Data.Samples.end(), std::mem_fun_ref(&VortexTrack::Sample::Fix));
+      std::for_each(Data.Ornaments.begin(), Data.Ornaments.end(), std::mem_fun_ref(&Vortex::Track::Ornament::Fix));
+      std::for_each(Data.Samples.begin(), Data.Samples.end(), std::mem_fun_ref(&Vortex::Track::Sample::Fix));
       
       //fill region
       region.Size = rawSize;
@@ -750,9 +750,9 @@ namespace
       Data.Info.Statistic.Tempo = header->Tempo;
       Data.Info.Statistic.Position = Data.Positions.size();
       Data.Info.Statistic.Pattern = std::count_if(Data.Patterns.begin(), Data.Patterns.end(),
-        !boost::bind(&VortexTrack::Pattern::empty, _1));
+        !boost::bind(&Vortex::Track::Pattern::empty, _1));
       Data.Info.Statistic.Channels = AYM::CHANNELS;
-      VortexTrack::CalculateTimings(Data, Data.Info.Statistic.Frame, Data.Info.LoopFrame);
+      Vortex::Track::CalculateTimings(Data, Data.Info.Statistic.Frame, Data.Info.LoopFrame);
       if (const uint_t msgs = warner->CountMessages())
       {
         Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS_COUNT, msgs));
@@ -776,7 +776,7 @@ namespace
 
     virtual Player::Ptr CreatePlayer() const
     {
-      return CreateVortexPlayer(shared_from_this(), Data, Version, FreqTableName, AYM::CreateChip());
+      return Vortex::CreatePlayer(shared_from_this(), Data, Version, FreqTableName, AYM::CreateChip());
     }
     
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -787,7 +787,7 @@ namespace
       {
         dst = RawData;
       }
-      else if (!ConvertAYMFormat(boost::bind(&CreateVortexPlayer, shared_from_this(), boost::cref(Data), Version, FreqTableName, _1),
+      else if (!ConvertAYMFormat(boost::bind(&Vortex::CreatePlayer, shared_from_this(), boost::cref(Data), Version, FreqTableName, _1),
         param, dst, result))
       {
         return Error(THIS_LINE, ERROR_MODULE_CONVERT, TEXT_MODULE_ERROR_CONVERSION_UNSUPPORTED);
@@ -796,7 +796,7 @@ namespace
     }
   private:
     Dump RawData;
-    VortexTrack::ModuleData Data;
+    Vortex::Track::ModuleData Data;
     uint_t Version;
     String FreqTableName;
   };

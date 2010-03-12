@@ -23,6 +23,7 @@ namespace ZXTune
   void RegisterPT2Support(PluginsEnumerator& enumerator);
   void RegisterPT3Support(PluginsEnumerator& enumerator);
   void RegisterASCSupport(PluginsEnumerator& enumerator);
+  void RegisterTXTSupport(PluginsEnumerator& enumerator);
   void RegisterPDTSupport(PluginsEnumerator& enumerator);
   void RegisterCHISupport(PluginsEnumerator& enumerator);
 
@@ -34,6 +35,7 @@ namespace ZXTune
     RegisterPT2Support(enumerator);
     RegisterSTCSupport(enumerator);
     RegisterASCSupport(enumerator);
+    RegisterTXTSupport(enumerator);
     RegisterPSGSupport(enumerator);
     RegisterPDTSupport(enumerator);
     RegisterCHISupport(enumerator);

@@ -36,6 +36,7 @@ extern const Char TEXT_STP_EDITOR[];
 extern const Char TEXT_STP_INFO[];
 extern const Char TEXT_TRD_INFO[];
 extern const Char TEXT_TS_INFO[];
+extern const Char TEXT_TXT_ERROR_INVALID_STRING[];
 extern const Char TEXT_TXT_INFO[];
 extern const Char TEXT_VORTEX_EDITOR[];
 #endif //__TEXT_PLUGINS_H_DEFINED__

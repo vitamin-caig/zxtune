@@ -113,6 +113,10 @@ extern const Char TEXT_TRD_INFO[] = {
 extern const Char TEXT_TS_INFO[] = {
   'T','u','r','b','o','S','o','u','n','d',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
 };
+extern const Char TEXT_TXT_ERROR_INVALID_STRING[] = {
+  'I','n','v','a','l','i','d',' ','s','t','r','i','n','g',' ','w','h','i','l','e',' ','p','a','r','s','i','n',
+  'g',':',' ','\'','%','1','%','\'','.',0
+};
 extern const Char TEXT_TXT_INFO[] = {
   'T','e','x','t',' ','(','V','o','r','t','e','x',')',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o',
   'r','t',0

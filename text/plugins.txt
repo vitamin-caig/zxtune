@@ -134,3 +134,6 @@ __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 
 < TEXT_VORTEX_EDITOR
 > "VortexTracker (ProTracker v%1%.%2% compatible)"
+
+< TEXT_TXT_ERROR_INVALID_STRING
+> "Invalid string while parsing: '%1%'."
