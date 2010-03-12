@@ -190,13 +190,7 @@ namespace
       }
       else if (mode == CONVERSION_MODE_TXT)
       {
-        std::auto_ptr<ZXTune::Module::Conversion::TXTConvertParam> param(new ZXTune::Module::Conversion::TXTConvertParam());
-        if (const Parameters::IntType* ver = Parameters::FindByName<Parameters::IntType>(paramsMap, CONVERSION_PARAM_VERSION))
-        {
-          param->Version = static_cast<uint_t>(*ver);
-        }
-        Parameters::FindByName(paramsMap, CONVERSION_PARAM_FREQTABLE, param->FreqTable);
-        ConversionParameter = param;
+        ConversionParameter.reset(new ZXTune::Module::Conversion::TXTConvertParam());
         CapabilityMask = ZXTune::CAP_CONV_TXT;
       }
       else

@@ -53,13 +53,9 @@ namespace ZXTune
       struct TXTConvertParam : public Parameter
       {
         static const uint64_t TYPE_ID = ParamID8<'V', 'o', 'r', 't', 'T', 'e', 'x', 't'>::Value;
-        TXTConvertParam() : Parameter(TYPE_ID), Version()
+        TXTConvertParam() : Parameter(TYPE_ID)
         {
         }
-        //! Compatibility version (minor version of ProTracker)
-        uint_t Version;
-        //! Used frequency table
-        String FreqTable;
       };
     }
   }

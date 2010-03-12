@@ -28,9 +28,3 @@
 
 < CONVERSION_PARAM_FILENAME
 > "filename"
-
-< CONVERSION_PARAM_VERSION
-> "version"
-
-< CONVERSION_PARAM_FREQTABLE
-> "freqtable"

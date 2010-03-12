@@ -111,12 +111,12 @@ namespace ZXTune
 
     //vortex-based conversion
     bool ConvertVortexFormat(const Vortex::Track::ModuleData& data, const Conversion::Parameter& param,
-      uint_t defaultVersion, const String& defaultFreqTable,
+      uint_t version, const String& freqTable,
       Dump& dst, Error& result)
     {
       using namespace Conversion;
 
-      if (const TXTConvertParam* txtParam = parameter_cast<TXTConvertParam>(&param))
+      if (parameter_cast<TXTConvertParam>(&param))
       {
         Vortex::Description descr;
         const Parameters::Map::const_iterator titleIt(data.Info.Properties.find(Module::ATTR_TITLE));
@@ -129,8 +129,6 @@ namespace ZXTune
         {
           descr.Author = Parameters::ConvertToString(authorIt->second);
         }
-        const uint_t version = in_range<uint_t>(txtParam->Version, 1, 9) ? txtParam->Version : defaultVersion;
-        const String freqTable(txtParam->FreqTable.empty() ? defaultFreqTable : txtParam->FreqTable);
         descr.Version = 30 + (in_range<uint_t>(version, 1, 9) ? version : GetVortexVersion(freqTable));
         descr.Notetable = GetVortexNotetable(freqTable);
         descr.Tempo = data.Info.Statistic.Tempo;

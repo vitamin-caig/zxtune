@@ -21,14 +21,8 @@ extern const Char CONVERSION_MODE_ZX50[] = {
 extern const Char CONVERSION_PARAM_FILENAME[] = {
   'f','i','l','e','n','a','m','e',0
 };
-extern const Char CONVERSION_PARAM_FREQTABLE[] = {
-  'f','r','e','q','t','a','b','l','e',0
-};
 extern const Char CONVERSION_PARAM_MODE[] = {
   'm','o','d','e',0
-};
-extern const Char CONVERSION_PARAM_VERSION[] = {
-  'v','e','r','s','i','o','n',0
 };
 extern const Char TEXT_ANALYZER_DESC[] = {
   'e','n','a','b','l','e',' ','s','p','e','c','t','r','u','m',' ','a','n','a','l','y','z','e','r',0
@@ -74,13 +68,7 @@ extern const Char TEXT_CONVERT_DESC[] = {
   ' ','f','i','l','e','n','a','m','e',' ','-',' ','f','i','l','e','n','a','m','e',' ','t','e','m','p','l','a',
   't','e',' ','w','i','t','h',' ','a','n','y',' ','m','o','d','u','l','e','\'','s',' ','a','t','t','r','i','b',
   'u','t','e','s','\n',
-  'a','n','d',' ','o','p','t','i','o','n','a','l',' ','p','a','r','a','m','e','t','e','r','s',':','\n',
-  ' ','v','e','r','s','i','o','n',' ','-',' ','f','o','r','c','e',' ','m','o','d','u','l','e',' ','v','e','r',
-  's','i','o','n',' ','f','o','r',' ','V','o','r','t','e','x','-','b','a','s','e','d',' ','o','u','t','p','u',
-  't',' ','f','o','r','m','a','t','s','\n',
-  ' ','f','r','e','q','t','a','b','l','e',' ','-',' ','f','o','r','c','e',' ','f','r','e','q','u','e','n','c',
-  'y',' ','t','a','b','l','e',' ','f','o','r',' ','V','o','r','t','e','x','-','b','a','s','e','d',' ','o','u',
-  't','p','u','t',' ','f','o','r','m','a','t','s','.',0
+  '.',0
 };
 extern const Char TEXT_CONVERT_DONE[] = {
   'C','o','n','v','e','r','t','e','d',' ','\'','%','1','%','\'',' ','=','>',' ','\'','%','2','%','\'',0
