@@ -60,7 +60,8 @@ namespace
     info.Id = TXT_PLUGIN_ID;
     info.Description = TEXT_TXT_INFO;
     info.Version = TEXT_TXT_VERSION;
-    info.Capabilities = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
+    info.Capabilities = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW |
+      GetSupportedAYMFormatConvertors() | GetSupportedVortexFormatConvertors();
   }
 
   class TXTHolder : public Holder, public boost::enable_shared_from_this<TXTHolder>
@@ -148,13 +149,13 @@ namespace
       Version = descr.Version % 10;
       switch (descr.Notetable)
       {
-      case 0://PT
+      case Vortex::PROTRACKER:
         FreqTableName = Version <= 3 ? TABLE_PROTRACKER3_3 : TABLE_PROTRACKER3_4;
         break;
-      case 1://ST
+      case Vortex::SOUNDTRACKER:
         FreqTableName = TABLE_SOUNDTRACKER;
         break;
-      case 2://ASM
+      case Vortex::ASM:
         FreqTableName = Version <= 3 ? TABLE_PROTRACKER3_3_ASM : TABLE_PROTRACKER3_4_ASM;
         break;
       default:
@@ -199,13 +200,18 @@ namespace
       if (parameter_cast<RawConvertParam>(&param))
       {
         dst = RawData;
+        return Error();
       }
-      else if (!ConvertAYMFormat(boost::bind(&Vortex::CreatePlayer, shared_from_this(), boost::cref(Data), Version, FreqTableName, _1),
+      else if (ConvertAYMFormat(boost::bind(&Vortex::CreatePlayer, shared_from_this(), boost::cref(Data), Version, FreqTableName, _1),
         param, dst, result))
       {
-        return Error(THIS_LINE, ERROR_MODULE_CONVERT, TEXT_MODULE_ERROR_CONVERSION_UNSUPPORTED);
+        return result;
       }
-      return result;
+      else if (ConvertVortexFormat(Data, param, Version, FreqTableName, dst, result))
+      {
+        return result;
+      }
+      return Error(THIS_LINE, ERROR_MODULE_CONVERT, TEXT_MODULE_ERROR_CONVERSION_UNSUPPORTED);
     }
   private:
     Dump RawData;

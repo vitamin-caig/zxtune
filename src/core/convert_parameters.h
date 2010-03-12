@@ -48,14 +48,18 @@ namespace ZXTune
         }
       };
 
-      //! @brief %Parameter for conversion to Vortex binary format
-      //! @see CAP_CONV_VORTEX
-      struct VortexTextParam : public Parameter
+      //! @brief %Parameter for conversion to Vortex text format
+      //! @see CAP_CONV_TXT
+      struct TXTConvertParam : public Parameter
       {
         static const uint64_t TYPE_ID = ParamID8<'V', 'o', 'r', 't', 'T', 'e', 'x', 't'>::Value;
-        VortexTextParam() : Parameter(TYPE_ID)
+        TXTConvertParam() : Parameter(TYPE_ID), Version()
         {
         }
+        //! Compatibility version (minor version of ProTracker)
+        uint_t Version;
+        //! Used frequency table
+        String FreqTable;
       };
     }
   }

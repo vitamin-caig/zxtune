@@ -23,6 +23,14 @@ namespace ZXTune
   {
     namespace Vortex
     {
+      enum NoteTable
+      {
+        PROTRACKER,
+        SOUNDTRACKER,
+        ASM,
+        REAL
+      };
+
       struct Sample
       {
         Sample() : Loop(), Data()

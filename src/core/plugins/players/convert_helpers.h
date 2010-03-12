@@ -12,6 +12,8 @@ Author:
 #ifndef __CORE_PLUGINS_PLAYERS_CONVERT_HELPERS_H_DEFINED__
 #define __CORE_PLUGINS_PLAYERS_CONVERT_HELPERS_H_DEFINED__
 
+#include "vortex_base.h"
+
 #include <core/module_player.h>
 #include <core/devices/aym.h>
 
@@ -37,6 +39,21 @@ namespace ZXTune
 
     //! @brief Mask for supported AYM-related formats
     uint_t GetSupportedAYMFormatConvertors();
+
+    //! @brief Simple helper for conversion to Vortex-related formats
+    //! @param data Source data for Vortex track
+    //! @param param Input convertion parameter
+    //! @param defaultVersion Compatibility version used if not specified in parameter
+    //! @param defaultFreqTable Frequency table used if not specified in parameter
+    //! @param dst Destination data
+    //! @param result Result state
+    //! @return true if parameter is processed
+    bool ConvertVortexFormat(const Vortex::Track::ModuleData& data, const Conversion::Parameter& param,
+      uint_t defaultVersion, const String& defaultFreqTable,
+      Dump& dst, Error& result);
+
+    //! @brief Mask for supported Vortex-related formats
+    uint_t GetSupportedVortexFormatConvertors();
   }
 }
 

@@ -59,10 +59,8 @@ namespace ZXTune
     CAP_CONV_YM         = 0x00080000,
     //! Support .zx50 format conversion
     CAP_CONV_ZX50       = 0x00100000,
-    //! Support .zxay format conversion
-    CAP_CONV_ZXAY       = 0x00200000,
-    //! Support binary vortex format conversion
-    CAP_CONV_VORTEX     = 0x00400000,
+    //! Support text vortex format conversion
+    CAP_CONV_TXT        = 0x00200000,
   };
 }
 
