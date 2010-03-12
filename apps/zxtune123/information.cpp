@@ -61,7 +61,8 @@ namespace
       //conversion caps
       CapsPair(ZXTune::CAP_CONV_RAW, TEXT_INFO_CONV_RAW),
       CapsPair(ZXTune::CAP_CONV_PSG, TEXT_INFO_CONV_PSG),
-      CapsPair(ZXTune::CAP_CONV_ZX50, TEXT_INFO_CONV_ZX50)
+      CapsPair(ZXTune::CAP_CONV_ZX50, TEXT_INFO_CONV_ZX50),
+      CapsPair(ZXTune::CAP_CONV_TXT, TEXT_INFO_CONV_TXT)
     };
     
     String result;

@@ -44,7 +44,11 @@
 > "Perform conversion instead of playback.\n"
 > "Parameter is map with the next mandatory parameters:\n"
 > " " CONVERSION_PARAM_MODE " - specify conversion mode. Currently supported are: " CONVERSION_MODE_ALL "\n"
-> " " CONVERSION_PARAM_FILENAME " - filename template with any module's attributes."
+> " " CONVERSION_PARAM_FILENAME " - filename template with any module's attributes\n"
+> "and optional parameters:\n"
+> " " CONVERSION_PARAM_VERSION " - force module version for Vortex-based output formats\n"
+> " " CONVERSION_PARAM_FREQTABLE " - force frequency table for Vortex-based output formats"
+> "."
 
 < TEXT_INFORMATIONAL_SECTION
 > "Information keys"
