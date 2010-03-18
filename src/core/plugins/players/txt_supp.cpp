@@ -47,7 +47,9 @@ namespace
   const String TEXT_TXT_VERSION(FromStdString("$Rev$"));
 
   const std::size_t MIN_MODULE_SIZE = 256;
-  const std::size_t MAX_MODULE_SIZE = 1048576;//1M is more than enough
+  const std::size_t MAX_MODULE_SIZE = 524288;//512k is more than enough
+
+  const char TXT_MODULE_ID[] = {'[', 'M', 'o', 'd', 'u', 'l', 'e', ']'};
 
   inline bool FindSection(const String& str)
   {
@@ -223,14 +225,21 @@ namespace
   //////////////////////////////////////////////////////////////////////////
   inline bool CheckSymbol(char sym)
   {
-    return !(std::isprint(sym) || sym == '\r' || sym == '\n');
+    return !(sym >= ' ' || sym == '\r' || sym == '\n');
   }
 
   bool CreateTXTModule(const Parameters::Map& /*commonParams*/, const MetaContainer& container,
     Holder::Ptr& holder, ModuleRegion& region)
   {
+    const std::size_t dataSize(container.Data->Size());
     const char* const data(static_cast<const char*>(container.Data->Data()));
-    const char* const dataEnd(std::find_if(data, data + std::min(MAX_MODULE_SIZE, container.Data->Size()), CheckSymbol));
+    if (dataSize < sizeof(TXT_MODULE_ID) ||
+        0 != std::memcmp(data, TXT_MODULE_ID, sizeof(TXT_MODULE_ID)))
+    {
+      return false;
+    }
+    
+    const char* const dataEnd(std::find_if(data, data + std::min(MAX_MODULE_SIZE, dataSize), CheckSymbol));
     const std::size_t limit(dataEnd - data);
 
     if (limit < MIN_MODULE_SIZE)
