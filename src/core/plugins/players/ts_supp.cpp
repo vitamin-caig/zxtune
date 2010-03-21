@@ -322,7 +322,8 @@ namespace
   /////////////////////////////////////////////////////////////////////////////
   inline bool OnlyAYMPlayersFilter(const PluginInformation& info)
   {
-    return 0 != (info.Capabilities & (CAP_DEVICE_MASK ^ CAP_DEV_AYM));
+    return 0 != (info.Capabilities & (CAP_STORAGE_MASK ^ CAP_STOR_MODULE)) ||
+           0 != (info.Capabilities & (CAP_DEVICE_MASK ^ CAP_DEV_AYM));
   }
 
   inline Error CopyModuleHolder(const String&, Module::Holder::Ptr src, Module::Holder::Ptr& dst)
@@ -354,7 +355,7 @@ namespace
     MetaContainer subdata(container);
     ModuleRegion subregion;
     DetectParameters detectParams;
-    detectParams.Filter = OnlyAYMPlayersFilter;
+    detectParams.Filter = &OnlyAYMPlayersFilter;
 
     subdata.Data = container.Data->GetSubcontainer(0, footer->Size1);
     detectParams.Callback = boost::bind(CopyModuleHolder, _1, _2, boost::ref(holder1));

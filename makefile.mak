@@ -105,7 +105,7 @@ $(target): deps $(object_files) $(foreach lib,$(libraries),$(libs_dir)/$(call ma
 	$(postlink_cmd)
 endif
 
-VPATH := $(source_dirs)
+VPATH := $(dir $(source_files))
 
 $(objects_dir)/%$(call makeobj_name,): %.cpp
 	$(build_obj_cmd)

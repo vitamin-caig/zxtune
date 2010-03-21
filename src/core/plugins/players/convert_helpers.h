@@ -15,7 +15,6 @@ Author:
 #include "vortex_base.h"
 
 #include <core/module_player.h>
-#include <core/devices/aym.h>
 
 #include <boost/function.hpp>
 

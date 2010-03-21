@@ -24,16 +24,17 @@ Author:
 namespace
 {
   using namespace ZXTune::Module;
-  
+
   const Char REVERT_TABLE_MARK = '~';
-  
+
   struct FreqTableEntry
   {
     const String Name;
     const FrequencyTable Table;
   };
-  
-  static const FreqTableEntry TABLES[] = {
+
+  static const FreqTableEntry TABLES[] = 
+  {
     //SoundTracker
     {
       TABLE_SOUNDTRACKER,

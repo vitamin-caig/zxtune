@@ -179,39 +179,37 @@ namespace
       CheckResult(::snd_mixer_selem_register(Handle, 0, 0), THIS_LINE);
       CheckResult(::snd_mixer_load(Handle), THIS_LINE);
       //find mixer element
+      snd_mixer_elem_t* elem = ::snd_mixer_first_elem(Handle);
+      snd_mixer_selem_id_t* sid = 0;
+      snd_mixer_selem_id_alloca(&sid);
+      while (elem)
       {
-        snd_mixer_elem_t* elem = ::snd_mixer_first_elem(Handle);
-        snd_mixer_selem_id_t* sid = 0;
-        snd_mixer_selem_id_alloca(&sid);
-        while (elem)
+        const snd_mixer_elem_type_t type = ::snd_mixer_elem_get_type(elem);
+        if (type == SND_MIXER_ELEM_SIMPLE &&
+            ::snd_mixer_selem_has_playback_volume(elem) != 0)
         {
-          const snd_mixer_elem_type_t type = ::snd_mixer_elem_get_type(elem);
-          if (type == SND_MIXER_ELEM_SIMPLE &&
-              ::snd_mixer_selem_has_playback_volume(elem) != 0 &&
-              ::snd_mixer_selem_has_common_volume(elem) == 0)
+          ::snd_mixer_selem_get_id(elem, sid);
+          const String mixName(FromStdString(::snd_mixer_selem_id_get_name(sid)));
+          Log::Debug(THIS_MODULE, "Checking for mixer %1%", mixName);
+          if (MixerName.empty())
           {
-            ::snd_mixer_selem_get_id(elem, sid);
-            const String mixName(FromStdString(::snd_mixer_selem_id_get_name(sid)));
-            if (MixerName.empty())
-            {
-              Log::Debug(THIS_MODULE, "Using first mixer: %1%", mixName);
-              MixerName = mixName;
-              break;
-            }
-            else if (MixerName == mixName)
-            {
-              break;
-            }
+            Log::Debug(THIS_MODULE, "Using first mixer: %1%", mixName);
+            MixerName = mixName;
+            break;
           }
-          elem = ::snd_mixer_elem_next(elem);
+          else if (MixerName == mixName)
+          {
+            break;
+          }
         }
-        if (!elem)
-        {
-          throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
-            TEXT_SOUND_ERROR_ALSA_BACKEND_NO_MIXER, MixerName);
-        }
-        MixerElement = elem;
+        elem = ::snd_mixer_elem_next(elem);
       }
+      if (!elem)
+      {
+        throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
+          TEXT_SOUND_ERROR_ALSA_BACKEND_NO_MIXER, MixerName);
+      }
+      MixerElement = elem;
     }
     
     ~AutoMixer()

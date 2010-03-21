@@ -50,6 +50,7 @@ namespace
         uint_t mask = src.Mask & DataChunk::MASK_ALL_REGISTERS;
         for (uint_t reg = 0; mask; ++reg, mask >>= 1)
         {
+          // apply chunk if some data changed or env register (even if not changed)
           if ((mask & 1) && (reg == DataChunk::REG_ENV || src.Data[reg] != CurChunk.Data[reg]))
           {
             break;
@@ -71,7 +72,7 @@ namespace
           *inserter = static_cast<Dump::value_type>(fourSkips);
         }
         std::fill_n(inserter, intsPassed % 4, INTERRUPT);
-        for (uint_t reg = 0, mask = src.Mask; mask; ++reg, mask >>= 1)
+        for (uint_t reg = 0, mask = src.Mask & DataChunk::MASK_ALL_REGISTERS; mask; ++reg, mask >>= 1)
         {
           if ((mask & 1) && (reg == DataChunk::REG_ENV || src.Data[reg] != CurChunk.Data[reg]))
           {
@@ -81,6 +82,7 @@ namespace
           }
         }
         *inserter = END_MUS;
+        assert(!Data.empty());
         Data.pop_back();//delete limiter
         std::copy(frame.begin(), frame.end(), std::back_inserter(Data));
         CurChunk.Tick = src.Tick;

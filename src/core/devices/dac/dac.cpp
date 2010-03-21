@@ -30,7 +30,8 @@ namespace
 
   const uint_t NOTES = 64;
   //table in Hz
-  const boost::array<double, NOTES> FREQ_TABLE = {
+  const boost::array<double, NOTES> FREQ_TABLE = 
+  {
     {
     //octave1
     32.70,  34.65,  36.71,  38.89,  41.20,  43.65,  46.25,  49.00,  51.91,  55.00,  58.27,  61.73,
@@ -82,14 +83,14 @@ namespace
 
     Sample(const Dump& data, uint_t loop)
       : Size(data.size()), Loop(loop), Data(data)
-      , Gain(Module::Analyze::LevelType(std::accumulate(&Data[0], &Data[0] + Size, uint_t(0), GainAdder) / Size))
+      , Gain(std::accumulate(&Data[0], &Data[0] + Size, uint_t(0), GainAdder) / Size)
     {
     }
 
     uint_t Size;
     uint_t Loop;
     Dump Data;
-    Module::Analyze::LevelType Gain;
+    uint_t Gain;
   };
 
   struct ChannelState
@@ -138,7 +139,7 @@ namespace
         return scale(SILENT);
       }
     }
-    
+
     Sound::Sample GetInterpolatedValue() const
     {
       if (Enabled)
@@ -155,7 +156,7 @@ namespace
         return scale(SILENT);
       }
     }
-    
+
     Module::Analyze::Channel Analyze(Module::Analyze::LevelType maxGain) const
     {
       Module::Analyze::Channel result;
@@ -184,10 +185,10 @@ namespace
     /// Set sample for work
     virtual void SetSample(uint_t idx, const Dump& data, uint_t loop)
     {
-      if (idx >= Samples.size())
-        throw 1;//TODO
+      assert(idx < Samples.size());
       assert(!Samples[idx].Gain);
       const Sample& res(Samples[idx] = Sample(data, loop));
+      // used for analyze level normalization prior to maximal
       MaxGain = std::max(MaxGain, res.Gain);
     }
 
@@ -195,12 +196,15 @@ namespace
                             const DataChunk& src,
                             Sound::MultichannelReceiver& dst)
     {
+      // update internal state
       std::for_each(src.Channels.begin(), src.Channels.end(),
         boost::bind(&ChipImpl::UpdateState, this, _1));
 
+      // calculate new step
       std::for_each(State.begin(), State.end(),
         boost::bind(&ChipImpl::CalcSampleStep, this, params.SoundFreq, _1));
 
+      // samples to apply
       const uint_t doSamples(static_cast<uint_t>(uint64_t(src.Tick - CurrentTick) * params.SoundFreq / params.ClockFreq));
 
       const std::const_mem_fun_ref_t<Sound::Sample, ChannelState> getter = src.Interpolate ?
@@ -232,10 +236,7 @@ namespace
   private:
     void UpdateState(const DataChunk::ChannelData& state)
     {
-      if (state.Channel >= State.size())
-      {
-        throw 1;//TODO
-      }
+      assert(state.Channel < State.size());
       ChannelState& chan(State[state.Channel]);
       if (state.Mask & DataChunk::ChannelData::MASK_ENABLED)
       {
@@ -255,10 +256,7 @@ namespace
       }
       if (state.Mask & DataChunk::ChannelData::MASK_SAMPLE)
       {
-        if (state.SampleNum >= Samples.size())
-        {
-          throw 1; //TODO
-        }
+        assert(state.SampleNum < Samples.size());
         chan.CurSample = &Samples[state.SampleNum];
       }
       if (state.Mask & DataChunk::ChannelData::MASK_POSITION)
@@ -270,6 +268,7 @@ namespace
 
     void CalcSampleStep(uint_t freq, ChannelState& state)
     {
+      // cached frequency precalc table
       if (TableFreq != freq)
       {
         TableFreq = freq;
@@ -288,7 +287,7 @@ namespace
     }
   private:
     std::vector<Sample> Samples;
-    Module::Analyze::LevelType MaxGain;
+    uint_t MaxGain;
     uint64_t CurrentTick;
     boost::array<ChannelState, Channels> State;
 

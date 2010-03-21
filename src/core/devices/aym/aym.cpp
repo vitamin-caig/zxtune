@@ -27,28 +27,35 @@ namespace
 
   enum
   {
+    // set of registers which required input data masking (4 or 5 lsb)
     REGS_4BIT_SET = (1 << DataChunk::REG_TONEA_H) | (1 << DataChunk::REG_TONEB_H) |
                     (1 << DataChunk::REG_TONEC_H) | (1 << DataChunk::REG_ENV),
     REGS_5BIT_SET = (1 << DataChunk::REG_TONEN) | (1 << DataChunk::REG_VOLA) |
                     (1 << DataChunk::REG_VOLB) | (1 << DataChunk::REG_VOLC),
   };
 
-  const Sound::Sample AYVolumeTab[32] = {
+  // chip-specific volume tables- ym supports 32 volume steps, ay - only 16
+  const Sound::Sample AYVolumeTab[32] = 
+  {
     0x0000, 0x0000, 0x0340, 0x0340, 0x04C0, 0x04C0, 0x06F2, 0x06F2,
     0x0A44, 0x0A44, 0x0F13, 0x0F13, 0x1510, 0x1510, 0x227E, 0x227E,
     0x289F, 0x289F, 0x414E, 0x414E, 0x5B21, 0x5B21, 0x7258, 0x7258,
-    0x905E, 0x905E, 0xB550, 0xB550, 0xD7A0, 0xD7A0, 0xFFFF, 0xFFFF };
-  const Sound::Sample YMVolumeTab[32] = {
+    0x905E, 0x905E, 0xB550, 0xB550, 0xD7A0, 0xD7A0, 0xFFFF, 0xFFFF 
+  };
+  const Sound::Sample YMVolumeTab[32] = 
+  {
     0x0000, 0x0000, 0x00EF, 0x01D0, 0x0290, 0x032A, 0x03EE, 0x04D2,
     0x0611, 0x0782, 0x0912, 0x0A36, 0x0C31, 0x0EB6, 0x1130, 0x13A0,
     0x1751, 0x1BF5, 0x20E2, 0x2594, 0x2CA1, 0x357F, 0x3E45, 0x475E,
-    0x5502, 0x6620, 0x7730, 0x8844, 0xA1D2, 0xC102, 0xE0A2, 0xFFFF };
+    0x5502, 0x6620, 0x7730, 0x8844, 0xA1D2, 0xC102, 0xE0A2, 0xFFFF 
+  };
 
   class ChipImpl : public Chip
   {
   public:
     ChipImpl()
-      : Result(3)
+      : Result(CHANNELS)
+      , AccumulatedSamples()
       , State()
       , BitA(), BitB(), BitC(), BitN(), BitE()
       , TimerA(), TimerB(), TimerC(), TimerN(), TimerE()
@@ -85,13 +92,14 @@ namespace
   private:
     void ApplyRegistersData();
     void DoRender(const Sound::RenderParameters& params, Sound::MultichannelReceiver& dst);
-  private:
+
     static inline uint_t GetDutedTone(uint_t duty, uint_t state, uint_t tone)
     {
       assert(duty > 0 && duty < 100);
       return (state ? 100 - duty : duty) * tone * 2 / 100;
     }
-    bool DoCycle(bool duted, uint_t tone, uint_t& timer, uint_t& bit)
+
+    bool DoCycle(bool duted, uint_t tone, uint_t& timer, uint_t& bit) const
     {
       if (++timer >= (duted ? GetDutedTone(LastData.Data[DataChunk::PARAM_DUTY_CYCLE], bit, tone) : tone))
       {
@@ -101,58 +109,69 @@ namespace
       }
       return false;
     }
+
     uint_t GetToneA() const
     {
       return 256 * State.Data[DataChunk::REG_TONEA_H] + State.Data[DataChunk::REG_TONEA_L];
     }
+
     uint_t GetToneB() const
     {
       return 256 * State.Data[DataChunk::REG_TONEB_H] + State.Data[DataChunk::REG_TONEB_L];
     }
+
     uint_t GetToneC() const
     {
       return 256 * State.Data[DataChunk::REG_TONEC_H] + State.Data[DataChunk::REG_TONEC_L];
     }
+
     uint_t GetToneN() const
     {
       return 2 * State.Data[DataChunk::REG_TONEN];//for optimization
     }
+
     uint_t GetToneE() const
     {
       return 256 * State.Data[DataChunk::REG_TONEE_H] + State.Data[DataChunk::REG_TONEE_L];
     }
+
     uint_t GetVolA() const
     {
       return State.Data[DataChunk::REG_VOLA];
     }
+
     uint_t GetVolB() const
     {
       return State.Data[DataChunk::REG_VOLB];
     }
+
     uint_t GetVolC() const
     {
       return State.Data[DataChunk::REG_VOLC];
     }
+
     uint_t GetMixer() const
     {
       return State.Data[DataChunk::REG_MIXER];
     }
+
     uint_t GetEnv() const
     {
       return State.Data[DataChunk::REG_ENV];
     }
-    Sound::Sample GetVolume(uint_t regVol)
+
+    Sound::Sample GetVolume(uint_t regVol) const
     {
       assert(regVol < 32);
       return ((LastData.Mask & DataChunk::YM_CHIP) ? YMVolumeTab : AYVolumeTab)[regVol] / 2;
     }
+
     uint_t GetBandByPeriod(uint_t regVal) const;
   protected:
     //result buffer
     std::vector<Sound::Sample> Result;
     //interpolation-related
     uint_t AccumulatedSamples;
-    //TODO: calculate type
     boost::array<uint_t, CHANNELS> Accumulators;
     //state
     DataChunk State; //time and registers
@@ -161,7 +180,7 @@ namespace
     uint_t Envelope;
     int_t Decay;
     uint32_t Noise;
-
+    //extrapolation-related
     DataChunk LastData;
     uint64_t LastTicksPerSec;
     uint64_t LastStartTicks;
@@ -221,13 +240,15 @@ namespace
   void ChipImpl::DoRender(const Sound::RenderParameters& params, Sound::MultichannelReceiver& dst)
   {
     //for more precise rendering
-    if (LastTicksPerSec != params.ClockFreq || LastSoundFreq != params.SoundFreq)
+    if (LastTicksPerSec != params.ClockFreq || 
+        LastSoundFreq != params.SoundFreq)
     {
       LastStartTicks = State.Tick;
       LastSoundFreq = params.SoundFreq;
       LastTicksPerSec = params.ClockFreq;
       LastSamplesDone = 1;
     }
+
     uint64_t& curTick = State.Tick;
     uint64_t nextSampleTick = LastStartTicks + LastTicksPerSec * LastSamplesDone / LastSoundFreq;
 
@@ -327,11 +348,11 @@ namespace
 
   void ChipImpl::GetState(Module::Analyze::ChannelsState& state) const
   {
-    state.resize(4);
-    Module::Analyze::Channel& envChan(state[3]);
+    //one channel is envelope
+    state.resize(CHANNELS + 1);
+    Module::Analyze::Channel& envChan(state[CHANNELS]);
     envChan = Module::Analyze::Channel();
-    envChan.Band = GetBandByPeriod((uint16_t(State.Data[DataChunk::REG_TONEE_H]) << 8) |
-      State.Data[DataChunk::REG_TONEE_L]);
+    envChan.Band = GetBandByPeriod(256 * State.Data[DataChunk::REG_TONEE_H] | State.Data[DataChunk::REG_TONEE_L]);
 
     const uint_t mixer(~GetMixer());
     for (uint_t chan = 0; chan != CHANNELS; ++chan)
@@ -339,7 +360,7 @@ namespace
       if (State.Data[DataChunk::REG_VOLA + chan] & DataChunk::REG_MASK_ENV)
       {
         envChan.Enabled = true;
-        envChan.Level += std::numeric_limits<Module::Analyze::LevelType>::max() / 3;
+        envChan.Level += std::numeric_limits<Module::Analyze::LevelType>::max() / CHANNELS;
       }
 
       Module::Analyze::Channel& channel(state[chan]);
@@ -351,7 +372,7 @@ namespace
           std::numeric_limits<Module::Analyze::LevelType>::max() / 15;
         if (mixer & (uint_t(DataChunk::REG_MASK_TONEA) << chan))//tone
         {
-          channel.Band = GetBandByPeriod((uint_t(State.Data[DataChunk::REG_TONEA_H + chan * 2]) << 8) |
+          channel.Band = GetBandByPeriod(256 * State.Data[DataChunk::REG_TONEA_H + chan * 2] |
             State.Data[DataChunk::REG_TONEA_L + chan * 2]);
         }
       }

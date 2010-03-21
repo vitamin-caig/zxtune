@@ -43,6 +43,7 @@ namespace
         uint_t mask = src.Mask & DataChunk::MASK_ALL_REGISTERS;
         for (uint_t reg = 0; mask; ++reg, mask >>= 1)
         {
+          // apply chunk if some data changed or env register (even if not changed)
           if ((mask & 1) && (reg == DataChunk::REG_ENV || src.Data[reg] != CurChunk.Data[reg]))
           {
             break;
@@ -62,7 +63,7 @@ namespace
         std::fill_n(inserter, sizeof(uint16_t) * (intsPassed - 1), 0);
         *inserter = static_cast<Dump::value_type>(src.Mask & 0xff);
         *inserter = static_cast<Dump::value_type>(src.Mask >> 8);
-        for (uint_t reg = 0, mask = src.Mask; mask; ++reg, mask >>= 1)
+        for (uint_t reg = 0, mask = src.Mask & DataChunk::MASK_ALL_REGISTERS; mask; ++reg, mask >>= 1)
         {
           if ((mask & 1) && (reg == DataChunk::REG_ENV || src.Data[reg] != CurChunk.Data[reg]))
           {

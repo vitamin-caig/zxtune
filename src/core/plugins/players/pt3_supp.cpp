@@ -10,7 +10,6 @@ Author:
 */
 
 #include "convert_helpers.h"
-#include "vortex_base.h"
 #include "../detect_helper.h"
 #include "../utils.h"
 

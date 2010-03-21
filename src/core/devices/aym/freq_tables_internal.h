@@ -19,6 +19,7 @@ namespace ZXTune
 {
   namespace Module
   {
+    // getting frequency table data by name
     Error GetFreqTable(const String& id, FrequencyTable& result);
   }
 }

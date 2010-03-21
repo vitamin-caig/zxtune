@@ -62,6 +62,7 @@ namespace
     {
       Parameters::IntType intParam = 0;
       Parameters::StringType strParam;
+      // chip type parameter
       if (Parameters::FindByName(params, Parameters::ZXTune::Core::AYM::TYPE, intParam))
       {
         if (intParam)
@@ -73,6 +74,7 @@ namespace
           Chunk.Mask &= ~AYM::DataChunk::YM_CHIP;
         }
       }
+      // interpolation parameter
       if (Parameters::FindByName(params, Parameters::ZXTune::Core::AYM::INTERPOLATION, intParam))
       {
         if (intParam)
@@ -84,13 +86,16 @@ namespace
           Chunk.Mask &= ~AYM::DataChunk::INTERPOLATE;
         }
       }
+      // freqtable parameter
       if (Parameters::FindByName(params, Parameters::ZXTune::Core::AYM::TABLE, strParam))
       {
+        // as name
         ThrowIfError(Module::GetFreqTable(strParam, FreqTable));
       }
       else if (const Parameters::DataType* const table = Parameters::FindByName<Parameters::DataType>(params,
         Parameters::ZXTune::Core::AYM::TABLE))
       {
+        // as dump
         if (table->size() != FreqTable.size() * sizeof(FreqTable.front()))
         {
           throw MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,
@@ -98,6 +103,7 @@ namespace
         }
         std::memcpy(&FreqTable.front(), &table->front(), table->size());
       }
+      // duty cycle value parameter
       if (Parameters::FindByName(params, Parameters::ZXTune::Core::AYM::DUTY_CYCLE, intParam))
       {
         if (intParam < 1 || intParam > 99)
@@ -107,12 +113,15 @@ namespace
         }
         Chunk.Data[DataChunk::PARAM_DUTY_CYCLE] = static_cast<uint8_t>(intParam);
       }
+      // duty cycle mask parameter
       if (Parameters::FindByName(params, Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MASK, strParam))
       {
+        // as string mask
         Chunk.Data[DataChunk::PARAM_DUTY_CYCLE_MASK] = std::accumulate(strParam.begin(), strParam.end(), 0, LetterToMask);
       }
       else if (Parameters::FindByName(params, Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MASK, intParam))
       {
+        // as integer mask
         Chunk.Data[DataChunk::PARAM_DUTY_CYCLE_MASK] = static_cast<uint8_t>(intParam);
       }
     }
