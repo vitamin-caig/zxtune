@@ -123,7 +123,7 @@ public:
   //! @name Content accessors
   
   //! @brief Text accessor
-  const String& GetText() const;
+  String GetText() const;
   //! @brief Code accessor
   CodeType GetCode() const;
   

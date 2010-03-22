@@ -8,6 +8,7 @@ Last changed:
 Author:
   (C) Vitamin/CAIG/2001
 */
+
 #include "enumerator.h"
 #include "backends_list.h"
 
@@ -60,7 +61,7 @@ namespace
     virtual Error CreateBackend(const String& id, const Parameters::Map& params, Backend::Ptr& result) const
     {
       Log::Debug(THIS_MODULE, "Creating backend '%1%'", id);
-      const CreatorsStorage::const_iterator it(Creators.find(id));
+      const CreatorsStorage::const_iterator it = Creators.find(id);
       if (Creators.end() == it)
       {
         return MakeFormattedError(THIS_LINE, BACKEND_NOT_FOUND, TEXT_SOUND_ERROR_BACKEND_NOT_FOUND, id);

@@ -16,6 +16,7 @@ Author:
 
 namespace
 {
+  // environment variable used to switch on logging
   const char DEBUG_LOG_VARIABLE[] = "ZXTUNE_DEBUG_LOG";
   
   class Logger

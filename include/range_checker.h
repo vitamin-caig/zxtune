@@ -23,7 +23,9 @@ public:
   virtual ~RangeChecker() {}
 
   virtual bool AddRange(std::size_t offset, std::size_t size) = 0;
-  virtual std::pair<std::size_t, std::size_t> GetAffectedRange() const = 0;
+
+  typedef std::pair<std::size_t, std::size_t> Range;
+  virtual Range GetAffectedRange() const = 0;
 
   static Ptr Create(std::size_t limit);
   static Ptr CreateShared(std::size_t limit);

@@ -20,7 +20,7 @@ Author:
 
 namespace
 {
-  const Parameters::IntType RADIX(10);
+  const Parameters::IntType RADIX = 10;
 
   BOOST_STATIC_ASSERT(1 == sizeof(Parameters::DataType::value_type));
 
@@ -64,7 +64,7 @@ namespace
     String operator()(const Parameters::DataType& dmp) const
     {
       String res(dmp.size() * 2 + 1, Parameters::DATA_PREFIX);
-      String::iterator dstit(res.begin());
+      String::iterator dstit = res.begin();
       for (Parameters::DataType::const_iterator srcit = dmp.begin(), srclim = dmp.end(); srcit != srclim; ++srcit)
       {
         const Parameters::DataType::value_type val = *srcit;
@@ -78,7 +78,10 @@ namespace
     {
       if (IsDump(str) || IsInteger(str) || IsQuoted(str))
       {
-        return String(1, Parameters::STRING_QUOTE) + str + Parameters::STRING_QUOTE;
+        String res = String(1, Parameters::STRING_QUOTE);
+        res += str;
+        res += Parameters::STRING_QUOTE;
+        return res;
       }
       return str;
     }
@@ -87,7 +90,7 @@ namespace
     {
       //integer may be so long, so it's better to convert here
       String res;
-      const bool negate(var < 0);
+      const bool negate = var < 0;
       
       if (negate)
       {
@@ -98,6 +101,7 @@ namespace
         res += ToHex(static_cast<uint_t>(var % RADIX));
       }
       while (var /= RADIX);
+
       if (negate)
       {
         res += '-';
@@ -129,7 +133,7 @@ namespace Parameters
       {
         const Dump::value_type highNibble = FromHex(*++src);
         const Dump::value_type lowNibble = FromHex(*++src);
-        *it = (highNibble << 4) | lowNibble;
+        *it = highNibble * 16 | lowNibble;
       }
       return ValueType(res);
     }
@@ -137,7 +141,7 @@ namespace Parameters
     {
       IntType res = 0;
       String::const_iterator it = val.begin();
-      const bool negate(*it == '-');
+      const bool negate = *it == '-';
       if (negate || *it == '+')
       {
         ++it;

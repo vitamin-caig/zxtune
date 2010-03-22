@@ -47,7 +47,8 @@ namespace
   const Char BACKEND_ID[] = {'w', 'i', 'n', '3', '2', 0};
   const String BACKEND_VERSION(FromStdString("$Rev$"));
 
-  static const BackendInformation BACKEND_INFO =
+  // backend description
+  const BackendInformation BACKEND_INFO =
   {
     BACKEND_ID,
     TEXT_WIN32_BACKEND_DESCRIPTION,
@@ -75,6 +76,7 @@ namespace
   {
     if (!val)
     {
+      //TODO: convert code to string
       throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR, TEXT_SOUND_ERROR_WIN32_BACKEND_ERROR, ::GetLastError());//TODO
     }
   }
@@ -95,7 +97,7 @@ namespace
     void Allocate(::HWAVEOUT handle, ::HANDLE event, const RenderParameters& params)
     {
       assert(0 == Handle && INVALID_HANDLE_VALUE == Event);
-      const std::size_t bufSize(params.SamplesPerFrame());
+      const std::size_t bufSize = params.SamplesPerFrame();
       Buffer.resize(bufSize);
       Header.lpData = ::LPSTR(&Buffer[0]);
       Header.dwBufferLength = ::DWORD(bufSize) * sizeof(Buffer.front());
@@ -263,7 +265,7 @@ namespace
       if (device || freq || buffs)
       {
         Locker lock(BackendMutex);
-        const bool needStartup(0 != WaveHandle);
+        const bool needStartup = 0 != WaveHandle;
         DoShutdown();
         if (device)
         {

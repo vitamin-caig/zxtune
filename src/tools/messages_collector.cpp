@@ -40,7 +40,6 @@ namespace
 
   private:
     StringList Messages;
-    std::size_t TotalSize;
   };
 }
 

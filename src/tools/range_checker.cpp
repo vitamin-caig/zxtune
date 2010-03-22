@@ -17,6 +17,7 @@ Author:
 
 namespace
 {
+  //simple range checker implementation
   class RangeCheckerImpl : public RangeChecker
   {
     typedef std::map<std::size_t, std::size_t> RangeMap;
@@ -27,7 +28,7 @@ namespace
 
     virtual bool AddRange(std::size_t offset, std::size_t size)
     {
-      const std::size_t endPos(offset + size);
+      const std::size_t endPos = offset + size;
       if (endPos > Limit)
       {
         return false;
@@ -37,7 +38,8 @@ namespace
         Ranges[offset] = size;
         return true;
       }
-      RangeMap::iterator bound(Ranges.upper_bound(offset));
+      // regular iterator for simplification- compiler gets regular iterator from Ranges member
+      RangeMap::iterator bound = Ranges.upper_bound(offset);
       if (bound == Ranges.end()) //to end
       {
         --bound;
@@ -70,13 +72,19 @@ namespace
       return true;
     }
 
+    virtual Range GetAffectedRange() const
+    {
+      return Ranges.empty()
+        ? Range(0, 0)
+        : Range(Ranges.begin()->first, Ranges.rbegin()->first + Ranges.rbegin()->second);
+    }
   private:
     void DoMerge(RangeMap::iterator bound)
     {
       if (bound != Ranges.begin())
       {
         //try to merge with previous
-        RangeMap::iterator prev(bound);
+        RangeMap::iterator prev = bound;
         --prev;
         assert(prev->first + prev->second <= bound->first);
         if (prev->first + prev->second == bound->first)
@@ -87,7 +95,7 @@ namespace
         }
       }
       //try to merge with next
-      RangeMap::iterator next(bound);
+      RangeMap::iterator next = bound;
       if (++next != Ranges.end())
       {
         assert(bound->first + bound->second <= next->first);
@@ -97,12 +105,6 @@ namespace
           Ranges.erase(next);
         }
       }
-    }
-
-    virtual std::pair<std::size_t, std::size_t> GetAffectedRange() const
-    {
-      return Ranges.empty() ?
-        std::pair<std::size_t, std::size_t>(0, 0) : std::pair<std::size_t, std::size_t>(Ranges.begin()->first, Ranges.rbegin()->first + Ranges.rbegin()->second);
     }
   private:
     const std::size_t Limit;
@@ -120,12 +122,12 @@ namespace
 
     virtual bool AddRange(std::size_t offset, std::size_t size)
     {
-      const std::size_t endPos(offset + size);
+      const std::size_t endPos = offset + size;
       if (endPos > Limit)
       {
         return false;
       }
-      RangeMap::iterator bound(Ranges.upper_bound(offset));
+      RangeMap::iterator bound = Ranges.upper_bound(offset);
       if (bound != Ranges.end() &&
           endPos > bound->first)
       {
@@ -160,10 +162,11 @@ namespace
       return true;
    }
 
-    virtual std::pair<std::size_t, std::size_t> GetAffectedRange() const
+    virtual Range GetAffectedRange() const
     {
-      return Ranges.empty() ?
-        std::pair<std::size_t, std::size_t>(0, 0) : std::pair<std::size_t, std::size_t>(Ranges.begin()->first, Ranges.rbegin()->first + Ranges.rbegin()->second);
+      return Ranges.empty()
+        ? Range(0, 0)
+        : Range(Ranges.begin()->first, Ranges.rbegin()->first + Ranges.rbegin()->second);
     }
   private:
     const std::size_t Limit;

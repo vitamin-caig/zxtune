@@ -9,7 +9,6 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-//TODO: different models supported
 #if defined(DLPORTIO_AYLPT_SUPPORT)
 
 #include "aylpt_supp/dumper.h"
@@ -37,7 +36,8 @@ namespace
   const Char BACKEND_ID[] = {'a', 'y', 'l', 'p', 't', 0};
   const String BACKEND_VERSION(FromStdString("$Rev$"));
 
-  static const BackendInformation BACKEND_INFO =
+  // backend description
+  const BackendInformation BACKEND_INFO =
   {
     BACKEND_ID,
     TEXT_AYLPT_BACKEND_DESCRIPTION,
@@ -128,12 +128,12 @@ namespace
       //prepare dump
       AYM::DataChunk chunk;
       {
-        const uint_t limit(RenderData.size());
+        const uint_t limit = RenderData.size();
         if (RenderPos + 2 > limit)
         {
           return false;
         }
-        uint_t msk = uint_t(RenderData[RenderPos + 1]) * 256 + RenderData[RenderPos];
+        uint_t msk = RenderData[RenderPos + 1] * 256 + RenderData[RenderPos];
         RenderPos += 2;
         chunk.Mask = msk;
         if (RenderPos + CountBits(msk) > limit)
@@ -151,7 +151,7 @@ namespace
       //wait for time
       boost::mutex localMutex;
       boost::unique_lock<boost::mutex> locker(localMutex);
-      SyncEvent.timed_wait(locker, 
+      SyncEvent.timed_wait(locker,
         OutputTime + boost::posix_time::microseconds(RenderingParameters.FrameDurationMicrosec));
       //perform output
       Dumper->Process(chunk);

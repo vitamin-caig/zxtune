@@ -8,6 +8,7 @@ Last changed:
 Author:
   (C) Vitamin/CAIG/2001
 */
+
 #include "internal_types.h"
 
 #include <tools.h>
@@ -102,8 +103,8 @@ namespace
       MultiBigSample res = { {0} };
       for (uint_t inChan = 0; inChan != InChannels; ++inChan)
       {
-        const NativeType in(inData[inChan]);
-        const MultiFixed& inChanMix(Matrix[inChan]);
+        const NativeType in = inData[inChan];
+        const MultiFixed& inChanMix = Matrix[inChan];
         for (uint_t outChan = 0; outChan != OUTPUT_CHANNELS; ++outChan)
         {
           res[outChan] += inChanMix[outChan] * in;
@@ -130,8 +131,8 @@ namespace
       {
         return Error(THIS_LINE, MIXER_INVALID_PARAMETER, TEXT_SOUND_ERROR_MIXER_INVALID_MATRIX_CHANNELS);
       }
-      const std::vector<MultiGain>::const_iterator it(std::find_if(data.begin(), data.end(),
-        FindOverloadedGain));
+      const std::vector<MultiGain>::const_iterator it = std::find_if(data.begin(), data.end(),
+        FindOverloadedGain);
       if (it != data.end())
       {
         return Error(THIS_LINE, MIXER_INVALID_PARAMETER, TEXT_SOUND_ERROR_MIXER_INVALID_MATRIX_GAIN);

@@ -8,6 +8,7 @@ Last changed:
 Author:
   (C) Vitamin/CAIG/2001
 */
+
 #include "internal_types.h"
 
 #include <tools.h>
@@ -43,7 +44,7 @@ namespace
     double result = 0.0;
     while (term < -delta || term > delta)
     {
-      ++k;           //step
+      ++k;                   //step
       f *= (alpha / 2) / k;  //f(k+1) = f(k)*(c/k),f(0)=1 c=alpha/2
       term = f * f;
       result += term;
@@ -140,8 +141,8 @@ namespace
 
       for (typename MatrixType::const_iterator it = Matrix.begin(), lim = Matrix.end(); it != lim; ++it, --Position)
       {
-        const typename MatrixType::value_type val(*it);
-        const MultiIntSample& src(*Position);
+        const typename MatrixType::value_type val = *it;
+        const MultiIntSample& src = *Position;
         for (uint_t chan = 0; chan != OUTPUT_CHANNELS; ++chan)
         {
           res[chan] += val * src[chan];
@@ -179,7 +180,7 @@ namespace
 
         //create freq responses
         std::vector<Gain> freqResponse(order, 0.0);
-        const uint_t midOrder(order / 2);
+        const uint_t midOrder = order / 2;
         for (uint_t tap = 0; tap < midOrder; ++tap)
         {
           const uint_t tapFreq = static_cast<uint_t>(uint64_t(freq) * (tap + 1) / order);

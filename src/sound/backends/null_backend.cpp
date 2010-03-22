@@ -28,8 +28,9 @@ namespace
 
   const Char BACKEND_ID[] = {'n', 'u', 'l', 'l', 0};
   const String BACKEND_VERSION(FromStdString("$Rev$"));
-  
-  static const BackendInformation BACKEND_INFO =
+
+  // backend description
+  const BackendInformation BACKEND_INFO =
   {
     BACKEND_ID,
     TEXT_NULL_BACKEND_DESCRIPTION,

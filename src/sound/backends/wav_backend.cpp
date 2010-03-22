@@ -41,7 +41,8 @@ namespace
   const Char BACKEND_ID[] = {'w', 'a', 'v', 0};
   const String BACKEND_VERSION(FromStdString("$Rev$"));
 
-  static const BackendInformation BACKEND_INFO =
+  // backend description
+  const BackendInformation BACKEND_INFO =
   {
     BACKEND_ID,
     TEXT_WAV_BACKEND_DESCRIPTION,

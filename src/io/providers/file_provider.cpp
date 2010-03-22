@@ -32,20 +32,23 @@ namespace
   using namespace ZXTune::IO;
 
   const String PROVIDER_VERSION(FromStdString("$Rev$"));
-  
-  static const ProviderInformation PROVIDER_INFO =
+
+  // provider information structure
+  const ProviderInformation PROVIDER_INFO =
   {
     TEXT_IO_FILE_PROVIDER_NAME,
     TEXT_IO_FILE_PROVIDER_DESCRIPTION,
     PROVIDER_VERSION,
   };
 
+  // uri-related constants
   const Char SCHEME_SIGN[] = {':', '/', '/', 0};
   const Char SCHEME_FILE[] = {'f', 'i', 'l', 'e', 0};
   const Char SUBPATH_DELIMITER = '\?';
 
   class FileDataContainer : public DataContainer
   {
+    // basic interface for internal data storing
     class Holder
     {
     public:
@@ -55,7 +58,8 @@ namespace
       virtual std::size_t Size() const = 0;
       virtual const uint8_t* Data() const = 0;
     };
-    
+
+    // memory-mapping holder implementation
     class MMapHolder : public Holder
     {
     public:
@@ -82,7 +86,8 @@ namespace
       boost::interprocess::file_mapping File;
       boost::interprocess::mapped_region Region;
     };
-    
+
+    // simple buffer implementation
     class DumpHolder : public Holder
     {
     public:
@@ -109,6 +114,7 @@ namespace
       : CoreHolder()
       , Offset(0), Length(0)
     {
+      //TODO: possible use boost.filesystem to determine file size
       std::ifstream file(ConvertToFilename(path).c_str(), std::ios::binary);
       if (!file)
       {
@@ -124,7 +130,7 @@ namespace
       if (const Parameters::IntType* val =
         Parameters::FindByName<Parameters::IntType>(params, Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD))
       {
-        threshold = static_cast<std::streamoff>(*val);
+        threshold = static_cast<std::streampos>(*val);
       }
       if (fileSize >= threshold)
       {
@@ -171,7 +177,6 @@ namespace
     std::size_t Length;
   };
 
-
   inline bool IsOrdered(String::size_type lh, String::size_type rh)
   {
     return String::npos == rh ? true : lh < rh;
@@ -180,18 +185,19 @@ namespace
   ///////////////////////////////////////
   bool FileChecker(const String& uri)
   {
-    const String::size_type schemePos(uri.find(SCHEME_SIGN));
-    const String::size_type basePos(String::npos == schemePos ? 0 : schemePos + ArraySize(SCHEME_SIGN) - 1);
-    const String::size_type subPos(uri.find_first_of(SUBPATH_DELIMITER));
+    // TODO: extract and use common scheme-working code
+    const String::size_type schemePos = uri.find(SCHEME_SIGN);
+    const String::size_type basePos = String::npos == schemePos ? 0 : schemePos + ArraySize(SCHEME_SIGN) - 1;
+    const String::size_type subPos = uri.find_first_of(SUBPATH_DELIMITER);
     
     return (String::npos == schemePos || uri.substr(0, schemePos) == SCHEME_FILE) && IsOrdered(basePos, subPos);
   }
   
   Error FileSplitter(const String& uri, String& baseUri, String& subpath)
   {
-    const String::size_type schemePos(uri.find(SCHEME_SIGN));
-    const String::size_type basePos(String::npos == schemePos ? 0 : schemePos + ArraySize(SCHEME_SIGN) - 1);
-    const String::size_type subPos(uri.find_first_of(SUBPATH_DELIMITER));
+    const String::size_type schemePos = uri.find(SCHEME_SIGN);
+    const String::size_type basePos = String::npos == schemePos ? 0 : schemePos + ArraySize(SCHEME_SIGN) - 1;
+    const String::size_type subPos = uri.find_first_of(SUBPATH_DELIMITER);
     if ((String::npos != schemePos && uri.substr(0, schemePos) != SCHEME_FILE) || !IsOrdered(basePos, subPos))
     {
       return Error(THIS_LINE, ERROR_NOT_SUPPORTED, TEXT_IO_ERROR_NOT_SUPPORTED_URI);

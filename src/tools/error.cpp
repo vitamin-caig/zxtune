@@ -35,11 +35,16 @@ struct Error::Meta
     assert(Code);
   }
 
+  // source error location
   Error::Location Location;
+  // error code
   Error::CodeType Code;
+  // error text message
   String Text;
+  // suberror
   MetaPtr Suberror;
 
+  // static reference to 'success' error instance
   static Meta* Success()
   {
     static Meta Success;
@@ -100,12 +105,12 @@ void Error::WalkSuberrors(const boost::function<void(uint_t, LocationRef, CodeTy
   MetaPtr ptr = ErrorMeta;
   for (uint_t level = 0; ptr; ++level, ptr = ptr->Suberror)
   {
-    const Meta& Meta(*ptr);
-    callback(level, Meta.Location, Meta.Code, Meta.Text);
+    const Meta& meta = *ptr;
+    callback(level, meta.Location, meta.Code, meta.Text);
   }
 }
 
-const String& Error::GetText() const
+String Error::GetText() const
 {
   return ErrorMeta->Text;
 }
@@ -127,7 +132,7 @@ bool Error::operator ! () const
 
 String Error::CodeToString(CodeType code)
 {
-  const std::size_t codeBytes(sizeof(code) - 3);
+  const std::size_t codeBytes = sizeof(code) - 3;
   const CodeType syms = code >> (8 * codeBytes);
   const Char p1 = static_cast<Char>(syms & 0xff);
   const Char p2 = static_cast<Char>((syms >> 8) & 0xff);

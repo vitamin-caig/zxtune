@@ -49,7 +49,7 @@ namespace ZXTune
     
     String ExtractFirstPathComponent(const String& path, String& restPart)
     {
-      const String::size_type delimPos(path.find_first_of(FS_DELIMITERS));
+      const String::size_type delimPos = path.find_first_of(FS_DELIMITERS);
       if (String::npos == delimPos)
       {
         restPart.clear();
@@ -64,7 +64,7 @@ namespace ZXTune
 
     String ExtractLastPathComponent(const String& path, String& restPart)
     {
-      const String::size_type delimPos(path.find_last_of(FS_DELIMITERS));
+      const String::size_type delimPos = path.find_last_of(FS_DELIMITERS);
       if (String::npos == delimPos)
       {
         restPart.clear();
@@ -80,7 +80,7 @@ namespace ZXTune
     String AppendPath(const String& path1, const String& path2)
     {
       static const String DELIMS(FS_DELIMITERS);
-      String result(path1);
+      String result = path1;
       if (!path1.empty() && String::npos == DELIMS.find(*path1.rbegin()) &&
           !path2.empty() && String::npos == DELIMS.find(*path2.begin()))
       {
@@ -109,7 +109,7 @@ namespace ZXTune
 
     std::auto_ptr<std::ofstream> CreateFile(const String& path, bool overwrite)
     {
-      const std::string pathC(ConvertToFilename(path));
+      const std::string& pathC = ConvertToFilename(path);
       if (!overwrite && std::ifstream(pathC.c_str()))
       {
         throw MakeFormattedError(THIS_LINE, ERROR_FILE_EXISTS, TEXT_IO_ERROR_FILE_EXISTS, path);

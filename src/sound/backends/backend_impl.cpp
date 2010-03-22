@@ -212,7 +212,7 @@ namespace ZXTune
 
         Channels = modInfo.PhysicalChannels;
         CurrentState = STOPPED;
-        Mixer::Ptr& curMixer(MixersSet[Channels - 1]);
+        Mixer::Ptr& curMixer = MixersSet[Channels - 1];
         if (!curMixer)
         {
           ThrowIfError(CreateMixer(Channels, curMixer));
@@ -241,7 +241,7 @@ namespace ZXTune
         Locker lock(PlayerMutex);
         CheckState();
         
-        const State prevState(CurrentState);
+        const State prevState = CurrentState;
         if (STOPPED == prevState)
         {
           Log::Debug(THIS_MODULE, "Starting playback");
@@ -263,7 +263,6 @@ namespace ZXTune
           PauseEvent.wait(locker);
           Log::Debug(THIS_MODULE, "Resumed");
         }
-        
         return Error();
       }
       catch (const Error& e)
@@ -358,7 +357,7 @@ namespace ZXTune
         
         Locker lock(PlayerMutex);
         
-        Mixer::Ptr& curMixer(MixersSet[mixChannels - 1]);
+        Mixer::Ptr& curMixer = MixersSet[mixChannels - 1];
         if (!curMixer)
         {
           ThrowIfError(CreateMixer(mixChannels, curMixer));
@@ -472,7 +471,7 @@ namespace ZXTune
 
     void BackendImpl::StopPlayback()
     {
-      const State curState(CurrentState);
+      const State curState = CurrentState;
       if (STARTED == curState ||
           PAUSED == curState ||
           (STOPPED == curState && InProcess))
@@ -528,7 +527,7 @@ namespace ZXTune
         InProcess = false;//starting finished
         for (;;)
         {
-          const State curState(CurrentState);
+          const State curState = CurrentState;
           if (STOPPED == curState)
           {
             break;
