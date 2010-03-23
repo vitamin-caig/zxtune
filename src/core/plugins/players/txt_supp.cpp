@@ -67,8 +67,7 @@ namespace
     //region must be filled
     TXTHolder(const MetaContainer& container, const ModuleRegion& region)
     {
-      const IO::FastDump& data = IO::FastDump(*container.Data);
-      const char* const dataIt(safe_ptr_cast<const char*>(data.Data()));
+      const char* const dataIt = static_cast<const char*>(container.Data->Data());
 
       ThrowIfError(Vortex::ConvertFromText(std::string(dataIt, dataIt + region.Size),
         Data, Version, FreqTableName));
@@ -137,16 +136,16 @@ namespace
   bool CreateTXTModule(const Parameters::Map& /*commonParams*/, const MetaContainer& container,
     Holder::Ptr& holder, ModuleRegion& region)
   {
-    const std::size_t dataSize(container.Data->Size());
-    const char* const data(static_cast<const char*>(container.Data->Data()));
+    const std::size_t dataSize = container.Data->Size();
+    const char* const data = static_cast<const char*>(container.Data->Data());
     if (dataSize < sizeof(TXT_MODULE_ID) ||
         0 != std::memcmp(data, TXT_MODULE_ID, sizeof(TXT_MODULE_ID)))
     {
       return false;
     }
     
-    const char* const dataEnd(std::find_if(data, data + std::min(MAX_MODULE_SIZE, dataSize), CheckSymbol));
-    const std::size_t limit(dataEnd - data);
+    const char* const dataEnd = std::find_if(data, data + std::min(MAX_MODULE_SIZE, dataSize), CheckSymbol);
+    const std::size_t limit = dataEnd - data;
 
     if (limit < MIN_MODULE_SIZE)
     {

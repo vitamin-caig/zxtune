@@ -38,19 +38,21 @@ namespace
   const char LOOP_MARK = 'L';
 
   const char MODULE_DELIMITER = '=';
-  const char MODULE_VERSION[] = {'V', 'e', 'r', 's', 'i', 'o', 'n', 0};
-  const char MODULE_TITLE[] = {'T', 'i', 't', 'l', 'e', 0};
-  const char MODULE_AUTHOR[] = {'A', 'u', 't', 'h', 'o', 'r', 0};
-  const char MODULE_NOTETABLE[] = {'N', 'o', 't', 'e', 'T', 'a', 'b', 'l', 'e', 0};
-  const char MODULE_SPEED[] = {'S', 'p', 'e', 'e', 'd', 0};
-  const char MODULE_PLAYORDER[] = {'P', 'l', 'a', 'y', 'O', 'r', 'd', 'e', 'r', 0};
+  const std::string MODULE_VERSION("Version");
+  const std::string MODULE_TITLE("Title");
+  const std::string MODULE_AUTHOR("Author");
+  const std::string MODULE_NOTETABLE("NoteTable");
+  const std::string MODULE_SPEED("Speed");
+  const std::string MODULE_PLAYORDER("PlayOrder");
 
-  const char SECTION_MODULE[] = {'[', 'M', 'o', 'd', 'u', 'l', 'e', ']', 0};
-  const char SECTION_ORNAMENT[] = {'[', 'O', 'r', 'n', 'a', 'm', 'e', 'n', 't', 0};
-  const char SECTION_SAMPLE[] = {'[', 'S', 'a', 'm', 'p', 'l', 'e', 0};
-  const char SECTION_PATTERN[] = {'[', 'P', 'a', 't', 't', 'e', 'r', 'n', 0};
-  const char SECTION_END[] = {']', 0};
+  const std::string SECTION_MODULE("[Module]");
+  const std::string SECTION_ORNAMENT("[Ornament");
+  const std::string SECTION_SAMPLE("[Sample");
+  const std::string SECTION_PATTERN("[Pattern");
+  const char SECTION_BEGIN = '[';
+  const char SECTION_END = ']';
 
+  // simple string pattern matching implementation via bitmap
   //start symbol
   const uint64_t SPACE = 1;
   //wildcard
@@ -92,19 +94,7 @@ namespace
   {
     std::istringstream stream(str);
     T val = T();
-    if (stream >> val)
-    {
-      return val;
-    }
-    else
-    {
-      return T();
-    }
-  }
-
-  inline bool FindSection(const std::string& str)
-  {
-    return str.size() >= 3 && str[0] == '[' && *str.rbegin() == ']';
+    return (stream >> val) ? val : T();
   }
 
   inline bool CheckSym(boost::call_traits<uint64_t>::param_type setof, char sym)
@@ -153,10 +143,10 @@ namespace
   template<class T>
   inline T FromHex(const std::string& str)
   {
-    const std::string::const_iterator lim(str.end());
-    std::string::const_iterator it(str.begin());
-    const bool negate(*it == '-');
-    T result(0);
+    const std::string::const_iterator lim = str.end();
+    std::string::const_iterator it = str.begin();
+    const bool negate = *it == '-';
+    T result = T();
     if (!std::isxdigit(*it))
     {
       ++it;
@@ -216,11 +206,12 @@ namespace
 
   inline bool IsNote(const std::string& str, uint_t& note)
   {
-    static const uint64_t PATTERN[] = {
+    static const uint64_t PATTERN[] = 
+    {
       Range<'A', 'G'>::Mask, Symbol<'-'>::Mask | Symbol<'#'>::Mask, Range<'1', '8'>::Mask, 0
     };
 
-    //                                   A   B  C  D  E  F  G
+    //                                 A   B  C  D  E  F  G
     static const uint_t halftones[] = {9, 11, 0, 2, 4, 5, 7};
     if (Match(PATTERN, str))
     {
@@ -233,24 +224,24 @@ namespace
   inline std::string GetNote(uint_t note)
   {
     static const char TONES[] = "C-C#D-D#E-F-F#G-G#A-A#B-";
-    const uint_t octave(note / 12);
-    const uint_t halftone(note % 12);
+    const uint_t octave = note / 12;
+    const uint_t halftone = note % 12;
     return std::string(TONES + halftone * 2, TONES + halftone * 2 + 2) + char('1' + octave);
   }
 
   //channels
-  bool ParseChannel(const std::string& str, Vortex::Track::Line::Chan& chan)
+  inline bool ParseChannel(const std::string& str, Vortex::Track::Line::Chan& chan)
   {
     //parse note
     {
-      const std::string& notestr(str.substr(0, 3));
+      const std::string& notestr = str.substr(0, 3);
       if (IsResetNote(notestr))
       {
         chan.Enabled = false;
       }
       else if (!IsEmptyNote(notestr))
       {
-        uint_t note(0);
+        uint_t note = 0;
         if (IsNote(notestr, note))
         {
           chan.Enabled = true;
@@ -288,8 +279,8 @@ namespace
     const int_t delay = FromHex(str[10]);
     const int_t param1 = FromHex(str[11]);
     const int_t param2 = FromHex(str[12]);
-    const int_t twoParam10(10 * param1 + param2);
-    const int_t twoParam16(16 * param1 + param2);
+    const int_t twoParam10 = 10 * param1 + param2;
+    const int_t twoParam16 = 16 * param1 + param2;
     switch (const int_t cmd = FromHex(str[9]))
     {
     case 0:
@@ -331,11 +322,11 @@ namespace
     cmd[3] = val ? ToHex(val % 16) : '.';
   }
 
-  std::string UnparseChannel(const Vortex::Track::Line::Chan& chan, uint_t& tempo,
+  inline std::string UnparseChannel(const Vortex::Track::Line::Chan& chan, uint_t& tempo,
     uint_t& envBase, uint_t& noiseBase)
   {
-    uint_t envType(0);
-    int_t targetNote(-1);
+    uint_t envType = 0;
+    int_t targetNote = -1;
 
     std::string commands(4, '.');
     for (Vortex::Track::CommandsArray::const_iterator it = chan.Commands.begin(), lim = chan.Commands.end();
@@ -418,7 +409,7 @@ namespace
   }
 
   template<class T>
-  bool ParseLoopedList(const std::string& str, std::vector<T>& list, uint_t& loop)
+  inline bool ParseLoopedList(const std::string& str, std::vector<T>& list, uint_t& loop)
   {
     const uint64_t SYMBOLS = DIGITS | Symbol<LOOP_MARK>::Mask | Symbol<'-'>::Mask | Symbol<','>::Mask;
     if (!CheckStr(SYMBOLS, str) || std::count(str.begin(), str.end(), LOOP_MARK) > 1)
@@ -427,7 +418,7 @@ namespace
     }
     StringArray parts;
     boost::algorithm::split(parts, str, boost::algorithm::is_any_of(","));
-    StringArray::iterator loopIt(std::find_if(parts.begin(), parts.end(), IsLooped));
+    StringArray::iterator loopIt = std::find_if(parts.begin(), parts.end(), IsLooped);
 
     if (loopIt != parts.end())
     {
@@ -445,7 +436,7 @@ namespace
   }
 
   template<class T>
-  std::string UnparseLoopedList(const std::vector<T>& list, uint_t loop)
+  inline std::string UnparseLoopedList(const std::vector<T>& list, uint_t loop)
   {
     OutStringStream result;
     for (uint_t idx = 0; idx != list.size(); ++idx)
@@ -461,6 +452,11 @@ namespace
       result << list[idx];
     }
     return result.str();
+  }
+
+  inline bool FindSection(const std::string& str)
+  {
+    return str.size() >= 3 && str[0] == SECTION_BEGIN && *str.rbegin() == SECTION_END;
   }
 
   inline bool IsSection(const std::string& templ, const std::string& str, uint_t& idx)
@@ -497,15 +493,15 @@ namespace
   inline std::string PatternLineToString(const Vortex::Track::Line& line)
   {
     static const std::string DELIMITER("|");
-    std::string result;
     uint_t envBase = 0, noiseBase = 0;
     StringArray channels(line.Channels.size());
     uint_t tempo = line.Tempo ? *line.Tempo : 0;
-    for (uint_t chan = 0; chan != line.Channels.size(); ++chan)
+    std::string result;
+    for (Vortex::Track::Line::ChannelsArray::const_iterator it = line.Channels.begin(); 
+      it != line.Channels.end(); ++it)
     {
-      const Vortex::Track::Line::Chan& channel = line.Channels[chan];
       result += DELIMITER;
-      result += UnparseChannel(channel, tempo, envBase, noiseBase);
+      result += UnparseChannel(*it, tempo, envBase, noiseBase);
     }
     return ToHex(envBase, 4) + DELIMITER + ToHex(noiseBase, 2) + result;
   }
@@ -542,8 +538,8 @@ namespace
             freqTable == TABLE_PROTRACKER3_4_REAL) ? 4 : 3;
   }
 
-  // temp stuff
-  bool SampleHeaderFromString(const std::string& str, uint_t& idx)
+  //unparsing sample
+  inline bool SampleHeaderFromString(const std::string& str, uint_t& idx)
   {
     return IsSection(SECTION_SAMPLE, str, idx);
   }
@@ -556,10 +552,11 @@ namespace
   ...
   <empty>
   */
-  bool SampleLineFromString(const std::string& str, Vortex::Sample::Line& line, bool& looped)
+  inline bool SampleLineFromString(const std::string& str, Vortex::Sample::Line& line, bool& looped)
   {
     const uint64_t SIGNS = Symbol<'-'>::Mask | Symbol<'+'>::Mask;
-    static const uint64_t PATTERN[SAMPLE_STRING_SIZE + 1] = {
+    static const uint64_t PATTERN[SAMPLE_STRING_SIZE + 1] =
+    {
       //masks
       Symbol<'T'>::Mask, Symbol<'N'>::Mask, Symbol<'E'>::Mask, SPACE,
       //tone
@@ -592,7 +589,7 @@ namespace
   }
 
   template<class Iterator>
-  Iterator SampleFromStrings(Iterator it, Iterator lim, Vortex::Sample& sample)
+  inline Iterator SampleFromStrings(Iterator it, Iterator lim, Vortex::Sample& sample)
   {
     Vortex::Sample tmp;
     for (; it != lim; ++it)
@@ -602,7 +599,7 @@ namespace
         continue;
       }
       tmp.Data.push_back(Vortex::Sample::Line());
-      bool loop(false);
+      bool loop = false;
       if (!SampleLineFromString(*it, tmp.Data.back(), loop))
       {
         return it;
@@ -617,7 +614,8 @@ namespace
     return it;
   }
 
-  bool OrnamentHeaderFromString(const std::string& str, uint_t& idx)
+  // ornament unparsing
+  inline bool OrnamentHeaderFromString(const std::string& str, uint_t& idx)
   {
     return IsSection(SECTION_ORNAMENT, str, idx);
   }
@@ -628,12 +626,12 @@ namespace
   ...
   <empty>
   */
-  bool OrnamentFromString(const std::string& str, Vortex::Ornament& ornament)
+  inline bool OrnamentFromString(const std::string& str, Vortex::Ornament& ornament)
   {
     return ParseLoopedList(str, ornament.Data, ornament.Loop);
   }
 
-  bool PatternHeaderFromString(const std::string& str, uint_t& idx)
+  inline bool PatternHeaderFromString(const std::string& str, uint_t& idx)
   {
     return IsSection(SECTION_PATTERN, str, idx);
   }
@@ -645,7 +643,7 @@ namespace
   ...
   <empty>
   */
-  bool PatternLineFromString(const std::string& str, Vortex::Track::Line& line)
+  inline bool PatternLineFromString(const std::string& str, Vortex::Track::Line& line)
   {
     const uint64_t XDIG = XDIGITS | Symbol<'.'>::Mask;
     const uint64_t DIG = DIGITS | Symbol<'.'>::Mask;
@@ -654,7 +652,8 @@ namespace
     const uint64_t NOTE3 = Range<'1', '8'>::Mask | Symbol<'-'>::Mask;
     const uint64_t SAMPLE = DIGITS | Range<'A', 'V'>::Mask | Symbol<'.'>::Mask;
     const uint64_t CMD = (DIG & ~Range<'7', '8'>::Mask) | Range<'A', 'B'>::Mask;
-    static const uint64_t PATTERN[] = {
+    static const uint64_t PATTERN[] =
+    {
       XDIG, XDIG, XDIG, XDIG, //envbase
       ANY, XDIG, XDIG, //noisebase
       ANY, NOTE1, NOTE2, NOTE3, SPACE, SAMPLE, XDIG, XDIG, XDIG, SPACE, CMD, DIG, XDIG, XDIG,
@@ -669,35 +668,32 @@ namespace
     }
 
     //parse values
-    for (uint_t chan = 0; chan != line.Channels.size(); ++chan)
+    const int envParam = FromHex<int>(str.substr(0, 4));
+    uint_t chan = 0;
+    for (Vortex::Track::Line::ChannelsArray::iterator it = line.Channels.begin(); 
+      it != line.Channels.end(); ++it, ++chan)
     {
-      if (!ParseChannel(str.substr(8 + chan * 14, 13), line.Channels[chan]))
+      if (!ParseChannel(str.substr(8 + chan * 14, 13), *it))
       {
         return false;
       }
       if (!line.Tempo)
       {
-        Vortex::Track::CommandsArray::const_iterator cmdit(std::find(line.Channels[chan].Commands.begin(),
-          line.Channels[chan].Commands.end(),
-          Vortex::TEMPO));
-        if (cmdit != line.Channels[chan].Commands.end())
+        Vortex::Track::CommandsArray::const_iterator cmdit = std::find(it->Commands.begin(), it->Commands.end(),
+          Vortex::TEMPO);
+        if (cmdit != it->Commands.end())
         {
           //TODO: warn about duplicate if any
           line.Tempo = cmdit->Param1;
         }
       }
-    }
-    //search env commands
-    if (const int val = FromHex<int>(str.substr(0, 4)))
-    {
-      for (Vortex::Track::Line::ChannelsArray::iterator it = line.Channels.begin(), lim = line.Channels.end();
-        it != lim; ++it)
+      if (envParam)
       {
-        Vortex::Track::CommandsArray::iterator cmdit(std::find(it->Commands.begin(), it->Commands.end(),
-          Vortex::ENVELOPE));
+        Vortex::Track::CommandsArray::iterator cmdit = std::find(it->Commands.begin(), it->Commands.end(),
+          Vortex::ENVELOPE);
         if (cmdit != it->Commands.end())
         {
-          cmdit->Param2 = val;//TODO warnings
+          cmdit->Param2 = envParam;//TODO warnings
         }
       }
     }
@@ -710,7 +706,7 @@ namespace
   }
 
   template<class Iterator>
-  Iterator PatternFromStrings(Iterator it, Iterator lim, Vortex::Track::Pattern& pat)
+  inline Iterator PatternFromStrings(Iterator it, Iterator lim, Vortex::Track::Pattern& pat)
   {
     Vortex::Track::Pattern tmp;
     for (; it != lim; ++it)
@@ -744,13 +740,13 @@ namespace
 
     bool PropertyFromString(const std::string& str)
     {
-      const std::string::size_type delim(str.find(MODULE_DELIMITER));
+      const std::string::size_type delim = str.find(MODULE_DELIMITER);
       if (std::string::npos == delim)
       {
         return false;
       }
-      const std::string& param(str.substr(0, delim));
-      const std::string& value(str.substr(delim + 1));
+      const std::string& param = str.substr(0, delim);
+      const std::string& value = str.substr(delim + 1);
       if (param == MODULE_VERSION)
       {
         Version = uint_t(10 * std::atof(value.c_str()));
@@ -779,13 +775,13 @@ namespace
     }
   };
 
-  bool DescriptionHeaderFromString(const std::string& str)
+  inline bool DescriptionHeaderFromString(const std::string& str)
   {
     return str == SECTION_MODULE;
   }
 
   template<class Iterator>
-  Iterator DescriptionFromStrings(Iterator it, Iterator lim, Description& descr)
+  inline Iterator DescriptionFromStrings(Iterator it, Iterator lim, Description& descr)
   {
     Description tmp;
     for (; it != lim; ++it)
@@ -813,7 +809,8 @@ namespace ZXTune
   {
     namespace Vortex
     {
-      Error ConvertFromText(const std::string& text, Vortex::Track::ModuleData& data, uint_t& version, String& freqTable)
+      Error ConvertFromText(const std::string& text, Vortex::Track::ModuleData& resData, 
+        uint_t& resVersion, String& resFreqTable)
       {
         typedef std::vector<std::string> LinesArray;
         LinesArray lines;
@@ -822,15 +819,20 @@ namespace ZXTune
 
         Description descr;
 
+        //transactional result
+        Vortex::Track::ModuleData data;
+        uint_t version = 0;
+        String freqTable;
+
         Formatter fmt(TEXT_TXT_ERROR_INVALID_STRING);
         for (LinesArray::const_iterator it = lines.begin(), lim = lines.end(); it != lim;)
         {
-          const std::string& string(*it);
-          const LinesArray::const_iterator next(std::find_if(++it, lim, FindSection));
-          uint_t idx(0);
+          const std::string& string = *it;
+          const LinesArray::const_iterator next = std::find_if(++it, lim, FindSection);
+          uint_t idx = 0;
           if (DescriptionHeaderFromString(string))
           {
-            const LinesArray::const_iterator stop(DescriptionFromStrings(it, next, descr));
+            const LinesArray::const_iterator stop = DescriptionFromStrings(it, next, descr);
             if (next != stop)
             {
               return Error(THIS_LINE, ERROR_INVALID_FORMAT, (fmt % *stop).str());
@@ -847,7 +849,7 @@ namespace ZXTune
           else if (SampleHeaderFromString(string, idx))
           {
             data.Samples.resize(idx + 1);
-            const StringArray::const_iterator stop(SampleFromStrings(it, next, data.Samples[idx]));
+            const StringArray::const_iterator stop = SampleFromStrings(it, next, data.Samples[idx]);
             if (next != stop)
             {
               return Error(THIS_LINE, ERROR_INVALID_FORMAT, (fmt % *stop).str());
@@ -856,7 +858,7 @@ namespace ZXTune
           else if (PatternHeaderFromString(string, idx))
           {
             data.Patterns.resize(idx + 1);
-            const LinesArray::const_iterator stop(PatternFromStrings(it, next, data.Patterns[idx]));
+            const LinesArray::const_iterator stop = PatternFromStrings(it, next, data.Patterns[idx]);
             if (next != stop)
             {
               return Error(THIS_LINE, ERROR_INVALID_FORMAT, (fmt % *stop).str());
@@ -904,6 +906,11 @@ namespace ZXTune
         data.Info.Statistic.Pattern = std::count_if(data.Patterns.begin(), data.Patterns.end(),
           !boost::bind(&Vortex::Track::Pattern::empty, _1));
         data.Info.Statistic.Channels = AYM::CHANNELS;
+
+        //apply result
+        resData = data;
+        resVersion = version;
+        resFreqTable = freqTable;
         return Error();
       }
 
@@ -916,23 +923,23 @@ namespace ZXTune
         // fill header
         *iter = SECTION_MODULE;
         const uint_t resVersion = 30 + (in_range<uint_t>(version, 1, 9) ? version : GetVortexVersion(freqTable));
-        *iter = std::string(MODULE_VERSION) + MODULE_DELIMITER +
+        *iter = MODULE_VERSION + MODULE_DELIMITER +
             char('0' + resVersion / 10) + '.' + char('0' + resVersion % 10);
         const Parameters::Map::const_iterator titleIt = data.Info.Properties.find(Module::ATTR_TITLE);
         if (titleIt != data.Info.Properties.end())
         {
-          *iter = std::string(MODULE_TITLE) + MODULE_DELIMITER +
+          *iter = MODULE_TITLE + MODULE_DELIMITER +
             ToStdString(Parameters::ConvertToString(titleIt->second));
         }
         const Parameters::Map::const_iterator authorIt = data.Info.Properties.find(Module::ATTR_AUTHOR);
         if (authorIt != data.Info.Properties.end())
         {
-          *iter = std::string(MODULE_AUTHOR) + MODULE_DELIMITER +
+          *iter = MODULE_AUTHOR + MODULE_DELIMITER +
             ToStdString(Parameters::ConvertToString(authorIt->second));
         }
-        *iter = std::string(MODULE_NOTETABLE) + MODULE_DELIMITER + string_cast(GetVortexNotetable(freqTable));
-        *iter = std::string(MODULE_SPEED) + MODULE_DELIMITER + string_cast(data.Info.Statistic.Tempo);
-        *iter = std::string(MODULE_PLAYORDER) + MODULE_DELIMITER + UnparseLoopedList(data.Positions, data.Info.LoopPosition);
+        *iter = MODULE_NOTETABLE + MODULE_DELIMITER + string_cast(GetVortexNotetable(freqTable));
+        *iter = MODULE_SPEED + MODULE_DELIMITER + string_cast(data.Info.Statistic.Tempo);
+        *iter = MODULE_PLAYORDER + MODULE_DELIMITER + UnparseLoopedList(data.Positions, data.Info.LoopPosition);
         *iter = std::string();//free
 
         //store ornaments
@@ -959,7 +966,7 @@ namespace ZXTune
             {
               *iter = SampleLineToString(*sit, !lpos);
             }
-            *iter = std::string();
+            *iter = std::string();//free
           }
         }
         //store patterns
@@ -973,7 +980,7 @@ namespace ZXTune
             *iter = std::string();
           }
         }
-        const char DELIMITER[] = {'\n', 0};
+        const char DELIMITER[] = "\n";
         return boost::algorithm::join(asArray, DELIMITER);
       }
     }

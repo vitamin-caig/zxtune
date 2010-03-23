@@ -30,7 +30,8 @@ namespace
   typedef boost::array<uint8_t, 256> VolumeTable;
   
   //Volume table of Pro Tracker 3.3x - 3.4x
-  static const VolumeTable Vol33_34 = { {
+  static const VolumeTable Vol33_34 =
+  { {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x02, 0x02, 0x02, 0x02,
@@ -50,7 +51,8 @@ namespace
   } };
 
   //Volume table of Pro Tracker 3.5x
-  static const VolumeTable Vol35 = { {
+  static const VolumeTable Vol35 =
+  { {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
     0x00, 0x00, 0x00, 0x00, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x02, 0x02, 0x02,
@@ -275,7 +277,7 @@ namespace
   private:
     void RenderData(AYM::DataChunk& chunk)
     {
-      const Vortex::Track::Line& line(Data.Patterns[ModState.Track.Pattern][ModState.Track.Line]);
+      const Vortex::Track::Line& line = Data.Patterns[ModState.Track.Pattern][ModState.Track.Line];
       if (0 == ModState.Track.Frame)//begin note
       {
         if (0 == ModState.Track.Line)//pattern begin
@@ -284,8 +286,8 @@ namespace
         }
         for (uint_t chan = 0; chan != line.Channels.size(); ++chan)
         {
-          const Vortex::Track::Line::Chan& src(line.Channels[chan]);
-          ChannelState& dst(ChanState[chan]);
+          const Vortex::Track::Line::Chan& src = line.Channels[chan];
+          ChannelState& dst = ChanState[chan];
           if (src.Enabled)
           {
             dst.PosInSample = dst.PosInOrnament = 0;
@@ -354,7 +356,7 @@ namespace
               CommState.EnvSlider.Delta = it->Param2;
               break;
             case Vortex::ENVELOPE:
-              chunk.Data[AYM::DataChunk::REG_ENV] = uint8_t(it->Param1);
+              chunk.Data[AYM::DataChunk::REG_ENV] = static_cast<uint8_t>(it->Param1);
               CommState.EnvBase = it->Param2;
               chunk.Mask |= (1 << AYM::DataChunk::REG_ENV);
               dst.Envelope = true;
@@ -381,12 +383,12 @@ namespace
       chunk.Data[AYM::DataChunk::REG_MIXER] = 0;
       chunk.Mask |= (1 << AYM::DataChunk::REG_MIXER) |
         (1 << AYM::DataChunk::REG_VOLA) | (1 << AYM::DataChunk::REG_VOLB) | (1 << AYM::DataChunk::REG_VOLC);
-      int_t envelopeAddon(0);
+      int_t envelopeAddon = 0;
       for (uint_t chan = 0; chan < AYM::CHANNELS; ++chan)
       {
         ApplyData(chan, chunk, envelopeAddon);
       }
-      const int_t envPeriod(envelopeAddon + CommState.EnvSlider.Value + int_t(CommState.EnvBase));
+      const int_t envPeriod = envelopeAddon + CommState.EnvSlider.Value + int_t(CommState.EnvBase);
       chunk.Data[AYM::DataChunk::REG_TONEN] = static_cast<uint8_t>(CommState.NoiseBase + CommState.NoiseAddon) & 0x1f;
       chunk.Data[AYM::DataChunk::REG_TONEE_L] = static_cast<uint8_t>(envPeriod & 0xff);
       chunk.Data[AYM::DataChunk::REG_TONEE_H] = static_cast<uint8_t>(envPeriod / 256);
@@ -400,22 +402,22 @@ namespace
     
     void ApplyData(uint_t chan, AYM::DataChunk& chunk, int_t& envelopeAddon)
     {
-      ChannelState& dst(ChanState[chan]);
-      const uint_t toneReg(AYM::DataChunk::REG_TONEA_L + 2 * chan);
+      ChannelState& dst = ChanState[chan];
+      const uint_t toneReg = AYM::DataChunk::REG_TONEA_L + 2 * chan;
       const uint_t volReg = AYM::DataChunk::REG_VOLA + chan;
       const uint_t toneMsk = AYM::DataChunk::REG_MASK_TONEA << chan;
       const uint_t noiseMsk = AYM::DataChunk::REG_MASK_NOISEA << chan;
 
-      const FrequencyTable& freqTable(AYMHelper->GetFreqTable());
+      const FrequencyTable& freqTable = AYMHelper->GetFreqTable();
       if (dst.Enabled)
       {
-        const Vortex::Track::Sample& curSample(Data.Samples[dst.SampleNum]);
-        const Vortex::Track::Sample::Line& curSampleLine(curSample.Data[dst.PosInSample]);
-        const Vortex::Track::Ornament& curOrnament(Data.Ornaments[dst.OrnamentNum]);
+        const Vortex::Track::Sample& curSample = Data.Samples[dst.SampleNum];
+        const Vortex::Track::Sample::Line& curSampleLine = curSample.Data[dst.PosInSample];
+        const Vortex::Track::Ornament& curOrnament = Data.Ornaments[dst.OrnamentNum];
 
         assert(!curOrnament.Data.empty());
         //calculate tone
-        const int_t toneAddon(curSampleLine.ToneOffset + dst.ToneAccumulator);
+        const int_t toneAddon = curSampleLine.ToneOffset + dst.ToneAccumulator;
         if (curSampleLine.KeepToneOffset)
         {
           dst.ToneAccumulator = toneAddon;
@@ -425,7 +427,7 @@ namespace
         if (dst.ToneSlider.Update() &&
             LIMITER != dst.SlidingTargetNote)
         {
-          const uint_t targetTone(freqTable[dst.SlidingTargetNote]);
+          const uint_t targetTone = freqTable[dst.SlidingTargetNote];
           if ((dst.ToneSlider.Delta > 0 && tone + dst.ToneSlider.Delta > targetTone) ||
             (dst.ToneSlider.Delta < 0 && tone + dst.ToneSlider.Delta < targetTone))
           {
