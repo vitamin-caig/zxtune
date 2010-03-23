@@ -79,7 +79,7 @@ namespace
 
     uint_t GetBits(unsigned count)
     {
-      uint_t result(0);
+      uint_t result = 0;
       while (count--)
       {
         result = 2 * result | GetBit();
@@ -103,7 +103,7 @@ namespace
     else
     {
       //%011x,%010xx,%001xxx,%000xxxx,%0000000
-      uint_t res(0xffff);
+      uint_t res = 0xffff;
       for (uint_t bits = 4 - stream.GetBits(2); bits; --bits)
       {
         res = (res << 1) + stream.GetBit() - 1;
@@ -152,9 +152,9 @@ namespace
   bool ProcessHrust21(const Parameters::Map& /*commonParams*/, const MetaContainer& input,
     IO::DataContainer::Ptr& output, ModuleRegion& region)
   {
-    const IO::DataContainer& inputData(*input.Data);
-    const std::size_t limit(inputData.Size());
-    const Hrust21Header* const header(static_cast<const Hrust21Header*>(inputData.Data()));
+    const IO::DataContainer& inputData = *input.Data;
+    const std::size_t limit = inputData.Size();
+    const Hrust21Header* const header = static_cast<const Hrust21Header*>(inputData.Data());
     Dump res;
     //check without depacker
     if (Decode(header, limit, res))
@@ -182,7 +182,7 @@ bool DecodeHrust2x(const Hrust2xHeader* header, uint_t size, Dump& dst)
     {
       dst.push_back(stream.GetByte());
     }
-    uint_t len(1);
+    uint_t len = 1;
     for (uint_t bits = 3; bits == 0x3 && len != 0x10;)
     {
       bits = stream.GetBits(2), len += bits;
@@ -222,9 +222,9 @@ bool DecodeHrust2x(const Hrust2xHeader* header, uint_t size, Dump& dst)
       {
         --len;
       }
-      const int_t offset(1 == len
+      const int_t offset = 1 == len
         ? static_cast<int16_t>(0xfff8 + stream.GetBits(3))
-        : (2 == len ? static_cast<int16_t>(0xff00 + stream.GetByte()) : GetDist(stream)));
+        : (2 == len ? static_cast<int16_t>(0xff00 + stream.GetByte()) : GetDist(stream));
       if (!CopyFromBack(offset, dst, len))
       {
         return false;

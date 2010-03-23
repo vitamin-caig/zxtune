@@ -52,12 +52,12 @@ namespace
   bool ProcessHobeta(const Parameters::Map& /*commonParams*/, const MetaContainer& input,
     IO::DataContainer::Ptr& output, ModuleRegion& region)
   {
-    const IO::DataContainer& inputData(*input.Data);
-    const std::size_t limit(inputData.Size());
-    const uint8_t* const data(static_cast<const uint8_t*>(inputData.Data()));
-    const Header* const header(safe_ptr_cast<const Header*>(data));
-    const std::size_t dataSize(fromLE(header->Length));
-    const std::size_t fullSize(fromLE(header->FullLength));
+    const IO::DataContainer& inputData = *input.Data;
+    const std::size_t limit = inputData.Size();
+    const uint8_t* const data = static_cast<const uint8_t*>(inputData.Data());
+    const Header* const header = safe_ptr_cast<const Header*>(data);
+    const std::size_t dataSize = fromLE(header->Length);
+    const std::size_t fullSize = fromLE(header->FullLength);
     if (dataSize < HOBETA_MIN_SIZE ||
         dataSize > HOBETA_MAX_SIZE ||
         dataSize + sizeof(*header) > limit ||

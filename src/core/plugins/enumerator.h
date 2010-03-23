@@ -39,11 +39,11 @@ namespace ZXTune
     String Path;
     StringArray PluginsChain;
   };
-  
+
   void ExtractMetaProperties(const String& type,
                              const MetaContainer& container, const ModuleRegion& region, const ModuleRegion& fixedRegion,
                              Parameters::Map& properties, Dump& rawData);
-  
+
   //in: metacontainer
   //out: holder, region
   typedef boost::function<bool(const Parameters::Map&, const MetaContainer&, Module::Holder::Ptr&, ModuleRegion&)> CreateModuleFunc;
@@ -69,10 +69,10 @@ namespace ZXTune
     //nested containers support
     virtual void RegisterContainerPlugin(const PluginInformation& info,
       const OpenContainerFunc& opener, const ProcessContainerFunc& processor) = 0;
-    
+
     //public interface
     virtual void Enumerate(PluginInformationArray& plugins) const = 0;
-    
+
     //private interface
     //resolve subpath
     virtual Error ResolveSubpath(const Parameters::Map& commonParams, IO::DataContainer::Ptr data,

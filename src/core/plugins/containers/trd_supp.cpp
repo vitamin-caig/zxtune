@@ -114,7 +114,7 @@ namespace
     {
       return false;
     }
-    const ServiceSector* const sector(safe_ptr_cast<const ServiceSector*>(&data[SERVICE_SECTOR_NUM * BYTES_PER_SECTOR]));
+    const ServiceSector* const sector = safe_ptr_cast<const ServiceSector*>(&data[SERVICE_SECTOR_NUM * BYTES_PER_SECTOR]);
     if (sector->ID != TRDOS_ID || sector->Type != DS_DD || 0 != sector->Zero)
     {
       return false;
@@ -122,8 +122,8 @@ namespace
 
     FileDescriptions res;
     res.reserve(MAX_FILES_COUNT);
-    
-    const CatEntry* catEntry(safe_ptr_cast<const CatEntry*>(data.Data()));
+
+    const CatEntry* catEntry = safe_ptr_cast<const CatEntry*>(data.Data());
     for (uint_t idx = 0; idx != MAX_FILES_COUNT && NOENTRY != catEntry->Name[0]; ++idx, ++catEntry)
     {
       if (DELETED != catEntry->Name[0] && catEntry->SizeInSectors)
@@ -165,7 +165,7 @@ namespace
     }
 
     // progress-related
-    const bool showMessage(detectParams.Logger);
+    const bool showMessage = detectParams.Logger != 0;
     Log::MessageData message;
     if (showMessage)
     {
@@ -173,12 +173,12 @@ namespace
       message.Progress = -1;
     }
 
-    const PluginsEnumerator& enumerator(PluginsEnumerator::Instance());
+    const PluginsEnumerator& enumerator = PluginsEnumerator::Instance();
     MetaContainer subcontainer;
     subcontainer.PluginsChain = data.PluginsChain;
     subcontainer.PluginsChain.push_back(TRD_PLUGIN_ID);
     ModuleRegion curRegion;
-    const uint_t totalCount(files.size());
+    const uint_t totalCount = files.size();
     uint_t curCount = 0;
     for (FileDescriptions::const_iterator it = files.begin(), lim = files.end(); it != lim; ++it, ++curCount)
     {
@@ -212,8 +212,8 @@ namespace
     {
       return false;
     }
-    const FileDescriptions::const_iterator fileIt(std::find_if(files.begin(), files.end(),
-      boost::bind(&TRDFileEntry::Name, _1) == pathComp));
+    const FileDescriptions::const_iterator fileIt = std::find_if(files.begin(), files.end(),
+      boost::bind(&TRDFileEntry::Name, _1) == pathComp);
     if (fileIt != files.end())
     {
       outData = inData.Data->GetSubcontainer(fileIt->Offset, fileIt->Size);

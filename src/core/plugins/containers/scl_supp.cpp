@@ -86,7 +86,7 @@ namespace
     {
       return 0;
     }
-    const SCLHeader* const header(safe_ptr_cast<const SCLHeader*>(data.Data()));
+    const SCLHeader* const header = safe_ptr_cast<const SCLHeader*>(data.Data());
     if (0 != std::memcmp(header->ID, SINCLAIR_ID, sizeof(SINCLAIR_ID)) ||
         limit < sizeof(*header) + sizeof(header->Blocks) * (header->BlocksCount - 1))
     {
@@ -94,7 +94,7 @@ namespace
     }
     //TODO: check crc
     const uint_t allSectors = std::accumulate(header->Blocks, header->Blocks + header->BlocksCount, 
-      uint_t(0), 
+      uint_t(0),
       boost::bind(std::plus<uint_t>(), _1, boost::bind<uint_t>(&SCLEntry::SizeInSectors, _2)));
     if (limit < sizeof(*header) + sizeof(header->Blocks) * (header->BlocksCount - 1) + 
       allSectors * BYTES_PER_SECTOR)
@@ -103,13 +103,14 @@ namespace
     }
     FileDescriptions res;
     res.reserve(header->BlocksCount);
-    uint_t offset(safe_ptr_cast<const uint8_t*>(header->Blocks + header->BlocksCount) -
-          safe_ptr_cast<const uint8_t*>(header));
+    uint_t offset = safe_ptr_cast<const uint8_t*>(header->Blocks + header->BlocksCount) -
+                    safe_ptr_cast<const uint8_t*>(header);
     for (uint_t idx = 0; idx != header->BlocksCount; ++idx)
     {
-      const SCLEntry& entry(header->Blocks[idx]);
+      const SCLEntry& entry = header->Blocks[idx];
       const TRDFileEntry& newOne = TRDFileEntry(GetTRDosName(entry.Name, entry.Type), offset, entry.Size());
-      if (!res.empty() && res.back().IsMergeable(newOne))
+      if (!res.empty() && 
+          res.back().IsMergeable(newOne))
       {
         res.back().Merge(newOne);
       }
@@ -134,7 +135,7 @@ namespace
     }
 
     // progress-related
-    const bool showMessage(detectParams.Logger);
+    const bool showMessage = detectParams.Logger != 0;
     Log::MessageData message;
     if (showMessage)
     {
@@ -142,12 +143,12 @@ namespace
       message.Progress = -1;
     }
 
-    const PluginsEnumerator& enumerator(PluginsEnumerator::Instance());
+    const PluginsEnumerator& enumerator = PluginsEnumerator::Instance();
     MetaContainer subcontainer;
     subcontainer.PluginsChain = data.PluginsChain;
     subcontainer.PluginsChain.push_back(SCL_PLUGIN_ID);
     ModuleRegion curRegion;
-    const uint_t totalCount(files.size());
+    const uint_t totalCount = files.size();
     uint_t curCount = 0;
     for (FileDescriptions::const_iterator it = files.begin(), lim = files.end(); it != lim; ++it, ++curCount)
     {
@@ -169,7 +170,7 @@ namespace
     region.Size = parsedSize;
     return Error();
   }
-  
+
   bool OpenSCLContainer(const Parameters::Map& /*commonParams*/, const MetaContainer& inData, const String& inPath,
     IO::DataContainer::Ptr& outData, String& restPath)
   {
@@ -181,8 +182,8 @@ namespace
     {
       return false;
     }
-    const FileDescriptions::const_iterator fileIt(std::find_if(files.begin(), files.end(),
-      boost::bind(&TRDFileEntry::Name, _1) == pathComp));
+    const FileDescriptions::const_iterator fileIt = std::find_if(files.begin(), files.end(),
+      boost::bind(&TRDFileEntry::Name, _1) == pathComp);
     if (fileIt != files.end())
     {
       outData = inData.Data->GetSubcontainer(fileIt->Offset, fileIt->Size);

@@ -37,16 +37,19 @@ namespace
   using namespace ZXTune;
 
   const std::string THIS_MODULE("Core::Enumerator");
-  
-  typedef std::pair<PluginInformation, CreateModuleFunc> PlayerPluginDescriptor;
+
+  typedef std::pair<PluginInformation, CreateModuleFunc> PlayerPluginDescription;
+  typedef std::vector<PlayerPluginDescription> PlayerPluginsArray;
   typedef std::pair<PluginInformation, ProcessImplicitFunc> ImplicitPluginDescription;
+  typedef std::vector<ImplicitPluginDescription> ImplicitPluginsArray;
   typedef boost::tuple<PluginInformation, OpenContainerFunc, ProcessContainerFunc> ContainerPluginDescription;
+  typedef std::vector<ContainerPluginDescription> ContainerPluginsArray;
 
   inline const OpenContainerFunc& GetOpener(const ContainerPluginDescription& npd)
   {
     return npd.get<1>();
   }
-  
+
   const Char ROOT_SUBPATH[] = {'/', 0};
 
   template<class P1, class P2>
@@ -61,7 +64,7 @@ namespace
       logger(msg);
     }
   }
-  
+
   class PluginsEnumeratorImpl : public PluginsEnumerator
   {
   public:
@@ -75,7 +78,7 @@ namespace
     virtual void RegisterPlayerPlugin(const PluginInformation& info, const CreateModuleFunc& func)
     {
       AllPlugins.push_back(info);
-      PlayerPlugins.push_back(PlayerPluginDescriptor(info, func));
+      PlayerPlugins.push_back(PlayerPluginDescription(info, func));
       Log::Debug(THIS_MODULE, "Registered player %1%", info.Id);
     }
 
@@ -85,7 +88,7 @@ namespace
       ImplicitPlugins.push_back(ImplicitPluginDescription(info, func));
       Log::Debug(THIS_MODULE, "Registered implicit container %1%", info.Id);
     }
-    
+
     virtual void RegisterContainerPlugin(const PluginInformation& info,
       const OpenContainerFunc& opener, const ProcessContainerFunc& processor)
     {
@@ -109,7 +112,7 @@ namespace
         assert(data.get());
         // Navigate through known path
         String pathToOpen(subpath);
-        
+
         MetaContainer tmpResult;
         tmpResult.Path = ROOT_SUBPATH;
         tmpResult.Data = data;
@@ -192,7 +195,7 @@ namespace
           return e;
         }
       }
-       
+
       //try to detect and process single modules
       Module::Holder::Ptr holder;
       String pluginId;
@@ -210,6 +213,7 @@ namespace
           return e;
         }
       }
+
       Log::Debug(THIS_MODULE, "Detected player plugin %1%", pluginId);
       DoLog(detectParams.Logger, level, data.Path.empty() ? TEXT_MODULE_PROGRESS_DETECT_PLAYER_NOPATH : TEXT_MODULE_PROGRESS_DETECT_PLAYER,
         pluginId, data.Path);
@@ -227,7 +231,7 @@ namespace
     {
       try
       {
-        for (std::vector<ContainerPluginDescription>::const_iterator it = ContainerPlugins.begin(), lim = ContainerPlugins.end();
+        for (ContainerPluginsArray::const_iterator it = ContainerPlugins.begin(), lim = ContainerPlugins.end();
           it != lim; ++it)
         {
           const PluginInformation& plugInfo(it->get<0>());
@@ -257,13 +261,13 @@ namespace
         return e;
       }
     }
-    
+
     Error DetectImplicit(const Parameters::Map& commonParams, const DetectParameters::FilterFunc& filter, const MetaContainer& input,
       IO::DataContainer::Ptr& output, ModuleRegion& region, String& pluginId) const
     {
       try
       {
-        for (std::vector<ImplicitPluginDescription>::const_iterator it = ImplicitPlugins.begin(), lim = ImplicitPlugins.end();
+        for (ImplicitPluginsArray::const_iterator it = ImplicitPlugins.begin(), lim = ImplicitPlugins.end();
           it != lim; ++it)
         {
           if (filter && filter(it->first))
@@ -292,7 +296,7 @@ namespace
     {
       try
       {
-        for (std::vector<PlayerPluginDescriptor>::const_iterator it = PlayerPlugins.begin(), lim = PlayerPlugins.end();
+        for (PlayerPluginsArray::const_iterator it = PlayerPlugins.begin(), lim = PlayerPlugins.end();
           it != lim; ++it)
         {
           if (filter && filter(it->first))
@@ -320,7 +324,7 @@ namespace
     {
       using namespace boost;
       ModuleRegion region;
-      const std::vector<ImplicitPluginDescription>::const_iterator it = std::find_if(ImplicitPlugins.begin(), ImplicitPlugins.end(),
+      const ImplicitPluginsArray::const_iterator it = std::find_if(ImplicitPlugins.begin(), ImplicitPlugins.end(),
         bind(apply<bool>(), bind(&ImplicitPluginDescription::second, _1), cref(commonParams), cref(input), ref(output), ref(region)));
       if (it != ImplicitPlugins.end())
       {
@@ -334,7 +338,7 @@ namespace
       IO::DataContainer::Ptr& output, String& restPath, String& containerId) const
     {
       using namespace boost;
-      const std::vector<ContainerPluginDescription>::const_iterator it = std::find_if(ContainerPlugins.begin(), ContainerPlugins.end(),
+      const ContainerPluginsArray::const_iterator it = std::find_if(ContainerPlugins.begin(), ContainerPlugins.end(),
         bind(apply<bool>(), bind(GetOpener, _1), cref(commonParams), cref(input), cref(pathToOpen), ref(output), ref(restPath)));
       if (it != ContainerPlugins.end())
       {
@@ -345,9 +349,9 @@ namespace
     }
   private:
     PluginInformationArray AllPlugins;
-    std::vector<ContainerPluginDescription> ContainerPlugins;
-    std::vector<ImplicitPluginDescription> ImplicitPlugins;
-    std::vector<PlayerPluginDescriptor> PlayerPlugins;
+    ContainerPluginsArray ContainerPlugins;
+    ImplicitPluginsArray ImplicitPlugins;
+    PlayerPluginsArray PlayerPlugins;
   };
 }
 
@@ -367,7 +371,7 @@ namespace ZXTune
       properties.insert(Parameters::Map::value_type(Module::ATTR_CONTAINER,
         boost::algorithm::join(container.PluginsChain, String(TEXT_MODULE_CONTAINERS_DELIMITER))));
     }
-    const uint8_t* data(static_cast<const uint8_t*>(container.Data->Data()));
+    const uint8_t* const data = static_cast<const uint8_t*>(container.Data->Data());
     rawData.assign(data + region.Offset, data + region.Offset + region.Size);
     //calculate total checksum
     {

@@ -206,6 +206,7 @@ namespace
         return 0 != (LevelAndMasks & 1);
       }
     } PACK_POST;
+
     enum
     {
       EMPTY,
@@ -233,7 +234,7 @@ namespace
       Data.reserve(MAX_SAMPLE_SIZE);
       for (uint_t sline = 0; sline != MAX_SAMPLE_SIZE; ++sline)
       {
-        const ASCSample::Line& line(sample.Data[sline]);
+        const ASCSample::Line& line = sample.Data[sline];
         Data.push_back(Line(line));
         if (line.IsLoopBegin())
         {
@@ -279,7 +280,7 @@ namespace
       Data.reserve(MAX_ORNAMENT_SIZE);
       for (uint_t sline = 0; sline != MAX_ORNAMENT_SIZE; ++sline)
       {
-        const ASCOrnament::Line& line(ornament.Data[sline]);
+        const ASCOrnament::Line& line = ornament.Data[sline];
         Data.push_back(Line(line));
         if (line.IsLoopBegin())
         {
@@ -340,7 +341,7 @@ namespace
   #ifndef NDEBUG
   #define SELF_TEST
   #endif
-  
+
   Player::Ptr CreateASCPlayer(Holder::ConstPtr mod, const ASCTrack::ModuleData& data, AYM::Chip::Ptr device);
 
   class ASCHolder : public Holder, public boost::enable_shared_from_this<ASCHolder>
@@ -351,24 +352,25 @@ namespace
       , PatternCursors& cursors
       , ASCTrack::Line& line
       , Log::MessagesCollector& warner
-      , std::vector<bool>& envelopes
+      , uint_t& envelopes
       )
     {
       assert(line.Channels.size() == cursors.size());
-      ASCTrack::Line::ChannelsArray::iterator channel(line.Channels.begin());
-      for (PatternCursors::iterator cur = cursors.begin(); cur != cursors.end(); ++cur, ++channel)
+      ASCTrack::Line::ChannelsArray::iterator channel = line.Channels.begin();
+      uint_t envMask = 1;
+      for (PatternCursors::iterator cur = cursors.begin(); cur != cursors.end(); ++cur, ++channel, envMask <<= 1)
       {
         if (cur->Counter--)
         {
           continue;//has to skip
         }
 
-        const uint_t idx(std::distance(line.Channels.begin(), channel));
+        const uint_t idx = std::distance(line.Channels.begin(), channel);
         Log::ParamPrefixedCollector channelWarner(warner, TEXT_CHANNEL_WARN_PREFIX, idx);
-        bool continueSample(false);
+        bool continueSample = false;
         for (;;)
         {
-          const uint_t cmd(data[cur->Offset++]);
+          const uint_t cmd = data[cur->Offset++];
           const std::size_t restbytes = data.Size() - cur->Offset;
           if (cmd <= 0x55)//note
           {
@@ -377,10 +379,11 @@ namespace
               Log::Assert(channelWarner, !channel->Enabled, TEXT_WARNING_DUPLICATE_STATE);
               channel->Enabled = true;
             }
-            if (!channel->Commands.empty() && SLIDE == channel->Commands.back().Type)
+            if (!channel->Commands.empty() && 
+                SLIDE == channel->Commands.back().Type)
             {
               //set slide to note
-              ASCTrack::Command& command(channel->Commands.back());
+              ASCTrack::Command& command = channel->Commands.back();
               command.Type = SLIDE_NOTE;
               command.Param2 = cmd;
             }
@@ -389,11 +392,11 @@ namespace
               Log::Assert(channelWarner, !channel->Note, TEXT_WARNING_DUPLICATE_NOTE);
               channel->Note = cmd;
             }
-            if (envelopes[idx])
+            if (envelopes & envMask)
             {
               //modify existing
-              ASCTrack::CommandsArray::iterator cmdIt(std::find(channel->Commands.begin(),
-                channel->Commands.end(), ENVELOPE));
+              ASCTrack::CommandsArray::iterator cmdIt = std::find(channel->Commands.begin(),
+                channel->Commands.end(), ENVELOPE);
               if (restbytes < 1)
               {
                 throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
@@ -427,7 +430,6 @@ namespace
           }
           else if (cmd >= 0x60 && cmd <= 0x9f) //skip
           {
-            //TODO: check
             cur->Period = cmd - 0x60;
           }
           else if (cmd >= 0xa0 && cmd <= 0xbf) //sample
@@ -445,14 +447,14 @@ namespace
             Log::Assert(channelWarner, !channel->Volume, TEXT_WARNING_DUPLICATE_VOLUME);
             channel->Volume = 15;
             channel->Commands.push_back(ASCTrack::Command(ENVELOPE_ON));
-            envelopes[idx] = true;
+            envelopes |= envMask;
           }
           else if (cmd >= 0xe1 && cmd <= 0xef) // noenvelope vol
           {
             Log::Assert(channelWarner, !channel->Volume, TEXT_WARNING_DUPLICATE_VOLUME);
             channel->Volume = cmd - 0xe0;
             channel->Commands.push_back(ASCTrack::Command(ENVELOPE_OFF));
-            envelopes[idx] = false;
+            envelopes &= ~envMask;
           }
           else if (cmd == 0xf0) //initial noise
           {
@@ -506,8 +508,8 @@ namespace
           }
           else if (cmd == 0xf8 || cmd == 0xfa || cmd == 0xfc || cmd == 0xfe) //envelope
           {
-            ASCTrack::CommandsArray::iterator cmdIt(std::find(channel->Commands.begin(), channel->Commands.end(),
-              ENVELOPE));
+            ASCTrack::CommandsArray::iterator cmdIt = std::find(channel->Commands.begin(), channel->Commands.end(),
+              ENVELOPE);
             if (channel->Commands.end() == cmdIt)
             {
               channel->Commands.push_back(ASCTrack::Command(ENVELOPE, cmd & 0xf, -1));
@@ -525,7 +527,7 @@ namespace
             {
               throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
             }
-            const uint_t step(data[cur->Offset++]);
+            const uint_t step = data[cur->Offset++];
             channel->Commands.push_back(ASCTrack::Command(AMPLITUDE_SLIDE, step & 31, step & 32 ? -1 : 1));
           }
         }
@@ -538,25 +540,25 @@ namespace
       //assume all data is correct
       const IO::FastDump& data = IO::FastDump(*container.Data, region.Offset);
 
-      const ASCHeader* const header(safe_ptr_cast<const ASCHeader*>(&data[0]));
+      const ASCHeader* const header = safe_ptr_cast<const ASCHeader*>(&data[0]);
 
       Log::MessagesCollector::Ptr warner(Log::MessagesCollector::Create());
 
-      std::size_t rawSize(0);
+      std::size_t rawSize = 0;
       //parse samples
       {
-        const std::size_t samplesOff(fromLE(header->SamplesOffset));
-        const ASCSamples* const samples(safe_ptr_cast<const ASCSamples*>(&data[samplesOff]));
+        const std::size_t samplesOff = fromLE(header->SamplesOffset);
+        const ASCSamples* const samples = safe_ptr_cast<const ASCSamples*>(&data[samplesOff]);
         Data.Samples.reserve(samples->Offsets.size());
         uint_t index = 0;
         for (const uint16_t* pSample = samples->Offsets.begin(); pSample != samples->Offsets.end();
           ++pSample, ++index)
         {
           assert(*pSample && fromLE(*pSample) < data.Size());
-          const std::size_t sampleOffset(fromLE(*pSample));
-          const ASCSample* const sample(safe_ptr_cast<const ASCSample*>(&data[samplesOff + sampleOffset]));
+          const std::size_t sampleOffset = fromLE(*pSample);
+          const ASCSample* const sample = safe_ptr_cast<const ASCSample*>(&data[samplesOff + sampleOffset]);
           Data.Samples.push_back(Sample(*sample));
-          const Sample& smp(Data.Samples.back());
+          const Sample& smp = Data.Samples.back();
           if (smp.Loop > smp.LoopLimit || smp.LoopLimit >= smp.Data.size())
           {
             Log::ParamPrefixedCollector lineWarner(*warner, TEXT_SAMPLE_WARN_PREFIX, index);
@@ -569,18 +571,18 @@ namespace
 
       //parse ornaments
       {
-        const std::size_t ornamentsOff(fromLE(header->OrnamentsOffset));
-        const ASCOrnaments* const ornaments(safe_ptr_cast<const ASCOrnaments*>(&data[ornamentsOff]));
+        const std::size_t ornamentsOff = fromLE(header->OrnamentsOffset);
+        const ASCOrnaments* const ornaments = safe_ptr_cast<const ASCOrnaments*>(&data[ornamentsOff]);
         Data.Ornaments.reserve(ornaments->Offsets.size());
         uint_t index = 0;
         for (const uint16_t* pOrnament = ornaments->Offsets.begin(); pOrnament != ornaments->Offsets.end();
           ++pOrnament, ++index)
         {
           assert(*pOrnament && fromLE(*pOrnament) < data.Size());
-          const std::size_t ornamentOffset(fromLE(*pOrnament));
-          const ASCOrnament* const ornament(safe_ptr_cast<const ASCOrnament*>(&data[ornamentsOff + ornamentOffset]));
+          const std::size_t ornamentOffset = fromLE(*pOrnament);
+          const ASCOrnament* const ornament = safe_ptr_cast<const ASCOrnament*>(&data[ornamentsOff + ornamentOffset]);
           Data.Ornaments.push_back(ASCTrack::Ornament(*ornament));
-          const Ornament& orn(Data.Ornaments.back());
+          const Ornament& orn = Data.Ornaments.back();
           if (orn.Loop > orn.LoopLimit || orn.LoopLimit >= orn.Data.size())
           {
             Log::ParamPrefixedCollector lineWarner(*warner, TEXT_ORNAMENT_WARN_PREFIX, index);
@@ -594,9 +596,9 @@ namespace
       //fill order
       Data.Positions.assign(header->Positions, header->Positions + header->Lenght);
       //parse patterns
-      const std::size_t patternsCount(1 + *std::max_element(Data.Positions.begin(), Data.Positions.end()));
-      const uint16_t patternsOff(fromLE(header->PatternsOffset));
-      const ASCPattern* pattern(safe_ptr_cast<const ASCPattern*>(&data[patternsOff]));
+      const std::size_t patternsCount = 1 + *std::max_element(Data.Positions.begin(), Data.Positions.end());
+      const uint16_t patternsOff = fromLE(header->PatternsOffset);
+      const ASCPattern* pattern = safe_ptr_cast<const ASCPattern*>(&data[patternsOff]);
       assert(patternsCount <= MAX_PATTERNS_COUNT);
       Data.Patterns.resize(patternsCount);
       for (uint_t patNum = 0; patNum < patternsCount; ++patNum, ++pattern)
@@ -607,7 +609,7 @@ namespace
         PatternCursors cursors;
         std::transform(pattern->Offsets.begin(), pattern->Offsets.end(), cursors.begin(),
           boost::bind(std::plus<uint_t>(), patternsOff, boost::bind(&fromLE<uint16_t>, _1)));
-        std::vector<bool> envelopes(cursors.size());
+        uint_t envelopes = 0;
         pat.reserve(MAX_PATTERN_SIZE);
         do
         {
@@ -635,19 +637,19 @@ namespace
 
       //meta properties
       {
-        const ASCID* const id(safe_ptr_cast<const ASCID*>(header->Positions + header->Lenght));
-        const bool validId(id->Check());
-        const std::size_t fixedOffset(sizeof(ASCHeader) + validId ? sizeof(*id) : 0);
+        const ASCID* const id = safe_ptr_cast<const ASCID*>(header->Positions + header->Lenght);
+        const bool validId = id->Check();
+        const std::size_t fixedOffset = sizeof(ASCHeader) + validId ? sizeof(*id) : 0;
         ExtractMetaProperties(ASC_PLUGIN_ID, container, region, ModuleRegion(fixedOffset, rawSize - fixedOffset),
           Data.Info.Properties, RawData);
         if (validId)
         {
-          const String& title(OptimizeString(FromStdString(id->Title)));
+          const String& title = OptimizeString(FromStdString(id->Title));
           if (!title.empty())
           {
             Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_TITLE, title));
           }
-          const String& author(OptimizeString(FromStdString(id->Author)));
+          const String& author = OptimizeString(FromStdString(id->Author));
           if (!author.empty())
           {
             Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_AUTHOR, author));
@@ -679,7 +681,7 @@ namespace
     {
       info = Data.Info;
     }
-    
+
     virtual void ModifyCustomAttributes(const Parameters::Map& attrs, bool replaceExisting)
     {
       return Parameters::MergeMaps(Data.Info.Properties, attrs, Data.Info.Properties, replaceExisting);
@@ -689,7 +691,7 @@ namespace
     {
       return CreateASCPlayer(shared_from_this(), Data, AYM::CreateChip());
     }
-    
+
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
     {
       using namespace Conversion;
@@ -870,14 +872,14 @@ namespace
   private:
     void RenderData(AYM::DataChunk& chunk)
     {
-      const ASCTrack::Line& line(Data.Patterns[ModState.Track.Pattern][ModState.Track.Line]);
-      bool breakSample[AYM::CHANNELS] = {false};
+      const ASCTrack::Line& line = Data.Patterns[ModState.Track.Pattern][ModState.Track.Line];
+      uint_t breakSample = 0;
       if (0 == ModState.Track.Frame)//begin note
       {
         for (uint_t chan = 0; chan != line.Channels.size(); ++chan)
         {
-          const ASCTrack::Line::Chan& src(line.Channels[chan]);
-          ChannelState& dst(ChanState[chan]);
+          const ASCTrack::Line::Chan& src = line.Channels[chan];
+          ChannelState& dst = ChanState[chan];
           if (0 == ModState.Track.Line)
           {
             dst.BaseNoise = 0;
@@ -892,7 +894,7 @@ namespace
           }
           dst.VolSlideCounter = 0;
           dst.SlidingSteps = 0;
-          bool contSample(false), contOrnament(false);
+          bool contSample = false, contOrnament = false;
           for (ASCTrack::CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); 
             it != lim; ++it)
           {
@@ -932,7 +934,7 @@ namespace
             case SLIDE:
             {
               dst.SlidingSteps = it->Param1;
-              const int_t newSliding((dst.Sliding | 0xf) ^ 0xf);
+              const int_t newSliding = (dst.Sliding | 0xf) ^ 0xf;
               dst.Glissade = -newSliding / dst.SlidingSteps;
               dst.Sliding = dst.Glissade * dst.SlidingSteps;
               break;
@@ -941,9 +943,9 @@ namespace
             {
               dst.SlidingSteps = it->Param1;
               dst.SlidingTargetNote = it->Param2;
-              const FrequencyTable& freqTable(AYMHelper->GetFreqTable());
-              const int_t newSliding((contSample ? dst.Sliding / 16 : 0) + freqTable[dst.Note]
-                - freqTable[dst.SlidingTargetNote]);
+              const FrequencyTable& freqTable = AYMHelper->GetFreqTable();
+              const int_t newSliding = (contSample ? dst.Sliding / 16 : 0) + freqTable[dst.Note]
+                - freqTable[dst.SlidingTargetNote];
               dst.Glissade = -16 * newSliding / dst.SlidingSteps;
               break;
             }
@@ -952,7 +954,7 @@ namespace
               dst.VolSlideAddon = it->Param2;
               break;
             case BREAK_SAMPLE:
-              breakSample[chan] = true;
+              breakSample |= 1 << chan;
               break;
             default:
               assert(!"Invalid cmd");
@@ -999,30 +1001,30 @@ namespace
       chunk.Data[AYM::DataChunk::REG_MIXER] = 0;
       chunk.Mask |= (1 << AYM::DataChunk::REG_MIXER) |
         (1 << AYM::DataChunk::REG_VOLA) | (1 << AYM::DataChunk::REG_VOLB) | (1 << AYM::DataChunk::REG_VOLC);
-      for (uint_t chan = 0; chan < AYM::CHANNELS; ++chan)
+      for (uint_t chan = 0; chan < AYM::CHANNELS; ++chan, breakSample >>= 1)
       {
-        ApplyData(chan, breakSample[chan], chunk);
+        ApplyData(chan, 0 != (breakSample & 1), chunk);
       }
       //count actually enabled channels
       ModState.Track.Channels = static_cast<uint_t>(std::count_if(ChanState.begin(), ChanState.end(),
         boost::mem_fn(&ChannelState::Enabled)));
     }
-    
+
     void ApplyData(uint_t chan, bool breakSample, AYM::DataChunk& chunk)
     {
-      ChannelState& dst(ChanState[chan]);
+      ChannelState& dst = ChanState[chan];
       const uint_t toneReg = AYM::DataChunk::REG_TONEA_L + 2 * chan;
       const uint_t volReg = AYM::DataChunk::REG_VOLA + chan;
       const uint_t toneMsk = AYM::DataChunk::REG_MASK_TONEA << chan;
       const uint_t noiseMsk = AYM::DataChunk::REG_MASK_NOISEA << chan;
 
-      const FrequencyTable& freqTable(AYMHelper->GetFreqTable());
+      const FrequencyTable& freqTable = AYMHelper->GetFreqTable();
       if (dst.Enabled)
       {
-        const Sample& curSample(Data.Samples[dst.CurrentSampleNum]);
-        const Sample::Line& curSampleLine(curSample.Data[dst.PosInSample]);
-        const Ornament& curOrnament(Data.Ornaments[dst.CurrentOrnamentNum]);
-        const Ornament::Line& curOrnamentLine(curOrnament.Data[dst.PosInOrnament]);
+        const Sample& curSample = Data.Samples[dst.CurrentSampleNum];
+        const Sample::Line& curSampleLine = curSample.Data[dst.PosInSample];
+        const Ornament& curOrnament = Data.Ornaments[dst.CurrentOrnamentNum];
+        const Ornament::Line& curOrnamentLine = curOrnament.Data[dst.PosInOrnament];
 
         //calculate volume addon
         if (dst.VolSlideCounter >= 2)
@@ -1047,8 +1049,8 @@ namespace
         dst.ToneDeviation += curSampleLine.ToneDeviation;
         dst.NoteAddon += curOrnamentLine.NoteAddon;
         const uint_t halfTone = static_cast<uint_t>(clamp<int_t>(int_t(dst.Note) + dst.NoteAddon, 0, 85));
-        const uint_t baseFreq(freqTable[halfTone]);
-        const uint_t tone((baseFreq + dst.ToneDeviation + dst.Sliding / 16) & 0xfff);
+        const uint_t baseFreq = freqTable[halfTone];
+        const uint_t tone = (baseFreq + dst.ToneDeviation + dst.Sliding / 16) & 0xfff;
         if (dst.SlidingSteps)
         {
           if (dst.SlidingSteps > 0)
@@ -1067,7 +1069,7 @@ namespace
         chunk.Data[toneReg + 1] = static_cast<uint8_t>(tone >> 8);
         chunk.Mask |= 3 << toneReg;
 
-        const bool sampleEnvelope(ASCSample::ENVELOPE == curSampleLine.Command);
+        const bool sampleEnvelope = ASCSample::ENVELOPE == curSampleLine.Command;
         //calculate level
         const uint_t level = static_cast<uint_t>((dst.Volume + 1) * clamp<int_t>(dst.VolumeAddon + curSampleLine.Level, 0, 15) / 16);
         chunk.Data[volReg] = static_cast<uint8_t>(level | (dst.Envelope && sampleEnvelope ? 
@@ -1153,21 +1155,21 @@ namespace
     }
 
     limit = std::min(limit, MAX_MODULE_SIZE);
-    const ASCHeader* const header(safe_ptr_cast<const ASCHeader*>(data));
-    const std::size_t headerBusy(sizeof(*header) + header->Lenght - 1);
+    const ASCHeader* const header = safe_ptr_cast<const ASCHeader*>(data);
+    const std::size_t headerBusy = sizeof(*header) + header->Lenght - 1;
 
     if (!header->Lenght || limit < headerBusy)
     {
       return false;
     }
 
-    const std::size_t samplesOffset(fromLE(header->SamplesOffset));
-    const std::size_t ornamentsOffset(fromLE(header->OrnamentsOffset));
-    const std::size_t patternsOffset(fromLE(header->PatternsOffset));
+    const std::size_t samplesOffset = fromLE(header->SamplesOffset);
+    const std::size_t ornamentsOffset = fromLE(header->OrnamentsOffset);
+    const std::size_t patternsOffset = fromLE(header->PatternsOffset);
 
     RangeChecker::Ptr checker(RangeChecker::Create(limit));
     checker->AddRange(0, headerBusy);
-    const uint_t patternsCount(1 + *std::max_element(header->Positions, header->Positions + header->Lenght));
+    const uint_t patternsCount = 1 + *std::max_element(header->Positions, header->Positions + header->Lenght);
 
     if (!patternsCount || patternsCount >= MAX_PATTERNS_COUNT ||
         !checker->AddRange(patternsOffset, sizeof(ASCPattern) * patternsCount) ||
@@ -1178,7 +1180,7 @@ namespace
       return false;
     }
     {
-      const ASCSamples* const samples(safe_ptr_cast<const ASCSamples*>(data + samplesOffset));
+      const ASCSamples* const samples = safe_ptr_cast<const ASCSamples*>(data + samplesOffset);
       if (samples->Offsets.end() !=
         std::find_if(samples->Offsets.begin(), samples->Offsets.end(),
           !boost::bind(&RangeChecker::AddRange, checker.get(), 
@@ -1189,7 +1191,7 @@ namespace
       }
     }
     {
-      const ASCOrnaments* const ornaments(safe_ptr_cast<const ASCOrnaments*>(data + ornamentsOffset));
+      const ASCOrnaments* const ornaments = safe_ptr_cast<const ASCOrnaments*>(data + ornamentsOffset);
       if (ornaments->Offsets.end() !=
         std::find_if(ornaments->Offsets.begin(), ornaments->Offsets.end(), 
           !boost::bind(&RangeChecker::AddRange, checker.get(), 
@@ -1200,7 +1202,7 @@ namespace
       }
     }
     {
-      const ASCPattern* pattern(safe_ptr_cast<const ASCPattern*>(data + patternsOffset));
+      const ASCPattern* pattern = safe_ptr_cast<const ASCPattern*>(data + patternsOffset);
       for (uint_t patternNum = 0 ; patternNum < patternsCount; ++patternNum, ++pattern)
       {
         //at least 1 byte

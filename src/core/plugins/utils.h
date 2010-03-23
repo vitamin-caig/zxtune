@@ -19,7 +19,8 @@ Author:
 
 inline String OptimizeString(const String& str, Char replace = '\?')
 {
-  String res(boost::algorithm::trim_copy_if(str, boost::algorithm::is_cntrl() || boost::algorithm::is_space()));
+  // applicable only printable chars in range 0x21..0x7f
+  String res(boost::algorithm::trim_copy_if(str, !boost::is_from_range('\x21', '\x7f')));
   std::replace_if(res.begin(), res.end(), std::ptr_fun<int, int>(&std::iscntrl), replace);
   return res;
 }
@@ -43,12 +44,12 @@ struct TRDFileEntry
     : Name(), Offset(), Size()
   {
   }
-  
+
   TRDFileEntry(const String& name, uint_t off, uint_t sz)
     : Name(name), Offset(off), Size(sz)
   {
   }
-  
+
   bool IsMergeable(const TRDFileEntry& rh) const
   {
     //merge if files are sequental
@@ -74,7 +75,7 @@ struct TRDFileEntry
     assert(IsMergeable(rh));
     Size += rh.Size;
   }
-  
+
   String Name;
   uint_t Offset;
   uint_t Size;

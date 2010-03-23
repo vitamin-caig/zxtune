@@ -119,16 +119,16 @@ namespace
     EXIT,
     ERROR,
   };
-  
+
   typedef boost::function<CallbackState(uint_t, const std::vector<const HripBlockHeader*>&)> HripCallback;
-  
+
   HripResult CheckHrip(const void* data, std::size_t dataSize, uint_t& files, uint_t& archiveSize)
   {
     if (dataSize < sizeof(HripHeader))
     {
       return INVALID;
     }
-    const HripHeader* const hripHeader(static_cast<const HripHeader*>(data));
+    const HripHeader* const hripHeader = static_cast<const HripHeader*>(data);
     if (0 != std::memcmp(hripHeader->ID, HRIP_ID, sizeof(HRIP_ID)) ||
       !(0 == hripHeader->Catalogue || 1 == hripHeader->Catalogue))
     {
@@ -147,16 +147,16 @@ namespace
     {
       return checkRes;
     }
-    const uint8_t* const ptr(static_cast<const uint8_t*>(data));
-    std::size_t offset(sizeof(HripHeader));
+    const uint8_t* const ptr = static_cast<const uint8_t*>(data);
+    std::size_t offset = sizeof(HripHeader);
     for (uint_t fileNum = 0; fileNum < files; ++fileNum)
     {
       std::vector<const HripBlockHeader*> blocks;
       for (;;)//for blocks of file
       {
-        const HripBlockHeader* const blockHdr(safe_ptr_cast<const HripBlockHeader*>(ptr + offset));
-        const uint8_t* const packedData(safe_ptr_cast<const uint8_t*>(&blockHdr->PackedCRC) +
-          blockHdr->AdditionalSize);
+        const HripBlockHeader* const blockHdr = safe_ptr_cast<const HripBlockHeader*>(ptr + offset);
+        const uint8_t* const packedData = safe_ptr_cast<const uint8_t*>(&blockHdr->PackedCRC) +
+          blockHdr->AdditionalSize;
         if (0 != std::memcmp(blockHdr->ID, HRIP_BLOCK_ID, sizeof(HRIP_BLOCK_ID)))
         {
           return CORRUPTED;
@@ -166,9 +166,8 @@ namespace
           break;
         }
         if (blockHdr->AdditionalSize > 2 && //here's CRC
-            !ignoreCorrupted &&
-            fromLE(blockHdr->PackedCRC) != CalcCRC(packedData, fromLE(blockHdr->PackedSize))
-           )
+            fromLE(blockHdr->PackedCRC) != CalcCRC(packedData, fromLE(blockHdr->PackedSize)) &&
+            !ignoreCorrupted)
         {
           return CORRUPTED;
         }
@@ -195,8 +194,8 @@ namespace
   //append
   bool DecodeHripBlock(const HripBlockHeader* header, Dump& dst)
   {
-    const void* const packedData(safe_ptr_cast<const uint8_t*>(&header->PackedCRC) + header->AdditionalSize);
-    const std::size_t sizeBefore(dst.size());
+    const void* const packedData = safe_ptr_cast<const uint8_t*>(&header->PackedCRC) + header->AdditionalSize;
+    const std::size_t sizeBefore = dst.size();
     if (header->Flag & header->NO_COMPRESSION)
     {
       dst.resize(sizeBefore + fromLE(header->DataSize));
@@ -228,13 +227,13 @@ namespace
     {
       SubMetacontainer.PluginsChain.push_back(HRIP_PLUGIN_ID);
     }
-    
+
     Error Process(ModuleRegion& region)
     {
       try
       {
         uint_t totalFiles = 0, archiveSize = 0;
-        
+
         if (CheckHrip(Container->Data(), Container->Size(), totalFiles, archiveSize) != OK ||
             ParseHrip(Container->Data(), archiveSize, 
               boost::bind(&Enumerator::ProcessFile, this, totalFiles, _1, _2), IgnoreCorrupted) != OK)
@@ -258,7 +257,7 @@ namespace
       {
         return ERROR;
       }
-      const HripBlockHeader& header(*headers.front());
+      const HripBlockHeader& header = *headers.front();
       if (header.AdditionalSize < 15)
       {
         return ERROR;
@@ -312,7 +311,7 @@ namespace
     {
       Dump tmp;
       if (headers.end() == std::find_if(headers.begin(), headers.end(),
-        !boost::bind(&DecodeHripBlock, _1, boost::ref(tmp))) && !ignoreCorrupted)
+          !boost::bind(&DecodeHripBlock, _1, boost::ref(tmp))) && !ignoreCorrupted)
       {
         dst.swap(tmp);
         return EXIT;
@@ -329,10 +328,10 @@ namespace
     const String& pathComp = IO::ExtractFirstPathComponent(inPath, restComp);
     Dump dmp;
     const bool ignoreCorrupted = CheckIgnoreCorrupted(commonParams);
-    const IO::DataContainer& container(*inData.Data);
+    const IO::DataContainer& container = *inData.Data;
     if (pathComp.empty() ||
-        ParseHrip(container.Data(), container.Size(), 
-          boost::bind(&FindFileCallback, pathComp, ignoreCorrupted, _1, _2, boost::ref(dmp)), ignoreCorrupted) != OK ||
+        OK != ParseHrip(container.Data(), container.Size(), 
+          boost::bind(&FindFileCallback, pathComp, ignoreCorrupted, _1, _2, boost::ref(dmp)), ignoreCorrupted) ||
         dmp.empty())
     {
       return false;

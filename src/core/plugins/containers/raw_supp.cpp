@@ -33,36 +33,36 @@ namespace
   using namespace ZXTune;
 
   const Char RAW_PLUGIN_ID[] = {'R', 'A', 'W', 0};
-  
+
   const String TEXT_RAW_VERSION(FromStdString("$Rev$"));
-  
+
   const uint_t MIN_SCAN_STEP = 1;
   const uint_t MAX_SCAN_STEP = 256;
   const std::size_t MINIMAL_RAW_SIZE = 128;
-  
+
   const Char RAW_REST_PART[] = {'.', 'r', 'a', 'w', 0};
-  
+
   bool ChainedFilter(const PluginInformation& info, const DetectParameters::FilterFunc& nextFilter)
   {
     return info.Id == RAW_PLUGIN_ID || (nextFilter && nextFilter(info));
   }
-  
+
   //\d+\.raw
   inline bool CheckIfRawPart(const String& str, std::size_t& offset)
   {
-    std::size_t res;
+    std::size_t res = 0;
     String rest;
     InStringStream stream(str);
     return (stream >> res) && (stream >> rest) && (rest == RAW_REST_PART) && (offset = res, true);
   }
-  
+
   inline String CreateRawPart(std::size_t offset)
   {
     OutStringStream stream;
     stream << offset << RAW_REST_PART;
     return stream.str();
   }
-  
+
   Error ProcessRawContainer(const Parameters::Map& commonParams, const DetectParameters& detectParams,
     const MetaContainer& data, ModuleRegion& region)
   {
@@ -71,9 +71,9 @@ namespace
     {
       return Error(THIS_LINE, Module::ERROR_FIND_CONTAINER_PLUGIN);
     }
-    const PluginsEnumerator& enumerator(PluginsEnumerator::Instance());
+    const PluginsEnumerator& enumerator = PluginsEnumerator::Instance();
 
-    const std::size_t limit(data.Data->Size());
+    const std::size_t limit = data.Data->Size();
     //process without offset
     ModuleRegion curRegion;
     {
@@ -81,7 +81,7 @@ namespace
       filteredParams.Filter = boost::bind(ChainedFilter, _1, detectParams.Filter);
       filteredParams.Callback = detectParams.Callback;
       filteredParams.Logger = detectParams.Logger;
-      
+
       if (const Error& err = enumerator.DetectModules(commonParams, filteredParams, data, curRegion))
       {
         return err;
@@ -110,7 +110,7 @@ namespace
     }
 
     // progress-related
-    const bool showMessage(detectParams.Logger);
+    const bool showMessage = detectParams.Logger != 0;
     Log::MessageData message;
     if (showMessage)
     {
@@ -125,7 +125,8 @@ namespace
     subcontainer.PluginsChain = data.PluginsChain;
     subcontainer.PluginsChain.push_back(RAW_PLUGIN_ID);
     for (std::size_t offset = std::max(curRegion.Offset + curRegion.Size, std::size_t(1));
-      offset + MINIMAL_RAW_SIZE < limit; offset += std::max(curRegion.Offset + curRegion.Size, std::size_t(scanStep)))
+      offset + MINIMAL_RAW_SIZE < limit; 
+      offset += std::max(curRegion.Offset + curRegion.Size, std::size_t(scanStep)))
     {
       const uint_t curProg = offset * 100 / limit;
       if (showMessage && curProg != *message.Progress)
@@ -152,7 +153,7 @@ namespace
       return Error(THIS_LINE, Module::ERROR_FIND_CONTAINER_PLUGIN);
     }
   }
-  
+
   bool OpenRawContainer(const Parameters::Map& /*commonParams*/, const MetaContainer& inData, const String& inPath,
     IO::DataContainer::Ptr& outData, String& restPath)
   {
@@ -163,7 +164,7 @@ namespace
     }
     String restComp;
     const String& pathComp = IO::ExtractFirstPathComponent(inPath, restComp);
-    std::size_t offset(0);
+    std::size_t offset = 0;
     if (CheckIfRawPart(pathComp, offset))
     {
       outData = inData.Data->GetSubcontainer(offset, inData.Data->Size() - offset);

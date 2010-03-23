@@ -69,7 +69,7 @@ namespace
 
     uint_t GetBit()
     {
-      const uint_t result((Bits & Mask) != 0 ? 1 : 0);
+      const uint_t result = (Bits & Mask) != 0 ? 1 : 0;
       if (!(Mask >>= 1))
       {
         Bits = GetByte();
@@ -81,7 +81,7 @@ namespace
 
     uint_t GetBits(unsigned count)
     {
-      uint_t result(0);
+      uint_t result = 0;
       while (count--)
       {
         result = 2 * result | GetBit();
@@ -136,7 +136,7 @@ namespace
     Bitstream stream(header->BitStream, fromLE(header->PackedSize) - 12);
     //put first byte
     dst.push_back(stream.GetByte());
-    uint_t refBits(2);
+    uint_t refBits = 2;
     while (!stream.Eof())
     {
       //%1 - put byte
@@ -144,7 +144,7 @@ namespace
       {
         dst.push_back(stream.GetByte());
       }
-      uint_t len(0);
+      uint_t len = 0;
       for (uint_t bits = 3; bits == 0x3 && len != 0xf;)
       {
          bits = stream.GetBits(2), len += bits;
@@ -153,7 +153,7 @@ namespace
       //%0 00,-disp3 - copy byte with offset
       if (0 == len)
       {
-        const int_t offset(static_cast<int16_t>(0xfff8 + stream.GetBits(3)));
+        const int_t offset = static_cast<int16_t>(0xfff8 + stream.GetBits(3));
         if (!CopyFromBack(offset, dst))
         {
           return false;
@@ -163,12 +163,12 @@ namespace
       //%0 01 - copy 2 bytes
       else if (1 == len)
       {
-        const uint_t code(stream.GetBits(2));
-        int_t offset(0);
+        const uint_t code = stream.GetBits(2);
+        int_t offset = 0;
         //%10: -dispH=0xff
         if (2 == code)
         {
-          uint_t byte(stream.GetByte());
+          uint_t byte = stream.GetByte();
           if (byte >= 0xe0)
           {
             byte <<= 1;
@@ -181,7 +181,7 @@ namespace
               ++refBits;
               continue;
             }
-            const int_t offset(static_cast<int16_t>(0xff00 + byte - 0xf));
+            const int_t offset = static_cast<int16_t>(0xff00 + byte - 0xf);
             if (!CopyBreaked(offset, dst, stream.GetByte()))
             {
               return false;
@@ -212,7 +212,7 @@ namespace
         //%011001
         if (stream.GetBit())
         {
-          const int_t offset(static_cast<int16_t>(0xfff0 + stream.GetBits(4)));
+          const int_t offset = static_cast<int16_t>(0xfff0 + stream.GetBits(4));
           if (!CopyBreaked(offset, dst, stream.GetByte()))
           {
             return false;
@@ -222,7 +222,7 @@ namespace
         //%0110001
         else if (stream.GetBit())
         {
-          const uint_t count(2 * (6 + stream.GetBits(4)));
+          const uint_t count = 2 * (6 + stream.GetBits(4));
           for (uint_t bytes = 0; bytes < count; ++bytes)
           {
             dst.push_back(stream.GetByte());
@@ -247,11 +247,11 @@ namespace
       {
         ++len;
       }
-      const uint_t code(stream.GetBits(2));
-      int_t offset(0);
+      const uint_t code = stream.GetBits(2);
+      int_t offset = 0;
       if (1 == code)
       {
-        uint_t byte(stream.GetByte());
+        uint_t byte = stream.GetByte();
         if (byte >= 0xe0)
         {
           if (len > 3)
@@ -263,7 +263,7 @@ namespace
           byte ^= 3;
           byte &= 0xff;
 
-          const int_t offset(static_cast<int16_t>(0xff00 + byte - 0xf));
+          const int_t offset = static_cast<int16_t>(0xff00 + byte - 0xf);
           if (!CopyBreaked(offset, dst, stream.GetByte()))
           {
             return false;
@@ -307,9 +307,9 @@ namespace
   bool ProcessHrust1x(const Parameters::Map& /*commonParams*/, const MetaContainer& input,
     IO::DataContainer::Ptr& output, ModuleRegion& region)
   {
-    const IO::DataContainer& inputData(*input.Data);
-    const std::size_t limit(inputData.Size());
-    const Hrust1xHeader* const header1(static_cast<const Hrust1xHeader*>(inputData.Data()));
+    const IO::DataContainer& inputData = *input.Data;
+    const std::size_t limit = inputData.Size();
+    const Hrust1xHeader* const header1 = static_cast<const Hrust1xHeader*>(inputData.Data());
     Dump res;
     //check without depacker
     if (Decode(header1, limit, res))
@@ -320,8 +320,8 @@ namespace
       return true;
     }
     //check with depacker
-    const Hrust1xHeader* const header2(safe_ptr_cast<const Hrust1xHeader*>(static_cast<const uint8_t*>(inputData.Data()) +
-      DEPACKER_SIZE));
+    const Hrust1xHeader* const header2 = safe_ptr_cast<const Hrust1xHeader*>(static_cast<const uint8_t*>(inputData.Data()) +
+      DEPACKER_SIZE);
     if (limit > DEPACKER_SIZE &&
       Decode(header2, limit - DEPACKER_SIZE, res))
     {
