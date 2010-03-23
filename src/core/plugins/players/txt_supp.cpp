@@ -51,11 +51,6 @@ namespace
 
   const char TXT_MODULE_ID[] = {'[', 'M', 'o', 'd', 'u', 'l', 'e', ']'};
 
-  inline bool FindSection(const String& str)
-  {
-    return str.size() >= 3 && str[0] == '[' && str[str.size() - 1] == ']';
-  }
-
   ////////////////////////////////////////////
   void DescribeTXTPlugin(PluginInformation& info)
   {
@@ -74,103 +69,14 @@ namespace
     {
       const IO::FastDump& data = IO::FastDump(*container.Data);
       const char* const dataIt(safe_ptr_cast<const char*>(data.Data()));
-      const boost::iterator_range<const char*> range(dataIt, dataIt + region.Size);
 
-      typedef std::vector<std::string> LinesArray;
-      LinesArray lines;
-      boost::algorithm::split(lines, range, boost::algorithm::is_cntrl(),
-        boost::algorithm::token_compress_on);
-
-      Vortex::Description descr;
-
-      Formatter fmt(TEXT_TXT_ERROR_INVALID_STRING);
-      for (LinesArray::const_iterator it = lines.begin(), lim = lines.end(); it != lim;)
-      {
-        const std::string& string(*it);
-        const LinesArray::const_iterator next(std::find_if(++it, lim, FindSection));
-        uint_t idx(0);
-        if (Vortex::DescriptionHeaderFromString(string))
-        {
-          const LinesArray::const_iterator stop(Vortex::DescriptionFromStrings(it, next, descr));
-          if (next != stop)
-          {
-            throw Error(THIS_LINE, ERROR_FIND_PLAYER_PLUGIN, (fmt % *stop).str());
-          }
-        }
-        else if (Vortex::OrnamentHeaderFromString(string, idx))
-        {
-          Data.Ornaments.resize(idx + 1);
-          if (!Vortex::OrnamentFromString(*it, Data.Ornaments[idx]))
-          {
-            throw Error(THIS_LINE, ERROR_FIND_PLAYER_PLUGIN, (fmt % *it).str());
-          }
-        }
-        else if (Vortex::SampleHeaderFromString(string, idx))
-        {
-          Data.Samples.resize(idx + 1);
-          const StringArray::const_iterator stop(SampleFromStrings(it, next, Data.Samples[idx]));
-          if (next != stop)
-          {
-            throw Error(THIS_LINE, ERROR_FIND_PLAYER_PLUGIN, (fmt % *stop).str());
-          }
-        }
-        else if (Vortex::PatternHeaderFromString(string, idx))
-        {
-          Data.Patterns.resize(idx + 1);
-          const LinesArray::const_iterator stop(Vortex::PatternFromStrings(it, next, Data.Patterns[idx]));
-          if (next != stop)
-          {
-            throw Error(THIS_LINE, ERROR_FIND_PLAYER_PLUGIN, (fmt % *stop).str());
-          }
-        }
-        else
-        {
-          throw Error(THIS_LINE, ERROR_FIND_PLAYER_PLUGIN, (fmt % string).str());
-        }
-        it = next;
-      }
-
+      ThrowIfError(Vortex::ConvertFromText(std::string(dataIt, dataIt + region.Size),
+        Data, Version, FreqTableName));
+      //meta properties
+      ExtractMetaProperties(TXT_PLUGIN_ID, container, region, region, Data.Info.Properties, RawData);
       //fix samples and ornaments
       std::for_each(Data.Ornaments.begin(), Data.Ornaments.end(), std::mem_fun_ref(&Vortex::Track::Ornament::Fix));
       std::for_each(Data.Samples.begin(), Data.Samples.end(), std::mem_fun_ref(&Vortex::Track::Sample::Fix));
-
-      //meta properties
-      ExtractMetaProperties(TXT_PLUGIN_ID, container, region, region, Data.Info.Properties, RawData);
-      if (!descr.Title.empty())
-      {
-        Data.Info.Properties.insert(Parameters::Map::value_type(ATTR_TITLE, descr.Title));
-      }
-      if (!descr.Author.empty())
-      {
-        Data.Info.Properties.insert(Parameters::Map::value_type(ATTR_AUTHOR, descr.Author));
-      }
-      Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_PROGRAM,
-        (Formatter(TEXT_VORTEX_EDITOR) % (descr.Version / 10) % (descr.Version % 10)).str()));
-
-      //tracking properties
-      Version = descr.Version % 10;
-      switch (descr.Notetable)
-      {
-      case Vortex::PROTRACKER:
-        FreqTableName = Version <= 3 ? TABLE_PROTRACKER3_3 : TABLE_PROTRACKER3_4;
-        break;
-      case Vortex::SOUNDTRACKER:
-        FreqTableName = TABLE_SOUNDTRACKER;
-        break;
-      case Vortex::ASM:
-        FreqTableName = Version <= 3 ? TABLE_PROTRACKER3_3_ASM : TABLE_PROTRACKER3_4_ASM;
-        break;
-      default:
-        FreqTableName = Version <= 3 ? TABLE_PROTRACKER3_3_REAL : TABLE_PROTRACKER3_4_REAL;
-      }
-      Data.Info.LoopPosition = descr.Loop;
-      Data.Info.PhysicalChannels = AYM::CHANNELS;
-      Data.Info.Statistic.Tempo = descr.Tempo;
-      Data.Info.Statistic.Position = descr.Order.size();
-      Data.Positions.swap(descr.Order);
-      Data.Info.Statistic.Pattern = std::count_if(Data.Patterns.begin(), Data.Patterns.end(),
-        !boost::bind(&Vortex::Track::Pattern::empty, _1));
-      Data.Info.Statistic.Channels = AYM::CHANNELS;
 
       Vortex::Track::CalculateTimings(Data, Data.Info.Statistic.Frame, Data.Info.LoopFrame);
     }
