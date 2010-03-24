@@ -18,6 +18,7 @@ Author:
 #include <error_tools.h>
 #include <logging.h>
 #include <messages_collector.h>
+#include <range_checker.h>
 #include <tools.h>
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
@@ -653,6 +654,8 @@ namespace
           if (src.Enabled)
           {
             dst.Enabled = *src.Enabled;
+            dst.PosInSample = 0;
+            dst.PosInOrnament = 0;
           }
           if (src.Note)
           {
@@ -803,62 +806,72 @@ namespace
   bool CheckSTPModule(const uint8_t* data, std::size_t limit, const MetaContainer& container,
     Holder::Ptr& holder, ModuleRegion& region)
   {
+    limit = std::min(limit, MAX_MODULE_SIZE);
     if (limit < sizeof(STPHeader))
     {
       return false;
     }
     const STPHeader* const header = safe_ptr_cast<const STPHeader*>(data);
 
-    /*
-    const STPId* const id = safe_ptr_cast<const STPId*>(header + 1);
-    if (limit < sizeof(*header) + sizeof(*id) || !id->Check())
-    {
-      return false;
-    }
-    */
+    RangeChecker::Ptr checker(RangeChecker::CreateShared(limit));
+    checker->AddRange(0, sizeof(*header));
 
     const std::size_t positionsOffset = fromLE(header->PositionsOffset);
     const std::size_t patternsOffset = fromLE(header->PatternsOffset);
     const std::size_t ornamentsOffset = fromLE(header->OrnamentsOffset);
     const std::size_t samplesOffset = fromLE(header->SamplesOffset);
+
     if (header->FixesCount == 0 || //TODO: process with == 0
-      positionsOffset >= patternsOffset || patternsOffset >= ornamentsOffset || ornamentsOffset >= samplesOffset)
+        header->Tempo == 0 ||
+        positionsOffset > limit ||
+        patternsOffset >= ornamentsOffset || (ornamentsOffset - patternsOffset) % sizeof(STPPattern) != 0)
     {
       return false;
     }
-    boost::function<bool(std::size_t)> checker = !boost::bind(&in_range<std::size_t>, _1, sizeof(*header), limit - 1);
-    boost::function<bool(uint16_t)> leChecker = boost::bind(checker, boost::bind(&fromLE<uint16_t>, _1));
-    if (!header->Tempo ||
-      checker(positionsOffset) || checker(positionsOffset + sizeof(STPPositions)) ||
-      checker(patternsOffset) || checker(patternsOffset + sizeof(STPPattern)) ||
-      checker(ornamentsOffset) || checker(ornamentsOffset + sizeof(STPOrnaments)) ||
-      checker(samplesOffset) || checker(samplesOffset + sizeof(STPSamples) - 1) ||
-      0 != (ornamentsOffset - patternsOffset) % sizeof(STPPattern) ||
-      sizeof(STPOrnaments) != samplesOffset - ornamentsOffset
-      )
-    {
-      return false;
-    }
-    const STPPositions* const positions(safe_ptr_cast<const STPPositions*>(data + positionsOffset));
+
+    // check positions
+    const STPPositions* const positions = safe_ptr_cast<const STPPositions*>(data + positionsOffset);
     if (!positions->Lenght ||
-        checker(positionsOffset + sizeof(STPPositions::STPPosEntry) * (positions->Lenght - 1)) ||
+        !checker->AddRange(positionsOffset, sizeof(STPPositions::STPPosEntry) * (positions->Lenght - 1)) ||
         positions->Data + positions->Lenght != std::find_if(positions->Data, positions->Data + positions->Lenght,
           boost::bind<uint8_t>(std::modulus<uint8_t>(), boost::bind(&STPPositions::STPPosEntry::PatternOffset, _1), 6))
        )
     {
       return false;
     }
-    const STPOrnaments* const ornaments(safe_ptr_cast<const STPOrnaments*>(data + ornamentsOffset));
-    if (ornaments->Offsets.end() !=
-      std::find_if(ornaments->Offsets.begin(), ornaments->Offsets.end(), leChecker))
+    //check ornaments
+    const STPOrnaments* const ornaments = safe_ptr_cast<const STPOrnaments*>(data + ornamentsOffset);
+    if (!checker->AddRange(ornamentsOffset, sizeof(*ornaments)))
     {
       return false;
     }
-    const STPSamples* const samples(safe_ptr_cast<const STPSamples*>(data + samplesOffset));
-    if (samples->Offsets.end() !=
-      std::find_if(samples->Offsets.begin(), samples->Offsets.end(), leChecker))
+    for (const uint16_t* ornOff = ornaments->Offsets.begin(); ornOff != ornaments->Offsets.end(); ++ornOff)
+    {
+      const uint_t offset = fromLE(*ornOff);
+      const STPOrnament* const ornament = safe_ptr_cast<const STPOrnament*>(data + offset);
+      //may be empty
+      if (!offset ||
+          (ornament->Size && !checker->AddRange(offset, sizeof(*ornament) + ornament->Size - 1)))
+      {
+        return false;
+      }
+    }
+    //check samples
+    const STPSamples* const samples = safe_ptr_cast<const STPSamples*>(data + samplesOffset);
+    if (!checker->AddRange(samplesOffset, sizeof(*samples)))
     {
       return false;
+    }
+    for (const uint16_t* smpOff = samples->Offsets.begin(); smpOff != samples->Offsets.end(); ++smpOff)
+    {
+      const uint_t offset = fromLE(*smpOff);
+      const STPSample* const sample = safe_ptr_cast<const STPSample*>(data + offset);
+      //may be empty
+      if (!offset ||
+          (sample->Size && !checker->AddRange(offset, sizeof(*sample) + (sample->Size - 1) * sizeof(STPSample::Line))))
+      {
+        return false;
+      }
     }
     //try to create holder
     try
