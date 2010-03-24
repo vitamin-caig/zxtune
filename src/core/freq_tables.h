@@ -39,6 +39,8 @@ namespace ZXTune
     const Char TABLE_PROTRACKER3_4_REAL[] = {'P','r','o','T','r','a','c','k','e','r','3','.','4','_','R','e','a','l','\0'};
     //! ASC %Sound Master frequency table
     const Char TABLE_ASM[] = {'A', 'S', 'M', '\0'};
+    //! Sound Tracker Pro frequency table
+    const Char TABLE_SOUNDTRACKER_PRO[] = {'S','o','u','n','d','T','r','a','c','k','e','r','P','r','o','\0'};
   }
 }
 
