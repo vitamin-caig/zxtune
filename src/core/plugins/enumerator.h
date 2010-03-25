@@ -80,6 +80,8 @@ namespace ZXTune
     //full module detection
     virtual Error DetectModules(const Parameters::Map&, const DetectParameters& params, const MetaContainer& data,
       ModuleRegion& region) const = 0;
+    //calculate plugins in chain according to capabilities
+    virtual uint_t CountPluginsInChain(const StringArray& pluginsChain, uint_t capMask, uint_t capValue) const = 0;
 
     //instantiator
     static PluginsEnumerator& Instance();

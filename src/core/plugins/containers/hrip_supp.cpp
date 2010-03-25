@@ -223,6 +223,8 @@ namespace
       , DetectParams(detectParams)
       , Container(data.Data)
       , Path(data.Path)
+      , LogLevel(PluginsEnumerator::Instance().CountPluginsInChain(
+         data.PluginsChain, CAP_STOR_MULTITRACK, CAP_STOR_MULTITRACK))
       , SubMetacontainer(data)
     {
       SubMetacontainer.PluginsChain.push_back(HRIP_PLUGIN_ID);
@@ -277,7 +279,7 @@ namespace
       if (DetectParams.Logger)
       {
         Log::MessageData message;
-        message.Level = SubMetacontainer.PluginsChain.size() - 1;
+        message.Level = LogLevel - 1;
         message.Progress = 100 * (fileNum + 1) / totalFiles;
         message.Text = (SafeFormatter(Path.empty() ? TEXT_PLUGIN_HRIP_PROGRESS_NOPATH : TEXT_PLUGIN_HRIP_PROGRESS) % filename % Path).str();
         DetectParams.Logger(message);
@@ -293,6 +295,7 @@ namespace
     const DetectParameters& DetectParams;
     const IO::DataContainer::Ptr Container;
     const String Path;
+    const uint_t LogLevel;
     MetaContainer SubMetacontainer;
   };
 

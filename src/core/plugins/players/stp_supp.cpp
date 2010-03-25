@@ -51,6 +51,8 @@ namespace
   const uint_t MAX_SAMPLES_COUNT = 15;
   const uint_t MAX_ORNAMENTS_COUNT = 16;
   const uint_t MAX_PATTERN_SIZE = 64;
+  const uint_t MAX_ORNAMENT_SIZE = 32;
+  const uint_t MAX_SAMPLE_SIZE = 32;
 
   //////////////////////////////////////////////////////////////////////////
 #ifdef USE_PRAGMA_PACK
@@ -854,9 +856,13 @@ namespace
     for (const uint16_t* ornOff = ornaments->Offsets.begin(); ornOff != ornaments->Offsets.end(); ++ornOff)
     {
       const uint_t offset = fromLE(*ornOff);
+      if (!offset || offset > limit)
+      {
+        return false;
+      }
       const STPOrnament* const ornament = safe_ptr_cast<const STPOrnament*>(data + offset);
       //may be empty
-      if (!offset ||
+      if (ornament->Size > MAX_ORNAMENT_SIZE || ornament->Loop > MAX_ORNAMENT_SIZE ||
           (ornament->Size && !checker->AddRange(offset, sizeof(*ornament) + ornament->Size - 1)))
       {
         return false;
@@ -871,9 +877,13 @@ namespace
     for (const uint16_t* smpOff = samples->Offsets.begin(); smpOff != samples->Offsets.end(); ++smpOff)
     {
       const uint_t offset = fromLE(*smpOff);
+      if (!offset || offset > limit)
+      {
+        return false;
+      }
       const STPSample* const sample = safe_ptr_cast<const STPSample*>(data + offset);
       //may be empty
-      if (!offset ||
+      if (sample->Size > MAX_SAMPLE_SIZE || sample->Loop > int_t(MAX_SAMPLE_SIZE) ||
           (sample->Size && !checker->AddRange(offset, sizeof(*sample) + (sample->Size - 1) * sizeof(STPSample::Line))))
       {
         return false;

@@ -40,12 +40,12 @@ namespace
   const uint_t MAX_SCAN_STEP = 256;
   const std::size_t MINIMAL_RAW_SIZE = 128;
 
-  const Char RAW_REST_PART[] = {'.', 'r', 'a', 'w', 0};
-
-  bool ChainedFilter(const PluginInformation& info, const DetectParameters::FilterFunc& nextFilter)
+  const Char RAW_PLUGIN_RECURSIVE_DEPTH[] =
   {
-    return info.Id == RAW_PLUGIN_ID || (nextFilter && nextFilter(info));
-  }
+    'r','a','w','_','s','c','a','n','e','r','_','r','e','c','u','r','s','i','o','n','_','d','e','p','t','h','\0'
+  };
+
+  const Char RAW_REST_PART[] = {'.', 'r', 'a', 'w', 0};
 
   //\d+\.raw
   inline bool CheckIfRawPart(const String& str, std::size_t& offset)
@@ -66,28 +66,32 @@ namespace
   Error ProcessRawContainer(const Parameters::Map& commonParams, const DetectParameters& detectParams,
     const MetaContainer& data, ModuleRegion& region)
   {
-    //do not search right after previous raw plugin
-    if (!data.PluginsChain.empty() && data.PluginsChain.back() == RAW_PLUGIN_ID)
     {
-      return Error(THIS_LINE, Module::ERROR_FIND_CONTAINER_PLUGIN);
+      Parameters::IntType depth = 0;
+      //do not search right after previous raw plugin
+      if ((!data.PluginsChain.empty() && data.PluginsChain.back() == RAW_PLUGIN_ID) ||
+          //special mark to determine if plugin is called due to recursive scan
+          (Parameters::FindByName(commonParams, RAW_PLUGIN_RECURSIVE_DEPTH, depth) && 
+           depth == data.PluginsChain.size()))
+      {
+        return Error(THIS_LINE, Module::ERROR_FIND_CONTAINER_PLUGIN);
+      }
     }
+
     const PluginsEnumerator& enumerator = PluginsEnumerator::Instance();
 
     const std::size_t limit = data.Data->Size();
     //process without offset
     ModuleRegion curRegion;
     {
-      DetectParameters filteredParams;
-      filteredParams.Filter = boost::bind(ChainedFilter, _1, detectParams.Filter);
-      filteredParams.Callback = detectParams.Callback;
-      filteredParams.Logger = detectParams.Logger;
-
-      if (const Error& err = enumerator.DetectModules(commonParams, filteredParams, data, curRegion))
+      Parameters::Map newParams(commonParams);
+      newParams[RAW_PLUGIN_RECURSIVE_DEPTH] = data.PluginsChain.size();
+      if (const Error& err = enumerator.DetectModules(newParams, detectParams, data, curRegion))
       {
         return err;
       }
     }
-    //check for furhter scanning possibility
+    //check for further scanning possibility
     if (curRegion.Size != 0 &&
         curRegion.Offset + curRegion.Size + MINIMAL_RAW_SIZE >= limit)
     {
@@ -114,7 +118,7 @@ namespace
     Log::MessageData message;
     if (showMessage)
     {
-      message.Level = data.PluginsChain.size();
+      message.Level = enumerator.CountPluginsInChain(data.PluginsChain, CAP_STOR_MULTITRACK, CAP_STOR_MULTITRACK);
       message.Text = data.Path.empty() ? String(TEXT_PLUGIN_RAW_PROGRESS_NOPATH) : (Formatter(TEXT_PLUGIN_RAW_PROGRESS) % data.Path).str();
       message.Progress = -1;
     }

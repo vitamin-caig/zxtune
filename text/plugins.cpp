@@ -15,9 +15,6 @@ extern const Char TEXT_CHI_EDITOR[] = {
 extern const Char TEXT_CHI_INFO[] = {
   'C','H','I',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
 };
-extern const Char TEXT_FDI_CONTAINER[] = {
-  'F','D','I',0
-};
 extern const Char TEXT_FDI_INFO[] = {
   'F','D','I',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
 };
@@ -76,11 +73,11 @@ extern const Char TEXT_PLUGIN_TRD_PROGRESS_NOPATH[] = {
 extern const Char TEXT_PSG_INFO[] = {
   'P','S','G',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
 };
+extern const Char TEXT_PT2_EDITOR[] = {
+  'P','r','o','T','r','a','c','k','e','r',' ','v','2','.','x',0
+};
 extern const Char TEXT_PT2_INFO[] = {
   'P','T','2',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
-};
-extern const Char TEXT_PT2_PROGRAM[] = {
-  'P','r','o','T','r','a','c','k','e','r',' ','v','2','.','x',0
 };
 extern const Char TEXT_PT3_INFO[] = {
   'P','T','3',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0

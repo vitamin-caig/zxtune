@@ -30,9 +30,6 @@ __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 < TEXT_FDI_INFO
 > "FDI modules support"
 
-< TEXT_FDI_CONTAINER
-> "FDI"
-
 #Hobeta
 < TEXT_HOBETA_INFO
 > "Hobeta containers support"
@@ -70,7 +67,7 @@ __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 < TEXT_PT2_INFO
 > "PT2 modules support"
 
-< TEXT_PT2_PROGRAM
+< TEXT_PT2_EDITOR
 > "ProTracker v2.x"
 
 #PT3

@@ -536,7 +536,7 @@ namespace
       {
         Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_TITLE, title));
       }
-      Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_PROGRAM, String(TEXT_PT2_PROGRAM)));
+      Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_PROGRAM, String(TEXT_PT2_EDITOR)));
       
       //tracking properties
       Data.Info.LoopPosition = header->Loop;

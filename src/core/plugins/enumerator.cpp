@@ -18,6 +18,7 @@ Author:
 #include <logging.h>
 #include <core/error_codes.h>
 #include <core/module_attrs.h>
+#include <core/plugin_attrs.h>
 #include <io/container.h>
 #include <io/fs_tools.h>
 
@@ -38,6 +39,7 @@ namespace
 
   const std::string THIS_MODULE("Core::Enumerator");
 
+  typedef std::map<String, uint_t> CapabilitiesCache;
   typedef std::pair<PluginInformation, CreateModuleFunc> PlayerPluginDescription;
   typedef std::vector<PlayerPluginDescription> PlayerPluginsArray;
   typedef std::pair<PluginInformation, ProcessImplicitFunc> ImplicitPluginDescription;
@@ -78,6 +80,7 @@ namespace
     virtual void RegisterPlayerPlugin(const PluginInformation& info, const CreateModuleFunc& func)
     {
       AllPlugins.push_back(info);
+      PluginCaps[info.Id] = info.Capabilities;
       PlayerPlugins.push_back(PlayerPluginDescription(info, func));
       Log::Debug(THIS_MODULE, "Registered player %1%", info.Id);
     }
@@ -85,6 +88,7 @@ namespace
     virtual void RegisterImplicitPlugin(const PluginInformation& info, const ProcessImplicitFunc& func)
     {
       AllPlugins.push_back(info);
+      PluginCaps[info.Id] = info.Capabilities;
       ImplicitPlugins.push_back(ImplicitPluginDescription(info, func));
       Log::Debug(THIS_MODULE, "Registered implicit container %1%", info.Id);
     }
@@ -93,6 +97,7 @@ namespace
       const OpenContainerFunc& opener, const ProcessContainerFunc& processor)
     {
       AllPlugins.push_back(info);
+      PluginCaps[info.Id] = info.Capabilities;
       ContainerPlugins.push_back(boost::make_tuple(info, opener, processor));
       Log::Debug(THIS_MODULE, "Registered container %1%", info.Id);
     }
@@ -173,7 +178,7 @@ namespace
         }
       }
 
-      const uint_t level(data.PluginsChain.size());
+      const uint_t level = CountPluginsInChain(data.PluginsChain, CAP_STOR_MULTITRACK, CAP_STOR_MULTITRACK);
       //try to process implicit
       {
         MetaContainer nested;
@@ -223,6 +228,23 @@ namespace
         return err.AddSuberror(e);
       }
       return Error();
+    }
+
+    virtual uint_t CountPluginsInChain(const StringArray& pluginsChain, uint_t capMask, uint_t capValue) const
+    {
+      assert(PluginCaps.size() == AllPlugins.size());
+      uint_t res = 0;
+      for (StringArray::const_iterator it = pluginsChain.begin(), lim = pluginsChain.end(); it != lim; ++it)
+      {
+        const CapabilitiesCache::const_iterator plugIt = PluginCaps.find(*it);
+        assert(plugIt != PluginCaps.end());
+        if (plugIt != PluginCaps.end() && 
+            (plugIt->second & capMask) == capValue)
+        {
+          ++res;
+        }
+      }
+      return res;
     }
 
   private:
@@ -352,6 +374,7 @@ namespace
     ContainerPluginsArray ContainerPlugins;
     ImplicitPluginsArray ImplicitPlugins;
     PlayerPluginsArray PlayerPlugins;
+    CapabilitiesCache PluginCaps;
   };
 }
 

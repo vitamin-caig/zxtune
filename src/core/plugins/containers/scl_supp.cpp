@@ -134,16 +134,17 @@ namespace
       return Error(THIS_LINE, Module::ERROR_FIND_CONTAINER_PLUGIN);
     }
 
+    const PluginsEnumerator& enumerator = PluginsEnumerator::Instance();
+
     // progress-related
     const bool showMessage = detectParams.Logger != 0;
     Log::MessageData message;
     if (showMessage)
     {
-      message.Level = data.PluginsChain.size();
+      message.Level = enumerator.CountPluginsInChain(data.PluginsChain, CAP_STOR_MULTITRACK, CAP_STOR_MULTITRACK);
       message.Progress = -1;
     }
 
-    const PluginsEnumerator& enumerator = PluginsEnumerator::Instance();
     MetaContainer subcontainer;
     subcontainer.PluginsChain = data.PluginsChain;
     subcontainer.PluginsChain.push_back(SCL_PLUGIN_ID);
