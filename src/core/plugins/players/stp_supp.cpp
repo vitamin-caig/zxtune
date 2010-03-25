@@ -273,7 +273,7 @@ namespace
         Log::ParamPrefixedCollector channelWarner(warner, TEXT_CHANNEL_WARN_PREFIX, std::distance(line.Channels.begin(), channel));
         for (;;)
         {
-          const uint8_t cmd = data[cur->Offset++];
+          const uint_t cmd = data[cur->Offset++];
           const std::size_t restbytes = data.Size() - cur->Offset;
           if (cmd >= 1 && cmd <= 0x60)//note
           {
@@ -303,8 +303,11 @@ namespace
           }
           else if (cmd >= 0xc0 && cmd <= 0xcf)
           {
+            if (cmd != 0xc0 && restbytes < 1)
+            {
+              throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
+            }
             Log::Assert(channelWarner, !channel->FindCommand(NOENVELOPE), TEXT_WARNING_DUPLICATE_ENVELOPE);
-            //TODO: check
             channel->Commands.push_back(STPTrack::Command(ENVELOPE, cmd - 0xc0, cmd != 0xc0 ? data[cur->Offset++] : 0));
             Log::Assert(channelWarner, !channel->OrnamentNum, TEXT_WARNING_DUPLICATE_ORNAMENT);
             channel->OrnamentNum = 0;
@@ -323,8 +326,11 @@ namespace
           }
           else if (cmd == 0xf0) //glissade
           {
+            if (restbytes < 1)
+            {
+              throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
+            }
             Log::Assert(channelWarner, !channel->FindCommand(GLISS), "duplicate gliss");
-            //TODO: check
             channel->Commands.push_back(STPTrack::Command(GLISS, static_cast<int8_t>(data[cur->Offset++])));
           }
           else if (cmd >= 0xf1 && cmd <= 0xff) //volume
@@ -369,7 +375,7 @@ namespace
         assert(*pSample && fromLE(*pSample) < data.Size());
         const STPSample* const sample = safe_ptr_cast<const STPSample*>(&data[fromLE(*pSample)]);
         Data.Samples.push_back(Sample(*sample));
-        const Sample& smp = Data.Samples.back();
+        //const Sample& smp = Data.Samples.back();
         //IndexPrefix pfx(warner, TEXT_SAMPLE_WARN_PREFIX, index);
         //warner.Assert(smp.Loop < signed(smp.Data.size()), TEXT_WARNING_LOOP_OUT_BOUND);
       }
@@ -736,7 +742,7 @@ namespace
         const uint_t halfTone = static_cast<uint_t>(clamp<int_t>(
           int_t(dst.Note) + Transpositions[ModState.Track.Position] +
           (dst.Envelope ? 0 : curOrnament.Data[dst.PosInOrnament]), 0, 95));
-        const uint_t tone = static_cast<uint_t>(clamp(freqTable[halfTone] + dst.TonSlide + 
+        const uint_t tone = static_cast<uint_t>(clamp<int_t>(int_t(freqTable[halfTone]) + dst.TonSlide + 
           curSampleLine.Vibrato, 0, 0xffff));
 
         chunk.Data[toneReg] = static_cast<uint8_t>(tone & 0xff);

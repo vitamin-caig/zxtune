@@ -267,7 +267,8 @@ namespace
       ZXTune::Module::TABLE_PROTRACKER3_4_ASM,
       ZXTune::Module::TABLE_PROTRACKER3_3_REAL,
       ZXTune::Module::TABLE_PROTRACKER3_4_REAL,
-      ZXTune::Module::TABLE_ASM
+      ZXTune::Module::TABLE_ASM,
+      ZXTune::Module::TABLE_SOUNDTRACKER_PRO,
     };
     StdOut << TEXT_INFO_LIST_FREQTABLES_TITLE;
     std::copy(FREQTABLES, ArrayEnd(FREQTABLES), std::ostream_iterator<String>(StdOut, " "));
