@@ -72,7 +72,7 @@ namespace
       if ((!data.PluginsChain.empty() && data.PluginsChain.back() == RAW_PLUGIN_ID) ||
           //special mark to determine if plugin is called due to recursive scan
           (Parameters::FindByName(commonParams, RAW_PLUGIN_RECURSIVE_DEPTH, depth) && 
-           depth == data.PluginsChain.size()))
+           depth == Parameters::IntType(data.PluginsChain.size())))
       {
         return Error(THIS_LINE, Module::ERROR_FIND_CONTAINER_PLUGIN);
       }

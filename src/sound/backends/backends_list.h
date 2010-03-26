@@ -17,7 +17,7 @@ namespace ZXTune
   namespace Sound
   {
     class BackendsEnumerator;
-    
+
     //forward declaration of supported backends
     void RegisterNullBackend(BackendsEnumerator& enumerator);
     void RegisterWAVBackend(BackendsEnumerator& enumerator);
@@ -25,12 +25,14 @@ namespace ZXTune
     void RegisterOSSBackend(BackendsEnumerator& enumerator);
     void RegisterAlsaBackend(BackendsEnumerator& enumerator);
     void RegisterAYLPTBackend(BackendsEnumerator& enumerator);
-    
+    void RegisterSDLBackend(BackendsEnumerator& enumerator);
+
     inline void RegisterBackends(BackendsEnumerator& enumerator)
     {
       //potentially unsafe backends
       RegisterOSSBackend(enumerator);
       RegisterAlsaBackend(enumerator);
+      RegisterSDLBackend(enumerator);
       RegisterWin32Backend(enumerator);
       //stub
       RegisterNullBackend(enumerator);

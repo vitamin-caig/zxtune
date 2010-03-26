@@ -26,13 +26,13 @@ namespace Parameters
         {
           'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','\0'
         };
-        
+
         //! @brief %Wav backend parameters namespace
         namespace Wav
         {
           //@{
           //! @name Wav backend parameters
-          
+
           //! @brief Output filename template
           //! @see core/module_attrs.h for possibly supported field names
           const Char FILENAME[] =
@@ -47,7 +47,7 @@ namespace Parameters
         {
           //@{
           //! @name Win32 backend parameters
-          
+
           //! Default value
           const IntType DEVICE_DEFAULT = -1;
           //! 0-based output device index
@@ -55,7 +55,7 @@ namespace Parameters
           {
             'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','w','i','n','3','2','.','d','e','v','i','c','e','\0'
           };
-          
+
           //! Default value
           const IntType BUFFERS_DEFAULT = 3;
           //! Buffers count
@@ -71,7 +71,7 @@ namespace Parameters
         {
           //@{
           //! @name OSS backend parameters
-          
+
           //! Default value
           const Char DEVICE_DEFAULT[] = {'/', 'd', 'e', 'v', '/', 'd', 's', 'p', '\0'};
           //! Device filename
@@ -79,7 +79,7 @@ namespace Parameters
           {
             'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','o','s','s','.','d','e','v','i','c','e','\0'
           };
-          
+
           //! Default value
           const Char MIXER_DEFAULT[] = {'/', 'd', 'e', 'v', '/', 'm', 'i', 'x', 'e', 'r', '\0'};
           //! Mixer filename
@@ -89,13 +89,13 @@ namespace Parameters
           };
           //@}
         }
-        
+
         //! @brief %ALSA backend parameters
         namespace ALSA
         {
           //@{
           //! @name ALSA backend parameters
-          
+
           //! Default value
           const Char DEVICE_DEFAULT[] = {'d', 'e', 'f', 'a', 'u', 'l', 't', '\0'};
           //! Device name
@@ -111,12 +111,29 @@ namespace Parameters
           };
 
           //! Default value
-          const Char BUFFERS_DEFAULT = 2;
+          const IntType BUFFERS_DEFAULT = 2;
           //! Buffers count
           const Char BUFFERS[] =
           {
             'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','a','l','s','a','.','b','u','f','f','e','r','s','\0'
           };
+          //@}
+        }
+
+        //! @brief %SDL backend parameters
+        namespace SDL
+        {
+          //@{
+          //! @name SDL backend parameters
+
+          //! Default value
+          const IntType BUFFERS_DEFAULT = 5;
+          //! Buffers count
+          const Char BUFFERS[] =
+          {
+            'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','s','d','l','.','b','u','f','f','e','r','s','\0'
+          };
+          //@}
         }
       }
     }

@@ -18,6 +18,9 @@ extern const Char TEXT_NULL_BACKEND_DESCRIPTION[] = {
 extern const Char TEXT_OSS_BACKEND_DESCRIPTION[] = {
   'O','S','S',' ','s','o','u','n','d',' ','s','y','s','t','e','m',' ','b','a','c','k','e','n','d',0
 };
+extern const Char TEXT_SDL_BACKEND_DESCRIPTION[] = {
+  'S','D','L',' ','s','u','p','p','o','r','t',' ','b','a','c','k','e','n','d',0
+};
 extern const Char TEXT_SOUND_ERROR_ALSA_BACKEND_DEVICE_ERROR[] = {
   'E','r','r','o','r',' ','i','n',' ','A','L','S','A',' ','b','a','c','k','e','n','d',' ','w','h','i','l','e',
   ' ','w','o','r','k','i','n','g',' ','w','i','t','h',' ','d','e','v','i','c','e',' ','\'','%','1','%','\'',':',
@@ -44,6 +47,18 @@ extern const Char TEXT_SOUND_ERROR_OSS_BACKEND_ERROR[] = {
   'E','r','r','o','r',' ','i','n',' ','O','S','S',' ','b','a','c','k','e','n','d',' ','w','h','i','l','e',' ',
   'w','o','r','k','i','n','g',' ','w','i','t','h',' ','d','e','v','i','c','e',' ','\'','%','1','%','\'',':',' ',
   '%','2','%','.',0
+};
+extern const Char TEXT_SOUND_ERROR_SDL_BACKEND_ERROR[] = {
+  'E','r','r','o','r',' ','i','n',' ','S','D','L',' ','b','a','c','k','e','n','d',':',' ','%','1','%','.',0
+};
+extern const Char TEXT_SOUND_ERROR_SDL_BACKEND_INVALID_BUFFERS[] = {
+  'S','D','L',' ','b','a','c','k','e','n','d',' ','e','r','r','o','r',':',' ','b','u','f','f','e','r','s',' ',
+  'c','o','u','n','t',' ','(','%','1','%',')',' ','i','s',' ','o','u','t',' ','o','f',' ','r','a','n','g','e',
+  ' ','(','%','2','%','.','.','%','3','%',')','.',0
+};
+extern const Char TEXT_SOUND_ERROR_SDL_BACKEND_UNKNOWN_ERROR[] = {
+  'U','n','k','n','o','w','n',' ','e','r','r','o','r',' ','i','n',' ','S','D','L',' ','b','a','c','k','e','n',
+  'd','.',0
 };
 extern const Char TEXT_SOUND_ERROR_WAV_BACKEND_NO_FILENAME[] = {
   'O','u','t','p','u','t',' ','f','i','l','e','n','a','m','e',' ','t','e','m','p','l','a','t','e',' ','i','s',

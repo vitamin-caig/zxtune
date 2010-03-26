@@ -68,3 +68,16 @@ __cpp> "#endif //__TEXT_BACKENDS_H_DEFINED__\n"
 
 < TEXT_SOUND_ERROR_AYLPT_BACKEND_DUMP
 > "Specified module does not supports dumping to AY-LPT device."
+
+#sdl backend
+< TEXT_SDL_BACKEND_DESCRIPTION
+> "SDL support backend"
+
+< TEXT_SOUND_ERROR_SDL_BACKEND_ERROR
+> "Error in SDL backend: %1%."
+
+< TEXT_SOUND_ERROR_SDL_BACKEND_UNKNOWN_ERROR
+> "Unknown error in SDL backend."
+
+< TEXT_SOUND_ERROR_SDL_BACKEND_INVALID_BUFFERS
+> "SDL backend error: buffers count (%1%) is out of range (%2%..%3%)."

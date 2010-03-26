@@ -10,5 +10,6 @@ cxx_flags += -march=native
 #built-in features
 support_oss = 1
 support_alsa = 1
+#support_sdl = 1
 
 linux_libraries += $(foreach lib,$(boost_libraries),boost_$(lib)-mt)

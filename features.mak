@@ -15,3 +15,8 @@ endif
 ifdef support_aylpt_dlportio
 definitions += DLPORTIO_AYLPT_SUPPORT
 endif
+
+ifdef support_sdl
+definitions += SDL_SUPPORT
+$(platform)_libraries += SDL
+endif

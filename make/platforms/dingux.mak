@@ -16,6 +16,7 @@ STRIP=${TOOLCHAIN_PATH}/usr/bin/mipsel-linux-strip
 
 #built-in features
 support_oss = 1
+#support_sdl = 1
 
 #support only static multithread libraries
 dingux_libraries += $(foreach lib,$(boost_libraries),boost_$(lib))

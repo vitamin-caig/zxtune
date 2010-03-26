@@ -10,6 +10,7 @@ cxx_flags += -march=native
 #built-in features
 support_waveout = 1
 support_aylpt_dlportio = 1
+#support_sdl = 1
 
 #simple library naming convention used
 mingw_libraries += $(foreach lib,$(boost_libraries),boost_$(lib))
