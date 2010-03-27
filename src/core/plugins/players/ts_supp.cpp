@@ -344,7 +344,7 @@ namespace
     const uint8_t* const data(static_cast<const uint8_t*>(container.Data->Data()));
     const Footer* footer(safe_ptr_cast<const Footer*>(data + limit - sizeof(Footer)));
     if (0 != std::memcmp(footer->ID3, TS_ID, sizeof(TS_ID)) &&
-        footer->Size1 + footer->Size2 + sizeof(*footer) != limit)
+        fromLE(footer->Size1) + fromLE(footer->Size2) + sizeof(*footer) != limit)
     {
       return false;
     }
@@ -357,13 +357,13 @@ namespace
     DetectParameters detectParams;
     detectParams.Filter = &OnlyAYMPlayersFilter;
 
-    subdata.Data = container.Data->GetSubcontainer(0, footer->Size1);
+    subdata.Data = container.Data->GetSubcontainer(0, fromLE(footer->Size1));
     detectParams.Callback = boost::bind(CopyModuleHolder, _1, _2, boost::ref(holder1));
     if (enumerator.DetectModules(commonParams, detectParams, subdata, subregion) || !holder1)
     {
       return false;
     }
-    subdata.Data = container.Data->GetSubcontainer(footer->Size1, footer->Size2);
+    subdata.Data = container.Data->GetSubcontainer(fromLE(footer->Size1), fromLE(footer->Size2));
     detectParams.Callback = boost::bind(CopyModuleHolder, _1, _2, boost::ref(holder2));
     if (enumerator.DetectModules(commonParams, detectParams, subdata, subregion) || !holder2)
     {

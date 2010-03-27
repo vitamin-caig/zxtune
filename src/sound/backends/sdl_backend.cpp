@@ -275,7 +275,7 @@ namespace ZXTune
 {
   namespace Sound
   {
-    void RegisterSDLBackend(BackendsEnumerator& /*enumerator*/)
+    void RegisterSDLBackend(class BackendsEnumerator& /*enumerator*/)
     {
       //do nothing
     }
