@@ -172,7 +172,7 @@ namespace
           return CORRUPTED;
         }
         blocks.push_back(blockHdr);
-        offset += fromLE(blockHdr->PackedSize + (packedData - ptr - offset));
+        offset += fromLE(blockHdr->PackedSize) + (packedData - ptr - offset);
         if (blockHdr->Flag & blockHdr->LAST_BLOCK)
         {
           break;
@@ -203,7 +203,7 @@ namespace
       return true;
     }
     dst.reserve(sizeBefore + fromLE(header->DataSize));
-    return ::DecodeHrust2x(static_cast<const Hrust2xHeader*>(packedData), header->PackedSize, dst) &&
+    return ::DecodeHrust2x(static_cast<const Hrust2xHeader*>(packedData), fromLE(header->PackedSize), dst) &&
       dst.size() == sizeBefore + fromLE(header->DataSize);
   }
 
