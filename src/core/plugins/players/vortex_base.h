@@ -99,6 +99,8 @@ namespace ZXTune
 
       Player::Ptr CreatePlayer(Holder::ConstPtr holder, const Track::ModuleData& data,
          uint_t version, const String& freqTableName, AYM::Chip::Ptr device);
+      Player::Ptr CreateTSPlayer(Holder::ConstPtr holder, const Track::ModuleData& data,
+         uint_t version, const String& freqTableName, uint_t patternBase, AYM::Chip::Ptr device1, AYM::Chip::Ptr device2);
     }
   }
 }

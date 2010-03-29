@@ -152,6 +152,8 @@ namespace
       int_t NoiseAddon;
     };
   public:
+    typedef boost::shared_ptr<VortexPlayer> Ptr;
+
     VortexPlayer(Holder::ConstPtr holder, const Vortex::Track::ModuleData& data,
        uint_t version, const String& freqTableName, AYM::Chip::Ptr device)
       : Module(holder)
@@ -507,6 +509,191 @@ namespace
     Vortex::Track::ModuleState ModState;
     boost::array<ChannelState, AYM::CHANNELS> ChanState;
     CommonState CommState;
+
+    friend class VortexTSPlayer;
+  };
+
+  //TurboSound implementation
+
+  //TODO: extract TS-related code
+  template<class T>
+  inline T avg(T val1, T val2)
+  {
+    return (val1 + val2) / 2;
+  }
+
+  template<uint_t Channels>
+  class TSMixer : public Sound::MultichannelReceiver
+  {
+  public:
+    TSMixer() : Buffer(), Cursor(Buffer.end()), SampleBuf(Channels), Receiver(0)
+    {
+    }
+
+    virtual void ApplySample(const std::vector<Sound::Sample>& data)
+    {
+      assert(data.size() == Channels);
+
+      if (Receiver) //mix and out
+      {
+        std::transform(data.begin(), data.end(), Cursor->begin(), SampleBuf.begin(), avg<Sound::Sample>);
+        Receiver->ApplySample(SampleBuf);
+      }
+      else //store
+      {
+        std::memcpy(Cursor->begin(), &data[0], std::min(Channels, data.size()) * sizeof(Sound::Sample));
+      }
+      ++Cursor;
+    }
+
+    virtual void Flush()
+    {
+    }
+
+    void Reset(const Sound::RenderParameters& params)
+    {
+      //assert(Cursor == Buffer.end());
+      Buffer.resize(params.SamplesPerFrame());
+      Cursor = Buffer.begin();
+      Receiver = 0;
+    }
+
+    void Switch(Sound::MultichannelReceiver& receiver)
+    {
+      //assert(Cursor == Buffer.end());
+      Receiver = &receiver;
+      Cursor = Buffer.begin();
+    }
+  private:
+    typedef boost::array<Sound::Sample, Channels> InternalSample;
+    std::vector<InternalSample> Buffer;
+    typename std::vector<InternalSample>::iterator Cursor;
+    std::vector<Sound::Sample> SampleBuf;
+    Sound::MultichannelReceiver* Receiver;
+  };
+
+  class VortexTSPlayer : public Player
+  {
+  public:
+    VortexTSPlayer(Holder::ConstPtr holder, const Vortex::Track::ModuleData& data,
+         uint_t version, const String& freqTableName, uint_t patternBase, AYM::Chip::Ptr device1, AYM::Chip::Ptr device2)
+      : Module(holder)
+      , Player2(new VortexPlayer(holder, data, version, freqTableName, device2))
+      //copy and patch
+      , Data(data)
+    {
+      std::transform(Data.Positions.begin(), Data.Positions.end(), Data.Positions.begin(),
+        std::bind1st(std::minus<uint_t>(), patternBase - 1));
+      Player1.reset(new VortexPlayer(holder, Data, version, freqTableName, device1));
+    }
+
+    virtual const Holder& GetModule() const
+    {
+      return *Module;
+    }
+
+    virtual Error GetPlaybackState(uint_t& timeState,
+                                   Tracking& trackState,
+                                   Analyze::ChannelsState& analyzeState) const
+    {
+      Analyze::ChannelsState firstAnalyze;
+      if (const Error& err = Player1->GetPlaybackState(timeState, trackState, firstAnalyze))
+      {
+        return err;
+      }
+      Analyze::ChannelsState secondAnalyze;
+      uint_t dummyTime = 0;
+      Tracking dummyTracking;
+      if (const Error& err = Player2->GetPlaybackState(dummyTime, dummyTracking, secondAnalyze))
+      {
+        return err;
+      }
+      assert(timeState == dummyTime);
+      //merge
+      analyzeState.resize(firstAnalyze.size() + secondAnalyze.size());
+      std::copy(secondAnalyze.begin(), secondAnalyze.end(),
+        std::copy(firstAnalyze.begin(), firstAnalyze.end(), analyzeState.begin()));
+      trackState.Channels += dummyTracking.Channels;
+      return Error();
+    }
+
+    virtual Error RenderFrame(const Sound::RenderParameters& params,
+                              PlaybackState& state,
+                              Sound::MultichannelReceiver& receiver)
+    {
+      const uint_t tempo1 = Player1->ModState.Track.Tempo;
+      PlaybackState state1;
+      Mixer.Reset(params);
+      if (const Error& e = Player1->RenderFrame(params, state1, Mixer))
+      {
+        return e;
+      }
+      const uint_t tempo2 = Player2->ModState.Track.Tempo;
+      PlaybackState state2;
+      Mixer.Switch(receiver);
+      if (const Error& e = Player2->RenderFrame(params, state2, Mixer))
+      {
+        return e;
+      }
+      state = state1 == MODULE_STOPPED || state2 == MODULE_STOPPED ? MODULE_STOPPED : MODULE_PLAYING;
+      //synchronize tempo
+      if (tempo1 != Player1->ModState.Track.Tempo)
+      {
+        const uint_t pattern = Player2->ModState.Track.Pattern;
+        Player2->ModState = Player1->ModState;
+        Player2->ModState.Track.Pattern = pattern;
+      }
+      else if (tempo2 != Player2->ModState.Track.Tempo)
+      {
+        const uint_t pattern = Player1->ModState.Track.Pattern;
+        Player1->ModState = Player2->ModState;
+        Player1->ModState.Track.Pattern = pattern;
+      }
+      return Error();
+    }
+
+    virtual Error Reset()
+    {
+      if (const Error& e = Player1->Reset())
+      {
+        return e;
+      }
+      if (const Error& e = Player2->Reset())
+      {
+        return e;
+      }
+      const uint_t pattern = Player2->ModState.Track.Pattern;
+      Player2->ModState = Player1->ModState;
+      Player2->ModState.Track.Pattern = pattern;
+      return Error();
+    }
+
+    virtual Error SetPosition(uint_t frame)
+    {
+      if (const Error& e = Player1->SetPosition(frame))
+      {
+        return e;
+      }
+      return Player2->SetPosition(frame);
+    }
+
+    virtual Error SetParameters(const Parameters::Map& params)
+    {
+      if (const Error& e = Player1->SetParameters(params))
+      {
+        return e;
+      }
+      return Player2->SetParameters(params);
+    }
+  private:
+    const Holder::ConstPtr Module;
+    //first player
+    VortexPlayer::Ptr Player1;
+    //second player and data
+    Vortex::Track::ModuleData Data;
+    VortexPlayer::Ptr Player2;
+    //mixer
+    TSMixer<AYM::CHANNELS> Mixer;
   };
 }
 
@@ -520,6 +707,12 @@ namespace ZXTune
          uint_t version, const String& freqTableName, AYM::Chip::Ptr device)
       {
         return Player::Ptr(new VortexPlayer(holder, data, version, freqTableName, device));
+      }
+
+      Player::Ptr CreateTSPlayer(Holder::ConstPtr holder, const Track::ModuleData& data,
+         uint_t version, const String& freqTableName, uint_t patternBase, AYM::Chip::Ptr device1, AYM::Chip::Ptr device2)
+      {
+        return Player::Ptr(new VortexTSPlayer(holder, data, version, freqTableName, patternBase, device1, device2));
       }
     }
   }

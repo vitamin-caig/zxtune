@@ -213,6 +213,10 @@ namespace
     }
   };
   //////////////////////////////////////////////////////////////////////////
+  //possible values for Mode field
+  const uint_t AY_TRACK = 0x20;
+  //all other are TS patterns count
+
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif
@@ -224,7 +228,7 @@ namespace
     char TrackName[32];
     uint8_t Optional2[4]; //' by '
     char TrackAuthor[32];
-    uint8_t Optional3;
+    uint8_t Mode;
     uint8_t FreqTableNum;
     uint8_t Tempo;
     uint8_t Length;
@@ -640,6 +644,7 @@ namespace
     }
   public:
     PT3Holder(const MetaContainer& container, ModuleRegion& region)
+      : Version(), TSPatternBase()
     {
       //assume all data is correct
       const IO::FastDump& data = IO::FastDump(*container.Data, region.Offset);
@@ -744,7 +749,7 @@ namespace
       default:
         FreqTableName = Version <= 3 ? TABLE_PROTRACKER3_3_REAL : TABLE_PROTRACKER3_4_REAL;
       }
-      
+
       Data.Info.LoopPosition = header->Loop;
       Data.Info.PhysicalChannels = AYM::CHANNELS;
       Data.Info.Statistic.Tempo = header->Tempo;
@@ -752,7 +757,17 @@ namespace
       Data.Info.Statistic.Pattern = std::count_if(Data.Patterns.begin(), Data.Patterns.end(),
         !boost::bind(&Vortex::Track::Pattern::empty, _1));
       Data.Info.Statistic.Channels = AYM::CHANNELS;
-      Vortex::Track::CalculateTimings(Data, Data.Info.Statistic.Frame, Data.Info.LoopFrame);
+      if (header->Mode != AY_TRACK)
+      {
+        TSPatternBase = header->Mode;
+        Data.Info.Statistic.Channels *= 2;
+        //TODO: proper calculating
+        Vortex::Track::CalculateTimings(Data, Data.Info.Statistic.Frame, Data.Info.LoopFrame);
+      }
+      else
+      {
+        Vortex::Track::CalculateTimings(Data, Data.Info.Statistic.Frame, Data.Info.LoopFrame);
+      }
       if (const uint_t msgs = warner->CountMessages())
       {
         Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS_COUNT, msgs));
@@ -776,7 +791,10 @@ namespace
 
     virtual Player::Ptr CreatePlayer() const
     {
-      return Vortex::CreatePlayer(shared_from_this(), Data, Version, FreqTableName, AYM::CreateChip());
+      return TSPatternBase ?
+        Vortex::CreateTSPlayer(shared_from_this(), Data, Version, FreqTableName, TSPatternBase, AYM::CreateChip(), AYM::CreateChip())
+        :
+        Vortex::CreatePlayer(shared_from_this(), Data, Version, FreqTableName, AYM::CreateChip());
     }
     
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -788,14 +806,17 @@ namespace
         dst = RawData;
         return Error();
       }
-      else if (ConvertAYMFormat(boost::bind(&Vortex::CreatePlayer, shared_from_this(), boost::cref(Data), Version, FreqTableName, _1),
-        param, dst, result))
+      else if (TSPatternBase == 0)//only on usual modules
       {
-        return result;
-      }
-      else if (ConvertVortexFormat(Data, param, Version, FreqTableName, dst, result))
-      {
-        return result;
+        if (ConvertAYMFormat(boost::bind(&Vortex::CreatePlayer, shared_from_this(), boost::cref(Data), Version, FreqTableName, _1),
+          param, dst, result))
+        {
+          return result;
+        }
+        else if (ConvertVortexFormat(Data, param, Version, FreqTableName, dst, result))
+        {
+          return result;
+        }
       }
       return Error(THIS_LINE, ERROR_MODULE_CONVERT, TEXT_MODULE_ERROR_CONVERSION_UNSUPPORTED);
     }
@@ -804,6 +825,7 @@ namespace
     Vortex::Track::ModuleData Data;
     uint_t Version;
     String FreqTableName;
+    uint_t TSPatternBase;
   };
 
   //////////////////////////////////////////////////
