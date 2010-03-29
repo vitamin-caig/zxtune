@@ -200,6 +200,16 @@ namespace
       format.freq = static_cast<int>(RenderingParameters.SoundFreq);
       format.channels = static_cast< ::Uint8>(OUTPUT_CHANNELS);
       format.samples = BuffersCount * RenderingParameters.SamplesPerFrame();
+      //fix if size is not power of 2
+      if (0 != (format.samples & (format.samples - 1)))
+      {
+        unsigned msk = 1;
+        while (format.samples > msk)
+        {
+          msk <<= 1;
+        }
+        format.samples = msk;
+      }
       format.callback = OnBuffer;
       format.userdata = this;
       Buffers.resize(BuffersCount);

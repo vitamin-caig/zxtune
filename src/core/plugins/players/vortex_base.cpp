@@ -690,8 +690,8 @@ namespace
     //first player
     VortexPlayer::Ptr Player1;
     //second player and data
-    Vortex::Track::ModuleData Data;
     VortexPlayer::Ptr Player2;
+    Vortex::Track::ModuleData Data;
     //mixer
     TSMixer<AYM::CHANNELS> Mixer;
   };
