@@ -54,6 +54,34 @@ namespace
   const uint_t MAX_ORNAMENT_SIZE = 32;
   const uint_t MAX_SAMPLE_SIZE = 32;
 
+  //detectors
+  const DetectFormatChain DETECTORS[] =
+  {
+    //STP0
+    {
+      "21??"   // ld hl,xxxx
+      "c3??"   // jp xxxx
+      "c3??"   // jp xxxx
+      "ed4b??" // ld bc,(xxxx)
+      "c3??"   // jp xxxx
+      "+62+"   // id+name
+      "f3"     // di
+      "22??"   // ld (xxxx),hl
+      "3e?"    // ld a,xx
+      "32??"   // ld (xxxx),a
+      "32??"   // ld (xxxx),a
+      "32??"   // ld (xxxx),a
+      "7e"     // ld a,(hl)
+      "23"     // inc hl
+      "32??"   // ld (xxxx),a
+      "cd??"   // call xxxx
+      "7e"     // ld a,(hl)
+      "32??"   // ld (xxxx),a
+      "23"     // inc hl
+      ,
+      1896
+    }
+  };
   //////////////////////////////////////////////////////////////////////////
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -370,42 +398,47 @@ namespace
 
       //parse samples
       Data.Samples.reserve(MAX_SAMPLES_COUNT);
-      //uint_t index = 0;
+      uint_t index = 0;
       for (const uint16_t* pSample = samples->Offsets.begin(); pSample != samples->Offsets.end();
-        ++pSample/*, ++index*/)
+        ++pSample, ++index)
       {
         assert(*pSample && fromLE(*pSample) < data.Size());
         const STPSample* const sample = safe_ptr_cast<const STPSample*>(&data[fromLE(*pSample)]);
         Data.Samples.push_back(Sample(*sample));
-        //const Sample& smp = Data.Samples.back();
-        //IndexPrefix pfx(warner, TEXT_SAMPLE_WARN_PREFIX, index);
-        //warner.Assert(smp.Loop < signed(smp.Data.size()), TEXT_WARNING_LOOP_OUT_BOUND);
+        const Sample& smp = Data.Samples.back();
+        if (smp.Loop >= static_cast<signed>(smp.Data.size()))
+        {
+          Log::ParamPrefixedCollector smpWarner(*warner, TEXT_SAMPLE_WARN_PREFIX, index);
+          smpWarner.AddMessage(TEXT_WARNING_LOOP_OUT_BOUND);
+        }
       }
       std::size_t rawSize = safe_ptr_cast<const uint8_t*>(samples + 1) - data.Data();
 
       Data.Ornaments.reserve(MAX_ORNAMENTS_COUNT);
-      //index = 0;
+      index = 0;
       for (const uint16_t* pOrnament = ornaments->Offsets.begin(); pOrnament != ornaments->Offsets.end();
-        ++pOrnament/*, ++index*/)
+        ++pOrnament, ++index)
       {
         assert(*pOrnament && fromLE(*pOrnament) < data.Size());
         const STPOrnament* const ornament = safe_ptr_cast<const STPOrnament*>(&data[fromLE(*pOrnament)]);
         Data.Ornaments.push_back(SimpleOrnament(ornament->Data, ornament->Data + ornament->Size, ornament->Loop));
-        //IndexPrefix pfx(warner, TEXT_ORNAMENT_WARN_PREFIX, index);
-        //warner.Assert(orn.Loop <= orn.Data.size(), TEXT_WARNING_LOOP_OUT_LIMIT);
+        const SimpleOrnament& orn = Data.Ornaments.back();
+        if (orn.Loop > orn.Data.size())
+        {
+          Log::ParamPrefixedCollector smpWarner(*warner, TEXT_ORNAMENT_WARN_PREFIX, index);
+          smpWarner.AddMessage(TEXT_WARNING_LOOP_OUT_BOUND);
+        }
       }
 
       //parse patterns
-      const uint_t fixOffset = 0;//TODO
-      for (const STPPattern* pattern = patterns; 
+      for (const STPPattern* pattern = patterns;
         static_cast<const void*>(pattern) < static_cast<const void*>(ornaments); ++pattern)
       {
         Data.Patterns.push_back(STPTrack::Pattern());
         Log::ParamPrefixedCollector patternWarner(*warner, TEXT_PATTERN_WARN_PREFIX, Data.Patterns.size());
         STPTrack::Pattern& pat = Data.Patterns.back();
         PatternCursors cursors;
-        std::transform(pattern->Offsets.begin(), pattern->Offsets.end(), cursors.begin(), 
-          boost::bind(std::minus<unsigned>(), boost::bind(&fromLE<uint16_t>, _1), fixOffset));
+        std::transform(pattern->Offsets.begin(), pattern->Offsets.end(), cursors.begin(), std::ptr_fun(&fromLE<uint16_t>));
         pat.reserve(MAX_PATTERN_SIZE);
         do
         {
@@ -514,7 +547,7 @@ namespace
       ChannelState()
         : Enabled(false), Envelope(false), Volume(0)
         , Note(0), SampleNum(0), PosInSample(0)
-        , OrnamentNum(0), PosInOrnament(0) 
+        , OrnamentNum(0), PosInOrnament(0)
         , TonSlide(0), Glissade(0)
       {
       }
@@ -744,7 +777,7 @@ namespace
         const uint_t halfTone = static_cast<uint_t>(clamp<int_t>(
           int_t(dst.Note) + Transpositions[ModState.Track.Position] +
           (dst.Envelope ? 0 : curOrnament.Data[dst.PosInOrnament]), 0, 95));
-        const uint_t tone = static_cast<uint_t>(clamp<int_t>(int_t(freqTable[halfTone]) + dst.TonSlide + 
+        const uint_t tone = static_cast<uint_t>(clamp<int_t>(int_t(freqTable[halfTone]) + dst.TonSlide +
           curSampleLine.Vibrato, 0, 0xffff));
 
         chunk.Data[toneReg] = static_cast<uint8_t>(tone & 0xff);
@@ -829,10 +862,16 @@ namespace
     const std::size_t ornamentsOffset = fromLE(header->OrnamentsOffset);
     const std::size_t samplesOffset = fromLE(header->SamplesOffset);
 
-    if (header->FixesCount == 0 || //TODO: process with == 0
-        header->Tempo == 0 ||
+    if (header->Tempo == 0 ||
         positionsOffset > limit ||
-        patternsOffset >= ornamentsOffset || (ornamentsOffset - patternsOffset) % sizeof(STPPattern) != 0)
+        patternsOffset >= ornamentsOffset || (ornamentsOffset - patternsOffset) % sizeof(STPPattern) != 0 ||
+        !checker->AddRange(patternsOffset, ornamentsOffset - patternsOffset)
+        )
+    {
+      return false;
+    }
+    const STPId* id = safe_ptr_cast<const STPId*>(header + 1);
+    if (id->Check() && !checker->AddRange(sizeof(*header), sizeof(*id)))
     {
       return false;
     }
@@ -909,7 +948,7 @@ namespace
   bool CreateSTPModule(const Parameters::Map& /*commonParams*/, const MetaContainer& container,
     Holder::Ptr& holder, ModuleRegion& region)
   {
-    return PerformDetect(&CheckSTPModule, 0, 0,
+    return PerformDetect(&CheckSTPModule, DETECTORS, ArrayEnd(DETECTORS),
       container, holder, region);
   }
 }
