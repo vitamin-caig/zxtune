@@ -476,17 +476,16 @@ namespace
         {
           switch (key)
           {
-          case Console::KEY_CANCEL:
+          case Console::INPUT_KEY_CANCEL:
           case 'Q':
             throw Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
-            break;
-          case Console::KEY_LEFT:
+          case Console::INPUT_KEY_LEFT:
             ThrowIfError(backend.SetPosition(curFrame < seekStepFrames ? 0 : curFrame - seekStepFrames));
             break;
-          case Console::KEY_RIGHT:
+          case Console::INPUT_KEY_RIGHT:
             ThrowIfError(backend.SetPosition(curFrame + seekStepFrames));
             break;
-          case Console::KEY_DOWN:
+          case Console::INPUT_KEY_DOWN:
             if (!noVolume)
             {
               curVolume = std::max(0.0, curVolume - 0.05);
@@ -495,7 +494,7 @@ namespace
               ThrowIfError(volCtrl->SetVolume(allVol));
             }
             break;
-          case Console::KEY_UP:
+          case Console::INPUT_KEY_UP:
             if (!noVolume)
             {
               curVolume = std::min(1.0, curVolume + 0.05);
@@ -504,7 +503,7 @@ namespace
               ThrowIfError(volCtrl->SetVolume(allVol));
             }
             break;
-          case Console::KEY_ENTER:
+          case Console::INPUT_KEY_ENTER:
             if (ZXTune::Sound::Backend::STARTED == state)
             {
               ThrowIfError(backend.Pause());

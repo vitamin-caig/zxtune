@@ -11,6 +11,7 @@ Author:
   This file is a part of zxtune123 application based on zxtune library
 */
 
+#include "console.h"
 #include "source.h"
 #include <apps/base/app.h>
 #include <apps/base/error_codes.h>
@@ -19,6 +20,7 @@ Author:
 #include <logging.h>
 #include <string_helpers.h>
 #include <tools.h>
+#include <core/error_codes.h>
 #include <core/module_attrs.h>
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
@@ -42,18 +44,39 @@ namespace
  
   void DoLog(const Log::MessageData& msg)
   {
-    //show only first-level messages
-    if (!msg.Level)
+    const Console& console = Console::Self();
+    if (console.GetPressedKey() == Console::INPUT_KEY_CANCEL)
     {
-      if (msg.Text)
-      {
-        StdOut << *msg.Text;
-      }
-      if (msg.Progress)
-      {
-        StdOut << (Formatter(TEXT_PROGRESS_FORMAT) % *msg.Progress).str();
-      }
-      StdOut << std::endl;
+      console.WaitForKeyRelease();
+      throw Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
+    }
+    //show only first-level messages
+    if (msg.Level)
+    {
+      return;
+    }
+    const int_t width = console.GetSize().first;
+    if (width < 0)
+    {
+      return;
+    }
+    String log;
+    if (msg.Text)
+    {
+      log = *msg.Text;
+    }
+    if (msg.Progress)
+    {
+      log += (Formatter(TEXT_PROGRESS_FORMAT) % *msg.Progress).str();
+    }
+    if (int_t(log.size()) < width)
+    {
+      log.resize(width - 1, ' ');
+      StdOut << log << '\r' << std::flush;
+    }
+    else
+    {
+      StdOut << log << std::endl;
     }
   }
   

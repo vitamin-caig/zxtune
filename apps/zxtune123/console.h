@@ -28,13 +28,13 @@ public:
 
   enum
   {
-    KEY_NONE = 0,
-    KEY_LEFT = 8,
-    KEY_RIGHT = 9,
-    KEY_UP = 10,
-    KEY_DOWN = 11,
-    KEY_CANCEL = 12,
-    KEY_ENTER = 13,
+    INPUT_KEY_NONE = 0,
+    INPUT_KEY_LEFT = 8,
+    INPUT_KEY_RIGHT = 9,
+    INPUT_KEY_UP = 10,
+    INPUT_KEY_DOWN = 11,
+    INPUT_KEY_CANCEL = 12,
+    INPUT_KEY_ENTER = 13,
   };
   virtual uint_t GetPressedKey() const = 0;
   

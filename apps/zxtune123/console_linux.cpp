@@ -95,35 +95,35 @@ namespace
     {
       if (!IsConsoleIn)
       {
-        return KEY_NONE;
+        return INPUT_KEY_NONE;
       }
         
       switch (const int code = ::getchar())
       {
       case -1:
-        return KEY_NONE;
+        return INPUT_KEY_NONE;
       case 27:
         {
           if (::getchar() != '[')
           {
-            return KEY_NONE;
+            return INPUT_KEY_NONE;
           }
           switch (::getchar())
           {
           case 65:
-            return KEY_UP;
+            return INPUT_KEY_UP;
           case 66:
-            return KEY_DOWN;
+            return INPUT_KEY_DOWN;
           case 67:
-            return KEY_RIGHT;
+            return INPUT_KEY_RIGHT;
           case 68:
-            return KEY_LEFT;
+            return INPUT_KEY_LEFT;
           default:
-            return KEY_NONE;
+            return INPUT_KEY_NONE;
           }
         }
       case 10:
-        return KEY_ENTER;
+        return INPUT_KEY_ENTER;
       default:
         return std::toupper(code);
       };

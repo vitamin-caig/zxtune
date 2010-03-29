@@ -60,31 +60,31 @@ namespace
         switch (const int code = ::_getch())
         {
         case VK_ESCAPE:
-          return KEY_CANCEL;
+          return INPUT_KEY_CANCEL;
         case VK_RETURN:
-          return KEY_ENTER;
+          return INPUT_KEY_ENTER;
         case 0x00:
         case 0xe0:
           {
             switch (::_getch())
             {
             case 72:
-              return KEY_UP;
+              return INPUT_KEY_UP;
             case 75:
-              return KEY_LEFT;
+              return INPUT_KEY_LEFT;
             case 77:
-              return KEY_RIGHT;
+              return INPUT_KEY_RIGHT;
             case 80:
-              return KEY_DOWN;
+              return INPUT_KEY_DOWN;
             default:
-              return KEY_NONE;
+              return INPUT_KEY_NONE;
             }
           }
         default:
           return std::toupper(code);
         };
       }
-      return KEY_NONE;
+      return INPUT_KEY_NONE;
     }
 
     virtual void WaitForKeyRelease() const
