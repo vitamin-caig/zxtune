@@ -3,7 +3,7 @@
 
 #shared cmdline keys
 #TODO: make share capabilities keys
-+zxtune123/cmd_keys_local.txt
++../cmd_keys_local.txt
 
 #markup
 = HEADER

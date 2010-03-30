@@ -42,7 +42,7 @@ zip -9Dj %ZipFile% bin\%Platform%\release\%Binary%.exe apps\zxtune.conf || GOTO 
 ECHO Generating manuals
 FOR /D %%F IN (%Formats%) DO (
 FOR /D %%L IN (%Languages%) DO (
-textator --process --keys %%L,%%F --asm --output bin\%Binary%_%%L.%%F apps\%Binary%.txt || GOTO Error
+textator --process --keys %%L,%%F --asm --output bin\%Binary%_%%L.%%F apps\%Binary%\dist\%Binary%.txt || GOTO Error
 zip -9Dj %ZipFile% bin\%Binary%_%%L.%%F || GOTO Error
 )
 )
