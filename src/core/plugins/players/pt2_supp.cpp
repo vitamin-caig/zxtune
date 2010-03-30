@@ -923,7 +923,8 @@ namespace
     }
 
     const PT2Header* const header(safe_ptr_cast<const PT2Header*>(data));
-    if (header->Length < 1 || header->Tempo < 2 || header->Loop >= header->Length)
+    if (header->Tempo < 2 || header->Loop >= header->Length ||
+        header->Length < 1 || header->Length + 1 + sizeof(*header) > size)
     {
       return false;
     }

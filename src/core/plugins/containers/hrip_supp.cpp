@@ -237,7 +237,7 @@ namespace
         uint_t totalFiles = 0, archiveSize = 0;
 
         if (CheckHrip(Container->Data(), Container->Size(), totalFiles, archiveSize) != OK ||
-            ParseHrip(Container->Data(), archiveSize, 
+            ParseHrip(Container->Data(), archiveSize,
               boost::bind(&Enumerator::ProcessFile, this, totalFiles, _1, _2), IgnoreCorrupted) != OK)
         {
           return Error(THIS_LINE, Module::ERROR_FIND_CONTAINER_PLUGIN);
@@ -279,7 +279,7 @@ namespace
       if (DetectParams.Logger)
       {
         Log::MessageData message;
-        message.Level = LogLevel - 1;
+        message.Level = LogLevel;
         message.Progress = 100 * (fileNum + 1) / totalFiles;
         message.Text = (SafeFormatter(Path.empty() ? TEXT_PLUGIN_HRIP_PROGRESS_NOPATH : TEXT_PLUGIN_HRIP_PROGRESS) % filename % Path).str();
         DetectParams.Logger(message);
@@ -306,7 +306,7 @@ namespace
     return cb.Process(region);
   }
 
-  CallbackState FindFileCallback(const String& filename, bool ignoreCorrupted, uint_t /*fileNum*/, 
+  CallbackState FindFileCallback(const String& filename, bool ignoreCorrupted, uint_t /*fileNum*/,
     const std::vector<const HripBlockHeader*>& headers, Dump& dst)
   {
     if (!headers.empty() &&
@@ -333,7 +333,7 @@ namespace
     const bool ignoreCorrupted = CheckIgnoreCorrupted(commonParams);
     const IO::DataContainer& container = *inData.Data;
     if (pathComp.empty() ||
-        OK != ParseHrip(container.Data(), container.Size(), 
+        OK != ParseHrip(container.Data(), container.Size(),
           boost::bind(&FindFileCallback, pathComp, ignoreCorrupted, _1, _2, boost::ref(dmp)), ignoreCorrupted) ||
         dmp.empty())
     {

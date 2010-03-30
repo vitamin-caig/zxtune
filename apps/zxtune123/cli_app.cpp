@@ -76,6 +76,7 @@ namespace
     Parameters::ConvertMap(info.Properties, strProps);
 #if 1
     StdOut
+      << std::endl
       << InstantiateTemplate(TEXT_ITEM_INFO, strProps, FILL_NONEXISTING)
       << (Formatter(TEXT_ITEM_INFO_ADDON) % UnparseFrameTime(info.Statistic.Frame, frameDuration) %
         info.Statistic.Channels % info.PhysicalChannels).str();
