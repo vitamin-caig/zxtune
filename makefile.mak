@@ -93,14 +93,16 @@ $(target): $(object_files)
 	$(build_lib_cmd)
 else
 #binary and dynamic libraries with dependencies
-.PHONY: deps $(depends)
+libs_files := $(foreach lib,$(libraries),$(libs_dir)/$(call makelib_name,$(lib)))
 
 deps: $(depends)
 
 $(depends):
 	$(MAKE) -C $(addprefix $(path_step)/,$@) $(if $(pic),pic=1,) $(if $(defines),defines="$(defines)",) $(MAKECMDGOALS)
 
-$(target): deps $(object_files) $(foreach lib,$(libraries),$(libs_dir)/$(call makelib_name,$(lib)))
+$(libs_files): deps
+
+$(target): $(object_files) $(libs_files)
 	$(link_cmd)
 	$(postlink_cmd)
 endif

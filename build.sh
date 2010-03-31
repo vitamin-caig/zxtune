@@ -30,9 +30,8 @@ echo "Creating build dir"
 mkdir -p ${TargetDir}
 
 echo "Building"
-#disable multicore build till proper dependencies processing
-#-j `grep processor /proc/cpuinfo | wc -l` 
-time make mode=release platform=${Platform} defines=ZXTUNE_VERSION=rev${Revision} \
+time make -j `grep processor /proc/cpuinfo | wc -l` mode=release \
+     platform=${Platform} defines=ZXTUNE_VERSION=rev${Revision} \
      -C apps/zxtune123 > ${TargetDir}/build.log || exit 1;
 
 ZipFile=${TargetDir}/${Binary}_r${Suffix}.zip
