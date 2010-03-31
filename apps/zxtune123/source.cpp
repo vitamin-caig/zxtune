@@ -44,16 +44,16 @@ namespace
  
   void DoLog(const Log::MessageData& msg)
   {
+    //show only first-level messages
+    if (msg.Level)
+    {
+      return;
+    }
     const Console& console = Console::Self();
     if (console.GetPressedKey() == Console::INPUT_KEY_CANCEL)
     {
       console.WaitForKeyRelease();
       throw Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
-    }
-    //show only first-level messages
-    if (msg.Level)
-    {
-      return;
     }
     const int_t width = console.GetSize().first;
     if (width < 0)

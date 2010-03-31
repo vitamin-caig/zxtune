@@ -178,7 +178,6 @@ namespace
         }
       }
 
-      const uint_t level = CountPluginsInChain(data.PluginsChain, CAP_STOR_MULTITRACK, CAP_STOR_MULTITRACK);
       //try to process implicit
       {
         MetaContainer nested;
@@ -186,6 +185,7 @@ namespace
         const Error& e = DetectImplicit(commonParams, detectParams.Filter, data, nested.Data, region, pluginId);
         if (!e)
         {
+          const uint_t level = CountPluginsInChain(data.PluginsChain, CAP_STOR_MULTITRACK, CAP_STOR_MULTITRACK);
           DoLog(detectParams.Logger, level,
             data.Path.empty() ? TEXT_MODULE_PROGRESS_DETECT_IMPLICIT_NOPATH : TEXT_MODULE_PROGRESS_DETECT_IMPLICIT,
             pluginId, data.Path);
@@ -220,6 +220,7 @@ namespace
       }
 
       Log::Debug(THIS_MODULE, "Detected player plugin %1%", pluginId);
+      const uint_t level = CountPluginsInChain(data.PluginsChain, CAP_STOR_MULTITRACK, CAP_STOR_MULTITRACK);
       DoLog(detectParams.Logger, level, data.Path.empty() ? TEXT_MODULE_PROGRESS_DETECT_PLAYER_NOPATH : TEXT_MODULE_PROGRESS_DETECT_PLAYER,
         pluginId, data.Path);
       if (const Error& e = detectParams.Callback(data.Path, holder))
