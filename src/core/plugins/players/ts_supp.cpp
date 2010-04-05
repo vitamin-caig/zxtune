@@ -13,6 +13,7 @@ Author:
 
 #include <byteorder.h>
 #include <error_tools.h>
+#include <logging.h>
 #include <messages_collector.h>
 #include <tools.h>
 #include <core/convert_parameters.h>
@@ -37,6 +38,8 @@ namespace
 {
   using namespace ZXTune;
   using namespace ZXTune::Module;
+
+  const std::string THIS_MODULE("Core::TSSupp");
 
   //plugin attributes
   const Char TS_PLUGIN_ID[] = {'T', 'S', 0};
@@ -349,24 +352,26 @@ namespace
       return false;
     }
 
-    Module::Holder::Ptr holder1, holder2;
-
     const PluginsEnumerator& enumerator(PluginsEnumerator::Instance());
     MetaContainer subdata(container);
     ModuleRegion subregion;
     DetectParameters detectParams;
     detectParams.Filter = &OnlyAYMPlayersFilter;
 
-    subdata.Data = container.Data->GetSubcontainer(0, fromLE(footer->Size1));
+    Module::Holder::Ptr holder1;
     detectParams.Callback = boost::bind(CopyModuleHolder, _1, _2, boost::ref(holder1));
+    subdata.Data = container.Data->GetSubcontainer(0, fromLE(footer->Size1));
     if (enumerator.DetectModules(commonParams, detectParams, subdata, subregion) || !holder1)
     {
+      Log::Debug(THIS_MODULE, "Failed to create first module holder");
       return false;
     }
-    subdata.Data = container.Data->GetSubcontainer(fromLE(footer->Size1), fromLE(footer->Size2));
+    Module::Holder::Ptr holder2;
     detectParams.Callback = boost::bind(CopyModuleHolder, _1, _2, boost::ref(holder2));
+    subdata.Data = container.Data->GetSubcontainer(fromLE(footer->Size1), fromLE(footer->Size2));
     if (enumerator.DetectModules(commonParams, detectParams, subdata, subregion) || !holder2)
     {
+      Log::Debug(THIS_MODULE, "Failed to create second module holder");
       return false;
     }
     //try to create holder
@@ -379,7 +384,7 @@ namespace
     }
     catch (const Error&)
     {
-      //TODO: log
+      Log::Debug(THIS_MODULE, "Failed to create holder");
     }
     return false;
   }

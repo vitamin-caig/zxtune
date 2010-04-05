@@ -870,7 +870,7 @@ namespace
     }
     catch (const Error&/*e*/)
     {
-      //TODO: log error
+      Log::Debug("STCSupp", "Failed to create holder");
     }
     return false;
   }

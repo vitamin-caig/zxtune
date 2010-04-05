@@ -939,7 +939,7 @@ namespace
     }
     catch (const Error&/*e*/)
     {
-      //TODO: log error
+      Log::Debug("STPSupp", "Failed to create holder");
     }
     return false;
   }

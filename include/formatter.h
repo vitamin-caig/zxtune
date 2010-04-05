@@ -21,9 +21,11 @@
 //! <A HREF="http://www.boost.org/doc/libs/1_41_0/libs/format/doc/format.html#syntax">Syntax of format string</A>
 typedef boost::basic_format<Char> Formatter;
 
+// @brief Safe formatter type - does not throw exceptions if format string does not correspond to parameters count
 class SafeFormatter : public Formatter
 {
 public:
+  //use template ctor for common purposes- const Char* or const String& input types
   template<class T>
   SafeFormatter(const T str)
     : Formatter(str)

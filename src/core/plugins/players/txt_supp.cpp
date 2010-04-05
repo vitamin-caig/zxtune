@@ -166,7 +166,7 @@ namespace
     }
     catch (const Error& e)
     {
-      Log::Debug("TXTSupp", "Failed to create holder ", e.GetText());
+      Log::Debug("TXTSupp", "Failed to create holder ('%1%')", e.GetText());
     }
     return false;
   }

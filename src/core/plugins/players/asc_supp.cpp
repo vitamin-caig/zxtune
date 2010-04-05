@@ -50,9 +50,9 @@ namespace
 
   //hints
   const std::size_t MAX_MODULE_SIZE = 16384;
-  const uint_t MAX_SAMPLES_COUNT = 32;
+  const uint_t SAMPLES_COUNT = 32;
   const uint_t MAX_SAMPLE_SIZE = 150;
-  const uint_t MAX_ORNAMENTS_COUNT = 32;
+  const uint_t ORNAMENTS_COUNT = 32;
   const uint_t MAX_ORNAMENT_SIZE = 30;
   const uint_t MAX_PATTERN_SIZE = 64;//???
   const uint_t MAX_PATTERNS_COUNT = 32;//TODO
@@ -68,13 +68,18 @@ namespace
     uint16_t PatternsOffset;
     uint16_t SamplesOffset;
     uint16_t OrnamentsOffset;
-    uint8_t Lenght;
+    uint8_t Length;
     uint8_t Positions[1];
   } PACK_POST;
 
-  const uint8_t ASC_ID_1[] = {'A', 'S', 'M', ' ', 'C', 'O', 'M', 'P', 'I', 'L', 'A', 'T', 'I', 'O', 'N', ' ',
-    'O', 'F', ' '};
-  const uint8_t ASC_ID_2[] = {' ', 'B', 'Y', ' '};
+  const uint8_t ASC_ID_1[] =
+  {
+    'A', 'S', 'M', ' ', 'C', 'O', 'M', 'P', 'I', 'L', 'A', 'T', 'I', 'O', 'N', ' ', 'O', 'F', ' '
+  };
+  const uint8_t ASC_ID_2[] =
+  {
+    ' ', 'B', 'Y', ' '
+  };
 
   PACK_PRE struct ASCID
   {
@@ -99,7 +104,7 @@ namespace
 
   PACK_PRE struct ASCOrnaments
   {
-    boost::array<uint16_t, MAX_ORNAMENTS_COUNT> Offsets;
+    boost::array<uint16_t, ORNAMENTS_COUNT> Offsets;
   } PACK_POST;
 
   PACK_PRE struct ASCOrnament
@@ -142,7 +147,7 @@ namespace
 
   PACK_PRE struct ASCSamples
   {
-    boost::array<uint16_t, MAX_SAMPLES_COUNT> Offsets;
+    boost::array<uint16_t, SAMPLES_COUNT> Offsets;
   } PACK_POST;
 
   PACK_PRE struct ASCSample
@@ -311,22 +316,36 @@ namespace
     std::vector<Line> Data;
   };
 
+  //supported commands and their parameters
   enum CmdType
   {
+    //no parameters
     EMPTY,
-    ENVELOPE,        //2p
-    ENVELOPE_ON,     //0p
-    ENVELOPE_OFF,    //0p
-    NOISE,           //1p
-    CONT_SAMPLE,     //0p
-    CONT_ORNAMENT,   //0p
-    GLISS,           //1p
-    SLIDE,           //1p
-    SLIDE_NOTE,      //2p
-    AMPLITUDE_SLIDE, //2p
-    BREAK_SAMPLE     //0p
+    //r13,envL
+    ENVELOPE,
+    //no parameters
+    ENVELOPE_ON,
+    //no parameters
+    ENVELOPE_OFF,
+    //value
+    NOISE,
+    //no parameters
+    CONT_SAMPLE,
+    //no parameters
+    CONT_ORNAMENT,
+    //glissade value
+    GLISS,
+    //steps
+    SLIDE,
+    //steps,note
+    SLIDE_NOTE,
+    //period,delta
+    AMPLITUDE_SLIDE,
+    //no parameter
+    BREAK_SAMPLE
   };
 
+  // fill plugin information
   void DescribeASCPlugin(PluginInformation& info)
   {
     info.Id = ASC_PLUGIN_ID;
@@ -335,6 +354,7 @@ namespace
     info.Capabilities = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
   }
 
+  // tracker type
   typedef TrackingSupport<AYM::CHANNELS, Sample, Ornament> ASCTrack;
 
   // perform module 'playback' right after creating (debug purposes)
@@ -348,7 +368,7 @@ namespace
   {
     typedef boost::array<PatternCursor, AYM::CHANNELS> PatternCursors;
 
-    void ParsePattern(const IO::FastDump& data
+    static void ParsePattern(const IO::FastDump& data
       , PatternCursors& cursors
       , ASCTrack::Line& line
       , Log::MessagesCollector& warner
@@ -379,7 +399,7 @@ namespace
               Log::Assert(channelWarner, !channel->Enabled, TEXT_WARNING_DUPLICATE_STATE);
               channel->Enabled = true;
             }
-            if (!channel->Commands.empty() && 
+            if (!channel->Commands.empty() &&
                 SLIDE == channel->Commands.back().Type)
             {
               //set slide to note
@@ -464,7 +484,7 @@ namespace
             }
             channel->Commands.push_back(ASCTrack::Command(NOISE, data[cur->Offset++]));
           }
-          else if (cmd == 0xf1 || cmd == 0xf2 || cmd == 0xf3)
+          else if ((cmd & 0xfc) == 0xf0) //0xf1, 0xf2, 0xf3- continue sample or ornament
           {
             if (cmd & 1)
             {
@@ -491,7 +511,7 @@ namespace
             {
               throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
             }
-            channel->Commands.push_back(ASCTrack::Command(GLISS, 
+            channel->Commands.push_back(ASCTrack::Command(GLISS,
               ((cmd == 0xf5) ? -16 : 16) * static_cast<int8_t>(data[cur->Offset++])));
           }
           else if (cmd == 0xf7 || cmd == 0xf9) //stepped slide
@@ -506,7 +526,7 @@ namespace
             }
             channel->Commands.push_back(ASCTrack::Command(SLIDE, static_cast<int8_t>(data[cur->Offset++])));
           }
-          else if (cmd == 0xf8 || cmd == 0xfa || cmd == 0xfc || cmd == 0xfe) //envelope
+          else if ((cmd & 0xf9) == 0xf8) //0xf8, 0xfa, 0xfc, 0xfe- envelope
           {
             ASCTrack::CommandsArray::iterator cmdIt = std::find(channel->Commands.begin(), channel->Commands.end(),
               ENVELOPE);
@@ -594,7 +614,7 @@ namespace
       }
 
       //fill order
-      Data.Positions.assign(header->Positions, header->Positions + header->Lenght);
+      Data.Positions.assign(header->Positions, header->Positions + header->Length);
       //parse patterns
       const std::size_t patternsCount = 1 + *std::max_element(Data.Positions.begin(), Data.Positions.end());
       const uint16_t patternsOff = fromLE(header->PatternsOffset);
@@ -637,7 +657,7 @@ namespace
 
       //meta properties
       {
-        const ASCID* const id = safe_ptr_cast<const ASCID*>(header->Positions + header->Lenght);
+        const ASCID* const id = safe_ptr_cast<const ASCID*>(header->Positions + header->Length);
         const bool validId = id->Check();
         const std::size_t fixedOffset = sizeof(ASCHeader) + validId ? sizeof(*id) : 0;
         ExtractMetaProperties(ASC_PLUGIN_ID, container, region, ModuleRegion(fixedOffset, rawSize - fixedOffset),
@@ -667,12 +687,14 @@ namespace
         !boost::bind(&ASCTrack::Pattern::empty, _1));
       Data.Info.Statistic.Channels = AYM::CHANNELS;
       ASCTrack::CalculateTimings(Data, Data.Info.Statistic.Frame, Data.Info.LoopFrame);
+      //warnings
       if (const uint_t msgs = warner->CountMessages())
       {
         Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS_COUNT, msgs));
         Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS, warner->GetMessages('\n')));
       }
     }
+
     virtual void GetPluginInformation(PluginInformation& info) const
     {
       DescribeASCPlugin(info);
@@ -793,6 +815,7 @@ namespace
                               PlaybackState& state,
                               Sound::MultichannelReceiver& receiver)
     {
+      //additional check for seeking purposes
       if (ModState.Frame >= Data.Info.Statistic.Frame)
       {
         if (MODULE_STOPPED == CurrentState)
@@ -874,6 +897,7 @@ namespace
     void RenderData(AYM::DataChunk& chunk)
     {
       const ASCTrack::Line& line = Data.Patterns[ModState.Track.Pattern][ModState.Track.Line];
+      //bitmask of channels to sample break
       uint_t breakSample = 0;
       if (0 == ModState.Track.Frame)//begin note
       {
@@ -896,7 +920,7 @@ namespace
           dst.VolSlideCounter = 0;
           dst.SlidingSteps = 0;
           bool contSample = false, contOrnament = false;
-          for (ASCTrack::CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); 
+          for (ASCTrack::CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end();
             it != lim; ++it)
           {
             switch (it->Type)
@@ -1052,7 +1076,7 @@ namespace
         const uint_t halfTone = static_cast<uint_t>(clamp<int_t>(int_t(dst.Note) + dst.NoteAddon, 0, 85));
         const uint_t baseFreq = freqTable[halfTone];
         const uint_t tone = (baseFreq + dst.ToneDeviation + dst.Sliding / 16) & 0xfff;
-        if (dst.SlidingSteps)
+        if (dst.SlidingSteps != 0)
         {
           if (dst.SlidingSteps > 0)
           {
@@ -1073,7 +1097,7 @@ namespace
         const bool sampleEnvelope = ASCSample::ENVELOPE == curSampleLine.Command;
         //calculate level
         const uint_t level = static_cast<uint_t>((dst.Volume + 1) * clamp<int_t>(dst.VolumeAddon + curSampleLine.Level, 0, 15) / 16);
-        chunk.Data[volReg] = static_cast<uint8_t>(level | (dst.Envelope && sampleEnvelope ? 
+        chunk.Data[volReg] = static_cast<uint8_t>(level | (dst.Envelope && sampleEnvelope ?
           AYM::DataChunk::REG_MASK_ENV : 0));
 
         //calculate noise
@@ -1157,9 +1181,9 @@ namespace
 
     limit = std::min(limit, MAX_MODULE_SIZE);
     const ASCHeader* const header = safe_ptr_cast<const ASCHeader*>(data);
-    const std::size_t headerBusy = sizeof(*header) + header->Lenght - 1;
+    const std::size_t headerBusy = sizeof(*header) + header->Length - 1;
 
-    if (!header->Lenght || limit < headerBusy)
+    if (!header->Length || limit < headerBusy)
     {
       return false;
     }
@@ -1168,11 +1192,20 @@ namespace
     const std::size_t ornamentsOffset = fromLE(header->OrnamentsOffset);
     const std::size_t patternsOffset = fromLE(header->PatternsOffset);
 
-    RangeChecker::Ptr checker(RangeChecker::Create(limit));
+    RangeChecker::Ptr checker = RangeChecker::Create(limit);
     checker->AddRange(0, headerBusy);
-    const uint_t patternsCount = 1 + *std::max_element(header->Positions, header->Positions + header->Lenght);
+    const uint_t patternsCount = 1 + *std::max_element(header->Positions, header->Positions + header->Length);
 
-    if (!patternsCount || patternsCount >= MAX_PATTERNS_COUNT ||
+    //check if length is valid
+    if (header->Positions + header->Length !=
+        std::find_if(header->Positions, header->Positions + header->Length,
+          std::bind2nd(std::greater_equal<uint8_t>(), patternsCount)))
+    {
+      return false;
+    }
+
+    //check common ranges
+    if (!patternsCount || patternsCount > MAX_PATTERNS_COUNT ||
         !checker->AddRange(patternsOffset, sizeof(ASCPattern) * patternsCount) ||
         !checker->AddRange(samplesOffset, sizeof(ASCSamples)) ||
         !checker->AddRange(ornamentsOffset, sizeof(ASCOrnaments))
@@ -1180,47 +1213,45 @@ namespace
     {
       return false;
     }
+    //check samples
     {
       const ASCSamples* const samples = safe_ptr_cast<const ASCSamples*>(data + samplesOffset);
       if (samples->Offsets.end() !=
         std::find_if(samples->Offsets.begin(), samples->Offsets.end(),
-          !boost::bind(&RangeChecker::AddRange, checker.get(), 
+          !boost::bind(&RangeChecker::AddRange, checker.get(),
              boost::bind(std::plus<uint_t>(), samplesOffset, boost::bind(&fromLE<uint16_t>, _1)),
              sizeof(ASCSample::Line))))
       {
         return false;
       }
     }
+    //check ornaments
     {
       const ASCOrnaments* const ornaments = safe_ptr_cast<const ASCOrnaments*>(data + ornamentsOffset);
       if (ornaments->Offsets.end() !=
-        std::find_if(ornaments->Offsets.begin(), ornaments->Offsets.end(), 
-          !boost::bind(&RangeChecker::AddRange, checker.get(), 
+        std::find_if(ornaments->Offsets.begin(), ornaments->Offsets.end(),
+          !boost::bind(&RangeChecker::AddRange, checker.get(),
             boost::bind(std::plus<uint_t>(), ornamentsOffset, boost::bind(&fromLE<uint16_t>, _1)),
             sizeof(ASCOrnament::Line))))
       {
         return false;
       }
     }
+    //check patterns
     {
       const ASCPattern* pattern = safe_ptr_cast<const ASCPattern*>(data + patternsOffset);
       for (uint_t patternNum = 0 ; patternNum < patternsCount; ++patternNum, ++pattern)
       {
         //at least 1 byte
         if (pattern->Offsets.end() !=
-          std::find_if(pattern->Offsets.begin(), pattern->Offsets.end(),  
-          !boost::bind(&RangeChecker::AddRange, checker.get(), 
-             boost::bind(std::plus<uint_t>(), patternsOffset, boost::bind(&fromLE<uint16_t>, _1)), 1)))
+          std::find_if(pattern->Offsets.begin(), pattern->Offsets.end(),
+          !boost::bind(&RangeChecker::AddRange, checker.get(),
+             boost::bind(std::plus<uint_t>(), patternsOffset, boost::bind(&fromLE<uint16_t>, _1)),
+             1)))
         {
           return false;
         }
       }
-    }
-    if (header->Positions + header->Lenght != 
-        std::find_if(header->Positions, header->Positions + header->Lenght, std::bind2nd(std::greater_equal<uint8_t>(),
-          patternsCount)))
-    {
-      return false;
     }
 
     //try to create holder
@@ -1234,7 +1265,7 @@ namespace
     }
     catch (const Error&/*e*/)
     {
-      Log::Debug("ASCSupp", "Failed to create holder");
+      Log::Debug("Core::ASCSupp", "Failed to create holder");
     }
     return false;
   }
@@ -1243,7 +1274,7 @@ namespace
   bool CreateASCModule(const Parameters::Map& /*commonParams*/, const MetaContainer& container,
     Holder::Ptr& holder, ModuleRegion& region)
   {
-    return PerformDetect(&CheckASCModule, 0, 0, 
+    return PerformDetect(&CheckASCModule, 0, 0,
       container, holder, region);
   }
 }
