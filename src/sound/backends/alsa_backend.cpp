@@ -390,13 +390,13 @@ namespace
     virtual void OnParametersChanged(const Parameters::Map& updates)
     {
       //check for parameters requires restarting
-      const Parameters::StringType* const device = 
+      const Parameters::StringType* const device =
         Parameters::FindByName<Parameters::StringType>(updates, Parameters::ZXTune::Sound::Backends::ALSA::DEVICE);
       const Parameters::StringType* const mixer =
         Parameters::FindByName<Parameters::StringType>(updates, Parameters::ZXTune::Sound::Backends::ALSA::MIXER);
       const Parameters::IntType* const buffers =
         Parameters::FindByName<Parameters::IntType>(updates, Parameters::ZXTune::Sound::Backends::ALSA::BUFFERS);
-      const Parameters::IntType* const freq = 
+      const Parameters::IntType* const freq =
         Parameters::FindByName<Parameters::IntType>(updates, Parameters::ZXTune::Sound::FREQUENCY);
       if (device || mixer || buffers || freq)
       {
@@ -534,7 +534,7 @@ namespace ZXTune
   {
     void RegisterAlsaBackend(BackendsEnumerator& enumerator)
     {
-      enumerator.RegisterBackend(BACKEND_INFO, AlsaBackendCreator, BACKEND_PRIORITY_HIGH);
+      enumerator.RegisterBackend(BACKEND_INFO, &AlsaBackendCreator);
     }
   }
 }

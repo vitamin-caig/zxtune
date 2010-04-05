@@ -21,13 +21,6 @@ namespace ZXTune
   {
     typedef boost::function<Backend::Ptr(const Parameters::Map&)> CreateBackendFunc;
 
-    enum
-    {
-      BACKEND_PRIORITY_HIGH = 0,
-      BACKEND_PRIORITY_MID = 50,
-      BACKEND_PRIORITY_LOW = 100,
-    };
-    
     class BackendsEnumerator
     {
     public:
@@ -35,7 +28,7 @@ namespace ZXTune
       {
       }
 
-      virtual void RegisterBackend(const BackendInformation& info, const CreateBackendFunc& creator, uint_t priority) = 0;
+      virtual void RegisterBackend(const BackendInformation& info, const CreateBackendFunc& creator) = 0;
       virtual void EnumerateBackends(BackendInformationArray& infos) const = 0;
 
       virtual Error CreateBackend(const String& id, const Parameters::Map& params, Backend::Ptr& result) const = 0;

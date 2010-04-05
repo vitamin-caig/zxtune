@@ -355,7 +355,7 @@ namespace ZXTune
   {
     void RegisterWin32Backend(BackendsEnumerator& enumerator)
     {
-      enumerator.RegisterBackend(BACKEND_INFO, Win32BackendCreator, BACKEND_PRIORITY_HIGH);
+      enumerator.RegisterBackend(BACKEND_INFO, &Win32BackendCreator);
     }
   }
 }

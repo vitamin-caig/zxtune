@@ -33,7 +33,6 @@ namespace
 
   class BackendsEnumeratorImpl : public BackendsEnumerator
   {
-    typedef std::multimap<uint_t, BackendInformation> BackendsStorage;
     typedef std::map<String, CreateBackendFunc> CreatorsStorage;
   public:
     BackendsEnumeratorImpl()
@@ -41,21 +40,18 @@ namespace
       RegisterBackends(*this);
     }
 
-    virtual void RegisterBackend(const BackendInformation& info, const CreateBackendFunc& creator, uint_t priority)
+    virtual void RegisterBackend(const BackendInformation& info, const CreateBackendFunc& creator)
     {
       assert(creator);
       assert(Creators.end() == Creators.find(info.Id) || !"Duplicated backend found");
-      Backends.insert(BackendsStorage::value_type(priority, info));
+      Backends.push_back(info);
       Creators.insert(CreatorsStorage::value_type(info.Id, creator));
       Log::Debug(THIS_MODULE, "Registered backend '%1%'", info.Id);
     }
 
     virtual void EnumerateBackends(BackendInformationArray& infos) const
     {
-      BackendInformationArray tmp(Backends.size());
-      std::transform(Backends.begin(), Backends.end(), tmp.begin(),
-        boost::mem_fn(&BackendsStorage::value_type::second));
-      infos.swap(tmp);
+      infos = Backends;
     }
 
     virtual Error CreateBackend(const String& id, const Parameters::Map& params, Backend::Ptr& result) const
@@ -77,7 +73,7 @@ namespace
       }
     }
   private:
-    BackendsStorage Backends;
+    BackendInformationArray Backends;
     CreatorsStorage Creators;
   };
 }

@@ -223,7 +223,7 @@ namespace ZXTune
   {
     void RegisterWAVBackend(BackendsEnumerator& enumerator)
     {
-      enumerator.RegisterBackend(BACKEND_INFO, WAVBackendCreator, BACKEND_PRIORITY_LOW);
+      enumerator.RegisterBackend(BACKEND_INFO, &WAVBackendCreator);
     }
   }
 }

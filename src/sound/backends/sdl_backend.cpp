@@ -137,7 +137,7 @@ namespace
 
     virtual void OnParametersChanged(const Parameters::Map& updates)
     {
-      const Parameters::IntType* buffers = 
+      const Parameters::IntType* buffers =
         Parameters::FindByName<Parameters::IntType>(updates, Parameters::ZXTune::Sound::Backends::SDL::BUFFERS);
       const Parameters::IntType* freq =
         Parameters::FindByName<Parameters::IntType>(updates, Parameters::ZXTune::Sound::FREQUENCY);
@@ -274,7 +274,7 @@ namespace ZXTune
   {
     void RegisterSDLBackend(BackendsEnumerator& enumerator)
     {
-      enumerator.RegisterBackend(BACKEND_INFO, SDLBackendCreator, BACKEND_PRIORITY_MID);
+      enumerator.RegisterBackend(BACKEND_INFO, &SDLBackendCreator);
     }
   }
 }

@@ -130,7 +130,7 @@ namespace
         if (-1 != MixHandle.Get())
         {
           boost::array<uint8_t, sizeof(int)> buf;
-          MixHandle.CheckResult(-1 != ::ioctl(MixHandle.Get(), SOUND_MIXER_READ_VOLUME, 
+          MixHandle.CheckResult(-1 != ::ioctl(MixHandle.Get(), SOUND_MIXER_READ_VOLUME,
             safe_ptr_cast<int*>(&buf[0])), THIS_LINE);
           std::transform(buf.begin(), buf.begin() + OUTPUT_CHANNELS, volume.begin(),
             std::bind2nd(std::divides<Gain>(), MAX_OSS_VOLUME));
@@ -161,7 +161,7 @@ namespace
           boost::array<uint8_t, sizeof(int)> buf = { {0} };
           std::transform(volume.begin(), volume.end(), buf.begin(),
             std::bind2nd(std::multiplies<Gain>(), MAX_OSS_VOLUME));
-          MixHandle.CheckResult(-1 != ::ioctl(MixHandle.Get(), SOUND_MIXER_WRITE_VOLUME, 
+          MixHandle.CheckResult(-1 != ::ioctl(MixHandle.Get(), SOUND_MIXER_WRITE_VOLUME,
             safe_ptr_cast<int*>(&buf[0])), THIS_LINE);
         }
         return Error();
@@ -225,11 +225,11 @@ namespace
     virtual void OnParametersChanged(const Parameters::Map& updates)
     {
       //check for parameters requires restarting
-      const Parameters::StringType* const mixer = 
+      const Parameters::StringType* const mixer =
         Parameters::FindByName<Parameters::StringType>(updates, Parameters::ZXTune::Sound::Backends::OSS::MIXER);
-      const Parameters::StringType* const device = 
+      const Parameters::StringType* const device =
         Parameters::FindByName<Parameters::StringType>(updates, Parameters::ZXTune::Sound::Backends::OSS::DEVICE);
-      const Parameters::IntType* const freq = 
+      const Parameters::IntType* const freq =
         Parameters::FindByName<Parameters::IntType>(updates, Parameters::ZXTune::Sound::FREQUENCY);
       if (mixer || device || freq)
       {
@@ -321,7 +321,7 @@ namespace ZXTune
   {
     void RegisterOSSBackend(BackendsEnumerator& enumerator)
     {
-      enumerator.RegisterBackend(BACKEND_INFO, OSSBackendCreator, BACKEND_PRIORITY_HIGH);
+      enumerator.RegisterBackend(BACKEND_INFO, &OSSBackendCreator);
     }
   }
 }

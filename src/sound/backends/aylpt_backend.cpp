@@ -184,7 +184,7 @@ namespace ZXTune
     {
       if (DLPortIO::IsSupported())
       {
-        enumerator.RegisterBackend(BACKEND_INFO, AYLPTBackendCreator, BACKEND_PRIORITY_LOW);
+        enumerator.RegisterBackend(BACKEND_INFO, &AYLPTBackendCreator);
       }
     }
   }
