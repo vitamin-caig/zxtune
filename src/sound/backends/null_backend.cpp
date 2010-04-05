@@ -36,7 +36,8 @@ namespace
     TEXT_NULL_BACKEND_DESCRIPTION,
     BACKEND_VERSION,
   };
-  
+
+  // dummy backend with no functionality except informational
   class NullBackend : public BackendImpl, private boost::noncopyable
   {
   public:

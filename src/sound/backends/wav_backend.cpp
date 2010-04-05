@@ -52,6 +52,7 @@ namespace
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif
+  // Standard .wav header
   PACK_PRE struct WaveFormat
   {
     uint8_t Id[4];          //'RIFF'
@@ -76,72 +77,6 @@ namespace
   const uint8_t WAVEfmt[] = {'W', 'A', 'V', 'E', 'f', 'm', 't', ' '};
   const uint8_t DATA[] = {'d', 'a', 't', 'a'};
 
-  //const String::value_type STDIN_NAME[] = {'-', '\0'};
-
-/*
-  //custom tags values
-  const String::value_type CHIP_YM[] = {'Y', 'M', 0};
-  const String::value_type DECIBELL[] = {'d', 'B', 0};
-
-  void Annotate(const Module::Information& modInfo, Backend::Parameters& playInfo, const String& filename)
-  {
-    std::basic_ofstream<String::value_type> infoFile(filename.c_str());
-    if (!infoFile)
-    {
-      throw MakeFormattedError(ERROR_DETAIL, 1, TEXT_ERROR_OPEN_FILE, filename);
-    }
-    Formatter fmt(FILE_ANNOTATION_FORMAT);
-    //store module information
-    for (StringMap::const_iterator it = modInfo.Properties.begin(), lim = modInfo.Properties.end(); it != lim; ++it)
-    {
-      if (it->first == Module::ATTR_FILENAME)
-      {
-        String dir, filename, subname;
-        IO::SplitFSName(it->second, dir, filename, subname);
-        if (subname.empty())//no subname
-        {
-          infoFile << fmt % Module::ATTR_FILENAME % filename;
-        }
-        else
-        {
-          infoFile << fmt % Module::ATTR_ALBUM % filename;
-          infoFile << fmt % Module::ATTR_FILENAME % subname;
-        }
-      }
-      else if (it->first != Module::ATTR_WARNINGS)
-      {
-        infoFile << fmt % it->first % it->second;
-      }
-    }
-    const std::size_t realFramesTotal = modInfo.Statistic.Frame * playInfo.SoundParameters.FrameDurationMicrosec / 20000;
-    const std::size_t secondsTotal = realFramesTotal / 50;
-    const std::size_t minutesTotal = secondsTotal / 60;
-    const std::size_t hoursTotal = secondsTotal / 3600;
-    infoFile << fmt % Module::ATTR_DURATION % boost::io::group(
-      hoursTotal, ':',
-      minutesTotal % 60, ':',
-      secondsTotal % 60, '.', realFramesTotal % 50);
-    infoFile << fmt % Module::ATTR_CHANNELS % modInfo.Statistic.Channels;
-    //store playback information
-    infoFile << fmt % Module::ATTR_CLOCKFREQ % playInfo.SoundParameters.ClockFreq;
-    infoFile << fmt % Module::ATTR_FPS % boost::io::group(std::setprecision(3), 1e6f / playInfo.SoundParameters.FrameDurationMicrosec);
-    if (playInfo.SoundParameters.Flags & PSG_TYPE_YM)
-    {
-      infoFile << fmt % Module::ATTR_CHIP % CHIP_YM;
-    }
-    if (playInfo.Mixer->Preamp != FIXED_POINT_PRECISION)
-    {
-      infoFile << fmt % Module::ATTR_GAIN %
-        boost::io::group(std::setprecision(3), 20.0 * log(double(FIXED_POINT_PRECISION) / playInfo.Mixer->Preamp), DECIBELL);
-    }
-    if (playInfo.FIROrder)
-    {
-      infoFile << fmt % Module::ATTR_FILTER % boost::io::group(playInfo.LowCutoff, '-', playInfo.HighCutoff, '@', playInfo.FIROrder);
-    }
-  }
-
-  void Descriptor(Backend::Info& info);
-*/
   class WAVBackend : public BackendImpl, private boost::noncopyable
   {
   public:
@@ -167,6 +102,7 @@ namespace
 
     virtual VolumeControl::Ptr GetVolumeControl() const
     {
+      // Does not support volume control
       return VolumeControl::Ptr();
     }
 
@@ -177,22 +113,25 @@ namespace
       String nameTemplate;
       if (!Parameters::FindByName(CommonParameters, Parameters::ZXTune::Sound::Backends::Wav::FILENAME, nameTemplate))
       {
+        // Filename parameter is required
         throw Error(THIS_LINE, BACKEND_INVALID_PARAMETER, TEXT_SOUND_ERROR_WAV_BACKEND_NO_FILENAME);
       }
 
       //if playback now
       if (Player)
       {
-        const String extention(FILE_WAVE_EXT);
-        const String::size_type extPos = nameTemplate.find(extention);
-        if (String::npos == extPos || extPos + extention.size() != nameTemplate.size())
+        // check if required to add extension
+        const String extension = FILE_WAVE_EXT;
+        const String::size_type extPos = nameTemplate.find(extension);
+        if (String::npos == extPos || extPos + extension.size() != nameTemplate.size())
         {
-          nameTemplate += extention;
+          nameTemplate += extension;
         }
 
         Module::Information info;
         Player->GetModule().GetModuleInformation(info);
         StringMap strProps;
+        //quote all properties for safe using as filename
         {
           StringMap tmpProps;
           Parameters::ConvertMap(info.Properties, tmpProps);
@@ -222,6 +161,7 @@ namespace
     {
       if (File.get())
       {
+        // write header
         File->seekp(0);
         Format.Size = fromLE(Format.Size);
         Format.DataSize = fromLE(Format.DataSize);
@@ -238,13 +178,13 @@ namespace
     {
     }
 
-
     virtual void OnParametersChanged(const Parameters::Map& updates)
     {
       if (File.get() &&
           (Parameters::FindByName<Parameters::IntType>(updates, Parameters::ZXTune::Sound::FREQUENCY) ||
            Parameters::FindByName<Parameters::StringType>(updates, Parameters::ZXTune::Sound::Backends::Wav::FILENAME)))
       {
+        // changing filename and frequency 'on fly' is not supported
         throw Error(THIS_LINE, BACKEND_INVALID_PARAMETER, TEXT_SOUND_ERROR_BACKEND_INVALID_STATE);
       }
     }
@@ -253,6 +193,7 @@ namespace
     {
       const std::size_t sizeInBytes = buffer.size() * sizeof(buffer.front());
 #ifdef BOOST_BIG_ENDIAN
+      // in case of big endian, required to swap values
       Buffer.resize(buffer.size());
       std::transform(buffer.front().begin(), buffer.back().end(), Buffer.front().begin(), &swapBytes<Sample>);
       File->write(safe_ptr_cast<const char*>(&Buffer[0]), static_cast<std::streamsize>(sizeInBytes));

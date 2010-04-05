@@ -51,7 +51,6 @@ namespace
     AYLPTBackend()
       : RenderPos(0)
       , Dumper(DLPortIO::CreateDumper())
-      , OutputTime(boost::get_system_time())
     {
     }
 
@@ -85,11 +84,13 @@ namespace
 
     virtual VolumeControl::Ptr GetVolumeControl() const
     {
+      // volume control is not supported
       return VolumeControl::Ptr();
     }
 
     virtual void OnStartup()
     {
+      OutputTime = boost::get_system_time();
     }
 
     virtual void OnShutdown()
@@ -148,14 +149,17 @@ namespace
           }
         }
       }
-      //wait for time
-      boost::mutex localMutex;
-      boost::unique_lock<boost::mutex> locker(localMutex);
-      SyncEvent.timed_wait(locker,
-        OutputTime + boost::posix_time::microseconds(RenderingParameters.FrameDurationMicrosec));
+      //wait for next frame time
+      const boost::system_time nextFrameTime = OutputTime + boost::posix_time::microseconds(RenderingParameters.FrameDurationMicrosec);
+      {
+        //lock mutex and wait for unlocking (which never happends) until frame ends
+        boost::mutex localMutex;
+        boost::unique_lock<boost::mutex> locker(localMutex);
+        SyncEvent.timed_wait(locker, nextFrameTime);
+      }
       //perform output
-      Dumper->Process(chunk);
       OutputTime = boost::get_system_time();
+      Dumper->Process(chunk);
       return true;
     }
   private:

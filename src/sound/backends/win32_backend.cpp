@@ -77,10 +77,11 @@ namespace
     if (!val)
     {
       //TODO: convert code to string
-      throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR, TEXT_SOUND_ERROR_WIN32_BACKEND_ERROR, ::GetLastError());//TODO
+      throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR, TEXT_SOUND_ERROR_WIN32_BACKEND_ERROR, ::GetLastError());
     }
   }
 
+  // buffer wrapper
   class WaveBuffer
   {
   public:
@@ -103,6 +104,7 @@ namespace
       Header.dwBufferLength = ::DWORD(bufSize) * sizeof(Buffer.front());
       Header.dwUser = Header.dwLoops = Header.dwFlags = 0;
       CheckMMResult(::waveOutPrepareHeader(handle, &Header, sizeof(Header)), THIS_LINE);
+      //mark as free
       Header.dwFlags |= WHDR_DONE;
       Handle = handle;
       Event = event;
@@ -142,6 +144,7 @@ namespace
     ::HANDLE Event;
   };
 
+  // volume controller implementation
   class Win32VolumeController : public VolumeControl
   {
   public:
@@ -152,6 +155,7 @@ namespace
 
     virtual Error GetVolume(MultiGain& volume) const
     {
+      // use exceptions for simplification
       try
       {
         boost::lock_guard<boost::mutex> lock(BackendMutex);
@@ -173,6 +177,7 @@ namespace
       {
         return Error(THIS_LINE, BACKEND_INVALID_PARAMETER, TEXT_SOUND_ERROR_BACKEND_INVALID_GAIN);
       }
+      // use exceptions for simplification
       try
       {
         boost::lock_guard<boost::mutex> lock(BackendMutex);
@@ -262,15 +267,18 @@ namespace
         Parameters::FindByName<Parameters::IntType>(updates, Parameters::ZXTune::Sound::Backends::Win32::BUFFERS);
       const Parameters::IntType* const freq =
         Parameters::FindByName<Parameters::IntType>(updates, Parameters::ZXTune::Sound::FREQUENCY);
+      // own parameters and sound frequency affects this backend
       if (device || freq || buffs)
       {
         Locker lock(BackendMutex);
         const bool needStartup = 0 != WaveHandle;
         DoShutdown();
+        // device changed
         if (device)
         {
           Device = static_cast<int_t>(*device);
         }
+        // buffers count changed
         if (buffs)
         {
           if (!in_range<Parameters::IntType>(*buffs, BUFFERS_MIN, BUFFERS_MAX))
@@ -291,6 +299,7 @@ namespace
     virtual void OnBufferReady(std::vector<MultiSample>& buffer)
     {
       Locker lock(BackendMutex);
+      // buffer is just sent to playback, so we can safely lock here
       CurrentBuffer->Process(buffer);
       ++CurrentBuffer;
     }
