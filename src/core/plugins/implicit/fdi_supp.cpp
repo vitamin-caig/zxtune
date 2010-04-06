@@ -123,12 +123,14 @@ namespace
       for (uint_t sid = 0; sid != sides; ++sid)
       {
         typedef std::vector<SectorDescr> SectorDescrs;
+        //collect sectors reference
         SectorDescrs sectors;
         sectors.reserve(trackInfo->SectorsCount);
         for (std::size_t secNum = 0; secNum != trackInfo->SectorsCount; ++secNum)
         {
           const FDITrack::Sector* const sector = trackInfo->Sectors + secNum;
           const std::size_t secSize = 128 << sector->Size;
+          //since there's no information about head number (always 0), do not check it
           //assert(sector->Head == sid);
           if (sector->Cylinder != cyl)
           {
@@ -143,11 +145,14 @@ namespace
           rawSize = std::max(rawSize, offset + secSize);
         }
 
+        //sort by number
         std::sort(sectors.begin(), sectors.end());
+        //and gather data
         for (SectorDescrs::const_iterator it = sectors.begin(), lim = sectors.end(); it != lim; ++it)
         {
           buffer.insert(buffer.end(), it->Begin, it->End);
         }
+        //calculate next track by offset
         trackInfo = safe_ptr_cast<const FDITrack*>(safe_ptr_cast<const uint8_t*>(trackInfo) +
           sizeof(*trackInfo) + (trackInfo->SectorsCount - 1) * sizeof(trackInfo->Sectors));
       }

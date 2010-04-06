@@ -100,10 +100,15 @@ namespace
 
   typedef boost::array<CHINote, CHANNELS_COUNT> CHINoteRow;
 
-  const uint_t SOFFSET = 0;
-  const uint_t SLIDEDN = 1;
-  const uint_t SLIDEUP = 2;
-  const uint_t SPECIAL = 3;
+  //format commands
+  enum
+  {
+    SOFFSET = 0,
+    SLIDEDN = 1,
+    SLIDEUP = 2,
+    SPECIAL = 3
+  };
+
   PACK_PRE struct CHINoteParam
   {
     // SSSSPPPP
@@ -136,11 +141,15 @@ namespace
   BOOST_STATIC_ASSERT(sizeof(CHIHeader) == 512);
   BOOST_STATIC_ASSERT(sizeof(CHIPattern) == 512);
 
+  //supported tracking commands
   enum CmdType
   {
+    //no parameters
     EMPTY,
-    SAMPLE_OFFSET,  //1p
-    SLIDE,          //1p
+    //sample offset in samples
+    SAMPLE_OFFSET,
+    //slide in Hz
+    SLIDE
   };
 
   void DescribeCHIPlugin(PluginInformation& info)
@@ -151,6 +160,7 @@ namespace
     info.Capabilities = CAP_STOR_MODULE | CAP_DEV_4DAC | CAP_CONV_RAW;
   }
 
+  //digital sample type
   struct Sample
   {
     Sample() : Loop()
@@ -161,6 +171,7 @@ namespace
     Dump Data;
   };
 
+  //stub for ornament
   struct VoidType {};
 
   typedef TrackingSupport<CHANNELS_COUNT, Sample, VoidType> CHITrack;
@@ -178,19 +189,19 @@ namespace
     {
       CHITrack::Pattern result;
       result.reserve(MAX_PATTERN_SIZE);
-      bool end(false);
+      bool end = false;
       for (uint_t lineNum = 0; lineNum != MAX_PATTERN_SIZE && !end; ++lineNum)
       {
         result.push_back(CHITrack::Line());
-        CHITrack::Line& dstLine(result.back());
+        CHITrack::Line& dstLine = result.back();
         for (uint_t chanNum = 0; chanNum != CHANNELS_COUNT; ++chanNum)
         {
           Log::ParamPrefixedCollector channelWarner(warner, TEXT_LINE_CHANNEL_WARN_PREFIX, lineNum, chanNum);
 
-          CHITrack::Line::Chan& dstChan(dstLine.Channels[chanNum]);
-          const CHINote& metaNote(src.Notes[lineNum][chanNum]);
-          const uint_t note(metaNote.GetNote());
-          const CHINoteParam& param(src.Params[lineNum][chanNum]);
+          CHITrack::Line::Chan& dstChan = dstLine.Channels[chanNum];
+          const CHINote& metaNote = src.Notes[lineNum][chanNum];
+          const uint_t note = metaNote.GetNote();
+          const CHINoteParam& param = src.Params[lineNum][chanNum];
           if (NOTE_EMPTY != note)
           {
             if (PAUSE == note)
@@ -225,11 +236,13 @@ namespace
             }
             break;
           case SPECIAL:
+            //first channel - tempo
             if (0 == chanNum)
             {
               Log::Assert(channelWarner, !dstLine.Tempo, TEXT_WARNING_DUPLICATE_TEMPO);
               dstLine.Tempo = param.GetParameter();
             }
+            //last channel - stop
             else if (3 == chanNum)
             {
               end = true;
@@ -599,7 +612,7 @@ namespace
       }
       catch (const Error&/*e*/)
       {
-        Log::Debug("CHISupp", "Failed to create holder");
+        Log::Debug("Core::CHISupp", "Failed to create holder");
       }
     }
     return false;

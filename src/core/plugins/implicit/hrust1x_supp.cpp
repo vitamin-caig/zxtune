@@ -47,6 +47,7 @@ namespace
 #pragma pack(pop)
 #endif
 
+  //hrust1x bitstream decoder
   class Bitstream
   {
   public:
@@ -62,7 +63,7 @@ namespace
       return Data >= End;
     }
 
-    uint_t GetByte()
+    uint8_t GetByte()
     {
       return Eof() ? 0 : *Data++;
     }

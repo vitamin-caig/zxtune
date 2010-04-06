@@ -53,6 +53,7 @@ namespace
 
     uint_t Size() const
     {
+      //use catalogue length if it's correct, else calculate
       return SizeInSectors == ((fromLE(Length) - 1) / BYTES_PER_SECTOR) ?
         fromLE(Length) : BYTES_PER_SECTOR * SizeInSectors;
     }
@@ -71,7 +72,7 @@ namespace
   const uint8_t SINCLAIR_ID[] = {'S', 'I', 'N', 'C', 'L', 'A', 'I', 'R'};
 
   const std::size_t SCL_MIN_SIZE = sizeof(SCLHeader) + 255 + 4;
-  const std::size_t SCL_MODULE_SIZE = sizeof(SCLHeader) - sizeof(SCLEntry) + 
+  const std::size_t SCL_MODULE_SIZE = sizeof(SCLHeader) - sizeof(SCLEntry) +
     255 * (sizeof(SCLEntry) + 0xff00) + 4;
 
   BOOST_STATIC_ASSERT(sizeof(SCLEntry) == 14);
@@ -79,6 +80,7 @@ namespace
 
   typedef std::vector<TRDFileEntry> FileDescriptions;
 
+  //fill descriptors array and return actual container size
   uint_t ParseSCLFile(const IO::FastDump& data, FileDescriptions& descrs)
   {
     const uint_t limit = data.Size();
@@ -92,24 +94,34 @@ namespace
     {
       return 0;
     }
-    //TODO: check crc
-    const uint_t allSectors = std::accumulate(header->Blocks, header->Blocks + header->BlocksCount, 
+    /*
+    Support trunkated files, do not check the real size
+
+    const uint_t allSectors = std::accumulate(header->Blocks, header->Blocks + header->BlocksCount,
       uint_t(0),
       boost::bind(std::plus<uint_t>(), _1, boost::bind<uint_t>(&SCLEntry::SizeInSectors, _2)));
-    if (limit < sizeof(*header) + sizeof(header->Blocks) * (header->BlocksCount - 1) + 
+    if (limit < sizeof(*header) + sizeof(header->Blocks) * (header->BlocksCount - 1) +
       allSectors * BYTES_PER_SECTOR)
     {
       return 0;
     }
+    */
     FileDescriptions res;
     res.reserve(header->BlocksCount);
-    uint_t offset = safe_ptr_cast<const uint8_t*>(header->Blocks + header->BlocksCount) -
+    std::size_t offset = safe_ptr_cast<const uint8_t*>(header->Blocks + header->BlocksCount) -
                     safe_ptr_cast<const uint8_t*>(header);
     for (uint_t idx = 0; idx != header->BlocksCount; ++idx)
     {
       const SCLEntry& entry = header->Blocks[idx];
+      const std::size_t nextOffset = offset + entry.SizeInSectors * BYTES_PER_SECTOR;
+      if (nextOffset < limit)
+      {
+        //file is trunkated
+        break;
+      }
+
       const TRDFileEntry& newOne = TRDFileEntry(GetTRDosName(entry.Name, entry.Type), offset, entry.Size());
-      if (!res.empty() && 
+      if (!res.empty() &&
           res.back().IsMergeable(newOne))
       {
         res.back().Merge(newOne);
@@ -118,7 +130,7 @@ namespace
       {
         res.push_back(newOne);
       }
-      offset += entry.SizeInSectors * BYTES_PER_SECTOR;
+      offset = nextOffset;
     }
     descrs.swap(res);
     return offset;

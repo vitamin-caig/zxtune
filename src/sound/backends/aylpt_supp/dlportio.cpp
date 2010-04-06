@@ -25,7 +25,7 @@ namespace
   using namespace ZXTune;
 
   //function prototype
-  extern "C" 
+  extern "C"
   {
     typedef void (*WriteByteFunc)(ULONG, UCHAR);
   }
@@ -57,7 +57,7 @@ namespace
     void operator()(uint_t port, uint_t val)
     {
       assert(Writer);
-      Writer(port, val);
+      Writer(static_cast<ULONG>(port), static_cast<UCHAR>(val));
     }
 
   private:

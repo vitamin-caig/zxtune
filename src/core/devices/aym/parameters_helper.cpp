@@ -29,10 +29,12 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::AYM;
 
+  //duty-cycle related parameter: accumulate letters to bitmask functor
   inline uint8_t LetterToMask(uint8_t val, const Char letter)
   {
     static const Char LETTERS[] = {'A', 'B', 'C', 'N', 'E'};
-    static const uint8_t MASKS[] = {
+    static const uint8_t MASKS[] =
+    {
       DataChunk::DUTY_CYCLE_MASK_A,
       DataChunk::DUTY_CYCLE_MASK_B,
       DataChunk::DUTY_CYCLE_MASK_C,
@@ -106,6 +108,7 @@ namespace
       // duty cycle value parameter
       if (Parameters::FindByName(params, Parameters::ZXTune::Core::AYM::DUTY_CYCLE, intParam))
       {
+        //duty cycle in percents should be in range 1..99 inc
         if (intParam < 1 || intParam > 99)
         {
           throw MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,

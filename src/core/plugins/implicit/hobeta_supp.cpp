@@ -62,12 +62,14 @@ namespace
         dataSize > HOBETA_MAX_SIZE ||
         dataSize + sizeof(*header) > limit ||
         fullSize != align<std::size_t>(dataSize, 256) ||
-        header->Filetype + 1 != std::find_if(header->Filename, header->Filetype + 1, 
+        //check for valid name
+        header->Filetype + 1 != std::find_if(header->Filename, header->Filetype + 1,
           std::bind2nd(std::less<uint8_t>(), uint8_t(' ')))
         )
     {
       return false;
     }
+    //check for crc
     if (fromLE(header->CRC) == ((105 + 257 * std::accumulate(data, data + 15, 0u)) & 0xffff))
     {
       region.Offset = 0;

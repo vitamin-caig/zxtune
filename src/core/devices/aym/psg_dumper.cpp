@@ -20,7 +20,8 @@ namespace
 {
   using namespace ZXTune;
   using namespace ZXTune::AYM;
-  
+
+  // command codes
   enum Codes
   {
     INTERRUPT = 0xff,
@@ -41,6 +42,7 @@ namespace
                             const DataChunk& src,
                             Sound::MultichannelReceiver& /*dst*/)
     {
+      //no data check
       if (0 == (src.Mask & DataChunk::MASK_ALL_REGISTERS))
       {
         return;
@@ -65,13 +67,17 @@ namespace
       {
         Dump frame;
         std::back_insert_iterator<Dump> inserter(frame);
-        frame.reserve(intsPassed / 4 + (intsPassed % 4) + 2 * CountBits(src.Mask & DataChunk::MASK_ALL_REGISTERS) + 1);
-        if (const uint_t fourSkips = intsPassed / 4)
+        //SKIP_INTS code groups 4 skipped interrupts
+        const uint_t SKIP_GROUP_SIZE = 4;
+        frame.reserve(intsPassed / SKIP_GROUP_SIZE + (intsPassed % SKIP_GROUP_SIZE) + 2 * CountBits(src.Mask & DataChunk::MASK_ALL_REGISTERS) + 1);
+        if (const uint_t fourSkips = intsPassed / SKIP_GROUP_SIZE)
         {
           *inserter = SKIP_INTS;
           *inserter = static_cast<Dump::value_type>(fourSkips);
         }
-        std::fill_n(inserter, intsPassed % 4, INTERRUPT);
+        //fill remain interrupts
+        std::fill_n(inserter, intsPassed % SKIP_GROUP_SIZE, INTERRUPT);
+        //store data
         for (uint_t reg = 0, mask = src.Mask & DataChunk::MASK_ALL_REGISTERS; mask; ++reg, mask >>= 1)
         {
           if ((mask & 1) && (reg == DataChunk::REG_ENV || src.Data[reg] != CurChunk.Data[reg]))
@@ -97,7 +103,8 @@ namespace
       /// reset internal state to initial
     virtual void Reset()
     {
-      static const uint8_t HEADER[] = {
+      static const uint8_t HEADER[] =
+      {
         'P', 'S', 'G', 0x1a,
         0,//version
         0,//freq rate

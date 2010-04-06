@@ -83,13 +83,12 @@ namespace
 #endif
 
   BOOST_STATIC_ASSERT(sizeof(HripHeader) == 8);
-  //BOOST_STATIC_ASSERT(sizeof(HripHeader::ID) == sizeof(HRIP_ID));
   BOOST_STATIC_ASSERT(sizeof(HripBlockHeader) == 29);
-  //BOOST_STATIC_ASSERT(sizeof(HripBlockHeader::ID) == sizeof(HRIP_BLOCK_ID));
 
+  // crc16 calculating routine
   inline uint_t CalcCRC(const uint8_t* data, uint_t size)
   {
-    uint_t result(0);
+    uint_t result = 0;
     while (size--)
     {
       result ^= *data++ << 8;
@@ -120,8 +119,10 @@ namespace
     ERROR,
   };
 
-  typedef boost::function<CallbackState(uint_t, const std::vector<const HripBlockHeader*>&)> HripCallback;
+  typedef std::vector<const HripBlockHeader*> HripBlockHeadersList;
+  typedef boost::function<CallbackState(uint_t, const HripBlockHeadersList&)> HripCallback;
 
+  //check archive header and calculate files count and total size
   HripResult CheckHrip(const void* data, std::size_t dataSize, uint_t& files, uint_t& archiveSize)
   {
     if (dataSize < sizeof(HripHeader))
@@ -130,7 +131,7 @@ namespace
     }
     const HripHeader* const hripHeader = static_cast<const HripHeader*>(data);
     if (0 != std::memcmp(hripHeader->ID, HRIP_ID, sizeof(HRIP_ID)) ||
-      !(0 == hripHeader->Catalogue || 1 == hripHeader->Catalogue))
+       !(0 == hripHeader->Catalogue || 1 == hripHeader->Catalogue))
     {
       return INVALID;
     }
@@ -139,6 +140,7 @@ namespace
     return OK;
   }
 
+  //process all the archive performing callback call on each file
   HripResult ParseHrip(const void* data, std::size_t size, const HripCallback& callback, bool ignoreCorrupted)
   {
     uint_t files = 0, archiveSize = 0;
@@ -151,8 +153,9 @@ namespace
     std::size_t offset = sizeof(HripHeader);
     for (uint_t fileNum = 0; fileNum < files; ++fileNum)
     {
-      std::vector<const HripBlockHeader*> blocks;
-      for (;;)//for blocks of file
+      //collect file's blocks
+      HripBlockHeadersList blocks;
+      for (;;)
       {
         const HripBlockHeader* const blockHdr = safe_ptr_cast<const HripBlockHeader*>(ptr + offset);
         const uint8_t* const packedData = safe_ptr_cast<const uint8_t*>(&blockHdr->PackedCRC) +
@@ -161,23 +164,26 @@ namespace
         {
           return CORRUPTED;
         }
-        if (packedData + fromLE(blockHdr->PackedSize) > ptr + std::min(size, archiveSize))//out of data
+        //archive may be trunkated- just stop processing in this case
+        if (packedData + fromLE(blockHdr->PackedSize) > ptr + std::min(size, archiveSize))
         {
           break;
         }
-        if (blockHdr->AdditionalSize > 2 && //here's CRC
-            fromLE(blockHdr->PackedCRC) != CalcCRC(packedData, fromLE(blockHdr->PackedSize)) &&
-            !ignoreCorrupted)
+        //check if block CRC is available and check it if required
+        if (blockHdr->AdditionalSize > 2 &&
+            !ignoreCorrupted &&
+            fromLE(blockHdr->PackedCRC) != CalcCRC(packedData, fromLE(blockHdr->PackedSize)))
         {
           return CORRUPTED;
         }
         blocks.push_back(blockHdr);
         offset += fromLE(blockHdr->PackedSize) + (packedData - ptr - offset);
-        if (blockHdr->Flag & blockHdr->LAST_BLOCK)
+        if (0 != (blockHdr->Flag & blockHdr->LAST_BLOCK))
         {
           break;
         }
       }
+      //perform callback call
       switch (callback(fileNum, blocks))
       {
       case ERROR:
@@ -191,20 +197,37 @@ namespace
     return OK;
   }
 
-  //append
+  //append to dst
   bool DecodeHripBlock(const HripBlockHeader* header, Dump& dst)
   {
     const void* const packedData = safe_ptr_cast<const uint8_t*>(&header->PackedCRC) + header->AdditionalSize;
     const std::size_t sizeBefore = dst.size();
-    if (header->Flag & header->NO_COMPRESSION)
+    if (0 != (header->Flag & header->NO_COMPRESSION))
     {
+      //just copy
       dst.resize(sizeBefore + fromLE(header->DataSize));
       std::memcpy(&dst[sizeBefore], packedData, fromLE(header->PackedSize));
       return true;
     }
+    //decode block and check size
     dst.reserve(sizeBefore + fromLE(header->DataSize));
     return ::DecodeHrust2x(static_cast<const Hrust2xHeader*>(packedData), fromLE(header->PackedSize), dst) &&
       dst.size() == sizeBefore + fromLE(header->DataSize);
+  }
+
+  //replace dst
+  bool DecodeHripFile(const HripBlockHeadersList& headers, bool ignoreCorrupted, Dump& dst)
+  {
+    Dump tmp;
+    for (HripBlockHeadersList::const_iterator it = headers.begin(), lim = headers.end(); it != lim; ++it)
+    {
+      if (!DecodeHripBlock(*it, tmp) && !ignoreCorrupted)
+      {
+        return false;
+      }
+    }
+    dst.swap(tmp);
+    return true;
   }
 
   inline bool CheckIgnoreCorrupted(const Parameters::Map& params)
@@ -213,6 +236,7 @@ namespace
     return Parameters::FindByName(params, Parameters::ZXTune::Core::Plugins::Hrip::IGNORE_CORRUPTED, val) && val != 0;
   }
 
+  //files enumeration purposes wrapper
   class Enumerator
   {
   public:
@@ -229,16 +253,21 @@ namespace
       SubMetacontainer.PluginsChain.push_back(HRIP_PLUGIN_ID);
     }
 
+    //main entry
     Error Process(ModuleRegion& region)
     {
       try
       {
         uint_t totalFiles = 0, archiveSize = 0;
 
-        if (CheckHrip(Container->Data(), Container->Size(), totalFiles, archiveSize) != OK ||
-            ParseHrip(Container->Data(), archiveSize,
+        if (CheckHrip(Container->Data(), Container->Size(), totalFiles, archiveSize) != OK)
+        {
+          return Error(THIS_LINE, Module::ERROR_FIND_CONTAINER_PLUGIN);
+        }
+        if (ParseHrip(Container->Data(), archiveSize,
               boost::bind(&Enumerator::ProcessFile, this, totalFiles, _1, _2), IgnoreCorrupted) != OK)
         {
+          Log::Debug("Core::HRiPSupp", "Failed to parse archive, possible corrupted");
           return Error(THIS_LINE, Module::ERROR_FIND_CONTAINER_PLUGIN);
         }
         region.Offset = 0;
@@ -252,7 +281,7 @@ namespace
     }
 
   private:
-    CallbackState ProcessFile(uint_t totalFiles, uint_t fileNum, const std::vector<const HripBlockHeader*>& headers)
+    CallbackState ProcessFile(uint_t totalFiles, uint_t fileNum, const HripBlockHeadersList& headers)
     {
       if (headers.empty())
       {
@@ -263,12 +292,11 @@ namespace
       {
         return ERROR;
       }
-      const String filename(GetTRDosName(header.Name, header.Type));
+      const String& filename = GetTRDosName(header.Name, header.Type);
       //decode
       {
         Dump tmp;
-        if (headers.end() != std::find_if(headers.begin(), headers.end(),
-              !boost::bind(&DecodeHripBlock, _1, boost::ref(tmp))) && !IgnoreCorrupted)
+        if (!DecodeHripFile(headers, IgnoreCorrupted, tmp))
         {
           return ERROR;
         }
@@ -317,19 +345,12 @@ namespace
   }
 
   CallbackState FindFileCallback(const String& filename, bool ignoreCorrupted, uint_t /*fileNum*/,
-    const std::vector<const HripBlockHeader*>& headers, Dump& dst)
+    const HripBlockHeadersList& headers, Dump& dst)
   {
     if (!headers.empty() &&
         filename == GetTRDosName(headers.front()->Name, headers.front()->Type))//found file
     {
-      Dump tmp;
-      if (headers.end() == std::find_if(headers.begin(), headers.end(),
-          !boost::bind(&DecodeHripBlock, _1, boost::ref(tmp))) && !ignoreCorrupted)
-      {
-        dst.swap(tmp);
-        return EXIT;
-      }
-      return ERROR;
+      return DecodeHripFile(headers, ignoreCorrupted, dst) ? EXIT : ERROR;
     }
     return CONTINUE;
   }
@@ -339,12 +360,17 @@ namespace
   {
     String restComp;
     const String& pathComp = IO::ExtractFirstPathComponent(inPath, restComp);
+    if (pathComp.empty())
+    {
+      //nothing to open
+      return false;
+    }
     Dump dmp;
     const bool ignoreCorrupted = CheckIgnoreCorrupted(commonParams);
     const IO::DataContainer& container = *inData.Data;
-    if (pathComp.empty() ||
-        OK != ParseHrip(container.Data(), container.Size(),
-          boost::bind(&FindFileCallback, pathComp, ignoreCorrupted, _1, _2, boost::ref(dmp)), ignoreCorrupted) ||
+    //ignore corrupted blocks while searching, but try to decode it using proper parameters
+    if (OK != ParseHrip(container.Data(), container.Size(),
+          boost::bind(&FindFileCallback, pathComp, ignoreCorrupted, _1, _2, boost::ref(dmp)), true) ||
         dmp.empty())
     {
       return false;

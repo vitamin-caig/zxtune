@@ -798,7 +798,7 @@ namespace
         }
         else
         {
-          chunk.Data[AYM::DataChunk::REG_TONEN] = curSampleLine.Noise;
+          chunk.Data[AYM::DataChunk::REG_TONEN] = static_cast<uint8_t>(curSampleLine.Noise);
           chunk.Mask |= 1 << AYM::DataChunk::REG_TONEN;
         }
 

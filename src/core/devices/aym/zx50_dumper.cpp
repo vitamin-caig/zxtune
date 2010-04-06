@@ -34,6 +34,7 @@ namespace
                             const DataChunk& src,
                             Sound::MultichannelReceiver& /*dst*/)
     {
+      //no data check
       if (0 == (src.Mask & DataChunk::MASK_ALL_REGISTERS))
       {
         return;
@@ -81,7 +82,6 @@ namespace
       state.clear();
     }
 
-      /// reset internal state to initial
     virtual void Reset()
     {
       Data.clear();

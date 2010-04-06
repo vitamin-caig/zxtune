@@ -38,6 +38,7 @@ namespace
   
   const String TEXT_TRD_VERSION(FromStdString("$Rev$"));
 
+  //hints
   const std::size_t TRD_MODULE_SIZE = 655360;
   const uint_t BYTES_PER_SECTOR = 256;
   const uint_t SECTORS_IN_TRACK = 16;
@@ -69,6 +70,7 @@ namespace
 
     uint_t Size() const
     {
+      //use catalogue length if it's correct, else calculate
       return SizeInSectors == ((fromLE(Length) - 1) / BYTES_PER_SECTOR) ?
         fromLE(Length) : BYTES_PER_SECTOR * SizeInSectors;
     }
@@ -83,6 +85,7 @@ namespace
     SS_DD = 0x18,
     SS_SD = 0x19
   };
+
   PACK_PRE struct ServiceSector
   {
     uint8_t Zero;
@@ -110,6 +113,7 @@ namespace
 
   bool ParseTRDFile(const IO::FastDump& data, FileDescriptions& descrs)
   {
+    //it's meaningless to support trunkated files
     if (data.Size() < TRD_MODULE_SIZE)
     {
       return false;
@@ -123,11 +127,17 @@ namespace
     FileDescriptions res;
     res.reserve(MAX_FILES_COUNT);
 
+    uint_t deleted = 0;
     const CatEntry* catEntry = safe_ptr_cast<const CatEntry*>(data.Data());
     for (uint_t idx = 0; idx != MAX_FILES_COUNT && NOENTRY != catEntry->Name[0]; ++idx, ++catEntry)
     {
-      if (DELETED != catEntry->Name[0] && catEntry->SizeInSectors)
+      if (DELETED == catEntry->Name[0])
       {
+        ++deleted;
+      }
+      else if (catEntry->SizeInSectors)
+      {
+        //check for invalid entry
         if (catEntry->Offset() + catEntry->Size() > TRD_MODULE_SIZE)
         {
           return false;
@@ -143,6 +153,10 @@ namespace
           res.push_back(newOne);
         }
       }
+    }
+    if (deleted != sector->DeletedFiles)
+    {
+      Log::Debug("Core::TRDSupp", "Deleted files count is differs from calculated");
     }
     descrs.swap(res);
     return true;

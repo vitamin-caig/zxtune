@@ -23,6 +23,7 @@ namespace ZXTune
   {
     struct DataChunk;
 
+    // Performs aym-related parameters applying
     class ParametersHelper
     {
     public:
@@ -30,9 +31,12 @@ namespace ZXTune
 
       virtual ~ParametersHelper() {}
 
+      //called with new parameters set
       virtual void SetParameters(const Parameters::Map& params) = 0;
 
+      //frequency table according to parameters
       virtual const Module::FrequencyTable& GetFreqTable() const = 0;
+      //initial data chunk according to parameters
       virtual void GetDataChunk(DataChunk& dst) const = 0;
 
       static Ptr Create(const String& defaultFreqTable);

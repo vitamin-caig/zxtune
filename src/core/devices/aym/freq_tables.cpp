@@ -25,6 +25,7 @@ namespace
 {
   using namespace ZXTune::Module;
 
+  // prefix for reverted frequency tables
   const Char REVERT_TABLE_MARK = '~';
 
   struct FreqTableEntry
@@ -33,7 +34,7 @@ namespace
     const FrequencyTable Table;
   };
 
-  static const FreqTableEntry TABLES[] = 
+  const FreqTableEntry TABLES[] =
   {
     //SoundTracker
     {
@@ -158,7 +159,7 @@ namespace
         0x0ee, 0x0e0, 0x0d4, 0x0c8, 0x0bd, 0x0b2, 0x0a8, 0x09f, 0x096, 0x08d, 0x085, 0x07e,
         0x077, 0x070, 0x06a, 0x064, 0x05e, 0x059, 0x054, 0x050, 0x04b, 0x047, 0x043, 0x03f,
         0x03c, 0x038, 0x035, 0x032, 0x02f, 0x02d, 0x02a, 0x028, 0x026, 0x024, 0x022, 0x020,
-        0x01e, 0x01c, 
+        0x01e, 0x01c,
         0x01a, 0x019, 0x017, 0x016, 0x015, 0x014, 0x013, 0x012, 0x011, 0x010
       } }
     },
@@ -185,14 +186,17 @@ namespace ZXTune
   {
     Error GetFreqTable(const String& id, FrequencyTable& result)
     {
-      const bool doRevert(!id.empty() && *id.begin() == REVERT_TABLE_MARK);
-      const String idNormal(doRevert ? id.substr(1) : id);
+      //check if required to revert table
+      const bool doRevert = !id.empty() && *id.begin() == REVERT_TABLE_MARK;
+      const String idNormal = doRevert ? id.substr(1) : id;
+      //find if table is supported
       const FreqTableEntry* const entry = std::find_if(TABLES, ArrayEnd(TABLES),
         boost::bind(&FreqTableEntry::Name, _1) == idNormal);
       if (entry == ArrayEnd(TABLES))
       {
         return MakeFormattedError(THIS_LINE, ERROR_INVALID_PARAMETERS, TEXT_MODULE_ERROR_INVALID_FREQ_TABLE_NAME, id);
       }
+      //copy result forward (normal) or backward (reverted)
       if (doRevert)
       {
         std::copy(entry->Table.rbegin(), entry->Table.rend(), result.begin());

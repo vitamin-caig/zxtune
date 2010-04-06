@@ -979,7 +979,7 @@ namespace
               dst.VolSlideAddon = it->Param2;
               break;
             case BREAK_SAMPLE:
-              breakSample |= 1 << chan;
+              breakSample |= uint_t(1) << chan;
               break;
             default:
               assert(!"Invalid cmd");
@@ -1199,7 +1199,7 @@ namespace
     //check if length is valid
     if (header->Positions + header->Length !=
         std::find_if(header->Positions, header->Positions + header->Length,
-          std::bind2nd(std::greater_equal<uint8_t>(), patternsCount)))
+          std::bind2nd(std::greater_equal<uint_t>(), patternsCount)))
     {
       return false;
     }

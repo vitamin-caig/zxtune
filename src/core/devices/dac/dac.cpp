@@ -30,7 +30,7 @@ namespace
 
   const uint_t NOTES = 64;
   //table in Hz
-  const boost::array<double, NOTES> FREQ_TABLE = 
+  const boost::array<double, NOTES> FREQ_TABLE =
   {
     {
     //octave1
@@ -72,9 +72,11 @@ namespace
 
   inline Sound::Sample scale(uint8_t inSample)
   {
+    //simply shift bits
     return Sound::Sample(inSample) << (8 * (sizeof(Sound::Sample) - sizeof(inSample)) - 1);
   }
 
+  //digital sample type
   struct Sample
   {
     Sample() : Size(1), Loop(1), Data(1), Gain(0)//safe sample
@@ -83,16 +85,17 @@ namespace
 
     Sample(const Dump& data, uint_t loop)
       : Size(data.size()), Loop(loop), Data(data)
-      , Gain(std::accumulate(&Data[0], &Data[0] + Size, uint_t(0), GainAdder) / Size)
+      , Gain(static_cast<Module::Analyze::LevelType>(std::accumulate(&Data[0], &Data[0] + Size, uint_t(0), GainAdder) / Size))
     {
     }
 
     uint_t Size;
     uint_t Loop;
     Dump Data;
-    uint_t Gain;
+    Module::Analyze::LevelType Gain;
   };
 
+  //channel state type
   struct ChannelState
   {
     explicit ChannelState(const Sample* sample = 0)
@@ -102,17 +105,22 @@ namespace
 
     bool Enabled;
     uint_t Note;
+    //current slide in halftones
     int_t NoteSlide;
+    //current slide in Hz
     int_t FreqSlide;
+    //using pointer for performance
     const Sample* CurSample;
-    uint_t PosInSample;//in fixed point
+    //in fixed point
+    uint_t PosInSample;
+    //in fixed point
     uint_t SampleStep;
 
     void SkipStep()
     {
       assert(CurSample);
       PosInSample += SampleStep;
-      const uint_t pos(PosInSample / Sound::FIXED_POINT_PRECISION);
+      const uint_t pos = PosInSample / Sound::FIXED_POINT_PRECISION;
       if (pos >= CurSample->Size)
       {
         if (CurSample->Loop >= CurSample->Size)
@@ -130,7 +138,7 @@ namespace
     {
       if (Enabled)
       {
-        const uint_t pos(PosInSample / Sound::FIXED_POINT_PRECISION);
+        const uint_t pos = PosInSample / Sound::FIXED_POINT_PRECISION;
         assert(CurSample && pos < CurSample->Size);
         return scale(CurSample->Data[pos]);
       }
@@ -144,10 +152,10 @@ namespace
     {
       if (Enabled)
       {
-        const uint_t pos(PosInSample / Sound::FIXED_POINT_PRECISION);
+        const uint_t pos = PosInSample / Sound::FIXED_POINT_PRECISION;
         assert(CurSample && pos < CurSample->Size);
-        const int_t cur(scale(CurSample->Data[pos]));
-        const int_t next(pos + 1 >= CurSample->Size ? cur : scale(CurSample->Data[pos + 1]));
+        const int_t cur = scale(CurSample->Data[pos]);
+        const int_t next = pos + 1 >= CurSample->Size ? cur : scale(CurSample->Data[pos + 1]);
         const int_t delta = next - cur;
         return static_cast<Sound::Sample>(cur + delta * (PosInSample % Sound::FIXED_POINT_PRECISION) / Sound::FIXED_POINT_PRECISION);
       }
@@ -160,11 +168,12 @@ namespace
     Module::Analyze::Channel Analyze(Module::Analyze::LevelType maxGain) const
     {
       Module::Analyze::Channel result;
-      if ((result.Enabled = Enabled))
+      if ( (result.Enabled = Enabled) )
       {
         result.Band = Note;
         assert(CurSample);
-        result.Level = CurSample->Gain * std::numeric_limits<Module::Analyze::LevelType>::max() / maxGain;
+        result.Level = static_cast<Module::Analyze::LevelType>(
+          CurSample->Gain * std::numeric_limits<Module::Analyze::LevelType>::max() / maxGain);
       }
       return result;
     }
@@ -187,7 +196,7 @@ namespace
     {
       assert(idx < Samples.size());
       assert(!Samples[idx].Gain);
-      const Sample& res(Samples[idx] = Sample(data, loop));
+      const Sample& res = Samples[idx] = Sample(data, loop);
       // used for analyze level normalization prior to maximal
       MaxGain = std::max(MaxGain, res.Gain);
     }
@@ -205,7 +214,7 @@ namespace
         boost::bind(&ChipImpl::CalcSampleStep, this, params.SoundFreq, _1));
 
       // samples to apply
-      const uint_t doSamples(static_cast<uint_t>(uint64_t(src.Tick - CurrentTick) * params.SoundFreq / params.ClockFreq));
+      const uint_t doSamples = static_cast<uint_t>(uint64_t(src.Tick - CurrentTick) * params.SoundFreq / params.ClockFreq);
 
       const std::const_mem_fun_ref_t<Sound::Sample, ChannelState> getter = src.Interpolate ?
         std::mem_fun_ref(&ChannelState::GetInterpolatedValue) : std::mem_fun_ref(&ChannelState::GetValue);
@@ -238,28 +247,34 @@ namespace
     {
       assert(state.Channel < State.size());
       ChannelState& chan(State[state.Channel]);
-      if (state.Mask & DataChunk::ChannelData::MASK_ENABLED)
+      //'enabled' field changed
+      if (0 != (state.Mask & DataChunk::ChannelData::MASK_ENABLED))
       {
         chan.Enabled = state.Enabled;
       }
-      if (state.Mask & DataChunk::ChannelData::MASK_NOTE)
+      //note changed
+      if (0 != (state.Mask & DataChunk::ChannelData::MASK_NOTE))
       {
         chan.Note = state.Note;
       }
-      if (state.Mask & DataChunk::ChannelData::MASK_NOTESLIDE)
+      //note slide changed
+      if (0 != (state.Mask & DataChunk::ChannelData::MASK_NOTESLIDE))
       {
         chan.NoteSlide = state.NoteSlide;
       }
-      if (state.Mask & DataChunk::ChannelData::MASK_FREQSLIDE)
+      //frequency slide changed
+      if (0 != (state.Mask & DataChunk::ChannelData::MASK_FREQSLIDE))
       {
         chan.FreqSlide = state.FreqSlideHz;
       }
-      if (state.Mask & DataChunk::ChannelData::MASK_SAMPLE)
+      //sample changed
+      if (0 != (state.Mask & DataChunk::ChannelData::MASK_SAMPLE))
       {
         assert(state.SampleNum < Samples.size());
         chan.CurSample = &Samples[state.SampleNum];
       }
-      if (state.Mask & DataChunk::ChannelData::MASK_POSITION)
+      //position in sample changed
+      if (0 != (state.Mask & DataChunk::ChannelData::MASK_POSITION))
       {
         assert(chan.CurSample);
         chan.PosInSample = Sound::FIXED_POINT_PRECISION * std::min(state.PosInSample, chan.CurSample->Size - 1);
@@ -274,20 +289,20 @@ namespace
         TableFreq = freq;
         std::transform(FREQ_TABLE.begin(), FREQ_TABLE.end(), FreqTable.begin(),
           boost::bind(GetStepByFrequency, _1, TableFreq, SampleFreq));
+        //determine maximal notes count by zero limiter in table
         MaxNotes = std::distance(FreqTable.begin(), std::find(FreqTable.begin(), FreqTable.end(), 0));
       }
       const int_t toneStep = static_cast<int_t>(FreqTable[clamp<int_t>(int_t(state.Note) + state.NoteSlide,
         0, MaxNotes - 1)]);
-      state.SampleStep = state.FreqSlide ?
-        clamp<int_t>(toneStep + sign(state.FreqSlide) * static_cast<int_t>(GetStepByFrequency(double(abs(state.FreqSlide)), TableFreq, SampleFreq)),
+      state.SampleStep = state.FreqSlide
+        ? clamp<int_t>(toneStep + sign(state.FreqSlide) * static_cast<int_t>(GetStepByFrequency(double(abs(state.FreqSlide)), TableFreq, SampleFreq)),
           int_t(FreqTable.front()), int_t(FreqTable.back()))
-        :
-        toneStep;
+        : toneStep;
       assert(state.SampleStep);
     }
   private:
     std::vector<Sample> Samples;
-    uint_t MaxGain;
+    Module::Analyze::LevelType MaxGain;
     uint64_t CurrentTick;
     boost::array<ChannelState, Channels> State;
 

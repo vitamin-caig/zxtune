@@ -81,7 +81,7 @@ namespace
   public:
     PSGHolder(const MetaContainer& container, ModuleRegion& region)
     {
-      const IO::FastDump data(*container.Data);
+      const IO::FastDump data = *container.Data;
       //workaround for some emulators
       const std::size_t offset = (data[4] == INT_BEGIN) ? 4 : sizeof(PSGHeader);
       std::size_t size = data.Size() - offset;
@@ -172,7 +172,10 @@ namespace
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
     {
       using namespace Conversion;
-      if (parameter_cast<RawConvertParam>(&param) || parameter_cast<PSGConvertParam>(&param))
+      //converting to PSG and raw ripping are the same
+      //TODO: support all aym-render-based formats
+      if (parameter_cast<RawConvertParam>(&param) ||
+          parameter_cast<PSGConvertParam>(&param))
       {
         dst = RawData;
         return Error();
@@ -292,12 +295,12 @@ namespace
     Holder::Ptr& holder, ModuleRegion& region)
   {
     //perform fast check
-    const IO::DataContainer& data(*container.Data);
+    const IO::DataContainer& data = *container.Data;
     if (data.Size() <= sizeof(PSGHeader))
     {
       return false;
     }
-    const PSGHeader* const header(safe_ptr_cast<const PSGHeader*>(data.Data()));
+    const PSGHeader* const header = safe_ptr_cast<const PSGHeader*>(data.Data());
     if (0 == std::memcmp(header->Sign, PSG_SIGNATURE, sizeof(PSG_SIGNATURE)) &&
         PSG_MARKER == header->Marker)
     {
@@ -308,7 +311,7 @@ namespace
       }
       catch (const Error&/*e*/)
       {
-        Log::Debug("PSGSupp", "Failed to create holder");
+        Log::Debug("Core::PSGSupp", "Failed to create holder");
       }
     }
     return false;

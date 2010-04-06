@@ -36,11 +36,13 @@ namespace ZXTune
       AYM::Chip::Ptr chip;
       String errMsg;
 
+      //convert to PSG
       if (parameter_cast<PSGConvertParam>(&param))
       {
         chip = AYM::CreatePSGDumper(tmp);
         errMsg = TEXT_MODULE_ERROR_CONVERT_PSG;
       }
+      //convert to ZX50
       else if (parameter_cast<ZX50ConvertParam>(&param))
       {
         chip = AYM::CreateZX50Dumper(tmp);
@@ -79,6 +81,7 @@ namespace ZXTune
     {
       using namespace Conversion;
 
+      //convert to TXT
       if (parameter_cast<TXTConvertParam>(&param))
       {
         const std::string& asString = Vortex::ConvertToText(data, version, freqTable);

@@ -124,6 +124,11 @@ namespace
     return !*pattern;//
   }
 
+  inline int_t abs(int_t val)
+  {
+    return val >= 0 ? val : -val;
+  }
+
   //conversions
   inline int_t FromHex(char sym)
   {
@@ -132,7 +137,7 @@ namespace
 
   inline char ToHex(int_t val)
   {
-    return val >= 10 ? val - 10 + 'A' : val + '0';
+    return static_cast<char>(val >= 10 ? val - 10 + 'A' : val + '0');
   }
 
   inline char ToHexSym(uint_t val)
@@ -206,7 +211,7 @@ namespace
 
   inline bool IsNote(const std::string& str, uint_t& note)
   {
-    static const uint64_t PATTERN[] = 
+    static const uint64_t PATTERN[] =
     {
       Range<'A', 'G'>::Mask, Symbol<'-'>::Mask | Symbol<'#'>::Mask, Range<'1', '8'>::Mask, 0
     };
@@ -296,7 +301,7 @@ namespace
     case 3:
       assert(chan.Note);
       chan.Commands.push_back(Vortex::Track::Command(Vortex::GLISS_NOTE, delay, twoParam16,
-        int(*chan.Note)));
+        int_t(*chan.Note)));
       chan.Note.reset();
       break;
     case 4:
@@ -497,7 +502,7 @@ namespace
     StringArray channels(line.Channels.size());
     uint_t tempo = line.Tempo ? *line.Tempo : 0;
     std::string result;
-    for (Vortex::Track::Line::ChannelsArray::const_iterator it = line.Channels.begin(); 
+    for (Vortex::Track::Line::ChannelsArray::const_iterator it = line.Channels.begin();
       it != line.Channels.end(); ++it)
     {
       result += DELIMITER;
@@ -668,9 +673,9 @@ namespace
     }
 
     //parse values
-    const int envParam = FromHex<int>(str.substr(0, 4));
+    const int_t envParam = FromHex<int_t>(str.substr(0, 4));
     uint_t chan = 0;
-    for (Vortex::Track::Line::ChannelsArray::iterator it = line.Channels.begin(); 
+    for (Vortex::Track::Line::ChannelsArray::iterator it = line.Channels.begin();
       it != line.Channels.end(); ++it, ++chan)
     {
       if (!ParseChannel(str.substr(8 + chan * 14, 13), *it))
@@ -698,7 +703,7 @@ namespace
       }
     }
     //search noise commands
-    if (const int val = FromHex<int>(str.substr(5, 2)))
+    if (const int_t val = FromHex<int_t>(str.substr(5, 2)))
     {
       line.Channels[1].Commands.push_back(Vortex::Track::Command(Vortex::NOISEBASE, val));
     }
@@ -809,7 +814,7 @@ namespace ZXTune
   {
     namespace Vortex
     {
-      Error ConvertFromText(const std::string& text, Vortex::Track::ModuleData& resData, 
+      Error ConvertFromText(const std::string& text, Vortex::Track::ModuleData& resData,
         uint_t& resVersion, String& resFreqTable)
       {
         typedef std::vector<std::string> LinesArray;

@@ -38,8 +38,10 @@ namespace
 
   const uint_t MIN_SCAN_STEP = 1;
   const uint_t MAX_SCAN_STEP = 256;
+  //TODO: make parameter
   const std::size_t MINIMAL_RAW_SIZE = 128;
 
+  //fake parameter name used to prevent plugin recursive call while first pass processing
   const Char RAW_PLUGIN_RECURSIVE_DEPTH[] =
   {
     'r','a','w','_','s','c','a','n','e','r','_','r','e','c','u','r','s','i','o','n','_','d','e','p','t','h','\0'
@@ -53,7 +55,9 @@ namespace
     std::size_t res = 0;
     String rest;
     InStringStream stream(str);
-    return (stream >> res) && (stream >> rest) && (rest == RAW_REST_PART) && (offset = res, true);
+    return (stream >> res) && (stream >> rest) && (rest == RAW_REST_PART) &&
+    // path '0.raw' is enabled now
+      (offset = res, true);
   }
 
   inline String CreateRawPart(std::size_t offset)
@@ -71,7 +75,7 @@ namespace
       //do not search right after previous raw plugin
       if ((!data.PluginsChain.empty() && data.PluginsChain.back() == RAW_PLUGIN_ID) ||
           //special mark to determine if plugin is called due to recursive scan
-          (Parameters::FindByName(commonParams, RAW_PLUGIN_RECURSIVE_DEPTH, depth) && 
+          (Parameters::FindByName(commonParams, RAW_PLUGIN_RECURSIVE_DEPTH, depth) &&
            depth == Parameters::IntType(data.PluginsChain.size())))
       {
         return Error(THIS_LINE, Module::ERROR_FIND_CONTAINER_PLUGIN);
@@ -123,13 +127,14 @@ namespace
       message.Progress = -1;
     }
 
+    //to determine was scaner really affected
     bool wasResult = curRegion.Size != 0;
 
     MetaContainer subcontainer;
     subcontainer.PluginsChain = data.PluginsChain;
     subcontainer.PluginsChain.push_back(RAW_PLUGIN_ID);
     for (std::size_t offset = std::max(curRegion.Offset + curRegion.Size, std::size_t(1));
-      offset + MINIMAL_RAW_SIZE < limit; 
+      offset + MINIMAL_RAW_SIZE < limit;
       offset += std::max(curRegion.Offset + curRegion.Size, std::size_t(scanStep)))
     {
       const uint_t curProg = offset * 100 / limit;

@@ -45,7 +45,7 @@ namespace
   const Char PT2_PLUGIN_ID[] = {'P', 'T', '2', 0};
   const String TEXT_PT2_VERSION(FromStdString("$Rev$"));
 
-  const uint_t LIMITER(~uint_t(0));
+  const uint_t LIMITER = ~uint_t(0);
 
   //hints
   const std::size_t MAX_MODULE_SIZE = 16384;
@@ -53,7 +53,8 @@ namespace
   const uint_t MAX_PATTERN_COUNT = 64;//TODO
 
   //checkers
-  static const DetectFormatChain DETECTORS[] = {
+  const DetectFormatChain DETECTORS[] =
+  {
     //PT20
     {
       "21??"    //ld hl,xxxx
@@ -216,6 +217,7 @@ namespace
   BOOST_STATIC_ASSERT(sizeof(PT2Sample) == 5);
   BOOST_STATIC_ASSERT(sizeof(PT2Ornament) == 3);
 
+  //sample type
   struct Sample
   {
     Sample() : Loop(), Data()
@@ -259,8 +261,8 @@ namespace
 
   inline Sample ParseSample(const IO::FastDump& data, uint16_t offset, std::size_t& rawSize)
   {
-    const uint_t off(fromLE(offset));
-    const PT2Sample* const sample(safe_ptr_cast<const PT2Sample*>(&data[off]));
+    const uint_t off = fromLE(offset);
+    const PT2Sample* const sample = safe_ptr_cast<const PT2Sample*>(&data[off]);
     if (0 == offset || !sample->Size)
     {
       return Sample(1, 0);//safe
@@ -273,8 +275,8 @@ namespace
   
   inline SimpleOrnament ParseOrnament(const IO::FastDump& data, uint16_t offset, std::size_t& rawSize)
   {
-    const uint_t off(fromLE(offset));
-    const PT2Ornament* const ornament(safe_ptr_cast<const PT2Ornament*>(&data[off]));
+    const uint_t off = fromLE(offset);
+    const PT2Ornament* const ornament = safe_ptr_cast<const PT2Ornament*>(&data[off]);
     if (0 == offset || !ornament->Size)
     {
       return SimpleOrnament(1, 0);//safe version
@@ -283,15 +285,23 @@ namespace
     return SimpleOrnament(ornament->Data, ornament->Data + ornament->Size, ornament->Loop);
   }
 
+  //supported commands
   enum CmdType
   {
+    //no parameters
     EMPTY,
-    ENVELOPE,     //2p
-    NOENVELOPE,   //0p
-    GLISS,        //1p
-    GLISS_NOTE,   //2p
-    NOGLISS,      //0p
-    NOISE_ADD,    //1p
+    //r13,period
+    ENVELOPE,
+    //no parameters
+    NOENVELOPE,
+    //glissade
+    GLISS,
+    //glissade,target node
+    GLISS_NOTE,
+    //no parameters
+    NOGLISS,
+    //noise addon
+    NOISE_ADD
   };
 
   void DescribePT2Plugin(PluginInformation& info)
@@ -463,12 +473,12 @@ namespace
     {
       //assume all data is correct
       const IO::FastDump& data = IO::FastDump(*container.Data, region.Offset);
-      const PT2Header* const header(safe_ptr_cast<const PT2Header*>(&data[0]));
-      const PT2Pattern* patterns(safe_ptr_cast<const PT2Pattern*>(&data[fromLE(header->PatternsOffset)]));
+      const PT2Header* const header = safe_ptr_cast<const PT2Header*>(&data[0]);
+      const PT2Pattern* patterns = safe_ptr_cast<const PT2Pattern*>(&data[fromLE(header->PatternsOffset)]);
 
       Log::MessagesCollector::Ptr warner(Log::MessagesCollector::Create());
 
-      std::size_t rawSize(0);
+      std::size_t rawSize = 0;
       //fill samples
       Data.Samples.reserve(header->SamplesOffsets.size());
       std::transform(header->SamplesOffsets.begin(), header->SamplesOffsets.end(),
@@ -484,7 +494,7 @@ namespace
       for (const PT2Pattern* pattern = patterns; pattern->Check(); ++pattern, ++index)
       {
         Log::ParamPrefixedCollector patternWarner(*warner, TEXT_PATTERN_WARN_PREFIX, index);
-        PT2Track::Pattern& pat(Data.Patterns[index]);
+        PT2Track::Pattern& pat = Data.Patterns[index];
         
         PatternCursors cursors;
         std::transform(pattern->Offsets.begin(), pattern->Offsets.end(), cursors.begin(), &fromLE<uint16_t>);
@@ -493,7 +503,7 @@ namespace
         {
           Log::ParamPrefixedCollector patLineWarner(patternWarner, TEXT_LINE_WARN_PREFIX, pat.size());
           pat.push_back(PT2Track::Line());
-          PT2Track::Line& line(pat.back());
+          PT2Track::Line& line = pat.back();
           ParsePattern(data, cursors, line, patLineWarner);
           //skip lines
           if (const uint_t linesToSkip = std::min_element(cursors.begin(), cursors.end(), PatternCursor::CompareByCounter)->Counter)
@@ -928,7 +938,7 @@ namespace
     {
       return false;
     }
-    const uint_t lowlimit(1 + 
+    const uint_t lowlimit(1 +
       std::find(header->Positions, data + header->Length + sizeof(*header) + 1, POS_END_MARKER) - data);
     if (lowlimit - sizeof(*header) != header->Length)//too big positions list
     {
@@ -1014,7 +1024,7 @@ namespace
     }
     catch (const Error&/*e*/)
     {
-      Log::Debug("PT2Supp", "Failed to create holder");
+      Log::Debug("Core::PT2Supp", "Failed to create holder");
     }
     return false;
   }

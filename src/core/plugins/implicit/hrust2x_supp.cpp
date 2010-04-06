@@ -49,6 +49,7 @@ namespace
 #pragma pack(pop)
 #endif
 
+  //hrust2x bitstream decoder
   class Bitstream
   {
   public:
@@ -62,7 +63,7 @@ namespace
       return Data >= End;
     }
 
-    uint_t GetByte()
+    uint8_t GetByte()
     {
       return Eof() ? 0 : *Data++;
     }
@@ -138,8 +139,9 @@ namespace
       return false;
     }
 
-    if (header->Flag & header->NO_COMPRESSION)
+    if (0 != (header->Flag & header->NO_COMPRESSION))
     {
+      //just copy
       dst.resize(fromLE(header->DataSize));
       std::memcpy(&dst[0], header->PackedData.LastBytes, dst.size());
       return true;
@@ -156,7 +158,7 @@ namespace
     const std::size_t limit = inputData.Size();
     const Hrust21Header* const header = static_cast<const Hrust21Header*>(inputData.Data());
     Dump res;
-    //check without depacker
+    //only check without depacker- depackers are separate
     if (Decode(header, limit, res))
     {
       output = IO::CreateDataContainer(res);
@@ -168,7 +170,7 @@ namespace
   }
 }
 
-//global namespace
+//function from global namespace- used in hrip depacker
 bool DecodeHrust2x(const Hrust2xHeader* header, uint_t size, Dump& dst)
 {
   //put first byte

@@ -42,7 +42,7 @@ namespace
   const Char PDT_PLUGIN_ID[] = {'P', 'D', 'T', 0};
   const String TEXT_PDT_VERSION(FromStdString("$Rev$"));
 
-  //////////////////////////////////////////////////////////////////////////
+  //hints
   const uint_t ORNAMENTS_COUNT = 11;
   const uint_t SAMPLES_COUNT = 16;
   const uint_t POSITIONS_COUNT = 240;
@@ -161,6 +161,7 @@ namespace
 
   const std::size_t MODULE_SIZE = sizeof(PDTHeader) + PAGES_COUNT * PAGE_SIZE;
 
+  // ornament type, differs from default
   struct Ornament
   {
     Ornament()
@@ -211,6 +212,7 @@ namespace
     info.Capabilities = CAP_STOR_MODULE | CAP_DEV_4DAC | CAP_CONV_RAW;
   }
 
+  //digital sample type
   struct Sample
   {
     Sample() : Loop()
@@ -231,7 +233,7 @@ namespace
 
   class PDTHolder : public Holder, public boost::enable_shared_from_this<PDTHolder>
   {
-    void ParsePattern(const PDTPattern& src, Log::MessagesCollector& warner, PDTTrack::Pattern& res)
+    static void ParsePattern(const PDTPattern& src, Log::MessagesCollector& warner, PDTTrack::Pattern& res)
     {
       PDTTrack::Pattern result;
       result.reserve(PATTERN_SIZE);
@@ -396,11 +398,11 @@ namespace
 
     virtual Player::Ptr CreatePlayer() const
     {
-      const uint_t totalSamples(Data.Samples.size());
+      const uint_t totalSamples = Data.Samples.size();
       DAC::Chip::Ptr chip(DAC::CreateChip(CHANNELS_COUNT, totalSamples, BASE_FREQ));
       for (uint_t idx = 0; idx != totalSamples; ++idx)
       {
-        const Sample& smp(Data.Samples[idx]);
+        const Sample& smp = Data.Samples[idx];
         if (smp.Data.size())
         {
           chip->SetSample(idx, smp.Data, smp.Loop);
@@ -437,6 +439,7 @@ namespace
       const Ornament* Object;
       uint_t Position;
 
+      //offset in bytes- to convert in positions, divide by ornament element size
       int_t GetOffset() const
       {
         return Object ? Object->Data[Position] / 2: 0;
@@ -584,18 +587,18 @@ namespace
       {
         DAC::DataChunk::ChannelData dst;
         dst.Channel = chan;
-        OrnamentState& ornament(Ornaments[chan]);
-        const int_t prevOffset(ornament.GetOffset());
+        OrnamentState& ornament = Ornaments[chan];
+        const int_t prevOffset = ornament.GetOffset();
         ornament.Update();
         if (0 == ModState.Track.Frame)//begin note
         {
-          const PDTTrack::Line& line(Data.Patterns[ModState.Track.Pattern][ModState.Track.Line]);
-          const PDTTrack::Line::Chan& src(line.Channels[chan]);
+          const PDTTrack::Line& line = Data.Patterns[ModState.Track.Pattern][ModState.Track.Line];
+          const PDTTrack::Line::Chan& src = line.Channels[chan];
 
           //ChannelState& dst(Channels[chan]);
           if (src.Enabled)
           {
-            if (!(dst.Enabled = *src.Enabled))
+            if ( !(dst.Enabled = *src.Enabled) )
             {
               dst.PosInSample = 0;
               dst.Mask |= DAC::DataChunk::ChannelData::MASK_POSITION;
@@ -621,7 +624,7 @@ namespace
             dst.Mask |= DAC::DataChunk::ChannelData::MASK_NOTE | DAC::DataChunk::ChannelData::MASK_POSITION;
           }
         }
-        const int_t newOffset(ornament.GetOffset());
+        const int_t newOffset = ornament.GetOffset();
         if (newOffset != prevOffset)
         {
           dst.NoteSlide = newOffset;
@@ -668,19 +671,14 @@ namespace
   bool Checking(const IO::DataContainer& data)
   {
     //check for header
-    const std::size_t size(data.Size());
+    const std::size_t size = data.Size();
     if (MODULE_SIZE > size)
     {
       return false;
     }
-    const PDTHeader* const header(safe_ptr_cast<const PDTHeader*>(data.Data()));
+    //check in header
+    const PDTHeader* const header = safe_ptr_cast<const PDTHeader*>(data.Data());
     if (!header->Lenght || header->Loop > header->Lenght || !header->Tempo)
-    {
-      return false;
-    }
-    if (header->Ornaments.end() != std::find_if(header->Ornaments.begin(), header->Ornaments.end(), CheckOrnament) ||
-        header->Samples.end() != std::find_if(header->Samples.begin(), header->Samples.end(), CheckSample)
-      )
     {
       return false;
     }
@@ -690,7 +688,14 @@ namespace
       return false;
     }
     if (header->Positions.end() != std::find_if(header->Positions.begin(), header->Positions.end(),
-      std::bind2nd(std::greater_equal<uint8_t>(), static_cast<uint8_t>(PATTERNS_COUNT))))
+      std::bind2nd(std::greater_equal<uint_t>(), PATTERNS_COUNT)))
+    {
+      return false;
+    }
+    //check in ornaments and samples
+    if (header->Ornaments.end() != std::find_if(header->Ornaments.begin(), header->Ornaments.end(), CheckOrnament) ||
+        header->Samples.end() != std::find_if(header->Samples.begin(), header->Samples.end(), CheckSample)
+      )
     {
       return false;
     }
@@ -714,7 +719,7 @@ namespace
       }
       catch (const Error&/*e*/)
       {
-        Log::Debug("PDTSupp", "Failed to create holder");
+        Log::Debug("Core::PDTSupp", "Failed to create holder");
       }
     }
     return false;
