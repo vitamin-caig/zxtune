@@ -165,7 +165,7 @@ namespace
           return CORRUPTED;
         }
         //archive may be trunkated- just stop processing in this case
-        if (packedData + fromLE(blockHdr->PackedSize) > ptr + std::min(size, archiveSize))
+        if (packedData + fromLE(blockHdr->PackedSize) > ptr + std::min<std::size_t>(size, archiveSize))
         {
           break;
         }

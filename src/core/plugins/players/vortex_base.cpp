@@ -541,7 +541,7 @@ namespace
       }
       else //store
       {
-        std::memcpy(Cursor->begin(), &data[0], std::min(Channels, data.size()) * sizeof(Sound::Sample));
+        std::memcpy(Cursor->begin(), &data[0], std::min<uint_t>(Channels, data.size()) * sizeof(Sound::Sample));
       }
       ++Cursor;
     }

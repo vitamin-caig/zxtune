@@ -31,10 +31,10 @@ using boost::int64_t;
 using boost::uint64_t;
 #endif
 
-/// Use unsigned memtype as unsigned integer
-typedef std::size_t uint_t;
-/// Use signed memtype as signed integer
-typedef std::ptrdiff_t int_t;
+/// Unsigned integer type
+typedef unsigned uint_t;
+/// Signed integer type
+typedef signed int_t;
 //@}
 
 /// String-related types

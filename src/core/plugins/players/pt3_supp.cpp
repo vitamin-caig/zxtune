@@ -385,7 +385,7 @@ namespace
     {
       return SimpleOrnament(1, 0);//safe version
     }
-    rawSize = std::max(rawSize, off + ornament->GetSize());
+    rawSize = std::max<std::size_t>(rawSize, off + ornament->GetSize());
     return SimpleOrnament(ornament->Data, ornament->Data + ornament->Size, ornament->Loop);
   }
   
@@ -694,7 +694,7 @@ namespace
         Log::Assert(patternWarner, 0 == std::max_element(cursors.begin(), cursors.end(), PatternCursor::CompareByCounter)->Counter,
           TEXT_WARNING_PERIODS);
         Log::Assert(patternWarner, pat.size() <= MAX_PATTERN_SIZE, TEXT_WARNING_INVALID_PATTERN_SIZE);
-        rawSize = std::max(rawSize, std::max_element(cursors.begin(), cursors.end(), PatternCursor::CompareByOffset)->Offset + 1);
+        rawSize = std::max<std::size_t>(rawSize, std::max_element(cursors.begin(), cursors.end(), PatternCursor::CompareByOffset)->Offset + 1);
       }
       //fill order
       for (const uint8_t* curPos = header->Positions; curPos != header->Positions + header->Length; ++curPos)

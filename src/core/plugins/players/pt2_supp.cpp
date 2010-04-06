@@ -517,7 +517,7 @@ namespace
         Log::Assert(patternWarner, 0 == std::max_element(cursors.begin(), cursors.end(), PatternCursor::CompareByCounter)->Counter,
           TEXT_WARNING_PERIODS);
         Log::Assert(patternWarner, pat.size() <= MAX_PATTERN_SIZE, TEXT_WARNING_INVALID_PATTERN_SIZE);
-        rawSize = std::max(rawSize, 1 + std::max_element(cursors.begin(), cursors.end(), PatternCursor::CompareByOffset)->Offset);
+        rawSize = std::max<std::size_t>(rawSize, 1 + std::max_element(cursors.begin(), cursors.end(), PatternCursor::CompareByOffset)->Offset);
       }
 
       //fill order
@@ -950,7 +950,7 @@ namespace
     {
       //check patterns
       const uint_t patOff(fromLE(header->PatternsOffset));
-      if (!in_range(patOff, lowlimit, size))
+      if (!in_range<std::size_t>(patOff, lowlimit, size))
       {
         return false;
       }

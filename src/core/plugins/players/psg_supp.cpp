@@ -263,7 +263,7 @@ namespace
     
     virtual Error SetPosition(uint_t frame)
     {
-      frame = std::min(frame, Storage.size());
+      frame = std::min<std::size_t>(frame, Storage.size());
       assert(Device.get());
       Position = Storage.begin();
       std::advance(Position, frame);
