@@ -322,7 +322,7 @@ namespace
       
       int_t GetToneOffset() const
       {
-        return ToneOffset;
+        return fromLE(ToneOffset);
       }
     } PACK_POST;
     Line Data[1];
