@@ -36,7 +36,7 @@ time make -j `grep processor /proc/cpuinfo | wc -l` mode=release \
 
 ZipFile=${TargetDir}/${Binary}_r${Suffix}.zip
 echo "Compressing ${ZipFile}"
-zip -9Djr ${ZipFile} bin/${Platform}/release apps/zxtune.conf --exclude \*.pdb || exit 1;
+zip -9Djr ${ZipFile} bin/${Platform}/release apps/zxtune.conf -x "*.pdb" || exit 1;
 DistFiles=apps/${Binary}/dist/${Platform}
 test -e ${DistFiles}/files.lst && zip -9Djr ${ZipFile} `cat ${DistFiles}/files.lst`;
 echo "Generating manuals"

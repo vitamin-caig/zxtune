@@ -5,7 +5,6 @@ makeobj_name = $(1).o
 makedir_cmd = mkdir -p $(1)
 
 compiler=gcc
-cxx_flags += -march=native
 
 #built-in features
 support_oss = 1

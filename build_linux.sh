@@ -1,3 +1,3 @@
 #!/bin/sh
 
-./build.sh zxtune123 linux `arch`
+./build.sh zxtune123 linux `uname -m`
