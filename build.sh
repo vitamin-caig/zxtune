@@ -8,8 +8,8 @@ Languages=en
 
 echo "Building ${Binary} for platform ${Platform}_${Arch}"
 
-# checking for textator
-textator --version > /dev/null || exit 1;
+# checking for textator or assume that texts are correct
+textator --version > /dev/null 2>&1 || touch text/*.cpp text/*.h
 
 # get current build and vesion
 echo "Updating"
