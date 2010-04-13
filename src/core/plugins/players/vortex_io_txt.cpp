@@ -124,11 +124,6 @@ namespace
     return !*pattern;//
   }
 
-  inline int_t abs(int_t val)
-  {
-    return val >= 0 ? val : -val;
-  }
-
   //conversions
   inline int_t FromHex(char sym)
   {
@@ -168,7 +163,7 @@ namespace
   {
     std::string res(width + 1, '0');
     res[0] = val < 0 ? '-' : '+';
-    val = abs(val);
+    val = absolute(val);
     for (std::string::iterator it(res.end()); val; val >>= 4)
     {
       *--it = ToHex(val & 15);
@@ -344,12 +339,12 @@ namespace
       //1,2 or 9,10
         commands[0] = (Vortex::SLIDEENV == it->Type ? '9' : '1') + (it->Param2 >= 0 ? 0 : 1);
         commands[1] = ToHexSym(it->Param1);
-        ToHexPair(abs(it->Param2), commands);
+        ToHexPair(absolute(it->Param2), commands);
         break;
       case Vortex::GLISS_NOTE:
         commands[0] = '3';
         commands[1] = ToHexSym(it->Param1);
-        ToHexPair(abs(it->Param2), commands);
+        ToHexPair(absolute(it->Param2), commands);
         targetNote = it->Param3;
         break;
       case Vortex::SAMPLEOFFSET:

@@ -183,4 +183,11 @@ inline T CountBits(T val)
   return res;
 }
 
+//! @brief Universal replacement of bunch abs/fabs/labs and other
+template<class T>
+inline T absolute(T val)
+{
+  return val >= 0 ? val : -val;
+}
+
 #endif //__TOOLS_H_DEFINED__

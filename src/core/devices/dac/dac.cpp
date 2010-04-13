@@ -54,11 +54,6 @@ namespace
     return val > 0 ? 1 : (val < 0 ? -1 : 0);
   }
 
-  inline int_t abs(int_t val)
-  {
-    return val >= 0 ? val : -val;
-  }
-
   inline uint_t GetStepByFrequency(double note, uint_t soundFreq, uint_t sampleFreq)
   {
     return static_cast<uint_t>(note * Sound::FIXED_POINT_PRECISION *
@@ -67,7 +62,7 @@ namespace
 
   inline uint_t GainAdder(uint_t sum, uint8_t sample)
   {
-    return sum + abs(int_t(sample) - SILENT);
+    return sum + absolute(int_t(sample) - SILENT);
   }
 
   inline Sound::Sample scale(uint8_t inSample)
@@ -295,7 +290,7 @@ namespace
       const int_t toneStep = static_cast<int_t>(FreqTable[clamp<int_t>(int_t(state.Note) + state.NoteSlide,
         0, MaxNotes - 1)]);
       state.SampleStep = state.FreqSlide
-        ? clamp<int_t>(toneStep + sign(state.FreqSlide) * static_cast<int_t>(GetStepByFrequency(double(abs(state.FreqSlide)), TableFreq, SampleFreq)),
+        ? clamp<int_t>(toneStep + sign(state.FreqSlide) * static_cast<int_t>(GetStepByFrequency(double(absolute(state.FreqSlide)), TableFreq, SampleFreq)),
           int_t(FreqTable.front()), int_t(FreqTable.back()))
         : toneStep;
       assert(state.SampleStep);
