@@ -357,6 +357,10 @@ extern const Char TEXT_INFO_OPTIONS_CORE_PLUGINS_HRIP_IGNORE_CORRUPTED[] = {
   'i','g','n','o','r','e',' ','c','o','r','r','u','p','t','e','d',' ','b','l','o','c','k','s',' ','i','n',' ',
   'H','R','i','P',' ','a','r','c','h','i','v','e',0
 };
+extern const Char TEXT_INFO_OPTIONS_CORE_PLUGINS_RAW_MIN_SIZE[] = {
+  'm','i','n','i','m','u','m',' ','d','a','t','a',' ','s','i','z','e',' ','t','o',' ','u','s','e',' ','r','a',
+  'w',' ','s','c','a','n','e','r',0
+};
 extern const Char TEXT_INFO_OPTIONS_CORE_PLUGINS_RAW_SCAN_STEP[] = {
   's','c','a','n','n','i','n','g',' ','s','t','e','p',' ','i','n',' ','b','y','t','e','s',0
 };
@@ -401,6 +405,10 @@ extern const Char TEXT_INFO_OPTIONS_SOUND_BACKENDS_WAV_FILENAME[] = {
   'f','i','l','e','n','a','m','e',' ','t','e','m','p','l','a','t','e',' ','t','o',' ','s','a','v','e',' ','w',
   'a','v',' ','f','i','l','e',' ','(','s','e','e',' ','-','-','l','i','s','t','-','a','t','t','r','i','b','u',
   't','e','s',' ','c','o','m','m','a','n','d',')',0
+};
+extern const Char TEXT_INFO_OPTIONS_SOUND_BACKENDS_WAV_OVERWRITE[] = {
+  'o','v','e','r','w','r','i','t','e',' ','t','a','r','g','e','t',' ','w','a','v',' ','f','i','l','e',' ','i',
+  'f',' ','a','l','r','e','a','d','y',' ','e','x','i','s','t','s',0
 };
 extern const Char TEXT_INFO_OPTIONS_SOUND_BACKENDS_WIN32_BUFFERS[] = {
   'p','l','a','y','b','a','c','k',' ','b','u','f','f','e','r','s',' ','c','o','u','n','t',0

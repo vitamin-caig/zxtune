@@ -397,142 +397,153 @@ namespace
     
     void PlayItem(const ModuleItem& item)
     {
-      //calculate and apply parameters
-      Parameters::Map perItemParams(GlobalParams);
-      perItemParams.insert(item.Params.begin(), item.Params.end());
-      ZXTune::Sound::Backend& backend(Sounder->GetBackend());
-      ThrowIfError(backend.SetModule(item.Module));
-      ThrowIfError(backend.SetParameters(perItemParams));
+      try
+      {
+        //calculate and apply parameters
+        Parameters::Map perItemParams(GlobalParams);
+        perItemParams.insert(item.Params.begin(), item.Params.end());
+        ZXTune::Sound::Backend& backend(Sounder->GetBackend());
+        ThrowIfError(backend.SetModule(item.Module));
+        ThrowIfError(backend.SetParameters(perItemParams));
 
-      Parameters::IntType frameDuration = 0;
-      if (!Parameters::FindByName(perItemParams, Parameters::ZXTune::Sound::FRAMEDURATION, frameDuration))
-      {
-        frameDuration = Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT;
-      }
-      ZXTune::Module::Information info;
-      item.Module->GetModuleInformation(info);
-
-      //show startup info
-      if (!Silent)
-      {
-        ShowItemInfo(info, static_cast<uint_t>(frameDuration));
-      }
-      const uint_t seekStepFrames(info.Statistic.Frame * SeekStep / 100);
-      const uint_t waitPeriod(std::max<uint_t>(1, 1000 / std::max<uint_t>(Updatefps, 1)));
-      ThrowIfError(backend.Play());
-      std::vector<int_t> analyzer;
-      Console::SizeType scrSize;
-      ZXTune::Module::Player::ConstWeakPtr weakPlayer(backend.GetPlayer());
-      ZXTune::Sound::Gain curVolume = ZXTune::Sound::Gain();
-      ZXTune::Sound::MultiGain allVolume;
-      ZXTune::Sound::VolumeControl::Ptr volCtrl(backend.GetVolumeControl());
-      const bool noVolume = volCtrl.get() == 0;
-      if (!noVolume)
-      {
-        ThrowIfError(volCtrl->GetVolume(allVolume));
-        curVolume = std::accumulate(allVolume.begin(), allVolume.end(), curVolume) / allVolume.size();
-      }
-      for (;;)
-      {
-        if (!Silent && !Quiet)
+        Parameters::IntType frameDuration = 0;
+        if (!Parameters::FindByName(perItemParams, Parameters::ZXTune::Sound::FRAMEDURATION, frameDuration))
         {
-          scrSize = Console::Self().GetSize();
-          if (scrSize.first <= 0 || scrSize.second <= 0)
-          {
-            Silent = true;
-          }
+          frameDuration = Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT;
         }
-        ZXTune::Sound::Backend::State state;
-        ThrowIfError(backend.GetCurrentState(state));
+        ZXTune::Module::Information info;
+        item.Module->GetModuleInformation(info);
 
-        uint_t curFrame = 0;
-        ZXTune::Module::Tracking curTracking;
-        ZXTune::Module::Analyze::ChannelsState curAnalyze;
-        ThrowIfError(weakPlayer.lock()->GetPlaybackState(curFrame, curTracking, curAnalyze));
-
-        if (!Silent && !Quiet)
+        //show startup info
+        if (!Silent)
         {
-          const int_t spectrumHeight = scrSize.second - INFORMATION_HEIGHT - TRACKING_HEIGHT - PLAYING_HEIGHT - 1;
-          if (spectrumHeight < 4)//minimal spectrum height
-          {
-            Analyzer = false;
-          }
-          else if (scrSize.second < int_t(TRACKING_HEIGHT + PLAYING_HEIGHT))
-          {
-            Quiet = true;
-          }
-          else
-          {
-            ShowTrackingStatus(curTracking);
-            ShowPlaybackStatus(curFrame, info.Statistic.Frame, state, scrSize.first, static_cast<uint_t>(frameDuration));
-            if (Analyzer)
-            {
-              analyzer.resize(scrSize.first);
-              UpdateAnalyzer(curAnalyze, 10, analyzer);
-              ShowAnalyzer(analyzer, spectrumHeight);
-            }
-          }
+          ShowItemInfo(info, static_cast<uint_t>(frameDuration));
         }
-        if (const uint_t key = Console::Self().GetPressedKey())
+        const uint_t seekStepFrames(info.Statistic.Frame * SeekStep / 100);
+        const uint_t waitPeriod(std::max<uint_t>(1, 1000 / std::max<uint_t>(Updatefps, 1)));
+        ThrowIfError(backend.Play());
+        std::vector<int_t> analyzer;
+        Console::SizeType scrSize;
+        ZXTune::Module::Player::ConstWeakPtr weakPlayer(backend.GetPlayer());
+        ZXTune::Sound::Gain curVolume = ZXTune::Sound::Gain();
+        ZXTune::Sound::MultiGain allVolume;
+        ZXTune::Sound::VolumeControl::Ptr volCtrl(backend.GetVolumeControl());
+        const bool noVolume = volCtrl.get() == 0;
+        if (!noVolume)
         {
-          switch (key)
+          ThrowIfError(volCtrl->GetVolume(allVolume));
+          curVolume = std::accumulate(allVolume.begin(), allVolume.end(), curVolume) / allVolume.size();
+        }
+        for (;;)
+        {
+          if (!Silent && !Quiet)
           {
-          case Console::INPUT_KEY_CANCEL:
-          case 'Q':
-            throw Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
-          case Console::INPUT_KEY_LEFT:
-            ThrowIfError(backend.SetPosition(curFrame < seekStepFrames ? 0 : curFrame - seekStepFrames));
-            break;
-          case Console::INPUT_KEY_RIGHT:
-            ThrowIfError(backend.SetPosition(curFrame + seekStepFrames));
-            break;
-          case Console::INPUT_KEY_DOWN:
-            if (!noVolume)
+            scrSize = Console::Self().GetSize();
+            if (scrSize.first <= 0 || scrSize.second <= 0)
             {
-              curVolume = std::max(0.0, curVolume - 0.05);
-              ZXTune::Sound::MultiGain allVol;
-              allVol.assign(curVolume);
-              ThrowIfError(volCtrl->SetVolume(allVol));
+              Silent = true;
             }
-            break;
-          case Console::INPUT_KEY_UP:
-            if (!noVolume)
+          }
+          ZXTune::Sound::Backend::State state;
+          ThrowIfError(backend.GetCurrentState(state));
+
+          uint_t curFrame = 0;
+          ZXTune::Module::Tracking curTracking;
+          ZXTune::Module::Analyze::ChannelsState curAnalyze;
+          ThrowIfError(weakPlayer.lock()->GetPlaybackState(curFrame, curTracking, curAnalyze));
+
+          if (!Silent && !Quiet)
+          {
+            const int_t spectrumHeight = scrSize.second - INFORMATION_HEIGHT - TRACKING_HEIGHT - PLAYING_HEIGHT - 1;
+            if (spectrumHeight < 4)//minimal spectrum height
             {
-              curVolume = std::min(1.0, curVolume + 0.05);
-              ZXTune::Sound::MultiGain allVol;
-              allVol.assign(curVolume);
-              ThrowIfError(volCtrl->SetVolume(allVol));
+              Analyzer = false;
             }
-            break;
-          case Console::INPUT_KEY_ENTER:
-            if (ZXTune::Sound::Backend::STARTED == state)
+            else if (scrSize.second < int_t(TRACKING_HEIGHT + PLAYING_HEIGHT))
             {
-              ThrowIfError(backend.Pause());
-              Console::Self().WaitForKeyRelease();
+              Quiet = true;
             }
             else
             {
-              Console::Self().WaitForKeyRelease();
-              ThrowIfError(backend.Play());
+              ShowTrackingStatus(curTracking);
+              ShowPlaybackStatus(curFrame, info.Statistic.Frame, state, scrSize.first, static_cast<uint_t>(frameDuration));
+              if (Analyzer)
+              {
+                analyzer.resize(scrSize.first);
+                UpdateAnalyzer(curAnalyze, 10, analyzer);
+                ShowAnalyzer(analyzer, spectrumHeight);
+              }
             }
-            break;
-          case ' ':
-            ThrowIfError(backend.Stop());
-            state = ZXTune::Sound::Backend::STOPPED;
-            Console::Self().WaitForKeyRelease();
+          }
+          if (const uint_t key = Console::Self().GetPressedKey())
+          {
+            switch (key)
+            {
+            case Console::INPUT_KEY_CANCEL:
+            case 'Q':
+              throw Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
+            case Console::INPUT_KEY_LEFT:
+              ThrowIfError(backend.SetPosition(curFrame < seekStepFrames ? 0 : curFrame - seekStepFrames));
+              break;
+            case Console::INPUT_KEY_RIGHT:
+              ThrowIfError(backend.SetPosition(curFrame + seekStepFrames));
+              break;
+            case Console::INPUT_KEY_DOWN:
+              if (!noVolume)
+              {
+                curVolume = std::max(0.0, curVolume - 0.05);
+                ZXTune::Sound::MultiGain allVol;
+                allVol.assign(curVolume);
+                ThrowIfError(volCtrl->SetVolume(allVol));
+              }
+              break;
+            case Console::INPUT_KEY_UP:
+              if (!noVolume)
+              {
+                curVolume = std::min(1.0, curVolume + 0.05);
+                ZXTune::Sound::MultiGain allVol;
+                allVol.assign(curVolume);
+                ThrowIfError(volCtrl->SetVolume(allVol));
+              }
+              break;
+            case Console::INPUT_KEY_ENTER:
+              if (ZXTune::Sound::Backend::STARTED == state)
+              {
+                ThrowIfError(backend.Pause());
+                Console::Self().WaitForKeyRelease();
+              }
+              else
+              {
+                Console::Self().WaitForKeyRelease();
+                ThrowIfError(backend.Play());
+              }
+              break;
+            case ' ':
+              ThrowIfError(backend.Stop());
+              state = ZXTune::Sound::Backend::STOPPED;
+              Console::Self().WaitForKeyRelease();
+              break;
+            }
+          }
+
+          if (ZXTune::Sound::Backend::STOPPED == state ||
+              ZXTune::Sound::Backend::STOP == backend.WaitForEvent(ZXTune::Sound::Backend::STOP, waitPeriod))
+          {
             break;
           }
+          if (!Silent && !Quiet)
+          {
+            Console::Self().MoveCursorUp(Analyzer ? scrSize.second - INFORMATION_HEIGHT - 1 : TRACKING_HEIGHT + PLAYING_HEIGHT);
+          }
         }
-
-        if (ZXTune::Sound::Backend::STOPPED == state ||
-            ZXTune::Sound::Backend::STOP == backend.WaitForEvent(ZXTune::Sound::Backend::STOP, waitPeriod))
+      }
+      catch (const Error& e)
+      {
+        if (e.FindSuberror(ZXTune::Module::ERROR_DETECT_CANCELED))
         {
-          break;
+          throw;
         }
-        if (!Silent && !Quiet)
-        {
-          Console::Self().MoveCursorUp(Analyzer ? scrSize.second - INFORMATION_HEIGHT - 1 : TRACKING_HEIGHT + PLAYING_HEIGHT);
-        }
+        e.WalkSuberrors(ErrOuter);
       }
     }
   private:

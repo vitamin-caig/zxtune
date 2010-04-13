@@ -112,6 +112,9 @@
 < TEXT_INFO_OPTIONS_SOUND_BACKENDS_WAV_FILENAME
 > "filename template to save wav file (see --" TEXT_INFO_LIST_ATTRIBUTES_KEY " command)"
 
+< TEXT_INFO_OPTIONS_SOUND_BACKENDS_WAV_OVERWRITE
+> "overwrite target wav file if already exists"
+
 < TEXT_INFO_OPTIONS_SOUND_BACKENDS_WIN32_DEVICE
 > "device index for win32 backend"
 
@@ -159,6 +162,9 @@
 
 < TEXT_INFO_OPTIONS_CORE_PLUGINS_RAW_SCAN_STEP
 > "scanning step in bytes"
+
+< TEXT_INFO_OPTIONS_CORE_PLUGINS_RAW_MIN_SIZE
+> "minimum data size to use raw scaner"
 
 < TEXT_INFO_OPTIONS_CORE_PLUGINS_HRIP_IGNORE_CORRUPTED
 > "ignore corrupted blocks in HRiP archive"
