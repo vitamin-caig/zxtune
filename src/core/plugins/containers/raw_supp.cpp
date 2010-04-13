@@ -38,8 +38,7 @@ namespace
 
   const uint_t MIN_SCAN_STEP = 1;
   const uint_t MAX_SCAN_STEP = 256;
-  //TODO: make parameter
-  const std::size_t MINIMAL_RAW_SIZE = 128;
+  const std::size_t MIN_MINIMAL_RAW_SIZE = 128;
 
   //fake parameter name used to prevent plugin recursive call while first pass processing
   const Char RAW_PLUGIN_RECURSIVE_DEPTH[] =
@@ -95,9 +94,21 @@ namespace
         return err;
       }
     }
+    std::size_t minRawSize = static_cast<std::size_t>(Parameters::ZXTune::Core::Plugins::Raw::MIN_SIZE_DEFAULT);
+    if (const Parameters::IntType* const minSizeParam =
+      Parameters::FindByName<Parameters::IntType>(commonParams, Parameters::ZXTune::Core::Plugins::Raw::MIN_SIZE))
+    {
+      if (*minSizeParam < Parameters::IntType(MIN_MINIMAL_RAW_SIZE))
+      {
+        throw MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,
+          TEXT_RAW_ERROR_INVALID_MIN_SIZE, *minSizeParam, MIN_MINIMAL_RAW_SIZE);
+      }
+      minRawSize = static_cast<std::size_t>(*minSizeParam);
+    }
+
     //check for further scanning possibility
     if (curRegion.Size != 0 &&
-        curRegion.Offset + curRegion.Size + MINIMAL_RAW_SIZE >= limit)
+        curRegion.Offset + curRegion.Size + minRawSize >= limit)
     {
       region.Offset = 0;
       region.Size = limit;
@@ -134,7 +145,7 @@ namespace
     subcontainer.PluginsChain = data.PluginsChain;
     subcontainer.PluginsChain.push_back(RAW_PLUGIN_ID);
     for (std::size_t offset = std::max(curRegion.Offset + curRegion.Size, std::size_t(1));
-      offset + MINIMAL_RAW_SIZE < limit;
+      offset + minRawSize < limit;
       offset += std::max(curRegion.Offset + curRegion.Size, std::size_t(scanStep)))
     {
       const uint_t curProg = offset * 100 / limit;

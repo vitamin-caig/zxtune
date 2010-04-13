@@ -82,6 +82,10 @@ extern const Char TEXT_PT2_INFO[] = {
 extern const Char TEXT_PT3_INFO[] = {
   'P','T','3',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
 };
+extern const Char TEXT_RAW_ERROR_INVALID_MIN_SIZE[] = {
+  'S','p','e','c','i','f','i','e','d',' ','m','i','n','i','m','a','l',' ','s','c','a','n',' ','s','i','z','e',
+  ' ','(','%','1','%',')',' ','s','h','o','u','l','d',' ','b','e',' ','>','=',' ','%','2','%','.',0
+};
 extern const Char TEXT_RAW_ERROR_INVALID_STEP[] = {
   'S','p','e','c','i','f','i','e','d',' ','s','c','a','n',' ','s','t','e','p',' ','(','%','1','%',')',' ','i',
   's',' ','o','u','t',' ','o','f',' ','r','a','n','g','e',' ','%','2','%','.','.','%','3','%','.',0

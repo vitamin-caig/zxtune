@@ -143,7 +143,13 @@ namespace
         }
         const String& fileName = InstantiateTemplate(nameTemplate, strProps, SKIP_NONEXISTING);
         Log::Debug(THIS_MODULE, "Opening file '%1%'", fileName);
-        File = IO::CreateFile(fileName, false);
+        //(re)create file
+        {
+          Parameters::IntType rewriteParam = 0;
+          const bool doRewrite = Parameters::FindByName(CommonParameters, Parameters::ZXTune::Sound::Backends::Wav::OVERWRITE, rewriteParam) &&
+            rewriteParam != 0;
+          File = IO::CreateFile(fileName, doRewrite);
+        }
 
         File->seekp(sizeof(Format));
 

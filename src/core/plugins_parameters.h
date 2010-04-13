@@ -35,6 +35,18 @@ namespace Parameters
             'z','x','t','u','n','e','.','c','o','r','e','.','p','l','u','g','i','n','s','.','r','a','w','.','s','c','a','n','_','s','t','e','p','\0'
           };
           //@}
+
+          //@{
+          //! @name Minimal scan size parameter
+
+          //! Default value
+          const IntType MIN_SIZE_DEFAULT = 128;
+          //! Parameter name
+          const Char MIN_SIZE[] =
+          {
+            'z','x','t','u','n','e','.','c','o','r','e','.','p','l','u','g','i','n','s','.','r','a','w','.','m','i','n','_','s','i','z','e','\0'
+          };
+          //@}
         }
 
         //! @brief HRIP container parameters namespace

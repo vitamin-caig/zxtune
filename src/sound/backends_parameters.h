@@ -39,6 +39,14 @@ namespace Parameters
           {
             'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','w','a','v','.','f','i','l','e','n','a','m','e','\0'
           };
+
+          //! @brief Rewrite output files if exist
+          //! @note != 0 if yes
+          const Char OVERWRITE[] =
+          {
+            'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','w','a','v','.','o','v','e','r','w','r','i','t','e','\0'
+          };
+
           //@}
         }
 
