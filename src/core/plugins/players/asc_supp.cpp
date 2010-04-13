@@ -623,7 +623,7 @@ namespace
       Data.Patterns.resize(patternsCount);
       for (uint_t patNum = 0; patNum < patternsCount; ++patNum, ++pattern)
       {
-        Log::ParamPrefixedCollector patWarner(*warner, TEXT_PATTERN_WARN_PREFIX, patNum);
+        Log::ParamPrefixedCollector patternWarner(*warner, TEXT_PATTERN_WARN_PREFIX, patNum);
         ASCTrack::Pattern& pat(Data.Patterns[patNum]);
 
         PatternCursors cursors;
@@ -633,7 +633,12 @@ namespace
         pat.reserve(MAX_PATTERN_SIZE);
         do
         {
-          Log::ParamPrefixedCollector patLineWarner(patWarner, TEXT_LINE_WARN_PREFIX, pat.size());
+          const uint_t patternSize = pat.size();
+          if (patternSize > MAX_PATTERN_SIZE)
+          {
+            throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
+          }
+          Log::ParamPrefixedCollector patLineWarner(patternWarner, TEXT_LINE_WARN_PREFIX, patternSize);
           pat.push_back(ASCTrack::Line());
           ASCTrack::Line& line(pat.back());
           ParsePattern(data, cursors, line, patLineWarner, envelopes);
@@ -646,9 +651,9 @@ namespace
         }
         while (0xff != data[cursors.front().Offset] || cursors.front().Counter);
         //as warnings
-        Log::Assert(patWarner, 0 == std::max_element(cursors.begin(), cursors.end(), PatternCursor::CompareByCounter)->Counter,
+        Log::Assert(patternWarner, 0 == std::max_element(cursors.begin(), cursors.end(), PatternCursor::CompareByCounter)->Counter,
           TEXT_WARNING_PERIODS);
-        Log::Assert(patWarner, pat.size() <= MAX_PATTERN_SIZE, TEXT_WARNING_INVALID_PATTERN_SIZE);
+        Log::Assert(patternWarner, pat.size() <= MAX_PATTERN_SIZE, TEXT_WARNING_INVALID_PATTERN_SIZE);
         rawSize = std::max<std::size_t>(rawSize, std::max_element(cursors.begin(), cursors.end(), PatternCursor::CompareByOffset)->Offset + 1);
       }
 

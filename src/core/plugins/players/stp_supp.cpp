@@ -442,7 +442,12 @@ namespace
         pat.reserve(MAX_PATTERN_SIZE);
         do
         {
-          Log::ParamPrefixedCollector patLineWarner(patternWarner, TEXT_LINE_WARN_PREFIX, pat.size());
+          const uint_t patternSize = pat.size();
+          if (patternSize > MAX_PATTERN_SIZE)
+          {
+            throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
+          }
+          Log::ParamPrefixedCollector patLineWarner(patternWarner, TEXT_LINE_WARN_PREFIX, patternSize);
           pat.push_back(STPTrack::Line());
           STPTrack::Line& line = pat.back();
           ParsePattern(data, cursors, line, patLineWarner);

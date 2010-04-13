@@ -46,8 +46,8 @@ namespace
   const String TEXT_PT3_VERSION(FromStdString("$Rev$"));
 
   const std::size_t MAX_MODULE_SIZE = 16384;
-  const uint_t MAX_PATTERNS_COUNT = 48;
-  const uint_t MAX_PATTERN_SIZE = 64;
+  const uint_t MAX_PATTERNS_COUNT = 85;
+  const uint_t MAX_PATTERN_SIZE = 256;//really no limit for PT3.58+
   const uint_t MAX_SAMPLES_COUNT = 32;
   const uint_t MAX_SAMPLE_SIZE = 64;
   const uint_t MAX_ORNAMENTS_COUNT = 16;
@@ -678,7 +678,12 @@ namespace
         uint_t noiseBase(0);
         do
         {
-          Log::ParamPrefixedCollector patLineWarner(patternWarner, TEXT_LINE_WARN_PREFIX, pat.size());
+          const uint_t patternSize = pat.size();
+          if (patternSize > MAX_PATTERN_SIZE)
+          {
+            throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
+          }
+          Log::ParamPrefixedCollector patLineWarner(patternWarner, TEXT_LINE_WARN_PREFIX, patternSize);
           pat.push_back(Vortex::Track::Line());
           Vortex::Track::Line& line(pat.back());
           ParsePattern(data, cursors, line, patLineWarner, noiseBase);
