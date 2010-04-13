@@ -116,8 +116,8 @@ namespace
     }
     StringArray splitted;
     boost::algorithm::split(splitted, str, boost::algorithm::is_any_of(MATRIX_DELIMITERS));
-    if (splitted.size() < MAX_CHANNELS * ZXTune::Sound::OUTPUT_CHANNELS ||
-        splitted.size() > MIN_CHANNELS * ZXTune::Sound::OUTPUT_CHANNELS)
+    if (splitted.size() <= MAX_CHANNELS * ZXTune::Sound::OUTPUT_CHANNELS ||
+        splitted.size() >= MIN_CHANNELS * ZXTune::Sound::OUTPUT_CHANNELS)
     {
       std::vector<ZXTune::Sound::MultiGain> result(splitted.size() / ZXTune::Sound::OUTPUT_CHANNELS);
       std::transform(splitted.begin(), splitted.end(), result.begin()->begin(), &FromString<double>);

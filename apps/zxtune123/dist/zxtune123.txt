@@ -132,9 +132,24 @@ html> "</pre>\n"
 > SAMPLE_BEGIN "1/FILE_trd_FILE1_C_125_raw.wav" SAMPLE_END
 > SAMPLE_SECT_END
 
+= SAMPLE_MIXER_LAYOUT
+> SAMPLE_SECT_BEGIN
+> SAMPLE_BEGIN "--" CMD_MIXER_KEY " ABC" SAMPLE_END
+> SAMPLE_SECT_END
+
+= SAMPLE_MIXER_MATRIX
+> SAMPLE_SECT_BEGIN
+> SAMPLE_BEGIN "--" CMD_MIXER_KEY " 1-0,0.9-0.1,0.6-0.4,0.4-0.6,0.1-0.9,0-1" SAMPLE_END
+> SAMPLE_SECT_END
+
 = SAMPLE_CONVERT_COMMON
 > SAMPLE_SECT_BEGIN
 > SAMPLE_BEGIN "--" CMD_CONVERT_KEY " mode=${mode},filename=${filename}" SAMPLE_END
+> SAMPLE_SECT_END
+
+= SAMPLE_FILTER
+> SAMPLE_SECT_BEGIN
+> SAMPLE_BEGIN "--" CMD_FILTER_KEY " 30,20-20000" SAMPLE_END
 > SAMPLE_SECT_END
 
 #main text
@@ -196,6 +211,7 @@ en> SAMPLE_CORE_OPTIONS
 
 en> "specifies options: " PRE_BEGIN "zxtune.core.aym.type" PRE_END " and "
 en> PRE_BEGIN "zxtune.core.dac.interpolation" PRE_END ".\n"
+en> "Some of the long options are duplicated by the short commandline options.\n"
 
 en> HEAD_BEGIN "CONFIGURATION" HEAD_END
 en> "To avoid specifying options each time you start the program, you can put some "
@@ -326,7 +342,8 @@ en> "TRD and Raw plugins will be used to resolve initial path even if they are d
 en> HEAD_BEGIN "ATTRIBUTES" HEAD_END
 en> "Every module has variable set of attributes which is filled while processing. "
 en> "To see all the supported attributes use " PRE_BEGIN "--" CMD_INFO_LIST_ATTRIBUTES_KEY PRE_END " key. Attributes are "
-en> "used to setup file-based backends and conversion (see below). "
+en> "used to setup file-based backends and conversion (see below).\n"
+en> PRE_BEGIN CMD_INPUT_PROGRESS_KEY PRE_END " key is used to display modules searching progress.\n"
 
 en> HEAD_BEGIN "SOUND" HEAD_END
 en> "To playback opened and detected module you should specify way to do it- "
@@ -373,6 +390,28 @@ en> SAMPLE_WAV_RESULT_1
 en> "file (if extension is not specified exactly, it's added automatically).\n"
 en> "Non-existing fields are skipped.\n"
 
+en> HEAD_BEGIN "OTHER SOUND OPTIONS" HEAD_END
+en> PRE_BEGIN "--" CMD_MIXER_KEY PRE_END " used to specify mixer. It can be done by two ways- specifying symbolic channels layout "
+en> "or explicit matrix:"
+
+en> SAMPLE_MIXER_LAYOUT
+
+en> "specifies mixer for three channels modules (three letters in set). Every letter can be uppercase to use normal gain, "
+en> "lowercase to use lower gain or '-' to switch off the specified channel. Also letters can be duplicated.\n"
+
+en> SAMPLE_MIXER_MATRIX
+
+en> "specifies mixer for four channels modules (for stereo output - eight coefficients). Symbols ';', ',', '-' can be used "
+en> "as a delimiters without any restrictions- difference (as in sample) is just for usability.\n"
+en> "Multiple " PRE_BEGIN "--" CMD_MIXER_KEY PRE_END " can be used to specify mixers for different channels count.\n"
+
+en> PRE_BEGIN "--" CMD_FILTER_KEY PRE_END " used to specify bandpass filter with specified order and frequency range."
+
+en> SAMPLE_FILTER
+
+en> "specifies 30's order bandpass filter for range from 20Hz till 20kHz. "
+en> "Specifying order is not required (10 used by default).\n"
+
 en> HEAD_BEGIN "CONVERSION" HEAD_END
 en> "To convert chiptune(s) from initial format to another one, use --" CMD_CONVERT_KEY " key with "
 en> "mandatory parameters which are used to specify working mode and target. Syntax is:"
@@ -386,6 +425,22 @@ en> "In case of converting multiple files when some of then cannot be converted,
 en> PRE_BEGIN "conv_*" PRE_END " capabilities can be used to determine supported conversion format for each plugin "
 en> "(see MODULES PROCESSING section). " PRE_BEGIN "raw" PRE_END " mode means raw source module dump (without any "
 en> "players or additional supplementary data). It's supported by the all module plugins and can be used for ripping.\n"
+
+en> HEAD_BEGIN "OTHER PARAMETERS" HEAD_END
+en> "Additional keys can be used while working with program:\n"
+en> PRE_BEGIN "--" CMD_ANALYZER_KEY PRE_END " key is used to switch on spectrum analyzer while playback.\n"
+en> PRE_BEGIN "--" CMD_UPDATEFPS_KEY PRE_END " key specifies console update frequency for dynamic output.\n"
+en> PRE_BEGIN "--" CMD_SEEKSTEP_KEY PRE_END " key specifies seeking step in percents.\n"
+en> PRE_BEGIN "--" CMD_QUIET_KEY PRE_END " key is used to switch off all the dynamic output while playback.\n"
+en> PRE_BEGIN "--" CMD_SILENT_KEY PRE_END " key switches off all the output.\n"
+
+en> HEAD_BEGIN "CONTROL KEYS" HEAD_END
+en> "The main control keys are:\n"
+en> "Left,Right - seeking upon the module (see " PRE_BEGIN "--" CMD_SEEKSTEP_KEY PRE_END " key)\n"
+en> "Up,Down - volume control (if specified backend support hardware volume changing)\n"
+en> "Esc,Q - exit\n"
+en> "Enter - pause/resume playback\n"
+en> "Space - search for the next module or exit in case of last one\n"
 
 en> HEAD_BEGIN "To be continued" HEAD_END
 
