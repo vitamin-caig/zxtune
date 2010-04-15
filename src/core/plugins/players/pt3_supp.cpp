@@ -844,12 +844,18 @@ namespace
     }
     const std::size_t patOff(fromLE(header->PatternsOffset));
     if (!header->Length ||
-      patOff >= size || patOff < sizeof(*header) ||
-      0xff != data[patOff - 1] ||
-      &header->Positions[header->Length] != data + patOff - 1 ||
-      &data[patOff - 1] != std::find_if(header->Positions, data + patOff - 1,
-        std::bind2nd(std::modulus<uint8_t>(), 3))
+        patOff >= size || patOff < sizeof(*header) ||
+        0xff != data[patOff - 1] ||
+        &header->Positions[header->Length] != data + patOff - 1 ||
+        &data[patOff - 1] != std::find_if(header->Positions, data + patOff - 1,
+          std::bind2nd(std::modulus<uint8_t>(), 3))
       )
+    {
+      return false;
+    }
+    //check patterns
+    const uint_t patternsCount = 1 + *std::max_element(header->Positions, header->Positions + header->Length) / 3;
+    if (!patternsCount || patternsCount > MAX_PATTERNS_COUNT)
     {
       return false;
     }
@@ -888,19 +894,6 @@ namespace
           return false;
         }
       }
-    }
-    //find invalid patterns in position
-    if (header->Positions + header->Length !=
-        std::find_if(header->Positions, header->Positions + header->Length,
-          boost::bind(std::modulus<uint8_t>(), _1, 3) != 0))
-    {
-      return false;
-    }
-    //check patterns
-    const uint_t patternsCount = 1 + *std::max_element(header->Positions, header->Positions + header->Length) / 3;
-    if (!patternsCount || patternsCount > MAX_PATTERNS_COUNT)
-    {
-      return false;
     }
     const PT3Pattern* patPos(safe_ptr_cast<const PT3Pattern*>(data + patOff));
     for (uint_t patIdx = 0; patPos->Check() && patIdx < patternsCount; ++patPos, ++patIdx)

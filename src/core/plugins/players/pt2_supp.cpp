@@ -950,15 +950,17 @@ namespace
       return false;
     }
 
+    //check patterns offset
+    const uint_t patOff(fromLE(header->PatternsOffset));
+    if (!in_range<std::size_t>(patOff, lowlimit, size))
+    {
+      return false;
+    }
+
     RangeChecker::Ptr checker(RangeChecker::CreateShared(size));
     checker->AddRange(0, lowlimit);
+    //check patterns
     {
-      //check patterns
-      const uint_t patOff(fromLE(header->PatternsOffset));
-      if (!in_range<std::size_t>(patOff, lowlimit, size))
-      {
-        return false;
-      }
       uint_t patternsCount(0);
       for (const PT2Pattern* patPos(safe_ptr_cast<const PT2Pattern*>(data + patOff));
         patPos->Check();

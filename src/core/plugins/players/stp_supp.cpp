@@ -859,9 +859,6 @@ namespace
     }
     const STPHeader* const header = safe_ptr_cast<const STPHeader*>(data);
 
-    RangeChecker::Ptr checker(RangeChecker::CreateShared(limit));
-    checker->AddRange(0, sizeof(*header));
-
     const std::size_t positionsOffset = fromLE(header->PositionsOffset);
     const std::size_t patternsOffset = fromLE(header->PatternsOffset);
     const std::size_t ornamentsOffset = fromLE(header->OrnamentsOffset);
@@ -869,12 +866,21 @@ namespace
 
     if (header->Tempo == 0 ||
         positionsOffset > limit ||
-        patternsOffset >= ornamentsOffset || (ornamentsOffset - patternsOffset) % sizeof(STPPattern) != 0 ||
-        !checker->AddRange(patternsOffset, ornamentsOffset - patternsOffset)
+        patternsOffset >= ornamentsOffset || (ornamentsOffset - patternsOffset) % sizeof(STPPattern) != 0
         )
     {
       return false;
     }
+
+    RangeChecker::Ptr checker(RangeChecker::CreateShared(limit));
+    checker->AddRange(0, sizeof(*header));
+
+    //check for patterns range
+    if (!checker->AddRange(patternsOffset, ornamentsOffset - patternsOffset))
+    {
+      return false;
+    }
+
     const STPId* id = safe_ptr_cast<const STPId*>(header + 1);
     if (id->Check() && !checker->AddRange(sizeof(*header), sizeof(*id)))
     {

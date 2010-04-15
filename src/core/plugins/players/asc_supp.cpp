@@ -1196,22 +1196,21 @@ namespace
     const std::size_t samplesOffset = fromLE(header->SamplesOffset);
     const std::size_t ornamentsOffset = fromLE(header->OrnamentsOffset);
     const std::size_t patternsOffset = fromLE(header->PatternsOffset);
-
-    RangeChecker::Ptr checker = RangeChecker::Create(limit);
-    checker->AddRange(0, headerBusy);
     const uint_t patternsCount = 1 + *std::max_element(header->Positions, header->Positions + header->Length);
 
-    //check if length is valid
-    if (header->Positions + header->Length !=
+    //check patterns count and length
+    if (!patternsCount || patternsCount > MAX_PATTERNS_COUNT ||
+        header->Positions + header->Length !=
         std::find_if(header->Positions, header->Positions + header->Length,
           std::bind2nd(std::greater_equal<uint_t>(), patternsCount)))
     {
       return false;
     }
 
+    RangeChecker::Ptr checker = RangeChecker::Create(limit);
+    checker->AddRange(0, headerBusy);
     //check common ranges
-    if (!patternsCount || patternsCount > MAX_PATTERNS_COUNT ||
-        !checker->AddRange(patternsOffset, sizeof(ASCPattern) * patternsCount) ||
+    if (!checker->AddRange(patternsOffset, sizeof(ASCPattern) * patternsCount) ||
         !checker->AddRange(samplesOffset, sizeof(ASCSamples)) ||
         !checker->AddRange(ornamentsOffset, sizeof(ASCOrnaments))
         )
