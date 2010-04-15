@@ -46,7 +46,7 @@ namespace
     if (pos == ArraySize(LETTERS))
     {
       throw MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,
-        TEXT_MODULE_ERROR_INVALID_DUTY_CYCLE_MASK_ITEM, String(1, letter));
+        Text::MODULE_ERROR_INVALID_DUTY_CYCLE_MASK_ITEM, String(1, letter));
     }
     return val | MASKS[pos];
   }
@@ -101,7 +101,7 @@ namespace
         if (table->size() != FreqTable.size() * sizeof(FreqTable.front()))
         {
           throw MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,
-            TEXT_MODULE_ERROR_INVALID_FREQ_TABLE_SIZE, table->size());
+            Text::MODULE_ERROR_INVALID_FREQ_TABLE_SIZE, table->size());
         }
         std::memcpy(&FreqTable.front(), &table->front(), table->size());
       }
@@ -112,7 +112,7 @@ namespace
         if (intParam < 1 || intParam > 99)
         {
           throw MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,
-            TEXT_MODULE_ERROR_INVALID_DUTY_CYCLE, intParam);
+            Text::MODULE_ERROR_INVALID_DUTY_CYCLE, intParam);
         }
         Chunk.Data[DataChunk::PARAM_DUTY_CYCLE] = static_cast<uint8_t>(intParam);
       }

@@ -36,8 +36,8 @@ namespace
   using namespace ZXTune;
 
   const Char HRIP_PLUGIN_ID[] = {'H', 'R', 'I', 'P', 0};
+  const String HRIP_PLUGIN_VERSION(FromStdString("$Rev$"));
 
-  const String TEXT_HRIP_VERSION(FromStdString("$Rev$"));
   const std::size_t HRP_MODULE_SIZE = 655360;
 
   const uint8_t HRIP_ID[] = {'H', 'R', 'i'};
@@ -308,7 +308,7 @@ namespace
         Log::MessageData message;
         message.Level = GetLogLevel();
         message.Progress = 100 * (fileNum + 1) / totalFiles;
-        message.Text = (SafeFormatter(Path.empty() ? TEXT_PLUGIN_HRIP_PROGRESS_NOPATH : TEXT_PLUGIN_HRIP_PROGRESS) % filename % Path).str();
+        message.Text = (SafeFormatter(Path.empty() ? Text::PLUGIN_HRIP_PROGRESS_NOPATH : Text::PLUGIN_HRIP_PROGRESS) % filename % Path).str();
         DetectParams.Logger(message);
       }
 
@@ -387,8 +387,8 @@ namespace ZXTune
   {
     PluginInformation info;
     info.Id = HRIP_PLUGIN_ID;
-    info.Description = TEXT_HRIP_INFO;
-    info.Version = TEXT_HRIP_VERSION;
+    info.Description = Text::HRIP_PLUGIN_INFO;
+    info.Version = HRIP_PLUGIN_VERSION;
     info.Capabilities = CAP_STOR_MULTITRACK;
     enumerator.RegisterContainerPlugin(info, OpenHRIPContainer, ProcessHRIPContainer);
   }

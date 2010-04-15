@@ -37,7 +37,7 @@ namespace
   using namespace ZXTune;
 
   const Char SCL_PLUGIN_ID[] = {'S', 'C', 'L', 0};
-  const String TEXT_SCL_VERSION(FromStdString("$Rev$"));
+  const String SCL_PLUGIN_VERSION(FromStdString("$Rev$"));
 
   const std::size_t BYTES_PER_SECTOR = 256;
 
@@ -171,7 +171,7 @@ namespace
       if (showMessage)
       {
         message.Progress = 100 * curCount / totalCount;
-        message.Text = (SafeFormatter(data.Path.empty() ? TEXT_PLUGIN_SCL_PROGRESS_NOPATH : TEXT_PLUGIN_SCL_PROGRESS) % it->Name % data.Path).str();
+        message.Text = (SafeFormatter(data.Path.empty() ? Text::PLUGIN_SCL_PROGRESS_NOPATH : Text::PLUGIN_SCL_PROGRESS) % it->Name % data.Path).str();
         detectParams.Logger(message);
       }
       if (const Error& err = enumerator.DetectModules(commonParams, detectParams, subcontainer, curRegion))
@@ -213,8 +213,8 @@ namespace ZXTune
   {
     PluginInformation info;
     info.Id = SCL_PLUGIN_ID;
-    info.Description = TEXT_SCL_INFO;
-    info.Version = TEXT_SCL_VERSION;
+    info.Description = Text::SCL_PLUGIN_INFO;
+    info.Version = SCL_PLUGIN_VERSION;
     info.Capabilities = CAP_STOR_MULTITRACK | CAP_STOR_PLAIN;
     enumerator.RegisterContainerPlugin(info, OpenSCLContainer, ProcessSCLContainer);
   }

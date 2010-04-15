@@ -5,135 +5,138 @@
 __cpp> "#ifndef __TEXT_PLUGINS_H_DEFINED__\n"
 __cpp> "#define __TEXT_PLUGINS_H_DEFINED__\n"
 __cpp> "#include <char_type.h>\n\n"
+__cpp> "namespace Text\n"
+__cpp> "{\n"
 
 < __RAWFOOTER__
+__cpp> "}//namespace Text\n"
 __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 
-= TEXT_PLUGIN_SUBPATH
+= PLUGIN_SUBPATH
 > " at subpath '%2%'"
 
 #ASC
-< TEXT_ASC_INFO
+< ASC_PLUGIN_INFO
 > "ASC modules support"
 
-< TEXT_ASC_EDITOR
+< ASC_EDITOR
 > "ASC Sound Master"
 
 #CHI
-< TEXT_CHI_INFO
+< CHI_PLUGIN_INFO
 > "CHI modules support"
 
-< TEXT_CHI_EDITOR
+< CHI_EDITOR
 > "ChipTracker v%1%"
 
 #FDI
-< TEXT_FDI_INFO
+< FDI_PLUGIN_INFO
 > "FDI modules support"
 
 #Hobeta
-< TEXT_HOBETA_INFO
+< HOBETA_PLUGIN_INFO
 > "Hobeta containers support"
 
 #Hrust1x
-< TEXT_HRUST1X_INFO
+< HRUST1X_PLUGIN_INFO
 > "Hrust1.x packed data support"
 
 #Hrust2x
-< TEXT_HRUST2X_INFO
+< HRUST2X_PLUGIN_INFO
 > "Hrust2.x packed data support"
 
 #Hrip
-< TEXT_HRIP_INFO
+< HRIP_PLUGIN_INFO
 > "HRiP archives support"
 
-< TEXT_PLUGIN_HRIP_PROGRESS_NOPATH
+< PLUGIN_HRIP_PROGRESS_NOPATH
 > "HRiP container processing for '%1%'"
 
-< TEXT_PLUGIN_HRIP_PROGRESS
-> TEXT_PLUGIN_HRIP_PROGRESS_NOPATH TEXT_PLUGIN_SUBPATH
+< PLUGIN_HRIP_PROGRESS
+> PLUGIN_HRIP_PROGRESS_NOPATH PLUGIN_SUBPATH
 
 #ProDigi
-< TEXT_PDT_INFO
+< PDT_PLUGIN_INFO
 > "ProDigi Tracker modules support"
 
-< TEXT_PDT_EDITOR
+< PDT_EDITOR
 > "ProDigi Tracker v0.0x"
 
 #PSG
-< TEXT_PSG_INFO
+< PSG_PLUGIN_INFO
 > "PSG modules support"
 
 #PT2
-< TEXT_PT2_INFO
+< PT2_PLUGIN_INFO
 > "PT2 modules support"
 
-< TEXT_PT2_EDITOR
+< PT2_EDITOR
 > "ProTracker v2.x"
 
 #PT3
-< TEXT_PT3_INFO
+< PT3_PLUGIN_INFO
 > "PT3 modules support"
 
 #RAW
-< TEXT_RAW_INFO
+< RAW_PLUGIN_INFO
 > "Raw modules scaner"
 
-< TEXT_RAW_ERROR_INVALID_STEP
+< RAW_ERROR_INVALID_STEP
 > "Specified scan step (%1%) is out of range %2%..%3%."
 
-< TEXT_RAW_ERROR_INVALID_MIN_SIZE
+< RAW_ERROR_INVALID_MIN_SIZE
 > "Specified minimal scan size (%1%) should be >= %2%."
 
-< TEXT_PLUGIN_RAW_PROGRESS_NOPATH
+< PLUGIN_RAW_PROGRESS_NOPATH
 > "Raw scaner processing"
 
-< TEXT_PLUGIN_RAW_PROGRESS
-> TEXT_PLUGIN_RAW_PROGRESS_NOPATH " at subpath '%1%'"
+< PLUGIN_RAW_PROGRESS
+> PLUGIN_RAW_PROGRESS_NOPATH " at subpath '%1%'"
 
 #SCL
-< TEXT_SCL_INFO
+< SCL_PLUGIN_INFO
 > "SCL containers support"
 
-< TEXT_PLUGIN_SCL_PROGRESS_NOPATH
+< PLUGIN_SCL_PROGRESS_NOPATH
 > "SCL container processing for '%1%'"
 
-< TEXT_PLUGIN_SCL_PROGRESS
-> TEXT_PLUGIN_SCL_PROGRESS_NOPATH TEXT_PLUGIN_SUBPATH
+< PLUGIN_SCL_PROGRESS
+> PLUGIN_SCL_PROGRESS_NOPATH PLUGIN_SUBPATH
 
 #STC
-< TEXT_STC_INFO
+< STC_PLUGIN_INFO
 > "STC modules support"
 
-< TEXT_STC_EDITOR
+< STC_EDITOR
 > "SoundTracker"
 
 #STP
-< TEXT_STP_INFO
+< STP_PLUGIN_INFO
 > "STP modules support"
 
-< TEXT_STP_EDITOR
+< STP_EDITOR
 > "SoundTrackerPro"
 
 #TRD
-< TEXT_TRD_INFO
+< TRD_PLUGIN_INFO
 > "TRD containers support"
 
-< TEXT_PLUGIN_TRD_PROGRESS_NOPATH
+< PLUGIN_TRD_PROGRESS_NOPATH
 > "TRD container processing for '%1%'"
 
-< TEXT_PLUGIN_TRD_PROGRESS
-> TEXT_PLUGIN_TRD_PROGRESS_NOPATH TEXT_PLUGIN_SUBPATH
+< PLUGIN_TRD_PROGRESS
+> PLUGIN_TRD_PROGRESS_NOPATH PLUGIN_SUBPATH
 
 #TS
-< TEXT_TS_INFO
+< TS_PLUGIN_INFO
 > "TurboSound modules support"
 
 #TXT
-< TEXT_TXT_INFO
+< TXT_PLUGIN_INFO
 > "Text (Vortex) modules support"
 
-< TEXT_VORTEX_EDITOR
+< VORTEX_EDITOR
 > "VortexTracker (ProTracker v%1%.%2% compatible)"
 
-< TEXT_TXT_ERROR_INVALID_STRING
+< TXT_ERROR_INVALID_STRING
 > "Invalid string while parsing: '%1%'."

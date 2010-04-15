@@ -129,13 +129,13 @@ namespace
     {
       if (data.size() != InChannels)
       {
-        return Error(THIS_LINE, MIXER_INVALID_PARAMETER, TEXT_SOUND_ERROR_MIXER_INVALID_MATRIX_CHANNELS);
+        return Error(THIS_LINE, MIXER_INVALID_PARAMETER, Text::SOUND_ERROR_MIXER_INVALID_MATRIX_CHANNELS);
       }
       const std::vector<MultiGain>::const_iterator it = std::find_if(data.begin(), data.end(),
         FindOverloadedGain);
       if (it != data.end())
       {
-        return Error(THIS_LINE, MIXER_INVALID_PARAMETER, TEXT_SOUND_ERROR_MIXER_INVALID_MATRIX_GAIN);
+        return Error(THIS_LINE, MIXER_INVALID_PARAMETER, Text::SOUND_ERROR_MIXER_INVALID_MATRIX_GAIN);
       }
       std::transform(data.begin(), data.end(), Matrix.begin(), MultiGain2MultiFixed<NativeType>);
       Dividers = std::accumulate(Matrix.begin(), Matrix.end(), MultiBigSample(), AddBigsamples);
@@ -173,7 +173,7 @@ namespace ZXTune
         break;
       default:
         assert(!"Mixer: invalid channels count specified");
-        return MakeFormattedError(THIS_LINE, MIXER_UNSUPPORTED, TEXT_SOUND_ERROR_MIXER_UNSUPPORTED, channels);
+        return MakeFormattedError(THIS_LINE, MIXER_UNSUPPORTED, Text::SOUND_ERROR_MIXER_UNSUPPORTED, channels);
       }
       return Error();
     }

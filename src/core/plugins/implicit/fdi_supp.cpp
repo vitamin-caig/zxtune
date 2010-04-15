@@ -27,7 +27,7 @@ namespace
   using namespace ZXTune;
 
   const Char FDI_PLUGIN_ID[] = {'F', 'D', 'I', 0};
-  const String TEXT_FDI_VERSION(FromStdString("$Rev$"));
+  const String FDI_PLUGIN_VERSION(FromStdString("$Rev$"));
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -170,8 +170,8 @@ namespace ZXTune
   {
     PluginInformation info;
     info.Id = FDI_PLUGIN_ID;
-    info.Description = TEXT_FDI_INFO;
-    info.Version = TEXT_FDI_VERSION;
+    info.Description = Text::FDI_PLUGIN_INFO;
+    info.Version = FDI_PLUGIN_VERSION;
     info.Capabilities = CAP_STOR_CONTAINER;
     enumerator.RegisterImplicitPlugin(info, ProcessFDI);
   }

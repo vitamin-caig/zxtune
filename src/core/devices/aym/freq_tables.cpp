@@ -194,7 +194,7 @@ namespace ZXTune
         boost::bind(&FreqTableEntry::Name, _1) == idNormal);
       if (entry == ArrayEnd(TABLES))
       {
-        return MakeFormattedError(THIS_LINE, ERROR_INVALID_PARAMETERS, TEXT_MODULE_ERROR_INVALID_FREQ_TABLE_NAME, id);
+        return MakeFormattedError(THIS_LINE, ERROR_INVALID_PARAMETERS, Text::MODULE_ERROR_INVALID_FREQ_TABLE_NAME, id);
       }
       //copy result forward (normal) or backward (reverted)
       if (doRevert)

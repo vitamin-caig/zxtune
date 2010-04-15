@@ -33,7 +33,7 @@ namespace
   const BackendInformation BACKEND_INFO =
   {
     BACKEND_ID,
-    TEXT_NULL_BACKEND_DESCRIPTION,
+    Text::NULL_BACKEND_DESCRIPTION,
     BACKEND_VERSION,
   };
 

@@ -34,8 +34,7 @@ namespace
   using namespace ZXTune::Module;
 
   const Char PSG_PLUGIN_ID[] = {'P', 'S', 'G', 0};
-  
-  const String TEXT_PSG_VERSION(FromStdString("$Rev$"));
+  const String PSG_PLUGIN_VERSION(FromStdString("$Rev$"));
 
   const uint8_t PSG_SIGNATURE[] = {'P', 'S', 'G'};
   
@@ -68,8 +67,8 @@ namespace
   void DescribePSGPlugin(PluginInformation& info)
   {
     info.Id = PSG_PLUGIN_ID;
-    info.Description = TEXT_PSG_INFO;
-    info.Version = TEXT_PSG_VERSION;
+    info.Description = Text::PSG_PLUGIN_INFO;
+    info.Version = PSG_PLUGIN_VERSION;
     info.Capabilities = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | CAP_CONV_PSG;
   }
   
@@ -182,7 +181,7 @@ namespace
       }
       else
       {
-        return Error(THIS_LINE, ERROR_MODULE_CONVERT, TEXT_MODULE_ERROR_CONVERSION_UNSUPPORTED);
+        return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
       }
     }
   private:
@@ -229,7 +228,7 @@ namespace
       {
         if (MODULE_STOPPED == CurrentState)
         {
-          return Error(THIS_LINE, ERROR_MODULE_END, TEXT_MODULE_ERROR_MODULE_END);
+          return Error(THIS_LINE, ERROR_MODULE_END, Text::MODULE_ERROR_MODULE_END);
         }
         if (Sound::LOOP_NONE == params.Looping)
         {

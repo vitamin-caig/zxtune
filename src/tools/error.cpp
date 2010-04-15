@@ -151,14 +151,14 @@ String Error::CodeToString(CodeType code)
 
 String Error::AttributesToString(LocationRef loc, CodeType code, const String& text)
 {
-  return (Formatter(TEXT_ERROR_DEFAULT_FORMAT) % text % CodeToString(code) % LocationToString(loc)).str();
+  return (Formatter(Text::ERROR_DEFAULT_FORMAT) % text % CodeToString(code) % LocationToString(loc)).str();
 }
 
 String Error::LocationToString(Error::LocationRef loc)
 {
 #ifdef NDEBUG
-  return (Formatter(TEXT_ERROR_LOCATION_FORMAT) % loc).str();
+  return (Formatter(Text::ERROR_LOCATION_FORMAT) % loc).str();
 #else
-  return (Formatter(TEXT_ERROR_LOCATION_FORMAT_DEBUG) % loc.Tag % loc.File % loc.Line % loc.Function).str();
+  return (Formatter(Text::ERROR_LOCATION_FORMAT_DEBUG) % loc.Tag % loc.File % loc.Line % loc.Function).str();
 #endif
 }

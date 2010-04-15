@@ -44,7 +44,7 @@ namespace
 
   //plugin attributes
   const Char ASC_PLUGIN_ID[] = {'A', 'S', 'C', 0};
-  const String TEXT_ASC_VERSION(FromStdString("$Rev$"));
+  const String ASC_PLUGIN_VERSION(FromStdString("$Rev$"));
 
   const uint_t LIMITER(~uint_t(0));
 
@@ -349,8 +349,8 @@ namespace
   void DescribeASCPlugin(PluginInformation& info)
   {
     info.Id = ASC_PLUGIN_ID;
-    info.Description = TEXT_ASC_INFO;
-    info.Version = TEXT_ASC_VERSION;
+    info.Description = Text::ASC_PLUGIN_INFO;
+    info.Version = ASC_PLUGIN_VERSION;
     info.Capabilities = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
   }
 
@@ -386,7 +386,7 @@ namespace
         }
 
         const uint_t idx = std::distance(line.Channels.begin(), channel);
-        Log::ParamPrefixedCollector channelWarner(warner, TEXT_CHANNEL_WARN_PREFIX, idx);
+        Log::ParamPrefixedCollector channelWarner(warner, Text::CHANNEL_WARN_PREFIX, idx);
         bool continueSample = false;
         for (;;)
         {
@@ -396,7 +396,7 @@ namespace
           {
             if (!continueSample)
             {
-              Log::Assert(channelWarner, !channel->Enabled, TEXT_WARNING_DUPLICATE_STATE);
+              Log::Assert(channelWarner, !channel->Enabled, Text::WARNING_DUPLICATE_STATE);
               channel->Enabled = true;
             }
             if (!channel->Commands.empty() &&
@@ -409,7 +409,7 @@ namespace
             }
             else
             {
-              Log::Assert(channelWarner, !channel->Note, TEXT_WARNING_DUPLICATE_NOTE);
+              Log::Assert(channelWarner, !channel->Note, Text::WARNING_DUPLICATE_NOTE);
               channel->Note = cmd;
             }
             if (envelopes & envMask)
@@ -444,7 +444,7 @@ namespace
           }
           else if (cmd == 0x5f) //shut
           {
-            Log::Assert(channelWarner, !channel->Enabled, TEXT_WARNING_DUPLICATE_STATE);
+            Log::Assert(channelWarner, !channel->Enabled, Text::WARNING_DUPLICATE_STATE);
             channel->Enabled = false;
             break;
           }
@@ -454,24 +454,24 @@ namespace
           }
           else if (cmd >= 0xa0 && cmd <= 0xbf) //sample
           {
-            Log::Assert(channelWarner, !channel->SampleNum, TEXT_WARNING_DUPLICATE_SAMPLE);
+            Log::Assert(channelWarner, !channel->SampleNum, Text::WARNING_DUPLICATE_SAMPLE);
             channel->SampleNum = cmd - 0xa0;
           }
           else if (cmd >= 0xc0 && cmd <= 0xdf) //ornament
           {
-            Log::Assert(channelWarner, !channel->OrnamentNum, TEXT_WARNING_DUPLICATE_ORNAMENT);
+            Log::Assert(channelWarner, !channel->OrnamentNum, Text::WARNING_DUPLICATE_ORNAMENT);
             channel->OrnamentNum = cmd - 0xc0;
           }
           else if (cmd == 0xe0) // envelope full vol
           {
-            Log::Assert(channelWarner, !channel->Volume, TEXT_WARNING_DUPLICATE_VOLUME);
+            Log::Assert(channelWarner, !channel->Volume, Text::WARNING_DUPLICATE_VOLUME);
             channel->Volume = 15;
             channel->Commands.push_back(ASCTrack::Command(ENVELOPE_ON));
             envelopes |= envMask;
           }
           else if (cmd >= 0xe1 && cmd <= 0xef) // noenvelope vol
           {
-            Log::Assert(channelWarner, !channel->Volume, TEXT_WARNING_DUPLICATE_VOLUME);
+            Log::Assert(channelWarner, !channel->Volume, Text::WARNING_DUPLICATE_VOLUME);
             channel->Volume = cmd - 0xe0;
             channel->Commands.push_back(ASCTrack::Command(ENVELOPE_OFF));
             envelopes &= ~envMask;
@@ -502,7 +502,7 @@ namespace
             {
               throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
             }
-            Log::Assert(channelWarner, !line.Tempo, TEXT_WARNING_DUPLICATE_TEMPO);
+            Log::Assert(channelWarner, !line.Tempo, Text::WARNING_DUPLICATE_TEMPO);
             line.Tempo = data[cur->Offset++];
           }
           else if (cmd == 0xf5 || cmd == 0xf6) //slide
@@ -537,7 +537,7 @@ namespace
             else
             {
               //strange situation...
-              channelWarner.AddMessage(TEXT_WARNING_DUPLICATE_ENVELOPE);
+              channelWarner.AddMessage(Text::WARNING_DUPLICATE_ENVELOPE);
               cmdIt->Param1 = cmd & 0xf;
             }
           }
@@ -581,9 +581,9 @@ namespace
           const Sample& smp = Data.Samples.back();
           if (smp.Loop > smp.LoopLimit || smp.LoopLimit >= smp.Data.size())
           {
-            Log::ParamPrefixedCollector lineWarner(*warner, TEXT_SAMPLE_WARN_PREFIX, index);
-            Log::Assert(lineWarner, smp.Loop <= smp.LoopLimit, TEXT_WARNING_LOOP_OUT_LIMIT);
-            Log::Assert(lineWarner, smp.LoopLimit < smp.Data.size(), TEXT_WARNING_LOOP_OUT_BOUND);
+            Log::ParamPrefixedCollector lineWarner(*warner, Text::SAMPLE_WARN_PREFIX, index);
+            Log::Assert(lineWarner, smp.Loop <= smp.LoopLimit, Text::WARNING_LOOP_OUT_LIMIT);
+            Log::Assert(lineWarner, smp.LoopLimit < smp.Data.size(), Text::WARNING_LOOP_OUT_BOUND);
           }
           rawSize = std::max(rawSize, samplesOff + sampleOffset + smp.Data.size() * sizeof(ASCSample::Line));
         }
@@ -605,9 +605,9 @@ namespace
           const Ornament& orn = Data.Ornaments.back();
           if (orn.Loop > orn.LoopLimit || orn.LoopLimit >= orn.Data.size())
           {
-            Log::ParamPrefixedCollector lineWarner(*warner, TEXT_ORNAMENT_WARN_PREFIX, index);
-            Log::Assert(lineWarner, orn.Loop <= orn.LoopLimit, TEXT_WARNING_LOOP_OUT_LIMIT);
-            Log::Assert(lineWarner, orn.LoopLimit < orn.Data.size(), TEXT_WARNING_LOOP_OUT_BOUND);
+            Log::ParamPrefixedCollector lineWarner(*warner, Text::ORNAMENT_WARN_PREFIX, index);
+            Log::Assert(lineWarner, orn.Loop <= orn.LoopLimit, Text::WARNING_LOOP_OUT_LIMIT);
+            Log::Assert(lineWarner, orn.LoopLimit < orn.Data.size(), Text::WARNING_LOOP_OUT_BOUND);
           }
           rawSize = std::max(rawSize, ornamentsOff + ornamentOffset + orn.Data.size() * sizeof(ASCOrnament::Line));
         }
@@ -623,7 +623,7 @@ namespace
       Data.Patterns.resize(patternsCount);
       for (uint_t patNum = 0; patNum < patternsCount; ++patNum, ++pattern)
       {
-        Log::ParamPrefixedCollector patternWarner(*warner, TEXT_PATTERN_WARN_PREFIX, patNum);
+        Log::ParamPrefixedCollector patternWarner(*warner, Text::PATTERN_WARN_PREFIX, patNum);
         ASCTrack::Pattern& pat(Data.Patterns[patNum]);
 
         PatternCursors cursors;
@@ -638,7 +638,7 @@ namespace
           {
             throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
           }
-          Log::ParamPrefixedCollector patLineWarner(patternWarner, TEXT_LINE_WARN_PREFIX, patternSize);
+          Log::ParamPrefixedCollector patLineWarner(patternWarner, Text::LINE_WARN_PREFIX, patternSize);
           pat.push_back(ASCTrack::Line());
           ASCTrack::Line& line(pat.back());
           ParsePattern(data, cursors, line, patLineWarner, envelopes);
@@ -652,8 +652,8 @@ namespace
         while (0xff != data[cursors.front().Offset] || cursors.front().Counter);
         //as warnings
         Log::Assert(patternWarner, 0 == std::max_element(cursors.begin(), cursors.end(), PatternCursor::CompareByCounter)->Counter,
-          TEXT_WARNING_PERIODS);
-        Log::Assert(patternWarner, pat.size() <= MAX_PATTERN_SIZE, TEXT_WARNING_INVALID_PATTERN_SIZE);
+          Text::WARNING_PERIODS);
+        Log::Assert(patternWarner, pat.size() <= MAX_PATTERN_SIZE, Text::WARNING_INVALID_PATTERN_SIZE);
         rawSize = std::max<std::size_t>(rawSize, std::max_element(cursors.begin(), cursors.end(), PatternCursor::CompareByOffset)->Offset + 1);
       }
 
@@ -681,7 +681,7 @@ namespace
           }
         }
       }
-      Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_PROGRAM, String(TEXT_ASC_EDITOR)));
+      Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_PROGRAM, String(Text::ASC_EDITOR)));
 
       //tracking properties
       Data.Info.LoopPosition = header->Loop;
@@ -731,7 +731,7 @@ namespace
       else if (!ConvertAYMFormat(boost::bind(&CreateASCPlayer, shared_from_this(), boost::cref(Data), _1),
         param, dst, result))
       {
-        return Error(THIS_LINE, ERROR_MODULE_CONVERT, TEXT_MODULE_ERROR_CONVERSION_UNSUPPORTED);
+        return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
       }
       return result;
     }
@@ -825,7 +825,7 @@ namespace
       {
         if (MODULE_STOPPED == CurrentState)
         {
-          return Error(THIS_LINE, ERROR_MODULE_END, TEXT_MODULE_ERROR_MODULE_END);
+          return Error(THIS_LINE, ERROR_MODULE_END, Text::MODULE_ERROR_MODULE_END);
         }
         receiver.Flush();
         state = CurrentState = MODULE_STOPPED;
@@ -895,7 +895,7 @@ namespace
       }
       catch (const Error& e)
       {
-        return Error(THIS_LINE, ERROR_INVALID_PARAMETERS, TEXT_MODULE_ERROR_SET_PLAYER_PARAMETERS).AddSuberror(e);
+        return Error(THIS_LINE, ERROR_INVALID_PARAMETERS, Text::MODULE_ERROR_SET_PLAYER_PARAMETERS).AddSuberror(e);
       }
     }
   private:

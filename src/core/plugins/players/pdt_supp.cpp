@@ -40,7 +40,7 @@ namespace
 
   //plugin attributes
   const Char PDT_PLUGIN_ID[] = {'P', 'D', 'T', 0};
-  const String TEXT_PDT_VERSION(FromStdString("$Rev$"));
+  const String PDT_PLUGIN_VERSION(FromStdString("$Rev$"));
 
   //hints
   const uint_t ORNAMENTS_COUNT = 11;
@@ -207,8 +207,8 @@ namespace
   void DescribePDTPlugin(PluginInformation& info)
   {
     info.Id = PDT_PLUGIN_ID;
-    info.Description = TEXT_PDT_INFO;
-    info.Version = TEXT_PDT_VERSION;
+    info.Description = Text::PDT_PLUGIN_INFO;
+    info.Version = PDT_PLUGIN_VERSION;
     info.Capabilities = CAP_STOR_MODULE | CAP_DEV_4DAC | CAP_CONV_RAW;
   }
 
@@ -244,7 +244,7 @@ namespace
         PDTTrack::Line& dstLine(result.back());
         for (uint_t chanNum = 0; chanNum != CHANNELS_COUNT && !end; ++chanNum)
         {
-          Log::ParamPrefixedCollector channelWarner(warner, TEXT_LINE_CHANNEL_WARN_PREFIX, lineNum, chanNum);
+          Log::ParamPrefixedCollector channelWarner(warner, Text::LINE_CHANNEL_WARN_PREFIX, lineNum, chanNum);
 
           PDTTrack::Line::Chan& dstChan(dstLine.Channels[chanNum]);
           const PDTNote& note(src.Notes[lineNum][chanNum]);
@@ -259,7 +259,7 @@ namespace
           switch (note.GetCommand())
           {
           case CMD_SPEED:
-            Log::Assert(channelWarner, !dstLine.Tempo, TEXT_WARNING_DUPLICATE_TEMPO);
+            Log::Assert(channelWarner, !dstLine.Tempo, Text::WARNING_DUPLICATE_TEMPO);
             dstLine.Tempo = note.GetParameter();
             break;
           case CMD_SPECIAL:
@@ -292,11 +292,11 @@ namespace
             }
             break;
           default:
-            channelWarner.AddMessage(TEXT_WARNING_UNSUPPORTED_COMMAND);
+            channelWarner.AddMessage(Text::WARNING_UNSUPPORTED_COMMAND);
           }
         }
       }
-      Log::Assert(warner, result.size() <= PATTERN_SIZE, TEXT_WARNING_TOO_LONG);
+      Log::Assert(warner, result.size() <= PATTERN_SIZE, Text::WARNING_TOO_LONG);
       result.swap(res);
     }
 
@@ -317,7 +317,7 @@ namespace
       Data.Patterns.resize(header->Patterns.size());
       for (uint_t patIdx = 0; patIdx != header->Patterns.size(); ++patIdx)
       {
-        Log::ParamPrefixedCollector patternWarner(*warner, TEXT_PATTERN_WARN_PREFIX, patIdx);
+        Log::ParamPrefixedCollector patternWarner(*warner, Text::PATTERN_WARN_PREFIX, patIdx);
         ParsePattern(header->Patterns[patIdx], patternWarner, Data.Patterns[patIdx]);
       }
        
@@ -358,7 +358,7 @@ namespace
       //meta properties
       ExtractMetaProperties(PDT_PLUGIN_ID, container, region, ModuleRegion(sizeof(PDTHeader) - sizeof(header->Patterns), sizeof(header->Patterns)),
         Data.Info.Properties, RawData);
-      Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_PROGRAM, String(TEXT_PDT_EDITOR)));
+      Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_PROGRAM, String(Text::PDT_EDITOR)));
       const String& title(OptimizeString(FromStdString(header->Title)));
       if (!title.empty())
       {
@@ -420,7 +420,7 @@ namespace
       }
       else
       {
-        return Error(THIS_LINE, ERROR_MODULE_CONVERT, TEXT_MODULE_ERROR_CONVERSION_UNSUPPORTED);
+        return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
       }
       return Error();
     }
@@ -504,7 +504,7 @@ namespace
       {
         if (MODULE_STOPPED == CurrentState)
         {
-          return Error(THIS_LINE, ERROR_MODULE_END, TEXT_MODULE_ERROR_MODULE_END);
+          return Error(THIS_LINE, ERROR_MODULE_END, Text::MODULE_ERROR_MODULE_END);
         }
         receiver.Flush();
         state = CurrentState = MODULE_STOPPED;

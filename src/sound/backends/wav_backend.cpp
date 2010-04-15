@@ -45,7 +45,7 @@ namespace
   const BackendInformation BACKEND_INFO =
   {
     BACKEND_ID,
-    TEXT_WAV_BACKEND_DESCRIPTION,
+    Text::WAV_BACKEND_DESCRIPTION,
     BACKEND_VERSION,
   };
 
@@ -76,6 +76,8 @@ namespace
   const uint8_t RIFF[] = {'R', 'I', 'F', 'F'};
   const uint8_t WAVEfmt[] = {'W', 'A', 'V', 'E', 'f', 'm', 't', ' '};
   const uint8_t DATA[] = {'d', 'a', 't', 'a'};
+
+  const Char FILE_WAVE_EXT[] = {'.', 'w', 'a', 'v', '\0'};
 
   class WAVBackend : public BackendImpl, private boost::noncopyable
   {
@@ -114,7 +116,7 @@ namespace
       if (!Parameters::FindByName(CommonParameters, Parameters::ZXTune::Sound::Backends::Wav::FILENAME, nameTemplate))
       {
         // Filename parameter is required
-        throw Error(THIS_LINE, BACKEND_INVALID_PARAMETER, TEXT_SOUND_ERROR_WAV_BACKEND_NO_FILENAME);
+        throw Error(THIS_LINE, BACKEND_INVALID_PARAMETER, Text::SOUND_ERROR_WAV_BACKEND_NO_FILENAME);
       }
 
       //if playback now
@@ -191,7 +193,7 @@ namespace
            Parameters::FindByName<Parameters::StringType>(updates, Parameters::ZXTune::Sound::Backends::Wav::FILENAME)))
       {
         // changing filename and frequency 'on fly' is not supported
-        throw Error(THIS_LINE, BACKEND_INVALID_PARAMETER, TEXT_SOUND_ERROR_BACKEND_INVALID_STATE);
+        throw Error(THIS_LINE, BACKEND_INVALID_PARAMETER, Text::SOUND_ERROR_BACKEND_INVALID_STATE);
       }
     }
 

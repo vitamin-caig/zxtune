@@ -40,7 +40,7 @@ namespace
   const BackendInformation BACKEND_INFO =
   {
     BACKEND_ID,
-    TEXT_AYLPT_BACKEND_DESCRIPTION,
+    Text::AYLPT_BACKEND_DESCRIPTION,
     BACKEND_VERSION,
   };
 
@@ -69,13 +69,13 @@ namespace
         const uint_t REQUIRED_CAPS = CAP_DEV_AYM | CAP_STOR_MODULE | CAP_CONV_ZX50;
         if (REQUIRED_CAPS != (plugin.Capabilities & REQUIRED_CAPS))
         {
-          return Error(THIS_LINE, BACKEND_SETUP_ERROR, TEXT_SOUND_ERROR_AYLPT_BACKEND_DUMP);
+          return Error(THIS_LINE, BACKEND_SETUP_ERROR, Text::SOUND_ERROR_AYLPT_BACKEND_DUMP);
         }
 
         static const Module::Conversion::ZX50ConvertParam cnvParam;
         if (const Error& e = holder->Convert(cnvParam, RenderData))
         {
-          return Error(THIS_LINE, BACKEND_SETUP_ERROR, TEXT_SOUND_ERROR_AYLPT_BACKEND_DUMP).AddSuberror(e);
+          return Error(THIS_LINE, BACKEND_SETUP_ERROR, Text::SOUND_ERROR_AYLPT_BACKEND_DUMP).AddSuberror(e);
         }
         RenderPos = 0;
       }

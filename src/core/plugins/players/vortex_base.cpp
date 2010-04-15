@@ -201,7 +201,7 @@ namespace
       {
         if (MODULE_STOPPED == CurrentState)
         {
-          return Error(THIS_LINE, ERROR_MODULE_END, TEXT_MODULE_ERROR_MODULE_END);
+          return Error(THIS_LINE, ERROR_MODULE_END, Text::MODULE_ERROR_MODULE_END);
         }
         receiver.Flush();
         state = CurrentState = MODULE_STOPPED;
@@ -273,7 +273,7 @@ namespace
       }
       catch (const Error& e)
       {
-        return Error(THIS_LINE, ERROR_INVALID_PARAMETERS, TEXT_MODULE_ERROR_SET_PLAYER_PARAMETERS).AddSuberror(e);
+        return Error(THIS_LINE, ERROR_INVALID_PARAMETERS, Text::MODULE_ERROR_SET_PLAYER_PARAMETERS).AddSuberror(e);
       }
     }
   private:

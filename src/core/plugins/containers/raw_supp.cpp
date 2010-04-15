@@ -33,8 +33,7 @@ namespace
   using namespace ZXTune;
 
   const Char RAW_PLUGIN_ID[] = {'R', 'A', 'W', 0};
-
-  const String TEXT_RAW_VERSION(FromStdString("$Rev$"));
+  const String RAW_PLUGIN_VERSION(FromStdString("$Rev$"));
 
   const uint_t MIN_SCAN_STEP = 1;
   const uint_t MAX_SCAN_STEP = 256;
@@ -101,7 +100,7 @@ namespace
       if (*minSizeParam < Parameters::IntType(MIN_MINIMAL_RAW_SIZE))
       {
         throw MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,
-          TEXT_RAW_ERROR_INVALID_MIN_SIZE, *minSizeParam, MIN_MINIMAL_RAW_SIZE);
+          Text::RAW_ERROR_INVALID_MIN_SIZE, *minSizeParam, MIN_MINIMAL_RAW_SIZE);
       }
       minRawSize = static_cast<std::size_t>(*minSizeParam);
     }
@@ -123,7 +122,7 @@ namespace
           *stepParam > Parameters::IntType(MAX_SCAN_STEP))
       {
         throw MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,
-          TEXT_RAW_ERROR_INVALID_STEP, *stepParam, MIN_SCAN_STEP, MAX_SCAN_STEP);
+          Text::RAW_ERROR_INVALID_STEP, *stepParam, MIN_SCAN_STEP, MAX_SCAN_STEP);
       }
       scanStep = static_cast<std::size_t>(*stepParam);
     }
@@ -134,7 +133,7 @@ namespace
     if (showMessage)
     {
       message.Level = enumerator.CountPluginsInChain(data.PluginsChain, CAP_STOR_MULTITRACK, CAP_STOR_MULTITRACK);
-      message.Text = data.Path.empty() ? String(TEXT_PLUGIN_RAW_PROGRESS_NOPATH) : (Formatter(TEXT_PLUGIN_RAW_PROGRESS) % data.Path).str();
+      message.Text = data.Path.empty() ? String(Text::PLUGIN_RAW_PROGRESS_NOPATH) : (Formatter(Text::PLUGIN_RAW_PROGRESS) % data.Path).str();
       message.Progress = -1;
     }
 
@@ -201,8 +200,8 @@ namespace ZXTune
   {
     PluginInformation info;
     info.Id = RAW_PLUGIN_ID;
-    info.Description = TEXT_RAW_INFO;
-    info.Version = TEXT_RAW_VERSION;
+    info.Description = Text::RAW_PLUGIN_INFO;
+    info.Version = RAW_PLUGIN_VERSION;
     info.Capabilities = CAP_STOR_MULTITRACK | CAP_STOR_SCANER;
     enumerator.RegisterContainerPlugin(info, OpenRawContainer, ProcessRawContainer);
   }

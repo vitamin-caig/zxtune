@@ -5,16 +5,19 @@
 __cpp> "#ifndef __TEXT_TOOLS_H_DEFINED__\n"
 __cpp> "#define __TEXT_TOOLS_H_DEFINED__\n"
 __cpp> "#include <char_type.h>\n\n"
+__cpp> "namespace Text\n"
+__cpp> "{\n"
 
 < __RAWFOOTER__
+__cpp> "}//namespace Text\n"
 __cpp> "#endif //__TEXT_TOOLS_H_DEFINED__\n"
 
 #common texts
-< TEXT_ERROR_DEFAULT_FORMAT
+< ERROR_DEFAULT_FORMAT
 > "%1%\n\nCode: %2%\nAt: %3%\n--------\n"
 
-< TEXT_ERROR_LOCATION_FORMAT
+< ERROR_LOCATION_FORMAT
 > "%1$08x"
 
-< TEXT_ERROR_LOCATION_FORMAT_DEBUG
-> TEXT_ERROR_LOCATION_FORMAT " (%2%:%3%, %4%)"
+< ERROR_LOCATION_FORMAT_DEBUG
+> ERROR_LOCATION_FORMAT " (%2%:%3%, %4%)"

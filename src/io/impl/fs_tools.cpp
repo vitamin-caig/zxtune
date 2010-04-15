@@ -112,14 +112,14 @@ namespace ZXTune
       const std::string& pathC = ConvertToFilename(path);
       if (!overwrite && std::ifstream(pathC.c_str()))
       {
-        throw MakeFormattedError(THIS_LINE, ERROR_FILE_EXISTS, TEXT_IO_ERROR_FILE_EXISTS, path);
+        throw MakeFormattedError(THIS_LINE, ERROR_FILE_EXISTS, Text::IO_ERROR_FILE_EXISTS, path);
       }
       std::auto_ptr<std::ofstream> res(new std::ofstream(pathC.c_str(), std::ios::binary));
       if (res.get() && res->good())
       {
         return res;
       }
-      throw MakeFormattedError(THIS_LINE, ERROR_NOT_FOUND, TEXT_IO_ERROR_NOT_OPENED, path);
+      throw MakeFormattedError(THIS_LINE, ERROR_NOT_FOUND, Text::IO_ERROR_NOT_OPENED, path);
     }
   }
 }

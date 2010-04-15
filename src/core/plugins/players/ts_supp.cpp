@@ -43,7 +43,7 @@ namespace
 
   //plugin attributes
   const Char TS_PLUGIN_ID[] = {'T', 'S', 0};
-  const String TEXT_TS_VERSION(FromStdString("$Rev$"));
+  const String TS_PLUGIN_VERSION(FromStdString("$Rev$"));
 
   const std::size_t TS_MIN_SIZE = 256;
   const std::size_t TS_MAX_SIZE = 1 << 17;
@@ -160,8 +160,8 @@ namespace
   void DescribeTSPlugin(PluginInformation& info)
   {
     info.Id = TS_PLUGIN_ID;
-    info.Description = TEXT_TS_INFO;
-    info.Version = TEXT_TS_VERSION;
+    info.Description = Text::TS_PLUGIN_INFO;
+    info.Version = TS_PLUGIN_VERSION;
     info.Capabilities = CAP_STOR_MODULE | CAP_DEV_TS | CAP_CONV_RAW;
   }
 
@@ -215,7 +215,7 @@ namespace
       }
       else
       {
-        return Error(THIS_LINE, ERROR_MODULE_CONVERT, TEXT_MODULE_ERROR_CONVERSION_UNSUPPORTED);
+        return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
       }
     }
   private:

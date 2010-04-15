@@ -45,7 +45,7 @@ namespace
   const BackendInformation BACKEND_INFO =
   {
     BACKEND_ID,
-    TEXT_ALSA_BACKEND_DESCRIPTION,
+    Text::ALSA_BACKEND_DESCRIPTION,
     BACKEND_VERSION,
   };
 
@@ -57,7 +57,7 @@ namespace
     if (res < 0)
     {
       throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR,
-        TEXT_SOUND_ERROR_ALSA_BACKEND_ERROR, ::snd_strerror(res));
+        Text::SOUND_ERROR_ALSA_BACKEND_ERROR, ::snd_strerror(res));
     }
   }
 
@@ -116,7 +116,7 @@ namespace
       if (res < 0)
       {
         throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR,
-          TEXT_SOUND_ERROR_ALSA_BACKEND_DEVICE_ERROR, Name, ::snd_strerror(res));
+          Text::SOUND_ERROR_ALSA_BACKEND_DEVICE_ERROR, Name, ::snd_strerror(res));
       }
     }
   protected:
@@ -207,7 +207,7 @@ namespace
       if (!elem)
       {
         throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
-          TEXT_SOUND_ERROR_ALSA_BACKEND_NO_MIXER, MixerName);
+          Text::SOUND_ERROR_ALSA_BACKEND_NO_MIXER, MixerName);
       }
       MixerElement = elem;
     }
@@ -276,7 +276,7 @@ namespace
     {
       if (volume.end() != std::find_if(volume.begin(), volume.end(), std::bind2nd(std::greater<Gain>(), Gain(1.0))))
       {
-        return Error(THIS_LINE, BACKEND_INVALID_PARAMETER, TEXT_SOUND_ERROR_BACKEND_INVALID_GAIN);
+        return Error(THIS_LINE, BACKEND_INVALID_PARAMETER, Text::SOUND_ERROR_BACKEND_INVALID_GAIN);
       }
       if (!Handle)
       {
@@ -416,7 +416,7 @@ namespace
           if (!in_range<Parameters::IntType>(*buffers, BUFFERS_MIN, BUFFERS_MAX))
           {
             throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
-              TEXT_SOUND_ERROR_ALSA_BACKEND_INVALID_BUFFERS, static_cast<int_t>(*buffers), BUFFERS_MIN, BUFFERS_MAX);
+              Text::SOUND_ERROR_ALSA_BACKEND_INVALID_BUFFERS, static_cast<int_t>(*buffers), BUFFERS_MIN, BUFFERS_MAX);
           }
           Buffers = static_cast<unsigned>(*buffers);
         }

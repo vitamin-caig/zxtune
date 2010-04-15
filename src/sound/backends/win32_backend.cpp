@@ -51,7 +51,7 @@ namespace
   const BackendInformation BACKEND_INFO =
   {
     BACKEND_ID,
-    TEXT_WIN32_BACKEND_DESCRIPTION,
+    Text::WIN32_BACKEND_DESCRIPTION,
     BACKEND_VERSION
   };
 
@@ -62,12 +62,12 @@ namespace
       std::vector<char> buffer(1024);
       if (MMSYSERR_NOERROR == ::waveOutGetErrorText(res, &buffer[0], static_cast<UINT>(buffer.size())))
       {
-        throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR, TEXT_SOUND_ERROR_WIN32_BACKEND_ERROR,
+        throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR, Text::SOUND_ERROR_WIN32_BACKEND_ERROR,
           String(buffer.begin(), std::find(buffer.begin(), buffer.end(), '\0')));
       }
       else
       {
-        throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR, TEXT_SOUND_ERROR_WIN32_BACKEND_ERROR, res);
+        throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR, Text::SOUND_ERROR_WIN32_BACKEND_ERROR, res);
       }
     }
   }
@@ -77,7 +77,7 @@ namespace
     if (!val)
     {
       //TODO: convert code to string
-      throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR, TEXT_SOUND_ERROR_WIN32_BACKEND_ERROR, ::GetLastError());
+      throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR, Text::SOUND_ERROR_WIN32_BACKEND_ERROR, ::GetLastError());
     }
   }
 
@@ -175,7 +175,7 @@ namespace
     {
       if (volume.end() != std::find_if(volume.begin(), volume.end(), std::bind2nd(std::greater<Gain>(), Gain(1.0))))
       {
-        return Error(THIS_LINE, BACKEND_INVALID_PARAMETER, TEXT_SOUND_ERROR_BACKEND_INVALID_GAIN);
+        return Error(THIS_LINE, BACKEND_INVALID_PARAMETER, Text::SOUND_ERROR_BACKEND_INVALID_GAIN);
       }
       // use exceptions for simplification
       try
@@ -284,7 +284,7 @@ namespace
           if (!in_range<Parameters::IntType>(*buffs, BUFFERS_MIN, BUFFERS_MAX))
           {
             throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
-              TEXT_SOUND_ERROR_WIN32_BACKEND_INVALID_BUFFERS, static_cast<int_t>(*buffs), BUFFERS_MIN, BUFFERS_MAX);
+              Text::SOUND_ERROR_WIN32_BACKEND_INVALID_BUFFERS, static_cast<int_t>(*buffs), BUFFERS_MIN, BUFFERS_MAX);
           }
           Buffers.resize(static_cast<std::size_t>(*buffs));
           CurrentBuffer = cycled_iterator<WaveBuffer*>(&Buffers.front(), &Buffers.back() + 1);

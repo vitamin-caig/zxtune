@@ -5,68 +5,71 @@
 __cpp> "#ifndef __TEXT_SOUND_H_DEFINED__\n"
 __cpp> "#define __TEXT_SOUND_H_DEFINED__\n"
 __cpp> "#include <char_type.h>\n\n"
+__cpp> "namespace Text\n"
+__cpp> "{\n"
 
 < __RAWFOOTER__
+__cpp> "}//namespace Text\n"
 __cpp> "#endif //__TEXT_SOUND_H_DEFINED__\n"
 
 #common errors
 
 #mixer errors
-< TEXT_SOUND_ERROR_MIXER_UNSUPPORTED
+< SOUND_ERROR_MIXER_UNSUPPORTED
 > "Failed to create unsupported mixer with %1% channels."
 
-< TEXT_SOUND_ERROR_MIXER_INVALID_MATRIX_GAIN
+< SOUND_ERROR_MIXER_INVALID_MATRIX_GAIN
 > "Failed to set mixer matrix- gain is out of range."
 
-< TEXT_SOUND_ERROR_MIXER_INVALID_MATRIX_CHANNELS
+< SOUND_ERROR_MIXER_INVALID_MATRIX_CHANNELS
 > "Failed to set mixer matrix- invalid channels count specified."
 
 #filter errors
-< TEXT_SOUND_ERROR_FILTER_ORDER
+< SOUND_ERROR_FILTER_ORDER
 > "Specified filter order (%1%) is out of range (%2%...%3%)."
 
-< TEXT_SOUND_ERROR_FILTER_HIGH_CUTOFF
+< SOUND_ERROR_FILTER_HIGH_CUTOFF
 > "Specified filter high cutoff frequency (%1%Hz) is out of range (%2%...%3%Hz)."
 
-< TEXT_SOUND_ERROR_FILTER_LOW_CUTOFF
+< SOUND_ERROR_FILTER_LOW_CUTOFF
 > "Specified filter low cutoff frequency (%1%Hz) is out of range (%2%...%3%Hz)."
 
 #backend errors
-< TEXT_SOUND_ERROR_BACKEND_NOT_FOUND
+< SOUND_ERROR_BACKEND_NOT_FOUND
 > "Requested backend '%1%' is not supported."
 
-< TEXT_SOUND_ERROR_BACKEND_FAILED
+< SOUND_ERROR_BACKEND_FAILED
 > "Failed to create backend '%1%'."
 
-< TEXT_SOUND_ERROR_BACKEND_INVALID_MODULE
+< SOUND_ERROR_BACKEND_INVALID_MODULE
 > "Invalid module specified for backend."
 
-< TEXT_SOUND_ERROR_BACKEND_INVALID_FILTER
+< SOUND_ERROR_BACKEND_INVALID_FILTER
 > "Invalid filter specified for backend."
 
-< TEXT_SOUND_ERROR_BACKEND_SETUP_BACKEND
+< SOUND_ERROR_BACKEND_SETUP_BACKEND
 > "Failed to setup backend."
 
-< TEXT_SOUND_ERROR_BACKEND_NO_MEMORY
+< SOUND_ERROR_BACKEND_NO_MEMORY
 > "Failed to work with backend- no memory."
 
-< TEXT_SOUND_ERROR_BACKEND_PLAYBACK
+< SOUND_ERROR_BACKEND_PLAYBACK
 > "Failed to start/continue playback."
 
-< TEXT_SOUND_ERROR_BACKEND_PAUSE
+< SOUND_ERROR_BACKEND_PAUSE
 > "Failed to pause playback."
 
-< TEXT_SOUND_ERROR_BACKEND_STOP
+< SOUND_ERROR_BACKEND_STOP
 > "Failed to stop playback."
 
-< TEXT_SOUND_ERROR_BACKEND_SEEK
+< SOUND_ERROR_BACKEND_SEEK
 > "Failed to set playback position."
 
-< TEXT_SOUND_ERROR_BACKEND_INVALID_CHANNELS
+< SOUND_ERROR_BACKEND_INVALID_CHANNELS
 > "Specified module or mixer channels (%1%) is out of range (%2%...%3%)."
 
-< TEXT_SOUND_ERROR_BACKEND_INVALID_STATE
+< SOUND_ERROR_BACKEND_INVALID_STATE
 > "Failed to perform operation in invalid state."
 
-< TEXT_SOUND_ERROR_BACKEND_INVALID_GAIN
+< SOUND_ERROR_BACKEND_INVALID_GAIN
 > "Failed to set volume- gain is out of range."

@@ -43,7 +43,7 @@ namespace
   using namespace ZXTune::Module;
 
   const Char PT3_PLUGIN_ID[] = {'P', 'T', '3', 0};
-  const String TEXT_PT3_VERSION(FromStdString("$Rev$"));
+  const String PT3_PLUGIN_VERSION(FromStdString("$Rev$"));
 
   const std::size_t MAX_MODULE_SIZE = 16384;
   const uint_t MAX_PATTERNS_COUNT = 85;
@@ -392,8 +392,8 @@ namespace
   void DescribePT3Plugin(PluginInformation& info)
   {
     info.Id = PT3_PLUGIN_ID;
-    info.Description = TEXT_PT3_INFO;
-    info.Version = TEXT_PT3_VERSION;
+    info.Description = Text::PT3_PLUGIN_INFO;
+    info.Version = PT3_PLUGIN_VERSION;
     info.Capabilities = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW |
       GetSupportedAYMFormatConvertors() | GetSupportedVortexFormatConvertors();
   }
@@ -419,7 +419,7 @@ namespace
           continue;//has to skip
         }
 
-        Log::ParamPrefixedCollector channelWarner(warner, TEXT_CHANNEL_WARN_PREFIX, std::distance(line.Channels.begin(), channel));
+        Log::ParamPrefixedCollector channelWarner(warner, Text::CHANNEL_WARN_PREFIX, std::distance(line.Channels.begin(), channel));
         for (;;)
         {
           const uint_t cmd(data[cur->Offset++]);
@@ -469,7 +469,7 @@ namespace
             {
               const uint_t envPeriod(data[cur->Offset + 1] + (uint_t(data[cur->Offset]) << 8));
               cur->Offset += 2;
-              Log::Assert(channelWarner, !wasEnvelope, TEXT_WARNING_DUPLICATE_ENVELOPE);
+              Log::Assert(channelWarner, !wasEnvelope, Text::WARNING_DUPLICATE_ENVELOPE);
               channel->Commands.push_back(Vortex::Track::Command(Vortex::ENVELOPE, cmd - (cmd >= 0xb2 ? 0xb1 : 0x10), envPeriod));
               wasEnvelope = true;
             }
@@ -481,8 +481,8 @@ namespace
             if (hasOrn) //has ornament command
             {
               const uint_t num(cmd - 0xf0);
-              Log::Assert(channelWarner, !(num && Data.Ornaments[num].Data.empty()), TEXT_WARNING_INVALID_ORNAMENT);
-              Log::Assert(channelWarner, !channel->OrnamentNum, TEXT_WARNING_DUPLICATE_ORNAMENT);
+              Log::Assert(channelWarner, !(num && Data.Ornaments[num].Data.empty()), Text::WARNING_INVALID_ORNAMENT);
+              Log::Assert(channelWarner, !channel->OrnamentNum, Text::WARNING_DUPLICATE_ORNAMENT);
               channel->OrnamentNum = num;
             }
             
@@ -490,24 +490,24 @@ namespace
             {
               const uint_t doubleSampNum(data[cur->Offset++]);
               const bool sampValid(doubleSampNum < MAX_SAMPLES_COUNT * 2 && 0 == (doubleSampNum & 1));
-              Log::Assert(channelWarner, sampValid, TEXT_WARNING_INVALID_SAMPLE);
-              Log::Assert(channelWarner, !channel->SampleNum, TEXT_WARNING_DUPLICATE_SAMPLE);
+              Log::Assert(channelWarner, sampValid, Text::WARNING_INVALID_SAMPLE);
+              Log::Assert(channelWarner, !channel->SampleNum, Text::WARNING_DUPLICATE_SAMPLE);
               channel->SampleNum = sampValid ? (doubleSampNum / 2) : 0;
             }
           }
           else if (cmd >= 0x20 && cmd <= 0x3f)
           {
             //noisebase should be in channel B
-            //Log::Assert(channelWarner, chan == 1, TEXT_WARNING_INVALID_NOISE_BASE);
-            Log::Assert(channelWarner, !wasNoisebase, TEXT_WARNING_DUPLICATE_NOISEBASE);
+            //Log::Assert(channelWarner, chan == 1, Text::WARNING_INVALID_NOISE_BASE);
+            Log::Assert(channelWarner, !wasNoisebase, Text::WARNING_DUPLICATE_NOISEBASE);
             noiseBase = cmd - 0x20;
             wasNoisebase = true;
           }
           else if (cmd >= 0x40 && cmd <= 0x4f)
           {
             const uint_t num(cmd - 0x40);
-            Log::Assert(channelWarner, !(num && Data.Ornaments[num].Data.empty()), TEXT_WARNING_INVALID_ORNAMENT);
-            Log::Assert(channelWarner, !channel->OrnamentNum, TEXT_WARNING_DUPLICATE_ORNAMENT);
+            Log::Assert(channelWarner, !(num && Data.Ornaments[num].Data.empty()), Text::WARNING_INVALID_ORNAMENT);
+            Log::Assert(channelWarner, !channel->OrnamentNum, Text::WARNING_DUPLICATE_ORNAMENT);
             channel->OrnamentNum = num;
           }
           else if (cmd >= 0x50 && cmd <= 0xaf)
@@ -520,10 +520,10 @@ namespace
             }
             else
             {
-              Log::Assert(channelWarner, !channel->Note, TEXT_WARNING_DUPLICATE_NOTE);
+              Log::Assert(channelWarner, !channel->Note, Text::WARNING_DUPLICATE_NOTE);
               channel->Note = note;
             }
-            Log::Assert(channelWarner, !channel->Enabled, TEXT_WARNING_DUPLICATE_STATE);
+            Log::Assert(channelWarner, !channel->Enabled, Text::WARNING_DUPLICATE_STATE);
             channel->Enabled = true;
             break;
           }
@@ -541,13 +541,13 @@ namespace
           }
           else if (cmd == 0xc0)
           {
-            Log::Assert(channelWarner, !channel->Enabled, TEXT_WARNING_DUPLICATE_STATE);
+            Log::Assert(channelWarner, !channel->Enabled, Text::WARNING_DUPLICATE_STATE);
             channel->Enabled = false;
             break;
           }
           else if (cmd >= 0xc1 && cmd <= 0xcf)
           {
-            Log::Assert(channelWarner, !channel->Volume, TEXT_WARNING_DUPLICATE_VOLUME);
+            Log::Assert(channelWarner, !channel->Volume, Text::WARNING_DUPLICATE_VOLUME);
             channel->Volume = cmd - 0xc0;
           }
           else if (cmd == 0xd0)
@@ -557,7 +557,7 @@ namespace
           else if (cmd >= 0xd1 && cmd <= 0xef)
           {
             //TODO: check for empty sample
-            Log::Assert(channelWarner, !channel->SampleNum, TEXT_WARNING_DUPLICATE_SAMPLE);
+            Log::Assert(channelWarner, !channel->SampleNum, Text::WARNING_DUPLICATE_SAMPLE);
             channel->SampleNum = cmd - 0xd0;
           }
         }
@@ -573,7 +573,7 @@ namespace
             {
               throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
             }
-            Log::Assert(channelWarner, !line.Tempo, TEXT_WARNING_DUPLICATE_TEMPO);
+            Log::Assert(channelWarner, !line.Tempo, Text::WARNING_DUPLICATE_TEMPO);
             line.Tempo = data[cur->Offset++];
             break;
           case Vortex::SLIDEENV:
@@ -603,7 +603,7 @@ namespace
             const uint_t offset(data[cur->Offset++]);
             const bool isValid(offset < (channel->OrnamentNum ?
               Data.Ornaments[*channel->OrnamentNum].Data.size() : MAX_ORNAMENT_SIZE));
-            Log::Assert(channelWarner, isValid, TEXT_WARNING_INVALID_ORNAMENT_OFFSET);
+            Log::Assert(channelWarner, isValid, Text::WARNING_INVALID_ORNAMENT_OFFSET);
             it->Param1 = isValid ? offset : 0;
             break;
           }
@@ -617,7 +617,7 @@ namespace
               const uint_t offset(data[cur->Offset++]);
               const bool isValid(offset < (channel->SampleNum ?
                 Data.Samples[*channel->SampleNum].Data.size() : MAX_SAMPLE_SIZE));
-              Log::Assert(channelWarner, isValid, TEXT_WARNING_INVALID_SAMPLE_OFFSET);
+              Log::Assert(channelWarner, isValid, Text::WARNING_INVALID_SAMPLE_OFFSET);
               it->Param1 = isValid ? offset : 0;
             }
             break;
@@ -669,7 +669,7 @@ namespace
       const PT3Pattern* patterns(safe_ptr_cast<const PT3Pattern*>(&data[fromLE(header->PatternsOffset)]));
       for (const PT3Pattern* pattern = patterns; pattern->Check() && index < Data.Patterns.size(); ++pattern, ++index)
       {
-        Log::ParamPrefixedCollector patternWarner(*warner, TEXT_PATTERN_WARN_PREFIX, index);
+        Log::ParamPrefixedCollector patternWarner(*warner, Text::PATTERN_WARN_PREFIX, index);
         Vortex::Track::Pattern& pat(Data.Patterns[index]);
         
         PatternCursors cursors;
@@ -683,7 +683,7 @@ namespace
           {
             throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
           }
-          Log::ParamPrefixedCollector patLineWarner(patternWarner, TEXT_LINE_WARN_PREFIX, patternSize);
+          Log::ParamPrefixedCollector patLineWarner(patternWarner, Text::LINE_WARN_PREFIX, patternSize);
           pat.push_back(Vortex::Track::Line());
           Vortex::Track::Line& line(pat.back());
           ParsePattern(data, cursors, line, patLineWarner, noiseBase);
@@ -697,8 +697,8 @@ namespace
         while (data[cursors.front().Offset] || cursors.front().Counter);
         //as warnings
         Log::Assert(patternWarner, 0 == std::max_element(cursors.begin(), cursors.end(), PatternCursor::CompareByCounter)->Counter,
-          TEXT_WARNING_PERIODS);
-        Log::Assert(patternWarner, pat.size() <= MAX_PATTERN_SIZE, TEXT_WARNING_INVALID_PATTERN_SIZE);
+          Text::WARNING_PERIODS);
+        Log::Assert(patternWarner, pat.size() <= MAX_PATTERN_SIZE, Text::WARNING_INVALID_PATTERN_SIZE);
         rawSize = std::max<std::size_t>(rawSize, std::max_element(cursors.begin(), cursors.end(), PatternCursor::CompareByOffset)->Offset + 1);
       }
       //fill order
@@ -709,7 +709,7 @@ namespace
           Data.Positions.push_back(*curPos / 3);
         }
       }
-      Log::Assert(*warner, header->Length == Data.Positions.size(), TEXT_WARNING_INVALID_LENGTH);
+      Log::Assert(*warner, header->Length == Data.Positions.size(), Text::WARNING_INVALID_LENGTH);
 
       //fix samples and ornaments
       std::for_each(Data.Ornaments.begin(), Data.Ornaments.end(), std::mem_fun_ref(&Vortex::Track::Ornament::Fix));
@@ -823,7 +823,7 @@ namespace
           return result;
         }
       }
-      return Error(THIS_LINE, ERROR_MODULE_CONVERT, TEXT_MODULE_ERROR_CONVERSION_UNSUPPORTED);
+      return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
     }
   private:
     Dump RawData;

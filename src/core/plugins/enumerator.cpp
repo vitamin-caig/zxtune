@@ -149,7 +149,7 @@ namespace
           }
           else
           {
-            return MakeFormattedError(THIS_LINE, Module::ERROR_FIND_SUBMODULE, TEXT_MODULE_ERROR_FIND_SUBMODULE, pathToOpen);
+            return MakeFormattedError(THIS_LINE, Module::ERROR_FIND_SUBMODULE, Text::MODULE_ERROR_FIND_SUBMODULE, pathToOpen);
           }
         }
         Log::Debug(THIS_MODULE, "Resolved path '%1%'", subpath);
@@ -187,7 +187,7 @@ namespace
         {
           const uint_t level = CountPluginsInChain(data.PluginsChain, CAP_STOR_MULTITRACK, CAP_STOR_MULTITRACK);
           DoLog(detectParams.Logger, level,
-            data.Path.empty() ? TEXT_MODULE_PROGRESS_DETECT_IMPLICIT_NOPATH : TEXT_MODULE_PROGRESS_DETECT_IMPLICIT,
+            data.Path.empty() ? Text::MODULE_PROGRESS_DETECT_IMPLICIT_NOPATH : Text::MODULE_PROGRESS_DETECT_IMPLICIT,
             pluginId, data.Path);
           nested.Path = data.Path;
           nested.PluginsChain = data.PluginsChain;
@@ -221,11 +221,11 @@ namespace
 
       Log::Debug(THIS_MODULE, "Detected player plugin %1%", pluginId);
       const uint_t level = CountPluginsInChain(data.PluginsChain, CAP_STOR_MULTITRACK, CAP_STOR_MULTITRACK);
-      DoLog(detectParams.Logger, level, data.Path.empty() ? TEXT_MODULE_PROGRESS_DETECT_PLAYER_NOPATH : TEXT_MODULE_PROGRESS_DETECT_PLAYER,
+      DoLog(detectParams.Logger, level, data.Path.empty() ? Text::MODULE_PROGRESS_DETECT_PLAYER_NOPATH : Text::MODULE_PROGRESS_DETECT_PLAYER,
         pluginId, data.Path);
       if (const Error& e = detectParams.Callback(data.Path, holder))
       {
-        Error err(THIS_LINE, Module::ERROR_DETECT_CANCELED, TEXT_MODULE_ERROR_CANCELED);
+        Error err(THIS_LINE, Module::ERROR_DETECT_CANCELED, Text::MODULE_ERROR_CANCELED);
         return err.AddSuberror(e);
       }
       return Error();
@@ -239,7 +239,7 @@ namespace
       {
         const CapabilitiesCache::const_iterator plugIt = PluginCaps.find(*it);
         assert(plugIt != PluginCaps.end());
-        if (plugIt != PluginCaps.end() && 
+        if (plugIt != PluginCaps.end() &&
             (plugIt->second & capMask) == capValue)
         {
           ++res;
@@ -393,7 +393,7 @@ namespace ZXTune
     if (!container.PluginsChain.empty())
     {
       properties.insert(Parameters::Map::value_type(Module::ATTR_CONTAINER,
-        boost::algorithm::join(container.PluginsChain, String(TEXT_MODULE_CONTAINERS_DELIMITER))));
+        boost::algorithm::join(container.PluginsChain, String(Text::MODULE_CONTAINERS_DELIMITER))));
     }
     const uint8_t* const data = static_cast<const uint8_t*>(container.Data->Data());
     rawData.assign(data + region.Offset, data + region.Offset + region.Size);
@@ -430,7 +430,7 @@ namespace ZXTune
   {
     if (!data.get() || !detectParams.Callback)
     {
-      return Error(THIS_LINE, Module::ERROR_INVALID_PARAMETERS, TEXT_MODULE_ERROR_PARAMETERS);
+      return Error(THIS_LINE, Module::ERROR_INVALID_PARAMETERS, Text::MODULE_ERROR_PARAMETERS);
     }
     try
     {
@@ -445,7 +445,7 @@ namespace ZXTune
     }
     catch (const std::bad_alloc&)
     {
-      return Error(THIS_LINE, Module::ERROR_NO_MEMORY, TEXT_MODULE_ERROR_NO_MEMORY);
+      return Error(THIS_LINE, Module::ERROR_NO_MEMORY, Text::MODULE_ERROR_NO_MEMORY);
     }
   }
 }

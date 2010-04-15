@@ -53,7 +53,7 @@ namespace
   static const BackendInformation BACKEND_INFO =
   {
     BACKEND_ID,
-    TEXT_OSS_BACKEND_DESCRIPTION,
+    Text::OSS_BACKEND_DESCRIPTION,
     BACKEND_VERSION,
   };
  
@@ -84,7 +84,7 @@ namespace
       if (!res)
       {
         throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR,
-          TEXT_SOUND_ERROR_OSS_BACKEND_ERROR, Name, ::strerror(errno));
+          Text::SOUND_ERROR_OSS_BACKEND_ERROR, Name, ::strerror(errno));
       }
     }
 
@@ -151,7 +151,7 @@ namespace
     {
       if (volume.end() != std::find_if(volume.begin(), volume.end(), std::bind2nd(std::greater<Gain>(), Gain(1.0))))
       {
-        return Error(THIS_LINE, BACKEND_INVALID_PARAMETER, TEXT_SOUND_ERROR_BACKEND_INVALID_GAIN);
+        return Error(THIS_LINE, BACKEND_INVALID_PARAMETER, Text::SOUND_ERROR_BACKEND_INVALID_GAIN);
       }
       try
       {

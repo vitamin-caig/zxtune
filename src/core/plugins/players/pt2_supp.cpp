@@ -43,7 +43,7 @@ namespace
   using namespace ZXTune::Module;
 
   const Char PT2_PLUGIN_ID[] = {'P', 'T', '2', 0};
-  const String TEXT_PT2_VERSION(FromStdString("$Rev$"));
+  const String PT2_PLUGIN_VERSION(FromStdString("$Rev$"));
 
   const uint_t LIMITER = ~uint_t(0);
 
@@ -307,8 +307,8 @@ namespace
   void DescribePT2Plugin(PluginInformation& info)
   {
     info.Id = PT2_PLUGIN_ID;
-    info.Description = TEXT_PT2_INFO;
-    info.Version = TEXT_PT2_VERSION;
+    info.Description = Text::PT2_PLUGIN_INFO;
+    info.Version = PT2_PLUGIN_VERSION;
     info.Capabilities = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
   }
 
@@ -340,27 +340,27 @@ namespace
           continue;//has to skip
         }
 
-        Log::ParamPrefixedCollector channelWarner(warner, TEXT_CHANNEL_WARN_PREFIX, std::distance(line.Channels.begin(), channel));
+        Log::ParamPrefixedCollector channelWarner(warner, Text::CHANNEL_WARN_PREFIX, std::distance(line.Channels.begin(), channel));
         for (;;)
         {
           const uint_t cmd(data[cur->Offset++]);
           const std::size_t restbytes = data.Size() - cur->Offset;
           if (cmd >= 0xe1) //sample
           {
-            Log::Assert(channelWarner, !channel->SampleNum, TEXT_WARNING_DUPLICATE_SAMPLE);
+            Log::Assert(channelWarner, !channel->SampleNum, Text::WARNING_DUPLICATE_SAMPLE);
             const uint_t num = cmd - 0xe0;
             channel->SampleNum = num;
-            Log::Assert(channelWarner, !Data.Samples[num].Data.empty(), TEXT_WARNING_INVALID_SAMPLE);
+            Log::Assert(channelWarner, !Data.Samples[num].Data.empty(), Text::WARNING_INVALID_SAMPLE);
           }
           else if (cmd == 0xe0) //sample 0 - shut up
           {
-            Log::Assert(channelWarner, !channel->Enabled, TEXT_WARNING_DUPLICATE_STATE);
+            Log::Assert(channelWarner, !channel->Enabled, Text::WARNING_DUPLICATE_STATE);
             channel->Enabled = false;
             break;
           }
           else if (cmd >= 0x80 && cmd <= 0xdf)//note
           {
-            Log::Assert(channelWarner, !channel->Enabled, TEXT_WARNING_DUPLICATE_STATE);
+            Log::Assert(channelWarner, !channel->Enabled, Text::WARNING_DUPLICATE_STATE);
             channel->Enabled = true;
             const uint_t note(cmd - 0x80);
             //for note gliss calculate limit manually
@@ -372,7 +372,7 @@ namespace
             }
             else
             {
-              Log::Assert(channelWarner, !channel->Note, TEXT_WARNING_DUPLICATE_NOTE);
+              Log::Assert(channelWarner, !channel->Note, Text::WARNING_DUPLICATE_NOTE);
               channel->Note = note;
             }
             break;
@@ -380,7 +380,7 @@ namespace
           else if (cmd == 0x7f) //env off
           {
             Log::Assert(channelWarner, !channel->FindCommand(ENVELOPE) && !channel->FindCommand(NOENVELOPE),
-              TEXT_WARNING_DUPLICATE_ENVELOPE);
+              Text::WARNING_DUPLICATE_ENVELOPE);
             channel->Commands.push_back(NOENVELOPE);
           }
           else if (cmd >= 0x71 && cmd <= 0x7e) //envelope
@@ -391,7 +391,7 @@ namespace
               throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
             }
             Log::Assert(channelWarner, !channel->FindCommand(ENVELOPE) && !channel->FindCommand(NOENVELOPE),
-              TEXT_WARNING_DUPLICATE_ENVELOPE);
+              Text::WARNING_DUPLICATE_ENVELOPE);
             channel->Commands.push_back(
               PT2Track::Command(ENVELOPE, cmd - 0x70, data[cur->Offset] | (uint_t(data[cur->Offset + 1]) << 8)));
             cur->Offset += 2;
@@ -402,10 +402,10 @@ namespace
           }
           else if (cmd >= 0x60 && cmd <= 0x6f)//ornament
           {
-            Log::Assert(channelWarner, !channel->OrnamentNum, TEXT_WARNING_DUPLICATE_ORNAMENT);
+            Log::Assert(channelWarner, !channel->OrnamentNum, Text::WARNING_DUPLICATE_ORNAMENT);
             const uint_t num = cmd - 0x60;
             channel->OrnamentNum = num;
-            Log::Assert(channelWarner, !(num && Data.Ornaments[num].Data.empty()), TEXT_WARNING_INVALID_ORNAMENT);
+            Log::Assert(channelWarner, !(num && Data.Ornaments[num].Data.empty()), Text::WARNING_INVALID_ORNAMENT);
           }
           else if (cmd >= 0x20 && cmd <= 0x5f)//skip
           {
@@ -413,7 +413,7 @@ namespace
           }
           else if (cmd >= 0x10 && cmd <= 0x1f)//volume
           {
-            Log::Assert(channelWarner, !channel->Volume, TEXT_WARNING_DUPLICATE_VOLUME);
+            Log::Assert(channelWarner, !channel->Volume, Text::WARNING_DUPLICATE_VOLUME);
             channel->Volume = cmd - 0x10;
           }
           else if (cmd == 0x0f)//new delay
@@ -423,7 +423,7 @@ namespace
             {
               throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
             }
-            Log::Assert(channelWarner, !line.Tempo, TEXT_WARNING_DUPLICATE_TEMPO);
+            Log::Assert(channelWarner, !line.Tempo, Text::WARNING_DUPLICATE_TEMPO);
             line.Tempo = data[cur->Offset++];
           }
           else if (cmd == 0x0e)//gliss
@@ -444,7 +444,7 @@ namespace
               throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
             }
             //too late when note is filled
-            Log::Assert(channelWarner, !channel->Note, TEXT_WARNING_INVALID_NOTE_GLISS);
+            Log::Assert(channelWarner, !channel->Note, Text::WARNING_INVALID_NOTE_GLISS);
             channel->Commands.push_back(PT2Track::Command(GLISS_NOTE, static_cast<int8_t>(data[cur->Offset])));
             //ignore delta due to error
             cur->Offset += 3;
@@ -493,7 +493,7 @@ namespace
       uint_t index(0);
       for (const PT2Pattern* pattern = patterns; pattern->Check(); ++pattern, ++index)
       {
-        Log::ParamPrefixedCollector patternWarner(*warner, TEXT_PATTERN_WARN_PREFIX, index);
+        Log::ParamPrefixedCollector patternWarner(*warner, Text::PATTERN_WARN_PREFIX, index);
         PT2Track::Pattern& pat = Data.Patterns[index];
         
         PatternCursors cursors;
@@ -506,7 +506,7 @@ namespace
           {
             throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
           }
-          Log::ParamPrefixedCollector patLineWarner(patternWarner, TEXT_LINE_WARN_PREFIX, patternSize);
+          Log::ParamPrefixedCollector patLineWarner(patternWarner, Text::LINE_WARN_PREFIX, patternSize);
           pat.push_back(PT2Track::Line());
           PT2Track::Line& line = pat.back();
           ParsePattern(data, cursors, line, patLineWarner);
@@ -520,8 +520,8 @@ namespace
         while (data[cursors.front().Offset] || cursors.front().Counter);
         //as warnings
         Log::Assert(patternWarner, 0 == std::max_element(cursors.begin(), cursors.end(), PatternCursor::CompareByCounter)->Counter,
-          TEXT_WARNING_PERIODS);
-        Log::Assert(patternWarner, pat.size() <= MAX_PATTERN_SIZE, TEXT_WARNING_INVALID_PATTERN_SIZE);
+          Text::WARNING_PERIODS);
+        Log::Assert(patternWarner, pat.size() <= MAX_PATTERN_SIZE, Text::WARNING_INVALID_PATTERN_SIZE);
         rawSize = std::max<std::size_t>(rawSize, 1 + std::max_element(cursors.begin(), cursors.end(), PatternCursor::CompareByOffset)->Offset);
       }
 
@@ -533,7 +533,7 @@ namespace
           Data.Positions.push_back(*curPos);
         }
       }
-      Log::Assert(*warner, header->Length == Data.Positions.size(), TEXT_WARNING_INVALID_LENGTH);
+      Log::Assert(*warner, header->Length == Data.Positions.size(), Text::WARNING_INVALID_LENGTH);
 
       //fix samples and ornaments
       std::for_each(Data.Ornaments.begin(), Data.Ornaments.end(), std::mem_fun_ref(&PT2Track::Ornament::Fix));
@@ -551,7 +551,7 @@ namespace
       {
         Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_TITLE, title));
       }
-      Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_PROGRAM, String(TEXT_PT2_EDITOR)));
+      Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_PROGRAM, String(Text::PT2_EDITOR)));
       
       //tracking properties
       Data.Info.LoopPosition = header->Loop;
@@ -598,7 +598,7 @@ namespace
       }
       else if (!ConvertAYMFormat(boost::bind(&CreatePT2Player, shared_from_this(), boost::cref(Data), _1), param, dst, result))
       {
-        return Error(THIS_LINE, ERROR_MODULE_CONVERT, TEXT_MODULE_ERROR_CONVERSION_UNSUPPORTED);
+        return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
       }
       return result;
     }
@@ -683,7 +683,7 @@ namespace
       {
         if (MODULE_STOPPED == CurrentState)
         {
-          return Error(THIS_LINE, ERROR_MODULE_END, TEXT_MODULE_ERROR_MODULE_END);
+          return Error(THIS_LINE, ERROR_MODULE_END, Text::MODULE_ERROR_MODULE_END);
         }
         receiver.Flush();
         state = CurrentState = MODULE_STOPPED;
@@ -753,7 +753,7 @@ namespace
       }
       catch (const Error& e)
       {
-        return Error(THIS_LINE, ERROR_INVALID_PARAMETERS, TEXT_MODULE_ERROR_SET_PLAYER_PARAMETERS).AddSuberror(e);
+        return Error(THIS_LINE, ERROR_INVALID_PARAMETERS, Text::MODULE_ERROR_SET_PLAYER_PARAMETERS).AddSuberror(e);
       }
     }
   private:

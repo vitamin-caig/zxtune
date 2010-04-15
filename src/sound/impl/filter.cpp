@@ -174,9 +174,9 @@ namespace
 
         //check parameters
         const uint_t order = Matrix.size();
-        CheckParams(order, MIN_ORDER, MAX_ORDER, THIS_LINE, TEXT_SOUND_ERROR_FILTER_ORDER);
-        CheckParams(highCutoff, freq / order, freq / 2, THIS_LINE, TEXT_SOUND_ERROR_FILTER_HIGH_CUTOFF);
-        CheckParams(lowCutoff, uint_t(0), highCutoff, THIS_LINE, TEXT_SOUND_ERROR_FILTER_LOW_CUTOFF);
+        CheckParams(order, MIN_ORDER, MAX_ORDER, THIS_LINE, Text::SOUND_ERROR_FILTER_ORDER);
+        CheckParams(highCutoff, freq / order, freq / 2, THIS_LINE, Text::SOUND_ERROR_FILTER_HIGH_CUTOFF);
+        CheckParams(lowCutoff, uint_t(0), highCutoff, THIS_LINE, Text::SOUND_ERROR_FILTER_LOW_CUTOFF);
 
         //create freq responses
         std::vector<Gain> freqResponse(order, 0.0);
@@ -235,7 +235,7 @@ namespace ZXTune
     
       try
       {
-        CheckParams(order, FIRFilterType::MIN_ORDER, FIRFilterType::MAX_ORDER, THIS_LINE, TEXT_SOUND_ERROR_FILTER_ORDER);
+        CheckParams(order, FIRFilterType::MIN_ORDER, FIRFilterType::MAX_ORDER, THIS_LINE, Text::SOUND_ERROR_FILTER_ORDER);
         result.reset(new FIRFilterType(order));
         return Error();
       }

@@ -60,7 +60,7 @@ namespace
       const CreatorsStorage::const_iterator it = Creators.find(id);
       if (Creators.end() == it)
       {
-        return MakeFormattedError(THIS_LINE, BACKEND_NOT_FOUND, TEXT_SOUND_ERROR_BACKEND_NOT_FOUND, id);
+        return MakeFormattedError(THIS_LINE, BACKEND_NOT_FOUND, Text::SOUND_ERROR_BACKEND_NOT_FOUND, id);
       }
       try
       {
@@ -69,7 +69,7 @@ namespace
       }
       catch (const Error& e)
       {
-        return MakeFormattedError(THIS_LINE, BACKEND_FAILED_CREATE, TEXT_SOUND_ERROR_BACKEND_FAILED, id).AddSuberror(e);
+        return MakeFormattedError(THIS_LINE, BACKEND_FAILED_CREATE, Text::SOUND_ERROR_BACKEND_FAILED, id).AddSuberror(e);
       }
     }
   private:
@@ -101,7 +101,7 @@ namespace ZXTune
       }
       catch (const std::bad_alloc&)
       {
-        return Error(THIS_LINE, BACKEND_NO_MEMORY, TEXT_SOUND_ERROR_BACKEND_NO_MEMORY);
+        return Error(THIS_LINE, BACKEND_NO_MEMORY, Text::SOUND_ERROR_BACKEND_NO_MEMORY);
       }
     }
   }

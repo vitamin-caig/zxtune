@@ -26,7 +26,7 @@ namespace
   using namespace ZXTune;
 
   const Char HRUST2X_PLUGIN_ID[] = {'H', 'R', 'U', 'S', 'T', '2', '\0'};
-  const String TEXT_HRUST2X_VERSION(FromStdString("$Rev$"));
+  const String HRUST2X_PLUGIN_VERSION(FromStdString("$Rev$"));
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -243,8 +243,8 @@ namespace ZXTune
   {
     PluginInformation info;
     info.Id = HRUST2X_PLUGIN_ID;
-    info.Description = TEXT_HRUST2X_INFO;
-    info.Version = TEXT_HRUST2X_VERSION;
+    info.Description = Text::HRUST2X_PLUGIN_INFO;
+    info.Version = HRUST2X_PLUGIN_VERSION;
     info.Capabilities = CAP_STOR_CONTAINER;
     enumerator.RegisterImplicitPlugin(info, ProcessHrust21);
   }

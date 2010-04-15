@@ -40,13 +40,13 @@ namespace ZXTune
       if (parameter_cast<PSGConvertParam>(&param))
       {
         chip = AYM::CreatePSGDumper(tmp);
-        errMsg = TEXT_MODULE_ERROR_CONVERT_PSG;
+        errMsg = Text::MODULE_ERROR_CONVERT_PSG;
       }
       //convert to ZX50
       else if (parameter_cast<ZX50ConvertParam>(&param))
       {
         chip = AYM::CreateZX50Dumper(tmp);
-        errMsg = TEXT_MODULE_ERROR_CONVERT_ZX50;
+        errMsg = Text::MODULE_ERROR_CONVERT_ZX50;
       }
 
       if (chip.get())

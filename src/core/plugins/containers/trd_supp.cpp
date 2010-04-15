@@ -35,8 +35,7 @@ namespace
   using namespace ZXTune;
 
   const Char TRD_PLUGIN_ID[] = {'T', 'R', 'D', 0};
-  
-  const String TEXT_TRD_VERSION(FromStdString("$Rev$"));
+  const String TRD_PLUGIN_VERSION(FromStdString("$Rev$"));
 
   //hints
   const std::size_t TRD_MODULE_SIZE = 655360;
@@ -203,7 +202,7 @@ namespace
       if (showMessage)
       {
         message.Progress = 100 * curCount / totalCount;
-        message.Text = (SafeFormatter(data.Path.empty() ? TEXT_PLUGIN_TRD_PROGRESS_NOPATH : TEXT_PLUGIN_TRD_PROGRESS) % it->Name % data.Path).str();
+        message.Text = (SafeFormatter(data.Path.empty() ? Text::PLUGIN_TRD_PROGRESS_NOPATH : Text::PLUGIN_TRD_PROGRESS) % it->Name % data.Path).str();
         detectParams.Logger(message);
       }
       if (const Error& err = enumerator.DetectModules(commonParams, detectParams, subcontainer, curRegion))
@@ -245,8 +244,8 @@ namespace ZXTune
   {
     PluginInformation info;
     info.Id = TRD_PLUGIN_ID;
-    info.Description = TEXT_TRD_INFO;
-    info.Version = TEXT_TRD_VERSION;
+    info.Description = Text::TRD_PLUGIN_INFO;
+    info.Version = TRD_PLUGIN_VERSION;
     info.Capabilities = CAP_STOR_MULTITRACK | CAP_STOR_PLAIN;
     enumerator.RegisterContainerPlugin(info, OpenTRDContainer, ProcessTRDContainer);
   }

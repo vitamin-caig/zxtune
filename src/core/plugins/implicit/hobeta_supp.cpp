@@ -27,7 +27,7 @@ namespace
   using namespace ZXTune;
 
   const Char HOBETA_PLUGIN_ID[] = {'H', 'O', 'B', 'E', 'T', 'A', '\0'};
-  const String TEXT_HOBETA_VERSION(FromStdString("$Rev$"));
+  const String HOBETA_PLUGIN_VERSION(FromStdString("$Rev$"));
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -87,8 +87,8 @@ namespace ZXTune
   {
     PluginInformation info;
     info.Id = HOBETA_PLUGIN_ID;
-    info.Description = TEXT_HOBETA_INFO;
-    info.Version = TEXT_HOBETA_VERSION;
+    info.Description = Text::HOBETA_PLUGIN_INFO;
+    info.Version = HOBETA_PLUGIN_VERSION;
     info.Capabilities = CAP_STOR_CONTAINER | CAP_STOR_PLAIN;
     enumerator.RegisterImplicitPlugin(info, ProcessHobeta);
   }

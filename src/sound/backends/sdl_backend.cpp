@@ -48,7 +48,7 @@ namespace
   const BackendInformation BACKEND_INFO =
   {
     BACKEND_ID,
-    TEXT_SDL_BACKEND_DESCRIPTION,
+    Text::SDL_BACKEND_DESCRIPTION,
     BACKEND_VERSION,
   };
 
@@ -59,9 +59,9 @@ namespace
       if (const char* txt = ::SDL_GetError())
       {
         throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR,
-          TEXT_SOUND_ERROR_SDL_BACKEND_ERROR, FromStdString(txt));
+          Text::SOUND_ERROR_SDL_BACKEND_ERROR, FromStdString(txt));
       }
-      throw Error(loc, BACKEND_PLATFORM_ERROR, TEXT_SOUND_ERROR_SDL_BACKEND_UNKNOWN_ERROR);
+      throw Error(loc, BACKEND_PLATFORM_ERROR, Text::SOUND_ERROR_SDL_BACKEND_UNKNOWN_ERROR);
     }
   }
 
@@ -154,7 +154,7 @@ namespace
           if (!in_range<Parameters::IntType>(*buffers, BUFFERS_MIN, BUFFERS_MAX))
           {
             throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
-              TEXT_SOUND_ERROR_SDL_BACKEND_INVALID_BUFFERS, static_cast<int_t>(*buffers), BUFFERS_MIN, BUFFERS_MAX);
+              Text::SOUND_ERROR_SDL_BACKEND_INVALID_BUFFERS, static_cast<int_t>(*buffers), BUFFERS_MIN, BUFFERS_MAX);
           }
           BuffersCount = *buffers;
         }

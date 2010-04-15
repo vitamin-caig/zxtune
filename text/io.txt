@@ -5,35 +5,38 @@
 __cpp> "#ifndef __TEXT_IO_H_DEFINED__\n"
 __cpp> "#define __TEXT_IO_H_DEFINED__\n"
 __cpp> "#include <char_type.h>\n\n"
+__cpp> "namespace Text\n"
+__cpp> "{\n"
 
 < __RAWFOOTER__
+__cpp> "}//namespace Text\n"
 __cpp> "#endif //__TEXT_IO_H_DEFINED__\n"
 
 #common errors
-< TEXT_IO_ERROR_NOT_SUPPORTED_URI
+< IO_ERROR_NOT_SUPPORTED_URI
 > "Specified uri scheme does not supported."
 
-< TEXT_IO_ERROR_NOT_OPENED
+< IO_ERROR_NOT_OPENED
 > "Failed to open file '%1%'."
 
-< TEXT_IO_ERROR_NO_ACCESS
+< IO_ERROR_NO_ACCESS
 > "Failed to get access."
 
-< TEXT_IO_ERROR_NOT_FOUND
+< IO_ERROR_NOT_FOUND
 > "Failed to find specified file."
 
-< TEXT_IO_ERROR_IO_ERROR
+< IO_ERROR_IO_ERROR
 > "I/O error happends."
 
-< TEXT_IO_ERROR_FILE_EXISTS
+< IO_ERROR_FILE_EXISTS
 > "File '%1%' already exists."
 
-< TEXT_IO_ERROR_NO_MEMORY
+< IO_ERROR_NO_MEMORY
 > "Failed to allocate memory to open data."
 
 #providers description
-< TEXT_IO_FILE_PROVIDER_NAME
+< IO_FILE_PROVIDER_NAME
 > "file"
 
-< TEXT_IO_FILE_PROVIDER_DESCRIPTION
+< IO_FILE_PROVIDER_DESCRIPTION
 > "Supporting for local files and file:// scheme."

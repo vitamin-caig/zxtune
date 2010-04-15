@@ -41,7 +41,7 @@ namespace
     if (!in_range(chans, MIN_MIXERS_COUNT, MAX_MIXERS_COUNT))
     {
       throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
-        TEXT_SOUND_ERROR_BACKEND_INVALID_CHANNELS, chans, MIN_MIXERS_COUNT, MAX_MIXERS_COUNT);
+        Text::SOUND_ERROR_BACKEND_INVALID_CHANNELS, chans, MIN_MIXERS_COUNT, MAX_MIXERS_COUNT);
     }
   }
 
@@ -53,7 +53,7 @@ namespace
     {
       if (!Delegate.get())
       {
-        throw Error(THIS_LINE, BACKEND_FAILED_CREATE, TEXT_SOUND_ERROR_BACKEND_INVALID_MODULE);
+        throw Error(THIS_LINE, BACKEND_FAILED_CREATE, Text::SOUND_ERROR_BACKEND_INVALID_MODULE);
       }
     }
 
@@ -195,7 +195,7 @@ namespace ZXTune
         Log::Debug(THIS_MODULE, "Opening the holder");
         if (!holder.get())
         {
-          throw Error(THIS_LINE, BACKEND_INVALID_PARAMETER, TEXT_SOUND_ERROR_BACKEND_INVALID_MODULE);
+          throw Error(THIS_LINE, BACKEND_INVALID_PARAMETER, Text::SOUND_ERROR_BACKEND_INVALID_MODULE);
         }
         Module::Information modInfo;
         holder->GetModuleInformation(modInfo);
@@ -224,7 +224,7 @@ namespace ZXTune
       }
       catch (const Error& e)
       {
-        return Error(THIS_LINE, BACKEND_SETUP_ERROR, TEXT_SOUND_ERROR_BACKEND_SETUP_BACKEND).AddSuberror(e);
+        return Error(THIS_LINE, BACKEND_SETUP_ERROR, Text::SOUND_ERROR_BACKEND_SETUP_BACKEND).AddSuberror(e);
       }
     }
     
@@ -267,11 +267,11 @@ namespace ZXTune
       }
       catch (const Error& e)
       {
-        return Error(THIS_LINE, BACKEND_CONTROL_ERROR, TEXT_SOUND_ERROR_BACKEND_PLAYBACK).AddSuberror(e);
+        return Error(THIS_LINE, BACKEND_CONTROL_ERROR, Text::SOUND_ERROR_BACKEND_PLAYBACK).AddSuberror(e);
       }
       catch (const boost::thread_resource_error&)
       {
-        return Error(THIS_LINE, BACKEND_NO_MEMORY, TEXT_SOUND_ERROR_BACKEND_NO_MEMORY);
+        return Error(THIS_LINE, BACKEND_NO_MEMORY, Text::SOUND_ERROR_BACKEND_NO_MEMORY);
       }
     }
     
@@ -294,7 +294,7 @@ namespace ZXTune
       }
       catch (const Error& e)
       {
-        return Error(THIS_LINE, BACKEND_CONTROL_ERROR, TEXT_SOUND_ERROR_BACKEND_PAUSE).AddSuberror(e);
+        return Error(THIS_LINE, BACKEND_CONTROL_ERROR, Text::SOUND_ERROR_BACKEND_PAUSE).AddSuberror(e);
       }
     }
     
@@ -309,7 +309,7 @@ namespace ZXTune
       }
       catch (const Error& e)
       {
-        return Error(THIS_LINE, BACKEND_CONTROL_ERROR, TEXT_SOUND_ERROR_BACKEND_STOP).AddSuberror(e);
+        return Error(THIS_LINE, BACKEND_CONTROL_ERROR, Text::SOUND_ERROR_BACKEND_STOP).AddSuberror(e);
       }
     }
 
@@ -328,7 +328,7 @@ namespace ZXTune
       }
       catch (const Error& e)
       {
-        return Error(THIS_LINE, BACKEND_CONTROL_ERROR, TEXT_SOUND_ERROR_BACKEND_SEEK).AddSuberror(e);
+        return Error(THIS_LINE, BACKEND_CONTROL_ERROR, Text::SOUND_ERROR_BACKEND_SEEK).AddSuberror(e);
       }
     }
 
@@ -372,7 +372,7 @@ namespace ZXTune
       }
       catch (const Error& e)
       {
-        return Error(THIS_LINE, BACKEND_SETUP_ERROR, TEXT_SOUND_ERROR_BACKEND_SETUP_BACKEND).AddSuberror(e);
+        return Error(THIS_LINE, BACKEND_SETUP_ERROR, Text::SOUND_ERROR_BACKEND_SETUP_BACKEND).AddSuberror(e);
       }
     }
     
@@ -382,7 +382,7 @@ namespace ZXTune
       {
         if (!converter)
         {
-          throw Error(THIS_LINE, BACKEND_INVALID_PARAMETER, TEXT_SOUND_ERROR_BACKEND_INVALID_FILTER);
+          throw Error(THIS_LINE, BACKEND_INVALID_PARAMETER, Text::SOUND_ERROR_BACKEND_INVALID_FILTER);
         }
         Locker lock(PlayerMutex);
         FilterObject = converter;
@@ -395,7 +395,7 @@ namespace ZXTune
       }
       catch (const Error& e)
       {
-        return Error(THIS_LINE, BACKEND_SETUP_ERROR, TEXT_SOUND_ERROR_BACKEND_SETUP_BACKEND).AddSuberror(e);
+        return Error(THIS_LINE, BACKEND_SETUP_ERROR, Text::SOUND_ERROR_BACKEND_SETUP_BACKEND).AddSuberror(e);
       }
     }
 
@@ -418,7 +418,7 @@ namespace ZXTune
       }
       catch (const Error& e)
       {
-        return Error(THIS_LINE, BACKEND_SETUP_ERROR, TEXT_SOUND_ERROR_BACKEND_SETUP_BACKEND).AddSuberror(e);
+        return Error(THIS_LINE, BACKEND_SETUP_ERROR, Text::SOUND_ERROR_BACKEND_SETUP_BACKEND).AddSuberror(e);
       }
     }
     
@@ -465,7 +465,7 @@ namespace ZXTune
       ThrowIfError(RenderError);
       if (NOTOPENED == CurrentState)
       {
-        throw Error(THIS_LINE, BACKEND_CONTROL_ERROR, TEXT_SOUND_ERROR_BACKEND_INVALID_STATE);
+        throw Error(THIS_LINE, BACKEND_CONTROL_ERROR, Text::SOUND_ERROR_BACKEND_INVALID_STATE);
       }
     }
 

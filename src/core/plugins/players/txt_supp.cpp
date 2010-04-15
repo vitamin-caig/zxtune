@@ -44,7 +44,7 @@ namespace
   using namespace ZXTune::Module;
 
   const Char TXT_PLUGIN_ID[] = {'T', 'X', 'T', 0};
-  const String TEXT_TXT_VERSION(FromStdString("$Rev$"));
+  const String TXT_PLUGIN_VERSION(FromStdString("$Rev$"));
 
   const std::size_t MIN_MODULE_SIZE = 256;
   const std::size_t MAX_MODULE_SIZE = 524288;//512k is more than enough
@@ -55,8 +55,8 @@ namespace
   void DescribeTXTPlugin(PluginInformation& info)
   {
     info.Id = TXT_PLUGIN_ID;
-    info.Description = TEXT_TXT_INFO;
-    info.Version = TEXT_TXT_VERSION;
+    info.Description = Text::TXT_PLUGIN_INFO;
+    info.Version = TXT_PLUGIN_VERSION;
     info.Capabilities = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW |
       GetSupportedAYMFormatConvertors() | GetSupportedVortexFormatConvertors();
   }
@@ -118,7 +118,7 @@ namespace
       {
         return result;
       }
-      return Error(THIS_LINE, ERROR_MODULE_CONVERT, TEXT_MODULE_ERROR_CONVERSION_UNSUPPORTED);
+      return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
     }
   private:
     Dump RawData;

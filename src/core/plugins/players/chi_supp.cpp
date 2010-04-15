@@ -42,7 +42,7 @@ namespace
 
   //plugin attributes
   const Char CHI_PLUGIN_ID[] = {'C', 'H', 'I', 0};
-  const String TEXT_CHI_VERSION(FromStdString("$Rev$"));
+  const String CHI_PLUGIN_VERSION(FromStdString("$Rev$"));
 
   //////////////////////////////////////////////////////////////////////////
   const uint8_t CHI_SIGNATURE[] = {'C', 'H', 'I', 'P', 'v'};
@@ -155,8 +155,8 @@ namespace
   void DescribeCHIPlugin(PluginInformation& info)
   {
     info.Id = CHI_PLUGIN_ID;
-    info.Description = TEXT_CHI_INFO;
-    info.Version = TEXT_CHI_VERSION;
+    info.Description = Text::CHI_PLUGIN_INFO;
+    info.Version = CHI_PLUGIN_VERSION;
     info.Capabilities = CAP_STOR_MODULE | CAP_DEV_4DAC | CAP_CONV_RAW;
   }
 
@@ -196,7 +196,7 @@ namespace
         CHITrack::Line& dstLine = result.back();
         for (uint_t chanNum = 0; chanNum != CHANNELS_COUNT; ++chanNum)
         {
-          Log::ParamPrefixedCollector channelWarner(warner, TEXT_LINE_CHANNEL_WARN_PREFIX, lineNum, chanNum);
+          Log::ParamPrefixedCollector channelWarner(warner, Text::LINE_CHANNEL_WARN_PREFIX, lineNum, chanNum);
 
           CHITrack::Line::Chan& dstChan = dstLine.Channels[chanNum];
           const CHINote& metaNote = src.Notes[lineNum][chanNum];
@@ -239,7 +239,7 @@ namespace
             //first channel - tempo
             if (0 == chanNum)
             {
-              Log::Assert(channelWarner, !dstLine.Tempo, TEXT_WARNING_DUPLICATE_TEMPO);
+              Log::Assert(channelWarner, !dstLine.Tempo, Text::WARNING_DUPLICATE_TEMPO);
               dstLine.Tempo = param.GetParameter();
             }
             //last channel - stop
@@ -249,12 +249,12 @@ namespace
             }
             else
             {
-              channelWarner.AddMessage(TEXT_WARNING_INVALID_CHANNEL);
+              channelWarner.AddMessage(Text::WARNING_INVALID_CHANNEL);
             }
           }
         }
       }
-      Log::Assert(warner, result.size() <= MAX_PATTERN_SIZE, TEXT_WARNING_TOO_LONG);
+      Log::Assert(warner, result.size() <= MAX_PATTERN_SIZE, Text::WARNING_TOO_LONG);
       result.swap(res);
     }
 
@@ -277,7 +277,7 @@ namespace
       const CHIPattern* const patBegin(safe_ptr_cast<const CHIPattern*>(&data[sizeof(CHIHeader)]));
       for (const CHIPattern* pat = patBegin; pat != patBegin + patternsCount; ++pat)
       {
-        Log::ParamPrefixedCollector patternWarner(*warner, TEXT_PATTERN_WARN_PREFIX, pat - patBegin);
+        Log::ParamPrefixedCollector patternWarner(*warner, Text::PATTERN_WARN_PREFIX, pat - patBegin);
         ParsePattern(*pat, patternWarner, Data.Patterns[pat - patBegin]);
       }
       //fill samples
@@ -296,7 +296,7 @@ namespace
           sampleData += alignedSize;
           if (size != fromLE(srcSample.Length))
           {
-            warner->AddMessage(TEXT_WARNING_UNEXPECTED_END);
+            warner->AddMessage(Text::WARNING_UNEXPECTED_END);
             break;
           }
           memLeft -= alignedSize;
@@ -309,7 +309,7 @@ namespace
       //meta properties
       ExtractMetaProperties(CHI_PLUGIN_ID, container, region, ModuleRegion(sizeof(CHIHeader), sizeof(CHIPattern) * patternsCount),
         Data.Info.Properties, RawData);
-      Data.Info.Properties.insert(Parameters::Map::value_type(ATTR_PROGRAM, (Formatter(TEXT_CHI_EDITOR) % FromStdString(header->Version)).str()));
+      Data.Info.Properties.insert(Parameters::Map::value_type(ATTR_PROGRAM, (Formatter(Text::CHI_EDITOR) % FromStdString(header->Version)).str()));
       const String& title(OptimizeString(FromStdString(header->Name)));
       if (!title.empty())
       {
@@ -371,7 +371,7 @@ namespace
       }
       else
       {
-        return Error(THIS_LINE, ERROR_MODULE_CONVERT, TEXT_MODULE_ERROR_CONVERSION_UNSUPPORTED);
+        return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
       }
       return Error();
     }
@@ -429,7 +429,7 @@ namespace
       {
         if (MODULE_STOPPED == CurrentState)
         {
-          return Error(THIS_LINE, ERROR_MODULE_END, TEXT_MODULE_ERROR_MODULE_END);
+          return Error(THIS_LINE, ERROR_MODULE_END, Text::MODULE_ERROR_MODULE_END);
         }
         receiver.Flush();
         state = CurrentState = MODULE_STOPPED;

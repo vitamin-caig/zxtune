@@ -44,7 +44,7 @@ namespace
 
   //plugin attributes
   const Char STP_PLUGIN_ID[] = {'S', 'T', 'P', 0};
-  const String TEXT_STP_VERSION(FromStdString("$Rev$"));
+  const String STP_PLUGIN_VERSION(FromStdString("$Rev$"));
 
   //hints
   const std::size_t MAX_MODULE_SIZE = 16384;
@@ -268,8 +268,8 @@ namespace
   void DescribeSTPPlugin(PluginInformation& info)
   {
     info.Id = STP_PLUGIN_ID;
-    info.Description = TEXT_STP_INFO;
-    info.Version = TEXT_STP_VERSION;
+    info.Description = Text::STP_PLUGIN_INFO;
+    info.Version = STP_PLUGIN_VERSION;
     info.Capabilities = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
   }
 
@@ -300,27 +300,27 @@ namespace
         {
           continue;//has to skip
         }
-        Log::ParamPrefixedCollector channelWarner(warner, TEXT_CHANNEL_WARN_PREFIX, std::distance(line.Channels.begin(), channel));
+        Log::ParamPrefixedCollector channelWarner(warner, Text::CHANNEL_WARN_PREFIX, std::distance(line.Channels.begin(), channel));
         for (;;)
         {
           const uint_t cmd = data[cur->Offset++];
           const std::size_t restbytes = data.Size() - cur->Offset;
           if (cmd >= 1 && cmd <= 0x60)//note
           {
-            Log::Assert(channelWarner, !channel->Note, TEXT_WARNING_DUPLICATE_NOTE);
+            Log::Assert(channelWarner, !channel->Note, Text::WARNING_DUPLICATE_NOTE);
             channel->Note = cmd - 1;
             channel->Enabled = true;
             break;
           }
           else if (cmd >= 0x61 && cmd <= 0x6f)//sample
           {
-            Log::Assert(channelWarner, !channel->SampleNum, TEXT_WARNING_DUPLICATE_SAMPLE);
+            Log::Assert(channelWarner, !channel->SampleNum, Text::WARNING_DUPLICATE_SAMPLE);
             channel->SampleNum = cmd - 0x61;
           }
           else if (cmd >= 0x70 && cmd <= 0x7f)//ornament
           {
-            Log::Assert(channelWarner, !channel->FindCommand(ENVELOPE), TEXT_WARNING_DUPLICATE_ENVELOPE);
-            Log::Assert(channelWarner, !channel->OrnamentNum, TEXT_WARNING_DUPLICATE_ORNAMENT);
+            Log::Assert(channelWarner, !channel->FindCommand(ENVELOPE), Text::WARNING_DUPLICATE_ENVELOPE);
+            Log::Assert(channelWarner, !channel->OrnamentNum, Text::WARNING_DUPLICATE_ORNAMENT);
             channel->OrnamentNum = cmd - 0x70;
             channel->Commands.push_back(STPTrack::Command(NOENVELOPE));
             //TODO
@@ -337,16 +337,16 @@ namespace
             {
               throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
             }
-            Log::Assert(channelWarner, !channel->FindCommand(NOENVELOPE), TEXT_WARNING_DUPLICATE_ENVELOPE);
+            Log::Assert(channelWarner, !channel->FindCommand(NOENVELOPE), Text::WARNING_DUPLICATE_ENVELOPE);
             channel->Commands.push_back(STPTrack::Command(ENVELOPE, cmd - 0xc0, cmd != 0xc0 ? data[cur->Offset++] : 0));
-            Log::Assert(channelWarner, !channel->OrnamentNum, TEXT_WARNING_DUPLICATE_ORNAMENT);
+            Log::Assert(channelWarner, !channel->OrnamentNum, Text::WARNING_DUPLICATE_ORNAMENT);
             channel->OrnamentNum = 0;
             Log::Assert(channelWarner, !channel->FindCommand(GLISS), "duplicate gliss");
             channel->Commands.push_back(STPTrack::Command(GLISS, 0));
           }
           else if (cmd >= 0xd0 && cmd <= 0xdf)//reset
           {
-            Log::Assert(channelWarner, !channel->Enabled, TEXT_WARNING_DUPLICATE_STATE);
+            Log::Assert(channelWarner, !channel->Enabled, Text::WARNING_DUPLICATE_STATE);
             channel->Enabled = false;
             break;
           }
@@ -365,7 +365,7 @@ namespace
           }
           else if (cmd >= 0xf1 && cmd <= 0xff) //volume
           {
-            Log::Assert(channelWarner, !channel->Volume, TEXT_WARNING_DUPLICATE_VOLUME);
+            Log::Assert(channelWarner, !channel->Volume, Text::WARNING_DUPLICATE_VOLUME);
             channel->Volume = cmd - 0xf1;
           }
         }
@@ -408,8 +408,8 @@ namespace
         const Sample& smp = Data.Samples.back();
         if (smp.Loop >= static_cast<signed>(smp.Data.size()))
         {
-          Log::ParamPrefixedCollector smpWarner(*warner, TEXT_SAMPLE_WARN_PREFIX, index);
-          smpWarner.AddMessage(TEXT_WARNING_LOOP_OUT_BOUND);
+          Log::ParamPrefixedCollector smpWarner(*warner, Text::SAMPLE_WARN_PREFIX, index);
+          smpWarner.AddMessage(Text::WARNING_LOOP_OUT_BOUND);
         }
       }
       std::size_t rawSize = safe_ptr_cast<const uint8_t*>(samples + 1) - data.Data();
@@ -425,8 +425,8 @@ namespace
         const SimpleOrnament& orn = Data.Ornaments.back();
         if (orn.Loop > orn.Data.size())
         {
-          Log::ParamPrefixedCollector smpWarner(*warner, TEXT_ORNAMENT_WARN_PREFIX, index);
-          smpWarner.AddMessage(TEXT_WARNING_LOOP_OUT_BOUND);
+          Log::ParamPrefixedCollector smpWarner(*warner, Text::ORNAMENT_WARN_PREFIX, index);
+          smpWarner.AddMessage(Text::WARNING_LOOP_OUT_BOUND);
         }
       }
 
@@ -435,7 +435,7 @@ namespace
         static_cast<const void*>(pattern) < static_cast<const void*>(ornaments); ++pattern)
       {
         Data.Patterns.push_back(STPTrack::Pattern());
-        Log::ParamPrefixedCollector patternWarner(*warner, TEXT_PATTERN_WARN_PREFIX, Data.Patterns.size());
+        Log::ParamPrefixedCollector patternWarner(*warner, Text::PATTERN_WARN_PREFIX, Data.Patterns.size());
         STPTrack::Pattern& pat = Data.Patterns.back();
         PatternCursors cursors;
         std::transform(pattern->Offsets.begin(), pattern->Offsets.end(), cursors.begin(), std::ptr_fun(&fromLE<uint16_t>));
@@ -447,7 +447,7 @@ namespace
           {
             throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
           }
-          Log::ParamPrefixedCollector patLineWarner(patternWarner, TEXT_LINE_WARN_PREFIX, patternSize);
+          Log::ParamPrefixedCollector patLineWarner(patternWarner, Text::LINE_WARN_PREFIX, patternSize);
           pat.push_back(STPTrack::Line());
           STPTrack::Line& line = pat.back();
           ParsePattern(data, cursors, line, patLineWarner);
@@ -461,8 +461,8 @@ namespace
         while (0x00 != data[cursors.front().Offset] || cursors.front().Counter);
         //as warnings
         Log::Assert(patternWarner, 0 == std::max_element(cursors.begin(), cursors.end(), PatternCursor::CompareByCounter)->Counter,
-          TEXT_WARNING_PERIODS);
-        Log::Assert(patternWarner, pat.size() <= MAX_PATTERN_SIZE, TEXT_WARNING_INVALID_PATTERN_SIZE);
+          Text::WARNING_PERIODS);
+        Log::Assert(patternWarner, pat.size() <= MAX_PATTERN_SIZE, Text::WARNING_INVALID_PATTERN_SIZE);
         rawSize = std::max<std::size_t>(rawSize, 1 + std::max_element(cursors.begin(), cursors.end(), PatternCursor::CompareByOffset)->Offset);
       }
 
@@ -486,7 +486,7 @@ namespace
           Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_TITLE, title));
         }
       }
-      Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_PROGRAM, String(TEXT_STP_EDITOR)));
+      Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_PROGRAM, String(Text::STP_EDITOR)));
 
       //tracking properties
       Data.Info.LoopPosition = positions->Loop;//not supported
@@ -534,7 +534,7 @@ namespace
       }
       else if (!ConvertAYMFormat(boost::bind(&CreateSTPPlayer, shared_from_this(), _1), param, dst, result))
       {
-        return Error(THIS_LINE, ERROR_MODULE_CONVERT, TEXT_MODULE_ERROR_CONVERSION_UNSUPPORTED);
+        return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
       }
       return result;
     }
@@ -613,7 +613,7 @@ namespace
       {
         if (MODULE_STOPPED == CurrentState)
         {
-          return Error(THIS_LINE, ERROR_MODULE_END, TEXT_MODULE_ERROR_MODULE_END);
+          return Error(THIS_LINE, ERROR_MODULE_END, Text::MODULE_ERROR_MODULE_END);
         }
         receiver.Flush();
         state = CurrentState = MODULE_STOPPED;
@@ -683,7 +683,7 @@ namespace
       }
       catch (const Error& e)
       {
-        return Error(THIS_LINE, ERROR_INVALID_PARAMETERS, TEXT_MODULE_ERROR_SET_PLAYER_PARAMETERS).AddSuberror(e);
+        return Error(THIS_LINE, ERROR_INVALID_PARAMETERS, Text::MODULE_ERROR_SET_PLAYER_PARAMETERS).AddSuberror(e);
       }
     }
 

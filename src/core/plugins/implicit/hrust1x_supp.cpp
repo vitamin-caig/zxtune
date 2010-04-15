@@ -27,7 +27,7 @@ namespace
   using namespace ZXTune;
 
   const Char HRUST1X_PLUGIN_ID[] = {'H', 'R', 'U', 'S', 'T', '1', '\0'};
-  const String TEXT_HRUST1X_VERSION(FromStdString("$Rev$"));
+  const String HRUST1X_PLUGIN_VERSION(FromStdString("$Rev$"));
 
   const std::size_t DEPACKER_SIZE = 0x103;
 
@@ -341,8 +341,8 @@ namespace ZXTune
   {
     PluginInformation info;
     info.Id = HRUST1X_PLUGIN_ID;
-    info.Description = TEXT_HRUST1X_INFO;
-    info.Version = TEXT_HRUST1X_VERSION;
+    info.Description = Text::HRUST1X_PLUGIN_INFO;
+    info.Version = HRUST1X_PLUGIN_VERSION;
     info.Capabilities = CAP_STOR_CONTAINER;
     enumerator.RegisterImplicitPlugin(info, ProcessHrust1x);
   }
