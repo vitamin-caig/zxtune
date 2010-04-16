@@ -28,9 +28,8 @@ Author:
 #include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
 
-#include <text/core.h>
-#include <text/plugins.h>
-#include <text/warnings.h>
+#include <core/text/core.h>
+#include <core/text/plugins.h>
 
 #define FILE_TAG 83089B6F
 

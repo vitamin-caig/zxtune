@@ -20,7 +20,7 @@ Author:
 
 #include <boost/algorithm/string.hpp>
 
-#include <text/core.h>
+#include <core/text/core.h>
 
 #define FILE_TAG ED36600C
 

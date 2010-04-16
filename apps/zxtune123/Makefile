@@ -11,8 +11,8 @@ endif
 text_files := text
 other_text_files := cmdline messages conversion
 
-libraries := core sound tools io texts zxtune_app_base
-depends := text src/tools src/core src/sound src/io apps/base
+libraries := core sound tools io zxtune_app_base
+depends := src/tools src/core src/sound src/io apps/base
 
 windows_libraries := advapi32
 boost_libraries := thread program_options

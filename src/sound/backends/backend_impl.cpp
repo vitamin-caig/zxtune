@@ -17,7 +17,7 @@ Author:
 #include <sound/error_codes.h>
 #include <sound/sound_parameters.h>
 
-#include <text/sound.h>
+#include <sound/text/sound.h>
 
 #define FILE_TAG B3D60DB5
 

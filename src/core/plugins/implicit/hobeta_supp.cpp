@@ -18,7 +18,7 @@ Author:
 
 #include <numeric>
 
-#include <text/plugins.h>
+#include <core/text/plugins.h>
 
 #define FILE_TAG 1CF1A62A
 

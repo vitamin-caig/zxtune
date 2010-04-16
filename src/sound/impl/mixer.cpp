@@ -25,7 +25,7 @@ Author:
 #include <boost/integer/static_log2.hpp>
 #include <boost/mpl/if.hpp>
 
-#include <text/sound.h>
+#include <sound/text/sound.h>
 
 #define FILE_TAG 278565B1
 

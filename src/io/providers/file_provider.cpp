@@ -22,7 +22,7 @@ Author:
 #include <boost/interprocess/mapped_region.hpp>
 #include <boost/shared_array.hpp>
 
-#include <text/io.h>
+#include <io/text/io.h>
 
 #define FILE_TAG 0D4CB3DA
 

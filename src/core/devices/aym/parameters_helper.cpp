@@ -20,7 +20,7 @@ Author:
 
 #include <numeric>
 
-#include <text/core.h>
+#include <core/text/core.h>
 
 #define FILE_TAG 6972CAAF
 

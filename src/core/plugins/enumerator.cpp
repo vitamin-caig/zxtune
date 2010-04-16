@@ -29,7 +29,7 @@ Author:
 #include <boost/tuple/tuple.hpp>
 #include <boost/algorithm/string/join.hpp>
 
-#include <text/core.h>
+#include <core/text/core.h>
 
 #define FILE_TAG 04EDD719
 

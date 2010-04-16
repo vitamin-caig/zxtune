@@ -26,8 +26,8 @@ Author:
 
 #include <boost/bind.hpp>
 
-#include <text/core.h>
-#include <text/plugins.h>
+#include <core/text/core.h>
+#include <core/text/plugins.h>
 
 #define FILE_TAG 942A64CC
 

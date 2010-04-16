@@ -21,7 +21,7 @@ Author:
 
 #include <boost/bind.hpp>
 
-#include <text/sound.h>
+#include <sound/text/sound.h>
 
 #define FILE_TAG AE42FD5E
 

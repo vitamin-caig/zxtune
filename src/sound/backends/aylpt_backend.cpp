@@ -24,7 +24,7 @@ Author:
 #include <sound/dummy_receiver.h>
 #include <sound/error_codes.h>
 
-#include <text/backends.h>
+#include <sound/text/backends.h>
 
 #define FILE_TAG C89925C1
 

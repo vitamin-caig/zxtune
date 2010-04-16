@@ -22,7 +22,7 @@ Author:
 
 #include <cctype>
 
-#include <text/plugins.h>
+#include <core/text/plugins.h>
 
 #define FILE_TAG E2C3F588
 
@@ -835,7 +835,7 @@ namespace ZXTune
         uint_t version = 0;
         String freqTable;
 
-        Formatter fmt(TEXT_TXT_ERROR_INVALID_STRING);
+        Formatter fmt(Text::TXT_ERROR_INVALID_STRING);
         for (LinesArray::const_iterator it = lines.begin(), lim = lines.end(); it != lim;)
         {
           const std::string& string = *it;
@@ -891,7 +891,7 @@ namespace ZXTune
           data.Info.Properties.insert(Parameters::Map::value_type(ATTR_AUTHOR, descr.Author));
         }
         data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_PROGRAM,
-          (Formatter(TEXT_VORTEX_EDITOR) % (descr.Version / 10) % (descr.Version % 10)).str()));
+          (Formatter(Text::VORTEX_EDITOR) % (descr.Version / 10) % (descr.Version % 10)).str()));
 
         //tracking properties
         version = descr.Version % 10;

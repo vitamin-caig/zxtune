@@ -16,7 +16,7 @@ Author:
 #include <core/error_codes.h>
 #include <core/devices/aym_parameters_helper.h>
 
-#include <text/core.h>
+#include <core/text/core.h>
 
 #define FILE_TAG 023C2245
 

@@ -15,7 +15,7 @@ Author:
 #include <cctype>
 #include <iomanip>
 
-#include <text/tools.h>
+#include <tools/text/tools.h>
 
 // implementation of error's core used to keep data
 struct Error::Meta

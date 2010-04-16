@@ -27,8 +27,8 @@ Author:
 #include <alsa/asoundlib.h>
 #include <alsa/pcm.h>
 
-#include <text/backends.h>
-#include <text/sound.h>
+#include <sound/text/backends.h>
+#include <sound/text/sound.h>
 
 #define FILE_TAG 8B5627E4
 

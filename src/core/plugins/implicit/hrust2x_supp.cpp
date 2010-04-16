@@ -19,7 +19,7 @@ Author:
 
 #include <numeric>
 
-#include <text/plugins.h>
+#include <core/text/plugins.h>
 
 namespace
 {

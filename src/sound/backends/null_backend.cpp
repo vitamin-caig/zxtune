@@ -17,8 +17,8 @@ Author:
 
 #include <boost/noncopyable.hpp>
 
-#include <text/backends.h>
-#include <text/sound.h>
+#include <sound/text/backends.h>
+#include <sound/text/sound.h>
 
 #define FILE_TAG 9A6FD87F
 

@@ -2,8 +2,8 @@ binary_name := error_test
 path_step := ../..
 source_files := test
 
-libraries := tools texts
-depends := text src/tools
+libraries := tools
+depends := src/tools
 
 ifdef dynamic_test
 definitions := DYNAMIC_ERROR_TEST

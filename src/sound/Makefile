@@ -2,4 +2,6 @@ library_name := sound
 path_step := ../..
 source_dirs := impl backends backends/aylpt_supp
 
+text_files := text/sound text/backends
+
 include $(path_step)/makefile.mak

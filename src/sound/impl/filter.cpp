@@ -26,7 +26,7 @@ Author:
 #include <limits>
 #include <numeric>
 
-#include <text/sound.h>
+#include <sound/text/sound.h>
 
 #define FILE_TAG 8A9585D9
 

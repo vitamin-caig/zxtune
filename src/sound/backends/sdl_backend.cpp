@@ -27,8 +27,8 @@ Author:
 //platform-dependent
 #include <SDL/SDL.h>
 
-#include <text/backends.h>
-#include <text/sound.h>
+#include <sound/text/backends.h>
+#include <sound/text/sound.h>
 
 #define FILE_TAG 608CF986
 

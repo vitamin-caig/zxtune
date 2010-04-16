@@ -23,8 +23,8 @@ Author:
 
 #include <boost/enable_shared_from_this.hpp>
 
-#include <text/core.h>
-#include <text/plugins.h>
+#include <core/text/core.h>
+#include <core/text/plugins.h>
 
 #define FILE_TAG 59843902
 

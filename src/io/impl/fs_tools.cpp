@@ -15,7 +15,7 @@ Author:
 
 #include <cctype>
 
-#include <text/io.h>
+#include <io/text/io.h>
 
 #define FILE_TAG 9AC2A0AC
 
