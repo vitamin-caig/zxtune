@@ -5,6 +5,6 @@ source_files := test
 libraries := io tools
 depends := src/tools src/io
 
-windows_libraries := advapi32.lib
+windows_libraries := advapi32
 
 include $(path_step)/makefile.mak

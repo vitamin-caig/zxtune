@@ -39,7 +39,7 @@ namespace
   void ErrOuter(unsigned /*level*/, Error::LocationRef loc, Error::CodeType code, const String& text)
   {
     const String txt = (Formatter("\t%1%\n\tCode: %2%\n\tAt: %3%\n\t--------\n") % text % Error::CodeToString(code) % Error::LocationToString(loc)).str();
-    std::cout << txt;
+    std::cerr << txt;
   }
   
   bool ShowIfError(const Error& e)
@@ -106,7 +106,7 @@ int main()
   std::for_each(providers.begin(), providers.end(), OutProvider);
   String base, subpath;
   std::cout << "------ test for splitters/combiners ------\n";
-  Test(SplitUri(INVALID_URI, base, subpath) == NOT_SUPPORTED, "Splitting invalid uri", __LINE__);
+  Test(SplitUri(INVALID_URI, base, subpath) == ERROR_NOT_SUPPORTED, "Splitting invalid uri", __LINE__);
   TestSplitUri(FILE_URI_EMPTY, FILE_URI_EMPTY, EMPTY, "uri without subpath");
   TestSplitUri(FILE_URI1, FILE_URI1_BASE, FILE_URI_SUBPATH, "windows file uri");
   TestSplitUri(FILE_URI2, FILE_URI2_BASE, FILE_URI_SUBPATH, "posix file uri");
@@ -114,9 +114,9 @@ int main()
   TestSplitUri(FILE_URI4, FILE_URI4_BASE, FILE_URI_SUBPATH, "complex file uri");
   TestSplitUri(FILE_URI5, FILE_URI5_BASE, FILE_URI_SUBPATH, "file uri with scheme");
   TestSplitUri(HTTP_URI, HTTP_URI_BASE, HTTP_URI_SUBPATH, "http uri");
-  Test(SplitUri(FILE_URI_NO, base, subpath) == NOT_SUPPORTED, "Splitting uri with no base uri", __LINE__);
+  Test(SplitUri(FILE_URI_NO, base, subpath) == ERROR_NOT_SUPPORTED, "Splitting uri with no base uri", __LINE__);
   
   std::cout << "------ test for combiners --------\n";
-  Test(CombineUri(INVALID_URI, FILE_URI_SUBPATH, base) == NOT_SUPPORTED, "Combining invalid uri", __LINE__);
+  Test(CombineUri(INVALID_URI, FILE_URI_SUBPATH, base) == ERROR_NOT_SUPPORTED, "Combining invalid uri", __LINE__);
   Test(!CombineUri(FILE_URI1, FILE_URI_SUBPATH, base) && base == FILE_URI1, "Combining redundant uri", __LINE__);
 }

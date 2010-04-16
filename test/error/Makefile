@@ -10,6 +10,6 @@ definitions := DYNAMIC_ERROR_TEST
 dynamic_libs := error_dynamic
 endif
 
-windows_libraries := delayimp.lib
+windows_libraries := delayimp
 
 include $(path_step)/makefile.mak

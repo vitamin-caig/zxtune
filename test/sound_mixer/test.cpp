@@ -64,7 +64,7 @@ namespace
   void ErrOuter(unsigned /*level*/, Error::LocationRef loc, Error::CodeType code, const String& text)
   {
     const String txt = (Formatter("\t%1%\n\tCode: %2%\n\tAt: %3%\n\t--------\n") % text % Error::CodeToString(code) % Error::LocationToString(loc)).str();
-    std::cout << txt;
+    std::cerr << txt;
   }
   
   bool ShowIfError(const Error& e)

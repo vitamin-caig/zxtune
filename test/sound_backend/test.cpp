@@ -21,9 +21,9 @@ namespace
     const String txt = (Formatter("\t%1%\n\tCode: %2%\n\tAt: %3%\n") % text % Error::CodeToString(code) % Error::LocationToString(loc)).str();
     if (level)
     {
-      std::cout << "\t-------\n";
+      std::cerr << "\t-------\n";
     }
-    std::cout << txt;
+    std::cerr << txt;
   }
   
   bool ShowIfError(const Error& e)

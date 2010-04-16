@@ -99,7 +99,7 @@ namespace
   
   void ErrOuter(unsigned /*level*/, Error::LocationRef loc, Error::CodeType code, const String& text)
   {
-    std::cout << Error::AttributesToString(loc, code, text);;
+    std::cerr << Error::AttributesToString(loc, code, text);;
   }
   
   void ShowPluginInfo(const PluginInformation& info)
