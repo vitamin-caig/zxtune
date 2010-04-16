@@ -42,7 +42,7 @@ Author:
 #include <limits>
 #include <numeric>
 
-#include "text.h"
+#include "text/text.h"
 
 #define FILE_TAG 81C76E7D
 
@@ -77,8 +77,8 @@ namespace
 #if 1
     StdOut
       << std::endl
-      << InstantiateTemplate(TEXT_ITEM_INFO, strProps, FILL_NONEXISTING)
-      << (Formatter(TEXT_ITEM_INFO_ADDON) % UnparseFrameTime(info.Statistic.Frame, frameDuration) %
+      << InstantiateTemplate(Text::ITEM_INFO, strProps, FILL_NONEXISTING)
+      << (Formatter(Text::ITEM_INFO_ADDON) % UnparseFrameTime(info.Statistic.Frame, frameDuration) %
         info.Statistic.Channels % info.PhysicalChannels).str();
 #else
     std::for_each(strProps.begin(), strProps.end(), OutProp);
@@ -87,7 +87,7 @@ namespace
 
   void ShowTrackingStatus(const ZXTune::Module::Tracking& track)
   {
-    const String& dump = (Formatter(TEXT_TRACKING_STATUS)
+    const String& dump = (Formatter(Text::TRACKING_STATUS)
       % track.Position % track.Pattern % track.Line % track.Frame % track.Tempo % track.Channels).str();
     assert(TRACKING_HEIGHT == static_cast<std::size_t>(std::count(dump.begin(), dump.end(), '\n')));
     StdOut << dump;
@@ -110,7 +110,7 @@ namespace
                           uint_t frameDuration)
   {
     const Char MARKER = '\x1';
-    String data((Formatter(TEXT_PLAYBACK_STATUS) % UnparseFrameTime(frame, frameDuration) % MARKER).str());
+    String data((Formatter(Text::PLAYBACK_STATUS) % UnparseFrameTime(frame, frameDuration) % MARKER).str());
     const String::size_type totalSize = data.size() - 1 - PLAYING_HEIGHT;
     const String::size_type markerPos = data.find(MARKER);
     
@@ -166,37 +166,37 @@ namespace
       Parameters::Map paramsMap;
       ThrowIfError(ParseParametersString(String(), paramsStr, paramsMap));
       Parameters::StringType mode;
-      if (!Parameters::FindByName(paramsMap, CONVERSION_PARAM_MODE, mode))
+      if (!Parameters::FindByName(paramsMap, Text::CONVERSION_PARAM_MODE, mode))
       {
-        throw Error(THIS_LINE, CONVERT_PARAMETERS, TEXT_CONVERT_ERROR_NO_MODE);
+        throw Error(THIS_LINE, CONVERT_PARAMETERS, Text::CONVERT_ERROR_NO_MODE);
       }
-      if (!Parameters::FindByName(paramsMap, CONVERSION_PARAM_FILENAME, NameTemplate))
+      if (!Parameters::FindByName(paramsMap, Text::CONVERSION_PARAM_FILENAME, NameTemplate))
       {
-        throw Error(THIS_LINE, CONVERT_PARAMETERS, TEXT_CONVERT_ERROR_NO_FILENAME);
+        throw Error(THIS_LINE, CONVERT_PARAMETERS, Text::CONVERT_ERROR_NO_FILENAME);
       }
-      if (mode == CONVERSION_MODE_RAW)
+      if (mode == Text::CONVERSION_MODE_RAW)
       {
         ConversionParameter.reset(new ZXTune::Module::Conversion::RawConvertParam());
         CapabilityMask = ZXTune::CAP_CONV_RAW;
       }
-      else if (mode == CONVERSION_MODE_PSG)
+      else if (mode == Text::CONVERSION_MODE_PSG)
       {
         ConversionParameter.reset(new ZXTune::Module::Conversion::PSGConvertParam());
         CapabilityMask = ZXTune::CAP_CONV_PSG;
       }
-      else if (mode == CONVERSION_MODE_ZX50)
+      else if (mode == Text::CONVERSION_MODE_ZX50)
       {
         ConversionParameter.reset(new ZXTune::Module::Conversion::ZX50ConvertParam());
         CapabilityMask = ZXTune::CAP_CONV_ZX50;
       }
-      else if (mode == CONVERSION_MODE_TXT)
+      else if (mode == Text::CONVERSION_MODE_TXT)
       {
         ConversionParameter.reset(new ZXTune::Module::Conversion::TXTConvertParam());
         CapabilityMask = ZXTune::CAP_CONV_TXT;
       }
       else
       {
-        throw Error(THIS_LINE, CONVERT_PARAMETERS, TEXT_CONVERT_ERROR_INVALID_MODE);
+        throw Error(THIS_LINE, CONVERT_PARAMETERS, Text::CONVERT_ERROR_INVALID_MODE);
       }
     }
     void ProcessItem(const ModuleItem& item) const
@@ -206,7 +206,7 @@ namespace
         item.Module->GetPluginInformation(info);
         if (!(info.Capabilities & CapabilityMask))
         {
-          Message(TEXT_CONVERT_SKIPPED, item.Id, info.Id);
+          Message(Text::CONVERT_SKIPPED, item.Id, info.Id);
           return;
         }
       }
@@ -231,9 +231,9 @@ namespace
       if (!file)
       {
         throw MakeFormattedError(THIS_LINE, CONVERT_PARAMETERS,
-          TEXT_CONVERT_ERROR_WRITE_FILE, filename);
+          Text::CONVERT_ERROR_WRITE_FILE, filename);
       }
-      Message(TEXT_CONVERT_DONE, item.Id, filename);
+      Message(Text::CONVERT_DONE, item.Id, filename);
     }
   private:
     template<class P1, class P2>
@@ -328,14 +328,14 @@ namespace
 
         String configFile;
         String providersOptions, coreOptions;
-        options_description options((Formatter(TEXT_USAGE_SECTION) % *argv).str());
+        options_description options((Formatter(Text::USAGE_SECTION) % *argv).str());
         options.add_options()
-          (TEXT_HELP_KEY, TEXT_HELP_DESC)
-          (TEXT_VERSION_KEY, TEXT_VERSION_DESC)
-          (TEXT_CONFIG_KEY, boost::program_options::value<String>(&configFile), TEXT_CONFIG_DESC)
-          (TEXT_IO_PROVIDERS_OPTS_KEY, boost::program_options::value<String>(&providersOptions), TEXT_IO_PROVIDERS_OPTS_DESC)
-          (TEXT_CORE_OPTS_KEY, boost::program_options::value<String>(&coreOptions), TEXT_CORE_OPTS_DESC)
-          (TEXT_CONVERT_KEY, boost::program_options::value<String>(&ConvertParams), TEXT_CONVERT_DESC)
+          (Text::HELP_KEY, Text::HELP_DESC)
+          (Text::VERSION_KEY, Text::VERSION_DESC)
+          (Text::CONFIG_KEY, boost::program_options::value<String>(&configFile), Text::CONFIG_DESC)
+          (Text::IO_PROVIDERS_OPTS_KEY, boost::program_options::value<String>(&providersOptions), Text::IO_PROVIDERS_OPTS_DESC)
+          (Text::CORE_OPTS_KEY, boost::program_options::value<String>(&coreOptions), Text::CORE_OPTS_DESC)
+          (Text::CONVERT_KEY, boost::program_options::value<String>(&ConvertParams), Text::CONVERT_DESC)
         ;
         
         options.add(Informer->GetOptionsDescription());
@@ -343,29 +343,29 @@ namespace
         options.add(Sounder->GetOptionsDescription());
         //add positional parameters for input
         positional_options_description inputPositional;
-        inputPositional.add(TEXT_INPUT_FILE_KEY, -1);
+        inputPositional.add(Text::INPUT_FILE_KEY, -1);
         
         //cli options
-        options_description cliOptions(TEXT_CLI_SECTION);
+        options_description cliOptions(Text::CLI_SECTION);
         cliOptions.add_options()
-          (TEXT_SILENT_KEY, bool_switch(&Silent), TEXT_SILENT_DESC)
-          (TEXT_QUIET_KEY, bool_switch(&Quiet), TEXT_QUIET_DESC)
-          (TEXT_ANALYZER_KEY, bool_switch(&Analyzer), TEXT_ANALYZER_DESC)
-          (TEXT_CACHE_KEY, bool_switch(&Cached), TEXT_CACHE_DESC)
-          (TEXT_SEEKSTEP_KEY, value<uint_t>(&SeekStep), TEXT_SEEKSTEP_DESC)
-          (TEXT_UPDATEFPS_KEY, value<uint_t>(&Updatefps), TEXT_UPDATEFPS_DESC)
+          (Text::SILENT_KEY, bool_switch(&Silent), Text::SILENT_DESC)
+          (Text::QUIET_KEY, bool_switch(&Quiet), Text::QUIET_DESC)
+          (Text::ANALYZER_KEY, bool_switch(&Analyzer), Text::ANALYZER_DESC)
+          (Text::CACHE_KEY, bool_switch(&Cached), Text::CACHE_DESC)
+          (Text::SEEKSTEP_KEY, value<uint_t>(&SeekStep), Text::SEEKSTEP_DESC)
+          (Text::UPDATEFPS_KEY, value<uint_t>(&Updatefps), Text::UPDATEFPS_DESC)
         ;
         options.add(cliOptions);
         
         variables_map vars;
         store(command_line_parser(argc, argv).options(options).positional(inputPositional).run(), vars);
         notify(vars);
-        if (vars.count(TEXT_HELP_KEY))
+        if (vars.count(Text::HELP_KEY))
         {
           StdOut << options << std::endl;
           return true;
         }
-        else if (vars.count(TEXT_VERSION_KEY))
+        else if (vars.count(Text::VERSION_KEY))
         {
           StdOut << VERSION_STRING(ZXTUNE_VERSION) << std::endl;
           return true;
@@ -391,7 +391,7 @@ namespace
       }
       catch (const std::exception& e)
       {
-        throw MakeFormattedError(THIS_LINE, UNKNOWN_ERROR, TEXT_COMMON_ERROR, e.what());
+        throw MakeFormattedError(THIS_LINE, UNKNOWN_ERROR, Text::COMMON_ERROR, e.what());
       }
     }
     

@@ -1,225 +1,225 @@
 +conversion.txt
 +cmd_keys_local.txt
 
-< TEXT_USAGE_SECTION
+< USAGE_SECTION
 > "Usage:\n"
-> "%1% <" TEXT_INFORMATIONAL_SECTION ">\n"
-> "%1% <Parameters> <" TEXT_CLI_SECTION "> <" TEXT_SOUND_SECTION "> <" TEXT_INPUT_SECTION "> files...\n"
+> "%1% <" INFORMATIONAL_SECTION ">\n"
+> "%1% <Parameters> <" CLI_SECTION "> <" SOUND_SECTION "> <" INPUT_SECTION "> files...\n"
 > "\nParameters"
 
-< TEXT_HELP_KEY
+< HELP_KEY
 > "help"
 
-< TEXT_HELP_DESC
+< HELP_DESC
 > "show this message"
 
-< TEXT_VERSION_KEY
+< VERSION_KEY
 > CMD_VERSION_KEY
 
-< TEXT_VERSION_DESC
+< VERSION_DESC
 > "show version"
 
-< TEXT_CONFIG_KEY
+< CONFIG_KEY
 > CMD_CONFIG_KEY
 
-< TEXT_CONFIG_DESC
+< CONFIG_DESC
 > "configuration file"
 
-< TEXT_IO_PROVIDERS_OPTS_KEY
+< IO_PROVIDERS_OPTS_KEY
 > CMD_IO_PROVIDERS_OPTS_KEY
 
-< TEXT_IO_PROVIDERS_OPTS_DESC
+< IO_PROVIDERS_OPTS_DESC
 > "options for i/o providers. Implies 'zxtune.io.providers.' prefix to all options in map."
 
-< TEXT_CORE_OPTS_KEY
+< CORE_OPTS_KEY
 > CMD_CORE_OPTS_KEY
 
-< TEXT_CORE_OPTS_DESC
+< CORE_OPTS_DESC
 > "options for core. Implies 'zxtune.core.' prefix to all options in map."
 
-< TEXT_CONVERT_KEY
+< CONVERT_KEY
 > CMD_CONVERT_KEY
 
-< TEXT_CONVERT_DESC
+< CONVERT_DESC
 > "Perform conversion instead of playback.\n"
 > "Parameter is map with the next mandatory parameters:\n"
 > " " CONVERSION_PARAM_MODE " - specify conversion mode. Currently supported are: " CONVERSION_MODE_ALL "\n"
 > " " CONVERSION_PARAM_FILENAME " - filename template with any module's attributes\n"
 > "."
 
-< TEXT_INFORMATIONAL_SECTION
+< INFORMATIONAL_SECTION
 > "Information keys"
 
-< TEXT_INFO_LIST_PLUGINS_KEY
+< INFO_LIST_PLUGINS_KEY
 > CMD_INFO_LIST_PLUGINS_KEY
 
-< TEXT_INFO_LIST_PLUGINS_DESC
+< INFO_LIST_PLUGINS_DESC
 > "show the list of supported plugins"
 
-< TEXT_INFO_LIST_PLUGINS_TITLE
+< INFO_LIST_PLUGINS_TITLE
 > "Supported plugins:"
 
-< TEXT_INFO_LIST_BACKENDS_KEY
+< INFO_LIST_BACKENDS_KEY
 > CMD_INFO_LIST_BACKENDS_KEY
 
-< TEXT_INFO_LIST_BACKENDS_DESC
+< INFO_LIST_BACKENDS_DESC
 > "show the list of supported backends"
 
-< TEXT_INFO_LIST_BACKENDS_TITLE
+< INFO_LIST_BACKENDS_TITLE
 > "Supported backends:"
 
-< TEXT_INFO_LIST_PROVIDERS_KEY
+< INFO_LIST_PROVIDERS_KEY
 > CMD_INFO_LIST_PROVIDERS_KEY
 
-< TEXT_INFO_LIST_PROVIDERS_DESC
+< INFO_LIST_PROVIDERS_DESC
 > "show the list of supported IO providers"
 
-< TEXT_INFO_LIST_PROVIDERS_TITLE
+< INFO_LIST_PROVIDERS_TITLE
 > "Supported IO providers"
 
-< TEXT_INFO_LIST_OPTIONS_KEY
+< INFO_LIST_OPTIONS_KEY
 > CMD_INFO_LIST_OPTIONS_KEY
 
-< TEXT_INFO_LIST_OPTIONS_DESC
+< INFO_LIST_OPTIONS_DESC
 > "show the list of supported options"
 
-< TEXT_INFO_LIST_OPTIONS_TITLE
+< INFO_LIST_OPTIONS_TITLE
 > "Supported zxtune options:"
 
-< TEXT_INFO_LIST_ATTRIBUTES_KEY
+< INFO_LIST_ATTRIBUTES_KEY
 > CMD_INFO_LIST_ATTRIBUTES_KEY
 
-< TEXT_INFO_LIST_ATTRIBUTES_DESC
+< INFO_LIST_ATTRIBUTES_DESC
 > "show the list of supported attributes"
 
-< TEXT_INFO_LIST_ATTRIBUTES_TITLE
+< INFO_LIST_ATTRIBUTES_TITLE
 > "Supported module attributes:"
 
-< TEXT_INFO_LIST_FREQTABLES_KEY
+< INFO_LIST_FREQTABLES_KEY
 > CMD_INFO_LIST_FREQTABLES_KEY
 
-< TEXT_INFO_LIST_FREQTABLES_DESC
+< INFO_LIST_FREQTABLES_DESC
 > "show the list of supported frequency tables"
 
-< TEXT_INFO_LIST_FREQTABLES_TITLE
+< INFO_LIST_FREQTABLES_TITLE
 > "Supported frequency tables: "
 
-< TEXT_SOUND_SECTION
+< SOUND_SECTION
 > "Sound options"
 
-< TEXT_SOUND_BACKEND_PARAMS
+< SOUND_BACKEND_PARAMS
 > "parameters"
 
-< TEXT_FREQUENCY_KEY
+< FREQUENCY_KEY
 > CMD_FREQUENCY_KEY
 
-< TEXT_FREQUENCY_DESC
+< FREQUENCY_DESC
 > "specify sound frequency in Hz"
 
-< TEXT_CLOCKRATE_KEY
+< CLOCKRATE_KEY
 > CMD_CLOCKRATE_KEY
 
-< TEXT_CLOCKRATE_DESC
+< CLOCKRATE_DESC
 > "specify CPU and PSG clock rate in Hz"
 
-< TEXT_FRAMEDURATION_KEY
+< FRAMEDURATION_KEY
 > CMD_FRAMEDURATION_KEY
 
-< TEXT_FRAMEDURATION_DESC
+< FRAMEDURATION_DESC
 > "specify frame duration in uS"
 
-< TEXT_FREQTABLE_KEY
+< FREQTABLE_KEY
 > CMD_FREQTABLE_KEY
 
-< TEXT_FREQTABLE_DESC
+< FREQTABLE_DESC
 > "specify frequency table"
 
-< TEXT_YM_KEY
+< YM_KEY
 > CMD_YM_KEY
 
-< TEXT_YM_DESC
+< YM_DESC
 > "use YM chip for playback"
 
-< TEXT_LOOP_KEY
+< LOOP_KEY
 > CMD_LOOP_KEY
 
-< TEXT_LOOP_DESC
+< LOOP_DESC
 > "loop playback"
 
-< TEXT_MIXER_KEY
+< MIXER_KEY
 > CMD_MIXER_KEY
 
-< TEXT_MIXER_DESC
+< MIXER_DESC
 > "specify mixer by layout or matrix"
 
-< TEXT_FILTER_KEY
+< FILTER_KEY
 > CMD_FILTER_KEY
 
-< TEXT_FILTER_DESC
+< FILTER_DESC
 > "specify bandpass filter ([order,]low-high)"
 
-< TEXT_INPUT_SECTION
+< INPUT_SECTION
 > "Input options"
 
-< TEXT_INPUT_FILE_KEY
+< INPUT_FILE_KEY
 > CMD_INPUT_FILE_KEY
 
-< TEXT_INPUT_FILE_DESC
+< INPUT_FILE_DESC
 > "file to process"
 
-< TEXT_INPUT_ALLOW_PLUGIN_KEY
+< INPUT_ALLOW_PLUGIN_KEY
 > CMD_INPUT_ALLOW_PLUGIN_KEY
 
-< TEXT_INPUT_ALLOW_PLUGIN_DESC
+< INPUT_ALLOW_PLUGIN_DESC
 > "plugins and/or attributes to allow (ids and/or capabilities)"
 
-< TEXT_INPUT_DENY_PLUGIN_KEY
+< INPUT_DENY_PLUGIN_KEY
 > CMD_INPUT_DENY_PLUGIN_KEY
 
-< TEXT_INPUT_DENY_PLUGIN_DESC
+< INPUT_DENY_PLUGIN_DESC
 > "plugins and/or attributes to deny"
 
-< TEXT_INPUT_PROGRESS_KEY
+< INPUT_PROGRESS_KEY
 > CMD_INPUT_PROGRESS_KEY
 
-< TEXT_INPUT_PROGRESS_DESC
+< INPUT_PROGRESS_DESC
 > "Show progress while processing input files."
 
-< TEXT_CLI_SECTION
+< CLI_SECTION
 > "Other options"
 
-< TEXT_SILENT_KEY
+< SILENT_KEY
 > CMD_SILENT_KEY
 
-< TEXT_SILENT_DESC
+< SILENT_DESC
 > "disable all output"
 
-< TEXT_QUIET_KEY
+< QUIET_KEY
 > CMD_QUIET_KEY
 
-< TEXT_QUIET_DESC
+< QUIET_DESC
 > "disable dynamic output"
 
-< TEXT_ANALYZER_KEY
+< ANALYZER_KEY
 > CMD_ANALYZER_KEY
 
-< TEXT_ANALYZER_DESC
+< ANALYZER_DESC
 > "enable spectrum analyzer"
 
-< TEXT_CACHE_KEY
+< CACHE_KEY
 > CMD_CACHE_KEY
 
-< TEXT_CACHE_DESC
+< CACHE_DESC
 > "collect all modules to list before playback (slow, requires much memory)."
 
-< TEXT_SEEKSTEP_KEY
+< SEEKSTEP_KEY
 > CMD_SEEKSTEP_KEY
 
-< TEXT_SEEKSTEP_DESC
+< SEEKSTEP_DESC
 > "seeking step in percents"
 
-< TEXT_UPDATEFPS_KEY
+< UPDATEFPS_KEY
 > CMD_UPDATEFPS_KEY
 
-< TEXT_UPDATEFPS_DESC
+< UPDATEFPS_DESC
 > "update rate"

@@ -17,7 +17,7 @@ Author:
 
 #include <cctype>
 
-#include <apps/base/base_text.h>
+#include "../text/base_text.h"
 
 #define FILE_TAG 0DBA1FA8
 
@@ -28,22 +28,22 @@ namespace
   inline String GetDefaultConfigFile()
   {
 #ifdef _WIN32
-    const String configPath(TEXT_CONFIG_PATH_WIN);
-    if (const char* homeDir = ::getenv(ToStdString(TEXT_ENV_HOMEDIR_WIN).c_str()))
+    const String configPath(Text::CONFIG_PATH_WIN);
+    if (const char* homeDir = ::getenv(ToStdString(Text::ENV_HOMEDIR_WIN).c_str()))
 #else
-    const String configPath(TEXT_CONFIG_PATH_NIX);
-    if (const char* homeDir = ::getenv(ToStdString(TEXT_ENV_HOMEDIR_NIX).c_str()))
+    const String configPath(Text::CONFIG_PATH_NIX);
+    if (const char* homeDir = ::getenv(ToStdString(Text::ENV_HOMEDIR_NIX).c_str()))
 #endif
     {
       return ZXTune::IO::AppendPath(FromStdString(homeDir), configPath);
     }
-    return TEXT_CONFIG_FILENAME;
+    return Text::CONFIG_FILENAME;
   }
 }
 
 Error ParseConfigFile(const String& filename, Parameters::Map& params)
 {
-  const String configName(filename.empty() ? TEXT_CONFIG_FILENAME : filename);
+  const String configName(filename.empty() ? Text::CONFIG_FILENAME : filename);
 
   typedef std::basic_ifstream<Char> FileStream;
   std::auto_ptr<FileStream> configFile(new FileStream(configName.c_str()));
@@ -51,7 +51,7 @@ Error ParseConfigFile(const String& filename, Parameters::Map& params)
   {
     if (!filename.empty())
     {
-      return Error(THIS_LINE, CONFIG_FILE, TEXT_ERROR_CONFIG_FILE);
+      return Error(THIS_LINE, CONFIG_FILE, Text::ERROR_CONFIG_FILE);
     }
     configFile.reset(new FileStream(GetDefaultConfigFile().c_str()));
   }
@@ -137,7 +137,7 @@ Error ParseParametersString(const String& pfx, const String& str, Parameters::Ma
       else
       {
         return MakeFormattedError(THIS_LINE, INVALID_PARAMETER,
-          TEXT_ERROR_INVALID_FORMAT, str);
+          Text::ERROR_INVALID_FORMAT, str);
       }
       break;
     case IN_VALUE:
@@ -183,7 +183,7 @@ Error ParseParametersString(const String& pfx, const String& str, Parameters::Ma
   else if (IN_NOWHERE != mode)
   {
     return MakeFormattedError(THIS_LINE, INVALID_PARAMETER,
-      TEXT_ERROR_INVALID_FORMAT, str);
+      Text::ERROR_INVALID_FORMAT, str);
   }
   result.swap(res);
   return Error();
@@ -199,7 +199,7 @@ String UnparseFrameTime(uint_t timeInFrames, uint_t frameDurationMicrosec)
   const uint_t minutes = (allSeconds / 60) % 60;
   const uint_t hours = allSeconds / 3600;
   return hours ?
-  (Formatter(TEXT_TIME_FORMAT_HOURS) % hours % minutes % seconds % frames).str()
+  (Formatter(Text::TIME_FORMAT_HOURS) % hours % minutes % seconds % frames).str()
   :
-  (Formatter(TEXT_TIME_FORMAT) % minutes % seconds % frames).str();
+  (Formatter(Text::TIME_FORMAT) % minutes % seconds % frames).str();
 }

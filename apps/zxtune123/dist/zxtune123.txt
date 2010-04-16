@@ -3,7 +3,7 @@
 
 #shared cmdline keys
 #TODO: make share capabilities keys
-+../cmd_keys_local.txt
++ ../text/cmd_keys_local.txt
 
 #markup
 = HEADER

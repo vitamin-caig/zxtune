@@ -1,0 +1,277 @@
+= INFO_DEV_PREFIX
+> "dev_"
+
+< INFO_CAP_AYM
+> INFO_DEV_PREFIX "aym"
+
+< INFO_CAP_TS
+> INFO_DEV_PREFIX "ts"
+
+< INFO_CAP_BEEPER
+> INFO_DEV_PREFIX "beeper"
+
+< INFO_CAP_FM
+> INFO_DEV_PREFIX "fm"
+
+< INFO_CAP_DAC
+> INFO_DEV_PREFIX "dac"
+
+< INFO_CAP_DAC1
+> INFO_DEV_PREFIX "dac1"
+
+< INFO_CAP_DAC2
+> INFO_DEV_PREFIX "dac2"
+
+< INFO_CAP_DAC4
+> INFO_DEV_PREFIX "dac4"
+
+= INFO_STOR_PREFIX
+> "stor_"
+
+< INFO_CAP_MODULE
+> INFO_STOR_PREFIX "module"
+
+< INFO_CAP_CONTAINER
+> INFO_STOR_PREFIX "container"
+
+< INFO_CAP_MULTITRACK
+> INFO_STOR_PREFIX "multitrack"
+
+< INFO_CAP_SCANER
+> INFO_STOR_PREFIX "scaner"
+
+< INFO_CAP_PLAIN
+> INFO_STOR_PREFIX "plain"
+
+= INFO_CONV_PREFIX
+> "conv_"
+
+< INFO_CONV_RAW
+> INFO_CONV_PREFIX CONVERSION_MODE_RAW
+
+< INFO_CONV_PSG
+> INFO_CONV_PREFIX CONVERSION_MODE_PSG
+
+< INFO_CONV_ZX50
+> INFO_CONV_PREFIX CONVERSION_MODE_ZX50
+
+< INFO_CONV_TXT
+> INFO_CONV_PREFIX CONVERSION_MODE_TXT
+
+< INFO_PLUGIN_INFO
+> "Plugin:       %1%\n"
+> "Description:  %2%\n"
+> "Version:      %3%\n"
+> "Capabilities: %4%\n\n"
+
+< INFO_BACKEND_INFO
+> "Backend:     %1%\n"
+> "Description: %2%\n"
+> "Version:     %3%\n\n"
+
+< INFO_PROVIDER_INFO
+> "Provider:    %1%\n"
+> "Description: %2%\n"
+> "Version:     %3%\n"
+
+< INFO_OPTION_INFO
+> "  %1%\n"
+> "  - %2%.\n"
+
+< INFO_OPTION_INFO_DEFAULTS
+> "  %1%\n"
+> "  - %2% (default value is '%3%').\n"
+
+< INFO_ATTRIBUTE_INFO
+> " %|1$-20|- %2%\n"
+
+< INFO_OPTIONS_IO_PROVIDERS_TITLE
+> " IO providers options:"
+
+< INFO_OPTIONS_IO_PROVIDERS_FILE_MMAP_THRESHOLD
+> "minimal size for use memory mapping"
+
+< INFO_OPTIONS_SOUND_TITLE
+> " Sound options:"
+
+< INFO_OPTIONS_SOUND_FREQUENCY
+> "sound frequency in Hz"
+
+< INFO_OPTIONS_SOUND_CLOCKRATE
+> "clock rate for PSG in Hz"
+
+< INFO_OPTIONS_SOUND_FRAMEDURATION
+> "frame duration in microseconds"
+
+< INFO_OPTIONS_SOUND_LOOPMODE
+> "loop mode while playback (0- none, 1- normal, 2- from beginning)"
+
+< INFO_OPTIONS_SOUND_BACKENDS_TITLE
+> " Sound backends options:"
+
+< INFO_OPTIONS_SOUND_BACKENDS_WAV_FILENAME
+> "filename template to save wav file (see --" INFO_LIST_ATTRIBUTES_KEY " command)"
+
+< INFO_OPTIONS_SOUND_BACKENDS_WAV_OVERWRITE
+> "overwrite target wav file if already exists"
+
+< INFO_OPTIONS_SOUND_BACKENDS_WIN32_DEVICE
+> "device index for win32 backend"
+
+< INFO_OPTIONS_SOUND_BACKENDS_WIN32_BUFFERS
+> "playback buffers count"
+
+< INFO_OPTIONS_SOUND_BACKENDS_OSS_DEVICE
+> "playback device for OSS backend"
+
+< INFO_OPTIONS_SOUND_BACKENDS_OSS_MIXER
+> "mixer device for OSS backend"
+
+< INFO_OPTIONS_SOUND_BACKENDS_ALSA_DEVICE
+> "playback device for ALSA backend"
+
+< INFO_OPTIONS_SOUND_BACKENDS_ALSA_MIXER
+> "mixer for ALSA backend (taking the first one if not specified)"
+
+< INFO_OPTIONS_SOUND_BACKENDS_ALSA_BUFFERS
+> "buffers count for ALSA backend"
+
+< INFO_OPTIONS_CORE_TITLE
+> " Core options:"
+
+< INFO_OPTIONS_CORE_AYM_TYPE
+> "use YM chip type for AYM rendering"
+
+< INFO_OPTIONS_CORE_AYM_INTERPOLATION
+> "use interpolation for AYM rendering"
+
+< INFO_OPTIONS_CORE_AYM_TABLE
+> "frequency table name to use in AY-based players. Can be name (--" INFO_LIST_FREQTABLES_KEY ") or dump (#..). Use '~' to revert"
+
+< INFO_OPTIONS_CORE_AYM_DUTY_CYCLE
+> "chip duty cycle value in percent. Should be in range 1..99"
+
+< INFO_OPTIONS_CORE_AYM_DUTY_CYCLE_MASK
+> "chip channels mask where duty cycle will be applied. Can be set of letters (A,B,C,N,E) or numeric mask"
+
+< INFO_OPTIONS_CORE_DAC_INTERPOLATION
+> "use interpolation for DAC rendering"
+
+< INFO_OPTIONS_CORE_PLUGINS_TITLE
+> " Core plugins options:"
+
+< INFO_OPTIONS_CORE_PLUGINS_RAW_SCAN_STEP
+> "scanning step in bytes"
+
+< INFO_OPTIONS_CORE_PLUGINS_RAW_MIN_SIZE
+> "minimum data size to use raw scaner"
+
+< INFO_OPTIONS_CORE_PLUGINS_HRIP_IGNORE_CORRUPTED
+> "ignore corrupted blocks in HRiP archive"
+
+< INFO_ATTRIBUTES_FILENAME
+> "short source file name"
+
+< INFO_ATTRIBUTES_PATH
+> "full source file name"
+
+< INFO_ATTRIBUTES_FULLPATH
+> "full source data identifier including full filename and subpath"
+
+< INFO_ATTRIBUTES_TYPE
+> "module type (plugin id)"
+
+< INFO_ATTRIBUTES_CONTAINER
+> "nested containers chain"
+
+< INFO_ATTRIBUTES_SUBPATH
+> "module subpath in top-level data container"
+
+< INFO_ATTRIBUTES_AUTHOR
+> "module author"
+
+< INFO_ATTRIBUTES_TITLE
+> "module title"
+
+< INFO_ATTRIBUTES_PROGRAM
+> "program module was created"
+
+< INFO_ATTRIBUTES_COMPUTER
+> "computer-specific information about module"
+
+< INFO_ATTRIBUTES_DATE
+> "module date information"
+
+< INFO_ATTRIBUTES_COMMENT
+> "embedded module comment"
+
+< INFO_ATTRIBUTES_WARNINGS
+> "warnings about module structure (multistring)"
+
+< INFO_ATTRIBUTES_WARNINGS_COUNT
+> "module structure warnings count"
+
+< INFO_ATTRIBUTES_CRC
+> "original module data crc32 checksum"
+
+< INFO_ATTRIBUTES_SIZE
+> "original module data size"
+
+#runtime texts
+< PLAYBACK_STATUS
+> "[%1%] [%2%]\n\n"
+
+< TRACKING_STATUS
+> "Position: %|1$-6|Pattern:  %2%  \n"
+> "Line:     %|3$-6|Frame:    %4%  \n"
+> "Tempo:    %|5$-6|Channels: %6%  \n"
+> "\n"
+
+< ITEM_INFO
+> "Playing: [Fullpath]\n"
+> "Type:    [Type]\t"  "Container: [Container]\t" "Program: [Program]\n"
+> "Title:   [Title]\n"
+> "Author:  [Author]\n"
+
+< ITEM_INFO_ADDON
+> "Time:    %1%\t"     "Channels:  %2%\t" "Real channels: %3%\n"
+> "\n"
+
+< INPUT_ERROR_NO_FILES
+> "No files to process."
+
+< ERROR_INVALID_PARAMETER
+> "Invalid parameter '%1%' in parameter string '%2%'."
+
+< SOUND_ERROR_NO_BACKEND
+> "Failed to create any backend."
+
+< SOUND_ERROR_INVALID_MIXER
+> "Invalid mixer parameter: '%1%'."
+
+< SOUND_ERROR_INVALID_FILTER
+> "Invalid filter parameter: '%1%'."
+
+< COMMON_ERROR
+> "Error: %1%"
+
+< CONVERT_ERROR_NO_MODE
+> "Conversion mode is not specified."
+
+< CONVERT_ERROR_NO_FILENAME
+> "Output filename template is not specified."
+
+< CONVERT_ERROR_INVALID_MODE
+> "Unknown conversion mode specified."
+
+< CONVERT_ERROR_WRITE_FILE
+> "Failed to write file '%1%'."
+
+< CONVERT_SKIPPED
+> "Skipping '%1%' (plugin '%2%') due to convert impossibility."
+
+< CONVERT_DONE
+> "Converted '%1%' => '%2%'"
+
+< PROGRESS_FORMAT
+> " [%1%%%]"

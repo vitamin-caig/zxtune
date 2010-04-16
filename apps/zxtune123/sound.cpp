@@ -35,8 +35,8 @@ Author:
 
 #include <iostream>
 
-#include "text.h"
-#include <apps/base/base_text.h>
+#include "text/text.h"
+#include "../base/text/base_text.h"
 
 #define FILE_TAG DAEDAE2A
 
@@ -78,7 +78,7 @@ namespace
     {
       return res;
     }
-    throw MakeFormattedError(THIS_LINE, INVALID_PARAMETER, TEXT_ERROR_INVALID_FORMAT, str);
+    throw MakeFormattedError(THIS_LINE, INVALID_PARAMETER, Text::ERROR_INVALID_FORMAT, str);
   }
 
   //ABC: 1.0,0.0,0.5,0.5,0.0,1.0
@@ -123,7 +123,7 @@ namespace
       std::transform(splitted.begin(), splitted.end(), result.begin()->begin(), &FromString<double>);
       return result;
     }
-    throw MakeFormattedError(THIS_LINE, INVALID_PARAMETER, TEXT_SOUND_ERROR_INVALID_MIXER, str);
+    throw MakeFormattedError(THIS_LINE, INVALID_PARAMETER, Text::SOUND_ERROR_INVALID_MIXER, str);
   }
 
   ZXTune::Sound::Converter::Ptr CreateFilter(uint_t freq, const String& str)
@@ -148,7 +148,7 @@ namespace
         return filter;
       }
     }
-    throw MakeFormattedError(THIS_LINE, INVALID_PARAMETER, TEXT_SOUND_ERROR_INVALID_FILTER, str);
+    throw MakeFormattedError(THIS_LINE, INVALID_PARAMETER, Text::SOUND_ERROR_INVALID_FILTER, str);
   }
 
   class Sound : public SoundComponent
@@ -157,7 +157,7 @@ namespace
   public:
     explicit Sound(Parameters::Map& globalParams)
       : GlobalParams(globalParams)
-      , OptionsDescription(TEXT_SOUND_SECTION)
+      , OptionsDescription(Text::SOUND_SECTION)
       , YM(false)
       , Looped(false)
     {
@@ -169,19 +169,19 @@ namespace
         BackendOptions.push_back(std::make_pair(it->Id, NOTUSED_MARK));
         OptionsDescription.add_options()
           (it->Id.c_str(), value<String>(&BackendOptions.back().second)->implicit_value(String(),
-            TEXT_SOUND_BACKEND_PARAMS), it->Description.c_str())
+            Text::SOUND_BACKEND_PARAMS), it->Description.c_str())
           ;
       }
 
       OptionsDescription.add_options()
-        (TEXT_FREQUENCY_KEY, value<String>(&SoundOptions[Parameters::ZXTune::Sound::FREQUENCY]), TEXT_FREQUENCY_DESC)
-        (TEXT_CLOCKRATE_KEY, value<String>(&SoundOptions[Parameters::ZXTune::Sound::CLOCKRATE]), TEXT_CLOCKRATE_DESC)
-        (TEXT_FRAMEDURATION_KEY, value<String>(&SoundOptions[Parameters::ZXTune::Sound::FRAMEDURATION]), TEXT_FRAMEDURATION_DESC)
-        (TEXT_FREQTABLE_KEY, value<String>(&SoundOptions[Parameters::ZXTune::Core::AYM::TABLE]), TEXT_FREQTABLE_DESC)
-        (TEXT_YM_KEY, bool_switch(&YM), TEXT_YM_DESC)
-        (TEXT_LOOP_KEY, bool_switch(&Looped), TEXT_LOOP_DESC)
-        (TEXT_MIXER_KEY, value<StringArray>(&Mixers), TEXT_MIXER_DESC)
-        (TEXT_FILTER_KEY, value<String>(&Filter), TEXT_FILTER_DESC)
+        (Text::FREQUENCY_KEY, value<String>(&SoundOptions[Parameters::ZXTune::Sound::FREQUENCY]), Text::FREQUENCY_DESC)
+        (Text::CLOCKRATE_KEY, value<String>(&SoundOptions[Parameters::ZXTune::Sound::CLOCKRATE]), Text::CLOCKRATE_DESC)
+        (Text::FRAMEDURATION_KEY, value<String>(&SoundOptions[Parameters::ZXTune::Sound::FRAMEDURATION]), Text::FRAMEDURATION_DESC)
+        (Text::FREQTABLE_KEY, value<String>(&SoundOptions[Parameters::ZXTune::Core::AYM::TABLE]), Text::FREQTABLE_DESC)
+        (Text::YM_KEY, bool_switch(&YM), Text::YM_DESC)
+        (Text::LOOP_KEY, bool_switch(&Looped), Text::LOOP_DESC)
+        (Text::MIXER_KEY, value<StringArray>(&Mixers), Text::MIXER_DESC)
+        (Text::FILTER_KEY, value<String>(&Filter), Text::FILTER_DESC)
       ;
     }
     
@@ -258,7 +258,7 @@ namespace
       }
       if (!Backend.get())
       {
-        throw Error(THIS_LINE, NO_BACKENDS, TEXT_SOUND_ERROR_NO_BACKEND);
+        throw Error(THIS_LINE, NO_BACKENDS, Text::SOUND_ERROR_NO_BACKEND);
       }
 
       //setup mixers

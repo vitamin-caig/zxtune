@@ -8,8 +8,8 @@ else
 source_files += console_$(platform)
 endif
 
-text_files := text
-other_text_files := cmdline messages conversion
+text_files := text/text
+other_text_files := text/cmdline text/messages text/conversion
 
 libraries := core sound tools io zxtune_app_base
 depends := src/tools src/core src/sound src/io apps/base

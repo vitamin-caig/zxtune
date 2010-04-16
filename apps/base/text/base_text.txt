@@ -5,36 +5,38 @@
 __cpp> "#ifndef __BASE_TEXT_H_DEFINED__\n"
 __cpp> "#define __BASE_TEXT_H_DEFINED__\n"
 __cpp> "#include <char_type.h>\n\n"
+__cpp> "namespace Text\n"
+__cpp> "{\n"
 
 < __RAWFOOTER__
+__cpp> "}//namespace Text\n"
 __cpp> "#endif //__BASE_TEXT_H_DEFINED__\n"
 
 #common texts
-< TEXT_TIME_FORMAT_HOURS
+< TIME_FORMAT_HOURS
 > "%1%:%2$02u:%3$02u.%4$02u"
 
-< TEXT_TIME_FORMAT
+< TIME_FORMAT
 > "%1%:%2$02u.%3$02u"
 
-< TEXT_CONFIG_FILENAME
+< CONFIG_FILENAME
 > "zxtune.conf"
 
-< TEXT_ENV_HOMEDIR_WIN
+< ENV_HOMEDIR_WIN
 > "APPDATA"
 
-< TEXT_ENV_HOMEDIR_NIX
+< ENV_HOMEDIR_NIX
 > "HOME"
 
-< TEXT_CONFIG_PATH_WIN
-> "\\zxtune\\" TEXT_CONFIG_FILENAME
+< CONFIG_PATH_WIN
+> "\\zxtune\\" CONFIG_FILENAME
 
-< TEXT_CONFIG_PATH_NIX
-> "/.zxtune/" TEXT_CONFIG_FILENAME
+< CONFIG_PATH_NIX
+> "/.zxtune/" CONFIG_FILENAME
 
 #error texts
-< TEXT_ERROR_INVALID_FORMAT
+< ERROR_INVALID_FORMAT
 > "Invalid parameter format '%1%'."
 
-< TEXT_ERROR_CONFIG_FILE
+< ERROR_CONFIG_FILE
 > "Failed to open configuration file."
-

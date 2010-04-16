@@ -34,7 +34,7 @@ Author:
 #include <iomanip>
 #include <iostream>
 
-#include "text.h"
+#include "text/text.h"
 
 #define FILE_TAG 9EDFE3AF
 
@@ -67,7 +67,7 @@ namespace
     }
     if (msg.Progress)
     {
-      log += (Formatter(TEXT_PROGRESS_FORMAT) % *msg.Progress).str();
+      log += (Formatter(Text::PROGRESS_FORMAT) % *msg.Progress).str();
     }
     if (int_t(log.size()) < width)
     {
@@ -85,20 +85,20 @@ namespace
     typedef std::pair<uint32_t, String> CapsPair;
     static const CapsPair CAPABILITIES[] =
     {
-      CapsPair(ZXTune::CAP_DEV_AYM, TEXT_INFO_CAP_AYM),
-      CapsPair(ZXTune::CAP_DEV_TS, TEXT_INFO_CAP_TS),
-      CapsPair(ZXTune::CAP_DEV_BEEPER, TEXT_INFO_CAP_BEEPER),
-      CapsPair(ZXTune::CAP_DEV_FM, TEXT_INFO_CAP_FM),
-      CapsPair(ZXTune::CAP_DEV_1DAC | ZXTune::CAP_DEV_2DAC | ZXTune::CAP_DEV_4DAC, TEXT_INFO_CAP_DAC),
+      CapsPair(ZXTune::CAP_DEV_AYM, Text::INFO_CAP_AYM),
+      CapsPair(ZXTune::CAP_DEV_TS, Text::INFO_CAP_TS),
+      CapsPair(ZXTune::CAP_DEV_BEEPER, Text::INFO_CAP_BEEPER),
+      CapsPair(ZXTune::CAP_DEV_FM, Text::INFO_CAP_FM),
+      CapsPair(ZXTune::CAP_DEV_1DAC | ZXTune::CAP_DEV_2DAC | ZXTune::CAP_DEV_4DAC, Text::INFO_CAP_DAC),
 
       //remove module capability- it cannot be enabled or disabled
-      CapsPair(ZXTune::CAP_STOR_CONTAINER, TEXT_INFO_CAP_CONTAINER),
-      CapsPair(ZXTune::CAP_STOR_MULTITRACK, TEXT_INFO_CAP_MULTITRACK),
-      CapsPair(ZXTune::CAP_STOR_SCANER, TEXT_INFO_CAP_SCANER),
-      CapsPair(ZXTune::CAP_STOR_PLAIN, TEXT_INFO_CAP_PLAIN),
+      CapsPair(ZXTune::CAP_STOR_CONTAINER, Text::INFO_CAP_CONTAINER),
+      CapsPair(ZXTune::CAP_STOR_MULTITRACK, Text::INFO_CAP_MULTITRACK),
+      CapsPair(ZXTune::CAP_STOR_SCANER, Text::INFO_CAP_SCANER),
+      CapsPair(ZXTune::CAP_STOR_PLAIN, Text::INFO_CAP_PLAIN),
 
-      CapsPair(ZXTune::CAP_CONV_RAW, TEXT_INFO_CONV_RAW),
-      CapsPair(ZXTune::CAP_CONV_PSG, TEXT_INFO_CONV_PSG)
+      CapsPair(ZXTune::CAP_CONV_RAW, Text::INFO_CONV_RAW),
+      CapsPair(ZXTune::CAP_CONV_PSG, Text::INFO_CONV_PSG)
     };
     
     StringSet tmpPlugs;
@@ -123,7 +123,7 @@ namespace
         }
         else
         {
-          throw MakeFormattedError(THIS_LINE, INVALID_PARAMETER, TEXT_ERROR_INVALID_PARAMETER, *it, str);
+          throw MakeFormattedError(THIS_LINE, INVALID_PARAMETER, Text::ERROR_INVALID_PARAMETER, *it, str);
         }
       }
     }
@@ -136,14 +136,14 @@ namespace
   public:
     explicit Source(Parameters::Map& globalParams)
       : GlobalParams(globalParams)
-      , OptionsDescription(TEXT_INPUT_SECTION)
+      , OptionsDescription(Text::INPUT_SECTION)
       , EnabledCaps(0), DisabledCaps(0), ShowProgress(false)
     {
       OptionsDescription.add_options()
-        (TEXT_INPUT_FILE_KEY, boost::program_options::value<StringArray>(&Files), TEXT_INPUT_FILE_DESC)
-        (TEXT_INPUT_ALLOW_PLUGIN_KEY, boost::program_options::value<String>(&Allowed), TEXT_INPUT_ALLOW_PLUGIN_DESC)
-        (TEXT_INPUT_DENY_PLUGIN_KEY, boost::program_options::value<String>(&Denied), TEXT_INPUT_DENY_PLUGIN_DESC)
-        (TEXT_INPUT_PROGRESS_KEY, boost::program_options::bool_switch(&ShowProgress), TEXT_INPUT_PROGRESS_DESC)
+        (Text::INPUT_FILE_KEY, boost::program_options::value<StringArray>(&Files), Text::INPUT_FILE_DESC)
+        (Text::INPUT_ALLOW_PLUGIN_KEY, boost::program_options::value<String>(&Allowed), Text::INPUT_ALLOW_PLUGIN_DESC)
+        (Text::INPUT_DENY_PLUGIN_KEY, boost::program_options::value<String>(&Denied), Text::INPUT_DENY_PLUGIN_DESC)
+        (Text::INPUT_PROGRESS_KEY, boost::program_options::bool_switch(&ShowProgress), Text::INPUT_PROGRESS_DESC)
       ;
     }
 
@@ -166,7 +166,7 @@ namespace
       Parse(allplugs, Denied, DisabledPlugins, DisabledCaps);
       if (Files.empty())
       {
-        throw Error(THIS_LINE, NO_INPUT_FILES, TEXT_INPUT_ERROR_NO_FILES);
+        throw Error(THIS_LINE, NO_INPUT_FILES, Text::INPUT_ERROR_NO_FILES);
       }
     }
     

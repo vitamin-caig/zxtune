@@ -5,8 +5,11 @@
 __cpp> "#ifndef __TEXT_TEXT_H_DEFINED__\n"
 __cpp> "#define __TEXT_TEXT_H_DEFINED__\n"
 __cpp> "#include <char_type.h>\n\n"
+__cpp> "namespace Text\n"
+__cpp> "{\n"
 
 < __RAWFOOTER__
+__cpp> "}//namespace Text\n"
 __cpp> "#endif //__TEXT_TEXT_H_DEFINED__\n"
 
 #aggregate text
