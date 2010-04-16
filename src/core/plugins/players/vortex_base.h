@@ -21,8 +21,10 @@ namespace ZXTune
 {
   namespace Module
   {
+    //at least two formats are based on Vortex, so it's useful to extract tracking-related types
     namespace Vortex
     {
+      // Frequency table enumeration, compatible with binary format (PT3.x)
       enum NoteTable
       {
         PROTRACKER,
@@ -31,6 +33,7 @@ namespace ZXTune
         REAL
       };
 
+      //sample type
       struct Sample
       {
         Sample() : Loop(), Data()
@@ -76,20 +79,31 @@ namespace ZXTune
         std::vector<Line> Data;
       };
 
-      //commands set
+      //supported commands set and their parameters
       enum Commands
       {
+        //no parameters
         EMPTY,
-        GLISS,        //2p: period,delta
-        GLISS_NOTE,   //3p: period,delta,note
-        SAMPLEOFFSET, //1p: offset
-        ORNAMENTOFFSET,//1p:offset
-        VIBRATE,      //2p: yestime,notime
-        SLIDEENV,     //2p: period,delta
-        NOENVELOPE,   //0p
-        ENVELOPE,     //2p: type, base
-        NOISEBASE,    //1p: base
-        TEMPO,        //1p - pseudo-effect
+        //period,delta
+        GLISS,
+        //period,delta,target note
+        GLISS_NOTE,
+        //offset
+        SAMPLEOFFSET,
+        //offset
+        ORNAMENTOFFSET,
+        //ontime,offtime
+        VIBRATE,
+        //period,delta
+        SLIDEENV,
+        //no parameters
+        NOENVELOPE,
+        //r13,period
+        ENVELOPE,
+        //base
+        NOISEBASE,
+        //tempo
+        TEMPO
       };
 
       //for unification
@@ -97,8 +111,10 @@ namespace ZXTune
 
       typedef TrackingSupport<AYM::CHANNELS, Sample, Ornament> Track;
 
+      //creating simple player based on parsed data and parameters
       Player::Ptr CreatePlayer(Holder::ConstPtr holder, const Track::ModuleData& data,
          uint_t version, const String& freqTableName, AYM::Chip::Ptr device);
+      //creating TS player based on parsed data and parameters
       Player::Ptr CreateTSPlayer(Holder::ConstPtr holder, const Track::ModuleData& data,
          uint_t version, const String& freqTableName, uint_t patternBase, AYM::Chip::Ptr device1, AYM::Chip::Ptr device2);
     }

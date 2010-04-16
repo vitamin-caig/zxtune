@@ -21,6 +21,7 @@ namespace
 
   typedef boost::shared_array<uint8_t> SharedArray;
 
+  //implementation of DataContainer based on shared array data
   class DataContainerImpl : public DataContainer
   {
   public:
@@ -56,6 +57,7 @@ namespace ZXTune
 {
   namespace IO
   {
+    //construct container from data dump. Use memcpy since shared_array is less usable in common code
     DataContainer::Ptr CreateDataContainer(const Dump& data)
     {
       const std::size_t allsize = data.size() * sizeof(data.front());

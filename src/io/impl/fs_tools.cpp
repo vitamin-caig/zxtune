@@ -21,11 +21,14 @@ Author:
 
 namespace
 {
-  const Char FS_DELIMITERS[] = {
+  const Char FS_DELIMITERS[] =
+  {
+  //windows-based systems supports two types of delimiters
   #ifdef _WIN32
-  '\\',
+    '\\',
   #endif
-  '/', '\0'};
+    '/', '\0'
+  };
   
   inline bool IsFSSymbol(Char sym)
   {
@@ -40,7 +43,7 @@ namespace ZXTune
     std::string ConvertToFilename(const String& str)
     {
 #ifdef UNICODE
-      //TODO: ut8 convertor
+      //TODO: use utf8 convertor if required
       return std::string(str.begin(), str.end());
 #else
       return str;
@@ -110,6 +113,7 @@ namespace ZXTune
     std::auto_ptr<std::ofstream> CreateFile(const String& path, bool overwrite)
     {
       const std::string& pathC = ConvertToFilename(path);
+      //check if file exists and overwriting is disabled
       if (!overwrite && std::ifstream(pathC.c_str()))
       {
         throw MakeFormattedError(THIS_LINE, ERROR_FILE_EXISTS, Text::IO_ERROR_FILE_EXISTS, path);

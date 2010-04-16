@@ -29,9 +29,11 @@ namespace
   using namespace ZXTune::IO;
 
   const std::string THIS_MODULE("IO::Enumerator");
-  
+
+  //implementation of IO providers enumerator
   class ProvidersEnumeratorImpl : public ProvidersEnumerator
   {
+    //all-provider-data type
     struct ProviderEntry
     {
       ProviderEntry() : Checker(), Opener(), Splitter(), Combiner()

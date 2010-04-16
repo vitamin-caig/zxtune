@@ -31,12 +31,15 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Module;
 
+  // fixed format string sizes
   const uint_t SAMPLE_STRING_SIZE = 17;
   const uint_t PATTERN_CHANNEL_STRING_SIZE = 13;
 
+  // fixed symbols
   const char DELIMITER = ',';
   const char LOOP_MARK = 'L';
 
+  // fixed identificators
   const char MODULE_DELIMITER = '=';
   const std::string MODULE_VERSION("Version");
   const std::string MODULE_TITLE("Title");
@@ -52,12 +55,13 @@ namespace
   const char SECTION_BEGIN = '[';
   const char SECTION_END = ']';
 
-  // simple string pattern matching implementation via bitmap
+  // simple string pattern matching implementation via bitmap, case-insensitive
   //start symbol
   const uint64_t SPACE = 1;
   //wildcard
   const uint64_t ANY = ~UINT64_C(0);
 
+  //describes one symbol
   template<char S>
   struct Symbol
   {
@@ -65,6 +69,7 @@ namespace
     static const uint64_t Mask = SPACE << (S - ' ');
   };
 
+  //describes symbol range
   template<char S1, char S2>
   struct Range
   {
@@ -72,15 +77,18 @@ namespace
     static const uint64_t Mask = ~(Symbol<S1>::Mask - 1) & (Symbol<S2 + 1>::Mask - 1);
   };
 
+  // predefined masks
   const uint64_t DIGITS = Range<'0', '9'>::Mask;
   const uint64_t XDIGITS = DIGITS | Range<'A', 'F'>::Mask;
 
+  // quick tests
   BOOST_STATIC_ASSERT(Symbol<' '>::Mask == 1);
   BOOST_STATIC_ASSERT(Symbol<'!'>::Mask == 2);
   BOOST_STATIC_ASSERT(Symbol<'0'>::Mask == 0x10000);
   BOOST_STATIC_ASSERT((Range<' ', '#'>::Mask == 0xf));
   BOOST_STATIC_ASSERT(DIGITS == 0x3ff0000);
 
+  // helper functions
   template<class T>
   inline std::string string_cast(const T& val)
   {
@@ -97,17 +105,20 @@ namespace
     return (stream >> val) ? val : T();
   }
 
+  //check uppercased symbols
   inline bool CheckSym(boost::call_traits<uint64_t>::param_type setof, char sym)
   {
     return setof == ANY || (sym >= ' ' && sym < ' ' + 64 && 0 != (setof & (SPACE << (sym - ' '))));
   }
 
+  //check if all string symbols are acceptible
   inline bool CheckStr(boost::call_traits<uint64_t>::param_type setof, const std::string& str)
   {
     return str.end() == std::find_if(str.begin(), str.end(), !boost::bind(&CheckSym, setof,
       boost::bind(static_cast<int (*)(int)>(&std::toupper), _1)));
   }
 
+  //check string by pattern
   inline bool Match(const uint64_t* pattern, const std::string& str)
   {
     for (std::string::const_iterator it = str.begin(), lim = str.end(); it != lim; ++it, ++pattern)
@@ -164,7 +175,7 @@ namespace
     std::string res(width + 1, '0');
     res[0] = val < 0 ? '-' : '+';
     val = absolute(val);
-    for (std::string::iterator it(res.end()); val; val >>= 4)
+    for (std::string::iterator it = res.end(); val; val >>= 4)
     {
       *--it = ToHex(val & 15);
     }
@@ -174,7 +185,7 @@ namespace
   inline std::string ToHex(uint_t val, uint_t width)
   {
     std::string res(width, '.');
-    for (std::string::iterator it(res.end()); val; val >>= 4)
+    for (std::string::iterator it = res.end(); val; val >>= 4)
     {
       *--it = ToHex(val & 15);
     }
@@ -182,27 +193,29 @@ namespace
   }
 
   //notes
-  inline bool IsResetNote(const std::string& str)
-  {
-    assert(str.size() == 3);
-    return str[0] == 'R' && str[1] == '-' && str[2] == '-';
-  }
-
   inline std::string GetResetNote()
   {
     return "R--";
   }
 
-  inline bool IsEmptyNote(const std::string& str)
+  inline bool IsResetNote(const std::string& str)
   {
     assert(str.size() == 3);
-    return str[0] == '-' && str[1] == '-' && str[2] == '-';
+    return str == GetResetNote();
   }
 
   inline std::string GetEmptyNote()
   {
     return "---";
   }
+
+  inline bool IsEmptyNote(const std::string& str)
+  {
+    assert(str.size() == 3);
+    return str == GetEmptyNote();
+  }
+
+  const uint_t NOTES_PER_OCTAVE = 12;
 
   inline bool IsNote(const std::string& str, uint_t& note)
   {
@@ -215,7 +228,7 @@ namespace
     static const uint_t halftones[] = {9, 11, 0, 2, 4, 5, 7};
     if (Match(PATTERN, str))
     {
-      note = halftones[str[0] - 'A'] + (str[1] == '#' ? 1 : 0) + 12 * (str[2] - '1');
+      note = halftones[std::toupper(str[0]) - 'A'] + (str[1] == '#' ? 1 : 0) + NOTES_PER_OCTAVE * (str[2] - '1');
       return true;
     }
     return false;
@@ -224,8 +237,8 @@ namespace
   inline std::string GetNote(uint_t note)
   {
     static const char TONES[] = "C-C#D-D#E-F-F#G-G#A-A#B-";
-    const uint_t octave = note / 12;
-    const uint_t halftone = note % 12;
+    const uint_t octave = note / NOTES_PER_OCTAVE;
+    const uint_t halftone = note % NOTES_PER_OCTAVE;
     return std::string(TONES + halftone * 2, TONES + halftone * 2 + 2) + char('1' + octave);
   }
 
@@ -262,10 +275,9 @@ namespace
     const int_t orn = FromHex(str[6]);
     if (env)
     {
-      chan.Commands.push_back(env != 0xf ?
-        Vortex::Track::Command(Vortex::ENVELOPE, env)
-        :
-        Vortex::Track::Command(Vortex::NOENVELOPE));
+      chan.Commands.push_back(env != 0xf
+        ? Vortex::Track::Command(Vortex::ENVELOPE, env)
+        : Vortex::Track::Command(Vortex::NOENVELOPE));
     }
     if (orn || env)
     {
@@ -289,14 +301,13 @@ namespace
     case 2:
     case 9:
     case 10:
-      chan.Commands.push_back(Vortex::Track::Command(
-        cmd >= 9 ? Vortex::SLIDEENV : Vortex::GLISS, delay,
-        (cmd & 1 ? +1 : -1) * twoParam16));
+      chan.Commands.push_back(Vortex::Track::Command(cmd >= 9 ? Vortex::SLIDEENV : Vortex::GLISS,
+        delay, (cmd & 1 ? +1 : -1) * twoParam16));
       break;
     case 3:
       assert(chan.Note);
       chan.Commands.push_back(Vortex::Track::Command(Vortex::GLISS_NOTE, delay, twoParam16,
-        int_t(*chan.Note)));
+        static_cast<int_t>(*chan.Note)));
       chan.Note.reset();
       break;
     case 4:
@@ -824,7 +835,7 @@ namespace ZXTune
         uint_t version = 0;
         String freqTable;
 
-        Formatter fmt(Text::TXT_ERROR_INVALID_STRING);
+        Formatter fmt(TEXT_TXT_ERROR_INVALID_STRING);
         for (LinesArray::const_iterator it = lines.begin(), lim = lines.end(); it != lim;)
         {
           const std::string& string = *it;
@@ -880,7 +891,7 @@ namespace ZXTune
           data.Info.Properties.insert(Parameters::Map::value_type(ATTR_AUTHOR, descr.Author));
         }
         data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_PROGRAM,
-          (Formatter(Text::VORTEX_EDITOR) % (descr.Version / 10) % (descr.Version % 10)).str()));
+          (Formatter(TEXT_VORTEX_EDITOR) % (descr.Version / 10) % (descr.Version % 10)).str()));
 
         //tracking properties
         version = descr.Version % 10;
@@ -922,20 +933,29 @@ namespace ZXTune
 
         // fill header
         *iter = SECTION_MODULE;
-        const uint_t resVersion = 30 + (in_range<uint_t>(version, 1, 9) ? version : GetVortexVersion(freqTable));
-        *iter = MODULE_VERSION + MODULE_DELIMITER +
-            char('0' + resVersion / 10) + '.' + char('0' + resVersion % 10);
-        const Parameters::Map::const_iterator titleIt = data.Info.Properties.find(Module::ATTR_TITLE);
-        if (titleIt != data.Info.Properties.end())
+        //process version info
         {
-          *iter = MODULE_TITLE + MODULE_DELIMITER +
-            ToStdString(Parameters::ConvertToString(titleIt->second));
+          const uint_t resVersion = 30 + (in_range<uint_t>(version, 1, 9) ? version : GetVortexVersion(freqTable));
+          *iter = MODULE_VERSION + MODULE_DELIMITER +
+              char('0' + resVersion / 10) + '.' + char('0' + resVersion % 10);
         }
-        const Parameters::Map::const_iterator authorIt = data.Info.Properties.find(Module::ATTR_AUTHOR);
-        if (authorIt != data.Info.Properties.end())
+        //process title info
         {
-          *iter = MODULE_AUTHOR + MODULE_DELIMITER +
-            ToStdString(Parameters::ConvertToString(authorIt->second));
+          const Parameters::Map::const_iterator titleIt = data.Info.Properties.find(Module::ATTR_TITLE);
+          if (titleIt != data.Info.Properties.end())
+          {
+            *iter = MODULE_TITLE + MODULE_DELIMITER +
+              ToStdString(Parameters::ConvertToString(titleIt->second));
+          }
+        }
+        //process author info
+        {
+          const Parameters::Map::const_iterator authorIt = data.Info.Properties.find(Module::ATTR_AUTHOR);
+          if (authorIt != data.Info.Properties.end())
+          {
+            *iter = MODULE_AUTHOR + MODULE_DELIMITER +
+              ToStdString(Parameters::ConvertToString(authorIt->second));
+          }
         }
         *iter = MODULE_NOTETABLE + MODULE_DELIMITER + string_cast(GetVortexNotetable(freqTable));
         *iter = MODULE_SPEED + MODULE_DELIMITER + string_cast(data.Info.Statistic.Tempo);
@@ -946,7 +966,7 @@ namespace ZXTune
         for (uint_t idx = 1; idx != data.Ornaments.size(); ++idx)
         {
           const Vortex::Ornament& ornament = data.Ornaments[idx];
-          if (ornament.Data.size())
+          if (!ornament.Data.empty())
           {
             *iter = SECTION_ORNAMENT + string_cast(idx) + SECTION_END;
             *iter = UnparseLoopedList(ornament.Data, ornament.Loop);
@@ -957,7 +977,7 @@ namespace ZXTune
         for (uint_t idx = 1; idx != data.Samples.size(); ++idx)
         {
           const Vortex::Sample& sample = data.Samples[idx];
-          if (sample.Data.size())
+          if (!sample.Data.empty())
           {
             *iter = SECTION_SAMPLE + string_cast(idx) + SECTION_END;
             uint_t lpos = sample.Loop;
@@ -973,7 +993,7 @@ namespace ZXTune
         for (uint_t idx = 0; idx != data.Patterns.size(); ++idx)
         {
           const Vortex::Track::Pattern& pattern = data.Patterns[idx];
-          if (pattern.size())
+          if (!pattern.empty())
           {
             *iter = SECTION_PATTERN + string_cast(idx) + SECTION_END;
             std::transform(pattern.begin(), pattern.end(), iter, PatternLineToString);

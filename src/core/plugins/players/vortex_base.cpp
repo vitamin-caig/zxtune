@@ -25,12 +25,12 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Module;
   
-  const uint_t LIMITER(~uint_t(0));
+  const uint_t LIMITER = ~uint_t(0);
 
   typedef boost::array<uint8_t, 256> VolumeTable;
   
   //Volume table of Pro Tracker 3.3x - 3.4x
-  static const VolumeTable Vol33_34 =
+  const VolumeTable Vol33_34 =
   { {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
@@ -51,7 +51,7 @@ namespace
   } };
 
   //Volume table of Pro Tracker 3.5x
-  static const VolumeTable Vol35 =
+  const VolumeTable Vol35 =
   { {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
@@ -76,8 +76,10 @@ namespace
   #define SELF_TEST
   #endif
 
+  //simple player type
   class VortexPlayer : public Player
   {
+    //helper for sliding processing
     struct Slider
     {
       Slider() : Period(), Value(), Counter(), Delta()
@@ -105,6 +107,8 @@ namespace
         Value = 0;
       }
     };
+
+    //internal per-channel state type
     struct ChannelState
     {
       ChannelState()
@@ -137,6 +141,8 @@ namespace
       uint_t VibrateOn;
       uint_t VibrateOff;
     };
+
+    //internal common state type
     struct CommonState
     {
       CommonState()
@@ -515,7 +521,7 @@ namespace
 
   //TurboSound implementation
 
-  //TODO: extract TS-related code
+  //TODO: extract TS-related code also from ts_supp.cpp
   template<class T>
   inline T avg(T val1, T val2)
   {
@@ -552,7 +558,6 @@ namespace
 
     void Reset(const Sound::RenderParameters& params)
     {
-      //assert(Cursor == Buffer.end());
       Buffer.resize(params.SamplesPerFrame());
       Cursor = Buffer.begin();
       Receiver = 0;
@@ -560,7 +565,6 @@ namespace
 
     void Switch(Sound::MultichannelReceiver& receiver)
     {
-      //assert(Cursor == Buffer.end());
       Receiver = &receiver;
       Cursor = Buffer.begin();
     }
@@ -572,6 +576,7 @@ namespace
     Sound::MultichannelReceiver* Receiver;
   };
 
+  //TODO: fix wrongly calculated total time
   class VortexTSPlayer : public Player
   {
   public:

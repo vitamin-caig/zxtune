@@ -21,11 +21,18 @@ namespace ZXTune
 {
   namespace IO
   {
+    //all io providers interface functions
+    //in: uri
+    //out: true if provider supports that scheme
     typedef boost::function<bool(const String&)> ProviderCheckFunc;
+    //in: uri, parameters, progress callback, result data, result subpath
     typedef boost::function<Error(const String&, const Parameters::Map&, const ProgressCallback&, DataContainer::Ptr&, String&)> ProviderOpenFunc;
+    //in: uri, result base path, result subpath
     typedef boost::function<Error(const String&, String&, String&)> ProviderSplitFunc;
+    //in: path, subpath, result uri
     typedef boost::function<Error(const String&, const String&, String&)> ProviderCombineFunc;
-  
+
+    // internal enumerator interface
     class ProvidersEnumerator
     {
     public:
@@ -35,7 +42,7 @@ namespace ZXTune
                                     const ProviderCheckFunc& detector, const ProviderOpenFunc& opener,
                                     const ProviderSplitFunc& splitter, const ProviderCombineFunc& combiner) = 0;
       
-      virtual Error OpenUri(const String& uri, const Parameters::Map& params, const ProgressCallback& cb, 
+      virtual Error OpenUri(const String& uri, const Parameters::Map& params, const ProgressCallback& cb,
                             DataContainer::Ptr& result, String& subpath) const = 0;
       virtual Error SplitUri(const String& uri, String& baseUri, String& subpath) const = 0;
       virtual Error CombineUri(const String& baseUri, const String& subpath, String& uri) const = 0;
