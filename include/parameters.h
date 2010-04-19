@@ -12,7 +12,6 @@
 
 //common includes
 #include <string_helpers.h>
-#include <types.h>
 //std includes
 #include <map>
 //boost includes

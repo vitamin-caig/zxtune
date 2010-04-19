@@ -25,10 +25,8 @@ namespace ZXTune
     public:
       //! @brief Pointer type
       typedef boost::shared_ptr<DataContainer> Ptr;
-      
-      virtual ~DataContainer()
-      {
-      }
+
+      virtual ~DataContainer() {}
 
       //! @brief Getting data size in bytes
       virtual std::size_t Size() const = 0;

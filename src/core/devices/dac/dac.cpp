@@ -15,7 +15,6 @@ Author:
 //common includes
 #include <tools.h>
 //library includes
-#include <sound/sound_types.h>
 #include <sound/render_params.h>
 //std includes
 #include <limits>
