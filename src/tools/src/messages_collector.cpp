@@ -9,9 +9,10 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+//common includes
 #include <messages_collector.h>
 #include <string_helpers.h>
-
+//boost includes
 #include <boost/algorithm/string/join.hpp>
 
 namespace

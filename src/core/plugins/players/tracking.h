@@ -12,14 +12,14 @@ Author:
 #ifndef __CORE_PLUGINS_PLAYERS_TRACKING_H_DEFINED__
 #define __CORE_PLUGINS_PLAYERS_TRACKING_H_DEFINED__
 
+//library includes
 #include <core/module_types.h>
-// for LoopMode
-#include <sound/render_params.h>
-
+#include <sound/render_params.h>// for LoopMode
+//std includes
+#include <vector>
+//boost includes
 #include <boost/array.hpp>
 #include <boost/optional.hpp>
-
-#include <vector>
 
 namespace ZXTune
 {

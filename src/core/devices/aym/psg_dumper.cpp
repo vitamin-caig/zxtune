@@ -9,10 +9,13 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-#include <tools.h>
+//local includes
 #include <core/devices/aym.h>
+//common includes
+#include <tools.h>
+//library includes
 #include <sound/render_params.h>
-
+//std includes
 #include <algorithm>
 #include <iterator>
 

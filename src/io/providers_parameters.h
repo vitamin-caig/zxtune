@@ -10,6 +10,7 @@
 #ifndef __IO_PROVIDERS_PARAMETERS_H_DEFINED__
 #define __IO_PROVIDERS_PARAMETERS_H_DEFINED__
 
+//common includes
 #include <parameters.h>
 
 namespace Parameters
@@ -22,7 +23,7 @@ namespace Parameters
       namespace Providers
       {
         //! @brief Parameters#ZXTune#IO#Provders namespace prefix
-        const Char PREFIX[] = 
+        const Char PREFIX[] =
         {
           'z','x','t','u','n','e','.','i','o','.','p','r','o','v','i','d','e','r','s','.','\0'
         };
@@ -36,7 +37,7 @@ namespace Parameters
           //! Default value
           const IntType MMAP_THRESHOLD_DEFAULT = 16384;
           //! Parameter name
-          const Char MMAP_THRESHOLD[] = 
+          const Char MMAP_THRESHOLD[] =
           {
             'z','x','t','u','n','e','.','i','o','.','p','r','o','v','i','d','e','r','s','.','f','i','l','e','.','m','m','a','p','_','t','h','r','e','s','h','o','l','d','\0'
           };

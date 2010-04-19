@@ -12,8 +12,9 @@ Author:
 #ifndef __CORE_PLUGINS_DETECTOR_H_DEFINED__
 #define __CORE_PLUGINS_DETECTOR_H_DEFINED__
 
+//common includes
 #include <types.h>
-
+//std includes
 #include <string>
 
 namespace ZXTune

@@ -10,11 +10,12 @@
 #ifndef __TYPES_H_DEFINED__
 #define __TYPES_H_DEFINED__
 
+//common includes
 #include <char_type.h>
-
+//std includes
 #include <string>
 #include <vector>
-
+//boost includes
 #include <boost/cstdint.hpp>
 #include <boost/static_assert.hpp>
 

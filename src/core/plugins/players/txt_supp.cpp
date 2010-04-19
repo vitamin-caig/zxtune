@@ -9,29 +9,31 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-#include "../enumerator.h"
+//local includes
 #include "convert_helpers.h"
 #include "vortex_io.h"
-
+#include <core/devices/aym_parameters_helper.h>
+#include <core/plugins/enumerator.h>
+//common includes
 #include <byteorder.h>
 #include <error_tools.h>
 #include <logging.h>
 #include <messages_collector.h>
 #include <tools.h>
+//library includes
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
 #include <core/error_codes.h>
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
 #include <io/container.h>
-#include <core/devices/aym_parameters_helper.h>
-
+//std includes
 #include <cctype>
-
+//boost includes
 #include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/algorithm/string.hpp>
-
+//text includes
 #include <core/text/core.h>
 #include <core/text/plugins.h>
 #include <core/text/warnings.h>

@@ -10,6 +10,7 @@
 #ifndef __SOUND_DUMMY_RECEIVER_H_DEFINED__
 #define __SOUND_DUMMY_RECEIVER_H_DEFINED__
 
+//library includes
 #include <sound/receiver.h>
 
 namespace ZXTune

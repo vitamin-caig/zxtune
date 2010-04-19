@@ -9,15 +9,12 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-#include "dumper.h"
-
-#include <cassert>
-
 #ifdef DLPORTIO_AYLPT_SUPPORT
 
+//local includes
+#include "dumper.h"
 #include <core/devices/aym.h>
-
-//platform-dependent
+//platform-dependent includes
 #include <windows.h>
 
 namespace
@@ -111,6 +108,10 @@ namespace ZXTune
 }
 
 #else
+//local includes
+#include "dumper.h"
+//std includes
+#include <cassert>
 
 namespace ZXTune
 {

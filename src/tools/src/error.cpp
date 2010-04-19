@@ -9,12 +9,13 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+//common includes
 #include <error_tools.h>
 #include <string_helpers.h>
-
+//std includes
 #include <cctype>
 #include <iomanip>
-
+//text includes
 #include <tools/text/tools.h>
 
 // implementation of error's core used to keep data

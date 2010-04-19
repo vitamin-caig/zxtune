@@ -11,6 +11,7 @@
 #ifndef __ERROR_TOOLS_H_DEFINED__
 #define __ERROR_TOOLS_H_DEFINED__
 
+//common includes
 #include <error.h>
 #include <formatter.h>
 

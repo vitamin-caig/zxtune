@@ -10,6 +10,7 @@
 #ifndef __CORE_MODULE_HOLDER_H_DEFINED__
 #define __CORE_MODULE_HOLDER_H_DEFINED__
 
+//library includes
 #include <core/module_player.h>
 
 namespace ZXTune

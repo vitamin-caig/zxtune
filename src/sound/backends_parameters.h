@@ -10,6 +10,7 @@
 #ifndef __SOUND_BACKENDS_PARAMETERS_H_DEFINED__
 #define __SOUND_BACKENDS_PARAMETERS_H_DEFINED__
 
+//common includes
 #include <parameters.h>
 
 namespace Parameters

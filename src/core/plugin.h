@@ -10,8 +10,9 @@
 #ifndef __CORE_PLUGIN_H_DEFINED__
 #define __CORE_PLUGIN_H_DEFINED__
 
+//common includes
 #include <types.h>
-
+//std includes
 #include <vector>
 
 namespace ZXTune

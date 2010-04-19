@@ -10,6 +10,7 @@
 #ifndef __CORE_MODULE_ATTRS_H_DEFINED__
 #define __CORE_MODULE_ATTRS_H_DEFINED__
 
+//common includes
 #include <char_type.h>
 
 namespace ZXTune

@@ -10,15 +10,16 @@
 #ifndef __TOOLS_H_DEFINED__
 #define __TOOLS_H_DEFINED__
 
-#include <boost/mpl/if.hpp>
+//std includes
+#include <algorithm>
+#include <iterator>
+//boost includes
 #include <boost/static_assert.hpp>
+#include <boost/mpl/if.hpp>
 #include <boost/type_traits/is_arithmetic.hpp>
 #include <boost/type_traits/is_const.hpp>
 #include <boost/type_traits/is_pointer.hpp>
 #include <boost/type_traits/remove_pointer.hpp>
-
-#include <iterator>
-#include <algorithm>
 
 //! @brief Calculating size of fixed-size array
 template<class T, std::size_t D>

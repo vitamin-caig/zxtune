@@ -9,28 +9,30 @@ Author:
 (C) Vitamin/CAIG/2001
 */
 
+//local includes
 #include "convert_helpers.h"
 #include "tracking.h"
-#include "../detect_helper.h"
-#include "../utils.h"
-
+#include <core/devices/aym_parameters_helper.h>
+#include <core/plugins/detect_helper.h>
+#include <core/plugins/utils.h>
+//common includes
 #include <byteorder.h>
 #include <error_tools.h>
 #include <logging.h>
 #include <messages_collector.h>
 #include <range_checker.h>
 #include <tools.h>
+//library includes
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
 #include <core/error_codes.h>
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
 #include <io/container.h>
-#include <core/devices/aym_parameters_helper.h>
-
+//boost includes
 #include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
-
+//text includes
 #include <core/text/core.h>
 #include <core/text/plugins.h>
 #include <core/text/warnings.h>

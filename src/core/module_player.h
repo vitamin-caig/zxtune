@@ -10,20 +10,17 @@
 #ifndef __CORE_MODULE_PLAYER_H_DEFINED__
 #define __CORE_MODULE_PLAYER_H_DEFINED__
 
-//for typedef'ed Parameters::Map
-#include <parameters.h>
-
-//for Module::Analyze::ChannelsState
-#include <core/module_types.h>
-//for Sound::MultichannelReceiver
-#include <sound/receiver.h>
+//common includes
+#include <parameters.h>        //for typedef'ed Parameters::Map
+//library includes
+#include <core/module_types.h> //for Module::Analyze::ChannelsState
+#include <sound/receiver.h>    //for Sound::MultichannelReceiver
 
 //forward declarations
 class Error;
 
 namespace ZXTune
 {
-  //forward declarations
   namespace Sound
   {
     struct RenderParameters;

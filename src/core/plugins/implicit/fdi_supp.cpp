@@ -9,15 +9,17 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-#include "../enumerator.h"
-
+//local includes
+#include <core/plugins/enumerator.h>
+//common includes
 #include <byteorder.h>
 #include <tools.h>
+//library includes
 #include <core/plugin_attrs.h>
 #include <io/container.h>
-
+//std includes
 #include <numeric>
-
+//text includes
 #include <core/text/plugins.h>
 
 #define FILE_TAG 42F35DB2

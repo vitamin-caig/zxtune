@@ -9,17 +9,19 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+//local includes
 #include "freq_tables_internal.h"
-
-#include <error_tools.h>
-#include <tools.h>
-#include <core/error_codes.h>
-#include <core/core_parameters.h>
 #include <core/devices/aym.h>
 #include <core/devices/aym_parameters_helper.h>
-
+//common includes
+#include <error_tools.h>
+#include <tools.h>
+//library includes
+#include <core/error_codes.h>
+#include <core/core_parameters.h>
+//std includes
 #include <numeric>
-
+//text includes
 #include <core/text/core.h>
 
 #define FILE_TAG 6972CAAF

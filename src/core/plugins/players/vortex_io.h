@@ -12,7 +12,12 @@ Author:
 #ifndef __CORE_PLUGINS_PLAYERS_VORTEX_IO_H_DEFINED__
 #define __CORE_PLUGINS_PLAYERS_VORTEX_IO_H_DEFINED__
 
+//local includes
 #include "vortex_base.h"
+//common includes
+#include <error.h>
+//std includes
+#include <string>
 
 namespace ZXTune
 {

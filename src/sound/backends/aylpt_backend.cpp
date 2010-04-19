@@ -11,19 +11,19 @@ Author:
 
 #if defined(DLPORTIO_AYLPT_SUPPORT)
 
+//local includes
 #include "aylpt_supp/dumper.h"
-
 #include "backend_impl.h"
 #include "backend_wrapper.h"
 #include "enumerator.h"
-
+#include <core/devices/aym.h>
+//library includes
 #include <core/convert_parameters.h>
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
-#include <core/devices/aym.h>
 #include <sound/dummy_receiver.h>
 #include <sound/error_codes.h>
-
+//text includes
 #include <sound/text/backends.h>
 
 #define FILE_TAG C89925C1

@@ -9,19 +9,21 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+//local includes
 #include "vortex_io.h"
-
+//common includes
 #include <formatter.h>
 #include <tools.h>
+//library includes
 #include <core/error_codes.h>
 #include <core/freq_tables.h>
 #include <core/module_attrs.h>
-
+//std includes
+#include <cctype>
+//boost includes
 #include <boost/bind.hpp>
 #include <boost/algorithm/string.hpp>
-
-#include <cctype>
-
+//text includes
 #include <core/text/plugins.h>
 
 #define FILE_TAG E2C3F588

@@ -11,9 +11,10 @@ Author:
 #ifndef __CORE_PLUGINS_PLAYERS_FREQ_TABLES_INTERNAL_DEFINED__
 #define __CORE_PLUGINS_PLAYERS_FREQ_TABLES_INTERNAL_DEFINED__
 
+//common includes
+#include <error.h>
+//library includes
 #include <core/freq_tables.h>
-
-class Error;
 
 namespace ZXTune
 {

@@ -9,11 +9,13 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+//common includes
 #include <parameters.h>
-
+//std includes
 #include <algorithm>
 #include <cctype>
 #include <functional>
+//boost includes
 #include <boost/bind.hpp>
 #include <boost/variant/apply_visitor.hpp>
 #include <boost/variant/static_visitor.hpp>

@@ -9,23 +9,25 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+//local includes
 #include "internal_types.h"
-
+//common includes
 #include <tools.h>
 #include <error_tools.h>
+//library includes
 #include <sound/dummy_receiver.h>
 #include <sound/error_codes.h>
 #include <sound/filter.h>
-
-#include <boost/noncopyable.hpp>
-#include <boost/static_assert.hpp>
-#include <boost/integer/static_log2.hpp>
-
+//std includes
 #include <cassert>
 #include <cmath>
 #include <limits>
 #include <numeric>
-
+//boost includes
+#include <boost/noncopyable.hpp>
+#include <boost/static_assert.hpp>
+#include <boost/integer/static_log2.hpp>
+//text includes
 #include <sound/text/sound.h>
 
 #define FILE_TAG 8A9585D9

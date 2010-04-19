@@ -9,16 +9,18 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-#include "../enumerator.h"
-#include "../utils.h"
-
+//local includes
+#include <core/plugins/enumerator.h>
+#include <core/plugins/utils.h>
+//common includes
 #include <byteorder.h>
 #include <tools.h>
+//library includes
 #include <core/plugin_attrs.h>
 #include <io/container.h>
-
+//std includes
 #include <numeric>
-
+//text includes
 #include <core/text/plugins.h>
 
 namespace

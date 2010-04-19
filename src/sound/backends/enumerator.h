@@ -11,8 +11,9 @@ Author:
 #ifndef __SOUND_BACKENDS_ENUMERATOR_H_DEFINED__
 #define __SOUND_BACKENDS_ENUMERATOR_H_DEFINED__
 
+//library includes
 #include <sound/backend.h>
-
+//boost includes
 #include <boost/function.hpp>
 
 namespace ZXTune
@@ -24,9 +25,7 @@ namespace ZXTune
     class BackendsEnumerator
     {
     public:
-      virtual ~BackendsEnumerator()
-      {
-      }
+      virtual ~BackendsEnumerator() {}
 
       virtual void RegisterBackend(const BackendInformation& info, const CreateBackendFunc& creator) = 0;
       virtual void EnumerateBackends(BackendInformationArray& infos) const = 0;

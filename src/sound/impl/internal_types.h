@@ -12,6 +12,7 @@ Author:
 #ifndef __SOUND_IMPL_INTERNAL_TYPES_H_DEFINED__
 #define __SOUND_IMPL_INTERNAL_TYPES_H_DEFINED__
 
+//library includes
 #include <sound/sound_types.h>
 
 namespace ZXTune

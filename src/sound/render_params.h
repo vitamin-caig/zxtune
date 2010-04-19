@@ -10,6 +10,7 @@
 #ifndef __RENDER_PARAMS_H_DEFINED__
 #define __RENDER_PARAMS_H_DEFINED__
 
+//library includes
 #include <sound/sound_parameters.h>
 
 namespace ZXTune

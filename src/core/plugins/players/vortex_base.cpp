@@ -9,13 +9,15 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+//local includes
 #include "vortex_base.h"
-
+#include <core/devices/aym_parameters_helper.h>
+//common includes
 #include <error_tools.h>
 #include <tools.h>
+//library includes
 #include <core/error_codes.h>
-#include <core/devices/aym_parameters_helper.h>
-
+//text includes
 #include <core/text/core.h>
 
 #define FILE_TAG 023C2245

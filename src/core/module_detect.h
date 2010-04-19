@@ -10,17 +10,15 @@
 #ifndef __CORE_MODULE_DETECT_H_DEFINED__
 #define __CORE_MODULE_DETECT_H_DEFINED__
 
-//for typedef'ed Parameters::Map
-#include <parameters.h>
-//for IO::DataContainer::Ptr
-#include <io/container.h>
-//for Module::Holder::Ptr
-#include <core/module_holder.h>
-
+//library includes
+#include <parameters.h>//for typedef'ed Parameters::Map
+#include <io/container.h>//for IO::DataContainer::Ptr
+#include <core/module_holder.h>//for Module::Holder::Ptr
+//boost includes
 #include <boost/function.hpp>
 
+//forward declarations
 class Error;
-
 namespace Log
 {
   struct MessageData;

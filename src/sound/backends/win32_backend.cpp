@@ -11,25 +11,25 @@ Author:
 
 #ifdef WIN32_WAVEOUT_SUPPORT
 
+//local includes
 #include "backend_impl.h"
 #include "backend_wrapper.h"
 #include "enumerator.h"
-
+//common includes
 #include <tools.h>
 #include <error_tools.h>
+//library includes
 #include <sound/backends_parameters.h>
 #include <sound/error_codes.h>
-
-#include <boost/noncopyable.hpp>
-
-//platform-dependent
+//platform-dependent includes
 #include <windows.h>
-
-#include <boost/bind.hpp>
-#include <boost/ref.hpp>
-
+//std includes
 #include <algorithm>
-
+//boost includes
+#include <boost/bind.hpp>
+#include <boost/noncopyable.hpp>
+#include <boost/ref.hpp>
+//text includes
 #include <sound/text/backends.h>
 #include <sound/text/sound.h>
 

@@ -9,17 +9,20 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+//local includes
 #include "enumerator.h"
 #include "providers_list.h"
-
+//common includes
 #include <logging.h>
+//library includes
 #include <io/error_codes.h>
-
+//std includes
 #include <algorithm>
 #include <list>
+//boost includes
 #include <boost/bind.hpp>
 #include <boost/bind/apply.hpp>
-
+//text includes
 #include <io/text/io.h>
 
 #define FILE_TAG 03113EE3

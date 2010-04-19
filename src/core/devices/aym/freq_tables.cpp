@@ -9,14 +9,16 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+//local includes
 #include "freq_tables_internal.h"
-
+//common includes
 #include <error_tools.h>
 #include <tools.h>
+//library includes
 #include <core/error_codes.h>
-
+//boost includes
 #include <boost/bind.hpp>
-
+//text includes
 #include <core/text/core.h>
 
 #define FILE_TAG E8071E22

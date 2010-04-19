@@ -10,14 +10,14 @@
 #ifndef __IO_PROVIDER_H_DEFINED__
 #define __IO_PROVIDER_H_DEFINED__
 
-// for Parameters::Map
-#include <parameters.h>
-// for IO::DataContainer::Ptr
-#include <io/container.h>
-
-#include <boost/function.hpp>
-
+//common includes
+#include <parameters.h>     // for Parameters::Map
+//library includes
+#include <io/container.h>   // for IO::DataContainer::Ptr
+//std includes
 #include <vector>
+//boost includes
+#include <boost/function.hpp>
 
 //forward declarations
 class Error;

@@ -12,9 +12,10 @@ Author:
 #ifndef __CORE_PLUGINS_PLAYERS_UTILS_H_DEFINED__
 #define __CORE_PLUGINS_PLAYERS_UTILS_H_DEFINED__
 
+//std includes
 #include <algorithm>
 #include <cctype>
-
+//boost includes
 #include <boost/algorithm/string/trim.hpp>
 
 inline String OptimizeString(const String& str, Char replace = '\?')

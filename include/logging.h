@@ -10,11 +10,12 @@
 #ifndef __LOGGING_H_DEFINED__
 #define __LOGGING_H_DEFINED__
 
+//common includes
 #include <types.h>
-
+//std includes
 #include <cassert>
 #include <string>
-
+//boost includes
 #include <boost/format.hpp>
 #include <boost/optional.hpp>
 

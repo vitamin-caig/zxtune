@@ -9,19 +9,22 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+//local includes
 #include "enumerator.h"
-
+//common includes
 #include <tools.h>
 #include <error_tools.h>
+//library includes
 #include <io/error_codes.h>
 #include <io/fs_tools.h>
 #include <io/providers_parameters.h>
-
+//std includes
 #include <fstream>
+//boost includes
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
 #include <boost/shared_array.hpp>
-
+//text includes
 #include <io/text/io.h>
 
 #define FILE_TAG 0D4CB3DA

@@ -10,8 +10,9 @@
 #ifndef __FORMATTER_TYPE_H_DEFINED__
 #define __FORMATTER_TYPE_H_DEFINED__
 
+//common includes
 #include <char_type.h>
-
+//boost includes
 #include <boost/format.hpp>
 
 //! @brief Formatter type

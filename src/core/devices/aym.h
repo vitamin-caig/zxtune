@@ -8,16 +8,16 @@ Last changed:
 Author:
   (C) Vitamin/CAIG/2001
 */
+
 #ifndef __AYM_H_DEFINED__
 #define __AYM_H_DEFINED__
 
+//common includes
 #include <types.h>
-
+//library includes
 #include <core/module_types.h>
 #include <sound/receiver.h>
-
-#include <boost/static_assert.hpp>
-
+//std includes
 #include <memory>
 
 //supporting for AY/YM-based modules
@@ -35,9 +35,9 @@ namespace ZXTune
     
     struct DataChunk
     {
+      //registers offsets in data
       enum
       {
-        //registers offsets in data
         REG_TONEA_L,
         REG_TONEA_H,
         REG_TONEB_L,
@@ -59,7 +59,11 @@ namespace ZXTune
 
         //limiter
         PARAM_LAST,
+      };
 
+      //masks
+      enum
+      {
         //to mark all registers actual
         MASK_ALL_REGISTERS = (1 << (REG_ENV + 1)) - 1,
 
@@ -101,9 +105,7 @@ namespace ZXTune
     public:
       typedef std::auto_ptr<Chip> Ptr;
 
-      virtual ~Chip()
-      {
-      }
+      virtual ~Chip() {}
 
       /// render single data chunkg
       virtual void RenderData(const Sound::RenderParameters& params,

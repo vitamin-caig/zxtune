@@ -12,14 +12,17 @@ Author:
 #ifndef __CORE_PLUGINS_ENUMERATOR_H_DEFINED__
 #define __CORE_PLUGINS_ENUMERATOR_H_DEFINED__
 
+//common includes
 #include <string_helpers.h>
+//library includes
 #include <core/module_detect.h>
 #include <core/plugin.h>
-
+//boost includes
 #include <boost/function.hpp>
 
 namespace ZXTune
 {
+  //used module region descriptor
   struct ModuleRegion
   {
     ModuleRegion() : Offset(), Size()
@@ -33,6 +36,7 @@ namespace ZXTune
     std::size_t Size;
   };
 
+  //module container descriptor- all required data
   struct MetaContainer
   {
     IO::DataContainer::Ptr Data;
@@ -40,6 +44,7 @@ namespace ZXTune
     StringArray PluginsChain;
   };
 
+  //helper function to fill standard module properties
   void ExtractMetaProperties(const String& type,
                              const MetaContainer& container, const ModuleRegion& region, const ModuleRegion& fixedRegion,
                              Parameters::Map& properties, Dump& rawData);

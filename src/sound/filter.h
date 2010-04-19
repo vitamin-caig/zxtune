@@ -10,10 +10,10 @@
 #ifndef __SOUND_FILTER_H_DEFINED__
 #define __SOUND_FILTER_H_DEFINED__
 
+//common includes
+#include <error.h>
+//library includes
 #include <sound/receiver.h>
-
-//forward declarations
-class Error;
 
 namespace ZXTune
 {

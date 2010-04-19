@@ -10,8 +10,9 @@
 #ifndef __CORE_FREQ_TABLES_H_DEFINED__
 #define __CORE_FREQ_TABLES_H_DEFINED__
 
+//common includes
 #include <types.h>
-
+//boost includes
 #include <boost/array.hpp>
 
 namespace ZXTune

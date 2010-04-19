@@ -10,8 +10,9 @@
 #ifndef __ERROR_H_DEFINED__
 #define __ERROR_H_DEFINED__
 
+//common includes
 #include <types.h>
-
+//boost includes
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
 
@@ -21,7 +22,7 @@ class Error
 {
   // internal types
   struct Meta;
-  typedef boost::shared_ptr<struct Meta> MetaPtr;
+  typedef boost::shared_ptr<Meta> MetaPtr;
 public:
   //! @brief Datatype for source text line identification\n
   //! LineTag = FILE_TAG + __LINE__\n

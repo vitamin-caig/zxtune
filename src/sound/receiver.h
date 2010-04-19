@@ -10,11 +10,12 @@
 #ifndef __SOUND_RECEIVER_H_DEFINED__
 #define __SOUND_RECEIVER_H_DEFINED__
 
+//library includes
 #include <sound/sound_types.h>
-
-#include <boost/shared_ptr.hpp>
-
+//std includes
 #include <vector>
+//boost includes
+#include <boost/shared_ptr.hpp>
 
 namespace ZXTune
 {

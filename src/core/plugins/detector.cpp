@@ -9,8 +9,9 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+//local includes
 #include "detector.h"
-
+//std includes
 #include <cassert>
 #include <cctype>
 

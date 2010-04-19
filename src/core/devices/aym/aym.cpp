@@ -10,11 +10,15 @@ Author:
 
   Based on sources of UnrealSpeccy by SMT
 */
-#include <tools.h>
+
+//local includes
 #include <core/devices/aym.h>
+//common includes
+#include <tools.h>
+//library includes
 #include <sound/sound_types.h>
 #include <sound/render_params.h>
-
+//std includes
 #include <cassert>
 #include <functional>
 #include <limits>

@@ -11,28 +11,29 @@ Author:
 
 #ifdef OSS_SUPPORT
 
+//local includes
 #include "backend_impl.h"
 #include "backend_wrapper.h"
 #include "enumerator.h"
-
+//common includes
 #include <tools.h>
 #include <error_tools.h>
 #include <logging.h>
+//library includes
 #include <io/fs_tools.h>
 #include <sound/backends_parameters.h>
 #include <sound/error_codes.h>
-
-//platform-specific
+//platform-specific includes
 #include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include <sys/soundcard.h>
-
-#include <boost/noncopyable.hpp>
-
+//std includes
 #include <algorithm>
-
+//boost includes
+#include <boost/noncopyable.hpp>
+//text includes
 #include <sound/text/backends.h>
 #include <sound/text/sound.h>
 

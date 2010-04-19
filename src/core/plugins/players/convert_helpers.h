@@ -12,13 +12,16 @@ Author:
 #ifndef __CORE_PLUGINS_PLAYERS_CONVERT_HELPERS_H_DEFINED__
 #define __CORE_PLUGINS_PLAYERS_CONVERT_HELPERS_H_DEFINED__
 
+//local includes
 #include "vortex_base.h"
-
+//library includes
 #include <core/module_player.h>
-
+//boost includes
 #include <boost/function.hpp>
 
+//forward declarations
 class Error;
+
 namespace ZXTune
 {
   namespace Module

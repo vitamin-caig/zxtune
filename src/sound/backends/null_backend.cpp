@@ -9,14 +9,15 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+//local includes
 #include "backend_impl.h"
 #include "backend_wrapper.h"
 #include "enumerator.h"
-
+//library includes
 #include <sound/error_codes.h>
-
+//boost includes
 #include <boost/noncopyable.hpp>
-
+//text includes
 #include <sound/text/backends.h>
 #include <sound/text/sound.h>
 

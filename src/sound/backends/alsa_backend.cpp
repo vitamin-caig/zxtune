@@ -11,22 +11,23 @@ Author:
 
 #ifdef ALSA_SUPPORT
 
+//local includes
 #include "backend_impl.h"
 #include "backend_wrapper.h"
 #include "enumerator.h"
-
+//common includes
 #include <byteorder.h>
 #include <error_tools.h>
-#include <io/fs_tools.h>
 #include <logging.h>
 #include <tools.h>
+//library includes
+#include <io/fs_tools.h>
 #include <sound/backends_parameters.h>
 #include <sound/error_codes.h>
-
-//platform-specific
+//platform-specific includes
 #include <alsa/asoundlib.h>
 #include <alsa/pcm.h>
-
+//text includes
 #include <sound/text/backends.h>
 #include <sound/text/sound.h>
 

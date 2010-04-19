@@ -10,11 +10,12 @@
 #ifndef __PARAMETERS_TYPES_H_DEFINED__
 #define __PARAMETERS_TYPES_H_DEFINED__
 
+//common includes
 #include <string_helpers.h>
 #include <types.h>
-
+//std includes
 #include <map>
-
+//boost includes
 #include <boost/variant/get.hpp>
 #include <boost/variant/variant.hpp>
 

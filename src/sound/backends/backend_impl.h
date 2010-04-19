@@ -12,11 +12,13 @@ Author:
 #ifndef __SOUND_BACKEND_IMPL_H_DEFINED__
 #define __SOUND_BACKEND_IMPL_H_DEFINED__
 
+//common includes
 #include <error.h>
+//library includes
 #include <sound/backend.h>
 #include <sound/mixer.h>
 #include <sound/render_params.h>
-
+//boost includes
 #include <boost/thread.hpp>
 
 namespace ZXTune

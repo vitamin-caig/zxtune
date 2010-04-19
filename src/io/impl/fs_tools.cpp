@@ -9,12 +9,14 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+//common includes
 #include <error_tools.h>
+//library includes
 #include <io/error_codes.h>
 #include <io/fs_tools.h>
-
+//std includes
 #include <cctype>
-
+//text includes
 #include <io/text/io.h>
 
 #define FILE_TAG 9AC2A0AC

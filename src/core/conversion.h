@@ -10,6 +10,7 @@
 #ifndef __CORE_CONVERSION_H_DEFINED__
 #define __CORE_CONVERSION_H_DEFINED__
 
+//common includes
 #include <tools.h>
 
 namespace ZXTune

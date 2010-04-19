@@ -10,8 +10,9 @@
 #ifndef __IO_CONTAINER_H_DEFINED__
 #define __IO_CONTAINER_H_DEFINED__
 
+//common includes
 #include <types.h>
-
+//boost includes
 #include <boost/shared_ptr.hpp>
 
 namespace ZXTune

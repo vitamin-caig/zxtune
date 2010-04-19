@@ -9,9 +9,10 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+//common includes
 #include <template.h>
 
-String InstantiateTemplate(const String& templ, const StringMap& properties, 
+String InstantiateTemplate(const String& templ, const StringMap& properties,
   InstantiateMode mode, Char beginMark, Char endMark)
 {
   bool inField(false);

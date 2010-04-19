@@ -9,20 +9,22 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-#include "../enumerator.h"
-
+//local includes
+#include <core/plugins/enumerator.h>
+#include <core/devices/aym.h>
+//common includes
 #include <tools.h>
 #include <logging.h>
+//library includes
 #include <core/convert_parameters.h>
 #include <core/error_codes.h>
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
 #include <io/container.h>
 #include <sound/render_params.h>
-#include <core/devices/aym.h>
-
+//boost includes
 #include <boost/enable_shared_from_this.hpp>
-
+//text includes
 #include <core/text/core.h>
 #include <core/text/plugins.h>
 

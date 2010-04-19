@@ -9,12 +9,14 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-#ifndef __CORE_PLUGINS_PLAYERS_AYM_PARAMETERS_HELPER_H_DEFINED__
-#define __CORE_PLUGINS_PLAYERS_AYM_PARAMETERS_HELPER_H_DEFINED__
+#ifndef __AYM_PARAMETERS_HELPER_H_DEFINED__
+#define __AYM_PARAMETERS_HELPER_H_DEFINED__
 
+//common includes
 #include <parameters.h>
+//library includes
 #include <core/freq_tables.h>
-
+//std includes
 #include <memory>
 
 namespace ZXTune
@@ -44,4 +46,4 @@ namespace ZXTune
   }
 }
 
-#endif //__CORE_PLUGINS_PLAYERS_AYM_PARAMETERS_HELPER_H_DEFINED__
+#endif //__AYM_PARAMETERS_HELPER_H_DEFINED__

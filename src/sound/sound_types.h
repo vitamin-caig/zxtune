@@ -10,8 +10,9 @@
 #ifndef __SOUND_TYPES_H_DEFINED__
 #define __SOUND_TYPES_H_DEFINED__
 
+//common includes
 #include <types.h>
-
+//boost includes
 #include <boost/array.hpp>
 
 namespace ZXTune

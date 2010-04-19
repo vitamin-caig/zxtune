@@ -9,11 +9,12 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+//library includes
 #include <io/container.h>
-
-#include <boost/shared_array.hpp>
-
+//std includes
 #include <cstring>
+//boost includes
+#include <boost/shared_array.hpp>
 
 namespace
 {

@@ -9,18 +9,20 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+//local includes
 #include "enumerator.h"
 #include "backends_list.h"
-
+//common includes
 #include <logging.h>
 #include <error_tools.h>
+//library includes
 #include <sound/error_codes.h>
-
+//std includes
 #include <cassert>
 #include <map>
-
+//boost includes
 #include <boost/bind.hpp>
-
+//text includes
 #include <sound/text/sound.h>
 
 #define FILE_TAG AE42FD5E

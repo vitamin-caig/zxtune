@@ -9,15 +9,18 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-#include <tools.h>
+//local includes
 #include <core/devices/dac.h>
+#include <sound/impl/internal_types.h>
+//common includes
+#include <tools.h>
+//library includes
 #include <sound/sound_types.h>
 #include <sound/render_params.h>
-#include <sound/impl/internal_types.h>
-
+//std includes
 #include <limits>
 #include <numeric>
-
+//boost includes
 #include <boost/array.hpp>
 #include <boost/bind.hpp>
 

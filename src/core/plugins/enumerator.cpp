@@ -9,26 +9,28 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+//local includes
 #include "enumerator.h"
 #include "players/plugins_list.h"
 #include "implicit/plugins_list.h"
 #include "containers/plugins_list.h"
-
+//common includes
 #include <error_tools.h>
 #include <logging.h>
+//library includes
 #include <core/error_codes.h>
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
 #include <io/container.h>
 #include <io/fs_tools.h>
-
+//boost includes
 #include <boost/bind.hpp>
 #include <boost/crc.hpp>
 #include <boost/ref.hpp>
 #include <boost/bind/apply.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/algorithm/string/join.hpp>
-
+//text includes
 #include <core/text/core.h>
 
 #define FILE_TAG 04EDD719

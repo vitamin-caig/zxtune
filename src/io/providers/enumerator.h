@@ -12,9 +12,9 @@ Author:
 #ifndef __IO_ENUMERATOR_H_DEFINED__
 #define __IO_ENUMERATOR_H_DEFINED__
 
-// for ProviderInfoArray
-#include <io/provider.h>
-
+//libary includes
+#include <io/provider.h>  // for ProviderInfoArray
+//boost includes
 #include <boost/function.hpp>
 
 namespace ZXTune

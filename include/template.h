@@ -10,6 +10,7 @@
 #ifndef __TEMPLATE_H_DEFINED__
 #define __TEMPLATE_H_DEFINED__
 
+//common includes
 #include <string_helpers.h>
 
 //! @brief %Parameters instantiating modes
@@ -41,7 +42,7 @@ enum InstantiateMode
 //! //val3="name1=value1 name2=value2 name3=       ");
 //! const String& val3 = InstantiateTemplate(format, FILL_NONEXISTING);
 //! @endcode
-String InstantiateTemplate(const String& templ, const StringMap& properties, 
+String InstantiateTemplate(const String& templ, const StringMap& properties,
   InstantiateMode mode = KEEP_NONEXISTING, Char beginMark = '[', Char endMark = ']');
 
 #endif //__TEMPLATE_H_DEFINED__

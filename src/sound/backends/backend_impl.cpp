@@ -9,14 +9,16 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+//local includes
 #include "backend_impl.h"
-
+//common includes
 #include <tools.h>
 #include <error_tools.h>
 #include <logging.h>
+//library includes
 #include <sound/error_codes.h>
 #include <sound/sound_parameters.h>
-
+//text includes
 #include <sound/text/sound.h>
 
 #define FILE_TAG B3D60DB5

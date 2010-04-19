@@ -10,13 +10,14 @@
 #ifndef __STRING_HELPERS_H_DEFINED__
 #define __STRING_HELPERS_H_DEFINED__
 
+//common includes
 #include <types.h>
-
+//std includes
+#include <list>
 #include <map>
 #include <set>
-#include <list>
-#include <vector>
 #include <sstream>
+#include <vector>
 
 //common types
 //! @brief ostringstream-based type for String

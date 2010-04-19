@@ -10,11 +10,11 @@
 #ifndef __SOUND_BACKEND_H_DEFINED__
 #define __SOUND_BACKEND_H_DEFINED__
 
-// for Module::Holder::Ptr, Converter::Ptr and other
-#include <core/module_holder.h>
-
+//library includes
+#include <core/module_holder.h> // for Module::Holder::Ptr, Converter::Ptr and other
+//std includes
 #include <memory>
-
+//boost includes
 #include <boost/weak_ptr.hpp>
 
 //forward declarations

@@ -9,20 +9,21 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-#include "../enumerator.h"
-
+//local includes
+#include <core/plugins/enumerator.h>
+//common includes
 #include <error_tools.h>
 #include <logging.h>
 #include <tools.h>
-
+//library includes
 #include <core/error_codes.h>
 #include <core/plugin_attrs.h>
 #include <core/plugins_parameters.h>
 #include <io/container.h>
 #include <io/fs_tools.h>
-
+//boost includes
 #include <boost/bind.hpp>
-
+//text includes
 #include <core/text/core.h>
 #include <core/text/plugins.h>
 

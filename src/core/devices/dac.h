@@ -8,14 +8,16 @@ Last changed:
 Author:
   (C) Vitamin/CAIG/2001
 */
+
 #ifndef __DAC_H_DEFINED__
 #define __DAC_H_DEFINED__
 
+//common includes
 #include <types.h>
-
+//library includes
 #include <core/module_types.h>
 #include <sound/receiver.h>
-
+//std includes
 #include <memory>
 
 //supporting for multichannel sample-based DAC
@@ -70,9 +72,7 @@ namespace ZXTune
     public:
       typedef std::auto_ptr<Chip> Ptr;
 
-      virtual ~Chip()
-      {
-      }
+      virtual ~Chip() {}
 
       /// Set sample for work
       virtual void SetSample(uint_t idx, const Dump& data, uint_t loop) = 0;

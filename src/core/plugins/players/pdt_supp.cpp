@@ -8,25 +8,28 @@ Last changed:
 Author:
   (C) Vitamin/CAIG/2001
 */
-#include "tracking.h"
-#include "../enumerator.h"
-#include "../utils.h"
 
+//local includes
+#include "tracking.h"
+#include <core/devices/dac.h>
+#include <core/plugins/enumerator.h>
+#include <core/plugins/utils.h>
+//common includes
 #include <byteorder.h>
 #include <error_tools.h>
 #include <logging.h>
 #include <messages_collector.h>
 #include <tools.h>
+//library includes
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
 #include <core/error_codes.h>
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
-#include <core/devices/dac.h>
-
+//boost includes
 #include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
-
+//text includes
 #include <core/text/core.h>
 #include <core/text/plugins.h>
 #include <core/text/warnings.h>

@@ -9,17 +9,18 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+//local includes
 #include "convert_helpers.h"
 #include "vortex_io.h"
-
+//library includes
 #include <core/convert_parameters.h>
 #include <core/error_codes.h>
 #include <core/plugin_attrs.h>
 #include <sound/dummy_receiver.h>
 #include <sound/render_params.h>
-
+//boost includes
 #include <boost/algorithm/string.hpp>
-
+//text includes
 #include <core/text/core.h>
 
 #define FILE_TAG ED36600C

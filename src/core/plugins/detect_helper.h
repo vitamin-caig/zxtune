@@ -12,11 +12,12 @@ Author:
 #ifndef __CORE_PLUGINS_DETECT_HELPER_H_DEFINED__
 #define __CORE_PLUGINS_DETECT_HELPER_H_DEFINED__
 
+//local includes
 #include "detector.h"
 #include "enumerator.h"
-
+//library includes
 #include <core/module_holder.h>
-
+//boost includes
 #include <boost/function.hpp>
 
 namespace ZXTune
