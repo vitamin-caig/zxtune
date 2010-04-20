@@ -1,6 +1,6 @@
 /*
 Abstract:
-  Main window creator declaration
+  Main window declaration
 
 Last changed:
   $Id$
@@ -14,13 +14,19 @@ Author:
 #ifndef ZXTUNE_QT_MAINWINDOW_H_DEFINED
 #define ZXTUNE_QT_MAINWINDOW_H_DEFINED
 
-//qt includes
-#include <QtCore/QPointer>
-#include <QtGui/QMainWindow>
+//local includes
+#include "mainwindow_ui.h"
 
-namespace QtUi
+class MainWindow : public QMainWindow
+                 , private Ui::MainWindow
 {
-  QPointer<QMainWindow> CreateMainWindow();
-}
+  Q_OBJECT
+public:
+  MainWindow();
+
+public:
+  class PlaybackControls* Controls;
+  class SeekControls* Seeking;
+};
 
 #endif //ZXTUNE_QT_MAINWINDOW_H_DEFINED

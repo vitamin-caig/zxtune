@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MainForm</class>
- <widget class="QMainWindow" name="MainForm">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -17,7 +17,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string notr="true">zxtune-qt</string>
+   <string>zxtune-qt</string>
   </property>
   <widget class="QWidget" name="centralwidget"/>
   <widget class="QMenuBar" name="menubar">
@@ -29,32 +29,44 @@
      <height>24</height>
     </rect>
    </property>
+   <property name="mouseTracking">
+    <bool>true</bool>
+   </property>
+   <property name="acceptDrops">
+    <bool>false</bool>
+   </property>
    <widget class="QMenu" name="menuFile">
+    <property name="mouseTracking">
+     <bool>true</bool>
+    </property>
+    <property name="acceptDrops">
+     <bool>false</bool>
+    </property>
     <property name="title">
-     <string>File</string>
+     <string notr="true">File</string>
     </property>
    </widget>
    <widget class="QMenu" name="menuPlayback">
     <property name="title">
-     <string>Playback</string>
+     <string notr="true">Playback</string>
     </property>
     <addaction name="actionPlay"/>
     <addaction name="actionPause"/>
     <addaction name="actionStop"/>
     <addaction name="separator"/>
     <addaction name="actionNext"/>
-    <addaction name="actionPrevious_2"/>
+    <addaction name="actionPrevious"/>
    </widget>
-   <widget class="QMenu" name="menuControls">
+   <widget class="QMenu" name="menuLayout">
     <property name="title">
-     <string>Controls</string>
+     <string notr="true">Layout</string>
     </property>
-    <addaction name="actionShowPlayback"/>
+    <addaction name="actionShowControls"/>
     <addaction name="actionShowSeeking"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuPlayback"/>
-   <addaction name="menuControls"/>
+   <addaction name="menuLayout"/>
   </widget>
   <widget class="QToolBar" name="controlToolbar">
    <property name="sizePolicy">
@@ -112,12 +124,7 @@
     <string>Next</string>
    </property>
   </action>
-  <action name="actionPrevious_2">
-   <property name="text">
-    <string>Previous</string>
-   </property>
-  </action>
-  <action name="actionShowPlayback">
+  <action name="actionShowControls">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -125,7 +132,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Playback</string>
+    <string>Controls</string>
    </property>
   </action>
   <action name="actionShowSeeking">
@@ -143,7 +150,7 @@
  <resources/>
  <connections>
   <connection>
-   <sender>actionShowPlayback</sender>
+   <sender>actionShowControls</sender>
    <signal>toggled(bool)</signal>
    <receiver>controlToolbar</receiver>
    <slot>setVisible(bool)</slot>

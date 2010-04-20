@@ -1,6 +1,6 @@
 /*
 Abstract:
-  Main window creation implementation
+  Main window implementation
 
 Last changed:
   $Id$
@@ -12,36 +12,18 @@ Author:
 */
 
 //local includes
-#include "../mainwindow.h"
-#include "../playbackcontrol.h"
-#include "../seekcontrol.h"
-#include "main_form.h"
+#include "mainwindow.h"
+#include "mainwindow_moc.h"
+#include "playback_controls.h"
+#include "seek_controls.h"
 
-namespace
+MainWindow::MainWindow()
+  : Controls(new PlaybackControls(this))
+  , Seeking(new SeekControls(this))
 {
-  class MainWindow : public QMainWindow, private Ui::MainForm
-  {
-  public:
-    MainWindow()
-      : PlaybackControl(QtUi::CreatePlaybackControlWidget())
-      , SeekControl(QtUi::CreateSeekControlWidget())
-    {
-      //fill and layout
-      setupUi(this);
-      //add widgets to toolbars
-      controlToolbar->addWidget(PlaybackControl.data());
-      seekToolbar->addWidget(SeekControl.data());
-    }
-  private:
-    QPointer<QWidget> PlaybackControl;
-    QPointer<QWidget> SeekControl;
-  };
-};
-
-namespace QtUi
-{
-  QPointer<QMainWindow> CreateMainWindow()
-  {
-    return QPointer<QMainWindow>(new MainWindow());
-  }
+    //fill and layout
+    setupUi(this);
+    //add widgets to toolbars
+    controlToolbar->addWidget(Controls);
+    seekToolbar->addWidget(Seeking);
 }

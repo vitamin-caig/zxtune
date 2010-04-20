@@ -12,7 +12,7 @@ Author:
 */
 
 //local includes
-#include "mainwindow.h"
+#include "ui/mainwindow.h"
 #include <apps/base/app.h>
 //qt includes
 #include <QtGui/QApplication>
@@ -30,8 +30,8 @@ namespace
     {
       QApplication qapp(argc, argv);
       //main ui
-      QPointer<QMainWindow> win(QtUi::CreateMainWindow());
-      win->show();
+      MainWindow win;
+      win.show();
       return qapp.exec();
     }
   private:
