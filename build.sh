@@ -29,9 +29,19 @@ rm -Rf ${TargetDir} bin/${Platform}/release lib/${Platform}/release obj/${Platfo
 echo "Creating build dir"
 mkdir -p ${TargetDir}
 
+# adding additional platform properties if required
+case ${Arch} in
+    ppc | ppc64 | powerpc)
+	test `grep cpu /proc/cpuinfo | uniq | cut -f 3 -d " "` = "altivec" && cxx_flags="-mabi=altivec -maltivec"
+	test `grep cpu /proc/cpuinfo | uniq | cut -f 2 -d " " | sed -e 's/,//g'` = "PPC970MP" && cxx_flags="${cxx_flags} -mtune=970 -mcpu=970"
+    ;;
+    *)
+    ;;
+esac
+
 echo "Building"
 time make -j `grep processor /proc/cpuinfo | wc -l` mode=release \
-     platform=${Platform} defines=ZXTUNE_VERSION=rev${Revision} \
+     platform=${Platform} defines=ZXTUNE_VERSION=rev${Revision} cxx_flags="${cxx_flags}" \
      -C apps/zxtune123 > ${TargetDir}/build.log || exit 1;
 
 ZipFile=${TargetDir}/${Binary}_r${Suffix}.zip
