@@ -38,12 +38,12 @@ else
 $(error Invalid target)
 endif
 
-h_texts := $(text_files:=.h)
-cpp_texts := $(text_files:=.cpp)
-dep_texts := $(other_text_files:=.txt)
+#generated files: textator, uic
+h_generated := $(text_files:=.h) $(ui_files:=.h)
+cpp_generated := $(text_files:=.cpp)
 
 #main target
-all: dirs $(h_texts) $(cpp_texts) $(target)
+all: dirs $(h_generated) $(cpp_generated) $(target)
 .PHONY: all dirs
 
 #set compiler-specific parameters
@@ -54,13 +54,14 @@ ifdef source_dirs
 source_files := $(wildcard $(addsuffix /*.cpp,$(source_dirs)))
 else ifdef source_files
 source_files := $(source_files:=.cpp)
-else ifndef text_files
-$(error Not source_dirs or source_files or text_files defined at all)
+else ifeq ($(or $(text_files),$(ui_files)),)
+$(error Not source_dirs or source_files or text_files or ui_files defined at all)
 endif
 
 #process texts if required
 ifdef text_files
-source_files += $(cpp_texts)
+dep_texts := $(other_text_files:=.txt)
+source_files += $(text_files:=.cpp)
 
 #textator can be get from
 #http://code.google.com/p/textator
@@ -73,6 +74,14 @@ TEXTATOR_FLAGS := --verbose --process --cpp --symboltype "Char" --memtype "exter
 
 %.h: %.txt $(dep_texts)
 	$(TEXTATOR) $(TEXTATOR_FLAGS) --noinline --output $@ $<
+endif
+
+#process ui if required
+ifdef ui_files
+UIC := uic
+
+%.h: %.ui
+	$(UIC) $< -o $@
 endif
 
 #calculate object files from sources
