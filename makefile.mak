@@ -39,8 +39,8 @@ $(error Invalid target)
 endif
 
 #generated files: textator, uic
-h_generated := $(text_files:=.h) $(ui_files:=.h)
-cpp_generated := $(text_files:=.cpp)
+h_generated += $(text_files:=.h)
+cpp_generated += $(text_files:=.cpp)
 
 #main target
 all: dirs $(h_generated) $(cpp_generated) $(target)
