@@ -11,7 +11,7 @@
 #define __FORMATTER_TYPE_H_DEFINED__
 
 //common includes
-#include <char_type.h>
+#include <types.h>
 //boost includes
 #include <boost/format.hpp>
 
@@ -22,7 +22,7 @@
 //! <A HREF="http://www.boost.org/doc/libs/1_41_0/libs/format/doc/format.html#syntax">Syntax of format string</A>
 typedef boost::basic_format<Char> Formatter;
 
-// @brief Safe formatter type - does not throw exceptions if format string does not correspond to parameters count
+//! @brief Safe formatter type - does not throw exceptions if format string does not correspond to parameters count
 class SafeFormatter : public Formatter
 {
 public:
@@ -35,5 +35,11 @@ public:
     exceptions(all_error_bits ^ (too_many_args_bit | too_few_args_bit));
   }
 };
+
+//! @brief Format time
+//! @param timeInFrames frames quantity
+//! @param frameDurationMicrosec frame duration in microseconds
+//! @return Formatted time
+String FormatTime(uint_t timeInFrames, uint_t frameDurationMicrosec);
 
 #endif //__FORMATTER_TYPE_H_DEFINED__
