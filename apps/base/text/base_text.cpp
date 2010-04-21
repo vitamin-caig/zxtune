@@ -28,11 +28,5 @@ extern const Char ERROR_INVALID_FORMAT[] = {
   'I','n','v','a','l','i','d',' ','p','a','r','a','m','e','t','e','r',' ','f','o','r','m','a','t',' ','\'','%',
   '1','%','\'','.',0
 };
-extern const Char TIME_FORMAT[] = {
-  '%','1','%',':','%','2','$','0','2','u','.','%','3','$','0','2','u',0
-};
-extern const Char TIME_FORMAT_HOURS[] = {
-  '%','1','%',':','%','2','$','0','2','u',':','%','3','$','0','2','u','.','%','4','$','0','2','u',0
-};
 }//namespace Text
 #endif //__BASE_TEXT_H_DEFINED__

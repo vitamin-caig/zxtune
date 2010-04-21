@@ -13,12 +13,6 @@ __cpp> "}//namespace Text\n"
 __cpp> "#endif //__BASE_TEXT_H_DEFINED__\n"
 
 #common texts
-< TIME_FORMAT_HOURS
-> "%1%:%2$02u:%3$02u.%4$02u"
-
-< TIME_FORMAT
-> "%1%:%2$02u.%3$02u"
-
 < CONFIG_FILENAME
 > "zxtune.conf"
 

@@ -78,7 +78,7 @@ namespace
     StdOut
       << std::endl
       << InstantiateTemplate(Text::ITEM_INFO, strProps, FILL_NONEXISTING)
-      << (Formatter(Text::ITEM_INFO_ADDON) % UnparseFrameTime(info.Statistic.Frame, frameDuration) %
+      << (Formatter(Text::ITEM_INFO_ADDON) % FormatTime(info.Statistic.Frame, frameDuration) %
         info.Statistic.Channels % info.PhysicalChannels).str();
 #else
     std::for_each(strProps.begin(), strProps.end(), OutProp);
@@ -110,7 +110,7 @@ namespace
                           uint_t frameDuration)
   {
     const Char MARKER = '\x1';
-    String data((Formatter(Text::PLAYBACK_STATUS) % UnparseFrameTime(frame, frameDuration) % MARKER).str());
+    String data((Formatter(Text::PLAYBACK_STATUS) % FormatTime(frame, frameDuration) % MARKER).str());
     const String::size_type totalSize = data.size() - 1 - PLAYING_HEIGHT;
     const String::size_type markerPos = data.find(MARKER);
     
