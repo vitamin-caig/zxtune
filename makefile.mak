@@ -76,14 +76,6 @@ TEXTATOR_FLAGS := --verbose --process --cpp --symboltype "Char" --memtype "exter
 	$(TEXTATOR) $(TEXTATOR_FLAGS) --noinline --output $@ $<
 endif
 
-#process ui if required
-ifdef ui_files
-UIC := uic
-
-%.h: %.ui
-	$(UIC) $< -o $@
-endif
-
 #calculate object files from sources
 object_files := $(notdir $(source_files))
 object_files := $(addprefix $(objects_dir)/,$(object_files:.cpp=$(call makeobj_name,)))
