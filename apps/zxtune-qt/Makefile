@@ -11,7 +11,8 @@ libraries := zxtune_app_base
 
 depends := apps/base
 
-$(platform)_libraries := QtGui
+qt_libraries := Gui Core main
+windows_libraries := gdi32 user32 advapi32 shell32 ole32 oleaut32 imm32 comdlg32 wsock32 winspool uuid oldnames $(if $(subst release,,$(mode)),comsuppwd,comsuppw)
 
 h_generated := $(ui_files:=_ui.h) $(ui_files:=_moc.h)
 

@@ -15,3 +15,4 @@ support_alsa = 1
 include_dirs += /usr/include/qt4
 
 linux_libraries += $(foreach lib,$(boost_libraries),boost_$(lib)-mt)
+linux_libraries += $(foreach lib,$(qt_libraries),Qt$(lib))

@@ -21,8 +21,11 @@ support_aylpt_dlportio = 1
 # msvs - version of MSVS used to compile and link
 # -gd - used for debug libraries
 # version - boost version major_minor
-ifeq ($(mode),release)
-windows_libraries += $(foreach lib,$(boost_libraries),$(if $(boost_dynamic),,lib)boost_$(lib)-$(MSVS_VERSION)-mt-$(BOOST_VERSION))
-else
-windows_libraries += $(foreach lib,$(boost_libraries),$(if $(boost_dynamic),,lib)boost_$(lib)-$(MSVS_VERSION)-mt-gd-$(BOOST_VERSION))
-endif
+windows_libraries += $(foreach lib,$(boost_libraries),$(if $(boost_dynamic),,lib)boost_$(lib)-$(MSVS_VERSION)-mt$(if $(subst release,,$(mode)),-gd,)-$(BOOST_VERSION))
+
+# buildable qt names convention used
+# Qt[lib][d][4].lib
+# lib - library name
+# d - used for debug libraries
+# 4 - used for dynamic linkage
+windows_libraries += $(foreach lib,$(qt_libraries),Qt$(lib)$(if $(subst release,,$(mode)),d,)$(if $(qt_dynamic),4,))
