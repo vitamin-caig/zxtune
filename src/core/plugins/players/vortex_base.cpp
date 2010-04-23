@@ -10,8 +10,8 @@ Author:
 */
 
 //local includes
+#include "aym_tracking.h"
 #include "vortex_base.h"
-#include <core/devices/aym_parameters_helper.h>
 //common includes
 #include <error_tools.h>
 #include <tools.h>
@@ -73,231 +73,120 @@ namespace
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f
   } };
 
-  // perform module 'playback' right after creating (debug purposes)
-  #ifndef NDEBUG
-  #define SELF_TEST
-  #endif
+  //helper for sliding processing
+  struct Slider
+  {
+    Slider() : Period(), Value(), Counter(), Delta()
+    {
+    }
+    uint_t Period;
+    int_t Value;
+    uint_t Counter;
+    int_t Delta;
+
+    bool Update()
+    {
+      if (Counter && !--Counter)
+      {
+        Value += Delta;
+        Counter = Period;
+        return true;
+      }
+      return false;
+    }
+
+    void Reset()
+    {
+      Counter = 0;
+      Value = 0;
+    }
+  };
+
+  //internal per-channel state type
+  struct ChannelState
+  {
+    ChannelState()
+      : Enabled(false), Envelope(false)
+      , Note()
+      , SampleNum(0), PosInSample(0)
+      , OrnamentNum(0), PosInOrnament(0)
+      , Volume(15), VolSlide(0)
+      , ToneSlider(), SlidingTargetNote(LIMITER), ToneAccumulator(0)
+      , EnvSliding(), NoiseSliding()
+      , VibrateCounter(0), VibrateOn(), VibrateOff()
+    {
+    }
+
+    bool Enabled;
+    bool Envelope;
+    uint_t Note;
+    uint_t SampleNum;
+    uint_t PosInSample;
+    uint_t OrnamentNum;
+    uint_t PosInOrnament;
+    uint_t Volume;
+    int_t VolSlide;
+    Slider ToneSlider;
+    uint_t SlidingTargetNote;
+    int_t ToneAccumulator;
+    int_t EnvSliding;
+    int_t NoiseSliding;
+    uint_t VibrateCounter;
+    uint_t VibrateOn;
+    uint_t VibrateOff;
+  };
+
+  //internal common state type
+  struct CommonState
+  {
+    CommonState()
+      : EnvBase()
+      , NoiseBase()
+      , NoiseAddon()
+    {
+    }
+
+    uint_t EnvBase;
+    Slider EnvSlider;
+    uint_t NoiseBase;
+    int_t NoiseAddon;
+  };
+
+  struct VortexState
+  {
+    boost::array<ChannelState, AYM::CHANNELS> ChanState;
+    CommonState CommState;
+  };
+
+  typedef AYMPlayerBase<Vortex::Track, VortexState> VortexPlayerBase;
 
   //simple player type
-  class VortexPlayer : public Player
+  class VortexPlayer : public VortexPlayerBase
   {
-    //helper for sliding processing
-    struct Slider
-    {
-      Slider() : Period(), Value(), Counter(), Delta()
-      {
-      }
-      uint_t Period;
-      int_t Value;
-      uint_t Counter;
-      int_t Delta;
-
-      bool Update()
-      {
-        if (Counter && !--Counter)
-        {
-          Value += Delta;
-          Counter = Period;
-          return true;
-        }
-        return false;
-      }
-
-      void Reset()
-      {
-        Counter = 0;
-        Value = 0;
-      }
-    };
-
-    //internal per-channel state type
-    struct ChannelState
-    {
-      ChannelState()
-        : Enabled(false), Envelope(false)
-        , Note()
-        , SampleNum(0), PosInSample(0)
-        , OrnamentNum(0), PosInOrnament(0)
-        , Volume(15), VolSlide(0)
-        , ToneSlider(), SlidingTargetNote(LIMITER), ToneAccumulator(0)
-        , EnvSliding(), NoiseSliding()
-        , VibrateCounter(0), VibrateOn(), VibrateOff()
-      {
-      }
-      
-      bool Enabled;
-      bool Envelope;
-      uint_t Note;
-      uint_t SampleNum;
-      uint_t PosInSample;
-      uint_t OrnamentNum;
-      uint_t PosInOrnament;
-      uint_t Volume;
-      int_t VolSlide;
-      Slider ToneSlider;
-      uint_t SlidingTargetNote;
-      int_t ToneAccumulator;
-      int_t EnvSliding;
-      int_t NoiseSliding;
-      uint_t VibrateCounter;
-      uint_t VibrateOn;
-      uint_t VibrateOff;
-    };
-
-    //internal common state type
-    struct CommonState
-    {
-      CommonState()
-        : EnvBase()
-        , NoiseBase()
-        , NoiseAddon()
-      {
-      }
-      
-      uint_t EnvBase;
-      Slider EnvSlider;
-      uint_t NoiseBase;
-      int_t NoiseAddon;
-    };
   public:
     typedef boost::shared_ptr<VortexPlayer> Ptr;
 
     VortexPlayer(Holder::ConstPtr holder, const Vortex::Track::ModuleData& data,
        uint_t version, const String& freqTableName, AYM::Chip::Ptr device)
-      : Module(holder)
-      , Data(data)
+      : VortexPlayerBase(holder, data, device, freqTableName)
       , Version(version)
       , VolTable(version <= 4 ? Vol33_34 : Vol35)
-      , AYMHelper(AYM::ParametersHelper::Create(freqTableName))
-      , Device(device)
-      , CurrentState(MODULE_STOPPED)
     {
-      Reset();
-#ifdef SELF_TEST
-//perform self-test
-      AYM::DataChunk chunk;
-      do
-      {
-        assert(Data.Positions.size() > ModState.Track.Position);
-        RenderData(chunk);
-      }
-      while (Vortex::Track::UpdateState(Data, ModState, Sound::LOOP_NONE));
-      Reset();
-#endif
     }
     
-    virtual const Holder& GetModule() const
-    {
-      return *Module;
-    }
-
-    virtual Error GetPlaybackState(uint_t& timeState,
-                                   Tracking& trackState,
-                                   Analyze::ChannelsState& analyzeState) const
-    {
-      timeState = ModState.Frame;
-      trackState = ModState.Track;
-      Device->GetState(analyzeState);
-      return Error();
-    }
-
-    virtual Error RenderFrame(const Sound::RenderParameters& params,
-                              PlaybackState& state,
-                              Sound::MultichannelReceiver& receiver)
-    {
-      if (ModState.Frame >= Data.Info.Statistic.Frame)
-      {
-        if (MODULE_STOPPED == CurrentState)
-        {
-          return Error(THIS_LINE, ERROR_MODULE_END, Text::MODULE_ERROR_MODULE_END);
-        }
-        receiver.Flush();
-        state = CurrentState = MODULE_STOPPED;
-        return Error();
-      }
-
-      AYM::DataChunk chunk;
-      AYMHelper->GetDataChunk(chunk);
-      ModState.Tick += params.ClocksPerFrame();
-      chunk.Tick = ModState.Tick;
-      RenderData(chunk);
-
-      Device->RenderData(params, chunk, receiver);
-      if (Vortex::Track::UpdateState(Data, ModState, params.Looping))
-      {
-        CurrentState = MODULE_PLAYING;
-      }
-      else
-      {
-        receiver.Flush();
-        CurrentState = MODULE_STOPPED;
-      }
-      state = CurrentState;
-      return Error();
-    }
-
-    virtual Error Reset()
-    {
-      Device->Reset();
-      Vortex::Track::InitState(Data, ModState);
-      std::fill(ChanState.begin(), ChanState.end(), ChannelState());
-      CommState = CommonState();
-      CurrentState = MODULE_STOPPED;
-      return Error();
-    }
-
-    virtual Error SetPosition(uint_t frame)
-    {
-      if (frame < ModState.Frame)
-      {
-        //reset to beginning in case of moving back
-        const uint64_t keepTicks = ModState.Tick;
-        Vortex::Track::InitState(Data, ModState);
-        std::fill(ChanState.begin(), ChanState.end(), ChannelState());
-        CommState = CommonState();
-        ModState.Tick = keepTicks;
-      }
-      //fast forward
-      AYM::DataChunk chunk;
-      while (ModState.Frame < frame)
-      {
-        //do not update tick for proper rendering
-        assert(Data.Positions.size() > ModState.Track.Position);
-        RenderData(chunk);
-        if (!Vortex::Track::UpdateState(Data, ModState, Sound::LOOP_NONE))
-        {
-          break;
-        }
-      }
-      return Error();
-    }
-
-    virtual Error SetParameters(const Parameters::Map& params)
-    {
-      try
-      {
-        AYMHelper->SetParameters(params);
-        return Error();
-      }
-      catch (const Error& e)
-      {
-        return Error(THIS_LINE, ERROR_INVALID_PARAMETERS, Text::MODULE_ERROR_SET_PLAYER_PARAMETERS).AddSuberror(e);
-      }
-    }
-  private:
-    void RenderData(AYM::DataChunk& chunk)
+    virtual void RenderData(AYM::DataChunk& chunk)
     {
       const Vortex::Track::Line& line = Data.Patterns[ModState.Track.Pattern][ModState.Track.Line];
       if (0 == ModState.Track.Frame)//begin note
       {
         if (0 == ModState.Track.Line)//pattern begin
         {
-          CommState.NoiseBase = 0;
+          PlayerState.CommState.NoiseBase = 0;
         }
         for (uint_t chan = 0; chan != line.Channels.size(); ++chan)
         {
           const Vortex::Track::Line::Chan& src = line.Channels[chan];
-          ChannelState& dst = ChanState[chan];
+          ChannelState& dst = PlayerState.ChanState[chan];
           if (src.Enabled)
           {
             dst.PosInSample = dst.PosInOrnament = 0;
@@ -362,15 +251,15 @@ namespace
               dst.ToneSlider.Counter = 0;
               break;
             case Vortex::SLIDEENV:
-              CommState.EnvSlider.Period = CommState.EnvSlider.Counter = it->Param1;
-              CommState.EnvSlider.Delta = it->Param2;
+              PlayerState.CommState.EnvSlider.Period = PlayerState.CommState.EnvSlider.Counter = it->Param1;
+              PlayerState.CommState.EnvSlider.Delta = it->Param2;
               break;
             case Vortex::ENVELOPE:
               chunk.Data[AYM::DataChunk::REG_ENV] = static_cast<uint8_t>(it->Param1);
-              CommState.EnvBase = it->Param2;
+              PlayerState.CommState.EnvBase = it->Param2;
               chunk.Mask |= (1 << AYM::DataChunk::REG_ENV);
               dst.Envelope = true;
-              CommState.EnvSlider.Reset();
+              PlayerState.CommState.EnvSlider.Reset();
               dst.PosInOrnament = 0;
               break;
             case Vortex::NOENVELOPE:
@@ -378,7 +267,7 @@ namespace
               dst.PosInOrnament = 0;
               break;
             case Vortex::NOISEBASE:
-              CommState.NoiseBase = it->Param1;
+              PlayerState.CommState.NoiseBase = it->Param1;
               break;
             case Vortex::TEMPO:
               //ignore
@@ -398,21 +287,21 @@ namespace
       {
         ApplyData(chan, chunk, envelopeAddon);
       }
-      const int_t envPeriod = envelopeAddon + CommState.EnvSlider.Value + int_t(CommState.EnvBase);
-      chunk.Data[AYM::DataChunk::REG_TONEN] = static_cast<uint8_t>(CommState.NoiseBase + CommState.NoiseAddon) & 0x1f;
+      const int_t envPeriod = envelopeAddon + PlayerState.CommState.EnvSlider.Value + int_t(PlayerState.CommState.EnvBase);
+      chunk.Data[AYM::DataChunk::REG_TONEN] = static_cast<uint8_t>(PlayerState.CommState.NoiseBase + PlayerState.CommState.NoiseAddon) & 0x1f;
       chunk.Data[AYM::DataChunk::REG_TONEE_L] = static_cast<uint8_t>(envPeriod & 0xff);
       chunk.Data[AYM::DataChunk::REG_TONEE_H] = static_cast<uint8_t>(envPeriod / 256);
       chunk.Mask |= (1 << AYM::DataChunk::REG_TONEN) |
         (1 << AYM::DataChunk::REG_TONEE_L) | (1 << AYM::DataChunk::REG_TONEE_H);
-      CommState.EnvSlider.Update();
+      PlayerState.CommState.EnvSlider.Update();
       //count actually enabled channels
-      ModState.Track.Channels = std::count_if(ChanState.begin(), ChanState.end(),
+      ModState.Track.Channels = std::count_if(PlayerState.ChanState.begin(), PlayerState.ChanState.end(),
         boost::mem_fn(&ChannelState::Enabled));
     }
     
     void ApplyData(uint_t chan, AYM::DataChunk& chunk, int_t& envelopeAddon)
     {
-      ChannelState& dst = ChanState[chan];
+      ChannelState& dst = PlayerState.ChanState[chan];
       const uint_t toneReg = AYM::DataChunk::REG_TONEA_L + 2 * chan;
       const uint_t volReg = AYM::DataChunk::REG_VOLA + chan;
       const uint_t toneMsk = AYM::DataChunk::REG_MASK_TONEA << chan;
@@ -471,10 +360,10 @@ namespace
         }
         else
         {
-          CommState.NoiseAddon = curSampleLine.NoiseOrEnvelopeOffset + dst.NoiseSliding;
+          PlayerState.CommState.NoiseAddon = curSampleLine.NoiseOrEnvelopeOffset + dst.NoiseSliding;
           if (curSampleLine.KeepNoiseOrEnvelopeOffset)
           {
-            dst.NoiseSliding = CommState.NoiseAddon;
+            dst.NoiseSliding = PlayerState.CommState.NoiseAddon;
           }
         }
 
@@ -505,18 +394,8 @@ namespace
       return VolTable[volume * 16 + level];
     }
   private:
-    const Holder::ConstPtr Module;
-    const Vortex::Track::ModuleData& Data;
     const uint_t Version;
     const VolumeTable& VolTable;
-
-    AYM::ParametersHelper::Ptr AYMHelper;
-    AYM::Chip::Ptr Device;
-    
-    PlaybackState CurrentState;
-    Vortex::Track::ModuleState ModState;
-    boost::array<ChannelState, AYM::CHANNELS> ChanState;
-    CommonState CommState;
 
     friend class VortexTSPlayer;
   };

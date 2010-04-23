@@ -10,9 +10,9 @@ Author:
 */
 
 //local includes
+#include "aym_tracking.h"
 #include "convert_helpers.h"
 #include "tracking.h"
-#include <core/devices/aym_parameters_helper.h>
 #include <core/plugins/detect_helper.h>
 #include <core/plugins/utils.h>
 //common includes
@@ -358,11 +358,6 @@ namespace
 
   // tracker type
   typedef TrackingSupport<AYM::CHANNELS, Sample, Ornament> ASCTrack;
-
-  // perform module 'playback' right after creating (debug purposes)
-  #ifndef NDEBUG
-  #define SELF_TEST
-  #endif
 
   Player::Ptr CreateASCPlayer(Holder::ConstPtr mod, const ASCTrack::ModuleData& data, AYM::Chip::Ptr device);
 
@@ -742,166 +737,55 @@ namespace
     ASCTrack::ModuleData Data;
   };
 
-  class ASCPlayer : public Player
+  struct ASCChannelState
   {
-    struct ChannelState
+    ASCChannelState()
+      : Enabled(false), Envelope(false), EnvelopeTone(0)
+      , Volume(15), VolumeAddon(0), VolSlideDelay(0), VolSlideAddon(), VolSlideCounter(0)
+      , BaseNoise(0), CurrentNoise(0)
+      , Note(0), NoteAddon(0)
+      , SampleNum(0), CurrentSampleNum(0), PosInSample(0)
+      , OrnamentNum(0), CurrentOrnamentNum(0), PosInOrnament(0)
+      , ToneDeviation(0)
+      , SlidingSteps(0), Sliding(0), SlidingTargetNote(LIMITER), Glissade(0)
     {
-      ChannelState()
-        : Enabled(false), Envelope(false), EnvelopeTone(0)
-        , Volume(15), VolumeAddon(0), VolSlideDelay(0), VolSlideAddon(), VolSlideCounter(0)
-        , BaseNoise(0), CurrentNoise(0)
-        , Note(0), NoteAddon(0)
-        , SampleNum(0), CurrentSampleNum(0), PosInSample(0)
-        , OrnamentNum(0), CurrentOrnamentNum(0), PosInOrnament(0)
-        , ToneDeviation(0)
-        , SlidingSteps(0), Sliding(0), SlidingTargetNote(LIMITER), Glissade(0)
-      {
-      }
-      bool Enabled;
-      bool Envelope;
-      uint_t EnvelopeTone;
-      uint_t Volume;
-      int_t VolumeAddon;
-      uint_t VolSlideDelay;
-      int_t VolSlideAddon;
-      uint_t VolSlideCounter;
-      int_t BaseNoise;
-      int_t CurrentNoise;
-      uint_t Note;
-      int_t NoteAddon;
-      uint_t SampleNum;
-      uint_t CurrentSampleNum;
-      uint_t PosInSample;
-      uint_t OrnamentNum;
-      uint_t CurrentOrnamentNum;
-      uint_t PosInOrnament;
-      int_t ToneDeviation;
-      int_t SlidingSteps;//may be infinite (negative)
-      int_t Sliding;
-      uint_t SlidingTargetNote;
-      int_t Glissade;
-    };
+    }
+    bool Enabled;
+    bool Envelope;
+    uint_t EnvelopeTone;
+    uint_t Volume;
+    int_t VolumeAddon;
+    uint_t VolSlideDelay;
+    int_t VolSlideAddon;
+    uint_t VolSlideCounter;
+    int_t BaseNoise;
+    int_t CurrentNoise;
+    uint_t Note;
+    int_t NoteAddon;
+    uint_t SampleNum;
+    uint_t CurrentSampleNum;
+    uint_t PosInSample;
+    uint_t OrnamentNum;
+    uint_t CurrentOrnamentNum;
+    uint_t PosInOrnament;
+    int_t ToneDeviation;
+    int_t SlidingSteps;//may be infinite (negative)
+    int_t Sliding;
+    uint_t SlidingTargetNote;
+    int_t Glissade;
+  };
+
+  typedef AYMPlayerBase<ASCTrack, boost::array<ASCChannelState, AYM::CHANNELS> > ASCPlayerBase;
+
+  class ASCPlayer : public ASCPlayerBase
+  {
   public:
     ASCPlayer(Holder::ConstPtr holder, const ASCTrack::ModuleData& data, AYM::Chip::Ptr device)
-      : Module(holder)
-      , Data(data)
-      , AYMHelper(AYM::ParametersHelper::Create(TABLE_ASM))
-      , Device(device)
-      , CurrentState(MODULE_STOPPED)
+      : ASCPlayerBase(holder, data, device, TABLE_ASM)
     {
-      Reset();
-#ifdef SELF_TEST
-//perform self-test
-      AYM::DataChunk chunk;
-      do
-      {
-        assert(Data.Positions.size() > ModState.Track.Position);
-        RenderData(chunk);
-      }
-      while (ASCTrack::UpdateState(Data, ModState, Sound::LOOP_NONE));
-      Reset();
-#endif
     }
 
-    virtual const Holder& GetModule() const
-    {
-      return *Module;
-    }
-
-    virtual Error GetPlaybackState(uint_t& timeState,
-                                   Tracking& trackState,
-                                   Analyze::ChannelsState& analyzeState) const
-    {
-      timeState = ModState.Frame;
-      trackState = ModState.Track;
-      Device->GetState(analyzeState);
-      return Error();
-    }
-
-    virtual Error RenderFrame(const Sound::RenderParameters& params,
-                              PlaybackState& state,
-                              Sound::MultichannelReceiver& receiver)
-    {
-      //additional check for seeking purposes
-      if (ModState.Frame >= Data.Info.Statistic.Frame)
-      {
-        if (MODULE_STOPPED == CurrentState)
-        {
-          return Error(THIS_LINE, ERROR_MODULE_END, Text::MODULE_ERROR_MODULE_END);
-        }
-        receiver.Flush();
-        state = CurrentState = MODULE_STOPPED;
-        return Error();
-      }
-
-      AYM::DataChunk chunk;
-      AYMHelper->GetDataChunk(chunk);
-      ModState.Tick += params.ClocksPerFrame();
-      chunk.Tick = ModState.Tick;
-      RenderData(chunk);
-
-      Device->RenderData(params, chunk, receiver);
-      if (ASCTrack::UpdateState(Data, ModState, params.Looping))
-      {
-        CurrentState = MODULE_PLAYING;
-      }
-      else
-      {
-        receiver.Flush();
-        CurrentState = MODULE_STOPPED;
-      }
-      state = CurrentState;
-      return Error();
-    }
-
-    virtual Error Reset()
-    {
-      Device->Reset();
-      ASCTrack::InitState(Data, ModState);
-      std::fill(ChanState.begin(), ChanState.end(), ChannelState());
-      CurrentState = MODULE_STOPPED;
-      return Error();
-    }
-
-    virtual Error SetPosition(uint_t frame)
-    {
-      if (frame < ModState.Frame)
-      {
-        //reset to beginning in case of moving back
-        const uint64_t keepTicks = ModState.Tick;
-        ASCTrack::InitState(Data, ModState);
-        std::fill(ChanState.begin(), ChanState.end(), ChannelState());
-        ModState.Tick = keepTicks;
-      }
-      //fast forward
-      AYM::DataChunk chunk;
-      while (ModState.Frame < frame)
-      {
-        //do not update tick for proper rendering
-        assert(Data.Positions.size() > ModState.Track.Position);
-        RenderData(chunk);
-        if (!ASCTrack::UpdateState(Data, ModState, Sound::LOOP_NONE))
-        {
-          break;
-        }
-      }
-      return Error();
-    }
-
-    virtual Error SetParameters(const Parameters::Map& params)
-    {
-      try
-      {
-        AYMHelper->SetParameters(params);
-        return Error();
-      }
-      catch (const Error& e)
-      {
-        return Error(THIS_LINE, ERROR_INVALID_PARAMETERS, Text::MODULE_ERROR_SET_PLAYER_PARAMETERS).AddSuberror(e);
-      }
-    }
-  private:
-    void RenderData(AYM::DataChunk& chunk)
+    virtual void RenderData(AYM::DataChunk& chunk)
     {
       const ASCTrack::Line& line = Data.Patterns[ModState.Track.Pattern][ModState.Track.Line];
       //bitmask of channels to sample break
@@ -911,7 +795,7 @@ namespace
         for (uint_t chan = 0; chan != line.Channels.size(); ++chan)
         {
           const ASCTrack::Line::Chan& src = line.Channels[chan];
-          ChannelState& dst = ChanState[chan];
+          ASCChannelState& dst = PlayerState[chan];
           if (0 == ModState.Track.Line)
           {
             dst.BaseNoise = 0;
@@ -1038,13 +922,13 @@ namespace
         ApplyData(chan, 0 != (breakSample & 1), chunk);
       }
       //count actually enabled channels
-      ModState.Track.Channels = static_cast<uint_t>(std::count_if(ChanState.begin(), ChanState.end(),
-        boost::mem_fn(&ChannelState::Enabled)));
+      ModState.Track.Channels = static_cast<uint_t>(std::count_if(PlayerState.begin(), PlayerState.end(),
+        boost::mem_fn(&ASCChannelState::Enabled)));
     }
 
     void ApplyData(uint_t chan, bool breakSample, AYM::DataChunk& chunk)
     {
-      ChannelState& dst = ChanState[chan];
+      ASCChannelState& dst = PlayerState[chan];
       const uint_t toneReg = AYM::DataChunk::REG_TONEA_L + 2 * chan;
       const uint_t volReg = AYM::DataChunk::REG_VOLA + chan;
       const uint_t toneMsk = AYM::DataChunk::REG_MASK_TONEA << chan;
@@ -1160,16 +1044,6 @@ namespace
         chunk.Data[AYM::DataChunk::REG_MIXER] |= toneMsk | noiseMsk;
       }
     }
-  private:
-    const Holder::ConstPtr Module;
-    const ASCTrack::ModuleData& Data;
-
-    AYM::ParametersHelper::Ptr AYMHelper;
-    AYM::Chip::Ptr Device;
-
-    PlaybackState CurrentState;
-    ASCTrack::ModuleState ModState;
-    boost::array<ChannelState, AYM::CHANNELS> ChanState;
   };
 
   Player::Ptr CreateASCPlayer(Holder::ConstPtr holder, const ASCTrack::ModuleData& data, AYM::Chip::Ptr device)

@@ -10,9 +10,9 @@ Author:
 */
 
 //local includes
+#include "aym_tracking.h"
 #include "convert_helpers.h"
 #include "tracking.h"
-#include <core/devices/aym_parameters_helper.h>
 #include <core/plugins/detect_helper.h>
 #include <core/plugins/utils.h>
 //common includes
@@ -274,15 +274,11 @@ namespace
   }
 
   typedef TrackingSupport<AYM::CHANNELS, Sample> STCTrack;
-  
-  // perform module 'playback' right after creating (debug purposes)
-  #ifndef NDEBUG
-  #define SELF_TEST
-  #endif
-  
+  typedef std::vector<int_t> STCTransposition;
+
   // forward declaration
-  class STCHolder;
-  Player::Ptr CreateSTCPlayer(boost::shared_ptr<const STCHolder> mod, AYM::Chip::Ptr device);
+  Player::Ptr CreateSTCPlayer(Holder::ConstPtr mod, const STCTrack::ModuleData& data,
+    const STCTransposition& transpositions, AYM::Chip::Ptr device);
 
   class STCHolder : public Holder, public boost::enable_shared_from_this<STCHolder>
   {
@@ -516,7 +512,7 @@ namespace
 
     virtual Player::Ptr CreatePlayer() const
     {
-      return CreateSTCPlayer(shared_from_this(), AYM::CreateChip());
+      return CreateSTCPlayer(shared_from_this(), Data, Transpositions, AYM::CreateChip());
     }
     
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -527,160 +523,49 @@ namespace
       {
         dst = RawData;
       }
-      else if (!ConvertAYMFormat(boost::bind(&CreateSTCPlayer, shared_from_this(), _1), param, dst, result))
+      else if (!ConvertAYMFormat(boost::bind(&CreateSTCPlayer, shared_from_this(), boost::cref(Data), boost::cref(Transpositions), _1),
+        param, dst, result))
       {
         return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
       }
       return result;
     }
   private:
-    friend class STCPlayer;
     Dump RawData;
     STCTrack::ModuleData Data;
-    std::vector<int_t> Transpositions;
+    STCTransposition Transpositions;
   };
 
-  
-  class STCPlayer : public Player
+  struct STCChannelState
   {
-    struct ChannelState
+    STCChannelState()
+      : Enabled(false), Envelope(false)
+      , Note(), SampleNum(0), PosInSample(0)
+      , OrnamentNum(0), LoopedInSample(false)
     {
-      ChannelState()
-        : Enabled(false), Envelope(false)
-        , Note(), SampleNum(0), PosInSample(0)
-        , OrnamentNum(0), LoopedInSample(false)
-      {
-      }
-      bool Enabled;
-      bool Envelope;
-      uint_t Note;
-      uint_t SampleNum;
-      uint_t PosInSample;
-      uint_t OrnamentNum;
-      bool LoopedInSample;
-    };
+    }
+    bool Enabled;
+    bool Envelope;
+    uint_t Note;
+    uint_t SampleNum;
+    uint_t PosInSample;
+    uint_t OrnamentNum;
+    bool LoopedInSample;
+  };
+
+  typedef AYMPlayerBase<STCTrack, boost::array<STCChannelState, AYM::CHANNELS> > STCPlayerBase;
+
+  class STCPlayer : public STCPlayerBase
+  {
   public:
-    STCPlayer(boost::shared_ptr<const STCHolder> holder, AYM::Chip::Ptr device)
-       : Module(holder)
-       , Data(Module->Data)
-       , Transpositions(Module->Transpositions)
-       , AYMHelper(AYM::ParametersHelper::Create(TABLE_SOUNDTRACKER))
-       , Device(device)
-       , CurrentState(MODULE_STOPPED)
+    STCPlayer(Holder::ConstPtr holder, const STCTrack::ModuleData& data,
+      const STCTransposition& transpositions, AYM::Chip::Ptr device)
+      : STCPlayerBase(holder, data, device, TABLE_SOUNDTRACKER)
+      , Transpositions(transpositions)
     {
-      Reset();
-#ifdef SELF_TEST
-//perform self-test
-      AYM::DataChunk chunk;
-      do
-      {
-        assert(Data.Positions.size() > ModState.Track.Position);
-        RenderData(chunk);
-      }
-      while (STCTrack::UpdateState(Data, ModState, Sound::LOOP_NONE));
-      Reset();
-#endif
     }
 
-    virtual const Holder& GetModule() const
-    {
-      return *Module;
-    }
-
-    virtual Error GetPlaybackState(uint_t& timeState,
-                                   Tracking& trackState,
-                                   Analyze::ChannelsState& analyzeState) const
-    {
-      timeState = ModState.Frame;
-      trackState = ModState.Track;
-      Device->GetState(analyzeState);
-      return Error();
-    }
-
-    virtual Error RenderFrame(const Sound::RenderParameters& params,
-                              PlaybackState& state,
-                              Sound::MultichannelReceiver& receiver)
-    {
-      if (ModState.Frame >= Data.Info.Statistic.Frame)
-      {
-        if (MODULE_STOPPED == CurrentState)
-        {
-          return Error(THIS_LINE, ERROR_MODULE_END, Text::MODULE_ERROR_MODULE_END);
-        }
-        receiver.Flush();
-        state = CurrentState = MODULE_STOPPED;
-        return Error();
-      }
-
-      AYM::DataChunk chunk;
-      AYMHelper->GetDataChunk(chunk);
-      ModState.Tick += params.ClocksPerFrame();
-      chunk.Tick = ModState.Tick;
-      RenderData(chunk);
-
-      Device->RenderData(params, chunk, receiver);
-      if (STCTrack::UpdateState(Data, ModState, params.Looping))
-      {
-        CurrentState = MODULE_PLAYING;
-      }
-      else
-      {
-        receiver.Flush();
-        CurrentState = MODULE_STOPPED;
-      }
-      state = CurrentState;
-      return Error();
-    }
-
-    virtual Error Reset()
-    {
-      Device->Reset();
-      STCTrack::InitState(Data, ModState);
-      std::fill(ChanState.begin(), ChanState.end(), ChannelState());
-      CurrentState = MODULE_STOPPED;
-      return Error();
-    }
-
-    virtual Error SetPosition(uint_t frame)
-    {
-      if (frame < ModState.Frame)
-      {
-        //reset to beginning in case of moving back
-        const uint64_t keepTicks = ModState.Tick;
-        STCTrack::InitState(Data, ModState);
-        std::fill(ChanState.begin(), ChanState.end(), ChannelState());
-        ModState.Tick = keepTicks;
-      }
-      //fast forward
-      AYM::DataChunk chunk;
-      while (ModState.Frame < frame)
-      {
-        //do not update tick for proper rendering
-        assert(Data.Positions.size() > ModState.Track.Position);
-        RenderData(chunk);
-        if (!STCTrack::UpdateState(Data, ModState, Sound::LOOP_NONE))
-        {
-          break;
-        }
-      }
-      return Error();
-    }
-
-    virtual Error SetParameters(const Parameters::Map& params)
-    {
-      try
-      {
-        AYMHelper->SetParameters(params);
-        return Error();
-      }
-      catch (const Error& e)
-      {
-        return Error(THIS_LINE, ERROR_INVALID_PARAMETERS, Text::MODULE_ERROR_SET_PLAYER_PARAMETERS).AddSuberror(e);
-      }
-    }
-    
-  private:
-    void RenderData(AYM::DataChunk& chunk)
+    virtual void RenderData(AYM::DataChunk& chunk)
     {
       const STCTrack::Line& line(Data.Patterns[ModState.Track.Pattern][ModState.Track.Line]);
       if (0 == ModState.Track.Frame)//begin note
@@ -688,7 +573,7 @@ namespace
         for (uint_t chan = 0; chan != line.Channels.size(); ++chan)
         {
           const STCTrack::Line::Chan& src(line.Channels[chan]);
-          ChannelState& dst(ChanState[chan]);
+          STCChannelState& dst(PlayerState[chan]);
           if (src.Enabled)
           {
             if (!(dst.Enabled = *src.Enabled))
@@ -740,12 +625,12 @@ namespace
         ApplyData(chan, chunk);
       }
       //count actually enabled channels
-      ModState.Track.Channels = std::count_if(ChanState.begin(), ChanState.end(), boost::mem_fn(&ChannelState::Enabled));
+      ModState.Track.Channels = std::count_if(PlayerState.begin(), PlayerState.end(), boost::mem_fn(&STCChannelState::Enabled));
     }
      
     void ApplyData(uint_t chan, AYM::DataChunk& chunk)
     {
-      ChannelState& dst(ChanState[chan]);
+      STCChannelState& dst(PlayerState[chan]);
       const uint_t toneReg(AYM::DataChunk::REG_TONEA_L + 2 * chan);
       const uint_t volReg = AYM::DataChunk::REG_VOLA + chan;
       const uint_t toneMsk = AYM::DataChunk::REG_MASK_TONEA << chan;
@@ -804,21 +689,13 @@ namespace
       }
     }
   private:
-    const boost::shared_ptr<const STCHolder> Module;
-    const STCTrack::ModuleData& Data;
     const std::vector<int_t>& Transpositions;
-
-    AYM::ParametersHelper::Ptr AYMHelper;
-    AYM::Chip::Ptr Device;
-
-    PlaybackState CurrentState;
-    STCTrack::ModuleState ModState;
-    boost::array<ChannelState, AYM::CHANNELS> ChanState;
   };
   
-  Player::Ptr CreateSTCPlayer(boost::shared_ptr<const STCHolder> holder, AYM::Chip::Ptr device)
+  Player::Ptr CreateSTCPlayer(Holder::ConstPtr mod, const STCTrack::ModuleData& data,
+    const STCTransposition& transpositions, AYM::Chip::Ptr device)
   {
-    return Player::Ptr(new STCPlayer(holder, device));
+    return Player::Ptr(new STCPlayer(mod, data, transpositions, device));
   }
 
   bool CheckSTCModule(const uint8_t* data, std::size_t limit, const MetaContainer& container,

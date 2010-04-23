@@ -10,9 +10,9 @@ Author:
 */
 
 //local includes
+#include "aym_tracking.h"
 #include "convert_helpers.h"
 #include "tracking.h"
-#include <core/devices/aym_parameters_helper.h>
 #include <core/plugins/detect_helper.h>
 #include <core/plugins/utils.h>
 //common includes
@@ -316,11 +316,6 @@ namespace
 
   typedef TrackingSupport<AYM::CHANNELS, Sample> PT2Track;
   
-  // perform module 'playback' right after creating (debug purposes)
-  #ifndef NDEBUG
-  #define SELF_TEST
-  #endif
-  
   Player::Ptr CreatePT2Player(Holder::ConstPtr mod, const PT2Track::ModuleData& data, AYM::Chip::Ptr device);
 
   class PT2Holder : public Holder, public boost::enable_shared_from_this<PT2Holder>
@@ -615,151 +610,41 @@ namespace
     return (volume * 17 + (volume > 7 ? 1 : 0)) * level / 256;
   }
 
-  class PT2Player : public Player
+  struct PT2ChannelState
   {
-    struct ChannelState
+    PT2ChannelState()
+      : Enabled(false), Envelope(false)
+      , Note(), SampleNum(0), PosInSample(0)
+      , OrnamentNum(0), PosInOrnament(0)
+      , Volume(15), NoiseAdd(0)
+      , Sliding(0), SlidingTargetNote(LIMITER), Glissade(0)
     {
-      ChannelState()
-        : Enabled(false), Envelope(false)
-        , Note(), SampleNum(0), PosInSample(0)
-        , OrnamentNum(0), PosInOrnament(0)
-        , Volume(15), NoiseAdd(0)
-        , Sliding(0), SlidingTargetNote(LIMITER), Glissade(0)
-      {
-      }
-      bool Enabled;
-      bool Envelope;
-      uint_t Note;
-      uint_t SampleNum;
-      uint_t PosInSample;
-      uint_t OrnamentNum;
-      uint_t PosInOrnament;
-      uint_t Volume;
-      int_t NoiseAdd;
-      int_t Sliding;
-      uint_t SlidingTargetNote;
-      int_t Glissade;
-    };
+    }
+    bool Enabled;
+    bool Envelope;
+    uint_t Note;
+    uint_t SampleNum;
+    uint_t PosInSample;
+    uint_t OrnamentNum;
+    uint_t PosInOrnament;
+    uint_t Volume;
+    int_t NoiseAdd;
+    int_t Sliding;
+    uint_t SlidingTargetNote;
+    int_t Glissade;
+  };
+
+  typedef AYMPlayerBase<PT2Track, boost::array<PT2ChannelState, AYM::CHANNELS> > PT2PlayerBase;
+
+  class PT2Player : public PT2PlayerBase
+  {
   public:
     PT2Player(Holder::ConstPtr holder, const PT2Track::ModuleData& data, AYM::Chip::Ptr device)
-       : Module(holder)
-       , Data(data)
-       , AYMHelper(AYM::ParametersHelper::Create(TABLE_PROTRACKER2))
-       , Device(device)
-       , CurrentState(MODULE_STOPPED)
+       : PT2PlayerBase(holder, data, device, TABLE_PROTRACKER2)
     {
-      Reset();
-#ifdef SELF_TEST
-//perform self-test
-      AYM::DataChunk chunk;
-      do
-      {
-        assert(Data.Positions.size() > ModState.Track.Position);
-        RenderData(chunk);
-      }
-      while (PT2Track::UpdateState(Data, ModState, Sound::LOOP_NONE));
-      Reset();
-#endif
     }
 
-    virtual const Holder& GetModule() const
-    {
-      return *Module;
-    }
-
-    virtual Error GetPlaybackState(uint_t& timeState,
-                                   Tracking& trackState,
-                                   Analyze::ChannelsState& analyzeState) const
-    {
-      timeState = ModState.Frame;
-      trackState = ModState.Track;
-      Device->GetState(analyzeState);
-      return Error();
-    }
-
-    virtual Error RenderFrame(const Sound::RenderParameters& params,
-                              PlaybackState& state,
-                              Sound::MultichannelReceiver& receiver)
-    {
-      if (ModState.Frame >= Data.Info.Statistic.Frame)
-      {
-        if (MODULE_STOPPED == CurrentState)
-        {
-          return Error(THIS_LINE, ERROR_MODULE_END, Text::MODULE_ERROR_MODULE_END);
-        }
-        receiver.Flush();
-        state = CurrentState = MODULE_STOPPED;
-        return Error();
-      }
-
-      AYM::DataChunk chunk;
-      AYMHelper->GetDataChunk(chunk);
-      ModState.Tick += params.ClocksPerFrame();
-      chunk.Tick = ModState.Tick;
-      RenderData(chunk);
-
-      Device->RenderData(params, chunk, receiver);
-      if (PT2Track::UpdateState(Data, ModState, params.Looping))
-      {
-        CurrentState = MODULE_PLAYING;
-      }
-      else
-      {
-        receiver.Flush();
-        CurrentState = MODULE_STOPPED;
-      }
-      state = CurrentState;
-      return Error();
-    }
-
-    virtual Error Reset()
-    {
-      Device->Reset();
-      PT2Track::InitState(Data, ModState);
-      std::fill(ChanState.begin(), ChanState.end(), ChannelState());
-      CurrentState = MODULE_STOPPED;
-      return Error();
-    }
-
-    virtual Error SetPosition(uint_t frame)
-    {
-      if (frame < ModState.Frame)
-      {
-        //reset to beginning in case of moving back
-        const uint64_t keepTicks = ModState.Tick;
-        PT2Track::InitState(Data, ModState);
-        std::fill(ChanState.begin(), ChanState.end(), ChannelState());
-        ModState.Tick = keepTicks;
-      }
-      //fast forward
-      AYM::DataChunk chunk;
-      while (ModState.Frame < frame)
-      {
-        //do not update tick for proper rendering
-        assert(Data.Positions.size() > ModState.Track.Position);
-        RenderData(chunk);
-        if (!PT2Track::UpdateState(Data, ModState, Sound::LOOP_NONE))
-        {
-          break;
-        }
-      }
-      return Error();
-    }
-
-    virtual Error SetParameters(const Parameters::Map& params)
-    {
-      try
-      {
-        AYMHelper->SetParameters(params);
-        return Error();
-      }
-      catch (const Error& e)
-      {
-        return Error(THIS_LINE, ERROR_INVALID_PARAMETERS, Text::MODULE_ERROR_SET_PLAYER_PARAMETERS).AddSuberror(e);
-      }
-    }
-  private:
-    void RenderData(AYM::DataChunk& chunk)
+    virtual void RenderData(AYM::DataChunk& chunk)
     {
       const PT2Track::Line& line(Data.Patterns[ModState.Track.Pattern][ModState.Track.Line]);
       if (0 == ModState.Track.Frame)//begin note
@@ -767,7 +652,7 @@ namespace
         for (uint_t chan = 0; chan != line.Channels.size(); ++chan)
         {
           const PT2Track::Line::Chan& src(line.Channels[chan]);
-          ChannelState& dst(ChanState[chan]);
+          PT2ChannelState& dst(PlayerState[chan]);
           if (src.Enabled)
           {
             if (!(dst.Enabled = *src.Enabled))
@@ -841,13 +726,13 @@ namespace
         ApplyData(chan, chunk);
       }
       //count actually enabled channels
-      ModState.Track.Channels = static_cast<uint_t>(std::count_if(ChanState.begin(), ChanState.end(),
-        boost::mem_fn(&ChannelState::Enabled)));
+      ModState.Track.Channels = static_cast<uint_t>(std::count_if(PlayerState.begin(), PlayerState.end(),
+        boost::mem_fn(&PT2ChannelState::Enabled)));
     }
     
     void ApplyData(uint_t chan, AYM::DataChunk& chunk)
     {
-      ChannelState& dst(ChanState[chan]);
+      PT2ChannelState& dst(PlayerState[chan]);
       const uint_t toneReg(AYM::DataChunk::REG_TONEA_L + 2 * chan);
       const uint_t volReg = AYM::DataChunk::REG_VOLA + chan;
       const uint_t toneMsk = AYM::DataChunk::REG_MASK_TONEA << chan;
@@ -913,16 +798,6 @@ namespace
         chunk.Data[AYM::DataChunk::REG_MIXER] |= toneMsk | noiseMsk;
       }
     }
-  private:
-    const Holder::ConstPtr Module;
-    const PT2Track::ModuleData& Data;
-
-    AYM::ParametersHelper::Ptr AYMHelper;
-    AYM::Chip::Ptr Device;
-
-    PlaybackState CurrentState;
-    PT2Track::ModuleState ModState;
-    boost::array<ChannelState, AYM::CHANNELS> ChanState;
   };
 
   Player::Ptr CreatePT2Player(Holder::ConstPtr holder, const PT2Track::ModuleData& data, AYM::Chip::Ptr device)
