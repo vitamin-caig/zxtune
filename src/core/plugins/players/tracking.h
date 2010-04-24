@@ -146,14 +146,11 @@ namespace ZXTune
         Information Info;
       };
 
-      //TODO: remove, for compartibility now
-      typedef Module::Timing ModuleState;
-
       // Service functions
       static inline void CalculateTimings(const ModuleData& data, uint_t& framesCount, uint_t& loopFrame)
       {
         //emulate playback
-        ModuleState state;
+        Module::Timing state;
         InitState(data, state);
         Module::Tracking& track(state.Track);
         do
@@ -169,10 +166,10 @@ namespace ZXTune
         framesCount = state.Frame;
       }
        
-      static inline void InitState(const ModuleData& data, ModuleState& state)
+      static inline void InitState(const ModuleData& data, Module::Timing& state)
       {
         //reset state
-        state = ModuleState();
+        state = Module::Timing();
         //set pattern to start
         state.Track.Pattern = data.Positions[state.Track.Position];
         //set tempo to start
@@ -186,7 +183,7 @@ namespace ZXTune
         }
       }
       
-      static inline bool UpdateState(const ModuleData& data, ModuleState& state, Sound::LoopMode loopMode)
+      static inline bool UpdateState(const ModuleData& data, Module::Timing& state, Sound::LoopMode loopMode)
       {
         //update tick outside of this func
         ++state.Frame;

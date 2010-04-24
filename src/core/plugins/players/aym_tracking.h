@@ -13,6 +13,7 @@ Author:
 #define __CORE_PLUGINS_PLAYERS_AYM_TRACKING_H_DEFINED__
 
 //local includes
+#include "tracking.h"
 #include <core/devices/aym.h>
 #include <core/devices/aym_parameters_helper.h>
 //common includes
@@ -178,7 +179,7 @@ namespace ZXTune
       AYM::Chip::Ptr Device;
 
       PlaybackState CurrentState;
-      typename Tracker::ModuleState ModState;
+      Module::Timing ModState;
       State PlayerState;
     };
   }

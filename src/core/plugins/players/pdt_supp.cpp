@@ -647,7 +647,7 @@ namespace
 
     DAC::Chip::Ptr Device;
     PlaybackState CurrentState;
-    PDTTrack::ModuleState ModState;
+    Timing ModState;
     boost::array<OrnamentState, CHANNELS_COUNT> Ornaments;
     Analyze::ChannelsState ChanState;
     bool Interpolation;

@@ -575,7 +575,7 @@ namespace
 
     DAC::Chip::Ptr Device;
     PlaybackState CurrentState;
-    CHITrack::ModuleState ModState;
+    Timing ModState;
     boost::array<GlissData, CHANNELS_COUNT> Gliss;
     Analyze::ChannelsState ChanState;
     bool Interpolation;
