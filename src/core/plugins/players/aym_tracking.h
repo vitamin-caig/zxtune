@@ -18,7 +18,11 @@ Author:
 //common includes
 #include <error.h>
 //library includes
+#include <core/error_codes.h>
 #include <core/module_holder.h>
+#include <sound/render_params.h>
+//text includes
+#include <core/text/core.h>
 
 #ifdef FILE_TAG
 #error Invalid include sequence
@@ -40,14 +44,14 @@ namespace ZXTune
     class AYMRenderer : public Player
     {
     public:
-      virtual void RenderData(AYM::DataChunk& chunk) {};
+      virtual void RenderData(AYM::DataChunk& /*chunk*/) {};
     };
 
     template<class Tracker, class State>
     class AYMPlayerBase : public AYMRenderer
     {
     public:
-      AYMPlayerBase(Holder::ConstPtr holder, typename const Tracker::ModuleData& data,
+      AYMPlayerBase(Holder::ConstPtr holder, const typename Tracker::ModuleData& data,
         AYM::Chip::Ptr device, const String& defTable)
         : Module(holder)
         , Data(data)
@@ -168,7 +172,7 @@ namespace ZXTune
       }
     protected:
       const Holder::ConstPtr Module;
-      typename const Tracker::ModuleData& Data;
+      const typename Tracker::ModuleData& Data;
 
       AYM::ParametersHelper::Ptr AYMHelper;
       AYM::Chip::Ptr Device;

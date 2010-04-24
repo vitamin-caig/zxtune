@@ -15,10 +15,6 @@ Author:
 //common includes
 #include <error_tools.h>
 #include <tools.h>
-//library includes
-#include <core/error_codes.h>
-//text includes
-#include <core/text/core.h>
 
 #define FILE_TAG 023C2245
 

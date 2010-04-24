@@ -24,7 +24,6 @@ Author:
 //library includes
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
-#include <core/error_codes.h>
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
 #include <io/container.h>
@@ -32,7 +31,6 @@ Author:
 #include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
 //text includes
-#include <core/text/core.h>
 #include <core/text/plugins.h>
 #include <core/text/warnings.h>
 

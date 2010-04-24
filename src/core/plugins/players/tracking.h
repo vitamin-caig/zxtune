@@ -53,6 +53,16 @@ namespace ZXTune
       std::vector<int_t> Data;
     };
 
+    struct Timing
+    {
+      Timing() : Frame(), Tick()
+      {
+      }
+      Module::Tracking Track;
+      uint_t Frame;
+      uint64_t Tick;
+    };
+
     // Basic template class for tracking support (used as simple parametrized namespace)
     template<uint_t ChannelsCount, class SampleType, class OrnamentType = SimpleOrnament>
     class TrackingSupport
@@ -136,17 +146,9 @@ namespace ZXTune
         Information Info;
       };
 
-      // Player-related types
-      struct ModuleState
-      {
-        ModuleState() : Frame(), Tick()
-        {
-        }
-        Module::Tracking Track;
-        uint_t Frame;
-        uint64_t Tick;
-      };
-      
+      //TODO: remove, for compartibility now
+      typedef Module::Timing ModuleState;
+
       // Service functions
       static inline void CalculateTimings(const ModuleData& data, uint_t& framesCount, uint_t& loopFrame)
       {
