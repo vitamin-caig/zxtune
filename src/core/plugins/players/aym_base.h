@@ -1,6 +1,6 @@
 /*
 Abstract:
-  AYM-based tracked modules support
+  AYM-based modules support
 
 Last changed:
   $Id$
@@ -9,8 +9,8 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-#ifndef __CORE_PLUGINS_PLAYERS_AYM_TRACKING_H_DEFINED__
-#define __CORE_PLUGINS_PLAYERS_AYM_TRACKING_H_DEFINED__
+#ifndef __CORE_PLUGINS_PLAYERS_AYM_BASE_H_DEFINED__
+#define __CORE_PLUGINS_PLAYERS_AYM_BASE_H_DEFINED__
 
 //local includes
 #include "tracking.h"
@@ -40,38 +40,16 @@ namespace ZXTune
 {
   namespace Module
   {
-    //hack around linkage error
-    //REWRITE!!!
-    class AYMRenderer : public Player
+    //common base for all AYM-based players
+    class AYMPlayerBase : public Player
     {
     public:
-      virtual void RenderData(AYM::DataChunk& /*chunk*/) {};
-    };
-
-    template<class Tracker, class State>
-    class AYMPlayerBase : public AYMRenderer
-    {
-    public:
-      AYMPlayerBase(Holder::ConstPtr holder, const typename Tracker::ModuleData& data,
-        AYM::Chip::Ptr device, const String& defTable)
+      AYMPlayerBase(Holder::ConstPtr holder, AYM::Chip::Ptr device, const String& defTable)
         : Module(holder)
-        , Data(data)
-        , AYMHelper(AYM::ParametersHelper::Create(defTable))
         , Device(device)
+        , AYMHelper(AYM::ParametersHelper::Create(defTable))
         , CurrentState(MODULE_STOPPED)
       {
-        Reset();
-#ifdef SELF_TEST
-//perform self-test
-        AYM::DataChunk chunk;
-        do
-        {
-          assert(Data.Positions.size() > ModState.Track.Position);
-          RenderData(chunk);
-        }
-        while (Tracker::UpdateState(Data, ModState, Sound::LOOP_NONE));
-        Reset();
-#endif
       }
 
       virtual const Holder& GetModule() const
@@ -87,6 +65,43 @@ namespace ZXTune
         trackState = ModState.Track;
         Device->GetState(analyzeState);
         return Error();
+      }
+
+      virtual Error SetParameters(const Parameters::Map& params)
+      {
+        try
+        {
+          AYMHelper->SetParameters(params);
+          return Error();
+        }
+        catch (const Error& e)
+        {
+          return Error(THIS_LINE, ERROR_INVALID_PARAMETERS, Text::MODULE_ERROR_SET_PLAYER_PARAMETERS).AddSuberror(e);
+        }
+      }
+    protected:
+      const Holder::ConstPtr Module;
+      //aym-related
+      AYM::Chip::Ptr Device;
+      AYM::ParametersHelper::Ptr AYMHelper;
+      //tracking-related
+      PlaybackState CurrentState;
+      Module::Timing ModState;
+    };
+
+    //Common base for all aym-tracking-based players
+    //Tracker - instance of TrackingSupport
+    //State - internal state type
+    template<class Tracker, class State>
+    class AYMPlayer : public AYMPlayerBase
+    {
+    public:
+      AYMPlayer(Holder::ConstPtr holder, const typename Tracker::ModuleData& data,
+        AYM::Chip::Ptr device, const String& defTable)
+        : AYMPlayerBase(holder, device, defTable)
+        , Data(data)
+      {
+        //do not perform any actions here because of virtual functions call
       }
 
       virtual Error RenderFrame(const Sound::RenderParameters& params,
@@ -159,31 +174,16 @@ namespace ZXTune
         return Error();
       }
 
-      virtual Error SetParameters(const Parameters::Map& params)
-      {
-        try
-        {
-          AYMHelper->SetParameters(params);
-          return Error();
-        }
-        catch (const Error& e)
-        {
-          return Error(THIS_LINE, ERROR_INVALID_PARAMETERS, Text::MODULE_ERROR_SET_PLAYER_PARAMETERS).AddSuberror(e);
-        }
-      }
     protected:
-      const Holder::ConstPtr Module;
+      //result processing function
+      virtual void RenderData(AYM::DataChunk& chunk) = 0;
+    protected:
       const typename Tracker::ModuleData& Data;
-
-      AYM::ParametersHelper::Ptr AYMHelper;
-      AYM::Chip::Ptr Device;
-
-      PlaybackState CurrentState;
-      Module::Timing ModState;
+      //typed state
       State PlayerState;
     };
   }
 }
 
 #undef FILE_TAG
-#endif //__CORE_PLUGINS_PLAYERS_AYM_TRACKING_H_DEFINED__
+#endif //__CORE_PLUGINS_PLAYERS_AYM_BASE_H_DEFINED__

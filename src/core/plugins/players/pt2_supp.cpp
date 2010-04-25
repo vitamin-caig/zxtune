@@ -10,7 +10,7 @@ Author:
 */
 
 //local includes
-#include "aym_tracking.h"
+#include "aym_base.h"
 #include "convert_helpers.h"
 #include "tracking.h"
 #include <core/plugins/detect_helper.h>
@@ -632,7 +632,7 @@ namespace
     int_t Glissade;
   };
 
-  typedef AYMPlayerBase<PT2Track, boost::array<PT2ChannelState, AYM::CHANNELS> > PT2PlayerBase;
+  typedef AYMPlayer<PT2Track, boost::array<PT2ChannelState, AYM::CHANNELS> > PT2PlayerBase;
 
   class PT2Player : public PT2PlayerBase
   {
@@ -640,6 +640,17 @@ namespace
     PT2Player(Holder::ConstPtr holder, const PT2Track::ModuleData& data, AYM::Chip::Ptr device)
        : PT2PlayerBase(holder, data, device, TABLE_PROTRACKER2)
     {
+#ifdef SELF_TEST
+//perform self-test
+      AYM::DataChunk chunk;
+      do
+      {
+        assert(Data.Positions.size() > ModState.Track.Position);
+        RenderData(chunk);
+      }
+      while (PT2Track::UpdateState(Data, ModState, Sound::LOOP_NONE));
+      Reset();
+#endif
     }
 
     virtual void RenderData(AYM::DataChunk& chunk)

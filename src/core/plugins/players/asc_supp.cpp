@@ -10,7 +10,7 @@ Author:
 */
 
 //local includes
-#include "aym_tracking.h"
+#include "aym_base.h"
 #include "convert_helpers.h"
 #include "tracking.h"
 #include <core/plugins/detect_helper.h>
@@ -773,7 +773,7 @@ namespace
     int_t Glissade;
   };
 
-  typedef AYMPlayerBase<ASCTrack, boost::array<ASCChannelState, AYM::CHANNELS> > ASCPlayerBase;
+  typedef AYMPlayer<ASCTrack, boost::array<ASCChannelState, AYM::CHANNELS> > ASCPlayerBase;
 
   class ASCPlayer : public ASCPlayerBase
   {
@@ -781,6 +781,17 @@ namespace
     ASCPlayer(Holder::ConstPtr holder, const ASCTrack::ModuleData& data, AYM::Chip::Ptr device)
       : ASCPlayerBase(holder, data, device, TABLE_ASM)
     {
+#ifdef SELF_TEST
+//perform self-test
+      AYM::DataChunk chunk;
+      do
+      {
+        assert(Data.Positions.size() > ModState.Track.Position);
+        RenderData(chunk);
+      }
+      while (ASCTrack::UpdateState(Data, ModState, Sound::LOOP_NONE));
+      Reset();
+#endif
     }
 
     virtual void RenderData(AYM::DataChunk& chunk)

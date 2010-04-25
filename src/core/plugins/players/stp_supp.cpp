@@ -10,7 +10,7 @@ Author:
 */
 
 //local includes
-#include "aym_tracking.h"
+#include "aym_base.h"
 #include "convert_helpers.h"
 #include "tracking.h"
 #include <core/plugins/detect_helper.h>
@@ -563,7 +563,7 @@ namespace
     int_t Glissade;
   };
 
-  typedef AYMPlayerBase<STPTrack, boost::array<STPChannelState, AYM::CHANNELS> > STPPlayerBase;
+  typedef AYMPlayer<STPTrack, boost::array<STPChannelState, AYM::CHANNELS> > STPPlayerBase;
 
   class STPPlayer : public STPPlayerBase
   {
@@ -573,6 +573,17 @@ namespace
       : STPPlayerBase(holder, data, device, TABLE_SOUNDTRACKER)
       , Transpositions(transpositions)
     {
+#ifdef SELF_TEST
+//perform self-test
+      AYM::DataChunk chunk;
+      do
+      {
+        assert(Data.Positions.size() > ModState.Track.Position);
+        RenderData(chunk);
+      }
+      while (STPTrack::UpdateState(Data, ModState, Sound::LOOP_NONE));
+      Reset();
+#endif
     }
 
     void RenderData(AYM::DataChunk& chunk)

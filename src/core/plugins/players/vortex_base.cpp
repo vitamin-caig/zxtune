@@ -10,7 +10,7 @@ Author:
 */
 
 //local includes
-#include "aym_tracking.h"
+#include "aym_base.h"
 #include "vortex_base.h"
 //common includes
 #include <error_tools.h>
@@ -154,7 +154,7 @@ namespace
     CommonState CommState;
   };
 
-  typedef AYMPlayerBase<Vortex::Track, VortexState> VortexPlayerBase;
+  typedef AYMPlayer<Vortex::Track, VortexState> VortexPlayerBase;
 
   //simple player type
   class VortexPlayer : public VortexPlayerBase
@@ -168,6 +168,17 @@ namespace
       , Version(version)
       , VolTable(version <= 4 ? Vol33_34 : Vol35)
     {
+#ifdef SELF_TEST
+//perform self-test
+      AYM::DataChunk chunk;
+      do
+      {
+        assert(Data.Positions.size() > ModState.Track.Position);
+        RenderData(chunk);
+      }
+      while (Vortex::Track::UpdateState(Data, ModState, Sound::LOOP_NONE));
+      Reset();
+#endif
     }
     
     virtual void RenderData(AYM::DataChunk& chunk)

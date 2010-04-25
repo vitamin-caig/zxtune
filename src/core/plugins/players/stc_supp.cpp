@@ -10,7 +10,7 @@ Author:
 */
 
 //local includes
-#include "aym_tracking.h"
+#include "aym_base.h"
 #include "convert_helpers.h"
 #include "tracking.h"
 #include <core/plugins/detect_helper.h>
@@ -551,7 +551,7 @@ namespace
     bool LoopedInSample;
   };
 
-  typedef AYMPlayerBase<STCTrack, boost::array<STCChannelState, AYM::CHANNELS> > STCPlayerBase;
+  typedef AYMPlayer<STCTrack, boost::array<STCChannelState, AYM::CHANNELS> > STCPlayerBase;
 
   class STCPlayer : public STCPlayerBase
   {
@@ -561,6 +561,17 @@ namespace
       : STCPlayerBase(holder, data, device, TABLE_SOUNDTRACKER)
       , Transpositions(transpositions)
     {
+#ifdef SELF_TEST
+//perform self-test
+      AYM::DataChunk chunk;
+      do
+      {
+        assert(Data.Positions.size() > ModState.Track.Position);
+        RenderData(chunk);
+      }
+      while (STCTrack::UpdateState(Data, ModState, Sound::LOOP_NONE));
+      Reset();
+#endif
     }
 
     virtual void RenderData(AYM::DataChunk& chunk)
