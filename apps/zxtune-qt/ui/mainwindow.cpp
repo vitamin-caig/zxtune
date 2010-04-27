@@ -16,6 +16,7 @@ Author:
 #include "mainwindow_moc.h"
 #include "playback_controls.h"
 #include "seek_controls.h"
+#include "playlist.h"
 
 MainWindow::MainWindow()
   : Controls(new PlaybackControls(this))
@@ -26,4 +27,5 @@ MainWindow::MainWindow()
     //add widgets to toolbars
     controlToolbar->addWidget(Controls);
     seekToolbar->addWidget(Seeking);
+    playlistsContainer->addTab(new Playlist(this), QString::fromUtf8("Default playlist"));
 }
