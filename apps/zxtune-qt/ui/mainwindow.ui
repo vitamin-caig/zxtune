@@ -21,6 +21,9 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
+    <property name="margin">
+     <number>2</number>
+    </property>
     <item row="0" column="0">
      <widget class="QTabWidget" name="playlistsContainer"/>
     </item>
@@ -41,17 +44,6 @@
    <property name="acceptDrops">
     <bool>false</bool>
    </property>
-   <widget class="QMenu" name="menuFile">
-    <property name="mouseTracking">
-     <bool>true</bool>
-    </property>
-    <property name="acceptDrops">
-     <bool>false</bool>
-    </property>
-    <property name="title">
-     <string notr="true">File</string>
-    </property>
-   </widget>
    <widget class="QMenu" name="menuPlayback">
     <property name="title">
      <string notr="true">Playback</string>
@@ -71,8 +63,18 @@
     <addaction name="actionShowSeeking"/>
     <addaction name="actionPlaylists"/>
    </widget>
-   <addaction name="menuFile"/>
+   <widget class="QMenu" name="menuPlaylist">
+    <property name="title">
+     <string>Playlist</string>
+    </property>
+    <addaction name="actionAdd"/>
+    <addaction name="actionClear"/>
+    <addaction name="actionShuffle"/>
+    <addaction name="actionSort"/>
+    <addaction name="actionSave"/>
+   </widget>
    <addaction name="menuPlayback"/>
+   <addaction name="menuPlaylist"/>
    <addaction name="menuLayout"/>
   </widget>
   <widget class="QToolBar" name="controlToolbar">
@@ -171,6 +173,31 @@
    </property>
    <property name="text">
     <string>Playlists</string>
+   </property>
+  </action>
+  <action name="actionClear">
+   <property name="text">
+    <string>Clear</string>
+   </property>
+  </action>
+  <action name="actionShuffle">
+   <property name="text">
+    <string>Shuffle</string>
+   </property>
+  </action>
+  <action name="actionSort">
+   <property name="text">
+    <string>Sort</string>
+   </property>
+  </action>
+  <action name="actionAdd">
+   <property name="text">
+    <string>Add</string>
+   </property>
+  </action>
+  <action name="actionSave">
+   <property name="text">
+    <string>Save</string>
    </property>
   </action>
  </widget>
