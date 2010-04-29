@@ -18,7 +18,8 @@ Author:
 #include "seek_controls.h"
 #include "playlist.h"
 
-MainWindow::MainWindow()
+
+MainWindow::MainWindow(int argc, char* argv[])
   : Controls(new PlaybackControls(this))
   , Seeking(new SeekControls(this))
 {
@@ -27,5 +28,12 @@ MainWindow::MainWindow()
     //add widgets to toolbars
     controlToolbar->addWidget(Controls);
     seekToolbar->addWidget(Seeking);
-    playlistsContainer->addTab(new Playlist(this), QString::fromUtf8("Default playlist"));
+    Playlist* const playlist = Playlist::Create(this);
+    playlistsContainer->addTab(playlist, QString::fromUtf8("Default playlist"));
+    
+    //TODO: remove
+    for (int param = 1; param < argc; ++param)
+    {
+      playlist->AddItemByPath(FromStdString(argv[param]));
+    }
 }

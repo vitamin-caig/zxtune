@@ -14,15 +14,28 @@ Author:
 #ifndef ZXTUNE_QT_PLAYLIST_H_DEFINED
 #define ZXTUNE_QT_PLAYLIST_H_DEFINED
 
-//local includes
-#include "playlist_ui.h"
+//common includes
+#include <types.h>
+//qt includes
+#include <QtGui/QWidget>
+
+namespace Log
+{
+  struct MessageData;
+}
 
 class Playlist : public QWidget
-               , public Ui::Playlist
 {
   Q_OBJECT
 public:
-  Playlist(QWidget* parent = 0);
+  //creator
+  static Playlist* Create(QWidget* parent);
+
+public slots:
+  virtual void AddItemByPath(const String& itemPath) = 0;
+  virtual void AddItem(const struct ModuleItem& item) = 0;
+private slots:
+  virtual void ShowProgress(const Log::MessageData&) = 0;
 };
 
 #endif //ZXTUNE_QT_PLAYLIST_H_DEFINED

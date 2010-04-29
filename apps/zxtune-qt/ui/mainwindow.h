@@ -22,7 +22,7 @@ class MainWindow : public QMainWindow
 {
   Q_OBJECT
 public:
-  MainWindow();
+  MainWindow(int arg, char* argv[]);
 
 public:
   class PlaybackControls* Controls;

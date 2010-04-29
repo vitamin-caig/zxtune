@@ -30,7 +30,7 @@ namespace
     {
       QApplication qapp(argc, argv);
       //main ui
-      MainWindow win;
+      MainWindow win(argc, argv);
       win.show();
       return qapp.exec();
     }
