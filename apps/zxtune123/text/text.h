@@ -7,8 +7,6 @@ namespace Text
 {
 extern const Char ANALYZER_DESC[];
 extern const Char ANALYZER_KEY[];
-extern const Char CACHE_DESC[];
-extern const Char CACHE_KEY[];
 extern const Char CLI_SECTION[];
 extern const Char CLOCKRATE_DESC[];
 extern const Char CLOCKRATE_KEY[];

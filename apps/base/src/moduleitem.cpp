@@ -12,11 +12,14 @@ Author:
 #include <apps/base/moduleitem.h>
 
 #include <error.h>
+#include <core/error_codes.h>
 #include <core/module_attrs.h>
 #include <io/fs_tools.h>
 #include <io/provider.h>
 
 #include <boost/bind.hpp>
+
+#define FILE_TAG 08FB6EEC
 
 namespace
 {
@@ -41,8 +44,7 @@ namespace
     item.Module->ModifyCustomAttributes(attrs, false);
     try
     {
-      callback(item);
-      return Error();
+      return callback(item) ? Error() : Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
     }
     catch (const Error& e)
     {
@@ -52,7 +54,7 @@ namespace
 }
 
 Error ProcessModuleItems(const StringArray& files, const Parameters::Map& params, const ZXTune::DetectParameters::FilterFunc& filter,
-  const ZXTune::DetectParameters::LogFunc& logger, const boost::function<void(const ModuleItem&)>& callback)
+  const ZXTune::DetectParameters::LogFunc& logger, const OnItemCallback& callback)
 {
   //TODO: optimize
   for (StringArray::const_iterator it = files.begin(), lim = files.end(); it != lim; ++it)

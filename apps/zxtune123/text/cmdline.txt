@@ -206,12 +206,6 @@
 < ANALYZER_DESC
 > "enable spectrum analyzer"
 
-< CACHE_KEY
-> CMD_CACHE_KEY
-
-< CACHE_DESC
-> "collect all modules to list before playback (slow, requires much memory)."
-
 < SEEKSTEP_KEY
 > CMD_SEEKSTEP_KEY
 

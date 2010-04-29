@@ -199,7 +199,7 @@ namespace
         throw Error(THIS_LINE, CONVERT_PARAMETERS, Text::CONVERT_ERROR_INVALID_MODE);
       }
     }
-    void ProcessItem(const ModuleItem& item) const
+    bool ProcessItem(const ModuleItem& item) const
     {
       {
         ZXTune::PluginInformation info;
@@ -207,7 +207,7 @@ namespace
         if (!(info.Capabilities & CapabilityMask))
         {
           Message(Text::CONVERT_SKIPPED, item.Id, info.Id);
-          return;
+          return true;
         }
       }
       Dump result;
@@ -234,6 +234,7 @@ namespace
           Text::CONVERT_ERROR_WRITE_FILE, filename);
       }
       Message(Text::CONVERT_DONE, item.Id, filename);
+      return true;
     }
   private:
     template<class P1, class P2>
@@ -270,7 +271,6 @@ namespace
       , Silent(false)
       , Quiet(false)
       , Analyzer(false)
-      , Cached(false)
       , SeekStep(10)
       , Updatefps(10)
     {
@@ -296,17 +296,7 @@ namespace
         }
         else
         {
-          if (Cached)
-          {
-            ModuleItemsArray playlist;
-            Sourcer->ProcessItems(boost::bind(&ModuleItemsArray::push_back, boost::ref(playlist), _1));
-            StdOut << "Detected " << playlist.size() << " items" << std::endl;
-            std::for_each(playlist.begin(), playlist.end(), boost::bind(&CLIApplication::PlayItem, this, _1));
-          }
-          else
-          {
-            Sourcer->ProcessItems(boost::bind(&CLIApplication::PlayItem, this, _1));
-          }
+          Sourcer->ProcessItems(boost::bind(&CLIApplication::PlayItem, this, _1));
         }
       }
       catch (const Error& e)
@@ -351,7 +341,6 @@ namespace
           (Text::SILENT_KEY, bool_switch(&Silent), Text::SILENT_DESC)
           (Text::QUIET_KEY, bool_switch(&Quiet), Text::QUIET_DESC)
           (Text::ANALYZER_KEY, bool_switch(&Analyzer), Text::ANALYZER_DESC)
-          (Text::CACHE_KEY, bool_switch(&Cached), Text::CACHE_DESC)
           (Text::SEEKSTEP_KEY, value<uint_t>(&SeekStep), Text::SEEKSTEP_DESC)
           (Text::UPDATEFPS_KEY, value<uint_t>(&Updatefps), Text::UPDATEFPS_DESC)
         ;
@@ -395,7 +384,7 @@ namespace
       }
     }
     
-    void PlayItem(const ModuleItem& item)
+    bool PlayItem(const ModuleItem& item)
     {
       try
       {
@@ -481,7 +470,7 @@ namespace
             {
             case Console::INPUT_KEY_CANCEL:
             case 'Q':
-              throw Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
+              return false;
             case Console::INPUT_KEY_LEFT:
               ThrowIfError(backend.SetPosition(curFrame < seekStepFrames ? 0 : curFrame - seekStepFrames));
               break;
@@ -539,12 +528,9 @@ namespace
       }
       catch (const Error& e)
       {
-        if (e.FindSuberror(ZXTune::Module::ERROR_DETECT_CANCELED))
-        {
-          throw;
-        }
         e.WalkSuberrors(ErrOuter);
       }
+      return true;
     }
   private:
     Parameters::Map GlobalParams;
@@ -555,7 +541,6 @@ namespace
     bool Silent;
     bool Quiet;
     bool Analyzer;
-    bool Cached;
     uint_t SeekStep;
     uint_t Updatefps;
   };

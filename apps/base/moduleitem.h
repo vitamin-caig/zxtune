@@ -24,7 +24,7 @@ struct ModuleItem
 };
 typedef std::vector<ModuleItem> ModuleItemsArray;
 
-typedef boost::function<void(const ModuleItem&)> OnItemCallback;
+typedef boost::function<bool(const ModuleItem&)> OnItemCallback;
 
 Error ProcessModuleItems(const StringArray& files, const Parameters::Map& params, 
   const ZXTune::DetectParameters::FilterFunc& filter, const ZXTune::DetectParameters::LogFunc& logger,

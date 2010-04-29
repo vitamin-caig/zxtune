@@ -79,9 +79,6 @@
 = CMD_ANALYZER_KEY
 > "analyzer"
 
-= CMD_CACHE_KEY
-> "cache"
-
 = CMD_SEEKSTEP_KEY
 > "seekstep"
 
