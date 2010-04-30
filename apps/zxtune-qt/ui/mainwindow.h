@@ -14,19 +14,16 @@ Author:
 #ifndef ZXTUNE_QT_MAINWINDOW_H_DEFINED
 #define ZXTUNE_QT_MAINWINDOW_H_DEFINED
 
-//local includes
-#include "mainwindow_ui.h"
+//qt includes
+#include <QtGui/QMainWindow>
+#include <QtCore/QPointer>
 
 class MainWindow : public QMainWindow
-                 , private Ui::MainWindow
 {
   Q_OBJECT
 public:
-  MainWindow(int arg, char* argv[]);
+  static QPointer<MainWindow> Create(int arg, char* argv[]);
 
-public:
-  class PlaybackControls* Controls;
-  class SeekControls* Seeking;
 };
 
 #endif //ZXTUNE_QT_MAINWINDOW_H_DEFINED

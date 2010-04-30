@@ -30,8 +30,8 @@ namespace
     {
       QApplication qapp(argc, argv);
       //main ui
-      MainWindow win(argc, argv);
-      win.show();
+      QPointer<MainWindow> win(MainWindow::Create(argc, argv));
+      win->show();
       return qapp.exec();
     }
   private:

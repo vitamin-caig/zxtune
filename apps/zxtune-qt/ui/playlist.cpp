@@ -23,17 +23,28 @@ Author:
 //library includes
 #include <core/module_attrs.h>
 //qt includes
+#include <QtCore/QUrl>
 #include <QtCore/QMutex>
 #include <QtCore/QThread>
+#include <QtGui/QDragEnterEvent>
 //std includes
 #include <cassert>
+//boost includes
+#include <boost/bind.hpp>
 
 namespace
 {
   //TODO: to utilities
-  QString ToQString(const String& str)
+  inline QString ToQString(const String& str)
   {
     return QString(str.c_str());
+  }
+
+  inline String FromQString(const QString& str)
+  {
+    String tmp(str.size(), '\0');
+    std::transform(str.begin(), str.end(), tmp.begin(), boost::mem_fn(&QChar::toAscii));
+    return tmp;
   }
 
   class PlaylistImpl : virtual public Playlist
@@ -45,7 +56,8 @@ namespace
     {
       setParent(parent);
       setupUi(this);
-      //scanStatus->hide();
+      setAcceptDrops(true);
+      scanStatus->hide();
       scanStatus->connect(Thread, SIGNAL(OnScanStart()), SLOT(show()));
       this->connect(Thread, SIGNAL(OnProgress(const Log::MessageData&)), SLOT(ShowProgress(const Log::MessageData&)));
       this->connect(Thread, SIGNAL(OnGetItem(const ModuleItem&)), SLOT(AddItem(const ModuleItem&)));
@@ -83,6 +95,21 @@ namespace
       if (msg.Text)
       {
         scanProgress->setToolTip(ToQString(*msg.Text));
+      }
+    }
+    //qwidget virtuals
+    virtual void dragEnterEvent(QDragEnterEvent* event)
+    {
+      event->acceptProposedAction();
+    }
+    virtual void dropEvent(QDropEvent* event)
+    {
+      if (event->mimeData()->hasUrls())
+      {
+        const QList<QUrl>& urls = event->mimeData()->urls();
+        std::for_each(urls.begin(), urls.end(),
+          boost::bind(&Playlist::AddItemByPath, this,
+            boost::bind(&FromQString, boost::bind(&QUrl::toLocalFile, _1))));
       }
     }
   private:

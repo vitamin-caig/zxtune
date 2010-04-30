@@ -28,14 +28,15 @@ Author:
 
 namespace
 {
+  Q_DECLARE_METATYPE(Log::MessageData)
+  Q_DECLARE_METATYPE(ModuleItem)
+
   class ProcessThreadImpl : public ProcessThread
   {
   public:
     ProcessThreadImpl(QWidget* owner)
     {
       setParent(owner);
-      ::qRegisterMetaType<Log::MessageData>("Log::MessageData");
-      ::qRegisterMetaType<ModuleItem>("ModuleItem");
     }
 
     virtual void AddItemPath(const String& path)
@@ -70,7 +71,7 @@ namespace
           }
           pathes.swap(Queue);
         }
-        if (const Error& e = ProcessModuleItems(pathes, params, 
+        if (const Error& e = ProcessModuleItems(pathes, params,
             0, //filter
             boost::bind(&ProcessThreadImpl::DispatchProgress, this, _1), //logger
             boost::bind(&ProcessThreadImpl::OnProcessItem, this, _1, startTime)))
@@ -94,7 +95,7 @@ namespace
     {
       const std::time_t curTime = std::time(0);
       //show status after some timeout to skip fast adding
-      if (curTime - scanStart > 4)
+      if (curTime - scanStart > 2)
       {
         OnScanStart();
       }

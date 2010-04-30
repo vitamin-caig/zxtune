@@ -13,27 +13,44 @@ Author:
 
 //local includes
 #include "mainwindow.h"
+#include "mainwindow_ui.h"
 #include "mainwindow_moc.h"
 #include "playback_controls.h"
 #include "seek_controls.h"
 #include "playlist.h"
 
-
-MainWindow::MainWindow(int argc, char* argv[])
-  : Controls(new PlaybackControls(this))
-  , Seeking(new SeekControls(this))
+namespace
 {
-    //fill and layout
-    setupUi(this);
-    //add widgets to toolbars
-    controlToolbar->addWidget(Controls);
-    seekToolbar->addWidget(Seeking);
-    Playlist* const playlist = Playlist::Create(this);
-    playlistsContainer->addTab(playlist, QString::fromUtf8("Default playlist"));
-    
-    //TODO: remove
-    for (int param = 1; param < argc; ++param)
+  class MainWindowImpl : public MainWindow
+                       , private Ui::MainWindow
+  {
+  public:
+    MainWindowImpl(int argc, char* argv[])
+      : Controls(new PlaybackControls(this))
+      , Seeking(new SeekControls(this))
     {
-      playlist->AddItemByPath(FromStdString(argv[param]));
+      //fill and layout
+      setupUi(this);
+      //add widgets to toolbars
+      controlToolbar->addWidget(Controls);
+      seekToolbar->addWidget(Seeking);
+      Playlist* const playlist = Playlist::Create(this);
+      //TODO: load from config
+      playlistsContainer->addTab(playlist, QString::fromUtf8("Default playlist"));
+
+      //TODO: remove
+      for (int param = 1; param < argc; ++param)
+      {
+        playlist->AddItemByPath(FromStdString(argv[param]));
+      }
     }
+  private:
+    PlaybackControls* const Controls;
+    SeekControls* const Seeking;
+  };
+}
+
+QPointer<MainWindow> MainWindow::Create(int argc, char* argv[])
+{
+  return QPointer<MainWindow>(new MainWindowImpl(argc, argv));
 }
