@@ -18,6 +18,9 @@ Author:
 #include "playback_controls.h"
 #include "seek_controls.h"
 #include "playlist.h"
+#include <apps/base/moduleitem.h>
+//common includes
+#include <logging.h>
 
 namespace
 {
@@ -52,5 +55,8 @@ namespace
 
 QPointer<MainWindow> MainWindow::Create(int argc, char* argv[])
 {
+  //register metatypes
+  qRegisterMetaType<Log::MessageData>("Log::MessageData");
+  qRegisterMetaType<ModuleItem>("ModuleItem");
   return QPointer<MainWindow>(new MainWindowImpl(argc, argv));
 }

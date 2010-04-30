@@ -28,9 +28,6 @@ Author:
 
 namespace
 {
-  Q_DECLARE_METATYPE(Log::MessageData)
-  Q_DECLARE_METATYPE(ModuleItem)
-
   class ProcessThreadImpl : public ProcessThread
   {
   public:

@@ -81,7 +81,7 @@ namespace
       item.Module->GetModuleInformation(info);
       String title;
       Parameters::FindByName(info.Properties, ZXTune::Module::ATTR_TITLE, title) ||
-      Parameters::FindByName(info.Properties, ZXTune::Module::ATTR_PATH, title);
+      Parameters::FindByName(info.Properties, ZXTune::Module::ATTR_FULLPATH, title);
       new QListWidgetItem(ToQString(title), playList);
     }
 
