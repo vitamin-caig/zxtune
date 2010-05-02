@@ -101,7 +101,8 @@ namespace ZXTune
         : AYMPlayerBase(holder, device, defTable)
         , Data(data)
       {
-        //do not perform any actions here because of virtual functions call
+        //WARNING: not a virtual call
+        Reset();
       }
 
       virtual Error RenderFrame(const Sound::RenderParameters& params,

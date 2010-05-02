@@ -87,7 +87,11 @@ namespace
 
     virtual void Reset()
     {
-      Data.clear();
+      static const Dump::value_type HEADER[] = 
+      {
+        'Z', 'X', '5', '0'
+      };
+      Data.assign(HEADER, ArrayEnd(HEADER));
       CurChunk = DataChunk();
     }
 

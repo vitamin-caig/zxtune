@@ -74,7 +74,7 @@ namespace
     info.Id = PSG_PLUGIN_ID;
     info.Description = Text::PSG_PLUGIN_INFO;
     info.Version = PSG_PLUGIN_VERSION;
-    info.Capabilities = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | CAP_CONV_PSG;
+    info.Capabilities = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
   }
   
   typedef std::vector<AYM::DataChunk> PSGData;
