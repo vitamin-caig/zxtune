@@ -423,7 +423,6 @@ namespace
           }
           else if (cmd == 0x0e)//gliss
           {
-            //TODO: warn
             //required 1 byte
             if (restbytes < 1)
             {
@@ -668,13 +667,13 @@ namespace
             {
               dst.Sliding = dst.Glissade = 0;
               dst.SlidingTargetNote = LIMITER;
-              dst.PosInSample = dst.PosInOrnament = 0;
             }
+            dst.PosInSample = dst.PosInOrnament = 0;
           }
           if (src.Note)
           {
+            assert(src.Enabled);
             dst.Note = *src.Note;
-            dst.PosInSample = dst.PosInOrnament = 0;
             dst.Sliding = dst.Glissade = 0;
             dst.SlidingTargetNote = LIMITER;
           }
@@ -711,11 +710,13 @@ namespace
               dst.NoiseAdd = it->Param1;
               break;
             case GLISS_NOTE:
+              dst.Sliding = 0;
               dst.Glissade = it->Param1;
               dst.SlidingTargetNote = it->Param2;
               break;
             case GLISS:
               dst.Glissade = it->Param1;
+              dst.SlidingTargetNote = LIMITER;
               break;
             case NOGLISS:
               dst.Glissade = 0;
