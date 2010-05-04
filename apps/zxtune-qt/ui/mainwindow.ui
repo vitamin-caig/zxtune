@@ -19,6 +19,10 @@
   <property name="windowTitle">
    <string>zxtune-qt</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="../res/icons.qrc">
+    <normaloff>:/zxtune.png</normaloff>:/zxtune.png</iconset>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
     <property name="margin">
@@ -201,7 +205,9 @@
    </property>
   </action>
  </widget>
- <resources/>
+ <resources>
+  <include location="../res/icons.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>actionShowControls</sender>

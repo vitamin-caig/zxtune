@@ -17,6 +17,11 @@ Author:
 //qt includes
 #include <QtGui/QApplication>
 
+inline void InitResources()
+{
+  Q_INIT_RESOURCE(icons);
+}
+
 namespace
 {
   class QTApplication : public Application
@@ -29,6 +34,7 @@ namespace
     virtual int Run(int argc, char* argv[])
     {
       QApplication qapp(argc, argv);
+      InitResources();
       //main ui
       QPointer<MainWindow> win(MainWindow::Create(argc, argv));
       win->show();

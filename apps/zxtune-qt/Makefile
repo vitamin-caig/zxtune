@@ -6,7 +6,8 @@ source_files := qt_app
 #ui-related
 ui_files := ui/mainwindow ui/playback_controls ui/seek_controls ui/playlist
 moc_files := ui/playlist_thread ui/playback_thread
-source_files += $(ui_files) $(moc_files)
+qrc_files := res/icons
+source_files += $(ui_files) $(moc_files) $(qrc_files:=_res)
 
 libraries := zxtune_app_base core io sound tools
 depends := apps/base src/core src/io src/sound src/tools
@@ -17,14 +18,19 @@ qt_libraries := Gui Core
 windows_libraries := gdi32 user32 advapi32 shell32 ole32 oleaut32 imm32 comdlg32 wsock32 winspool uuid oldnames $(if $(subst release,,$(mode)),comsuppwd,comsuppw)
 
 h_generated := $(ui_files:=_ui.h) $(ui_files:=_moc.h) $(moc_files:=_moc.h)
+cpp_generated := $(qrc_files:=_res.cpp)
 
 include $(path_step)/makefile.mak
 
 UIC := uic
 MOC := moc
+RCC := rcc
 
 %_ui.h: %.ui
 	$(UIC) $< -o $@
 
 %_moc.h: %.h
 	$(MOC) -i $< -o $@
+
+%_res.cpp: %.qrc
+	$(RCC) -name $(basename $(notdir $<)) -o $@ $<
