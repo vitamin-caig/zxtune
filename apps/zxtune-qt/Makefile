@@ -5,11 +5,11 @@ source_files := qt_app
 
 #ui-related
 ui_files := ui/mainwindow ui/playback_controls ui/seek_controls ui/playlist
-moc_files := ui/playlist_thread
+moc_files := ui/playlist_thread ui/playback_thread
 source_files += $(ui_files) $(moc_files)
 
-libraries := zxtune_app_base core io tools
-depends := apps/base src/core src/io src/tools
+libraries := zxtune_app_base core io sound tools
+depends := apps/base src/core src/io src/sound src/tools
 
 boost_libraries := thread
 

@@ -1,0 +1,39 @@
+/*
+Abstract:
+  Playback thread interface
+
+Last changed:
+  $Id$
+
+Author:
+  (C) Vitamin/CAIG/2001
+
+  This file is a part of zxtune-qt application based on zxtune library
+*/
+
+#ifndef ZXTUNE_QT_PLAYBACK_THREAD_H_DEFINED
+#define ZXTUNE_QT_PLAYBACK_THREAD_H_DEFINED
+
+//library includes
+#include <core/module_types.h>
+//qt includes
+#include <QtCore/QThread>
+
+class PlaybackThread : public QThread
+{
+  Q_OBJECT
+public:
+  static PlaybackThread* Create(QWidget* owner);
+
+public slots:
+  virtual void SetItem(const struct ModuleItem& item) = 0;
+  virtual void Play() = 0;
+  virtual void Stop() = 0;
+  virtual void Pause() = 0;
+signals:
+  void OnStartModule(const ZXTune::Module::Information&);
+  void OnUpdateState(uint_t, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&);
+  void OnStopModule();
+};
+
+#endif //ZXTUNE_QT_PLAYBACK_THREAD_H_DEFINED

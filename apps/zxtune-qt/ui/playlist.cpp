@@ -50,9 +50,11 @@ namespace
   class PlaylistImpl : virtual public Playlist
                      , private Ui::Playlist
   {
+    typedef std::map<uint_t, ModuleItem> ItemsMap;
   public:
     PlaylistImpl(QWidget* parent)
       : Thread(ProcessThread::Create(this))
+      , CurrentItem(0)
     {
       setParent(parent);
       setupUi(this);
@@ -63,6 +65,7 @@ namespace
       this->connect(Thread, SIGNAL(OnGetItem(const ModuleItem&)), SLOT(AddItem(const ModuleItem&)));
       scanStatus->connect(Thread, SIGNAL(OnScanStop()), SLOT(hide()));
       Thread->connect(scanCancel, SIGNAL(clicked()), SLOT(Cancel()));
+      this->connect(playList, SIGNAL(itemActivated(QListWidgetItem*)), SLOT(SelectItem(QListWidgetItem*)));
     }
 
     virtual ~PlaylistImpl()
@@ -75,6 +78,25 @@ namespace
       Thread->AddItemPath(itemPath);
     }
 
+    virtual void NextItem()
+    {
+      if (Items.empty())
+      {
+        return;
+      }
+      const uint_t maxIdx = Items.end()->first;
+      for (uint_t curIdx = CurrentItem + 1; curIdx <= maxIdx; ++curIdx)
+      {
+        const ItemsMap::iterator iter = Items.find(curIdx);
+        if (iter != Items.end())
+        {
+          //TODO:
+          playList->setCurrentRow(CurrentItem = curIdx);
+          return;
+        }
+      }
+    }
+
     virtual void AddItem(const ModuleItem& item)
     {
       ZXTune::Module::Information info;
@@ -82,7 +104,22 @@ namespace
       String title;
       Parameters::FindByName(info.Properties, ZXTune::Module::ATTR_TITLE, title) ||
       Parameters::FindByName(info.Properties, ZXTune::Module::ATTR_FULLPATH, title);
-      new QListWidgetItem(ToQString(title), playList);
+      QListWidgetItem* const listItem = new QListWidgetItem(ToQString(title), playList);
+      const uint_t curIdx = Items.size();
+      Items.insert(ItemsMap::value_type(curIdx, item));
+      listItem->setData(Qt::UserRole, curIdx);
+    }
+
+    virtual void SelectItem(QListWidgetItem* listItem)
+    {
+      const QVariant& data = listItem->data(Qt::UserRole);
+      const uint_t curIdx = data.toUInt();
+      const ItemsMap::iterator iter = Items.find(curIdx);
+      if (iter != Items.end())
+      {
+        OnItemSelected(iter->second);
+        CurrentItem = curIdx;
+      }
     }
 
     virtual void ShowProgress(const Log::MessageData& msg)
@@ -114,6 +151,8 @@ namespace
     }
   private:
     ProcessThread* const Thread;
+    ItemsMap Items;
+    uint_t CurrentItem;
   };
 }
 

@@ -31,7 +31,7 @@ namespace
   class ProcessThreadImpl : public ProcessThread
   {
   public:
-    ProcessThreadImpl(QWidget* owner)
+    explicit ProcessThreadImpl(QWidget* owner)
     {
       setParent(owner);
     }
