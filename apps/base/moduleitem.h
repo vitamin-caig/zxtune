@@ -12,10 +12,12 @@ Author:
 #ifndef BASE_MODULEITEM_H_DEFINED
 #define BASE_MODULEITEM_H_DEFINED
 
+//library includes
 #include <core/module_detect.h>
-
+//std includes
 #include <memory>
 
+//detected module item
 struct ModuleItem
 {
   String Id;
@@ -26,6 +28,7 @@ typedef std::vector<ModuleItem> ModuleItemsArray;
 
 typedef boost::function<bool(const ModuleItem&)> OnItemCallback;
 
+//TODO: make class with cached context
 Error ProcessModuleItems(const StringArray& files, const Parameters::Map& params, 
   const ZXTune::DetectParameters::FilterFunc& filter, const ZXTune::DetectParameters::LogFunc& logger,
   const OnItemCallback& callback);

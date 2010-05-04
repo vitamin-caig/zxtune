@@ -12,16 +12,19 @@ Author:
 #ifndef BASE_APP_H_DEFINED
 #define BASE_APP_H_DEFINED
 
+//common includes
 #include <char_type.h>
-
+//std includes
 #include <iostream>
 #include <memory>
 
+// declaration of module id
 extern const std::string THIS_MODULE;
 
 // standart stream
 extern std::basic_ostream<Char>& StdOut;
 
+// declaration of app class. Implementation and factory should be implemented
 class Application
 {
 public:

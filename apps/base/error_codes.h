@@ -8,9 +8,11 @@ Last changed:
 Author:
   (C) Vitamin/CAIG/2001
 */
+
 #ifndef BASE_ERROR_CODES_H_DEFINED
 #define BASE_ERROR_CODES_H_DEFINED
 
+//common includes
 #include <error.h>
 
 enum ErrorCode

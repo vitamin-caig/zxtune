@@ -10,11 +10,13 @@ Author:
   
   This file is a part of zxtune123 application based on zxtune library
 */
+
 #ifndef ZXTUNE123_CONSOLE_H_DEFINED
 #define ZXTUNE123_CONSOLE_H_DEFINED
 
+//common includes
 #include <types.h>
-
+//std includes
 #include <utility>
 
 class Console

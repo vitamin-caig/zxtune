@@ -11,30 +11,32 @@ Author:
   This file is a part of zxtune123 application based on zxtune library
 */
 
+//local includes
 #include "sound.h"
 #include <apps/base/app.h>
 #include <apps/base/error_codes.h>
 #include <apps/base/parsing.h>
-
+//common includes
 #include <error_tools.h>
 #include <logging.h>
 #include <string_helpers.h>
 #include <tools.h>
+//library includes
 #include <core/core_parameters.h>
 #include <sound/backends_parameters.h>
 #include <sound/filter.h>
 #include <sound/render_params.h>
-
+//std includes
 #include <algorithm>
 #include <cctype>
+#include <iostream>
+//boost includes
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/bind.hpp>
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/value_semantic.hpp>
-
-#include <iostream>
-
+//text includes
 #include "text/text.h"
 #include "../base/text/base_text.h"
 

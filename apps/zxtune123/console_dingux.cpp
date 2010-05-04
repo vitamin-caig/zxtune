@@ -11,22 +11,24 @@ Author:
   This file is a part of zxtune123 application based on zxtune library
 */
 
-#include "console.h"
-#include <apps/base/app.h>
-#include <apps/base/error_codes.h>
-
 #ifndef __linux__
 #error Invalid platform specified
 #endif
 
+//local includes
+#include "console.h"
+#include <apps/base/app.h>
+#include <apps/base/error_codes.h>
+//platform-dependent includes
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <termio.h>
 #include <linux/input.h>
-
-#include <boost/thread.hpp>
+//std includes
 #include <iostream>
+//boost includes
+#include <boost/thread.hpp>
 
 #define FILE_TAG B2767AB0
 

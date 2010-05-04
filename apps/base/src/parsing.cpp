@@ -9,14 +9,16 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+//local includes
 #include <apps/base/parsing.h>
 #include <apps/base/error_codes.h>
-
+//common includes
 #include <error_tools.h>
+//library includes
 #include <io/fs_tools.h>
-
+//std includes
 #include <cctype>
-
+//text includes
 #include "../text/base_text.h"
 
 #define FILE_TAG 0DBA1FA8
@@ -25,6 +27,7 @@ namespace
 {
   static const Char PARAMETERS_DELIMITER = ',';
 
+  //try to search config in homedir, if defined
   inline String GetDefaultConfigFile()
   {
 #ifdef _WIN32
@@ -70,12 +73,12 @@ Error ParseConfigFile(const String& filename, Parameters::Map& params)
     {
       std::vector<Char>::const_iterator endof(buffer.begin() + lineSize - 1);
       std::vector<Char>::const_iterator beginof(std::find_if<std::vector<Char>::const_iterator>(buffer.begin(), endof,
-      std::not1(std::ptr_fun<int, int>(&std::isspace))));
+        std::not1(std::ptr_fun<int, int>(&std::isspace))));
       if (beginof != endof && *beginof != Char('#'))
       {
         if (!lines.empty())
         {
-          lines += Char(',');
+          lines += PARAMETERS_DELIMITER;
         }
         lines += String(beginof, endof);
       }
@@ -112,7 +115,15 @@ Error ParseParametersString(const String& pfx, const String& str, Parameters::Ma
     IN_VALSTR,
     IN_NOWHERE
   } mode = IN_NAME;
-  
+
+  /*
+   parse strings in form name=value[,name=value...]
+    name ::= [\w\d\._]*
+    value ::= \"[^\"]*\"
+    value ::= [^,]*
+
+    name is prepended with prefix before insert to result
+  */  
   String paramName, paramValue;
   for (String::const_iterator it = str.begin(), lim = str.end(); it != lim; ++it)
   {

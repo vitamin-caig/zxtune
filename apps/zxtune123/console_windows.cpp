@@ -10,21 +10,22 @@ Author:
   
   This file is a part of zxtune123 application based on zxtune library
 */
-#include "console.h"
 
 #ifndef _WIN32
 #error Invalid platform specified
 #endif
 
+//local includes
+#include "console.h"
+//platform-dependent includes
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
-
 #include <conio.h>
 #include <windows.h>
-
-#include <boost/array.hpp>
-
+//std includes
 #include <cctype>
+//boost includes
+#include <boost/array.hpp>
 
 namespace
 {

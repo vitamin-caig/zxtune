@@ -11,6 +11,7 @@ Author:
   This file is a part of zxtune123 application based on zxtune library
 */
 
+//local includes
 #include "console.h"
 #include "information.h"
 #include "sound.h"
@@ -18,9 +19,10 @@ Author:
 #include <apps/base/app.h>
 #include <apps/base/error_codes.h>
 #include <apps/base/parsing.h>
-
+//common includes
 #include <error_tools.h>
 #include <template.h>
+//library includes
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
 #include <core/error_codes.h>
@@ -30,10 +32,7 @@ Author:
 #include <io/fs_tools.h>
 #include <io/providers_parameters.h>
 #include <sound/sound_parameters.h>
-
-#include <boost/bind.hpp>
-#include <boost/program_options.hpp>
-
+//std includes
 #include <algorithm>
 #include <cctype>
 #include <functional>
@@ -41,11 +40,15 @@ Author:
 #include <iostream>
 #include <limits>
 #include <numeric>
-
+//boost includes
+#include <boost/bind.hpp>
+#include <boost/program_options.hpp>
+//text includes
 #include "text/text.h"
 
 #define FILE_TAG 81C76E7D
 
+// version definition-related
 #ifndef ZXTUNE_VERSION
 #define ZXTUNE_VERSION develop
 #endif
@@ -56,21 +59,23 @@ Author:
 
 namespace
 {
+  //layout constants
+  //TODO: make dynamic calculation
   const std::size_t INFORMATION_HEIGHT = 6;
   const std::size_t TRACKING_HEIGHT = 4;
   const std::size_t PLAYING_HEIGHT = 2;
   
-  void ErrOuter(uint_t /*level*/, Error::LocationRef loc, Error::CodeType code, const String& text)
+  inline void ErrOuter(uint_t /*level*/, Error::LocationRef loc, Error::CodeType code, const String& text)
   {
     StdOut << Error::AttributesToString(loc, code, text);
   }
 
-  void OutProp(const StringMap::value_type& prop)
+  inline void OutProp(const StringMap::value_type& prop)
   {
     StdOut << prop.first << '=' << prop.second << std::endl;
   }
 
-  void ShowItemInfo(const ZXTune::Module::Information& info, uint_t frameDuration)
+  inline void ShowItemInfo(const ZXTune::Module::Information& info, uint_t frameDuration)
   {
     StringMap strProps;
     Parameters::ConvertMap(info.Properties, strProps);
@@ -85,7 +90,7 @@ namespace
 #endif
   }
 
-  void ShowTrackingStatus(const ZXTune::Module::Tracking& track)
+  inline void ShowTrackingStatus(const ZXTune::Module::Tracking& track)
   {
     const String& dump = (Formatter(Text::TRACKING_STATUS)
       % track.Position % track.Pattern % track.Line % track.Frame % track.Tempo % track.Channels).str();

@@ -11,29 +11,31 @@ Author:
   This file is a part of zxtune123 application based on zxtune library
 */
 
+//local includes
 #include "console.h"
 #include "source.h"
 #include <apps/base/app.h>
 #include <apps/base/error_codes.h>
-
+//common includes
 #include <error_tools.h>
 #include <logging.h>
 #include <string_helpers.h>
 #include <tools.h>
+//library includes
 #include <core/error_codes.h>
 #include <core/module_attrs.h>
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
-
+//std includes
+#include <iomanip>
+#include <iostream>
+//boost includes
 #include <boost/bind.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/value_semantic.hpp>
-
-#include <iomanip>
-#include <iostream>
-
+//text includes
 #include "text/text.h"
 
 #define FILE_TAG 9EDFE3AF

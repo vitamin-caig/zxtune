@@ -9,14 +9,16 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+//local includes
 #include <apps/base/moduleitem.h>
-
+//common includes
 #include <error.h>
+//library includes
 #include <core/error_codes.h>
 #include <core/module_attrs.h>
 #include <io/fs_tools.h>
 #include <io/provider.h>
-
+//boost includes
 #include <boost/bind.hpp>
 
 #define FILE_TAG 08FB6EEC

@@ -11,11 +11,13 @@ Author:
   This file is a part of zxtune123 application based on zxtune library
 */
 
+//local includes
 #include "information.h"
 #include <apps/base/app.h>
-
+//common includes
 #include <tools.h>
 #include <formatter.h>
+//library includes
 #include <core/core_parameters.h>
 #include <core/freq_tables.h>
 #include <core/module_attrs.h>
@@ -28,20 +30,20 @@ Author:
 #include <sound/backend.h>
 #include <sound/backends_parameters.h>
 #include <sound/sound_parameters.h>
-
+//std includes
+#include <iostream>
+//boost includes
 #include <boost/tuple/tuple.hpp>
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/value_semantic.hpp>
-
-#include <iostream>
-
+//text includes
 #include "text/text.h"
 
 namespace
 {
   String PluginCaps(uint_t caps)
   {
-    typedef std::pair<uint32_t, String> CapsPair;
+    typedef std::pair<uint_t, String> CapsPair;
     
     static const CapsPair KNOWN_CAPS[] = {
       //device caps
@@ -77,13 +79,13 @@ namespace
     return result.substr(1);
   }
   
-  void ShowPlugin(const ZXTune::PluginInformation& info)
+  inline void ShowPlugin(const ZXTune::PluginInformation& info)
   {
     StdOut << (Formatter(Text::INFO_PLUGIN_INFO)
        % info.Id % info.Description % info.Version % PluginCaps(info.Capabilities)).str();
   }
 
-  void ShowPlugins()
+  inline void ShowPlugins()
   {
     ZXTune::PluginInformationArray plugins;
     ZXTune::EnumeratePlugins(plugins);
@@ -91,13 +93,13 @@ namespace
     std::for_each(plugins.begin(), plugins.end(), ShowPlugin);
   }
   
-  void ShowBackend(const ZXTune::Sound::BackendInformation& info)
+  inline void ShowBackend(const ZXTune::Sound::BackendInformation& info)
   {
     StdOut << (Formatter(Text::INFO_BACKEND_INFO)
       % info.Id % info.Description % info.Version).str();
   }
   
-  void ShowBackends()
+  inline void ShowBackends()
   {
     ZXTune::Sound::BackendInformationArray backends;
     ZXTune::Sound::EnumerateBackends(backends);
@@ -105,13 +107,13 @@ namespace
     std::for_each(backends.begin(), backends.end(), ShowBackend);
   }
   
-  void ShowProvider(const ZXTune::IO::ProviderInformation& info)
+  inline void ShowProvider(const ZXTune::IO::ProviderInformation& info)
   {
     StdOut << (Formatter(Text::INFO_PROVIDER_INFO)
       % info.Name % info.Description % info.Version).str();
   }
   
-  void ShowProviders()
+  inline void ShowProviders()
   {
     ZXTune::IO::ProviderInformationArray providers;
     ZXTune::IO::EnumerateProviders(providers);

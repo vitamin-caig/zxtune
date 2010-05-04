@@ -10,13 +10,16 @@ Author:
   
   This file is a part of zxtune123 application based on zxtune library
 */
+
 #ifndef ZXTUNE123_SOURCE_H_DEFINED
 #define ZXTUNE123_SOURCE_H_DEFINED
 
+//local includes
 #include <apps/base/moduleitem.h>
-
+//std includes
 #include <memory>
 
+//forward declarations
 namespace boost
 {
   namespace program_options

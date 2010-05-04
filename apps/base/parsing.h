@@ -8,12 +8,13 @@ Last changed:
 Author:
   (C) Vitamin/CAIG/2001
 */
+
 #ifndef BASE_PARSING_H_DEFINED
 #define BASE_PARSING_H_DEFINED
 
+//common includes
+#include <error.h>
 #include <parameters.h>
-
-class Error;
 
 Error ParseConfigFile(const String& filename, Parameters::Map& result);
 //result will be overwritten

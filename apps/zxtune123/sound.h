@@ -10,14 +10,18 @@ Author:
   
   This file is a part of zxtune123 application based on zxtune library
 */
+
 #ifndef ZXTUNE123_SOUND_H_DEFINED
 #define ZXTUNE123_SOUND_H_DEFINED
 
+//common includes
 #include <parameters.h>
+//library includes
 #include <sound/backend.h>
-
+//std includes
 #include <memory>
 
+//forward declarations
 namespace boost
 {
   namespace program_options
