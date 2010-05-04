@@ -12,8 +12,8 @@ Author:
 */
 
 //local includes
-#include "process_thread.h"
-#include "process_thread_moc.h"
+#include "playlist_thread.h"
+#include "playlist_thread_moc.h"
 #include "playlist_ui.h"
 #include <apps/base/moduleitem.h>
 //common includes

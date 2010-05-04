@@ -5,7 +5,7 @@ source_files := qt_app
 
 #ui-related
 ui_files := ui/mainwindow ui/playback_controls ui/seek_controls ui/playlist
-moc_files := ui/process_thread
+moc_files := ui/playlist_thread
 source_files += $(ui_files) $(moc_files)
 
 libraries := zxtune_app_base core io tools

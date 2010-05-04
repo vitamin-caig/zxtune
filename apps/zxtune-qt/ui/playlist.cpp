@@ -15,7 +15,7 @@ Author:
 #include "playlist.h"
 #include "playlist_ui.h"
 #include "playlist_moc.h"
-#include "process_thread.h"
+#include "playlist_thread.h"
 #include <apps/base/moduleitem.h>
 //common includes
 #include <logging.h>
