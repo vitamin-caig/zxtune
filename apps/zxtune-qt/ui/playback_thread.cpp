@@ -65,6 +65,11 @@ namespace
       }
     }
 
+    virtual ~PlaybackThreadImpl()
+    {
+      Stop();
+    }
+
     virtual void SetItem(const ModuleItem& item)
     {
       {
@@ -81,10 +86,12 @@ namespace
       QMutexLocker lock(&Sync);
       if (!this->isRunning())
       {
+        //stopped
         this->start();
       }
       else
       {
+        //played or paused
         Backend->Play();
       }
     }
@@ -97,8 +104,22 @@ namespace
 
     virtual void Pause()
     {
-      //TODO: handle toggle
-      Backend->Pause();
+      //toggle play/pause
+      ZXTune::Sound::Backend::State curState = ZXTune::Sound::Backend::STARTED;
+      Backend->GetCurrentState(curState);
+      if (ZXTune::Sound::Backend::STARTED == curState)
+      {
+        Backend->Pause();
+      }
+      else if (ZXTune::Sound::Backend::PAUSED == curState)
+      {
+        Backend->Play();
+      }
+    }
+
+    virtual void Seek(int frame)
+    {
+      Backend->SetPosition(frame);
     }
 
     virtual void run()
@@ -114,24 +135,38 @@ namespace
         OnStartModule(CurrentInfo);
         for(;;)
         {
-          ZXTune::Sound::Backend::State state;
-          Backend->GetCurrentState(state);
-          if (ZXTune::Sound::Backend::STARTED == state)
+          ZXTune::Sound::Backend::State curState = ZXTune::Sound::Backend::STARTED;
+          Backend->GetCurrentState(curState);
+          bool donePause = false;
+          if (ZXTune::Sound::Backend::STOPPED == curState)
           {
+            //stop
+            break;
+          }
+          else if (ZXTune::Sound::Backend::PAUSED == curState && !donePause)
+          {
+            //pause
+            OnPauseModule(CurrentInfo);
+            donePause = true;
+          }
+          else if (ZXTune::Sound::Backend::STARTED == curState)
+          {
+            if (donePause)
+            {
+              //resume playback
+              OnResumeModule(CurrentInfo);
+              donePause = false;
+            }
+            //playing
             uint_t time = 0;
             ZXTune::Module::Tracking tracking;
             ZXTune::Module::Analyze::ChannelsState state;
             player->GetPlaybackState(time, tracking, state);
-            OnUpdateState(time, tracking, state);
+            OnUpdateState(static_cast<uint>(time), tracking, state);
           }
-          //TODO: handle pause
-          if (ZXTune::Sound::Backend::STOPPED == state ||
-            ZXTune::Sound::Backend::STOP == Backend->WaitForEvent(ZXTune::Sound::Backend::STOP, 100/*10fps*/))
-          {
-            break;
-          }
+          this->msleep(100);//10fps
         }
-        OnStopModule();
+        OnStopModule(CurrentInfo);
       }
     }
   private:

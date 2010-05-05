@@ -31,7 +31,7 @@ namespace
   public:
     MainWindowImpl(int argc, char* argv[])
       : Controls(new PlaybackControls(this))
-      , Seeking(new SeekControls(this))
+      , Seeking(SeekControls::Create(this))
       , Thread(PlaybackThread::Create(this))
     {
       //fill and layout
@@ -54,6 +54,11 @@ namespace
       Thread->connect(Controls->playButton, SIGNAL(clicked(bool)), SLOT(Play()));
       Thread->connect(Controls->stopButton, SIGNAL(clicked(bool)), SLOT(Stop()));
       Thread->connect(Controls->pauseButton, SIGNAL(clicked(bool)), SLOT(Pause()));
+      Thread->connect(Seeking, SIGNAL(OnSeeking(int)), SLOT(Seek(int)));
+      Seeking->connect(Thread, SIGNAL(OnStartModule(const ZXTune::Module::Information&)), SLOT(InitState(const ZXTune::Module::Information&)));
+      Seeking->connect(Thread, SIGNAL(OnUpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&)),
+        SLOT(UpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&)));
+      Seeking->connect(Thread, SIGNAL(OnStopModule(const ZXTune::Module::Information&)), SLOT(CloseState(const ZXTune::Module::Information&)));
     }
   private:
     PlaybackControls* const Controls;
@@ -69,6 +74,7 @@ QPointer<MainWindow> MainWindow::Create(int argc, char* argv[])
   //TODO: extract to function
   qRegisterMetaType<Log::MessageData>("Log::MessageData");
   qRegisterMetaType<ModuleItem>("ModuleItem");
+  qRegisterMetaType<ZXTune::Module::Information>("ZXTune::Module::Information");
   qRegisterMetaType<ZXTune::Module::Tracking>("ZXTune::Module::Tracking");
   qRegisterMetaType<ZXTune::Module::Analyze::ChannelsState>("ZXTune::Module::Analyze::ChannelsState");
   return QPointer<MainWindow>(new MainWindowImpl(argc, argv));

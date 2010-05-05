@@ -30,10 +30,13 @@ public slots:
   virtual void Play() = 0;
   virtual void Stop() = 0;
   virtual void Pause() = 0;
+  virtual void Seek(int frame) = 0;
 signals:
   void OnStartModule(const ZXTune::Module::Information&);
-  void OnUpdateState(uint_t, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&);
-  void OnStopModule();
+  void OnUpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&);
+  void OnPauseModule(const ZXTune::Module::Information&);
+  void OnResumeModule(const ZXTune::Module::Information&);
+  void OnStopModule(const ZXTune::Module::Information&);
 };
 
 #endif //ZXTUNE_QT_PLAYBACK_THREAD_H_DEFINED

@@ -16,6 +16,7 @@ Author:
 #include "playlist_ui.h"
 #include "playlist_moc.h"
 #include "playlist_thread.h"
+#include "utils.h"
 #include <apps/base/moduleitem.h>
 //common includes
 #include <logging.h>
@@ -29,30 +30,15 @@ Author:
 #include <QtGui/QDragEnterEvent>
 //std includes
 #include <cassert>
-//boost includes
-#include <boost/bind.hpp>
 
 namespace
 {
-  //TODO: to utilities
-  inline QString ToQString(const String& str)
-  {
-    return QString(str.c_str());
-  }
-
-  inline String FromQString(const QString& str)
-  {
-    String tmp(str.size(), '\0');
-    std::transform(str.begin(), str.end(), tmp.begin(), boost::mem_fn(&QChar::toAscii));
-    return tmp;
-  }
-
-  class PlaylistImpl : virtual public Playlist
+  class PlaylistImpl : public Playlist
                      , private Ui::Playlist
   {
     typedef std::map<uint_t, ModuleItem> ItemsMap;
   public:
-    PlaylistImpl(QWidget* parent)
+    explicit PlaylistImpl(QWidget* parent)
       : Thread(ProcessThread::Create(this))
       , CurrentItem(0)
     {

@@ -32,6 +32,8 @@ namespace
   {
   public:
     explicit ProcessThreadImpl(QWidget* owner)
+      : Canceled(false)
+      , ScanDisplayed(false)
     {
       setParent(owner);
     }
@@ -56,7 +58,7 @@ namespace
     {
       Canceled = false;
       Parameters::Map params;
-      const std::time_t startTime = std::time(0);
+      OnScanStart();
       for (;;)
       {
         StringArray pathes;
@@ -71,7 +73,7 @@ namespace
         if (const Error& e = ProcessModuleItems(pathes, params,
             0, //filter
             boost::bind(&ProcessThreadImpl::DispatchProgress, this, _1), //logger
-            boost::bind(&ProcessThreadImpl::OnProcessItem, this, _1, startTime)))
+            boost::bind(&ProcessThreadImpl::OnProcessItem, this, _1)))
         {
           //TODO: check and show error
           e.GetText();
@@ -88,14 +90,8 @@ namespace
       }
     }
 
-    bool OnProcessItem(const ModuleItem& item, std::time_t scanStart)
+    bool OnProcessItem(const ModuleItem& item)
     {
-      const std::time_t curTime = std::time(0);
-      //show status after some timeout to skip fast adding
-      if (curTime - scanStart > 2)
-      {
-        OnScanStart();
-      }
       OnGetItem(item);
       return !Canceled;
     }
@@ -105,6 +101,7 @@ namespace
     StringArray Queue;
     //TODO: possibly use events
     volatile bool Canceled;
+    bool ScanDisplayed;
   };
 }
 
