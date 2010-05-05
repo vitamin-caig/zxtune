@@ -38,7 +38,7 @@ namespace
       timePosition->setRange(0, info.Statistic.Frame);
     }
 
-    virtual void UpdateState(uint frame, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&)
+    virtual void UpdateState(uint frame)
     {
       timePosition->setValue(frame);
       timeDisplay->setText(ToQString(FormatTime(frame, 20000/*TODO*/)));

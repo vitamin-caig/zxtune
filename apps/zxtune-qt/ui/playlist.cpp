@@ -30,13 +30,15 @@ Author:
 #include <QtGui/QDragEnterEvent>
 //std includes
 #include <cassert>
+//boost includes
+#include <boost/bind.hpp>
 
 namespace
 {
   class PlaylistImpl : public Playlist
                      , private Ui::Playlist
   {
-    typedef std::map<uint_t, ModuleItem> ItemsMap;
+    typedef std::map<int_t, ModuleItem> ItemsMap;
   public:
     explicit PlaylistImpl(QWidget* parent)
       : Thread(ProcessThread::Create(this))
@@ -70,13 +72,32 @@ namespace
       {
         return;
       }
-      const uint_t maxIdx = Items.end()->first;
-      for (uint_t curIdx = CurrentItem + 1; curIdx <= maxIdx; ++curIdx)
+      const int_t maxIdx = Items.rbegin()->first;
+      for (int_t curIdx = CurrentItem + 1; curIdx <= maxIdx; ++curIdx)
       {
         const ItemsMap::iterator iter = Items.find(curIdx);
         if (iter != Items.end())
         {
-          //TODO:
+          OnItemSelected(iter->second);
+          playList->setCurrentRow(CurrentItem = curIdx);
+          return;
+        }
+      }
+    }
+
+    virtual void PrevItem()
+    {
+      if (Items.empty())
+      {
+        return;
+      }
+      const int_t minIdx = Items.begin()->first;
+      for (int_t curIdx = CurrentItem - 1; curIdx >= minIdx; --curIdx)
+      {
+        const ItemsMap::iterator iter = Items.find(curIdx);
+        if (iter != Items.end())
+        {
+          OnItemSelected(iter->second);
           playList->setCurrentRow(CurrentItem = curIdx);
           return;
         }
@@ -91,7 +112,7 @@ namespace
       Parameters::FindByName(info.Properties, ZXTune::Module::ATTR_TITLE, title) ||
       Parameters::FindByName(info.Properties, ZXTune::Module::ATTR_FULLPATH, title);
       QListWidgetItem* const listItem = new QListWidgetItem(ToQString(title), playList);
-      const uint_t curIdx = Items.size();
+      const int_t curIdx = Items.size();
       Items.insert(ItemsMap::value_type(curIdx, item));
       listItem->setData(Qt::UserRole, curIdx);
     }
@@ -99,7 +120,7 @@ namespace
     virtual void SelectItem(QListWidgetItem* listItem)
     {
       const QVariant& data = listItem->data(Qt::UserRole);
-      const uint_t curIdx = data.toUInt();
+      const int_t curIdx = data.toInt();
       const ItemsMap::iterator iter = Items.find(curIdx);
       if (iter != Items.end())
       {
@@ -138,7 +159,7 @@ namespace
   private:
     ProcessThread* const Thread;
     ItemsMap Items;
-    uint_t CurrentItem;
+    int_t CurrentItem;
   };
 }
 

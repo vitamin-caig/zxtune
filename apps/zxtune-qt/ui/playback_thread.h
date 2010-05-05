@@ -37,6 +37,7 @@ signals:
   void OnPauseModule(const ZXTune::Module::Information&);
   void OnResumeModule(const ZXTune::Module::Information&);
   void OnStopModule(const ZXTune::Module::Information&);
+  void OnFinishModule(const ZXTune::Module::Information&);
 };
 
 #endif //ZXTUNE_QT_PLAYBACK_THREAD_H_DEFINED

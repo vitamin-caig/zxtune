@@ -16,23 +16,25 @@ Author:
 
 //common includes
 #include <types.h>
-//std includes
-#include <algorithm>
-//boost includes
-#include <boost/bind.hpp>
 //qt includes
 #include <QtCore/QString>
 
 inline QString ToQString(const String& str)
 {
-  return QString(str.c_str());
+#ifdef UNICODE
+  return QString::fromStdWString(str);
+#else
+  return QString::fromStdString(str);
+#endif
 }
 
 inline String FromQString(const QString& str)
 {
-  String tmp(str.size(), '\0');
-  std::transform(str.begin(), str.end(), tmp.begin(), boost::mem_fn(&QChar::toAscii));
-  return tmp;
+#ifdef UNICODE
+  return str.toStdWString();
+#else
+  return str.toStdString();
+#endif
 }
 
 #endif //ZXTUNE_QT_UTILS_H_DEFINED

@@ -30,6 +30,7 @@ namespace
   {
   public:
     explicit PlaybackThreadImpl(QWidget* owner)
+      : Stopped(false)
     {
       setParent(owner);
 
@@ -74,7 +75,9 @@ namespace
     {
       {
         QMutexLocker lock(&Sync);
-        Stop();
+        Stopped = true;
+        Backend->Stop();
+        this->wait();
         item.Module->GetModuleInformation(CurrentInfo);
         Backend->SetModule(item.Module);
       }
@@ -98,12 +101,17 @@ namespace
 
     virtual void Stop()
     {
-      Backend->Stop();
+      {
+        QMutexLocker lock(&Sync);
+        Stopped = true;
+        Backend->Stop();
+      }
       this->wait();
     }
 
     virtual void Pause()
     {
+      QMutexLocker lock(&Sync);
       //toggle play/pause
       ZXTune::Sound::Backend::State curState = ZXTune::Sound::Backend::STARTED;
       Backend->GetCurrentState(curState);
@@ -166,13 +174,20 @@ namespace
           }
           this->msleep(100);//10fps
         }
+        if (!Stopped)
+        {
+          OnFinishModule(CurrentInfo);
+        }
         OnStopModule(CurrentInfo);
+        Stopped = false;
       }
     }
   private:
     ZXTune::Sound::Backend::Ptr Backend;
     ZXTune::Module::Information CurrentInfo;
     QMutex Sync;
+    //TODO: make right
+    volatile bool Stopped;
   };
 }
 

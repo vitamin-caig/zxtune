@@ -28,7 +28,7 @@ public:
 
 public slots:
   virtual void InitState(const ZXTune::Module::Information&) = 0;
-  virtual void UpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&) = 0;
+  virtual void UpdateState(uint) = 0;
   virtual void CloseState(const ZXTune::Module::Information&) = 0;
 signals:
   void OnSeeking(int);

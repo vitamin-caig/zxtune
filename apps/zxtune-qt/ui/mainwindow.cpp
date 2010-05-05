@@ -36,6 +36,8 @@ namespace
     {
       //fill and layout
       setupUi(this);
+      //TODO: implement
+      menubar->hide();
       //add widgets to toolbars
       controlToolbar->addWidget(Controls);
       seekToolbar->addWidget(Seeking);
@@ -50,6 +52,9 @@ namespace
       }
 
       //connect actions
+      CurrentPlaylist->connect(Controls->prevButton, SIGNAL(clicked(bool)), SLOT(PrevItem()));
+      CurrentPlaylist->connect(Controls->nextButton, SIGNAL(clicked(bool)), SLOT(NextItem()));
+      CurrentPlaylist->connect(Thread, SIGNAL(OnFinishModule(const ZXTune::Module::Information&)), SLOT(NextItem()));
       Thread->connect(CurrentPlaylist, SIGNAL(OnItemSelected(const ModuleItem&)), SLOT(SetItem(const ModuleItem&)));
       Thread->connect(Controls->playButton, SIGNAL(clicked(bool)), SLOT(Play()));
       Thread->connect(Controls->stopButton, SIGNAL(clicked(bool)), SLOT(Stop()));
@@ -57,7 +62,7 @@ namespace
       Thread->connect(Seeking, SIGNAL(OnSeeking(int)), SLOT(Seek(int)));
       Seeking->connect(Thread, SIGNAL(OnStartModule(const ZXTune::Module::Information&)), SLOT(InitState(const ZXTune::Module::Information&)));
       Seeking->connect(Thread, SIGNAL(OnUpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&)),
-        SLOT(UpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&)));
+        SLOT(UpdateState(uint)));
       Seeking->connect(Thread, SIGNAL(OnStopModule(const ZXTune::Module::Information&)), SLOT(CloseState(const ZXTune::Module::Information&)));
     }
   private:
