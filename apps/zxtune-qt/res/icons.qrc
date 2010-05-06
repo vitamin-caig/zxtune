@@ -2,4 +2,11 @@
   <qresource>
     <file>zxtune.png</file>
   </qresource>
+  <qresource prefix="/controls">
+    <file>prev_norm.png</file>
+    <file>play_norm.png</file>
+    <file>pause_norm.png</file>
+    <file>stop_norm.png</file>
+    <file>next_norm.png</file>
+  </qresource>
 </RCC>
