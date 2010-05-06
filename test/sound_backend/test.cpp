@@ -181,7 +181,15 @@ namespace
 
     Parameters::Map params;
     Backend::Ptr backend;
-    ThrowIfError(CreateBackend(info.Id, params, backend));
+    if (const Error& e = CreateBackend(info.Id, params, backend))
+    {
+      if (e.FindSuberror(BACKEND_INVALID_PARAMETER))
+      {
+        e.WalkSuberrors(ErrOuter);
+        return;
+      }
+      throw e;
+    }
 
     std::cout << "Check for volume support: ";
     if (const VolumeControl::Ptr volCtrl = backend->GetVolumeControl())
@@ -191,7 +199,7 @@ namespace
       ThrowIfError(volCtrl->GetVolume(volume));
       std::cout << "{" << volume[0] << "," << volume[1] << "}\n";
       MultiGain newVol = { {1.0, 1.0} };
-      std::cout << " checkinf for set: ";
+      std::cout << " checking for set: ";
       ThrowIfError(volCtrl->SetVolume(newVol));
       std::cout << "passed\n";
       //return previous
@@ -210,6 +218,8 @@ namespace
     */
     std::cout << "Playing [";
     ThrowIfError(backend->Play());
+#if 0
+//polling mode
     Backend::State state;
     for (;;)
     {
@@ -221,6 +231,16 @@ namespace
         break;
       }
     }
+#else
+    {
+      SignalsCollector::Ptr signals = backend->CreateSignalsCollector(Backend::MODULE_STOP | Backend::MODULE_FINISH);
+      uint_t signal = 0;
+      while (!signals->WaitForSignals(signal, 1000))
+      {
+        std::cout << '.' << std::flush;
+      }
+    }
+#endif
     std::cout << "] stopped" << std::endl;
   }
 }

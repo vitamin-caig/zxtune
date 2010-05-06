@@ -88,6 +88,8 @@ namespace
       CollectorEntries::iterator newEnd = std::remove_if(Collectors.begin(), Collectors.end(),
         boost::bind(&SignalsCollectorImpl::WeakPtr::expired, boost::bind(&CollectorEntry::Collector, _1)));
       std::for_each(Collectors.begin(), newEnd, boost::bind(&CollectorEntry::DoSignal, _1, signal));
+      //just for log yet
+      std::for_each(newEnd, Collectors.end(), boost::mem_fn(&CollectorEntry::Release));
       Collectors.erase(newEnd, Collectors.end());
     }
   private:
@@ -100,17 +102,19 @@ namespace
 
       explicit CollectorEntry(SignalsCollectorImpl::Ptr ptr)
         : Collector(ptr)
-        , Id(reinterpret_cast<uint32_t>(ptr.get()))
+        , Id(ptr.get())
       {
-        Log::Debug(THIS_MODULE, "Created collector %1$04x", Id);
+        Log::Debug(THIS_MODULE, "Created collector %1$#x", Id);
       }
 
-      ~CollectorEntry()
+      void Release()
       {
-        if (0 != Id)
+        if (Id)
         {
-          Log::Debug(THIS_MODULE, "Destroyed collector %1$04x", Id);
+          Log::Debug(THIS_MODULE, "Destroyed collector %1$#x", Id);
         }
+        Collector.reset();
+        Id = 0;
       }
 
       void DoSignal(uint_t signal)
@@ -120,7 +124,7 @@ namespace
       }
 
       SignalsCollectorImpl::WeakPtr Collector;
-      uint32_t Id;
+      const void* Id;
     };
     typedef std::list<CollectorEntry> CollectorEntries;
     mutable boost::mutex Lock;
