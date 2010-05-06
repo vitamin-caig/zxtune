@@ -13,6 +13,8 @@ Author:
 #include <sound/backend.h>
 //std includes
 #include <memory>
+//boost includes
+#include <boost/weak_ptr.hpp>
 
 namespace ZXTune
 {
@@ -46,7 +48,7 @@ namespace ZXTune
         return Delegate->SetModule(holder);
       }
       
-      virtual boost::weak_ptr<const Module::Player> GetPlayer() const
+      virtual Module::Player::ConstWeakPtr GetPlayer() const
       {
         return Delegate->GetPlayer();
       }
@@ -74,6 +76,11 @@ namespace ZXTune
       virtual Error GetCurrentState(State& state) const
       {
         return Delegate->GetCurrentState(state);
+      }
+
+      virtual SignalsCollector::Ptr CreateSignalsCollector(uint_t signalsMask) const
+      {
+        return Delegate->CreateSignalsCollector(signalsMask);
       }
 
       virtual Event WaitForEvent(Event evt, uint_t timeoutMs) const

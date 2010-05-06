@@ -10,12 +10,12 @@
 #ifndef __SOUND_BACKEND_H_DEFINED__
 #define __SOUND_BACKEND_H_DEFINED__
 
+//common includes
+#include <signals_collector.h>
 //library includes
 #include <core/module_holder.h> // for Module::Holder::Ptr, Converter::Ptr and other
 //std includes
 #include <memory>
-//boost includes
-#include <boost/weak_ptr.hpp>
 
 //forward declarations
 class Error;
@@ -140,7 +140,35 @@ namespace ZXTune
       //! @param timeoutMs Timeout in milliseconds to wait for specified event. Should be > 0
       //! @return Same value as evt in case of occured event or TIMEOUT in other case
       virtual Event WaitForEvent(Event evt, uint_t timeoutMs) const = 0;
-      
+
+      //! @brief Signals specification
+      enum Signal
+      {
+        //@{
+        //! @name Module-related signals
+
+        //! New module specified
+        MODULE_OPEN =   0x01,
+        //! Starting playback after stop
+        MODULE_START =  0x02,
+        //! Starting playback after pause
+        MODULE_RESUME = 0x04,
+        //! Pausing
+        MODULE_PAUSE =  0x08,
+        //! Stopping
+        MODULE_STOP  =  0x10,
+        //! Playback is finished
+        MODULE_FINISH = 0x20,
+        //! Seeking performed
+        MODULE_SEEK   = 0x20,
+        //@}
+      };
+
+      //! @brief Creating new signals collector
+      //! @param signalsMask Required signals mask
+      //! @return Pointer to new collector registered in backend. Automatically unregistered when expired
+      virtual SignalsCollector::Ptr CreateSignalsCollector(uint_t signalsMask) const = 0;
+
       //! @brief Setting the mixers to use
       //! @param data Input mixer matrix
       //! @return Error() in case of success

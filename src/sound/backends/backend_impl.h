@@ -25,6 +25,7 @@ namespace ZXTune
 {
   namespace Sound
   {
+    // Internal implementation for backend
     class BackendImpl : public Backend
     {
     public:
@@ -41,7 +42,9 @@ namespace ZXTune
       virtual Error SetPosition(uint_t frame);
       
       virtual Error GetCurrentState(State& state) const;
-      virtual Event WaitForEvent(Event evt, uint_t timeoutMs) const;
+
+      virtual SignalsCollector::Ptr CreateSignalsCollector(uint_t signalsMask) const;
+      virtual Event WaitForEvent(Event evt, uint_t timeoutMs) const;//deprecated
 
       virtual Error SetMixer(const std::vector<MultiGain>& data);
       virtual Error SetFilter(Converter::Ptr converter);
@@ -68,7 +71,8 @@ namespace ZXTune
       void StopPlayback();
       bool SafeRenderFrame();
       void RenderFunc();
-      void SendEvent(Event evt);
+      void SendEvent(Event evt);//deprecated
+      void SendSignal(uint_t sig);
     protected:
       //inheritances' context
       Parameters::Map CommonParameters;
@@ -80,7 +84,10 @@ namespace ZXTune
       mutable boost::mutex BackendMutex;
       mutable boost::mutex PlayerMutex;
     private:
-      mutable boost::array<boost::condition_variable, LAST_EVENT> Events;
+      //events-related
+      const SignalsDispatcher::Ptr Signaller;
+      mutable boost::array<boost::condition_variable, LAST_EVENT> Events;//deprecated
+      //sync-related
       boost::thread RenderThread;
       boost::barrier SyncBarrier;
       boost::mutex PauseMutex;

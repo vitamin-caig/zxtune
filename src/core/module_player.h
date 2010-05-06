@@ -15,6 +15,8 @@
 //library includes
 #include <core/module_types.h> //for Module::Analyze::ChannelsState
 #include <sound/receiver.h>    //for Sound::MultichannelReceiver
+//boost includes
+#include <boost/weak_ptr.hpp>
 
 //forward declarations
 class Error;

@@ -176,7 +176,8 @@ namespace ZXTune
   namespace Sound
   {
     BackendImpl::BackendImpl()
-      : SyncBarrier(TOTAL_WORKING_THREADS)
+      : Signaller(SignalsDispatcher::Create())
+      , SyncBarrier(TOTAL_WORKING_THREADS)
       , CurrentState(NOTOPENED), InProcess(false)
       , Channels(0), Renderer(new BufferRenderer(Buffer))
     {
@@ -220,7 +221,8 @@ namespace ZXTune
           ThrowIfError(CreateMixer(Channels, curMixer));
         }
         curMixer->SetEndpoint(FilterObject ? FilterObject : Renderer);
-        SendEvent(OPEN);
+        SendEvent(OPEN);//deprecated
+        SendSignal(MODULE_OPEN);
         Log::Debug(THIS_MODULE, "Done!");
         return Error();
       }
@@ -326,6 +328,7 @@ namespace ZXTune
           return Error();
         }
         ThrowIfError(Player->SetPosition(frame));
+        SendSignal(MODULE_SEEK);
         return Error();
       }
       catch (const Error& e)
@@ -341,6 +344,7 @@ namespace ZXTune
       return RenderError;
     }
 
+    //deprecated
     Backend::Event BackendImpl::WaitForEvent(Event evt, uint_t timeoutMs) const
     {
       boost::mutex localMutex;
@@ -348,6 +352,11 @@ namespace ZXTune
       return evt > TIMEOUT && evt < LAST_EVENT && timeoutMs > 0 &&
         Events[evt].timed_wait(locker, boost::posix_time::milliseconds(timeoutMs))
         ? evt : TIMEOUT;
+    }
+
+    SignalsCollector::Ptr BackendImpl::CreateSignalsCollector(uint_t signalsMask) const
+    {
+      return Signaller->CreateCollector(signalsMask);
     }
 
     Error BackendImpl::SetMixer(const std::vector<MultiGain>& data)
@@ -435,31 +444,35 @@ namespace ZXTune
     void BackendImpl::DoStartup()
     {
       OnStartup();
-      SendEvent(START);
+      SendEvent(START);//deprecated
+      SendSignal(MODULE_START);
     }
     
     void BackendImpl::DoShutdown()
     {
       OnShutdown();
-      SendEvent(STOP);
+      SendEvent(STOP);//deprecaed
+      SendSignal(MODULE_STOP);
     }
     
     void BackendImpl::DoPause()
     {
       OnPause();
-      SendEvent(STOP);
+      SendEvent(STOP);//deprecated
+      SendSignal(MODULE_PAUSE);
     }
     
     void BackendImpl::DoResume()
     {
       OnResume();
-      SendEvent(START);
+      SendEvent(START);//deprecated
+      SendSignal(MODULE_RESUME);
     }
     
     void BackendImpl::DoBufferReady(std::vector<MultiSample>& buffer)
     {
       OnBufferReady(buffer);
-      SendEvent(FRAME);
+      SendEvent(FRAME);//deprecated
     }
 
     void BackendImpl::CheckState() const
@@ -540,6 +553,7 @@ namespace ZXTune
             {
               CurrentState = STOPPED;
               InProcess = true; //stopping begin
+              SendSignal(MODULE_FINISH);
               break;
             }
           }
@@ -569,17 +583,24 @@ namespace ZXTune
         PauseEvent.notify_all();
         Log::Debug(THIS_MODULE, "Stopping playback thread by error");
         CurrentState = STOPPED;
-        SendEvent(STOP);
+        SendEvent(STOP);//deprecated
+        SendSignal(MODULE_STOP);
         SyncBarrier.wait();
         InProcess = false;
       }
       Log::Debug(THIS_MODULE, "Stopped playback thread");
     }
-    
+
+    //deprecated
     void BackendImpl::SendEvent(Event evt)
     {
       assert(evt > TIMEOUT && evt < LAST_EVENT);
       Events[evt].notify_all();
+    }
+
+    void BackendImpl::SendSignal(uint_t sig)
+    {
+      Signaller->Notify(sig);
     }
   }
 }
