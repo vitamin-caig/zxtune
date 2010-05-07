@@ -83,11 +83,6 @@ namespace ZXTune
         return Delegate->CreateSignalsCollector(signalsMask);
       }
 
-      virtual Event WaitForEvent(Event evt, uint_t timeoutMs) const
-      {
-        return Delegate->WaitForEvent(evt, timeoutMs);
-      }
-
       virtual Error SetMixer(const std::vector<MultiGain>& data)
       {
         return Delegate->SetMixer(data);

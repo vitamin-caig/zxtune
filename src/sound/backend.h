@@ -119,28 +119,6 @@ namespace ZXTune
       //! @return Error() in case of success
       virtual Error GetCurrentState(State& state) const = 0;
 
-      //! @brief Waiting event specification
-      enum Event
-      {
-        //! No requested event happends during timeout
-        TIMEOUT,
-        //! Open module happends
-        OPEN,
-        //! Playback stop/pause happends
-        STOP,
-        //! Playback start/resume happends
-        START,
-        //! Next frame playback finished
-        FRAME,
-        
-        LAST_EVENT
-      };
-      //! @brief Waiting for specified event
-      //! @param evt Interested event. TIMEOUT value will cause immediate return with the same value
-      //! @param timeoutMs Timeout in milliseconds to wait for specified event. Should be > 0
-      //! @return Same value as evt in case of occured event or TIMEOUT in other case
-      virtual Event WaitForEvent(Event evt, uint_t timeoutMs) const = 0;
-
       //! @brief Signals specification
       enum Signal
       {

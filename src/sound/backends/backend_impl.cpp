@@ -221,7 +221,6 @@ namespace ZXTune
           ThrowIfError(CreateMixer(Channels, curMixer));
         }
         curMixer->SetEndpoint(FilterObject ? FilterObject : Renderer);
-        SendEvent(OPEN);//deprecated
         SendSignal(MODULE_OPEN);
         Log::Debug(THIS_MODULE, "Done!");
         return Error();
@@ -344,16 +343,6 @@ namespace ZXTune
       return RenderError;
     }
 
-    //deprecated
-    Backend::Event BackendImpl::WaitForEvent(Event evt, uint_t timeoutMs) const
-    {
-      boost::mutex localMutex;
-      boost::unique_lock<boost::mutex> locker(localMutex);
-      return evt > TIMEOUT && evt < LAST_EVENT && timeoutMs > 0 &&
-        Events[evt].timed_wait(locker, boost::posix_time::milliseconds(timeoutMs))
-        ? evt : TIMEOUT;
-    }
-
     SignalsCollector::Ptr BackendImpl::CreateSignalsCollector(uint_t signalsMask) const
     {
       return Signaller->CreateCollector(signalsMask);
@@ -444,35 +433,30 @@ namespace ZXTune
     void BackendImpl::DoStartup()
     {
       OnStartup();
-      SendEvent(START);//deprecated
       SendSignal(MODULE_START);
     }
     
     void BackendImpl::DoShutdown()
     {
       OnShutdown();
-      SendEvent(STOP);//deprecaed
       SendSignal(MODULE_STOP);
     }
     
     void BackendImpl::DoPause()
     {
       OnPause();
-      SendEvent(STOP);//deprecated
       SendSignal(MODULE_PAUSE);
     }
     
     void BackendImpl::DoResume()
     {
       OnResume();
-      SendEvent(START);//deprecated
       SendSignal(MODULE_RESUME);
     }
     
     void BackendImpl::DoBufferReady(std::vector<MultiSample>& buffer)
     {
       OnBufferReady(buffer);
-      SendEvent(FRAME);//deprecated
     }
 
     void BackendImpl::CheckState() const
@@ -583,19 +567,11 @@ namespace ZXTune
         PauseEvent.notify_all();
         Log::Debug(THIS_MODULE, "Stopping playback thread by error");
         CurrentState = STOPPED;
-        SendEvent(STOP);//deprecated
         SendSignal(MODULE_STOP);
         SyncBarrier.wait();
         InProcess = false;
       }
       Log::Debug(THIS_MODULE, "Stopped playback thread");
-    }
-
-    //deprecated
-    void BackendImpl::SendEvent(Event evt)
-    {
-      assert(evt > TIMEOUT && evt < LAST_EVENT);
-      Events[evt].notify_all();
     }
 
     void BackendImpl::SendSignal(uint_t sig)

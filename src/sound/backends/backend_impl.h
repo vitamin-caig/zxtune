@@ -44,7 +44,6 @@ namespace ZXTune
       virtual Error GetCurrentState(State& state) const;
 
       virtual SignalsCollector::Ptr CreateSignalsCollector(uint_t signalsMask) const;
-      virtual Event WaitForEvent(Event evt, uint_t timeoutMs) const;//deprecated
 
       virtual Error SetMixer(const std::vector<MultiGain>& data);
       virtual Error SetFilter(Converter::Ptr converter);
@@ -71,7 +70,6 @@ namespace ZXTune
       void StopPlayback();
       bool SafeRenderFrame();
       void RenderFunc();
-      void SendEvent(Event evt);//deprecated
       void SendSignal(uint_t sig);
     protected:
       //inheritances' context
@@ -86,7 +84,6 @@ namespace ZXTune
     private:
       //events-related
       const SignalsDispatcher::Ptr Signaller;
-      mutable boost::array<boost::condition_variable, LAST_EVENT> Events;//deprecated
       //sync-related
       boost::thread RenderThread;
       boost::barrier SyncBarrier;
