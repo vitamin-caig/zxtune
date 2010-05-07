@@ -30,52 +30,52 @@ namespace
   {
   public:
     explicit PlaybackThreadImpl(QWidget* owner)
-      : Quit(false)
     {
       setParent(owner);
 
+      using namespace ZXTune;
       //create backend
       {
-        using namespace ZXTune::Sound;
-        BackendInformationArray backends;
-        EnumerateBackends(backends);
+        Sound::BackendInformationArray backends;
+        Sound::EnumerateBackends(backends);
         Parameters::Map params;
-        for (BackendInformationArray::const_iterator it = backends.begin(), lim = backends.end(); it != lim; ++it)
+        for (Sound::BackendInformationArray::const_iterator it = backends.begin(), lim = backends.end(); it != lim; ++it)
         {
-          if (!CreateBackend(it->Id, params, Backend))
+          if (!Sound::CreateBackend(it->Id, params, Backend))
           {
             break;
           }
         }
         assert(Backend.get());
-        static const MultiGain MIXER3[] =
+        static const Sound::MultiGain MIXER3[] =
         {
           { {1.0, 0.0} },
           { {0.5, 0.5} },
           { {0.0, 1.0} }
         };
-        static const MultiGain MIXER4[] =
+        static const Sound::MultiGain MIXER4[] =
         {
           { {1.0, 0.0} },
           { {0.7, 0.3} },
           { {0.3, 0.7} },
           { {0.0, 1.0} }
         };
-        Backend->SetMixer(std::vector<MultiGain>(MIXER3, ArrayEnd(MIXER3)));
-        Backend->SetMixer(std::vector<MultiGain>(MIXER4, ArrayEnd(MIXER4)));
+        Backend->SetMixer(std::vector<Sound::MultiGain>(MIXER3, ArrayEnd(MIXER3)));
+        Backend->SetMixer(std::vector<Sound::MultiGain>(MIXER4, ArrayEnd(MIXER4)));
       }
-      this->start();
     }
 
     virtual ~PlaybackThreadImpl()
     {
-      Quit = true;
       this->wait();
     }
 
     virtual void SetItem(const ModuleItem& item)
     {
       Backend->SetModule(item.Module);
+      Player = Backend->GetPlayer();
+      item.Module->GetModuleInformation(Info);
+      this->start();
       Backend->Play();
     }
 
@@ -112,52 +112,41 @@ namespace
     {
       using namespace ZXTune;
       SignalsCollector::Ptr signaller = Backend->CreateSignalsCollector(
-        Sound::Backend::MODULE_OPEN | 
-        Sound::Backend::MODULE_START | Sound::Backend::MODULE_RESUME | 
-        Sound::Backend::MODULE_PAUSE | Sound::Backend::MODULE_STOP | Sound::Backend::MODULE_FINISH);
+        Sound::Backend::MODULE_START | 
+        Sound::Backend::MODULE_RESUME | Sound::Backend::MODULE_PAUSE |
+        Sound::Backend::MODULE_STOP | Sound::Backend::MODULE_FINISH);
       //global state
       Sound::Backend::State state = Sound::Backend::NOTOPENED;
-      Module::Player::ConstWeakPtr player;
-      Module::Information info;
       //playback state, just for optimization
       uint_t time = 0;
       Module::Tracking tracking;
       Module::Analyze::ChannelsState analyze;
-      while (!Quit)
+      for (;;)
       {
         uint_t sigmask = 0;
-        while (signaller->WaitForSignals(sigmask, 100/*10fps*/))
+        if (signaller->WaitForSignals(sigmask, 100/*10fps*/))
         {
           Backend->GetCurrentState(state);
-          if (sigmask & Sound::Backend::MODULE_OPEN)
+          if (sigmask & (Sound::Backend::MODULE_STOP | Sound::Backend::MODULE_FINISH))
           {
-            player = Backend->GetPlayer();
-            if (Module::Player::ConstPtr realPlayer = player.lock())
+            if (sigmask & Sound::Backend::MODULE_FINISH)
             {
-              //TODO: make more reliable way
-              realPlayer->GetModule().GetModuleInformation(info);
+              OnFinishModule(Info);
             }
+            OnStopModule(Info);
+            break;
           }
-          //TODO: list
           else if (sigmask & Sound::Backend::MODULE_START)
           {
-            OnStartModule(info);
+            OnStartModule(Info);
           }
           else if (sigmask & Sound::Backend::MODULE_RESUME)
           {
-            OnResumeModule(info);
+            OnResumeModule(Info);
           }
           else if (sigmask & Sound::Backend::MODULE_PAUSE)
           {
-            OnPauseModule(info);
-          }
-          else if (sigmask & Sound::Backend::MODULE_STOP)
-          {
-            OnStopModule(info);
-          }
-          else if (sigmask & Sound::Backend::MODULE_FINISH)
-          {
-            OnFinishModule(info);
+            OnPauseModule(Info);
           }
           else
           {
@@ -168,7 +157,7 @@ namespace
         {
           continue;
         }
-        if (Module::Player::ConstPtr realPlayer = player.lock())
+        if (Module::Player::ConstPtr realPlayer = Player.lock())
         {
           realPlayer->GetPlaybackState(time, tracking, analyze);
           OnUpdateState(static_cast<uint>(time), tracking, analyze);
@@ -177,7 +166,8 @@ namespace
     }
   private:
     ZXTune::Sound::Backend::Ptr Backend;
-    volatile bool Quit;
+    ZXTune::Module::Information Info;
+    ZXTune::Module::Player::ConstWeakPtr Player;
   };
 }
 

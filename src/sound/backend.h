@@ -160,7 +160,7 @@ namespace ZXTune
         //! Playback is finished
         MODULE_FINISH = 0x20,
         //! Seeking performed
-        MODULE_SEEK   = 0x20,
+        MODULE_SEEK   = 0x40,
         //@}
       };
 

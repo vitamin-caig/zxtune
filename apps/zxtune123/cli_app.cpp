@@ -43,6 +43,7 @@ Author:
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/program_options.hpp>
+#include <boost/thread/thread.hpp>
 //text includes
 #include "text/text.h"
 
@@ -520,11 +521,11 @@ namespace
             }
           }
 
-          if (ZXTune::Sound::Backend::STOPPED == state ||
-              ZXTune::Sound::Backend::STOP == backend.WaitForEvent(ZXTune::Sound::Backend::STOP, waitPeriod))
+          if (ZXTune::Sound::Backend::STOPPED == state)
           {
             break;
           }
+          boost::this_thread::sleep(boost::posix_time::milliseconds(waitPeriod));
           if (!Silent && !Quiet)
           {
             Console::Self().MoveCursorUp(Analyzer ? scrSize.second - INFORMATION_HEIGHT - 1 : TRACKING_HEIGHT + PLAYING_HEIGHT);

@@ -30,7 +30,7 @@ namespace
       setParent(parent);
       setupUi(this);
       timePosition->setRange(0, 0);
-      this->connect(timePosition, SIGNAL(valueChanged(int)), SIGNAL(OnSeeking(int)));
+      this->connect(timePosition, SIGNAL(sliderMoved(int)), SIGNAL(OnSeeking(int)));
     }
 
     virtual void InitState(const ZXTune::Module::Information& info)
@@ -40,7 +40,10 @@ namespace
 
     virtual void UpdateState(uint frame)
     {
-      timePosition->setValue(frame);
+      if (!timePosition->isSliderDown())
+      {
+        timePosition->setValue(frame);
+      }
       timeDisplay->setText(ToQString(FormatTime(frame, 20000/*TODO*/)));
     }
 
