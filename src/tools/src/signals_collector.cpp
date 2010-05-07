@@ -37,25 +37,25 @@ namespace
     {
     }
 
-    virtual bool WaitForSignals(uint_t& signals, uint_t timeoutMs)
+    virtual bool WaitForSignals(uint_t& sigmask, uint_t timeoutMs)
     {
       boost::unique_lock<boost::mutex> locker(Mutex);
       if (Event.timed_wait(locker, boost::posix_time::milliseconds(timeoutMs)))
       {
         assert(Signals);
-        signals = Signals;
+        sigmask = Signals;
         Signals = 0;
         return true;
       }
       return false;
     }
 
-    void Notify(uint_t signal)
+    void Notify(uint_t sigmask)
     {
-      if (0 != (signal & Mask))
+      if (0 != (sigmask & Mask))
       {
         boost::unique_lock<boost::mutex> locker(Mutex);
-        Signals |= signal;
+        Signals |= sigmask;
         Event.notify_one();
       }
     }
@@ -82,12 +82,12 @@ namespace
       return ptr;
     }
 
-    virtual void Notify(uint_t signal)
+    virtual void Notify(uint_t sigmask)
     {
       Locker lock(Lock);
       CollectorEntries::iterator newEnd = std::remove_if(Collectors.begin(), Collectors.end(),
         boost::bind(&SignalsCollectorImpl::WeakPtr::expired, boost::bind(&CollectorEntry::Collector, _1)));
-      std::for_each(Collectors.begin(), newEnd, boost::bind(&CollectorEntry::DoSignal, _1, signal));
+      std::for_each(Collectors.begin(), newEnd, boost::bind(&CollectorEntry::DoSignal, _1, sigmask));
       //just for log yet
       std::for_each(newEnd, Collectors.end(), boost::mem_fn(&CollectorEntry::Release));
       Collectors.erase(newEnd, Collectors.end());

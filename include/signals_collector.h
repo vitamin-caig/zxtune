@@ -27,11 +27,11 @@ public:
   virtual ~SignalsCollector() {}
 
   //! @brief Waiting for signals or gathering already collected between calls
-  //! @param signals Reference to result
+  //! @param sigmask Reference to result
   //! @param timeoutMs Timeout in specified milliseconds
   //! @return false if timeout reached before any signal collected, true otherwise
   //! @invariant If return true, signals is not empty
-  virtual bool WaitForSignals(uint_t& signals, uint_t timeoutMs) = 0;
+  virtual bool WaitForSignals(uint_t& sigmask, uint_t timeoutMs) = 0;
 };
 
 //! @brief Signals managing interface
@@ -45,11 +45,11 @@ public:
   //! @brief Creating new signals collector
   //! @param signalsMask Required signals mask
   //! @return Pointer to new collector registered in backend. Automatically unregistered when released
-  virtual SignalsCollector::Ptr CreateCollector(uint_t mask) const = 0;
+  virtual SignalsCollector::Ptr CreateCollector(uint_t signalsMask) const = 0;
 
   //! @brief Notifies all the collectors about new signal
-  //! @param signal New signal data
-  virtual void Notify(uint_t signal) = 0;
+  //! @param sigmask New signals set
+  virtual void Notify(uint_t sigmask) = 0;
 
   //! @brief Creator
   static Ptr Create();
