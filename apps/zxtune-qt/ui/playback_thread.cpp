@@ -30,7 +30,7 @@ namespace
   {
   public:
     explicit PlaybackThreadImpl(QWidget* owner)
-      : Stopped(false)
+      : Quit(false)
     {
       setParent(owner);
 
@@ -50,69 +50,47 @@ namespace
         assert(Backend.get());
         static const MultiGain MIXER3[] =
         {
-          {1.0, 0.0},
-          {0.5, 0.5},
-          {0.0, 1.0}
+          { {1.0, 0.0} },
+          { {0.5, 0.5} },
+          { {0.0, 1.0} }
         };
         static const MultiGain MIXER4[] =
         {
-          {1.0, 0.0},
-          {0.7, 0.3},
-          {0.3, 0.7},
-          {0.0, 1.0}
+          { {1.0, 0.0} },
+          { {0.7, 0.3} },
+          { {0.3, 0.7} },
+          { {0.0, 1.0} }
         };
         Backend->SetMixer(std::vector<MultiGain>(MIXER3, ArrayEnd(MIXER3)));
         Backend->SetMixer(std::vector<MultiGain>(MIXER4, ArrayEnd(MIXER4)));
       }
+      this->start();
     }
 
     virtual ~PlaybackThreadImpl()
     {
-      Stop();
+      Quit = true;
+      this->wait();
     }
 
     virtual void SetItem(const ModuleItem& item)
     {
-      {
-        QMutexLocker lock(&Sync);
-        Stopped = true;
-        Backend->Stop();
-        this->wait();
-        item.Module->GetModuleInformation(CurrentInfo);
-        Backend->SetModule(item.Module);
-      }
-      Play();
+      Backend->SetModule(item.Module);
+      Backend->Play();
     }
 
     virtual void Play()
     {
-      QMutexLocker lock(&Sync);
-      if (!this->isRunning())
-      {
-        //stopped
-        this->start();
-      }
-      else
-      {
-        //played or paused
-        Backend->Play();
-      }
+      Backend->Play();
     }
 
     virtual void Stop()
     {
-      {
-        QMutexLocker lock(&Sync);
-        Stopped = true;
-        Backend->Stop();
-      }
-      this->wait();
+      Backend->Stop();
     }
 
     virtual void Pause()
     {
-      QMutexLocker lock(&Sync);
-      //toggle play/pause
       ZXTune::Sound::Backend::State curState = ZXTune::Sound::Backend::STARTED;
       Backend->GetCurrentState(curState);
       if (ZXTune::Sound::Backend::STARTED == curState)
@@ -132,62 +110,74 @@ namespace
 
     virtual void run()
     {
-      //sync with checked play
+      using namespace ZXTune;
+      SignalsCollector::Ptr signaller = Backend->CreateSignalsCollector(
+        Sound::Backend::MODULE_OPEN | 
+        Sound::Backend::MODULE_START | Sound::Backend::MODULE_RESUME | 
+        Sound::Backend::MODULE_PAUSE | Sound::Backend::MODULE_STOP | Sound::Backend::MODULE_FINISH);
+      //global state
+      Sound::Backend::State state = Sound::Backend::NOTOPENED;
+      Module::Player::ConstWeakPtr player;
+      Module::Information info;
+      //playback state, just for optimization
+      uint_t time = 0;
+      Module::Tracking tracking;
+      Module::Analyze::ChannelsState analyze;
+      while (!Quit)
       {
-        QMutexLocker lock(&Sync);
-      }
-      const ZXTune::Module::Player::ConstWeakPtr weakPlayer = Backend->GetPlayer();
-      if (const ZXTune::Module::Player::ConstPtr player = weakPlayer.lock())
-      {
-        Backend->Play();
-        OnStartModule(CurrentInfo);
-        for(;;)
+        uint_t sigmask = 0;
+        while (signaller->WaitForSignals(sigmask, 100/*10fps*/))
         {
-          ZXTune::Sound::Backend::State curState = ZXTune::Sound::Backend::STARTED;
-          Backend->GetCurrentState(curState);
-          bool donePause = false;
-          if (ZXTune::Sound::Backend::STOPPED == curState)
+          Backend->GetCurrentState(state);
+          if (sigmask & Sound::Backend::MODULE_OPEN)
           {
-            //stop
-            break;
-          }
-          else if (ZXTune::Sound::Backend::PAUSED == curState && !donePause)
-          {
-            //pause
-            OnPauseModule(CurrentInfo);
-            donePause = true;
-          }
-          else if (ZXTune::Sound::Backend::STARTED == curState)
-          {
-            if (donePause)
+            player = Backend->GetPlayer();
+            if (Module::Player::ConstPtr realPlayer = player.lock())
             {
-              //resume playback
-              OnResumeModule(CurrentInfo);
-              donePause = false;
+              //TODO: make more reliable way
+              realPlayer->GetModule().GetModuleInformation(info);
             }
-            //playing
-            uint_t time = 0;
-            ZXTune::Module::Tracking tracking;
-            ZXTune::Module::Analyze::ChannelsState state;
-            player->GetPlaybackState(time, tracking, state);
-            OnUpdateState(static_cast<uint>(time), tracking, state);
           }
-          this->msleep(100);//10fps
+          //TODO: list
+          else if (sigmask & Sound::Backend::MODULE_START)
+          {
+            OnStartModule(info);
+          }
+          else if (sigmask & Sound::Backend::MODULE_RESUME)
+          {
+            OnResumeModule(info);
+          }
+          else if (sigmask & Sound::Backend::MODULE_PAUSE)
+          {
+            OnPauseModule(info);
+          }
+          else if (sigmask & Sound::Backend::MODULE_STOP)
+          {
+            OnStopModule(info);
+          }
+          else if (sigmask & Sound::Backend::MODULE_FINISH)
+          {
+            OnFinishModule(info);
+          }
+          else
+          {
+            assert(!"Invalid signal");
+          }
         }
-        if (!Stopped)
+        if (Sound::Backend::STARTED != state)
         {
-          OnFinishModule(CurrentInfo);
+          continue;
         }
-        OnStopModule(CurrentInfo);
-        Stopped = false;
+        if (Module::Player::ConstPtr realPlayer = player.lock())
+        {
+          realPlayer->GetPlaybackState(time, tracking, analyze);
+          OnUpdateState(static_cast<uint>(time), tracking, analyze);
+        }
       }
     }
   private:
     ZXTune::Sound::Backend::Ptr Backend;
-    ZXTune::Module::Information CurrentInfo;
-    QMutex Sync;
-    //TODO: make right
-    volatile bool Stopped;
+    volatile bool Quit;
   };
 }
 
