@@ -22,25 +22,75 @@ Author:
 #include <apps/base/moduleitem.h>
 //common includes
 #include <logging.h>
+//qt includes
+#include <QtGui/QToolBar>
 
 namespace
 {
+  template<class T>
+  class ControlOnToolbar
+  {
+  public:
+    ControlOnToolbar(QMainWindow* mainWindow, QMenu* layoutMenu, const char* menuTitle)
+      : Control(T::Create(mainWindow))
+      , Toolbar(new QToolBar(mainWindow))
+      , Action(new QAction(mainWindow))
+    {
+      //setup toolbar
+      QSizePolicy sizePolicy1(QSizePolicy::Maximum, QSizePolicy::MinimumExpanding);
+      sizePolicy1.setHorizontalStretch(0);
+      sizePolicy1.setVerticalStretch(0);
+      sizePolicy1.setHeightForWidth(Toolbar->sizePolicy().hasHeightForWidth());
+      Toolbar->setSizePolicy(sizePolicy1);
+      Toolbar->setAllowedAreas(Qt::TopToolBarArea);
+      Toolbar->setFloatable(false);
+      mainWindow->addToolBar(Qt::TopToolBarArea, Toolbar);
+      Toolbar->addWidget(Control);
+      //setup action
+      Action->setCheckable(true);
+      Action->setChecked(true);//TODO
+      Action->setText(QApplication::translate(mainWindow->objectName().toStdString().c_str(), menuTitle, 0, QApplication::UnicodeUTF8));
+      //integrate
+      layoutMenu->addAction(Action);
+      Toolbar->connect(Action, SIGNAL(toggled(bool)), SLOT(setVisible(bool)));
+    }
+
+    //accessors
+    T* operator -> () const
+    {
+      return Control;
+    }
+
+    operator T* () const
+    {
+      return Control;
+    }
+  private:
+    T* const Control;
+    QToolBar* const Toolbar;
+    QAction* const Action;
+  };
+  
+  class UiHelper : public Ui::MainWindow
+  {
+  public:
+    explicit UiHelper(QMainWindow* mainWindow)
+    {
+      setupUi(mainWindow);
+    }
+  };
+
   class MainWindowImpl : public MainWindow
-                       , private Ui::MainWindow
+                       , private UiHelper
   {
   public:
     MainWindowImpl(int argc, char* argv[])
-      : Controls(new PlaybackControls(this))
-      , Seeking(SeekControls::Create(this))
+      : UiHelper(this)
+      , Controls(this, menuLayout, "Controls")
+      , Seeking(this, menuLayout, "Seeking")
       , Thread(PlaybackThread::Create(this))
     {
-      //fill and layout
-      setupUi(this);
-      //TODO: implement
-      menubar->hide();
-      //add widgets to toolbars
-      controlToolbar->addWidget(Controls);
-      seekToolbar->addWidget(Seeking);
+      //setup playlist
       CurrentPlaylist = Playlist::Create(this);
       //TODO: load from config
       playlistsContainer->addTab(CurrentPlaylist, QString::fromUtf8("Default playlist"));
@@ -66,8 +116,8 @@ namespace
       Seeking->connect(Thread, SIGNAL(OnStopModule(const ZXTune::Module::Information&)), SLOT(CloseState(const ZXTune::Module::Information&)));
     }
   private:
-    PlaybackControls* const Controls;
-    SeekControls* const Seeking;
+    ControlOnToolbar<PlaybackControls> Controls;
+    ControlOnToolbar<SeekControls> Seeking;
     PlaybackThread* const Thread;
     Playlist* CurrentPlaylist;
   };

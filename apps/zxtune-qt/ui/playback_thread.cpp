@@ -73,10 +73,11 @@ namespace
     virtual void SetItem(const ModuleItem& item)
     {
       Backend->SetModule(item.Module);
-      Player = Backend->GetPlayer();
+      this->wait();
       item.Module->GetModuleInformation(Info);
-      this->start();
+      Player = Backend->GetPlayer();
       Backend->Play();
+      this->start();
     }
 
     virtual void Play()
@@ -111,12 +112,14 @@ namespace
     virtual void run()
     {
       using namespace ZXTune;
+      //notify about start
+      OnStartModule(Info);
+      
       SignalsCollector::Ptr signaller = Backend->CreateSignalsCollector(
-        Sound::Backend::MODULE_START | 
         Sound::Backend::MODULE_RESUME | Sound::Backend::MODULE_PAUSE |
         Sound::Backend::MODULE_STOP | Sound::Backend::MODULE_FINISH);
       //global state
-      Sound::Backend::State state = Sound::Backend::NOTOPENED;
+      Sound::Backend::State state = Sound::Backend::STARTED;
       //playback state, just for optimization
       uint_t time = 0;
       Module::Tracking tracking;
@@ -133,12 +136,10 @@ namespace
             {
               OnFinishModule(Info);
             }
-            OnStopModule(Info);
             break;
           }
           else if (sigmask & Sound::Backend::MODULE_START)
           {
-            OnStartModule(Info);
           }
           else if (sigmask & Sound::Backend::MODULE_RESUME)
           {
@@ -163,6 +164,8 @@ namespace
           OnUpdateState(static_cast<uint>(time), tracking, analyze);
         }
       }
+      //notify about stop
+      OnStopModule(Info);
     }
   private:
     ZXTune::Sound::Backend::Ptr Backend;

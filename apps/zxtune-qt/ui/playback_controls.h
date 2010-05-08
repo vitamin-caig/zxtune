@@ -17,12 +17,18 @@ Author:
 //local includes
 #include "playback_controls_ui.h"
 
+//TODO: hide internals
 class PlaybackControls : public QWidget
                        , public Ui::PlaybackControls
 {
   Q_OBJECT
 public:
-  PlaybackControls(QWidget* parent = 0);
+  static PlaybackControls* Create(QWidget* parent)
+  {
+    return new PlaybackControls(parent);
+  }
+private:
+  PlaybackControls(QWidget* parent);
 };
 
 #endif //ZXTUNE_QT_PLAYBACKCONTROL_H_DEFINED
