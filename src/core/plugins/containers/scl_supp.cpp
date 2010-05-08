@@ -72,9 +72,11 @@ namespace
 
   const uint8_t SINCLAIR_ID[] = {'S', 'I', 'N', 'C', 'L', 'A', 'I', 'R'};
 
-  const std::size_t SCL_MIN_SIZE = sizeof(SCLHeader) + 255 + 4;
+  //header with one entry + one sector + CRC
+  const std::size_t SCL_MIN_SIZE = sizeof(SCLHeader) + BYTES_PER_SECTOR + 4;
+  //header + up to 255 entries for 255 sectors each
   const std::size_t SCL_MODULE_SIZE = sizeof(SCLHeader) - sizeof(SCLEntry) +
-    255 * (sizeof(SCLEntry) + 0xff00) + 4;
+    255 * (sizeof(SCLEntry) + 0xff * BYTES_PER_SECTOR) + 4;
 
   BOOST_STATIC_ASSERT(sizeof(SCLEntry) == 14);
   BOOST_STATIC_ASSERT(sizeof(SCLHeader) == 23);
@@ -91,22 +93,14 @@ namespace
     }
     const SCLHeader* const header = safe_ptr_cast<const SCLHeader*>(data.Data());
     if (0 != std::memcmp(header->ID, SINCLAIR_ID, sizeof(SINCLAIR_ID)) ||
-        limit < sizeof(*header) + sizeof(header->Blocks) * (header->BlocksCount - 1))
+        0 == header->BlocksCount ||
+        //minimal size according to blocks count
+        limit < sizeof(*header) - sizeof(header->Blocks) + (BYTES_PER_SECTOR + sizeof(header->Blocks) * header->BlocksCount)
+       )
     {
       return 0;
     }
-    /*
-    Support trunkated files, do not check the real size
 
-    const uint_t allSectors = std::accumulate(header->Blocks, header->Blocks + header->BlocksCount,
-      uint_t(0),
-      boost::bind(std::plus<uint_t>(), _1, boost::bind<uint_t>(&SCLEntry::SizeInSectors, _2)));
-    if (limit < sizeof(*header) + sizeof(header->Blocks) * (header->BlocksCount - 1) +
-      allSectors * BYTES_PER_SECTOR)
-    {
-      return 0;
-    }
-    */
     FileDescriptions res;
     res.reserve(header->BlocksCount);
     std::size_t offset = safe_ptr_cast<const uint8_t*>(header->Blocks + header->BlocksCount) -
@@ -115,7 +109,7 @@ namespace
     {
       const SCLEntry& entry = header->Blocks[idx];
       const std::size_t nextOffset = offset + entry.SizeInSectors * BYTES_PER_SECTOR;
-      if (nextOffset < limit)
+      if (nextOffset > limit)
       {
         //file is trunkated
         break;

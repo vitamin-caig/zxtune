@@ -347,7 +347,7 @@ namespace
     //TODO: search for signature
     const uint8_t* const data(static_cast<const uint8_t*>(container.Data->Data()));
     const Footer* footer(safe_ptr_cast<const Footer*>(data + limit - sizeof(Footer)));
-    if (0 != std::memcmp(footer->ID3, TS_ID, sizeof(TS_ID)) &&
+    if (0 != std::memcmp(footer->ID3, TS_ID, sizeof(TS_ID)) ||
         fromLE(footer->Size1) + fromLE(footer->Size2) + sizeof(*footer) != limit)
     {
       return false;

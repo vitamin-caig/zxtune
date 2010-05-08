@@ -595,8 +595,17 @@ namespace
       return false;
     }
     const CHIHeader* const header(safe_ptr_cast<const CHIHeader*>(data.Data()));
-    return 0 == std::memcmp(header->Signature, CHI_SIGNATURE, sizeof(CHI_SIGNATURE));
+    if (0 != std::memcmp(header->Signature, CHI_SIGNATURE, sizeof(CHI_SIGNATURE)))
+    {
+      return false;
+    }
+    const uint_t patternsCount = 1 + *std::max_element(header->Positions, header->Positions + header->Length + 1);
+    if (sizeof(*header) + patternsCount * sizeof(CHIPattern) > size)
+    {
+      return false;
+    }
     //TODO: additional checks
+    return true;
   }
 
   bool CreateCHIModule(const Parameters::Map& /*commonParams*/, const MetaContainer& container,
