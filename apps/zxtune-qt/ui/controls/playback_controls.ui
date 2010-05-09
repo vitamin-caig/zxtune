@@ -191,7 +191,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="../res/icons.qrc"/>
+  <include location="../../res/icons.qrc"/>
  </resources>
  <connections/>
 </ui>

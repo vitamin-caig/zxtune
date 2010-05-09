@@ -27,14 +27,33 @@ Author:
 
 namespace
 {
-  template<class T>
-  class ControlOnToolbar
+  class LayoutControl
   {
   public:
-    ControlOnToolbar(QMainWindow* mainWindow, QMenu* layoutMenu, const char* menuTitle)
+    LayoutControl(QMainWindow* mainWindow, QWidget* controlled, 
+                     QMenu* layoutMenu, const char* menuTitle)
+      : Action(new QAction(mainWindow))
+    {
+      //setup action
+      Action->setCheckable(true);
+      Action->setChecked(true);//TODO
+      Action->setText(QApplication::translate(mainWindow->objectName().toStdString().c_str(), menuTitle, 0, QApplication::UnicodeUTF8));
+      //integrate
+      layoutMenu->addAction(Action);
+      controlled->connect(Action, SIGNAL(toggled(bool)), SLOT(setVisible(bool)));
+    }
+  private:
+    QAction* const Action;
+  };
+
+  template<class T>
+  class ToolbarControl
+  {
+  public:
+    ToolbarControl(QMainWindow* mainWindow, QMenu* layoutMenu, const char* menuTitle)
       : Control(T::Create(mainWindow))
       , Toolbar(new QToolBar(mainWindow))
-      , Action(new QAction(mainWindow))
+      , Layout(mainWindow, Toolbar, layoutMenu, menuTitle)
     {
       //setup toolbar
       QSizePolicy sizePolicy1(QSizePolicy::Maximum, QSizePolicy::MinimumExpanding);
@@ -46,15 +65,8 @@ namespace
       Toolbar->setFloatable(false);
       mainWindow->addToolBar(Qt::TopToolBarArea, Toolbar);
       Toolbar->addWidget(Control);
-      //setup action
-      Action->setCheckable(true);
-      Action->setChecked(true);//TODO
-      Action->setText(QApplication::translate(mainWindow->objectName().toStdString().c_str(), menuTitle, 0, QApplication::UnicodeUTF8));
-      //integrate
-      layoutMenu->addAction(Action);
-      Toolbar->connect(Action, SIGNAL(toggled(bool)), SLOT(setVisible(bool)));
     }
-
+    
     //accessors
     T* operator -> () const
     {
@@ -68,8 +80,34 @@ namespace
   private:
     T* const Control;
     QToolBar* const Toolbar;
-    QAction* const Action;
+    const LayoutControl Layout;
   };
+
+  template<class T>
+  class WidgetControl
+  {
+  public:
+    WidgetControl(QMainWindow* mainWindow, QMenu* layoutMenu, const char* menuTitle)
+      : Control(T::Create(mainWindow->centralWidget()))
+      , Layout(mainWindow, Control, layoutMenu, menuTitle)
+    {
+      mainWindow->centralWidget()->layout()->addWidget(Control);
+    }
+    //accessors
+    T* operator -> () const
+    {
+      return Control;
+    }
+
+    operator T* () const
+    {
+      return Control;
+    }
+  private:
+    T* const Control;
+    const LayoutControl Layout;
+  };
+
   
   class UiHelper : public Ui::MainWindow
   {
@@ -88,24 +126,20 @@ namespace
       : UiHelper(this)
       , Controls(this, menuLayout, "Controls")
       , Seeking(this, menuLayout, "Seeking")
+      , Collection(this, menuLayout, "Playlist")
       , Thread(PlaybackThread::Create(this))
     {
-      //setup playlist
-      CurrentPlaylist = Playlist::Create(this);
-      //TODO: load from config
-      playlistsContainer->addTab(CurrentPlaylist, QString::fromUtf8("Default playlist"));
-
       //TODO: remove
       for (int param = 1; param < argc; ++param)
       {
-        CurrentPlaylist->AddItemByPath(FromStdString(argv[param]));
+        Collection->AddItemByPath(FromStdString(argv[param]));
       }
 
       //connect root actions
-      CurrentPlaylist->connect(actionPrevious, SIGNAL(triggered(bool)), SLOT(PrevItem()));
-      CurrentPlaylist->connect(actionNext, SIGNAL(triggered(bool)), SLOT(NextItem()));
-      CurrentPlaylist->connect(Thread, SIGNAL(OnFinishModule(const ZXTune::Module::Information&)), SLOT(NextItem()));
-      Thread->connect(CurrentPlaylist, SIGNAL(OnItemSelected(const ModuleItem&)), SLOT(SetItem(const ModuleItem&)));
+      Collection->connect(actionPrevious, SIGNAL(triggered(bool)), SLOT(PrevItem()));
+      Collection->connect(actionNext, SIGNAL(triggered(bool)), SLOT(NextItem()));
+      Collection->connect(Thread, SIGNAL(OnFinishModule(const ZXTune::Module::Information&)), SLOT(NextItem()));
+      Thread->connect(Collection, SIGNAL(OnItemSelected(const ModuleItem&)), SLOT(SetItem(const ModuleItem&)));
       Thread->connect(actionPlay, SIGNAL(triggered(bool)), SLOT(Play()));
       Thread->connect(actionStop, SIGNAL(triggered(bool)), SLOT(Stop()));
       Thread->connect(actionPause, SIGNAL(triggered(bool)), SLOT(Pause()));
@@ -122,10 +156,10 @@ namespace
       actionPause->connect(Controls->pauseButton, SIGNAL(clicked(bool)), SLOT(trigger()));
     }
   private:
-    ControlOnToolbar<PlaybackControls> Controls;
-    ControlOnToolbar<SeekControls> Seeking;
+    ToolbarControl<PlaybackControls> Controls;
+    ToolbarControl<SeekControls> Seeking;
+    WidgetControl<Playlist> Collection;
     PlaybackThread* const Thread;
-    Playlist* CurrentPlaylist;
   };
 }
 

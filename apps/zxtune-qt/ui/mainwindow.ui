@@ -28,9 +28,6 @@
     <property name="margin">
      <number>2</number>
     </property>
-    <item row="0" column="0">
-     <widget class="QTabWidget" name="playlistsContainer"/>
-    </item>
    </layout>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -63,7 +60,6 @@
     <property name="title">
      <string notr="true">Layout</string>
     </property>
-    <addaction name="actionPlaylists"/>
    </widget>
    <widget class="QMenu" name="menuPlaylist">
     <property name="title">
@@ -129,17 +125,6 @@
     <string>Next</string>
    </property>
   </action>
-  <action name="actionPlaylists">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Playlists</string>
-   </property>
-  </action>
   <action name="actionClear">
    <property name="text">
     <string>Clear</string>
@@ -169,22 +154,5 @@
  <resources>
   <include location="../res/icons.qrc"/>
  </resources>
- <connections>
-  <connection>
-   <sender>actionPlaylists</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>playlistsContainer</receiver>
-   <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>159</x>
-     <y>135</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>
