@@ -14,21 +14,21 @@ Author:
 #ifndef ZXTUNE_QT_PLAYBACKCONTROL_H_DEFINED
 #define ZXTUNE_QT_PLAYBACKCONTROL_H_DEFINED
 
-//local includes
-#include "playback_controls_ui.h"
+//qt includes
+#include <QtGui/QWidget>
 
-//TODO: hide internals
 class PlaybackControls : public QWidget
-                       , public Ui::PlaybackControls
 {
   Q_OBJECT
 public:
-  static PlaybackControls* Create(QWidget* parent)
-  {
-    return new PlaybackControls(parent);
-  }
-private:
-  PlaybackControls(QWidget* parent);
+  //creator
+  static PlaybackControls* Create(class QMainWindow* parent);
+signals:
+  void OnPlay();
+  void OnPause();
+  void OnStop();
+  void OnPrevious();
+  void OnNext();
 };
 
 #endif //ZXTUNE_QT_PLAYBACKCONTROL_H_DEFINED

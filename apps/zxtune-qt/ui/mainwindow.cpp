@@ -136,24 +136,18 @@ namespace
       }
 
       //connect root actions
-      Collection->connect(actionPrevious, SIGNAL(triggered(bool)), SLOT(PrevItem()));
-      Collection->connect(actionNext, SIGNAL(triggered(bool)), SLOT(NextItem()));
+      Collection->connect(Controls, SIGNAL(OnPrevious()), SLOT(PrevItem()));
+      Collection->connect(Controls, SIGNAL(OnNext()), SLOT(NextItem()));
       Collection->connect(Thread, SIGNAL(OnFinishModule(const ZXTune::Module::Information&)), SLOT(NextItem()));
       Thread->connect(Collection, SIGNAL(OnItemSelected(const ModuleItem&)), SLOT(SetItem(const ModuleItem&)));
-      Thread->connect(actionPlay, SIGNAL(triggered(bool)), SLOT(Play()));
-      Thread->connect(actionStop, SIGNAL(triggered(bool)), SLOT(Stop()));
-      Thread->connect(actionPause, SIGNAL(triggered(bool)), SLOT(Pause()));
+      Thread->connect(Controls, SIGNAL(OnPlay()), SLOT(Play()));
+      Thread->connect(Controls, SIGNAL(OnStop()), SLOT(Stop()));
+      Thread->connect(Controls, SIGNAL(OnPause()), SLOT(Pause()));
       Thread->connect(Seeking, SIGNAL(OnSeeking(int)), SLOT(Seek(int)));
       Seeking->connect(Thread, SIGNAL(OnStartModule(const ZXTune::Module::Information&)), SLOT(InitState(const ZXTune::Module::Information&)));
       Seeking->connect(Thread, SIGNAL(OnUpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&)),
         SLOT(UpdateState(uint)));
       Seeking->connect(Thread, SIGNAL(OnStopModule(const ZXTune::Module::Information&)), SLOT(CloseState(const ZXTune::Module::Information&)));
-      //distrubute actions to controls
-      actionPrevious->connect(Controls->prevButton, SIGNAL(clicked(bool)), SLOT(trigger()));
-      actionNext->connect(Controls->nextButton, SIGNAL(clicked(bool)), SLOT(trigger()));
-      actionPlay->connect(Controls->playButton, SIGNAL(clicked(bool)), SLOT(trigger()));
-      actionStop->connect(Controls->stopButton, SIGNAL(clicked(bool)), SLOT(trigger()));
-      actionPause->connect(Controls->pauseButton, SIGNAL(clicked(bool)), SLOT(trigger()));
     }
   private:
     ToolbarControl<PlaybackControls> Controls;

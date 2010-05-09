@@ -45,111 +45,13 @@
    <property name="acceptDrops">
     <bool>false</bool>
    </property>
-   <widget class="QMenu" name="menuPlayback">
-    <property name="title">
-     <string notr="true">Playback</string>
-    </property>
-    <addaction name="actionPlay"/>
-    <addaction name="actionPause"/>
-    <addaction name="actionStop"/>
-    <addaction name="separator"/>
-    <addaction name="actionNext"/>
-    <addaction name="actionPrevious"/>
-   </widget>
    <widget class="QMenu" name="menuLayout">
     <property name="title">
      <string notr="true">Layout</string>
     </property>
    </widget>
-   <widget class="QMenu" name="menuPlaylist">
-    <property name="title">
-     <string>Playlist</string>
-    </property>
-    <addaction name="actionAdd"/>
-    <addaction name="actionClear"/>
-    <addaction name="actionShuffle"/>
-    <addaction name="actionSort"/>
-    <addaction name="actionSave"/>
-   </widget>
-   <addaction name="menuPlayback"/>
-   <addaction name="menuPlaylist"/>
    <addaction name="menuLayout"/>
   </widget>
-  <action name="actionPlay">
-   <property name="icon">
-    <iconset>
-     <normalon>:/controls/play_norm.png</normalon>
-    </iconset>
-   </property>
-   <property name="text">
-    <string>Play</string>
-   </property>
-  </action>
-  <action name="actionPause">
-   <property name="icon">
-    <iconset>
-     <normalon>:/controls/pause_norm.png</normalon>
-    </iconset>
-   </property>
-   <property name="text">
-    <string>Pause</string>
-   </property>
-  </action>
-  <action name="actionStop">
-   <property name="icon">
-    <iconset>
-     <normalon>:/controls/stop_norm.png</normalon>
-    </iconset>
-   </property>
-   <property name="text">
-    <string>Stop</string>
-   </property>
-  </action>
-  <action name="actionPrevious">
-   <property name="icon">
-    <iconset>
-     <normalon>:/controls/prev_norm.png</normalon>
-    </iconset>
-   </property>
-   <property name="text">
-    <string>Previous</string>
-   </property>
-  </action>
-  <action name="actionNext">
-   <property name="icon">
-    <iconset>
-     <normalon>:/controls/next_norm.png</normalon>
-    </iconset>
-   </property>
-   <property name="text">
-    <string>Next</string>
-   </property>
-  </action>
-  <action name="actionClear">
-   <property name="text">
-    <string>Clear</string>
-   </property>
-  </action>
-  <action name="actionShuffle">
-   <property name="text">
-    <string>Shuffle</string>
-   </property>
-  </action>
-  <action name="actionSort">
-   <property name="text">
-    <string>Sort</string>
-   </property>
-  </action>
-  <action name="actionAdd">
-   <property name="text">
-    <string>Add</string>
-   </property>
-  </action>
-  <action name="actionSave">
-   <property name="text">
-    <string>Save</string>
-   </property>
-  </action>
  </widget>
  <resources>
   <include location="../res/icons.qrc"/>
