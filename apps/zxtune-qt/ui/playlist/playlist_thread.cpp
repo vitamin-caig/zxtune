@@ -41,11 +41,8 @@ namespace
     virtual void AddItemPath(const String& path)
     {
       QMutexLocker lock(&QueueLock);
-      if (Queue.empty() && !this->isRunning())
-      {
-        this->start();
-      }
       Queue.push_back(path);
+      this->start();
     }
 
     virtual void Cancel()

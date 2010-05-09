@@ -138,6 +138,10 @@ namespace
       //connect root actions
       Collection->connect(Controls, SIGNAL(OnPrevious()), SLOT(PrevItem()));
       Collection->connect(Controls, SIGNAL(OnNext()), SLOT(NextItem()));
+      Collection->connect(Thread, SIGNAL(OnStartModule(const ZXTune::Module::Information&)), SLOT(PlayItem()));
+      Collection->connect(Thread, SIGNAL(OnResumeModule(const ZXTune::Module::Information&)), SLOT(PlayItem()));
+      Collection->connect(Thread, SIGNAL(OnPauseModule(const ZXTune::Module::Information&)), SLOT(PauseItem()));
+      Collection->connect(Thread, SIGNAL(OnStopModule(const ZXTune::Module::Information&)), SLOT(StopItem()));
       Collection->connect(Thread, SIGNAL(OnFinishModule(const ZXTune::Module::Information&)), SLOT(NextItem()));
       Thread->connect(Collection, SIGNAL(OnItemSelected(const ModuleItem&)), SLOT(SetItem(const ModuleItem&)));
       Thread->connect(Controls, SIGNAL(OnPlay()), SLOT(Play()));

@@ -83,11 +83,13 @@ namespace
     virtual void Play()
     {
       Backend->Play();
+      this->start();
     }
 
     virtual void Stop()
     {
       Backend->Stop();
+      this->wait();
     }
 
     virtual void Pause()

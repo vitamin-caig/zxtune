@@ -35,6 +35,9 @@ public slots:
   virtual void AddItemByPath(const String& itemPath) = 0;
   virtual void NextItem() = 0;
   virtual void PrevItem() = 0;
+  virtual void PlayItem() = 0;
+  virtual void PauseItem() = 0;
+  virtual void StopItem() = 0;
 private slots:
   virtual void AddItem(const struct ModuleItem& item) = 0;
   virtual void SelectItem(class QListWidgetItem*) = 0;

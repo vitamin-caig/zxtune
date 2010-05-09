@@ -9,4 +9,16 @@
     <file>stop_norm.png</file>
     <file>next_norm.png</file>
   </qresource>
+  <qresource prefix="/types">
+    <file alias="ASC">ASC.png</file>
+    <file alias="CHI">CHI.png</file>
+    <file alias="PDT">PDT.png</file>
+    <file alias="PSG">PSG.png</file>
+    <file alias="PT2">PT2.png</file>
+    <file alias="PT3">PT3.png</file>
+    <file alias="STC">STC.png</file>
+    <file alias="STP">STP.png</file>
+    <file alias="TS">TS.png</file>
+    <file alias="TXT">TXT.png</file>
+  </qresource>
 </RCC>

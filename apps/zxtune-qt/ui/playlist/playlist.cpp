@@ -42,11 +42,13 @@ namespace
   public:
     explicit PlaylistImpl(QWidget* parent)
       : Thread(ProcessThread::Create(this))
-      , CurrentItem(0)
+      , CurrentItem(-1, 0)
     {
+      //setup self
       setParent(parent);
       setupUi(this);
       setAcceptDrops(true);
+      //setup thread-related
       scanStatus->hide();
       scanStatus->connect(Thread, SIGNAL(OnScanStart()), SLOT(show()));
       this->connect(Thread, SIGNAL(OnProgress(const Log::MessageData&)), SLOT(ShowProgress(const Log::MessageData&)));
@@ -73,14 +75,14 @@ namespace
         return;
       }
       const int_t maxIdx = Items.rbegin()->first;
-      for (int_t curIdx = CurrentItem + 1; curIdx <= maxIdx; ++curIdx)
+      for (int_t curIdx = CurrentItem.first + 1; curIdx <= maxIdx; ++curIdx)
       {
         const ItemsMap::iterator iter = Items.find(curIdx);
         if (iter != Items.end())
         {
-          OnItemSelected(iter->second);
-          playList->setCurrentRow(CurrentItem = curIdx);
-          return;
+          playList->setCurrentRow(curIdx);
+          StopItem();
+          return SelectItem(playList->currentItem());
         }
       }
     }
@@ -92,20 +94,54 @@ namespace
         return;
       }
       const int_t minIdx = Items.begin()->first;
-      for (int_t curIdx = CurrentItem - 1; curIdx >= minIdx; --curIdx)
+      for (int_t curIdx = CurrentItem.first - 1; curIdx >= minIdx; --curIdx)
       {
         const ItemsMap::iterator iter = Items.find(curIdx);
         if (iter != Items.end())
         {
-          OnItemSelected(iter->second);
-          playList->setCurrentRow(CurrentItem = curIdx);
-          return;
+          playList->setCurrentRow(curIdx);
+          StopItem();
+          return SelectItem(playList->currentItem());
         }
+      }
+    }
+
+    virtual void PlayItem()
+    {
+      if (QListWidgetItem* item = CurrentItem.second)
+      {
+        QFont font = item->font();
+        font.setBold(true);
+        font.setItalic(false);
+        item->setFont(font);
+      }
+    }
+    
+    virtual void PauseItem()
+    {
+      if (QListWidgetItem* item = CurrentItem.second)
+      {
+        QFont font = item->font();
+        font.setBold(false);
+        font.setItalic(true);
+        item->setFont(font);
+      }
+    }
+    
+    virtual void StopItem()
+    {
+      if (QListWidgetItem* item = CurrentItem.second)
+      {
+        QFont font = item->font();
+        font.setBold(false);
+        font.setItalic(false);
+        item->setFont(font);
       }
     }
 
     virtual void AddItem(const ModuleItem& item)
     {
+      const Char RESOURCE_TYPE_PREFIX[] = {':','/','t','y','p','e','s','/',0};
       ZXTune::Module::Information info;
       item.Module->GetModuleInformation(info);
       String title;
@@ -115,17 +151,24 @@ namespace
       const int_t curIdx = Items.size();
       Items.insert(ItemsMap::value_type(curIdx, item));
       listItem->setData(Qt::UserRole, curIdx);
+      if (const String* type = Parameters::FindByName<String>(info.Properties, ZXTune::Module::ATTR_TYPE))
+      {
+        String typeStr(RESOURCE_TYPE_PREFIX);
+        typeStr += *type;
+        listItem->setIcon(QIcon(ToQString(typeStr)));
+      }
     }
 
     virtual void SelectItem(QListWidgetItem* listItem)
     {
+      assert(listItem);
       const QVariant& data = listItem->data(Qt::UserRole);
       const int_t curIdx = data.toInt();
       const ItemsMap::iterator iter = Items.find(curIdx);
       if (iter != Items.end())
       {
         OnItemSelected(iter->second);
-        CurrentItem = curIdx;
+        CurrentItem = std::make_pair(curIdx, listItem);
       }
     }
 
@@ -141,11 +184,13 @@ namespace
         scanProgress->setToolTip(ToQString(*msg.Text));
       }
     }
+    
     //qwidget virtuals
     virtual void dragEnterEvent(QDragEnterEvent* event)
     {
       event->acceptProposedAction();
     }
+    
     virtual void dropEvent(QDropEvent* event)
     {
       if (event->mimeData()->hasUrls())
@@ -159,7 +204,7 @@ namespace
   private:
     ProcessThread* const Thread;
     ItemsMap Items;
-    int_t CurrentItem;
+    std::pair<int_t, QListWidgetItem*> CurrentItem;
   };
 }
 
