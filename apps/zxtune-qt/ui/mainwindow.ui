@@ -80,39 +80,53 @@
    <addaction name="menuLayout"/>
   </widget>
   <action name="actionPlay">
+   <property name="icon">
+    <iconset>
+     <normalon>:/controls/play_norm.png</normalon>
+    </iconset>
+   </property>
    <property name="text">
     <string>Play</string>
    </property>
   </action>
   <action name="actionPause">
+   <property name="icon">
+    <iconset>
+     <normalon>:/controls/pause_norm.png</normalon>
+    </iconset>
+   </property>
    <property name="text">
     <string>Pause</string>
    </property>
   </action>
   <action name="actionStop">
+   <property name="icon">
+    <iconset>
+     <normalon>:/controls/stop_norm.png</normalon>
+    </iconset>
+   </property>
    <property name="text">
     <string>Stop</string>
    </property>
   </action>
   <action name="actionPrevious">
+   <property name="icon">
+    <iconset>
+     <normalon>:/controls/prev_norm.png</normalon>
+    </iconset>
+   </property>
    <property name="text">
     <string>Previous</string>
    </property>
   </action>
   <action name="actionNext">
+   <property name="icon">
+    <iconset>
+     <normalon>:/controls/next_norm.png</normalon>
+    </iconset>
+   </property>
    <property name="text">
     <string>Next</string>
-   </property>
-  </action>
-  <action name="actionShowControls">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Controls</string>
    </property>
   </action>
   <action name="actionPlaylists">

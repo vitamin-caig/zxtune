@@ -15,9 +15,9 @@ Author:
 #include "mainwindow.h"
 #include "mainwindow_ui.h"
 #include "mainwindow_moc.h"
-#include "playback_controls.h"
-#include "seek_controls.h"
-#include "playlist.h"
+#include "controls/playback_controls.h"
+#include "controls/seek_controls.h"
+#include "playlist/playlist.h"
 #include "playback_thread.h"
 #include <apps/base/moduleitem.h>
 //common includes
@@ -101,19 +101,25 @@ namespace
         CurrentPlaylist->AddItemByPath(FromStdString(argv[param]));
       }
 
-      //connect actions
-      CurrentPlaylist->connect(Controls->prevButton, SIGNAL(clicked(bool)), SLOT(PrevItem()));
-      CurrentPlaylist->connect(Controls->nextButton, SIGNAL(clicked(bool)), SLOT(NextItem()));
+      //connect root actions
+      CurrentPlaylist->connect(actionPrevious, SIGNAL(triggered(bool)), SLOT(PrevItem()));
+      CurrentPlaylist->connect(actionNext, SIGNAL(triggered(bool)), SLOT(NextItem()));
       CurrentPlaylist->connect(Thread, SIGNAL(OnFinishModule(const ZXTune::Module::Information&)), SLOT(NextItem()));
       Thread->connect(CurrentPlaylist, SIGNAL(OnItemSelected(const ModuleItem&)), SLOT(SetItem(const ModuleItem&)));
-      Thread->connect(Controls->playButton, SIGNAL(clicked(bool)), SLOT(Play()));
-      Thread->connect(Controls->stopButton, SIGNAL(clicked(bool)), SLOT(Stop()));
-      Thread->connect(Controls->pauseButton, SIGNAL(clicked(bool)), SLOT(Pause()));
+      Thread->connect(actionPlay, SIGNAL(triggered(bool)), SLOT(Play()));
+      Thread->connect(actionStop, SIGNAL(triggered(bool)), SLOT(Stop()));
+      Thread->connect(actionPause, SIGNAL(triggered(bool)), SLOT(Pause()));
       Thread->connect(Seeking, SIGNAL(OnSeeking(int)), SLOT(Seek(int)));
       Seeking->connect(Thread, SIGNAL(OnStartModule(const ZXTune::Module::Information&)), SLOT(InitState(const ZXTune::Module::Information&)));
       Seeking->connect(Thread, SIGNAL(OnUpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&)),
         SLOT(UpdateState(uint)));
       Seeking->connect(Thread, SIGNAL(OnStopModule(const ZXTune::Module::Information&)), SLOT(CloseState(const ZXTune::Module::Information&)));
+      //distrubute actions to controls
+      actionPrevious->connect(Controls->prevButton, SIGNAL(clicked(bool)), SLOT(trigger()));
+      actionNext->connect(Controls->nextButton, SIGNAL(clicked(bool)), SLOT(trigger()));
+      actionPlay->connect(Controls->playButton, SIGNAL(clicked(bool)), SLOT(trigger()));
+      actionStop->connect(Controls->stopButton, SIGNAL(clicked(bool)), SLOT(trigger()));
+      actionPause->connect(Controls->pauseButton, SIGNAL(clicked(bool)), SLOT(trigger()));
     }
   private:
     ControlOnToolbar<PlaybackControls> Controls;

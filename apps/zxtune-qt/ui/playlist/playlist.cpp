@@ -16,7 +16,7 @@ Author:
 #include "playlist_ui.h"
 #include "playlist_moc.h"
 #include "playlist_thread.h"
-#include "utils.h"
+#include "../utils.h"
 #include <apps/base/moduleitem.h>
 //common includes
 #include <logging.h>

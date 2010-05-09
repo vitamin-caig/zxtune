@@ -4,8 +4,8 @@ include $(path_step)/default.mak
 source_files := qt_app 
 
 #ui-related
-ui_files := ui/mainwindow ui/playback_controls ui/seek_controls ui/playlist
-moc_files := ui/playlist_thread ui/playback_thread
+ui_files := ui/mainwindow ui/controls/playback_controls ui/controls/seek_controls ui/playlist/playlist
+moc_files := ui/playlist/playlist_thread ui/playback_thread
 qrc_files := res/icons
 source_files += $(ui_files) $(moc_files) $(qrc_files:=_res)
 
@@ -36,5 +36,5 @@ RCC := rcc
 %_moc.h: %.h
 	$(MOC) -i $< -o $@
 
-%_res.cpp: %.qrc
+%_res.cpp: %.qrc res/*.png
 	$(RCC) -name $(basename $(notdir $<)) -o $@ $<
