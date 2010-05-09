@@ -1,6 +1,6 @@
 #!/bin/sh
 
-Binary=$1
+Binaries=$1
 Platform=$2
 Arch=$3
 Formats=txt
@@ -24,7 +24,7 @@ TargetDir=Builds/Revision${Suffix}
 echo "Target dir ${TargetDir}"
 
 echo "Clearing"
-rm -Rf ${TargetDir} bin/${Platform}/release lib/${Platform}/release obj/${Platform}/release || exit 1;
+rm -Rf ${TargetDir} lib/${Platform}/release obj/${Platform}/release || exit 1;
 
 echo "Creating build dir"
 mkdir -p ${TargetDir}
@@ -39,28 +39,34 @@ case ${Arch} in
     ;;
 esac
 
-echo "Building"
+for Binary in ${Binaries}
+do
+echo "Building ${Binary}"
+rm -Rf bin/${Platform}/release
 time make -j `grep processor /proc/cpuinfo | wc -l` mode=release \
      platform=${Platform} defines=ZXTUNE_VERSION=rev${Revision} cxx_flags="${cxx_flags}" \
-     -C apps/zxtune123 > ${TargetDir}/build.log || exit 1;
+     -C apps/${Binary} > ${TargetDir}/build_${Binary}.log 2>&1 || exit 1;
 
 ZipFile=${TargetDir}/${Binary}_r${Suffix}.zip
 echo "Compressing ${ZipFile}"
 zip -9Djr ${ZipFile} bin/${Platform}/release apps/zxtune.conf -x "*.pdb" || exit 1;
 DistFiles=apps/${Binary}/dist/${Platform}
 test -e ${DistFiles}/files.lst && zip -9Djr ${ZipFile} `cat ${DistFiles}/files.lst`;
-echo "Generating manuals"
-for Fmt in $Formats
-do
-  for Lng in $Languages
+if test -e apps/${Binary}/dist/${Binary}.txt
+then
+  echo "Generating manuals"
+  for Fmt in $Formats
   do
-    textator --process --keys $Lng,$Fmt --asm \
-    --output bin/${Binary}_${Lng}.${Fmt} apps/${Binary}/dist/${Binary}.txt || exit 1;
-    zip -9Dj ${ZipFile} bin/${Binary}_${Lng}.${Fmt} || exit 1;
+    for Lng in $Languages
+    do
+      textator --process --keys $Lng,$Fmt --asm \
+      --output bin/${Binary}_${Lng}.${Fmt} apps/${Binary}/dist/${Binary}.txt || exit 1;
+      zip -9Dj ${ZipFile} bin/${Binary}_${Lng}.${Fmt} || exit 1;
+    done
   done
-done
+fi
 
 echo "Copy additional files"
 cp bin/${Platform}/release/${Binary}*.pdb ${TargetDir} || exit 1;
-
+done
 echo Done
