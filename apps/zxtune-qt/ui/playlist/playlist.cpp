@@ -25,24 +25,43 @@ Author:
 #include <core/module_attrs.h>
 //qt includes
 #include <QtCore/QUrl>
-#include <QtCore/QMutex>
-#include <QtCore/QThread>
 #include <QtGui/QDragEnterEvent>
+#include <QtGui/QMainWindow>
+#include <QtGui/QMenu>
+#include <QtGui/QMenuBar>
 //std includes
 #include <cassert>
 //boost includes
 #include <boost/bind.hpp>
 
+//outside the namespace
+typedef std::list<ModuleItem> ItemsList;
+Q_DECLARE_METATYPE(ItemsList::iterator);
+
 namespace
 {
+  enum ChooseMode
+  {
+    ITEM_SET,
+    ITEM_SELECT
+  };
+  
+  inline String GenerateItemTitle(const ZXTune::Module::Information& info)
+  {
+    String title;
+    Parameters::FindByName(info.Properties, ZXTune::Module::ATTR_TITLE, title) ||
+    Parameters::FindByName(info.Properties, ZXTune::Module::ATTR_FULLPATH, title);
+    return title;
+  }
+
   class PlaylistImpl : public Playlist
                      , private Ui::Playlist
   {
-    typedef std::map<int_t, ModuleItem> ItemsMap;
   public:
-    explicit PlaylistImpl(QWidget* parent)
+    explicit PlaylistImpl(QMainWindow* parent)
       : Thread(ProcessThread::Create(this))
-      , CurrentItem(-1, 0)
+      , Randomized(), Looped()
+      , ActivatedItem(), SelectedItem()
     {
       //setup self
       setParent(parent);
@@ -55,7 +74,24 @@ namespace
       this->connect(Thread, SIGNAL(OnGetItem(const ModuleItem&)), SLOT(AddItem(const ModuleItem&)));
       scanStatus->connect(Thread, SIGNAL(OnScanStop()), SLOT(hide()));
       Thread->connect(scanCancel, SIGNAL(clicked()), SLOT(Cancel()));
+      this->connect(playList, SIGNAL(itemDoubleClicked(QListWidgetItem*)), SLOT(SetItem(QListWidgetItem*)));
       this->connect(playList, SIGNAL(itemActivated(QListWidgetItem*)), SLOT(SelectItem(QListWidgetItem*)));
+      this->connect(actionClear, SIGNAL(triggered()), SLOT(Clear()));
+      this->connect(actionSort, SIGNAL(triggered()), SLOT(Sort()));
+      this->connect(actionRandom, SIGNAL(triggered(bool)), SLOT(Random(bool)));
+      this->connect(actionLoop, SIGNAL(triggered(bool)), SLOT(Loop(bool)));
+      //create and fill menu
+      QMenuBar* const menuBar = parent->menuBar();
+      QMenu* const menu = menuBar->addMenu(QString::fromUtf8("Playlist"));
+      //menu->addAction(actionAdd);
+      //menu->addAction(actionLoad);
+      //menu->addAction(actionSave);
+      menu->addSeparator();
+      menu->addAction(actionClear);
+      menu->addAction(actionSort);
+      menu->addSeparator();
+      menu->addAction(actionLoop);
+      menu->addAction(actionRandom);
     }
 
     virtual ~PlaylistImpl()
@@ -70,87 +106,109 @@ namespace
 
     virtual void NextItem()
     {
-      if (Items.empty())
+      if (Items.empty() || 
+          !ActivatedItem)
       {
         return;
       }
-      const int_t maxIdx = Items.rbegin()->first;
-      for (int_t curIdx = CurrentItem.first + 1; curIdx <= maxIdx; ++curIdx)
+      const int rowsCount = playList->count();
+      const int currentRow = playList->row(ActivatedItem);
+      const int nextRow = (Randomized ? rand() : (currentRow + 1)) % rowsCount;
+      assert(currentRow >= 0);
+      if (Looped || Randomized || currentRow < rowsCount - 1)
       {
-        const ItemsMap::iterator iter = Items.find(curIdx);
-        if (iter != Items.end())
-        {
-          playList->setCurrentRow(curIdx);
-          StopItem();
-          return SelectItem(playList->currentItem());
-        }
+        playList->setCurrentRow(nextRow, QItemSelectionModel::NoUpdate);
+        return ChooseItem(playList->currentItem(), ITEM_SET);
       }
     }
 
     virtual void PrevItem()
     {
-      if (Items.empty())
+      if (Items.empty() || 
+          !ActivatedItem)
       {
         return;
       }
-      const int_t minIdx = Items.begin()->first;
-      for (int_t curIdx = CurrentItem.first - 1; curIdx >= minIdx; --curIdx)
+      const int rowsCount = playList->count();
+      const int currentRow = playList->row(ActivatedItem);
+      const int nextRow = (Randomized ? rand() : (currentRow + rowsCount - 1)) % rowsCount;
+      assert(currentRow >= 0);
+      if (Looped || Randomized || currentRow)
       {
-        const ItemsMap::iterator iter = Items.find(curIdx);
-        if (iter != Items.end())
-        {
-          playList->setCurrentRow(curIdx);
-          StopItem();
-          return SelectItem(playList->currentItem());
-        }
+        playList->setCurrentRow(nextRow, QItemSelectionModel::NoUpdate);
+        return ChooseItem(playList->currentItem(), ITEM_SET);
       }
     }
 
     virtual void PlayItem()
     {
-      if (QListWidgetItem* item = CurrentItem.second)
+      if (!ActivatedItem)
       {
-        QFont font = item->font();
+        ActivatedItem = SelectedItem;
+      }
+      if (ActivatedItem)
+      {
+        QFont font = ActivatedItem->font();
         font.setBold(true);
         font.setItalic(false);
-        item->setFont(font);
+        ActivatedItem->setFont(font);
       }
     }
     
     virtual void PauseItem()
     {
-      if (QListWidgetItem* item = CurrentItem.second)
+      if (ActivatedItem)
       {
-        QFont font = item->font();
+        QFont font = ActivatedItem->font();
         font.setBold(false);
         font.setItalic(true);
-        item->setFont(font);
+        ActivatedItem->setFont(font);
       }
     }
     
     virtual void StopItem()
     {
-      if (QListWidgetItem* item = CurrentItem.second)
+      if (ActivatedItem)
       {
-        QFont font = item->font();
+        QFont font = ActivatedItem->font();
         font.setBold(false);
         font.setItalic(false);
-        item->setFont(font);
+        ActivatedItem->setFont(font);
       }
     }
+    
+    virtual void Clear()
+    {
+      playList->clear();
+      Items.clear();
+      ActivatedItem = SelectedItem = 0;
+    }
+    
+    virtual void Sort()
+    {
+      playList->sortItems();
+    }
 
+    virtual void Random(bool isRandom)
+    {
+      Randomized = isRandom;
+    }
+    
+    virtual void Loop(bool isLooped)
+    {
+      Looped = isLooped;
+    }
+
+    //private slots
     virtual void AddItem(const ModuleItem& item)
     {
       const Char RESOURCE_TYPE_PREFIX[] = {':','/','t','y','p','e','s','/',0};
       ZXTune::Module::Information info;
       item.Module->GetModuleInformation(info);
-      String title;
-      Parameters::FindByName(info.Properties, ZXTune::Module::ATTR_TITLE, title) ||
-      Parameters::FindByName(info.Properties, ZXTune::Module::ATTR_FULLPATH, title);
+      const String& title = GenerateItemTitle(info);
       QListWidgetItem* const listItem = new QListWidgetItem(ToQString(title), playList);
-      const int_t curIdx = Items.size();
-      Items.insert(ItemsMap::value_type(curIdx, item));
-      listItem->setData(Qt::UserRole, curIdx);
+      const ItemsList::iterator it = Items.insert(Items.end(), item);
+      listItem->setData(Qt::UserRole, QVariant::fromValue(it));
       if (const String* type = Parameters::FindByName<String>(info.Properties, ZXTune::Module::ATTR_TYPE))
       {
         String typeStr(RESOURCE_TYPE_PREFIX);
@@ -158,18 +216,15 @@ namespace
         listItem->setIcon(QIcon(ToQString(typeStr)));
       }
     }
-
+    
     virtual void SelectItem(QListWidgetItem* listItem)
     {
-      assert(listItem);
-      const QVariant& data = listItem->data(Qt::UserRole);
-      const int_t curIdx = data.toInt();
-      const ItemsMap::iterator iter = Items.find(curIdx);
-      if (iter != Items.end())
-      {
-        OnItemSelected(iter->second);
-        CurrentItem = std::make_pair(curIdx, listItem);
-      }
+      ChooseItem(listItem, ITEM_SELECT);
+    }
+
+    virtual void SetItem(QListWidgetItem* listItem)
+    {
+      ChooseItem(listItem, ITEM_SET);
     }
 
     virtual void ShowProgress(const Log::MessageData& msg)
@@ -202,13 +257,35 @@ namespace
       }
     }
   private:
+    void ChooseItem(QListWidgetItem* listItem, ChooseMode mode)
+    {
+      assert(listItem);
+      const QVariant& data = listItem->data(Qt::UserRole);
+      const ItemsList::iterator iter = data.value<ItemsList::iterator>();
+      if (ITEM_SET == mode)
+      {
+        StopItem();
+        ActivatedItem = 0;
+        SelectedItem = listItem;
+        OnItemSet(*iter);
+      }
+      else if (ITEM_SELECT == mode)
+      {
+        SelectedItem = listItem;
+        OnItemSelected(*iter);
+      }
+    }
+  private:
     ProcessThread* const Thread;
-    ItemsMap Items;
-    std::pair<int_t, QListWidgetItem*> CurrentItem;
+    ItemsList Items;
+    bool Randomized;
+    bool Looped;
+    QListWidgetItem* ActivatedItem;
+    QListWidgetItem* SelectedItem;
   };
 }
 
-Playlist* Playlist::Create(QWidget* parent)
+Playlist* Playlist::Create(QMainWindow* parent)
 {
   assert(parent);
   return new PlaylistImpl(parent);

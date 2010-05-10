@@ -70,6 +70,17 @@ namespace
       this->wait();
     }
 
+    virtual void SelectItem(const struct ModuleItem& item)
+    {
+      //if nothing set, just select
+      if (0 == Player.use_count())
+      {
+        Backend->SetModule(item.Module);
+        item.Module->GetModuleInformation(Info);
+        Player = Backend->GetPlayer();
+      }
+    }
+    
     virtual void SetItem(const ModuleItem& item)
     {
       Backend->SetModule(item.Module);
@@ -82,8 +93,12 @@ namespace
 
     virtual void Play()
     {
-      Backend->Play();
-      this->start();
+      //play only if any module selected or set
+      if (0 != Player.use_count())
+      {
+        Backend->Play();
+        this->start();
+      }
     }
 
     virtual void Stop()

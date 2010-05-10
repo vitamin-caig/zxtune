@@ -21,7 +21,14 @@
     <number>2</number>
    </property>
    <item>
-    <widget class="QListWidget" name="playList"/>
+    <widget class="QListWidget" name="playList">
+     <property name="editTriggers">
+      <set>QAbstractItemView::NoEditTriggers</set>
+     </property>
+     <property name="selectionMode">
+      <enum>QAbstractItemView::ExtendedSelection</enum>
+     </property>
+    </widget>
    </item>
    <item>
     <widget class="QFrame" name="scanStatus">
@@ -62,7 +69,70 @@
     </widget>
    </item>
   </layout>
+  <action name="actionAdd">
+   <property name="text">
+    <string>Add</string>
+   </property>
+  </action>
+  <action name="actionLoad">
+   <property name="text">
+    <string>Load</string>
+   </property>
+  </action>
+  <action name="actionSave">
+   <property name="text">
+    <string>Save</string>
+   </property>
+  </action>
+  <action name="actionClear">
+   <property name="icon">
+    <iconset>
+     <normalon>:/playlist/clear.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Clear</string>
+   </property>
+  </action>
+  <action name="actionSort">
+   <property name="icon">
+    <iconset>
+     <normalon>:/playlist/sort.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Sort</string>
+   </property>
+  </action>
+  <action name="actionLoop">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset>
+     <normalon>:/playlist/looped.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Loop</string>
+   </property>
+  </action>
+  <action name="actionRandom">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset>
+     <normalon>:/playlist/random.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Random</string>
+   </property>
+  </action>
  </widget>
- <resources/>
+ <resources>
+  <include location="../../res/icons.qrc"/>
+ </resources>
  <connections/>
 </ui>

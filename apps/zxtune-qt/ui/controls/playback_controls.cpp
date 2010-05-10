@@ -34,9 +34,7 @@ namespace
       setupUi(this);
       //create and fill menu
       QMenuBar* const menuBar = parent->menuBar();
-      QMenu* const menu = new QMenu(menuBar);
-      menu->setTitle(QString::fromUtf8("Playback"));
-      menuBar->addAction(menu->menuAction());
+      QMenu* const menu = menuBar->addMenu(QString::fromUtf8("Playback"));
       menu->addAction(actionPlay);
       menu->addAction(actionPause);
       menu->addAction(actionStop);

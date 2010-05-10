@@ -52,12 +52,9 @@
      <property name="contextMenuPolicy">
       <enum>Qt::NoContextMenu</enum>
      </property>
-     <property name="text">
-      <string>&lt;&lt;</string>
-     </property>
      <property name="icon">
       <iconset>
-       <normalon>:/controls/prev_norm.png</normalon>
+       <normalon>:/controls/prev.png</normalon>
       </iconset>
      </property>
      <property name="iconSize">
@@ -82,12 +79,9 @@
      <property name="contextMenuPolicy">
       <enum>Qt::NoContextMenu</enum>
      </property>
-     <property name="text">
-      <string>&gt;</string>
-     </property>
      <property name="icon">
       <iconset>
-       <normalon>:/controls/play_norm.png</normalon>
+       <normalon>:/controls/play.png</normalon>
       </iconset>
      </property>
      <property name="iconSize">
@@ -112,12 +106,9 @@
      <property name="contextMenuPolicy">
       <enum>Qt::NoContextMenu</enum>
      </property>
-     <property name="text">
-      <string>||</string>
-     </property>
      <property name="icon">
       <iconset>
-       <normalon>:/controls/pause_norm.png</normalon>
+       <normalon>:/controls/pause.png</normalon>
       </iconset>
      </property>
      <property name="iconSize">
@@ -142,12 +133,9 @@
      <property name="contextMenuPolicy">
       <enum>Qt::NoContextMenu</enum>
      </property>
-     <property name="text">
-      <string>x</string>
-     </property>
      <property name="icon">
       <iconset>
-       <normalon>:/controls/stop_norm.png</normalon>
+       <normalon>:/controls/stop.png</normalon>
       </iconset>
      </property>
      <property name="iconSize">
@@ -172,12 +160,9 @@
      <property name="contextMenuPolicy">
       <enum>Qt::NoContextMenu</enum>
      </property>
-     <property name="text">
-      <string>&gt;&gt;</string>
-     </property>
      <property name="icon">
       <iconset>
-       <normalon>:/controls/next_norm.png</normalon>
+       <normalon>:/controls/next.png</normalon>
       </iconset>
      </property>
      <property name="iconSize">
@@ -192,7 +177,7 @@
   <action name="actionPlay">
    <property name="icon">
     <iconset>
-     <normalon>:/controls/play_norm.png</normalon>
+     <normalon>:/controls/play.png</normalon>
     </iconset>
    </property>
    <property name="text">
@@ -202,7 +187,7 @@
   <action name="actionPause">
    <property name="icon">
     <iconset>
-     <normalon>:/controls/pause_norm.png</normalon>
+     <normalon>:/controls/pause.png</normalon>
     </iconset>
    </property>
    <property name="text">
@@ -212,7 +197,7 @@
   <action name="actionStop">
    <property name="icon">
     <iconset>
-     <normalon>:/controls/stop_norm.png</normalon>
+     <normalon>:/controls/stop.png</normalon>
     </iconset>
    </property>
    <property name="text">
@@ -222,7 +207,7 @@
   <action name="actionPrevious">
    <property name="icon">
     <iconset>
-     <normalon>:/controls/prev_norm.png</normalon>
+     <normalon>:/controls/prev.png</normalon>
     </iconset>
    </property>
    <property name="text">
@@ -232,7 +217,7 @@
   <action name="actionNext">
    <property name="icon">
     <iconset>
-     <normalon>:/controls/next_norm.png</normalon>
+     <normalon>:/controls/next.png</normalon>
     </iconset>
    </property>
    <property name="text">

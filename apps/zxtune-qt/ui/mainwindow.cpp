@@ -88,7 +88,7 @@ namespace
   {
   public:
     WidgetControl(QMainWindow* mainWindow, QMenu* layoutMenu, const char* menuTitle)
-      : Control(T::Create(mainWindow->centralWidget()))
+      : Control(T::Create(mainWindow))
       , Layout(mainWindow, Control, layoutMenu, menuTitle)
     {
       mainWindow->centralWidget()->layout()->addWidget(Control);
@@ -143,7 +143,8 @@ namespace
       Collection->connect(Thread, SIGNAL(OnPauseModule(const ZXTune::Module::Information&)), SLOT(PauseItem()));
       Collection->connect(Thread, SIGNAL(OnStopModule(const ZXTune::Module::Information&)), SLOT(StopItem()));
       Collection->connect(Thread, SIGNAL(OnFinishModule(const ZXTune::Module::Information&)), SLOT(NextItem()));
-      Thread->connect(Collection, SIGNAL(OnItemSelected(const ModuleItem&)), SLOT(SetItem(const ModuleItem&)));
+      Thread->connect(Collection, SIGNAL(OnItemSet(const ModuleItem&)), SLOT(SetItem(const ModuleItem&)));
+      Thread->connect(Collection, SIGNAL(OnItemSelected(const ModuleItem&)), SLOT(SelectItem(const ModuleItem&)));
       Thread->connect(Controls, SIGNAL(OnPlay()), SLOT(Play()));
       Thread->connect(Controls, SIGNAL(OnStop()), SLOT(Stop()));
       Thread->connect(Controls, SIGNAL(OnPause()), SLOT(Pause()));

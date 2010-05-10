@@ -29,20 +29,28 @@ class Playlist : public QWidget
   Q_OBJECT
 public:
   //creator
-  static Playlist* Create(QWidget* parent);
+  static Playlist* Create(class QMainWindow* parent);
 
 public slots:
+  //items operating
   virtual void AddItemByPath(const String& itemPath) = 0;
   virtual void NextItem() = 0;
   virtual void PrevItem() = 0;
   virtual void PlayItem() = 0;
   virtual void PauseItem() = 0;
   virtual void StopItem() = 0;
+  //playlist operating
+  virtual void Clear() = 0;
+  virtual void Sort() = 0;
+  virtual void Random(bool isRandom) = 0;
+  virtual void Loop(bool isLooped) = 0;
 private slots:
   virtual void AddItem(const struct ModuleItem& item) = 0;
+  virtual void SetItem(class QListWidgetItem*) = 0;
   virtual void SelectItem(class QListWidgetItem*) = 0;
   virtual void ShowProgress(const Log::MessageData&) = 0;
 signals:
+  void OnItemSet(const ModuleItem&);
   void OnItemSelected(const ModuleItem&);
 };
 
