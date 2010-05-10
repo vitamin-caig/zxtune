@@ -78,7 +78,7 @@ namespace
       const QColor brush(0xff, 0xff, 0xff);
       for (uint_t band = 0; band < curWidth / BAR_WIDTH; ++band)
       {
-        if (const int scaledValue = Levels[band] * curHeight / std::numeric_limits<ZXTune::Module::Analyze::LevelType>::max())
+        if (const int scaledValue = Levels[band] * (curHeight - 1) / std::numeric_limits<ZXTune::Module::Analyze::LevelType>::max())
         {
           painter.fillRect(band * BAR_WIDTH - 1, curHeight - scaledValue - 1, BAR_WIDTH + 1, scaledValue + 1, mask);
           painter.fillRect(band * BAR_WIDTH, curHeight - scaledValue, BAR_WIDTH - 1, scaledValue, brush);
