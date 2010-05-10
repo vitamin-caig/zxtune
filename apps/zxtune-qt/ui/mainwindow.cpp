@@ -15,6 +15,7 @@ Author:
 #include "mainwindow.h"
 #include "mainwindow_ui.h"
 #include "mainwindow_moc.h"
+#include "controls/analyzer_control.h"
 #include "controls/playback_controls.h"
 #include "controls/seek_controls.h"
 #include "playlist/playlist.h"
@@ -127,6 +128,7 @@ namespace
       , Controls(this, menuLayout, "Controls")
       , Seeking(this, menuLayout, "Seeking")
       , Collection(this, menuLayout, "Playlist")
+      , Analyzer(this, menuLayout, "Analyzer")
       , Thread(PlaybackThread::Create(this))
     {
       //TODO: remove
@@ -153,11 +155,14 @@ namespace
       Seeking->connect(Thread, SIGNAL(OnUpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&)),
         SLOT(UpdateState(uint)));
       Seeking->connect(Thread, SIGNAL(OnStopModule(const ZXTune::Module::Information&)), SLOT(CloseState(const ZXTune::Module::Information&)));
+      Analyzer->connect(Thread, SIGNAL(OnUpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&)),
+        SLOT(UpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&)));
     }
   private:
     ToolbarControl<PlaybackControls> Controls;
     ToolbarControl<SeekControls> Seeking;
     WidgetControl<Playlist> Collection;
+    ToolbarControl<AnalyzerControl> Analyzer;
     PlaybackThread* const Thread;
   };
 }

@@ -5,7 +5,7 @@ source_files := qt_app
 
 #ui-related
 ui_files := ui/mainwindow ui/controls/playback_controls ui/controls/seek_controls ui/playlist/playlist
-moc_files := ui/playlist/playlist_thread ui/playback_thread
+moc_files := ui/controls/analyzer_control ui/playlist/playlist_thread ui/playback_thread
 qrc_files := res/icons
 source_files += $(ui_files) $(moc_files) $(qrc_files:=_res)
 
