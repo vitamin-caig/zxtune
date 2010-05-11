@@ -132,7 +132,8 @@ namespace
     }
     const HripHeader* const hripHeader = static_cast<const HripHeader*>(data);
     if (0 != std::memcmp(hripHeader->ID, HRIP_ID, sizeof(HRIP_ID)) ||
-       !(0 == hripHeader->Catalogue || 1 == hripHeader->Catalogue))
+       !(0 == hripHeader->Catalogue || 1 == hripHeader->Catalogue) ||
+       !hripHeader->ArchiveSectors || !hripHeader->FilesCount)
     {
       return INVALID;
     }
