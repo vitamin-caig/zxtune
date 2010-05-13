@@ -203,13 +203,11 @@ namespace
     virtual void AddItem(const ModuleItem& item)
     {
       const Char RESOURCE_TYPE_PREFIX[] = {':','/','t','y','p','e','s','/',0};
-      ZXTune::Module::Information info;
-      item.Module->GetModuleInformation(info);
-      const String& title = GenerateItemTitle(info);
+      const String& title = GenerateItemTitle(item.Information);
       QListWidgetItem* const listItem = new QListWidgetItem(ToQString(title), playList);
       const ItemsList::iterator it = Items.insert(Items.end(), item);
       listItem->setData(Qt::UserRole, QVariant::fromValue(it));
-      if (const String* type = Parameters::FindByName<String>(info.Properties, ZXTune::Module::ATTR_TYPE))
+      if (const String* type = Parameters::FindByName<String>(item.Information.Properties, ZXTune::Module::ATTR_TYPE))
       {
         String typeStr(RESOURCE_TYPE_PREFIX);
         typeStr += *type;

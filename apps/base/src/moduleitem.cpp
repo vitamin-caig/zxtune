@@ -44,6 +44,7 @@ namespace
     attrs.insert(Parameters::Map::value_type(ZXTune::Module::ATTR_PATH, path));
     attrs.insert(Parameters::Map::value_type(ZXTune::Module::ATTR_FULLPATH, uri));
     item.Module->ModifyCustomAttributes(attrs, false);
+    module->GetModuleInformation(item.Information);
     try
     {
       return callback(item) ? Error() : Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);

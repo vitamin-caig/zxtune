@@ -21,10 +21,10 @@ Author:
 struct ModuleItem
 {
   String Id;
-  ZXTune::Module::Holder::Ptr Module;
   Parameters::Map Params;
+  ZXTune::Module::Holder::Ptr Module;
+  ZXTune::Module::Information Information;
 };
-typedef std::vector<ModuleItem> ModuleItemsArray;
 
 typedef boost::function<bool(const ModuleItem&)> OnItemCallback;
 

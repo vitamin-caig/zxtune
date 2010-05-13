@@ -76,7 +76,7 @@ namespace
       if (0 == Player.use_count())
       {
         Backend->SetModule(item.Module);
-        item.Module->GetModuleInformation(Info);
+        Info = item.Information;
         Player = Backend->GetPlayer();
       }
     }
@@ -85,7 +85,7 @@ namespace
     {
       Backend->SetModule(item.Module);
       this->wait();
-      item.Module->GetModuleInformation(Info);
+      Info = item.Information;
       Player = Backend->GetPlayer();
       Backend->Play();
       this->start();

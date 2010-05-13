@@ -406,15 +406,13 @@ namespace
         {
           frameDuration = Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT;
         }
-        ZXTune::Module::Information info;
-        item.Module->GetModuleInformation(info);
 
         //show startup info
         if (!Silent)
         {
-          ShowItemInfo(info, static_cast<uint_t>(frameDuration));
+          ShowItemInfo(item.Information, static_cast<uint_t>(frameDuration));
         }
-        const uint_t seekStepFrames(info.Statistic.Frame * SeekStep / 100);
+        const uint_t seekStepFrames(item.Information.Statistic.Frame * SeekStep / 100);
         const uint_t waitPeriod(std::max<uint_t>(1, 1000 / std::max<uint_t>(Updatefps, 1)));
         ThrowIfError(backend.Play());
         std::vector<int_t> analyzer;
@@ -461,7 +459,7 @@ namespace
             else
             {
               ShowTrackingStatus(curTracking);
-              ShowPlaybackStatus(curFrame, info.Statistic.Frame, state, scrSize.first, static_cast<uint_t>(frameDuration));
+              ShowPlaybackStatus(curFrame, item.Information.Statistic.Frame, state, scrSize.first, static_cast<uint_t>(frameDuration));
               if (Analyzer)
               {
                 analyzer.resize(scrSize.first);
