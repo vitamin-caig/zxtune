@@ -1,0 +1,10 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=ZX Tune
+Comment=ZX Spectrum music player
+Comment[ru]=Проигрыватель музыки с ZX Spectrum
+Exec=zxtune-qt
+Icon=zxtune.png
+Terminal=false
+Type=Application
+Categories=Qt;AudioVideo;Audio;Player;
