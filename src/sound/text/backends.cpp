@@ -11,6 +11,17 @@ extern const Char ALSA_BACKEND_DESCRIPTION[] = {
 extern const Char AYLPT_BACKEND_DESCRIPTION[] = {
   'A','Y','L','P','T',' ','s','u','p','p','o','r','t',' ','b','a','c','k','e','n','d',0
 };
+extern const Char CUESHEET_BEGIN[] = {
+  'F','I','L','E',' ','\"','%','1','%','\"',' ','W','A','V','E','\n',
+  0
+};
+extern const Char CUESHEET_ITEM[] = {
+  ' ',' ','T','R','A','C','K',' ','%','1','$','0','2','u',' ','A','U','D','I','O','\n',
+  ' ',' ',' ',' ','T','I','T','L','E',' ','\"','p','a','t','t','e','r','n',' ','%','2','%','\"','\n',
+  ' ',' ',' ',' ','I','N','D','E','X',' ','0','1',' ','%','3','$','0','2','u',':','%','4','$','0','2','u',':',
+  '%','5','$','0','2','u','\n',
+  0
+};
 extern const Char NULL_BACKEND_DESCRIPTION[] = {
   'N','u','l','l',' ','o','u','t','p','u','t',' ','b','a','c','k','e','n','d',0
 };

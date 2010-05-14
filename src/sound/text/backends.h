@@ -7,6 +7,8 @@ namespace Text
 {
 extern const Char ALSA_BACKEND_DESCRIPTION[];
 extern const Char AYLPT_BACKEND_DESCRIPTION[];
+extern const Char CUESHEET_BEGIN[];
+extern const Char CUESHEET_ITEM[];
 extern const Char NULL_BACKEND_DESCRIPTION[];
 extern const Char OSS_BACKEND_DESCRIPTION[];
 extern const Char SDL_BACKEND_DESCRIPTION[];

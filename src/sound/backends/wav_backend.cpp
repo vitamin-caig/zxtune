@@ -15,6 +15,7 @@ Author:
 #include "enumerator.h"
 //common includes
 #include <byteorder.h>
+#include <formatter.h>
 #include <logging.h>
 #include <template.h>
 #include <tools.h>
@@ -80,6 +81,46 @@ namespace
   const uint8_t DATA[] = {'d', 'a', 't', 'a'};
 
   const Char FILE_WAVE_EXT[] = {'.', 'w', 'a', 'v', '\0'};
+  const Char FILE_CUE_EXT[] = {'.', 'c', 'u', 'e', '\0'};
+
+  class CueSheetWriter
+  {
+  public:
+    explicit CueSheetWriter(const std::string& wavName, const Parameters::Map& params)
+      : File(IO::CreateFile(wavName + FILE_CUE_EXT, true))
+      , FrameDuration(Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT)
+    {
+      String path;
+      *File << (Formatter(Text::CUESHEET_BEGIN) % IO::ExtractLastPathComponent(wavName, path)).str();
+      Parameters::FindByName(params, Parameters::ZXTune::Sound::FRAMEDURATION, FrameDuration);
+      Track.Position = -1;
+    }
+
+    void OnFrame(uint_t frame, const Module::Tracking& track)
+    {
+      if (track.Position == Track.Position)
+      {
+        return;
+      }
+
+      const uint_t CUEFRAMES_PER_SECOND = 75;
+      const uint_t CUEFRAMES_PER_MINUTE = 60 * CUEFRAMES_PER_SECOND;
+      const uint_t cueTotalFrames = static_cast<uint_t>(uint64_t(frame) * FrameDuration * CUEFRAMES_PER_SECOND / 1000000);
+      const uint_t cueMinutes = cueTotalFrames / CUEFRAMES_PER_MINUTE;
+      const uint_t cueSeconds = (cueTotalFrames - cueMinutes * CUEFRAMES_PER_MINUTE) / CUEFRAMES_PER_SECOND;
+      const uint_t cueFrames = cueTotalFrames % CUEFRAMES_PER_SECOND;
+      *File << (Formatter(Text::CUESHEET_ITEM)
+        % (track.Position + 1)
+        % track.Pattern
+        % cueMinutes % cueSeconds % cueFrames).str();
+      File->flush();
+      Track = track;
+    }
+  private:
+    std::auto_ptr<std::ofstream> File;
+    Module::Tracking Track;
+    Parameters::IntType FrameDuration;
+  };
 
   class WAVBackend : public BackendImpl, private boost::noncopyable
   {
@@ -149,10 +190,17 @@ namespace
         Log::Debug(THIS_MODULE, "Opening file '%1%'", fileName);
         //(re)create file
         {
-          Parameters::IntType rewriteParam = 0;
-          const bool doRewrite = Parameters::FindByName(CommonParameters, Parameters::ZXTune::Sound::Backends::Wav::OVERWRITE, rewriteParam) &&
-            rewriteParam != 0;
+          Parameters::IntType intParam = 0;
+          const bool doRewrite = Parameters::FindByName(CommonParameters, Parameters::ZXTune::Sound::Backends::Wav::OVERWRITE, intParam) &&
+            intParam != 0;
           File = IO::CreateFile(fileName, doRewrite);
+          //prepare cuesheet if required
+          if (Parameters::FindByName(CommonParameters, Parameters::ZXTune::Sound::Backends::Wav::CUESHEET, intParam) &&
+            intParam != 0)
+          {
+            Cuesheet.reset(new CueSheetWriter(fileName, CommonParameters));
+            UpdateCue();
+          }
         }
 
         File->seekp(sizeof(Format));
@@ -177,6 +225,7 @@ namespace
         Format.DataSize = fromLE(Format.DataSize);
         File->write(safe_ptr_cast<const char*>(&Format), sizeof(Format));
         File.reset();
+        Cuesheet.reset();
       }
     }
 
@@ -212,6 +261,20 @@ namespace
 #endif
       Format.Size += static_cast<uint32_t>(sizeInBytes);
       Format.DataSize += static_cast<uint32_t>(sizeInBytes);
+      //write cue
+      if (Cuesheet.get())
+      {
+        UpdateCue();
+      }
+    }
+  private:
+    void UpdateCue()
+    {
+      uint_t time = 0;
+      Module::Tracking track;
+      Module::Analyze::ChannelsState analyze;
+      ThrowIfError(Player->GetPlaybackState(time, track, analyze));
+      Cuesheet->OnFrame(time, track);
     }
   private:
     std::auto_ptr<std::ofstream> File;
@@ -219,6 +282,8 @@ namespace
 #ifdef BOOST_BIG_ENDIAN
     std::vector<MultiSample> Buffer;
 #endif
+    //cuesheet related
+    std::auto_ptr<CueSheetWriter> Cuesheet;
   };
   
   Backend::Ptr WAVBackendCreator(const Parameters::Map& params)

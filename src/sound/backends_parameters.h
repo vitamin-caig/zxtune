@@ -48,6 +48,13 @@ namespace Parameters
             'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','w','a','v','.','o','v','e','r','w','r','i','t','e','\0'
           };
 
+          //! @brief Create cuesheet
+          //! @note != 0 if yes
+          const Char CUESHEET[] =
+          {
+            'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','w','a','v','.','c','u','e','s','h','e','e','t','\0'
+          };
+
           //@}
         }
 

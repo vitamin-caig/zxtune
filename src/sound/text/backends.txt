@@ -23,6 +23,14 @@ __cpp> "#endif //__TEXT_BACKENDS_H_DEFINED__\n"
 < SOUND_ERROR_WAV_BACKEND_NO_FILENAME
 > "Output filename template is not specified."
 
+< CUESHEET_BEGIN
+> "FILE \"%1%\" WAVE\n"
+
+< CUESHEET_ITEM
+> "  TRACK %1$02u AUDIO\n"
+> "    TITLE \"pattern %2%\"\n"
+> "    INDEX 01 %3$02u:%4$02u:%5$02u\n"
+
 #alsa backend
 < ALSA_BACKEND_DESCRIPTION
 > "ALSA sound system backend"
