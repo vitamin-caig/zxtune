@@ -15,6 +15,7 @@ Author:
 #include "enumerator.h"
 //common includes
 #include <byteorder.h>
+#include <error_tools.h>
 #include <formatter.h>
 #include <logging.h>
 #include <template.h>
@@ -83,43 +84,77 @@ namespace
   const Char FILE_WAVE_EXT[] = {'.', 'w', 'a', 'v', '\0'};
   const Char FILE_CUE_EXT[] = {'.', 'c', 'u', 'e', '\0'};
 
-  class CueSheetWriter
+  class TrackLogger
   {
   public:
-    explicit CueSheetWriter(const std::string& wavName, const Parameters::Map& params)
+    typedef std::auto_ptr<TrackLogger> Ptr;
+    virtual ~TrackLogger() {}
+
+    virtual void LogFrame(uint_t frame, const Module::Tracking& track) = 0;
+  };
+
+  class CuesheetLogger : public TrackLogger
+  {
+    enum
+    {
+      MIN_CUESHEET_PERIOD = 4,
+      MAX_CUESHEET_PERIOD = 48
+    };
+  public:
+    explicit CuesheetLogger(const std::string& wavName, const Parameters::Map& params)
       : File(IO::CreateFile(wavName + FILE_CUE_EXT, true))
       , FrameDuration(Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT)
+      , SplitPeriod(0)
     {
       String path;
       *File << (Formatter(Text::CUESHEET_BEGIN) % IO::ExtractLastPathComponent(wavName, path)).str();
       Parameters::FindByName(params, Parameters::ZXTune::Sound::FRAMEDURATION, FrameDuration);
+      if (Parameters::FindByName(params, Parameters::ZXTune::Sound::Backends::Wav::CUESHEET_PERIOD, SplitPeriod) &&
+          !in_range<Parameters::IntType>(SplitPeriod, MIN_CUESHEET_PERIOD, MAX_CUESHEET_PERIOD))
+      {
+        throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
+          Text::CUESHEET_ERROR_INVALID_PERIOD, SplitPeriod, MIN_CUESHEET_PERIOD, MAX_CUESHEET_PERIOD);
+      }
       Track.Position = -1;
     }
 
-    void OnFrame(uint_t frame, const Module::Tracking& track)
+    void LogFrame(uint_t frame, const Module::Tracking& track)
     {
-      if (track.Position == Track.Position)
-      {
-        return;
-      }
+      const bool positionChanged = track.Position != Track.Position;
+      const bool splitOcurred = SplitPeriod
+        ? (0 == track.Frame && //new line
+           0 == track.Line % SplitPeriod && //line number is multiple of period
+           (positionChanged || track.Line > Track.Line)) //to prevent reseting line to 0 after an end
+        : false;
 
-      const uint_t CUEFRAMES_PER_SECOND = 75;
-      const uint_t CUEFRAMES_PER_MINUTE = 60 * CUEFRAMES_PER_SECOND;
-      const uint_t cueTotalFrames = static_cast<uint_t>(uint64_t(frame) * FrameDuration * CUEFRAMES_PER_SECOND / 1000000);
-      const uint_t cueMinutes = cueTotalFrames / CUEFRAMES_PER_MINUTE;
-      const uint_t cueSeconds = (cueTotalFrames - cueMinutes * CUEFRAMES_PER_MINUTE) / CUEFRAMES_PER_SECOND;
-      const uint_t cueFrames = cueTotalFrames % CUEFRAMES_PER_SECOND;
-      *File << (Formatter(Text::CUESHEET_ITEM)
-        % (track.Position + 1)
-        % track.Pattern
-        % cueMinutes % cueSeconds % cueFrames).str();
-      File->flush();
-      Track = track;
+      if (positionChanged)
+      {
+        *File << (Formatter(Text::CUESHEET_TRACK_ITEM)
+          % (track.Position + 1)
+          % track.Pattern).str();
+      }
+      if (splitOcurred)
+      {
+        const uint_t CUEFRAMES_PER_SECOND = 75;
+        const uint_t CUEFRAMES_PER_MINUTE = 60 * CUEFRAMES_PER_SECOND;
+        const uint_t cueTotalFrames = static_cast<uint_t>(uint64_t(frame) * FrameDuration * CUEFRAMES_PER_SECOND / 1000000);
+        const uint_t cueMinutes = cueTotalFrames / CUEFRAMES_PER_MINUTE;
+        const uint_t cueSeconds = (cueTotalFrames - cueMinutes * CUEFRAMES_PER_MINUTE) / CUEFRAMES_PER_SECOND;
+        const uint_t cueFrames = cueTotalFrames % CUEFRAMES_PER_SECOND;
+        *File << (Formatter(Text::CUESHEET_TRACK_INDEX)
+          % (track.Line / SplitPeriod + 1)
+          % cueMinutes % cueSeconds % cueFrames).str();
+      }
+      if (positionChanged || splitOcurred)
+      {
+        Track = track;
+      }
     }
   private:
     std::auto_ptr<std::ofstream> File;
     Module::Tracking Track;
     Parameters::IntType FrameDuration;
+    Parameters::IntType SplitPeriod;
   };
 
   class WAVBackend : public BackendImpl, private boost::noncopyable
@@ -193,14 +228,15 @@ namespace
           Parameters::IntType intParam = 0;
           const bool doRewrite = Parameters::FindByName(CommonParameters, Parameters::ZXTune::Sound::Backends::Wav::OVERWRITE, intParam) &&
             intParam != 0;
-          File = IO::CreateFile(fileName, doRewrite);
+          std::auto_ptr<std::ofstream> tmpFile = IO::CreateFile(fileName, doRewrite);
           //prepare cuesheet if required
           if (Parameters::FindByName(CommonParameters, Parameters::ZXTune::Sound::Backends::Wav::CUESHEET, intParam) &&
             intParam != 0)
           {
-            Cuesheet.reset(new CueSheetWriter(fileName, CommonParameters));
-            UpdateCue();
+            Logger.reset(new CuesheetLogger(fileName, CommonParameters));
+            UpdateLogger();
           }
+          File = tmpFile;
         }
 
         File->seekp(sizeof(Format));
@@ -225,7 +261,7 @@ namespace
         Format.DataSize = fromLE(Format.DataSize);
         File->write(safe_ptr_cast<const char*>(&Format), sizeof(Format));
         File.reset();
-        Cuesheet.reset();
+        Logger.reset();
       }
     }
 
@@ -261,20 +297,20 @@ namespace
 #endif
       Format.Size += static_cast<uint32_t>(sizeInBytes);
       Format.DataSize += static_cast<uint32_t>(sizeInBytes);
-      //write cue
-      if (Cuesheet.get())
-      {
-        UpdateCue();
-      }
+      //write track log
+      UpdateLogger();
     }
   private:
-    void UpdateCue()
+    void UpdateLogger() const
     {
-      uint_t time = 0;
-      Module::Tracking track;
-      Module::Analyze::ChannelsState analyze;
-      ThrowIfError(Player->GetPlaybackState(time, track, analyze));
-      Cuesheet->OnFrame(time, track);
+      if (Logger.get())
+      {
+        uint_t time = 0;
+        Module::Tracking track;
+        Module::Analyze::ChannelsState analyze;
+        ThrowIfError(Player->GetPlaybackState(time, track, analyze));
+        Logger->LogFrame(time, track);
+      }
     }
   private:
     std::auto_ptr<std::ofstream> File;
@@ -282,8 +318,7 @@ namespace
 #ifdef BOOST_BIG_ENDIAN
     std::vector<MultiSample> Buffer;
 #endif
-    //cuesheet related
-    std::auto_ptr<CueSheetWriter> Cuesheet;
+    TrackLogger::Ptr Logger;
   };
   
   Backend::Ptr WAVBackendCreator(const Parameters::Map& params)

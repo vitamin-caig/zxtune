@@ -26,10 +26,15 @@ __cpp> "#endif //__TEXT_BACKENDS_H_DEFINED__\n"
 < CUESHEET_BEGIN
 > "FILE \"%1%\" WAVE\n"
 
-< CUESHEET_ITEM
+< CUESHEET_TRACK_ITEM
 > "  TRACK %1$02u AUDIO\n"
 > "    TITLE \"pattern %2%\"\n"
-> "    INDEX 01 %3$02u:%4$02u:%5$02u\n"
+
+< CUESHEET_TRACK_INDEX
+> "    INDEX %1$02u %2$02u:%3$02u:%4$02u\n"
+
+< CUESHEET_ERROR_INVALID_PERIOD
+> "Cuesheet period (%1%) is out of range (%2%..%3%)."
 
 #alsa backend
 < ALSA_BACKEND_DESCRIPTION
