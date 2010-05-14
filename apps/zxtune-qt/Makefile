@@ -20,10 +20,6 @@ windows_libraries := gdi32 user32 advapi32 shell32 ole32 oleaut32 imm32 comdlg32
 h_generated := $(ui_files:=_ui.h) $(ui_files:=_moc.h) $(moc_files:=_moc.h)
 cpp_generated := $(qrc_files:=_res.cpp)
 
-#only dynamic linking is supported
-qt_dynamic := 1
-boost_dynamic := 1
-
 include $(path_step)/makefile.mak
 
 UIC := uic

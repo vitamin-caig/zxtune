@@ -9,7 +9,7 @@ textator --version > NUL || GOTO Error
 zip -v > NUL || GOTO Error
 
 ECHO Updating
-:: svn up > NUL || GOTO Error
+svn up > NUL || GOTO Error
 
 :: determine current build version
 SET Revision=00000

@@ -11,10 +11,6 @@ Author:
   This file is a part of zxtune123 application based on zxtune library
 */
 
-#ifndef __linux__
-#error Invalid platform specified
-#endif
-
 //local includes
 #include "console.h"
 #include <apps/base/app.h>
@@ -22,7 +18,8 @@ Author:
 //platform-dependent includes
 #include <errno.h>
 #include <stdio.h>
-#include <termio.h>
+#include <termios.h>
+#include <sys/ioctl.h>
 //std includes
 #include <iostream>
 
@@ -74,7 +71,7 @@ namespace
 #if defined TIOCGSIZE
       struct ttysize ts;
       ThrowIfError(ioctl(STDOUT_FILENO, TIOCGSIZE, &ts), THIS_LINE);
-      return SizeType(ts.ts_cols, ts.rs_rows);
+      return SizeType(ts.ts_cols, ts.rs_lines);
 #elif defined TIOCGWINSZ
       struct winsize ws;
       ThrowIfError(ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws), THIS_LINE);
@@ -98,7 +95,7 @@ namespace
       {
         return INPUT_KEY_NONE;
       }
-        
+       
       switch (const int code = ::getchar())
       {
       case -1:

@@ -49,6 +49,8 @@ namespace
   {
   public:
     explicit AnalyzerControlImpl(QWidget* parent)
+      : Levels()
+      , Peaks()
     {
       setParent(parent);
       setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum));

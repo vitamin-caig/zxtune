@@ -93,13 +93,11 @@ namespace
     virtual void LogFrame(uint_t frame, const Module::Tracking& track) = 0;
   };
 
+  const uint_t MIN_CUESHEET_PERIOD = 4;
+  const uint_t MAX_CUESHEET_PERIOD = 48;
+
   class CuesheetLogger : public TrackLogger
   {
-    enum
-    {
-      MIN_CUESHEET_PERIOD = 4,
-      MAX_CUESHEET_PERIOD = 48
-    };
   public:
     explicit CuesheetLogger(const std::string& wavName, const Parameters::Map& params)
       : File(IO::CreateFile(wavName + FILE_CUE_EXT, true))
@@ -121,11 +119,11 @@ namespace
     void LogFrame(uint_t frame, const Module::Tracking& track)
     {
       const bool positionChanged = track.Position != Track.Position;
-      const bool splitOcurred = SplitPeriod
-        ? (0 == track.Frame && //new line
+      const bool splitOcurred =
+           SplitPeriod != 0 && //period specified
+           0 == track.Frame && //new line
            0 == track.Line % SplitPeriod && //line number is multiple of period
-           (positionChanged || track.Line > Track.Line)) //to prevent reseting line to 0 after an end
-        : false;
+           (positionChanged || track.Line > Track.Line); //to prevent reseting line to 0 after an end
 
       if (positionChanged)
       {
@@ -133,7 +131,7 @@ namespace
           % (track.Position + 1)
           % track.Pattern).str();
       }
-      if (splitOcurred)
+      if (positionChanged || splitOcurred)
       {
         const uint_t CUEFRAMES_PER_SECOND = 75;
         const uint_t CUEFRAMES_PER_MINUTE = 60 * CUEFRAMES_PER_SECOND;
@@ -142,11 +140,8 @@ namespace
         const uint_t cueSeconds = (cueTotalFrames - cueMinutes * CUEFRAMES_PER_MINUTE) / CUEFRAMES_PER_SECOND;
         const uint_t cueFrames = cueTotalFrames % CUEFRAMES_PER_SECOND;
         *File << (Formatter(Text::CUESHEET_TRACK_INDEX)
-          % (track.Line / SplitPeriod + 1)
+          % (SplitPeriod ? track.Line / SplitPeriod + 1 : 1)
           % cueMinutes % cueSeconds % cueFrames).str();
-      }
-      if (positionChanged || splitOcurred)
-      {
         Track = track;
       }
     }
