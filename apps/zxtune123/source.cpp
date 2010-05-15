@@ -19,7 +19,6 @@ Author:
 //common includes
 #include <error_tools.h>
 #include <logging.h>
-#include <string_helpers.h>
 #include <tools.h>
 //library includes
 #include <core/error_codes.h>
@@ -27,6 +26,7 @@ Author:
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
 //std includes
+#include <set>
 #include <iomanip>
 #include <iostream>
 //boost includes
@@ -43,6 +43,8 @@ Author:
 namespace
 {
   const Char DELIMITERS[] = {',', ';', ':', '\0'};
+  
+  typedef std::set<String> StringSet;
  
   void DoLog(const Log::MessageData& msg)
   {

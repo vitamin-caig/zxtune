@@ -29,6 +29,7 @@ Author:
 //std includes
 #include <algorithm>
 #include <cctype>
+#include <list>
 #include <iostream>
 //boost includes
 #include <boost/algorithm/string/classification.hpp>

@@ -11,7 +11,8 @@ Author:
 
 //common includes
 #include <messages_collector.h>
-#include <string_helpers.h>
+//std includes
+#include <list>
 //boost includes
 #include <boost/algorithm/string/join.hpp>
 
@@ -40,7 +41,7 @@ namespace
     }
 
   private:
-    StringList Messages;
+    std::list<String> Messages;
   };
 }
 

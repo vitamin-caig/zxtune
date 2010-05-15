@@ -13,9 +13,7 @@
 //common includes
 #include <types.h>
 //std includes
-#include <list>
 #include <map>
-#include <set>
 #include <sstream>
 #include <vector>
 
@@ -26,11 +24,7 @@ typedef std::basic_ostringstream<Char> OutStringStream;
 typedef std::basic_istringstream<Char> InStringStream;
 //! @brief String => String map
 typedef std::map<String, String> StringMap;
-//! @brief Set of strings
-typedef std::set<String> StringSet;
 //! @brief Array of strings
 typedef std::vector<String> StringArray;
-//! @brief List of strings
-typedef std::list<String> StringList;
 
 #endif //__STRING_HELPERS_H_DEFINED__

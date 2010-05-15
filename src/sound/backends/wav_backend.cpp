@@ -16,7 +16,6 @@ Author:
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
-#include <formatter.h>
 #include <logging.h>
 #include <template.h>
 #include <tools.h>

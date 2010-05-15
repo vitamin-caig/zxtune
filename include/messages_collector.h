@@ -12,7 +12,6 @@
 
 //common includes
 #include <formatter.h>
-#include <types.h>
 //std includes
 #include <memory>
 
