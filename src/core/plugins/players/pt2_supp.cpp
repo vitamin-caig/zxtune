@@ -139,7 +139,12 @@ namespace
 
     uint_t GetSize() const
     {
-      return sizeof(PT2Sample) + (Size - 1) * sizeof(Line);
+      return sizeof(*this) + (Size - 1) * sizeof(Data[0]);
+    }
+    
+    static uint_t GetMinimalSize()
+    {
+      return sizeof(PT2Sample) - sizeof(PT2Sample::Line);
     }
 
     PACK_PRE struct Line
@@ -196,6 +201,11 @@ namespace
     uint_t GetSize() const
     {
       return sizeof(PT2Ornament) + (Size - 1);
+    }
+
+    static uint_t GetMinimalSize()
+    {
+      return sizeof(PT2Ornament) - sizeof(int8_t);
     }
   } PACK_POST;
 
@@ -879,12 +889,12 @@ namespace
     {
       if (const uint_t offset = fromLE(*sampOff))
       {
-        if (!checker->AddRange(offset, sizeof(PT2Sample)))
+        if (offset + PT2Sample::GetMinimalSize() > size)
         {
           return false;
         }
         const PT2Sample* const sample(safe_ptr_cast<const PT2Sample*>(data + offset));
-        if (!checker->AddRange(offset + sizeof(PT2Sample), sample->GetSize() - sizeof(PT2Sample)))
+        if (!checker->AddRange(offset, sample->GetSize()))
         {
           return false;
         }
@@ -895,12 +905,12 @@ namespace
     {
       if (const uint_t offset = fromLE(*ornOff))
       {
-        if (!checker->AddRange(offset, sizeof(PT2Ornament)))
+        if (offset + PT2Ornament::GetMinimalSize() > size)
         {
           return false;
         }
         const PT2Ornament* const ornament(safe_ptr_cast<const PT2Ornament*>(data + offset));
-        if (!checker->AddRange(offset + sizeof(PT2Ornament), ornament->GetSize() - sizeof(PT2Ornament)))
+        if (!checker->AddRange(offset, ornament->GetSize()))
         {
           return false;
         }

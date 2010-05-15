@@ -255,12 +255,17 @@ namespace
   {
     uint8_t Loop;
     uint8_t Size;
-    
+
     uint_t GetSize() const
     {
       return sizeof(*this) + (Size - 1) * sizeof(Data[0]);
     }
-    
+
+    static uint_t GetMinimalSize()
+    {
+      return sizeof(PT3Sample) - sizeof(PT3Sample::Line);
+    }
+
     PACK_PRE struct Line
     {
       //SUoooooE
@@ -339,6 +344,11 @@ namespace
     uint_t GetSize() const
     {
       return sizeof(*this) + (Size - 1) * sizeof(Data[0]);
+    }
+
+    static uint_t GetMinimalSize()
+    {
+      return sizeof(PT3Ornament) - sizeof(int8_t);
     }
   } PACK_POST;
 #ifdef USE_PRAGMA_PACK
@@ -870,12 +880,12 @@ namespace
     {
       if (const uint_t offset = fromLE(*sampOff))
       {
-        if (!checker->AddRange(offset, sizeof(PT3Sample)))
+        if (offset + PT3Sample::GetMinimalSize() > size)
         {
           return false;
         }
         const PT3Sample* const sample(safe_ptr_cast<const PT3Sample*>(data + offset));
-        if (!checker->AddRange(offset + sizeof(PT3Sample), sample->GetSize() - sizeof(PT3Sample)))
+        if (!checker->AddRange(offset, sample->GetSize()))
         {
           return false;
         }
@@ -886,12 +896,12 @@ namespace
     {
       if (const uint_t offset = fromLE(*ornOff))
       {
-        if (!checker->AddRange(offset, sizeof(PT3Ornament)))
+        if (offset + PT3Ornament::GetMinimalSize() > size)
         {
           return false;
         }
         const PT3Ornament* const ornament(safe_ptr_cast<const PT3Ornament*>(data + offset));
-        if (!checker->AddRange(offset + sizeof(PT3Ornament), ornament->GetSize() - sizeof(PT3Ornament)))
+        if (!checker->AddRange(offset, ornament->GetSize()))
         {
           return false;
         }

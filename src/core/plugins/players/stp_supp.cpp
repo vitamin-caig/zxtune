@@ -134,6 +134,16 @@ namespace
     uint8_t Loop;
     uint8_t Size;
     int8_t Data[1];
+    
+    static uint_t GetMinimalSize()
+    {
+      return sizeof(STPOrnament) - sizeof(int8_t);
+    }
+    
+    uint_t GetSize() const
+    {
+      return sizeof(*this) + (Size - 1) * sizeof(Data[0]);
+    }
   } PACK_POST;
 
   PACK_PRE struct STPOrnaments
@@ -145,6 +155,17 @@ namespace
   {
     int8_t Loop;
     uint8_t Size;
+    
+    static uint_t GetMinimalSize()
+    {
+      return sizeof(STPSample) - sizeof(STPSample::Line);
+    }
+    
+    uint_t GetSize() const
+    {
+      return sizeof(*this) - sizeof(Data[0]);
+    }
+    
     PACK_PRE struct Line
     {
       // NxxTaaaa
@@ -795,14 +816,14 @@ namespace
     for (const uint16_t* ornOff = ornaments->Offsets.begin(); ornOff != ornaments->Offsets.end(); ++ornOff)
     {
       const uint_t offset = fromLE(*ornOff);
-      if (!offset || offset > limit)
+      if (!offset || offset + STPOrnament::GetMinimalSize() > limit)
       {
         return false;
       }
       const STPOrnament* const ornament = safe_ptr_cast<const STPOrnament*>(data + offset);
       //may be empty
       if (ornament->Size > MAX_ORNAMENT_SIZE || ornament->Loop > MAX_ORNAMENT_SIZE ||
-          (ornament->Size && !checker->AddRange(offset, sizeof(*ornament) + ornament->Size - 1)))
+          (ornament->Size && !checker->AddRange(offset, ornament->GetSize())))
       {
         return false;
       }
@@ -816,14 +837,14 @@ namespace
     for (const uint16_t* smpOff = samples->Offsets.begin(); smpOff != samples->Offsets.end(); ++smpOff)
     {
       const uint_t offset = fromLE(*smpOff);
-      if (!offset || offset > limit)
+      if (!offset || offset + STPSample::GetMinimalSize() > limit)
       {
         return false;
       }
       const STPSample* const sample = safe_ptr_cast<const STPSample*>(data + offset);
       //may be empty
       if (sample->Size > MAX_SAMPLE_SIZE || sample->Loop > int_t(MAX_SAMPLE_SIZE) ||
-          (sample->Size && !checker->AddRange(offset, sizeof(*sample) + (sample->Size - 1) * sizeof(STPSample::Line))))
+          (sample->Size && !checker->AddRange(offset, sample->GetSize())))
       {
         return false;
       }
