@@ -1,6 +1,7 @@
 <RCC>
   <qresource>
     <file>zxtune.png</file>
+    <file>exit.png</file>
   </qresource>
   <qresource prefix="/controls">
     <file alias="prev.png">ctrl_prev.png</file>
@@ -22,6 +23,7 @@
     <file alias="TXT">type_txt.png</file>
   </qresource>
   <qresource prefix="/playlist">
+    <file alias="addfiles.png">list_addfiles.png</file>
     <file alias="looped.png">list_looped.png</file>
     <file alias="random.png">list_random.png</file>
     <file alias="sort.png">list_sort.png</file>

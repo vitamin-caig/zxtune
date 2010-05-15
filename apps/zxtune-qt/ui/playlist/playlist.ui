@@ -69,9 +69,14 @@
     </widget>
    </item>
   </layout>
-  <action name="actionAdd">
+  <action name="actionAddFiles">
+   <property name="icon">
+    <iconset>
+     <normalon>:/playlist/addfiles.png</normalon>
+    </iconset>
+   </property>
    <property name="text">
-    <string>Add</string>
+    <string>Add files</string>
    </property>
   </action>
   <action name="actionLoad">

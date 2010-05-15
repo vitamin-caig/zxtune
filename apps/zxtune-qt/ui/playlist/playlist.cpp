@@ -26,6 +26,7 @@ Author:
 //qt includes
 #include <QtCore/QUrl>
 #include <QtGui/QDragEnterEvent>
+#include <QtGui/QFileDialog>
 #include <QtGui/QMainWindow>
 #include <QtGui/QMenu>
 #include <QtGui/QMenuBar>
@@ -76,6 +77,7 @@ namespace
       Thread->connect(scanCancel, SIGNAL(clicked()), SLOT(Cancel()));
       this->connect(playList, SIGNAL(itemDoubleClicked(QListWidgetItem*)), SLOT(SetItem(QListWidgetItem*)));
       this->connect(playList, SIGNAL(itemActivated(QListWidgetItem*)), SLOT(SelectItem(QListWidgetItem*)));
+      this->connect(actionAddFiles, SIGNAL(triggered()), SLOT(AddFiles()));
       this->connect(actionClear, SIGNAL(triggered()), SLOT(Clear()));
       this->connect(actionSort, SIGNAL(triggered()), SLOT(Sort()));
       this->connect(actionRandom, SIGNAL(triggered(bool)), SLOT(Random(bool)));
@@ -83,7 +85,7 @@ namespace
       //create and fill menu
       QMenuBar* const menuBar = parent->menuBar();
       QMenu* const menu = menuBar->addMenu(QString::fromUtf8("Playlist"));
-      //menu->addAction(actionAdd);
+      menu->addAction(actionAddFiles);
       //menu->addAction(actionLoad);
       //menu->addAction(actionSave);
       menu->addSeparator();
@@ -160,7 +162,6 @@ namespace
       if (ActivatedItem)
       {
         QFont font = ActivatedItem->font();
-        font.setBold(false);
         font.setItalic(true);
         ActivatedItem->setFont(font);
       }
@@ -174,6 +175,20 @@ namespace
         font.setBold(false);
         font.setItalic(false);
         ActivatedItem->setFont(font);
+      }
+    }
+    
+    virtual void AddFiles()
+    {
+      QFileDialog dialog(this);
+      dialog.setAcceptMode(QFileDialog::AcceptOpen);
+      dialog.setFileMode(QFileDialog::ExistingFiles);
+      if (QDialog::Accepted == dialog.exec())
+      {
+        const QStringList& files = dialog.selectedFiles();
+        std::for_each(files.begin(), files.end(),
+          boost::bind(&Playlist::AddItemByPath, this,
+            boost::bind(&FromQString, _1)));
       }
     }
     

@@ -28,7 +28,6 @@ namespace
   const uint_t MAX_BANDS = 96;
   const uint_t BAR_WIDTH = 4;
   const uint_t LEVELS_FALLBACK = 20;
-  const uint_t PEAKS_FALLBACK = 10;
   
   typedef boost::array<ZXTune::Module::Analyze::LevelType, MAX_BANDS> Analyzed;
   
@@ -50,7 +49,6 @@ namespace
   public:
     explicit AnalyzerControlImpl(QWidget* parent)
       : Levels()
-      , Peaks()
     {
       setParent(parent);
       setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum));
@@ -61,9 +59,7 @@ namespace
     virtual void UpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState& state)
     {
       std::transform(Levels.begin(), Levels.end(), Levels.begin(), boost::bind(&SafeSub, _1, LEVELS_FALLBACK));
-      std::transform(Peaks.begin(), Peaks.end(), Peaks.begin(), boost::bind(&SafeSub, _1, PEAKS_FALLBACK));
       std::for_each(state.begin(), state.end(), boost::bind(&StoreValue, _1, boost::ref(Levels)));
-      std::transform(Levels.begin(), Levels.end(), Peaks.begin(), Peaks.begin(), &std::max<uint_t>);
       //update graph if visible
       if (isVisible())
       {
@@ -82,14 +78,15 @@ namespace
       {
         if (const int scaledValue = Levels[band] * (curHeight - 1) / std::numeric_limits<ZXTune::Module::Analyze::LevelType>::max())
         {
-          painter.fillRect(band * BAR_WIDTH - 1, curHeight - scaledValue - 1, BAR_WIDTH + 1, scaledValue + 1, mask);
-          painter.fillRect(band * BAR_WIDTH, curHeight - scaledValue, BAR_WIDTH - 1, scaledValue, brush);
+          //fill mask
+          painter.fillRect(band * BAR_WIDTH, curHeight - scaledValue - 1, BAR_WIDTH + 1, scaledValue + 1, mask);
+          //fill rect
+          painter.fillRect(band * BAR_WIDTH + 1, curHeight - scaledValue, BAR_WIDTH - 1, scaledValue, brush);
         }
       }
     }
   private:
     Analyzed Levels;
-    Analyzed Peaks;
   };
 }
 

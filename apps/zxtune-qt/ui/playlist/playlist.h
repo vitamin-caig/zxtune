@@ -40,6 +40,7 @@ public slots:
   virtual void PauseItem() = 0;
   virtual void StopItem() = 0;
   //playlist operating
+  virtual void AddFiles() = 0;
   virtual void Clear() = 0;
   virtual void Sort() = 0;
   virtual void Random(bool isRandom) = 0;

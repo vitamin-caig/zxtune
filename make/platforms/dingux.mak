@@ -20,3 +20,4 @@ support_oss = 1
 
 #support only static multithread libraries
 dingux_libraries += $(foreach lib,$(boost_libraries),boost_$(lib))
+dingux_libraries += $(foreach lib,$(qt_libraries),Qt$(lib))
