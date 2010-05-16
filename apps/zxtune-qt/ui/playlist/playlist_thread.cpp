@@ -90,7 +90,7 @@ namespace
       }
     }
 
-    bool OnProcessItem(const Playitem::Ptr& item)
+    bool OnProcessItem(Playitem::Ptr item)
     {
       OnGetItem(item);
       return !Canceled;

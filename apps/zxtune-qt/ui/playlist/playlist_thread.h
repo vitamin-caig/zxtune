@@ -38,7 +38,7 @@ public slots:
 signals:
   void OnScanStart();
   void OnProgress(const Log::MessageData&);
-  void OnGetItem(const Playitem::Ptr&);
+  void OnGetItem(Playitem::Ptr);
   void OnScanStop();
 };
 

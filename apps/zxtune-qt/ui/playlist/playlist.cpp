@@ -35,7 +35,8 @@ Author:
 #include <boost/bind.hpp>
 
 //outside the namespace
-Q_DECLARE_METATYPE(Playitem::Ptr);
+typedef std::list<Playitem::Ptr> PlayitemsList;
+Q_DECLARE_METATYPE(PlayitemsList::iterator);
 
 namespace
 {
@@ -70,7 +71,7 @@ namespace
       scanStatus->hide();
       scanStatus->connect(Thread, SIGNAL(OnScanStart()), SLOT(show()));
       this->connect(Thread, SIGNAL(OnProgress(const Log::MessageData&)), SLOT(ShowProgress(const Log::MessageData&)));
-      this->connect(Thread, SIGNAL(OnGetItem(const Playitem::Ptr&)), SLOT(AddItem(const Playitem::Ptr&)));
+      this->connect(Thread, SIGNAL(OnGetItem(Playitem::Ptr)), SLOT(AddItem(Playitem::Ptr)));
       scanStatus->connect(Thread, SIGNAL(OnScanStop()), SLOT(hide()));
       Thread->connect(scanCancel, SIGNAL(clicked()), SLOT(Cancel()));
       this->connect(playList, SIGNAL(itemDoubleClicked(QListWidgetItem*)), SLOT(SetItem(QListWidgetItem*)));
@@ -179,8 +180,10 @@ namespace
       QFileDialog dialog(this);
       dialog.setAcceptMode(QFileDialog::AcceptOpen);
       dialog.setFileMode(QFileDialog::ExistingFiles);
+      dialog.setDirectory(AddFileDirectory);
       if (QDialog::Accepted == dialog.exec())
       {
+        AddFileDirectory = dialog.directory().absolutePath();
         const QStringList& files = dialog.selectedFiles();
         std::for_each(files.begin(), files.end(),
           boost::bind(&Playlist::AddItemByPath, this,
@@ -191,6 +194,7 @@ namespace
     virtual void Clear()
     {
       playList->clear();
+      Items.clear();
       ActivatedItem = SelectedItem = 0;
     }
     
@@ -210,13 +214,14 @@ namespace
     }
 
     //private slots
-    virtual void AddItem(const Playitem::Ptr& item)
+    virtual void AddItem(Playitem::Ptr item)
     {
       const Char RESOURCE_TYPE_PREFIX[] = {':','/','t','y','p','e','s','/',0};
       const ZXTune::Module::Information& info = item->GetModuleInfo();
       const String& title = GenerateItemTitle(info);
       QListWidgetItem* const listItem = new QListWidgetItem(ToQString(title), playList);
-      listItem->setData(Qt::UserRole, QVariant::fromValue(item));
+      const PlayitemsList::iterator iter = Items.insert(Items.end(), item);
+      listItem->setData(Qt::UserRole, QVariant::fromValue(iter));
       if (const String* type = Parameters::FindByName<String>(info.Properties, ZXTune::Module::ATTR_TYPE))
       {
         String typeStr(RESOURCE_TYPE_PREFIX);
@@ -269,26 +274,29 @@ namespace
     {
       assert(listItem);
       const QVariant& data = listItem->data(Qt::UserRole);
-      const Playitem::Ptr& item = data.value<Playitem::Ptr>();
+      const PlayitemsList::iterator iter = data.value<PlayitemsList::iterator>();
       if (ITEM_SET == mode)
       {
         StopItem();
         ActivatedItem = 0;
         SelectedItem = listItem;
-        OnItemSet(*item);
+        OnItemSet(**iter);
       }
       else if (ITEM_SELECT == mode)
       {
         SelectedItem = listItem;
-        OnItemSelected(*item);
+        OnItemSelected(**iter);
       }
     }
   private:
     ProcessThread* const Thread;
     bool Randomized;
     bool Looped;
+    PlayitemsList Items;
     QListWidgetItem* ActivatedItem;
     QListWidgetItem* SelectedItem;
+    //gui-related
+    QString AddFileDirectory;
   };
 }
 

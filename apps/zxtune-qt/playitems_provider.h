@@ -33,7 +33,7 @@ public:
 struct PlayitemDetectParameters
 {
   ZXTune::DetectParameters::FilterFunc Filter;
-  typedef boost::function<bool(const Playitem::Ptr&)> CallbackFunc;
+  typedef boost::function<bool(Playitem::Ptr)> CallbackFunc;
   CallbackFunc Callback;
   ZXTune::DetectParameters::LogFunc Logger;
 };

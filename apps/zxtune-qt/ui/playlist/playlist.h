@@ -48,7 +48,7 @@ public slots:
   virtual void Random(bool isRandom) = 0;
   virtual void Loop(bool isLooped) = 0;
 private slots:
-  virtual void AddItem(const Playitem::Ptr& item) = 0;
+  virtual void AddItem(Playitem::Ptr item) = 0;
   virtual void SetItem(class QListWidgetItem*) = 0;
   virtual void SelectItem(class QListWidgetItem*) = 0;
   virtual void ShowProgress(const Log::MessageData&) = 0;

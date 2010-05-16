@@ -21,6 +21,7 @@ Author:
 #include <core/error_codes.h>
 #include <core/module_attrs.h>
 #include <core/plugin.h>
+#include <core/plugin_attrs.h>
 #include <io/fs_tools.h>
 #include <io/provider.h>
 //boost includes
@@ -45,7 +46,10 @@ namespace
   public:
     typedef boost::shared_ptr<DataProvider> Ptr;
     
-    DataProvider() {}
+    DataProvider()
+      : CacheSize(0)
+    {
+    }
 
     ZXTune::IO::DataContainer::Ptr GetData(const String& dataPath, const Parameters::Map& params, 
       const ZXTune::DetectParameters::LogFunc& logger)
@@ -112,16 +116,12 @@ namespace
   {
     typedef boost::shared_ptr<SharedPlayitemContext> Ptr;
     
-    SharedPlayitemContext()
-    {
-    }
-    
-    SharedPlayitemContext(const DataProvider::Ptr& provider, const Parameters::Map& params)
+    SharedPlayitemContext(DataProvider::Ptr provider, const Parameters::Map& params)
       : Provider(provider), CommonParams(params)
     {
     }
-    DataProvider::Ptr Provider;
-    Parameters::Map CommonParams;
+    const DataProvider::Ptr Provider;
+    const Parameters::Map CommonParams;
   };
 
   Error AssignModule(const String& inSubpath, ZXTune::Module::Holder::Ptr inModule, 
@@ -129,10 +129,15 @@ namespace
   {
     if (inSubpath != outSubpath || outModule)
     {
-      return Error(THIS_LINE, 1);//TODO
+      return Error(THIS_LINE, ZXTune::Module::ERROR_FIND_SUBMODULE);
     }
     outModule = inModule;
     return Error();
+  }
+  
+  bool OnlyModulesFilter(const ZXTune::PluginInformation& info)
+  {
+    return 0 == (info.Capabilities & ZXTune::CAP_STOR_MODULE);
   }
   
   //TODO: extract to core?
@@ -141,6 +146,7 @@ namespace
   {
     ZXTune::Module::Holder::Ptr tmp;
     ZXTune::DetectParameters params;
+    params.Filter = OnlyModulesFilter;
     params.Callback = boost::bind(&AssignModule, _1, _2, subpath, boost::ref(tmp));
     const Error& err = ZXTune::DetectModules(commonParams, params, data, subpath);
     if (tmp)
@@ -148,7 +154,7 @@ namespace
       result = tmp;
       return Error();
     }
-    return err ? err : Error(THIS_LINE, 1);//TODO
+    return err ? err : Error(THIS_LINE, ZXTune::Module::ERROR_FIND_SUBMODULE);
   }
 
   class PlayitemImpl : public Playitem
@@ -156,9 +162,9 @@ namespace
   public:
     PlayitemImpl(
         //container-specific
-        const SharedPlayitemContext::Ptr& context,
+        SharedPlayitemContext::Ptr context,
         //subset-specific
-        const PluginInfoPtr& plugInfo, 
+        PluginInfoPtr plugInfo, 
         //module-specific
         const String& dataPath, const String& subPath,
         const ZXTune::Module::Information& modInfo,
@@ -243,9 +249,9 @@ namespace
       }
     }
   private:
-    Error CreatePlayitem(const SharedPlayitemContext::Ptr& context,
+    Error CreatePlayitem(SharedPlayitemContext::Ptr context,
       const String& dataPath, const String& subPath,
-      const ZXTune::Module::Holder::Ptr& module,
+      ZXTune::Module::Holder::Ptr module,
       const PlayitemDetectParameters::CallbackFunc& callback)
     {
       try                                                                                                                                                      
