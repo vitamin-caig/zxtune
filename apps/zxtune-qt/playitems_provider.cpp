@@ -26,6 +26,7 @@ Author:
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
+#include <boost/thread/mutex.hpp>
 
 #define FILE_TAG 0C9BBC6E
 
@@ -36,22 +37,57 @@ namespace
   //cached data provider
   class DataProvider
   {
+    typedef std::map<String, ZXTune::IO::DataContainer::Ptr> CacheMap;
+    typedef std::list<String> CacheList;
+    typedef boost::unique_lock<boost::mutex> Locker;
+    //TODO: parametrize
+    static const uint64_t MAX_CACHE_SIZE = 1048576 * 100;//100Mb
   public:
     typedef boost::shared_ptr<DataProvider> Ptr;
     
     DataProvider() {}
-    virtual ~DataProvider() {}
 
-    virtual ZXTune::IO::DataContainer::Ptr GetData(const String& dataPath, const Parameters::Map& params, 
+    ZXTune::IO::DataContainer::Ptr GetData(const String& dataPath, const Parameters::Map& params, 
       const ZXTune::DetectParameters::LogFunc& logger)
     {
-      //TODO: make cached
+      //check in cache
+      {
+        Locker lock(Mutex);
+        const CacheMap::const_iterator cacheIt = Cache.find(dataPath);
+        if (cacheIt != Cache.end())//has cache
+        {
+          CacheHistory.remove(dataPath);
+          CacheHistory.push_front(dataPath);
+          return cacheIt->second;
+        }
+      }
+      //open data
       ZXTune::IO::DataContainer::Ptr data;
-      String subpath;
-      ThrowIfError(ZXTune::IO::OpenData(dataPath, params, 
-        logger ? boost::bind(&DataProvider::ConvertLog, _1, _2, boost::cref(logger)) : ZXTune::IO::ProgressCallback(),
-        data, subpath));
-      assert(subpath.empty());
+      {
+        String subpath;
+        ThrowIfError(ZXTune::IO::OpenData(dataPath, params, 
+          logger ? boost::bind(&DataProvider::ConvertLog, _1, _2, boost::cref(logger)) : ZXTune::IO::ProgressCallback(),
+          data, subpath));
+        assert(subpath.empty());
+      }
+      //store to cache
+      Locker lock(Mutex);
+      const uint64_t thisSize = data->Size();
+      //check and reset cache
+      while (CacheSize + thisSize > MAX_CACHE_SIZE &&
+             !CacheHistory.empty())
+      {
+        const String& removedItem(CacheHistory.back());
+        const CacheMap::iterator cacheIt = Cache.find(removedItem);
+        const uint64_t tmpSize = CacheSize - cacheIt->second->Size();
+        Cache.erase(cacheIt);
+        CacheHistory.remove(removedItem);
+        CacheSize = tmpSize;
+      }
+      //fill cache
+      Cache.insert(CacheMap::value_type(dataPath, data));
+      CacheHistory.push_front(dataPath);
+      CacheSize += thisSize;
       return data;
     }
   private:
@@ -65,6 +101,11 @@ namespace
       logger(data);
       return Error();
     }
+  private:
+    boost::mutex Mutex;
+    CacheMap Cache;
+    uint64_t CacheSize;
+    CacheList CacheHistory;
   };
   
   struct SharedPlayitemContext
@@ -142,10 +183,12 @@ namespace
     {
       return ModuleInfo;
     }
+    
     virtual const ZXTune::PluginInformation& GetPluginInfo() const
     {
       return *PluginInfo;
     }
+    
     virtual const Parameters::Map& GetAdjustedParameters() const
     {
       return AdjustedParams;
