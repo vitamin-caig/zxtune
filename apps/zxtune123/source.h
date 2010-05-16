@@ -14,10 +14,12 @@ Author:
 #ifndef ZXTUNE123_SOURCE_H_DEFINED
 #define ZXTUNE123_SOURCE_H_DEFINED
 
-//local includes
-#include <apps/base/moduleitem.h>
+//library includes
+#include <core/module_holder.h>
 //std includes
 #include <memory>
+//boost includes
+#include <boost/function.hpp>
 
 //forward declarations
 namespace boost
@@ -27,6 +29,16 @@ namespace boost
     class options_description;
   }
 }
+
+//detected module item
+struct ModuleItem
+{
+  String Id;
+  ZXTune::Module::Holder::Ptr Module;
+  ZXTune::Module::Information Information;
+};
+
+typedef boost::function<bool(const ModuleItem&)> OnItemCallback;
 
 class SourceComponent
 {

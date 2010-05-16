@@ -394,15 +394,12 @@ namespace
     {
       try
       {
-        //calculate and apply parameters
-        Parameters::Map perItemParams(GlobalParams);
-        perItemParams.insert(item.Params.begin(), item.Params.end());
         ZXTune::Sound::Backend& backend(Sounder->GetBackend());
         ThrowIfError(backend.SetModule(item.Module));
-        ThrowIfError(backend.SetParameters(perItemParams));
+        ThrowIfError(backend.SetParameters(GlobalParams));
 
         Parameters::IntType frameDuration = 0;
-        if (!Parameters::FindByName(perItemParams, Parameters::ZXTune::Sound::FRAMEDURATION, frameDuration))
+        if (!Parameters::FindByName(GlobalParams, Parameters::ZXTune::Sound::FRAMEDURATION, frameDuration))
         {
           frameDuration = Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT;
         }
