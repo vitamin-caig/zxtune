@@ -15,7 +15,6 @@ Author:
 #include "playlist_thread.h"
 #include "playlist_thread_moc.h"
 #include "playlist_ui.h"
-#include <apps/base/moduleitem.h>
 //common includes
 #include <error.h>
 #include <logging.h>
@@ -23,6 +22,7 @@ Author:
 #include <QtCore/QMutex>
 //std includes
 #include <ctime>
+#include <queue>
 //boost includes
 #include <boost/bind.hpp>
 
@@ -32,16 +32,19 @@ namespace
   {
   public:
     explicit ProcessThreadImpl(QWidget* owner)
-      : Canceled(false)
-      , ScanDisplayed(false)
+      : Provider(PlayitemsProvider::Create())
+      , Canceled(false)
     {
       setParent(owner);
+      //detectParams.Filter = 0;
+      DetectParams.Logger = boost::bind(&ProcessThreadImpl::DispatchProgress, this, _1);
+      DetectParams.Callback = boost::bind(&ProcessThreadImpl::OnProcessItem, this, _1);
     }
 
     virtual void AddItemPath(const String& path)
     {
       QMutexLocker lock(&QueueLock);
-      Queue.push_back(path);
+      Queue.push(path);
       this->start();
     }
 
@@ -54,23 +57,23 @@ namespace
     virtual void run()
     {
       Canceled = false;
-      Parameters::Map params;
       OnScanStart();
       for (;;)
       {
-        StringArray pathes;
+        String path;
         {
           QMutexLocker lock(&QueueLock);
           if (Queue.empty())
           {
             break;
           }
-          pathes.swap(Queue);
+          path = Queue.front();
+          Queue.pop();
         }
-        if (const Error& e = ProcessModuleItems(pathes, params,
-            0, //filter
-            boost::bind(&ProcessThreadImpl::DispatchProgress, this, _1), //logger
-            boost::bind(&ProcessThreadImpl::OnProcessItem, this, _1)))
+        
+        if (const Error& e = Provider->DetectModules(path, 
+          Parameters::Map(),//TODO
+          DetectParams))
         {
           //TODO: check and show error
           e.GetText();
@@ -87,18 +90,19 @@ namespace
       }
     }
 
-    bool OnProcessItem(const ModuleItem& item)
+    bool OnProcessItem(const Playitem::Ptr& item)
     {
       OnGetItem(item);
       return !Canceled;
     }
 
   private:
+    const PlayitemsProvider::Ptr Provider;
+    PlayitemDetectParameters DetectParams;
     QMutex QueueLock;
-    StringArray Queue;
+    std::queue<String> Queue;
     //TODO: possibly use events
     volatile bool Canceled;
-    bool ScanDisplayed;
   };
 }
 

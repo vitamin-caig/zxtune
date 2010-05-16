@@ -20,7 +20,6 @@ Author:
 #include "controls/seek_controls.h"
 #include "playlist/playlist.h"
 #include "playback_thread.h"
-#include <apps/base/moduleitem.h>
 //common includes
 #include <logging.h>
 //qt includes
@@ -145,8 +144,8 @@ namespace
       Collection->connect(Thread, SIGNAL(OnPauseModule(const ZXTune::Module::Information&)), SLOT(PauseItem()));
       Collection->connect(Thread, SIGNAL(OnStopModule(const ZXTune::Module::Information&)), SLOT(StopItem()));
       Collection->connect(Thread, SIGNAL(OnFinishModule(const ZXTune::Module::Information&)), SLOT(NextItem()));
-      Thread->connect(Collection, SIGNAL(OnItemSet(const ModuleItem&)), SLOT(SetItem(const ModuleItem&)));
-      Thread->connect(Collection, SIGNAL(OnItemSelected(const ModuleItem&)), SLOT(SelectItem(const ModuleItem&)));
+      Thread->connect(Collection, SIGNAL(OnItemSet(const Playitem&)), SLOT(SetItem(const Playitem&)));
+      Thread->connect(Collection, SIGNAL(OnItemSelected(const Playitem&)), SLOT(SelectItem(const Playitem&)));
       Thread->connect(Controls, SIGNAL(OnPlay()), SLOT(Play()));
       Thread->connect(Controls, SIGNAL(OnStop()), SLOT(Stop()));
       Thread->connect(Controls, SIGNAL(OnPause()), SLOT(Pause()));
@@ -172,7 +171,6 @@ QPointer<MainWindow> MainWindow::Create(int argc, char* argv[])
   //register metatypes
   //TODO: extract to function
   qRegisterMetaType<Log::MessageData>("Log::MessageData");
-  qRegisterMetaType<ModuleItem>("ModuleItem");
   qRegisterMetaType<ZXTune::Module::Information>("ZXTune::Module::Information");
   qRegisterMetaType<ZXTune::Module::Tracking>("ZXTune::Module::Tracking");
   qRegisterMetaType<ZXTune::Module::Analyze::ChannelsState>("ZXTune::Module::Analyze::ChannelsState");

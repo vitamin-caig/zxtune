@@ -14,6 +14,8 @@ Author:
 #ifndef ZXTUNE_QT_PLAYLIST_THREAD_H_DEFINED
 #define ZXTUNE_QT_PLAYLIST_THREAD_H_DEFINED
 
+//local includes
+#include "../../playitems_provider.h"
 //common includes
 #include <types.h>
 //qt includes
@@ -36,7 +38,7 @@ public slots:
 signals:
   void OnScanStart();
   void OnProgress(const Log::MessageData&);
-  void OnGetItem(const struct ModuleItem&);
+  void OnGetItem(const Playitem::Ptr&);
   void OnScanStop();
 };
 

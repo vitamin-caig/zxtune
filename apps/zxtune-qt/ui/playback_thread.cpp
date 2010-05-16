@@ -14,7 +14,7 @@ Author:
 //local includes
 #include "playback_thread.h"
 #include "playback_thread_moc.h"
-#include <apps/base/moduleitem.h>
+#include "../playitems_provider.h"
 //common includes
 #include <error.h>
 #include <tools.h>
@@ -70,22 +70,22 @@ namespace
       this->wait();
     }
 
-    virtual void SelectItem(const struct ModuleItem& item)
+    virtual void SelectItem(const Playitem& item)
     {
       //if nothing set, just select
       if (0 == Player.use_count())
       {
-        Backend->SetModule(item.Module);
-        Info = item.Information;
+        Backend->SetModule(item.GetModule());
+        Info = item.GetModuleInfo();
         Player = Backend->GetPlayer();
       }
     }
     
-    virtual void SetItem(const ModuleItem& item)
+    virtual void SetItem(const Playitem& item)
     {
-      Backend->SetModule(item.Module);
+      Backend->SetModule(item.GetModule());
       this->wait();
-      Info = item.Information;
+      Info = item.GetModuleInfo();
       Player = Backend->GetPlayer();
       Backend->Play();
       this->start();

@@ -18,6 +18,7 @@ Author:
 #include <types.h>
 //qt includes
 #include <QtCore/QString>
+#include <QtCore/QMetaType>
 
 inline QString ToQString(const String& str)
 {
@@ -36,5 +37,16 @@ inline String FromQString(const QString& str)
   return str.toStdString();
 #endif
 }
+
+template<class T>
+struct AutoMetaTypeRegistrator
+{
+  explicit AutoMetaTypeRegistrator(const char* typeStr)
+  {
+    qRegisterMetaType<T>(typeStr);
+  }
+};
+
+#define REGISTER_METATYPE(A) {static AutoMetaTypeRegistrator<A> tmp(#A);}
 
 #endif //ZXTUNE_QT_UTILS_H_DEFINED

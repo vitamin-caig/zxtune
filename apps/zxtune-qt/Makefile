@@ -1,7 +1,7 @@
 binary_name := zxtune-qt
 path_step := ../..
 include $(path_step)/default.mak
-source_files := qt_app 
+source_files := qt_app playitems_provider
 
 #ui-related
 ui_files := ui/mainwindow ui/controls/playback_controls ui/controls/seek_controls ui/playlist/playlist

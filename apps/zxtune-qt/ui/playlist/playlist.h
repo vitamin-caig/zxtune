@@ -14,6 +14,8 @@ Author:
 #ifndef ZXTUNE_QT_PLAYLIST_H_DEFINED
 #define ZXTUNE_QT_PLAYLIST_H_DEFINED
 
+//local includes
+#include "../../playitems_provider.h"
 //common includes
 #include <types.h>
 //qt includes
@@ -46,13 +48,13 @@ public slots:
   virtual void Random(bool isRandom) = 0;
   virtual void Loop(bool isLooped) = 0;
 private slots:
-  virtual void AddItem(const struct ModuleItem& item) = 0;
+  virtual void AddItem(const Playitem::Ptr& item) = 0;
   virtual void SetItem(class QListWidgetItem*) = 0;
   virtual void SelectItem(class QListWidgetItem*) = 0;
   virtual void ShowProgress(const Log::MessageData&) = 0;
 signals:
-  void OnItemSet(const ModuleItem&);
-  void OnItemSelected(const ModuleItem&);
+  void OnItemSet(const Playitem&);
+  void OnItemSelected(const Playitem&);
 };
 
 #endif //ZXTUNE_QT_PLAYLIST_H_DEFINED

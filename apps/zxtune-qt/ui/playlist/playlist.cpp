@@ -17,7 +17,6 @@ Author:
 #include "playlist_moc.h"
 #include "playlist_thread.h"
 #include "../utils.h"
-#include <apps/base/moduleitem.h>
 //common includes
 #include <logging.h>
 #include <parameters.h>
@@ -36,8 +35,7 @@ Author:
 #include <boost/bind.hpp>
 
 //outside the namespace
-typedef std::list<ModuleItem> ItemsList;
-Q_DECLARE_METATYPE(ItemsList::iterator);
+Q_DECLARE_METATYPE(Playitem::Ptr);
 
 namespace
 {
@@ -72,7 +70,7 @@ namespace
       scanStatus->hide();
       scanStatus->connect(Thread, SIGNAL(OnScanStart()), SLOT(show()));
       this->connect(Thread, SIGNAL(OnProgress(const Log::MessageData&)), SLOT(ShowProgress(const Log::MessageData&)));
-      this->connect(Thread, SIGNAL(OnGetItem(const ModuleItem&)), SLOT(AddItem(const ModuleItem&)));
+      this->connect(Thread, SIGNAL(OnGetItem(const Playitem::Ptr&)), SLOT(AddItem(const Playitem::Ptr&)));
       scanStatus->connect(Thread, SIGNAL(OnScanStop()), SLOT(hide()));
       Thread->connect(scanCancel, SIGNAL(clicked()), SLOT(Cancel()));
       this->connect(playList, SIGNAL(itemDoubleClicked(QListWidgetItem*)), SLOT(SetItem(QListWidgetItem*)));
@@ -108,12 +106,11 @@ namespace
 
     virtual void NextItem()
     {
-      if (Items.empty() || 
-          !ActivatedItem)
+      const int rowsCount = playList->count();
+      if (!rowsCount || !ActivatedItem)
       {
         return;
       }
-      const int rowsCount = playList->count();
       const int currentRow = playList->row(ActivatedItem);
       const int nextRow = (Randomized ? rand() : (currentRow + 1)) % rowsCount;
       assert(currentRow >= 0);
@@ -126,12 +123,11 @@ namespace
 
     virtual void PrevItem()
     {
-      if (Items.empty() || 
-          !ActivatedItem)
+      const int rowsCount = playList->count();
+      if (!rowsCount || !ActivatedItem)
       {
         return;
       }
-      const int rowsCount = playList->count();
       const int currentRow = playList->row(ActivatedItem);
       const int nextRow = (Randomized ? rand() : (currentRow + rowsCount - 1)) % rowsCount;
       assert(currentRow >= 0);
@@ -195,7 +191,6 @@ namespace
     virtual void Clear()
     {
       playList->clear();
-      Items.clear();
       ActivatedItem = SelectedItem = 0;
     }
     
@@ -215,14 +210,14 @@ namespace
     }
 
     //private slots
-    virtual void AddItem(const ModuleItem& item)
+    virtual void AddItem(const Playitem::Ptr& item)
     {
       const Char RESOURCE_TYPE_PREFIX[] = {':','/','t','y','p','e','s','/',0};
-      const String& title = GenerateItemTitle(item.Information);
+      const ZXTune::Module::Information& info = item->GetModuleInfo();
+      const String& title = GenerateItemTitle(info);
       QListWidgetItem* const listItem = new QListWidgetItem(ToQString(title), playList);
-      const ItemsList::iterator it = Items.insert(Items.end(), item);
-      listItem->setData(Qt::UserRole, QVariant::fromValue(it));
-      if (const String* type = Parameters::FindByName<String>(item.Information.Properties, ZXTune::Module::ATTR_TYPE))
+      listItem->setData(Qt::UserRole, QVariant::fromValue(item));
+      if (const String* type = Parameters::FindByName<String>(info.Properties, ZXTune::Module::ATTR_TYPE))
       {
         String typeStr(RESOURCE_TYPE_PREFIX);
         typeStr += *type;
@@ -274,23 +269,22 @@ namespace
     {
       assert(listItem);
       const QVariant& data = listItem->data(Qt::UserRole);
-      const ItemsList::iterator iter = data.value<ItemsList::iterator>();
+      const Playitem::Ptr& item = data.value<Playitem::Ptr>();
       if (ITEM_SET == mode)
       {
         StopItem();
         ActivatedItem = 0;
         SelectedItem = listItem;
-        OnItemSet(*iter);
+        OnItemSet(*item);
       }
       else if (ITEM_SELECT == mode)
       {
         SelectedItem = listItem;
-        OnItemSelected(*iter);
+        OnItemSelected(*item);
       }
     }
   private:
     ProcessThread* const Thread;
-    ItemsList Items;
     bool Randomized;
     bool Looped;
     QListWidgetItem* ActivatedItem;
