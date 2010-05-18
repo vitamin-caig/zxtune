@@ -31,8 +31,11 @@ namespace ZXTune
         PROTRACKER,
         SOUNDTRACKER,
         ASM,
-        REAL
+        REAL,
+        NATURAL
       };
+      
+      String GetFreqTable(NoteTable table, uint_t version);
 
       //sample type
       struct Sample

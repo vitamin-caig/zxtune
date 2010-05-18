@@ -752,20 +752,7 @@ namespace
       
       //tracking properties
       Version = std::isdigit(header->Subversion) ? header->Subversion - '0' : 6;
-      switch (header->FreqTableNum)
-      {
-      case Vortex::PROTRACKER:
-        FreqTableName = Version <= 3 ? TABLE_PROTRACKER3_3 : TABLE_PROTRACKER3_4;
-        break;
-      case Vortex::SOUNDTRACKER:
-        FreqTableName = TABLE_SOUNDTRACKER;
-        break;
-      case Vortex::ASM:
-        FreqTableName = Version <= 3 ? TABLE_PROTRACKER3_3_ASM : TABLE_PROTRACKER3_4_ASM;
-        break;
-      default:
-        FreqTableName = Version <= 3 ? TABLE_PROTRACKER3_3_REAL : TABLE_PROTRACKER3_4_REAL;
-      }
+      FreqTableName = Vortex::GetFreqTable(static_cast<Vortex::NoteTable>(header->FreqTableNum), Version);
 
       Data.Info.LoopPosition = header->Loop;
       Data.Info.PhysicalChannels = AYM::CHANNELS;

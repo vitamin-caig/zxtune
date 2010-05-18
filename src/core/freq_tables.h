@@ -42,6 +42,8 @@ namespace ZXTune
     const Char TABLE_ASM[] = {'A', 'S', 'M', '\0'};
     //! %Sound Tracker Pro frequency table
     const Char TABLE_SOUNDTRACKER_PRO[] = {'S','o','u','n','d','T','r','a','c','k','e','r','P','r','o','\0'};
+    //! Natural scaled frequency table (best for 1520640Hz)
+    const Char TABLE_NATURAL_SCALED[] = {'N','a','t','u','r','a','l','S','c','a','l','e','d','\0'};
   }
 }
 

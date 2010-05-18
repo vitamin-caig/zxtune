@@ -596,6 +596,27 @@ namespace ZXTune
   {
     namespace Vortex
     {
+      String GetFreqTable(NoteTable table, uint_t version)
+      {
+        switch (table)
+        {
+        case Vortex::PROTRACKER:
+          return version <= 3 ? TABLE_PROTRACKER3_3 : TABLE_PROTRACKER3_4;
+        case Vortex::SOUNDTRACKER:
+          return TABLE_SOUNDTRACKER;
+        case Vortex::ASM:
+          return version <= 3 ? TABLE_PROTRACKER3_3_ASM : TABLE_PROTRACKER3_4_ASM;
+        case Vortex::REAL:
+          return version <= 3 ? TABLE_PROTRACKER3_3_REAL : TABLE_PROTRACKER3_4_REAL;
+        case Vortex::NATURAL:
+          return TABLE_NATURAL_SCALED;
+        default:
+          assert(!"Unknown frequency table for Vortex-based modules");
+          return TABLE_PROTRACKER3_3;
+        }
+      }
+
+
       Player::Ptr CreatePlayer(Holder::ConstPtr holder, const Track::ModuleData& data,
          uint_t version, const String& freqTableName, AYM::Chip::Ptr device)
       {

@@ -897,20 +897,8 @@ namespace ZXTune
 
         //tracking properties
         version = descr.Version % 10;
-        switch (descr.Notetable)
-        {
-        case Vortex::PROTRACKER:
-          freqTable = version <= 3 ? TABLE_PROTRACKER3_3 : TABLE_PROTRACKER3_4;
-          break;
-        case Vortex::SOUNDTRACKER:
-          freqTable = TABLE_SOUNDTRACKER;
-          break;
-        case Vortex::ASM:
-          freqTable = version <= 3 ? TABLE_PROTRACKER3_3_ASM : TABLE_PROTRACKER3_4_ASM;
-          break;
-        default:
-          freqTable = version <= 3 ? TABLE_PROTRACKER3_3_REAL : TABLE_PROTRACKER3_4_REAL;
-        }
+        freqTable = Vortex::GetFreqTable(static_cast<Vortex::NoteTable>(descr.Notetable), version);
+
         data.Info.LoopPosition = descr.Loop;
         data.Info.PhysicalChannels = AYM::CHANNELS;
         data.Info.Statistic.Tempo = descr.Tempo;
