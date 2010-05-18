@@ -35,9 +35,16 @@ namespace
     {
       QApplication qapp(argc, argv);
       InitResources();
+#ifdef Q_WS_QWS
+      qapp.setFont(QFont(QString::fromUtf8("Verdana")));
+#endif
       //main ui
       QPointer<MainWindow> win(MainWindow::Create(argc, argv));
+#ifdef Q_WS_QWS
+      win->showMaximized();
+#else
       win->show();
+#endif
       return qapp.exec();
     }
   private:
