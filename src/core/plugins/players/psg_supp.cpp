@@ -23,7 +23,7 @@ Author:
 #include <io/container.h>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/enable_shared_from_this.hpp>
+#include <boost/make_shared.hpp>
 //text includes
 #include <core/text/plugins.h>
 
@@ -73,14 +73,21 @@ namespace
     info.Capabilities = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
   }
   
-  typedef std::vector<AYM::DataChunk> PSGData;
+  class PSGData : public std::vector<AYM::DataChunk>
+  {
+  public:
+    typedef boost::shared_ptr<PSGData> Ptr;
+    typedef boost::shared_ptr<const PSGData> ConstPtr;
+  };
+
   
-  Player::Ptr CreatePSGPlayer(Holder::ConstPtr holder, const PSGData& data, AYM::Chip::Ptr device);
+  Player::Ptr CreatePSGPlayer(PSGData::ConstPtr data, AYM::Chip::Ptr device);
   
-  class PSGHolder : public Holder, public boost::enable_shared_from_this<PSGHolder>
+  class PSGHolder : public Holder
   {
   public:
     PSGHolder(const MetaContainer& container, ModuleRegion& region)
+      : Data(boost::make_shared<PSGData>())
     {
       const IO::FastDump data = *container.Data;
       //workaround for some emulators
@@ -100,8 +107,8 @@ namespace
         --size;
         if (INT_BEGIN == reg)
         {
-          Storage.push_back(dummy);
-          chunk = &Storage.back();
+          Data->push_back(dummy);
+          chunk = &Data->back();
         }
         else if (INT_SKIP == reg)
         {
@@ -113,9 +120,9 @@ namespace
           while (count--)
           {
             //empty chunk
-            Storage.push_back(dummy);
+            Data->push_back(dummy);
           }
-          chunk = &Storage.back();
+          chunk = &Data->back();
           ++bdata;
           --size;
         }
@@ -144,7 +151,7 @@ namespace
       ExtractMetaProperties(PSG_PLUGIN_ID, container, region, region, ModInfo.Properties, RawData);
       
       //fill properties
-      ModInfo.Statistic.Frame = Storage.size();
+      ModInfo.Statistic.Frame = Data->size();
       ModInfo.Statistic.Tempo = 1;
       ModInfo.Statistic.Channels = AYM::CHANNELS;
       ModInfo.PhysicalChannels = AYM::CHANNELS;
@@ -167,7 +174,7 @@ namespace
 
     virtual Player::Ptr CreatePlayer() const
     {
-      return CreatePSGPlayer(shared_from_this(), Storage, AYM::CreateChip());
+      return CreatePSGPlayer(Data, AYM::CreateChip());
     }
     
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -180,7 +187,7 @@ namespace
       {
         dst = RawData;
       }
-      else if (!ConvertAYMFormat(boost::bind(&CreatePSGPlayer, shared_from_this(), boost::cref(Storage), _1), 
+      else if (!ConvertAYMFormat(boost::bind(&CreatePSGPlayer, boost::cref(Data), _1),
         param, dst, result))
       {
         return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
@@ -190,16 +197,16 @@ namespace
   private:
     Module::Information ModInfo;
     Dump RawData;
-    PSGData Storage;
+    PSGData::Ptr Data;
   };
 
   class PSGPlayer : public AYMPlayerBase
   {
   public:
-    PSGPlayer(Holder::ConstPtr holder, const PSGData& data, AYM::Chip::Ptr device)
-       : AYMPlayerBase(holder, device, TABLE_SOUNDTRACKER/*any of*/)
-       , Storage(data)
-       , Position(Storage.begin())
+    PSGPlayer(PSGData::ConstPtr data, AYM::Chip::Ptr device)
+       : AYMPlayerBase(device, TABLE_SOUNDTRACKER/*any of*/)
+       , Data(data)
+       , Position(Data->begin())
     {
       Reset();
     }
@@ -208,7 +215,7 @@ namespace
                               PlaybackState& state,
                               Sound::MultichannelReceiver& receiver)
     {
-      if (Storage.end() == Position)
+      if (Data->end() == Position)
       {
         if (MODULE_STOPPED == CurrentState)
         {
@@ -242,7 +249,7 @@ namespace
 
     virtual Error Reset()
     {
-      Position = Storage.begin();
+      Position = Data->begin();
       ModState = Module::Timing();
       State = AYM::DataChunk();
       State.Mask = AYM::DataChunk::MASK_ALL_REGISTERS;
@@ -258,7 +265,7 @@ namespace
       {
         //reset to beginning in case of moving back
         const uint64_t keepTicks = ModState.Tick;
-        Position = Storage.begin();
+        Position = Data->begin();
         ModState = Module::Timing();
         ModState.Tick = keepTicks;
       }
@@ -296,26 +303,26 @@ namespace
     bool UpdateState(Sound::LoopMode mode)
     {
       ++ModState.Frame;
-      if (++Position == Storage.end())
+      if (++Position == Data->end())
       {
         if (Sound::LOOP_NONE == mode)
         {
           return false;
         }
-        Position = Storage.begin();
+        Position = Data->begin();
         ModState.Frame = 0;
       }
       return true;
     }
   private:
-    const PSGData& Storage;
+    const PSGData::ConstPtr Data;
     PSGData::const_iterator Position;
     AYM::DataChunk State;
   };
   
-  Player::Ptr CreatePSGPlayer(Holder::ConstPtr holder, const PSGData& data, AYM::Chip::Ptr device)
+  Player::Ptr CreatePSGPlayer(PSGData::ConstPtr data, AYM::Chip::Ptr device)
   {
-    return Player::Ptr(new PSGPlayer(holder, data, device));
+    return Player::Ptr(new PSGPlayer(data, device));
   }
   
   bool CreatePSGModule(const Parameters::Map& /*commonParams*/, const MetaContainer& container,

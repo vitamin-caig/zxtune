@@ -31,7 +31,6 @@ Author:
 #include <sound/render_params.h>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/enable_shared_from_this.hpp>
 //text includes
 #include <core/text/core.h>
 #include <core/text/plugins.h>
@@ -381,10 +380,11 @@ namespace
     const PT3Sample* const sample(safe_ptr_cast<const PT3Sample*>(&data[off]));
     if (0 == offset || !sample->Size)
     {
-      return Vortex::Sample(1, 0);//safe
+      return Vortex::Sample();//safe
     }
-    Vortex::Sample tmp(sample->Size, sample->Loop);
-    std::transform(sample->Data, sample->Data + sample->Size, tmp.Data.begin(), ParseSampleLine);
+    std::vector<Vortex::Sample::Line> tmpData(sample->Size);
+    std::transform(sample->Data, sample->Data + sample->Size, tmpData.begin(), ParseSampleLine);
+    Vortex::Sample tmp(sample->Loop, tmpData.begin(), tmpData.end());
     rawSize = std::max<std::size_t>(rawSize, off + sample->GetSize());
     return tmp;
   }
@@ -395,10 +395,10 @@ namespace
     const PT3Ornament* const ornament(safe_ptr_cast<const PT3Ornament*>(&data[off]));
     if (0 == offset || !ornament->Size)
     {
-      return SimpleOrnament(1, 0);//safe version
+      return SimpleOrnament();//safe version
     }
     rawSize = std::max<std::size_t>(rawSize, off + ornament->GetSize());
-    return SimpleOrnament(ornament->Data, ornament->Data + ornament->Size, ornament->Loop);
+    return SimpleOrnament(ornament->Loop, ornament->Data, ornament->Data + ornament->Size);
   }
   
   void DescribePT3Plugin(PluginInformation& info)
@@ -410,7 +410,7 @@ namespace
       GetSupportedAYMFormatConvertors() | GetSupportedVortexFormatConvertors();
   }
 
-  class PT3Holder : public Holder, public boost::enable_shared_from_this<PT3Holder>
+  class PT3Holder : public Holder
   {
     typedef boost::array<PatternCursor, AYM::CHANNELS> PatternCursors;
     
@@ -493,7 +493,7 @@ namespace
             if (hasOrn) //has ornament command
             {
               const uint_t num(cmd - 0xf0);
-              Log::Assert(channelWarner, !(num && Data.Ornaments[num].Data.empty()), Text::WARNING_INVALID_ORNAMENT);
+              Log::Assert(channelWarner, !num || Data->Ornaments[num].GetSize(), Text::WARNING_INVALID_ORNAMENT);
               Log::Assert(channelWarner, !channel->OrnamentNum, Text::WARNING_DUPLICATE_ORNAMENT);
               channel->OrnamentNum = num;
             }
@@ -518,7 +518,7 @@ namespace
           else if (cmd >= 0x40 && cmd <= 0x4f)
           {
             const uint_t num(cmd - 0x40);
-            Log::Assert(channelWarner, !(num && Data.Ornaments[num].Data.empty()), Text::WARNING_INVALID_ORNAMENT);
+            Log::Assert(channelWarner, !num || Data->Ornaments[num].GetSize(), Text::WARNING_INVALID_ORNAMENT);
             Log::Assert(channelWarner, !channel->OrnamentNum, Text::WARNING_DUPLICATE_ORNAMENT);
             channel->OrnamentNum = num;
           }
@@ -614,7 +614,7 @@ namespace
             }
             const uint_t offset(data[cur->Offset++]);
             const bool isValid(offset < (channel->OrnamentNum ?
-              Data.Ornaments[*channel->OrnamentNum].Data.size() : MAX_ORNAMENT_SIZE));
+              Data->Ornaments[*channel->OrnamentNum].GetSize() : MAX_ORNAMENT_SIZE));
             Log::Assert(channelWarner, isValid, Text::WARNING_INVALID_ORNAMENT_OFFSET);
             it->Param1 = isValid ? offset : 0;
             break;
@@ -628,7 +628,7 @@ namespace
               }
               const uint_t offset(data[cur->Offset++]);
               const bool isValid(offset < (channel->SampleNum ?
-                Data.Samples[*channel->SampleNum].Data.size() : MAX_SAMPLE_SIZE));
+                Data->Samples[*channel->SampleNum].GetSize() : MAX_SAMPLE_SIZE));
               Log::Assert(channelWarner, isValid, Text::WARNING_INVALID_SAMPLE_OFFSET);
               it->Param1 = isValid ? offset : 0;
             }
@@ -656,7 +656,9 @@ namespace
     }
   public:
     PT3Holder(const MetaContainer& container, ModuleRegion& region)
-      : Version(), TSPatternBase()
+      : Data(Vortex::Track::ModuleData::Create())
+      , Version()
+      , TSPatternBase(0)
     {
       //assume all data is correct
       const IO::FastDump& data = IO::FastDump(*container.Data, region.Offset);
@@ -666,23 +668,23 @@ namespace
 
       std::size_t rawSize(0);
       //fill samples
-      Data.Samples.reserve(header->SamplesOffsets.size());
+      Data->Samples.reserve(header->SamplesOffsets.size());
       std::transform(header->SamplesOffsets.begin(), header->SamplesOffsets.end(),
-        std::back_inserter(Data.Samples), boost::bind(&ParseSample, boost::cref(data), _1, boost::ref(rawSize)));
+        std::back_inserter(Data->Samples), boost::bind(&ParseSample, boost::cref(data), _1, boost::ref(rawSize)));
       //fill ornaments
-      Data.Ornaments.reserve(header->OrnamentsOffsets.size());
+      Data->Ornaments.reserve(header->OrnamentsOffsets.size());
       std::transform(header->OrnamentsOffsets.begin(), header->OrnamentsOffsets.end(),
-        std::back_inserter(Data.Ornaments), boost::bind(&ParseOrnament, boost::cref(data), _1, boost::ref(rawSize)));
+        std::back_inserter(Data->Ornaments), boost::bind(&ParseOrnament, boost::cref(data), _1, boost::ref(rawSize)));
 
       //fill patterns
-      Data.Patterns.resize(MAX_PATTERNS_COUNT);
+      Data->Patterns.resize(MAX_PATTERNS_COUNT);
       uint_t index(0);
-      Data.Patterns.resize(1 + *std::max_element(header->Positions, header->Positions + header->Length) / 3);
+      Data->Patterns.resize(1 + *std::max_element(header->Positions, header->Positions + header->Length) / 3);
       const PT3Pattern* patterns(safe_ptr_cast<const PT3Pattern*>(&data[fromLE(header->PatternsOffset)]));
-      for (const PT3Pattern* pattern = patterns; pattern->Check() && index < Data.Patterns.size(); ++pattern, ++index)
+      for (const PT3Pattern* pattern = patterns; pattern->Check() && index < Data->Patterns.size(); ++pattern, ++index)
       {
         Log::ParamPrefixedCollector patternWarner(*warner, Text::PATTERN_WARN_PREFIX, index);
-        Vortex::Track::Pattern& pat(Data.Patterns[index]);
+        Vortex::Track::Pattern& pat(Data->Patterns[index]);
         
         PatternCursors cursors;
         std::transform(pattern->Offsets.begin(), pattern->Offsets.end(), cursors.begin(), &fromLE<uint16_t>);
@@ -716,66 +718,62 @@ namespace
       //fill order
       for (const uint8_t* curPos = header->Positions; curPos != header->Positions + header->Length; ++curPos)
       {
-        if (0 == *curPos % 3 && !Data.Patterns[*curPos / 3].empty())
+        if (0 == *curPos % 3 && !Data->Patterns[*curPos / 3].empty())
         {
-          Data.Positions.push_back(*curPos / 3);
+          Data->Positions.push_back(*curPos / 3);
         }
       }
-      Log::Assert(*warner, header->Length == Data.Positions.size(), Text::WARNING_INVALID_LENGTH);
+      Log::Assert(*warner, header->Length == Data->Positions.size(), Text::WARNING_INVALID_LENGTH);
 
-      //fix samples and ornaments
-      std::for_each(Data.Ornaments.begin(), Data.Ornaments.end(), std::mem_fun_ref(&Vortex::Track::Ornament::Fix));
-      std::for_each(Data.Samples.begin(), Data.Samples.end(), std::mem_fun_ref(&Vortex::Track::Sample::Fix));
-      
       //fill region
       region.Size = rawSize;
       
       //meta properties
       const std::size_t fixedOffset(sizeof(PT3Header) + header->Length - 1);
       ExtractMetaProperties(PT3_PLUGIN_ID, container, region, ModuleRegion(fixedOffset, rawSize - fixedOffset),
-        Data.Info.Properties, RawData);
+        Data->Info.Properties, RawData);
       const String& title(OptimizeString(FromStdString(header->TrackName)));
       if (!title.empty())
       {
-        Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_TITLE, title));
+        Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_TITLE, title));
       }
       const String& author(OptimizeString(FromStdString(header->TrackAuthor)));
       if (!author.empty())
       {
-        Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_AUTHOR, author));
+        Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_AUTHOR, author));
       }
       const String& prog(OptimizeString(String(header->Id, header->Optional1)));
       if (!prog.empty())
       {
-        Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_PROGRAM, prog));
+        Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_PROGRAM, prog));
       }
       
       //tracking properties
       Version = std::isdigit(header->Subversion) ? header->Subversion - '0' : 6;
       FreqTableName = Vortex::GetFreqTable(static_cast<Vortex::NoteTable>(header->FreqTableNum), Version);
 
-      Data.Info.LoopPosition = header->Loop;
-      Data.Info.PhysicalChannels = AYM::CHANNELS;
-      Data.Info.Statistic.Tempo = header->Tempo;
-      Data.Info.Statistic.Position = Data.Positions.size();
-      Data.Info.Statistic.Pattern = std::count_if(Data.Patterns.begin(), Data.Patterns.end(),
+      Data->Info.LoopPosition = header->Loop;
+      Data->Info.PhysicalChannels = AYM::CHANNELS;
+      Data->Info.Statistic.Tempo = header->Tempo;
+      Data->Info.Statistic.Position = Data->Positions.size();
+      Data->Info.Statistic.Pattern = std::count_if(Data->Patterns.begin(), Data->Patterns.end(),
         !boost::bind(&Vortex::Track::Pattern::empty, _1));
-      Data.Info.Statistic.Channels = AYM::CHANNELS;
+      Data->Info.Statistic.Channels = AYM::CHANNELS;
       if (header->Mode != AY_TRACK)
       {
         TSPatternBase = header->Mode;
-        Data.Info.Statistic.Channels *= 2;
+        Data->Info.Statistic.Channels *= 2;
         //TODO: proper calculating
-        Vortex::Track::CalculateTimings(Data, Data.Info.Statistic.Frame, Data.Info.LoopFrame);
+        Vortex::Track::CalculateTimings(*Data, Data->Info.Statistic.Frame, Data->Info.LoopFrame);
       }
       else
       {
-        Vortex::Track::CalculateTimings(Data, Data.Info.Statistic.Frame, Data.Info.LoopFrame);
+        Vortex::Track::CalculateTimings(*Data, Data->Info.Statistic.Frame, Data->Info.LoopFrame);
       }
       if (const uint_t msgs = warner->CountMessages())
       {
-        Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS_COUNT, msgs));
-        Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS, warner->GetMessages('\n')));
+        Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS_COUNT, msgs));
+        Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS, warner->GetMessages('\n')));
       }
     }
     virtual void GetPluginInformation(PluginInformation& info) const
@@ -785,20 +783,20 @@ namespace
 
     virtual void GetModuleInformation(Information& info) const
     {
-      info = Data.Info;
+      info = Data->Info;
     }
     
     virtual void ModifyCustomAttributes(const Parameters::Map& attrs, bool replaceExisting)
     {
-      return Parameters::MergeMaps(Data.Info.Properties, attrs, Data.Info.Properties, replaceExisting);
+      return Parameters::MergeMaps(Data->Info.Properties, attrs, Data->Info.Properties, replaceExisting);
     }
 
     virtual Player::Ptr CreatePlayer() const
     {
       return TSPatternBase ?
-        Vortex::CreateTSPlayer(shared_from_this(), Data, Version, FreqTableName, TSPatternBase, AYM::CreateChip(), AYM::CreateChip())
+        Vortex::CreateTSPlayer(Data, Version, FreqTableName, TSPatternBase, AYM::CreateChip(), AYM::CreateChip())
         :
-        Vortex::CreatePlayer(shared_from_this(), Data, Version, FreqTableName, AYM::CreateChip());
+        Vortex::CreatePlayer(Data, Version, FreqTableName, AYM::CreateChip());
     }
     
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -812,12 +810,12 @@ namespace
       }
       else if (TSPatternBase == 0)//only on usual modules
       {
-        if (ConvertAYMFormat(boost::bind(&Vortex::CreatePlayer, shared_from_this(), boost::cref(Data), Version, FreqTableName, _1),
+        if (ConvertAYMFormat(boost::bind(&Vortex::CreatePlayer, boost::cref(Data), Version, FreqTableName, _1),
           param, dst, result))
         {
           return result;
         }
-        else if (ConvertVortexFormat(Data, param, Version, FreqTableName, dst, result))
+        else if (ConvertVortexFormat(*Data, param, Version, FreqTableName, dst, result))
         {
           return result;
         }
@@ -826,7 +824,7 @@ namespace
     }
   private:
     Dump RawData;
-    Vortex::Track::ModuleData Data;
+    const Vortex::Track::ModuleData::Ptr Data;
     uint_t Version;
     String FreqTableName;
     uint_t TSPatternBase;

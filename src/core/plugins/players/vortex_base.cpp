@@ -15,6 +15,8 @@ Author:
 //common includes
 #include <error_tools.h>
 #include <tools.h>
+//boost includes
+#include <boost/make_shared.hpp>
 
 #define FILE_TAG 023C2245
 
@@ -162,9 +164,9 @@ namespace
   public:
     typedef boost::shared_ptr<VortexPlayer> Ptr;
 
-    VortexPlayer(Holder::ConstPtr holder, const Vortex::Track::ModuleData& data,
+    VortexPlayer(Vortex::Track::ModuleData::ConstPtr data,
        uint_t version, const String& freqTableName, AYM::Chip::Ptr device)
-      : VortexPlayerBase(holder, data, device, freqTableName)
+      : VortexPlayerBase(data, device, freqTableName)
       , Version(version)
       , VolTable(version <= 4 ? Vol33_34 : Vol35)
     {
@@ -173,17 +175,17 @@ namespace
       AYM::DataChunk chunk;
       do
       {
-        assert(Data.Positions.size() > ModState.Track.Position);
+        assert(Data->Positions.size() > ModState.Track.Position);
         RenderData(chunk);
       }
-      while (Vortex::Track::UpdateState(Data, ModState, Sound::LOOP_NONE));
+      while (Vortex::Track::UpdateState(*Data, ModState, Sound::LOOP_NONE));
       Reset();
 #endif
     }
     
     virtual void RenderData(AYM::DataChunk& chunk)
     {
-      const Vortex::Track::Line& line = Data.Patterns[ModState.Track.Pattern][ModState.Track.Line];
+      const Vortex::Track::Line& line = Data->Patterns[ModState.Track.Pattern][ModState.Track.Line];
       if (0 == ModState.Track.Frame)//begin note
       {
         if (0 == ModState.Track.Line)//pattern begin
@@ -317,18 +319,17 @@ namespace
       const FrequencyTable& freqTable = AYMHelper->GetFreqTable();
       if (dst.Enabled)
       {
-        const Vortex::Track::Sample& curSample = Data.Samples[dst.SampleNum];
-        const Vortex::Track::Sample::Line& curSampleLine = curSample.Data[dst.PosInSample];
-        const Vortex::Track::Ornament& curOrnament = Data.Ornaments[dst.OrnamentNum];
+        const Vortex::Track::Sample& curSample = Data->Samples[dst.SampleNum];
+        const Vortex::Track::Sample::Line& curSampleLine = curSample.GetLine(dst.PosInSample);
+        const Vortex::Track::Ornament& curOrnament = Data->Ornaments[dst.OrnamentNum];
 
-        assert(!curOrnament.Data.empty());
         //calculate tone
         const int_t toneAddon = curSampleLine.ToneOffset + dst.ToneAccumulator;
         if (curSampleLine.KeepToneOffset)
         {
           dst.ToneAccumulator = toneAddon;
         }
-        const uint_t halfTone = static_cast<uint_t>(clamp<int_t>(int_t(dst.Note) + curOrnament.Data[dst.PosInOrnament], 0, 95));
+        const uint_t halfTone = static_cast<uint_t>(clamp<int_t>(int_t(dst.Note) + curOrnament.GetLine(dst.PosInOrnament), 0, 95));
         const uint_t tone = static_cast<uint_t>(freqTable[halfTone] + dst.ToneSlider.Value + toneAddon) & 0xfff;
         if (dst.ToneSlider.Update() &&
             LIMITER != dst.SlidingTargetNote)
@@ -374,13 +375,13 @@ namespace
           }
         }
 
-        if (++dst.PosInSample >= curSample.Data.size())
+        if (++dst.PosInSample >= curSample.GetSize())
         {
-          dst.PosInSample = curSample.Loop;
+          dst.PosInSample = curSample.GetLoop();
         }
-        if (++dst.PosInOrnament >= curOrnament.Data.size())
+        if (++dst.PosInOrnament >= curOrnament.GetSize())
         {
-          dst.PosInOrnament = curOrnament.Loop;
+          dst.PosInOrnament = curOrnament.GetLoop();
         }
       }
       else
@@ -403,7 +404,7 @@ namespace
   private:
     const uint_t Version;
     const VolumeTable& VolTable;
-
+    //TODO:
     friend class VortexTSPlayer;
   };
 
@@ -468,21 +469,15 @@ namespace
   class VortexTSPlayer : public Player
   {
   public:
-    VortexTSPlayer(Holder::ConstPtr holder, const Vortex::Track::ModuleData& data,
+    VortexTSPlayer(Vortex::Track::ModuleData::ConstPtr data,
          uint_t version, const String& freqTableName, uint_t patternBase, AYM::Chip::Ptr device1, AYM::Chip::Ptr device2)
-      : Module(holder)
-      , Player2(new VortexPlayer(holder, data, version, freqTableName, device2))
+      : Player2(new VortexPlayer(data, version, freqTableName, device2))
+    {
       //copy and patch
-      , Data(data)
-    {
-      std::transform(Data.Positions.begin(), Data.Positions.end(), Data.Positions.begin(),
+      Vortex::Track::ModuleData::Ptr secondData = boost::make_shared<Vortex::Track::ModuleData>(*data);
+      std::transform(secondData->Positions.begin(), secondData->Positions.end(), secondData->Positions.begin(),
         std::bind1st(std::minus<uint_t>(), patternBase - 1));
-      Player1.reset(new VortexPlayer(holder, Data, version, freqTableName, device1));
-    }
-
-    virtual const Holder& GetModule() const
-    {
-      return *Module;
+      Player1.reset(new VortexPlayer(secondData, version, freqTableName, device1));
     }
 
     virtual Error GetPlaybackState(uint_t& timeState,
@@ -579,12 +574,10 @@ namespace
       return Player2->SetParameters(params);
     }
   private:
-    const Holder::ConstPtr Module;
     //first player
     VortexPlayer::Ptr Player1;
     //second player and data
     VortexPlayer::Ptr Player2;
-    Vortex::Track::ModuleData Data;
     //mixer
     TSMixer<AYM::CHANNELS> Mixer;
   };
@@ -617,16 +610,16 @@ namespace ZXTune
       }
 
 
-      Player::Ptr CreatePlayer(Holder::ConstPtr holder, const Track::ModuleData& data,
+      Player::Ptr CreatePlayer(Track::ModuleData::ConstPtr data,
          uint_t version, const String& freqTableName, AYM::Chip::Ptr device)
       {
-        return Player::Ptr(new VortexPlayer(holder, data, version, freqTableName, device));
+        return Player::Ptr(new VortexPlayer(data, version, freqTableName, device));
       }
 
-      Player::Ptr CreateTSPlayer(Holder::ConstPtr holder, const Track::ModuleData& data,
+      Player::Ptr CreateTSPlayer(Track::ModuleData::ConstPtr data,
          uint_t version, const String& freqTableName, uint_t patternBase, AYM::Chip::Ptr device1, AYM::Chip::Ptr device2)
       {
-        return Player::Ptr(new VortexTSPlayer(holder, data, version, freqTableName, patternBase, device1, device2));
+        return Player::Ptr(new VortexTSPlayer(data, version, freqTableName, patternBase, device1, device2));
       }
     }
   }

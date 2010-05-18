@@ -30,8 +30,6 @@ namespace ZXTune
   
   namespace Module
   {
-    class Holder;
-
     //! @brief %Module player interface
     class Player
     {
@@ -44,9 +42,6 @@ namespace ZXTune
       typedef boost::weak_ptr<const Player> ConstWeakPtr;
 
       virtual ~Player() {}
-
-      //! @brief Retrieving module holder
-      virtual const Holder& GetModule() const = 0;
 
       //! @brief Playing state
       enum PlaybackState

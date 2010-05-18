@@ -192,7 +192,7 @@ namespace
       }
 
       //if playback now
-      if (Player)
+      if (Player && Holder)
       {
         // check if required to add extension
         const String extension = FILE_WAVE_EXT;
@@ -203,7 +203,7 @@ namespace
         }
 
         Module::Information info;
-        Player->GetModule().GetModuleInformation(info);
+        Holder->GetModuleInformation(info);
         StringMap strProps;
         //quote all properties for safe using as filename
         {

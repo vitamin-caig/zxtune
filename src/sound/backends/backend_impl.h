@@ -75,6 +75,7 @@ namespace ZXTune
       //inheritances' context
       Parameters::Map CommonParameters;
       RenderParameters RenderingParameters;
+      Module::Holder::Ptr Holder;
       Module::Player::Ptr Player;
     protected:
       //sync

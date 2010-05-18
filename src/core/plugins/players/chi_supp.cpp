@@ -30,7 +30,6 @@ Author:
 #include <utility>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/enable_shared_from_this.hpp>
 //text includes
 #include <core/text/core.h>
 #include <core/text/plugins.h>
@@ -184,9 +183,9 @@ namespace
   #define SELF_TEST
   #endif
 
-  Player::Ptr CreateCHIPlayer(Holder::ConstPtr mod, const CHITrack::ModuleData& data, DAC::Chip::Ptr device);
+  Player::Ptr CreateCHIPlayer(CHITrack::ModuleData::ConstPtr data, DAC::Chip::Ptr device);
 
-  class CHIHolder : public Holder, public boost::enable_shared_from_this<CHIHolder>
+  class CHIHolder : public Holder
   {
     static void ParsePattern(const CHIPattern& src, Log::MessagesCollector& warner, CHITrack::Pattern& res)
     {
@@ -263,6 +262,7 @@ namespace
 
   public:
     CHIHolder(const MetaContainer& container, ModuleRegion& region)
+      : Data(CHITrack::ModuleData::Create())
     {
       //assume data is correct
       const IO::FastDump& data(*container.Data);
@@ -271,28 +271,28 @@ namespace
       Log::MessagesCollector::Ptr warner(Log::MessagesCollector::Create());
 
       //fill order
-      Data.Positions.resize(header->Length + 1);
-      std::copy(header->Positions, header->Positions + header->Length + 1, Data.Positions.begin());
+      Data->Positions.resize(header->Length + 1);
+      std::copy(header->Positions, header->Positions + header->Length + 1, Data->Positions.begin());
 
       //fill patterns
-      const uint_t patternsCount = 1 + *std::max_element(Data.Positions.begin(), Data.Positions.end());
-      Data.Patterns.resize(patternsCount);
+      const uint_t patternsCount = 1 + *std::max_element(Data->Positions.begin(), Data->Positions.end());
+      Data->Patterns.resize(patternsCount);
       const CHIPattern* const patBegin(safe_ptr_cast<const CHIPattern*>(&data[sizeof(CHIHeader)]));
       for (const CHIPattern* pat = patBegin; pat != patBegin + patternsCount; ++pat)
       {
         Log::ParamPrefixedCollector patternWarner(*warner, Text::PATTERN_WARN_PREFIX, pat - patBegin);
-        ParsePattern(*pat, patternWarner, Data.Patterns[pat - patBegin]);
+        ParsePattern(*pat, patternWarner, Data->Patterns[pat - patBegin]);
       }
       //fill samples
       const uint8_t* sampleData(safe_ptr_cast<const uint8_t*>(patBegin + patternsCount));
       std::size_t memLeft(data.Size() - (sampleData - &data[0]));
-      Data.Samples.resize(header->Samples.size());
+      Data->Samples.resize(header->Samples.size());
       for (uint_t samIdx = 0; samIdx != header->Samples.size(); ++samIdx)
       {
         const CHIHeader::SampleDescr& srcSample(header->Samples[samIdx]);
         if (const std::size_t size = std::min<std::size_t>(memLeft, fromLE(srcSample.Length)))
         {
-          Sample& dstSample(Data.Samples[samIdx]);
+          Sample& dstSample(Data->Samples[samIdx]);
           dstSample.Loop = fromLE(srcSample.Loop);
           dstSample.Data.assign(sampleData, sampleData + size);
           const std::size_t alignedSize(align<std::size_t>(size, 256));
@@ -311,27 +311,27 @@ namespace
 
       //meta properties
       ExtractMetaProperties(CHI_PLUGIN_ID, container, region, ModuleRegion(sizeof(CHIHeader), sizeof(CHIPattern) * patternsCount),
-        Data.Info.Properties, RawData);
-      Data.Info.Properties.insert(Parameters::Map::value_type(ATTR_PROGRAM, (Formatter(Text::CHI_EDITOR) % FromStdString(header->Version)).str()));
+        Data->Info.Properties, RawData);
+      Data->Info.Properties.insert(Parameters::Map::value_type(ATTR_PROGRAM, (Formatter(Text::CHI_EDITOR) % FromStdString(header->Version)).str()));
       const String& title(OptimizeString(FromStdString(header->Name)));
       if (!title.empty())
       {
-        Data.Info.Properties.insert(Parameters::Map::value_type(ATTR_TITLE, title));
+        Data->Info.Properties.insert(Parameters::Map::value_type(ATTR_TITLE, title));
       }
 
       //tracking properties
-      Data.Info.LoopPosition = header->Loop;
-      Data.Info.PhysicalChannels = CHANNELS_COUNT;
-      Data.Info.Statistic.Tempo = header->Tempo;
-      Data.Info.Statistic.Position = Data.Positions.size();
-      Data.Info.Statistic.Pattern = std::count_if(Data.Patterns.begin(), Data.Patterns.end(),
+      Data->Info.LoopPosition = header->Loop;
+      Data->Info.PhysicalChannels = CHANNELS_COUNT;
+      Data->Info.Statistic.Tempo = header->Tempo;
+      Data->Info.Statistic.Position = Data->Positions.size();
+      Data->Info.Statistic.Pattern = std::count_if(Data->Patterns.begin(), Data->Patterns.end(),
         !boost::bind(&CHITrack::Pattern::empty, _1));
-      Data.Info.Statistic.Channels = CHANNELS_COUNT;
-      CHITrack::CalculateTimings(Data, Data.Info.Statistic.Frame, Data.Info.LoopFrame);
+      Data->Info.Statistic.Channels = CHANNELS_COUNT;
+      CHITrack::CalculateTimings(*Data, Data->Info.Statistic.Frame, Data->Info.LoopFrame);
       if (const uint_t msgs = warner->CountMessages())
       {
-        Data.Info.Properties.insert(Parameters::Map::value_type(ATTR_WARNINGS_COUNT, msgs));
-        Data.Info.Properties.insert(Parameters::Map::value_type(ATTR_WARNINGS, warner->GetMessages('\n')));
+        Data->Info.Properties.insert(Parameters::Map::value_type(ATTR_WARNINGS_COUNT, msgs));
+        Data->Info.Properties.insert(Parameters::Map::value_type(ATTR_WARNINGS, warner->GetMessages('\n')));
       }
     }
 
@@ -342,27 +342,27 @@ namespace
 
     virtual void GetModuleInformation(Information& info) const
     {
-      info = Data.Info;
+      info = Data->Info;
     }
 
     virtual void ModifyCustomAttributes(const Parameters::Map& attrs, bool replaceExisting)
     {
-      return Parameters::MergeMaps(Data.Info.Properties, attrs, Data.Info.Properties, replaceExisting);
+      return Parameters::MergeMaps(Data->Info.Properties, attrs, Data->Info.Properties, replaceExisting);
     }
 
     virtual Player::Ptr CreatePlayer() const
     {
-      const uint_t totalSamples(Data.Samples.size());
+      const uint_t totalSamples(Data->Samples.size());
       DAC::Chip::Ptr chip(DAC::CreateChip(CHANNELS_COUNT, totalSamples, BASE_FREQ));
       for (uint_t idx = 0; idx != totalSamples; ++idx)
       {
-        const Sample& smp(Data.Samples[idx]);
+        const Sample& smp(Data->Samples[idx]);
         if (smp.Data.size())
         {
           chip->SetSample(idx, smp.Data, smp.Loop);
         }
       }
-      return CreateCHIPlayer(shared_from_this(), Data, chip);
+      return CreateCHIPlayer(Data, chip);
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -380,7 +380,7 @@ namespace
     }
   private:
     Dump RawData;
-    CHITrack::ModuleData Data;
+    const CHITrack::ModuleData::Ptr Data;
   };
 
   class CHIPlayer : public Player
@@ -399,18 +399,12 @@ namespace
       }
     };
   public:
-    CHIPlayer(Holder::ConstPtr mod, const CHITrack::ModuleData& data, DAC::Chip::Ptr device)
-      : Module(mod)
-      , Data(data)
+    CHIPlayer(CHITrack::ModuleData::ConstPtr data, DAC::Chip::Ptr device)
+      : Data(data)
       , Device(device)
       , CurrentState(MODULE_STOPPED)
       , Interpolation(false)
     {
-    }
-
-    virtual const Holder& GetModule() const
-    {
-      return *Module;
     }
 
     virtual Error GetPlaybackState(uint_t& timeState,
@@ -428,7 +422,7 @@ namespace
                               Sound::MultichannelReceiver& receiver)
     {
       // check if finished
-      if (ModState.Frame >= Data.Info.Statistic.Frame)
+      if (ModState.Frame >= Data->Info.Statistic.Frame)
       {
         if (MODULE_STOPPED == CurrentState)
         {
@@ -450,7 +444,7 @@ namespace
       ModState.Track.Channels = std::count_if(ChanState.begin(), ChanState.end(),
         boost::mem_fn(&Analyze::Channel::Enabled));
 
-      if (CHITrack::UpdateState(Data, ModState, params.Looping))
+      if (CHITrack::UpdateState(*Data, ModState, params.Looping))
       {
         CurrentState = MODULE_PLAYING;
       }
@@ -466,7 +460,7 @@ namespace
     virtual Error Reset()
     {
       Device->Reset();
-      CHITrack::InitState(Data, ModState);
+      CHITrack::InitState(*Data, ModState);
       CurrentState = MODULE_STOPPED;
       return Error();
     }
@@ -477,7 +471,7 @@ namespace
       {
         //reset to beginning in case of moving back
         const uint64_t keepTicks = ModState.Tick;
-        CHITrack::InitState(Data, ModState);
+        CHITrack::InitState(*Data, ModState);
         ModState.Tick = keepTicks;
       }
       //fast forward
@@ -485,9 +479,9 @@ namespace
       while (ModState.Frame < frame)
       {
         //do not update tick for proper rendering
-        assert(Data.Positions.size() > ModState.Track.Position);
+        assert(Data->Positions.size() > ModState.Track.Position);
         RenderData(chunk);
-        if (!CHITrack::UpdateState(Data, ModState, Sound::LOOP_NONE))
+        if (!CHITrack::UpdateState(*Data, ModState, Sound::LOOP_NONE))
         {
           break;
         }
@@ -509,7 +503,7 @@ namespace
     void RenderData(DAC::DataChunk& chunk)
     {
       std::vector<DAC::DataChunk::ChannelData> res;
-      const CHITrack::Line& line(Data.Patterns[ModState.Track.Pattern][ModState.Track.Line]);
+      const CHITrack::Line& line(Data->Patterns[ModState.Track.Pattern][ModState.Track.Line]);
       for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
       {
         GlissData& gliss(Gliss[chan]);
@@ -570,9 +564,7 @@ namespace
       chunk.Channels.swap(res);
     }
   private:
-    const Holder::ConstPtr Module;
-    const CHITrack::ModuleData& Data;
-
+    const CHITrack::ModuleData::ConstPtr Data;
     DAC::Chip::Ptr Device;
     PlaybackState CurrentState;
     Timing ModState;
@@ -581,9 +573,9 @@ namespace
     bool Interpolation;
   };
 
-  Player::Ptr CreateCHIPlayer(Holder::ConstPtr mod, const CHITrack::ModuleData& data, DAC::Chip::Ptr device)
+  Player::Ptr CreateCHIPlayer(CHITrack::ModuleData::ConstPtr data, DAC::Chip::Ptr device)
   {
-    return Player::Ptr(new CHIPlayer(mod, data, device));
+    return Player::Ptr(new CHIPlayer(data, device));
   }
 
   bool Checking(const IO::DataContainer& data)

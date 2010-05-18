@@ -40,21 +40,14 @@ namespace ZXTune
       //sample type
       struct Sample
       {
-        Sample() : Loop(), Data()
+        Sample() : Loop(), Lines()
         {
         }
 
-        Sample(uint_t size, uint_t loop) : Loop(loop), Data(size)
+        template<class Iterator>
+        Sample(uint_t loop, Iterator from, Iterator to)
+          : Loop(loop), Lines(from, to)
         {
-        }
-
-        //make safe sample
-        void Fix()
-        {
-          if (Data.empty())
-          {
-            Data.resize(1);
-          }
         }
 
         struct Line
@@ -79,8 +72,24 @@ namespace ZXTune
           bool KeepNoiseOrEnvelopeOffset;
         };
 
+        uint_t GetLoop() const
+        {
+          return Loop;
+        }
+
+        uint_t GetSize() const
+        {
+          return Lines.size();
+        }
+
+        const Line& GetLine(const uint_t idx) const
+        {
+          static const Line STUB;
+          return Lines.size() > idx ? Lines[idx] : STUB;
+        }
+      private:
         uint_t Loop;
-        std::vector<Line> Data;
+        std::vector<Line> Lines;
       };
 
       //supported commands set and their parameters
@@ -116,10 +125,10 @@ namespace ZXTune
       typedef TrackingSupport<AYM::CHANNELS, Sample, Ornament> Track;
 
       //creating simple player based on parsed data and parameters
-      Player::Ptr CreatePlayer(Holder::ConstPtr holder, const Track::ModuleData& data,
+      Player::Ptr CreatePlayer(Track::ModuleData::ConstPtr data,
          uint_t version, const String& freqTableName, AYM::Chip::Ptr device);
       //creating TS player based on parsed data and parameters
-      Player::Ptr CreateTSPlayer(Holder::ConstPtr holder, const Track::ModuleData& data,
+      Player::Ptr CreateTSPlayer(Track::ModuleData::ConstPtr data,
          uint_t version, const String& freqTableName, uint_t patternBase, AYM::Chip::Ptr device1, AYM::Chip::Ptr device2);
     }
   }

@@ -29,7 +29,7 @@ Author:
 #include <io/container.h>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/enable_shared_from_this.hpp>
+#include <boost/make_shared.hpp>
 //text includes
 #include <core/text/plugins.h>
 #include <core/text/warnings.h>
@@ -235,22 +235,13 @@ namespace
 
   struct Sample
   {
-    Sample() : Loop(), Data()
+    Sample() : Loop(), Lines()
     {
     }
 
     explicit Sample(const STPSample& sample)
-      : Loop(sample.Loop), Data(sample.Data, sample.Data + sample.Size)
+      : Loop(sample.Loop), Lines(sample.Data, sample.Data + sample.Size)
     {
-    }
-
-    //make safe sample
-    void Fix()
-    {
-      if (Data.empty())
-      {
-        Data.resize(1);
-      }
     }
 
     struct Line
@@ -273,8 +264,25 @@ namespace
       bool EnvelopeMask;
       int_t Vibrato;
     };
+
+    int_t GetLoop() const
+    {
+      return Loop;
+    }
+
+    uint_t GetSize() const
+    {
+      return Lines.size();
+    }
+
+    const Line& GetLine(uint_t idx) const
+    {
+      static const Line STUB;
+      return Lines.size() > idx ? Lines[idx] : STUB;
+    }
+  private:
     int_t Loop;
-    std::vector<Line> Data;
+    std::vector<Line> Lines;
   };
 
   enum CmdType
@@ -296,11 +304,23 @@ namespace
   typedef TrackingSupport<AYM::CHANNELS, Sample> STPTrack;
   typedef std::vector<int_t> STPTransposition;
 
-  // forward declaration
-  Player::Ptr CreateSTPPlayer(Holder::ConstPtr mod, const STPTrack::ModuleData& data,
-    const STPTransposition& transpositions, AYM::Chip::Ptr device);
+  struct STPModuleData : public STPTrack::ModuleData
+  {
+    typedef boost::shared_ptr<STPModuleData> Ptr;
+    typedef boost::shared_ptr<const STPModuleData> ConstPtr;
 
-  class STPHolder : public Holder, public boost::enable_shared_from_this<STPHolder>
+    STPModuleData()
+      : STPTrack::ModuleData()
+    {
+    }
+
+    STPTransposition Transpositions;
+  };
+
+  // forward declaration
+  Player::Ptr CreateSTPPlayer(STPModuleData::ConstPtr data, AYM::Chip::Ptr device);
+
+  class STPHolder : public Holder
   {
     typedef boost::array<PatternCursor, AYM::CHANNELS> PatternCursors;
 
@@ -391,6 +411,7 @@ namespace
     }
   public:
     STPHolder(const MetaContainer& container, ModuleRegion& region)
+      : Data(boost::make_shared<STPModuleData>())
     {
       //assume that data is ok
       const IO::FastDump& data = IO::FastDump(*container.Data, region.Offset);
@@ -404,26 +425,26 @@ namespace
       Log::MessagesCollector::Ptr warner(Log::MessagesCollector::Create());
 
       //parse positions
-      Data.Positions.resize(positions->Lenght + 1);
-      Transpositions.resize(positions->Lenght + 1);
-      std::transform(positions->Data, positions->Data + positions->Lenght, Data.Positions.begin(),
+      Data->Positions.resize(positions->Lenght + 1);
+      Data->Transpositions.resize(positions->Lenght + 1);
+      std::transform(positions->Data, positions->Data + positions->Lenght, Data->Positions.begin(),
         boost::bind(std::divides<uint_t>(),
           boost::bind(&STPPositions::STPPosEntry::PatternOffset, _1),
           6));
-      std::transform(positions->Data, positions->Data + positions->Lenght, Transpositions.begin(),
+      std::transform(positions->Data, positions->Data + positions->Lenght, Data->Transpositions.begin(),
         boost::mem_fn(&STPPositions::STPPosEntry::PatternHeight));
 
       //parse samples
-      Data.Samples.reserve(MAX_SAMPLES_COUNT);
+      Data->Samples.reserve(MAX_SAMPLES_COUNT);
       uint_t index = 0;
       for (const uint16_t* pSample = samples->Offsets.begin(); pSample != samples->Offsets.end();
         ++pSample, ++index)
       {
         assert(*pSample && fromLE(*pSample) < data.Size());
         const STPSample* const sample = safe_ptr_cast<const STPSample*>(&data[fromLE(*pSample)]);
-        Data.Samples.push_back(Sample(*sample));
-        const Sample& smp = Data.Samples.back();
-        if (smp.Loop >= static_cast<signed>(smp.Data.size()))
+        Data->Samples.push_back(Sample(*sample));
+        const Sample& smp = Data->Samples.back();
+        if (smp.GetLoop() >= static_cast<int_t>(smp.GetSize()))
         {
           Log::ParamPrefixedCollector smpWarner(*warner, Text::SAMPLE_WARN_PREFIX, index);
           smpWarner.AddMessage(Text::WARNING_LOOP_OUT_BOUND);
@@ -431,16 +452,16 @@ namespace
       }
       std::size_t rawSize = safe_ptr_cast<const uint8_t*>(samples + 1) - data.Data();
 
-      Data.Ornaments.reserve(MAX_ORNAMENTS_COUNT);
+      Data->Ornaments.reserve(MAX_ORNAMENTS_COUNT);
       index = 0;
       for (const uint16_t* pOrnament = ornaments->Offsets.begin(); pOrnament != ornaments->Offsets.end();
         ++pOrnament, ++index)
       {
         assert(*pOrnament && fromLE(*pOrnament) < data.Size());
         const STPOrnament* const ornament = safe_ptr_cast<const STPOrnament*>(&data[fromLE(*pOrnament)]);
-        Data.Ornaments.push_back(SimpleOrnament(ornament->Data, ornament->Data + ornament->Size, ornament->Loop));
-        const SimpleOrnament& orn = Data.Ornaments.back();
-        if (orn.Loop > orn.Data.size())
+        Data->Ornaments.push_back(SimpleOrnament(ornament->Loop, ornament->Data, ornament->Data + ornament->Size));
+        const SimpleOrnament& orn = Data->Ornaments.back();
+        if (orn.GetLoop() > orn.GetSize())
         {
           Log::ParamPrefixedCollector smpWarner(*warner, Text::ORNAMENT_WARN_PREFIX, index);
           smpWarner.AddMessage(Text::WARNING_LOOP_OUT_BOUND);
@@ -451,9 +472,9 @@ namespace
       for (const STPPattern* pattern = patterns;
         static_cast<const void*>(pattern) < static_cast<const void*>(ornaments); ++pattern)
       {
-        Data.Patterns.push_back(STPTrack::Pattern());
-        Log::ParamPrefixedCollector patternWarner(*warner, Text::PATTERN_WARN_PREFIX, Data.Patterns.size());
-        STPTrack::Pattern& pat = Data.Patterns.back();
+        Data->Patterns.push_back(STPTrack::Pattern());
+        Log::ParamPrefixedCollector patternWarner(*warner, Text::PATTERN_WARN_PREFIX, Data->Patterns.size());
+        STPTrack::Pattern& pat = Data->Patterns.back();
         PatternCursors cursors;
         std::transform(pattern->Offsets.begin(), pattern->Offsets.end(), cursors.begin(), std::ptr_fun(&fromLE<uint16_t>));
         pat.reserve(MAX_PATTERN_SIZE);
@@ -483,42 +504,38 @@ namespace
         rawSize = std::max<std::size_t>(rawSize, 1 + std::max_element(cursors.begin(), cursors.end(), PatternCursor::CompareByOffset)->Offset);
       }
 
-      //fix samples and ornaments
-      std::for_each(Data.Ornaments.begin(), Data.Ornaments.end(), std::mem_fun_ref(&STPTrack::Ornament::Fix));
-      std::for_each(Data.Samples.begin(), Data.Samples.end(), std::mem_fun_ref(&STPTrack::Sample::Fix));
-
       //fill region
       region.Size = rawSize;
 
       //meta properties
       const std::size_t fixedOffset = fromLE(header->PatternsOffset);
       ExtractMetaProperties(STP_PLUGIN_ID, container, region, ModuleRegion(fixedOffset, rawSize - fixedOffset),
-        Data.Info.Properties, RawData);
+        Data->Info.Properties, RawData);
       const STPId* const id = safe_ptr_cast<const STPId*>(header + 1);
       if (id->Check())
       {
         const String& title(OptimizeString(FromStdString(id->Title)));
         if (!title.empty())
         {
-          Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_TITLE, title));
+          Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_TITLE, title));
         }
       }
-      Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_PROGRAM, String(Text::STP_EDITOR)));
+      Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_PROGRAM, String(Text::STP_EDITOR)));
 
       //tracking properties
-      Data.Info.LoopPosition = positions->Loop;//not supported
-      Data.Info.PhysicalChannels = AYM::CHANNELS;
-      Data.Info.Statistic.Tempo = header->Tempo;
-      Data.Info.Statistic.Position = Data.Positions.size();
-      Data.Info.Statistic.Pattern = std::count_if(Data.Patterns.begin(), Data.Patterns.end(),
+      Data->Info.LoopPosition = positions->Loop;//not supported
+      Data->Info.PhysicalChannels = AYM::CHANNELS;
+      Data->Info.Statistic.Tempo = header->Tempo;
+      Data->Info.Statistic.Position = Data->Positions.size();
+      Data->Info.Statistic.Pattern = std::count_if(Data->Patterns.begin(), Data->Patterns.end(),
         !boost::bind(&STPTrack::Pattern::empty, _1));
-      Data.Info.Statistic.Channels = AYM::CHANNELS;
+      Data->Info.Statistic.Channels = AYM::CHANNELS;
 
-      STPTrack::CalculateTimings(Data, Data.Info.Statistic.Frame, Data.Info.LoopFrame);
+      STPTrack::CalculateTimings(*Data, Data->Info.Statistic.Frame, Data->Info.LoopFrame);
       if (const uint_t msgs = warner->CountMessages())
       {
-        Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS_COUNT, msgs));
-        Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS, warner->GetMessages('\n')));
+        Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS_COUNT, msgs));
+        Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS, warner->GetMessages('\n')));
       }
     }
     virtual void GetPluginInformation(PluginInformation& info) const
@@ -528,17 +545,17 @@ namespace
 
     virtual void GetModuleInformation(Information& info) const
     {
-      info = Data.Info;
+      info = Data->Info;
     }
 
     virtual void ModifyCustomAttributes(const Parameters::Map& attrs, bool replaceExisting)
     {
-      return Parameters::MergeMaps(Data.Info.Properties, attrs, Data.Info.Properties, replaceExisting);
+      return Parameters::MergeMaps(Data->Info.Properties, attrs, Data->Info.Properties, replaceExisting);
     }
 
     virtual Player::Ptr CreatePlayer() const
     {
-      return CreateSTPPlayer(shared_from_this(), Data, Transpositions, AYM::CreateChip());
+      return CreateSTPPlayer(Data, AYM::CreateChip());
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -549,7 +566,7 @@ namespace
       {
         dst = RawData;
       }
-      else if (!ConvertAYMFormat(boost::bind(&CreateSTPPlayer, shared_from_this(), boost::cref(Data), boost::cref(Transpositions), _1),
+      else if (!ConvertAYMFormat(boost::bind(&CreateSTPPlayer, boost::cref(Data), _1),
         param, dst, result))
       {
         return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
@@ -558,8 +575,7 @@ namespace
     }
   private:
     Dump RawData;
-    STPTrack::ModuleData Data;
-    STPTransposition Transpositions;
+    const STPModuleData::Ptr Data;
   };
 
   struct STPChannelState
@@ -583,32 +599,30 @@ namespace
     int_t Glissade;
   };
 
-  typedef AYMPlayer<STPTrack, boost::array<STPChannelState, AYM::CHANNELS> > STPPlayerBase;
+  typedef AYMPlayer<STPTrack, boost::array<STPChannelState, AYM::CHANNELS>, STPModuleData> STPPlayerBase;
 
   class STPPlayer : public STPPlayerBase
   {
   public:
-    STPPlayer(Holder::ConstPtr holder, const STPTrack::ModuleData& data,
-      const STPTransposition& transpositions, AYM::Chip::Ptr device)
-      : STPPlayerBase(holder, data, device, TABLE_SOUNDTRACKER)
-      , Transpositions(transpositions)
+    STPPlayer(STPModuleData::ConstPtr data, AYM::Chip::Ptr device)
+      : STPPlayerBase(data, device, TABLE_SOUNDTRACKER)
     {
 #ifdef SELF_TEST
 //perform self-test
       AYM::DataChunk chunk;
       do
       {
-        assert(Data.Positions.size() > ModState.Track.Position);
+        assert(Data->Positions.size() > ModState.Track.Position);
         RenderData(chunk);
       }
-      while (STPTrack::UpdateState(Data, ModState, Sound::LOOP_NONE));
+      while (STPTrack::UpdateState(*Data, ModState, Sound::LOOP_NONE));
       Reset();
 #endif
     }
 
     void RenderData(AYM::DataChunk& chunk)
     {
-      const STPTrack::Line& line = Data.Patterns[ModState.Track.Pattern][ModState.Track.Line];
+      const STPTrack::Line& line = Data->Patterns[ModState.Track.Pattern][ModState.Track.Line];
       if (0 == ModState.Track.Frame)//begin note
       {
         for (uint_t chan = 0; chan != line.Channels.size(); ++chan)
@@ -691,15 +705,15 @@ namespace
       const FrequencyTable& freqTable(AYMHelper->GetFreqTable());
       if (dst.Enabled)
       {
-        const STPTrack::Sample& curSample = Data.Samples[dst.SampleNum];
-        const STPTrack::Sample::Line& curSampleLine = curSample.Data[dst.PosInSample];
-        const STPTrack::Ornament& curOrnament = Data.Ornaments[dst.OrnamentNum];
+        const STPTrack::Sample& curSample = Data->Samples[dst.SampleNum];
+        const STPTrack::Sample::Line& curSampleLine = curSample.GetLine(dst.PosInSample);
+        const STPTrack::Ornament& curOrnament = Data->Ornaments[dst.OrnamentNum];
 
         //calculate tone
         dst.TonSlide += dst.Glissade;
         const uint_t halfTone = static_cast<uint_t>(clamp<int_t>(
-          int_t(dst.Note) + Transpositions[ModState.Track.Position] +
-          (dst.Envelope ? 0 : curOrnament.Data[dst.PosInOrnament]), 0, 95));
+          int_t(dst.Note) + Data->Transpositions[ModState.Track.Position] +
+          (dst.Envelope ? 0 : curOrnament.GetLine(dst.PosInOrnament)), 0, 95));
         const uint_t tone = static_cast<uint_t>(clamp<int_t>(int_t(freqTable[halfTone]) + dst.TonSlide +
           curSampleLine.Vibrato, 0, 0xffff));
 
@@ -725,16 +739,16 @@ namespace
           chunk.Mask |= 1 << AYM::DataChunk::REG_TONEN;
         }
 
-        if (++dst.PosInOrnament >= curOrnament.Data.size())
+        if (++dst.PosInOrnament >= curOrnament.GetSize())
         {
-          dst.PosInOrnament = curOrnament.Loop;
+          dst.PosInOrnament = curOrnament.GetLoop();
         }
 
-        if (++dst.PosInSample >= curSample.Data.size())
+        if (++dst.PosInSample >= curSample.GetSize())
         {
-          if (curSample.Loop >= 0)
+          if (curSample.GetLoop() >= 0)
           {
-            dst.PosInSample = curSample.Loop;
+            dst.PosInSample = curSample.GetLoop();
           }
           else
           {
@@ -749,14 +763,11 @@ namespace
         chunk.Data[AYM::DataChunk::REG_MIXER] |= toneMsk | noiseMsk;
       }
     }
-  private:
-    const STPTransposition& Transpositions;
   };
 
-  Player::Ptr CreateSTPPlayer(Holder::ConstPtr mod, const STPTrack::ModuleData& data,
-    const STPTransposition& transpositions, AYM::Chip::Ptr device)
+  Player::Ptr CreateSTPPlayer(STPModuleData::ConstPtr data, AYM::Chip::Ptr device)
   {
-    return Player::Ptr(new STPPlayer(mod, data, transpositions, device));
+    return Player::Ptr(new STPPlayer(data, device));
   }
 
   bool CheckSTPModule(const uint8_t* data, std::size_t limit, const MetaContainer& container,

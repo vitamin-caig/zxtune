@@ -29,7 +29,6 @@ Author:
 #include <io/container.h>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/enable_shared_from_this.hpp>
 //text includes
 #include <core/text/plugins.h>
 #include <core/text/warnings.h>
@@ -233,13 +232,13 @@ namespace
   struct Sample
   {
     explicit Sample(const ASCSample& sample)
-      : Loop(), LoopLimit(), Data()
+      : Loop(), LoopLimit(), Lines()
     {
-      Data.reserve(MAX_SAMPLE_SIZE);
+      Lines.reserve(MAX_SAMPLE_SIZE);
       for (uint_t sline = 0; sline != MAX_SAMPLE_SIZE; ++sline)
       {
         const ASCSample::Line& line = sample.Data[sline];
-        Data.push_back(Line(line));
+        Lines.push_back(Line(line));
         if (line.IsLoopBegin())
         {
           Loop = sline;
@@ -255,11 +254,13 @@ namespace
       }
     }
 
-    uint_t Loop;
-    uint_t LoopLimit;
-
     struct Line
     {
+      Line()
+        : Level(), ToneDeviation(), ToneMask(), NoiseMask(), Adding(), Command()
+      {
+      }
+
       explicit Line(const ASCSample::Line& line)
         : Level(line.GetLevel()), ToneDeviation(line.ToneDeviation)
         , ToneMask(line.GetToneMask()), NoiseMask(line.GetNoiseMask())
@@ -273,19 +274,43 @@ namespace
       int_t Adding;
       uint_t Command;
     };
-    std::vector<Line> Data;
+
+    uint_t GetLoop() const
+    {
+      return Loop;
+    }
+
+    uint_t GetLoopLimit() const
+    {
+      return LoopLimit;
+    }
+
+    uint_t GetSize() const
+    {
+      return Lines.size();
+    }
+
+    const Line& GetLine(uint_t idx) const
+    {
+      static const Line STUB;
+      return Lines.size() > idx ? Lines[idx] : STUB;
+    }
+  private:
+    uint_t Loop;
+    uint_t LoopLimit;
+    std::vector<Line> Lines;
   };
 
   struct Ornament
   {
     explicit Ornament(const ASCOrnament& ornament)
-      : Loop(), LoopLimit(), Data()
+      : Loop(), LoopLimit(), Lines()
     {
-      Data.reserve(MAX_ORNAMENT_SIZE);
+      Lines.reserve(MAX_ORNAMENT_SIZE);
       for (uint_t sline = 0; sline != MAX_ORNAMENT_SIZE; ++sline)
       {
         const ASCOrnament::Line& line = ornament.Data[sline];
-        Data.push_back(Line(line));
+        Lines.push_back(Line(line));
         if (line.IsLoopBegin())
         {
           Loop = sline;
@@ -300,10 +325,14 @@ namespace
         }
       }
     }
-    uint_t Loop;
-    uint_t LoopLimit;
+
     struct Line
     {
+      Line()
+        : NoteAddon(), NoiseAddon()
+      {
+      }
+
       explicit Line(const ASCOrnament::Line& line)
         : NoteAddon(line.NoteOffset)
         , NoiseAddon(line.GetNoiseOffset())
@@ -312,7 +341,31 @@ namespace
       int_t NoteAddon;
       int_t NoiseAddon;
     };
-    std::vector<Line> Data;
+
+    uint_t GetLoop() const
+    {
+      return Loop;
+    }
+
+    uint_t GetLoopLimit() const
+    {
+      return LoopLimit;
+    }
+
+    uint_t GetSize() const
+    {
+      return Lines.size();
+    }
+
+    const Line& GetLine(uint_t idx) const
+    {
+      static const Line STUB;
+      return Lines.size() > idx ? Lines[idx] : STUB;
+    }
+  private:
+    uint_t Loop;
+    uint_t LoopLimit;
+    std::vector<Line> Lines;
   };
 
   //supported commands and their parameters
@@ -356,9 +409,9 @@ namespace
   // tracker type
   typedef TrackingSupport<AYM::CHANNELS, Sample, Ornament> ASCTrack;
 
-  Player::Ptr CreateASCPlayer(Holder::ConstPtr mod, const ASCTrack::ModuleData& data, AYM::Chip::Ptr device);
+  Player::Ptr CreateASCPlayer(ASCTrack::ModuleData::ConstPtr data, AYM::Chip::Ptr device);
 
-  class ASCHolder : public Holder, public boost::enable_shared_from_this<ASCHolder>
+  class ASCHolder : public Holder
   {
     typedef boost::array<PatternCursor, AYM::CHANNELS> PatternCursors;
 
@@ -550,6 +603,7 @@ namespace
     }
   public:
     ASCHolder(const MetaContainer& container, ModuleRegion& region)
+      : Data(ASCTrack::ModuleData::Create())
     {
       //assume all data is correct
       const IO::FastDump& data = IO::FastDump(*container.Data, region.Offset);
@@ -563,7 +617,7 @@ namespace
       {
         const std::size_t samplesOff = fromLE(header->SamplesOffset);
         const ASCSamples* const samples = safe_ptr_cast<const ASCSamples*>(&data[samplesOff]);
-        Data.Samples.reserve(samples->Offsets.size());
+        Data->Samples.reserve(samples->Offsets.size());
         uint_t index = 0;
         for (const uint16_t* pSample = samples->Offsets.begin(); pSample != samples->Offsets.end();
           ++pSample, ++index)
@@ -571,15 +625,15 @@ namespace
           assert(*pSample && fromLE(*pSample) < data.Size());
           const std::size_t sampleOffset = fromLE(*pSample);
           const ASCSample* const sample = safe_ptr_cast<const ASCSample*>(&data[samplesOff + sampleOffset]);
-          Data.Samples.push_back(Sample(*sample));
-          const Sample& smp = Data.Samples.back();
-          if (smp.Loop > smp.LoopLimit || smp.LoopLimit >= smp.Data.size())
+          Data->Samples.push_back(Sample(*sample));
+          const Sample& smp = Data->Samples.back();
+          if (smp.GetLoop() > smp.GetLoopLimit() || smp.GetLoopLimit() >= smp.GetSize())
           {
             Log::ParamPrefixedCollector lineWarner(*warner, Text::SAMPLE_WARN_PREFIX, index);
-            Log::Assert(lineWarner, smp.Loop <= smp.LoopLimit, Text::WARNING_LOOP_OUT_LIMIT);
-            Log::Assert(lineWarner, smp.LoopLimit < smp.Data.size(), Text::WARNING_LOOP_OUT_BOUND);
+            Log::Assert(lineWarner, smp.GetLoop() <= smp.GetLoopLimit(), Text::WARNING_LOOP_OUT_LIMIT);
+            Log::Assert(lineWarner, smp.GetLoopLimit() < smp.GetSize(), Text::WARNING_LOOP_OUT_BOUND);
           }
-          rawSize = std::max(rawSize, samplesOff + sampleOffset + smp.Data.size() * sizeof(ASCSample::Line));
+          rawSize = std::max(rawSize, samplesOff + sampleOffset + smp.GetSize() * sizeof(ASCSample::Line));
         }
       }
 
@@ -587,7 +641,7 @@ namespace
       {
         const std::size_t ornamentsOff = fromLE(header->OrnamentsOffset);
         const ASCOrnaments* const ornaments = safe_ptr_cast<const ASCOrnaments*>(&data[ornamentsOff]);
-        Data.Ornaments.reserve(ornaments->Offsets.size());
+        Data->Ornaments.reserve(ornaments->Offsets.size());
         uint_t index = 0;
         for (const uint16_t* pOrnament = ornaments->Offsets.begin(); pOrnament != ornaments->Offsets.end();
           ++pOrnament, ++index)
@@ -595,30 +649,30 @@ namespace
           assert(*pOrnament && fromLE(*pOrnament) < data.Size());
           const std::size_t ornamentOffset = fromLE(*pOrnament);
           const ASCOrnament* const ornament = safe_ptr_cast<const ASCOrnament*>(&data[ornamentsOff + ornamentOffset]);
-          Data.Ornaments.push_back(ASCTrack::Ornament(*ornament));
-          const Ornament& orn = Data.Ornaments.back();
-          if (orn.Loop > orn.LoopLimit || orn.LoopLimit >= orn.Data.size())
+          Data->Ornaments.push_back(ASCTrack::Ornament(*ornament));
+          const Ornament& orn = Data->Ornaments.back();
+          if (orn.GetLoop() > orn.GetLoopLimit() || orn.GetLoopLimit() >= orn.GetSize())
           {
             Log::ParamPrefixedCollector lineWarner(*warner, Text::ORNAMENT_WARN_PREFIX, index);
-            Log::Assert(lineWarner, orn.Loop <= orn.LoopLimit, Text::WARNING_LOOP_OUT_LIMIT);
-            Log::Assert(lineWarner, orn.LoopLimit < orn.Data.size(), Text::WARNING_LOOP_OUT_BOUND);
+            Log::Assert(lineWarner, orn.GetLoop() <= orn.GetLoopLimit(), Text::WARNING_LOOP_OUT_LIMIT);
+            Log::Assert(lineWarner, orn.GetLoopLimit() < orn.GetSize(), Text::WARNING_LOOP_OUT_BOUND);
           }
-          rawSize = std::max(rawSize, ornamentsOff + ornamentOffset + orn.Data.size() * sizeof(ASCOrnament::Line));
+          rawSize = std::max(rawSize, ornamentsOff + ornamentOffset + orn.GetSize() * sizeof(ASCOrnament::Line));
         }
       }
 
       //fill order
-      Data.Positions.assign(header->Positions, header->Positions + header->Length);
+      Data->Positions.assign(header->Positions, header->Positions + header->Length);
       //parse patterns
-      const std::size_t patternsCount = 1 + *std::max_element(Data.Positions.begin(), Data.Positions.end());
+      const std::size_t patternsCount = 1 + *std::max_element(Data->Positions.begin(), Data->Positions.end());
       const uint16_t patternsOff = fromLE(header->PatternsOffset);
       const ASCPattern* pattern = safe_ptr_cast<const ASCPattern*>(&data[patternsOff]);
       assert(patternsCount <= MAX_PATTERNS_COUNT);
-      Data.Patterns.resize(patternsCount);
+      Data->Patterns.resize(patternsCount);
       for (uint_t patNum = 0; patNum < patternsCount; ++patNum, ++pattern)
       {
         Log::ParamPrefixedCollector patternWarner(*warner, Text::PATTERN_WARN_PREFIX, patNum);
-        ASCTrack::Pattern& pat(Data.Patterns[patNum]);
+        ASCTrack::Pattern& pat(Data->Patterns[patNum]);
 
         PatternCursors cursors;
         std::transform(pattern->Offsets.begin(), pattern->Offsets.end(), cursors.begin(),
@@ -660,37 +714,37 @@ namespace
         const bool validId = id->Check();
         const std::size_t fixedOffset = sizeof(ASCHeader) + validId ? sizeof(*id) : 0;
         ExtractMetaProperties(ASC_PLUGIN_ID, container, region, ModuleRegion(fixedOffset, rawSize - fixedOffset),
-          Data.Info.Properties, RawData);
+          Data->Info.Properties, RawData);
         if (validId)
         {
           const String& title = OptimizeString(FromStdString(id->Title));
           if (!title.empty())
           {
-            Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_TITLE, title));
+            Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_TITLE, title));
           }
           const String& author = OptimizeString(FromStdString(id->Author));
           if (!author.empty())
           {
-            Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_AUTHOR, author));
+            Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_AUTHOR, author));
           }
         }
       }
-      Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_PROGRAM, String(Text::ASC_EDITOR)));
+      Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_PROGRAM, String(Text::ASC_EDITOR)));
 
       //tracking properties
-      Data.Info.LoopPosition = header->Loop;
-      Data.Info.PhysicalChannels = AYM::CHANNELS;
-      Data.Info.Statistic.Tempo = header->Tempo;
-      Data.Info.Statistic.Position = Data.Positions.size();
-      Data.Info.Statistic.Pattern = std::count_if(Data.Patterns.begin(), Data.Patterns.end(),
+      Data->Info.LoopPosition = header->Loop;
+      Data->Info.PhysicalChannels = AYM::CHANNELS;
+      Data->Info.Statistic.Tempo = header->Tempo;
+      Data->Info.Statistic.Position = Data->Positions.size();
+      Data->Info.Statistic.Pattern = std::count_if(Data->Patterns.begin(), Data->Patterns.end(),
         !boost::bind(&ASCTrack::Pattern::empty, _1));
-      Data.Info.Statistic.Channels = AYM::CHANNELS;
-      ASCTrack::CalculateTimings(Data, Data.Info.Statistic.Frame, Data.Info.LoopFrame);
+      Data->Info.Statistic.Channels = AYM::CHANNELS;
+      ASCTrack::CalculateTimings(*Data, Data->Info.Statistic.Frame, Data->Info.LoopFrame);
       //warnings
       if (const uint_t msgs = warner->CountMessages())
       {
-        Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS_COUNT, msgs));
-        Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS, warner->GetMessages('\n')));
+        Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS_COUNT, msgs));
+        Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS, warner->GetMessages('\n')));
       }
     }
 
@@ -701,17 +755,17 @@ namespace
 
     virtual void GetModuleInformation(Information& info) const
     {
-      info = Data.Info;
+      info = Data->Info;
     }
 
     virtual void ModifyCustomAttributes(const Parameters::Map& attrs, bool replaceExisting)
     {
-      return Parameters::MergeMaps(Data.Info.Properties, attrs, Data.Info.Properties, replaceExisting);
+      return Parameters::MergeMaps(Data->Info.Properties, attrs, Data->Info.Properties, replaceExisting);
     }
 
     virtual Player::Ptr CreatePlayer() const
     {
-      return CreateASCPlayer(shared_from_this(), Data, AYM::CreateChip());
+      return CreateASCPlayer(Data, AYM::CreateChip());
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -722,7 +776,7 @@ namespace
       {
         dst = RawData;
       }
-      else if (!ConvertAYMFormat(boost::bind(&CreateASCPlayer, shared_from_this(), boost::cref(Data), _1),
+      else if (!ConvertAYMFormat(boost::bind(&CreateASCPlayer, boost::cref(Data), _1),
         param, dst, result))
       {
         return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
@@ -731,7 +785,7 @@ namespace
     }
   private:
     Dump RawData;
-    ASCTrack::ModuleData Data;
+    const ASCTrack::ModuleData::Ptr Data;
   };
 
   struct ASCChannelState
@@ -777,25 +831,25 @@ namespace
   class ASCPlayer : public ASCPlayerBase
   {
   public:
-    ASCPlayer(Holder::ConstPtr holder, const ASCTrack::ModuleData& data, AYM::Chip::Ptr device)
-      : ASCPlayerBase(holder, data, device, TABLE_ASM)
+    ASCPlayer(ASCTrack::ModuleData::ConstPtr data, AYM::Chip::Ptr device)
+      : ASCPlayerBase(data, device, TABLE_ASM)
     {
 #ifdef SELF_TEST
 //perform self-test
       AYM::DataChunk chunk;
       do
       {
-        assert(Data.Positions.size() > ModState.Track.Position);
+        assert(Data->Positions.size() > ModState.Track.Position);
         RenderData(chunk);
       }
-      while (ASCTrack::UpdateState(Data, ModState, Sound::LOOP_NONE));
+      while (ASCTrack::UpdateState(*Data, ModState, Sound::LOOP_NONE));
       Reset();
 #endif
     }
 
     virtual void RenderData(AYM::DataChunk& chunk)
     {
-      const ASCTrack::Line& line = Data.Patterns[ModState.Track.Pattern][ModState.Track.Line];
+      const ASCTrack::Line& line = Data->Patterns[ModState.Track.Pattern][ModState.Track.Line];
       //bitmask of channels to sample break
       uint_t breakSample = 0;
       if (0 == ModState.Track.Frame)//begin note
@@ -945,10 +999,10 @@ namespace
       const FrequencyTable& freqTable = AYMHelper->GetFreqTable();
       if (dst.Enabled)
       {
-        const Sample& curSample = Data.Samples[dst.CurrentSampleNum];
-        const Sample::Line& curSampleLine = curSample.Data[dst.PosInSample];
-        const Ornament& curOrnament = Data.Ornaments[dst.CurrentOrnamentNum];
-        const Ornament::Line& curOrnamentLine = curOrnament.Data[dst.PosInOrnament];
+        const Sample& curSample = Data->Samples[dst.CurrentSampleNum];
+        const Sample::Line& curSampleLine = curSample.GetLine(dst.PosInSample);
+        const Ornament& curOrnament = Data->Ornaments[dst.CurrentOrnamentNum];
+        const Ornament::Line& curOrnamentLine = curOrnament.GetLine(dst.PosInOrnament);
 
         //calculate volume addon
         if (dst.VolSlideCounter >= 2)
@@ -1029,20 +1083,20 @@ namespace
         }
 
         //recalc positions
-        if (dst.PosInSample++ >= curSample.LoopLimit)
+        if (dst.PosInSample++ >= curSample.GetLoopLimit())
         {
           if (!breakSample)
           {
-            dst.PosInSample = curSample.Loop;
+            dst.PosInSample = curSample.GetLoop();
           }
-          else if (dst.PosInSample >= curSample.Data.size())
+          else if (dst.PosInSample >= curSample.GetSize())
           {
             dst.Enabled = false;
           }
         }
-        if (dst.PosInOrnament++ >= curOrnament.LoopLimit)
+        if (dst.PosInOrnament++ >= curOrnament.GetLoopLimit())
         {
-          dst.PosInOrnament = curOrnament.Loop;
+          dst.PosInOrnament = curOrnament.GetLoop();
         }
       }
       else
@@ -1054,9 +1108,9 @@ namespace
     }
   };
 
-  Player::Ptr CreateASCPlayer(Holder::ConstPtr holder, const ASCTrack::ModuleData& data, AYM::Chip::Ptr device)
+  Player::Ptr CreateASCPlayer(ASCTrack::ModuleData::ConstPtr data, AYM::Chip::Ptr device)
   {
-    return Player::Ptr(new ASCPlayer(holder, data, device));
+    return Player::Ptr(new ASCPlayer(data, device));
   }
 
   //////////////////////////////////////////////////////////////////////////

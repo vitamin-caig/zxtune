@@ -19,7 +19,9 @@ Author:
 #include <vector>
 //boost includes
 #include <boost/array.hpp>
+#include <boost/make_shared.hpp>
 #include <boost/optional.hpp>
+#include <boost/shared_ptr.hpp>
 
 namespace ZXTune
 {
@@ -28,29 +30,33 @@ namespace ZXTune
     // Ornament is just a set of tone offsets
     struct SimpleOrnament
     {
-      SimpleOrnament() : Loop(), Data()
+      SimpleOrnament() : Loop(), Lines()
       {
       }
 
-      SimpleOrnament(uint_t size, uint_t loop) : Loop(loop), Data(size)
-      {
-      }
-      
       template<class It>
-      SimpleOrnament(It from, It to, uint_t loop) : Loop(loop), Data(from, to)
+      SimpleOrnament(uint_t loop, It from, It to) : Loop(loop), Lines(from, to)
       {
-      }
-      
-      void Fix()
-      {
-        if (Data.empty())
-        {
-          Data.resize(1);
-        }
       }
 
+      uint_t GetLoop() const
+      {
+        return Loop;
+      }
+
+      uint_t GetSize() const
+      {
+        return Lines.size();
+      }
+
+      int_t GetLine(uint_t pos) const
+      {
+        return Lines.size() > pos ? Lines[pos] : 0;
+      }
+
+    private:
       uint_t Loop;
-      std::vector<int_t> Data;
+      std::vector<int_t> Lines;
     };
 
     struct Timing
@@ -136,6 +142,14 @@ namespace ZXTune
       // Holder-related types
       struct ModuleData
       {
+        typedef boost::shared_ptr<ModuleData> Ptr;
+        typedef boost::shared_ptr<const ModuleData> ConstPtr;
+
+        static Ptr Create()
+        {
+          return boost::make_shared<ModuleData>();
+        }
+
         ModuleData() : Positions(), Patterns(), Samples(), Ornaments(), Info()
         {
         }

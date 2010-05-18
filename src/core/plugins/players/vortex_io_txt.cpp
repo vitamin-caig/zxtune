@@ -23,6 +23,7 @@ Author:
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/iterator/counting_iterator.hpp>
 //text includes
 #include <core/text/plugins.h>
 
@@ -604,26 +605,26 @@ namespace
   template<class Iterator>
   inline Iterator SampleFromStrings(Iterator it, Iterator lim, Vortex::Sample& sample)
   {
-    Vortex::Sample tmp;
+    uint_t loopPos = 0;
+    std::vector<Vortex::Sample::Line> tmp;
     for (; it != lim; ++it)
     {
       if (it->empty())
       {
         continue;
       }
-      tmp.Data.push_back(Vortex::Sample::Line());
+      tmp.push_back(Vortex::Sample::Line());
       bool loop = false;
-      if (!SampleLineFromString(*it, tmp.Data.back(), loop))
+      if (!SampleLineFromString(*it, tmp.back(), loop))
       {
         return it;
       }
       if (loop)
       {
-        tmp.Loop = tmp.Data.size() - 1;
+        loopPos = tmp.size() - 1;
       }
     }
-    sample.Loop = tmp.Loop;
-    sample.Data.swap(tmp.Data);
+    sample = Vortex::Sample(loopPos, tmp.begin(), tmp.end());
     return it;
   }
 
@@ -641,7 +642,14 @@ namespace
   */
   inline bool OrnamentFromString(const std::string& str, Vortex::Ornament& ornament)
   {
-    return ParseLoopedList(str, ornament.Data, ornament.Loop);
+    uint_t loop = 0;
+    std::vector<int_t> lines;
+    if (ParseLoopedList(str, lines, loop))
+    {
+      ornament = Vortex::Ornament(loop, lines.begin(), lines.end());
+      return true;
+    }
+    return false;
   }
 
   inline bool PatternHeaderFromString(const std::string& str, uint_t& idx)
@@ -956,10 +964,13 @@ namespace ZXTune
         for (uint_t idx = 1; idx != data.Ornaments.size(); ++idx)
         {
           const Vortex::Ornament& ornament = data.Ornaments[idx];
-          if (!ornament.Data.empty())
+          if (ornament.GetSize())
           {
+            std::vector<int_t> data(ornament.GetLoop());
+            std::transform(boost::counting_iterator<uint_t>(0), boost::counting_iterator<uint_t>(data.size()),
+              data.begin(), boost::bind(&Vortex::Ornament::GetLine, &ornament, _1));
             *iter = SECTION_ORNAMENT + string_cast(idx) + SECTION_END;
-            *iter = UnparseLoopedList(ornament.Data, ornament.Loop);
+            *iter = UnparseLoopedList(data, ornament.GetLoop());
             *iter = std::string();//free
           }
         }
@@ -967,14 +978,13 @@ namespace ZXTune
         for (uint_t idx = 1; idx != data.Samples.size(); ++idx)
         {
           const Vortex::Sample& sample = data.Samples[idx];
-          if (!sample.Data.empty())
+          if (sample.GetSize())
           {
             *iter = SECTION_SAMPLE + string_cast(idx) + SECTION_END;
-            uint_t lpos = sample.Loop;
-            for (std::vector<Sample::Line>::const_iterator sit = sample.Data.begin(),
-              slim = sample.Data.end(); sit != slim; ++sit, --lpos)
+            uint_t lpos = sample.GetLoop();
+            for (uint_t idx = 0; idx < sample.GetSize(); ++idx, --lpos)
             {
-              *iter = SampleLineToString(*sit, !lpos);
+              *iter = SampleLineToString(sample.GetLine(idx), !lpos);
             }
             *iter = std::string();//free
           }

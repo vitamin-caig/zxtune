@@ -29,7 +29,6 @@ Author:
 #include <io/container.h>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/enable_shared_from_this.hpp>
 //text includes
 #include <core/text/plugins.h>
 #include <core/text/warnings.h>
@@ -229,21 +228,13 @@ namespace
   //sample type
   struct Sample
   {
-    Sample() : Loop(), Data()
+    Sample() : Loop(), Lines()
     {
     }
 
-    Sample(uint_t size, uint_t loop) : Loop(loop), Data(size)
+    Sample(uint_t loop, const PT2Sample::Line* from, const PT2Sample::Line* to)
+      : Loop(loop), Lines(from, to)
     {
-    }
-
-    //make safe sample
-    void Fix()
-    {
-      if (Data.empty())
-      {
-        Data.resize(1);
-      }
     }
 
     struct Line
@@ -263,9 +254,25 @@ namespace
       bool NoiseOff;
       int_t Vibrato;
     };
-    
+
+    uint_t GetLoop() const
+    {
+      return Loop;
+    }
+
+    uint_t GetSize() const
+    {
+      return Lines.size();
+    }
+
+    const Line& GetLine(uint_t idx) const
+    {
+      static const Line STUB;
+      return Lines.size() > idx ? Lines[idx] : STUB;
+    }
+  private:
     uint_t Loop;
-    std::vector<Line> Data;
+    std::vector<Line> Lines;
   };
 
   inline Sample ParseSample(const IO::FastDump& data, uint16_t offset, std::size_t& rawSize)
@@ -274,10 +281,9 @@ namespace
     const PT2Sample* const sample = safe_ptr_cast<const PT2Sample*>(&data[off]);
     if (0 == offset || !sample->Size)
     {
-      return Sample(1, 0);//safe
+      return Sample();//safe
     }
-    Sample tmp(sample->Size, sample->Loop);
-    std::copy(sample->Data, sample->Data + sample->Size, tmp.Data.begin());
+    Sample tmp(sample->Loop, sample->Data, sample->Data + sample->Size);
     rawSize = std::max<std::size_t>(rawSize, off + sample->GetSize());
     return tmp;
   }
@@ -288,10 +294,10 @@ namespace
     const PT2Ornament* const ornament = safe_ptr_cast<const PT2Ornament*>(&data[off]);
     if (0 == offset || !ornament->Size)
     {
-      return SimpleOrnament(1, 0);//safe version
+      return SimpleOrnament();//safe version
     }
     rawSize = std::max<std::size_t>(rawSize, off + ornament->GetSize());
-    return SimpleOrnament(ornament->Data, ornament->Data + ornament->Size, ornament->Loop);
+    return SimpleOrnament(ornament->Loop, ornament->Data, ornament->Data + ornament->Size);
   }
 
   //supported commands
@@ -323,9 +329,9 @@ namespace
 
   typedef TrackingSupport<AYM::CHANNELS, Sample> PT2Track;
   
-  Player::Ptr CreatePT2Player(Holder::ConstPtr mod, const PT2Track::ModuleData& data, AYM::Chip::Ptr device);
+  Player::Ptr CreatePT2Player(PT2Track::ModuleData::ConstPtr data, AYM::Chip::Ptr device);
 
-  class PT2Holder : public Holder, public boost::enable_shared_from_this<PT2Holder>
+  class PT2Holder : public Holder
   {
     typedef boost::array<PatternCursor, AYM::CHANNELS> PatternCursors;
     
@@ -354,7 +360,7 @@ namespace
             Log::Assert(channelWarner, !channel->SampleNum, Text::WARNING_DUPLICATE_SAMPLE);
             const uint_t num = cmd - 0xe0;
             channel->SampleNum = num;
-            Log::Assert(channelWarner, !Data.Samples[num].Data.empty(), Text::WARNING_INVALID_SAMPLE);
+            Log::Assert(channelWarner, Data->Samples[num].GetSize() != 0, Text::WARNING_INVALID_SAMPLE);
           }
           else if (cmd == 0xe0) //sample 0 - shut up
           {
@@ -409,7 +415,7 @@ namespace
             Log::Assert(channelWarner, !channel->OrnamentNum, Text::WARNING_DUPLICATE_ORNAMENT);
             const uint_t num = cmd - 0x60;
             channel->OrnamentNum = num;
-            Log::Assert(channelWarner, !(num && Data.Ornaments[num].Data.empty()), Text::WARNING_INVALID_ORNAMENT);
+            Log::Assert(channelWarner, !num || Data->Ornaments[num].GetSize(), Text::WARNING_INVALID_ORNAMENT);
           }
           else if (cmd >= 0x20 && cmd <= 0x5f)//skip
           {
@@ -473,6 +479,7 @@ namespace
 
   public:
     PT2Holder(const MetaContainer& container, ModuleRegion& region)
+      : Data(PT2Track::ModuleData::Create())
     {
       //assume all data is correct
       const IO::FastDump& data = IO::FastDump(*container.Data, region.Offset);
@@ -483,21 +490,21 @@ namespace
 
       std::size_t rawSize = 0;
       //fill samples
-      Data.Samples.reserve(header->SamplesOffsets.size());
+      Data->Samples.reserve(header->SamplesOffsets.size());
       std::transform(header->SamplesOffsets.begin(), header->SamplesOffsets.end(),
-        std::back_inserter(Data.Samples), boost::bind(&ParseSample, boost::cref(data), _1, boost::ref(rawSize)));
+        std::back_inserter(Data->Samples), boost::bind(&ParseSample, boost::cref(data), _1, boost::ref(rawSize)));
       //fill ornaments
-      Data.Ornaments.reserve(header->OrnamentsOffsets.size());
+      Data->Ornaments.reserve(header->OrnamentsOffsets.size());
       std::transform(header->OrnamentsOffsets.begin(), header->OrnamentsOffsets.end(),
-        std::back_inserter(Data.Ornaments), boost::bind(&ParseOrnament, boost::cref(data), _1, boost::ref(rawSize)));
+        std::back_inserter(Data->Ornaments), boost::bind(&ParseOrnament, boost::cref(data), _1, boost::ref(rawSize)));
 
       //fill patterns
-      Data.Patterns.resize(MAX_PATTERN_COUNT);
+      Data->Patterns.resize(MAX_PATTERN_COUNT);
       uint_t index(0);
       for (const PT2Pattern* pattern = patterns; pattern->Check(); ++pattern, ++index)
       {
         Log::ParamPrefixedCollector patternWarner(*warner, Text::PATTERN_WARN_PREFIX, index);
-        PT2Track::Pattern& pat = Data.Patterns[index];
+        PT2Track::Pattern& pat = Data->Patterns[index];
         
         PatternCursors cursors;
         std::transform(pattern->Offsets.begin(), pattern->Offsets.end(), cursors.begin(), &fromLE<uint16_t>);
@@ -531,44 +538,40 @@ namespace
       //fill order
       for (const uint8_t* curPos = header->Positions; POS_END_MARKER != *curPos; ++curPos)
       {
-        if (!Data.Patterns[*curPos].empty())
+        if (!Data->Patterns[*curPos].empty())
         {
-          Data.Positions.push_back(*curPos);
+          Data->Positions.push_back(*curPos);
         }
       }
-      Log::Assert(*warner, header->Length == Data.Positions.size(), Text::WARNING_INVALID_LENGTH);
+      Log::Assert(*warner, header->Length == Data->Positions.size(), Text::WARNING_INVALID_LENGTH);
 
-      //fix samples and ornaments
-      std::for_each(Data.Ornaments.begin(), Data.Ornaments.end(), std::mem_fun_ref(&PT2Track::Ornament::Fix));
-      std::for_each(Data.Samples.begin(), Data.Samples.end(), std::mem_fun_ref(&PT2Track::Sample::Fix));
-      
       //fill region
       region.Size = rawSize;
       
       //meta properties
       const std::size_t fixedOffset(sizeof(PT2Header) + header->Length - 1);
       ExtractMetaProperties(PT2_PLUGIN_ID, container, region, ModuleRegion(fixedOffset, rawSize - fixedOffset),
-        Data.Info.Properties, RawData);
+        Data->Info.Properties, RawData);
       const String& title(OptimizeString(FromStdString(header->Name)));
       if (!title.empty())
       {
-        Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_TITLE, title));
+        Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_TITLE, title));
       }
-      Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_PROGRAM, String(Text::PT2_EDITOR)));
+      Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_PROGRAM, String(Text::PT2_EDITOR)));
       
       //tracking properties
-      Data.Info.LoopPosition = header->Loop;
-      Data.Info.PhysicalChannels = AYM::CHANNELS;
-      Data.Info.Statistic.Tempo = header->Tempo;
-      Data.Info.Statistic.Position = Data.Positions.size();
-      Data.Info.Statistic.Pattern = std::count_if(Data.Patterns.begin(), Data.Patterns.end(),
+      Data->Info.LoopPosition = header->Loop;
+      Data->Info.PhysicalChannels = AYM::CHANNELS;
+      Data->Info.Statistic.Tempo = header->Tempo;
+      Data->Info.Statistic.Position = Data->Positions.size();
+      Data->Info.Statistic.Pattern = std::count_if(Data->Patterns.begin(), Data->Patterns.end(),
         !boost::bind(&PT2Track::Pattern::empty, _1));
-      Data.Info.Statistic.Channels = AYM::CHANNELS;
-      PT2Track::CalculateTimings(Data, Data.Info.Statistic.Frame, Data.Info.LoopFrame);
+      Data->Info.Statistic.Channels = AYM::CHANNELS;
+      PT2Track::CalculateTimings(*Data, Data->Info.Statistic.Frame, Data->Info.LoopFrame);
       if (const uint_t msgs = warner->CountMessages())
       {
-        Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS_COUNT, msgs));
-        Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS, warner->GetMessages('\n')));
+        Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS_COUNT, msgs));
+        Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS, warner->GetMessages('\n')));
       }
     }
     virtual void GetPluginInformation(PluginInformation& info) const
@@ -578,17 +581,17 @@ namespace
 
     virtual void GetModuleInformation(Information& info) const
     {
-      info = Data.Info;
+      info = Data->Info;
     }
     
     virtual void ModifyCustomAttributes(const Parameters::Map& attrs, bool replaceExisting)
     {
-      return Parameters::MergeMaps(Data.Info.Properties, attrs, Data.Info.Properties, replaceExisting);
+      return Parameters::MergeMaps(Data->Info.Properties, attrs, Data->Info.Properties, replaceExisting);
     }
 
     virtual Player::Ptr CreatePlayer() const
     {
-      return CreatePT2Player(shared_from_this(), Data, AYM::CreateChip());
+      return CreatePT2Player(Data, AYM::CreateChip());
     }
     
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -599,16 +602,15 @@ namespace
       {
         dst = RawData;
       }
-      else if (!ConvertAYMFormat(boost::bind(&CreatePT2Player, shared_from_this(), boost::cref(Data), _1), param, dst, result))
+      else if (!ConvertAYMFormat(boost::bind(&CreatePT2Player, boost::cref(Data), _1), param, dst, result))
       {
         return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
       }
       return result;
     }
   private:
-    friend class PT2Player;
     Dump RawData;
-    PT2Track::ModuleData Data;
+    const PT2Track::ModuleData::Ptr Data;
   };
 
   inline uint_t GetVolume(uint_t volume, uint_t level)
@@ -645,25 +647,25 @@ namespace
   class PT2Player : public PT2PlayerBase
   {
   public:
-    PT2Player(Holder::ConstPtr holder, const PT2Track::ModuleData& data, AYM::Chip::Ptr device)
-       : PT2PlayerBase(holder, data, device, TABLE_PROTRACKER2)
+    PT2Player(PT2Track::ModuleData::ConstPtr data, AYM::Chip::Ptr device)
+       : PT2PlayerBase(data, device, TABLE_PROTRACKER2)
     {
 #ifdef SELF_TEST
 //perform self-test
       AYM::DataChunk chunk;
       do
       {
-        assert(Data.Positions.size() > ModState.Track.Position);
+        assert(Data->Positions.size() > ModState.Track.Position);
         RenderData(chunk);
       }
-      while (PT2Track::UpdateState(Data, ModState, Sound::LOOP_NONE));
+      while (PT2Track::UpdateState(*Data, ModState, Sound::LOOP_NONE));
       Reset();
 #endif
     }
 
     virtual void RenderData(AYM::DataChunk& chunk)
     {
-      const PT2Track::Line& line(Data.Patterns[ModState.Track.Pattern][ModState.Track.Line]);
+      const PT2Track::Line& line(Data->Patterns[ModState.Track.Pattern][ModState.Track.Line]);
       if (0 == ModState.Track.Frame)//begin note
       {
         for (uint_t chan = 0; chan != line.Channels.size(); ++chan)
@@ -760,12 +762,13 @@ namespace
       const FrequencyTable& freqTable(AYMHelper->GetFreqTable());
       if (dst.Enabled && dst.SampleNum)
       {
-        const Sample& curSample(Data.Samples[dst.SampleNum]);
-        const Sample::Line& curSampleLine(curSample.Data[dst.PosInSample]);
-        const SimpleOrnament& curOrnament(Data.Ornaments[dst.OrnamentNum]);
+        const Sample& curSample = Data->Samples[dst.SampleNum];
+        const Sample::Line& curSampleLine = curSample.GetLine(dst.PosInSample);
+        const SimpleOrnament& curOrnament = Data->Ornaments[dst.OrnamentNum];
 
         //calculate tone
-        const uint_t halfTone = static_cast<uint_t>(clamp<int_t>(int_t(dst.Note) + curOrnament.Data[dst.PosInOrnament], 0, freqTable.size() - 1));
+        const uint_t halfTone = static_cast<uint_t>(clamp<int_t>(int_t(dst.Note) + curOrnament.GetLine(dst.PosInOrnament),
+          0, freqTable.size() - 1));
         const uint_t tone = static_cast<uint_t>(clamp<int_t>(int_t(freqTable[halfTone]) + dst.Sliding + curSampleLine.Vibrato, 0, 0xfff));
         if (dst.SlidingTargetNote != LIMITER)
         {
@@ -801,13 +804,13 @@ namespace
           chunk.Mask |= 1 << AYM::DataChunk::REG_TONEN;
         }
 
-        if (++dst.PosInSample >= curSample.Data.size())
+        if (++dst.PosInSample >= curSample.GetSize())
         {
-          dst.PosInSample = curSample.Loop;
+          dst.PosInSample = curSample.GetLoop();
         }
-        if (++dst.PosInOrnament >= curOrnament.Data.size())
+        if (++dst.PosInOrnament >= curOrnament.GetSize())
         {
-          dst.PosInOrnament = curOrnament.Loop;
+          dst.PosInOrnament = curOrnament.GetLoop();
         }
       }
       else
@@ -819,9 +822,9 @@ namespace
     }
   };
 
-  Player::Ptr CreatePT2Player(Holder::ConstPtr holder, const PT2Track::ModuleData& data, AYM::Chip::Ptr device)
+  Player::Ptr CreatePT2Player(PT2Track::ModuleData::ConstPtr data, AYM::Chip::Ptr device)
   {
-    return Player::Ptr(new PT2Player(holder, data, device));
+    return Player::Ptr(new PT2Player(data, device));
   }
 
   //////////////////////////////////////////////////

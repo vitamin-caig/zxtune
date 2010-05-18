@@ -28,7 +28,6 @@ Author:
 #include <core/plugin_attrs.h>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/enable_shared_from_this.hpp>
 //text includes
 #include <core/text/core.h>
 #include <core/text/plugins.h>
@@ -232,9 +231,9 @@ namespace
   #define SELF_TEST
   #endif
   
-  Player::Ptr CreatePDTPlayer(Holder::ConstPtr mod, const PDTTrack::ModuleData& data, DAC::Chip::Ptr device);
+  Player::Ptr CreatePDTPlayer(PDTTrack::ModuleData::ConstPtr data, DAC::Chip::Ptr device);
 
-  class PDTHolder : public Holder, public boost::enable_shared_from_this<PDTHolder>
+  class PDTHolder : public Holder
   {
     static void ParsePattern(const PDTPattern& src, Log::MessagesCollector& warner, PDTTrack::Pattern& res)
     {
@@ -305,6 +304,7 @@ namespace
 
   public:
     PDTHolder(const MetaContainer& container, ModuleRegion& region)
+      : Data(PDTTrack::ModuleData::Create())
     {
       //assume that data is ok
       const IO::FastDump& data(*container.Data);
@@ -313,24 +313,24 @@ namespace
       Log::MessagesCollector::Ptr warner(Log::MessagesCollector::Create());
       
       //fill order
-      Data.Positions.resize(header->Lenght);
-      std::copy(header->Positions.begin(), header->Positions.begin() + header->Lenght, Data.Positions.begin());
+      Data->Positions.resize(header->Lenght);
+      std::copy(header->Positions.begin(), header->Positions.begin() + header->Lenght, Data->Positions.begin());
       
       //fill patterns
-      Data.Patterns.resize(header->Patterns.size());
+      Data->Patterns.resize(header->Patterns.size());
       for (uint_t patIdx = 0; patIdx != header->Patterns.size(); ++patIdx)
       {
         Log::ParamPrefixedCollector patternWarner(*warner, Text::PATTERN_WARN_PREFIX, patIdx);
-        ParsePattern(header->Patterns[patIdx], patternWarner, Data.Patterns[patIdx]);
+        ParsePattern(header->Patterns[patIdx], patternWarner, Data->Patterns[patIdx]);
       }
        
       //fill samples
       const uint8_t* samplesData(safe_ptr_cast<const uint8_t*>(header) + sizeof(*header));
-      Data.Samples.resize(header->Samples.size());
+      Data->Samples.resize(header->Samples.size());
       for (uint_t samIdx = 0; samIdx != header->Samples.size(); ++samIdx)
       {
         const PDTSample& srcSample(header->Samples[samIdx]);
-        Sample& dstSample(Data.Samples[samIdx]);
+        Sample& dstSample(Data->Samples[samIdx]);
         const uint_t start(fromLE(srcSample.Start));
         if (srcSample.Page < PAGES_COUNT && start >= 0xc000 && srcSample.Size)
         {
@@ -349,10 +349,10 @@ namespace
       }
       
       //fill ornaments
-      Data.Ornaments.reserve(ORNAMENTS_COUNT + 1);
-      Data.Ornaments.push_back(Ornament());//first empty ornament
+      Data->Ornaments.reserve(ORNAMENTS_COUNT + 1);
+      Data->Ornaments.push_back(Ornament());//first empty ornament
       std::transform(header->Ornaments.begin(), header->Ornaments.end(), header->OrnLoops.begin(),
-        std::back_inserter(Data.Ornaments), MakeOrnament);
+        std::back_inserter(Data->Ornaments), MakeOrnament);
 
       //fill region
       region.Offset = 0;
@@ -360,27 +360,27 @@ namespace
       
       //meta properties
       ExtractMetaProperties(PDT_PLUGIN_ID, container, region, ModuleRegion(sizeof(PDTHeader) - sizeof(header->Patterns), sizeof(header->Patterns)),
-        Data.Info.Properties, RawData);
-      Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_PROGRAM, String(Text::PDT_EDITOR)));
+        Data->Info.Properties, RawData);
+      Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_PROGRAM, String(Text::PDT_EDITOR)));
       const String& title(OptimizeString(FromStdString(header->Title)));
       if (!title.empty())
       {
-        Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_TITLE, title));
+        Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_TITLE, title));
       }
       
       //tracking properties
-      Data.Info.LoopPosition = header->Loop;
-      Data.Info.PhysicalChannels = CHANNELS_COUNT;
-      Data.Info.Statistic.Tempo = header->Tempo;
-      Data.Info.Statistic.Position = Data.Positions.size();
-      Data.Info.Statistic.Pattern = std::count_if(Data.Patterns.begin(), Data.Patterns.end(),
+      Data->Info.LoopPosition = header->Loop;
+      Data->Info.PhysicalChannels = CHANNELS_COUNT;
+      Data->Info.Statistic.Tempo = header->Tempo;
+      Data->Info.Statistic.Position = Data->Positions.size();
+      Data->Info.Statistic.Pattern = std::count_if(Data->Patterns.begin(), Data->Patterns.end(),
         !boost::bind(&PDTTrack::Pattern::empty, _1));
-      Data.Info.Statistic.Channels = CHANNELS_COUNT;
-      PDTTrack::CalculateTimings(Data, Data.Info.Statistic.Frame, Data.Info.LoopFrame);
+      Data->Info.Statistic.Channels = CHANNELS_COUNT;
+      PDTTrack::CalculateTimings(*Data, Data->Info.Statistic.Frame, Data->Info.LoopFrame);
       if (const uint_t msgs = warner->CountMessages())
       {
-        Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS_COUNT, msgs));
-        Data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS, warner->GetMessages('\n')));
+        Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS_COUNT, msgs));
+        Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS, warner->GetMessages('\n')));
       }
     }
 
@@ -391,27 +391,27 @@ namespace
 
     virtual void GetModuleInformation(Information& info) const
     {
-      info = Data.Info;
+      info = Data->Info;
     }
     
     virtual void ModifyCustomAttributes(const Parameters::Map& attrs, bool replaceExisting)
     {
-      return Parameters::MergeMaps(Data.Info.Properties, attrs, Data.Info.Properties, replaceExisting);
+      return Parameters::MergeMaps(Data->Info.Properties, attrs, Data->Info.Properties, replaceExisting);
     }
 
     virtual Player::Ptr CreatePlayer() const
     {
-      const uint_t totalSamples = Data.Samples.size();
+      const uint_t totalSamples = Data->Samples.size();
       DAC::Chip::Ptr chip(DAC::CreateChip(CHANNELS_COUNT, totalSamples, BASE_FREQ));
       for (uint_t idx = 0; idx != totalSamples; ++idx)
       {
-        const Sample& smp = Data.Samples[idx];
+        const Sample& smp = Data->Samples[idx];
         if (smp.Data.size())
         {
           chip->SetSample(idx, smp.Data, smp.Loop);
         }
       }
-      return CreatePDTPlayer(shared_from_this(), Data, chip);
+      return CreatePDTPlayer(Data, chip);
     }
     
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -429,7 +429,7 @@ namespace
     }
   private:
     Dump RawData;
-    PDTTrack::ModuleData Data;
+    const PDTTrack::ModuleData::Ptr Data;
   };
     
   class PDTPlayer : public Player
@@ -462,9 +462,8 @@ namespace
       }
     };
   public:
-    PDTPlayer(Holder::ConstPtr mod, const PDTTrack::ModuleData& data, DAC::Chip::Ptr device)
-      : Module(mod)
-      , Data(data)
+    PDTPlayer(PDTTrack::ModuleData::ConstPtr data, DAC::Chip::Ptr device)
+      : Data(data)
       , Device(device)
       , CurrentState(MODULE_STOPPED)
       , Interpolation(false)
@@ -475,19 +474,14 @@ namespace
       DAC::DataChunk chunk;
       do
       {
-        assert(Data.Positions.size() > ModState.Track.Position);
+        assert(Data->Positions.size() > ModState.Track.Position);
         RenderData(chunk);
       }
-      while (PDTTrack::UpdateState(Data, ModState, Sound::LOOP_NONE));
+      while (PDTTrack::UpdateState(*Data, ModState, Sound::LOOP_NONE));
       Reset();
 #endif
     }
     
-    virtual const Holder& GetModule() const
-    {
-      return *Module;
-    }
-
     virtual Error GetPlaybackState(uint_t& timeState,
                                    Tracking& trackState,
                                    Analyze::ChannelsState& analyzeState) const
@@ -503,7 +497,7 @@ namespace
                               Sound::MultichannelReceiver& receiver)
     {
       // check if finished
-      if (ModState.Frame >= Data.Info.Statistic.Frame)
+      if (ModState.Frame >= Data->Info.Statistic.Frame)
       {
         if (MODULE_STOPPED == CurrentState)
         {
@@ -525,7 +519,7 @@ namespace
       ModState.Track.Channels = std::count_if(ChanState.begin(), ChanState.end(),
         boost::mem_fn(&Analyze::Channel::Enabled));
 
-      if (PDTTrack::UpdateState(Data, ModState, params.Looping))
+      if (PDTTrack::UpdateState(*Data, ModState, params.Looping))
       {
         CurrentState = MODULE_PLAYING;
       }
@@ -541,7 +535,7 @@ namespace
     virtual Error Reset()
     {
       Device->Reset();
-      PDTTrack::InitState(Data, ModState);
+      PDTTrack::InitState(*Data, ModState);
       std::for_each(Ornaments.begin(), Ornaments.end(), std::mem_fun_ref(&OrnamentState::Reset));
       CurrentState = MODULE_STOPPED;
       return Error();
@@ -553,7 +547,7 @@ namespace
       {
         //reset to beginning in case of moving back
         const uint64_t keepTicks = ModState.Tick;
-        PDTTrack::InitState(Data, ModState);
+        PDTTrack::InitState(*Data, ModState);
         std::for_each(Ornaments.begin(), Ornaments.end(), std::mem_fun_ref(&OrnamentState::Reset));
         ModState.Tick = keepTicks;
       }
@@ -562,9 +556,9 @@ namespace
       while (ModState.Frame < frame)
       {
         //do not update tick for proper rendering
-        assert(Data.Positions.size() > ModState.Track.Position);
+        assert(Data->Positions.size() > ModState.Track.Position);
         RenderData(chunk);
-        if (!PDTTrack::UpdateState(Data, ModState, Sound::LOOP_NONE))
+        if (!PDTTrack::UpdateState(*Data, ModState, Sound::LOOP_NONE))
         {
           break;
         }
@@ -595,7 +589,7 @@ namespace
         ornament.Update();
         if (0 == ModState.Track.Frame)//begin note
         {
-          const PDTTrack::Line& line = Data.Patterns[ModState.Track.Pattern][ModState.Track.Line];
+          const PDTTrack::Line& line = Data->Patterns[ModState.Track.Pattern][ModState.Track.Line];
           const PDTTrack::Line::Chan& src = line.Channels[chan];
 
           //ChannelState& dst(Channels[chan]);
@@ -613,7 +607,7 @@ namespace
           {
             if (src.OrnamentNum)
             {
-              Ornaments[chan].Object = &Data.Ornaments[*src.OrnamentNum > ORNAMENTS_COUNT ? 0 :
+              Ornaments[chan].Object = &Data->Ornaments[*src.OrnamentNum > ORNAMENTS_COUNT ? 0 :
                 *src.OrnamentNum];
               Ornaments[chan].Position = 0;
             }
@@ -642,8 +636,7 @@ namespace
       chunk.Channels.swap(res);
     }
   private:
-    const Holder::ConstPtr Module;
-    const PDTTrack::ModuleData& Data;
+    const PDTTrack::ModuleData::ConstPtr Data;
 
     DAC::Chip::Ptr Device;
     PlaybackState CurrentState;
@@ -653,9 +646,9 @@ namespace
     bool Interpolation;
   };
   
-  Player::Ptr CreatePDTPlayer(Holder::ConstPtr mod, const PDTTrack::ModuleData& data, DAC::Chip::Ptr device)
+  Player::Ptr CreatePDTPlayer(PDTTrack::ModuleData::ConstPtr data, DAC::Chip::Ptr device)
   {
-    return Player::Ptr(new PDTPlayer(mod, data, device));
+    return Player::Ptr(new PDTPlayer(data, device));
   }
 
   //////////////////////////////////////////////////////////////////////////

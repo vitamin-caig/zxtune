@@ -59,12 +59,6 @@ namespace
       }
     }
 
-    virtual const Module::Holder& GetModule() const
-    {
-      //do not sync
-      return Delegate->GetModule();
-    }
-
     virtual Error GetPlaybackState(uint_t& timeState, Module::Tracking& trackState,
       Module::Analyze::ChannelsState& analyzeState) const
     {
@@ -210,6 +204,7 @@ namespace ZXTune
           Module::Player::Ptr tmpPlayer(new SafePlayerWrapper(holder->CreatePlayer()));
           ThrowIfError(tmpPlayer->SetParameters(CommonParameters));
           StopPlayback();
+          Holder = holder;
           Player = tmpPlayer;
         }
 

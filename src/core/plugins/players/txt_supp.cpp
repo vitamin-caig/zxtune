@@ -31,7 +31,6 @@ Author:
 #include <cctype>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/enable_shared_from_this.hpp>
 #include <boost/algorithm/string.hpp>
 //text includes
 #include <core/text/core.h>
@@ -63,23 +62,21 @@ namespace
       GetSupportedAYMFormatConvertors() | GetSupportedVortexFormatConvertors();
   }
 
-  class TXTHolder : public Holder, public boost::enable_shared_from_this<TXTHolder>
+  class TXTHolder : public Holder
   {
   public:
     //region must be filled
     TXTHolder(const MetaContainer& container, const ModuleRegion& region)
+      : Data(Vortex::Track::ModuleData::Create())
     {
       const char* const dataIt = static_cast<const char*>(container.Data->Data());
 
       ThrowIfError(Vortex::ConvertFromText(std::string(dataIt, dataIt + region.Size),
-        Data, Version, FreqTableName));
+        *Data, Version, FreqTableName));
       //meta properties
-      ExtractMetaProperties(TXT_PLUGIN_ID, container, region, region, Data.Info.Properties, RawData);
-      //fix samples and ornaments
-      std::for_each(Data.Ornaments.begin(), Data.Ornaments.end(), std::mem_fun_ref(&Vortex::Track::Ornament::Fix));
-      std::for_each(Data.Samples.begin(), Data.Samples.end(), std::mem_fun_ref(&Vortex::Track::Sample::Fix));
+      ExtractMetaProperties(TXT_PLUGIN_ID, container, region, region, Data->Info.Properties, RawData);
 
-      Vortex::Track::CalculateTimings(Data, Data.Info.Statistic.Frame, Data.Info.LoopFrame);
+      Vortex::Track::CalculateTimings(*Data, Data->Info.Statistic.Frame, Data->Info.LoopFrame);
     }
 
     virtual void GetPluginInformation(PluginInformation& info) const
@@ -89,17 +86,17 @@ namespace
 
     virtual void GetModuleInformation(Information& info) const
     {
-      info = Data.Info;
+      info = Data->Info;
     }
 
     virtual void ModifyCustomAttributes(const Parameters::Map& attrs, bool replaceExisting)
     {
-      return Parameters::MergeMaps(Data.Info.Properties, attrs, Data.Info.Properties, replaceExisting);
+      return Parameters::MergeMaps(Data->Info.Properties, attrs, Data->Info.Properties, replaceExisting);
     }
 
     virtual Player::Ptr CreatePlayer() const
     {
-      return Vortex::CreatePlayer(shared_from_this(), Data, Version, FreqTableName, AYM::CreateChip());
+      return Vortex::CreatePlayer(Data, Version, FreqTableName, AYM::CreateChip());
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -111,12 +108,12 @@ namespace
         dst = RawData;
         return Error();
       }
-      else if (ConvertAYMFormat(boost::bind(&Vortex::CreatePlayer, shared_from_this(), boost::cref(Data), Version, FreqTableName, _1),
+      else if (ConvertAYMFormat(boost::bind(&Vortex::CreatePlayer, boost::cref(Data), Version, FreqTableName, _1),
         param, dst, result))
       {
         return result;
       }
-      else if (ConvertVortexFormat(Data, param, Version, FreqTableName, dst, result))
+      else if (ConvertVortexFormat(*Data, param, Version, FreqTableName, dst, result))
       {
         return result;
       }
@@ -124,7 +121,7 @@ namespace
     }
   private:
     Dump RawData;
-    Vortex::Track::ModuleData Data;
+    const Vortex::Track::ModuleData::Ptr Data;
     uint_t Version;
     String FreqTableName;
   };
