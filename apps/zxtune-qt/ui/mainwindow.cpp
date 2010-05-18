@@ -30,7 +30,7 @@ namespace
   class LayoutControl
   {
   public:
-    LayoutControl(QMainWindow* mainWindow, QWidget* controlled, 
+    LayoutControl(QMainWindow* mainWindow, QWidget* controlled,
                      QMenu* layoutMenu, const char* menuTitle)
       : Action(new QAction(mainWindow))
     {
@@ -154,6 +154,7 @@ namespace
       Seeking->connect(Thread, SIGNAL(OnUpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&)),
         SLOT(UpdateState(uint)));
       Seeking->connect(Thread, SIGNAL(OnStopModule(const ZXTune::Module::Information&)), SLOT(CloseState(const ZXTune::Module::Information&)));
+      Analyzer->connect(Thread, SIGNAL(OnStopModule(const ZXTune::Module::Information&)), SLOT(InitState()));
       Analyzer->connect(Thread, SIGNAL(OnUpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&)),
         SLOT(UpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&)));
     }

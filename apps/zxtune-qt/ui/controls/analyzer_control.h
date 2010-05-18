@@ -27,6 +27,7 @@ public:
   static AnalyzerControl* Create(QWidget* parent);
 
 public slots:
+  virtual void InitState() = 0;
   virtual void UpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&) = 0;
 };
 

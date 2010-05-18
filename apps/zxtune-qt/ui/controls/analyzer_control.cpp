@@ -53,28 +53,30 @@ namespace
       setParent(parent);
       setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum));
       setMinimumSize(64, 32);
-      setAutoFillBackground(true);
+    }
+
+    virtual void InitState()
+    {
+      std::fill(Levels.begin(), Levels.end(), 0);
+      DoRepaint();
     }
     
     virtual void UpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState& state)
     {
       std::transform(Levels.begin(), Levels.end(), Levels.begin(), boost::bind(&SafeSub, _1, LEVELS_FALLBACK));
       std::for_each(state.begin(), state.end(), boost::bind(&StoreValue, _1, boost::ref(Levels)));
-      //update graph if visible
-      if (isVisible())
-      {
-        repaint(rect());
-      }
+      DoRepaint();
     }
     
     virtual void paintEvent(QPaintEvent*)
     {
       QPainter painter(this);
-      const int curWidth = std::min<int>(size().width(), MAX_BANDS * BAR_WIDTH);
-      const int curHeight = size().height();
+      const int curWidth = width();
+      const int curHeight = height();
+      painter.eraseRect(0, 0, curWidth, curHeight);
       const QColor mask(0, 0, 0);
       const QColor brush(0xff, 0xff, 0xff);
-      for (uint_t band = 0; band < curWidth / BAR_WIDTH; ++band)
+      for (uint_t band = 0; band < std::min<uint_t>(curWidth / BAR_WIDTH, MAX_BANDS); ++band)
       {
         if (const int scaledValue = Levels[band] * (curHeight - 1) / std::numeric_limits<ZXTune::Module::Analyze::LevelType>::max())
         {
@@ -83,6 +85,15 @@ namespace
           //fill rect
           painter.fillRect(band * BAR_WIDTH + 1, curHeight - scaledValue, BAR_WIDTH - 1, scaledValue, brush);
         }
+      }
+    }
+  private:
+    void DoRepaint()
+    {
+      //update graph if visible
+      if (isVisible())
+      {
+        repaint(rect());
       }
     }
   private:
