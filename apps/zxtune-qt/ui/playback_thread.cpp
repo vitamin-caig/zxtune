@@ -155,9 +155,6 @@ namespace
             }
             break;
           }
-          else if (sigmask & Sound::Backend::MODULE_START)
-          {
-          }
           else if (sigmask & Sound::Backend::MODULE_RESUME)
           {
             OnResumeModule(Info);

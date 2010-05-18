@@ -54,6 +54,8 @@ namespace
     return title;
   }
 
+  QListWidgetItem ITEM_STUB;
+
   class PlaylistImpl : public Playlist
                      , private Ui::Playlist
   {
@@ -75,7 +77,7 @@ namespace
       scanStatus->connect(Thread, SIGNAL(OnScanStop()), SLOT(hide()));
       Thread->connect(scanCancel, SIGNAL(clicked()), SLOT(Cancel()));
       this->connect(playList, SIGNAL(itemDoubleClicked(QListWidgetItem*)), SLOT(SetItem(QListWidgetItem*)));
-      this->connect(playList, SIGNAL(itemActivated(QListWidgetItem*)), SLOT(SelectItem(QListWidgetItem*)));
+      this->connect(playList, SIGNAL(currentItemChanged(QListWidgetItem*, QListWidgetItem*)), SLOT(SelectItem(QListWidgetItem*)));
       this->connect(actionAddFiles, SIGNAL(triggered()), SLOT(AddFiles()));
       this->connect(actionClear, SIGNAL(triggered()), SLOT(Clear()));
       this->connect(actionSort, SIGNAL(triggered()), SLOT(Sort()));
@@ -108,7 +110,7 @@ namespace
     virtual void NextItem()
     {
       const int rowsCount = playList->count();
-      if (!rowsCount || !ActivatedItem)
+      if (!rowsCount || !ActivatedItem || ActivatedItem == &ITEM_STUB)
       {
         return;
       }
@@ -125,7 +127,7 @@ namespace
     virtual void PrevItem()
     {
       const int rowsCount = playList->count();
-      if (!rowsCount || !ActivatedItem)
+      if (!rowsCount || !ActivatedItem || ActivatedItem == &ITEM_STUB)
       {
         return;
       }
@@ -145,7 +147,7 @@ namespace
       {
         ActivatedItem = SelectedItem;
       }
-      if (ActivatedItem)
+      if (ActivatedItem && ActivatedItem != &ITEM_STUB)
       {
         QFont font = ActivatedItem->font();
         font.setBold(true);
@@ -156,7 +158,7 @@ namespace
     
     virtual void PauseItem()
     {
-      if (ActivatedItem)
+      if (ActivatedItem && ActivatedItem != &ITEM_STUB)
       {
         QFont font = ActivatedItem->font();
         font.setItalic(true);
@@ -166,7 +168,7 @@ namespace
     
     virtual void StopItem()
     {
-      if (ActivatedItem)
+      if (ActivatedItem && ActivatedItem != &ITEM_STUB)
       {
         QFont font = ActivatedItem->font();
         font.setBold(false);
@@ -213,6 +215,19 @@ namespace
       Looped = isLooped;
     }
 
+    //QWidget virtuals
+    virtual void keyReleaseEvent(QKeyEvent* event)
+    {
+      if (event->key() == Qt::Key_Delete)
+      {
+        ClearSelected();
+      }
+      else
+      {
+        QWidget::keyReleaseEvent(event);
+      }
+    }
+
     //private slots
     virtual void AddItem(Playitem::Ptr item)
     {
@@ -238,6 +253,12 @@ namespace
     virtual void SetItem(QListWidgetItem* listItem)
     {
       ChooseItem(listItem, ITEM_SET);
+    }
+
+    virtual void ClearSelected()
+    {
+      const QList<QListWidgetItem*>& items = playList->selectedItems();
+      std::for_each(items.begin(), items.end(), boost::bind(&PlaylistImpl::RemoveItem, this, _1));
     }
 
     virtual void ShowProgress(const Log::MessageData& msg)
@@ -272,26 +293,53 @@ namespace
   private:
     void ChooseItem(QListWidgetItem* listItem, ChooseMode mode)
     {
-      assert(listItem);
+      if (!listItem)
+      {
+        ActivatedItem = SelectedItem = 0;
+      }
+      else
+      {
+        const QVariant& data = listItem->data(Qt::UserRole);
+        const PlayitemsList::iterator iter = data.value<PlayitemsList::iterator>();
+        if (ITEM_SET == mode)
+        {
+          StopItem();
+          ActivatedItem = 0;
+          SelectedItem = listItem;
+          OnItemSet(**iter);
+        }
+        else if (ITEM_SELECT == mode)
+        {
+          SelectedItem = listItem;
+          OnItemSelected(**iter);
+        }
+      }
+    }
+
+    void RemoveItem(QListWidgetItem* listItem)
+    {
       const QVariant& data = listItem->data(Qt::UserRole);
       const PlayitemsList::iterator iter = data.value<PlayitemsList::iterator>();
-      if (ITEM_SET == mode)
+      //check if selected affected
+      if (SelectedItem == listItem)
       {
-        StopItem();
-        ActivatedItem = 0;
-        SelectedItem = listItem;
-        OnItemSet(**iter);
+        SelectedItem = 0;
       }
-      else if (ITEM_SELECT == mode)
+      if (ActivatedItem == listItem)
       {
-        SelectedItem = listItem;
-        OnItemSelected(**iter);
+        ActivatedItem = &ITEM_STUB;
       }
+      //remove
+      const int row = playList->row(listItem);
+      std::auto_ptr<QListWidgetItem> removed(playList->takeItem(row));
+      assert(removed.get() == listItem);
+      Items.erase(iter);
     }
   private:
     ProcessThread* const Thread;
     bool Randomized;
     bool Looped;
+    //TODO: thread-safe
     PlayitemsList Items;
     QListWidgetItem* ActivatedItem;
     QListWidgetItem* SelectedItem;

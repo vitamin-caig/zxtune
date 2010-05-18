@@ -51,6 +51,7 @@ private slots:
   virtual void AddItem(Playitem::Ptr item) = 0;
   virtual void SetItem(class QListWidgetItem*) = 0;
   virtual void SelectItem(class QListWidgetItem*) = 0;
+  virtual void ClearSelected() = 0;
   virtual void ShowProgress(const Log::MessageData&) = 0;
 signals:
   void OnItemSet(const Playitem&);
