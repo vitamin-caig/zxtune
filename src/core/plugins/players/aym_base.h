@@ -85,7 +85,7 @@ namespace ZXTune
     //Common base for all aym-tracking-based players
     //Tracker - instance of TrackingSupport
     //State - internal state type
-    template<class Tracker, class State, class ModuleData = Tracker::ModuleData>
+    template<class Tracker, class State, class ModuleData = typename Tracker::ModuleData>
     class AYMPlayer : public AYMPlayerBase
     {
     public:

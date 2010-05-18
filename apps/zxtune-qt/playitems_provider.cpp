@@ -217,10 +217,12 @@ namespace
       //fill plugins info map
       ZXTune::PluginInformationArray plugArray;
       ZXTune::EnumeratePlugins(plugArray);
+
       std::transform(plugArray.begin(), plugArray.end(), std::inserter(Plugins, Plugins.end()),
         boost::bind(&std::make_pair<PluginsMap::key_type, PluginsMap::mapped_type>,
           boost::bind(&ZXTune::PluginInformation::Id, _1),
-          boost::bind(&boost::make_shared<ZXTune::PluginInformation, ZXTune::PluginInformation>, _1)));
+            boost::bind(static_cast<PluginInfoPtr(*)(const ZXTune::PluginInformation&)>(
+              &boost::make_shared<ZXTune::PluginInformation, ZXTune::PluginInformation>), _1)));
     }
     
     virtual Error DetectModules(const String& path, 
