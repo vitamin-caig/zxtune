@@ -34,7 +34,7 @@ namespace
   public:
     explicit PlaybackSupportImpl(QWidget* owner)
     {
-      QObject::setParent(owner);
+      PlaybackSupport::setParent(owner);
 
       using namespace ZXTune;
       //create backend

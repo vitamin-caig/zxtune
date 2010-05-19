@@ -36,17 +36,9 @@ namespace
       QApplication qapp(argc, argv);
       InitResources();
       //main ui
-#ifdef Q_WS_QWS
-      QPointer<MainWindow> win(MainWindow::CreateEmbedded(argc, argv));
-      win->showMaximized();
-#else
       QPointer<MainWindow> win(MainWindow::Create(argc, argv));
-      win->show();
-#endif
       return qapp.exec();
     }
-  private:
-    
   };
 }
 

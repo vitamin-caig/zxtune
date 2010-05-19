@@ -170,13 +170,18 @@ namespace
 
 QPointer<MainWindow> MainWindow::Create(int argc, char* argv[])
 {
-  return QPointer<MainWindow>(new MainWindowImpl(argc, argv));
+  const QPointer<MainWindow> res(new MainWindowImpl(argc, argv));
+  res->show();
+  return res;
 }
-
+/*
 QPointer<MainWindow> MainWindow::CreateEmbedded(int argc, char* argv[])
 {
   qApp->setFont(QFont(QString::fromUtf8("Verdana")));
   qApp->setOverrideCursor(QCursor(Qt::BlankCursor));
   //TODO: create proper window
-  return QPointer<MainWindow>(new MainWindowImpl(argc, argv));
+  const QPointer<MainWindow> res(new MainWindowImpl(argc, argv));
+  res->showMaximized();
+  return res;
 }
+*/
