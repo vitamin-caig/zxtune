@@ -16,7 +16,7 @@ Author:
 #include "playlist_ui.h"
 #include "playlist_moc.h"
 #include "playlist_thread.h"
-#include "../utils.h"
+#include "ui/utils.h"
 //common includes
 #include <logging.h>
 #include <parameters.h>
@@ -76,7 +76,7 @@ namespace
       this->connect(Thread, SIGNAL(OnGetItem(Playitem::Ptr)), SLOT(AddItem(Playitem::Ptr)));
       scanStatus->connect(Thread, SIGNAL(OnScanStop()), SLOT(hide()));
       Thread->connect(scanCancel, SIGNAL(clicked()), SLOT(Cancel()));
-      this->connect(playList, SIGNAL(itemDoubleClicked(QListWidgetItem*)), SLOT(SetItem(QListWidgetItem*)));
+      this->connect(playList, SIGNAL(itemActivated(QListWidgetItem*)), SLOT(SetItem(QListWidgetItem*)));
       this->connect(playList, SIGNAL(currentItemChanged(QListWidgetItem*, QListWidgetItem*)), SLOT(SelectItem(QListWidgetItem*)));
       this->connect(actionAddFiles, SIGNAL(triggered()), SLOT(AddFiles()));
       this->connect(actionClear, SIGNAL(triggered()), SLOT(Clear()));
@@ -350,6 +350,7 @@ namespace
 
 Playlist* Playlist::Create(QMainWindow* parent)
 {
+  REGISTER_METATYPE(Log::MessageData);
   assert(parent);
   return new PlaylistImpl(parent);
 }

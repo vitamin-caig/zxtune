@@ -18,12 +18,12 @@ Author:
 #include <QtGui/QMainWindow>
 #include <QtCore/QPointer>
 
-
 class MainWindow : public QMainWindow
 {
   Q_OBJECT
 public:
   static QPointer<MainWindow> Create(int arg, char* argv[]);
+  static QPointer<MainWindow> CreateEmbedded(int arg, char* argv[]);
 };
 
 #endif //ZXTUNE_QT_MAINWINDOW_H_DEFINED

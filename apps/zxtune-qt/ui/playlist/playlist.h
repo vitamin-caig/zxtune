@@ -15,7 +15,7 @@ Author:
 #define ZXTUNE_QT_PLAYLIST_H_DEFINED
 
 //local includes
-#include "../../playitems_provider.h"
+#include "supp/playitems_provider.h"
 //common includes
 #include <types.h>
 //qt includes

@@ -15,14 +15,15 @@ Author:
 #include "mainwindow.h"
 #include "mainwindow_ui.h"
 #include "mainwindow_moc.h"
-#include "controls/analyzer_control.h"
-#include "controls/playback_controls.h"
-#include "controls/seek_controls.h"
-#include "playlist/playlist.h"
-#include "playback_thread.h"
+#include "ui/controls/analyzer_control.h"
+#include "ui/controls/playback_controls.h"
+#include "ui/controls/seek_controls.h"
+#include "ui/playlist/playlist.h"
+#include "supp/playback_supp.h"
 //common includes
 #include <logging.h>
 //qt includes
+#include <QtGui/QApplication>
 #include <QtGui/QToolBar>
 
 namespace
@@ -128,7 +129,7 @@ namespace
       , Seeking(this, menuLayout, "Seeking")
       , Collection(this, menuLayout, "Playlist")
       , Analyzer(this, menuLayout, "Analyzer")
-      , Thread(PlaybackThread::Create(this))
+      , Playback(PlaybackSupport::Create(this))
     {
       //TODO: remove
       for (int param = 1; param < argc; ++param)
@@ -139,23 +140,23 @@ namespace
       //connect root actions
       Collection->connect(Controls, SIGNAL(OnPrevious()), SLOT(PrevItem()));
       Collection->connect(Controls, SIGNAL(OnNext()), SLOT(NextItem()));
-      Collection->connect(Thread, SIGNAL(OnStartModule(const ZXTune::Module::Information&)), SLOT(PlayItem()));
-      Collection->connect(Thread, SIGNAL(OnResumeModule(const ZXTune::Module::Information&)), SLOT(PlayItem()));
-      Collection->connect(Thread, SIGNAL(OnPauseModule(const ZXTune::Module::Information&)), SLOT(PauseItem()));
-      Collection->connect(Thread, SIGNAL(OnStopModule(const ZXTune::Module::Information&)), SLOT(StopItem()));
-      Collection->connect(Thread, SIGNAL(OnFinishModule(const ZXTune::Module::Information&)), SLOT(NextItem()));
-      Thread->connect(Collection, SIGNAL(OnItemSet(const Playitem&)), SLOT(SetItem(const Playitem&)));
-      Thread->connect(Collection, SIGNAL(OnItemSelected(const Playitem&)), SLOT(SelectItem(const Playitem&)));
-      Thread->connect(Controls, SIGNAL(OnPlay()), SLOT(Play()));
-      Thread->connect(Controls, SIGNAL(OnStop()), SLOT(Stop()));
-      Thread->connect(Controls, SIGNAL(OnPause()), SLOT(Pause()));
-      Thread->connect(Seeking, SIGNAL(OnSeeking(int)), SLOT(Seek(int)));
-      Seeking->connect(Thread, SIGNAL(OnStartModule(const ZXTune::Module::Information&)), SLOT(InitState(const ZXTune::Module::Information&)));
-      Seeking->connect(Thread, SIGNAL(OnUpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&)),
+      Collection->connect(Playback, SIGNAL(OnStartModule(const ZXTune::Module::Information&)), SLOT(PlayItem()));
+      Collection->connect(Playback, SIGNAL(OnResumeModule(const ZXTune::Module::Information&)), SLOT(PlayItem()));
+      Collection->connect(Playback, SIGNAL(OnPauseModule(const ZXTune::Module::Information&)), SLOT(PauseItem()));
+      Collection->connect(Playback, SIGNAL(OnStopModule(const ZXTune::Module::Information&)), SLOT(StopItem()));
+      Collection->connect(Playback, SIGNAL(OnFinishModule(const ZXTune::Module::Information&)), SLOT(NextItem()));
+      Playback->connect(Collection, SIGNAL(OnItemSet(const Playitem&)), SLOT(SetItem(const Playitem&)));
+      Playback->connect(Collection, SIGNAL(OnItemSelected(const Playitem&)), SLOT(SelectItem(const Playitem&)));
+      Playback->connect(Controls, SIGNAL(OnPlay()), SLOT(Play()));
+      Playback->connect(Controls, SIGNAL(OnStop()), SLOT(Stop()));
+      Playback->connect(Controls, SIGNAL(OnPause()), SLOT(Pause()));
+      Playback->connect(Seeking, SIGNAL(OnSeeking(int)), SLOT(Seek(int)));
+      Seeking->connect(Playback, SIGNAL(OnStartModule(const ZXTune::Module::Information&)), SLOT(InitState(const ZXTune::Module::Information&)));
+      Seeking->connect(Playback, SIGNAL(OnUpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&)),
         SLOT(UpdateState(uint)));
-      Seeking->connect(Thread, SIGNAL(OnStopModule(const ZXTune::Module::Information&)), SLOT(CloseState(const ZXTune::Module::Information&)));
-      Analyzer->connect(Thread, SIGNAL(OnStopModule(const ZXTune::Module::Information&)), SLOT(InitState()));
-      Analyzer->connect(Thread, SIGNAL(OnUpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&)),
+      Seeking->connect(Playback, SIGNAL(OnStopModule(const ZXTune::Module::Information&)), SLOT(CloseState(const ZXTune::Module::Information&)));
+      Analyzer->connect(Playback, SIGNAL(OnStopModule(const ZXTune::Module::Information&)), SLOT(InitState()));
+      Analyzer->connect(Playback, SIGNAL(OnUpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&)),
         SLOT(UpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&)));
     }
   private:
@@ -163,17 +164,19 @@ namespace
     ToolbarControl<SeekControls> Seeking;
     WidgetControl<Playlist> Collection;
     ToolbarControl<AnalyzerControl> Analyzer;
-    PlaybackThread* const Thread;
+    PlaybackSupport* const Playback;
   };
 }
 
 QPointer<MainWindow> MainWindow::Create(int argc, char* argv[])
 {
-  //register metatypes
-  //TODO: extract to function
-  qRegisterMetaType<Log::MessageData>("Log::MessageData");
-  qRegisterMetaType<ZXTune::Module::Information>("ZXTune::Module::Information");
-  qRegisterMetaType<ZXTune::Module::Tracking>("ZXTune::Module::Tracking");
-  qRegisterMetaType<ZXTune::Module::Analyze::ChannelsState>("ZXTune::Module::Analyze::ChannelsState");
+  return QPointer<MainWindow>(new MainWindowImpl(argc, argv));
+}
+
+QPointer<MainWindow> MainWindow::CreateEmbedded(int argc, char* argv[])
+{
+  qApp->setFont(QFont(QString::fromUtf8("Verdana")));
+  qApp->setOverrideCursor(QCursor(Qt::BlankCursor));
+  //TODO: create proper window
   return QPointer<MainWindow>(new MainWindowImpl(argc, argv));
 }

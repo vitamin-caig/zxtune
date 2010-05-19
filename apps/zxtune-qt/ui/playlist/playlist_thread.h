@@ -15,7 +15,7 @@ Author:
 #define ZXTUNE_QT_PLAYLIST_THREAD_H_DEFINED
 
 //local includes
-#include "../../playitems_provider.h"
+#include "supp/playitems_provider.h"
 //common includes
 #include <types.h>
 //qt includes
@@ -30,7 +30,7 @@ class ProcessThread : public QThread
 {
   Q_OBJECT
 public:
-  static ProcessThread* Create(QWidget* owner);
+  static ProcessThread* Create(QObject* owner);
 
   virtual void AddItemPath(const String& path) = 0;
 public slots:

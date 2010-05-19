@@ -15,7 +15,7 @@ Author:
 #include "seek_controls.h"
 #include "seek_controls_ui.h"
 #include "seek_controls_moc.h"
-#include "../utils.h"
+#include "ui/utils.h"
 //common includes
 #include <formatter.h>
 
