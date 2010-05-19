@@ -124,9 +124,10 @@ namespace
         tmpResult.Path = ROOT_SUBPATH;
         tmpResult.Data = data;
 
-        for (bool hasResolved = true; hasResolved; hasResolved = false)
+        for (bool hasResolved = true; hasResolved;)
         {
           Log::Debug(THIS_MODULE, "Resolving subpath '%1%'", pathToOpen);
+          hasResolved = false;
           //check for implicit containers
           {
             IO::DataContainer::Ptr fromImplicit;

@@ -374,7 +374,7 @@ namespace
     state.resize(CHANNELS + 1);
     Module::Analyze::Channel& envChan = state[CHANNELS];
     envChan = Module::Analyze::Channel();
-    envChan.Band = GetBandByPeriod(256 * State.Data[DataChunk::REG_TONEE_H] | State.Data[DataChunk::REG_TONEE_L]);
+    envChan.Band = GetBandByPeriod(16 * (256 * State.Data[DataChunk::REG_TONEE_H] + State.Data[DataChunk::REG_TONEE_L]));
 
     const uint_t noiseBand = GetBandByPeriod(2 * State.Data[DataChunk::REG_TONEN]);
     const uint_t mixer = ~GetMixer();
