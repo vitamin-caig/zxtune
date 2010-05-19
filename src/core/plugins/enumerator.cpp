@@ -123,7 +123,8 @@ namespace
         MetaContainer tmpResult;
         tmpResult.Path = ROOT_SUBPATH;
         tmpResult.Data = data;
-        while (!pathToOpen.empty())
+
+        for (bool hasResolved = true; hasResolved; hasResolved = false)
         {
           Log::Debug(THIS_MODULE, "Resolving subpath '%1%'", pathToOpen);
           //check for implicit containers
@@ -135,23 +136,28 @@ namespace
               Log::Debug(THIS_MODULE, "Detected implicit plugin %1% at '%2%'", containerId, tmpResult.Path);
               tmpResult.Data = fromImplicit;
               tmpResult.PluginsChain.push_back(containerId);
+              hasResolved = true;
             }
           }
           //check for other subcontainers
-          IO::DataContainer::Ptr fromContainer;
-          String restPath;
-          String containerId;
-          if (CheckForContainer(commonParams, tmpResult, pathToOpen, fromContainer, restPath, containerId))
+          if (!pathToOpen.empty())
           {
-            Log::Debug(THIS_MODULE, "Detected nested container %1% at '%2%'", containerId, tmpResult.Path);
-            tmpResult.Data = fromContainer;
-            pathToOpen = restPath;
-            tmpResult.Path = subpath.substr(0, subpath.find(restPath));
-            tmpResult.PluginsChain.push_back(containerId);
-          }
-          else
-          {
-            return MakeFormattedError(THIS_LINE, Module::ERROR_FIND_SUBMODULE, Text::MODULE_ERROR_FIND_SUBMODULE, pathToOpen);
+            IO::DataContainer::Ptr fromContainer;
+            String restPath;
+            String containerId;
+            if (CheckForContainer(commonParams, tmpResult, pathToOpen, fromContainer, restPath, containerId))
+            {
+              Log::Debug(THIS_MODULE, "Detected nested container %1% at '%2%'", containerId, tmpResult.Path);
+              tmpResult.Data = fromContainer;
+              pathToOpen = restPath;
+              tmpResult.Path = subpath.substr(0, subpath.find(restPath));
+              tmpResult.PluginsChain.push_back(containerId);
+              hasResolved = true;
+            }
+            else
+            {
+              return MakeFormattedError(THIS_LINE, Module::ERROR_FIND_SUBMODULE, Text::MODULE_ERROR_FIND_SUBMODULE, pathToOpen);
+            }
           }
         }
         Log::Debug(THIS_MODULE, "Resolved path '%1%'", subpath);
