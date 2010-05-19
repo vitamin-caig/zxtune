@@ -41,7 +41,7 @@ namespace ZXTune
       virtual Error Stop();
       virtual Error SetPosition(uint_t frame);
       
-      virtual Error GetCurrentState(State& state) const;
+      virtual State GetCurrentState(Error* error) const;
 
       virtual SignalsCollector::Ptr CreateSignalsCollector(uint_t signalsMask) const;
 

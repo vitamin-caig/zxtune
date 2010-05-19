@@ -109,8 +109,7 @@ namespace
 
     virtual void Pause()
     {
-      ZXTune::Sound::Backend::State curState = ZXTune::Sound::Backend::STARTED;
-      Backend->GetCurrentState(curState);
+      const ZXTune::Sound::Backend::State curState = Backend->GetCurrentState();
       if (ZXTune::Sound::Backend::STARTED == curState)
       {
         Backend->Pause();
@@ -135,8 +134,6 @@ namespace
       SignalsCollector::Ptr signaller = Backend->CreateSignalsCollector(
         Sound::Backend::MODULE_RESUME | Sound::Backend::MODULE_PAUSE |
         Sound::Backend::MODULE_STOP | Sound::Backend::MODULE_FINISH);
-      //global state
-      Sound::Backend::State state = Sound::Backend::STARTED;
       //playback state, just for optimization
       uint_t time = 0;
       Module::Tracking tracking;
@@ -146,7 +143,6 @@ namespace
         uint_t sigmask = 0;
         if (signaller->WaitForSignals(sigmask, 100/*10fps*/))
         {
-          Backend->GetCurrentState(state);
           if (sigmask & (Sound::Backend::MODULE_STOP | Sound::Backend::MODULE_FINISH))
           {
             if (sigmask & Sound::Backend::MODULE_FINISH)
@@ -168,7 +164,8 @@ namespace
             assert(!"Invalid signal");
           }
         }
-        if (Sound::Backend::STARTED != state)
+        const Sound::Backend::State curState = Backend->GetCurrentState();
+        if (Sound::Backend::STARTED != curState)
         {
           continue;
         }

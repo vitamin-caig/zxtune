@@ -424,6 +424,10 @@ namespace
           ThrowIfError(volCtrl->GetVolume(allVolume));
           curVolume = std::accumulate(allVolume.begin(), allVolume.end(), curVolume) / allVolume.size();
         }
+
+        ZXTune::Sound::Backend::State state = ZXTune::Sound::Backend::NOTOPENED;
+        Error stateError;
+
         for (;;)
         {
           if (!Silent && !Quiet)
@@ -434,8 +438,12 @@ namespace
               Silent = true;
             }
           }
-          ZXTune::Sound::Backend::State state;
-          ThrowIfError(backend.GetCurrentState(state));
+          state = backend.GetCurrentState(&stateError);
+
+          if (ZXTune::Sound::Backend::FAILED == state)
+          {
+            throw stateError;
+          }
 
           uint_t curFrame = 0;
           ZXTune::Module::Tracking curTracking;

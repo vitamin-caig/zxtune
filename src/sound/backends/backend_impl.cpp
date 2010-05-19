@@ -189,34 +189,42 @@ namespace ZXTune
     {
       try
       {
-        Log::Debug(THIS_MODULE, "Opening the holder");
-        if (!holder.get())
+        if (!holder)
         {
-          throw Error(THIS_LINE, BACKEND_INVALID_PARAMETER, Text::SOUND_ERROR_BACKEND_INVALID_MODULE);
-        }
-        Module::Information modInfo;
-        holder->GetModuleInformation(modInfo);
-        CheckChannels(modInfo.PhysicalChannels);
-        
-        Locker lock(PlayerMutex);
-        {
-          Log::Debug(THIS_MODULE, "Creating the player");
-          Module::Player::Ptr tmpPlayer(new SafePlayerWrapper(holder->CreatePlayer()));
-          ThrowIfError(tmpPlayer->SetParameters(CommonParameters));
+          Log::Debug(THIS_MODULE, "Reseting the holder");
+          Locker lock(PlayerMutex);
           StopPlayback();
-          Holder = holder;
-          Player = tmpPlayer;
+          Holder.reset();
+          Player.reset();
+          CurrentState = NOTOPENED;
         }
-
-        Channels = modInfo.PhysicalChannels;
-        CurrentState = STOPPED;
-        Mixer::Ptr& curMixer = MixersSet[Channels - 1];
-        if (!curMixer)
+        else
         {
-          ThrowIfError(CreateMixer(Channels, curMixer));
+          Log::Debug(THIS_MODULE, "Opening the holder");
+          Module::Information modInfo;
+          holder->GetModuleInformation(modInfo);
+          CheckChannels(modInfo.PhysicalChannels);
+
+          Locker lock(PlayerMutex);
+          {
+            Log::Debug(THIS_MODULE, "Creating the player");
+            Module::Player::Ptr tmpPlayer(new SafePlayerWrapper(holder->CreatePlayer()));
+            ThrowIfError(tmpPlayer->SetParameters(CommonParameters));
+            StopPlayback();
+            Holder = holder;
+            Player = tmpPlayer;
+          }
+          Channels = modInfo.PhysicalChannels;
+          Mixer::Ptr& curMixer = MixersSet[Channels - 1];
+          if (!curMixer)
+          {
+            ThrowIfError(CreateMixer(Channels, curMixer));
+          }
+          curMixer->SetEndpoint(FilterObject ? FilterObject : Renderer);
+          CurrentState = STOPPED;
+          SendSignal(MODULE_OPEN);
         }
-        curMixer->SetEndpoint(FilterObject ? FilterObject : Renderer);
-        SendSignal(MODULE_OPEN);
+        RenderError = Error();
         Log::Debug(THIS_MODULE, "Done!");
         return Error();
       }
@@ -331,11 +339,14 @@ namespace ZXTune
       }
     }
 
-    Error BackendImpl::GetCurrentState(Backend::State& state) const
+    Backend::State BackendImpl::GetCurrentState(Error* error) const
     {
       Locker lock(PlayerMutex);
-      state = CurrentState;
-      return RenderError;
+      if (error)
+      {
+        *error = RenderError;
+      }
+      return CurrentState;
     }
 
     SignalsCollector::Ptr BackendImpl::CreateSignalsCollector(uint_t signalsMask) const
@@ -561,7 +572,7 @@ namespace ZXTune
         //if any...
         PauseEvent.notify_all();
         Log::Debug(THIS_MODULE, "Stopping playback thread by error");
-        CurrentState = STOPPED;
+        CurrentState = FAILED;
         SendSignal(MODULE_STOP);
         SyncBarrier.wait();
         InProcess = false;

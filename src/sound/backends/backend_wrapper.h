@@ -72,10 +72,10 @@ namespace ZXTune
       {
         return Delegate->SetPosition(frame);
       }
-      
-      virtual Error GetCurrentState(State& state) const
+
+      virtual State GetCurrentState(Error* error) const
       {
-        return Delegate->GetCurrentState(state);
+        return Delegate->GetCurrentState(error);
       }
 
       virtual SignalsCollector::Ptr CreateSignalsCollector(uint_t signalsMask) const

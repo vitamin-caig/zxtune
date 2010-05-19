@@ -107,6 +107,8 @@ namespace ZXTune
       {
         //! No any binded module
         NOTOPENED,
+        //! Error ocurred, in common, equal to STOPPED
+        FAILED,
         //! Playback is stopped
         STOPPED,
         //! Playback is paused
@@ -115,9 +117,9 @@ namespace ZXTune
         STARTED
       };
       //! @brief Retrieving current playback state
-      //! @param state Reference to result value
-      //! @return Error() in case of success
-      virtual Error GetCurrentState(State& state) const = 0;
+      //! @param error Optional pointer to result error
+      //! @return Current state
+      virtual State GetCurrentState(Error* error = 0) const = 0;
 
       //! @brief Signals specification
       enum Signal
