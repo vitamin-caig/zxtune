@@ -1,6 +1,6 @@
 /*
 Abstract:
-  Main window declaration
+  Main window for embedded systems declaration
 
 Last changed:
   $Id$
@@ -11,18 +11,18 @@ Author:
   This file is a part of zxtune-qt application based on zxtune library
 */
 
-#ifndef ZXTUNE_QT_MAINWINDOW_H_DEFINED
-#define ZXTUNE_QT_MAINWINDOW_H_DEFINED
+#ifndef ZXTUNE_QT_MAINWINDOW_EMBEDDED_H_DEFINED
+#define ZXTUNE_QT_MAINWINDOW_EMBEDDED_H_DEFINED
 
 //qt includes
 #include <QtCore/QPointer>
 #include <QtGui/QMainWindow>
 
-class MainWindow : public QMainWindow
+class MainWindowEmbedded : public QMainWindow
 {
   Q_OBJECT
 public:
-  static QPointer<MainWindow> Create(int argc, char* argv[]);
+  static QPointer<MainWindowEmbedded> Create(int arg, char* argv[]);
 };
 
 #endif //ZXTUNE_QT_MAINWINDOW_H_DEFINED

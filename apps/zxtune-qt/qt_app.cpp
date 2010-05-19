@@ -13,6 +13,7 @@ Author:
 
 //local includes
 #include "ui/mainwindow.h"
+#include "ui/mainwindow_embedded.h"
 #include <apps/base/app.h>
 //qt includes
 #include <QtGui/QApplication>
@@ -21,6 +22,9 @@ inline void InitResources()
 {
   Q_INIT_RESOURCE(icons);
 }
+
+//external declaration
+QPointer<QMainWindow> CreateMainWindow(int arg, char* argv[]);
 
 namespace
 {
@@ -36,7 +40,7 @@ namespace
       QApplication qapp(argc, argv);
       InitResources();
       //main ui
-      QPointer<MainWindow> win(MainWindow::Create(argc, argv));
+      QPointer<QMainWindow> win = CreateMainWindow(argc, argv);
       return qapp.exec();
     }
   };

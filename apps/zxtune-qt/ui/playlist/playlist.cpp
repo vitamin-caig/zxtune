@@ -218,7 +218,8 @@ namespace
     //QWidget virtuals
     virtual void keyReleaseEvent(QKeyEvent* event)
     {
-      if (event->key() == Qt::Key_Delete)
+      const int curKey = event->key();
+      if (curKey == Qt::Key_Delete || curKey == Qt::Key_Backspace)
       {
         ClearSelected();
       }
