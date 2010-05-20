@@ -13,6 +13,7 @@ Author:
 
 //local includes
 #include "console.h"
+#include "display.h"
 #include "information.h"
 #include "sound.h"
 #include "source.h"
@@ -43,7 +44,6 @@ Author:
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/program_options.hpp>
-#include <boost/thread/thread.hpp>
 //text includes
 #include "text/text.h"
 
@@ -60,113 +60,16 @@ Author:
 
 namespace
 {
-  //layout constants
-  //TODO: make dynamic calculation
-  const std::size_t INFORMATION_HEIGHT = 6;
-  const std::size_t TRACKING_HEIGHT = 4;
-  const std::size_t PLAYING_HEIGHT = 2;
-  
   inline void ErrOuter(uint_t /*level*/, Error::LocationRef loc, Error::CodeType code, const String& text)
   {
     StdOut << Error::AttributesToString(loc, code, text);
   }
 
-  inline void OutProp(const StringMap::value_type& prop)
-  {
-    StdOut << prop.first << '=' << prop.second << std::endl;
-  }
-
-  inline void ShowItemInfo(const ZXTune::Module::Information& info, uint_t frameDuration)
-  {
-    StringMap strProps;
-    Parameters::ConvertMap(info.Properties, strProps);
-#if 1
-    StdOut
-      << std::endl
-      << InstantiateTemplate(Text::ITEM_INFO, strProps, FILL_NONEXISTING)
-      << (Formatter(Text::ITEM_INFO_ADDON) % FormatTime(info.Statistic.Frame, frameDuration) %
-        info.Statistic.Channels % info.PhysicalChannels).str();
-#else
-    std::for_each(strProps.begin(), strProps.end(), OutProp);
-#endif
-  }
-
-  inline void ShowTrackingStatus(const ZXTune::Module::Tracking& track)
-  {
-    const String& dump = (Formatter(Text::TRACKING_STATUS)
-      % track.Position % track.Pattern % track.Line % track.Frame % track.Tempo % track.Channels).str();
-    assert(TRACKING_HEIGHT == static_cast<std::size_t>(std::count(dump.begin(), dump.end(), '\n')));
-    StdOut << dump;
-  }
-  
-  inline Char StateSymbol(ZXTune::Sound::Backend::State state)
-  {
-    switch (state)
-    {
-    case ZXTune::Sound::Backend::STARTED:
-      return '>';
-    case ZXTune::Sound::Backend::PAUSED:
-      return '#';
-    default:
-      return '\?';
-    }
-  }
-  
-  void ShowPlaybackStatus(uint_t frame, uint_t allframe, ZXTune::Sound::Backend::State state, uint_t width,
-                          uint_t frameDuration)
-  {
-    const Char MARKER = '\x1';
-    String data((Formatter(Text::PLAYBACK_STATUS) % FormatTime(frame, frameDuration) % MARKER).str());
-    const String::size_type totalSize = data.size() - 1 - PLAYING_HEIGHT;
-    const String::size_type markerPos = data.find(MARKER);
-    
-    String prog(width - totalSize, '-');
-    const uint_t pos = frame * (width - totalSize) / allframe;
-    prog[pos] = StateSymbol(state);
-    data.replace(markerPos, 1, prog);
-    assert(PLAYING_HEIGHT == static_cast<std::size_t>(std::count(data.begin(), data.end(), '\n')));
-    StdOut << data << std::flush;
-  }
-  
-  void UpdateAnalyzer(const ZXTune::Module::Analyze::ChannelsState& inState,
-    uint_t fallspeed, std::vector<int_t>& outState)
-  {
-    std::transform(outState.begin(), outState.end(), outState.begin(),
-      std::bind2nd(std::minus<int_t>(), fallspeed));
-    for (uint_t chan = 0, lim = inState.size(); chan != lim; ++chan)
-    {
-      const ZXTune::Module::Analyze::Channel& state(inState[chan]);
-      if (state.Enabled && state.Band < outState.size())
-      {
-        outState[state.Band] = state.Level;
-      }
-    }
-    std::replace_if(outState.begin(), outState.end(), std::bind2nd(std::less<int_t>(), 0), 0);
-  }
-  
-  inline char SymIfGreater(int_t val, int_t limit)
-  {
-    return val > limit ? '#' : ' ';
-  }
-  
-  void ShowAnalyzer(const std::vector<int_t>& state, uint_t high)
-  {
-    const uint_t width = state.size();
-    std::string buffer(width, ' ');
-    for (int_t y = high; y; --y)
-    {
-      const int_t limit = (y - 1) * std::numeric_limits<ZXTune::Module::Analyze::LevelType>::max() / high;
-      std::transform(state.begin(), state.end(), buffer.begin(), boost::bind(SymIfGreater, _1, limit));
-      StdOut << buffer << '\n';
-    }
-    StdOut << std::flush;
-  }
-  
   class Convertor
   {
   public:
-    Convertor(const String& paramsStr, bool silent)
-      : Silent(silent)
+    Convertor(const String& paramsStr, DisplayComponent& display)
+      : Display(display)
     {
       assert(!paramsStr.empty());
       Parameters::Map paramsMap;
@@ -212,7 +115,7 @@ namespace
         item.Module->GetPluginInformation(info);
         if (!(info.Capabilities & CapabilityMask))
         {
-          Message(Text::CONVERT_SKIPPED, item.Id, info.Id);
+          Display.Message((Formatter(Text::CONVERT_SKIPPED) % item.Id % info.Id).str());
           return true;
         }
       }
@@ -239,34 +142,16 @@ namespace
         throw MakeFormattedError(THIS_LINE, CONVERT_PARAMETERS,
           Text::CONVERT_ERROR_WRITE_FILE, filename);
       }
-      Message(Text::CONVERT_DONE, item.Id, filename);
+      Display.Message((Formatter(Text::CONVERT_DONE) % item.Id % filename).str());
       return true;
     }
   private:
-    template<class P1, class P2>
-    void Message(const String& format, const P1& p1, const P2& p2) const
-    {
-      if (!Silent)
-      {
-        StdOut << (Formatter(format) % p1 % p2).str() << std::endl;
-      }
-    }
-
-    template<class P1, class P2, class P3>
-    void Message(const String& format, const P1& p1, const P2& p2, const P3& p3) const
-    {
-      if (!Silent)
-      {
-        StdOut << (Formatter(format) % p1 % p2 % p3).str() << std::endl;
-      }
-    }
-  private:
-    const bool Silent;
+    DisplayComponent& Display;
     std::auto_ptr<ZXTune::Module::Conversion::Parameter> ConversionParameter;
     uint_t CapabilityMask;
     String NameTemplate;
   };
-  
+
   class CLIApplication : public Application
   {
   public:
@@ -274,11 +159,8 @@ namespace
       : Informer(InformationComponent::Create())
       , Sourcer(SourceComponent::Create(GlobalParams))
       , Sounder(SoundComponent::Create(GlobalParams))
-      , Silent(false)
-      , Quiet(false)
-      , Analyzer(false)
+      , Display(DisplayComponent::Create())
       , SeekStep(10)
-      , Updatefps(10)
     {
     }
     
@@ -297,7 +179,7 @@ namespace
         
         if (!ConvertParams.empty())
         {
-          Convertor cnv(ConvertParams, Silent);
+          Convertor cnv(ConvertParams, *Display);
           Sourcer->ProcessItems(boost::bind(&Convertor::ProcessItem, &cnv, _1));
         }
         else
@@ -337,6 +219,7 @@ namespace
         options.add(Informer->GetOptionsDescription());
         options.add(Sourcer->GetOptionsDescription());
         options.add(Sounder->GetOptionsDescription());
+        options.add(Display->GetOptionsDescription());
         //add positional parameters for input
         positional_options_description inputPositional;
         inputPositional.add(Text::INPUT_FILE_KEY, -1);
@@ -344,11 +227,7 @@ namespace
         //cli options
         options_description cliOptions(Text::CLI_SECTION);
         cliOptions.add_options()
-          (Text::SILENT_KEY, bool_switch(&Silent), Text::SILENT_DESC)
-          (Text::QUIET_KEY, bool_switch(&Quiet), Text::QUIET_DESC)
-          (Text::ANALYZER_KEY, bool_switch(&Analyzer), Text::ANALYZER_DESC)
           (Text::SEEKSTEP_KEY, value<uint_t>(&SeekStep), Text::SEEKSTEP_DESC)
-          (Text::UPDATEFPS_KEY, value<uint_t>(&Updatefps), Text::UPDATEFPS_DESC)
         ;
         options.add(cliOptions);
         
@@ -404,17 +283,11 @@ namespace
           frameDuration = Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT;
         }
 
-        //show startup info
-        if (!Silent)
-        {
-          ShowItemInfo(item.Information, static_cast<uint_t>(frameDuration));
-        }
         const uint_t seekStepFrames(item.Information.Statistic.Frame * SeekStep / 100);
-        const uint_t waitPeriod(std::max<uint_t>(1, 1000 / std::max<uint_t>(Updatefps, 1)));
         ThrowIfError(backend.Play());
-        std::vector<int_t> analyzer;
-        Console::SizeType scrSize;
-        ZXTune::Module::Player::ConstWeakPtr weakPlayer(backend.GetPlayer());
+
+        Display->SetModule(item.Information, backend.GetPlayer(), static_cast<uint_t>(frameDuration));
+
         ZXTune::Sound::Gain curVolume = ZXTune::Sound::Gain();
         ZXTune::Sound::MultiGain allVolume;
         ZXTune::Sound::VolumeControl::Ptr volCtrl(backend.GetVolumeControl());
@@ -430,14 +303,6 @@ namespace
 
         for (;;)
         {
-          if (!Silent && !Quiet)
-          {
-            scrSize = Console::Self().GetSize();
-            if (scrSize.first <= 0 || scrSize.second <= 0)
-            {
-              Silent = true;
-            }
-          }
           state = backend.GetCurrentState(&stateError);
 
           if (ZXTune::Sound::Backend::FAILED == state)
@@ -445,34 +310,8 @@ namespace
             throw stateError;
           }
 
-          uint_t curFrame = 0;
-          ZXTune::Module::Tracking curTracking;
-          ZXTune::Module::Analyze::ChannelsState curAnalyze;
-          ThrowIfError(weakPlayer.lock()->GetPlaybackState(curFrame, curTracking, curAnalyze));
+          const uint_t curFrame = Display->BeginFrame(state);
 
-          if (!Silent && !Quiet)
-          {
-            const int_t spectrumHeight = scrSize.second - INFORMATION_HEIGHT - TRACKING_HEIGHT - PLAYING_HEIGHT - 1;
-            if (spectrumHeight < 4)//minimal spectrum height
-            {
-              Analyzer = false;
-            }
-            else if (scrSize.second < int_t(TRACKING_HEIGHT + PLAYING_HEIGHT))
-            {
-              Quiet = true;
-            }
-            else
-            {
-              ShowTrackingStatus(curTracking);
-              ShowPlaybackStatus(curFrame, item.Information.Statistic.Frame, state, scrSize.first, static_cast<uint_t>(frameDuration));
-              if (Analyzer)
-              {
-                analyzer.resize(scrSize.first);
-                UpdateAnalyzer(curAnalyze, 10, analyzer);
-                ShowAnalyzer(analyzer, spectrumHeight);
-              }
-            }
-          }
           if (const uint_t key = Console::Self().GetPressedKey())
           {
             switch (key)
@@ -528,11 +367,7 @@ namespace
           {
             break;
           }
-          boost::this_thread::sleep(boost::posix_time::milliseconds(waitPeriod));
-          if (!Silent && !Quiet)
-          {
-            Console::Self().MoveCursorUp(Analyzer ? scrSize.second - INFORMATION_HEIGHT - 1 : TRACKING_HEIGHT + PLAYING_HEIGHT);
-          }
+          Display->EndFrame();
         }
       }
       catch (const Error& e)
@@ -547,11 +382,8 @@ namespace
     std::auto_ptr<InformationComponent> Informer;
     std::auto_ptr<SourceComponent> Sourcer;
     std::auto_ptr<SoundComponent> Sounder;
-    bool Silent;
-    bool Quiet;
-    bool Analyzer;
+    std::auto_ptr<DisplayComponent> Display;
     uint_t SeekStep;
-    uint_t Updatefps;
   };
 }
 

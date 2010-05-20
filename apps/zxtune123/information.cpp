@@ -172,6 +172,12 @@ namespace
       OptionDesc(Parameters::ZXTune::Sound::Backends::Wav::FILENAME,
                  Text::INFO_OPTIONS_SOUND_BACKENDS_WAV_FILENAME,
                  EMPTY),
+      OptionDesc(Parameters::ZXTune::Sound::Backends::Wav::CUESHEET,
+                 Text::INFO_OPTIONS_SOUND_BACKENDS_WAV_CUESHEET,
+                 EMPTY),
+      OptionDesc(Parameters::ZXTune::Sound::Backends::Wav::CUESHEET_PERIOD,
+                 Text::INFO_OPTIONS_SOUND_BACKENDS_WAV_CUESHEET_PERIOD,
+                 EMPTY),
       OptionDesc(Parameters::ZXTune::Sound::Backends::Wav::OVERWRITE,
                  Text::INFO_OPTIONS_SOUND_BACKENDS_WAV_OVERWRITE,
                  EMPTY),
@@ -277,6 +283,7 @@ namespace
       ZXTune::Module::TABLE_PROTRACKER3_4_REAL,
       ZXTune::Module::TABLE_ASM,
       ZXTune::Module::TABLE_SOUNDTRACKER_PRO,
+      ZXTune::Module::TABLE_NATURAL_SCALED
     };
     StdOut << Text::INFO_LIST_FREQTABLES_TITLE;
     std::copy(FREQTABLES, ArrayEnd(FREQTABLES), std::ostream_iterator<String>(StdOut, " "));

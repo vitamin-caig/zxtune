@@ -185,8 +185,8 @@
 < INPUT_PROGRESS_DESC
 > "Show progress while processing input files."
 
-< CLI_SECTION
-> "Other options"
+< DISPLAY_SECTION
+> "Display-related options"
 
 < SILENT_KEY
 > CMD_SILENT_KEY
@@ -206,14 +206,17 @@
 < ANALYZER_DESC
 > "enable spectrum analyzer"
 
-< SEEKSTEP_KEY
-> CMD_SEEKSTEP_KEY
-
-< SEEKSTEP_DESC
-> "seeking step in percents"
-
 < UPDATEFPS_KEY
 > CMD_UPDATEFPS_KEY
 
 < UPDATEFPS_DESC
 > "update rate"
+
+< CLI_SECTION
+> "Other options"
+
+< SEEKSTEP_KEY
+> CMD_SEEKSTEP_KEY
+
+< SEEKSTEP_DESC
+> "seeking step in percents"

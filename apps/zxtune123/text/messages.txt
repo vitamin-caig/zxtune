@@ -115,6 +115,12 @@
 < INFO_OPTIONS_SOUND_BACKENDS_WAV_OVERWRITE
 > "overwrite target wav file if already exists"
 
+< INFO_OPTIONS_SOUND_BACKENDS_WAV_CUESHEET
+> "write patterns cuesheet for generated file"
+
+< INFO_OPTIONS_SOUND_BACKENDS_WAV_CUESHEET_PERIOD
+> "additionally generate index within specified period for each pattern"
+
 < INFO_OPTIONS_SOUND_BACKENDS_WIN32_DEVICE
 > "device index for win32 backend"
 

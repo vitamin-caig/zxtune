@@ -1,7 +1,7 @@
 binary_name := zxtune123
 path_step := ../..
 include $(path_step)/default.mak
-source_files := information sound source cli_app
+source_files := information sound source display cli_app
 ifeq ($(platform),mingw)
 source_files += console_windows
 else
