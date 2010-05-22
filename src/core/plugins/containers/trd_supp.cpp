@@ -71,7 +71,7 @@ namespace
     uint_t Size() const
     {
       //use catalogue length if it's correct, else calculate
-      return SizeInSectors == ((fromLE(Length) - 1) / BYTES_PER_SECTOR) ?
+      return SizeInSectors == (align<uint_t>(fromLE(Length), BYTES_PER_SECTOR) / BYTES_PER_SECTOR) ?
         fromLE(Length) : BYTES_PER_SECTOR * SizeInSectors;
     }
   } PACK_POST;
