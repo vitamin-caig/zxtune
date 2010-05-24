@@ -25,8 +25,8 @@ Author:
 
 namespace
 {
-  const uint_t MAX_BANDS = 96;
-  const uint_t BAR_WIDTH = 4;
+  const uint_t MAX_BANDS = 12 * 9;
+  const uint_t BAR_WIDTH = 3;
   const uint_t LEVELS_FALLBACK = 20;
   
   typedef boost::array<ZXTune::Module::Analyze::LevelType, MAX_BANDS> Analyzed;
@@ -81,9 +81,9 @@ namespace
         if (const int scaledValue = Levels[band] * (curHeight - 1) / std::numeric_limits<ZXTune::Module::Analyze::LevelType>::max())
         {
           //fill mask
-          painter.fillRect(band * BAR_WIDTH, curHeight - scaledValue - 1, BAR_WIDTH + 1, scaledValue + 1, mask);
+          painter.fillRect(band * BAR_WIDTH + 1, curHeight - scaledValue - 1, BAR_WIDTH + 1, scaledValue + 1, mask);
           //fill rect
-          painter.fillRect(band * BAR_WIDTH + 1, curHeight - scaledValue, BAR_WIDTH - 1, scaledValue, brush);
+          painter.fillRect(band * BAR_WIDTH + 2, curHeight - scaledValue, BAR_WIDTH - 1, scaledValue, brush);
         }
       }
     }

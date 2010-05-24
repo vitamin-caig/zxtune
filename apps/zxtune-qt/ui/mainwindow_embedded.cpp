@@ -76,7 +76,7 @@ namespace
       , Playback(PlaybackSupport::Create(this))
     {
       statusBar()->addWidget(new QLabel(
-        QString::fromUtf8("X-Space A-Ctrl B-Alt Y-Shift Sel-Esc St-Ent LH-Tab RH-Bck"), this));
+        QString::fromUtf8("X-Space A-Ctrl B-Alt Y-Shift Select-Esc Start-Enter LH-Tab RH-Backspace"), this));
 
       //connect root actions
       Collection->connect(Controls, SIGNAL(OnPrevious()), SLOT(PrevItem()));
