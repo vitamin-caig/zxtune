@@ -149,15 +149,17 @@ namespace
     ModuleItem item;
     item.Id = uri;
     item.Module = module;
-    //add additional attributes
-    Parameters::Map attrs;
-    String tmp;
-    attrs.insert(Parameters::Map::value_type(ZXTune::Module::ATTR_FILENAME,
-      ZXTune::IO::ExtractLastPathComponent(path, tmp)));
-    attrs.insert(Parameters::Map::value_type(ZXTune::Module::ATTR_PATH, path));
-    attrs.insert(Parameters::Map::value_type(ZXTune::Module::ATTR_FULLPATH, uri));
-    item.Module->ModifyCustomAttributes(attrs, false);
     module->GetModuleInformation(item.Information);
+    //add additional attributes
+    {
+      Parameters::Map attrs;
+      String tmp;
+      attrs.insert(Parameters::Map::value_type(ZXTune::Module::ATTR_FILENAME,
+        ZXTune::IO::ExtractLastPathComponent(path, tmp)));
+      attrs.insert(Parameters::Map::value_type(ZXTune::Module::ATTR_PATH, path));
+      attrs.insert(Parameters::Map::value_type(ZXTune::Module::ATTR_FULLPATH, uri));
+      Parameters::MergeMaps(item.Information.Properties, attrs, item.Information.Properties, false);
+    }
     try
     {
       return callback(item) ? Error() : Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);

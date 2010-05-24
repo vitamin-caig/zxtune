@@ -196,11 +196,6 @@ namespace
       info = Info;
     }
 
-    virtual void ModifyCustomAttributes(const Parameters::Map& attrs, bool replaceExisting)
-    {
-      return Parameters::MergeMaps(Info.Properties, attrs, Info.Properties, replaceExisting);
-    }
-
     virtual Player::Ptr CreatePlayer() const
     {
       return CreateTSPlayer(shared_from_this());

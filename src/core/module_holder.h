@@ -44,11 +44,6 @@ namespace ZXTune
       //! @param info Reference to returned value
       virtual void GetModuleInformation(Information& info) const = 0;
 
-      //! @brief Modifying attributes set
-      //! @param attrs Attributes to add/modify
-      //! @param replaceExisting Replace existing attributes
-      virtual void ModifyCustomAttributes(const Parameters::Map& attrs, bool replaceExisting) = 0;
-      
       //! @brief Creating new player instance
       //! @return New player
       virtual Player::Ptr CreatePlayer() const = 0;

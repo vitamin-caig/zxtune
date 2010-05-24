@@ -758,11 +758,6 @@ namespace
       info = Data->Info;
     }
 
-    virtual void ModifyCustomAttributes(const Parameters::Map& attrs, bool replaceExisting)
-    {
-      return Parameters::MergeMaps(Data->Info.Properties, attrs, Data->Info.Properties, replaceExisting);
-    }
-
     virtual Player::Ptr CreatePlayer() const
     {
       return CreateASCPlayer(Data, AYM::CreateChip());

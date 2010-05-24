@@ -261,23 +261,25 @@ namespace
         //calculate full path
         String fullPath;
         ThrowIfError(ZXTune::IO::CombineUri(dataPath, subPath, fullPath));
+        ZXTune::Module::Information modInfo;
+        module->GetModuleInformation(modInfo);
         //store custom attributes
-        Parameters::Map attrs;
-        String tmp;
-        attrs.insert(Parameters::Map::value_type(ZXTune::Module::ATTR_FILENAME,
-          ZXTune::IO::ExtractLastPathComponent(dataPath, tmp)));
-        attrs.insert(Parameters::Map::value_type(ZXTune::Module::ATTR_PATH, subPath));
-        attrs.insert(Parameters::Map::value_type(ZXTune::Module::ATTR_FULLPATH, fullPath));
-        ZXTune::Module::Information info;
-        module->ModifyCustomAttributes(attrs, false);
-        module->GetModuleInformation(info);
+        {
+          Parameters::Map attrs;
+          String tmp;
+          attrs.insert(Parameters::Map::value_type(ZXTune::Module::ATTR_FILENAME,
+            ZXTune::IO::ExtractLastPathComponent(dataPath, tmp)));
+          attrs.insert(Parameters::Map::value_type(ZXTune::Module::ATTR_PATH, subPath));
+          attrs.insert(Parameters::Map::value_type(ZXTune::Module::ATTR_FULLPATH, fullPath));
+          Parameters::MergeMaps(modInfo.Properties, attrs, modInfo.Properties, false);
+        }
         ZXTune::PluginInformation plugInfo;
         module->GetPluginInformation(plugInfo);
         const PluginsMap::const_iterator plugIt = Plugins.find(plugInfo.Id);
         assert(plugIt != Plugins.end());
         const Playitem::Ptr item(new PlayitemImpl(
           context, plugIt->second, //common data
-          dataPath, subPath, info, //item data
+          dataPath, subPath, modInfo, //item data
           Parameters::Map()        //TODO: adjusted parameters
         ));
         return callback(item) ? Error() : Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
