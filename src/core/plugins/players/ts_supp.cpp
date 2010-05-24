@@ -47,7 +47,10 @@ namespace
   const String TS_PLUGIN_VERSION(FromStdString("$Rev$"));
 
   const std::size_t TS_MIN_SIZE = 256;
-  const std::size_t TS_MAX_SIZE = 1 << 17;
+  const std::size_t MAX_MODULE_SIZE = 1 << 14;
+  const std::size_t TS_MAX_SIZE = MAX_MODULE_SIZE * 2;
+  //TODO: parametrize
+  const std::size_t SEARCH_THRESHOLD = TS_MIN_SIZE;
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -64,7 +67,11 @@ namespace
 #pragma pack(pop)
 #endif
 
-  const uint8_t TS_ID[] = {'0', '2', 'T', 'S'};
+  const uint8_t TS_ID_0 = '0';
+  const uint8_t TS_ID_1 = '2';
+  const uint8_t TS_ID_2 = 'T';
+  const uint8_t TS_ID_3 = 'S';
+
   BOOST_STATIC_ASSERT(sizeof(Footer) == 16);
 
   template<class T>
@@ -319,6 +326,38 @@ namespace
   }
 
   /////////////////////////////////////////////////////////////////////////////
+  inline std::size_t GetSkipBack(const Footer& footer)
+  {
+    BOOST_STATIC_ASSERT(sizeof(footer.ID3) == 4);
+   
+    switch (footer.ID3[0])
+    {
+      case TS_ID_3://...S
+        return 3;
+      case TS_ID_2://..T.
+        if (footer.ID3[1] == TS_ID_3) //..TS
+        {
+          return 2;
+        }
+        break;
+      case TS_ID_1://.2..
+        if (footer.ID3[1] == TS_ID_2 && //.2T.
+            footer.ID3[2] == TS_ID_3) //.2TS
+        {
+          return 1;
+        }
+        break;
+      case TS_ID_0://0...
+        if (footer.ID3[1] == TS_ID_1 && //02..
+            footer.ID3[2] == TS_ID_2 && //02T.
+            footer.ID3[3] == TS_ID_3) //02TS
+        {
+          return 0;
+        }
+    }
+    return 4;
+  }
+  
   inline bool OnlyAYMPlayersFilter(const PluginInformation& info)
   {
     return 0 != (info.Capabilities & (CAP_STORAGE_MASK ^ CAP_STOR_MODULE)) ||
@@ -339,11 +378,26 @@ namespace
     {
       return false;
     }
-    //TODO: search for signature
     const uint8_t* const data(static_cast<const uint8_t*>(container.Data->Data()));
-    const Footer* footer(safe_ptr_cast<const Footer*>(data + limit - sizeof(Footer)));
-    if (0 != std::memcmp(footer->ID3, TS_ID, sizeof(TS_ID)) ||
-        fromLE(footer->Size1) + fromLE(footer->Size2) + sizeof(*footer) != limit)
+    const Footer* footer = 0;
+    for (std::size_t curPos = limit - sizeof(Footer); curPos > std::max(TS_MIN_SIZE, limit - SEARCH_THRESHOLD);)
+    {
+      const Footer* const testFooter = safe_ptr_cast<const Footer*>(data + curPos);
+      if (const std::size_t skipBack = GetSkipBack(*testFooter))
+      {
+        curPos -= skipBack;
+      }
+      else
+      {
+        if (fromLE(testFooter->Size1) + fromLE(testFooter->Size2) == curPos)
+        {
+          footer = testFooter;
+          break;
+        }
+        curPos -= sizeof(testFooter->ID3);
+      }
+    }
+    if (!footer)
     {
       return false;
     }
@@ -373,9 +427,10 @@ namespace
     //try to create holder
     try
     {
-      holder.reset(new TSHolder(Dump(data, data + limit), holder1, holder2));
+      const std::size_t newSize = fromLE(footer->Size1) + fromLE(footer->Size2) + sizeof(*footer);
+      holder.reset(new TSHolder(Dump(data, data + newSize), holder1, holder2));
       region.Offset = 0;
-      region.Size = limit;
+      region.Size = newSize;
       return true;
     }
     catch (const Error&)

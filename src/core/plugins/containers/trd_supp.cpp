@@ -70,9 +70,8 @@ namespace
 
     uint_t Size() const
     {
-      //use catalogue length if it's correct, else calculate
-      return SizeInSectors == (align<uint_t>(fromLE(Length), BYTES_PER_SECTOR) / BYTES_PER_SECTOR) ?
-        fromLE(Length) : BYTES_PER_SECTOR * SizeInSectors;
+      //use rounded file size for better compatibility
+      return BYTES_PER_SECTOR * SizeInSectors;
     }
   } PACK_POST;
 
