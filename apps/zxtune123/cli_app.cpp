@@ -122,12 +122,10 @@ namespace
       Dump result;
       ThrowIfError(item.Module->Convert(*ConversionParameter, result));
       //prepare result filename
-      ZXTune::Module::Information info;
-      item.Module->GetModuleInformation(info);
       StringMap fields;
       {
         StringMap origFields;
-        Parameters::ConvertMap(info.Properties, origFields);
+        Parameters::ConvertMap(item.Information.Properties, origFields);
         std::transform(origFields.begin(), origFields.end(), std::inserter(fields, fields.end()),
           boost::bind(&std::make_pair<String, String>,
             boost::bind<String>(&StringMap::value_type::first, _1),
