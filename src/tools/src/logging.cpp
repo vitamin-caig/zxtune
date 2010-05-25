@@ -19,7 +19,9 @@ namespace
 {
   // environment variable used to switch on logging
   const char DEBUG_LOG_VARIABLE[] = "ZXTUNE_DEBUG_LOG";
-  
+
+  const char DEBUG_ALL = '*';
+
   class Logger
   {
   public:
@@ -30,7 +32,12 @@ namespace
     
     void Message(const std::string& module, const std::string& msg)
     {
-      std::cerr << '[' << module << "]: " << msg << std::endl;
+      if (Variable &&
+          (*Variable == DEBUG_ALL ||
+           module == Variable))
+      {
+        std::cerr << '[' << module << "]: " << msg << std::endl;
+      }
     }
   
     static Logger& Instance()
@@ -40,11 +47,13 @@ namespace
     }
   private:
     Logger()
-      : Debugging(0 != ::getenv(DEBUG_LOG_VARIABLE))
+      : Variable(::getenv(DEBUG_LOG_VARIABLE))
+      , Debugging(0 != Variable)
     {
     }
     
   private:
+    const char* Variable;
     const bool Debugging;
   };
 }
