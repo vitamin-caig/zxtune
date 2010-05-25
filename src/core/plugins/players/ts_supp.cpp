@@ -67,10 +67,7 @@ namespace
 #pragma pack(pop)
 #endif
 
-  const uint8_t TS_ID_0 = '0';
-  const uint8_t TS_ID_1 = '2';
-  const uint8_t TS_ID_2 = 'T';
-  const uint8_t TS_ID_3 = 'S';
+  const uint8_t TS_ID[] = {'0', '2', 'T', 'S'};
 
   BOOST_STATIC_ASSERT(sizeof(Footer) == 16);
 
@@ -326,36 +323,33 @@ namespace
   }
 
   /////////////////////////////////////////////////////////////////////////////
-  inline std::size_t GetSkipBack(const Footer& footer)
+  std::size_t FindFooter(const IO::FastDump& dump, std::size_t threshold)
   {
-    BOOST_STATIC_ASSERT(sizeof(footer.ID3) == 4);
-   
-    switch (footer.ID3[0])
+    const std::size_t limit = std::min(dump.Size(), TS_MAX_SIZE);
+    if (limit < TS_MIN_SIZE)
     {
-      case TS_ID_3://...S
-        return 3;
-      case TS_ID_2://..T.
-        if (footer.ID3[1] == TS_ID_3) //..TS
-        {
-          return 2;
-        }
-        break;
-      case TS_ID_1://.2..
-        if (footer.ID3[1] == TS_ID_2 && //.2T.
-            footer.ID3[2] == TS_ID_3) //.2TS
-        {
-          return 1;
-        }
-        break;
-      case TS_ID_0://0...
-        if (footer.ID3[1] == TS_ID_1 && //02..
-            footer.ID3[2] == TS_ID_2 && //02T.
-            footer.ID3[3] == TS_ID_3) //02TS
-        {
-          return 0;
-        }
+      return 0;
     }
-    return 4;
+    const std::size_t inStart = limit >= threshold
+      ? std::max(TS_MIN_SIZE, limit - threshold) : TS_MIN_SIZE;
+    for (const uint8_t* begin = dump.Data() + inStart, *end = dump.Data() + limit;;)
+    {
+      const uint8_t* const found = std::search(begin, end, TS_ID, ArrayEnd(TS_ID));
+      if (found == end)
+      {
+        return 0;
+      }
+      const std::size_t footerOffset = found + sizeof(TS_ID) - sizeof(Footer) - dump.Data();
+      const Footer* const footer = safe_ptr_cast<const Footer*>(&dump[footerOffset]);
+      const std::size_t size1 = fromLE(footer->Size1);
+      const std::size_t size2 = fromLE(footer->Size2);
+      if (size1 + size2 <= footerOffset &&
+          size1 >= TS_MIN_SIZE && size2 >= TS_MIN_SIZE)
+      {
+        return footerOffset;
+      }
+      begin = found + ArraySize(TS_ID);
+    }
   }
   
   inline bool OnlyAYMPlayersFilter(const PluginInformation& info)
@@ -373,34 +367,15 @@ namespace
   bool CreateTSModule(const Parameters::Map& commonParams, const MetaContainer& container,
     Holder::Ptr& holder, ModuleRegion& region)
   {
-    const std::size_t limit = std::min(container.Data->Size(), TS_MAX_SIZE);
-    if (limit < TS_MIN_SIZE)
+    const IO::FastDump dump(*container.Data);
+
+    const std::size_t footerOffset = FindFooter(dump, SEARCH_THRESHOLD);
+    if (!footerOffset)
     {
       return false;
     }
-    const uint8_t* const data(static_cast<const uint8_t*>(container.Data->Data()));
-    const Footer* footer = 0;
-    for (std::size_t curPos = limit - sizeof(Footer); curPos > std::max(TS_MIN_SIZE, limit - SEARCH_THRESHOLD);)
-    {
-      const Footer* const testFooter = safe_ptr_cast<const Footer*>(data + curPos);
-      if (const std::size_t skipBack = GetSkipBack(*testFooter))
-      {
-        curPos -= skipBack;
-      }
-      else
-      {
-        if (fromLE(testFooter->Size1) + fromLE(testFooter->Size2) == curPos)
-        {
-          footer = testFooter;
-          break;
-        }
-        curPos -= sizeof(testFooter->ID3);
-      }
-    }
-    if (!footer)
-    {
-      return false;
-    }
+    const Footer* const footer = safe_ptr_cast<const Footer*>(dump.Data() + footerOffset);
+    const std::size_t firstModuleSize = fromLE(footer->Size1);
 
     const PluginsEnumerator& enumerator(PluginsEnumerator::Instance());
     MetaContainer subdata(container);
@@ -410,7 +385,7 @@ namespace
 
     Module::Holder::Ptr holder1;
     detectParams.Callback = boost::bind(CopyModuleHolder, _1, _2, boost::ref(holder1));
-    subdata.Data = container.Data->GetSubcontainer(0, fromLE(footer->Size1));
+    subdata.Data = container.Data->GetSubcontainer(0, firstModuleSize);
     if (enumerator.DetectModules(commonParams, detectParams, subdata, subregion) || !holder1)
     {
       Log::Debug(THIS_MODULE, "Failed to create first module holder");
@@ -418,7 +393,7 @@ namespace
     }
     Module::Holder::Ptr holder2;
     detectParams.Callback = boost::bind(CopyModuleHolder, _1, _2, boost::ref(holder2));
-    subdata.Data = container.Data->GetSubcontainer(fromLE(footer->Size1), fromLE(footer->Size2));
+    subdata.Data = container.Data->GetSubcontainer(firstModuleSize, footerOffset - firstModuleSize);
     if (enumerator.DetectModules(commonParams, detectParams, subdata, subregion) || !holder2)
     {
       Log::Debug(THIS_MODULE, "Failed to create second module holder");
@@ -427,8 +402,12 @@ namespace
     //try to create holder
     try
     {
-      const std::size_t newSize = fromLE(footer->Size1) + fromLE(footer->Size2) + sizeof(*footer);
-      holder.reset(new TSHolder(Dump(data, data + newSize), holder1, holder2));
+      if (firstModuleSize + fromLE(footer->Size2) != footerOffset)
+      {
+        Log::Debug(THIS_MODULE, "Invalid footer structure");
+      }
+      const std::size_t newSize = footerOffset + sizeof(*footer);
+      holder.reset(new TSHolder(Dump(dump.Data(), dump.Data() + newSize), holder1, holder2));
       region.Offset = 0;
       region.Size = newSize;
       return true;
