@@ -34,6 +34,8 @@ Author:
 namespace
 {
   typedef boost::shared_ptr<ZXTune::PluginInformation> PluginInfoPtr;
+
+  const std::string THIS_MODULE("QT::PlaylistProvider");
   
   //cached data provider
   class DataProvider
@@ -60,6 +62,7 @@ namespace
         const CacheMap::const_iterator cacheIt = Cache.find(dataPath);
         if (cacheIt != Cache.end())//has cache
         {
+          Log::Debug(THIS_MODULE, "Getting '%1%' from cache", dataPath);
           CacheHistory.remove(dataPath);
           CacheHistory.push_front(dataPath);
           return cacheIt->second;
@@ -87,11 +90,13 @@ namespace
         Cache.erase(cacheIt);
         CacheHistory.remove(removedItem);
         CacheSize = tmpSize;
+        Log::Debug(THIS_MODULE, "Removed '%1%' from cache (new size is %2%)", removedItem, CacheSize);
       }
       //fill cache
       Cache.insert(CacheMap::value_type(dataPath, data));
       CacheHistory.push_front(dataPath);
       CacheSize += thisSize;
+      Log::Debug(THIS_MODULE, "Stored '%1%' to cache (new size is %2%)", dataPath, CacheSize);
       return data;
     }
   private:
@@ -112,18 +117,6 @@ namespace
     CacheList CacheHistory;
   };
   
-  struct SharedPlayitemContext
-  {
-    typedef boost::shared_ptr<SharedPlayitemContext> Ptr;
-    
-    SharedPlayitemContext(DataProvider::Ptr provider, const Parameters::Map& params)
-      : Provider(provider), CommonParams(params)
-    {
-    }
-    const DataProvider::Ptr Provider;
-    const Parameters::Map CommonParams;
-  };
-
   Error AssignModule(const String& inSubpath, ZXTune::Module::Holder::Ptr inModule,
                      const String& outSubpath, ZXTune::Module::Holder::Ptr& outModule)
   {
@@ -157,6 +150,28 @@ namespace
     return err ? err : Error(THIS_LINE, ZXTune::Module::ERROR_FIND_SUBMODULE);
   }
 
+  class SharedPlayitemContext
+  {
+  public:
+    typedef boost::shared_ptr<SharedPlayitemContext> Ptr;
+
+    SharedPlayitemContext(DataProvider::Ptr provider, const Parameters::Map& params)
+      : Provider(provider), CommonParams(params)
+    {
+    }
+
+    ZXTune::Module::Holder::Ptr GetModule(const String& dataPath, const String& subPath) const
+    {
+      const ZXTune::IO::DataContainer::Ptr data = Provider->GetData(dataPath, CommonParams, 0);
+      ZXTune::Module::Holder::Ptr result;
+      ThrowIfError(OpenModule(CommonParams, data, subPath, result));
+      return result;
+    }
+  private:
+    const DataProvider::Ptr Provider;
+    const Parameters::Map CommonParams;
+  };
+
   class PlayitemImpl : public Playitem
   {
   public:
@@ -179,10 +194,7 @@ namespace
     
     virtual ZXTune::Module::Holder::Ptr GetModule() const
     {
-      ZXTune::IO::DataContainer::Ptr data = Context->Provider->GetData(DataPath, Context->CommonParams, 0);
-      ZXTune::Module::Holder::Ptr result;
-      ThrowIfError(OpenModule(Context->CommonParams, data, SubPath, result));
-      return result;
+      return Context->GetModule(DataPath, SubPath);
     }
     
     virtual const ZXTune::Module::Information& GetModuleInfo() const
