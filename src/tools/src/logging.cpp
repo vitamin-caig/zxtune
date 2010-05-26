@@ -20,24 +20,22 @@ namespace
   // environment variable used to switch on logging
   const char DEBUG_LOG_VARIABLE[] = "ZXTUNE_DEBUG_LOG";
 
+  // mask for all logging output
   const char DEBUG_ALL = '*';
 
+  // helper singleton class to incapsulate logic
   class Logger
   {
   public:
-    bool IsDebuggingEnabled()
+    bool IsDebuggingEnabled(const std::string& module)
     {
-      return Debugging;
+      return Variable &&
+        (*Variable == DEBUG_ALL || 0 == module.find(Variable));
     }
     
     void Message(const std::string& module, const std::string& msg)
     {
-      if (Variable &&
-          (*Variable == DEBUG_ALL ||
-           module == Variable))
-      {
-        std::cerr << '[' << module << "]: " << msg << std::endl;
-      }
+      std::cerr << '[' << module << "]: " << msg << std::endl;
     }
   
     static Logger& Instance()
@@ -48,21 +46,21 @@ namespace
   private:
     Logger()
       : Variable(::getenv(DEBUG_LOG_VARIABLE))
-      , Debugging(0 != Variable)
     {
     }
     
   private:
-    const char* Variable;
-    const bool Debugging;
+    const char* const Variable;
   };
 }
 
 namespace Log
 {
-  bool IsDebuggingEnabled()
+  //public gate
+
+  bool IsDebuggingEnabled(const std::string& module)
   {
-    return Logger::Instance().IsDebuggingEnabled();
+    return Logger::Instance().IsDebuggingEnabled(module);
   }
 
   void Message(const std::string& module, const std::string& msg)

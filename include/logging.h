@@ -38,12 +38,13 @@ namespace Log
     boost::optional<uint_t> Progress;
   };
 
-  //! @brief Checks if debugging messages output is enabled
-  bool IsDebuggingEnabled();
+  //! @brief Checks if debugging messages output for specified module is enabled
+  bool IsDebuggingEnabled(const std::string& module);
 
   //! @brief Unconditionally outputs debug message
   void Message(const std::string& module, const std::string& msg);
 
+  // Type adapters template for std::string output
   template<class T>
   inline const T& AdaptType(const T& param)
   {
@@ -51,6 +52,7 @@ namespace Log
   }
 
   #ifdef UNICODE
+  // Unicode adapter
   inline std::string AdaptType(const String& param)
   {
     return ToStdString(param);
@@ -61,20 +63,23 @@ namespace Log
   inline void Debug(const std::string& module, const char* msg)
   {
     assert(msg);
-    if (IsDebuggingEnabled())
+    if (IsDebuggingEnabled(module))
     {
       Message(module, msg);
     }
   }
 
   //! @brief Conditionally outputs formatted (up to 5 parameters) debug message from specified module
+  //! @note Template functions and public level checking due to performance issues
   template<class P1>
   inline void Debug(const std::string& module, const char* msg, const P1& p1)
   {
     assert(msg);
-    if (IsDebuggingEnabled())
+    if (IsDebuggingEnabled(module))
     {
-      Message(module, (boost::format(msg) % AdaptType(p1)).str());
+      Message(module, (boost::format(msg)
+        % AdaptType(p1))
+        .str());
     }
   }
   
@@ -82,11 +87,12 @@ namespace Log
   inline void Debug(const std::string& module, const char* msg, const P1& p1, const P2& p2)
   {
     assert(msg);
-    if (IsDebuggingEnabled())
+    if (IsDebuggingEnabled(module))
     {
       Message(module, (boost::format(msg)
         % AdaptType(p1)
-        % AdaptType(p2)).str());
+        % AdaptType(p2))
+        .str());
     }
   }
 
@@ -94,12 +100,13 @@ namespace Log
   inline void Debug(const std::string& module, const char* msg, const P1& p1, const P2& p2, const P3& p3)
   {
     assert(msg);
-    if (IsDebuggingEnabled())
+    if (IsDebuggingEnabled(module))
     {
       Message(module, (boost::format(msg)
         % AdaptType(p1)
         % AdaptType(p2)
-        % AdaptType(p3)).str());
+        % AdaptType(p3))
+        .str());
     }
   }
 
@@ -107,13 +114,14 @@ namespace Log
   inline void Debug(const std::string& module, const char* msg, const P1& p1, const P2& p2, const P3& p3, const P4& p4)
   {
     assert(msg);
-    if (IsDebuggingEnabled())
+    if (IsDebuggingEnabled(module))
     {
       Message(module, (boost::format(msg)
         % AdaptType(p1)
         % AdaptType(p2)
         % AdaptType(p3)
-        % AdaptType(p4)).str());
+        % AdaptType(p4))
+        .str());
     }
   }
 
@@ -122,14 +130,15 @@ namespace Log
                     const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5)
   {
     assert(msg);
-    if (IsDebuggingEnabled())
+    if (IsDebuggingEnabled(module))
     {
       Message(module, (boost::format(msg)
         % AdaptType(p1)
         % AdaptType(p2)
         % AdaptType(p3)
         % AdaptType(p4)
-        % AdaptType(p5)).str());
+        % AdaptType(p5))
+        .str());
     }
   }
 }
