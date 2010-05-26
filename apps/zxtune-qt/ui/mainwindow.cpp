@@ -18,6 +18,7 @@ Author:
 #include "ui/controls/analyzer_control.h"
 #include "ui/controls/playback_controls.h"
 #include "ui/controls/seek_controls.h"
+#include "ui/controls/status_control.h"
 #include "ui/playlist/playlist.h"
 #include "supp/playback_supp.h"
 //common includes
@@ -129,6 +130,7 @@ namespace
       , Seeking(this, menuLayout, "Seeking")
       , Collection(this, menuLayout, "Playlist")
       , Analyzer(this, menuLayout, "Analyzer")
+      , Status(this, menuLayout, "Status")
       , Playback(PlaybackSupport::Create(this))
     {
       //TODO: remove
@@ -154,16 +156,21 @@ namespace
       Seeking->connect(Playback, SIGNAL(OnStartModule(const ZXTune::Module::Information&)), SLOT(InitState(const ZXTune::Module::Information&)));
       Seeking->connect(Playback, SIGNAL(OnUpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&)),
         SLOT(UpdateState(uint)));
-      Seeking->connect(Playback, SIGNAL(OnStopModule(const ZXTune::Module::Information&)), SLOT(CloseState(const ZXTune::Module::Information&)));
+      Seeking->connect(Playback, SIGNAL(OnStopModule(const ZXTune::Module::Information&)), SLOT(CloseState()));
       Analyzer->connect(Playback, SIGNAL(OnStopModule(const ZXTune::Module::Information&)), SLOT(InitState()));
       Analyzer->connect(Playback, SIGNAL(OnUpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&)),
         SLOT(UpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&)));
+      Status->connect(Playback, SIGNAL(OnStartModule(const ZXTune::Module::Information&)), SLOT(InitState(const ZXTune::Module::Information&)));
+      Status->connect(Playback, SIGNAL(OnUpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&)),
+        SLOT(UpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&)));
+      Status->connect(Playback, SIGNAL(OnStopModule(const ZXTune::Module::Information&)), SLOT(CloseState()));
     }
   private:
     ToolbarControl<PlaybackControls> Controls;
     ToolbarControl<SeekControls> Seeking;
     WidgetControl<Playlist> Collection;
     ToolbarControl<AnalyzerControl> Analyzer;
+    ToolbarControl<StatusControl> Status;
     PlaybackSupport* const Playback;
   };
 }

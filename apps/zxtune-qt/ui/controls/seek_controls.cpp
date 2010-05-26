@@ -47,7 +47,7 @@ namespace
       timeDisplay->setText(ToQString(FormatTime(frame, 20000/*TODO*/)));
     }
 
-    virtual void CloseState(const ZXTune::Module::Information&)
+    virtual void CloseState()
     {
       timePosition->setRange(0, 0);
       timeDisplay->setText(QString::fromUtf8("-:-.-"));
