@@ -11,8 +11,8 @@ else
 ui_files := ui/mainwindow
 endif
 
-ui_files += ui/controls/playback_controls ui/controls/seek_controls ui/playlist/playlist
-moc_files := ui/controls/analyzer_control ui/controls/status_control ui/playlist/playlist_thread supp/playback_supp
+ui_files += ui/controls/playback_controls ui/controls/seek_controls ui/controls/status_control ui/playlist/playlist
+moc_files := ui/controls/analyzer_control ui/playlist/playlist_thread supp/playback_supp
 qrc_files := res/icons
 source_files += $(ui_files) $(moc_files) $(qrc_files:=_res)
 

@@ -13,6 +13,7 @@ Author:
 
 //local includes
 #include "status_control.h"
+#include "status_control_ui.h"
 #include "status_control_moc.h"
 #include "ui/utils.h"
 //common includes
@@ -25,45 +26,33 @@ Author:
 
 namespace
 {
+  const QString EMPTY_TEXT(QString::fromUtf8("-"));
+
   class StatusControlImpl : public StatusControl
+                          , private Ui::StatusControl
   {
   public:
     explicit StatusControlImpl(QWidget* parent)
-      : TitleLabel(new QLabel(this))
     {
       setParent(parent);
-      QGridLayout* const layout = new QGridLayout(this);
-      layout->setSpacing(1);
-      layout->setMargin(2);
-
-      layout->addWidget(TitleLabel, 0, 0);
+      setupUi(this);
     }
 
-    virtual void InitState(const ZXTune::Module::Information& info)
+    virtual void UpdateState(uint, const ZXTune::Module::Tracking& tracking)
     {
-      String result, title;
-      Parameters::FindByName(info.Properties, ZXTune::Module::ATTR_AUTHOR, result);
-      Parameters::FindByName(info.Properties, ZXTune::Module::ATTR_TITLE, title);
-      if (!result.empty())
-      {
-        result += ' ';
-        result += '-';
-        result += ' ';
-      }
-      result += title;
-      TitleLabel->setText(ToQString(result));
-    }
-
-    virtual void UpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&)
-    {
+      textPosition->setText(QString::number(tracking.Position));
+      textPattern->setText(QString::number(tracking.Pattern));
+      textLine->setText(QString::number(tracking.Line));
+      textChannels->setText(QString::number(tracking.Channels));
     }
 
     virtual void CloseState()
     {
-      TitleLabel->clear();
+      textPosition->setText(EMPTY_TEXT);
+      textPattern->setText(EMPTY_TEXT);
+      textLine->setText(EMPTY_TEXT);
+      textChannels->setText(EMPTY_TEXT);
     }
-  private:
-    QLabel* const TitleLabel;
   };
 }
 

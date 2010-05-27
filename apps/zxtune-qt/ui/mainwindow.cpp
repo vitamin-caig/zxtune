@@ -52,7 +52,7 @@ namespace
   class ToolbarControl
   {
   public:
-    ToolbarControl(QMainWindow* mainWindow, QMenu* layoutMenu, const char* menuTitle)
+    ToolbarControl(QMainWindow* mainWindow, QMenu* layoutMenu, const char* menuTitle, bool lastInRow)
       : Control(T::Create(mainWindow))
       , Toolbar(new QToolBar(mainWindow))
       , Layout(mainWindow, Toolbar, layoutMenu, menuTitle)
@@ -66,6 +66,10 @@ namespace
       Toolbar->setAllowedAreas(Qt::TopToolBarArea);
       Toolbar->setFloatable(false);
       mainWindow->addToolBar(Qt::TopToolBarArea, Toolbar);
+      if (lastInRow)
+      {
+        mainWindow->addToolBarBreak();
+      }
       Toolbar->addWidget(Control);
     }
     
@@ -126,11 +130,11 @@ namespace
   public:
     MainWindowImpl(int argc, char* argv[])
       : UiHelper(this)
-      , Controls(this, menuLayout, "Controls")
-      , Seeking(this, menuLayout, "Seeking")
+      , Controls(this, menuLayout, "Controls", false)
+      , Seeking(this, menuLayout, "Seeking", true)
+      , Status(this, menuLayout, "Status", false)
+      , Analyzer(this, menuLayout, "Analyzer", true)
       , Collection(this, menuLayout, "Playlist")
-      , Analyzer(this, menuLayout, "Analyzer")
-      , Status(this, menuLayout, "Status")
       , Playback(PlaybackSupport::Create(this))
     {
       //TODO: remove
@@ -160,17 +164,16 @@ namespace
       Analyzer->connect(Playback, SIGNAL(OnStopModule(const ZXTune::Module::Information&)), SLOT(InitState()));
       Analyzer->connect(Playback, SIGNAL(OnUpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&)),
         SLOT(UpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&)));
-      Status->connect(Playback, SIGNAL(OnStartModule(const ZXTune::Module::Information&)), SLOT(InitState(const ZXTune::Module::Information&)));
       Status->connect(Playback, SIGNAL(OnUpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&)),
-        SLOT(UpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&)));
+        SLOT(UpdateState(uint, const ZXTune::Module::Tracking&)));
       Status->connect(Playback, SIGNAL(OnStopModule(const ZXTune::Module::Information&)), SLOT(CloseState()));
     }
   private:
     ToolbarControl<PlaybackControls> Controls;
     ToolbarControl<SeekControls> Seeking;
-    WidgetControl<Playlist> Collection;
-    ToolbarControl<AnalyzerControl> Analyzer;
     ToolbarControl<StatusControl> Status;
+    ToolbarControl<AnalyzerControl> Analyzer;
+    WidgetControl<Playlist> Collection;
     PlaybackSupport* const Playback;
   };
 }
