@@ -112,7 +112,7 @@ namespace
 
     // Open subpath in despite of filter and other
     virtual Error ResolveSubpath(const Parameters::Map& commonParams, IO::DataContainer::Ptr data,
-      const String& subpath, const DetectParameters::LogFunc& /*logger*/, MetaContainer& result) const
+      const String& subpath, MetaContainer& result) const
     {
       try
       {
@@ -213,8 +213,7 @@ namespace
       //try to detect and process single modules
       Module::Holder::Ptr holder;
       String pluginId;
-      const Error& e = DetectModule(commonParams, detectParams.Filter, data, holder, region, pluginId);
-      if (e)
+      if (const Error& e = DetectModule(commonParams, detectParams.Filter, data, holder, region, pluginId))
       {
         //find ok if nothing found -> it's not error
         if (e == Module::ERROR_FIND_PLAYER_PLUGIN)
@@ -237,6 +236,18 @@ namespace
         Error err(THIS_LINE, Module::ERROR_DETECT_CANCELED, Text::MODULE_ERROR_CANCELED);
         return err.AddSuberror(e);
       }
+      return Error();
+    }
+
+    virtual Error OpenModule(const Parameters::Map& commonParams, const MetaContainer& data, Module::Holder::Ptr& holder) const
+    {
+      ModuleRegion region;
+      std::string pluginId;
+      if (const Error& e = DetectModule(commonParams, 0, data, holder, region, pluginId))
+      {
+        return e;
+      }
+      Log::Debug(THIS_MODULE, "Opened player plugin %1%", pluginId);
       return Error();
     }
 
@@ -445,12 +456,40 @@ namespace ZXTune
     {
       const PluginsEnumerator& enumerator(PluginsEnumerator::Instance());
       MetaContainer subcontainer;
-      if (const Error& e = enumerator.ResolveSubpath(commonParams, data, startSubpath, detectParams.Logger, subcontainer))
+      if (const Error& e = enumerator.ResolveSubpath(commonParams, data, startSubpath, subcontainer))
       {
         return e;
       }
       ModuleRegion region;
       return enumerator.DetectModules(commonParams, detectParams, subcontainer, region);
+    }
+    catch (const std::bad_alloc&)
+    {
+      return Error(THIS_LINE, Module::ERROR_NO_MEMORY, Text::MODULE_ERROR_NO_MEMORY);
+    }
+  }
+
+  Error OpenModule(const Parameters::Map& commonParams, IO::DataContainer::Ptr data, const String& subpath,
+      Module::Holder::Ptr& result)
+  {
+    if (!data.get())
+    {
+      return Error(THIS_LINE, Module::ERROR_INVALID_PARAMETERS, Text::MODULE_ERROR_PARAMETERS);
+    }
+    try
+    {
+      const PluginsEnumerator& enumerator(PluginsEnumerator::Instance());
+      MetaContainer subcontainer;
+      if (const Error& e = enumerator.ResolveSubpath(commonParams, data, subpath, subcontainer))
+      {
+        return e;
+      }
+      //try to detect and process single modules
+      if (const Error& e = enumerator.OpenModule(commonParams, subcontainer, result))
+      {
+        return MakeFormattedError(THIS_LINE, Module::ERROR_FIND_SUBMODULE, Text::MODULE_ERROR_FIND_SUBMODULE, subpath);
+      }
+      return Error();
     }
     catch (const std::bad_alloc&)
     {

@@ -81,10 +81,13 @@ namespace ZXTune
     //private interface
     //resolve subpath
     virtual Error ResolveSubpath(const Parameters::Map& commonParams, IO::DataContainer::Ptr data,
-      const String& subpath, const DetectParameters::LogFunc& logger, MetaContainer& result) const = 0;
+      const String& subpath, MetaContainer& result) const = 0;
     //full module detection
     virtual Error DetectModules(const Parameters::Map&, const DetectParameters& params, const MetaContainer& data,
       ModuleRegion& region) const = 0;
+    //single module opening
+    virtual Error OpenModule(const Parameters::Map& commonParams, const MetaContainer& data, 
+      Module::Holder::Ptr& holder) const = 0;
     //calculate plugins in chain according to capabilities
     virtual uint_t CountPluginsInChain(const StringArray& pluginsChain, uint_t capMask, uint_t capValue) const = 0;
 

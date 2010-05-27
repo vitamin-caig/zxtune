@@ -352,16 +352,12 @@ namespace
     }
   }
   
-  inline bool OnlyAYMPlayersFilter(const PluginInformation& info)
+  inline bool InvalidHolder(const Module::Holder& holder)
   {
+    PluginInformation info;
+    holder.GetPluginInformation(info);
     return 0 != (info.Capabilities & (CAP_STORAGE_MASK ^ CAP_STOR_MODULE)) ||
-           0 != (info.Capabilities & (CAP_DEVICE_MASK ^ CAP_DEV_AYM));
-  }
-
-  inline Error CopyModuleHolder(const String&, Module::Holder::Ptr src, Module::Holder::Ptr& dst)
-  {
-    dst = src;
-    return Error();
+           0 != (info.Capabilities & (CAP_DEVICE_MASK ^ CAP_DEV_AYM)); 
   }
 
   bool CreateTSModule(const Parameters::Map& commonParams, const MetaContainer& container,
@@ -379,22 +375,17 @@ namespace
 
     const PluginsEnumerator& enumerator(PluginsEnumerator::Instance());
     MetaContainer subdata(container);
-    ModuleRegion subregion;
-    DetectParameters detectParams;
-    detectParams.Filter = &OnlyAYMPlayersFilter;
 
     Module::Holder::Ptr holder1;
-    detectParams.Callback = boost::bind(CopyModuleHolder, _1, _2, boost::ref(holder1));
     subdata.Data = container.Data->GetSubcontainer(0, firstModuleSize);
-    if (enumerator.DetectModules(commonParams, detectParams, subdata, subregion) || !holder1)
+    if (enumerator.OpenModule(commonParams, subdata, holder1) || InvalidHolder(*holder1))
     {
-      Log::Debug(THIS_MODULE, "Failed to create first module holder");
+      Log::Debug(THIS_MODULE, "Invalid first module holder");
       return false;
     }
     Module::Holder::Ptr holder2;
-    detectParams.Callback = boost::bind(CopyModuleHolder, _1, _2, boost::ref(holder2));
     subdata.Data = container.Data->GetSubcontainer(firstModuleSize, footerOffset - firstModuleSize);
-    if (enumerator.DetectModules(commonParams, detectParams, subdata, subregion) || !holder2)
+    if (enumerator.OpenModule(commonParams, subdata, holder2) || InvalidHolder(*holder2))
     {
       Log::Debug(THIS_MODULE, "Failed to create second module holder");
       return false;
