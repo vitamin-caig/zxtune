@@ -117,39 +117,6 @@ namespace
     CacheList CacheHistory;
   };
   
-  Error AssignModule(const String& inSubpath, ZXTune::Module::Holder::Ptr inModule,
-                     const String& outSubpath, ZXTune::Module::Holder::Ptr& outModule)
-  {
-    if (inSubpath != outSubpath || outModule)
-    {
-      return Error(THIS_LINE, ZXTune::Module::ERROR_FIND_SUBMODULE);
-    }
-    outModule = inModule;
-    return Error();
-  }
-  
-  bool OnlyModulesFilter(const ZXTune::PluginInformation& info)
-  {
-    return 0 == (info.Capabilities & ZXTune::CAP_STOR_MODULE);
-  }
-  
-  //TODO: extract to core?
-  Error OpenModule(const Parameters::Map& commonParams, ZXTune::IO::DataContainer::Ptr data, const String& subpath,
-    ZXTune::Module::Holder::Ptr& result)
-  {
-    ZXTune::Module::Holder::Ptr tmp;
-    ZXTune::DetectParameters params;
-    params.Filter = OnlyModulesFilter;
-    params.Callback = boost::bind(&AssignModule, _1, _2, subpath, boost::ref(tmp));
-    const Error& err = ZXTune::DetectModules(commonParams, params, data, subpath);
-    if (tmp)
-    {
-      result = tmp;
-      return Error();
-    }
-    return err ? err : Error(THIS_LINE, ZXTune::Module::ERROR_FIND_SUBMODULE);
-  }
-
   class SharedPlayitemContext
   {
   public:
@@ -164,7 +131,7 @@ namespace
     {
       const ZXTune::IO::DataContainer::Ptr data = Provider->GetData(dataPath, CommonParams, 0);
       ZXTune::Module::Holder::Ptr result;
-      ThrowIfError(OpenModule(CommonParams, data, subPath, result));
+      ThrowIfError(ZXTune::OpenModule(CommonParams, data, subPath, result));
       return result;
     }
   private:
