@@ -27,12 +27,18 @@ namespace ZXTune
     //! @brief Describes supported backend
     struct BackendInformation
     {
+      BackendInformation() : Capabilities()
+      {
+      }
+
       //! Short spaceless identifier
       String Id;
       //! Textual description
       String Description;
       //! Version in text format
       String Version;
+      //! Backend capabilities @see backend_attrs.h
+      uint_t Capabilities;
     };
     
     //! @brief Set of backend descriptors

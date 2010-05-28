@@ -21,6 +21,7 @@ Author:
 #include <tools.h>
 //library includes
 #include <io/fs_tools.h>
+#include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/error_codes.h>
 //std includes
@@ -43,14 +44,6 @@ namespace
 
   const Char BACKEND_ID[] = {'w', 'a', 'v', 0};
   const String BACKEND_VERSION(FromStdString("$Rev$"));
-
-  // backend description
-  const BackendInformation BACKEND_INFO =
-  {
-    BACKEND_ID,
-    Text::WAV_BACKEND_DESCRIPTION,
-    BACKEND_VERSION,
-  };
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -151,6 +144,15 @@ namespace
     Parameters::IntType SplitPeriod;
   };
 
+  // backend description
+  void DescribeBackend(BackendInformation& info)
+  {
+    info.Id = BACKEND_ID;
+    info.Description = Text::WAV_BACKEND_DESCRIPTION;
+    info.Version = BACKEND_VERSION;
+    info.Capabilities = CAP_TYPE_FILE;
+  }
+
   class WAVBackend : public BackendImpl, private boost::noncopyable
   {
   public:
@@ -171,7 +173,7 @@ namespace
 
     virtual void GetInformation(BackendInformation& info) const
     {
-      info = BACKEND_INFO;
+      DescribeBackend(info);
     }
 
     virtual VolumeControl::Ptr GetVolumeControl() const
@@ -327,7 +329,9 @@ namespace ZXTune
   {
     void RegisterWAVBackend(BackendsEnumerator& enumerator)
     {
-      enumerator.RegisterBackend(BACKEND_INFO, &WAVBackendCreator);
+      BackendInformation info;
+      DescribeBackend(info);
+      enumerator.RegisterBackend(info, &WAVBackendCreator);
     }
   }
 }

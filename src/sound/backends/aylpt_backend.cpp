@@ -21,6 +21,7 @@ Author:
 #include <core/convert_parameters.h>
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
+#include <sound/backend_attrs.h>
 #include <sound/dummy_receiver.h>
 #include <sound/error_codes.h>
 //text includes
@@ -36,13 +37,13 @@ namespace
   const Char BACKEND_ID[] = {'a', 'y', 'l', 'p', 't', 0};
   const String BACKEND_VERSION(FromStdString("$Rev$"));
 
-  // backend description
-  const BackendInformation BACKEND_INFO =
+  void DescribeBackend(BackendInformation& info)
   {
-    BACKEND_ID,
-    Text::AYLPT_BACKEND_DESCRIPTION,
-    BACKEND_VERSION,
-  };
+    info.Id = BACKEND_ID;
+    info.Description = Text::AYLPT_BACKEND_DESCRIPTION;
+    info.Version = BACKEND_VERSION;
+    info.Capabilities = CAP_TYPE_HARDWARE;
+  }
 
   class AYLPTBackend : public BackendImpl, private boost::noncopyable
   {
@@ -56,7 +57,7 @@ namespace
 
     virtual void GetInformation(BackendInformation& info) const
     {
-      info = BACKEND_INFO;
+      DescribeBackend(info);
     }
 
     virtual Error SetModule(Module::Holder::Ptr holder)
@@ -184,7 +185,9 @@ namespace ZXTune
     {
       if (DLPortIO::IsSupported())
       {
-        enumerator.RegisterBackend(BACKEND_INFO, &AYLPTBackendCreator);
+        BackendInformation info;
+        DescribeBackend(info);
+        enumerator.RegisterBackend(info, &AYLPTBackendCreator);
       }
     }
   }

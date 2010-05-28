@@ -14,6 +14,7 @@ Author:
 #include "backend_wrapper.h"
 #include "enumerator.h"
 //library includes
+#include <sound/backend_attrs.h>
 #include <sound/error_codes.h>
 //boost includes
 #include <boost/noncopyable.hpp>
@@ -31,12 +32,13 @@ namespace
   const String BACKEND_VERSION(FromStdString("$Rev$"));
 
   // backend description
-  const BackendInformation BACKEND_INFO =
+  void DescribeBackend(BackendInformation& info)
   {
-    BACKEND_ID,
-    Text::NULL_BACKEND_DESCRIPTION,
-    BACKEND_VERSION,
-  };
+    info.Id = BACKEND_ID;
+    info.Description = Text::NULL_BACKEND_DESCRIPTION;
+    info.Version = BACKEND_VERSION;
+    info.Capabilities = CAP_TYPE_STUB;
+  }
 
   // dummy backend with no functionality except informational
   class NullBackend : public BackendImpl, private boost::noncopyable
@@ -48,7 +50,7 @@ namespace
 
     virtual void GetInformation(BackendInformation& info) const
     {
-      info = BACKEND_INFO;
+      DescribeBackend(info);
     }
 
     virtual VolumeControl::Ptr GetVolumeControl() const
@@ -93,7 +95,9 @@ namespace ZXTune
   {
     void RegisterNullBackend(BackendsEnumerator& enumerator)
     {
-      enumerator.RegisterBackend(BACKEND_INFO, &NullBackendCreator);
+      BackendInformation info;
+      DescribeBackend(info);
+      enumerator.RegisterBackend(info, &NullBackendCreator);
     }
   }
 }

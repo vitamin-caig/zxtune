@@ -21,6 +21,7 @@ Author:
 #include <logging.h>
 //library includes
 #include <io/fs_tools.h>
+#include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/error_codes.h>
 //platform-specific includes
@@ -51,13 +52,6 @@ namespace
   const Char BACKEND_ID[] = {'o', 's', 's', 0};
   const String BACKEND_VERSION(FromStdString("$Rev$"));
 
-  static const BackendInformation BACKEND_INFO =
-  {
-    BACKEND_ID,
-    Text::OSS_BACKEND_DESCRIPTION,
-    BACKEND_VERSION,
-  };
- 
   class AutoDescriptor : public boost::noncopyable
   {
   public:
@@ -177,6 +171,15 @@ namespace
     AutoDescriptor& MixHandle;
   };
   
+  // backend description
+  void DescribeBackend(BackendInformation& info)
+  {
+    info.Id = BACKEND_ID;
+    info.Description = Text::OSS_BACKEND_DESCRIPTION;
+    info.Version = BACKEND_VERSION;
+    info.Capabilities = CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
+  }
+
   class OSSBackend : public BackendImpl, private boost::noncopyable
   {
   public:
@@ -195,7 +198,7 @@ namespace
 
     virtual void GetInformation(BackendInformation& info) const
     {
-      info = BACKEND_INFO;
+      DescribeBackend(info);
     }
 
     virtual VolumeControl::Ptr GetVolumeControl() const
@@ -322,7 +325,9 @@ namespace ZXTune
   {
     void RegisterOSSBackend(BackendsEnumerator& enumerator)
     {
-      enumerator.RegisterBackend(BACKEND_INFO, &OSSBackendCreator);
+      BackendInformation info;
+      DescribeBackend(info);
+      enumerator.RegisterBackend(info, &OSSBackendCreator);
     }
   }
 }

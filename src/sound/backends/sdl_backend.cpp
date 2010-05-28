@@ -21,6 +21,7 @@ Author:
 #include <logging.h>
 #include <tools.h>
 //library includes
+#include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/error_codes.h>
 //platform-dependent includes
@@ -45,14 +46,6 @@ namespace
   const uint_t BUFFERS_MIN = 2;
   const uint_t BUFFERS_MAX = 10;
 
-  // backend description
-  const BackendInformation BACKEND_INFO =
-  {
-    BACKEND_ID,
-    Text::SDL_BACKEND_DESCRIPTION,
-    BACKEND_VERSION,
-  };
-
   void CheckCall(bool ok, Error::LocationRef loc)
   {
     if (!ok)
@@ -64,6 +57,15 @@ namespace
       }
       throw Error(loc, BACKEND_PLATFORM_ERROR, Text::SOUND_ERROR_SDL_BACKEND_UNKNOWN_ERROR);
     }
+  }
+
+  // backend description
+  void DescribeBackend(BackendInformation& info)
+  {
+    info.Id = BACKEND_ID;
+    info.Description = Text::SDL_BACKEND_DESCRIPTION;
+    info.Version = BACKEND_VERSION;
+    info.Capabilities = CAP_TYPE_SYSTEM;
   }
 
   class SDLBackend : public BackendImpl, private boost::noncopyable
@@ -104,7 +106,7 @@ namespace
 
     virtual void GetInformation(BackendInformation& info) const
     {
-      info = BACKEND_INFO;
+      DescribeBackend(info);
     }
 
     virtual VolumeControl::Ptr GetVolumeControl() const
@@ -275,7 +277,9 @@ namespace ZXTune
   {
     void RegisterSDLBackend(BackendsEnumerator& enumerator)
     {
-      enumerator.RegisterBackend(BACKEND_INFO, &SDLBackendCreator);
+      BackendInformation info;
+      DescribeBackend(info);
+      enumerator.RegisterBackend(info, &SDLBackendCreator);
     }
   }
 }

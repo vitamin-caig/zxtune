@@ -19,6 +19,7 @@ Author:
 #include <tools.h>
 #include <error_tools.h>
 //library includes
+#include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/error_codes.h>
 //platform-dependent includes
@@ -46,14 +47,6 @@ namespace
 
   const Char BACKEND_ID[] = {'w', 'i', 'n', '3', '2', 0};
   const String BACKEND_VERSION(FromStdString("$Rev$"));
-
-  // backend description
-  const BackendInformation BACKEND_INFO =
-  {
-    BACKEND_ID,
-    Text::WIN32_BACKEND_DESCRIPTION,
-    BACKEND_VERSION
-  };
 
   inline void CheckMMResult(::MMRESULT res, Error::LocationRef loc)
   {
@@ -198,6 +191,15 @@ namespace
     int_t& Device;
   };
 
+  // backend description
+  void DescribeBackend(BackendInformation& info)
+  {
+    info.Id = BACKEND_ID;
+    info.Description = Text::WIN32_BACKEND_DESCRIPTION;
+    info.Version = BACKEND_VERSION;
+    info.Capabilities = CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
+  }
+
   class Win32Backend : public BackendImpl, private boost::noncopyable
   {
   public:
@@ -221,7 +223,7 @@ namespace
 
     virtual void GetInformation(BackendInformation& info) const
     {
-      info = BACKEND_INFO;
+      DescribeBackend(info);
     }
 
     virtual VolumeControl::Ptr GetVolumeControl() const
@@ -355,7 +357,9 @@ namespace ZXTune
   {
     void RegisterWin32Backend(BackendsEnumerator& enumerator)
     {
-      enumerator.RegisterBackend(BACKEND_INFO, &Win32BackendCreator);
+      BackendInformation info;
+      DescribeBackend(info);
+      enumerator.RegisterBackend(info, &Win32BackendCreator);
     }
   }
 }
