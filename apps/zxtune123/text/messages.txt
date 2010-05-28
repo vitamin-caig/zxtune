@@ -62,17 +62,42 @@
 > "Plugin:       %1%\n"
 > "Description:  %2%\n"
 > "Version:      %3%\n"
-> "Capabilities: %4%\n\n"
+> "Capabilities: %4%\n"
+> "\n"
+
+= INFO_TYPE_PREFIX
+> "type_"
+
+< INFO_CAP_STUB
+> INFO_TYPE_PREFIX "stub"
+
+< INFO_CAP_SYSTEM
+> INFO_TYPE_PREFIX "system"
+
+< INFO_CAP_FILE
+> INFO_TYPE_PREFIX "file"
+
+< INFO_CAP_HARDWARE
+> INFO_TYPE_PREFIX "hardware"
+
+= INFO_FEAT_PREFIX
+> "feat_"
+
+< INFO_CAP_HWVOLUME
+> INFO_FEAT_PREFIX "hwvolume"
 
 < INFO_BACKEND_INFO
-> "Backend:     %1%\n"
-> "Description: %2%\n"
-> "Version:     %3%\n\n"
+> "Backend:      %1%\n"
+> "Description:  %2%\n"
+> "Version:      %3%\n"
+> "Capabilities: %4%\n"
+> "\n"
 
 < INFO_PROVIDER_INFO
 > "Provider:    %1%\n"
 > "Description: %2%\n"
 > "Version:     %3%\n"
+> "\n"
 
 < INFO_OPTION_INFO
 > "  %1%\n"

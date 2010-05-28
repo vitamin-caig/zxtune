@@ -198,9 +198,10 @@ extern const Char INFO_ATTRIBUTE_INFO[] = {
   0
 };
 extern const Char INFO_BACKEND_INFO[] = {
-  'B','a','c','k','e','n','d',':',' ',' ',' ',' ',' ','%','1','%','\n',
-  'D','e','s','c','r','i','p','t','i','o','n',':',' ','%','2','%','\n',
-  'V','e','r','s','i','o','n',':',' ',' ',' ',' ',' ','%','3','%','\n',
+  'B','a','c','k','e','n','d',':',' ',' ',' ',' ',' ',' ','%','1','%','\n',
+  'D','e','s','c','r','i','p','t','i','o','n',':',' ',' ','%','2','%','\n',
+  'V','e','r','s','i','o','n',':',' ',' ',' ',' ',' ',' ','%','3','%','\n',
+  'C','a','p','a','b','i','l','i','t','i','e','s',':',' ','%','4','%','\n',
   '\n',
   0
 };
@@ -225,8 +226,17 @@ extern const Char INFO_CAP_DAC2[] = {
 extern const Char INFO_CAP_DAC4[] = {
   'd','e','v','_','d','a','c','4',0
 };
+extern const Char INFO_CAP_FILE[] = {
+  't','y','p','e','_','f','i','l','e',0
+};
 extern const Char INFO_CAP_FM[] = {
   'd','e','v','_','f','m',0
+};
+extern const Char INFO_CAP_HARDWARE[] = {
+  't','y','p','e','_','h','a','r','d','w','a','r','e',0
+};
+extern const Char INFO_CAP_HWVOLUME[] = {
+  'f','e','a','t','_','h','w','v','o','l','u','m','e',0
 };
 extern const Char INFO_CAP_MODULE[] = {
   's','t','o','r','_','m','o','d','u','l','e',0
@@ -239,6 +249,12 @@ extern const Char INFO_CAP_PLAIN[] = {
 };
 extern const Char INFO_CAP_SCANER[] = {
   's','t','o','r','_','s','c','a','n','e','r',0
+};
+extern const Char INFO_CAP_STUB[] = {
+  't','y','p','e','_','s','t','u','b',0
+};
+extern const Char INFO_CAP_SYSTEM[] = {
+  't','y','p','e','_','s','y','s','t','e','m',0
 };
 extern const Char INFO_CAP_TS[] = {
   'd','e','v','_','t','s',0
@@ -461,6 +477,7 @@ extern const Char INFO_PROVIDER_INFO[] = {
   'P','r','o','v','i','d','e','r',':',' ',' ',' ',' ','%','1','%','\n',
   'D','e','s','c','r','i','p','t','i','o','n',':',' ','%','2','%','\n',
   'V','e','r','s','i','o','n',':',' ',' ',' ',' ',' ','%','3','%','\n',
+  '\n',
   0
 };
 extern const Char INPUT_ALLOW_PLUGIN_DESC[] = {

@@ -28,6 +28,7 @@ Author:
 #include <io/provider.h>
 #include <io/providers_parameters.h>
 #include <sound/backend.h>
+#include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/sound_parameters.h>
 //std includes
@@ -41,11 +42,25 @@ Author:
 
 namespace
 {
+  typedef std::pair<uint_t, String> CapsPair;
+  String SerializeCaps(uint_t caps, const CapsPair* from)
+  {
+    String result;
+    for (const CapsPair* cap = from; cap->first; ++cap)
+    {
+      if (cap->first & caps)
+      {
+        result += Char(' ');
+        result += cap->second;
+      }
+    }
+    return result.substr(1);
+  }
+
   String PluginCaps(uint_t caps)
   {
-    typedef std::pair<uint_t, String> CapsPair;
-    
-    static const CapsPair KNOWN_CAPS[] = {
+    static const CapsPair PLUGINS_CAPS[] =
+    {
       //device caps
       CapsPair(ZXTune::CAP_DEV_AYM, Text::INFO_CAP_AYM),
       CapsPair(ZXTune::CAP_DEV_TS, Text::INFO_CAP_TS),
@@ -64,19 +79,28 @@ namespace
       CapsPair(ZXTune::CAP_CONV_RAW, Text::INFO_CONV_RAW),
       CapsPair(ZXTune::CAP_CONV_PSG, Text::INFO_CONV_PSG),
       CapsPair(ZXTune::CAP_CONV_ZX50, Text::INFO_CONV_ZX50),
-      CapsPair(ZXTune::CAP_CONV_TXT, Text::INFO_CONV_TXT)
+      CapsPair(ZXTune::CAP_CONV_TXT, Text::INFO_CONV_TXT),
+      //limiter
+      CapsPair()
     };
-    
-    String result;
-    for (const CapsPair* cap = KNOWN_CAPS; cap != ArrayEnd(KNOWN_CAPS); ++cap)
+    return SerializeCaps(caps, PLUGINS_CAPS);
+  }
+
+  String BackendCaps(uint_t caps)
+  {
+    static const CapsPair BACKENDS_CAPS[] =
     {
-      if (cap->first & caps)
-      {
-        result += Char(' ');
-        result += cap->second;
-      }
-    }
-    return result.substr(1);
+      // Type-related capabilities
+      CapsPair(ZXTune::Sound::CAP_TYPE_STUB, Text::INFO_CAP_STUB),
+      CapsPair(ZXTune::Sound::CAP_TYPE_SYSTEM, Text::INFO_CAP_SYSTEM),
+      CapsPair(ZXTune::Sound::CAP_TYPE_FILE, Text::INFO_CAP_FILE),
+      CapsPair(ZXTune::Sound::CAP_TYPE_HARDWARE, Text::INFO_CAP_HARDWARE),
+      // Features-related capabilities
+      CapsPair(ZXTune::Sound::CAP_FEAT_HWVOLUME, Text::INFO_CAP_HWVOLUME),
+      //limiter
+      CapsPair()
+    };
+    return SerializeCaps(caps, BACKENDS_CAPS);
   }
   
   inline void ShowPlugin(const ZXTune::PluginInformation& info)
@@ -96,7 +120,7 @@ namespace
   inline void ShowBackend(const ZXTune::Sound::BackendInformation& info)
   {
     StdOut << (Formatter(Text::INFO_BACKEND_INFO)
-      % info.Id % info.Description % info.Version).str();
+      % info.Id % info.Description % info.Version % BackendCaps(info.Capabilities)).str();
   }
   
   inline void ShowBackends()
