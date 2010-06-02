@@ -6,9 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>152</width>
-    <height>38</height>
+    <width>228</width>
+    <height>34</height>
    </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>16</width>
+    <height>0</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>Form</string>
@@ -41,17 +47,17 @@
    </item>
    <item row="0" column="1">
     <widget class="QLabel" name="textPosition">
-     <property name="text">
-      <string>-</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
      <property name="minimumSize">
       <size>
        <width>16</width>
        <height>0</height>
       </size>
+     </property>
+     <property name="text">
+      <string>-</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
      </property>
     </widget>
    </item>
@@ -64,17 +70,17 @@
    </item>
    <item row="1" column="1">
     <widget class="QLabel" name="textPattern">
-     <property name="text">
-      <string>-</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
      <property name="minimumSize">
       <size>
        <width>16</width>
        <height>0</height>
       </size>
+     </property>
+     <property name="text">
+      <string>-</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
      </property>
     </widget>
    </item>
@@ -87,40 +93,80 @@
    </item>
    <item row="0" column="3">
     <widget class="QLabel" name="textLine">
-     <property name="text">
-      <string>-</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
      <property name="minimumSize">
       <size>
        <width>16</width>
        <height>0</height>
       </size>
      </property>
+     <property name="text">
+      <string>-</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
     </widget>
    </item>
-   <item row="1" column="2">
+   <item row="0" column="4">
     <widget class="QLabel" name="labelChannels">
      <property name="text">
       <string>Channels</string>
      </property>
     </widget>
    </item>
-   <item row="1" column="3">
+   <item row="0" column="5">
     <widget class="QLabel" name="textChannels">
+     <property name="minimumSize">
+      <size>
+       <width>16</width>
+       <height>0</height>
+      </size>
+     </property>
      <property name="text">
       <string>-</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
      </property>
+    </widget>
+   </item>
+   <item row="1" column="2">
+    <widget class="QLabel" name="labelFrame">
+     <property name="text">
+      <string>Frame</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="3">
+    <widget class="QLabel" name="textFrame">
+     <property name="text">
+      <string>-</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="4">
+    <widget class="QLabel" name="labelTempo">
+     <property name="text">
+      <string>Tempo</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="5">
+    <widget class="QLabel" name="textTempo">
      <property name="minimumSize">
       <size>
-       <width>16</width>
-       <height>0</height>
+       <width>0</width>
+       <height>16</height>
       </size>
+     </property>
+     <property name="text">
+      <string>-</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
      </property>
     </widget>
    </item>

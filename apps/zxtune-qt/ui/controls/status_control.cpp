@@ -43,7 +43,9 @@ namespace
       textPosition->setText(QString::number(tracking.Position));
       textPattern->setText(QString::number(tracking.Pattern));
       textLine->setText(QString::number(tracking.Line));
+      textFrame->setText(QString::number(tracking.Frame));
       textChannels->setText(QString::number(tracking.Channels));
+      textTempo->setText(QString::number(tracking.Tempo));
     }
 
     virtual void CloseState()
@@ -51,7 +53,9 @@ namespace
       textPosition->setText(EMPTY_TEXT);
       textPattern->setText(EMPTY_TEXT);
       textLine->setText(EMPTY_TEXT);
+      textFrame->setText(EMPTY_TEXT);
       textChannels->setText(EMPTY_TEXT);
+      textTempo->setText(EMPTY_TEXT);
     }
   };
 }
