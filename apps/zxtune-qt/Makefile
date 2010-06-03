@@ -23,9 +23,10 @@ boost_libraries := thread
 
 qt_libraries := Gui Core
 windows_libraries := gdi32 user32 advapi32 shell32 ole32 oleaut32 imm32 comdlg32 wsock32 winspool uuid oldnames $(if $(subst release,,$(mode)),comsuppwd,comsuppw)
+qt_defines = QT_LARGEFILE_SUPPORT QT_GUI_LIB QT_CORE_LIB QT_THREAD_SUPPORT
 
-h_generated := $(ui_files:=_ui.h) $(ui_files:=_moc.h) $(moc_files:=_moc.h)
-cpp_generated := $(qrc_files:=_res.cpp)
+definitions = $(qt_defines)
+generated_files += $(ui_files:=_ui.h) $(ui_files:=_moc.h) $(moc_files:=_moc.h) $(qrc_files:=_res.cpp)
 
 include $(path_step)/makefile.mak
 
@@ -37,7 +38,7 @@ RCC := rcc
 	$(UIC) $< -o $@
 
 %_moc.h: %.h
-	$(MOC) -i $< -o $@
+	$(MOC) $(addprefix -D, $(qt_defines)) -i $< -o $@
 
 %_res.cpp: %.qrc res/*.png
 	$(RCC) -name $(basename $(notdir $<)) -o $@ $<

@@ -12,7 +12,7 @@ objs_dir := $(path_step)/obj/$(platform)/$(mode)$(suffix)
 bins_dir := $(path_step)/bin/$(platform)/$(mode)
 
 #setup environment
-definitions = $(defines) __STDC_CONSTANT_MACROS
+definitions += $(defines) __STDC_CONSTANT_MACROS
 
 #set platform-specific parameters
 include $(path_step)/make/platforms/$(platform).mak
@@ -38,12 +38,10 @@ else
 $(error Invalid target)
 endif
 
-#generated files: textator, uic
-h_generated += $(text_files:=.h)
-cpp_generated += $(text_files:=.cpp)
+generated_files += $(text_files:=.h) $(text_files:=.cpp)
 
 #main target
-all: dirs $(h_generated) $(cpp_generated) $(target)
+all: dirs $(generated_files) $(target)
 .PHONY: all dirs
 
 #set compiler-specific parameters
