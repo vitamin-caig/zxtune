@@ -68,7 +68,6 @@
  </widget>
  <resources>
   <include location="../res/icons.qrc"/>
-  <include location="../../../../../../../home/res/icons.qrc"/>
  </resources>
  <connections>
   <connection>

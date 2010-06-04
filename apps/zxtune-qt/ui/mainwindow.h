@@ -14,6 +14,8 @@ Author:
 #ifndef ZXTUNE_QT_MAINWINDOW_H_DEFINED
 #define ZXTUNE_QT_MAINWINDOW_H_DEFINED
 
+//library includes
+#include <core/module_types.h>
 //qt includes
 #include <QtCore/QPointer>
 #include <QtGui/QMainWindow>
@@ -23,6 +25,10 @@ class MainWindow : public QMainWindow
   Q_OBJECT
 public:
   static QPointer<MainWindow> Create(int argc, char* argv[]);
+
+public slots:
+  virtual void StartModule(const ZXTune::Module::Information&) = 0;
+  virtual void StopModule() = 0;
 };
 
 #endif //ZXTUNE_QT_MAINWINDOW_H_DEFINED
