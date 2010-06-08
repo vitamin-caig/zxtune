@@ -1,7 +1,7 @@
 binary_name := zxtune-qt
 path_step := ../..
 include $(path_step)/default.mak
-source_files := qt_app supp/playitems_provider
+source_files := qt_app supp/playitems_provider ui/format
 
 #ui-related
 include_path = $(path_step)/apps/$(binary_name)
@@ -15,6 +15,7 @@ ui_files += ui/controls/playback_controls ui/controls/seek_controls ui/controls/
 moc_files := ui/controls/analyzer_control ui/playlist/playlist_thread supp/playback_supp
 qrc_files := res/icons
 source_files += $(ui_files) $(moc_files) $(qrc_files:=_res)
+text_files := text/text
 
 libraries := zxtune_app_base core io sound tools
 depends := apps/base src/core src/io src/sound src/tools

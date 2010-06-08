@@ -1,0 +1,23 @@
+< __HEADER__
+> "Generated from '$Id"
+
+< __RAWHEADER__
+__cpp> "#ifndef __TEXT_TEXT_H_DEFINED__\n"
+__cpp> "#define __TEXT_TEXT_H_DEFINED__\n"
+__cpp> "#include <char_type.h>\n\n"
+__cpp> "namespace Text\n"
+__cpp> "{\n"
+
+< __RAWFOOTER__
+__cpp> "}//namespace Text\n"
+__cpp> "#endif //__TEXT_TEXT_H_DEFINED__\n"
+
+# 1- program name, 2- song name
+< TITLE_FORMAT
+> "%2% [%1%]"
+
+< MODULE_TITLE_FORMAT
+> "[Author] - [Title]"
+
+< MODULE_PLAYLIST_FORMAT
+> MODULE_TITLE_FORMAT

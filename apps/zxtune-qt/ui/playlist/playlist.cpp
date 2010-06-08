@@ -16,6 +16,7 @@ Author:
 #include "playlist_ui.h"
 #include "playlist_moc.h"
 #include "playlist_thread.h"
+#include "ui/format.h"
 #include "ui/utils.h"
 //common includes
 #include <logging.h>
@@ -33,6 +34,8 @@ Author:
 #include <cassert>
 //boost includes
 #include <boost/bind.hpp>
+//text includes
+#include "text/text.h"
 
 //outside the namespace
 typedef std::list<Playitem::Ptr> PlayitemsList;
@@ -46,14 +49,6 @@ namespace
     ITEM_SELECT
   };
   
-  inline String GenerateItemTitle(const ZXTune::Module::Information& info)
-  {
-    String title;
-    Parameters::FindByName(info.Properties, ZXTune::Module::ATTR_TITLE, title) ||
-    Parameters::FindByName(info.Properties, ZXTune::Module::ATTR_FULLPATH, title);
-    return title;
-  }
-
   QListWidgetItem ITEM_STUB;
 
   class PlaylistImpl : public Playlist
@@ -234,7 +229,8 @@ namespace
     {
       const Char RESOURCE_TYPE_PREFIX[] = {':','/','t','y','p','e','s','/',0};
       const ZXTune::Module::Information& info = item->GetModuleInfo();
-      const String& title = GenerateItemTitle(info);
+
+      const String& title = GetModuleTitle(Text::MODULE_PLAYLIST_FORMAT, info);
       QListWidgetItem* const listItem = new QListWidgetItem(ToQString(title), playList);
       const PlayitemsList::iterator iter = Items.insert(Items.end(), item);
       listItem->setData(Qt::UserRole, QVariant::fromValue(iter));

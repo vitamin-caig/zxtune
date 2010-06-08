@@ -13,6 +13,7 @@ Author:
 
 //local includes
 #include "utils.h"
+#include "format.h"
 #include "mainwindow.h"
 #include "mainwindow_ui.h"
 #include "mainwindow_moc.h"
@@ -25,12 +26,13 @@ Author:
 //common includes
 #include <formatter.h>
 #include <logging.h>
-#include <template.h>
 //library includes
 #include <core/module_attrs.h>
 //qt includes
 #include <QtGui/QApplication>
 #include <QtGui/QToolBar>
+//text includes
+#include "text/text.h"
 
 namespace
 {
@@ -129,40 +131,6 @@ namespace
     }
   };
 
-// version definition-related
-#ifndef APPLICATION_NAME
-#define APPLICATION_NAME zxtune-qt
-#endif
-#ifndef ZXTUNE_VERSION
-#define ZXTUNE_VERSION develop
-#endif
-
-#define VERSION_STRING (APPLICATION_NAME " " ZXTUNE_VERSION)
-
-#define STR(a) #a
-#define MAKE_VERSION_STRING(app, ver) STR(app) " " STR(ver)
-
-  const String PROGRAM_NAME(FromStdString(MAKE_VERSION_STRING(APPLICATION_NAME, ZXTUNE_VERSION)));
-
-  //TODO:
-  const Char TITLE_FORMAT[] = {'%', '2', '%', ' ', '[', '%', '1', '%', ']', 0};
-  const Char SONG_TITLE_FORMAT[] = {'[', 'A', 'u', 't', 'h', 'o', 'r', ']', ' ', '-', ' ', '[', 'T', 'i', 't', 'l', 'e', ']', 0};
-
-  String GenerateTitle(const ZXTune::Module::Information& info)
-  {
-    StringMap origFields;
-    Parameters::ConvertMap(info.Properties, origFields);
-    const String& curTitle = InstantiateTemplate(SONG_TITLE_FORMAT, origFields, SKIP_NONEXISTING);
-    const String& emptyTitle = InstantiateTemplate(SONG_TITLE_FORMAT, StringMap(), SKIP_NONEXISTING);
-    if (curTitle == emptyTitle)
-    {
-      String title;
-      Parameters::FindByName(info.Properties, ZXTune::Module::ATTR_FILENAME, title);
-      return title;
-    }
-    return curTitle;
-  }
-
   class MainWindowImpl : public MainWindow
                        , private UiHelper
   {
@@ -214,12 +182,14 @@ namespace
 
     virtual void StartModule(const ZXTune::Module::Information& info)
     {
-      setWindowTitle(ToQString((Formatter(TITLE_FORMAT) % PROGRAM_NAME % GenerateTitle(info)).str()));
+      setWindowTitle(ToQString((Formatter(Text::TITLE_FORMAT)
+        % GetProgramTitle()
+        % GetModuleTitle(Text::MODULE_TITLE_FORMAT, info)).str()));
     }
 
     virtual void StopModule()
     {
-      setWindowTitle(ToQString(PROGRAM_NAME));
+      setWindowTitle(ToQString(GetProgramTitle()));
     }
   private:
     ToolbarControl<PlaybackControls> Controls;
