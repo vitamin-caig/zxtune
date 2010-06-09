@@ -25,7 +25,7 @@ inline QString ToQString(const String& str)
 #ifdef UNICODE
   return QString::fromStdWString(str);
 #else
-  return QString::fromStdString(str);
+  return QString::fromLocal8Bit(str.data(), str.size());
 #endif
 }
 
@@ -34,7 +34,8 @@ inline String FromQString(const QString& str)
 #ifdef UNICODE
   return str.toStdWString();
 #else
-  return str.toStdString();
+  const QByteArray& raw = str.toLocal8Bit();
+  return raw.constData();
 #endif
 }
 
