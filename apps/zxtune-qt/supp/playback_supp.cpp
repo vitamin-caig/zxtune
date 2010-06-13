@@ -35,37 +35,6 @@ namespace
     explicit PlaybackSupportImpl(QWidget* owner)
     {
       PlaybackSupport::setParent(owner);
-
-      using namespace ZXTune;
-      //create backend
-      {
-        Sound::BackendInformationArray backends;
-        Sound::EnumerateBackends(backends);
-        Parameters::Map params;
-        for (Sound::BackendInformationArray::const_iterator it = backends.begin(), lim = backends.end(); it != lim; ++it)
-        {
-          if (!Sound::CreateBackend(it->Id, params, Backend))
-          {
-            break;
-          }
-        }
-        assert(Backend.get());
-        static const Sound::MultiGain MIXER3[] =
-        {
-          { {1.0, 0.0} },
-          { {0.5, 0.5} },
-          { {0.0, 1.0} }
-        };
-        static const Sound::MultiGain MIXER4[] =
-        {
-          { {1.0, 0.0} },
-          { {0.7, 0.3} },
-          { {0.3, 0.7} },
-          { {0.0, 1.0} }
-        };
-        Backend->SetMixer(std::vector<Sound::MultiGain>(MIXER3, ArrayEnd(MIXER3)));
-        Backend->SetMixer(std::vector<Sound::MultiGain>(MIXER4, ArrayEnd(MIXER4)));
-      }
     }
 
     virtual ~PlaybackSupportImpl()
@@ -78,6 +47,7 @@ namespace
       //if nothing set, just select
       if (0 == Player.use_count())
       {
+        OpenBackend();
         Backend->SetModule(item.GetModule());
         Info = item.GetModuleInfo();
         Player = Backend->GetPlayer();
@@ -86,6 +56,7 @@ namespace
     
     virtual void SetItem(const Playitem& item)
     {
+      OpenBackend();
       Backend->SetModule(item.GetModule());
       this->wait();
       Info = item.GetModuleInfo();
@@ -106,13 +77,16 @@ namespace
 
     virtual void Stop()
     {
-      Backend->Stop();
-      this->wait();
+      if (Backend.get())
+      {
+        Backend->Stop();
+        this->wait();
+      }
     }
 
     virtual void Pause()
     {
-      const ZXTune::Sound::Backend::State curState = Backend->GetCurrentState();
+      const ZXTune::Sound::Backend::State curState = Backend.get() ? Backend->GetCurrentState() : ZXTune::Sound::Backend::NOTOPENED;
       if (ZXTune::Sound::Backend::STARTED == curState)
       {
         Backend->Pause();
@@ -125,7 +99,10 @@ namespace
 
     virtual void Seek(int frame)
     {
-      Backend->SetPosition(frame);
+      if (Backend.get())
+      {
+        Backend->SetPosition(frame);
+      }
     }
 
     virtual void run()
@@ -133,7 +110,7 @@ namespace
       using namespace ZXTune;
       //notify about start
       OnStartModule(Info);
-      
+
       SignalsCollector::Ptr signaller = Backend->CreateSignalsCollector(
         Sound::Backend::MODULE_RESUME | Sound::Backend::MODULE_PAUSE |
         Sound::Backend::MODULE_STOP | Sound::Backend::MODULE_FINISH);
@@ -180,6 +157,45 @@ namespace
       }
       //notify about stop
       OnStopModule(Info);
+    }
+  private:
+    void OpenBackend()
+    {
+      if (Backend.get())
+      {
+        return;
+      }
+      using namespace ZXTune;
+      //create backend
+      {
+        Sound::BackendInformationArray backends;
+        Sound::EnumerateBackends(backends);
+        Parameters::Map params;
+        for (Sound::BackendInformationArray::const_iterator it = backends.begin(), lim = backends.end(); it != lim; ++it)
+        {
+          if (!Sound::CreateBackend(it->Id, params, Backend))
+          {
+            break;
+          }
+        }
+        assert(Backend.get());
+        static const Sound::MultiGain MIXER3[] =
+        {
+          { {1.0, 0.0} },
+          { {0.5, 0.5} },
+          { {0.0, 1.0} }
+        };
+        static const Sound::MultiGain MIXER4[] =
+        {
+          { {1.0, 0.0} },
+          { {0.7, 0.3} },
+          { {0.3, 0.7} },
+          { {0.0, 1.0} }
+        };
+        Backend->SetMixer(std::vector<Sound::MultiGain>(MIXER3, ArrayEnd(MIXER3)));
+        Backend->SetMixer(std::vector<Sound::MultiGain>(MIXER4, ArrayEnd(MIXER4)));
+      }
+      OnSetBackend(*Backend);
     }
   private:
     ZXTune::Sound::Backend::Ptr Backend;

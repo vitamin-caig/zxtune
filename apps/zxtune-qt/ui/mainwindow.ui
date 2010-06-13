@@ -42,6 +42,9 @@
    <property name="mouseTracking">
     <bool>true</bool>
    </property>
+   <property name="contextMenuPolicy">
+    <enum>Qt::PreventContextMenu</enum>
+   </property>
    <property name="acceptDrops">
     <bool>false</bool>
    </property>

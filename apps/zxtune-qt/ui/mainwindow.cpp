@@ -21,6 +21,7 @@ Author:
 #include "ui/controls/playback_controls.h"
 #include "ui/controls/seek_controls.h"
 #include "ui/controls/status_control.h"
+#include "ui/controls/volume_control.h"
 #include "ui/playlist/playlist.h"
 #include "supp/playback_supp.h"
 //common includes
@@ -72,6 +73,7 @@ namespace
       Toolbar->setSizePolicy(sizePolicy1);
       Toolbar->setAllowedAreas(Qt::TopToolBarArea);
       Toolbar->setFloatable(false);
+      Toolbar->setContextMenuPolicy(Qt::PreventContextMenu);
       mainWindow->addToolBar(Qt::TopToolBarArea, Toolbar);
       if (lastInRow)
       {
@@ -141,6 +143,7 @@ namespace
       , Seeking(this, menuLayout, "Seeking", true)
       , Status(this, menuLayout, "Status", false)
       , Analyzer(this, menuLayout, "Analyzer", true)
+      , Volume(this, menuLayout, "Volume", false)
       , Collection(this, menuLayout, "Playlist")
       , Playback(PlaybackSupport::Create(this))
     {
@@ -174,6 +177,9 @@ namespace
       Status->connect(Playback, SIGNAL(OnUpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&)),
         SLOT(UpdateState(uint, const ZXTune::Module::Tracking&)));
       Status->connect(Playback, SIGNAL(OnStopModule(const ZXTune::Module::Information&)), SLOT(CloseState()));
+      Volume->connect(Playback, SIGNAL(OnUpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&)),
+        SLOT(UpdateState()));
+      Volume->connect(Playback, SIGNAL(OnSetBackend(const ZXTune::Sound::Backend&)), SLOT(SetBackend(const ZXTune::Sound::Backend&)));
       this->connect(Playback, SIGNAL(OnStartModule(const ZXTune::Module::Information&)), SLOT(StartModule(const ZXTune::Module::Information&)));
       this->connect(Playback, SIGNAL(OnStopModule(const ZXTune::Module::Information&)), SLOT(StopModule()));
 
@@ -196,6 +202,7 @@ namespace
     ToolbarControl<SeekControls> Seeking;
     ToolbarControl<StatusControl> Status;
     ToolbarControl<AnalyzerControl> Analyzer;
+    ToolbarControl<VolumeControl> Volume;
     WidgetControl<Playlist> Collection;
     PlaybackSupport* const Playback;
   };

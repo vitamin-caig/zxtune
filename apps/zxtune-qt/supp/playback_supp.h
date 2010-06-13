@@ -16,6 +16,7 @@ Author:
 
 //library includes
 #include <core/module_types.h>
+#include <sound/backend.h>
 //qt includes
 #include <QtCore/QObject>
 
@@ -33,6 +34,7 @@ public slots:
   virtual void Pause() = 0;
   virtual void Seek(int frame) = 0;
 signals:
+  void OnSetBackend(const ZXTune::Sound::Backend& backend);
   void OnStartModule(const ZXTune::Module::Information&);
   void OnUpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&);
   void OnPauseModule(const ZXTune::Module::Information&);

@@ -127,11 +127,13 @@ namespace
     {
     }
 
-    ZXTune::Module::Holder::Ptr GetModule(const String& dataPath, const String& subPath) const
+    ZXTune::Module::Holder::Ptr GetModule(const String& dataPath, const String& subPath, const Parameters::Map& adjustedParams) const
     {
-      const ZXTune::IO::DataContainer::Ptr data = Provider->GetData(dataPath, CommonParams, 0);
+      Parameters::Map moduleParams;
+      Parameters::MergeMaps(CommonParams, adjustedParams, moduleParams, true);
+      const ZXTune::IO::DataContainer::Ptr data = Provider->GetData(dataPath, moduleParams, 0/*logger*/);
       ZXTune::Module::Holder::Ptr result;
-      ThrowIfError(ZXTune::OpenModule(CommonParams, data, subPath, result));
+      ThrowIfError(ZXTune::OpenModule(moduleParams, data, subPath, result));
       return result;
     }
   private:
@@ -161,7 +163,7 @@ namespace
     
     virtual ZXTune::Module::Holder::Ptr GetModule() const
     {
-      return Context->GetModule(DataPath, SubPath);
+      return Context->GetModule(DataPath, SubPath, AdjustedParams);
     }
     
     virtual const ZXTune::Module::Information& GetModuleInfo() const

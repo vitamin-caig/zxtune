@@ -1,8 +1,9 @@
 binary_name := zxtune-qt
 path_step := ../..
 include $(path_step)/default.mak
-source_files := qt_app supp/playitems_provider ui/format
-
+source_files := qt_app \
+                supp/playitems_provider \
+                ui/format
 #ui-related
 include_path = $(path_step)/apps/$(binary_name)
 ifeq ($(platform),dingux)
@@ -11,8 +12,16 @@ else
 ui_files := ui/mainwindow
 endif
 
-ui_files += ui/controls/playback_controls ui/controls/seek_controls ui/controls/status_control ui/playlist/playlist
-moc_files := ui/controls/analyzer_control ui/playlist/playlist_thread supp/playback_supp
+ui_files +=   ui/controls/playback_controls \
+              ui/controls/seek_controls \
+              ui/controls/status_control \
+              ui/controls/volume_control \
+              ui/playlist/playlist
+
+moc_files :=  ui/controls/analyzer_control \
+              ui/playlist/playlist_thread \
+              supp/playback_supp
+
 qrc_files := res/icons
 source_files += $(ui_files) $(moc_files) $(qrc_files:=_res)
 text_files := text/text
