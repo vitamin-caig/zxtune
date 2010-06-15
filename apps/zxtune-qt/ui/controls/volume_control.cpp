@@ -56,8 +56,8 @@ namespace
         ZXTune::Sound::MultiGain vol;
         //TODO: check result
         Controller->GetVolume(vol);
-        const ZXTune::Sound::Gain gain = std::accumulate(vol.begin(), vol.end(), ZXTune::Sound::Gain(0), std::plus<ZXTune::Sound::Gain>()) / vol.size();
-        volumeLevel->setValue(static_cast<int>(gain * volumeLevel->maximum()));
+        const ZXTune::Sound::Gain gain = *std::max_element(vol.begin(), vol.end());
+        volumeLevel->setValue(static_cast<int>(gain * volumeLevel->maximum() + 0.5));
       }
     }
 
@@ -66,7 +66,8 @@ namespace
       if (Controller)
       {
         const ZXTune::Sound::Gain gain = ZXTune::Sound::Gain(level) / volumeLevel->maximum();
-        const ZXTune::Sound::MultiGain vol = { {gain} };
+        ZXTune::Sound::MultiGain vol;
+        vol.assign(gain);
         //TODO: check result
         Controller->SetVolume(vol);
       }

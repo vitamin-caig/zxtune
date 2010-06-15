@@ -140,10 +140,10 @@ namespace
     MainWindowImpl(int argc, char* argv[])
       : UiHelper(this)
       , Controls(this, menuLayout, "Controls", false)
-      , Seeking(this, menuLayout, "Seeking", true)
+      , Volume(this, menuLayout, "Volume", true)
       , Status(this, menuLayout, "Status", false)
+      , Seeking(this, menuLayout, "Seeking", true)
       , Analyzer(this, menuLayout, "Analyzer", true)
-      , Volume(this, menuLayout, "Volume", false)
       , Collection(this, menuLayout, "Playlist")
       , Playback(PlaybackSupport::Create(this))
     {
@@ -199,10 +199,10 @@ namespace
     }
   private:
     ToolbarControl<PlaybackControls> Controls;
-    ToolbarControl<SeekControls> Seeking;
-    ToolbarControl<StatusControl> Status;
-    ToolbarControl<AnalyzerControl> Analyzer;
     ToolbarControl<VolumeControl> Volume;
+    ToolbarControl<StatusControl> Status;
+    ToolbarControl<SeekControls> Seeking;
+    ToolbarControl<AnalyzerControl> Analyzer;
     WidgetControl<Playlist> Collection;
     PlaybackSupport* const Playback;
   };
