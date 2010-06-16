@@ -97,7 +97,7 @@ libs_files := $(foreach lib,$(libraries),$(libs_dir)/$(call makelib_name,$(lib))
 deps: $(depends)
 
 $(depends):
-	$(MAKE) -C $(addprefix $(path_step)/,$@) $(if $(pic),pic=1,) $(if $(defines),defines="$(defines)",) $(MAKECMDGOALS)
+	$(MAKE) -C $(addprefix $(path_step)/,$@) $(if $(pic),pic=1,) defines="$(defines)" cxx_flags="$(cxx_flags)" ld_flags="$(ld_flags)" $(MAKECMDGOALS)
 
 $(libs_files): deps
 

@@ -7,10 +7,10 @@ STRIP := $(if $(STRIP),$(STRIP),strip)
 
 #set options according to mode
 ifeq ($(mode),release)
-cxx_mode_flags := -O2 -DNDEBUG -fdata-sections -ffunction-sections 
-ld_mode_flags := --gc-sections 
+cxx_mode_flags += -O2 -DNDEBUG -fdata-sections -ffunction-sections 
+ld_mode_flags += --gc-sections 
 else ifeq ($(mode),debug)
-cxx_mode_flags := -O0
+cxx_mode_flags += -O0
 else
 $(error Invalid mode)
 endif

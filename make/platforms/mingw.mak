@@ -5,7 +5,7 @@ makeobj_name = $(1).o
 makedir_cmd = if NOT EXIST $(subst /,\,$(1)) mkdir $(subst /,\,$(1))
 
 compiler=gcc
-cxx_flags += -march=native
+cxx_mode_flags += -march=native
 
 #built-in features
 support_waveout = 1

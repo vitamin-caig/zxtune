@@ -4,11 +4,11 @@ AR := lib.exe
 
 #set options according to mode
 ifeq ($(mode),release)
-cxx_mode_flags := /Ox /DNDEBUG /MD
-ld_mode_flags := msvcrt.lib msvcprt.lib /SUBSYSTEM:$(if $(qt_libraries),WINDOWS,CONSOLE)
+cxx_mode_flags += /Ox /DNDEBUG /MD
+ld_mode_flags += msvcrt.lib msvcprt.lib /SUBSYSTEM:$(if $(qt_libraries),WINDOWS,CONSOLE)
 else ifeq ($(mode),debug)
-cxx_mode_flags := /Od /MDd
-ld_mode_flags := msvcrtd.lib msvcprtd.lib /SUBSYSTEM:CONSOLE
+cxx_mode_flags += /Od /MDd
+ld_mode_flags += msvcrtd.lib msvcprtd.lib /SUBSYSTEM:CONSOLE
 else
 $(error Invalid mode)
 endif
