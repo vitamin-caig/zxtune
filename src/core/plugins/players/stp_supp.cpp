@@ -521,23 +521,16 @@ namespace
         }
       }
       Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_PROGRAM, String(Text::STP_EDITOR)));
-
-      //tracking properties
-      Data->Info.LoopPosition = positions->Loop;//not supported
-      Data->Info.PhysicalChannels = AYM::CHANNELS;
-      Data->Info.Statistic.Tempo = header->Tempo;
-      Data->Info.Statistic.Position = Data->Positions.size();
-      Data->Info.Statistic.Pattern = std::count_if(Data->Patterns.begin(), Data->Patterns.end(),
-        !boost::bind(&STPTrack::Pattern::empty, _1));
-      Data->Info.Statistic.Channels = AYM::CHANNELS;
-
-      STPTrack::CalculateTimings(*Data, Data->Info.Statistic.Frame, Data->Info.LoopFrame);
       if (const uint_t msgs = warner->CountMessages())
       {
         Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS_COUNT, msgs));
         Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS, warner->GetMessages('\n')));
       }
+
+      //tracking properties
+      Data->FillStatisticInfo(positions->Loop, header->Tempo, AYM::CHANNELS);
     }
+
     virtual void GetPluginInformation(PluginInformation& info) const
     {
       DescribeSTPPlugin(info);
@@ -610,7 +603,7 @@ namespace
         assert(Data->Positions.size() > ModState.Track.Position);
         RenderData(chunk);
       }
-      while (STPTrack::UpdateState(*Data, ModState, Sound::LOOP_NONE));
+      while (Data->UpdateState(ModState, Sound::LOOP_NONE));
       Reset();
 #endif
     }
@@ -618,7 +611,7 @@ namespace
     void RenderData(AYM::DataChunk& chunk)
     {
       const STPTrack::Line& line = Data->Patterns[ModState.Track.Pattern][ModState.Track.Line];
-      if (0 == ModState.Track.Frame)//begin note
+      if (0 == ModState.Track.Quirk)//begin note
       {
         for (uint_t chan = 0; chan != line.Channels.size(); ++chan)
         {

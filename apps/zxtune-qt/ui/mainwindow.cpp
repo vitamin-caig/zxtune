@@ -168,16 +168,16 @@ namespace
       Playback->connect(Controls, SIGNAL(OnPause()), SLOT(Pause()));
       Playback->connect(Seeking, SIGNAL(OnSeeking(int)), SLOT(Seek(int)));
       Seeking->connect(Playback, SIGNAL(OnStartModule(const ZXTune::Module::Information&)), SLOT(InitState(const ZXTune::Module::Information&)));
-      Seeking->connect(Playback, SIGNAL(OnUpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&)),
-        SLOT(UpdateState(uint)));
+      Seeking->connect(Playback, SIGNAL(OnUpdateState(const ZXTune::Module::State&, const ZXTune::Module::Analyze::ChannelsState&)),
+        SLOT(UpdateState(const ZXTune::Module::State&)));
       Seeking->connect(Playback, SIGNAL(OnStopModule(const ZXTune::Module::Information&)), SLOT(CloseState()));
       Analyzer->connect(Playback, SIGNAL(OnStopModule(const ZXTune::Module::Information&)), SLOT(InitState()));
-      Analyzer->connect(Playback, SIGNAL(OnUpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&)),
-        SLOT(UpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&)));
-      Status->connect(Playback, SIGNAL(OnUpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&)),
-        SLOT(UpdateState(uint, const ZXTune::Module::Tracking&)));
+      Analyzer->connect(Playback, SIGNAL(OnUpdateState(const ZXTune::Module::State&, const ZXTune::Module::Analyze::ChannelsState&)),
+        SLOT(UpdateState(const ZXTune::Module::State&, const ZXTune::Module::Analyze::ChannelsState&)));
+      Status->connect(Playback, SIGNAL(OnUpdateState(const ZXTune::Module::State&, const ZXTune::Module::Analyze::ChannelsState&)),
+        SLOT(UpdateState(const ZXTune::Module::State&)));
       Status->connect(Playback, SIGNAL(OnStopModule(const ZXTune::Module::Information&)), SLOT(CloseState()));
-      Volume->connect(Playback, SIGNAL(OnUpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&)),
+      Volume->connect(Playback, SIGNAL(OnUpdateState(const ZXTune::Module::State&, const ZXTune::Module::Analyze::ChannelsState&)),
         SLOT(UpdateState()));
       Volume->connect(Playback, SIGNAL(OnSetBackend(const ZXTune::Sound::Backend&)), SLOT(SetBackend(const ZXTune::Sound::Backend&)));
       this->connect(Playback, SIGNAL(OnStartModule(const ZXTune::Module::Information&)), SLOT(StartModule(const ZXTune::Module::Information&)));

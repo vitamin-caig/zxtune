@@ -97,8 +97,8 @@ namespace
         //SLOT(UpdateState(uint)));
       //Seeking->connect(Playback, SIGNAL(OnStopModule(const ZXTune::Module::Information&)), SLOT(CloseState(const ZXTune::Module::Information&)));
       Analyzer->connect(Playback, SIGNAL(OnStopModule(const ZXTune::Module::Information&)), SLOT(InitState()));
-      Analyzer->connect(Playback, SIGNAL(OnUpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&)),
-        SLOT(UpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&)));
+      Analyzer->connect(Playback, SIGNAL(OnUpdateState(const ZXTune::Module::State&, const ZXTune::Module::Analyze::ChannelsState&)),
+        SLOT(UpdateState(const ZXTune::Module::State&, const ZXTune::Module::Analyze::ChannelsState&)));
     }
   private:
     WidgetControl<PlaybackControls> Controls;

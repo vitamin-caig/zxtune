@@ -27,7 +27,7 @@ public:
   static StatusControl* Create(QWidget* parent);
 
 public slots:
-  virtual void UpdateState(uint, const ZXTune::Module::Tracking&) = 0;
+  virtual void UpdateState(const ZXTune::Module::State&) = 0;
   virtual void CloseState() = 0;
 };
 

@@ -487,7 +487,8 @@ namespace ZXTune
       //try to detect and process single modules
       if (const Error& e = enumerator.OpenModule(commonParams, subcontainer, result))
       {
-        return MakeFormattedError(THIS_LINE, Module::ERROR_FIND_SUBMODULE, Text::MODULE_ERROR_FIND_SUBMODULE, subpath);
+        return MakeFormattedError(THIS_LINE, Module::ERROR_FIND_SUBMODULE, Text::MODULE_ERROR_FIND_SUBMODULE, subpath)
+          .AddSuberror(e);
       }
       return Error();
     }

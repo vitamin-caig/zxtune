@@ -558,21 +558,14 @@ namespace
         Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_TITLE, title));
       }
       Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_PROGRAM, String(Text::PT2_EDITOR)));
-      
-      //tracking properties
-      Data->Info.LoopPosition = header->Loop;
-      Data->Info.PhysicalChannels = AYM::CHANNELS;
-      Data->Info.Statistic.Tempo = header->Tempo;
-      Data->Info.Statistic.Position = Data->Positions.size();
-      Data->Info.Statistic.Pattern = std::count_if(Data->Patterns.begin(), Data->Patterns.end(),
-        !boost::bind(&PT2Track::Pattern::empty, _1));
-      Data->Info.Statistic.Channels = AYM::CHANNELS;
-      PT2Track::CalculateTimings(*Data, Data->Info.Statistic.Frame, Data->Info.LoopFrame);
       if (const uint_t msgs = warner->CountMessages())
       {
         Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS_COUNT, msgs));
         Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS, warner->GetMessages('\n')));
       }
+      
+      //tracking properties
+      Data->FillStatisticInfo(header->Loop, header->Tempo, AYM::CHANNELS);
     }
     virtual void GetPluginInformation(PluginInformation& info) const
     {
@@ -653,7 +646,7 @@ namespace
         assert(Data->Positions.size() > ModState.Track.Position);
         RenderData(chunk);
       }
-      while (PT2Track::UpdateState(*Data, ModState, Sound::LOOP_NONE));
+      while (Data->UpdateState(ModState, Sound::LOOP_NONE));
       Reset();
 #endif
     }
@@ -661,7 +654,7 @@ namespace
     virtual void RenderData(AYM::DataChunk& chunk)
     {
       const PT2Track::Line& line(Data->Patterns[ModState.Track.Pattern][ModState.Track.Line]);
-      if (0 == ModState.Track.Frame)//begin note
+      if (0 == ModState.Track.Quirk)//begin note
       {
         for (uint_t chan = 0; chan != line.Channels.size(); ++chan)
         {

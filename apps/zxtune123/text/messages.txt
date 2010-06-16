@@ -253,9 +253,8 @@
 > "[%1%] [%2%]\n\n"
 
 < TRACKING_STATUS
-> "Position: %|1$-6|Pattern:  %2%  \n"
-> "Line:     %|3$-6|Frame:    %4%  \n"
-> "Tempo:    %|5$-6|Channels: %6%  \n"
+> "Position: %|1$-6|Line:     %|3$-6|Channels: %|5$-6|\n"
+> "Pattern:  %|2$-6|Frame:    %|4$-6|Tempo:    %|6$-6|\n"
 > "\n"
 
 < ITEM_INFO

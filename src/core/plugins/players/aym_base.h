@@ -51,12 +51,10 @@ namespace ZXTune
       {
       }
 
-      virtual Error GetPlaybackState(uint_t& timeState,
-                                     Tracking& trackState,
+      virtual Error GetPlaybackState(Module::State& state,
                                      Analyze::ChannelsState& analyzeState) const
       {
-        timeState = ModState.Frame;
-        trackState = ModState.Track;
+        state = ModState;
         Device->GetState(analyzeState);
         return Error();
       }
@@ -79,13 +77,13 @@ namespace ZXTune
       AYM::ParametersHelper::Ptr AYMHelper;
       //tracking-related
       PlaybackState CurrentState;
-      Module::Timing ModState;
+      Module::State ModState;
     };
 
     //Common base for all aym-tracking-based players
     //Tracker - instance of TrackingSupport
-    //State - internal state type
-    template<class Tracker, class State, class ModuleData = typename Tracker::ModuleData>
+    //InternalState - internal state type
+    template<class Tracker, class InternalState, class ModuleData = typename Tracker::ModuleData>
     class AYMPlayer : public AYMPlayerBase
     {
     public:
@@ -102,18 +100,6 @@ namespace ZXTune
                                 PlaybackState& state,
                                 Sound::MultichannelReceiver& receiver)
       {
-
-        if (ModState.Frame >= Data->Info.Statistic.Frame)
-        {
-          if (MODULE_STOPPED == CurrentState)
-          {
-            return Error(THIS_LINE, ERROR_MODULE_END, Text::MODULE_ERROR_MODULE_END);
-          }
-          receiver.Flush();
-          state = CurrentState = MODULE_STOPPED;
-          return Error();
-        }
-
         AYM::DataChunk chunk;
         AYMHelper->GetDataChunk(chunk);
         ModState.Tick += params.ClocksPerFrame();
@@ -121,7 +107,7 @@ namespace ZXTune
         RenderData(chunk);
 
         Device->RenderData(params, chunk, receiver);
-        if (Tracker::UpdateState(*Data, ModState, params.Looping))
+        if (Data->UpdateState(ModState, params.Looping))
         {
           CurrentState = MODULE_PLAYING;
         }
@@ -137,34 +123,36 @@ namespace ZXTune
       virtual Error Reset()
       {
         Device->Reset();
-        Tracker::InitState(*Data, ModState);
-        PlayerState = State();
+        Data->InitState(ModState);
+        PlayerState = InternalState();
         CurrentState = MODULE_STOPPED;
         return Error();
       }
 
       virtual Error SetPosition(uint_t frame)
       {
-        if (frame < ModState.Frame)
+        frame = std::min(frame, ModState.Reference.Frame - 1);
+        if (frame < ModState.Track.Frame)
         {
           //reset to beginning in case of moving back
           const uint64_t keepTicks = ModState.Tick;
-          Tracker::InitState(*Data, ModState);
-          PlayerState = State();
+          Data->InitState(ModState);
+          PlayerState = InternalState();
           ModState.Tick = keepTicks;
         }
         //fast forward
         AYM::DataChunk chunk;
-        while (ModState.Frame < frame)
+        while (ModState.Track.Frame < frame)
         {
           //do not update tick for proper rendering
           assert(Data->Positions.size() > ModState.Track.Position);
           RenderData(chunk);
-          if (!Tracker::UpdateState(*Data, ModState, Sound::LOOP_NONE))
+          if (!Data->UpdateState(ModState, Sound::LOOP_NONE))
           {
             break;
           }
         }
+        ModState.Frame = frame;
         return Error();
       }
 
@@ -174,7 +162,7 @@ namespace ZXTune
     protected:
       const typename ModuleData::ConstPtr Data;
       //typed state
-      State PlayerState;
+      InternalState PlayerState;
     };
   }
 }

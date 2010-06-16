@@ -59,11 +59,11 @@ namespace
       }
     }
 
-    virtual Error GetPlaybackState(uint_t& timeState, Module::Tracking& trackState,
+    virtual Error GetPlaybackState(Module::State& state,
       Module::Analyze::ChannelsState& analyzeState) const
     {
       Locker lock(Mutex);
-      return Delegate->GetPlaybackState(timeState, trackState, analyzeState);
+      return Delegate->GetPlaybackState(state, analyzeState);
     }
 
     virtual Error RenderFrame(const Sound::RenderParameters& params, PlaybackState& state,

@@ -38,14 +38,14 @@ namespace
       setupUi(this);
     }
 
-    virtual void UpdateState(uint, const ZXTune::Module::Tracking& tracking)
+    virtual void UpdateState(const ZXTune::Module::State& state)
     {
-      textPosition->setText(QString::number(tracking.Position));
-      textPattern->setText(QString::number(tracking.Pattern));
-      textLine->setText(QString::number(tracking.Line));
-      textFrame->setText(QString::number(tracking.Frame));
-      textChannels->setText(QString::number(tracking.Channels));
-      textTempo->setText(QString::number(tracking.Tempo));
+      textPosition->setText(QString::number(state.Track.Position));
+      textPattern->setText(QString::number(state.Track.Pattern));
+      textLine->setText(QString::number(state.Track.Line));
+      textFrame->setText(QString::number(state.Track.Quirk));
+      textChannels->setText(QString::number(state.Track.Channels));
+      textTempo->setText(QString::number(state.Reference.Quirk));
     }
 
     virtual void CloseState()

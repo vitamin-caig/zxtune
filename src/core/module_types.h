@@ -17,40 +17,75 @@ namespace ZXTune
 {
   namespace Module
   {
-    //! @brief Track position or informational descriptor. All numers are 0-based
+    //! @brief Track position descriptor. All numers are 0-based
     struct Tracking
     {
-      Tracking() : Position(), Pattern(), Line(), Frame(), Tempo(), Channels()
+      Tracking()
+        : Position()
+        , Pattern()
+        , Line()
+        , Quirk()
+        , Frame()
+        , Channels()
       {
       }
-      //! Position in order list or total positions count
+      //! Position in order list/total positions count
       uint_t Position;
-      //! Current pattern or total patterns count
+      //! Current pattern/total patterns count
       uint_t Pattern;
-      //! Current line
+      //! Current line in pattern/total lines in pattern
       uint_t Line;
-      //! Current frame or total frames count
+      //! Current quirk in line/total quirks in line (tempo)
+      uint_t Quirk;
+      //! Current frame in track/total frames in track
       uint_t Frame;
-      //! Current tempo or initial tempo
-      uint_t Tempo;
-      //! Currently active channels or total channels count (logical)
+      //! Currently active channels/total channels count (logical)
       uint_t Channels;
+    };
+
+    //! @brief Runtime module state descriptor
+    struct State
+    {
+      State() : Frame(), Tick()
+      {
+      }
+      //! Current tracking state
+      Tracking Track;
+      //! Current tracking state' reference
+      Tracking Reference;
+      //! Current frame from beginning of playback
+      uint_t Frame;
+      //! Current tick from beginning of playback
+      uint64_t Tick;
     };
 
     //! @brief Common module information
     struct Information
     {
-      Information() : LoopPosition(), LoopFrame(), PhysicalChannels()
+      Information()
+        : PositionsCount(), LoopPosition()
+        , PatternsCount()
+        , FramesCount(), LoopFrame()
+        , LogicalChannels(), PhysicalChannels()
+        , Tempo()
       {
       }
-      //! %Tracking statistic (values are used in second meaning)
-      Tracking Statistic;
+      //! Total positions
+      uint_t PositionsCount;
       //! Loop position index
       uint_t LoopPosition;
+      //! Total patterns count
+      uint_t PatternsCount;
+      //! Total frames count
+      uint_t FramesCount;
       //! Loop position frame
       uint_t LoopFrame;
-      //! Actual physical channels for playback
+      //! Logical channels count
+      uint_t LogicalChannels;
+      //! Actual physical channels count
       uint_t PhysicalChannels;
+      //! Initial tempo
+      uint_t Tempo;
       //! %Module properties @see core/module_attrs.h
       Parameters::Map Properties;
     };

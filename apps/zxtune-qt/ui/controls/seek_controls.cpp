@@ -35,16 +35,16 @@ namespace
 
     virtual void InitState(const ZXTune::Module::Information& info)
     {
-      timePosition->setRange(0, info.Statistic.Frame);
+      timePosition->setRange(0, info.FramesCount);
     }
 
-    virtual void UpdateState(uint frame)
+    virtual void UpdateState(const ZXTune::Module::State& state)
     {
       if (!timePosition->isSliderDown())
       {
-        timePosition->setValue(frame);
+        timePosition->setValue(state.Frame);
       }
-      timeDisplay->setText(ToQString(FormatTime(frame, 20000/*TODO*/)));
+      timeDisplay->setText(ToQString(FormatTime(state.Frame, 20000/*TODO*/)));
     }
 
     virtual void CloseState()

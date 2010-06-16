@@ -19,6 +19,7 @@ Author:
 #include <vector>
 //boost includes
 #include <boost/array.hpp>
+#include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/optional.hpp>
 #include <boost/shared_ptr.hpp>
@@ -57,16 +58,6 @@ namespace ZXTune
     private:
       uint_t Loop;
       std::vector<int_t> Lines;
-    };
-
-    struct Timing
-    {
-      Timing() : Frame(), Tick()
-      {
-      }
-      Module::Tracking Track;
-      uint_t Frame;
-      uint64_t Tick;
     };
 
     // Basic template class for tracking support (used as simple parametrized namespace)
@@ -153,94 +144,110 @@ namespace ZXTune
         ModuleData() : Positions(), Patterns(), Samples(), Ornaments(), Info()
         {
         }
+
+        void FillStatisticInfo(uint_t loopPosition, uint_t tempo, uint_t physicalChannels)
+        {
+          //static properties
+          Info.PositionsCount = Positions.size();
+          Info.LoopPosition = loopPosition;
+          Info.PatternsCount = std::count_if(Patterns.begin(), Patterns.end(),
+            !boost::bind(&Pattern::empty, _1));
+          Info.Tempo = tempo;
+          Info.LogicalChannels = ChannelsCount;
+          Info.PhysicalChannels = physicalChannels;
+          //emulate playback
+          Module::State state;
+          InitState(state);
+          Module::Tracking& track = state.Track;
+          do
+          {
+            //check for loop
+            if (0 == track.Line &&
+                0 == track.Quirk &&
+                Info.LoopPosition == track.Position)
+            {
+              Info.LoopFrame = state.Frame;
+            }
+          }
+          while (UpdateState(state, Sound::LOOP_NONE));
+          Info.FramesCount = state.Frame;
+        }
+
+        void InitState(Module::State& state) const
+        {
+          state = Module::State();
+          Module::Tracking& trackState(state.Track);
+          Module::Tracking& trackRef(state.Reference);
+          trackRef.Position = Info.PositionsCount;
+          trackState.Pattern = Positions[trackState.Position];
+          trackRef.Pattern = Patterns.size();//use absolute index as a base
+          trackRef.Line = Patterns[trackState.Pattern].size();
+          if (const boost::optional<uint_t>& tempo = Patterns[trackState.Pattern][trackState.Line].Tempo)
+          {
+            trackRef.Quirk = *tempo;
+          }
+          else
+          {
+            trackRef.Quirk = Info.Tempo;
+          }
+          trackRef.Frame = Info.FramesCount;
+        }
+
+        bool UpdateState(Module::State& state, Sound::LoopMode loopMode) const
+        {
+          //update tick outside of this func
+          Module::Tracking& trackState(state.Track);
+          Module::Tracking& trackRef(state.Reference);
+          ++state.Frame;
+          ++trackState.Frame;
+          //check for next note
+          if (++trackState.Quirk >= trackRef.Quirk)
+          {
+            trackState.Quirk = 0;
+            //check for next position
+            if (++trackState.Line >= trackRef.Line)
+            {
+              trackState.Line = 0;
+              //check for finish
+              if (++trackState.Position >= trackRef.Position)//end
+              {
+                //check if looped
+                //do not reset ticks/frame in state!!!
+                if (Sound::LOOP_NORMAL == loopMode)
+                {
+                  state.Frame = Info.LoopFrame;
+                  trackState.Position = Info.LoopPosition;
+                }
+                else
+                {
+                  //keep possible tempo changes- do not call FillTiming
+                  trackState.Frame = 0;
+                  trackState.Position = 0;
+                  if (Sound::LOOP_NONE == loopMode)
+                  {
+                    //exit here in initial position
+                    return false;
+                  }
+                }
+              }
+              trackState.Pattern = Positions[trackState.Position];
+              trackRef.Line = Patterns[trackState.Pattern].size();
+            }  //pattern changed
+            //update tempo if required
+            if (const boost::optional<uint_t>& tempo = Patterns[trackState.Pattern][trackState.Line].Tempo)
+            {
+              trackRef.Quirk = *tempo;
+            }
+          } //line changed
+          return true;
+        }
+
         std::vector<uint_t> Positions;
         std::vector<Pattern> Patterns;
         std::vector<SampleType> Samples;
         std::vector<OrnamentType> Ornaments;
         Information Info;
       };
-
-      // Service functions
-      static inline void CalculateTimings(const ModuleData& data, uint_t& framesCount, uint_t& loopFrame)
-      {
-        //emulate playback
-        Module::Timing state;
-        InitState(data, state);
-        Module::Tracking& track(state.Track);
-        do
-        {
-          if (0 == track.Line &&
-              0 == track.Frame &&
-              data.Info.LoopPosition == track.Position)
-          {
-            loopFrame = state.Frame;
-          }
-        }
-        while (UpdateState(data, state, Sound::LOOP_NONE));
-        framesCount = state.Frame;
-      }
-       
-      static inline void InitState(const ModuleData& data, Module::Timing& state)
-      {
-        //reset state
-        state = Module::Timing();
-        //set pattern to start
-        state.Track.Pattern = data.Positions[state.Track.Position];
-        //set tempo to start
-        if (const boost::optional<uint_t>& tempo = data.Patterns[state.Track.Pattern][state.Track.Line].Tempo)
-        {
-          state.Track.Tempo = *tempo;
-        }
-        else
-        {
-          state.Track.Tempo = data.Info.Statistic.Tempo;
-        }
-      }
-      
-      static inline bool UpdateState(const ModuleData& data, Module::Timing& state, Sound::LoopMode loopMode)
-      {
-        //update tick outside of this func
-        ++state.Frame;
-        Module::Tracking& trackState(state.Track);
-        //check for next note
-        if (++trackState.Frame >= trackState.Tempo)
-        {
-          trackState.Frame = 0;
-          //check for next position
-          if (++trackState.Line >= data.Patterns[trackState.Pattern].size())
-          {
-            trackState.Line = 0;
-            //check for finish
-            if (++trackState.Position >= data.Positions.size())//end
-            {
-              --trackState.Position;
-              //check if looped
-              //do not reset ticks in state!!!
-              if (Sound::LOOP_NORMAL == loopMode)
-              {
-                state.Frame = data.Info.LoopFrame;
-                trackState.Position = data.Info.LoopPosition;
-              }
-              else if (Sound::LOOP_BEGIN == loopMode)
-              {
-                state.Frame = 0;
-                trackState.Position = 0;
-              }
-              else
-              {
-                return false;
-              }
-            }
-            trackState.Pattern = data.Positions[trackState.Position];
-          }
-          //update tempo if required
-          if (const boost::optional<uint_t>& tempo = data.Patterns[trackState.Pattern][trackState.Line].Tempo)
-          {
-            trackState.Tempo = *tempo;
-          }
-        }
-        return true;
-      }
     };
     
     //helper class to easy parse patterns

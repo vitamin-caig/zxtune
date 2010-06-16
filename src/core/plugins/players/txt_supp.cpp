@@ -75,8 +75,6 @@ namespace
         *Data, Version, FreqTableName));
       //meta properties
       ExtractMetaProperties(TXT_PLUGIN_ID, container, region, region, Data->Info.Properties, RawData);
-
-      Vortex::Track::CalculateTimings(*Data, Data->Info.Statistic.Frame, Data->Info.LoopFrame);
     }
 
     virtual void GetPluginInformation(PluginInformation& info) const

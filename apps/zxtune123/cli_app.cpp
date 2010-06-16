@@ -281,7 +281,7 @@ namespace
           frameDuration = Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT;
         }
 
-        const uint_t seekStepFrames(item.Information.Statistic.Frame * SeekStep / 100);
+        const uint_t seekStepFrames(item.Information.FramesCount * SeekStep / 100);
         ThrowIfError(backend.Play());
 
         Display->SetModule(item.Information, backend.GetPlayer(), static_cast<uint_t>(frameDuration));

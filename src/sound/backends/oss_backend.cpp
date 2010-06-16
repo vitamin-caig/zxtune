@@ -121,6 +121,7 @@ namespace
     {
       try
       {
+        Log::Debug(THIS_MODULE, "GetVolume");
         boost::lock_guard<boost::mutex> lock(BackendMutex);
         if (-1 != MixHandle.Get())
         {
@@ -150,6 +151,7 @@ namespace
       }
       try
       {
+        Log::Debug(THIS_MODULE, "SetVolume");
         boost::lock_guard<boost::mutex> lock(BackendMutex);
         if (-1 != MixHandle.Get())
         {

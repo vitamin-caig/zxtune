@@ -907,14 +907,8 @@ namespace ZXTune
         version = descr.Version % 10;
         freqTable = Vortex::GetFreqTable(static_cast<Vortex::NoteTable>(descr.Notetable), version);
 
-        data.Info.LoopPosition = descr.Loop;
-        data.Info.PhysicalChannels = AYM::CHANNELS;
-        data.Info.Statistic.Tempo = descr.Tempo;
-        data.Info.Statistic.Position = descr.Order.size();
         data.Positions.swap(descr.Order);
-        data.Info.Statistic.Pattern = std::count_if(data.Patterns.begin(), data.Patterns.end(),
-          !boost::bind(&Vortex::Track::Pattern::empty, _1));
-        data.Info.Statistic.Channels = AYM::CHANNELS;
+        data.FillStatisticInfo(descr.Loop, descr.Tempo, AYM::CHANNELS);
 
         //apply result
         resData = data;
@@ -956,7 +950,7 @@ namespace ZXTune
           }
         }
         *iter = MODULE_NOTETABLE + MODULE_DELIMITER + string_cast(GetVortexNotetable(freqTable));
-        *iter = MODULE_SPEED + MODULE_DELIMITER + string_cast(data.Info.Statistic.Tempo);
+        *iter = MODULE_SPEED + MODULE_DELIMITER + string_cast(data.Info.Tempo);
         *iter = MODULE_PLAYORDER + MODULE_DELIMITER + UnparseLoopedList(data.Positions, data.Info.LoopPosition);
         *iter = std::string();//free
 

@@ -301,11 +301,10 @@ namespace
     {
       if (Logger.get())
       {
-        uint_t time = 0;
-        Module::Tracking track;
+        Module::State state;
         Module::Analyze::ChannelsState analyze;
-        ThrowIfError(Player->GetPlaybackState(time, track, analyze));
-        Logger->LogFrame(time, track);
+        ThrowIfError(Player->GetPlaybackState(state, analyze));
+        Logger->LogFrame(state.Frame, state.Track);
       }
     }
   private:

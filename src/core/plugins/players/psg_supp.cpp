@@ -151,10 +151,9 @@ namespace
       ExtractMetaProperties(PSG_PLUGIN_ID, container, region, region, ModInfo.Properties, RawData);
       
       //fill properties
-      ModInfo.Statistic.Frame = Data->size();
-      ModInfo.Statistic.Tempo = 1;
-      ModInfo.Statistic.Channels = AYM::CHANNELS;
-      ModInfo.PhysicalChannels = AYM::CHANNELS;
+      ModInfo.FramesCount = Data->size();
+      ModInfo.Tempo = 1;
+      ModInfo.LogicalChannels = ModInfo.PhysicalChannels = AYM::CHANNELS;
     }
 
     virtual void GetPluginInformation(PluginInformation& info) const
@@ -210,16 +209,6 @@ namespace
                               PlaybackState& state,
                               Sound::MultichannelReceiver& receiver)
     {
-      if (Data->end() == Position)
-      {
-        if (MODULE_STOPPED == CurrentState)
-        {
-          return Error(THIS_LINE, ERROR_MODULE_END, Text::MODULE_ERROR_MODULE_END);
-        }
-        receiver.Flush();
-        state = CurrentState = MODULE_STOPPED;
-        return Error();
-      }
       AYM::DataChunk chunk;
       AYMHelper->GetDataChunk(chunk);
       ModState.Tick += params.ClocksPerFrame();
@@ -245,7 +234,9 @@ namespace
     virtual Error Reset()
     {
       Position = Data->begin();
-      ModState = Module::Timing();
+      ModState = Module::State();
+      ModState.Reference.Frame = Data->size();
+      ModState.Reference.Channels = AYM::CHANNELS;
       State = AYM::DataChunk();
       State.Mask = AYM::DataChunk::MASK_ALL_REGISTERS;
       State.Data[AYM::DataChunk::REG_MIXER] = 0xff;
@@ -256,17 +247,20 @@ namespace
     
     virtual Error SetPosition(uint_t frame)
     {
-      if (frame < ModState.Frame)
+      frame = std::min(frame, ModState.Reference.Frame);
+      if (frame < ModState.Track.Frame)
       {
         //reset to beginning in case of moving back
         const uint64_t keepTicks = ModState.Tick;
         Position = Data->begin();
-        ModState = Module::Timing();
+        ModState = Module::State();
+        ModState.Reference.Frame = Data->size();
+        ModState.Reference.Channels = AYM::CHANNELS;
         ModState.Tick = keepTicks;
       }
       //fast forward
       AYM::DataChunk chunk;
-      while (ModState.Frame < frame)
+      while (ModState.Track.Frame < frame)
       {
         //do not update tick for proper rendering
         RenderData(chunk);
@@ -275,6 +269,7 @@ namespace
           break;
         }
       }
+      ModState.Frame = frame;
       return Error();
     }
   private:
@@ -298,14 +293,15 @@ namespace
     bool UpdateState(Sound::LoopMode mode)
     {
       ++ModState.Frame;
+      ++ModState.Track.Frame;
       if (++Position == Data->end())
       {
+        Position = Data->begin();
+        ModState.Track.Frame = 0;
         if (Sound::LOOP_NONE == mode)
         {
           return false;
         }
-        Position = Data->begin();
-        ModState.Frame = 0;
       }
       return true;
     }

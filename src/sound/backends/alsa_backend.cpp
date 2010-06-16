@@ -312,12 +312,14 @@ namespace
     
     virtual Error GetVolume(MultiGain& volume) const
     {
+      Log::Debug(THIS_MODULE, "GetVolume");
       boost::lock_guard<boost::mutex> lock(BackendMutex);
       return Mixer.GetVolume(volume);
     }
     
     virtual Error SetVolume(const MultiGain& volume)
     {
+      Log::Debug(THIS_MODULE, "SetVolume");
       boost::lock_guard<boost::mutex> lock(BackendMutex);
       return Mixer.SetVolume(volume);
     }

@@ -178,7 +178,7 @@ namespace
         assert(Data->Positions.size() > ModState.Track.Position);
         RenderData(chunk);
       }
-      while (Vortex::Track::UpdateState(*Data, ModState, Sound::LOOP_NONE));
+      while (Data->UpdateState(ModState, Sound::LOOP_NONE));
       Reset();
 #endif
     }
@@ -186,7 +186,7 @@ namespace
     virtual void RenderData(AYM::DataChunk& chunk)
     {
       const Vortex::Track::Line& line = Data->Patterns[ModState.Track.Pattern][ModState.Track.Line];
-      if (0 == ModState.Track.Frame)//begin note
+      if (0 == ModState.Track.Quirk)//begin note
       {
         if (0 == ModState.Track.Line)//pattern begin
         {
@@ -480,28 +480,26 @@ namespace
       Player1.reset(new VortexPlayer(secondData, version, freqTableName, device1));
     }
 
-    virtual Error GetPlaybackState(uint_t& timeState,
-                                   Tracking& trackState,
+    virtual Error GetPlaybackState(State& state,
                                    Analyze::ChannelsState& analyzeState) const
     {
       Analyze::ChannelsState firstAnalyze;
-      if (const Error& err = Player1->GetPlaybackState(timeState, trackState, firstAnalyze))
+      if (const Error& err = Player1->GetPlaybackState(state, firstAnalyze))
       {
         return err;
       }
+      State secondState;
       Analyze::ChannelsState secondAnalyze;
-      uint_t dummyTime = 0;
-      Tracking dummyTracking;
-      if (const Error& err = Player2->GetPlaybackState(dummyTime, dummyTracking, secondAnalyze))
+      if (const Error& err = Player2->GetPlaybackState(secondState, secondAnalyze))
       {
         return err;
       }
-      assert(timeState == dummyTime);
+      assert(state.Frame == secondState.Frame);
       //merge
       analyzeState.resize(firstAnalyze.size() + secondAnalyze.size());
       std::copy(secondAnalyze.begin(), secondAnalyze.end(),
         std::copy(firstAnalyze.begin(), firstAnalyze.end(), analyzeState.begin()));
-      trackState.Channels += dummyTracking.Channels;
+      state.Track.Channels += secondState.Track.Channels;
       return Error();
     }
 
@@ -509,14 +507,14 @@ namespace
                               PlaybackState& state,
                               Sound::MultichannelReceiver& receiver)
     {
-      const uint_t tempo1 = Player1->ModState.Track.Tempo;
+      const uint_t tempo1 = Player1->ModState.Reference.Quirk;
       PlaybackState state1;
       Mixer.Reset(params);
       if (const Error& e = Player1->RenderFrame(params, state1, Mixer))
       {
         return e;
       }
-      const uint_t tempo2 = Player2->ModState.Track.Tempo;
+      const uint_t tempo2 = Player2->ModState.Reference.Quirk;
       PlaybackState state2;
       Mixer.Switch(receiver);
       if (const Error& e = Player2->RenderFrame(params, state2, Mixer))
@@ -525,17 +523,19 @@ namespace
       }
       state = state1 == MODULE_STOPPED || state2 == MODULE_STOPPED ? MODULE_STOPPED : MODULE_PLAYING;
       //synchronize tempo
-      if (tempo1 != Player1->ModState.Track.Tempo)
+      if (tempo1 != Player1->ModState.Reference.Quirk)
       {
         const uint_t pattern = Player2->ModState.Track.Pattern;
         Player2->ModState = Player1->ModState;
         Player2->ModState.Track.Pattern = pattern;
+        Player2->ModState.Reference.Line = Player2->Data->Patterns[pattern].size();
       }
-      else if (tempo2 != Player2->ModState.Track.Tempo)
+      else if (tempo2 != Player2->ModState.Reference.Quirk)
       {
         const uint_t pattern = Player1->ModState.Track.Pattern;
         Player1->ModState = Player2->ModState;
         Player1->ModState.Track.Pattern = pattern;
+        Player1->ModState.Reference.Line = Player1->Data->Patterns[pattern].size();
       }
       return Error();
     }

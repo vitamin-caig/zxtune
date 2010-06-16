@@ -183,7 +183,7 @@ namespace
       //assume first is leading
       Information info2;
       Holder2->GetModuleInformation(info2);
-      Info.Statistic.Channels += info2.Statistic.Channels;
+      Info.LogicalChannels += info2.LogicalChannels;
       //physical channels are the same
       Parameters::Map mergedProps;
       MergeMap(Info.Properties, info2.Properties, mergedProps);
@@ -240,28 +240,26 @@ namespace
       return *Module;
     }
 
-    virtual Error GetPlaybackState(uint_t& timeState,
-                                   Tracking& trackState,
+    virtual Error GetPlaybackState(State& state,
                                    Analyze::ChannelsState& analyzeState) const
     {
       Analyze::ChannelsState firstAnalyze;
-      if (const Error& err = Player1->GetPlaybackState(timeState, trackState, firstAnalyze))
+      if (const Error& err = Player1->GetPlaybackState(state, firstAnalyze))
       {
         return err;
       }
+      State secondState;
       Analyze::ChannelsState secondAnalyze;
-      uint_t dummyTime = 0;
-      Tracking dummyTracking;
-      if (const Error& err = Player2->GetPlaybackState(dummyTime, dummyTracking, secondAnalyze))
+      if (const Error& err = Player2->GetPlaybackState(secondState, secondAnalyze))
       {
         return err;
       }
-      assert(timeState == dummyTime);
+      assert(state.Frame == secondState.Frame);
       //merge
       analyzeState.resize(firstAnalyze.size() + secondAnalyze.size());
       std::copy(secondAnalyze.begin(), secondAnalyze.end(),
         std::copy(firstAnalyze.begin(), firstAnalyze.end(), analyzeState.begin()));
-      trackState.Channels += dummyTracking.Channels;
+      state.Track.Channels += secondState.Track.Channels;
       return Error();
     }
 

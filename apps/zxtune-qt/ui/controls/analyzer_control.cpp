@@ -61,7 +61,7 @@ namespace
       DoRepaint();
     }
     
-    virtual void UpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState& state)
+    virtual void UpdateState(const ZXTune::Module::State&, const ZXTune::Module::Analyze::ChannelsState& state)
     {
       std::transform(Levels.begin(), Levels.end(), Levels.begin(), boost::bind(&SafeSub, _1, LEVELS_FALLBACK));
       std::for_each(state.begin(), state.end(), boost::bind(&StoreValue, _1, boost::ref(Levels)));

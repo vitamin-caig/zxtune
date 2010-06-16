@@ -115,8 +115,7 @@ namespace
         Sound::Backend::MODULE_RESUME | Sound::Backend::MODULE_PAUSE |
         Sound::Backend::MODULE_STOP | Sound::Backend::MODULE_FINISH);
       //playback state, just for optimization
-      uint_t time = 0;
-      Module::Tracking tracking;
+      Module::State state;
       Module::Analyze::ChannelsState analyze;
       for (;;)
       {
@@ -151,8 +150,8 @@ namespace
         }
         if (Module::Player::ConstPtr realPlayer = Player.lock())
         {
-          realPlayer->GetPlaybackState(time, tracking, analyze);
-          OnUpdateState(static_cast<uint>(time), tracking, analyze);
+          realPlayer->GetPlaybackState(state, analyze);
+          OnUpdateState(state, analyze);
         }
       }
       //notify about stop
@@ -207,7 +206,7 @@ namespace
 PlaybackSupport* PlaybackSupport::Create(QWidget* owner)
 {
   REGISTER_METATYPE(ZXTune::Module::Information);
-  REGISTER_METATYPE(ZXTune::Module::Tracking);
+  REGISTER_METATYPE(ZXTune::Module::State);
   REGISTER_METATYPE(ZXTune::Module::Analyze::ChannelsState);
   assert(owner);
   return new PlaybackSupportImpl(owner);

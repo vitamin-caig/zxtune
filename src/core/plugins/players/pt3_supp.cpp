@@ -747,33 +747,22 @@ namespace
       {
         Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_PROGRAM, prog));
       }
+      if (const uint_t msgs = warner->CountMessages())
+      {
+        Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS_COUNT, msgs));
+        Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS, warner->GetMessages('\n')));
+      }
       
       //tracking properties
       Version = std::isdigit(header->Subversion) ? header->Subversion - '0' : 6;
       FreqTableName = Vortex::GetFreqTable(static_cast<Vortex::NoteTable>(header->FreqTableNum), Version);
 
-      Data->Info.LoopPosition = header->Loop;
-      Data->Info.PhysicalChannels = AYM::CHANNELS;
-      Data->Info.Statistic.Tempo = header->Tempo;
-      Data->Info.Statistic.Position = Data->Positions.size();
-      Data->Info.Statistic.Pattern = std::count_if(Data->Patterns.begin(), Data->Patterns.end(),
-        !boost::bind(&Vortex::Track::Pattern::empty, _1));
-      Data->Info.Statistic.Channels = AYM::CHANNELS;
+      //TODO: proper calculating
+      Data->FillStatisticInfo(header->Loop, header->Tempo, AYM::CHANNELS);
       if (header->Mode != AY_TRACK)
       {
         TSPatternBase = header->Mode;
-        Data->Info.Statistic.Channels *= 2;
-        //TODO: proper calculating
-        Vortex::Track::CalculateTimings(*Data, Data->Info.Statistic.Frame, Data->Info.LoopFrame);
-      }
-      else
-      {
-        Vortex::Track::CalculateTimings(*Data, Data->Info.Statistic.Frame, Data->Info.LoopFrame);
-      }
-      if (const uint_t msgs = warner->CountMessages())
-      {
-        Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS_COUNT, msgs));
-        Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS, warner->GetMessages('\n')));
+        Data->Info.LogicalChannels *= 2;
       }
     }
     virtual void GetPluginInformation(PluginInformation& info) const

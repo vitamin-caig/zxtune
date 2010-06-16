@@ -367,21 +367,14 @@ namespace
       {
         Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_TITLE, title));
       }
-      
-      //tracking properties
-      Data->Info.LoopPosition = header->Loop;
-      Data->Info.PhysicalChannels = CHANNELS_COUNT;
-      Data->Info.Statistic.Tempo = header->Tempo;
-      Data->Info.Statistic.Position = Data->Positions.size();
-      Data->Info.Statistic.Pattern = std::count_if(Data->Patterns.begin(), Data->Patterns.end(),
-        !boost::bind(&PDTTrack::Pattern::empty, _1));
-      Data->Info.Statistic.Channels = CHANNELS_COUNT;
-      PDTTrack::CalculateTimings(*Data, Data->Info.Statistic.Frame, Data->Info.LoopFrame);
       if (const uint_t msgs = warner->CountMessages())
       {
         Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS_COUNT, msgs));
         Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS, warner->GetMessages('\n')));
       }
+      
+      //tracking properties
+      Data->FillStatisticInfo(header->Loop, header->Tempo, CHANNELS_COUNT);
     }
 
     virtual void GetPluginInformation(PluginInformation& info) const
@@ -472,17 +465,15 @@ namespace
         assert(Data->Positions.size() > ModState.Track.Position);
         RenderData(chunk);
       }
-      while (PDTTrack::UpdateState(*Data, ModState, Sound::LOOP_NONE));
+      while (Data->UpdateState(ModState, Sound::LOOP_NONE));
       Reset();
 #endif
     }
     
-    virtual Error GetPlaybackState(uint_t& timeState,
-                                   Tracking& trackState,
+    virtual Error GetPlaybackState(State& state,
                                    Analyze::ChannelsState& analyzeState) const
     {
-      timeState = ModState.Frame;
-      trackState = ModState.Track;
+      state = ModState;
       analyzeState = ChanState;
       return Error();
     }
@@ -491,18 +482,6 @@ namespace
                               PlaybackState& state,
                               Sound::MultichannelReceiver& receiver)
     {
-      // check if finished
-      if (ModState.Frame >= Data->Info.Statistic.Frame)
-      {
-        if (MODULE_STOPPED == CurrentState)
-        {
-          return Error(THIS_LINE, ERROR_MODULE_END, Text::MODULE_ERROR_MODULE_END);
-        }
-        receiver.Flush();
-        state = CurrentState = MODULE_STOPPED;
-        return Error();
-      }
-      
       DAC::DataChunk chunk;
       ModState.Tick += params.ClocksPerFrame();
       chunk.Tick = ModState.Tick;
@@ -514,7 +493,7 @@ namespace
       ModState.Track.Channels = std::count_if(ChanState.begin(), ChanState.end(),
         boost::mem_fn(&Analyze::Channel::Enabled));
 
-      if (PDTTrack::UpdateState(*Data, ModState, params.Looping))
+      if (Data->UpdateState(ModState, params.Looping))
       {
         CurrentState = MODULE_PLAYING;
       }
@@ -530,7 +509,7 @@ namespace
     virtual Error Reset()
     {
       Device->Reset();
-      PDTTrack::InitState(*Data, ModState);
+      Data->InitState(ModState);
       std::for_each(Ornaments.begin(), Ornaments.end(), std::mem_fun_ref(&OrnamentState::Reset));
       CurrentState = MODULE_STOPPED;
       return Error();
@@ -538,26 +517,28 @@ namespace
 
     virtual Error SetPosition(uint_t frame)
     {
-      if (frame < ModState.Frame)
+      frame = std::min(frame, ModState.Reference.Frame);
+      if (frame < ModState.Track.Frame)
       {
         //reset to beginning in case of moving back
         const uint64_t keepTicks = ModState.Tick;
-        PDTTrack::InitState(*Data, ModState);
+        Data->InitState(ModState);
         std::for_each(Ornaments.begin(), Ornaments.end(), std::mem_fun_ref(&OrnamentState::Reset));
         ModState.Tick = keepTicks;
       }
       //fast forward
       DAC::DataChunk chunk;
-      while (ModState.Frame < frame)
+      while (ModState.Track.Frame < frame)
       {
         //do not update tick for proper rendering
         assert(Data->Positions.size() > ModState.Track.Position);
         RenderData(chunk);
-        if (!PDTTrack::UpdateState(*Data, ModState, Sound::LOOP_NONE))
+        if (Data->UpdateState(ModState, Sound::LOOP_NONE))
         {
           break;
         }
       }
+      ModState.Frame = frame;
       return Error();
     }
 
@@ -582,7 +563,7 @@ namespace
         OrnamentState& ornament = Ornaments[chan];
         const int_t prevOffset = ornament.GetOffset();
         ornament.Update();
-        if (0 == ModState.Track.Frame)//begin note
+        if (0 == ModState.Track.Quirk)//begin note
         {
           const PDTTrack::Line& line = Data->Patterns[ModState.Track.Pattern][ModState.Track.Line];
           const PDTTrack::Line::Chan& src = line.Channels[chan];
@@ -635,7 +616,7 @@ namespace
 
     DAC::Chip::Ptr Device;
     PlaybackState CurrentState;
-    Timing ModState;
+    State ModState;
     boost::array<OrnamentState, CHANNELS_COUNT> Ornaments;
     Analyze::ChannelsState ChanState;
     bool Interpolation;

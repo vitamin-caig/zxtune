@@ -53,11 +53,10 @@ namespace ZXTune
       };
 
       //! @brief Getting current playback state of loaded module
-      //! @param timeState Reference to store frame number
-      //! @param trackState Reference to store tracking position
+      //! @param state Reference to store playback state
       //! @param analyzeState Reference to store analyze result
       //! @return Error() in case of success
-      virtual Error GetPlaybackState(uint_t& timeState, Tracking& trackState,
+      virtual Error GetPlaybackState(State& state,
         Analyze::ChannelsState& analyzeState) const = 0;
 
       //! @brief Rendering single frame and modifying internal state
