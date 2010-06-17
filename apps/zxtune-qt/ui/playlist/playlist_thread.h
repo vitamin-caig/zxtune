@@ -30,7 +30,7 @@ class ProcessThread : public QThread
 {
   Q_OBJECT
 public:
-  static ProcessThread* Create(QObject* owner);
+  static ProcessThread* Create(QObject* owner, PlayitemsProvider::Ptr provider);
 
   virtual void AddItemPath(const String& path) = 0;
 public slots:

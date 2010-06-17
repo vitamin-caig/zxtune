@@ -30,8 +30,8 @@ namespace
   class ProcessThreadImpl : public ProcessThread
   {
   public:
-    explicit ProcessThreadImpl(QObject* owner)
-      : Provider(PlayitemsProvider::Create())
+    ProcessThreadImpl(QObject* owner, PlayitemsProvider::Ptr provider)
+      : Provider(provider)
       , Canceled(false)
     {
       setParent(owner);
@@ -105,8 +105,8 @@ namespace
   };
 }
 
-ProcessThread* ProcessThread::Create(QObject* owner)
+ProcessThread* ProcessThread::Create(QObject* owner, PlayitemsProvider::Ptr provider)
 {
   assert(owner);
-  return new ProcessThreadImpl(owner);
+  return new ProcessThreadImpl(owner, provider);
 }

@@ -56,7 +56,8 @@ namespace
   {
   public:
     explicit PlaylistImpl(QMainWindow* parent)
-      : Thread(ProcessThread::Create(this))
+      : Provider(PlayitemsProvider::Create())
+      , Thread(ProcessThread::Create(this, Provider))
       , Randomized(), Looped()
       , ActivatedItem(), SelectedItem()
     {
@@ -192,6 +193,7 @@ namespace
     {
       playList->clear();
       Items.clear();
+      Provider->ResetCache();
       ActivatedItem = SelectedItem = 0;
     }
     
@@ -333,6 +335,7 @@ namespace
       Items.erase(iter);
     }
   private:
+    PlayitemsProvider::Ptr Provider;
     ProcessThread* const Thread;
     bool Randomized;
     bool Looped;

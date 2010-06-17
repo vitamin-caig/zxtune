@@ -41,12 +41,14 @@ struct PlayitemDetectParameters
 class PlayitemsProvider
 {
 public:
-  typedef std::auto_ptr<PlayitemsProvider> Ptr;
+  typedef boost::shared_ptr<PlayitemsProvider> Ptr;
   
   virtual ~PlayitemsProvider() {}
   
   virtual Error DetectModules(const String& path, 
     const Parameters::Map& commonParams, const PlayitemDetectParameters& detectParams) = 0;
+
+  virtual void ResetCache() = 0;
     
   static Ptr Create();
 };

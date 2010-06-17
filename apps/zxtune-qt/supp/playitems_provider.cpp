@@ -231,6 +231,12 @@ namespace
         return e;
       }
     }
+
+    virtual void ResetCache()
+    {
+      Provider.reset(new DataProvider());
+    }
+
   private:
     Error CreatePlayitem(SharedPlayitemContext::Ptr context,
       const String& dataPath, const String& subPath,
@@ -271,7 +277,7 @@ namespace
       }
     }
   private:
-    const DataProvider::Ptr Provider;
+    DataProvider::Ptr Provider;
     PluginsMap Plugins;
   };
 }
