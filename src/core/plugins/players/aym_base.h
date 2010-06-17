@@ -40,15 +40,22 @@ namespace ZXTune
 {
   namespace Module
   {
-    //common base for all AYM-based players
-    class AYMPlayerBase : public Player
+    //Common base for all aym-based players (interpret as a tracked if required)
+    //ModuleData - source data type
+    //InternalState - internal state type
+    template<class ModuleData, class InternalState>
+    class AYMPlayer : public Player
     {
     public:
-      AYMPlayerBase(AYM::Chip::Ptr device, const String& defTable)
-        : Device(device)
+      AYMPlayer(typename ModuleData::ConstPtr data,
+        AYM::Chip::Ptr device, const String& defTable)
+        : Data(data)
         , AYMHelper(AYM::ParametersHelper::Create(defTable))
+        , Device(device)
         , CurrentState(MODULE_STOPPED)
       {
+        //WARNING: not a virtual call
+        Reset();
       }
 
       virtual Error GetPlaybackState(Module::State& state,
@@ -70,30 +77,6 @@ namespace ZXTune
         {
           return Error(THIS_LINE, ERROR_INVALID_PARAMETERS, Text::MODULE_ERROR_SET_PLAYER_PARAMETERS).AddSuberror(e);
         }
-      }
-    protected:
-      //aym-related
-      AYM::Chip::Ptr Device;
-      AYM::ParametersHelper::Ptr AYMHelper;
-      //tracking-related
-      PlaybackState CurrentState;
-      Module::State ModState;
-    };
-
-    //Common base for all aym-tracking-based players
-    //Tracker - instance of TrackingSupport
-    //InternalState - internal state type
-    template<class Tracker, class InternalState, class ModuleData = typename Tracker::ModuleData>
-    class AYMPlayer : public AYMPlayerBase
-    {
-    public:
-      AYMPlayer(typename ModuleData::ConstPtr data,
-        AYM::Chip::Ptr device, const String& defTable)
-        : AYMPlayerBase(device, defTable)
-        , Data(data)
-      {
-        //WARNING: not a virtual call
-        Reset();
       }
 
       virtual Error RenderFrame(const Sound::RenderParameters& params,
@@ -145,7 +128,6 @@ namespace ZXTune
         while (ModState.Track.Frame < frame)
         {
           //do not update tick for proper rendering
-          assert(Data->Positions.size() > ModState.Track.Position);
           RenderData(chunk);
           if (!Data->UpdateState(ModState, Sound::LOOP_NONE))
           {
@@ -161,8 +143,15 @@ namespace ZXTune
       virtual void RenderData(AYM::DataChunk& chunk) = 0;
     protected:
       const typename ModuleData::ConstPtr Data;
+      //aym-related
+      AYM::ParametersHelper::Ptr AYMHelper;
+      //tracking-related
+      Module::State ModState;
       //typed state
       InternalState PlayerState;
+    private:
+      AYM::Chip::Ptr Device;
+      PlaybackState CurrentState;
     };
   }
 }

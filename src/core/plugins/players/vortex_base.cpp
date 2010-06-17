@@ -156,7 +156,7 @@ namespace
     CommonState CommState;
   };
 
-  typedef AYMPlayer<Vortex::Track, VortexState> VortexPlayerBase;
+  typedef AYMPlayer<Vortex::Track::ModuleData, VortexState> VortexPlayerBase;
 
   //simple player type
   class VortexPlayer : public VortexPlayerBase

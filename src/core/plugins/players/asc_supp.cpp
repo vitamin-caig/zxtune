@@ -813,7 +813,7 @@ namespace
     int_t Glissade;
   };
 
-  typedef AYMPlayer<ASCTrack, boost::array<ASCChannelState, AYM::CHANNELS> > ASCPlayerBase;
+  typedef AYMPlayer<ASCTrack::ModuleData, boost::array<ASCChannelState, AYM::CHANNELS> > ASCPlayerBase;
 
   class ASCPlayer : public ASCPlayerBase
   {

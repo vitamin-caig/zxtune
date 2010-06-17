@@ -191,6 +191,7 @@ namespace ZXTune
             trackRef.Quirk = Info.Tempo;
           }
           trackRef.Frame = Info.FramesCount;
+          trackRef.Channels = Info.LogicalChannels;
         }
 
         bool UpdateState(Module::State& state, Sound::LoopMode loopMode) const

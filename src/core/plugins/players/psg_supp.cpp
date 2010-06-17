@@ -73,13 +73,43 @@ namespace
     info.Capabilities = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
   }
   
-  class PSGData : public std::vector<AYM::DataChunk>
+  class PSGData
   {
   public:
     typedef boost::shared_ptr<PSGData> Ptr;
     typedef boost::shared_ptr<const PSGData> ConstPtr;
-  };
 
+    void FillStatisticInfo()
+    {
+      Info.LogicalChannels = Info.PhysicalChannels = AYM::CHANNELS;
+      Info.FramesCount = Dump.size();
+    }
+
+    void InitState(State& state) const
+    {
+      state = State();
+      Tracking& trackRef(state.Reference);
+      trackRef.Quirk = 1;
+      trackRef.Frame = Info.FramesCount;
+      trackRef.Channels = Info.LogicalChannels;
+    }
+
+    bool UpdateState(State& state, Sound::LoopMode loopMode) const
+    {
+      //update tick outside
+      ++state.Frame;
+      if (++state.Track.Frame >= state.Reference.Frame)
+      {
+        //check if looped
+        state.Track.Frame = 0;
+        return Sound::LOOP_NONE != loopMode;
+      }
+      return true;
+    }
+
+    std::vector<AYM::DataChunk> Dump;
+    Information Info;
+  };
   
   Player::Ptr CreatePSGPlayer(PSGData::ConstPtr data, AYM::Chip::Ptr device);
   
@@ -107,8 +137,8 @@ namespace
         --size;
         if (INT_BEGIN == reg)
         {
-          Data->push_back(dummy);
-          chunk = &Data->back();
+          Data->Dump.push_back(dummy);
+          chunk = &Data->Dump.back();
         }
         else if (INT_SKIP == reg)
         {
@@ -120,9 +150,9 @@ namespace
           while (count--)
           {
             //empty chunk
-            Data->push_back(dummy);
+            Data->Dump.push_back(dummy);
           }
-          chunk = &Data->back();
+          chunk = &Data->Dump.back();
           ++bdata;
           --size;
         }
@@ -148,12 +178,8 @@ namespace
       region.Size = data.Size() - size;
       
       //extract properties
-      ExtractMetaProperties(PSG_PLUGIN_ID, container, region, region, ModInfo.Properties, RawData);
-      
-      //fill properties
-      ModInfo.FramesCount = Data->size();
-      ModInfo.Tempo = 1;
-      ModInfo.LogicalChannels = ModInfo.PhysicalChannels = AYM::CHANNELS;
+      ExtractMetaProperties(PSG_PLUGIN_ID, container, region, region, Data->Info.Properties, RawData);
+      Data->FillStatisticInfo();
     }
 
     virtual void GetPluginInformation(PluginInformation& info) const
@@ -163,7 +189,7 @@ namespace
 
     virtual void GetModuleInformation(Information& info) const
     {
-      info = ModInfo;
+      info = Data->Info;
     }
 
     virtual Player::Ptr CreatePlayer() const
@@ -189,126 +215,60 @@ namespace
       return result;
     }
   private:
-    Module::Information ModInfo;
     Dump RawData;
     PSGData::Ptr Data;
   };
 
-  class PSGPlayer : public AYMPlayerBase
+  typedef AYMPlayer<PSGData, AYM::DataChunk> PSGPlayerBase;
+
+  class PSGPlayer : public PSGPlayerBase
   {
   public:
     PSGPlayer(PSGData::ConstPtr data, AYM::Chip::Ptr device)
-       : AYMPlayerBase(device, TABLE_SOUNDTRACKER/*any of*/)
-       , Data(data)
-       , Position(Data->begin())
+       : PSGPlayerBase(data, device, TABLE_SOUNDTRACKER/*any of*/)
     {
-      Reset();
-    }
-
-    virtual Error RenderFrame(const Sound::RenderParameters& params,
-                              PlaybackState& state,
-                              Sound::MultichannelReceiver& receiver)
-    {
-      AYM::DataChunk chunk;
-      AYMHelper->GetDataChunk(chunk);
-      ModState.Tick += params.ClocksPerFrame();
-      chunk.Tick = ModState.Tick;
-      RenderData(chunk);
-
-      Device->RenderData(params, chunk, receiver);
-      //reset envelope register mask
-      State.Mask &= ~(uint_t(1) << AYM::DataChunk::REG_ENV);
-      if (UpdateState(params.Looping))
-      {
-        CurrentState = MODULE_PLAYING;
-      }
-      else
-      {
-        receiver.Flush();
-        CurrentState = MODULE_STOPPED;
-      }
-      state = CurrentState;
-      return Error();
     }
 
     virtual Error Reset()
     {
-      Position = Data->begin();
-      ModState = Module::State();
-      ModState.Reference.Frame = Data->size();
-      ModState.Reference.Channels = AYM::CHANNELS;
-      State = AYM::DataChunk();
-      State.Mask = AYM::DataChunk::MASK_ALL_REGISTERS;
-      State.Data[AYM::DataChunk::REG_MIXER] = 0xff;
-      Device->Reset();
-      CurrentState = MODULE_STOPPED;
-      return Error();
+      const Error& res = PSGPlayerBase::Reset();
+      PlayerState.Mask = AYM::DataChunk::MASK_ALL_REGISTERS;
+      PlayerState.Data[AYM::DataChunk::REG_MIXER] = 0xff;
+      return res;
     }
     
-    virtual Error SetPosition(uint_t frame)
-    {
-      frame = std::min(frame, ModState.Reference.Frame);
-      if (frame < ModState.Track.Frame)
-      {
-        //reset to beginning in case of moving back
-        const uint64_t keepTicks = ModState.Tick;
-        Position = Data->begin();
-        ModState = Module::State();
-        ModState.Reference.Frame = Data->size();
-        ModState.Reference.Channels = AYM::CHANNELS;
-        ModState.Tick = keepTicks;
-      }
-      //fast forward
-      AYM::DataChunk chunk;
-      while (ModState.Track.Frame < frame)
-      {
-        //do not update tick for proper rendering
-        RenderData(chunk);
-        if (!UpdateState(Sound::LOOP_NONE))
-        {
-          break;
-        }
-      }
-      ModState.Frame = frame;
-      return Error();
-    }
-  private:
     void RenderData(AYM::DataChunk& chunk)
     {
-      const AYM::DataChunk& data = *Position;
+      const AYM::DataChunk& data = Data->Dump[ModState.Track.Frame];
       //collect state
       for (uint_t reg = 0, mask = (data.Mask & AYM::DataChunk::MASK_ALL_REGISTERS); mask; ++reg, mask >>= 1)
       {
         if (0 != (mask & 1))
         {
-          State.Data[reg] = data.Data[reg];
-          State.Mask |= uint_t(1) << reg;
+          PlayerState.Data[reg] = data.Data[reg];
+          PlayerState.Mask |= uint_t(1) << reg;
         }
       }
       //copy result
-      std::copy(State.Data.begin(), State.Data.begin() + AYM::DataChunk::REG_ENV + 1, chunk.Data.begin());
-      chunk.Mask = (chunk.Mask & ~AYM::DataChunk::MASK_ALL_REGISTERS) | (State.Mask & AYM::DataChunk::MASK_ALL_REGISTERS);
-    }
-
-    bool UpdateState(Sound::LoopMode mode)
-    {
-      ++ModState.Frame;
-      ++ModState.Track.Frame;
-      if (++Position == Data->end())
+      std::copy(PlayerState.Data.begin(), PlayerState.Data.begin() + AYM::DataChunk::REG_ENV + 1, chunk.Data.begin());
+      chunk.Mask &= ~AYM::DataChunk::MASK_ALL_REGISTERS;
+      chunk.Mask |= PlayerState.Mask & AYM::DataChunk::MASK_ALL_REGISTERS;
+      //reset envelope mask
+      PlayerState.Mask &= ~(uint_t(1) << AYM::DataChunk::REG_ENV);
+      //count enabled channels
+      ModState.Track.Channels = 0;
+      for (uint_t chan = 0,
+           mixer = PlayerState.Data[AYM::DataChunk::REG_MIXER],
+           mask = AYM::DataChunk::REG_MASK_NOISEA | AYM::DataChunk::REG_MASK_TONEA; 
+        chan < AYM::CHANNELS; ++chan, mask <<= 1)
       {
-        Position = Data->begin();
-        ModState.Track.Frame = 0;
-        if (Sound::LOOP_NONE == mode)
+        if (0 != (mixer & mask) || 
+            0 != (PlayerState.Data[AYM::DataChunk::REG_VOLA + chan] & AYM::DataChunk::REG_MASK_ENV))
         {
-          return false;
+          ++ModState.Track.Channels;
         }
       }
-      return true;
     }
-  private:
-    const PSGData::ConstPtr Data;
-    PSGData::const_iterator Position;
-    AYM::DataChunk State;
   };
   
   Player::Ptr CreatePSGPlayer(PSGData::ConstPtr data, AYM::Chip::Ptr device)
