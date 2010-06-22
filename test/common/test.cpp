@@ -29,9 +29,9 @@ namespace
     std::cout << (val ? "Passed" : "Failed") << " test for " << msg << std::endl;
   }
   
-  void TestTemplate(const String& templ, const StringMap& params, const String& reference)
+  void TestTemplate(const String& templ, const StringMap& params, const String& reference, InstantiateMode mode = KEEP_NONEXISTING)
   {
-    const String res = InstantiateTemplate(templ, params);
+    const String res = InstantiateTemplate(templ, params, mode);
     if (res == reference)
     {
       std::cout << "Passed test for '" << templ << '\'' << std::endl;
@@ -104,7 +104,9 @@ int main()
   std::cout << "---- Test for string template ----" << std::endl;
   {
     TestTemplate("without template", StringMap(), "without template");
-    TestTemplate("no [mapped] template", StringMap(), "no [mapped] template");
+    TestTemplate("no [mapped] template", StringMap(), "no [mapped] template", KEEP_NONEXISTING);
+    TestTemplate("no [nonexisting] template", StringMap(), "no  template", SKIP_NONEXISTING);
+    TestTemplate("no [tabulated] template", StringMap(), "no             template", FILL_NONEXISTING);
     StringMap params;
     params["name"] = "value";
     TestTemplate("single [name] test", params, "single value test");
@@ -112,6 +114,8 @@ int main()
     params["value"] = "name";
     TestTemplate("multiple [name] and [value] test", params, "multiple value and name test");
     TestTemplate("syntax error [name test", params, "syntax error [name test");
+    TestTemplate("[name] at the beginning", params, "value at the beginning");
+    TestTemplate("at the end [name]", params, "at the end value");
   }
   
   std::cout << "---- Test for parameters map converting ----" << std::endl;

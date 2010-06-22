@@ -12,6 +12,8 @@
 
 //common includes
 #include <string_helpers.h>
+//std includes
+#include <memory>
 
 //! @brief %Parameters instantiating modes
 enum InstantiateMode
@@ -44,5 +46,19 @@ enum InstantiateMode
 //! @endcode
 String InstantiateTemplate(const String& templ, const StringMap& properties,
   InstantiateMode mode = KEEP_NONEXISTING, Char beginMark = '[', Char endMark = ']');
+
+//! @brief Interface optimized for fast template instantiation with different parameters
+class StringTemplate
+{
+public:
+  //! @brief Pointer type
+  typedef std::auto_ptr<StringTemplate> Ptr;
+  //! @brief Virtual destructor
+  virtual ~StringTemplate() {}
+  //! @brief Performing instantiation
+  virtual String Instantiate(const StringMap& properties) const = 0;
+  //! @brief Factory
+  static Ptr Create(const String& templ, InstantiateMode mode = KEEP_NONEXISTING, Char beginMark = '[', Char endMark = ']');
+};
 
 #endif //__TEMPLATE_H_DEFINED__
