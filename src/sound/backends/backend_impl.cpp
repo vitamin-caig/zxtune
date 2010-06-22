@@ -63,13 +63,19 @@ namespace
       Module::Analyze::ChannelsState& analyzeState) const
     {
       Locker lock(Mutex);
-      return Delegate->GetPlaybackState(state, analyzeState);
+      state = PrevState;
+      analyzeState = PrevAnalyze;
+      return Error();
     }
 
     virtual Error RenderFrame(const Sound::RenderParameters& params, PlaybackState& state,
       Sound::MultichannelReceiver& receiver)
     {
       Locker lock(Mutex);
+      if (const Error& e = Delegate->GetPlaybackState(PrevState, PrevAnalyze))
+      {
+        return e;
+      }
       return Delegate->RenderFrame(params, state, receiver);
     }
     
@@ -93,6 +99,8 @@ namespace
   private:
     const Module::Player::Ptr Delegate;
     mutable boost::mutex Mutex;
+    Module::State PrevState;
+    Module::Analyze::ChannelsState PrevAnalyze;
   };
   
   void CopyInitialParameters(const RenderParameters& renderParams, Parameters::Map& commonParams)

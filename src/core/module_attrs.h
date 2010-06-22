@@ -60,6 +60,16 @@ namespace ZXTune
     //! Full path of module including path of input data and subpath
     const Char ATTR_FULLPATH[] = {'F', 'u', 'l', 'l', 'p', 'a', 't', 'h', '\0'};
     //@}
+    
+    //@{
+    //! @name Runtime attributes
+    
+    //! Current module position
+    const Char ATTR_CURRENT_POSITION[] = {'C', 'u', 'r', 'P', 'o', 's', 'i', 't', 'i', 'o', 'n', '\0'};
+    //! Current module pattern
+    const Char ATTR_CURRENT_PATTERN[] = {'C', 'u', 'r', 'P', 'a', 't', 't', 'e', 'r', 'n', '\0'};
+    //! Current module line
+    const Char ATTR_CURRENT_LINE[] = {'C', 'u', 'r', 'L', 'i', 'n', 'e', '\0'};
   }
 }
 
