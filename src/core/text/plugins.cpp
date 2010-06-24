@@ -17,6 +17,10 @@ extern const Char CHI_EDITOR[] = {
 extern const Char CHI_PLUGIN_INFO[] = {
   'C','H','I',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
 };
+extern const Char DSQ_PLUGIN_INFO[] = {
+  'D','a','t','a','S','q','u','e','e','z','e','r',' ','p','a','c','k','e','d',' ','d','a','t','a',' ','s','u',
+  'p','p','o','r','t','.',0
+};
 extern const Char FDI_PLUGIN_INFO[] = {
   'F','D','I',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
 };

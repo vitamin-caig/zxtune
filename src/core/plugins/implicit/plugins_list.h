@@ -21,6 +21,7 @@ namespace ZXTune
   void RegisterHrust1xConvertor(PluginsEnumerator& enumerator);
   void RegisterHrust2xConvertor(PluginsEnumerator& enumerator);
   void RegisterFDIConvertor(PluginsEnumerator& enumerator);
+  void RegisterDSQConvertor(PluginsEnumerator& enumerator);
 
   void RegisterImplicitPlugins(PluginsEnumerator& enumerator)
   {
@@ -28,6 +29,7 @@ namespace ZXTune
     RegisterHrust1xConvertor(enumerator);
     RegisterHrust2xConvertor(enumerator);
     RegisterFDIConvertor(enumerator);
+    RegisterDSQConvertor(enumerator);
   }
 }
 
