@@ -57,6 +57,27 @@ __cpp> "#endif //__TEXT_CORE_H_DEFINED__\n"
 < MODULE_ERROR_INVALID_DUTY_CYCLE_MASK_ITEM
 > "Invalid duty cycle mask item: '%1%'."
 
+< MODULE_ERROR_INVALID_LAYOUT
+> "Invalid layout value (%1%)."
+
+< MODULE_LAYOUT_ABC
+> "ABC"
+
+< MODULE_LAYOUT_ACB
+> "ACB"
+
+< MODULE_LAYOUT_BAC
+> "BAC"
+
+< MODULE_LAYOUT_BCA
+> "BCA"
+
+< MODULE_LAYOUT_CBA
+> "CBA"
+
+< MODULE_LAYOUT_CAB
+> "CAB"
+
 < MODULE_ERROR_SET_PLAYER_PARAMETERS
 > "Failed to set player parameters."
 

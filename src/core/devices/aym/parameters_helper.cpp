@@ -53,6 +53,39 @@ namespace
     return val | MASKS[pos];
   }
 
+  uint_t String2Layout(const String& str)
+  {
+    if (str == Text::MODULE_LAYOUT_ABC)
+    {
+      return LAYOUT_ABC;
+    }
+    else if (str == Text::MODULE_LAYOUT_ACB)
+    {
+      return LAYOUT_ACB;
+    }
+    else if (str == Text::MODULE_LAYOUT_BAC)
+    {
+      return LAYOUT_BAC;
+    }
+    else if (str == Text::MODULE_LAYOUT_BCA)
+    {
+      return LAYOUT_BCA;
+    }
+    else if (str == Text::MODULE_LAYOUT_CBA)
+    {
+      return LAYOUT_CBA;
+    }
+    else if (str == Text::MODULE_LAYOUT_CAB)
+    {
+      return LAYOUT_CAB;
+    }
+    else
+    {
+      throw MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,
+        Text::MODULE_ERROR_INVALID_LAYOUT, str);
+    }
+  }
+
   class ParametersHelperImpl : public ParametersHelper
   {
   public:
@@ -128,6 +161,21 @@ namespace
       {
         // as integer mask
         Chunk.Data[DataChunk::PARAM_DUTY_CYCLE_MASK] = static_cast<uint8_t>(intParam);
+      }
+      // layout parameter
+      if (Parameters::FindByName(params, Parameters::ZXTune::Core::AYM::LAYOUT, strParam))
+      {
+        // as string mask
+        Chunk.Data[DataChunk::PARAM_LAYOUT] = String2Layout(strParam);
+      }
+      else if (Parameters::FindByName(params, Parameters::ZXTune::Core::AYM::LAYOUT, intParam))
+      {
+        if (intParam < static_cast<int_t>(LAYOUT_ABC) || 
+            intParam >= static_cast<int_t>(LAYOUT_LAST))
+        {
+          throw MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,
+            Text::MODULE_ERROR_INVALID_LAYOUT, intParam);
+        }
       }
     }
 

@@ -59,6 +59,12 @@ namespace Parameters
         {
           'z','x','t','u','n','e','.','c','o','r','e','.','a','y','m','.','d','u','t','y','_','c','y','c','l','e','_','m','a','s','k','\0'
         };
+        //! @brief Channels layout parameter
+        //! @details @see core/devices/aym.h
+        const Char LAYOUT[] =
+        {
+          'z','x','t','u','n','e','.','c','o','r','e','.','a','y','m','.','l','a','y','o','u','t','\0'
+        };
       }
       
       //! @brief DAC-realated parameters namespace

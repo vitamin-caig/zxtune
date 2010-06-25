@@ -56,6 +56,7 @@ namespace ZXTune
         //parameters offsets in data
         PARAM_DUTY_CYCLE,
         PARAM_DUTY_CYCLE_MASK,
+        PARAM_LAYOUT,
 
         //limiter
         PARAM_LAST,
@@ -89,7 +90,7 @@ namespace ZXTune
         DUTY_CYCLE_MASK_B = 2,
         DUTY_CYCLE_MASK_C = 4,
         DUTY_CYCLE_MASK_N = 8,
-        DUTY_CYCLE_MASK_E = 16
+        DUTY_CYCLE_MASK_E = 16,
       };
 
       DataChunk() : Tick(), Mask(), Data()
@@ -100,6 +101,19 @@ namespace ZXTune
       boost::array<uint8_t, PARAM_LAST> Data;
     };
 
+    //layout mode
+    enum LayoutType
+    {
+      LAYOUT_ABC = 0,
+      LAYOUT_ACB = 1,
+      LAYOUT_BAC = 2,
+      LAYOUT_BCA = 3,
+      LAYOUT_CAB = 4,
+      LAYOUT_CBA = 5,
+
+      LAYOUT_LAST
+    };
+
     class Chip
     {
     public:
@@ -107,7 +121,7 @@ namespace ZXTune
 
       virtual ~Chip() {}
 
-      /// render single data chunkg
+      /// render single data chunk
       virtual void RenderData(const Sound::RenderParameters& params,
                               const DataChunk& src,
                               Sound::MultichannelReceiver& dst) = 0;

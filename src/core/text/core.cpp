@@ -47,6 +47,9 @@ extern const Char MODULE_ERROR_INVALID_FREQ_TABLE_SIZE[] = {
   'I','n','v','a','l','i','d',' ','f','r','e','q','u','e','n','c','y',' ','t','a','b','l','e',' ','s','i','z',
   'e',' ','(','%','1','%',')','.',0
 };
+extern const Char MODULE_ERROR_INVALID_LAYOUT[] = {
+  'I','n','v','a','l','i','d',' ','l','a','y','o','u','t',' ','v','a','l','u','e',' ','(','%','1','%',')','.',0
+};
 extern const Char MODULE_ERROR_MODULE_END[] = {
   'M','o','d','u','l','e',' ','e','n','d',' ','i','s',' ','r','e','a','c','h','e','d','.',0
 };
@@ -61,6 +64,24 @@ extern const Char MODULE_ERROR_PARAMETERS[] = {
 extern const Char MODULE_ERROR_SET_PLAYER_PARAMETERS[] = {
   'F','a','i','l','e','d',' ','t','o',' ','s','e','t',' ','p','l','a','y','e','r',' ','p','a','r','a','m','e',
   't','e','r','s','.',0
+};
+extern const Char MODULE_LAYOUT_ABC[] = {
+  'A','B','C',0
+};
+extern const Char MODULE_LAYOUT_ACB[] = {
+  'A','C','B',0
+};
+extern const Char MODULE_LAYOUT_BAC[] = {
+  'B','A','C',0
+};
+extern const Char MODULE_LAYOUT_BCA[] = {
+  'B','C','A',0
+};
+extern const Char MODULE_LAYOUT_CAB[] = {
+  'C','A','B',0
+};
+extern const Char MODULE_LAYOUT_CBA[] = {
+  'C','B','A',0
 };
 extern const Char MODULE_PROGRESS_DETECT_IMPLICIT[] = {
   'D','e','t','e','c','t','e','d',' ','i','m','p','l','i','c','i','t',' ','c','o','n','t','a','i','n','e','r',
