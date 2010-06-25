@@ -242,6 +242,9 @@ namespace
       OptionDesc(Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MASK,
                  Text::INFO_OPTIONS_CORE_AYM_DUTY_CYCLE_MASK,
                  EMPTY),
+      OptionDesc(Parameters::ZXTune::Core::AYM::LAYOUT,
+                 Text::INFO_OPTIONS_CORE_AYM_LAYOUT,
+                 EMPTY),
       OptionDesc(Parameters::ZXTune::Core::DAC::INTERPOLATION,
                  Text::INFO_OPTIONS_CORE_DAC_INTERPOLATION,
                  EMPTY),
@@ -287,7 +290,11 @@ namespace
       AttrType(ZXTune::Module::ATTR_WARNINGS, Text::INFO_ATTRIBUTES_WARNINGS),
       AttrType(ZXTune::Module::ATTR_WARNINGS_COUNT, Text::INFO_ATTRIBUTES_WARNINGS_COUNT),
       AttrType(ZXTune::Module::ATTR_CRC, Text::INFO_ATTRIBUTES_CRC),
-      AttrType(ZXTune::Module::ATTR_SIZE, Text::INFO_ATTRIBUTES_SIZE)
+      AttrType(ZXTune::Module::ATTR_SIZE, Text::INFO_ATTRIBUTES_SIZE),
+      //runtime
+      AttrType(ZXTune::Module::ATTR_CURRENT_POSITION, Text::INFO_ATTRIBUTES_CURRENT_POSITION),
+      AttrType(ZXTune::Module::ATTR_CURRENT_PATTERN, Text::INFO_ATTRIBUTES_CURRENT_PATTERN),
+      AttrType(ZXTune::Module::ATTR_CURRENT_LINE, Text::INFO_ATTRIBUTES_CURRENT_LINE)
     };
     StdOut << Text::INFO_LIST_ATTRIBUTES_TITLE << std::endl;
     std::for_each(ATTRIBUTES, ArrayEnd(ATTRIBUTES), ShowAttribute);

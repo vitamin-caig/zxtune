@@ -185,6 +185,9 @@
 < INFO_OPTIONS_CORE_AYM_DUTY_CYCLE_MASK
 > "chip channels mask where duty cycle will be applied. Can be set of letters (A,B,C,N,E) or numeric mask"
 
+< INFO_OPTIONS_CORE_AYM_LAYOUT
+> "chip channels layout. Set of letters or numeric (0-ABC, 1-ACB, 2-BAC, 3-BCA, 4-CBA, 5-CAB)"
+
 < INFO_OPTIONS_CORE_DAC_INTERPOLATION
 > "use interpolation for DAC rendering"
 
@@ -247,6 +250,18 @@
 
 < INFO_ATTRIBUTES_SIZE
 > "original module data size"
+
+= INFO_FILE_BASED_BACKEND_NOTE
+> " (for file-based backends)"
+
+< INFO_ATTRIBUTES_CURRENT_POSITION
+> "currently played position" INFO_FILE_BASED_BACKEND_NOTE
+
+< INFO_ATTRIBUTES_CURRENT_PATTERN
+> "currently played pattern number" INFO_FILE_BASED_BACKEND_NOTE
+
+< INFO_ATTRIBUTES_CURRENT_LINE
+> "currently played pattern line" INFO_FILE_BASED_BACKEND_NOTE
 
 #runtime texts
 < PLAYBACK_STATUS

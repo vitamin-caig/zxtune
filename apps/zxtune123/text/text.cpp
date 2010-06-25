@@ -155,6 +155,20 @@ extern const Char INFO_ATTRIBUTES_CRC[] = {
   'o','r','i','g','i','n','a','l',' ','m','o','d','u','l','e',' ','d','a','t','a',' ','c','r','c','3','2',' ',
   'c','h','e','c','k','s','u','m',0
 };
+extern const Char INFO_ATTRIBUTES_CURRENT_LINE[] = {
+  'c','u','r','r','e','n','t','l','y',' ','p','l','a','y','e','d',' ','p','a','t','t','e','r','n',' ','l','i',
+  'n','e',' ','(','f','o','r',' ','f','i','l','e','-','b','a','s','e','d',' ','b','a','c','k','e','n','d','s',
+  ')',0
+};
+extern const Char INFO_ATTRIBUTES_CURRENT_PATTERN[] = {
+  'c','u','r','r','e','n','t','l','y',' ','p','l','a','y','e','d',' ','p','a','t','t','e','r','n',' ','n','u',
+  'm','b','e','r',' ','(','f','o','r',' ','f','i','l','e','-','b','a','s','e','d',' ','b','a','c','k','e','n',
+  'd','s',')',0
+};
+extern const Char INFO_ATTRIBUTES_CURRENT_POSITION[] = {
+  'c','u','r','r','e','n','t','l','y',' ','p','l','a','y','e','d',' ','p','o','s','i','t','i','o','n',' ','(',
+  'f','o','r',' ','f','i','l','e','-','b','a','s','e','d',' ','b','a','c','k','e','n','d','s',')',0
+};
 extern const Char INFO_ATTRIBUTES_DATE[] = {
   'm','o','d','u','l','e',' ','d','a','t','e',' ','i','n','f','o','r','m','a','t','i','o','n',0
 };
@@ -347,6 +361,12 @@ extern const Char INFO_OPTIONS_CORE_AYM_DUTY_CYCLE_MASK[] = {
 extern const Char INFO_OPTIONS_CORE_AYM_INTERPOLATION[] = {
   'u','s','e',' ','i','n','t','e','r','p','o','l','a','t','i','o','n',' ','f','o','r',' ','A','Y','M',' ','r',
   'e','n','d','e','r','i','n','g',0
+};
+extern const Char INFO_OPTIONS_CORE_AYM_LAYOUT[] = {
+  'c','h','i','p',' ','c','h','a','n','n','e','l','s',' ','l','a','y','o','u','t','.',' ','S','e','t',' ','o',
+  'f',' ','l','e','t','t','e','r','s',' ','o','r',' ','n','u','m','e','r','i','c',' ','(','0','-','A','B','C',
+  ',',' ','1','-','A','C','B',',',' ','2','-','B','A','C',',',' ','3','-','B','C','A',',',' ','4','-','C','B',
+  'A',',',' ','5','-','C','A','B',')',0
 };
 extern const Char INFO_OPTIONS_CORE_AYM_TABLE[] = {
   'f','r','e','q','u','e','n','c','y',' ','t','a','b','l','e',' ','n','a','m','e',' ','t','o',' ','u','s','e',
