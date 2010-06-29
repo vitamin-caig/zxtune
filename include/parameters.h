@@ -76,7 +76,7 @@ namespace Parameters
     const T* const val = FindByName<T>(params, name);
     return val ? (result = *val, true) : false;
   }
-  
+
   //! @brief Converting parameter value to string
   String ConvertToString(const ValueType& val);
   //! @brief Converting string to parameter value
@@ -89,6 +89,44 @@ namespace Parameters
   void DifferMaps(const Map& newOne, const Map& oldOne, Map& updates);
   //! @brief Merging two maps
   void MergeMaps(const Map& oldOne, const Map& newOne, Map& merged, bool replaceExisting);
+
+  //! @brief Simple helper to work with parameters
+  class Helper
+  {
+  public:
+    explicit Helper(Map& content)
+      : Content(content)
+    {
+    }
+
+    template<class T>
+    const T* FindValue(const NameType& name) const
+    {
+      const Map::const_iterator it = Content.find(name);
+      return it != Content.end() ? boost::get<T>(&(it->second)) : 0;
+    }
+
+    template<class T>
+    bool FindValue(const NameType& name, T& result) const
+    {
+      const T* const val = FindByName<T>(name);
+      return val ? (result = *val, true) : false;
+    }
+
+    template<class T>
+    T GetValue(const NameType& name, const T& defaultValue) const
+    {
+      const T* const val = FindValue<T>(name);
+      return val ? *val : defaultValue;
+    }
+
+    void ToStringMap(StringMap& result) const
+    {
+      ConvertMap(Content, result);
+    }
+  private:
+    Map& Content;
+  };
 }
 
 #endif //__PARAMETERS_TYPES_H_DEFINED__
