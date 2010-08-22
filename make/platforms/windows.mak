@@ -3,9 +3,9 @@ makelib_name = $(1).lib
 makedyn_name = $(1).dll
 makeobj_name = $(1).obj
 #for cygwin
-makedir_cmd = mkdir -p $(1)
+#makedir_cmd = mkdir -p $(1)
 #for other
-#makedir_cmd = if NOT EXIST $(subst /,\,$(1)) mkdir $(subst /,\,$(1))
+makedir_cmd = if NOT EXIST $(subst /,\,$(1)) mkdir $(subst /,\,$(1))
 
 compiler := msvs
 

@@ -20,7 +20,7 @@ sub scan
       open FILE, '<'.$file or die "Failed to open $file";
       my @cont = <FILE>;
       chomp @cont;
-      my $val = join '',@cont;
+      my $val = join ' ',@cont;
       if ($val =~ /define\s+FILE_TAG\s+([a-fA-F0-9]+)/)
       {
         die "Duplicated tags in files ${TagHash{hex $1}} and $file" if exists $TagHash{hex $1};
@@ -36,7 +36,7 @@ sub scan
 if (0 == scalar @ARGV) #no params
 {
   srand(time());
-  printf "#define FILE_TAG %08X\n", rand(1 << 32);
+  printf "#define FILE_TAG %08X\n", rand(1 << 16) + (rand(1 << 16) << 16);
   exit 0;
 }
 

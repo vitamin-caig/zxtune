@@ -121,6 +121,8 @@ clean_all: clean clean_deps
 
 clean_deps: $(depends)
 
+include $(path_step)/codeblocks.mak
+
 #show some help
 help:
 	@echo "Targets:"

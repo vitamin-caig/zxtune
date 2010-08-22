@@ -38,4 +38,4 @@ link_cmd = $(LDD) $(ld_mode_flags) /NOLOGO /INCREMENTAL:NO /DEBUG \
 	$(if $(dynamic_libs),/LIBPATH:$(output_dir) $(addprefix /DELAYLOAD:,$(addsuffix .dll,$(dynamic_libs))) $(addsuffix .lib,$(dynamic_libs)),) \
 	/PDB:$@.pdb
 
-postlink_cmd = mt.exe -manifest $@.manifest -outputresource:$@ || true
+postlink_cmd = mt.exe -manifest $@.manifest -outputresource:$@ || ECHO No manifest
