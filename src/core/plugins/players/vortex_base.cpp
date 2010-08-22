@@ -425,14 +425,14 @@ namespace
     {
     }
 
-    virtual void ApplySample(const std::vector<Sound::Sample>& data)
+    virtual void ApplyData(const std::vector<Sound::Sample>& data)
     {
       assert(data.size() == Channels);
 
       if (Receiver) //mix and out
       {
         std::transform(data.begin(), data.end(), Cursor->begin(), SampleBuf.begin(), avg<Sound::Sample>);
-        Receiver->ApplySample(SampleBuf);
+        Receiver->ApplyData(SampleBuf);
       }
       else //store
       {

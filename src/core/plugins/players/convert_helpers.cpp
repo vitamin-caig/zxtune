@@ -16,7 +16,6 @@ Author:
 #include <core/convert_parameters.h>
 #include <core/error_codes.h>
 #include <core/plugin_attrs.h>
-#include <sound/dummy_receiver.h>
 #include <sound/render_params.h>
 //boost includes
 #include <boost/algorithm/string.hpp>
@@ -53,11 +52,11 @@ namespace ZXTune
       if (chip.get())
       {
         Player::Ptr player(creator(chip));
-        Sound::DummyReceiverObject<Sound::MultichannelReceiver> receiver;
+        Sound::MultichannelReceiver::Ptr receiver = Sound::MultichannelReceiver::CreateStub();
         Sound::RenderParameters params;
         for (Player::PlaybackState state = Player::MODULE_PLAYING; Player::MODULE_PLAYING == state;)
         {
-          if (const Error& err = player->RenderFrame(params, state, receiver))
+          if (const Error& err = player->RenderFrame(params, state, *receiver))
           {
             result = Error(THIS_LINE, ERROR_MODULE_CONVERT, errMsg).AddSuberror(err);
             return true;

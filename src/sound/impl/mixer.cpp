@@ -15,7 +15,6 @@ Author:
 #include <tools.h>
 #include <error_tools.h>
 //library includes
-#include <sound/dummy_receiver.h>
 #include <sound/error_codes.h>
 #include <sound/mixer.h>
 //std includes
@@ -87,14 +86,14 @@ namespace
     }
   public:
     FastMixer()
-      : Endpoint(CreateDummyReceiver())
+      : Endpoint(Receiver::CreateStub())
     {
       std::fill(Matrix.front().begin(), Matrix.front().end(), static_cast<NativeType>(FIXED_POINT_PRECISION));
       std::fill(Matrix.begin(), Matrix.end(), Matrix.front());
       std::fill(Dividers.begin(), Dividers.end(), BigSample(FIXED_POINT_PRECISION * InChannels));
     }
 
-    virtual void ApplySample(const std::vector<Sample>& inData)
+    virtual void ApplyData(const std::vector<Sample>& inData)
     {
       if (inData.size() != InChannels)
       {
@@ -114,7 +113,7 @@ namespace
       }
       MultiSample result;
       std::transform(res.begin(), res.end(), Dividers.begin(), result.begin(), std::divides<BigSample>());
-      return Endpoint->ApplySample(result);
+      return Endpoint->ApplyData(result);
     }
     
     virtual void Flush()
@@ -122,9 +121,9 @@ namespace
       Endpoint->Flush();
     }
     
-    virtual void SetEndpoint(Receiver::Ptr rcv)
+    virtual void SetTarget(Receiver::Ptr rcv)
     {
-      Endpoint = rcv ? rcv : CreateDummyReceiver();
+      Endpoint = rcv ? rcv : Receiver::CreateStub();
     }
     
     virtual Error SetMatrix(const std::vector<MultiGain>& data)

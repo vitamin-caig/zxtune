@@ -220,7 +220,7 @@ namespace
       {
         std::transform(State.begin(), State.end(), result.begin(), getter);
         std::for_each(State.begin(), State.end(), std::mem_fun_ref(&ChannelState::SkipStep));
-        dst.ApplySample(result);
+        dst.ApplyData(result);
       }
       CurrentTick = src.Tick;
     }

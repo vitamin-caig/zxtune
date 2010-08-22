@@ -160,7 +160,7 @@ namespace
     {
     }
     
-    virtual void ApplySample(const MultiSample& samp)
+    virtual void ApplyData(const MultiSample& samp)
     {
       Buffer.push_back(samp);
     }
@@ -228,7 +228,7 @@ namespace ZXTune
           {
             ThrowIfError(CreateMixer(Channels, curMixer));
           }
-          curMixer->SetEndpoint(FilterObject ? FilterObject : Renderer);
+          curMixer->SetTarget(FilterObject ? FilterObject : Renderer);
           CurrentState = STOPPED;
           SendSignal(MODULE_OPEN);
         }
@@ -380,7 +380,7 @@ namespace ZXTune
         //update only if current mutex updated
         if (Channels)
         {
-          curMixer->SetEndpoint(FilterObject ? FilterObject : Renderer);
+          curMixer->SetTarget(FilterObject ? FilterObject : Renderer);
         }
         return Error();
       }
@@ -400,10 +400,10 @@ namespace ZXTune
         }
         Locker lock(PlayerMutex);
         FilterObject = converter;
-        FilterObject->SetEndpoint(Renderer);
+        FilterObject->SetTarget(Renderer);
         if (Channels)
         {
-          MixersSet[Channels]->SetEndpoint(FilterObject);
+          MixersSet[Channels]->SetTarget(FilterObject);
         }
         return Error();
       }

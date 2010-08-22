@@ -20,7 +20,7 @@ namespace ZXTune
   namespace Sound
   {
     //! @brief %Mixer interface
-    class Mixer : public BasicConverter<std::vector<Sample>, MultiSample>
+    class Mixer : public DataTransceiver<std::vector<Sample>, MultiSample>
     {
     public:
       //! @brief Pointer type

@@ -515,7 +515,7 @@ namespace
         if (renderSound)
         {
           Render.GetLevels(Result);
-          dst.ApplySample(Result);
+          dst.ApplyData(Result);
         }
         if (!inFrame)
         {

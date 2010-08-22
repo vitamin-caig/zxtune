@@ -15,7 +15,6 @@ Author:
 #include <tools.h>
 #include <error_tools.h>
 //library includes
-#include <sound/dummy_receiver.h>
 #include <sound/error_codes.h>
 #include <sound/filter.h>
 //std includes
@@ -127,14 +126,14 @@ namespace
       (8 * sizeof(BigSample) - (8 * sizeof(Sample) + 1) - (boost::static_log2<FIXED_POINT_PRECISION>::value + 1));
       
     explicit FIRFilter(uint_t order)
-      : Matrix(order), Delegate(CreateDummyReceiver())
+      : Matrix(order), Delegate(Receiver::CreateStub())
       , History(order), Position(&History[0], &History.back() + 1)
       , Midval(std::min(uint_t(4096), uint_t(1) << (8 * sizeof(IntSample) - 8 * sizeof(Sample) - boost::static_log2<OUTPUT_CHANNELS>::value)))
     {
       assert(in_range<uint_t>(order, MIN_ORDER, MAX_ORDER));
     }
 
-    virtual void ApplySample(const MultiSample& data)
+    virtual void ApplyData(const MultiSample& data)
     {
       std::copy(data.begin(), data.end(), Position->begin());
       const IntSample avg = Midval.Update(std::accumulate(Position->begin(), Position->end(), IntSample(0))) / OUTPUT_CHANNELS;
@@ -153,7 +152,7 @@ namespace
       MultiSample result;
       std::transform(res.begin(), res.end(), result.begin(), std::bind2nd(std::ptr_fun(&Integral2Sample), avg));
       ++Position;
-      return Delegate->ApplySample(result);
+      return Delegate->ApplyData(result);
     }
 
     virtual void Flush()
@@ -161,9 +160,9 @@ namespace
       Delegate->Flush();
     }
 
-    virtual void SetEndpoint(Receiver::Ptr delegate)
+    virtual void SetTarget(Receiver::Ptr delegate)
     {
-      Delegate = delegate;
+      Delegate = delegate ? delegate : Receiver::CreateStub();
     }
     
     virtual Error SetBandpassParameters(uint_t freq, uint_t lowCutoff, uint_t highCutoff)
