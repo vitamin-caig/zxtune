@@ -10,8 +10,7 @@ Author:
 */
 
 //local includes
-#include "tracking.h"
-#include <devices/dac.h>
+#include "../tracking.h"
 #include <core/plugins/enumerator.h>
 #include <core/plugins/utils.h>
 //common includes
@@ -26,6 +25,7 @@ Author:
 #include <core/error_codes.h>
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
+#include <devices/dac.h>
 //std includes
 #include <utility>
 //boost includes

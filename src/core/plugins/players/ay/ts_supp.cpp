@@ -10,7 +10,6 @@ Author:
 */
 
 //local includes
-#include <devices/aym.h>
 #include <core/plugins/enumerator.h>
 //common includes
 #include <byteorder.h>
@@ -24,6 +23,7 @@ Author:
 #include <core/error_codes.h>
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
+#include <devices/aym.h>
 #include <io/container.h>
 #include <sound/render_params.h>
 //boost includes

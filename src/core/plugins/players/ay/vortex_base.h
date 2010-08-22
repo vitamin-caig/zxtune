@@ -13,10 +13,10 @@ Author:
 #define __CORE_PLUGINS_PLAYERS_VORTEX_BASE_H_DEFINED__
 
 //local includes
-#include "tracking.h"
-#include <devices/aym.h>
+#include "../tracking.h"
 //library includes
 #include <core/module_holder.h>
+#include <devices/aym.h>
 
 namespace ZXTune
 {

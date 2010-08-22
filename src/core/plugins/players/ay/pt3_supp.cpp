@@ -10,7 +10,7 @@ Author:
 */
 
 //local includes
-#include "convert_helpers.h"
+#include "ay_conversion.h"
 #include "aym_parameters_helper.h"
 #include <core/plugins/detect_helper.h>
 #include <core/plugins/utils.h>

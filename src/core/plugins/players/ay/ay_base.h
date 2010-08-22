@@ -9,11 +9,11 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-#ifndef __CORE_PLUGINS_PLAYERS_AYM_BASE_H_DEFINED__
-#define __CORE_PLUGINS_PLAYERS_AYM_BASE_H_DEFINED__
+#ifndef __CORE_PLUGINS_PLAYERS_AY_BASE_H_DEFINED__
+#define __CORE_PLUGINS_PLAYERS_AY_BASE_H_DEFINED__
 
 //local includes
-#include "tracking.h"
+#include "../tracking.h"
 #include "aym_parameters_helper.h"
 //common includes
 #include <error.h>
@@ -157,4 +157,4 @@ namespace ZXTune
 }
 
 #undef FILE_TAG
-#endif //__CORE_PLUGINS_PLAYERS_AYM_BASE_H_DEFINED__
+#endif //__CORE_PLUGINS_PLAYERS_AY_BASE_H_DEFINED__

@@ -1,6 +1,6 @@
 /*
 Abstract:
-  Conversion helpers implementation
+  AY-based conversion helpers implementation
 
 Last changed:
   $Id$
@@ -10,7 +10,7 @@ Author:
 */
 
 //local includes
-#include "convert_helpers.h"
+#include "ay_conversion.h"
 #include "vortex_io.h"
 //library includes
 #include <core/convert_parameters.h>

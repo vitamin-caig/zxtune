@@ -10,7 +10,7 @@ Author:
 */
 
 //local includes
-#include "convert_helpers.h"
+#include "ay_conversion.h"
 #include "vortex_io.h"
 #include "aym_parameters_helper.h"
 #include <core/plugins/enumerator.h>

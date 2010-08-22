@@ -10,7 +10,7 @@ Author:
 */
 
 //local includes
-#include "aym_base.h"
+#include "ay_base.h"
 #include "vortex_base.h"
 //common includes
 #include <error_tools.h>

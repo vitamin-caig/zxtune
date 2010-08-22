@@ -1,6 +1,6 @@
 /*
 Abstract:
-  Conversion helpers
+  AY-based conversion helpers
 
 Last changed:
   $Id$
@@ -9,8 +9,8 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-#ifndef __CORE_PLUGINS_PLAYERS_CONVERT_HELPERS_H_DEFINED__
-#define __CORE_PLUGINS_PLAYERS_CONVERT_HELPERS_H_DEFINED__
+#ifndef __CORE_PLUGINS_PLAYERS_AY_CONVERSION_H_DEFINED__
+#define __CORE_PLUGINS_PLAYERS_AY_CONVERSION_H_DEFINED__
 
 //local includes
 #include "vortex_base.h"
@@ -59,4 +59,4 @@ namespace ZXTune
   }
 }
 
-#endif //__CORE_PLUGINS_PLAYERS_CONVERT_HELPERS_H_DEFINED__
+#endif //__CORE_PLUGINS_PLAYERS_AY_CONVERSION_H_DEFINED__

@@ -10,8 +10,8 @@ Author:
 */
 
 //local includes
-#include "aym_base.h"
-#include "convert_helpers.h"
+#include "ay_base.h"
+#include "ay_conversion.h"
 #include <core/plugins/enumerator.h>
 //common includes
 #include <tools.h>
