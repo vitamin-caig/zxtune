@@ -13,8 +13,9 @@ Author:
 #define __CORE_PLUGINS_DETECT_HELPER_H_DEFINED__
 
 //local includes
-#include "detector.h"
 #include "enumerator.h"
+//common includes
+#include <detector.h>
 //library includes
 #include <core/module_holder.h>
 //boost includes
