@@ -12,7 +12,7 @@ Author:
 */
 
 //local includes
-#include <core/devices/aym.h>
+#include <devices/aym.h>
 //common includes
 #include <tools.h>
 //library includes

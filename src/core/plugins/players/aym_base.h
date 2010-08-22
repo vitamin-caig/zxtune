@@ -14,13 +14,13 @@ Author:
 
 //local includes
 #include "tracking.h"
-#include <core/devices/aym.h>
-#include <core/devices/aym_parameters_helper.h>
+#include "aym_parameters_helper.h"
 //common includes
 #include <error.h>
 //library includes
 #include <core/error_codes.h>
 #include <core/module_holder.h>
+#include <devices/aym.h>
 #include <sound/render_params.h>
 //text includes
 #include <core/text/core.h>

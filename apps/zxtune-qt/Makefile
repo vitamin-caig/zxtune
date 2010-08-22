@@ -26,8 +26,8 @@ qrc_files := res/icons
 source_files += $(ui_files) $(moc_files) $(qrc_files:=_res)
 text_files := text/text
 
-libraries := zxtune_app_base core io sound tools
-depends := apps/base src/core src/io src/sound src/tools
+libraries := zxtune_app_base core devices io sound tools
+depends := apps/base src/core src/devices src/io src/sound src/tools
 
 boost_libraries := thread
 

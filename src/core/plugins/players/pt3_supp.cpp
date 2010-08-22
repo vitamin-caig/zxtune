@@ -11,7 +11,7 @@ Author:
 
 //local includes
 #include "convert_helpers.h"
-#include <core/devices/aym_parameters_helper.h>
+#include "aym_parameters_helper.h"
 #include <core/plugins/detect_helper.h>
 #include <core/plugins/utils.h>
 //common includes

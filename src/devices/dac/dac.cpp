@@ -10,7 +10,7 @@ Author:
 */
 
 //local includes
-#include <core/devices/dac.h>
+#include <devices/dac.h>
 #include <sound/impl/internal_types.h>
 //common includes
 #include <tools.h>

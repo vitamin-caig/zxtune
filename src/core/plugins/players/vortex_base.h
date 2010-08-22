@@ -14,7 +14,7 @@ Author:
 
 //local includes
 #include "tracking.h"
-#include <core/devices/aym.h>
+#include <devices/aym.h>
 //library includes
 #include <core/module_holder.h>
 

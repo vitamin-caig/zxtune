@@ -11,14 +11,14 @@ Author:
 
 //local includes
 #include "freq_tables_internal.h"
-#include <core/devices/aym.h>
-#include <core/devices/aym_parameters_helper.h>
+#include "aym_parameters_helper.h"
 //common includes
 #include <error_tools.h>
 #include <tools.h>
 //library includes
 #include <core/error_codes.h>
 #include <core/core_parameters.h>
+#include <devices/aym.h>
 //std includes
 #include <numeric>
 //text includes

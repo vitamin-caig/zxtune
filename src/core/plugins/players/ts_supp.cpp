@@ -10,7 +10,7 @@ Author:
 */
 
 //local includes
-#include <core/devices/aym.h>
+#include <devices/aym.h>
 #include <core/plugins/enumerator.h>
 //common includes
 #include <byteorder.h>

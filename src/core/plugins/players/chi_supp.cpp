@@ -11,7 +11,7 @@ Author:
 
 //local includes
 #include "tracking.h"
-#include <core/devices/dac.h>
+#include <devices/dac.h>
 #include <core/plugins/enumerator.h>
 #include <core/plugins/utils.h>
 //common includes

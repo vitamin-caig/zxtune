@@ -12,7 +12,7 @@ Author:
 //local includes
 #include "convert_helpers.h"
 #include "vortex_io.h"
-#include <core/devices/aym_parameters_helper.h>
+#include "aym_parameters_helper.h"
 #include <core/plugins/enumerator.h>
 //common includes
 #include <byteorder.h>
