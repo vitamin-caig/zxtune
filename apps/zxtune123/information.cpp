@@ -103,18 +103,19 @@ namespace
     return SerializeCaps(caps, BACKENDS_CAPS);
   }
   
-  inline void ShowPlugin(const ZXTune::PluginInformation& info)
+  inline void ShowPlugin(const ZXTune::Plugin& plugin)
   {
     StdOut << (Formatter(Text::INFO_PLUGIN_INFO)
-       % info.Id % info.Description % info.Version % PluginCaps(info.Capabilities)).str();
+       % plugin.Id() % plugin.Description() % plugin.Version() % PluginCaps(plugin.Capabilities())).str();
   }
 
   inline void ShowPlugins()
   {
-    ZXTune::PluginInformationArray plugins;
-    ZXTune::EnumeratePlugins(plugins);
     StdOut << Text::INFO_LIST_PLUGINS_TITLE << std::endl;
-    std::for_each(plugins.begin(), plugins.end(), ShowPlugin);
+    for (ZXTune::Plugin::IteratorPtr plugins = ZXTune::EnumeratePlugins(); plugins->IsValid(); plugins->Next())
+    {
+      ShowPlugin(*plugins->Get());
+    }
   }
   
   inline void ShowBackend(const ZXTune::Sound::BackendInformation& info)

@@ -33,8 +33,6 @@ Author:
 
 namespace
 {
-  typedef boost::shared_ptr<ZXTune::PluginInformation> PluginInfoPtr;
-
   const std::string THIS_MODULE("QT::PlaylistProvider");
   
   //cached data provider
@@ -147,14 +145,11 @@ namespace
     PlayitemImpl(
         //container-specific
         SharedPlayitemContext::Ptr context,
-        //subset-specific
-        PluginInfoPtr plugInfo,
         //module-specific
         const String& dataPath, const String& subPath,
         const ZXTune::Module::Information& modInfo,
         const Parameters::Map& adjustedParams)
       : Context(context)
-      , PluginInfo(plugInfo)
       , DataPath(dataPath), SubPath(subPath)
       , ModuleInfo(modInfo)
       , AdjustedParams(adjustedParams)
@@ -171,18 +166,12 @@ namespace
       return ModuleInfo;
     }
     
-    virtual const ZXTune::PluginInformation& GetPluginInfo() const
-    {
-      return *PluginInfo;
-    }
-    
     virtual const Parameters::Map& GetAdjustedParameters() const
     {
       return AdjustedParams;
     }
   private:
     const SharedPlayitemContext::Ptr Context;
-    const PluginInfoPtr PluginInfo;
     const String DataPath, SubPath;
     const ZXTune::Module::Information ModuleInfo;
     const Parameters::Map AdjustedParams;
@@ -190,20 +179,10 @@ namespace
   
   class PlayitemsProviderImpl : public PlayitemsProvider
   {
-    typedef std::map<String, PluginInfoPtr> PluginsMap;
   public:
     PlayitemsProviderImpl()
       : Provider(new DataProvider())
     {
-      //fill plugins info map
-      ZXTune::PluginInformationArray plugArray;
-      ZXTune::EnumeratePlugins(plugArray);
-
-      std::transform(plugArray.begin(), plugArray.end(), std::inserter(Plugins, Plugins.end()),
-        boost::bind(&std::make_pair<PluginsMap::key_type, PluginsMap::mapped_type>,
-          boost::bind(&ZXTune::PluginInformation::Id, _1),
-            boost::bind(static_cast<PluginInfoPtr(*)(const ZXTune::PluginInformation&)>(
-              &boost::make_shared<ZXTune::PluginInformation, ZXTune::PluginInformation>), _1)));
     }
     
     virtual Error DetectModules(const String& path,
@@ -260,12 +239,8 @@ namespace
           attrs.insert(Parameters::Map::value_type(ZXTune::Module::ATTR_FULLPATH, fullPath));
           Parameters::MergeMaps(modInfo.Properties, attrs, modInfo.Properties, false);
         }
-        ZXTune::PluginInformation plugInfo;
-        module->GetPluginInformation(plugInfo);
-        const PluginsMap::const_iterator plugIt = Plugins.find(plugInfo.Id);
-        assert(plugIt != Plugins.end());
         const Playitem::Ptr item(new PlayitemImpl(
-          context, plugIt->second, //common data
+          context, //common data
           dataPath, subPath, modInfo, //item data
           Parameters::Map()        //TODO: adjusted parameters
         ));
@@ -278,7 +253,6 @@ namespace
     }
   private:
     DataProvider::Ptr Provider;
-    PluginsMap Plugins;
   };
 }
 

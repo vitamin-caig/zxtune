@@ -26,7 +26,6 @@ public:
   
   virtual ZXTune::Module::Holder::Ptr GetModule() const = 0;
   virtual const ZXTune::Module::Information& GetModuleInfo() const = 0;
-  virtual const ZXTune::PluginInformation& GetPluginInfo() const = 0;
   virtual const Parameters::Map& GetAdjustedParameters() const = 0;
 };
 

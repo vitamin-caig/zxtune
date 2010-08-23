@@ -218,11 +218,10 @@ namespace
     virtual void Initialize()
     {
       StringSet allplugs;
+      for (ZXTune::Plugin::IteratorPtr plugs = ZXTune::EnumeratePlugins(); plugs->IsValid(); plugs->Next())
       {
-        ZXTune::PluginInformationArray plugs;
-        ZXTune::EnumeratePlugins(plugs);
-        std::transform(plugs.begin(), plugs.end(), std::inserter(allplugs, allplugs.end()),\
-          boost::mem_fn(&ZXTune::PluginInformation::Id));
+        const ZXTune::Plugin::Ptr plugin = plugs->Get();
+        allplugs.insert(plugin->Id());
       }
       Parse(allplugs, Allowed, EnabledPlugins, EnabledCaps);
       Parse(allplugs, Denied, DisabledPlugins, DisabledCaps);
@@ -242,14 +241,16 @@ namespace
         callback));
     }
 
-    bool DoFilter(const ZXTune::PluginInformation& info)
+    bool DoFilter(const ZXTune::Plugin& plugin)
     {
-      if (EnabledPlugins.count(info.Id) || 0 != (info.Capabilities & EnabledCaps))
+      const String& id = plugin.Id();
+      const uint_t caps = plugin.Capabilities();
+      if (EnabledPlugins.count(id) || 0 != (caps & EnabledCaps))
       {
         //enabled explicitly
         return false;
       }
-      else if (DisabledPlugins.count(info.Id) || 0 != (info.Capabilities & DisabledCaps))
+      else if (DisabledPlugins.count(id) || 0 != (caps & DisabledCaps))
       {
         //disabled explicitly
         return true;
