@@ -16,13 +16,12 @@ Author:
 #include "backend_impl.h"
 #include "backend_wrapper.h"
 #include "enumerator.h"
-#include <core/devices/aym.h>
 //library includes
 #include <core/convert_parameters.h>
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
+#include <devices/aym.h>
 #include <sound/backend_attrs.h>
-#include <sound/dummy_receiver.h>
 #include <sound/error_codes.h>
 //text includes
 #include <sound/text/backends.h>
@@ -52,6 +51,7 @@ namespace
     AYLPTBackend()
       : RenderPos(0)
       , Dumper(DLPortIO::CreateDumper())
+      , Stub(MultichannelReceiver::CreateStub())
     {
     }
 
@@ -115,8 +115,7 @@ namespace
       Locker lock(PlayerMutex);
       //to update state
       Module::Player::PlaybackState state;
-      DummyReceiverObject<MultichannelReceiver> dummy;
-      ThrowIfError(Player->RenderFrame(RenderingParameters, state, dummy));
+      ThrowIfError(Player->RenderFrame(RenderingParameters, state, *Stub));
       return Module::Player::MODULE_PLAYING == state &&
              DoOutput();
     }
@@ -167,6 +166,7 @@ namespace
     Dump RenderData;
     uint_t RenderPos;
     AYLPTDumper::Ptr Dumper;
+    const Sound::MultichannelReceiver::Ptr Stub;
     boost::system_time OutputTime;
     boost::condition_variable SyncEvent;
   };

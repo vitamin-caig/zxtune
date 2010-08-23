@@ -16,8 +16,8 @@ Author:
 
 #ifdef DLPORTIO_AYLPT_SUPPORT
 
-//local includes
-#include <core/devices/aym.h>
+//library includes
+#include <devices/aym.h>
 //platform-dependent includes
 #include <windows.h>
 
