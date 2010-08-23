@@ -28,12 +28,12 @@ namespace Log
 namespace ZXTune
 {
   //forward declarations
-  struct PluginInformation;
+  class Plugin;
 
   //! @brief Paremeters for modules' detection
   struct DetectParameters
   {
-    typedef boost::function<bool(const PluginInformation&)> FilterFunc;
+    typedef boost::function<bool(const Plugin&)> FilterFunc;
     //! Filter. If empty or returns false, specified plugin is processes. Optional
     FilterFunc Filter;
     typedef boost::function<Error(const String&, Module::Holder::Ptr player)> CallbackFunc;

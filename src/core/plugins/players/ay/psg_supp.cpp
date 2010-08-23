@@ -23,6 +23,7 @@ Author:
 #include <io/container.h>
 //boost includes
 #include <boost/bind.hpp>
+#include <boost/enable_shared_from_this.hpp>
 #include <boost/make_shared.hpp>
 //text includes
 #include <core/text/plugins.h>
@@ -64,14 +65,6 @@ namespace
 #endif
 
   BOOST_STATIC_ASSERT(sizeof(PSGHeader) == 16);
-
-  void DescribePSGPlugin(PluginInformation& info)
-  {
-    info.Id = PSG_PLUGIN_ID;
-    info.Description = Text::PSG_PLUGIN_INFO;
-    info.Version = PSG_PLUGIN_VERSION;
-    info.Capabilities = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
-  }
   
   class PSGData
   {
@@ -116,8 +109,8 @@ namespace
   class PSGHolder : public Holder
   {
   public:
-    PSGHolder(const MetaContainer& container, ModuleRegion& region)
-      : Data(boost::make_shared<PSGData>())
+    PSGHolder(Plugin::Ptr plugin, const MetaContainer& container, ModuleRegion& region)
+      : SrcPlugin(plugin), Data(boost::make_shared<PSGData>())
     {
       const IO::FastDump data = *container.Data;
       //workaround for some emulators
@@ -182,9 +175,9 @@ namespace
       Data->FillStatisticInfo();
     }
 
-    virtual void GetPluginInformation(PluginInformation& info) const
+    virtual const Plugin& GetPlugin() const
     {
-      DescribePSGPlugin(info);
+      return *SrcPlugin;
     }
 
     virtual void GetModuleInformation(Information& info) const
@@ -215,6 +208,7 @@ namespace
       return result;
     }
   private:
+    const Plugin::Ptr SrcPlugin;
     Dump RawData;
     PSGData::Ptr Data;
   };
@@ -276,39 +270,65 @@ namespace
     return Player::Ptr(new PSGPlayer(data, device));
   }
   
-  bool CreatePSGModule(const Parameters::Map& /*commonParams*/, const MetaContainer& container,
-    Holder::Ptr& holder, ModuleRegion& region)
+  class PSGPlugin : public PlayerPlugin
+                  , public boost::enable_shared_from_this<PSGPlugin>
   {
-    //perform fast check
-    const IO::DataContainer& data = *container.Data;
-    if (data.Size() <= sizeof(PSGHeader))
+  public:
+    virtual String Id() const
     {
-      return false;
+      return PSG_PLUGIN_ID;
     }
-    const PSGHeader* const header = safe_ptr_cast<const PSGHeader*>(data.Data());
-    if (0 == std::memcmp(header->Sign, PSG_SIGNATURE, sizeof(PSG_SIGNATURE)) &&
-        PSG_MARKER == header->Marker)
+
+    virtual String Description() const
     {
-      try
-      {
-        holder.reset(new PSGHolder(container, region));
-        return true;
-      }
-      catch (const Error&/*e*/)
-      {
-        Log::Debug("Core::PSGSupp", "Failed to create holder");
-      }
+      return Text::PSG_PLUGIN_INFO;
     }
-    return false;
-  }
+
+    virtual String Version() const
+    {
+      return PSG_PLUGIN_VERSION;
+    }
+
+    virtual uint_t Capabilities() const
+    {
+      return CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
+    }
+
+    virtual Module::Holder::Ptr CreateModule(const Parameters::Map& /*parameters*/,
+                                             const MetaContainer& container,
+                                             ModuleRegion& region) const
+    {
+      //perform fast check
+      const IO::DataContainer& data = *container.Data;
+      if (data.Size() <= sizeof(PSGHeader))
+      {
+        return Module::Holder::Ptr();
+      }
+      const PSGHeader* const header = safe_ptr_cast<const PSGHeader*>(data.Data());
+      if (0 == std::memcmp(header->Sign, PSG_SIGNATURE, sizeof(PSG_SIGNATURE)) &&
+          PSG_MARKER == header->Marker)
+      {
+        try
+        {
+          const Plugin::Ptr plugin = shared_from_this();
+          const Module::Holder::Ptr holder(new PSGHolder(plugin, container, region));
+          return holder;
+        }
+        catch (const Error&/*e*/)
+        {
+          Log::Debug("Core::PSGSupp", "Failed to create holder");
+        }
+      }
+      return Module::Holder::Ptr();
+    }
+  };
 }
 
 namespace ZXTune
 {
   void RegisterPSGSupport(PluginsEnumerator& enumerator)
   {
-    PluginInformation info;
-    DescribePSGPlugin(info);
-    enumerator.RegisterPlayerPlugin(info, CreatePSGModule);
+    const PlayerPlugin::Ptr plugin(new PSGPlugin());
+    enumerator.RegisterPlugin(plugin);
   }
 }

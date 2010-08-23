@@ -51,47 +51,66 @@ namespace
   const std::size_t HOBETA_MAX_SIZE = 0xff00;
 
   //////////////////////////////////////////////////////////////////////////
-  bool ProcessHobeta(const Parameters::Map& /*commonParams*/, const MetaContainer& input,
-    IO::DataContainer::Ptr& output, ModuleRegion& region)
+  class HobetaPlugin : public ImplicitPlugin
   {
-    const IO::DataContainer& inputData = *input.Data;
-    const std::size_t limit = inputData.Size();
-    const uint8_t* const data = static_cast<const uint8_t*>(inputData.Data());
-    const Header* const header = safe_ptr_cast<const Header*>(data);
-    const std::size_t dataSize = fromLE(header->Length);
-    const std::size_t fullSize = fromLE(header->FullLength);
-    if (dataSize < HOBETA_MIN_SIZE ||
-        dataSize > HOBETA_MAX_SIZE ||
-        dataSize + sizeof(*header) > limit ||
-        fullSize != align<std::size_t>(dataSize, 256) ||
-        //check for valid name
-        header->Filetype + 1 != std::find_if(header->Filename, header->Filetype + 1,
-          std::bind2nd(std::less<uint8_t>(), uint8_t(' ')))
-        )
+  public:
+    virtual String Id() const
     {
-      return false;
+      return HOBETA_PLUGIN_ID;
     }
-    //check for crc
-    if (fromLE(header->CRC) == ((105 + 257 * std::accumulate(data, data + 15, 0u)) & 0xffff))
+
+    virtual String Description() const
     {
-      region.Offset = 0;
-      region.Size = fullSize + sizeof(*header);
-      output = inputData.GetSubcontainer(sizeof(*header), dataSize);
-      return true;
+      return Text::HOBETA_PLUGIN_INFO;
     }
-    return false;
-  }
+
+    virtual String Version() const
+    {
+      return HOBETA_PLUGIN_VERSION;
+    }
+    
+    virtual uint_t Capabilities() const
+    {
+      return CAP_STOR_CONTAINER | CAP_STOR_PLAIN;
+    }
+
+    virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Map& /*commonParams*/,
+      const MetaContainer& input, ModuleRegion& region) const
+    {
+      const IO::DataContainer& inputData = *input.Data;
+      const std::size_t limit = inputData.Size();
+      const uint8_t* const data = static_cast<const uint8_t*>(inputData.Data());
+      const Header* const header = safe_ptr_cast<const Header*>(data);
+      const std::size_t dataSize = fromLE(header->Length);
+      const std::size_t fullSize = fromLE(header->FullLength);
+      if (dataSize < HOBETA_MIN_SIZE ||
+          dataSize > HOBETA_MAX_SIZE ||
+          dataSize + sizeof(*header) > limit ||
+          fullSize != align<std::size_t>(dataSize, 256) ||
+          //check for valid name
+          header->Filetype + 1 != std::find_if(header->Filename, header->Filetype + 1,
+            std::bind2nd(std::less<uint8_t>(), uint8_t(' ')))
+          )
+      {
+        return IO::DataContainer::Ptr();
+      }
+      //check for crc
+      if (fromLE(header->CRC) == ((105 + 257 * std::accumulate(data, data + 15, 0u)) & 0xffff))
+      {
+        region.Offset = 0;
+        region.Size = fullSize + sizeof(*header);
+        return inputData.GetSubcontainer(sizeof(*header), dataSize);
+      }
+      return IO::DataContainer::Ptr();
+    }
+  };
 }
 
 namespace ZXTune
 {
   void RegisterHobetaConvertor(PluginsEnumerator& enumerator)
   {
-    PluginInformation info;
-    info.Id = HOBETA_PLUGIN_ID;
-    info.Description = Text::HOBETA_PLUGIN_INFO;
-    info.Version = HOBETA_PLUGIN_VERSION;
-    info.Capabilities = CAP_STOR_CONTAINER | CAP_STOR_PLAIN;
-    enumerator.RegisterImplicitPlugin(info, ProcessHobeta);
+    const ImplicitPlugin::Ptr plugin(new HobetaPlugin());
+    enumerator.RegisterPlugin(plugin);
   }
 }

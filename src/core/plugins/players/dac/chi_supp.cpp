@@ -30,6 +30,7 @@ Author:
 #include <utility>
 //boost includes
 #include <boost/bind.hpp>
+#include <boost/enable_shared_from_this.hpp>
 //text includes
 #include <core/text/core.h>
 #include <core/text/plugins.h>
@@ -154,14 +155,6 @@ namespace
     SLIDE
   };
 
-  void DescribeCHIPlugin(PluginInformation& info)
-  {
-    info.Id = CHI_PLUGIN_ID;
-    info.Description = Text::CHI_PLUGIN_INFO;
-    info.Version = CHI_PLUGIN_VERSION;
-    info.Capabilities = CAP_STOR_MODULE | CAP_DEV_4DAC | CAP_CONV_RAW;
-  }
-
   //digital sample type
   struct Sample
   {
@@ -261,8 +254,9 @@ namespace
     }
 
   public:
-    CHIHolder(const MetaContainer& container, ModuleRegion& region)
-      : Data(CHITrack::ModuleData::Create())
+    CHIHolder(Plugin::Ptr plugin, 
+      const MetaContainer& container, ModuleRegion& region)
+      : SrcPlugin(plugin), Data(CHITrack::ModuleData::Create())
     {
       //assume data is correct
       const IO::FastDump& data(*container.Data);
@@ -328,9 +322,9 @@ namespace
       Data->FillStatisticInfo(header->Loop, header->Tempo, CHANNELS_COUNT);
     }
 
-    virtual void GetPluginInformation(PluginInformation& info) const
+    virtual const Plugin& GetPlugin() const
     {
-      DescribeCHIPlugin(info);
+      return *SrcPlugin;
     }
 
     virtual void GetModuleInformation(Information& info) const
@@ -367,6 +361,7 @@ namespace
       return Error();
     }
   private:
+    const Plugin::Ptr SrcPlugin;
     Dump RawData;
     const CHITrack::ModuleData::Ptr Data;
   };
@@ -576,35 +571,61 @@ namespace
     return true;
   }
 
-  bool CreateCHIModule(const Parameters::Map& /*commonParams*/, const MetaContainer& container,
-    Holder::Ptr& holder, ModuleRegion& region)
+  class CHIPlugin : public PlayerPlugin
+                  , public boost::enable_shared_from_this<CHIPlugin>
   {
-    if (Checking(*container.Data))
+  public:
+    virtual String Id() const
     {
-      //try to create holder
-      try
-      {
-        holder.reset(new CHIHolder(container, region));
-  #ifdef SELF_TEST
-        holder->CreatePlayer();
-  #endif
-        return true;
-      }
-      catch (const Error&/*e*/)
-      {
-        Log::Debug("Core::CHISupp", "Failed to create holder");
-      }
+      return CHI_PLUGIN_ID;
     }
-    return false;
-  }
+
+    virtual String Description() const
+    {
+      return Text::CHI_PLUGIN_INFO;
+    }
+
+    virtual String Version() const
+    {
+      return CHI_PLUGIN_VERSION;
+    }
+
+    virtual uint_t Capabilities() const
+    {
+      return CAP_STOR_MODULE | CAP_DEV_4DAC | CAP_CONV_RAW;
+    }
+
+    virtual Module::Holder::Ptr CreateModule(const Parameters::Map& /*parameters*/,
+                                             const MetaContainer& container,
+                                             ModuleRegion& region) const
+    {
+      if (Checking(*container.Data))
+      {
+        //try to create holder
+        try
+        {
+          const Plugin::Ptr plugin = shared_from_this();
+          const Module::Holder::Ptr holder(new CHIHolder(plugin, container, region));
+  #ifdef SELF_TEST
+          holder->CreatePlayer();
+  #endif
+          return holder;
+        }
+        catch (const Error&/*e*/)
+        {
+          Log::Debug("Core::CHISupp", "Failed to create holder");
+        }
+      }
+      return Module::Holder::Ptr();
+    }
+  };
 }
 
 namespace ZXTune
 {
   void RegisterCHISupport(PluginsEnumerator& enumerator)
   {
-    PluginInformation info;
-    DescribeCHIPlugin(info);
-    enumerator.RegisterPlayerPlugin(info, CreateCHIModule);
+    const PlayerPlugin::Ptr plugin(new CHIPlugin());
+    enumerator.RegisterPlugin(plugin);
   }
 }

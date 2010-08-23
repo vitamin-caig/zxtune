@@ -28,6 +28,7 @@ Author:
 #include <devices/dac.h>
 //boost includes
 #include <boost/bind.hpp>
+#include <boost/enable_shared_from_this.hpp>
 //text includes
 #include <core/text/core.h>
 #include <core/text/plugins.h>
@@ -206,14 +207,6 @@ namespace
     }
   }
 
-  void DescribePDTPlugin(PluginInformation& info)
-  {
-    info.Id = PDT_PLUGIN_ID;
-    info.Description = Text::PDT_PLUGIN_INFO;
-    info.Version = PDT_PLUGIN_VERSION;
-    info.Capabilities = CAP_STOR_MODULE | CAP_DEV_4DAC | CAP_CONV_RAW;
-  }
-
   //digital sample type
   struct Sample
   {
@@ -303,8 +296,9 @@ namespace
     }
 
   public:
-    PDTHolder(const MetaContainer& container, ModuleRegion& region)
-      : Data(PDTTrack::ModuleData::Create())
+    PDTHolder(Plugin::Ptr plugin, 
+      const MetaContainer& container, ModuleRegion& region)
+      : SrcPlugin(plugin), Data(PDTTrack::ModuleData::Create())
     {
       //assume that data is ok
       const IO::FastDump& data(*container.Data);
@@ -377,9 +371,9 @@ namespace
       Data->FillStatisticInfo(header->Loop, header->Tempo, CHANNELS_COUNT);
     }
 
-    virtual void GetPluginInformation(PluginInformation& info) const
+    virtual const Plugin& GetPlugin() const
     {
-      DescribePDTPlugin(info);
+      return *SrcPlugin;
     }
 
     virtual void GetModuleInformation(Information& info) const
@@ -416,6 +410,7 @@ namespace
       return Error();
     }
   private:
+    const Plugin::Ptr SrcPlugin;
     Dump RawData;
     const PDTTrack::ModuleData::Ptr Data;
   };
@@ -675,35 +670,61 @@ namespace
     return true;
   }
 
-  bool CreatePDTModule(const Parameters::Map& /*commonParams*/, const MetaContainer& container,
-    Holder::Ptr& holder, ModuleRegion& region)
+  class PDTPlugin : public PlayerPlugin
+                  , public boost::enable_shared_from_this<PDTPlugin>
   {
-    if (Checking(*container.Data))
+  public:
+    virtual String Id() const
     {
-      //try to create holder
-      try
-      {
-        holder.reset(new PDTHolder(container, region));
-  #ifdef SELF_TEST
-        holder->CreatePlayer();
-  #endif
-        return true;
-      }
-      catch (const Error&/*e*/)
-      {
-        Log::Debug("Core::PDTSupp", "Failed to create holder");
-      }
+      return PDT_PLUGIN_ID;
     }
-    return false;
-  }
+
+    virtual String Description() const
+    {
+      return Text::PDT_PLUGIN_INFO;
+    }
+
+    virtual String Version() const
+    {
+      return PDT_PLUGIN_VERSION;
+    }
+
+    virtual uint_t Capabilities() const
+    {
+      return CAP_STOR_MODULE | CAP_DEV_4DAC | CAP_CONV_RAW;
+    }
+
+    virtual Module::Holder::Ptr CreateModule(const Parameters::Map& /*parameters*/,
+                                             const MetaContainer& container,
+                                             ModuleRegion& region) const
+    {
+      if (Checking(*container.Data))
+      {
+        //try to create holder
+        try
+        {
+          const Plugin::Ptr plugin = shared_from_this();
+          const Module::Holder::Ptr holder(new PDTHolder(plugin, container, region));
+    #ifdef SELF_TEST
+          holder->CreatePlayer();
+    #endif
+          return holder;
+        }
+        catch (const Error&/*e*/)
+        {
+          Log::Debug("Core::PDTSupp", "Failed to create holder");
+        }
+      }
+      return Module::Holder::Ptr();
+    }
+  };
 }
 
 namespace ZXTune
 {
   void RegisterPDTSupport(PluginsEnumerator& enumerator)
   {
-    PluginInformation info;
-    DescribePDTPlugin(info);
-    enumerator.RegisterPlayerPlugin(info, CreatePDTModule);
+    const PlayerPlugin::Ptr plugin(new PDTPlugin());
+    enumerator.RegisterPlugin(plugin);
   }
 }

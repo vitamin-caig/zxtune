@@ -31,6 +31,7 @@ Author:
 #include <cctype>
 //boost includes
 #include <boost/bind.hpp>
+#include <boost/enable_shared_from_this.hpp>
 #include <boost/algorithm/string.hpp>
 //text includes
 #include <core/text/core.h>
@@ -53,21 +54,13 @@ namespace
   const char TXT_MODULE_ID[] = {'[', 'M', 'o', 'd', 'u', 'l', 'e', ']'};
 
   ////////////////////////////////////////////
-  void DescribeTXTPlugin(PluginInformation& info)
-  {
-    info.Id = TXT_PLUGIN_ID;
-    info.Description = Text::TXT_PLUGIN_INFO;
-    info.Version = TXT_PLUGIN_VERSION;
-    info.Capabilities = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW |
-      GetSupportedAYMFormatConvertors() | GetSupportedVortexFormatConvertors();
-  }
-
   class TXTHolder : public Holder
   {
   public:
     //region must be filled
-    TXTHolder(const MetaContainer& container, const ModuleRegion& region)
-      : Data(Vortex::Track::ModuleData::Create())
+    TXTHolder(Plugin::Ptr plugin, const MetaContainer& container, const ModuleRegion& region)
+      : SrcPlugin(plugin)
+      , Data(Vortex::Track::ModuleData::Create())
     {
       const char* const dataIt = static_cast<const char*>(container.Data->Data());
 
@@ -77,9 +70,9 @@ namespace
       ExtractMetaProperties(TXT_PLUGIN_ID, container, region, region, Data->Info.Properties, RawData);
     }
 
-    virtual void GetPluginInformation(PluginInformation& info) const
+    virtual const Plugin& GetPlugin() const
     {
-      DescribeTXTPlugin(info);
+      return *SrcPlugin;
     }
 
     virtual void GetModuleInformation(Information& info) const
@@ -113,6 +106,7 @@ namespace
       return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
     }
   private:
+    const Plugin::Ptr SrcPlugin;
     Dump RawData;
     const Vortex::Track::ModuleData::Ptr Data;
     uint_t Version;
@@ -125,51 +119,78 @@ namespace
     return !(sym >= ' ' || sym == '\r' || sym == '\n');
   }
 
-  bool CreateTXTModule(const Parameters::Map& /*commonParams*/, const MetaContainer& container,
-    Holder::Ptr& holder, ModuleRegion& region)
+  class TXTPlugin : public PlayerPlugin
+                  , public boost::enable_shared_from_this<TXTPlugin>
   {
-    const std::size_t dataSize = container.Data->Size();
-    const char* const data = static_cast<const char*>(container.Data->Data());
-    if (dataSize < sizeof(TXT_MODULE_ID) ||
-        0 != std::memcmp(data, TXT_MODULE_ID, sizeof(TXT_MODULE_ID)))
+  public:
+    virtual String Id() const
     {
-      return false;
-    }
-    
-    const char* const dataEnd = std::find_if(data, data + std::min(MAX_MODULE_SIZE, dataSize), CheckSymbol);
-    const std::size_t limit = dataEnd - data;
-
-    if (limit < MIN_MODULE_SIZE)
-    {
-      return false;
+      return TXT_PLUGIN_ID;
     }
 
-    ModuleRegion tmpRegion;
-    tmpRegion.Size = limit;
-    //try to create holder
-    try
+    virtual String Description() const
     {
-      holder.reset(new TXTHolder(container, tmpRegion));
-  #ifdef SELF_TEST
-      holder->CreatePlayer();
-  #endif
-      region = tmpRegion;
-      return true;
+      return Text::TXT_PLUGIN_INFO;
     }
-    catch (const Error& e)
+
+    virtual String Version() const
     {
-      Log::Debug("TXTSupp", "Failed to create holder ('%1%')", e.GetText());
+      return TXT_PLUGIN_VERSION;
     }
-    return false;
-  }
+
+    virtual uint_t Capabilities() const
+    {
+      return CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW |
+      GetSupportedAYMFormatConvertors() | GetSupportedVortexFormatConvertors();
+    }
+
+    virtual Module::Holder::Ptr CreateModule(const Parameters::Map& /*parameters*/,
+                                             const MetaContainer& container,
+                                             ModuleRegion& region) const
+    {
+      const std::size_t dataSize = container.Data->Size();
+      const char* const data = static_cast<const char*>(container.Data->Data());
+      if (dataSize < sizeof(TXT_MODULE_ID) ||
+          0 != std::memcmp(data, TXT_MODULE_ID, sizeof(TXT_MODULE_ID)))
+      {
+        return Module::Holder::Ptr();
+      }
+      
+      const char* const dataEnd = std::find_if(data, data + std::min(MAX_MODULE_SIZE, dataSize), CheckSymbol);
+      const std::size_t limit = dataEnd - data;
+
+      if (limit < MIN_MODULE_SIZE)
+      {
+        return Module::Holder::Ptr();
+      }
+
+      ModuleRegion tmpRegion;
+      tmpRegion.Size = limit;
+      //try to create holder
+      try
+      {
+        const Plugin::Ptr plugin = shared_from_this();
+        const Module::Holder::Ptr holder(new TXTHolder(plugin, container, tmpRegion));
+    #ifdef SELF_TEST
+        holder->CreatePlayer();
+    #endif
+        region = tmpRegion;
+        return holder;
+      }
+      catch (const Error& e)
+      {
+        Log::Debug("TXTSupp", "Failed to create holder ('%1%')", e.GetText());
+      }
+      return Module::Holder::Ptr();
+    }
+  };
 }
 
 namespace ZXTune
 {
   void RegisterTXTSupport(PluginsEnumerator& enumerator)
   {
-    PluginInformation info;
-    DescribeTXTPlugin(info);
-    enumerator.RegisterPlayerPlugin(info, CreateTXTModule);
+    const PlayerPlugin::Ptr plugin(new TXTPlugin());
+    enumerator.RegisterPlugin(plugin);
   }
 }

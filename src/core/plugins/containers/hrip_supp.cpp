@@ -324,8 +324,8 @@ namespace
     {
       if (-1 == LogLevel)
       {
-        LogLevel = static_cast<int_t>(PluginsEnumerator::Instance().CountPluginsInChain(
-          SubMetacontainer.PluginsChain, CAP_STOR_MULTITRACK, CAP_STOR_MULTITRACK) - 1);
+        LogLevel = static_cast<int_t>(
+          CalculateContainersNesting(SubMetacontainer.PluginsChain) - 1);
       }
       return LogLevel;
     }
@@ -339,13 +339,6 @@ namespace
     MetaContainer SubMetacontainer;
   };
 
-  Error ProcessHRIPContainer(const Parameters::Map& commonParams, const DetectParameters& detectParams,
-    const MetaContainer& data, ModuleRegion& region)
-  {
-    Enumerator cb(commonParams, detectParams, data);
-    return cb.Process(region);
-  }
-
   CallbackState FindFileCallback(const String& filename, bool ignoreCorrupted, uint_t /*fileNum*/,
     const HripBlockHeadersList& headers, Dump& dst)
   {
@@ -357,41 +350,68 @@ namespace
     return CONTINUE;
   }
 
-  bool OpenHRIPContainer(const Parameters::Map& commonParams, const MetaContainer& inData, const String& inPath,
-    IO::DataContainer::Ptr& outData, String& restPath)
+  class HRIPPlugin : public ContainerPlugin
   {
-    String restComp;
-    const String& pathComp = IO::ExtractFirstPathComponent(inPath, restComp);
-    if (pathComp.empty())
+  public:
+    virtual String Id() const
     {
-      //nothing to open
-      return false;
+      return HRIP_PLUGIN_ID;
     }
-    Dump dmp;
-    const bool ignoreCorrupted = CheckIgnoreCorrupted(commonParams);
-    const IO::DataContainer& container = *inData.Data;
-    //ignore corrupted blocks while searching, but try to decode it using proper parameters
-    if (OK != ParseHrip(container.Data(), container.Size(),
-          boost::bind(&FindFileCallback, pathComp, ignoreCorrupted, _1, _2, boost::ref(dmp)), true) ||
-        dmp.empty())
+
+    virtual String Description() const
     {
-      return false;
+      return Text::HRIP_PLUGIN_INFO;
     }
-    outData = IO::CreateDataContainer(dmp);
-    restPath = restComp;
-    return true;
-  }
+
+    virtual String Version() const
+    {
+      return HRIP_PLUGIN_VERSION;
+    }
+    
+    virtual uint_t Capabilities() const
+    {
+      return CAP_STOR_MULTITRACK;
+    }
+
+    virtual Error Process(const Parameters::Map& commonParams, const DetectParameters& detectParams,
+      const MetaContainer& data, ModuleRegion& region) const
+    {
+      Enumerator cb(commonParams, detectParams, data);
+      return cb.Process(region);
+    }
+
+    virtual IO::DataContainer::Ptr Open(const Parameters::Map& commonParams, 
+      const MetaContainer& inData, const String& inPath,
+      String& restPath) const
+    {
+      String restComp;
+      const String& pathComp = IO::ExtractFirstPathComponent(inPath, restComp);
+      if (pathComp.empty())
+      {
+        //nothing to open
+        return IO::DataContainer::Ptr();
+      }
+      Dump dmp;
+      const bool ignoreCorrupted = CheckIgnoreCorrupted(commonParams);
+      const IO::DataContainer& container = *inData.Data;
+      //ignore corrupted blocks while searching, but try to decode it using proper parameters
+      if (OK != ParseHrip(container.Data(), container.Size(),
+            boost::bind(&FindFileCallback, pathComp, ignoreCorrupted, _1, _2, boost::ref(dmp)), true) ||
+          dmp.empty())
+      {
+        return IO::DataContainer::Ptr();
+      }
+      restPath = restComp;
+      return IO::CreateDataContainer(dmp);
+    }
+  };
 }
 
 namespace ZXTune
 {
   void RegisterHRIPContainer(PluginsEnumerator& enumerator)
   {
-    PluginInformation info;
-    info.Id = HRIP_PLUGIN_ID;
-    info.Description = Text::HRIP_PLUGIN_INFO;
-    info.Version = HRIP_PLUGIN_VERSION;
-    info.Capabilities = CAP_STOR_MULTITRACK;
-    enumerator.RegisterContainerPlugin(info, OpenHRIPContainer, ProcessHRIPContainer);
+    const ContainerPlugin::Ptr plugin(new HRIPPlugin());
+    enumerator.RegisterPlugin(plugin);
   }
 }

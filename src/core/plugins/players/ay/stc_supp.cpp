@@ -28,6 +28,7 @@ Author:
 #include <io/container.h>
 //boost includes
 #include <boost/bind.hpp>
+#include <boost/enable_shared_from_this.hpp>
 #include <boost/make_shared.hpp>
 //text includes
 #include <core/text/plugins.h>
@@ -274,14 +275,6 @@ namespace
     NOENVELOPE,   //0p
   };
 
-  void DescribeSTCPlugin(PluginInformation& info)
-  {
-    info.Id = STC_PLUGIN_ID;
-    info.Description = Text::STC_PLUGIN_INFO;
-    info.Version = STC_PLUGIN_VERSION;
-    info.Capabilities = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
-  }
-
   typedef TrackingSupport<AYM::CHANNELS, Sample> STCTrack;
   typedef std::vector<int_t> STCTransposition;
 
@@ -393,8 +386,9 @@ namespace
       }
     }
   public:
-    STCHolder(const MetaContainer& container, ModuleRegion& region)
-      : Data(boost::make_shared<STCModuleData>())
+    STCHolder(Plugin::Ptr plugin, const MetaContainer& container, ModuleRegion& region)
+      : SrcPlugin(plugin)
+      , Data(boost::make_shared<STCModuleData>())
     {
       //assume that data is ok
       const IO::FastDump& data = IO::FastDump(*container.Data, region.Offset);
@@ -506,9 +500,9 @@ namespace
       Data->FillStatisticInfo(0, header->Tempo, AYM::CHANNELS);
     }
 
-    virtual void GetPluginInformation(PluginInformation& info) const
+    virtual const Plugin& GetPlugin() const
     {
-      DescribeSTCPlugin(info);
+      return *SrcPlugin;
     }
 
     virtual void GetModuleInformation(Information& info) const
@@ -537,6 +531,7 @@ namespace
       return result;
     }
   private:
+    const Plugin::Ptr SrcPlugin;
     Dump RawData;
     const STCModuleData::Ptr Data;
   };
@@ -709,8 +704,8 @@ namespace
     return Player::Ptr(new STCPlayer(data, device));
   }
 
-  bool CheckSTCModule(const uint8_t* data, std::size_t limit, const MetaContainer& container,
-    Holder::Ptr& holder, ModuleRegion& region)
+  bool CheckSTCModule(const uint8_t* data, std::size_t limit, 
+    Plugin::Ptr plugin, const MetaContainer& container, Holder::Ptr& holder, ModuleRegion& region)
   {
     if (limit < sizeof(STCHeader))
     {
@@ -757,7 +752,7 @@ namespace
     //try to create holder
     try
     {
-      holder.reset(new STCHolder(container, region));
+      holder.reset(new STCHolder(plugin, container, region));
 #ifdef SELF_TEST
       holder->CreatePlayer();
 #endif
@@ -771,20 +766,46 @@ namespace
   }
 
   //////////////////////////////////////////////////////////////////////////
-  bool CreateSTCModule(const Parameters::Map& /*commonParams*/, const MetaContainer& container,
-    Holder::Ptr& holder, ModuleRegion& region)
+  class STCPlugin : public PlayerPlugin
+                  , public boost::enable_shared_from_this<STCPlugin>
   {
-    return PerformDetect(&CheckSTCModule, DETECTORS, ArrayEnd(DETECTORS),
-      container, holder, region);
-  }
+  public:
+    virtual String Id() const
+    {
+      return STC_PLUGIN_ID;
+    }
+
+    virtual String Description() const
+    {
+      return Text::STC_PLUGIN_INFO;
+    }
+
+    virtual String Version() const
+    {
+      return STC_PLUGIN_VERSION;
+    }
+
+    virtual uint_t Capabilities() const
+    {
+      return CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
+    }
+
+    virtual Module::Holder::Ptr CreateModule(const Parameters::Map& /*parameters*/,
+                                             const MetaContainer& container,
+                                             ModuleRegion& region) const
+    {
+      const Plugin::Ptr plugin = shared_from_this();
+      return PerformDetect(&CheckSTCModule, 0, 0,
+        plugin, container, region);
+    }
+  };
 }
 
 namespace ZXTune
 {
   void RegisterSTCSupport(PluginsEnumerator& enumerator)
   {
-    PluginInformation info;
-    DescribeSTCPlugin(info);
-    enumerator.RegisterPlayerPlugin(info, CreateSTCModule);
+    const PlayerPlugin::Ptr plugin(new STCPlugin());
+    enumerator.RegisterPlugin(plugin);
   }
 }

@@ -29,6 +29,7 @@ Author:
 #include <io/container.h>
 //boost includes
 #include <boost/bind.hpp>
+#include <boost/enable_shared_from_this.hpp>
 //text includes
 #include <core/text/plugins.h>
 #include <core/text/warnings.h>
@@ -397,15 +398,6 @@ namespace
     BREAK_SAMPLE
   };
 
-  // fill plugin information
-  void DescribeASCPlugin(PluginInformation& info)
-  {
-    info.Id = ASC_PLUGIN_ID;
-    info.Description = Text::ASC_PLUGIN_INFO;
-    info.Version = ASC_PLUGIN_VERSION;
-    info.Capabilities = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
-  }
-
   // tracker type
   typedef TrackingSupport<AYM::CHANNELS, Sample, Ornament> ASCTrack;
 
@@ -602,8 +594,8 @@ namespace
       }
     }
   public:
-    ASCHolder(const MetaContainer& container, ModuleRegion& region)
-      : Data(ASCTrack::ModuleData::Create())
+    ASCHolder(Plugin::Ptr plugin, const MetaContainer& container, ModuleRegion& region)
+      : SrcPlugin(plugin), Data(ASCTrack::ModuleData::Create())
     {
       //assume all data is correct
       const IO::FastDump& data = IO::FastDump(*container.Data, region.Offset);
@@ -740,9 +732,9 @@ namespace
       Data->FillStatisticInfo(header->Loop, header->Tempo, AYM::CHANNELS);
     }
 
-    virtual void GetPluginInformation(PluginInformation& info) const
+    virtual const Plugin& GetPlugin() const
     {
-      DescribeASCPlugin(info);
+      return *SrcPlugin;
     }
 
     virtual void GetModuleInformation(Information& info) const
@@ -771,6 +763,7 @@ namespace
       return result;
     }
   private:
+    const Plugin::Ptr SrcPlugin;
     Dump RawData;
     const ASCTrack::ModuleData::Ptr Data;
   };
@@ -1101,15 +1094,15 @@ namespace
   }
 
   //////////////////////////////////////////////////////////////////////////
-  bool CheckASCModule(const uint8_t* data, std::size_t limit, const MetaContainer& container,
-    Holder::Ptr& holder, ModuleRegion& region)
+  bool CheckASCModule(const uint8_t* data, std::size_t size,
+    Plugin::Ptr plugin, const MetaContainer& container, Holder::Ptr& holder, ModuleRegion& region)
   {
-    if (limit < sizeof(ASCHeader))
+    if (size < sizeof(ASCHeader))
     {
       return false;
     }
 
-    limit = std::min(limit, MAX_MODULE_SIZE);
+    const std::size_t limit = std::min(size, MAX_MODULE_SIZE);
     const ASCHeader* const header = safe_ptr_cast<const ASCHeader*>(data);
     const std::size_t headerBusy = sizeof(*header) + header->Length - 1;
 
@@ -1186,7 +1179,7 @@ namespace
     //try to create holder
     try
     {
-      holder.reset(new ASCHolder(container, region));
+      holder.reset(new ASCHolder(plugin, container, region));
 #ifdef SELF_TEST
       holder->CreatePlayer();
 #endif
@@ -1200,20 +1193,46 @@ namespace
   }
 
   //////////////////////////////////////////////////////////////////////////
-  bool CreateASCModule(const Parameters::Map& /*commonParams*/, const MetaContainer& container,
-    Holder::Ptr& holder, ModuleRegion& region)
+  class ASCPlugin : public PlayerPlugin
+                  , public boost::enable_shared_from_this<ASCPlugin>
   {
-    return PerformDetect(&CheckASCModule, 0, 0,
-      container, holder, region);
-  }
+  public:
+    virtual String Id() const
+    {
+      return ASC_PLUGIN_ID;
+    }
+
+    virtual String Description() const
+    {
+      return Text::ASC_PLUGIN_INFO;
+    }
+
+    virtual String Version() const
+    {
+      return ASC_PLUGIN_VERSION;
+    }
+
+    virtual uint_t Capabilities() const
+    {
+      return CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
+    }
+
+    virtual Module::Holder::Ptr CreateModule(const Parameters::Map& /*parameters*/,
+                                             const MetaContainer& container,
+                                             ModuleRegion& region) const
+    {
+      const Plugin::Ptr plugin = shared_from_this();
+      return PerformDetect(&CheckASCModule, 0, 0,
+        plugin, container, region);
+    }
+  };
 }
 
 namespace ZXTune
 {
   void RegisterASCSupport(PluginsEnumerator& enumerator)
   {
-    PluginInformation info;
-    DescribeASCPlugin(info);
-    enumerator.RegisterPlayerPlugin(info, CreateASCModule);
+    const PlayerPlugin::Ptr plugin(new ASCPlugin());
+    enumerator.RegisterPlugin(plugin);
   }
 }

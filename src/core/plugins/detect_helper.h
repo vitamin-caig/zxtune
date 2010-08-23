@@ -30,32 +30,33 @@ namespace ZXTune
     const std::size_t PlayerSize;
   };
 
-  inline bool PerformDetect(
-    const boost::function<bool(const uint8_t*, std::size_t, const MetaContainer&, Module::Holder::Ptr&, ModuleRegion&)>& checker,
+  inline Module::Holder::Ptr PerformDetect(
+    const boost::function<bool(const uint8_t*, std::size_t, Plugin::Ptr, const MetaContainer&, Module::Holder::Ptr&, ModuleRegion&)>& checker,
     const DetectFormatChain* chainBegin, const DetectFormatChain* chainEnd,
-    const MetaContainer& container, Module::Holder::Ptr& holder, ModuleRegion& region)
+    Plugin::Ptr plugin, const MetaContainer& container, ModuleRegion& region)
   {
     const std::size_t limit(container.Data->Size());
     const uint8_t* const data(static_cast<const uint8_t*>(container.Data->Data()));
 
+    Module::Holder::Ptr tmpHolder;
     ModuleRegion tmpRegion;
     //try to detect without player
-    if (checker(data, limit, container, holder, tmpRegion))
+    if (checker(data, limit, plugin, container, tmpHolder, tmpRegion))
     {
       region = tmpRegion;
-      return true;
+      return tmpHolder;
     }
     for (const DetectFormatChain* chain = chainBegin; chain != chainEnd; ++chain)
     {
       tmpRegion.Offset = chain->PlayerSize;
       if (DetectFormat(data, limit, chain->PlayerFP) &&
-          checker(data + chain->PlayerSize, limit - region.Offset, container, holder, tmpRegion))
+          checker(data + chain->PlayerSize, limit - region.Offset, plugin, container, tmpHolder, tmpRegion))
       {
         region = tmpRegion;
-        return true;
+        return tmpHolder;
       }
     }
-    return false;
+    return Module::Holder::Ptr();
   }
 }
 

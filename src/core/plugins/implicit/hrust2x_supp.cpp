@@ -153,23 +153,47 @@ namespace
       dst.size() == fromLE(header->DataSize);//valid if match
   }
 
-  bool ProcessHrust21(const Parameters::Map& /*commonParams*/, const MetaContainer& input,
-    IO::DataContainer::Ptr& output, ModuleRegion& region)
+  //////////////////////////////////////////////////////////////////////////
+  class Hrust2xPlugin : public ImplicitPlugin
   {
-    const IO::DataContainer& inputData = *input.Data;
-    const std::size_t limit = inputData.Size();
-    const Hrust21Header* const header = static_cast<const Hrust21Header*>(inputData.Data());
-    Dump res;
-    //only check without depacker- depackers are separate
-    if (Decode(header, limit, res))
+  public:
+    virtual String Id() const
     {
-      output = IO::CreateDataContainer(res);
-      region.Offset = 0;
-      region.Size = fromLE(header->PackedSize) + 8;
-      return true;
+      return HRUST2X_PLUGIN_ID;
     }
-    return false;
-  }
+
+    virtual String Description() const
+    {
+      return Text::HRUST2X_PLUGIN_INFO;
+    }
+
+    virtual String Version() const
+    {
+      return HRUST2X_PLUGIN_VERSION;
+    }
+    
+    virtual uint_t Capabilities() const
+    {
+      return CAP_STOR_CONTAINER;
+    }
+
+    virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Map& /*commonParams*/,
+      const MetaContainer& input, ModuleRegion& region) const
+    {
+      const IO::DataContainer& inputData = *input.Data;
+      const std::size_t limit = inputData.Size();
+      const Hrust21Header* const header = static_cast<const Hrust21Header*>(inputData.Data());
+      Dump res;
+      //only check without depacker- depackers are separate
+      if (Decode(header, limit, res))
+      {
+        region.Offset = 0;
+        region.Size = fromLE(header->PackedSize) + 8;
+        return IO::CreateDataContainer(res);
+      }
+      return IO::DataContainer::Ptr();
+    }
+  };
 }
 
 //function from global namespace- used in hrip depacker
@@ -243,11 +267,7 @@ namespace ZXTune
 {
   void RegisterHrust2xConvertor(PluginsEnumerator& enumerator)
   {
-    PluginInformation info;
-    info.Id = HRUST2X_PLUGIN_ID;
-    info.Description = Text::HRUST2X_PLUGIN_INFO;
-    info.Version = HRUST2X_PLUGIN_VERSION;
-    info.Capabilities = CAP_STOR_CONTAINER;
-    enumerator.RegisterImplicitPlugin(info, ProcessHrust21);
+    const ImplicitPlugin::Ptr plugin(new Hrust2xPlugin());
+    enumerator.RegisterPlugin(plugin);
   }
 }

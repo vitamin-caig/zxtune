@@ -130,86 +130,106 @@ namespace
     return offset;
   }
 
-  Error ProcessSCLContainer(const Parameters::Map& commonParams, const DetectParameters& detectParams,
-    const MetaContainer& data, ModuleRegion& region)
+  class SCLPlugin : public ContainerPlugin
   {
-    FileDescriptions files;
-    const uint_t parsedSize = ParseSCLFile(IO::FastDump(*data.Data), files);
-    if (!parsedSize)
+  public:
+    virtual String Id() const
     {
-      return Error(THIS_LINE, Module::ERROR_FIND_CONTAINER_PLUGIN);
+      return SCL_PLUGIN_ID;
     }
 
-    const PluginsEnumerator& enumerator = PluginsEnumerator::Instance();
-
-    // progress-related
-    const bool showMessage = detectParams.Logger != 0;
-    Log::MessageData message;
-    if (showMessage)
+    virtual String Description() const
     {
-      message.Level = enumerator.CountPluginsInChain(data.PluginsChain, CAP_STOR_MULTITRACK, CAP_STOR_MULTITRACK);
-      message.Progress = -1;
+      return Text::SCL_PLUGIN_INFO;
     }
 
-    MetaContainer subcontainer;
-    subcontainer.PluginsChain = data.PluginsChain;
-    subcontainer.PluginsChain.push_back(SCL_PLUGIN_ID);
-    ModuleRegion curRegion;
-    const uint_t totalCount = files.size();
-    uint_t curCount = 0;
-    for (FileDescriptions::const_iterator it = files.begin(), lim = files.end(); it != lim; ++it, ++curCount)
+    virtual String Version() const
     {
-      subcontainer.Data = data.Data->GetSubcontainer(it->Offset, it->Size);
-      subcontainer.Path = IO::AppendPath(data.Path, it->Name);
-      //show progress
+      return SCL_PLUGIN_VERSION;
+    }
+
+    virtual uint_t Capabilities() const
+    {
+      return CAP_STOR_MULTITRACK | CAP_STOR_PLAIN;
+    }
+
+    virtual Error Process(const Parameters::Map& commonParams, 
+      const DetectParameters& detectParams,
+      const MetaContainer& data, ModuleRegion& region) const
+    {
+      FileDescriptions files;
+      const uint_t parsedSize = ParseSCLFile(IO::FastDump(*data.Data), files);
+      if (!parsedSize)
+      {
+        return Error(THIS_LINE, Module::ERROR_FIND_CONTAINER_PLUGIN);
+      }
+
+      const PluginsEnumerator& enumerator = PluginsEnumerator::Instance();
+
+      // progress-related
+      const bool showMessage = detectParams.Logger != 0;
+      Log::MessageData message;
       if (showMessage)
       {
-        message.Progress = 100 * curCount / totalCount;
-        message.Text = (SafeFormatter(data.Path.empty() ? Text::PLUGIN_SCL_PROGRESS_NOPATH : Text::PLUGIN_SCL_PROGRESS) % it->Name % data.Path).str();
-        detectParams.Logger(message);
+        message.Level = CalculateContainersNesting(data.PluginsChain);
+        message.Progress = -1;
       }
-      if (const Error& err = enumerator.DetectModules(commonParams, detectParams, subcontainer, curRegion))
-      {
-        return err;
-      }
-    }
-    region.Offset = 0;
-    region.Size = parsedSize;
-    return Error();
-  }
 
-  bool OpenSCLContainer(const Parameters::Map& /*commonParams*/, const MetaContainer& inData, const String& inPath,
-    IO::DataContainer::Ptr& outData, String& restPath)
-  {
-    String restComp;
-    const String& pathComp = IO::ExtractFirstPathComponent(inPath, restComp);
-    FileDescriptions files;
-    if (pathComp.empty() ||
-        !ParseSCLFile(IO::FastDump(*inData.Data), files))
-    {
-      return false;
+      MetaContainer subcontainer;
+      subcontainer.PluginsChain = data.PluginsChain;
+      subcontainer.PluginsChain.push_back(SCL_PLUGIN_ID);
+      ModuleRegion curRegion;
+      const uint_t totalCount = files.size();
+      uint_t curCount = 0;
+      for (FileDescriptions::const_iterator it = files.begin(), lim = files.end(); it != lim; ++it, ++curCount)
+      {
+        subcontainer.Data = data.Data->GetSubcontainer(it->Offset, it->Size);
+        subcontainer.Path = IO::AppendPath(data.Path, it->Name);
+        //show progress
+        if (showMessage)
+        {
+          message.Progress = 100 * curCount / totalCount;
+          message.Text = (SafeFormatter(data.Path.empty() ? Text::PLUGIN_SCL_PROGRESS_NOPATH : Text::PLUGIN_SCL_PROGRESS) % it->Name % data.Path).str();
+          detectParams.Logger(message);
+        }
+        if (const Error& err = enumerator.DetectModules(commonParams, detectParams, subcontainer, curRegion))
+        {
+          return err;
+        }
+      }
+      region.Offset = 0;
+      region.Size = parsedSize;
+      return Error();
     }
-    const FileDescriptions::const_iterator fileIt = std::find_if(files.begin(), files.end(),
-      boost::bind(&TRDFileEntry::Name, _1) == pathComp);
-    if (fileIt != files.end())
+
+    IO::DataContainer::Ptr Open(const Parameters::Map& /*commonParams*/,
+      const MetaContainer& inData, const String& inPath, String& restPath) const
     {
-      outData = inData.Data->GetSubcontainer(fileIt->Offset, fileIt->Size);
-      restPath = restComp;
-      return true;
+      String restComp;
+      const String& pathComp = IO::ExtractFirstPathComponent(inPath, restComp);
+      FileDescriptions files;
+      if (pathComp.empty() ||
+          !ParseSCLFile(IO::FastDump(*inData.Data), files))
+      {
+        return IO::DataContainer::Ptr();
+      }
+      const FileDescriptions::const_iterator fileIt = std::find_if(files.begin(), files.end(),
+        boost::bind(&TRDFileEntry::Name, _1) == pathComp);
+      if (fileIt != files.end())
+      {
+        restPath = restComp;
+        return inData.Data->GetSubcontainer(fileIt->Offset, fileIt->Size);
+      }
+      return IO::DataContainer::Ptr();
     }
-    return false;
-  }
+  };
 }
 
 namespace ZXTune
 {
   void RegisterSCLContainer(PluginsEnumerator& enumerator)
   {
-    PluginInformation info;
-    info.Id = SCL_PLUGIN_ID;
-    info.Description = Text::SCL_PLUGIN_INFO;
-    info.Version = SCL_PLUGIN_VERSION;
-    info.Capabilities = CAP_STOR_MULTITRACK | CAP_STOR_PLAIN;
-    enumerator.RegisterContainerPlugin(info, OpenSCLContainer, ProcessSCLContainer);
+    const ContainerPlugin::Ptr plugin(new SCLPlugin());
+    enumerator.RegisterPlugin(plugin);
   }
 }

@@ -162,13 +162,6 @@ namespace
   }
 
   //////////////////////////////////////////////////////////////////////////
-  void DescribeTSPlugin(PluginInformation& info)
-  {
-    info.Id = TS_PLUGIN_ID;
-    info.Description = Text::TS_PLUGIN_INFO;
-    info.Version = TS_PLUGIN_VERSION;
-    info.Capabilities = CAP_STOR_MODULE | CAP_DEV_TS | CAP_CONV_RAW;
-  }
 
   class TSHolder;
   Player::Ptr CreateTSPlayer(boost::shared_ptr<const TSHolder> mod);
@@ -176,8 +169,10 @@ namespace
   class TSHolder : public Holder, public boost::enable_shared_from_this<TSHolder>
   {
   public:
-    TSHolder(const Dump& data, const Holder::Ptr& holder1, const Holder::Ptr& holder2)
-      : RawData(data), Holder1(holder1), Holder2(holder2)
+    TSHolder(Plugin::Ptr plugin, const Dump& data, const Holder::Ptr& holder1, const Holder::Ptr& holder2)
+      : SrcPlugin(plugin)
+      , RawData(data)
+      , Holder1(holder1), Holder2(holder2)
     {
       Holder1->GetModuleInformation(Info);
       //assume first is leading
@@ -190,9 +185,9 @@ namespace
       Info.Properties.swap(mergedProps);
     }
 
-    virtual void GetPluginInformation(PluginInformation& info) const
+    virtual const Plugin& GetPlugin() const
     {
-      DescribeTSPlugin(info);
+      return *SrcPlugin;
     }
 
     virtual void GetModuleInformation(Information& info) const
@@ -220,6 +215,7 @@ namespace
     }
   private:
     friend class TSPlayer;
+    const Plugin::Ptr SrcPlugin;
     Dump RawData;
     Information Info;
     Holder::Ptr Holder1, Holder2;
@@ -352,69 +348,95 @@ namespace
   
   inline bool InvalidHolder(const Module::Holder& holder)
   {
-    PluginInformation info;
-    holder.GetPluginInformation(info);
-    return 0 != (info.Capabilities & (CAP_STORAGE_MASK ^ CAP_STOR_MODULE)) ||
-           0 != (info.Capabilities & (CAP_DEVICE_MASK ^ CAP_DEV_AYM)); 
+    const uint_t caps = holder.GetPlugin().Capabilities();
+    return 0 != (caps & (CAP_STORAGE_MASK ^ CAP_STOR_MODULE)) ||
+           0 != (caps & (CAP_DEVICE_MASK ^ CAP_DEV_AYM)); 
   }
 
-  bool CreateTSModule(const Parameters::Map& commonParams, const MetaContainer& container,
-    Holder::Ptr& holder, ModuleRegion& region)
+  //////////////////////////////////////////////////////////////////////////
+  class TSPlugin : public PlayerPlugin
+                  , public boost::enable_shared_from_this<TSPlugin>
   {
-    const IO::FastDump dump(*container.Data);
-
-    const std::size_t footerOffset = FindFooter(dump, SEARCH_THRESHOLD);
-    if (!footerOffset)
+  public:
+    virtual String Id() const
     {
-      return false;
+      return TS_PLUGIN_ID;
     }
-    const Footer* const footer = safe_ptr_cast<const Footer*>(dump.Data() + footerOffset);
-    const std::size_t firstModuleSize = fromLE(footer->Size1);
 
-    const PluginsEnumerator& enumerator(PluginsEnumerator::Instance());
-    MetaContainer subdata(container);
+    virtual String Description() const
+    {
+      return Text::TS_PLUGIN_INFO;
+    }
 
-    Module::Holder::Ptr holder1;
-    subdata.Data = container.Data->GetSubcontainer(0, firstModuleSize);
-    if (enumerator.OpenModule(commonParams, subdata, holder1) || InvalidHolder(*holder1))
+    virtual String Version() const
     {
-      Log::Debug(THIS_MODULE, "Invalid first module holder");
-      return false;
+      return TS_PLUGIN_VERSION;
     }
-    Module::Holder::Ptr holder2;
-    subdata.Data = container.Data->GetSubcontainer(firstModuleSize, footerOffset - firstModuleSize);
-    if (enumerator.OpenModule(commonParams, subdata, holder2) || InvalidHolder(*holder2))
+
+    virtual uint_t Capabilities() const
     {
-      Log::Debug(THIS_MODULE, "Failed to create second module holder");
-      return false;
+      return CAP_STOR_MODULE | CAP_DEV_TS | CAP_CONV_RAW;
     }
-    //try to create holder
-    try
+
+    virtual Module::Holder::Ptr CreateModule(const Parameters::Map& commonParams,
+                                             const MetaContainer& container,
+                                             ModuleRegion& region) const
     {
-      if (firstModuleSize + fromLE(footer->Size2) != footerOffset)
+      const IO::FastDump dump(*container.Data);
+
+      const std::size_t footerOffset = FindFooter(dump, SEARCH_THRESHOLD);
+      if (!footerOffset)
       {
-        Log::Debug(THIS_MODULE, "Invalid footer structure");
+        return Module::Holder::Ptr();
       }
-      const std::size_t newSize = footerOffset + sizeof(*footer);
-      holder.reset(new TSHolder(Dump(dump.Data(), dump.Data() + newSize), holder1, holder2));
-      region.Offset = 0;
-      region.Size = newSize;
-      return true;
+      const Footer* const footer = safe_ptr_cast<const Footer*>(dump.Data() + footerOffset);
+      const std::size_t firstModuleSize = fromLE(footer->Size1);
+
+      const PluginsEnumerator& enumerator(PluginsEnumerator::Instance());
+      MetaContainer subdata(container);
+
+      Module::Holder::Ptr holder1;
+      subdata.Data = container.Data->GetSubcontainer(0, firstModuleSize);
+      if (enumerator.OpenModule(commonParams, subdata, holder1) || InvalidHolder(*holder1))
+      {
+        Log::Debug(THIS_MODULE, "Invalid first module holder");
+        return Module::Holder::Ptr();
+      }
+      Module::Holder::Ptr holder2;
+      subdata.Data = container.Data->GetSubcontainer(firstModuleSize, footerOffset - firstModuleSize);
+      if (enumerator.OpenModule(commonParams, subdata, holder2) || InvalidHolder(*holder2))
+      {
+        Log::Debug(THIS_MODULE, "Failed to create second module holder");
+        return Module::Holder::Ptr();
+      }
+      //try to create holder
+      try
+      {
+        const Plugin::Ptr plugin = shared_from_this();
+        if (firstModuleSize + fromLE(footer->Size2) != footerOffset)
+        {
+          Log::Debug(THIS_MODULE, "Invalid footer structure");
+        }
+        const std::size_t newSize = footerOffset + sizeof(*footer);
+        const Module::Holder::Ptr holder(new TSHolder(plugin, Dump(dump.Data(), dump.Data() + newSize), holder1, holder2));
+        region.Offset = 0;
+        region.Size = newSize;
+        return holder;
+      }
+      catch (const Error&)
+      {
+        Log::Debug(THIS_MODULE, "Failed to create holder");
+      }
+      return Module::Holder::Ptr();
     }
-    catch (const Error&)
-    {
-      Log::Debug(THIS_MODULE, "Failed to create holder");
-    }
-    return false;
-  }
+  };
 }
 
 namespace ZXTune
 {
   void RegisterTSSupport(PluginsEnumerator& enumerator)
   {
-    PluginInformation info;
-    DescribeTSPlugin(info);
-    enumerator.RegisterPlayerPlugin(info, CreateTSModule);
+    const PlayerPlugin::Ptr plugin(new TSPlugin());
+    enumerator.RegisterPlugin(plugin);
   }
 }

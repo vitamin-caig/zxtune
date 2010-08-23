@@ -29,6 +29,7 @@ Author:
 #include <io/container.h>
 //boost includes
 #include <boost/bind.hpp>
+#include <boost/enable_shared_from_this.hpp>
 #include <boost/make_shared.hpp>
 //text includes
 #include <core/text/plugins.h>
@@ -293,14 +294,6 @@ namespace
     GLISS,        //1p
   };
 
-  void DescribeSTPPlugin(PluginInformation& info)
-  {
-    info.Id = STP_PLUGIN_ID;
-    info.Description = Text::STP_PLUGIN_INFO;
-    info.Version = STP_PLUGIN_VERSION;
-    info.Capabilities = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
-  }
-
   typedef TrackingSupport<AYM::CHANNELS, Sample> STPTrack;
   typedef std::vector<int_t> STPTransposition;
 
@@ -410,8 +403,9 @@ namespace
       }
     }
   public:
-    STPHolder(const MetaContainer& container, ModuleRegion& region)
-      : Data(boost::make_shared<STPModuleData>())
+    STPHolder(Plugin::Ptr plugin, const MetaContainer& container, ModuleRegion& region)
+      : SrcPlugin(plugin)
+      , Data(boost::make_shared<STPModuleData>())
     {
       //assume that data is ok
       const IO::FastDump& data = IO::FastDump(*container.Data, region.Offset);
@@ -531,9 +525,9 @@ namespace
       Data->FillStatisticInfo(positions->Loop, header->Tempo, AYM::CHANNELS);
     }
 
-    virtual void GetPluginInformation(PluginInformation& info) const
+    virtual const Plugin& GetPlugin() const
     {
-      DescribeSTPPlugin(info);
+      return *SrcPlugin;
     }
 
     virtual void GetModuleInformation(Information& info) const
@@ -562,6 +556,7 @@ namespace
       return result;
     }
   private:
+    const Plugin::Ptr SrcPlugin;
     Dump RawData;
     const STPModuleData::Ptr Data;
   };
@@ -758,10 +753,10 @@ namespace
     return Player::Ptr(new STPPlayer(data, device));
   }
 
-  bool CheckSTPModule(const uint8_t* data, std::size_t limit, const MetaContainer& container,
-    Holder::Ptr& holder, ModuleRegion& region)
+  bool CheckSTPModule(const uint8_t* data, std::size_t size, 
+    Plugin::Ptr plugin, const MetaContainer& container, Holder::Ptr& holder, ModuleRegion& region)
   {
-    limit = std::min(limit, MAX_MODULE_SIZE);
+    const std::size_t limit = std::min(size, MAX_MODULE_SIZE);
     if (limit < sizeof(STPHeader))
     {
       return false;
@@ -851,7 +846,7 @@ namespace
     //try to create holder
     try
     {
-      holder.reset(new STPHolder(container, region));
+      holder.reset(new STPHolder(plugin, container, region));
 #ifdef SELF_TEST
       holder->CreatePlayer();
 #endif
@@ -865,20 +860,46 @@ namespace
   }
 
   //////////////////////////////////////////////////////////////////////////
-  bool CreateSTPModule(const Parameters::Map& /*commonParams*/, const MetaContainer& container,
-    Holder::Ptr& holder, ModuleRegion& region)
+  class STPPlugin : public PlayerPlugin
+                  , public boost::enable_shared_from_this<STPPlugin>
   {
-    return PerformDetect(&CheckSTPModule, DETECTORS, ArrayEnd(DETECTORS),
-      container, holder, region);
-  }
+  public:
+    virtual String Id() const
+    {
+      return STP_PLUGIN_ID;
+    }
+
+    virtual String Description() const
+    {
+      return Text::STP_PLUGIN_INFO;
+    }
+
+    virtual String Version() const
+    {
+      return STP_PLUGIN_VERSION;
+    }
+
+    virtual uint_t Capabilities() const
+    {
+      return CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
+    }
+
+    virtual Module::Holder::Ptr CreateModule(const Parameters::Map& /*parameters*/,
+                                             const MetaContainer& container,
+                                             ModuleRegion& region) const
+    {
+      const Plugin::Ptr plugin = shared_from_this();
+      return PerformDetect(&CheckSTPModule, 0, 0,
+        plugin, container, region);
+    }
+  };
 }
 
 namespace ZXTune
 {
   void RegisterSTPSupport(PluginsEnumerator& enumerator)
   {
-    PluginInformation info;
-    DescribeSTPPlugin(info);
-    enumerator.RegisterPlayerPlugin(info, CreateSTPModule);
+    const PlayerPlugin::Ptr plugin(new STPPlugin());
+    enumerator.RegisterPlugin(plugin);
   }
 }

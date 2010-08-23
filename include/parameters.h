@@ -94,7 +94,7 @@ namespace Parameters
   class Helper
   {
   public:
-    explicit Helper(Map& content)
+    explicit Helper(const Map& content)
       : Content(content)
     {
     }
@@ -125,7 +125,7 @@ namespace Parameters
       ConvertMap(Content, result);
     }
   private:
-    Map& Content;
+    const Map& Content;
   };
 }
 

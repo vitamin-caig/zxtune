@@ -49,18 +49,63 @@ namespace ZXTune
                              const MetaContainer& container, const ModuleRegion& region, const ModuleRegion& fixedRegion,
                              Parameters::Map& properties, Dump& rawData);
 
-  //in: metacontainer
-  //out: holder, region
-  typedef boost::function<bool(const Parameters::Map&, const MetaContainer&, Module::Holder::Ptr&, ModuleRegion&)> CreateModuleFunc;
-  //in: data
-  //output: data, region
-  typedef boost::function<bool(const Parameters::Map&, const MetaContainer&, IO::DataContainer::Ptr&, ModuleRegion&)> ProcessImplicitFunc;
-  //in: metacontainer, parameters+callback
-  //out: region
-  typedef boost::function<Error(const Parameters::Map&, const DetectParameters&, const MetaContainer&, ModuleRegion&)> ProcessContainerFunc;
-  //in: container, path
-  //out: container, rest path
-  typedef boost::function<bool(const Parameters::Map&, const MetaContainer&, const String&, IO::DataContainer::Ptr&, String&)> OpenContainerFunc;
+  class PlayerPlugin : public Plugin
+  {
+  public:
+    typedef boost::shared_ptr<const PlayerPlugin> Ptr;
+
+    //! @brief Creating module on specified input data
+    //! @param parameters Options for modules detection
+    //! @param inputData Source memory data
+    //! @param region Reference to result region where module is detected
+    //! @return Not empty pointer if found, empty elsewhere
+    virtual Module::Holder::Ptr CreateModule(const Parameters::Map& parameters,
+                                             const MetaContainer& inputData,
+                                             ModuleRegion& region) const = 0;
+  };
+
+  class ImplicitPlugin : public Plugin
+  {
+  public:
+    typedef boost::shared_ptr<const ImplicitPlugin> Ptr;
+
+    //! @brief Extracting subdata from specified input data
+    //! @param parameters Options for subdata extraction
+    //! @param inputData Source memory data
+    //! @param region Reference to result region subdata is extracted from
+    //! @return Not empty pointer if data is extracted, empty elsewhere
+    virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Map& parameters,
+                                                  const MetaContainer& inputData,
+                                                  ModuleRegion& region) const = 0;
+  };
+
+  class ContainerPlugin : public Plugin
+  {
+  public:
+    typedef boost::shared_ptr<const ContainerPlugin> Ptr;
+
+    //! @brief Process input data as container
+    //! @param parameters Options for processing
+    //! @param detectParams Detection-specific parameters
+    //! @param inputData Source memory data
+    //! @param region Reference to result region subdata container detected at
+    //! @return Error() in case on success, canceled with return callback error
+    virtual Error Process(const Parameters::Map& parameters,
+                          const DetectParameters& detectParams,
+                          const MetaContainer& inputData,
+                          ModuleRegion& region) const = 0;
+
+    //! @brief Opening subdata by specified path
+    //! @param parameters Options for opening
+    //! @param inputData Source memory data
+    //! @param fullPath Full subdata path
+    //! @param restPath Reference to rest part of path which is not handled by current plugin
+    //! @return Not empty pointer if data is opened
+    virtual IO::DataContainer::Ptr Open(const Parameters::Map& parameters,
+                                        const MetaContainer& inputData,
+                                        const String& fullPath,
+                                        String& restPath) const = 0;
+  };
 
   class PluginsEnumerator
   {
@@ -68,15 +113,16 @@ namespace ZXTune
     virtual ~PluginsEnumerator() {}
 
     //endpoint modules support
-    virtual void RegisterPlayerPlugin(const PluginInformation& info, const CreateModuleFunc& func) = 0;
+    virtual void RegisterPlugin(PlayerPlugin::Ptr plugin) = 0;
     //implicit containers support
-    virtual void RegisterImplicitPlugin(const PluginInformation& info, const ProcessImplicitFunc& func) = 0;
+    virtual void RegisterPlugin(ImplicitPlugin::Ptr plugin) = 0;
     //nested containers support
-    virtual void RegisterContainerPlugin(const PluginInformation& info,
-      const OpenContainerFunc& opener, const ProcessContainerFunc& processor) = 0;
+    virtual void RegisterPlugin(ContainerPlugin::Ptr plugin) = 0;
+    //accessing for registered plugin
+    virtual const Plugin& GetPluginById(const String& id) const = 0;
 
     //public interface
-    virtual void Enumerate(PluginInformationArray& plugins) const = 0;
+    virtual Plugin::IteratorPtr Enumerate() const = 0;
 
     //private interface
     //resolve subpath
@@ -88,12 +134,13 @@ namespace ZXTune
     //single module opening
     virtual Error OpenModule(const Parameters::Map& commonParams, const MetaContainer& data, 
       Module::Holder::Ptr& holder) const = 0;
-    //calculate plugins in chain according to capabilities
-    virtual uint_t CountPluginsInChain(const StringArray& pluginsChain, uint_t capMask, uint_t capValue) const = 0;
 
     //instantiator
     static PluginsEnumerator& Instance();
   };
+
+  //calculate container plugins in chain
+  uint_t CalculateContainersNesting(const StringArray& pluginsChain);
 }
 
 #endif //__CORE_PLUGINS_ENUMERATOR_H_DEFINED__

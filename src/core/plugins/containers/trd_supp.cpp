@@ -161,92 +161,111 @@ namespace
     return true;
   }
   
-  
-  Error ProcessTRDContainer(const Parameters::Map& commonParams, const DetectParameters& detectParams,
-    const MetaContainer& data, ModuleRegion& region)
+  class TRDPlugin : public ContainerPlugin
   {
-    //do not search if there's already TRD plugin (cannot be nested...)
-    if (!data.PluginsChain.empty() &&
-        data.PluginsChain.end() != std::find(data.PluginsChain.begin(), data.PluginsChain.end(), TRD_PLUGIN_ID))
+  public:
+    virtual String Id() const
     {
-      return Error(THIS_LINE, Module::ERROR_FIND_CONTAINER_PLUGIN);
-    }
-    FileDescriptions files;
-    if (!ParseTRDFile(IO::FastDump(*data.Data), files))
-    {
-      return Error(THIS_LINE, Module::ERROR_FIND_CONTAINER_PLUGIN);
+      return TRD_PLUGIN_ID;
     }
 
-    const PluginsEnumerator& enumerator = PluginsEnumerator::Instance();
-
-    // progress-related
-    const bool showMessage = detectParams.Logger != 0;
-    Log::MessageData message;
-    if (showMessage)
+    virtual String Description() const
     {
-      message.Level = enumerator.CountPluginsInChain(data.PluginsChain, CAP_STOR_MULTITRACK, CAP_STOR_MULTITRACK);
-      message.Progress = -1;
+      return Text::TRD_PLUGIN_INFO;
     }
 
-    MetaContainer subcontainer;
-    subcontainer.PluginsChain = data.PluginsChain;
-    subcontainer.PluginsChain.push_back(TRD_PLUGIN_ID);
-    ModuleRegion curRegion;
-    const uint_t totalCount = files.size();
-    uint_t curCount = 0;
-    for (FileDescriptions::const_iterator it = files.begin(), lim = files.end(); it != lim; ++it, ++curCount)
+    virtual String Version() const
     {
-      subcontainer.Data = data.Data->GetSubcontainer(it->Offset, it->Size);
-      subcontainer.Path = IO::AppendPath(data.Path, it->Name);
-      //show progress
+      return TRD_PLUGIN_VERSION;
+    }
+
+    virtual uint_t Capabilities() const
+    {
+      return CAP_STOR_MULTITRACK | CAP_STOR_PLAIN;
+    }
+
+    virtual Error Process(const Parameters::Map& commonParams,
+      const DetectParameters& detectParams,
+      const MetaContainer& data, ModuleRegion& region) const
+    {
+      //do not search if there's already TRD plugin (cannot be nested...)
+      if (!data.PluginsChain.empty() &&
+          data.PluginsChain.end() != std::find(data.PluginsChain.begin(), data.PluginsChain.end(), TRD_PLUGIN_ID))
+      {
+        return Error(THIS_LINE, Module::ERROR_FIND_CONTAINER_PLUGIN);
+      }
+      FileDescriptions files;
+      if (!ParseTRDFile(IO::FastDump(*data.Data), files))
+      {
+        return Error(THIS_LINE, Module::ERROR_FIND_CONTAINER_PLUGIN);
+      }
+
+      const PluginsEnumerator& enumerator = PluginsEnumerator::Instance();
+
+      // progress-related
+      const bool showMessage = detectParams.Logger != 0;
+      Log::MessageData message;
       if (showMessage)
       {
-        message.Progress = 100 * curCount / totalCount;
-        message.Text = (SafeFormatter(data.Path.empty() ? Text::PLUGIN_TRD_PROGRESS_NOPATH : Text::PLUGIN_TRD_PROGRESS) % it->Name % data.Path).str();
-        detectParams.Logger(message);
+        message.Level = CalculateContainersNesting(data.PluginsChain);
+        message.Progress = -1;
       }
-      if (const Error& err = enumerator.DetectModules(commonParams, detectParams, subcontainer, curRegion))
+
+      MetaContainer subcontainer;
+      subcontainer.PluginsChain = data.PluginsChain;
+      subcontainer.PluginsChain.push_back(TRD_PLUGIN_ID);
+      ModuleRegion curRegion;
+      const uint_t totalCount = files.size();
+      uint_t curCount = 0;
+      for (FileDescriptions::const_iterator it = files.begin(), lim = files.end(); it != lim; ++it, ++curCount)
       {
-        return err;
+        subcontainer.Data = data.Data->GetSubcontainer(it->Offset, it->Size);
+        subcontainer.Path = IO::AppendPath(data.Path, it->Name);
+        //show progress
+        if (showMessage)
+        {
+          message.Progress = 100 * curCount / totalCount;
+          message.Text = (SafeFormatter(data.Path.empty() ? Text::PLUGIN_TRD_PROGRESS_NOPATH : Text::PLUGIN_TRD_PROGRESS) % it->Name % data.Path).str();
+          detectParams.Logger(message);
+        }
+        if (const Error& err = enumerator.DetectModules(commonParams, detectParams, subcontainer, curRegion))
+        {
+          return err;
+        }
       }
+      region.Offset = 0;
+      region.Size = TRD_MODULE_SIZE;
+      return Error();
     }
-    region.Offset = 0;
-    region.Size = TRD_MODULE_SIZE;
-    return Error();
-  }
   
-  bool OpenTRDContainer(const Parameters::Map& /*commonParams*/, const MetaContainer& inData, const String& inPath,
-    IO::DataContainer::Ptr& outData, String& restPath)
-  {
-    String restComp;
-    const String& pathComp = IO::ExtractFirstPathComponent(inPath, restComp);
-    FileDescriptions files;
-    if (pathComp.empty() ||
-        !ParseTRDFile(IO::FastDump(*inData.Data), files))
+    IO::DataContainer::Ptr Open(const Parameters::Map& /*commonParams*/, 
+      const MetaContainer& inData, const String& inPath, String& restPath) const
     {
-      return false;
+      String restComp;
+      const String& pathComp = IO::ExtractFirstPathComponent(inPath, restComp);
+      FileDescriptions files;
+      if (pathComp.empty() ||
+          !ParseTRDFile(IO::FastDump(*inData.Data), files))
+      {
+        return IO::DataContainer::Ptr();
+      }
+      const FileDescriptions::const_iterator fileIt = std::find_if(files.begin(), files.end(),
+        boost::bind(&TRDFileEntry::Name, _1) == pathComp);
+      if (fileIt != files.end())
+      {
+        restPath = restComp;
+        return inData.Data->GetSubcontainer(fileIt->Offset, fileIt->Size);
+      }
+      return IO::DataContainer::Ptr();
     }
-    const FileDescriptions::const_iterator fileIt = std::find_if(files.begin(), files.end(),
-      boost::bind(&TRDFileEntry::Name, _1) == pathComp);
-    if (fileIt != files.end())
-    {
-      outData = inData.Data->GetSubcontainer(fileIt->Offset, fileIt->Size);
-      restPath = restComp;
-      return true;
-    }
-    return false;
-  }
+  };
 }
 
 namespace ZXTune
 {
   void RegisterTRDContainer(PluginsEnumerator& enumerator)
   {
-    PluginInformation info;
-    info.Id = TRD_PLUGIN_ID;
-    info.Description = Text::TRD_PLUGIN_INFO;
-    info.Version = TRD_PLUGIN_VERSION;
-    info.Capabilities = CAP_STOR_MULTITRACK | CAP_STOR_PLAIN;
-    enumerator.RegisterContainerPlugin(info, OpenTRDContainer, ProcessTRDContainer);
+    const ContainerPlugin::Ptr plugin(new TRDPlugin());
+    enumerator.RegisterPlugin(plugin);
   }
 }

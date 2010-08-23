@@ -11,34 +11,39 @@
 #define __CORE_PLUGIN_H_DEFINED__
 
 //common includes
-#include <types.h>
+#include <iterator.h>
 //std includes
-#include <vector>
+#include <memory>
+//boost includes
+#include <boost/shared_ptr.hpp>
 
 namespace ZXTune
 {
-  //! @brief Basic plugin information
-  struct PluginInformation
+  //! @brief Basic plugin interface
+  class Plugin
   {
-    PluginInformation() : Capabilities()
-    {
-    }
+  public:
+    //! Pointer type
+    typedef boost::shared_ptr<const Plugin> Ptr;
+    //! Iterator type
+    typedef Iterator<Plugin::Ptr> IteratorType;
+    //! Pointer to iterator type
+    typedef std::auto_ptr<IteratorType> IteratorPtr;
+
+    //! Virtual destructor
+    virtual ~Plugin() {}
+
     //! Identification string
-    String Id;
+    virtual String Id() const = 0;
     //! Textual description
-    String Description;
+    virtual String Description() const = 0;
     //! Current version string
-    String Version;
+    virtual String Version() const = 0;
     //! Plugin capabilities @see plugin_attrs.h
-    uint_t Capabilities;
+    virtual uint_t Capabilities() const = 0;
   };
 
-  //! @brief Set of plugins information
-  typedef std::vector<PluginInformation> PluginInformationArray;
-  
-  //! @brief Currently supported plugins enumeration
-  //! @param plugins Reference to result value
-  void EnumeratePlugins(PluginInformationArray& plugins);
+  Plugin::IteratorPtr EnumeratePlugins();
 }
 
 #endif //__CORE_PLUGIN_H_DEFINED__

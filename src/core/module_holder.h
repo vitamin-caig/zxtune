@@ -16,7 +16,7 @@
 namespace ZXTune
 {
   //forward declarations
-  struct PluginInformation;
+  class Plugin;
 
   namespace Module
   {
@@ -37,8 +37,7 @@ namespace ZXTune
       virtual ~Holder() {}
 
       //! @brief Retrieving plugin info
-      //! @param info Reference to returned value
-      virtual void GetPluginInformation(PluginInformation& info) const = 0;
+      virtual const Plugin& GetPlugin() const = 0;
 
       //! @brief Retrieving info about loaded module
       //! @param info Reference to returned value

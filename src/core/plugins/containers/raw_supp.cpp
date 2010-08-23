@@ -66,144 +66,162 @@ namespace
     return stream.str();
   }
 
-  Error ProcessRawContainer(const Parameters::Map& commonParams, const DetectParameters& detectParams,
-    const MetaContainer& data, ModuleRegion& region)
+  class RawScaner : public ContainerPlugin
   {
+  public:
+    virtual String Id() const
     {
-      Parameters::IntType depth = 0;
-      //do not search right after previous raw plugin
-      if ((!data.PluginsChain.empty() && data.PluginsChain.back() == RAW_PLUGIN_ID) ||
-          //special mark to determine if plugin is called due to recursive scan
-          (Parameters::FindByName(commonParams, RAW_PLUGIN_RECURSIVE_DEPTH, depth) &&
-           depth == Parameters::IntType(data.PluginsChain.size())))
+      return RAW_PLUGIN_ID;
+    }
+    
+    virtual String Description() const
+    {
+      return Text::RAW_PLUGIN_INFO;
+    }
+    
+    virtual String Version() const
+    {
+      return RAW_PLUGIN_VERSION;
+    }
+    
+    virtual uint_t Capabilities() const
+    {
+      return CAP_STOR_MULTITRACK | CAP_STOR_SCANER;
+    }
+
+    virtual Error Process(const Parameters::Map& commonParams, 
+      const DetectParameters& detectParams,
+      const MetaContainer& data, ModuleRegion& region) const
+    {
+      {
+        Parameters::IntType depth = 0;
+        //do not search right after previous raw plugin
+        if ((!data.PluginsChain.empty() && data.PluginsChain.back() == RAW_PLUGIN_ID) ||
+            //special mark to determine if plugin is called due to recursive scan
+            (Parameters::FindByName(commonParams, RAW_PLUGIN_RECURSIVE_DEPTH, depth) &&
+             depth == Parameters::IntType(data.PluginsChain.size())))
+        {
+          return Error(THIS_LINE, Module::ERROR_FIND_CONTAINER_PLUGIN);
+        }
+      }
+
+      const PluginsEnumerator& enumerator = PluginsEnumerator::Instance();
+
+      const std::size_t limit = data.Data->Size();
+      //process without offset
+      ModuleRegion curRegion;
+      {
+        Parameters::Map newParams(commonParams);
+        newParams[RAW_PLUGIN_RECURSIVE_DEPTH] = data.PluginsChain.size();
+        if (const Error& err = enumerator.DetectModules(newParams, detectParams, data, curRegion))
+        {
+          return err;
+        }
+      }
+      Parameters::Helper parameters(commonParams);
+      const std::size_t minRawSize = static_cast<std::size_t>(
+      parameters.GetValue(
+        Parameters::ZXTune::Core::Plugins::Raw::MIN_SIZE,
+        Parameters::ZXTune::Core::Plugins::Raw::MIN_SIZE_DEFAULT));
+      if (minRawSize < Parameters::IntType(MIN_MINIMAL_RAW_SIZE))
+      {
+        return MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,
+          Text::RAW_ERROR_INVALID_MIN_SIZE, minRawSize, MIN_MINIMAL_RAW_SIZE);
+      }
+
+      //check for further scanning possibility
+      if (curRegion.Size != 0 &&
+          curRegion.Offset + curRegion.Size + minRawSize >= limit)
+      {
+        region.Offset = 0;
+        region.Size = limit;
+        return Error();
+      }
+
+      const std::size_t scanStep = static_cast<std::size_t>(
+        parameters.GetValue(
+          Parameters::ZXTune::Core::Plugins::Raw::SCAN_STEP,
+          Parameters::ZXTune::Core::Plugins::Raw::SCAN_STEP_DEFAULT));
+      if (scanStep < Parameters::IntType(MIN_SCAN_STEP) ||
+          scanStep > Parameters::IntType(MAX_SCAN_STEP))
+      {
+        return MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,
+          Text::RAW_ERROR_INVALID_STEP, scanStep, MIN_SCAN_STEP, MAX_SCAN_STEP);
+      }
+
+      // progress-related
+      const bool showMessage = detectParams.Logger != 0;
+      Log::MessageData message;
+      if (showMessage)
+      {
+        message.Level = CalculateContainersNesting(data.PluginsChain);
+        message.Text = data.Path.empty() ? String(Text::PLUGIN_RAW_PROGRESS_NOPATH) : (Formatter(Text::PLUGIN_RAW_PROGRESS) % data.Path).str();
+        message.Progress = -1;
+      }
+
+      //to determine was scaner really affected
+      bool wasResult = curRegion.Size != 0;
+
+      MetaContainer subcontainer;
+      subcontainer.PluginsChain = data.PluginsChain;
+      subcontainer.PluginsChain.push_back(RAW_PLUGIN_ID);
+      for (std::size_t offset = std::max(curRegion.Offset + curRegion.Size, std::size_t(1));
+        offset + minRawSize < limit;
+        offset += std::max(curRegion.Offset + curRegion.Size, std::size_t(scanStep)))
+      {
+        const uint_t curProg = offset * 100 / limit;
+        if (showMessage && curProg != *message.Progress)
+        {
+          message.Progress = curProg;
+          detectParams.Logger(message);
+        }
+        subcontainer.Data = data.Data->GetSubcontainer(offset, limit - offset);
+        subcontainer.Path = IO::AppendPath(data.Path, CreateRawPart(offset));
+        if (const Error& err = enumerator.DetectModules(commonParams, detectParams, subcontainer, curRegion))
+        {
+          return err;
+        }
+        wasResult = wasResult || curRegion.Size != 0;
+      }
+      if (wasResult)
+      {
+        region.Offset = 0;
+        region.Size = limit;
+        return Error();
+      }
+      else
       {
         return Error(THIS_LINE, Module::ERROR_FIND_CONTAINER_PLUGIN);
       }
     }
 
-    const PluginsEnumerator& enumerator = PluginsEnumerator::Instance();
-
-    const std::size_t limit = data.Data->Size();
-    //process without offset
-    ModuleRegion curRegion;
+    IO::DataContainer::Ptr Open(const Parameters::Map& /*commonParams*/, 
+      const MetaContainer& inData, const String& inPath, String& restPath) const
     {
-      Parameters::Map newParams(commonParams);
-      newParams[RAW_PLUGIN_RECURSIVE_DEPTH] = data.PluginsChain.size();
-      if (const Error& err = enumerator.DetectModules(newParams, detectParams, data, curRegion))
+      //do not open right after self
+      if (!inData.PluginsChain.empty() && 
+          inData.PluginsChain.back() == RAW_PLUGIN_ID)
       {
-        return err;
+        return IO::DataContainer::Ptr();
       }
-    }
-    std::size_t minRawSize = static_cast<std::size_t>(Parameters::ZXTune::Core::Plugins::Raw::MIN_SIZE_DEFAULT);
-    if (const Parameters::IntType* const minSizeParam =
-      Parameters::FindByName<Parameters::IntType>(commonParams, Parameters::ZXTune::Core::Plugins::Raw::MIN_SIZE))
-    {
-      if (*minSizeParam < Parameters::IntType(MIN_MINIMAL_RAW_SIZE))
+      String restComp;
+      const String& pathComp = IO::ExtractFirstPathComponent(inPath, restComp);
+      std::size_t offset = 0;
+      if (CheckIfRawPart(pathComp, offset))
       {
-        throw MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,
-          Text::RAW_ERROR_INVALID_MIN_SIZE, *minSizeParam, MIN_MINIMAL_RAW_SIZE);
+        restPath = restComp;
+        return inData.Data->GetSubcontainer(offset, inData.Data->Size() - offset);
       }
-      minRawSize = static_cast<std::size_t>(*minSizeParam);
+      return IO::DataContainer::Ptr();
     }
-
-    //check for further scanning possibility
-    if (curRegion.Size != 0 &&
-        curRegion.Offset + curRegion.Size + minRawSize >= limit)
-    {
-      region.Offset = 0;
-      region.Size = limit;
-      return Error();
-    }
-
-    std::size_t scanStep = static_cast<std::size_t>(Parameters::ZXTune::Core::Plugins::Raw::SCAN_STEP_DEFAULT);
-    if (const Parameters::IntType* const stepParam =
-      Parameters::FindByName<Parameters::IntType>(commonParams, Parameters::ZXTune::Core::Plugins::Raw::SCAN_STEP))
-    {
-      if (*stepParam < Parameters::IntType(MIN_SCAN_STEP) ||
-          *stepParam > Parameters::IntType(MAX_SCAN_STEP))
-      {
-        throw MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,
-          Text::RAW_ERROR_INVALID_STEP, *stepParam, MIN_SCAN_STEP, MAX_SCAN_STEP);
-      }
-      scanStep = static_cast<std::size_t>(*stepParam);
-    }
-
-    // progress-related
-    const bool showMessage = detectParams.Logger != 0;
-    Log::MessageData message;
-    if (showMessage)
-    {
-      message.Level = enumerator.CountPluginsInChain(data.PluginsChain, CAP_STOR_MULTITRACK, CAP_STOR_MULTITRACK);
-      message.Text = data.Path.empty() ? String(Text::PLUGIN_RAW_PROGRESS_NOPATH) : (Formatter(Text::PLUGIN_RAW_PROGRESS) % data.Path).str();
-      message.Progress = -1;
-    }
-
-    //to determine was scaner really affected
-    bool wasResult = curRegion.Size != 0;
-
-    MetaContainer subcontainer;
-    subcontainer.PluginsChain = data.PluginsChain;
-    subcontainer.PluginsChain.push_back(RAW_PLUGIN_ID);
-    for (std::size_t offset = std::max(curRegion.Offset + curRegion.Size, std::size_t(1));
-      offset + minRawSize < limit;
-      offset += std::max(curRegion.Offset + curRegion.Size, std::size_t(scanStep)))
-    {
-      const uint_t curProg = offset * 100 / limit;
-      if (showMessage && curProg != *message.Progress)
-      {
-        message.Progress = curProg;
-        detectParams.Logger(message);
-      }
-      subcontainer.Data = data.Data->GetSubcontainer(offset, limit - offset);
-      subcontainer.Path = IO::AppendPath(data.Path, CreateRawPart(offset));
-      if (const Error& err = enumerator.DetectModules(commonParams, detectParams, subcontainer, curRegion))
-      {
-        return err;
-      }
-      wasResult = wasResult || curRegion.Size != 0;
-    }
-    if (wasResult)
-    {
-      region.Offset = 0;
-      region.Size = limit;
-      return Error();
-    }
-    else
-    {
-      return Error(THIS_LINE, Module::ERROR_FIND_CONTAINER_PLUGIN);
-    }
-  }
-
-  bool OpenRawContainer(const Parameters::Map& /*commonParams*/, const MetaContainer& inData, const String& inPath,
-    IO::DataContainer::Ptr& outData, String& restPath)
-  {
-    //do not open right after self
-    if (!inData.PluginsChain.empty() && inData.PluginsChain.back() == RAW_PLUGIN_ID)
-    {
-      return false;
-    }
-    String restComp;
-    const String& pathComp = IO::ExtractFirstPathComponent(inPath, restComp);
-    std::size_t offset = 0;
-    if (CheckIfRawPart(pathComp, offset))
-    {
-      outData = inData.Data->GetSubcontainer(offset, inData.Data->Size() - offset);
-      restPath = restComp;
-      return true;
-    }
-    return false;
-  }
+  };
 }
 
 namespace ZXTune
 {
   void RegisterRawContainer(PluginsEnumerator& enumerator)
   {
-    PluginInformation info;
-    info.Id = RAW_PLUGIN_ID;
-    info.Description = Text::RAW_PLUGIN_INFO;
-    info.Version = RAW_PLUGIN_VERSION;
-    info.Capabilities = CAP_STOR_MULTITRACK | CAP_STOR_SCANER;
-    enumerator.RegisterContainerPlugin(info, OpenRawContainer, ProcessRawContainer);
+    const ContainerPlugin::Ptr plugin(new RawScaner());
+    enumerator.RegisterPlugin(plugin);
   }
 }

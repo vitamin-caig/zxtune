@@ -10,11 +10,11 @@ Author:
 */
 
 //local includes
-#include <core/plugins/detect_helper.h>
 #include <core/plugins/enumerator.h>
 #include <core/plugins/utils.h>
 //common includes
 #include <byteorder.h>
+#include <detector.h>
 #include <tools.h>
 //library includes
 #include <core/plugin_attrs.h>
@@ -364,38 +364,57 @@ getbit:
     return true;
   }
 
-  bool ProcessDSQ(const Parameters::Map& /*commonParams*/, const MetaContainer& input,
-    IO::DataContainer::Ptr& output, ModuleRegion& region)
+  class DSQPlugin : public ImplicitPlugin
   {
-    const IO::DataContainer& inputData = *input.Data;
-    const uint8_t* const data = static_cast<const uint8_t*>(inputData.Data());
-    const std::size_t limit = inputData.Size();
-    if (limit < sizeof(DSQDepacker))
+  public:
+    virtual String Id() const
     {
-      return false;
+      return DSQ_PLUGIN_ID;
     }
-    const DSQDepacker* const depacker = safe_ptr_cast<const DSQDepacker*>(data);
-    Dump res;
-    if (depacker->Decode(limit, res))
+
+    virtual String Description() const
     {
-      output = IO::CreateDataContainer(res);
-      region.Offset = 0;
-      region.Size = depacker->GetPackedSize();
-      return true;
+      return Text::DSQ_PLUGIN_INFO;
     }
-    return false;
-  }
+
+    virtual String Version() const
+    {
+      return DSQ_PLUGIN_VERSION;
+    }
+    
+    virtual uint_t Capabilities() const
+    {
+      return CAP_STOR_CONTAINER;
+    }
+
+    virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Map& /*commonParams*/,
+      const MetaContainer& input, ModuleRegion& region) const
+    {
+      const IO::DataContainer& inputData = *input.Data;
+      const uint8_t* const data = static_cast<const uint8_t*>(inputData.Data());
+      const std::size_t limit = inputData.Size();
+      if (limit < sizeof(DSQDepacker))
+      {
+        return IO::DataContainer::Ptr();
+      }
+      const DSQDepacker* const depacker = safe_ptr_cast<const DSQDepacker*>(data);
+      Dump res;
+      if (depacker->Decode(limit, res))
+      {
+        region.Offset = 0;
+        region.Size = depacker->GetPackedSize();
+        return IO::CreateDataContainer(res);
+      }
+      return IO::DataContainer::Ptr();
+    }
+  };
 }
 
 namespace ZXTune
 {
   void RegisterDSQConvertor(PluginsEnumerator& enumerator)
   {
-    PluginInformation info;
-    info.Id = DSQ_PLUGIN_ID;
-    info.Description = Text::DSQ_PLUGIN_INFO;
-    info.Version = DSQ_PLUGIN_VERSION;
-    info.Capabilities = CAP_STOR_CONTAINER;
-    enumerator.RegisterImplicitPlugin(info, ProcessDSQ);
+    const ImplicitPlugin::Ptr plugin(new DSQPlugin());
+    enumerator.RegisterPlugin(plugin);
   }
 }

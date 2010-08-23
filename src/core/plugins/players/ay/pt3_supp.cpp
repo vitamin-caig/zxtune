@@ -31,6 +31,7 @@ Author:
 #include <sound/render_params.h>
 //boost includes
 #include <boost/bind.hpp>
+#include <boost/enable_shared_from_this.hpp>
 //text includes
 #include <core/text/core.h>
 #include <core/text/plugins.h>
@@ -401,15 +402,6 @@ namespace
     return SimpleOrnament(ornament->Loop, ornament->Data, ornament->Data + ornament->Size);
   }
   
-  void DescribePT3Plugin(PluginInformation& info)
-  {
-    info.Id = PT3_PLUGIN_ID;
-    info.Description = Text::PT3_PLUGIN_INFO;
-    info.Version = PT3_PLUGIN_VERSION;
-    info.Capabilities = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW |
-      GetSupportedAYMFormatConvertors() | GetSupportedVortexFormatConvertors();
-  }
-
   class PT3Holder : public Holder
   {
     typedef boost::array<PatternCursor, AYM::CHANNELS> PatternCursors;
@@ -655,8 +647,9 @@ namespace
       }
     }
   public:
-    PT3Holder(const MetaContainer& container, ModuleRegion& region)
-      : Data(Vortex::Track::ModuleData::Create())
+    PT3Holder(Plugin::Ptr plugin, const MetaContainer& container, ModuleRegion& region)
+      : SrcPlugin(plugin)
+      , Data(Vortex::Track::ModuleData::Create())
       , Version()
       , TSPatternBase(0)
     {
@@ -765,9 +758,9 @@ namespace
         Data->Info.LogicalChannels *= 2;
       }
     }
-    virtual void GetPluginInformation(PluginInformation& info) const
+    virtual const Plugin& GetPlugin() const
     {
-      DescribePT3Plugin(info);
+      return *SrcPlugin;
     }
 
     virtual void GetModuleInformation(Information& info) const
@@ -807,6 +800,7 @@ namespace
       return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
     }
   private:
+    const Plugin::Ptr SrcPlugin;
     Dump RawData;
     const Vortex::Track::ModuleData::Ptr Data;
     uint_t Version;
@@ -815,8 +809,8 @@ namespace
   };
 
   //////////////////////////////////////////////////
-  bool CheckPT3Module(const uint8_t* data, std::size_t size, const MetaContainer& container,
-    Holder::Ptr& holder, ModuleRegion& region)
+  bool CheckPT3Module(const uint8_t* data, std::size_t size, 
+    Plugin::Ptr plugin, const MetaContainer& container, Holder::Ptr& holder, ModuleRegion& region)
   {
     const PT3Header* const header(safe_ptr_cast<const PT3Header*>(data));
     if (size < sizeof(*header))
@@ -893,7 +887,7 @@ namespace
     //try to create holder
     try
     {
-      holder.reset(new PT3Holder(container, region));
+      holder.reset(new PT3Holder(plugin, container, region));
 #ifdef SELF_TEST
       holder->CreatePlayer();
 #endif
@@ -907,20 +901,47 @@ namespace
   }
 
   //////////////////////////////////////////////////////////////////////////
-  bool CreatePT3Module(const Parameters::Map& /*commonParams*/, const MetaContainer& container,
-    Holder::Ptr& holder, ModuleRegion& region)
+  class PT3Plugin : public PlayerPlugin
+                  , public boost::enable_shared_from_this<PT3Plugin>
   {
-    return PerformDetect(&CheckPT3Module, DETECTORS, ArrayEnd(DETECTORS),
-      container, holder, region);
-  }
+  public:
+    virtual String Id() const
+    {
+      return PT3_PLUGIN_ID;
+    }
+
+    virtual String Description() const
+    {
+      return Text::PT3_PLUGIN_INFO;
+    }
+
+    virtual String Version() const
+    {
+      return PT3_PLUGIN_VERSION;
+    }
+
+    virtual uint_t Capabilities() const
+    {
+      return CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW |
+        GetSupportedAYMFormatConvertors() | GetSupportedVortexFormatConvertors();
+    }
+
+    virtual Module::Holder::Ptr CreateModule(const Parameters::Map& /*parameters*/,
+                                             const MetaContainer& container,
+                                             ModuleRegion& region) const
+    {
+      const Plugin::Ptr plugin = shared_from_this();
+      return PerformDetect(&CheckPT3Module, 0, 0,
+        plugin, container, region);
+    }
+  };
 }
 
 namespace ZXTune
 {
   void RegisterPT3Support(PluginsEnumerator& enumerator)
   {
-    PluginInformation info;
-    DescribePT3Plugin(info);
-    enumerator.RegisterPlayerPlugin(info, CreatePT3Module);
+    const PlayerPlugin::Ptr plugin(new PT3Plugin());
+    enumerator.RegisterPlugin(plugin);
   }
 }

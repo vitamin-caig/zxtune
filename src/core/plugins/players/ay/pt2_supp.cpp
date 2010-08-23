@@ -29,6 +29,7 @@ Author:
 #include <io/container.h>
 //boost includes
 #include <boost/bind.hpp>
+#include <boost/enable_shared_from_this.hpp>
 //text includes
 #include <core/text/plugins.h>
 #include <core/text/warnings.h>
@@ -319,14 +320,6 @@ namespace
     NOISE_ADD
   };
 
-  void DescribePT2Plugin(PluginInformation& info)
-  {
-    info.Id = PT2_PLUGIN_ID;
-    info.Description = Text::PT2_PLUGIN_INFO;
-    info.Version = PT2_PLUGIN_VERSION;
-    info.Capabilities = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
-  }
-
   typedef TrackingSupport<AYM::CHANNELS, Sample> PT2Track;
   
   Player::Ptr CreatePT2Player(PT2Track::ModuleData::ConstPtr data, AYM::Chip::Ptr device);
@@ -478,8 +471,8 @@ namespace
     }
 
   public:
-    PT2Holder(const MetaContainer& container, ModuleRegion& region)
-      : Data(PT2Track::ModuleData::Create())
+    PT2Holder(Plugin::Ptr plugin, const MetaContainer& container, ModuleRegion& region)
+      : SrcPlugin(plugin), Data(PT2Track::ModuleData::Create())
     {
       //assume all data is correct
       const IO::FastDump& data = IO::FastDump(*container.Data, region.Offset);
@@ -567,9 +560,10 @@ namespace
       //tracking properties
       Data->FillStatisticInfo(header->Loop, header->Tempo, AYM::CHANNELS);
     }
-    virtual void GetPluginInformation(PluginInformation& info) const
+
+    virtual const Plugin& GetPlugin() const
     {
-      DescribePT2Plugin(info);
+      return *SrcPlugin;
     }
 
     virtual void GetModuleInformation(Information& info) const
@@ -597,6 +591,7 @@ namespace
       return result;
     }
   private:
+    const Plugin::Ptr SrcPlugin;
     Dump RawData;
     const PT2Track::ModuleData::Ptr Data;
   };
@@ -816,8 +811,8 @@ namespace
   }
 
   //////////////////////////////////////////////////
-  bool CheckPT2Module(const uint8_t* data, std::size_t size, const MetaContainer& container,
-    Holder::Ptr& holder, ModuleRegion& region)
+  bool CheckPT2Module(const uint8_t* data, std::size_t size, 
+    Plugin::Ptr plugin, const MetaContainer& container, Module::Holder::Ptr& holder, ModuleRegion& region)
   {
     if (sizeof(PT2Header) > size)
     {
@@ -910,7 +905,7 @@ namespace
     //try to create holder
     try
     {
-      holder.reset(new PT2Holder(container, region));
+      holder.reset(new PT2Holder(plugin, container, region));
 #ifdef SELF_TEST
       holder->CreatePlayer();
 #endif
@@ -924,20 +919,46 @@ namespace
   }
 
   //////////////////////////////////////////////////////////////////////////
-  bool CreatePT2Module(const Parameters::Map& /*commonParams*/, const MetaContainer& container,
-    Holder::Ptr& holder, ModuleRegion& region)
+  class PT2Plugin : public PlayerPlugin
+                  , public boost::enable_shared_from_this<PT2Plugin>
   {
-    return PerformDetect(&CheckPT2Module, DETECTORS, ArrayEnd(DETECTORS),
-      container, holder, region);
-  }
+  public:
+    virtual String Id() const
+    {
+      return PT2_PLUGIN_ID;
+    }
+
+    virtual String Description() const
+    {
+      return Text::PT2_PLUGIN_INFO;
+    }
+
+    virtual String Version() const
+    {
+      return PT2_PLUGIN_VERSION;
+    }
+
+    virtual uint_t Capabilities() const
+    {
+      return CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
+    }
+
+    virtual Module::Holder::Ptr CreateModule(const Parameters::Map& /*parameters*/,
+                                             const MetaContainer& container,
+                                             ModuleRegion& region) const
+    {
+      const Plugin::Ptr plugin = shared_from_this();
+      return PerformDetect(&CheckPT2Module, 0, 0,
+        plugin, container, region);
+    }
+  };
 }
 
 namespace ZXTune
 {
   void RegisterPT2Support(PluginsEnumerator& enumerator)
   {
-    PluginInformation info;
-    DescribePT2Plugin(info);
-    enumerator.RegisterPlayerPlugin(info, CreatePT2Module);
+    const PlayerPlugin::Ptr plugin(new PT2Plugin());
+    enumerator.RegisterPlugin(plugin);
   }
 }

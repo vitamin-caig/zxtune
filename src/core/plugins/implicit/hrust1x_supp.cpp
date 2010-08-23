@@ -307,45 +307,63 @@ namespace
   }
 
   //////////////////////////////////////////////////////////////////////////
-  bool ProcessHrust1x(const Parameters::Map& /*commonParams*/, const MetaContainer& input,
-    IO::DataContainer::Ptr& output, ModuleRegion& region)
+  class Hrust1xPlugin : public ImplicitPlugin
   {
-    const IO::DataContainer& inputData = *input.Data;
-    const std::size_t limit = inputData.Size();
-    const Hrust1xHeader* const header1 = static_cast<const Hrust1xHeader*>(inputData.Data());
-    Dump res;
-    //check without depacker
-    if (Decode(header1, limit, res))
+  public:
+    virtual String Id() const
     {
-      output = IO::CreateDataContainer(res);
-      region.Offset = 0;
-      region.Size = fromLE(header1->PackedSize);
-      return true;
+      return HRUST1X_PLUGIN_ID;
     }
-    //check with depacker
-    const Hrust1xHeader* const header2 = safe_ptr_cast<const Hrust1xHeader*>(static_cast<const uint8_t*>(inputData.Data()) +
-      DEPACKER_SIZE);
-    if (limit > DEPACKER_SIZE &&
-      Decode(header2, limit - DEPACKER_SIZE, res))
+
+    virtual String Description() const
     {
-      output = IO::CreateDataContainer(res);
-      region.Offset = DEPACKER_SIZE;
-      region.Size = fromLE(header2->PackedSize);
-      return true;
+      return Text::HRUST1X_PLUGIN_INFO;
     }
-    return false;
-  }
+
+    virtual String Version() const
+    {
+      return HRUST1X_PLUGIN_VERSION;
+    }
+    
+    virtual uint_t Capabilities() const
+    {
+      return CAP_STOR_CONTAINER;
+    }
+
+    virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Map& /*commonParams*/,
+      const MetaContainer& input, ModuleRegion& region) const
+    {
+      const IO::DataContainer& inputData = *input.Data;
+      const std::size_t limit = inputData.Size();
+      const Hrust1xHeader* const header1 = static_cast<const Hrust1xHeader*>(inputData.Data());
+      Dump res;
+      //check without depacker
+      if (Decode(header1, limit, res))
+      {
+        region.Offset = 0;
+        region.Size = fromLE(header1->PackedSize);
+        return IO::CreateDataContainer(res);
+      }
+      //check with depacker
+      const Hrust1xHeader* const header2 = safe_ptr_cast<const Hrust1xHeader*>(static_cast<const uint8_t*>(inputData.Data()) +
+        DEPACKER_SIZE);
+      if (limit > DEPACKER_SIZE &&
+        Decode(header2, limit - DEPACKER_SIZE, res))
+      {
+        region.Offset = DEPACKER_SIZE;
+        region.Size = fromLE(header2->PackedSize);
+        return IO::CreateDataContainer(res);
+      }
+      return IO::DataContainer::Ptr();
+    }
+  };
 }
 
 namespace ZXTune
 {
   void RegisterHrust1xConvertor(PluginsEnumerator& enumerator)
   {
-    PluginInformation info;
-    info.Id = HRUST1X_PLUGIN_ID;
-    info.Description = Text::HRUST1X_PLUGIN_INFO;
-    info.Version = HRUST1X_PLUGIN_VERSION;
-    info.Capabilities = CAP_STOR_CONTAINER;
-    enumerator.RegisterImplicitPlugin(info, ProcessHrust1x);
+    const ImplicitPlugin::Ptr plugin(new Hrust1xPlugin());
+    enumerator.RegisterPlugin(plugin);
   }
 }

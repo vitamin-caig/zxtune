@@ -41,18 +41,10 @@ namespace
 
   const std::string THIS_MODULE("Core::Enumerator");
 
-  typedef std::map<String, uint_t> CapabilitiesCache;
-  typedef std::pair<PluginInformation, CreateModuleFunc> PlayerPluginDescription;
-  typedef std::vector<PlayerPluginDescription> PlayerPluginsArray;
-  typedef std::pair<PluginInformation, ProcessImplicitFunc> ImplicitPluginDescription;
-  typedef std::vector<ImplicitPluginDescription> ImplicitPluginsArray;
-  typedef boost::tuple<PluginInformation, OpenContainerFunc, ProcessContainerFunc> ContainerPluginDescription;
-  typedef std::vector<ContainerPluginDescription> ContainerPluginsArray;
-
-  inline const OpenContainerFunc& GetOpener(const ContainerPluginDescription& npd)
-  {
-    return npd.get<1>();
-  }
+  typedef std::map<String, Plugin::Ptr> PluginsMap;
+  typedef std::vector<PlayerPlugin::Ptr> PlayerPluginsArray;
+  typedef std::vector<ImplicitPlugin::Ptr> ImplicitPluginsArray;
+  typedef std::vector<ContainerPlugin::Ptr> ContainerPluginsArray;
 
   const Char ROOT_SUBPATH[] = {'/', 0};
 
@@ -69,6 +61,70 @@ namespace
     }
   }
 
+  class PluginIteratorImpl : public Plugin::IteratorType
+  {
+    class PluginStub : public Plugin
+    {
+    public:
+      virtual String Id() const
+      {
+        return String();
+      }
+
+      virtual String Description() const
+      {
+        return String();
+      }
+
+      virtual String Version() const
+      {
+        return String();
+      }
+
+      virtual uint_t Capabilities() const
+      {
+        return 0;
+      }
+    };
+  public:
+    PluginIteratorImpl(PluginsMap::const_iterator from,
+                       PluginsMap::const_iterator to)
+      : Pos(from), Limit(to)
+    {
+    }
+
+    virtual bool IsValid() const
+    {
+      return Pos != Limit;
+    }
+
+    virtual Plugin::Ptr Get() const
+    {
+      //since this implementation is passed to external client, make it as safe as possible
+      if (Pos != Limit)
+      {
+        return Pos->second;
+      }
+      assert(!"Plugin iterator is out of range");
+      return Plugin::Ptr(new PluginStub());
+    }
+
+    virtual void Next()
+    {
+      if (Pos != Limit)
+      {
+        ++Pos;
+      }
+      else
+      {
+        assert(!"Plugin iterator is out of range");
+      }
+    }
+  private:
+    PluginsMap::const_iterator Pos;
+    const PluginsMap::const_iterator Limit;
+  };
+
   class PluginsEnumeratorImpl : public PluginsEnumerator
   {
   public:
@@ -79,98 +135,95 @@ namespace
       RegisterPlayerPlugins(*this);
     }
 
-    virtual void RegisterPlayerPlugin(const PluginInformation& info, const CreateModuleFunc& func)
+    virtual void RegisterPlugin(PlayerPlugin::Ptr plugin)
     {
-      AllPlugins.push_back(info);
-      PluginCaps[info.Id] = info.Capabilities;
-      PlayerPlugins.push_back(PlayerPluginDescription(info, func));
-      Log::Debug(THIS_MODULE, "Registered player %1%", info.Id);
+      AllPlugins.insert(std::make_pair(plugin->Id(), plugin));
+      PlayerPlugins.push_back(plugin);
+      Log::Debug(THIS_MODULE, "Registered player %1%", plugin->Id());
     }
 
-    virtual void RegisterImplicitPlugin(const PluginInformation& info, const ProcessImplicitFunc& func)
+    virtual void RegisterPlugin(ImplicitPlugin::Ptr plugin)
     {
-      AllPlugins.push_back(info);
-      PluginCaps[info.Id] = info.Capabilities;
-      ImplicitPlugins.push_back(ImplicitPluginDescription(info, func));
-      Log::Debug(THIS_MODULE, "Registered implicit container %1%", info.Id);
+      AllPlugins.insert(std::make_pair(plugin->Id(), plugin));
+      ImplicitPlugins.push_back(plugin);
+      Log::Debug(THIS_MODULE, "Registered implicit container %1%", plugin->Id());
     }
 
-    virtual void RegisterContainerPlugin(const PluginInformation& info,
-      const OpenContainerFunc& opener, const ProcessContainerFunc& processor)
+    virtual void RegisterPlugin(ContainerPlugin::Ptr plugin)
     {
-      AllPlugins.push_back(info);
-      PluginCaps[info.Id] = info.Capabilities;
-      ContainerPlugins.push_back(boost::make_tuple(info, opener, processor));
-      Log::Debug(THIS_MODULE, "Registered container %1%", info.Id);
+      AllPlugins.insert(std::make_pair(plugin->Id(), plugin));
+      ContainerPlugins.push_back(plugin);
+      Log::Debug(THIS_MODULE, "Registered container %1%", plugin->Id());
+    }
+
+    virtual const Plugin& GetPluginById(const String& id) const
+    {
+      const PluginsMap::const_iterator it = AllPlugins.find(id);
+      assert(AllPlugins.end() != it || !"Invalid plugin specified");
+      return *it->second;
     }
 
     //public interface
-    virtual void Enumerate(PluginInformationArray& plugins) const
+    virtual Plugin::IteratorPtr Enumerate() const
     {
-      plugins = AllPlugins;
+      return Plugin::IteratorPtr(new PluginIteratorImpl(AllPlugins.begin(), AllPlugins.end()));
     }
 
     // Open subpath in despite of filter and other
     virtual Error ResolveSubpath(const Parameters::Map& commonParams, IO::DataContainer::Ptr data,
       const String& subpath, MetaContainer& result) const
     {
-      try
+      assert(data.get());
+      // Navigate through known path
+      String pathToOpen(subpath);
+
+      MetaContainer tmpResult;
+      tmpResult.Path = ROOT_SUBPATH;
+      tmpResult.Data = data;
+
+      for (bool hasResolved = true; hasResolved;)
       {
-        assert(data.get());
-        // Navigate through known path
-        String pathToOpen(subpath);
-
-        MetaContainer tmpResult;
-        tmpResult.Path = ROOT_SUBPATH;
-        tmpResult.Data = data;
-
-        for (bool hasResolved = true; hasResolved;)
+        Log::Debug(THIS_MODULE, "Resolving subpath '%1%'", pathToOpen);
+        hasResolved = false;
+        //check for implicit containers
         {
-          Log::Debug(THIS_MODULE, "Resolving subpath '%1%'", pathToOpen);
-          hasResolved = false;
-          //check for implicit containers
+          String containerId;
+          if (IO::DataContainer::Ptr subdata = CheckForImplicit(commonParams, tmpResult, containerId))
           {
-            IO::DataContainer::Ptr fromImplicit;
-            String containerId;
-            if (CheckForImplicit(commonParams, tmpResult, fromImplicit, containerId))
-            {
-              Log::Debug(THIS_MODULE, "Detected implicit plugin %1% at '%2%'", containerId, tmpResult.Path);
-              tmpResult.Data = fromImplicit;
-              tmpResult.PluginsChain.push_back(containerId);
-              hasResolved = true;
-            }
-          }
-          //check for other subcontainers
-          if (!pathToOpen.empty())
-          {
-            IO::DataContainer::Ptr fromContainer;
-            String restPath;
-            String containerId;
-            if (CheckForContainer(commonParams, tmpResult, pathToOpen, fromContainer, restPath, containerId))
-            {
-              Log::Debug(THIS_MODULE, "Detected nested container %1% at '%2%'", containerId, tmpResult.Path);
-              tmpResult.Data = fromContainer;
-              pathToOpen = restPath;
-              tmpResult.Path = subpath.substr(0, subpath.find(restPath));
-              tmpResult.PluginsChain.push_back(containerId);
-              hasResolved = true;
-            }
-            else
-            {
-              return MakeFormattedError(THIS_LINE, Module::ERROR_FIND_SUBMODULE, Text::MODULE_ERROR_FIND_SUBMODULE, pathToOpen);
-            }
+            Log::Debug(THIS_MODULE, "Detected implicit plugin %1% at '%2%'", containerId, tmpResult.Path);
+            tmpResult.Data = subdata;
+            tmpResult.PluginsChain.push_back(containerId);
+            hasResolved = true;
           }
         }
-        Log::Debug(THIS_MODULE, "Resolved path '%1%'", subpath);
-        result.Data = tmpResult.Data;
-        result.Path = subpath;
-        result.PluginsChain.swap(tmpResult.PluginsChain);
-        return Error();
+        //check for other subcontainers
+        if (!pathToOpen.empty())
+        {
+          IO::DataContainer::Ptr fromContainer;
+          String restPath;
+          String containerId;
+          if (IO::DataContainer::Ptr subdata =
+            CheckForContainer(commonParams, tmpResult, pathToOpen, restPath, containerId))
+          {
+            Log::Debug(THIS_MODULE, "Detected nested container %1% at '%2%'", containerId, tmpResult.Path);
+            tmpResult.Data = subdata;
+            pathToOpen = restPath;
+            assert(String::npos != subpath.rfind(restPath));
+            tmpResult.Path = subpath.substr(0, subpath.rfind(restPath));
+            tmpResult.PluginsChain.push_back(containerId);
+            hasResolved = true;
+          }
+          else
+          {
+            return MakeFormattedError(THIS_LINE, Module::ERROR_FIND_SUBMODULE, Text::MODULE_ERROR_FIND_SUBMODULE, pathToOpen);
+          }
+        }
       }
-      catch (const Error& e)
-      {
-        return e;
-      }
+      Log::Debug(THIS_MODULE, "Resolved path '%1%'", subpath);
+      result.Data = tmpResult.Data;
+      result.Path = subpath;
+      result.PluginsChain.swap(tmpResult.PluginsChain);
+      return Error();
     }
 
     virtual Error DetectModules(const Parameters::Map& commonParams, const DetectParameters& detectParams,
@@ -194,7 +247,7 @@ namespace
         const Error& e = DetectImplicit(commonParams, detectParams.Filter, data, nested.Data, region, pluginId);
         if (!e)
         {
-          const uint_t level = CountPluginsInChain(data.PluginsChain, CAP_STOR_MULTITRACK, CAP_STOR_MULTITRACK);
+          const uint_t level = CalculateContainersNesting(data.PluginsChain);
           DoLog(detectParams.Logger, level,
             data.Path.empty() ? Text::MODULE_PROGRESS_DETECT_IMPLICIT_NOPATH : Text::MODULE_PROGRESS_DETECT_IMPLICIT,
             pluginId, data.Path);
@@ -228,7 +281,7 @@ namespace
       }
 
       Log::Debug(THIS_MODULE, "Detected player plugin %1%", pluginId);
-      const uint_t level = CountPluginsInChain(data.PluginsChain, CAP_STOR_MULTITRACK, CAP_STOR_MULTITRACK);
+      const uint_t level = CalculateContainersNesting(data.PluginsChain);
       DoLog(detectParams.Logger, level, data.Path.empty() ? Text::MODULE_PROGRESS_DETECT_PLAYER_NOPATH : Text::MODULE_PROGRESS_DETECT_PLAYER,
         pluginId, data.Path);
       if (const Error& e = detectParams.Callback(data.Path, holder))
@@ -251,151 +304,138 @@ namespace
       return Error();
     }
 
-    virtual uint_t CountPluginsInChain(const StringArray& pluginsChain, uint_t capMask, uint_t capValue) const
-    {
-      assert(PluginCaps.size() == AllPlugins.size());
-      uint_t res = 0;
-      for (StringArray::const_iterator it = pluginsChain.begin(), lim = pluginsChain.end(); it != lim; ++it)
-      {
-        const CapabilitiesCache::const_iterator plugIt = PluginCaps.find(*it);
-        assert(plugIt != PluginCaps.end());
-        if (plugIt != PluginCaps.end() &&
-            (plugIt->second & capMask) == capValue)
-        {
-          ++res;
-        }
-      }
-      return res;
-    }
-
   private:
     Error DetectContainer(const Parameters::Map& commonParams, const DetectParameters& detectParams, const MetaContainer& input,
       ModuleRegion& region) const
     {
-      try
+      for (ContainerPluginsArray::const_iterator it = ContainerPlugins.begin(), lim = ContainerPlugins.end();
+        it != lim; ++it)
       {
-        for (ContainerPluginsArray::const_iterator it = ContainerPlugins.begin(), lim = ContainerPlugins.end();
-          it != lim; ++it)
+        const ContainerPlugin& plugin = **it;
+        if (detectParams.Filter && detectParams.Filter(plugin))
         {
-          const PluginInformation& plugInfo(it->get<0>());
-          if (detectParams.Filter && detectParams.Filter(plugInfo))
-          {
-            continue;//filtered plugin
-          }
-          Log::Debug(THIS_MODULE, " Checking container plugin %1% for path '%2%'", plugInfo.Id, input.Path);
-          const Error& e = (it->get<2>())(commonParams, detectParams, input, region);
-          //stop on success or canceling
-          if (!e)
-          {
-            Log::Debug(THIS_MODULE, "  Container plugin %1% for path '%2%' detected at region (%3%;%4%)",
-              plugInfo.Id, input.Path, region.Offset, region.Size);
-            return e;
-          }
-          if (e == Module::ERROR_DETECT_CANCELED)
-          {
-            Log::Debug(THIS_MODULE, "  Canceled");
-            return e;
-          }
+          continue;//filtered plugin
         }
-        return Error(THIS_LINE, Module::ERROR_FIND_CONTAINER_PLUGIN);//no detailed info (not need)
-      }
-      catch (const Error& e)
-      {
+        const String& id = plugin.Id();
+        Log::Debug(THIS_MODULE, " Checking container plugin %1% for path '%2%'", id, input.Path);
+        const Error& e = plugin.Process(commonParams, detectParams, input, region);
+        //stop on success or canceling
+        if (e == Module::ERROR_FIND_CONTAINER_PLUGIN)
+        {
+          continue;
+        }
+        if (!e)
+        {
+          Log::Debug(THIS_MODULE, "  Container plugin %1% for path '%2%' detected at region (%3%;%4%)",
+            id, input.Path, region.Offset, region.Size);
+        }
+        else
+        {
+          Log::Debug(THIS_MODULE, "  Canceled");
+        }
         return e;
       }
+      return Error(THIS_LINE, Module::ERROR_FIND_CONTAINER_PLUGIN);//no detailed info (not need)
     }
 
     Error DetectImplicit(const Parameters::Map& commonParams, const DetectParameters::FilterFunc& filter, const MetaContainer& input,
       IO::DataContainer::Ptr& output, ModuleRegion& region, String& pluginId) const
     {
-      try
+      for (ImplicitPluginsArray::const_iterator it = ImplicitPlugins.begin(), lim = ImplicitPlugins.end();
+        it != lim; ++it)
       {
-        for (ImplicitPluginsArray::const_iterator it = ImplicitPlugins.begin(), lim = ImplicitPlugins.end();
-          it != lim; ++it)
+        const ImplicitPlugin& plugin = **it;
+        if (filter && filter(plugin))
         {
-          if (filter && filter(it->first))
-          {
-            continue;//filtered plugin
-          }
-          //find first suitable
-          Log::Debug(THIS_MODULE, " Checking implicit container %1% at path '%2%'", it->first.Id, input.Path);
-          if (it->second(commonParams, input, output, region))
-          {
-            Log::Debug(THIS_MODULE, "  Detected at region (%1%;%2%)", region.Offset, region.Size);
-            pluginId = it->first.Id;
-            return Error();
-          }
+          continue;//filtered plugin
         }
-        return Error(THIS_LINE, Module::ERROR_FIND_IMPLICIT_PLUGIN);//no detailed info (not need)
+        const String& id = plugin.Id();
+        //find first suitable
+        Log::Debug(THIS_MODULE, " Checking implicit container %1% at path '%2%'", id, input.Path);
+        ModuleRegion resRegion;
+        if (IO::DataContainer::Ptr subdata =
+          plugin.ExtractSubdata(commonParams, input, resRegion))
+        {
+          Log::Debug(THIS_MODULE, "  Detected at region (%1%;%2%)", resRegion.Offset, resRegion.Size);
+          //assign result data
+          output = subdata;
+          region = resRegion;
+          pluginId = id;
+          return Error();
+        }
       }
-      catch (const Error& e)
-      {
-        return e;
-      }
+      return Error(THIS_LINE, Module::ERROR_FIND_IMPLICIT_PLUGIN);//no detailed info (not need)
     }
 
     Error DetectModule(const Parameters::Map& commonParams, const DetectParameters::FilterFunc& filter, const MetaContainer& input,
       Module::Holder::Ptr& holder, ModuleRegion& region, String& pluginId) const
     {
-      try
+      for (PlayerPluginsArray::const_iterator it = PlayerPlugins.begin(), lim = PlayerPlugins.end();
+        it != lim; ++it)
       {
-        for (PlayerPluginsArray::const_iterator it = PlayerPlugins.begin(), lim = PlayerPlugins.end();
-          it != lim; ++it)
+        const PlayerPlugin& plugin = **it;
+        if (filter && filter(plugin))
         {
-          if (filter && filter(it->first))
-          {
-            continue;//filtered plugin
-          }
-          //find first suitable
-          Log::Debug(THIS_MODULE, " Checking module plugin %1% at path '%2%'", it->first.Id, input.Path);
-          if (it->second(commonParams, input, holder, region))
-          {
-            Log::Debug(THIS_MODULE, "  Detected at region (%1%;%2%)", region.Offset, region.Size);
-            pluginId = it->first.Id;
-            return Error();
-          }
+          continue;//filtered plugin
         }
-        return Error(THIS_LINE, Module::ERROR_FIND_PLAYER_PLUGIN);//no detailed info (not need)
+        const String& id = plugin.Id();
+        //find first suitable
+        Log::Debug(THIS_MODULE, " Checking module plugin %1% at path '%2%'", id, input.Path);
+        ModuleRegion resRegion;
+       if (Module::Holder::Ptr module =
+          plugin.CreateModule(commonParams, input, resRegion))
+        {
+          Log::Debug(THIS_MODULE, "  Detected at region (%1%;%2%)", resRegion.Offset, resRegion.Size);
+          //assign result
+          holder = module;
+          region = resRegion;
+          pluginId = id;
+          return Error();
+        }
       }
-      catch (const Error& e)
-      {
-        return e;
-      }
+      return Error(THIS_LINE, Module::ERROR_FIND_PLAYER_PLUGIN);//no detailed info (not need)
     }
 
-    bool CheckForImplicit(const Parameters::Map& commonParams, const MetaContainer& input, IO::DataContainer::Ptr& output, String& containerId) const
+    IO::DataContainer::Ptr CheckForImplicit(const Parameters::Map& commonParams, const MetaContainer& input, String& containerId) const
     {
-      using namespace boost;
-      ModuleRegion region;
-      const ImplicitPluginsArray::const_iterator it = std::find_if(ImplicitPlugins.begin(), ImplicitPlugins.end(),
-        bind(apply<bool>(), bind(&ImplicitPluginDescription::second, _1), cref(commonParams), cref(input), ref(output), ref(region)));
-      if (it != ImplicitPlugins.end())
+      for (ImplicitPluginsArray::const_iterator it = ImplicitPlugins.begin(), lim = ImplicitPlugins.end();
+        it != lim; ++it)
       {
-        containerId = it->first.Id;
-        return true;
+        const ImplicitPlugin& plugin = **it;
+        ModuleRegion resRegion;
+        if (IO::DataContainer::Ptr subdata =
+          plugin.ExtractSubdata(commonParams, input, resRegion))
+        {
+          containerId = plugin.Id();
+          return subdata;
+        }
       }
-      return false;
+      return IO::DataContainer::Ptr();
     }
 
-    bool CheckForContainer(const Parameters::Map& commonParams, const MetaContainer& input, const String& pathToOpen,
-      IO::DataContainer::Ptr& output, String& restPath, String& containerId) const
+    IO::DataContainer::Ptr CheckForContainer(const Parameters::Map& commonParams, const MetaContainer& input, const String& pathToOpen,
+      String& restPath, String& containerId) const
     {
-      using namespace boost;
-      const ContainerPluginsArray::const_iterator it = std::find_if(ContainerPlugins.begin(), ContainerPlugins.end(),
-        bind(apply<bool>(), bind(GetOpener, _1), cref(commonParams), cref(input), cref(pathToOpen), ref(output), ref(restPath)));
-      if (it != ContainerPlugins.end())
+      for (ContainerPluginsArray::const_iterator it = ContainerPlugins.begin(), lim = ContainerPlugins.end();
+        it != lim; ++it)
       {
-        containerId = it->get<0>().Id;
-        return true;
+        const ContainerPlugin& plugin = **it;
+        String resRestPath;
+        if (IO::DataContainer::Ptr subdata =
+          plugin.Open(commonParams, input, pathToOpen, resRestPath))
+        {
+          restPath = resRestPath;
+          containerId = plugin.Id();
+          return subdata;
+        }
       }
-      return false;
+      return IO::DataContainer::Ptr();
     }
   private:
-    PluginInformationArray AllPlugins;
+    PluginsMap AllPlugins;
     ContainerPluginsArray ContainerPlugins;
     ImplicitPluginsArray ImplicitPlugins;
     PlayerPluginsArray PlayerPlugins;
-    CapabilitiesCache PluginCaps;
   };
 }
 
@@ -440,9 +480,26 @@ namespace ZXTune
     return instance;
   }
 
-  void EnumeratePlugins(PluginInformationArray& plugins)
+  uint_t CalculateContainersNesting(const StringArray& pluginsChain)
   {
-    PluginsEnumerator::Instance().Enumerate(plugins);
+    const PluginsEnumerator& enumerator = PluginsEnumerator::Instance();
+    uint_t res = 0;
+    for (StringArray::const_iterator it = pluginsChain.begin(), lim = pluginsChain.end(); it != lim; ++it)
+    {
+      const Plugin& plugin = enumerator.GetPluginById(*it);
+      const uint_t caps = plugin.Capabilities();
+      if (0 != (caps & CAP_STOR_MULTITRACK))
+      {
+        ++res;
+      }
+    }
+    return res;
+  }
+
+
+  Plugin::IteratorPtr EnumeratePlugins()
+  {
+    return PluginsEnumerator::Instance().Enumerate();
   }
 
   Error DetectModules(const Parameters::Map& commonParams, const DetectParameters& detectParams,

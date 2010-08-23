@@ -91,90 +91,109 @@ namespace
   };
 
   //////////////////////////////////////////////////////////////////////////
-  bool ProcessFDI(const Parameters::Map& /*commonParams*/, const MetaContainer& input,
-    IO::DataContainer::Ptr& output, ModuleRegion& region)
+  class FDIPlugin : public ImplicitPlugin
   {
-    const IO::DataContainer& inputData = *input.Data;
-    const std::size_t limit = inputData.Size();
-    if (limit < sizeof(FDIHeader))
+  public:
+    virtual String Id() const
     {
-      return false;
-    }
-    const uint8_t* const data = static_cast<const uint8_t*>(inputData.Data());
-    const FDIHeader* const header = safe_ptr_cast<const FDIHeader*>(data);
-    BOOST_STATIC_ASSERT(sizeof(header->ID) == sizeof(FDI_ID));
-    if (0 != std::memcmp(header->ID, FDI_ID, sizeof(FDI_ID)))
-    {
-      return false;
-    }
-    const std::size_t dataOffset = fromLE(header->DataOffset);
-    const uint_t cylinders = fromLE(header->Cylinders);
-    const uint_t sides = fromLE(header->Sides);
-    if (dataOffset < sizeof(*header) || dataOffset > limit ||
-        !cylinders || !sides)
-    {
-      return false;
+      return FDI_PLUGIN_ID;
     }
 
-    Dump buffer;
-    buffer.reserve(FDI_MAX_SIZE);
-    const FDITrack* trackInfo = safe_ptr_cast<const FDITrack*>(data + sizeof(*header) + fromLE(header->InfoSize));
-    std::size_t rawSize = dataOffset;
-    for (uint_t cyl = 0; cyl != cylinders; ++cyl)
+    virtual String Description() const
     {
-      for (uint_t sid = 0; sid != sides; ++sid)
+      return Text::FDI_PLUGIN_INFO;
+    }
+
+    virtual String Version() const
+    {
+      return FDI_PLUGIN_VERSION;
+    }
+    
+    virtual uint_t Capabilities() const
+    {
+      return CAP_STOR_CONTAINER;
+    }
+
+    virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Map& /*commonParams*/,
+      const MetaContainer& input, ModuleRegion& region) const
+    {
+      const IO::DataContainer& inputData = *input.Data;
+      const std::size_t limit = inputData.Size();
+      if (limit < sizeof(FDIHeader))
       {
-        typedef std::vector<SectorDescr> SectorDescrs;
-        //collect sectors reference
-        SectorDescrs sectors;
-        sectors.reserve(trackInfo->SectorsCount);
-        for (std::size_t secNum = 0; secNum != trackInfo->SectorsCount; ++secNum)
-        {
-          const FDITrack::Sector* const sector = trackInfo->Sectors + secNum;
-          const std::size_t secSize = 128 << sector->Size;
-          //since there's no information about head number (always 0), do not check it
-          //assert(sector->Head == sid);
-          if (sector->Cylinder != cyl)
-          {
-            return false;
-          }
-          const std::size_t offset = dataOffset + fromLE(sector->Offset) + fromLE(trackInfo->Offset);
-          if (offset + secSize > limit)
-          {
-            return false;
-          }
-          sectors.push_back(SectorDescr(sector->Number, data + offset, data + offset + secSize));
-          rawSize = std::max(rawSize, offset + secSize);
-        }
-
-        //sort by number
-        std::sort(sectors.begin(), sectors.end());
-        //and gather data
-        for (SectorDescrs::const_iterator it = sectors.begin(), lim = sectors.end(); it != lim; ++it)
-        {
-          buffer.insert(buffer.end(), it->Begin, it->End);
-        }
-        //calculate next track by offset
-        trackInfo = safe_ptr_cast<const FDITrack*>(safe_ptr_cast<const uint8_t*>(trackInfo) +
-          sizeof(*trackInfo) + (trackInfo->SectorsCount - 1) * sizeof(trackInfo->Sectors));
+        return IO::DataContainer::Ptr();
       }
+      const uint8_t* const data = static_cast<const uint8_t*>(inputData.Data());
+      const FDIHeader* const header = safe_ptr_cast<const FDIHeader*>(data);
+      BOOST_STATIC_ASSERT(sizeof(header->ID) == sizeof(FDI_ID));
+      if (0 != std::memcmp(header->ID, FDI_ID, sizeof(FDI_ID)))
+      {
+        return IO::DataContainer::Ptr();
+      }
+      const std::size_t dataOffset = fromLE(header->DataOffset);
+      const uint_t cylinders = fromLE(header->Cylinders);
+      const uint_t sides = fromLE(header->Sides);
+      if (dataOffset < sizeof(*header) || dataOffset > limit ||
+          !cylinders || !sides)
+      {
+        return IO::DataContainer::Ptr();
+      }
+
+      Dump buffer;
+      buffer.reserve(FDI_MAX_SIZE);
+      const FDITrack* trackInfo = safe_ptr_cast<const FDITrack*>(data + sizeof(*header) + fromLE(header->InfoSize));
+      std::size_t rawSize = dataOffset;
+      for (uint_t cyl = 0; cyl != cylinders; ++cyl)
+      {
+        for (uint_t sid = 0; sid != sides; ++sid)
+        {
+          typedef std::vector<SectorDescr> SectorDescrs;
+          //collect sectors reference
+          SectorDescrs sectors;
+          sectors.reserve(trackInfo->SectorsCount);
+          for (std::size_t secNum = 0; secNum != trackInfo->SectorsCount; ++secNum)
+          {
+            const FDITrack::Sector* const sector = trackInfo->Sectors + secNum;
+            const std::size_t secSize = 128 << sector->Size;
+            //since there's no information about head number (always 0), do not check it
+            //assert(sector->Head == sid);
+            if (sector->Cylinder != cyl)
+            {
+              return IO::DataContainer::Ptr();
+            }
+            const std::size_t offset = dataOffset + fromLE(sector->Offset) + fromLE(trackInfo->Offset);
+            if (offset + secSize > limit)
+            {
+              return IO::DataContainer::Ptr();
+            }
+            sectors.push_back(SectorDescr(sector->Number, data + offset, data + offset + secSize));
+            rawSize = std::max(rawSize, offset + secSize);
+          }
+
+          //sort by number
+          std::sort(sectors.begin(), sectors.end());
+          //and gather data
+          for (SectorDescrs::const_iterator it = sectors.begin(), lim = sectors.end(); it != lim; ++it)
+          {
+            buffer.insert(buffer.end(), it->Begin, it->End);
+          }
+          //calculate next track by offset
+          trackInfo = safe_ptr_cast<const FDITrack*>(safe_ptr_cast<const uint8_t*>(trackInfo) +
+            sizeof(*trackInfo) + (trackInfo->SectorsCount - 1) * sizeof(trackInfo->Sectors));
+        }
+      }
+      region.Offset = 0;
+      region.Size = rawSize;
+      return IO::CreateDataContainer(buffer);
     }
-    region.Offset = 0;
-    region.Size = rawSize;
-    output = IO::CreateDataContainer(buffer);
-    return true;
-  }
+  };
 }
 
 namespace ZXTune
 {
   void RegisterFDIConvertor(PluginsEnumerator& enumerator)
   {
-    PluginInformation info;
-    info.Id = FDI_PLUGIN_ID;
-    info.Description = Text::FDI_PLUGIN_INFO;
-    info.Version = FDI_PLUGIN_VERSION;
-    info.Capabilities = CAP_STOR_CONTAINER;
-    enumerator.RegisterImplicitPlugin(info, ProcessFDI);
+    const ImplicitPlugin::Ptr plugin(new FDIPlugin());
+    enumerator.RegisterPlugin(plugin);
   }
 }
