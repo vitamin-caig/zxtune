@@ -13,6 +13,7 @@ Author:
 #include <error_tools.h>
 //library includes
 #include <sound/backend.h>
+#include <sound/error_codes.h>
 //boost includes
 #include <boost/scoped_ptr.hpp>
 #include <boost/weak_ptr.hpp>

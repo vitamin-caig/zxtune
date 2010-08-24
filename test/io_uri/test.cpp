@@ -63,13 +63,19 @@ namespace
     std::cout << (res ? "Passed" : "Failed") << " test '" << text << "' at " << line << std::endl;
     return res;
   }
+
+  void TestEq(const String& str, const String& ref, const String& text, unsigned line)
+  {
+    const bool res = ref == str;
+    Test(res, res ? text : text + "('" + str + "'!='" + ref + "')" , line);
+  }
   
-  void OutProvider(const ZXTune::IO::ProviderInformation& info)
+  void OutProvider(ZXTune::IO::Provider::Ptr info)
   {
     std::cout << 
-      "Provider: " << info.Name << std::endl <<
-      "Description: " << info.Description << std::endl <<
-      "Version: " << info.Version << std::endl;
+      "Provider: " << info->Name() << std::endl <<
+      "Description: " << info->Description() << std::endl <<
+      "Version: " << info->Version() << std::endl;
   }
   
   void TestSplitUri(const String& uri, const String& baseEq, const String& subEq, const String& type)
@@ -77,8 +83,8 @@ namespace
     String base, subpath;
     if (Test(ZXTune::IO::SplitUri(uri, base, subpath), String("Splitting ") + type, __LINE__))
     {
-      Test(base == baseEq, " testing base", __LINE__);
-      Test(subpath == subEq, " testing subpath", __LINE__);
+      TestEq(base, baseEq, " testing base", __LINE__);
+      TestEq(subpath, subEq, " testing subpath", __LINE__);
       String result;
       if (Test(ZXTune::IO::CombineUri(base, subpath, result), String("Combining ") + type, __LINE__))
       {
@@ -101,9 +107,12 @@ int main()
 {
   using namespace ZXTune::IO;
   std::cout << "------ test for enumeration -------\n";
-  ProviderInformationArray providers;
-  EnumerateProviders(providers);
-  std::for_each(providers.begin(), providers.end(), OutProvider);
+
+  Provider::IteratorPtr providers;
+  for (providers = EnumerateProviders(); providers->IsValid(); providers->Next())
+  {
+    OutProvider(providers->Get());
+  }
   String base, subpath;
   std::cout << "------ test for splitters/combiners ------\n";
   Test(SplitUri(INVALID_URI, base, subpath) == ERROR_NOT_SUPPORTED, "Splitting invalid uri", __LINE__);

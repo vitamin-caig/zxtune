@@ -27,6 +27,7 @@ Author:
 //platform-dependent includes
 #include <SDL/SDL.h>
 //boost includes
+#include <boost/enable_shared_from_this.hpp>
 #include <boost/noncopyable.hpp>
 //text includes
 #include <sound/text/backends.h>
@@ -40,8 +41,8 @@ namespace
 
   const std::string THIS_MODULE("SDL");
 
-  const Char BACKEND_ID[] = {'s', 'd', 'l', 0};
-  const String BACKEND_VERSION(FromStdString("$Rev$"));
+  const Char SDL_BACKEND_ID[] = {'s', 'd', 'l', 0};
+  const String SDL_BACKEND_VERSION(FromStdString("$Rev$"));
 
   const uint_t BUFFERS_MIN = 2;
   const uint_t BUFFERS_MAX = 10;
@@ -59,16 +60,8 @@ namespace
     }
   }
 
-  // backend description
-  void DescribeBackend(BackendInformation& info)
-  {
-    info.Id = BACKEND_ID;
-    info.Description = Text::SDL_BACKEND_DESCRIPTION;
-    info.Version = BACKEND_VERSION;
-    info.Capabilities = CAP_TYPE_SYSTEM;
-  }
-
-  class SDLBackend : public BackendImpl, private boost::noncopyable
+  class SDLBackend : public BackendImpl
+                   , private boost::noncopyable
   {
   public:
     SDLBackend()
@@ -104,12 +97,7 @@ namespace
       }
     }
 
-    virtual void GetInformation(BackendInformation& info) const
-    {
-      DescribeBackend(info);
-    }
-
-    virtual VolumeControl::Ptr GetVolumeControl() const
+    VolumeControl::Ptr GetVolumeControl() const
     {
       return VolumeControl::Ptr();
     }
@@ -265,10 +253,36 @@ namespace
     cycled_iterator<Buffer*> FillIter, PlayIter;
   };
 
-  Backend::Ptr SDLBackendCreator(const Parameters::Map& params)
+  class SDLBackendCreator : public BackendCreator
+                          , public boost::enable_shared_from_this<SDLBackendCreator>
   {
-    return Backend::Ptr(new SafeBackendWrapper<SDLBackend>(params));
-  }
+  public:
+    virtual String Id() const
+    {
+      return SDL_BACKEND_ID;
+    }
+
+    virtual String Description() const
+    {
+      return Text::SDL_BACKEND_DESCRIPTION;
+    }
+
+    virtual String Version() const
+    {
+      return SDL_BACKEND_VERSION;
+    }
+
+    virtual uint_t Capabilities() const
+    {
+      return CAP_TYPE_SYSTEM;
+    }
+
+    virtual Error CreateBackend(const Parameters::Map& params, Backend::Ptr& result) const
+    {
+      const BackendInformation::Ptr info = shared_from_this();
+      return SafeBackendWrapper<SDLBackend>::Create(info, params, result, THIS_LINE);
+    }
+  };
 }
 
 namespace ZXTune
@@ -277,9 +291,8 @@ namespace ZXTune
   {
     void RegisterSDLBackend(BackendsEnumerator& enumerator)
     {
-      BackendInformation info;
-      DescribeBackend(info);
-      enumerator.RegisterBackend(info, &SDLBackendCreator);
+      const BackendCreator::Ptr creator(new SDLBackendCreator());
+      enumerator.RegisterCreator(creator);
     }
   }
 }

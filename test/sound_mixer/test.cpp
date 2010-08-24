@@ -83,7 +83,7 @@ namespace
     {
     }
     
-    virtual void ApplySample(const MultiSample& data)
+    virtual void ApplyData(const MultiSample& data)
     {
       if (const bool passed = data == ToCompare)
       {
@@ -120,7 +120,7 @@ int main()
     Mixer::Ptr mixer;
     ThrowIfError(CreateMixer(1, mixer));
     
-    mixer->SetEndpoint(receiver);
+    mixer->SetTarget(receiver);
   
     std::cout << "--- Test for invalid matrix---\n";
     if (const Error& e = mixer->SetMatrix(MakeMatrix(INVALID_GAIN)))
@@ -145,7 +145,7 @@ int main()
       for (unsigned input = 0; input != ArraySize(INPUTS); ++input, ++result)
       {
         tgt->SetData(*result);
-	mixer->ApplySample(MakeMatrix(INPUTS[input]));
+        mixer->ApplyData(MakeMatrix(INPUTS[input]));
         std::cout << " checking for " << INPUT_NAMES[input] << " input\n";
       }
     }

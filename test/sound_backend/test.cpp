@@ -1,7 +1,8 @@
 #include <tools.h>
 #include <formatter.h>
 #include <core/module_holder.h>
-#include <core/devices/aym.h>
+#include <core/plugin.h>
+#include <devices/aym.h>
 #include <sound/backend.h>
 #include <sound/error_codes.h>
 #include <sound/render_params.h>
@@ -50,13 +51,39 @@ namespace
   class DummyHolder;
   Module::Player::Ptr CreateDummyPlayer(const DummyHolder& holder);
   
+  class DummyPlugin : public Plugin
+  {
+  public:
+    virtual String Id() const
+    {
+      return "Dummy";
+    }
+
+    virtual String Description() const
+    {
+      return "DummyPlugin";
+    }
+
+    virtual String Version() const
+    {
+      return "0";
+    }
+
+    virtual uint_t Capabilities() const
+    {
+      return 0;
+    }
+  };
+
   class DummyHolder : public Module::Holder
   {
   public:
     DummyHolder() {}
     
-    virtual void GetPluginInformation(PluginInformation& info) const
+    virtual const Plugin& GetPlugin() const
     {
+      static DummyPlugin plugin;
+      return plugin;
     }
     
     virtual void GetModuleInformation(Module::Information& info) const
@@ -99,7 +126,7 @@ namespace
       return Holder;
     }
     
-    virtual Error GetPlaybackState(uint_t&, Module::Tracking&, Module::Analyze::ChannelsState&) const
+    virtual Error GetPlaybackState(Module::State&, Module::Analyze::ChannelsState&) const
     {
       return Error();
     }
@@ -157,42 +184,20 @@ namespace
     return Module::Player::Ptr(new DummyPlayer(holder));
   }
   
-
-  void TestErrors()
+  void TestErrors(Backend& backend)
   {
-    using namespace ZXTune::Sound;
-    Parameters::Map params;
-    Backend::Ptr backend;
-    ThrowIfError(CreateBackend("null", params, backend));
+    std::cout << "---- Test for error situations ---" << std::endl;
 
-    TestError("Play", backend->Play());
-    TestError("Pause", backend->Pause());
-    TestError("Stop", backend->Stop());
-    TestError("SetPosition", backend->SetPosition(0));
-    TestError("Null player set", backend->SetModule(Module::Holder::Ptr()));
+    TestError("Play", backend.Play());
+    TestError("Pause", backend.Pause());
+    TestError("Stop", backend.Stop());
+    TestError("SetPosition", backend.SetPosition(0));
   }
 
-  void TestBackend(const BackendInformation& info)
+  void TestVolume(Backend& backend)
   {
-    std::cout << "Backend:\n"
-    " Id: " << info.Id << "\n"
-    " Version: " << info.Version << "\n"
-    " Description: " << info.Description << "\n";
-
-    Parameters::Map params;
-    Backend::Ptr backend;
-    if (const Error& e = CreateBackend(info.Id, params, backend))
-    {
-      if (e.FindSuberror(BACKEND_INVALID_PARAMETER))
-      {
-        e.WalkSuberrors(ErrOuter);
-        return;
-      }
-      throw e;
-    }
-
     std::cout << "Check for volume support: ";
-    if (const VolumeControl::Ptr volCtrl = backend->GetVolumeControl())
+    if (const VolumeControl::Ptr volCtrl = backend.GetVolumeControl())
     {
       std::cout << " checking for get: ";
       MultiGain volume;
@@ -209,6 +214,23 @@ namespace
     {
       std::cout << "unsupported\n";
     }
+  }
+
+  void TestBackend(const BackendCreator& creator)
+  {
+    std::cout << "Backend:\n"
+    " Id: " << creator.Id() << "\n"
+    " Version: " << creator.Version() << "\n"
+    " Description: " << creator.Description() << "\n";
+
+    Parameters::Map params;
+    Backend::Ptr backend;
+    ThrowIfError(creator.CreateBackend(params, backend));
+
+    TestSuccess("Empty player set", backend->SetModule(Module::Holder::Ptr()));
+    TestErrors(*backend);
+    TestVolume(*backend);
+
     TestSuccess("Player set", backend->SetModule(Module::Holder::Ptr(new DummyHolder())));
     /*
     TestSuccess("Play", backend->Play());
@@ -250,19 +272,17 @@ int main()
   using namespace ZXTune;
   using namespace ZXTune::Sound;
   
-  try
+  for (BackendCreator::IteratorPtr iterator = EnumerateBackends(); iterator->IsValid(); iterator->Next())
   {
-    std::cout << "---- Test for error situations ---" << std::endl;
-    TestErrors();
-
-    std::cout << "---- Test for backends ---" << std::endl;
-    BackendInformationArray infos;
-    EnumerateBackends(infos);
-    std::for_each(infos.begin(), infos.end(), TestBackend);
-  }
-  catch (const Error& e)
-  {
-    std::cout << " Failed\n";
-    e.WalkSuberrors(ErrOuter);
+    try
+    {
+      const BackendCreator::Ptr creator = iterator->Get();
+      TestBackend(*creator);
+    }
+    catch (const Error& e)
+    {
+      std::cout << " Failed\n";
+      e.WalkSuberrors(ErrOuter);
+    }
   }
 }

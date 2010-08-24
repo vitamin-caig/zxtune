@@ -190,7 +190,8 @@ namespace ZXTune
     BackendImpl::~BackendImpl()
     {
       assert(Backend::STOPPED == CurrentState ||
-          Backend::NOTOPENED == CurrentState);
+          Backend::NOTOPENED == CurrentState ||
+          Backend::FAILED == CurrentState);
     }
 
     Error BackendImpl::SetModule(Module::Holder::Ptr holder)

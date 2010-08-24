@@ -28,6 +28,8 @@ Author:
 //platform-specific includes
 #include <alsa/asoundlib.h>
 #include <alsa/pcm.h>
+//boost includes
+#include <boost/enable_shared_from_this.hpp>
 //text includes
 #include <sound/text/backends.h>
 #include <sound/text/sound.h>
@@ -41,8 +43,8 @@ namespace
 
   const std::string THIS_MODULE("ALSABackend");
 
-  const Char BACKEND_ID[] = {'a', 'l', 's', 'a', 0};
-  const String BACKEND_VERSION(FromStdString("$Rev$"));
+  const Char ALSA_BACKEND_ID[] = {'a', 'l', 's', 'a', 0};
+  const String ALSA_BACKEND_VERSION(FromStdString("$Rev$"));
 
   const uint_t BUFFERS_MIN = 2;
   const uint_t BUFFERS_MAX = 10;
@@ -328,15 +330,8 @@ namespace
     AutoMixer& Mixer;
   };
 
-  void DescribeBackend(BackendInformation& info)
-  {
-    info.Id = BACKEND_ID;
-    info.Description = Text::ALSA_BACKEND_DESCRIPTION;
-    info.Version = BACKEND_VERSION;
-    info.Capabilities = CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
-  }
-
-  class AlsaBackend : public BackendImpl, private boost::noncopyable
+  class AlsaBackend : public BackendImpl
+                    , private boost::noncopyable
   {
   public:
     AlsaBackend()
@@ -354,12 +349,7 @@ namespace
       assert(!DevHandle.Get() || !"AlsaBackend was destroyed without stopping");
     }
 
-    virtual void GetInformation(BackendInformation& info) const
-    {
-      DescribeBackend(info);
-    }
-    
-    virtual VolumeControl::Ptr GetVolumeControl() const
+    VolumeControl::Ptr GetVolumeControl() const
     {
       return VolumeController;
     }
@@ -527,10 +517,36 @@ namespace
     VolumeControl::Ptr VolumeController;
   };
 
-  Backend::Ptr AlsaBackendCreator(const Parameters::Map& params)
+  class AlsaBackendCreator : public BackendCreator
+                           , public boost::enable_shared_from_this<AlsaBackendCreator>
   {
-    return Backend::Ptr(new SafeBackendWrapper<AlsaBackend>(params));
-  }
+  public:
+    virtual String Id() const
+    {
+      return ALSA_BACKEND_ID;
+    }
+
+    virtual String Description() const
+    {
+      return Text::ALSA_BACKEND_DESCRIPTION;
+    }
+
+    virtual String Version() const
+    {
+      return ALSA_BACKEND_VERSION;
+    }
+
+    virtual uint_t Capabilities() const
+    {
+      return CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
+    }
+
+    virtual Error CreateBackend(const Parameters::Map& params, Backend::Ptr& result) const
+    {
+      const BackendInformation::Ptr info = shared_from_this();
+      return SafeBackendWrapper<AlsaBackend>::Create(info, params, result, THIS_LINE);
+    }
+  };
 }
 
 namespace ZXTune
@@ -539,9 +555,8 @@ namespace ZXTune
   {
     void RegisterAlsaBackend(BackendsEnumerator& enumerator)
     {
-      BackendInformation info;
-      DescribeBackend(info);
-      enumerator.RegisterBackend(info, &AlsaBackendCreator);
+      const BackendCreator::Ptr creator(new AlsaBackendCreator());
+      enumerator.RegisterCreator(creator);
     }
   }
 }

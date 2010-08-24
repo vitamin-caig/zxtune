@@ -2,8 +2,8 @@ binary_name := snd_backend_test
 path_step := ../..
 source_files := test
 
-libraries := core sound io tools
-depends := src/core src/io src/sound src/tools
+libraries := core devices sound io tools
+depends := src/core src/devices src/io src/sound src/tools
 
 boost_libraries := thread
 

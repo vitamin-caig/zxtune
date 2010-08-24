@@ -17,6 +17,7 @@ namespace
 #else
   const char LOCKED_FILE[] = "/etc/shadow";
 #endif
+  const char EMPTY_FILE[] = "empty";
   
   void ErrOuter(unsigned /*level*/, Error::LocationRef loc, Error::CodeType code, const String& text)
   {
@@ -68,4 +69,5 @@ int main()
   Test(OpenData(EXISTING_FILE, params, ProgressCallback(), data, subpath), "Opening in mmap mode", __LINE__);
   CheckError(OpenData(NONEXISTING_FILE, params, ProgressCallback(), data, subpath), ERROR_NOT_OPENED, "Open non-existent in shared mode", __LINE__);  
   CheckError(OpenData(LOCKED_FILE, params, ProgressCallback(), data, subpath), ERROR_NOT_OPENED, "Open locked in shared mode", __LINE__);
+  CheckError(OpenData(EMPTY_FILE, params, ProgressCallback(), data, subpath), ERROR_NOT_OPENED, "Open empty file", __LINE__);
 }

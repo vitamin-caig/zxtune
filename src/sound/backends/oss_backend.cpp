@@ -33,6 +33,7 @@ Author:
 //std includes
 #include <algorithm>
 //boost includes
+#include <boost/enable_shared_from_this.hpp>
 #include <boost/noncopyable.hpp>
 //text includes
 #include <sound/text/backends.h>
@@ -49,8 +50,8 @@ namespace
 
   const uint_t MAX_OSS_VOLUME = 100;
   
-  const Char BACKEND_ID[] = {'o', 's', 's', 0};
-  const String BACKEND_VERSION(FromStdString("$Rev$"));
+  const Char OSS_BACKEND_ID[] = {'o', 's', 's', 0};
+  const String OSS_BACKEND_VERSION(FromStdString("$Rev$"));
 
   class AutoDescriptor : public boost::noncopyable
   {
@@ -173,16 +174,8 @@ namespace
     AutoDescriptor& MixHandle;
   };
   
-  // backend description
-  void DescribeBackend(BackendInformation& info)
-  {
-    info.Id = BACKEND_ID;
-    info.Description = Text::OSS_BACKEND_DESCRIPTION;
-    info.Version = BACKEND_VERSION;
-    info.Capabilities = CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
-  }
-
-  class OSSBackend : public BackendImpl, private boost::noncopyable
+  class OSSBackend : public BackendImpl
+                   , private boost::noncopyable
   {
   public:
     OSSBackend()
@@ -198,12 +191,7 @@ namespace
       assert(-1 == DevHandle.Get() || !"OSSBackend should be stopped before destruction.");
     }
 
-    virtual void GetInformation(BackendInformation& info) const
-    {
-      DescribeBackend(info);
-    }
-
-    virtual VolumeControl::Ptr GetVolumeControl() const
+    VolumeControl::Ptr GetVolumeControl() const
     {
       return VolumeController;
     }
@@ -315,10 +303,36 @@ namespace
     VolumeControl::Ptr VolumeController;
   };
   
-  Backend::Ptr OSSBackendCreator(const Parameters::Map& params)
+  class OSSBackendCreator : public BackendCreator
+                          , public boost::enable_shared_from_this<OSSBackendCreator>
   {
-    return Backend::Ptr(new SafeBackendWrapper<OSSBackend>(params));
-  }
+  public:
+    virtual String Id() const
+    {
+      return OSS_BACKEND_ID;
+    }
+
+    virtual String Description() const
+    {
+      return Text::OSS_BACKEND_DESCRIPTION;
+    }
+
+    virtual String Version() const
+    {
+      return OSS_BACKEND_VERSION;
+    }
+
+    virtual uint_t Capabilities() const
+    {
+      return CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
+    }
+
+    virtual Error CreateBackend(const Parameters::Map& params, Backend::Ptr& result) const
+    {
+      const BackendInformation::Ptr info = shared_from_this();
+      return SafeBackendWrapper<OSSBackend>::Create(info, params, result, THIS_LINE);
+    }
+  };
 }
 
 namespace ZXTune
@@ -327,9 +341,8 @@ namespace ZXTune
   {
     void RegisterOSSBackend(BackendsEnumerator& enumerator)
     {
-      BackendInformation info;
-      DescribeBackend(info);
-      enumerator.RegisterBackend(info, &OSSBackendCreator);
+      const BackendCreator::Ptr creator(new OSSBackendCreator());
+      enumerator.RegisterCreator(creator);
     }
   }
 }

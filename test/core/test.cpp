@@ -65,7 +65,7 @@ namespace
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
   };
-    
+
   class FixedContainer : public IO::DataContainer
   {
   public:
@@ -73,7 +73,7 @@ namespace
       : Ptr(data), Len(size)
     {
     }
-    
+
     virtual std::size_t Size() const
     {
       return Len;
@@ -91,54 +91,58 @@ namespace
     const uint8_t* const Ptr;
     const std::size_t Len;
   };
-  
+
   inline IO::DataContainer::Ptr CreateContainer(std::size_t offset = 0)
   {
     return IO::DataContainer::Ptr(new FixedContainer(PSG_DUMP + offset, ArraySize(PSG_DUMP) - offset));
   }
-  
+
   void ErrOuter(unsigned /*level*/, Error::LocationRef loc, Error::CodeType code, const String& text)
   {
     std::cerr << Error::AttributesToString(loc, code, text);;
   }
-  
-  void ShowPluginInfo(const PluginInformation& info)
+
+  void ShowPluginInfo(const Plugin::Ptr info)
   {
     std::cout <<
       " Plugin:\n"
-      "  Id: " << info.Id << "\n"
-      "  Descr: " << info.Description << "\n"
-      "  Vers: " << info.Version << "\n"
-      "  Caps: 0x" << std::hex << info.Capabilities << std::dec << "\n";
+      "  Id: " << info->Id() << "\n"
+      "  Descr: " << info->Description() << "\n"
+      "  Vers: " << info->Version() << "\n"
+      "  Caps: 0x" << std::hex << info->Capabilities() << std::dec << "\n";
   }
 
   void OutProp(const Parameters::Map::value_type& val)
   {
     std::cout << "  " << val.first << ": " << Parameters::ConvertToString(val.second) << "\n";
   }
-  
+
   void ShowModuleInfo(const Module::Information& info)
   {
+    #define OUT(P) " " #P ": " << P << "\n"
+
     std::cout << " Module:\n"
-      "  Stat.Position: " << info.Statistic.Position << "\n"
-      "  Stat.Pattern: " << info.Statistic.Pattern << "\n"
-      "  Stat.Line: " << info.Statistic.Line << "\n"
-      "  Stat.Frame: " << info.Statistic.Frame << "\n"
-      "  Stat.Tempo: " << info.Statistic.Tempo << "\n"
-      "  Stat.Channels: " << info.Statistic.Channels << "\n"
-      "  Loop (p/f): " << info.LoopPosition << '/' << info.LoopFrame << "\n"
-      "  Channels: " << info.PhysicalChannels << "\n";
+      OUT(info.PositionsCount)
+      OUT(info.LoopPosition)
+      OUT(info.PatternsCount)
+      OUT(info.FramesCount)
+      OUT(info.LoopFrame)
+      OUT(info.LogicalChannels)
+      OUT(info.PhysicalChannels)
+      OUT(info.Tempo)
+    ;
     std::for_each(info.Properties.begin(), info.Properties.end(), OutProp);
-  }
-  
-  bool PluginFilter(const PluginInformation& info)
-  {
-    return info.Id == "PSG";
+    #undef OUT
   }
 
-  bool NoHobeta(const PluginInformation& info)
+  bool PluginFilter(const Plugin& info)
   {
-    return info.Id == "Hobeta";
+    return info.Id() == "PSG";
+  }
+
+  bool NoHobeta(const Plugin& info)
+  {
+    return info.Id() == "Hobeta";
   }
 
   void PluginLogger(const Log::MessageData& msg)
@@ -161,9 +165,8 @@ namespace
 
   Error PluginCallback(const String& subpath, Module::Holder::Ptr holder, unsigned& count, const bool& detailed)
   {
-    PluginInformation plugInfo;
-    holder->GetPluginInformation(plugInfo);
-    std::cout << " Plugin " << plugInfo.Id << " at '" << subpath << "'" << std::endl;
+    const Plugin& plugInfo = holder->GetPlugin();
+    std::cout << " Plugin " << plugInfo.Id() << " at '" << subpath << "'" << std::endl;
     if (detailed)
     {
       Module::Information modInfo;
@@ -173,7 +176,7 @@ namespace
     ++count;
     return Error();
   }
-  
+
   void TestPlayers(unsigned players, unsigned expected, const String& txt, unsigned line)
   {
     if (players == expected)
@@ -187,7 +190,7 @@ namespace
       throw Error(THIS_LINE, 1);
     }
   }
-  
+
   void TestError(const Error& err, Error::CodeType code, const String& txt, unsigned line)
   {
     if (err == code)
@@ -208,23 +211,24 @@ int main()
   {
     unsigned count = 0;
     bool detailed = true;
-    
-    std::vector<PluginInformation> plugins;
-    EnumeratePlugins(plugins);
+
     std::cout << "Supported plugins:" << std::endl;
-    std::for_each(plugins.begin(), plugins.end(), ShowPluginInfo);
-    
+    for (Plugin::IteratorPtr plugins = EnumeratePlugins(); plugins->IsValid(); plugins->Next())
+    {
+      ShowPluginInfo(plugins->Get());
+    }
+
     Parameters::Map commonParams;
     DetectParameters detectParams;
-    
+
     TestError(DetectModules(commonParams, detectParams, CreateContainer(PSG1_OFFSET), String()), Module::ERROR_INVALID_PARAMETERS, "no callback", __LINE__);
-    
+
     detectParams.Callback = boost::bind(&PluginCallback, _1, _2, boost::ref(count), boost::cref(detailed));
     detectParams.Logger = PluginLogger;
-    
+
     TestError(DetectModules(commonParams, detectParams, IO::DataContainer::Ptr(), String()), Module::ERROR_INVALID_PARAMETERS, "no data", __LINE__);
-    
-    
+
+
     TestError(DetectModules(commonParams, detectParams, CreateContainer(), "invalid_path"), Module::ERROR_FIND_SUBMODULE, "invalid path", __LINE__);
     count = 0;
     ThrowIfError(DetectModules(commonParams, detectParams, CreateContainer(PSG2_OFFSET), String()));
@@ -236,7 +240,7 @@ int main()
 
     //testing without hobeta
     detailed = false;
-    
+
     detectParams.Filter = NoHobeta;
     ThrowIfError(DetectModules(commonParams, detectParams, CreateContainer(), String()));
     TestPlayers(count, 2, "raw scanning opening (no implicit)", __LINE__);

@@ -46,8 +46,8 @@ namespace
     {
       const Sample smp = SAMPLE_MID + (SAMPLE_MID - 1) * sin(tick * freq * 2 * 3.14159265358 / FREQ);
       const MultiSample msmp = { {smp, smp} };
-      analyzer.ApplySample(msmp);
-      rcv.ApplySample(msmp);
+      analyzer.ApplyData(msmp);
+      rcv.ApplyData(msmp);
     }
   }
 
@@ -65,7 +65,7 @@ namespace
       Flush();
     }
     
-    virtual void ApplySample(const MultiSample& data)
+    virtual void ApplyData(const MultiSample& data)
     {
       (Count & 1 ? RMSNew : RMSOrig) += AddRMS(data[0]);
       ++Count;
@@ -82,7 +82,7 @@ namespace
       const double newRMS = sqrt(RMSNew / (Count / 2));
       const double oldRMS = sqrt(RMSOrig / (Count / 2));
       std::cout << "Freq: " << std::setw(5) << freq << std::fixed << std::setprecision(5) <<
-	": Gain:" << newRMS << '/' << oldRMS << '=' << newRMS / oldRMS << '=' << 10 * log10(newRMS / oldRMS) << "dB" << std::endl;
+        ": Gain:" << newRMS << '/' << oldRMS << '=' << newRMS / oldRMS << '=' << 10 * log10(newRMS / oldRMS) << "dB" << std::endl;
     }
   private:
     unsigned Count;
@@ -114,7 +114,7 @@ namespace
     ThrowIfError(filter->SetBandpassParameters(FREQ, lo, hi));
     Target* tgt = 0;
     Receiver::Ptr receiver(tgt = new Target);
-    filter->SetEndpoint(receiver);
+    filter->SetTarget(receiver);
     
     for (const unsigned* fr = FREQS; fr != ArrayEnd(FREQS); ++fr)
     {
