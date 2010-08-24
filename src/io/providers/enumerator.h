@@ -14,23 +14,27 @@ Author:
 
 //libary includes
 #include <io/provider.h>  // for ProviderInfoArray
-//boost includes
-#include <boost/function.hpp>
 
 namespace ZXTune
 {
   namespace IO
   {
-    //all io providers interface functions
-    //in: uri
-    //out: true if provider supports that scheme
-    typedef boost::function<bool(const String&)> ProviderCheckFunc;
-    //in: uri, parameters, progress callback, result data, result subpath
-    typedef boost::function<Error(const String&, const Parameters::Map&, const ProgressCallback&, DataContainer::Ptr&, String&)> ProviderOpenFunc;
-    //in: uri, result base path, result subpath
-    typedef boost::function<Error(const String&, String&, String&)> ProviderSplitFunc;
-    //in: path, subpath, result uri
-    typedef boost::function<Error(const String&, const String&, String&)> ProviderCombineFunc;
+    // Internal interface
+    class DataProvider : public Provider
+    {
+    public:
+      typedef boost::shared_ptr<const DataProvider> Ptr;
+
+      // Check if provider supports that scheme
+      virtual bool Check(const String& uri) const = 0;
+      // Split uri
+      virtual Error Split(const String& uri, String& basePath, String& subPath) const = 0;
+      // Combine uri
+      virtual Error Combine(const String& basePath, const String& subPath, String& uri) const = 0;
+      // Open data
+      virtual Error Open(const String& uri, const Parameters::Map& parameters, 
+                         const ProgressCallback& callback, DataContainer::Ptr& result, String& subpath) const = 0;
+    };
 
     // internal enumerator interface
     class ProvidersEnumerator
@@ -38,16 +42,14 @@ namespace ZXTune
     public:
       virtual ~ProvidersEnumerator() {}
       //registration
-      virtual void RegisterProvider(const ProviderInformation& info,
-                                    const ProviderCheckFunc& detector, const ProviderOpenFunc& opener,
-                                    const ProviderSplitFunc& splitter, const ProviderCombineFunc& combiner) = 0;
+      virtual void RegisterProvider(DataProvider::Ptr provider) = 0;
       
       virtual Error OpenUri(const String& uri, const Parameters::Map& params, const ProgressCallback& cb,
                             DataContainer::Ptr& result, String& subpath) const = 0;
       virtual Error SplitUri(const String& uri, String& baseUri, String& subpath) const = 0;
       virtual Error CombineUri(const String& baseUri, const String& subpath, String& uri) const = 0;
       
-      virtual void Enumerate(ProviderInformationArray& infos) const = 0;
+      virtual Provider::IteratorPtr Enumerate() const = 0;
       
       static ProvidersEnumerator& Instance();
     };

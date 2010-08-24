@@ -132,18 +132,21 @@ namespace
     std::for_each(backends.begin(), backends.end(), ShowBackend);
   }
   
-  inline void ShowProvider(const ZXTune::IO::ProviderInformation& info)
+  inline void ShowProvider(const ZXTune::IO::Provider& provider)
   {
     StdOut << (Formatter(Text::INFO_PROVIDER_INFO)
-      % info.Name % info.Description % info.Version).str();
+      % provider.Name() % provider.Description() % provider.Version()).str();
   }
   
   inline void ShowProviders()
   {
-    ZXTune::IO::ProviderInformationArray providers;
-    ZXTune::IO::EnumerateProviders(providers);
+    using namespace ZXTune::IO;
     StdOut << Text::INFO_LIST_PROVIDERS_TITLE << std::endl;
-    std::for_each(providers.begin(), providers.end(), ShowProvider);
+    for (Provider::IteratorPtr providers = EnumerateProviders(); 
+      providers->IsValid(); providers->Next())
+    {
+      ShowProvider(*providers->Get());
+    }
   }
   
   typedef boost::tuple<String, String, Parameters::ValueType> OptionDesc;

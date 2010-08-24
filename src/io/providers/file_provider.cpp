@@ -36,14 +36,6 @@ namespace
 
   const String PROVIDER_VERSION(FromStdString("$Rev$"));
 
-  // provider information structure
-  const ProviderInformation PROVIDER_INFO =
-  {
-    Text::IO_FILE_PROVIDER_NAME,
-    Text::IO_FILE_PROVIDER_DESCRIPTION,
-    PROVIDER_VERSION,
-  };
-
   // uri-related constants
   const Char SCHEME_SIGN[] = {':', '/', '/', 0};
   const Char SCHEME_FILE[] = {'f', 'i', 'l', 'e', 0};
@@ -129,12 +121,12 @@ namespace
       {
         throw Error(THIS_LINE, ERROR_IO_ERROR, Text::IO_ERROR_IO_ERROR);
       }
-      std::streampos threshold = static_cast<std::streampos>(Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD_DEFAULT);
-      if (const Parameters::IntType* val =
-        Parameters::FindByName<Parameters::IntType>(params, Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD))
-      {
-        threshold = static_cast<std::streampos>(*val);
-      }
+      Parameters::Helper parameters(params);
+      const std::streampos threshold = static_cast<std::streampos>(
+        parameters.GetValue(
+          Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD,
+          Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD_DEFAULT));
+
       if (fileSize >= threshold)
       {
         file.close();
@@ -186,74 +178,93 @@ namespace
   }
 
   ///////////////////////////////////////
-  bool FileChecker(const String& uri)
+  class FileDataProvider : public DataProvider
   {
-    // TODO: extract and use common scheme-working code
-    const String::size_type schemePos = uri.find(SCHEME_SIGN);
-    const String::size_type basePos = String::npos == schemePos ? 0 : schemePos + ArraySize(SCHEME_SIGN) - 1;
-    const String::size_type subPos = uri.find_first_of(SUBPATH_DELIMITER);
+  public:
+    virtual String Name() const
+    {
+      return Text::IO_FILE_PROVIDER_NAME;
+    }
+
+    virtual String Description() const
+    {
+      return Text::IO_FILE_PROVIDER_DESCRIPTION;
+    }
+
+    virtual String Version() const
+    {
+      return PROVIDER_VERSION;
+    }
+
+    virtual bool Check(const String& uri) const
+    {
+      // TODO: extract and use common scheme-working code
+      const String::size_type schemePos = uri.find(SCHEME_SIGN);
+      const String::size_type basePos = String::npos == schemePos ? 0 : schemePos + ArraySize(SCHEME_SIGN) - 1;
+      const String::size_type subPos = uri.find_first_of(SUBPATH_DELIMITER);
     
-    return (String::npos == schemePos || uri.substr(0, schemePos) == SCHEME_FILE) && IsOrdered(basePos, subPos);
-  }
+      return (String::npos == schemePos || uri.substr(0, schemePos) == SCHEME_FILE) && IsOrdered(basePos, subPos);
+    }
   
-  Error FileSplitter(const String& uri, String& baseUri, String& subpath)
-  {
-    const String::size_type schemePos = uri.find(SCHEME_SIGN);
-    const String::size_type basePos = String::npos == schemePos ? 0 : schemePos + ArraySize(SCHEME_SIGN) - 1;
-    const String::size_type subPos = uri.find_first_of(SUBPATH_DELIMITER);
-    if ((String::npos != schemePos && uri.substr(0, schemePos) != SCHEME_FILE) || !IsOrdered(basePos, subPos))
+    virtual Error Split(const String& uri, String& baseUri, String& subpath) const
     {
-      return Error(THIS_LINE, ERROR_NOT_SUPPORTED, Text::IO_ERROR_NOT_SUPPORTED_URI);
-    }
-    if (String::npos != subPos)
-    {
-      baseUri = uri.substr(basePos, subPos - basePos);
-      subpath = uri.substr(subPos + 1);
-    }
-    else
-    {
-      baseUri = uri.substr(basePos);
-      subpath = String();
-    }
-    return Error();
-  }
-  
-  Error FileCombiner(const String& baseUri, const String& subpath, String& uri)
-  {
-    String base, sub;
-    if (const Error& e = FileSplitter(baseUri, base, sub))
-    {
-      return e;
-    }
-    uri = base;
-    if (!subpath.empty())
-    {
-      uri += SUBPATH_DELIMITER;
-      uri += subpath;
-    }
-    return Error();
-  }
-  
-  //no callback
-  Error FileOpener(const String& uri, const Parameters::Map& params, const ProgressCallback& /*cb*/,
-    DataContainer::Ptr& result, String& subpath)
-  {
-    String openUri, openSub;
-    if (const Error& e = FileSplitter(uri, openUri, openSub))
-    {
-      return e;
-    }
-    try
-    {
-      result = DataContainer::Ptr(new FileDataContainer(openUri, params));
-      subpath = openSub;
+      const String::size_type schemePos = uri.find(SCHEME_SIGN);
+      const String::size_type basePos = String::npos == schemePos ? 0 : schemePos + ArraySize(SCHEME_SIGN) - 1;
+      const String::size_type subPos = uri.find_first_of(SUBPATH_DELIMITER);
+      if ((String::npos != schemePos && uri.substr(0, schemePos) != SCHEME_FILE) || !IsOrdered(basePos, subPos))
+      {
+        return Error(THIS_LINE, ERROR_NOT_SUPPORTED, Text::IO_ERROR_NOT_SUPPORTED_URI);
+      }
+      if (String::npos != subPos)
+      {
+        baseUri = uri.substr(basePos, subPos - basePos);
+        subpath = uri.substr(subPos + 1);
+      }
+      else
+      {
+        baseUri = uri.substr(basePos);
+        subpath = String();
+      }
       return Error();
     }
-    catch (const Error& e)
+  
+    virtual Error Combine(const String& baseUri, const String& subpath, String& uri) const
     {
-      return MakeFormattedError(THIS_LINE, ERROR_NOT_OPENED, Text::IO_ERROR_NOT_OPENED, openUri).AddSuberror(e);
+      String base, sub;
+      if (const Error& e = Split(baseUri, base, sub))
+      {
+        return e;
+      }
+      uri = base;
+      if (!subpath.empty())
+      {
+        uri += SUBPATH_DELIMITER;
+        uri += subpath;
+      }
+      return Error();
     }
-  }
+  
+    //no callback
+    virtual Error Open(const String& uri, const Parameters::Map& params, const ProgressCallback& /*cb*/,
+      DataContainer::Ptr& result, String& subpath) const
+    {
+      String openUri, openSub;
+      if (const Error& e = Split(uri, openUri, openSub))
+      {
+        return e;
+      }
+      try
+      {
+        result = DataContainer::Ptr(new FileDataContainer(openUri, params));
+        subpath = openSub;
+        return Error();
+      }
+      catch (const Error& e)
+      {
+        return MakeFormattedError(THIS_LINE, ERROR_NOT_OPENED, Text::IO_ERROR_NOT_OPENED, openUri).AddSuberror(e);
+      }
+    }
+  };
 }
 
 namespace ZXTune
@@ -262,9 +273,8 @@ namespace ZXTune
   {
     void RegisterFileProvider(ProvidersEnumerator& enumerator)
     {
-      enumerator.RegisterProvider(
-        PROVIDER_INFO,
-        FileChecker, FileOpener, FileSplitter, FileCombiner);
+      const DataProvider::Ptr provider(new FileDataProvider());
+      enumerator.RegisterProvider(provider);
     }
   }
 }

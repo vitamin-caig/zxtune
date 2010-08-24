@@ -11,6 +11,7 @@
 #define __IO_PROVIDER_H_DEFINED__
 
 //common includes
+#include <iterator.h>
 #include <parameters.h>     // for Parameters::Map
 //library includes
 #include <io/container.h>   // for IO::DataContainer::Ptr
@@ -28,7 +29,7 @@ namespace ZXTune
   {
     //! @brief Progress callback. In case if result Error is not success, it used as a suberror of #ERROR_CANCELED error
     typedef boost::function<Error(const String&, uint_t)> ProgressCallback;
-    
+
     //! @brief Performs opening specified uri
     //! @param uri Full path including external data identifier and raw data subpath delimited by scheme-specific delimiter
     //! @param params %Parameters map to setup providers work
@@ -52,23 +53,30 @@ namespace ZXTune
     //! @return Error() in case of success
     Error CombineUri(const String& baseUri, const String& subpath, String& uri);
 
-    //! @brief Structure describing supported %IO data provider
-    struct ProviderInformation
+    //! @brief Provider information interface
+    class Provider
     {
+    public:
+      //! Pointer type
+      typedef boost::shared_ptr<const Provider> Ptr;
+      //! Iterator type
+      typedef Iterator<Provider::Ptr> IteratorType;
+      //! Pointer to iterator type
+      typedef std::auto_ptr<IteratorType> IteratorPtr;
+
+      //! Virtual destructor
+      virtual ~Provider() {}
+
       //! Provider's name
-      String Name;
+      virtual String Name() const = 0;
       //! Description in any form
-      String Description;
+      virtual String Description() const = 0;
       //! Version in text form
-      String Version;
+      virtual String Version() const = 0;
     };
-    
-    //! @brief Set of the provider information structures
-    typedef std::vector<ProviderInformation> ProviderInformationArray;
-    
+
     //! @brief Enumerating supported %IO providers
-    //! @param providers Reference to result set
-    void EnumerateProviders(ProviderInformationArray& providers);
+    Provider::IteratorPtr EnumerateProviders();
   }
 }
 

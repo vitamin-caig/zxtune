@@ -33,95 +33,133 @@ namespace
 
   const std::string THIS_MODULE("IO::Enumerator");
 
+  typedef std::vector<DataProvider::Ptr> ProvidersList;
+
+  class ProviderIteratorImpl : public Provider::IteratorType
+  {
+    class ProviderStub : public Provider
+    {
+    public:
+      virtual String Name() const
+      {
+        return String();
+      }
+
+      virtual String Description() const
+      {
+        return String();
+      }
+
+      virtual String Version() const
+      {
+        return String();
+      }
+    };
+  public:
+    ProviderIteratorImpl(ProvidersList::const_iterator from,
+                         ProvidersList::const_iterator to)
+      : Pos(from), Limit(to)
+    {
+    }
+
+    virtual bool IsValid() const
+    {
+      return Pos != Limit;
+    }
+
+    virtual Provider::Ptr Get() const
+    {
+      //since this implementation is passed to external client, make it as safe as possible
+      if (Pos != Limit)
+      {
+        return *Pos;
+      }
+      assert(!"Provider iterator is out of range");
+      return Provider::Ptr(new ProviderStub());
+    }
+
+    virtual void Next()
+    {
+      if (Pos != Limit)
+      {
+        ++Pos;
+      }
+      else
+      {
+        assert(!"Provider iterator is out of range");
+      }
+    }
+  private:
+    ProvidersList::const_iterator Pos;
+    const ProvidersList::const_iterator Limit;
+  };
+
   //implementation of IO providers enumerator
   class ProvidersEnumeratorImpl : public ProvidersEnumerator
   {
-    //all-provider-data type
-    struct ProviderEntry
-    {
-      ProviderEntry() : Checker(), Opener(), Splitter(), Combiner()
-      {
-      }
-      
-      ProviderEntry(const ProviderInformation& info,
-        ProviderCheckFunc checker, ProviderOpenFunc opener, ProviderSplitFunc splitter, ProviderCombineFunc combiner)
-        : Info(info), Checker(checker), Opener(opener), Splitter(splitter), Combiner(combiner)
-      {
-      }
-      ProviderInformation Info;
-      ProviderCheckFunc Checker;
-      ProviderOpenFunc Opener;
-      ProviderSplitFunc Splitter;
-      ProviderCombineFunc Combiner;
-    };
-    typedef std::list<ProviderEntry> ProvidersList;
   public:
     ProvidersEnumeratorImpl()
     {
       RegisterProviders(*this);
     }
-    
-    virtual void RegisterProvider(const ProviderInformation& info,
-      const ProviderCheckFunc& detector, const ProviderOpenFunc& opener,
-      const ProviderSplitFunc& splitter, const ProviderCombineFunc& combiner)
+
+    virtual void RegisterProvider(DataProvider::Ptr provider)
     {
-      assert(detector && opener && splitter && combiner);
-      assert(Providers.end() == std::find_if(Providers.begin(), Providers.end(),
-        boost::bind(&ProviderInformation::Name,  boost::bind(&ProviderEntry::Info,_1)) == info.Name));
-      Providers.push_back(ProviderEntry(info, detector, opener, splitter, combiner));
-      Log::Debug(THIS_MODULE, "Registered provider '%1%'", info.Name);
+      Providers.push_back(provider);
+      Log::Debug(THIS_MODULE, "Registered provider '%1%'", provider->Name());
     }
-     
+
     virtual Error OpenUri(const String& uri, const Parameters::Map& params, const ProgressCallback& cb, DataContainer::Ptr& result, String& subpath) const
     {
       Log::Debug(THIS_MODULE, "Opening uri '%1%'", uri);
-      const ProvidersList::const_iterator it = FindProvider(uri);
-      if (it != Providers.end())
+      if (const DataProvider* provider = FindProvider(uri))
       {
-        Log::Debug(THIS_MODULE, " Used provider '%1%'", it->Info.Name);
-        return it->Opener(uri, params, cb, result, subpath);
+        Log::Debug(THIS_MODULE, " Used provider '%1%'", provider->Name());
+        return provider->Open(uri, params, cb, result, subpath);
       }
       Log::Debug(THIS_MODULE, " No suitable provider found");
       return Error(THIS_LINE, ERROR_NOT_SUPPORTED, Text::IO_ERROR_NOT_SUPPORTED_URI);
     }
-    
+
     virtual Error SplitUri(const String& uri, String& baseUri, String& subpath) const
     {
       Log::Debug(THIS_MODULE, "Splitting uri '%1%'", uri);
-      const ProvidersList::const_iterator it = FindProvider(uri);
-      if (it != Providers.end())
+      if (const DataProvider* provider = FindProvider(baseUri))
       {
-        Log::Debug(THIS_MODULE, " Used provider '%1%'", it->Info.Name);
-        return it->Splitter(uri, baseUri, subpath);
+        Log::Debug(THIS_MODULE, " Used provider '%1%'", provider->Name());
+        return provider->Split(uri, baseUri, subpath);
       }
       Log::Debug(THIS_MODULE, " No suitable provider found");
       return Error(THIS_LINE, ERROR_NOT_SUPPORTED, Text::IO_ERROR_NOT_SUPPORTED_URI);
     }
-    
+
     virtual Error CombineUri(const String& baseUri, const String& subpath, String& uri) const
     {
       Log::Debug(THIS_MODULE, "Combining uri '%1%' and subpath '%2%'", baseUri, subpath);
-      const ProvidersList::const_iterator it = FindProvider(baseUri);
-      if (it != Providers.end())
+      if (const DataProvider* provider = FindProvider(baseUri))
       {
-        Log::Debug(THIS_MODULE, " Used provider '%1%'", it->Info.Name);
-        return it->Combiner(baseUri, subpath, uri);
+        Log::Debug(THIS_MODULE, " Used provider '%1%'", provider->Name());
+        return provider->Combine(baseUri, subpath, uri);
       }
       Log::Debug(THIS_MODULE, " No suitable provider found");
       return Error(THIS_LINE, ERROR_NOT_SUPPORTED, Text::IO_ERROR_NOT_SUPPORTED_URI);
     }
-     
-    virtual void Enumerate(ProviderInformationArray& infos) const
+
+    virtual Provider::IteratorPtr Enumerate() const
     {
-      ProviderInformationArray result(Providers.size());
-      std::transform(Providers.begin(), Providers.end(), result.begin(), boost::mem_fn(&ProviderEntry::Info));
-      infos.swap(result);
+      return Provider::IteratorPtr(new ProviderIteratorImpl(Providers.begin(), Providers.end()));
     }
   private:
-    ProvidersList::const_iterator FindProvider(const String& uri) const
+    const DataProvider* FindProvider(const String& uri) const
     {
-      return std::find_if(Providers.begin(), Providers.end(),
-        boost::bind(boost::apply<bool>(), boost::bind(&ProviderEntry::Checker, _1), uri));
+      for (ProvidersList::const_iterator it = Providers.begin(), lim = Providers.end(); it != lim; ++it)
+      {
+        if ((*it)->Check(uri))
+        {
+          return it->get();
+        }
+      }
+      return 0;
     }
   private:
     ProvidersList Providers;
@@ -137,7 +175,7 @@ namespace ZXTune
       static ProvidersEnumeratorImpl instance;
       return instance;
     }
-    
+
     Error OpenData(const String& uri, const Parameters::Map& params, const ProgressCallback& cb, DataContainer::Ptr& data, String& subpath)
     {
       try
@@ -149,20 +187,20 @@ namespace ZXTune
         return Error(THIS_LINE, ERROR_NO_MEMORY, Text::IO_ERROR_NO_MEMORY);
       }
     }
-    
+
     Error SplitUri(const String& uri, String& baseUri, String& subpath)
     {
       return ProvidersEnumerator::Instance().SplitUri(uri, baseUri, subpath);
     }
-    
+
     Error CombineUri(const String& baseUri, const String& subpath, String& uri)
     {
       return ProvidersEnumerator::Instance().CombineUri(baseUri, subpath, uri);
     }
-    
-    void EnumerateProviders(ProviderInformationArray& infos)
+
+    Provider::IteratorPtr EnumerateProviders()
     {
-      return ProvidersEnumerator::Instance().Enumerate(infos);
+      return ProvidersEnumerator::Instance().Enumerate();
     }
   }
 }

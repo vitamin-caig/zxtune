@@ -64,11 +64,9 @@ namespace
     {
       if (holder.get())
       {
-        PluginInformation plugin;
-        holder->GetPluginInformation(plugin);
-
+        const Plugin& plugin = holder->GetPlugin();
         const uint_t REQUIRED_CAPS = CAP_DEV_AYM | CAP_STOR_MODULE | CAP_CONV_ZX50;
-        if (REQUIRED_CAPS != (plugin.Capabilities & REQUIRED_CAPS))
+        if (REQUIRED_CAPS != (plugin.Capabilities() & REQUIRED_CAPS))
         {
           return Error(THIS_LINE, BACKEND_SETUP_ERROR, Text::SOUND_ERROR_AYLPT_BACKEND_DUMP);
         }
