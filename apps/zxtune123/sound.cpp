@@ -156,7 +156,7 @@ namespace
 
   class Sound : public SoundComponent
   {
-    typedef std::list<std::pair<String, String> > PerBackendOptions;
+    typedef std::list<std::pair<ZXTune::Sound::BackendCreator::Ptr, String> > PerBackendOptions;
   public:
     explicit Sound(Parameters::Map& globalParams)
       : GlobalParams(globalParams)
@@ -165,14 +165,14 @@ namespace
       , Looped(false)
     {
       using namespace boost::program_options;
-      ZXTune::Sound::BackendInformationArray backends;
-      ZXTune::Sound::EnumerateBackends(backends);
-      for (ZXTune::Sound::BackendInformationArray::const_iterator it = backends.begin(), lim = backends.end(); it != lim; ++it)
+      for (ZXTune::Sound::BackendCreator::IteratorPtr backends = ZXTune::Sound::EnumerateBackends();
+        backends->IsValid(); backends->Next())
       {
-        BackendOptions.push_back(std::make_pair(it->Id, NOTUSED_MARK));
+        const ZXTune::Sound::BackendCreator::Ptr creator = backends->Get();
+        BackendOptions.push_back(std::make_pair(creator, NOTUSED_MARK));
         OptionsDescription.add_options()
-          (it->Id.c_str(), value<String>(&BackendOptions.back().second)->implicit_value(String(),
-            Text::SOUND_BACKEND_PARAMS), it->Description.c_str())
+          (creator->Id().c_str(), value<String>(&BackendOptions.back().second)->implicit_value(String(),
+            Text::SOUND_BACKEND_PARAMS), creator->Description().c_str())
           ;
       }
 
@@ -196,18 +196,19 @@ namespace
     // throw
     virtual void Initialize()
     {
-      StringArray backends;
+      std::list<ZXTune::Sound::BackendCreator::Ptr> backends;
       {
         Parameters::Map params;
         for (PerBackendOptions::const_iterator it = BackendOptions.begin(), lim = BackendOptions.end(); it != lim; ++it)
         {
           if (it->second != NOTUSED_MARK)
           {
-            backends.push_back(it->first);
+            const ZXTune::Sound::BackendCreator::Ptr creator = it->first;
+            backends.push_back(creator);
             if (!it->second.empty())
             {
               Parameters::Map perBackend;
-              ThrowIfError(ParseParametersString(String(Parameters::ZXTune::Sound::Backends::PREFIX) + it->first,
+              ThrowIfError(ParseParametersString(String(Parameters::ZXTune::Sound::Backends::PREFIX) + creator->Id(),
                 it->second, perBackend));
               params.insert(perBackend.begin(), perBackend.end());
             }
@@ -241,11 +242,12 @@ namespace
           boost::mem_fn(&PerBackendOptions::value_type::first));
       }
       
-      for (StringArray::const_iterator it = backends.begin(), lim = backends.end(); it != lim; ++it)
+      for (std::list<ZXTune::Sound::BackendCreator::Ptr>::const_iterator it = 
+        backends.begin(), lim = backends.end(); it != lim; ++it)
       {
         ZXTune::Sound::Backend::Ptr backend;
-        Log::Debug(THIS_MODULE, "Trying backend %1%", *it);
-        if (const Error& e = ZXTune::Sound::CreateBackend(*it, GlobalParams, backend))
+        Log::Debug(THIS_MODULE, "Trying backend %1%", (*it)->Id());
+        if (const Error& e = (*it)->CreateBackend(GlobalParams, backend))
         {
           Log::Debug(THIS_MODULE, " failed");
           if (1 == backends.size())

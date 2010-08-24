@@ -167,12 +167,11 @@ namespace
       using namespace ZXTune;
       //create backend
       {
-        Sound::BackendInformationArray backends;
-        Sound::EnumerateBackends(backends);
         Parameters::Map params;
-        for (Sound::BackendInformationArray::const_iterator it = backends.begin(), lim = backends.end(); it != lim; ++it)
+        for (Sound::BackendCreator::IteratorPtr backends = Sound::EnumerateBackends();
+          backends->IsValid(); backends->Next())
         {
-          if (!Sound::CreateBackend(it->Id, params, Backend))
+          if (!backends->Get()->CreateBackend(params, Backend))
           {
             break;
           }

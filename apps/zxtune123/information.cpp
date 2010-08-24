@@ -121,15 +121,17 @@ namespace
   inline void ShowBackend(const ZXTune::Sound::BackendInformation& info)
   {
     StdOut << (Formatter(Text::INFO_BACKEND_INFO)
-      % info.Id % info.Description % info.Version % BackendCaps(info.Capabilities)).str();
+      % info.Id() % info.Description() % info.Version() % BackendCaps(info.Capabilities())).str();
   }
   
   inline void ShowBackends()
   {
-    ZXTune::Sound::BackendInformationArray backends;
-    ZXTune::Sound::EnumerateBackends(backends);
-    StdOut << Text::INFO_LIST_BACKENDS_TITLE << std::endl;
-    std::for_each(backends.begin(), backends.end(), ShowBackend);
+    using namespace ZXTune::Sound;
+    for (BackendCreator::IteratorPtr backends = EnumerateBackends();
+      backends->IsValid(); backends->Next())
+    {
+      ShowBackend(*backends->Get());
+    }
   }
   
   inline void ShowProvider(const ZXTune::IO::Provider& provider)
