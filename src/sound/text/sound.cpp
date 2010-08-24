@@ -31,8 +31,8 @@ extern const Char SOUND_ERROR_BACKEND_INVALID_STATE[] = {
   ' ','i','n',' ','i','n','v','a','l','i','d',' ','s','t','a','t','e','.',0
 };
 extern const Char SOUND_ERROR_BACKEND_NOT_FOUND[] = {
-  'R','e','q','u','e','s','t','e','d',' ','b','a','c','k','e','n','d',' ','\'','%','1','%','\'',' ','i','s',' ',
-  'n','o','t',' ','s','u','p','p','o','r','t','e','d','.',0
+  'R','e','q','u','e','s','t','e','d',' ','b','a','c','k','e','n','d',' ','i','s',' ','n','o','t',' ','s','u',
+  'p','p','o','r','t','e','d','.',0
 };
 extern const Char SOUND_ERROR_BACKEND_NO_MEMORY[] = {
   'F','a','i','l','e','d',' ','t','o',' ','w','o','r','k',' ','w','i','t','h',' ','b','a','c','k','e','n','d',

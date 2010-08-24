@@ -23,6 +23,8 @@ Author:
 #include <devices/aym.h>
 #include <sound/backend_attrs.h>
 #include <sound/error_codes.h>
+//boost includes
+#include <boost/enable_shared_from_this.hpp>
 //text includes
 #include <sound/text/backends.h>
 
@@ -33,18 +35,11 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Sound;
 
-  const Char BACKEND_ID[] = {'a', 'y', 'l', 'p', 't', 0};
-  const String BACKEND_VERSION(FromStdString("$Rev$"));
+  const Char AYLPT_BACKEND_ID[] = {'a', 'y', 'l', 'p', 't', 0};
+  const String AYLPT_BACKEND_VERSION(FromStdString("$Rev$"));
 
-  void DescribeBackend(BackendInformation& info)
-  {
-    info.Id = BACKEND_ID;
-    info.Description = Text::AYLPT_BACKEND_DESCRIPTION;
-    info.Version = BACKEND_VERSION;
-    info.Capabilities = CAP_TYPE_HARDWARE;
-  }
-
-  class AYLPTBackend : public BackendImpl, private boost::noncopyable
+  class AYLPTBackend : public BackendImpl
+                       , private boost::noncopyable
   {
   public:
     //TODO: parametrize
@@ -55,12 +50,7 @@ namespace
     {
     }
 
-    virtual void GetInformation(BackendInformation& info) const
-    {
-      DescribeBackend(info);
-    }
-
-    virtual Error SetModule(Module::Holder::Ptr holder)
+    Error SetModule(Module::Holder::Ptr holder)
     {
       if (holder.get())
       {
@@ -81,7 +71,7 @@ namespace
       return BackendImpl::SetModule(holder);
     }
 
-    virtual VolumeControl::Ptr GetVolumeControl() const
+    VolumeControl::Ptr GetVolumeControl() const
     {
       // volume control is not supported
       return VolumeControl::Ptr();
@@ -169,10 +159,36 @@ namespace
     boost::condition_variable SyncEvent;
   };
 
-  Backend::Ptr AYLPTBackendCreator(const Parameters::Map& params)
+  class AYLPTBackendCreator : public BackendCreator
+                            , public boost::enable_shared_from_this<AYLPTBackendCreator>
   {
-    return Backend::Ptr(new SafeBackendWrapper<AYLPTBackend>(params));
-  }
+  public:
+    virtual String Id() const
+    {
+      return AYLPT_BACKEND_ID;
+    }
+
+    virtual String Description() const
+    {
+      return Text::AYLPT_BACKEND_DESCRIPTION;
+    }
+
+    virtual String Version() const
+    {
+      return AYLPT_BACKEND_VERSION;
+    }
+
+    virtual uint_t Capabilities() const
+    {
+      return CAP_TYPE_HARDWARE;
+    }
+
+    virtual Error CreateBackend(const Parameters::Map& params, Backend::Ptr& result) const
+    {
+      const BackendInformation::Ptr info = shared_from_this();
+      return SafeBackendWrapper<AYLPTBackend>::Create(info, params, result, THIS_LINE);
+    }
+  };
 }
 
 namespace ZXTune
@@ -183,9 +199,8 @@ namespace ZXTune
     {
       if (DLPortIO::IsSupported())
       {
-        BackendInformation info;
-        DescribeBackend(info);
-        enumerator.RegisterBackend(info, &AYLPTBackendCreator);
+        const BackendCreator::Ptr creator(new AYLPTBackendCreator());
+        enumerator.RegisterCreator(creator);
       }
     }
   }

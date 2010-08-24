@@ -29,6 +29,7 @@ Author:
 #include <algorithm>
 #include <fstream>
 //boost includes
+#include <boost/enable_shared_from_this.hpp>
 #include <boost/noncopyable.hpp>
 //text includes
 #include <sound/text/backends.h>
@@ -43,8 +44,8 @@ namespace
 
   const std::string THIS_MODULE("WavBackend");
 
-  const Char BACKEND_ID[] = {'w', 'a', 'v', 0};
-  const String BACKEND_VERSION(FromStdString("$Rev$"));
+  const Char WAV_BACKEND_ID[] = {'w', 'a', 'v', 0};
+  const String WAV_BACKEND_VERSION(FromStdString("$Rev$"));
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -294,33 +295,16 @@ namespace
     TrackProcessor::Ptr Logger;
   };
   
-  // backend description
-  void DescribeBackend(BackendInformation& info)
-  {
-    info.Id = BACKEND_ID;
-    info.Description = Text::WAV_BACKEND_DESCRIPTION;
-    info.Version = BACKEND_VERSION;
-    info.Capabilities = CAP_TYPE_FILE;
-  }
-
-  class WAVBackend : public BackendImpl, private boost::noncopyable
+  class WAVBackend : public BackendImpl
+                   , private boost::noncopyable
   {
   public:
-    WAVBackend()
-    {
-    }
-
     virtual ~WAVBackend()
     {
       assert(!Processor.get() || !"FileBackend::Stop should be called before exit");
     }
 
-    virtual void GetInformation(BackendInformation& info) const
-    {
-      DescribeBackend(info);
-    }
-
-    virtual VolumeControl::Ptr GetVolumeControl() const
+    VolumeControl::Ptr GetVolumeControl() const
     {
       // Does not support volume control
       return VolumeControl::Ptr();
@@ -386,10 +370,36 @@ namespace
 #endif
   };
   
-  Backend::Ptr WAVBackendCreator(const Parameters::Map& params)
+  class WAVBackendCreator : public BackendCreator
+                          , public boost::enable_shared_from_this<WAVBackendCreator>
   {
-    return Backend::Ptr(new SafeBackendWrapper<WAVBackend>(params));
-  }
+  public:
+    virtual String Id() const
+    {
+      return WAV_BACKEND_ID;
+    }
+
+    virtual String Description() const
+    {
+      return Text::WAV_BACKEND_DESCRIPTION;
+    }
+
+    virtual String Version() const
+    {
+      return WAV_BACKEND_VERSION;
+    }
+
+    virtual uint_t Capabilities() const
+    {
+      return CAP_TYPE_FILE;
+    }
+
+    virtual Error CreateBackend(const Parameters::Map& params, Backend::Ptr& result) const
+    {
+      const BackendInformation::Ptr info = shared_from_this();
+      return SafeBackendWrapper<WAVBackend>::Create(info, params, result, THIS_LINE);
+    }
+  };
 }
 
 namespace ZXTune
@@ -398,9 +408,8 @@ namespace ZXTune
   {
     void RegisterWAVBackend(BackendsEnumerator& enumerator)
     {
-      BackendInformation info;
-      DescribeBackend(info);
-      enumerator.RegisterBackend(info, &WAVBackendCreator);
+      const BackendCreator::Ptr creator(new WAVBackendCreator());
+      enumerator.RegisterCreator(creator);
     }
   }
 }

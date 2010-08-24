@@ -9,12 +9,15 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+//common includes
+#include <error_tools.h>
 //library includes
 #include <sound/backend.h>
-//std includes
-#include <memory>
 //boost includes
+#include <boost/scoped_ptr.hpp>
 #include <boost/weak_ptr.hpp>
+//text includes
+#include <sound/text/sound.h>
 
 namespace ZXTune
 {
@@ -23,8 +26,9 @@ namespace ZXTune
     template<class Impl>
     class SafeBackendWrapper : public Backend
     {
-    public:
-      explicit SafeBackendWrapper(const Parameters::Map& params) : Delegate(new Impl())
+      SafeBackendWrapper(BackendInformation::Ptr info, const Parameters::Map& params)
+        : Information(info)
+        , Delegate(new Impl())
       {
         //apply parameters to delegate
         ThrowIfError(Delegate->SetParameters(params));
@@ -32,15 +36,34 @@ namespace ZXTune
         Delegate->OnStartup();
         Delegate->OnShutdown();
       }
-      
+    public:
+      static Error Create(BackendInformation::Ptr info, const Parameters::Map& params,
+        Backend::Ptr& result, Error::LocationRef loc)
+      {
+        try
+        {
+          result.reset(new SafeBackendWrapper<Impl>(info, params));
+          return Error();
+        }
+        catch (const Error& e)
+        {
+          return MakeFormattedError(loc, BACKEND_FAILED_CREATE,
+            Text::SOUND_ERROR_BACKEND_FAILED, info->Id()).AddSuberror(e);
+        }
+        catch (const std::bad_alloc&)
+        {
+          return Error(loc, BACKEND_NO_MEMORY, Text::SOUND_ERROR_BACKEND_NO_MEMORY);
+        }
+      }
+
       virtual ~SafeBackendWrapper()
       {
         Delegate->Stop();//TODO: warn if error
       }
       
-      virtual void GetInformation(BackendInformation& info) const
+      virtual const BackendInformation& GetInformation() const
       {
-        return Delegate->GetInformation(info);
+        return *Information;
       }
 
       virtual Error SetModule(Module::Holder::Ptr holder)
@@ -109,7 +132,8 @@ namespace ZXTune
       }
       
     private:
-      std::auto_ptr<Impl> Delegate;
+      const BackendInformation::Ptr Information;
+      boost::scoped_ptr<Impl> Delegate;
     };
   }
 }

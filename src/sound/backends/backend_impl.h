@@ -26,30 +26,30 @@ namespace ZXTune
   namespace Sound
   {
     // Internal implementation for backend
-    class BackendImpl : public Backend
+    class BackendImpl
     {
     public:
       BackendImpl();
       virtual ~BackendImpl();
 
-      virtual Error SetModule(Module::Holder::Ptr holder);
-      virtual Module::Player::ConstWeakPtr GetPlayer() const;
+      Error SetModule(Module::Holder::Ptr holder);
+      Module::Player::ConstWeakPtr GetPlayer() const;
       
       // playback control functions
-      virtual Error Play();
-      virtual Error Pause();
-      virtual Error Stop();
-      virtual Error SetPosition(uint_t frame);
+      Error Play();
+      Error Pause();
+      Error Stop();
+      Error SetPosition(uint_t frame);
       
-      virtual State GetCurrentState(Error* error) const;
+      Backend::State GetCurrentState(Error* error) const;
 
-      virtual SignalsCollector::Ptr CreateSignalsCollector(uint_t signalsMask) const;
+      SignalsCollector::Ptr CreateSignalsCollector(uint_t signalsMask) const;
 
-      virtual Error SetMixer(const std::vector<MultiGain>& data);
-      virtual Error SetFilter(Converter::Ptr converter);
+      Error SetMixer(const std::vector<MultiGain>& data);
+      Error SetFilter(Converter::Ptr converter);
       //volume control should be implemented explicitly
-      virtual Error SetParameters(const Parameters::Map& params);
-      virtual Error GetParameters(Parameters::Map& params) const;
+      Error SetParameters(const Parameters::Map& params);
+      Error GetParameters(Parameters::Map& params) const;
     protected:
       //internal usage functions. Should not call external interface funcs due to sync
       virtual void OnStartup() = 0;
@@ -91,7 +91,7 @@ namespace ZXTune
       boost::mutex PauseMutex;
       boost::condition_variable PauseEvent;
       //state
-      volatile State CurrentState;
+      volatile Backend::State CurrentState;
       volatile bool InProcess;//STOP => STOPPING, STARTED => STARTING
       Error RenderError;
       //context

@@ -11,6 +11,7 @@
 #define __SOUND_BACKEND_H_DEFINED__
 
 //common includes
+#include <iterator.h>
 #include <signals_collector.h>
 //library includes
 #include <core/module_holder.h> // for Module::Holder::Ptr, Converter::Ptr and other
@@ -25,22 +26,24 @@ namespace ZXTune
   namespace Sound
   {
     //! @brief Describes supported backend
-    struct BackendInformation
+    class BackendInformation
     {
-      BackendInformation() : Capabilities()
-      {
-      }
+    public:
+      //! Pointer type
+      typedef boost::shared_ptr<const BackendInformation> Ptr;
+
+      virtual ~BackendInformation() {}
 
       //! Short spaceless identifier
-      String Id;
+      virtual String Id() const = 0;
       //! Textual description
-      String Description;
+      virtual String Description() const = 0;
       //! Version in text format
-      String Version;
+      virtual String Version() const = 0;
       //! Backend capabilities @see backend_attrs.h
-      uint_t Capabilities;
+      virtual uint_t Capabilities() const = 0;
     };
-    
+
     //! @brief Set of backend descriptors
     typedef std::vector<BackendInformation> BackendInformationArray;
 
@@ -74,8 +77,7 @@ namespace ZXTune
       virtual ~Backend() {}
 
       //! @brief Retrieving backend information
-      //! @param info Reference to result description
-      virtual void GetInformation(BackendInformation& info) const = 0;
+      virtual const BackendInformation& GetInformation() const = 0;
 
       //! @brief Binding module to backend
       //! @param holder Specified module
@@ -182,16 +184,26 @@ namespace ZXTune
       virtual Error GetParameters(Parameters::Map& params) const = 0;
     };
 
-    //! @brief Enumerating currently supported backends
-    //! @param backends Reference to information set
-    void EnumerateBackends(BackendInformationArray& backends);
-    
-    //! @brief Creating new backend
-    //! @param id Identificator of specific backend @see BackendInformation#Id
-    //! @param params Map of backend-related parameters
-    //! @param result Reference to result value
-    //! @return Error() in case of success
-    Error CreateBackend(const String& id, const Parameters::Map& params, Backend::Ptr& result);
+    //! @brief Backend creator interface
+    class BackendCreator : public BackendInformation
+    {
+    public:
+      //! Pointer type
+      typedef boost::shared_ptr<const BackendCreator> Ptr;
+      //! Iterator type
+      typedef Iterator<BackendCreator::Ptr> IteratorType;
+      //! Pointer to iterator type
+      typedef std::auto_ptr<IteratorType> IteratorPtr;
+
+      //! @brief Create backend using specified parameters
+      //! @param params Map of backend-related parameters
+      //! @param result Reference to result value
+      //! @return Error() in case of success
+      virtual Error CreateBackend(const Parameters::Map& params, Backend::Ptr& result) const = 0;
+    };
+
+    //! @brief Enumerating supported sound backends
+    BackendCreator::IteratorPtr EnumerateBackends();
   }
 }
 

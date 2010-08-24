@@ -36,7 +36,7 @@ __cpp> "#endif //__TEXT_SOUND_H_DEFINED__\n"
 
 #backend errors
 < SOUND_ERROR_BACKEND_NOT_FOUND
-> "Requested backend '%1%' is not supported."
+> "Requested backend is not supported."
 
 < SOUND_ERROR_BACKEND_FAILED
 > "Failed to create backend '%1%'."

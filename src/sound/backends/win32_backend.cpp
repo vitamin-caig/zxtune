@@ -28,6 +28,7 @@ Author:
 #include <algorithm>
 //boost includes
 #include <boost/bind.hpp>
+#include <boost/enable_shared_from_this.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/ref.hpp>
 //text includes
@@ -45,8 +46,8 @@ namespace
   const uint_t BUFFERS_MIN = 3;
   const uint_t BUFFERS_MAX = 10;
 
-  const Char BACKEND_ID[] = {'w', 'i', 'n', '3', '2', 0};
-  const String BACKEND_VERSION(FromStdString("$Rev$"));
+  const Char WIN32_BACKEND_ID[] = {'w', 'i', 'n', '3', '2', 0};
+  const String WIN32_BACKEND_VERSION(FromStdString("$Rev$"));
 
   inline void CheckMMResult(::MMRESULT res, Error::LocationRef loc)
   {
@@ -191,16 +192,8 @@ namespace
     int_t& Device;
   };
 
-  // backend description
-  void DescribeBackend(BackendInformation& info)
-  {
-    info.Id = BACKEND_ID;
-    info.Description = Text::WIN32_BACKEND_DESCRIPTION;
-    info.Version = BACKEND_VERSION;
-    info.Capabilities = CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
-  }
-
-  class Win32Backend : public BackendImpl, private boost::noncopyable
+  class Win32Backend : public BackendImpl
+                     , private boost::noncopyable
   {
   public:
     Win32Backend()
@@ -221,12 +214,7 @@ namespace
       ::CloseHandle(Event);
     }
 
-    virtual void GetInformation(BackendInformation& info) const
-    {
-      DescribeBackend(info);
-    }
-
-    virtual VolumeControl::Ptr GetVolumeControl() const
+    VolumeControl::Ptr GetVolumeControl() const
     {
       return VolumeController;
     }
@@ -345,10 +333,36 @@ namespace
     VolumeControl::Ptr VolumeController;
   };
 
-  Backend::Ptr Win32BackendCreator(const Parameters::Map& params)
+  class Win32BackendCreator : public BackendCreator
+                            , public boost::enable_shared_from_this<Win32BackendCreator>
   {
-    return Backend::Ptr(new SafeBackendWrapper<Win32Backend>(params));
-  }
+  public:
+    virtual String Id() const
+    {
+      return WIN32_BACKEND_ID;
+    }
+
+    virtual String Description() const
+    {
+      return Text::WIN32_BACKEND_DESCRIPTION;
+    }
+
+    virtual String Version() const
+    {
+      return WIN32_BACKEND_VERSION;
+    }
+
+    virtual uint_t Capabilities() const
+    {
+      return CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
+    }
+
+    virtual Error CreateBackend(const Parameters::Map& params, Backend::Ptr& result) const
+    {
+      const BackendInformation::Ptr info = shared_from_this();
+      return SafeBackendWrapper<Win32Backend>::Create(info, params, result, THIS_LINE);
+    }
+  };
 }
 
 namespace ZXTune
@@ -357,9 +371,8 @@ namespace ZXTune
   {
     void RegisterWin32Backend(BackendsEnumerator& enumerator)
     {
-      BackendInformation info;
-      DescribeBackend(info);
-      enumerator.RegisterBackend(info, &Win32BackendCreator);
+      const BackendCreator::Ptr creator(new Win32BackendCreator());
+      enumerator.RegisterCreator(creator);
     }
   }
 }

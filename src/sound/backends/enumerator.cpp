@@ -19,9 +19,7 @@ Author:
 #include <sound/error_codes.h>
 //std includes
 #include <cassert>
-#include <map>
-//boost includes
-#include <boost/bind.hpp>
+#include <list>
 //text includes
 #include <sound/text/sound.h>
 
@@ -33,50 +31,98 @@ namespace
 
   const std::string THIS_MODULE("Sound::Enumerator");
 
+  typedef std::list<BackendCreator::Ptr> BackendCreatorsList;
+
+  class BackendCreatorIteratorImpl : public BackendCreator::IteratorType
+  {
+    class BackendCreatorStub : public BackendCreator
+    {
+    public:
+      virtual String Id() const
+      {
+        return String();
+      }
+
+      virtual String Description() const
+      {
+        return String();
+      }
+
+      virtual String Version() const
+      {
+        return String();
+      }
+
+      virtual uint_t Capabilities() const
+      {
+        return 0;
+      }
+
+      virtual Error CreateBackend(const Parameters::Map& /*params*/, Backend::Ptr& /*result*/) const
+      {
+        return Error(THIS_LINE, BACKEND_NOT_FOUND, Text::SOUND_ERROR_BACKEND_NOT_FOUND);
+      }
+    };
+  public:
+    BackendCreatorIteratorImpl(BackendCreatorsList::const_iterator from,
+                               BackendCreatorsList::const_iterator to)
+      : Pos(from), Limit(to)
+    {
+    }
+
+    virtual bool IsValid() const
+    {
+      return Pos != Limit;
+    }
+
+    virtual BackendCreator::Ptr Get() const
+    {
+      //since this implementation is passed to external client, make it as safe as possible
+      if (Pos != Limit)
+      {
+        return *Pos;
+      }
+      assert(!"BackendCreator iterator is out of range");
+      return BackendCreator::Ptr(new BackendCreatorStub());
+    }
+
+    virtual void Next()
+    {
+      if (Pos != Limit)
+      {
+        ++Pos;
+      }
+      else
+      {
+        assert(!"BackendCreator iterator is out of range");
+      }
+    }
+  private:
+    BackendCreatorsList::const_iterator Pos;
+    const BackendCreatorsList::const_iterator Limit;
+  };
+
   class BackendsEnumeratorImpl : public BackendsEnumerator
   {
-    typedef std::map<String, CreateBackendFunc> CreatorsStorage;
   public:
     BackendsEnumeratorImpl()
     {
       RegisterBackends(*this);
     }
 
-    virtual void RegisterBackend(const BackendInformation& info, const CreateBackendFunc& creator)
+    virtual void RegisterCreator(BackendCreator::Ptr creator)
     {
       assert(creator);
-      assert(Creators.end() == Creators.find(info.Id) || !"Duplicated backend found");
-      Backends.push_back(info);
-      Creators.insert(CreatorsStorage::value_type(info.Id, creator));
-      Log::Debug(THIS_MODULE, "Registered backend '%1%'", info.Id);
+      Creators.push_back(creator);
+      Log::Debug(THIS_MODULE, "Registered backend '%1%'", creator->Id());
     }
 
-    virtual void EnumerateBackends(BackendInformationArray& infos) const
+    virtual BackendCreator::IteratorPtr Enumerate() const
     {
-      infos = Backends;
-    }
-
-    virtual Error CreateBackend(const String& id, const Parameters::Map& params, Backend::Ptr& result) const
-    {
-      Log::Debug(THIS_MODULE, "Creating backend '%1%'", id);
-      const CreatorsStorage::const_iterator it = Creators.find(id);
-      if (Creators.end() == it)
-      {
-        return MakeFormattedError(THIS_LINE, BACKEND_NOT_FOUND, Text::SOUND_ERROR_BACKEND_NOT_FOUND, id);
-      }
-      try
-      {
-        result = (it->second)(params);
-        return Error();
-      }
-      catch (const Error& e)
-      {
-        return MakeFormattedError(THIS_LINE, BACKEND_FAILED_CREATE, Text::SOUND_ERROR_BACKEND_FAILED, id).AddSuberror(e);
-      }
+      return BackendCreator::IteratorPtr(new BackendCreatorIteratorImpl(Creators.begin(), Creators.end()));
     }
   private:
-    BackendInformationArray Backends;
-    CreatorsStorage Creators;
+    BackendCreatorsList Creators;
   };
 }
 
@@ -90,21 +136,9 @@ namespace ZXTune
       return instance;
     }
 
-    void EnumerateBackends(BackendInformationArray& infos)
+    BackendCreator::IteratorPtr EnumerateBackends()
     {
-      return BackendsEnumerator::Instance().EnumerateBackends(infos);
-    }
-
-    Error CreateBackend(const String& id, const Parameters::Map& params, Backend::Ptr& result)
-    {
-      try
-      {
-        return BackendsEnumerator::Instance().CreateBackend(id, params, result);
-      }
-      catch (const std::bad_alloc&)
-      {
-        return Error(THIS_LINE, BACKEND_NO_MEMORY, Text::SOUND_ERROR_BACKEND_NO_MEMORY);
-      }
+      return BackendsEnumerator::Instance().Enumerate();
     }
   }
 }

@@ -27,7 +27,7 @@ namespace
 {
   using namespace ZXTune;
   using namespace ZXTune::Sound;
-  
+
   const std::string THIS_MODULE("BackendBase");
 
   typedef boost::lock_guard<boost::mutex> Locker;
@@ -180,7 +180,7 @@ namespace ZXTune
     BackendImpl::BackendImpl()
       : Signaller(SignalsDispatcher::Create())
       , SyncBarrier(TOTAL_WORKING_THREADS)
-      , CurrentState(NOTOPENED), InProcess(false)
+      , CurrentState(Backend::NOTOPENED), InProcess(false)
       , Channels(0), Renderer(new BufferRenderer(Buffer))
     {
       MixersSet.resize(MAX_MIXERS_COUNT);
@@ -189,8 +189,8 @@ namespace ZXTune
 
     BackendImpl::~BackendImpl()
     {
-      assert(STOPPED == CurrentState ||
-          NOTOPENED == CurrentState);
+      assert(Backend::STOPPED == CurrentState ||
+          Backend::NOTOPENED == CurrentState);
     }
 
     Error BackendImpl::SetModule(Module::Holder::Ptr holder)
@@ -204,7 +204,7 @@ namespace ZXTune
           StopPlayback();
           Holder.reset();
           Player.reset();
-          CurrentState = NOTOPENED;
+          CurrentState = Backend::NOTOPENED;
         }
         else
         {
@@ -229,8 +229,8 @@ namespace ZXTune
             ThrowIfError(CreateMixer(Channels, curMixer));
           }
           curMixer->SetTarget(FilterObject ? FilterObject : Renderer);
-          CurrentState = STOPPED;
-          SendSignal(MODULE_OPEN);
+          CurrentState = Backend::STOPPED;
+          SendSignal(Backend::MODULE_OPEN);
         }
         RenderError = Error();
         Log::Debug(THIS_MODULE, "Done!");
@@ -255,20 +255,20 @@ namespace ZXTune
         Locker lock(PlayerMutex);
         CheckState();
         
-        const State prevState = CurrentState;
-        if (STOPPED == prevState)
+        const Backend::State prevState = CurrentState;
+        if (Backend::STOPPED == prevState)
         {
           Log::Debug(THIS_MODULE, "Starting playback");
           Player->Reset();
           RenderThread = boost::thread(std::mem_fun(&BackendImpl::RenderFunc), this);
           SyncBarrier.wait();//wait until real start
-          if (STARTED != CurrentState)
+          if (Backend::STARTED != CurrentState)
           {
             ThrowIfError(RenderError);
           }
           Log::Debug(THIS_MODULE, "Started");
         }
-        else if (PAUSED == prevState)
+        else if (Backend::PAUSED == prevState)
         {
           Log::Debug(THIS_MODULE, "Resuming playback");
           boost::unique_lock<boost::mutex> locker(PauseMutex);
@@ -295,12 +295,12 @@ namespace ZXTune
       {
         Locker lock(PlayerMutex);
         CheckState();
-        if (STARTED == CurrentState)
+        if (Backend::STARTED == CurrentState)
         {
           Log::Debug(THIS_MODULE, "Pausing playback");
           boost::unique_lock<boost::mutex> locker(PauseMutex);
-          CurrentState = PAUSED;
-          //wait until really paused
+          CurrentState = Backend::PAUSED;
+          //wait until really Backend::PAUSED
           PauseEvent.wait(locker);
           Log::Debug(THIS_MODULE, "Paused");
         }
@@ -333,12 +333,12 @@ namespace ZXTune
       {
         Locker lock(PlayerMutex);
         CheckState();
-        if (STOPPED == CurrentState)
+        if (Backend::STOPPED == CurrentState)
         {
           return Error();
         }
         ThrowIfError(Player->SetPosition(frame));
-        SendSignal(MODULE_SEEK);
+        SendSignal(Backend::MODULE_SEEK);
         return Error();
       }
       catch (const Error& e)
@@ -447,25 +447,25 @@ namespace ZXTune
     void BackendImpl::DoStartup()
     {
       OnStartup();
-      SendSignal(MODULE_START);
+      SendSignal(Backend::MODULE_START);
     }
     
     void BackendImpl::DoShutdown()
     {
       OnShutdown();
-      SendSignal(MODULE_STOP);
+      SendSignal(Backend::MODULE_STOP);
     }
     
     void BackendImpl::DoPause()
     {
       OnPause();
-      SendSignal(MODULE_PAUSE);
+      SendSignal(Backend::MODULE_PAUSE);
     }
     
     void BackendImpl::DoResume()
     {
       OnResume();
-      SendSignal(MODULE_RESUME);
+      SendSignal(Backend::MODULE_RESUME);
     }
     
     void BackendImpl::DoBufferReady(std::vector<MultiSample>& buffer)
@@ -476,7 +476,7 @@ namespace ZXTune
     void BackendImpl::CheckState() const
     {
       ThrowIfError(RenderError);
-      if (NOTOPENED == CurrentState)
+      if (Backend::NOTOPENED == CurrentState)
       {
         throw Error(THIS_LINE, BACKEND_CONTROL_ERROR, Text::SOUND_ERROR_BACKEND_INVALID_STATE);
       }
@@ -484,20 +484,20 @@ namespace ZXTune
 
     void BackendImpl::StopPlayback()
     {
-      const State curState = CurrentState;
-      if (STARTED == curState ||
-          PAUSED == curState ||
-          (STOPPED == curState && InProcess))
+      const Backend::State curState = CurrentState;
+      if (Backend::STARTED == curState ||
+          Backend::PAUSED == curState ||
+          (Backend::STOPPED == curState && InProcess))
       {
         Log::Debug(THIS_MODULE, "Stopping playback");
-        if (PAUSED == curState)
+        if (Backend::PAUSED == curState)
         {
           boost::unique_lock<boost::mutex> locker(PauseMutex);
           PauseEvent.notify_one();
           //wait until really resumed
           PauseEvent.wait(locker);
         }
-        CurrentState = STOPPED;
+        CurrentState = Backend::STOPPED;
         InProcess = true;//stopping now
         {
           assert(!PlayerMutex.try_lock());
@@ -533,29 +533,29 @@ namespace ZXTune
       Log::Debug(THIS_MODULE, "Started playback thread");
       try
       {
-        CurrentState = STARTED;
+        CurrentState = Backend::STARTED;
         InProcess = true;//starting begin
         DoStartup();//throw
         SyncBarrier.wait();
         InProcess = false;//starting finished
         for (;;)
         {
-          const State curState = CurrentState;
-          if (STOPPED == curState)
+          const Backend::State curState = CurrentState;
+          if (Backend::STOPPED == curState)
           {
             break;
           }
-          else if (STARTED == curState)
+          else if (Backend::STARTED == curState)
           {
             if (!OnRenderFrame())
             {
-              CurrentState = STOPPED;
+              CurrentState = Backend::STOPPED;
               InProcess = true; //stopping begin
-              SendSignal(MODULE_FINISH);
+              SendSignal(Backend::MODULE_FINISH);
               break;
             }
           }
-          else if (PAUSED == curState)
+          else if (Backend::PAUSED == curState)
           {
             boost::unique_lock<boost::mutex> locker(PauseMutex);
             DoPause();
@@ -564,7 +564,7 @@ namespace ZXTune
             //wait until unpause
             PauseEvent.wait(locker);
             DoResume();
-            CurrentState = STARTED;
+            CurrentState = Backend::STARTED;
             //unpausing finished
             PauseEvent.notify_one();
           }
@@ -580,8 +580,8 @@ namespace ZXTune
         //if any...
         PauseEvent.notify_all();
         Log::Debug(THIS_MODULE, "Stopping playback thread by error");
-        CurrentState = FAILED;
-        SendSignal(MODULE_STOP);
+        CurrentState = Backend::FAILED;
+        SendSignal(Backend::MODULE_STOP);
         SyncBarrier.wait();
         InProcess = false;
       }
