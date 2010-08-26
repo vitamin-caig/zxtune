@@ -184,7 +184,7 @@ namespace
         AddFileDirectory = dialog.directory().absolutePath();
         const QStringList& files = dialog.selectedFiles();
         std::for_each(files.begin(), files.end(),
-          boost::bind(&Playlist::AddItemByPath, this,
+          boost::bind(&::Playlist::AddItemByPath, this,
             boost::bind(&FromQString, _1)));
       }
     }
@@ -285,7 +285,7 @@ namespace
       {
         const QList<QUrl>& urls = event->mimeData()->urls();
         std::for_each(urls.begin(), urls.end(),
-          boost::bind(&Playlist::AddItemByPath, this,
+          boost::bind(&::Playlist::AddItemByPath, this,
             boost::bind(&FromQString, boost::bind(&QUrl::toLocalFile, _1))));
       }
     }

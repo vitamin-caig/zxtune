@@ -29,7 +29,7 @@ String GetModuleTitle(const String& format,
   if (curTitle == emptyTitle)
   {
     String title;
-    Parameters::FindByName(info.Properties, ZXTune::Module::ATTR_FILENAME, title);
+    Parameters::FindByName(info.Properties, ZXTune::Module::ATTR_FULLPATH, title);
     assert(!title.empty());
     return title;
   }

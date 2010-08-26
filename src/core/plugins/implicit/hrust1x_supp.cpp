@@ -11,6 +11,7 @@ Author:
 
 //local includes
 #include <core/plugins/enumerator.h>
+#include <core/plugins/utils.h>
 //common includes
 #include <byteorder.h>
 #include <tools.h>
@@ -100,21 +101,30 @@ namespace
 
   inline bool CopyFromBack(int_t offset, Dump& dst)
   {
-    if (offset < -static_cast<int_t>(dst.size()))
+    assert(offset <= 0);
+    const std::size_t size = dst.size();
+    if (-offset > size)
     {
       return false;//invalid backreference
     }
-    dst.push_back(*(dst.end() + offset));
+    const Dump::value_type val = dst[size + offset];
+    dst.push_back(val);
     return true;
   }
 
   inline bool CopyFromBack(int_t offset, Dump& dst, uint_t count)
   {
-    if (offset < -static_cast<int_t>(dst.size()))
+    assert(offset <= 0);
+    const std::size_t size = dst.size();
+    if (-offset > size)
     {
       return false;//invalid backref
     }
-    std::copy(dst.end() + offset, dst.end() + offset + count, std::back_inserter(dst));
+    dst.resize(size + count);
+    const Dump::iterator dstStart = dst.begin() + size;
+    const Dump::const_iterator srcStart = dstStart + offset;
+    const Dump::const_iterator srcEnd = srcStart + count;
+    RecursiveCopy(srcStart, srcEnd, dstStart);
     return true;
   }
 

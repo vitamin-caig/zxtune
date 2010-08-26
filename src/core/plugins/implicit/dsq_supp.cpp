@@ -311,6 +311,22 @@ getbit:
     const unsigned LongOffsetBits;
   };
 
+  inline bool CopyFromBack(int_t offset, Dump& dst, uint_t count)
+  {
+    assert(offset <= 0);
+    const std::size_t size = dst.size();
+    if (-offset > size)
+    {
+      return false;//invalid backref
+    }
+    dst.resize(size + count);
+    const Dump::iterator dstStart = dst.begin() + size;
+    const Dump::const_iterator srcStart = dstStart + offset;
+    const Dump::const_iterator srcEnd = srcStart + count;
+    RecursiveCopy(srcStart, srcEnd, dstStart);
+    return true;
+  }
+
   bool DSQDepacker::Decode(uint_t limit, Dump& res) const
   {
     const uint_t packedSize = GetPackedSize();
@@ -351,11 +367,7 @@ getbit:
           {
             return false;
           }
-          Dump::const_iterator srcBegin = reverse.end();
-          std::advance(srcBegin, -static_cast<int_t>(offset));
-          Dump::const_iterator srcEnd = srcBegin;
-          std::advance(srcEnd, len);
-          std::copy(srcBegin, srcEnd, target);
+          CopyFromBack(-static_cast<int_t>(offset), reverse, len);
         }
       }
     }

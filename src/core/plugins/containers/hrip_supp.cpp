@@ -223,7 +223,9 @@ namespace
     Dump tmp;
     for (HripBlockHeadersList::const_iterator it = headers.begin(), lim = headers.end(); it != lim; ++it)
     {
-      if (!DecodeHripBlock(*it, tmp) && !ignoreCorrupted)
+      const bool isDecoded = DecodeHripBlock(*it, tmp);
+      const bool isValid = fromLE((*it)->DataCRC) == CalcCRC(&tmp[0], tmp.size());
+      if (!(isDecoded && isValid) && !ignoreCorrupted)
       {
         return false;
       }
