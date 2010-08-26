@@ -6,6 +6,7 @@ makedir_cmd = if NOT EXIST $(subst /,\,$(1)) mkdir $(subst /,\,$(1))
 
 compiler=gcc
 cxx_mode_flags += -march=native
+ld_mode_flags += -static
 
 #built-in features
 support_waveout = 1

@@ -9,6 +9,7 @@ SET INCLUDE=%VS_PATH%\Vc7\include;%VS_PATH%\Vc7\PlatformSDK\Include
 SET MSVS_VERSION=vc71
 
 SET self=%0%
+call %self:setup_msvs71=setup_build%
 call %self:setup_msvs71=setup_boost%
 call %self:setup_msvs71=setup_qt%
 SET self=

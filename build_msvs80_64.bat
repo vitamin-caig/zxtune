@@ -2,4 +2,4 @@
 
 call make\platforms\setup_msvs80_x64.bat
 
-call build.bat zxtune123 windows x86_64
+call build.bat "zxtune123 zxtune-qt" windows x86_64

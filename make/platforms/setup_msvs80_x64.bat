@@ -9,6 +9,8 @@ SET INCLUDE=%VS_PATH%\VC\include;%VS_PATH%\VC\PlatformSDK\Include
 SET MSVS_VERSION=vc80
 
 SET self=%0%
+call %self:setup_msvs80_x64=setup_build%
 call %self:setup_msvs80_x64=setup_boost% 64
+call %self:setup_msvs80_x64=setup_qt% 64
 SET self=
 :Quit
