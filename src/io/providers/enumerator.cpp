@@ -35,7 +35,7 @@ namespace
 
   typedef std::vector<DataProvider::Ptr> ProvidersList;
 
-  class ProviderIteratorImpl : public Provider::IteratorType
+  class ProviderIteratorImpl : public Provider::Iterator
   {
     class ProviderStub : public Provider
     {
@@ -53,6 +53,10 @@ namespace
       virtual String Version() const
       {
         return String();
+      }
+
+      static void Deleter(Provider*)
+      {
       }
     };
   public:
@@ -75,7 +79,8 @@ namespace
         return *Pos;
       }
       assert(!"Provider iterator is out of range");
-      return Provider::Ptr(new ProviderStub());
+      static ProviderStub stub;
+      return Provider::Ptr(&stub, &ProviderStub::Deleter);
     }
 
     virtual void Next()
@@ -145,9 +150,9 @@ namespace
       return Error(THIS_LINE, ERROR_NOT_SUPPORTED, Text::IO_ERROR_NOT_SUPPORTED_URI);
     }
 
-    virtual Provider::IteratorPtr Enumerate() const
+    virtual Provider::Iterator::Ptr Enumerate() const
     {
-      return Provider::IteratorPtr(new ProviderIteratorImpl(Providers.begin(), Providers.end()));
+      return Provider::Iterator::Ptr(new ProviderIteratorImpl(Providers.begin(), Providers.end()));
     }
   private:
     const DataProvider* FindProvider(const String& uri) const
@@ -198,7 +203,7 @@ namespace ZXTune
       return ProvidersEnumerator::Instance().CombineUri(baseUri, subpath, uri);
     }
 
-    Provider::IteratorPtr EnumerateProviders()
+    Provider::Iterator::Ptr EnumerateProviders()
     {
       return ProvidersEnumerator::Instance().Enumerate();
     }

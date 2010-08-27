@@ -33,7 +33,7 @@ namespace
 
   typedef std::list<BackendCreator::Ptr> BackendCreatorsList;
 
-  class BackendCreatorIteratorImpl : public BackendCreator::IteratorType
+  class BackendCreatorIteratorImpl : public BackendCreator::Iterator
   {
     class BackendCreatorStub : public BackendCreator
     {
@@ -62,6 +62,10 @@ namespace
       {
         return Error(THIS_LINE, BACKEND_NOT_FOUND, Text::SOUND_ERROR_BACKEND_NOT_FOUND);
       }
+
+      static void Deleter(BackendCreatorStub*)
+      {
+      }
     };
   public:
     BackendCreatorIteratorImpl(BackendCreatorsList::const_iterator from,
@@ -83,7 +87,8 @@ namespace
         return *Pos;
       }
       assert(!"BackendCreator iterator is out of range");
-      return BackendCreator::Ptr(new BackendCreatorStub());
+      static BackendCreatorStub stub;
+      return BackendCreator::Ptr(&stub, &BackendCreatorStub::Deleter);
     }
 
     virtual void Next()
@@ -117,9 +122,9 @@ namespace
       Log::Debug(THIS_MODULE, "Registered backend '%1%'", creator->Id());
     }
 
-    virtual BackendCreator::IteratorPtr Enumerate() const
+    virtual BackendCreator::Iterator::Ptr Enumerate() const
     {
-      return BackendCreator::IteratorPtr(new BackendCreatorIteratorImpl(Creators.begin(), Creators.end()));
+      return BackendCreator::Iterator::Ptr(new BackendCreatorIteratorImpl(Creators.begin(), Creators.end()));
     }
   private:
     BackendCreatorsList Creators;
@@ -136,7 +141,7 @@ namespace ZXTune
       return instance;
     }
 
-    BackendCreator::IteratorPtr EnumerateBackends()
+    BackendCreator::Iterator::Ptr EnumerateBackends()
     {
       return BackendsEnumerator::Instance().Enumerate();
     }

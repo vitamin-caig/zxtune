@@ -61,7 +61,7 @@ namespace
     }
   }
 
-  class PluginIteratorImpl : public Plugin::IteratorType
+  class PluginIteratorImpl : public Plugin::Iterator
   {
     class PluginStub : public Plugin
     {
@@ -85,6 +85,10 @@ namespace
       {
         return 0;
       }
+
+      static void Deleter(PluginStub*)
+      {
+      }
     };
   public:
     PluginIteratorImpl(PluginsMap::const_iterator from,
@@ -106,7 +110,8 @@ namespace
         return Pos->second;
       }
       assert(!"Plugin iterator is out of range");
-      return Plugin::Ptr(new PluginStub());
+      static PluginStub stub;
+      return Plugin::Ptr(&stub, &PluginStub::Deleter);
     }
 
     virtual void Next()
@@ -164,9 +169,9 @@ namespace
     }
 
     //public interface
-    virtual Plugin::IteratorPtr Enumerate() const
+    virtual Plugin::Iterator::Ptr Enumerate() const
     {
-      return Plugin::IteratorPtr(new PluginIteratorImpl(AllPlugins.begin(), AllPlugins.end()));
+      return Plugin::Iterator::Ptr(new PluginIteratorImpl(AllPlugins.begin(), AllPlugins.end()));
     }
 
     // Open subpath in despite of filter and other
@@ -497,7 +502,7 @@ namespace ZXTune
   }
 
 
-  Plugin::IteratorPtr EnumeratePlugins()
+  Plugin::Iterator::Ptr EnumeratePlugins()
   {
     return PluginsEnumerator::Instance().Enumerate();
   }

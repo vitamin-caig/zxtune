@@ -122,7 +122,7 @@ namespace ZXTune
     virtual const Plugin& GetPluginById(const String& id) const = 0;
 
     //public interface
-    virtual Plugin::IteratorPtr Enumerate() const = 0;
+    virtual Plugin::Iterator::Ptr Enumerate() const = 0;
 
     //private interface
     //resolve subpath

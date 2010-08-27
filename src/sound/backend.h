@@ -191,9 +191,7 @@ namespace ZXTune
       //! Pointer type
       typedef boost::shared_ptr<const BackendCreator> Ptr;
       //! Iterator type
-      typedef Iterator<BackendCreator::Ptr> IteratorType;
-      //! Pointer to iterator type
-      typedef std::auto_ptr<IteratorType> IteratorPtr;
+      typedef ObjectIterator<BackendCreator::Ptr> Iterator;
 
       //! @brief Create backend using specified parameters
       //! @param params Map of backend-related parameters
@@ -203,7 +201,7 @@ namespace ZXTune
     };
 
     //! @brief Enumerating supported sound backends
-    BackendCreator::IteratorPtr EnumerateBackends();
+    BackendCreator::Iterator::Ptr EnumerateBackends();
   }
 }
 

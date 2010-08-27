@@ -24,7 +24,7 @@ namespace ZXTune
       virtual ~BackendsEnumerator() {}
 
       virtual void RegisterCreator(BackendCreator::Ptr creator) = 0;
-      virtual BackendCreator::IteratorPtr Enumerate() const = 0;
+      virtual BackendCreator::Iterator::Ptr Enumerate() const = 0;
 
       static BackendsEnumerator& Instance();
     };

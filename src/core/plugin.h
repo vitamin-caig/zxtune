@@ -26,9 +26,7 @@ namespace ZXTune
     //! Pointer type
     typedef boost::shared_ptr<const Plugin> Ptr;
     //! Iterator type
-    typedef Iterator<Plugin::Ptr> IteratorType;
-    //! Pointer to iterator type
-    typedef std::auto_ptr<IteratorType> IteratorPtr;
+    typedef ObjectIterator<Plugin::Ptr> Iterator;
 
     //! Virtual destructor
     virtual ~Plugin() {}
@@ -43,7 +41,7 @@ namespace ZXTune
     virtual uint_t Capabilities() const = 0;
   };
 
-  Plugin::IteratorPtr EnumeratePlugins();
+  Plugin::Iterator::Ptr EnumeratePlugins();
 }
 
 #endif //__CORE_PLUGIN_H_DEFINED__

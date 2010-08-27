@@ -60,9 +60,7 @@ namespace ZXTune
       //! Pointer type
       typedef boost::shared_ptr<const Provider> Ptr;
       //! Iterator type
-      typedef Iterator<Provider::Ptr> IteratorType;
-      //! Pointer to iterator type
-      typedef std::auto_ptr<IteratorType> IteratorPtr;
+      typedef ObjectIterator<Provider::Ptr> Iterator;
 
       //! Virtual destructor
       virtual ~Provider() {}
@@ -76,7 +74,7 @@ namespace ZXTune
     };
 
     //! @brief Enumerating supported %IO providers
-    Provider::IteratorPtr EnumerateProviders();
+    Provider::Iterator::Ptr EnumerateProviders();
   }
 }
 

@@ -49,7 +49,7 @@ namespace ZXTune
       virtual Error SplitUri(const String& uri, String& baseUri, String& subpath) const = 0;
       virtual Error CombineUri(const String& baseUri, const String& subpath, String& uri) const = 0;
       
-      virtual Provider::IteratorPtr Enumerate() const = 0;
+      virtual Provider::Iterator::Ptr Enumerate() const = 0;
       
       static ProvidersEnumerator& Instance();
     };
