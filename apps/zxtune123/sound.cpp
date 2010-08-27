@@ -165,7 +165,7 @@ namespace
       , Looped(false)
     {
       using namespace boost::program_options;
-      for (ZXTune::Sound::BackendCreator::IteratorPtr backends = ZXTune::Sound::EnumerateBackends();
+      for (ZXTune::Sound::BackendCreator::Iterator::Ptr backends = ZXTune::Sound::EnumerateBackends();
         backends->IsValid(); backends->Next())
       {
         const ZXTune::Sound::BackendCreator::Ptr creator = backends->Get();

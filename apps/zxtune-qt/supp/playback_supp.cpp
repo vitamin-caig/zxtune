@@ -168,7 +168,7 @@ namespace
       //create backend
       {
         Parameters::Map params;
-        for (Sound::BackendCreator::IteratorPtr backends = Sound::EnumerateBackends();
+        for (Sound::BackendCreator::Iterator::Ptr backends = Sound::EnumerateBackends();
           backends->IsValid(); backends->Next())
         {
           if (!backends->Get()->CreateBackend(params, Backend))

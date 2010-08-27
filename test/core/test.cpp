@@ -213,7 +213,7 @@ int main()
     bool detailed = true;
 
     std::cout << "Supported plugins:" << std::endl;
-    for (Plugin::IteratorPtr plugins = EnumeratePlugins(); plugins->IsValid(); plugins->Next())
+    for (Plugin::Iterator::Ptr plugins = EnumeratePlugins(); plugins->IsValid(); plugins->Next())
     {
       ShowPluginInfo(plugins->Get());
     }

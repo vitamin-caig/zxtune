@@ -108,7 +108,7 @@ int main()
   using namespace ZXTune::IO;
   std::cout << "------ test for enumeration -------\n";
 
-  Provider::IteratorPtr providers;
+  Provider::Iterator::Ptr providers;
   for (providers = EnumerateProviders(); providers->IsValid(); providers->Next())
   {
     OutProvider(providers->Get());

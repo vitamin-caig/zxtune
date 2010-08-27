@@ -112,7 +112,7 @@ namespace
   inline void ShowPlugins()
   {
     StdOut << Text::INFO_LIST_PLUGINS_TITLE << std::endl;
-    for (ZXTune::Plugin::IteratorPtr plugins = ZXTune::EnumeratePlugins(); plugins->IsValid(); plugins->Next())
+    for (ZXTune::Plugin::Iterator::Ptr plugins = ZXTune::EnumeratePlugins(); plugins->IsValid(); plugins->Next())
     {
       ShowPlugin(*plugins->Get());
     }
@@ -127,7 +127,7 @@ namespace
   inline void ShowBackends()
   {
     using namespace ZXTune::Sound;
-    for (BackendCreator::IteratorPtr backends = EnumerateBackends();
+    for (BackendCreator::Iterator::Ptr backends = EnumerateBackends();
       backends->IsValid(); backends->Next())
     {
       ShowBackend(*backends->Get());
@@ -144,7 +144,7 @@ namespace
   {
     using namespace ZXTune::IO;
     StdOut << Text::INFO_LIST_PROVIDERS_TITLE << std::endl;
-    for (Provider::IteratorPtr providers = EnumerateProviders(); 
+    for (Provider::Iterator::Ptr providers = EnumerateProviders(); 
       providers->IsValid(); providers->Next())
     {
       ShowProvider(*providers->Get());

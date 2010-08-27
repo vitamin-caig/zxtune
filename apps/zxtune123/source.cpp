@@ -218,7 +218,7 @@ namespace
     virtual void Initialize()
     {
       StringSet allplugs;
-      for (ZXTune::Plugin::IteratorPtr plugs = ZXTune::EnumeratePlugins(); plugs->IsValid(); plugs->Next())
+      for (ZXTune::Plugin::Iterator::Ptr plugs = ZXTune::EnumeratePlugins(); plugs->IsValid(); plugs->Next())
       {
         const ZXTune::Plugin::Ptr plugin = plugs->Get();
         allplugs.insert(plugin->Id());

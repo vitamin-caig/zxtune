@@ -272,7 +272,7 @@ int main()
   using namespace ZXTune;
   using namespace ZXTune::Sound;
   
-  for (BackendCreator::IteratorPtr iterator = EnumerateBackends(); iterator->IsValid(); iterator->Next())
+  for (BackendCreator::Iterator::Ptr iterator = EnumerateBackends(); iterator->IsValid(); iterator->Next())
   {
     try
     {
