@@ -500,9 +500,9 @@ namespace
       Data->FillStatisticInfo(0, header->Tempo, AYM::CHANNELS);
     }
 
-    virtual const Plugin& GetPlugin() const
+    virtual Plugin::Ptr GetPlugin() const
     {
-      return *SrcPlugin;
+      return SrcPlugin;
     }
 
     virtual void GetModuleInformation(Information& info) const

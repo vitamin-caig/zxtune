@@ -165,8 +165,8 @@ namespace
 
   Error PluginCallback(const String& subpath, Module::Holder::Ptr holder, unsigned& count, const bool& detailed)
   {
-    const Plugin& plugInfo = holder->GetPlugin();
-    std::cout << " Plugin " << plugInfo.Id() << " at '" << subpath << "'" << std::endl;
+    const Plugin::Ptr plugInfo = holder->GetPlugin();
+    std::cout << " Plugin " << plugInfo->Id() << " at '" << subpath << "'" << std::endl;
     if (detailed)
     {
       Module::Information modInfo;

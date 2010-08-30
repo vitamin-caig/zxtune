@@ -12,12 +12,10 @@
 
 //library includes
 #include <core/module_player.h>
+#include <core/plugin.h>
 
 namespace ZXTune
 {
-  //forward declarations
-  class Plugin;
-
   namespace Module
   {
     namespace Conversion
@@ -37,7 +35,7 @@ namespace ZXTune
       virtual ~Holder() {}
 
       //! @brief Retrieving plugin info
-      virtual const Plugin& GetPlugin() const = 0;
+      virtual Plugin::Ptr GetPlugin() const = 0;
 
       //! @brief Retrieving info about loaded module
       //! @param info Reference to returned value

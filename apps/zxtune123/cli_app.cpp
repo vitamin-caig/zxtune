@@ -111,10 +111,10 @@ namespace
     bool ProcessItem(const ModuleItem& item) const
     {
       {
-        const ZXTune::Plugin& plugin = item.Module->GetPlugin();
-        if (!(plugin.Capabilities() & CapabilityMask))
+        const ZXTune::Plugin::Ptr plugin = item.Module->GetPlugin();
+        if (!(plugin->Capabilities() & CapabilityMask))
         {
-          Display.Message((Formatter(Text::CONVERT_SKIPPED) % item.Id % plugin.Id()).str());
+          Display.Message((Formatter(Text::CONVERT_SKIPPED) % item.Id % plugin->Id()).str());
           return true;
         }
       }

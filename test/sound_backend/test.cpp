@@ -80,19 +80,15 @@ namespace
   public:
     DummyHolder() {}
     
-    virtual const Plugin& GetPlugin() const
+    virtual Plugin::Ptr GetPlugin() const
     {
-      static DummyPlugin plugin;
+      static Plugin::Ptr plugin(new DummyPlugin());
       return plugin;
     }
     
     virtual void GetModuleInformation(Module::Information& info) const
     {
       info.PhysicalChannels = 3;
-    }
-    
-    void ModifyCustomAttributes(const Parameters::Map&, bool)
-    {
     }
     
     virtual Module::Player::Ptr CreatePlayer() const

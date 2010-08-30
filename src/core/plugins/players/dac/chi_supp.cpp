@@ -322,9 +322,9 @@ namespace
       Data->FillStatisticInfo(header->Loop, header->Tempo, CHANNELS_COUNT);
     }
 
-    virtual const Plugin& GetPlugin() const
+    virtual Plugin::Ptr GetPlugin() const
     {
-      return *SrcPlugin;
+      return SrcPlugin;
     }
 
     virtual void GetModuleInformation(Information& info) const

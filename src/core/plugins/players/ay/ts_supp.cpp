@@ -185,9 +185,9 @@ namespace
       Info.Properties.swap(mergedProps);
     }
 
-    virtual const Plugin& GetPlugin() const
+    virtual Plugin::Ptr GetPlugin() const
     {
-      return *SrcPlugin;
+      return SrcPlugin;
     }
 
     virtual void GetModuleInformation(Information& info) const
@@ -348,7 +348,7 @@ namespace
   
   inline bool InvalidHolder(const Module::Holder& holder)
   {
-    const uint_t caps = holder.GetPlugin().Capabilities();
+    const uint_t caps = holder.GetPlugin()->Capabilities();
     return 0 != (caps & (CAP_STORAGE_MASK ^ CAP_STOR_MODULE)) ||
            0 != (caps & (CAP_DEVICE_MASK ^ CAP_DEV_AYM)); 
   }
