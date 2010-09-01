@@ -110,7 +110,7 @@ namespace
 
   typedef std::vector<TRDFileEntry> FileDescriptions;
 
-  bool ParseTRDFile(const IO::FastDump& data, FileDescriptions& descrs)
+  bool CheckTRDFile(const IO::FastDump& data)
   {
     //it's meaningless to support trunkated files
     if (data.Size() < TRD_MODULE_SIZE)
@@ -122,10 +122,30 @@ namespace
     {
       return false;
     }
+    const CatEntry* catEntry = safe_ptr_cast<const CatEntry*>(data.Data());
+    for (uint_t idx = 0; idx != MAX_FILES_COUNT && NOENTRY != catEntry->Name[0]; ++idx, ++catEntry)
+    {
+      if (DELETED != catEntry->Name[0] &&
+          catEntry->SizeInSectors &&
+          catEntry->Offset() + catEntry->Size() > TRD_MODULE_SIZE)
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool ParseTRDFile(const IO::FastDump& data, FileDescriptions& descrs)
+  {
+    if (!CheckTRDFile(data))
+    {
+      return false;
+    }
 
     FileDescriptions res;
     res.reserve(MAX_FILES_COUNT);
 
+    const ServiceSector* const sector = safe_ptr_cast<const ServiceSector*>(&data[SERVICE_SECTOR_NUM * BYTES_PER_SECTOR]);
     uint_t deleted = 0;
     const CatEntry* catEntry = safe_ptr_cast<const CatEntry*>(data.Data());
     for (uint_t idx = 0; idx != MAX_FILES_COUNT && NOENTRY != catEntry->Name[0]; ++idx, ++catEntry)
@@ -136,11 +156,6 @@ namespace
       }
       else if (catEntry->SizeInSectors)
       {
-        //check for invalid entry
-        if (catEntry->Offset() + catEntry->Size() > TRD_MODULE_SIZE)
-        {
-          return false;
-        }
         const TRDFileEntry& newOne =
           TRDFileEntry(GetTRDosName(catEntry->Name, catEntry->Type), catEntry->Offset(), catEntry->Size());
         if (!res.empty() && res.back().IsMergeable(newOne))
@@ -184,6 +199,12 @@ namespace
       return CAP_STOR_MULTITRACK | CAP_STOR_PLAIN;
     }
 
+    virtual bool Check(const IO::DataContainer& inputData) const
+    {
+      const IO::FastDump dump(inputData);
+      return CheckTRDFile(dump);
+    }
+
     virtual Error Process(const Parameters::Map& commonParams,
       const DetectParameters& detectParams,
       const MetaContainer& data, ModuleRegion& region) const
@@ -194,8 +215,9 @@ namespace
       {
         return Error(THIS_LINE, Module::ERROR_FIND_CONTAINER_PLUGIN);
       }
+      const IO::FastDump dump(*data.Data);
       FileDescriptions files;
-      if (!ParseTRDFile(IO::FastDump(*data.Data), files))
+      if (!ParseTRDFile(dump, files))
       {
         return Error(THIS_LINE, Module::ERROR_FIND_CONTAINER_PLUGIN);
       }

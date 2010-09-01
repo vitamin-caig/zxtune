@@ -74,10 +74,8 @@ namespace
       return CAP_STOR_CONTAINER | CAP_STOR_PLAIN;
     }
 
-    virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Map& /*commonParams*/,
-      const MetaContainer& input, ModuleRegion& region) const
+    virtual bool Check(const IO::DataContainer& inputData) const
     {
-      const IO::DataContainer& inputData = *input.Data;
       const std::size_t limit = inputData.Size();
       const uint8_t* const data = static_cast<const uint8_t*>(inputData.Data());
       const Header* const header = safe_ptr_cast<const Header*>(data);
@@ -92,11 +90,25 @@ namespace
             std::bind2nd(std::less<uint8_t>(), uint8_t(' ')))
           )
       {
-        return IO::DataContainer::Ptr();
+        return false;
       }
       //check for crc
       if (fromLE(header->CRC) == ((105 + 257 * std::accumulate(data, data + 15, 0u)) & 0xffff))
       {
+        return true;
+      }
+      return false;
+    }
+
+    virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Map& /*commonParams*/,
+      const MetaContainer& input, ModuleRegion& region) const
+    {
+      const IO::DataContainer& inputData = *input.Data;
+      if (Check(inputData))
+      {
+        const Header* const header = safe_ptr_cast<const Header*>(inputData.Data());
+        const std::size_t dataSize = fromLE(header->Length);
+        const std::size_t fullSize = fromLE(header->FullLength);
         region.Offset = 0;
         region.Size = fullSize + sizeof(*header);
         return inputData.GetSubcontainer(sizeof(*header), dataSize);

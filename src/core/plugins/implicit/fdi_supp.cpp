@@ -114,21 +114,19 @@ namespace
       return CAP_STOR_CONTAINER;
     }
 
-    virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Map& /*commonParams*/,
-      const MetaContainer& input, ModuleRegion& region) const
+    virtual bool Check(const IO::DataContainer& inputData) const
     {
-      const IO::DataContainer& inputData = *input.Data;
       const std::size_t limit = inputData.Size();
       if (limit < sizeof(FDIHeader))
       {
-        return IO::DataContainer::Ptr();
+        return false;
       }
       const uint8_t* const data = static_cast<const uint8_t*>(inputData.Data());
       const FDIHeader* const header = safe_ptr_cast<const FDIHeader*>(data);
       BOOST_STATIC_ASSERT(sizeof(header->ID) == sizeof(FDI_ID));
       if (0 != std::memcmp(header->ID, FDI_ID, sizeof(FDI_ID)))
       {
-        return IO::DataContainer::Ptr();
+        return false;
       }
       const std::size_t dataOffset = fromLE(header->DataOffset);
       const uint_t cylinders = fromLE(header->Cylinders);
@@ -136,8 +134,51 @@ namespace
       if (dataOffset < sizeof(*header) || dataOffset > limit ||
           !cylinders || !sides)
       {
+        return false;
+      }
+
+      const FDITrack* trackInfo = safe_ptr_cast<const FDITrack*>(data + sizeof(*header) + fromLE(header->InfoSize));
+      std::size_t rawSize = dataOffset;
+      for (uint_t cyl = 0; cyl != cylinders; ++cyl)
+      {
+        for (uint_t sid = 0; sid != sides; ++sid)
+        {
+          for (std::size_t secNum = 0; secNum != trackInfo->SectorsCount; ++secNum)
+          {
+            const FDITrack::Sector* const sector = trackInfo->Sectors + secNum;
+            const std::size_t secSize = 128 << sector->Size;
+            //since there's no information about head number (always 0), do not check it
+            //assert(sector->Head == sid);
+            if (sector->Cylinder != cyl)
+            {
+              return false;
+            }
+            const std::size_t offset = dataOffset + fromLE(sector->Offset) + fromLE(trackInfo->Offset);
+            if (offset + secSize > limit)
+            {
+              return false;
+            }
+          }
+        }
+      }
+      return true;
+    }
+
+    virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Map& /*commonParams*/,
+      const MetaContainer& input, ModuleRegion& region) const
+    {
+      const IO::DataContainer& inputData = *input.Data;
+      const std::size_t limit = inputData.Size();
+      if (!Check(inputData))
+      {
         return IO::DataContainer::Ptr();
       }
+
+      const uint8_t* const data = static_cast<const uint8_t*>(inputData.Data());
+      const FDIHeader* const header = safe_ptr_cast<const FDIHeader*>(data);
+      const std::size_t dataOffset = fromLE(header->DataOffset);
+      const uint_t cylinders = fromLE(header->Cylinders);
+      const uint_t sides = fromLE(header->Sides);
 
       Dump buffer;
       buffer.reserve(FDI_MAX_SIZE);
@@ -155,17 +196,7 @@ namespace
           {
             const FDITrack::Sector* const sector = trackInfo->Sectors + secNum;
             const std::size_t secSize = 128 << sector->Size;
-            //since there's no information about head number (always 0), do not check it
-            //assert(sector->Head == sid);
-            if (sector->Cylinder != cyl)
-            {
-              return IO::DataContainer::Ptr();
-            }
             const std::size_t offset = dataOffset + fromLE(sector->Offset) + fromLE(trackInfo->Offset);
-            if (offset + secSize > limit)
-            {
-              return IO::DataContainer::Ptr();
-            }
             sectors.push_back(SectorDescr(sector->Number, data + offset, data + offset + secSize));
             rawSize = std::max(rawSize, offset + secSize);
           }

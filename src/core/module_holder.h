@@ -28,9 +28,7 @@ namespace ZXTune
     {
     public:
       //! @brief Pointer type
-      typedef boost::shared_ptr<Holder> Ptr;
-      //! @brief Read-only pointer type
-      typedef boost::shared_ptr<const Holder> ConstPtr;
+      typedef boost::shared_ptr<const Holder> Ptr;
 
       virtual ~Holder() {}
 

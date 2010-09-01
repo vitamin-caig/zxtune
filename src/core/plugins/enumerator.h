@@ -69,6 +69,10 @@ namespace ZXTune
   public:
     typedef boost::shared_ptr<const ImplicitPlugin> Ptr;
 
+    //! @brief Checking if data contains implicit subdata
+    //! @return true if possibly yes, false if defenitely no
+    virtual bool Check(const IO::DataContainer& inputData) const = 0;
+
     //! @brief Extracting subdata from specified input data
     //! @param parameters Options for subdata extraction
     //! @param inputData Source memory data
@@ -83,6 +87,10 @@ namespace ZXTune
   {
   public:
     typedef boost::shared_ptr<const ContainerPlugin> Ptr;
+
+    //! @brief Checking if data contains implicit subdata
+    //! @return true if possibly yes, false if defenitely no
+    virtual bool Check(const IO::DataContainer& inputData) const = 0;
 
     //! @brief Process input data as container
     //! @param parameters Options for processing

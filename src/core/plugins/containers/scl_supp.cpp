@@ -82,13 +82,12 @@ namespace
 
   typedef std::vector<TRDFileEntry> FileDescriptions;
 
-  //fill descriptors array and return actual container size
-  uint_t ParseSCLFile(const IO::FastDump& data, FileDescriptions& descrs)
+  bool CheckSCLFile(const IO::FastDump& data)
   {
     const uint_t limit = data.Size();
     if (limit < SCL_MIN_SIZE)
     {
-      return 0;
+      return false;
     }
     const SCLHeader* const header = safe_ptr_cast<const SCLHeader*>(data.Data());
     if (0 != std::memcmp(header->ID, SINCLAIR_ID, sizeof(SINCLAIR_ID)) ||
@@ -97,8 +96,20 @@ namespace
         limit < sizeof(*header) - sizeof(header->Blocks) + (BYTES_PER_SECTOR + sizeof(header->Blocks) * header->BlocksCount)
        )
     {
+      return false;
+    }
+    return true;
+  }
+
+  //fill descriptors array and return actual container size
+  uint_t ParseSCLFile(const IO::FastDump& data, FileDescriptions& descrs)
+  {
+    if (!CheckSCLFile(data))
+    {
       return 0;
     }
+    const uint_t limit = data.Size();
+    const SCLHeader* const header = safe_ptr_cast<const SCLHeader*>(data.Data());
 
     FileDescriptions res;
     res.reserve(header->BlocksCount);
@@ -153,12 +164,19 @@ namespace
       return CAP_STOR_MULTITRACK | CAP_STOR_PLAIN;
     }
 
+    virtual bool Check(const IO::DataContainer& inputData) const
+    {
+      const IO::FastDump dump(inputData);
+      return CheckSCLFile(dump);
+    }
+
     virtual Error Process(const Parameters::Map& commonParams, 
       const DetectParameters& detectParams,
       const MetaContainer& data, ModuleRegion& region) const
     {
+      const IO::FastDump dump(*data.Data);
       FileDescriptions files;
-      const uint_t parsedSize = ParseSCLFile(IO::FastDump(*data.Data), files);
+      const uint_t parsedSize = ParseSCLFile(dump, files);
       if (!parsedSize)
       {
         return Error(THIS_LINE, Module::ERROR_FIND_CONTAINER_PLUGIN);

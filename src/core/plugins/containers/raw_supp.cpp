@@ -89,6 +89,12 @@ namespace
       return CAP_STOR_MULTITRACK | CAP_STOR_SCANER;
     }
 
+    virtual bool Check(const IO::DataContainer& inputData) const
+    {
+      //check only size restrictions
+      return inputData.Size() >= MIN_MINIMAL_RAW_SIZE;
+    }
+
     virtual Error Process(const Parameters::Map& commonParams, 
       const DetectParameters& detectParams,
       const MetaContainer& data, ModuleRegion& region) const

@@ -306,7 +306,7 @@ namespace
     }
 
   private:
-    const Holder::ConstPtr Module;
+    const Holder::Ptr Module;
     Player::Ptr Player1, Player2;
     TSMixer<AYM::CHANNELS> Mixer;
   };

@@ -103,7 +103,7 @@ namespace
   {
     assert(offset <= 0);
     const std::size_t size = dst.size();
-    if (-offset > size)
+    if (uint_t(-offset) > size)
     {
       return false;//invalid backreference
     }
@@ -116,7 +116,7 @@ namespace
   {
     assert(offset <= 0);
     const std::size_t size = dst.size();
-    if (-offset > size)
+    if (uint_t(-offset) > size)
     {
       return false;//invalid backref
     }
@@ -133,12 +133,21 @@ namespace
     return CopyFromBack(offset, dst) && (dst.push_back(data), true) && CopyFromBack(offset, dst);
   }
 
-  bool Decode(const Hrust1xHeader* header, std::size_t size, Dump& result)
+  bool CheckHrust1(const Hrust1xHeader* header, std::size_t size)
   {
     if (size < sizeof(*header) ||
         header->ID[0] != 'H' || header->ID[1] != 'R' ||
         fromLE(header->PackedSize) > fromLE(header->DataSize) ||
         fromLE(header->PackedSize) > size)
+    {
+      return false;
+    }
+    return true;
+  }
+
+  bool DecodeHrust1(const Hrust1xHeader* header, std::size_t size, Dump& result)
+  {
+    if (!CheckHrust1(header, size))
     {
       return false;
     }
@@ -340,6 +349,24 @@ namespace
       return CAP_STOR_CONTAINER;
     }
 
+    virtual bool Check(const IO::DataContainer& inputData) const
+    {
+      const Hrust1xHeader* const header1 = static_cast<const Hrust1xHeader*>(inputData.Data());
+      const std::size_t limit = inputData.Size();
+      if (CheckHrust1(header1, limit))
+      {
+        return true;
+      }
+      const Hrust1xHeader* const header2 = safe_ptr_cast<const Hrust1xHeader*>(static_cast<const uint8_t*>(inputData.Data()) +
+        DEPACKER_SIZE);
+      if (limit > DEPACKER_SIZE &&
+          CheckHrust1(header2, limit))
+      {
+        return true;
+      }
+      return false;
+    }
+
     virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Map& /*commonParams*/,
       const MetaContainer& input, ModuleRegion& region) const
     {
@@ -348,7 +375,7 @@ namespace
       const Hrust1xHeader* const header1 = static_cast<const Hrust1xHeader*>(inputData.Data());
       Dump res;
       //check without depacker
-      if (Decode(header1, limit, res))
+      if (DecodeHrust1(header1, limit, res))
       {
         region.Offset = 0;
         region.Size = fromLE(header1->PackedSize);
@@ -358,7 +385,7 @@ namespace
       const Hrust1xHeader* const header2 = safe_ptr_cast<const Hrust1xHeader*>(static_cast<const uint8_t*>(inputData.Data()) +
         DEPACKER_SIZE);
       if (limit > DEPACKER_SIZE &&
-        Decode(header2, limit - DEPACKER_SIZE, res))
+          DecodeHrust1(header2, limit - DEPACKER_SIZE, res))
       {
         region.Offset = DEPACKER_SIZE;
         region.Size = fromLE(header2->PackedSize);

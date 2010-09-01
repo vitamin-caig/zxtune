@@ -193,6 +193,7 @@ getbit:
       return fromLE(DstRbegin) - fromLE(DstRend);
     }
 
+    bool Check(uint_t limit) const;
     bool Decode(uint_t limit, Dump& dst) const;
   } PACK_POST;
 #ifdef USE_PRAGMA_PACK
@@ -315,7 +316,7 @@ getbit:
   {
     assert(offset <= 0);
     const std::size_t size = dst.size();
-    if (-offset > size)
+    if (uint_t(-offset) > size)
     {
       return false;//invalid backref
     }
@@ -327,15 +328,25 @@ getbit:
     return true;
   }
 
-  bool DSQDepacker::Decode(uint_t limit, Dump& res) const
+  bool DSQDepacker::Check(uint_t limit) const
   {
-    const uint_t packedSize = GetPackedSize();
-    if ((packedSize + sizeof(*this) > limit) ||
+    if ((GetPackedSize() + sizeof(*this) > limit) ||
         (fromLE(DstRend) >= fromLE(DstRbegin)) ||
         !DetectFormat(Padding1, sizeof(*this), DSQ_DEPACKER_PATTERN))
     {
       return false;
     }
+    return true;
+  }
+
+  bool DSQDepacker::Decode(uint_t limit, Dump& res) const
+  {
+    if (!Check(limit))
+    {
+      return false;
+    }
+
+    const uint_t packedSize = GetPackedSize();
     const uint_t unpackedSize = GetDepackedSize();
     Dump reverse;
     reverse.reserve(unpackedSize);
@@ -399,16 +410,24 @@ getbit:
       return CAP_STOR_CONTAINER;
     }
 
+    virtual bool Check(const IO::DataContainer& inputData) const
+    {
+      const uint8_t* const data = static_cast<const uint8_t*>(inputData.Data());
+      const std::size_t limit = inputData.Size();
+      if (limit < sizeof(DSQDepacker))
+      {
+        return false;
+      }
+      const DSQDepacker* const depacker = safe_ptr_cast<const DSQDepacker*>(data);
+      return depacker->Check(limit);
+    }
+
     virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Map& /*commonParams*/,
       const MetaContainer& input, ModuleRegion& region) const
     {
       const IO::DataContainer& inputData = *input.Data;
       const uint8_t* const data = static_cast<const uint8_t*>(inputData.Data());
       const std::size_t limit = inputData.Size();
-      if (limit < sizeof(DSQDepacker))
-      {
-        return IO::DataContainer::Ptr();
-      }
       const DSQDepacker* const depacker = safe_ptr_cast<const DSQDepacker*>(data);
       Dump res;
       if (depacker->Decode(limit, res))

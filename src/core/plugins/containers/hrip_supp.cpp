@@ -375,6 +375,14 @@ namespace
       return CAP_STOR_MULTITRACK;
     }
 
+    virtual bool Check(const IO::DataContainer& inputData) const
+    {
+      uint_t filesCount = 0;
+      uint_t archiveSize = 0;
+      return INVALID != CheckHrip(inputData.Data(), inputData.Size(), filesCount, archiveSize) &&
+             filesCount != 0;
+    }
+
     virtual Error Process(const Parameters::Map& commonParams, const DetectParameters& detectParams,
       const MetaContainer& data, ModuleRegion& region) const
     {
