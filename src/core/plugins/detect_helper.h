@@ -29,31 +29,63 @@ namespace ZXTune
     const std::string PlayerFP;
     const std::size_t PlayerSize;
   };
+  
+  typedef boost::function<bool(const uint8_t*, std::size_t)> Checker;
+  typedef boost::function<Module::Holder::Ptr(Plugin::Ptr, const MetaContainer&, ModuleRegion&)> Creator;
 
-  inline Module::Holder::Ptr PerformDetect(
-    const boost::function<bool(const uint8_t*, std::size_t, Plugin::Ptr, const MetaContainer&, Module::Holder::Ptr&, ModuleRegion&)>& checker,
+  inline bool PerformCheck(const Checker& checker,
+    const DetectFormatChain* chainBegin, const DetectFormatChain* chainEnd,
+    const IO::DataContainer& container)
+  {
+    const uint8_t* const data = static_cast<const uint8_t*>(container.Data());
+    const std::size_t limit = container.Size();
+    
+    //detect without
+    if (checker(data, limit))
+    {
+      return true;
+    }
+    for (const DetectFormatChain* chain = chainBegin; chain != chainEnd; ++chain)
+    {
+      if (DetectFormat(data, limit, chain->PlayerFP) &&
+          checker(data + chain->PlayerSize, limit - chain->PlayerSize))
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  inline Module::Holder::Ptr PerformCreate(
+    const Checker& checker, const Creator& creator,
     const DetectFormatChain* chainBegin, const DetectFormatChain* chainEnd,
     Plugin::Ptr plugin, const MetaContainer& container, ModuleRegion& region)
   {
     const std::size_t limit(container.Data->Size());
     const uint8_t* const data(static_cast<const uint8_t*>(container.Data->Data()));
 
-    Module::Holder::Ptr tmpHolder;
     ModuleRegion tmpRegion;
     //try to detect without player
-    if (checker(data, limit, plugin, container, tmpHolder, tmpRegion))
+    if (checker(data, limit))
     {
-      region = tmpRegion;
-      return tmpHolder;
+      if (Module::Holder::Ptr holder = creator(plugin, container, tmpRegion))
+      {
+        region = tmpRegion;
+        return holder;
+      }
     }
     for (const DetectFormatChain* chain = chainBegin; chain != chainEnd; ++chain)
     {
       tmpRegion.Offset = chain->PlayerSize;
-      if (DetectFormat(data, limit, chain->PlayerFP) &&
-          checker(data + chain->PlayerSize, limit - region.Offset, plugin, container, tmpHolder, tmpRegion))
+      if (!DetectFormat(data, limit, chain->PlayerFP) || 
+          !checker(data + chain->PlayerSize, limit - region.Offset))
+      {
+        continue;
+      }
+      if (Module::Holder::Ptr holder = creator(plugin, container, tmpRegion))
       {
         region = tmpRegion;
-        return tmpHolder;
+        return holder;
       }
     }
     return Module::Holder::Ptr();

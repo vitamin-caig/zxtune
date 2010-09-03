@@ -810,8 +810,7 @@ namespace
   };
 
   //////////////////////////////////////////////////
-  bool CheckPT3Module(const uint8_t* data, std::size_t size, 
-    Plugin::Ptr plugin, const MetaContainer& container, Holder::Ptr& holder, ModuleRegion& region)
+  bool CheckPT3Module(const uint8_t* data, std::size_t size) 
   {
     const PT3Header* const header(safe_ptr_cast<const PT3Header*>(data));
     if (size < sizeof(*header))
@@ -885,20 +884,24 @@ namespace
         return false;
       }
     }
-    //try to create holder
+    return true;
+  }
+  
+  Holder::Ptr CreatePT3Module(Plugin::Ptr plugin, const MetaContainer& container, ModuleRegion& region)
+  {
     try
     {
-      holder.reset(new PT3Holder(plugin, container, region));
+      const Holder::Ptr holder(new PT3Holder(plugin, container, region));
 #ifdef SELF_TEST
       holder->CreatePlayer();
 #endif
-      return true;
+      return holder;
     }
     catch (const Error&/*e*/)
     {
-      Log::Debug("PT3Supp", "Failed to create holder");
+      Log::Debug("Core::PT3Supp", "Failed to create holder");
     }
-    return false;
+    return Holder::Ptr();
   }
 
   //////////////////////////////////////////////////////////////////////////
@@ -927,12 +930,17 @@ namespace
         GetSupportedAYMFormatConvertors() | GetSupportedVortexFormatConvertors();
     }
 
+    virtual bool Check(const IO::DataContainer& inputData) const
+    {
+      return PerformCheck(&CheckPT3Module, DETECTORS, ArrayEnd(DETECTORS), inputData);
+    }
+
     virtual Module::Holder::Ptr CreateModule(const Parameters::Map& /*parameters*/,
                                              const MetaContainer& container,
                                              ModuleRegion& region) const
     {
       const Plugin::Ptr plugin = shared_from_this();
-      return PerformDetect(&CheckPT3Module, 0, 0,
+      return PerformCreate(&CheckPT3Module, &CreatePT3Module, DETECTORS, ArrayEnd(DETECTORS),
         plugin, container, region);
     }
   };

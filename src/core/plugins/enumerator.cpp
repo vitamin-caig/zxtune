@@ -246,12 +246,10 @@ namespace
         it != lim; ++it)
       {
         const PlayerPlugin::Ptr plugin = *it;
-        /*
         if (!plugin->Check(*input.Data))
         {
           continue;//invalid plugin
         }
-        */
         ModuleRegion region;
         if (Module::Holder::Ptr module = plugin->CreateModule(commonParams, input, region))
         {
@@ -354,12 +352,10 @@ namespace
         {
           continue;//filtered plugin
         }
-        /*
         if (!plugin->Check(*input.Data))
         {
           continue;//invalid plugin
         }
-        */
         Log::Debug(THIS_MODULE, "%3%:  Checking module plugin %1% at path '%2%'", 
           plugin->Id(), input.Path, input.PluginsChain.size());
         if (Module::Holder::Ptr module = plugin->CreateModule(commonParams, input, region))

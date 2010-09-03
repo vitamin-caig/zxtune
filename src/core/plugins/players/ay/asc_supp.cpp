@@ -1094,8 +1094,7 @@ namespace
   }
 
   //////////////////////////////////////////////////////////////////////////
-  bool CheckASCModule(const uint8_t* data, std::size_t size,
-    Plugin::Ptr plugin, const MetaContainer& container, Holder::Ptr& holder, ModuleRegion& region)
+  bool CheckASCModule(const uint8_t* data, std::size_t size)
   {
     if (size < sizeof(ASCHeader))
     {
@@ -1175,21 +1174,24 @@ namespace
         }
       }
     }
+    return true;
+  }
 
-    //try to create holder
+  Holder::Ptr CreateASCModule(Plugin::Ptr plugin, const MetaContainer& container, ModuleRegion& region)
+  {
     try
     {
-      holder.reset(new ASCHolder(plugin, container, region));
+      const Holder::Ptr holder(new ASCHolder(plugin, container, region));
 #ifdef SELF_TEST
       holder->CreatePlayer();
 #endif
-      return true;
+      return holder;
     }
     catch (const Error&/*e*/)
     {
       Log::Debug("Core::ASCSupp", "Failed to create holder");
     }
-    return false;
+    return Holder::Ptr();
   }
 
   //////////////////////////////////////////////////////////////////////////
@@ -1217,12 +1219,17 @@ namespace
       return CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
     }
 
+    virtual bool Check(const IO::DataContainer& inputData) const
+    {
+      return PerformCheck(&CheckASCModule, 0, 0, inputData);
+    }
+
     virtual Module::Holder::Ptr CreateModule(const Parameters::Map& /*parameters*/,
                                              const MetaContainer& container,
                                              ModuleRegion& region) const
     {
       const Plugin::Ptr plugin = shared_from_this();
-      return PerformDetect(&CheckASCModule, 0, 0,
+      return PerformCreate(&CheckASCModule, &CreateASCModule, 0, 0,
         plugin, container, region);
     }
   };

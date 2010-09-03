@@ -811,8 +811,7 @@ namespace
   }
 
   //////////////////////////////////////////////////
-  bool CheckPT2Module(const uint8_t* data, std::size_t size, 
-    Plugin::Ptr plugin, const MetaContainer& container, Module::Holder::Ptr& holder, ModuleRegion& region)
+  bool CheckPT2Module(const uint8_t* data, std::size_t size)
   {
     if (sizeof(PT2Header) > size)
     {
@@ -902,20 +901,24 @@ namespace
         }
       }
     }
-    //try to create holder
+    return true;
+  }
+  
+  Holder::Ptr CreatePT2Module(Plugin::Ptr plugin, const MetaContainer& container, ModuleRegion& region)
+  {
     try
     {
-      holder.reset(new PT2Holder(plugin, container, region));
+      const Holder::Ptr holder(new PT2Holder(plugin, container, region));
 #ifdef SELF_TEST
       holder->CreatePlayer();
 #endif
-      return true;
+      return holder;
     }
     catch (const Error&/*e*/)
     {
       Log::Debug("Core::PT2Supp", "Failed to create holder");
     }
-    return false;
+    return Holder::Ptr();
   }
 
   //////////////////////////////////////////////////////////////////////////
@@ -943,12 +946,17 @@ namespace
       return CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
     }
 
+    virtual bool Check(const IO::DataContainer& inputData) const
+    {
+      return PerformCheck(&CheckPT2Module, DETECTORS, ArrayEnd(DETECTORS), inputData);
+    }
+
     virtual Module::Holder::Ptr CreateModule(const Parameters::Map& /*parameters*/,
                                              const MetaContainer& container,
                                              ModuleRegion& region) const
     {
       const Plugin::Ptr plugin = shared_from_this();
-      return PerformDetect(&CheckPT2Module, 0, 0,
+      return PerformCreate(&CheckPT2Module, &CreatePT2Module, DETECTORS, ArrayEnd(DETECTORS),
         plugin, container, region);
     }
   };

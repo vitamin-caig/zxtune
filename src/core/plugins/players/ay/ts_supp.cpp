@@ -378,6 +378,12 @@ namespace
       return CAP_STOR_MODULE | CAP_DEV_TS | CAP_CONV_RAW;
     }
 
+    virtual bool Check(const IO::DataContainer& inputData) const
+    {
+      const IO::FastDump dump(inputData);
+      return FindFooter(dump, SEARCH_THRESHOLD) != 0;
+    }
+
     virtual Module::Holder::Ptr CreateModule(const Parameters::Map& commonParams,
                                              const MetaContainer& container,
                                              ModuleRegion& region) const
@@ -385,10 +391,8 @@ namespace
       const IO::FastDump dump(*container.Data);
 
       const std::size_t footerOffset = FindFooter(dump, SEARCH_THRESHOLD);
-      if (!footerOffset)
-      {
-        return Module::Holder::Ptr();
-      }
+      assert(!footerOffset);
+
       const Footer* const footer = safe_ptr_cast<const Footer*>(dump.Data() + footerOffset);
       const std::size_t firstModuleSize = fromLE(footer->Size1);
 

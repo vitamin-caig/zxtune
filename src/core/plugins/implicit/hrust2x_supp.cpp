@@ -149,13 +149,8 @@ namespace
     return true;
   }
 
-  bool DecodeHrust2(const Hrust21Header* header, std::size_t size, Dump& dst)
+  bool DecodeHrust2(const Hrust21Header* header, Dump& dst)
   {
-    if (!CheckHrust2(header, size))
-    {
-      return false;
-    }
-
     if (0 != (header->Flag & header->NO_COMPRESSION))
     {
       //just copy
@@ -203,11 +198,12 @@ namespace
       const MetaContainer& input, ModuleRegion& region) const
     {
       const IO::DataContainer& inputData = *input.Data;
-      const std::size_t limit = inputData.Size();
       const Hrust21Header* const header = static_cast<const Hrust21Header*>(inputData.Data());
+      assert(CheckHrust2(header, inputData.Size()));
+
       Dump res;
       //only check without depacker- depackers are separate
-      if (DecodeHrust2(header, limit, res))
+      if (DecodeHrust2(header, res))
       {
         region.Offset = 0;
         region.Size = fromLE(header->PackedSize) + 8;

@@ -118,6 +118,18 @@ namespace
   {
     return !(sym >= ' ' || sym == '\r' || sym == '\n');
   }
+  
+  bool CheckTXT(const IO::DataContainer& inputData)
+  {
+    const std::size_t dataSize = inputData.Size();
+    const char* const data = static_cast<const char*>(inputData.Data());
+    if (dataSize < sizeof(TXT_MODULE_ID) ||
+        0 != std::memcmp(data, TXT_MODULE_ID, sizeof(TXT_MODULE_ID)))
+    {
+      return false;
+    }
+    return true;
+  }
 
   class TXTPlugin : public PlayerPlugin
                   , public boost::enable_shared_from_this<TXTPlugin>
@@ -144,17 +156,18 @@ namespace
       GetSupportedAYMFormatConvertors() | GetSupportedVortexFormatConvertors();
     }
 
+    virtual bool Check(const IO::DataContainer& inputData) const
+    {
+      return CheckTXT(inputData);
+    }
+    
     virtual Module::Holder::Ptr CreateModule(const Parameters::Map& /*parameters*/,
                                              const MetaContainer& container,
                                              ModuleRegion& region) const
     {
       const std::size_t dataSize = container.Data->Size();
       const char* const data = static_cast<const char*>(container.Data->Data());
-      if (dataSize < sizeof(TXT_MODULE_ID) ||
-          0 != std::memcmp(data, TXT_MODULE_ID, sizeof(TXT_MODULE_ID)))
-      {
-        return Module::Holder::Ptr();
-      }
+      assert(CheckTXT(*container.Data));
       
       const char* const dataEnd = std::find_if(data, data + std::min(MAX_MODULE_SIZE, dataSize), CheckSymbol);
       const std::size_t limit = dataEnd - data;

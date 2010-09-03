@@ -549,7 +549,7 @@ namespace
     return Player::Ptr(new CHIPlayer(data, device));
   }
 
-  bool Checking(const IO::DataContainer& data)
+  bool CheckCHI(const IO::DataContainer& data)
   {
     //check for header
     const std::size_t size(data.Size());
@@ -595,26 +595,29 @@ namespace
       return CAP_STOR_MODULE | CAP_DEV_4DAC | CAP_CONV_RAW;
     }
 
+    virtual bool Check(const IO::DataContainer& inputData) const
+    {
+      return CheckCHI(inputData);
+    }
+    
     virtual Module::Holder::Ptr CreateModule(const Parameters::Map& /*parameters*/,
                                              const MetaContainer& container,
                                              ModuleRegion& region) const
     {
-      if (Checking(*container.Data))
+      assert(CheckCHI(*container.Data));
+      //try to create holder
+      try
       {
-        //try to create holder
-        try
-        {
-          const Plugin::Ptr plugin = shared_from_this();
-          const Module::Holder::Ptr holder(new CHIHolder(plugin, container, region));
-  #ifdef SELF_TEST
-          holder->CreatePlayer();
-  #endif
-          return holder;
-        }
-        catch (const Error&/*e*/)
-        {
-          Log::Debug("Core::CHISupp", "Failed to create holder");
-        }
+        const Plugin::Ptr plugin = shared_from_this();
+        const Module::Holder::Ptr holder(new CHIHolder(plugin, container, region));
+#ifdef SELF_TEST
+        holder->CreatePlayer();
+#endif
+        return holder;
+      }
+      catch (const Error&/*e*/)
+      {
+        Log::Debug("Core::CHISupp", "Failed to create holder");
       }
       return Module::Holder::Ptr();
     }

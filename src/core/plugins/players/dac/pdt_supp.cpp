@@ -635,7 +635,7 @@ namespace
       !(samp.Page == 1 || samp.Page == 3 || samp.Page == 4 || samp.Page == 6 || samp.Page == 7));
   }
 
-  bool Checking(const IO::DataContainer& data)
+  bool CheckPDT(const IO::DataContainer& data)
   {
     //check for header
     const std::size_t size = data.Size();
@@ -694,26 +694,29 @@ namespace
       return CAP_STOR_MODULE | CAP_DEV_4DAC | CAP_CONV_RAW;
     }
 
+    virtual bool Check(const IO::DataContainer& inputData) const
+    {
+      return CheckPDT(inputData);
+    }
+
     virtual Module::Holder::Ptr CreateModule(const Parameters::Map& /*parameters*/,
                                              const MetaContainer& container,
                                              ModuleRegion& region) const
     {
-      if (Checking(*container.Data))
+      assert(CheckPDT(*container.Data));
+      //try to create holder
+      try
       {
-        //try to create holder
-        try
-        {
-          const Plugin::Ptr plugin = shared_from_this();
-          const Module::Holder::Ptr holder(new PDTHolder(plugin, container, region));
-    #ifdef SELF_TEST
-          holder->CreatePlayer();
-    #endif
-          return holder;
-        }
-        catch (const Error&/*e*/)
-        {
-          Log::Debug("Core::PDTSupp", "Failed to create holder");
-        }
+        const Plugin::Ptr plugin = shared_from_this();
+        const Module::Holder::Ptr holder(new PDTHolder(plugin, container, region));
+  #ifdef SELF_TEST
+        holder->CreatePlayer();
+  #endif
+        return holder;
+      }
+      catch (const Error&/*e*/)
+      {
+        Log::Debug("Core::PDTSupp", "Failed to create holder");
       }
       return Module::Holder::Ptr();
     }

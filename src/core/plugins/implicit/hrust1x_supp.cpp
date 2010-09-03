@@ -145,13 +145,8 @@ namespace
     return true;
   }
 
-  bool DecodeHrust1(const Hrust1xHeader* header, std::size_t size, Dump& result)
+  bool DecodeHrust1(const Hrust1xHeader* header, Dump& result)
   {
-    if (!CheckHrust1(header, size))
-    {
-      return false;
-    }
-
     Dump dst;
     dst.reserve(fromLE(header->DataSize));
 
@@ -375,17 +370,21 @@ namespace
       const Hrust1xHeader* const header1 = static_cast<const Hrust1xHeader*>(inputData.Data());
       Dump res;
       //check without depacker
-      if (DecodeHrust1(header1, limit, res))
+      if (CheckHrust1(header1, limit))          
       {
-        region.Offset = 0;
-        region.Size = fromLE(header1->PackedSize);
-        return IO::CreateDataContainer(res);
+        if (DecodeHrust1(header1, res))
+        {
+          region.Offset = 0;
+          region.Size = fromLE(header1->PackedSize);
+          return IO::CreateDataContainer(res);
+        }
+        //it's useless to check corrupted stream as depacker
+        return IO::DataContainer::Ptr();
       }
-      //check with depacker
       const Hrust1xHeader* const header2 = safe_ptr_cast<const Hrust1xHeader*>(static_cast<const uint8_t*>(inputData.Data()) +
         DEPACKER_SIZE);
-      if (limit > DEPACKER_SIZE &&
-          DecodeHrust1(header2, limit - DEPACKER_SIZE, res))
+      assert(CheckHrust1(header2, limit - DEPACKER_SIZE));
+      if (DecodeHrust1(header2, res))
       {
         region.Offset = DEPACKER_SIZE;
         region.Size = fromLE(header2->PackedSize);

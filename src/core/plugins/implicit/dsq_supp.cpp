@@ -194,7 +194,7 @@ getbit:
     }
 
     bool Check(uint_t limit) const;
-    bool Decode(uint_t limit, Dump& dst) const;
+    bool Decode(Dump& dst) const;
   } PACK_POST;
 #ifdef USE_PRAGMA_PACK
 #pragma pack(pop)
@@ -339,13 +339,8 @@ getbit:
     return true;
   }
 
-  bool DSQDepacker::Decode(uint_t limit, Dump& res) const
+  bool DSQDepacker::Decode(Dump& res) const
   {
-    if (!Check(limit))
-    {
-      return false;
-    }
-
     const uint_t packedSize = GetPackedSize();
     const uint_t unpackedSize = GetDepackedSize();
     Dump reverse;
@@ -427,10 +422,11 @@ getbit:
     {
       const IO::DataContainer& inputData = *input.Data;
       const uint8_t* const data = static_cast<const uint8_t*>(inputData.Data());
-      const std::size_t limit = inputData.Size();
       const DSQDepacker* const depacker = safe_ptr_cast<const DSQDepacker*>(data);
+      assert(depacker->Check(inputData.Size()));
+
       Dump res;
-      if (depacker->Decode(limit, res))
+      if (depacker->Decode(res))
       {
         region.Offset = 0;
         region.Size = depacker->GetPackedSize();

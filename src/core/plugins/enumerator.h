@@ -58,6 +58,10 @@ namespace ZXTune
   public:
     typedef boost::shared_ptr<const PlayerPlugin> Ptr;
 
+    //! @brief Checking if data contains implicit subdata
+    //! @return true if possibly yes, false if defenitely no
+    virtual bool Check(const IO::DataContainer& inputData) const = 0;
+    
     //! @brief Creating module on specified input data
     //! @param parameters Options for modules detection
     //! @param inputData Source memory data

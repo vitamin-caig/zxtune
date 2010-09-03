@@ -270,6 +270,17 @@ namespace
     return Player::Ptr(new PSGPlayer(data, device));
   }
   
+  bool CheckPSG(const IO::DataContainer& inputData)
+  {
+    if (inputData.Size() <= sizeof(PSGHeader))
+    {
+      return false;
+    }
+    const PSGHeader* const header = safe_ptr_cast<const PSGHeader*>(inputData.Data());
+    return 0 == std::memcmp(header->Sign, PSG_SIGNATURE, sizeof(PSG_SIGNATURE)) &&
+       PSG_MARKER == header->Marker;
+  }
+  
   class PSGPlugin : public PlayerPlugin
                   , public boost::enable_shared_from_this<PSGPlugin>
   {
@@ -294,30 +305,26 @@ namespace
       return CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
     }
 
+    virtual bool Check(const IO::DataContainer& inputData) const
+    {
+      return CheckPSG(inputData);
+    }
+
     virtual Module::Holder::Ptr CreateModule(const Parameters::Map& /*parameters*/,
                                              const MetaContainer& container,
                                              ModuleRegion& region) const
     {
-      //perform fast check
-      const IO::DataContainer& data = *container.Data;
-      if (data.Size() <= sizeof(PSGHeader))
+      assert(CheckPSG(*container.Data));
+
+      try
       {
-        return Module::Holder::Ptr();
+        const Plugin::Ptr plugin = shared_from_this();
+        const Module::Holder::Ptr holder(new PSGHolder(plugin, container, region));
+        return holder;
       }
-      const PSGHeader* const header = safe_ptr_cast<const PSGHeader*>(data.Data());
-      if (0 == std::memcmp(header->Sign, PSG_SIGNATURE, sizeof(PSG_SIGNATURE)) &&
-          PSG_MARKER == header->Marker)
+      catch (const Error&/*e*/)
       {
-        try
-        {
-          const Plugin::Ptr plugin = shared_from_this();
-          const Module::Holder::Ptr holder(new PSGHolder(plugin, container, region));
-          return holder;
-        }
-        catch (const Error&/*e*/)
-        {
-          Log::Debug("Core::PSGSupp", "Failed to create holder");
-        }
+        Log::Debug("Core::PSGSupp", "Failed to create holder");
       }
       return Module::Holder::Ptr();
     }

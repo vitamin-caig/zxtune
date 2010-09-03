@@ -50,6 +50,32 @@ namespace
   const std::size_t HOBETA_MIN_SIZE = 0x100;
   const std::size_t HOBETA_MAX_SIZE = 0xff00;
 
+  bool CheckHobeta(const IO::DataContainer& inputData)
+  {
+    const std::size_t limit = inputData.Size();
+    const uint8_t* const data = static_cast<const uint8_t*>(inputData.Data());
+    const Header* const header = safe_ptr_cast<const Header*>(data);
+    const std::size_t dataSize = fromLE(header->Length);
+    const std::size_t fullSize = fromLE(header->FullLength);
+    if (dataSize < HOBETA_MIN_SIZE ||
+        dataSize > HOBETA_MAX_SIZE ||
+        dataSize + sizeof(*header) > limit ||
+        fullSize != align<std::size_t>(dataSize, 256) ||
+        //check for valid name
+        header->Filetype + 1 != std::find_if(header->Filename, header->Filetype + 1,
+          std::bind2nd(std::less<uint8_t>(), uint8_t(' ')))
+        )
+    {
+      return false;
+    }
+    //check for crc
+    if (fromLE(header->CRC) == ((105 + 257 * std::accumulate(data, data + 15, 0u)) & 0xffff))
+    {
+      return true;
+    }
+    return false;
+  }
+
   //////////////////////////////////////////////////////////////////////////
   class HobetaPlugin : public ImplicitPlugin
   {
@@ -76,44 +102,21 @@ namespace
 
     virtual bool Check(const IO::DataContainer& inputData) const
     {
-      const std::size_t limit = inputData.Size();
-      const uint8_t* const data = static_cast<const uint8_t*>(inputData.Data());
-      const Header* const header = safe_ptr_cast<const Header*>(data);
-      const std::size_t dataSize = fromLE(header->Length);
-      const std::size_t fullSize = fromLE(header->FullLength);
-      if (dataSize < HOBETA_MIN_SIZE ||
-          dataSize > HOBETA_MAX_SIZE ||
-          dataSize + sizeof(*header) > limit ||
-          fullSize != align<std::size_t>(dataSize, 256) ||
-          //check for valid name
-          header->Filetype + 1 != std::find_if(header->Filename, header->Filetype + 1,
-            std::bind2nd(std::less<uint8_t>(), uint8_t(' ')))
-          )
-      {
-        return false;
-      }
-      //check for crc
-      if (fromLE(header->CRC) == ((105 + 257 * std::accumulate(data, data + 15, 0u)) & 0xffff))
-      {
-        return true;
-      }
-      return false;
+      return CheckHobeta(inputData);
     }
 
     virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Map& /*commonParams*/,
       const MetaContainer& input, ModuleRegion& region) const
     {
       const IO::DataContainer& inputData = *input.Data;
-      if (Check(inputData))
-      {
-        const Header* const header = safe_ptr_cast<const Header*>(inputData.Data());
-        const std::size_t dataSize = fromLE(header->Length);
-        const std::size_t fullSize = fromLE(header->FullLength);
-        region.Offset = 0;
-        region.Size = fullSize + sizeof(*header);
-        return inputData.GetSubcontainer(sizeof(*header), dataSize);
-      }
-      return IO::DataContainer::Ptr();
+      assert(CheckHobeta(inputData));
+
+      const Header* const header = safe_ptr_cast<const Header*>(inputData.Data());
+      const std::size_t dataSize = fromLE(header->Length);
+      const std::size_t fullSize = fromLE(header->FullLength);
+      region.Offset = 0;
+      region.Size = fullSize + sizeof(*header);
+      return inputData.GetSubcontainer(sizeof(*header), dataSize);
     }
   };
 }

@@ -704,8 +704,7 @@ namespace
     return Player::Ptr(new STCPlayer(data, device));
   }
 
-  bool CheckSTCModule(const uint8_t* data, std::size_t limit, 
-    Plugin::Ptr plugin, const MetaContainer& container, Holder::Ptr& holder, ModuleRegion& region)
+  bool CheckSTCModule(const uint8_t* data, std::size_t limit) 
   {
     if (limit < sizeof(STCHeader))
     {
@@ -749,20 +748,24 @@ namespace
         return false;
       }
     }
-    //try to create holder
+    return true;
+  }
+  
+  Holder::Ptr CreateSTCModule(Plugin::Ptr plugin, const MetaContainer& container, ModuleRegion& region)
+  {
     try
     {
-      holder.reset(new STCHolder(plugin, container, region));
+      const Holder::Ptr holder(new STCHolder(plugin, container, region));
 #ifdef SELF_TEST
       holder->CreatePlayer();
 #endif
-      return true;
+      return holder;
     }
     catch (const Error&/*e*/)
     {
-      Log::Debug("STCSupp", "Failed to create holder");
+      Log::Debug("Core::STCSupp", "Failed to create holder");
     }
-    return false;
+    return Holder::Ptr();
   }
 
   //////////////////////////////////////////////////////////////////////////
@@ -790,12 +793,17 @@ namespace
       return CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
     }
 
+    virtual bool Check(const IO::DataContainer& inputData) const
+    {
+      return PerformCheck(&CheckSTCModule, DETECTORS, ArrayEnd(DETECTORS), inputData);
+    }
+
     virtual Module::Holder::Ptr CreateModule(const Parameters::Map& /*parameters*/,
                                              const MetaContainer& container,
                                              ModuleRegion& region) const
     {
       const Plugin::Ptr plugin = shared_from_this();
-      return PerformDetect(&CheckSTCModule, 0, 0,
+      return PerformCreate(&CheckSTCModule, &CreateSTCModule, DETECTORS, ArrayEnd(DETECTORS),
         plugin, container, region);
     }
   };
