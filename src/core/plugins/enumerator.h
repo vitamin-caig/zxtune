@@ -17,6 +17,8 @@ Author:
 //library includes
 #include <core/module_detect.h>
 #include <core/plugin.h>
+//std includes
+#include <list>
 //boost includes
 #include <boost/function.hpp>
 
@@ -36,12 +38,14 @@ namespace ZXTune
     std::size_t Size;
   };
 
+  typedef std::list<Plugin::Ptr> PluginsList;
+
   //module container descriptor- all required data
   struct MetaContainer
   {
     IO::DataContainer::Ptr Data;
     String Path;
-    StringArray PluginsChain;
+    PluginsList PluginsChain;
   };
 
   //helper function to fill standard module properties
@@ -126,8 +130,6 @@ namespace ZXTune
     virtual void RegisterPlugin(ImplicitPlugin::Ptr plugin) = 0;
     //nested containers support
     virtual void RegisterPlugin(ContainerPlugin::Ptr plugin) = 0;
-    //accessing for registered plugin
-    virtual const Plugin& GetPluginById(const String& id) const = 0;
 
     //public interface
     virtual Plugin::Iterator::Ptr Enumerate() const = 0;
@@ -148,7 +150,7 @@ namespace ZXTune
   };
 
   //calculate container plugins in chain
-  uint_t CalculateContainersNesting(const StringArray& pluginsChain);
+  uint_t CalculateContainersNesting(const PluginsList& pluginsChain);
 }
 
 #endif //__CORE_PLUGINS_ENUMERATOR_H_DEFINED__

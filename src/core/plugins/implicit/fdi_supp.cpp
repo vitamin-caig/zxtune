@@ -159,6 +159,9 @@ namespace
               return false;
             }
           }
+          //calculate next track by offset
+          trackInfo = safe_ptr_cast<const FDITrack*>(safe_ptr_cast<const uint8_t*>(trackInfo) +
+            sizeof(*trackInfo) + (trackInfo->SectorsCount - 1) * sizeof(trackInfo->Sectors));
         }
       }
       return true;

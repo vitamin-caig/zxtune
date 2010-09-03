@@ -23,6 +23,7 @@ Author:
 #include <io/fs_tools.h>
 //boost includes
 #include <boost/bind.hpp>
+#include <boost/enable_shared_from_this.hpp>
 //text includes
 #include <core/text/core.h>
 #include <core/text/plugins.h>
@@ -67,6 +68,7 @@ namespace
   }
 
   class RawScaner : public ContainerPlugin
+                  , public boost::enable_shared_from_this<RawScaner>
   {
   public:
     virtual String Id() const
@@ -102,7 +104,7 @@ namespace
       {
         Parameters::IntType depth = 0;
         //do not search right after previous raw plugin
-        if ((!data.PluginsChain.empty() && data.PluginsChain.back() == RAW_PLUGIN_ID) ||
+        if ((!data.PluginsChain.empty() && data.PluginsChain.back()->Id() == RAW_PLUGIN_ID) ||
             //special mark to determine if plugin is called due to recursive scan
             (Parameters::FindByName(commonParams, RAW_PLUGIN_RECURSIVE_DEPTH, depth) &&
              depth == Parameters::IntType(data.PluginsChain.size())))
@@ -170,7 +172,7 @@ namespace
 
       MetaContainer subcontainer;
       subcontainer.PluginsChain = data.PluginsChain;
-      subcontainer.PluginsChain.push_back(RAW_PLUGIN_ID);
+      subcontainer.PluginsChain.push_back(shared_from_this());
       for (std::size_t offset = std::max(curRegion.Offset + curRegion.Size, std::size_t(1));
         offset + minRawSize < limit;
         offset += std::max(curRegion.Offset + curRegion.Size, std::size_t(scanStep)))
@@ -206,7 +208,7 @@ namespace
     {
       //do not open right after self
       if (!inData.PluginsChain.empty() && 
-          inData.PluginsChain.back() == RAW_PLUGIN_ID)
+          inData.PluginsChain.back()->Id() == RAW_PLUGIN_ID)
       {
         return IO::DataContainer::Ptr();
       }

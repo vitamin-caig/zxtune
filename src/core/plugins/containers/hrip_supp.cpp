@@ -26,6 +26,7 @@ Author:
 #include <io/fs_tools.h>
 //boost includes
 #include <boost/bind.hpp>
+#include <boost/enable_shared_from_this.hpp>
 //text includes
 #include <core/text/core.h>
 #include <core/text/plugins.h>
@@ -254,7 +255,6 @@ namespace
       , LogLevel(-1)
       , SubMetacontainer(data)
     {
-      SubMetacontainer.PluginsChain.push_back(HRIP_PLUGIN_ID);
     }
 
     //main entry
@@ -353,6 +353,7 @@ namespace
   }
 
   class HRIPPlugin : public ContainerPlugin
+                   , public boost::enable_shared_from_this<HRIPPlugin>
   {
   public:
     virtual String Id() const
@@ -386,7 +387,9 @@ namespace
     virtual Error Process(const Parameters::Map& commonParams, const DetectParameters& detectParams,
       const MetaContainer& data, ModuleRegion& region) const
     {
-      Enumerator cb(commonParams, detectParams, data);
+      MetaContainer nested(data);
+      nested.PluginsChain.push_back(shared_from_this());
+      Enumerator cb(commonParams, detectParams, nested);
       return cb.Process(region);
     }
 

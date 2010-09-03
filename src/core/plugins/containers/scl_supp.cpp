@@ -27,6 +27,7 @@ Author:
 #include <numeric>
 //boost includes
 #include <boost/bind.hpp>
+#include <boost/enable_shared_from_this.hpp>
 //text includes
 #include <core/text/core.h>
 #include <core/text/plugins.h>
@@ -142,6 +143,7 @@ namespace
   }
 
   class SCLPlugin : public ContainerPlugin
+                  , public boost::enable_shared_from_this<SCLPlugin>
   {
   public:
     virtual String Id() const
@@ -195,7 +197,7 @@ namespace
 
       MetaContainer subcontainer;
       subcontainer.PluginsChain = data.PluginsChain;
-      subcontainer.PluginsChain.push_back(SCL_PLUGIN_ID);
+      subcontainer.PluginsChain.push_back(shared_from_this());
       ModuleRegion curRegion;
       const uint_t totalCount = files.size();
       uint_t curCount = 0;
