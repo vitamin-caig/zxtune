@@ -121,6 +121,7 @@ namespace
       {
         throw Error(THIS_LINE, ERROR_INVALID_FORMAT);
       }
+      //detect as much chunks as possible, in despite of real format issues
       AYM::DataChunk dummy;
       AYM::DataChunk* chunk = &dummy;
       while (size)
@@ -137,7 +138,8 @@ namespace
         {
           if (size < 1)
           {
-            throw Error(THIS_LINE, ERROR_INVALID_FORMAT);
+            ++size;//put byte back
+            break;
           }
           std::size_t count = 4 * *bdata;
           while (count--)
@@ -157,12 +159,18 @@ namespace
         {
           if (size < 1)
           {
-            throw Error(THIS_LINE, ERROR_INVALID_FORMAT);
+            ++size;//put byte back
+            break;
           }
           chunk->Data[reg] = *bdata;
           chunk->Mask |= uint_t(1) << reg;
           ++bdata;
           --size;
+        }
+        else
+        {
+          ++size;//put byte back
+          break;
         }
       }
       

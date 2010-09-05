@@ -63,8 +63,8 @@ namespace
       , Data(Vortex::Track::ModuleData::Create())
     {
       const char* const dataIt = static_cast<const char*>(container.Data->Data());
-
-      ThrowIfError(Vortex::ConvertFromText(std::string(dataIt, dataIt + region.Size),
+      const char* const endIt = dataIt + region.Size;
+      ThrowIfError(Vortex::ConvertFromText(std::string(dataIt, endIt),
         *Data, Version, FreqTableName));
       //meta properties
       ExtractMetaProperties(TXT_PLUGIN_ID, container, region, region, Data->Info.Properties, RawData);
@@ -169,7 +169,7 @@ namespace
       const char* const data = static_cast<const char*>(container.Data->Data());
       assert(CheckTXT(*container.Data));
       
-      const char* const dataEnd = std::find_if(data, data + std::min(MAX_MODULE_SIZE, dataSize), CheckSymbol);
+      const char* const dataEnd = std::find_if(data, data + std::min(MAX_MODULE_SIZE, dataSize), &CheckSymbol);
       const std::size_t limit = dataEnd - data;
 
       if (limit < MIN_MODULE_SIZE)
@@ -192,7 +192,7 @@ namespace
       }
       catch (const Error& e)
       {
-        Log::Debug("TXTSupp", "Failed to create holder ('%1%')", e.GetText());
+        Log::Debug("Core::TXTSupp", "Failed to create holder ('%1%')", e.GetText());
       }
       return Module::Holder::Ptr();
     }
