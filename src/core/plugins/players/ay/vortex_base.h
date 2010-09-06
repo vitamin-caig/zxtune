@@ -125,10 +125,10 @@ namespace ZXTune
       typedef TrackingSupport<AYM::CHANNELS, Sample, Ornament> Track;
 
       //creating simple player based on parsed data and parameters
-      Player::Ptr CreatePlayer(Track::ModuleData::ConstPtr data,
+      Player::Ptr CreatePlayer(Information::Ptr info, Track::ModuleData::Ptr data,
          uint_t version, const String& freqTableName, AYM::Chip::Ptr device);
       //creating TS player based on parsed data and parameters
-      Player::Ptr CreateTSPlayer(Track::ModuleData::ConstPtr data,
+      Player::Ptr CreateTSPlayer(Information::Ptr info, Track::ModuleData::Ptr data,
          uint_t version, const String& freqTableName, uint_t patternBase, AYM::Chip::Ptr device1, AYM::Chip::Ptr device2);
     }
   }

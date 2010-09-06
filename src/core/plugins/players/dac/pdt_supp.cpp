@@ -224,7 +224,7 @@ namespace
   #define SELF_TEST
   #endif
   
-  Player::Ptr CreatePDTPlayer(PDTTrack::ModuleData::ConstPtr data, DAC::Chip::Ptr device);
+  Player::Ptr CreatePDTPlayer(Information::Ptr info, PDTTrack::ModuleData::Ptr data, DAC::Chip::Ptr device);
 
   class PDTHolder : public Holder
   {
@@ -298,7 +298,9 @@ namespace
   public:
     PDTHolder(Plugin::Ptr plugin, 
       const MetaContainer& container, ModuleRegion& region)
-      : SrcPlugin(plugin), Data(PDTTrack::ModuleData::Create())
+      : SrcPlugin(plugin)
+      , Data(PDTTrack::ModuleData::Create())
+      , Info(PDTTrack::ModuleInfo::Create(Data))
     {
       //assume that data is ok
       const IO::FastDump& data(*container.Data);
@@ -351,24 +353,16 @@ namespace
       //fill region
       region.Offset = 0;
       region.Size = MODULE_SIZE;
-      
+
+      //set tracking
+      Info->SetLoopPosition(header->Loop);
+      Info->SetTempo(header->Tempo);
       //meta properties
-      ExtractMetaProperties(PDT_PLUGIN_ID, container, region, ModuleRegion(sizeof(PDTHeader) - sizeof(header->Patterns), sizeof(header->Patterns)),
-        Data->Info.Properties, RawData);
-      Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_PROGRAM, String(Text::PDT_EDITOR)));
-      const String& title(OptimizeString(FromStdString(header->Title)));
-      if (!title.empty())
-      {
-        Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_TITLE, title));
-      }
-      if (const uint_t msgs = warner->CountMessages())
-      {
-        Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS_COUNT, msgs));
-        Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS, warner->GetMessages('\n')));
-      }
-      
-      //tracking properties
-      Data->FillStatisticInfo(header->Loop, header->Tempo, CHANNELS_COUNT);
+      Info->SetTitle(OptimizeString(FromStdString(header->Title)));
+      Info->SetProgram(Text::PDT_EDITOR);
+      Info->SetWarnings(*warner);
+      Info->ExtractMetaProperties(PDT_PLUGIN_ID, container, region, ModuleRegion(sizeof(PDTHeader) - sizeof(header->Patterns), sizeof(header->Patterns)),
+        RawData);
     }
 
     virtual Plugin::Ptr GetPlugin() const
@@ -376,9 +370,9 @@ namespace
       return SrcPlugin;
     }
 
-    virtual void GetModuleInformation(Information& info) const
+    virtual Information::Ptr GetModuleInformation() const
     {
-      info = Data->Info;
+      return Info;
     }
     
     virtual Player::Ptr CreatePlayer() const
@@ -393,7 +387,7 @@ namespace
           chip->SetSample(idx, smp.Data, smp.Loop);
         }
       }
-      return CreatePDTPlayer(Data, chip);
+      return CreatePDTPlayer(Info, Data, chip);
     }
     
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -411,8 +405,9 @@ namespace
     }
   private:
     const Plugin::Ptr SrcPlugin;
+    const PDTTrack::ModuleData::RWPtr Data;
+    const PDTTrack::ModuleInfo::Ptr Info;
     Dump RawData;
-    const PDTTrack::ModuleData::Ptr Data;
   };
     
   class PDTPlayer : public Player
@@ -445,8 +440,9 @@ namespace
       }
     };
   public:
-    PDTPlayer(PDTTrack::ModuleData::ConstPtr data, DAC::Chip::Ptr device)
-      : Data(data)
+    PDTPlayer(Information::Ptr info, PDTTrack::ModuleData::Ptr data, DAC::Chip::Ptr device)
+      : Info(info)
+      , Data(data)
       , Device(device)
       , CurrentState(MODULE_STOPPED)
       , Interpolation(false)
@@ -460,7 +456,7 @@ namespace
         assert(Data->Positions.size() > ModState.Track.Position);
         RenderData(chunk);
       }
-      while (Data->UpdateState(ModState, Sound::LOOP_NONE));
+      while (Data->UpdateState(*Info, Sound::LOOP_NONE, ModState));
       Reset();
 #endif
     }
@@ -488,7 +484,7 @@ namespace
       ModState.Track.Channels = std::count_if(ChanState.begin(), ChanState.end(),
         boost::mem_fn(&Analyze::Channel::Enabled));
 
-      if (Data->UpdateState(ModState, params.Looping))
+      if (Data->UpdateState(*Info, params.Looping, ModState))
       {
         CurrentState = MODULE_PLAYING;
       }
@@ -504,7 +500,7 @@ namespace
     virtual Error Reset()
     {
       Device->Reset();
-      Data->InitState(ModState);
+      Data->InitState(Info->Tempo(), Info->FramesCount(), ModState);
       std::for_each(Ornaments.begin(), Ornaments.end(), std::mem_fun_ref(&OrnamentState::Reset));
       CurrentState = MODULE_STOPPED;
       return Error();
@@ -517,7 +513,7 @@ namespace
       {
         //reset to beginning in case of moving back
         const uint64_t keepTicks = ModState.Tick;
-        Data->InitState(ModState);
+        Data->InitState(Info->Tempo(), Info->FramesCount(), ModState);
         std::for_each(Ornaments.begin(), Ornaments.end(), std::mem_fun_ref(&OrnamentState::Reset));
         ModState.Tick = keepTicks;
       }
@@ -528,7 +524,7 @@ namespace
         //do not update tick for proper rendering
         assert(Data->Positions.size() > ModState.Track.Position);
         RenderData(chunk);
-        if (Data->UpdateState(ModState, Sound::LOOP_NONE))
+        if (Data->UpdateState(*Info, Sound::LOOP_NONE, ModState))
         {
           break;
         }
@@ -607,7 +603,8 @@ namespace
       chunk.Channels.swap(res);
     }
   private:
-    const PDTTrack::ModuleData::ConstPtr Data;
+    const Information::Ptr Info;
+    const PDTTrack::ModuleData::Ptr Data;
 
     DAC::Chip::Ptr Device;
     PlaybackState CurrentState;
@@ -617,9 +614,9 @@ namespace
     bool Interpolation;
   };
   
-  Player::Ptr CreatePDTPlayer(PDTTrack::ModuleData::ConstPtr data, DAC::Chip::Ptr device)
+  Player::Ptr CreatePDTPlayer(Information::Ptr info, PDTTrack::ModuleData::Ptr data, DAC::Chip::Ptr device)
   {
-    return Player::Ptr(new PDTPlayer(data, device));
+    return Player::Ptr(new PDTPlayer(info, data, device));
   }
 
   //////////////////////////////////////////////////////////////////////////

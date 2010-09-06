@@ -36,8 +36,7 @@ namespace ZXTune
       virtual Plugin::Ptr GetPlugin() const = 0;
 
       //! @brief Retrieving info about loaded module
-      //! @param info Reference to returned value
-      virtual void GetModuleInformation(Information& info) const = 0;
+      virtual Information::Ptr GetModuleInformation() const = 0;
 
       //! @brief Creating new player instance
       //! @return New player

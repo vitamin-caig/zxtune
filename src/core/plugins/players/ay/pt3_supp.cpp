@@ -650,6 +650,7 @@ namespace
     PT3Holder(Plugin::Ptr plugin, const MetaContainer& container, ModuleRegion& region)
       : SrcPlugin(plugin)
       , Data(Vortex::Track::ModuleData::Create())
+      , Info(Vortex::Track::ModuleInfo::Create(Data))
       , Version()
       , TSPatternBase(0)
     {
@@ -723,39 +724,24 @@ namespace
       
       //meta properties
       const std::size_t fixedOffset(sizeof(PT3Header) + header->Length - 1);
-      ExtractMetaProperties(PT3_PLUGIN_ID, container, region, ModuleRegion(fixedOffset, rawSize - fixedOffset),
-        Data->Info.Properties, RawData);
-      const String& title(OptimizeString(FromStdString(header->TrackName)));
-      if (!title.empty())
-      {
-        Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_TITLE, title));
-      }
-      const String& author(OptimizeString(FromStdString(header->TrackAuthor)));
-      if (!author.empty())
-      {
-        Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_AUTHOR, author));
-      }
-      const String& prog(OptimizeString(String(header->Id, header->Optional1)));
-      if (!prog.empty())
-      {
-        Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_PROGRAM, prog));
-      }
-      if (const uint_t msgs = warner->CountMessages())
-      {
-        Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS_COUNT, msgs));
-        Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS, warner->GetMessages('\n')));
-      }
+      Info->ExtractMetaProperties(PT3_PLUGIN_ID, container, region, ModuleRegion(fixedOffset, rawSize - fixedOffset),
+        RawData);
+      Info->SetTitle(OptimizeString(FromStdString(header->TrackName)));
+      Info->SetAuthor(OptimizeString(FromStdString(header->TrackAuthor)));
+      Info->SetProgram(OptimizeString(String(header->Id, header->Optional1)));
+      Info->SetWarnings(*warner);
       
       //tracking properties
       Version = std::isdigit(header->Subversion) ? header->Subversion - '0' : 6;
       FreqTableName = Vortex::GetFreqTable(static_cast<Vortex::NoteTable>(header->FreqTableNum), Version);
 
       //TODO: proper calculating
-      Data->FillStatisticInfo(header->Loop, header->Tempo, AYM::CHANNELS);
+      Info->SetLoopPosition(header->Loop);
+      Info->SetTempo(header->Tempo);
       if (header->Mode != AY_TRACK)
       {
         TSPatternBase = header->Mode;
-        Data->Info.LogicalChannels *= 2;
+        Info->SetLogicalChannels(Info->LogicalChannels() * 2);
       }
     }
 
@@ -764,17 +750,17 @@ namespace
       return SrcPlugin;
     }
 
-    virtual void GetModuleInformation(Information& info) const
+    virtual Information::Ptr GetModuleInformation() const
     {
-      info = Data->Info;
+      return Info;
     }
     
     virtual Player::Ptr CreatePlayer() const
     {
       return TSPatternBase ?
-        Vortex::CreateTSPlayer(Data, Version, FreqTableName, TSPatternBase, AYM::CreateChip(), AYM::CreateChip())
+        Vortex::CreateTSPlayer(Info, Data, Version, FreqTableName, TSPatternBase, AYM::CreateChip(), AYM::CreateChip())
         :
-        Vortex::CreatePlayer(Data, Version, FreqTableName, AYM::CreateChip());
+        Vortex::CreatePlayer(Info, Data, Version, FreqTableName, AYM::CreateChip());
     }
     
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -788,12 +774,12 @@ namespace
       }
       else if (TSPatternBase == 0)//only on usual modules
       {
-        if (ConvertAYMFormat(boost::bind(&Vortex::CreatePlayer, boost::cref(Data), Version, FreqTableName, _1),
+        if (ConvertAYMFormat(boost::bind(&Vortex::CreatePlayer, boost::cref(Info), boost::cref(Data), Version, FreqTableName, _1),
           param, dst, result))
         {
           return result;
         }
-        else if (ConvertVortexFormat(*Data, param, Version, FreqTableName, dst, result))
+        else if (ConvertVortexFormat(*Data, *Info, param, Version, FreqTableName, dst, result))
         {
           return result;
         }
@@ -802,8 +788,9 @@ namespace
     }
   private:
     const Plugin::Ptr SrcPlugin;
+    const Vortex::Track::ModuleData::RWPtr Data;
+    const Vortex::Track::ModuleInfo::Ptr Info;
     Dump RawData;
-    const Vortex::Track::ModuleData::Ptr Data;
     uint_t Version;
     String FreqTableName;
     uint_t TSPatternBase;

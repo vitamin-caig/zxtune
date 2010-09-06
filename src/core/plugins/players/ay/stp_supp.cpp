@@ -299,8 +299,8 @@ namespace
 
   struct STPModuleData : public STPTrack::ModuleData
   {
-    typedef boost::shared_ptr<STPModuleData> Ptr;
-    typedef boost::shared_ptr<const STPModuleData> ConstPtr;
+    typedef boost::shared_ptr<STPModuleData> RWPtr;
+    typedef boost::shared_ptr<const STPModuleData> Ptr;
 
     STPModuleData()
       : STPTrack::ModuleData()
@@ -311,7 +311,7 @@ namespace
   };
 
   // forward declaration
-  Player::Ptr CreateSTPPlayer(STPModuleData::ConstPtr data, AYM::Chip::Ptr device);
+  Player::Ptr CreateSTPPlayer(Information::Ptr info, STPModuleData::Ptr data, AYM::Chip::Ptr device);
 
   class STPHolder : public Holder
   {
@@ -406,6 +406,7 @@ namespace
     STPHolder(Plugin::Ptr plugin, const MetaContainer& container, ModuleRegion& region)
       : SrcPlugin(plugin)
       , Data(boost::make_shared<STPModuleData>())
+      , Info(STPTrack::ModuleInfo::Create(Data))
     {
       //assume that data is ok
       const IO::FastDump& data = IO::FastDump(*container.Data, region.Offset);
@@ -503,26 +504,17 @@ namespace
 
       //meta properties
       const std::size_t fixedOffset = fromLE(header->PatternsOffset);
-      ExtractMetaProperties(STP_PLUGIN_ID, container, region, ModuleRegion(fixedOffset, rawSize - fixedOffset),
-        Data->Info.Properties, RawData);
+      Info->ExtractMetaProperties(STP_PLUGIN_ID, container, region, ModuleRegion(fixedOffset, rawSize - fixedOffset),
+        RawData);
       const STPId* const id = safe_ptr_cast<const STPId*>(header + 1);
       if (id->Check())
       {
-        const String& title(OptimizeString(FromStdString(id->Title)));
-        if (!title.empty())
-        {
-          Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_TITLE, title));
-        }
+        Info->SetTitle(OptimizeString(FromStdString(id->Title)));
       }
-      Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_PROGRAM, String(Text::STP_EDITOR)));
-      if (const uint_t msgs = warner->CountMessages())
-      {
-        Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS_COUNT, msgs));
-        Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS, warner->GetMessages('\n')));
-      }
-
-      //tracking properties
-      Data->FillStatisticInfo(positions->Loop, header->Tempo, AYM::CHANNELS);
+      Info->SetProgram(Text::STP_EDITOR);
+      Info->SetWarnings(*warner);
+      Info->SetLoopPosition(positions->Loop);
+      Info->SetTempo(header->Tempo);
     }
 
     virtual Plugin::Ptr GetPlugin() const
@@ -530,14 +522,14 @@ namespace
       return SrcPlugin;
     }
 
-    virtual void GetModuleInformation(Information& info) const
+    virtual Information::Ptr GetModuleInformation() const
     {
-      info = Data->Info;
+      return Info;
     }
 
     virtual Player::Ptr CreatePlayer() const
     {
-      return CreateSTPPlayer(Data, AYM::CreateChip());
+      return CreateSTPPlayer(Info, Data, AYM::CreateChip());
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -548,7 +540,7 @@ namespace
       {
         dst = RawData;
       }
-      else if (!ConvertAYMFormat(boost::bind(&CreateSTPPlayer, boost::cref(Data), _1),
+      else if (!ConvertAYMFormat(boost::bind(&CreateSTPPlayer, boost::cref(Info), boost::cref(Data), _1),
         param, dst, result))
       {
         return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
@@ -557,8 +549,9 @@ namespace
     }
   private:
     const Plugin::Ptr SrcPlugin;
+    const STPModuleData::RWPtr Data;
+    const STPTrack::ModuleInfo::Ptr Info;
     Dump RawData;
-    const STPModuleData::Ptr Data;
   };
 
   struct STPChannelState
@@ -587,8 +580,8 @@ namespace
   class STPPlayer : public STPPlayerBase
   {
   public:
-    STPPlayer(STPModuleData::ConstPtr data, AYM::Chip::Ptr device)
-      : STPPlayerBase(data, device, TABLE_SOUNDTRACKER)
+    STPPlayer(Information::Ptr info, STPModuleData::Ptr data, AYM::Chip::Ptr device)
+      : STPPlayerBase(info, data, device, TABLE_SOUNDTRACKER)
     {
 #ifdef SELF_TEST
 //perform self-test
@@ -598,7 +591,7 @@ namespace
         assert(Data->Positions.size() > ModState.Track.Position);
         RenderData(chunk);
       }
-      while (Data->UpdateState(ModState, Sound::LOOP_NONE));
+      while (Data->UpdateState(*Info, Sound::LOOP_NONE, ModState));
       Reset();
 #endif
     }
@@ -748,9 +741,9 @@ namespace
     }
   };
 
-  Player::Ptr CreateSTPPlayer(STPModuleData::ConstPtr data, AYM::Chip::Ptr device)
+  Player::Ptr CreateSTPPlayer(Information::Ptr info, STPModuleData::Ptr data, AYM::Chip::Ptr device)
   {
-    return Player::Ptr(new STPPlayer(data, device));
+    return Player::Ptr(new STPPlayer(info, data, device));
   }
 
   bool CheckSTPModule(const uint8_t* data, std::size_t size) 

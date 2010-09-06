@@ -47,9 +47,10 @@ namespace ZXTune
     class AYMPlayer : public Player
     {
     public:
-      AYMPlayer(typename ModuleData::ConstPtr data,
+      AYMPlayer(Information::Ptr info, typename ModuleData::Ptr data,
         AYM::Chip::Ptr device, const String& defTable)
-        : Data(data)
+        : Info(info)
+        , Data(data)
         , AYMHelper(AYM::ParametersHelper::Create(defTable))
         , Device(device)
         , CurrentState(MODULE_STOPPED)
@@ -90,7 +91,7 @@ namespace ZXTune
         RenderData(chunk);
 
         Device->RenderData(params, chunk, receiver);
-        if (Data->UpdateState(ModState, params.Looping))
+        if (Data->UpdateState(*Info, params.Looping, ModState))
         {
           CurrentState = MODULE_PLAYING;
         }
@@ -106,7 +107,7 @@ namespace ZXTune
       virtual Error Reset()
       {
         Device->Reset();
-        Data->InitState(ModState);
+        Data->InitState(Info->Tempo(), Info->FramesCount(), ModState);
         PlayerState = InternalState();
         CurrentState = MODULE_STOPPED;
         return Error();
@@ -119,7 +120,7 @@ namespace ZXTune
         {
           //reset to beginning in case of moving back
           const uint64_t keepTicks = ModState.Tick;
-          Data->InitState(ModState);
+          Data->InitState(Info->Tempo(), Info->FramesCount(), ModState);
           PlayerState = InternalState();
           ModState.Tick = keepTicks;
         }
@@ -129,7 +130,7 @@ namespace ZXTune
         {
           //do not update tick for proper rendering
           RenderData(chunk);
-          if (!Data->UpdateState(ModState, Sound::LOOP_NONE))
+          if (!Data->UpdateState(*Info, Sound::LOOP_NONE, ModState))
           {
             break;
           }
@@ -142,7 +143,8 @@ namespace ZXTune
       //result processing function
       virtual void RenderData(AYM::DataChunk& chunk) = 0;
     protected:
-      const typename ModuleData::ConstPtr Data;
+      const Information::Ptr Info;
+      const typename ModuleData::Ptr Data;
       //aym-related
       AYM::ParametersHelper::Ptr AYMHelper;
       //tracking-related

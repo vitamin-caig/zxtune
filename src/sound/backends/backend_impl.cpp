@@ -210,9 +210,8 @@ namespace ZXTune
         else
         {
           Log::Debug(THIS_MODULE, "Opening the holder");
-          Module::Information modInfo;
-          holder->GetModuleInformation(modInfo);
-          CheckChannels(modInfo.PhysicalChannels);
+          const uint_t physicalChannels = holder->GetModuleInformation()->PhysicalChannels();
+          CheckChannels(physicalChannels);
 
           Locker lock(PlayerMutex);
           {
@@ -223,7 +222,7 @@ namespace ZXTune
             Holder = holder;
             Player = tmpPlayer;
           }
-          Channels = modInfo.PhysicalChannels;
+          Channels = physicalChannels;
           Mixer::Ptr& curMixer = MixersSet[Channels - 1];
           if (!curMixer)
           {

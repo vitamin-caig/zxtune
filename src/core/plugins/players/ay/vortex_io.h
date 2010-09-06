@@ -27,8 +27,8 @@ namespace ZXTune
     {
       // TXT input-output
       // version is minor value
-      Error ConvertFromText(const std::string& text, Vortex::Track::ModuleData& data, uint_t& version, String& freqTable);
-      std::string ConvertToText(const Vortex::Track::ModuleData& data, uint_t version, const String& freqTable);
+      Error ConvertFromText(const std::string& text, Vortex::Track::ModuleData& data, Vortex::Track::ModuleInfo& resInfo, uint_t& version, String& freqTable);
+      std::string ConvertToText(const Vortex::Track::ModuleData& data, const Information& info, uint_t version, const String& freqTable);
     }
   }
 }

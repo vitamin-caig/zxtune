@@ -830,7 +830,7 @@ namespace ZXTune
   {
     namespace Vortex
     {
-      Error ConvertFromText(const std::string& text, Vortex::Track::ModuleData& resData,
+      Error ConvertFromText(const std::string& text, Vortex::Track::ModuleData& resData, Vortex::Track::ModuleInfo& resInfo,
         uint_t& resVersion, String& resFreqTable)
       {
         typedef std::vector<std::string> LinesArray;
@@ -892,23 +892,17 @@ namespace ZXTune
           it = next;
         }
 
-        if (!descr.Title.empty())
-        {
-          data.Info.Properties.insert(Parameters::Map::value_type(ATTR_TITLE, descr.Title));
-        }
-        if (!descr.Author.empty())
-        {
-          data.Info.Properties.insert(Parameters::Map::value_type(ATTR_AUTHOR, descr.Author));
-        }
-        data.Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_PROGRAM,
-          (Formatter(Text::VORTEX_EDITOR) % (descr.Version / 10) % (descr.Version % 10)).str()));
+        resInfo.SetTitle(descr.Title);
+        resInfo.SetAuthor(descr.Author);
+        resInfo.SetProgram((Formatter(Text::VORTEX_EDITOR) % (descr.Version / 10) % (descr.Version % 10)).str());
 
         //tracking properties
         version = descr.Version % 10;
         freqTable = Vortex::GetFreqTable(static_cast<Vortex::NoteTable>(descr.Notetable), version);
 
         data.Positions.swap(descr.Order);
-        data.FillStatisticInfo(descr.Loop, descr.Tempo, AYM::CHANNELS);
+        resInfo.SetLoopPosition(descr.Loop);
+        resInfo.SetTempo(descr.Tempo);
 
         //apply result
         resData = data;
@@ -917,7 +911,7 @@ namespace ZXTune
         return Error();
       }
 
-      std::string ConvertToText(const Vortex::Track::ModuleData& data, uint_t version, const String& freqTable)
+      std::string ConvertToText(const Vortex::Track::ModuleData& data, const Information& info, uint_t version, const String& freqTable)
       {
         typedef std::vector<std::string> LinesArray;
         LinesArray asArray;
@@ -931,27 +925,22 @@ namespace ZXTune
           *iter = MODULE_VERSION + MODULE_DELIMITER +
               char('0' + resVersion / 10) + '.' + char('0' + resVersion % 10);
         }
+        const Parameters::Helper props(info.Properties());
         //process title info
+        if (const String* title = props.FindValue<String>(Module::ATTR_TITLE))
         {
-          const Parameters::Map::const_iterator titleIt = data.Info.Properties.find(Module::ATTR_TITLE);
-          if (titleIt != data.Info.Properties.end())
-          {
-            *iter = MODULE_TITLE + MODULE_DELIMITER +
-              ToStdString(Parameters::ConvertToString(titleIt->second));
-          }
+          *iter = MODULE_TITLE + MODULE_DELIMITER +
+            ToStdString(Parameters::ConvertToString(*title));
         }
         //process author info
+        if (const String* author = props.FindValue<String>(Module::ATTR_AUTHOR))
         {
-          const Parameters::Map::const_iterator authorIt = data.Info.Properties.find(Module::ATTR_AUTHOR);
-          if (authorIt != data.Info.Properties.end())
-          {
-            *iter = MODULE_AUTHOR + MODULE_DELIMITER +
-              ToStdString(Parameters::ConvertToString(authorIt->second));
-          }
+          *iter = MODULE_AUTHOR + MODULE_DELIMITER +
+            ToStdString(Parameters::ConvertToString(*author));
         }
         *iter = MODULE_NOTETABLE + MODULE_DELIMITER + string_cast(GetVortexNotetable(freqTable));
-        *iter = MODULE_SPEED + MODULE_DELIMITER + string_cast(data.Info.Tempo);
-        *iter = MODULE_PLAYORDER + MODULE_DELIMITER + UnparseLoopedList(data.Positions, data.Info.LoopPosition);
+        *iter = MODULE_SPEED + MODULE_DELIMITER + string_cast(info.Tempo());
+        *iter = MODULE_PLAYORDER + MODULE_DELIMITER + UnparseLoopedList(data.Positions, info.LoopPosition());
         *iter = std::string();//free
 
         //store ornaments

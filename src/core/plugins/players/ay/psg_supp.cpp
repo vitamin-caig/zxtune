@@ -69,48 +69,100 @@ namespace
   class PSGData
   {
   public:
-    typedef boost::shared_ptr<PSGData> Ptr;
-    typedef boost::shared_ptr<const PSGData> ConstPtr;
+    typedef boost::shared_ptr<PSGData> RWPtr;
+    typedef boost::shared_ptr<const PSGData> Ptr;
 
-    void FillStatisticInfo()
-    {
-      Info.LogicalChannels = Info.PhysicalChannels = AYM::CHANNELS;
-      Info.FramesCount = Dump.size();
-    }
-
-    void InitState(State& state) const
+    void InitState(uint_t initTempo, uint_t totalFrames, State& state) const
     {
       state = State();
       Tracking& trackRef(state.Reference);
-      trackRef.Quirk = 1;
-      trackRef.Frame = Info.FramesCount;
-      trackRef.Channels = Info.LogicalChannels;
+      trackRef.Quirk = initTempo;
+      trackRef.Frame = totalFrames;
+      trackRef.Channels = AYM::CHANNELS;
     }
 
-    bool UpdateState(State& state, Sound::LoopMode loopMode) const
+    bool UpdateState(const Information& info, Sound::LoopMode loopMode, State& state) const
     {
       //update tick outside
       ++state.Frame;
       if (++state.Track.Frame >= state.Reference.Frame)
       {
         //check if looped
-        state.Track.Frame = 0;
+        state.Track.Frame = info.LoopFrame();
         return Sound::LOOP_NONE != loopMode;
       }
       return true;
     }
 
     std::vector<AYM::DataChunk> Dump;
-    Information Info;
+  };
+
+  class PSGInfo : public Information
+  {
+  public:
+    typedef boost::shared_ptr<PSGInfo> Ptr;
+
+    explicit PSGInfo(PSGData::Ptr data)
+      : Data(data)
+    {
+    }
+    virtual uint_t PositionsCount() const
+    {
+      return 0;
+    }
+    virtual uint_t LoopPosition() const
+    {
+      return 0;
+    }
+    virtual uint_t PatternsCount() const
+    {
+      return 0;
+    }
+    virtual uint_t FramesCount() const
+    {
+      return Data->Dump.size();
+    }
+    virtual uint_t LoopFrame() const
+    {
+      return 0;
+    }
+    virtual uint_t LogicalChannels() const
+    {
+      return AYM::CHANNELS;
+    }
+    virtual uint_t PhysicalChannels() const
+    {
+      return AYM::CHANNELS;
+    }
+    virtual uint_t Tempo() const
+    {
+      return 1;
+    }
+    virtual const Parameters::Map& Properties() const
+    {
+      return Props;
+    }
+
+
+    void ExtractMetaProperties(const String& type,
+      const MetaContainer& container, const ModuleRegion& region, const ModuleRegion& fixedRegion, Dump& rawData)
+    {
+      return ZXTune::ExtractMetaProperties(type, container, region, fixedRegion, Props, rawData);
+    }
+  private:
+    const PSGData::Ptr Data;
+    Parameters::Map Props;
   };
   
-  Player::Ptr CreatePSGPlayer(PSGData::ConstPtr data, AYM::Chip::Ptr device);
+  Player::Ptr CreatePSGPlayer(Information::Ptr info, PSGData::Ptr data, AYM::Chip::Ptr device);
   
   class PSGHolder : public Holder
   {
   public:
     PSGHolder(Plugin::Ptr plugin, const MetaContainer& container, ModuleRegion& region)
-      : SrcPlugin(plugin), Data(boost::make_shared<PSGData>())
+      : SrcPlugin(plugin)
+      , Data(boost::make_shared<PSGData>())
+      , Info(boost::make_shared<PSGInfo>(Data))
     {
       const IO::FastDump data = *container.Data;
       //workaround for some emulators
@@ -179,8 +231,7 @@ namespace
       region.Size = data.Size() - size;
       
       //extract properties
-      ExtractMetaProperties(PSG_PLUGIN_ID, container, region, region, Data->Info.Properties, RawData);
-      Data->FillStatisticInfo();
+      Info->ExtractMetaProperties(PSG_PLUGIN_ID, container, region, region, RawData);
     }
 
     virtual Plugin::Ptr GetPlugin() const
@@ -188,14 +239,14 @@ namespace
       return SrcPlugin;
     }
 
-    virtual void GetModuleInformation(Information& info) const
+    virtual Information::Ptr GetModuleInformation() const
     {
-      info = Data->Info;
+      return Info;
     }
 
     virtual Player::Ptr CreatePlayer() const
     {
-      return CreatePSGPlayer(Data, AYM::CreateChip());
+      return CreatePSGPlayer(Info, Data, AYM::CreateChip());
     }
     
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -208,7 +259,7 @@ namespace
       {
         dst = RawData;
       }
-      else if (!ConvertAYMFormat(boost::bind(&CreatePSGPlayer, boost::cref(Data), _1),
+      else if (!ConvertAYMFormat(boost::bind(&CreatePSGPlayer, boost::cref(Info), boost::cref(Data), _1),
         param, dst, result))
       {
         return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
@@ -217,8 +268,9 @@ namespace
     }
   private:
     const Plugin::Ptr SrcPlugin;
+    const PSGData::RWPtr Data;
+    const PSGInfo::Ptr Info;
     Dump RawData;
-    PSGData::Ptr Data;
   };
 
   typedef AYMPlayer<PSGData, AYM::DataChunk> PSGPlayerBase;
@@ -226,8 +278,8 @@ namespace
   class PSGPlayer : public PSGPlayerBase
   {
   public:
-    PSGPlayer(PSGData::ConstPtr data, AYM::Chip::Ptr device)
-       : PSGPlayerBase(data, device, TABLE_SOUNDTRACKER/*any of*/)
+    PSGPlayer(Information::Ptr info, PSGData::Ptr data, AYM::Chip::Ptr device)
+       : PSGPlayerBase(info, data, device, TABLE_SOUNDTRACKER/*any of*/)
     {
     }
 
@@ -273,9 +325,9 @@ namespace
     }
   };
   
-  Player::Ptr CreatePSGPlayer(PSGData::ConstPtr data, AYM::Chip::Ptr device)
+  Player::Ptr CreatePSGPlayer(Information::Ptr info, PSGData::Ptr data, AYM::Chip::Ptr device)
   {
-    return Player::Ptr(new PSGPlayer(data, device));
+    return Player::Ptr(new PSGPlayer(info, data, device));
   }
   
   bool CheckPSG(const IO::DataContainer& inputData)

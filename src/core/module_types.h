@@ -12,6 +12,8 @@
 
 //common includes
 #include <parameters.h>
+//boost includes
+#include <boost/shared_ptr.hpp>
 
 namespace ZXTune
 {
@@ -60,34 +62,33 @@ namespace ZXTune
     };
 
     //! @brief Common module information
-    struct Information
+    class Information
     {
-      Information()
-        : PositionsCount(), LoopPosition()
-        , PatternsCount()
-        , FramesCount(), LoopFrame()
-        , LogicalChannels(), PhysicalChannels()
-        , Tempo()
-      {
-      }
+    public:
+      //! Pointer type
+      typedef boost::shared_ptr<Information> Ptr;
+
+      virtual ~Information() {}
+
       //! Total positions
-      uint_t PositionsCount;
+      virtual uint_t PositionsCount() const = 0;
       //! Loop position index
-      uint_t LoopPosition;
+      virtual uint_t LoopPosition() const = 0;
       //! Total patterns count
-      uint_t PatternsCount;
+      virtual uint_t PatternsCount() const = 0;
       //! Total frames count
-      uint_t FramesCount;
+      virtual uint_t FramesCount() const = 0;
       //! Loop position frame
-      uint_t LoopFrame;
+      virtual uint_t LoopFrame() const = 0;
       //! Logical channels count
-      uint_t LogicalChannels;
+      virtual uint_t LogicalChannels() const = 0;
       //! Actual physical channels count
-      uint_t PhysicalChannels;
+      virtual uint_t PhysicalChannels() const = 0;
       //! Initial tempo
-      uint_t Tempo;
+      virtual uint_t Tempo() const = 0;
       //! %Module properties @see core/module_attrs.h
-      Parameters::Map Properties;
+      //TODO: make object
+      virtual const Parameters::Map& Properties() const = 0;
     };
 
     //! @brief %Sound analyzing types

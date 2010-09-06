@@ -12,6 +12,10 @@ Author:
 #ifndef __CORE_PLUGINS_PLAYERS_TRACKING_H_DEFINED__
 #define __CORE_PLUGINS_PLAYERS_TRACKING_H_DEFINED__
 
+//local includes
+#include <core/plugins/enumerator.h>
+//common includes
+#include <messages_collector.h>
 //library includes
 #include <core/module_types.h>
 #include <sound/render_params.h>// for LoopMode
@@ -133,52 +137,24 @@ namespace ZXTune
       // Holder-related types
       struct ModuleData
       {
-        typedef boost::shared_ptr<ModuleData> Ptr;
-        typedef boost::shared_ptr<const ModuleData> ConstPtr;
+        typedef boost::shared_ptr<const ModuleData> Ptr;
+        typedef boost::shared_ptr<ModuleData> RWPtr;
 
-        static Ptr Create()
+        static RWPtr Create()
         {
           return boost::make_shared<ModuleData>();
         }
 
-        ModuleData() : Positions(), Patterns(), Samples(), Ornaments(), Info()
+        ModuleData() : Positions(), Patterns(), Samples(), Ornaments()
         {
         }
 
-        void FillStatisticInfo(uint_t loopPosition, uint_t tempo, uint_t physicalChannels)
-        {
-          //static properties
-          Info.PositionsCount = Positions.size();
-          Info.LoopPosition = loopPosition;
-          Info.PatternsCount = std::count_if(Patterns.begin(), Patterns.end(),
-            !boost::bind(&Pattern::empty, _1));
-          Info.Tempo = tempo;
-          Info.LogicalChannels = ChannelsCount;
-          Info.PhysicalChannels = physicalChannels;
-          //emulate playback
-          Module::State state;
-          InitState(state);
-          Module::Tracking& track = state.Track;
-          do
-          {
-            //check for loop
-            if (0 == track.Line &&
-                0 == track.Quirk &&
-                Info.LoopPosition == track.Position)
-            {
-              Info.LoopFrame = state.Frame;
-            }
-          }
-          while (UpdateState(state, Sound::LOOP_NONE));
-          Info.FramesCount = state.Frame;
-        }
-
-        void InitState(Module::State& state) const
+        void InitState(uint_t initTempo, uint_t totalFrames, Module::State& state) const
         {
           state = Module::State();
           Module::Tracking& trackState(state.Track);
           Module::Tracking& trackRef(state.Reference);
-          trackRef.Position = Info.PositionsCount;
+          trackRef.Position = Positions.size();
           trackState.Pattern = Positions[trackState.Position];
           trackRef.Pattern = Patterns.size();//use absolute index as a base
           trackRef.Line = Patterns[trackState.Pattern].size();
@@ -188,13 +164,13 @@ namespace ZXTune
           }
           else
           {
-            trackRef.Quirk = Info.Tempo;
+            trackRef.Quirk = initTempo;
           }
-          trackRef.Frame = Info.FramesCount;
-          trackRef.Channels = Info.LogicalChannels;
+          trackRef.Frame = totalFrames;
+          trackRef.Channels = ChannelsCount;
         }
 
-        bool UpdateState(Module::State& state, Sound::LoopMode loopMode) const
+        bool UpdateState(const Information& info, Sound::LoopMode loopMode, Module::State& state) const
         {
           //update tick outside of this func
           Module::Tracking& trackState(state.Track);
@@ -216,8 +192,8 @@ namespace ZXTune
                 //do not reset ticks/frame in state!!!
                 if (Sound::LOOP_NORMAL == loopMode)
                 {
-                  state.Frame = Info.LoopFrame;
-                  trackState.Position = Info.LoopPosition;
+                  state.Frame = info.LoopFrame();
+                  trackState.Position = info.LoopPosition();
                 }
                 else
                 {
@@ -247,7 +223,171 @@ namespace ZXTune
         std::vector<Pattern> Patterns;
         std::vector<SampleType> Samples;
         std::vector<OrnamentType> Ornaments;
-        Information Info;
+      };
+
+      class ModuleInfo : public Information
+      {
+      public:
+        explicit ModuleInfo(typename ModuleData::Ptr data)
+          : Data(data)
+          , LoopPosNum()
+          , InitialTempo()
+          , LogicChannels(ChannelsCount)
+          , PhysChannels(ChannelsCount)
+          , Frames(), LoopFrameNum()
+        {
+        }
+        typedef boost::shared_ptr<ModuleInfo> Ptr;
+
+        static Ptr Create(typename ModuleData::Ptr data)
+        {
+          return boost::make_shared<ModuleInfo>(data);
+        }
+
+        virtual uint_t PositionsCount() const
+        {
+          return Data->Positions.size();
+        }
+
+        virtual uint_t LoopPosition() const
+        {
+          return LoopPosNum;
+        }
+
+        virtual uint_t PatternsCount() const
+        {
+	  return std::count_if(Data->Patterns.begin(), Data->Patterns.end(),
+            !boost::bind(&Pattern::empty, _1));
+        }
+
+        virtual uint_t FramesCount() const
+        {
+          if (!Frames)
+          {
+            Initialize();
+          }
+          return Frames;
+        }
+
+        virtual uint_t LoopFrame() const
+        {
+          if (LoopPosNum && !LoopFrameNum)
+          {
+            Initialize();
+          }
+          return LoopFrameNum;
+        }
+
+        virtual uint_t LogicalChannels() const
+        {
+          return LogicChannels;
+        }
+
+        virtual uint_t PhysicalChannels() const
+        {
+          return PhysChannels;
+        }
+
+        virtual uint_t Tempo() const
+        {
+          return InitialTempo;
+        }
+
+        virtual const Parameters::Map& Properties() const
+        {
+          return ModuleProperties;
+        }
+
+        //modifiers
+        void SetLoopPosition(uint_t loopPos)
+        {
+          LoopPosNum = loopPos;
+        }
+
+        void SetTempo(uint_t tempo)
+        {
+          InitialTempo = tempo;
+        }
+
+        void SetLogicalChannels(uint_t channels)
+        {
+          LogicChannels = channels;
+        }
+
+        void SetPhysicalChannels(uint_t channels)
+        {
+          PhysChannels = channels;
+        }
+
+        void SetTitle(const String& title)
+        {
+          if (!title.empty())
+          {
+            ModuleProperties.insert(Parameters::Map::value_type(ATTR_TITLE, title));
+          }
+        }
+
+        void SetAuthor(const String& author)
+        {
+          if (!author.empty())
+          {
+            ModuleProperties.insert(Parameters::Map::value_type(ATTR_AUTHOR, author));
+          }
+        }
+
+        void SetProgram(const String& program)
+        {
+          if (!program.empty())
+          {
+            ModuleProperties.insert(Parameters::Map::value_type(ATTR_PROGRAM, program));
+          }
+        }
+
+        void SetWarnings(const Log::MessagesCollector& warner)
+        {
+          if (const uint_t msgs = warner.CountMessages())
+          {
+            ModuleProperties.insert(Parameters::Map::value_type(ATTR_WARNINGS_COUNT, msgs));
+            ModuleProperties.insert(Parameters::Map::value_type(ATTR_WARNINGS, warner.GetMessages('\n')));
+          }
+        }
+
+        //temporary crap
+        void ExtractMetaProperties(const String& type,
+                             const MetaContainer& container, const ModuleRegion& region, const ModuleRegion& fixedRegion,
+                             Dump& rawData)
+        {
+          return ZXTune::ExtractMetaProperties(type, container, region, fixedRegion, ModuleProperties, rawData);
+        }
+      private:
+        void Initialize() const
+        {
+          //emulate playback
+          Module::State state;
+          Data->InitState(InitialTempo, 0, state);
+          Module::Tracking& track = state.Track;
+          do
+          {
+            //check for loop
+            if (0 == track.Line &&
+                0 == track.Quirk &&
+                LoopPosNum == track.Position)
+            {
+              LoopFrameNum = state.Frame;
+            }
+          }
+          while (Data->UpdateState(*this, Sound::LOOP_NONE, state));
+          Frames = state.Frame;
+        }
+      private:
+        const typename ModuleData::Ptr Data;
+        uint_t LoopPosNum;
+        uint_t InitialTempo;
+        uint_t LogicChannels;
+        uint_t PhysChannels;
+        mutable uint_t Frames;
+        mutable uint_t LoopFrameNum;
+        Parameters::Map ModuleProperties;
       };
     };
     

@@ -75,7 +75,7 @@ namespace ZXTune
     }
 
     //vortex-based conversion
-    bool ConvertVortexFormat(const Vortex::Track::ModuleData& data, const Conversion::Parameter& param,
+    bool ConvertVortexFormat(const Vortex::Track::ModuleData& data, const Information& info, const Conversion::Parameter& param,
       uint_t version, const String& freqTable,
       Dump& dst, Error& result)
     {
@@ -84,7 +84,7 @@ namespace ZXTune
       //convert to TXT
       if (parameter_cast<TXTConvertParam>(&param))
       {
-        const std::string& asString = Vortex::ConvertToText(data, version, freqTable);
+        const std::string& asString = Vortex::ConvertToText(data, info, version, freqTable);
         dst.assign(asString.begin(), asString.end());
         result = Error();
         return true;

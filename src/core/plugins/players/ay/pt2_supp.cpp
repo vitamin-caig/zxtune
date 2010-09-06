@@ -322,7 +322,7 @@ namespace
 
   typedef TrackingSupport<AYM::CHANNELS, Sample> PT2Track;
   
-  Player::Ptr CreatePT2Player(PT2Track::ModuleData::ConstPtr data, AYM::Chip::Ptr device);
+  Player::Ptr CreatePT2Player(Information::Ptr info, PT2Track::ModuleData::Ptr data, AYM::Chip::Ptr device);
 
   class PT2Holder : public Holder
   {
@@ -472,7 +472,9 @@ namespace
 
   public:
     PT2Holder(Plugin::Ptr plugin, const MetaContainer& container, ModuleRegion& region)
-      : SrcPlugin(plugin), Data(PT2Track::ModuleData::Create())
+      : SrcPlugin(plugin)
+      , Data(PT2Track::ModuleData::Create())
+      , Info(PT2Track::ModuleInfo::Create(Data))
     {
       //assume all data is correct
       const IO::FastDump& data = IO::FastDump(*container.Data, region.Offset);
@@ -543,22 +545,13 @@ namespace
       
       //meta properties
       const std::size_t fixedOffset(sizeof(PT2Header) + header->Length - 1);
-      ExtractMetaProperties(PT2_PLUGIN_ID, container, region, ModuleRegion(fixedOffset, rawSize - fixedOffset),
-        Data->Info.Properties, RawData);
-      const String& title(OptimizeString(FromStdString(header->Name)));
-      if (!title.empty())
-      {
-        Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_TITLE, title));
-      }
-      Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_PROGRAM, String(Text::PT2_EDITOR)));
-      if (const uint_t msgs = warner->CountMessages())
-      {
-        Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS_COUNT, msgs));
-        Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS, warner->GetMessages('\n')));
-      }
-      
-      //tracking properties
-      Data->FillStatisticInfo(header->Loop, header->Tempo, AYM::CHANNELS);
+      Info->ExtractMetaProperties(PT2_PLUGIN_ID, container, region, ModuleRegion(fixedOffset, rawSize - fixedOffset),
+        RawData);
+      Info->SetTitle(OptimizeString(FromStdString(header->Name)));
+      Info->SetProgram(Text::PT2_EDITOR);
+      Info->SetWarnings(*warner);
+      Info->SetLoopPosition(header->Loop);
+      Info->SetTempo(header->Tempo);      
     }
 
     virtual Plugin::Ptr GetPlugin() const
@@ -566,14 +559,14 @@ namespace
       return SrcPlugin;
     }
 
-    virtual void GetModuleInformation(Information& info) const
+    virtual Information::Ptr GetModuleInformation() const
     {
-      info = Data->Info;
+      return Info;
     }
     
     virtual Player::Ptr CreatePlayer() const
     {
-      return CreatePT2Player(Data, AYM::CreateChip());
+      return CreatePT2Player(Info, Data, AYM::CreateChip());
     }
     
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -584,7 +577,7 @@ namespace
       {
         dst = RawData;
       }
-      else if (!ConvertAYMFormat(boost::bind(&CreatePT2Player, boost::cref(Data), _1), param, dst, result))
+      else if (!ConvertAYMFormat(boost::bind(&CreatePT2Player, boost::cref(Info), boost::cref(Data), _1), param, dst, result))
       {
         return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
       }
@@ -592,8 +585,9 @@ namespace
     }
   private:
     const Plugin::Ptr SrcPlugin;
+    const PT2Track::ModuleData::RWPtr Data;
+    const PT2Track::ModuleInfo::Ptr Info;
     Dump RawData;
-    const PT2Track::ModuleData::Ptr Data;
   };
 
   inline uint_t GetVolume(uint_t volume, uint_t level)
@@ -630,8 +624,8 @@ namespace
   class PT2Player : public PT2PlayerBase
   {
   public:
-    PT2Player(PT2Track::ModuleData::ConstPtr data, AYM::Chip::Ptr device)
-       : PT2PlayerBase(data, device, TABLE_PROTRACKER2)
+    PT2Player(Information::Ptr info, PT2Track::ModuleData::Ptr data, AYM::Chip::Ptr device)
+       : PT2PlayerBase(info, data, device, TABLE_PROTRACKER2)
     {
 #ifdef SELF_TEST
 //perform self-test
@@ -641,7 +635,7 @@ namespace
         assert(Data->Positions.size() > ModState.Track.Position);
         RenderData(chunk);
       }
-      while (Data->UpdateState(ModState, Sound::LOOP_NONE));
+      while (Data->UpdateState(*Info, Sound::LOOP_NONE, ModState));
       Reset();
 #endif
     }
@@ -805,9 +799,9 @@ namespace
     }
   };
 
-  Player::Ptr CreatePT2Player(PT2Track::ModuleData::ConstPtr data, AYM::Chip::Ptr device)
+  Player::Ptr CreatePT2Player(Information::Ptr info, PT2Track::ModuleData::Ptr data, AYM::Chip::Ptr device)
   {
-    return Player::Ptr(new PT2Player(data, device));
+    return Player::Ptr(new PT2Player(info, data, device));
   }
 
   //////////////////////////////////////////////////

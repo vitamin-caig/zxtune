@@ -161,6 +161,57 @@ namespace
     }
   }
 
+  class MergedModuleInfo : public Information
+  {
+  public:
+    MergedModuleInfo(Information::Ptr lh, Information::Ptr rh)
+      : First(lh), Second(rh)
+    {
+      //assume first is leading
+      MergeMap(First->Properties(), Second->Properties(), Props);
+    }
+    virtual uint_t PositionsCount() const
+    {
+      return First->PositionsCount();
+    }
+    virtual uint_t LoopPosition() const
+    {
+      return First->LoopPosition();
+    }
+    virtual uint_t PatternsCount() const
+    {
+      return First->PatternsCount() + Second->PatternsCount();
+    }
+    virtual uint_t FramesCount() const
+    {
+      return First->FramesCount();
+    }
+    virtual uint_t LoopFrame() const
+    {
+      return First->LoopFrame();
+    }
+    virtual uint_t LogicalChannels() const
+    {
+      return First->LogicalChannels() + Second->LogicalChannels();
+    }
+    virtual uint_t PhysicalChannels() const
+    {
+      return std::max(First->PhysicalChannels(), Second->PhysicalChannels());
+    }
+    virtual uint_t Tempo() const
+    {
+      return std::min(First->Tempo(), Second->Tempo());
+    }
+    virtual const Parameters::Map& Properties() const
+    {
+      return Props;
+    }
+  private:
+    const Information::Ptr First;
+    const Information::Ptr Second;
+    Parameters::Map Props;
+  };
+
   //////////////////////////////////////////////////////////////////////////
 
   class TSHolder;
@@ -173,16 +224,8 @@ namespace
       : SrcPlugin(plugin)
       , RawData(data)
       , Holder1(holder1), Holder2(holder2)
+      , Info(new MergedModuleInfo(Holder1->GetModuleInformation(), Holder2->GetModuleInformation()))
     {
-      Holder1->GetModuleInformation(Info);
-      //assume first is leading
-      Information info2;
-      Holder2->GetModuleInformation(info2);
-      Info.LogicalChannels += info2.LogicalChannels;
-      //physical channels are the same
-      Parameters::Map mergedProps;
-      MergeMap(Info.Properties, info2.Properties, mergedProps);
-      Info.Properties.swap(mergedProps);
     }
 
     virtual Plugin::Ptr GetPlugin() const
@@ -190,9 +233,9 @@ namespace
       return SrcPlugin;
     }
 
-    virtual void GetModuleInformation(Information& info) const
+    virtual Information::Ptr GetModuleInformation() const
     {
-      info = Info;
+      return Info;
     }
 
     virtual Player::Ptr CreatePlayer() const
@@ -217,8 +260,9 @@ namespace
     friend class TSPlayer;
     const Plugin::Ptr SrcPlugin;
     Dump RawData;
-    Information Info;
-    Holder::Ptr Holder1, Holder2;
+    const Holder::Ptr Holder1;
+    const Holder::Ptr Holder2;
+    const Information::Ptr Info;
   };
 
   class TSPlayer : public Player

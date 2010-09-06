@@ -269,7 +269,7 @@ namespace
         nameTemplate += extension;
       }
       StringMap strProps;
-      FillPropertiesFields(info.Properties, strProps);
+      FillPropertiesFields(info.Properties(), strProps);
       Parameters::IntType intParam = 0;
       const bool doRewrite = Parameters::FindByName(commonParams, Parameters::ZXTune::Sound::Backends::Wav::OVERWRITE, intParam) &&
         intParam != 0;
@@ -317,9 +317,8 @@ namespace
       //if playback now
       if (Player && Holder)
       {
-        Module::Information info;
-        Holder->GetModuleInformation(info);
-        Processor.reset(new ComplexTrackProcessor(CommonParameters, RenderingParameters, info));
+        const Module::Information::Ptr info = Holder->GetModuleInformation();
+        Processor.reset(new ComplexTrackProcessor(CommonParameters, RenderingParameters, *info));
       }
     }
 

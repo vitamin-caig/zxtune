@@ -164,9 +164,9 @@ namespace
   public:
     typedef boost::shared_ptr<VortexPlayer> Ptr;
 
-    VortexPlayer(Vortex::Track::ModuleData::ConstPtr data,
+    VortexPlayer(Information::Ptr info, Vortex::Track::ModuleData::Ptr data,
        uint_t version, const String& freqTableName, AYM::Chip::Ptr device)
-      : VortexPlayerBase(data, device, freqTableName)
+      : VortexPlayerBase(info, data, device, freqTableName)
       , Version(version)
       , VolTable(version <= 4 ? Vol33_34 : Vol35)
     {
@@ -178,7 +178,7 @@ namespace
         assert(Data->Positions.size() > ModState.Track.Position);
         RenderData(chunk);
       }
-      while (Data->UpdateState(ModState, Sound::LOOP_NONE));
+      while (Data->UpdateState(*Info, Sound::LOOP_NONE, ModState));
       Reset();
 #endif
     }
@@ -469,15 +469,15 @@ namespace
   class VortexTSPlayer : public Player
   {
   public:
-    VortexTSPlayer(Vortex::Track::ModuleData::ConstPtr data,
+    VortexTSPlayer(Information::Ptr info, Vortex::Track::ModuleData::Ptr data,
          uint_t version, const String& freqTableName, uint_t patternBase, AYM::Chip::Ptr device1, AYM::Chip::Ptr device2)
-      : Player2(new VortexPlayer(data, version, freqTableName, device2))
+      : Player2(new VortexPlayer(info, data, version, freqTableName, device2))
     {
       //copy and patch
-      Vortex::Track::ModuleData::Ptr secondData = boost::make_shared<Vortex::Track::ModuleData>(*data);
+      Vortex::Track::ModuleData::RWPtr secondData = boost::make_shared<Vortex::Track::ModuleData>(*data);
       std::transform(secondData->Positions.begin(), secondData->Positions.end(), secondData->Positions.begin(),
         std::bind1st(std::minus<uint_t>(), patternBase - 1));
-      Player1.reset(new VortexPlayer(secondData, version, freqTableName, device1));
+      Player1.reset(new VortexPlayer(info, secondData, version, freqTableName, device1));
     }
 
     virtual Error GetPlaybackState(State& state,
@@ -610,16 +610,16 @@ namespace ZXTune
       }
 
 
-      Player::Ptr CreatePlayer(Track::ModuleData::ConstPtr data,
+      Player::Ptr CreatePlayer(Information::Ptr info, Track::ModuleData::Ptr data,
          uint_t version, const String& freqTableName, AYM::Chip::Ptr device)
       {
-        return Player::Ptr(new VortexPlayer(data, version, freqTableName, device));
+        return Player::Ptr(new VortexPlayer(info, data, version, freqTableName, device));
       }
 
-      Player::Ptr CreateTSPlayer(Track::ModuleData::ConstPtr data,
+      Player::Ptr CreateTSPlayer(Information::Ptr info, Track::ModuleData::Ptr data,
          uint_t version, const String& freqTableName, uint_t patternBase, AYM::Chip::Ptr device1, AYM::Chip::Ptr device2)
       {
-        return Player::Ptr(new VortexTSPlayer(data, version, freqTableName, patternBase, device1, device2));
+        return Player::Ptr(new VortexTSPlayer(info, data, version, freqTableName, patternBase, device1, device2));
       }
     }
   }

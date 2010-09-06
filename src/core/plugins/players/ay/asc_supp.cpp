@@ -401,7 +401,7 @@ namespace
   // tracker type
   typedef TrackingSupport<AYM::CHANNELS, Sample, Ornament> ASCTrack;
 
-  Player::Ptr CreateASCPlayer(ASCTrack::ModuleData::ConstPtr data, AYM::Chip::Ptr device);
+  Player::Ptr CreateASCPlayer(Information::Ptr info, ASCTrack::ModuleData::Ptr data, AYM::Chip::Ptr device);
 
   class ASCHolder : public Holder
   {
@@ -595,7 +595,9 @@ namespace
     }
   public:
     ASCHolder(Plugin::Ptr plugin, const MetaContainer& container, ModuleRegion& region)
-      : SrcPlugin(plugin), Data(ASCTrack::ModuleData::Create())
+      : SrcPlugin(plugin)
+      , Data(ASCTrack::ModuleData::Create())
+      , Info(ASCTrack::ModuleInfo::Create(Data))
     {
       //assume all data is correct
       const IO::FastDump& data = IO::FastDump(*container.Data, region.Offset);
@@ -705,31 +707,18 @@ namespace
         const ASCID* const id = safe_ptr_cast<const ASCID*>(header->Positions + header->Length);
         const bool validId = id->Check();
         const std::size_t fixedOffset = sizeof(ASCHeader) + validId ? sizeof(*id) : 0;
-        ExtractMetaProperties(ASC_PLUGIN_ID, container, region, ModuleRegion(fixedOffset, rawSize - fixedOffset),
-          Data->Info.Properties, RawData);
+        Info->ExtractMetaProperties(ASC_PLUGIN_ID, container, region, ModuleRegion(fixedOffset, rawSize - fixedOffset),
+          RawData);
         if (validId)
         {
-          const String& title = OptimizeString(FromStdString(id->Title));
-          if (!title.empty())
-          {
-            Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_TITLE, title));
-          }
-          const String& author = OptimizeString(FromStdString(id->Author));
-          if (!author.empty())
-          {
-            Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_AUTHOR, author));
-          }
+          Info->SetTitle(OptimizeString(FromStdString(id->Title)));
+          Info->SetAuthor(OptimizeString(FromStdString(id->Author)));
         }
       }
-      Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_PROGRAM, String(Text::ASC_EDITOR)));
-      if (const uint_t msgs = warner->CountMessages())
-      {
-        Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS_COUNT, msgs));
-        Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS, warner->GetMessages('\n')));
-      }
-
-      //tracking properties
-      Data->FillStatisticInfo(header->Loop, header->Tempo, AYM::CHANNELS);
+      Info->SetProgram(Text::ASC_EDITOR);
+      Info->SetWarnings(*warner);
+      Info->SetLoopPosition(header->Loop);
+      Info->SetTempo(header->Tempo);
     }
 
     virtual Plugin::Ptr GetPlugin() const
@@ -737,14 +726,14 @@ namespace
       return SrcPlugin;
     }
 
-    virtual void GetModuleInformation(Information& info) const
+    virtual Information::Ptr GetModuleInformation() const
     {
-      info = Data->Info;
+      return Info;
     }
 
     virtual Player::Ptr CreatePlayer() const
     {
-      return CreateASCPlayer(Data, AYM::CreateChip());
+      return CreateASCPlayer(Info, Data, AYM::CreateChip());
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -755,7 +744,7 @@ namespace
       {
         dst = RawData;
       }
-      else if (!ConvertAYMFormat(boost::bind(&CreateASCPlayer, boost::cref(Data), _1),
+      else if (!ConvertAYMFormat(boost::bind(&CreateASCPlayer, boost::cref(Info), boost::cref(Data), _1),
         param, dst, result))
       {
         return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
@@ -764,8 +753,9 @@ namespace
     }
   private:
     const Plugin::Ptr SrcPlugin;
+    const ASCTrack::ModuleData::RWPtr Data;
+    const ASCTrack::ModuleInfo::Ptr Info;
     Dump RawData;
-    const ASCTrack::ModuleData::Ptr Data;
   };
 
   struct ASCChannelState
@@ -811,8 +801,8 @@ namespace
   class ASCPlayer : public ASCPlayerBase
   {
   public:
-    ASCPlayer(ASCTrack::ModuleData::ConstPtr data, AYM::Chip::Ptr device)
-      : ASCPlayerBase(data, device, TABLE_ASM)
+    ASCPlayer(Information::Ptr info, ASCTrack::ModuleData::Ptr data, AYM::Chip::Ptr device)
+      : ASCPlayerBase(info, data, device, TABLE_ASM)
     {
 #ifdef SELF_TEST
 //perform self-test
@@ -822,7 +812,7 @@ namespace
         assert(Data->Positions.size() > ModState.Track.Position);
         RenderData(chunk);
       }
-      while (Data->UpdateState(ModState, Sound::LOOP_NONE));
+      while (Data->UpdateState(*Info, Sound::LOOP_NONE, ModState));
       Reset();
 #endif
     }
@@ -1088,9 +1078,9 @@ namespace
     }
   };
 
-  Player::Ptr CreateASCPlayer(ASCTrack::ModuleData::ConstPtr data, AYM::Chip::Ptr device)
+  Player::Ptr CreateASCPlayer(Information::Ptr info, ASCTrack::ModuleData::Ptr data, AYM::Chip::Ptr device)
   {
-    return Player::Ptr(new ASCPlayer(data, device));
+    return Player::Ptr(new ASCPlayer(info, data, device));
   }
 
   //////////////////////////////////////////////////////////////////////////

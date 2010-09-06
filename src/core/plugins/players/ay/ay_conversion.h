@@ -44,13 +44,14 @@ namespace ZXTune
 
     //! @brief Simple helper for conversion to Vortex-related formats
     //! @param data Source data for Vortex track
+    //! @param info %Module information
     //! @param param Input convertion parameter
     //! @param version Compatibility version
     //! @param freqTable Frequency table
     //! @param dst Destination data
     //! @param result Result state
     //! @return true if parameter is processed
-    bool ConvertVortexFormat(const Vortex::Track::ModuleData& data, const Conversion::Parameter& param,
+    bool ConvertVortexFormat(const Vortex::Track::ModuleData& data, const Information& info, const Conversion::Parameter& param,
       uint_t version, const String& freqTable,
       Dump& dst, Error& result);
 

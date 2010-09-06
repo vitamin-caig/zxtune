@@ -61,13 +61,14 @@ namespace
     TXTHolder(Plugin::Ptr plugin, const MetaContainer& container, const ModuleRegion& region)
       : SrcPlugin(plugin)
       , Data(Vortex::Track::ModuleData::Create())
+      , Info(Vortex::Track::ModuleInfo::Create(Data))
     {
       const char* const dataIt = static_cast<const char*>(container.Data->Data());
       const char* const endIt = dataIt + region.Size;
       ThrowIfError(Vortex::ConvertFromText(std::string(dataIt, endIt),
-        *Data, Version, FreqTableName));
+        *Data, *Info, Version, FreqTableName));
       //meta properties
-      ExtractMetaProperties(TXT_PLUGIN_ID, container, region, region, Data->Info.Properties, RawData);
+      Info->ExtractMetaProperties(TXT_PLUGIN_ID, container, region, region, RawData);
     }
 
     virtual Plugin::Ptr GetPlugin() const
@@ -75,14 +76,14 @@ namespace
       return SrcPlugin;
     }
 
-    virtual void GetModuleInformation(Information& info) const
+    virtual Information::Ptr GetModuleInformation() const
     {
-      info = Data->Info;
+      return Info;
     }
 
     virtual Player::Ptr CreatePlayer() const
     {
-      return Vortex::CreatePlayer(Data, Version, FreqTableName, AYM::CreateChip());
+      return Vortex::CreatePlayer(Info, Data, Version, FreqTableName, AYM::CreateChip());
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -94,12 +95,12 @@ namespace
         dst = RawData;
         return Error();
       }
-      else if (ConvertAYMFormat(boost::bind(&Vortex::CreatePlayer, boost::cref(Data), Version, FreqTableName, _1),
+      else if (ConvertAYMFormat(boost::bind(&Vortex::CreatePlayer, boost::cref(Info), boost::cref(Data), Version, FreqTableName, _1),
         param, dst, result))
       {
         return result;
       }
-      else if (ConvertVortexFormat(*Data, param, Version, FreqTableName, dst, result))
+      else if (ConvertVortexFormat(*Data, *Info, param, Version, FreqTableName, dst, result))
       {
         return result;
       }
@@ -107,8 +108,9 @@ namespace
     }
   private:
     const Plugin::Ptr SrcPlugin;
+    const Vortex::Track::ModuleData::RWPtr Data;
+    const Vortex::Track::ModuleInfo::Ptr Info;
     Dump RawData;
-    const Vortex::Track::ModuleData::Ptr Data;
     uint_t Version;
     String FreqTableName;
   };

@@ -280,8 +280,8 @@ namespace
 
   struct STCModuleData : public STCTrack::ModuleData
   {
-    typedef boost::shared_ptr<STCModuleData> Ptr;
-    typedef boost::shared_ptr<const STCModuleData> ConstPtr;
+    typedef boost::shared_ptr<STCModuleData> RWPtr;
+    typedef boost::shared_ptr<const STCModuleData> Ptr;
 
     STCModuleData()
       : STCTrack::ModuleData()
@@ -292,7 +292,7 @@ namespace
   };
 
   // forward declaration
-  Player::Ptr CreateSTCPlayer(STCModuleData::ConstPtr data, AYM::Chip::Ptr device);
+  Player::Ptr CreateSTCPlayer(Information::Ptr info, STCModuleData::Ptr data, AYM::Chip::Ptr device);
 
   class STCHolder : public Holder
   {
@@ -389,6 +389,7 @@ namespace
     STCHolder(Plugin::Ptr plugin, const MetaContainer& container, ModuleRegion& region)
       : SrcPlugin(plugin)
       , Data(boost::make_shared<STCModuleData>())
+      , Info(STCTrack::ModuleInfo::Create(Data))
     {
       //assume that data is ok
       const IO::FastDump& data = IO::FastDump(*container.Data, region.Offset);
@@ -483,21 +484,11 @@ namespace
       region.Size = rawSize;
       
       //meta properties
-      ExtractMetaProperties(STC_PLUGIN_ID, container, region, ModuleRegion(sizeof(STCHeader), rawSize - sizeof(STCHeader)),
-        Data->Info.Properties, RawData);
-      const String& prog(OptimizeString(FromStdString(header->Identifier)));
-      if (!prog.empty())
-      {
-        Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_PROGRAM, prog));
-      }
-      if (const uint_t msgs = warner->CountMessages())
-      {
-        Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS_COUNT, msgs));
-        Data->Info.Properties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS, warner->GetMessages('\n')));
-      }
-      
-      //tracking properties
-      Data->FillStatisticInfo(0, header->Tempo, AYM::CHANNELS);
+      Info->ExtractMetaProperties(STC_PLUGIN_ID, container, region, ModuleRegion(sizeof(STCHeader), rawSize - sizeof(STCHeader)),
+        RawData);
+      Info->SetProgram(OptimizeString(FromStdString(header->Identifier)));
+      Info->SetWarnings(*warner);
+      Info->SetTempo(header->Tempo);
     }
 
     virtual Plugin::Ptr GetPlugin() const
@@ -505,14 +496,14 @@ namespace
       return SrcPlugin;
     }
 
-    virtual void GetModuleInformation(Information& info) const
+    virtual Information::Ptr GetModuleInformation() const
     {
-      info = Data->Info;
+      return Info;
     }
     
     virtual Player::Ptr CreatePlayer() const
     {
-      return CreateSTCPlayer(Data, AYM::CreateChip());
+      return CreateSTCPlayer(Info, Data, AYM::CreateChip());
     }
     
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -523,7 +514,7 @@ namespace
       {
         dst = RawData;
       }
-      else if (!ConvertAYMFormat(boost::bind(&CreateSTCPlayer, boost::cref(Data), _1),
+      else if (!ConvertAYMFormat(boost::bind(&CreateSTCPlayer, boost::cref(Info), boost::cref(Data), _1),
         param, dst, result))
       {
         return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
@@ -532,8 +523,9 @@ namespace
     }
   private:
     const Plugin::Ptr SrcPlugin;
+    const STCModuleData::RWPtr Data;
+    const STCTrack::ModuleInfo::Ptr Info;
     Dump RawData;
-    const STCModuleData::Ptr Data;
   };
 
   struct STCChannelState
@@ -558,8 +550,8 @@ namespace
   class STCPlayer : public STCPlayerBase
   {
   public:
-    STCPlayer(STCModuleData::ConstPtr data, AYM::Chip::Ptr device)
-      : STCPlayerBase(data, device, TABLE_SOUNDTRACKER)
+    STCPlayer(Information::Ptr info, STCModuleData::Ptr data, AYM::Chip::Ptr device)
+      : STCPlayerBase(info, data, device, TABLE_SOUNDTRACKER)
     {
 #ifdef SELF_TEST
 //perform self-test
@@ -569,7 +561,7 @@ namespace
         assert(Data->Positions.size() > ModState.Track.Position);
         RenderData(chunk);
       }
-      while (Data->UpdateState(ModState, Sound::LOOP_NONE));
+      while (Data->UpdateState(*Info, Sound::LOOP_NONE, ModState));
       Reset();
 #endif
     }
@@ -699,9 +691,9 @@ namespace
     }
   };
   
-  Player::Ptr CreateSTCPlayer(STCModuleData::ConstPtr data, AYM::Chip::Ptr device)
+  Player::Ptr CreateSTCPlayer(Information::Ptr info, STCModuleData::Ptr data, AYM::Chip::Ptr device)
   {
-    return Player::Ptr(new STCPlayer(data, device));
+    return Player::Ptr(new STCPlayer(info, data, device));
   }
 
   bool CheckSTCModule(const uint8_t* data, std::size_t limit) 
