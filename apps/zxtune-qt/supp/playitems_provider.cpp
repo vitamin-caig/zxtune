@@ -14,6 +14,7 @@ Author:
 //local includes
 #include "playitems_provider.h"
 #include "ui/utils.h"
+#include <apps/base/playitem.h>
 //common includes
 #include <error_tools.h>
 #include <logging.h>
@@ -147,7 +148,7 @@ namespace
         SharedPlayitemContext::Ptr context,
         //module-specific
         const String& dataPath, const String& subPath,
-        const ZXTune::Module::Information& modInfo,
+        ZXTune::Module::Information::Ptr modInfo,
         const Parameters::Map& adjustedParams)
       : Context(context)
       , DataPath(dataPath), SubPath(subPath)
@@ -161,7 +162,7 @@ namespace
       return Context->GetModule(DataPath, SubPath, AdjustedParams);
     }
     
-    virtual const ZXTune::Module::Information& GetModuleInfo() const
+    virtual ZXTune::Module::Information::Ptr GetModuleInfo() const
     {
       return ModuleInfo;
     }
@@ -173,7 +174,7 @@ namespace
   private:
     const SharedPlayitemContext::Ptr Context;
     const String DataPath, SubPath;
-    const ZXTune::Module::Information ModuleInfo;
+    const ZXTune::Module::Information::Ptr ModuleInfo;
     const Parameters::Map AdjustedParams;
   };
   
@@ -227,18 +228,7 @@ namespace
         //calculate full path
         String fullPath;
         ThrowIfError(ZXTune::IO::CombineUri(dataPath, subPath, fullPath));
-        ZXTune::Module::Information modInfo;
-        module->GetModuleInformation(modInfo);
-        //store custom attributes
-        {
-          Parameters::Map attrs;
-          String tmp;
-          attrs.insert(Parameters::Map::value_type(ZXTune::Module::ATTR_FILENAME,
-            ZXTune::IO::ExtractLastPathComponent(dataPath, tmp)));
-          attrs.insert(Parameters::Map::value_type(ZXTune::Module::ATTR_PATH, subPath));
-          attrs.insert(Parameters::Map::value_type(ZXTune::Module::ATTR_FULLPATH, fullPath));
-          Parameters::MergeMaps(modInfo.Properties, attrs, modInfo.Properties, false);
-        }
+        const ZXTune::Module::Information::Ptr modInfo = CreateMergedInformation(module, dataPath, fullPath);
         const Playitem::Ptr item(new PlayitemImpl(
           context, //common data
           dataPath, subPath, modInfo, //item data

@@ -109,7 +109,7 @@ namespace
     {
       using namespace ZXTune;
       //notify about start
-      OnStartModule(Info);
+      OnStartModule(Info.get());
 
       SignalsCollector::Ptr signaller = Backend->CreateSignalsCollector(
         Sound::Backend::MODULE_RESUME | Sound::Backend::MODULE_PAUSE |
@@ -126,17 +126,17 @@ namespace
           {
             if (sigmask & Sound::Backend::MODULE_FINISH)
             {
-              OnFinishModule(Info);
+              OnFinishModule(Info.get());
             }
             break;
           }
           else if (sigmask & Sound::Backend::MODULE_RESUME)
           {
-            OnResumeModule(Info);
+            OnResumeModule(Info.get());
           }
           else if (sigmask & Sound::Backend::MODULE_PAUSE)
           {
-            OnPauseModule(Info);
+            OnPauseModule(Info.get());
           }
           else
           {
@@ -155,7 +155,7 @@ namespace
         }
       }
       //notify about stop
-      OnStopModule(Info);
+      OnStopModule(Info.get());
     }
   private:
     void OpenBackend()
@@ -197,14 +197,14 @@ namespace
     }
   private:
     ZXTune::Sound::Backend::Ptr Backend;
-    ZXTune::Module::Information Info;
+    ZXTune::Module::Information::Ptr Info;
     ZXTune::Module::Player::ConstWeakPtr Player;
   };
 }
 
 PlaybackSupport* PlaybackSupport::Create(QWidget* owner)
 {
-  REGISTER_METATYPE(ZXTune::Module::Information);
+  REGISTER_METATYPE(ZXTune::Module::Information*);
   REGISTER_METATYPE(ZXTune::Module::State);
   REGISTER_METATYPE(ZXTune::Module::Analyze::ChannelsState);
   assert(owner);

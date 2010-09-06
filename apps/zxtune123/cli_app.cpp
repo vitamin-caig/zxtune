@@ -124,7 +124,7 @@ namespace
       StringMap fields;
       {
         StringMap origFields;
-        Parameters::ConvertMap(item.Information.Properties, origFields);
+        Parameters::ConvertMap(item.Information->Properties(), origFields);
         std::transform(origFields.begin(), origFields.end(), std::inserter(fields, fields.end()),
           boost::bind(&std::make_pair<String, String>,
             boost::bind<String>(&StringMap::value_type::first, _1),
@@ -280,10 +280,10 @@ namespace
           frameDuration = Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT;
         }
 
-        const uint_t seekStepFrames(item.Information.FramesCount * SeekStep / 100);
+        const uint_t seekStepFrames(item.Information->FramesCount() * SeekStep / 100);
         ThrowIfError(backend.Play());
 
-        Display->SetModule(item.Information, backend.GetPlayer(), static_cast<uint_t>(frameDuration));
+        Display->SetModule(*item.Information, backend.GetPlayer(), static_cast<uint_t>(frameDuration));
 
         ZXTune::Sound::Gain curVolume = ZXTune::Sound::Gain();
         ZXTune::Sound::MultiGain allVolume;

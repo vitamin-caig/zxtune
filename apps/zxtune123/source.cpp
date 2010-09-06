@@ -16,6 +16,7 @@ Author:
 #include "source.h"
 #include <apps/base/app.h>
 #include <apps/base/error_codes.h>
+#include <apps/base/playitem.h>
 //common includes
 #include <error_tools.h>
 #include <logging.h>
@@ -149,17 +150,9 @@ namespace
     ModuleItem item;
     item.Id = uri;
     item.Module = module;
-    module->GetModuleInformation(item.Information);
     //add additional attributes
-    {
-      Parameters::Map attrs;
-      String tmp;
-      attrs.insert(Parameters::Map::value_type(ZXTune::Module::ATTR_FILENAME,
-        ZXTune::IO::ExtractLastPathComponent(path, tmp)));
-      attrs.insert(Parameters::Map::value_type(ZXTune::Module::ATTR_PATH, path));
-      attrs.insert(Parameters::Map::value_type(ZXTune::Module::ATTR_FULLPATH, uri));
-      Parameters::MergeMaps(item.Information.Properties, attrs, item.Information.Properties, false);
-    }
+    item.Information = CreateMergedInformation(module, path, uri);
+
     try
     {
       return callback(item) ? Error() : Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);

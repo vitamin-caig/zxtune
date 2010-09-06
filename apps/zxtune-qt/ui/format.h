@@ -21,7 +21,7 @@ namespace ZXTune
 {
   namespace Module
   {
-    struct Information;
+    class Information;
   }
 }
 

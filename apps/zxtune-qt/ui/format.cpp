@@ -23,13 +23,13 @@ String GetModuleTitle(const String& format,
   const ZXTune::Module::Information& info)
 {
   StringMap origFields;
-  Parameters::ConvertMap(info.Properties, origFields);
+  Parameters::ConvertMap(info.Properties(), origFields);
   const String& curTitle = InstantiateTemplate(format, origFields, SKIP_NONEXISTING);
   const String& emptyTitle = InstantiateTemplate(format, StringMap(), SKIP_NONEXISTING);
   if (curTitle == emptyTitle)
   {
     String title;
-    Parameters::FindByName(info.Properties, ZXTune::Module::ATTR_FULLPATH, title);
+    Parameters::FindByName(info.Properties(), ZXTune::Module::ATTR_FULLPATH, title);
     assert(!title.empty());
     return title;
   }

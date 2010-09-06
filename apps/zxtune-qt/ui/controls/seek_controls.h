@@ -27,7 +27,7 @@ public:
   static SeekControls* Create(QWidget* parent);
 
 public slots:
-  virtual void InitState(const ZXTune::Module::Information&) = 0;
+  virtual void InitState(const ZXTune::Module::Information*) = 0;
   virtual void UpdateState(const ZXTune::Module::State&) = 0;
   virtual void CloseState() = 0;
 signals:

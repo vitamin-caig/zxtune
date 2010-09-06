@@ -35,7 +35,7 @@ struct ModuleItem
 {
   String Id;
   ZXTune::Module::Holder::Ptr Module;
-  ZXTune::Module::Information Information;
+  ZXTune::Module::Information::Ptr Information;
 };
 
 typedef boost::function<bool(const ModuleItem&)> OnItemCallback;

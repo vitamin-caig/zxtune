@@ -110,17 +110,17 @@ namespace
         return;
       }
       Player = player;
-      TotalFrames = info.FramesCount;
+      TotalFrames = info.FramesCount();
       FrameDuration = frameDuration;
 
       StringMap strProps;
-      Parameters::ConvertMap(info.Properties, strProps);
+      Parameters::ConvertMap(info.Properties(), strProps);
 #if 1
       StdOut
         << std::endl
         << InstantiateTemplate(Text::ITEM_INFO, strProps, FILL_NONEXISTING)
-        << (Formatter(Text::ITEM_INFO_ADDON) % FormatTime(info.FramesCount, frameDuration) %
-          info.LogicalChannels % info.PhysicalChannels).str();
+        << (Formatter(Text::ITEM_INFO_ADDON) % FormatTime(info.FramesCount(), frameDuration) %
+          info.LogicalChannels() % info.PhysicalChannels()).str();
 #else
       std::for_each(strProps.begin(), strProps.end(), &OutProp);
 #endif

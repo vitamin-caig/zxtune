@@ -25,7 +25,7 @@ public:
   virtual ~Playitem() {}
   
   virtual ZXTune::Module::Holder::Ptr GetModule() const = 0;
-  virtual const ZXTune::Module::Information& GetModuleInfo() const = 0;
+  virtual ZXTune::Module::Information::Ptr GetModuleInfo() const = 0;
   virtual const Parameters::Map& GetAdjustedParameters() const = 0;
 };
 

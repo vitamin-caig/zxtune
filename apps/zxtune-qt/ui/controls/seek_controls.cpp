@@ -33,9 +33,9 @@ namespace
       this->connect(timePosition, SIGNAL(sliderMoved(int)), SIGNAL(OnSeeking(int)));
     }
 
-    virtual void InitState(const ZXTune::Module::Information& info)
+    virtual void InitState(const ZXTune::Module::Information* info)
     {
-      timePosition->setRange(0, info.FramesCount);
+      timePosition->setRange(0, info->FramesCount());
     }
 
     virtual void UpdateState(const ZXTune::Module::State& state)
