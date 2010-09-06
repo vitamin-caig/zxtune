@@ -17,6 +17,7 @@ Author:
 //common includes
 #include <messages_collector.h>
 //library includes
+#include <core/module_attrs.h>
 #include <core/module_types.h>
 #include <sound/render_params.h>// for LoopMode
 //std includes
@@ -323,7 +324,7 @@ namespace ZXTune
         {
           if (!title.empty())
           {
-            ModuleProperties.insert(Parameters::Map::value_type(ATTR_TITLE, title));
+            ModuleProperties.insert(Parameters::Map::value_type(Module::ATTR_TITLE, title));
           }
         }
 
@@ -331,7 +332,7 @@ namespace ZXTune
         {
           if (!author.empty())
           {
-            ModuleProperties.insert(Parameters::Map::value_type(ATTR_AUTHOR, author));
+            ModuleProperties.insert(Parameters::Map::value_type(Module::ATTR_AUTHOR, author));
           }
         }
 
@@ -339,7 +340,7 @@ namespace ZXTune
         {
           if (!program.empty())
           {
-            ModuleProperties.insert(Parameters::Map::value_type(ATTR_PROGRAM, program));
+            ModuleProperties.insert(Parameters::Map::value_type(Module::ATTR_PROGRAM, program));
           }
         }
 
@@ -347,8 +348,8 @@ namespace ZXTune
         {
           if (const uint_t msgs = warner.CountMessages())
           {
-            ModuleProperties.insert(Parameters::Map::value_type(ATTR_WARNINGS_COUNT, msgs));
-            ModuleProperties.insert(Parameters::Map::value_type(ATTR_WARNINGS, warner.GetMessages('\n')));
+            ModuleProperties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS_COUNT, msgs));
+            ModuleProperties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS, warner.GetMessages('\n')));
           }
         }
 
