@@ -18,10 +18,66 @@ Author:
 #include <core/plugin.h>
 #include <io/fs_tools.h>
 #include <io/provider.h>
+//boost includes
+#include <boost/make_shared.hpp>
 
 namespace
 {
   using namespace ZXTune;
+
+  using namespace Parameters;
+
+  class AdditionalParameters : public Accessor
+  {
+  public:
+    AdditionalParameters(const String& uri, const String& path)
+      : Uri(uri)
+      , Path(path)
+      , Filename(ZXTune::IO::ExtractLastPathComponent(Path, Dir))
+    {
+    }
+
+    virtual const IntType* FindIntValue(const NameType& name) const
+    {
+      return 0;
+    }
+
+    virtual const StringType* FindStringValue(const NameType& name) const
+    {
+      if (name == Module::ATTR_FILENAME)
+      {
+        return &Filename;
+      }
+      else if (name == Module::ATTR_PATH)
+      {
+        return &Path;
+      }
+      else if (name == Module::ATTR_FULLPATH)
+      {
+        return &Uri;
+      }
+      return 0;
+    }
+
+    virtual const DataType* FindDataValue(const NameType& name) const
+    {
+      return 0;
+    }
+
+    virtual void Convert(StringMap& result) const
+    {
+      StringMap res;
+      res.insert(StringMap::value_type(Module::ATTR_FILENAME, Filename));
+      res.insert(StringMap::value_type(Module::ATTR_PATH, Path));
+      res.insert(StringMap::value_type(Module::ATTR_FULLPATH, Uri));
+      result.swap(res);
+    }
+  private:
+    const String Uri;
+    const String Path;
+    String Dir;//before filename
+    const String Filename;
+  };
 
   //merged info wrapper to present additional attributes
   class WrappedInfo : public Module::Information
@@ -29,13 +85,9 @@ namespace
   public:
     WrappedInfo(Module::Information::Ptr delegate, const String& uri, const String& path)
       : Delegate(delegate)
-      , Props(Delegate->Properties())
+      , Uri(uri)
+      , Path(path)
     {
-      String tmp;
-      Props.insert(Parameters::Map::value_type(Module::ATTR_FILENAME,
-        ZXTune::IO::ExtractLastPathComponent(path, tmp)));
-      Props.insert(Parameters::Map::value_type(Module::ATTR_PATH, path));
-      Props.insert(Parameters::Map::value_type(Module::ATTR_FULLPATH, uri));
     }
 
     virtual uint_t PositionsCount() const
@@ -70,13 +122,21 @@ namespace
     {
       return Delegate->Tempo();
     }
-    virtual const Parameters::Map& Properties() const
+    virtual Parameters::Accessor::Ptr Properties() const
     {
+      if (!Props)
+      {
+        Props = Parameters::Accessor::CreateMerged(
+          boost::make_shared<AdditionalParameters>(Uri, Path),
+          Delegate->Properties());
+      }
       return Props;
     }
   private:
     const Module::Information::Ptr Delegate;
-    Parameters::Map Props;
+    const String Uri;
+    const String Path;
+    mutable Parameters::Accessor::Ptr Props;
   };
 
   //wrapper for holder to create merged info

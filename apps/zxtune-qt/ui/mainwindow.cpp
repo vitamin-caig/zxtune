@@ -190,7 +190,7 @@ namespace
     {
       setWindowTitle(ToQString((Formatter(Text::TITLE_FORMAT)
         % GetProgramTitle()
-        % GetModuleTitle(Text::MODULE_TITLE_FORMAT, *info)).str()));
+        % GetModuleTitle(Text::MODULE_TITLE_FORMAT, *info->Properties())).str()));
     }
 
     virtual void StopModule()

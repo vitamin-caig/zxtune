@@ -232,11 +232,12 @@ namespace
       const Char RESOURCE_TYPE_PREFIX[] = {':','/','t','y','p','e','s','/',0};
       const ZXTune::Module::Information::Ptr info = item->GetModuleInfo();
 
-      const String& title = GetModuleTitle(Text::MODULE_PLAYLIST_FORMAT, *info);
+      const Parameters::Accessor::Ptr props = info->Properties();
+      const String& title = GetModuleTitle(Text::MODULE_PLAYLIST_FORMAT, *props);
       QListWidgetItem* const listItem = new QListWidgetItem(ToQString(title), playList);
       const PlayitemsList::iterator iter = Items.insert(Items.end(), item);
       listItem->setData(Qt::UserRole, QVariant::fromValue(iter));
-      if (const String* type = Parameters::FindByName<String>(info->Properties(), ZXTune::Module::ATTR_TYPE))
+      if (const String* type = props->FindStringValue(ZXTune::Module::ATTR_TYPE))
       {
         String typeStr(RESOURCE_TYPE_PREFIX);
         typeStr += *type;

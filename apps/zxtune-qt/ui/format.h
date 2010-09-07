@@ -17,16 +17,12 @@ Author:
 //common includes
 #include <types.h>
 
-namespace ZXTune
+namespace Parameters
 {
-  namespace Module
-  {
-    class Information;
-  }
+  class Accessor;
 }
 
-String GetModuleTitle(const String& format,
-  const ZXTune::Module::Information& info);
+String GetModuleTitle(const String& format, const Parameters::Accessor& props);
 
 String GetProgramTitle();
 

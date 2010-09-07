@@ -114,7 +114,7 @@ namespace
       FrameDuration = frameDuration;
 
       StringMap strProps;
-      Parameters::ConvertMap(info.Properties(), strProps);
+      info.Properties()->Convert(strProps);
 #if 1
       StdOut
         << std::endl

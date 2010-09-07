@@ -19,19 +19,15 @@ Author:
 #include <core/module_attrs.h>
 #include <core/module_types.h>
 
-String GetModuleTitle(const String& format,
-  const ZXTune::Module::Information& info)
+String GetModuleTitle(const String& format, const Parameters::Accessor& props)
 {
   StringMap origFields;
-  Parameters::ConvertMap(info.Properties(), origFields);
+  props.Convert(origFields);
   const String& curTitle = InstantiateTemplate(format, origFields, SKIP_NONEXISTING);
   const String& emptyTitle = InstantiateTemplate(format, StringMap(), SKIP_NONEXISTING);
   if (curTitle == emptyTitle)
   {
-    String title;
-    Parameters::FindByName(info.Properties(), ZXTune::Module::ATTR_FULLPATH, title);
-    assert(!title.empty());
-    return title;
+    return *props.FindStringValue(ZXTune::Module::ATTR_FULLPATH);
   }
   return curTitle;
 }

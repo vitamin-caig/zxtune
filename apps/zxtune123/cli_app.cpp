@@ -67,8 +67,13 @@ namespace
 
   String GetModuleId(const ZXTune::Module::Information& info)
   {
-    const Parameters::Helper accessor(info.Properties());
-    return accessor.GetValue(ZXTune::Module::ATTR_FULLPATH, String());
+    const Parameters::Accessor::Ptr accessor(info.Properties());
+    if (const Parameters::StringType* fullpath = 
+      accessor->FindStringValue(ZXTune::Module::ATTR_FULLPATH))
+    {
+      return *fullpath;
+    }
+    return String();
   }
 
   class Convertor
@@ -133,7 +138,7 @@ namespace
       StringMap fields;
       {
         StringMap origFields;
-        Parameters::ConvertMap(info->Properties(), origFields);
+        info->Properties()->Convert(origFields);
         std::transform(origFields.begin(), origFields.end(), std::inserter(fields, fields.end()),
           boost::bind(&std::make_pair<String, String>,
             boost::bind<String>(&StringMap::value_type::first, _1),
