@@ -15,6 +15,7 @@
 //std includes
 #include <map>
 //boost includes
+#include <boost/shared_ptr.hpp>
 #include <boost/variant/get.hpp>
 #include <boost/variant/variant.hpp>
 
@@ -126,6 +127,33 @@ namespace Parameters
     }
   private:
     const Map& Content;
+  };
+
+  //! @brief Interface to give access to properties and parameters
+  class Accessor
+  {
+  public:
+    //! Pointer type
+    typedef boost::shared_ptr<const Accessor> Ptr;
+
+    virtual ~Accessor() {}
+
+    //! Accessing integer parameters
+    virtual const IntType* FindIntValue(const NameType& name) const = 0;
+    //! Accessing string parameters
+    virtual const StringType* FindStringValue(const NameType& name) const = 0;
+    //! Accessing data parameters
+    virtual const DataType* FindDataValue(const NameType& name) const = 0;
+
+    //! Serialize all the stored values to map
+    virtual void Convert(StringMap& result) const = 0;
+
+    //TODO: use modifier instead
+    static Ptr CreateFromMap(const Map& content);
+
+    //merged all the string divided by '/' symbol
+    // other are prioritized by first
+    static Ptr CreateMerged(Ptr first, Ptr second);
   };
 }
 

@@ -294,9 +294,13 @@ namespace ZXTune
           return InitialTempo;
         }
 
-        virtual const Parameters::Map& Properties() const
+        virtual Parameters::Accessor::Ptr Properties() const
         {
-          return ModuleProperties;
+          if (!Accessor)
+          {
+            Accessor = Parameters::Accessor::CreateFromMap(ModuleProperties);
+          }
+          return Accessor;
         }
 
         //modifiers
@@ -388,6 +392,7 @@ namespace ZXTune
         uint_t PhysChannels;
         mutable uint_t Frames;
         mutable uint_t LoopFrameNum;
+        mutable Parameters::Accessor::Ptr Accessor;
         Parameters::Map ModuleProperties;
       };
     };

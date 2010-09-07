@@ -87,8 +87,7 @@ namespace ZXTune
       //! Initial tempo
       virtual uint_t Tempo() const = 0;
       //! %Module properties @see core/module_attrs.h
-      //TODO: make object
-      virtual const Parameters::Map& Properties() const = 0;
+      virtual Parameters::Accessor::Ptr Properties() const = 0;
     };
 
     //! @brief %Sound analyzing types

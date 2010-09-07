@@ -127,48 +127,50 @@ namespace
     Sound::MultichannelReceiver* Receiver;
   };
 
-  void MergeMap(const Parameters::Map& lh, const Parameters::Map& rh, Parameters::Map& result)
+  using namespace Parameters;
+  class FixedProperties : public Accessor
   {
-    result = lh;
-    for (Parameters::Map::const_iterator it = rh.begin(), lim = rh.end(); it != lim; ++it)
+  public:
+    FixedProperties(Accessor::Ptr first, Accessor::Ptr second)
+      : ID(TS_PLUGIN_ID)
+      , Delegate(Accessor::CreateMerged(first, second))
     {
-      Parameters::Map::iterator fnd(result.find(it->first));
-      if (fnd == result.end() || fnd->second.empty())//new or was empty
-      {
-        result.insert(*it);
-      }
-      else if (it->first == ATTR_TYPE)
-      {
-        fnd->second = TS_PLUGIN_ID;
-      }
-      else if (!(it->second == fnd->second))
-      {
-        const String& asStr1(Parameters::ConvertToString(fnd->second));
-        const String& asStr2(Parameters::ConvertToString(it->second));
-        if (asStr1.empty())
-        {
-          fnd->second = asStr1;
-        }
-        else if (asStr2.empty())
-        {
-          continue;//do nothing
-        }
-        else
-        {
-          fnd->second = asStr1 + Char('/') + asStr2;
-        }
-      }
     }
-  }
+
+    virtual const IntType* FindIntValue(const NameType& name) const
+    {
+      return Delegate->FindIntValue(name);
+    }
+
+    virtual const StringType* FindStringValue(const NameType& name) const
+    {
+      return (name == ATTR_TYPE)
+        ? &ID
+        : Delegate->FindStringValue(name);
+    }
+
+    virtual const DataType* FindDataValue(const NameType& name) const
+    {
+      return Delegate->FindDataValue(name);
+    }
+
+    virtual void Convert(StringMap& result) const
+    {
+      Delegate->Convert(result);
+      result[ATTR_TYPE] = ID;
+    }
+  private:
+    const String ID;
+    const Accessor::Ptr Delegate;
+  };
 
   class MergedModuleInfo : public Information
   {
   public:
     MergedModuleInfo(Information::Ptr lh, Information::Ptr rh)
-      : First(lh), Second(rh)
+      : First(lh)
+      , Second(rh)
     {
-      //assume first is leading
-      MergeMap(First->Properties(), Second->Properties(), Props);
     }
     virtual uint_t PositionsCount() const
     {
@@ -202,14 +204,18 @@ namespace
     {
       return std::min(First->Tempo(), Second->Tempo());
     }
-    virtual const Parameters::Map& Properties() const
+    virtual Parameters::Accessor::Ptr Properties() const
     {
+      if (!Props)
+      {
+        Props.reset(new FixedProperties(First->Properties(), Second->Properties()));
+      }
       return Props;
     }
   private:
     const Information::Ptr First;
     const Information::Ptr Second;
-    Parameters::Map Props;
+    mutable Parameters::Accessor::Ptr Props;
   };
 
   //////////////////////////////////////////////////////////////////////////

@@ -17,6 +17,7 @@ Author:
 #include <functional>
 //boost includes
 #include <boost/bind.hpp>
+#include <boost/make_shared.hpp>
 #include <boost/variant/apply_visitor.hpp>
 #include <boost/variant/static_visitor.hpp>
 
@@ -116,6 +117,109 @@ namespace
   {
     return lh.first == rh.first ? !(lh.second == rh.second) : lh.first < rh.first;
   }
+
+  using namespace Parameters;
+  class AccessorImpl : public Accessor
+  {
+  public:
+    explicit AccessorImpl(const Map& content)
+      : Content(content)
+      , Impl(Content)
+    {
+    }
+
+    virtual const IntType* FindIntValue(const NameType& name) const
+    {
+      return Impl.FindValue<IntType>(name);
+    }
+
+    virtual const StringType* FindStringValue(const NameType& name) const
+    {
+      return Impl.FindValue<StringType>(name);
+    }
+
+    virtual const DataType* FindDataValue(const NameType& name) const
+    {
+      return Impl.FindValue<DataType>(name);
+    }
+
+    virtual void Convert(StringMap& result) const
+    {
+       return Impl.ToStringMap(result);
+    }
+  private:
+    const Map Content;
+    const Helper Impl;
+  };
+
+  class MergedAccessor : public Accessor
+  {
+  public:
+    MergedAccessor(Accessor::Ptr first, Accessor::Ptr second)
+      : First(first)
+      , Second(second)
+    {
+    }
+
+    virtual const IntType* FindIntValue(const NameType& name) const
+    {
+      if (const IntType* val = First->FindIntValue(name))
+      {
+        return val;
+      }
+      return Second->FindIntValue(name);
+    }
+    virtual const StringType* FindStringValue(const NameType& name) const
+    {
+      //check for already merged
+      {
+        const StringMap::const_iterator mrg = MergedStrings.find(name);
+        if (mrg != MergedStrings.end())
+        {
+          return &mrg->second;
+        }
+      }
+      const StringType* const fst = First->FindStringValue(name);
+      const StringType* const snd = Second->FindStringValue(name);
+
+      //check if required to merge
+      if (fst && snd)
+      {
+        const String mergedVal = *fst + Char('/') + *snd;
+        const StringMap::const_iterator newVal = 
+          MergedStrings.insert(StringMap::value_type(name, mergedVal)).first;
+        return &newVal->second;
+      }
+      else
+      {
+        return fst ? fst : snd;
+      }
+    }
+    virtual const DataType* FindDataValue(const NameType& name) const
+    {
+      if (const DataType* val = First->FindDataValue(name))
+      {
+        return val;
+      }
+      return Second->FindDataValue(name);
+    }
+
+    virtual void Convert(StringMap& result) const
+    {
+      //merged are always visible as strings
+      StringMap res(MergedStrings);
+      StringMap subresult;
+      First->Convert(subresult);
+      res.insert(subresult.begin(), subresult.end());
+      Second->Convert(subresult);
+      res.insert(subresult.begin(), subresult.end());
+      result.swap(res);
+    }
+  private:
+    const Accessor::Ptr First;
+    const Accessor::Ptr Second;
+    mutable StringMap MergedStrings;
+  };
 }
 
 namespace Parameters
@@ -211,5 +315,15 @@ namespace Parameters
                      std::inserter(result, result.end()), CompareParameter);
     }
     merged.swap(result);
+  }
+
+  Accessor::Ptr Accessor::CreateFromMap(const Map& content)
+  {
+    return boost::make_shared<AccessorImpl>(content);
+  }
+
+  Accessor::Ptr Accessor::CreateMerged(Accessor::Ptr first, Accessor::Ptr second)
+  {
+    return boost::make_shared<MergedAccessor>(first, second);
   }
 }

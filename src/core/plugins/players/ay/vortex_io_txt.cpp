@@ -925,15 +925,15 @@ namespace ZXTune
           *iter = MODULE_VERSION + MODULE_DELIMITER +
               char('0' + resVersion / 10) + '.' + char('0' + resVersion % 10);
         }
-        const Parameters::Helper props(info.Properties());
+        const Parameters::Accessor::Ptr props(info.Properties());
         //process title info
-        if (const String* title = props.FindValue<String>(Module::ATTR_TITLE))
+        if (const String* title = props->FindStringValue(Module::ATTR_TITLE))
         {
           *iter = MODULE_TITLE + MODULE_DELIMITER +
             ToStdString(Parameters::ConvertToString(*title));
         }
         //process author info
-        if (const String* author = props.FindValue<String>(Module::ATTR_AUTHOR))
+        if (const String* author = props->FindStringValue(Module::ATTR_AUTHOR))
         {
           *iter = MODULE_AUTHOR + MODULE_DELIMITER +
             ToStdString(Parameters::ConvertToString(*author));

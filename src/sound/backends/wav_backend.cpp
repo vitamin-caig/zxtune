@@ -237,11 +237,11 @@ namespace
     WaveFormat Format;
   };
   
-  void FillPropertiesFields(const Parameters::Map& params, StringMap& fields)
+  void FillPropertiesFields(const Parameters::Accessor& params, StringMap& fields)
   {
     //quote all properties for safe using as filename
     StringMap tmpProps;
-    Parameters::ConvertMap(params, tmpProps);
+    params.Convert(tmpProps);
     std::transform(tmpProps.begin(), tmpProps.end(), std::inserter(fields, fields.end()),
       boost::bind(&std::make_pair<String, String>,
         boost::bind(&StringMap::value_type::first, _1),
@@ -269,7 +269,7 @@ namespace
         nameTemplate += extension;
       }
       StringMap strProps;
-      FillPropertiesFields(info.Properties(), strProps);
+      FillPropertiesFields(*info.Properties(), strProps);
       Parameters::IntType intParam = 0;
       const bool doRewrite = Parameters::FindByName(commonParams, Parameters::ZXTune::Sound::Backends::Wav::OVERWRITE, intParam) &&
         intParam != 0;

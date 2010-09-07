@@ -138,20 +138,24 @@ namespace
     {
       return 1;
     }
-    virtual const Parameters::Map& Properties() const
+    virtual Parameters::Accessor::Ptr Properties() const
     {
+      if (!Props)
+      {
+        Props = Parameters::Accessor::CreateFromMap(PropsMap);
+      }
       return Props;
     }
-
 
     void ExtractMetaProperties(const String& type,
       const MetaContainer& container, const ModuleRegion& region, const ModuleRegion& fixedRegion, Dump& rawData)
     {
-      return ZXTune::ExtractMetaProperties(type, container, region, fixedRegion, Props, rawData);
+      return ZXTune::ExtractMetaProperties(type, container, region, fixedRegion, PropsMap, rawData);
     }
   private:
     const PSGData::Ptr Data;
-    Parameters::Map Props;
+    mutable Parameters::Accessor::Ptr Props;
+    Parameters::Map PropsMap;
   };
   
   Player::Ptr CreatePSGPlayer(Information::Ptr info, PSGData::Ptr data, AYM::Chip::Ptr device);
