@@ -65,6 +65,12 @@ namespace
     StdOut << Error::AttributesToString(loc, code, text);
   }
 
+  String GetModuleId(const ZXTune::Module::Information& info)
+  {
+    const Parameters::Helper accessor(info.Properties());
+    return accessor.GetValue(ZXTune::Module::ATTR_FULLPATH, String());
+  }
+
   class Convertor
   {
   public:
@@ -108,23 +114,26 @@ namespace
         throw Error(THIS_LINE, CONVERT_PARAMETERS, Text::CONVERT_ERROR_INVALID_MODE);
       }
     }
-    bool ProcessItem(const ModuleItem& item) const
+    bool ProcessItem(ZXTune::Module::Holder::Ptr holder) const
     {
+      const ZXTune::Module::Information::Ptr info = holder->GetModuleInformation();
+      const String id = GetModuleId(*info);
       {
-        const ZXTune::Plugin::Ptr plugin = item.Module->GetPlugin();
+        const ZXTune::Plugin::Ptr plugin = holder->GetPlugin();
         if (!(plugin->Capabilities() & CapabilityMask))
         {
-          Display.Message((Formatter(Text::CONVERT_SKIPPED) % item.Id % plugin->Id()).str());
+          Display.Message((Formatter(Text::CONVERT_SKIPPED) % 
+            id % plugin->Id()).str());
           return true;
         }
       }
       Dump result;
-      ThrowIfError(item.Module->Convert(*ConversionParameter, result));
+      ThrowIfError(holder->Convert(*ConversionParameter, result));
       //prepare result filename
       StringMap fields;
       {
         StringMap origFields;
-        Parameters::ConvertMap(item.Information->Properties(), origFields);
+        Parameters::ConvertMap(info->Properties(), origFields);
         std::transform(origFields.begin(), origFields.end(), std::inserter(fields, fields.end()),
           boost::bind(&std::make_pair<String, String>,
             boost::bind<String>(&StringMap::value_type::first, _1),
@@ -139,7 +148,7 @@ namespace
         throw MakeFormattedError(THIS_LINE, CONVERT_PARAMETERS,
           Text::CONVERT_ERROR_WRITE_FILE, filename);
       }
-      Display.Message((Formatter(Text::CONVERT_DONE) % item.Id % filename).str());
+      Display.Message((Formatter(Text::CONVERT_DONE) % id % filename).str());
       return true;
     }
   private:
@@ -266,12 +275,12 @@ namespace
       }
     }
     
-    bool PlayItem(const ModuleItem& item)
+    bool PlayItem(ZXTune::Module::Holder::Ptr holder)
     {
       try
       {
         ZXTune::Sound::Backend& backend(Sounder->GetBackend());
-        ThrowIfError(backend.SetModule(item.Module));
+        ThrowIfError(backend.SetModule(holder));
         ThrowIfError(backend.SetParameters(GlobalParams));
 
         Parameters::IntType frameDuration = 0;
@@ -280,10 +289,11 @@ namespace
           frameDuration = Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT;
         }
 
-        const uint_t seekStepFrames(item.Information->FramesCount() * SeekStep / 100);
+        const ZXTune::Module::Information::Ptr info = holder->GetModuleInformation();
+        const uint_t seekStepFrames(info->FramesCount() * SeekStep / 100);
         ThrowIfError(backend.Play());
 
-        Display->SetModule(*item.Information, backend.GetPlayer(), static_cast<uint_t>(frameDuration));
+        Display->SetModule(*info, backend.GetPlayer(), static_cast<uint_t>(frameDuration));
 
         ZXTune::Sound::Gain curVolume = ZXTune::Sound::Gain();
         ZXTune::Sound::MultiGain allVolume;

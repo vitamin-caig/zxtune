@@ -30,15 +30,7 @@ namespace boost
   }
 }
 
-//detected module item
-struct ModuleItem
-{
-  String Id;
-  ZXTune::Module::Holder::Ptr Module;
-  ZXTune::Module::Information::Ptr Information;
-};
-
-typedef boost::function<bool(const ModuleItem&)> OnItemCallback;
+typedef boost::function<bool(ZXTune::Module::Holder::Ptr)> OnItemCallback;
 
 class SourceComponent
 {

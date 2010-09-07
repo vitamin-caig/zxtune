@@ -142,20 +142,10 @@ namespace
   Error FormModule(const String& path, const String& subpath, const ZXTune::Module::Holder::Ptr& module,
     const OnItemCallback& callback)
   {
-    String uri;
-    if (const Error& e = ZXTune::IO::CombineUri(path, subpath, uri))
-    {
-      return e;
-    }
-    ModuleItem item;
-    item.Id = uri;
-    item.Module = module;
-    //add additional attributes
-    item.Information = CreateMergedInformation(module, path, uri);
-
     try
     {
-      return callback(item) ? Error() : Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
+      const ZXTune::Module::Holder::Ptr holder = CreateWrappedHolder(path, subpath, module);
+      return callback(holder) ? Error() : Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
     }
     catch (const Error& e)
     {

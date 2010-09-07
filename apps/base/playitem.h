@@ -15,6 +15,7 @@ Author:
 //library includes
 #include <core/module_holder.h>
 
-ZXTune::Module::Information::Ptr CreateMergedInformation(ZXTune::Module::Holder::Ptr module, const String& path, const String& uri);
+ZXTune::Module::Holder::Ptr CreateWrappedHolder(const String& path, const String& subpath, 
+  ZXTune::Module::Holder::Ptr module);
 
 #endif //BASE_PLAYITEM_H_DEFINED
