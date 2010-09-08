@@ -701,14 +701,18 @@ namespace
 
       //fill region
       region.Size = rawSize;
+      region.Extract(*container.Data, RawData);
 
       //meta properties
+      Info->SetType(ASC_PLUGIN_ID);
+      Info->SetContainer(container);
+      Info->SetData(*container.Data, region);
       {
         const ASCID* const id = safe_ptr_cast<const ASCID*>(header->Positions + header->Length);
         const bool validId = id->Check();
         const std::size_t fixedOffset = sizeof(ASCHeader) + validId ? sizeof(*id) : 0;
-        Info->ExtractMetaProperties(ASC_PLUGIN_ID, container, region, ModuleRegion(fixedOffset, rawSize - fixedOffset),
-          RawData);
+        const ModuleRegion fixedRegion(fixedOffset, rawSize - fixedOffset);
+        Info->SetFixedData(*container.Data, fixedRegion);
         if (validId)
         {
           Info->SetTitle(OptimizeString(FromStdString(id->Title)));

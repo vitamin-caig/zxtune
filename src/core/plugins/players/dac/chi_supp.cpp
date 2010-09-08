@@ -304,16 +304,20 @@ namespace
       //fill region
       region.Offset = 0;
       region.Size = data.Size() - memLeft;
+      region.Extract(*container.Data, RawData);
 
       //fill tracking properties
       Info->SetLoopPosition(header->Loop);
       Info->SetTempo(header->Tempo);
       //meta properties
+      Info->SetType(CHI_PLUGIN_ID);
+      Info->SetContainer(container);
+      Info->SetData(*container.Data, region);
+      const ModuleRegion fixedRegion(sizeof(CHIHeader), sizeof(CHIPattern) * patternsCount);
+      Info->SetFixedData(*container.Data, fixedRegion);
       Info->SetTitle(OptimizeString(FromStdString(header->Name)));
       Info->SetProgram((Formatter(Text::CHI_EDITOR) % FromStdString(header->Version)).str());
       Info->SetWarnings(*warner);
-      Info->ExtractMetaProperties(CHI_PLUGIN_ID, container, region, ModuleRegion(sizeof(CHIHeader), sizeof(CHIPattern) * patternsCount),
-        RawData);
     }
 
     virtual Plugin::Ptr GetPlugin() const

@@ -67,8 +67,14 @@ namespace
       const char* const endIt = dataIt + region.Size;
       ThrowIfError(Vortex::ConvertFromText(std::string(dataIt, endIt),
         *Data, *Info, Version, FreqTableName));
+      region.Extract(*container.Data, RawData);
+
       //meta properties
-      Info->ExtractMetaProperties(TXT_PLUGIN_ID, container, region, region, RawData);
+      Info->SetType(TXT_PLUGIN_ID);
+      Info->SetContainer(container);
+      Info->SetData(*container.Data, region);
+      //TODO: calculate fixed data in ConvertFromText
+      Info->SetFixedData(*container.Data, region);
     }
 
     virtual Plugin::Ptr GetPlugin() const

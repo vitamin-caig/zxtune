@@ -97,6 +97,7 @@ namespace
     std::vector<AYM::DataChunk> Dump;
   };
 
+  //TODO: make and use common code
   class PSGInfo : public Information
   {
   public:
@@ -105,6 +106,7 @@ namespace
     explicit PSGInfo(PSGData::Ptr data)
       : Data(data)
     {
+      PropsMap.insert(Parameters::Map::value_type(ATTR_TYPE, PSG_PLUGIN_ID));
     }
     virtual uint_t PositionsCount() const
     {
@@ -147,10 +149,28 @@ namespace
       return Props;
     }
 
-    void ExtractMetaProperties(const String& type,
-      const MetaContainer& container, const ModuleRegion& region, const ModuleRegion& fixedRegion, Dump& rawData)
+    void SetContainer(const MetaContainer& container)
     {
-      return ZXTune::ExtractMetaProperties(type, container, region, fixedRegion, PropsMap, rawData);
+      if (!container.Path.empty())
+      {
+        PropsMap.insert(Parameters::Map::value_type(Module::ATTR_SUBPATH, container.Path));
+      }
+      const String& plugins = container.GetPluginsString();
+      if (!plugins.empty())
+      {
+        PropsMap.insert(Parameters::Map::value_type(Module::ATTR_CONTAINER, container.Path));
+      }
+    }
+
+    void SetData(const IO::DataContainer& container, const ModuleRegion& region)
+    {
+      PropsMap.insert(Parameters::Map::value_type(Module::ATTR_SIZE, region.Size));
+      PropsMap.insert(Parameters::Map::value_type(Module::ATTR_CRC, region.Checksum(container)));
+    }
+
+    void SetFixedData(const IO::DataContainer& container, const ModuleRegion& fixedRegion)
+    {
+      PropsMap.insert(Parameters::Map::value_type(Module::ATTR_FIXEDCRC, fixedRegion.Checksum(container)));
     }
   private:
     const PSGData::Ptr Data;
@@ -233,9 +253,12 @@ namespace
       //fill region
       region.Offset = 0;
       region.Size = data.Size() - size;
+      region.Extract(*container.Data, RawData);
       
       //extract properties
-      Info->ExtractMetaProperties(PSG_PLUGIN_ID, container, region, region, RawData);
+      Info->SetContainer(container);
+      Info->SetData(*container.Data, region);
+      Info->SetFixedData(*container.Data, region);
     }
 
     virtual Plugin::Ptr GetPlugin() const

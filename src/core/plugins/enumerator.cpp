@@ -435,23 +435,34 @@ namespace
 
 namespace ZXTune
 {
-  void ExtractMetaProperties(const String& type,
-                             const MetaContainer& container, const ModuleRegion& region, const ModuleRegion& fixedRegion,
+  uint_t ModuleRegion::Checksum(const IO::DataContainer& container) const
+  {
+    const uint8_t* const data = static_cast<const uint8_t*>(container.Data());
+    assert(Offset + Size <= container.Size());
+    boost::crc_32_type crcCalc;
+    crcCalc.process_bytes(data + Offset, Size);
+    return crcCalc.checksum();
+  }
+
+  void ModuleRegion::Extract(const IO::DataContainer& container, Dump& dump) const
+  {
+    const uint8_t* const data = static_cast<const uint8_t*>(container.Data());
+    assert(Offset + Size <= container.Size());
+    dump.assign(data + Offset, data + Offset + Size);
+  }
+
+  String MetaContainer::GetPluginsString() const
+  {
+    StringArray ids(PluginsChain.size());
+    std::transform(PluginsChain.begin(), PluginsChain.end(),
+      ids.begin(), boost::mem_fn(&Plugin::Id));
+    return boost::algorithm::join(ids, String(Text::MODULE_CONTAINERS_DELIMITER));
+  }
+
+  /*
+  void ExtractMetaProperties(const MetaContainer& container, const ModuleRegion& region, const ModuleRegion& fixedRegion,
                              Parameters::Map& properties, Dump& rawData)
   {
-    properties.insert(Parameters::Map::value_type(Module::ATTR_TYPE, type));
-    if (!container.Path.empty())
-    {
-      properties.insert(Parameters::Map::value_type(Module::ATTR_SUBPATH, container.Path));
-    }
-    if (!container.PluginsChain.empty())
-    {
-      StringArray ids(container.PluginsChain.size());
-      std::transform(container.PluginsChain.begin(), container.PluginsChain.end(),
-        ids.begin(), boost::mem_fn(&Plugin::Id));
-      properties.insert(Parameters::Map::value_type(Module::ATTR_CONTAINER,
-        boost::algorithm::join(ids, String(Text::MODULE_CONTAINERS_DELIMITER))));
-    }
     const uint8_t* const data = static_cast<const uint8_t*>(container.Data->Data());
     rawData.assign(data + region.Offset, data + region.Offset + region.Size);
     //calculate total checksum
@@ -470,6 +481,7 @@ namespace ZXTune
     }
     properties.insert(Parameters::Map::value_type(Module::ATTR_SIZE, region.Size));
   }
+  */
 
   PluginsEnumerator& PluginsEnumerator::Instance()
   {

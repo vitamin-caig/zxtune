@@ -324,6 +324,12 @@ namespace ZXTune
           PhysChannels = channels;
         }
 
+        void SetType(const String& type)
+        {
+          assert(!type.empty());
+          ModuleProperties.insert(Parameters::Map::value_type(Module::ATTR_TYPE, type));
+        }
+
         void SetTitle(const String& title)
         {
           if (!title.empty())
@@ -357,12 +363,28 @@ namespace ZXTune
           }
         }
 
-        //temporary crap
-        void ExtractMetaProperties(const String& type,
-                             const MetaContainer& container, const ModuleRegion& region, const ModuleRegion& fixedRegion,
-                             Dump& rawData)
+        void SetContainer(const MetaContainer& container)
         {
-          return ZXTune::ExtractMetaProperties(type, container, region, fixedRegion, ModuleProperties, rawData);
+          if (!container.Path.empty())
+          {
+            ModuleProperties.insert(Parameters::Map::value_type(Module::ATTR_SUBPATH, container.Path));
+          }
+          const String& plugins = container.GetPluginsString();
+          if (!plugins.empty())
+          {
+            ModuleProperties.insert(Parameters::Map::value_type(Module::ATTR_CONTAINER, container.Path));
+          }
+        }
+
+        void SetData(const IO::DataContainer& container, const ModuleRegion& region)
+        {
+          ModuleProperties.insert(Parameters::Map::value_type(Module::ATTR_SIZE, region.Size));
+          ModuleProperties.insert(Parameters::Map::value_type(Module::ATTR_CRC, region.Checksum(container)));
+        }
+
+        void SetFixedData(const IO::DataContainer& container, const ModuleRegion& fixedRegion)
+        {
+          ModuleProperties.insert(Parameters::Map::value_type(Module::ATTR_FIXEDCRC, fixedRegion.Checksum(container)));
         }
       private:
         void Initialize() const

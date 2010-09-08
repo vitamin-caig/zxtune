@@ -501,11 +501,17 @@ namespace
 
       //fill region
       region.Size = rawSize;
+      region.Extract(*container.Data, RawData);
 
       //meta properties
-      const std::size_t fixedOffset = fromLE(header->PatternsOffset);
-      Info->ExtractMetaProperties(STP_PLUGIN_ID, container, region, ModuleRegion(fixedOffset, rawSize - fixedOffset),
-        RawData);
+      Info->SetType(STP_PLUGIN_ID);
+      Info->SetContainer(container);
+      Info->SetData(*container.Data, region);
+      {
+        const std::size_t fixedOffset = fromLE(header->PatternsOffset);
+        const ModuleRegion fixedRegion(fixedOffset, rawSize -  fixedOffset);
+        Info->SetFixedData(*container.Data, region);
+      }
       const STPId* const id = safe_ptr_cast<const STPId*>(header + 1);
       if (id->Check())
       {

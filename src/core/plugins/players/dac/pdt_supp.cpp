@@ -353,16 +353,20 @@ namespace
       //fill region
       region.Offset = 0;
       region.Size = MODULE_SIZE;
+      region.Extract(*container.Data, RawData);
 
       //set tracking
       Info->SetLoopPosition(header->Loop);
       Info->SetTempo(header->Tempo);
       //meta properties
+      Info->SetType(PDT_PLUGIN_ID);
+      Info->SetContainer(container);
+      Info->SetData(*container.Data, region);
+      const ModuleRegion fixedRegion(sizeof(PDTHeader) - sizeof(header->Patterns), sizeof(header->Patterns));
+      Info->SetFixedData(*container.Data, fixedRegion);
       Info->SetTitle(OptimizeString(FromStdString(header->Title)));
       Info->SetProgram(Text::PDT_EDITOR);
       Info->SetWarnings(*warner);
-      Info->ExtractMetaProperties(PDT_PLUGIN_ID, container, region, ModuleRegion(sizeof(PDTHeader) - sizeof(header->Patterns), sizeof(header->Patterns)),
-        RawData);
     }
 
     virtual Plugin::Ptr GetPlugin() const

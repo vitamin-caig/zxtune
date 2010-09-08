@@ -36,6 +36,9 @@ namespace ZXTune
     }
     std::size_t Offset;
     std::size_t Size;
+
+    uint_t Checksum(const IO::DataContainer& container) const;
+    void Extract(const IO::DataContainer& container, Dump& dump) const;
   };
 
   typedef std::list<Plugin::Ptr> PluginsList;
@@ -46,12 +49,9 @@ namespace ZXTune
     IO::DataContainer::Ptr Data;
     String Path;
     PluginsList PluginsChain;
-  };
 
-  //helper function to fill standard module properties
-  void ExtractMetaProperties(const String& type,
-                             const MetaContainer& container, const ModuleRegion& region, const ModuleRegion& fixedRegion,
-                             Parameters::Map& properties, Dump& rawData);
+    String GetPluginsString() const;
+  };
 
   class PlayerPlugin : public Plugin
   {

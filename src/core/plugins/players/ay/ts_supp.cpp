@@ -441,7 +441,7 @@ namespace
       const IO::FastDump dump(*container.Data);
 
       const std::size_t footerOffset = FindFooter(dump, SEARCH_THRESHOLD);
-      assert(!footerOffset);
+      assert(footerOffset);
 
       const Footer* const footer = safe_ptr_cast<const Footer*>(dump.Data() + footerOffset);
       const std::size_t firstModuleSize = fromLE(footer->Size1);
@@ -475,6 +475,7 @@ namespace
         const Module::Holder::Ptr holder(new TSHolder(plugin, Dump(dump.Data(), dump.Data() + newSize), holder1, holder2));
         region.Offset = 0;
         region.Size = newSize;
+        //TODO: proper data attributes calculation calculation
         return holder;
       }
       catch (const Error&)

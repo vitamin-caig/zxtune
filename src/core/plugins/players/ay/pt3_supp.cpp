@@ -721,11 +721,17 @@ namespace
 
       //fill region
       region.Size = rawSize;
+      region.Extract(*container.Data, RawData);
       
       //meta properties
-      const std::size_t fixedOffset(sizeof(PT3Header) + header->Length - 1);
-      Info->ExtractMetaProperties(PT3_PLUGIN_ID, container, region, ModuleRegion(fixedOffset, rawSize - fixedOffset),
-        RawData);
+      Info->SetType(PT3_PLUGIN_ID);
+      Info->SetContainer(container);
+      Info->SetData(*container.Data, region);
+      {
+        const std::size_t fixedOffset(sizeof(PT3Header) + header->Length - 1);
+        const ModuleRegion fixedRegion(fixedOffset, rawSize -  fixedOffset);
+        Info->SetFixedData(*container.Data, region);
+      }
       Info->SetTitle(OptimizeString(FromStdString(header->TrackName)));
       Info->SetAuthor(OptimizeString(FromStdString(header->TrackAuthor)));
       Info->SetProgram(OptimizeString(String(header->Id, header->Optional1)));

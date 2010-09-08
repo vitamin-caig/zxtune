@@ -482,10 +482,16 @@ namespace
 
       //fill region
       region.Size = rawSize;
+      region.Extract(*container.Data, RawData);
       
       //meta properties
-      Info->ExtractMetaProperties(STC_PLUGIN_ID, container, region, ModuleRegion(sizeof(STCHeader), rawSize - sizeof(STCHeader)),
-        RawData);
+      Info->SetType(STC_PLUGIN_ID);
+      Info->SetContainer(container);
+      Info->SetData(*container.Data, region);
+      {
+        const ModuleRegion fixedRegion(sizeof(STCHeader), rawSize - sizeof(STCHeader));
+        Info->SetFixedData(*container.Data, region);
+      }
       Info->SetProgram(OptimizeString(FromStdString(header->Identifier)));
       Info->SetWarnings(*warner);
       Info->SetTempo(header->Tempo);
