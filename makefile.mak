@@ -42,7 +42,6 @@ generated_files += $(text_files:=.h) $(text_files:=.cpp)
 
 #main target
 all: dirs $(generated_files) $(target)
-.PHONY: all dirs
 
 #set compiler-specific parameters
 include $(path_step)/make/compilers/$(compiler).mak
@@ -79,10 +78,14 @@ object_files := $(notdir $(source_files))
 object_files := $(addprefix $(objects_dir)/,$(object_files:.cpp=$(call makeobj_name,)))
 
 #make objects and binaries dir
-dirs:
+dirs: $(objects_dir) $(output_dir)
 	@echo Building $(if $(library_name),library $(library_name),\
 	  $(if $(binary_name),executable $(binary_name),dynamic object $(dynamic_name)))
+
+$(objects_dir):
 	$(call makedir_cmd,$(objects_dir))
+
+$(output_dir):
 	$(call makedir_cmd,$(output_dir))
 
 #build target
