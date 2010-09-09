@@ -535,8 +535,8 @@ namespace
       chunk.Channels.swap(res);
     }
   private:
-    const CHITrack::ModuleData::Ptr Data;
     const Information::Ptr Info;
+    const CHITrack::ModuleData::Ptr Data;
     DAC::Chip::Ptr Device;
     PlaybackState CurrentState;
     State ModState;

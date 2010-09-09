@@ -372,7 +372,7 @@ namespace ZXTune
           const String& plugins = container.GetPluginsString();
           if (!plugins.empty())
           {
-            ModuleProperties.insert(Parameters::Map::value_type(Module::ATTR_CONTAINER, container.Path));
+            ModuleProperties.insert(Parameters::Map::value_type(Module::ATTR_CONTAINER, plugins));
           }
         }
 

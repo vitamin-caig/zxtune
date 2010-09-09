@@ -37,7 +37,7 @@ namespace
     {
     }
 
-    virtual const IntType* FindIntValue(const NameType& name) const
+    virtual const IntType* FindIntValue(const NameType& /*name*/) const
     {
       return 0;
     }
@@ -59,7 +59,7 @@ namespace
       return 0;
     }
 
-    virtual const DataType* FindDataValue(const NameType& name) const
+    virtual const DataType* FindDataValue(const NameType& /*name*/) const
     {
       return 0;
     }
