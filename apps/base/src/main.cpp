@@ -18,6 +18,12 @@ std::basic_ostream<Char>& StdOut = std::wcout;
 std::basic_ostream<Char>& StdOut = std::cout;
 #endif
 
+//fix for new boost versions
+namespace boost
+{
+  void tss_cleanup_implemented() { }
+}
+
 int main(int argc, char* argv[])
 {
   std::auto_ptr<Application> app(Application::Create());
