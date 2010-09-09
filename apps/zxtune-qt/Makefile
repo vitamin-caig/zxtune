@@ -33,6 +33,7 @@ boost_libraries := thread
 
 qt_libraries := Gui Core
 windows_libraries := gdi32 user32 advapi32 shell32 ole32 oleaut32 imm32 comdlg32 wsock32 winspool uuid oldnames $(if $(subst release,,$(mode)),comsuppwd,comsuppw)
+mingw_libraries := gdi32 shell32 ole32 imm32 comdlg32 wsock32 winspool uuid
 qt_defines = QT_LARGEFILE_SUPPORT QT_GUI_LIB QT_CORE_LIB QT_THREAD_SUPPORT
 
 definitions = $(qt_defines)

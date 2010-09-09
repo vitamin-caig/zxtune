@@ -7,10 +7,11 @@ STRIP := $(if $(STRIP),$(STRIP),strip)
 
 #set options according to mode
 ifeq ($(mode),release)
-cxx_mode_flags += -O2 -DNDEBUG -fdata-sections -ffunction-sections 
-ld_mode_flags += --gc-sections 
+cxx_mode_flags += -O2 -DNDEBUG
+ld_mode_flags += --gc-sections -Wl,-subsystem,$(if $(qt_libraries),windows,console) 
 else ifeq ($(mode),debug)
 cxx_mode_flags += -O0
+ld_mode_flags += -Wl,-subsystem,console
 else
 $(error Invalid mode)
 endif
@@ -19,6 +20,8 @@ endif
 ifdef profile
 cxx_mode_flags += -pg
 ld_mode_flags += -pg
+else
+cxx_mode_flags += -fdata-sections -ffunction-sections 
 endif
 
 #setup PIC code

@@ -15,3 +15,4 @@ support_aylpt_dlportio = 1
 
 #simple library naming convention used
 mingw_libraries += $(foreach lib,$(boost_libraries),boost_$(lib))
+mingw_libraries := $(foreach lib,$(qt_libraries),Qt$(lib)) $(mingw_libraries)
