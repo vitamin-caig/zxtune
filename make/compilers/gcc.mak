@@ -8,10 +8,9 @@ STRIP := $(if $(STRIP),$(STRIP),strip)
 #set options according to mode
 ifeq ($(mode),release)
 cxx_mode_flags += -O2 -DNDEBUG
-ld_mode_flags += --gc-sections -Wl,-subsystem,$(if $(qt_libraries),windows,console) 
+ld_mode_flags += -Wl,-O3,-x,--gc-sections,--relax
 else ifeq ($(mode),debug)
 cxx_mode_flags += -O0
-ld_mode_flags += -Wl,-subsystem,console
 else
 $(error Invalid mode)
 endif
@@ -56,7 +55,7 @@ link_cmd = $(LDD) $(LD_FLAGS) -o $@ $(object_files) \
 
 #specify postlink command- generate pdb file
 postlink_cmd = $(OBJCOPY) --only-keep-debug $@ $@.pdb && \
-	$(STRIP) $@ && \
+	$(STRIP) -s $@ && \
 	$(OBJCOPY) --add-gnu-debuglink=$@.pdb $@
 
 #include generated dependensies
