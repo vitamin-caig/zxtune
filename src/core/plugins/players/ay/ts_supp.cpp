@@ -451,14 +451,16 @@ namespace
 
       Module::Holder::Ptr holder1;
       subdata.Data = container.Data->GetSubcontainer(0, firstModuleSize);
-      if (enumerator.OpenModule(commonParams, subdata, holder1) || InvalidHolder(*holder1))
+      enumerator.OpenModule(commonParams, subdata, holder1);
+      if (InvalidHolder(*holder1))
       {
         Log::Debug(THIS_MODULE, "Invalid first module holder");
         return Module::Holder::Ptr();
       }
       Module::Holder::Ptr holder2;
       subdata.Data = container.Data->GetSubcontainer(firstModuleSize, footerOffset - firstModuleSize);
-      if (enumerator.OpenModule(commonParams, subdata, holder2) || InvalidHolder(*holder2))
+      enumerator.OpenModule(commonParams, subdata, holder2);
+      if (InvalidHolder(*holder2))
       {
         Log::Debug(THIS_MODULE, "Failed to create second module holder");
         return Module::Holder::Ptr();

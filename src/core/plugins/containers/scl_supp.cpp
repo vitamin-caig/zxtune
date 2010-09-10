@@ -172,7 +172,7 @@ namespace
       return CheckSCLFile(dump);
     }
 
-    virtual Error Process(const Parameters::Map& commonParams, 
+    virtual bool Process(const Parameters::Map& commonParams, 
       const DetectParameters& detectParams,
       const MetaContainer& data, ModuleRegion& region) const
     {
@@ -181,7 +181,7 @@ namespace
       const uint_t parsedSize = ParseSCLFile(dump, files);
       if (!parsedSize)
       {
-        return Error(THIS_LINE, Module::ERROR_FIND_CONTAINER_PLUGIN);
+        return false;
       }
 
       const PluginsEnumerator& enumerator = PluginsEnumerator::Instance();
@@ -212,14 +212,11 @@ namespace
           message.Text = (SafeFormatter(data.Path.empty() ? Text::PLUGIN_SCL_PROGRESS_NOPATH : Text::PLUGIN_SCL_PROGRESS) % it->Name % data.Path).str();
           detectParams.Logger(message);
         }
-        if (const Error& err = enumerator.DetectModules(commonParams, detectParams, subcontainer, curRegion))
-        {
-          return err;
-        }
+        enumerator.DetectModules(commonParams, detectParams, subcontainer, curRegion);
       }
       region.Offset = 0;
       region.Size = parsedSize;
-      return Error();
+      return true;
     }
 
     IO::DataContainer::Ptr Open(const Parameters::Map& /*commonParams*/,

@@ -167,7 +167,7 @@ namespace
     }
 
     // Open subpath in despite of filter and other
-    virtual Error ResolveSubpath(const Parameters::Map& commonParams, IO::DataContainer::Ptr data,
+    virtual void ResolveSubpath(const Parameters::Map& commonParams, IO::DataContainer::Ptr data,
       const String& subpath, MetaContainer& result) const
     {
       assert(data.get());
@@ -201,7 +201,7 @@ namespace
           }
           else
           {
-            return MakeFormattedError(THIS_LINE, Module::ERROR_FIND_SUBMODULE, Text::MODULE_ERROR_FIND_SUBMODULE, pathToOpen);
+            throw MakeFormattedError(THIS_LINE, Module::ERROR_FIND_SUBMODULE, Text::MODULE_ERROR_FIND_SUBMODULE, pathToOpen);
           }
         }
       }
@@ -209,38 +209,30 @@ namespace
       result.Data = tmpResult.Data;
       result.Path = subpath;
       result.PluginsChain.swap(tmpResult.PluginsChain);
-      return Error();
     }
 
-    virtual Error DetectModules(const Parameters::Map& commonParams, const DetectParameters& detectParams,
+    virtual void DetectModules(const Parameters::Map& commonParams, const DetectParameters& detectParams,
       const MetaContainer& data, ModuleRegion& region) const
     {
       Log::Debug(THIS_MODULE, "%3%: Detecting modules in data of size %1%, path '%2%'", 
         data.Data->Size(), data.Path, data.PluginsChain.size());
       assert(detectParams.Callback);
       //try to detect container and pass control there
+      if (DetectContainer(commonParams, detectParams, data, region))
       {
-        const Error& e = DetectContainer(commonParams, detectParams, data, region);
-        if (e != Module::ERROR_FIND_CONTAINER_PLUGIN)
-        {
-          return e;
-        }
+        return;
       }
 
       //try to process implicit
+      if (DetectImplicit(commonParams, detectParams, data, region))
       {
-        const Error& e = DetectImplicit(commonParams, detectParams, data, region);
-        if (e != Module::ERROR_FIND_IMPLICIT_PLUGIN)
-        {
-          return e;
-        }
+        return;
       }
-
       //try to detect and process single modules
-      return DetectModule(commonParams, detectParams, data, region);
+      DetectModule(commonParams, detectParams, data, region);
     }
 
-    virtual Error OpenModule(const Parameters::Map& commonParams, const MetaContainer& input, Module::Holder::Ptr& holder) const
+    virtual void OpenModule(const Parameters::Map& commonParams, const MetaContainer& input, Module::Holder::Ptr& holder) const
     {
       for (PlayerPluginsArray::const_iterator it = PlayerPlugins.begin(), lim = PlayerPlugins.end();
         it != lim; ++it)
@@ -256,15 +248,15 @@ namespace
           Log::Debug(THIS_MODULE, "%2%: Opened player plugin %1%", 
             plugin->Id(), input.PluginsChain.size());
           holder = module;
-          return Error();
+          return;
         }
         //TODO: dispatch heavy checks- return false if not enabled
       }
-      return Error(THIS_LINE, Module::ERROR_FIND_PLAYER_PLUGIN);//no detailed info (not need)
+      throw MakeFormattedError(THIS_LINE, Module::ERROR_FIND_SUBMODULE, Text::MODULE_ERROR_FIND_SUBMODULE, input.Path);
     }
 
   private:
-    Error DetectContainer(const Parameters::Map& commonParams, const DetectParameters& detectParams, const MetaContainer& input,
+    bool DetectContainer(const Parameters::Map& commonParams, const DetectParameters& detectParams, const MetaContainer& input,
       ModuleRegion& region) const
     {
       for (ContainerPluginsArray::const_iterator it = ContainerPlugins.begin(), lim = ContainerPlugins.end();
@@ -281,27 +273,17 @@ namespace
         }
         Log::Debug(THIS_MODULE, "%3%:  Checking container plugin %1% for path '%2%'", 
           plugin->Id(), input.Path, input.PluginsChain.size());
-        const Error& e = plugin->Process(commonParams, detectParams, input, region);
-        //stop on success or canceling
-        if (e == Module::ERROR_FIND_CONTAINER_PLUGIN)
+        if (plugin->Process(commonParams, detectParams, input, region))
         {
-          continue;
-        }
-        if (!e)
-        {
-          Log::Debug(THIS_MODULE, "%5%:  Container plugin %1% for path '%2%' detected at region (%3%;%4%)",
+          Log::Debug(THIS_MODULE, "%5%:  Container plugin %1% for path '%2%' processed at region (%3%;%4%)",
             plugin->Id(), input.Path, region.Offset, region.Size, input.PluginsChain.size());
+          return true;
         }
-        else
-        {
-          Log::Debug(THIS_MODULE, "%1%:  Canceled", input.PluginsChain.size());
-        }
-        return e;
       }
-      return Error(THIS_LINE, Module::ERROR_FIND_CONTAINER_PLUGIN);//no detailed info (not need)
+      return false;
     }
 
-    Error DetectImplicit(const Parameters::Map& commonParams, const DetectParameters& detectParams, const MetaContainer& input,
+    bool DetectImplicit(const Parameters::Map& commonParams, const DetectParameters& detectParams, const MetaContainer& input,
       ModuleRegion& region) const
     {
       for (ImplicitPluginsArray::const_iterator it = ImplicitPlugins.begin(), lim = ImplicitPlugins.end();
@@ -334,14 +316,15 @@ namespace
           nested.PluginsChain = input.PluginsChain;
           nested.PluginsChain.push_back(plugin);
           ModuleRegion nestedRegion;
-          return DetectModules(commonParams, detectParams, nested, nestedRegion);
+          DetectModules(commonParams, detectParams, nested, nestedRegion);
+          return true;
         }
         //TODO: dispatch heavy checks- return false if not enabled
       }
-      return Error(THIS_LINE, Module::ERROR_FIND_IMPLICIT_PLUGIN);//no detailed info (not need)
+      return false;
     }
 
-    Error DetectModule(const Parameters::Map& commonParams, const DetectParameters& detectParams, const MetaContainer& input,
+    void DetectModule(const Parameters::Map& commonParams, const DetectParameters& detectParams, const MetaContainer& input,
       ModuleRegion& region) const
     {
       for (PlayerPluginsArray::const_iterator it = PlayerPlugins.begin(), lim = PlayerPlugins.end();
@@ -365,17 +348,13 @@ namespace
           const uint_t level = CalculateContainersNesting(input.PluginsChain);
           DoLog(detectParams.Logger, level, input.Path.empty() ? Text::MODULE_PROGRESS_DETECT_PLAYER_NOPATH : Text::MODULE_PROGRESS_DETECT_PLAYER,
             plugin->Id(), input.Path);
-          if (const Error& e = detectParams.Callback(input.Path, module))
-          {
-            Error err(THIS_LINE, Module::ERROR_DETECT_CANCELED, Text::MODULE_ERROR_CANCELED);
-            return err.AddSuberror(e);
-          }
-          return Error();
+          ThrowIfError(detectParams.Callback(input.Path, module));
+          return;
         }
         //TODO: dispatch heavy checks- return false if not enabled
       }
-      region = ModuleRegion();
-      return Error();
+      region.Offset = 0;
+      region.Size = 0;
     }
 
     bool ResolveImplicit(const Parameters::Map& commonParams, MetaContainer& data) const
@@ -459,30 +438,6 @@ namespace ZXTune
     return boost::algorithm::join(ids, String(Text::MODULE_CONTAINERS_DELIMITER));
   }
 
-  /*
-  void ExtractMetaProperties(const MetaContainer& container, const ModuleRegion& region, const ModuleRegion& fixedRegion,
-                             Parameters::Map& properties, Dump& rawData)
-  {
-    const uint8_t* const data = static_cast<const uint8_t*>(container.Data->Data());
-    rawData.assign(data + region.Offset, data + region.Offset + region.Size);
-    //calculate total checksum
-    {
-      boost::crc_32_type crcCalc;
-      crcCalc.process_bytes(&rawData[0], region.Size);
-      properties.insert(Parameters::Map::value_type(Module::ATTR_CRC, crcCalc.checksum()));
-    }
-    //calculate fixed checksum
-    if (fixedRegion.Offset != 0 || fixedRegion.Size != region.Size)
-    {
-      assert(fixedRegion.Offset + fixedRegion.Size <= region.Size);
-      boost::crc_32_type crcCalc;
-      crcCalc.process_bytes(&rawData[fixedRegion.Offset], fixedRegion.Size);
-      properties.insert(Parameters::Map::value_type(Module::ATTR_FIXEDCRC, crcCalc.checksum()));
-    }
-    properties.insert(Parameters::Map::value_type(Module::ATTR_SIZE, region.Size));
-  }
-  */
-
   PluginsEnumerator& PluginsEnumerator::Instance()
   {
     static PluginsEnumeratorImpl instance;
@@ -521,12 +476,15 @@ namespace ZXTune
     {
       const PluginsEnumerator& enumerator(PluginsEnumerator::Instance());
       MetaContainer subcontainer;
-      if (const Error& e = enumerator.ResolveSubpath(commonParams, data, startSubpath, subcontainer))
-      {
-        return e;
-      }
+      enumerator.ResolveSubpath(commonParams, data, startSubpath, subcontainer);
       ModuleRegion region;
-      return enumerator.DetectModules(commonParams, detectParams, subcontainer, region);
+      enumerator.DetectModules(commonParams, detectParams, subcontainer, region);
+      return Error();
+    }
+    catch (const Error& e)
+    {
+      Error err(THIS_LINE, Module::ERROR_DETECT_CANCELED, Text::MODULE_ERROR_CANCELED);
+      return err.AddSuberror(e);
     }
     catch (const std::bad_alloc&)
     {
@@ -545,17 +503,15 @@ namespace ZXTune
     {
       const PluginsEnumerator& enumerator(PluginsEnumerator::Instance());
       MetaContainer subcontainer;
-      if (const Error& e = enumerator.ResolveSubpath(commonParams, data, subpath, subcontainer))
-      {
-        return e;
-      }
+      enumerator.ResolveSubpath(commonParams, data, subpath, subcontainer);
       //try to detect and process single modules
-      if (const Error& e = enumerator.OpenModule(commonParams, subcontainer, result))
-      {
-        return MakeFormattedError(THIS_LINE, Module::ERROR_FIND_SUBMODULE, Text::MODULE_ERROR_FIND_SUBMODULE, subpath)
-          .AddSuberror(e);
-      }
+      enumerator.OpenModule(commonParams, subcontainer, result);
       return Error();
+    }
+    catch (const Error& e)
+    {
+      Error err = MakeFormattedError(THIS_LINE, Module::ERROR_FIND_SUBMODULE, Text::MODULE_ERROR_FIND_SUBMODULE, subpath);
+      return err.AddSuberror(e);
     }
     catch (const std::bad_alloc&)
     {

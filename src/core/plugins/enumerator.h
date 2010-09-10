@@ -105,8 +105,8 @@ namespace ZXTune
     //! @param detectParams Detection-specific parameters
     //! @param inputData Source memory data
     //! @param region Reference to result region subdata container detected at
-    //! @return Error() in case on success, canceled with return callback error
-    virtual Error Process(const Parameters::Map& parameters,
+    //! @return true if processed and region contains busy data
+    virtual bool Process(const Parameters::Map& parameters,
                           const DetectParameters& detectParams,
                           const MetaContainer& inputData,
                           ModuleRegion& region) const = 0;
@@ -140,13 +140,13 @@ namespace ZXTune
 
     //private interface
     //resolve subpath
-    virtual Error ResolveSubpath(const Parameters::Map& commonParams, IO::DataContainer::Ptr data,
+    virtual void ResolveSubpath(const Parameters::Map& commonParams, IO::DataContainer::Ptr data,
       const String& subpath, MetaContainer& result) const = 0;
     //full module detection
-    virtual Error DetectModules(const Parameters::Map&, const DetectParameters& params, const MetaContainer& data,
+    virtual void DetectModules(const Parameters::Map&, const DetectParameters& params, const MetaContainer& data,
       ModuleRegion& region) const = 0;
     //single module opening
-    virtual Error OpenModule(const Parameters::Map& commonParams, const MetaContainer& data, 
+    virtual void OpenModule(const Parameters::Map& commonParams, const MetaContainer& data, 
       Module::Holder::Ptr& holder) const = 0;
 
     //instantiator

@@ -258,30 +258,23 @@ namespace
     }
 
     //main entry
-    Error Process(ModuleRegion& region)
+    bool Process(ModuleRegion& region)
     {
-      try
-      {
-        uint_t totalFiles = 0, archiveSize = 0;
+      uint_t totalFiles = 0, archiveSize = 0;
 
-        if (CheckHrip(Container->Data(), Container->Size(), totalFiles, archiveSize) != OK)
-        {
-          return Error(THIS_LINE, Module::ERROR_FIND_CONTAINER_PLUGIN);
-        }
-        if (ParseHrip(Container->Data(), archiveSize,
-              boost::bind(&Enumerator::ProcessFile, this, totalFiles, _1, _2), IgnoreCorrupted) != OK)
-        {
-          Log::Debug("Core::HRiPSupp", "Failed to parse archive, possible corrupted");
-          return Error(THIS_LINE, Module::ERROR_FIND_CONTAINER_PLUGIN);
-        }
-        region.Offset = 0;
-        region.Size = archiveSize;
-        return Error();
-      }
-      catch (const Error& e)
+      if (OK != CheckHrip(Container->Data(), Container->Size(), totalFiles, archiveSize))
       {
-        return e;
+        return false;
       }
+      if (ParseHrip(Container->Data(), archiveSize,
+            boost::bind(&Enumerator::ProcessFile, this, totalFiles, _1, _2), IgnoreCorrupted) != OK)
+      {
+        Log::Debug("Core::HRiPSupp", "Failed to parse archive, possible corrupted");
+        return false;
+      }
+      region.Offset = 0;
+      region.Size = archiveSize;
+      return true;
     }
 
   private:
@@ -317,7 +310,7 @@ namespace
       }
 
       ModuleRegion curRegion;
-      ThrowIfError(PluginsEnumerator::Instance().DetectModules(Params, DetectParams, SubMetacontainer, curRegion));
+      PluginsEnumerator::Instance().DetectModules(Params, DetectParams, SubMetacontainer, curRegion);
       return CONTINUE;
     }
   private:
@@ -384,7 +377,7 @@ namespace
              filesCount != 0;
     }
 
-    virtual Error Process(const Parameters::Map& commonParams, const DetectParameters& detectParams,
+    virtual bool Process(const Parameters::Map& commonParams, const DetectParameters& detectParams,
       const MetaContainer& data, ModuleRegion& region) const
     {
       MetaContainer nested(data);

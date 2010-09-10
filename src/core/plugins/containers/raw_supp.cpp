@@ -97,7 +97,7 @@ namespace
       return inputData.Size() >= MIN_MINIMAL_RAW_SIZE;
     }
 
-    virtual Error Process(const Parameters::Map& commonParams, 
+    virtual bool Process(const Parameters::Map& commonParams, 
       const DetectParameters& detectParams,
       const MetaContainer& data, ModuleRegion& region) const
     {
@@ -109,7 +109,7 @@ namespace
             (Parameters::FindByName(commonParams, RAW_PLUGIN_RECURSIVE_DEPTH, depth) &&
              depth == Parameters::IntType(data.PluginsChain.size())))
         {
-          return Error(THIS_LINE, Module::ERROR_FIND_CONTAINER_PLUGIN);
+          return false;
         }
       }
 
@@ -121,10 +121,7 @@ namespace
       {
         Parameters::Map newParams(commonParams);
         newParams[RAW_PLUGIN_RECURSIVE_DEPTH] = data.PluginsChain.size();
-        if (const Error& err = enumerator.DetectModules(newParams, detectParams, data, curRegion))
-        {
-          return err;
-        }
+        enumerator.DetectModules(newParams, detectParams, data, curRegion);
       }
       Parameters::Helper parameters(commonParams);
       const std::size_t minRawSize = static_cast<std::size_t>(
@@ -133,7 +130,7 @@ namespace
         Parameters::ZXTune::Core::Plugins::Raw::MIN_SIZE_DEFAULT));
       if (minRawSize < Parameters::IntType(MIN_MINIMAL_RAW_SIZE))
       {
-        return MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,
+        throw MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,
           Text::RAW_ERROR_INVALID_MIN_SIZE, minRawSize, MIN_MINIMAL_RAW_SIZE);
       }
 
@@ -143,7 +140,7 @@ namespace
       {
         region.Offset = 0;
         region.Size = limit;
-        return Error();
+        return true;
       }
 
       const std::size_t scanStep = static_cast<std::size_t>(
@@ -153,7 +150,7 @@ namespace
       if (scanStep < Parameters::IntType(MIN_SCAN_STEP) ||
           scanStep > Parameters::IntType(MAX_SCAN_STEP))
       {
-        return MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,
+        throw MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,
           Text::RAW_ERROR_INVALID_STEP, scanStep, MIN_SCAN_STEP, MAX_SCAN_STEP);
       }
 
@@ -185,22 +182,15 @@ namespace
         }
         subcontainer.Data = data.Data->GetSubcontainer(offset, limit - offset);
         subcontainer.Path = IO::AppendPath(data.Path, CreateRawPart(offset));
-        if (const Error& err = enumerator.DetectModules(commonParams, detectParams, subcontainer, curRegion))
-        {
-          return err;
-        }
+        enumerator.DetectModules(commonParams, detectParams, subcontainer, curRegion);
         wasResult = wasResult || curRegion.Size != 0;
       }
       if (wasResult)
       {
         region.Offset = 0;
         region.Size = limit;
-        return Error();
       }
-      else
-      {
-        return Error(THIS_LINE, Module::ERROR_FIND_CONTAINER_PLUGIN);
-      }
+      return wasResult;
     }
 
     IO::DataContainer::Ptr Open(const Parameters::Map& /*commonParams*/, 

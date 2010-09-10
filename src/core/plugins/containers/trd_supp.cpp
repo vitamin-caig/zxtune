@@ -207,7 +207,7 @@ namespace
       return CheckTRDFile(dump);
     }
 
-    virtual Error Process(const Parameters::Map& commonParams,
+    virtual bool Process(const Parameters::Map& commonParams,
       const DetectParameters& detectParams,
       const MetaContainer& data, ModuleRegion& region) const
     {
@@ -216,13 +216,13 @@ namespace
           data.PluginsChain.end() != std::find_if(data.PluginsChain.begin(), data.PluginsChain.end(), 
             boost::bind(&Plugin::Id, _1) == TRD_PLUGIN_ID))
       {
-        return Error(THIS_LINE, Module::ERROR_FIND_CONTAINER_PLUGIN);
+        return false;
       }
       const IO::FastDump dump(*data.Data);
       FileDescriptions files;
       if (!ParseTRDFile(dump, files))
       {
-        return Error(THIS_LINE, Module::ERROR_FIND_CONTAINER_PLUGIN);
+        return false;
       }
 
       const PluginsEnumerator& enumerator = PluginsEnumerator::Instance();
@@ -253,14 +253,11 @@ namespace
           message.Text = (SafeFormatter(data.Path.empty() ? Text::PLUGIN_TRD_PROGRESS_NOPATH : Text::PLUGIN_TRD_PROGRESS) % it->Name % data.Path).str();
           detectParams.Logger(message);
         }
-        if (const Error& err = enumerator.DetectModules(commonParams, detectParams, subcontainer, curRegion))
-        {
-          return err;
-        }
+        enumerator.DetectModules(commonParams, detectParams, subcontainer, curRegion);
       }
       region.Offset = 0;
       region.Size = TRD_MODULE_SIZE;
-      return Error();
+      return true;
     }
   
     IO::DataContainer::Ptr Open(const Parameters::Map& /*commonParams*/, 
