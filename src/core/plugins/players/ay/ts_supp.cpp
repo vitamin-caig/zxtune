@@ -132,35 +132,33 @@ namespace
   {
   public:
     FixedProperties(Accessor::Ptr first, Accessor::Ptr second)
-      : ID(TS_PLUGIN_ID)
-      , Delegate(CreateMergedAccessor(first, second))
+      : Delegate(CreateMergedAccessor(first, second))
     {
     }
 
-    virtual const IntType* FindIntValue(const NameType& name) const
+    virtual bool FindIntValue(const NameType& name, IntType& val) const
     {
-      return Delegate->FindIntValue(name);
+      return Delegate->FindIntValue(name, val);
     }
 
-    virtual const StringType* FindStringValue(const NameType& name) const
+    virtual bool FindStringValue(const NameType& name, StringType& val) const
     {
       return (name == ATTR_TYPE)
-        ? &ID
-        : Delegate->FindStringValue(name);
+        ? (val = TS_PLUGIN_ID, true)
+        : Delegate->FindStringValue(name, val);
     }
 
-    virtual const DataType* FindDataValue(const NameType& name) const
+    virtual bool FindDataValue(const NameType& name, DataType& val) const
     {
-      return Delegate->FindDataValue(name);
+      return Delegate->FindDataValue(name, val);
     }
 
     virtual void Process(Visitor& visitor) const
     {
-      visitor.SetStringValue(ATTR_TYPE, ID);
+      visitor.SetStringValue(ATTR_TYPE, TS_PLUGIN_ID);
       Delegate->Process(visitor);
     }
   private:
-    const String ID;
     const Accessor::Ptr Delegate;
   };
 

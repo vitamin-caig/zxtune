@@ -68,12 +68,9 @@ namespace
   String GetModuleId(const ZXTune::Module::Information& info)
   {
     const Parameters::Accessor::Ptr accessor(info.Properties());
-    if (const Parameters::StringType* fullpath =
-      accessor->FindStringValue(ZXTune::Module::ATTR_FULLPATH))
-    {
-      return *fullpath;
-    }
-    return String();
+    String res;
+    accessor->FindStringValue(ZXTune::Module::ATTR_FULLPATH, res);
+    return res;
   }
 
   class Convertor

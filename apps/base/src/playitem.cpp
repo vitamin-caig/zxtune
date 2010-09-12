@@ -37,31 +37,34 @@ namespace
     {
     }
 
-    virtual const IntType* FindIntValue(const NameType& /*name*/) const
+    virtual bool FindIntValue(const NameType& /*name*/, IntType& /*val*/) const
     {
-      return 0;
+      return false;
     }
 
-    virtual const StringType* FindStringValue(const NameType& name) const
+    virtual bool FindStringValue(const NameType& name, StringType& val) const
     {
       if (name == Module::ATTR_FILENAME)
       {
-        return &Filename;
+        val = Filename;
+        return true;
       }
       else if (name == Module::ATTR_PATH)
       {
-        return &Path;
+        val = Path;
+        return true;
       }
       else if (name == Module::ATTR_FULLPATH)
       {
-        return &Uri;
+        val = Uri;
+        return true;
       }
-      return 0;
+      return false;
     }
 
-    virtual const DataType* FindDataValue(const NameType& /*name*/) const
+    virtual bool FindDataValue(const NameType& /*name*/, DataType& /*val*/) const
     {
-      return 0;
+      return false;
     }
 
     virtual void Process(Visitor& visitor) const

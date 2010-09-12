@@ -159,11 +159,11 @@ namespace Parameters
     virtual ~Accessor() {}
 
     //! Accessing integer parameters
-    virtual const IntType* FindIntValue(const NameType& name) const = 0;
+    virtual bool FindIntValue(const NameType& name, IntType& val) const = 0;
     //! Accessing string parameters
-    virtual const StringType* FindStringValue(const NameType& name) const = 0;
+    virtual bool FindStringValue(const NameType& name, StringType& val) const = 0;
     //! Accessing data parameters
-    virtual const DataType* FindDataValue(const NameType& name) const = 0;
+    virtual bool FindDataValue(const NameType& name, DataType& val) const = 0;
 
     //! Valk along the stored values
     virtual void Process(Visitor& visitor) const = 0;

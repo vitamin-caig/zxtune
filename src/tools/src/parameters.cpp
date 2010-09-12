@@ -119,12 +119,12 @@ namespace
   }
 
   template<class T>
-  const T* FindByName(const std::map<Parameters::NameType, T>& map, const Parameters::NameType& name)
+  bool FindByName(const std::map<Parameters::NameType, T>& map, const Parameters::NameType& name, T& res)
   {
     const typename std::map<Parameters::NameType, T>::const_iterator it = map.find(name);
     return it != map.end()
-      ? &it->second
-      : 0;
+      ? (res = it->second, true)
+      : false;
   }
 
   using namespace Parameters;
@@ -136,19 +136,19 @@ namespace
     }
 
     //accessor virtuals
-    virtual const IntType* FindIntValue(const NameType& name) const
+    virtual bool FindIntValue(const NameType& name, IntType& val) const
     {
-      return FindByName(Integers, name);
+      return FindByName(Integers, name, val);
     }
 
-    virtual const StringType* FindStringValue(const NameType& name) const
+    virtual bool FindStringValue(const NameType& name, StringType& val) const
     {
-      return FindByName(Strings, name);
+      return FindByName(Strings, name, val);
     }
 
-    virtual const DataType* FindDataValue(const NameType& name) const
+    virtual bool FindDataValue(const NameType& name, DataType& val) const
     {
-      return FindByName(Datas, name);
+      return FindByName(Datas, name, val);
     }
 
     virtual void Process(Visitor& visitor) const
@@ -188,6 +188,55 @@ namespace
 
   class MergedAccessor : public Accessor
   {
+    static void MergeString(String& lh, const String& rh)
+    {
+      if (lh != rh)
+      {
+        lh += '/';
+        lh += rh;
+      }
+    }
+
+    class MergedStringsVisitor : public Visitor
+    {
+    public:
+      explicit MergedStringsVisitor(Visitor& delegate)
+        : Delegate(delegate)
+      {
+      }
+
+      virtual void SetIntValue(const NameType& name, IntType val)
+      {
+        return Delegate.SetIntValue(name, val);
+      }
+
+      virtual void SetStringValue(const NameType& name, const StringType& val)
+      {
+        const StringMap::iterator it = Strings.find(name);
+        if (it == Strings.end())
+        {
+          Strings.insert(StringMap::value_type(name, val));
+        }
+        else
+        {
+          MergeString(it->second, val);
+        }
+      }
+
+      virtual void SetDataValue(const NameType& name, const DataType& val)
+      {
+        return Delegate.SetDataValue(name, val);
+      }
+
+      void ProcessRestStrings() const
+      {
+        std::for_each(Strings.begin(), Strings.end(), boost::bind(&Visitor::SetStringValue, &Delegate,
+          boost::bind(&StringMap::value_type::first, _1), boost::bind(&StringMap::value_type::second, _1)));
+      }
+    private:
+      Visitor& Delegate;
+      StringMap Strings;
+    };
   public:
     MergedAccessor(Accessor::Ptr first, Accessor::Ptr second)
       : First(first)
@@ -195,37 +244,39 @@ namespace
     {
     }
 
-    virtual const IntType* FindIntValue(const NameType& name) const
+    virtual bool FindIntValue(const NameType& name, IntType& val) const
     {
-      if (const IntType* val = First->FindIntValue(name))
-      {
-        return val;
-      }
-      return Second->FindIntValue(name);
+      return First->FindIntValue(name, val) || Second->FindIntValue(name, val);
     }
 
-    virtual const StringType* FindStringValue(const NameType& name) const
+    virtual bool FindStringValue(const NameType& name, StringType& val) const
     {
-      if (const StringType* val = First->FindStringValue(name))
+      String val1, val2;
+      const bool res1 = First->FindStringValue(name, val1);
+      const bool res2 = Second->FindStringValue(name, val2);
+      if (res1 && res2)
       {
-        return val;
+        MergeString(val1, val2);
+        val = val1;
       }
-      return Second->FindStringValue(name);
+      else if (res1 != res2)
+      {
+        val = res1 ? val1 : val2;
+      }
+      return res1 || res2;
     }
 
-    virtual const DataType* FindDataValue(const NameType& name) const
+    virtual bool FindDataValue(const NameType& name, DataType& val) const
     {
-      if (const DataType* val = First->FindDataValue(name))
-      {
-        return val;
-      }
-      return Second->FindDataValue(name);
+      return First->FindDataValue(name, val) || Second->FindDataValue(name, val);
     }
 
     virtual void Process(Visitor& visitor) const
     {
-      First->Process(visitor);
-      Second->Process(visitor);
+      MergedStringsVisitor mergedVisitor(visitor);
+      First->Process(mergedVisitor);
+      Second->Process(mergedVisitor);
+      mergedVisitor.ProcessRestStrings();
     }
   private:
     const Accessor::Ptr First;

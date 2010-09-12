@@ -927,16 +927,15 @@ namespace ZXTune
         }
         const Parameters::Accessor::Ptr props(info.Properties());
         //process title info
-        if (const String* title = props->FindStringValue(Module::ATTR_TITLE))
+        String strVal;
+        if (props->FindStringValue(Module::ATTR_TITLE, strVal))
         {
-          *iter = MODULE_TITLE + MODULE_DELIMITER +
-            ToStdString(Parameters::ConvertToString(*title));
+          *iter = MODULE_TITLE + MODULE_DELIMITER + ToStdString(strVal);
         }
         //process author info
-        if (const String* author = props->FindStringValue(Module::ATTR_AUTHOR))
+        if (props->FindStringValue(Module::ATTR_AUTHOR, strVal))
         {
-          *iter = MODULE_AUTHOR + MODULE_DELIMITER +
-            ToStdString(Parameters::ConvertToString(*author));
+          *iter = MODULE_AUTHOR + MODULE_DELIMITER + ToStdString(strVal);
         }
         *iter = MODULE_NOTETABLE + MODULE_DELIMITER + string_cast(GetVortexNotetable(freqTable));
         *iter = MODULE_SPEED + MODULE_DELIMITER + string_cast(info.Tempo());
