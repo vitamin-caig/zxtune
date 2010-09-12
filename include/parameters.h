@@ -24,7 +24,7 @@ namespace Parameters
 {
   //@{
   //! @name Value types
-  
+
   //! @brief Integer parameters type
   typedef int64_t IntType;
   //! @brief String parameters type
@@ -32,10 +32,10 @@ namespace Parameters
   //! @brief Data parameters type
   typedef Dump DataType;
   //@}
-  
+
   //@{
   //! @name Other types
-  
+
   //! @brief %Parameters name type
   typedef String NameType;
   //! @brief Complex variant value type
@@ -43,14 +43,14 @@ namespace Parameters
   //! @brief %Parameters map type
   typedef std::map<NameType, ValueType> Map;
   //@}
-  
+
   //! @brief Delimiter between namespaces in parameters' names
   const NameType::value_type NAMESPACE_DELIMITER = '.';
   //! @brief Optional string quiotes
   const String::value_type STRING_QUOTE = '\'';
   //! @brief Mandatory data prefix
   const String::value_type DATA_PREFIX = '#';
-  
+
   //@{
   //! @name Working with map
 
@@ -65,7 +65,7 @@ namespace Parameters
     const Map::const_iterator it(params.find(name));
     return it != params.end() ? boost::get<T>(&(it->second)) : 0;
   }
-  
+
   //! @brief Searching for the parameter of specified type and name
   //! @param params Input map
   //! @param name Parameter name
@@ -129,6 +129,26 @@ namespace Parameters
     const Map& Content;
   };
 
+  //! @brief Interface to modify properties and parameters
+  class Modifier
+  {
+  public:
+    //! Pointer type
+    typedef boost::shared_ptr<Modifier> Ptr;
+
+    virtual ~Modifier() {}
+
+    //! Modifying integer parameters
+    virtual void SetIntValue(const NameType& name, IntType val) = 0;
+    //! Modifying string parameters
+    virtual void SetStringValue(const NameType& name, const StringType& val) = 0;
+    //! Modifying data parameters
+    virtual void SetDataValue(const NameType& name, const DataType& val) = 0;
+  };
+
+  //! @brief Use modifier interface as a visitor
+  typedef Modifier Visitor;
+
   //! @brief Interface to give access to properties and parameters
   class Accessor
   {
@@ -145,16 +165,27 @@ namespace Parameters
     //! Accessing data parameters
     virtual const DataType* FindDataValue(const NameType& name) const = 0;
 
-    //! Serialize all the stored values to map
-    virtual void Convert(StringMap& result) const = 0;
-
-    //TODO: use modifier instead
-    static Ptr CreateFromMap(const Map& content);
-
-    //merged all the string divided by '/' symbol
-    // other are prioritized by first
-    static Ptr CreateMerged(Ptr first, Ptr second);
+    //! Valk along the stored values
+    virtual void Process(Visitor& visitor) const = 0;
   };
+
+  //merged all the string divided by '/' symbol
+  // other are prioritized by first
+  Accessor::Ptr CreateMergedAccessor(Accessor::Ptr first, Accessor::Ptr second);
+
+  //! Service type to simply properties keep and give access
+  class Container : public Accessor
+                  , public Modifier
+  {
+  public:
+    //! Pointer type
+    typedef boost::shared_ptr<Container> Ptr;
+
+    static Ptr Create();
+  };
+
+  //other functions
+  void Convert(const Accessor& ac, StringMap& strings);
 }
 
 #endif //__PARAMETERS_TYPES_H_DEFINED__

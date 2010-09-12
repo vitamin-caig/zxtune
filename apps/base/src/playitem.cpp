@@ -64,13 +64,11 @@ namespace
       return 0;
     }
 
-    virtual void Convert(StringMap& result) const
+    virtual void Process(Visitor& visitor) const
     {
-      StringMap res;
-      res.insert(StringMap::value_type(Module::ATTR_FILENAME, Filename));
-      res.insert(StringMap::value_type(Module::ATTR_PATH, Path));
-      res.insert(StringMap::value_type(Module::ATTR_FULLPATH, Uri));
-      result.swap(res);
+      visitor.SetStringValue(Module::ATTR_FILENAME, Filename);
+      visitor.SetStringValue(Module::ATTR_PATH, Path);
+      visitor.SetStringValue(Module::ATTR_FULLPATH, Uri);
     }
   private:
     const String Uri;
@@ -126,7 +124,7 @@ namespace
     {
       if (!Props)
       {
-        Props = Parameters::Accessor::CreateMerged(
+        Props = Parameters::CreateMergedAccessor(
           boost::make_shared<AdditionalParameters>(Uri, Path),
           Delegate->Properties());
       }
@@ -143,7 +141,7 @@ namespace
   class WrappedHolder : public Module::Holder
   {
   public:
-    WrappedHolder(Module::Holder::Ptr delegate, 
+    WrappedHolder(Module::Holder::Ptr delegate,
       const String& path, const String& subpath)
       : Delegate(delegate)
       , Path(path)
@@ -183,7 +181,7 @@ namespace
   };
 }
 
-ZXTune::Module::Holder::Ptr CreateWrappedHolder(const String& path, const String& subpath, 
+ZXTune::Module::Holder::Ptr CreateWrappedHolder(const String& path, const String& subpath,
   ZXTune::Module::Holder::Ptr module)
 {
   String uri;

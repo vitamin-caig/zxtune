@@ -215,7 +215,7 @@ namespace
         Filename = filename;
       }
     }
-    
+
     void StopFile()
     {
       if (File.get())
@@ -236,19 +236,19 @@ namespace
     std::auto_ptr<std::ofstream> File;
     WaveFormat Format;
   };
-  
+
   void FillPropertiesFields(const Parameters::Accessor& params, StringMap& fields)
   {
     //quote all properties for safe using as filename
     StringMap tmpProps;
-    params.Convert(tmpProps);
+    Parameters::Convert(params, tmpProps);
     std::transform(tmpProps.begin(), tmpProps.end(), std::inserter(fields, fields.end()),
       boost::bind(&std::make_pair<String, String>,
         boost::bind(&StringMap::value_type::first, _1),
         boost::bind(&IO::MakePathFromString, boost::bind(&StringMap::value_type::second, _1), '_')
     ));
   }
-  
+
   class ComplexTrackProcessor : public TrackProcessor
   {
   public:
@@ -294,7 +294,7 @@ namespace
     TrackProcessor::Ptr Writer;
     TrackProcessor::Ptr Logger;
   };
-  
+
   class WAVBackend : public BackendImpl
                    , private boost::noncopyable
   {
@@ -368,7 +368,7 @@ namespace
     std::vector<MultiSample> Buffer;
 #endif
   };
-  
+
   class WAVBackendCreator : public BackendCreator
                           , public boost::enable_shared_from_this<WAVBackendCreator>
   {

@@ -73,7 +73,7 @@ namespace ZXTune
       // Define common types
       typedef SampleType Sample;
       typedef OrnamentType Ornament;
-      
+
       struct Command
       {
         Command() : Type(), Param1(), Param2(), Param3()
@@ -134,7 +134,7 @@ namespace ZXTune
       };
 
       typedef std::vector<Line> Pattern;
-      
+
       // Holder-related types
       struct ModuleData
       {
@@ -231,6 +231,7 @@ namespace ZXTune
       public:
         explicit ModuleInfo(typename ModuleData::Ptr data)
           : Data(data)
+          , ModuleProperties(Parameters::Container::Create())
           , LoopPosNum()
           , InitialTempo()
           , LogicChannels(ChannelsCount)
@@ -257,7 +258,7 @@ namespace ZXTune
 
         virtual uint_t PatternsCount() const
         {
-	  return std::count_if(Data->Patterns.begin(), Data->Patterns.end(),
+	        return std::count_if(Data->Patterns.begin(), Data->Patterns.end(),
             !boost::bind(&Pattern::empty, _1));
         }
 
@@ -296,11 +297,7 @@ namespace ZXTune
 
         virtual Parameters::Accessor::Ptr Properties() const
         {
-          if (!Accessor)
-          {
-            Accessor = Parameters::Accessor::CreateFromMap(ModuleProperties);
-          }
-          return Accessor;
+          return ModuleProperties;
         }
 
         //modifiers
@@ -327,14 +324,14 @@ namespace ZXTune
         void SetType(const String& type)
         {
           assert(!type.empty());
-          ModuleProperties.insert(Parameters::Map::value_type(Module::ATTR_TYPE, type));
+          ModuleProperties->SetStringValue(Module::ATTR_TYPE, type);
         }
 
         void SetTitle(const String& title)
         {
           if (!title.empty())
           {
-            ModuleProperties.insert(Parameters::Map::value_type(Module::ATTR_TITLE, title));
+            ModuleProperties->SetStringValue(Module::ATTR_TITLE, title);
           }
         }
 
@@ -342,7 +339,7 @@ namespace ZXTune
         {
           if (!author.empty())
           {
-            ModuleProperties.insert(Parameters::Map::value_type(Module::ATTR_AUTHOR, author));
+            ModuleProperties->SetStringValue(Module::ATTR_AUTHOR, author);
           }
         }
 
@@ -350,7 +347,7 @@ namespace ZXTune
         {
           if (!program.empty())
           {
-            ModuleProperties.insert(Parameters::Map::value_type(Module::ATTR_PROGRAM, program));
+            ModuleProperties->SetStringValue(Module::ATTR_PROGRAM, program);
           }
         }
 
@@ -358,8 +355,8 @@ namespace ZXTune
         {
           if (const uint_t msgs = warner.CountMessages())
           {
-            ModuleProperties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS_COUNT, msgs));
-            ModuleProperties.insert(Parameters::Map::value_type(Module::ATTR_WARNINGS, warner.GetMessages('\n')));
+            ModuleProperties->SetIntValue(Module::ATTR_WARNINGS_COUNT, msgs);
+            ModuleProperties->SetStringValue(Module::ATTR_WARNINGS, warner.GetMessages('\n'));
           }
         }
 
@@ -367,24 +364,24 @@ namespace ZXTune
         {
           if (!container.Path.empty())
           {
-            ModuleProperties.insert(Parameters::Map::value_type(Module::ATTR_SUBPATH, container.Path));
+            ModuleProperties->SetStringValue(Module::ATTR_SUBPATH, container.Path);
           }
           const String& plugins = container.GetPluginsString();
           if (!plugins.empty())
           {
-            ModuleProperties.insert(Parameters::Map::value_type(Module::ATTR_CONTAINER, plugins));
+            ModuleProperties->SetStringValue(Module::ATTR_CONTAINER, plugins);
           }
         }
 
         void SetData(const IO::DataContainer& container, const ModuleRegion& region)
         {
-          ModuleProperties.insert(Parameters::Map::value_type(Module::ATTR_SIZE, region.Size));
-          ModuleProperties.insert(Parameters::Map::value_type(Module::ATTR_CRC, region.Checksum(container)));
+          ModuleProperties->SetIntValue(Module::ATTR_SIZE, region.Size);
+          ModuleProperties->SetIntValue(Module::ATTR_CRC, region.Checksum(container));
         }
 
         void SetFixedData(const IO::DataContainer& container, const ModuleRegion& fixedRegion)
         {
-          ModuleProperties.insert(Parameters::Map::value_type(Module::ATTR_FIXEDCRC, fixedRegion.Checksum(container)));
+          ModuleProperties->SetIntValue(Module::ATTR_FIXEDCRC, fixedRegion.Checksum(container));
         }
       private:
         void Initialize() const
@@ -408,17 +405,16 @@ namespace ZXTune
         }
       private:
         const typename ModuleData::Ptr Data;
+        const Parameters::Container::Ptr ModuleProperties;
         uint_t LoopPosNum;
         uint_t InitialTempo;
         uint_t LogicChannels;
         uint_t PhysChannels;
         mutable uint_t Frames;
         mutable uint_t LoopFrameNum;
-        mutable Parameters::Accessor::Ptr Accessor;
-        Parameters::Map ModuleProperties;
       };
     };
-    
+
     //helper class to easy parse patterns
     struct PatternCursor
     {

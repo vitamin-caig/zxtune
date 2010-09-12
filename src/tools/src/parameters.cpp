@@ -37,13 +37,13 @@ namespace
     return str.size() >= 3 && Parameters::DATA_PREFIX == *str.begin() && 0 == (str.size() - 1) % 2 &&
       DoTest(str.begin() + 1, str.end(), &std::isxdigit);
   }
-  
+
   inline bool IsInteger(const String& str)
   {
     return !str.empty() &&
       DoTest(str.begin() + (*str.begin() == '-' || *str.begin() == '+' ? 1 : 0), str.end(), &std::isdigit);
   }
-  
+
   inline bool IsQuoted(const String& str)
   {
     return !str.empty() && Parameters::STRING_QUOTE == *str.begin()  && Parameters::STRING_QUOTE == *str.rbegin();
@@ -54,7 +54,7 @@ namespace
     assert(val < 16);
     return static_cast<Char>(val >= 10 ? val + 'A' - 10 : val + '0');
   }
-  
+
   inline uint8_t FromHex(Char val)
   {
     assert(std::isxdigit(val));
@@ -76,7 +76,7 @@ namespace
       }
       return res;
     }
-    
+
     String operator()(const Parameters::StringType& str) const
     {
       if (IsDump(str) || IsInteger(str) || IsQuoted(str))
@@ -88,13 +88,13 @@ namespace
       }
       return str;
     }
-    
+
     String operator()(Parameters::IntType var) const
     {
       //integer may be so long, so it's better to convert here
       String res;
       const bool negate = var < 0;
-      
+
       if (negate)
       {
         var =- var;
@@ -112,44 +112,78 @@ namespace
       return String(res.rbegin(), res.rend());
     }
   };
-  
+
   inline bool CompareParameter(const Parameters::Map::value_type& lh, const Parameters::Map::value_type& rh)
   {
     return lh.first == rh.first ? !(lh.second == rh.second) : lh.first < rh.first;
   }
 
+  template<class T>
+  const T* FindByName(const std::map<Parameters::NameType, T>& map, const Parameters::NameType& name)
+  {
+    const typename std::map<Parameters::NameType, T>::const_iterator it = map.find(name);
+    return it != map.end()
+      ? &it->second
+      : 0;
+  }
+
   using namespace Parameters;
-  class AccessorImpl : public Accessor
+  class ContainerImpl : public Container
   {
   public:
-    explicit AccessorImpl(const Map& content)
-      : Content(content)
-      , Impl(Content)
+    ContainerImpl()
     {
     }
 
+    //accessor virtuals
     virtual const IntType* FindIntValue(const NameType& name) const
     {
-      return Impl.FindValue<IntType>(name);
+      return FindByName(Integers, name);
     }
 
     virtual const StringType* FindStringValue(const NameType& name) const
     {
-      return Impl.FindValue<StringType>(name);
+      return FindByName(Strings, name);
     }
 
     virtual const DataType* FindDataValue(const NameType& name) const
     {
-      return Impl.FindValue<DataType>(name);
+      return FindByName(Datas, name);
     }
 
-    virtual void Convert(StringMap& result) const
+    virtual void Process(Visitor& visitor) const
     {
-       return Impl.ToStringMap(result);
+      std::for_each(Integers.begin(), Integers.end(), boost::bind(&Visitor::SetIntValue, &visitor,
+        boost::bind(&IntegerMap::value_type::first, _1), boost::bind(&IntegerMap::value_type::second, _1)));
+      std::for_each(Strings.begin(), Strings.end(), boost::bind(&Visitor::SetStringValue, &visitor,
+        boost::bind(&StringMap::value_type::first, _1), boost::bind(&StringMap::value_type::second, _1)));
+      std::for_each(Datas.begin(), Datas.end(), boost::bind(&Visitor::SetDataValue, &visitor,
+        boost::bind(&DataMap::value_type::first, _1), boost::bind(&DataMap::value_type::second, _1)));
     }
+
+    //modifier virtuals
+    virtual void SetIntValue(const NameType& name, IntType val)
+    {
+      Integers.insert(IntegerMap::value_type(name, val));
+    }
+
+    virtual void SetStringValue(const NameType& name, const StringType& val)
+    {
+      Strings.insert(StringMap::value_type(name, val));
+    }
+
+    virtual void SetDataValue(const NameType& name, const DataType& val)
+    {
+      Datas.insert(DataMap::value_type(name, val));
+    }
+
   private:
-    const Map Content;
-    const Helper Impl;
+    typedef std::map<NameType, IntType> IntegerMap;
+    typedef std::map<NameType, StringType> StringMap;
+    typedef std::map<NameType, DataType> DataMap;
+    IntegerMap Integers;
+    StringMap Strings;
+    DataMap Datas;
   };
 
   class MergedAccessor : public Accessor
@@ -169,32 +203,16 @@ namespace
       }
       return Second->FindIntValue(name);
     }
+
     virtual const StringType* FindStringValue(const NameType& name) const
     {
-      //check for already merged
+      if (const StringType* val = First->FindStringValue(name))
       {
-        const StringMap::const_iterator mrg = MergedStrings.find(name);
-        if (mrg != MergedStrings.end())
-        {
-          return &mrg->second;
-        }
+        return val;
       }
-      const StringType* const fst = First->FindStringValue(name);
-      const StringType* const snd = Second->FindStringValue(name);
-
-      //check if required to merge
-      if (fst && snd)
-      {
-        const String mergedVal = *fst + Char('/') + *snd;
-        const StringMap::const_iterator newVal = 
-          MergedStrings.insert(StringMap::value_type(name, mergedVal)).first;
-        return &newVal->second;
-      }
-      else
-      {
-        return fst ? fst : snd;
-      }
+      return Second->FindStringValue(name);
     }
+
     virtual const DataType* FindDataValue(const NameType& name) const
     {
       if (const DataType* val = First->FindDataValue(name))
@@ -204,21 +222,37 @@ namespace
       return Second->FindDataValue(name);
     }
 
-    virtual void Convert(StringMap& result) const
+    virtual void Process(Visitor& visitor) const
     {
-      //merged are always visible as strings
-      StringMap res(MergedStrings);
-      StringMap subresult;
-      First->Convert(subresult);
-      res.insert(subresult.begin(), subresult.end());
-      Second->Convert(subresult);
-      res.insert(subresult.begin(), subresult.end());
-      result.swap(res);
+      First->Process(visitor);
+      Second->Process(visitor);
     }
   private:
     const Accessor::Ptr First;
     const Accessor::Ptr Second;
-    mutable StringMap MergedStrings;
+  };
+
+  class StringConvertor : public StringMap
+                        , public Visitor
+  {
+  public:
+    virtual void SetIntValue(const NameType& name, IntType val)
+    {
+      insert(value_type(name, Helper(val)));
+    }
+
+    virtual void SetStringValue(const NameType& name, const StringType& val)
+    {
+      insert(value_type(name, Helper(val)));
+    }
+
+    virtual void SetDataValue(const NameType& name, const DataType& val)
+    {
+      insert(value_type(name, Helper(val)));
+    }
+
+  private:
+    AsStringVisitor Helper;
   };
 }
 
@@ -277,7 +311,7 @@ namespace Parameters
         boost::bind(ConvertToString, boost::bind<Map::mapped_type>(&Map::value_type::second, _1))));
     output.swap(res);
   }
-  
+
   void ConvertMap(const StringMap& input, Map& output)
   {
     Map res;
@@ -285,10 +319,10 @@ namespace Parameters
       boost::bind(&std::make_pair<const Map::key_type, Map::mapped_type>,
         boost::bind<StringMap::key_type>(&StringMap::value_type::first, _1),
         boost::bind(ConvertFromString, boost::bind<StringMap::mapped_type>(&StringMap::value_type::second, _1))));
-    
+
     output.swap(res);
   }
-  
+
   void DifferMaps(const Map& newOne, const Map& oldOne, Map& updates)
   {
     Map result;
@@ -297,7 +331,7 @@ namespace Parameters
       CompareParameter);
     updates.swap(result);
   }
-  
+
   void MergeMaps(const Map& oldOne, const Map& newOne, Map& merged, bool replaceExisting)
   {
     Parameters::Map result;
@@ -317,13 +351,20 @@ namespace Parameters
     merged.swap(result);
   }
 
-  Accessor::Ptr Accessor::CreateFromMap(const Map& content)
-  {
-    return boost::make_shared<AccessorImpl>(content);
-  }
-
-  Accessor::Ptr Accessor::CreateMerged(Accessor::Ptr first, Accessor::Ptr second)
+  Accessor::Ptr CreateMergedAccessor(Accessor::Ptr first, Accessor::Ptr second)
   {
     return boost::make_shared<MergedAccessor>(first, second);
+  }
+
+  Container::Ptr Container::Create()
+  {
+    return boost::make_shared<ContainerImpl>();
+  }
+
+  void Convert(const Accessor& ac, StringMap& strings)
+  {
+    StringConvertor cnv;
+    ac.Process(cnv);
+    cnv.swap(strings);
   }
 }

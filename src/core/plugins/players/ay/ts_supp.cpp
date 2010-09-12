@@ -133,7 +133,7 @@ namespace
   public:
     FixedProperties(Accessor::Ptr first, Accessor::Ptr second)
       : ID(TS_PLUGIN_ID)
-      , Delegate(Accessor::CreateMerged(first, second))
+      , Delegate(CreateMergedAccessor(first, second))
     {
     }
 
@@ -154,10 +154,10 @@ namespace
       return Delegate->FindDataValue(name);
     }
 
-    virtual void Convert(StringMap& result) const
+    virtual void Process(Visitor& visitor) const
     {
-      Delegate->Convert(result);
-      result[ATTR_TYPE] = ID;
+      visitor.SetStringValue(ATTR_TYPE, ID);
+      Delegate->Process(visitor);
     }
   private:
     const String ID;
@@ -395,12 +395,12 @@ namespace
       begin = found + ArraySize(TS_ID);
     }
   }
-  
+
   inline bool InvalidHolder(const Module::Holder& holder)
   {
     const uint_t caps = holder.GetPlugin()->Capabilities();
     return 0 != (caps & (CAP_STORAGE_MASK ^ CAP_STOR_MODULE)) ||
-           0 != (caps & (CAP_DEVICE_MASK ^ CAP_DEV_AYM)); 
+           0 != (caps & (CAP_DEVICE_MASK ^ CAP_DEV_AYM));
   }
 
   //////////////////////////////////////////////////////////////////////////

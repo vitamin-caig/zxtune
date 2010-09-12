@@ -39,7 +39,7 @@ namespace
   const String PSG_PLUGIN_VERSION(FromStdString("$Rev$"));
 
   const uint8_t PSG_SIGNATURE[] = {'P', 'S', 'G'};
-  
+
   enum
   {
     PSG_MARKER = 0x1a,
@@ -65,7 +65,7 @@ namespace
 #endif
 
   BOOST_STATIC_ASSERT(sizeof(PSGHeader) == 16);
-  
+
   class PSGData
   {
   public:
@@ -105,8 +105,9 @@ namespace
 
     explicit PSGInfo(PSGData::Ptr data)
       : Data(data)
+      , Props(Parameters::Container::Create())
     {
-      PropsMap.insert(Parameters::Map::value_type(ATTR_TYPE, PSG_PLUGIN_ID));
+      Props->SetStringValue(ATTR_TYPE, PSG_PLUGIN_ID);
     }
     virtual uint_t PositionsCount() const
     {
@@ -142,10 +143,6 @@ namespace
     }
     virtual Parameters::Accessor::Ptr Properties() const
     {
-      if (!Props)
-      {
-        Props = Parameters::Accessor::CreateFromMap(PropsMap);
-      }
       return Props;
     }
 
@@ -153,33 +150,32 @@ namespace
     {
       if (!container.Path.empty())
       {
-        PropsMap.insert(Parameters::Map::value_type(Module::ATTR_SUBPATH, container.Path));
+        Props->SetStringValue(Module::ATTR_SUBPATH, container.Path);
       }
       const String& plugins = container.GetPluginsString();
       if (!plugins.empty())
       {
-        PropsMap.insert(Parameters::Map::value_type(Module::ATTR_CONTAINER, container.Path));
+        Props->SetStringValue(Module::ATTR_CONTAINER, container.Path);
       }
     }
 
     void SetData(const IO::DataContainer& container, const ModuleRegion& region)
     {
-      PropsMap.insert(Parameters::Map::value_type(Module::ATTR_SIZE, region.Size));
-      PropsMap.insert(Parameters::Map::value_type(Module::ATTR_CRC, region.Checksum(container)));
+      Props->SetIntValue(Module::ATTR_SIZE, region.Size);
+      Props->SetIntValue(Module::ATTR_CRC, region.Checksum(container));
     }
 
     void SetFixedData(const IO::DataContainer& container, const ModuleRegion& fixedRegion)
     {
-      PropsMap.insert(Parameters::Map::value_type(Module::ATTR_FIXEDCRC, fixedRegion.Checksum(container)));
+      Props->SetIntValue(Module::ATTR_FIXEDCRC, fixedRegion.Checksum(container));
     }
   private:
     const PSGData::Ptr Data;
-    mutable Parameters::Accessor::Ptr Props;
-    Parameters::Map PropsMap;
+    const Parameters::Container::Ptr Props;
   };
-  
+
   Player::Ptr CreatePSGPlayer(Information::Ptr info, PSGData::Ptr data, AYM::Chip::Ptr device);
-  
+
   class PSGHolder : public Holder
   {
   public:
@@ -249,12 +245,12 @@ namespace
           break;
         }
       }
-      
+
       //fill region
       region.Offset = 0;
       region.Size = data.Size() - size;
       region.Extract(*container.Data, RawData);
-      
+
       //extract properties
       Info->SetContainer(container);
       Info->SetData(*container.Data, region);
@@ -275,7 +271,7 @@ namespace
     {
       return CreatePSGPlayer(Info, Data, AYM::CreateChip());
     }
-    
+
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
     {
       using namespace Conversion;
@@ -317,7 +313,7 @@ namespace
       PlayerState.Data[AYM::DataChunk::REG_MIXER] = 0xff;
       return res;
     }
-    
+
     void RenderData(AYM::DataChunk& chunk)
     {
       const AYM::DataChunk& data = Data->Dump[ModState.Track.Frame];
@@ -340,10 +336,10 @@ namespace
       ModState.Track.Channels = 0;
       for (uint_t chan = 0,
            mixer = PlayerState.Data[AYM::DataChunk::REG_MIXER],
-           mask = AYM::DataChunk::REG_MASK_NOISEA | AYM::DataChunk::REG_MASK_TONEA; 
+           mask = AYM::DataChunk::REG_MASK_NOISEA | AYM::DataChunk::REG_MASK_TONEA;
         chan < AYM::CHANNELS; ++chan, mask <<= 1)
       {
-        if (0 != (mixer & mask) || 
+        if (0 != (mixer & mask) ||
             0 != (PlayerState.Data[AYM::DataChunk::REG_VOLA + chan] & AYM::DataChunk::REG_MASK_ENV))
         {
           ++ModState.Track.Channels;
@@ -351,12 +347,12 @@ namespace
       }
     }
   };
-  
+
   Player::Ptr CreatePSGPlayer(Information::Ptr info, PSGData::Ptr data, AYM::Chip::Ptr device)
   {
     return Player::Ptr(new PSGPlayer(info, data, device));
   }
-  
+
   bool CheckPSG(const IO::DataContainer& inputData)
   {
     if (inputData.Size() <= sizeof(PSGHeader))
@@ -367,7 +363,7 @@ namespace
     return 0 == std::memcmp(header->Sign, PSG_SIGNATURE, sizeof(PSG_SIGNATURE)) &&
        PSG_MARKER == header->Marker;
   }
-  
+
   class PSGPlugin : public PlayerPlugin
                   , public boost::enable_shared_from_this<PSGPlugin>
   {

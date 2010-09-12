@@ -7,7 +7,7 @@ Last changed:
 
 Author:
   (C) Vitamin/CAIG/2001
-  
+
   This file is a part of zxtune123 application based on zxtune library
 */
 
@@ -68,7 +68,7 @@ namespace
   String GetModuleId(const ZXTune::Module::Information& info)
   {
     const Parameters::Accessor::Ptr accessor(info.Properties());
-    if (const Parameters::StringType* fullpath = 
+    if (const Parameters::StringType* fullpath =
       accessor->FindStringValue(ZXTune::Module::ATTR_FULLPATH))
     {
       return *fullpath;
@@ -127,7 +127,7 @@ namespace
         const ZXTune::Plugin::Ptr plugin = holder->GetPlugin();
         if (!(plugin->Capabilities() & CapabilityMask))
         {
-          Display.Message((Formatter(Text::CONVERT_SKIPPED) % 
+          Display.Message((Formatter(Text::CONVERT_SKIPPED) %
             id % plugin->Id()).str());
           return true;
         }
@@ -138,7 +138,7 @@ namespace
       StringMap fields;
       {
         StringMap origFields;
-        info->Properties()->Convert(origFields);
+        Convert(*info->Properties(), origFields);
         std::transform(origFields.begin(), origFields.end(), std::inserter(fields, fields.end()),
           boost::bind(&std::make_pair<String, String>,
             boost::bind<String>(&StringMap::value_type::first, _1),
@@ -174,7 +174,7 @@ namespace
       , SeekStep(10)
     {
     }
-    
+
     virtual int Run(int argc, char* argv[])
     {
       try
@@ -184,10 +184,10 @@ namespace
         {
           return 0;
         }
-        
+
         Sourcer->Initialize();
         Sounder->Initialize();
-        
+
         if (!ConvertParams.empty())
         {
           Convertor cnv(ConvertParams, *Display);
@@ -226,7 +226,7 @@ namespace
           (Text::CORE_OPTS_KEY, boost::program_options::value<String>(&coreOptions), Text::CORE_OPTS_DESC)
           (Text::CONVERT_KEY, boost::program_options::value<String>(&ConvertParams), Text::CONVERT_DESC)
         ;
-        
+
         options.add(Informer->GetOptionsDescription());
         options.add(Sourcer->GetOptionsDescription());
         options.add(Sounder->GetOptionsDescription());
@@ -234,14 +234,14 @@ namespace
         //add positional parameters for input
         positional_options_description inputPositional;
         inputPositional.add(Text::INPUT_FILE_KEY, -1);
-        
+
         //cli options
         options_description cliOptions(Text::CLI_SECTION);
         cliOptions.add_options()
           (Text::SEEKSTEP_KEY, value<uint_t>(&SeekStep), Text::SEEKSTEP_DESC)
         ;
         options.add(cliOptions);
-        
+
         variables_map vars;
         store(command_line_parser(argc, argv).options(options).positional(inputPositional).run(), vars);
         notify(vars);
@@ -279,7 +279,7 @@ namespace
         throw MakeFormattedError(THIS_LINE, UNKNOWN_ERROR, Text::COMMON_ERROR, e.what());
       }
     }
-    
+
     bool PlayItem(ZXTune::Module::Holder::Ptr holder)
     {
       try
