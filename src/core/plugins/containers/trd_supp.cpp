@@ -212,12 +212,14 @@ namespace
       const MetaContainer& data, ModuleRegion& region) const
     {
       //do not search if there's already TRD plugin (cannot be nested...)
-      if (!data.PluginsChain.empty() &&
+      /*
+      if (data.Plugins->Count() &&
           data.PluginsChain.end() != std::find_if(data.PluginsChain.begin(), data.PluginsChain.end(), 
             boost::bind(&Plugin::Id, _1) == TRD_PLUGIN_ID))
       {
         return false;
       }
+      */
       const IO::FastDump dump(*data.Data);
       FileDescriptions files;
       if (!ParseTRDFile(dump, files))
@@ -232,13 +234,13 @@ namespace
       Log::MessageData message;
       if (showMessage)
       {
-        message.Level = CalculateContainersNesting(data.PluginsChain);
+        message.Level = data.Plugins->CalculateContainersNesting();
         message.Progress = -1;
       }
 
       MetaContainer subcontainer;
-      subcontainer.PluginsChain = data.PluginsChain;
-      subcontainer.PluginsChain.push_back(shared_from_this());
+      subcontainer.Plugins = data.Plugins->Clone();
+      subcontainer.Plugins->Add(shared_from_this());
       ModuleRegion curRegion;
       const uint_t totalCount = files.size();
       uint_t curCount = 0;

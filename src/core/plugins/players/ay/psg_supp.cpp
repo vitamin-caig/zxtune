@@ -152,7 +152,7 @@ namespace
       {
         Props->SetStringValue(Module::ATTR_SUBPATH, container.Path);
       }
-      const String& plugins = container.GetPluginsString();
+      const String& plugins = container.Plugins->AsString();
       if (!plugins.empty())
       {
         Props->SetStringValue(Module::ATTR_CONTAINER, container.Path);

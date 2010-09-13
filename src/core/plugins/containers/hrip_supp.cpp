@@ -320,7 +320,7 @@ namespace
       if (-1 == LogLevel)
       {
         LogLevel = static_cast<int_t>(
-          CalculateContainersNesting(SubMetacontainer.PluginsChain) - 1);
+          SubMetacontainer.Plugins->CalculateContainersNesting() - 1);
       }
       return LogLevel;
     }
@@ -381,7 +381,7 @@ namespace
       const MetaContainer& data, ModuleRegion& region) const
     {
       MetaContainer nested(data);
-      nested.PluginsChain.push_back(shared_from_this());
+      nested.Plugins->Add(shared_from_this());
       Enumerator cb(commonParams, detectParams, nested);
       return cb.Process(region);
     }

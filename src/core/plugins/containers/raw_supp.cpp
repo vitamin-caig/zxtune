@@ -104,10 +104,10 @@ namespace
       {
         Parameters::IntType depth = 0;
         //do not search right after previous raw plugin
-        if ((!data.PluginsChain.empty() && data.PluginsChain.back()->Id() == RAW_PLUGIN_ID) ||
+        if ((data.Plugins->Count() && data.Plugins->GetLast()->Id() == RAW_PLUGIN_ID) ||
             //special mark to determine if plugin is called due to recursive scan
             (Parameters::FindByName(commonParams, RAW_PLUGIN_RECURSIVE_DEPTH, depth) &&
-             depth == Parameters::IntType(data.PluginsChain.size())))
+             depth == Parameters::IntType(data.Plugins->Count())))
         {
           return false;
         }
@@ -120,7 +120,7 @@ namespace
       ModuleRegion curRegion;
       {
         Parameters::Map newParams(commonParams);
-        newParams[RAW_PLUGIN_RECURSIVE_DEPTH] = data.PluginsChain.size();
+        newParams[RAW_PLUGIN_RECURSIVE_DEPTH] = data.Plugins->Count();
         enumerator.DetectModules(newParams, detectParams, data, curRegion);
       }
       Parameters::Helper parameters(commonParams);
@@ -159,7 +159,7 @@ namespace
       Log::MessageData message;
       if (showMessage)
       {
-        message.Level = CalculateContainersNesting(data.PluginsChain);
+        message.Level = data.Plugins->CalculateContainersNesting();
         message.Text = data.Path.empty() ? String(Text::PLUGIN_RAW_PROGRESS_NOPATH) : (Formatter(Text::PLUGIN_RAW_PROGRESS) % data.Path).str();
         message.Progress = -1;
       }
@@ -168,8 +168,8 @@ namespace
       bool wasResult = curRegion.Size != 0;
 
       MetaContainer subcontainer;
-      subcontainer.PluginsChain = data.PluginsChain;
-      subcontainer.PluginsChain.push_back(shared_from_this());
+      subcontainer.Plugins = data.Plugins->Clone();
+      subcontainer.Plugins->Add(shared_from_this());
       for (std::size_t offset = std::max(curRegion.Offset + curRegion.Size, std::size_t(1));
         offset + minRawSize < limit;
         offset += std::max(curRegion.Offset + curRegion.Size, std::size_t(scanStep)))
@@ -197,8 +197,8 @@ namespace
       const MetaContainer& inData, const String& inPath, String& restPath) const
     {
       //do not open right after self
-      if (!inData.PluginsChain.empty() && 
-          inData.PluginsChain.back()->Id() == RAW_PLUGIN_ID)
+      if (inData.Plugins->Count() && 
+          inData.Plugins->GetLast()->Id() == RAW_PLUGIN_ID)
       {
         return IO::DataContainer::Ptr();
       }

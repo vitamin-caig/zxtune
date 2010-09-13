@@ -41,16 +41,42 @@ namespace ZXTune
     void Extract(const IO::DataContainer& container, Dump& dump) const;
   };
 
-  typedef std::list<Plugin::Ptr> PluginsList;
+  class PluginsChain
+  {
+  public:
+    typedef boost::shared_ptr<PluginsChain> Ptr;
+
+    virtual ~PluginsChain() {}
+
+    virtual void Add(Plugin::Ptr plugin) = 0;
+    virtual Plugin::Ptr GetLast() const = 0;
+    virtual PluginsChain::Ptr Clone() const = 0;
+
+    virtual uint_t Count() const = 0;
+    virtual String AsString() const = 0;
+    virtual uint_t CalculateContainersNesting() const = 0;
+
+    static Ptr Create();
+  };
 
   //module container descriptor- all required data
   struct MetaContainer
   {
+    MetaContainer()
+      : Plugins(PluginsChain::Create())
+    {
+    }
+
+    MetaContainer(const MetaContainer& rh)
+      : Data(rh.Data)
+      , Path(rh.Path)
+      , Plugins(rh.Plugins->Clone())
+    {
+    }
+
     IO::DataContainer::Ptr Data;
     String Path;
-    PluginsList PluginsChain;
-
-    String GetPluginsString() const;
+    PluginsChain::Ptr Plugins;
   };
 
   class PlayerPlugin : public Plugin
@@ -152,9 +178,6 @@ namespace ZXTune
     //instantiator
     static PluginsEnumerator& Instance();
   };
-
-  //calculate container plugins in chain
-  uint_t CalculateContainersNesting(const PluginsList& pluginsChain);
 }
 
 #endif //__CORE_PLUGINS_ENUMERATOR_H_DEFINED__

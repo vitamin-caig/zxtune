@@ -191,13 +191,13 @@ namespace
       Log::MessageData message;
       if (showMessage)
       {
-        message.Level = CalculateContainersNesting(data.PluginsChain);
+        message.Level = data.Plugins->CalculateContainersNesting();
         message.Progress = -1;
       }
 
       MetaContainer subcontainer;
-      subcontainer.PluginsChain = data.PluginsChain;
-      subcontainer.PluginsChain.push_back(shared_from_this());
+      subcontainer.Plugins = data.Plugins->Clone();
+      subcontainer.Plugins->Add(shared_from_this());
       ModuleRegion curRegion;
       const uint_t totalCount = files.size();
       uint_t curCount = 0;

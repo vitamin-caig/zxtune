@@ -258,7 +258,7 @@ namespace ZXTune
 
         virtual uint_t PatternsCount() const
         {
-	        return std::count_if(Data->Patterns.begin(), Data->Patterns.end(),
+          return std::count_if(Data->Patterns.begin(), Data->Patterns.end(),
             !boost::bind(&Pattern::empty, _1));
         }
 
@@ -366,7 +366,7 @@ namespace ZXTune
           {
             ModuleProperties->SetStringValue(Module::ATTR_SUBPATH, container.Path);
           }
-          const String& plugins = container.GetPluginsString();
+          const String& plugins = container.Plugins->AsString();
           if (!plugins.empty())
           {
             ModuleProperties->SetStringValue(Module::ATTR_CONTAINER, plugins);

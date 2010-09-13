@@ -28,6 +28,7 @@ Author:
 #include <boost/crc.hpp>
 #include <boost/ref.hpp>
 #include <boost/bind/apply.hpp>
+#include <boost/make_shared.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/algorithm/string/join.hpp>
 //text includes
@@ -60,35 +61,38 @@ namespace
     }
   }
 
+  typedef std::list<Plugin::Ptr> PluginsList;
+
+  class PluginStub : public Plugin
+  {
+  public:
+    virtual String Id() const
+    {
+      return String();
+    }
+
+    virtual String Description() const
+    {
+      return String();
+    }
+
+    virtual String Version() const
+    {
+      return String();
+    }
+
+    virtual uint_t Capabilities() const
+    {
+      return 0;
+    }
+
+    static void Deleter(PluginStub*)
+    {
+    }
+  };
+
   class PluginIteratorImpl : public Plugin::Iterator
   {
-    class PluginStub : public Plugin
-    {
-    public:
-      virtual String Id() const
-      {
-        return String();
-      }
-
-      virtual String Description() const
-      {
-        return String();
-      }
-
-      virtual String Version() const
-      {
-        return String();
-      }
-
-      virtual uint_t Capabilities() const
-      {
-        return 0;
-      }
-
-      static void Deleter(PluginStub*)
-      {
-      }
-    };
   public:
     PluginIteratorImpl(PluginsList::const_iterator from,
                        PluginsList::const_iterator to)
@@ -127,6 +131,67 @@ namespace
   private:
     PluginsList::const_iterator Pos;
     const PluginsList::const_iterator Limit;
+  };
+
+  class PluginsChainImpl : public PluginsChain
+  {
+  public:
+    PluginsChainImpl()
+    {
+    }
+
+    PluginsChainImpl(const PluginsList& list)
+      : Container(list)
+    {
+    }
+
+    virtual void Add(Plugin::Ptr plugin)
+    {
+      Container.push_back(plugin);
+    }
+
+    virtual Plugin::Ptr GetLast() const
+    {
+      if (!Container.empty())
+      {
+        return Container.back();
+      }
+      assert(!"No plugins in chain");
+      static PluginStub stub;
+      return Plugin::Ptr(&stub, &PluginStub::Deleter);
+    }
+
+    virtual PluginsChain::Ptr Clone() const
+    {
+      return boost::make_shared<PluginsChainImpl>(Container);
+    }
+
+    virtual uint_t Count() const
+    {
+      return Container.size();
+    }
+
+    virtual String AsString() const
+    {
+      StringArray ids(Container.size());
+      std::transform(Container.begin(), Container.end(),
+        ids.begin(), boost::mem_fn(&Plugin::Id));
+      return boost::algorithm::join(ids, String(Text::MODULE_CONTAINERS_DELIMITER));
+    }
+
+    virtual uint_t CalculateContainersNesting() const
+    {
+      return std::count_if(Container.begin(), Container.end(),
+        &IsMultitrackPlugin);
+    }
+  private:
+    static bool IsMultitrackPlugin(const Plugin::Ptr plugin)
+    {
+      const uint_t caps = plugin->Capabilities();
+      return CAP_STOR_MULTITRACK == (caps & CAP_STOR_MULTITRACK);
+    }
+  private:
+    PluginsList Container;
   };
 
   class PluginsEnumeratorImpl : public PluginsEnumerator
@@ -185,7 +250,7 @@ namespace
         //check for implicit containers
         while (ResolveImplicit(commonParams, tmpResult))
         {
-          const Plugin::Ptr lastPlugin = tmpResult.PluginsChain.back();
+          const Plugin::Ptr lastPlugin = tmpResult.Plugins->GetLast();
           Log::Debug(THIS_MODULE, "Detected implicit plugin %1% at '%2%'", lastPlugin->Id(), tmpResult.Path);
           hasResolved = true;
         }
@@ -195,7 +260,7 @@ namespace
         {
           if (ResolveContainer(commonParams, tmpResult, pathToOpen))
           {
-            const Plugin::Ptr lastPlugin = tmpResult.PluginsChain.back();
+            const Plugin::Ptr lastPlugin = tmpResult.Plugins->GetLast();
             Log::Debug(THIS_MODULE, "Detected nested container %1% at '%2%'", lastPlugin->Id(), tmpResult.Path);
             hasResolved = true;
           }
@@ -208,14 +273,14 @@ namespace
       Log::Debug(THIS_MODULE, "Resolved path '%1%'", subpath);
       result.Data = tmpResult.Data;
       result.Path = subpath;
-      result.PluginsChain.swap(tmpResult.PluginsChain);
+      result.Plugins = tmpResult.Plugins;
     }
 
     virtual void DetectModules(const Parameters::Map& commonParams, const DetectParameters& detectParams,
       const MetaContainer& data, ModuleRegion& region) const
     {
       Log::Debug(THIS_MODULE, "%3%: Detecting modules in data of size %1%, path '%2%'", 
-        data.Data->Size(), data.Path, data.PluginsChain.size());
+        data.Data->Size(), data.Path, data.Plugins->Count());
       assert(detectParams.Callback);
       //try to detect container and pass control there
       if (DetectContainer(commonParams, detectParams, data, region))
@@ -246,7 +311,7 @@ namespace
         if (Module::Holder::Ptr module = plugin->CreateModule(commonParams, input, region))
         {
           Log::Debug(THIS_MODULE, "%2%: Opened player plugin %1%", 
-            plugin->Id(), input.PluginsChain.size());
+            plugin->Id(), input.Plugins->Count());
           holder = module;
           return;
         }
@@ -272,11 +337,11 @@ namespace
           continue;//invalid plugin
         }
         Log::Debug(THIS_MODULE, "%3%:  Checking container plugin %1% for path '%2%'", 
-          plugin->Id(), input.Path, input.PluginsChain.size());
+          plugin->Id(), input.Path, input.Plugins->Count());
         if (plugin->Process(commonParams, detectParams, input, region))
         {
           Log::Debug(THIS_MODULE, "%5%:  Container plugin %1% for path '%2%' processed at region (%3%;%4%)",
-            plugin->Id(), input.Path, region.Offset, region.Size, input.PluginsChain.size());
+            plugin->Id(), input.Path, region.Offset, region.Size, input.Plugins->Count());
           return true;
         }
       }
@@ -300,12 +365,12 @@ namespace
         }
         //find first suitable
         Log::Debug(THIS_MODULE, "%3%:  Checking implicit container %1% at path '%2%'", 
-          plugin->Id(), input.Path, input.PluginsChain.size());
+          plugin->Id(), input.Path, input.Plugins->Count());
         if (IO::DataContainer::Ptr subdata = plugin->ExtractSubdata(commonParams, input, region))
         {
           Log::Debug(THIS_MODULE, "%3%:  Detected at region (%1%;%2%)", 
-            region.Offset, region.Size, input.PluginsChain.size());
-          const uint_t level = CalculateContainersNesting(input.PluginsChain);
+            region.Offset, region.Size, input.Plugins->Count());
+          const uint_t level = input.Plugins->CalculateContainersNesting();
           DoLog(detectParams.Logger, level,
             input.Path.empty() ? Text::MODULE_PROGRESS_DETECT_IMPLICIT_NOPATH : Text::MODULE_PROGRESS_DETECT_IMPLICIT,
             plugin->Id(), input.Path);
@@ -313,8 +378,8 @@ namespace
           MetaContainer nested;
           nested.Data = subdata;
           nested.Path = input.Path;
-          nested.PluginsChain = input.PluginsChain;
-          nested.PluginsChain.push_back(plugin);
+          nested.Plugins = input.Plugins->Clone();
+          nested.Plugins->Add(plugin);
           ModuleRegion nestedRegion;
           DetectModules(commonParams, detectParams, nested, nestedRegion);
           return true;
@@ -340,12 +405,12 @@ namespace
           continue;//invalid plugin
         }
         Log::Debug(THIS_MODULE, "%3%:  Checking module plugin %1% at path '%2%'", 
-          plugin->Id(), input.Path, input.PluginsChain.size());
+          plugin->Id(), input.Path, input.Plugins->Count());
         if (Module::Holder::Ptr module = plugin->CreateModule(commonParams, input, region))
         {
           Log::Debug(THIS_MODULE, "%3%:  Detected at region (%1%;%2%)", 
-            region.Offset, region.Size, input.PluginsChain.size());
-          const uint_t level = CalculateContainersNesting(input.PluginsChain);
+            region.Offset, region.Size, input.Plugins->Count());
+          const uint_t level = input.Plugins->CalculateContainersNesting();
           DoLog(detectParams.Logger, level, input.Path.empty() ? Text::MODULE_PROGRESS_DETECT_PLAYER_NOPATH : Text::MODULE_PROGRESS_DETECT_PLAYER,
             plugin->Id(), input.Path);
           ThrowIfError(detectParams.Callback(input.Path, module));
@@ -371,7 +436,7 @@ namespace
         if (IO::DataContainer::Ptr subdata = plugin->ExtractSubdata(commonParams, data, resRegion))
         {
           data.Data = subdata;
-          data.PluginsChain.push_back(plugin);
+          data.Plugins->Add(plugin);
           return true;
         }
         //TODO: dispatch heavy checks- return false if not enabled
@@ -396,7 +461,7 @@ namespace
           const String processedPath = pathToOpen.substr(0, pathToOpen.rfind(restPath));
           data.Path += processedPath;
           data.Data = subdata;
-          data.PluginsChain.push_back(plugin);
+          data.Plugins->Add(plugin);
           pathToOpen = restPath;
           return true;
         }  
@@ -430,12 +495,9 @@ namespace ZXTune
     dump.assign(data + Offset, data + Offset + Size);
   }
 
-  String MetaContainer::GetPluginsString() const
+  PluginsChain::Ptr PluginsChain::Create()
   {
-    StringArray ids(PluginsChain.size());
-    std::transform(PluginsChain.begin(), PluginsChain.end(),
-      ids.begin(), boost::mem_fn(&Plugin::Id));
-    return boost::algorithm::join(ids, String(Text::MODULE_CONTAINERS_DELIMITER));
+    return boost::make_shared<PluginsChainImpl>();
   }
 
   PluginsEnumerator& PluginsEnumerator::Instance()
@@ -443,22 +505,6 @@ namespace ZXTune
     static PluginsEnumeratorImpl instance;
     return instance;
   }
-
-  uint_t CalculateContainersNesting(const PluginsList& pluginsChain)
-  {
-    uint_t res = 0;
-    for (PluginsList::const_iterator it = pluginsChain.begin(), lim = pluginsChain.end(); it != lim; ++it)
-    {
-      const Plugin& plugin = **it;
-      const uint_t caps = plugin.Capabilities();
-      if (0 != (caps & CAP_STOR_MULTITRACK))
-      {
-        ++res;
-      }
-    }
-    return res;
-  }
-
 
   Plugin::Iterator::Ptr EnumeratePlugins()
   {
