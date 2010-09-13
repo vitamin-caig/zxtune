@@ -237,10 +237,10 @@ namespace
       QListWidgetItem* const listItem = new QListWidgetItem(ToQString(title), playList);
       const PlayitemsList::iterator iter = Items.insert(Items.end(), item);
       listItem->setData(Qt::UserRole, QVariant::fromValue(iter));
-      if (const String* type = props->FindStringValue(ZXTune::Module::ATTR_TYPE))
+      String type;
+      if (props->FindStringValue(ZXTune::Module::ATTR_TYPE, type))
       {
-        String typeStr(RESOURCE_TYPE_PREFIX);
-        typeStr += *type;
+        const String typeStr(RESOURCE_TYPE_PREFIX + type);
         listItem->setIcon(QIcon(ToQString(typeStr)));
       }
     }

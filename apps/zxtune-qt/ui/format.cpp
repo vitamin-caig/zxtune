@@ -22,12 +22,12 @@ Author:
 String GetModuleTitle(const String& format, const Parameters::Accessor& props)
 {
   StringMap origFields;
-  props.Convert(origFields);
-  const String& curTitle = InstantiateTemplate(format, origFields, SKIP_NONEXISTING);
+  Parameters::Convert(props, origFields);
   const String& emptyTitle = InstantiateTemplate(format, StringMap(), SKIP_NONEXISTING);
+  String curTitle = InstantiateTemplate(format, origFields, SKIP_NONEXISTING);
   if (curTitle == emptyTitle)
   {
-    return *props.FindStringValue(ZXTune::Module::ATTR_FULLPATH);
+    props.FindStringValue(ZXTune::Module::ATTR_FULLPATH, curTitle);
   }
   return curTitle;
 }
