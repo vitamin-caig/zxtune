@@ -52,7 +52,7 @@ namespace
     {
     }
 
-    ZXTune::IO::DataContainer::Ptr GetData(const String& dataPath, const Parameters::Map& params,
+    ZXTune::IO::DataContainer::Ptr GetData(const String& dataPath, const Parameters::Accessor& ioParams,
       const ZXTune::DetectParameters::LogFunc& logger)
     {
       //check in cache
@@ -71,7 +71,7 @@ namespace
       ZXTune::IO::DataContainer::Ptr data;
       {
         String subpath;
-        ThrowIfError(ZXTune::IO::OpenData(dataPath, params,
+        ThrowIfError(ZXTune::IO::OpenData(dataPath, ioParams,
           logger ? boost::bind(&DataProvider::ConvertLog, _1, _2, boost::cref(logger)) : ZXTune::IO::ProgressCallback(),
           data, subpath));
         assert(subpath.empty());
@@ -121,23 +121,24 @@ namespace
   public:
     typedef boost::shared_ptr<SharedPlayitemContext> Ptr;
 
-    SharedPlayitemContext(DataProvider::Ptr provider, const Parameters::Map& params)
+    SharedPlayitemContext(DataProvider::Ptr provider, Parameters::Accessor::Ptr params)
       : Provider(provider), CommonParams(params)
     {
     }
 
-    ZXTune::Module::Holder::Ptr GetModule(const String& dataPath, const String& subPath, const Parameters::Map& adjustedParams) const
+    ZXTune::Module::Holder::Ptr GetModule(const String& dataPath, const String& subPath, Parameters::Accessor::Ptr adjustedParams) const
     {
-      Parameters::Map moduleParams;
-      Parameters::MergeMaps(CommonParams, adjustedParams, moduleParams, true);
-      const ZXTune::IO::DataContainer::Ptr data = Provider->GetData(dataPath, moduleParams, 0/*logger*/);
+      const Parameters::Accessor::Ptr moduleParams = adjustedParams
+        ? Parameters::CreateMergedAccessor(adjustedParams, CommonParams) : CommonParams;
+      const ZXTune::IO::DataContainer::Ptr data = Provider->GetData(dataPath, *moduleParams, 0/*logger*/);
       ZXTune::Module::Holder::Ptr result;
-      ThrowIfError(ZXTune::OpenModule(moduleParams, data, subPath, result));
+      Parameters::Map modParams;//TODO
+      ThrowIfError(ZXTune::OpenModule(modParams, data, subPath, result));
       return CreateWrappedHolder(dataPath, subPath, result);
     }
   private:
     const DataProvider::Ptr Provider;
-    const Parameters::Map CommonParams;
+    const Parameters::Accessor::Ptr CommonParams;
   };
 
   class PlayitemImpl : public Playitem
@@ -149,7 +150,7 @@ namespace
         //module-specific
         const String& dataPath, const String& subPath,
         ZXTune::Module::Holder::Ptr holder,
-        const Parameters::Map& adjustedParams)
+        Parameters::Accessor::Ptr adjustedParams)
       : Context(context)
       , DataPath(dataPath), SubPath(subPath)
       , ModuleInfo(holder->GetModuleInformation())
@@ -167,7 +168,7 @@ namespace
       return ModuleInfo;
     }
     
-    virtual const Parameters::Map& GetAdjustedParameters() const
+    virtual Parameters::Accessor::Ptr GetAdjustedParameters() const
     {
       return AdjustedParams;
     }
@@ -175,7 +176,7 @@ namespace
     const SharedPlayitemContext::Ptr Context;
     const String DataPath, SubPath;
     const ZXTune::Module::Information::Ptr ModuleInfo;
-    const Parameters::Map AdjustedParams;
+    const Parameters::Accessor::Ptr AdjustedParams;
   };
   
   class PlayitemsProviderImpl : public PlayitemsProvider
@@ -187,23 +188,23 @@ namespace
     }
     
     virtual Error DetectModules(const String& path,
-                                const Parameters::Map& commonParams, const PlayitemDetectParameters& detectParams)
+                                Parameters::Accessor::Ptr commonParams, const PlayitemDetectParameters& detectParams)
     {
       try
       {
         String dataPath, subPath;
         ThrowIfError(ZXTune::IO::SplitUri(path, dataPath, subPath));
-        const ZXTune::IO::DataContainer::Ptr data = Provider->GetData(dataPath, commonParams, detectParams.Logger);
+        const ZXTune::IO::DataContainer::Ptr data = Provider->GetData(dataPath, *commonParams, detectParams.Logger);
         
-        const SharedPlayitemContext::Ptr context =
-          boost::make_shared<SharedPlayitemContext, DataProvider::Ptr, Parameters::Map>(Provider, commonParams);
+        const SharedPlayitemContext::Ptr context = boost::make_shared<SharedPlayitemContext>(Provider, commonParams);
           
         ZXTune::DetectParameters params;
         params.Filter = detectParams.Filter;
         params.Logger = detectParams.Logger;
         params.Callback = boost::bind(&PlayitemsProviderImpl::CreatePlayitem, this,
           context, dataPath, _1, _2, detectParams.Callback);
-        ThrowIfError(ZXTune::DetectModules(commonParams, params, data, subPath));
+        Parameters::Map cmnParams;//TODO
+        ThrowIfError(ZXTune::DetectModules(cmnParams, params, data, subPath));
         return Error();
       }
       catch (const Error& e)
@@ -227,10 +228,11 @@ namespace
       {
         const ZXTune::Module::Holder::Ptr holder = 
           CreateWrappedHolder(dataPath, subPath, module);
+        const Parameters::Accessor::Ptr adjustedParams;
         const Playitem::Ptr item(new PlayitemImpl(
           context, //common data
           dataPath, subPath, holder, //item data
-          Parameters::Map()        //TODO: adjusted parameters
+          adjustedParams
         ));
         return callback(item) ? Error() : Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
       }

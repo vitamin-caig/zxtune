@@ -146,6 +146,8 @@ namespace Parameters
     virtual void SetDataValue(const NameType& name, const DataType& val) = 0;
   };
 
+  void ParseStringMap(const StringMap& map, Modifier& modifier);
+
   //! @brief Use modifier interface as a visitor
   typedef Modifier Visitor;
 

@@ -36,6 +36,24 @@ namespace
 
   const String PROVIDER_VERSION(FromStdString("$Rev$"));
 
+  class FileProviderParameters
+  {
+  public:
+    explicit FileProviderParameters(const Parameters::Accessor& accessor)
+      : Accessor(accessor)
+    {
+    }
+
+    std::streampos GetMMapThreshold() const
+    {
+      Parameters::IntType intVal = Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD_DEFAULT;
+      Accessor.FindIntValue(Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD, intVal);
+      return static_cast<std::streampos>(intVal);
+    }
+  private:
+    const Parameters::Accessor& Accessor;
+  };
+
   // uri-related constants
   const Char SCHEME_SIGN[] = {':', '/', '/', 0};
   const Char SCHEME_FILE[] = {'f', 'i', 'l', 'e', 0};
@@ -105,7 +123,7 @@ namespace
       const std::size_t Length;
     };
   public:
-    FileDataContainer(const String& path, const Parameters::Map& params)
+    FileDataContainer(const String& path, const Parameters::Accessor& params)
       : CoreHolder()
       , Offset(0), Length(0)
     {
@@ -121,11 +139,8 @@ namespace
       {
         throw Error(THIS_LINE, ERROR_IO_ERROR, Text::IO_ERROR_IO_ERROR);
       }
-      Parameters::Helper parameters(params);
-      const std::streampos threshold = static_cast<std::streampos>(
-        parameters.GetValue(
-          Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD,
-          Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD_DEFAULT));
+      const FileProviderParameters providerParams(params);
+      const std::streampos threshold = providerParams.GetMMapThreshold();
 
       if (fileSize >= threshold)
       {
@@ -245,7 +260,7 @@ namespace
     }
   
     //no callback
-    virtual Error Open(const String& uri, const Parameters::Map& params, const ProgressCallback& /*cb*/,
+    virtual Error Open(const String& uri, const Parameters::Accessor& params, const ProgressCallback& /*cb*/,
       DataContainer::Ptr& result, String& subpath) const
     {
       String openUri, openSub;

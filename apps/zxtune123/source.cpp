@@ -153,14 +153,16 @@ namespace
     }
   }
 
-  Error ProcessModuleItems(const StringArray& files, const Parameters::Map& params, const ZXTune::DetectParameters::FilterFunc& filter,
+  Error ProcessModuleItems(const StringArray& files, 
+    const Parameters::Map& globalParams, const Parameters::Accessor& ioParams,
+    const ZXTune::DetectParameters::FilterFunc& filter,
     const ZXTune::DetectParameters::LogFunc& logger, const OnItemCallback& callback)
   {
     for (StringArray::const_iterator it = files.begin(), lim = files.end(); it != lim; ++it)
     {
       ZXTune::IO::DataContainer::Ptr data;
       String subpath;
-      if (const Error& e = ZXTune::IO::OpenData(*it, params, 0, data, subpath))
+      if (const Error& e = ZXTune::IO::OpenData(*it, ioParams, 0, data, subpath))
       {
         return e;
       }
@@ -168,7 +170,7 @@ namespace
       detectParams.Filter = filter;
       detectParams.Logger = logger;
       detectParams.Callback = boost::bind(&FormModule, *it, _1, _2, callback);
-      if (const Error& e = ZXTune::DetectModules(params, detectParams, data, subpath))
+      if (const Error& e = ZXTune::DetectModules(globalParams, detectParams, data, subpath))
       {
         return e;
       }
@@ -179,8 +181,9 @@ namespace
   class Source : public SourceComponent
   {
   public:
-    explicit Source(Parameters::Map& globalParams)
+    Source(const Parameters::Map& globalParams, const Parameters::Accessor& ioParams)
       : GlobalParams(globalParams)
+      , IOParams(ioParams)
       , OptionsDescription(Text::INPUT_SECTION)
       , EnabledCaps(0), DisabledCaps(0), ShowProgress(false)
     {
@@ -218,7 +221,7 @@ namespace
     {
       assert(callback);
       const bool hasFilter(!EnabledPlugins.empty() || !DisabledPlugins.empty() || 0 != EnabledCaps || 0 != DisabledCaps);
-      ThrowIfError(ProcessModuleItems(Files, GlobalParams,
+      ThrowIfError(ProcessModuleItems(Files, GlobalParams, IOParams,
         hasFilter ? boost::bind(&Source::DoFilter, this, _1) : ZXTune::DetectParameters::FilterFunc(),
         ShowProgress ? DoLog : 0,
         callback));
@@ -242,7 +245,8 @@ namespace
       return !(EnabledPlugins.empty() && !EnabledCaps);
     }
   private:
-    Parameters::Map& GlobalParams;
+    const Parameters::Map& GlobalParams;
+    const Parameters::Accessor& IOParams;
     boost::program_options::options_description OptionsDescription;
     StringArray Files;
     String Allowed;
@@ -255,7 +259,8 @@ namespace
   };
 }
 
-std::auto_ptr<SourceComponent> SourceComponent::Create(Parameters::Map& globalParams)
+std::auto_ptr<SourceComponent> SourceComponent::Create(const Parameters::Map& globalParams,
+  const Parameters::Accessor& ioParams)
 {
-  return std::auto_ptr<SourceComponent>(new Source(globalParams));
+  return std::auto_ptr<SourceComponent>(new Source(globalParams, ioParams));
 }

@@ -34,11 +34,10 @@ namespace
     return e;
   }
 
-  bool Test(const Error& res, const String& text, unsigned line)
+  void Test(const Error& res, const String& text, unsigned line)
   {
     std::cout << (res ? "Failed" : "Passed") << " test '" << text << "' at " << line << std::endl;
-    ShowIfError(res);
-    return !res;
+    ThrowIfError(res);
   }
 
   bool Test(bool res, const String& text, unsigned line)
@@ -50,24 +49,34 @@ namespace
   void CheckError(const Error& e, Error::CodeType code, const String& text, unsigned line)
   {
     Test(e == code, text, line);
-    ShowIfError(e);
+    if (e != code)
+    {
+      throw e;
+    }
   }
 }
 
 int main()
 {
-  using namespace ZXTune::IO;
-  std::cout << "------ test for openers --------\n";
-  String subpath;
-  Parameters::Map params;
-  DataContainer::Ptr data;
-  params[Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD] = std::numeric_limits<int64_t>::max();//set always buffered
-  Test(OpenData(EXISTING_FILE, params, ProgressCallback(), data, subpath), "Opening in buffer mode", __LINE__);
-  CheckError(OpenData(NONEXISTING_FILE, params, ProgressCallback(), data, subpath), ERROR_NOT_OPENED, "Open non-existent in buffer mode", __LINE__);
-  CheckError(OpenData(LOCKED_FILE, params, ProgressCallback(), data, subpath), ERROR_NOT_OPENED, "Open locked in buffer mode", __LINE__);
-  params[Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD] = 0;//set always mmaped
-  Test(OpenData(EXISTING_FILE, params, ProgressCallback(), data, subpath), "Opening in mmap mode", __LINE__);
-  CheckError(OpenData(NONEXISTING_FILE, params, ProgressCallback(), data, subpath), ERROR_NOT_OPENED, "Open non-existent in shared mode", __LINE__);  
-  CheckError(OpenData(LOCKED_FILE, params, ProgressCallback(), data, subpath), ERROR_NOT_OPENED, "Open locked in shared mode", __LINE__);
-  CheckError(OpenData(EMPTY_FILE, params, ProgressCallback(), data, subpath), ERROR_NOT_OPENED, "Open empty file", __LINE__);
+  try
+  {
+    using namespace ZXTune::IO;
+    std::cout << "------ test for openers --------\n";
+    String subpath;
+    Parameters::Container::Ptr params = Parameters::Container::Create();
+    DataContainer::Ptr data;
+    params->SetIntValue(Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD, std::numeric_limits<int64_t>::max());//set always buffered
+    Test(OpenData(EXISTING_FILE, *params, ProgressCallback(), data, subpath), "Opening in buffer mode", __LINE__);
+    CheckError(OpenData(NONEXISTING_FILE, *params, ProgressCallback(), data, subpath), ERROR_NOT_OPENED, "Open non-existent in buffer mode", __LINE__);
+    CheckError(OpenData(LOCKED_FILE, *params, ProgressCallback(), data, subpath), ERROR_NOT_OPENED, "Open locked in buffer mode", __LINE__);
+    params->SetIntValue(Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD, 0);//set always mmaped
+    Test(OpenData(EXISTING_FILE, *params, ProgressCallback(), data, subpath), "Opening in mmap mode", __LINE__);
+    CheckError(OpenData(NONEXISTING_FILE, *params, ProgressCallback(), data, subpath), ERROR_NOT_OPENED, "Open non-existent in shared mode", __LINE__);  
+    CheckError(OpenData(LOCKED_FILE, *params, ProgressCallback(), data, subpath), ERROR_NOT_OPENED, "Open locked in shared mode", __LINE__);
+    CheckError(OpenData(EMPTY_FILE, *params, ProgressCallback(), data, subpath), ERROR_NOT_OPENED, "Open empty file", __LINE__);
+  }
+  catch (const Error& e)
+  {
+    e.WalkSuberrors(ErrOuter);
+  }
 }

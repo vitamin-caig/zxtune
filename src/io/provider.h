@@ -32,12 +32,12 @@ namespace ZXTune
 
     //! @brief Performs opening specified uri
     //! @param uri Full path including external data identifier and raw data subpath delimited by scheme-specific delimiter
-    //! @param params %Parameters map to setup providers work
+    //! @param params %Parameters accessor to setup providers work
     //! @param cb Callback for long-time controlable operations
     //! @param data Reference to result data container
     //! @param subpath Rest part of the uri which specifies path inside data dump
     //! @return Error() in case of success
-    Error OpenData(const String& uri, const Parameters::Map& params, const ProgressCallback& cb, DataContainer::Ptr& data, String& subpath);
+    Error OpenData(const String& uri, const Parameters::Accessor& params, const ProgressCallback& cb, DataContainer::Ptr& data, String& subpath);
 
     //! @brief Performs splitting specified uri to filesystem and internal parts
     //! @param uri Full path

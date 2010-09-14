@@ -69,9 +69,10 @@ namespace
           path = Queue.front();
           Queue.pop();
         }
-        
+
+        const Parameters::Accessor::Ptr commonParams = Parameters::Container::Ptr();        
         if (const Error& e = Provider->DetectModules(path,
-          Parameters::Map(),//TODO
+          commonParams,
           DetectParams))
         {
           //TODO: check and show error

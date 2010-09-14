@@ -114,7 +114,7 @@ namespace
       Log::Debug(THIS_MODULE, "Registered provider '%1%'", provider->Name());
     }
 
-    virtual Error OpenUri(const String& uri, const Parameters::Map& params, const ProgressCallback& cb, DataContainer::Ptr& result, String& subpath) const
+    virtual Error OpenUri(const String& uri, const Parameters::Accessor& params, const ProgressCallback& cb, DataContainer::Ptr& result, String& subpath) const
     {
       Log::Debug(THIS_MODULE, "Opening uri '%1%'", uri);
       if (const DataProvider* provider = FindProvider(uri))
@@ -181,7 +181,7 @@ namespace ZXTune
       return instance;
     }
 
-    Error OpenData(const String& uri, const Parameters::Map& params, const ProgressCallback& cb, DataContainer::Ptr& data, String& subpath)
+    Error OpenData(const String& uri, const Parameters::Accessor& params, const ProgressCallback& cb, DataContainer::Ptr& data, String& subpath)
     {
       try
       {

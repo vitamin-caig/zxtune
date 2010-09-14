@@ -170,7 +170,8 @@ namespace
   public:
     CLIApplication()
       : Informer(InformationComponent::Create())
-      , Sourcer(SourceComponent::Create(GlobalParams))
+      , IOParams(Parameters::Container::Create())
+      , Sourcer(SourceComponent::Create(GlobalParams, *IOParams))
       , Sounder(SoundComponent::Create(GlobalParams))
       , Display(DisplayComponent::Create())
       , SeekStep(10)
@@ -259,9 +260,7 @@ namespace
         }
         if (!providersOptions.empty())
         {
-          Parameters::Map ioParams;
-          ThrowIfError(ParseParametersString(Parameters::ZXTune::IO::Providers::PREFIX, providersOptions, ioParams));
-          GlobalParams.insert(ioParams.begin(), ioParams.end());
+          ThrowIfError(ParseParametersString(Parameters::ZXTune::IO::Providers::PREFIX, providersOptions, *IOParams));
         }
         if (!coreOptions.empty())
         {
@@ -392,6 +391,7 @@ namespace
     }
   private:
     Parameters::Map GlobalParams;
+    const Parameters::Container::Ptr IOParams;
     String ConvertParams;
     std::auto_ptr<InformationComponent> Informer;
     std::auto_ptr<SourceComponent> Sourcer;

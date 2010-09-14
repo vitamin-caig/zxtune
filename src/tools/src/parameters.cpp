@@ -23,36 +23,21 @@ Author:
 
 namespace
 {
-  const Parameters::IntType RADIX = 10;
+  using namespace Parameters;
 
-  BOOST_STATIC_ASSERT(1 == sizeof(Parameters::DataType::value_type));
+  const IntType RADIX = 10;
+
+  BOOST_STATIC_ASSERT(1 == sizeof(DataType::value_type));
 
   inline bool DoTest(const String::const_iterator it, const String::const_iterator lim, int(*Fun)(int))
   {
     return lim == std::find_if(it, lim, std::not1(std::ptr_fun(Fun)));
   }
 
-  inline bool IsDump(const String& str)
+  inline bool IsData(const String& str)
   {
-    return str.size() >= 3 && Parameters::DATA_PREFIX == *str.begin() && 0 == (str.size() - 1) % 2 &&
+    return str.size() >= 3 && DATA_PREFIX == *str.begin() && 0 == (str.size() - 1) % 2 &&
       DoTest(str.begin() + 1, str.end(), &std::isxdigit);
-  }
-
-  inline bool IsInteger(const String& str)
-  {
-    return !str.empty() &&
-      DoTest(str.begin() + (*str.begin() == '-' || *str.begin() == '+' ? 1 : 0), str.end(), &std::isdigit);
-  }
-
-  inline bool IsQuoted(const String& str)
-  {
-    return !str.empty() && Parameters::STRING_QUOTE == *str.begin()  && Parameters::STRING_QUOTE == *str.rbegin();
-  }
-
-  inline Char ToHex(uint_t val)
-  {
-    assert(val < 16);
-    return static_cast<Char>(val >= 10 ? val + 'A' - 10 : val + '0');
   }
 
   inline uint8_t FromHex(Char val)
@@ -61,35 +46,90 @@ namespace
     return val >= 'A' ? val - 'A' + 10 : val - '0';
   }
 
+  inline void StringToData(const String& val, DataType& res)
+  {
+    res.resize((val.size() - 1) / 2);
+    String::const_iterator src = val.begin();
+    for (DataType::iterator it = res.begin(), lim = res.end(); it != lim; ++it)
+    {
+      const DataType::value_type highNibble = FromHex(*++src);
+      const DataType::value_type lowNibble = FromHex(*++src);
+      *it = highNibble * 16 | lowNibble;
+    }
+  }
+
+  inline bool IsInteger(const String& str)
+  {
+    return !str.empty() &&
+      DoTest(str.begin() + (*str.begin() == '-' || *str.begin() == '+' ? 1 : 0), str.end(), &std::isdigit);
+  }
+
+  inline IntType StringToInteger(const String& val)
+  {
+    IntType res = 0;
+    String::const_iterator it = val.begin();
+    const bool negate = *it == '-';
+    if (negate || *it == '+')
+    {
+      ++it;
+    }
+    for (String::const_iterator lim = val.end(); it != lim; ++it)
+    {
+      res *= RADIX;
+      res += *it - '0';
+    }
+    return negate ? -res : res;
+  }
+
+  inline bool IsQuoted(const String& str)
+  {
+    return !str.empty() && STRING_QUOTE == *str.begin()  && STRING_QUOTE == *str.rbegin();
+  }
+
+  inline StringType StringToString(const String& val)
+  {
+    if (IsQuoted(val))
+    {
+      return StringType(val.begin() + 1, val.end() - 1);
+    }
+    return val;
+  }
+
+  inline Char ToHex(uint_t val)
+  {
+    assert(val < 16);
+    return static_cast<Char>(val >= 10 ? val + 'A' - 10 : val + '0');
+  }
+
   class AsStringVisitor : public boost::static_visitor<String>
   {
   public:
-    String operator()(const Parameters::DataType& dmp) const
+    String operator()(const DataType& dmp) const
     {
-      String res(dmp.size() * 2 + 1, Parameters::DATA_PREFIX);
+      String res(dmp.size() * 2 + 1, DATA_PREFIX);
       String::iterator dstit = res.begin();
-      for (Parameters::DataType::const_iterator srcit = dmp.begin(), srclim = dmp.end(); srcit != srclim; ++srcit)
+      for (DataType::const_iterator srcit = dmp.begin(), srclim = dmp.end(); srcit != srclim; ++srcit)
       {
-        const Parameters::DataType::value_type val = *srcit;
+        const DataType::value_type val = *srcit;
         *++dstit = ToHex(val >> 4);
         *++dstit = ToHex(val & 15);
       }
       return res;
     }
 
-    String operator()(const Parameters::StringType& str) const
+    String operator()(const StringType& str) const
     {
-      if (IsDump(str) || IsInteger(str) || IsQuoted(str))
+      if (IsData(str) || IsInteger(str) || IsQuoted(str))
       {
-        String res = String(1, Parameters::STRING_QUOTE);
+        String res = String(1, STRING_QUOTE);
         res += str;
-        res += Parameters::STRING_QUOTE;
+        res += STRING_QUOTE;
         return res;
       }
       return str;
     }
 
-    String operator()(Parameters::IntType var) const
+    String operator()(IntType var) const
     {
       //integer may be so long, so it's better to convert here
       String res;
@@ -113,21 +153,20 @@ namespace
     }
   };
 
-  inline bool CompareParameter(const Parameters::Map::value_type& lh, const Parameters::Map::value_type& rh)
+  inline bool CompareParameter(const Map::value_type& lh, const Map::value_type& rh)
   {
     return lh.first == rh.first ? !(lh.second == rh.second) : lh.first < rh.first;
   }
 
   template<class T>
-  bool FindByName(const std::map<Parameters::NameType, T>& map, const Parameters::NameType& name, T& res)
+  bool FindByName(const std::map<NameType, T>& map, const NameType& name, T& res)
   {
-    const typename std::map<Parameters::NameType, T>::const_iterator it = map.find(name);
+    const typename std::map<NameType, T>::const_iterator it = map.find(name);
     return it != map.end()
       ? (res = it->second, true)
       : false;
   }
 
-  using namespace Parameters;
   class ContainerImpl : public Container
   {
   public:
@@ -305,6 +344,27 @@ namespace
   private:
     AsStringVisitor Helper;
   };
+
+  void SetValue(Modifier& modifier, const StringMap::value_type& pair)
+  {
+    const NameType& name = pair.first;
+    const String& val = pair.second;
+    if (IsData(val))
+    {
+      DataType res;
+      StringToData(val, res);
+      modifier.SetDataValue(name, res);
+    }
+    else if (IsInteger(val))
+    {
+      const IntType res = StringToInteger(val);
+      modifier.SetIntValue(name, res);
+    }
+    else
+    {
+      modifier.SetStringValue(name, StringToString(val));
+    }
+  }
 }
 
 namespace Parameters
@@ -316,41 +376,20 @@ namespace Parameters
 
   ValueType ConvertFromString(const String& val)
   {
-    if (IsDump(val))
+    if (IsData(val))
     {
-      Dump res((val.size() - 1) / 2);
-      String::const_iterator src = val.begin();
-      for (Dump::iterator it = res.begin(), lim = res.end(); it != lim; ++it)
-      {
-        const Dump::value_type highNibble = FromHex(*++src);
-        const Dump::value_type lowNibble = FromHex(*++src);
-        *it = highNibble * 16 | lowNibble;
-      }
+      Dump res;
+      StringToData(val, res);
       return ValueType(res);
     }
     else if (IsInteger(val))
     {
-      IntType res = 0;
-      String::const_iterator it = val.begin();
-      const bool negate = *it == '-';
-      if (negate || *it == '+')
-      {
-        ++it;
-      }
-      for (String::const_iterator lim = val.end(); it != lim; ++it)
-      {
-        res *= RADIX;
-        res += *it - '0';
-      }
-      return ValueType(negate ? -res : res);
+      const IntType res = StringToInteger(val);
+      return ValueType(res);
     }
     else
     {
-      if (IsQuoted(val))
-      {
-        return ValueType(String(val.begin() + 1, val.end() - 1));
-      }
-      return ValueType(val);
+      return ValueType(StringToString(val));
     }
   }
   void ConvertMap(const Map& input, StringMap& output)
@@ -385,7 +424,7 @@ namespace Parameters
 
   void MergeMaps(const Map& oldOne, const Map& newOne, Map& merged, bool replaceExisting)
   {
-    Parameters::Map result;
+    Map result;
     if (replaceExisting)
     {
       std::set_union(newOne.begin(), newOne.end(),
@@ -400,6 +439,12 @@ namespace Parameters
                      std::inserter(result, result.end()), CompareParameter);
     }
     merged.swap(result);
+  }
+
+  void ParseStringMap(const StringMap& map, Modifier& modifier)
+  {
+    std::for_each(map.begin(), map.end(), 
+      boost::bind(&SetValue, boost::ref(modifier), _1));
   }
 
   Accessor::Ptr CreateMergedAccessor(Accessor::Ptr first, Accessor::Ptr second)

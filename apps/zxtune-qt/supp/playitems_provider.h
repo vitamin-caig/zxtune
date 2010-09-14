@@ -26,7 +26,7 @@ public:
   
   virtual ZXTune::Module::Holder::Ptr GetModule() const = 0;
   virtual ZXTune::Module::Information::Ptr GetModuleInfo() const = 0;
-  virtual const Parameters::Map& GetAdjustedParameters() const = 0;
+  virtual Parameters::Accessor::Ptr GetAdjustedParameters() const = 0;
 };
 
 struct PlayitemDetectParameters
@@ -45,7 +45,7 @@ public:
   virtual ~PlayitemsProvider() {}
   
   virtual Error DetectModules(const String& path, 
-    const Parameters::Map& commonParams, const PlayitemDetectParameters& detectParams) = 0;
+    Parameters::Accessor::Ptr commonParams, const PlayitemDetectParameters& detectParams) = 0;
 
   virtual void ResetCache() = 0;
     

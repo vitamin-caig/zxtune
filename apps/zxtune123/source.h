@@ -42,7 +42,7 @@ public:
   virtual void Initialize() = 0;
   virtual void ProcessItems(const OnItemCallback& callback) = 0;
   
-  static std::auto_ptr<SourceComponent> Create(Parameters::Map& globalParams);
+  static std::auto_ptr<SourceComponent> Create(const Parameters::Map& globalParams, const Parameters::Accessor& ioParams);
 };
 
 #endif //ZXTUNE123_SOURCE_H_DEFINED

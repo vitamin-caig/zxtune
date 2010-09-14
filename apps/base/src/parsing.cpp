@@ -42,71 +42,15 @@ namespace
     }
     return Text::CONFIG_FILENAME;
   }
-}
 
-Error ParseConfigFile(const String& filename, Parameters::Map& params)
-{
-  const String configName(filename.empty() ? Text::CONFIG_FILENAME : filename);
-
-  typedef std::basic_ifstream<Char> FileStream;
-  std::auto_ptr<FileStream> configFile(new FileStream(configName.c_str()));
-  if (!*configFile)
-  {
-    if (!filename.empty())
-    {
-      return Error(THIS_LINE, CONFIG_FILE, Text::ERROR_CONFIG_FILE);
-    }
-    configFile.reset(new FileStream(GetDefaultConfigFile().c_str()));
-  }
-  if (!*configFile)
-  {
-    params.clear();
-    return Error();
-  }
-
-  String lines;
-  std::vector<Char> buffer(1024);
-  for (;;)
-  {
-    configFile->getline(&buffer[0], buffer.size());
-    if (const std::streamsize lineSize = configFile->gcount())
-    {
-      std::vector<Char>::const_iterator endof(buffer.begin() + lineSize - 1);
-      std::vector<Char>::const_iterator beginof(std::find_if<std::vector<Char>::const_iterator>(buffer.begin(), endof,
-        std::not1(std::ptr_fun<int, int>(&std::isspace))));
-      if (beginof != endof && *beginof != Char('#'))
-      {
-        if (!lines.empty())
-        {
-          lines += PARAMETERS_DELIMITER;
-        }
-        lines += String(beginof, endof);
-      }
-    }
-    else
-    {
-      break;
-    }
-  }
-  if (lines.empty())
-  {
-    params.clear();
-  }
-  else if (const Error& e = ParseParametersString(String(), lines, params))
-  {
-    return e;
-  }
-  return Error();
-}
-
-Error ParseParametersString(const String& pfx, const String& str, Parameters::Map& result)
+Error ParseParametersString(const String& pfx, const String& str, StringMap& result)
 {
   String prefix(pfx);
   if (!prefix.empty() && Parameters::NAMESPACE_DELIMITER != *prefix.rbegin())
   {
     prefix += Parameters::NAMESPACE_DELIMITER;
   }
-  Parameters::Map res;
+  StringMap res;
   
   enum
   {
@@ -182,14 +126,14 @@ Error ParseParametersString(const String& pfx, const String& str, Parameters::Ma
 
     if (doApply)
     {
-      res.insert(Parameters::Map::value_type(prefix + paramName, Parameters::ConvertFromString(paramValue)));
+      res.insert(StringMap::value_type(prefix + paramName, paramValue));
       paramName.clear();
       paramValue.clear();
     }
   }
   if (IN_VALUE == mode)
   {
-    res.insert(Parameters::Map::value_type(prefix + paramName, Parameters::ConvertFromString(paramValue)));
+    res.insert(StringMap::value_type(prefix + paramName, paramValue));
   }
   else if (IN_NOWHERE != mode)
   {
@@ -197,5 +141,83 @@ Error ParseParametersString(const String& pfx, const String& str, Parameters::Ma
       Text::ERROR_INVALID_FORMAT, str);
   }
   result.swap(res);
+  return Error();
+}
+}
+
+Error ParseConfigFile(const String& filename, Parameters::Map& params)
+{
+  const String configName(filename.empty() ? Text::CONFIG_FILENAME : filename);
+
+  typedef std::basic_ifstream<Char> FileStream;
+  std::auto_ptr<FileStream> configFile(new FileStream(configName.c_str()));
+  if (!*configFile)
+  {
+    if (!filename.empty())
+    {
+      return Error(THIS_LINE, CONFIG_FILE, Text::ERROR_CONFIG_FILE);
+    }
+    configFile.reset(new FileStream(GetDefaultConfigFile().c_str()));
+  }
+  if (!*configFile)
+  {
+    params.clear();
+    return Error();
+  }
+
+  String lines;
+  std::vector<Char> buffer(1024);
+  for (;;)
+  {
+    configFile->getline(&buffer[0], buffer.size());
+    if (const std::streamsize lineSize = configFile->gcount())
+    {
+      std::vector<Char>::const_iterator endof(buffer.begin() + lineSize - 1);
+      std::vector<Char>::const_iterator beginof(std::find_if<std::vector<Char>::const_iterator>(buffer.begin(), endof,
+        std::not1(std::ptr_fun<int, int>(&std::isspace))));
+      if (beginof != endof && *beginof != Char('#'))
+      {
+        if (!lines.empty())
+        {
+          lines += PARAMETERS_DELIMITER;
+        }
+        lines += String(beginof, endof);
+      }
+    }
+    else
+    {
+      break;
+    }
+  }
+  if (lines.empty())
+  {
+    params.clear();
+  }
+  else if (const Error& e = ParseParametersString(String(), lines, params))
+  {
+    return e;
+  }
+  return Error();
+}
+
+Error ParseParametersString(const String& pfx, const String& str, Parameters::Map& result)
+{
+  StringMap strMap;
+  if (const Error& err = ParseParametersString(pfx, str, strMap))
+  {
+    return err;
+  }
+  Parameters::ConvertMap(strMap, result);
+  return Error();
+}
+
+Error ParseParametersString(const String& pfx, const String& str, Parameters::Modifier& result)
+{
+  StringMap strMap;
+  if (const Error& err = ParseParametersString(pfx, str, strMap))
+  {
+    return err;
+  }
+  Parameters::ParseStringMap(strMap, result);
   return Error();
 }

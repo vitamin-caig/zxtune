@@ -32,7 +32,7 @@ namespace ZXTune
       // Combine uri
       virtual Error Combine(const String& basePath, const String& subPath, String& uri) const = 0;
       // Open data
-      virtual Error Open(const String& uri, const Parameters::Map& parameters, 
+      virtual Error Open(const String& uri, const Parameters::Accessor& parameters, 
                          const ProgressCallback& callback, DataContainer::Ptr& result, String& subpath) const = 0;
     };
 
@@ -44,7 +44,7 @@ namespace ZXTune
       //registration
       virtual void RegisterProvider(DataProvider::Ptr provider) = 0;
       
-      virtual Error OpenUri(const String& uri, const Parameters::Map& params, const ProgressCallback& cb,
+      virtual Error OpenUri(const String& uri, const Parameters::Accessor& params, const ProgressCallback& cb,
                             DataContainer::Ptr& result, String& subpath) const = 0;
       virtual Error SplitUri(const String& uri, String& baseUri, String& subpath) const = 0;
       virtual Error CombineUri(const String& baseUri, const String& subpath, String& uri) const = 0;
