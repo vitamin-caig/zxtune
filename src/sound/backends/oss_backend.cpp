@@ -45,11 +45,11 @@ namespace
 {
   using namespace ZXTune;
   using namespace ZXTune::Sound;
-  
+
   const std::string THIS_MODULE("OSSBackend");
 
   const uint_t MAX_OSS_VOLUME = 100;
-  
+
   const Char OSS_BACKEND_ID[] = {'o', 's', 's', 0};
   const String OSS_BACKEND_VERSION(FromStdString("$Rev$"));
 
@@ -66,7 +66,7 @@ namespace
     {
       CheckResult(-1 != Handle, THIS_LINE);
     }
-    
+
     ~AutoDescriptor()
     {
       if (-1 != Handle)
@@ -74,7 +74,7 @@ namespace
         ::close(Handle);
       }
     }
-    
+
     void CheckResult(bool res, Error::LocationRef loc) const
     {
       if (!res)
@@ -89,7 +89,7 @@ namespace
       std::swap(rh.Handle, Handle);
       std::swap(rh.Name, Name);
     }
-    
+
     void Close()
     {
       if (-1 != Handle)
@@ -99,7 +99,7 @@ namespace
         Name.clear();
       }
     }
-    
+
     int Get() const
     {
       return Handle;
@@ -109,7 +109,7 @@ namespace
     //leave handle as int
     int Handle;
   };
-  
+
   class OSSVolumeControl : public VolumeControl
   {
   public:
@@ -173,7 +173,40 @@ namespace
     boost::mutex& BackendMutex;
     AutoDescriptor& MixHandle;
   };
-  
+
+  class OSSBackendParameters
+  {
+  public:
+    explicit OSSBackendParameters(const Parameters::Accessor& accessor)
+      : Accessor(accessor)
+    {
+    }
+
+    String GetDeviceName() const
+    {
+      Parameters::StringType strVal = Parameters::ZXTune::Sound::Backends::OSS::DEVICE_DEFAULT;
+      Accessor.FindStringValue(Parameters::ZXTune::Sound::Backends::OSS::DEVICE, strVal);
+      return strVal;
+    }
+
+    String GetMixerName() const
+    {
+      Parameters::StringType strVal = Parameters::ZXTune::Sound::Backends::OSS::MIXER_DEFAULT;
+      Accessor.FindStringValue(Parameters::ZXTune::Sound::Backends::OSS::MIXER, strVal);
+      return strVal;
+    }
+
+    uint_t GetFrequency() const
+    {
+      Parameters::IntType res = Parameters::ZXTune::Sound::FREQUENCY_DEFAULT;
+      Accessor.FindIntValue(Parameters::ZXTune::Sound::FREQUENCY, res);
+      return static_cast<uint_t>(res);
+    }
+  private:
+    const Parameters::Accessor& Accessor;
+  };
+
+
   class OSSBackend : public BackendImpl
                    , private boost::noncopyable
   {
@@ -195,7 +228,7 @@ namespace
     {
       return VolumeController;
     }
-    
+
     virtual void OnStartup()
     {
       Locker lock(BackendMutex);
@@ -216,28 +249,25 @@ namespace
     {
     }
 
-    virtual void OnParametersChanged(const Parameters::Map& updates)
+    virtual void OnParametersChanged(const Parameters::Accessor& updates)
     {
+      const OSSBackendParameters prevParams(*CommonParameters);
+      const OSSBackendParameters curParams(updates);
+
       //check for parameters requires restarting
-      const Parameters::StringType* const mixer =
-        Parameters::FindByName<Parameters::StringType>(updates, Parameters::ZXTune::Sound::Backends::OSS::MIXER);
-      const Parameters::StringType* const device =
-        Parameters::FindByName<Parameters::StringType>(updates, Parameters::ZXTune::Sound::Backends::OSS::DEVICE);
-      const Parameters::IntType* const freq =
-        Parameters::FindByName<Parameters::IntType>(updates, Parameters::ZXTune::Sound::FREQUENCY);
-      if (mixer || device || freq)
+      const String& newDevice = curParams.GetDeviceName();
+      const String& newMixer = curParams.GetMixerName();
+      const uint_t newFreq = curParams.GetFrequency();
+      if (newDevice != prevParams.GetDeviceName() ||
+          newMixer != prevParams.GetMixerName() ||
+          newFreq != prevParams.GetFrequency())
       {
         Locker lock(BackendMutex);
         const bool needStartup(-1 != DevHandle.Get());
         DoShutdown();
-        if (mixer)
-        {
-          MixerName = *mixer;
-        }
-        if (device)
-        {
-          DeviceName = *device;
-        }
+        MixerName = newMixer;
+        DeviceName = newDevice;
+
         if (needStartup)
         {
           DoStartup();
@@ -267,10 +297,10 @@ namespace
     {
       Log::Debug(THIS_MODULE, "Opening mixer='%1%' and device='%2%'", MixerName, DeviceName);
       assert(-1 == MixHandle.Get() && -1 == DevHandle.Get());
-      
+
       AutoDescriptor tmpMixer(MixerName, O_RDWR);
       AutoDescriptor tmpDevice(DeviceName, O_WRONLY);
-      
+
       BOOST_STATIC_ASSERT(1 == sizeof(Sample) || 2 == sizeof(Sample));
       int tmp(2 == sizeof(Sample) ? AFMT_S16_NE : AFMT_S8);
       tmpDevice.CheckResult(-1 != ::ioctl(tmpDevice.Get(), SNDCTL_DSP_SETFMT, &tmp), THIS_LINE);
@@ -280,7 +310,7 @@ namespace
 
       tmp = RenderingParameters.SoundFreq;
       tmpDevice.CheckResult(-1 != ::ioctl(tmpDevice.Get(), SNDCTL_DSP_SPEED, &tmp), THIS_LINE);
-      
+
       DevHandle.Swap(tmpDevice);
       MixHandle.Swap(tmpMixer);
       Log::Debug(THIS_MODULE, "Successfully opened");
@@ -302,7 +332,7 @@ namespace
     cycled_iterator<std::vector<MultiSample>*> CurrentBuffer;
     VolumeControl::Ptr VolumeController;
   };
-  
+
   class OSSBackendCreator : public BackendCreator
                           , public boost::enable_shared_from_this<OSSBackendCreator>
   {
@@ -327,7 +357,7 @@ namespace
       return CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
     }
 
-    virtual Error CreateBackend(const Parameters::Map& params, Backend::Ptr& result) const
+    virtual Error CreateBackend(const Parameters::Accessor& params, Backend::Ptr& result) const
     {
       const BackendInformation::Ptr info = shared_from_this();
       return SafeBackendWrapper<OSSBackend>::Create(info, params, result, THIS_LINE);

@@ -66,35 +66,35 @@ namespace
       : Handle(0)
     {
     }
-    
+
     explicit AutoHandle(const String& name)
       : Name(name)
       , Handle(0)
     {
     }
-    
+
     void Swap(AutoHandle<T>& rh)
     {
       std::swap(rh.Handle, Handle);
       std::swap(rh.Name, Name);
     }
-    
+
     T* Get() const
     {
       return Handle;
     }
-    
+
     void CheckedCall(int (*func)(T*), Error::LocationRef loc) const
     {
       CheckResult(func(Handle), loc);
     }
-    
+
     template<class P1>
     void CheckedCall(int (*func)(T*, P1), P1 p1, Error::LocationRef loc) const
     {
       CheckResult(func(Handle, p1), loc);
     }
-    
+
     template<class P1, class P2>
     void CheckedCall(int (*func)(T*, P1, P2), P1 p1, P2 p2, Error::LocationRef loc) const
     {
@@ -120,14 +120,14 @@ namespace
     String Name;
     T* Handle;
   };
-  
+
   class AutoDevice : public AutoHandle<snd_pcm_t>
   {
   public:
     AutoDevice()
     {
     }
-    
+
     explicit AutoDevice(const String& name)
       : AutoHandle<snd_pcm_t>(name)
     {
@@ -157,7 +157,7 @@ namespace
       }
     }
   };
-  
+
   class AutoMixer : public AutoHandle<snd_mixer_t>
   {
   public:
@@ -165,7 +165,7 @@ namespace
       : MixerElement(0)
     {
     }
-    
+
     explicit AutoMixer(const String& deviceName, const String& mixerName)
       : AutoHandle<snd_mixer_t>(deviceName)
       , MixerName(mixerName)
@@ -208,7 +208,7 @@ namespace
       }
       MixerElement = elem;
     }
-    
+
     ~AutoMixer()
     {
       if (Handle)
@@ -241,7 +241,7 @@ namespace
         MixerName.clear();
       }
     }
-    
+
     virtual Error GetVolume(MultiGain& volume) const
     {
       if (!Handle)
@@ -255,7 +255,7 @@ namespace
         long minVol = 0, maxVol = 0;
         CheckResult(::snd_mixer_selem_get_playback_volume_range(MixerElement, &minVol, &maxVol), THIS_LINE);
         const long volRange = maxVol - minVol;
-        
+
         long leftVol = 0, rightVol = 0;
         CheckResult(::snd_mixer_selem_get_playback_volume(MixerElement, SND_MIXER_SCHN_FRONT_LEFT, &leftVol), THIS_LINE);
         CheckResult(::snd_mixer_selem_get_playback_volume(MixerElement, SND_MIXER_SCHN_FRONT_RIGHT, &rightVol), THIS_LINE);
@@ -268,7 +268,7 @@ namespace
         return e;
       }
     }
-    
+
     virtual Error SetVolume(const MultiGain& volume)
     {
       if (volume.end() != std::find_if(volume.begin(), volume.end(), std::bind2nd(std::greater<Gain>(), Gain(1.0))))
@@ -285,12 +285,12 @@ namespace
         long minVol = 0, maxVol = 0;
         CheckResult(::snd_mixer_selem_get_playback_volume_range(MixerElement, &minVol, &maxVol), THIS_LINE);
         const long volRange = maxVol - minVol;
-        
+
         const long leftVol = static_cast<long>(volume[0] * volRange) + minVol;
         const long rightVol = static_cast<long>(volume[1] * volRange) + minVol;
         CheckResult(::snd_mixer_selem_set_playback_volume(MixerElement, SND_MIXER_SCHN_FRONT_LEFT, leftVol), THIS_LINE);
         CheckResult(::snd_mixer_selem_set_playback_volume(MixerElement, SND_MIXER_SCHN_FRONT_RIGHT, rightVol), THIS_LINE);
-        
+
         return Error();
       }
       catch (const Error& e)
@@ -298,12 +298,12 @@ namespace
         return e;
       }
     }
-    
+
   private:
     String MixerName;
     snd_mixer_elem_t* MixerElement;
   };
-  
+
   class AlsaVolumeControl : public VolumeControl
   {
   public:
@@ -311,14 +311,14 @@ namespace
       : BackendMutex(backendMutex), Mixer(mixer)
     {
     }
-    
+
     virtual Error GetVolume(MultiGain& volume) const
     {
       Log::Debug(THIS_MODULE, "GetVolume");
       boost::lock_guard<boost::mutex> lock(BackendMutex);
       return Mixer.GetVolume(volume);
     }
-    
+
     virtual Error SetVolume(const MultiGain& volume)
     {
       Log::Debug(THIS_MODULE, "SetVolume");
@@ -328,6 +328,50 @@ namespace
   private:
     boost::mutex& BackendMutex;
     AutoMixer& Mixer;
+  };
+
+  class AlsaBackendParameters
+  {
+  public:
+    explicit AlsaBackendParameters(const Parameters::Accessor& accessor)
+      : Accessor(accessor)
+    {
+    }
+
+    String GetDeviceName() const
+    {
+      Parameters::StringType strVal = Parameters::ZXTune::Sound::Backends::ALSA::DEVICE_DEFAULT;
+      Accessor.FindStringValue(Parameters::ZXTune::Sound::Backends::ALSA::DEVICE, strVal);
+      return strVal;
+    }
+
+    String GetMixerName() const
+    {
+      Parameters::StringType strVal;
+      Accessor.FindStringValue(Parameters::ZXTune::Sound::Backends::ALSA::MIXER, strVal);
+      return strVal;
+    }
+
+    uint_t GetBuffersCount() const
+    {
+      Parameters::IntType val = Parameters::ZXTune::Sound::Backends::ALSA::BUFFERS_DEFAULT;
+      if (Accessor.FindIntValue(Parameters::ZXTune::Sound::Backends::ALSA::BUFFERS, val) &&
+          (!in_range<Parameters::IntType>(val, BUFFERS_MIN, BUFFERS_MAX)))
+      {
+        throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
+          Text::SOUND_ERROR_ALSA_BACKEND_INVALID_BUFFERS, static_cast<int_t>(val), BUFFERS_MIN, BUFFERS_MAX);
+      }
+      return static_cast<uint_t>(val);
+    }
+
+    uint_t GetFrequency() const
+    {
+      Parameters::IntType res = Parameters::ZXTune::Sound::FREQUENCY_DEFAULT;
+      Accessor.FindIntValue(Parameters::ZXTune::Sound::FREQUENCY, res);
+      return static_cast<uint_t>(res);
+    }
+  private:
+    const Parameters::Accessor& Accessor;
   };
 
   class AlsaBackend : public BackendImpl
@@ -353,7 +397,7 @@ namespace
     {
       return VolumeController;
     }
-    
+
     virtual void OnStartup()
     {
       Locker lock(BackendMutex);
@@ -382,39 +426,28 @@ namespace
       }
     }
 
-    virtual void OnParametersChanged(const Parameters::Map& updates)
+    virtual void OnParametersChanged(const Parameters::Accessor& updates)
     {
+      const AlsaBackendParameters prevParams(*CommonParameters);
+      const AlsaBackendParameters curParams(updates);
+
       //check for parameters requires restarting
-      const Parameters::StringType* const device =
-        Parameters::FindByName<Parameters::StringType>(updates, Parameters::ZXTune::Sound::Backends::ALSA::DEVICE);
-      const Parameters::StringType* const mixer =
-        Parameters::FindByName<Parameters::StringType>(updates, Parameters::ZXTune::Sound::Backends::ALSA::MIXER);
-      const Parameters::IntType* const buffers =
-        Parameters::FindByName<Parameters::IntType>(updates, Parameters::ZXTune::Sound::Backends::ALSA::BUFFERS);
-      const Parameters::IntType* const freq =
-        Parameters::FindByName<Parameters::IntType>(updates, Parameters::ZXTune::Sound::FREQUENCY);
-      if (device || mixer || buffers || freq)
+      const String& newDevice = curParams.GetDeviceName();
+      const String& newMixer = curParams.GetMixerName();
+      const uint_t newBuffers = curParams.GetBuffersCount();
+      const uint_t newFreq = curParams.GetFrequency();
+      if (newDevice != prevParams.GetDeviceName() ||
+          newMixer != prevParams.GetMixerName() ||
+          newBuffers != prevParams.GetBuffersCount() ||
+          newFreq != prevParams.GetFrequency())
       {
         Locker lock(BackendMutex);
         const bool needStartup(DevHandle.Get() != 0);
         DoShutdown();
-        if (device)
-        {
-          DeviceName = *device;
-        }
-        if (mixer)
-        {
-          MixerName = *mixer;
-        }
-        if (buffers)
-        {
-          if (!in_range<Parameters::IntType>(*buffers, BUFFERS_MIN, BUFFERS_MAX))
-          {
-            throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
-              Text::SOUND_ERROR_ALSA_BACKEND_INVALID_BUFFERS, static_cast<int_t>(*buffers), BUFFERS_MIN, BUFFERS_MAX);
-          }
-          Buffers = static_cast<unsigned>(*buffers);
-        }
+        DeviceName = newDevice;
+        MixerName = newMixer;
+        Buffers = static_cast<unsigned>(newBuffers);
+
         if (needStartup)
         {
           DoStartup();
@@ -445,9 +478,9 @@ namespace
     {
       assert(!DevHandle.Get());
       Log::Debug(THIS_MODULE, "Opening device '%1%'", DeviceName);
-      
+
       AutoDevice tmpDevice(DeviceName);
-      
+
       snd_pcm_format_t fmt(SND_PCM_FORMAT_UNKNOWN);
       switch (sizeof(Sample))
       {
@@ -493,7 +526,7 @@ namespace
       Log::Debug(THIS_MODULE, CanPause ? "Hardware support pause" : "Hardware doesn't support pause");
       tmpDevice.CheckedCall(&::snd_pcm_prepare, THIS_LINE);
       AutoMixer tmpMixer(DeviceName, MixerName);
-        
+
       DevHandle.Swap(tmpDevice);
       MixHandle.Swap(tmpMixer);
       Log::Debug(THIS_MODULE, "Successfully opened");
@@ -541,7 +574,7 @@ namespace
       return CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
     }
 
-    virtual Error CreateBackend(const Parameters::Map& params, Backend::Ptr& result) const
+    virtual Error CreateBackend(const Parameters::Accessor& params, Backend::Ptr& result) const
     {
       const BackendInformation::Ptr info = shared_from_this();
       return SafeBackendWrapper<AlsaBackend>::Create(info, params, result, THIS_LINE);

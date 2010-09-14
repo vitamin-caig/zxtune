@@ -60,6 +60,36 @@ namespace
     }
   }
 
+  class SDLBackendParameters
+  {
+  public:
+    explicit SDLBackendParameters(const Parameters::Accessor& accessor)
+      : Accessor(accessor)
+    {
+    }
+
+    uint_t GetBuffersCount() const
+    {
+      Parameters::IntType val = Parameters::ZXTune::Sound::Backends::SDL::BUFFERS_DEFAULT;
+      if (Accessor.FindIntValue(Parameters::ZXTune::Sound::Backends::SDL::BUFFERS, val) &&
+          (!in_range<Parameters::IntType>(val, BUFFERS_MIN, BUFFERS_MAX)))
+      {
+        throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
+          Text::SOUND_ERROR_SDL_BACKEND_INVALID_BUFFERS, static_cast<int_t>(val), BUFFERS_MIN, BUFFERS_MAX);
+      }
+      return static_cast<uint_t>(val);
+    }
+
+    uint_t GetFrequency() const
+    {
+      Parameters::IntType res = Parameters::ZXTune::Sound::FREQUENCY_DEFAULT;
+      Accessor.FindIntValue(Parameters::ZXTune::Sound::FREQUENCY, res);
+      return static_cast<uint_t>(res);
+    }
+  private:
+    const Parameters::Accessor& Accessor;
+  };
+
   class SDLBackend : public BackendImpl
                    , private boost::noncopyable
   {
@@ -126,13 +156,16 @@ namespace
       ::SDL_PauseAudio(0);
     }
 
-    virtual void OnParametersChanged(const Parameters::Map& updates)
+    virtual void OnParametersChanged(const Parameters::Accessor& updates)
     {
-      const Parameters::IntType* buffers =
-        Parameters::FindByName<Parameters::IntType>(updates, Parameters::ZXTune::Sound::Backends::SDL::BUFFERS);
-      const Parameters::IntType* freq =
-        Parameters::FindByName<Parameters::IntType>(updates, Parameters::ZXTune::Sound::FREQUENCY);
-      if (buffers || freq)
+      const SDLBackendParameters prevParams(*CommonParameters);
+      const SDLBackendParameters curParams(updates);
+
+      //check for parameters requires restarting
+      const uint_t newBuffers = curParams.GetBuffersCount();
+      const uint_t newFreq = curParams.GetFrequency();
+      if (newBuffers != prevParams.GetBuffersCount() ||
+          newFreq != prevParams.GetFrequency())
       {
         Locker lock(BackendMutex);
         const bool needStartup = SDL_AUDIO_STOPPED != ::SDL_GetAudioStatus();
@@ -140,15 +173,8 @@ namespace
         {
           ::SDL_CloseAudio();
         }
-        if (buffers)
-        {
-          if (!in_range<Parameters::IntType>(*buffers, BUFFERS_MIN, BUFFERS_MAX))
-          {
-            throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
-              Text::SOUND_ERROR_SDL_BACKEND_INVALID_BUFFERS, static_cast<int_t>(*buffers), BUFFERS_MIN, BUFFERS_MAX);
-          }
-          BuffersCount = *buffers;
-        }
+        BuffersCount = newBuffers;
+
         if (needStartup)
         {
           DoStartup();
@@ -277,7 +303,7 @@ namespace
       return CAP_TYPE_SYSTEM;
     }
 
-    virtual Error CreateBackend(const Parameters::Map& params, Backend::Ptr& result) const
+    virtual Error CreateBackend(const Parameters::Accessor& params, Backend::Ptr& result) const
     {
       const BackendInformation::Ptr info = shared_from_this();
       return SafeBackendWrapper<SDLBackend>::Create(info, params, result, THIS_LINE);
