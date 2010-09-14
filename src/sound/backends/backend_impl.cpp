@@ -103,36 +103,30 @@ namespace
     Module::Analyze::ChannelsState PrevAnalyze;
   };
   
-  void CopyInitialParameters(const RenderParameters& renderParams, Parameters::Map& commonParams)
+  void CopyInitialParameters(const RenderParameters& renderParams, Parameters::Modifier& commonParams)
   {
-    Parameters::IntType intVal = 0;
-    commonParams[Parameters::ZXTune::Sound::FREQUENCY] = renderParams.SoundFreq;
-    assert(Parameters::FindByName(commonParams, Parameters::ZXTune::Sound::FREQUENCY, intVal));
-    commonParams[Parameters::ZXTune::Sound::CLOCKRATE] = renderParams.ClockFreq;
-    assert(Parameters::FindByName(commonParams, Parameters::ZXTune::Sound::CLOCKRATE, intVal));
-    commonParams[Parameters::ZXTune::Sound::FRAMEDURATION] = renderParams.FrameDurationMicrosec;
-    assert(Parameters::FindByName(commonParams, Parameters::ZXTune::Sound::FRAMEDURATION, intVal));
-    intVal = renderParams.Looping;
-    commonParams[Parameters::ZXTune::Sound::LOOPMODE] = intVal;
-    assert(Parameters::FindByName(commonParams, Parameters::ZXTune::Sound::FRAMEDURATION, intVal));
+    commonParams.SetIntValue(Parameters::ZXTune::Sound::FREQUENCY, renderParams.SoundFreq);
+    commonParams.SetIntValue(Parameters::ZXTune::Sound::CLOCKRATE, renderParams.ClockFreq);
+    commonParams.SetIntValue(Parameters::ZXTune::Sound::FRAMEDURATION, renderParams.FrameDurationMicrosec);
+    commonParams.SetIntValue(Parameters::ZXTune::Sound::LOOPMODE, renderParams.Looping);
   }
   
-  void UpdateRenderParameters(const Parameters::Map& updates, RenderParameters& renderParams)
+  void UpdateRenderParameters(const Parameters::Accessor& params, RenderParameters& renderParams)
   {
     Parameters::IntType intVal = 0;
-    if (Parameters::FindByName(updates, Parameters::ZXTune::Sound::FREQUENCY, intVal))
+    if (params.FindIntValue(Parameters::ZXTune::Sound::FREQUENCY, intVal))
     {
       renderParams.SoundFreq = static_cast<uint_t>(intVal);
     }
-    if (Parameters::FindByName(updates, Parameters::ZXTune::Sound::CLOCKRATE, intVal))
+    if (params.FindIntValue(Parameters::ZXTune::Sound::CLOCKRATE, intVal))
     {
       renderParams.ClockFreq = static_cast<uint64_t>(intVal);
     }
-    if (Parameters::FindByName(updates, Parameters::ZXTune::Sound::FRAMEDURATION, intVal))
+    if (params.FindIntValue(Parameters::ZXTune::Sound::FRAMEDURATION, intVal))
     {
       renderParams.FrameDurationMicrosec = static_cast<uint_t>(intVal);
     }
-    if (Parameters::FindByName(updates, Parameters::ZXTune::Sound::LOOPMODE, intVal))
+    if (params.FindIntValue(Parameters::ZXTune::Sound::LOOPMODE, intVal))
     {
       renderParams.Looping = static_cast<LoopMode>(intVal);
     }
@@ -178,13 +172,14 @@ namespace ZXTune
   namespace Sound
   {
     BackendImpl::BackendImpl()
-      : Signaller(SignalsDispatcher::Create())
+      : CommonParameters(Parameters::Container::Create())
+      , Signaller(SignalsDispatcher::Create())
       , SyncBarrier(TOTAL_WORKING_THREADS)
       , CurrentState(Backend::NOTOPENED), InProcess(false)
       , Channels(0), Renderer(new BufferRenderer(Buffer))
     {
       MixersSet.resize(MAX_MIXERS_COUNT);
-      CopyInitialParameters(RenderingParameters, CommonParameters);
+      CopyInitialParameters(RenderingParameters, *CommonParameters);
     }
 
     BackendImpl::~BackendImpl()
@@ -217,8 +212,7 @@ namespace ZXTune
           {
             Log::Debug(THIS_MODULE, "Creating the player");
             Module::Player::Ptr tmpPlayer(new SafePlayerWrapper(holder->CreatePlayer()));
-            //TODO:
-            //ThrowIfError(tmpPlayer->SetParameters(CommonParameters));
+            ThrowIfError(tmpPlayer->SetParameters(*CommonParameters));
             StopPlayback();
             Holder = holder;
             Player = tmpPlayer;
@@ -414,22 +408,22 @@ namespace ZXTune
       }
     }
 
-    Error BackendImpl::SetParameters(const Parameters::Map& params)
+    Error BackendImpl::SetParameters(const Parameters::Accessor& params)
     {
       try
       {
         Locker lock(PlayerMutex);
-        Parameters::Map updates;
-        Parameters::DifferMaps(params, CommonParameters, updates);
-        UpdateRenderParameters(updates, RenderingParameters);
-        OnParametersChanged(updates);
+        Parameters::Container::Ptr newContainer = Parameters::Container::Create();
+        params.Process(*newContainer);
+        CommonParameters->Process(*newContainer);
+        UpdateRenderParameters(*newContainer, RenderingParameters);
+        OnParametersChanged(*newContainer);
         if (Player)
         {
-          //TODO
-          //ThrowIfError(Player->SetParameters(updates));
+          ThrowIfError(Player->SetParameters(*newContainer));
         }
         //merge result back
-        Parameters::MergeMaps(CommonParameters, params, CommonParameters, true);
+        CommonParameters = newContainer;
         return Error();
       }
       catch (const Error& e)
@@ -438,13 +432,6 @@ namespace ZXTune
       }
     }
     
-    Error BackendImpl::GetParameters(Parameters::Map& params) const
-    {
-      Locker lock(PlayerMutex);
-      params = CommonParameters;
-      return Error();
-    }
-
     //internal functions
     void BackendImpl::DoStartup()
     {

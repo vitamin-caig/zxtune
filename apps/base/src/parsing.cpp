@@ -43,161 +43,181 @@ namespace
     return Text::CONFIG_FILENAME;
   }
 
-Error ParseParametersString(const String& pfx, const String& str, StringMap& result)
-{
-  String prefix(pfx);
-  if (!prefix.empty() && Parameters::NAMESPACE_DELIMITER != *prefix.rbegin())
+  Error ParseParametersString(const String& pfx, const String& str, StringMap& result)
   {
-    prefix += Parameters::NAMESPACE_DELIMITER;
-  }
-  StringMap res;
-  
-  enum
-  {
-    IN_NAME,
-    IN_VALUE,
-    IN_VALSTR,
-    IN_NOWHERE
-  } mode = IN_NAME;
-
-  /*
-   parse strings in form name=value[,name=value...]
-    name ::= [\w\d\._]*
-    value ::= \"[^\"]*\"
-    value ::= [^,]*
-
-    name is prepended with prefix before insert to result
-  */  
-  String paramName, paramValue;
-  for (String::const_iterator it = str.begin(), lim = str.end(); it != lim; ++it)
-  {
-    bool doApply = false;
-    const Char sym(*it);
-    switch (mode)
+    String prefix(pfx);
+    if (!prefix.empty() && Parameters::NAMESPACE_DELIMITER != *prefix.rbegin())
     {
-    case IN_NOWHERE:
-      if (sym == PARAMETERS_DELIMITER)
+      prefix += Parameters::NAMESPACE_DELIMITER;
+    }
+    StringMap res;
+  
+    enum
+    {
+      IN_NAME,
+      IN_VALUE,
+      IN_VALSTR,
+      IN_NOWHERE
+    } mode = IN_NAME;
+
+    /*
+     parse strings in form name=value[,name=value...]
+      name ::= [\w\d\._]*
+      value ::= \"[^\"]*\"
+      value ::= [^,]*
+      name is prepended with prefix before insert to result
+    */  
+    String paramName, paramValue;
+    for (String::const_iterator it = str.begin(), lim = str.end(); it != lim; ++it)
+    {
+      bool doApply = false;
+      const Char sym(*it);
+      switch (mode)
+      {
+      case IN_NOWHERE:
+        if (sym == PARAMETERS_DELIMITER)
+        {
+          break;
+        }
+      case IN_NAME:
+        if (sym == '=')
+        {
+          mode = IN_VALUE;
+        }
+        else if (std::isalnum(sym) || Parameters::NAMESPACE_DELIMITER == sym || sym == '_')
+        {
+          paramName += sym;
+        }
+        else
+        {
+          return MakeFormattedError(THIS_LINE, INVALID_PARAMETER,
+            Text::ERROR_INVALID_FORMAT, str);
+        }
+        break;
+      case IN_VALUE:
+        if (Parameters::STRING_QUOTE == sym)
+        {
+          paramValue += sym;
+          mode = IN_VALSTR;
+        }
+        else if (sym == PARAMETERS_DELIMITER)
+        {
+          doApply = true;
+          mode = IN_NOWHERE;
+          --it;
+        }
+        else
+        {
+          paramValue += sym;
+        }
+        break;
+      case IN_VALSTR:
+        paramValue += sym;
+        if (Parameters::STRING_QUOTE == sym)
+        {
+          doApply = true;
+          mode = IN_NOWHERE;
+        }
+        break;
+      default:
+        assert(!"Invalid state");
+      };
+
+      if (doApply)
+      {
+        res.insert(StringMap::value_type(prefix + paramName, paramValue));
+        paramName.clear();
+        paramValue.clear();
+      }
+    }
+    if (IN_VALUE == mode)
+    {
+      res.insert(StringMap::value_type(prefix + paramName, paramValue));
+    }
+    else if (IN_NOWHERE != mode)
+    {
+      return MakeFormattedError(THIS_LINE, INVALID_PARAMETER,
+        Text::ERROR_INVALID_FORMAT, str);
+    }
+    result.swap(res);
+    return Error();
+  }
+
+  Error ParseConfigFile(const String& filename, String& params)
+  {
+    const String configName(filename.empty() ? Text::CONFIG_FILENAME : filename);
+
+    typedef std::basic_ifstream<Char> FileStream;
+    std::auto_ptr<FileStream> configFile(new FileStream(configName.c_str()));
+    if (!*configFile)
+    {
+      if (!filename.empty())
+      {
+        return Error(THIS_LINE, CONFIG_FILE, Text::ERROR_CONFIG_FILE);
+      }
+      configFile.reset(new FileStream(GetDefaultConfigFile().c_str()));
+    }
+    if (!*configFile)
+    {
+      params.clear();
+      return Error();
+    }
+
+    String lines;
+    std::vector<Char> buffer(1024);
+    for (;;)
+    {
+      configFile->getline(&buffer[0], buffer.size());
+      if (const std::streamsize lineSize = configFile->gcount())
+      {
+        std::vector<Char>::const_iterator endof(buffer.begin() + lineSize - 1);
+        std::vector<Char>::const_iterator beginof(std::find_if<std::vector<Char>::const_iterator>(buffer.begin(), endof,
+          std::not1(std::ptr_fun<int, int>(&std::isspace))));
+        if (beginof != endof && *beginof != Char('#'))
+        {
+          if (!lines.empty())
+          {
+            lines += PARAMETERS_DELIMITER;
+          }
+          lines += String(beginof, endof);
+        }
+      }
+      else
       {
         break;
       }
-    case IN_NAME:
-      if (sym == '=')
-      {
-        mode = IN_VALUE;
-      }
-      else if (std::isalnum(sym) || Parameters::NAMESPACE_DELIMITER == sym || sym == '_')
-      {
-        paramName += sym;
-      }
-      else
-      {
-        return MakeFormattedError(THIS_LINE, INVALID_PARAMETER,
-          Text::ERROR_INVALID_FORMAT, str);
-      }
-      break;
-    case IN_VALUE:
-      if (Parameters::STRING_QUOTE == sym)
-      {
-        paramValue += sym;
-        mode = IN_VALSTR;
-      }
-      else if (sym == PARAMETERS_DELIMITER)
-      {
-        doApply = true;
-        mode = IN_NOWHERE;
-        --it;
-      }
-      else
-      {
-        paramValue += sym;
-      }
-      break;
-    case IN_VALSTR:
-      paramValue += sym;
-      if (Parameters::STRING_QUOTE == sym)
-      {
-        doApply = true;
-        mode = IN_NOWHERE;
-      }
-      break;
-    default:
-      assert(!"Invalid state");
-    };
-
-    if (doApply)
-    {
-      res.insert(StringMap::value_type(prefix + paramName, paramValue));
-      paramName.clear();
-      paramValue.clear();
     }
+    params = lines;
+    return Error();
   }
-  if (IN_VALUE == mode)
-  {
-    res.insert(StringMap::value_type(prefix + paramName, paramValue));
-  }
-  else if (IN_NOWHERE != mode)
-  {
-    return MakeFormattedError(THIS_LINE, INVALID_PARAMETER,
-      Text::ERROR_INVALID_FORMAT, str);
-  }
-  result.swap(res);
-  return Error();
-}
 }
 
 Error ParseConfigFile(const String& filename, Parameters::Map& params)
 {
-  const String configName(filename.empty() ? Text::CONFIG_FILENAME : filename);
-
-  typedef std::basic_ifstream<Char> FileStream;
-  std::auto_ptr<FileStream> configFile(new FileStream(configName.c_str()));
-  if (!*configFile)
+  String strVal;
+  if (const Error& err = ParseConfigFile(filename, strVal))
   {
-    if (!filename.empty())
-    {
-      return Error(THIS_LINE, CONFIG_FILE, Text::ERROR_CONFIG_FILE);
-    }
-    configFile.reset(new FileStream(GetDefaultConfigFile().c_str()));
+    return err;
   }
-  if (!*configFile)
+  if (strVal.empty())
   {
-    params.clear();
     return Error();
   }
+  return ParseParametersString(String(), strVal, params);
+}
 
-  String lines;
-  std::vector<Char> buffer(1024);
-  for (;;)
+Error ParseConfigFile(const String& filename, Parameters::Modifier& result)
+{
+  String strVal;
+  if (const Error& err = ParseConfigFile(filename, strVal))
   {
-    configFile->getline(&buffer[0], buffer.size());
-    if (const std::streamsize lineSize = configFile->gcount())
-    {
-      std::vector<Char>::const_iterator endof(buffer.begin() + lineSize - 1);
-      std::vector<Char>::const_iterator beginof(std::find_if<std::vector<Char>::const_iterator>(buffer.begin(), endof,
-        std::not1(std::ptr_fun<int, int>(&std::isspace))));
-      if (beginof != endof && *beginof != Char('#'))
-      {
-        if (!lines.empty())
-        {
-          lines += PARAMETERS_DELIMITER;
-        }
-        lines += String(beginof, endof);
-      }
-    }
-    else
-    {
-      break;
-    }
+    return err;
   }
-  if (lines.empty())
+  if (strVal.empty())
   {
-    params.clear();
+    return Error();
   }
-  else if (const Error& e = ParseParametersString(String(), lines, params))
-  {
-    return e;
-  }
-  return Error();
+  return ParseParametersString(String(), strVal, result);
 }
 
 Error ParseParametersString(const String& pfx, const String& str, Parameters::Map& result)

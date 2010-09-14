@@ -158,10 +158,9 @@ namespace
   {
     typedef std::list<std::pair<ZXTune::Sound::BackendCreator::Ptr, String> > PerBackendOptions;
   public:
-    explicit Sound(Parameters::Map& globalParams)
-      : GlobalParams(globalParams)
+    explicit Sound(Parameters::Accessor::Ptr configParams)
+      : ConfigParams(configParams)
       , OptionsDescription(Text::SOUND_SECTION)
-      , YM(false)
       , Looped(false)
     {
       using namespace boost::program_options;
@@ -181,7 +180,6 @@ namespace
         (Text::CLOCKRATE_KEY, value<String>(&SoundOptions[Parameters::ZXTune::Sound::CLOCKRATE]), Text::CLOCKRATE_DESC)
         (Text::FRAMEDURATION_KEY, value<String>(&SoundOptions[Parameters::ZXTune::Sound::FRAMEDURATION]), Text::FRAMEDURATION_DESC)
         (Text::FREQTABLE_KEY, value<String>(&SoundOptions[Parameters::ZXTune::Core::AYM::TABLE]), Text::FREQTABLE_DESC)
-        (Text::YM_KEY, bool_switch(&YM), Text::YM_DESC)
         (Text::LOOP_KEY, bool_switch(&Looped), Text::LOOP_DESC)
         (Text::MIXER_KEY, value<StringArray>(&Mixers), Text::MIXER_DESC)
         (Text::FILTER_KEY, value<String>(&Filter), Text::FILTER_DESC)
@@ -197,8 +195,8 @@ namespace
     virtual void Initialize()
     {
       std::list<ZXTune::Sound::BackendCreator::Ptr> backends;
+      Parameters::Container::Ptr soundParameters = Parameters::Container::Create();
       {
-        Parameters::Map params;
         for (PerBackendOptions::const_iterator it = BackendOptions.begin(), lim = BackendOptions.end(); it != lim; ++it)
         {
           if (it->second != NOTUSED_MARK)
@@ -207,14 +205,11 @@ namespace
             backends.push_back(creator);
             if (!it->second.empty())
             {
-              Parameters::Map perBackend;
               ThrowIfError(ParseParametersString(String(Parameters::ZXTune::Sound::Backends::PREFIX) + creator->Id(),
-                it->second, perBackend));
-              params.insert(perBackend.begin(), perBackend.end());
+                it->second, *soundParameters));
             }
           }
         }
-        Parameters::MergeMaps(GlobalParams, params, GlobalParams, true);
       }
       {
         StringMap optimized;
@@ -222,17 +217,11 @@ namespace
           boost::bind(&String::empty, boost::bind(&StringMap::value_type::second, _1)));
         if (!optimized.empty())
         {
-          Parameters::Map sndparams;
-          Parameters::ConvertMap(optimized, sndparams);
-          Parameters::MergeMaps(GlobalParams, sndparams, GlobalParams, true);
-        }
-        if (YM)
-        {
-          GlobalParams[Parameters::ZXTune::Core::AYM::TYPE] = 1;
+          Parameters::ParseStringMap(optimized, *soundParameters);
         }
         if (Looped)
         {
-          GlobalParams[Parameters::ZXTune::Sound::LOOPMODE] = static_cast<Parameters::IntType>(ZXTune::Sound::LOOP_NORMAL);
+          soundParameters->SetIntValue(Parameters::ZXTune::Sound::LOOPMODE, ZXTune::Sound::LOOP_NORMAL);
         }
       }
       if (backends.empty())
@@ -241,13 +230,15 @@ namespace
         std::transform(BackendOptions.begin(), BackendOptions.end(), backends.begin(),
           boost::mem_fn(&PerBackendOptions::value_type::first));
       }
+
+      FullSoundOptions = Parameters::CreateMergedAccessor(soundParameters, ConfigParams);
       
       for (std::list<ZXTune::Sound::BackendCreator::Ptr>::const_iterator it = 
         backends.begin(), lim = backends.end(); it != lim; ++it)
       {
         ZXTune::Sound::Backend::Ptr backend;
         Log::Debug(THIS_MODULE, "Trying backend %1%", (*it)->Id());
-        if (const Error& e = (*it)->CreateBackend(GlobalParams, backend))
+        if (const Error& e = (*it)->CreateBackend(*FullSoundOptions, backend))
         {
           Log::Debug(THIS_MODULE, " failed");
           if (1 == backends.size())
@@ -280,7 +271,7 @@ namespace
       if (!Filter.empty())
       {
         Parameters::IntType freq = Parameters::ZXTune::Sound::FREQUENCY_DEFAULT;
-        Parameters::FindByName(GlobalParams, Parameters::ZXTune::Sound::FREQUENCY, freq);
+        FullSoundOptions->FindIntValue(Parameters::ZXTune::Sound::FREQUENCY, freq);
         ThrowIfError(Backend->SetFilter(CreateFilter(static_cast<uint_t>(freq), Filter)));
       }
     }
@@ -289,21 +280,29 @@ namespace
     {
       return *Backend;
     }
+
+    virtual uint_t GetFrameDuration() const
+    {
+      Parameters::IntType frameDuration = Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT;
+      FullSoundOptions->FindIntValue(Parameters::ZXTune::Sound::FRAMEDURATION, frameDuration);
+      return static_cast<uint_t>(frameDuration);
+    }
     
   private:
-    Parameters::Map& GlobalParams;
+    const Parameters::Accessor::Ptr ConfigParams;
     boost::program_options::options_description OptionsDescription;
     PerBackendOptions BackendOptions;
     StringMap SoundOptions;
+
+    Parameters::Accessor::Ptr FullSoundOptions;
     ZXTune::Sound::Backend::Ptr Backend;
-    bool YM;
     bool Looped;
     StringArray Mixers;
     String Filter;
   };
 }
 
-std::auto_ptr<SoundComponent> SoundComponent::Create(Parameters::Map& globalParams)
+std::auto_ptr<SoundComponent> SoundComponent::Create(Parameters::Accessor::Ptr configParams)
 {
-  return std::auto_ptr<SoundComponent>(new Sound(globalParams));
+  return std::auto_ptr<SoundComponent>(new Sound(configParams));
 }

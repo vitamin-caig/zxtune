@@ -175,13 +175,7 @@ namespace ZXTune
       //! @brief Setting parameters backend and player
       //! @param params Specified parameters map
       //! @return Error() in case of success
-      virtual Error SetParameters(const Parameters::Map& params) = 0;
-      
-      //! @brief Getting current parameters
-      //! @param params Reference to return value
-      //! @return Error() in case of success
-      //! @note Result is merge between default internal values and externally specified using SetParameters function, even if some values are not recognized
-      virtual Error GetParameters(Parameters::Map& params) const = 0;
+      virtual Error SetParameters(const Parameters::Accessor& params) = 0;
     };
 
     //! @brief Backend creator interface
@@ -194,10 +188,10 @@ namespace ZXTune
       typedef ObjectIterator<BackendCreator::Ptr> Iterator;
 
       //! @brief Create backend using specified parameters
-      //! @param params Map of backend-related parameters
+      //! @param params %Backend-related parameters
       //! @param result Reference to result value
       //! @return Error() in case of success
-      virtual Error CreateBackend(const Parameters::Map& params, Backend::Ptr& result) const = 0;
+      virtual Error CreateBackend(const Parameters::Accessor& params, Backend::Ptr& result) const = 0;
     };
 
     //! @brief Enumerating supported sound backends

@@ -27,7 +27,7 @@ namespace ZXTune
     template<class Impl>
     class SafeBackendWrapper : public Backend
     {
-      SafeBackendWrapper(BackendInformation::Ptr info, const Parameters::Map& params)
+      SafeBackendWrapper(BackendInformation::Ptr info, const Parameters::Accessor& params)
         : Information(info)
         , Delegate(new Impl())
       {
@@ -38,7 +38,7 @@ namespace ZXTune
         Delegate->OnShutdown();
       }
     public:
-      static Error Create(BackendInformation::Ptr info, const Parameters::Map& params,
+      static Error Create(BackendInformation::Ptr info, const Parameters::Accessor& params,
         Backend::Ptr& result, Error::LocationRef loc)
       {
         try
@@ -122,14 +122,9 @@ namespace ZXTune
         return Delegate->GetVolumeControl();
       }
 
-      virtual Error SetParameters(const Parameters::Map& params)
+      virtual Error SetParameters(const Parameters::Accessor& params)
       {
         return Delegate->SetParameters(params);
-      }
-      
-      virtual Error GetParameters(Parameters::Map& params) const
-      {
-        return Delegate->GetParameters(params);
       }
       
     private:

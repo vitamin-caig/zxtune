@@ -94,7 +94,7 @@ namespace
     {
     }
 
-    virtual void OnParametersChanged(const Parameters::Map& /*updates*/)
+    virtual void OnParametersChanged(const Parameters::Accessor& /*newParams*/)
     {
     }
 
@@ -183,7 +183,7 @@ namespace
       return CAP_TYPE_HARDWARE;
     }
 
-    virtual Error CreateBackend(const Parameters::Map& params, Backend::Ptr& result) const
+    virtual Error CreateBackend(const Parameters::Accessor& params, Backend::Ptr& result) const
     {
       const BackendInformation::Ptr info = shared_from_this();
       return SafeBackendWrapper<AYLPTBackend>::Create(info, params, result, THIS_LINE);

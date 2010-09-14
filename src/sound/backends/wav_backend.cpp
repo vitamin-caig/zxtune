@@ -90,23 +90,81 @@ namespace
   const uint_t MIN_CUESHEET_PERIOD = 4;
   const uint_t MAX_CUESHEET_PERIOD = 48;
 
+  class WavBackendParameters
+  {
+  public:
+    explicit WavBackendParameters(const Parameters::Accessor& accessor)
+      : Accessor(accessor)
+    {
+    }
+
+    String GetFilenameTemplate() const
+    {
+      Parameters::StringType nameTemplate;
+      if (!Accessor.FindStringValue(Parameters::ZXTune::Sound::Backends::Wav::FILENAME, nameTemplate) ||
+          nameTemplate.empty())
+      {
+        // Filename parameter is required
+        throw Error(THIS_LINE, BACKEND_INVALID_PARAMETER, Text::SOUND_ERROR_WAV_BACKEND_NO_FILENAME);
+      }
+      // check if required to add extension
+      const String extension = FILE_WAVE_EXT;
+      const String::size_type extPos = nameTemplate.find(extension);
+      if (String::npos == extPos || extPos + extension.size() != nameTemplate.size())
+      {
+        nameTemplate += extension;
+      }
+      return nameTemplate;
+    }
+
+    bool CheckIfRewrite() const
+    {
+      Parameters::IntType intParam = 0;
+      return Accessor.FindIntValue(Parameters::ZXTune::Sound::Backends::Wav::OVERWRITE, intParam) &&
+        intParam != 0;
+    }
+
+    bool HasCuesheet() const
+    {
+      Parameters::IntType intParam = 0;
+      return Accessor.FindIntValue(Parameters::ZXTune::Sound::Backends::Wav::CUESHEET, intParam) &&
+        intParam != 0;
+    }
+
+    uint_t GetFrameDuration() const
+    {
+      Parameters::IntType res = Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT;
+      Accessor.FindIntValue(Parameters::ZXTune::Sound::FRAMEDURATION, res);
+      return static_cast<uint_t>(res);
+    }
+
+    uint_t GetSplitPeriod() const
+    {
+      Parameters::IntType period = 0;
+
+      if (Accessor.FindIntValue(Parameters::ZXTune::Sound::Backends::Wav::CUESHEET_PERIOD, period) &&
+          !in_range<Parameters::IntType>(period, MIN_CUESHEET_PERIOD, MAX_CUESHEET_PERIOD))
+      {
+        throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
+          Text::CUESHEET_ERROR_INVALID_PERIOD, period, MIN_CUESHEET_PERIOD, MAX_CUESHEET_PERIOD);
+      }
+      return static_cast<uint_t>(period);
+    }
+
+  private:
+    const Parameters::Accessor& Accessor;
+  };
+
   class CuesheetLogger : public TrackProcessor
   {
   public:
-    explicit CuesheetLogger(const String& wavName, const Parameters::Map& params)
+    explicit CuesheetLogger(const String& wavName, const WavBackendParameters& params)
       : File(IO::CreateFile(wavName + FILE_CUE_EXT, true))
-      , FrameDuration(Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT)
-      , SplitPeriod(0)
+      , FrameDuration(params.GetFrameDuration())
+      , SplitPeriod(params.GetSplitPeriod())
     {
       String path;
       *File << (Formatter(Text::CUESHEET_BEGIN) % IO::ExtractLastPathComponent(wavName, path)).str();
-      Parameters::FindByName(params, Parameters::ZXTune::Sound::FRAMEDURATION, FrameDuration);
-      if (Parameters::FindByName(params, Parameters::ZXTune::Sound::Backends::Wav::CUESHEET_PERIOD, SplitPeriod) &&
-          !in_range<Parameters::IntType>(SplitPeriod, MIN_CUESHEET_PERIOD, MAX_CUESHEET_PERIOD))
-      {
-        throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
-          Text::CUESHEET_ERROR_INVALID_PERIOD, SplitPeriod, MIN_CUESHEET_PERIOD, MAX_CUESHEET_PERIOD);
-      }
       Track.Position = -1;
     }
 
@@ -142,10 +200,10 @@ namespace
       }
     }
   private:
-    std::auto_ptr<std::ofstream> File;
+    const std::auto_ptr<std::ofstream> File;
     Module::Tracking Track;
-    Parameters::IntType FrameDuration;
-    Parameters::IntType SplitPeriod;
+    const uint_t FrameDuration;
+    const uint_t SplitPeriod;
   };
 
   class StateFieldsSource : public SkipFieldsSource
@@ -258,10 +316,10 @@ namespace
     WaveFormat Format;
   };
 
-  class ModuleFieldsSource : public Parameters::FieldsSourceAdapter<SkipFieldsSource>
+  class ModuleFieldsSource : public Parameters::FieldsSourceAdapter<KeepFieldsSource<'[', ']'> >
   {
   public:
-    typedef Parameters::FieldsSourceAdapter<SkipFieldsSource> Parent;
+    typedef Parameters::FieldsSourceAdapter<KeepFieldsSource<'[', ']'> > Parent;
     explicit ModuleFieldsSource(const Parameters::Accessor& params)
       : Parent(params)
     {
@@ -276,32 +334,19 @@ namespace
   class ComplexTrackProcessor : public TrackProcessor
   {
   public:
-    ComplexTrackProcessor(const Parameters::Map& commonParams, const RenderParameters& soundParams, const Module::Information& info)
+    ComplexTrackProcessor(const Parameters::Accessor& commonParams, const RenderParameters& soundParams, const Module::Information& info)
     {
+      const WavBackendParameters backendParameters(commonParams);
       //acquire name template
-      String nameTemplate;
-      if (!Parameters::FindByName(commonParams, Parameters::ZXTune::Sound::Backends::Wav::FILENAME, nameTemplate))
-      {
-        // Filename parameter is required
-        throw Error(THIS_LINE, BACKEND_INVALID_PARAMETER, Text::SOUND_ERROR_WAV_BACKEND_NO_FILENAME);
-      }
-      // check if required to add extension
-      const String extension = FILE_WAVE_EXT;
-      const String::size_type extPos = nameTemplate.find(extension);
-      if (String::npos == extPos || extPos + extension.size() != nameTemplate.size())
-      {
-        nameTemplate += extension;
-      }
-      Parameters::IntType intParam = 0;
-      const bool doRewrite = Parameters::FindByName(commonParams, Parameters::ZXTune::Sound::Backends::Wav::OVERWRITE, intParam) &&
-        intParam != 0;
+      const String nameTemplate = backendParameters.GetFilenameTemplate();
       const ModuleFieldsSource moduleFields(*info.Properties());
-      Writer.reset(new FileWriter(soundParams.SoundFreq, InstantiateTemplate(nameTemplate, moduleFields), doRewrite));
+      const String fileName = InstantiateTemplate(nameTemplate, moduleFields);
+      const bool doRewrite = backendParameters.CheckIfRewrite();
+      Writer.reset(new FileWriter(soundParams.SoundFreq, fileName, doRewrite));
       //prepare cuesheet if required
-      if (Parameters::FindByName(commonParams, Parameters::ZXTune::Sound::Backends::Wav::CUESHEET, intParam) &&
-          intParam != 0)
+      if (backendParameters.HasCuesheet())
       {
-        Logger.reset(new CuesheetLogger(InstantiateTemplate(nameTemplate, moduleFields), commonParams));
+        Logger.reset(new CuesheetLogger(fileName, backendParameters));
       }
     }
 
@@ -341,7 +386,7 @@ namespace
       if (Player && Holder)
       {
         const Module::Information::Ptr info = Holder->GetModuleInformation();
-        Processor.reset(new ComplexTrackProcessor(CommonParameters, RenderingParameters, *info));
+        Processor.reset(new ComplexTrackProcessor(*CommonParameters, RenderingParameters, *info));
       }
     }
 
@@ -358,13 +403,11 @@ namespace
     {
     }
 
-    virtual void OnParametersChanged(const Parameters::Map& updates)
+    virtual void OnParametersChanged(const Parameters::Accessor& /*params*/)
     {
-      if (Processor.get() &&
-          (Parameters::FindByName<Parameters::IntType>(updates, Parameters::ZXTune::Sound::FREQUENCY) ||
-           Parameters::FindByName<Parameters::StringType>(updates, Parameters::ZXTune::Sound::Backends::Wav::FILENAME)))
+      if (Processor.get())
       {
-        // changing filename and frequency 'on fly' is not supported
+        // changing any of the properties 'on fly' is not supported
         throw Error(THIS_LINE, BACKEND_INVALID_PARAMETER, Text::SOUND_ERROR_BACKEND_INVALID_STATE);
       }
     }
@@ -416,7 +459,7 @@ namespace
       return CAP_TYPE_FILE;
     }
 
-    virtual Error CreateBackend(const Parameters::Map& params, Backend::Ptr& result) const
+    virtual Error CreateBackend(const Parameters::Accessor& params, Backend::Ptr& result) const
     {
       const BackendInformation::Ptr info = shared_from_this();
       return SafeBackendWrapper<WAVBackend>::Create(info, params, result, THIS_LINE);

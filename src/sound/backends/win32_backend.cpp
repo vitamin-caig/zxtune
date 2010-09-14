@@ -192,6 +192,43 @@ namespace
     int_t& Device;
   };
 
+  class Win32BackendParameters
+  {
+  public:
+    explicit Win32BackendParameters(const Parameters::Accessor& accessor)
+      : Accessor(accessor)
+    {
+    }
+
+    int_t GetDevice() const
+    {
+      Parameters::IntType device = Parameters::ZXTune::Sound::Backends::Win32::DEVICE_DEFAULT;
+      Accessor.FindIntValue(Parameters::ZXTune::Sound::Backends::Win32::DEVICE, device);
+      return static_cast<int_t>(device);
+    }
+
+    uint_t GetBuffers() const
+    {
+      Parameters::IntType buffers = Parameters::ZXTune::Sound::Backends::Win32::BUFFERS_DEFAULT;
+      if (Accessor.FindIntValue(Parameters::ZXTune::Sound::Backends::Win32::BUFFERS, buffers) &&
+          !in_range<Parameters::IntType>(buffers, BUFFERS_MIN, BUFFERS_MAX))
+      {
+        throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
+          Text::SOUND_ERROR_WIN32_BACKEND_INVALID_BUFFERS, static_cast<int_t>(buffers), BUFFERS_MIN, BUFFERS_MAX);
+      }
+      return static_cast<uint_t>(buffers);
+    }
+
+    uint_t GetFrequency() const
+    {
+      Parameters::IntType res = Parameters::ZXTune::Sound::FREQUENCY_DEFAULT;
+      Accessor.FindIntValue(Parameters::ZXTune::Sound::FREQUENCY, res);
+      return static_cast<uint_t>(res);
+    }
+  private:
+    const Parameters::Accessor& Accessor;
+  };
+
   class Win32Backend : public BackendImpl
                      , private boost::noncopyable
   {
@@ -249,36 +286,27 @@ namespace
       }
     }
 
-    virtual void OnParametersChanged(const Parameters::Map& updates)
+    virtual void OnParametersChanged(const Parameters::Accessor& updates)
     {
-      const Parameters::IntType* const device =
-        Parameters::FindByName<Parameters::IntType>(updates, Parameters::ZXTune::Sound::Backends::Win32::DEVICE);
-      const Parameters::IntType* const buffs =
-        Parameters::FindByName<Parameters::IntType>(updates, Parameters::ZXTune::Sound::Backends::Win32::BUFFERS);
-      const Parameters::IntType* const freq =
-        Parameters::FindByName<Parameters::IntType>(updates, Parameters::ZXTune::Sound::FREQUENCY);
+      const Win32BackendParameters prevParams(*CommonParameters);
+      const Win32BackendParameters newParams(updates);
+      const int_t newDevice = newParams.GetDevice();
+      const uint_t newBuffers = newParams.GetBuffers();
+      const uint_t newFreq = newParams.GetFrequency();
       // own parameters and sound frequency affects this backend
-      if (device || freq || buffs)
+      if (newDevice != prevParams.GetDevice() ||
+          newBuffers != prevParams.GetBuffers() ||
+          newFreq != prevParams.GetFrequency())
       {
         Locker lock(BackendMutex);
         const bool needStartup = 0 != WaveHandle;
         DoShutdown();
         // device changed
-        if (device)
-        {
-          Device = static_cast<int_t>(*device);
-        }
+        Device = newDevice;
         // buffers count changed
-        if (buffs)
-        {
-          if (!in_range<Parameters::IntType>(*buffs, BUFFERS_MIN, BUFFERS_MAX))
-          {
-            throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
-              Text::SOUND_ERROR_WIN32_BACKEND_INVALID_BUFFERS, static_cast<int_t>(*buffs), BUFFERS_MIN, BUFFERS_MAX);
-          }
-          Buffers.resize(static_cast<std::size_t>(*buffs));
-          CurrentBuffer = cycled_iterator<WaveBuffer*>(&Buffers.front(), &Buffers.back() + 1);
-        }
+        Buffers.resize(static_cast<std::size_t>(newBuffers));
+        CurrentBuffer = cycled_iterator<WaveBuffer*>(&Buffers.front(), &Buffers.back() + 1);
+
         if (needStartup)
         {
           DoStartup();
@@ -357,7 +385,7 @@ namespace
       return CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
     }
 
-    virtual Error CreateBackend(const Parameters::Map& params, Backend::Ptr& result) const
+    virtual Error CreateBackend(const Parameters::Accessor& params, Backend::Ptr& result) const
     {
       const BackendInformation::Ptr info = shared_from_this();
       return SafeBackendWrapper<Win32Backend>::Create(info, params, result, THIS_LINE);

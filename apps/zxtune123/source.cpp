@@ -16,12 +16,14 @@ Author:
 #include "source.h"
 #include <apps/base/app.h>
 #include <apps/base/error_codes.h>
+#include <apps/base/parsing.h>
 #include <apps/base/playitem.h>
 //common includes
 #include <error_tools.h>
 #include <logging.h>
 #include <tools.h>
 //library includes
+#include <core/core_parameters.h>
 #include <core/error_codes.h>
 #include <core/module_attrs.h>
 #include <core/module_detect.h>
@@ -29,6 +31,7 @@ Author:
 #include <core/plugin_attrs.h>
 #include <io/fs_tools.h>
 #include <io/provider.h>
+#include <io/providers_parameters.h>
 //std includes
 #include <set>
 #include <iomanip>
@@ -181,17 +184,21 @@ namespace
   class Source : public SourceComponent
   {
   public:
-    Source(const Parameters::Accessor& coreParams, const Parameters::Accessor& ioParams)
-      : CoreParams(coreParams)
-      , IOParams(ioParams)
+    Source(Parameters::Accessor::Ptr configParams)
+      : IOParams(configParams)
+      , CoreParams(configParams)
       , OptionsDescription(Text::INPUT_SECTION)
       , EnabledCaps(0), DisabledCaps(0), ShowProgress(false)
+      , YM(false)
     {
       OptionsDescription.add_options()
         (Text::INPUT_FILE_KEY, boost::program_options::value<StringArray>(&Files), Text::INPUT_FILE_DESC)
+        (Text::IO_PROVIDERS_OPTS_KEY, boost::program_options::value<String>(&ProvidersOptions), Text::IO_PROVIDERS_OPTS_DESC)
         (Text::INPUT_ALLOW_PLUGIN_KEY, boost::program_options::value<String>(&Allowed), Text::INPUT_ALLOW_PLUGIN_DESC)
         (Text::INPUT_DENY_PLUGIN_KEY, boost::program_options::value<String>(&Denied), Text::INPUT_DENY_PLUGIN_DESC)
         (Text::INPUT_PROGRESS_KEY, boost::program_options::bool_switch(&ShowProgress), Text::INPUT_PROGRESS_DESC)
+        (Text::CORE_OPTS_KEY, boost::program_options::value<String>(&CoreOptions), Text::CORE_OPTS_DESC)
+        (Text::YM_KEY, boost::program_options::bool_switch(&YM), Text::YM_DESC)
       ;
     }
 
@@ -215,13 +222,35 @@ namespace
       {
         throw Error(THIS_LINE, NO_INPUT_FILES, Text::INPUT_ERROR_NO_FILES);
       }
+      if (!ProvidersOptions.empty())
+      {
+        const Parameters::Container::Ptr ioParams = Parameters::Container::Create();
+        ThrowIfError(ParseParametersString(Parameters::ZXTune::IO::Providers::PREFIX, 
+          ProvidersOptions, *ioParams));
+        IOParams = Parameters::CreateMergedAccessor(ioParams, IOParams);
+      }
+
+      if (!CoreOptions.empty() || YM)
+      {
+        const Parameters::Container::Ptr coreParams = Parameters::Container::Create();
+        if (!CoreOptions.empty())
+        {
+          ThrowIfError(ParseParametersString(Parameters::ZXTune::Core::PREFIX, 
+            CoreOptions, *coreParams));
+        }
+        if (YM)
+        {
+          coreParams->SetIntValue(Parameters::ZXTune::Core::AYM::TYPE, 1);
+        }
+        CoreParams = Parameters::CreateMergedAccessor(coreParams, CoreParams);
+      }
     }
     
     virtual void ProcessItems(const OnItemCallback& callback)
     {
       assert(callback);
       const bool hasFilter(!EnabledPlugins.empty() || !DisabledPlugins.empty() || 0 != EnabledCaps || 0 != DisabledCaps);
-      ThrowIfError(ProcessModuleItems(Files, CoreParams, IOParams,
+      ThrowIfError(ProcessModuleItems(Files, *CoreParams, *IOParams,
         hasFilter ? boost::bind(&Source::DoFilter, this, _1) : ZXTune::DetectParameters::FilterFunc(),
         ShowProgress ? DoLog : 0,
         callback));
@@ -245,10 +274,11 @@ namespace
       return !(EnabledPlugins.empty() && !EnabledCaps);
     }
   private:
-    const Parameters::Accessor& CoreParams;
-    const Parameters::Accessor& IOParams;
+    Parameters::Accessor::Ptr IOParams;
+    Parameters::Accessor::Ptr CoreParams;
     boost::program_options::options_description OptionsDescription;
     StringArray Files;
+    String ProvidersOptions;
     String Allowed;
     String Denied;
     StringSet EnabledPlugins;
@@ -256,11 +286,12 @@ namespace
     uint32_t EnabledCaps;
     uint32_t DisabledCaps;
     bool ShowProgress;
+    String CoreOptions;
+    bool YM;
   };
 }
 
-std::auto_ptr<SourceComponent> SourceComponent::Create(const Parameters::Accessor& coreParams,
-  const Parameters::Accessor& ioParams)
+std::auto_ptr<SourceComponent> SourceComponent::Create(Parameters::Accessor::Ptr configParams)
 {
-  return std::auto_ptr<SourceComponent>(new Source(coreParams, ioParams));
+  return std::auto_ptr<SourceComponent>(new Source(configParams));
 }

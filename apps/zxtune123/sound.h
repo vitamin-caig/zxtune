@@ -40,8 +40,11 @@ public:
   virtual void Initialize() = 0;
   // functional part
   virtual ZXTune::Sound::Backend& GetBackend() = 0;
+
+  //parameters
+  virtual uint_t GetFrameDuration() const = 0;
   
-  static std::auto_ptr<SoundComponent> Create(Parameters::Map& globalParams);
+  static std::auto_ptr<SoundComponent> Create(Parameters::Accessor::Ptr configParams);
 };
 
 #endif //ZXTUNE123_SOUND_H_DEFINED

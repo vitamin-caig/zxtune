@@ -17,6 +17,7 @@ Author:
 #include <parameters.h>
 
 Error ParseConfigFile(const String& filename, Parameters::Map& result);
+Error ParseConfigFile(const String& filename, Parameters::Modifier& result);
 //result will be overwritten
 Error ParseParametersString(const String& prefix, const String& str, Parameters::Map& result);
 Error ParseParametersString(const String& prefix, const String& str, Parameters::Modifier& result);

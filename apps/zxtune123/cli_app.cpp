@@ -169,11 +169,10 @@ namespace
   {
   public:
     CLIApplication()
-      : Informer(InformationComponent::Create())
-      , IOParams(Parameters::Container::Create())
-      , CoreParams(Parameters::Container::Create())
-      , Sourcer(SourceComponent::Create(*CoreParams, *IOParams))
-      , Sounder(SoundComponent::Create(GlobalParams))
+      : ConfigParams(Parameters::Container::Create())
+      , Informer(InformationComponent::Create())
+      , Sourcer(SourceComponent::Create(ConfigParams))
+      , Sounder(SoundComponent::Create(ConfigParams))
       , Display(DisplayComponent::Create())
       , SeekStep(10)
     {
@@ -190,7 +189,6 @@ namespace
         }
 
         Sourcer->Initialize();
-        Sounder->Initialize();
 
         if (!ConvertParams.empty())
         {
@@ -199,6 +197,7 @@ namespace
         }
         else
         {
+          Sounder->Initialize();
           Sourcer->ProcessItems(boost::bind(&CLIApplication::PlayItem, this, _1));
         }
       }
@@ -226,8 +225,6 @@ namespace
           (Text::HELP_KEY, Text::HELP_DESC)
           (Text::VERSION_KEY, Text::VERSION_DESC)
           (Text::CONFIG_KEY, boost::program_options::value<String>(&configFile), Text::CONFIG_DESC)
-          (Text::IO_PROVIDERS_OPTS_KEY, boost::program_options::value<String>(&providersOptions), Text::IO_PROVIDERS_OPTS_DESC)
-          (Text::CORE_OPTS_KEY, boost::program_options::value<String>(&coreOptions), Text::CORE_OPTS_DESC)
           (Text::CONVERT_KEY, boost::program_options::value<String>(&ConvertParams), Text::CONVERT_DESC)
         ;
 
@@ -259,22 +256,7 @@ namespace
           StdOut << VERSION_STRING(ZXTUNE_VERSION) << std::endl;
           return true;
         }
-        if (!providersOptions.empty())
-        {
-          ThrowIfError(ParseParametersString(Parameters::ZXTune::IO::Providers::PREFIX, 
-            providersOptions, *IOParams));
-        }
-        if (!coreOptions.empty())
-        {
-          ThrowIfError(ParseParametersString(Parameters::ZXTune::Core::PREFIX, 
-            coreOptions, *CoreParams));
-        }
-        //TODO: fill params containers from config
-        {
-          Parameters::Map configParams;
-          ThrowIfError(ParseConfigFile(configFile, configParams));
-          Parameters::MergeMaps(GlobalParams, configParams, GlobalParams, false);
-        }
+        ThrowIfError(ParseConfigFile(configFile, *ConfigParams));
         return false;
       }
       catch (const std::exception& e)
@@ -289,13 +271,8 @@ namespace
       {
         ZXTune::Sound::Backend& backend(Sounder->GetBackend());
         ThrowIfError(backend.SetModule(holder));
-        ThrowIfError(backend.SetParameters(GlobalParams));
 
-        Parameters::IntType frameDuration = 0;
-        if (!Parameters::FindByName(GlobalParams, Parameters::ZXTune::Sound::FRAMEDURATION, frameDuration))
-        {
-          frameDuration = Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT;
-        }
+        const uint_t frameDuration = Sounder->GetFrameDuration();
 
         const ZXTune::Module::Information::Ptr info = holder->GetModuleInformation();
         const uint_t seekStepFrames(info->FramesCount() * SeekStep / 100);
@@ -392,9 +369,7 @@ namespace
       return true;
     }
   private:
-    Parameters::Map GlobalParams;
-    const Parameters::Container::Ptr IOParams;
-    const Parameters::Container::Ptr CoreParams;
+    const Parameters::Container::Ptr ConfigParams;
     String ConvertParams;
     std::auto_ptr<InformationComponent> Informer;
     std::auto_ptr<SourceComponent> Sourcer;

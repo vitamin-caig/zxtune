@@ -32,7 +32,7 @@ class KeepFieldsSource : public FieldsSource
 public:
   virtual String GetFieldValue(const String& fieldName) const
   {
-    String res(MarkBegin);
+    String res(1, MarkBegin);
     res += fieldName;
     res += MarkEnd;
     return res;
