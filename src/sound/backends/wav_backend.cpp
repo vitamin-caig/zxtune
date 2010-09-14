@@ -17,7 +17,7 @@ Author:
 #include <byteorder.h>
 #include <error_tools.h>
 #include <logging.h>
-#include <template.h>
+#include <template_parameters.h>
 #include <tools.h>
 //library includes
 #include <core/module_attrs.h>
@@ -148,14 +148,36 @@ namespace
     Parameters::IntType SplitPeriod;
   };
 
+  class StateFieldsSource : public SkipFieldsSource
+  {
+  public:
+    explicit StateFieldsSource(const Module::State& state)
+      : State(state)
+    {
+    }
+    
+    String GetFieldValue(const String& fieldName) const
+    {
+      if (fieldName == Module::ATTR_CURRENT_POSITION)
+      {
+        return Parameters::ConvertToString(Parameters::ValueType(State.Track.Position));
+      }
+      else if (fieldName == Module::ATTR_CURRENT_PATTERN)
+      {
+        return Parameters::ConvertToString(Parameters::ValueType(State.Track.Pattern));
+      }
+      else if (fieldName == Module::ATTR_CURRENT_LINE)
+      {
+        return Parameters::ConvertToString(Parameters::ValueType(State.Track.Line));
+      }
+      return SkipFieldsSource::GetFieldValue(fieldName);
+    }
+  private:
+    const Module::State& State;
+  };
+
   class FileWriter : public TrackProcessor
   {
-    static void FillStateFields(const Module::State& state, StringMap& fields)
-    {
-      fields.insert(StringMap::value_type(Module::ATTR_CURRENT_POSITION, Parameters::ConvertToString(Parameters::ValueType(state.Track.Position))));
-      fields.insert(StringMap::value_type(Module::ATTR_CURRENT_PATTERN,  Parameters::ConvertToString(Parameters::ValueType(state.Track.Pattern))));
-      fields.insert(StringMap::value_type(Module::ATTR_CURRENT_LINE,     Parameters::ConvertToString(Parameters::ValueType(state.Track.Line))));
-    }
   public:
     FileWriter(uint_t soundFreq, const String& fileNameTemplate, bool doRewrite)
       : DoRewrite(doRewrite)
@@ -172,9 +194,9 @@ namespace
       Format.Align = fromLE<uint16_t>(sizeof(MultiSample));
       Format.BitsPerSample = fromLE<uint16_t>(8 * sizeof(Sample));
       //init generator
-      NameGenerator = StringTemplate::Create(fileNameTemplate, SKIP_NONEXISTING);
+      NameGenerator = StringTemplate::Create(fileNameTemplate);
       //check if generator is required
-      if (NameGenerator->Instantiate(StringMap()) == fileNameTemplate)
+      if (NameGenerator->Instantiate(SkipFieldsSource()) == fileNameTemplate)
       {
         StartFile(fileNameTemplate);
         NameGenerator.reset();
@@ -190,8 +212,7 @@ namespace
     {
       if (NameGenerator.get())
       {
-        StringMap fields;
-        FillStateFields(state, fields);
+        const StateFieldsSource fields(state);
         StartFile(NameGenerator->Instantiate(fields));
       }
       const std::size_t sizeInBytes = data.size() * sizeof(data.front());
@@ -237,17 +258,20 @@ namespace
     WaveFormat Format;
   };
 
-  void FillPropertiesFields(const Parameters::Accessor& params, StringMap& fields)
+  class ModuleFieldsSource : public Parameters::FieldsSourceAdapter<SkipFieldsSource>
   {
-    //quote all properties for safe using as filename
-    StringMap tmpProps;
-    Parameters::Convert(params, tmpProps);
-    std::transform(tmpProps.begin(), tmpProps.end(), std::inserter(fields, fields.end()),
-      boost::bind(&std::make_pair<String, String>,
-        boost::bind(&StringMap::value_type::first, _1),
-        boost::bind(&IO::MakePathFromString, boost::bind(&StringMap::value_type::second, _1), '_')
-    ));
-  }
+  public:
+    typedef Parameters::FieldsSourceAdapter<SkipFieldsSource> Parent;
+    explicit ModuleFieldsSource(const Parameters::Accessor& params)
+      : Parent(params)
+    {
+    }
+
+    String GetFieldValue(const String& fieldName) const
+    {
+      return IO::MakePathFromString(Parent::GetFieldValue(fieldName), '_');
+    }
+  };
 
   class ComplexTrackProcessor : public TrackProcessor
   {
@@ -268,17 +292,16 @@ namespace
       {
         nameTemplate += extension;
       }
-      StringMap strProps;
-      FillPropertiesFields(*info.Properties(), strProps);
       Parameters::IntType intParam = 0;
       const bool doRewrite = Parameters::FindByName(commonParams, Parameters::ZXTune::Sound::Backends::Wav::OVERWRITE, intParam) &&
         intParam != 0;
-      Writer.reset(new FileWriter(soundParams.SoundFreq, InstantiateTemplate(nameTemplate, strProps, KEEP_NONEXISTING), doRewrite));
+      const ModuleFieldsSource moduleFields(*info.Properties());
+      Writer.reset(new FileWriter(soundParams.SoundFreq, InstantiateTemplate(nameTemplate, moduleFields), doRewrite));
       //prepare cuesheet if required
       if (Parameters::FindByName(commonParams, Parameters::ZXTune::Sound::Backends::Wav::CUESHEET, intParam) &&
           intParam != 0)
       {
-        Logger.reset(new CuesheetLogger(InstantiateTemplate(nameTemplate, strProps, SKIP_NONEXISTING), commonParams));
+        Logger.reset(new CuesheetLogger(InstantiateTemplate(nameTemplate, moduleFields), commonParams));
       }
     }
 

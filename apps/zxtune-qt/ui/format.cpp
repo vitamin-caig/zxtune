@@ -14,17 +14,15 @@ Author:
 //local includes
 #include "format.h"
 //common includes
-#include <template.h>
+#include <template_parameters.h>
 //library includes
 #include <core/module_attrs.h>
 #include <core/module_types.h>
 
 String GetModuleTitle(const String& format, const Parameters::Accessor& props)
 {
-  StringMap origFields;
-  Parameters::Convert(props, origFields);
-  const String& emptyTitle = InstantiateTemplate(format, StringMap(), SKIP_NONEXISTING);
-  String curTitle = InstantiateTemplate(format, origFields, SKIP_NONEXISTING);
+  const String& emptyTitle = InstantiateTemplate(format, SkipFieldsSource());
+  String curTitle = InstantiateTemplate(format, Parameters::FieldsSourceAdapter<SkipFieldsSource>(props));
   if (curTitle == emptyTitle)
   {
     props.FindStringValue(ZXTune::Module::ATTR_FULLPATH, curTitle);

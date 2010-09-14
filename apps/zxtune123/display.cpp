@@ -18,7 +18,7 @@ Author:
 //common includes
 #include <error.h>
 #include <formatter.h>
-#include <template.h>
+#include <template_parameters.h>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/program_options.hpp>
@@ -113,12 +113,10 @@ namespace
       TotalFrames = info.FramesCount();
       FrameDuration = frameDuration;
 
-      StringMap strProps;
-      Convert(*info.Properties(), strProps);
 #if 1
       StdOut
         << std::endl
-        << InstantiateTemplate(Text::ITEM_INFO, strProps, FILL_NONEXISTING)
+        << InstantiateTemplate(Text::ITEM_INFO, Parameters::FieldsSourceAdapter<FillFieldsSource>(*info.Properties()))
         << (Formatter(Text::ITEM_INFO_ADDON) % FormatTime(info.FramesCount(), frameDuration) %
           info.LogicalChannels() % info.PhysicalChannels()).str();
 #else

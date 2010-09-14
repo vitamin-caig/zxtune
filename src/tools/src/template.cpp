@@ -11,43 +11,33 @@ Author:
 
 //common includes
 #include <template.h>
+#include <string_helpers.h>
 //std includes
 #include <algorithm>
 #include <cassert>
+//boost includes
+#include <boost/bind.hpp>
 
 namespace
 {
-  //base functionality implementation
   class StringTemplateImpl : public StringTemplate
   {
   public:
     StringTemplateImpl(const String& templ, Char beginMark, Char endMark)
-      : BeginMark(beginMark)
-      , EndMark(endMark)
+      : BeginMark(beginMark), EndMark(endMark)
     {
       ParseTemplate(templ);
     }
 
-    virtual String Instantiate(const StringMap& properties) const
+    String Instantiate(const FieldsSource& src) const
     {
-      String result;
-      for (PartEntries::const_iterator it = Entries.begin(), lim = Entries.end(); it != lim; ++it)
-      {
-        const PartEntry& entry = *it;
-        const String& val = entry.second 
-          ? InstantiateField(properties, entry.first)
-          : entry.first;
-        result += val;
-      }
-      return result;
+      StringArray resultFields(Fields.size());
+      std::transform(Fields.begin(), Fields.end(), resultFields.begin(), boost::bind(&FieldsSource::GetFieldValue, &src, _1));
+      return SubstFields(resultFields);
     }
-  protected:
-    //template method
-    virtual String InstantiateField(const StringMap& properties, const String& field) const = 0;
   private:
     void ParseTemplate(const String& templ)
     {
-      Entries.reserve(std::count(templ.begin(), templ.end(), BeginMark));//approx
       String::size_type textBegin = 0;
       for (;;)
       {
@@ -65,106 +55,53 @@ namespace
         {
           //add text to set
           const String& text = templ.substr(textBegin, fieldBegin - textBegin);
-          Entries.push_back(PartEntry(text, false));
+          const std::size_t idx = FixedStrings.size();
+          FixedStrings.push_back(text);
+          Entries.push_back(PartEntry(idx, false));
         }
-        const String& field = templ.substr(fieldBegin + 1, fieldEnd - fieldBegin - 1);
-        Entries.push_back(PartEntry(field, true));
+        {
+          const String& field = templ.substr(fieldBegin + 1, fieldEnd - fieldBegin - 1);
+          const std::size_t idx = Fields.size();
+          Fields.push_back(field);
+          Entries.push_back(PartEntry(idx, true));
+        }
         textBegin = fieldEnd + 1;
       }
-      Entries.push_back(PartEntry(templ.substr(textBegin), false));
+      //add rest text
+      {
+        const String& restText = templ.substr(textBegin);
+        const std::size_t restIdx = FixedStrings.size();
+        FixedStrings.push_back(restText);
+        Entries.push_back(PartEntry(restIdx, false));
+      }
     }
-  protected:
+    
+    String SubstFields(const StringArray& fields) const
+    {
+      String res;
+      for (PartEntries::const_iterator it = Entries.begin(), lim = Entries.end(); it != lim; ++it)
+      {
+        res += (it->second ? fields : FixedStrings)[it->first];
+      }
+      return res;
+    }
+  private:
     const Char BeginMark;
     const Char EndMark;
-    typedef std::pair<String, bool> PartEntry;//text => isField
+    StringArray FixedStrings;
+    StringArray Fields;
+    typedef std::pair<std::size_t, bool> PartEntry; //index => isField
     typedef std::vector<PartEntry> PartEntries;
     PartEntries Entries;
   };
-  
-  class KeepNonexistingTemplate : public StringTemplateImpl
-  {
-  public:
-    KeepNonexistingTemplate(const String& templ, Char beginMark, Char endMark)
-      : StringTemplateImpl(templ, beginMark, endMark)
-    {
-    }
-
-  protected:
-    virtual String InstantiateField(const StringMap& properties, const String& field) const
-    {
-      const StringMap::const_iterator it = properties.find(field);
-      return it == properties.end()
-        ? String(1, BeginMark) + field + EndMark
-        : it->second;
-    }
-  };
-  
-  class SkipNonexistingTemplate : public StringTemplateImpl
-  {
-  public:
-    SkipNonexistingTemplate(const String& templ, Char beginMark, Char endMark)
-      : StringTemplateImpl(templ, beginMark, endMark)
-    {
-    }
-
-  protected:
-    virtual String InstantiateField(const StringMap& properties, const String& field) const
-    {
-      const StringMap::const_iterator it = properties.find(field);
-      return it == properties.end()
-        ? String()
-        : it->second;
-    }
-  };
-
-  class FillNonexistingTemplate : public StringTemplateImpl
-  {
-  public:
-    FillNonexistingTemplate(const String& templ, Char beginMark, Char endMark)
-      : StringTemplateImpl(templ, beginMark, endMark)
-    {
-    }
-
-  protected:
-    virtual String InstantiateField(const StringMap& properties, const String& field) const
-    {
-      const StringMap::const_iterator it = properties.find(field);
-      return it == properties.end()
-        ? String(field.size() + 2, ' ')
-        : it->second;
-    }
-  };
 }
 
-String InstantiateTemplate(const String& templ, const StringMap& properties,
-  InstantiateMode mode, Char beginMark, Char endMark)
+String InstantiateTemplate(const String& templ, const FieldsSource& source, Char beginMark, Char endMark)
 {
-  switch (mode)
-  {
-  case KEEP_NONEXISTING:
-    return KeepNonexistingTemplate(templ, beginMark, endMark).Instantiate(properties);
-  case SKIP_NONEXISTING:
-    return SkipNonexistingTemplate(templ, beginMark, endMark).Instantiate(properties);
-  case FILL_NONEXISTING:
-    return FillNonexistingTemplate(templ, beginMark, endMark).Instantiate(properties);
-  default:
-    assert(!"Invalid template instantiate mode");
-    return String();
-  };
+  return StringTemplateImpl(templ, beginMark, endMark).Instantiate(source);
 }
 
-StringTemplate::Ptr StringTemplate::Create(const String& templ, InstantiateMode mode, Char beginMark, Char endMark)
+StringTemplate::Ptr StringTemplate::Create(const String& templ, Char beginMark, Char endMark)
 {
-  switch (mode)
-  {
-  case KEEP_NONEXISTING:
-    return StringTemplate::Ptr(new KeepNonexistingTemplate(templ, beginMark, endMark));
-  case SKIP_NONEXISTING:
-    return StringTemplate::Ptr(new SkipNonexistingTemplate(templ, beginMark, endMark));
-  case FILL_NONEXISTING:
-    return StringTemplate::Ptr(new FillNonexistingTemplate(templ, beginMark, endMark));
-  default:
-    assert(!"Invalid template instantiate mode");
-    return StringTemplate::Ptr();
-  };
+  return StringTemplate::Ptr(new StringTemplateImpl(templ, beginMark, endMark));
 }

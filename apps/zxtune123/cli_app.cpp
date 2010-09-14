@@ -22,7 +22,7 @@ Author:
 #include <apps/base/parsing.h>
 //common includes
 #include <error_tools.h>
-#include <template.h>
+#include <template_parameters.h>
 //library includes
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
@@ -72,6 +72,21 @@ namespace
     accessor->FindStringValue(ZXTune::Module::ATTR_FULLPATH, res);
     return res;
   }
+
+  class ModuleFieldsSource : public Parameters::FieldsSourceAdapter<SkipFieldsSource>
+  {
+  public:
+    typedef Parameters::FieldsSourceAdapter<SkipFieldsSource> Parent;
+    explicit ModuleFieldsSource(const Parameters::Accessor& params)
+      : Parent(params)
+    {
+    }
+
+    String GetFieldValue(const String& fieldName) const
+    {
+      return ZXTune::IO::MakePathFromString(Parent::GetFieldValue(fieldName), '_');
+    }
+  };
 
   class Convertor
   {
@@ -132,17 +147,7 @@ namespace
       Dump result;
       ThrowIfError(holder->Convert(*ConversionParameter, result));
       //prepare result filename
-      StringMap fields;
-      {
-        StringMap origFields;
-        Convert(*info->Properties(), origFields);
-        std::transform(origFields.begin(), origFields.end(), std::inserter(fields, fields.end()),
-          boost::bind(&std::make_pair<String, String>,
-            boost::bind<String>(&StringMap::value_type::first, _1),
-            boost::bind<String>(&ZXTune::IO::MakePathFromString,
-              boost::bind<String>(&StringMap::value_type::second, _1), '_')));
-      }
-      const String& filename = InstantiateTemplate(NameTemplate, fields, SKIP_NONEXISTING);
+      const String& filename = InstantiateTemplate(NameTemplate, ModuleFieldsSource(*info->Properties()));
       std::ofstream file(filename.c_str(), std::ios::binary);
       file.write(safe_ptr_cast<const char*>(&result[0]), static_cast<std::streamsize>(result.size() * sizeof(result.front())));
       if (!file)
