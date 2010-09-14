@@ -13,6 +13,7 @@ Author:
 #include "../tracking.h"
 #include <core/plugins/enumerator.h>
 #include <core/plugins/utils.h>
+#include <core/plugins/players/module_properties.h>
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
@@ -355,18 +356,23 @@ namespace
       region.Size = MODULE_SIZE;
       region.Extract(*container.Data, RawData);
 
+      //meta properties
+      const ModuleProperties::Ptr props = ModuleProperties::Create(PDT_PLUGIN_ID);
+      {
+        const IO::DataContainer::Ptr rawData = region.Extract(*container.Data);
+        const ModuleRegion fixedRegion(sizeof(PDTHeader) - sizeof(header->Patterns), sizeof(header->Patterns));
+        props->SetSource(rawData, fixedRegion);
+      }
+      props->SetPlugins(container.Plugins);
+      props->SetPath(container.Path);
+      props->SetTitle(OptimizeString(FromStdString(header->Title)));
+      props->SetProgram(Text::PDT_EDITOR);
+      props->SetWarnings(warner);
+
       //set tracking
       Info->SetLoopPosition(header->Loop);
       Info->SetTempo(header->Tempo);
-      //meta properties
-      Info->SetType(PDT_PLUGIN_ID);
-      Info->SetContainer(container);
-      Info->SetData(*container.Data, region);
-      const ModuleRegion fixedRegion(sizeof(PDTHeader) - sizeof(header->Patterns), sizeof(header->Patterns));
-      Info->SetFixedData(*container.Data, fixedRegion);
-      Info->SetTitle(OptimizeString(FromStdString(header->Title)));
-      Info->SetProgram(Text::PDT_EDITOR);
-      Info->SetWarnings(*warner);
+      Info->SetModuleProperties(props);
     }
 
     virtual Plugin::Ptr GetPlugin() const

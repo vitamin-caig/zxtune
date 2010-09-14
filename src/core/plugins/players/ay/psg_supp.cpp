@@ -13,6 +13,7 @@ Author:
 #include "ay_base.h"
 #include "ay_conversion.h"
 #include <core/plugins/enumerator.h>
+#include <core/plugins/players/module_properties.h>
 //common includes
 #include <tools.h>
 #include <logging.h>
@@ -105,9 +106,8 @@ namespace
 
     explicit PSGInfo(PSGData::Ptr data)
       : Data(data)
-      , Props(Parameters::Container::Create())
+      , Props()
     {
-      Props->SetStringValue(ATTR_TYPE, PSG_PLUGIN_ID);
     }
     virtual uint_t PositionsCount() const
     {
@@ -146,32 +146,13 @@ namespace
       return Props;
     }
 
-    void SetContainer(const MetaContainer& container)
+    void SetModuleProperties(Parameters::Accessor::Ptr props)
     {
-      if (!container.Path.empty())
-      {
-        Props->SetStringValue(Module::ATTR_SUBPATH, container.Path);
-      }
-      const String& plugins = container.Plugins->AsString();
-      if (!plugins.empty())
-      {
-        Props->SetStringValue(Module::ATTR_CONTAINER, container.Path);
-      }
-    }
-
-    void SetData(const IO::DataContainer& container, const ModuleRegion& region)
-    {
-      Props->SetIntValue(Module::ATTR_SIZE, region.Size);
-      Props->SetIntValue(Module::ATTR_CRC, region.Checksum(container));
-    }
-
-    void SetFixedData(const IO::DataContainer& container, const ModuleRegion& fixedRegion)
-    {
-      Props->SetIntValue(Module::ATTR_FIXEDCRC, fixedRegion.Checksum(container));
+      Props = props;
     }
   private:
     const PSGData::Ptr Data;
-    const Parameters::Container::Ptr Props;
+    Parameters::Accessor::Ptr Props;
   };
 
   Player::Ptr CreatePSGPlayer(Information::Ptr info, PSGData::Ptr data, AYM::Chip::Ptr device);
@@ -251,10 +232,16 @@ namespace
       region.Size = data.Size() - size;
       region.Extract(*container.Data, RawData);
 
-      //extract properties
-      Info->SetContainer(container);
-      Info->SetData(*container.Data, region);
-      Info->SetFixedData(*container.Data, region);
+      //meta properties
+      const ModuleProperties::Ptr props = ModuleProperties::Create(PSG_PLUGIN_ID);
+      {
+        const IO::DataContainer::Ptr rawData = region.Extract(*container.Data);
+        props->SetSource(rawData, region);
+      }
+      props->SetPlugins(container.Plugins);
+      props->SetPath(container.Path);
+
+      Info->SetModuleProperties(props);
     }
 
     virtual Plugin::Ptr GetPlugin() const

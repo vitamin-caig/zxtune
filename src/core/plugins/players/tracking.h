@@ -231,7 +231,6 @@ namespace ZXTune
       public:
         explicit ModuleInfo(typename ModuleData::Ptr data)
           : Data(data)
-          , ModuleProperties(Parameters::Container::Create())
           , LoopPosNum()
           , InitialTempo()
           , LogicChannels(ChannelsCount)
@@ -297,6 +296,7 @@ namespace ZXTune
 
         virtual Parameters::Accessor::Ptr Properties() const
         {
+          assert(ModuleProperties);
           return ModuleProperties;
         }
 
@@ -321,68 +321,11 @@ namespace ZXTune
           PhysChannels = channels;
         }
 
-        void SetType(const String& type)
+        void SetModuleProperties(Parameters::Accessor::Ptr props)
         {
-          assert(!type.empty());
-          ModuleProperties->SetStringValue(Module::ATTR_TYPE, type);
+          ModuleProperties = props;
         }
 
-        void SetTitle(const String& title)
-        {
-          if (!title.empty())
-          {
-            ModuleProperties->SetStringValue(Module::ATTR_TITLE, title);
-          }
-        }
-
-        void SetAuthor(const String& author)
-        {
-          if (!author.empty())
-          {
-            ModuleProperties->SetStringValue(Module::ATTR_AUTHOR, author);
-          }
-        }
-
-        void SetProgram(const String& program)
-        {
-          if (!program.empty())
-          {
-            ModuleProperties->SetStringValue(Module::ATTR_PROGRAM, program);
-          }
-        }
-
-        void SetWarnings(const Log::MessagesCollector& warner)
-        {
-          if (const uint_t msgs = warner.CountMessages())
-          {
-            ModuleProperties->SetIntValue(Module::ATTR_WARNINGS_COUNT, msgs);
-            ModuleProperties->SetStringValue(Module::ATTR_WARNINGS, warner.GetMessages('\n'));
-          }
-        }
-
-        void SetContainer(const MetaContainer& container)
-        {
-          if (!container.Path.empty())
-          {
-            ModuleProperties->SetStringValue(Module::ATTR_SUBPATH, container.Path);
-          }
-          const String& plugins = container.Plugins->AsString();
-          if (!plugins.empty())
-          {
-            ModuleProperties->SetStringValue(Module::ATTR_CONTAINER, plugins);
-          }
-        }
-
-        void SetData(const IO::DataContainer& container, const ModuleRegion& region)
-        {
-          ModuleProperties->SetIntValue(Module::ATTR_SIZE, region.Size);
-          ModuleProperties->SetIntValue(Module::ATTR_CRC, region.Checksum(container));
-        }
-
-        void SetFixedData(const IO::DataContainer& container, const ModuleRegion& fixedRegion)
-        {
-          ModuleProperties->SetIntValue(Module::ATTR_FIXEDCRC, fixedRegion.Checksum(container));
-        }
       private:
         void Initialize() const
         {
@@ -405,11 +348,11 @@ namespace ZXTune
         }
       private:
         const typename ModuleData::Ptr Data;
-        const Parameters::Container::Ptr ModuleProperties;
         uint_t LoopPosNum;
         uint_t InitialTempo;
         uint_t LogicChannels;
         uint_t PhysChannels;
+        Parameters::Accessor::Ptr ModuleProperties;
         mutable uint_t Frames;
         mutable uint_t LoopFrameNum;
       };

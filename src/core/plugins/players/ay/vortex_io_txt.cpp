@@ -11,6 +11,7 @@ Author:
 
 //local includes
 #include "vortex_io.h"
+#include <core/plugins/players/module_properties.h>
 //common includes
 #include <formatter.h>
 #include <tools.h>
@@ -830,7 +831,8 @@ namespace ZXTune
   {
     namespace Vortex
     {
-      Error ConvertFromText(const std::string& text, Vortex::Track::ModuleData& resData, Vortex::Track::ModuleInfo& resInfo,
+      Error ConvertFromText(const std::string& text, Vortex::Track::ModuleData& resData, 
+        Vortex::Track::ModuleInfo& resInfo, ModuleProperties& resProps,
         uint_t& resVersion, String& resFreqTable)
       {
         typedef std::vector<std::string> LinesArray;
@@ -892,9 +894,9 @@ namespace ZXTune
           it = next;
         }
 
-        resInfo.SetTitle(descr.Title);
-        resInfo.SetAuthor(descr.Author);
-        resInfo.SetProgram((Formatter(Text::VORTEX_EDITOR) % (descr.Version / 10) % (descr.Version % 10)).str());
+        resProps.SetTitle(descr.Title);
+        resProps.SetAuthor(descr.Author);
+        resProps.SetProgram((Formatter(Text::VORTEX_EDITOR) % (descr.Version / 10) % (descr.Version % 10)).str());
 
         //tracking properties
         version = descr.Version % 10;

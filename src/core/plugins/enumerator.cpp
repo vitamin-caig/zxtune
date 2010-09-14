@@ -495,6 +495,12 @@ namespace ZXTune
     dump.assign(data + Offset, data + Offset + Size);
   }
 
+  IO::DataContainer::Ptr ModuleRegion::Extract(const IO::DataContainer& container) const
+  {
+    const uint8_t* const data = static_cast<const uint8_t*>(container.Data());
+    return IO::CreateDataContainer(data + Offset, Size);
+  }
+
   PluginsChain::Ptr PluginsChain::Create()
   {
     return boost::make_shared<PluginsChainImpl>();

@@ -14,6 +14,7 @@ Author:
 #include "ay_conversion.h"
 #include <core/plugins/detect_helper.h>
 #include <core/plugins/utils.h>
+#include <core/plugins/players/module_properties.h>
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
@@ -704,25 +705,28 @@ namespace
       region.Extract(*container.Data, RawData);
 
       //meta properties
-      Info->SetType(ASC_PLUGIN_ID);
-      Info->SetContainer(container);
-      Info->SetData(*container.Data, region);
+      const ModuleProperties::Ptr props = ModuleProperties::Create(ASC_PLUGIN_ID);
       {
+        const IO::DataContainer::Ptr rawData = region.Extract(*container.Data);
         const ASCID* const id = safe_ptr_cast<const ASCID*>(header->Positions + header->Length);
         const bool validId = id->Check();
         const std::size_t fixedOffset = sizeof(ASCHeader) + validId ? sizeof(*id) : 0;
         const ModuleRegion fixedRegion(fixedOffset, rawSize - fixedOffset);
-        Info->SetFixedData(*container.Data, fixedRegion);
+        props->SetSource(rawData, fixedRegion);
         if (validId)
         {
-          Info->SetTitle(OptimizeString(FromStdString(id->Title)));
-          Info->SetAuthor(OptimizeString(FromStdString(id->Author)));
+          props->SetTitle(OptimizeString(FromStdString(id->Title)));
+          props->SetAuthor(OptimizeString(FromStdString(id->Author)));
         }
       }
-      Info->SetProgram(Text::ASC_EDITOR);
-      Info->SetWarnings(*warner);
+      props->SetPlugins(container.Plugins);
+      props->SetPath(container.Path);
+      props->SetProgram(Text::ASC_EDITOR);
+      props->SetWarnings(warner);
+
       Info->SetLoopPosition(header->Loop);
       Info->SetTempo(header->Tempo);
+      Info->SetModuleProperties(props);
     }
 
     virtual Plugin::Ptr GetPlugin() const

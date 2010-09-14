@@ -62,9 +62,14 @@ namespace ZXTune
     DataContainer::Ptr CreateDataContainer(const Dump& data)
     {
       const std::size_t allsize = data.size() * sizeof(data.front());
-      SharedArray buffer(new uint8_t[allsize]);
-      std::memcpy(buffer.get(), &data[0], allsize);
-      return DataContainer::Ptr(new DataContainerImpl(buffer, 0, allsize));
+      return CreateDataContainer(&data[0], allsize);
+    }
+
+    DataContainer::Ptr CreateDataContainer(const void* data, std::size_t size)
+    {
+      const SharedArray buffer(new uint8_t[size]);
+      std::memcpy(buffer.get(), data, size);
+      return DataContainer::Ptr(new DataContainerImpl(buffer, 0, size));
     }
   }
 }

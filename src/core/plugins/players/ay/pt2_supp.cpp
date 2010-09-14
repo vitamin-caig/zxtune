@@ -14,6 +14,7 @@ Author:
 #include "ay_conversion.h"
 #include <core/plugins/detect_helper.h>
 #include <core/plugins/utils.h>
+#include <core/plugins/players/module_properties.h>
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
@@ -545,19 +546,20 @@ namespace
       region.Extract(*container.Data, RawData);
       
       //meta properties
-      Info->SetType(PT2_PLUGIN_ID);
-      Info->SetContainer(container);
-      Info->SetData(*container.Data, region);
+      const ModuleProperties::Ptr props = ModuleProperties::Create(PT2_PLUGIN_ID);
       {
+        const IO::DataContainer::Ptr rawData = region.Extract(*container.Data);
         const std::size_t fixedOffset(sizeof(PT2Header) + header->Length - 1);
         const ModuleRegion fixedRegion(fixedOffset, rawSize -  fixedOffset);
-        Info->SetFixedData(*container.Data, region);
+        props->SetSource(rawData, fixedRegion);
       }
-      Info->SetTitle(OptimizeString(FromStdString(header->Name)));
-      Info->SetProgram(Text::PT2_EDITOR);
-      Info->SetWarnings(*warner);
+      props->SetTitle(OptimizeString(FromStdString(header->Name)));
+      props->SetProgram(Text::PT2_EDITOR);
+      props->SetWarnings(warner);
+
       Info->SetLoopPosition(header->Loop);
-      Info->SetTempo(header->Tempo);      
+      Info->SetTempo(header->Tempo);
+      Info->SetModuleProperties(props);
     }
 
     virtual Plugin::Ptr GetPlugin() const

@@ -14,6 +14,7 @@ Author:
 #include "vortex_io.h"
 #include "aym_parameters_helper.h"
 #include <core/plugins/enumerator.h>
+#include <core/plugins/players/module_properties.h>
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
@@ -65,16 +66,22 @@ namespace
     {
       const char* const dataIt = static_cast<const char*>(container.Data->Data());
       const char* const endIt = dataIt + region.Size;
+
+      const ModuleProperties::Ptr props = ModuleProperties::Create(TXT_PLUGIN_ID);
       ThrowIfError(Vortex::ConvertFromText(std::string(dataIt, endIt),
-        *Data, *Info, Version, FreqTableName));
+        *Data, *Info, *props, Version, FreqTableName));
       region.Extract(*container.Data, RawData);
 
       //meta properties
-      Info->SetType(TXT_PLUGIN_ID);
-      Info->SetContainer(container);
-      Info->SetData(*container.Data, region);
-      //TODO: calculate fixed data in ConvertFromText
-      Info->SetFixedData(*container.Data, region);
+      {
+        const IO::DataContainer::Ptr rawData = region.Extract(*container.Data);
+        //TODO: calculate fixed data in ConvertFromText
+        props->SetSource(rawData, region);
+      }
+      props->SetPlugins(container.Plugins);
+      props->SetPath(container.Path);
+
+      Info->SetModuleProperties(props);
     }
 
     virtual Plugin::Ptr GetPlugin() const

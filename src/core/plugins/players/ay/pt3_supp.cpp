@@ -14,6 +14,7 @@ Author:
 #include "aym_parameters_helper.h"
 #include <core/plugins/detect_helper.h>
 #include <core/plugins/utils.h>
+#include <core/plugins/players/module_properties.h>
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
@@ -724,18 +725,19 @@ namespace
       region.Extract(*container.Data, RawData);
       
       //meta properties
-      Info->SetType(PT3_PLUGIN_ID);
-      Info->SetContainer(container);
-      Info->SetData(*container.Data, region);
+      const ModuleProperties::Ptr props = ModuleProperties::Create(PT3_PLUGIN_ID);
       {
+        const IO::DataContainer::Ptr rawData = region.Extract(*container.Data);
         const std::size_t fixedOffset(sizeof(PT3Header) + header->Length - 1);
         const ModuleRegion fixedRegion(fixedOffset, rawSize -  fixedOffset);
-        Info->SetFixedData(*container.Data, region);
+        props->SetSource(rawData, fixedRegion);
       }
-      Info->SetTitle(OptimizeString(FromStdString(header->TrackName)));
-      Info->SetAuthor(OptimizeString(FromStdString(header->TrackAuthor)));
-      Info->SetProgram(OptimizeString(String(header->Id, header->Optional1)));
-      Info->SetWarnings(*warner);
+      props->SetTitle(OptimizeString(FromStdString(header->TrackName)));
+      props->SetAuthor(OptimizeString(FromStdString(header->TrackAuthor)));
+      props->SetProgram(OptimizeString(String(header->Id, header->Optional1)));
+      props->SetWarnings(warner);
+      props->SetPlugins(container.Plugins);
+      props->SetPath(container.Path);
       
       //tracking properties
       Version = std::isdigit(header->Subversion) ? header->Subversion - '0' : 6;
@@ -749,6 +751,7 @@ namespace
         TSPatternBase = header->Mode;
         Info->SetLogicalChannels(Info->LogicalChannels() * 2);
       }
+      Info->SetModuleProperties(props);
     }
 
     virtual Plugin::Ptr GetPlugin() const

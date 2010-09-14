@@ -14,6 +14,7 @@ Author:
 #include "ay_conversion.h"
 #include <core/plugins/detect_helper.h>
 #include <core/plugins/utils.h>
+#include <core/plugins/players/module_properties.h>
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
@@ -485,16 +486,19 @@ namespace
       region.Extract(*container.Data, RawData);
       
       //meta properties
-      Info->SetType(STC_PLUGIN_ID);
-      Info->SetContainer(container);
-      Info->SetData(*container.Data, region);
+      const ModuleProperties::Ptr props = ModuleProperties::Create(STC_PLUGIN_ID);
       {
+        const IO::DataContainer::Ptr rawData = region.Extract(*container.Data);
         const ModuleRegion fixedRegion(sizeof(STCHeader), rawSize - sizeof(STCHeader));
-        Info->SetFixedData(*container.Data, region);
+        props->SetSource(rawData, fixedRegion);
       }
-      Info->SetProgram(OptimizeString(FromStdString(header->Identifier)));
-      Info->SetWarnings(*warner);
+      props->SetPlugins(container.Plugins);
+      props->SetPath(container.Path);
+      props->SetProgram(OptimizeString(FromStdString(header->Identifier)));
+      props->SetWarnings(warner);
+
       Info->SetTempo(header->Tempo);
+      Info->SetModuleProperties(props);
     }
 
     virtual Plugin::Ptr GetPlugin() const

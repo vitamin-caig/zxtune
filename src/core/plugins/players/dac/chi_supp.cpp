@@ -13,6 +13,7 @@ Author:
 #include "../tracking.h"
 #include <core/plugins/enumerator.h>
 #include <core/plugins/utils.h>
+#include <core/plugins/players/module_properties.h>
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
@@ -306,18 +307,23 @@ namespace
       region.Size = data.Size() - memLeft;
       region.Extract(*container.Data, RawData);
 
+      //meta properties
+      const ModuleProperties::Ptr props = ModuleProperties::Create(CHI_PLUGIN_ID);
+      {
+        const IO::DataContainer::Ptr rawData = region.Extract(*container.Data);
+        const ModuleRegion fixedRegion(sizeof(CHIHeader), sizeof(CHIPattern) * patternsCount);
+        props->SetSource(rawData, fixedRegion);
+      }
+      props->SetPlugins(container.Plugins);
+      props->SetPath(container.Path);
+      props->SetTitle(OptimizeString(FromStdString(header->Name)));
+      props->SetProgram((Formatter(Text::CHI_EDITOR) % FromStdString(header->Version)).str());
+      props->SetWarnings(warner);
+
       //fill tracking properties
       Info->SetLoopPosition(header->Loop);
       Info->SetTempo(header->Tempo);
-      //meta properties
-      Info->SetType(CHI_PLUGIN_ID);
-      Info->SetContainer(container);
-      Info->SetData(*container.Data, region);
-      const ModuleRegion fixedRegion(sizeof(CHIHeader), sizeof(CHIPattern) * patternsCount);
-      Info->SetFixedData(*container.Data, fixedRegion);
-      Info->SetTitle(OptimizeString(FromStdString(header->Name)));
-      Info->SetProgram((Formatter(Text::CHI_EDITOR) % FromStdString(header->Version)).str());
-      Info->SetWarnings(*warner);
+      Info->SetModuleProperties(props);
     }
 
     virtual Plugin::Ptr GetPlugin() const

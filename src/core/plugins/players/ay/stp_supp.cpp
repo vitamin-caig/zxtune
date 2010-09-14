@@ -14,6 +14,7 @@ Author:
 #include "ay_conversion.h"
 #include <core/plugins/detect_helper.h>
 #include <core/plugins/utils.h>
+#include <core/plugins/players/module_properties.h>
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
@@ -504,23 +505,26 @@ namespace
       region.Extract(*container.Data, RawData);
 
       //meta properties
-      Info->SetType(STP_PLUGIN_ID);
-      Info->SetContainer(container);
-      Info->SetData(*container.Data, region);
+      const ModuleProperties::Ptr props = ModuleProperties::Create(STP_PLUGIN_ID);
       {
+        const IO::DataContainer::Ptr rawData = region.Extract(*container.Data);
         const std::size_t fixedOffset = fromLE(header->PatternsOffset);
         const ModuleRegion fixedRegion(fixedOffset, rawSize -  fixedOffset);
-        Info->SetFixedData(*container.Data, region);
+        props->SetSource(rawData, fixedRegion);
       }
       const STPId* const id = safe_ptr_cast<const STPId*>(header + 1);
       if (id->Check())
       {
-        Info->SetTitle(OptimizeString(FromStdString(id->Title)));
+        props->SetTitle(OptimizeString(FromStdString(id->Title)));
       }
-      Info->SetProgram(Text::STP_EDITOR);
-      Info->SetWarnings(*warner);
+      props->SetProgram(Text::STP_EDITOR);
+      props->SetWarnings(warner);
+      props->SetPlugins(container.Plugins);
+      props->SetPath(container.Path);
+
       Info->SetLoopPosition(positions->Loop);
       Info->SetTempo(header->Tempo);
+      Info->SetModuleProperties(props);
     }
 
     virtual Plugin::Ptr GetPlugin() const
