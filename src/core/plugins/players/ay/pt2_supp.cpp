@@ -543,15 +543,14 @@ namespace
 
       //fill region
       region.Size = rawSize;
-      region.Extract(*container.Data, RawData);
+      RawData = region.Extract(*container.Data);
       
       //meta properties
       const ModuleProperties::Ptr props = ModuleProperties::Create(PT2_PLUGIN_ID);
       {
-        const IO::DataContainer::Ptr rawData = region.Extract(*container.Data);
         const std::size_t fixedOffset(sizeof(PT2Header) + header->Length - 1);
         const ModuleRegion fixedRegion(fixedOffset, rawSize -  fixedOffset);
-        props->SetSource(rawData, fixedRegion);
+        props->SetSource(RawData, fixedRegion);
       }
       props->SetTitle(OptimizeString(FromStdString(header->Name)));
       props->SetProgram(Text::PT2_EDITOR);
@@ -583,7 +582,8 @@ namespace
       Error result;
       if (parameter_cast<RawConvertParam>(&param))
       {
-        dst = RawData;
+        const uint8_t* const data = static_cast<const uint8_t*>(RawData->Data());
+        dst.assign(data, data + RawData->Size());
       }
       else if (!ConvertAYMFormat(boost::bind(&CreatePT2Player, boost::cref(Info), boost::cref(Data), _1), param, dst, result))
       {
@@ -595,7 +595,7 @@ namespace
     const Plugin::Ptr SrcPlugin;
     const PT2Track::ModuleData::RWPtr Data;
     const PT2Track::ModuleInfo::Ptr Info;
-    Dump RawData;
+    IO::DataContainer::Ptr RawData;
   };
 
   inline uint_t GetVolume(uint_t volume, uint_t level)

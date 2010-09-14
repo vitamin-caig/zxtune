@@ -722,15 +722,14 @@ namespace
 
       //fill region
       region.Size = rawSize;
-      region.Extract(*container.Data, RawData);
+      RawData = region.Extract(*container.Data);
       
       //meta properties
       const ModuleProperties::Ptr props = ModuleProperties::Create(PT3_PLUGIN_ID);
       {
-        const IO::DataContainer::Ptr rawData = region.Extract(*container.Data);
         const std::size_t fixedOffset(sizeof(PT3Header) + header->Length - 1);
         const ModuleRegion fixedRegion(fixedOffset, rawSize -  fixedOffset);
-        props->SetSource(rawData, fixedRegion);
+        props->SetSource(RawData, fixedRegion);
       }
       props->SetTitle(OptimizeString(FromStdString(header->TrackName)));
       props->SetAuthor(OptimizeString(FromStdString(header->TrackAuthor)));
@@ -778,7 +777,8 @@ namespace
       Error result;
       if (parameter_cast<RawConvertParam>(&param))
       {
-        dst = RawData;
+        const uint8_t* const data = static_cast<const uint8_t*>(RawData->Data());
+        dst.assign(data, data + RawData->Size());
         return Error();
       }
       else if (TSPatternBase == 0)//only on usual modules
@@ -799,7 +799,7 @@ namespace
     const Plugin::Ptr SrcPlugin;
     const Vortex::Track::ModuleData::RWPtr Data;
     const Vortex::Track::ModuleInfo::Ptr Info;
-    Dump RawData;
+    IO::DataContainer::Ptr RawData;
     uint_t Version;
     String FreqTableName;
     uint_t TSPatternBase;

@@ -70,14 +70,11 @@ namespace
       const ModuleProperties::Ptr props = ModuleProperties::Create(TXT_PLUGIN_ID);
       ThrowIfError(Vortex::ConvertFromText(std::string(dataIt, endIt),
         *Data, *Info, *props, Version, FreqTableName));
-      region.Extract(*container.Data, RawData);
+      RawData = region.Extract(*container.Data);
 
       //meta properties
-      {
-        const IO::DataContainer::Ptr rawData = region.Extract(*container.Data);
-        //TODO: calculate fixed data in ConvertFromText
-        props->SetSource(rawData, region);
-      }
+      //TODO: calculate fixed data in ConvertFromText
+      props->SetSource(RawData, region);
       props->SetPlugins(container.Plugins);
       props->SetPath(container.Path);
 
@@ -105,7 +102,8 @@ namespace
       Error result;
       if (parameter_cast<RawConvertParam>(&param))
       {
-        dst = RawData;
+        const uint8_t* const data = static_cast<const uint8_t*>(RawData->Data());
+        dst.assign(data, data + RawData->Size());
         return Error();
       }
       else if (ConvertAYMFormat(boost::bind(&Vortex::CreatePlayer, boost::cref(Info), boost::cref(Data), Version, FreqTableName, _1),
@@ -123,7 +121,7 @@ namespace
     const Plugin::Ptr SrcPlugin;
     const Vortex::Track::ModuleData::RWPtr Data;
     const Vortex::Track::ModuleInfo::Ptr Info;
-    Dump RawData;
+    IO::DataContainer::Ptr RawData;
     uint_t Version;
     String FreqTableName;
   };

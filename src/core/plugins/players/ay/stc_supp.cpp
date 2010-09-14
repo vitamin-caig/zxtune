@@ -483,14 +483,13 @@ namespace
 
       //fill region
       region.Size = rawSize;
-      region.Extract(*container.Data, RawData);
+      RawData = region.Extract(*container.Data);
       
       //meta properties
       const ModuleProperties::Ptr props = ModuleProperties::Create(STC_PLUGIN_ID);
       {
-        const IO::DataContainer::Ptr rawData = region.Extract(*container.Data);
         const ModuleRegion fixedRegion(sizeof(STCHeader), rawSize - sizeof(STCHeader));
-        props->SetSource(rawData, fixedRegion);
+        props->SetSource(RawData, fixedRegion);
       }
       props->SetPlugins(container.Plugins);
       props->SetPath(container.Path);
@@ -522,7 +521,8 @@ namespace
       Error result;
       if (parameter_cast<RawConvertParam>(&param))
       {
-        dst = RawData;
+        const uint8_t* const data = static_cast<const uint8_t*>(RawData->Data());
+        dst.assign(data, data + RawData->Size());
       }
       else if (!ConvertAYMFormat(boost::bind(&CreateSTCPlayer, boost::cref(Info), boost::cref(Data), _1),
         param, dst, result))
@@ -535,7 +535,7 @@ namespace
     const Plugin::Ptr SrcPlugin;
     const STCModuleData::RWPtr Data;
     const STCTrack::ModuleInfo::Ptr Info;
-    Dump RawData;
+    IO::DataContainer::Ptr RawData;
   };
 
   struct STCChannelState

@@ -224,7 +224,7 @@ namespace
   class TSHolder : public Holder, public boost::enable_shared_from_this<TSHolder>
   {
   public:
-    TSHolder(Plugin::Ptr plugin, const Dump& data, const Holder::Ptr& holder1, const Holder::Ptr& holder2)
+    TSHolder(Plugin::Ptr plugin, IO::DataContainer::Ptr data, const Holder::Ptr& holder1, const Holder::Ptr& holder2)
       : SrcPlugin(plugin)
       , RawData(data)
       , Holder1(holder1), Holder2(holder2)
@@ -252,7 +252,8 @@ namespace
       using namespace Conversion;
       if (parameter_cast<RawConvertParam>(&param))
       {
-        dst = RawData;
+        const uint8_t* const data = static_cast<const uint8_t*>(RawData->Data());
+        dst.assign(data, data + RawData->Size());
         return Error();
       }
       else
@@ -263,7 +264,7 @@ namespace
   private:
     friend class TSPlayer;
     const Plugin::Ptr SrcPlugin;
-    Dump RawData;
+    IO::DataContainer::Ptr RawData;
     const Holder::Ptr Holder1;
     const Holder::Ptr Holder2;
     const Information::Ptr Info;
@@ -471,10 +472,10 @@ namespace
         {
           Log::Debug(THIS_MODULE, "Invalid footer structure");
         }
-        const std::size_t newSize = footerOffset + sizeof(*footer);
-        const Module::Holder::Ptr holder(new TSHolder(plugin, Dump(dump.Data(), dump.Data() + newSize), holder1, holder2));
         region.Offset = 0;
-        region.Size = newSize;
+        region.Size = footerOffset + sizeof(*footer);
+        const IO::DataContainer::Ptr rawData = region.Extract(*container.Data);
+        const Module::Holder::Ptr holder(new TSHolder(plugin, rawData, holder1, holder2));
         //TODO: proper data attributes calculation calculation
         return holder;
       }

@@ -38,7 +38,6 @@ namespace ZXTune
     std::size_t Size;
 
     uint_t Checksum(const IO::DataContainer& container) const;
-    void Extract(const IO::DataContainer& container, Dump& dump) const;
     IO::DataContainer::Ptr Extract(const IO::DataContainer& container) const;
   };
 

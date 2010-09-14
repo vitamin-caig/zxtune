@@ -354,14 +354,13 @@ namespace
       //fill region
       region.Offset = 0;
       region.Size = MODULE_SIZE;
-      region.Extract(*container.Data, RawData);
+      RawData = region.Extract(*container.Data);
 
       //meta properties
       const ModuleProperties::Ptr props = ModuleProperties::Create(PDT_PLUGIN_ID);
       {
-        const IO::DataContainer::Ptr rawData = region.Extract(*container.Data);
         const ModuleRegion fixedRegion(sizeof(PDTHeader) - sizeof(header->Patterns), sizeof(header->Patterns));
-        props->SetSource(rawData, fixedRegion);
+        props->SetSource(RawData, fixedRegion);
       }
       props->SetPlugins(container.Plugins);
       props->SetPath(container.Path);
@@ -405,7 +404,8 @@ namespace
       using namespace Conversion;
       if (parameter_cast<RawConvertParam>(&param))
       {
-        dst = RawData;
+        const uint8_t* const data = static_cast<const uint8_t*>(RawData->Data());
+        dst.assign(data, data + RawData->Size());
       }
       else
       {
@@ -417,7 +417,7 @@ namespace
     const Plugin::Ptr SrcPlugin;
     const PDTTrack::ModuleData::RWPtr Data;
     const PDTTrack::ModuleInfo::Ptr Info;
-    Dump RawData;
+    IO::DataContainer::Ptr RawData;
   };
     
   class PDTPlayer : public Player

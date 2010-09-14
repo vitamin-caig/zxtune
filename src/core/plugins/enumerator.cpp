@@ -488,13 +488,6 @@ namespace ZXTune
     return crcCalc.checksum();
   }
 
-  void ModuleRegion::Extract(const IO::DataContainer& container, Dump& dump) const
-  {
-    const uint8_t* const data = static_cast<const uint8_t*>(container.Data());
-    assert(Offset + Size <= container.Size());
-    dump.assign(data + Offset, data + Offset + Size);
-  }
-
   IO::DataContainer::Ptr ModuleRegion::Extract(const IO::DataContainer& container) const
   {
     const uint8_t* const data = static_cast<const uint8_t*>(container.Data());

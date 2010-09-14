@@ -230,14 +230,11 @@ namespace
       //fill region
       region.Offset = 0;
       region.Size = data.Size() - size;
-      region.Extract(*container.Data, RawData);
+      RawData = region.Extract(*container.Data);
 
       //meta properties
       const ModuleProperties::Ptr props = ModuleProperties::Create(PSG_PLUGIN_ID);
-      {
-        const IO::DataContainer::Ptr rawData = region.Extract(*container.Data);
-        props->SetSource(rawData, region);
-      }
+      props->SetSource(RawData, region);
       props->SetPlugins(container.Plugins);
       props->SetPath(container.Path);
 
@@ -267,7 +264,8 @@ namespace
       if (parameter_cast<RawConvertParam>(&param) ||
           parameter_cast<PSGConvertParam>(&param))
       {
-        dst = RawData;
+        const uint8_t* const data = static_cast<const uint8_t*>(RawData->Data());
+        dst.assign(data, data + RawData->Size());
       }
       else if (!ConvertAYMFormat(boost::bind(&CreatePSGPlayer, boost::cref(Info), boost::cref(Data), _1),
         param, dst, result))
@@ -280,7 +278,7 @@ namespace
     const Plugin::Ptr SrcPlugin;
     const PSGData::RWPtr Data;
     const PSGInfo::Ptr Info;
-    Dump RawData;
+    IO::DataContainer::Ptr RawData;
   };
 
   typedef AYMPlayer<PSGData, AYM::DataChunk> PSGPlayerBase;
