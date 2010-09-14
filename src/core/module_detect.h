@@ -11,7 +11,6 @@
 #define __CORE_MODULE_DETECT_H_DEFINED__
 
 //library includes
-#include <parameters.h>//for typedef'ed Parameters::Map
 #include <io/container.h>//for IO::DataContainer::Ptr
 #include <core/module_holder.h>//for Module::Holder::Ptr
 //boost includes
@@ -22,6 +21,11 @@ class Error;
 namespace Log
 {
   struct MessageData;
+}
+
+namespace Parameters
+{
+  class Accessor;
 }
 
 //! @brief Global library namespace
@@ -51,7 +55,7 @@ namespace ZXTune
   //! @param startSubpath Path in input data to start detecting
   //! @return Error() in case of success
   //! @return ERROR_DETECT_CANCELED with suberror, returned from DetectParameters#Callback
-  Error DetectModules(const Parameters::Map& commonParams, const DetectParameters& detectParams,
+  Error DetectModules(const Parameters::Accessor& commonParams, const DetectParameters& detectParams,
     IO::DataContainer::Ptr data, const String& startSubpath);
 
   //! @brief Perform single module opening
@@ -61,7 +65,7 @@ namespace ZXTune
   //! @param result Reference to result module
   //! @return Error() in case of success and module is found
   //! @return ERROR_FIND_SUBMODULE in case if module is not found
-  Error OpenModule(const Parameters::Map& commonParams, IO::DataContainer::Ptr data, const String& subpath, 
+  Error OpenModule(const Parameters::Accessor& commonParams, IO::DataContainer::Ptr data, const String& subpath, 
     Module::Holder::Ptr& result);
 }
 

@@ -235,17 +235,17 @@ namespace
     return true;
   }
 
-  inline bool CheckIgnoreCorrupted(const Parameters::Map& params)
+  inline bool CheckIgnoreCorrupted(const Parameters::Accessor& params)
   {
     Parameters::IntType val;
-    return Parameters::FindByName(params, Parameters::ZXTune::Core::Plugins::Hrip::IGNORE_CORRUPTED, val) && val != 0;
+    return params.FindIntValue(Parameters::ZXTune::Core::Plugins::Hrip::IGNORE_CORRUPTED, val) && val != 0;
   }
 
   //files enumeration purposes wrapper
   class Enumerator
   {
   public:
-    Enumerator(const Parameters::Map& commonParams, const DetectParameters& detectParams,
+    Enumerator(const Parameters::Accessor& commonParams, const DetectParameters& detectParams,
       const MetaContainer& data)
       : Params(commonParams)
       , IgnoreCorrupted(CheckIgnoreCorrupted(commonParams))
@@ -325,7 +325,7 @@ namespace
       return LogLevel;
     }
   private:
-    const Parameters::Map& Params;
+    const Parameters::Accessor& Params;
     const bool IgnoreCorrupted;
     const DetectParameters& DetectParams;
     const IO::DataContainer::Ptr Container;
@@ -377,7 +377,7 @@ namespace
              filesCount != 0;
     }
 
-    virtual bool Process(const Parameters::Map& commonParams, const DetectParameters& detectParams,
+    virtual bool Process(const Parameters::Accessor& commonParams, const DetectParameters& detectParams,
       const MetaContainer& data, ModuleRegion& region) const
     {
       MetaContainer nested(data);
@@ -386,7 +386,7 @@ namespace
       return cb.Process(region);
     }
 
-    virtual IO::DataContainer::Ptr Open(const Parameters::Map& commonParams, 
+    virtual IO::DataContainer::Ptr Open(const Parameters::Accessor& commonParams, 
       const MetaContainer& inData, const String& inPath,
       String& restPath) const
     {

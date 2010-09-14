@@ -171,7 +171,8 @@ namespace
     CLIApplication()
       : Informer(InformationComponent::Create())
       , IOParams(Parameters::Container::Create())
-      , Sourcer(SourceComponent::Create(GlobalParams, *IOParams))
+      , CoreParams(Parameters::Container::Create())
+      , Sourcer(SourceComponent::Create(*CoreParams, *IOParams))
       , Sounder(SoundComponent::Create(GlobalParams))
       , Display(DisplayComponent::Create())
       , SeekStep(10)
@@ -260,14 +261,15 @@ namespace
         }
         if (!providersOptions.empty())
         {
-          ThrowIfError(ParseParametersString(Parameters::ZXTune::IO::Providers::PREFIX, providersOptions, *IOParams));
+          ThrowIfError(ParseParametersString(Parameters::ZXTune::IO::Providers::PREFIX, 
+            providersOptions, *IOParams));
         }
         if (!coreOptions.empty())
         {
-          Parameters::Map coreParams;
-          ThrowIfError(ParseParametersString(Parameters::ZXTune::Core::PREFIX, coreOptions, coreParams));
-          GlobalParams.insert(coreParams.begin(), coreParams.end());
+          ThrowIfError(ParseParametersString(Parameters::ZXTune::Core::PREFIX, 
+            coreOptions, *CoreParams));
         }
+        //TODO: fill params containers from config
         {
           Parameters::Map configParams;
           ThrowIfError(ParseConfigFile(configFile, configParams));
@@ -392,6 +394,7 @@ namespace
   private:
     Parameters::Map GlobalParams;
     const Parameters::Container::Ptr IOParams;
+    const Parameters::Container::Ptr CoreParams;
     String ConvertParams;
     std::auto_ptr<InformationComponent> Informer;
     std::auto_ptr<SourceComponent> Sourcer;

@@ -362,7 +362,7 @@ namespace
       return false;
     }
 
-    virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Map& /*commonParams*/,
+    virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Accessor& /*commonParams*/,
       const MetaContainer& input, ModuleRegion& region) const
     {
       const IO::DataContainer& inputData = *input.Data;

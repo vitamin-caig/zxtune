@@ -91,7 +91,7 @@ namespace
       return Delegate->SetPosition(frame);
     }
     
-    virtual Error SetParameters(const Parameters::Map& params)
+    virtual Error SetParameters(const Parameters::Accessor& params)
     {
       Locker lock(Mutex);
       return Delegate->SetParameters(params);
@@ -217,7 +217,8 @@ namespace ZXTune
           {
             Log::Debug(THIS_MODULE, "Creating the player");
             Module::Player::Ptr tmpPlayer(new SafePlayerWrapper(holder->CreatePlayer()));
-            ThrowIfError(tmpPlayer->SetParameters(CommonParameters));
+            //TODO:
+            //ThrowIfError(tmpPlayer->SetParameters(CommonParameters));
             StopPlayback();
             Holder = holder;
             Player = tmpPlayer;
@@ -424,7 +425,8 @@ namespace ZXTune
         OnParametersChanged(updates);
         if (Player)
         {
-          ThrowIfError(Player->SetParameters(updates));
+          //TODO
+          //ThrowIfError(Player->SetParameters(updates));
         }
         //merge result back
         Parameters::MergeMaps(CommonParameters, params, CommonParameters, true);

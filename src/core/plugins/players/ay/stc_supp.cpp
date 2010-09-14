@@ -800,7 +800,7 @@ namespace
       return PerformCheck(&CheckSTCModule, DETECTORS, ArrayEnd(DETECTORS), inputData);
     }
 
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Map& /*parameters*/,
+    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*parameters*/,
                                              const MetaContainer& container,
                                              ModuleRegion& region) const
     {

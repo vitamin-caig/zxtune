@@ -1222,7 +1222,7 @@ namespace
       return PerformCheck(&CheckASCModule, 0, 0, inputData);
     }
 
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Map& /*parameters*/,
+    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*parameters*/,
                                              const MetaContainer& container,
                                              ModuleRegion& region) const
     {

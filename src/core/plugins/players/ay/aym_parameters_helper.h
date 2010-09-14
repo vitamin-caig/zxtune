@@ -34,7 +34,7 @@ namespace ZXTune
       virtual ~ParametersHelper() {}
 
       //called with new parameters set
-      virtual void SetParameters(const Parameters::Map& params) = 0;
+      virtual void SetParameters(const Parameters::Accessor& params) = 0;
 
       //frequency table according to parameters
       virtual const Module::FrequencyTable& GetFreqTable() const = 0;

@@ -67,7 +67,7 @@ namespace ZXTune
         return Error();
       }
 
-      virtual Error SetParameters(const Parameters::Map& params)
+      virtual Error SetParameters(const Parameters::Accessor& params)
       {
         try
         {

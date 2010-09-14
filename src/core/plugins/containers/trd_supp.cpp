@@ -207,7 +207,7 @@ namespace
       return CheckTRDFile(dump);
     }
 
-    virtual bool Process(const Parameters::Map& commonParams,
+    virtual bool Process(const Parameters::Accessor& commonParams,
       const DetectParameters& detectParams,
       const MetaContainer& data, ModuleRegion& region) const
     {
@@ -262,7 +262,7 @@ namespace
       return true;
     }
   
-    IO::DataContainer::Ptr Open(const Parameters::Map& /*commonParams*/, 
+    IO::DataContainer::Ptr Open(const Parameters::Accessor& /*commonParams*/, 
       const MetaContainer& inData, const String& inPath, String& restPath) const
     {
       String restComp;

@@ -154,7 +154,7 @@ namespace
   }
 
   Error ProcessModuleItems(const StringArray& files, 
-    const Parameters::Map& globalParams, const Parameters::Accessor& ioParams,
+    const Parameters::Accessor& coreParams, const Parameters::Accessor& ioParams,
     const ZXTune::DetectParameters::FilterFunc& filter,
     const ZXTune::DetectParameters::LogFunc& logger, const OnItemCallback& callback)
   {
@@ -170,7 +170,7 @@ namespace
       detectParams.Filter = filter;
       detectParams.Logger = logger;
       detectParams.Callback = boost::bind(&FormModule, *it, _1, _2, callback);
-      if (const Error& e = ZXTune::DetectModules(globalParams, detectParams, data, subpath))
+      if (const Error& e = ZXTune::DetectModules(coreParams, detectParams, data, subpath))
       {
         return e;
       }
@@ -181,8 +181,8 @@ namespace
   class Source : public SourceComponent
   {
   public:
-    Source(const Parameters::Map& globalParams, const Parameters::Accessor& ioParams)
-      : GlobalParams(globalParams)
+    Source(const Parameters::Accessor& coreParams, const Parameters::Accessor& ioParams)
+      : CoreParams(coreParams)
       , IOParams(ioParams)
       , OptionsDescription(Text::INPUT_SECTION)
       , EnabledCaps(0), DisabledCaps(0), ShowProgress(false)
@@ -221,7 +221,7 @@ namespace
     {
       assert(callback);
       const bool hasFilter(!EnabledPlugins.empty() || !DisabledPlugins.empty() || 0 != EnabledCaps || 0 != DisabledCaps);
-      ThrowIfError(ProcessModuleItems(Files, GlobalParams, IOParams,
+      ThrowIfError(ProcessModuleItems(Files, CoreParams, IOParams,
         hasFilter ? boost::bind(&Source::DoFilter, this, _1) : ZXTune::DetectParameters::FilterFunc(),
         ShowProgress ? DoLog : 0,
         callback));
@@ -245,7 +245,7 @@ namespace
       return !(EnabledPlugins.empty() && !EnabledCaps);
     }
   private:
-    const Parameters::Map& GlobalParams;
+    const Parameters::Accessor& CoreParams;
     const Parameters::Accessor& IOParams;
     boost::program_options::options_description OptionsDescription;
     StringArray Files;
@@ -259,8 +259,8 @@ namespace
   };
 }
 
-std::auto_ptr<SourceComponent> SourceComponent::Create(const Parameters::Map& globalParams,
+std::auto_ptr<SourceComponent> SourceComponent::Create(const Parameters::Accessor& coreParams,
   const Parameters::Accessor& ioParams)
 {
-  return std::auto_ptr<SourceComponent>(new Source(globalParams, ioParams));
+  return std::auto_ptr<SourceComponent>(new Source(coreParams, ioParams));
 }

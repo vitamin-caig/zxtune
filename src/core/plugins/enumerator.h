@@ -93,7 +93,7 @@ namespace ZXTune
     //! @param inputData Source memory data
     //! @param region Reference to result region where module is detected
     //! @return Not empty pointer if found, empty elsewhere
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Map& parameters,
+    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& parameters,
                                              const MetaContainer& inputData,
                                              ModuleRegion& region) const = 0;
   };
@@ -112,7 +112,7 @@ namespace ZXTune
     //! @param inputData Source memory data
     //! @param region Reference to result region subdata is extracted from
     //! @return Not empty pointer if data is extracted, empty elsewhere
-    virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Map& parameters,
+    virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Accessor& parameters,
                                                   const MetaContainer& inputData,
                                                   ModuleRegion& region) const = 0;
   };
@@ -132,7 +132,7 @@ namespace ZXTune
     //! @param inputData Source memory data
     //! @param region Reference to result region subdata container detected at
     //! @return true if processed and region contains busy data
-    virtual bool Process(const Parameters::Map& parameters,
+    virtual bool Process(const Parameters::Accessor& parameters,
                           const DetectParameters& detectParams,
                           const MetaContainer& inputData,
                           ModuleRegion& region) const = 0;
@@ -143,7 +143,7 @@ namespace ZXTune
     //! @param fullPath Full subdata path
     //! @param restPath Reference to rest part of path which is not handled by current plugin
     //! @return Not empty pointer if data is opened
-    virtual IO::DataContainer::Ptr Open(const Parameters::Map& parameters,
+    virtual IO::DataContainer::Ptr Open(const Parameters::Accessor& parameters,
                                         const MetaContainer& inputData,
                                         const String& fullPath,
                                         String& restPath) const = 0;
@@ -166,13 +166,13 @@ namespace ZXTune
 
     //private interface
     //resolve subpath
-    virtual void ResolveSubpath(const Parameters::Map& commonParams, IO::DataContainer::Ptr data,
+    virtual void ResolveSubpath(const Parameters::Accessor& commonParams, IO::DataContainer::Ptr data,
       const String& subpath, MetaContainer& result) const = 0;
     //full module detection
-    virtual void DetectModules(const Parameters::Map&, const DetectParameters& params, const MetaContainer& data,
+    virtual void DetectModules(const Parameters::Accessor&, const DetectParameters& params, const MetaContainer& data,
       ModuleRegion& region) const = 0;
     //single module opening
-    virtual void OpenModule(const Parameters::Map& commonParams, const MetaContainer& data, 
+    virtual void OpenModule(const Parameters::Accessor& commonParams, const MetaContainer& data, 
       Module::Holder::Ptr& holder) const = 0;
 
     //instantiator

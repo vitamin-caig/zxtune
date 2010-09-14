@@ -565,7 +565,7 @@ namespace
       return Player2->SetPosition(frame);
     }
 
-    virtual Error SetParameters(const Parameters::Map& params)
+    virtual Error SetParameters(const Parameters::Accessor& params)
     {
       if (const Error& e = Player1->SetParameters(params))
       {

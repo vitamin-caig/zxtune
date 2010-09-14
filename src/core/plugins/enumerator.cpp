@@ -232,7 +232,7 @@ namespace
     }
 
     // Open subpath in despite of filter and other
-    virtual void ResolveSubpath(const Parameters::Map& commonParams, IO::DataContainer::Ptr data,
+    virtual void ResolveSubpath(const Parameters::Accessor& commonParams, IO::DataContainer::Ptr data,
       const String& subpath, MetaContainer& result) const
     {
       assert(data.get());
@@ -276,7 +276,7 @@ namespace
       result.Plugins = tmpResult.Plugins;
     }
 
-    virtual void DetectModules(const Parameters::Map& commonParams, const DetectParameters& detectParams,
+    virtual void DetectModules(const Parameters::Accessor& commonParams, const DetectParameters& detectParams,
       const MetaContainer& data, ModuleRegion& region) const
     {
       Log::Debug(THIS_MODULE, "%3%: Detecting modules in data of size %1%, path '%2%'", 
@@ -297,7 +297,7 @@ namespace
       DetectModule(commonParams, detectParams, data, region);
     }
 
-    virtual void OpenModule(const Parameters::Map& commonParams, const MetaContainer& input, Module::Holder::Ptr& holder) const
+    virtual void OpenModule(const Parameters::Accessor& commonParams, const MetaContainer& input, Module::Holder::Ptr& holder) const
     {
       for (PlayerPluginsArray::const_iterator it = PlayerPlugins.begin(), lim = PlayerPlugins.end();
         it != lim; ++it)
@@ -321,7 +321,7 @@ namespace
     }
 
   private:
-    bool DetectContainer(const Parameters::Map& commonParams, const DetectParameters& detectParams, const MetaContainer& input,
+    bool DetectContainer(const Parameters::Accessor& commonParams, const DetectParameters& detectParams, const MetaContainer& input,
       ModuleRegion& region) const
     {
       for (ContainerPluginsArray::const_iterator it = ContainerPlugins.begin(), lim = ContainerPlugins.end();
@@ -348,7 +348,7 @@ namespace
       return false;
     }
 
-    bool DetectImplicit(const Parameters::Map& commonParams, const DetectParameters& detectParams, const MetaContainer& input,
+    bool DetectImplicit(const Parameters::Accessor& commonParams, const DetectParameters& detectParams, const MetaContainer& input,
       ModuleRegion& region) const
     {
       for (ImplicitPluginsArray::const_iterator it = ImplicitPlugins.begin(), lim = ImplicitPlugins.end();
@@ -389,7 +389,7 @@ namespace
       return false;
     }
 
-    void DetectModule(const Parameters::Map& commonParams, const DetectParameters& detectParams, const MetaContainer& input,
+    void DetectModule(const Parameters::Accessor& commonParams, const DetectParameters& detectParams, const MetaContainer& input,
       ModuleRegion& region) const
     {
       for (PlayerPluginsArray::const_iterator it = PlayerPlugins.begin(), lim = PlayerPlugins.end();
@@ -422,7 +422,7 @@ namespace
       region.Size = 0;
     }
 
-    bool ResolveImplicit(const Parameters::Map& commonParams, MetaContainer& data) const
+    bool ResolveImplicit(const Parameters::Accessor& commonParams, MetaContainer& data) const
     {
       for (ImplicitPluginsArray::const_iterator it = ImplicitPlugins.begin(), lim = ImplicitPlugins.end();
         it != lim; ++it)
@@ -444,7 +444,7 @@ namespace
       return false;
     }
 
-    bool ResolveContainer(const Parameters::Map& commonParams, MetaContainer& data, String& pathToOpen) const
+    bool ResolveContainer(const Parameters::Accessor& commonParams, MetaContainer& data, String& pathToOpen) const
     {
       for (ContainerPluginsArray::const_iterator it = ContainerPlugins.begin(), lim = ContainerPlugins.end();
         it != lim; ++it)
@@ -510,7 +510,7 @@ namespace ZXTune
     return PluginsEnumerator::Instance().Enumerate();
   }
 
-  Error DetectModules(const Parameters::Map& commonParams, const DetectParameters& detectParams,
+  Error DetectModules(const Parameters::Accessor& commonParams, const DetectParameters& detectParams,
     IO::DataContainer::Ptr data, const String& startSubpath)
   {
     if (!data.get() || !detectParams.Callback)
@@ -537,7 +537,7 @@ namespace ZXTune
     }
   }
 
-  Error OpenModule(const Parameters::Map& commonParams, IO::DataContainer::Ptr data, const String& subpath,
+  Error OpenModule(const Parameters::Accessor& commonParams, IO::DataContainer::Ptr data, const String& subpath,
       Module::Holder::Ptr& result)
   {
     if (!data.get())

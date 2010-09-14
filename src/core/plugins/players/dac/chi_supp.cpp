@@ -466,13 +466,11 @@ namespace
       return Error();
     }
 
-    virtual Error SetParameters(const Parameters::Map& params)
+    virtual Error SetParameters(const Parameters::Accessor& params)
     {
-      if (const Parameters::IntType* interpolation = Parameters::FindByName<Parameters::IntType>(params,
-        Parameters::ZXTune::Core::DAC::INTERPOLATION))
-      {
-        Interpolation = (0 != *interpolation);
-      }
+      Parameters::IntType intVal = 0;
+      Interpolation = params.FindIntValue(Parameters::ZXTune::Core::DAC::INTERPOLATION, intVal) &&
+        intVal != 0;
       return Error();
     }
 
@@ -607,7 +605,7 @@ namespace
       return CheckCHI(inputData);
     }
     
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Map& /*parameters*/,
+    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*parameters*/,
                                              const MetaContainer& container,
                                              ModuleRegion& region) const
     {

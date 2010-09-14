@@ -10,8 +10,6 @@
 #ifndef __CORE_MODULE_PLAYER_H_DEFINED__
 #define __CORE_MODULE_PLAYER_H_DEFINED__
 
-//common includes
-#include <parameters.h>        //for typedef'ed Parameters::Map
 //library includes
 #include <core/module_types.h> //for Module::Analyze::ChannelsState
 #include <sound/receiver.h>    //for Sound::MultichannelReceiver
@@ -20,6 +18,11 @@
 
 //forward declarations
 class Error;
+
+namespace Parameters
+{
+  class Accessor;
+}
 
 namespace ZXTune
 {
@@ -81,7 +84,7 @@ namespace ZXTune
       //! @brief Changing runtime parameters
       //! @param params Map with parameters
       //! @return Error() in case of success
-      virtual Error SetParameters(const Parameters::Map& params) = 0;
+      virtual Error SetParameters(const Parameters::Accessor& params) = 0;
     };
   }
 }

@@ -132,8 +132,7 @@ namespace
         ? Parameters::CreateMergedAccessor(adjustedParams, CommonParams) : CommonParams;
       const ZXTune::IO::DataContainer::Ptr data = Provider->GetData(dataPath, *moduleParams, 0/*logger*/);
       ZXTune::Module::Holder::Ptr result;
-      Parameters::Map modParams;//TODO
-      ThrowIfError(ZXTune::OpenModule(modParams, data, subPath, result));
+      ThrowIfError(ZXTune::OpenModule(*moduleParams, data, subPath, result));
       return CreateWrappedHolder(dataPath, subPath, result);
     }
   private:
@@ -203,8 +202,7 @@ namespace
         params.Logger = detectParams.Logger;
         params.Callback = boost::bind(&PlayitemsProviderImpl::CreatePlayitem, this,
           context, dataPath, _1, _2, detectParams.Callback);
-        Parameters::Map cmnParams;//TODO
-        ThrowIfError(ZXTune::DetectModules(cmnParams, params, data, subPath));
+        ThrowIfError(ZXTune::DetectModules(*commonParams, params, data, subPath));
         return Error();
       }
       catch (const Error& e)

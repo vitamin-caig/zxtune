@@ -67,6 +67,89 @@ namespace
     return stream.str();
   }
 
+  class RawPluginParameters
+  {
+  public:
+    explicit RawPluginParameters(const Parameters::Accessor& accessor)
+      : Accessor(accessor)
+    {
+    }
+
+    int_t GetRecursiveDepth() const
+    {
+      Parameters::IntType depth = -1;
+      Accessor.FindIntValue(RAW_PLUGIN_RECURSIVE_DEPTH, depth);
+      return static_cast<int_t>(depth);
+    }
+
+    std::size_t GetMinimalSize() const
+    {
+      Parameters::IntType minRawSize = Parameters::ZXTune::Core::Plugins::Raw::MIN_SIZE_DEFAULT;
+      if (Accessor.FindIntValue(Parameters::ZXTune::Core::Plugins::Raw::MIN_SIZE, minRawSize) &&
+          minRawSize < Parameters::IntType(MIN_MINIMAL_RAW_SIZE))
+      {
+        throw MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,
+          Text::RAW_ERROR_INVALID_MIN_SIZE, minRawSize, MIN_MINIMAL_RAW_SIZE);
+      }
+      return static_cast<std::size_t>(minRawSize);
+    }
+
+    std::size_t GetScanStep() const
+    {
+      Parameters::IntType scanStep = Parameters::ZXTune::Core::Plugins::Raw::SCAN_STEP_DEFAULT;
+      if (Accessor.FindIntValue(Parameters::ZXTune::Core::Plugins::Raw::SCAN_STEP, scanStep) &&
+          (scanStep < Parameters::IntType(MIN_SCAN_STEP) ||
+           scanStep > Parameters::IntType(MAX_SCAN_STEP)))
+      {
+        throw MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,
+          Text::RAW_ERROR_INVALID_STEP, scanStep, MIN_SCAN_STEP, MAX_SCAN_STEP);
+      }
+      return static_cast<std::size_t>(scanStep);
+    }
+  private:
+    const Parameters::Accessor& Accessor;
+  };
+
+  class DepthLimitedParameters : public Parameters::Accessor
+  {
+  public:
+    DepthLimitedParameters(const Parameters::Accessor& delegate, std::size_t depth)
+      : Delegate(delegate)
+      , Depth(depth)
+    {
+    }
+
+    virtual bool FindIntValue(const Parameters::NameType& name, Parameters::IntType& val) const
+    {
+      if (name == RAW_PLUGIN_RECURSIVE_DEPTH)
+      {
+        val = Depth;
+        return true;
+      }
+      else
+      {
+        return Delegate.FindIntValue(name, val);
+      }
+    }
+
+    virtual bool FindStringValue(const Parameters::NameType& name, Parameters::StringType& val) const
+    {
+      return Delegate.FindStringValue(name, val);
+    }
+
+    virtual bool FindDataValue(const Parameters::NameType& name, Parameters::DataType& val) const
+    {
+      return Delegate.FindDataValue(name, val);
+    }
+
+    virtual void Process(Parameters::Visitor& visitor) const
+    {
+      return Delegate.Process(visitor);
+    }
+  private:
+    const Parameters::Accessor& Delegate;
+    const std::size_t Depth;
+  };
   class RawScaner : public ContainerPlugin
                   , public boost::enable_shared_from_this<RawScaner>
   {
@@ -97,17 +180,20 @@ namespace
       return inputData.Size() >= MIN_MINIMAL_RAW_SIZE;
     }
 
-    virtual bool Process(const Parameters::Map& commonParams, 
+    virtual bool Process(const Parameters::Accessor& commonParams, 
       const DetectParameters& detectParams,
       const MetaContainer& data, ModuleRegion& region) const
     {
+      RawPluginParameters pluginParams(commonParams);
       {
-        Parameters::IntType depth = 0;
         //do not search right after previous raw plugin
-        if ((data.Plugins->Count() && data.Plugins->GetLast()->Id() == RAW_PLUGIN_ID) ||
-            //special mark to determine if plugin is called due to recursive scan
-            (Parameters::FindByName(commonParams, RAW_PLUGIN_RECURSIVE_DEPTH, depth) &&
-             depth == Parameters::IntType(data.Plugins->Count())))
+        if (data.Plugins->Count() && data.Plugins->GetLast()->Id() == RAW_PLUGIN_ID)
+        {
+          return false;
+        }
+
+        //special mark to determine if plugin is called due to recursive scan
+        if (pluginParams.GetRecursiveDepth() == int_t(data.Plugins->Count()))
         {
           return false;
         }
@@ -119,20 +205,10 @@ namespace
       //process without offset
       ModuleRegion curRegion;
       {
-        Parameters::Map newParams(commonParams);
-        newParams[RAW_PLUGIN_RECURSIVE_DEPTH] = data.Plugins->Count();
+        const DepthLimitedParameters newParams(commonParams, data.Plugins->Count());
         enumerator.DetectModules(newParams, detectParams, data, curRegion);
       }
-      Parameters::Helper parameters(commonParams);
-      const std::size_t minRawSize = static_cast<std::size_t>(
-      parameters.GetValue(
-        Parameters::ZXTune::Core::Plugins::Raw::MIN_SIZE,
-        Parameters::ZXTune::Core::Plugins::Raw::MIN_SIZE_DEFAULT));
-      if (minRawSize < Parameters::IntType(MIN_MINIMAL_RAW_SIZE))
-      {
-        throw MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,
-          Text::RAW_ERROR_INVALID_MIN_SIZE, minRawSize, MIN_MINIMAL_RAW_SIZE);
-      }
+      const std::size_t minRawSize = pluginParams.GetMinimalSize();
 
       //check for further scanning possibility
       if (curRegion.Size != 0 &&
@@ -143,16 +219,7 @@ namespace
         return true;
       }
 
-      const std::size_t scanStep = static_cast<std::size_t>(
-        parameters.GetValue(
-          Parameters::ZXTune::Core::Plugins::Raw::SCAN_STEP,
-          Parameters::ZXTune::Core::Plugins::Raw::SCAN_STEP_DEFAULT));
-      if (scanStep < Parameters::IntType(MIN_SCAN_STEP) ||
-          scanStep > Parameters::IntType(MAX_SCAN_STEP))
-      {
-        throw MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,
-          Text::RAW_ERROR_INVALID_STEP, scanStep, MIN_SCAN_STEP, MAX_SCAN_STEP);
-      }
+      const std::size_t scanStep = pluginParams.GetScanStep();
 
       // progress-related
       const bool showMessage = detectParams.Logger != 0;
@@ -193,7 +260,7 @@ namespace
       return wasResult;
     }
 
-    IO::DataContainer::Ptr Open(const Parameters::Map& /*commonParams*/, 
+    IO::DataContainer::Ptr Open(const Parameters::Accessor& /*commonParams*/, 
       const MetaContainer& inData, const String& inPath, String& restPath) const
     {
       //do not open right after self

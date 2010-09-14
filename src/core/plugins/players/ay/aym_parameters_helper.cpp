@@ -95,12 +95,13 @@ namespace
       ThrowIfError(Module::GetFreqTable(freqTableName, FreqTable));
     }
 
-    virtual void SetParameters(const Parameters::Map& params)
+    virtual void SetParameters(const Parameters::Accessor& params)
     {
       Parameters::IntType intParam = 0;
       Parameters::StringType strParam;
+      Parameters::DataType dataParam;
       // chip type parameter
-      if (Parameters::FindByName(params, Parameters::ZXTune::Core::AYM::TYPE, intParam))
+      if (params.FindIntValue(Parameters::ZXTune::Core::AYM::TYPE, intParam))
       {
         if (intParam)
         {
@@ -112,7 +113,7 @@ namespace
         }
       }
       // interpolation parameter
-      if (Parameters::FindByName(params, Parameters::ZXTune::Core::AYM::INTERPOLATION, intParam))
+      if (params.FindIntValue(Parameters::ZXTune::Core::AYM::INTERPOLATION, intParam))
       {
         if (intParam)
         {
@@ -124,24 +125,23 @@ namespace
         }
       }
       // freqtable parameter
-      if (Parameters::FindByName(params, Parameters::ZXTune::Core::AYM::TABLE, strParam))
+      if (params.FindStringValue(Parameters::ZXTune::Core::AYM::TABLE, strParam))
       {
         // as name
         ThrowIfError(Module::GetFreqTable(strParam, FreqTable));
       }
-      else if (const Parameters::DataType* const table = Parameters::FindByName<Parameters::DataType>(params,
-        Parameters::ZXTune::Core::AYM::TABLE))
+      else if (params.FindDataValue(Parameters::ZXTune::Core::AYM::TABLE, dataParam))
       {
         // as dump
-        if (table->size() != FreqTable.size() * sizeof(FreqTable.front()))
+        if (dataParam.size() != FreqTable.size() * sizeof(FreqTable.front()))
         {
           throw MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,
-            Text::MODULE_ERROR_INVALID_FREQ_TABLE_SIZE, table->size());
+            Text::MODULE_ERROR_INVALID_FREQ_TABLE_SIZE, dataParam.size());
         }
-        std::memcpy(&FreqTable.front(), &table->front(), table->size());
+        std::memcpy(&FreqTable.front(), &dataParam.front(), dataParam.size());
       }
       // duty cycle value parameter
-      if (Parameters::FindByName(params, Parameters::ZXTune::Core::AYM::DUTY_CYCLE, intParam))
+      if (params.FindIntValue(Parameters::ZXTune::Core::AYM::DUTY_CYCLE, intParam))
       {
         //duty cycle in percents should be in range 1..99 inc
         if (intParam < 1 || intParam > 99)
@@ -152,23 +152,23 @@ namespace
         Chunk.Data[DataChunk::PARAM_DUTY_CYCLE] = static_cast<uint8_t>(intParam);
       }
       // duty cycle mask parameter
-      if (Parameters::FindByName(params, Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MASK, strParam))
+      if (params.FindStringValue(Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MASK, strParam))
       {
         // as string mask
         Chunk.Data[DataChunk::PARAM_DUTY_CYCLE_MASK] = std::accumulate(strParam.begin(), strParam.end(), 0, LetterToMask);
       }
-      else if (Parameters::FindByName(params, Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MASK, intParam))
+      else if (params.FindIntValue(Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MASK, intParam))
       {
         // as integer mask
         Chunk.Data[DataChunk::PARAM_DUTY_CYCLE_MASK] = static_cast<uint8_t>(intParam);
       }
       // layout parameter
-      if (Parameters::FindByName(params, Parameters::ZXTune::Core::AYM::LAYOUT, strParam))
+      if (params.FindStringValue(Parameters::ZXTune::Core::AYM::LAYOUT, strParam))
       {
         // as string mask
         Chunk.Data[DataChunk::PARAM_LAYOUT] = String2Layout(strParam);
       }
-      else if (Parameters::FindByName(params, Parameters::ZXTune::Core::AYM::LAYOUT, intParam))
+      else if (params.FindIntValue(Parameters::ZXTune::Core::AYM::LAYOUT, intParam))
       {
         if (intParam < static_cast<int_t>(LAYOUT_ABC) || 
             intParam >= static_cast<int_t>(LAYOUT_LAST))

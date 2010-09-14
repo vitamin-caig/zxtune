@@ -345,7 +345,7 @@ namespace
       return Player2->SetPosition(frame);
     }
 
-    virtual Error SetParameters(const Parameters::Map& params)
+    virtual Error SetParameters(const Parameters::Accessor& params)
     {
       if (const Error& e = Player1->SetParameters(params))
       {
@@ -433,7 +433,7 @@ namespace
       return FindFooter(dump, SEARCH_THRESHOLD) != 0;
     }
 
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Map& commonParams,
+    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& commonParams,
                                              const MetaContainer& container,
                                              ModuleRegion& region) const
     {
