@@ -12,11 +12,8 @@
 
 //common includes
 #include <string_helpers.h>
-//std includes
-#include <map>
 //boost includes
 #include <boost/shared_ptr.hpp>
-#include <boost/variant/get.hpp>
 #include <boost/variant/variant.hpp>
 
 //! @brief Namespace is used to keep parameters-working related types and functions
@@ -40,9 +37,6 @@ namespace Parameters
   typedef String NameType;
   //! @brief Complex variant value type
   typedef boost::variant<IntType, StringType, DataType> ValueType;
-  //! @brief %Parameters map type
-  typedef std::map<NameType, ValueType> Map;
-  //@}
 
   //! @brief Delimiter between namespaces in parameters' names
   const NameType::value_type NAMESPACE_DELIMITER = '.';
@@ -51,6 +45,12 @@ namespace Parameters
   //! @brief Mandatory data prefix
   const String::value_type DATA_PREFIX = '#';
 
+  //! @brief Converting parameter value to string
+  String ConvertToString(const ValueType& val);
+  //! @brief Converting string to parameter value
+  ValueType ConvertFromString(const String& val);
+
+  /*
   //@{
   //! @name Working with map
 
@@ -128,6 +128,7 @@ namespace Parameters
   private:
     const Map& Content;
   };
+  */
 
   //! @brief Interface to modify properties and parameters
   class Modifier

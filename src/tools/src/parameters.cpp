@@ -47,7 +47,7 @@ namespace
     return val >= 'A' ? val - 'A' + 10 : val - '0';
   }
 
-  inline void StringToData(const String& val, DataType& res)
+  inline void DataFromString(const String& val, DataType& res)
   {
     res.resize((val.size() - 1) / 2);
     String::const_iterator src = val.begin();
@@ -59,13 +59,32 @@ namespace
     }
   }
 
+  inline Char ToHex(uint_t val)
+  {
+    assert(val < 16);
+    return static_cast<Char>(val >= 10 ? val + 'A' - 10 : val + '0');
+  }
+
+  inline String DataToString(const DataType& dmp)
+  {
+    String res(dmp.size() * 2 + 1, DATA_PREFIX);
+    String::iterator dstit = res.begin();
+    for (DataType::const_iterator srcit = dmp.begin(), srclim = dmp.end(); srcit != srclim; ++srcit)
+    {
+      const DataType::value_type val = *srcit;
+      *++dstit = ToHex(val >> 4);
+      *++dstit = ToHex(val & 15);
+    }
+    return res;
+  }
+
   inline bool IsInteger(const String& str)
   {
     return !str.empty() &&
       DoTest(str.begin() + (*str.begin() == '-' || *str.begin() == '+' ? 1 : 0), str.end(), &std::isdigit);
   }
 
-  inline IntType StringToInteger(const String& val)
+  inline IntType IntegerFromString(const String& val)
   {
     IntType res = 0;
     String::const_iterator it = val.begin();
@@ -82,12 +101,35 @@ namespace
     return negate ? -res : res;
   }
 
+  inline String IntegerToString(IntType var)
+  {
+    //integer may be so long, so it's better to convert here
+    String res;
+    const bool negate = var < 0;
+
+    if (negate)
+    {
+      var =- var;
+    }
+    do
+    {
+      res += ToHex(static_cast<uint_t>(var % RADIX));
+    }
+    while (var /= RADIX);
+
+    if (negate)
+    {
+      res += '-';
+    }
+    return String(res.rbegin(), res.rend());
+  }
+
   inline bool IsQuoted(const String& str)
   {
     return !str.empty() && STRING_QUOTE == *str.begin()  && STRING_QUOTE == *str.rbegin();
   }
-
-  inline StringType StringToString(const String& val)
+                    
+  inline StringType StringFromString(const String& val)
   {
     if (IsQuoted(val))
     {
@@ -96,10 +138,16 @@ namespace
     return val;
   }
 
-  inline Char ToHex(uint_t val)
+  inline String StringToString(const StringType& str)
   {
-    assert(val < 16);
-    return static_cast<Char>(val >= 10 ? val + 'A' - 10 : val + '0');
+    if (IsData(str) || IsInteger(str) || IsQuoted(str))
+    {
+      String res = String(1, STRING_QUOTE);
+      res += str;
+      res += STRING_QUOTE;
+      return res;
+    }
+    return str;
   }
 
   class AsStringVisitor : public boost::static_visitor<String>
@@ -107,57 +155,19 @@ namespace
   public:
     String operator()(const DataType& dmp) const
     {
-      String res(dmp.size() * 2 + 1, DATA_PREFIX);
-      String::iterator dstit = res.begin();
-      for (DataType::const_iterator srcit = dmp.begin(), srclim = dmp.end(); srcit != srclim; ++srcit)
-      {
-        const DataType::value_type val = *srcit;
-        *++dstit = ToHex(val >> 4);
-        *++dstit = ToHex(val & 15);
-      }
-      return res;
+      return DataToString(dmp);
     }
 
     String operator()(const StringType& str) const
     {
-      if (IsData(str) || IsInteger(str) || IsQuoted(str))
-      {
-        String res = String(1, STRING_QUOTE);
-        res += str;
-        res += STRING_QUOTE;
-        return res;
-      }
-      return str;
+      return StringToString(str);
     }
 
     String operator()(IntType var) const
     {
-      //integer may be so long, so it's better to convert here
-      String res;
-      const bool negate = var < 0;
-
-      if (negate)
-      {
-        var =- var;
-      }
-      do
-      {
-        res += ToHex(static_cast<uint_t>(var % RADIX));
-      }
-      while (var /= RADIX);
-
-      if (negate)
-      {
-        res += '-';
-      }
-      return String(res.rbegin(), res.rend());
+      return IntegerToString(var);
     }
   };
-
-  inline bool CompareParameter(const Map::value_type& lh, const Map::value_type& rh)
-  {
-    return lh.first == rh.first ? !(lh.second == rh.second) : lh.first < rh.first;
-  }
 
   template<class T>
   bool FindByName(const std::map<NameType, T>& map, const NameType& name, T& res)
@@ -304,21 +314,18 @@ namespace
   public:
     virtual void SetIntValue(const NameType& name, IntType val)
     {
-      insert(value_type(name, Helper(val)));
+      insert(value_type(name, IntegerToString(val)));
     }
 
     virtual void SetStringValue(const NameType& name, const StringType& val)
     {
-      insert(value_type(name, Helper(val)));
+      insert(value_type(name, StringToString(val)));
     }
 
     virtual void SetDataValue(const NameType& name, const DataType& val)
     {
-      insert(value_type(name, Helper(val)));
+      insert(value_type(name, DataToString(val)));
     }
-
-  private:
-    AsStringVisitor Helper;
   };
 
   void SetValue(Modifier& modifier, const StringMap::value_type& pair)
@@ -328,17 +335,17 @@ namespace
     if (IsData(val))
     {
       DataType res;
-      StringToData(val, res);
+      DataFromString(val, res);
       modifier.SetDataValue(name, res);
     }
     else if (IsInteger(val))
     {
-      const IntType res = StringToInteger(val);
+      const IntType res = IntegerFromString(val);
       modifier.SetIntValue(name, res);
     }
     else
     {
-      modifier.SetStringValue(name, StringToString(val));
+      modifier.SetStringValue(name, StringFromString(val));
     }
   }
 }
@@ -355,66 +362,18 @@ namespace Parameters
     if (IsData(val))
     {
       Dump res;
-      StringToData(val, res);
+      DataFromString(val, res);
       return ValueType(res);
     }
     else if (IsInteger(val))
     {
-      const IntType res = StringToInteger(val);
+      const IntType res = IntegerFromString(val);
       return ValueType(res);
     }
     else
     {
-      return ValueType(StringToString(val));
+      return ValueType(StringFromString(val));
     }
-  }
-  void ConvertMap(const Map& input, StringMap& output)
-  {
-    StringMap res;
-    std::transform(input.begin(), input.end(), std::inserter(res, res.end()),
-      boost::bind(&std::make_pair<const StringMap::key_type, StringMap::mapped_type>,
-        boost::bind<Map::key_type>(&Map::value_type::first, _1),
-        boost::bind(ConvertToString, boost::bind<Map::mapped_type>(&Map::value_type::second, _1))));
-    output.swap(res);
-  }
-
-  void ConvertMap(const StringMap& input, Map& output)
-  {
-    Map res;
-    std::transform(input.begin(), input.end(), std::inserter(res, res.end()),
-      boost::bind(&std::make_pair<const Map::key_type, Map::mapped_type>,
-        boost::bind<StringMap::key_type>(&StringMap::value_type::first, _1),
-        boost::bind(ConvertFromString, boost::bind<StringMap::mapped_type>(&StringMap::value_type::second, _1))));
-
-    output.swap(res);
-  }
-
-  void DifferMaps(const Map& newOne, const Map& oldOne, Map& updates)
-  {
-    Map result;
-    std::set_difference(newOne.begin(), newOne.end(),
-      oldOne.begin(), oldOne.end(), std::inserter(result, result.end()),
-      CompareParameter);
-    updates.swap(result);
-  }
-
-  void MergeMaps(const Map& oldOne, const Map& newOne, Map& merged, bool replaceExisting)
-  {
-    Map result;
-    if (replaceExisting)
-    {
-      std::set_union(newOne.begin(), newOne.end(),
-                     oldOne.begin(), oldOne.end(),
-                     std::inserter(result, result.end()),
-                     CompareParameter);
-    }
-    else
-    {
-      std::set_union(oldOne.begin(), oldOne.end(),
-                     newOne.begin(), newOne.end(),
-                     std::inserter(result, result.end()), CompareParameter);
-    }
-    merged.swap(result);
   }
 
   void ParseStringMap(const StringMap& map, Modifier& modifier)
