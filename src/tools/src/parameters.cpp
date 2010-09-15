@@ -15,6 +15,7 @@ Author:
 #include <algorithm>
 #include <cctype>
 #include <functional>
+#include <set>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
@@ -227,54 +228,42 @@ namespace
 
   class MergedAccessor : public Accessor
   {
-    static void MergeString(String& lh, const String& rh)
-    {
-      if (lh != rh)
-      {
-        lh += '/';
-        lh += rh;
-      }
-    }
-
-    class MergedStringsVisitor : public Visitor
+    class MergedVisitor : public Visitor
     {
     public:
-      explicit MergedStringsVisitor(Visitor& delegate)
+      explicit MergedVisitor(Visitor& delegate)
         : Delegate(delegate)
       {
       }
 
       virtual void SetIntValue(const NameType& name, IntType val)
       {
-        return Delegate.SetIntValue(name, val);
+        if (DoneIntegers.insert(name).second)
+        {
+          return Delegate.SetIntValue(name, val);
+        }
       }
 
       virtual void SetStringValue(const NameType& name, const StringType& val)
       {
-        const StringMap::iterator it = Strings.find(name);
-        if (it == Strings.end())
+        if (DoneStrings.insert(name).second)
         {
-          Strings.insert(StringMap::value_type(name, val));
-        }
-        else
-        {
-          MergeString(it->second, val);
+          return Delegate.SetStringValue(name, val);
         }
       }
 
       virtual void SetDataValue(const NameType& name, const DataType& val)
       {
-        return Delegate.SetDataValue(name, val);
-      }
-
-      void ProcessRestStrings() const
-      {
-        std::for_each(Strings.begin(), Strings.end(), boost::bind(&Visitor::SetStringValue, &Delegate,
-          boost::bind(&StringMap::value_type::first, _1), boost::bind(&StringMap::value_type::second, _1)));
+        if (DoneDatas.insert(name).second)
+        {
+          return Delegate.SetDataValue(name, val);
+        }
       }
     private:
       Visitor& Delegate;
-      StringMap Strings;
+      std::set<NameType> DoneIntegers;
+      std::set<NameType> DoneStrings;
+      std::set<NameType> DoneDatas;
     };
   public:
     MergedAccessor(Accessor::Ptr first, Accessor::Ptr second)
@@ -290,19 +279,7 @@ namespace
 
     virtual bool FindStringValue(const NameType& name, StringType& val) const
     {
-      String val1, val2;
-      const bool res1 = First->FindStringValue(name, val1);
-      const bool res2 = Second->FindStringValue(name, val2);
-      if (res1 && res2)
-      {
-        MergeString(val1, val2);
-        val = val1;
-      }
-      else if (res1 != res2)
-      {
-        val = res1 ? val1 : val2;
-      }
-      return res1 || res2;
+      return First->FindStringValue(name, val) || Second->FindStringValue(name, val);
     }
 
     virtual bool FindDataValue(const NameType& name, DataType& val) const
@@ -312,10 +289,9 @@ namespace
 
     virtual void Process(Visitor& visitor) const
     {
-      MergedStringsVisitor mergedVisitor(visitor);
+      MergedVisitor mergedVisitor(visitor);
       First->Process(mergedVisitor);
       Second->Process(mergedVisitor);
-      mergedVisitor.ProcessRestStrings();
     }
   private:
     const Accessor::Ptr First;

@@ -26,9 +26,12 @@ Author:
 #include <devices/aym.h>
 #include <io/container.h>
 #include <sound/render_params.h>
+//std includes
+#include <set>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
+#include <boost/make_shared.hpp>
 //text includes
 #include <core/text/core.h>
 #include <core/text/plugins.h>
@@ -128,11 +131,116 @@ namespace
   };
 
   using namespace Parameters;
+  class MergedModuleProperties : public Accessor
+  {
+    static void MergeString(String& lh, const String& rh)
+    {
+      if (lh != rh)
+      {
+        lh += '/';
+        lh += rh;
+      }
+    }
+
+    class MergedStringsVisitor : public Visitor
+    {
+    public:
+      explicit MergedStringsVisitor(Visitor& delegate)
+        : Delegate(delegate)
+      {
+      }
+
+      virtual void SetIntValue(const NameType& name, IntType val)
+      {
+        if (DoneIntegers.insert(name).second)
+        {
+          return Delegate.SetIntValue(name, val);
+        }
+      }
+
+      virtual void SetStringValue(const NameType& name, const StringType& val)
+      {
+        const StringMap::iterator it = Strings.find(name);
+        if (it == Strings.end())
+        {
+          Strings.insert(StringMap::value_type(name, val));
+        }
+        else
+        {
+          MergeString(it->second, val);
+        }
+      }
+
+      virtual void SetDataValue(const NameType& name, const DataType& val)
+      {
+        if (DoneDatas.insert(name).second)
+        {
+          return Delegate.SetDataValue(name, val);
+        }
+      }
+
+      void ProcessRestStrings() const
+      {
+        std::for_each(Strings.begin(), Strings.end(), boost::bind(&Visitor::SetStringValue, &Delegate,
+          boost::bind(&StringMap::value_type::first, _1), boost::bind(&StringMap::value_type::second, _1)));
+      }
+    private:
+      Visitor& Delegate;
+      StringMap Strings;
+      std::set<NameType> DoneIntegers;
+      std::set<NameType> DoneDatas;
+    };
+  public:
+    MergedModuleProperties(Accessor::Ptr first, Accessor::Ptr second)
+      : First(first)
+      , Second(second)
+    {
+    }
+
+    virtual bool FindIntValue(const NameType& name, IntType& val) const
+    {
+      return First->FindIntValue(name, val) || Second->FindIntValue(name, val);
+    }
+
+    virtual bool FindStringValue(const NameType& name, StringType& val) const
+    {
+      String val1, val2;
+      const bool res1 = First->FindStringValue(name, val1);
+      const bool res2 = Second->FindStringValue(name, val2);
+      if (res1 && res2)
+      {
+        MergeString(val1, val2);
+        val = val1;
+      }
+      else if (res1 != res2)
+      {
+        val = res1 ? val1 : val2;
+      }
+      return res1 || res2;
+    }
+
+    virtual bool FindDataValue(const NameType& name, DataType& val) const
+    {
+      return First->FindDataValue(name, val) || Second->FindDataValue(name, val);
+    }
+
+    virtual void Process(Visitor& visitor) const
+    {
+      MergedStringsVisitor mergedVisitor(visitor);
+      First->Process(mergedVisitor);
+      Second->Process(mergedVisitor);
+      mergedVisitor.ProcessRestStrings();
+    }
+  private:
+    const Accessor::Ptr First;
+    const Accessor::Ptr Second;
+  };
+
   class FixedProperties : public Accessor
   {
   public:
     FixedProperties(Accessor::Ptr first, Accessor::Ptr second)
-      : Delegate(CreateMergedAccessor(first, second))
+      : Delegate(boost::make_shared<MergedModuleProperties>(first, second))
     {
     }
 

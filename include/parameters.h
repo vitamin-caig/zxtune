@@ -171,8 +171,7 @@ namespace Parameters
     virtual void Process(Visitor& visitor) const = 0;
   };
 
-  //merged all the string divided by '/' symbol
-  // other are prioritized by first
+  // All accessed properties are prioritized by the first one
   Accessor::Ptr CreateMergedAccessor(Accessor::Ptr first, Accessor::Ptr second);
 
   //! Service type to simply properties keep and give access
