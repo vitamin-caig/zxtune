@@ -192,20 +192,6 @@ namespace
   }
 }
 
-Error ParseConfigFile(const String& filename, Parameters::Map& params)
-{
-  String strVal;
-  if (const Error& err = ParseConfigFile(filename, strVal))
-  {
-    return err;
-  }
-  if (strVal.empty())
-  {
-    return Error();
-  }
-  return ParseParametersString(String(), strVal, params);
-}
-
 Error ParseConfigFile(const String& filename, Parameters::Modifier& result)
 {
   String strVal;
@@ -218,17 +204,6 @@ Error ParseConfigFile(const String& filename, Parameters::Modifier& result)
     return Error();
   }
   return ParseParametersString(String(), strVal, result);
-}
-
-Error ParseParametersString(const String& pfx, const String& str, Parameters::Map& result)
-{
-  StringMap strMap;
-  if (const Error& err = ParseParametersString(pfx, str, strMap))
-  {
-    return err;
-  }
-  Parameters::ConvertMap(strMap, result);
-  return Error();
 }
 
 Error ParseParametersString(const String& pfx, const String& str, Parameters::Modifier& result)

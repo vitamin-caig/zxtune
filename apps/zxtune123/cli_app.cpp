@@ -91,18 +91,15 @@ namespace
   class Convertor
   {
   public:
-    Convertor(const String& paramsStr, DisplayComponent& display)
+    Convertor(const Parameters::Accessor& params, DisplayComponent& display)
       : Display(display)
     {
-      assert(!paramsStr.empty());
-      Parameters::Map paramsMap;
-      ThrowIfError(ParseParametersString(String(), paramsStr, paramsMap));
       Parameters::StringType mode;
-      if (!Parameters::FindByName(paramsMap, Text::CONVERSION_PARAM_MODE, mode))
+      if (params.FindStringValue(Text::CONVERSION_PARAM_MODE, mode))
       {
         throw Error(THIS_LINE, CONVERT_PARAMETERS, Text::CONVERT_ERROR_NO_MODE);
       }
-      if (!Parameters::FindByName(paramsMap, Text::CONVERSION_PARAM_FILENAME, NameTemplate))
+      if (!params.FindStringValue(Text::CONVERSION_PARAM_FILENAME, NameTemplate))
       {
         throw Error(THIS_LINE, CONVERT_PARAMETERS, Text::CONVERT_ERROR_NO_FILENAME);
       }
@@ -192,7 +189,9 @@ namespace
 
         if (!ConvertParams.empty())
         {
-          Convertor cnv(ConvertParams, *Display);
+          const Parameters::Container::Ptr cnvParams = Parameters::Container::Create();
+          ThrowIfError(ParseParametersString(String(), ConvertParams, *cnvParams));
+          Convertor cnv(*cnvParams, *Display);
           Sourcer->ProcessItems(boost::bind(&Convertor::ProcessItem, &cnv, _1));
         }
         else

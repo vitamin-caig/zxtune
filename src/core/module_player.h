@@ -82,7 +82,7 @@ namespace ZXTune
       virtual Error SetPosition(uint_t frame) = 0;
 
       //! @brief Changing runtime parameters
-      //! @param params Map with parameters
+      //! @param params %Player-related parameters
       //! @return Error() in case of success
       virtual Error SetParameters(const Parameters::Accessor& params) = 0;
     };

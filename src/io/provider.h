@@ -12,7 +12,6 @@
 
 //common includes
 #include <iterator.h>
-#include <parameters.h>     // for Parameters::Map
 //library includes
 #include <io/container.h>   // for IO::DataContainer::Ptr
 //std includes
@@ -22,6 +21,10 @@
 
 //forward declarations
 class Error;
+namespace Parameters
+{
+  class Accessor;
+}
 
 namespace ZXTune
 {
