@@ -70,7 +70,7 @@ namespace
           Queue.pop();
         }
 
-        const Parameters::Accessor::Ptr commonParams = Parameters::Container::Ptr();        
+        const Parameters::Accessor::Ptr commonParams = Parameters::Container::Create();        
         if (const Error& e = Provider->DetectModules(path,
           commonParams,
           DetectParams))

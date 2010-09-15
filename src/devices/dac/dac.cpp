@@ -28,6 +28,8 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::DAC;
 
+  const uint_t MAX_LEVEL = 100;
+
   const int_t SILENT = 128;
 
   const uint_t NOTES = 64;
@@ -82,14 +84,14 @@ namespace
 
     Sample(const Dump& data, uint_t loop)
       : Size(data.size()), Loop(loop), Data(data)
-      , Gain(static_cast<Module::Analyze::LevelType>(std::accumulate(&Data[0], &Data[0] + Size, uint_t(0), GainAdder) / Size))
+      , Gain(MAX_LEVEL * (std::accumulate(&Data[0], &Data[0] + Size, uint_t(0), GainAdder) / Size) / std::numeric_limits<Dump::value_type>::max())
     {
     }
 
     uint_t Size;
     uint_t Loop;
     Dump Data;
-    Module::Analyze::LevelType Gain;
+    uint_t Gain;
   };
 
   //channel state type
@@ -162,15 +164,14 @@ namespace
       }
     }
 
-    Module::Analyze::Channel Analyze(Module::Analyze::LevelType maxGain) const
+    ChanState Analyze(uint_t maxGain) const
     {
-      Module::Analyze::Channel result;
+      ChanState result;
       if ( (result.Enabled = Enabled) )
       {
         result.Band = Note;
         assert(CurSample);
-        result.Level = static_cast<Module::Analyze::LevelType>(
-          CurSample->Gain * std::numeric_limits<Module::Analyze::LevelType>::max() / maxGain);
+        result.LevelInPercents = CurSample->Gain * MAX_LEVEL / maxGain;
       }
       return result;
     }
@@ -225,7 +226,7 @@ namespace
       CurrentTick = src.Tick;
     }
 
-    virtual void GetState(Module::Analyze::ChannelsState& state) const
+    virtual void GetState(ChannelsState& state) const
     {
       state.resize(State.size());
       std::transform(State.begin(), State.end(), state.begin(),
@@ -299,7 +300,7 @@ namespace
     }
   private:
     std::vector<Sample> Samples;
-    Module::Analyze::LevelType MaxGain;
+    uint_t MaxGain;
     uint64_t CurrentTick;
     boost::array<ChannelState, Channels> State;
 

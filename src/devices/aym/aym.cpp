@@ -217,12 +217,12 @@ namespace
     }
 
 
-    virtual void GetState(uint64_t ticksPerSec, Module::Analyze::ChannelsState& state) const
+    virtual void GetState(uint64_t ticksPerSec, ChannelsState& state) const
     {
+      const uint_t MAX_LEVEL = 100;
       //one channel is envelope    
-      state.resize(CHANNELS + 1);    
-      Module::Analyze::Channel& envChan = state[CHANNELS];
-      envChan = Module::Analyze::Channel();
+      ChanState& envChan = state[CHANNELS];
+      envChan = ChanState('E');
       envChan.Band = GetBandByPeriod(ticksPerSec, 16 * GetToneE());
       const uint_t noiseBand = GetBandByPeriod(ticksPerSec, GetToneN());
       const uint_t mixer = ~Mixer;
@@ -233,16 +233,16 @@ namespace
         if (volReg & DataChunk::REG_MASK_ENV)
         {        
           envChan.Enabled = true;
-          envChan.Level += std::numeric_limits<Module::Analyze::LevelType>::max() / CHANNELS;
+          envChan.LevelInPercents += MAX_LEVEL / CHANNELS;
         }
         //calculate tone channel
-        Module::Analyze::Channel& channel = state[chan];
+        ChanState& channel = state[chan];
+        channel.Name = 'A' + chan;
         const bool hasNoise = 0 != (mixer & (uint_t(DataChunk::REG_MASK_NOISEA) << chan));
         const bool hasTone = 0 != (mixer & (uint_t(DataChunk::REG_MASK_TONEA) << chan));
         if ( (channel.Enabled = hasNoise || hasTone) )
         {
-          channel.Level = static_cast<Module::Analyze::LevelType>(
-            (volReg & DataChunk::REG_MASK_VOL) * std::numeric_limits<Module::Analyze::LevelType>::max() / 15);
+          channel.LevelInPercents = (volReg & DataChunk::REG_MASK_VOL) * MAX_LEVEL / 15;
           channel.Band = hasTone
             ? GetBandByPeriod(ticksPerSec, 256 * State.Data[DataChunk::REG_TONEA_H + chan * 2] |
               State.Data[DataChunk::REG_TONEA_L + chan * 2])
@@ -524,7 +524,7 @@ namespace
       }
     }
 
-    virtual void GetState(Module::Analyze::ChannelsState& state) const
+    virtual void GetState(ChannelsState& state) const
     {
       return Generator.GetState(TicksPerSecond, state);
     }

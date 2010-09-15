@@ -80,9 +80,9 @@ namespace
       }
     }
 
-    virtual void GetState(Module::Analyze::ChannelsState& state) const
+    virtual void GetState(ChannelsState& state) const
     {
-      state.clear();
+      std::fill(state.begin(), state.end(), ChanState());
     }
 
     virtual void Reset()

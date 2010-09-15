@@ -15,7 +15,6 @@ Author:
 //common includes
 #include <types.h>
 //library includes
-#include <core/module_types.h>
 #include <sound/receiver.h>
 //std includes
 #include <memory>
@@ -114,6 +113,30 @@ namespace ZXTune
       LAYOUT_LAST
     };
 
+    //channels state
+    struct ChanState
+    {
+      ChanState()
+        : Name(' '), Enabled(), Band(), LevelInPercents()
+      {
+      }
+
+      explicit ChanState(Char name)
+        : Name(name), Enabled(), Band(), LevelInPercents()
+      {
+      }
+        
+      //Short channel abbreviation
+      Char Name;
+      //Is channel enabled to output
+      bool Enabled;
+      //Currently played tone band (up to 96)
+      uint_t Band;
+      //Currently played tone level percentage
+      uint_t LevelInPercents;
+    };
+    typedef boost::array<ChanState, CHANNELS + 1> ChannelsState;
+
     class Chip
     {
     public:
@@ -126,7 +149,7 @@ namespace ZXTune
                               const DataChunk& src,
                               Sound::MultichannelReceiver& dst) = 0;
 
-      virtual void GetState(Module::Analyze::ChannelsState& state) const = 0;
+      virtual void GetState(ChannelsState& state) const = 0;
 
       /// reset internal state to initial
       virtual void Reset() = 0;

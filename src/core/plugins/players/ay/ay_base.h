@@ -46,6 +46,14 @@ namespace ZXTune
     template<class ModuleData, class InternalState>
     class AYMPlayer : public Player
     {
+      inline static Analyze::Channel AnalyzeAYState(const AYM::ChanState& ayState)
+      {
+        Analyze::Channel res;
+        res.Enabled = ayState.Enabled;
+        res.Band = ayState.Band;
+        res.Level = ayState.LevelInPercents * std::numeric_limits<Analyze::LevelType>::max() / 100;
+        return res;
+      }
     public:
       AYMPlayer(Information::Ptr info, typename ModuleData::Ptr data,
         AYM::Chip::Ptr device, const String& defTable)
@@ -63,7 +71,10 @@ namespace ZXTune
                                      Analyze::ChannelsState& analyzeState) const
       {
         state = ModState;
-        Device->GetState(analyzeState);
+        AYM::ChannelsState devState;
+        Device->GetState(devState);
+        analyzeState.resize(devState.size());
+        std::transform(devState.begin(), devState.end(), analyzeState.begin(), &AnalyzeAYState);
         return Error();
       }
 

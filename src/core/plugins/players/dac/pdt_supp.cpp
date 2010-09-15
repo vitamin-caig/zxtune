@@ -420,6 +420,15 @@ namespace
     IO::DataContainer::Ptr RawData;
   };
     
+  inline static Analyze::Channel AnalyzeDACState(const DAC::ChanState& dacState)
+  {
+    Analyze::Channel res;
+    res.Enabled = dacState.Enabled;
+    res.Band = dacState.Band;
+    res.Level = dacState.LevelInPercents * std::numeric_limits<Analyze::LevelType>::max() / 100;
+    return res;
+  }
+
   class PDTPlayer : public Player
   {
     struct OrnamentState
@@ -475,7 +484,8 @@ namespace
                                    Analyze::ChannelsState& analyzeState) const
     {
       state = ModState;
-      analyzeState = ChanState;
+      analyzeState.resize(ChanState.size());
+      std::transform(ChanState.begin(), ChanState.end(), analyzeState.begin(), &AnalyzeDACState);
       return Error();
     }
 
@@ -492,7 +502,7 @@ namespace
       Device->GetState(ChanState);
       //count actually enabled channels
       ModState.Track.Channels = std::count_if(ChanState.begin(), ChanState.end(),
-        boost::mem_fn(&Analyze::Channel::Enabled));
+        boost::mem_fn(&DAC::ChanState::Enabled));
 
       if (Data->UpdateState(*Info, params.Looping, ModState))
       {
@@ -618,7 +628,7 @@ namespace
     PlaybackState CurrentState;
     State ModState;
     boost::array<OrnamentState, CHANNELS_COUNT> Ornaments;
-    Analyze::ChannelsState ChanState;
+    DAC::ChannelsState ChanState;
     bool Interpolation;
   };
   

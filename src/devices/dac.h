@@ -15,7 +15,6 @@ Author:
 //common includes
 #include <types.h>
 //library includes
-#include <core/module_types.h>
 #include <sound/receiver.h>
 //std includes
 #include <memory>
@@ -67,6 +66,23 @@ namespace ZXTune
       std::vector<ChannelData> Channels;
     };
 
+    //channels state
+    struct ChanState
+    {
+      ChanState()
+        : Enabled(), Band(), LevelInPercents()
+      {
+      }
+        
+      //Is channel enabled to output
+      bool Enabled;
+      //Currently played tone band (up to 96)
+      uint_t Band;
+      //Currently played tone level percentage
+      uint_t LevelInPercents;
+    };
+    typedef std::vector<ChanState> ChannelsState;
+
     class Chip
     {
     public:
@@ -82,7 +98,7 @@ namespace ZXTune
                               const DataChunk& src,
                               Sound::MultichannelReceiver& dst) = 0;
 
-      virtual void GetState(Module::Analyze::ChannelsState& state) const = 0;
+      virtual void GetState(ChannelsState& state) const = 0;
 
       /// reset internal state to initial
       virtual void Reset() = 0;
