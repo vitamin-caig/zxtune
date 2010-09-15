@@ -95,10 +95,14 @@ namespace ZXTune
                                 PlaybackState& state,
                                 Sound::MultichannelReceiver& receiver)
       {
-        AYM::DataChunk chunk;
-        AYMHelper->GetDataChunk(chunk);
+        AYMTrackSynthesizer synthesizer(*AYMHelper);
         ModState.Tick += params.ClocksPerFrame();
-        chunk.Tick = ModState.Tick;
+
+        synthesizer.InitData(ModState.Tick);
+        SynthesizeData(synthesizer);
+
+        //old part
+        AYM::DataChunk& chunk = synthesizer.GetData();
         RenderData(chunk);
 
         Device->RenderData(params, chunk, receiver);
@@ -152,7 +156,8 @@ namespace ZXTune
 
     protected:
       //result processing function
-      virtual void RenderData(AYM::DataChunk& chunk) = 0;
+      virtual void RenderData(AYM::DataChunk& chunk) {}
+      virtual void SynthesizeData(AYMTrackSynthesizer& synthesizer) {}
     protected:
       const Information::Ptr Info;
       const typename ModuleData::Ptr Data;

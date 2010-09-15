@@ -95,7 +95,7 @@ namespace
       : Display(display)
     {
       Parameters::StringType mode;
-      if (params.FindStringValue(Text::CONVERSION_PARAM_MODE, mode))
+      if (!params.FindStringValue(Text::CONVERSION_PARAM_MODE, mode))
       {
         throw Error(THIS_LINE, CONVERT_PARAMETERS, Text::CONVERT_ERROR_NO_MODE);
       }
