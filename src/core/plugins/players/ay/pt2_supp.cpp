@@ -637,11 +637,11 @@ namespace
     {
 #ifdef SELF_TEST
 //perform self-test
-      AYM::DataChunk chunk;
+      AYMTrackSynthesizer synthesizer(*AYMHelper);
       do
       {
         assert(Data->Positions.size() > ModState.Track.Position);
-        RenderData(chunk);
+        SynthesizeData(synthesizer);
       }
       while (Data->UpdateState(*Info, Sound::LOOP_NONE, ModState));
       Reset();
@@ -692,7 +692,8 @@ namespace
             switch (it->Type)
             {
             case ENVELOPE:
-              synthesizer.SetEnvelope(it->Param1, it->Param2);
+              synthesizer.SetEnvelopeType(it->Param1);
+              synthesizer.SetEnvelopeTone(it->Param2);
               dst.Envelope = true;
               break;
             case NOENVELOPE:
@@ -747,6 +748,7 @@ namespace
       {
         const int_t halftones = int_t(dst.Note) + curOrnament.GetLine(dst.PosInOrnament);
         synthesizer.SetTone(chan, halftones, dst.Sliding + curSampleLine.Vibrato);
+        synthesizer.EnableTone(chan);
       }
       //apply level
       synthesizer.SetLevel(chan, GetVolume(dst.Volume, curSampleLine.Level));

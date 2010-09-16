@@ -649,7 +649,8 @@ namespace
             case ENVELOPE:
               if (it->Param1)
               {
-                synthesizer.SetEnvelope(it->Param1, it->Param2);
+                synthesizer.SetEnvelopeType(it->Param1);
+                synthesizer.SetEnvelopeTone(it->Param2);
               }
               dst.Envelope = true;
               break;
@@ -705,6 +706,7 @@ namespace
                                 Data->Transpositions[ModState.Track.Position] +
                                 (dst.Envelope ? 0 : curOrnament.GetLine(dst.PosInOrnament));
         synthesizer.SetTone(chan, halftones, dst.TonSlide + curSampleLine.Vibrato);
+        synthesizer.EnableTone(chan);
       }
       //apply noise
       if (!curSampleLine.NoiseMask)

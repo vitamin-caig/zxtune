@@ -613,7 +613,8 @@ namespace
             switch (it->Type)
             {
             case ENVELOPE:
-              synthesizer.SetEnvelope(it->Param1, it->Param2);
+              synthesizer.SetEnvelopeType(it->Param1);
+              synthesizer.SetEnvelopeTone(it->Param2);
               dst.Envelope = true;
               break;
             case NOENVELOPE:
@@ -655,11 +656,11 @@ namespace
         synthesizer.EnableEnvelope(chan);
       }
       //apply tone
+      const int_t halftones = int_t(dst.Note) + curOrnament.GetLine(dst.PosInSample) + Data->Transpositions[ModState.Track.Position];
       if (!curSampleLine.EnvelopeMask)
       {
-        //apply tone
-        const int_t halftones = int_t(dst.Note) + curOrnament.GetLine(dst.PosInSample) + Data->Transpositions[ModState.Track.Position];
         synthesizer.SetTone(chan, halftones, curSampleLine.Effect);
+        synthesizer.EnableTone(chan);
       }
       //apply noise
       if (!curSampleLine.NoiseMask)

@@ -227,8 +227,13 @@ namespace ZXTune
     const uint_t reg = AYM::DataChunk::REG_TONEA_L + 2 * chanNum;
     Chunk.Data[reg] = static_cast<uint8_t>(tone & 0xff);
     Chunk.Data[reg + 1] = static_cast<uint8_t>(tone >> 8);
+    Chunk.Mask |= (3 << reg);
+  }
+
+  void AYMTrackSynthesizer::EnableTone(uint_t chanNum)
+  {
     Chunk.Data[AYM::DataChunk::REG_MIXER] &= ~(AYM::DataChunk::REG_MASK_TONEA << chanNum);
-    Chunk.Mask |= (3 << reg) | AYM::DataChunk::REG_MIXER;
+    Chunk.Mask |= AYM::DataChunk::REG_MIXER;
   }
 
   void AYMTrackSynthesizer::SetNoise(uint_t chanNum, int_t level)
@@ -252,12 +257,17 @@ namespace ZXTune
     Chunk.Mask |= 1 << reg;
   }
 
-  void AYMTrackSynthesizer::SetEnvelope(uint_t type, uint_t tone)
+  void AYMTrackSynthesizer::SetEnvelopeType(uint_t type)
   {
     Chunk.Data[AYM::DataChunk::REG_ENV] = static_cast<uint8_t>(type);
+    Chunk.Mask |= (1 << AYM::DataChunk::REG_ENV);
+  }
+
+  void AYMTrackSynthesizer::SetEnvelopeTone(uint_t tone)
+  {
     Chunk.Data[AYM::DataChunk::REG_TONEE_L] = static_cast<uint8_t>(tone & 0xff);
     Chunk.Data[AYM::DataChunk::REG_TONEE_H] = static_cast<uint8_t>(tone >> 8);
-    Chunk.Mask |= (1 << AYM::DataChunk::REG_ENV) | (1 << AYM::DataChunk::REG_TONEE_L) | (1 << AYM::DataChunk::REG_TONEE_H);
+    Chunk.Mask |= (1 << AYM::DataChunk::REG_TONEE_L) | (1 << AYM::DataChunk::REG_TONEE_H);
   }
 
   int_t AYMTrackSynthesizer::GetSlidingDifference(int_t halfToneFrom, int_t halfToneTo)

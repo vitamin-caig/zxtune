@@ -140,14 +140,12 @@ namespace
     CommonState()
       : EnvBase()
       , NoiseBase()
-      , NoiseAddon()
     {
     }
 
     uint_t EnvBase;
     Slider EnvSlider;
     uint_t NoiseBase;
-    int_t NoiseAddon;
   };
 
   struct VortexState
@@ -172,18 +170,18 @@ namespace
     {
 #ifdef SELF_TEST
 //perform self-test
-      AYM::DataChunk chunk;
+      AYMTrackSynthesizer synthesizer(*AYMHelper);
       do
       {
         assert(Data->Positions.size() > ModState.Track.Position);
-        RenderData(chunk);
+        SynthesizeData(synthesizer);
       }
       while (Data->UpdateState(*Info, Sound::LOOP_NONE, ModState));
       Reset();
 #endif
     }
     
-    virtual void RenderData(AYM::DataChunk& chunk)
+    virtual void SynthesizeData(AYMTrackSynthesizer& synthesizer)
     {
       const Vortex::Track::Line& line = Data->Patterns[ModState.Track.Pattern][ModState.Track.Line];
       if (0 == ModState.Track.Quirk)//begin note
@@ -264,9 +262,8 @@ namespace
               PlayerState.CommState.EnvSlider.Delta = it->Param2;
               break;
             case Vortex::ENVELOPE:
-              chunk.Data[AYM::DataChunk::REG_ENV] = static_cast<uint8_t>(it->Param1);
+              synthesizer.SetEnvelopeType(it->Param1);
               PlayerState.CommState.EnvBase = it->Param2;
-              chunk.Mask |= (1 << AYM::DataChunk::REG_ENV);
               dst.Envelope = true;
               PlayerState.CommState.EnvSlider.Reset();
               dst.PosInOrnament = 0;
@@ -287,36 +284,23 @@ namespace
           }
         }
       }
-      //permanent registers
-      chunk.Data[AYM::DataChunk::REG_MIXER] = 0;
-      chunk.Mask |= (1 << AYM::DataChunk::REG_MIXER) |
-        (1 << AYM::DataChunk::REG_VOLA) | (1 << AYM::DataChunk::REG_VOLB) | (1 << AYM::DataChunk::REG_VOLC);
       int_t envelopeAddon = 0;
       for (uint_t chan = 0; chan < AYM::CHANNELS; ++chan)
       {
-        ApplyData(chan, chunk, envelopeAddon);
+        SynthesizeChannel(chan, synthesizer, envelopeAddon);
       }
-      const int_t envPeriod = envelopeAddon + PlayerState.CommState.EnvSlider.Value + int_t(PlayerState.CommState.EnvBase);
-      chunk.Data[AYM::DataChunk::REG_TONEN] = static_cast<uint8_t>(PlayerState.CommState.NoiseBase + PlayerState.CommState.NoiseAddon) & 0x1f;
-      chunk.Data[AYM::DataChunk::REG_TONEE_L] = static_cast<uint8_t>(envPeriod & 0xff);
-      chunk.Data[AYM::DataChunk::REG_TONEE_H] = static_cast<uint8_t>(envPeriod / 256);
-      chunk.Mask |= (1 << AYM::DataChunk::REG_TONEN) |
-        (1 << AYM::DataChunk::REG_TONEE_L) | (1 << AYM::DataChunk::REG_TONEE_H);
+      const int_t envPeriod = envelopeAddon + PlayerState.CommState.EnvSlider.Value + PlayerState.CommState.EnvBase;
+      synthesizer.SetEnvelopeTone(envPeriod);
       PlayerState.CommState.EnvSlider.Update();
       //count actually enabled channels
       ModState.Track.Channels = std::count_if(PlayerState.ChanState.begin(), PlayerState.ChanState.end(),
         boost::mem_fn(&ChannelState::Enabled));
     }
     
-    void ApplyData(uint_t chan, AYM::DataChunk& chunk, int_t& envelopeAddon)
+    void SynthesizeChannel(uint_t chan, AYMTrackSynthesizer& synthesizer, int_t& envelopeAddon)
     {
       ChannelState& dst = PlayerState.ChanState[chan];
-      const uint_t toneReg = AYM::DataChunk::REG_TONEA_L + 2 * chan;
-      const uint_t volReg = AYM::DataChunk::REG_VOLA + chan;
-      const uint_t toneMsk = AYM::DataChunk::REG_MASK_TONEA << chan;
-      const uint_t noiseMsk = AYM::DataChunk::REG_MASK_NOISEA << chan;
 
-      const FrequencyTable& freqTable = AYMHelper->GetFreqTable();
       if (dst.Enabled)
       {
         const Vortex::Track::Sample& curSample = Data->Samples[dst.SampleNum];
@@ -329,14 +313,50 @@ namespace
         {
           dst.ToneAccumulator = toneAddon;
         }
-        const uint_t halfTone = static_cast<uint_t>(clamp<int_t>(int_t(dst.Note) + curOrnament.GetLine(dst.PosInOrnament), 0, 95));
-        const uint_t tone = static_cast<uint_t>(freqTable[halfTone] + dst.ToneSlider.Value + toneAddon) & 0xfff;
+        const int_t halfTones = int_t(dst.Note) + curOrnament.GetLine(dst.PosInOrnament);
+        const int_t toneOffset = dst.ToneSlider.Value + toneAddon;
+
+        //apply tone
+        synthesizer.SetTone(chan, halfTones, toneOffset);
+        if (!curSampleLine.ToneMask)
+        {
+          synthesizer.EnableTone(chan);
+        }
+        //apply level
+        synthesizer.SetLevel(chan, GetVolume(dst.Volume, clamp<int_t>(dst.VolSlide + curSampleLine.Level, 0, 15)));
+        //apply envelope
+        if (dst.Envelope && !curSampleLine.EnvMask)
+        {
+          synthesizer.EnableEnvelope(chan);
+        }
+        //apply noise
+        if (curSampleLine.NoiseMask)
+        {
+          const int_t envAddon = curSampleLine.NoiseOrEnvelopeOffset + dst.EnvSliding;
+          if (curSampleLine.NoiseOrEnvelopeOffset)
+          {
+            dst.EnvSliding = envAddon;
+          }
+          envelopeAddon += envAddon;
+        }
+        else
+        {
+          const int_t noiseAddon = curSampleLine.NoiseOrEnvelopeOffset + dst.NoiseSliding;
+          if (curSampleLine.KeepNoiseOrEnvelopeOffset)
+          {
+            dst.NoiseSliding = noiseAddon;
+          }
+          synthesizer.SetNoise(chan, (PlayerState.CommState.NoiseBase + noiseAddon) & 0x1f);
+        }
+
         if (dst.ToneSlider.Update() &&
             LIMITER != dst.SlidingTargetNote)
         {
-          const uint_t targetTone = freqTable[dst.SlidingTargetNote];
-          if ((dst.ToneSlider.Delta > 0 && tone + dst.ToneSlider.Delta > targetTone) ||
-            (dst.ToneSlider.Delta < 0 && tone + dst.ToneSlider.Delta < targetTone))
+          const int_t absoluteSlidingRange = synthesizer.GetSlidingDifference(halfTones, dst.SlidingTargetNote);
+          const int_t realSlidingRange = absoluteSlidingRange - toneOffset;
+
+          if ((dst.ToneSlider.Delta > 0 && realSlidingRange <= dst.ToneSlider.Delta) ||
+            (dst.ToneSlider.Delta < 0 && realSlidingRange <= -dst.ToneSlider.Delta))
           {
             //slided to target note
             dst.Note = dst.SlidingTargetNote;
@@ -345,35 +365,7 @@ namespace
             dst.ToneSlider.Counter = 0;
           }
         }
-        chunk.Data[toneReg] = static_cast<uint8_t>(tone & 0xff);
-        chunk.Data[toneReg + 1] = static_cast<uint8_t>(tone >> 8);
-        chunk.Mask |= 3 << toneReg;
         dst.VolSlide = clamp<int_t>(dst.VolSlide + curSampleLine.VolumeSlideAddon, -15, 15);
-        //calculate level
-        chunk.Data[volReg] = static_cast<uint8_t>(GetVolume(dst.Volume, clamp<int_t>(dst.VolSlide + curSampleLine.Level, 0, 15))
-          | uint8_t(dst.Envelope && !curSampleLine.EnvMask ? AYM::DataChunk::REG_MASK_ENV : 0));
-        //mixer
-        if (curSampleLine.ToneMask)
-        {
-          chunk.Data[AYM::DataChunk::REG_MIXER] |= toneMsk;
-        }
-        if (curSampleLine.NoiseMask)
-        {
-          chunk.Data[AYM::DataChunk::REG_MIXER] |= noiseMsk;
-          if (curSampleLine.NoiseOrEnvelopeOffset)
-          {
-            dst.EnvSliding = curSampleLine.NoiseOrEnvelopeOffset;
-          }
-          envelopeAddon += curSampleLine.NoiseOrEnvelopeOffset;
-        }
-        else
-        {
-          PlayerState.CommState.NoiseAddon = curSampleLine.NoiseOrEnvelopeOffset + dst.NoiseSliding;
-          if (curSampleLine.KeepNoiseOrEnvelopeOffset)
-          {
-            dst.NoiseSliding = PlayerState.CommState.NoiseAddon;
-          }
-        }
 
         if (++dst.PosInSample >= curSample.GetSize())
         {
@@ -386,9 +378,7 @@ namespace
       }
       else
       {
-        chunk.Data[volReg] = 0;
-        //????
-        chunk.Data[AYM::DataChunk::REG_MIXER] |= toneMsk | noiseMsk;
+        synthesizer.SetLevel(chan, 0);
       }
       if (dst.VibrateCounter > 0 && !--dst.VibrateCounter)
       {
