@@ -814,18 +814,18 @@ namespace
     {
 #ifdef SELF_TEST
 //perform self-test
-      AYM::DataChunk chunk;
+      AYMTrackSynthesizer synthesizer(*AYMHelper); 
       do
       {
         assert(Data->Positions.size() > ModState.Track.Position);
-        RenderData(chunk);
+        SynthesizeData(synthesizer);
       }
       while (Data->UpdateState(*Info, Sound::LOOP_NONE, ModState));
       Reset();
 #endif
     }
 
-    virtual void RenderData(AYM::DataChunk& chunk)
+    virtual void SynthesizeData(AYMTrackSynthesizer& synthesizer)
     {
       const ASCTrack::Line& line = Data->Patterns[ModState.Track.Pattern][ModState.Track.Line];
       //bitmask of channels to sample break
@@ -859,13 +859,12 @@ namespace
             case ENVELOPE:
               if (-1 != it->Param1)
               {
-                chunk.Data[AYM::DataChunk::REG_ENV] = static_cast<uint8_t>(it->Param1);
-                chunk.Mask |= 1 << AYM::DataChunk::REG_ENV;
+                synthesizer.SetEnvelopeType(it->Param1);
               }
               if (-1 != it->Param2)
               {
-                chunk.Data[AYM::DataChunk::REG_TONEE_L] = static_cast<uint8_t>(dst.EnvelopeTone = it->Param2);
-                chunk.Mask |= 1 << AYM::DataChunk::REG_TONEE_L;
+                dst.EnvelopeTone = it->Param2;
+                synthesizer.SetEnvelopeTone(dst.EnvelopeTone);
               }
               break;
             case ENVELOPE_ON:
@@ -899,10 +898,9 @@ namespace
             {
               dst.SlidingSteps = it->Param1;
               dst.SlidingTargetNote = it->Param2;
-              const FrequencyTable& freqTable = AYMHelper->GetFreqTable();
-              const int_t newSliding = (contSample ? dst.Sliding / 16 : 0) + freqTable[dst.Note]
-                - freqTable[dst.SlidingTargetNote];
-              dst.Glissade = -16 * newSliding / dst.SlidingSteps;
+              const int_t absoluteSliding = synthesizer.GetSlidingDifference(dst.Note, dst.SlidingTargetNote);
+              const int_t newSliding = absoluteSliding - (contSample ? dst.Sliding / 16 : 0);
+              dst.Glissade = 16 * newSliding / dst.SlidingSteps;
               break;
             }
             case AMPLITUDE_SLIDE:
@@ -953,135 +951,120 @@ namespace
           }
         }
       }
-      //permanent registers
-      chunk.Data[AYM::DataChunk::REG_MIXER] = 0;
-      chunk.Mask |= (1 << AYM::DataChunk::REG_MIXER) |
-        (1 << AYM::DataChunk::REG_VOLA) | (1 << AYM::DataChunk::REG_VOLB) | (1 << AYM::DataChunk::REG_VOLC);
       for (uint_t chan = 0; chan < AYM::CHANNELS; ++chan, breakSample >>= 1)
       {
-        ApplyData(chan, 0 != (breakSample & 1), chunk);
+        SynthesizeChannel(chan, 0 != (breakSample & 1), synthesizer);
       }
       //count actually enabled channels
       ModState.Track.Channels = static_cast<uint_t>(std::count_if(PlayerState.begin(), PlayerState.end(),
         boost::mem_fn(&ASCChannelState::Enabled)));
     }
 
-    void ApplyData(uint_t chan, bool breakSample, AYM::DataChunk& chunk)
+    void SynthesizeChannel(uint_t chan, bool breakSample, AYMTrackSynthesizer& synthesizer)
     {
       ASCChannelState& dst = PlayerState[chan];
-      const uint_t toneReg = AYM::DataChunk::REG_TONEA_L + 2 * chan;
-      const uint_t volReg = AYM::DataChunk::REG_VOLA + chan;
-      const uint_t toneMsk = AYM::DataChunk::REG_MASK_TONEA << chan;
-      const uint_t noiseMsk = AYM::DataChunk::REG_MASK_NOISEA << chan;
 
-      const FrequencyTable& freqTable = AYMHelper->GetFreqTable();
-      if (dst.Enabled)
+      if (!dst.Enabled)
       {
-        const Sample& curSample = Data->Samples[dst.CurrentSampleNum];
-        const Sample::Line& curSampleLine = curSample.GetLine(dst.PosInSample);
-        const Ornament& curOrnament = Data->Ornaments[dst.CurrentOrnamentNum];
-        const Ornament::Line& curOrnamentLine = curOrnament.GetLine(dst.PosInOrnament);
+        synthesizer.SetLevel(chan, 0);
+        return;
+      }
 
-        //calculate volume addon
-        if (dst.VolSlideCounter >= 2)
-        {
-          dst.VolSlideCounter--;
-        }
-        else if (dst.VolSlideCounter)
-        {
-          dst.VolumeAddon += dst.VolSlideAddon;
-          dst.VolSlideCounter = dst.VolSlideDelay;
-        }
-        if (ASCSample::INCVOLADD == curSampleLine.Command)
-        {
-          dst.VolumeAddon++;
-        }
-        else if (ASCSample::DECVOLADD == curSampleLine.Command)
-        {
-          dst.VolumeAddon--;
-        }
-        dst.VolumeAddon = clamp<int_t>(dst.VolumeAddon, -15, 15);
-        //calculate tone
-        dst.ToneDeviation += curSampleLine.ToneDeviation;
-        dst.NoteAddon += curOrnamentLine.NoteAddon;
-        const uint_t halfTone = static_cast<uint_t>(clamp<int_t>(int_t(dst.Note) + dst.NoteAddon, 0, 85));
-        const uint_t baseFreq = freqTable[halfTone];
-        const uint_t tone = (baseFreq + dst.ToneDeviation + dst.Sliding / 16) & 0xfff;
-        if (dst.SlidingSteps != 0)
-        {
-          if (dst.SlidingSteps > 0)
-          {
-            if (!--dst.SlidingSteps &&
-                LIMITER != dst.SlidingTargetNote) //finish slide to note
-            {
-              dst.Note = dst.SlidingTargetNote;
-              dst.SlidingTargetNote = LIMITER;
-              dst.Sliding = dst.Glissade = 0;
-            }
-          }
-          dst.Sliding += dst.Glissade;
-        }
-        chunk.Data[toneReg] = static_cast<uint8_t>(tone & 0xff);
-        chunk.Data[toneReg + 1] = static_cast<uint8_t>(tone >> 8);
-        chunk.Mask |= 3 << toneReg;
+      const Sample& curSample = Data->Samples[dst.CurrentSampleNum];
+      const Sample::Line& curSampleLine = curSample.GetLine(dst.PosInSample);
+      const Ornament& curOrnament = Data->Ornaments[dst.CurrentOrnamentNum];
+      const Ornament::Line& curOrnamentLine = curOrnament.GetLine(dst.PosInOrnament);
 
-        const bool sampleEnvelope = ASCSample::ENVELOPE == curSampleLine.Command;
-        //calculate level
-        const uint_t level = static_cast<uint_t>((dst.Volume + 1) * clamp<int_t>(dst.VolumeAddon + curSampleLine.Level, 0, 15) / 16);
-        chunk.Data[volReg] = static_cast<uint8_t>(level | (dst.Envelope && sampleEnvelope ?
-          AYM::DataChunk::REG_MASK_ENV : 0));
+      //calculate volume addon
+      if (dst.VolSlideCounter >= 2)
+      {
+        dst.VolSlideCounter--;
+      }
+      else if (dst.VolSlideCounter)
+      {
+        dst.VolumeAddon += dst.VolSlideAddon;
+        dst.VolSlideCounter = dst.VolSlideDelay;
+      }
+      if (ASCSample::INCVOLADD == curSampleLine.Command)
+      {
+        dst.VolumeAddon++;
+      }
+      else if (ASCSample::DECVOLADD == curSampleLine.Command)
+      {
+        dst.VolumeAddon--;
+      }
+      dst.VolumeAddon = clamp<int_t>(dst.VolumeAddon, -15, 15);
 
-        //calculate noise
-        dst.CurrentNoise += curOrnamentLine.NoiseAddon;
+      //calculate tone
+      dst.ToneDeviation += curSampleLine.ToneDeviation;
+      dst.NoteAddon += curOrnamentLine.NoteAddon;
+      const int_t halfTone = int_t(dst.Note) + dst.NoteAddon;
+      const int_t toneAddon = dst.ToneDeviation + dst.Sliding / 16;
+      //apply tone
+      synthesizer.SetTone(chan, halfTone, toneAddon);
 
-        //mixer
-        if (curSampleLine.ToneMask)
-        {
-          chunk.Data[AYM::DataChunk::REG_MIXER] |= toneMsk;
-        }
-        if (curSampleLine.NoiseMask && sampleEnvelope)
-        {
-          dst.EnvelopeTone += curSampleLine.Adding;
-          chunk.Data[AYM::DataChunk::REG_TONEE_L] = static_cast<uint8_t>(dst.EnvelopeTone & 0xff);
-          chunk.Mask |= 1 << AYM::DataChunk::REG_TONEE_L;
-        }
-        else
-        {
-          dst.CurrentNoise += curSampleLine.Adding;
-        }
+      //apply level
+      synthesizer.SetLevel(chan, (dst.Volume + 1) * clamp<int_t>(dst.VolumeAddon + curSampleLine.Level, 0, 15) / 16);
+      //apply envelope
+      const bool sampleEnvelope = ASCSample::ENVELOPE == curSampleLine.Command;
+      if (dst.Envelope && sampleEnvelope)
+      {
+        synthesizer.EnableEnvelope(chan);
+      }
 
-        if (curSampleLine.NoiseMask)
-        {
-          chunk.Data[AYM::DataChunk::REG_MIXER] |= noiseMsk;
-        }
-        else
-        {
-          chunk.Data[AYM::DataChunk::REG_TONEN] = static_cast<uint8_t>((dst.CurrentNoise + dst.Sliding / 256) & 0x1f);
-          chunk.Mask |= 1 << AYM::DataChunk::REG_TONEN;
-        }
+      //calculate noise
+      dst.CurrentNoise += curOrnamentLine.NoiseAddon;
 
-        //recalc positions
-        if (dst.PosInSample++ >= curSample.GetLoopLimit())
-        {
-          if (!breakSample)
-          {
-            dst.PosInSample = curSample.GetLoop();
-          }
-          else if (dst.PosInSample >= curSample.GetSize())
-          {
-            dst.Enabled = false;
-          }
-        }
-        if (dst.PosInOrnament++ >= curOrnament.GetLoopLimit())
-        {
-          dst.PosInOrnament = curOrnament.GetLoop();
-        }
+      //mixer
+      if (!curSampleLine.ToneMask)
+      {
+        synthesizer.EnableTone(chan);
+      }
+      if (curSampleLine.NoiseMask && sampleEnvelope)
+      {
+        dst.EnvelopeTone += curSampleLine.Adding;
+        synthesizer.SetEnvelopeTone(dst.EnvelopeTone);
       }
       else
       {
-        chunk.Data[volReg] = 0;
-        //????
-        chunk.Data[AYM::DataChunk::REG_MIXER] |= toneMsk | noiseMsk;
+        dst.CurrentNoise += curSampleLine.Adding;
+      }
+
+      if (!curSampleLine.NoiseMask)
+      {
+        synthesizer.SetNoise(chan, (dst.CurrentNoise + dst.Sliding / 256) & 0x1f);
+      }
+
+      //recalc positions
+      if (dst.SlidingSteps != 0)
+      {
+        if (dst.SlidingSteps > 0)
+        {
+          if (!--dst.SlidingSteps &&
+              LIMITER != dst.SlidingTargetNote) //finish slide to note
+          {
+            dst.Note = dst.SlidingTargetNote;
+            dst.SlidingTargetNote = LIMITER;
+            dst.Sliding = dst.Glissade = 0;
+          }
+        }
+        dst.Sliding += dst.Glissade;
+      }
+
+      if (dst.PosInSample++ >= curSample.GetLoopLimit())
+      {
+        if (!breakSample)
+        {
+          dst.PosInSample = curSample.GetLoop();
+        }
+        else if (dst.PosInSample >= curSample.GetSize())
+        {
+          dst.Enabled = false;
+        }
+      }
+      if (dst.PosInOrnament++ >= curOrnament.GetLoopLimit())
+      {
+        dst.PosInOrnament = curOrnament.GetLoop();
       }
     }
   };

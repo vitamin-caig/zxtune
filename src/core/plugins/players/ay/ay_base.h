@@ -102,8 +102,7 @@ namespace ZXTune
         SynthesizeData(synthesizer);
 
         //old part
-        AYM::DataChunk& chunk = synthesizer.GetData();
-        RenderData(chunk);
+        const AYM::DataChunk& chunk = synthesizer.GetData();
 
         Device->RenderData(params, chunk, receiver);
         if (Data->UpdateState(*Info, params.Looping, ModState))
@@ -140,11 +139,11 @@ namespace ZXTune
           ModState.Tick = keepTicks;
         }
         //fast forward
-        AYM::DataChunk chunk;
+        AYMTrackSynthesizer synthesizer(*AYMHelper);
         while (ModState.Track.Frame < frame)
         {
           //do not update tick for proper rendering
-          RenderData(chunk);
+          SynthesizeData(synthesizer);
           if (!Data->UpdateState(*Info, Sound::LOOP_NONE, ModState))
           {
             break;
@@ -156,7 +155,6 @@ namespace ZXTune
 
     protected:
       //result processing function
-      virtual void RenderData(AYM::DataChunk& chunk) {}
       virtual void SynthesizeData(AYMTrackSynthesizer& synthesizer) {}
     protected:
       const Information::Ptr Info;

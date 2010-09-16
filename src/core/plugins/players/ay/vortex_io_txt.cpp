@@ -950,7 +950,7 @@ namespace ZXTune
           const Vortex::Ornament& ornament = data.Ornaments[idx];
           if (ornament.GetSize())
           {
-            std::vector<int_t> data(ornament.GetLoop());
+            std::vector<int_t> data(ornament.GetSize());
             std::transform(boost::counting_iterator<uint_t>(0), boost::counting_iterator<uint_t>(data.size()),
               data.begin(), boost::bind(&Vortex::Ornament::GetLine, &ornament, _1));
             *iter = SECTION_ORNAMENT + string_cast(idx) + SECTION_END;

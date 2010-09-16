@@ -55,7 +55,7 @@ namespace ZXTune
 
     //infrastructure
     void InitData(uint64_t tickToPlay);
-    AYM::DataChunk& GetData();
+    const AYM::DataChunk& GetData() const;
 
     void SetTone(uint_t chanNum, int_t halfTones, int_t offset);
     void SetNoise(uint_t chanNum, int_t level);

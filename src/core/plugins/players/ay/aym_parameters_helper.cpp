@@ -213,7 +213,7 @@ namespace ZXTune
     Chunk.Mask |= 1 << AYM::DataChunk::REG_MIXER;
   }
 
-  AYM::DataChunk& AYMTrackSynthesizer::GetData()
+  const AYM::DataChunk& AYMTrackSynthesizer::GetData() const
   {
     return Chunk;
   }
