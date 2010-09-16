@@ -58,8 +58,8 @@ namespace ZXTune
     AYM::DataChunk& GetData();
 
     void SetTone(uint_t chanNum, int_t halfTones, int_t offset);
-    void SetNoise(uint_t chanNum, uint_t level);
-    void SetLevel(uint_t chanNum, uint_t level);
+    void SetNoise(uint_t chanNum, int_t level);
+    void SetLevel(uint_t chanNum, int_t level);
     void EnableEnvelope(uint_t chanNum);
 
     void SetEnvelope(uint_t type, uint_t tone);

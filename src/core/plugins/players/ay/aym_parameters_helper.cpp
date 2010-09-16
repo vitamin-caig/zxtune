@@ -231,17 +231,17 @@ namespace ZXTune
     Chunk.Mask |= (3 << reg) | AYM::DataChunk::REG_MIXER;
   }
 
-  void AYMTrackSynthesizer::SetNoise(uint_t chanNum, uint_t level)
+  void AYMTrackSynthesizer::SetNoise(uint_t chanNum, int_t level)
   {
-    Chunk.Data[AYM::DataChunk::REG_TONEN] = static_cast<uint8_t>(level);
+    Chunk.Data[AYM::DataChunk::REG_TONEN] = static_cast<uint8_t>(clamp<int_t>(level, 0, 31));
     Chunk.Data[AYM::DataChunk::REG_MIXER] &= ~(AYM::DataChunk::REG_MASK_NOISEA << chanNum);
     Chunk.Mask |= (1 << AYM::DataChunk::REG_MIXER) | (1 << AYM::DataChunk::REG_TONEN);
   }
 
-  void AYMTrackSynthesizer::SetLevel(uint_t chanNum, uint_t level)
+  void AYMTrackSynthesizer::SetLevel(uint_t chanNum, int_t level)
   {
     const uint_t reg = AYM::DataChunk::REG_VOLA + chanNum;
-    Chunk.Data[reg] = static_cast<uint8_t>(level);
+    Chunk.Data[reg] = static_cast<uint8_t>(clamp<int_t>(level, 0, 15));
     Chunk.Mask |= 1 << reg;
   }
 
