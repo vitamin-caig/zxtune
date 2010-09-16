@@ -270,6 +270,7 @@ namespace
       {
         ZXTune::Sound::Backend& backend(Sounder->GetBackend());
         ThrowIfError(backend.SetModule(holder));
+        ThrowIfError(backend.SetParameters(Sourcer->GetCoreOptions()));
 
         const uint_t frameDuration = Sounder->GetFrameDuration();
 

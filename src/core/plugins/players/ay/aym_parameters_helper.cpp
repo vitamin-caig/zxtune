@@ -210,7 +210,7 @@ namespace ZXTune
     Chunk.Tick = tickToPlay;
     //disable all channels
     Chunk.Data[AYM::DataChunk::REG_MIXER] = 0x3f;
-    Chunk.Mask = 1 << AYM::DataChunk::REG_MIXER;
+    Chunk.Mask |= 1 << AYM::DataChunk::REG_MIXER;
   }
 
   AYM::DataChunk& AYMTrackSynthesizer::GetData()
@@ -258,5 +258,15 @@ namespace ZXTune
     Chunk.Data[AYM::DataChunk::REG_TONEE_L] = static_cast<uint8_t>(tone & 0xff);
     Chunk.Data[AYM::DataChunk::REG_TONEE_H] = static_cast<uint8_t>(tone >> 8);
     Chunk.Mask |= (1 << AYM::DataChunk::REG_ENV) | (1 << AYM::DataChunk::REG_TONEE_L) | (1 << AYM::DataChunk::REG_TONEE_H);
+  }
+
+  int_t AYMTrackSynthesizer::GetSlidingDifference(int_t halfToneFrom, int_t halfToneTo)
+  {
+    const Module::FrequencyTable& freqTable = Helper.GetFreqTable();
+    const int_t halfFrom = clamp<int_t>(halfToneFrom, 0, freqTable.size() - 1);
+    const int_t halfTo = clamp<int_t>(halfToneTo, 0, freqTable.size() - 1);
+    const int_t toneFrom = freqTable[halfFrom];
+    const int_t toneTo = freqTable[halfTo];
+    return toneTo - toneFrom;
   }
 }

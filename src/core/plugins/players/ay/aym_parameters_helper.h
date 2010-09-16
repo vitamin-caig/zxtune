@@ -63,6 +63,8 @@ namespace ZXTune
     void EnableEnvelope(uint_t chanNum);
 
     void SetEnvelope(uint_t type, uint_t tone);
+
+    int_t GetSlidingDifference(int_t halfToneFrom, int_t halfToneTo);
   private:
     const AYM::ParametersHelper& Helper;
     AYM::DataChunk Chunk;

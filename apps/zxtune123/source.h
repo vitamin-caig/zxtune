@@ -41,6 +41,8 @@ public:
   // throw
   virtual void Initialize() = 0;
   virtual void ProcessItems(const OnItemCallback& callback) = 0;
+
+  virtual const Parameters::Accessor& GetCoreOptions() const = 0;
   
   static std::auto_ptr<SourceComponent> Create(Parameters::Accessor::Ptr configParams);
 };

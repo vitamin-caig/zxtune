@@ -648,7 +648,7 @@ namespace
 #endif
     }
 
-    virtual void RenderData(AYM::DataChunk& chunk)
+    virtual void SynthesizeData(AYMTrackSynthesizer& synthesizer)
     {
       const PT2Track::Line& line(Data->Patterns[ModState.Track.Pattern][ModState.Track.Line]);
       if (0 == ModState.Track.Quirk)//begin note
@@ -692,11 +692,7 @@ namespace
             switch (it->Type)
             {
             case ENVELOPE:
-              chunk.Data[AYM::DataChunk::REG_ENV] = static_cast<uint8_t>(it->Param1);
-              chunk.Data[AYM::DataChunk::REG_TONEE_L] = static_cast<uint8_t>(it->Param2 & 0xff);
-              chunk.Data[AYM::DataChunk::REG_TONEE_H] = static_cast<uint8_t>(it->Param2 >> 8);
-              chunk.Mask |= (1 << AYM::DataChunk::REG_ENV) |
-                (1 << AYM::DataChunk::REG_TONEE_L) | (1 << AYM::DataChunk::REG_TONEE_H);
+              synthesizer.SetEnvelope(it->Param1, it->Param2);
               dst.Envelope = true;
               break;
             case NOENVELOPE:
@@ -723,86 +719,71 @@ namespace
           }
         }
       }
-      //permanent registers
-      chunk.Data[AYM::DataChunk::REG_MIXER] = 0;
-      chunk.Mask |= (1 << AYM::DataChunk::REG_MIXER) |
-        (1 << AYM::DataChunk::REG_VOLA) | (1 << AYM::DataChunk::REG_VOLB) | (1 << AYM::DataChunk::REG_VOLC);
       for (uint_t chan = 0; chan < AYM::CHANNELS; ++chan)
       {
-        ApplyData(chan, chunk);
+        SynthesizeChannel(chan, synthesizer);
       }
       //count actually enabled channels
       ModState.Track.Channels = static_cast<uint_t>(std::count_if(PlayerState.begin(), PlayerState.end(),
         boost::mem_fn(&PT2ChannelState::Enabled)));
     }
     
-    void ApplyData(uint_t chan, AYM::DataChunk& chunk)
+    void SynthesizeChannel(uint_t chan, AYMTrackSynthesizer& synthesizer)
     {
       PT2ChannelState& dst(PlayerState[chan]);
-      const uint_t toneReg(AYM::DataChunk::REG_TONEA_L + 2 * chan);
-      const uint_t volReg = AYM::DataChunk::REG_VOLA + chan;
-      const uint_t toneMsk = AYM::DataChunk::REG_MASK_TONEA << chan;
-      const uint_t noiseMsk = AYM::DataChunk::REG_MASK_NOISEA << chan;
 
-      const FrequencyTable& freqTable(AYMHelper->GetFreqTable());
-      if (dst.Enabled && dst.SampleNum)
+      if (!dst.Enabled || !dst.SampleNum)
       {
-        const Sample& curSample = Data->Samples[dst.SampleNum];
-        const Sample::Line& curSampleLine = curSample.GetLine(dst.PosInSample);
-        const SimpleOrnament& curOrnament = Data->Ornaments[dst.OrnamentNum];
+        synthesizer.SetLevel(chan, 0);
+        return;
+      }
 
-        //calculate tone
-        const uint_t halfTone = static_cast<uint_t>(clamp<int_t>(int_t(dst.Note) + curOrnament.GetLine(dst.PosInOrnament),
-          0, freqTable.size() - 1));
-        const uint_t tone = static_cast<uint_t>(clamp<int_t>(int_t(freqTable[halfTone]) + dst.Sliding + curSampleLine.Vibrato, 0, 0xfff));
-        if (dst.SlidingTargetNote != LIMITER)
-        {
-          const uint_t nextTone(freqTable[dst.Note] + dst.Sliding + dst.Glissade);
-          const uint_t slidingTarget(freqTable[dst.SlidingTargetNote]);
-          if ((dst.Glissade > 0 && nextTone >= slidingTarget) ||
-              (dst.Glissade < 0 && nextTone <= slidingTarget))
-          {
-            dst.Note = dst.SlidingTargetNote;
-            dst.SlidingTargetNote = LIMITER;
-            dst.Sliding = dst.Glissade = 0;
-          }
-        }
-        dst.Sliding += dst.Glissade;
-        chunk.Data[toneReg] = static_cast<uint8_t>(tone & 0xff);
-        chunk.Data[toneReg + 1] = static_cast<uint8_t>(tone >> 8);
-        chunk.Mask |= 3 << toneReg;
-        //calculate level
-        chunk.Data[volReg] = static_cast<uint8_t>(GetVolume(dst.Volume, curSampleLine.Level)
-          | uint8_t(dst.Envelope ? AYM::DataChunk::REG_MASK_ENV : 0));
-        //mixer
-        if (curSampleLine.ToneOff)
-        {
-          chunk.Data[AYM::DataChunk::REG_MIXER] |= toneMsk;
-        }
-        if (curSampleLine.NoiseOff)
-        {
-          chunk.Data[AYM::DataChunk::REG_MIXER] |= noiseMsk;
-        }
-        else
-        {
-          chunk.Data[AYM::DataChunk::REG_TONEN] = static_cast<uint8_t>(clamp<int_t>(curSampleLine.Noise + dst.NoiseAdd, 0, 31));
-          chunk.Mask |= 1 << AYM::DataChunk::REG_TONEN;
-        }
+      const Sample& curSample = Data->Samples[dst.SampleNum];
+      const Sample::Line& curSampleLine = curSample.GetLine(dst.PosInSample);
+      const SimpleOrnament& curOrnament = Data->Ornaments[dst.OrnamentNum];
 
-        if (++dst.PosInSample >= curSample.GetSize())
+      //apply tone
+      if (!curSampleLine.ToneOff)
+      {
+        const int_t halftones = int_t(dst.Note) + curOrnament.GetLine(dst.PosInOrnament);
+        synthesizer.SetTone(chan, halftones, dst.Sliding + curSampleLine.Vibrato);
+      }
+      //apply level
+      synthesizer.SetLevel(chan, GetVolume(dst.Volume, curSampleLine.Level));
+      //apply envelope
+      if (dst.Envelope)
+      {
+        synthesizer.EnableEnvelope(chan);
+      }
+      //apply noise
+      if (!curSampleLine.NoiseOff)
+      {
+        synthesizer.SetNoise(chan, curSampleLine.Noise + dst.NoiseAdd);
+      }
+
+      //recalculate gliss
+      if (dst.SlidingTargetNote != LIMITER)
+      {
+        const int_t absoluteSlidingRange = synthesizer.GetSlidingDifference(dst.Note, dst.SlidingTargetNote);
+        const int_t realSlidingRange = absoluteSlidingRange - (dst.Sliding + dst.Glissade);
+
+        if ((dst.Glissade > 0 && realSlidingRange <= 0) ||
+            (dst.Glissade < 0 && realSlidingRange >= 0))
         {
-          dst.PosInSample = curSample.GetLoop();
-        }
-        if (++dst.PosInOrnament >= curOrnament.GetSize())
-        {
-          dst.PosInOrnament = curOrnament.GetLoop();
+          dst.Note = dst.SlidingTargetNote;
+          dst.SlidingTargetNote = LIMITER;
+          dst.Sliding = dst.Glissade = 0;
         }
       }
-      else
+      dst.Sliding += dst.Glissade;
+
+      if (++dst.PosInSample >= curSample.GetSize())
       {
-        chunk.Data[volReg] = 0;
-        //????
-        chunk.Data[AYM::DataChunk::REG_MIXER] |= toneMsk | noiseMsk;
+        dst.PosInSample = curSample.GetLoop();
+      }
+      if (++dst.PosInOrnament >= curOrnament.GetSize())
+      {
+        dst.PosInOrnament = curOrnament.GetLoop();
       }
     }
   };

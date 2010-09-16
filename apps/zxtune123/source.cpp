@@ -256,6 +256,11 @@ namespace
         callback));
     }
 
+    virtual const Parameters::Accessor& GetCoreOptions() const
+    {
+      return *CoreParams;
+    }
+  private:
     bool DoFilter(const ZXTune::Plugin& plugin)
     {
       const String& id = plugin.Id();
