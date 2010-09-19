@@ -7,7 +7,7 @@ Last changed:
 
 Author:
   (C) Vitamin/CAIG/2001
-  
+
   This file is a part of zxtune123 application based on zxtune library
 */
 
@@ -40,7 +40,7 @@ public:
   virtual const boost::program_options::options_description& GetOptionsDescription() const = 0;
 
   virtual void Message(const String& msg) = 0;
-  virtual void SetModule(const ZXTune::Module::Information& info, ZXTune::Module::Player::ConstWeakPtr player,
+  virtual void SetModule(const ZXTune::Module::Information& info, ZXTune::Module::Player::ConstPtr player,
     uint_t frameDuration) = 0;
 
   // begin frame, returns current frame number

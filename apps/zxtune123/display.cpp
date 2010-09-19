@@ -103,7 +103,7 @@ namespace
       }
     }
 
-    virtual void SetModule(const ZXTune::Module::Information& info, ZXTune::Module::Player::ConstWeakPtr player, uint_t frameDuration)
+    virtual void SetModule(const ZXTune::Module::Information& info, ZXTune::Module::Player::ConstPtr player, uint_t frameDuration)
     {
       if (Silent)
       {
@@ -128,7 +128,7 @@ namespace
     {
       ZXTune::Module::State curState;
       ZXTune::Module::Analyze::ChannelsState curAnalyze;
-      ThrowIfError(Player.lock()->GetPlaybackState(curState, curAnalyze));
+      ThrowIfError(Player->GetPlaybackState(curState, curAnalyze));
       if (Silent || Quiet)
       {
         return curState.Frame;
@@ -223,7 +223,7 @@ namespace
     uint_t Updatefps;
     //context
     Console::SizeType ScrSize;
-    ZXTune::Module::Player::ConstWeakPtr Player;
+    ZXTune::Module::Player::ConstPtr Player;
     uint_t TotalFrames;
     uint_t FrameDuration;
     std::vector<int_t> AnalyzerData;

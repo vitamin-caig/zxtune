@@ -34,10 +34,10 @@ namespace
 
   //playing thread and starting/stopping thread
   const std::size_t TOTAL_WORKING_THREADS = 2;
-  
+
   const uint_t MIN_MIXERS_COUNT = 1;
   const uint_t MAX_MIXERS_COUNT = 8;
-  
+
   inline void CheckChannels(uint_t chans)
   {
     if (!in_range(chans, MIN_MIXERS_COUNT, MAX_MIXERS_COUNT))
@@ -78,19 +78,19 @@ namespace
       }
       return Delegate->RenderFrame(params, state, receiver);
     }
-    
+
     virtual Error Reset()
     {
       Locker lock(Mutex);
       return Delegate->Reset();
     }
-    
+
     virtual Error SetPosition(uint_t frame)
     {
       Locker lock(Mutex);
       return Delegate->SetPosition(frame);
     }
-    
+
     virtual Error SetParameters(const Parameters::Accessor& params)
     {
       Locker lock(Mutex);
@@ -102,7 +102,7 @@ namespace
     Module::State PrevState;
     Module::Analyze::ChannelsState PrevAnalyze;
   };
-  
+
   void CopyInitialParameters(const RenderParameters& renderParams, Parameters::Modifier& commonParams)
   {
     commonParams.SetIntValue(Parameters::ZXTune::Sound::FREQUENCY, renderParams.SoundFreq);
@@ -110,7 +110,7 @@ namespace
     commonParams.SetIntValue(Parameters::ZXTune::Sound::FRAMEDURATION, renderParams.FrameDurationMicrosec);
     commonParams.SetIntValue(Parameters::ZXTune::Sound::LOOPMODE, renderParams.Looping);
   }
-  
+
   void UpdateRenderParameters(const Parameters::Accessor& params, RenderParameters& renderParams)
   {
     Parameters::IntType intVal = 0;
@@ -131,7 +131,7 @@ namespace
       renderParams.Looping = static_cast<LoopMode>(intVal);
     }
   }
-  
+
   class Unlocker
   {
   public:
@@ -146,19 +146,19 @@ namespace
   private:
     boost::mutex& Obj;
   };
-  
+
   class BufferRenderer : public Receiver
   {
   public:
     explicit BufferRenderer(std::vector<MultiSample>& buf) : Buffer(buf)
     {
     }
-    
+
     virtual void ApplyData(const MultiSample& samp)
     {
       Buffer.push_back(samp);
     }
-    
+
     void Flush()
     {
     }
@@ -236,20 +236,20 @@ namespace ZXTune
         return Error(THIS_LINE, BACKEND_SETUP_ERROR, Text::SOUND_ERROR_BACKEND_SETUP_BACKEND).AddSuberror(e);
       }
     }
-    
-    Module::Player::ConstWeakPtr BackendImpl::GetPlayer() const
+
+    Module::Player::ConstPtr BackendImpl::GetPlayer() const
     {
       Locker lock(PlayerMutex);
-      return Module::Player::ConstWeakPtr(Player);
+      return Module::Player::ConstPtr(Player);
     }
-    
+
     Error BackendImpl::Play()
     {
       try
       {
         Locker lock(PlayerMutex);
         CheckState();
-        
+
         const Backend::State prevState = CurrentState;
         if (Backend::STOPPED == prevState)
         {
@@ -283,7 +283,7 @@ namespace ZXTune
         return Error(THIS_LINE, BACKEND_NO_MEMORY, Text::SOUND_ERROR_BACKEND_NO_MEMORY);
       }
     }
-    
+
     Error BackendImpl::Pause()
     {
       try
@@ -306,7 +306,7 @@ namespace ZXTune
         return Error(THIS_LINE, BACKEND_CONTROL_ERROR, Text::SOUND_ERROR_BACKEND_PAUSE).AddSuberror(e);
       }
     }
-    
+
     Error BackendImpl::Stop()
     {
       try
@@ -363,9 +363,9 @@ namespace ZXTune
       {
         const uint_t mixChannels = data.size();
         CheckChannels(mixChannels);
-        
+
         Locker lock(PlayerMutex);
-        
+
         Mixer::Ptr& curMixer = MixersSet[mixChannels - 1];
         if (!curMixer)
         {
@@ -384,7 +384,7 @@ namespace ZXTune
         return Error(THIS_LINE, BACKEND_SETUP_ERROR, Text::SOUND_ERROR_BACKEND_SETUP_BACKEND).AddSuberror(e);
       }
     }
-    
+
     Error BackendImpl::SetFilter(Converter::Ptr converter)
     {
       try
@@ -431,32 +431,32 @@ namespace ZXTune
         return Error(THIS_LINE, BACKEND_SETUP_ERROR, Text::SOUND_ERROR_BACKEND_SETUP_BACKEND).AddSuberror(e);
       }
     }
-    
+
     //internal functions
     void BackendImpl::DoStartup()
     {
       OnStartup();
       SendSignal(Backend::MODULE_START);
     }
-    
+
     void BackendImpl::DoShutdown()
     {
       OnShutdown();
       SendSignal(Backend::MODULE_STOP);
     }
-    
+
     void BackendImpl::DoPause()
     {
       OnPause();
       SendSignal(Backend::MODULE_PAUSE);
     }
-    
+
     void BackendImpl::DoResume()
     {
       OnResume();
       SendSignal(Backend::MODULE_RESUME);
     }
-    
+
     void BackendImpl::DoBufferReady(std::vector<MultiSample>& buffer)
     {
       OnBufferReady(buffer);

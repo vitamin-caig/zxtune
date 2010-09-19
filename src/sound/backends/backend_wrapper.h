@@ -61,7 +61,7 @@ namespace ZXTune
       {
         Delegate->Stop();//TODO: warn if error
       }
-      
+
       virtual const BackendInformation& GetInformation() const
       {
         return *Information;
@@ -71,27 +71,27 @@ namespace ZXTune
       {
         return Delegate->SetModule(holder);
       }
-      
-      virtual Module::Player::ConstWeakPtr GetPlayer() const
+
+      virtual Module::Player::ConstPtr GetPlayer() const
       {
         return Delegate->GetPlayer();
       }
-      
+
       virtual Error Play()
       {
         return Delegate->Play();
       }
-      
+
       virtual Error Pause()
       {
         return Delegate->Pause();
       }
-      
+
       virtual Error Stop()
       {
         return Delegate->Stop();
       }
-      
+
       virtual Error SetPosition(uint_t frame)
       {
         return Delegate->SetPosition(frame);
@@ -126,7 +126,7 @@ namespace ZXTune
       {
         return Delegate->SetParameters(params);
       }
-      
+
     private:
       const BackendInformation::Ptr Information;
       boost::scoped_ptr<Impl> Delegate;

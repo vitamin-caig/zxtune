@@ -84,32 +84,32 @@ namespace ZXTune
       //! @return Error() in case of success
       //! @note Previously binded module playback will be stopped
       virtual Error SetModule(Module::Holder::Ptr holder) = 0;
-      
+
       //! @brief Retrieving read-only access to current module player
       //! @result Weak read-only reference to thread-safe player instance, empty if there are no binded module
-      virtual Module::Player::ConstWeakPtr GetPlayer() const = 0;
-      
+      virtual Module::Player::ConstPtr GetPlayer() const = 0;
+
       //! @brief Starting playback after stop or pause
       //! @return Error() in case of success
       //! @note No effect if module is currently played
       virtual Error Play() = 0;
-      
+
       //! @brief Pausing the playback
       //! @result Error() in case of success
       //! @note No effect if module is currently paused or stopped
       virtual Error Pause() = 0;
-      
+
       //! @brief Stopping the playback
       //! @result Error() in case of success
       //! @note No effect if module is already stopped
       virtual Error Stop() = 0;
-      
+
       //! @brief Seeking
       //! @param frame Number of specified frame
       //! @return Error() in case of success
       //! @note If parameter is out of range, playback will be stopped
       virtual Error SetPosition(uint_t frame) = 0;
-      
+
       //! @brief Current playback state
       enum State
       {
@@ -162,7 +162,7 @@ namespace ZXTune
       //! @return Error() in case of success
       //! @note By default all mixers are set to mono mixing. Use this function to change it
       virtual Error SetMixer(const std::vector<MultiGain>& data) = 0;
-      
+
       //! @brief Setting the filter to sound stream post-process
       //! @param converter Filter object
       //! @return Error() in case of success

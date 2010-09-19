@@ -33,14 +33,14 @@ namespace ZXTune
       virtual ~BackendImpl();
 
       Error SetModule(Module::Holder::Ptr holder);
-      Module::Player::ConstWeakPtr GetPlayer() const;
-      
+      Module::Player::ConstPtr GetPlayer() const;
+
       // playback control functions
       Error Play();
       Error Pause();
       Error Stop();
       Error SetPosition(uint_t frame);
-      
+
       Backend::State GetCurrentState(Error* error) const;
 
       SignalsCollector::Ptr CreateSignalsCollector(uint_t signalsMask) const;

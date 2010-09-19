@@ -148,11 +148,8 @@ namespace
         {
           continue;
         }
-        if (Module::Player::ConstPtr realPlayer = Player.lock())
-        {
-          realPlayer->GetPlaybackState(state, analyze);
-          OnUpdateState(state, analyze);
-        }
+        Player->GetPlaybackState(state, analyze);
+        OnUpdateState(state, analyze);
       }
       //notify about stop
       OnStopModule(Info.get());
@@ -198,7 +195,7 @@ namespace
   private:
     ZXTune::Sound::Backend::Ptr Backend;
     ZXTune::Module::Information::Ptr Info;
-    ZXTune::Module::Player::ConstWeakPtr Player;
+    ZXTune::Module::Player::ConstPtr Player;
   };
 }
 

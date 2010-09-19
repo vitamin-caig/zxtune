@@ -30,7 +30,7 @@ namespace ZXTune
   {
     struct RenderParameters;
   }
-  
+
   namespace Module
   {
     //! @brief %Module player interface
@@ -41,8 +41,6 @@ namespace ZXTune
       typedef boost::shared_ptr<Player> Ptr;
       //! @brief Read-only pointer type
       typedef boost::shared_ptr<const Player> ConstPtr;
-      //! @brief Read-only weak pointer type
-      typedef boost::weak_ptr<const Player> ConstWeakPtr;
 
       virtual ~Player() {}
 
