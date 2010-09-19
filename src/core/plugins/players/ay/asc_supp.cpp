@@ -802,6 +802,11 @@ namespace
     int_t Sliding;
     uint_t SlidingTargetNote;
     int_t Glissade;
+
+    void ResetBaseNoise()
+    {
+      BaseNoise = 0;
+    }
   };
 
   typedef AYMPlayer<ASCTrack::ModuleData, boost::array<ASCChannelState, AYM::CHANNELS> > ASCPlayerBase;
@@ -814,7 +819,7 @@ namespace
     {
 #ifdef SELF_TEST
 //perform self-test
-      AYMTrackSynthesizer synthesizer(*AYMHelper); 
+      AYMTrackSynthesizer synthesizer(*AYMHelper);
       do
       {
         assert(Data->Positions.size() > ModState.Track.Position);
@@ -827,146 +832,166 @@ namespace
 
     virtual void SynthesizeData(AYMTrackSynthesizer& synthesizer)
     {
-      const ASCTrack::Line& line = Data->Patterns[ModState.Track.Pattern][ModState.Track.Line];
-      //bitmask of channels to sample break
-      uint_t breakSample = 0;
-      if (0 == ModState.Track.Quirk)//begin note
+      uint_t breakSamples = 0;
+      if (IsNewLine())
       {
-        for (uint_t chan = 0; chan != line.Channels.size(); ++chan)
-        {
-          const ASCTrack::Line::Chan& src = line.Channels[chan];
-          ASCChannelState& dst = PlayerState[chan];
-          if (0 == ModState.Track.Line)
-          {
-            dst.BaseNoise = 0;
-          }
-          if (src.Empty())
-          {
-            continue;
-          }
-          if (src.Enabled)
-          {
-            dst.Enabled = *src.Enabled;
-          }
-          dst.VolSlideCounter = 0;
-          dst.SlidingSteps = 0;
-          bool contSample = false, contOrnament = false;
-          for (ASCTrack::CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end();
-            it != lim; ++it)
-          {
-            switch (it->Type)
-            {
-            case ENVELOPE:
-              if (-1 != it->Param1)
-              {
-                synthesizer.SetEnvelopeType(it->Param1);
-              }
-              if (-1 != it->Param2)
-              {
-                dst.EnvelopeTone = it->Param2;
-                synthesizer.SetEnvelopeTone(dst.EnvelopeTone);
-              }
-              break;
-            case ENVELOPE_ON:
-              dst.Envelope = true;
-              break;
-            case ENVELOPE_OFF:
-              dst.Envelope = false;
-              break;
-            case NOISE:
-              dst.BaseNoise = it->Param1;
-              break;
-            case CONT_SAMPLE:
-              contSample = true;
-              break;
-            case CONT_ORNAMENT:
-              contOrnament = true;
-              break;
-            case GLISS:
-              dst.Glissade = it->Param1;
-              dst.SlidingSteps = -1;//infinite sliding
-              break;
-            case SLIDE:
-            {
-              dst.SlidingSteps = it->Param1;
-              const int_t newSliding = (dst.Sliding | 0xf) ^ 0xf;
-              dst.Glissade = -newSliding / dst.SlidingSteps;
-              dst.Sliding = dst.Glissade * dst.SlidingSteps;
-              break;
-            }
-            case SLIDE_NOTE:
-            {
-              dst.SlidingSteps = it->Param1;
-              dst.SlidingTargetNote = it->Param2;
-              const int_t absoluteSliding = synthesizer.GetSlidingDifference(dst.Note, dst.SlidingTargetNote);
-              const int_t newSliding = absoluteSliding - (contSample ? dst.Sliding / 16 : 0);
-              dst.Glissade = 16 * newSliding / dst.SlidingSteps;
-              break;
-            }
-            case AMPLITUDE_SLIDE:
-              dst.VolSlideCounter = dst.VolSlideDelay = it->Param1;
-              dst.VolSlideAddon = it->Param2;
-              break;
-            case BREAK_SAMPLE:
-              breakSample |= uint_t(1) << chan;
-              break;
-            default:
-              assert(!"Invalid cmd");
-              break;
-            }
-          }
-          if (src.OrnamentNum)
-          {
-            dst.OrnamentNum = *src.OrnamentNum;
-          }
-          if (src.SampleNum)
-          {
-            dst.SampleNum = *src.SampleNum;
-          }
-          if (src.Note)
-          {
-            dst.Note = *src.Note;
-            dst.CurrentNoise = dst.BaseNoise;
-            if (dst.SlidingSteps <= 0)
-            {
-              dst.Sliding = 0;
-            }
-            if (!contSample)
-            {
-              dst.CurrentSampleNum = dst.SampleNum;
-              dst.PosInSample = 0;
-              dst.VolumeAddon = 0;
-              dst.ToneDeviation = 0;
-            }
-            if (!contOrnament)
-            {
-              dst.CurrentOrnamentNum = dst.OrnamentNum;
-              dst.PosInOrnament = 0;
-              dst.NoteAddon = 0;
-            }
-          }
-          if (src.Volume)
-          {
-            dst.Volume = *src.Volume;
-          }
-        }
+        GetNewLineState(synthesizer, breakSamples);
       }
-      for (uint_t chan = 0; chan < AYM::CHANNELS; ++chan, breakSample >>= 1)
-      {
-        SynthesizeChannel(chan, 0 != (breakSample & 1), synthesizer);
-      }
+      SynthesizeChannelsData(synthesizer, breakSamples);
       //count actually enabled channels
       ModState.Track.Channels = static_cast<uint_t>(std::count_if(PlayerState.begin(), PlayerState.end(),
         boost::mem_fn(&ASCChannelState::Enabled)));
     }
 
-    void SynthesizeChannel(uint_t chan, bool breakSample, AYMTrackSynthesizer& synthesizer)
+    void GetNewLineState(AYMTrackSynthesizer& synthesizer, uint_t& breakSamples)
     {
-      ASCChannelState& dst = PlayerState[chan];
+      assert(IsNewLine());
 
+      if (IsNewPattern())
+      {
+        std::for_each(PlayerState.begin(), PlayerState.end(), std::mem_fun_ref(&ASCChannelState::ResetBaseNoise));
+      }
+
+      const ASCTrack::Line& line = Data->Patterns[ModState.Track.Pattern][ModState.Track.Line];
+
+      for (uint_t chan = 0; chan != line.Channels.size(); ++chan)
+      {
+        const ASCTrack::Line::Chan& src = line.Channels[chan];
+        if (src.Empty())
+        {
+          continue;
+        }
+        GetNewChannelState(src, PlayerState[chan], synthesizer);
+        if (src.FindCommand(BREAK_SAMPLE))
+        {
+          breakSamples |= 1 << chan;
+        }
+      }
+    }
+
+    void GetNewChannelState(const ASCTrack::Line::Chan& src, ASCChannelState& dst, AYMTrackSynthesizer& synthesizer)
+    {
+      if (src.Enabled)
+      {
+        dst.Enabled = *src.Enabled;
+      }
+      dst.VolSlideCounter = 0;
+      dst.SlidingSteps = 0;
+      bool contSample = false, contOrnament = false;
+      for (ASCTrack::CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end();
+        it != lim; ++it)
+      {
+        switch (it->Type)
+        {
+        case ENVELOPE:
+          if (-1 != it->Param1)
+          {
+            synthesizer.SetEnvelopeType(it->Param1);
+          }
+          if (-1 != it->Param2)
+          {
+            dst.EnvelopeTone = it->Param2;
+            synthesizer.SetEnvelopeTone(dst.EnvelopeTone);
+          }
+          break;
+        case ENVELOPE_ON:
+          dst.Envelope = true;
+          break;
+        case ENVELOPE_OFF:
+          dst.Envelope = false;
+          break;
+        case NOISE:
+          dst.BaseNoise = it->Param1;
+          break;
+        case CONT_SAMPLE:
+          contSample = true;
+          break;
+        case CONT_ORNAMENT:
+          contOrnament = true;
+          break;
+        case GLISS:
+          dst.Glissade = it->Param1;
+          dst.SlidingSteps = -1;//infinite sliding
+          break;
+        case SLIDE:
+        {
+          dst.SlidingSteps = it->Param1;
+          const int_t newSliding = (dst.Sliding | 0xf) ^ 0xf;
+          dst.Glissade = -newSliding / dst.SlidingSteps;
+          dst.Sliding = dst.Glissade * dst.SlidingSteps;
+          break;
+        }
+        case SLIDE_NOTE:
+        {
+          dst.SlidingSteps = it->Param1;
+          dst.SlidingTargetNote = it->Param2;
+          const int_t absoluteSliding = synthesizer.GetSlidingDifference(dst.Note, dst.SlidingTargetNote);
+          const int_t newSliding = absoluteSliding - (contSample ? dst.Sliding / 16 : 0);
+          dst.Glissade = 16 * newSliding / dst.SlidingSteps;
+          break;
+        }
+        case AMPLITUDE_SLIDE:
+          dst.VolSlideCounter = dst.VolSlideDelay = it->Param1;
+          dst.VolSlideAddon = it->Param2;
+          break;
+        case BREAK_SAMPLE:
+          break;
+        default:
+          assert(!"Invalid cmd");
+          break;
+        }
+      }
+      if (src.OrnamentNum)
+      {
+        dst.OrnamentNum = *src.OrnamentNum;
+      }
+      if (src.SampleNum)
+      {
+        dst.SampleNum = *src.SampleNum;
+      }
+      if (src.Note)
+      {
+        dst.Note = *src.Note;
+        dst.CurrentNoise = dst.BaseNoise;
+        if (dst.SlidingSteps <= 0)
+        {
+          dst.Sliding = 0;
+        }
+        if (!contSample)
+        {
+          dst.CurrentSampleNum = dst.SampleNum;
+          dst.PosInSample = 0;
+          dst.VolumeAddon = 0;
+          dst.ToneDeviation = 0;
+        }
+        if (!contOrnament)
+        {
+          dst.CurrentOrnamentNum = dst.OrnamentNum;
+          dst.PosInOrnament = 0;
+          dst.NoteAddon = 0;
+        }
+      }
+      if (src.Volume)
+      {
+        dst.Volume = *src.Volume;
+      }
+    }
+
+    void SynthesizeChannelsData(AYMTrackSynthesizer& synthesizer, uint_t breakSamples)
+    {
+      for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
+      {
+        const bool breakSample = 0 != (breakSamples & (1 << chan));
+        const AYMChannelSynthesizer& chanSynt = synthesizer.GetChannel(chan);
+        SynthesizeChannel(PlayerState[chan], breakSample, chanSynt, synthesizer);
+      }
+    }
+
+    void SynthesizeChannel(ASCChannelState& dst, bool breakSample, const AYMChannelSynthesizer& chanSynt, AYMTrackSynthesizer& trackSynt)
+    {
       if (!dst.Enabled)
       {
-        synthesizer.SetLevel(chan, 0);
+        chanSynt.SetLevel(0);
         return;
       }
 
@@ -1001,15 +1026,15 @@ namespace
       const int_t halfTone = int_t(dst.Note) + dst.NoteAddon;
       const int_t toneAddon = dst.ToneDeviation + dst.Sliding / 16;
       //apply tone
-      synthesizer.SetTone(chan, halfTone, toneAddon);
+      chanSynt.SetTone(halfTone, toneAddon);
 
       //apply level
-      synthesizer.SetLevel(chan, (dst.Volume + 1) * clamp<int_t>(dst.VolumeAddon + curSampleLine.Level, 0, 15) / 16);
+      chanSynt.SetLevel((dst.Volume + 1) * clamp<int_t>(dst.VolumeAddon + curSampleLine.Level, 0, 15) / 16);
       //apply envelope
       const bool sampleEnvelope = ASCSample::ENVELOPE == curSampleLine.Command;
       if (dst.Envelope && sampleEnvelope)
       {
-        synthesizer.EnableEnvelope(chan);
+        chanSynt.EnableEnvelope();
       }
 
       //calculate noise
@@ -1018,12 +1043,12 @@ namespace
       //mixer
       if (!curSampleLine.ToneMask)
       {
-        synthesizer.EnableTone(chan);
+        chanSynt.EnableTone();
       }
       if (curSampleLine.NoiseMask && sampleEnvelope)
       {
         dst.EnvelopeTone += curSampleLine.Adding;
-        synthesizer.SetEnvelopeTone(dst.EnvelopeTone);
+        trackSynt.SetEnvelopeTone(dst.EnvelopeTone);
       }
       else
       {
@@ -1032,7 +1057,8 @@ namespace
 
       if (!curSampleLine.NoiseMask)
       {
-        synthesizer.SetNoise(chan, (dst.CurrentNoise + dst.Sliding / 256) & 0x1f);
+        trackSynt.SetNoise((dst.CurrentNoise + dst.Sliding / 256) & 0x1f);
+        chanSynt.EnableNoise();
       }
 
       //recalc positions

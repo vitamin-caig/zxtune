@@ -142,7 +142,7 @@ namespace
     {
       return sizeof(*this) + (Size - 1) * sizeof(Data[0]);
     }
-    
+
     static uint_t GetMinimalSize()
     {
       return sizeof(PT2Sample) - sizeof(PT2Sample::Line);
@@ -153,7 +153,7 @@ namespace
       //nnnnnsTN
       //aaaaHHHH
       //LLLLLLLL
-      
+
       //HHHHLLLLLLLL - vibrato
       //s - vibrato sign
       //a - level
@@ -163,27 +163,27 @@ namespace
       uint8_t NoiseAndFlags;
       uint8_t LevelHiVibrato;
       uint8_t LoVibrato;
-      
+
       bool GetNoiseMask() const
       {
         return 0 != (NoiseAndFlags & 1);
       }
-      
+
       bool GetToneMask() const
       {
         return 0 != (NoiseAndFlags & 2);
       }
-      
+
       uint_t GetNoise() const
       {
         return NoiseAndFlags >> 3;
       }
-      
+
       uint_t GetLevel() const
       {
         return LevelHiVibrato >> 4;
       }
-      
+
       int_t GetVibrato() const
       {
         const int_t val(((LevelHiVibrato & 0x0f) << 8) | LoVibrato);
@@ -289,7 +289,7 @@ namespace
     rawSize = std::max<std::size_t>(rawSize, off + sample->GetSize());
     return tmp;
   }
-  
+
   inline SimpleOrnament ParseOrnament(const IO::FastDump& data, uint16_t offset, std::size_t& rawSize)
   {
     const uint_t off = fromLE(offset);
@@ -322,13 +322,13 @@ namespace
   };
 
   typedef TrackingSupport<AYM::CHANNELS, Sample> PT2Track;
-  
+
   Player::Ptr CreatePT2Player(Information::Ptr info, PT2Track::ModuleData::Ptr data, AYM::Chip::Ptr device);
 
   class PT2Holder : public Holder
   {
     typedef boost::array<PatternCursor, AYM::CHANNELS> PatternCursors;
-    
+
     void ParsePattern(const IO::FastDump& data
       , PatternCursors& cursors
       , PT2Track::Line& line
@@ -501,7 +501,7 @@ namespace
       {
         Log::ParamPrefixedCollector patternWarner(*warner, Text::PATTERN_WARN_PREFIX, index);
         PT2Track::Pattern& pat = Data->Patterns[index];
-        
+
         PatternCursors cursors;
         std::transform(pattern->Offsets.begin(), pattern->Offsets.end(), cursors.begin(), &fromLE<uint16_t>);
         pat.reserve(MAX_PATTERN_SIZE);
@@ -544,7 +544,7 @@ namespace
       //fill region
       region.Size = rawSize;
       RawData = region.Extract(*container.Data);
-      
+
       //meta properties
       const ModuleProperties::Ptr props = ModuleProperties::Create(PT2_PLUGIN_ID);
       {
@@ -570,12 +570,12 @@ namespace
     {
       return Info;
     }
-    
+
     virtual Player::Ptr CreatePlayer() const
     {
       return CreatePT2Player(Info, Data, AYM::CreateChip());
     }
-    
+
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
     {
       using namespace Conversion;
@@ -650,92 +650,112 @@ namespace
 
     virtual void SynthesizeData(AYMTrackSynthesizer& synthesizer)
     {
-      const PT2Track::Line& line(Data->Patterns[ModState.Track.Pattern][ModState.Track.Line]);
-      if (0 == ModState.Track.Quirk)//begin note
+      if (IsNewLine())
       {
-        for (uint_t chan = 0; chan != line.Channels.size(); ++chan)
-        {
-          const PT2Track::Line::Chan& src(line.Channels[chan]);
-          PT2ChannelState& dst(PlayerState[chan]);
-          if (src.Enabled)
-          {
-            if (!(dst.Enabled = *src.Enabled))
-            {
-              dst.Sliding = dst.Glissade = 0;
-              dst.SlidingTargetNote = LIMITER;
-            }
-            dst.PosInSample = dst.PosInOrnament = 0;
-          }
-          if (src.Note)
-          {
-            assert(src.Enabled);
-            dst.Note = *src.Note;
-            dst.Sliding = dst.Glissade = 0;
-            dst.SlidingTargetNote = LIMITER;
-          }
-          if (src.SampleNum)
-          {
-            dst.SampleNum = *src.SampleNum;
-            dst.PosInSample = 0;
-          }
-          if (src.OrnamentNum)
-          {
-            dst.OrnamentNum = *src.OrnamentNum;
-            dst.PosInOrnament = 0;
-          }
-          if (src.Volume)
-          {
-            dst.Volume = *src.Volume;
-          }
-          for (PT2Track::CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
-          {
-            switch (it->Type)
-            {
-            case ENVELOPE:
-              synthesizer.SetEnvelopeType(it->Param1);
-              synthesizer.SetEnvelopeTone(it->Param2);
-              dst.Envelope = true;
-              break;
-            case NOENVELOPE:
-              dst.Envelope = false;
-              break;
-            case NOISE_ADD:
-              dst.NoiseAdd = it->Param1;
-              break;
-            case GLISS_NOTE:
-              dst.Sliding = 0;
-              dst.Glissade = it->Param1;
-              dst.SlidingTargetNote = it->Param2;
-              break;
-            case GLISS:
-              dst.Glissade = it->Param1;
-              dst.SlidingTargetNote = LIMITER;
-              break;
-            case NOGLISS:
-              dst.Glissade = 0;
-              break;
-            default:
-              assert(!"Invalid command");
-            }
-          }
-        }
+        GetNewLineState(synthesizer);
       }
-      for (uint_t chan = 0; chan < AYM::CHANNELS; ++chan)
-      {
-        SynthesizeChannel(chan, synthesizer);
-      }
+      SynthesizeChannelsData(synthesizer);
       //count actually enabled channels
       ModState.Track.Channels = static_cast<uint_t>(std::count_if(PlayerState.begin(), PlayerState.end(),
         boost::mem_fn(&PT2ChannelState::Enabled)));
     }
-    
-    void SynthesizeChannel(uint_t chan, AYMTrackSynthesizer& synthesizer)
-    {
-      PT2ChannelState& dst(PlayerState[chan]);
 
+    void GetNewLineState(AYMTrackSynthesizer& synthesizer)
+    {
+      assert(IsNewLine());
+
+      const PT2Track::Line& line(Data->Patterns[ModState.Track.Pattern][ModState.Track.Line]);
+
+      for (uint_t chan = 0; chan != line.Channels.size(); ++chan)
+      {
+        const PT2Track::Line::Chan& src(line.Channels[chan]);
+        if (src.Empty())
+        {
+          continue;
+        }
+        GetNewChannelState(src, PlayerState[chan], synthesizer);
+      }
+    }
+
+    void GetNewChannelState(const PT2Track::Line::Chan& src, PT2ChannelState& dst, AYMTrackSynthesizer& synthesizer)
+    {
+      if (src.Enabled)
+      {
+        if (!(dst.Enabled = *src.Enabled))
+        {
+          dst.Sliding = dst.Glissade = 0;
+          dst.SlidingTargetNote = LIMITER;
+        }
+        dst.PosInSample = dst.PosInOrnament = 0;
+      }
+      if (src.Note)
+      {
+        assert(src.Enabled);
+        dst.Note = *src.Note;
+        dst.Sliding = dst.Glissade = 0;
+        dst.SlidingTargetNote = LIMITER;
+      }
+      if (src.SampleNum)
+      {
+        dst.SampleNum = *src.SampleNum;
+        dst.PosInSample = 0;
+      }
+      if (src.OrnamentNum)
+      {
+        dst.OrnamentNum = *src.OrnamentNum;
+        dst.PosInOrnament = 0;
+      }
+      if (src.Volume)
+      {
+        dst.Volume = *src.Volume;
+      }
+      for (PT2Track::CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
+      {
+        switch (it->Type)
+        {
+        case ENVELOPE:
+          synthesizer.SetEnvelopeType(it->Param1);
+          synthesizer.SetEnvelopeTone(it->Param2);
+          dst.Envelope = true;
+          break;
+        case NOENVELOPE:
+          dst.Envelope = false;
+          break;
+        case NOISE_ADD:
+          dst.NoiseAdd = it->Param1;
+          break;
+        case GLISS_NOTE:
+          dst.Sliding = 0;
+          dst.Glissade = it->Param1;
+          dst.SlidingTargetNote = it->Param2;
+          break;
+        case GLISS:
+          dst.Glissade = it->Param1;
+          dst.SlidingTargetNote = LIMITER;
+          break;
+        case NOGLISS:
+          dst.Glissade = 0;
+          break;
+        default:
+          assert(!"Invalid command");
+        }
+      }
+    }
+
+    void SynthesizeChannelsData(AYMTrackSynthesizer& synthesizer)
+    {
+      for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
+      {
+        const AYMChannelSynthesizer& chanSynt = synthesizer.GetChannel(chan);
+        SynthesizeChannel(PlayerState[chan], chanSynt, synthesizer);
+      }
+    }
+
+    void SynthesizeChannel(PT2ChannelState& dst, const AYMChannelSynthesizer& chanSynth, AYMTrackSynthesizer& trackSynt)
+    {
       if (!dst.Enabled || !dst.SampleNum)
       {
-        synthesizer.SetLevel(chan, 0);
+        chanSynth.SetLevel(0);
         return;
       }
 
@@ -747,26 +767,27 @@ namespace
       if (!curSampleLine.ToneOff)
       {
         const int_t halftones = int_t(dst.Note) + curOrnament.GetLine(dst.PosInOrnament);
-        synthesizer.SetTone(chan, halftones, dst.Sliding + curSampleLine.Vibrato);
-        synthesizer.EnableTone(chan);
+        chanSynth.SetTone(halftones, dst.Sliding + curSampleLine.Vibrato);
+        chanSynth.EnableTone();
       }
       //apply level
-      synthesizer.SetLevel(chan, GetVolume(dst.Volume, curSampleLine.Level));
+      chanSynth.SetLevel(GetVolume(dst.Volume, curSampleLine.Level));
       //apply envelope
       if (dst.Envelope)
       {
-        synthesizer.EnableEnvelope(chan);
+        chanSynth.EnableEnvelope();
       }
       //apply noise
       if (!curSampleLine.NoiseOff)
       {
-        synthesizer.SetNoise(chan, curSampleLine.Noise + dst.NoiseAdd);
+        trackSynt.SetNoise(curSampleLine.Noise + dst.NoiseAdd);
+        chanSynth.EnableNoise();
       }
 
       //recalculate gliss
       if (dst.SlidingTargetNote != LIMITER)
       {
-        const int_t absoluteSlidingRange = synthesizer.GetSlidingDifference(dst.Note, dst.SlidingTargetNote);
+        const int_t absoluteSlidingRange = trackSynt.GetSlidingDifference(dst.Note, dst.SlidingTargetNote);
         const int_t realSlidingRange = absoluteSlidingRange - (dst.Sliding + dst.Glissade);
 
         if ((dst.Glissade > 0 && realSlidingRange <= 0) ||
@@ -888,7 +909,7 @@ namespace
     }
     return true;
   }
-  
+
   Holder::Ptr CreatePT2Module(Plugin::Ptr plugin, const MetaContainer& container, ModuleRegion& region)
   {
     try

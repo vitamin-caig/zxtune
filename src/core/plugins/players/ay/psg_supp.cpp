@@ -299,7 +299,7 @@ namespace
       return res;
     }
 
-    void RenderData(AYM::DataChunk& chunk)
+    void SynthesizeData(AYMTrackSynthesizer& synthesizer)
     {
       const AYM::DataChunk& data = Data->Dump[ModState.Track.Frame];
       //collect state
@@ -311,10 +311,8 @@ namespace
           PlayerState.Mask |= uint_t(1) << reg;
         }
       }
-      //copy result
-      std::copy(PlayerState.Data.begin(), PlayerState.Data.begin() + AYM::DataChunk::REG_ENV + 1, chunk.Data.begin());
-      chunk.Mask &= ~AYM::DataChunk::MASK_ALL_REGISTERS;
-      chunk.Mask |= PlayerState.Mask & AYM::DataChunk::MASK_ALL_REGISTERS;
+      //apply result
+      synthesizer.SetRawChunk(PlayerState);
       //reset envelope mask
       PlayerState.Mask &= ~(uint_t(1) << AYM::DataChunk::REG_ENV);
       //count enabled channels

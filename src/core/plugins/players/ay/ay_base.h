@@ -101,7 +101,6 @@ namespace ZXTune
         synthesizer.InitData(ModState.Tick);
         SynthesizeData(synthesizer);
 
-        //old part
         const AYM::DataChunk& chunk = synthesizer.GetData();
 
         Device->RenderData(params, chunk, receiver);
@@ -154,8 +153,17 @@ namespace ZXTune
       }
 
     protected:
+      bool IsNewLine() const
+      {
+        return 0 == ModState.Track.Quirk;
+      }
+
+      bool IsNewPattern() const
+      {
+        return 0 == ModState.Track.Line && IsNewLine();
+      }
       //result processing function
-      virtual void SynthesizeData(AYMTrackSynthesizer& synthesizer) {}
+      virtual void SynthesizeData(AYMTrackSynthesizer& synthesizer) = 0;
     protected:
       const Information::Ptr Info;
       const typename ModuleData::Ptr Data;

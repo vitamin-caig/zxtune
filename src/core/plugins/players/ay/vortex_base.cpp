@@ -24,11 +24,11 @@ namespace
 {
   using namespace ZXTune;
   using namespace ZXTune::Module;
-  
+
   const uint_t LIMITER = ~uint_t(0);
 
   typedef boost::array<uint8_t, 256> VolumeTable;
-  
+
   //Volume table of Pro Tracker 3.3x - 3.4x
   const VolumeTable Vol33_34 =
   { {
@@ -180,213 +180,235 @@ namespace
       Reset();
 #endif
     }
-    
+
     virtual void SynthesizeData(AYMTrackSynthesizer& synthesizer)
     {
-      const Vortex::Track::Line& line = Data->Patterns[ModState.Track.Pattern][ModState.Track.Line];
-      if (0 == ModState.Track.Quirk)//begin note
+      if (IsNewLine())
       {
-        if (0 == ModState.Track.Line)//pattern begin
-        {
-          PlayerState.CommState.NoiseBase = 0;
-        }
-        for (uint_t chan = 0; chan != line.Channels.size(); ++chan)
-        {
-          const Vortex::Track::Line::Chan& src = line.Channels[chan];
-          ChannelState& dst = PlayerState.ChanState[chan];
-          if (src.Enabled)
-          {
-            dst.PosInSample = dst.PosInOrnament = 0;
-            dst.VolSlide = dst.EnvSliding = dst.NoiseSliding = 0;
-            dst.ToneSlider.Reset();
-            dst.ToneAccumulator = 0;
-            dst.VibrateCounter = 0;
-            dst.Enabled = *src.Enabled;
-          }
-          if (src.Note)
-          {
-            dst.Note = *src.Note;
-          }
-          if (src.SampleNum)
-          {
-            dst.SampleNum = *src.SampleNum;
-          }
-          if (src.OrnamentNum)
-          {
-            dst.OrnamentNum = *src.OrnamentNum;
-            dst.PosInOrnament = 0;
-          }
-          if (src.Volume)
-          {
-            dst.Volume = *src.Volume;
-          }
-          for (Vortex::Track::CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
-          {
-            switch (it->Type)
-            {
-            case Vortex::GLISS:
-              dst.ToneSlider.Period = dst.ToneSlider.Counter = it->Param1;
-              dst.ToneSlider.Delta = it->Param2;
-              dst.SlidingTargetNote = LIMITER;
-              dst.VibrateCounter = 0;
-              if (0 == dst.ToneSlider.Counter && Version >= 7)
-              {
-                ++dst.ToneSlider.Counter;
-              }
-              break;
-            case Vortex::GLISS_NOTE:
-              dst.ToneSlider.Period = dst.ToneSlider.Counter = it->Param1;
-              dst.ToneSlider.Delta = it->Param2;
-              dst.SlidingTargetNote = it->Param3;
-              dst.VibrateCounter = 0;
-              //tone up                                     freq up
-              if (bool(dst.Note < dst.SlidingTargetNote) != bool(dst.ToneSlider.Delta < 0))
-              {
-                dst.ToneSlider.Delta = -dst.ToneSlider.Delta;
-              }
-              break;
-            case Vortex::SAMPLEOFFSET:
-              dst.PosInSample = it->Param1;
-              break;
-            case Vortex::ORNAMENTOFFSET:
-              dst.PosInOrnament = it->Param1;
-              break;
-            case Vortex::VIBRATE:
-              dst.VibrateCounter = dst.VibrateOn = it->Param1;
-              dst.VibrateOff = it->Param2;
-              dst.ToneSlider.Value = 0;
-              dst.ToneSlider.Counter = 0;
-              break;
-            case Vortex::SLIDEENV:
-              PlayerState.CommState.EnvSlider.Period = PlayerState.CommState.EnvSlider.Counter = it->Param1;
-              PlayerState.CommState.EnvSlider.Delta = it->Param2;
-              break;
-            case Vortex::ENVELOPE:
-              synthesizer.SetEnvelopeType(it->Param1);
-              PlayerState.CommState.EnvBase = it->Param2;
-              dst.Envelope = true;
-              PlayerState.CommState.EnvSlider.Reset();
-              dst.PosInOrnament = 0;
-              break;
-            case Vortex::NOENVELOPE:
-              dst.Envelope = false;
-              dst.PosInOrnament = 0;
-              break;
-            case Vortex::NOISEBASE:
-              PlayerState.CommState.NoiseBase = it->Param1;
-              break;
-            case Vortex::TEMPO:
-              //ignore
-              break;
-            default:
-              assert(!"Invalid command");
-            }
-          }
-        }
+        GetNewLineState(synthesizer);
       }
-      int_t envelopeAddon = 0;
-      for (uint_t chan = 0; chan < AYM::CHANNELS; ++chan)
-      {
-        SynthesizeChannel(chan, synthesizer, envelopeAddon);
-      }
-      const int_t envPeriod = envelopeAddon + PlayerState.CommState.EnvSlider.Value + PlayerState.CommState.EnvBase;
-      synthesizer.SetEnvelopeTone(envPeriod);
-      PlayerState.CommState.EnvSlider.Update();
+      SynthesizeChannelsData(synthesizer);
       //count actually enabled channels
       ModState.Track.Channels = std::count_if(PlayerState.ChanState.begin(), PlayerState.ChanState.end(),
         boost::mem_fn(&ChannelState::Enabled));
     }
-    
-    void SynthesizeChannel(uint_t chan, AYMTrackSynthesizer& synthesizer, int_t& envelopeAddon)
+
+    void GetNewLineState(AYMTrackSynthesizer& synthesizer)
     {
-      ChannelState& dst = PlayerState.ChanState[chan];
+      assert(IsNewLine());
 
-      if (dst.Enabled)
+      if (IsNewPattern())
       {
-        const Vortex::Track::Sample& curSample = Data->Samples[dst.SampleNum];
-        const Vortex::Track::Sample::Line& curSampleLine = curSample.GetLine(dst.PosInSample);
-        const Vortex::Track::Ornament& curOrnament = Data->Ornaments[dst.OrnamentNum];
+        PlayerState.CommState.NoiseBase = 0;
+      }
 
-        //calculate tone
-        const int_t toneAddon = curSampleLine.ToneOffset + dst.ToneAccumulator;
-        if (curSampleLine.KeepToneOffset)
+      const Vortex::Track::Line& line = Data->Patterns[ModState.Track.Pattern][ModState.Track.Line];
+      for (uint_t chan = 0; chan != line.Channels.size(); ++chan)
+      {
+        const Vortex::Track::Line::Chan& src = line.Channels[chan];
+        if (src.Empty())
         {
-          dst.ToneAccumulator = toneAddon;
+          continue;
         }
-        const int_t halfTones = int_t(dst.Note) + curOrnament.GetLine(dst.PosInOrnament);
-        const int_t toneOffset = dst.ToneSlider.Value + toneAddon;
+        GetNewChannelState(src, PlayerState.ChanState[chan], synthesizer);
+      }
+    }
 
-        //apply tone
-        synthesizer.SetTone(chan, halfTones, toneOffset);
-        if (!curSampleLine.ToneMask)
+    void GetNewChannelState(const Vortex::Track::Line::Chan& src, ChannelState& dst, AYMTrackSynthesizer& synthesizer)
+    {
+      if (src.Enabled)
+      {
+        dst.PosInSample = dst.PosInOrnament = 0;
+        dst.VolSlide = dst.EnvSliding = dst.NoiseSliding = 0;
+        dst.ToneSlider.Reset();
+        dst.ToneAccumulator = 0;
+        dst.VibrateCounter = 0;
+        dst.Enabled = *src.Enabled;
+      }
+      if (src.Note)
+      {
+        dst.Note = *src.Note;
+      }
+      if (src.SampleNum)
+      {
+        dst.SampleNum = *src.SampleNum;
+      }
+      if (src.OrnamentNum)
+      {
+        dst.OrnamentNum = *src.OrnamentNum;
+        dst.PosInOrnament = 0;
+      }
+      if (src.Volume)
+      {
+        dst.Volume = *src.Volume;
+      }
+      for (Vortex::Track::CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
+      {
+        switch (it->Type)
         {
-          synthesizer.EnableTone(chan);
-        }
-        //apply level
-        synthesizer.SetLevel(chan, GetVolume(dst.Volume, clamp<int_t>(dst.VolSlide + curSampleLine.Level, 0, 15)));
-        //apply envelope
-        if (dst.Envelope && !curSampleLine.EnvMask)
-        {
-          synthesizer.EnableEnvelope(chan);
-        }
-        //apply noise
-        if (curSampleLine.NoiseMask)
-        {
-          const int_t envAddon = curSampleLine.NoiseOrEnvelopeOffset + dst.EnvSliding;
-          if (curSampleLine.NoiseOrEnvelopeOffset)
+        case Vortex::GLISS:
+          dst.ToneSlider.Period = dst.ToneSlider.Counter = it->Param1;
+          dst.ToneSlider.Delta = it->Param2;
+          dst.SlidingTargetNote = LIMITER;
+          dst.VibrateCounter = 0;
+          if (0 == dst.ToneSlider.Counter && Version >= 7)
           {
-            dst.EnvSliding = envAddon;
+            ++dst.ToneSlider.Counter;
           }
-          envelopeAddon += envAddon;
-        }
-        else
-        {
-          const int_t noiseAddon = curSampleLine.NoiseOrEnvelopeOffset + dst.NoiseSliding;
-          if (curSampleLine.KeepNoiseOrEnvelopeOffset)
+          break;
+        case Vortex::GLISS_NOTE:
+          dst.ToneSlider.Period = dst.ToneSlider.Counter = it->Param1;
+          dst.ToneSlider.Delta = it->Param2;
+          dst.SlidingTargetNote = it->Param3;
+          dst.VibrateCounter = 0;
+          //tone up                                     freq up
+          if (bool(dst.Note < dst.SlidingTargetNote) != bool(dst.ToneSlider.Delta < 0))
           {
-            dst.NoiseSliding = noiseAddon;
+            dst.ToneSlider.Delta = -dst.ToneSlider.Delta;
           }
-          synthesizer.SetNoise(chan, (PlayerState.CommState.NoiseBase + noiseAddon) & 0x1f);
+          break;
+        case Vortex::SAMPLEOFFSET:
+          dst.PosInSample = it->Param1;
+          break;
+        case Vortex::ORNAMENTOFFSET:
+          dst.PosInOrnament = it->Param1;
+          break;
+        case Vortex::VIBRATE:
+          dst.VibrateCounter = dst.VibrateOn = it->Param1;
+          dst.VibrateOff = it->Param2;
+          dst.ToneSlider.Value = 0;
+          dst.ToneSlider.Counter = 0;
+          break;
+        case Vortex::SLIDEENV:
+          PlayerState.CommState.EnvSlider.Period = PlayerState.CommState.EnvSlider.Counter = it->Param1;
+          PlayerState.CommState.EnvSlider.Delta = it->Param2;
+          break;
+        case Vortex::ENVELOPE:
+          synthesizer.SetEnvelopeType(it->Param1);
+          PlayerState.CommState.EnvBase = it->Param2;
+          dst.Envelope = true;
+          PlayerState.CommState.EnvSlider.Reset();
+          dst.PosInOrnament = 0;
+          break;
+        case Vortex::NOENVELOPE:
+          dst.Envelope = false;
+          dst.PosInOrnament = 0;
+          break;
+        case Vortex::NOISEBASE:
+          PlayerState.CommState.NoiseBase = it->Param1;
+          break;
+        case Vortex::TEMPO:
+          //ignore
+          break;
+        default:
+          assert(!"Invalid command");
         }
+      }
+    }
 
-        if (dst.ToneSlider.Update() &&
-            LIMITER != dst.SlidingTargetNote)
+    void SynthesizeChannelsData(AYMTrackSynthesizer& synthesizer)
+    {
+      int_t envelopeAddon = 0;
+      for (uint_t chan = 0; chan != PlayerState.ChanState.size(); ++chan)
+      {
+        const AYMChannelSynthesizer& chanSynt = synthesizer.GetChannel(chan);
+        ChannelState& dst = PlayerState.ChanState[chan];
+        SynthesizeChannel(dst, chanSynt, synthesizer, envelopeAddon);
+        //update vibrato
+        if (dst.VibrateCounter > 0 && !--dst.VibrateCounter)
         {
-          const int_t absoluteSlidingRange = synthesizer.GetSlidingDifference(halfTones, dst.SlidingTargetNote);
-          const int_t realSlidingRange = absoluteSlidingRange - toneOffset;
+          dst.Enabled = !dst.Enabled;
+          dst.VibrateCounter = dst.Enabled ? dst.VibrateOn : dst.VibrateOff;
+        }
+      }
+      const int_t envPeriod = envelopeAddon + PlayerState.CommState.EnvSlider.Value + PlayerState.CommState.EnvBase;
+      synthesizer.SetEnvelopeTone(envPeriod);
+      PlayerState.CommState.EnvSlider.Update();
+    }
 
-          if ((dst.ToneSlider.Delta > 0 && realSlidingRange <= dst.ToneSlider.Delta) ||
-            (dst.ToneSlider.Delta < 0 && realSlidingRange <= -dst.ToneSlider.Delta))
-          {
-            //slided to target note
-            dst.Note = dst.SlidingTargetNote;
-            dst.SlidingTargetNote = LIMITER;
-            dst.ToneSlider.Value = 0;
-            dst.ToneSlider.Counter = 0;
-          }
-        }
-        dst.VolSlide = clamp<int_t>(dst.VolSlide + curSampleLine.VolumeSlideAddon, -15, 15);
+    void SynthesizeChannel(ChannelState& dst, const AYMChannelSynthesizer& chanSynth, AYMTrackSynthesizer& trackSynth, int_t& envelopeAddon)
+    {
+      if (!dst.Enabled)
+      {
+        chanSynth.SetLevel(0);
+        return;
+      }
 
-        if (++dst.PosInSample >= curSample.GetSize())
+      const Vortex::Track::Sample& curSample = Data->Samples[dst.SampleNum];
+      const Vortex::Track::Sample::Line& curSampleLine = curSample.GetLine(dst.PosInSample);
+      const Vortex::Track::Ornament& curOrnament = Data->Ornaments[dst.OrnamentNum];
+
+      //calculate tone
+      const int_t toneAddon = curSampleLine.ToneOffset + dst.ToneAccumulator;
+      if (curSampleLine.KeepToneOffset)
+      {
+        dst.ToneAccumulator = toneAddon;
+      }
+      const int_t halfTones = int_t(dst.Note) + curOrnament.GetLine(dst.PosInOrnament);
+      const int_t toneOffset = dst.ToneSlider.Value + toneAddon;
+
+      //apply tone
+      chanSynth.SetTone(halfTones, toneOffset);
+      if (!curSampleLine.ToneMask)
+      {
+        chanSynth.EnableTone();
+      }
+      //apply level
+      chanSynth.SetLevel(GetVolume(dst.Volume, clamp<int_t>(dst.VolSlide + curSampleLine.Level, 0, 15)));
+      //apply envelope
+      if (dst.Envelope && !curSampleLine.EnvMask)
+      {
+        chanSynth.EnableEnvelope();
+      }
+      //apply noise
+      if (curSampleLine.NoiseMask)
+      {
+        const int_t envAddon = curSampleLine.NoiseOrEnvelopeOffset + dst.EnvSliding;
+        if (curSampleLine.NoiseOrEnvelopeOffset)
         {
-          dst.PosInSample = curSample.GetLoop();
+          dst.EnvSliding = envAddon;
         }
-        if (++dst.PosInOrnament >= curOrnament.GetSize())
-        {
-          dst.PosInOrnament = curOrnament.GetLoop();
-        }
+        envelopeAddon += envAddon;
       }
       else
       {
-        synthesizer.SetLevel(chan, 0);
+        const int_t noiseAddon = curSampleLine.NoiseOrEnvelopeOffset + dst.NoiseSliding;
+        if (curSampleLine.KeepNoiseOrEnvelopeOffset)
+        {
+          dst.NoiseSliding = noiseAddon;
+        }
+        trackSynth.SetNoise((PlayerState.CommState.NoiseBase + noiseAddon) & 0x1f);
+        chanSynth.EnableNoise();
       }
-      if (dst.VibrateCounter > 0 && !--dst.VibrateCounter)
+
+      if (dst.ToneSlider.Update() &&
+          LIMITER != dst.SlidingTargetNote)
       {
-        dst.Enabled = !dst.Enabled;
-        dst.VibrateCounter = dst.Enabled ? dst.VibrateOn : dst.VibrateOff;
+        const int_t absoluteSlidingRange = trackSynth.GetSlidingDifference(halfTones, dst.SlidingTargetNote);
+        const int_t realSlidingRange = absoluteSlidingRange - toneOffset;
+
+        if ((dst.ToneSlider.Delta > 0 && realSlidingRange <= dst.ToneSlider.Delta) ||
+          (dst.ToneSlider.Delta < 0 && realSlidingRange <= -dst.ToneSlider.Delta))
+        {
+          //slided to target note
+          dst.Note = dst.SlidingTargetNote;
+          dst.SlidingTargetNote = LIMITER;
+          dst.ToneSlider.Value = 0;
+          dst.ToneSlider.Counter = 0;
+        }
+      }
+      dst.VolSlide = clamp<int_t>(dst.VolSlide + curSampleLine.VolumeSlideAddon, -15, 15);
+
+      if (++dst.PosInSample >= curSample.GetSize())
+      {
+        dst.PosInSample = curSample.GetLoop();
+      }
+      if (++dst.PosInOrnament >= curOrnament.GetSize())
+      {
+        dst.PosInOrnament = curOrnament.GetLoop();
       }
     }
-    
+
     uint_t GetVolume(uint_t volume, uint_t level)
     {
       return VolTable[volume * 16 + level];

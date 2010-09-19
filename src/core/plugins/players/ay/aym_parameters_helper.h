@@ -44,7 +44,28 @@ namespace ZXTune
     };
   }
 
-  //Temporary adapter
+  //Temporary adapters
+  class AYMChannelSynthesizer
+  {
+  public:
+    AYMChannelSynthesizer(uint_t chan, const AYM::ParametersHelper& helper, AYM::DataChunk& chunk)
+      : Channel(chan)
+      , Helper(helper)
+      , Chunk(chunk)
+    {
+    }
+
+    void SetTone(int_t halfTones, int_t offset) const;
+    void SetLevel(int_t level) const;
+    void EnableTone() const;
+    void EnableEnvelope() const;
+    void EnableNoise() const;
+  private:
+    const uint_t Channel;
+    const AYM::ParametersHelper& Helper;
+    AYM::DataChunk& Chunk;
+  };
+
   class AYMTrackSynthesizer
   {
   public:
@@ -57,16 +78,18 @@ namespace ZXTune
     void InitData(uint64_t tickToPlay);
     const AYM::DataChunk& GetData() const;
 
-    void SetTone(uint_t chanNum, int_t halfTones, int_t offset);
-    void SetNoise(uint_t chanNum, int_t level);
-    void SetLevel(uint_t chanNum, int_t level);
-    void EnableTone(uint_t chanNum);
-    void EnableEnvelope(uint_t chanNum);
-
+    void SetNoise(int_t level);
     void SetEnvelopeType(uint_t type);
     void SetEnvelopeTone(uint_t tone);
 
+    void SetRawChunk(const AYM::DataChunk& chunk);
+
     int_t GetSlidingDifference(int_t halfToneFrom, int_t halfToneTo);
+
+    AYMChannelSynthesizer GetChannel(uint_t chan)
+    {
+      return AYMChannelSynthesizer(chan, Helper, Chunk);
+    }
   private:
     const AYM::ParametersHelper& Helper;
     AYM::DataChunk Chunk;

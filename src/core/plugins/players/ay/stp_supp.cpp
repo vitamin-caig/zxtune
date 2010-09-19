@@ -136,12 +136,12 @@ namespace
     uint8_t Loop;
     uint8_t Size;
     int8_t Data[1];
-    
+
     static uint_t GetMinimalSize()
     {
       return sizeof(STPOrnament) - sizeof(int8_t);
     }
-    
+
     uint_t GetSize() const
     {
       return sizeof(*this) + (Size - 1) * sizeof(Data[0]);
@@ -157,17 +157,17 @@ namespace
   {
     int8_t Loop;
     uint8_t Size;
-    
+
     static uint_t GetMinimalSize()
     {
       return sizeof(STPSample) - sizeof(STPSample::Line);
     }
-    
+
     uint_t GetSize() const
     {
       return sizeof(*this) - sizeof(Data[0]);
     }
-    
+
     PACK_PRE struct Line
     {
       // NxxTaaaa
@@ -608,80 +608,99 @@ namespace
 
     void SynthesizeData(AYMTrackSynthesizer& synthesizer)
     {
-      const STPTrack::Line& line = Data->Patterns[ModState.Track.Pattern][ModState.Track.Line];
-      if (0 == ModState.Track.Quirk)//begin note
+      if (IsNewLine())
       {
-        for (uint_t chan = 0; chan != line.Channels.size(); ++chan)
-        {
-          const STPTrack::Line::Chan& src = line.Channels[chan];
-          STPChannelState& dst = PlayerState[chan];
-          if (src.Enabled)
-          {
-            dst.Enabled = *src.Enabled;
-            dst.PosInSample = 0;
-            dst.PosInOrnament = 0;
-          }
-          if (src.Note)
-          {
-            dst.Note = *src.Note;
-            dst.PosInSample = 0;
-            dst.PosInOrnament = 0;
-            dst.TonSlide = 0;
-          }
-          if (src.SampleNum)
-          {
-            dst.SampleNum = *src.SampleNum;
-            dst.PosInSample = 0;
-          }
-          if (src.OrnamentNum)
-          {
-            dst.OrnamentNum = *src.OrnamentNum;
-            dst.PosInOrnament = 0;
-          }
-          if (src.Volume)
-          {
-            dst.Volume = *src.Volume;
-          }
-          for (STPTrack::CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
-          {
-            switch (it->Type)
-            {
-            case ENVELOPE:
-              if (it->Param1)
-              {
-                synthesizer.SetEnvelopeType(it->Param1);
-                synthesizer.SetEnvelopeTone(it->Param2);
-              }
-              dst.Envelope = true;
-              break;
-            case NOENVELOPE:
-              dst.Envelope = false;
-              break;
-            case GLISS:
-              dst.Glissade = it->Param1;
-              break;
-            default:
-              assert(!"Invalid command");
-            }
-          }
-        }
+        GetNewLineState(synthesizer);
       }
-      for (uint_t chan = 0; chan < AYM::CHANNELS; ++chan)
-      {
-        SynthesizeChannel(chan, synthesizer);
-      }
+      SynthesizeChannelsData(synthesizer);
       //count actually enabled channels
       ModState.Track.Channels = std::count_if(PlayerState.begin(), PlayerState.end(),
         boost::mem_fn(&STPChannelState::Enabled));
     }
 
-    void SynthesizeChannel(uint_t chan, AYMTrackSynthesizer& synthesizer)
+    void GetNewLineState(AYMTrackSynthesizer& synthesizer)
     {
-      STPChannelState& dst = PlayerState[chan];
+      assert(IsNewLine());
 
+      const STPTrack::Line& line = Data->Patterns[ModState.Track.Pattern][ModState.Track.Line];
+      for (uint_t chan = 0; chan != line.Channels.size(); ++chan)
+      {
+        const STPTrack::Line::Chan& src = line.Channels[chan];
+        if (src.Empty())
+        {
+          continue;
+        }
+        GetNewChannelState(src, PlayerState[chan], synthesizer);
+      }
+    }
+
+    void GetNewChannelState(const STPTrack::Line::Chan& src, STPChannelState& dst, AYMTrackSynthesizer& synthesizer)
+    {
+      if (src.Enabled)
+      {
+        dst.Enabled = *src.Enabled;
+        dst.PosInSample = 0;
+        dst.PosInOrnament = 0;
+      }
+      if (src.Note)
+      {
+        dst.Note = *src.Note;
+        dst.PosInSample = 0;
+        dst.PosInOrnament = 0;
+        dst.TonSlide = 0;
+      }
+      if (src.SampleNum)
+      {
+        dst.SampleNum = *src.SampleNum;
+        dst.PosInSample = 0;
+      }
+      if (src.OrnamentNum)
+      {
+        dst.OrnamentNum = *src.OrnamentNum;
+        dst.PosInOrnament = 0;
+      }
+      if (src.Volume)
+      {
+        dst.Volume = *src.Volume;
+      }
+      for (STPTrack::CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
+      {
+        switch (it->Type)
+        {
+        case ENVELOPE:
+          if (it->Param1)
+          {
+            synthesizer.SetEnvelopeType(it->Param1);
+            synthesizer.SetEnvelopeTone(it->Param2);
+          }
+          dst.Envelope = true;
+          break;
+        case NOENVELOPE:
+          dst.Envelope = false;
+          break;
+        case GLISS:
+          dst.Glissade = it->Param1;
+          break;
+        default:
+          assert(!"Invalid command");
+        }
+      }
+    }
+
+    void SynthesizeChannelsData(AYMTrackSynthesizer& synthesizer)
+    {
+      for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
+      {
+        const AYMChannelSynthesizer& chanSynt = synthesizer.GetChannel(chan);
+        SynthesizeChannel(PlayerState[chan], chanSynt, synthesizer);
+      }
+    }
+
+    void SynthesizeChannel(STPChannelState& dst, const AYMChannelSynthesizer& chanSynth, AYMTrackSynthesizer& trackSynth)
+    {
       if (!dst.Enabled)
       {
-        synthesizer.SetLevel(chan, 0);
+        chanSynth.SetLevel(0);
         return;
       }
 
@@ -693,25 +712,26 @@ namespace
       dst.TonSlide += dst.Glissade;
 
       //apply level
-      synthesizer.SetLevel(chan, int_t(curSampleLine.Level) - dst.Volume);
+      chanSynth.SetLevel(int_t(curSampleLine.Level) - dst.Volume);
       //apply envelope
       if (curSampleLine.EnvelopeMask && dst.Envelope)
       {
-        synthesizer.EnableEnvelope(chan);
+        chanSynth.EnableEnvelope();
       }
       //apply tone
       if (!curSampleLine.ToneMask)
       {
-        const int_t halftones = int_t(dst.Note) + 
+        const int_t halftones = int_t(dst.Note) +
                                 Data->Transpositions[ModState.Track.Position] +
                                 (dst.Envelope ? 0 : curOrnament.GetLine(dst.PosInOrnament));
-        synthesizer.SetTone(chan, halftones, dst.TonSlide + curSampleLine.Vibrato);
-        synthesizer.EnableTone(chan);
+        chanSynth.SetTone(halftones, dst.TonSlide + curSampleLine.Vibrato);
+        chanSynth.EnableTone();
       }
       //apply noise
       if (!curSampleLine.NoiseMask)
       {
-        synthesizer.SetNoise(chan, curSampleLine.Noise);
+        trackSynth.SetNoise(curSampleLine.Noise);
+        chanSynth.EnableNoise();
       }
 
       if (++dst.PosInOrnament >= curOrnament.GetSize())
@@ -738,7 +758,7 @@ namespace
     return Player::Ptr(new STPPlayer(info, data, device));
   }
 
-  bool CheckSTPModule(const uint8_t* data, std::size_t size) 
+  bool CheckSTPModule(const uint8_t* data, std::size_t size)
   {
     const std::size_t limit = std::min(size, MAX_MODULE_SIZE);
     if (limit < sizeof(STPHeader))
@@ -828,8 +848,8 @@ namespace
       }
     }
     return true;
-  }  
-  
+  }
+
   Holder::Ptr CreateSTPModule(Plugin::Ptr plugin, const MetaContainer& container, ModuleRegion& region)
   {
     try

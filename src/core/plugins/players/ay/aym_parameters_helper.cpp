@@ -169,7 +169,7 @@ namespace
       }
       else if (params.FindIntValue(Parameters::ZXTune::Core::AYM::LAYOUT, intParam))
       {
-        if (intParam < static_cast<int_t>(LAYOUT_ABC) || 
+        if (intParam < static_cast<int_t>(LAYOUT_ABC) ||
             intParam >= static_cast<int_t>(LAYOUT_LAST))
         {
           throw MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,
@@ -204,6 +204,44 @@ namespace ZXTune
     }
   }
 
+  void AYMChannelSynthesizer::SetTone(int_t halfTones, int_t offset) const
+  {
+    const Module::FrequencyTable& freqTable = Helper.GetFreqTable();
+    const int_t halftone = clamp<int_t>(halfTones, 0, freqTable.size() - 1);
+    const uint_t tone = static_cast<uint_t>(clamp<int_t>(int_t(freqTable[halftone]) + offset, 0, 0xfff));
+
+    const uint_t reg = AYM::DataChunk::REG_TONEA_L + 2 * Channel;
+    Chunk.Data[reg] = static_cast<uint8_t>(tone & 0xff);
+    Chunk.Data[reg + 1] = static_cast<uint8_t>(tone >> 8);
+    Chunk.Mask |= (1 << reg) | (1 << (reg + 1));
+  }
+
+  void AYMChannelSynthesizer::SetLevel(int_t level) const
+  {
+    const uint_t reg = AYM::DataChunk::REG_VOLA + Channel;
+    Chunk.Data[reg] = static_cast<uint8_t>(clamp<int_t>(level, 0, 15));
+    Chunk.Mask |= 1 << reg;
+  }
+
+  void AYMChannelSynthesizer::EnableTone() const
+  {
+    Chunk.Data[AYM::DataChunk::REG_MIXER] &= ~(AYM::DataChunk::REG_MASK_TONEA << Channel);
+    Chunk.Mask |= 1 << AYM::DataChunk::REG_MIXER;
+  }
+
+  void AYMChannelSynthesizer::EnableEnvelope() const
+  {
+    const uint_t reg = AYM::DataChunk::REG_VOLA + Channel;
+    Chunk.Data[reg] |= AYM::DataChunk::REG_MASK_ENV;
+    Chunk.Mask |= 1 << reg;
+  }
+
+  void AYMChannelSynthesizer::EnableNoise() const
+  {
+    Chunk.Data[AYM::DataChunk::REG_MIXER] &= ~(AYM::DataChunk::REG_MASK_NOISEA << Channel);
+    Chunk.Mask |= 1 << AYM::DataChunk::REG_MIXER;
+  }
+
   void AYMTrackSynthesizer::InitData(uint64_t tickToPlay)
   {
     Helper.GetDataChunk(Chunk);
@@ -218,49 +256,16 @@ namespace ZXTune
     return Chunk;
   }
 
-  void AYMTrackSynthesizer::SetTone(uint_t chanNum, int_t halfTones, int_t offset)
-  {
-    const Module::FrequencyTable& freqTable = Helper.GetFreqTable();
-    const int_t halftone = clamp<int_t>(halfTones, 0, freqTable.size() - 1);
-    const uint_t tone = static_cast<uint_t>(clamp<int_t>(int_t(freqTable[halftone]) + offset, 0, 0xfff));
-
-    const uint_t reg = AYM::DataChunk::REG_TONEA_L + 2 * chanNum;
-    Chunk.Data[reg] = static_cast<uint8_t>(tone & 0xff);
-    Chunk.Data[reg + 1] = static_cast<uint8_t>(tone >> 8);
-    Chunk.Mask |= (3 << reg);
-  }
-
-  void AYMTrackSynthesizer::EnableTone(uint_t chanNum)
-  {
-    Chunk.Data[AYM::DataChunk::REG_MIXER] &= ~(AYM::DataChunk::REG_MASK_TONEA << chanNum);
-    Chunk.Mask |= AYM::DataChunk::REG_MIXER;
-  }
-
-  void AYMTrackSynthesizer::SetNoise(uint_t chanNum, int_t level)
+  void AYMTrackSynthesizer::SetNoise(int_t level)
   {
     Chunk.Data[AYM::DataChunk::REG_TONEN] = static_cast<uint8_t>(clamp<int_t>(level, 0, 31));
-    Chunk.Data[AYM::DataChunk::REG_MIXER] &= ~(AYM::DataChunk::REG_MASK_NOISEA << chanNum);
-    Chunk.Mask |= (1 << AYM::DataChunk::REG_MIXER) | (1 << AYM::DataChunk::REG_TONEN);
-  }
-
-  void AYMTrackSynthesizer::SetLevel(uint_t chanNum, int_t level)
-  {
-    const uint_t reg = AYM::DataChunk::REG_VOLA + chanNum;
-    Chunk.Data[reg] = static_cast<uint8_t>(clamp<int_t>(level, 0, 15));
-    Chunk.Mask |= 1 << reg;
-  }
-
-  void AYMTrackSynthesizer::EnableEnvelope(uint_t chanNum)
-  {
-    const uint_t reg = AYM::DataChunk::REG_VOLA + chanNum;
-    Chunk.Data[reg] |= AYM::DataChunk::REG_MASK_ENV;
-    Chunk.Mask |= 1 << reg;
+    Chunk.Mask |= 1 << AYM::DataChunk::REG_TONEN;
   }
 
   void AYMTrackSynthesizer::SetEnvelopeType(uint_t type)
   {
     Chunk.Data[AYM::DataChunk::REG_ENV] = static_cast<uint8_t>(type);
-    Chunk.Mask |= (1 << AYM::DataChunk::REG_ENV);
+    Chunk.Mask |= 1 << AYM::DataChunk::REG_ENV;
   }
 
   void AYMTrackSynthesizer::SetEnvelopeTone(uint_t tone)
@@ -278,5 +283,12 @@ namespace ZXTune
     const int_t toneFrom = freqTable[halfFrom];
     const int_t toneTo = freqTable[halfTo];
     return toneTo - toneFrom;
+  }
+
+  void AYMTrackSynthesizer::SetRawChunk(const AYM::DataChunk& chunk)
+  {
+    std::copy(chunk.Data.begin(), chunk.Data.end(), Chunk.Data.begin());
+    Chunk.Mask &= ~AYM::DataChunk::MASK_ALL_REGISTERS;
+    Chunk.Mask |= chunk.Mask & AYM::DataChunk::MASK_ALL_REGISTERS;
   }
 }
