@@ -383,9 +383,9 @@ namespace
       assert(!Processor.get());
 
       //if playback now
-      if (Player && Holder)
+      if (Player)
       {
-        const Module::Information::Ptr info = Holder->GetModuleInformation();
+        const Module::Information::Ptr info = Player->GetInformation();
         Processor.reset(new ComplexTrackProcessor(*CommonParameters, RenderingParameters, *info));
       }
     }

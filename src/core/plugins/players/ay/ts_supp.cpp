@@ -382,15 +382,15 @@ namespace
   {
   public:
     explicit TSPlayer(boost::shared_ptr<const TSHolder> holder)
-      : Module(holder)
+      : Info(holder->GetModuleInformation())
       , Player1(holder->Holder1->CreatePlayer())
       , Player2(holder->Holder2->CreatePlayer())
     {
     }
 
-    virtual const Holder& GetModule() const
+    virtual Information::Ptr GetInformation() const
     {
-      return *Module;
+      return Info;
     }
 
     virtual Error GetPlaybackState(State& state,
@@ -463,7 +463,7 @@ namespace
     }
 
   private:
-    const Holder::Ptr Module;
+    const Information::Ptr Info;
     Player::Ptr Player1, Player2;
     TSMixer<AYM::CHANNELS> Mixer;
   };

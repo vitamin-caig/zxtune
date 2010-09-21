@@ -44,6 +44,9 @@ namespace ZXTune
 
       virtual ~Player() {}
 
+      //! @brief Referenced module information
+      virtual Information::Ptr GetInformation() const = 0;
+
       //! @brief Playing state
       enum PlaybackState
       {

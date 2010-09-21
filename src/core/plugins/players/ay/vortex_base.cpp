@@ -492,6 +492,11 @@ namespace
       Player1.reset(new VortexPlayer(info, secondData, version, freqTableName, device1));
     }
 
+    virtual Information::Ptr GetInformation() const
+    {
+      return Player1->GetInformation();
+    }
+
     virtual Error GetPlaybackState(State& state,
                                    Analyze::ChannelsState& analyzeState) const
     {

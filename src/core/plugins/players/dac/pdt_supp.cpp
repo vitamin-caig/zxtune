@@ -480,6 +480,11 @@ namespace
 #endif
     }
     
+    virtual Information::Ptr GetInformation() const
+    {
+      return Info;
+    }
+
     virtual Error GetPlaybackState(State& state,
                                    Analyze::ChannelsState& analyzeState) const
     {

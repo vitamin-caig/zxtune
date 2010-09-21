@@ -67,6 +67,11 @@ namespace ZXTune
         Reset();
       }
 
+      virtual Information::Ptr GetInformation() const
+      {
+        return Info;
+      }
+
       virtual Error GetPlaybackState(Module::State& state,
                                      Analyze::ChannelsState& analyzeState) const
       {

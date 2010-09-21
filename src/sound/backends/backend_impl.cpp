@@ -59,6 +59,12 @@ namespace
       }
     }
 
+    virtual Module::Information::Ptr GetInformation() const
+    {
+      Locker lock(Mutex);
+      return Delegate->GetInformation();
+    }
+
     virtual Error GetPlaybackState(Module::State& state,
       Module::Analyze::ChannelsState& analyzeState) const
     {
@@ -198,7 +204,6 @@ namespace ZXTune
           Log::Debug(THIS_MODULE, "Reseting the holder");
           Locker lock(PlayerMutex);
           StopPlayback();
-          Holder.reset();
           Player.reset();
           CurrentState = Backend::NOTOPENED;
         }
@@ -214,7 +219,6 @@ namespace ZXTune
             Module::Player::Ptr tmpPlayer(new SafePlayerWrapper(holder->CreatePlayer()));
             ThrowIfError(tmpPlayer->SetParameters(*CommonParameters));
             StopPlayback();
-            Holder = holder;
             Player = tmpPlayer;
           }
           Channels = physicalChannels;

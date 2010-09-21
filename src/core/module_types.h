@@ -61,12 +61,43 @@ namespace ZXTune
       uint64_t Tick;
     };
 
+    //! @brief Runtime module status
+    class Status
+    {
+    public:
+      //! Pointer type
+      typedef boost::shared_ptr<const Status> Ptr;
+
+      virtual ~Status() {}
+
+      //! Current position (up to Information::PositionsCount)
+      virtual uint_t Position() const = 0;
+      //! Current pattern (up to Information::PatternsCount)
+      virtual uint_t Pattern() const = 0;
+      //! Current pattern size
+      virtual uint_t PatternSize() const = 0;
+      //! Current line in pattern (up to Status::PatternSize)
+      virtual uint_t Line() const = 0;
+      //! Current tempo
+      virtual uint_t Tempo() const = 0;
+      //! Current quirk in line (up to Status::Tempo)
+      virtual uint_t Quirk() const = 0;
+      //! Current frame in track (up to Information::FramesCount)
+      virtual uint_t Frame() const = 0;
+      //! Current active channels count (up to Information::LogicalChannels)
+      virtual uint_t Channels() const = 0;
+      //! Absolute frame played till startup
+      virtual uint_t AbsoluteFrame() const = 0;
+      //! Absolute tick played till startup
+      virtual uint64_t AbsoluteTick() const = 0;
+    };
+
     //! @brief Common module information
     class Information
     {
     public:
       //! Pointer type
-      typedef boost::shared_ptr<Information> Ptr;
+      typedef boost::shared_ptr<const Information> Ptr;
 
       virtual ~Information() {}
 
