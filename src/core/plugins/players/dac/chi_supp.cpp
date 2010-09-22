@@ -410,6 +410,11 @@ namespace
       return Info;
     }
 
+    virtual TrackState::Ptr GetTrackState() const
+    {
+      return boost::make_shared<StubTrackState>(ModState);
+    }
+
     virtual Error GetPlaybackState(State& state,
                                    Analyze::ChannelsState& analyzeState) const
     {

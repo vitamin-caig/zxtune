@@ -65,6 +65,12 @@ namespace
       return Delegate->GetInformation();
     }
 
+    virtual Module::TrackState::Ptr GetTrackState() const
+    {
+      Locker lock(Mutex);
+      return Delegate->GetTrackState();
+    }
+
     virtual Error GetPlaybackState(Module::State& state,
       Module::Analyze::ChannelsState& analyzeState) const
     {

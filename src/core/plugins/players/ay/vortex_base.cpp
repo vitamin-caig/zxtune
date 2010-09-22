@@ -497,6 +497,11 @@ namespace
       return Player1->GetInformation();
     }
 
+    virtual TrackState::Ptr GetTrackState() const
+    {
+      return boost::make_shared<MergedTrackState>(Player1->GetTrackState(), Player2->GetTrackState());
+    }
+
     virtual Error GetPlaybackState(State& state,
                                    Analyze::ChannelsState& analyzeState) const
     {

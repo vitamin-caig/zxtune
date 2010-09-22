@@ -33,18 +33,19 @@ namespace
       this->connect(timePosition, SIGNAL(sliderMoved(int)), SIGNAL(OnSeeking(int)));
     }
 
-    virtual void InitState(const ZXTune::Module::Information* info)
+    virtual void InitState(ZXTune::Module::Information::Ptr info)
     {
       timePosition->setRange(0, info->FramesCount());
     }
 
-    virtual void UpdateState(const ZXTune::Module::State& state)
+    virtual void UpdateState(ZXTune::Module::TrackState::Ptr state)
     {
+      const uint_t curFrame = state->Frame();
       if (!timePosition->isSliderDown())
       {
-        timePosition->setValue(state.Frame);
+        timePosition->setValue(curFrame);
       }
-      timeDisplay->setText(ToQString(FormatTime(state.Frame, 20000/*TODO*/)));
+      timeDisplay->setText(ToQString(FormatTime(curFrame, 20000/*TODO*/)));
     }
 
     virtual void CloseState()

@@ -278,7 +278,7 @@ namespace
         const uint_t seekStepFrames(info->FramesCount() * SeekStep / 100);
         ThrowIfError(backend.Play());
 
-        Display->SetModule(*info, backend.GetPlayer(), static_cast<uint_t>(frameDuration));
+        Display->SetModule(backend.GetPlayer(), static_cast<uint_t>(frameDuration));
 
         ZXTune::Sound::Gain curVolume = ZXTune::Sound::Gain();
         ZXTune::Sound::MultiGain allVolume;

@@ -27,7 +27,7 @@ public:
   static QPointer<MainWindow> Create(int argc, char* argv[]);
 
 public slots:
-  virtual void StartModule(const ZXTune::Module::Information*) = 0;
+  virtual void StartModule(ZXTune::Module::Information::Ptr) = 0;
   virtual void StopModule() = 0;
 };
 

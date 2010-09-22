@@ -61,14 +61,14 @@ namespace ZXTune
       uint64_t Tick;
     };
 
-    //! @brief Runtime module status
-    class Status
+    //! @brief Runtime module track status
+    class TrackState
     {
     public:
       //! Pointer type
-      typedef boost::shared_ptr<const Status> Ptr;
+      typedef boost::shared_ptr<const TrackState> Ptr;
 
-      virtual ~Status() {}
+      virtual ~TrackState() {}
 
       //! Current position (up to Information::PositionsCount)
       virtual uint_t Position() const = 0;

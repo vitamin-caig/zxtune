@@ -49,7 +49,6 @@ namespace
       {
         OpenBackend();
         Backend->SetModule(item.GetModule());
-        Info = item.GetModuleInfo();
         Player = Backend->GetPlayer();
       }
     }
@@ -59,7 +58,6 @@ namespace
       OpenBackend();
       Backend->SetModule(item.GetModule());
       this->wait();
-      Info = item.GetModuleInfo();
       Player = Backend->GetPlayer();
       Backend->Play();
       this->start();
@@ -108,14 +106,16 @@ namespace
     virtual void run()
     {
       using namespace ZXTune;
+
+      const ZXTune::Module::Information::Ptr info = Player->GetInformation();
+      const ZXTune::Module::TrackState::Ptr state = Player->GetTrackState();
       //notify about start
-      OnStartModule(Info.get());
+      OnStartModule(info);
 
       SignalsCollector::Ptr signaller = Backend->CreateSignalsCollector(
         Sound::Backend::MODULE_RESUME | Sound::Backend::MODULE_PAUSE |
         Sound::Backend::MODULE_STOP | Sound::Backend::MODULE_FINISH);
       //playback state, just for optimization
-      Module::State state;
       Module::Analyze::ChannelsState analyze;
       for (;;)
       {
@@ -126,17 +126,17 @@ namespace
           {
             if (sigmask & Sound::Backend::MODULE_FINISH)
             {
-              OnFinishModule(Info.get());
+              OnFinishModule(info);
             }
             break;
           }
           else if (sigmask & Sound::Backend::MODULE_RESUME)
           {
-            OnResumeModule(Info.get());
+            OnResumeModule(info);
           }
           else if (sigmask & Sound::Backend::MODULE_PAUSE)
           {
-            OnPauseModule(Info.get());
+            OnPauseModule(info);
           }
           else
           {
@@ -148,11 +148,14 @@ namespace
         {
           continue;
         }
-        Player->GetPlaybackState(state, analyze);
+        {
+          Module::State dummyState;
+          Player->GetPlaybackState(dummyState, analyze);
+        }
         OnUpdateState(state, analyze);
       }
       //notify about stop
-      OnStopModule(Info.get());
+      OnStopModule(info);
     }
   private:
     void OpenBackend()
@@ -194,15 +197,14 @@ namespace
     }
   private:
     ZXTune::Sound::Backend::Ptr Backend;
-    ZXTune::Module::Information::Ptr Info;
     ZXTune::Module::Player::ConstPtr Player;
   };
 }
 
 PlaybackSupport* PlaybackSupport::Create(QWidget* owner)
 {
-  REGISTER_METATYPE(ZXTune::Module::Information*);
-  REGISTER_METATYPE(ZXTune::Module::State);
+  REGISTER_METATYPE(ZXTune::Module::Information::Ptr);
+  REGISTER_METATYPE(ZXTune::Module::TrackState::Ptr);
   REGISTER_METATYPE(ZXTune::Module::Analyze::ChannelsState);
   assert(owner);
   return new PlaybackSupportImpl(owner);

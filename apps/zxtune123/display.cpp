@@ -39,12 +39,12 @@ namespace
     StdOut << prop.first << '=' << prop.second << std::endl;
   }
 
-  inline void ShowTrackingStatus(const ZXTune::Module::State& state)
+  inline void ShowTrackingStatus(const ZXTune::Module::TrackState& state)
   {
     const String& dump = (Formatter(Text::TRACKING_STATUS)
-      % state.Track.Position % state.Track.Pattern
-      % state.Track.Line % state.Track.Quirk
-      % state.Track.Channels % state.Reference.Quirk
+      % state.Position() % state.Pattern()
+      % state.Line() % state.Quirk()
+      % state.Channels() % state.Tempo()
     ).str();
     assert(TRACKING_HEIGHT == static_cast<std::size_t>(std::count(dump.begin(), dump.end(), '\n')));
     StdOut << dump;
@@ -103,22 +103,24 @@ namespace
       }
     }
 
-    virtual void SetModule(const ZXTune::Module::Information& info, ZXTune::Module::Player::ConstPtr player, uint_t frameDuration)
+    virtual void SetModule(ZXTune::Module::Player::ConstPtr player, uint_t frameDuration)
     {
       if (Silent)
       {
         return;
       }
       Player = player;
-      TotalFrames = info.FramesCount();
+      const ZXTune::Module::Information::Ptr info = Player->GetInformation();
+      TotalFrames = info->FramesCount();
       FrameDuration = frameDuration;
+      TrackState = Player->GetTrackState();
 
 #if 1
       StdOut
         << std::endl
-        << InstantiateTemplate(Text::ITEM_INFO, Parameters::FieldsSourceAdapter<FillFieldsSource>(*info.Properties()))
-        << (Formatter(Text::ITEM_INFO_ADDON) % FormatTime(info.FramesCount(), frameDuration) %
-          info.LogicalChannels() % info.PhysicalChannels()).str();
+        << InstantiateTemplate(Text::ITEM_INFO, Parameters::FieldsSourceAdapter<FillFieldsSource>(*info->Properties()))
+        << (Formatter(Text::ITEM_INFO_ADDON) % FormatTime(info->FramesCount(), frameDuration) %
+          info->LogicalChannels() % info->PhysicalChannels()).str();
 #else
       std::for_each(strProps.begin(), strProps.end(), &OutProp);
 #endif
@@ -126,18 +128,16 @@ namespace
 
     virtual uint_t BeginFrame(ZXTune::Sound::Backend::State state)
     {
-      ZXTune::Module::State curState;
-      ZXTune::Module::Analyze::ChannelsState curAnalyze;
-      ThrowIfError(Player->GetPlaybackState(curState, curAnalyze));
+      const uint_t curFrame = TrackState->Frame();
       if (Silent || Quiet)
       {
-        return curState.Frame;
+        return curFrame;
       }
       ScrSize = Console::Self().GetSize();
       if (ScrSize.first <= 0 || ScrSize.second <= 0)
       {
         Silent = true;
-        return curState.Frame;
+        return curFrame;
       }
       const int_t spectrumHeight = ScrSize.second - INFORMATION_HEIGHT - TRACKING_HEIGHT - PLAYING_HEIGHT - 1;
       if (spectrumHeight < 4)//minimal spectrum height
@@ -150,16 +150,20 @@ namespace
       }
       else
       {
-        ShowTrackingStatus(curState);
-        ShowPlaybackStatus(curState.Frame, state);
+        ShowTrackingStatus(*TrackState);
+        ShowPlaybackStatus(curFrame, state);
         if (Analyzer)
         {
+          ZXTune::Module::State dummyState;
+          ZXTune::Module::Analyze::ChannelsState curAnalyze;
+          ThrowIfError(Player->GetPlaybackState(dummyState, curAnalyze));
+
           AnalyzerData.resize(ScrSize.first);
           UpdateAnalyzer(curAnalyze, 10);
           ShowAnalyzer(spectrumHeight);
         }
       }
-      return curState.Frame;
+      return curFrame;
     }
 
     virtual void EndFrame()
@@ -223,9 +227,10 @@ namespace
     uint_t Updatefps;
     //context
     Console::SizeType ScrSize;
-    ZXTune::Module::Player::ConstPtr Player;
     uint_t TotalFrames;
     uint_t FrameDuration;
+    ZXTune::Module::Player::ConstPtr Player;
+    ZXTune::Module::TrackState::Ptr TrackState;
     std::vector<int_t> AnalyzerData;
   };
 }

@@ -6,7 +6,12 @@ makedir_cmd = if NOT EXIST $(subst /,\,$(1)) mkdir $(subst /,\,$(1))
 
 compiler=gcc
 cxx_mode_flags += -mthreads -march=native
-ld_mode_flags += -mthreads -static -Wl,-subsystem,$(if $(qt_libraries),windows,console)
+ld_mode_flags += -mthreads -static 
+ifeq ($(mode),release)
+ld_mode_flags += -Wl,-subsystem,$(if $(qt_libraries),windows,console)
+else
+ld_mode_flags += -Wl,-subsystem,console
+endif
 
 #built-in features
 support_waveout = 1

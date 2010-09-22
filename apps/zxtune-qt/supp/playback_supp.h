@@ -35,12 +35,12 @@ public slots:
   virtual void Seek(int frame) = 0;
 signals:
   void OnSetBackend(const ZXTune::Sound::Backend& backend);
-  void OnStartModule(const ZXTune::Module::Information*);
-  void OnUpdateState(const ZXTune::Module::State&, const ZXTune::Module::Analyze::ChannelsState&);
-  void OnPauseModule(const ZXTune::Module::Information*);
-  void OnResumeModule(const ZXTune::Module::Information*);
-  void OnStopModule(const ZXTune::Module::Information*);
-  void OnFinishModule(const ZXTune::Module::Information*);
+  void OnStartModule(ZXTune::Module::Information::Ptr);
+  void OnUpdateState(ZXTune::Module::TrackState::Ptr, const ZXTune::Module::Analyze::ChannelsState&);
+  void OnPauseModule(ZXTune::Module::Information::Ptr);
+  void OnResumeModule(ZXTune::Module::Information::Ptr);
+  void OnStopModule(ZXTune::Module::Information::Ptr);
+  void OnFinishModule(ZXTune::Module::Information::Ptr);
 };
 
 #endif //ZXTUNE_PLAYBACK_SUPP_H_DEFINED

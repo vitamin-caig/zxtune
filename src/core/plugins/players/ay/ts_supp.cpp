@@ -11,6 +11,7 @@ Author:
 
 //local includes
 #include <core/plugins/enumerator.h>
+#include <core/plugins/players/tracking.h>
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
@@ -391,6 +392,11 @@ namespace
     virtual Information::Ptr GetInformation() const
     {
       return Info;
+    }
+
+    virtual TrackState::Ptr GetTrackState() const
+    {
+      return boost::make_shared<MergedTrackState>(Player1->GetTrackState(), Player2->GetTrackState());
     }
 
     virtual Error GetPlaybackState(State& state,

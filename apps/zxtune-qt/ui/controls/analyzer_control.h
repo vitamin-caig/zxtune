@@ -28,7 +28,7 @@ public:
 
 public slots:
   virtual void InitState() = 0;
-  virtual void UpdateState(const ZXTune::Module::State&, const ZXTune::Module::Analyze::ChannelsState&) = 0;
+  virtual void UpdateState(ZXTune::Module::TrackState::Ptr, const ZXTune::Module::Analyze::ChannelsState&) = 0;
 };
 
 #endif //ZXTUNE_QT_SEEKBACKCONTROL_H_DEFINED

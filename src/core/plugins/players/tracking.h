@@ -226,12 +226,12 @@ namespace ZXTune
         std::vector<OrnamentType> Ornaments;
       };
 
-      class ModuleStatus : public Status
+      class TrackStateIterator : public TrackState
       {
       public:
-        typedef boost::shared_ptr<ModuleStatus> Ptr;
+        typedef boost::shared_ptr<TrackStateIterator> Ptr;
 
-        ModuleStatus(Information::Ptr info, typename ModuleData::Ptr data)
+        TrackStateIterator(Information::Ptr info, typename ModuleData::Ptr data)
           : Info(info), Data(data)
         {
           Reset();
@@ -510,19 +510,20 @@ namespace ZXTune
         {
           //emulate playback
           const Information::Ptr dummyInfo = boost::make_shared<ModuleInfo>(*this);
-          const typename ModuleStatus::Ptr dummyStatus = boost::make_shared<ModuleStatus>(dummyInfo, Data);
+          const typename TrackStateIterator::Ptr dummyIterator = boost::make_shared<TrackStateIterator>(dummyInfo, Data);
 
-          ModuleStatus& status = *dummyStatus;
-          while (status.NextFrame(0, Sound::LOOP_NONE))
+          TrackStateIterator& iterator = *dummyIterator;
+          while (iterator.NextFrame(0, Sound::LOOP_NONE))
           {
             //check for loop
-            if (0 == status.Line() &&
-                0 == status.Quirk() &&
-                LoopPosNum == status.Position())
+            if (0 == iterator.Line() &&
+                0 == iterator.Quirk() &&
+                LoopPosNum == iterator.Position())
             {
-              LoopFrameNum = status.Frame();
+              LoopFrameNum = iterator.Frame();
             }
-            Frames = std::max(Frames, status.Frame());
+            //to prevent reset
+            Frames = std::max(Frames, iterator.Frame());
           }
           ++Frames;
         }
@@ -563,6 +564,130 @@ namespace ZXTune
       {
         return lh.Counter < rh.Counter;
       }
+    };
+
+    class StubTrackState : public TrackState
+    {
+    public:
+      explicit StubTrackState(const Module::State& state)
+          : State(state)
+      {
+      }
+
+      //status functions
+      virtual uint_t Position() const
+      {
+        return State.Track.Position;
+      }
+
+      virtual uint_t Pattern() const
+      {
+        return State.Track.Pattern;
+      }
+
+      virtual uint_t PatternSize() const
+      {
+        return State.Reference.Line;
+      }
+
+      virtual uint_t Line() const
+      {
+        return State.Track.Line;
+      }
+
+      virtual uint_t Tempo() const
+      {
+        return State.Reference.Quirk;
+      }
+
+      virtual uint_t Quirk() const
+      {
+        return State.Track.Quirk;
+      }
+
+      virtual uint_t Frame() const
+      {
+        return State.Track.Frame;
+      }
+
+      virtual uint_t Channels() const
+      {
+        return State.Track.Channels;
+      }
+
+      virtual uint_t AbsoluteFrame() const
+      {
+        return State.Frame;
+      }
+
+      virtual uint64_t AbsoluteTick() const
+      {
+        return State.Tick;
+      }
+    private:
+      const Module::State& State;
+    };
+
+    class MergedTrackState : public TrackState
+    {
+    public:
+      MergedTrackState(TrackState::Ptr first, TrackState::Ptr second)
+        : First(first), Second(second)
+      {
+      }
+
+      virtual uint_t Position() const
+      {
+        return First->Position();
+      }
+
+      virtual uint_t Pattern() const
+      {
+        return First->Pattern();
+      }
+
+      virtual uint_t PatternSize() const
+      {
+        return First->PatternSize();
+      }
+
+      virtual uint_t Line() const
+      {
+        return First->Line();
+      }
+
+      virtual uint_t Tempo() const
+      {
+        return First->Tempo();
+      }
+
+      virtual uint_t Quirk() const
+      {
+        return First->Quirk();
+      }
+
+      virtual uint_t Frame() const
+      {
+        return First->Frame();
+      }
+
+      virtual uint_t Channels() const
+      {
+        return First->Channels() + Second->Channels();
+      }
+
+      virtual uint_t AbsoluteFrame() const
+      {
+        return First->AbsoluteFrame();
+      }
+
+      virtual uint64_t AbsoluteTick() const
+      {
+        return First->AbsoluteTick();
+      }
+    private:
+      const TrackState::Ptr First;
+      const TrackState::Ptr Second;
     };
   }
 }
