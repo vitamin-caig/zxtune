@@ -154,9 +154,8 @@ namespace
         ShowPlaybackStatus(curFrame, state);
         if (Analyzer)
         {
-          ZXTune::Module::State dummyState;
           ZXTune::Module::Analyze::ChannelsState curAnalyze;
-          ThrowIfError(Player->GetPlaybackState(dummyState, curAnalyze));
+          Player->GetAnalyzer(curAnalyze);
 
           AnalyzerData.resize(ScrSize.first);
           UpdateAnalyzer(curAnalyze, 10);

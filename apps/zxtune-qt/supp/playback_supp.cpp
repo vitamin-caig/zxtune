@@ -148,10 +148,7 @@ namespace
         {
           continue;
         }
-        {
-          Module::State dummyState;
-          Player->GetPlaybackState(dummyState, analyze);
-        }
+        Player->GetAnalyzer(analyze);
         OnUpdateState(state, analyze);
       }
       //notify about stop

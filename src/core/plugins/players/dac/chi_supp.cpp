@@ -415,6 +415,12 @@ namespace
       return boost::make_shared<StubTrackState>(ModState);
     }
 
+    virtual void GetAnalyzer(Analyze::ChannelsState& analyzeState) const
+    {
+      analyzeState.resize(ChanState.size());
+      std::transform(ChanState.begin(), ChanState.end(), analyzeState.begin(), &AnalyzeDACState);
+    }
+
     virtual Error GetPlaybackState(State& state,
                                    Analyze::ChannelsState& analyzeState) const
     {
@@ -423,7 +429,7 @@ namespace
       std::transform(ChanState.begin(), ChanState.end(), analyzeState.begin(), &AnalyzeDACState);
       return Error();
     }
-
+ 
     virtual Error RenderFrame(const Sound::RenderParameters& params,
                               PlaybackState& state,
                               Sound::MultichannelReceiver& receiver)

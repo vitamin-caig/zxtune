@@ -77,6 +77,14 @@ namespace ZXTune
         return boost::make_shared<StubTrackState>(ModState);
       }
 
+      virtual void GetAnalyzer(Analyze::ChannelsState& analyzeState) const
+      {
+        AYM::ChannelsState devState;
+        Device->GetState(devState);
+        analyzeState.resize(devState.size());
+        std::transform(devState.begin(), devState.end(), analyzeState.begin(), &AnalyzeAYState);
+      }
+
       virtual Error GetPlaybackState(Module::State& state,
                                      Analyze::ChannelsState& analyzeState) const
       {
@@ -87,7 +95,7 @@ namespace ZXTune
         std::transform(devState.begin(), devState.end(), analyzeState.begin(), &AnalyzeAYState);
         return Error();
       }
-
+ 
       virtual Error SetParameters(const Parameters::Accessor& params)
       {
         try

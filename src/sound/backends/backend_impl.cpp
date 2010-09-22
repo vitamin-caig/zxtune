@@ -71,6 +71,12 @@ namespace
       return Delegate->GetTrackState();
     }
 
+    virtual void GetAnalyzer(Module::Analyze::ChannelsState& analyzeState) const
+    {
+      Locker lock(Mutex);
+      analyzeState = PrevAnalyze;
+    }
+
     virtual Error GetPlaybackState(Module::State& state,
       Module::Analyze::ChannelsState& analyzeState) const
     {

@@ -50,6 +50,10 @@ namespace ZXTune
       //! @brief Current tracking status
       virtual TrackState::Ptr GetTrackState() const = 0;
 
+      //! @brief Getting current analyze state of loaded module
+      //! @param analyzeState Reference to store analyze result
+      virtual void GetAnalyzer(Analyze::ChannelsState& analyzeState) const = 0;
+
       //! @brief Playing state
       enum PlaybackState
       {
@@ -65,7 +69,7 @@ namespace ZXTune
       //! @return Error() in case of success
       virtual Error GetPlaybackState(State& state,
         Analyze::ChannelsState& analyzeState) const = 0;
-
+ 
       //! @brief Rendering single frame and modifying internal state
       //! @param params %Sound rendering-related parameters
       //! @param state Playback state player transitioned to
