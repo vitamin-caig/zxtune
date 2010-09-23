@@ -31,10 +31,18 @@ namespace
   #endif
     '/', '\0'
   };
+
+  inline bool IsNotFSSymbol(Char sym)
+  {
+    return std::iscntrl(sym) || 
+      sym == '*' || sym == '\?' || sym == '%' || 
+      sym == ':' || sym == '|' || sym == '\"' || sym == '<' || sym == '>' || 
+      sym == '\\' || sym == '/';
+  }
   
   inline bool IsFSSymbol(Char sym)
   {
-    return std::isalnum(sym) || sym == '_' || sym =='(' || sym == ')';
+    return !IsNotFSSymbol(sym);
   }
 }
 

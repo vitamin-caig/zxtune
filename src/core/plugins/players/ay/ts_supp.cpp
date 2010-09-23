@@ -409,29 +409,6 @@ namespace
         std::copy(firstAnalyze.begin(), firstAnalyze.end(), analyzeState.begin()));
     }
 
-    virtual Error GetPlaybackState(State& state,
-                                   Analyze::ChannelsState& analyzeState) const
-    {
-      Analyze::ChannelsState firstAnalyze;
-      if (const Error& err = Player1->GetPlaybackState(state, firstAnalyze))
-      {
-        return err;
-      }
-      State secondState;
-      Analyze::ChannelsState secondAnalyze;
-      if (const Error& err = Player2->GetPlaybackState(secondState, secondAnalyze))
-      {
-        return err;
-      }
-      assert(state.Frame == secondState.Frame);
-      //merge
-      analyzeState.resize(firstAnalyze.size() + secondAnalyze.size());
-      std::copy(secondAnalyze.begin(), secondAnalyze.end(),
-        std::copy(firstAnalyze.begin(), firstAnalyze.end(), analyzeState.begin()));
-      state.Track.Channels += secondState.Track.Channels;
-      return Error();
-    }
- 
     virtual Error RenderFrame(const Sound::RenderParameters& params,
                               PlaybackState& state,
                               Sound::MultichannelReceiver& receiver)

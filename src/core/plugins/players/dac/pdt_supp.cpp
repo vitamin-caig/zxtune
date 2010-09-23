@@ -496,15 +496,6 @@ namespace
       std::transform(ChanState.begin(), ChanState.end(), analyzeState.begin(), &AnalyzeDACState);
     }
 
-    virtual Error GetPlaybackState(State& state,
-                                   Analyze::ChannelsState& analyzeState) const
-    {
-      state = ModState;
-      analyzeState.resize(ChanState.size());
-      std::transform(ChanState.begin(), ChanState.end(), analyzeState.begin(), &AnalyzeDACState);
-      return Error();
-    }
- 
     virtual Error RenderFrame(const Sound::RenderParameters& params,
                               PlaybackState& state,
                               Sound::MultichannelReceiver& receiver)

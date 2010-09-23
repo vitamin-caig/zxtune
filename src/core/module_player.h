@@ -63,13 +63,6 @@ namespace ZXTune
         MODULE_STOPPED
       };
 
-      //! @brief Getting current playback state of loaded module
-      //! @param state Reference to store playback state
-      //! @param analyzeState Reference to store analyze result
-      //! @return Error() in case of success
-      virtual Error GetPlaybackState(State& state,
-        Analyze::ChannelsState& analyzeState) const = 0;
- 
       //! @brief Rendering single frame and modifying internal state
       //! @param params %Sound rendering-related parameters
       //! @param state Playback state player transitioned to

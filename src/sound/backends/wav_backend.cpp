@@ -84,7 +84,8 @@ namespace
     typedef std::auto_ptr<TrackProcessor> Ptr;
     virtual ~TrackProcessor() {}
 
-    virtual void OnFrame(const Module::State& state, const std::vector<MultiSample>& data) = 0;
+    virtual void BeginFrame(const Module::TrackState& state) = 0;
+    virtual void FinishFrame(const std::vector<MultiSample>& data) = 0;
   };
 
   const uint_t MIN_CUESHEET_PERIOD = 4;
@@ -162,54 +163,62 @@ namespace
       : File(IO::CreateFile(wavName + FILE_CUE_EXT, true))
       , FrameDuration(params.GetFrameDuration())
       , SplitPeriod(params.GetSplitPeriod())
+      , PrevPosition(~0)
+      , PrevLine(0)
     {
       String path;
       *File << (Formatter(Text::CUESHEET_BEGIN) % IO::ExtractLastPathComponent(wavName, path)).str();
-      Track.Position = -1;
     }
 
-    void OnFrame(const Module::State& state, const std::vector<MultiSample>&)
+    void BeginFrame(const Module::TrackState& state)
     {
-      const uint_t frame = state.Frame;
-      const Module::Tracking& track = state.Track;
-      const bool positionChanged = track.Position != Track.Position;
+      const uint_t curPosition = state.Position();
+      const uint_t curLine = state.Line();
+      const bool positionChanged = PrevPosition != curPosition;
       const bool splitOcurred =
            SplitPeriod != 0 && //period specified
-           0 == track.Frame && //new line
-           0 == track.Line % SplitPeriod && //line number is multiple of period
-           (positionChanged || track.Line > Track.Line); //to prevent reseting line to 0 after an end
+           0 == state.Quirk() && //new line
+           0 == curLine % SplitPeriod && //line number is multiple of period
+           (positionChanged || curLine > PrevLine); //to prevent reseting line to 0 after an end
 
       if (positionChanged)
       {
         *File << (Formatter(Text::CUESHEET_TRACK_ITEM)
-          % (track.Position + 1)
-          % track.Pattern).str();
+          % (curPosition + 1)
+          % state.Pattern()).str();
       }
       if (positionChanged || splitOcurred)
       {
+        const uint_t curFrame = state.Frame();
         const uint_t CUEFRAMES_PER_SECOND = 75;
         const uint_t CUEFRAMES_PER_MINUTE = 60 * CUEFRAMES_PER_SECOND;
-        const uint_t cueTotalFrames = static_cast<uint_t>(uint64_t(frame) * FrameDuration * CUEFRAMES_PER_SECOND / 1000000);
+        const uint_t cueTotalFrames = static_cast<uint_t>(uint64_t(curFrame) * FrameDuration * CUEFRAMES_PER_SECOND / 1000000);
         const uint_t cueMinutes = cueTotalFrames / CUEFRAMES_PER_MINUTE;
         const uint_t cueSeconds = (cueTotalFrames - cueMinutes * CUEFRAMES_PER_MINUTE) / CUEFRAMES_PER_SECOND;
         const uint_t cueFrames = cueTotalFrames % CUEFRAMES_PER_SECOND;
         *File << (Formatter(Text::CUESHEET_TRACK_INDEX)
-          % (SplitPeriod ? track.Line / SplitPeriod + 1 : 1)
+          % (SplitPeriod ? curLine / SplitPeriod + 1 : 1)
           % cueMinutes % cueSeconds % cueFrames).str();
-        Track = track;
+        PrevPosition = curPosition;
+        PrevLine = curLine;
       }
+    }
+
+    void FinishFrame(const std::vector<MultiSample>&)
+    {
     }
   private:
     const std::auto_ptr<std::ofstream> File;
-    Module::Tracking Track;
     const uint_t FrameDuration;
     const uint_t SplitPeriod;
+    uint_t PrevPosition;
+    uint_t PrevLine;
   };
 
   class StateFieldsSource : public SkipFieldsSource
   {
   public:
-    explicit StateFieldsSource(const Module::State& state)
+    explicit StateFieldsSource(const Module::TrackState& state)
       : State(state)
     {
     }
@@ -218,20 +227,20 @@ namespace
     {
       if (fieldName == Module::ATTR_CURRENT_POSITION)
       {
-        return Parameters::ConvertToString(Parameters::ValueType(State.Track.Position));
+        return Parameters::ConvertToString(Parameters::ValueType(State.Position()));
       }
       else if (fieldName == Module::ATTR_CURRENT_PATTERN)
       {
-        return Parameters::ConvertToString(Parameters::ValueType(State.Track.Pattern));
+        return Parameters::ConvertToString(Parameters::ValueType(State.Pattern()));
       }
       else if (fieldName == Module::ATTR_CURRENT_LINE)
       {
-        return Parameters::ConvertToString(Parameters::ValueType(State.Track.Line));
+        return Parameters::ConvertToString(Parameters::ValueType(State.Line()));
       }
       return SkipFieldsSource::GetFieldValue(fieldName);
     }
   private:
-    const Module::State& State;
+    const Module::TrackState& State;
   };
 
   class FileWriter : public TrackProcessor
@@ -266,13 +275,17 @@ namespace
       StopFile();
     }
 
-    void OnFrame(const Module::State& state, const std::vector<MultiSample>& data)
+    void BeginFrame(const Module::TrackState& state)
     {
       if (NameGenerator.get())
       {
         const StateFieldsSource fields(state);
         StartFile(NameGenerator->Instantiate(fields));
       }
+    }
+
+    void FinishFrame(const std::vector<MultiSample>& data)
+    {
       const std::size_t sizeInBytes = data.size() * sizeof(data.front());
       File->write(safe_ptr_cast<const char*>(&data[0]), static_cast<std::streamsize>(sizeInBytes));
       Format.Size += static_cast<uint32_t>(sizeInBytes);
@@ -339,8 +352,10 @@ namespace
       const WavBackendParameters backendParameters(commonParams);
       //acquire name template
       const String nameTemplate = backendParameters.GetFilenameTemplate();
+      Log::Debug(THIS_MODULE, "Original filename template: '%1%'", nameTemplate);
       const ModuleFieldsSource moduleFields(*info.Properties());
       const String fileName = InstantiateTemplate(nameTemplate, moduleFields);
+      Log::Debug(THIS_MODULE, "Fixed filename template: '%1%'", fileName);
       const bool doRewrite = backendParameters.CheckIfRewrite();
       Writer.reset(new FileWriter(soundParams.SoundFreq, fileName, doRewrite));
       //prepare cuesheet if required
@@ -350,12 +365,21 @@ namespace
       }
     }
 
-    void OnFrame(const Module::State& state, const std::vector<MultiSample>& data)
+    void BeginFrame(const Module::TrackState& state)
     {
-      Writer->OnFrame(state, data);
+      Writer->BeginFrame(state);
       if (Logger.get())
       {
-        Logger->OnFrame(state, data);
+        Logger->BeginFrame(state);
+      }
+    }
+
+    void FinishFrame(const std::vector<MultiSample>& data)
+    {
+      Writer->FinishFrame(data);
+      if (Logger.get())
+      {
+        Logger->FinishFrame(data);
       }
     }
   private:
@@ -387,6 +411,7 @@ namespace
       {
         const Module::Information::Ptr info = Player->GetInformation();
         Processor.reset(new ComplexTrackProcessor(*CommonParameters, RenderingParameters, *info));
+        State = Player->GetTrackState();
       }
     }
 
@@ -412,24 +437,26 @@ namespace
       }
     }
 
+    virtual bool OnRenderFrame()
+    {
+      Processor->BeginFrame(*State);
+      return BackendImpl::OnRenderFrame();
+    }
+
     virtual void OnBufferReady(std::vector<MultiSample>& buffer)
     {
-      //state
-      Module::State state;
-      Module::Analyze::ChannelsState analyze;
-      ThrowIfError(Player->GetPlaybackState(state, analyze));
-      //form result
 #ifdef BOOST_BIG_ENDIAN
       // in case of big endian, required to swap values
       Buffer.resize(buffer.size());
       std::transform(buffer.front().begin(), buffer.back().end(), Buffer.front().begin(), &swapBytes<Sample>);
-      Processor->OnFrame(state, Buffer);
+      Processor->FinishFrame(Buffer);
 #else
-      Processor->OnFrame(state, buffer);
+      Processor->FinishFrame(buffer);
 #endif
     }
   private:
     TrackProcessor::Ptr Processor;
+    Module::TrackState::Ptr State;
 #ifdef BOOST_BIG_ENDIAN
     std::vector<MultiSample> Buffer;
 #endif
