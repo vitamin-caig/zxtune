@@ -10,10 +10,10 @@ Author:
 */
 
 //local includes
-#include "../tracking.h"
 #include <core/plugins/enumerator.h>
 #include <core/plugins/utils.h>
 #include <core/plugins/players/module_properties.h>
+#include <core/plugins/players/tracking.h>
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
@@ -371,14 +371,83 @@ namespace
     IO::DataContainer::Ptr RawData;
   };
 
-  inline static Analyze::Channel AnalyzeDACState(const DAC::ChanState& dacState)
+  class DACAccessor
   {
-    Analyze::Channel res;
-    res.Enabled = dacState.Enabled;
-    res.Band = dacState.Band;
-    res.Level = dacState.LevelInPercents * std::numeric_limits<Analyze::LevelType>::max() / 100;
-    return res;
-  }
+    inline static Analyze::Channel AnalyzeDACState(const DAC::ChanState& dacState)
+    {
+      Analyze::Channel res;
+      res.Enabled = dacState.Enabled;
+      res.Band = dacState.Band;
+      res.Level = dacState.LevelInPercents * std::numeric_limits<Analyze::LevelType>::max() / 100;
+      return res;
+    }
+  public:
+    explicit DACAccessor(DAC::Chip::Ptr device)
+      : Device(device)
+      , IsValidState()
+    {
+    }
+
+    uint_t GetActiveChannels() const
+    {
+      FillState();
+      return std::count_if(ChanState.begin(), ChanState.end(),
+        boost::mem_fn(&DAC::ChanState::Enabled));
+    }
+
+    void GetAnalyzer(Analyze::ChannelsState& analyzeState) const
+    {
+      FillState();
+      analyzeState.resize(ChanState.size());
+      std::transform(ChanState.begin(), ChanState.end(), analyzeState.begin(), &AnalyzeDACState);
+    }
+
+    void Reset()
+    {
+      Device->Reset();
+      IsValidState = false;
+    }
+
+    void RenderData(const Sound::RenderParameters& params,
+                    const DAC::DataChunk& chunk,
+                    Sound::MultichannelReceiver& receiver)
+    {
+      Device->RenderData(params, chunk, receiver);
+      IsValidState = false;
+    }
+  private:
+    void FillState() const
+    {
+      if (!IsValidState)
+      {
+        Device->GetState(ChanState);
+        IsValidState = true;
+      }
+    }
+  private:
+    const DAC::Chip::Ptr Device;
+    mutable bool IsValidState;
+    mutable DAC::ChannelsState ChanState;
+  };
+
+  class CHITrackStateIterator : public CHITrack::TrackStateIterator
+  {
+  public:
+    typedef boost::shared_ptr<CHITrackStateIterator> Ptr;
+
+    CHITrackStateIterator(Information::Ptr info, CHITrack::ModuleData::Ptr data, const DACAccessor& accessor)
+      : TrackStateIterator(info, data)
+      , Accessor(accessor)
+    {
+    }
+
+    virtual uint_t Channels() const
+    {
+      return Accessor.GetActiveChannels();
+    }
+  private:
+    const DACAccessor& Accessor;
+  };
 
   class CHIPlayer : public Player
   {
@@ -400,6 +469,7 @@ namespace
       : Info(info)
       , Data(data)
       , Device(device)
+      , StateIterator(boost::make_shared<CHITrackStateIterator>(Info, Data, Device))
       , CurrentState(MODULE_STOPPED)
       , Interpolation(false)
     {
@@ -412,13 +482,12 @@ namespace
 
     virtual TrackState::Ptr GetTrackState() const
     {
-      return boost::make_shared<StubTrackState>(ModState);
+      return StateIterator;
     }
 
     virtual void GetAnalyzer(Analyze::ChannelsState& analyzeState) const
     {
-      analyzeState.resize(ChanState.size());
-      std::transform(ChanState.begin(), ChanState.end(), analyzeState.begin(), &AnalyzeDACState);
+      return Device.GetAnalyzer(analyzeState);
     }
 
     virtual Error RenderFrame(const Sound::RenderParameters& params,
@@ -426,24 +495,18 @@ namespace
                               Sound::MultichannelReceiver& receiver)
     {
       DAC::DataChunk chunk;
-      ModState.Tick += params.ClocksPerFrame();
-      chunk.Tick = ModState.Tick;
-      chunk.Interpolate = Interpolation;
       RenderData(chunk);
-      Device->RenderData(params, chunk, receiver);
-      Device->GetState(ChanState);
-      //count actually enabled channels
-      ModState.Track.Channels = std::count_if(ChanState.begin(), ChanState.end(),
-        boost::mem_fn(&DAC::ChanState::Enabled));
 
-      if (Data->UpdateState(*Info, params.Looping, ModState))
-      {
-        CurrentState = MODULE_PLAYING;
-      }
-      else
+      CurrentState = StateIterator->NextFrame(params.ClocksPerFrame(), params.Looping)
+        ? MODULE_PLAYING : MODULE_STOPPED;
+
+      chunk.Tick = StateIterator->AbsoluteTick();
+      chunk.Interpolate = Interpolation;
+      Device.RenderData(params, chunk, receiver);
+
+      if (MODULE_STOPPED == CurrentState)
       {
         receiver.Flush();
-        CurrentState = MODULE_STOPPED;
       }
       state = CurrentState;
       return Error();
@@ -451,35 +514,32 @@ namespace
 
     virtual Error Reset()
     {
-      Device->Reset();
-      Data->InitState(Info->Tempo(), Info->FramesCount(), ModState);
+      Device.Reset();
+      StateIterator->Reset();
+      std::fill(Gliss.begin(), Gliss.end(), GlissData());
       CurrentState = MODULE_STOPPED;
       return Error();
     }
 
     virtual Error SetPosition(uint_t frame)
     {
-      frame = std::min(frame, ModState.Reference.Frame - 1);
-      if (frame < ModState.Track.Frame)
+      frame = std::min(frame, Info->FramesCount() - 1);
+      if (frame < StateIterator->Frame())
       {
         //reset to beginning in case of moving back
-        const uint64_t keepTicks = ModState.Tick;
-        Data->InitState(Info->Tempo(), Info->FramesCount(), ModState);
-        ModState.Tick = keepTicks;
+        StateIterator->ResetPosition();
       }
       //fast forward
       DAC::DataChunk chunk;
-      while (ModState.Track.Frame < frame)
+      while (StateIterator->Frame() < frame)
       {
         //do not update tick for proper rendering
-        assert(Data->Positions.size() > ModState.Track.Position);
         RenderData(chunk);
-        if (!Data->UpdateState(*Info, Sound::LOOP_NONE, ModState))
+        if (!StateIterator->NextFrame(0, Sound::LOOP_NONE))
         {
           break;
         }
       }
-      ModState.Frame = frame;
       return Error();
     }
 
@@ -495,7 +555,7 @@ namespace
     void RenderData(DAC::DataChunk& chunk)
     {
       std::vector<DAC::DataChunk::ChannelData> res;
-      const CHITrack::Line& line(Data->Patterns[ModState.Track.Pattern][ModState.Track.Line]);
+      const CHITrack::Line& line(Data->Patterns[StateIterator->Pattern()][StateIterator->Line()]);
       for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
       {
         GlissData& gliss(Gliss[chan]);
@@ -507,7 +567,7 @@ namespace
           dst.Mask |= DAC::DataChunk::ChannelData::MASK_FREQSLIDE;
         }
         //begin note
-        if (0 == ModState.Track.Quirk)
+        if (0 == StateIterator->Quirk())
         {
           const CHITrack::Line::Chan& src(line.Channels[chan]);
           if (src.Enabled)
@@ -558,11 +618,10 @@ namespace
   private:
     const Information::Ptr Info;
     const CHITrack::ModuleData::Ptr Data;
-    DAC::Chip::Ptr Device;
+    DACAccessor Device;
+    const CHITrackStateIterator::Ptr StateIterator;
     PlaybackState CurrentState;
-    State ModState;
     boost::array<GlissData, CHANNELS_COUNT> Gliss;
-    DAC::ChannelsState ChanState;
     bool Interpolation;
   };
 

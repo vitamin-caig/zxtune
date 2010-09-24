@@ -290,14 +290,26 @@ namespace ZXTune
         }
 
         //iterator functions
-        void Reset()
+        virtual void Reset()
         {
           AbsFrame = 0;
           AbsTick = 0;
           ResetPosition();
         }
 
-        bool NextFrame(uint64_t ticksToSkip, Sound::LoopMode mode)
+        virtual void ResetPosition()
+        {
+          CurFrame = 0;
+          CurPosition = 0;
+          CurLine = 0;
+          CurQuirk = 0;
+          if (!UpdateTempo())
+          {
+            CurTempo = Info->Tempo();
+          }
+        }
+
+        virtual bool NextFrame(uint64_t ticksToSkip, Sound::LoopMode mode)
         {
           ++CurFrame;
           ++AbsFrame;
@@ -310,7 +322,7 @@ namespace ZXTune
           return true;
         }
 
-        bool NextLine(Sound::LoopMode mode)
+        virtual bool NextLine(Sound::LoopMode mode)
         {
           CurQuirk = 0;
           if (++CurLine >= PatternSize() &&
@@ -322,13 +334,12 @@ namespace ZXTune
           return true;
         }
 
-        bool NextPosition(Sound::LoopMode mode)
+        virtual bool NextPosition(Sound::LoopMode mode)
         {
           CurLine = 0;
           if (++CurPosition >= Info->PositionsCount() && 
               !ProcessLoop(mode))
           {
-            CurPosition = 0;
             return false;
           }
           return true;
@@ -370,7 +381,7 @@ namespace ZXTune
 
         bool ProcessNoLoop()
         {
-          Reset();
+          ResetPosition();
           return false;
         }
 
@@ -379,22 +390,11 @@ namespace ZXTune
           ResetPosition();
           return true;
         }
-
-        void ResetPosition()
-        {
-          CurFrame = 0;
-          CurPosition = 0;
-          CurLine = 0;
-          CurQuirk = 0;
-          if (!UpdateTempo())
-          {
-            CurTempo = Info->Tempo();
-          }
-        }
-      private:
+      protected:
         //context
         const Information::Ptr Info;
         const typename ModuleData::Ptr Data;
+      private:
         //state
         uint_t CurPosition;
         uint_t CurLine;
