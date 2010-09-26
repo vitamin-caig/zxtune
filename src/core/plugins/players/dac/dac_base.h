@@ -31,9 +31,6 @@ namespace ZXTune
 
       virtual void Reset() = 0;
 
-      //deprecated
-      virtual void GetAnalyzer(Analyze::ChannelsState& analyzeState) const = 0;
-
       static Ptr Create(DAC::Chip::Ptr device);
     };
   }

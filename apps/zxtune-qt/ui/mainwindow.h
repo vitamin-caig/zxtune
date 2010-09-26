@@ -15,7 +15,7 @@ Author:
 #define ZXTUNE_QT_MAINWINDOW_H_DEFINED
 
 //library includes
-#include <core/module_types.h>
+#include <core/module_player.h>
 //qt includes
 #include <QtCore/QPointer>
 #include <QtGui/QMainWindow>
@@ -27,7 +27,7 @@ public:
   static QPointer<MainWindow> Create(int argc, char* argv[]);
 
 public slots:
-  virtual void StartModule(ZXTune::Module::Information::Ptr) = 0;
+  virtual void StartModule(ZXTune::Module::Player::ConstPtr) = 0;
   virtual void StopModule() = 0;
 };
 

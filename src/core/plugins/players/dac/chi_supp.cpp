@@ -427,11 +427,6 @@ namespace
       return StateIterator;
     }
 
-    virtual void GetAnalyzer(Analyze::ChannelsState& analyzeState) const
-    {
-      return Device->GetAnalyzer(analyzeState);
-    }
-
     virtual Analyzer::Ptr GetAnalyzer() const
     {
       return Device;

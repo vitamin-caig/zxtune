@@ -81,11 +81,11 @@ namespace
       //connect root actions
       Collection->connect(Controls, SIGNAL(OnPrevious()), SLOT(PrevItem()));
       Collection->connect(Controls, SIGNAL(OnNext()), SLOT(NextItem()));
-      Collection->connect(Playback, SIGNAL(OnStartModule(ZXTune::Module::Information::Ptr)), SLOT(PlayItem()));
-      Collection->connect(Playback, SIGNAL(OnResumeModule(ZXTune::Module::Information::Ptr)), SLOT(PlayItem()));
-      Collection->connect(Playback, SIGNAL(OnPauseModule(ZXTune::Module::Information::Ptr)), SLOT(PauseItem()));
-      Collection->connect(Playback, SIGNAL(OnStopModule(ZXTune::Module::Information::Ptr)), SLOT(StopItem()));
-      Collection->connect(Playback, SIGNAL(OnFinishModule(ZXTune::Module::Information::Ptr)), SLOT(NextItem()));
+      Collection->connect(Playback, SIGNAL(OnStartModule(ZXTune::Module::Player::ConstPtr)), SLOT(PlayItem()));
+      Collection->connect(Playback, SIGNAL(OnResumeModule()), SLOT(PlayItem()));
+      Collection->connect(Playback, SIGNAL(OnPauseModule()), SLOT(PauseItem()));
+      Collection->connect(Playback, SIGNAL(OnStopModule()), SLOT(StopItem()));
+      Collection->connect(Playback, SIGNAL(OnFinishModule()), SLOT(NextItem()));
       Playback->connect(Collection, SIGNAL(OnItemSet(const Playitem&)), SLOT(SetItem(const Playitem&)));
       Playback->connect(Collection, SIGNAL(OnItemSelected(const Playitem&)), SLOT(SelectItem(const Playitem&)));
       Playback->connect(Controls, SIGNAL(OnPlay()), SLOT(Play()));
@@ -96,9 +96,8 @@ namespace
       //Seeking->connect(Playback, SIGNAL(OnUpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&)),
         //SLOT(UpdateState(uint)));
       //Seeking->connect(Playback, SIGNAL(OnStopModule(const ZXTune::Module::Information&)), SLOT(CloseState(const ZXTune::Module::Information&)));
-      Analyzer->connect(Playback, SIGNAL(OnStopModule(ZXTune::Module::Information::Ptr)), SLOT(InitState()));
-      Analyzer->connect(Playback, SIGNAL(OnUpdateState(ZXTune::Module::TrackState::Ptr, const ZXTune::Module::Analyze::ChannelsState&)),
-        SLOT(UpdateState(ZXTune::Module::TrackState::Ptr, const ZXTune::Module::Analyze::ChannelsState&)));
+      Analyzer->connect(Playback, SIGNAL(OnStopModule()), SLOT(InitState()));
+      Analyzer->connect(Playback, SIGNAL(OnUpdateState()), SLOT(UpdateState()));
     }
   private:
     WidgetControl<PlaybackControls> Controls;

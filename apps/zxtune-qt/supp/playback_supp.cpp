@@ -107,16 +107,12 @@ namespace
     {
       using namespace ZXTune;
 
-      const ZXTune::Module::Information::Ptr info = Player->GetInformation();
-      const ZXTune::Module::TrackState::Ptr state = Player->GetTrackState();
       //notify about start
-      OnStartModule(info);
+      OnStartModule(Player);
 
       SignalsCollector::Ptr signaller = Backend->CreateSignalsCollector(
         Sound::Backend::MODULE_RESUME | Sound::Backend::MODULE_PAUSE |
         Sound::Backend::MODULE_STOP | Sound::Backend::MODULE_FINISH);
-      //playback state, just for optimization
-      Module::Analyze::ChannelsState analyze;
       for (;;)
       {
         uint_t sigmask = 0;
@@ -126,17 +122,17 @@ namespace
           {
             if (sigmask & Sound::Backend::MODULE_FINISH)
             {
-              OnFinishModule(info);
+              OnFinishModule();
             }
             break;
           }
           else if (sigmask & Sound::Backend::MODULE_RESUME)
           {
-            OnResumeModule(info);
+            OnResumeModule();
           }
           else if (sigmask & Sound::Backend::MODULE_PAUSE)
           {
-            OnPauseModule(info);
+            OnPauseModule();
           }
           else
           {
@@ -148,11 +144,10 @@ namespace
         {
           continue;
         }
-        Player->GetAnalyzer(analyze);
-        OnUpdateState(state, analyze);
+        OnUpdateState();
       }
       //notify about stop
-      OnStopModule(info);
+      OnStopModule();
     }
   private:
     void OpenBackend()
@@ -200,9 +195,7 @@ namespace
 
 PlaybackSupport* PlaybackSupport::Create(QWidget* owner)
 {
-  REGISTER_METATYPE(ZXTune::Module::Information::Ptr);
-  REGISTER_METATYPE(ZXTune::Module::TrackState::Ptr);
-  REGISTER_METATYPE(ZXTune::Module::Analyze::ChannelsState);
+  REGISTER_METATYPE(ZXTune::Module::Player::ConstPtr);
   assert(owner);
   return new PlaybackSupportImpl(owner);
 }

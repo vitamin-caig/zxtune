@@ -37,15 +37,21 @@ namespace
       setParent(parent);
       setupUi(this);
     }
-
-    virtual void UpdateState(ZXTune::Module::TrackState::Ptr state)
+    
+    virtual void InitState(ZXTune::Module::Player::ConstPtr player)
     {
-      textPosition->setText(QString::number(state->Position()));
-      textPattern->setText(QString::number(state->Pattern()));
-      textLine->setText(QString::number(state->Line()));
-      textFrame->setText(QString::number(state->Quirk()));
-      textChannels->setText(QString::number(state->Channels()));
-      textTempo->setText(QString::number(state->Tempo()));
+      TrackState = player->GetTrackState();
+      CloseState();
+    }
+
+    virtual void UpdateState()
+    {
+      textPosition->setText(QString::number(TrackState->Position()));
+      textPattern->setText(QString::number(TrackState->Pattern()));
+      textLine->setText(QString::number(TrackState->Line()));
+      textFrame->setText(QString::number(TrackState->Quirk()));
+      textChannels->setText(QString::number(TrackState->Channels()));
+      textTempo->setText(QString::number(TrackState->Tempo()));
     }
 
     virtual void CloseState()
@@ -57,6 +63,8 @@ namespace
       textChannels->setText(EMPTY_TEXT);
       textTempo->setText(EMPTY_TEXT);
     }
+  private:
+    ZXTune::Module::TrackState::Ptr TrackState;
   };
 }
 

@@ -421,15 +421,6 @@ namespace
     IO::DataContainer::Ptr RawData;
   };
 
-  inline static Analyze::Channel AnalyzeDACState(const DAC::ChanState& dacState)
-  {
-    Analyze::Channel res;
-    res.Enabled = dacState.Enabled;
-    res.Band = dacState.Band;
-    res.Level = dacState.LevelInPercents * std::numeric_limits<Analyze::LevelType>::max() / 100;
-    return res;
-  }
-
   class PDTPlayer : public Player
   {
     struct OrnamentState
@@ -489,11 +480,6 @@ namespace
     virtual TrackState::Ptr GetTrackState() const
     {
       return boost::make_shared<StubTrackState>(ModState);
-    }
-
-    virtual void GetAnalyzer(Analyze::ChannelsState& analyzeState) const
-    {
-      return Device->GetAnalyzer(analyzeState);
     }
 
     virtual Analyzer::Ptr GetAnalyzer() const

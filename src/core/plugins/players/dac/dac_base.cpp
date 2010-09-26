@@ -24,14 +24,6 @@ namespace
 
   class DACDeviceImpl : public DACDevice
   {
-    inline static Analyze::Channel AnalyzeDACState(const DAC::ChanState& dacState)
-    {
-      Analyze::Channel res;
-      res.Enabled = dacState.Enabled;
-      res.Band = dacState.Band;
-      res.Level = dacState.LevelInPercents * std::numeric_limits<Analyze::LevelType>::max() / 100;
-      return res;
-    }
   public:
     explicit DACDeviceImpl(DAC::Chip::Ptr device)
       : Device(device)
@@ -67,13 +59,6 @@ namespace
     {
       Device->Reset();
       CurState = 0;
-    }
-
-    virtual void GetAnalyzer(Analyze::ChannelsState& analyzeState) const
-    {
-      FillState();
-      analyzeState.resize(StateCache.size());
-      std::transform(StateCache.begin(), StateCache.end(), analyzeState.begin(), &AnalyzeDACState);
     }
   private:
     void FillState() const

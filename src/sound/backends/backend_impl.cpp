@@ -71,12 +71,6 @@ namespace
       return Delegate->GetTrackState();
     }
 
-    virtual void GetAnalyzer(Module::Analyze::ChannelsState& analyzeState) const
-    {
-      Locker lock(Mutex);
-      return Delegate->GetAnalyzer(analyzeState);
-    }
-
     virtual Module::Analyzer::Ptr GetAnalyzer() const
     {
       Locker lock(Mutex);

@@ -50,10 +50,6 @@ namespace ZXTune
       //! @brief Current tracking status
       virtual TrackState::Ptr GetTrackState() const = 0;
 
-      //! @brief Getting current analyze state of loaded module
-      //! @param analyzeState Reference to store analyze result
-      virtual void GetAnalyzer(Analyze::ChannelsState& analyzeState) const = 0;
-
       //! @brief Getting analyzer interface
       virtual Analyzer::Ptr GetAnalyzer() const = 0;
 

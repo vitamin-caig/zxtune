@@ -14,6 +14,8 @@ Author:
 //local includes
 #include "analyzer_control.h"
 #include "analyzer_control_moc.h"
+//library includes
+#include <core/module_types.h>
 //std includes
 #include <algorithm>
 #include <limits>
@@ -29,18 +31,18 @@ namespace
   const uint_t BAR_WIDTH = 3;
   const uint_t LEVELS_FALLBACK = 20;
   
-  typedef boost::array<ZXTune::Module::Analyze::LevelType, MAX_BANDS> Analyzed;
+  typedef boost::array<uint_t, MAX_BANDS> Analyzed;
   
   inline uint_t SafeSub(uint_t lh, uint_t rh)
   {
     return lh >= rh ? lh - rh : 0;
   }
   
-  inline void StoreValue(const ZXTune::Module::Analyze::Channel& chan, Analyzed& result)
+  inline void StoreValue(const ZXTune::Module::Analyzer::BandAndLevel& chan, Analyzed& result)
   {
-    if (chan.Enabled && chan.Band < MAX_BANDS)
+    if (chan.first < MAX_BANDS)
     {
-      result[chan.Band] = chan.Level;
+      result[chan.first] = chan.second;
     }
   }
   
@@ -55,16 +57,23 @@ namespace
       setMinimumSize(64, 32);
     }
 
-    virtual void InitState()
+    virtual void InitState(ZXTune::Module::Player::ConstPtr player)
     {
-      std::fill(Levels.begin(), Levels.end(), 0);
+      Analyzer = player->GetAnalyzer();
+      CloseState();
+    }
+    
+    virtual void UpdateState()
+    {
+      std::transform(Levels.begin(), Levels.end(), Levels.begin(), boost::bind(&SafeSub, _1, LEVELS_FALLBACK));
+      Analyzer->BandLevels(State);
+      std::for_each(State.begin(), State.end(), boost::bind(&StoreValue, _1, boost::ref(Levels)));
       DoRepaint();
     }
     
-    virtual void UpdateState(ZXTune::Module::TrackState::Ptr, const ZXTune::Module::Analyze::ChannelsState& state)
+    void CloseState()
     {
-      std::transform(Levels.begin(), Levels.end(), Levels.begin(), boost::bind(&SafeSub, _1, LEVELS_FALLBACK));
-      std::for_each(state.begin(), state.end(), boost::bind(&StoreValue, _1, boost::ref(Levels)));
+      std::fill(Levels.begin(), Levels.end(), 0);
       DoRepaint();
     }
     
@@ -78,7 +87,7 @@ namespace
       const QColor brush(0xff, 0xff, 0xff);
       for (uint_t band = 0; band < std::min<uint_t>(curWidth / BAR_WIDTH, MAX_BANDS); ++band)
       {
-        if (const int scaledValue = Levels[band] * (curHeight - 1) / std::numeric_limits<ZXTune::Module::Analyze::LevelType>::max())
+        if (const int scaledValue = Levels[band] * (curHeight - 1) / 100)
         {
           //fill mask
           painter.fillRect(band * BAR_WIDTH + 1, curHeight - scaledValue - 1, BAR_WIDTH + 1, scaledValue + 1, mask);
@@ -97,6 +106,8 @@ namespace
       }
     }
   private:
+    ZXTune::Module::Analyzer::Ptr Analyzer;
+    std::vector<ZXTune::Module::Analyzer::BandAndLevel> State;
     Analyzed Levels;
   };
 }

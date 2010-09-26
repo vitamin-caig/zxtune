@@ -160,11 +160,6 @@ namespace
       return Delegate->GetTrackState();
     }
 
-    virtual void GetAnalyzer(Module::Analyze::ChannelsState& analyzeState) const
-    {
-      return Delegate->GetAnalyzer(analyzeState);
-    }
-
     virtual Module::Analyzer::Ptr GetAnalyzer() const
     {
       return Delegate->GetAnalyzer();

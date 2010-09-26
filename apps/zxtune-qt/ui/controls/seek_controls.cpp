@@ -33,14 +33,16 @@ namespace
       this->connect(timePosition, SIGNAL(sliderMoved(int)), SIGNAL(OnSeeking(int)));
     }
 
-    virtual void InitState(ZXTune::Module::Information::Ptr info)
+    virtual void InitState(ZXTune::Module::Player::ConstPtr player)
     {
+      const ZXTune::Module::Information::Ptr info = player->GetInformation();
       timePosition->setRange(0, info->FramesCount());
+      TrackState = player->GetTrackState();
     }
 
-    virtual void UpdateState(ZXTune::Module::TrackState::Ptr state)
+    virtual void UpdateState()
     {
-      const uint_t curFrame = state->Frame();
+      const uint_t curFrame = TrackState->Frame();
       if (!timePosition->isSliderDown())
       {
         timePosition->setValue(curFrame);
@@ -53,6 +55,8 @@ namespace
       timePosition->setRange(0, 0);
       timeDisplay->setText(QString::fromUtf8("-:-.-"));
     }
+  private:
+    ZXTune::Module::TrackState::Ptr TrackState;
   };
 }
 

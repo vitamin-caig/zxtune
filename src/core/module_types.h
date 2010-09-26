@@ -132,33 +132,11 @@ namespace ZXTune
 
       //! Currently active channels count
       virtual uint_t ActiveChannels() const = 0;
+
+      typedef std::pair<uint_t, uint_t> BandAndLevel;
       //! Band => Level correspondence
-      virtual void BandLevels(std::vector<std::pair<uint_t, uint_t> >& bandLevels) const = 0;
+      virtual void BandLevels(std::vector<BandAndLevel>& bandLevels) const = 0;
     };
-
-    //! @brief %Sound analyzing types
-    namespace Analyze
-    {
-      //! @brief Level type
-      typedef uint8_t LevelType;
-
-      //! @brief Logical channel runtime characteristics
-      struct Channel
-      {
-        Channel() : Enabled(), Level(), Band()
-        {
-        }
-        //! Is channel enabled now
-        bool Enabled;
-        //! Current level
-        LevelType Level;
-        //! Tone band (in halftones)
-        uint_t Band;
-      };
-
-      //! @brief All channels' state
-      typedef std::vector<Channel> ChannelsState;
-    }
   }
 }
 

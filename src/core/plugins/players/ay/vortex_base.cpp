@@ -502,16 +502,6 @@ namespace
       return boost::make_shared<MergedTrackState>(Player1->GetTrackState(), Player2->GetTrackState());
     }
 
-    virtual void GetAnalyzer(Analyze::ChannelsState& analyzeState) const
-    {
-      Analyze::ChannelsState firstAnalyze, secondAnalyze;
-      Player1->GetAnalyzer(firstAnalyze);
-      Player2->GetAnalyzer(secondAnalyze);
-      analyzeState.resize(firstAnalyze.size() + secondAnalyze.size());
-      std::copy(secondAnalyze.begin(), secondAnalyze.end(),
-        std::copy(firstAnalyze.begin(), firstAnalyze.end(), analyzeState.begin()));
-    }
-
     virtual Analyzer::Ptr GetAnalyzer() const
     {
       return boost::make_shared<MergedAnalyzer>(Player1->GetAnalyzer(), Player2->GetAnalyzer());

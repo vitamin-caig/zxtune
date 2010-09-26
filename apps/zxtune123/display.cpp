@@ -75,7 +75,7 @@ namespace
       : Options(Text::DISPLAY_SECTION)
       , Silent(false)
       , Quiet(false)
-      , Analyzer(false)
+      , ShowAnalyze(false)
       , Updatefps(10)
       , ScrSize(Console::Self().GetSize())
       , TotalFrames(0)
@@ -85,7 +85,7 @@ namespace
       Options.add_options()
         (Text::SILENT_KEY, bool_switch(&Silent), Text::SILENT_DESC)
         (Text::QUIET_KEY, bool_switch(&Quiet), Text::QUIET_DESC)
-        (Text::ANALYZER_KEY, bool_switch(&Analyzer), Text::ANALYZER_DESC)
+        (Text::ANALYZER_KEY, bool_switch(&ShowAnalyze), Text::ANALYZER_DESC)
         (Text::UPDATEFPS_KEY, value<uint_t>(&Updatefps), Text::UPDATEFPS_DESC)
       ;
     }
@@ -114,6 +114,14 @@ namespace
       TotalFrames = info->FramesCount();
       FrameDuration = frameDuration;
       TrackState = Player->GetTrackState();
+      if (ShowAnalyze)
+      {
+        Analyzer = Player->GetAnalyzer();
+      }
+      else
+      {
+        Analyzer.reset();
+      }
 
 #if 1
       StdOut
@@ -142,7 +150,7 @@ namespace
       const int_t spectrumHeight = ScrSize.second - INFORMATION_HEIGHT - TRACKING_HEIGHT - PLAYING_HEIGHT - 1;
       if (spectrumHeight < 4)//minimal spectrum height
       {
-        Analyzer = false;
+        Analyzer.reset();
       }
       else if (ScrSize.second < int_t(TRACKING_HEIGHT + PLAYING_HEIGHT))
       {
@@ -154,8 +162,8 @@ namespace
         ShowPlaybackStatus(curFrame, state);
         if (Analyzer)
         {
-          ZXTune::Module::Analyze::ChannelsState curAnalyze;
-          Player->GetAnalyzer(curAnalyze);
+          std::vector<ZXTune::Module::Analyzer::BandAndLevel> curAnalyze;
+          Analyzer->BandLevels(curAnalyze);
 
           AnalyzerData.resize(ScrSize.first);
           UpdateAnalyzer(curAnalyze, 10);
@@ -196,23 +204,22 @@ namespace
       std::string buffer(width, ' ');
       for (int_t y = high; y; --y)
       {
-        const int_t limit = (y - 1) * std::numeric_limits<ZXTune::Module::Analyze::LevelType>::max() / high;
+        const int_t limit = (y - 1) * 100 / high;
         std::transform(AnalyzerData.begin(), AnalyzerData.end(), buffer.begin(), boost::bind(&SymIfGreater, _1, limit));
         StdOut << buffer << '\n';
       }
       StdOut << std::flush;
     }
 
-    void UpdateAnalyzer(const ZXTune::Module::Analyze::ChannelsState& inState, int_t fallspeed)
+    void UpdateAnalyzer(const std::vector<ZXTune::Module::Analyzer::BandAndLevel>& inState, int_t fallspeed)
     {
       std::transform(AnalyzerData.begin(), AnalyzerData.end(), AnalyzerData.begin(),
         std::bind2nd(std::minus<int_t>(), fallspeed));
-      for (uint_t chan = 0, lim = inState.size(); chan != lim; ++chan)
+      for (std::vector<ZXTune::Module::Analyzer::BandAndLevel>::const_iterator it = inState.begin(), lim = inState.end(); it != lim; ++it)
       {
-        const ZXTune::Module::Analyze::Channel& state(inState[chan]);
-        if (state.Enabled && state.Band < AnalyzerData.size())
+        if (it->first < AnalyzerData.size())
         {
-          AnalyzerData[state.Band] = state.Level;
+          AnalyzerData[it->first] = it->second;
         }
       }
       std::replace_if(AnalyzerData.begin(), AnalyzerData.end(), std::bind2nd(std::less<int_t>(), 0), 0);
@@ -222,7 +229,7 @@ namespace
     boost::program_options::options_description Options;
     bool Silent;
     bool Quiet;
-    bool Analyzer;
+    bool ShowAnalyze;
     uint_t Updatefps;
     //context
     Console::SizeType ScrSize;
@@ -230,6 +237,7 @@ namespace
     uint_t FrameDuration;
     ZXTune::Module::Player::ConstPtr Player;
     ZXTune::Module::TrackState::Ptr TrackState;
+    ZXTune::Module::Analyzer::Ptr Analyzer;
     std::vector<int_t> AnalyzerData;
   };
 }
