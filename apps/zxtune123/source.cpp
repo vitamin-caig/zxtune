@@ -7,7 +7,7 @@ Last changed:
 
 Author:
   (C) Vitamin/CAIG/2001
-  
+
   This file is a part of zxtune123 application based on zxtune library
 */
 
@@ -50,9 +50,9 @@ Author:
 namespace
 {
   const Char DELIMITERS[] = {',', ';', ':', '\0'};
-  
+
   typedef std::set<String> StringSet;
- 
+
   void DoLog(const Log::MessageData& msg)
   {
     //show only first-level messages
@@ -90,7 +90,7 @@ namespace
       StdOut << log << std::endl;
     }
   }
-  
+
   void Parse(const StringSet& allplugs, const String& str, StringSet& plugs, uint32_t& caps)
   {
     typedef std::pair<uint32_t, String> CapsPair;
@@ -111,10 +111,10 @@ namespace
       CapsPair(ZXTune::CAP_CONV_RAW, Text::INFO_CONV_RAW),
       CapsPair(ZXTune::CAP_CONV_PSG, Text::INFO_CONV_PSG)
     };
-    
+
     StringSet tmpPlugs;
     uint32_t tmpCaps = 0;
-    
+
     if (!str.empty())
     {
       StringArray splitted;
@@ -147,7 +147,8 @@ namespace
   {
     try
     {
-      const ZXTune::Module::Holder::Ptr holder = CreateWrappedHolder(path, subpath, module);
+      const Parameters::Accessor::Ptr pathProps = CreatePathProperties(path, subpath);
+      const ZXTune::Module::Holder::Ptr holder = CreateMixinPropertiesModule(module, pathProps, pathProps);
       return callback(holder) ? Error() : Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
     }
     catch (const Error& e)
@@ -156,7 +157,7 @@ namespace
     }
   }
 
-  Error ProcessModuleItems(const StringArray& files, 
+  Error ProcessModuleItems(const StringArray& files,
     const Parameters::Accessor& coreParams, const Parameters::Accessor& ioParams,
     const ZXTune::DetectParameters::FilterFunc& filter,
     const ZXTune::DetectParameters::LogFunc& logger, const OnItemCallback& callback)
@@ -206,7 +207,7 @@ namespace
     {
       return OptionsDescription;
     }
-    
+
     // throw
     virtual void Initialize()
     {
@@ -225,7 +226,7 @@ namespace
       if (!ProvidersOptions.empty())
       {
         const Parameters::Container::Ptr ioParams = Parameters::Container::Create();
-        ThrowIfError(ParseParametersString(Parameters::ZXTune::IO::Providers::PREFIX, 
+        ThrowIfError(ParseParametersString(Parameters::ZXTune::IO::Providers::PREFIX,
           ProvidersOptions, *ioParams));
         IOParams = Parameters::CreateMergedAccessor(ioParams, IOParams);
       }
@@ -235,7 +236,7 @@ namespace
         const Parameters::Container::Ptr coreParams = Parameters::Container::Create();
         if (!CoreOptions.empty())
         {
-          ThrowIfError(ParseParametersString(Parameters::ZXTune::Core::PREFIX, 
+          ThrowIfError(ParseParametersString(Parameters::ZXTune::Core::PREFIX,
             CoreOptions, *coreParams));
         }
         if (YM)
@@ -245,7 +246,7 @@ namespace
         CoreParams = Parameters::CreateMergedAccessor(coreParams, CoreParams);
       }
     }
-    
+
     virtual void ProcessItems(const OnItemCallback& callback)
     {
       assert(callback);

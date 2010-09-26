@@ -15,7 +15,9 @@ Author:
 //library includes
 #include <core/module_holder.h>
 
-ZXTune::Module::Holder::Ptr CreateWrappedHolder(const String& path, const String& subpath, 
-  ZXTune::Module::Holder::Ptr module);
+Parameters::Accessor::Ptr CreatePathProperties(const String& path, const String& subpath);
+
+ZXTune::Module::Holder::Ptr CreateMixinPropertiesModule(ZXTune::Module::Holder::Ptr module,
+                                                        Parameters::Accessor::Ptr moduleProps, Parameters::Accessor::Ptr playerProps);
 
 #endif //BASE_PLAYITEM_H_DEFINED

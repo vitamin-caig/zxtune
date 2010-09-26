@@ -25,24 +25,22 @@ namespace
 {
   using namespace ZXTune;
 
-  using namespace Parameters;
-
-  class AdditionalParameters : public Accessor
+  class PathPropertiesAccessor : public Parameters::Accessor
   {
   public:
-    AdditionalParameters(const String& uri, const String& path)
-      : Uri(uri)
-      , Path(path)
+    PathPropertiesAccessor(const String& path, const String& subpath)
+      : Path(path)
       , Filename(ZXTune::IO::ExtractLastPathComponent(Path, Dir))
     {
+      ThrowIfError(IO::CombineUri(Path, subpath, Uri));
     }
 
-    virtual bool FindIntValue(const NameType& /*name*/, IntType& /*val*/) const
+    virtual bool FindIntValue(const Parameters::NameType& /*name*/, Parameters::IntType& /*val*/) const
     {
       return false;
     }
 
-    virtual bool FindStringValue(const NameType& name, StringType& val) const
+    virtual bool FindStringValue(const Parameters::NameType& name, Parameters::StringType& val) const
     {
       if (name == Module::ATTR_FILENAME)
       {
@@ -62,32 +60,31 @@ namespace
       return false;
     }
 
-    virtual bool FindDataValue(const NameType& /*name*/, DataType& /*val*/) const
+    virtual bool FindDataValue(const Parameters::NameType& /*name*/, Parameters::DataType& /*val*/) const
     {
       return false;
     }
 
-    virtual void Process(Visitor& visitor) const
+    virtual void Process(Parameters::Visitor& visitor) const
     {
       visitor.SetStringValue(Module::ATTR_FILENAME, Filename);
       visitor.SetStringValue(Module::ATTR_PATH, Path);
       visitor.SetStringValue(Module::ATTR_FULLPATH, Uri);
     }
   private:
-    const String Uri;
     const String Path;
     String Dir;//before filename
     const String Filename;
+    String Uri;
   };
 
   //merged info wrapper to present additional attributes
-  class WrappedInfo : public Module::Information
+  class MixinPropertiesInfo : public Module::Information
   {
   public:
-    WrappedInfo(Module::Information::Ptr delegate, const String& uri, const String& path)
+    MixinPropertiesInfo(Module::Information::Ptr delegate, Parameters::Accessor::Ptr mixinProps)
       : Delegate(delegate)
-      , Uri(uri)
-      , Path(path)
+      , MixinProps(mixinProps)
     {
     }
 
@@ -128,28 +125,80 @@ namespace
       if (!Props)
       {
         Props = Parameters::CreateMergedAccessor(
-          boost::make_shared<AdditionalParameters>(Uri, Path),
+          MixinProps,
           Delegate->Properties());
       }
       return Props;
     }
   private:
     const Module::Information::Ptr Delegate;
-    const String Uri;
-    const String Path;
+    const Parameters::Accessor::Ptr MixinProps;
     mutable Parameters::Accessor::Ptr Props;
   };
 
-  //wrapper for holder to create merged info
-  class WrappedHolder : public Module::Holder
+  class MixinPropertiesPlayer : public Module::Player
   {
   public:
-    WrappedHolder(Module::Holder::Ptr delegate,
-      const String& path, const String& subpath)
+    MixinPropertiesPlayer(Module::Player::Ptr delegate, Parameters::Accessor::Ptr playerProps)
       : Delegate(delegate)
-      , Path(path)
+      , PlayerProps(playerProps)
     {
-      ThrowIfError(IO::CombineUri(path, subpath, Uri));
+    }
+
+    virtual Module::Information::Ptr GetInformation() const
+    {
+      if (!Info)
+      {
+        const Module::Information::Ptr realInfo = Delegate->GetInformation();
+        Info = boost::make_shared<MixinPropertiesInfo>(realInfo, PlayerProps);
+      }
+      return Info;
+    }
+
+    virtual Module::TrackState::Ptr GetTrackState() const
+    {
+      return Delegate->GetTrackState();
+    }
+
+    virtual void GetAnalyzer(Module::Analyze::ChannelsState& analyzeState) const
+    {
+      return Delegate->GetAnalyzer(analyzeState);
+    }
+
+    virtual Error RenderFrame(const Sound::RenderParameters& params, PlaybackState& state,
+      Sound::MultichannelReceiver& receiver)
+    {
+      return Delegate->RenderFrame(params, state, receiver);
+    }
+
+    virtual Error Reset()
+    {
+      return Delegate->Reset();
+    }
+
+    virtual Error SetPosition(uint_t frame)
+    {
+      return Delegate->SetPosition(frame);
+    }
+
+    virtual Error SetParameters(const Parameters::Accessor& params)
+    {
+      return Delegate->SetParameters(params);
+    }
+  private:
+    const Module::Player::Ptr Delegate;
+    const Parameters::Accessor::Ptr PlayerProps;
+    mutable Module::Information::Ptr Info;
+  };
+
+  class MixinPropertiesHolder : public Module::Holder
+  {
+  public:
+    MixinPropertiesHolder(Module::Holder::Ptr delegate, Parameters::Accessor::Ptr moduleProps, Parameters::Accessor::Ptr playerProps)
+      : Delegate(delegate)
+      , ModuleProps(moduleProps)
+      , PlayerProps(playerProps)
+    {
     }
 
     virtual Plugin::Ptr GetPlugin() const
@@ -162,14 +211,15 @@ namespace
       if (!Info)
       {
         const Module::Information::Ptr realInfo = Delegate->GetModuleInformation();
-        Info.reset(new WrappedInfo(realInfo, Uri, Path));
+        Info = boost::make_shared<MixinPropertiesInfo>(realInfo, ModuleProps);
       }
       return Info;
     }
 
     virtual Module::Player::Ptr CreatePlayer() const
     {
-      return Delegate->CreatePlayer();
+      const Module::Player::Ptr realPlayer = Delegate->CreatePlayer();
+      return boost::make_shared<MixinPropertiesPlayer>(realPlayer, PlayerProps);
     }
 
     virtual Error Convert(const Module::Conversion::Parameter& param, Dump& dst) const
@@ -178,16 +228,19 @@ namespace
     }
   private:
     const Module::Holder::Ptr Delegate;
-    const String Path;
-    String Uri;
+    const Parameters::Accessor::Ptr ModuleProps;
+    const Parameters::Accessor::Ptr PlayerProps;
     mutable Module::Information::Ptr Info;
   };
 }
 
-ZXTune::Module::Holder::Ptr CreateWrappedHolder(const String& path, const String& subpath,
-  ZXTune::Module::Holder::Ptr module)
+Parameters::Accessor::Ptr CreatePathProperties(const String& path, const String& subpath)
 {
-  String uri;
-  ThrowIfError(IO::CombineUri(path, subpath, uri));
-  return ZXTune::Module::Holder::Ptr(new WrappedHolder(module, path, subpath));
+  return boost::make_shared<PathPropertiesAccessor>(path, subpath);
+}
+
+ZXTune::Module::Holder::Ptr CreateMixinPropertiesModule(ZXTune::Module::Holder::Ptr module,
+                                                        Parameters::Accessor::Ptr moduleProps, Parameters::Accessor::Ptr playerProps)
+{
+  return boost::make_shared<MixinPropertiesHolder>(module, moduleProps, playerProps);
 }

@@ -131,9 +131,11 @@ namespace
       const Parameters::Accessor::Ptr moduleParams = adjustedParams
         ? Parameters::CreateMergedAccessor(adjustedParams, CommonParams) : CommonParams;
       const ZXTune::IO::DataContainer::Ptr data = Provider->GetData(dataPath, *moduleParams, 0/*logger*/);
-      ZXTune::Module::Holder::Ptr result;
-      ThrowIfError(ZXTune::OpenModule(*moduleParams, data, subPath, result));
-      return CreateWrappedHolder(dataPath, subPath, result);
+      ZXTune::Module::Holder::Ptr module;
+      ThrowIfError(ZXTune::OpenModule(*moduleParams, data, subPath, module));
+      const Parameters::Accessor::Ptr pathParams = CreatePathProperties(dataPath, subPath);
+      const Parameters::Accessor::Ptr collectedModuleParams = Parameters::CreateMergedAccessor(moduleParams, pathParams);
+      return CreateMixinPropertiesModule(module, collectedModuleParams, collectedModuleParams);
     }
   private:
     const DataProvider::Ptr Provider;
@@ -146,13 +148,12 @@ namespace
     PlayitemImpl(
         //container-specific
         SharedPlayitemContext::Ptr context,
-        //module-specific
+        //location-specific
         const String& dataPath, const String& subPath,
-        ZXTune::Module::Holder::Ptr holder,
+        //module-specific
         Parameters::Accessor::Ptr adjustedParams)
       : Context(context)
       , DataPath(dataPath), SubPath(subPath)
-      , ModuleInfo(holder->GetModuleInformation())
       , AdjustedParams(adjustedParams)
     {
     }
@@ -164,6 +165,11 @@ namespace
     
     virtual ZXTune::Module::Information::Ptr GetModuleInfo() const
     {
+      if (!ModuleInfo)
+      {
+        const ZXTune::Module::Holder::Ptr module = GetModule();
+        ModuleInfo = module->GetModuleInformation();
+      }
       return ModuleInfo;
     }
     
@@ -174,8 +180,8 @@ namespace
   private:
     const SharedPlayitemContext::Ptr Context;
     const String DataPath, SubPath;
-    const ZXTune::Module::Information::Ptr ModuleInfo;
     const Parameters::Accessor::Ptr AdjustedParams;
+    mutable ZXTune::Module::Information::Ptr ModuleInfo;
   };
   
   class PlayitemsProviderImpl : public PlayitemsProvider
@@ -219,17 +225,15 @@ namespace
   private:
     Error CreatePlayitem(SharedPlayitemContext::Ptr context,
       const String& dataPath, const String& subPath,
-      ZXTune::Module::Holder::Ptr module,
+      ZXTune::Module::Holder::Ptr /*module*/,
       const PlayitemDetectParameters::CallbackFunc& callback)
     {
       try
       {
-        const ZXTune::Module::Holder::Ptr holder = 
-          CreateWrappedHolder(dataPath, subPath, module);
         const Parameters::Accessor::Ptr adjustedParams;
         const Playitem::Ptr item(new PlayitemImpl(
           context, //common data
-          dataPath, subPath, holder, //item data
+          dataPath, subPath, //item data
           adjustedParams
         ));
         return callback(item) ? Error() : Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
