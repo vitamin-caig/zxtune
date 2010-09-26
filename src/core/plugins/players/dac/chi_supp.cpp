@@ -255,7 +255,7 @@ namespace
     }
 
   public:
-    CHIHolder(Plugin::Ptr plugin, 
+    CHIHolder(Plugin::Ptr plugin,
       const MetaContainer& container, ModuleRegion& region)
       : SrcPlugin(plugin)
       , Data(CHITrack::ModuleData::Create())
@@ -430,7 +430,7 @@ namespace
     mutable DAC::ChannelsState ChanState;
   };
 
-  class CHITrackStateIterator : public CHITrack::TrackStateIterator
+  class CHITrackStateIterator : public TrackStateIterator
   {
   public:
     typedef boost::shared_ptr<CHITrackStateIterator> Ptr;
@@ -680,7 +680,7 @@ namespace
     {
       return CheckCHI(inputData);
     }
-    
+
     virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*parameters*/,
                                              const MetaContainer& container,
                                              ModuleRegion& region) const

@@ -65,6 +65,197 @@ namespace ZXTune
       std::vector<int_t> Lines;
     };
 
+    class TrackModuleData
+    {
+    public:
+      typedef boost::shared_ptr<const TrackModuleData> Ptr;
+
+      virtual ~TrackModuleData() {}
+
+      virtual uint_t GetCurrentPattern(const TrackState& state) const = 0;
+      virtual uint_t GetCurrentPatternSize(const TrackState& state) const = 0;
+      virtual uint_t GetNewTempo(const TrackState& state) const = 0;
+    };
+
+    class TrackStateIterator : public TrackState
+    {
+    public:
+      typedef boost::shared_ptr<TrackStateIterator> Ptr;
+
+      TrackStateIterator(Information::Ptr info, TrackModuleData::Ptr data)
+        : Info(info), Data(data)
+      {
+        Reset();
+      }
+
+      //status functions
+      virtual uint_t Position() const
+      {
+        return CurPosition;
+      }
+
+      virtual uint_t Pattern() const
+      {
+        return Data->GetCurrentPattern(*this);
+      }
+
+      virtual uint_t PatternSize() const
+      {
+        return Data->GetCurrentPatternSize(*this);
+      }
+
+      virtual uint_t Line() const
+      {
+        return CurLine;
+      }
+
+      virtual uint_t Tempo() const
+      {
+        return CurTempo;
+      }
+
+      virtual uint_t Quirk() const
+      {
+        return CurQuirk;
+      }
+
+      virtual uint_t Frame() const
+      {
+        return CurFrame;
+      }
+
+      virtual uint_t Channels() const
+      {
+        //override
+        return Info->LogicalChannels();
+      }
+
+      virtual uint_t AbsoluteFrame() const
+      {
+        return AbsFrame;
+      }
+
+      virtual uint64_t AbsoluteTick() const
+      {
+        return AbsTick;
+      }
+
+      //iterator functions
+      virtual void Reset()
+      {
+        AbsFrame = 0;
+        AbsTick = 0;
+        ResetPosition();
+      }
+
+      virtual void ResetPosition()
+      {
+        CurFrame = 0;
+        CurPosition = 0;
+        CurLine = 0;
+        CurQuirk = 0;
+        if (!UpdateTempo())
+        {
+          CurTempo = Info->Tempo();
+        }
+      }
+
+      virtual bool NextFrame(uint64_t ticksToSkip, Sound::LoopMode mode)
+      {
+        ++CurFrame;
+        ++AbsFrame;
+        AbsTick += ticksToSkip;
+        if (++CurQuirk >= Tempo() &&
+            !NextLine(mode))
+        {
+          return false;
+        }
+        return true;
+      }
+
+      virtual bool NextLine(Sound::LoopMode mode)
+      {
+        CurQuirk = 0;
+        if (++CurLine >= PatternSize() &&
+            !NextPosition(mode))
+        {
+          return false;
+        }
+        UpdateTempo();
+        return true;
+      }
+
+      virtual bool NextPosition(Sound::LoopMode mode)
+      {
+        CurLine = 0;
+        if (++CurPosition >= Info->PositionsCount() &&
+            !ProcessLoop(mode))
+        {
+          return false;
+        }
+        return true;
+      }
+    private:
+      bool UpdateTempo()
+      {
+        if (uint_t tempo = Data->GetNewTempo(*this))
+        {
+          CurTempo = tempo;
+          return true;
+        }
+        return false;
+      }
+
+      bool ProcessLoop(Sound::LoopMode mode)
+      {
+        switch (mode)
+        {
+        case Sound::LOOP_NORMAL:
+          return ProcessNormalLoop();
+        case Sound::LOOP_NONE:
+          return ProcessNoLoop();
+        case Sound::LOOP_BEGIN:
+          return ProcessBeginLoop();
+        default:
+          assert(!"Invalid mode");
+          return false;
+        }
+      }
+
+      bool ProcessNormalLoop()
+      {
+        CurFrame = Info->LoopFrame();
+        CurPosition = Info->LoopPosition();
+        //++CurLoopsCount;
+        return true;
+      }
+
+      bool ProcessNoLoop()
+      {
+        ResetPosition();
+        return false;
+      }
+
+      bool ProcessBeginLoop()
+      {
+        ResetPosition();
+        return true;
+      }
+    protected:
+      //context
+      const Information::Ptr Info;
+      const TrackModuleData::Ptr Data;
+    private:
+      //state
+      uint_t CurPosition;
+      uint_t CurLine;
+      uint_t CurTempo;
+      uint_t CurQuirk;
+      uint_t CurFrame;
+      uint_t AbsFrame;
+      uint64_t AbsTick;
+    };
+
     // Basic template class for tracking support (used as simple parametrized namespace)
     template<uint_t ChannelsCount, class SampleType, class OrnamentType = SimpleOrnament>
     class TrackingSupport
@@ -136,8 +327,9 @@ namespace ZXTune
       typedef std::vector<Line> Pattern;
 
       // Holder-related types
-      struct ModuleData
+      class ModuleData : public TrackModuleData
       {
+      public:
         typedef boost::shared_ptr<const ModuleData> Ptr;
         typedef boost::shared_ptr<ModuleData> RWPtr;
 
@@ -148,6 +340,25 @@ namespace ZXTune
 
         ModuleData() : Positions(), Patterns(), Samples(), Ornaments()
         {
+        }
+
+        virtual uint_t GetCurrentPattern(const TrackState& state) const
+        {
+          return Positions[state.Position()];
+        }
+
+        virtual uint_t GetCurrentPatternSize(const TrackState& state) const
+        {
+          return Patterns[GetCurrentPattern(state)].size();
+        }
+
+        virtual uint_t GetNewTempo(const TrackState& state) const
+        {
+          if (const boost::optional<uint_t>& tempo = Patterns[GetCurrentPattern(state)][state.Line()].Tempo)
+          {
+            return *tempo;
+          }
+          return 0;
         }
 
         void InitState(uint_t initTempo, uint_t totalFrames, Module::State& state) const
@@ -224,185 +435,6 @@ namespace ZXTune
         std::vector<Pattern> Patterns;
         std::vector<SampleType> Samples;
         std::vector<OrnamentType> Ornaments;
-      };
-
-      class TrackStateIterator : public TrackState
-      {
-      public:
-        typedef boost::shared_ptr<TrackStateIterator> Ptr;
-
-        TrackStateIterator(Information::Ptr info, typename ModuleData::Ptr data)
-          : Info(info), Data(data)
-        {
-          Reset();
-        }
-
-        //status functions
-        virtual uint_t Position() const
-        {
-          return CurPosition;
-        }
-
-        virtual uint_t Pattern() const
-        {
-          return Data->Positions[Position()];
-        }
-
-        virtual uint_t PatternSize() const
-        {
-          return Data->Patterns[Pattern()].size();
-        }
-
-        virtual uint_t Line() const
-        {
-          return CurLine;
-        }
-
-        virtual uint_t Tempo() const
-        {
-          return CurTempo;
-        }
-
-        virtual uint_t Quirk() const
-        {
-          return CurQuirk;
-        }
-
-        virtual uint_t Frame() const
-        {
-          return CurFrame;
-        }
-
-        virtual uint_t Channels() const
-        {
-          //override
-          return Info->LogicalChannels();
-        }
-  
-        virtual uint_t AbsoluteFrame() const
-        {
-          return AbsFrame;
-        }
-
-        virtual uint64_t AbsoluteTick() const
-        {
-          return AbsTick;
-        }
-
-        //iterator functions
-        virtual void Reset()
-        {
-          AbsFrame = 0;
-          AbsTick = 0;
-          ResetPosition();
-        }
-
-        virtual void ResetPosition()
-        {
-          CurFrame = 0;
-          CurPosition = 0;
-          CurLine = 0;
-          CurQuirk = 0;
-          if (!UpdateTempo())
-          {
-            CurTempo = Info->Tempo();
-          }
-        }
-
-        virtual bool NextFrame(uint64_t ticksToSkip, Sound::LoopMode mode)
-        {
-          ++CurFrame;
-          ++AbsFrame;
-          AbsTick += ticksToSkip;
-          if (++CurQuirk >= Tempo() &&
-              !NextLine(mode))
-          {
-            return false;
-          }
-          return true;
-        }
-
-        virtual bool NextLine(Sound::LoopMode mode)
-        {
-          CurQuirk = 0;
-          if (++CurLine >= PatternSize() &&
-              !NextPosition(mode))
-          {
-            return false;
-          }
-          UpdateTempo();
-          return true;
-        }
-
-        virtual bool NextPosition(Sound::LoopMode mode)
-        {
-          CurLine = 0;
-          if (++CurPosition >= Info->PositionsCount() && 
-              !ProcessLoop(mode))
-          {
-            return false;
-          }
-          return true;
-        }
-      private:
-        bool UpdateTempo()
-        {
-          if (const boost::optional<uint_t>& tempo = Data->Patterns[Pattern()][Line()].Tempo)
-          {
-            CurTempo = *tempo;
-            return true;
-          }
-          return false;
-        }
-
-        bool ProcessLoop(Sound::LoopMode mode)
-        {
-          switch (mode)
-          {
-          case Sound::LOOP_NORMAL:
-            return ProcessNormalLoop();
-          case Sound::LOOP_NONE:
-            return ProcessNoLoop();
-          case Sound::LOOP_BEGIN:
-            return ProcessBeginLoop();
-          default:
-            assert(!"Invalid mode");
-            return false;
-          }
-        }
-
-        bool ProcessNormalLoop()
-        {
-          CurFrame = Info->LoopFrame();
-          CurPosition = Info->LoopPosition();
-          //++CurLoopsCount;
-          return true;
-        }
-
-        bool ProcessNoLoop()
-        {
-          ResetPosition();
-          return false;
-        }
-
-        bool ProcessBeginLoop()
-        {
-          ResetPosition();
-          return true;
-        }
-      protected:
-        //context
-        const Information::Ptr Info;
-        const typename ModuleData::Ptr Data;
-      private:
-        //state
-        uint_t CurPosition;
-        uint_t CurLine;
-        uint_t CurTempo;
-        uint_t CurQuirk;
-        uint_t CurFrame;
-        uint_t AbsFrame;
-        uint64_t AbsTick;
       };
 
       class ModuleInfo : public Information
@@ -510,7 +542,7 @@ namespace ZXTune
         {
           //emulate playback
           const Information::Ptr dummyInfo = boost::make_shared<ModuleInfo>(*this);
-          const typename TrackStateIterator::Ptr dummyIterator = boost::make_shared<TrackStateIterator>(dummyInfo, Data);
+          const TrackStateIterator::Ptr dummyIterator = boost::make_shared<TrackStateIterator>(dummyInfo, Data);
 
           TrackStateIterator& iterator = *dummyIterator;
           while (iterator.NextFrame(0, Sound::LOOP_NONE))
