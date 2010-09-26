@@ -165,6 +165,11 @@ namespace
       return Delegate->GetAnalyzer(analyzeState);
     }
 
+    virtual Module::Analyzer::Ptr GetAnalyzer() const
+    {
+      return Delegate->GetAnalyzer();
+    }
+
     virtual Error RenderFrame(const Sound::RenderParameters& params, PlaybackState& state,
       Sound::MultichannelReceiver& receiver)
     {

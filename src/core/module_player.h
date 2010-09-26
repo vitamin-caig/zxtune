@@ -54,6 +54,9 @@ namespace ZXTune
       //! @param analyzeState Reference to store analyze result
       virtual void GetAnalyzer(Analyze::ChannelsState& analyzeState) const = 0;
 
+      //! @brief Getting analyzer interface
+      virtual Analyzer::Ptr GetAnalyzer() const = 0;
+
       //! @brief Playing state
       enum PlaybackState
       {

@@ -11,6 +11,7 @@ Author:
 
 //local includes
 #include "../tracking.h"
+#include "dac_base.h"
 #include <core/plugins/enumerator.h>
 #include <core/plugins/utils.h>
 #include <core/plugins/players/module_properties.h>
@@ -92,17 +93,17 @@ namespace
     {
       return NoteComm & 63;
     }
-    
+
     uint_t GetCommand() const
     {
       return (NoteComm & 192) >> 6;
     }
-    
+
     uint_t GetParameter() const
     {
       return ParamSample & 15;
     }
-    
+
     uint_t GetSample() const
     {
       return (ParamSample & 240) >> 4;
@@ -117,7 +118,7 @@ namespace
   } PACK_POST;
 
   const uint_t NOTE_EMPTY = 0;
-  
+
   enum
   {
     CMD_SPECIAL = 0, //see parameter
@@ -219,12 +220,12 @@ namespace
   };
 
   typedef TrackingSupport<CHANNELS_COUNT, Sample, Ornament> PDTTrack;
-  
+
   // perform module 'playback' right after creating (debug purposes)
   #ifndef NDEBUG
   #define SELF_TEST
   #endif
-  
+
   Player::Ptr CreatePDTPlayer(Information::Ptr info, PDTTrack::ModuleData::Ptr data, DAC::Chip::Ptr device);
 
   class PDTHolder : public Holder
@@ -297,7 +298,7 @@ namespace
     }
 
   public:
-    PDTHolder(Plugin::Ptr plugin, 
+    PDTHolder(Plugin::Ptr plugin,
       const MetaContainer& container, ModuleRegion& region)
       : SrcPlugin(plugin)
       , Data(PDTTrack::ModuleData::Create())
@@ -308,11 +309,11 @@ namespace
       const PDTHeader* const header(safe_ptr_cast<const PDTHeader*>(data.Data()));
 
       Log::MessagesCollector::Ptr warner(Log::MessagesCollector::Create());
-      
+
       //fill order
       Data->Positions.resize(header->Lenght);
       std::copy(header->Positions.begin(), header->Positions.begin() + header->Lenght, Data->Positions.begin());
-      
+
       //fill patterns
       Data->Patterns.resize(header->Patterns.size());
       for (uint_t patIdx = 0; patIdx != header->Patterns.size(); ++patIdx)
@@ -320,7 +321,7 @@ namespace
         Log::ParamPrefixedCollector patternWarner(*warner, Text::PATTERN_WARN_PREFIX, patIdx);
         ParsePattern(header->Patterns[patIdx], patternWarner, Data->Patterns[patIdx]);
       }
-       
+
       //fill samples
       const uint8_t* samplesData(safe_ptr_cast<const uint8_t*>(header) + sizeof(*header));
       Data->Samples.resize(header->Samples.size());
@@ -344,7 +345,7 @@ namespace
           dstSample.Data.assign(sampleData, sampleData + size);
         }
       }
-      
+
       //fill ornaments
       Data->Ornaments.reserve(ORNAMENTS_COUNT + 1);
       Data->Ornaments.push_back(Ornament());//first empty ornament
@@ -383,7 +384,7 @@ namespace
     {
       return Info;
     }
-    
+
     virtual Player::Ptr CreatePlayer() const
     {
       const uint_t totalSamples = Data->Samples.size();
@@ -398,7 +399,7 @@ namespace
       }
       return CreatePDTPlayer(Info, Data, chip);
     }
-    
+
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
     {
       using namespace Conversion;
@@ -419,7 +420,7 @@ namespace
     const PDTTrack::ModuleInfo::Ptr Info;
     IO::DataContainer::Ptr RawData;
   };
-    
+
   inline static Analyze::Channel AnalyzeDACState(const DAC::ChanState& dacState)
   {
     Analyze::Channel res;
@@ -452,7 +453,7 @@ namespace
           Position = Object->LoopBegin;
         }
       }
-      
+
       void Reset()
       {
         Position = 0;
@@ -462,7 +463,7 @@ namespace
     PDTPlayer(Information::Ptr info, PDTTrack::ModuleData::Ptr data, DAC::Chip::Ptr device)
       : Info(info)
       , Data(data)
-      , Device(device)
+      , Device(DACDevice::Create(device))
       , CurrentState(MODULE_STOPPED)
       , Interpolation(false)
     {
@@ -479,7 +480,7 @@ namespace
       Reset();
 #endif
     }
-    
+
     virtual Information::Ptr GetInformation() const
     {
       return Info;
@@ -492,8 +493,12 @@ namespace
 
     virtual void GetAnalyzer(Analyze::ChannelsState& analyzeState) const
     {
-      analyzeState.resize(ChanState.size());
-      std::transform(ChanState.begin(), ChanState.end(), analyzeState.begin(), &AnalyzeDACState);
+      return Device->GetAnalyzer(analyzeState);
+    }
+
+    virtual Analyzer::Ptr GetAnalyzer() const
+    {
+      return Device;
     }
 
     virtual Error RenderFrame(const Sound::RenderParameters& params,
@@ -506,10 +511,8 @@ namespace
       chunk.Interpolate = Interpolation;
       RenderData(chunk);
       Device->RenderData(params, chunk, receiver);
-      Device->GetState(ChanState);
       //count actually enabled channels
-      ModState.Track.Channels = std::count_if(ChanState.begin(), ChanState.end(),
-        boost::mem_fn(&DAC::ChanState::Enabled));
+      ModState.Track.Channels = Device->ActiveChannels();
 
       if (Data->UpdateState(*Info, params.Looping, ModState))
       {
@@ -567,7 +570,7 @@ namespace
         intVal != 0;
       return Error();
     }
-    
+
   private:
     void RenderData(DAC::DataChunk& chunk)
     {
@@ -631,14 +634,13 @@ namespace
     const Information::Ptr Info;
     const PDTTrack::ModuleData::Ptr Data;
 
-    DAC::Chip::Ptr Device;
+    const DACDevice::Ptr Device;
     PlaybackState CurrentState;
     State ModState;
     boost::array<OrnamentState, CHANNELS_COUNT> Ornaments;
-    DAC::ChannelsState ChanState;
     bool Interpolation;
   };
-  
+
   Player::Ptr CreatePDTPlayer(Information::Ptr info, PDTTrack::ModuleData::Ptr data, DAC::Chip::Ptr device)
   {
     return Player::Ptr(new PDTPlayer(info, data, device));

@@ -40,6 +40,66 @@ namespace ZXTune
 {
   namespace Module
   {
+    class AYMDevice : public Analyzer
+                    , public AYM::Chip
+    {
+    public:
+      typedef boost::shared_ptr<AYMDevice> Ptr;
+
+      explicit AYMDevice(AYM::Chip::Ptr device)
+        : Device(device)
+        , CurState(0)
+      {
+      }
+
+      //analyzer virtuals
+      virtual uint_t ActiveChannels() const
+      {
+        FillState();
+        return std::count_if(StateCache.begin(), StateCache.end(), boost::mem_fn(&AYM::ChanState::Enabled));
+      }
+
+      virtual void BandLevels(std::vector<std::pair<uint_t, uint_t> >& bandLevels) const
+      {
+        FillState();
+        bandLevels.resize(StateCache.size());
+        std::transform(StateCache.begin(), StateCache.end(), bandLevels.begin(),
+          boost::bind(&std::make_pair<uint_t, uint_t>, boost::bind(&AYM::ChanState::Band, _1), boost::bind(&AYM::ChanState::LevelInPercents, _1)));
+      }
+      //device virtuals
+      virtual void RenderData(const Sound::RenderParameters& params,
+                              const AYM::DataChunk& src,
+                              Sound::MultichannelReceiver& dst)
+      {
+        Device->RenderData(params, src, dst);
+        CurState = 0;
+      }
+
+      virtual void GetState(AYM::ChannelsState& state) const
+      {
+        Device->GetState(state);
+      }
+
+      virtual void Reset()
+      {
+        Device->Reset();
+        CurState = 0;
+      }
+    private:
+      void FillState() const
+      {
+        if (!CurState)
+        {
+          Device->GetState(StateCache);
+          CurState = &StateCache;
+        }
+      }
+    private:
+      const AYM::Chip::Ptr Device;
+      mutable AYM::ChannelsState* CurState;
+      mutable AYM::ChannelsState StateCache;
+    };
+
     //Common base for all aym-based players (interpret as a tracked if required)
     //ModuleData - source data type
     //InternalState - internal state type
@@ -60,7 +120,7 @@ namespace ZXTune
         : Info(info)
         , Data(data)
         , AYMHelper(AYM::ParametersHelper::Create(defTable))
-        , Device(device)
+        , Device(new AYMDevice(device))
         , CurrentState(MODULE_STOPPED)
       {
         //WARNING: not a virtual call
@@ -83,6 +143,11 @@ namespace ZXTune
         Device->GetState(devState);
         analyzeState.resize(devState.size());
         std::transform(devState.begin(), devState.end(), analyzeState.begin(), &AnalyzeAYState);
+      }
+
+      virtual Analyzer::Ptr GetAnalyzer() const
+      {
+        return Device;
       }
 
       virtual Error SetParameters(const Parameters::Accessor& params)
@@ -181,7 +246,7 @@ namespace ZXTune
       //typed state
       InternalState PlayerState;
     private:
-      AYM::Chip::Ptr Device;
+      const AYMDevice::Ptr Device;
       PlaybackState CurrentState;
     };
   }

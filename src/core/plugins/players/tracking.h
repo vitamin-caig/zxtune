@@ -721,6 +721,33 @@ namespace ZXTune
       const TrackState::Ptr First;
       const TrackState::Ptr Second;
     };
+
+    class MergedAnalyzer : public Analyzer
+    {
+    public:
+      MergedAnalyzer(Analyzer::Ptr first, Analyzer::Ptr second)
+        : First(first), Second(second)
+      {
+      }
+
+      virtual uint_t ActiveChannels() const
+      {
+        return First->ActiveChannels() + Second->ActiveChannels();
+      }
+
+      virtual void BandLevels(std::vector<std::pair<uint_t, uint_t> >& bandLevels) const
+      {
+        std::vector<std::pair<uint_t, uint_t> > firstLevels, secondLevels;
+        First->BandLevels(firstLevels);
+        Second->BandLevels(secondLevels);
+        bandLevels.resize(firstLevels.size() + secondLevels.size());
+        std::copy(secondLevels.begin(), secondLevels.end(),
+          std::copy(firstLevels.begin(), firstLevels.end(), bandLevels.begin()));
+      }
+    private:
+      const Analyzer::Ptr First;
+      const Analyzer::Ptr Second;
+    };
   }
 }
 

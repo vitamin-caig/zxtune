@@ -77,6 +77,12 @@ namespace
       return Delegate->GetAnalyzer(analyzeState);
     }
 
+    virtual Module::Analyzer::Ptr GetAnalyzer() const
+    {
+      Locker lock(Mutex);
+      return Delegate->GetAnalyzer();
+    }
+
     virtual Error RenderFrame(const Sound::RenderParameters& params, PlaybackState& state,
       Sound::MultichannelReceiver& receiver)
     {

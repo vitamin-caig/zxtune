@@ -512,6 +512,11 @@ namespace
         std::copy(firstAnalyze.begin(), firstAnalyze.end(), analyzeState.begin()));
     }
 
+    virtual Analyzer::Ptr GetAnalyzer() const
+    {
+      return boost::make_shared<MergedAnalyzer>(Player1->GetAnalyzer(), Player2->GetAnalyzer());
+    }
+
     virtual Error RenderFrame(const Sound::RenderParameters& params,
                               PlaybackState& state,
                               Sound::MultichannelReceiver& receiver)

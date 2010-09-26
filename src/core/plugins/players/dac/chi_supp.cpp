@@ -10,6 +10,7 @@ Author:
 */
 
 //local includes
+#include "dac_base.h"
 #include <core/plugins/enumerator.h>
 #include <core/plugins/utils.h>
 #include <core/plugins/players/module_properties.h>
@@ -371,82 +372,23 @@ namespace
     IO::DataContainer::Ptr RawData;
   };
 
-  class DACAccessor
-  {
-    inline static Analyze::Channel AnalyzeDACState(const DAC::ChanState& dacState)
-    {
-      Analyze::Channel res;
-      res.Enabled = dacState.Enabled;
-      res.Band = dacState.Band;
-      res.Level = dacState.LevelInPercents * std::numeric_limits<Analyze::LevelType>::max() / 100;
-      return res;
-    }
-  public:
-    explicit DACAccessor(DAC::Chip::Ptr device)
-      : Device(device)
-      , IsValidState()
-    {
-    }
-
-    uint_t GetActiveChannels() const
-    {
-      FillState();
-      return std::count_if(ChanState.begin(), ChanState.end(),
-        boost::mem_fn(&DAC::ChanState::Enabled));
-    }
-
-    void GetAnalyzer(Analyze::ChannelsState& analyzeState) const
-    {
-      FillState();
-      analyzeState.resize(ChanState.size());
-      std::transform(ChanState.begin(), ChanState.end(), analyzeState.begin(), &AnalyzeDACState);
-    }
-
-    void Reset()
-    {
-      Device->Reset();
-      IsValidState = false;
-    }
-
-    void RenderData(const Sound::RenderParameters& params,
-                    const DAC::DataChunk& chunk,
-                    Sound::MultichannelReceiver& receiver)
-    {
-      Device->RenderData(params, chunk, receiver);
-      IsValidState = false;
-    }
-  private:
-    void FillState() const
-    {
-      if (!IsValidState)
-      {
-        Device->GetState(ChanState);
-        IsValidState = true;
-      }
-    }
-  private:
-    const DAC::Chip::Ptr Device;
-    mutable bool IsValidState;
-    mutable DAC::ChannelsState ChanState;
-  };
-
   class CHITrackStateIterator : public TrackStateIterator
   {
   public:
     typedef boost::shared_ptr<CHITrackStateIterator> Ptr;
 
-    CHITrackStateIterator(Information::Ptr info, CHITrack::ModuleData::Ptr data, const DACAccessor& accessor)
+    CHITrackStateIterator(Information::Ptr info, CHITrack::ModuleData::Ptr data, DACDevice::Ptr device)
       : TrackStateIterator(info, data)
-      , Accessor(accessor)
+      , Device(device)
     {
     }
 
     virtual uint_t Channels() const
     {
-      return Accessor.GetActiveChannels();
+      return Device->ActiveChannels();
     }
   private:
-    const DACAccessor& Accessor;
+    const DACDevice::Ptr Device;
   };
 
   class CHIPlayer : public Player
@@ -468,7 +410,7 @@ namespace
     CHIPlayer(Information::Ptr info, CHITrack::ModuleData::Ptr data, DAC::Chip::Ptr device)
       : Info(info)
       , Data(data)
-      , Device(device)
+      , Device(DACDevice::Create(device))
       , StateIterator(boost::make_shared<CHITrackStateIterator>(Info, Data, Device))
       , CurrentState(MODULE_STOPPED)
       , Interpolation(false)
@@ -487,7 +429,12 @@ namespace
 
     virtual void GetAnalyzer(Analyze::ChannelsState& analyzeState) const
     {
-      return Device.GetAnalyzer(analyzeState);
+      return Device->GetAnalyzer(analyzeState);
+    }
+
+    virtual Analyzer::Ptr GetAnalyzer() const
+    {
+      return Device;
     }
 
     virtual Error RenderFrame(const Sound::RenderParameters& params,
@@ -502,7 +449,7 @@ namespace
 
       chunk.Tick = StateIterator->AbsoluteTick();
       chunk.Interpolate = Interpolation;
-      Device.RenderData(params, chunk, receiver);
+      Device->RenderData(params, chunk, receiver);
 
       if (MODULE_STOPPED == CurrentState)
       {
@@ -514,7 +461,7 @@ namespace
 
     virtual Error Reset()
     {
-      Device.Reset();
+      Device->Reset();
       StateIterator->Reset();
       std::fill(Gliss.begin(), Gliss.end(), GlissData());
       CurrentState = MODULE_STOPPED;
@@ -618,7 +565,7 @@ namespace
   private:
     const Information::Ptr Info;
     const CHITrack::ModuleData::Ptr Data;
-    DACAccessor Device;
+    const DACDevice::Ptr Device;
     const CHITrackStateIterator::Ptr StateIterator;
     PlaybackState CurrentState;
     boost::array<GlissData, CHANNELS_COUNT> Gliss;

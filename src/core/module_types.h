@@ -121,6 +121,21 @@ namespace ZXTune
       virtual Parameters::Accessor::Ptr Properties() const = 0;
     };
 
+    //! @brief %Sound analyzer interface
+    class Analyzer
+    {
+    public:
+      //! Pointer type
+      typedef boost::shared_ptr<const Analyzer> Ptr;
+
+      virtual ~Analyzer() {}
+
+      //! Currently active channels count
+      virtual uint_t ActiveChannels() const = 0;
+      //! Band => Level correspondence
+      virtual void BandLevels(std::vector<std::pair<uint_t, uint_t> >& bandLevels) const = 0;
+    };
+
     //! @brief %Sound analyzing types
     namespace Analyze
     {
