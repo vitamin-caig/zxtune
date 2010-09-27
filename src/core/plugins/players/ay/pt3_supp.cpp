@@ -745,6 +745,7 @@ namespace
       //TODO: proper calculating
       Info->SetLoopPosition(header->Loop);
       Info->SetTempo(header->Tempo);
+      Info->SetLogicalChannels(AYM::LOGICAL_CHANNELS);
       if (header->Mode != AY_TRACK)
       {
         TSPatternBase = header->Mode;

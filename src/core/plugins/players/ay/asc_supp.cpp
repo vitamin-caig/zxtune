@@ -725,6 +725,7 @@ namespace
 
       Info->SetLoopPosition(header->Loop);
       Info->SetTempo(header->Tempo);
+      Info->SetLogicalChannels(AYM::LOGICAL_CHANNELS);
       Info->SetModuleProperties(props);
     }
 
@@ -816,16 +817,17 @@ namespace
   public:
     ASCPlayer(Information::Ptr info, ASCTrack::ModuleData::Ptr data, AYM::Chip::Ptr device)
       : ASCPlayerBase(info, data, device, TABLE_ASM)
+      , Data(data)
     {
 #ifdef SELF_TEST
 //perform self-test
       AYMTrackSynthesizer synthesizer(*AYMHelper);
       do
       {
-        assert(Data->Positions.size() > ModState.Track.Position);
+        assert(Data->Positions.size() > StateIterator->Position());
         SynthesizeData(synthesizer);
       }
-      while (Data->UpdateState(*Info, Sound::LOOP_NONE, ModState));
+      while (StateIterator->NextFrame(0, Sound::LOOP_NONE));
       Reset();
 #endif
     }
@@ -838,9 +840,6 @@ namespace
         GetNewLineState(synthesizer, breakSamples);
       }
       SynthesizeChannelsData(synthesizer, breakSamples);
-      //count actually enabled channels
-      ModState.Track.Channels = static_cast<uint_t>(std::count_if(PlayerState.begin(), PlayerState.end(),
-        boost::mem_fn(&ASCChannelState::Enabled)));
     }
 
     void GetNewLineState(AYMTrackSynthesizer& synthesizer, uint_t& breakSamples)
@@ -852,7 +851,7 @@ namespace
         std::for_each(PlayerState.begin(), PlayerState.end(), std::mem_fun_ref(&ASCChannelState::ResetBaseNoise));
       }
 
-      const ASCTrack::Line& line = Data->Patterns[ModState.Track.Pattern][ModState.Track.Line];
+      const ASCTrack::Line& line = Data->Patterns[StateIterator->Pattern()][StateIterator->Line()];
 
       for (uint_t chan = 0; chan != line.Channels.size(); ++chan)
       {
@@ -1093,6 +1092,8 @@ namespace
         dst.PosInOrnament = curOrnament.GetLoop();
       }
     }
+  private:
+    const ASCTrack::ModuleData::Ptr Data;
   };
 
   Player::Ptr CreateASCPlayer(Information::Ptr info, ASCTrack::ModuleData::Ptr data, AYM::Chip::Ptr device)

@@ -905,6 +905,7 @@ namespace ZXTune
         data.Positions.swap(descr.Order);
         resInfo.SetLoopPosition(descr.Loop);
         resInfo.SetTempo(descr.Tempo);
+        resInfo.SetLogicalChannels(AYM::LOGICAL_CHANNELS);
 
         //apply result
         resData = data;

@@ -31,6 +31,7 @@ namespace ZXTune
   namespace AYM
   {
     const uint_t CHANNELS = 3;
+    const uint_t LOGICAL_CHANNELS = 4;
     
     struct DataChunk
     {
@@ -135,7 +136,7 @@ namespace ZXTune
       //Currently played tone level percentage
       uint_t LevelInPercents;
     };
-    typedef boost::array<ChanState, CHANNELS + 1> ChannelsState;
+    typedef boost::array<ChanState, LOGICAL_CHANNELS> ChannelsState;
 
     class Chip
     {

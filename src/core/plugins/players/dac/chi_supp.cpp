@@ -396,6 +396,17 @@ namespace
       , CurrentState(MODULE_STOPPED)
       , Interpolation(false)
     {
+#ifdef SELF_TEST
+//perform self-test
+      DAC::DataChunk chunk;
+      do
+      {
+        assert(Data->Positions.size() > StateIterator->Position());
+        RenderData(chunk);
+      }
+      while (StateIterator->NextFrame(0, Sound::LOOP_NONE));
+      Reset();
+#endif
     }
 
     virtual Information::Ptr GetInformation() const

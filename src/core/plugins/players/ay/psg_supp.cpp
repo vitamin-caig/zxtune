@@ -67,7 +67,7 @@ namespace
 
   BOOST_STATIC_ASSERT(sizeof(PSGHeader) == 16);
 
-  class PSGData
+  class PSGData : public TrackModuleData
   {
   public:
     typedef boost::shared_ptr<PSGData> RWPtr;
@@ -95,6 +95,21 @@ namespace
       return true;
     }
 
+    virtual uint_t GetCurrentPattern(const TrackState& /*state*/) const
+    {
+      return 0;
+    }
+
+    virtual uint_t GetCurrentPatternSize(const TrackState& /*state*/) const
+    {
+      return 1;
+    }
+
+    virtual uint_t GetNewTempo(const TrackState& /*state*/) const
+    {
+      return 0;
+    }
+
     std::vector<AYM::DataChunk> Dump;
   };
 
@@ -111,7 +126,7 @@ namespace
     }
     virtual uint_t PositionsCount() const
     {
-      return 0;
+      return Data->Dump.size();
     }
     virtual uint_t LoopPosition() const
     {
@@ -131,7 +146,7 @@ namespace
     }
     virtual uint_t LogicalChannels() const
     {
-      return AYM::CHANNELS;
+      return AYM::LOGICAL_CHANNELS;
     }
     virtual uint_t PhysicalChannels() const
     {
@@ -237,8 +252,6 @@ namespace
       props->SetSource(RawData, region);
       props->SetPlugins(container.Plugins);
       props->SetPath(container.Path);
-
-      Info->SetModuleProperties(props);
     }
 
     virtual Plugin::Ptr GetPlugin() const
@@ -288,6 +301,7 @@ namespace
   public:
     PSGPlayer(Information::Ptr info, PSGData::Ptr data, AYM::Chip::Ptr device)
        : PSGPlayerBase(info, data, device, TABLE_SOUNDTRACKER/*any of*/)
+       , Data(data)
     {
     }
 
@@ -301,7 +315,7 @@ namespace
 
     void SynthesizeData(AYMTrackSynthesizer& synthesizer)
     {
-      const AYM::DataChunk& data = Data->Dump[ModState.Track.Frame];
+      const AYM::DataChunk& data = Data->Dump[StateIterator->Frame()];
       //collect state
       for (uint_t reg = 0, mask = (data.Mask & AYM::DataChunk::MASK_ALL_REGISTERS); mask; ++reg, mask >>= 1)
       {
@@ -315,20 +329,9 @@ namespace
       synthesizer.SetRawChunk(PlayerState);
       //reset envelope mask
       PlayerState.Mask &= ~(uint_t(1) << AYM::DataChunk::REG_ENV);
-      //count enabled channels
-      ModState.Track.Channels = 0;
-      for (uint_t chan = 0,
-           mixer = PlayerState.Data[AYM::DataChunk::REG_MIXER],
-           mask = AYM::DataChunk::REG_MASK_NOISEA | AYM::DataChunk::REG_MASK_TONEA;
-        chan < AYM::CHANNELS; ++chan, mask <<= 1)
-      {
-        if (0 != (mixer & mask) ||
-            0 != (PlayerState.Data[AYM::DataChunk::REG_VOLA + chan] & AYM::DataChunk::REG_MASK_ENV))
-        {
-          ++ModState.Track.Channels;
-        }
-      }
     }
+  private:
+    const PSGData::Ptr Data;
   };
 
   Player::Ptr CreatePSGPlayer(Information::Ptr info, PSGData::Ptr data, AYM::Chip::Ptr device)

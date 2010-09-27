@@ -166,6 +166,7 @@ namespace
     VortexPlayer(Information::Ptr info, Vortex::Track::ModuleData::Ptr data,
        uint_t version, const String& freqTableName, AYM::Chip::Ptr device)
       : VortexPlayerBase(info, data, device, freqTableName)
+      , Data(data)
       , Version(version)
       , VolTable(version <= 4 ? Vol33_34 : Vol35)
     {
@@ -174,10 +175,10 @@ namespace
       AYMTrackSynthesizer synthesizer(*AYMHelper);
       do
       {
-        assert(Data->Positions.size() > ModState.Track.Position);
+        assert(Data->Positions.size() > StateIterator->Position());
         SynthesizeData(synthesizer);
       }
-      while (Data->UpdateState(*Info, Sound::LOOP_NONE, ModState));
+      while (StateIterator->NextFrame(0, Sound::LOOP_NONE));
       Reset();
 #endif
     }
@@ -189,9 +190,6 @@ namespace
         GetNewLineState(synthesizer);
       }
       SynthesizeChannelsData(synthesizer);
-      //count actually enabled channels
-      ModState.Track.Channels = std::count_if(PlayerState.ChanState.begin(), PlayerState.ChanState.end(),
-        boost::mem_fn(&ChannelState::Enabled));
     }
 
     void GetNewLineState(AYMTrackSynthesizer& synthesizer)
@@ -203,7 +201,7 @@ namespace
         PlayerState.CommState.NoiseBase = 0;
       }
 
-      const Vortex::Track::Line& line = Data->Patterns[ModState.Track.Pattern][ModState.Track.Line];
+      const Vortex::Track::Line& line = Data->Patterns[StateIterator->Pattern()][StateIterator->Line()];
       for (uint_t chan = 0; chan != line.Channels.size(); ++chan)
       {
         const Vortex::Track::Line::Chan& src = line.Channels[chan];
@@ -415,6 +413,7 @@ namespace
       return VolTable[volume * 16 + level];
     }
   private:
+    const Vortex::Track::ModuleData::Ptr Data;
     const uint_t Version;
     const VolumeTable& VolTable;
     //TODO:
@@ -487,7 +486,7 @@ namespace
       : Player2(new VortexPlayer(info, data, version, freqTableName, device2))
     {
       //copy and patch
-      Vortex::Track::ModuleData::RWPtr secondData = boost::make_shared<Vortex::Track::ModuleData>(*data);
+      const Vortex::Track::ModuleData::RWPtr secondData = boost::make_shared<Vortex::Track::ModuleData>(*data);
       std::transform(secondData->Positions.begin(), secondData->Positions.end(), secondData->Positions.begin(),
         std::bind1st(std::minus<uint_t>(), patternBase - 1));
       Player1.reset(new VortexPlayer(info, secondData, version, freqTableName, device1));
@@ -512,14 +511,14 @@ namespace
                               PlaybackState& state,
                               Sound::MultichannelReceiver& receiver)
     {
-      const uint_t tempo1 = Player1->ModState.Reference.Quirk;
+      //const uint_t tempo1 = Player1->StateIterator->Tempo();
       PlaybackState state1;
       Mixer.Reset(params);
       if (const Error& e = Player1->RenderFrame(params, state1, Mixer))
       {
         return e;
       }
-      const uint_t tempo2 = Player2->ModState.Reference.Quirk;
+      //const uint_t tempo2 = Player2->StateIterator->Tempo();
       PlaybackState state2;
       Mixer.Switch(receiver);
       if (const Error& e = Player2->RenderFrame(params, state2, Mixer))
@@ -527,21 +526,23 @@ namespace
         return e;
       }
       state = state1 == MODULE_STOPPED || state2 == MODULE_STOPPED ? MODULE_STOPPED : MODULE_PLAYING;
-      //synchronize tempo
-      if (tempo1 != Player1->ModState.Reference.Quirk)
+      //TODO: synchronize tempo
+      /*
+      if (tempo1 != Player1->StateIterator->Tempo())
       {
         const uint_t pattern = Player2->ModState.Track.Pattern;
         Player2->ModState = Player1->ModState;
         Player2->ModState.Track.Pattern = pattern;
         Player2->ModState.Reference.Line = Player2->Data->Patterns[pattern].size();
       }
-      else if (tempo2 != Player2->ModState.Reference.Quirk)
+      else if (tempo2 != Player2->StateIterator->Tempo())
       {
         const uint_t pattern = Player1->ModState.Track.Pattern;
         Player1->ModState = Player2->ModState;
         Player1->ModState.Track.Pattern = pattern;
         Player1->ModState.Reference.Line = Player1->Data->Patterns[pattern].size();
       }
+      */
       return Error();
     }
 
@@ -555,9 +556,11 @@ namespace
       {
         return e;
       }
+      /*
       const uint_t pattern = Player2->ModState.Track.Pattern;
       Player2->ModState = Player1->ModState;
       Player2->ModState.Track.Pattern = pattern;
+      */
       return Error();
     }
 

@@ -62,12 +62,12 @@ namespace ZXTune
     class AYMPlayer : public Player
     {
     public:
-      AYMPlayer(Information::Ptr info, typename ModuleData::Ptr data,
+      AYMPlayer(Information::Ptr info, TrackModuleData::Ptr data,
         AYM::Chip::Ptr device, const String& defTable)
         : Info(info)
-        , Data(data)
-        , AYMHelper(AYM::ParametersHelper::Create(defTable))
         , Device(AYMDevice::Create(device))
+        , AYMHelper(AYM::ParametersHelper::Create(defTable))
+        , StateIterator(TrackStateIterator::Create(Info, data, Device))
         , CurrentState(MODULE_STOPPED)
       {
         //WARNING: not a virtual call
@@ -81,7 +81,7 @@ namespace ZXTune
 
       virtual TrackState::Ptr GetTrackState() const
       {
-        return boost::make_shared<StubTrackState>(ModState);
+        return StateIterator;
       }
 
       virtual Analyzer::Ptr GetAnalyzer() const
@@ -106,23 +106,22 @@ namespace ZXTune
                                 PlaybackState& state,
                                 Sound::MultichannelReceiver& receiver)
       {
-        AYMTrackSynthesizer synthesizer(*AYMHelper);
-        ModState.Tick += params.ClocksPerFrame();
+        const uint64_t ticksDelta = params.ClocksPerFrame();
 
-        synthesizer.InitData(ModState.Tick);
+        AYMTrackSynthesizer synthesizer(*AYMHelper);
+
+        synthesizer.InitData(StateIterator->AbsoluteTick() + ticksDelta);
         SynthesizeData(synthesizer);
 
-        const AYM::DataChunk& chunk = synthesizer.GetData();
+        CurrentState = StateIterator->NextFrame(ticksDelta, params.Looping)
+          ? MODULE_PLAYING : MODULE_STOPPED;
 
+        const AYM::DataChunk& chunk = synthesizer.GetData();
         Device->RenderData(params, chunk, receiver);
-        if (Data->UpdateState(*Info, params.Looping, ModState))
-        {
-          CurrentState = MODULE_PLAYING;
-        }
-        else
+
+        if (MODULE_STOPPED == CurrentState)
         {
           receiver.Flush();
-          CurrentState = MODULE_STOPPED;
         }
         state = CurrentState;
         return Error();
@@ -131,7 +130,7 @@ namespace ZXTune
       virtual Error Reset()
       {
         Device->Reset();
-        Data->InitState(Info->Tempo(), Info->FramesCount(), ModState);
+        StateIterator->Reset();
         PlayerState = InternalState();
         CurrentState = MODULE_STOPPED;
         return Error();
@@ -139,53 +138,50 @@ namespace ZXTune
 
       virtual Error SetPosition(uint_t frame)
       {
-        frame = std::min(frame, ModState.Reference.Frame - 1);
-        if (frame < ModState.Track.Frame)
+        frame = std::min(frame, Info->FramesCount() - 1);
+        if (frame < StateIterator->Frame())
         {
           //reset to beginning in case of moving back
-          const uint64_t keepTicks = ModState.Tick;
-          Data->InitState(Info->Tempo(), Info->FramesCount(), ModState);
+          StateIterator->ResetPosition();
           PlayerState = InternalState();
-          ModState.Tick = keepTicks;
         }
         //fast forward
         AYMTrackSynthesizer synthesizer(*AYMHelper);
-        while (ModState.Track.Frame < frame)
+        while (StateIterator->Frame() < frame)
         {
           //do not update tick for proper rendering
           SynthesizeData(synthesizer);
-          if (!Data->UpdateState(*Info, Sound::LOOP_NONE, ModState))
+          if (!StateIterator->NextFrame(0, Sound::LOOP_NONE))
           {
             break;
           }
         }
-        ModState.Frame = frame;
         return Error();
       }
 
     protected:
       bool IsNewLine() const
       {
-        return 0 == ModState.Track.Quirk;
+        return 0 == StateIterator->Quirk();
       }
 
       bool IsNewPattern() const
       {
-        return 0 == ModState.Track.Line && IsNewLine();
+        return 0 == StateIterator->Line() && IsNewLine();
       }
       //result processing function
       virtual void SynthesizeData(AYMTrackSynthesizer& synthesizer) = 0;
-    protected:
+    private:
       const Information::Ptr Info;
-      const typename ModuleData::Ptr Data;
+      const AYMDevice::Ptr Device;
+    protected:
       //aym-related
       AYM::ParametersHelper::Ptr AYMHelper;
       //tracking-related
-      Module::State ModState;
+      const TrackStateIterator::Ptr StateIterator;
       //typed state
       InternalState PlayerState;
     private:
-      const AYMDevice::Ptr Device;
       PlaybackState CurrentState;
     };
   }

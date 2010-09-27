@@ -558,6 +558,7 @@ namespace
 
       Info->SetLoopPosition(header->Loop);
       Info->SetTempo(header->Tempo);
+      Info->SetLogicalChannels(AYM::LOGICAL_CHANNELS);
       Info->SetModuleProperties(props);
     }
 
@@ -634,16 +635,17 @@ namespace
   public:
     PT2Player(Information::Ptr info, PT2Track::ModuleData::Ptr data, AYM::Chip::Ptr device)
        : PT2PlayerBase(info, data, device, TABLE_PROTRACKER2)
+       , Data(data)
     {
 #ifdef SELF_TEST
 //perform self-test
       AYMTrackSynthesizer synthesizer(*AYMHelper);
       do
       {
-        assert(Data->Positions.size() > ModState.Track.Position);
+        assert(Data->Positions.size() > StateIterator->Position());
         SynthesizeData(synthesizer);
       }
-      while (Data->UpdateState(*Info, Sound::LOOP_NONE, ModState));
+      while (StateIterator->NextFrame(0, Sound::LOOP_NONE));
       Reset();
 #endif
     }
@@ -655,16 +657,13 @@ namespace
         GetNewLineState(synthesizer);
       }
       SynthesizeChannelsData(synthesizer);
-      //count actually enabled channels
-      ModState.Track.Channels = static_cast<uint_t>(std::count_if(PlayerState.begin(), PlayerState.end(),
-        boost::mem_fn(&PT2ChannelState::Enabled)));
     }
 
     void GetNewLineState(AYMTrackSynthesizer& synthesizer)
     {
       assert(IsNewLine());
 
-      const PT2Track::Line& line(Data->Patterns[ModState.Track.Pattern][ModState.Track.Line]);
+      const PT2Track::Line& line(Data->Patterns[StateIterator->Pattern()][StateIterator->Line()]);
 
       for (uint_t chan = 0; chan != line.Channels.size(); ++chan)
       {
@@ -809,6 +808,8 @@ namespace
         dst.PosInOrnament = curOrnament.GetLoop();
       }
     }
+  private:
+    const PT2Track::ModuleData::Ptr Data;
   };
 
   Player::Ptr CreatePT2Player(Information::Ptr info, PT2Track::ModuleData::Ptr data, AYM::Chip::Ptr device)

@@ -497,6 +497,7 @@ namespace
       props->SetWarnings(warner);
 
       Info->SetTempo(header->Tempo);
+      Info->SetLogicalChannels(AYM::LOGICAL_CHANNELS);
       Info->SetModuleProperties(props);
     }
 
@@ -562,16 +563,17 @@ namespace
   public:
     STCPlayer(Information::Ptr info, STCModuleData::Ptr data, AYM::Chip::Ptr device)
       : STCPlayerBase(info, data, device, TABLE_SOUNDTRACKER)
+      , Data(data)
     {
 #ifdef SELF_TEST
 //perform self-test
       AYMTrackSynthesizer synthesizer(*AYMHelper);
       do
       {
-        assert(Data->Positions.size() > ModState.Track.Position);
+        assert(Data->Positions.size() > StateIterator->Position());
         SynthesizeData(synthesizer);
       }
-      while (Data->UpdateState(*Info, Sound::LOOP_NONE, ModState));
+      while (StateIterator->NextFrame(0, Sound::LOOP_NONE));
       Reset();
 #endif
     }
@@ -583,15 +585,13 @@ namespace
         GetNewLineState(synthesizer);
       }
       SynthesizeChannelsData(synthesizer);
-      //count actually enabled channels
-      ModState.Track.Channels = std::count_if(PlayerState.begin(), PlayerState.end(), boost::mem_fn(&STCChannelState::Enabled));
     }
 
     void GetNewLineState(AYMTrackSynthesizer& synthesizer)
     {
       assert(IsNewLine());
 
-      const STCTrack::Line& line(Data->Patterns[ModState.Track.Pattern][ModState.Track.Line]);
+      const STCTrack::Line& line(Data->Patterns[StateIterator->Pattern()][StateIterator->Line()]);
       for (uint_t chan = 0; chan != line.Channels.size(); ++chan)
       {
         const STCTrack::Line::Chan& src(line.Channels[chan]);
@@ -675,7 +675,7 @@ namespace
         chanSynth.EnableEnvelope();
       }
       //apply tone
-      const int_t halftones = int_t(dst.Note) + curOrnament.GetLine(dst.PosInSample) + Data->Transpositions[ModState.Track.Position];
+      const int_t halftones = int_t(dst.Note) + curOrnament.GetLine(dst.PosInSample) + Data->Transpositions[StateIterator->Position()];
       if (!curSampleLine.EnvelopeMask)
       {
         chanSynth.SetTone(halftones, curSampleLine.Effect);
@@ -701,6 +701,8 @@ namespace
         }
       }
     }
+  private:
+    const STCModuleData::Ptr Data;
   };
 
   Player::Ptr CreateSTCPlayer(Information::Ptr info, STCModuleData::Ptr data, AYM::Chip::Ptr device)

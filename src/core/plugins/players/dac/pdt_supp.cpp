@@ -455,19 +455,19 @@ namespace
       : Info(info)
       , Data(data)
       , Device(DACDevice::Create(device))
+      , StateIterator(TrackStateIterator::Create(Info, Data, Device))
       , CurrentState(MODULE_STOPPED)
       , Interpolation(false)
     {
-      Reset();
 #ifdef SELF_TEST
 //perform self-test
       DAC::DataChunk chunk;
       do
       {
-        assert(Data->Positions.size() > ModState.Track.Position);
+        assert(Data->Positions.size() > StateIterator->Position());
         RenderData(chunk);
       }
-      while (Data->UpdateState(*Info, Sound::LOOP_NONE, ModState));
+      while (StateIterator->NextFrame(0, Sound::LOOP_NONE));
       Reset();
 #endif
     }
@@ -479,7 +479,7 @@ namespace
 
     virtual TrackState::Ptr GetTrackState() const
     {
-      return boost::make_shared<StubTrackState>(ModState);
+      return StateIterator;
     }
 
     virtual Analyzer::Ptr GetAnalyzer() const
@@ -492,22 +492,18 @@ namespace
                               Sound::MultichannelReceiver& receiver)
     {
       DAC::DataChunk chunk;
-      ModState.Tick += params.ClocksPerFrame();
-      chunk.Tick = ModState.Tick;
-      chunk.Interpolate = Interpolation;
       RenderData(chunk);
-      Device->RenderData(params, chunk, receiver);
-      //count actually enabled channels
-      ModState.Track.Channels = Device->ActiveChannels();
 
-      if (Data->UpdateState(*Info, params.Looping, ModState))
-      {
-        CurrentState = MODULE_PLAYING;
-      }
-      else
+      CurrentState = StateIterator->NextFrame(params.ClocksPerFrame(), params.Looping)
+        ? MODULE_PLAYING : MODULE_STOPPED;
+
+      chunk.Tick = StateIterator->AbsoluteTick();
+      chunk.Interpolate = Interpolation;
+      Device->RenderData(params, chunk, receiver);
+
+      if (MODULE_STOPPED == CurrentState)
       {
         receiver.Flush();
-        CurrentState = MODULE_STOPPED;
       }
       state = CurrentState;
       return Error();
@@ -516,7 +512,7 @@ namespace
     virtual Error Reset()
     {
       Device->Reset();
-      Data->InitState(Info->Tempo(), Info->FramesCount(), ModState);
+      StateIterator->Reset();
       std::for_each(Ornaments.begin(), Ornaments.end(), std::mem_fun_ref(&OrnamentState::Reset));
       CurrentState = MODULE_STOPPED;
       return Error();
@@ -524,28 +520,23 @@ namespace
 
     virtual Error SetPosition(uint_t frame)
     {
-      frame = std::min(frame, ModState.Reference.Frame);
-      if (frame < ModState.Track.Frame)
+      frame = std::min(frame, Info->FramesCount() - 1);
+      if (frame < StateIterator->Frame())
       {
         //reset to beginning in case of moving back
-        const uint64_t keepTicks = ModState.Tick;
-        Data->InitState(Info->Tempo(), Info->FramesCount(), ModState);
-        std::for_each(Ornaments.begin(), Ornaments.end(), std::mem_fun_ref(&OrnamentState::Reset));
-        ModState.Tick = keepTicks;
+        StateIterator->ResetPosition();
       }
       //fast forward
       DAC::DataChunk chunk;
-      while (ModState.Track.Frame < frame)
+      while (StateIterator->Frame() < frame)
       {
         //do not update tick for proper rendering
-        assert(Data->Positions.size() > ModState.Track.Position);
         RenderData(chunk);
-        if (Data->UpdateState(*Info, Sound::LOOP_NONE, ModState))
+        if (!StateIterator->NextFrame(0, Sound::LOOP_NONE))
         {
           break;
         }
       }
-      ModState.Frame = frame;
       return Error();
     }
 
@@ -561,6 +552,7 @@ namespace
     void RenderData(DAC::DataChunk& chunk)
     {
       std::vector<DAC::DataChunk::ChannelData> res;
+      const PDTTrack::Line& line = Data->Patterns[StateIterator->Pattern()][StateIterator->Line()];
       for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
       {
         DAC::DataChunk::ChannelData dst;
@@ -568,9 +560,8 @@ namespace
         OrnamentState& ornament = Ornaments[chan];
         const int_t prevOffset = ornament.GetOffset();
         ornament.Update();
-        if (0 == ModState.Track.Quirk)//begin note
+        if (0 == StateIterator->Quirk())//begin note
         {
-          const PDTTrack::Line& line = Data->Patterns[ModState.Track.Pattern][ModState.Track.Line];
           const PDTTrack::Line::Chan& src = line.Channels[chan];
 
           //ChannelState& dst(Channels[chan]);
@@ -619,10 +610,9 @@ namespace
   private:
     const Information::Ptr Info;
     const PDTTrack::ModuleData::Ptr Data;
-
     const DACDevice::Ptr Device;
+    const TrackStateIterator::Ptr StateIterator;
     PlaybackState CurrentState;
-    State ModState;
     boost::array<OrnamentState, CHANNELS_COUNT> Ornaments;
     bool Interpolation;
   };

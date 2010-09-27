@@ -523,6 +523,7 @@ namespace
 
       Info->SetLoopPosition(positions->Loop);
       Info->SetTempo(header->Tempo);
+      Info->SetLogicalChannels(AYM::LOGICAL_CHANNELS);
       Info->SetModuleProperties(props);
     }
 
@@ -592,16 +593,17 @@ namespace
   public:
     STPPlayer(Information::Ptr info, STPModuleData::Ptr data, AYM::Chip::Ptr device)
       : STPPlayerBase(info, data, device, TABLE_SOUNDTRACKER)
+      , Data(data)
     {
 #ifdef SELF_TEST
 //perform self-test
       AYMTrackSynthesizer synthesizer(*AYMHelper);
       do
       {
-        assert(Data->Positions.size() > ModState.Track.Position);
+        assert(Data->Positions.size() > StateIterator->Position());
         SynthesizeData(synthesizer);
       }
-      while (Data->UpdateState(*Info, Sound::LOOP_NONE, ModState));
+      while (StateIterator->NextFrame(0, Sound::LOOP_NONE));
       Reset();
 #endif
     }
@@ -613,16 +615,13 @@ namespace
         GetNewLineState(synthesizer);
       }
       SynthesizeChannelsData(synthesizer);
-      //count actually enabled channels
-      ModState.Track.Channels = std::count_if(PlayerState.begin(), PlayerState.end(),
-        boost::mem_fn(&STPChannelState::Enabled));
     }
 
     void GetNewLineState(AYMTrackSynthesizer& synthesizer)
     {
       assert(IsNewLine());
 
-      const STPTrack::Line& line = Data->Patterns[ModState.Track.Pattern][ModState.Track.Line];
+      const STPTrack::Line& line = Data->Patterns[StateIterator->Pattern()][StateIterator->Line()];
       for (uint_t chan = 0; chan != line.Channels.size(); ++chan)
       {
         const STPTrack::Line::Chan& src = line.Channels[chan];
@@ -722,7 +721,7 @@ namespace
       if (!curSampleLine.ToneMask)
       {
         const int_t halftones = int_t(dst.Note) +
-                                Data->Transpositions[ModState.Track.Position] +
+                                Data->Transpositions[StateIterator->Position()] +
                                 (dst.Envelope ? 0 : curOrnament.GetLine(dst.PosInOrnament));
         chanSynth.SetTone(halftones, dst.TonSlide + curSampleLine.Vibrato);
         chanSynth.EnableTone();
@@ -751,6 +750,8 @@ namespace
         }
       }
     }
+  private:
+    const STPModuleData::Ptr Data;
   };
 
   Player::Ptr CreateSTPPlayer(Information::Ptr info, STPModuleData::Ptr data, AYM::Chip::Ptr device)
