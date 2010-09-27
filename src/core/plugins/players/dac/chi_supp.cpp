@@ -372,25 +372,6 @@ namespace
     IO::DataContainer::Ptr RawData;
   };
 
-  class CHITrackStateIterator : public TrackStateIterator
-  {
-  public:
-    typedef boost::shared_ptr<CHITrackStateIterator> Ptr;
-
-    CHITrackStateIterator(Information::Ptr info, CHITrack::ModuleData::Ptr data, DACDevice::Ptr device)
-      : TrackStateIterator(info, data)
-      , Device(device)
-    {
-    }
-
-    virtual uint_t Channels() const
-    {
-      return Device->ActiveChannels();
-    }
-  private:
-    const DACDevice::Ptr Device;
-  };
-
   class CHIPlayer : public Player
   {
     struct GlissData
@@ -411,7 +392,7 @@ namespace
       : Info(info)
       , Data(data)
       , Device(DACDevice::Create(device))
-      , StateIterator(boost::make_shared<CHITrackStateIterator>(Info, Data, Device))
+      , StateIterator(TrackStateIterator::Create(Info, Data, Device))
       , CurrentState(MODULE_STOPPED)
       , Interpolation(false)
     {
@@ -561,7 +542,7 @@ namespace
     const Information::Ptr Info;
     const CHITrack::ModuleData::Ptr Data;
     const DACDevice::Ptr Device;
-    const CHITrackStateIterator::Ptr StateIterator;
+    const TrackStateIterator::Ptr StateIterator;
     PlaybackState CurrentState;
     boost::array<GlissData, CHANNELS_COUNT> Gliss;
     bool Interpolation;

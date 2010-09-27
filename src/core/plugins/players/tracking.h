@@ -82,10 +82,15 @@ namespace ZXTune
     public:
       typedef boost::shared_ptr<TrackStateIterator> Ptr;
 
-      TrackStateIterator(Information::Ptr info, TrackModuleData::Ptr data)
-        : Info(info), Data(data)
+      TrackStateIterator(Information::Ptr info, TrackModuleData::Ptr data, Analyzer::Ptr analyze)
+        : Info(info), Data(data), Analyze(analyze)
       {
         Reset();
+      }
+
+      static Ptr Create(Information::Ptr info, TrackModuleData::Ptr data, Analyzer::Ptr analyze)
+      {
+        return Ptr(new TrackStateIterator(info, data, analyze));
       }
 
       //status functions
@@ -126,8 +131,7 @@ namespace ZXTune
 
       virtual uint_t Channels() const
       {
-        //override
-        return Info->LogicalChannels();
+        return Analyze->ActiveChannels();
       }
 
       virtual uint_t AbsoluteFrame() const
@@ -245,6 +249,7 @@ namespace ZXTune
       //context
       const Information::Ptr Info;
       const TrackModuleData::Ptr Data;
+      const Analyzer::Ptr Analyze;
     private:
       //state
       uint_t CurPosition;
@@ -542,7 +547,7 @@ namespace ZXTune
         {
           //emulate playback
           const Information::Ptr dummyInfo = boost::make_shared<ModuleInfo>(*this);
-          const TrackStateIterator::Ptr dummyIterator = boost::make_shared<TrackStateIterator>(dummyInfo, Data);
+          const TrackStateIterator::Ptr dummyIterator = TrackStateIterator::Create(dummyInfo, Data, Analyzer::Ptr());
 
           TrackStateIterator& iterator = *dummyIterator;
           while (iterator.NextFrame(0, Sound::LOOP_NONE))

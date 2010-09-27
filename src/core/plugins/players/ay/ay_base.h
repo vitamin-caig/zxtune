@@ -41,63 +41,18 @@ namespace ZXTune
   namespace Module
   {
     class AYMDevice : public Analyzer
-                    , public AYM::Chip
     {
     public:
       typedef boost::shared_ptr<AYMDevice> Ptr;
 
-      explicit AYMDevice(AYM::Chip::Ptr device)
-        : Device(device)
-        , CurState(0)
-      {
-      }
-
-      //analyzer virtuals
-      virtual uint_t ActiveChannels() const
-      {
-        FillState();
-        return std::count_if(StateCache.begin(), StateCache.end(), boost::mem_fn(&AYM::ChanState::Enabled));
-      }
-
-      virtual void BandLevels(std::vector<std::pair<uint_t, uint_t> >& bandLevels) const
-      {
-        FillState();
-        bandLevels.resize(StateCache.size());
-        std::transform(StateCache.begin(), StateCache.end(), bandLevels.begin(),
-          boost::bind(&std::make_pair<uint_t, uint_t>, boost::bind(&AYM::ChanState::Band, _1), boost::bind(&AYM::ChanState::LevelInPercents, _1)));
-      }
-      //device virtuals
+      //some virtuals from AYM::Chip
       virtual void RenderData(const Sound::RenderParameters& params,
                               const AYM::DataChunk& src,
-                              Sound::MultichannelReceiver& dst)
-      {
-        Device->RenderData(params, src, dst);
-        CurState = 0;
-      }
+                              Sound::MultichannelReceiver& dst) = 0;
 
-      virtual void GetState(AYM::ChannelsState& state) const
-      {
-        Device->GetState(state);
-      }
+      virtual void Reset() = 0;
 
-      virtual void Reset()
-      {
-        Device->Reset();
-        CurState = 0;
-      }
-    private:
-      void FillState() const
-      {
-        if (!CurState)
-        {
-          Device->GetState(StateCache);
-          CurState = &StateCache;
-        }
-      }
-    private:
-      const AYM::Chip::Ptr Device;
-      mutable AYM::ChannelsState* CurState;
-      mutable AYM::ChannelsState StateCache;
+      static Ptr Create(AYM::Chip::Ptr device);
     };
 
     //Common base for all aym-based players (interpret as a tracked if required)
@@ -112,7 +67,7 @@ namespace ZXTune
         : Info(info)
         , Data(data)
         , AYMHelper(AYM::ParametersHelper::Create(defTable))
-        , Device(new AYMDevice(device))
+        , Device(AYMDevice::Create(device))
         , CurrentState(MODULE_STOPPED)
       {
         //WARNING: not a virtual call
