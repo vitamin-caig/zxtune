@@ -8,7 +8,6 @@ STRIP := $(if $(STRIP),$(STRIP),strip)
 #set options according to mode
 ifeq ($(mode),release)
 cxx_mode_flags += -O2 -DNDEBUG
-ld_mode_flags += -Wl,-O3,-x,--gc-sections,--relax
 else ifeq ($(mode),debug)
 cxx_mode_flags += -O0
 else
@@ -21,6 +20,7 @@ cxx_mode_flags += -pg
 ld_mode_flags += -pg
 else
 cxx_mode_flags += -fdata-sections -ffunction-sections 
+ld_mode_flags += -Wl,-O3,-x,--gc-sections,--relax
 endif
 
 #setup PIC code

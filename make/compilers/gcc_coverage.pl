@@ -20,7 +20,7 @@ foreach my $i (glob '*.gcov')
   if ($t =~ /(.*?)\/\/(.*)/)
   {
     my($base, $file) = ($1, $2);
-    if ($file !~ /^\//)
+    if ($file !~ /^\/usr/)
     {
       do_move($i, $file);
     }
