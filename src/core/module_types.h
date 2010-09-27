@@ -19,48 +19,6 @@ namespace ZXTune
 {
   namespace Module
   {
-    //! @brief Track position descriptor. All numers are 0-based
-    struct Tracking
-    {
-      Tracking()
-        : Position()
-        , Pattern()
-        , Line()
-        , Quirk()
-        , Frame()
-        , Channels()
-      {
-      }
-      //! Position in order list/total positions count
-      uint_t Position;
-      //! Current pattern/total patterns count
-      uint_t Pattern;
-      //! Current line in pattern/total lines in pattern
-      uint_t Line;
-      //! Current quirk in line/total quirks in line (tempo)
-      uint_t Quirk;
-      //! Current frame in track/total frames in track
-      uint_t Frame;
-      //! Currently active channels/total channels count (logical)
-      uint_t Channels;
-    };
-
-    //! @brief Runtime module state descriptor
-    struct State
-    {
-      State() : Frame(), Tick()
-      {
-      }
-      //! Current tracking state
-      Tracking Track;
-      //! Current tracking state' reference
-      Tracking Reference;
-      //! Current frame from beginning of playback
-      uint_t Frame;
-      //! Current tick from beginning of playback
-      uint64_t Tick;
-    };
-
     //! @brief Runtime module track status
     class TrackState
     {

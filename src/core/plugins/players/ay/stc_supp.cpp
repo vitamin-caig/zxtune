@@ -556,7 +556,7 @@ namespace
     bool LoopedInSample;
   };
 
-  typedef AYMPlayer<STCModuleData, boost::array<STCChannelState, AYM::CHANNELS> > STCPlayerBase;
+  typedef AYMPlayer<boost::array<STCChannelState, AYM::CHANNELS> > STCPlayerBase;
 
   class STCPlayer : public STCPlayerBase
   {

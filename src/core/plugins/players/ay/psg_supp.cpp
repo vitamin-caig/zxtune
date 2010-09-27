@@ -73,28 +73,6 @@ namespace
     typedef boost::shared_ptr<PSGData> RWPtr;
     typedef boost::shared_ptr<const PSGData> Ptr;
 
-    void InitState(uint_t initTempo, uint_t totalFrames, State& state) const
-    {
-      state = State();
-      Tracking& trackRef(state.Reference);
-      trackRef.Quirk = initTempo;
-      trackRef.Frame = totalFrames;
-      trackRef.Channels = AYM::CHANNELS;
-    }
-
-    bool UpdateState(const Information& info, Sound::LoopMode loopMode, State& state) const
-    {
-      //update tick outside
-      ++state.Frame;
-      if (++state.Track.Frame >= state.Reference.Frame)
-      {
-        //check if looped
-        state.Track.Frame = info.LoopFrame();
-        return Sound::LOOP_NONE != loopMode;
-      }
-      return true;
-    }
-
     virtual uint_t GetCurrentPattern(const TrackState& /*state*/) const
     {
       return 0;
@@ -294,7 +272,7 @@ namespace
     IO::DataContainer::Ptr RawData;
   };
 
-  typedef AYMPlayer<PSGData, AYM::DataChunk> PSGPlayerBase;
+  typedef AYMPlayer<AYM::DataChunk> PSGPlayerBase;
 
   class PSGPlayer : public PSGPlayerBase
   {

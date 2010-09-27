@@ -58,7 +58,7 @@ namespace ZXTune
     //Common base for all aym-based players (interpret as a tracked if required)
     //ModuleData - source data type
     //InternalState - internal state type
-    template<class ModuleData, class InternalState>
+    template<class InternalState>
     class AYMPlayer : public Player
     {
     public:

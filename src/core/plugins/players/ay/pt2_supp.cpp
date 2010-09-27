@@ -628,7 +628,7 @@ namespace
     int_t Glissade;
   };
 
-  typedef AYMPlayer<PT2Track::ModuleData, boost::array<PT2ChannelState, AYM::CHANNELS> > PT2PlayerBase;
+  typedef AYMPlayer<boost::array<PT2ChannelState, AYM::CHANNELS> > PT2PlayerBase;
 
   class PT2Player : public PT2PlayerBase
   {

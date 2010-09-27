@@ -586,7 +586,7 @@ namespace
     int_t Glissade;
   };
 
-  typedef AYMPlayer<STPModuleData, boost::array<STPChannelState, AYM::CHANNELS> > STPPlayerBase;
+  typedef AYMPlayer<boost::array<STPChannelState, AYM::CHANNELS> > STPPlayerBase;
 
   class STPPlayer : public STPPlayerBase
   {

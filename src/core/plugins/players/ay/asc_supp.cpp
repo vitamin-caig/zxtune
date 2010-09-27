@@ -810,7 +810,7 @@ namespace
     }
   };
 
-  typedef AYMPlayer<ASCTrack::ModuleData, boost::array<ASCChannelState, AYM::CHANNELS> > ASCPlayerBase;
+  typedef AYMPlayer<boost::array<ASCChannelState, AYM::CHANNELS> > ASCPlayerBase;
 
   class ASCPlayer : public ASCPlayerBase
   {
