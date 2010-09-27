@@ -17,6 +17,8 @@ Author:
 #include <boost/bind.hpp>
 #include <boost/mem_fn.hpp>
 
+#define FILE_TAG 7D6A549C
+
 namespace
 {
   using namespace ZXTune;
@@ -74,6 +76,113 @@ namespace
     mutable AYM::ChannelsState* CurState;
     mutable AYM::ChannelsState StateCache;
   };
+
+  class AYMStreamPlayer : public Player
+  {
+  public:
+    AYMStreamPlayer(Information::Ptr info, AYMDataRenderer::Ptr renderer, AYMDevice::Ptr device)
+      : Info(info)
+      , Renderer(renderer)
+      , Device(device)
+      , AYMHelper(AYM::ParametersHelper::Create(TABLE_SOUNDTRACKER))
+      , StateIterator(StreamStateIterator::Create(Info, Device))
+      , CurrentState(MODULE_STOPPED)
+    {
+      Reset();
+    }
+
+    virtual Information::Ptr GetInformation() const
+    {
+      return Info;
+    }
+
+    virtual TrackState::Ptr GetTrackState() const
+    {
+      return StateIterator;
+    }
+
+    virtual Analyzer::Ptr GetAnalyzer() const
+    {
+      return Device;
+    }
+
+    virtual Error SetParameters(const Parameters::Accessor& params)
+    {
+      try
+      {
+        AYMHelper->SetParameters(params);
+        return Error();
+      }
+      catch (const Error& e)
+      {
+        return Error(THIS_LINE, ERROR_INVALID_PARAMETERS, Text::MODULE_ERROR_SET_PLAYER_PARAMETERS).AddSuberror(e);
+      }
+    }
+
+    virtual Error RenderFrame(const Sound::RenderParameters& params,
+                              PlaybackState& state,
+                              Sound::MultichannelReceiver& receiver)
+    {
+      const uint64_t ticksDelta = params.ClocksPerFrame();
+
+      AYMTrackSynthesizer synthesizer(*AYMHelper);
+
+      synthesizer.InitData(StateIterator->AbsoluteTick() + ticksDelta);
+      Renderer->SynthesizeData(*StateIterator, synthesizer);
+
+      CurrentState = StateIterator->NextFrame(ticksDelta, params.Looping)
+        ? MODULE_PLAYING : MODULE_STOPPED;
+
+      const AYM::DataChunk& chunk = synthesizer.GetData();
+      Device->RenderData(params, chunk, receiver);
+
+      if (MODULE_STOPPED == CurrentState)
+      {
+        receiver.Flush();
+      }
+      state = CurrentState;
+      return Error();
+    }
+
+    virtual Error Reset()
+    {
+      Device->Reset();
+      StateIterator->Reset();
+      Renderer->Reset();
+      CurrentState = MODULE_STOPPED;
+      return Error();
+    }
+
+    virtual Error SetPosition(uint_t frame)
+    {
+      frame = std::min(frame, Info->FramesCount() - 1);
+      if (frame < StateIterator->Frame())
+      {
+        //reset to beginning in case of moving back
+        StateIterator->ResetPosition();
+        Renderer->Reset();
+      }
+      //fast forward
+      AYMTrackSynthesizer synthesizer(*AYMHelper);
+      while (StateIterator->Frame() < frame)
+      {
+        //do not update tick for proper rendering
+        Renderer->SynthesizeData(*StateIterator, synthesizer);
+        if (!StateIterator->NextFrame(0, Sound::LOOP_NONE))
+        {
+          break;
+        }
+      }
+      return Error();
+    }
+  private:
+    const Information::Ptr Info;
+    const AYMDataRenderer::Ptr Renderer;
+    const AYMDevice::Ptr Device;
+    const AYM::ParametersHelper::Ptr AYMHelper;
+    const StreamStateIterator::Ptr StateIterator;
+    PlaybackState CurrentState;
+  };
 }
 
 namespace ZXTune
@@ -83,6 +192,12 @@ namespace ZXTune
     AYMDevice::Ptr AYMDevice::Create(AYM::Chip::Ptr device)
     {
       return AYMDevice::Ptr(new AYMDeviceImpl(device));
+    }
+
+    Player::Ptr CreateAYMStreamPlayer(Information::Ptr info, AYMDataRenderer::Ptr renderer, AYM::Chip::Ptr device)
+    {
+      const AYMDevice::Ptr wrappedDevice = AYMDevice::Create(device);
+      return boost::make_shared<AYMStreamPlayer>(info, renderer, wrappedDevice);
     }
   }
 }

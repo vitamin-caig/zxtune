@@ -13,8 +13,9 @@ Author:
 #define __CORE_PLUGINS_PLAYERS_AY_BASE_H_DEFINED__
 
 //local includes
-#include "../tracking.h"
 #include "aym_parameters_helper.h"
+#include <core/plugins/players/streaming.h>
+#include <core/plugins/players/tracking.h>
 //common includes
 #include <error.h>
 //library includes
@@ -54,6 +55,19 @@ namespace ZXTune
 
       static Ptr Create(AYM::Chip::Ptr device);
     };
+
+    class AYMDataRenderer
+    {
+    public:
+      typedef boost::shared_ptr<AYMDataRenderer> Ptr;
+      
+      virtual ~AYMDataRenderer() {}
+
+      virtual void SynthesizeData(const TrackState& state, AYMTrackSynthesizer& synthesizer) = 0;
+      virtual void Reset() = 0;
+    };
+
+    Player::Ptr CreateAYMStreamPlayer(Information::Ptr info, AYMDataRenderer::Ptr renderer, AYM::Chip::Ptr device);
 
     //Common base for all aym-based players (interpret as a tracked if required)
     //ModuleData - source data type

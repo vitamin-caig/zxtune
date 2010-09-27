@@ -14,6 +14,7 @@ Author:
 #include "ay_conversion.h"
 #include <core/plugins/enumerator.h>
 #include <core/plugins/players/module_properties.h>
+#include <core/plugins/players/streaming.h>
 //common includes
 #include <tools.h>
 #include <logging.h>
@@ -67,85 +68,13 @@ namespace
 
   BOOST_STATIC_ASSERT(sizeof(PSGHeader) == 16);
 
-  class PSGData : public TrackModuleData
+  class PSGData
   {
   public:
     typedef boost::shared_ptr<PSGData> RWPtr;
     typedef boost::shared_ptr<const PSGData> Ptr;
 
-    virtual uint_t GetCurrentPattern(const TrackState& /*state*/) const
-    {
-      return 0;
-    }
-
-    virtual uint_t GetCurrentPatternSize(const TrackState& /*state*/) const
-    {
-      return 1;
-    }
-
-    virtual uint_t GetNewTempo(const TrackState& /*state*/) const
-    {
-      return 0;
-    }
-
     std::vector<AYM::DataChunk> Dump;
-  };
-
-  //TODO: make and use common code
-  class PSGInfo : public Information
-  {
-  public:
-    typedef boost::shared_ptr<PSGInfo> Ptr;
-
-    explicit PSGInfo(PSGData::Ptr data)
-      : Data(data)
-      , Props()
-    {
-    }
-    virtual uint_t PositionsCount() const
-    {
-      return Data->Dump.size();
-    }
-    virtual uint_t LoopPosition() const
-    {
-      return 0;
-    }
-    virtual uint_t PatternsCount() const
-    {
-      return 0;
-    }
-    virtual uint_t FramesCount() const
-    {
-      return Data->Dump.size();
-    }
-    virtual uint_t LoopFrame() const
-    {
-      return 0;
-    }
-    virtual uint_t LogicalChannels() const
-    {
-      return AYM::LOGICAL_CHANNELS;
-    }
-    virtual uint_t PhysicalChannels() const
-    {
-      return AYM::CHANNELS;
-    }
-    virtual uint_t Tempo() const
-    {
-      return 1;
-    }
-    virtual Parameters::Accessor::Ptr Properties() const
-    {
-      return Props;
-    }
-
-    void SetModuleProperties(Parameters::Accessor::Ptr props)
-    {
-      Props = props;
-    }
-  private:
-    const PSGData::Ptr Data;
-    Parameters::Accessor::Ptr Props;
   };
 
   Player::Ptr CreatePSGPlayer(Information::Ptr info, PSGData::Ptr data, AYM::Chip::Ptr device);
@@ -156,7 +85,6 @@ namespace
     PSGHolder(Plugin::Ptr plugin, const MetaContainer& container, ModuleRegion& region)
       : SrcPlugin(plugin)
       , Data(boost::make_shared<PSGData>())
-      , Info(boost::make_shared<PSGInfo>(Data))
     {
       const IO::FastDump data = *container.Data;
       //workaround for some emulators
@@ -230,6 +158,7 @@ namespace
       props->SetSource(RawData, region);
       props->SetPlugins(container.Plugins);
       props->SetPath(container.Path);
+      Info = CreateStreamInfo(Data->Dump.size(), AYM::LOGICAL_CHANNELS, AYM::CHANNELS, props);
     }
 
     virtual Plugin::Ptr GetPlugin() const
@@ -268,32 +197,21 @@ namespace
   private:
     const Plugin::Ptr SrcPlugin;
     const PSGData::RWPtr Data;
-    const PSGInfo::Ptr Info;
+    Information::Ptr Info;
     IO::DataContainer::Ptr RawData;
   };
 
-  typedef AYMPlayer<AYM::DataChunk> PSGPlayerBase;
-
-  class PSGPlayer : public PSGPlayerBase
+  class PSGDataRenderer : public AYMDataRenderer
   {
   public:
-    PSGPlayer(Information::Ptr info, PSGData::Ptr data, AYM::Chip::Ptr device)
-       : PSGPlayerBase(info, data, device, TABLE_SOUNDTRACKER/*any of*/)
-       , Data(data)
+    explicit PSGDataRenderer(PSGData::Ptr data)
+      : Data(data)
     {
     }
 
-    virtual Error Reset()
+    virtual void SynthesizeData(const TrackState& state, AYMTrackSynthesizer& synthesizer)
     {
-      const Error& res = PSGPlayerBase::Reset();
-      PlayerState.Mask = AYM::DataChunk::MASK_ALL_REGISTERS;
-      PlayerState.Data[AYM::DataChunk::REG_MIXER] = 0xff;
-      return res;
-    }
-
-    void SynthesizeData(AYMTrackSynthesizer& synthesizer)
-    {
-      const AYM::DataChunk& data = Data->Dump[StateIterator->Frame()];
+      const AYM::DataChunk& data = Data->Dump[state.Frame()];
       //collect state
       for (uint_t reg = 0, mask = (data.Mask & AYM::DataChunk::MASK_ALL_REGISTERS); mask; ++reg, mask >>= 1)
       {
@@ -308,13 +226,22 @@ namespace
       //reset envelope mask
       PlayerState.Mask &= ~(uint_t(1) << AYM::DataChunk::REG_ENV);
     }
+
+    virtual void Reset()
+    {
+      PlayerState.Mask = AYM::DataChunk::MASK_ALL_REGISTERS;
+      PlayerState.Data[AYM::DataChunk::REG_MIXER] = 0xff;
+    }
   private:
     const PSGData::Ptr Data;
+    //internal state
+    AYM::DataChunk PlayerState;
   };
 
   Player::Ptr CreatePSGPlayer(Information::Ptr info, PSGData::Ptr data, AYM::Chip::Ptr device)
   {
-    return Player::Ptr(new PSGPlayer(info, data, device));
+    const AYMDataRenderer::Ptr renderer = boost::make_shared<PSGDataRenderer>(data);
+    return CreateAYMStreamPlayer(info, renderer, device);
   }
 
   bool CheckPSG(const IO::DataContainer& inputData)
