@@ -11,6 +11,7 @@ Author:
 
 //local includes
 #include "ay_base.h"
+#include "ts_base.h"
 #include "vortex_base.h"
 //common includes
 #include <error_tools.h>
@@ -499,12 +500,12 @@ namespace
 
     virtual TrackState::Ptr GetTrackState() const
     {
-      return boost::make_shared<MergedTrackState>(Player1->GetTrackState(), Player2->GetTrackState());
+      return CreateTSTrackState(Player1->GetTrackState(), Player2->GetTrackState());
     }
 
     virtual Analyzer::Ptr GetAnalyzer() const
     {
-      return boost::make_shared<MergedAnalyzer>(Player1->GetAnalyzer(), Player2->GetAnalyzer());
+      return CreateTSAnalyzer(Player1->GetAnalyzer(), Player2->GetAnalyzer());
     }
 
     virtual Error RenderFrame(const Sound::RenderParameters& params,

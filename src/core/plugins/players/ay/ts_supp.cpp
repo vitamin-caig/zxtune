@@ -10,6 +10,7 @@ Author:
 */
 
 //local includes
+#include "ts_base.h"
 #include <core/plugins/enumerator.h>
 #include <core/plugins/players/tracking.h>
 //common includes
@@ -396,12 +397,12 @@ namespace
 
     virtual TrackState::Ptr GetTrackState() const
     {
-      return boost::make_shared<MergedTrackState>(Player1->GetTrackState(), Player2->GetTrackState());
+      return CreateTSTrackState(Player1->GetTrackState(), Player2->GetTrackState());
     }
 
     virtual Analyzer::Ptr GetAnalyzer() const
     {
-      return boost::make_shared<MergedAnalyzer>(Player1->GetAnalyzer(), Player2->GetAnalyzer());
+      return CreateTSAnalyzer(Player1->GetAnalyzer(), Player2->GetAnalyzer());
     }
 
     virtual Error RenderFrame(const Sound::RenderParameters& params,
