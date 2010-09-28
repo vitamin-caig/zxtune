@@ -260,7 +260,7 @@ namespace
       const MetaContainer& container, ModuleRegion& region)
       : SrcPlugin(plugin)
       , Data(CHITrack::ModuleData::Create())
-      , Info(CHITrack::ModuleInfo::Create(Data))
+      , Info(TrackInfo::Create(Data))
     {
       //assume data is correct
       const IO::FastDump& data(*container.Data);
@@ -369,7 +369,7 @@ namespace
   private:
     const Plugin::Ptr SrcPlugin;
     const CHITrack::ModuleData::RWPtr Data;
-    const CHITrack::ModuleInfo::Ptr Info;
+    const TrackInfo::Ptr Info;
     IO::DataContainer::Ptr RawData;
   };
 

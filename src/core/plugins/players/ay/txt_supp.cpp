@@ -62,7 +62,7 @@ namespace
     TXTHolder(Plugin::Ptr plugin, const MetaContainer& container, const ModuleRegion& region)
       : SrcPlugin(plugin)
       , Data(Vortex::Track::ModuleData::Create())
-      , Info(Vortex::Track::ModuleInfo::Create(Data))
+      , Info(TrackInfo::Create(Data))
     {
       const char* const dataIt = static_cast<const char*>(container.Data->Data());
       const char* const endIt = dataIt + region.Size;
@@ -120,7 +120,7 @@ namespace
   private:
     const Plugin::Ptr SrcPlugin;
     const Vortex::Track::ModuleData::RWPtr Data;
-    const Vortex::Track::ModuleInfo::Ptr Info;
+    const TrackInfo::Ptr Info;
     IO::DataContainer::Ptr RawData;
     uint_t Version;
     String FreqTableName;

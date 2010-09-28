@@ -652,7 +652,7 @@ namespace
       const MetaContainer& container, ModuleRegion& region)
       : SrcPlugin(plugin)
       , Data(moduleData)
-      , Info(Vortex::Track::ModuleInfo::Create(Data))
+      , Info(TrackInfo::Create(Data))
       , Version()
     {
       //assume all data is correct
@@ -787,7 +787,7 @@ namespace
   protected:
     const Plugin::Ptr SrcPlugin;
     const Vortex::Track::ModuleData::RWPtr Data;
-    const Vortex::Track::ModuleInfo::Ptr Info;
+    const TrackInfo::Ptr Info;
     IO::DataContainer::Ptr RawData;
     uint_t Version;
     String FreqTableName;

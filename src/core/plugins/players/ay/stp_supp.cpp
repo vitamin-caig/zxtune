@@ -409,7 +409,7 @@ namespace
     STPHolder(Plugin::Ptr plugin, const MetaContainer& container, ModuleRegion& region)
       : SrcPlugin(plugin)
       , Data(boost::make_shared<STPModuleData>())
-      , Info(STPTrack::ModuleInfo::Create(Data))
+      , Info(TrackInfo::Create(Data))
     {
       //assume that data is ok
       const IO::FastDump& data = IO::FastDump(*container.Data, region.Offset);
@@ -563,7 +563,7 @@ namespace
   private:
     const Plugin::Ptr SrcPlugin;
     const STPModuleData::RWPtr Data;
-    const STPTrack::ModuleInfo::Ptr Info;
+    const TrackInfo::Ptr Info;
     IO::DataContainer::Ptr RawData;
   };
 

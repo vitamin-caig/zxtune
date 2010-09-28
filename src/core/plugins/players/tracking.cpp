@@ -195,6 +195,110 @@ namespace
     uint_t AbsFrame;
     uint64_t AbsTick;
   };
+
+  class TrackInfoImpl : public TrackInfo
+  {
+  public:
+    explicit TrackInfoImpl(TrackModuleData::Ptr data)
+      : Data(data)
+      , LogicChannels(data->GetChannelsCount())
+      , Frames(), LoopFrameNum()
+    {
+    }
+
+    virtual uint_t PositionsCount() const
+    {
+      return Data->GetPositions();
+    }
+
+    virtual uint_t LoopPosition() const
+    {
+      return Data->GetLoopPosition();
+    }
+
+    virtual uint_t PatternsCount() const
+    {
+      return Data->GetPatternsCount();
+    }
+
+    virtual uint_t FramesCount() const
+    {
+      Initialize();
+      return Frames;
+    }
+
+    virtual uint_t LoopFrame() const
+    {
+      Initialize();
+      return LoopFrameNum;
+    }
+
+    virtual uint_t LogicalChannels() const
+    {
+      return LogicChannels;
+    }
+
+    virtual uint_t PhysicalChannels() const
+    {
+      return Data->GetChannelsCount();
+    }
+
+    virtual uint_t Tempo() const
+    {
+      return Data->GetInitialTempo();
+    }
+
+    virtual Parameters::Accessor::Ptr Properties() const
+    {
+      assert(ModuleProperties);
+      return ModuleProperties;
+    }
+
+    //modifiers
+    virtual void SetLogicalChannels(uint_t channels)
+    {
+      LogicChannels = channels;
+    }
+
+    virtual void SetModuleProperties(Parameters::Accessor::Ptr props)
+    {
+      ModuleProperties = props;
+    }
+
+  private:
+    void Initialize() const
+    {
+      if (Frames)
+      {
+        return;//initialized
+      }
+      //emulate playback
+      const Information::Ptr dummyInfo = boost::make_shared<TrackInfoImpl>(*this);
+      const TrackStateIterator::Ptr dummyIterator = TrackStateIterator::Create(dummyInfo, Data, Analyzer::Ptr());
+
+      const uint_t loopPosNum = Data->GetLoopPosition();
+      TrackStateIterator& iterator = *dummyIterator;
+      while (iterator.NextFrame(0, Sound::LOOP_NONE))
+      {
+        //check for loop
+        if (0 == iterator.Line() &&
+            0 == iterator.Quirk() &&
+            loopPosNum == iterator.Position())
+        {
+          LoopFrameNum = iterator.Frame();
+        }
+        //to prevent reset
+        Frames = std::max(Frames, iterator.Frame());
+      }
+      ++Frames;
+    }
+  private:
+    const TrackModuleData::Ptr Data;
+    uint_t LogicChannels;
+    Parameters::Accessor::Ptr ModuleProperties;
+    mutable uint_t Frames;
+    mutable uint_t LoopFrameNum;
+  };
 }
 
 namespace ZXTune
@@ -205,6 +309,11 @@ namespace ZXTune
       Information::Ptr info, TrackModuleData::Ptr data, Analyzer::Ptr analyze)
     {
       return boost::make_shared<TrackStateIteratorImpl>(info, data, analyze);
+    }
+
+    TrackInfo::Ptr TrackInfo::Create(TrackModuleData::Ptr data)
+    {
+      return boost::make_shared<TrackInfoImpl>(data);
     }
   }
 }

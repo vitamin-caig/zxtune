@@ -72,8 +72,13 @@ namespace ZXTune
 
       virtual ~TrackModuleData() {}
 
+      //static
+      virtual uint_t GetChannelsCount() const = 0;
       virtual uint_t GetLoopPosition() const = 0;
       virtual uint_t GetInitialTempo() const = 0;
+      virtual uint_t GetPositions() const = 0;
+      virtual uint_t GetPatternsCount() const = 0;
+      //dynamic
       virtual uint_t GetCurrentPattern(const TrackState& state) const = 0;
       virtual uint_t GetCurrentPatternSize(const TrackState& state) const = 0;
       virtual uint_t GetNewTempo(const TrackState& state) const = 0;
@@ -91,6 +96,17 @@ namespace ZXTune
       virtual void ResetPosition() = 0;
 
       virtual bool NextFrame(uint64_t ticksToSkip, Sound::LoopMode mode) = 0;
+    };
+
+    class TrackInfo : public Information
+    {
+    public:
+      typedef boost::shared_ptr<TrackInfo> Ptr;
+
+      virtual void SetLogicalChannels(uint_t channels) = 0;
+      virtual void SetModuleProperties(Parameters::Accessor::Ptr props) = 0;
+
+      static Ptr Create(TrackModuleData::Ptr data);
     };
 
     // Basic template class for tracking support (used as simple parametrized namespace)
@@ -181,6 +197,11 @@ namespace ZXTune
         {
         }
 
+        virtual uint_t GetChannelsCount() const
+        {
+          return ChannelsCount;
+        }
+
         virtual uint_t GetLoopPosition() const
         {
           return LoopPosition;
@@ -189,6 +210,17 @@ namespace ZXTune
         virtual uint_t GetInitialTempo() const
         {
           return InitialTempo;
+        }
+
+        virtual uint_t GetPositions() const
+        {
+          return Positions.size();
+        }
+
+        virtual uint_t GetPatternsCount() const
+        {
+          return std::count_if(Patterns.begin(), Patterns.end(),
+            !boost::bind(&Pattern::empty, _1));
         }
 
         virtual uint_t GetCurrentPattern(const TrackState& state) const
@@ -216,119 +248,6 @@ namespace ZXTune
         std::vector<Pattern> Patterns;
         std::vector<SampleType> Samples;
         std::vector<OrnamentType> Ornaments;
-      };
-
-      class ModuleInfo : public Information
-      {
-      public:
-        explicit ModuleInfo(typename ModuleData::Ptr data)
-          : Data(data)
-          , LogicChannels(ChannelsCount)
-          , PhysChannels(ChannelsCount)
-          , Frames(), LoopFrameNum()
-        {
-        }
-        typedef boost::shared_ptr<ModuleInfo> Ptr;
-
-        static Ptr Create(typename ModuleData::Ptr data)
-        {
-          return boost::make_shared<ModuleInfo>(data);
-        }
-
-        virtual uint_t PositionsCount() const
-        {
-          return Data->Positions.size();
-        }
-
-        virtual uint_t LoopPosition() const
-        {
-          return Data->GetLoopPosition();
-        }
-
-        virtual uint_t PatternsCount() const
-        {
-          return std::count_if(Data->Patterns.begin(), Data->Patterns.end(),
-            !boost::bind(&Pattern::empty, _1));
-        }
-
-        virtual uint_t FramesCount() const
-        {
-          Initialize();
-          return Frames;
-        }
-
-        virtual uint_t LoopFrame() const
-        {
-          Initialize();
-          return LoopFrameNum;
-        }
-
-        virtual uint_t LogicalChannels() const
-        {
-          return LogicChannels;
-        }
-
-        virtual uint_t PhysicalChannels() const
-        {
-          return PhysChannels;
-        }
-
-        virtual uint_t Tempo() const
-        {
-          return Data->GetInitialTempo();
-        }
-
-        virtual Parameters::Accessor::Ptr Properties() const
-        {
-          assert(ModuleProperties);
-          return ModuleProperties;
-        }
-
-        //modifiers
-        void SetLogicalChannels(uint_t channels)
-        {
-          LogicChannels = channels;
-        }
-
-        void SetModuleProperties(Parameters::Accessor::Ptr props)
-        {
-          ModuleProperties = props;
-        }
-
-      private:
-        void Initialize() const
-        {
-          if (Frames)
-          {
-            return;//initialized
-          }
-          //emulate playback
-          const Information::Ptr dummyInfo = boost::make_shared<ModuleInfo>(*this);
-          const TrackStateIterator::Ptr dummyIterator = TrackStateIterator::Create(dummyInfo, Data, Analyzer::Ptr());
-
-          const uint_t loopPosNum = Data->GetLoopPosition();
-          TrackStateIterator& iterator = *dummyIterator;
-          while (iterator.NextFrame(0, Sound::LOOP_NONE))
-          {
-            //check for loop
-            if (0 == iterator.Line() &&
-                0 == iterator.Quirk() &&
-                loopPosNum == iterator.Position())
-            {
-              LoopFrameNum = iterator.Frame();
-            }
-            //to prevent reset
-            Frames = std::max(Frames, iterator.Frame());
-          }
-          ++Frames;
-        }
-      private:
-        const typename ModuleData::Ptr Data;
-        uint_t LogicChannels;
-        const uint_t PhysChannels;
-        Parameters::Accessor::Ptr ModuleProperties;
-        mutable uint_t Frames;
-        mutable uint_t LoopFrameNum;
       };
     };
 

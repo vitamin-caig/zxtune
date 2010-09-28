@@ -832,7 +832,7 @@ namespace ZXTune
     namespace Vortex
     {
       Error ConvertFromText(const std::string& text, Vortex::Track::ModuleData& resData, 
-        Vortex::Track::ModuleInfo& resInfo, ModuleProperties& resProps,
+        TrackInfo& resInfo, ModuleProperties& resProps,
         uint_t& resVersion, String& resFreqTable)
       {
         typedef std::vector<std::string> LinesArray;

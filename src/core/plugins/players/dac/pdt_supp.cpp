@@ -302,7 +302,7 @@ namespace
       const MetaContainer& container, ModuleRegion& region)
       : SrcPlugin(plugin)
       , Data(PDTTrack::ModuleData::Create())
-      , Info(PDTTrack::ModuleInfo::Create(Data))
+      , Info(TrackInfo::Create(Data))
     {
       //assume that data is ok
       const IO::FastDump& data(*container.Data);
@@ -418,7 +418,7 @@ namespace
   private:
     const Plugin::Ptr SrcPlugin;
     const PDTTrack::ModuleData::RWPtr Data;
-    const PDTTrack::ModuleInfo::Ptr Info;
+    const TrackInfo::Ptr Info;
     IO::DataContainer::Ptr RawData;
   };
 
