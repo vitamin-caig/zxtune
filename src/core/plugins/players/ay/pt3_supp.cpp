@@ -648,12 +648,12 @@ namespace
       }
     }
   public:
-    PT3Holder(Plugin::Ptr plugin, const MetaContainer& container, ModuleRegion& region)
+    PT3Holder(Plugin::Ptr plugin, Vortex::Track::ModuleData::RWPtr moduleData,
+      const MetaContainer& container, ModuleRegion& region)
       : SrcPlugin(plugin)
-      , Data(Vortex::Track::ModuleData::Create())
+      , Data(moduleData)
       , Info(Vortex::Track::ModuleInfo::Create(Data))
       , Version()
-      , TSPatternBase(0)
     {
       //assume all data is correct
       const IO::FastDump& data = IO::FastDump(*container.Data, region.Offset);
@@ -742,15 +742,9 @@ namespace
       Version = std::isdigit(header->Subversion) ? header->Subversion - '0' : 6;
       FreqTableName = Vortex::GetFreqTable(static_cast<Vortex::NoteTable>(header->FreqTableNum), Version);
 
-      //TODO: proper calculating
       Info->SetLoopPosition(header->Loop);
       Info->SetTempo(header->Tempo);
       Info->SetLogicalChannels(AYM::LOGICAL_CHANNELS);
-      if (header->Mode != AY_TRACK)
-      {
-        TSPatternBase = header->Mode;
-        Info->SetLogicalChannels(Info->LogicalChannels() * 2);
-      }
       Info->SetModuleProperties(props);
     }
 
@@ -766,10 +760,7 @@ namespace
     
     virtual Player::Ptr CreatePlayer() const
     {
-      return TSPatternBase ?
-        Vortex::CreateTSPlayer(Info, Data, Version, FreqTableName, TSPatternBase, AYM::CreateChip(), AYM::CreateChip())
-        :
-        Vortex::CreatePlayer(Info, Data, Version, FreqTableName, AYM::CreateChip());
+      return Vortex::CreatePlayer(Info, Data, Version, FreqTableName, AYM::CreateChip());
     }
     
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -782,28 +773,100 @@ namespace
         dst.assign(data, data + RawData->Size());
         return Error();
       }
-      else if (TSPatternBase == 0)//only on usual modules
+      else if (ConvertAYMFormat(boost::bind(&Vortex::CreatePlayer, boost::cref(Info), boost::cref(Data), Version, FreqTableName, _1),
+        param, dst, result))
       {
-        if (ConvertAYMFormat(boost::bind(&Vortex::CreatePlayer, boost::cref(Info), boost::cref(Data), Version, FreqTableName, _1),
-          param, dst, result))
-        {
-          return result;
-        }
-        else if (ConvertVortexFormat(*Data, *Info, param, Version, FreqTableName, dst, result))
-        {
-          return result;
-        }
+        return result;
+      }
+      else if (ConvertVortexFormat(*Data, *Info, param, Version, FreqTableName, dst, result))
+      {
+        return result;
       }
       return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
     }
-  private:
+  protected:
     const Plugin::Ptr SrcPlugin;
     const Vortex::Track::ModuleData::RWPtr Data;
     const Vortex::Track::ModuleInfo::Ptr Info;
     IO::DataContainer::Ptr RawData;
     uint_t Version;
     String FreqTableName;
-    uint_t TSPatternBase;
+  };
+
+  //TODO: remove inheritance
+  class TSModuleData : public Vortex::Track::ModuleData
+  {
+  public:
+    explicit TSModuleData(uint_t base)
+      : Base(base)
+    {
+    }
+
+    virtual uint_t GetNewTempo(const TrackState& state) const
+    {
+      const uint_t originalPattern = Vortex::Track::ModuleData::GetCurrentPattern(state);
+      const uint_t originalLine = state.Line();
+      if (const boost::optional<uint_t>& tempo = Patterns[originalPattern][originalLine].Tempo)
+      {
+        return *tempo;
+      }
+      if (const boost::optional<uint_t>& tempo = Patterns[Base - 1 - originalPattern][originalLine].Tempo)
+      {
+        return *tempo;
+      }
+      return 0;
+    }
+
+  private:
+    const uint_t Base;
+  };
+
+  class MirroredModuleData : public Vortex::Track::ModuleData
+  {
+  public:
+    MirroredModuleData(uint_t base, const Vortex::Track::ModuleData& data)
+      : Vortex::Track::ModuleData(data)
+      , Base(base)
+    {
+    }
+
+    virtual uint_t GetCurrentPattern(const TrackState& state) const
+    {
+      return Base - 1 - Vortex::Track::ModuleData::GetCurrentPattern(state);
+    }
+  private:
+    const uint_t Base;
+  };
+
+  class PT3TSHolder : public PT3Holder
+  {
+  public:
+    PT3TSHolder(Plugin::Ptr plugin, uint_t patOffset, const MetaContainer& container, ModuleRegion& region)
+      : PT3Holder(plugin, boost::make_shared<TSModuleData>(patOffset), container, region)
+      , PatOffset(patOffset)
+    {
+      Info->SetLogicalChannels(Info->LogicalChannels() * 2);
+    }
+
+    virtual Player::Ptr CreatePlayer() const
+    {
+      const Player::Ptr player1 = Vortex::CreatePlayer(Info, Data, Version, FreqTableName, AYM::CreateChip());
+      const Player::Ptr player2 = Vortex::CreatePlayer(Info, boost::make_shared<MirroredModuleData>(PatOffset, *Data), Version, FreqTableName, AYM::CreateChip());
+      return Vortex::CreateTSPlayer(Info, player1, player2);
+    }
+
+    virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
+    {
+      using namespace Conversion;
+      Error result;
+      if (parameter_cast<RawConvertParam>(&param))
+      {
+        return PT3Holder::Convert(param, dst);
+      }
+      return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
+    }
+  private:
+    const uint_t PatOffset;
   };
 
   //////////////////////////////////////////////////
@@ -883,12 +946,23 @@ namespace
     }
     return true;
   }
+
+  uint_t GetTSModulePatternOffset(const MetaContainer& container, const ModuleRegion& region)
+  {
+    const IO::FastDump& data = IO::FastDump(*container.Data, region.Offset);
+    const PT3Header* const header(safe_ptr_cast<const PT3Header*>(&data[0]));
+    return header->Mode;
+  }
   
   Holder::Ptr CreatePT3Module(Plugin::Ptr plugin, const MetaContainer& container, ModuleRegion& region)
   {
     try
     {
-      const Holder::Ptr holder(new PT3Holder(plugin, container, region));
+      const uint_t tsPatternOffset = GetTSModulePatternOffset(container, region);
+      const bool isTSModule = AY_TRACK != tsPatternOffset;
+      const Holder::Ptr holder = isTSModule
+        ? Holder::Ptr(new PT3TSHolder(plugin, tsPatternOffset, container, region))
+        : Holder::Ptr(new PT3Holder(plugin, Vortex::Track::ModuleData::Create(), container, region));
 #ifdef SELF_TEST
       holder->CreatePlayer();
 #endif

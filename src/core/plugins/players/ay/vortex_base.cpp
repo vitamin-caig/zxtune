@@ -466,20 +466,16 @@ namespace
   class VortexTSPlayer : public Player
   {
   public:
-    VortexTSPlayer(Information::Ptr info, Vortex::Track::ModuleData::Ptr data,
-         uint_t version, const String& freqTableName, uint_t patternBase, AYM::Chip::Ptr device1, AYM::Chip::Ptr device2)
-      : Player2(Vortex::CreatePlayer(info, data, version, freqTableName, device2))
+    VortexTSPlayer(Information::Ptr info, Player::Ptr player1, Player::Ptr player2)
+      : Info(info)
+      , Player1(player1)
+      , Player2(player2)
     {
-      //copy and patch
-      const Vortex::Track::ModuleData::RWPtr secondData = boost::make_shared<Vortex::Track::ModuleData>(*data);
-      std::transform(secondData->Positions.begin(), secondData->Positions.end(), secondData->Positions.begin(),
-        std::bind1st(std::minus<uint_t>(), patternBase - 1));
-      Player1 = Vortex::CreatePlayer(info, secondData, version, freqTableName, device1);
     }
 
     virtual Information::Ptr GetInformation() const
     {
-      return Player1->GetInformation();
+      return Info;
     }
 
     virtual TrackState::Ptr GetTrackState() const
@@ -511,23 +507,6 @@ namespace
         return e;
       }
       state = state1 == MODULE_STOPPED || state2 == MODULE_STOPPED ? MODULE_STOPPED : MODULE_PLAYING;
-      //TODO: synchronize tempo
-      /*
-      if (tempo1 != Player1->StateIterator->Tempo())
-      {
-        const uint_t pattern = Player2->ModState.Track.Pattern;
-        Player2->ModState = Player1->ModState;
-        Player2->ModState.Track.Pattern = pattern;
-        Player2->ModState.Reference.Line = Player2->Data->Patterns[pattern].size();
-      }
-      else if (tempo2 != Player2->StateIterator->Tempo())
-      {
-        const uint_t pattern = Player1->ModState.Track.Pattern;
-        Player1->ModState = Player2->ModState;
-        Player1->ModState.Track.Pattern = pattern;
-        Player1->ModState.Reference.Line = Player1->Data->Patterns[pattern].size();
-      }
-      */
       return Error();
     }
 
@@ -541,11 +520,6 @@ namespace
       {
         return e;
       }
-      /*
-      const uint_t pattern = Player2->ModState.Track.Pattern;
-      Player2->ModState = Player1->ModState;
-      Player2->ModState.Track.Pattern = pattern;
-      */
       return Error();
     }
 
@@ -567,10 +541,9 @@ namespace
       return Player2->SetParameters(params);
     }
   private:
-    //first player
-    Player::Ptr Player1;
-    //second player and data
-    Player::Ptr Player2;
+    const Information::Ptr Info;
+    const Player::Ptr Player1;
+    const Player::Ptr Player2;
     //mixer
     TSMixer<AYM::CHANNELS> Mixer;
   };
@@ -610,10 +583,9 @@ namespace ZXTune
         return CreateAYMTrackPlayer(info, data, renderer, device, freqTableName);
       }
 
-      Player::Ptr CreateTSPlayer(Information::Ptr info, Track::ModuleData::Ptr data,
-         uint_t version, const String& freqTableName, uint_t patternBase, AYM::Chip::Ptr device1, AYM::Chip::Ptr device2)
+      Player::Ptr CreateTSPlayer(Information::Ptr info, Player::Ptr player1, Player::Ptr player2)
       {
-        return Player::Ptr(new VortexTSPlayer(info, data, version, freqTableName, patternBase, device1, device2));
+        return Player::Ptr(new VortexTSPlayer(info, player1, player2));
       }
     }
   }
