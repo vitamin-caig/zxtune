@@ -701,6 +701,8 @@ namespace
         Log::Assert(patternWarner, pat.size() <= MAX_PATTERN_SIZE, Text::WARNING_INVALID_PATTERN_SIZE);
         rawSize = std::max<std::size_t>(rawSize, std::max_element(cursors.begin(), cursors.end(), PatternCursor::CompareByOffset)->Offset + 1);
       }
+      Data->LoopPosition = header->Loop;
+      Data->InitialTempo = header->Tempo;
 
       //fill region
       region.Size = rawSize;
@@ -725,8 +727,6 @@ namespace
       props->SetProgram(Text::ASC_EDITOR);
       props->SetWarnings(warner);
 
-      Info->SetLoopPosition(header->Loop);
-      Info->SetTempo(header->Tempo);
       Info->SetLogicalChannels(AYM::LOGICAL_CHANNELS);
       Info->SetModuleProperties(props);
     }

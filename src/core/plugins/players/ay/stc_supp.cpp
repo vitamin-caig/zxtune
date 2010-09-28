@@ -482,6 +482,7 @@ namespace
         }
       }
       Log::Assert(*warner, Data->Positions.size() == uint_t(positions->Lenght + 1), Text::WARNING_INVALID_POSITIONS);
+      Data->InitialTempo = header->Tempo;
 
       //fill region
       region.Size = rawSize;
@@ -498,7 +499,6 @@ namespace
       props->SetProgram(OptimizeString(FromStdString(header->Identifier)));
       props->SetWarnings(warner);
 
-      Info->SetTempo(header->Tempo);
       Info->SetLogicalChannels(AYM::LOGICAL_CHANNELS);
       Info->SetModuleProperties(props);
     }

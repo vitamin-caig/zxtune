@@ -303,6 +303,9 @@ namespace
           memLeft -= alignedSize;
         }
       }
+      Data->LoopPosition = header->Loop;
+      Data->InitialTempo = header->Tempo;
+
       //fill region
       region.Offset = 0;
       region.Size = data.Size() - memLeft;
@@ -321,8 +324,6 @@ namespace
       props->SetWarnings(warner);
 
       //fill tracking properties
-      Info->SetLoopPosition(header->Loop);
-      Info->SetTempo(header->Tempo);
       Info->SetModuleProperties(props);
     }
 

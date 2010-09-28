@@ -893,6 +893,8 @@ namespace ZXTune
           }
           it = next;
         }
+        data.LoopPosition = descr.Loop;
+        data.InitialTempo = descr.Tempo;
 
         resProps.SetTitle(descr.Title);
         resProps.SetAuthor(descr.Author);
@@ -903,8 +905,6 @@ namespace ZXTune
         freqTable = Vortex::GetFreqTable(static_cast<Vortex::NoteTable>(descr.Notetable), version);
 
         data.Positions.swap(descr.Order);
-        resInfo.SetLoopPosition(descr.Loop);
-        resInfo.SetTempo(descr.Tempo);
         resInfo.SetLogicalChannels(AYM::LOGICAL_CHANNELS);
 
         //apply result

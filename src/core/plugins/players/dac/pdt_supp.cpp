@@ -352,6 +352,9 @@ namespace
       std::transform(header->Ornaments.begin(), header->Ornaments.end(), header->OrnLoops.begin(),
         std::back_inserter(Data->Ornaments), MakeOrnament);
 
+      Data->LoopPosition = header->Loop;
+      Data->InitialTempo = header->Tempo;
+
       //fill region
       region.Offset = 0;
       region.Size = MODULE_SIZE;
@@ -370,8 +373,6 @@ namespace
       props->SetWarnings(warner);
 
       //set tracking
-      Info->SetLoopPosition(header->Loop);
-      Info->SetTempo(header->Tempo);
       Info->SetModuleProperties(props);
     }
 

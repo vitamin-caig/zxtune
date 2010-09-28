@@ -542,6 +542,8 @@ namespace
         }
       }
       Log::Assert(*warner, header->Length == Data->Positions.size(), Text::WARNING_INVALID_LENGTH);
+      Data->LoopPosition = header->Loop;
+      Data->InitialTempo = header->Tempo;
 
       //fill region
       region.Size = rawSize;
@@ -558,8 +560,6 @@ namespace
       props->SetProgram(Text::PT2_EDITOR);
       props->SetWarnings(warner);
 
-      Info->SetLoopPosition(header->Loop);
-      Info->SetTempo(header->Tempo);
       Info->SetLogicalChannels(AYM::LOGICAL_CHANNELS);
       Info->SetModuleProperties(props);
     }

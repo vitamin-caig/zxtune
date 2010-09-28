@@ -501,6 +501,8 @@ namespace
         Log::Assert(patternWarner, pat.size() <= MAX_PATTERN_SIZE, Text::WARNING_INVALID_PATTERN_SIZE);
         rawSize = std::max<std::size_t>(rawSize, 1 + std::max_element(cursors.begin(), cursors.end(), PatternCursor::CompareByOffset)->Offset);
       }
+      Data->LoopPosition = positions->Loop;
+      Data->InitialTempo = header->Tempo;
 
       //fill region
       region.Size = rawSize;
@@ -523,8 +525,6 @@ namespace
       props->SetPlugins(container.Plugins);
       props->SetPath(container.Path);
 
-      Info->SetLoopPosition(positions->Loop);
-      Info->SetTempo(header->Tempo);
       Info->SetLogicalChannels(AYM::LOGICAL_CHANNELS);
       Info->SetModuleProperties(props);
     }

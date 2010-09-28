@@ -719,6 +719,8 @@ namespace
         }
       }
       Log::Assert(*warner, header->Length == Data->Positions.size(), Text::WARNING_INVALID_LENGTH);
+      Data->LoopPosition = header->Loop;
+      Data->InitialTempo = header->Tempo;
 
       //fill region
       region.Size = rawSize;
@@ -742,8 +744,6 @@ namespace
       Version = std::isdigit(header->Subversion) ? header->Subversion - '0' : 6;
       FreqTableName = Vortex::GetFreqTable(static_cast<Vortex::NoteTable>(header->FreqTableNum), Version);
 
-      Info->SetLoopPosition(header->Loop);
-      Info->SetTempo(header->Tempo);
       Info->SetLogicalChannels(AYM::LOGICAL_CHANNELS);
       Info->SetModuleProperties(props);
     }
