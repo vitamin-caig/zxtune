@@ -112,8 +112,8 @@ namespace
       }
       return true;
     }
-
-    virtual bool NextLine(Sound::LoopMode mode)
+  private:
+    bool NextLine(Sound::LoopMode mode)
     {
       CurQuirk = 0;
       if (++CurLine >= PatternSize() &&
@@ -125,7 +125,7 @@ namespace
       return true;
     }
 
-    virtual bool NextPosition(Sound::LoopMode mode)
+    bool NextPosition(Sound::LoopMode mode)
     {
       CurLine = 0;
       if (++CurPosition >= Info->PositionsCount() &&

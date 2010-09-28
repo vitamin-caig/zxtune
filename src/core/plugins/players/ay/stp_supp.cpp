@@ -25,6 +25,7 @@ Author:
 //library includes
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
+#include <core/error_codes.h>
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
 #include <io/container.h>
@@ -33,6 +34,7 @@ Author:
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/make_shared.hpp>
 //text includes
+#include <core/text/core.h>
 #include <core/text/plugins.h>
 #include <core/text/warnings.h>
 
@@ -586,42 +588,32 @@ namespace
     int_t Glissade;
   };
 
-  typedef AYMPlayer<boost::array<STPChannelState, AYM::CHANNELS> > STPPlayerBase;
-
-  class STPPlayer : public STPPlayerBase
+  class STPDataRenderer : public AYMDataRenderer
   {
   public:
-    STPPlayer(Information::Ptr info, STPModuleData::Ptr data, AYM::Chip::Ptr device)
-      : STPPlayerBase(info, data, device, TABLE_SOUNDTRACKER)
-      , Data(data)
+    STPDataRenderer(STPModuleData::Ptr data)
+      : Data(data)
     {
-#ifdef SELF_TEST
-//perform self-test
-      AYMTrackSynthesizer synthesizer(*AYMHelper);
-      do
-      {
-        assert(Data->Positions.size() > StateIterator->Position());
-        SynthesizeData(synthesizer);
-      }
-      while (StateIterator->NextFrame(0, Sound::LOOP_NONE));
-      Reset();
-#endif
     }
 
-    void SynthesizeData(AYMTrackSynthesizer& synthesizer)
+    virtual void Reset()
     {
-      if (IsNewLine())
-      {
-        GetNewLineState(synthesizer);
-      }
-      SynthesizeChannelsData(synthesizer);
+      std::fill(PlayerState.begin(), PlayerState.end(), STPChannelState());
     }
 
-    void GetNewLineState(AYMTrackSynthesizer& synthesizer)
+    virtual void SynthesizeData(const TrackState& state, AYMTrackSynthesizer& synthesizer)
     {
-      assert(IsNewLine());
+      if (0 == state.Quirk())
+      {
+        GetNewLineState(state, synthesizer);
+      }
+      SynthesizeChannelsData(state, synthesizer);
+    }
 
-      const STPTrack::Line& line = Data->Patterns[StateIterator->Pattern()][StateIterator->Line()];
+  private:
+    void GetNewLineState(const TrackState& state, AYMTrackSynthesizer& synthesizer)
+    {
+      const STPTrack::Line& line = Data->Patterns[state.Pattern()][state.Line()];
       for (uint_t chan = 0; chan != line.Channels.size(); ++chan)
       {
         const STPTrack::Line::Chan& src = line.Channels[chan];
@@ -686,16 +678,16 @@ namespace
       }
     }
 
-    void SynthesizeChannelsData(AYMTrackSynthesizer& synthesizer)
+    void SynthesizeChannelsData(const TrackState& state, AYMTrackSynthesizer& synthesizer)
     {
       for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
       {
         const AYMChannelSynthesizer& chanSynt = synthesizer.GetChannel(chan);
-        SynthesizeChannel(PlayerState[chan], chanSynt, synthesizer);
+        SynthesizeChannel(state, PlayerState[chan], chanSynt, synthesizer);
       }
     }
 
-    void SynthesizeChannel(STPChannelState& dst, const AYMChannelSynthesizer& chanSynth, AYMTrackSynthesizer& trackSynth)
+    void SynthesizeChannel(const TrackState& state, STPChannelState& dst, const AYMChannelSynthesizer& chanSynth, AYMTrackSynthesizer& trackSynth)
     {
       if (!dst.Enabled)
       {
@@ -721,7 +713,7 @@ namespace
       if (!curSampleLine.ToneMask)
       {
         const int_t halftones = int_t(dst.Note) +
-                                Data->Transpositions[StateIterator->Position()] +
+                                Data->Transpositions[state.Position()] +
                                 (dst.Envelope ? 0 : curOrnament.GetLine(dst.PosInOrnament));
         chanSynth.SetTone(halftones, dst.TonSlide + curSampleLine.Vibrato);
         chanSynth.EnableTone();
@@ -752,11 +744,13 @@ namespace
     }
   private:
     const STPModuleData::Ptr Data;
+    boost::array<STPChannelState, AYM::CHANNELS> PlayerState;
   };
 
   Player::Ptr CreateSTPPlayer(Information::Ptr info, STPModuleData::Ptr data, AYM::Chip::Ptr device)
   {
-    return Player::Ptr(new STPPlayer(info, data, device));
+    const AYMDataRenderer::Ptr renderer = boost::make_shared<STPDataRenderer>(data);
+    return CreateAYMTrackPlayer(info, data, renderer, device, TABLE_SOUNDTRACKER);
   }
 
   bool CheckSTPModule(const uint8_t* data, std::size_t size)

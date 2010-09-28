@@ -89,10 +89,6 @@ namespace ZXTune
       virtual void ResetPosition() = 0;
 
       virtual bool NextFrame(uint64_t ticksToSkip, Sound::LoopMode mode) = 0;
-
-      virtual bool NextLine(Sound::LoopMode mode) = 0;
-
-      virtual bool NextPosition(Sound::LoopMode mode) = 0;
     };
 
     // Basic template class for tracking support (used as simple parametrized namespace)

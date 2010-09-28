@@ -25,6 +25,7 @@ Author:
 //library includes
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
+#include <core/error_codes.h>
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
 #include <io/container.h>
@@ -32,6 +33,7 @@ Author:
 #include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
 //text includes
+#include <core/text/core.h>
 #include <core/text/plugins.h>
 #include <core/text/warnings.h>
 
@@ -810,48 +812,37 @@ namespace
     }
   };
 
-  typedef AYMPlayer<boost::array<ASCChannelState, AYM::CHANNELS> > ASCPlayerBase;
-
-  class ASCPlayer : public ASCPlayerBase
+  class ASCDataRenderer : public AYMDataRenderer
   {
   public:
-    ASCPlayer(Information::Ptr info, ASCTrack::ModuleData::Ptr data, AYM::Chip::Ptr device)
-      : ASCPlayerBase(info, data, device, TABLE_ASM)
-      , Data(data)
+    explicit ASCDataRenderer(ASCTrack::ModuleData::Ptr data)
+      : Data(data)
     {
-#ifdef SELF_TEST
-//perform self-test
-      AYMTrackSynthesizer synthesizer(*AYMHelper);
-      do
-      {
-        assert(Data->Positions.size() > StateIterator->Position());
-        SynthesizeData(synthesizer);
-      }
-      while (StateIterator->NextFrame(0, Sound::LOOP_NONE));
-      Reset();
-#endif
     }
 
-    virtual void SynthesizeData(AYMTrackSynthesizer& synthesizer)
+    virtual void Reset()
+    {
+      std::fill(PlayerState.begin(), PlayerState.end(), ASCChannelState());
+    }
+
+    virtual void SynthesizeData(const TrackState& state, AYMTrackSynthesizer& synthesizer)
     {
       uint_t breakSamples = 0;
-      if (IsNewLine())
+      if (0 == state.Quirk())
       {
-        GetNewLineState(synthesizer, breakSamples);
+        GetNewLineState(state, synthesizer, breakSamples);
       }
       SynthesizeChannelsData(synthesizer, breakSamples);
     }
-
-    void GetNewLineState(AYMTrackSynthesizer& synthesizer, uint_t& breakSamples)
+  private:
+    void GetNewLineState(const TrackState& state, AYMTrackSynthesizer& synthesizer, uint_t& breakSamples)
     {
-      assert(IsNewLine());
-
-      if (IsNewPattern())
+      if (0 == state.Line())
       {
         std::for_each(PlayerState.begin(), PlayerState.end(), std::mem_fun_ref(&ASCChannelState::ResetBaseNoise));
       }
 
-      const ASCTrack::Line& line = Data->Patterns[StateIterator->Pattern()][StateIterator->Line()];
+      const ASCTrack::Line& line = Data->Patterns[state.Pattern()][state.Line()];
 
       for (uint_t chan = 0; chan != line.Channels.size(); ++chan)
       {
@@ -1094,11 +1085,13 @@ namespace
     }
   private:
     const ASCTrack::ModuleData::Ptr Data;
+    boost::array<ASCChannelState, AYM::CHANNELS> PlayerState;
   };
 
   Player::Ptr CreateASCPlayer(Information::Ptr info, ASCTrack::ModuleData::Ptr data, AYM::Chip::Ptr device)
   {
-    return Player::Ptr(new ASCPlayer(info, data, device));
+    const AYMDataRenderer::Ptr renderer = boost::make_shared<ASCDataRenderer>(data);
+    return CreateAYMTrackPlayer(info, data, renderer, device, TABLE_ASM);
   }
 
   //////////////////////////////////////////////////////////////////////////

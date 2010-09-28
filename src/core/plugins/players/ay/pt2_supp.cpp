@@ -25,6 +25,7 @@ Author:
 //library includes
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
+#include <core/error_codes.h>
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
 #include <io/container.h>
@@ -32,6 +33,7 @@ Author:
 #include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
 //text includes
+#include <core/text/core.h>
 #include <core/text/plugins.h>
 #include <core/text/warnings.h>
 
@@ -628,42 +630,31 @@ namespace
     int_t Glissade;
   };
 
-  typedef AYMPlayer<boost::array<PT2ChannelState, AYM::CHANNELS> > PT2PlayerBase;
-
-  class PT2Player : public PT2PlayerBase
+  class PT2DataRenderer : public AYMDataRenderer
   {
   public:
-    PT2Player(Information::Ptr info, PT2Track::ModuleData::Ptr data, AYM::Chip::Ptr device)
-       : PT2PlayerBase(info, data, device, TABLE_PROTRACKER2)
-       , Data(data)
+    explicit PT2DataRenderer(PT2Track::ModuleData::Ptr data)
+       : Data(data)
     {
-#ifdef SELF_TEST
-//perform self-test
-      AYMTrackSynthesizer synthesizer(*AYMHelper);
-      do
-      {
-        assert(Data->Positions.size() > StateIterator->Position());
-        SynthesizeData(synthesizer);
-      }
-      while (StateIterator->NextFrame(0, Sound::LOOP_NONE));
-      Reset();
-#endif
     }
 
-    virtual void SynthesizeData(AYMTrackSynthesizer& synthesizer)
+    virtual void Reset()
     {
-      if (IsNewLine())
+      std::fill(PlayerState.begin(), PlayerState.end(), PT2ChannelState());
+    }
+
+    virtual void SynthesizeData(const TrackState& state, AYMTrackSynthesizer& synthesizer)
+    {
+      if (0 == state.Quirk())
       {
-        GetNewLineState(synthesizer);
+        GetNewLineState(state, synthesizer);
       }
       SynthesizeChannelsData(synthesizer);
     }
-
-    void GetNewLineState(AYMTrackSynthesizer& synthesizer)
+  private:
+    void GetNewLineState(const TrackState& state, AYMTrackSynthesizer& synthesizer)
     {
-      assert(IsNewLine());
-
-      const PT2Track::Line& line(Data->Patterns[StateIterator->Pattern()][StateIterator->Line()]);
+      const PT2Track::Line& line(Data->Patterns[state.Pattern()][state.Line()]);
 
       for (uint_t chan = 0; chan != line.Channels.size(); ++chan)
       {
@@ -810,11 +801,13 @@ namespace
     }
   private:
     const PT2Track::ModuleData::Ptr Data;
+    boost::array<PT2ChannelState, AYM::CHANNELS> PlayerState;
   };
 
   Player::Ptr CreatePT2Player(Information::Ptr info, PT2Track::ModuleData::Ptr data, AYM::Chip::Ptr device)
   {
-    return Player::Ptr(new PT2Player(info, data, device));
+    const AYMDataRenderer::Ptr renderer = boost::make_shared<PT2DataRenderer>(data);
+    return CreateAYMTrackPlayer(info, data, renderer, device, TABLE_PROTRACKER2);
   }
 
   //////////////////////////////////////////////////

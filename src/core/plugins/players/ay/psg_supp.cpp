@@ -20,6 +20,7 @@ Author:
 #include <logging.h>
 //library includes
 #include <core/convert_parameters.h>
+#include <core/error_codes.h>
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
 #include <io/container.h>
@@ -28,6 +29,7 @@ Author:
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/make_shared.hpp>
 //text includes
+#include <core/text/core.h>
 #include <core/text/plugins.h>
 
 #define FILE_TAG 59843902

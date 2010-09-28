@@ -155,53 +155,39 @@ namespace
     CommonState CommState;
   };
 
-  typedef AYMPlayer<VortexState> VortexPlayerBase;
-
   //simple player type
-  class VortexPlayer : public VortexPlayerBase
+  class VortexDataRenderer : public AYMDataRenderer
   {
   public:
-    typedef boost::shared_ptr<VortexPlayer> Ptr;
-
-    VortexPlayer(Information::Ptr info, Vortex::Track::ModuleData::Ptr data,
-       uint_t version, const String& freqTableName, AYM::Chip::Ptr device)
-      : VortexPlayerBase(info, data, device, freqTableName)
-      , Data(data)
+    VortexDataRenderer(Vortex::Track::ModuleData::Ptr data, uint_t version)
+      : Data(data)
       , Version(version)
       , VolTable(version <= 4 ? Vol33_34 : Vol35)
     {
-#ifdef SELF_TEST
-//perform self-test
-      AYMTrackSynthesizer synthesizer(*AYMHelper);
-      do
-      {
-        assert(Data->Positions.size() > StateIterator->Position());
-        SynthesizeData(synthesizer);
-      }
-      while (StateIterator->NextFrame(0, Sound::LOOP_NONE));
-      Reset();
-#endif
     }
 
-    virtual void SynthesizeData(AYMTrackSynthesizer& synthesizer)
+    virtual void Reset()
     {
-      if (IsNewLine())
+      PlayerState = VortexState();
+    }
+
+    virtual void SynthesizeData(const TrackState& state, AYMTrackSynthesizer& synthesizer)
+    {
+      if (0 == state.Quirk())
       {
-        GetNewLineState(synthesizer);
+        GetNewLineState(state, synthesizer);
       }
       SynthesizeChannelsData(synthesizer);
     }
-
-    void GetNewLineState(AYMTrackSynthesizer& synthesizer)
+  private:
+    void GetNewLineState(const TrackState& state, AYMTrackSynthesizer& synthesizer)
     {
-      assert(IsNewLine());
-
-      if (IsNewPattern())
+      if (0 == state.Line())
       {
         PlayerState.CommState.NoiseBase = 0;
       }
 
-      const Vortex::Track::Line& line = Data->Patterns[StateIterator->Pattern()][StateIterator->Line()];
+      const Vortex::Track::Line& line = Data->Patterns[state.Pattern()][state.Line()];
       for (uint_t chan = 0; chan != line.Channels.size(); ++chan)
       {
         const Vortex::Track::Line::Chan& src = line.Channels[chan];
@@ -416,8 +402,7 @@ namespace
     const Vortex::Track::ModuleData::Ptr Data;
     const uint_t Version;
     const VolumeTable& VolTable;
-    //TODO:
-    friend class VortexTSPlayer;
+    VortexState PlayerState;
   };
 
   //TurboSound implementation
@@ -483,13 +468,13 @@ namespace
   public:
     VortexTSPlayer(Information::Ptr info, Vortex::Track::ModuleData::Ptr data,
          uint_t version, const String& freqTableName, uint_t patternBase, AYM::Chip::Ptr device1, AYM::Chip::Ptr device2)
-      : Player2(new VortexPlayer(info, data, version, freqTableName, device2))
+      : Player2(Vortex::CreatePlayer(info, data, version, freqTableName, device2))
     {
       //copy and patch
       const Vortex::Track::ModuleData::RWPtr secondData = boost::make_shared<Vortex::Track::ModuleData>(*data);
       std::transform(secondData->Positions.begin(), secondData->Positions.end(), secondData->Positions.begin(),
         std::bind1st(std::minus<uint_t>(), patternBase - 1));
-      Player1.reset(new VortexPlayer(info, secondData, version, freqTableName, device1));
+      Player1 = Vortex::CreatePlayer(info, secondData, version, freqTableName, device1);
     }
 
     virtual Information::Ptr GetInformation() const
@@ -583,9 +568,9 @@ namespace
     }
   private:
     //first player
-    VortexPlayer::Ptr Player1;
+    Player::Ptr Player1;
     //second player and data
-    VortexPlayer::Ptr Player2;
+    Player::Ptr Player2;
     //mixer
     TSMixer<AYM::CHANNELS> Mixer;
   };
@@ -621,7 +606,8 @@ namespace ZXTune
       Player::Ptr CreatePlayer(Information::Ptr info, Track::ModuleData::Ptr data,
          uint_t version, const String& freqTableName, AYM::Chip::Ptr device)
       {
-        return Player::Ptr(new VortexPlayer(info, data, version, freqTableName, device));
+        const AYMDataRenderer::Ptr renderer = boost::make_shared<VortexDataRenderer>(data, version);
+        return CreateAYMTrackPlayer(info, data, renderer, device, freqTableName);
       }
 
       Player::Ptr CreateTSPlayer(Information::Ptr info, Track::ModuleData::Ptr data,
