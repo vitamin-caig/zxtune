@@ -165,6 +165,13 @@ namespace ZXTune
             return Commands.end() != std::find(Commands.begin(), Commands.end(), type);
           }
 
+          typedef bool(CommandsArray::*BoolType)() const;
+
+          operator BoolType () const
+          {
+            return Empty() ? 0 : &CommandsArray::empty;
+          }
+
           boost::optional<bool> Enabled;
           boost::optional<uint_t> Note;
           boost::optional<uint_t> SampleNum;

@@ -541,34 +541,229 @@ namespace
     IO::DataContainer::Ptr RawData;
   };
 
-  struct STCChannelState
+  class STCChannelSynthesizer
   {
-    STCChannelState()
-      : Enabled(false), Envelope(false)
-      , Note(), SampleNum(0), PosInSample(0)
-      , OrnamentNum(0), LoopedInSample(false)
+  public:
+    STCChannelSynthesizer(uint_t transposition, AYMTrackSynthesizer& synth, uint_t chanNum)
+      : Transposition(transposition)
+      , MainSynth(synth)
+      , ChanSynth(synth.GetChannel(chanNum))
     {
     }
+
+    void SetLevel(uint_t level)
+    {
+      ChanSynth.SetLevel(level);
+    }
+
+    void EnableEnvelope()
+    {
+      ChanSynth.EnableEnvelope();
+    }
+
+    void SetTone(int_t halftones, int_t offset)
+    {
+      ChanSynth.SetTone(halftones + Transposition, offset);
+      ChanSynth.EnableTone();
+    }
+
+    void SetNoise(int_t level)
+    {
+      MainSynth.SetNoise(level);
+      ChanSynth.EnableNoise();
+    }
+
+  private:
+    const uint_t Transposition;
+    AYMTrackSynthesizer& MainSynth;
+    const AYMChannelSynthesizer ChanSynth;
+  };
+
+  struct STCChannelState
+  {
+    explicit STCChannelState(STCModuleData::Ptr data)
+      : Data(data)
+      , Enabled(false), Envelope(false)
+      , Note()
+      , CurSample(GetStubSample()), PosInSample(0), LoopedInSample(false)
+      , CurOrnament(GetStubOrnament())
+    {
+    }
+
+    void Reset()
+    {
+      Enabled = false;
+      Envelope = false;
+      Note = 0;
+      CurSample = GetStubSample();
+      PosInSample = 0;
+      LoopedInSample = false;
+      CurOrnament = GetStubOrnament();
+    }
+
+    void SetNewState(const STCTrack::Line::Chan& src)
+    {
+      if (src.Enabled)
+      {
+        SetEnabled(*src.Enabled);
+      }
+      if (src.Note)
+      {
+        SetNote(*src.Note);
+      }
+      if (src.SampleNum)
+      {
+        SetSample(*src.SampleNum);
+      }
+      if (src.OrnamentNum)
+      {
+        SetOrnament(*src.OrnamentNum);
+      }
+      if (!src.Commands.empty())
+      {
+        ApplyCommands(src.Commands);
+      }
+    }
+
+    void Synthesize(STCChannelSynthesizer& synthesizer) const
+    {
+      if (!Enabled)
+      {
+        synthesizer.SetLevel(0);
+        return;
+      }
+
+      const STCTrack::Sample::Line& curSampleLine = CurSample->GetLine(PosInSample);
+
+      //apply level
+      synthesizer.SetLevel(curSampleLine.Level);
+      //apply envelope
+      if (Envelope)
+      {
+        synthesizer.EnableEnvelope();
+      }
+      //apply tone
+      const int_t halftones = int_t(Note) + CurOrnament->GetLine(PosInSample);
+      if (!curSampleLine.EnvelopeMask)
+      {
+        synthesizer.SetTone(halftones, curSampleLine.Effect);
+      }
+      //apply noise
+      if (!curSampleLine.NoiseMask)
+      {
+        synthesizer.SetNoise(curSampleLine.Noise);
+      }
+    }
+
+    void Iterate()
+    {
+      if (++PosInSample >= (LoopedInSample ? CurSample->GetLoopLimit() : CurSample->GetSize()))
+      {
+        if (CurSample->GetLoop() && CurSample->GetLoop() < CurSample->GetSize())
+        {
+          PosInSample = CurSample->GetLoop();
+          LoopedInSample = true;
+        }
+        else
+        {
+          Enabled = false;
+        }
+      }
+    }
+  private:
+    static const STCTrack::Sample* GetStubSample()
+    {
+      static const STCTrack::Sample stubSample;
+      return &stubSample;
+    }
+
+    static const STCTrack::Ornament* GetStubOrnament()
+    {
+      static const STCTrack::Ornament stubOrnament;
+      return &stubOrnament;
+    }
+
+    void SetEnabled(bool enabled)
+    {
+      Enabled = enabled;
+      if (!Enabled)
+      {
+        PosInSample = 0;
+      }
+    }
+
+    void SetNote(uint_t note)
+    {
+      Note = note;
+      PosInSample = 0;
+      LoopedInSample = false;
+    }
+
+    void SetSample(uint_t sampleNum)
+    {
+      CurSample = sampleNum < Data->Samples.size() ? &Data->Samples[sampleNum] : GetStubSample();
+      PosInSample = 0;
+    }
+
+    void SetOrnament(uint_t ornamentNum)
+    {
+      CurOrnament = ornamentNum < Data->Ornaments.size() ? &Data->Ornaments[ornamentNum] : GetStubOrnament();
+      PosInSample = 0;
+    }
+
+    void ApplyCommands(const STCTrack::CommandsArray& commands)
+    {
+      std::for_each(commands.begin(), commands.end(), boost::bind(&STCChannelState::ApplyCommand, this, _1));
+    }
+
+    void ApplyCommand(const STCTrack::Command& command)
+    {
+      if (command == ENVELOPE)
+      {
+        Envelope = true;
+      }
+      else if (command == NOENVELOPE)
+      {
+        Envelope = false;
+      }
+    }
+  private:
+    const STCModuleData::Ptr Data;
     bool Enabled;
     bool Envelope;
     uint_t Note;
-    uint_t SampleNum;
+    const STCTrack::Sample* CurSample;
     uint_t PosInSample;
-    uint_t OrnamentNum;
     bool LoopedInSample;
+    const STCTrack::Ornament* CurOrnament;
   };
+
+  void ProcessEnvelopeCommands(const STCTrack::CommandsArray& commands, AYMTrackSynthesizer& synthesizer)
+  {
+    const STCTrack::CommandsArray::const_iterator it = std::find(commands.begin(), commands.end(), ENVELOPE);
+    if (it != commands.end())
+    {
+      synthesizer.SetEnvelopeType(it->Param1);
+      synthesizer.SetEnvelopeTone(it->Param2);
+    }
+  }
 
   class STCDataRenderer : public AYMDataRenderer
   {
   public:
     explicit STCDataRenderer(STCModuleData::Ptr data)
       : Data(data)
+      , StateA(Data)
+      , StateB(Data)
+      , StateC(Data)
     {
     }
 
     virtual void Reset()
     {
-      std::fill(PlayerState.begin(), PlayerState.end(), STCChannelState());
+      StateA.Reset();
+      StateB.Reset();
+      StateC.Reset();
     }
 
     virtual void SynthesizeData(const TrackState& state, AYMTrackSynthesizer& synthesizer)
@@ -578,124 +773,53 @@ namespace
         GetNewLineState(state, synthesizer);
       }
       SynthesizeChannelsData(state, synthesizer);
+      StateA.Iterate();
+      StateB.Iterate();
+      StateC.Iterate();
     }
 
   private:
     void GetNewLineState(const TrackState& state, AYMTrackSynthesizer& synthesizer)
     {
       const STCTrack::Line& line(Data->Patterns[state.Pattern()][state.Line()]);
-      for (uint_t chan = 0; chan != line.Channels.size(); ++chan)
+      if (const STCTrack::Line::Chan& src = line.Channels[0])
       {
-        const STCTrack::Line::Chan& src(line.Channels[chan]);
-        if (src.Empty())
-        {
-          continue;
-        }
-        GetNewChannelState(src, PlayerState[chan], synthesizer);
+        StateA.SetNewState(src);
+        ProcessEnvelopeCommands(src.Commands, synthesizer);
       }
-    }
-
-    void GetNewChannelState(const STCTrack::Line::Chan& src, STCChannelState& dst, AYMTrackSynthesizer& synthesizer)
-    {
-      if (src.Enabled)
+      if (const STCTrack::Line::Chan& src = line.Channels[1])
       {
-        if (!(dst.Enabled = *src.Enabled))
-        {
-          dst.PosInSample = 0;
-        }
+        StateB.SetNewState(src);
+        ProcessEnvelopeCommands(src.Commands, synthesizer);
       }
-      if (src.Note)
+      if (const STCTrack::Line::Chan& src = line.Channels[2])
       {
-        dst.Note = *src.Note;
-        dst.PosInSample = 0;
-        dst.LoopedInSample = false;
-      }
-      if (src.SampleNum)
-      {
-        dst.SampleNum = *src.SampleNum;
-        assert(0 == dst.PosInSample);
-      }
-      if (src.OrnamentNum)
-      {
-        dst.OrnamentNum = *src.OrnamentNum;
-        assert(0 == dst.PosInSample);
-      }
-      for (STCTrack::CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
-      {
-        switch (it->Type)
-        {
-        case ENVELOPE:
-          synthesizer.SetEnvelopeType(it->Param1);
-          synthesizer.SetEnvelopeTone(it->Param2);
-          dst.Envelope = true;
-          break;
-        case NOENVELOPE:
-          dst.Envelope = false;
-          break;
-        default:
-          assert(!"Invalid command");
-        }
+        StateC.SetNewState(src);
+        ProcessEnvelopeCommands(src.Commands, synthesizer);
       }
     }
 
     void SynthesizeChannelsData(const TrackState& state, AYMTrackSynthesizer& synthesizer)
     {
-      for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
+      const uint_t transposition = Data->Transpositions[state.Position()];
       {
-        const AYMChannelSynthesizer& chanSynt = synthesizer.GetChannel(chan);
-        SynthesizeChannel(state, PlayerState[chan], chanSynt, synthesizer);
+        STCChannelSynthesizer synth(transposition, synthesizer, 0);
+        StateA.Synthesize(synth);
       }
-    }
-
-    void SynthesizeChannel(const TrackState& state, STCChannelState& dst, const AYMChannelSynthesizer& chanSynth, AYMTrackSynthesizer& trackSynth)
-    {
-      if (!dst.Enabled)
       {
-        chanSynth.SetLevel(0);
-        return;
+        STCChannelSynthesizer synth(transposition, synthesizer, 1);
+        StateB.Synthesize(synth);
       }
-
-      const STCTrack::Sample& curSample = Data->Samples[dst.SampleNum];
-      const STCTrack::Sample::Line& curSampleLine = curSample.GetLine(dst.PosInSample);
-      const STCTrack::Ornament& curOrnament = Data->Ornaments[dst.OrnamentNum];
-
-      //apply level
-      chanSynth.SetLevel(curSampleLine.Level);
-      //apply envelope
-      if (dst.Envelope)
       {
-        chanSynth.EnableEnvelope();
-      }
-      //apply tone
-      const int_t halftones = int_t(dst.Note) + curOrnament.GetLine(dst.PosInSample) + Data->Transpositions[state.Position()];
-      if (!curSampleLine.EnvelopeMask)
-      {
-        chanSynth.SetTone(halftones, curSampleLine.Effect);
-        chanSynth.EnableTone();
-      }
-      //apply noise
-      if (!curSampleLine.NoiseMask)
-      {
-        trackSynth.SetNoise(curSampleLine.Noise);
-        chanSynth.EnableNoise();
-      }
-
-      if (++dst.PosInSample >= (dst.LoopedInSample ? curSample.GetLoopLimit() : curSample.GetSize()))
-      {
-        if (curSample.GetLoop() && curSample.GetLoop() < curSample.GetSize())
-        {
-          dst.PosInSample = curSample.GetLoop();
-          dst.LoopedInSample = true;
-        }
-        else
-        {
-          dst.Enabled = false;
-        }
+        STCChannelSynthesizer synth(transposition, synthesizer, 2);
+        StateC.Synthesize(synth);
       }
     }
   private:
     const STCModuleData::Ptr Data;
-    boost::array<STCChannelState, AYM::CHANNELS> PlayerState;
+    STCChannelState StateA;
+    STCChannelState StateB;
+    STCChannelState StateC;
   };
 
   Player::Ptr CreateSTCPlayer(Information::Ptr info, STCModuleData::Ptr data, AYM::Chip::Ptr device)
