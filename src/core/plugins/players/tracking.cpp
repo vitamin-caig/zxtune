@@ -208,7 +208,7 @@ namespace
 
     virtual uint_t PositionsCount() const
     {
-      return Data->GetPositions();
+      return Data->GetPositionsCount();
     }
 
     virtual uint_t LoopPosition() const

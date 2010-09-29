@@ -34,8 +34,9 @@ namespace ZXTune
   namespace Module
   {
     // Ornament is just a set of tone offsets
-    struct SimpleOrnament
+    class SimpleOrnament
     {
+    public:
       SimpleOrnament() : Loop(), Lines()
       {
       }
@@ -76,7 +77,7 @@ namespace ZXTune
       virtual uint_t GetChannelsCount() const = 0;
       virtual uint_t GetLoopPosition() const = 0;
       virtual uint_t GetInitialTempo() const = 0;
-      virtual uint_t GetPositions() const = 0;
+      virtual uint_t GetPositionsCount() const = 0;
       virtual uint_t GetPatternsCount() const = 0;
       //dynamic
       virtual uint_t GetCurrentPattern(const TrackState& state) const = 0;
@@ -219,7 +220,7 @@ namespace ZXTune
           return InitialTempo;
         }
 
-        virtual uint_t GetPositions() const
+        virtual uint_t GetPositionsCount() const
         {
           return Positions.size();
         }
