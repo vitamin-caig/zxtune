@@ -448,8 +448,7 @@ namespace
             }
             else
             {
-              Log::Assert(channelWarner, !channel->Note, Text::WARNING_DUPLICATE_NOTE);
-              channel->Note = cmd;
+              channel->SetNote(cmd, channelWarner);
             }
             if (envelopes & envMask)
             {
@@ -492,25 +491,21 @@ namespace
           }
           else if (cmd >= 0xa0 && cmd <= 0xbf) //sample
           {
-            Log::Assert(channelWarner, !channel->SampleNum, Text::WARNING_DUPLICATE_SAMPLE);
-            channel->SampleNum = cmd - 0xa0;
+            channel->SetSample(cmd - 0xa0, channelWarner);
           }
           else if (cmd >= 0xc0 && cmd <= 0xdf) //ornament
           {
-            Log::Assert(channelWarner, !channel->OrnamentNum, Text::WARNING_DUPLICATE_ORNAMENT);
-            channel->OrnamentNum = cmd - 0xc0;
+            channel->SetOrnament(cmd - 0xc0, channelWarner);
           }
           else if (cmd == 0xe0) // envelope full vol
           {
-            Log::Assert(channelWarner, !channel->Volume, Text::WARNING_DUPLICATE_VOLUME);
-            channel->Volume = 15;
+            channel->SetVolume(15, channelWarner);
             channel->Commands.push_back(ASCTrack::Command(ENVELOPE_ON));
             envelopes |= envMask;
           }
           else if (cmd >= 0xe1 && cmd <= 0xef) // noenvelope vol
           {
-            Log::Assert(channelWarner, !channel->Volume, Text::WARNING_DUPLICATE_VOLUME);
-            channel->Volume = cmd - 0xe0;
+            channel->SetVolume(cmd - 0xe0, channelWarner);
             channel->Commands.push_back(ASCTrack::Command(ENVELOPE_OFF));
             envelopes &= ~envMask;
           }
@@ -540,8 +535,7 @@ namespace
             {
               throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
             }
-            Log::Assert(channelWarner, !line.Tempo, Text::WARNING_DUPLICATE_TEMPO);
-            line.Tempo = data[cur->Offset++];
+            line.SetTempo(data[cur->Offset++], channelWarner);
           }
           else if (cmd == 0xf5 || cmd == 0xf6) //slide
           {

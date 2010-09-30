@@ -486,8 +486,7 @@ namespace
             {
               const uint_t num(cmd - 0xf0);
               Log::Assert(channelWarner, !num || Data->Ornaments[num].GetSize(), Text::WARNING_INVALID_ORNAMENT);
-              Log::Assert(channelWarner, !channel->OrnamentNum, Text::WARNING_DUPLICATE_ORNAMENT);
-              channel->OrnamentNum = num;
+              channel->SetOrnament(num, channelWarner);
             }
             
             if (hasSmp)
@@ -495,8 +494,7 @@ namespace
               const uint_t doubleSampNum(data[cur->Offset++]);
               const bool sampValid(doubleSampNum < MAX_SAMPLES_COUNT * 2 && 0 == (doubleSampNum & 1));
               Log::Assert(channelWarner, sampValid, Text::WARNING_INVALID_SAMPLE);
-              Log::Assert(channelWarner, !channel->SampleNum, Text::WARNING_DUPLICATE_SAMPLE);
-              channel->SampleNum = sampValid ? (doubleSampNum / 2) : 0;
+              channel->SetSample(sampValid ? (doubleSampNum / 2) : 0, channelWarner);
             }
           }
           else if (cmd >= 0x20 && cmd <= 0x3f)
@@ -511,8 +509,7 @@ namespace
           {
             const uint_t num(cmd - 0x40);
             Log::Assert(channelWarner, !num || Data->Ornaments[num].GetSize(), Text::WARNING_INVALID_ORNAMENT);
-            Log::Assert(channelWarner, !channel->OrnamentNum, Text::WARNING_DUPLICATE_ORNAMENT);
-            channel->OrnamentNum = num;
+            channel->SetOrnament(num, channelWarner);
           }
           else if (cmd >= 0x50 && cmd <= 0xaf)
           {
@@ -524,11 +521,9 @@ namespace
             }
             else
             {
-              Log::Assert(channelWarner, !channel->Note, Text::WARNING_DUPLICATE_NOTE);
-              channel->Note = note;
+              channel->SetNote(note, channelWarner);
             }
-            Log::Assert(channelWarner, !channel->Enabled, Text::WARNING_DUPLICATE_STATE);
-            channel->Enabled = true;
+            channel->SetEnabled(true, channelWarner);
             break;
           }
           else if (cmd == 0xb0)
@@ -545,14 +540,12 @@ namespace
           }
           else if (cmd == 0xc0)
           {
-            Log::Assert(channelWarner, !channel->Enabled, Text::WARNING_DUPLICATE_STATE);
-            channel->Enabled = false;
+            channel->SetEnabled(false, channelWarner);
             break;
           }
           else if (cmd >= 0xc1 && cmd <= 0xcf)
           {
-            Log::Assert(channelWarner, !channel->Volume, Text::WARNING_DUPLICATE_VOLUME);
-            channel->Volume = cmd - 0xc0;
+            channel->SetVolume(cmd - 0xc0, channelWarner);
           }
           else if (cmd == 0xd0)
           {
@@ -561,8 +554,7 @@ namespace
           else if (cmd >= 0xd1 && cmd <= 0xef)
           {
             //TODO: check for empty sample
-            Log::Assert(channelWarner, !channel->SampleNum, Text::WARNING_DUPLICATE_SAMPLE);
-            channel->SampleNum = cmd - 0xd0;
+            channel->SetSample(cmd - 0xd0, channelWarner);
           }
         }
         //parse parameters
@@ -577,8 +569,7 @@ namespace
             {
               throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
             }
-            Log::Assert(channelWarner, !line.Tempo, Text::WARNING_DUPLICATE_TEMPO);
-            line.Tempo = data[cur->Offset++];
+            line.SetTempo(data[cur->Offset++], channelWarner);
             break;
           case Vortex::SLIDEENV:
           case Vortex::GLISS:

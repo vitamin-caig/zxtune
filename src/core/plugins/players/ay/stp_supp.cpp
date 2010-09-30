@@ -338,21 +338,18 @@ namespace
           const std::size_t restbytes = data.Size() - cur->Offset;
           if (cmd >= 1 && cmd <= 0x60)//note
           {
-            Log::Assert(channelWarner, !channel->Note, Text::WARNING_DUPLICATE_NOTE);
-            channel->Note = cmd - 1;
-            channel->Enabled = true;
+            channel->SetNote(cmd - 1, channelWarner);
+            channel->SetEnabled(true, channelWarner);
             break;
           }
           else if (cmd >= 0x61 && cmd <= 0x6f)//sample
           {
-            Log::Assert(channelWarner, !channel->SampleNum, Text::WARNING_DUPLICATE_SAMPLE);
-            channel->SampleNum = cmd - 0x61;
+            channel->SetSample(cmd - 0x61, channelWarner);
           }
           else if (cmd >= 0x70 && cmd <= 0x7f)//ornament
           {
             Log::Assert(channelWarner, !channel->FindCommand(ENVELOPE), Text::WARNING_DUPLICATE_ENVELOPE);
-            Log::Assert(channelWarner, !channel->OrnamentNum, Text::WARNING_DUPLICATE_ORNAMENT);
-            channel->OrnamentNum = cmd - 0x70;
+            channel->SetOrnament(cmd - 0x70, channelWarner);
             channel->Commands.push_back(STPTrack::Command(NOENVELOPE));
             //TODO
             Log::Assert(channelWarner, !channel->FindCommand(GLISS), "duplicate gliss");
@@ -370,15 +367,13 @@ namespace
             }
             Log::Assert(channelWarner, !channel->FindCommand(NOENVELOPE), Text::WARNING_DUPLICATE_ENVELOPE);
             channel->Commands.push_back(STPTrack::Command(ENVELOPE, cmd - 0xc0, cmd != 0xc0 ? data[cur->Offset++] : 0));
-            Log::Assert(channelWarner, !channel->OrnamentNum, Text::WARNING_DUPLICATE_ORNAMENT);
-            channel->OrnamentNum = 0;
+            channel->SetOrnament(0, channelWarner);
             Log::Assert(channelWarner, !channel->FindCommand(GLISS), "duplicate gliss");
             channel->Commands.push_back(STPTrack::Command(GLISS, 0));
           }
           else if (cmd >= 0xd0 && cmd <= 0xdf)//reset
           {
-            Log::Assert(channelWarner, !channel->Enabled, Text::WARNING_DUPLICATE_STATE);
-            channel->Enabled = false;
+            channel->SetEnabled(false, channelWarner);
             break;
           }
           else if (cmd >= 0xe0 && cmd <= 0xef)//empty
@@ -396,8 +391,7 @@ namespace
           }
           else if (cmd >= 0xf1 && cmd <= 0xff) //volume
           {
-            Log::Assert(channelWarner, !channel->Volume, Text::WARNING_DUPLICATE_VOLUME);
-            channel->Volume = cmd - 0xf1;
+            channel->SetVolume(cmd - 0xf1, channelWarner);
           }
         }
         cur->Counter = cur->Period;

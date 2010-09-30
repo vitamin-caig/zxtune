@@ -149,6 +149,13 @@ namespace ZXTune
         Line() : Tempo(), Channels()
         {
         }
+
+        void SetTempo(uint_t val, Log::MessagesCollector& warner)
+        {
+          Log::Assert(warner, !Tempo, Text::WARNING_DUPLICATE_TEMPO);
+          Tempo = val;
+        }
+
         //track attrs
         boost::optional<uint_t> Tempo;
 
@@ -180,6 +187,30 @@ namespace ZXTune
           {
             Log::Assert(warner, !Enabled, Text::WARNING_DUPLICATE_STATE);
             Enabled = val;
+          }
+
+          void SetNote(uint_t val, Log::MessagesCollector& warner)
+          {
+            Log::Assert(warner, !Note, Text::WARNING_DUPLICATE_NOTE);
+            Note = val;
+          }
+
+          void SetSample(uint_t val, Log::MessagesCollector& warner)
+          {
+            Log::Assert(warner, !SampleNum, Text::WARNING_DUPLICATE_SAMPLE);
+            SampleNum = val;
+          }
+
+          void SetOrnament(uint_t val, Log::MessagesCollector& warner)
+          {
+            Log::Assert(warner, !OrnamentNum, Text::WARNING_DUPLICATE_ORNAMENT);
+            OrnamentNum = val;
+          }
+
+          void SetVolume(uint_t val, Log::MessagesCollector& warner)
+          {
+            Log::Assert(warner, !Volume, Text::WARNING_DUPLICATE_VOLUME);
+            Volume = val;
           }
 
           boost::optional<bool> Enabled;

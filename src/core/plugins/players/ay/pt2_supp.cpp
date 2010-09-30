@@ -351,21 +351,18 @@ namespace
           const std::size_t restbytes = data.Size() - cur->Offset;
           if (cmd >= 0xe1) //sample
           {
-            Log::Assert(channelWarner, !channel->SampleNum, Text::WARNING_DUPLICATE_SAMPLE);
             const uint_t num = cmd - 0xe0;
-            channel->SampleNum = num;
+            channel->SetSample(num, channelWarner);
             Log::Assert(channelWarner, Data->Samples[num].GetSize() != 0, Text::WARNING_INVALID_SAMPLE);
           }
           else if (cmd == 0xe0) //sample 0 - shut up
           {
-            Log::Assert(channelWarner, !channel->Enabled, Text::WARNING_DUPLICATE_STATE);
-            channel->Enabled = false;
+            channel->SetEnabled(false, channelWarner);
             break;
           }
           else if (cmd >= 0x80 && cmd <= 0xdf)//note
           {
-            Log::Assert(channelWarner, !channel->Enabled, Text::WARNING_DUPLICATE_STATE);
-            channel->Enabled = true;
+            channel->SetEnabled(true, channelWarner);
             const uint_t note(cmd - 0x80);
             //for note gliss calculate limit manually
             const PT2Track::CommandsArray::iterator noteGlissCmd(
@@ -376,8 +373,7 @@ namespace
             }
             else
             {
-              Log::Assert(channelWarner, !channel->Note, Text::WARNING_DUPLICATE_NOTE);
-              channel->Note = note;
+              channel->SetNote(note, channelWarner);
             }
             break;
           }
@@ -406,9 +402,8 @@ namespace
           }
           else if (cmd >= 0x60 && cmd <= 0x6f)//ornament
           {
-            Log::Assert(channelWarner, !channel->OrnamentNum, Text::WARNING_DUPLICATE_ORNAMENT);
             const uint_t num = cmd - 0x60;
-            channel->OrnamentNum = num;
+            channel->SetOrnament(num, channelWarner);
             Log::Assert(channelWarner, !num || Data->Ornaments[num].GetSize(), Text::WARNING_INVALID_ORNAMENT);
           }
           else if (cmd >= 0x20 && cmd <= 0x5f)//skip
@@ -417,8 +412,7 @@ namespace
           }
           else if (cmd >= 0x10 && cmd <= 0x1f)//volume
           {
-            Log::Assert(channelWarner, !channel->Volume, Text::WARNING_DUPLICATE_VOLUME);
-            channel->Volume = cmd - 0x10;
+            channel->SetVolume(cmd - 0x10, channelWarner);
           }
           else if (cmd == 0x0f)//new delay
           {
@@ -427,8 +421,7 @@ namespace
             {
               throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
             }
-            Log::Assert(channelWarner, !line.Tempo, Text::WARNING_DUPLICATE_TEMPO);
-            line.Tempo = data[cur->Offset++];
+            line.SetTempo(data[cur->Offset++], channelWarner);
           }
           else if (cmd == 0x0e)//gliss
           {

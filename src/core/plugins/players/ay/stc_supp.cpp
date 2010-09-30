@@ -323,32 +323,27 @@ namespace
           //ornament==0 and sample==0 are valid - no ornament and no sample respectively
           if (cmd <= 0x5f)//note
           {
-            Log::Assert(channelWarner, !channel->Note, Text::WARNING_DUPLICATE_NOTE);
-            channel->Note = cmd;
-            Log::Assert(channelWarner, !channel->Enabled, Text::WARNING_DUPLICATE_STATE);
-            channel->Enabled = true;
+            channel->SetNote(cmd, channelWarner);
+            channel->SetEnabled(true, channelWarner);
             break;
           }
           else if (cmd >= 0x60 && cmd <= 0x6f)//sample
           {
-            Log::Assert(channelWarner, !channel->SampleNum, Text::WARNING_DUPLICATE_SAMPLE);
             const uint_t num = cmd - 0x60;
-            channel->SampleNum = num;
+            channel->SetSample(num, channelWarner);
             Log::Assert(channelWarner, !num || Data->Samples[num].GetSize(), Text::WARNING_INVALID_SAMPLE);
           }
           else if (cmd >= 0x70 && cmd <= 0x7f)//ornament
           {
             Log::Assert(channelWarner, !channel->FindCommand(ENVELOPE), Text::WARNING_DUPLICATE_ENVELOPE);
             channel->Commands.push_back(STCTrack::Command(NOENVELOPE));
-            Log::Assert(channelWarner, !channel->OrnamentNum, Text::WARNING_DUPLICATE_ORNAMENT);
             const uint_t num = cmd - 0x70;
-            channel->OrnamentNum = num;
+            channel->SetOrnament(num, channelWarner);
             Log::Assert(channelWarner, !num || Data->Ornaments[num].GetSize(), Text::WARNING_INVALID_ORNAMENT);
           }
           else if (cmd == 0x80)//reset
           {
-            Log::Assert(channelWarner, !channel->Enabled, Text::WARNING_DUPLICATE_STATE);
-            channel->Enabled = false;
+            channel->SetEnabled(false, channelWarner);
             break;
           }
           else if (cmd == 0x81)//empty
@@ -357,8 +352,7 @@ namespace
           }
           else if (cmd >= 0x82 && cmd <= 0x8e)//orn 0, without/with envelope
           {
-            Log::Assert(channelWarner, !channel->OrnamentNum, Text::WARNING_DUPLICATE_ORNAMENT);
-            channel->OrnamentNum = 0;
+            channel->SetOrnament(0, channelWarner);
             Log::Assert(channelWarner, !channel->FindCommand(ENVELOPE) && !channel->FindCommand(NOENVELOPE),
               Text::WARNING_DUPLICATE_ENVELOPE);
             if (cmd == 0x82)
