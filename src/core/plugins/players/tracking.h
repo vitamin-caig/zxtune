@@ -28,6 +28,8 @@ Author:
 #include <boost/make_shared.hpp>
 #include <boost/optional.hpp>
 #include <boost/shared_ptr.hpp>
+//text includes
+#include <core/text/warnings.h>
 
 namespace ZXTune
 {
@@ -171,6 +173,13 @@ namespace ZXTune
           operator BoolType () const
           {
             return Empty() ? 0 : &CommandsArray::empty;
+          }
+
+          //modifiers
+          void SetEnabled(bool val, Log::MessagesCollector& warner)
+          {
+            Log::Assert(warner, !Enabled, Text::WARNING_DUPLICATE_STATE);
+            Enabled = val;
           }
 
           boost::optional<bool> Enabled;

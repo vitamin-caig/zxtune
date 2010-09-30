@@ -436,8 +436,7 @@ namespace
           {
             if (!continueSample)
             {
-              Log::Assert(channelWarner, !channel->Enabled, Text::WARNING_DUPLICATE_STATE);
-              channel->Enabled = true;
+              channel->SetEnabled(true, channelWarner);
             }
             if (!channel->Commands.empty() &&
                 SLIDE == channel->Commands.back().Type)
@@ -484,8 +483,7 @@ namespace
           }
           else if (cmd == 0x5f) //shut
           {
-            Log::Assert(channelWarner, !channel->Enabled, Text::WARNING_DUPLICATE_STATE);
-            channel->Enabled = false;
+            channel->SetEnabled(false, channelWarner);
             break;
           }
           else if (cmd >= 0x60 && cmd <= 0x9f) //skip
