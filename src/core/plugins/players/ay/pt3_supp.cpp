@@ -10,6 +10,7 @@ Author:
 */
 
 //local includes
+#include "ay_base.h"
 #include "ay_conversion.h"
 #include "aym_parameters_helper.h"
 #include <core/plugins/detect_helper.h>
@@ -405,10 +406,8 @@ namespace
   
   class PT3Holder : public Holder
   {
-    typedef boost::array<PatternCursor, AYM::CHANNELS> PatternCursors;
-    
     void ParsePattern(const IO::FastDump& data
-      , PatternCursors& cursors
+      , AYMPatternCursors& cursors
       , Vortex::Track::Line& line
       , Log::MessagesCollector& warner
       , uint_t& noiseBase
@@ -417,7 +416,7 @@ namespace
       bool wasEnvelope(false), wasNoisebase(false);
       assert(line.Channels.size() == cursors.size());
       Vortex::Track::Line::ChannelsArray::iterator channel(line.Channels.begin());
-      for (PatternCursors::iterator cur = cursors.begin(); cur != cursors.end(); ++cur, ++channel)
+      for (AYMPatternCursors::iterator cur = cursors.begin(); cur != cursors.end(); ++cur, ++channel)
       {
         if (cur->Counter--)
         {
@@ -681,7 +680,7 @@ namespace
         Log::ParamPrefixedCollector patternWarner(*warner, Text::PATTERN_WARN_PREFIX, index);
         Vortex::Track::Pattern& pat(Data->Patterns[index]);
         
-        PatternCursors cursors;
+        AYMPatternCursors cursors;
         std::transform(pattern->Offsets.begin(), pattern->Offsets.end(), cursors.begin(), &fromLE<uint16_t>);
         pat.reserve(MAX_PATTERN_SIZE);
         uint_t noiseBase(0);
@@ -697,18 +696,17 @@ namespace
           Vortex::Track::Line& line(pat.back());
           ParsePattern(data, cursors, line, patLineWarner, noiseBase);
           //skip lines
-          if (const uint_t linesToSkip = std::min_element(cursors.begin(), cursors.end(), PatternCursor::CompareByCounter)->Counter)
+          if (const uint_t linesToSkip = cursors.GetMinCounter())
           {
-            std::for_each(cursors.begin(), cursors.end(), std::bind2nd(std::mem_fun_ref(&PatternCursor::SkipLines), linesToSkip));
+            cursors.SkipLines(linesToSkip);
             pat.resize(pat.size() + linesToSkip);//add dummies
           }
         }
         while (data[cursors.front().Offset] || cursors.front().Counter);
         //as warnings
-        Log::Assert(patternWarner, 0 == std::max_element(cursors.begin(), cursors.end(), PatternCursor::CompareByCounter)->Counter,
-          Text::WARNING_PERIODS);
+        Log::Assert(patternWarner, 0 == cursors.GetMaxCounter(), Text::WARNING_PERIODS);
         Log::Assert(patternWarner, pat.size() <= MAX_PATTERN_SIZE, Text::WARNING_INVALID_PATTERN_SIZE);
-        rawSize = std::max<std::size_t>(rawSize, std::max_element(cursors.begin(), cursors.end(), PatternCursor::CompareByOffset)->Offset + 1);
+        rawSize = std::max<std::size_t>(rawSize, 1 + cursors.GetMaxOffset());
       }
       //fill order
       for (const uint8_t* curPos = header->Positions; curPos != header->Positions + header->Length; ++curPos)

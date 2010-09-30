@@ -26,6 +26,8 @@ namespace ZXTune
 {
   namespace Module
   {
+    typedef PatternCursorSet<AYM::CHANNELS> AYMPatternCursors;
+
     class AYMDevice : public Analyzer
     {
     public:

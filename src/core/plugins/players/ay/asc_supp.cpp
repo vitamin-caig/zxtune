@@ -408,10 +408,8 @@ namespace
 
   class ASCHolder : public Holder
   {
-    typedef boost::array<PatternCursor, AYM::CHANNELS> PatternCursors;
-
     static void ParsePattern(const IO::FastDump& data
-      , PatternCursors& cursors
+      , AYMPatternCursors& cursors
       , ASCTrack::Line& line
       , Log::MessagesCollector& warner
       , uint_t& envelopes
@@ -420,7 +418,7 @@ namespace
       assert(line.Channels.size() == cursors.size());
       ASCTrack::Line::ChannelsArray::iterator channel = line.Channels.begin();
       uint_t envMask = 1;
-      for (PatternCursors::iterator cur = cursors.begin(); cur != cursors.end(); ++cur, ++channel, envMask <<= 1)
+      for (AYMPatternCursors::iterator cur = cursors.begin(); cur != cursors.end(); ++cur, ++channel, envMask <<= 1)
       {
         if (cur->Counter--)
         {
@@ -671,7 +669,7 @@ namespace
         Log::ParamPrefixedCollector patternWarner(*warner, Text::PATTERN_WARN_PREFIX, patNum);
         ASCTrack::Pattern& pat(Data->Patterns[patNum]);
 
-        PatternCursors cursors;
+        AYMPatternCursors cursors;
         std::transform(pattern->Offsets.begin(), pattern->Offsets.end(), cursors.begin(),
           boost::bind(std::plus<uint_t>(), patternsOff, boost::bind(&fromLE<uint16_t>, _1)));
         uint_t envelopes = 0;
@@ -688,18 +686,17 @@ namespace
           ASCTrack::Line& line(pat.back());
           ParsePattern(data, cursors, line, patLineWarner, envelopes);
           //skip lines
-          if (const uint_t linesToSkip = std::min_element(cursors.begin(), cursors.end(), PatternCursor::CompareByCounter)->Counter)
+          if (const uint_t linesToSkip = cursors.GetMinCounter())
           {
-            std::for_each(cursors.begin(), cursors.end(), std::bind2nd(std::mem_fun_ref(&PatternCursor::SkipLines), linesToSkip));
+            cursors.SkipLines(linesToSkip);
             pat.resize(pat.size() + linesToSkip);//add dummies
           }
         }
         while (0xff != data[cursors.front().Offset] || cursors.front().Counter);
         //as warnings
-        Log::Assert(patternWarner, 0 == std::max_element(cursors.begin(), cursors.end(), PatternCursor::CompareByCounter)->Counter,
-          Text::WARNING_PERIODS);
+        Log::Assert(patternWarner, 0 == cursors.GetMaxCounter(), Text::WARNING_PERIODS);
         Log::Assert(patternWarner, pat.size() <= MAX_PATTERN_SIZE, Text::WARNING_INVALID_PATTERN_SIZE);
-        rawSize = std::max<std::size_t>(rawSize, std::max_element(cursors.begin(), cursors.end(), PatternCursor::CompareByOffset)->Offset + 1);
+        rawSize = std::max<std::size_t>(rawSize, 1 + cursors.GetMaxOffset());
       }
       Data->LoopPosition = header->Loop;
       Data->InitialTempo = header->Tempo;

@@ -285,6 +285,37 @@ namespace ZXTune
         return lh.Counter < rh.Counter;
       }
     };
+
+    template<uint_t Channels>
+    class PatternCursorSet : public boost::array<PatternCursor, Channels>
+    {
+      typedef boost::array<PatternCursor, Channels> Parent;
+    public:
+      uint_t GetMinCounter() const
+      {
+        return std::min_element(Parent::begin(), Parent::end(),
+          Parent::value_type::CompareByCounter)->Counter;
+      }
+
+      uint_t GetMaxCounter() const
+      {
+        return std::max_element(Parent::begin(), Parent::end(), 
+          Parent::value_type::CompareByCounter)->Counter;
+      }
+
+      uint_t GetMaxOffset() const
+      {
+        return std::max_element(Parent::begin(), Parent::end(),
+          Parent::value_type::CompareByOffset)->Offset;
+      }
+
+      void SkipLines(uint_t linesToSkip)
+      {
+        std::for_each(Parent::begin(), Parent::end(),
+          std::bind2nd(std::mem_fun_ref(&Parent::value_type::SkipLines), linesToSkip));
+      }
+    };
+
   }
 }
 
