@@ -45,13 +45,19 @@ namespace ZXTune
     {
     public:
       FastDump(const DataContainer& data, std::size_t offset = 0)
-        : Ptr(static_cast<const unsigned char*>(data.Data()) + offset)
+        : Ptr(static_cast<const uint8_t*>(data.Data()) + offset)
         , Lenght(data.Size() - offset)
       {
       }
 
+      FastDump(const void* data, std::size_t size)
+        : Ptr(static_cast<const uint8_t*>(data))
+        , Lenght(size)
+      {
+      }
+
       //! @brief Accessing elements by index
-      const unsigned char& operator [] (std::size_t idx) const
+      const uint8_t& operator [] (std::size_t idx) const
       {
         assert(idx < Lenght);
         return Ptr[idx];
@@ -64,12 +70,12 @@ namespace ZXTune
       }
       
       //! @brief Getting raw data pointer
-      const unsigned char* Data() const
+      const uint8_t* Data() const
       {
         return Ptr;
       }
     private:
-      const unsigned char* const Ptr;
+      const uint8_t* const Ptr;
       const std::size_t Lenght;
     };
   }
