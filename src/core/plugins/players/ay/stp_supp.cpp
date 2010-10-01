@@ -243,8 +243,9 @@ namespace
     {
     }
 
-    explicit Sample(const STPSample& sample)
-      : Loop(sample.Loop), Lines(sample.Data, sample.Data + sample.Size)
+    template<class T>
+    Sample(uint_t loop, T from, T to)
+      : Loop(loop), Lines(from, to)
     {
     }
 
@@ -300,6 +301,113 @@ namespace
   typedef TrackingSupport<AYM::CHANNELS, Sample> STPTrack;
   typedef std::vector<int_t> STPTransposition;
 
+  class STPAreas
+  {
+  public:
+    enum AreaTypes
+    {
+      HEADER,
+      POSITIONS,
+      PATTERNS,
+      ORNAMENTS,
+      SAMPLES,
+      FREE,
+      END,
+    };
+
+    explicit STPAreas(const IO::FastDump& data)
+      : Data(data)
+    {
+      const STPHeader* const header = safe_ptr_cast<const STPHeader*>(Data.Data());
+
+      Areas.AddArea(HEADER, 0);
+      Areas.AddArea(POSITIONS, fromLE(header->PositionsOffset));
+      Areas.AddArea(PATTERNS, fromLE(header->PatternsOffset));
+      Areas.AddArea(ORNAMENTS, fromLE(header->OrnamentsOffset));
+      Areas.AddArea(SAMPLES, fromLE(header->SamplesOffset));
+      Areas.AddArea(END, data.Size());
+    }
+
+    const IO::FastDump& GetOriginalData() const
+    {
+      return Data;
+    }
+
+    const STPHeader& GetHeader() const
+    {
+      return *safe_ptr_cast<const STPHeader*>(Data.Data());
+    }
+
+    const STPOrnaments& GetOrnaments() const
+    {
+      const uint_t offset = Areas.GetAreaAddress(ORNAMENTS);
+      return *safe_ptr_cast<const STPOrnaments*>(&Data[offset]);
+    }
+
+    uint_t GetOrnamentsLimit() const
+    {
+      const uint_t offset = Areas.GetAreaAddress(ORNAMENTS);
+      return offset + sizeof(STPOrnaments);
+    }
+
+    const STPOrnament& GetOrnament(uint_t offset) const
+    {
+      return *safe_ptr_cast<const STPOrnament*>(&Data[offset]);
+    }
+
+    const STPSamples& GetSamples() const
+    {
+      const uint_t offset = Areas.GetAreaAddress(SAMPLES);
+      return *safe_ptr_cast<const STPSamples*>(&Data[offset]);
+    }
+
+    uint_t GetSamplesLimit() const
+    {
+      const uint_t offset = Areas.GetAreaAddress(SAMPLES);
+      return offset + sizeof(STPSamples);
+    }
+
+    const STPSample& GetSample(uint_t offset) const
+    {
+      return *safe_ptr_cast<const STPSample*>(&Data[offset]);
+    }
+
+    RangeIterator<const STPPattern*> GetPatterns() const
+    {
+      const uint_t offset = Areas.GetAreaAddress(PATTERNS);
+      const uint_t size = Areas.GetAreaSize(PATTERNS);
+      const STPPattern* const begin = safe_ptr_cast<const STPPattern*>(&Data[offset]);
+      const STPPattern* const end = begin + size / sizeof(*begin);
+      return RangeIterator<const STPPattern*>(begin, end);
+    }
+
+    uint_t GetLoopPosition() const
+    {
+      const uint_t offset = Areas.GetAreaAddress(POSITIONS);
+      const STPPositions* const positions = safe_ptr_cast<const STPPositions*>(&Data[offset]);
+      return positions->Loop;
+    }
+
+    RangeIterator<const STPPositions::STPPosEntry*> GetPositions() const
+    {
+      const uint_t offset = Areas.GetAreaAddress(POSITIONS);
+      const STPPositions* const positions = safe_ptr_cast<const STPPositions*>(&Data[offset]);
+      const STPPositions::STPPosEntry* const entry = positions->Data;
+      return RangeIterator<const STPPositions::STPPosEntry*>(entry, entry + positions->Lenght);
+    }
+
+    uint_t GetPositionsLimit() const
+    {
+      const uint_t offset = Areas.GetAreaAddress(POSITIONS);
+      const STPPositions* const positions = safe_ptr_cast<const STPPositions*>(&Data[offset]);
+      const uint_t size = sizeof(*positions) + sizeof(positions->Data[0]) * (positions->Lenght - 1);
+      return offset + size;
+    }
+  protected:
+    const IO::FastDump& Data;
+    AreaController<AreaTypes, uint_t> Areas;
+  };
+
   struct STPModuleData : public STPTrack::ModuleData
   {
     typedef boost::shared_ptr<STPModuleData> RWPtr;
@@ -310,6 +418,242 @@ namespace
     {
     }
 
+    ModuleProperties::Ptr ParseInformation(const STPAreas& areas)
+    {
+      const STPHeader& header = areas.GetHeader();
+      InitialTempo = header.Tempo;
+      LoopPosition = areas.GetLoopPosition();
+      const ModuleProperties::Ptr props = ModuleProperties::Create(STP_PLUGIN_ID);
+      props->SetProgram(Text::STP_EDITOR);
+      const STPId& id = *safe_ptr_cast<const STPId*>(&header + 1);
+      if (id.Check())
+      {
+        props->SetTitle(OptimizeString(FromStdString(id.Title)));
+      }
+      return props;
+    }
+
+    uint_t ParseOrnaments(const STPAreas& areas, Log::MessagesCollector& warner)
+    {
+      const STPOrnaments& ornaments = areas.GetOrnaments();
+      Ornaments.reserve(ornaments.Offsets.size());
+      uint_t resLimit = areas.GetOrnamentsLimit();
+      for (uint_t idx = 0; idx != ornaments.Offsets.size(); ++idx)
+      {
+        Log::ParamPrefixedCollector ornWarner(warner, Text::ORNAMENT_WARN_PREFIX, idx);
+        const uint_t offset = fromLE(ornaments.Offsets[idx]);
+        const uint_t ornLimit = ParseOrnament(offset, areas, ornWarner);
+        resLimit = std::max(resLimit, ornLimit);
+      }
+      return resLimit;
+    }
+
+    uint_t ParseSamples(const STPAreas& areas, Log::MessagesCollector& warner)
+    {
+      const STPSamples& samples = areas.GetSamples();
+      Samples.reserve(samples.Offsets.size());
+      for (uint_t idx = 0; idx != samples.Offsets.size(); ++idx)
+      {
+        Log::ParamPrefixedCollector smpWarner(warner, Text::SAMPLE_WARN_PREFIX, idx);
+        const uint_t offset = fromLE(samples.Offsets[idx]);
+        ParseSample(offset, areas, smpWarner);
+      }
+      return areas.GetSamplesLimit();
+    }
+
+    uint_t ParsePatterns(const STPAreas& areas, Log::MessagesCollector& warner)
+    {
+      assert(!Samples.empty());
+      assert(!Ornaments.empty());
+      uint_t resLimit = 0;
+
+      for (RangeIterator<const STPPattern*> iter = areas.GetPatterns(); iter; ++iter)
+      {
+        const STPPattern& pattern = *iter;
+        Log::ParamPrefixedCollector patternWarner(warner, Text::PATTERN_WARN_PREFIX, Patterns.size());
+        Patterns.push_back(STPTrack::Pattern());
+        STPTrack::Pattern& dst = Patterns.back();
+        const uint_t patLimit = ParsePattern(areas.GetOriginalData(), pattern, dst, patternWarner);
+        resLimit = std::max(resLimit, patLimit);
+      }
+      return resLimit;
+    }
+
+    uint_t ParsePositions(const STPAreas& areas, Log::MessagesCollector& warner)
+    {
+      assert(!Patterns.empty());
+      uint_t positionsCount = 0;
+      for (RangeIterator<const STPPositions::STPPosEntry*> iter = areas.GetPositions();
+        iter; ++iter, ++positionsCount)
+      {
+        const STPPositions::STPPosEntry& entry = *iter;
+        if (CheckPosition(entry))
+        {
+          AddPosition(entry);
+        }
+        else
+        {
+          warner.AddMessage(Text::WARNING_INVALID_POSITIONS);
+        }
+      }
+      Log::Assert(warner, Positions.size() == positionsCount, Text::WARNING_INVALID_POSITIONS);
+      return areas.GetPositionsLimit();
+    }
+  private:
+    uint_t ParseOrnament(uint_t offset, const STPAreas& areas, Log::MessagesCollector& warner)
+    {
+      const STPOrnament& ornament = areas.GetOrnament(offset);
+      const uint_t realLoop = std::min<uint_t>(ornament.Loop, ornament.Size);
+      Ornaments.push_back(SimpleOrnament(realLoop, ornament.Data, ornament.Data + ornament.Size));
+      if (ornament.Loop != realLoop)
+      {
+        warner.AddMessage(Text::WARNING_LOOP_OUT_BOUND);
+      }
+      return offset + sizeof(STPOrnament) + (ornament.Size - 1) * sizeof(ornament.Data[0]);
+    }
+
+    uint_t ParseSample(uint_t offset, const STPAreas& areas, Log::MessagesCollector& warner)
+    {
+      const STPSample& sample = areas.GetSample(offset);
+      const uint_t realLoop = std::min<uint_t>(sample.Loop, sample.Size);
+      Samples.push_back(Sample(realLoop, sample.Data, sample.Data + sample.Size));
+      if (sample.Loop != realLoop)
+      {
+        warner.AddMessage(Text::WARNING_LOOP_OUT_BOUND);
+      }
+      return offset + sizeof(STPSample) + (sample.Size - 1) * sizeof(sample.Data[0]);
+    }
+
+    uint_t ParsePattern(const IO::FastDump& data, const STPPattern& pattern, 
+      STPTrack::Pattern& dst, Log::MessagesCollector& warner)
+    {
+      AYMPatternCursors cursors;
+      std::transform(pattern.Offsets.begin(), pattern.Offsets.end(), cursors.begin(), std::ptr_fun(&fromLE<uint16_t>));
+      dst.reserve(MAX_PATTERN_SIZE);
+      do
+      {
+        const uint_t curPatternSize = dst.size();
+        if (curPatternSize > MAX_PATTERN_SIZE)
+        {
+          throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
+        }
+        Log::ParamPrefixedCollector lineWarner(warner, Text::LINE_WARN_PREFIX, curPatternSize);
+        dst.push_back(STPTrack::Line());
+        STPTrack::Line& line = dst.back();
+        ParsePatternLine(data, cursors, line, lineWarner);
+        //skip lines
+        if (const uint_t linesToSkip = cursors.GetMinCounter())
+        {
+          cursors.SkipLines(linesToSkip);
+          dst.resize(dst.size() + linesToSkip);//add dummies
+        }
+      }
+      while (0x00 != data[cursors.front().Offset] || 
+             cursors.front().Counter);
+      Log::Assert(warner, 0 == cursors.GetMaxCounter(), Text::WARNING_PERIODS);
+      Log::Assert(warner, dst.size() <= MAX_PATTERN_SIZE, Text::WARNING_INVALID_PATTERN_SIZE);
+      const uint_t maxOffset = 1 + cursors.GetMaxOffset();
+      return maxOffset;
+    }
+
+    void ParsePatternLine(const IO::FastDump& data, AYMPatternCursors& cursors, STPTrack::Line& line, Log::MessagesCollector& warner)
+    {
+      assert(line.Channels.size() == cursors.size());
+      STPTrack::Line::ChannelsArray::iterator channel(line.Channels.begin());
+      for (AYMPatternCursors::iterator cur = cursors.begin(); cur != cursors.end(); ++cur, ++channel)
+      {
+        Log::ParamPrefixedCollector channelWarner(warner, Text::CHANNEL_WARN_PREFIX, std::distance(line.Channels.begin(), channel));
+        ParsePatternLineChannel(data, *cur, *channel, channelWarner);
+      }
+    }
+
+    void ParsePatternLineChannel(const IO::FastDump& data, PatternCursor& cur, STPTrack::Line::Chan& channel,
+      Log::MessagesCollector& warner)
+    {
+      if (cur.Counter--)
+      {
+        return;//has to skip
+      }
+
+      for (;;)
+      {
+        const uint_t cmd = data[cur.Offset++];
+        const std::size_t restbytes = data.Size() - cur.Offset;
+        if (cmd >= 1 && cmd <= 0x60)//note
+        {
+          channel.SetNote(cmd - 1, warner);
+          channel.SetEnabled(true, warner);
+          break;
+        }
+        else if (cmd >= 0x61 && cmd <= 0x6f)//sample
+        {
+          channel.SetSample(cmd - 0x61, warner);
+        }
+        else if (cmd >= 0x70 && cmd <= 0x7f)//ornament
+        {
+          Log::Assert(warner, !channel.FindCommand(ENVELOPE), Text::WARNING_DUPLICATE_ENVELOPE);
+          channel.SetOrnament(cmd - 0x70, warner);
+          channel.Commands.push_back(STPTrack::Command(NOENVELOPE));
+          //TODO
+          Log::Assert(warner, !channel.FindCommand(GLISS), "duplicate gliss");
+          channel.Commands.push_back(STPTrack::Command(GLISS, 0));
+        }
+        else if (cmd >= 0x80 && cmd <= 0xbf) //skip
+        {
+          cur.Period = cmd - 0x80;
+        }
+        else if (cmd >= 0xc0 && cmd <= 0xcf)
+        {
+          if (cmd != 0xc0 && restbytes < 1)
+          {
+            throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
+          }
+          Log::Assert(warner, !channel.FindCommand(NOENVELOPE), Text::WARNING_DUPLICATE_ENVELOPE);
+          channel.Commands.push_back(STPTrack::Command(ENVELOPE, cmd - 0xc0, 
+            cmd != 0xc0 ? data[cur.Offset++] : 0));
+          channel.SetOrnament(0, warner);
+          Log::Assert(warner, !channel.FindCommand(GLISS), "duplicate gliss");
+          channel.Commands.push_back(STPTrack::Command(GLISS, 0));
+        }
+        else if (cmd >= 0xd0 && cmd <= 0xdf)//reset
+        {
+          channel.SetEnabled(false, warner);
+          break;
+        }
+        else if (cmd >= 0xe0 && cmd <= 0xef)//empty
+        {
+          break;
+        }
+        else if (cmd == 0xf0) //glissade
+        {
+          if (restbytes < 1)
+          {
+            throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
+          }
+          Log::Assert(warner, !channel.FindCommand(GLISS), "duplicate gliss");
+          channel.Commands.push_back(STPTrack::Command(GLISS, static_cast<int8_t>(data[cur.Offset++])));
+        }
+        else if (cmd >= 0xf1 && cmd <= 0xff) //volume
+        {
+          channel.SetVolume(cmd - 0xf1, warner);
+        }
+      }
+      cur.Counter = cur.Period;
+    }
+
+    bool CheckPosition(const STPPositions::STPPosEntry& entry) const
+    {
+      const uint_t patNum = entry.PatternOffset / 6;
+      assert(0 == entry.PatternOffset % 6);
+      return patNum < Patterns.size() && !Patterns[patNum].empty();
+    }
+
+    void AddPosition(const STPPositions::STPPosEntry& entry)
+    {
+      Positions.push_back(entry.PatternOffset / 6);
+      Transpositions.push_back(entry.PatternHeight);
+    }
+  public:
     STPTransposition Transpositions;
   };
 
@@ -318,85 +662,6 @@ namespace
 
   class STPHolder : public Holder
   {
-    static void ParsePattern(const IO::FastDump& data
-      , AYMPatternCursors& cursors
-      , STPTrack::Line& line
-      , Log::MessagesCollector& warner)
-    {
-      assert(line.Channels.size() == cursors.size());
-      STPTrack::Line::ChannelsArray::iterator channel(line.Channels.begin());
-      for (AYMPatternCursors::iterator cur = cursors.begin(); cur != cursors.end(); ++cur, ++channel)
-      {
-        if (cur->Counter--)
-        {
-          continue;//has to skip
-        }
-        Log::ParamPrefixedCollector channelWarner(warner, Text::CHANNEL_WARN_PREFIX, std::distance(line.Channels.begin(), channel));
-        for (;;)
-        {
-          const uint_t cmd = data[cur->Offset++];
-          const std::size_t restbytes = data.Size() - cur->Offset;
-          if (cmd >= 1 && cmd <= 0x60)//note
-          {
-            channel->SetNote(cmd - 1, channelWarner);
-            channel->SetEnabled(true, channelWarner);
-            break;
-          }
-          else if (cmd >= 0x61 && cmd <= 0x6f)//sample
-          {
-            channel->SetSample(cmd - 0x61, channelWarner);
-          }
-          else if (cmd >= 0x70 && cmd <= 0x7f)//ornament
-          {
-            Log::Assert(channelWarner, !channel->FindCommand(ENVELOPE), Text::WARNING_DUPLICATE_ENVELOPE);
-            channel->SetOrnament(cmd - 0x70, channelWarner);
-            channel->Commands.push_back(STPTrack::Command(NOENVELOPE));
-            //TODO
-            Log::Assert(channelWarner, !channel->FindCommand(GLISS), "duplicate gliss");
-            channel->Commands.push_back(STPTrack::Command(GLISS, 0));
-          }
-          else if (cmd >= 0x80 && cmd <= 0xbf) //skip
-          {
-            cur->Period = cmd - 0x80;
-          }
-          else if (cmd >= 0xc0 && cmd <= 0xcf)
-          {
-            if (cmd != 0xc0 && restbytes < 1)
-            {
-              throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
-            }
-            Log::Assert(channelWarner, !channel->FindCommand(NOENVELOPE), Text::WARNING_DUPLICATE_ENVELOPE);
-            channel->Commands.push_back(STPTrack::Command(ENVELOPE, cmd - 0xc0, cmd != 0xc0 ? data[cur->Offset++] : 0));
-            channel->SetOrnament(0, channelWarner);
-            Log::Assert(channelWarner, !channel->FindCommand(GLISS), "duplicate gliss");
-            channel->Commands.push_back(STPTrack::Command(GLISS, 0));
-          }
-          else if (cmd >= 0xd0 && cmd <= 0xdf)//reset
-          {
-            channel->SetEnabled(false, channelWarner);
-            break;
-          }
-          else if (cmd >= 0xe0 && cmd <= 0xef)//empty
-          {
-            break;
-          }
-          else if (cmd == 0xf0) //glissade
-          {
-            if (restbytes < 1)
-            {
-              throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
-            }
-            Log::Assert(channelWarner, !channel->FindCommand(GLISS), "duplicate gliss");
-            channel->Commands.push_back(STPTrack::Command(GLISS, static_cast<int8_t>(data[cur->Offset++])));
-          }
-          else if (cmd >= 0xf1 && cmd <= 0xff) //volume
-          {
-            channel->SetVolume(cmd - 0xf1, channelWarner);
-          }
-        }
-        cur->Counter = cur->Period;
-      }
-    }
   public:
     STPHolder(Plugin::Ptr plugin, const MetaContainer& container, ModuleRegion& region)
       : SrcPlugin(plugin)
@@ -405,113 +670,26 @@ namespace
     {
       //assume that data is ok
       const IO::FastDump& data = IO::FastDump(*container.Data, region.Offset);
-      const STPHeader* const header = safe_ptr_cast<const STPHeader*>(&data[0]);
-
-      const STPPositions* const positions = safe_ptr_cast<const STPPositions*>(&data[fromLE(header->PositionsOffset)]);
-      const STPPattern* const patterns = safe_ptr_cast<const STPPattern*>(&data[fromLE(header->PatternsOffset)]);
-      const STPOrnaments* const ornaments = safe_ptr_cast<const STPOrnaments*>(&data[fromLE(header->OrnamentsOffset)]);
-      const STPSamples* const samples = safe_ptr_cast<const STPSamples*>(&data[fromLE(header->SamplesOffset)]);
+      const STPAreas areas(data);
 
       Log::MessagesCollector::Ptr warner(Log::MessagesCollector::Create());
 
-      //parse positions
-      Data->Positions.resize(positions->Lenght + 1);
-      Data->Transpositions.resize(positions->Lenght + 1);
-      std::transform(positions->Data, positions->Data + positions->Lenght, Data->Positions.begin(),
-        boost::bind(std::divides<uint_t>(),
-          boost::bind(&STPPositions::STPPosEntry::PatternOffset, _1),
-          6));
-      std::transform(positions->Data, positions->Data + positions->Lenght, Data->Transpositions.begin(),
-        boost::mem_fn(&STPPositions::STPPosEntry::PatternHeight));
-
-      //parse samples
-      Data->Samples.reserve(MAX_SAMPLES_COUNT);
-      uint_t index = 0;
-      for (const uint16_t* pSample = samples->Offsets.begin(); pSample != samples->Offsets.end();
-        ++pSample, ++index)
-      {
-        assert(*pSample && fromLE(*pSample) < data.Size());
-        const STPSample* const sample = safe_ptr_cast<const STPSample*>(&data[fromLE(*pSample)]);
-        Data->Samples.push_back(Sample(*sample));
-        const Sample& smp = Data->Samples.back();
-        if (smp.GetLoop() >= static_cast<int_t>(smp.GetSize()))
-        {
-          Log::ParamPrefixedCollector smpWarner(*warner, Text::SAMPLE_WARN_PREFIX, index);
-          smpWarner.AddMessage(Text::WARNING_LOOP_OUT_BOUND);
-        }
-      }
-      std::size_t rawSize = safe_ptr_cast<const uint8_t*>(samples + 1) - data.Data();
-
-      Data->Ornaments.reserve(MAX_ORNAMENTS_COUNT);
-      index = 0;
-      for (const uint16_t* pOrnament = ornaments->Offsets.begin(); pOrnament != ornaments->Offsets.end();
-        ++pOrnament, ++index)
-      {
-        assert(*pOrnament && fromLE(*pOrnament) < data.Size());
-        const STPOrnament* const ornament = safe_ptr_cast<const STPOrnament*>(&data[fromLE(*pOrnament)]);
-        Data->Ornaments.push_back(SimpleOrnament(ornament->Loop, ornament->Data, ornament->Data + ornament->Size));
-        const SimpleOrnament& orn = Data->Ornaments.back();
-        if (orn.GetLoop() > orn.GetSize())
-        {
-          Log::ParamPrefixedCollector smpWarner(*warner, Text::ORNAMENT_WARN_PREFIX, index);
-          smpWarner.AddMessage(Text::WARNING_LOOP_OUT_BOUND);
-        }
-      }
-
-      //parse patterns
-      for (const STPPattern* pattern = patterns;
-        static_cast<const void*>(pattern) < static_cast<const void*>(ornaments); ++pattern)
-      {
-        Data->Patterns.push_back(STPTrack::Pattern());
-        Log::ParamPrefixedCollector patternWarner(*warner, Text::PATTERN_WARN_PREFIX, Data->Patterns.size());
-        STPTrack::Pattern& pat = Data->Patterns.back();
-        AYMPatternCursors cursors;
-        std::transform(pattern->Offsets.begin(), pattern->Offsets.end(), cursors.begin(), std::ptr_fun(&fromLE<uint16_t>));
-        pat.reserve(MAX_PATTERN_SIZE);
-        do
-        {
-          const uint_t patternSize = pat.size();
-          if (patternSize > MAX_PATTERN_SIZE)
-          {
-            throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
-          }
-          Log::ParamPrefixedCollector patLineWarner(patternWarner, Text::LINE_WARN_PREFIX, patternSize);
-          pat.push_back(STPTrack::Line());
-          STPTrack::Line& line = pat.back();
-          ParsePattern(data, cursors, line, patLineWarner);
-          //skip lines
-          if (const uint_t linesToSkip = cursors.GetMinCounter())
-          {
-            cursors.SkipLines(linesToSkip);
-            pat.resize(pat.size() + linesToSkip);//add dummies
-          }
-        }
-        while (0x00 != data[cursors.front().Offset] || cursors.front().Counter);
-        //as warnings
-        Log::Assert(patternWarner, 0 == cursors.GetMaxCounter(), Text::WARNING_PERIODS);
-        Log::Assert(patternWarner, pat.size() <= MAX_PATTERN_SIZE, Text::WARNING_INVALID_PATTERN_SIZE);
-        rawSize = std::max<std::size_t>(rawSize, 1 + cursors.GetMaxOffset());
-      }
-      Data->LoopPosition = positions->Loop;
-      Data->InitialTempo = header->Tempo;
+      const ModuleProperties::Ptr props = Data->ParseInformation(areas);
+      const uint_t ornLim = Data->ParseOrnaments(areas, *warner);
+      const uint_t smpLim = Data->ParseSamples(areas, *warner);
+      const uint_t patLim = Data->ParsePatterns(areas, *warner);
+      const uint_t posLim = Data->ParsePositions(areas, *warner);
 
       //fill region
-      region.Size = rawSize;
+      region.Size = std::max(std::max(smpLim, ornLim), std::max(patLim, posLim));
       RawData = region.Extract(*container.Data);
 
       //meta properties
-      const ModuleProperties::Ptr props = ModuleProperties::Create(STP_PLUGIN_ID);
       {
-        const std::size_t fixedOffset = fromLE(header->PatternsOffset);
-        const ModuleRegion fixedRegion(fixedOffset, rawSize -  fixedOffset);
+        const std::size_t fixedOffset = sizeof(STPHeader);
+        const ModuleRegion fixedRegion(fixedOffset, region.Size -  fixedOffset);
         props->SetSource(RawData, fixedRegion);
       }
-      const STPId* const id = safe_ptr_cast<const STPId*>(header + 1);
-      if (id->Check())
-      {
-        props->SetTitle(OptimizeString(FromStdString(id->Title)));
-      }
-      props->SetProgram(Text::STP_EDITOR);
       props->SetWarnings(warner);
       props->SetPlugins(container.Plugins);
       props->SetPath(container.Path);
