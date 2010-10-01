@@ -316,9 +316,19 @@ namespace
       return GetIterator<STCSample>(SAMPLES);
     }
 
+    uint_t GetSamplesLimit() const
+    {
+      return GetLimit<STCSample>(SAMPLES);
+    }
+
     RangeIterator<const STCOrnament*> GetOrnaments() const
     {
       return GetIterator<STCOrnament>(ORNAMENTS);
+    }
+
+    uint_t GetOrnamentsLimit() const
+    {
+      return GetLimit<STCOrnament>(ORNAMENTS);
     }
 
     RangeIterator<const STCPositions::STCPosEntry*> GetPositions() const
@@ -329,11 +339,27 @@ namespace
       return RangeIterator<const STCPositions::STCPosEntry*>(entry, entry + positions->Lenght + 1);
     }
 
-    uint_t GetPatternsOffset() const
+    uint_t GetPositionsLimit() const
     {
-      return Areas.GetAreaAddress(PATTERNS);
+      const uint_t offset = Areas.GetAreaAddress(POSITIONS);
+      const STCPositions* const positions = safe_ptr_cast<const STCPositions*>(&Data[offset]);
+      const uint_t size = sizeof(*positions) + sizeof(positions->Data[0]) * positions->Lenght;
+      return offset + size;
     }
 
+    RangeIterator<const STCPattern*> GetPatterns() const
+    {
+      const std::pair<const STCPattern*, const STCPattern*> patRange = GetPatternsRange();
+      return RangeIterator<const STCPattern*>(patRange.first, patRange.second);
+    }
+
+    uint_t GetPatternsLimit() const
+    {
+      const uint_t offset = Areas.GetAreaAddress(PATTERNS);
+      const std::pair<const STCPattern*, const STCPattern*> patRange = GetPatternsRange();
+      const uint_t size = 1 + sizeof(*patRange.first) * (patRange.second - patRange.first);
+      return offset + size;
+    }
   private:
     template<class T>
     RangeIterator<const T*> GetIterator(AreaTypes id) const
@@ -342,6 +368,23 @@ namespace
       const uint_t count = Areas.GetAreaSize(id) / sizeof(T);
       const T* const begin = safe_ptr_cast<const T*>(&Data[offset]);
       return RangeIterator<const T*>(begin, begin + count);
+    }
+
+    template<class T>
+    uint_t GetLimit(AreaTypes id) const
+    {
+      const uint_t offset = Areas.GetAreaAddress(id);
+      const uint_t count = Areas.GetAreaSize(id) / sizeof(T);
+      return offset + count * sizeof(T);
+    }
+
+    std::pair<const STCPattern*, const STCPattern*> GetPatternsRange() const
+    {
+      const uint_t offset = Areas.GetAreaAddress(PATTERNS);
+      const STCPattern* const begin = safe_ptr_cast<const STCPattern*>(&Data[offset]);
+      const STCPattern* const end = begin + Areas.GetAreaSize(PATTERNS) / sizeof(*begin);
+      const STCPattern* const lastPattern = std::find_if(begin, end, std::logical_not<STCPattern>());
+      return std::make_pair(begin, lastPattern);
     }
   protected:
     const IO::FastDump& Data;
@@ -358,7 +401,7 @@ namespace
     {
     }
 
-    void ParseSamples(const STCAreas& areas, Log::MessagesCollector& warner)
+    uint_t ParseSamples(const STCAreas& areas, Log::MessagesCollector& warner)
     {
       Samples.resize(MAX_SAMPLES_COUNT);
       for (RangeIterator<const STCSample*> iter = areas.GetSamples(); iter; ++iter)
@@ -371,9 +414,10 @@ namespace
         }
         Samples[sample.Number] = Sample(sample);
       }
+      return areas.GetSamplesLimit();
     }
 
-    void ParseOrnaments(const STCAreas& areas, Log::MessagesCollector& warner)
+    uint_t ParseOrnaments(const STCAreas& areas, Log::MessagesCollector& warner)
     {
       Ornaments.resize(MAX_ORNAMENTS_COUNT);
       for (RangeIterator<const STCOrnament*> iter = areas.GetOrnaments(); iter; ++iter)
@@ -387,25 +431,166 @@ namespace
         Ornaments[ornament.Number] =
           STCTrack::Ornament(ArraySize(ornament.Data), ornament.Data, ArrayEnd(ornament.Data));
       }
+      return areas.GetOrnamentsLimit();
     }
 
-    void ParsePositions(const STCAreas& areas, Log::MessagesCollector& warner)
+    uint_t ParsePositions(const STCAreas& areas, Log::MessagesCollector& warner)
     {
+      assert(!Patterns.empty());
       uint_t positionsCount = 0;
       for (RangeIterator<const STCPositions::STCPosEntry*> iter = areas.GetPositions(); 
         iter; ++iter, ++positionsCount)
       {
         const STCPositions::STCPosEntry& entry = *iter;
-        const uint_t pattern = entry.PatternNum - 1;
-        if (pattern < MAX_PATTERN_COUNT && !Patterns[pattern].empty())
+        const uint_t patNum = entry.PatternNum - 1;
+        if (patNum < MAX_PATTERN_COUNT && !Patterns[patNum].empty())
         {
-          Positions.push_back(pattern);
+          Positions.push_back(patNum);
           Transpositions.push_back(entry.PatternHeight);
         }
       }
       Log::Assert(warner, Positions.size() == positionsCount, Text::WARNING_INVALID_POSITIONS);
+      return areas.GetPositionsLimit();
     }
 
+    uint_t ParsePatterns(const IO::FastDump& data, const STCAreas& areas, Log::MessagesCollector& warner)
+    {
+      assert(!Samples.empty());
+      assert(!Ornaments.empty());
+      uint_t resLimit = 0;
+      Patterns.resize(MAX_PATTERN_COUNT);
+      for (RangeIterator<const STCPattern*> iter = areas.GetPatterns(); iter; ++iter)
+      {
+        const STCPattern& pattern = *iter;
+        assert(pattern);
+        if (!pattern.Number || pattern.Number >= MAX_PATTERN_COUNT)
+        {
+          warner.AddMessage(Text::WARNING_INVALID_PATTERN);
+          continue;
+        }
+        Log::ParamPrefixedCollector patternWarner(warner, Text::PATTERN_WARN_PREFIX, pattern.Number - 1);
+        STCTrack::Pattern& dst(Patterns[pattern.Number - 1]);
+        const uint_t patLimit = ParsePattern(data, pattern, dst, patternWarner);
+        resLimit = std::max(resLimit, patLimit);
+      }
+      return resLimit;
+    }
+  private:
+    uint_t ParsePattern(const IO::FastDump& data, const STCPattern& pattern, STCTrack::Pattern& dst, Log::MessagesCollector& warner)
+    {
+      AYMPatternCursors cursors;
+      std::transform(pattern.Offsets.begin(), pattern.Offsets.end(), cursors.begin(), &fromLE<uint16_t>);
+      dst.reserve(MAX_PATTERN_SIZE);
+      do
+      {
+        const uint_t curPatternSize = dst.size();
+        if (curPatternSize > MAX_PATTERN_SIZE)
+        {
+          throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
+        }
+        Log::ParamPrefixedCollector lineWarner(warner, Text::LINE_WARN_PREFIX, curPatternSize);
+        dst.push_back(STCTrack::Line());
+        STCTrack::Line& line(dst.back());
+        ParsePatternLine(data, cursors, line, lineWarner);
+        //skip lines
+        if (const uint_t linesToSkip = cursors.GetMinCounter())
+        {
+          cursors.SkipLines(linesToSkip);
+          dst.resize(dst.size() + linesToSkip);//add dummies
+        }
+      }
+      while (0xff != data[cursors.front().Offset] ||
+             0 != cursors.front().Counter);
+      Log::Assert(warner, 0 == cursors.GetMaxCounter(), Text::WARNING_PERIODS);
+      Log::Assert(warner, dst.size() <= MAX_PATTERN_SIZE, Text::WARNING_INVALID_PATTERN_SIZE);
+      const uint_t maxOffset = 1 + cursors.GetMaxOffset();
+      return maxOffset;
+    }
+
+    void ParsePatternLine(const IO::FastDump& data, AYMPatternCursors& cursors, STCTrack::Line& line, Log::MessagesCollector& warner)
+    {
+      assert(line.Channels.size() == cursors.size());
+      STCTrack::Line::ChannelsArray::iterator channel(line.Channels.begin());
+      for (AYMPatternCursors::iterator cur = cursors.begin(); cur != cursors.end(); ++cur, ++channel)
+      {
+        Log::ParamPrefixedCollector channelWarner(warner, Text::CHANNEL_WARN_PREFIX, std::distance(line.Channels.begin(), channel));
+        ParsePatternLineChannel(data, *cur, *channel, channelWarner);
+      }
+    }
+
+    void ParsePatternLineChannel(const IO::FastDump& data, PatternCursor& cur, STCTrack::Line::Chan& channel,
+      Log::MessagesCollector& warner)
+    {
+      if (cur.Counter--)
+      {
+        return;//has to skip
+      }
+
+      for (;;)
+      {
+        const uint_t cmd(data[cur.Offset++]);
+        const std::size_t restbytes = data.Size() - cur.Offset;
+        //ornament==0 and sample==0 are valid - no ornament and no sample respectively
+        //ornament==0 and sample==0 are valid - no ornament and no sample respectively
+        if (cmd <= 0x5f)//note
+        {
+          channel.SetNote(cmd, warner);
+          channel.SetEnabled(true, warner);
+          break;
+        }
+        else if (cmd >= 0x60 && cmd <= 0x6f)//sample
+        {
+          const uint_t num = cmd - 0x60;
+          channel.SetSample(num, warner);
+          Log::Assert(warner, !num || Samples[num].GetSize(), Text::WARNING_INVALID_SAMPLE);
+        }
+        else if (cmd >= 0x70 && cmd <= 0x7f)//ornament
+        {
+          Log::Assert(warner, !channel.FindCommand(ENVELOPE), Text::WARNING_DUPLICATE_ENVELOPE);
+          channel.Commands.push_back(STCTrack::Command(NOENVELOPE));
+          const uint_t num = cmd - 0x70;
+          channel.SetOrnament(num, warner);
+          Log::Assert(warner, !num || Ornaments[num].GetSize(), Text::WARNING_INVALID_ORNAMENT);
+        }
+        else if (cmd == 0x80)//reset
+        {
+          channel.SetEnabled(false, warner);
+          break;
+        }
+        else if (cmd == 0x81)//empty
+        {
+          break;
+        }
+        else if (cmd >= 0x82 && cmd <= 0x8e)//orn 0, without/with envelope
+        {
+          channel.SetOrnament(0, warner);
+          Log::Assert(warner, !channel.FindCommand(ENVELOPE) && !channel.FindCommand(NOENVELOPE),
+            Text::WARNING_DUPLICATE_ENVELOPE);
+          if (cmd == 0x82)
+          {
+            channel.Commands.push_back(STCTrack::Command(NOENVELOPE));
+          }
+          else if (!restbytes)
+          {
+            throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
+          }
+          else
+          {
+            channel.Commands.push_back(STCTrack::Command(ENVELOPE, cmd - 0x80, data[cur.Offset++]));
+          }
+        }
+        else if (cmd < 0xa1 || !restbytes)
+        {
+          throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
+        }
+        else //skip
+        {
+          cur.Period = cmd - 0xa1;
+        }
+      }
+      cur.Counter = cur.Period;
+    }
+  public:
     STCTransposition Transpositions;
   };
 
@@ -413,87 +598,6 @@ namespace
 
   class STCHolder : public Holder
   {
-    void ParsePattern(const IO::FastDump& data
-      , AYMPatternCursors& cursors
-      , STCTrack::Line& line
-      , Log::MessagesCollector& warner
-      )
-    {
-      assert(line.Channels.size() == cursors.size());
-      STCTrack::Line::ChannelsArray::iterator channel(line.Channels.begin());
-      for (AYMPatternCursors::iterator cur = cursors.begin(); cur != cursors.end(); ++cur, ++channel)
-      {
-        if (cur->Counter--)
-        {
-          continue;//has to skip
-        }
-
-        Log::ParamPrefixedCollector channelWarner(warner, Text::CHANNEL_WARN_PREFIX, std::distance(line.Channels.begin(), channel));
-        for (;;)
-        {
-          const uint_t cmd(data[cur->Offset++]);
-          const std::size_t restbytes = data.Size() - cur->Offset;
-          //ornament==0 and sample==0 are valid - no ornament and no sample respectively
-          //ornament==0 and sample==0 are valid - no ornament and no sample respectively
-          if (cmd <= 0x5f)//note
-          {
-            channel->SetNote(cmd, channelWarner);
-            channel->SetEnabled(true, channelWarner);
-            break;
-          }
-          else if (cmd >= 0x60 && cmd <= 0x6f)//sample
-          {
-            const uint_t num = cmd - 0x60;
-            channel->SetSample(num, channelWarner);
-            Log::Assert(channelWarner, !num || Data->Samples[num].GetSize(), Text::WARNING_INVALID_SAMPLE);
-          }
-          else if (cmd >= 0x70 && cmd <= 0x7f)//ornament
-          {
-            Log::Assert(channelWarner, !channel->FindCommand(ENVELOPE), Text::WARNING_DUPLICATE_ENVELOPE);
-            channel->Commands.push_back(STCTrack::Command(NOENVELOPE));
-            const uint_t num = cmd - 0x70;
-            channel->SetOrnament(num, channelWarner);
-            Log::Assert(channelWarner, !num || Data->Ornaments[num].GetSize(), Text::WARNING_INVALID_ORNAMENT);
-          }
-          else if (cmd == 0x80)//reset
-          {
-            channel->SetEnabled(false, channelWarner);
-            break;
-          }
-          else if (cmd == 0x81)//empty
-          {
-            break;
-          }
-          else if (cmd >= 0x82 && cmd <= 0x8e)//orn 0, without/with envelope
-          {
-            channel->SetOrnament(0, channelWarner);
-            Log::Assert(channelWarner, !channel->FindCommand(ENVELOPE) && !channel->FindCommand(NOENVELOPE),
-              Text::WARNING_DUPLICATE_ENVELOPE);
-            if (cmd == 0x82)
-            {
-              channel->Commands.push_back(STCTrack::Command(NOENVELOPE));
-            }
-            else if (!restbytes)
-            {
-              throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
-            }
-            else
-            {
-              channel->Commands.push_back(STCTrack::Command(ENVELOPE, cmd - 0x80, data[cur->Offset++]));
-            }
-          }
-          else if (cmd < 0xa1 || !restbytes)
-          {
-            throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
-          }
-          else //skip
-          {
-            cur->Period = cmd - 0xa1;
-          }
-        }
-        cur->Counter = cur->Period;
-      }
-    }
   public:
     STCHolder(Plugin::Ptr plugin, const MetaContainer& container, ModuleRegion& region)
       : SrcPlugin(plugin)
@@ -506,61 +610,22 @@ namespace
 
       Log::MessagesCollector::Ptr warner(Log::MessagesCollector::Create());
 
-      Data->ParseSamples(areas, *warner);
-      Data->ParseOrnaments(areas, *warner);
-
-      //parse patterns
-      const STCPattern* const patterns = safe_ptr_cast<const STCPattern*>(&data[areas.GetPatternsOffset()]);
-      std::size_t rawSize(0);
-      Data->Patterns.resize(MAX_PATTERN_COUNT);
-      for (const STCPattern* pattern = patterns; *pattern; ++pattern)
-      {
-        if (!pattern->Number || pattern->Number >= MAX_PATTERN_COUNT)
-        {
-          warner->AddMessage(Text::WARNING_INVALID_PATTERN);
-          continue;
-        }
-        Log::ParamPrefixedCollector patternWarner(*warner, Text::PATTERN_WARN_PREFIX, pattern->Number - 1);
-        STCTrack::Pattern& pat(Data->Patterns[pattern->Number - 1]);
-        AYMPatternCursors cursors;
-        std::transform(pattern->Offsets.begin(), pattern->Offsets.end(), cursors.begin(), &fromLE<uint16_t>);
-        pat.reserve(MAX_PATTERN_SIZE);
-        do
-        {
-          const uint_t patternSize = pat.size();
-          if (patternSize > MAX_PATTERN_SIZE)
-          {
-            throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
-          }
-          Log::ParamPrefixedCollector patLineWarner(patternWarner, Text::LINE_WARN_PREFIX, patternSize);
-          pat.push_back(STCTrack::Line());
-          STCTrack::Line& line(pat.back());
-          ParsePattern(data, cursors, line, patLineWarner);
-          //skip lines
-          if (const uint_t linesToSkip = cursors.GetMinCounter())
-          {
-            cursors.SkipLines(linesToSkip);
-            pat.resize(pat.size() + linesToSkip);//add dummies
-          }
-        }
-        while (0xff != data[cursors.front().Offset] || cursors.front().Counter);
-        Log::Assert(patternWarner, 0 == cursors.GetMaxCounter(), Text::WARNING_PERIODS);
-        Log::Assert(patternWarner, pat.size() <= MAX_PATTERN_SIZE, Text::WARNING_INVALID_PATTERN_SIZE);
-        rawSize = std::max<std::size_t>(rawSize, 1 + cursors.GetMaxOffset());
-      }
-      Data->ParsePositions(areas, *warner);
+      const smpLim = Data->ParseSamples(areas, *warner);
+      const ornLim = Data->ParseOrnaments(areas, *warner);
+      const patLim = Data->ParsePatterns(data, areas, *warner);
+      const posLim = Data->ParsePositions(areas, *warner);
 
       const STCHeader* const header(safe_ptr_cast<const STCHeader*>(data.Data()));
       Data->InitialTempo = header->Tempo;
 
       //fill region
-      region.Size = rawSize;
+      region.Size = std::max(std::max(smpLim, ornLim), std::max(patLim, posLim));
       RawData = region.Extract(*container.Data);
 
       //meta properties
       const ModuleProperties::Ptr props = ModuleProperties::Create(STC_PLUGIN_ID);
       {
-        const ModuleRegion fixedRegion(sizeof(STCHeader), rawSize - sizeof(STCHeader));
+        const ModuleRegion fixedRegion(sizeof(STCHeader), region.Size - sizeof(STCHeader));
         props->SetSource(RawData, fixedRegion);
       }
       props->SetPlugins(container.Plugins);
@@ -943,8 +1008,10 @@ namespace
         return false;
       }
       const uint_t limit = Areas.GetAreaAddress(STCAreas::END);
-      const STCPattern* const patterns = safe_ptr_cast<const STCPattern*>(&Data[GetPatternsOffset()]);
-      for (const STCPattern* pattern = patterns; *pattern; ++pattern)
+      uint_t offset = Areas.GetAreaAddress(STCAreas::PATTERNS);
+      const STCPattern* const patterns = safe_ptr_cast<const STCPattern*>(&Data[offset]);
+      for (const STCPattern* pattern = patterns; *pattern && offset < limit;
+        ++pattern, offset += sizeof(*pattern))
       {
         if (!pattern->Number || pattern->Number >= MAX_PATTERN_COUNT)
         {
