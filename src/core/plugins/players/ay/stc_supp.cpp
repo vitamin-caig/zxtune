@@ -20,6 +20,7 @@ Author:
 #include <error_tools.h>
 #include <logging.h>
 #include <messages_collector.h>
+#include <range_checker.h>
 #include <tools.h>
 //library includes
 #include <core/convert_parameters.h>
@@ -281,88 +282,12 @@ namespace
   typedef TrackingSupport<AYM::CHANNELS, Sample> STCTrack;
   typedef std::vector<int_t> STCTransposition;
 
-  // forward declaration
-  class AreaController
-  {
-    typedef std::map<uint_t, uint_t> AreasMap;
-  public:
-    AreaController()
-    {
-    }
-
-    void AddArea(uint_t id, uint_t offset)
-    {
-      assert(Areas.end() == std::find_if(Areas.begin(), Areas.end(),
-        boost::bind(&AreasMap::value_type::second, _1) == id));
-      Areas.insert(std::make_pair(offset, id));
-    }
-
-    uint_t GetAreaOffset(uint_t id) const
-    {
-      const AreasMap::const_iterator it = FindAreaById(id);
-      assert(it != Areas.end());
-      return it->first;
-    }
-
-    uint_t GetAreaSize(uint_t id) const
-    {
-      const AreasMap::const_iterator it = FindAreaById(id);
-      if (it == Areas.end())
-      {
-        return 0;
-      }
-      AreasMap::const_iterator next = it;
-      ++next;
-      if (next == Areas.end())
-      {
-        return 0;
-      }
-      return next->first - it->first;
-    }
-  private:
-   AreasMap::const_iterator FindAreaById(uint_t id) const
-   {
-     return std::find_if(Areas.begin(), Areas.end(),
-       boost::bind(&AreasMap::value_type::second, _1) == id);
-   }
-  private:
-    AreasMap Areas;
-  };
-
-  template<class T>
-  class Iterator
-  {
-  public:
-    Iterator(const T* from, const T* to)
-      : Cur(from), Lim(to)
-    {
-    }
-
-    bool IsValid() const
-    {
-      return Cur != Lim;
-    }
-
-    const T* Get() const
-    {
-      return Cur;
-    }
-
-    void Next()
-    {
-      ++Cur;
-    }
-  private:
-    const T* Cur;
-    const T* const Lim;
-  };
-
   typedef PatternCursorSet<AYM::CHANNELS> PatternCursors;
 
   class STCAreas
   {
   public:
-    enum
+    enum AreaTypes
     {
       HEADER,
       SAMPLES,
@@ -386,41 +311,41 @@ namespace
       Areas.AddArea(END, data.Size());
     }
 
-    Iterator<STCSample> GetSamples() const
+    RangeIterator<const STCSample*> GetSamples() const
     {
       return GetIterator<STCSample>(SAMPLES);
     }
 
-    Iterator<STCOrnament> GetOrnaments() const
+    RangeIterator<const STCOrnament*> GetOrnaments() const
     {
       return GetIterator<STCOrnament>(ORNAMENTS);
     }
 
-    Iterator<STCPositions::STCPosEntry> GetPositions() const
+    RangeIterator<const STCPositions::STCPosEntry*> GetPositions() const
     {
-      const uint_t offset = Areas.GetAreaOffset(POSITIONS);
+      const uint_t offset = Areas.GetAreaAddress(POSITIONS);
       const STCPositions* const positions = safe_ptr_cast<const STCPositions*>(&Data[offset]);
       const STCPositions::STCPosEntry* const entry = positions->Data;
-      return Iterator<STCPositions::STCPosEntry>(entry, entry + positions->Lenght + 1);
+      return RangeIterator<const STCPositions::STCPosEntry*>(entry, entry + positions->Lenght + 1);
     }
 
     uint_t GetPatternsOffset() const
     {
-      return Areas.GetAreaOffset(PATTERNS);
+      return Areas.GetAreaAddress(PATTERNS);
     }
 
   private:
     template<class T>
-    Iterator<T> GetIterator(uint_t id) const
+    RangeIterator<const T*> GetIterator(AreaTypes id) const
     {
-      const uint_t offset = Areas.GetAreaOffset(id);
+      const uint_t offset = Areas.GetAreaAddress(id);
       const uint_t count = Areas.GetAreaSize(id) / sizeof(T);
       const T* const begin = safe_ptr_cast<const T*>(&Data[offset]);
-      return Iterator<T>(begin, begin + count);
+      return RangeIterator<const T*>(begin, begin + count);
     }
   protected:
     const IO::FastDump& Data;
-    AreaController Areas;
+    AreaController<AreaTypes, uint_t> Areas;
   };
 
   struct STCModuleData : public STCTrack::ModuleData
@@ -436,46 +361,46 @@ namespace
     void ParseSamples(const STCAreas& areas, Log::MessagesCollector& warner)
     {
       Samples.resize(MAX_SAMPLES_COUNT);
-      for (Iterator<STCSample> iter = areas.GetSamples(); iter.IsValid(); iter.Next())
+      for (RangeIterator<const STCSample*> iter = areas.GetSamples(); iter; ++iter)
       {
-        const STCSample* const sample = iter.Get();
-        if (sample->Number >= Samples.size())
+        const STCSample& sample = *iter;
+        if (sample.Number >= Samples.size())
         {
           warner.AddMessage(Text::WARNING_INVALID_SAMPLE);
           continue;
         }
-        Samples[sample->Number] = Sample(*sample);
+        Samples[sample.Number] = Sample(sample);
       }
     }
 
     void ParseOrnaments(const STCAreas& areas, Log::MessagesCollector& warner)
     {
       Ornaments.resize(MAX_ORNAMENTS_COUNT);
-      for (Iterator<STCOrnament> iter = areas.GetOrnaments(); iter.IsValid(); iter.Next())
+      for (RangeIterator<const STCOrnament*> iter = areas.GetOrnaments(); iter; ++iter)
       {
-        const STCOrnament* const ornament = iter.Get();
-        if (ornament->Number >= Ornaments.size())
+        const STCOrnament& ornament = *iter;
+        if (ornament.Number >= Ornaments.size())
         {
           warner.AddMessage(Text::WARNING_INVALID_ORNAMENT);
           continue;
         }
-        Ornaments[ornament->Number] =
-          STCTrack::Ornament(ArraySize(ornament->Data), ornament->Data, ArrayEnd(ornament->Data));
+        Ornaments[ornament.Number] =
+          STCTrack::Ornament(ArraySize(ornament.Data), ornament.Data, ArrayEnd(ornament.Data));
       }
     }
 
     void ParsePositions(const STCAreas& areas, Log::MessagesCollector& warner)
     {
       uint_t positionsCount = 0;
-      for (Iterator<STCPositions::STCPosEntry> iter = areas.GetPositions(); 
-        iter.IsValid(); iter.Next(), ++positionsCount)
+      for (RangeIterator<const STCPositions::STCPosEntry*> iter = areas.GetPositions(); 
+        iter; ++iter, ++positionsCount)
       {
-        const STCPositions::STCPosEntry* const entry = iter.Get();
-        const uint_t pattern = entry->PatternNum - 1;
+        const STCPositions::STCPosEntry& entry = *iter;
+        const uint_t pattern = entry.PatternNum - 1;
         if (pattern < MAX_PATTERN_COUNT && !Patterns[pattern].empty())
         {
           Positions.push_back(pattern);
-          Transpositions.push_back(entry->PatternHeight);
+          Transpositions.push_back(entry.PatternHeight);
         }
       }
       Log::Assert(warner, Positions.size() == positionsCount, Text::WARNING_INVALID_POSITIONS);
@@ -1005,7 +930,7 @@ namespace
       {
         return false;
       }
-      const uint_t offset = Areas.GetAreaOffset(STCAreas::POSITIONS);
+      const uint_t offset = Areas.GetAreaAddress(STCAreas::POSITIONS);
       const STCPositions* const positions = safe_ptr_cast<const STCPositions*>(&Data[offset]);
       return 0 == (size - 1) % sizeof(STCPositions::STCPosEntry) &&
              positions->Lenght == (size - 1) / sizeof(STCPositions::STCPosEntry) - 1;
@@ -1017,7 +942,7 @@ namespace
       {
         return false;
       }
-      const uint_t limit = Areas.GetAreaOffset(STCAreas::END);
+      const uint_t limit = Areas.GetAreaAddress(STCAreas::END);
       const STCPattern* const patterns = safe_ptr_cast<const STCPattern*>(&Data[GetPatternsOffset()]);
       for (const STCPattern* pattern = patterns; *pattern; ++pattern)
       {

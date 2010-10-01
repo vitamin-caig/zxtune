@@ -12,7 +12,6 @@
 
 //std includes
 #include <algorithm>
-#include <iterator>
 //boost includes
 #include <boost/static_assert.hpp>
 #include <boost/mpl/if.hpp>
@@ -63,85 +62,6 @@ inline T safe_ptr_cast(F from)
   typedef typename mpl::if_c<is_const<typename remove_pointer<T>::type>::value, const void*, void*>::type MidType;
   return static_cast<T>(static_cast<MidType>(from));
 }
-
-//! @brief Cycled iterator implementation
-//! @code
-//! std::vector<T> values;
-//! //.. fill values
-//! cycled_iterator<T*> ptr_iterator(&values.front(), &values.back() + 1);
-//! cycled_iterator<std::vector<T>::const_iterator> it_iterator(values.begin(), values.end());
-//! @endcode
-//! @invariant Distance between input iterators is more than 1
-template<class C>
-class cycled_iterator
-{
-public:
-  cycled_iterator() : begin(), end(), cur()
-  {
-  }
-
-  cycled_iterator(C start, C stop) : begin(start), end(stop), cur(start)
-  {
-    assert(std::distance(begin, end) > 0);
-  }
-
-  cycled_iterator(const cycled_iterator<C>& rh) : begin(rh.begin), end(rh.end), cur(rh.cur)
-  {
-    assert(std::distance(begin, end) > 0);
-  }
-
-  const cycled_iterator<C>& operator = (const cycled_iterator<C>& rh)
-  {
-    begin = rh.begin;
-    end = rh.end;
-    cur = rh.cur;
-    assert(std::distance(begin, end) > 0);
-    return *this;
-  }
-
-  bool operator == (const cycled_iterator<C>& rh) const
-  {
-    return begin == rh.begin && end == rh.end && cur == rh.cur;
-  }
-
-  bool operator != (const cycled_iterator<C>& rh) const
-  {
-    return !(*this == rh);
-  }
-
-  cycled_iterator<C>& operator ++ ()
-  {
-    if (end == ++cur)
-    {
-      cur = begin;
-    }
-    return *this;
-  }
-
-  cycled_iterator<C>& operator -- ()
-  {
-    if (begin == cur)
-    {
-      cur = end;
-    }
-    --cur;
-    return *this;
-  }
-
-  typename std::iterator_traits<C>::reference operator * () const
-  {
-    return *cur;
-  }
-
-  typename std::iterator_traits<C>::pointer operator ->() const
-  {
-    return &*cur;
-  }
-private:
-  C begin;
-  C end;
-  C cur;
-};
 
 //! @brief Clamping value into specified range
 template<class T>

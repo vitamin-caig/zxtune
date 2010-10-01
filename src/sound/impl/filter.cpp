@@ -12,8 +12,9 @@ Author:
 //local includes
 #include "internal_types.h"
 //common includes
-#include <tools.h>
 #include <error_tools.h>
+#include <iterator.h>
+#include <tools.h>
 //library includes
 #include <sound/error_codes.h>
 #include <sound/filter.h>
@@ -209,7 +210,7 @@ namespace
         //reset
         History.clear();
         History.resize(order);
-        Position = cycled_iterator<MultiIntSample*>(&History[0], &History.back() + 1);
+        Position = CycledIterator<MultiIntSample*>(&History[0], &History.back() + 1);
         return Error();
       }
       catch (const Error& e)
@@ -221,7 +222,7 @@ namespace
     MatrixType Matrix;
     Receiver::Ptr Delegate;
     std::vector<MultiIntSample> History;
-    cycled_iterator<MultiIntSample*> Position;
+    CycledIterator<MultiIntSample*> Position;
     Integrator<IntSample> Midval;
   };
 }

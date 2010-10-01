@@ -305,7 +305,7 @@ namespace
         Device = newDevice;
         // buffers count changed
         Buffers.resize(static_cast<std::size_t>(newBuffers));
-        CurrentBuffer = cycled_iterator<WaveBuffer*>(&Buffers.front(), &Buffers.back() + 1);
+        CurrentBuffer = CycledIterator<WaveBuffer*>(&Buffers.front(), &Buffers.back() + 1);
 
         if (needStartup)
         {
@@ -354,7 +354,7 @@ namespace
     }
   private:
     std::vector<WaveBuffer> Buffers;
-    cycled_iterator<WaveBuffer*> CurrentBuffer;
+    CycledIterator<WaveBuffer*> CurrentBuffer;
     ::HANDLE Event;
     int_t Device;
     ::HWAVEOUT WaveHandle;
