@@ -230,7 +230,7 @@ namespace
       format.callback = OnBuffer;
       format.userdata = this;
       Buffers.resize(BuffersCount);
-      FillIter = cycled_iterator<Buffer*>(&Buffers.front(), &Buffers.back() + 1);
+      FillIter = CycledIterator<Buffer*>(&Buffers.front(), &Buffers.back() + 1);
       PlayIter = FillIter;
       CheckCall(::SDL_OpenAudio(&format, 0) >= 0, THIS_LINE);
       ::SDL_PauseAudio(0);
@@ -276,7 +276,7 @@ namespace
     };
     uint_t BuffersCount;
     std::vector<Buffer> Buffers;
-    cycled_iterator<Buffer*> FillIter, PlayIter;
+    CycledIterator<Buffer*> FillIter, PlayIter;
   };
 
   class SDLBackendCreator : public BackendCreator

@@ -329,7 +329,7 @@ namespace
     String DeviceName;
     AutoDescriptor DevHandle;
     boost::array<std::vector<MultiSample>, 2> Buffers;
-    cycled_iterator<std::vector<MultiSample>*> CurrentBuffer;
+    CycledIterator<std::vector<MultiSample>*> CurrentBuffer;
     VolumeControl::Ptr VolumeController;
   };
 
