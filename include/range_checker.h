@@ -45,6 +45,23 @@ public:
   static Ptr CreateShared(std::size_t limit);
 };
 
+//! @brief Simple area checker template implementation. Indented for correct format detection
+//! @code
+//! enum Areas
+//! {
+//!   HEADER,
+//!   CONTENT,
+//!   END
+//! };
+//!
+//! AreaController<Areas, 1 + Areas::END> controller;
+//! controller.AddArea(HEADER, 0);
+//! controller.AddArea(CONTENT, 10);
+//! controller.AddArea(END, 20);
+//! assert(0 == controller.GetAreaAddress(HEADER));
+//! assert(10 == controller.GetAreaSize(HEADER));
+//! assert(0 == controller.GetAreaSize(END));
+//! @endcode
 template<class KeyType, std::size_t AreasCount, class AddrType = std::size_t>
 class AreaController
 {
@@ -103,6 +120,5 @@ private:
 private:
   Area2AddrMap Areas;
 };
-
 
 #endif //__RANGE_CHECKER_H_DEFINED__

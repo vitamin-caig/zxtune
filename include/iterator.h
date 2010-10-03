@@ -83,6 +83,16 @@ private:
   C Cur;
 };
 
+//! @brief Range iterator implementation
+//! @code
+//! for (RangeIterator<const T*> iter = ...; iter; ++iter)
+//! {
+//!   ...
+//!   iter->...
+//!   ...
+//!   ... = *iter
+//! }
+//! @endcode
 template<class C>
 class RangeIterator
 {

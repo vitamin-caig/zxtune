@@ -16,6 +16,7 @@
 
 namespace Parameters
 {
+  //! @brief Parameters::Accessor adapter to FieldsSource (@see StringTemplate)
   template<class Policy = SkipFieldsSource>
   class FieldsSourceAdapter : public Policy
   {
