@@ -251,16 +251,17 @@ namespace
 
     virtual void OnParametersChanged(const Parameters::Accessor& updates)
     {
-      const OSSBackendParameters prevParams(*CommonParameters);
       const OSSBackendParameters curParams(updates);
 
       //check for parameters requires restarting
       const String& newDevice = curParams.GetDeviceName();
       const String& newMixer = curParams.GetMixerName();
       const uint_t newFreq = curParams.GetFrequency();
-      if (newDevice != prevParams.GetDeviceName() ||
-          newMixer != prevParams.GetMixerName() ||
-          newFreq != prevParams.GetFrequency())
+
+      const bool deviceChanged = newDevice != DeviceName;
+      const bool mixerChanged = newMixer != MixerName;
+      const bool freqChanged = newFreq != RenderingParameters.SoundFreq;
+      if (deviceChanged || mixerChanged || freqChanged)
       {
         Locker lock(BackendMutex);
         const bool needStartup(-1 != DevHandle.Get());

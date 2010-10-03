@@ -288,15 +288,17 @@ namespace
 
     virtual void OnParametersChanged(const Parameters::Accessor& updates)
     {
-      const Win32BackendParameters prevParams(*CommonParameters);
       const Win32BackendParameters newParams(updates);
+
+      // own parameters and sound frequency affects this backend
       const int_t newDevice = newParams.GetDevice();
       const uint_t newBuffers = newParams.GetBuffers();
       const uint_t newFreq = newParams.GetFrequency();
-      // own parameters and sound frequency affects this backend
-      if (newDevice != prevParams.GetDevice() ||
-          newBuffers != prevParams.GetBuffers() ||
-          newFreq != prevParams.GetFrequency())
+
+      const bool deviceChanged = newDevice != DeviceName;
+      const bool buffersChanged = newBuffers != Buffers;
+      const bool freqChanged = newFreq != RenderingParameters.SoundFreq;
+      if (deviceChanged || buffersChanged || freqChanged)
       {
         Locker lock(BackendMutex);
         const bool needStartup = 0 != WaveHandle;

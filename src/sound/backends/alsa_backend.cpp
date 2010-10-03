@@ -428,7 +428,6 @@ namespace
 
     virtual void OnParametersChanged(const Parameters::Accessor& updates)
     {
-      const AlsaBackendParameters prevParams(*CommonParameters);
       const AlsaBackendParameters curParams(updates);
 
       //check for parameters requires restarting
@@ -436,10 +435,12 @@ namespace
       const String& newMixer = curParams.GetMixerName();
       const uint_t newBuffers = curParams.GetBuffersCount();
       const uint_t newFreq = curParams.GetFrequency();
-      if (newDevice != prevParams.GetDeviceName() ||
-          newMixer != prevParams.GetMixerName() ||
-          newBuffers != prevParams.GetBuffersCount() ||
-          newFreq != prevParams.GetFrequency())
+
+      const bool deviceChanged = newDevice != DeviceName;
+      const bool mixerChanged = newMixer != MixerName;
+      const bool buffersChanged = newBuffers != Buffers;
+      const bool freqChanged = newFreq != RenderingParameters.SoundFreq;
+      if (deviceChanged || mixerChanged || buffersChanged || freqChanged)
       {
         Locker lock(BackendMutex);
         const bool needStartup(DevHandle.Get() != 0);
@@ -507,7 +508,7 @@ namespace
       tmpDevice.CheckedCall(&::snd_pcm_hw_params_set_format, hwParams, fmt, THIS_LINE);
       Log::Debug(THIS_MODULE, "Setting channels");
       tmpDevice.CheckedCall(&::snd_pcm_hw_params_set_channels, hwParams, unsigned(OUTPUT_CHANNELS), THIS_LINE);
-      Log::Debug(THIS_MODULE, "Setting frequency");
+      Log::Debug(THIS_MODULE, "Setting frequency to %1%", RenderingParameters.SoundFreq);
       tmpDevice.CheckedCall(&::snd_pcm_hw_params_set_rate, hwParams, unsigned(RenderingParameters.SoundFreq), 0, THIS_LINE);
       Log::Debug(THIS_MODULE, "Setting buffers count to %1%", Buffers);
       int dir = 0;

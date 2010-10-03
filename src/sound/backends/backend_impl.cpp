@@ -106,14 +106,6 @@ namespace
     mutable boost::mutex Mutex;
   };
 
-  void CopyInitialParameters(const RenderParameters& renderParams, Parameters::Modifier& commonParams)
-  {
-    commonParams.SetIntValue(Parameters::ZXTune::Sound::FREQUENCY, renderParams.SoundFreq);
-    commonParams.SetIntValue(Parameters::ZXTune::Sound::CLOCKRATE, renderParams.ClockFreq);
-    commonParams.SetIntValue(Parameters::ZXTune::Sound::FRAMEDURATION, renderParams.FrameDurationMicrosec);
-    commonParams.SetIntValue(Parameters::ZXTune::Sound::LOOPMODE, renderParams.Looping);
-  }
-
   void UpdateRenderParameters(const Parameters::Accessor& params, RenderParameters& renderParams)
   {
     Parameters::IntType intVal = 0;
@@ -175,14 +167,14 @@ namespace ZXTune
   namespace Sound
   {
     BackendImpl::BackendImpl()
-      : CommonParameters(Parameters::Container::Create())
+      : RenderingParameters()
+      , Player()
       , Signaller(SignalsDispatcher::Create())
       , SyncBarrier(TOTAL_WORKING_THREADS)
       , CurrentState(Backend::NOTOPENED), InProcess(false)
       , Channels(0), Renderer(new BufferRenderer(Buffer))
     {
       MixersSet.resize(MAX_MIXERS_COUNT);
-      CopyInitialParameters(RenderingParameters, *CommonParameters);
     }
 
     BackendImpl::~BackendImpl()
@@ -415,13 +407,8 @@ namespace ZXTune
     {
       try
       {
-        Parameters::Container::Ptr newContainer = Parameters::Container::Create();
-        params.Process(*newContainer);
-        CommonParameters->Process(*newContainer);
-        UpdateRenderParameters(*newContainer, RenderingParameters);
-        OnParametersChanged(*newContainer);
-        //merge result back
-        CommonParameters = newContainer;
+        OnParametersChanged(params);
+        UpdateRenderParameters(params, RenderingParameters);
       }
       catch (const Error& e)
       {

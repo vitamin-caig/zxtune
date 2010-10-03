@@ -25,8 +25,22 @@ namespace ZXTune
 {
   namespace Sound
   {
+    class BackendWorker
+    {
+    public:
+      virtual ~BackendWorker() {}
+
+      virtual void OnStartup() = 0;
+      virtual void OnShutdown() = 0;
+      virtual void OnPause() = 0;
+      virtual void OnResume() = 0;
+      virtual void OnParametersChanged(const Parameters::Accessor& newParams) = 0;
+      virtual void OnBufferReady(std::vector<MultiSample>& buffer) = 0;
+      virtual bool OnRenderFrame() = 0;
+    };
+
     // Internal implementation for backend
-    class BackendImpl
+    class BackendImpl : public BackendWorker
     {
     public:
       BackendImpl();
@@ -50,13 +64,6 @@ namespace ZXTune
 
       void SetParameters(const Parameters::Accessor& params);
     protected:
-      //internal usage functions. Should not call external interface funcs due to sync
-      virtual void OnStartup() = 0;
-      virtual void OnShutdown() = 0;
-      virtual void OnPause() = 0;
-      virtual void OnResume() = 0;
-      virtual void OnParametersChanged(const Parameters::Accessor& newParams) = 0;
-      virtual void OnBufferReady(std::vector<MultiSample>& buffer) = 0;
       virtual bool OnRenderFrame();
     private:
       void DoStartup();
@@ -72,7 +79,6 @@ namespace ZXTune
       void SendSignal(uint_t sig);
     protected:
       //inheritances' context
-      Parameters::Container::Ptr CommonParameters;
       RenderParameters RenderingParameters;
       Module::Player::Ptr Player;
     protected:

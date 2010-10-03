@@ -158,14 +158,14 @@ namespace
 
     virtual void OnParametersChanged(const Parameters::Accessor& updates)
     {
-      const SDLBackendParameters prevParams(*CommonParameters);
       const SDLBackendParameters curParams(updates);
-
       //check for parameters requires restarting
       const uint_t newBuffers = curParams.GetBuffersCount();
       const uint_t newFreq = curParams.GetFrequency();
-      if (newBuffers != prevParams.GetBuffersCount() ||
-          newFreq != prevParams.GetFrequency())
+
+      const bool buffersChanged = newBuffers != Buffers;
+      const bool freqChanged = newFreq != RenderingParameters.SoundFreq;
+      if (buffersChanged || freqChanged)
       {
         Locker lock(BackendMutex);
         const bool needStartup = SDL_AUDIO_STOPPED != ::SDL_GetAudioStatus();

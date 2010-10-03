@@ -222,7 +222,7 @@ namespace
       : State(state)
     {
     }
-    
+
     String GetFieldValue(const String& fieldName) const
     {
       if (fieldName == Module::ATTR_CURRENT_POSITION)
@@ -347,9 +347,8 @@ namespace
   class ComplexTrackProcessor : public TrackProcessor
   {
   public:
-    ComplexTrackProcessor(const Parameters::Accessor& commonParams, const RenderParameters& soundParams, const Module::Information& info)
+    ComplexTrackProcessor(const WavBackendParameters& backendParameters, const RenderParameters& soundParams, const Module::Information& info)
     {
-      const WavBackendParameters backendParameters(commonParams);
       //acquire name template
       const String nameTemplate = backendParameters.GetFilenameTemplate();
       Log::Debug(THIS_MODULE, "Original filename template: '%1%'", nameTemplate);
@@ -391,6 +390,10 @@ namespace
                    , private boost::noncopyable
   {
   public:
+    WAVBackend()
+      : BackendParams(Parameters::Container::Create())
+    {
+    }
     virtual ~WAVBackend()
     {
       assert(!Processor.get() || !"FileBackend::Stop should be called before exit");
@@ -410,7 +413,8 @@ namespace
       if (Player)
       {
         const Module::Information::Ptr info = Player->GetInformation();
-        Processor.reset(new ComplexTrackProcessor(*CommonParameters, RenderingParameters, *info));
+        const WavBackendParameters backendParameters(*BackendParams);
+        Processor.reset(new ComplexTrackProcessor(backendParameters, RenderingParameters, *info));
         State = Player->GetTrackState();
       }
     }
@@ -428,13 +432,14 @@ namespace
     {
     }
 
-    virtual void OnParametersChanged(const Parameters::Accessor& /*params*/)
+    virtual void OnParametersChanged(const Parameters::Accessor& params)
     {
       if (Processor.get())
       {
         // changing any of the properties 'on fly' is not supported
         throw Error(THIS_LINE, BACKEND_INVALID_PARAMETER, Text::SOUND_ERROR_BACKEND_INVALID_STATE);
       }
+      params.Process(*BackendParams);
     }
 
     virtual bool OnRenderFrame()
@@ -455,6 +460,7 @@ namespace
 #endif
     }
   private:
+    const Parameters::Container::Ptr BackendParams;
     TrackProcessor::Ptr Processor;
     Module::TrackState::Ptr State;
 #ifdef BOOST_BIG_ENDIAN
