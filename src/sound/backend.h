@@ -44,9 +44,6 @@ namespace ZXTune
       virtual uint_t Capabilities() const = 0;
     };
 
-    //! @brief Set of backend descriptors
-    typedef std::vector<BackendInformation> BackendInformationArray;
-
     //! @brief Volume control interface
     class VolumeControl
     {
@@ -77,7 +74,7 @@ namespace ZXTune
       virtual ~Backend() {}
 
       //! @brief Retrieving backend information
-      virtual const BackendInformation& GetInformation() const = 0;
+      virtual BackendInformation::Ptr GetInformation() const = 0;
 
       //! @brief Binding module to backend
       //! @param holder Specified module
@@ -171,11 +168,6 @@ namespace ZXTune
       //! @brief Getting volume controller
       //! @return Pointer to volume control object if supported, empty pointer if not
       virtual VolumeControl::Ptr GetVolumeControl() const = 0;
-
-      //! @brief Setting parameters backend and player
-      //! @param params Specified parameters map
-      //! @return Error() in case of success
-      virtual Error SetParameters(const Parameters::Accessor& params) = 0;
     };
 
     //! @brief Backend creator interface

@@ -207,15 +207,17 @@ namespace ZXTune
         else
         {
           Log::Debug(THIS_MODULE, "Opening the holder");
-          const uint_t physicalChannels = holder->GetModuleInformation()->PhysicalChannels();
+          const Module::Information::Ptr info = holder->GetModuleInformation();
+          const uint_t physicalChannels = info->PhysicalChannels();
           CheckChannels(physicalChannels);
 
           Locker lock(PlayerMutex);
           {
             Log::Debug(THIS_MODULE, "Creating the player");
             Module::Player::Ptr tmpPlayer(new SafePlayerWrapper(holder->CreatePlayer()));
-            ThrowIfError(tmpPlayer->SetParameters(*CommonParameters));
             StopPlayback();
+            const Parameters::Accessor::Ptr newParams = info->Properties();
+            SetParameters(*newParams);
             Player = tmpPlayer;
           }
           Channels = physicalChannels;
@@ -409,27 +411,21 @@ namespace ZXTune
       }
     }
 
-    Error BackendImpl::SetParameters(const Parameters::Accessor& params)
+    void BackendImpl::SetParameters(const Parameters::Accessor& params)
     {
       try
       {
-        Locker lock(PlayerMutex);
         Parameters::Container::Ptr newContainer = Parameters::Container::Create();
         params.Process(*newContainer);
         CommonParameters->Process(*newContainer);
         UpdateRenderParameters(*newContainer, RenderingParameters);
         OnParametersChanged(*newContainer);
-        if (Player)
-        {
-          ThrowIfError(Player->SetParameters(*newContainer));
-        }
         //merge result back
         CommonParameters = newContainer;
-        return Error();
       }
       catch (const Error& e)
       {
-        return Error(THIS_LINE, BACKEND_SETUP_ERROR, Text::SOUND_ERROR_BACKEND_SETUP_BACKEND).AddSuberror(e);
+        throw Error(THIS_LINE, BACKEND_SETUP_ERROR, Text::SOUND_ERROR_BACKEND_SETUP_BACKEND).AddSuberror(e);
       }
     }
 

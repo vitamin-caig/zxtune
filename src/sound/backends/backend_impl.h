@@ -47,8 +47,8 @@ namespace ZXTune
 
       Error SetMixer(const std::vector<MultiGain>& data);
       Error SetFilter(Converter::Ptr converter);
-      //volume control should be implemented explicitly
-      Error SetParameters(const Parameters::Accessor& params);
+
+      void SetParameters(const Parameters::Accessor& params);
     protected:
       //internal usage functions. Should not call external interface funcs due to sync
       virtual void OnStartup() = 0;

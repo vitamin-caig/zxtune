@@ -32,7 +32,7 @@ namespace ZXTune
         , Delegate(new Impl())
       {
         //apply parameters to delegate
-        ThrowIfError(Delegate->SetParameters(params));
+        Delegate->SetParameters(params);
         //perform fast test to detect if parameters are correct
         Delegate->OnStartup();
         Delegate->OnShutdown();
@@ -62,9 +62,9 @@ namespace ZXTune
         Delegate->Stop();//TODO: warn if error
       }
 
-      virtual const BackendInformation& GetInformation() const
+      virtual BackendInformation::Ptr GetInformation() const
       {
-        return *Information;
+        return Information;
       }
 
       virtual Error SetModule(Module::Holder::Ptr holder)
@@ -121,12 +121,6 @@ namespace ZXTune
       {
         return Delegate->GetVolumeControl();
       }
-
-      virtual Error SetParameters(const Parameters::Accessor& params)
-      {
-        return Delegate->SetParameters(params);
-      }
-
     private:
       const BackendInformation::Ptr Information;
       boost::scoped_ptr<Impl> Delegate;
