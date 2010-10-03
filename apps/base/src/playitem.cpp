@@ -143,6 +143,7 @@ namespace
       : Delegate(delegate)
       , PlayerProps(playerProps)
     {
+      Delegate->SetParameters(*PlayerProps);
     }
 
     virtual Module::Information::Ptr GetInformation() const

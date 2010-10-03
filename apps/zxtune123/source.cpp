@@ -142,46 +142,6 @@ namespace
     caps = tmpCaps;
   }
 
-  Error FormModule(const String& path, const String& subpath, const ZXTune::Module::Holder::Ptr& module,
-    const OnItemCallback& callback)
-  {
-    try
-    {
-      const Parameters::Accessor::Ptr pathProps = CreatePathProperties(path, subpath);
-      const ZXTune::Module::Holder::Ptr holder = CreateMixinPropertiesModule(module, pathProps, pathProps);
-      return callback(holder) ? Error() : Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
-    }
-    catch (const Error& e)
-    {
-      return e;
-    }
-  }
-
-  Error ProcessModuleItems(const StringArray& files,
-    const Parameters::Accessor& coreParams, const Parameters::Accessor& ioParams,
-    const ZXTune::DetectParameters::FilterFunc& filter,
-    const ZXTune::DetectParameters::LogFunc& logger, const OnItemCallback& callback)
-  {
-    for (StringArray::const_iterator it = files.begin(), lim = files.end(); it != lim; ++it)
-    {
-      ZXTune::IO::DataContainer::Ptr data;
-      String subpath;
-      if (const Error& e = ZXTune::IO::OpenData(*it, ioParams, 0, data, subpath))
-      {
-        return e;
-      }
-      ZXTune::DetectParameters detectParams;
-      detectParams.Filter = filter;
-      detectParams.Logger = logger;
-      detectParams.Callback = boost::bind(&FormModule, *it, _1, _2, callback);
-      if (const Error& e = ZXTune::DetectModules(coreParams, detectParams, data, subpath))
-      {
-        return e;
-      }
-    }
-    return Error();
-  }
-
   class Source : public SourceComponent
   {
   public:
@@ -251,10 +211,20 @@ namespace
     {
       assert(callback);
       const bool hasFilter(!EnabledPlugins.empty() || !DisabledPlugins.empty() || 0 != EnabledCaps || 0 != DisabledCaps);
-      ThrowIfError(ProcessModuleItems(Files, *CoreParams, *IOParams,
-        hasFilter ? boost::bind(&Source::DoFilter, this, _1) : ZXTune::DetectParameters::FilterFunc(),
-        ShowProgress ? DoLog : 0,
-        callback));
+      ZXTune::DetectParameters detectParams;
+      detectParams.Filter = hasFilter
+        ? boost::bind(&Source::DoFilter, this, _1)
+        : ZXTune::DetectParameters::FilterFunc();
+      detectParams.Logger = ShowProgress ? &DoLog : 0;
+
+      for (StringArray::const_iterator it = Files.begin(), lim = Files.end(); it != lim; ++it)
+      {
+        ZXTune::IO::DataContainer::Ptr data;
+        String subpath;
+        ThrowIfError(ZXTune::IO::OpenData(*it, *IOParams, 0, data, subpath));
+        detectParams.Callback = boost::bind(&Source::FormModule, this, *it, _1, _2, callback);
+        ThrowIfError(ZXTune::DetectModules(*CoreParams, detectParams, data, subpath));
+      }
     }
 
     virtual const Parameters::Accessor& GetCoreOptions() const
@@ -262,7 +232,7 @@ namespace
       return *CoreParams;
     }
   private:
-    bool DoFilter(const ZXTune::Plugin& plugin)
+    bool DoFilter(const ZXTune::Plugin& plugin) const
     {
       const String& id = plugin.Id();
       const uint_t caps = plugin.Capabilities();
@@ -278,6 +248,22 @@ namespace
       }
       //enable all if there're no explicit enables
       return !(EnabledPlugins.empty() && !EnabledCaps);
+    }
+
+    Error FormModule(const String& path, const String& subpath, const ZXTune::Module::Holder::Ptr& module,
+      const OnItemCallback& callback) const
+    {
+      try
+      {
+        const Parameters::Accessor::Ptr pathProps = CreatePathProperties(path, subpath);
+        const Parameters::Accessor::Ptr mixinProps = Parameters::CreateMergedAccessor(pathProps, CoreParams);
+        const ZXTune::Module::Holder::Ptr holder = CreateMixinPropertiesModule(module, mixinProps, mixinProps);
+        return callback(holder) ? Error() : Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
+      }
+      catch (const Error& e)
+      {
+        return e;
+      }
     }
   private:
     Parameters::Accessor::Ptr IOParams;
