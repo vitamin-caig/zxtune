@@ -398,7 +398,7 @@ namespace
     }
   protected:
     const IO::FastDump& Data;
-    AreaController<AreaTypes, uint_t> Areas;
+    AreaController<AreaTypes, 1 + END, uint_t> Areas;
   };
 
   struct STCModuleData : public STCTrack::ModuleData

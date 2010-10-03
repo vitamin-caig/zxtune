@@ -14,8 +14,9 @@
 #include <algorithm>
 #include <cassert>
 #include <memory>
-#include <set>
 #include <utility>
+//boost includes
+#include <boost/array.hpp>
 
 //! @brief Memory ranges checker interface. Intented for correct format detection
 class RangeChecker
@@ -44,78 +45,64 @@ public:
   static Ptr CreateShared(std::size_t limit);
 };
 
-template<class KeyType, class AddrType = std::size_t>
+template<class KeyType, std::size_t AreasCount, class AddrType = std::size_t>
 class AreaController
 {
-  struct EntryType
+  enum
   {
-    EntryType()
-      : Key(), Addr()
-    {
-    }
-
-    EntryType(KeyType key, AddrType addr)
-      : Key(key), Addr(addr)
-    {
-    }
-
-    bool operator < (const EntryType& rh) const
-    {
-      return Addr < rh.Addr;
-    }
-
-    bool operator == (KeyType key) const
-    {
-      return Key == key;
-    }
-
-    KeyType Key;
-    AddrType Addr;
+    NoArea = ~AddrType(0)
   };
-  typedef std::set<EntryType> EntrySet;
+  typedef boost::array<AddrType, AreasCount> Area2AddrMap;
 public:
   AreaController()
   {
+    Areas.assign(NoArea);
   }
 
   void AddArea(KeyType key, AddrType addr)
   {
-    assert(Areas.end() == std::find(Areas.begin(), Areas.end(), key));
-    Areas.insert(EntryType(key, addr));
+    assert(NoArea == Areas[key]);
+    Areas[key] = addr;
   }
 
   AddrType GetAreaAddress(KeyType key) const
   {
-    const typename EntrySet::const_iterator it = FindAreaByKey(key);
-    assert(it != Areas.end());
-    return it->Addr;
+    const AddrType res = Areas[key];
+    assert(NoArea != res);
+    return res;
   }
 
   AddrType GetAreaSize(KeyType key) const
   {
-    const typename EntrySet::const_iterator it = FindAreaByKey(key);
-    if (it == Areas.end())
+    const AddrType begin = Areas[key];
+    if (NoArea == begin)
     {
       //no such area
       return 0;
     }
-    typename EntrySet::const_iterator next = it;
-    ++next;
-    if (next == Areas.end())
-    {
-      //last area- unknown size
-      return 0;
-    }
-    return next->Addr - it->Addr;
+    return FindSize(begin);
   }
-  private:
-   typename EntrySet::const_iterator FindAreaByKey(KeyType key) const
-   {
-     return std::find(Areas.begin(), Areas.end(), key);
-   }
-  private:
-    EntrySet Areas;
-  };
+private:
+  AddrType FindSize(AddrType addr) const
+  {
+    AddrType res = 0;
+    for (typename Area2AddrMap::const_iterator it = Areas.begin(), lim = Areas.end(); it != lim; ++it)
+    {
+      if (*it <= addr || NoArea == *it)
+      {
+        continue;
+      }
+      const AddrType size = *it - addr;
+      if (!res || res > size)
+      {
+        res = size;
+      }
+    }
+    return res;
+  }
+private:
+  Area2AddrMap Areas;
+};
 
 
 #endif //__RANGE_CHECKER_H_DEFINED__
