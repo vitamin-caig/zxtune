@@ -26,6 +26,10 @@ namespace
     StringTemplateImpl(const String& templ, Char beginMark, Char endMark)
       : BeginMark(beginMark), EndMark(endMark)
     {
+      const std::size_t fieldsAvg = std::count(templ.begin(), templ.end(), beginMark);
+      FixedStrings.reserve(fieldsAvg);
+      Fields.reserve(fieldsAvg);
+      Entries.reserve(fieldsAvg * 2);
       ParseTemplate(templ);
     }
 

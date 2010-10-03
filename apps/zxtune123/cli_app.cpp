@@ -99,7 +99,8 @@ namespace
       {
         throw Error(THIS_LINE, CONVERT_PARAMETERS, Text::CONVERT_ERROR_NO_MODE);
       }
-      if (!params.FindStringValue(Text::CONVERSION_PARAM_FILENAME, NameTemplate))
+      String nameTemplate;
+      if (!params.FindStringValue(Text::CONVERSION_PARAM_FILENAME, nameTemplate))
       {
         throw Error(THIS_LINE, CONVERT_PARAMETERS, Text::CONVERT_ERROR_NO_FILENAME);
       }
@@ -127,6 +128,7 @@ namespace
       {
         throw Error(THIS_LINE, CONVERT_PARAMETERS, Text::CONVERT_ERROR_INVALID_MODE);
       }
+      FileNameTemplate = StringTemplate::Create(nameTemplate);
     }
     bool ProcessItem(ZXTune::Module::Holder::Ptr holder) const
     {
@@ -144,7 +146,7 @@ namespace
       Dump result;
       ThrowIfError(holder->Convert(*ConversionParameter, result));
       //prepare result filename
-      const String& filename = InstantiateTemplate(NameTemplate, ModuleFieldsSource(*info->Properties()));
+      const String& filename = FileNameTemplate->Instantiate(ModuleFieldsSource(*info->Properties()));
       std::ofstream file(filename.c_str(), std::ios::binary);
       file.write(safe_ptr_cast<const char*>(&result[0]), static_cast<std::streamsize>(result.size() * sizeof(result.front())));
       if (!file)
@@ -159,7 +161,7 @@ namespace
     DisplayComponent& Display;
     std::auto_ptr<ZXTune::Module::Conversion::Parameter> ConversionParameter;
     uint_t CapabilityMask;
-    String NameTemplate;
+    StringTemplate::Ptr FileNameTemplate;
   };
 
   class CLIApplication : public Application

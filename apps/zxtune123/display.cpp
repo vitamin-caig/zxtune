@@ -77,6 +77,7 @@ namespace
       , Quiet(false)
       , ShowAnalyze(false)
       , Updatefps(10)
+      , InformationTemplate(StringTemplate::Create(Text::ITEM_INFO))
       , ScrSize(Console::Self().GetSize())
       , TotalFrames(0)
       , FrameDuration(0)
@@ -126,7 +127,7 @@ namespace
 #if 1
       StdOut
         << std::endl
-        << InstantiateTemplate(Text::ITEM_INFO, Parameters::FieldsSourceAdapter<FillFieldsSource>(*info->Properties()))
+        << InformationTemplate->Instantiate(Parameters::FieldsSourceAdapter<FillFieldsSource>(*info->Properties()))
         << (Formatter(Text::ITEM_INFO_ADDON) % FormatTime(info->FramesCount(), frameDuration) %
           info->LogicalChannels() % info->PhysicalChannels()).str();
 #else
@@ -231,6 +232,7 @@ namespace
     bool Quiet;
     bool ShowAnalyze;
     uint_t Updatefps;
+    const StringTemplate::Ptr InformationTemplate;
     //context
     Console::SizeType ScrSize;
     uint_t TotalFrames;
