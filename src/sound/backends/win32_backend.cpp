@@ -295,8 +295,8 @@ namespace
       const uint_t newBuffers = newParams.GetBuffers();
       const uint_t newFreq = newParams.GetFrequency();
 
-      const bool deviceChanged = newDevice != DeviceName;
-      const bool buffersChanged = newBuffers != Buffers;
+      const bool deviceChanged = newDevice != Device;
+      const bool buffersChanged = newBuffers != Buffers.size();
       const bool freqChanged = newFreq != RenderingParameters.SoundFreq;
       if (deviceChanged || buffersChanged || freqChanged)
       {
