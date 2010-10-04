@@ -1,5 +1,6 @@
 #include <byteorder.h>
 #include <template.h>
+#include <template_tools.h>
 #include <parameters.h>
 #include <range_checker.h>
 #include <messages_collector.h>
@@ -29,9 +30,29 @@ namespace
     std::cout << (val ? "Passed" : "Failed") << " test for " << msg << std::endl;
   }
   
-  void TestTemplate(const String& templ, const StringMap& params, const String& reference, InstantiateMode mode = KEEP_NONEXISTING)
+  template<class Policy>
+  class FieldsSourceFromMap : public Policy
   {
-    const String res = InstantiateTemplate(templ, params, mode);
+  public:
+    explicit FieldsSourceFromMap(const StringMap& map)
+      : Map(map)
+    {
+    }
+    
+    virtual String GetFieldValue(const String& name) const
+    {
+      const StringMap::const_iterator it = Map.find(name);
+      return it == Map.end() ? Policy::GetFieldValue(name) : it->second;
+    }
+  private:
+    const StringMap& Map;
+  };
+  
+  template<class Policy>
+  void TestTemplate(const String& templ, const StringMap& params, const String& reference)
+  {
+    const FieldsSourceFromMap<Policy> source(params);
+    const String res = InstantiateTemplate(templ, source);
     if (res == reference)
     {
       std::cout << "Passed test for '" << templ << '\'' << std::endl;
@@ -40,40 +61,6 @@ namespace
     {
       std::cout << "Failed test for '" << templ << "' (result is '" << res << "')" << std::endl;
     }
-  }
-  
-  void TestMap(const StringMap& input, const String& idx, const String& reference)
-  {
-    const StringMap::const_iterator it = input.find(idx);
-    if (it == input.end())
-    {
-      std::cout << "Failed (no such key)";
-    }
-    else if (it->second != reference)
-    {
-      std::cout << "Failed (" << it->second << "!=" << reference << ")";
-    }
-    else
-    {
-      std::cout << "Passed";
-    }
-    std::cout << " testing for " << idx << std::endl;
-  }
-  
-  inline bool CompareMap(const Parameters::Map::value_type& lh, const Parameters::Map::value_type& rh)
-  {
-    return lh.first == rh.first && lh.second == rh.second;
-  }
-  
-  void TestMaps(const std::string& title, const Parameters::Map& result, const Parameters::Map& etalon)
-  {
-    Test(title + " size", result.size() == etalon.size());
-    Test(title, etalon.end() == std::mismatch(etalon.begin(), etalon.end(), result.begin(), CompareMap).first);
-  }
-  
-  void OutMap(const Parameters::Map::value_type& val)
-  {
-    std::cout << '[' << val.first << "]=" << Parameters::ConvertToString(val.second) << std::endl;
   }
 }
 
@@ -103,93 +90,21 @@ int main()
   
   std::cout << "---- Test for string template ----" << std::endl;
   {
-    TestTemplate("without template", StringMap(), "without template");
-    TestTemplate("no [mapped] template", StringMap(), "no [mapped] template", KEEP_NONEXISTING);
-    TestTemplate("no [nonexisting] template", StringMap(), "no  template", SKIP_NONEXISTING);
-    TestTemplate("no [tabulated] template", StringMap(), "no             template", FILL_NONEXISTING);
+    TestTemplate<SkipFieldsSource>("without template", StringMap(), "without template");
+    TestTemplate<KeepFieldsSource<'[', ']'> >("no [mapped] template", StringMap(), "no [mapped] template");
+    TestTemplate<SkipFieldsSource>("no [nonexisting] template", StringMap(), "no  template");
+    TestTemplate<FillFieldsSource>("no [tabulated] template", StringMap(), "no             template");
     StringMap params;
     params["name"] = "value";
-    TestTemplate("single [name] test", params, "single value test");
-    TestTemplate("duplicate [name] and [name] test", params, "duplicate value and value test");
+    TestTemplate<SkipFieldsSource>("single [name] test", params, "single value test");
+    TestTemplate<SkipFieldsSource>("duplicate [name] and [name] test", params, "duplicate value and value test");
     params["value"] = "name";
-    TestTemplate("multiple [name] and [value] test", params, "multiple value and name test");
-    TestTemplate("syntax error [name test", params, "syntax error [name test");
-    TestTemplate("[name] at the beginning", params, "value at the beginning");
-    TestTemplate("at the end [name]", params, "at the end value");
+    TestTemplate<SkipFieldsSource>("multiple [name] and [value] test", params, "multiple value and name test");
+    TestTemplate<SkipFieldsSource>("syntax error [name test", params, "syntax error [name test");
+    TestTemplate<SkipFieldsSource>("[name] at the beginning", params, "value at the beginning");
+    TestTemplate<SkipFieldsSource>("at the end [name]", params, "at the end value");
   }
-  
-  std::cout << "---- Test for parameters map converting ----" << std::endl;
-  {
-    Dump data(3);
-    data[0] = 0x12;
-    data[1] = 0x34;
-    data[2] = 0x56;
-    {
-      Parameters::Map input;
-      input["integer"] = 123;
-      input["string"] = "hello";
-      input["data"] = data;
-      input["strAsInt"] = "456";
-      input["strAsData"] = "#00";
-      input["strAsIntInvalid"] = "678a";
-      input["strAsDataInvalid"] = "#00a";
-      input["strAsStrQuoted"] = "'test'";
-      StringMap output;
-      Parameters::ConvertMap(input, output);
-      Test("p2m convert size", input.size() == output.size());
-      TestMap(output, "integer", "123");
-      TestMap(output, "string", "hello");
-      TestMap(output, "data", "#123456");
-      TestMap(output, "strAsInt", "'456'");
-      TestMap(output, "strAsData", "'#00'");
-      TestMap(output, "strAsIntInvalid", "678a");
-      TestMap(output, "strAsDataInvalid", "#00a");
-      TestMap(output, "strAsStrQuoted", "''test''");
-      Parameters::Map result;
-      Parameters::ConvertMap(output, result);
-      TestMaps("m2p convert", result, input);
-    }
-  }
-  std::cout << "---- Test for parameters map processing ----" << std::endl;
-  {
-    Parameters::Map first;
-    first["key1"] = "val1";
-    first["key2"] = "val2";
-    first["key3"] = "val3";
-    Parameters::Map second;
-    second["key1"] = "val1";
-    second["key2"] = "val2_new";
-    second["key4"] = "val4";
-    
-    Parameters::Map updInSecond;
-    updInSecond["key2"] = "val2_new";
-    updInSecond["key4"] = "val4";
-    
-    {
-      Parameters::Map test;
-      Parameters::DifferMaps(second, first, test);
-      TestMaps("differ test", test, updInSecond);
-    }
-    
-    Parameters::Map merged;
-    merged["key1"] = "val1";
-    merged["key2"] = "val2";
-    merged["key3"] = "val3";
-    merged["key4"] = "val4";
-    {
-      Parameters::Map test;
-      Parameters::MergeMaps(first, second, test, false);
-      TestMaps("merge keep test", test, merged);
-      //std::for_each(test.begin(), test.end(), OutMap);
-    }
-    merged["key2"] = "val2_new";
-    {
-      Parameters::Map test;
-      Parameters::MergeMaps(first, second, test, true);
-      TestMaps("merge replace test", test, merged);
-      //std::for_each(test.begin(), test.end(), OutMap);
-    }
-  }
+
   std::cout << "---- Test for ranges map ----" << std::endl;
   {
     std::cout << "  test for simple range checker" << std::endl;
@@ -229,5 +144,4 @@ int main()
     Test("Adding zero-sized to busy invalid", !shared->AddRange(80, 0));
     Test("Check result", shared->GetAffectedRange() == std::pair<std::size_t, std::size_t>(20, 90));
   }
-
 }

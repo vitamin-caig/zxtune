@@ -45,7 +45,7 @@ class FillFieldsSource : public FieldsSource
 public:
   virtual String GetFieldValue(const String& fieldName) const
   {
-    return String(fieldName.size(), ' ');
+    return String(fieldName.size() + 2, ' ');
   }
 };
 
