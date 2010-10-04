@@ -27,18 +27,18 @@ namespace ZXTune
     template<class Impl>
     class SafeBackendWrapper : public Backend
     {
-      SafeBackendWrapper(BackendInformation::Ptr info, const Parameters::Accessor& params)
+      SafeBackendWrapper(BackendInformation::Ptr info, Parameters::Accessor::Ptr params)
         : Information(info)
         , Delegate(new Impl())
       {
         //apply parameters to delegate
-        Delegate->SetParameters(params);
+        Delegate->SetParameters(*params);
         //perform fast test to detect if parameters are correct
         Delegate->OnStartup();
         Delegate->OnShutdown();
       }
     public:
-      static Error Create(BackendInformation::Ptr info, const Parameters::Accessor& params,
+      static Error Create(BackendInformation::Ptr info, Parameters::Accessor::Ptr params,
         Backend::Ptr& result, Error::LocationRef loc)
       {
         try

@@ -58,7 +58,7 @@ namespace
         return 0;
       }
 
-      virtual Error CreateBackend(const Parameters::Accessor& /*params*/, Backend::Ptr& /*result*/) const
+      virtual Error CreateBackend(Parameters::Accessor::Ptr /*params*/, Backend::Ptr& /*result*/) const
       {
         return Error(THIS_LINE, BACKEND_NOT_FOUND, Text::SOUND_ERROR_BACKEND_NOT_FOUND);
       }

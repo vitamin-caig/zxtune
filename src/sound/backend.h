@@ -183,7 +183,7 @@ namespace ZXTune
       //! @param params %Backend-related parameters
       //! @param result Reference to result value
       //! @return Error() in case of success
-      virtual Error CreateBackend(const Parameters::Accessor& params, Backend::Ptr& result) const = 0;
+      virtual Error CreateBackend(Parameters::Accessor::Ptr params, Backend::Ptr& result) const = 0;
     };
 
     //! @brief Enumerating supported sound backends

@@ -91,7 +91,7 @@ namespace
       return CAP_TYPE_STUB;
     }
 
-    virtual Error CreateBackend(const Parameters::Accessor& params, Backend::Ptr& result) const
+    virtual Error CreateBackend(Parameters::Accessor::Ptr params, Backend::Ptr& result) const
     {
       const BackendInformation::Ptr info = shared_from_this();
       return SafeBackendWrapper<NullBackend>::Create(info, params, result, THIS_LINE);

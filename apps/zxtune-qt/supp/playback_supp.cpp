@@ -163,7 +163,7 @@ namespace
         for (Sound::BackendCreator::Iterator::Ptr backends = Sound::EnumerateBackends();
           backends->IsValid(); backends->Next())
         {
-          if (!backends->Get()->CreateBackend(*soundParams, Backend))
+          if (!backends->Get()->CreateBackend(soundParams, Backend))
           {
             break;
           }

@@ -238,7 +238,7 @@ namespace
       {
         ZXTune::Sound::Backend::Ptr backend;
         Log::Debug(THIS_MODULE, "Trying backend %1%", (*it)->Id());
-        if (const Error& e = (*it)->CreateBackend(*FullSoundOptions, backend))
+        if (const Error& e = (*it)->CreateBackend(FullSoundOptions, backend))
         {
           Log::Debug(THIS_MODULE, " failed");
           if (1 == backends.size())
