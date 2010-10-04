@@ -163,7 +163,7 @@ namespace
       const uint_t newBuffers = curParams.GetBuffersCount();
       const uint_t newFreq = curParams.GetFrequency();
 
-      const bool buffersChanged = newBuffers != Buffers;
+      const bool buffersChanged = newBuffers != BuffersCount;
       const bool freqChanged = newFreq != RenderingParameters.SoundFreq;
       if (buffersChanged || freqChanged)
       {

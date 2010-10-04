@@ -19,4 +19,5 @@ endif
 ifdef support_sdl
 definitions += SDL_SUPPORT
 $(platform)_libraries += SDL
+mingw_libraries += winmm gdi32 dxguid
 endif
