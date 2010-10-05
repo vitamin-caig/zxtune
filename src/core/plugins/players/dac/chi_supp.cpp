@@ -256,7 +256,7 @@ namespace
     }
 
   public:
-    CHIHolder(Plugin::Ptr plugin,
+    CHIHolder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters,
       const MetaContainer& container, ModuleRegion& region)
       : SrcPlugin(plugin)
       , Data(CHITrack::ModuleData::Create())
@@ -324,7 +324,7 @@ namespace
       props->SetWarnings(warner);
 
       //fill tracking properties
-      Info->SetModuleProperties(props);
+      Info->SetModuleProperties(Parameters::CreateMergedAccessor(parameters, props));
     }
 
     virtual Plugin::Ptr GetPlugin() const
@@ -397,6 +397,7 @@ namespace
       , CurrentState(MODULE_STOPPED)
       , Interpolation(false)
     {
+      SetParameters(*Info->Properties());
 #ifdef SELF_TEST
 //perform self-test
       DAC::DataChunk chunk;
@@ -478,15 +479,14 @@ namespace
       return Error();
     }
 
-    virtual Error SetParameters(const Parameters::Accessor& params)
+  private:
+    void SetParameters(const Parameters::Accessor& params)
     {
       Parameters::IntType intVal = 0;
       Interpolation = params.FindIntValue(Parameters::ZXTune::Core::DAC::INTERPOLATION, intVal) &&
         intVal != 0;
-      return Error();
     }
 
-  private:
     void RenderData(DAC::DataChunk& chunk)
     {
       std::vector<DAC::DataChunk::ChannelData> res;
@@ -616,7 +616,7 @@ namespace
       return CheckCHI(inputData);
     }
 
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*parameters*/,
+    virtual Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
                                              const MetaContainer& container,
                                              ModuleRegion& region) const
     {
@@ -625,7 +625,7 @@ namespace
       try
       {
         const Plugin::Ptr plugin = shared_from_this();
-        const Module::Holder::Ptr holder(new CHIHolder(plugin, container, region));
+        const Module::Holder::Ptr holder(new CHIHolder(plugin, parameters, container, region));
 #ifdef SELF_TEST
         holder->CreatePlayer();
 #endif

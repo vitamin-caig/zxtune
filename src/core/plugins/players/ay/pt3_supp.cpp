@@ -638,7 +638,7 @@ namespace
       }
     }
   public:
-    PT3Holder(Plugin::Ptr plugin, Vortex::Track::ModuleData::RWPtr moduleData,
+    PT3Holder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, Vortex::Track::ModuleData::RWPtr moduleData,
       const MetaContainer& container, ModuleRegion& region)
       : SrcPlugin(plugin)
       , Data(moduleData)
@@ -734,7 +734,7 @@ namespace
       FreqTableName = Vortex::GetFreqTable(static_cast<Vortex::NoteTable>(header->FreqTableNum), Version);
 
       Info->SetLogicalChannels(AYM::LOGICAL_CHANNELS);
-      Info->SetModuleProperties(props);
+      Info->SetModuleProperties(Parameters::CreateMergedAccessor(parameters, props));
     }
 
     virtual Plugin::Ptr GetPlugin() const
@@ -830,8 +830,8 @@ namespace
   class PT3TSHolder : public PT3Holder
   {
   public:
-    PT3TSHolder(Plugin::Ptr plugin, uint_t patOffset, const MetaContainer& container, ModuleRegion& region)
-      : PT3Holder(plugin, boost::make_shared<TSModuleData>(patOffset), container, region)
+    PT3TSHolder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, uint_t patOffset, const MetaContainer& container, ModuleRegion& region)
+      : PT3Holder(plugin, parameters, boost::make_shared<TSModuleData>(patOffset), container, region)
       , PatOffset(patOffset)
     {
       Info->SetLogicalChannels(Info->LogicalChannels() * 2);
@@ -943,15 +943,15 @@ namespace
     return header->Mode;
   }
   
-  Holder::Ptr CreatePT3Module(Plugin::Ptr plugin, const MetaContainer& container, ModuleRegion& region)
+  Holder::Ptr CreatePT3Module(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, const MetaContainer& container, ModuleRegion& region)
   {
     try
     {
       const uint_t tsPatternOffset = GetTSModulePatternOffset(container, region);
       const bool isTSModule = AY_TRACK != tsPatternOffset;
       const Holder::Ptr holder = isTSModule
-        ? Holder::Ptr(new PT3TSHolder(plugin, tsPatternOffset, container, region))
-        : Holder::Ptr(new PT3Holder(plugin, Vortex::Track::ModuleData::Create(), container, region));
+        ? Holder::Ptr(new PT3TSHolder(plugin, parameters, tsPatternOffset, container, region))
+        : Holder::Ptr(new PT3Holder(plugin, parameters, Vortex::Track::ModuleData::Create(), container, region));
 #ifdef SELF_TEST
       holder->CreatePlayer();
 #endif
@@ -995,13 +995,13 @@ namespace
       return PerformCheck(&CheckPT3Module, DETECTORS, ArrayEnd(DETECTORS), inputData);
     }
 
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*parameters*/,
+    virtual Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
                                              const MetaContainer& container,
                                              ModuleRegion& region) const
     {
       const Plugin::Ptr plugin = shared_from_this();
       return PerformCreate(&CheckPT3Module, &CreatePT3Module, DETECTORS, ArrayEnd(DETECTORS),
-        plugin, container, region);
+        plugin, parameters, container, region);
     }
   };
 }

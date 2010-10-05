@@ -666,7 +666,8 @@ namespace
   class STCHolder : public Holder
   {
   public:
-    STCHolder(Plugin::Ptr plugin, const MetaContainer& container, ModuleRegion& region)
+    STCHolder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters,
+        const MetaContainer& container, ModuleRegion& region)
       : SrcPlugin(plugin)
       , Data(boost::make_shared<STCModuleData>())
       , Info(TrackInfo::Create(Data))
@@ -697,7 +698,7 @@ namespace
       props->SetWarnings(warner);
 
       Info->SetLogicalChannels(AYM::LOGICAL_CHANNELS);
-      Info->SetModuleProperties(props);
+      Info->SetModuleProperties(Parameters::CreateMergedAccessor(parameters, props));
     }
 
     virtual Plugin::Ptr GetPlugin() const
@@ -1107,11 +1108,11 @@ namespace
            areas.CheckPatterns();
   }
 
-  Holder::Ptr CreateSTCModule(Plugin::Ptr plugin, const MetaContainer& container, ModuleRegion& region)
+  Holder::Ptr CreateSTCModule(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, const MetaContainer& container, ModuleRegion& region)
   {
     try
     {
-      const Holder::Ptr holder(new STCHolder(plugin, container, region));
+      const Holder::Ptr holder(new STCHolder(plugin, parameters, container, region));
 #ifdef SELF_TEST
       holder->CreatePlayer();
 #endif
@@ -1154,13 +1155,13 @@ namespace
       return PerformCheck(&CheckSTCModule, DETECTORS, ArrayEnd(DETECTORS), inputData);
     }
 
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*parameters*/,
+    virtual Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
                                              const MetaContainer& container,
                                              ModuleRegion& region) const
     {
       const Plugin::Ptr plugin = shared_from_this();
       return PerformCreate(&CheckSTCModule, &CreateSTCModule, DETECTORS, ArrayEnd(DETECTORS),
-        plugin, container, region);
+        plugin, parameters, container, region);
     }
   };
 }

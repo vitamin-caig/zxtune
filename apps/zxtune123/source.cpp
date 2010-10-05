@@ -223,7 +223,7 @@ namespace
         String subpath;
         ThrowIfError(ZXTune::IO::OpenData(*it, *IOParams, 0, data, subpath));
         detectParams.Callback = boost::bind(&Source::FormModule, this, *it, _1, _2, callback);
-        ThrowIfError(ZXTune::DetectModules(*CoreParams, detectParams, data, subpath));
+        ThrowIfError(ZXTune::DetectModules(CoreParams, detectParams, data, subpath));
       }
     }
 
@@ -256,8 +256,7 @@ namespace
       try
       {
         const Parameters::Accessor::Ptr pathProps = CreatePathProperties(path, subpath);
-        const Parameters::Accessor::Ptr mixinProps = Parameters::CreateMergedAccessor(pathProps, CoreParams);
-        const ZXTune::Module::Holder::Ptr holder = CreateMixinPropertiesModule(module, mixinProps, mixinProps);
+        const ZXTune::Module::Holder::Ptr holder = CreateMixinPropertiesModule(module, pathProps, pathProps);
         return callback(holder) ? Error() : Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
       }
       catch (const Error& e)

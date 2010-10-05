@@ -84,7 +84,7 @@ namespace
   class PSGHolder : public Holder
   {
   public:
-    PSGHolder(Plugin::Ptr plugin, const MetaContainer& container, ModuleRegion& region)
+    PSGHolder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, const MetaContainer& container, ModuleRegion& region)
       : SrcPlugin(plugin)
       , Data(boost::make_shared<PSGData>())
     {
@@ -160,7 +160,8 @@ namespace
       props->SetSource(RawData, region);
       props->SetPlugins(container.Plugins);
       props->SetPath(container.Path);
-      Info = CreateStreamInfo(Data->Dump.size(), AYM::LOGICAL_CHANNELS, AYM::CHANNELS, props);
+      Info = CreateStreamInfo(Data->Dump.size(), AYM::LOGICAL_CHANNELS, AYM::CHANNELS, 
+        Parameters::CreateMergedAccessor(parameters, props));
     }
 
     virtual Plugin::Ptr GetPlugin() const
@@ -286,7 +287,7 @@ namespace
       return CheckPSG(inputData);
     }
 
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*parameters*/,
+    virtual Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
                                              const MetaContainer& container,
                                              ModuleRegion& region) const
     {
@@ -295,7 +296,7 @@ namespace
       try
       {
         const Plugin::Ptr plugin = shared_from_this();
-        const Module::Holder::Ptr holder(new PSGHolder(plugin, container, region));
+        const Module::Holder::Ptr holder(new PSGHolder(plugin, parameters, container, region));
         return holder;
       }
       catch (const Error&/*e*/)

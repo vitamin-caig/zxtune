@@ -465,7 +465,7 @@ namespace
     }
 
   public:
-    PT2Holder(Plugin::Ptr plugin, const MetaContainer& container, ModuleRegion& region)
+    PT2Holder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, const MetaContainer& container, ModuleRegion& region)
       : SrcPlugin(plugin)
       , Data(PT2Track::ModuleData::Create())
       , Info(TrackInfo::Create(Data))
@@ -551,7 +551,7 @@ namespace
       props->SetWarnings(warner);
 
       Info->SetLogicalChannels(AYM::LOGICAL_CHANNELS);
-      Info->SetModuleProperties(props);
+      Info->SetModuleProperties(CreateMergedAccessor(parameters, props));
     }
 
     virtual Plugin::Ptr GetPlugin() const
@@ -894,11 +894,11 @@ namespace
     return true;
   }
 
-  Holder::Ptr CreatePT2Module(Plugin::Ptr plugin, const MetaContainer& container, ModuleRegion& region)
+  Holder::Ptr CreatePT2Module(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, const MetaContainer& container, ModuleRegion& region)
   {
     try
     {
-      const Holder::Ptr holder(new PT2Holder(plugin, container, region));
+      const Holder::Ptr holder(new PT2Holder(plugin, parameters, container, region));
 #ifdef SELF_TEST
       holder->CreatePlayer();
 #endif
@@ -941,13 +941,13 @@ namespace
       return PerformCheck(&CheckPT2Module, DETECTORS, ArrayEnd(DETECTORS), inputData);
     }
 
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*parameters*/,
+    virtual Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
                                              const MetaContainer& container,
                                              ModuleRegion& region) const
     {
       const Plugin::Ptr plugin = shared_from_this();
       return PerformCreate(&CheckPT2Module, &CreatePT2Module, DETECTORS, ArrayEnd(DETECTORS),
-        plugin, container, region);
+        plugin, parameters, container, region);
     }
   };
 }

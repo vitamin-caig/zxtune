@@ -143,7 +143,6 @@ namespace
       : Delegate(delegate)
       , PlayerProps(playerProps)
     {
-      Delegate->SetParameters(*PlayerProps);
     }
 
     virtual Module::Information::Ptr GetInformation() const
@@ -180,11 +179,6 @@ namespace
     virtual Error SetPosition(uint_t frame)
     {
       return Delegate->SetPosition(frame);
-    }
-
-    virtual Error SetParameters(const Parameters::Accessor& params)
-    {
-      return Delegate->SetParameters(params);
     }
   private:
     const Module::Player::Ptr Delegate;

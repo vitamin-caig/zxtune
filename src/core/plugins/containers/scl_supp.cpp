@@ -172,7 +172,7 @@ namespace
       return CheckSCLFile(dump);
     }
 
-    virtual bool Process(const Parameters::Accessor& commonParams, 
+    virtual bool Process(Parameters::Accessor::Ptr params,
       const DetectParameters& detectParams,
       const MetaContainer& data, ModuleRegion& region) const
     {
@@ -212,7 +212,7 @@ namespace
           message.Text = (SafeFormatter(data.Path.empty() ? Text::PLUGIN_SCL_PROGRESS_NOPATH : Text::PLUGIN_SCL_PROGRESS) % it->Name % data.Path).str();
           detectParams.Logger(message);
         }
-        enumerator.DetectModules(commonParams, detectParams, subcontainer, curRegion);
+        enumerator.DetectModules(params, detectParams, subcontainer, curRegion);
       }
       region.Offset = 0;
       region.Size = parsedSize;

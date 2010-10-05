@@ -245,10 +245,10 @@ namespace
   class Enumerator
   {
   public:
-    Enumerator(const Parameters::Accessor& commonParams, const DetectParameters& detectParams,
+    Enumerator(Parameters::Accessor::Ptr commonParams, const DetectParameters& detectParams,
       const MetaContainer& data)
       : Params(commonParams)
-      , IgnoreCorrupted(CheckIgnoreCorrupted(commonParams))
+      , IgnoreCorrupted(CheckIgnoreCorrupted(*Params))
       , DetectParams(detectParams)
       , Container(data.Data)
       , Path(data.Path)
@@ -325,7 +325,7 @@ namespace
       return LogLevel;
     }
   private:
-    const Parameters::Accessor& Params;
+    const Parameters::Accessor::Ptr Params;
     const bool IgnoreCorrupted;
     const DetectParameters& DetectParams;
     const IO::DataContainer::Ptr Container;
@@ -377,12 +377,12 @@ namespace
              filesCount != 0;
     }
 
-    virtual bool Process(const Parameters::Accessor& commonParams, const DetectParameters& detectParams,
+    virtual bool Process(Parameters::Accessor::Ptr params, const DetectParameters& detectParams,
       const MetaContainer& data, ModuleRegion& region) const
     {
       MetaContainer nested(data);
       nested.Plugins->Add(shared_from_this());
-      Enumerator cb(commonParams, detectParams, nested);
+      Enumerator cb(params, detectParams, nested);
       return cb.Process(region);
     }
 

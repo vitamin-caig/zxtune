@@ -89,11 +89,11 @@ namespace ZXTune
     virtual bool Check(const IO::DataContainer& inputData) const = 0;
     
     //! @brief Creating module on specified input data
-    //! @param parameters Options for modules detection
+    //! @param parameters Options for modules detection and creation
     //! @param inputData Source memory data
     //! @param region Reference to result region where module is detected
     //! @return Not empty pointer if found, empty elsewhere
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& parameters,
+    virtual Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
                                              const MetaContainer& inputData,
                                              ModuleRegion& region) const = 0;
   };
@@ -132,7 +132,7 @@ namespace ZXTune
     //! @param inputData Source memory data
     //! @param region Reference to result region subdata container detected at
     //! @return true if processed and region contains busy data
-    virtual bool Process(const Parameters::Accessor& parameters,
+    virtual bool Process(Parameters::Accessor::Ptr parameters,
                           const DetectParameters& detectParams,
                           const MetaContainer& inputData,
                           ModuleRegion& region) const = 0;
@@ -166,13 +166,13 @@ namespace ZXTune
 
     //private interface
     //resolve subpath
-    virtual void ResolveSubpath(const Parameters::Accessor& commonParams, IO::DataContainer::Ptr data,
+    virtual void ResolveSubpath(const Parameters::Accessor& coreParams, IO::DataContainer::Ptr data,
       const String& subpath, MetaContainer& result) const = 0;
     //full module detection
-    virtual void DetectModules(const Parameters::Accessor&, const DetectParameters& params, const MetaContainer& data,
+    virtual void DetectModules(Parameters::Accessor::Ptr modulesParams, const DetectParameters& params, const MetaContainer& data,
       ModuleRegion& region) const = 0;
     //single module opening
-    virtual void OpenModule(const Parameters::Accessor& commonParams, const MetaContainer& data, 
+    virtual void OpenModule(Parameters::Accessor::Ptr modulesParams, const MetaContainer& data, 
       Module::Holder::Ptr& holder) const = 0;
 
     //instantiator

@@ -59,7 +59,7 @@ namespace
   {
   public:
     //region must be filled
-    TXTHolder(Plugin::Ptr plugin, const MetaContainer& container, const ModuleRegion& region)
+    TXTHolder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, const MetaContainer& container, const ModuleRegion& region)
       : SrcPlugin(plugin)
       , Data(Vortex::Track::ModuleData::Create())
       , Info(TrackInfo::Create(Data))
@@ -78,7 +78,7 @@ namespace
       props->SetPlugins(container.Plugins);
       props->SetPath(container.Path);
 
-      Info->SetModuleProperties(props);
+      Info->SetModuleProperties(CreateMergedAccessor(parameters, props));
     }
 
     virtual Plugin::Ptr GetPlugin() const
@@ -174,7 +174,7 @@ namespace
       return CheckTXT(inputData);
     }
     
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*parameters*/,
+    virtual Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
                                              const MetaContainer& container,
                                              ModuleRegion& region) const
     {
@@ -196,7 +196,7 @@ namespace
       try
       {
         const Plugin::Ptr plugin = shared_from_this();
-        const Module::Holder::Ptr holder(new TXTHolder(plugin, container, tmpRegion));
+        const Module::Holder::Ptr holder(new TXTHolder(plugin, parameters, container, tmpRegion));
     #ifdef SELF_TEST
         holder->CreatePlayer();
     #endif

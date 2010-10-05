@@ -441,16 +441,6 @@ namespace
       }
       return Player2->SetPosition(frame);
     }
-
-    virtual Error SetParameters(const Parameters::Accessor& params)
-    {
-      if (const Error& e = Player1->SetParameters(params))
-      {
-        return e;
-      }
-      return Player2->SetParameters(params);
-    }
-
   private:
     const Information::Ptr Info;
     Player::Ptr Player1, Player2;
@@ -530,7 +520,7 @@ namespace
       return FindFooter(dump, SEARCH_THRESHOLD) != 0;
     }
 
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& commonParams,
+    virtual Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
                                              const MetaContainer& container,
                                              ModuleRegion& region) const
     {
@@ -547,7 +537,7 @@ namespace
 
       Module::Holder::Ptr holder1;
       subdata.Data = container.Data->GetSubcontainer(0, firstModuleSize);
-      enumerator.OpenModule(commonParams, subdata, holder1);
+      enumerator.OpenModule(parameters, subdata, holder1);
       if (InvalidHolder(*holder1))
       {
         Log::Debug(THIS_MODULE, "Invalid first module holder");
@@ -555,7 +545,7 @@ namespace
       }
       Module::Holder::Ptr holder2;
       subdata.Data = container.Data->GetSubcontainer(firstModuleSize, footerOffset - firstModuleSize);
-      enumerator.OpenModule(commonParams, subdata, holder2);
+      enumerator.OpenModule(parameters, subdata, holder2);
       if (InvalidHolder(*holder2))
       {
         Log::Debug(THIS_MODULE, "Failed to create second module holder");

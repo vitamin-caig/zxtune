@@ -531,15 +531,6 @@ namespace
       }
       return Player2->SetPosition(frame);
     }
-
-    virtual Error SetParameters(const Parameters::Accessor& params)
-    {
-      if (const Error& e = Player1->SetParameters(params))
-      {
-        return e;
-      }
-      return Player2->SetParameters(params);
-    }
   private:
     const Information::Ptr Info;
     const Player::Ptr Player1;

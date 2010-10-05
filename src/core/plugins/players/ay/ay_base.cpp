@@ -92,6 +92,7 @@ namespace
       , StateIterator(StreamStateIterator::Create(Info, Device))
       , CurrentState(MODULE_STOPPED)
     {
+      AYMHelper->SetParameters(*Info->Properties());
       Reset();
     }
 
@@ -108,19 +109,6 @@ namespace
     virtual Analyzer::Ptr GetAnalyzer() const
     {
       return Device;
-    }
-
-    virtual Error SetParameters(const Parameters::Accessor& params)
-    {
-      try
-      {
-        AYMHelper->SetParameters(params);
-        return Error();
-      }
-      catch (const Error& e)
-      {
-        return Error(THIS_LINE, ERROR_INVALID_PARAMETERS, Text::MODULE_ERROR_SET_PLAYER_PARAMETERS).AddSuberror(e);
-      }
     }
 
     virtual Error RenderFrame(const Sound::RenderParameters& params,
@@ -200,6 +188,7 @@ namespace
       , StateIterator(TrackStateIterator::Create(Info, data, Device))
       , CurrentState(MODULE_STOPPED)
     {
+      AYMHelper->SetParameters(*Info->Properties());
 #ifndef NDEBUG
 //perform self-test
       AYMTrackSynthesizer synthesizer(*AYMHelper);
@@ -225,19 +214,6 @@ namespace
     virtual Analyzer::Ptr GetAnalyzer() const
     {
       return Device;
-    }
-
-    virtual Error SetParameters(const Parameters::Accessor& params)
-    {
-      try
-      {
-        AYMHelper->SetParameters(params);
-        return Error();
-      }
-      catch (const Error& e)
-      {
-        return Error(THIS_LINE, ERROR_INVALID_PARAMETERS, Text::MODULE_ERROR_SET_PLAYER_PARAMETERS).AddSuberror(e);
-      }
     }
 
     virtual Error RenderFrame(const Sound::RenderParameters& params,

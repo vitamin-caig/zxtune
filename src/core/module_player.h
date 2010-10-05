@@ -80,11 +80,6 @@ namespace ZXTune
       //! @note Seeking out of range is safe, but state will be MODULE_PLAYING untill next RenderFrame call happends.
       //! @note It produces only the flush
       virtual Error SetPosition(uint_t frame) = 0;
-
-      //! @brief Changing runtime parameters
-      //! @param params %Player-related parameters
-      //! @return Error() in case of success
-      virtual Error SetParameters(const Parameters::Accessor& params) = 0;
     };
   }
 }

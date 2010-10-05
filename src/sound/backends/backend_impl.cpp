@@ -95,12 +95,6 @@ namespace
       Locker lock(Mutex);
       return Delegate->SetPosition(frame);
     }
-
-    virtual Error SetParameters(const Parameters::Accessor& params)
-    {
-      Locker lock(Mutex);
-      return Delegate->SetParameters(params);
-    }
   private:
     const Module::Player::Ptr Delegate;
     mutable boost::mutex Mutex;

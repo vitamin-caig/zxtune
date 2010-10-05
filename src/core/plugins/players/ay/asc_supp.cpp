@@ -587,7 +587,7 @@ namespace
       }
     }
   public:
-    ASCHolder(Plugin::Ptr plugin, const MetaContainer& container, ModuleRegion& region)
+    ASCHolder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, const MetaContainer& container, ModuleRegion& region)
       : SrcPlugin(plugin)
       , Data(ASCTrack::ModuleData::Create())
       , Info(TrackInfo::Create(Data))
@@ -717,7 +717,7 @@ namespace
       props->SetWarnings(warner);
 
       Info->SetLogicalChannels(AYM::LOGICAL_CHANNELS);
-      Info->SetModuleProperties(props);
+      Info->SetModuleProperties(Parameters::CreateMergedAccessor(parameters, props));
     }
 
     virtual Plugin::Ptr GetPlugin() const
@@ -1167,11 +1167,11 @@ namespace
     return true;
   }
 
-  Holder::Ptr CreateASCModule(Plugin::Ptr plugin, const MetaContainer& container, ModuleRegion& region)
+  Holder::Ptr CreateASCModule(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, const MetaContainer& container, ModuleRegion& region)
   {
     try
     {
-      const Holder::Ptr holder(new ASCHolder(plugin, container, region));
+      const Holder::Ptr holder(new ASCHolder(plugin, parameters, container, region));
 #ifdef SELF_TEST
       holder->CreatePlayer();
 #endif
@@ -1214,13 +1214,13 @@ namespace
       return PerformCheck(&CheckASCModule, 0, 0, inputData);
     }
 
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*parameters*/,
+    virtual Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
                                              const MetaContainer& container,
                                              ModuleRegion& region) const
     {
       const Plugin::Ptr plugin = shared_from_this();
       return PerformCreate(&CheckASCModule, &CreateASCModule, 0, 0,
-        plugin, container, region);
+        plugin, parameters, container, region);
     }
   };
 }

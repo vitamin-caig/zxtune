@@ -24,6 +24,7 @@ Author:
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
+#include <boost/make_shared.hpp>
 //text includes
 #include <core/text/core.h>
 #include <core/text/plugins.h>
@@ -113,7 +114,7 @@ namespace
   class DepthLimitedParameters : public Parameters::Accessor
   {
   public:
-    DepthLimitedParameters(const Parameters::Accessor& delegate, std::size_t depth)
+    DepthLimitedParameters(Parameters::Accessor::Ptr delegate, std::size_t depth)
       : Delegate(delegate)
       , Depth(depth)
     {
@@ -128,26 +129,26 @@ namespace
       }
       else
       {
-        return Delegate.FindIntValue(name, val);
+        return Delegate->FindIntValue(name, val);
       }
     }
 
     virtual bool FindStringValue(const Parameters::NameType& name, Parameters::StringType& val) const
     {
-      return Delegate.FindStringValue(name, val);
+      return Delegate->FindStringValue(name, val);
     }
 
     virtual bool FindDataValue(const Parameters::NameType& name, Parameters::DataType& val) const
     {
-      return Delegate.FindDataValue(name, val);
+      return Delegate->FindDataValue(name, val);
     }
 
     virtual void Process(Parameters::Visitor& visitor) const
     {
-      return Delegate.Process(visitor);
+      return Delegate->Process(visitor);
     }
   private:
-    const Parameters::Accessor& Delegate;
+    const Parameters::Accessor::Ptr Delegate;
     const std::size_t Depth;
   };
   class RawScaner : public ContainerPlugin
@@ -180,11 +181,11 @@ namespace
       return inputData.Size() >= MIN_MINIMAL_RAW_SIZE;
     }
 
-    virtual bool Process(const Parameters::Accessor& commonParams, 
+    virtual bool Process(Parameters::Accessor::Ptr params, 
       const DetectParameters& detectParams,
       const MetaContainer& data, ModuleRegion& region) const
     {
-      RawPluginParameters pluginParams(commonParams);
+      RawPluginParameters pluginParams(*params);
       {
         //do not search right after previous raw plugin
         if (data.Plugins->Count() && data.Plugins->GetLast()->Id() == RAW_PLUGIN_ID)
@@ -205,7 +206,8 @@ namespace
       //process without offset
       ModuleRegion curRegion;
       {
-        const DepthLimitedParameters newParams(commonParams, data.Plugins->Count());
+        const Parameters::Accessor::Ptr newParams = 
+          boost::make_shared<DepthLimitedParameters>(params, data.Plugins->Count());
         enumerator.DetectModules(newParams, detectParams, data, curRegion);
       }
       const std::size_t minRawSize = pluginParams.GetMinimalSize();
@@ -249,7 +251,7 @@ namespace
         }
         subcontainer.Data = data.Data->GetSubcontainer(offset, limit - offset);
         subcontainer.Path = IO::AppendPath(data.Path, CreateRawPart(offset));
-        enumerator.DetectModules(commonParams, detectParams, subcontainer, curRegion);
+        enumerator.DetectModules(params, detectParams, subcontainer, curRegion);
         wasResult = wasResult || curRegion.Size != 0;
       }
       if (wasResult)

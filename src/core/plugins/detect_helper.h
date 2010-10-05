@@ -31,7 +31,7 @@ namespace ZXTune
   };
   
   typedef boost::function<bool(const uint8_t*, std::size_t)> Checker;
-  typedef boost::function<Module::Holder::Ptr(Plugin::Ptr, const MetaContainer&, ModuleRegion&)> Creator;
+  typedef boost::function<Module::Holder::Ptr(Plugin::Ptr, Parameters::Accessor::Ptr, const MetaContainer&, ModuleRegion&)> Creator;
 
   inline bool PerformCheck(const Checker& checker,
     const DetectFormatChain* chainBegin, const DetectFormatChain* chainEnd,
@@ -59,7 +59,7 @@ namespace ZXTune
   inline Module::Holder::Ptr PerformCreate(
     const Checker& checker, const Creator& creator,
     const DetectFormatChain* chainBegin, const DetectFormatChain* chainEnd,
-    Plugin::Ptr plugin, const MetaContainer& container, ModuleRegion& region)
+    Plugin::Ptr plugin, Parameters::Accessor::Ptr params, const MetaContainer& container, ModuleRegion& region)
   {
     const std::size_t limit(container.Data->Size());
     const uint8_t* const data(static_cast<const uint8_t*>(container.Data->Data()));
@@ -68,7 +68,7 @@ namespace ZXTune
     //try to detect without player
     if (checker(data, limit))
     {
-      if (Module::Holder::Ptr holder = creator(plugin, container, tmpRegion))
+      if (Module::Holder::Ptr holder = creator(plugin, params, container, tmpRegion))
       {
         region = tmpRegion;
         return holder;
@@ -82,7 +82,7 @@ namespace ZXTune
       {
         continue;
       }
-      if (Module::Holder::Ptr holder = creator(plugin, container, tmpRegion))
+      if (Module::Holder::Ptr holder = creator(plugin, params, container, tmpRegion))
       {
         region = tmpRegion;
         return holder;

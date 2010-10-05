@@ -276,28 +276,28 @@ namespace
       result.Plugins = tmpResult.Plugins;
     }
 
-    virtual void DetectModules(const Parameters::Accessor& commonParams, const DetectParameters& detectParams,
+    virtual void DetectModules(Parameters::Accessor::Ptr modulesParams, const DetectParameters& detectParams,
       const MetaContainer& data, ModuleRegion& region) const
     {
       Log::Debug(THIS_MODULE, "%3%: Detecting modules in data of size %1%, path '%2%'", 
         data.Data->Size(), data.Path, data.Plugins->Count());
       assert(detectParams.Callback);
       //try to detect container and pass control there
-      if (DetectContainer(commonParams, detectParams, data, region))
+      if (DetectContainer(modulesParams, detectParams, data, region))
       {
         return;
       }
 
       //try to process implicit
-      if (DetectImplicit(commonParams, detectParams, data, region))
+      if (DetectImplicit(modulesParams, detectParams, data, region))
       {
         return;
       }
       //try to detect and process single modules
-      DetectModule(commonParams, detectParams, data, region);
+      DetectModule(modulesParams, detectParams, data, region);
     }
 
-    virtual void OpenModule(const Parameters::Accessor& commonParams, const MetaContainer& input, Module::Holder::Ptr& holder) const
+    virtual void OpenModule(Parameters::Accessor::Ptr moduleParams, const MetaContainer& input, Module::Holder::Ptr& holder) const
     {
       for (PlayerPluginsArray::const_iterator it = PlayerPlugins.begin(), lim = PlayerPlugins.end();
         it != lim; ++it)
@@ -308,7 +308,7 @@ namespace
           continue;//invalid plugin
         }
         ModuleRegion region;
-        if (Module::Holder::Ptr module = plugin->CreateModule(commonParams, input, region))
+        if (Module::Holder::Ptr module = plugin->CreateModule(moduleParams, input, region))
         {
           Log::Debug(THIS_MODULE, "%2%: Opened player plugin %1%", 
             plugin->Id(), input.Plugins->Count());
@@ -321,7 +321,7 @@ namespace
     }
 
   private:
-    bool DetectContainer(const Parameters::Accessor& commonParams, const DetectParameters& detectParams, const MetaContainer& input,
+    bool DetectContainer(Parameters::Accessor::Ptr params, const DetectParameters& detectParams, const MetaContainer& input,
       ModuleRegion& region) const
     {
       for (ContainerPluginsArray::const_iterator it = ContainerPlugins.begin(), lim = ContainerPlugins.end();
@@ -338,7 +338,7 @@ namespace
         }
         Log::Debug(THIS_MODULE, "%3%:  Checking container plugin %1% for path '%2%'", 
           plugin->Id(), input.Path, input.Plugins->Count());
-        if (plugin->Process(commonParams, detectParams, input, region))
+        if (plugin->Process(params, detectParams, input, region))
         {
           Log::Debug(THIS_MODULE, "%5%:  Container plugin %1% for path '%2%' processed at region (%3%;%4%)",
             plugin->Id(), input.Path, region.Offset, region.Size, input.Plugins->Count());
@@ -348,7 +348,7 @@ namespace
       return false;
     }
 
-    bool DetectImplicit(const Parameters::Accessor& commonParams, const DetectParameters& detectParams, const MetaContainer& input,
+    bool DetectImplicit(Parameters::Accessor::Ptr modulesParams, const DetectParameters& detectParams, const MetaContainer& input,
       ModuleRegion& region) const
     {
       for (ImplicitPluginsArray::const_iterator it = ImplicitPlugins.begin(), lim = ImplicitPlugins.end();
@@ -366,7 +366,7 @@ namespace
         //find first suitable
         Log::Debug(THIS_MODULE, "%3%:  Checking implicit container %1% at path '%2%'", 
           plugin->Id(), input.Path, input.Plugins->Count());
-        if (IO::DataContainer::Ptr subdata = plugin->ExtractSubdata(commonParams, input, region))
+        if (IO::DataContainer::Ptr subdata = plugin->ExtractSubdata(*modulesParams, input, region))
         {
           Log::Debug(THIS_MODULE, "%3%:  Detected at region (%1%;%2%)", 
             region.Offset, region.Size, input.Plugins->Count());
@@ -381,7 +381,7 @@ namespace
           nested.Plugins = input.Plugins->Clone();
           nested.Plugins->Add(plugin);
           ModuleRegion nestedRegion;
-          DetectModules(commonParams, detectParams, nested, nestedRegion);
+          DetectModules(modulesParams, detectParams, nested, nestedRegion);
           return true;
         }
         //TODO: dispatch heavy checks- return false if not enabled
@@ -389,7 +389,7 @@ namespace
       return false;
     }
 
-    void DetectModule(const Parameters::Accessor& commonParams, const DetectParameters& detectParams, const MetaContainer& input,
+    void DetectModule(Parameters::Accessor::Ptr moduleParams, const DetectParameters& detectParams, const MetaContainer& input,
       ModuleRegion& region) const
     {
       for (PlayerPluginsArray::const_iterator it = PlayerPlugins.begin(), lim = PlayerPlugins.end();
@@ -406,7 +406,7 @@ namespace
         }
         Log::Debug(THIS_MODULE, "%3%:  Checking module plugin %1% at path '%2%'", 
           plugin->Id(), input.Path, input.Plugins->Count());
-        if (Module::Holder::Ptr module = plugin->CreateModule(commonParams, input, region))
+        if (Module::Holder::Ptr module = plugin->CreateModule(moduleParams, input, region))
         {
           Log::Debug(THIS_MODULE, "%3%:  Detected at region (%1%;%2%)", 
             region.Offset, region.Size, input.Plugins->Count());
@@ -510,7 +510,7 @@ namespace ZXTune
     return PluginsEnumerator::Instance().Enumerate();
   }
 
-  Error DetectModules(const Parameters::Accessor& commonParams, const DetectParameters& detectParams,
+  Error DetectModules(Parameters::Accessor::Ptr modulesParams, const DetectParameters& detectParams,
     IO::DataContainer::Ptr data, const String& startSubpath)
   {
     if (!data.get() || !detectParams.Callback)
@@ -521,9 +521,9 @@ namespace ZXTune
     {
       const PluginsEnumerator& enumerator(PluginsEnumerator::Instance());
       MetaContainer subcontainer;
-      enumerator.ResolveSubpath(commonParams, data, startSubpath, subcontainer);
+      enumerator.ResolveSubpath(*modulesParams, data, startSubpath, subcontainer);
       ModuleRegion region;
-      enumerator.DetectModules(commonParams, detectParams, subcontainer, region);
+      enumerator.DetectModules(modulesParams, detectParams, subcontainer, region);
       return Error();
     }
     catch (const Error& e)
@@ -537,7 +537,7 @@ namespace ZXTune
     }
   }
 
-  Error OpenModule(const Parameters::Accessor& commonParams, IO::DataContainer::Ptr data, const String& subpath,
+  Error OpenModule(Parameters::Accessor::Ptr moduleParams, IO::DataContainer::Ptr data, const String& subpath,
       Module::Holder::Ptr& result)
   {
     if (!data.get())
@@ -548,9 +548,9 @@ namespace ZXTune
     {
       const PluginsEnumerator& enumerator(PluginsEnumerator::Instance());
       MetaContainer subcontainer;
-      enumerator.ResolveSubpath(commonParams, data, subpath, subcontainer);
+      enumerator.ResolveSubpath(*moduleParams, data, subpath, subcontainer);
       //try to detect and process single modules
-      enumerator.OpenModule(commonParams, subcontainer, result);
+      enumerator.OpenModule(moduleParams, subcontainer, result);
       return Error();
     }
     catch (const Error& e)

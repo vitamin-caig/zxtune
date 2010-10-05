@@ -663,7 +663,7 @@ namespace
   class STPHolder : public Holder
   {
   public:
-    STPHolder(Plugin::Ptr plugin, const MetaContainer& container, ModuleRegion& region)
+    STPHolder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, const MetaContainer& container, ModuleRegion& region)
       : SrcPlugin(plugin)
       , Data(boost::make_shared<STPModuleData>())
       , Info(TrackInfo::Create(Data))
@@ -695,7 +695,7 @@ namespace
       props->SetPath(container.Path);
 
       Info->SetLogicalChannels(AYM::LOGICAL_CHANNELS);
-      Info->SetModuleProperties(props);
+      Info->SetModuleProperties(CreateMergedAccessor(parameters, props));
     }
 
     virtual Plugin::Ptr GetPlugin() const
@@ -1014,11 +1014,11 @@ namespace
     return true;
   }
 
-  Holder::Ptr CreateSTPModule(Plugin::Ptr plugin, const MetaContainer& container, ModuleRegion& region)
+  Holder::Ptr CreateSTPModule(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, const MetaContainer& container, ModuleRegion& region)
   {
     try
     {
-      const Holder::Ptr holder(new STPHolder(plugin, container, region));
+      const Holder::Ptr holder(new STPHolder(plugin, parameters, container, region));
 #ifdef SELF_TEST
       holder->CreatePlayer();
 #endif
@@ -1061,13 +1061,13 @@ namespace
       return PerformCheck(&CheckSTPModule, DETECTORS, ArrayEnd(DETECTORS), inputData);
     }
 
-    virtual Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*parameters*/,
+    virtual Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
                                              const MetaContainer& container,
                                              ModuleRegion& region) const
     {
       const Plugin::Ptr plugin = shared_from_this();
       return PerformCreate(&CheckSTPModule, &CreateSTPModule, DETECTORS, ArrayEnd(DETECTORS),
-        plugin, container, region);
+        plugin, parameters, container, region);
     }
   };
 }
