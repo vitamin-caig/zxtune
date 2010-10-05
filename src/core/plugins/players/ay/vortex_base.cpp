@@ -372,8 +372,8 @@ namespace
         const int_t absoluteSlidingRange = trackSynth.GetSlidingDifference(halfTones, dst.SlidingTargetNote);
         const int_t realSlidingRange = absoluteSlidingRange - toneOffset;
 
-        if ((dst.ToneSlider.Delta > 0 && realSlidingRange <= dst.ToneSlider.Delta) ||
-          (dst.ToneSlider.Delta < 0 && realSlidingRange <= -dst.ToneSlider.Delta))
+        if ((dst.ToneSlider.Delta > 0 && realSlidingRange < dst.ToneSlider.Delta) ||
+          (dst.ToneSlider.Delta < 0 && realSlidingRange > dst.ToneSlider.Delta))
         {
           //slided to target note
           dst.Note = dst.SlidingTargetNote;
