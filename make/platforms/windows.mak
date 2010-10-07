@@ -5,6 +5,7 @@ makeobj_name = $(1).obj
 makedir_cmd = if NOT EXIST $(subst /,\,$(1)) mkdir $(subst /,\,$(1))
 rmdir_cmd = rmdir /Q /S $(subst /,\,$(1))
 rmfiles_cmd = del /Q $(subst /,\,$(1))
+showtime_cmd = echo %TIME%
 
 compiler := msvs
 

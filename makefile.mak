@@ -41,7 +41,7 @@ endif
 generated_files += $(text_files:=.h) $(text_files:=.cpp)
 
 #main target
-all: dirs $(generated_files) $(target)
+all: $(target) | $(generated_files)
 
 #set compiler-specific parameters
 include $(path_step)/make/compilers/$(compiler).mak
@@ -78,26 +78,24 @@ object_files := $(notdir $(source_files))
 object_files := $(addprefix $(objects_dir)/,$(object_files:.cpp=$(call makeobj_name,)))
 
 #make objects and binaries dir
-dirs: $(objects_dir) $(output_dir)
-	@echo Building $(if $(library_name),library $(library_name),\
-	  $(if $(binary_name),executable $(binary_name),dynamic object $(dynamic_name)))
-
 $(objects_dir):
-	$(call makedir_cmd,$(objects_dir))
+	$(call makedir_cmd,$@)
 
 $(output_dir):
-	$(call makedir_cmd,$(output_dir))
+	$(info Building $(if $(library_name),library $(library_name),\
+	$(if $(binary_name),executable $(binary_name),dynamic object $(dynamic_name))))
+	$(call makedir_cmd,$@)
 
 #build target
 ifdef library_name
 #simple libraries
-$(target): $(object_files)
+$(target): $(object_files) | $(output_dir)
 	$(call build_lib_cmd,$^,$@)
 else
 #binary and dynamic libraries with dependencies
 libs_files := $(foreach lib,$(libraries),$(libs_dir)/$(call makelib_name,$(lib)))
 
-$(target): $(object_files) $(libs_files)
+$(target): $(object_files) $(libs_files) | $(output_dir)
 	$(link_cmd)
 	$(postlink_cmd)
 
@@ -108,6 +106,8 @@ deps: $(depends)
 $(depends):
 	$(MAKE) -C $(addprefix $(path_step)/,$@) $(if $(pic),pic=1,) $(MAKECMDGOALS)
 endif
+
+$(object_files): | $(objects_dir)
 
 VPATH := $(dir $(source_files))
 
