@@ -2,10 +2,9 @@ makebin_name = $(1).exe
 makelib_name = $(1).lib
 makedyn_name = $(1).dll
 makeobj_name = $(1).obj
-#for cygwin
-#makedir_cmd = mkdir -p $(1)
-#for other
 makedir_cmd = if NOT EXIST $(subst /,\,$(1)) mkdir $(subst /,\,$(1))
+rmdir_cmd = rmdir /Q /S $(subst /,\,$(1))
+rmfiles_cmd = del /Q $(subst /,\,$(1))
 
 compiler := msvs
 

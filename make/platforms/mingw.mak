@@ -3,6 +3,8 @@ makelib_name = lib$(1).a
 makedyn_name = $(1).dll
 makeobj_name = $(1).o
 makedir_cmd = if NOT EXIST $(subst /,\,$(1)) mkdir $(subst /,\,$(1))
+rmdir_cmd = rmdir /Q /S $(subst /,\,$(1))
+rmfiles_cmd = del /Q $(subst /,\,$(1))
 
 compiler=gcc
 cxx_mode_flags += -mthreads -march=native

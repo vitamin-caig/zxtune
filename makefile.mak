@@ -116,15 +116,16 @@ $(objects_dir)/%$(call makeobj_name,): %.cpp
 
 .PHONY: clean clean_all
 
-clean:
-	rm -f $(target)
-	rm -Rf $(objects_dir)
+clean: clean_self clean_deps
 
-clean_all: clean clean_deps
+clean_self:
+	-$(call rmfiles_cmd,$(wildcard $(target)*))
+	-$(call rmdir_cmd,$(objects_dir))
 
 clean_deps: $(depends)
 
 include $(path_step)/codeblocks.mak
+include $(path_step)/package.mak
 
 #show some help
 help:
