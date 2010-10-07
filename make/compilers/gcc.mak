@@ -46,8 +46,8 @@ AR_FLAGS := cru
 LD_FLAGS := $(ld_mode_flags) $(ld_flags)
 
 #specify endpoint commands
-build_obj_cmd = $(CXX) $(CXX_FLAGS) -c -MMD $(CURDIR)/$< -o $@
-build_lib_cmd = $(AR) $(AR_FLAGS) $@ $^
+build_obj_cmd = $(CXX) $(CXX_FLAGS) -c -MMD $1 -o $2
+build_lib_cmd = $(AR) $(AR_FLAGS) $2 $1
 link_cmd = $(LDD) $(LD_FLAGS) -o $@ $(object_files) \
 	$(if $(libraries),-L$(libs_dir) $(addprefix -l,$(libraries)),) \
 	$(if $(dynamic_libs),-L$(output_dir) $(addprefix -l,$(dynamic_libs)),) \

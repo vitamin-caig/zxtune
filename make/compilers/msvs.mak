@@ -26,8 +26,8 @@ cxx_mode_flags += \
 	/GA /GF /Gy /Y- \
 	$(addprefix /I, $(include_dirs))
 
-build_obj_cmd = $(CXX) $(cxx_flags) $(cxx_mode_flags) /nologo /c /Fo$@ $<
-build_lib_cmd = $(AR) /NOLOGO /NODEFAULTLIB /OUT:$@ $^
+build_obj_cmd = $(CXX) $(cxx_flags) $(cxx_mode_flags) /nologo /c /Fo$2 $1
+build_lib_cmd = $(AR) /NOLOGO /NODEFAULTLIB /OUT:$2 $1
 #ignore some warnings for Qt
 link_cmd = $(LDD) $(ld_mode_flags) /NOLOGO /INCREMENTAL:NO /DEBUG \
 	/IGNORE:4217 /IGNORE:4049 \

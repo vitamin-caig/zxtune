@@ -92,27 +92,27 @@ $(output_dir):
 ifdef library_name
 #simple libraries
 $(target): $(object_files)
-	$(build_lib_cmd)
+	$(call build_lib_cmd,$^,$@)
 else
 #binary and dynamic libraries with dependencies
 libs_files := $(foreach lib,$(libraries),$(libs_dir)/$(call makelib_name,$(lib)))
 
-deps: $(depends)
-
-$(depends):
-	$(MAKE) -C $(addprefix $(path_step)/,$@) $(if $(pic),pic=1,) defines="$(defines)" cxx_flags="$(cxx_flags)" ld_flags="$(ld_flags)" $(MAKECMDGOALS)
-
-$(libs_files): deps
-
 $(target): $(object_files) $(libs_files)
 	$(link_cmd)
 	$(postlink_cmd)
+
+$(libs_files): deps
+
+deps: $(depends)
+
+$(depends):
+	$(MAKE) -C $(addprefix $(path_step)/,$@) $(if $(pic),pic=1,) $(MAKECMDGOALS)
 endif
 
 VPATH := $(dir $(source_files))
 
 $(objects_dir)/%$(call makeobj_name,): %.cpp
-	$(build_obj_cmd)
+	$(call build_obj_cmd,$(CURDIR)/$<,$@)
 
 .PHONY: clean clean_all
 
