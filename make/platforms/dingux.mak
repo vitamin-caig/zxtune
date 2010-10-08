@@ -5,6 +5,7 @@ makeobj_name = $(1).o
 makedir_cmd = mkdir -p $(1)
 rmdir_cmd = rm -Rf $(1)
 rmfiles_cmd = rm -f $(1)
+showtime_cmd = date +"%x %X"
 
 compiler=gcc
 CXX=${TOOLCHAIN_PATH}/usr/bin/mipsel-linux-g++

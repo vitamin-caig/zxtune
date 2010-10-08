@@ -13,7 +13,7 @@ svn up > NUL || GOTO Error
 ECHO Cleaning
 rmdir /S /Q bin\%Platform%\%Mode% lib\%Platform%\%Mode% obj\%Platform%\%Mode%
 FOR %%B IN (%Binaries%) DO (
-ECHO Building %%B with mode=%Mode platform=%Platform% arch=%Arch%
+ECHO Building %%B with mode=%Mode% platform=%Platform% arch=%Arch%
 make -j package mode=%Mode% platform=%Platform% arch=%Arch% -C apps\%%B || GOTO Error
 ECHO Done!
 )
