@@ -30,6 +30,6 @@ esac
 for Binary in ${Binaries}
 do
 echo "Building ${Binary} with mode=${Mode} platform=${Platform} arch=${Arch}"
-make -j `grep processor /proc/cpuinfo | wc -l` package mode=${Mode} platform=${Platform} arch=${Arch} cxx_flags="${cxx_flags}" -C apps/${Binary} || exit 1;
+time make -j `grep processor /proc/cpuinfo | wc -l` package mode=${Mode} platform=${Platform} arch=${Arch} cxx_flags="${cxx_flags}" -C apps/${Binary} || exit 1;
 done
 echo Done

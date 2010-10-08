@@ -5,3 +5,6 @@ endif
 ifndef mode
 mode := debug
 endif
+ifndef pkg_lang
+pkg_lang := en
+endif

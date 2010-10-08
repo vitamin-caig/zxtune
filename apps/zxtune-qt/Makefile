@@ -39,6 +39,10 @@ qt_defines = QT_LARGEFILE_SUPPORT QT_GUI_LIB QT_CORE_LIB QT_THREAD_SUPPORT
 definitions = $(qt_defines)
 generated_files += $(ui_files:=_ui.h) $(ui_files:=_moc.h) $(moc_files:=_moc.h) $(qrc_files:=_res.cpp)
 
+#packaging
+pkg_additional_files_linux := dist/linux/zxTune.desktop res/zxtune.png
+pkg_additional_files_dingux := dist/dingux/menuitem.cfg dist/dingux/zxtune-wrapper.sh dist/dingux/readme.txt res/zxtune.png
+
 include $(path_step)/makefile.mak
 
 UIC := uic
