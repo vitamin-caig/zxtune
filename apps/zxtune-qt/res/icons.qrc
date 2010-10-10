@@ -1,5 +1,7 @@
 <RCC>
   <qresource>
+    <file>about.png</file>
+    <file>logo.png</file>
     <file>zxtune.png</file>
     <file>exit.png</file>
   </qresource>
@@ -19,7 +21,7 @@
     <file alias="PT3">type_pt3.png</file>
     <file alias="STC">type_stc.png</file>
     <file alias="STP">type_stp.png</file>
-    <file alias="TS" >type_ts.png</file>
+    <file alias="TS">type_ts.png</file>
     <file alias="TXT">type_txt.png</file>
   </qresource>
   <qresource prefix="/playlist">

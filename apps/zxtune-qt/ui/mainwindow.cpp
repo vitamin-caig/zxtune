@@ -17,6 +17,7 @@ Author:
 #include "mainwindow.h"
 #include "mainwindow_ui.h"
 #include "mainwindow_moc.h"
+#include "ui/aboutdialog.h"
 #include "ui/controls/analyzer_control.h"
 #include "ui/controls/playback_controls.h"
 #include "ui/controls/seek_controls.h"
@@ -81,7 +82,7 @@ namespace
       }
       Toolbar->addWidget(Control);
     }
-    
+
     //accessors
     T* operator -> () const
     {
@@ -123,7 +124,7 @@ namespace
     const LayoutControl Layout;
   };
 
-  
+
   class UiHelper : public Ui::MainWindow
   {
   public:
@@ -139,6 +140,7 @@ namespace
   public:
     MainWindowImpl(int argc, char* argv[])
       : UiHelper(this)
+      , About(AboutDialog::Create(this))
       , Controls(this, menuLayout, "Controls", false)
       , Volume(this, menuLayout, "Volume", true)
       , Status(this, menuLayout, "Status", false)
@@ -153,6 +155,7 @@ namespace
         Collection->AddItemByPath(FromStdString(argv[param]));
       }
 
+      About->connect(actionAbout, SIGNAL(activated()), SLOT(Show()));
       //connect root actions
       Collection->connect(Controls, SIGNAL(OnPrevious()), SLOT(PrevItem()));
       Collection->connect(Controls, SIGNAL(OnNext()), SLOT(NextItem()));
@@ -197,6 +200,7 @@ namespace
       setWindowTitle(ToQString(GetProgramTitle()));
     }
   private:
+    AboutDialog* const About;
     ToolbarControl<PlaybackControls> Controls;
     ToolbarControl<VolumeControl> Volume;
     ToolbarControl<StatusControl> Status;

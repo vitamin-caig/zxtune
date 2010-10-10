@@ -41,7 +41,7 @@ endif
 generated_files += $(text_files:=.h) $(text_files:=.cpp)
 
 #main target
-all: $(target) | $(generated_files)
+all: $(target)
 
 #set compiler-specific parameters
 include $(path_step)/make/compilers/$(compiler).mak
@@ -107,7 +107,7 @@ $(depends):
 	$(MAKE) -C $(addprefix $(path_step)/,$@) $(if $(pic),pic=1,) $(MAKECMDGOALS)
 endif
 
-$(object_files): | $(objects_dir)
+$(object_files): $(generated_files) | $(objects_dir)
 
 VPATH := $(dir $(source_files))
 

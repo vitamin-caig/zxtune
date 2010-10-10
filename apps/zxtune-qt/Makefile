@@ -12,15 +12,16 @@ else
 ui_files := ui/mainwindow
 endif
 
-ui_files +=   ui/controls/playback_controls \
-              ui/controls/seek_controls \
-              ui/controls/status_control \
-              ui/controls/volume_control \
-              ui/playlist/playlist
+ui_files += ui/aboutdialog \
+            ui/controls/playback_controls \
+            ui/controls/seek_controls \
+            ui/controls/status_control \
+            ui/controls/volume_control \
+            ui/playlist/playlist
 
-moc_files :=  ui/controls/analyzer_control \
-              ui/playlist/playlist_thread \
-              supp/playback_supp
+moc_files := ui/controls/analyzer_control \
+             ui/playlist/playlist_thread \
+             supp/playback_supp
 
 qrc_files := res/icons
 source_files += $(ui_files) $(moc_files) $(qrc_files:=_res)
