@@ -142,6 +142,35 @@ namespace
     return offset;
   }
 
+  class LoggerHelper
+  {
+  public:
+    LoggerHelper(const DetectParameters& params, const MetaContainer& data, const FileDescriptions& files)
+      : Params(params)
+      , Path(data.Path)
+      , Format(Path.empty() ? Text::PLUGIN_SCL_PROGRESS_NOPATH : Text::PLUGIN_SCL_PROGRESS)
+      , Total(files.size())
+      , Begin(files.begin())
+    {
+      Message.Level = data.Plugins->CalculateContainersNesting();
+    }
+
+    void operator()(const FileDescriptions::const_iterator& cur)
+    {
+      const uint_t curCount = std::distance(Begin, cur);
+      Message.Progress = 100 * curCount / Total;
+      Message.Text = (SafeFormatter(Format) % cur->Name % Path).str();
+      Params.ReportMessage(Message);
+    }
+  private:
+    const DetectParameters& Params;
+    const String Path;
+    const String Format;
+    const uint_t Total;
+    const FileDescriptions::const_iterator Begin;
+    Log::MessageData Message;
+  };
+
   class SCLPlugin : public ContainerPlugin
                   , public boost::enable_shared_from_this<SCLPlugin>
   {
@@ -186,32 +215,17 @@ namespace
 
       const PluginsEnumerator& enumerator = PluginsEnumerator::Instance();
 
-      // progress-related
-      const bool showMessage = detectParams.Logger != 0;
-      Log::MessageData message;
-      if (showMessage)
-      {
-        message.Level = data.Plugins->CalculateContainersNesting();
-        message.Progress = -1;
-      }
-
       MetaContainer subcontainer;
       subcontainer.Plugins = data.Plugins->Clone();
       subcontainer.Plugins->Add(shared_from_this());
       ModuleRegion curRegion;
-      const uint_t totalCount = files.size();
-      uint_t curCount = 0;
-      for (FileDescriptions::const_iterator it = files.begin(), lim = files.end(); it != lim; ++it, ++curCount)
+
+      LoggerHelper logger(detectParams, data, files);
+      for (FileDescriptions::const_iterator it = files.begin(), lim = files.end(); it != lim; ++it)
       {
         subcontainer.Data = data.Data->GetSubcontainer(it->Offset, it->Size);
         subcontainer.Path = IO::AppendPath(data.Path, it->Name);
-        //show progress
-        if (showMessage)
-        {
-          message.Progress = 100 * curCount / totalCount;
-          message.Text = (SafeFormatter(data.Path.empty() ? Text::PLUGIN_SCL_PROGRESS_NOPATH : Text::PLUGIN_SCL_PROGRESS) % it->Name % data.Path).str();
-          detectParams.Logger(message);
-        }
+        logger(it);
         enumerator.DetectModules(params, detectParams, subcontainer, curRegion);
       }
       region.Offset = 0;

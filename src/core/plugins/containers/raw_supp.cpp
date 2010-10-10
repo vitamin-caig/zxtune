@@ -151,6 +151,34 @@ namespace
     const Parameters::Accessor::Ptr Delegate;
     const std::size_t Depth;
   };
+
+  class LoggerHelper
+  {
+  public:
+    LoggerHelper(const DetectParameters& params, const MetaContainer& data, uint_t limit)
+      : Params(params)
+      , Total(limit)
+    {
+      Message.Level = data.Plugins->CalculateContainersNesting();
+      Message.Text = data.Path.empty() ? String(Text::PLUGIN_RAW_PROGRESS_NOPATH) : (Formatter(Text::PLUGIN_RAW_PROGRESS) % data.Path).str();
+      Message.Progress = -1;
+    }
+
+    void operator()(uint_t offset)
+    {
+      const uint_t curProg = offset * 100 / Total;
+      if (curProg != *Message.Progress)
+      {
+        Message.Progress = curProg;
+        Params.ReportMessage(Message);
+      }
+    }
+  private:
+    const DetectParameters& Params;
+    const uint_t Total;
+    Log::MessageData Message;
+  };
+
   class RawScaner : public ContainerPlugin
                   , public boost::enable_shared_from_this<RawScaner>
   {
@@ -159,17 +187,17 @@ namespace
     {
       return RAW_PLUGIN_ID;
     }
-    
+
     virtual String Description() const
     {
       return Text::RAW_PLUGIN_INFO;
     }
-    
+
     virtual String Version() const
     {
       return RAW_PLUGIN_VERSION;
     }
-    
+
     virtual uint_t Capabilities() const
     {
       return CAP_STOR_MULTITRACK | CAP_STOR_SCANER;
@@ -181,7 +209,7 @@ namespace
       return inputData.Size() >= MIN_MINIMAL_RAW_SIZE;
     }
 
-    virtual bool Process(Parameters::Accessor::Ptr params, 
+    virtual bool Process(Parameters::Accessor::Ptr params,
       const DetectParameters& detectParams,
       const MetaContainer& data, ModuleRegion& region) const
     {
@@ -206,7 +234,7 @@ namespace
       //process without offset
       ModuleRegion curRegion;
       {
-        const Parameters::Accessor::Ptr newParams = 
+        const Parameters::Accessor::Ptr newParams =
           boost::make_shared<DepthLimitedParameters>(params, data.Plugins->Count());
         enumerator.DetectModules(newParams, detectParams, data, curRegion);
       }
@@ -223,32 +251,19 @@ namespace
 
       const std::size_t scanStep = pluginParams.GetScanStep();
 
-      // progress-related
-      const bool showMessage = detectParams.Logger != 0;
-      Log::MessageData message;
-      if (showMessage)
-      {
-        message.Level = data.Plugins->CalculateContainersNesting();
-        message.Text = data.Path.empty() ? String(Text::PLUGIN_RAW_PROGRESS_NOPATH) : (Formatter(Text::PLUGIN_RAW_PROGRESS) % data.Path).str();
-        message.Progress = -1;
-      }
-
       //to determine was scaner really affected
       bool wasResult = curRegion.Size != 0;
 
       MetaContainer subcontainer;
       subcontainer.Plugins = data.Plugins->Clone();
       subcontainer.Plugins->Add(shared_from_this());
+
+      LoggerHelper logger(detectParams, data, limit);
       for (std::size_t offset = std::max(curRegion.Offset + curRegion.Size, std::size_t(1));
         offset + minRawSize < limit;
         offset += std::max(curRegion.Offset + curRegion.Size, std::size_t(scanStep)))
       {
-        const uint_t curProg = offset * 100 / limit;
-        if (showMessage && curProg != *message.Progress)
-        {
-          message.Progress = curProg;
-          detectParams.Logger(message);
-        }
+        logger(offset);
         subcontainer.Data = data.Data->GetSubcontainer(offset, limit - offset);
         subcontainer.Path = IO::AppendPath(data.Path, CreateRawPart(offset));
         enumerator.DetectModules(params, detectParams, subcontainer, curRegion);
@@ -262,11 +277,11 @@ namespace
       return wasResult;
     }
 
-    IO::DataContainer::Ptr Open(const Parameters::Accessor& /*commonParams*/, 
+    IO::DataContainer::Ptr Open(const Parameters::Accessor& /*commonParams*/,
       const MetaContainer& inData, const String& inPath, String& restPath) const
     {
       //do not open right after self
-      if (inData.Plugins->Count() && 
+      if (inData.Plugins->Count() &&
           inData.Plugins->GetLast()->Id() == RAW_PLUGIN_ID)
       {
         return IO::DataContainer::Ptr();

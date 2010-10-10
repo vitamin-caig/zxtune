@@ -16,39 +16,42 @@ Author:
 
 //library includes
 #include <core/module_detect.h>
+//boost includes
+#include <boost/function.hpp>
 
 class Playitem
 {
 public:
   typedef boost::shared_ptr<Playitem> Ptr;
-  
+
   virtual ~Playitem() {}
-  
+
   virtual ZXTune::Module::Holder::Ptr GetModule() const = 0;
   virtual ZXTune::Module::Information::Ptr GetModuleInfo() const = 0;
   virtual Parameters::Accessor::Ptr GetAdjustedParameters() const = 0;
 };
 
-struct PlayitemDetectParameters
+class PlayitemDetectParameters
 {
-  ZXTune::DetectParameters::FilterFunc Filter;
-  typedef boost::function<bool(Playitem::Ptr)> CallbackFunc;
-  CallbackFunc Callback;
-  ZXTune::DetectParameters::LogFunc Logger;
+public:
+  virtual ~PlayitemDetectParameters() {}
+
+  virtual bool ProcessPlayitem(Playitem::Ptr item) = 0;
+  virtual void ShowProgress(const Log::MessageData& msg) = 0;
 };
 
 class PlayitemsProvider
 {
 public:
   typedef boost::shared_ptr<PlayitemsProvider> Ptr;
-  
+
   virtual ~PlayitemsProvider() {}
-  
-  virtual Error DetectModules(const String& path, 
-    Parameters::Accessor::Ptr commonParams, const PlayitemDetectParameters& detectParams) = 0;
+
+  virtual Error DetectModules(const String& path,
+    Parameters::Accessor::Ptr commonParams, PlayitemDetectParameters& detectParams) = 0;
 
   virtual void ResetCache() = 0;
-    
+
   static Ptr Create();
 };
 

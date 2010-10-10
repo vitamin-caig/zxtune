@@ -300,13 +300,13 @@ namespace
         SubMetacontainer.Data = IO::CreateDataContainer(tmp);
         SubMetacontainer.Path = IO::AppendPath(Path, filename);
       }
-      if (DetectParams.Logger)
+
       {
         Log::MessageData message;
         message.Level = GetLogLevel();
         message.Progress = 100 * (fileNum + 1) / totalFiles;
         message.Text = (SafeFormatter(Path.empty() ? Text::PLUGIN_HRIP_PROGRESS_NOPATH : Text::PLUGIN_HRIP_PROGRESS) % filename % Path).str();
-        DetectParams.Logger(message);
+        DetectParams.ReportMessage(message);
       }
 
       ModuleRegion curRegion;
@@ -363,7 +363,7 @@ namespace
     {
       return HRIP_PLUGIN_VERSION;
     }
-    
+
     virtual uint_t Capabilities() const
     {
       return CAP_STOR_MULTITRACK;
@@ -386,7 +386,7 @@ namespace
       return cb.Process(region);
     }
 
-    virtual IO::DataContainer::Ptr Open(const Parameters::Accessor& commonParams, 
+    virtual IO::DataContainer::Ptr Open(const Parameters::Accessor& commonParams,
       const MetaContainer& inData, const String& inPath,
       String& restPath) const
     {

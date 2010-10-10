@@ -13,8 +13,6 @@
 //library includes
 #include <io/container.h>//for IO::DataContainer::Ptr
 #include <core/module_holder.h>//for Module::Holder::Ptr
-//boost includes
-#include <boost/function.hpp>
 
 //forward declarations
 class Error;
@@ -35,17 +33,23 @@ namespace ZXTune
   class Plugin;
 
   //! @brief Paremeters for modules' detection
-  struct DetectParameters
+  class DetectParameters
   {
-    typedef boost::function<bool(const Plugin&)> FilterFunc;
-    //! Filter. If empty or returns false, specified plugin is processes. Optional
-    FilterFunc Filter;
-    typedef boost::function<Error(const String&, Module::Holder::Ptr player)> CallbackFunc;
-    //! Called on each detected module. Passed subpath and Module#Holder object. Return nonempty error to cancel processing. Mandatory
-    CallbackFunc Callback;
-    typedef boost::function<void(const Log::MessageData&)> LogFunc;
-    //! Simple logger callback. Optional
-    LogFunc Logger;
+  public:
+    virtual ~DetectParameters() {}
+
+    //! @brief Processed plugins' filter
+    //! @param plugin Reference to plugin intended to be processed
+    //! @return true to skip false to process
+    virtual bool FilterPlugin(const Plugin& plugin) const = 0;
+    //! @brief Called on each detected module.
+    //! @param subpath Subpath for processed module
+    //! @param holder Found module
+    //! @return Error() to continue, else to cancel.
+    virtual Error ProcessModule(const String& subpath, Module::Holder::Ptr holder) const = 0;
+    //! @brief Logging callback
+    //! @param message %Log message to report
+    virtual void ReportMessage(const Log::MessageData& message) const = 0;
   };
 
   //! @brief Perform module detection
@@ -65,7 +69,7 @@ namespace ZXTune
   //! @param result Reference to result module
   //! @return Error() in case of success and module is found
   //! @return ERROR_FIND_SUBMODULE in case if module is not found
-  Error OpenModule(Parameters::Accessor::Ptr moduleParams, IO::DataContainer::Ptr data, const String& subpath, 
+  Error OpenModule(Parameters::Accessor::Ptr moduleParams, IO::DataContainer::Ptr data, const String& subpath,
     Module::Holder::Ptr& result);
 }
 

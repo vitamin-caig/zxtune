@@ -35,7 +35,7 @@ Author:
 namespace
 {
   const std::string THIS_MODULE("QT::PlaylistProvider");
-  
+
   //cached data provider
   class DataProvider
   {
@@ -46,14 +46,13 @@ namespace
     static const uint64_t MAX_CACHE_SIZE = 1048576 * 100;//100Mb
   public:
     typedef boost::shared_ptr<DataProvider> Ptr;
-    
+
     DataProvider()
       : CacheSize(0)
     {
     }
 
-    ZXTune::IO::DataContainer::Ptr GetData(const String& dataPath, const Parameters::Accessor& ioParams,
-      const ZXTune::DetectParameters::LogFunc& logger)
+    ZXTune::IO::DataContainer::Ptr GetData(const String& dataPath, const Parameters::Accessor& ioParams)
     {
       //check in cache
       {
@@ -71,8 +70,7 @@ namespace
       ZXTune::IO::DataContainer::Ptr data;
       {
         String subpath;
-        ThrowIfError(ZXTune::IO::OpenData(dataPath, ioParams,
-          logger ? boost::bind(&DataProvider::ConvertLog, _1, _2, boost::cref(logger)) : ZXTune::IO::ProgressCallback(),
+        ThrowIfError(ZXTune::IO::OpenData(dataPath, ioParams, ZXTune::IO::ProgressCallback(),
           data, subpath));
         assert(subpath.empty());
       }
@@ -99,47 +97,10 @@ namespace
       return data;
     }
   private:
-    static Error ConvertLog(const String& msg, uint_t progress,
-      const ZXTune::DetectParameters::LogFunc& logger)
-    {
-      assert(logger);
-      Log::MessageData data;
-      data.Text = msg;
-      data.Progress = progress;
-      logger(data);
-      return Error();
-    }
-  private:
     boost::mutex Mutex;
     CacheMap Cache;
     uint64_t CacheSize;
     CacheList CacheHistory;
-  };
-  
-  class SharedPlayitemContext
-  {
-  public:
-    typedef boost::shared_ptr<SharedPlayitemContext> Ptr;
-
-    SharedPlayitemContext(DataProvider::Ptr provider, Parameters::Accessor::Ptr params)
-      : Provider(provider), CommonParams(params)
-    {
-    }
-
-    ZXTune::Module::Holder::Ptr GetModule(const String& dataPath, const String& subPath, Parameters::Accessor::Ptr adjustedParams) const
-    {
-      const Parameters::Accessor::Ptr moduleParams = adjustedParams
-        ? Parameters::CreateMergedAccessor(adjustedParams, CommonParams) : CommonParams;
-      const ZXTune::IO::DataContainer::Ptr data = Provider->GetData(dataPath, *moduleParams, 0/*logger*/);
-      ZXTune::Module::Holder::Ptr module;
-      ThrowIfError(ZXTune::OpenModule(moduleParams, data, subPath, module));
-      const Parameters::Accessor::Ptr pathParams = CreatePathProperties(dataPath, subPath);
-      const Parameters::Accessor::Ptr collectedModuleParams = Parameters::CreateMergedAccessor(moduleParams, pathParams);
-      return CreateMixinPropertiesModule(module, collectedModuleParams, collectedModuleParams);
-    }
-  private:
-    const DataProvider::Ptr Provider;
-    const Parameters::Accessor::Ptr CommonParams;
   };
 
   class PlayitemImpl : public Playitem
@@ -147,22 +108,27 @@ namespace
   public:
     PlayitemImpl(
         //container-specific
-        SharedPlayitemContext::Ptr context,
+        Parameters::Accessor::Ptr commonParams, DataProvider::Ptr provider,
         //location-specific
         const String& dataPath, const String& subPath,
         //module-specific
-        Parameters::Accessor::Ptr adjustedParams)
-      : Context(context)
+        Parameters::Container::Ptr adjustedParams)
+      : BaseParams(Parameters::CreateMergedAccessor(commonParams, CreatePathProperties(dataPath, subPath)))
+      , Provider(provider)
       , DataPath(dataPath), SubPath(subPath)
       , AdjustedParams(adjustedParams)
     {
     }
-    
+
     virtual ZXTune::Module::Holder::Ptr GetModule() const
     {
-      return Context->GetModule(DataPath, SubPath, AdjustedParams);
+      const Parameters::Accessor::Ptr moduleParams = Parameters::CreateMergedAccessor(AdjustedParams, BaseParams);
+      const ZXTune::IO::DataContainer::Ptr data = Provider->GetData(DataPath, *moduleParams);
+      ZXTune::Module::Holder::Ptr module;
+      ThrowIfError(ZXTune::OpenModule(moduleParams, data, SubPath, module));
+      return module;
     }
-    
+
     virtual ZXTune::Module::Information::Ptr GetModuleInfo() const
     {
       if (!ModuleInfo)
@@ -172,18 +138,57 @@ namespace
       }
       return ModuleInfo;
     }
-    
+
     virtual Parameters::Accessor::Ptr GetAdjustedParameters() const
     {
       return AdjustedParams;
     }
   private:
-    const SharedPlayitemContext::Ptr Context;
+    const Parameters::Accessor::Ptr BaseParams;
+    const DataProvider::Ptr Provider;
     const String DataPath, SubPath;
-    const Parameters::Accessor::Ptr AdjustedParams;
+    const Parameters::Container::Ptr AdjustedParams;
     mutable ZXTune::Module::Information::Ptr ModuleInfo;
   };
-  
+
+  class DetectParametersAdapter : public ZXTune::DetectParameters
+  {
+  public:
+    DetectParametersAdapter(PlayitemDetectParameters& delegate,
+                            DataProvider::Ptr provider, Parameters::Accessor::Ptr commonParams, const String& dataPath)
+      : Delegate(delegate)
+      , Provider(provider)
+      , CommonParams(commonParams)
+      , DataPath(dataPath)
+    {
+    }
+
+    virtual bool FilterPlugin(const ZXTune::Plugin& /*plugin*/) const
+    {
+      //TODO: from parameters
+      return false;
+    }
+
+    virtual Error ProcessModule(const String& subPath, ZXTune::Module::Holder::Ptr /*holder*/) const
+    {
+      //no adjusted parameters here- just empty container
+      const Parameters::Container::Ptr adjustedParams = Parameters::Container::Create();
+      const Playitem::Ptr playitem = boost::make_shared<PlayitemImpl>(CommonParams, Provider, //common data
+          DataPath, subPath, adjustedParams);
+      return Delegate.ProcessPlayitem(playitem) ? Error() : Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
+    }
+
+    virtual void ReportMessage(const Log::MessageData& message) const
+    {
+      Delegate.ShowProgress(message);
+    }
+  private:
+    PlayitemDetectParameters& Delegate;
+    const DataProvider::Ptr Provider;
+    const Parameters::Accessor::Ptr CommonParams;
+    const String DataPath;
+  };
+
   class PlayitemsProviderImpl : public PlayitemsProvider
   {
   public:
@@ -191,23 +196,17 @@ namespace
       : Provider(new DataProvider())
     {
     }
-    
+
     virtual Error DetectModules(const String& path,
-                                Parameters::Accessor::Ptr commonParams, const PlayitemDetectParameters& detectParams)
+                                Parameters::Accessor::Ptr commonParams, PlayitemDetectParameters& detectParams)
     {
       try
       {
         String dataPath, subPath;
         ThrowIfError(ZXTune::IO::SplitUri(path, dataPath, subPath));
-        const ZXTune::IO::DataContainer::Ptr data = Provider->GetData(dataPath, *commonParams, detectParams.Logger);
-        
-        const SharedPlayitemContext::Ptr context = boost::make_shared<SharedPlayitemContext>(Provider, commonParams);
-          
-        ZXTune::DetectParameters params;
-        params.Filter = detectParams.Filter;
-        params.Logger = detectParams.Logger;
-        params.Callback = boost::bind(&PlayitemsProviderImpl::CreatePlayitem, this,
-          context, dataPath, _1, _2, detectParams.Callback);
+        const ZXTune::IO::DataContainer::Ptr data = Provider->GetData(dataPath, *commonParams);
+
+        const DetectParametersAdapter params(detectParams, Provider, commonParams, dataPath);
         ThrowIfError(ZXTune::DetectModules(commonParams, params, data, subPath));
         return Error();
       }
@@ -220,28 +219,6 @@ namespace
     virtual void ResetCache()
     {
       Provider.reset(new DataProvider());
-    }
-
-  private:
-    Error CreatePlayitem(SharedPlayitemContext::Ptr context,
-      const String& dataPath, const String& subPath,
-      ZXTune::Module::Holder::Ptr /*module*/,
-      const PlayitemDetectParameters::CallbackFunc& callback)
-    {
-      try
-      {
-        const Parameters::Accessor::Ptr adjustedParams;
-        const Playitem::Ptr item(new PlayitemImpl(
-          context, //common data
-          dataPath, subPath, //item data
-          adjustedParams
-        ));
-        return callback(item) ? Error() : Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
-      }
-      catch (const Error& e)
-      {
-        return e;
-      }
     }
   private:
     DataProvider::Ptr Provider;

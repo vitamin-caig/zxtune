@@ -549,6 +549,8 @@ namespace
       props->SetTitle(OptimizeString(FromStdString(header->Name)));
       props->SetProgram(Text::PT2_EDITOR);
       props->SetWarnings(warner);
+      props->SetPlugins(container.Plugins);
+      props->SetPath(container.Path);
 
       Info->SetLogicalChannels(AYM::LOGICAL_CHANNELS);
       Info->SetModuleProperties(CreateMergedAccessor(parameters, props));

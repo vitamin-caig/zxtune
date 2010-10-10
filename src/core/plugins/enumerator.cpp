@@ -48,18 +48,29 @@ namespace
 
   const Char ROOT_SUBPATH[] = {'/', 0};
 
-  template<class P1, class P2>
-  inline void DoLog(const DetectParameters::LogFunc& logger, uint_t level, const Char* format, const P1& param1, const P2& param2)
+  class LoggerHelper
   {
-    if (logger)
+  public:
+    LoggerHelper(const DetectParameters& detectParams, const MetaContainer& input, const String& msgFormat)
+      : Params(detectParams)
+      , Path(input.Path)
+      , Format(msgFormat)
     {
-      assert(format);
-      Log::MessageData msg;
-      msg.Level = level;
-      msg.Text = (SafeFormatter(format) % param1 % param2).str();
-      logger(msg);
+      const uint_t level = input.Plugins->CalculateContainersNesting();
+      Message.Level = level;
     }
-  }
+
+    void operator () (const Plugin& plugin)
+    {
+      Message.Text = (SafeFormatter(Format) % plugin.Id() % Path).str();
+      Params.ReportMessage(Message);
+    }
+  private:
+    const DetectParameters& Params;
+    const String Path;
+    const String Format;
+    Log::MessageData Message;
+  };
 
   typedef std::list<Plugin::Ptr> PluginsList;
 
@@ -279,9 +290,9 @@ namespace
     virtual void DetectModules(Parameters::Accessor::Ptr modulesParams, const DetectParameters& detectParams,
       const MetaContainer& data, ModuleRegion& region) const
     {
-      Log::Debug(THIS_MODULE, "%3%: Detecting modules in data of size %1%, path '%2%'", 
+      Log::Debug(THIS_MODULE, "%3%: Detecting modules in data of size %1%, path '%2%'",
         data.Data->Size(), data.Path, data.Plugins->Count());
-      assert(detectParams.Callback);
+
       //try to detect container and pass control there
       if (DetectContainer(modulesParams, detectParams, data, region))
       {
@@ -310,7 +321,7 @@ namespace
         ModuleRegion region;
         if (Module::Holder::Ptr module = plugin->CreateModule(moduleParams, input, region))
         {
-          Log::Debug(THIS_MODULE, "%2%: Opened player plugin %1%", 
+          Log::Debug(THIS_MODULE, "%2%: Opened player plugin %1%",
             plugin->Id(), input.Plugins->Count());
           holder = module;
           return;
@@ -328,7 +339,7 @@ namespace
         it != lim; ++it)
       {
         const ContainerPlugin::Ptr plugin = *it;
-        if (detectParams.Filter && detectParams.Filter(*plugin))
+        if (detectParams.FilterPlugin(*plugin))
         {
           continue;//filtered plugin
         }
@@ -336,7 +347,7 @@ namespace
         {
           continue;//invalid plugin
         }
-        Log::Debug(THIS_MODULE, "%3%:  Checking container plugin %1% for path '%2%'", 
+        Log::Debug(THIS_MODULE, "%3%:  Checking container plugin %1% for path '%2%'",
           plugin->Id(), input.Path, input.Plugins->Count());
         if (plugin->Process(params, detectParams, input, region))
         {
@@ -351,11 +362,13 @@ namespace
     bool DetectImplicit(Parameters::Accessor::Ptr modulesParams, const DetectParameters& detectParams, const MetaContainer& input,
       ModuleRegion& region) const
     {
+      LoggerHelper logger(detectParams, input, input.Path.empty() ? Text::MODULE_PROGRESS_DETECT_IMPLICIT_NOPATH : Text::MODULE_PROGRESS_DETECT_IMPLICIT);
+
       for (ImplicitPluginsArray::const_iterator it = ImplicitPlugins.begin(), lim = ImplicitPlugins.end();
         it != lim; ++it)
       {
         const ImplicitPlugin::Ptr plugin = *it;
-        if (detectParams.Filter && detectParams.Filter(*plugin))
+        if (detectParams.FilterPlugin(*plugin))
         {
           continue;//filtered plugin
         }
@@ -364,16 +377,13 @@ namespace
           continue;//invalid plugin
         }
         //find first suitable
-        Log::Debug(THIS_MODULE, "%3%:  Checking implicit container %1% at path '%2%'", 
+        Log::Debug(THIS_MODULE, "%3%:  Checking implicit container %1% at path '%2%'",
           plugin->Id(), input.Path, input.Plugins->Count());
         if (IO::DataContainer::Ptr subdata = plugin->ExtractSubdata(*modulesParams, input, region))
         {
-          Log::Debug(THIS_MODULE, "%3%:  Detected at region (%1%;%2%)", 
+          Log::Debug(THIS_MODULE, "%3%:  Detected at region (%1%;%2%)",
             region.Offset, region.Size, input.Plugins->Count());
-          const uint_t level = input.Plugins->CalculateContainersNesting();
-          DoLog(detectParams.Logger, level,
-            input.Path.empty() ? Text::MODULE_PROGRESS_DETECT_IMPLICIT_NOPATH : Text::MODULE_PROGRESS_DETECT_IMPLICIT,
-            plugin->Id(), input.Path);
+          logger(*plugin);
 
           MetaContainer nested;
           nested.Data = subdata;
@@ -392,11 +402,12 @@ namespace
     void DetectModule(Parameters::Accessor::Ptr moduleParams, const DetectParameters& detectParams, const MetaContainer& input,
       ModuleRegion& region) const
     {
+      LoggerHelper logger(detectParams, input, input.Path.empty() ? Text::MODULE_PROGRESS_DETECT_PLAYER_NOPATH : Text::MODULE_PROGRESS_DETECT_PLAYER);
       for (PlayerPluginsArray::const_iterator it = PlayerPlugins.begin(), lim = PlayerPlugins.end();
         it != lim; ++it)
       {
         const PlayerPlugin::Ptr plugin = *it;
-        if (detectParams.Filter && detectParams.Filter(*plugin))
+        if (detectParams.FilterPlugin(*plugin))
         {
           continue;//filtered plugin
         }
@@ -404,16 +415,16 @@ namespace
         {
           continue;//invalid plugin
         }
-        Log::Debug(THIS_MODULE, "%3%:  Checking module plugin %1% at path '%2%'", 
+        Log::Debug(THIS_MODULE, "%3%:  Checking module plugin %1% at path '%2%'",
           plugin->Id(), input.Path, input.Plugins->Count());
         if (Module::Holder::Ptr module = plugin->CreateModule(moduleParams, input, region))
         {
-          Log::Debug(THIS_MODULE, "%3%:  Detected at region (%1%;%2%)", 
+          Log::Debug(THIS_MODULE, "%3%:  Detected at region (%1%;%2%)",
             region.Offset, region.Size, input.Plugins->Count());
-          const uint_t level = input.Plugins->CalculateContainersNesting();
-          DoLog(detectParams.Logger, level, input.Path.empty() ? Text::MODULE_PROGRESS_DETECT_PLAYER_NOPATH : Text::MODULE_PROGRESS_DETECT_PLAYER,
-            plugin->Id(), input.Path);
-          ThrowIfError(detectParams.Callback(input.Path, module));
+
+          logger(*plugin);
+
+          ThrowIfError(detectParams.ProcessModule(input.Path, module));
           return;
         }
         //TODO: dispatch heavy checks- return false if not enabled
@@ -464,7 +475,7 @@ namespace
           data.Plugins->Add(plugin);
           pathToOpen = restPath;
           return true;
-        }  
+        }
         //TODO: dispatch heavy checks- return false if not enabled
       }
       return false;
@@ -513,7 +524,7 @@ namespace ZXTune
   Error DetectModules(Parameters::Accessor::Ptr modulesParams, const DetectParameters& detectParams,
     IO::DataContainer::Ptr data, const String& startSubpath)
   {
-    if (!data.get() || !detectParams.Callback)
+    if (!data.get())
     {
       return Error(THIS_LINE, Module::ERROR_INVALID_PARAMETERS, Text::MODULE_ERROR_PARAMETERS);
     }

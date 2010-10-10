@@ -142,6 +142,115 @@ namespace
     caps = tmpCaps;
   }
 
+  class PluginsFilter
+  {
+  public:
+    PluginsFilter(const String& allowed, const String& denied)
+    {
+      std::map<String, uint_t> plug2Cap;
+      StringSet allplugs;
+      for (ZXTune::Plugin::Iterator::Ptr plugs = ZXTune::EnumeratePlugins(); plugs->IsValid(); plugs->Next())
+      {
+        const ZXTune::Plugin::Ptr plugin = plugs->Get();
+        allplugs.insert(plugin->Id());
+        plug2Cap[plugin->Id()] = plugin->Capabilities();
+      }
+      uint_t enabledCaps = 0;
+      StringSet enabledPlugins;
+      uint_t disabledCaps = 0;
+      StringSet disabledPlugins;
+      Parse(allplugs, allowed, enabledPlugins, enabledCaps);
+      Parse(allplugs, denied, disabledPlugins, disabledCaps);
+      for (std::map<String, uint_t>::const_iterator it = plug2Cap.begin(), lim = plug2Cap.end(); it != lim; ++it)
+      {
+        const String id = it->first;
+        const uint_t caps = it->second;
+        if (enabledPlugins.count(id) || 0 != (caps & enabledCaps))
+        {
+          //enabled explicitly
+          continue;
+        }
+        else if (disabledPlugins.count(id) || 0 != (caps & disabledCaps))
+        {
+          //disabled explicitly
+          FilteredPlugins.insert(id);
+        }
+        //enable all if there're no explicit enables
+        if (!(enabledPlugins.empty() && !enabledCaps))
+        {
+          FilteredPlugins.insert(id);
+        }
+      }
+    }
+
+    bool IsPluginFiltered(const ZXTune::Plugin& plugin) const
+    {
+      return FilteredPlugins.count(plugin.Id());
+    }
+  private:
+    StringSet FilteredPlugins;
+  };
+
+  class ModulesProcessor
+  {
+  public:
+    ModulesProcessor(const String& path, const OnItemCallback& callback)
+      : Path(path)
+      , Callback(callback)
+    {
+    }
+
+    Error ProcessModule(const String& subpath, const ZXTune::Module::Holder::Ptr& module) const
+    {
+      try
+      {
+        const Parameters::Accessor::Ptr pathProps = CreatePathProperties(Path, subpath);
+        const ZXTune::Module::Holder::Ptr holder = CreateMixinPropertiesModule(module, pathProps, pathProps);
+        return Callback(holder) ? Error() : Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
+      }
+      catch (const Error& e)
+      {
+        return e;
+      }
+    }
+  private:
+    const String Path;
+    const OnItemCallback& Callback;
+  };
+
+  class DetectParametersImpl : public ZXTune::DetectParameters
+  {
+  public:
+    DetectParametersImpl(const PluginsFilter& filter, const ModulesProcessor& processor, bool showLogs)
+      : Filter(filter)
+      , Processor(processor)
+      , ShowLogs(showLogs)
+    {
+    }
+
+    virtual bool FilterPlugin(const ZXTune::Plugin& plugin) const
+    {
+      return Filter.IsPluginFiltered(plugin);
+    }
+
+    virtual Error ProcessModule(const String& subpath, ZXTune::Module::Holder::Ptr holder) const
+    {
+      return Processor.ProcessModule(subpath, holder);
+    }
+
+    virtual void ReportMessage(const Log::MessageData& message) const
+    {
+      if (ShowLogs)
+      {
+        DoLog(message);
+      }
+    }
+  private:
+    const PluginsFilter& Filter;
+    const ModulesProcessor& Processor;
+    const bool ShowLogs;
+  };
+
   class Source : public SourceComponent
   {
   public:
@@ -149,7 +258,7 @@ namespace
       : IOParams(configParams)
       , CoreParams(configParams)
       , OptionsDescription(Text::INPUT_SECTION)
-      , EnabledCaps(0), DisabledCaps(0), ShowProgress(false)
+      , ShowProgress(false)
       , YM(false)
     {
       OptionsDescription.add_options()
@@ -171,18 +280,12 @@ namespace
     // throw
     virtual void Initialize()
     {
-      StringSet allplugs;
-      for (ZXTune::Plugin::Iterator::Ptr plugs = ZXTune::EnumeratePlugins(); plugs->IsValid(); plugs->Next())
-      {
-        const ZXTune::Plugin::Ptr plugin = plugs->Get();
-        allplugs.insert(plugin->Id());
-      }
-      Parse(allplugs, Allowed, EnabledPlugins, EnabledCaps);
-      Parse(allplugs, Denied, DisabledPlugins, DisabledCaps);
       if (Files.empty())
       {
         throw Error(THIS_LINE, NO_INPUT_FILES, Text::INPUT_ERROR_NO_FILES);
       }
+      Filter.reset(new PluginsFilter(Allowed, Denied));
+
       if (!ProvidersOptions.empty())
       {
         const Parameters::Container::Ptr ioParams = Parameters::Container::Create();
@@ -210,59 +313,22 @@ namespace
     virtual void ProcessItems(const OnItemCallback& callback)
     {
       assert(callback);
-      const bool hasFilter(!EnabledPlugins.empty() || !DisabledPlugins.empty() || 0 != EnabledCaps || 0 != DisabledCaps);
-      ZXTune::DetectParameters detectParams;
-      detectParams.Filter = hasFilter
-        ? boost::bind(&Source::DoFilter, this, _1)
-        : ZXTune::DetectParameters::FilterFunc();
-      detectParams.Logger = ShowProgress ? &DoLog : 0;
 
       for (StringArray::const_iterator it = Files.begin(), lim = Files.end(); it != lim; ++it)
       {
         ZXTune::IO::DataContainer::Ptr data;
         String subpath;
         ThrowIfError(ZXTune::IO::OpenData(*it, *IOParams, 0, data, subpath));
-        detectParams.Callback = boost::bind(&Source::FormModule, this, *it, _1, _2, callback);
-        ThrowIfError(ZXTune::DetectModules(CoreParams, detectParams, data, subpath));
+
+        const ModulesProcessor processor(*it, callback);
+        const DetectParametersImpl params(*Filter, processor, ShowProgress);
+        ThrowIfError(ZXTune::DetectModules(CoreParams, params, data, subpath));
       }
     }
 
     virtual const Parameters::Accessor& GetCoreOptions() const
     {
       return *CoreParams;
-    }
-  private:
-    bool DoFilter(const ZXTune::Plugin& plugin) const
-    {
-      const String& id = plugin.Id();
-      const uint_t caps = plugin.Capabilities();
-      if (EnabledPlugins.count(id) || 0 != (caps & EnabledCaps))
-      {
-        //enabled explicitly
-        return false;
-      }
-      else if (DisabledPlugins.count(id) || 0 != (caps & DisabledCaps))
-      {
-        //disabled explicitly
-        return true;
-      }
-      //enable all if there're no explicit enables
-      return !(EnabledPlugins.empty() && !EnabledCaps);
-    }
-
-    Error FormModule(const String& path, const String& subpath, const ZXTune::Module::Holder::Ptr& module,
-      const OnItemCallback& callback) const
-    {
-      try
-      {
-        const Parameters::Accessor::Ptr pathProps = CreatePathProperties(path, subpath);
-        const ZXTune::Module::Holder::Ptr holder = CreateMixinPropertiesModule(module, pathProps, pathProps);
-        return callback(holder) ? Error() : Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
-      }
-      catch (const Error& e)
-      {
-        return e;
-      }
     }
   private:
     Parameters::Accessor::Ptr IOParams;
@@ -272,10 +338,7 @@ namespace
     String ProvidersOptions;
     String Allowed;
     String Denied;
-    StringSet EnabledPlugins;
-    StringSet DisabledPlugins;
-    uint32_t EnabledCaps;
-    uint32_t DisabledCaps;
+    std::auto_ptr<PluginsFilter> Filter;
     bool ShowProgress;
     String CoreOptions;
     bool YM;
