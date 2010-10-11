@@ -157,6 +157,7 @@ extern const Char LOOP_KEY[];
 extern const Char MIXER_DESC[];
 extern const Char MIXER_KEY[];
 extern const Char PLAYBACK_STATUS[];
+extern const Char PROGRAM_NAME[];
 extern const Char PROGRESS_FORMAT[];
 extern const Char QUIET_DESC[];
 extern const Char QUIET_KEY[];

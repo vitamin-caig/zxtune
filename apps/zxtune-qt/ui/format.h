@@ -24,6 +24,4 @@ namespace Parameters
 
 String GetModuleTitle(const String& format, const Parameters::Accessor& props);
 
-String GetProgramTitle();
-
 #endif //ZXTUNE_QT_FORMAT_H_DEFINED

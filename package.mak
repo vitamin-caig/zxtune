@@ -40,4 +40,4 @@ $(pkg_debug): $(pkg_build_log)
 
 $(pkg_build_log):
 	@$(call showtime_cmd)
-	$(MAKE) defines=ZXTUNE_VERSION=rev$(pkg_revision) > $(pkg_build_log) 2>&1
+	$(MAKE) defines="ZXTUNE_VERSION=rev$(pkg_revision) BUILD_PLATFORM=$(platform) BUILD_ARCH=$(arch)" > $(pkg_build_log) 2>&1

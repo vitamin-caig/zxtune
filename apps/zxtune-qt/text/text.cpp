@@ -11,6 +11,9 @@ extern const Char MODULE_PLAYLIST_FORMAT[] = {
 extern const Char MODULE_TITLE_FORMAT[] = {
   '[','A','u','t','h','o','r',']',' ','-',' ','[','T','i','t','l','e',']',0
 };
+extern const Char PROGRAM_NAME[] = {
+  'z','x','t','u','n','e','-','q','t',0
+};
 extern const Char TITLE_FORMAT[] = {
   '%','2','%',' ','[','%','1','%',']',0
 };

@@ -25,6 +25,7 @@ Author:
 #include "ui/controls/volume_control.h"
 #include "ui/playlist/playlist.h"
 #include "supp/playback_supp.h"
+#include <apps/base/app.h>
 //common includes
 #include <formatter.h>
 #include <logging.h>

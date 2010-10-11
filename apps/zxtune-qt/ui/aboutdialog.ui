@@ -13,9 +13,6 @@
     <height>318</height>
    </rect>
   </property>
-  <property name="windowTitle">
-   <string>About ZXTune</string>
-  </property>
   <property name="windowIcon">
    <iconset resource="../res/icons.qrc">
     <normaloff>:/zxtune.png</normaloff>:/zxtune.png</iconset>
@@ -28,22 +25,20 @@
     <widget class="QLabel" name="staticText">
      <property name="text">
       <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Sans Serif'; font-size:10pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;img src=&quot;:/logo.png&quot; /&gt;&lt;/p&gt;
-&lt;p align=&quot;center&quot; style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-weight:600;&quot;&gt;&lt;/p&gt;
-&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Idea, project, code and gfx: &lt;/span&gt;&lt;a href=&quot;mailto:vitamin.caig@gmail.com&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#508ed8;&quot;&gt;Vitamin/CAIG&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;
-&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Project homepage&lt;/span&gt;: &lt;a href=&quot;http://zxtune.googlecode.com&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#508ed8;&quot;&gt;http://zxtune.googlecode.com&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;
-&lt;p align=&quot;justify&quot; style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;/p&gt;
-&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Technical credits:&lt;/span&gt;&lt;/p&gt;
-&lt;p align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;AY/YM engine is based on Unreal Speccy sources by &lt;span style=&quot; font-weight:600;&quot;&gt;SMT&lt;/span&gt;&lt;/p&gt;
-&lt;p align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Used AYEmul sources by &lt;span style=&quot; font-weight:600;&quot;&gt;S.Bulba&lt;/span&gt;&lt;/p&gt;
-&lt;p align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Used AYFly sources by &lt;span style=&quot; font-weight:600;&quot;&gt;Ander&lt;/span&gt;&lt;/p&gt;
-&lt;p align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Packer plugins are based on the xPlugins sources by &lt;span style=&quot; font-weight:600;&quot;&gt;elf/2&lt;/span&gt;&lt;/p&gt;
-&lt;p align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt; &lt;/p&gt;
-&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Support credits:&lt;/span&gt;&lt;/p&gt;
-&lt;p align=&quot;justify&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;F0lken, Q-Master, Siril&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;/head&gt;&lt;body&gt;
+&lt;center&gt;&lt;img src=&quot;:/logo.png&quot; /&gt;&lt;br/&gt;
+&lt;b&gt;Idea, project, code and gfx: &lt;/b&gt;&lt;a href=&quot;mailto:vitamin.caig@gmail.com&quot;&gt;Vitamin/CAIG&lt;/a&gt;&lt;br/&gt;
+&lt;b&gt;Project homepage&lt;/b&gt;: &lt;a href=&quot;http://zxtune.googlecode.com&quot;&gt;http://zxtune.googlecode.com&lt;/a&gt;&lt;/center&gt;&lt;br/&gt;
+&lt;center&gt;&lt;b&gt;Technical credits:&lt;/b&gt;&lt;/center&gt;
+&lt;p align=&quot;justify&quot;&gt;
+AY/YM engine is based on Unreal Speccy sources by &lt;b&gt;SMT&lt;/b&gt;&lt;br/&gt;
+Used AYEmul sources by &lt;b&gt;S.Bulba&lt;/b&gt;&lt;br/&gt;
+Used AYFly sources by &lt;b&gt;Ander&lt;/b&gt;&lt;br/&gt;
+Packer plugins are based on the xPlugins sources by &lt;b&gt;elf/2&lt;/b&gt;&lt;br/&gt;
+
+&lt;center&gt;&lt;b&gt;Support credits:&lt;/b&gt;&lt;/center&gt;
+&lt;p align=&quot;justify&quot;&gt;F0lken, Q-Master, Siril&lt;/p&gt;
+&lt;/body&gt;&lt;/html&gt;</string>
      </property>
     </widget>
    </item>

@@ -15,6 +15,8 @@ Author:
 #include "aboutdialog.h"
 #include "aboutdialog_ui.h"
 #include "aboutdialog_moc.h"
+#include "utils.h"
+#include <apps/base/app.h>
 
 namespace
 {
@@ -26,6 +28,8 @@ namespace
     {
       //do not set parent
       setupUi(this);
+      const QString& newTitle = ToQString(GetProgramVersionString());
+      setWindowTitle(newTitle);
     }
 
     virtual void Show()

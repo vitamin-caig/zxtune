@@ -49,15 +49,6 @@ Author:
 
 #define FILE_TAG 81C76E7D
 
-// version definition-related
-#ifndef ZXTUNE_VERSION
-#define ZXTUNE_VERSION develop
-#endif
-
-#define STR(a) #a
-
-#define VERSION_STRING(a) STR(a)
-
 namespace
 {
   inline void ErrOuter(uint_t /*level*/, Error::LocationRef loc, Error::CodeType code, const String& text)
@@ -254,7 +245,7 @@ namespace
         }
         else if (vars.count(Text::VERSION_KEY))
         {
-          StdOut << VERSION_STRING(ZXTUNE_VERSION) << std::endl;
+          StdOut << GetProgramVersionString() << std::endl;
           return true;
         }
         ThrowIfError(ParseConfigFile(configFile, *ConfigParams));

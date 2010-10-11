@@ -13,7 +13,7 @@ Author:
 #define BASE_APP_H_DEFINED
 
 //common includes
-#include <char_type.h>
+#include <types.h>
 //std includes
 #include <iostream>
 #include <memory>
@@ -34,5 +34,8 @@ public:
 
   static std::auto_ptr<Application> Create();
 };
+
+String GetProgramTitle();
+String GetProgramVersionString();
 
 #endif //BASE_APP_H_DEFINED

@@ -355,7 +355,7 @@ namespace
       const Hrust1xHeader* const header2 = safe_ptr_cast<const Hrust1xHeader*>(static_cast<const uint8_t*>(inputData.Data()) +
         DEPACKER_SIZE);
       if (limit > DEPACKER_SIZE &&
-          CheckHrust1(header2, limit))
+          CheckHrust1(header2, limit - DEPACKER_SIZE))
       {
         return true;
       }

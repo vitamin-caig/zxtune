@@ -12,6 +12,9 @@ __cpp> "{\n"
 __cpp> "}//namespace Text\n"
 __cpp> "#endif //__TEXT_TEXT_H_DEFINED__\n"
 
+< PROGRAM_NAME
+> "zxtune123"
+
 #aggregate text
 +cmdline.txt
 +messages.txt

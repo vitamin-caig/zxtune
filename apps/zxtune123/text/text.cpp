@@ -576,6 +576,9 @@ extern const Char PLAYBACK_STATUS[] = {
   '\n',
   0
 };
+extern const Char PROGRAM_NAME[] = {
+  'z','x','t','u','n','e','1','2','3',0
+};
 extern const Char PROGRESS_FORMAT[] = {
   ' ','[','%','1','%','%','%',']',0
 };
