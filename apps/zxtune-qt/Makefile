@@ -55,7 +55,11 @@ qrc_files := res/icons
 object_files += $(foreach qrc,$(notdir $(qrc_files)),$(objects_dir)/$(call makeobj_name,$(qrc)))
 
 #platform-specific resources
+ifeq ($(platform),windows)
 resource_files := res/win32
+else ifeq ($(platform),mingw)
+resource_files := res/win32
+endif
 object_files += $(foreach rc,$(notdir $(resource_files)),$(objects_dir)/$(call makeres_name,$(rc)))
 
 include $(path_step)/makefile.mak
