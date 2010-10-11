@@ -38,7 +38,7 @@ else
 $(error Invalid target)
 endif
 
-generated_files += $(text_files:=.h) $(text_files:=.cpp)
+generated_files += $(text_files:=.h)
 
 #main target
 all: $(target)
@@ -74,8 +74,8 @@ TEXTATOR_FLAGS := --verbose --process --cpp --symboltype "Char" --memtype "exter
 endif
 
 #calculate object files from sources
-object_files := $(notdir $(source_files))
-object_files := $(addprefix $(objects_dir)/,$(object_files:.cpp=$(call makeobj_name,)))
+source_names = $(basename $(notdir $(source_files)))
+object_files += $(foreach src,$(source_names),$(objects_dir)/$(call makeobj_name,$(src)))
 
 #make objects and binaries dir
 $(objects_dir):
@@ -107,9 +107,9 @@ $(depends):
 	$(MAKE) -C $(addprefix $(path_step)/,$@) $(if $(pic),pic=1,) $(MAKECMDGOALS)
 endif
 
-$(object_files): $(generated_files) | $(objects_dir)
+$(object_files): $(source_files) $(generated_files) | $(objects_dir)
 
-VPATH := $(dir $(source_files))
+VPATH = $(dir $(source_files))
 
 $(objects_dir)/%$(call makeobj_name,): %.cpp
 	$(call build_obj_cmd,$(CURDIR)/$<,$@)

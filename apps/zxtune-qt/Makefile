@@ -23,8 +23,9 @@ moc_files := ui/controls/analyzer_control \
              ui/playlist/playlist_thread \
              supp/playback_supp
 
-qrc_files := res/icons
-source_files += $(ui_files) $(moc_files) $(qrc_files:=_res)
+source_files += $(ui_files) $(moc_files) 
+generated_files += $(ui_files:=_ui.h) $(ui_files:=_moc.h) $(moc_files:=_moc.h)
+
 text_files := text/text
 
 libraries := zxtune_app_base core devices io sound tools
@@ -38,13 +39,21 @@ mingw_libraries := gdi32 shell32 ole32 imm32 comdlg32 wsock32 winspool uuid
 qt_defines = QT_LARGEFILE_SUPPORT QT_GUI_LIB QT_CORE_LIB QT_THREAD_SUPPORT
 
 definitions = $(qt_defines)
-generated_files += $(ui_files:=_ui.h) $(ui_files:=_moc.h) $(moc_files:=_moc.h) $(qrc_files:=_res.cpp)
 
 #packaging
 pkg_additional_files_linux := dist/linux/zxTune.desktop res/zxtune.png
 pkg_additional_files_dingux := dist/dingux/menuitem.cfg dist/dingux/zxtune-wrapper.sh dist/dingux/readme.txt res/zxtune.png
 
+qrc_files := res/icons
+source_files += $(qrc_files)
+
+#platform-specific resources
+resource_files := res/win32
+object_files += $(foreach rc,$(resource_files),$(objects_dir)/$(call makeres_name,$(notdir $(rc))))
+
 include $(path_step)/makefile.mak
+
+VPATH += $(dir $(qrc_files) $(resource_files))
 
 UIC := uic
 MOC := moc
@@ -56,5 +65,8 @@ RCC := rcc
 %_moc.h: %.h
 	$(MOC) $(addprefix -D, $(qt_defines)) -i $< -o $@
 
-%_res.cpp: %.qrc res/*.png
+%.cpp: %.qrc
 	$(RCC) -name $(basename $(notdir $<)) -o $@ $<
+
+$(objects_dir)/%$(call makeres_name,): %.rc | $(objects_dir)
+	$(call makeres_cmd,$<,$@)

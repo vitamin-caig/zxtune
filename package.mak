@@ -1,9 +1,6 @@
 #package generating
 #TODO: make proper revision number width
-pkg_revision := 0$(shell svnversion $(path_step))
-ifneq ($(pkg_revision),$(subst :,,$(pkg_revision)))
-$(error Invalid package revision ($(pkg_revision) - possible mixed))
-endif
+pkg_revision := $(subst :,_,0$(shell svnversion $(path_step)))
 pkg_subversion := $(if $(subst release,,$(mode)),_dbg,)
 pkg_suffix := zip
 
