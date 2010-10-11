@@ -43,23 +43,24 @@ boost_libraries := thread
 qt_libraries := Gui Core
 windows_libraries := gdi32 user32 advapi32 shell32 ole32 oleaut32 imm32 comdlg32 wsock32 winspool uuid oldnames $(if $(subst release,,$(mode)),comsuppwd,comsuppw)
 mingw_libraries := gdi32 shell32 ole32 imm32 comdlg32 wsock32 winspool uuid
-qt_defines = QT_LARGEFILE_SUPPORT QT_GUI_LIB QT_CORE_LIB QT_THREAD_SUPPORT
 
-definitions = $(qt_defines)
+definitions = QT_LARGEFILE_SUPPORT QT_GUI_LIB QT_CORE_LIB QT_THREAD_SUPPORT
 
 #packaging
 pkg_additional_files_linux := dist/linux/zxTune.desktop res/zxtune.png
 pkg_additional_files_dingux := dist/dingux/menuitem.cfg dist/dingux/zxtune-wrapper.sh dist/dingux/readme.txt res/zxtune.png
 
+#common resources
 qrc_files := res/icons
-source_files += $(qrc_files)
+object_files += $(foreach qrc,$(notdir $(qrc_files)),$(objects_dir)/$(call makeobj_name,$(qrc)))
 
 #platform-specific resources
 resource_files := res/win32
-object_files += $(foreach rc,$(resource_files),$(objects_dir)/$(call makeres_name,$(notdir $(rc))))
+object_files += $(foreach rc,$(notdir $(resource_files)),$(objects_dir)/$(call makeres_name,$(rc)))
 
 include $(path_step)/makefile.mak
 
+#generated headers
 $(ui_headers): | $(ui_dir)
 $(moc_headers): | $(moc_dir)
 
@@ -78,7 +79,7 @@ $(ui_dir)/%_ui.h: %.ui | $(ui_dir)
 $(moc_dir)/%_moc.h: %.h | $(moc_dir)
 	$(MOC) $(addprefix -D, $(qt_defines)) -i $< -o $@
 
-%.cpp: %.qrc
+$(objects_dir)/%.cpp: %.qrc | $(objects_dir)
 	$(RCC) -name $(basename $(notdir $<)) -o $@ $<
 
 $(objects_dir)/%$(call makeres_name,): %.rc | $(objects_dir)
