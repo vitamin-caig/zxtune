@@ -155,7 +155,7 @@ namespace
         Collection->AddItemByPath(FromStdString(argv[param]));
       }
 
-      About->connect(actionAbout, SIGNAL(activated()), SLOT(Show()));
+      About->connect(actionAbout, SIGNAL(triggered()), SLOT(Show()));
       //connect root actions
       Collection->connect(Controls, SIGNAL(OnPrevious()), SLOT(PrevItem()));
       Collection->connect(Controls, SIGNAL(OnNext()), SLOT(NextItem()));

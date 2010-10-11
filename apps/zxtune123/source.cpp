@@ -91,7 +91,7 @@ namespace
     }
   }
 
-  void Parse(const StringSet& allplugs, const String& str, StringSet& plugs, uint32_t& caps)
+  void Parse(const StringSet& allplugs, const String& str, StringSet& plugs, uint_t& caps)
   {
     typedef std::pair<uint32_t, String> CapsPair;
     static const CapsPair CAPABILITIES[] =
@@ -185,7 +185,7 @@ namespace
 
     bool IsPluginFiltered(const ZXTune::Plugin& plugin) const
     {
-      return FilteredPlugins.count(plugin.Id());
+      return 0 != FilteredPlugins.count(plugin.Id());
     }
   private:
     StringSet FilteredPlugins;
