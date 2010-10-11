@@ -5,7 +5,6 @@ source_files := qt_app \
                 supp/playitems_provider \
                 ui/format
 #ui-related
-include_path = $(path_step)/apps/$(binary_name)
 ifeq ($(platform),dingux)
 ui_files := ui/mainwindow_embedded
 else
@@ -23,8 +22,16 @@ moc_files := ui/controls/analyzer_control \
              ui/playlist/playlist_thread \
              supp/playback_supp
 
+ui_dir = .ui
+moc_dir = .moc
+
+ui_headers := $(addprefix $(ui_dir)/,$(notdir $(ui_files:=_ui.h)))
+moc_headers := $(addprefix $(moc_dir)/,$(notdir $(ui_files:=_moc.h) $(moc_files:=_moc.h)))
+
 source_files += $(ui_files) $(moc_files) 
-generated_files += $(ui_files:=_ui.h) $(ui_files:=_moc.h) $(moc_files:=_moc.h)
+generated_files += $(ui_headers) $(moc_headers)
+
+include_path = . $(ui_dir) $(moc_dir)
 
 text_files := text/text
 
@@ -53,16 +60,22 @@ object_files += $(foreach rc,$(resource_files),$(objects_dir)/$(call makeres_nam
 
 include $(path_step)/makefile.mak
 
+$(ui_headers): | $(ui_dir)
+$(moc_headers): | $(moc_dir)
+
+$(ui_dir) $(moc_dir):
+	$(call makedir_cmd,$@)
+
 VPATH += $(dir $(qrc_files) $(resource_files))
 
 UIC := uic
 MOC := moc
 RCC := rcc
 
-%_ui.h: %.ui
+$(ui_dir)/%_ui.h: %.ui | $(ui_dir)
 	$(UIC) $< -o $@
 
-%_moc.h: %.h
+$(moc_dir)/%_moc.h: %.h | $(moc_dir)
 	$(MOC) $(addprefix -D, $(qt_defines)) -i $< -o $@
 
 %.cpp: %.qrc
