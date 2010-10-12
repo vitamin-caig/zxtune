@@ -148,17 +148,20 @@ namespace
   {
   public:
     PluginsChainImpl()
+      : NestingCache(-1)
     {
     }
 
     PluginsChainImpl(const PluginsList& list)
       : Container(list)
+      , NestingCache(-1)
     {
     }
 
     virtual void Add(Plugin::Ptr plugin)
     {
       Container.push_back(plugin);
+      NestingCache = -1;
     }
 
     virtual Plugin::Ptr GetLast() const
@@ -192,8 +195,12 @@ namespace
 
     virtual uint_t CalculateContainersNesting() const
     {
-      return std::count_if(Container.begin(), Container.end(),
-        &IsMultitrackPlugin);
+      if (-1 == NestingCache)
+      {
+        NestingCache = std::count_if(Container.begin(), Container.end(),
+          &IsMultitrackPlugin);
+      }
+      return static_cast<uint_t>(NestingCache);
     }
   private:
     static bool IsMultitrackPlugin(const Plugin::Ptr plugin)
@@ -203,6 +210,7 @@ namespace
     }
   private:
     PluginsList Container;
+    mutable int_t NestingCache;
   };
 
   class PluginsEnumeratorImpl : public PluginsEnumerator

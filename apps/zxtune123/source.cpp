@@ -33,11 +33,11 @@ Author:
 #include <io/provider.h>
 #include <io/providers_parameters.h>
 //std includes
-#include <set>
 #include <iomanip>
 #include <iostream>
 //boost includes
 #include <boost/bind.hpp>
+#include <boost/unordered_set.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/program_options/options_description.hpp>
@@ -185,10 +185,11 @@ namespace
 
     bool IsPluginFiltered(const ZXTune::Plugin& plugin) const
     {
-      return 0 != FilteredPlugins.count(plugin.Id());
+      return !FilteredPlugins.empty() && 
+             0 != FilteredPlugins.count(plugin.Id());
     }
   private:
-    StringSet FilteredPlugins;
+    boost::unordered_set<String> FilteredPlugins;
   };
 
   class ModulesProcessor
