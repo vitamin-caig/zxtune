@@ -21,7 +21,7 @@
     <number>2</number>
    </property>
    <item>
-    <widget class="QListWidget" name="playList">
+    <widget class="QListWidget" name="playListContent">
      <property name="editTriggers">
       <set>QAbstractItemView::NoEditTriggers</set>
      </property>

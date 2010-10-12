@@ -38,8 +38,7 @@ Author:
 #include "text/text.h"
 
 //outside the namespace
-typedef std::list<Playitem::Ptr> PlayitemsList;
-Q_DECLARE_METATYPE(PlayitemsList::iterator);
+Q_DECLARE_METATYPE(Playitem::Ptr);
 
 namespace
 {
@@ -52,7 +51,7 @@ namespace
   QListWidgetItem ITEM_STUB;
 
   class PlaylistImpl : public Playlist
-                     , private Ui::Playlist
+                     , public Ui::Playlist
   {
   public:
     explicit PlaylistImpl(QMainWindow* parent)
@@ -72,8 +71,8 @@ namespace
       this->connect(Thread, SIGNAL(OnGetItem(Playitem::Ptr)), SLOT(AddItem(Playitem::Ptr)));
       scanStatus->connect(Thread, SIGNAL(OnScanStop()), SLOT(hide()));
       Thread->connect(scanCancel, SIGNAL(clicked()), SLOT(Cancel()));
-      this->connect(playList, SIGNAL(itemActivated(QListWidgetItem*)), SLOT(SetItem(QListWidgetItem*)));
-      this->connect(playList, SIGNAL(currentItemChanged(QListWidgetItem*, QListWidgetItem*)), SLOT(SelectItem(QListWidgetItem*)));
+      this->connect(playListContent, SIGNAL(itemActivated(QListWidgetItem*)), SLOT(SetItem(QListWidgetItem*)));
+      this->connect(playListContent, SIGNAL(currentItemChanged(QListWidgetItem*, QListWidgetItem*)), SLOT(SelectItem(QListWidgetItem*)));
       this->connect(actionAddFiles, SIGNAL(triggered()), SLOT(AddFiles()));
       this->connect(actionClear, SIGNAL(triggered()), SLOT(Clear()));
       this->connect(actionSort, SIGNAL(triggered()), SLOT(Sort()));
@@ -105,35 +104,35 @@ namespace
 
     virtual void NextItem()
     {
-      const int rowsCount = playList->count();
+      const int rowsCount = playListContent->count();
       if (!rowsCount || !ActivatedItem || ActivatedItem == &ITEM_STUB)
       {
         return;
       }
-      const int currentRow = playList->row(ActivatedItem);
+      const int currentRow = playListContent->row(ActivatedItem);
       const int nextRow = (Randomized ? rand() : (currentRow + 1)) % rowsCount;
       assert(currentRow >= 0);
       if (Looped || Randomized || currentRow < rowsCount - 1)
       {
-        playList->setCurrentRow(nextRow, QItemSelectionModel::NoUpdate);
-        return ChooseItem(playList->currentItem(), ITEM_SET);
+        playListContent->setCurrentRow(nextRow, QItemSelectionModel::NoUpdate);
+        return ChooseItem(playListContent->currentItem(), ITEM_SET);
       }
     }
 
     virtual void PrevItem()
     {
-      const int rowsCount = playList->count();
+      const int rowsCount = playListContent->count();
       if (!rowsCount || !ActivatedItem || ActivatedItem == &ITEM_STUB)
       {
         return;
       }
-      const int currentRow = playList->row(ActivatedItem);
+      const int currentRow = playListContent->row(ActivatedItem);
       const int nextRow = (Randomized ? rand() : (currentRow + rowsCount - 1)) % rowsCount;
       assert(currentRow >= 0);
       if (Looped || Randomized || currentRow)
       {
-        playList->setCurrentRow(nextRow, QItemSelectionModel::NoUpdate);
-        return ChooseItem(playList->currentItem(), ITEM_SET);
+        playListContent->setCurrentRow(nextRow, QItemSelectionModel::NoUpdate);
+        return ChooseItem(playListContent->currentItem(), ITEM_SET);
       }
     }
 
@@ -191,15 +190,14 @@ namespace
     
     virtual void Clear()
     {
-      playList->clear();
-      Items.clear();
+      playListContent->clear();
       Provider->ResetCache();
       ActivatedItem = SelectedItem = 0;
     }
     
     virtual void Sort()
     {
-      playList->sortItems();
+      playListContent->sortItems();
     }
 
     virtual void Random(bool isRandom)
@@ -234,9 +232,8 @@ namespace
 
       const Parameters::Accessor::Ptr props = info->Properties();
       const String& title = GetModuleTitle(Text::MODULE_PLAYLIST_FORMAT, *props);
-      QListWidgetItem* const listItem = new QListWidgetItem(ToQString(title), playList);
-      const PlayitemsList::iterator iter = Items.insert(Items.end(), item);
-      listItem->setData(Qt::UserRole, QVariant::fromValue(iter));
+      QListWidgetItem* const listItem = new QListWidgetItem(ToQString(title), playListContent);
+      listItem->setData(Qt::UserRole, QVariant::fromValue(item));
       String type;
       if (props->FindStringValue(ZXTune::Module::ATTR_TYPE, type))
       {
@@ -257,7 +254,7 @@ namespace
 
     virtual void ClearSelected()
     {
-      const QList<QListWidgetItem*>& items = playList->selectedItems();
+      const QList<QListWidgetItem*>& items = playListContent->selectedItems();
       std::for_each(items.begin(), items.end(), boost::bind(&PlaylistImpl::RemoveItem, this, _1));
     }
 
@@ -300,26 +297,24 @@ namespace
       else
       {
         const QVariant& data = listItem->data(Qt::UserRole);
-        const PlayitemsList::iterator iter = data.value<PlayitemsList::iterator>();
+        const Playitem::Ptr item = data.value<Playitem::Ptr>();
         if (ITEM_SET == mode)
         {
           StopItem();
           ActivatedItem = 0;
           SelectedItem = listItem;
-          OnItemSet(**iter);
+          OnItemSet(*item);
         }
         else if (ITEM_SELECT == mode)
         {
           SelectedItem = listItem;
-          OnItemSelected(**iter);
+          OnItemSelected(*item);
         }
       }
     }
 
     void RemoveItem(QListWidgetItem* listItem)
     {
-      const QVariant& data = listItem->data(Qt::UserRole);
-      const PlayitemsList::iterator iter = data.value<PlayitemsList::iterator>();
       //check if selected affected
       if (SelectedItem == listItem)
       {
@@ -330,10 +325,9 @@ namespace
         ActivatedItem = &ITEM_STUB;
       }
       //remove
-      const int row = playList->row(listItem);
-      std::auto_ptr<QListWidgetItem> removed(playList->takeItem(row));
+      const int row = playListContent->row(listItem);
+      std::auto_ptr<QListWidgetItem> removed(playListContent->takeItem(row));
       assert(removed.get() == listItem);
-      Items.erase(iter);
     }
   private:
     PlayitemsProvider::Ptr Provider;
@@ -341,7 +335,6 @@ namespace
     bool Randomized;
     bool Looped;
     //TODO: thread-safe
-    PlayitemsList Items;
     QListWidgetItem* ActivatedItem;
     QListWidgetItem* SelectedItem;
     //gui-related
