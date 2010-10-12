@@ -27,18 +27,22 @@
       <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;/head&gt;&lt;body&gt;
 &lt;center&gt;&lt;img src=&quot;:/logo.png&quot; /&gt;&lt;br/&gt;
-&lt;b&gt;Idea, project, code and gfx: &lt;/b&gt;&lt;a href=&quot;mailto:vitamin.caig@gmail.com&quot;&gt;Vitamin/CAIG&lt;/a&gt;&lt;br/&gt;
-&lt;b&gt;Project homepage&lt;/b&gt;: &lt;a href=&quot;http://zxtune.googlecode.com&quot;&gt;http://zxtune.googlecode.com&lt;/a&gt;&lt;/center&gt;&lt;br/&gt;
+Idea, project, code and gfx: &lt;b&gt;Vitamin/CAIG&lt;/b&gt;&lt;br/&gt;
+&lt;/center&gt;&lt;br/&gt;
 &lt;center&gt;&lt;b&gt;Technical credits:&lt;/b&gt;&lt;/center&gt;
-&lt;p align=&quot;justify&quot;&gt;
-AY/YM engine is based on Unreal Speccy sources by &lt;b&gt;SMT&lt;/b&gt;&lt;br/&gt;
-Used AYEmul sources by &lt;b&gt;S.Bulba&lt;/b&gt;&lt;br/&gt;
-Used AYFly sources by &lt;b&gt;Ander&lt;/b&gt;&lt;br/&gt;
-Packer plugins are based on the xPlugins sources by &lt;b&gt;elf/2&lt;/b&gt;&lt;br/&gt;
+&lt;ul&gt;
+&lt;li&gt;AY/YM engine is based on Unreal Speccy sources by &lt;b&gt;SMT&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Used AYEmul sources by &lt;b&gt;S.Bulba&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Used AYFly sources by &lt;b&gt;Ander&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Packer plugins are based on the xPlugins sources by &lt;b&gt;elf/2&lt;/b&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;br/&gt;
 
 &lt;center&gt;&lt;b&gt;Support credits:&lt;/b&gt;&lt;/center&gt;
-&lt;p align=&quot;justify&quot;&gt;F0lken, Q-Master, Siril&lt;/p&gt;
+&lt;ul&gt;F0lken, Q-Master, Siril&lt;/ul&gt;
 &lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="openExternalLinks">
+      <bool>true</bool>
      </property>
     </widget>
    </item>
@@ -57,6 +61,51 @@ Packer plugins are based on the xPlugins sources by &lt;b&gt;elf/2&lt;/b&gt;&lt;
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QLabel" name="homepageLabel">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>&lt;a href=&quot;http://zxtune.googlecode.com&quot;&gt;Visit homepage&lt;/a&gt;
+</string>
+       </property>
+       <property name="textFormat">
+        <enum>Qt::RichText</enum>
+       </property>
+       <property name="margin">
+        <number>6</number>
+       </property>
+       <property name="openExternalLinks">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="feedbackLabel">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="textFormat">
+        <enum>Qt::RichText</enum>
+       </property>
+       <property name="margin">
+        <number>6</number>
+       </property>
+       <property name="openExternalLinks">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
      <item>
       <widget class="QPushButton" name="buttonOk">
        <property name="sizePolicy">

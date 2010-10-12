@@ -17,6 +17,10 @@ Author:
 #include "aboutdialog_moc.h"
 #include "utils.h"
 #include <apps/base/app.h>
+//common includes
+#include <formatter.h>
+//text includes
+#include "text/text.h"
 
 namespace
 {
@@ -28,8 +32,10 @@ namespace
     {
       //do not set parent
       setupUi(this);
-      const QString& newTitle = ToQString(GetProgramVersionString());
-      setWindowTitle(newTitle);
+      const String appVersion = GetProgramVersionString();
+      const String feedbackText = (Formatter(Text::FEEDBACK_TEXT) % appVersion).str();
+      setWindowTitle(ToQString(appVersion));
+      feedbackLabel->setText(ToQString(feedbackText));
     }
 
     virtual void Show()

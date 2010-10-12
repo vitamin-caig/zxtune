@@ -112,7 +112,7 @@ $(depends):
 	$(MAKE) -C $(addprefix $(path_step)/,$@) $(if $(pic),pic=1,) $(MAKECMDGOALS)
 endif
 
-$(object_files): $(addsuffix $(src_suffix),$(source_files)) $(addsuffix $(res_suffix),$($(platform)_resources)) $(generated_files) | $(objects_dir)
+$(object_files): | $(objects_dir) $(addsuffix $(src_suffix),$(source_files)) $(addsuffix $(res_suffix),$($(platform)_resources)) $(generated_files)
 
 VPATH = $(dir $(source_files) $($(platform)_resources))
 
