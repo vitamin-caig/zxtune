@@ -3,9 +3,7 @@
 SET VS_PATH=%PROGRAMFILES%\Microsoft Visual Studio .NET 2003
 ECHO %PATH% | FIND "%VS_PATH%" > NUL && GOTO Quit
 
-SET PATH=%VS_PATH%\Vc7\bin;%VS_PATH%\Common7\IDE;%PATH%
-SET LIB=%VS_PATH%\Vc7\lib;%VS_PATH%\Vc7\PlatformSDK\Lib
-SET INCLUDE=%VS_PATH%\Vc7\include;%VS_PATH%\Vc7\PlatformSDK\Include
+call "%VS_PATH%\Common7\Tools\vsvars32.bat"
 SET MSVS_VERSION=vc71
 
 SET self=%0%

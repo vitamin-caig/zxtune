@@ -22,8 +22,8 @@ moc_files := ui/controls/analyzer_control \
              ui/playlist/playlist_thread \
              supp/playback_supp
 
-ui_dir = .ui
-moc_dir = .moc
+ui_dir := .ui
+moc_dir := .moc
 
 ui_headers := $(addprefix $(ui_dir)/,$(notdir $(ui_files:=_ui.h)))
 moc_headers := $(addprefix $(moc_dir)/,$(notdir $(ui_files:=_moc.h) $(moc_files:=_moc.h)))
@@ -51,16 +51,13 @@ pkg_additional_files_linux := dist/linux/zxTune.desktop res/zxtune.png
 pkg_additional_files_dingux := dist/dingux/menuitem.cfg dist/dingux/zxtune-wrapper.sh dist/dingux/readme.txt res/zxtune.png
 
 #common resources
+qrc_dir := .qrc
 qrc_files := res/icons
-object_files += $(foreach qrc,$(notdir $(qrc_files)),$(objects_dir)/$(call makeobj_name,$(qrc)))
+source_files += $(foreach qrc,$(notdir $(qrc_files)),$(qrc_dir)/$(qrc))
 
 #platform-specific resources
-ifeq ($(platform),windows)
-resource_files := res/win32
-else ifeq ($(platform),mingw)
-resource_files := res/win32
-endif
-object_files += $(foreach rc,$(notdir $(resource_files)),$(objects_dir)/$(call makeres_name,$(rc)))
+windows_resources := res/zxtune-qt
+mingw_resources := res/zxtune-qt
 
 include $(path_step)/makefile.mak
 
@@ -68,10 +65,8 @@ include $(path_step)/makefile.mak
 $(ui_headers): | $(ui_dir)
 $(moc_headers): | $(moc_dir)
 
-$(ui_dir) $(moc_dir):
+$(ui_dir) $(moc_dir) $(qrc_dir):
 	$(call makedir_cmd,$@)
-
-VPATH += $(dir $(qrc_files) $(resource_files))
 
 UIC := uic
 MOC := moc
@@ -83,8 +78,5 @@ $(ui_dir)/%_ui.h: %.ui | $(ui_dir)
 $(moc_dir)/%_moc.h: %.h | $(moc_dir)
 	$(MOC) $(addprefix -D, $(qt_defines)) -i $< -o $@
 
-$(objects_dir)/%.cpp: %.qrc | $(objects_dir)
+$(qrc_dir)/%.cpp: %.qrc | $(qrc_dir)
 	$(RCC) -name $(basename $(notdir $<)) -o $@ $<
-
-$(objects_dir)/%$(call makeres_name,): %.rc | $(objects_dir)
-	$(call makeres_cmd,$<,$@)

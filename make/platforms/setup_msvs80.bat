@@ -3,9 +3,7 @@
 SET VS_PATH=%PROGRAMFILES%\Microsoft Visual Studio 8
 ECHO %PATH% | FIND "%VS_PATH%" > NUL && GOTO Quit
 
-SET PATH=%VS_PATH%\VC\bin;%VS_PATH%\Common7\IDE;%PATH%
-SET LIB=%VS_PATH%\VC\lib;%VS_PATH%\VC\PlatformSDK\Lib
-SET INCLUDE=%VS_PATH%\VC\include;%VS_PATH%\VC\PlatformSDK\Include
+call "%VS_PATH%\VC\vcvarsall.bat" x86
 SET MSVS_VERSION=vc80
 
 SET self=%0%
