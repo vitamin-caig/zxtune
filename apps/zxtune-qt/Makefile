@@ -50,10 +50,10 @@ definitions = QT_LARGEFILE_SUPPORT QT_GUI_LIB QT_CORE_LIB QT_THREAD_SUPPORT
 pkg_additional_files_linux := dist/linux/zxTune.desktop res/zxtune.png
 pkg_additional_files_dingux := dist/dingux/menuitem.cfg dist/dingux/zxtune-wrapper.sh dist/dingux/readme.txt res/zxtune.png
 
-#common resources
-qrc_dir := .qrc
+#qt-based resources
 qrc_files := res/icons
-source_files += $(foreach qrc,$(notdir $(qrc_files)),$(qrc_dir)/$(qrc))
+qrc_compiled = $(foreach qrc,$(notdir $(qrc_files)),$(objects_dir)/$(qrc).res)
+generated_files += $(qrc_compiled)
 
 #platform-specific resources
 windows_resources := res/zxtune-qt
@@ -61,13 +61,15 @@ mingw_resources := res/zxtune-qt
 
 include $(path_step)/makefile.mak
 
+object_files += $(qrc_compiled)
 VPATH += $(dir $(qrc_files))
 
-#generated headers
+#generated headers and files
 $(ui_headers): | $(ui_dir)
 $(moc_headers): | $(moc_dir)
+$(qrc_compiled): | $(objects_dir)
 
-$(ui_dir) $(moc_dir) $(qrc_dir):
+$(ui_dir) $(moc_dir):
 	$(call makedir_cmd,$@)
 
 UIC := uic
@@ -80,5 +82,6 @@ $(ui_dir)/%_ui.h: %.ui | $(ui_dir)
 $(moc_dir)/%_moc.h: %.h | $(moc_dir)
 	$(MOC) $(addprefix -D, $(qt_defines)) -i $< -o $@
 
-$(qrc_dir)/%.cpp: %.qrc | $(qrc_dir)
-	$(RCC) -name $(basename $(notdir $<)) -o $@ $<
+$(objects_dir)/%.res: %.qrc
+	$(RCC) -name $(basename $(notdir $<)) -o $(objects_dir)/$(notdir $@).cpp $<
+	$(call build_obj_cmd,$(objects_dir)/$(notdir $@).cpp,$@)
