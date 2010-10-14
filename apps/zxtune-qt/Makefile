@@ -61,6 +61,8 @@ mingw_resources := res/zxtune-qt
 
 include $(path_step)/makefile.mak
 
+VPATH += $(dir $(qrc_files))
+
 #generated headers
 $(ui_headers): | $(ui_dir)
 $(moc_headers): | $(moc_dir)
