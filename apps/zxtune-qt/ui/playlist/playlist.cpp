@@ -15,6 +15,7 @@ Author:
 #include "playlist.h"
 #include "playlist_ui.h"
 #include "playlist_moc.h"
+#include "playlist_model.h"
 #include "playlist_thread.h"
 #include "ui/format.h"
 #include "ui/utils.h"
@@ -48,7 +49,7 @@ namespace
     ITEM_SELECT
   };
   
-  QListWidgetItem ITEM_STUB;
+  //QListWidgetItem ITEM_STUB;
 
   class PlaylistImpl : public Playlist
                      , public Ui::Playlist
@@ -58,21 +59,28 @@ namespace
       : Provider(PlayitemsProvider::Create())
       , Thread(ProcessThread::Create(this, Provider))
       , Randomized(), Looped()
-      , ActivatedItem(), SelectedItem()
+      , Model(PlaylistModel::Create(this))
+//      , ActivatedItem(), SelectedItem()
     {
       //setup self
       setParent(parent);
       setupUi(this);
       setAcceptDrops(true);
+      playListContent->setModel(Model);
+      {
+        QHeaderView* header = playListContent->horizontalHeader();
+        header->setDefaultAlignment(Qt::AlignLeft);
+        header->setTextElideMode(Qt::ElideRight);
+      }
       //setup thread-related
       scanStatus->hide();
       scanStatus->connect(Thread, SIGNAL(OnScanStart()), SLOT(show()));
       this->connect(Thread, SIGNAL(OnProgress(const Log::MessageData&)), SLOT(ShowProgress(const Log::MessageData&)));
-      this->connect(Thread, SIGNAL(OnGetItem(Playitem::Ptr)), SLOT(AddItem(Playitem::Ptr)));
+      Model->connect(Thread, SIGNAL(OnGetItem(Playitem::Ptr)), SLOT(AddItem(Playitem::Ptr)));
       scanStatus->connect(Thread, SIGNAL(OnScanStop()), SLOT(hide()));
       Thread->connect(scanCancel, SIGNAL(clicked()), SLOT(Cancel()));
-      this->connect(playListContent, SIGNAL(itemActivated(QListWidgetItem*)), SLOT(SetItem(QListWidgetItem*)));
-      this->connect(playListContent, SIGNAL(currentItemChanged(QListWidgetItem*, QListWidgetItem*)), SLOT(SelectItem(QListWidgetItem*)));
+      //this->connect(playListContent, SIGNAL(itemActivated(QListWidgetItem*)), SLOT(SetItem(QListWidgetItem*)));
+      //this->connect(playListContent, SIGNAL(currentItemChanged(QListWidgetItem*, QListWidgetItem*)), SLOT(SelectItem(QListWidgetItem*)));
       this->connect(actionAddFiles, SIGNAL(triggered()), SLOT(AddFiles()));
       this->connect(actionClear, SIGNAL(triggered()), SLOT(Clear()));
       this->connect(actionSort, SIGNAL(triggered()), SLOT(Sort()));
@@ -104,6 +112,7 @@ namespace
 
     virtual void NextItem()
     {
+      /*
       const int rowsCount = playListContent->count();
       if (!rowsCount || !ActivatedItem || ActivatedItem == &ITEM_STUB)
       {
@@ -117,10 +126,12 @@ namespace
         playListContent->setCurrentRow(nextRow, QItemSelectionModel::NoUpdate);
         return ChooseItem(playListContent->currentItem(), ITEM_SET);
       }
+      */
     }
 
     virtual void PrevItem()
     {
+      /*
       const int rowsCount = playListContent->count();
       if (!rowsCount || !ActivatedItem || ActivatedItem == &ITEM_STUB)
       {
@@ -134,10 +145,12 @@ namespace
         playListContent->setCurrentRow(nextRow, QItemSelectionModel::NoUpdate);
         return ChooseItem(playListContent->currentItem(), ITEM_SET);
       }
+      */
     }
 
     virtual void PlayItem()
     {
+      /*
       if (!ActivatedItem)
       {
         ActivatedItem = SelectedItem;
@@ -149,20 +162,24 @@ namespace
         font.setItalic(false);
         ActivatedItem->setFont(font);
       }
+      */
     }
     
     virtual void PauseItem()
     {
+      /*
       if (ActivatedItem && ActivatedItem != &ITEM_STUB)
       {
         QFont font = ActivatedItem->font();
         font.setItalic(true);
         ActivatedItem->setFont(font);
       }
+      */
     }
     
     virtual void StopItem()
     {
+      /*
       if (ActivatedItem && ActivatedItem != &ITEM_STUB)
       {
         QFont font = ActivatedItem->font();
@@ -170,6 +187,7 @@ namespace
         font.setItalic(false);
         ActivatedItem->setFont(font);
       }
+      */
     }
     
     virtual void AddFiles()
@@ -190,14 +208,16 @@ namespace
     
     virtual void Clear()
     {
-      playListContent->clear();
+      //playListContent->clear();
       Provider->ResetCache();
-      ActivatedItem = SelectedItem = 0;
+      //ActivatedItem = SelectedItem = 0;
+
+      //Model->Clear();
     }
     
     virtual void Sort()
     {
-      playListContent->sortItems();
+      //playListContent->sortItems();
     }
 
     virtual void Random(bool isRandom)
@@ -216,7 +236,7 @@ namespace
       const int curKey = event->key();
       if (curKey == Qt::Key_Delete || curKey == Qt::Key_Backspace)
       {
-        ClearSelected();
+        //ClearSelected();
       }
       else
       {
@@ -225,6 +245,7 @@ namespace
     }
 
     //private slots
+    /*
     virtual void AddItem(Playitem::Ptr item)
     {
       const Char RESOURCE_TYPE_PREFIX[] = {':','/','t','y','p','e','s','/',0};
@@ -241,21 +262,24 @@ namespace
         listItem->setIcon(QIcon(ToQString(typeStr)));
       }
     }
+    */
     
     virtual void SelectItem(QListWidgetItem* listItem)
     {
-      ChooseItem(listItem, ITEM_SELECT);
+      //ChooseItem(listItem, ITEM_SELECT);
     }
 
     virtual void SetItem(QListWidgetItem* listItem)
     {
-      ChooseItem(listItem, ITEM_SET);
+      //ChooseItem(listItem, ITEM_SET);
     }
 
     virtual void ClearSelected()
     {
+      /*
       const QList<QListWidgetItem*>& items = playListContent->selectedItems();
       std::for_each(items.begin(), items.end(), boost::bind(&PlaylistImpl::RemoveItem, this, _1));
+      */
     }
 
     virtual void ShowProgress(const Log::MessageData& msg)
@@ -288,6 +312,7 @@ namespace
       }
     }
   private:
+    /*
     void ChooseItem(QListWidgetItem* listItem, ChooseMode mode)
     {
       if (!listItem)
@@ -329,14 +354,14 @@ namespace
       std::auto_ptr<QListWidgetItem> removed(playListContent->takeItem(row));
       assert(removed.get() == listItem);
     }
+    */
   private:
     PlayitemsProvider::Ptr Provider;
     ProcessThread* const Thread;
     bool Randomized;
     bool Looped;
     //TODO: thread-safe
-    QListWidgetItem* ActivatedItem;
-    QListWidgetItem* SelectedItem;
+    PlaylistModel* const Model;
     //gui-related
     QString AddFileDirectory;
   };

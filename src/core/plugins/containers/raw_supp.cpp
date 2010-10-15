@@ -166,7 +166,7 @@ namespace
 
     void operator()(uint_t offset)
     {
-      const uint_t curProg = offset * 100 / Total;
+      const uint_t curProg = static_cast<uint_t>(uint64_t(offset) * 100 / Total);
       if (curProg != *Message.Progress)
       {
         Message.Progress = curProg;

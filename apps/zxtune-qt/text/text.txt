@@ -30,3 +30,10 @@ __cpp> "#endif //__TEXT_TEXT_H_DEFINED__\n"
 
 < MODULE_PLAYLIST_FORMAT
 > MODULE_TITLE_FORMAT
+
+< TOOLTIP_TEMPLATE
+> "<img src=':/types/[Type]'/>&nbsp;[Fullpath]<br/>"
+> "[Size] bytes<br/><br/>"
+> "Title: <b>[Title]</b><br/>"
+> "Author: <b>[Author]</b><br/>"
+> "Program: <b>[Program]</b><br/>"
