@@ -27,7 +27,6 @@ public:
   static PlaybackSupport* Create(QWidget* owner);
 
 public slots:
-  virtual void SelectItem(const class Playitem& item) = 0;
   virtual void SetItem(const class Playitem& item) = 0;
   virtual void Play() = 0;
   virtual void Stop() = 0;

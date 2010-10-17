@@ -42,17 +42,6 @@ namespace
       this->wait();
     }
 
-    virtual void SelectItem(const Playitem& item)
-    {
-      //if nothing set, just select
-      if (0 == Player.use_count())
-      {
-        OpenBackend();
-        Backend->SetModule(item.GetModule());
-        Player = Backend->GetPlayer();
-      }
-    }
-    
     virtual void SetItem(const Playitem& item)
     {
       OpenBackend();

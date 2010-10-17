@@ -22,17 +22,11 @@
    </property>
    <item>
     <widget class="QTableView" name="playListContent">
-     <property name="font">
-      <font>
-       <family>Arial</family>
-       <pointsize>8</pointsize>
-      </font>
+     <property name="mouseTracking">
+      <bool>true</bool>
      </property>
      <property name="editTriggers">
       <set>QAbstractItemView::NoEditTriggers</set>
-     </property>
-     <property name="alternatingRowColors">
-      <bool>true</bool>
      </property>
      <property name="selectionMode">
       <enum>QAbstractItemView::ExtendedSelection</enum>
@@ -84,9 +78,6 @@
      </attribute>
      <attribute name="verticalHeaderMinimumSectionSize">
       <number>16</number>
-     </attribute>
-     <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
-      <bool>true</bool>
      </attribute>
     </widget>
    </item>
@@ -157,16 +148,6 @@
    </property>
    <property name="text">
     <string>Clear</string>
-   </property>
-  </action>
-  <action name="actionSort">
-   <property name="icon">
-    <iconset>
-     <normalon>:/playlist/sort.png</normalon>
-    </iconset>
-   </property>
-   <property name="text">
-    <string>Sort</string>
    </property>
   </action>
   <action name="actionLoop">

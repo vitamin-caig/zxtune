@@ -27,6 +27,7 @@ Author:
 //qt includes
 #include <QtCore/QTime>
 #include <QtGui/QIcon>
+#include <QtGui/QFont>
 //text includes
 #include "text/text.h"
 
@@ -82,24 +83,49 @@ namespace
       const Parameters::FieldsSourceAdapter<SkipFieldsSource> fields(*props);
       return TooltipTemplate->Instantiate(fields);
     }
+
+    Playitem::Ptr GetPlayitem() const
+    {
+      return Item;
+    }
   private:
     Playitem::Ptr Item;
     StringTemplate::Ptr TooltipTemplate;
   };
 
-  class DataProvider
+  class RowStateProvider
   {
   public:
-    typedef std::auto_ptr<DataProvider> Ptr;
-    virtual ~DataProvider() {}
+    RowStateProvider(const QModelIndex& index, const PlayitemStateCallback& cb)
+      : Index(index)
+      , Callback(cb)
+    {
+    }
 
-    static Ptr Create(int_t role);
+    bool IsPlaying() const
+    {
+      return Callback.IsPlaying(Index);
+    }
 
-    virtual QVariant GetHeader(int_t column) const = 0;
-    virtual QVariant GetData(const PlayitemWrapper& item, int_t column) const = 0;
+    bool IsPaused() const
+    {
+      return Callback.IsPaused(Index);
+    }
+  private:
+    const QModelIndex& Index;
+    const PlayitemStateCallback& Callback;
   };
 
-  class DummyDataProvider : public DataProvider
+  class RowDataProvider
+  {
+  public:
+    virtual ~RowDataProvider() {}
+
+    virtual QVariant GetHeader(int_t column) const = 0;
+    virtual QVariant GetData(const PlayitemWrapper& item, const RowStateProvider& state, int_t column) const = 0;
+  };
+
+  class DummyDataProvider : public RowDataProvider
   {
   public:
     virtual QVariant GetHeader(int_t /*column*/) const
@@ -107,13 +133,13 @@ namespace
       return QVariant();
     }
 
-    virtual QVariant GetData(const PlayitemWrapper& /*item*/, int_t /*column*/) const
+    virtual QVariant GetData(const PlayitemWrapper& /*item*/, const RowStateProvider& /*state*/, int_t /*column*/) const
     {
       return QVariant();
     }
   };
 
-  class DisplayDataProvider : public DataProvider
+  class DisplayDataProvider : public RowDataProvider
   {
   public:
     virtual QVariant GetHeader(int_t column) const
@@ -129,7 +155,7 @@ namespace
       };
     }
 
-    virtual QVariant GetData(const PlayitemWrapper& item, int_t column) const
+    virtual QVariant GetData(const PlayitemWrapper& item, const RowStateProvider& /*state*/, int_t column) const
     {
       switch (column)
       {
@@ -148,7 +174,7 @@ namespace
     }
   };
 
-  class DecorationDataProvider : public DataProvider
+  class TooltipDataProvider : public RowDataProvider
   {
   public:
     virtual QVariant GetHeader(int_t /*column*/) const
@@ -156,43 +182,86 @@ namespace
       return QVariant();
     }
 
-    virtual QVariant GetData(const Playitem& item, int_t column) const
-    {
-      return QVariant();
-    }
-  };
-
-  class TooltipDataProvider : public DataProvider
-  {
-  public:
-    virtual QVariant GetHeader(int_t /*column*/) const
-    {
-      return QVariant();
-    }
-
-    virtual QVariant GetData(const PlayitemWrapper& item, int_t /*column*/) const
+    virtual QVariant GetData(const PlayitemWrapper& item, const RowStateProvider& /*state*/, int_t /*column*/) const
     {
       return ToQString(item.GetTooltip());
     }
   };
 
-  DataProvider::Ptr DataProvider::Create(int_t role)
+  class FontDataProvider : public RowDataProvider
   {
-    switch (role)
+  public:
+    FontDataProvider()
+      : Regular(QString::fromUtf8("Arial"), 8)
+      , Playing(Regular)
+      , Paused(Regular)
     {
-    case Qt::DisplayRole:
-      return Ptr(new DisplayDataProvider());
-//    case Qt::DecorationRole:
-//      return Ptr(new DecorationDataProvider());
-    case Qt::ToolTipRole:
-      return Ptr(new TooltipDataProvider());
-    default:
-      return Ptr(new DummyDataProvider());
+      Playing.setBold(true);
+      Paused.setBold(true);
+      Paused.setItalic(true);
     }
-  }
+
+    virtual QVariant GetHeader(int_t /*column*/) const
+    {
+      return QVariant();
+    }
+
+    virtual QVariant GetData(const PlayitemWrapper& /*item*/, const RowStateProvider& state, int_t /*column*/) const
+    {
+      if (state.IsPaused())
+      {
+        return Paused;
+      }
+      else if (state.IsPlaying())
+      {
+        return Playing;
+      }
+      else
+      {
+        return Regular;
+      }
+    }
+  private:
+    QFont Regular;
+    QFont Playing;
+    QFont Paused;
+  };
+
+  class DataProvidersSet
+  {
+  public:
+    DataProvidersSet()
+      : Display()
+      , Tooltip()
+      , Dummy()
+    {
+    }
+
+    const RowDataProvider& GetProvider(int_t role) const
+    {
+      switch (role)
+      {
+      case Qt::DisplayRole:
+        return Display;
+      case Qt::ToolTipRole:
+        return Tooltip;
+      case Qt::FontRole:
+        return Font;
+      default:
+        return Dummy;
+      }
+    }
+  private:
+    const DisplayDataProvider Display;
+    const TooltipDataProvider Tooltip;
+    const FontDataProvider Font;
+    const DummyDataProvider Dummy;
+  };
 
   class PlayitemsContainer
   {
+    typedef std::vector<PlayitemWrapper> ItemsArray;
+    typedef std::vector<std::size_t> IdexesArray;
   public:
     void AddItem(Playitem::Ptr item)
     {
@@ -215,7 +284,15 @@ namespace
       const std::size_t mappedIndex = Indexes[idx];
       return &Container[mappedIndex];
     }
- 
+
+    void Clear()
+    {
+      ItemsArray tmpCont;
+      IdexesArray tmpInd;
+      Container.swap(tmpCont);
+      Indexes.swap(tmpInd);
+    }
+
     template<class Func>
     void Sort(bool ascending, Func functor)
     {
@@ -239,23 +316,45 @@ namespace
       return functor(item1) < functor(item2);
     }
   private:
-    std::vector<PlayitemWrapper> Container;
-    std::vector<std::size_t> Indexes;
+    ItemsArray Container;
+    IdexesArray Indexes;
   };
 
   class PlaylistModelImpl : public PlaylistModel
   {
   public:
-    explicit PlaylistModelImpl(QObject* parent)
-      : FetchedItemsCount()
+    PlaylistModelImpl(const PlayitemStateCallback& callback, QObject* parent)
+      : Callback(callback)
+      , Providers()
+      , FetchedItemsCount()
     {
       setParent(parent);
     }
 
     //new virtuals
+    virtual Playitem::Ptr GetItem(const QModelIndex& index) const
+    {
+      if (const PlayitemWrapper* wrapper = (index.isValid() ? Container.GetItem(index.row()) : 0))
+      {
+        return wrapper->GetPlayitem();
+      }
+      return Playitem::Ptr();
+    }
+
     virtual void AddItem(Playitem::Ptr item)
     {
       Container.AddItem(item);
+    }
+
+    virtual void Clear()
+    {
+      beginRemoveRows(EMPTY_INDEX, 0, Container.CountItems());
+      Container.Clear();
+      endRemoveRows();
+    }
+
+    virtual void RemoveItems(const QModelIndexList& items)
+    {
     }
 
     //base model virtuals
@@ -289,30 +388,26 @@ namespace
 
     virtual int rowCount(const QModelIndex& index) const
     {
-      if (index.isValid())
-      {
-        return 0;
-      }
-      return FetchedItemsCount;
+      return index.isValid()
+        ? 0
+        : FetchedItemsCount;
     }
 
     virtual int columnCount(const QModelIndex& index) const
     {
-      if (index.isValid())
-      {
-        return 0;
-      }
-      return COLUMNS_COUNT;
+      return index.isValid()
+        ? 0
+        : COLUMNS_COUNT;
     }
 
     virtual QVariant headerData(int section, Qt::Orientation orientation, int role) const
     {
       if (Qt::Horizontal == orientation)
       {
-        Log::Debug(THIS_MODULE, "Request header data section=%1% role=%2%", 
+        Log::Debug(THIS_MODULE, "Request header data section=%1% role=%2%",
           section, role);
-        const DataProvider::Ptr provider = DataProvider::Create(role);
-        return provider->GetHeader(section);
+        const RowDataProvider& provider = Providers.GetProvider(role);
+        return provider.GetHeader(section);
       }
       return QVariant();
     }
@@ -325,19 +420,20 @@ namespace
       }
       const int_t fieldNum = index.column();
       const int_t itemNum = index.row();
-      Log::Debug(THIS_MODULE, "Request data row=%1% col=%2% role=%3%", 
+      Log::Debug(THIS_MODULE, "Request data row=%1% col=%2% role=%3%",
         itemNum, fieldNum, role);
       if (const PlayitemWrapper* item = Container.GetItem(itemNum))
-      { 
-        const DataProvider::Ptr provider = DataProvider::Create(role);
-        return provider->GetData(*item, fieldNum);
+      {
+        const RowDataProvider& provider = Providers.GetProvider(role);
+        const RowStateProvider state(index, Callback);
+        return provider.GetData(*item, state, fieldNum);
       }
       return QVariant();
     }
 
     virtual void sort(int column, Qt::SortOrder order)
     {
-      Log::Debug(THIS_MODULE, "Sort data in column=%1% by order=%2%", 
+      Log::Debug(THIS_MODULE, "Sort data in column=%1% by order=%2%",
         column, order);
       const bool ascending = order == Qt::AscendingOrder;
       switch (column)
@@ -354,12 +450,14 @@ namespace
       reset();
     }
   private:
+    const PlayitemStateCallback& Callback;
+    const DataProvidersSet Providers;
     std::size_t FetchedItemsCount;
     PlayitemsContainer Container;
   };
 }
 
-PlaylistModel* PlaylistModel::Create(QObject* parent)
+PlaylistModel* PlaylistModel::Create(const PlayitemStateCallback& callback, QObject* parent)
 {
-  return new PlaylistModelImpl(parent);
+  return new PlaylistModelImpl(callback, parent);
 }

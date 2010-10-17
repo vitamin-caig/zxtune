@@ -166,7 +166,6 @@ namespace
       Collection->connect(Playback, SIGNAL(OnStopModule()), SLOT(StopItem()));
       Collection->connect(Playback, SIGNAL(OnFinishModule()), SLOT(NextItem()));
       Playback->connect(Collection, SIGNAL(OnItemSet(const Playitem&)), SLOT(SetItem(const Playitem&)));
-      Playback->connect(Collection, SIGNAL(OnItemSelected(const Playitem&)), SLOT(SelectItem(const Playitem&)));
       Playback->connect(Controls, SIGNAL(OnPlay()), SLOT(Play()));
       Playback->connect(Controls, SIGNAL(OnStop()), SLOT(Stop()));
       Playback->connect(Controls, SIGNAL(OnPause()), SLOT(Pause()));

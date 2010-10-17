@@ -19,6 +19,7 @@ Author:
 //common includes
 #include <types.h>
 //qt includes
+#include <QtCore/QModelIndex>
 #include <QtGui/QWidget>
 
 namespace Log
@@ -44,18 +45,14 @@ public slots:
   //playlist operating
   virtual void AddFiles() = 0;
   virtual void Clear() = 0;
-  virtual void Sort() = 0;
   virtual void Random(bool isRandom) = 0;
   virtual void Loop(bool isLooped) = 0;
 private slots:
-  //virtual void AddItem(Playitem::Ptr item) = 0;
-  virtual void SetItem(class QListWidgetItem*) = 0;
-  virtual void SelectItem(class QListWidgetItem*) = 0;
+  virtual void ActivateItem(const QModelIndex&) = 0;
   virtual void ClearSelected() = 0;
   virtual void ShowProgress(const Log::MessageData&) = 0;
 signals:
   void OnItemSet(const Playitem&);
-  void OnItemSelected(const Playitem&);
 };
 
 #endif //ZXTUNE_QT_PLAYLIST_H_DEFINED
