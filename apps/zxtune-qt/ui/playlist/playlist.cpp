@@ -27,8 +27,6 @@ Author:
 //library includes
 #include <core/module_attrs.h>
 //qt includes
-#include <QtCore/QUrl>
-#include <QtGui/QDragEnterEvent>
 #include <QtGui/QFileDialog>
 #include <QtGui/QMainWindow>
 #include <QtGui/QMenu>
@@ -98,19 +96,19 @@ namespace
 
     void PlayItem()
     {
-      assert(OperationalItem);
+      //assert(OperationalItem);
       OperationalMode = PLAYING;
     }
 
     void StopItem()
     {
-      assert(OperationalItem);
+      //assert(OperationalItem);
       OperationalMode = STOPPED;
     }
 
     void PauseItem()
     {
-      assert(OperationalItem);
+      //assert(OperationalItem);
       OperationalMode = PAUSED;
     }
   private:
@@ -128,7 +126,7 @@ namespace
       , ScannerView(PlaylistScannerView::Create(this, Scanner))
       , Randomized(), Looped()
       , Model(PlaylistModel::Create(this))
-      , View(PlaylistView::Create(State, this))
+      , View(PlaylistView::Create(this, State, Model, Scanner))
     {
       //setup self
       setParent(parent);
@@ -136,10 +134,8 @@ namespace
       setAcceptDrops(true);
       verticalLayout->addWidget(View);
       verticalLayout->addWidget(ScannerView);
-      View->setModel(Model);
-      //setup thread-related
-      Model->connect(Scanner, SIGNAL(OnGetItem(Playitem::Ptr)), SLOT(AddItem(Playitem::Ptr)));
-      this->connect(View, SIGNAL(activated(const QModelIndex&)), SLOT(ActivateItem(const QModelIndex&)));
+      //setup connections
+      this->connect(View, SIGNAL(OnItemSet(const Playitem&)), SIGNAL(OnItemSet(const Playitem&)));
       this->connect(actionAddFiles, SIGNAL(triggered()), SLOT(AddFiles()));
       this->connect(actionClear, SIGNAL(triggered()), SLOT(Clear()));
       this->connect(actionRandom, SIGNAL(triggered(bool)), SLOT(Random(bool)));
@@ -165,7 +161,7 @@ namespace
 
     virtual void AddItems(const QStringList& items)
     {
-      Scanner->AddItems(items);
+      View->AddItems(items);
     }
 
     virtual void NextItem()
@@ -181,19 +177,19 @@ namespace
     virtual void PlayItem()
     {
       State.PlayItem();
-      View->viewport()->update();
+      View->Update();
     }
 
     virtual void PauseItem()
     {
       State.PauseItem();
-      View->viewport()->update();
+      View->Update();
     }
 
     virtual void StopItem()
     {
       State.StopItem();
-      View->viewport()->update();
+      View->Update();
     }
 
     virtual void AddFiles()
@@ -206,7 +202,7 @@ namespace
       {
         AddFileDirectory = dialog.directory().absolutePath();
         const QStringList& files = dialog.selectedFiles();
-        AddItems(files);
+        View->AddItems(files);
       }
     }
 
@@ -226,60 +222,6 @@ namespace
       Looped = isLooped;
     }
 
-    //QWidget virtuals
-    virtual void keyReleaseEvent(QKeyEvent* event)
-    {
-      const int curKey = event->key();
-      if (curKey == Qt::Key_Delete || curKey == Qt::Key_Backspace)
-      {
-        ClearSelected();
-      }
-      else
-      {
-        QWidget::keyReleaseEvent(event);
-      }
-    }
-
-    //private slots
-    virtual void ActivateItem(const QModelIndex& index)
-    {
-      if (const Playitem::Ptr item = Model->GetItem(index.row()))
-      {
-        State.SetItem(index);
-        OnItemSet(*item);
-      }
-    }
-
-    virtual void ClearSelected()
-    {
-      const QItemSelectionModel* const selection = View->selectionModel();
-      const QModelIndexList& items = selection->selectedRows();
-      QSet<unsigned> indexes;
-      std::for_each(items.begin(), items.end(),
-        boost::bind(&QSet<unsigned>::insert, &indexes, 
-          boost::bind(&QModelIndex::row, _1)));
-      Model->RemoveItems(indexes);
-      std::for_each(items.begin(), items.end(), boost::bind(&PlayitemStateCallbackImpl::ResetItem, &State, _1));
-    }
-
-    //qwidget virtuals
-    virtual void dragEnterEvent(QDragEnterEvent* event)
-    {
-      event->acceptProposedAction();
-    }
-
-    virtual void dropEvent(QDropEvent* event)
-    {
-      if (event->mimeData()->hasUrls())
-      {
-        const QList<QUrl>& urls = event->mimeData()->urls();
-        QStringList files;
-        std::for_each(urls.begin(), urls.end(),
-          boost::bind(&QStringList::push_back, &files,
-            boost::bind(&QUrl::toLocalFile, _1)));
-        AddItems(files);
-      }
-    }
   private:
     PlayitemsProvider::Ptr Provider;
     PlaylistScanner* const Scanner;

@@ -30,12 +30,13 @@ public slots:
   //asynchronous, doesn't wait until real stop
   virtual void Cancel() = 0;
 signals:
+  //for UI
   void OnScanStart();
-  //files processing
   void OnProgress(unsigned progress, unsigned itemsDone, unsigned totalItems);
   void OnProgressMessage(const QString& message, const QString& item);
-  void OnGetItem(Playitem::Ptr);
   void OnScanStop();
+  //for BL
+  void OnGetItem(Playitem::Ptr);
 };
 
 #endif //ZXTUNE_QT_PLAYLIST_THREAD_H_DEFINED

@@ -16,7 +16,7 @@ Author:
 
 //qt includes
 #include <QtGui/QItemDelegate>
-#include <QtGui/QTableView>
+#include <QtGui/QWidget>
 
 class PlayitemStateCallback
 {
@@ -34,12 +34,19 @@ public:
   static PlaylistItemView* Create(const PlayitemStateCallback& callback, QWidget* parent = 0);
 };
 
-class PlaylistView : public QTableView
+class PlaylistView : public QWidget
 {
   Q_OBJECT
 public:
   //creator
-  static PlaylistView* Create(const PlayitemStateCallback& callback, QWidget* parent = 0);
+  static PlaylistView* Create(QWidget* parent, const PlayitemStateCallback& callback, class PlaylistModel* model, class PlaylistScanner* scanner);
+
+  virtual void AddItems(const QStringList& itemsPath) = 0;
+  virtual void Update() = 0;
+public slots:
+  virtual void ActivateItem(const QModelIndex&) = 0;
+signals:
+  void OnItemSet(const Playitem&);
 };
 
 #endif //ZXTUNE_QT_PLAYLIST_VIEW_H_DEFINED

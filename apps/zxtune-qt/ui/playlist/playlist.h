@@ -40,9 +40,6 @@ public slots:
   virtual void Clear() = 0;
   virtual void Random(bool isRandom) = 0;
   virtual void Loop(bool isLooped) = 0;
-private slots:
-  virtual void ActivateItem(const QModelIndex&) = 0;
-  virtual void ClearSelected() = 0;
 signals:
   void OnItemSet(const Playitem&);
 };

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>PlaylistScannerView</class>
- <widget class="QWidget">
+ <widget class="QWidget" name="PlaylistScanner">
   <property name="sizePolicy">
    <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
     <horstretch>0</horstretch>
@@ -31,7 +31,4 @@
    </item>
   </layout>
  </widget>
- <resources>
-  <include location="../../res/icons.qrc"/>
- </resources>
 </ui>

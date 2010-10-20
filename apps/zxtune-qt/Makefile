@@ -16,12 +16,11 @@ ui_files += ui/aboutdialog \
             ui/controls/seek_controls \
             ui/controls/status_control \
             ui/controls/volume_control \
-            ui/playlist/playlist ui/playlist/playlist_scanner_view
+            ui/playlist/playlist ui/playlist/playlist_view ui/playlist/playlist_scanner_view
 
 moc_files := ui/controls/analyzer_control \
              ui/playlist/playlist_model \
              ui/playlist/playlist_scanner \
-             ui/playlist/playlist_view \
              supp/playback_supp
 
 ui_dir := .ui

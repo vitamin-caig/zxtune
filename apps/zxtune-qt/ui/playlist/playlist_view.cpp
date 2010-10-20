@@ -13,49 +13,122 @@ Author:
 
 //local includes
 #include "playlist_model.h"
+#include "playlist_scanner.h"
 #include "playlist_view.h"
+#include "playlist_view_ui.h"
 #include "playlist_view_moc.h"
 //common includes
 #include <logging.h>
+//boost includes
+#include <boost/bind.hpp>
 //qt includes
+#include <QtCore/QUrl>
+#include <QtGui/QDragEnterEvent>
 #include <QtGui/QHeaderView>
-#include <QtGui/QPainter>
+#include <QtGui/QTableView>
 
 namespace
 {
   const std::string THIS_MODULE("UI::PlaylistView");
 
   const int_t ROW_HEIGTH = 16;
+  const int_t TITLE_WIDTH = 256;
+  const int_t DURATION_WIDTH = 48;
 
   class PlaylistViewImpl : public PlaylistView
+                         , private Ui::PlaylistView
   {
   public:
-    PlaylistViewImpl(const PlayitemStateCallback& callback, QWidget* parent)
+    PlaylistViewImpl(QWidget* parent, const PlayitemStateCallback& callback, PlaylistModel* model, PlaylistScanner* scanner)
       : Callback(callback)
+      , Model(model)
+      , Scanner(scanner)
+      , Table(new QTableView(this))
     {
-      setParent(parent);
-      setItemDelegate(PlaylistItemView::Create(Callback, this));
       //setup self
-      setMouseTracking(true);
-      setEditTriggers(QAbstractItemView::NoEditTriggers);
-      setSelectionMode(QAbstractItemView::ExtendedSelection);
-      setSelectionBehavior(QAbstractItemView::SelectRows);
-      setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
-      setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
-      setShowGrid(false);
-      setGridStyle(Qt::NoPen);
-      setSortingEnabled(true);
-      setWordWrap(false);
-      setCornerButtonEnabled(false);
-      QHeaderView* const horHeader = horizontalHeader();
-      horHeader->setHighlightSections(false);
-      QHeaderView* const verHeader = verticalHeader();
-      verHeader->setVisible(false);
+      setParent(parent);
+      setupUi(this);
+      tableView->setItemDelegate(PlaylistItemView::Create(Callback, tableView));
+      tableView->setModel(Model);
+      //setup dynamic ui
+      QHeaderView* const horHeader = tableView->horizontalHeader();
+      horHeader->resizeSection(PlaylistModel::COLUMN_TITLE, TITLE_WIDTH);
+      horHeader->resizeSection(PlaylistModel::COLUMN_DURATION, DURATION_WIDTH);
+      QHeaderView* const verHeader = tableView->verticalHeader();
       verHeader->setDefaultSectionSize(ROW_HEIGTH);
-      verHeader->setHighlightSections(false);
+
+      //signals
+      Model->connect(Scanner, SIGNAL(OnGetItem(Playitem::Ptr)), SLOT(AddItem(Playitem::Ptr)));
+      this->connect(tableView, SIGNAL(activated(const QModelIndex&)), SLOT(ActivateItem(const QModelIndex&)));
+    }
+
+    virtual void AddItems(const QStringList& files)
+    {
+      Scanner->AddItems(files);
+    }
+
+    void Update()
+    {
+      tableView->viewport()->update();
+    }
+
+    virtual void ActivateItem(const QModelIndex& index)
+    {
+      if (const Playitem::Ptr item = Model->GetItem(index.row()))
+      {
+        //State.SetItem(index);
+        OnItemSet(*item);
+      }
+    }
+
+    //QWidget virtuals
+    virtual void keyReleaseEvent(QKeyEvent* event)
+    {
+      const int curKey = event->key();
+      if (curKey == Qt::Key_Delete || curKey == Qt::Key_Backspace)
+      {
+        ClearSelected();
+      }
+      else
+      {
+        QWidget::keyReleaseEvent(event);
+      }
+    }
+
+    virtual void dragEnterEvent(QDragEnterEvent* event)
+    {
+      event->acceptProposedAction();
+    }
+
+    virtual void dropEvent(QDropEvent* event)
+    {
+      if (event->mimeData()->hasUrls())
+      {
+        const QList<QUrl>& urls = event->mimeData()->urls();
+        QStringList files;
+        std::for_each(urls.begin(), urls.end(),
+          boost::bind(&QStringList::push_back, &files,
+            boost::bind(&QUrl::toLocalFile, _1)));
+        AddItems(files);
+      }
+    }
+  private:
+    void ClearSelected()
+    {
+      const QItemSelectionModel* const selection = tableView->selectionModel();
+      const QModelIndexList& items = selection->selectedRows();
+      QSet<unsigned> indexes;
+      std::for_each(items.begin(), items.end(),
+        boost::bind(&QSet<unsigned>::insert, &indexes, 
+          boost::bind(&QModelIndex::row, _1)));
+      Model->RemoveItems(indexes);
+      //std::for_each(items.begin(), items.end(), boost::bind(&PlayitemStateCallbackImpl::ResetItem, &State, _1));
     }
   private:
     const PlayitemStateCallback& Callback;
+    PlaylistModel* const Model;
+    PlaylistScanner* const Scanner;
+    QTableView* const Table;
   };
 
   class PlaylistItemViewImpl : public PlaylistItemView
@@ -105,12 +178,12 @@ namespace
   };
 }
 
-PlaylistView* PlaylistView::Create(const PlayitemStateCallback& callback, QWidget* parent)
-{
-  return new PlaylistViewImpl(callback, parent);
-}
-
 PlaylistItemView* PlaylistItemView::Create(const PlayitemStateCallback& callback, QWidget* parent)
 {
   return new PlaylistItemViewImpl(callback, parent);
+}
+
+PlaylistView* PlaylistView::Create(QWidget* parent, const PlayitemStateCallback& callback, PlaylistModel* model, PlaylistScanner* scanner)
+{
+  return new PlaylistViewImpl(parent, callback, model, scanner);
 }
