@@ -43,8 +43,6 @@ public slots:
 private slots:
   virtual void ActivateItem(const QModelIndex&) = 0;
   virtual void ClearSelected() = 0;
-  virtual void ShowProgress(unsigned) = 0;
-  virtual void ShowProgressMessage(const QString&) = 0;
 signals:
   void OnItemSet(const Playitem&);
 };

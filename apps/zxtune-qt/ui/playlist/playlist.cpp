@@ -16,7 +16,8 @@ Author:
 #include "playlist_ui.h"
 #include "playlist_moc.h"
 #include "playlist_model.h"
-#include "playlist_thread.h"
+#include "playlist_scanner.h"
+#include "playlist_scanner_view.h"
 #include "playlist_view.h"
 #include "ui/format.h"
 #include "ui/utils.h"
@@ -123,7 +124,8 @@ namespace
   public:
     explicit PlaylistImpl(QMainWindow* parent)
       : Provider(PlayitemsProvider::Create())
-      , Thread(ProcessThread::Create(this, Provider))
+      , Scanner(PlaylistScanner::Create(this, Provider))
+      , ScannerView(PlaylistScannerView::Create(this, Scanner))
       , Randomized(), Looped()
       , Model(PlaylistModel::Create(this))
       , View(PlaylistView::Create(State, this))
@@ -132,16 +134,11 @@ namespace
       setParent(parent);
       setupUi(this);
       setAcceptDrops(true);
-      verticalLayout->insertWidget(0, View);
+      verticalLayout->addWidget(View);
+      verticalLayout->addWidget(ScannerView);
       View->setModel(Model);
       //setup thread-related
-      scanStatus->hide();
-      scanStatus->connect(Thread, SIGNAL(OnScanStart()), SLOT(show()));
-      this->connect(Thread, SIGNAL(OnProgress(unsigned, unsigned, unsigned)), SLOT(ShowProgress(unsigned)));
-      this->connect(Thread, SIGNAL(OnProgressMessage(const QString&, const QString&)), SLOT(ShowProgressMessage(const QString&)));
-      Model->connect(Thread, SIGNAL(OnGetItem(Playitem::Ptr)), SLOT(AddItem(Playitem::Ptr)));
-      scanStatus->connect(Thread, SIGNAL(OnScanStop()), SLOT(hide()));
-      Thread->connect(scanCancel, SIGNAL(clicked()), SLOT(Cancel()));
+      Model->connect(Scanner, SIGNAL(OnGetItem(Playitem::Ptr)), SLOT(AddItem(Playitem::Ptr)));
       this->connect(View, SIGNAL(activated(const QModelIndex&)), SLOT(ActivateItem(const QModelIndex&)));
       this->connect(actionAddFiles, SIGNAL(triggered()), SLOT(AddFiles()));
       this->connect(actionClear, SIGNAL(triggered()), SLOT(Clear()));
@@ -162,12 +159,13 @@ namespace
 
     virtual ~PlaylistImpl()
     {
-      Thread->Cancel();
+      Scanner->Cancel();
+      Scanner->wait();
     }
 
     virtual void AddItems(const QStringList& items)
     {
-      Thread->AddItems(items);
+      Scanner->AddItems(items);
     }
 
     virtual void NextItem()
@@ -264,16 +262,6 @@ namespace
       std::for_each(items.begin(), items.end(), boost::bind(&PlayitemStateCallbackImpl::ResetItem, &State, _1));
     }
 
-    virtual void ShowProgress(unsigned progress)
-    {
-      scanProgress->setValue(progress);
-    }
-
-    virtual void ShowProgressMessage(const QString& message)
-    {
-      scanProgress->setToolTip(message);
-    }
-
     //qwidget virtuals
     virtual void dragEnterEvent(QDragEnterEvent* event)
     {
@@ -294,7 +282,8 @@ namespace
     }
   private:
     PlayitemsProvider::Ptr Provider;
-    ProcessThread* const Thread;
+    PlaylistScanner* const Scanner;
+    PlaylistScannerView* const ScannerView;
     bool Randomized;
     bool Looped;
     PlayitemStateCallbackImpl State;

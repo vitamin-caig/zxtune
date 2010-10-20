@@ -1,6 +1,6 @@
 /*
 Abstract:
-  Playitems process thread interface
+  Playlist scanner interface
 
 Last changed:
   $Id$
@@ -19,14 +19,15 @@ Author:
 //qt includes
 #include <QtCore/QThread>
 
-class ProcessThread : public QThread
+class PlaylistScanner : public QThread
 {
   Q_OBJECT
 public:
-  static ProcessThread* Create(QObject* owner, PlayitemsProvider::Ptr provider);
+  static PlaylistScanner* Create(QObject* owner, PlayitemsProvider::Ptr provider);
 
   virtual void AddItems(const QStringList& items) = 0;
 public slots:
+  //asynchronous, doesn't wait until real stop
   virtual void Cancel() = 0;
 signals:
   void OnScanStart();

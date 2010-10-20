@@ -1,6 +1,6 @@
 /*
 Abstract:
-  Playitems process thread implementation
+  Playlist scanner implementation
 
 Last changed:
   $Id$
@@ -12,8 +12,8 @@ Author:
 */
 
 //local includes
-#include "playlist_thread.h"
-#include "playlist_thread_moc.h"
+#include "playlist_scanner.h"
+#include "playlist_scanner_moc.h"
 #include "ui/utils.h"
 //common includes
 #include <error.h>
@@ -28,11 +28,13 @@ Author:
 
 namespace
 {
-  class ProcessThreadImpl : public ProcessThread
-                          , private PlayitemDetectParameters
+  const std::string THIS_MODULE("UI::PlaylistScanner");
+
+  class PlaylistScannerImpl : public PlaylistScanner
+                            , private PlayitemDetectParameters
   {
   public:
-    ProcessThreadImpl(QObject* owner, PlayitemsProvider::Ptr provider)
+    PlaylistScannerImpl(QObject* owner, PlayitemsProvider::Ptr provider)
       : Provider(provider)
       , Canceled(false)
     {
@@ -42,6 +44,10 @@ namespace
     virtual void AddItems(const QStringList& items)
     {
       QMutexLocker lock(&QueueLock);
+      if (Canceled)
+      {
+        this->wait();
+      }
       //TODO: process directories separately
       Queue.append(items);
       this->start();
@@ -49,15 +55,16 @@ namespace
 
     virtual void Cancel()
     {
+      QMutexLocker lock(&QueueLock);
       Canceled = true;
-      this->wait();
+      Queue.clear();
     }
 
     virtual void run()
     {
       Canceled = false;
       OnScanStart();
-      for (ItemsDone = 0, ItemsTotal = 0;; ++ItemsDone)
+      for (ItemsDone = 0, ItemsTotal = 0; !Canceled; ++ItemsDone)
       {
         {
           QMutexLocker lock(&QueueLock);
@@ -94,11 +101,14 @@ namespace
       }
       if (msg.Progress)
       {
-        OnProgress(*msg.Progress, ItemsDone, ItemsTotal);
+        const uint_t curProgress = *msg.Progress;
+        Log::Debug(THIS_MODULE, "Progress %1% (%2%/%3%)", curProgress, ItemsDone, ItemsTotal);
+        OnProgress(curProgress, ItemsDone, ItemsTotal);
       }
       if (msg.Text)
       {
         const QString text = ToQString(*msg.Text);
+        Log::Debug(THIS_MODULE, "Scanning %1%", *msg.Text);
         OnProgressMessage(text, CurrentItem);
       }
     }
@@ -114,8 +124,8 @@ namespace
   };
 }
 
-ProcessThread* ProcessThread::Create(QObject* owner, PlayitemsProvider::Ptr provider)
+PlaylistScanner* PlaylistScanner::Create(QObject* owner, PlayitemsProvider::Ptr provider)
 {
   assert(owner);
-  return new ProcessThreadImpl(owner, provider);
+  return new PlaylistScannerImpl(owner, provider);
 }
