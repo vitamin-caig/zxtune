@@ -151,9 +151,13 @@ namespace
       , Playback(PlaybackSupport::Create(this))
     {
       //TODO: remove
-      for (int param = 1; param < argc; ++param)
       {
-        Collection->AddItemByPath(FromStdString(argv[param]));
+        QStringList items;
+        for (int param = 1; param < argc; ++param)
+        {
+          items.append(QString::fromUtf8(argv[param]));
+        }
+        Collection->AddItems(items);
       }
 
       About->connect(actionAbout, SIGNAL(triggered()), SLOT(Show()));

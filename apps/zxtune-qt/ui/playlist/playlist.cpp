@@ -39,9 +39,6 @@ Author:
 //text includes
 #include "text/text.h"
 
-//outside the namespace
-Q_DECLARE_METATYPE(Playitem::Ptr);
-
 namespace
 {
   const std::string THIS_MODULE("UI::Playlist");
@@ -140,7 +137,8 @@ namespace
       //setup thread-related
       scanStatus->hide();
       scanStatus->connect(Thread, SIGNAL(OnScanStart()), SLOT(show()));
-      this->connect(Thread, SIGNAL(OnProgress(const Log::MessageData&)), SLOT(ShowProgress(const Log::MessageData&)));
+      this->connect(Thread, SIGNAL(OnProgress(unsigned, unsigned, unsigned)), SLOT(ShowProgress(unsigned)));
+      this->connect(Thread, SIGNAL(OnProgressMessage(const QString&, const QString&)), SLOT(ShowProgressMessage(const QString&)));
       Model->connect(Thread, SIGNAL(OnGetItem(Playitem::Ptr)), SLOT(AddItem(Playitem::Ptr)));
       scanStatus->connect(Thread, SIGNAL(OnScanStop()), SLOT(hide()));
       Thread->connect(scanCancel, SIGNAL(clicked()), SLOT(Cancel()));
@@ -167,9 +165,9 @@ namespace
       Thread->Cancel();
     }
 
-    virtual void AddItemByPath(const String& itemPath)
+    virtual void AddItems(const QStringList& items)
     {
-      Thread->AddItemPath(itemPath);
+      Thread->AddItems(items);
     }
 
     virtual void NextItem()
@@ -210,9 +208,7 @@ namespace
       {
         AddFileDirectory = dialog.directory().absolutePath();
         const QStringList& files = dialog.selectedFiles();
-        std::for_each(files.begin(), files.end(),
-          boost::bind(&::Playlist::AddItemByPath, this,
-            boost::bind(&FromQString, _1)));
+        AddItems(files);
       }
     }
 
@@ -260,24 +256,22 @@ namespace
     {
       const QItemSelectionModel* const selection = View->selectionModel();
       const QModelIndexList& items = selection->selectedRows();
-      std::set<std::size_t> indexes;
-      std::transform(items.begin(), items.end(), std::inserter(indexes, indexes.end()),
-        std::mem_fun_ref(&QModelIndex::row));
+      QSet<unsigned> indexes;
+      std::for_each(items.begin(), items.end(),
+        boost::bind(&QSet<unsigned>::insert, &indexes, 
+          boost::bind(&QModelIndex::row, _1)));
       Model->RemoveItems(indexes);
       std::for_each(items.begin(), items.end(), boost::bind(&PlayitemStateCallbackImpl::ResetItem, &State, _1));
     }
 
-    virtual void ShowProgress(const Log::MessageData& msg)
+    virtual void ShowProgress(unsigned progress)
     {
-      assert(0 == msg.Level);
-      if (msg.Progress)
-      {
-        scanProgress->setValue(*msg.Progress);
-      }
-      if (msg.Text)
-      {
-        scanProgress->setToolTip(ToQString(*msg.Text));
-      }
+      scanProgress->setValue(progress);
+    }
+
+    virtual void ShowProgressMessage(const QString& message)
+    {
+      scanProgress->setToolTip(message);
     }
 
     //qwidget virtuals
@@ -291,9 +285,11 @@ namespace
       if (event->mimeData()->hasUrls())
       {
         const QList<QUrl>& urls = event->mimeData()->urls();
+        QStringList files;
         std::for_each(urls.begin(), urls.end(),
-          boost::bind(&::Playlist::AddItemByPath, this,
-            boost::bind(&FromQString, boost::bind(&QUrl::toLocalFile, _1))));
+          boost::bind(&QStringList::push_back, &files,
+            boost::bind(&QUrl::toLocalFile, _1)));
+        AddItems(files);
       }
     }
   private:
@@ -311,7 +307,7 @@ namespace
 
 Playlist* Playlist::Create(QMainWindow* parent)
 {
-  REGISTER_METATYPE(Log::MessageData);
+  REGISTER_METATYPE(Playitem::Ptr);
   assert(parent);
   return new PlaylistImpl(parent);
 }

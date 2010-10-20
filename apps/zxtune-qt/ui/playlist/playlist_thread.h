@@ -16,15 +16,8 @@ Author:
 
 //local includes
 #include "supp/playitems_provider.h"
-//common includes
-#include <types.h>
 //qt includes
 #include <QtCore/QThread>
-
-namespace Log
-{
-  struct MessageData;
-}
 
 class ProcessThread : public QThread
 {
@@ -32,12 +25,14 @@ class ProcessThread : public QThread
 public:
   static ProcessThread* Create(QObject* owner, PlayitemsProvider::Ptr provider);
 
-  virtual void AddItemPath(const String& path) = 0;
+  virtual void AddItems(const QStringList& items) = 0;
 public slots:
   virtual void Cancel() = 0;
 signals:
   void OnScanStart();
-  void OnProgress(const Log::MessageData&);
+  //files processing
+  void OnProgress(unsigned progress, unsigned itemsDone, unsigned totalItems);
+  void OnProgressMessage(const QString& message, const QString& item);
   void OnGetItem(Playitem::Ptr);
   void OnScanStop();
 };

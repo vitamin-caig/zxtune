@@ -227,6 +227,5 @@ namespace
 
 PlayitemsProvider::Ptr PlayitemsProvider::Create()
 {
-  REGISTER_METATYPE(Playitem::Ptr);
   return PlayitemsProvider::Ptr(new PlayitemsProviderImpl());
 }

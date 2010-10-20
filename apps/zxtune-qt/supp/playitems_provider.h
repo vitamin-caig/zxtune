@@ -16,6 +16,8 @@ Author:
 
 //library includes
 #include <core/module_detect.h>
+//qt includes
+#include <QtCore/QMetaType>
 //boost includes
 #include <boost/function.hpp>
 
@@ -30,6 +32,8 @@ public:
   virtual ZXTune::Module::Information::Ptr GetModuleInfo() const = 0;
   virtual Parameters::Accessor::Ptr GetAdjustedParameters() const = 0;
 };
+
+Q_DECLARE_METATYPE(Playitem::Ptr);
 
 class PlayitemDetectParameters
 {

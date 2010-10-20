@@ -26,6 +26,7 @@ Author:
 #include <boost/bind.hpp>
 //qt includes
 #include <QtCore/QMutex>
+#include <QtCore/QSet>
 #include <QtCore/QTime>
 #include <QtGui/QIcon>
 //text includes
@@ -91,19 +92,19 @@ namespace
   public:
     virtual ~RowDataProvider() {}
 
-    virtual QVariant GetHeader(int_t column) const = 0;
-    virtual QVariant GetData(const PlayitemWrapper& item, int_t column) const = 0;
+    virtual QVariant GetHeader(unsigned column) const = 0;
+    virtual QVariant GetData(const PlayitemWrapper& item, unsigned column) const = 0;
   };
 
   class DummyDataProvider : public RowDataProvider
   {
   public:
-    virtual QVariant GetHeader(int_t /*column*/) const
+    virtual QVariant GetHeader(unsigned /*column*/) const
     {
       return QVariant();
     }
 
-    virtual QVariant GetData(const PlayitemWrapper& /*item*/, int_t /*column*/) const
+    virtual QVariant GetData(const PlayitemWrapper& /*item*/, unsigned /*column*/) const
     {
       return QVariant();
     }
@@ -112,7 +113,7 @@ namespace
   class DisplayDataProvider : public RowDataProvider
   {
   public:
-    virtual QVariant GetHeader(int_t column) const
+    virtual QVariant GetHeader(unsigned column) const
     {
       switch (column)
       {
@@ -125,7 +126,7 @@ namespace
       };
     }
 
-    virtual QVariant GetData(const PlayitemWrapper& item, int_t column) const
+    virtual QVariant GetData(const PlayitemWrapper& item, unsigned column) const
     {
       switch (column)
       {
@@ -147,12 +148,12 @@ namespace
   class TooltipDataProvider : public RowDataProvider
   {
   public:
-    virtual QVariant GetHeader(int_t /*column*/) const
+    virtual QVariant GetHeader(unsigned /*column*/) const
     {
       return QVariant();
     }
 
-    virtual QVariant GetData(const PlayitemWrapper& item, int_t /*column*/) const
+    virtual QVariant GetData(const PlayitemWrapper& item, unsigned /*column*/) const
     {
       return ToQString(item.GetTooltip());
     }
@@ -168,7 +169,7 @@ namespace
     {
     }
 
-    const RowDataProvider& GetProvider(int_t role) const
+    const RowDataProvider& GetProvider(int role) const
     {
       switch (role)
       {
@@ -203,9 +204,9 @@ namespace
       return Items.size();
     }
 
-    const PlayitemWrapper* GetItemByIndex(int_t idx) const
+    const PlayitemWrapper* GetItemByIndex(int idx) const
     {
-      if (idx >= int_t(Iterators.size()))
+      if (idx >= int(Iterators.size()))
       {
         assert(!"Invalid playitem requested");
         return 0;
@@ -222,15 +223,15 @@ namespace
       Iterators.swap(tmpIter);
     }
 
-    void Remove(const std::set<std::size_t>& indexes)
+    void Remove(const QSet<unsigned>& indexes)
     {
       IteratorsArray newIters;
-      newIters.reserve(Iterators.size() - indexes.size());
+      newIters.reserve(Iterators.size() - indexes.count());
       //TODO: optimize iteration- cycle only indexes range
       for (std::size_t idx = 0, lim = Iterators.size(); idx != lim; ++idx)
       {
         const IteratorsArray::value_type iter = Iterators[idx];
-        if (indexes.count(idx))
+        if (indexes.contains(idx))
         {
           //remove
           Items.erase(iter);
@@ -300,7 +301,7 @@ namespace
     }
 
     //new virtuals
-    virtual Playitem::Ptr GetItem(std::size_t index) const
+    virtual Playitem::Ptr GetItem(unsigned index) const
     {
       QMutexLocker locker(&Synchronizer);
       if (const PlayitemWrapper* wrapper = Container.GetItemByIndex(index))
@@ -324,7 +325,7 @@ namespace
       reset();
     }
 
-    virtual void RemoveItems(const std::set<std::size_t>& items)
+    virtual void RemoveItems(const QSet<unsigned>& items)
     {
       QMutexLocker locker(&Synchronizer);
       Container.Remove(items);

@@ -16,8 +16,6 @@ Author:
 
 //local includes
 #include "supp/playitems_provider.h"
-//std includes
-#include <set>
 //qt includes
 #include <QtCore/QAbstractItemModel>
 
@@ -36,9 +34,9 @@ public:
   //creator
   static PlaylistModel* Create(QObject* parent = 0);
 
-  virtual Playitem::Ptr GetItem(std::size_t index) const = 0;
+  virtual Playitem::Ptr GetItem(unsigned index) const = 0;
   virtual void Clear() = 0;
-  virtual void RemoveItems(const std::set<std::size_t>& items) = 0;
+  virtual void RemoveItems(const QSet<unsigned>& items) = 0;
 public slots:
   virtual void AddItem(Playitem::Ptr item) = 0;
 };

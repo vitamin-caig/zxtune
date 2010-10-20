@@ -14,14 +14,15 @@ Author:
 //local includes
 #include "playlist_thread.h"
 #include "playlist_thread_moc.h"
+#include "ui/utils.h"
 //common includes
 #include <error.h>
 #include <logging.h>
 //qt includes
 #include <QtCore/QMutex>
+#include <QtCore/QStringList>
 //std includes
 #include <ctime>
-#include <queue>
 //boost includes
 #include <boost/bind.hpp>
 
@@ -38,10 +39,11 @@ namespace
       setParent(owner);
     }
 
-    virtual void AddItemPath(const String& path)
+    virtual void AddItems(const QStringList& items)
     {
       QMutexLocker lock(&QueueLock);
-      Queue.push(path);
+      //TODO: process directories separately
+      Queue.append(items);
       this->start();
     }
 
@@ -55,21 +57,21 @@ namespace
     {
       Canceled = false;
       OnScanStart();
-      for (;;)
+      for (ItemsDone = 0, ItemsTotal = 0;; ++ItemsDone)
       {
-        String path;
         {
           QMutexLocker lock(&QueueLock);
           if (Queue.empty())
           {
             break;
           }
-          path = Queue.front();
-          Queue.pop();
+          ItemsTotal += Queue.size();
+          CurrentItem = Queue.takeFirst();
         }
 
         const Parameters::Accessor::Ptr commonParams = Parameters::Container::Create();
-        if (const Error& e = Provider->DetectModules(path, commonParams, *this))
+        const String& strPath = FromQString(CurrentItem);
+        if (const Error& e = Provider->DetectModules(strPath, commonParams, *this))
         {
           //TODO: check and show error
           e.GetText();
@@ -86,17 +88,29 @@ namespace
 
     virtual void ShowProgress(const Log::MessageData& msg)
     {
-      if (0 == msg.Level)
+      if (0 != msg.Level)
       {
-        OnProgress(msg);
+        return;
+      }
+      if (msg.Progress)
+      {
+        OnProgress(*msg.Progress, ItemsDone, ItemsTotal);
+      }
+      if (msg.Text)
+      {
+        const QString text = ToQString(*msg.Text);
+        OnProgressMessage(text, CurrentItem);
       }
     }
   private:
     const PlayitemsProvider::Ptr Provider;
     QMutex QueueLock;
-    std::queue<String> Queue;
+    QStringList Queue;
     //TODO: possibly use events
     volatile bool Canceled;
+    unsigned ItemsDone;
+    unsigned ItemsTotal;
+    QString CurrentItem;
   };
 }
 

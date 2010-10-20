@@ -16,16 +16,9 @@ Author:
 
 //local includes
 #include "supp/playitems_provider.h"
-//common includes
-#include <types.h>
 //qt includes
 #include <QtCore/QModelIndex>
 #include <QtGui/QWidget>
-
-namespace Log
-{
-  struct MessageData;
-}
 
 class Playlist : public QWidget
 {
@@ -36,7 +29,7 @@ public:
 
 public slots:
   //items operating
-  virtual void AddItemByPath(const String& itemPath) = 0;
+  virtual void AddItems(const QStringList& itemsPath) = 0;
   virtual void NextItem() = 0;
   virtual void PrevItem() = 0;
   virtual void PlayItem() = 0;
@@ -50,7 +43,8 @@ public slots:
 private slots:
   virtual void ActivateItem(const QModelIndex&) = 0;
   virtual void ClearSelected() = 0;
-  virtual void ShowProgress(const Log::MessageData&) = 0;
+  virtual void ShowProgress(unsigned) = 0;
+  virtual void ShowProgressMessage(const QString&) = 0;
 signals:
   void OnItemSet(const Playitem&);
 };
