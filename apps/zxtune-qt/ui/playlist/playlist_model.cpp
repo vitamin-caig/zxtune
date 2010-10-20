@@ -27,8 +27,7 @@ Author:
 //qt includes
 #include <QtCore/QMutex>
 #include <QtCore/QSet>
-#include <QtCore/QTime>
-#include <QtGui/QIcon>
+#include <QtGui/QApplication>
 //text includes
 #include "text/text.h"
 
@@ -118,9 +117,9 @@ namespace
       switch (column)
       {
       case PlaylistModel::COLUMN_TITLE:
-        return QString::fromUtf8("Author - Title");
+        return QApplication::translate("Playlist", "Author - Title", 0, QApplication::UnicodeUTF8);
       case PlaylistModel::COLUMN_DURATION:
-        return QString::fromUtf8("Duration");
+        return QApplication::translate("Playlist", "Duration", 0, QApplication::UnicodeUTF8);
       default:
         return QVariant();
       };

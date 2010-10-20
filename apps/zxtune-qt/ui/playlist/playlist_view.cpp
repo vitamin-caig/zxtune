@@ -31,9 +31,12 @@ namespace
 {
   const std::string THIS_MODULE("UI::PlaylistView");
 
+  //Options
+  const char FONT_FAMILY[] = "Arial";
+  const int_t FONT_SIZE = 8;
   const int_t ROW_HEIGTH = 16;
-  const int_t TITLE_WIDTH = 256;
-  const int_t DURATION_WIDTH = 48;
+  const int_t TITLE_WIDTH = 240;
+  const int_t DURATION_WIDTH = 64;
 
   class PlaylistViewImpl : public PlaylistView
                          , private Ui::PlaylistView
@@ -48,14 +51,21 @@ namespace
       //setup self
       setParent(parent);
       setupUi(this);
+      setAcceptDrops(true);
       tableView->setItemDelegate(PlaylistItemView::Create(Callback, tableView));
       tableView->setModel(Model);
       //setup dynamic ui
-      QHeaderView* const horHeader = tableView->horizontalHeader();
-      horHeader->resizeSection(PlaylistModel::COLUMN_TITLE, TITLE_WIDTH);
-      horHeader->resizeSection(PlaylistModel::COLUMN_DURATION, DURATION_WIDTH);
-      QHeaderView* const verHeader = tableView->verticalHeader();
-      verHeader->setDefaultSectionSize(ROW_HEIGTH);
+      if (QHeaderView* const horHeader = tableView->horizontalHeader())
+      {
+        horHeader->setDefaultAlignment(Qt::AlignLeft);
+        horHeader->setTextElideMode(Qt::ElideRight);
+        horHeader->resizeSection(PlaylistModel::COLUMN_TITLE, TITLE_WIDTH);
+        horHeader->resizeSection(PlaylistModel::COLUMN_DURATION, DURATION_WIDTH);
+      }
+      if (QHeaderView* const verHeader = tableView->verticalHeader())
+      {
+        verHeader->setDefaultSectionSize(ROW_HEIGTH);
+      }
 
       //signals
       Model->connect(Scanner, SIGNAL(OnGetItem(Playitem::Ptr)), SLOT(AddItem(Playitem::Ptr)));
@@ -136,7 +146,7 @@ namespace
   public:
     PlaylistItemViewImpl(const PlayitemStateCallback& callback, QWidget* parent)
       : Callback(callback)
-      , Regular(QString::fromUtf8("Arial"), 8)
+      , Regular(QString::fromUtf8(FONT_FAMILY), FONT_SIZE)
       , Playing(Regular)
       , Paused(Regular)
     {

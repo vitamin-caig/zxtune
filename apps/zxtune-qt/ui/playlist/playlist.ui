@@ -31,16 +31,6 @@
     <string>Add files</string>
    </property>
   </action>
-  <action name="actionLoad">
-   <property name="text">
-    <string>Load</string>
-   </property>
-  </action>
-  <action name="actionSave">
-   <property name="text">
-    <string>Save</string>
-   </property>
-  </action>
   <action name="actionClear">
    <property name="icon">
     <iconset>

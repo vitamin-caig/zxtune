@@ -131,7 +131,6 @@ namespace
       //setup self
       setParent(parent);
       setupUi(this);
-      setAcceptDrops(true);
       verticalLayout->addWidget(View);
       verticalLayout->addWidget(ScannerView);
       //setup connections
