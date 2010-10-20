@@ -17,6 +17,7 @@ Author:
 #include "playlist_moc.h"
 #include "playlist_model.h"
 #include "playlist_thread.h"
+#include "playlist_view.h"
 #include "ui/format.h"
 #include "ui/utils.h"
 //common includes
@@ -43,11 +44,7 @@ Q_DECLARE_METATYPE(Playitem::Ptr);
 
 namespace
 {
-  enum ChooseMode
-  {
-    ITEM_SET,
-    ITEM_SELECT
-  };
+  const std::string THIS_MODULE("UI::Playlist");
 
   class PlayitemStateCallbackImpl : public PlayitemStateCallback
   {
@@ -59,69 +56,69 @@ namespace
     };
   public:
     PlayitemStateCallbackImpl()
-      : OperationalMode(STOPPED)
+      : OperationalItem(0)
+      , OperationalMode(STOPPED)
     {
     }
 
     virtual bool IsPlaying(const QModelIndex& index) const
     {
       assert(index.isValid());
-      return index == OperationalItem &&
+      const Playitem* const indexItem = static_cast<const Playitem*>(index.internalPointer());
+      return OperationalItem &&
+             indexItem == OperationalItem &&
              OperationalMode == PLAYING;
     }
 
     virtual bool IsPaused(const QModelIndex& index) const
     {
       assert(index.isValid());
-      return index == OperationalItem &&
+      const Playitem* const indexItem = static_cast<const Playitem*>(index.internalPointer());
+      return OperationalItem &&
+             indexItem == OperationalItem &&
              OperationalMode == PAUSED;
     }
 
     void SetItem(const QModelIndex& index)
     {
-      assert(index.isValid());
-      OperationalItem = index;
       OperationalMode = STOPPED;
+      assert(index.isValid());
+      const Playitem* const indexItem = static_cast<const Playitem*>(index.internalPointer());
+      OperationalItem = indexItem;
     }
 
     void ResetItem(const QModelIndex& index)
     {
       assert(index.isValid());
-      if (OperationalItem == index)
+      const Playitem* const indexItem = static_cast<const Playitem*>(index.internalPointer());
+      if (OperationalItem == indexItem)
       {
-        OperationalItem == QModelIndex();
+        OperationalItem = 0;
         OperationalMode = STOPPED;
       }
     }
 
     void PlayItem()
     {
-      assert(OperationalItem.isValid());
+      assert(OperationalItem);
       OperationalMode = PLAYING;
     }
 
     void StopItem()
     {
-      assert(OperationalItem.isValid());
+      assert(OperationalItem);
       OperationalMode = STOPPED;
     }
 
     void PauseItem()
     {
-      assert(OperationalItem.isValid());
+      assert(OperationalItem);
       OperationalMode = PAUSED;
     }
-
-    const QModelIndex& GetItem() const
-    {
-      return OperationalItem;
-    }
   private:
-    QModelIndex OperationalItem;
+    const Playitem* OperationalItem;
     PlayitemMode OperationalMode;
   };
-
-  //QListWidgetItem ITEM_STUB;
 
   class PlaylistImpl : public Playlist
                      , public Ui::Playlist
@@ -131,18 +128,15 @@ namespace
       : Provider(PlayitemsProvider::Create())
       , Thread(ProcessThread::Create(this, Provider))
       , Randomized(), Looped()
-      , Model(PlaylistModel::Create(State, this))
+      , Model(PlaylistModel::Create(this))
+      , View(PlaylistView::Create(State, this))
     {
       //setup self
       setParent(parent);
       setupUi(this);
       setAcceptDrops(true);
-      playListContent->setModel(Model);
-      {
-        QHeaderView* header = playListContent->horizontalHeader();
-        header->setDefaultAlignment(Qt::AlignLeft);
-        header->setTextElideMode(Qt::ElideRight);
-      }
+      verticalLayout->insertWidget(0, View);
+      View->setModel(Model);
       //setup thread-related
       scanStatus->hide();
       scanStatus->connect(Thread, SIGNAL(OnScanStart()), SLOT(show()));
@@ -150,7 +144,7 @@ namespace
       Model->connect(Thread, SIGNAL(OnGetItem(Playitem::Ptr)), SLOT(AddItem(Playitem::Ptr)));
       scanStatus->connect(Thread, SIGNAL(OnScanStop()), SLOT(hide()));
       Thread->connect(scanCancel, SIGNAL(clicked()), SLOT(Cancel()));
-      this->connect(playListContent, SIGNAL(activated(const QModelIndex&)), SLOT(ActivateItem(const QModelIndex&)));
+      this->connect(View, SIGNAL(activated(const QModelIndex&)), SLOT(ActivateItem(const QModelIndex&)));
       this->connect(actionAddFiles, SIGNAL(triggered()), SLOT(AddFiles()));
       this->connect(actionClear, SIGNAL(triggered()), SLOT(Clear()));
       this->connect(actionRandom, SIGNAL(triggered(bool)), SLOT(Random(bool)));
@@ -180,58 +174,30 @@ namespace
 
     virtual void NextItem()
     {
-      /*
-      const int rowsCount = playListContent->count();
-      if (!rowsCount || !ActivatedItem || ActivatedItem == &ITEM_STUB)
-      {
-        return;
-      }
-      const int currentRow = playListContent->row(ActivatedItem);
-      const int nextRow = (Randomized ? rand() : (currentRow + 1)) % rowsCount;
-      assert(currentRow >= 0);
-      if (Looped || Randomized || currentRow < rowsCount - 1)
-      {
-        playListContent->setCurrentRow(nextRow, QItemSelectionModel::NoUpdate);
-        return ChooseItem(playListContent->currentItem(), ITEM_SET);
-      }
-      */
+      //TODO
     }
 
     virtual void PrevItem()
     {
-      /*
-      const int rowsCount = playListContent->count();
-      if (!rowsCount || !ActivatedItem || ActivatedItem == &ITEM_STUB)
-      {
-        return;
-      }
-      const int currentRow = playListContent->row(ActivatedItem);
-      const int nextRow = (Randomized ? rand() : (currentRow + rowsCount - 1)) % rowsCount;
-      assert(currentRow >= 0);
-      if (Looped || Randomized || currentRow)
-      {
-        playListContent->setCurrentRow(nextRow, QItemSelectionModel::NoUpdate);
-        return ChooseItem(playListContent->currentItem(), ITEM_SET);
-      }
-      */
+      //TODO
     }
 
     virtual void PlayItem()
     {
       State.PlayItem();
-      playListContent->update(State.GetItem());
+      View->viewport()->update();
     }
 
     virtual void PauseItem()
     {
       State.PauseItem();
-      playListContent->update(State.GetItem());
+      View->viewport()->update();
     }
 
     virtual void StopItem()
     {
       State.StopItem();
-      playListContent->update(State.GetItem());
+      View->viewport()->update();
     }
 
     virtual void AddFiles()
@@ -272,7 +238,7 @@ namespace
       const int curKey = event->key();
       if (curKey == Qt::Key_Delete || curKey == Qt::Key_Backspace)
       {
-        //ClearSelected();
+        ClearSelected();
       }
       else
       {
@@ -283,7 +249,7 @@ namespace
     //private slots
     virtual void ActivateItem(const QModelIndex& index)
     {
-      if (const Playitem::Ptr item = Model->GetItem(index))
+      if (const Playitem::Ptr item = Model->GetItem(index.row()))
       {
         State.SetItem(index);
         OnItemSet(*item);
@@ -292,9 +258,12 @@ namespace
 
     virtual void ClearSelected()
     {
-      const QItemSelectionModel* const selection = playListContent->selectionModel();
+      const QItemSelectionModel* const selection = View->selectionModel();
       const QModelIndexList& items = selection->selectedRows();
-      Model->RemoveItems(items);
+      std::set<std::size_t> indexes;
+      std::transform(items.begin(), items.end(), std::inserter(indexes, indexes.end()),
+        std::mem_fun_ref(&QModelIndex::row));
+      Model->RemoveItems(indexes);
       std::for_each(items.begin(), items.end(), boost::bind(&PlayitemStateCallbackImpl::ResetItem, &State, _1));
     }
 
@@ -328,57 +297,13 @@ namespace
       }
     }
   private:
-    /*
-    void ChooseItem(QListWidgetItem* listItem, ChooseMode mode)
-    {
-      if (!listItem)
-      {
-        ActivatedItem = SelectedItem = 0;
-      }
-      else
-      {
-        const QVariant& data = listItem->data(Qt::UserRole);
-        const Playitem::Ptr item = data.value<Playitem::Ptr>();
-        if (ITEM_SET == mode)
-        {
-          StopItem();
-          ActivatedItem = 0;
-          SelectedItem = listItem;
-          OnItemSet(*item);
-        }
-        else if (ITEM_SELECT == mode)
-        {
-          SelectedItem = listItem;
-          OnItemSelected(*item);
-        }
-      }
-    }
-
-    void RemoveItem(QListWidgetItem* listItem)
-    {
-      //check if selected affected
-      if (SelectedItem == listItem)
-      {
-        SelectedItem = 0;
-      }
-      if (ActivatedItem == listItem)
-      {
-        ActivatedItem = &ITEM_STUB;
-      }
-      //remove
-      const int row = playListContent->row(listItem);
-      std::auto_ptr<QListWidgetItem> removed(playListContent->takeItem(row));
-      assert(removed.get() == listItem);
-    }
-    */
-  private:
     PlayitemsProvider::Ptr Provider;
     ProcessThread* const Thread;
     bool Randomized;
     bool Looped;
-    //TODO: thread-safe
     PlayitemStateCallbackImpl State;
     PlaylistModel* const Model;
+    PlaylistView* const View;
     //gui-related
     QString AddFileDirectory;
   };

@@ -28,7 +28,6 @@ Author:
 #include <QtCore/QMutex>
 #include <QtCore/QTime>
 #include <QtGui/QIcon>
-#include <QtGui/QFont>
 //text includes
 #include "text/text.h"
 
@@ -57,13 +56,6 @@ namespace
     {
     }
 
-    PlayitemWrapper& operator = (const PlayitemWrapper& rh)
-    {
-      Item = rh.Item;
-      TooltipTemplate = StringTemplate::Create(Text::TOOLTIP_TEMPLATE);
-      return *this;
-    }
-
     String GetTitle() const
     {
       const ZXTune::Module::Information::Ptr info = Item->GetModuleInfo();
@@ -90,31 +82,8 @@ namespace
       return Item;
     }
   private:
-    Playitem::Ptr Item;
-    StringTemplate::Ptr TooltipTemplate;
-  };
-
-  class RowStateProvider
-  {
-  public:
-    RowStateProvider(const QModelIndex& index, const PlayitemStateCallback& cb)
-      : Index(index)
-      , Callback(cb)
-    {
-    }
-
-    bool IsPlaying() const
-    {
-      return Callback.IsPlaying(Index);
-    }
-
-    bool IsPaused() const
-    {
-      return Callback.IsPaused(Index);
-    }
-  private:
-    const QModelIndex& Index;
-    const PlayitemStateCallback& Callback;
+    const Playitem::Ptr Item;
+    const StringTemplate::Ptr TooltipTemplate;
   };
 
   class RowDataProvider
@@ -123,7 +92,7 @@ namespace
     virtual ~RowDataProvider() {}
 
     virtual QVariant GetHeader(int_t column) const = 0;
-    virtual QVariant GetData(const PlayitemWrapper& item, const RowStateProvider& state, int_t column) const = 0;
+    virtual QVariant GetData(const PlayitemWrapper& item, int_t column) const = 0;
   };
 
   class DummyDataProvider : public RowDataProvider
@@ -134,7 +103,7 @@ namespace
       return QVariant();
     }
 
-    virtual QVariant GetData(const PlayitemWrapper& /*item*/, const RowStateProvider& /*state*/, int_t /*column*/) const
+    virtual QVariant GetData(const PlayitemWrapper& /*item*/, int_t /*column*/) const
     {
       return QVariant();
     }
@@ -156,7 +125,7 @@ namespace
       };
     }
 
-    virtual QVariant GetData(const PlayitemWrapper& item, const RowStateProvider& /*state*/, int_t column) const
+    virtual QVariant GetData(const PlayitemWrapper& item, int_t column) const
     {
       switch (column)
       {
@@ -183,49 +152,10 @@ namespace
       return QVariant();
     }
 
-    virtual QVariant GetData(const PlayitemWrapper& item, const RowStateProvider& /*state*/, int_t /*column*/) const
+    virtual QVariant GetData(const PlayitemWrapper& item, int_t /*column*/) const
     {
       return ToQString(item.GetTooltip());
     }
-  };
-
-  class FontDataProvider : public RowDataProvider
-  {
-  public:
-    FontDataProvider()
-      : Regular(QString::fromUtf8("Arial"), 8)
-      , Playing(Regular)
-      , Paused(Regular)
-    {
-      Playing.setBold(true);
-      Paused.setBold(true);
-      Paused.setItalic(true);
-    }
-
-    virtual QVariant GetHeader(int_t /*column*/) const
-    {
-      return QVariant();
-    }
-
-    virtual QVariant GetData(const PlayitemWrapper& /*item*/, const RowStateProvider& state, int_t /*column*/) const
-    {
-      if (state.IsPaused())
-      {
-        return Paused;
-      }
-      else if (state.IsPlaying())
-      {
-        return Playing;
-      }
-      else
-      {
-        return Regular;
-      }
-    }
-  private:
-    QFont Regular;
-    QFont Playing;
-    QFont Paused;
   };
 
   class DataProvidersSet
@@ -246,8 +176,6 @@ namespace
         return Display;
       case Qt::ToolTipRole:
         return Tooltip;
-      case Qt::FontRole:
-        return Font;
       default:
         return Dummy;
       }
@@ -255,44 +183,65 @@ namespace
   private:
     const DisplayDataProvider Display;
     const TooltipDataProvider Tooltip;
-    const FontDataProvider Font;
     const DummyDataProvider Dummy;
   };
 
   class PlayitemsContainer
   {
-    typedef std::vector<PlayitemWrapper> ItemsArray;
-    typedef std::vector<std::size_t> IdexesArray;
+    typedef std::list<PlayitemWrapper> ItemsContainer;
+    typedef std::vector<ItemsContainer::iterator> IteratorsArray;
   public:
     void AddItem(Playitem::Ptr item)
     {
-      const std::size_t newIndex = Container.size();
-      Container.push_back(PlayitemWrapper(item));
-      Indexes.push_back(newIndex);
+      Items.push_back(PlayitemWrapper(item));
+      IteratorsArray::value_type it = Items.end();
+      Iterators.push_back(--it);
     }
 
     std::size_t CountItems() const
     {
-      return Container.size();
+      return Items.size();
     }
 
-    const PlayitemWrapper* GetItem(int_t idx) const
+    const PlayitemWrapper* GetItemByIndex(int_t idx) const
     {
-      if (idx >= int_t(Container.size()))
+      if (idx >= int_t(Iterators.size()))
       {
         assert(!"Invalid playitem requested");
         return 0;
       }
-      const std::size_t mappedIndex = Indexes[idx];
-      return &Container[mappedIndex];
+      const IteratorsArray::value_type it = Iterators[idx];
+      return &*it;
     }
 
     void Clear()
     {
-      ItemsArray tmpCont;
-      IdexesArray tmpInd;
-      Container.swap(tmpCont);
-      Indexes.swap(tmpInd);
+      ItemsContainer tmpCont;
+      IteratorsArray tmpIter;
+      Items.swap(tmpCont);
+      Iterators.swap(tmpIter);
+    }
+
+    void Remove(const std::set<std::size_t>& indexes)
+    {
+      IteratorsArray newIters;
+      newIters.reserve(Iterators.size() - indexes.size());
+      //TODO: optimize iteration- cycle only indexes range
+      for (std::size_t idx = 0, lim = Iterators.size(); idx != lim; ++idx)
+      {
+        const IteratorsArray::value_type iter = Iterators[idx];
+        if (indexes.count(idx))
+        {
+          //remove
+          Items.erase(iter);
+        }
+        else
+        {
+          //keep
+          newIters.push_back(iter);
+        }
+      }
+      Iterators.swap(newIters);
     }
 
     class Comparer
@@ -305,19 +254,14 @@ namespace
  
     void Sort(const Comparer& cmp)
     {
-      std::sort(Indexes.begin(), Indexes.end(),
-        boost::bind(&PlayitemsContainer::Compare, this, _1, _2, boost::cref(cmp)));
+      std::sort(Iterators.begin(), Iterators.end(),
+        boost::bind(&Comparer::CompareItems, &cmp, 
+          boost::bind(&IteratorsArray::value_type::operator *, _1),
+          boost::bind(&IteratorsArray::value_type::operator *, _2)));
     }
   private:
-    bool Compare(std::size_t idx1, std::size_t idx2, const Comparer& cmp) const
-    {
-      const PlayitemWrapper& item1 = Container[idx1];
-      const PlayitemWrapper& item2 = Container[idx2];
-      return cmp.CompareItems(item1, item2);
-    }
-  private:
-    ItemsArray Container;
-    IdexesArray Indexes;
+    ItemsContainer Items;
+    IteratorsArray Iterators;
   };
 
   template<class T>
@@ -347,9 +291,8 @@ namespace
   class PlaylistModelImpl : public PlaylistModel
   {
   public:
-    PlaylistModelImpl(const PlayitemStateCallback& callback, QObject* parent)
-      : Callback(callback)
-      , Providers()
+    explicit PlaylistModelImpl(QObject* parent)
+      : Providers()
       , Synchronizer(QMutex::Recursive)
       , FetchedItemsCount()
     {
@@ -357,10 +300,10 @@ namespace
     }
 
     //new virtuals
-    virtual Playitem::Ptr GetItem(const QModelIndex& index) const
+    virtual Playitem::Ptr GetItem(std::size_t index) const
     {
       QMutexLocker locker(&Synchronizer);
-      if (const PlayitemWrapper* wrapper = (index.isValid() ? Container.GetItem(index.row()) : 0))
+      if (const PlayitemWrapper* wrapper = Container.GetItemByIndex(index))
       {
         return wrapper->GetPlayitem();
       }
@@ -381,9 +324,12 @@ namespace
       reset();
     }
 
-    virtual void RemoveItems(const QModelIndexList& items)
+    virtual void RemoveItems(const std::set<std::size_t>& items)
     {
       QMutexLocker locker(&Synchronizer);
+      Container.Remove(items);
+      FetchedItemsCount = Container.CountItems();
+      reset();
     }
 
     //base model virtuals
@@ -408,8 +354,16 @@ namespace
       {
         return EMPTY_INDEX;
       }
-      Log::Debug(THIS_MODULE, "Created index row=%1% col=%2%", row, column);
-      return createIndex(row, column);
+      Log::Debug(THIS_MODULE, "Create index row=%1% col=%2%",
+        row, column);
+      QMutexLocker locker(&Synchronizer);
+      if (const PlayitemWrapper* item = Container.GetItemByIndex(row))
+      {
+        const Playitem::Ptr playitem = item->GetPlayitem();
+        void* const data = static_cast<void*>(playitem.get());
+        return createIndex(row, column, data);
+      }
+      return EMPTY_INDEX;
     }
 
     virtual QModelIndex parent(const QModelIndex& /*index*/) const
@@ -455,11 +409,11 @@ namespace
       Log::Debug(THIS_MODULE, "Request data row=%1% col=%2% role=%3%",
         itemNum, fieldNum, role);
       QMutexLocker locker(&Synchronizer);
-      if (const PlayitemWrapper* item = Container.GetItem(itemNum))
+      if (const PlayitemWrapper* item = Container.GetItemByIndex(itemNum))
       {
         const RowDataProvider& provider = Providers.GetProvider(role);
-        const RowStateProvider state(index, Callback);
-        return provider.GetData(*item, state, fieldNum);
+        assert(static_cast<void*>(item->GetPlayitem().get()) == index.internalPointer());
+        return provider.GetData(*item, fieldNum);
       }
       return QVariant();
     }
@@ -491,7 +445,6 @@ namespace
       reset();
     }
   private:
-    const PlayitemStateCallback& Callback;
     const DataProvidersSet Providers;
     mutable QMutex Synchronizer;
     std::size_t FetchedItemsCount;
@@ -499,7 +452,7 @@ namespace
   };
 }
 
-PlaylistModel* PlaylistModel::Create(const PlayitemStateCallback& callback, QObject* parent)
+PlaylistModel* PlaylistModel::Create(QObject* parent)
 {
-  return new PlaylistModelImpl(callback, parent);
+  return new PlaylistModelImpl(parent);
 }

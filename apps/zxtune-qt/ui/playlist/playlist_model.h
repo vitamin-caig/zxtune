@@ -16,17 +16,10 @@ Author:
 
 //local includes
 #include "supp/playitems_provider.h"
+//std includes
+#include <set>
 //qt includes
 #include <QtCore/QAbstractItemModel>
-
-class PlayitemStateCallback
-{
-public:
-  virtual ~PlayitemStateCallback() {}
-
-  virtual bool IsPlaying(const QModelIndex& index) const = 0;
-  virtual bool IsPaused(const QModelIndex& index) const = 0;
-};
 
 class PlaylistModel : public QAbstractItemModel
 {
@@ -41,11 +34,11 @@ public:
   };
 
   //creator
-  static PlaylistModel* Create(const PlayitemStateCallback& callback, QObject* parent = 0);
+  static PlaylistModel* Create(QObject* parent = 0);
 
-  virtual Playitem::Ptr GetItem(const QModelIndex& index) const = 0;
+  virtual Playitem::Ptr GetItem(std::size_t index) const = 0;
   virtual void Clear() = 0;
-  virtual void RemoveItems(const QModelIndexList& items) = 0;
+  virtual void RemoveItems(const std::set<std::size_t>& items) = 0;
 public slots:
   virtual void AddItem(Playitem::Ptr item) = 0;
 };

@@ -21,6 +21,7 @@ ui_files += ui/aboutdialog \
 moc_files := ui/controls/analyzer_control \
              ui/playlist/playlist_model \
              ui/playlist/playlist_thread \
+             ui/playlist/playlist_view \
              supp/playback_supp
 
 ui_dir := .ui
