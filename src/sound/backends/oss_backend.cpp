@@ -182,23 +182,23 @@ namespace
     {
     }
 
-    String GetDeviceName() const
+    String GetDeviceName(const String& defVal) const
     {
-      Parameters::StringType strVal = Parameters::ZXTune::Sound::Backends::OSS::DEVICE_DEFAULT;
+      Parameters::StringType strVal = defVal;
       Accessor.FindStringValue(Parameters::ZXTune::Sound::Backends::OSS::DEVICE, strVal);
       return strVal;
     }
 
-    String GetMixerName() const
+    String GetMixerName(const String& defVal) const
     {
-      Parameters::StringType strVal = Parameters::ZXTune::Sound::Backends::OSS::MIXER_DEFAULT;
+      Parameters::StringType strVal = defVal;
       Accessor.FindStringValue(Parameters::ZXTune::Sound::Backends::OSS::MIXER, strVal);
       return strVal;
     }
 
-    uint_t GetFrequency() const
+    uint_t GetFrequency(uint_t defVal) const
     {
-      Parameters::IntType res = Parameters::ZXTune::Sound::FREQUENCY_DEFAULT;
+      Parameters::IntType res = defVal;
       Accessor.FindIntValue(Parameters::ZXTune::Sound::FREQUENCY, res);
       return static_cast<uint_t>(res);
     }
@@ -254,9 +254,9 @@ namespace
       const OSSBackendParameters curParams(updates);
 
       //check for parameters requires restarting
-      const String& newDevice = curParams.GetDeviceName();
-      const String& newMixer = curParams.GetMixerName();
-      const uint_t newFreq = curParams.GetFrequency();
+      const String& newDevice = curParams.GetDeviceName(DeviceName);
+      const String& newMixer = curParams.GetMixerName(MixerName);
+      const uint_t newFreq = curParams.GetFrequency(RenderingParameters.SoundFreq);
 
       const bool deviceChanged = newDevice != DeviceName;
       const bool mixerChanged = newMixer != MixerName;
@@ -266,8 +266,8 @@ namespace
         Locker lock(BackendMutex);
         const bool needStartup(-1 != DevHandle.Get());
         DoShutdown();
-        MixerName = newMixer;
         DeviceName = newDevice;
+        MixerName = newMixer;
 
         if (needStartup)
         {

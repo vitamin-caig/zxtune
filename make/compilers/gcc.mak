@@ -19,8 +19,10 @@ ifdef profile
 cxx_mode_flags += -pg
 ld_mode_flags += -pg
 else
-cxx_mode_flags += -fdata-sections -ffunction-sections 
+cxx_mode_flags += -fdata-sections -ffunction-sections
+ifeq ($(mode),release)
 ld_mode_flags += -Wl,-O3,-x,--gc-sections,--relax
+endif
 endif
 
 #setup PIC code

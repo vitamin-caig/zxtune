@@ -68,9 +68,9 @@ namespace
     {
     }
 
-    uint_t GetBuffersCount() const
+    uint_t GetBuffersCount(uint_t defVal) const
     {
-      Parameters::IntType val = Parameters::ZXTune::Sound::Backends::SDL::BUFFERS_DEFAULT;
+      Parameters::IntType val = defVal;
       if (Accessor.FindIntValue(Parameters::ZXTune::Sound::Backends::SDL::BUFFERS, val) &&
           (!in_range<Parameters::IntType>(val, BUFFERS_MIN, BUFFERS_MAX)))
       {
@@ -80,9 +80,9 @@ namespace
       return static_cast<uint_t>(val);
     }
 
-    uint_t GetFrequency() const
+    uint_t GetFrequency(uint_t defVal) const
     {
-      Parameters::IntType res = Parameters::ZXTune::Sound::FREQUENCY_DEFAULT;
+      Parameters::IntType res = defVal;
       Accessor.FindIntValue(Parameters::ZXTune::Sound::FREQUENCY, res);
       return static_cast<uint_t>(res);
     }
@@ -160,8 +160,8 @@ namespace
     {
       const SDLBackendParameters curParams(updates);
       //check for parameters requires restarting
-      const uint_t newBuffers = curParams.GetBuffersCount();
-      const uint_t newFreq = curParams.GetFrequency();
+      const uint_t newBuffers = curParams.GetBuffersCount(BuffersCount);
+      const uint_t newFreq = curParams.GetFrequency(RenderingParameters.SoundFreq);
 
       const bool buffersChanged = newBuffers != BuffersCount;
       const bool freqChanged = newFreq != RenderingParameters.SoundFreq;
