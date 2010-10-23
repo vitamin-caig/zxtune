@@ -12,6 +12,7 @@
 
 //common includes
 #include <iterator.h>
+#include <types.h>
 //std includes
 #include <memory>
 //boost includes

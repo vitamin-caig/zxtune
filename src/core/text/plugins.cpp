@@ -9,34 +9,32 @@ extern const Char ASC_EDITOR[] = {
   'A','S','C',' ','S','o','u','n','d',' ','M','a','s','t','e','r',0
 };
 extern const Char ASC_PLUGIN_INFO[] = {
-  'A','S','C',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
+  'A','S','C',' ','S','o','u','n','d',' ','M','a','s','t','e','r',' ','m','o','d','u','l','e','s',' ','s','u',
+  'p','p','o','r','t',0
 };
 extern const Char CHI_EDITOR[] = {
   'C','h','i','p','T','r','a','c','k','e','r',' ','v','%','1','%',0
 };
 extern const Char CHI_PLUGIN_INFO[] = {
-  'C','H','I',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
+  'C','h','i','p','T','r','a','c','k','e','r',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
 };
 extern const Char DSQ_PLUGIN_INFO[] = {
-  'D','a','t','a','S','q','u','e','e','z','e','r',' ','p','a','c','k','e','d',' ','d','a','t','a',' ','s','u',
-  'p','p','o','r','t','.',0
+  'D','a','t','a','S','q','u','e','e','z','e','r',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
 };
 extern const Char FDI_PLUGIN_INFO[] = {
-  'F','D','I',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
+  'F','D','I',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
 };
 extern const Char HOBETA_PLUGIN_INFO[] = {
-  'H','o','b','e','t','a',' ','c','o','n','t','a','i','n','e','r','s',' ','s','u','p','p','o','r','t',0
+  'H','o','b','e','t','a',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
 };
 extern const Char HRIP_PLUGIN_INFO[] = {
-  'H','R','i','P',' ','a','r','c','h','i','v','e','s',' ','s','u','p','p','o','r','t',0
+  'H','R','i','P',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
 };
 extern const Char HRUST1X_PLUGIN_INFO[] = {
-  'H','r','u','s','t','1','.','x',' ','p','a','c','k','e','d',' ','d','a','t','a',' ','s','u','p','p','o','r',
-  't',0
+  'H','r','u','s','t','1','.','x',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
 };
 extern const Char HRUST2X_PLUGIN_INFO[] = {
-  'H','r','u','s','t','2','.','x',' ','p','a','c','k','e','d',' ','d','a','t','a',' ','s','u','p','p','o','r',
-  't',0
+  'H','r','u','s','t','2','.','x',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
 };
 extern const Char PDT_EDITOR[] = {
   'P','r','o','D','i','g','i',' ','T','r','a','c','k','e','r',' ','v','0','.','0','x',0
@@ -83,10 +81,12 @@ extern const Char PT2_EDITOR[] = {
   'P','r','o','T','r','a','c','k','e','r',' ','v','2','.','x',0
 };
 extern const Char PT2_PLUGIN_INFO[] = {
-  'P','T','2',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
+  'P','r','o','T','r','a','c','k','e','r',' ','v','2','.','x',' ','m','o','d','u','l','e','s',' ','s','u','p',
+  'p','o','r','t',0
 };
 extern const Char PT3_PLUGIN_INFO[] = {
-  'P','T','3',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
+  'P','r','o','T','r','a','c','k','e','r',' ','v','3','.','x',' ','m','o','d','u','l','e','s',' ','s','u','p',
+  'p','o','r','t',0
 };
 extern const Char RAW_ERROR_INVALID_MIN_SIZE[] = {
   'S','p','e','c','i','f','i','e','d',' ','m','i','n','i','m','a','l',' ','s','c','a','n',' ','s','i','z','e',
@@ -100,22 +100,24 @@ extern const Char RAW_PLUGIN_INFO[] = {
   'R','a','w',' ','m','o','d','u','l','e','s',' ','s','c','a','n','e','r',0
 };
 extern const Char SCL_PLUGIN_INFO[] = {
-  'S','C','L',' ','c','o','n','t','a','i','n','e','r','s',' ','s','u','p','p','o','r','t',0
+  'S','C','L',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
 };
 extern const Char STC_EDITOR[] = {
   'S','o','u','n','d','T','r','a','c','k','e','r',0
 };
 extern const Char STC_PLUGIN_INFO[] = {
-  'S','T','C',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
+  'S','o','u','n','d','T','r','a','c','k','e','r',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r',
+  't',0
 };
 extern const Char STP_EDITOR[] = {
   'S','o','u','n','d','T','r','a','c','k','e','r','P','r','o',0
 };
 extern const Char STP_PLUGIN_INFO[] = {
-  'S','T','P',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
+  'S','o','u','n','d','T','r','a','c','k','e','r','P','r','o',' ','m','o','d','u','l','e','s',' ','s','u','p',
+  'p','o','r','t',0
 };
 extern const Char TRD_PLUGIN_INFO[] = {
-  'T','R','D',' ','c','o','n','t','a','i','n','e','r','s',' ','s','u','p','p','o','r','t',0
+  'T','R','D',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
 };
 extern const Char TS_PLUGIN_INFO[] = {
   'T','u','r','b','o','S','o','u','n','d',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0

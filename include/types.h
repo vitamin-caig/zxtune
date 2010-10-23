@@ -47,7 +47,8 @@ typedef std::basic_string<Char> String;
 template<std::size_t D>
 inline String FromStdString(const char (&str)[D])
 {
-  return String(str, str + D);
+  //do not keep last zero symbol
+  return String(str, str + D - 1);
 }
 
 //! @brief Helper for creating String from ordinary std::string
@@ -60,7 +61,8 @@ inline String FromStdString(const std::string& str)
 template<std::size_t D>
 inline std::string ToStdString(const Char (&str)[D])
 {
-  return std::string(str, str + D);
+  //do not keep last zero symbol
+  return std::string(str, str + D - 1);
 }
 
 //! @brief Helper for creating ordinary std::string from the String

@@ -15,43 +15,52 @@ __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 = PLUGIN_SUBPATH
 > " at subpath '%2%'"
 
+= PLAYER_DESCRIPTION
+> " modules support"
+
+= CONTAINER_DESCRIPTION
+> " format support"
+
 #ASC
 < ASC_PLUGIN_INFO
-> "ASC modules support"
+> ASC_EDITOR PLAYER_DESCRIPTION
 
 < ASC_EDITOR
 > "ASC Sound Master"
 
 #CHI
+= CHI_EDITOR_NOVER
+> "ChipTracker"
+
 < CHI_PLUGIN_INFO
-> "CHI modules support"
+> CHI_EDITOR_NOVER PLAYER_DESCRIPTION
 
 < CHI_EDITOR
-> "ChipTracker v%1%"
+> CHI_EDITOR_NOVER " v%1%"
 
 #DSQ
 < DSQ_PLUGIN_INFO
-> "DataSqueezer packed data support."
+> "DataSqueezer" CONTAINER_DESCRIPTION
 
 #FDI
 < FDI_PLUGIN_INFO
-> "FDI modules support"
+> "FDI" CONTAINER_DESCRIPTION
 
 #Hobeta
 < HOBETA_PLUGIN_INFO
-> "Hobeta containers support"
+> "Hobeta" CONTAINER_DESCRIPTION
 
 #Hrust1x
 < HRUST1X_PLUGIN_INFO
-> "Hrust1.x packed data support"
+> "Hrust1.x" CONTAINER_DESCRIPTION
 
 #Hrust2x
 < HRUST2X_PLUGIN_INFO
-> "Hrust2.x packed data support"
+> "Hrust2.x" CONTAINER_DESCRIPTION
 
 #Hrip
 < HRIP_PLUGIN_INFO
-> "HRiP archives support"
+> "HRiP" CONTAINER_DESCRIPTION
 
 < PLUGIN_HRIP_PROGRESS_NOPATH
 > "HRiP container processing for '%1%'"
@@ -60,26 +69,32 @@ __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 > PLUGIN_HRIP_PROGRESS_NOPATH PLUGIN_SUBPATH
 
 #ProDigi
+= PDT_EDITOR_NOVER
+> "ProDigi Tracker"
+
 < PDT_PLUGIN_INFO
-> "ProDigi Tracker modules support"
+> PDT_EDITOR_NOVER PLAYER_DESCRIPTION
 
 < PDT_EDITOR
-> "ProDigi Tracker v0.0x"
+> PDT_EDITOR_NOVER " v0.0x"
 
 #PSG
 < PSG_PLUGIN_INFO
-> "PSG modules support"
+> "PSG" PLAYER_DESCRIPTION
 
 #PT2
 < PT2_PLUGIN_INFO
-> "PT2 modules support"
+> PT2_EDITOR PLAYER_DESCRIPTION
 
 < PT2_EDITOR
 > "ProTracker v2.x"
 
 #PT3
+= PT3_EDITOR
+> "ProTracker v3.x"
+
 < PT3_PLUGIN_INFO
-> "PT3 modules support"
+> PT3_EDITOR PLAYER_DESCRIPTION
 
 #RAW
 < RAW_PLUGIN_INFO
@@ -99,7 +114,7 @@ __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 
 #SCL
 < SCL_PLUGIN_INFO
-> "SCL containers support"
+> "SCL" CONTAINER_DESCRIPTION
 
 < PLUGIN_SCL_PROGRESS_NOPATH
 > "SCL container processing for '%1%'"
@@ -109,21 +124,21 @@ __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 
 #STC
 < STC_PLUGIN_INFO
-> "STC modules support"
+> STC_EDITOR PLAYER_DESCRIPTION
 
 < STC_EDITOR
 > "SoundTracker"
 
 #STP
 < STP_PLUGIN_INFO
-> "STP modules support"
+> STP_EDITOR PLAYER_DESCRIPTION
 
 < STP_EDITOR
 > "SoundTrackerPro"
 
 #TRD
 < TRD_PLUGIN_INFO
-> "TRD containers support"
+> "TRD" CONTAINER_DESCRIPTION
 
 < PLUGIN_TRD_PROGRESS_NOPATH
 > "TRD container processing for '%1%'"
@@ -133,11 +148,11 @@ __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 
 #TS
 < TS_PLUGIN_INFO
-> "TurboSound modules support"
+> "TurboSound" PLAYER_DESCRIPTION
 
 #TXT
 < TXT_PLUGIN_INFO
-> "Text (Vortex) modules support"
+> "Text (Vortex)" PLAYER_DESCRIPTION
 
 < VORTEX_EDITOR
 > "VortexTracker (ProTracker v%1%.%2% compatible)"
