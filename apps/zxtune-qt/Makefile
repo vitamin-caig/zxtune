@@ -1,27 +1,36 @@
 binary_name := zxtune-qt
 path_step := ../..
 include $(path_step)/default.mak
-source_files := qt_app \
-                supp/playitems_provider \
-                ui/format
+source_files = qt_app \
+               supp/playitems_provider \
+               ui/format
 #ui-related
+
+#main window is specific for platforms
 ifeq ($(platform),dingux)
-ui_files := ui/mainwindow_embedded
+ui_files += ui/mainwindow_embedded
 else
-ui_files := ui/mainwindow
+ui_files += ui/mainwindow
 endif
 
-ui_files += ui/aboutdialog \
-            ui/controls/playback_controls \
+#controls
+ui_files += ui/controls/playback_controls \
             ui/controls/seek_controls \
             ui/controls/status_control \
-            ui/controls/volume_control \
-            ui/playlist/playlist ui/playlist/playlist_view ui/playlist/playlist_scanner_view
+            ui/controls/volume_control
 
-moc_files := ui/controls/analyzer_control \
-             ui/playlist/playlist_model \
-             ui/playlist/playlist_scanner \
-             supp/playback_supp
+moc_files += ui/controls/analyzer_control
+
+#informational
+ui_files += ui/informational/aboutdialog
+
+#playlist
+ui_files += ui/playlist/playlist ui/playlist/playlist_view ui/playlist/playlist_scanner_view
+moc_files += ui/playlist/playlist_model \
+             ui/playlist/playlist_scanner
+
+#other
+moc_files += supp/playback_supp
 
 ui_dir := .ui
 moc_dir := .moc

@@ -17,12 +17,12 @@ Author:
 #include "mainwindow.h"
 #include "mainwindow_ui.h"
 #include "mainwindow_moc.h"
-#include "ui/aboutdialog.h"
 #include "ui/controls/analyzer_control.h"
 #include "ui/controls/playback_controls.h"
 #include "ui/controls/seek_controls.h"
 #include "ui/controls/status_control.h"
 #include "ui/controls/volume_control.h"
+#include "ui/informational/aboutdialog.h"
 #include "ui/playlist/playlist.h"
 #include "supp/playback_supp.h"
 #include <apps/base/app.h>
