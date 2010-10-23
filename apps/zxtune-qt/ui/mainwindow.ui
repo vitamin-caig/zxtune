@@ -58,6 +58,7 @@
      <string>Player</string>
     </property>
     <addaction name="actionAbout"/>
+    <addaction name="actionComponents"/>
     <addaction name="separator"/>
     <addaction name="actionQuit"/>
    </widget>
@@ -81,6 +82,15 @@
    </property>
    <property name="text">
     <string>About</string>
+   </property>
+  </action>
+  <action name="actionComponents">
+   <property name="icon">
+    <iconset resource="../res/icons.qrc">
+     <normaloff>:/components.png</normaloff>:/components.png</iconset>
+   </property>
+   <property name="text">
+    <string>Components</string>
    </property>
   </action>
  </widget>

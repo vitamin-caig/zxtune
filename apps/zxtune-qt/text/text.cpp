@@ -31,5 +31,8 @@ extern const Char TOOLTIP_TEMPLATE[] = {
   'A','u','t','h','o','r',']','<','/','b','>','<','b','r','/','>','P','r','o','g','r','a','m',':',' ','<','b',
   '>','[','P','r','o','g','r','a','m',']','<','/','b','>','<','b','r','/','>',0
 };
+extern const Char TYPEICONS_RESOURCE_PREFIX[] = {
+  ':','/','t','y','p','e','s','/',0
+};
 }//namespace Text
 #endif //__TEXT_TEXT_H_DEFINED__

@@ -22,7 +22,10 @@ ui_files += ui/controls/playback_controls \
 moc_files += ui/controls/analyzer_control
 
 #informational
-ui_files += ui/informational/aboutdialog
+ui_files += ui/informational/aboutdialog \
+            ui/informational/componentsdialog
+
+#moc_files += ui/informational/components_model
 
 #playlist
 ui_files += ui/playlist/playlist ui/playlist/playlist_view ui/playlist/playlist_scanner_view

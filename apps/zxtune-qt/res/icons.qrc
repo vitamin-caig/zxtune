@@ -1,5 +1,6 @@
 <RCC>
   <qresource>
+    <file>components.png</file>
     <file>about.png</file>
     <file>logo.png</file>
     <file>zxtune.png</file>

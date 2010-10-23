@@ -31,8 +31,11 @@ __cpp> "#endif //__TEXT_TEXT_H_DEFINED__\n"
 < MODULE_PLAYLIST_FORMAT
 > MODULE_TITLE_FORMAT
 
+< TYPEICONS_RESOURCE_PREFIX
+> ":/types/"
+
 < TOOLTIP_TEMPLATE
-> "<img src=':/types/[Type]'/>&nbsp;[Fullpath]<br/>"
+> "<img src='" TYPEICONS_RESOURCE_PREFIX "[Type]'/>&nbsp;[Fullpath]<br/>"
 > "[Size] bytes<br/><br/>"
 > "Title: <b>[Title]</b><br/>"
 > "Author: <b>[Author]</b><br/>"

@@ -23,6 +23,7 @@ Author:
 #include "ui/controls/status_control.h"
 #include "ui/controls/volume_control.h"
 #include "ui/informational/aboutdialog.h"
+#include "ui/informational/componentsdialog.h"
 #include "ui/playlist/playlist.h"
 #include "supp/playback_supp.h"
 #include <apps/base/app.h>
@@ -142,6 +143,7 @@ namespace
     MainWindowImpl(int argc, char* argv[])
       : UiHelper(this)
       , About(AboutDialog::Create(this))
+      , Components(ComponentsDialog::Create(this))
       , Controls(this, menuLayout, "Controls", false)
       , Volume(this, menuLayout, "Volume", true)
       , Status(this, menuLayout, "Status", false)
@@ -161,6 +163,7 @@ namespace
       }
 
       About->connect(actionAbout, SIGNAL(triggered()), SLOT(Show()));
+      Components->connect(actionComponents, SIGNAL(triggered()), SLOT(Show()));
       //connect root actions
       Collection->connect(Controls, SIGNAL(OnPrevious()), SLOT(PrevItem()));
       Collection->connect(Controls, SIGNAL(OnNext()), SLOT(NextItem()));
@@ -205,6 +208,7 @@ namespace
     }
   private:
     AboutDialog* const About;
+    ComponentsDialog* const Components;
     ToolbarControl<PlaybackControls> Controls;
     ToolbarControl<VolumeControl> Volume;
     ToolbarControl<StatusControl> Status;
