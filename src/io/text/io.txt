@@ -35,7 +35,7 @@ __cpp> "#endif //__TEXT_IO_H_DEFINED__\n"
 > "Failed to allocate memory to open data."
 
 #providers description
-< IO_FILE_PROVIDER_NAME
+< IO_FILE_PROVIDER_ID
 > "file"
 
 < IO_FILE_PROVIDER_DESCRIPTION

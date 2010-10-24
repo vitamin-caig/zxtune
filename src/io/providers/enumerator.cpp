@@ -40,7 +40,7 @@ namespace
     class ProviderStub : public Provider
     {
     public:
-      virtual String Name() const
+      virtual String Id() const
       {
         return String();
       }
@@ -111,7 +111,7 @@ namespace
     virtual void RegisterProvider(DataProvider::Ptr provider)
     {
       Providers.push_back(provider);
-      Log::Debug(THIS_MODULE, "Registered provider '%1%'", provider->Name());
+      Log::Debug(THIS_MODULE, "Registered provider '%1%'", provider->Id());
     }
 
     virtual Error OpenUri(const String& uri, const Parameters::Accessor& params, const ProgressCallback& cb, DataContainer::Ptr& result, String& subpath) const
@@ -119,7 +119,7 @@ namespace
       Log::Debug(THIS_MODULE, "Opening uri '%1%'", uri);
       if (const DataProvider* provider = FindProvider(uri))
       {
-        Log::Debug(THIS_MODULE, " Used provider '%1%'", provider->Name());
+        Log::Debug(THIS_MODULE, " Used provider '%1%'", provider->Id());
         return provider->Open(uri, params, cb, result, subpath);
       }
       Log::Debug(THIS_MODULE, " No suitable provider found");
@@ -131,7 +131,7 @@ namespace
       Log::Debug(THIS_MODULE, "Splitting uri '%1%'", uri);
       if (const DataProvider* provider = FindProvider(baseUri))
       {
-        Log::Debug(THIS_MODULE, " Used provider '%1%'", provider->Name());
+        Log::Debug(THIS_MODULE, " Used provider '%1%'", provider->Id());
         return provider->Split(uri, baseUri, subpath);
       }
       Log::Debug(THIS_MODULE, " No suitable provider found");
@@ -143,7 +143,7 @@ namespace
       Log::Debug(THIS_MODULE, "Combining uri '%1%' and subpath '%2%'", baseUri, subpath);
       if (const DataProvider* provider = FindProvider(baseUri))
       {
-        Log::Debug(THIS_MODULE, " Used provider '%1%'", provider->Name());
+        Log::Debug(THIS_MODULE, " Used provider '%1%'", provider->Id());
         return provider->Combine(baseUri, subpath, uri);
       }
       Log::Debug(THIS_MODULE, " No suitable provider found");

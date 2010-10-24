@@ -137,7 +137,7 @@ namespace
   inline void ShowProvider(const ZXTune::IO::Provider& provider)
   {
     StdOut << (Formatter(Text::INFO_PROVIDER_INFO)
-      % provider.Name() % provider.Description() % provider.Version()).str();
+      % provider.Id() % provider.Description() % provider.Version()).str();
   }
   
   inline void ShowProviders()

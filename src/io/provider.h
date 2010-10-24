@@ -68,8 +68,8 @@ namespace ZXTune
       //! Virtual destructor
       virtual ~Provider() {}
 
-      //! Provider's name
-      virtual String Name() const = 0;
+      //! Provider's identifier
+      virtual String Id() const = 0;
       //! Description in any form
       virtual String Description() const = 0;
       //! Version in text form

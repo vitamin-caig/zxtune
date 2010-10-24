@@ -13,6 +13,6 @@ extern const Char IO_ERROR_NOT_SUPPORTED_URI[];
 extern const Char IO_ERROR_NO_ACCESS[];
 extern const Char IO_ERROR_NO_MEMORY[];
 extern const Char IO_FILE_PROVIDER_DESCRIPTION[];
-extern const Char IO_FILE_PROVIDER_NAME[];
+extern const Char IO_FILE_PROVIDER_ID[];
 }//namespace Text
 #endif //__TEXT_IO_H_DEFINED__

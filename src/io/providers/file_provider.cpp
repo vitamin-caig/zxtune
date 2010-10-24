@@ -196,9 +196,9 @@ namespace
   class FileDataProvider : public DataProvider
   {
   public:
-    virtual String Name() const
+    virtual String Id() const
     {
-      return Text::IO_FILE_PROVIDER_NAME;
+      return Text::IO_FILE_PROVIDER_ID;
     }
 
     virtual String Description() const
