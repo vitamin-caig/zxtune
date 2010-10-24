@@ -30,8 +30,8 @@ extern const Char IO_ERROR_NO_MEMORY[] = {
   'o',' ','o','p','e','n',' ','d','a','t','a','.',0
 };
 extern const Char IO_FILE_PROVIDER_DESCRIPTION[] = {
-  'S','u','p','p','o','r','t','i','n','g',' ','f','o','r',' ','l','o','c','a','l',' ','f','i','l','e','s',' ',
-  'a','n','d',' ','f','i','l','e',':','/','/',' ','s','c','h','e','m','e','.',0
+  'L','o','c','a','l',' ','f','i','l','e','s',' ','a','n','d',' ','f','i','l','e',':','/','/',' ','s','c','h',
+  'e','m','e',' ','s','u','p','p','o','r','t',0
 };
 extern const Char IO_FILE_PROVIDER_ID[] = {
   'f','i','l','e',0

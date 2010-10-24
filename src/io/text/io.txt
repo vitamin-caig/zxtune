@@ -39,4 +39,4 @@ __cpp> "#endif //__TEXT_IO_H_DEFINED__\n"
 > "file"
 
 < IO_FILE_PROVIDER_DESCRIPTION
-> "Supporting for local files and file:// scheme."
+> "Local files and file:// scheme support"
