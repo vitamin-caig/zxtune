@@ -48,8 +48,9 @@
      <string>Player</string>
     </property>
     <property name="icon">
-     <iconset resource="../res/icons.qrc">
-      <normaloff>:/zxtune.png</normaloff>:/zxtune.png</iconset>
+     <iconset>
+      <normalon>:/zxtune.png</normalon>
+     </iconset>
     </property>
     <addaction name="actionQuit"/>
    </widget>
@@ -58,7 +59,7 @@
   <action name="actionQuit">
    <property name="icon">
     <iconset>
-     <normalon>:/exit.png</normalon>
+     <normalon>:/application/exit.png</normalon>
     </iconset>
    </property>
    <property name="text">

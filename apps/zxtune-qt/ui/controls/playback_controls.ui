@@ -153,7 +153,7 @@
   <action name="actionPlay">
    <property name="icon">
     <iconset>
-     <normalon>:/controls/play.png</normalon>
+     <normalon>:/playback/play.png</normalon>
     </iconset>
    </property>
    <property name="text">
@@ -163,7 +163,7 @@
   <action name="actionPause">
    <property name="icon">
     <iconset>
-     <normalon>:/controls/pause.png</normalon>
+     <normalon>:/playback/pause.png</normalon>
     </iconset>
    </property>
    <property name="text">
@@ -173,7 +173,7 @@
   <action name="actionStop">
    <property name="icon">
     <iconset>
-     <normalon>:/controls/stop.png</normalon>
+     <normalon>:/playback/stop.png</normalon>
     </iconset>
    </property>
    <property name="text">
@@ -183,7 +183,7 @@
   <action name="actionPrevious">
    <property name="icon">
     <iconset>
-     <normalon>:/controls/prev.png</normalon>
+     <normalon>:/playback/prev.png</normalon>
     </iconset>
    </property>
    <property name="text">
@@ -193,7 +193,7 @@
   <action name="actionNext">
    <property name="icon">
     <iconset>
-     <normalon>:/controls/next.png</normalon>
+     <normalon>:/playback/next.png</normalon>
     </iconset>
    </property>
    <property name="text">

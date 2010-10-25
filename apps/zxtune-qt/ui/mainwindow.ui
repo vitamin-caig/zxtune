@@ -68,7 +68,7 @@
   <action name="actionQuit">
    <property name="icon">
     <iconset>
-     <normalon>:/exit.png</normalon>
+     <normalon>:/application/exit.png</normalon>
     </iconset>
    </property>
    <property name="text">
@@ -77,8 +77,9 @@
   </action>
   <action name="actionAbout">
    <property name="icon">
-    <iconset resource="../res/icons.qrc">
-     <normaloff>:/about.png</normaloff>:/about.png</iconset>
+    <iconset>
+     <normalon>:/application/about.png</normalon>
+    </iconset>
    </property>
    <property name="text">
     <string>About</string>
@@ -86,8 +87,9 @@
   </action>
   <action name="actionComponents">
    <property name="icon">
-    <iconset resource="../res/icons.qrc">
-     <normaloff>:/components.png</normaloff>:/components.png</iconset>
+    <iconset>
+     <normalon>:/application/components.png</normalon>
+    </iconset>
    </property>
    <property name="text">
     <string>Components</string>
