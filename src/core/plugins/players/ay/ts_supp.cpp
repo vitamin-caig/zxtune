@@ -533,27 +533,27 @@ namespace
       const std::size_t firstModuleSize = fromLE(footer->Size1);
 
       const PluginsEnumerator& enumerator(PluginsEnumerator::Instance());
-      MetaContainer subdata(container);
 
-      Module::Holder::Ptr holder1;
-      subdata.Data = container.Data->GetSubcontainer(0, firstModuleSize);
-      enumerator.OpenModule(parameters, subdata, holder1);
-      if (InvalidHolder(*holder1))
-      {
-        Log::Debug(THIS_MODULE, "Invalid first module holder");
-        return Module::Holder::Ptr();
-      }
-      Module::Holder::Ptr holder2;
-      subdata.Data = container.Data->GetSubcontainer(firstModuleSize, footerOffset - firstModuleSize);
-      enumerator.OpenModule(parameters, subdata, holder2);
-      if (InvalidHolder(*holder2))
-      {
-        Log::Debug(THIS_MODULE, "Failed to create second module holder");
-        return Module::Holder::Ptr();
-      }
-      //try to create holder
       try
       {
+        MetaContainer subdata(container);
+        Module::Holder::Ptr holder1;
+        subdata.Data = container.Data->GetSubcontainer(0, firstModuleSize);
+        enumerator.OpenModule(parameters, subdata, holder1);
+        if (InvalidHolder(*holder1))
+        {
+          Log::Debug(THIS_MODULE, "Invalid first module holder");
+          return Module::Holder::Ptr();
+        }
+        Module::Holder::Ptr holder2;
+        subdata.Data = container.Data->GetSubcontainer(firstModuleSize, footerOffset - firstModuleSize);
+        enumerator.OpenModule(parameters, subdata, holder2);
+        if (InvalidHolder(*holder2))
+        {
+          Log::Debug(THIS_MODULE, "Failed to create second module holder");
+          return Module::Holder::Ptr();
+        }
+        //try to create merged holder
         const Plugin::Ptr plugin = shared_from_this();
         if (firstModuleSize + fromLE(footer->Size2) != footerOffset)
         {
