@@ -32,10 +32,12 @@ inline String GetTRDosName(const char (&name)[8], const char (&type)[3])
 {
   static const Char FORBIDDEN_SYMBOLS[] = {'\\', '/', '\?', '\0'};
   static const Char TRDOS_REPLACER('_');
-  String fname(OptimizeString(FromStdString(name), TRDOS_REPLACER));
+  const String& strName = String(&name[0], &name[0] + 8);
+  const String& strType = String(&type[0], &type[0] + 3);
+  String fname(OptimizeString(strName, TRDOS_REPLACER));
   std::replace_if(fname.begin(), fname.end(), boost::algorithm::is_any_of(FORBIDDEN_SYMBOLS), TRDOS_REPLACER);
   return std::isalnum(type[0])
-    ? fname + Char('.') + boost::algorithm::trim_right_copy_if(FromStdString(type), !boost::algorithm::is_alnum())
+    ? fname + Char('.') + boost::algorithm::trim_right_copy_if(strType, !boost::algorithm::is_alnum())
     : fname;
 }
 
