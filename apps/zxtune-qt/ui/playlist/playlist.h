@@ -1,6 +1,6 @@
 /*
 Abstract:
-  Playlist widget
+  Playlist entity and view
 
 Last changed:
   $Id$
@@ -20,26 +20,21 @@ Author:
 #include <QtCore/QModelIndex>
 #include <QtGui/QWidget>
 
-class Playlist : public QWidget
+class Playlist : public QObject
 {
   Q_OBJECT
 public:
-  //creator
-  static Playlist* Create(class QMainWindow* parent);
+  static Playlist* Create(QObject* parent, const QString& name, PlayitemsProvider::Ptr provider);
 
-public slots:
-  //items operating
-  virtual void AddItems(const QStringList& itemsPath) = 0;
-  virtual void NextItem() = 0;
-  virtual void PrevItem() = 0;
-  virtual void PlayItem() = 0;
-  virtual void PauseItem() = 0;
-  virtual void StopItem() = 0;
-  //playlist operating
-  virtual void AddFiles() = 0;
-  virtual void Clear() = 0;
-  virtual void Random(bool isRandom) = 0;
-  virtual void Loop(bool isLooped) = 0;
+  virtual class PlaylistScanner& GetScanner() const = 0;
+  virtual class PlaylistModel& GetModel() const = 0;
+};
+
+class PlaylistWidget : public QWidget
+{
+  Q_OBJECT
+public:
+  static PlaylistWidget* Create(QWidget* parent, const Playlist& playlist, const class PlayitemStateCallback& callback);
 signals:
   void OnItemSet(const Playitem&);
 };

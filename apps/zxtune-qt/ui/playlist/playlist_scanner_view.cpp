@@ -23,7 +23,7 @@ namespace
                                 , private Ui::PlaylistScannerView
   {
   public:
-    PlaylistScannerViewImpl(QWidget* parent, PlaylistScanner* scanner)
+    PlaylistScannerViewImpl(QWidget* parent, PlaylistScanner& scanner)
       : Scanner(scanner)
     {
       //setup self
@@ -31,10 +31,10 @@ namespace
       setupUi(this);
       hide();
       //make connections with scanner
-      this->connect(Scanner, SIGNAL(OnScanStart()), this, SLOT(ScanStart()));
-      this->connect(Scanner, SIGNAL(OnScanStop()), this, SLOT(ScanStop()));
-      this->connect(Scanner, SIGNAL(OnProgress(unsigned, unsigned, unsigned)), SLOT(ShowProgress(unsigned)));
-      this->connect(Scanner, SIGNAL(OnProgressMessage(const QString&, const QString&)), SLOT(ShowProgressMessage(const QString&)));
+      this->connect(&Scanner, SIGNAL(OnScanStart()), this, SLOT(ScanStart()));
+      this->connect(&Scanner, SIGNAL(OnScanStop()), this, SLOT(ScanStop()));
+      this->connect(&Scanner, SIGNAL(OnProgress(unsigned, unsigned, unsigned)), SLOT(ShowProgress(unsigned)));
+      this->connect(&Scanner, SIGNAL(OnProgressMessage(const QString&, const QString&)), SLOT(ShowProgressMessage(const QString&)));
       this->connect(scanCancel, SIGNAL(clicked()), SLOT(ScanCancel()));
     }
 
@@ -47,7 +47,7 @@ namespace
     virtual void ScanCancel()
     {
       scanCancel->setEnabled(false);
-      Scanner->Cancel();
+      Scanner.Cancel();
     }
 
     virtual void ScanStop()
@@ -65,11 +65,11 @@ namespace
       scanProgress->setToolTip(message);
     }
   private:
-    PlaylistScanner* Scanner;
+    PlaylistScanner& Scanner;
   };
 }
 
-PlaylistScannerView* PlaylistScannerView::Create(QWidget* parent, PlaylistScanner* scanner)
+PlaylistScannerView* PlaylistScannerView::Create(QWidget* parent, PlaylistScanner& scanner)
 {
   return new PlaylistScannerViewImpl(parent, scanner);
 }

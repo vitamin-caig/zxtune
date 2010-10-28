@@ -1,6 +1,6 @@
 /*
 Abstract:
-  Playlist creating implementation
+  Playlist entity and view implementation
 
 Last changed:
   $Id$
@@ -13,143 +13,35 @@ Author:
 
 //local includes
 #include "playlist.h"
-#include "playlist_ui.h"
 #include "playlist_moc.h"
 #include "playlist_model.h"
+#include "playlist_view.h"
 #include "playlist_scanner.h"
 #include "playlist_scanner_view.h"
-#include "playlist_view.h"
-#include "ui/format.h"
-#include "ui/utils.h"
-//common includes
-#include <logging.h>
-#include <parameters.h>
-//library includes
-#include <core/module_attrs.h>
-//qt includes
-#include <QtGui/QFileDialog>
-#include <QtGui/QMainWindow>
-#include <QtGui/QMenu>
-#include <QtGui/QMenuBar>
 //std includes
 #include <cassert>
 //boost includes
 #include <boost/bind.hpp>
+//qt includes
+#include <QtCore/QUrl>
+#include <QtGui/QDragEnterEvent>
+#include <QtGui/QVBoxLayout>
 //text includes
 #include "text/text.h"
 
 namespace
 {
-  const std::string THIS_MODULE("UI::Playlist");
-
-  class PlayitemStateCallbackImpl : public PlayitemStateCallback
-  {
-    enum PlayitemMode
-    {
-      STOPPED,
-      PLAYING,
-      PAUSED
-    };
-  public:
-    PlayitemStateCallbackImpl()
-      : OperationalItem(0)
-      , OperationalMode(STOPPED)
-    {
-    }
-
-    virtual bool IsPlaying(const QModelIndex& index) const
-    {
-      assert(index.isValid());
-      const Playitem* const indexItem = static_cast<const Playitem*>(index.internalPointer());
-      return OperationalItem &&
-             indexItem == OperationalItem &&
-             OperationalMode == PLAYING;
-    }
-
-    virtual bool IsPaused(const QModelIndex& index) const
-    {
-      assert(index.isValid());
-      const Playitem* const indexItem = static_cast<const Playitem*>(index.internalPointer());
-      return OperationalItem &&
-             indexItem == OperationalItem &&
-             OperationalMode == PAUSED;
-    }
-
-    void SetItem(const QModelIndex& index)
-    {
-      OperationalMode = STOPPED;
-      assert(index.isValid());
-      const Playitem* const indexItem = static_cast<const Playitem*>(index.internalPointer());
-      OperationalItem = indexItem;
-    }
-
-    void ResetItem(const QModelIndex& index)
-    {
-      assert(index.isValid());
-      const Playitem* const indexItem = static_cast<const Playitem*>(index.internalPointer());
-      if (OperationalItem == indexItem)
-      {
-        OperationalItem = 0;
-        OperationalMode = STOPPED;
-      }
-    }
-
-    void PlayItem()
-    {
-      //assert(OperationalItem);
-      OperationalMode = PLAYING;
-    }
-
-    void StopItem()
-    {
-      //assert(OperationalItem);
-      OperationalMode = STOPPED;
-    }
-
-    void PauseItem()
-    {
-      //assert(OperationalItem);
-      OperationalMode = PAUSED;
-    }
-  private:
-    const Playitem* OperationalItem;
-    PlayitemMode OperationalMode;
-  };
-
   class PlaylistImpl : public Playlist
-                     , public Ui::Playlist
   {
   public:
-    explicit PlaylistImpl(QMainWindow* parent)
-      : Provider(PlayitemsProvider::Create())
-      , Scanner(PlaylistScanner::Create(this, Provider))
-      , ScannerView(PlaylistScannerView::Create(this, Scanner))
-      , Randomized(), Looped()
+    PlaylistImpl(QObject* parent, const QString& name, PlayitemsProvider::Ptr provider)
+      : Scanner(PlaylistScanner::Create(this, provider))
       , Model(PlaylistModel::Create(this))
-      , View(PlaylistView::Create(this, State, Model, Scanner))
     {
       //setup self
       setParent(parent);
-      setupUi(this);
-      verticalLayout->addWidget(View);
-      verticalLayout->addWidget(ScannerView);
       //setup connections
-      this->connect(View, SIGNAL(OnItemSet(const Playitem&)), SIGNAL(OnItemSet(const Playitem&)));
-      this->connect(actionAddFiles, SIGNAL(triggered()), SLOT(AddFiles()));
-      this->connect(actionClear, SIGNAL(triggered()), SLOT(Clear()));
-      this->connect(actionRandom, SIGNAL(triggered(bool)), SLOT(Random(bool)));
-      this->connect(actionLoop, SIGNAL(triggered(bool)), SLOT(Loop(bool)));
-      //create and fill menu
-      QMenuBar* const menuBar = parent->menuBar();
-      QMenu* const menu = menuBar->addMenu(QString::fromUtf8("Playlist"));
-      menu->addAction(actionAddFiles);
-      //menu->addAction(actionLoad);
-      //menu->addAction(actionSave);
-      menu->addSeparator();
-      menu->addAction(actionClear);
-      menu->addSeparator();
-      menu->addAction(actionLoop);
-      menu->addAction(actionRandom);
+      Model->connect(Scanner, SIGNAL(OnGetItem(Playitem::Ptr)), SLOT(AddItem(Playitem::Ptr)));
     }
 
     virtual ~PlaylistImpl()
@@ -158,86 +50,74 @@ namespace
       Scanner->wait();
     }
 
-    virtual void AddItems(const QStringList& items)
+    virtual class PlaylistScanner& GetScanner() const
     {
-      View->AddItems(items);
+      return *Scanner;
     }
 
-    virtual void NextItem()
+    virtual class PlaylistModel& GetModel() const
     {
-      //TODO
-    }
-
-    virtual void PrevItem()
-    {
-      //TODO
-    }
-
-    virtual void PlayItem()
-    {
-      State.PlayItem();
-      View->Update();
-    }
-
-    virtual void PauseItem()
-    {
-      State.PauseItem();
-      View->Update();
-    }
-
-    virtual void StopItem()
-    {
-      State.StopItem();
-      View->Update();
-    }
-
-    virtual void AddFiles()
-    {
-      QFileDialog dialog(this);
-      dialog.setAcceptMode(QFileDialog::AcceptOpen);
-      dialog.setFileMode(QFileDialog::ExistingFiles);
-      dialog.setDirectory(AddFileDirectory);
-      if (QDialog::Accepted == dialog.exec())
-      {
-        AddFileDirectory = dialog.directory().absolutePath();
-        const QStringList& files = dialog.selectedFiles();
-        View->AddItems(files);
-      }
-    }
-
-    virtual void Clear()
-    {
-      Model->Clear();
-      Provider->ResetCache();
-    }
-
-    virtual void Random(bool isRandom)
-    {
-      Randomized = isRandom;
-    }
-
-    virtual void Loop(bool isLooped)
-    {
-      Looped = isLooped;
+      return *Model;
     }
 
   private:
     PlayitemsProvider::Ptr Provider;
     PlaylistScanner* const Scanner;
-    PlaylistScannerView* const ScannerView;
-    bool Randomized;
-    bool Looped;
-    PlayitemStateCallbackImpl State;
     PlaylistModel* const Model;
+  };
+
+  class PlaylistWidgetImpl : public PlaylistWidget
+  {
+  public:
+    PlaylistWidgetImpl(QWidget* parent, const Playlist& playlist, const PlayitemStateCallback& callback)
+      : Scanner(playlist.GetScanner())
+      , Layout(new QVBoxLayout(this))
+      , ScannerView(PlaylistScannerView::Create(this, Scanner))
+      , View(PlaylistView::Create(this, callback, playlist.GetModel()))
+    {
+      //setup self
+      setParent(parent);
+      //setup ui
+      setMouseTracking(true);
+      Layout->setSpacing(0);
+      Layout->setMargin(0);
+      Layout->addWidget(View);
+      Layout->addWidget(ScannerView);
+      //setup connections
+      this->connect(View, SIGNAL(OnItemSet(const Playitem&)), SIGNAL(OnItemSet(const Playitem&)));
+    }
+
+    virtual void dragEnterEvent(QDragEnterEvent* event)
+    {
+      event->acceptProposedAction();
+    }
+
+    virtual void dropEvent(QDropEvent* event)
+    {
+      if (event->mimeData()->hasUrls())
+      {
+        const QList<QUrl>& urls = event->mimeData()->urls();
+        QStringList files;
+        std::for_each(urls.begin(), urls.end(),
+          boost::bind(&QStringList::push_back, &files,
+            boost::bind(&QUrl::toLocalFile, _1)));
+        Scanner.AddItems(files);
+      }
+    }
+  private:
+    PlaylistScanner& Scanner;
+    QVBoxLayout* const Layout;
+    PlaylistScannerView* const ScannerView;
     PlaylistView* const View;
-    //gui-related
-    QString AddFileDirectory;
   };
 }
 
-Playlist* Playlist::Create(QMainWindow* parent)
+Playlist* Playlist::Create(QObject* parent, const QString& name, PlayitemsProvider::Ptr provider)
 {
-  REGISTER_METATYPE(Playitem::Ptr);
-  assert(parent);
-  return new PlaylistImpl(parent);
+  return new PlaylistImpl(parent, name, provider);
+}
+
+PlaylistWidget* PlaylistWidget::Create(QWidget* parent, const Playlist& playlist, const class PlayitemStateCallback& callback)
+{
+  return new PlaylistWidgetImpl(parent, playlist, callback);
 }

@@ -21,7 +21,7 @@ class PlaylistScannerView : public QWidget
 {
   Q_OBJECT
 public:
-  static PlaylistScannerView* Create(QWidget* parent, class PlaylistScanner* scanner);
+  static PlaylistScannerView* Create(QWidget* parent, class PlaylistScanner& scanner);
 
 public slots:
   virtual void ScanStart() = 0;

@@ -24,7 +24,7 @@ Author:
 #include "ui/controls/volume_control.h"
 #include "ui/informational/aboutdialog.h"
 #include "ui/informational/componentsdialog.h"
-#include "ui/playlist/playlist.h"
+#include "ui/playlist/playlist_container.h"
 #include "supp/playback_supp.h"
 #include <apps/base/app.h>
 //common includes
@@ -159,12 +159,13 @@ namespace
         {
           items.append(QString::fromUtf8(argv[param]));
         }
-        Collection->AddItems(items);
+        Collection->CreatePlaylist(items);
       }
 
       About->connect(actionAbout, SIGNAL(triggered()), SLOT(Show()));
       Components->connect(actionComponents, SIGNAL(triggered()), SLOT(Show()));
       //connect root actions
+      /*
       Collection->connect(Controls, SIGNAL(OnPrevious()), SLOT(PrevItem()));
       Collection->connect(Controls, SIGNAL(OnNext()), SLOT(NextItem()));
       Collection->connect(Playback, SIGNAL(OnStartModule(ZXTune::Module::Player::ConstPtr)), SLOT(PlayItem()));
@@ -172,6 +173,7 @@ namespace
       Collection->connect(Playback, SIGNAL(OnPauseModule()), SLOT(PauseItem()));
       Collection->connect(Playback, SIGNAL(OnStopModule()), SLOT(StopItem()));
       Collection->connect(Playback, SIGNAL(OnFinishModule()), SLOT(NextItem()));
+      */
       Playback->connect(Collection, SIGNAL(OnItemSet(const Playitem&)), SLOT(SetItem(const Playitem&)));
       Playback->connect(Controls, SIGNAL(OnPlay()), SLOT(Play()));
       Playback->connect(Controls, SIGNAL(OnStop()), SLOT(Stop()));
@@ -214,7 +216,7 @@ namespace
     ToolbarControl<StatusControl> Status;
     ToolbarControl<SeekControls> Seeking;
     ToolbarControl<AnalyzerControl> Analyzer;
-    WidgetControl<Playlist> Collection;
+    WidgetControl<PlaylistContainerView> Collection;
     PlaybackSupport* const Playback;
   };
 }

@@ -13,7 +13,6 @@ Author:
 
 //local includes
 #include "playlist_model.h"
-#include "playlist_scanner.h"
 #include "playlist_view.h"
 #include "playlist_view_ui.h"
 #include "playlist_view_moc.h"
@@ -42,10 +41,9 @@ namespace
                          , private Ui::PlaylistView
   {
   public:
-    PlaylistViewImpl(QWidget* parent, const PlayitemStateCallback& callback, PlaylistModel* model, PlaylistScanner* scanner)
+    PlaylistViewImpl(QWidget* parent, const PlayitemStateCallback& callback, PlaylistModel& model)
       : Callback(callback)
       , Model(model)
-      , Scanner(scanner)
       , Table(new QTableView(this))
     {
       //setup self
@@ -53,7 +51,7 @@ namespace
       setupUi(this);
       setAcceptDrops(true);
       tableView->setItemDelegate(PlaylistItemView::Create(Callback, tableView));
-      tableView->setModel(Model);
+      tableView->setModel(&Model);
       //setup dynamic ui
       if (QHeaderView* const horHeader = tableView->horizontalHeader())
       {
@@ -68,13 +66,7 @@ namespace
       }
 
       //signals
-      Model->connect(Scanner, SIGNAL(OnGetItem(Playitem::Ptr)), SLOT(AddItem(Playitem::Ptr)));
       this->connect(tableView, SIGNAL(activated(const QModelIndex&)), SLOT(ActivateItem(const QModelIndex&)));
-    }
-
-    virtual void AddItems(const QStringList& files)
-    {
-      Scanner->AddItems(files);
     }
 
     void Update()
@@ -84,7 +76,7 @@ namespace
 
     virtual void ActivateItem(const QModelIndex& index)
     {
-      if (const Playitem::Ptr item = Model->GetItem(index.row()))
+      if (const Playitem::Ptr item = Model.GetItem(index.row()))
       {
         //State.SetItem(index);
         OnItemSet(*item);
@@ -104,24 +96,6 @@ namespace
         QWidget::keyReleaseEvent(event);
       }
     }
-
-    virtual void dragEnterEvent(QDragEnterEvent* event)
-    {
-      event->acceptProposedAction();
-    }
-
-    virtual void dropEvent(QDropEvent* event)
-    {
-      if (event->mimeData()->hasUrls())
-      {
-        const QList<QUrl>& urls = event->mimeData()->urls();
-        QStringList files;
-        std::for_each(urls.begin(), urls.end(),
-          boost::bind(&QStringList::push_back, &files,
-            boost::bind(&QUrl::toLocalFile, _1)));
-        AddItems(files);
-      }
-    }
   private:
     void ClearSelected()
     {
@@ -131,13 +105,12 @@ namespace
       std::for_each(items.begin(), items.end(),
         boost::bind(&QSet<unsigned>::insert, &indexes, 
           boost::bind(&QModelIndex::row, _1)));
-      Model->RemoveItems(indexes);
+      Model.RemoveItems(indexes);
       //std::for_each(items.begin(), items.end(), boost::bind(&PlayitemStateCallbackImpl::ResetItem, &State, _1));
     }
   private:
     const PlayitemStateCallback& Callback;
-    PlaylistModel* const Model;
-    PlaylistScanner* const Scanner;
+    PlaylistModel& Model;
     QTableView* const Table;
   };
 
@@ -193,7 +166,7 @@ PlaylistItemView* PlaylistItemView::Create(const PlayitemStateCallback& callback
   return new PlaylistItemViewImpl(callback, parent);
 }
 
-PlaylistView* PlaylistView::Create(QWidget* parent, const PlayitemStateCallback& callback, PlaylistModel* model, PlaylistScanner* scanner)
+PlaylistView* PlaylistView::Create(QWidget* parent, const PlayitemStateCallback& callback, PlaylistModel& model)
 {
-  return new PlaylistViewImpl(parent, callback, model, scanner);
+  return new PlaylistViewImpl(parent, callback, model);
 }
