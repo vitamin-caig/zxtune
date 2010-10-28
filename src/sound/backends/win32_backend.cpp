@@ -202,7 +202,7 @@ namespace
 
     int_t GetDevice(int_t defVal) const
     {
-      Parameters::IntType device = devVal;
+      Parameters::IntType device = defVal;
       Accessor.FindIntValue(Parameters::ZXTune::Sound::Backends::Win32::DEVICE, device);
       return static_cast<int_t>(device);
     }
