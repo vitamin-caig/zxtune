@@ -32,8 +32,9 @@ namespace
   const char FONT_FAMILY[] = "Arial";
   const int_t FONT_SIZE = 8;
   const int_t ROW_HEIGTH = 16;
-  const int_t TITLE_WIDTH = 240;
-  const int_t DURATION_WIDTH = 64;
+  const int_t ICON_WIDTH = 24;
+  const int_t TITLE_WIDTH = 320;
+  const int_t DURATION_WIDTH = 60;
 
   class PlaylistTableViewImpl : public PlaylistTableView
   {
@@ -64,6 +65,7 @@ namespace
         horHeader->setDefaultAlignment(Qt::AlignLeft);
         horHeader->setHighlightSections(false);
         horHeader->setTextElideMode(Qt::ElideRight);
+        horHeader->resizeSection(PlaylistModel::COLUMN_TYPEICON, ICON_WIDTH);
         horHeader->resizeSection(PlaylistModel::COLUMN_TITLE, TITLE_WIDTH);
         horHeader->resizeSection(PlaylistModel::COLUMN_DURATION, DURATION_WIDTH);
       }

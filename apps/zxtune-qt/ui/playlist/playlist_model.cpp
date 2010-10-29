@@ -27,7 +27,7 @@ Author:
 //qt includes
 #include <QtCore/QMutex>
 #include <QtCore/QSet>
-#include <QtGui/QApplication>
+#include <QtGui/QIcon>
 //text includes
 #include "text/text.h"
 
@@ -54,6 +54,19 @@ namespace
       : Item(rh.Item)
       , TooltipTemplate(StringTemplate::Create(Text::TOOLTIP_TEMPLATE))
     {
+    }
+
+    String GetType() const
+    {
+      const ZXTune::Module::Information::Ptr info = Item->GetModuleInfo();
+      const Parameters::Accessor::Ptr props = info->Properties();
+      Parameters::StringType typeStr;
+      if (props->FindStringValue(ZXTune::Module::ATTR_TYPE, typeStr))
+      {
+        return typeStr;
+      }
+      assert(!"Invalid type");
+      return String();
     }
 
     String GetTitle() const
@@ -109,6 +122,29 @@ namespace
     }
   };
 
+  class DecorationDataProvider : public RowDataProvider
+  {
+  public:
+    virtual QVariant GetHeader(unsigned /*column*/) const
+    {
+      return QVariant();
+    }
+
+    virtual QVariant GetData(const PlayitemWrapper& item, unsigned column) const
+    {
+      switch (column)
+      {
+      case PlaylistModel::COLUMN_TYPEICON:
+        {
+          const String& iconPath = Text::TYPEICONS_RESOURCE_PREFIX + item.GetType();
+          return QIcon(ToQString(iconPath));
+        }
+      default:
+        return QVariant();
+      };
+    }
+  };
+
   class DisplayDataProvider : public RowDataProvider
   {
   public:
@@ -117,9 +153,9 @@ namespace
       switch (column)
       {
       case PlaylistModel::COLUMN_TITLE:
-        return QApplication::translate("Playlist", "Author - Title", 0, QApplication::UnicodeUTF8);
+        return PlaylistModel::tr("Author - Title");
       case PlaylistModel::COLUMN_DURATION:
-        return QApplication::translate("Playlist", "Duration", 0, QApplication::UnicodeUTF8);
+        return PlaylistModel::tr("Duration");
       default:
         return QVariant();
       };
@@ -131,11 +167,12 @@ namespace
       {
       case PlaylistModel::COLUMN_TITLE:
         {
-          return ToQString(item.GetTitle());
+          const String& title = item.GetTitle();
+          return ToQString(title);
         }
       case PlaylistModel::COLUMN_DURATION:
         {
-          const String strFormat = FormatTime(item.GetDuration(), 20000);//TODO
+          const String& strFormat = FormatTime(item.GetDuration(), 20000);//TODO
           return ToQString(strFormat);
         }
       default:
@@ -154,7 +191,8 @@ namespace
 
     virtual QVariant GetData(const PlayitemWrapper& item, unsigned /*column*/) const
     {
-      return ToQString(item.GetTooltip());
+      const String& tooltip = item.GetTooltip();
+      return ToQString(tooltip);
     }
   };
 
@@ -162,7 +200,8 @@ namespace
   {
   public:
     DataProvidersSet()
-      : Display()
+      : Decoration()
+      , Display()
       , Tooltip()
       , Dummy()
     {
@@ -172,6 +211,8 @@ namespace
     {
       switch (role)
       {
+      case Qt::DecorationRole:
+        return Decoration;
       case Qt::DisplayRole:
         return Display;
       case Qt::ToolTipRole:
@@ -181,6 +222,7 @@ namespace
       }
     }
   private:
+    const DecorationDataProvider Decoration;
     const DisplayDataProvider Display;
     const TooltipDataProvider Tooltip;
     const DummyDataProvider Dummy;
@@ -253,7 +295,7 @@ namespace
  
     void Sort(const Comparer& cmp)
     {
-      std::sort(Iterators.begin(), Iterators.end(),
+      std::stable_sort(Iterators.begin(), Iterators.end(),
         boost::bind(&Comparer::CompareItems, &cmp, 
           boost::bind(&IteratorsArray::value_type::operator *, _1),
           boost::bind(&IteratorsArray::value_type::operator *, _2)));
@@ -424,6 +466,13 @@ namespace
       const bool ascending = order == Qt::AscendingOrder;
       switch (column)
       {
+      case COLUMN_TYPEICON:
+        {
+          QMutexLocker locker(&Synchronizer);
+          const TypedPlayitemsComparer<String> comparer(&PlayitemWrapper::GetType, ascending);
+          Container.Sort(comparer);
+        }
+        break;
       case COLUMN_TITLE:
         {
           QMutexLocker locker(&Synchronizer);

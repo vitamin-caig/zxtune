@@ -25,6 +25,7 @@ class PlaylistModel : public QAbstractItemModel
 public:
   enum Columns
   {
+    COLUMN_TYPEICON,
     COLUMN_TITLE,
     COLUMN_DURATION,
 
