@@ -45,24 +45,16 @@ typedef std::basic_string<Char> String;
 
 //! @brief Helper for creating String from the array of chars
 template<std::size_t D>
-inline String FromStdString(const char (&str)[D])
+inline String FromCharArray(const char (&str)[D])
 {
   //do not keep last zero symbol
-  return String(str, str + D - 1);
+  return String(str, str + D);
 }
 
 //! @brief Helper for creating String from ordinary std::string
 inline String FromStdString(const std::string& str)
 {
   return String(str.begin(), str.end());
-}
-
-//! @brief Helper for creating ordinary std::string from the array of Chars
-template<std::size_t D>
-inline std::string ToStdString(const Char (&str)[D])
-{
-  //do not keep last zero symbol
-  return std::string(str, str + D - 1);
 }
 
 //! @brief Helper for creating ordinary std::string from the String

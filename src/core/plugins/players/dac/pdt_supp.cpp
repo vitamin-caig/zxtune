@@ -368,7 +368,7 @@ namespace
       }
       props->SetPlugins(container.Plugins);
       props->SetPath(container.Path);
-      props->SetTitle(OptimizeString(FromStdString(header->Title)));
+      props->SetTitle(OptimizeString(FromCharArray(header->Title)));
       props->SetProgram(Text::PDT_EDITOR);
       props->SetWarnings(warner);
 

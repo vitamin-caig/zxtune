@@ -157,7 +157,7 @@ namespace
 
   PACK_PRE struct STPSample
   {
-    int8_t Loop;
+    uint8_t Loop;
     uint8_t Size;
 
     static uint_t GetMinimalSize()
@@ -428,7 +428,7 @@ namespace
       const STPId& id = *safe_ptr_cast<const STPId*>(&header + 1);
       if (id.Check())
       {
-        props->SetTitle(OptimizeString(FromStdString(id.Title)));
+        props->SetTitle(OptimizeString(FromCharArray(id.Title)));
       }
       return props;
     }

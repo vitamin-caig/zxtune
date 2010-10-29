@@ -416,7 +416,7 @@ namespace
       const STCHeader& header = areas.GetHeader();
       InitialTempo = header.Tempo;
       const ModuleProperties::Ptr props = ModuleProperties::Create(STC_PLUGIN_ID);
-      props->SetProgram(OptimizeString(FromStdString(header.Identifier)));
+      props->SetProgram(OptimizeString(FromCharArray(header.Identifier)));
       return props;
     }
 

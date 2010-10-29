@@ -707,8 +707,8 @@ namespace
         props->SetSource(RawData, fixedRegion);
         if (validId)
         {
-          props->SetTitle(OptimizeString(FromStdString(id->Title)));
-          props->SetAuthor(OptimizeString(FromStdString(id->Author)));
+          props->SetTitle(OptimizeString(FromCharArray(id->Title)));
+          props->SetAuthor(OptimizeString(FromCharArray(id->Author)));
         }
       }
       props->SetPlugins(container.Plugins);

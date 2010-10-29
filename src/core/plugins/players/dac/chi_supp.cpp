@@ -319,8 +319,8 @@ namespace
       }
       props->SetPlugins(container.Plugins);
       props->SetPath(container.Path);
-      props->SetTitle(OptimizeString(FromStdString(header->Name)));
-      props->SetProgram((Formatter(Text::CHI_EDITOR) % FromStdString(header->Version)).str());
+      props->SetTitle(OptimizeString(FromCharArray(header->Name)));
+      props->SetProgram((Formatter(Text::CHI_EDITOR) % FromCharArray(header->Version)).str());
       props->SetWarnings(warner);
 
       //fill tracking properties

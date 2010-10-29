@@ -722,8 +722,8 @@ namespace
         const ModuleRegion fixedRegion(fixedOffset, rawSize -  fixedOffset);
         props->SetSource(RawData, fixedRegion);
       }
-      props->SetTitle(OptimizeString(FromStdString(header->TrackName)));
-      props->SetAuthor(OptimizeString(FromStdString(header->TrackAuthor)));
+      props->SetTitle(OptimizeString(FromCharArray(header->TrackName)));
+      props->SetAuthor(OptimizeString(FromCharArray(header->TrackAuthor)));
       props->SetProgram(OptimizeString(String(header->Id, header->Optional1)));
       props->SetWarnings(warner);
       props->SetPlugins(container.Plugins);

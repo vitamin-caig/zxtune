@@ -546,7 +546,7 @@ namespace
         const ModuleRegion fixedRegion(fixedOffset, rawSize -  fixedOffset);
         props->SetSource(RawData, fixedRegion);
       }
-      props->SetTitle(OptimizeString(FromStdString(header->Name)));
+      props->SetTitle(OptimizeString(FromCharArray(header->Name)));
       props->SetProgram(Text::PT2_EDITOR);
       props->SetWarnings(warner);
       props->SetPlugins(container.Plugins);
