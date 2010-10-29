@@ -26,8 +26,7 @@ public:
   //creator
   static PlaylistContainer* Create(QObject* parent);
 
-  virtual class Playlist* CreatePlaylist(const QString& name) = 0;
-  virtual class Playlist* CreatePlaylist(const QString& name, const class QStringList& items) = 0;
+  virtual class PlaylistSupport* CreatePlaylist(const QString& name) = 0;
 };
 
 class PlaylistContainerView : public QWidget
@@ -38,8 +37,13 @@ public:
   static PlaylistContainerView* Create(class QMainWindow* parent);
 
   virtual void CreatePlaylist(const class QStringList& items) = 0;
+
+public slots:
+  virtual void Play() = 0;
+  virtual void Pause() = 0;
+  virtual void Stop() = 0;
 signals:
-  void OnItemSet(const Playitem&);
+  void OnItemActivated(const Playitem&);
 };
 
 #endif //ZXTUNE_QT_PLAYLIST_CONTAINER_H_DEFINED

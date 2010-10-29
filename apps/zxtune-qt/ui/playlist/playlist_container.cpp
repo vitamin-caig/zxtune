@@ -30,44 +30,6 @@ namespace
 {
   const std::string THIS_MODULE("UI::Playlist");
 
-  class PlayitemStateCallbackImpl : public PlayitemStateCallback
-  {
-    enum PlayitemMode
-    {
-      STOPPED,
-      PLAYING,
-      PAUSED
-    };
-  public:
-    PlayitemStateCallbackImpl()
-      : OperationalItem(0)
-      , OperationalMode(STOPPED)
-    {
-    }
-
-    virtual bool IsPlaying(const QModelIndex& index) const
-    {
-      assert(index.isValid());
-      const Playitem* const indexItem = static_cast<const Playitem*>(index.internalPointer());
-      return OperationalItem &&
-             indexItem == OperationalItem &&
-             OperationalMode == PLAYING;
-    }
-
-    virtual bool IsPaused(const QModelIndex& index) const
-    {
-      assert(index.isValid());
-      const Playitem* const indexItem = static_cast<const Playitem*>(index.internalPointer());
-      return OperationalItem &&
-             indexItem == OperationalItem &&
-             OperationalMode == PAUSED;
-    }
-
-  private:
-    const Playitem* OperationalItem;
-    PlayitemMode OperationalMode;
-  };
-
   class PlaylistContainerImpl : public PlaylistContainer
   {
   public:
@@ -78,17 +40,10 @@ namespace
       setParent(parent);
     }
 
-    virtual Playlist* CreatePlaylist(const QString& name)
+    virtual PlaylistSupport* CreatePlaylist(const QString& name)
     {
-      return Playlist::Create(this, name, Provider);
-    }
-
-    virtual Playlist* CreatePlaylist(const QString& name, const class QStringList& items)
-    {
-      Playlist* const res = Playlist::Create(this, name, Provider);
-      PlaylistScanner& scanner = res->GetScanner();
-      scanner.AddItems(items);
-      return res;
+      PlaylistSupport* const playlist = PlaylistSupport::Create(this, name, Provider);
+      return playlist;
     }
   private:
     const PlayitemsProvider::Ptr Provider;
@@ -101,6 +56,7 @@ namespace
     explicit PlaylistContainerViewImpl(QMainWindow* parent)
       : Provider(PlayitemsProvider::Create())
       , Container(PlaylistContainer::Create(this))
+      , ActivePlaylistView(0)
     {
       //setup self
       setParent(parent);
@@ -121,20 +77,54 @@ namespace
 
     virtual void CreatePlaylist(const QStringList& items)
     {
-      Playlist* const pl = Container->CreatePlaylist(tr("Default"), items);
+      PlaylistSupport* const pl = Container->CreatePlaylist(tr("Default"));
       RegisterPlaylist(*pl);
+      PlaylistScanner& scanner = pl->GetScanner();
+      scanner.AddItems(items);
+    }
+
+    virtual void Play()
+    {
+      UpdateState(PLAYING);
+    }
+
+    virtual void Pause()
+    {
+      UpdateState(PAUSED);
+    }
+
+    virtual void Stop()
+    {
+      UpdateState(STOPPED);
     }
   private:
-    void RegisterPlaylist(Playlist& pl)
+    void RegisterPlaylist(PlaylistSupport& playlist)
     {
-      PlaylistWidget* const plView = PlaylistWidget::Create(this, pl, State);
-      this->connect(plView, SIGNAL(OnItemSet(const Playitem&)), SIGNAL(OnItemSet(const Playitem&)));
-      widgetsContainer->addTab(plView, pl.objectName());
+      PlaylistWidget* const plView = PlaylistWidget::Create(this, playlist);
+      widgetsContainer->addTab(plView, playlist.objectName());
+      PlayitemIterator& iter = playlist.GetIterator();
+      this->connect(&iter, SIGNAL(OnItem(const Playitem&)), SIGNAL(OnItemActivated(const Playitem&)));
+      if (!ActivePlaylistView)
+      {
+        ActivePlaylistView = plView;
+      }
+    }
+
+    void UpdateState(PlayitemState state)
+    {
+      if (ActivePlaylistView)
+      {
+        const PlaylistSupport& playlist = ActivePlaylistView->GetPlaylist();
+        PlayitemIterator& iter = playlist.GetIterator();
+        iter.SetState(state);
+        ActivePlaylistView->Update();
+      }
     }
   private:
     PlayitemsProvider::Ptr Provider;
     PlaylistContainer* const Container;
-    PlayitemStateCallbackImpl State;
+    //state context
+    PlaylistWidget* ActivePlaylistView;
   };
 }
 

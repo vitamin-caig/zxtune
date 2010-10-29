@@ -207,7 +207,6 @@ namespace
     {
       if (idx >= int(Iterators.size()))
       {
-        assert(!"Invalid playitem requested");
         return 0;
       }
       const IteratorsArray::value_type it = Iterators[idx];

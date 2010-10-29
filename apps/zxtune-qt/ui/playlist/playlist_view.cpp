@@ -76,10 +76,10 @@ namespace
 
     virtual void ActivateItem(const QModelIndex& index)
     {
-      if (const Playitem::Ptr item = Model.GetItem(index.row()))
+      const unsigned number = index.row();
+      if (const Playitem::Ptr item = Model.GetItem(number))
       {
-        //State.SetItem(index);
-        OnItemSet(*item);
+        OnItemActivated(number, *item);
       }
     }
 
@@ -106,7 +106,6 @@ namespace
         boost::bind(&QSet<unsigned>::insert, &indexes, 
           boost::bind(&QModelIndex::row, _1)));
       Model.RemoveItems(indexes);
-      //std::for_each(items.begin(), items.end(), boost::bind(&PlayitemStateCallbackImpl::ResetItem, &State, _1));
     }
   private:
     const PlayitemStateCallback& Callback;

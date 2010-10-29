@@ -31,12 +31,75 @@ Author:
 
 namespace
 {
-  class PlaylistImpl : public Playlist
+  class PlayitemIteratorImpl : public PlayitemIterator
   {
   public:
-    PlaylistImpl(QObject* parent, const QString& name, PlayitemsProvider::Ptr provider)
+    PlayitemIteratorImpl(QObject* parent, const PlaylistModel& model)
+      : Model(model)
+      , Index(0)
+      , Item(Model.GetItem(Index))
+      , State(STOPPED)
+    {
+      setParent(parent);
+    }
+
+    virtual const Playitem* Get() const
+    {
+      return Item.get();
+    }
+
+    virtual PlayitemState GetState() const
+    {
+      return State;
+    }
+
+    virtual void Reset(unsigned idx)
+    {
+      Index = idx;
+      State = STOPPED;
+      if (Item = Model.GetItem(Index))
+      {
+        OnItem(*Item);
+      }
+    }
+
+    virtual bool Next()
+    {
+      Reset(Index + 1);
+      return Item;
+    }
+
+    virtual bool Prev()
+    {
+      if (Index)
+      {
+        Reset(Index - 1);
+      }
+      else
+      {
+        Item.reset();
+      }
+      return Item;
+    }
+
+    virtual void SetState(PlayitemState state)
+    {
+      State = state;
+    }
+  private:
+    const PlaylistModel& Model;
+    unsigned Index;
+    Playitem::Ptr Item;
+    PlayitemState State;
+  };
+
+  class PlaylistSupportImpl : public PlaylistSupport
+  {
+  public:
+    PlaylistSupportImpl(QObject* parent, const QString& name, PlayitemsProvider::Ptr provider)
       : Scanner(PlaylistScanner::Create(this, provider))
       , Model(PlaylistModel::Create(this))
+      , Iterator(new PlayitemIteratorImpl(this, *Model))
     {
       //setup self
       setParent(parent);
@@ -45,7 +108,7 @@ namespace
       Model->connect(Scanner, SIGNAL(OnGetItem(Playitem::Ptr)), SLOT(AddItem(Playitem::Ptr)));
     }
 
-    virtual ~PlaylistImpl()
+    virtual ~PlaylistSupportImpl()
     {
       Scanner->Cancel();
       Scanner->wait();
@@ -61,20 +124,62 @@ namespace
       return *Model;
     }
 
+    virtual PlayitemIterator& GetIterator() const
+    {
+      return *Iterator;
+    }
+
   private:
     PlayitemsProvider::Ptr Provider;
     PlaylistScanner* const Scanner;
     PlaylistModel* const Model;
+    PlayitemIterator* const Iterator;
+  };
+
+  class PlayitemStateCallbackImpl : public PlayitemStateCallback
+  {
+  public:
+    explicit PlayitemStateCallbackImpl(PlayitemIterator& iter)
+      : Iterator(iter)
+    {
+    }
+
+    virtual bool IsPlaying(const QModelIndex& index) const
+    {
+      assert(index.isValid());
+      if (const Playitem* operationalItem = Iterator.Get())
+      {
+        const Playitem* const indexItem = static_cast<const Playitem*>(index.internalPointer());
+        return indexItem == operationalItem &&
+               Iterator.GetState() == PLAYING;
+      }
+      return false;
+    }
+
+    virtual bool IsPaused(const QModelIndex& index) const
+    {
+      assert(index.isValid());
+      if (const Playitem* operationalItem = Iterator.Get())
+      {
+        const Playitem* const indexItem = static_cast<const Playitem*>(index.internalPointer());
+        return indexItem == operationalItem &&
+               Iterator.GetState() == PAUSED;
+      }
+      return false;
+    }
+  private:
+    const PlayitemIterator& Iterator;
   };
 
   class PlaylistWidgetImpl : public PlaylistWidget
   {
   public:
-    PlaylistWidgetImpl(QWidget* parent, const Playlist& playlist, const PlayitemStateCallback& callback)
-      : Scanner(playlist.GetScanner())
+    PlaylistWidgetImpl(QWidget* parent, const PlaylistSupport& playlist)
+      : Playlist(playlist)
+      , State(Playlist.GetIterator())
       , Layout(new QVBoxLayout(this))
-      , ScannerView(PlaylistScannerView::Create(this, Scanner))
-      , View(PlaylistView::Create(this, callback, playlist.GetModel()))
+      , ScannerView(PlaylistScannerView::Create(this, Playlist.GetScanner()))
+      , View(PlaylistView::Create(this, State, Playlist.GetModel()))
     {
       //setup self
       setParent(parent);
@@ -85,7 +190,36 @@ namespace
       Layout->addWidget(View);
       Layout->addWidget(ScannerView);
       //setup connections
-      this->connect(View, SIGNAL(OnItemSet(const Playitem&)), SIGNAL(OnItemSet(const Playitem&)));
+      PlayitemIterator& iter = Playlist.GetIterator();
+      iter.connect(View, SIGNAL(OnItemActivated(unsigned, const Playitem&)), SLOT(Reset(unsigned)));
+    }
+
+    virtual const PlaylistSupport& GetPlaylist() const
+    {
+      return Playlist;
+    }
+
+    virtual void Update()
+    {
+      View->Update();
+    }
+
+    virtual void Play()
+    {
+      PlayitemIterator& iter = Playlist.GetIterator();
+      iter.SetState(PLAYING);
+    }
+
+    virtual void Pause()
+    {
+      PlayitemIterator& iter = Playlist.GetIterator();
+      iter.SetState(PAUSED);
+    }
+
+    virtual void Stop()
+    {
+      PlayitemIterator& iter = Playlist.GetIterator();
+      iter.SetState(STOPPED);
     }
 
     virtual void dragEnterEvent(QDragEnterEvent* event)
@@ -102,23 +236,25 @@ namespace
         std::for_each(urls.begin(), urls.end(),
           boost::bind(&QStringList::push_back, &files,
             boost::bind(&QUrl::toLocalFile, _1)));
-        Scanner.AddItems(files);
+        PlaylistScanner& scanner = Playlist.GetScanner();
+        scanner.AddItems(files);
       }
     }
   private:
-    PlaylistScanner& Scanner;
+    const PlaylistSupport& Playlist;
+    PlayitemStateCallbackImpl State;
     QVBoxLayout* const Layout;
     PlaylistScannerView* const ScannerView;
     PlaylistView* const View;
   };
 }
 
-Playlist* Playlist::Create(QObject* parent, const QString& name, PlayitemsProvider::Ptr provider)
+PlaylistSupport* PlaylistSupport::Create(QObject* parent, const QString& name, PlayitemsProvider::Ptr provider)
 {
-  return new PlaylistImpl(parent, name, provider);
+  return new PlaylistSupportImpl(parent, name, provider);
 }
 
-PlaylistWidget* PlaylistWidget::Create(QWidget* parent, const Playlist& playlist, const class PlayitemStateCallback& callback)
+PlaylistWidget* PlaylistWidget::Create(QWidget* parent, const PlaylistSupport& playlist)
 {
-  return new PlaylistWidgetImpl(parent, playlist, callback);
+  return new PlaylistWidgetImpl(parent, playlist);
 }

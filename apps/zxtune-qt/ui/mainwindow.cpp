@@ -168,13 +168,13 @@ namespace
       /*
       Collection->connect(Controls, SIGNAL(OnPrevious()), SLOT(PrevItem()));
       Collection->connect(Controls, SIGNAL(OnNext()), SLOT(NextItem()));
-      Collection->connect(Playback, SIGNAL(OnStartModule(ZXTune::Module::Player::ConstPtr)), SLOT(PlayItem()));
-      Collection->connect(Playback, SIGNAL(OnResumeModule()), SLOT(PlayItem()));
-      Collection->connect(Playback, SIGNAL(OnPauseModule()), SLOT(PauseItem()));
-      Collection->connect(Playback, SIGNAL(OnStopModule()), SLOT(StopItem()));
-      Collection->connect(Playback, SIGNAL(OnFinishModule()), SLOT(NextItem()));
       */
-      Playback->connect(Collection, SIGNAL(OnItemSet(const Playitem&)), SLOT(SetItem(const Playitem&)));
+      Collection->connect(Playback, SIGNAL(OnStartModule(ZXTune::Module::Player::ConstPtr)), SLOT(Play()));
+      Collection->connect(Playback, SIGNAL(OnResumeModule()), SLOT(Play()));
+      Collection->connect(Playback, SIGNAL(OnPauseModule()), SLOT(Pause()));
+      Collection->connect(Playback, SIGNAL(OnStopModule()), SLOT(Stop()));
+      //Collection->connect(Playback, SIGNAL(OnFinishModule()), SLOT(NextItem()));
+      Playback->connect(Collection, SIGNAL(OnItemActivated(const Playitem&)), SLOT(SetItem(const Playitem&)));
       Playback->connect(Controls, SIGNAL(OnPlay()), SLOT(Play()));
       Playback->connect(Controls, SIGNAL(OnStop()), SLOT(Stop()));
       Playback->connect(Controls, SIGNAL(OnPause()), SLOT(Pause()));

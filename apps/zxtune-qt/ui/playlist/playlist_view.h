@@ -41,11 +41,11 @@ public:
   //creator
   static PlaylistView* Create(QWidget* parent, const PlayitemStateCallback& callback, class PlaylistModel& model);
 
-  virtual void Update() = 0;
 public slots:
+  virtual void Update() = 0;
   virtual void ActivateItem(const QModelIndex&) = 0;
 signals:
-  void OnItemSet(const class Playitem&);
+  void OnItemActivated(unsigned index, const class Playitem& item);
 };
 
 #endif //ZXTUNE_QT_PLAYLIST_VIEW_H_DEFINED
