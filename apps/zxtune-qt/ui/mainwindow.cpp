@@ -165,15 +165,13 @@ namespace
       About->connect(actionAbout, SIGNAL(triggered()), SLOT(Show()));
       Components->connect(actionComponents, SIGNAL(triggered()), SLOT(Show()));
       //connect root actions
-      /*
-      Collection->connect(Controls, SIGNAL(OnPrevious()), SLOT(PrevItem()));
-      Collection->connect(Controls, SIGNAL(OnNext()), SLOT(NextItem()));
-      */
+      Collection->connect(Controls, SIGNAL(OnPrevious()), SLOT(Prev()));
+      Collection->connect(Controls, SIGNAL(OnNext()), SLOT(Next()));
       Collection->connect(Playback, SIGNAL(OnStartModule(ZXTune::Module::Player::ConstPtr)), SLOT(Play()));
       Collection->connect(Playback, SIGNAL(OnResumeModule()), SLOT(Play()));
       Collection->connect(Playback, SIGNAL(OnPauseModule()), SLOT(Pause()));
       Collection->connect(Playback, SIGNAL(OnStopModule()), SLOT(Stop()));
-      //Collection->connect(Playback, SIGNAL(OnFinishModule()), SLOT(NextItem()));
+      Collection->connect(Playback, SIGNAL(OnFinishModule()), SLOT(Finish()));
       Playback->connect(Collection, SIGNAL(OnItemActivated(const Playitem&)), SLOT(SetItem(const Playitem&)));
       Playback->connect(Controls, SIGNAL(OnPlay()), SLOT(Play()));
       Playback->connect(Controls, SIGNAL(OnStop()), SLOT(Stop()));

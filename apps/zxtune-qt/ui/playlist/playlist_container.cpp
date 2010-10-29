@@ -16,12 +16,14 @@ Author:
 #include "playlist_container_ui.h"
 #include "playlist_container_moc.h"
 #include "playlist_view.h"
+#include "playlist_model.h"
 #include "playlist_scanner.h"
 #include "playlist.h"
 #include "ui/utils.h"
 //std includes
 #include <cassert>
 //qt includes
+#include <QtGui/QFileDialog>
 #include <QtGui/QMainWindow>
 #include <QtGui/QMenu>
 #include <QtGui/QMenuBar>
@@ -70,16 +72,19 @@ namespace
       //menu->addAction(actionSave);
       menu->addSeparator();
       menu->addAction(actionClear);
-      menu->addSeparator();
-      menu->addAction(actionLoop);
-      menu->addAction(actionRandom);
+      //menu->addSeparator();
+      //menu->addAction(actionLoop);
+      //menu->addAction(actionRandom);
+
+      //connect actions
+      this->connect(actionAddFiles, SIGNAL(triggered()), SLOT(AddFiles()));
+      this->connect(actionClear, SIGNAL(triggered()), SLOT(Clear()));
     }
 
     virtual void CreatePlaylist(const QStringList& items)
     {
-      PlaylistSupport* const pl = Container->CreatePlaylist(tr("Default"));
-      RegisterPlaylist(*pl);
-      PlaylistScanner& scanner = pl->GetScanner();
+      const PlaylistSupport& playlist = CreateAnonymousPlaylist();
+      PlaylistScanner& scanner = playlist.GetScanner();
       scanner.AddItems(items);
     }
 
@@ -97,7 +102,62 @@ namespace
     {
       UpdateState(STOPPED);
     }
+
+    virtual void Finish()
+    {
+      const PlaylistSupport& playlist = GetCurrentPlaylist();
+      PlayitemIterator& iter = playlist.GetIterator();
+      if (!iter.Next())
+      {
+        Stop();
+      }
+    }
+
+    virtual void Next()
+    {
+      const PlaylistSupport& playlist = GetCurrentPlaylist();
+      PlayitemIterator& iter = playlist.GetIterator();
+      iter.Next();
+    }
+
+    virtual void Prev()
+    {
+      const PlaylistSupport& playlist = GetCurrentPlaylist();
+      PlayitemIterator& iter = playlist.GetIterator();
+      iter.Prev();
+    }
+
+    virtual void Clear()
+    {
+      const PlaylistSupport& playlist = GetCurrentPlaylist();
+      PlaylistModel& model = playlist.GetModel();
+      model.Clear();
+      ActivePlaylistView->Update();
+    }
+
+    virtual void AddFiles()
+    {
+      QFileDialog dialog(this);
+      dialog.setAcceptMode(QFileDialog::AcceptOpen);
+      dialog.setFileMode(QFileDialog::ExistingFiles);
+      dialog.setDirectory(AddFileDirectory);
+      if (QDialog::Accepted == dialog.exec())
+      {
+        AddFileDirectory = dialog.directory().absolutePath();
+        const QStringList& files = dialog.selectedFiles();
+        const PlaylistSupport& playlist = GetCurrentPlaylist();
+        PlaylistScanner& scanner = playlist.GetScanner();
+        scanner.AddItems(files);
+      }
+    }
   private:
+    PlaylistSupport& CreateAnonymousPlaylist()
+    {
+      PlaylistSupport* const pl = Container->CreatePlaylist(tr("Default"));
+      RegisterPlaylist(*pl);
+      return *pl;
+    }
+
     void RegisterPlaylist(PlaylistSupport& playlist)
     {
       PlaylistView* const plView = PlaylistView::Create(this, playlist);
@@ -112,18 +172,25 @@ namespace
 
     void UpdateState(PlayitemState state)
     {
-      if (ActivePlaylistView)
+      const PlaylistSupport& playlist = GetCurrentPlaylist();
+      PlayitemIterator& iter = playlist.GetIterator();
+      iter.SetState(state);
+      ActivePlaylistView->Update();
+    }
+
+    const PlaylistSupport& GetCurrentPlaylist()
+    {
+      if (!ActivePlaylistView)
       {
-        const PlaylistSupport& playlist = ActivePlaylistView->GetPlaylist();
-        PlayitemIterator& iter = playlist.GetIterator();
-        iter.SetState(state);
-        ActivePlaylistView->Update();
+        CreateAnonymousPlaylist();
       }
+      return ActivePlaylistView->GetPlaylist();
     }
   private:
     PlayitemsProvider::Ptr Provider;
     PlaylistContainer* const Container;
     //state context
+    QString AddFileDirectory;
     PlaylistView* ActivePlaylistView;
   };
 }

@@ -38,7 +38,7 @@ public:
   virtual void SetState(PlayitemState state) = 0;
 public slots:
   //navigate
-  virtual void Reset(unsigned idx) = 0;
+  virtual bool Reset(unsigned idx) = 0;
   virtual bool Next() = 0;
   virtual bool Prev() = 0;
 signals:
@@ -64,10 +64,6 @@ public:
 
   virtual const PlaylistSupport& GetPlaylist() const = 0;
   virtual void Update() = 0;
-public slots:
-  virtual void Play() = 0;
-  virtual void Pause() = 0;
-  virtual void Stop() = 0;
 };
 
 #endif //ZXTUNE_QT_PLAYLIST_H_DEFINED

@@ -39,9 +39,16 @@ public:
   virtual void CreatePlaylist(const class QStringList& items) = 0;
 
 public slots:
+  //navigate
   virtual void Play() = 0;
   virtual void Pause() = 0;
   virtual void Stop() = 0;
+  virtual void Finish() = 0;
+  virtual void Next() = 0;
+  virtual void Prev() = 0;
+  //actions
+  virtual void Clear() = 0;
+  virtual void AddFiles() = 0;
 signals:
   void OnItemActivated(const Playitem&);
 };

@@ -53,33 +53,28 @@ namespace
       return State;
     }
 
-    virtual void Reset(unsigned idx)
+    virtual bool Reset(unsigned idx)
     {
-      Index = idx;
-      State = STOPPED;
-      if (Item = Model.GetItem(Index))
+      if (Playitem::Ptr item = Model.GetItem(idx))
       {
+        Index = idx;
+        Item = item;
+        State = STOPPED;
         OnItem(*Item);
+        return true;
       }
+      return false;
     }
 
     virtual bool Next()
     {
-      Reset(Index + 1);
-      return Item;
+      return Reset(Index + 1);
     }
 
     virtual bool Prev()
     {
-      if (Index)
-      {
-        Reset(Index - 1);
-      }
-      else
-      {
-        Item.reset();
-      }
-      return Item;
+      return Index &&
+             Reset(Index - 1);
     }
 
     virtual void SetState(PlayitemState state)
@@ -202,24 +197,6 @@ namespace
     virtual void Update()
     {
       View->viewport()->update();
-    }
-
-    virtual void Play()
-    {
-      PlayitemIterator& iter = Playlist.GetIterator();
-      iter.SetState(PLAYING);
-    }
-
-    virtual void Pause()
-    {
-      PlayitemIterator& iter = Playlist.GetIterator();
-      iter.SetState(PAUSED);
-    }
-
-    virtual void Stop()
-    {
-      PlayitemIterator& iter = Playlist.GetIterator();
-      iter.SetState(STOPPED);
     }
 
     virtual void dragEnterEvent(QDragEnterEvent* event)
