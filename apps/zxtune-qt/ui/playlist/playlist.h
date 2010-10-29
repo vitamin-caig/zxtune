@@ -56,11 +56,11 @@ public:
   virtual PlayitemIterator& GetIterator() const = 0;
 };
 
-class PlaylistWidget : public QWidget
+class PlaylistView : public QWidget
 {
   Q_OBJECT
 public:
-  static PlaylistWidget* Create(QWidget* parent, const PlaylistSupport& playlist);
+  static PlaylistView* Create(QWidget* parent, const PlaylistSupport& playlist);
 
   virtual const PlaylistSupport& GetPlaylist() const = 0;
   virtual void Update() = 0;

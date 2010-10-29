@@ -171,15 +171,15 @@ namespace
     const PlayitemIterator& Iterator;
   };
 
-  class PlaylistWidgetImpl : public PlaylistWidget
+  class PlaylistViewImpl : public PlaylistView
   {
   public:
-    PlaylistWidgetImpl(QWidget* parent, const PlaylistSupport& playlist)
+    PlaylistViewImpl(QWidget* parent, const PlaylistSupport& playlist)
       : Playlist(playlist)
       , State(Playlist.GetIterator())
       , Layout(new QVBoxLayout(this))
       , ScannerView(PlaylistScannerView::Create(this, Playlist.GetScanner()))
-      , View(PlaylistView::Create(this, State, Playlist.GetModel()))
+      , View(PlaylistTableView::Create(this, State, Playlist.GetModel()))
     {
       //setup self
       setParent(parent);
@@ -201,7 +201,7 @@ namespace
 
     virtual void Update()
     {
-      View->Update();
+      View->viewport()->update();
     }
 
     virtual void Play()
@@ -245,7 +245,7 @@ namespace
     PlayitemStateCallbackImpl State;
     QVBoxLayout* const Layout;
     PlaylistScannerView* const ScannerView;
-    PlaylistView* const View;
+    PlaylistTableView* const View;
   };
 }
 
@@ -254,7 +254,7 @@ PlaylistSupport* PlaylistSupport::Create(QObject* parent, const QString& name, P
   return new PlaylistSupportImpl(parent, name, provider);
 }
 
-PlaylistWidget* PlaylistWidget::Create(QWidget* parent, const PlaylistSupport& playlist)
+PlaylistView* PlaylistView::Create(QWidget* parent, const PlaylistSupport& playlist)
 {
-  return new PlaylistWidgetImpl(parent, playlist);
+  return new PlaylistViewImpl(parent, playlist);
 }

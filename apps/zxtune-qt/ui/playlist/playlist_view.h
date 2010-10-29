@@ -16,7 +16,7 @@ Author:
 
 //qt includes
 #include <QtGui/QItemDelegate>
-#include <QtGui/QWidget>
+#include <QtGui/QTableView>
 
 class PlayitemStateCallback
 {
@@ -27,22 +27,22 @@ public:
   virtual bool IsPaused(const QModelIndex& index) const = 0;
 };
 
-class PlaylistItemView : public QItemDelegate
+//table view
+class PlaylistItemTableView : public QItemDelegate
 {
   Q_OBJECT
 public:
-  static PlaylistItemView* Create(const PlayitemStateCallback& callback, QWidget* parent = 0);
+  static PlaylistItemTableView* Create(QWidget* parent, const PlayitemStateCallback& callback);
 };
 
-class PlaylistView : public QWidget
+class PlaylistTableView : public QTableView
 {
   Q_OBJECT
 public:
   //creator
-  static PlaylistView* Create(QWidget* parent, const PlayitemStateCallback& callback, class PlaylistModel& model);
+  static PlaylistTableView* Create(QWidget* parent, const PlayitemStateCallback& callback, class PlaylistModel& model);
 
 public slots:
-  virtual void Update() = 0;
   virtual void ActivateItem(const QModelIndex&) = 0;
 signals:
   void OnItemActivated(unsigned index, const class Playitem& item);

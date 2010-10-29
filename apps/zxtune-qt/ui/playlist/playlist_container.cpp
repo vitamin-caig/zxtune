@@ -100,7 +100,7 @@ namespace
   private:
     void RegisterPlaylist(PlaylistSupport& playlist)
     {
-      PlaylistWidget* const plView = PlaylistWidget::Create(this, playlist);
+      PlaylistView* const plView = PlaylistView::Create(this, playlist);
       widgetsContainer->addTab(plView, playlist.objectName());
       PlayitemIterator& iter = playlist.GetIterator();
       this->connect(&iter, SIGNAL(OnItem(const Playitem&)), SIGNAL(OnItemActivated(const Playitem&)));
@@ -124,7 +124,7 @@ namespace
     PlayitemsProvider::Ptr Provider;
     PlaylistContainer* const Container;
     //state context
-    PlaylistWidget* ActivePlaylistView;
+    PlaylistView* ActivePlaylistView;
   };
 }
 

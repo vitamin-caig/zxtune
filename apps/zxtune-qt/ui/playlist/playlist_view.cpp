@@ -14,7 +14,6 @@ Author:
 //local includes
 #include "playlist_model.h"
 #include "playlist_view.h"
-#include "playlist_view_ui.h"
 #include "playlist_view_moc.h"
 //common includes
 #include <logging.h>
@@ -24,7 +23,6 @@ Author:
 #include <QtCore/QUrl>
 #include <QtGui/QDragEnterEvent>
 #include <QtGui/QHeaderView>
-#include <QtGui/QTableView>
 
 namespace
 {
@@ -37,41 +35,46 @@ namespace
   const int_t TITLE_WIDTH = 240;
   const int_t DURATION_WIDTH = 64;
 
-  class PlaylistViewImpl : public PlaylistView
-                         , private Ui::PlaylistView
+  class PlaylistTableViewImpl : public PlaylistTableView
   {
   public:
-    PlaylistViewImpl(QWidget* parent, const PlayitemStateCallback& callback, PlaylistModel& model)
+    PlaylistTableViewImpl(QWidget* parent, const PlayitemStateCallback& callback, PlaylistModel& model)
       : Callback(callback)
       , Model(model)
-      , Table(new QTableView(this))
     {
       //setup self
       setParent(parent);
-      setupUi(this);
+      setModel(&Model);
+      setItemDelegate(PlaylistItemTableView::Create(this, Callback));
+      //setup ui
       setAcceptDrops(true);
-      tableView->setItemDelegate(PlaylistItemView::Create(Callback, tableView));
-      tableView->setModel(&Model);
+      setEditTriggers(QAbstractItemView::NoEditTriggers);
+      setSelectionMode(QAbstractItemView::ExtendedSelection);
+      setSelectionBehavior(QAbstractItemView::SelectRows);
+      setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+      setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+      setShowGrid(false);
+      setGridStyle(Qt::NoPen);
+      setSortingEnabled(true);
+      setWordWrap(false);
+      setCornerButtonEnabled(false);
       //setup dynamic ui
-      if (QHeaderView* const horHeader = tableView->horizontalHeader())
+      if (QHeaderView* const horHeader = horizontalHeader())
       {
         horHeader->setDefaultAlignment(Qt::AlignLeft);
+        horHeader->setHighlightSections(false);
         horHeader->setTextElideMode(Qt::ElideRight);
         horHeader->resizeSection(PlaylistModel::COLUMN_TITLE, TITLE_WIDTH);
         horHeader->resizeSection(PlaylistModel::COLUMN_DURATION, DURATION_WIDTH);
       }
-      if (QHeaderView* const verHeader = tableView->verticalHeader())
+      if (QHeaderView* const verHeader = verticalHeader())
       {
         verHeader->setDefaultSectionSize(ROW_HEIGTH);
+        verHeader->setVisible(false);
       }
 
       //signals
-      this->connect(tableView, SIGNAL(activated(const QModelIndex&)), SLOT(ActivateItem(const QModelIndex&)));
-    }
-
-    void Update()
-    {
-      tableView->viewport()->update();
+      this->connect(this, SIGNAL(activated(const QModelIndex&)), SLOT(ActivateItem(const QModelIndex&)));
     }
 
     virtual void ActivateItem(const QModelIndex& index)
@@ -99,7 +102,7 @@ namespace
   private:
     void ClearSelected()
     {
-      const QItemSelectionModel* const selection = tableView->selectionModel();
+      const QItemSelectionModel* const selection = selectionModel();
       const QModelIndexList& items = selection->selectedRows();
       QSet<unsigned> indexes;
       std::for_each(items.begin(), items.end(),
@@ -110,13 +113,12 @@ namespace
   private:
     const PlayitemStateCallback& Callback;
     PlaylistModel& Model;
-    QTableView* const Table;
   };
 
-  class PlaylistItemViewImpl : public PlaylistItemView
+  class PlaylistItemTableViewImpl : public PlaylistItemTableView
   {
   public:
-    PlaylistItemViewImpl(const PlayitemStateCallback& callback, QWidget* parent)
+    PlaylistItemTableViewImpl(QWidget* parent, const PlayitemStateCallback& callback)
       : Callback(callback)
       , Regular(QString::fromUtf8(FONT_FAMILY), FONT_SIZE)
       , Playing(Regular)
@@ -134,7 +136,7 @@ namespace
       QStyleOptionViewItem fixedOption(option);
       fixedOption.state &= ~QStyle::State_HasFocus;
       fixedOption.font = GetItemFont(index);
-      PlaylistItemView::paint(painter, fixedOption, index);
+      PlaylistItemTableView::paint(painter, fixedOption, index);
     }
   private:
     QFont GetItemFont(const QModelIndex& index) const
@@ -160,12 +162,12 @@ namespace
   };
 }
 
-PlaylistItemView* PlaylistItemView::Create(const PlayitemStateCallback& callback, QWidget* parent)
+PlaylistItemTableView* PlaylistItemTableView::Create(QWidget* parent, const PlayitemStateCallback& callback)
 {
-  return new PlaylistItemViewImpl(callback, parent);
+  return new PlaylistItemTableViewImpl(parent, callback);
 }
 
-PlaylistView* PlaylistView::Create(QWidget* parent, const PlayitemStateCallback& callback, PlaylistModel& model)
+PlaylistTableView* PlaylistTableView::Create(QWidget* parent, const PlayitemStateCallback& callback, PlaylistModel& model)
 {
-  return new PlaylistViewImpl(parent, callback, model);
+  return new PlaylistTableViewImpl(parent, callback, model);
 }

@@ -28,8 +28,8 @@ ui_files += ui/informational/aboutdialog \
 #moc_files += ui/informational/components_model
 
 #playlist
-ui_files += ui/playlist/playlist_container ui/playlist/playlist_view ui/playlist/playlist_scanner_view
-moc_files += ui/playlist/playlist ui/playlist/playlist_model ui/playlist/playlist_scanner
+ui_files += ui/playlist/playlist_container ui/playlist/playlist_scanner_view
+moc_files += ui/playlist/playlist ui/playlist/playlist_model ui/playlist/playlist_scanner ui/playlist/playlist_view
 
 #other
 moc_files += supp/playback_supp
