@@ -40,6 +40,7 @@ namespace
     {
       //setup self
       setParent(parent);
+      setObjectName(name);
       //setup connections
       Model->connect(Scanner, SIGNAL(OnGetItem(Playitem::Ptr)), SLOT(AddItem(Playitem::Ptr)));
     }
@@ -78,7 +79,7 @@ namespace
       //setup self
       setParent(parent);
       //setup ui
-      setMouseTracking(true);
+      setAcceptDrops(true);
       Layout->setSpacing(0);
       Layout->setMargin(0);
       Layout->addWidget(View);

@@ -83,9 +83,9 @@ namespace
       return Playlist::Create(this, name, Provider);
     }
 
-    virtual Playlist* CreatePlaylist(const class QStringList& items)
+    virtual Playlist* CreatePlaylist(const QString& name, const class QStringList& items)
     {
-      Playlist* const res = Playlist::Create(this, tr("Default"), Provider);
+      Playlist* const res = Playlist::Create(this, name, Provider);
       PlaylistScanner& scanner = res->GetScanner();
       scanner.AddItems(items);
       return res;
@@ -121,10 +121,15 @@ namespace
 
     virtual void CreatePlaylist(const QStringList& items)
     {
-      Playlist* const pl = Container->CreatePlaylist(items);
-      PlaylistWidget* const res = PlaylistWidget::Create(this, *pl, State);
-      this->connect(res, SIGNAL(OnItemSet(const Playitem&)), SIGNAL(OnItemSet(const Playitem&)));
-      verticalLayout->addWidget(res);
+      Playlist* const pl = Container->CreatePlaylist(tr("Default"), items);
+      RegisterPlaylist(*pl);
+    }
+  private:
+    void RegisterPlaylist(Playlist& pl)
+    {
+      PlaylistWidget* const plView = PlaylistWidget::Create(this, pl, State);
+      this->connect(plView, SIGNAL(OnItemSet(const Playitem&)), SIGNAL(OnItemSet(const Playitem&)));
+      widgetsContainer->addTab(plView, pl.objectName());
     }
   private:
     PlayitemsProvider::Ptr Provider;

@@ -27,7 +27,7 @@ public:
   static PlaylistContainer* Create(QObject* parent);
 
   virtual class Playlist* CreatePlaylist(const QString& name) = 0;
-  virtual class Playlist* CreatePlaylist(const class QStringList& items) = 0;
+  virtual class Playlist* CreatePlaylist(const QString& name, const class QStringList& items) = 0;
 };
 
 class PlaylistContainerView : public QWidget
