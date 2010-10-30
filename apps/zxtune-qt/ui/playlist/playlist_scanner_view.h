@@ -27,7 +27,7 @@ public slots:
   virtual void ScanStart() = 0;
   virtual void ScanCancel() = 0;
   virtual void ScanStop() = 0;
-  virtual void ShowProgress(unsigned) = 0;
+  virtual void ShowProgress(unsigned, unsigned, unsigned) = 0;
   virtual void ShowProgressMessage(const QString&) = 0;
 };
 

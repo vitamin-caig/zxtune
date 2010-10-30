@@ -24,6 +24,7 @@ Author:
 #include <core/module_attrs.h>
 //boost includes
 #include <boost/bind.hpp>
+#include <boost/scoped_ptr.hpp>
 //qt includes
 #include <QtCore/QMutex>
 #include <QtCore/QSet>
@@ -255,14 +256,6 @@ namespace
       return &*it;
     }
 
-    void Clear()
-    {
-      ItemsContainer tmpCont;
-      IteratorsArray tmpIter;
-      Items.swap(tmpCont);
-      Iterators.swap(tmpIter);
-    }
-
     void Remove(const QSet<unsigned>& indexes)
     {
       IteratorsArray newIters;
@@ -292,11 +285,11 @@ namespace
 
       virtual bool CompareItems(const PlayitemWrapper& lh, const PlayitemWrapper& rh) const = 0;
     };
- 
+
     void Sort(const Comparer& cmp)
     {
       std::stable_sort(Iterators.begin(), Iterators.end(),
-        boost::bind(&Comparer::CompareItems, &cmp, 
+        boost::bind(&Comparer::CompareItems, &cmp,
           boost::bind(&IteratorsArray::value_type::operator *, _1),
           boost::bind(&IteratorsArray::value_type::operator *, _2)));
     }
@@ -336,6 +329,7 @@ namespace
       : Providers()
       , Synchronizer(QMutex::Recursive)
       , FetchedItemsCount()
+      , Container(new PlayitemsContainer())
     {
       setParent(parent);
     }
@@ -344,7 +338,7 @@ namespace
     virtual Playitem::Ptr GetItem(unsigned index) const
     {
       QMutexLocker locker(&Synchronizer);
-      if (const PlayitemWrapper* wrapper = Container.GetItemByIndex(index))
+      if (const PlayitemWrapper* wrapper = Container->GetItemByIndex(index))
       {
         return wrapper->GetPlayitem();
       }
@@ -354,13 +348,13 @@ namespace
     virtual void AddItem(Playitem::Ptr item)
     {
       QMutexLocker locker(&Synchronizer);
-      Container.AddItem(item);
+      Container->AddItem(item);
     }
 
     virtual void Clear()
     {
       QMutexLocker locker(&Synchronizer);
-      Container.Clear();
+      Container.reset(new PlayitemsContainer());
       FetchedItemsCount = 0;
       reset();
     }
@@ -368,8 +362,8 @@ namespace
     virtual void RemoveItems(const QSet<unsigned>& items)
     {
       QMutexLocker locker(&Synchronizer);
-      Container.Remove(items);
-      FetchedItemsCount = Container.CountItems();
+      Container->Remove(items);
+      FetchedItemsCount = Container->CountItems();
       reset();
     }
 
@@ -377,13 +371,14 @@ namespace
     virtual bool canFetchMore(const QModelIndex& /*index*/) const
     {
       QMutexLocker locker(&Synchronizer);
-      return FetchedItemsCount < Container.CountItems();
+      return FetchedItemsCount < Container->CountItems();
     }
 
     virtual void fetchMore(const QModelIndex& /*index*/)
     {
+      const std::size_t FETCH_PORTION = 100;
       QMutexLocker locker(&Synchronizer);
-      const std::size_t nextCount = Container.CountItems();
+      const std::size_t nextCount = std::min(FetchedItemsCount + FETCH_PORTION, Container->CountItems());
       beginInsertRows(EMPTY_INDEX, FetchedItemsCount, nextCount - 1);
       FetchedItemsCount = nextCount;
       endInsertRows();
@@ -398,7 +393,7 @@ namespace
       Log::Debug(THIS_MODULE, "Create index row=%1% col=%2%",
         row, column);
       QMutexLocker locker(&Synchronizer);
-      if (const PlayitemWrapper* item = Container.GetItemByIndex(row))
+      if (const PlayitemWrapper* item = Container->GetItemByIndex(row))
       {
         const Playitem::Ptr playitem = item->GetPlayitem();
         void* const data = static_cast<void*>(playitem.get());
@@ -450,7 +445,7 @@ namespace
       Log::Debug(THIS_MODULE, "Request data row=%1% col=%2% role=%3%",
         itemNum, fieldNum, role);
       QMutexLocker locker(&Synchronizer);
-      if (const PlayitemWrapper* item = Container.GetItemByIndex(itemNum))
+      if (const PlayitemWrapper* item = Container->GetItemByIndex(itemNum))
       {
         const RowDataProvider& provider = Providers.GetProvider(role);
         assert(static_cast<void*>(item->GetPlayitem().get()) == index.internalPointer());
@@ -464,39 +459,33 @@ namespace
       Log::Debug(THIS_MODULE, "Sort data in column=%1% by order=%2%",
         column, order);
       const bool ascending = order == Qt::AscendingOrder;
+      boost::scoped_ptr<PlayitemsContainer::Comparer> comparer;
       switch (column)
       {
       case COLUMN_TYPEICON:
-        {
-          QMutexLocker locker(&Synchronizer);
-          const TypedPlayitemsComparer<String> comparer(&PlayitemWrapper::GetType, ascending);
-          Container.Sort(comparer);
-        }
+        comparer.reset(new TypedPlayitemsComparer<String>(&PlayitemWrapper::GetType, ascending));
         break;
       case COLUMN_TITLE:
-        {
-          QMutexLocker locker(&Synchronizer);
-          const TypedPlayitemsComparer<String> comparer(&PlayitemWrapper::GetTitle, ascending);
-          Container.Sort(comparer);
-        }
+        comparer.reset(new TypedPlayitemsComparer<String>(&PlayitemWrapper::GetTitle, ascending));
         break;
       case COLUMN_DURATION:
-        {
-          QMutexLocker locker(&Synchronizer);
-          const TypedPlayitemsComparer<uint_t> comparer(&PlayitemWrapper::GetDuration, ascending);
-          Container.Sort(comparer);
-        }
+        comparer.reset(new TypedPlayitemsComparer<uint_t>(&PlayitemWrapper::GetDuration, ascending));
         break;
       default:
         break;
       }
-      reset();
+      if (comparer)
+      {
+        QMutexLocker locker(&Synchronizer);
+        Container->Sort(*comparer);
+        reset();
+      }
     }
   private:
     const DataProvidersSet Providers;
     mutable QMutex Synchronizer;
     std::size_t FetchedItemsCount;
-    PlayitemsContainer Container;
+    boost::scoped_ptr<PlayitemsContainer> Container;
   };
 }
 

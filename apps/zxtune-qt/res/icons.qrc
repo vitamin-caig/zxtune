@@ -35,6 +35,7 @@
     <file alias="next.png">pb_next.png</file>
   </qresource>
   <qresource prefix="/playlist">
+    <file alias="addfolders.png">list_addfolders.png</file>
     <file alias="addfiles.png">list_addfiles.png</file>
     <file alias="looped.png">list_looped.png</file>
     <file alias="random.png">list_random.png</file>

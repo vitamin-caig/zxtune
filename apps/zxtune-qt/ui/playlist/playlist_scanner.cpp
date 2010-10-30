@@ -19,6 +19,8 @@ Author:
 #include <error.h>
 #include <logging.h>
 //qt includes
+#include <QtCore/QDirIterator>
+#include <QtCore/QFileInfo>
 #include <QtCore/QMutex>
 #include <QtCore/QStringList>
 //std includes
@@ -37,6 +39,9 @@ namespace
     PlaylistScannerImpl(QObject* owner, PlayitemsProvider::Ptr provider)
       : Provider(provider)
       , Canceled(false)
+      , ItemsDone()
+      , ItemsTotal()
+      , LastMessageTime()
     {
       setParent(owner);
     }
@@ -64,7 +69,7 @@ namespace
     {
       Canceled = false;
       OnScanStart();
-      for (ItemsDone = 0, ItemsTotal = 0; !Canceled; ++ItemsDone)
+      for (ItemsDone = 0, ItemsTotal = 0; !Canceled;)
       {
         {
           QMutexLocker lock(&QueueLock);
@@ -72,21 +77,45 @@ namespace
           {
             break;
           }
-          ItemsTotal += Queue.size();
           CurrentItem = Queue.takeFirst();
         }
-
-        const Parameters::Accessor::Ptr commonParams = Parameters::Container::Create();
-        const String& strPath = FromQString(CurrentItem);
+        ProcessCurrentItem();
+      }
+      OnScanStop();
+    }
+  private:
+    void ProcessCurrentItem()
+    {
+      QStringList subitems;
+      ResolveCurrentSubitems(subitems);
+      ItemsTotal += subitems.size();
+      const Parameters::Accessor::Ptr commonParams = Parameters::Container::Create();
+      for (QStringList::ConstIterator it = subitems.constBegin(), lim = subitems.constEnd(); !Canceled && it != lim; ++it, ++ItemsDone)
+      {
+        const String& strPath = FromQString(*it);
         if (const Error& e = Provider->DetectModules(strPath, commonParams, *this))
         {
           //TODO: check and show error
           e.GetText();
         }
       }
-      OnScanStop();
     }
-  private:
+
+    void ResolveCurrentSubitems(QStringList& subitems)
+    {
+      if (QFileInfo(CurrentItem).isDir())
+      {
+        for (QDirIterator iterator(CurrentItem, QDir::Files, QDirIterator::Subdirectories); !Canceled && iterator.hasNext(); )
+        {
+          subitems.append(iterator.next());
+        }
+      }
+      else
+      {
+        subitems.append(CurrentItem);
+      }
+    }
+
     virtual bool ProcessPlayitem(Playitem::Ptr item)
     {
       OnGetItem(item);
@@ -99,6 +128,12 @@ namespace
       {
         return;
       }
+      const std::time_t curTime = ::std::time(0);
+      if (curTime == LastMessageTime)
+      {
+        return;
+      }
+      LastMessageTime = curTime;
       if (msg.Progress)
       {
         const uint_t curProgress = *msg.Progress;
@@ -118,8 +153,9 @@ namespace
     QStringList Queue;
     //TODO: possibly use events
     volatile bool Canceled;
-    unsigned ItemsDone;
-    unsigned ItemsTotal;
+    volatile unsigned ItemsDone;
+    volatile unsigned ItemsTotal;
+    std::time_t LastMessageTime;
     QString CurrentItem;
   };
 }

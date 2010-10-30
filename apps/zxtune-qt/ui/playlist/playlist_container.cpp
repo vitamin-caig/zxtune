@@ -23,6 +23,7 @@ Author:
 //std includes
 #include <cassert>
 //qt includes
+#include <QtCore/QUrl>
 #include <QtGui/QFileDialog>
 #include <QtGui/QMainWindow>
 #include <QtGui/QMenu>
@@ -58,6 +59,7 @@ namespace
     explicit PlaylistContainerViewImpl(QMainWindow* parent)
       : Provider(PlayitemsProvider::Create())
       , Container(PlaylistContainer::Create(this))
+      , AddFileDirectory(QDir::currentPath())
       , ActivePlaylistView(0)
     {
       //setup self
@@ -66,8 +68,9 @@ namespace
 
       //create and fill menu
       QMenuBar* const menuBar = parent->menuBar();
-      QMenu* const menu = menuBar->addMenu(QString::fromUtf8("Playlist"));
+      QMenu* const menu = menuBar->addMenu(tr("Playlist"));
       menu->addAction(actionAddFiles);
+      menu->addAction(actionAddFolders);
       //menu->addAction(actionLoad);
       //menu->addAction(actionSave);
       menu->addSeparator();
@@ -78,6 +81,7 @@ namespace
 
       //connect actions
       this->connect(actionAddFiles, SIGNAL(triggered()), SLOT(AddFiles()));
+      this->connect(actionAddFolders, SIGNAL(triggered()), SLOT(AddFolders()));
       this->connect(actionClear, SIGNAL(triggered()), SLOT(Clear()));
     }
 
@@ -137,9 +141,24 @@ namespace
 
     virtual void AddFiles()
     {
+      ProcessDialog(QFileDialog::ExistingFiles);
+    }
+
+    virtual void AddFolders()
+    {
+      ProcessDialog(QFileDialog::Directory);
+    }
+  private:
+    void ProcessDialog(QFileDialog::FileMode mode)
+    {
       QFileDialog dialog(this);
       dialog.setAcceptMode(QFileDialog::AcceptOpen);
-      dialog.setFileMode(QFileDialog::ExistingFiles);
+      dialog.setFileMode(mode);
+      dialog.setViewMode(QFileDialog::Detail);
+      dialog.setOption(QFileDialog::DontUseNativeDialog, true);
+      dialog.setOption(QFileDialog::ReadOnly, true);
+      dialog.setOption(QFileDialog::HideNameFilterDetails, true);
+      dialog.setOption(QFileDialog::ShowDirsOnly, mode == QFileDialog::Directory);
       dialog.setDirectory(AddFileDirectory);
       if (QDialog::Accepted == dialog.exec())
       {
@@ -150,7 +169,7 @@ namespace
         scanner.AddItems(files);
       }
     }
-  private:
+
     PlaylistSupport& CreateAnonymousPlaylist()
     {
       PlaylistSupport* const pl = Container->CreatePlaylist(tr("Default"));

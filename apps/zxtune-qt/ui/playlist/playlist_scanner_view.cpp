@@ -33,7 +33,7 @@ namespace
       //make connections with scanner
       this->connect(&Scanner, SIGNAL(OnScanStart()), this, SLOT(ScanStart()));
       this->connect(&Scanner, SIGNAL(OnScanStop()), this, SLOT(ScanStop()));
-      this->connect(&Scanner, SIGNAL(OnProgress(unsigned, unsigned, unsigned)), SLOT(ShowProgress(unsigned)));
+      this->connect(&Scanner, SIGNAL(OnProgress(unsigned, unsigned, unsigned)), SLOT(ShowProgress(unsigned, unsigned, unsigned)));
       this->connect(&Scanner, SIGNAL(OnProgressMessage(const QString&, const QString&)), SLOT(ShowProgressMessage(const QString&)));
       this->connect(scanCancel, SIGNAL(clicked()), SLOT(ScanCancel()));
     }
@@ -55,8 +55,10 @@ namespace
       hide();
     }
 
-    virtual void ShowProgress(unsigned progress)
+    virtual void ShowProgress(unsigned progress, unsigned itemsDone, unsigned totalItems)
     {
+      const QString itemsProgressText = QString("%1/%2").arg(itemsDone).arg(totalItems);
+      itemsProgress->setText(itemsProgressText);
       scanProgress->setValue(progress);
     }
 

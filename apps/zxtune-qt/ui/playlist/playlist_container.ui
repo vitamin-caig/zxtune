@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>PlaylistContainerView</class>
- <widget class="QWidget" name="Container">
+ <widget class="QWidget" name="PlaylistContainerView">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -23,7 +23,7 @@
    <item>
     <widget class="QTabWidget" name="widgetsContainer">
      <property name="currentIndex">
-      <number>0</number>
+      <number>-1</number>
      </property>
     </widget>
    </item>
@@ -72,6 +72,15 @@
    </property>
    <property name="text">
     <string>Random</string>
+   </property>
+  </action>
+  <action name="actionAddFolders">
+   <property name="icon">
+    <iconset resource="../../res/icons.qrc">
+     <normaloff>:/playlist/addfolders.png</normaloff>:/playlist/addfolders.png</iconset>
+   </property>
+   <property name="text">
+    <string>Add folders</string>
    </property>
   </action>
  </widget>
