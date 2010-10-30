@@ -157,7 +157,7 @@ namespace
 
   PACK_PRE struct STPSample
   {
-    uint8_t Loop;
+    int8_t Loop;
     uint8_t Size;
 
     static uint_t GetMinimalSize()
@@ -515,7 +515,7 @@ namespace
     uint_t ParseSample(uint_t offset, const STPAreas& areas, Log::MessagesCollector& warner)
     {
       const STPSample& sample = areas.GetSample(offset);
-      const uint_t realLoop = std::min<uint_t>(sample.Loop, sample.Size);
+      const int_t realLoop = std::min<int_t>(std::max<int_t>(sample.Loop, 0), sample.Size);
       Samples.push_back(Sample(realLoop, sample.Data, sample.Data + sample.Size));
       if (sample.Loop != realLoop)
       {
@@ -524,7 +524,7 @@ namespace
       return offset + sizeof(STPSample) + (sample.Size - 1) * sizeof(sample.Data[0]);
     }
 
-    uint_t ParsePattern(const IO::FastDump& data, const STPPattern& pattern, 
+    uint_t ParsePattern(const IO::FastDump& data, const STPPattern& pattern,
       STPTrack::Pattern& dst, Log::MessagesCollector& warner)
     {
       AYMPatternCursors cursors;
@@ -548,7 +548,7 @@ namespace
           dst.resize(dst.size() + linesToSkip);//add dummies
         }
       }
-      while (0x00 != data[cursors.front().Offset] || 
+      while (0x00 != data[cursors.front().Offset] ||
              cursors.front().Counter);
       Log::Assert(warner, 0 == cursors.GetMaxCounter(), Text::WARNING_PERIODS);
       Log::Assert(warner, dst.size() <= MAX_PATTERN_SIZE, Text::WARNING_INVALID_PATTERN_SIZE);
@@ -609,7 +609,7 @@ namespace
             throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
           }
           Log::Assert(warner, !channel.FindCommand(NOENVELOPE), Text::WARNING_DUPLICATE_ENVELOPE);
-          channel.Commands.push_back(STPTrack::Command(ENVELOPE, cmd - 0xc0, 
+          channel.Commands.push_back(STPTrack::Command(ENVELOPE, cmd - 0xc0,
             cmd != 0xc0 ? data[cur.Offset++] : 0));
           channel.SetOrnament(0, warner);
           Log::Assert(warner, !channel.FindCommand(GLISS), "duplicate gliss");

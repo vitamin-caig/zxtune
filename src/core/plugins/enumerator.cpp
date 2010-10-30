@@ -265,12 +265,12 @@ namespace
       for (bool hasResolved = true; hasResolved;)
       {
         hasResolved = false;
-        Log::Debug(THIS_MODULE, "Resolving subpath '%1%'", pathToOpen);
+        Log::Debug(THIS_MODULE, "Resolving '%1%' + '%2%'", tmpResult.Path, pathToOpen);
         //check for implicit containers
         while (ResolveImplicit(commonParams, tmpResult))
         {
           const Plugin::Ptr lastPlugin = tmpResult.Plugins->GetLast();
-          Log::Debug(THIS_MODULE, "Detected implicit plugin %1% at '%2%'", lastPlugin->Id(), tmpResult.Path);
+          Log::Debug(THIS_MODULE, "Detected implicit plugin %1%", lastPlugin->Id());
           hasResolved = true;
         }
 
@@ -280,7 +280,7 @@ namespace
           if (ResolveContainer(commonParams, tmpResult, pathToOpen))
           {
             const Plugin::Ptr lastPlugin = tmpResult.Plugins->GetLast();
-            Log::Debug(THIS_MODULE, "Detected nested container %1% at '%2%'", lastPlugin->Id(), tmpResult.Path);
+            Log::Debug(THIS_MODULE, "Detected nested container %1%", lastPlugin->Id());
             hasResolved = true;
           }
           else
