@@ -376,9 +376,8 @@ namespace
 
     virtual void fetchMore(const QModelIndex& /*index*/)
     {
-      const std::size_t FETCH_PORTION = 100;
       QMutexLocker locker(&Synchronizer);
-      const std::size_t nextCount = std::min(FetchedItemsCount + FETCH_PORTION, Container->CountItems());
+      const std::size_t nextCount = Container->CountItems();
       beginInsertRows(EMPTY_INDEX, FetchedItemsCount, nextCount - 1);
       FetchedItemsCount = nextCount;
       endInsertRows();

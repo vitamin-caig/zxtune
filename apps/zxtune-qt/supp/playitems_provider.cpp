@@ -43,7 +43,8 @@ namespace
     typedef std::list<String> CacheList;
     typedef boost::unique_lock<boost::mutex> Locker;
     //TODO: parametrize
-    static const uint64_t MAX_CACHE_SIZE = 1048576 * 100;//100Mb
+    static const uint64_t MAX_CACHE_SIZE = 1048576 * 10;//10Mb
+    static const uint_t MAX_CACHE_ITEMS = 1000;
   public:
     typedef boost::shared_ptr<DataProvider> Ptr;
 
@@ -78,8 +79,8 @@ namespace
       Locker lock(Mutex);
       const uint64_t thisSize = data->Size();
       //check and reset cache
-      while (CacheSize + thisSize > MAX_CACHE_SIZE &&
-             !CacheHistory.empty())
+      while ((CacheSize + thisSize > MAX_CACHE_SIZE && !CacheHistory.empty()) ||
+              Cache.size() + 1 > MAX_CACHE_ITEMS)
       {
         const String& removedItem(CacheHistory.back());
         const CacheMap::iterator cacheIt = Cache.find(removedItem);
