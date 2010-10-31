@@ -287,48 +287,48 @@ namespace
       uint8_t VolSlideEnv;
       uint8_t LevelKeepers;
       int16_t ToneOffset;
-      
+
       bool GetEnvelopeMask() const
       {
         return 0 != (VolSlideEnv & 1);
       }
-      
+
       int_t GetNoiseOrEnvelopeOffset() const
       {
         const uint8_t noeoff = (VolSlideEnv & 62) >> 1;
         return static_cast<int8_t>(noeoff & 16 ? noeoff | 0xf0 : noeoff);
       }
-      
+
       int_t GetVolSlide() const
       {
         return (VolSlideEnv & 128) ? ((VolSlideEnv & 64) ? +1 : -1) : 0;
       }
-      
+
       uint_t GetLevel() const
       {
         return LevelKeepers & 15;
       }
-      
+
       bool GetToneMask() const
       {
         return 0 != (LevelKeepers & 16);
       }
-      
+
       bool GetKeepNoiseOrEnvelopeOffset() const
       {
         return 0 != (LevelKeepers & 32);
       }
-      
+
       bool GetKeepToneOffset() const
       {
         return 0 != (LevelKeepers & 64);
       }
-      
+
       bool GetNoiseMask() const
       {
         return 0 != (LevelKeepers & 128);
       }
-      
+
       int_t GetToneOffset() const
       {
         return fromLE(ToneOffset);
@@ -342,7 +342,7 @@ namespace
     uint8_t Loop;
     uint8_t Size;
     int8_t Data[1];
-    
+
     uint_t GetSize() const
     {
       return sizeof(*this) + (Size - 1) * sizeof(Data[0]);
@@ -376,7 +376,7 @@ namespace
     res.KeepNoiseOrEnvelopeOffset = line.GetKeepNoiseOrEnvelopeOffset();
     return res;
   }
-  
+
   inline Vortex::Sample ParseSample(const IO::FastDump& data, uint16_t offset, std::size_t& rawSize)
   {
     const uint_t off(fromLE(offset));
@@ -403,7 +403,7 @@ namespace
     rawSize = std::max<std::size_t>(rawSize, off + ornament->GetSize());
     return SimpleOrnament(ornament->Loop, ornament->Data, ornament->Data + ornament->Size);
   }
-  
+
   class PT3Holder : public Holder
   {
     void ParsePattern(const IO::FastDump& data
@@ -463,12 +463,12 @@ namespace
             const bool hasEnv(cmd >= 0x11 && cmd <= 0xbf);
             const bool hasOrn(cmd >= 0xf0);
             const bool hasSmp(cmd < 0xb2 || cmd > 0xbf);
-            
+
             if (restbytes < std::size_t(2 * hasEnv + hasSmp))
             {
               throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
             }
-            
+
             if (hasEnv) //has envelope command
             {
               const uint_t envPeriod(data[cur->Offset + 1] + (uint_t(data[cur->Offset]) << 8));
@@ -481,14 +481,14 @@ namespace
             {
               channel->Commands.push_back(Vortex::Track::Command(Vortex::NOENVELOPE));
             }
-           
+
             if (hasOrn) //has ornament command
             {
               const uint_t num(cmd - 0xf0);
               Log::Assert(channelWarner, !num || Data->Ornaments[num].GetSize(), Text::WARNING_INVALID_ORNAMENT);
               channel->SetOrnament(num, channelWarner);
             }
-            
+
             if (hasSmp)
             {
               const uint_t doubleSampNum(data[cur->Offset++]);
@@ -670,7 +670,7 @@ namespace
       {
         Log::ParamPrefixedCollector patternWarner(*warner, Text::PATTERN_WARN_PREFIX, index);
         Vortex::Track::Pattern& pat(Data->Patterns[index]);
-        
+
         AYMPatternCursors cursors;
         std::transform(pattern->Offsets.begin(), pattern->Offsets.end(), cursors.begin(), &fromLE<uint16_t>);
         pat.reserve(MAX_PATTERN_SIZE);
@@ -714,7 +714,7 @@ namespace
       //fill region
       region.Size = rawSize;
       RawData = region.Extract(*container.Data);
-      
+
       //meta properties
       const ModuleProperties::Ptr props = ModuleProperties::Create(PT3_PLUGIN_ID);
       {
@@ -728,7 +728,7 @@ namespace
       props->SetWarnings(warner);
       props->SetPlugins(container.Plugins);
       props->SetPath(container.Path);
-      
+
       //tracking properties
       Version = std::isdigit(header->Subversion) ? header->Subversion - '0' : 6;
       FreqTableName = Vortex::GetFreqTable(static_cast<Vortex::NoteTable>(header->FreqTableNum), Version);
@@ -746,12 +746,12 @@ namespace
     {
       return Info;
     }
-    
+
     virtual Player::Ptr CreatePlayer() const
     {
       return Vortex::CreatePlayer(Info, Data, Version, FreqTableName, AYM::CreateChip());
     }
-    
+
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
     {
       using namespace Conversion;
@@ -859,7 +859,7 @@ namespace
   };
 
   //////////////////////////////////////////////////
-  bool CheckPT3Module(const uint8_t* data, std::size_t size) 
+  bool CheckPT3Module(const uint8_t* data, std::size_t size)
   {
     const PT3Header* const header(safe_ptr_cast<const PT3Header*>(data));
     if (size < sizeof(*header))
@@ -940,9 +940,13 @@ namespace
   {
     const IO::FastDump& data = IO::FastDump(*container.Data, region.Offset);
     const PT3Header* const header(safe_ptr_cast<const PT3Header*>(&data[0]));
-    return header->Mode;
+    const uint_t patOffset = header->Mode;
+    const uint_t patternsCount = 1 + *std::max_element(header->Positions, header->Positions + header->Length) / 3;
+    return patOffset >= patternsCount && patOffset < patternsCount * 2
+      ? patOffset
+      : AY_TRACK;
   }
-  
+
   Holder::Ptr CreatePT3Module(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, const MetaContainer& container, ModuleRegion& region)
   {
     try

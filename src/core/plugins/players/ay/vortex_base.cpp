@@ -561,7 +561,7 @@ namespace ZXTune
         case Vortex::NATURAL:
           return TABLE_NATURAL_SCALED;
         default:
-          assert(!"Unknown frequency table for Vortex-based modules");
+          //assert(!"Unknown frequency table for Vortex-based modules");
           return TABLE_PROTRACKER3_3;
         }
       }

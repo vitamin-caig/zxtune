@@ -460,7 +460,7 @@ namespace
     {
       assert(!Patterns.empty());
       uint_t positionsCount = 0;
-      for (RangeIterator<const STCPositions::STCPosEntry*> iter = areas.GetPositions(); 
+      for (RangeIterator<const STCPositions::STCPosEntry*> iter = areas.GetPositions();
         iter; ++iter, ++positionsCount)
       {
         const STCPositions::STCPosEntry& entry = *iter;
@@ -593,10 +593,10 @@ namespace
         return;//has to skip
       }
 
-      for (;;)
+      for (const std::size_t dataSize = data.Size(); cur.Offset < dataSize;)
       {
         const uint_t cmd(data[cur.Offset++]);
-        const std::size_t restbytes = data.Size() - cur.Offset;
+        const std::size_t restbytes = dataSize - cur.Offset;
         //ornament==0 and sample==0 are valid - no ornament and no sample respectively
         //ornament==0 and sample==0 are valid - no ornament and no sample respectively
         if (cmd <= 0x5f)//note
@@ -1098,7 +1098,7 @@ namespace
       return false;
     }
 
-    const IO::FastDump dump(data, limit); 
+    const IO::FastDump dump(data, limit);
     const STCAreasChecker areas(dump);
 
     return areas.CheckLayout() &&
