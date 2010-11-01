@@ -21,6 +21,19 @@ Author:
 //boost includes
 #include <boost/function.hpp>
 
+//runtime attributes which are frequently requested
+class PlayitemAttributes
+{
+public:
+  typedef boost::shared_ptr<const PlayitemAttributes> Ptr;
+
+  virtual ~PlayitemAttributes() {}
+
+  virtual String GetType() const = 0;
+  virtual String GetTitle() const = 0;
+  virtual uint_t GetDuration() const = 0;
+};
+
 class Playitem
 {
 public:
@@ -28,8 +41,8 @@ public:
 
   virtual ~Playitem() {}
 
+  virtual const PlayitemAttributes& GetAttributes() const = 0;
   virtual ZXTune::Module::Holder::Ptr GetModule() const = 0;
-  virtual ZXTune::Module::Information::Ptr GetModuleInfo() const = 0;
   virtual Parameters::Accessor::Ptr GetAdjustedParameters() const = 0;
 };
 

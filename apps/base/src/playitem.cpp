@@ -150,7 +150,7 @@ namespace
       if (!Info)
       {
         const Module::Information::Ptr realInfo = Delegate->GetInformation();
-        Info = boost::make_shared<MixinPropertiesInfo>(realInfo, PlayerProps);
+        Info = CreateMixinPropertiesInformation(realInfo, PlayerProps);
       }
       return Info;
     }
@@ -206,7 +206,7 @@ namespace
       if (!Info)
       {
         const Module::Information::Ptr realInfo = Delegate->GetModuleInformation();
-        Info = boost::make_shared<MixinPropertiesInfo>(realInfo, ModuleProps);
+        Info = CreateMixinPropertiesInformation(realInfo, ModuleProps);
       }
       return Info;
     }
@@ -232,6 +232,11 @@ namespace
 Parameters::Accessor::Ptr CreatePathProperties(const String& path, const String& subpath)
 {
   return boost::make_shared<PathPropertiesAccessor>(path, subpath);
+}
+
+ZXTune::Module::Information::Ptr CreateMixinPropertiesInformation(ZXTune::Module::Information::Ptr info, Parameters::Accessor::Ptr mixinProps)
+{
+  return boost::make_shared<MixinPropertiesInfo>(info, mixinProps);
 }
 
 ZXTune::Module::Holder::Ptr CreateMixinPropertiesModule(ZXTune::Module::Holder::Ptr module,

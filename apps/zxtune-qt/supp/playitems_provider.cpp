@@ -13,6 +13,7 @@ Author:
 
 //local includes
 #include "playitems_provider.h"
+#include "ui/format.h"
 #include "ui/utils.h"
 #include <apps/base/playitem.h>
 //common includes
@@ -29,6 +30,8 @@ Author:
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/thread/mutex.hpp>
+//text includes
+#include "text/text.h"
 
 #define FILE_TAG 0C9BBC6E
 
@@ -104,40 +107,80 @@ namespace
     CacheList CacheHistory;
   };
 
+  String GetModuleType(const Parameters::Accessor& props)
+  {
+    Parameters::StringType typeStr;
+    if (props.FindStringValue(ZXTune::Module::ATTR_TYPE, typeStr))
+    {
+      return typeStr;
+    }
+    assert(!"Invalid module type");
+    return String();
+  }
+
+  class PlayitemAttributesImpl : public PlayitemAttributes
+  {
+  public:
+    explicit PlayitemAttributesImpl(const ZXTune::Module::Information& info)
+      : Type(GetModuleType(*info.Properties()))
+      , Title(GetModuleTitle(Text::MODULE_PLAYLIST_FORMAT, *info.Properties()))
+      , Duration(info.FramesCount())
+    {
+
+    }
+
+    virtual String GetType() const
+    {
+      return Type;
+    }
+
+    virtual String GetTitle() const
+    {
+      return Title;
+    }
+
+    virtual uint_t GetDuration() const
+    {
+      return Duration;
+    }
+  private:
+    const String Type;
+    const String Title;
+    const uint_t Duration;
+  };
+
   class PlayitemImpl : public Playitem
   {
   public:
     PlayitemImpl(
         //container-specific
-        Parameters::Accessor::Ptr commonParams, DataProvider::Ptr provider,
+        DataProvider::Ptr provider,
         //location-specific
         const String& dataPath, const String& subPath,
         //module-specific
-        Parameters::Container::Ptr adjustedParams)
-      : BaseParams(Parameters::CreateMergedAccessor(commonParams, CreatePathProperties(dataPath, subPath)))
-      , Provider(provider)
+        Parameters::Accessor::Ptr moduleParams,
+        Parameters::Container::Ptr adjustedParams,
+        PlayitemAttributes::Ptr attributes)
+      : Provider(provider)
       , DataPath(dataPath), SubPath(subPath)
+      , ModuleParams(moduleParams)
       , AdjustedParams(adjustedParams)
+      , Attributes(attributes)
     {
+    }
+
+    virtual const PlayitemAttributes& GetAttributes() const
+    {
+      return *Attributes;
     }
 
     virtual ZXTune::Module::Holder::Ptr GetModule() const
     {
-      const Parameters::Accessor::Ptr moduleParams = Parameters::CreateMergedAccessor(AdjustedParams, BaseParams);
-      const ZXTune::IO::DataContainer::Ptr data = Provider->GetData(DataPath, *moduleParams);
+      const Parameters::Accessor::Ptr finalParams = Parameters::CreateMergedAccessor(AdjustedParams, ModuleParams);
+      const ZXTune::IO::DataContainer::Ptr data = Provider->GetData(DataPath, *finalParams);
       ZXTune::Module::Holder::Ptr module;
-      ThrowIfError(ZXTune::OpenModule(moduleParams, data, SubPath, module));
+      ThrowIfError(ZXTune::OpenModule(finalParams, data, SubPath, module));
       return module;
-    }
-
-    virtual ZXTune::Module::Information::Ptr GetModuleInfo() const
-    {
-      if (!ModuleInfo)
-      {
-        const ZXTune::Module::Holder::Ptr module = GetModule();
-        ModuleInfo = module->GetModuleInformation();
-      }
-      return ModuleInfo;
     }
 
     virtual Parameters::Accessor::Ptr GetAdjustedParameters() const
@@ -145,11 +188,11 @@ namespace
       return AdjustedParams;
     }
   private:
-    const Parameters::Accessor::Ptr BaseParams;
     const DataProvider::Ptr Provider;
     const String DataPath, SubPath;
+    const Parameters::Accessor::Ptr ModuleParams;
     const Parameters::Container::Ptr AdjustedParams;
-    mutable ZXTune::Module::Information::Ptr ModuleInfo;
+    const PlayitemAttributes::Ptr Attributes;
   };
 
   class DetectParametersAdapter : public ZXTune::DetectParameters
@@ -170,12 +213,17 @@ namespace
       return false;
     }
 
-    virtual Error ProcessModule(const String& subPath, ZXTune::Module::Holder::Ptr /*holder*/) const
+    virtual Error ProcessModule(const String& subPath, ZXTune::Module::Holder::Ptr holder) const
     {
+      const Parameters::Accessor::Ptr pathProperties = CreatePathProperties(DataPath, subPath);
+      const ZXTune::Module::Information::Ptr originalInfo = holder->GetModuleInformation();
+      const ZXTune::Module::Information::Ptr extendedInfo = CreateMixinPropertiesInformation(originalInfo, pathProperties);
+      const PlayitemAttributes::Ptr attributes = boost::make_shared<PlayitemAttributesImpl>(*extendedInfo);
       //no adjusted parameters here- just empty container
       const Parameters::Container::Ptr adjustedParams = Parameters::Container::Create();
-      const Playitem::Ptr playitem = boost::make_shared<PlayitemImpl>(CommonParams, Provider, //common data
-          DataPath, subPath, adjustedParams);
+      const Parameters::Accessor::Ptr moduleParams = Parameters::CreateMergedAccessor(CommonParams, pathProperties);
+      const Playitem::Ptr playitem = boost::make_shared<PlayitemImpl>(Provider,
+          DataPath, subPath, moduleParams, adjustedParams, attributes);
       return Delegate.ProcessPlayitem(playitem) ? Error() : Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
     }
 

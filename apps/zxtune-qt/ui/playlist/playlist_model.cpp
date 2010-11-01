@@ -15,7 +15,6 @@ Author:
 #include "playlist_model.h"
 #include "playlist_model_moc.h"
 #include "ui/utils.h"
-#include "ui/format.h"
 //common includes
 #include <formatter.h>
 #include <logging.h>
@@ -41,63 +40,58 @@ namespace
   class PlayitemWrapper
   {
   public:
-    PlayitemWrapper()
-    {
-    }
-
-    explicit PlayitemWrapper(Playitem::Ptr item)
+    PlayitemWrapper(Playitem::Ptr item, const StringTemplate& tooltipTemplate)
       : Item(item)
-      , TooltipTemplate(StringTemplate::Create(Text::TOOLTIP_TEMPLATE))
+      , TooltipTemplate(tooltipTemplate)
     {
     }
 
     PlayitemWrapper(const PlayitemWrapper& rh)
       : Item(rh.Item)
-      , TooltipTemplate(StringTemplate::Create(Text::TOOLTIP_TEMPLATE))
+      , TooltipTemplate(rh.TooltipTemplate)
     {
     }
 
     String GetType() const
     {
-      const ZXTune::Module::Information::Ptr info = Item->GetModuleInfo();
-      const Parameters::Accessor::Ptr props = info->Properties();
-      Parameters::StringType typeStr;
-      if (props->FindStringValue(ZXTune::Module::ATTR_TYPE, typeStr))
-      {
-        return typeStr;
-      }
-      assert(!"Invalid type");
-      return String();
+      const PlayitemAttributes& attrs = Item->GetAttributes();
+      return attrs.GetType();
     }
 
     String GetTitle() const
     {
-      const ZXTune::Module::Information::Ptr info = Item->GetModuleInfo();
-      const Parameters::Accessor::Ptr props = info->Properties();
-      return GetModuleTitle(Text::MODULE_PLAYLIST_FORMAT, *props);
+      const PlayitemAttributes& attrs = Item->GetAttributes();
+      return attrs.GetTitle();
     }
 
     uint_t GetDuration() const
     {
-      const ZXTune::Module::Information::Ptr info = Item->GetModuleInfo();
-      return info->FramesCount();
+      const PlayitemAttributes& attrs = Item->GetAttributes();
+      return attrs.GetDuration();
     }
 
     String GetTooltip() const
     {
-      const ZXTune::Module::Information::Ptr info = Item->GetModuleInfo();
-      const Parameters::Accessor::Ptr props = info->Properties();
+      const Parameters::Accessor::Ptr props = GetProperties();
       const Parameters::FieldsSourceAdapter<SkipFieldsSource> fields(*props);
-      return TooltipTemplate->Instantiate(fields);
+      return TooltipTemplate.Instantiate(fields);
     }
+
 
     Playitem::Ptr GetPlayitem() const
     {
       return Item;
     }
   private:
+    Parameters::Accessor::Ptr GetProperties() const
+    {
+      const ZXTune::Module::Holder::Ptr holder = Item->GetModule();
+      const ZXTune::Module::Information::Ptr info = holder->GetModuleInformation();
+      return info->Properties();
+    }
+  private:
     const Playitem::Ptr Item;
-    const StringTemplate::Ptr TooltipTemplate;
+    const StringTemplate& TooltipTemplate;
   };
 
   class RowDataProvider
@@ -234,9 +228,14 @@ namespace
     typedef std::list<PlayitemWrapper> ItemsContainer;
     typedef std::vector<ItemsContainer::iterator> IteratorsArray;
   public:
+    PlayitemsContainer()
+      : TooltipTemplate(StringTemplate::Create(Text::TOOLTIP_TEMPLATE))
+    {
+    }
+
     void AddItem(Playitem::Ptr item)
     {
-      Items.push_back(PlayitemWrapper(item));
+      Items.push_back(PlayitemWrapper(item, *TooltipTemplate));
       IteratorsArray::value_type it = Items.end();
       Iterators.push_back(--it);
     }
@@ -294,6 +293,7 @@ namespace
           boost::bind(&IteratorsArray::value_type::operator *, _2)));
     }
   private:
+    const StringTemplate::Ptr TooltipTemplate;
     ItemsContainer Items;
     IteratorsArray Iterators;
   };
