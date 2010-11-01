@@ -46,15 +46,15 @@ namespace
       setParent(owner);
     }
 
-    virtual void AddItems(const QStringList& items)
+    virtual void AddItems(const QStringList& items, bool deepScan)
     {
       QMutexLocker lock(&QueueLock);
       if (Canceled)
       {
         this->wait();
       }
-      //TODO: process directories separately
-      Queue.append(items);
+      QStringList& queue = deepScan ? ScanQueue : OpenQueue;
+      queue.append(items);
       this->start();
     }
 
@@ -62,7 +62,8 @@ namespace
     {
       QMutexLocker lock(&QueueLock);
       Canceled = true;
-      Queue.clear();
+      ScanQueue.clear();
+      OpenQueue.clear();
     }
 
     virtual void run()
@@ -71,20 +72,25 @@ namespace
       OnScanStart();
       for (ItemsDone = 0, ItemsTotal = 0; !Canceled;)
       {
+        bool deepScan = false;
         {
           QMutexLocker lock(&QueueLock);
-          if (Queue.empty())
+          const bool hasToOpen = !OpenQueue.empty();
+          const bool hasToScan = !ScanQueue.empty();
+          if (!hasToOpen && !hasToScan)
           {
             break;
           }
-          CurrentItem = Queue.takeFirst();
+          deepScan = hasToScan;
+          QStringList& queue = deepScan ? ScanQueue : OpenQueue;
+          CurrentItem = queue.takeFirst();
         }
-        ProcessCurrentItem();
+        ProcessCurrentItem(deepScan);
       }
       OnScanStop();
     }
   private:
-    void ProcessCurrentItem()
+    void ProcessCurrentItem(bool deepScan)
     {
       QStringList subitems;
       ResolveCurrentSubitems(subitems);
@@ -93,10 +99,25 @@ namespace
       for (QStringList::ConstIterator it = subitems.constBegin(), lim = subitems.constEnd(); !Canceled && it != lim; ++it, ++ItemsDone)
       {
         const String& strPath = FromQString(*it);
-        if (const Error& e = Provider->DetectModules(strPath, commonParams, *this))
+        if (deepScan)
         {
-          //TODO: check and show error
-          e.GetText();
+          if (const Error& e = Provider->DetectModules(strPath, commonParams, *this))
+          {
+            //TODO: check and show error
+            e.GetText();
+          }
+        }
+        else
+        {
+          if (const Error& e = Provider->OpenModule(strPath, commonParams, *this))
+          {
+            //TODO: check and show error
+            e.GetText();
+          }
+          if (!FilterMessage())
+          {
+            OnProgress(100 * ItemsDone / ItemsTotal, ItemsDone, ItemsTotal);
+          }
         }
       }
     }
@@ -129,12 +150,10 @@ namespace
       {
         return;
       }
-      const std::time_t curTime = ::std::time(0);
-      if (curTime == LastMessageTime)
+      if (FilterMessage())
       {
         return;
       }
-      LastMessageTime = curTime;
       if (msg.Progress)
       {
         const uint_t curProgress = *msg.Progress;
@@ -148,10 +167,22 @@ namespace
         OnProgressMessage(text, CurrentItem);
       }
     }
+
+    bool FilterMessage()
+    {
+      const std::time_t curTime = ::std::time(0);
+      if (curTime == LastMessageTime)
+      {
+        return true;
+      }
+      LastMessageTime = curTime;
+      return false;
+    }
   private:
     const PlayitemsProvider::Ptr Provider;
     QMutex QueueLock;
-    QStringList Queue;
+    QStringList OpenQueue;
+    QStringList ScanQueue;
     //TODO: possibly use events
     volatile bool Canceled;
     volatile unsigned ItemsDone;

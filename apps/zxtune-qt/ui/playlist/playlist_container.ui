@@ -38,6 +38,14 @@
     <string>Add files</string>
    </property>
   </action>
+  <action name="actionDeepScan">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Deep scanning</string>
+   </property>
+  </action>
   <action name="actionClear">
    <property name="icon">
     <iconset>

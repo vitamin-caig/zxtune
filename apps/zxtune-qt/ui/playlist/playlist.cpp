@@ -166,6 +166,8 @@ namespace
     const PlayitemIterator& Iterator;
   };
 
+  const Qt::KeyboardModifiers DEEPSCAN_KEY = Qt::AltModifier;
+
   class PlaylistViewImpl : public PlaylistView
   {
   public:
@@ -201,6 +203,8 @@ namespace
 
     virtual void dragEnterEvent(QDragEnterEvent* event)
     {
+      const bool deepScan = event->keyboardModifiers() & DEEPSCAN_KEY;
+      event->setDropAction(deepScan ? Qt::CopyAction : Qt::MoveAction);
       event->acceptProposedAction();
     }
 
@@ -214,7 +218,9 @@ namespace
           boost::bind(&QStringList::push_back, &files,
             boost::bind(&QUrl::toLocalFile, _1)));
         PlaylistScanner& scanner = Playlist.GetScanner();
-        scanner.AddItems(files);
+        //TODO: use key modifiers and change cursor
+        const bool deepScan = event->keyboardModifiers() & DEEPSCAN_KEY;
+        scanner.AddItems(files, deepScan);
       }
     }
   private:

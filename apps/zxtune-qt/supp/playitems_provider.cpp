@@ -306,6 +306,27 @@ namespace
       }
     }
 
+    virtual Error OpenModule(const String& path,
+                             Parameters::Accessor::Ptr commonParams, PlayitemDetectParameters& detectParams)
+    {
+      try
+      {
+        String dataPath, subPath;
+        ThrowIfError(ZXTune::IO::SplitUri(path, dataPath, subPath));
+        const ZXTune::IO::DataContainer::Ptr data = Provider->GetData(dataPath, *commonParams);
+
+        const DetectParametersAdapter params(detectParams, Provider, commonParams, dataPath);
+        ZXTune::Module::Holder::Ptr result;
+        ThrowIfError(ZXTune::OpenModule(commonParams, data, subPath, result));
+        ThrowIfError(params.ProcessModule(subPath, result));
+        return Error();
+      }
+      catch (const Error& e)
+      {
+        return e;
+      }
+    }
+
     virtual void ResetCache()
     {
       Provider.reset(new DataProvider());

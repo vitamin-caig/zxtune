@@ -71,6 +71,7 @@ namespace
       QMenu* const menu = menuBar->addMenu(tr("Playlist"));
       menu->addAction(actionAddFiles);
       menu->addAction(actionAddFolders);
+      menu->addAction(actionDeepScan);
       //menu->addAction(actionLoad);
       //menu->addAction(actionSave);
       menu->addSeparator();
@@ -89,7 +90,8 @@ namespace
     {
       const PlaylistSupport& playlist = CreateAnonymousPlaylist();
       PlaylistScanner& scanner = playlist.GetScanner();
-      scanner.AddItems(items);
+      const bool deepScan = actionDeepScan->isChecked();
+      scanner.AddItems(items, deepScan);
     }
 
     virtual void Play()
@@ -166,7 +168,8 @@ namespace
         const QStringList& files = dialog.selectedFiles();
         const PlaylistSupport& playlist = GetCurrentPlaylist();
         PlaylistScanner& scanner = playlist.GetScanner();
-        scanner.AddItems(files);
+        const bool deepScan = actionDeepScan->isChecked();
+        scanner.AddItems(files, deepScan);
       }
     }
 
