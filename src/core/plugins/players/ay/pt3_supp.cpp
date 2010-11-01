@@ -791,6 +791,14 @@ namespace
     {
     }
 
+    virtual uint_t GetCurrentPatternSize(const TrackState& state) const
+    {
+      const uint_t originalPattern = Vortex::Track::ModuleData::GetCurrentPattern(state);
+      const uint_t size1 = Patterns[originalPattern].size();
+      const uint_t size2 = Patterns[Base - 1 - originalPattern].size();
+      return std::min(size1, size2);
+    }
+
     virtual uint_t GetNewTempo(const TrackState& state) const
     {
       const uint_t originalPattern = Vortex::Track::ModuleData::GetCurrentPattern(state);
