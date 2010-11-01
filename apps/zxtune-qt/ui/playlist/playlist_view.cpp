@@ -122,45 +122,40 @@ namespace
   public:
     PlaylistItemTableViewImpl(QWidget* parent, const PlayitemStateCallback& callback)
       : Callback(callback)
-      , Regular(QString::fromUtf8(FONT_FAMILY), FONT_SIZE)
-      , Playing(Regular)
-      , Paused(Regular)
+      , Font(QString::fromUtf8(FONT_FAMILY), FONT_SIZE)
+      , Palette()
     {
-      Playing.setBold(true);
-      Paused.setBold(true);
-      Paused.setItalic(true);
-
       setParent(parent);
     }
 
     virtual void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
     {
       QStyleOptionViewItem fixedOption(option);
-      fixedOption.state &= ~QStyle::State_HasFocus;
-      fixedOption.font = GetItemFont(index);
+      FillItemStyle(index, fixedOption);
       PlaylistItemTableView::paint(painter, fixedOption, index);
     }
   private:
-    QFont GetItemFont(const QModelIndex& index) const
+    void FillItemStyle(const QModelIndex& index, QStyleOptionViewItem& style) const
     {
-      if (Callback.IsPaused(index))
+      style.font = Font;
+      style.state &= ~QStyle::State_HasFocus;
+      const bool isSelected = 0 != (style.state & QStyle::State_Selected);
+      const bool isPaused = Callback.IsPaused(index);
+      const bool isPlaying = Callback.IsPlaying(index);
+      if (isPaused || isPlaying)
       {
-        return Paused;
-      }
-      else if (Callback.IsPlaying(index))
-      {
-        return Playing;
-      }
-      else
-      {
-        return Regular;
+        style.state |= QStyle::State_Selected;
+        const QBrush& bgBrush = isPaused ? Palette.mid() : Palette.text();
+        const QBrush& txtBrush = isSelected ? Palette.highlight() : Palette.base();
+        QPalette& palette = style.palette;
+        palette.setBrush(QPalette::Highlight, bgBrush);
+        palette.setBrush(QPalette::HighlightedText, txtBrush);
       }
     }
   private:
     const PlayitemStateCallback& Callback;
-    QFont Regular;
-    QFont Playing;
-    QFont Paused;
+    QFont Font;
+    QPalette Palette;
   };
 }
 

@@ -57,8 +57,15 @@ namespace
 
     virtual void ShowProgress(unsigned progress, unsigned itemsDone, unsigned totalItems)
     {
-      const QString itemsProgressText = QString("%1/%2").arg(itemsDone).arg(totalItems);
-      itemsProgress->setText(itemsProgressText);
+      if (totalItems)
+      {
+        const QString itemsProgressText = QString("%1/%2").arg(itemsDone).arg(totalItems);
+        itemsProgress->setText(itemsProgressText);
+      }
+      else
+      {
+        itemsProgress->setText(tr("Searching..."));
+      }
       scanProgress->setValue(progress);
     }
 

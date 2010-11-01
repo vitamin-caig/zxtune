@@ -105,6 +105,7 @@ namespace
     {
       if (QFileInfo(CurrentItem).isDir())
       {
+        OnProgress(0, 0, 0);
         for (QDirIterator iterator(CurrentItem, QDir::Files, QDirIterator::Subdirectories); !Canceled && iterator.hasNext(); )
         {
           subitems.append(iterator.next());

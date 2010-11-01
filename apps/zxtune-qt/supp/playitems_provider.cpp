@@ -49,62 +49,104 @@ namespace
     static const uint64_t MAX_CACHE_SIZE = 1048576 * 10;//10Mb
     static const uint_t MAX_CACHE_ITEMS = 1000;
   public:
-    typedef boost::shared_ptr<DataProvider> Ptr;
+    typedef boost::shared_ptr<const DataProvider> Ptr;
 
     DataProvider()
       : CacheSize(0)
     {
     }
 
-    ZXTune::IO::DataContainer::Ptr GetData(const String& dataPath, const Parameters::Accessor& ioParams)
+    ZXTune::IO::DataContainer::Ptr GetData(const String& dataPath, const Parameters::Accessor& ioParams) const
     {
-      //check in cache
       {
         Locker lock(Mutex);
-        const CacheMap::const_iterator cacheIt = Cache.find(dataPath);
-        if (cacheIt != Cache.end())//has cache
+        if (const ZXTune::IO::DataContainer::Ptr cached = FindCachedData(dataPath))
         {
-          Log::Debug(THIS_MODULE, "Getting '%1%' from cache", dataPath);
-          CacheHistory.remove(dataPath);
-          CacheHistory.push_front(dataPath);
-          return cacheIt->second;
+          return cached;
         }
       }
-      //open data
-      ZXTune::IO::DataContainer::Ptr data;
-      {
-        String subpath;
-        ThrowIfError(ZXTune::IO::OpenData(dataPath, ioParams, ZXTune::IO::ProgressCallback(),
-          data, subpath));
-        assert(subpath.empty());
-      }
+      const ZXTune::IO::DataContainer::Ptr data = OpenNewData(dataPath, ioParams);
       //store to cache
       Locker lock(Mutex);
-      const uint64_t thisSize = data->Size();
-      //check and reset cache
-      while ((CacheSize + thisSize > MAX_CACHE_SIZE && !CacheHistory.empty()) ||
-              Cache.size() + 1 > MAX_CACHE_ITEMS)
-      {
-        const String& removedItem(CacheHistory.back());
-        const CacheMap::iterator cacheIt = Cache.find(removedItem);
-        const uint64_t tmpSize = CacheSize - cacheIt->second->Size();
-        Cache.erase(cacheIt);
-        CacheHistory.remove(removedItem);
-        CacheSize = tmpSize;
-        Log::Debug(THIS_MODULE, "Removed '%1%' from cache (new size is %2%)", removedItem, CacheSize);
-      }
-      //fill cache
-      Cache.insert(CacheMap::value_type(dataPath, data));
-      CacheHistory.push_front(dataPath);
-      CacheSize += thisSize;
-      Log::Debug(THIS_MODULE, "Stored '%1%' to cache (new size is %2%)", dataPath, CacheSize);
+      StoreToCache(dataPath, data);
+      FitCache();
       return data;
     }
   private:
-    boost::mutex Mutex;
-    CacheMap Cache;
-    uint64_t CacheSize;
-    CacheList CacheHistory;
+    ZXTune::IO::DataContainer::Ptr FindCachedData(const String& dataPath) const
+    {
+      const CacheMap::const_iterator cacheIt = Cache.find(dataPath);
+      if (cacheIt != Cache.end())//has cache
+      {
+        Log::Debug(THIS_MODULE, "Getting '%1%' from cache", dataPath);
+        CacheHistory.remove(dataPath);
+        CacheHistory.push_front(dataPath);
+        return cacheIt->second;
+      }
+      return ZXTune::IO::DataContainer::Ptr();
+    }
+
+    ZXTune::IO::DataContainer::Ptr OpenNewData(const String& dataPath, const Parameters::Accessor& ioParams) const
+    {
+      ZXTune::IO::DataContainer::Ptr data;
+      String subpath;
+      ThrowIfError(ZXTune::IO::OpenData(dataPath, ioParams, ZXTune::IO::ProgressCallback(),
+        data, subpath));
+      assert(subpath.empty());
+      return data;
+    }
+
+    void StoreToCache(const String& dataPath, const ZXTune::IO::DataContainer::Ptr& data) const
+    {
+      Cache.insert(CacheMap::value_type(dataPath, data));
+      CacheHistory.push_front(dataPath);
+      CacheSize += data->Size();
+      Log::Debug(THIS_MODULE, "Stored '%1%' to cache (new size is %2%)", dataPath, CacheSize);
+    }
+
+    void FitCache() const
+    {
+      assert(!CacheHistory.empty());
+      while (CacheSize > MAX_CACHE_SIZE ||
+             Cache.size() > MAX_CACHE_ITEMS)
+      {
+        const String& removedItem(CacheHistory.back());
+        const CacheMap::iterator cacheIt = Cache.find(removedItem);
+        const uint64_t cacheItemSize = cacheIt->second->Size();
+        const uint64_t newSize = CacheSize - cacheItemSize;
+        Cache.erase(cacheIt);
+        CacheHistory.remove(removedItem);
+        CacheSize = newSize;
+        Log::Debug(THIS_MODULE, "Removed '%1%' from cache (new size is %2%/%3% bytes)", removedItem, Cache.size(), CacheSize);
+      }
+    }
+  private:
+    mutable boost::mutex Mutex;
+    mutable CacheMap Cache;
+    mutable uint64_t CacheSize;
+    mutable CacheList CacheHistory;
+  };
+
+  class ConcreteDataProvider
+  {
+  public:
+    typedef boost::shared_ptr<const ConcreteDataProvider> Ptr;
+
+    ConcreteDataProvider(DataProvider::Ptr provider, const String& dataPath, Parameters::Accessor::Ptr ioParams)
+      : Provider(provider)
+      , DataPath(dataPath)
+      , IOParams(ioParams)
+    {
+    }
+
+    ZXTune::IO::DataContainer::Ptr GetData() const
+    {
+      return Provider->GetData(DataPath, *IOParams);
+    }
+  private:
+    const DataProvider::Ptr Provider;
+    const String DataPath;
+    const Parameters::Accessor::Ptr IOParams;
   };
 
   String GetModuleType(const Parameters::Accessor& props)
@@ -121,12 +163,11 @@ namespace
   class PlayitemAttributesImpl : public PlayitemAttributes
   {
   public:
-    explicit PlayitemAttributesImpl(const ZXTune::Module::Information& info)
-      : Type(GetModuleType(*info.Properties()))
-      , Title(GetModuleTitle(Text::MODULE_PLAYLIST_FORMAT, *info.Properties()))
+    PlayitemAttributesImpl(const ZXTune::Module::Information& info, const Parameters::Accessor& properties)
+      : Type(GetModuleType(properties))
+      , Title(GetModuleTitle(Text::MODULE_PLAYLIST_FORMAT, properties))
       , Duration(info.FramesCount())
     {
-
     }
 
     virtual String GetType() const
@@ -154,17 +195,17 @@ namespace
   public:
     PlayitemImpl(
         //container-specific
-        DataProvider::Ptr provider,
+        ConcreteDataProvider::Ptr provider,
         //location-specific
-        const String& dataPath, const String& subPath,
+        const String& subPath,
         //module-specific
         Parameters::Accessor::Ptr moduleParams,
         Parameters::Container::Ptr adjustedParams,
         PlayitemAttributes::Ptr attributes)
       : Provider(provider)
-      , DataPath(dataPath), SubPath(subPath)
-      , ModuleParams(moduleParams)
+      , SubPath(subPath)
       , AdjustedParams(adjustedParams)
+      , ModuleParams(Parameters::CreateMergedAccessor(AdjustedParams, moduleParams))
       , Attributes(attributes)
     {
     }
@@ -176,10 +217,9 @@ namespace
 
     virtual ZXTune::Module::Holder::Ptr GetModule() const
     {
-      const Parameters::Accessor::Ptr finalParams = Parameters::CreateMergedAccessor(AdjustedParams, ModuleParams);
-      const ZXTune::IO::DataContainer::Ptr data = Provider->GetData(DataPath, *finalParams);
+      const ZXTune::IO::DataContainer::Ptr data = Provider->GetData();
       ZXTune::Module::Holder::Ptr module;
-      ThrowIfError(ZXTune::OpenModule(finalParams, data, SubPath, module));
+      ThrowIfError(ZXTune::OpenModule(ModuleParams, data, SubPath, module));
       return module;
     }
 
@@ -188,10 +228,10 @@ namespace
       return AdjustedParams;
     }
   private:
-    const DataProvider::Ptr Provider;
-    const String DataPath, SubPath;
-    const Parameters::Accessor::Ptr ModuleParams;
+    const ConcreteDataProvider::Ptr Provider;
+    const String SubPath;
     const Parameters::Container::Ptr AdjustedParams;
+    const Parameters::Accessor::Ptr ModuleParams;
     const PlayitemAttributes::Ptr Attributes;
   };
 
@@ -201,9 +241,9 @@ namespace
     DetectParametersAdapter(PlayitemDetectParameters& delegate,
                             DataProvider::Ptr provider, Parameters::Accessor::Ptr commonParams, const String& dataPath)
       : Delegate(delegate)
-      , Provider(provider)
       , CommonParams(commonParams)
       , DataPath(dataPath)
+      , Provider(boost::make_shared<ConcreteDataProvider>(provider, DataPath, CommonParams))
     {
     }
 
@@ -217,13 +257,14 @@ namespace
     {
       const Parameters::Accessor::Ptr pathProperties = CreatePathProperties(DataPath, subPath);
       const ZXTune::Module::Information::Ptr originalInfo = holder->GetModuleInformation();
-      const ZXTune::Module::Information::Ptr extendedInfo = CreateMixinPropertiesInformation(originalInfo, pathProperties);
-      const PlayitemAttributes::Ptr attributes = boost::make_shared<PlayitemAttributesImpl>(*extendedInfo);
-      //no adjusted parameters here- just empty container
+      const Parameters::Accessor::Ptr originalProperties = originalInfo->Properties();
+      const Parameters::Accessor::Ptr extendedProperties = Parameters::CreateMergedAccessor(pathProperties, originalProperties);
+      const PlayitemAttributes::Ptr attributes = boost::make_shared<PlayitemAttributesImpl>(*originalInfo, *extendedProperties);
+      //no adjusted parameters here- just empty container, separate for each playitem
       const Parameters::Container::Ptr adjustedParams = Parameters::Container::Create();
       const Parameters::Accessor::Ptr moduleParams = Parameters::CreateMergedAccessor(CommonParams, pathProperties);
-      const Playitem::Ptr playitem = boost::make_shared<PlayitemImpl>(Provider,
-          DataPath, subPath, moduleParams, adjustedParams, attributes);
+      const Playitem::Ptr playitem = boost::make_shared<PlayitemImpl>(Provider, subPath, 
+        moduleParams, adjustedParams, attributes);
       return Delegate.ProcessPlayitem(playitem) ? Error() : Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
     }
 
@@ -233,9 +274,9 @@ namespace
     }
   private:
     PlayitemDetectParameters& Delegate;
-    const DataProvider::Ptr Provider;
     const Parameters::Accessor::Ptr CommonParams;
     const String DataPath;
+    const ConcreteDataProvider::Ptr Provider;
   };
 
   class PlayitemsProviderImpl : public PlayitemsProvider
