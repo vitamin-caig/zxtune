@@ -32,9 +32,11 @@ public slots:
 signals:
   //for UI
   void OnScanStart();
-  void OnProgress(unsigned progress, unsigned itemsDone, unsigned totalItems);
+  void OnProgressStatus(unsigned progress, unsigned itemsDone, unsigned totalItems);
   void OnProgressMessage(const QString& message, const QString& item);
   void OnScanStop();
+  void OnResolvingStart();
+  void OnResolvingStop();
   //for BL
   void OnGetItem(Playitem::Ptr);
 };

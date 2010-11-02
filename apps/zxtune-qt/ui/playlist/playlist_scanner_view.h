@@ -29,6 +29,8 @@ public slots:
   virtual void ScanStop() = 0;
   virtual void ShowProgress(unsigned, unsigned, unsigned) = 0;
   virtual void ShowProgressMessage(const QString&) = 0;
+  virtual void ShowResolving() = 0;
+  virtual void HideResolving() = 0;
 };
 
 #endif //ZXTUNE_QT_PLAYLIST_SCANNER_VIEW_H_DEFINED

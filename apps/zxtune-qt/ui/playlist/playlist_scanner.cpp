@@ -25,16 +25,200 @@ Author:
 #include <QtCore/QStringList>
 //std includes
 #include <ctime>
-//boost includes
-#include <boost/bind.hpp>
 
 namespace
 {
   const std::string THIS_MODULE("UI::PlaylistScanner");
 
-  class PlaylistScannerImpl : public PlaylistScanner
-                            , private PlayitemDetectParameters
+  class ScannerCallback
   {
+  public:
+    virtual ~ScannerCallback() {}
+
+    virtual bool IsCanceled() const = 0;
+
+    virtual void OnPlayitem(const Playitem::Ptr& item) = 0;
+    virtual void OnProgress(unsigned progress, unsigned curItem) = 0;
+    virtual void OnReport(const QString& report, const QString& item) = 0;
+    virtual void OnError(const Error& err) = 0;
+  };
+
+  class Scanner
+  {
+  public:
+    typedef boost::shared_ptr<Scanner> Ptr;
+
+    virtual ~Scanner() {}
+
+    virtual unsigned Resolve() = 0;
+    virtual void Process() = 0;
+
+    static Ptr CreateOpener(PlayitemsProvider& provider, ScannerCallback& callback, const QStringList& items);
+    static Ptr CreateDetector(PlayitemsProvider& provider, ScannerCallback& callback, const QStringList& items);
+  };
+
+  void ResolveItems(ScannerCallback& callback, QStringList& unresolved, QStringList& resolved)
+  {
+    while (!callback.IsCanceled() && !unresolved.empty())
+    {
+      const QString& curItem = unresolved.takeFirst();
+      if (QFileInfo(curItem).isDir())
+      {
+        for (QDirIterator iterator(curItem, QDir::Files, QDirIterator::Subdirectories); !callback.IsCanceled() && iterator.hasNext(); )
+        {
+          resolved.append(iterator.next());
+        }
+      }
+      else
+      {
+        resolved.append(curItem);
+      }
+    }
+  }
+
+  class DetectParametersWrapper : public PlayitemDetectParameters
+  {
+  public:
+    DetectParametersWrapper(ScannerCallback& callback, unsigned curItemNum, const QString& curItem)
+      : Callback(callback)
+      , CurrentItemNum(curItemNum)
+      , CurrentItem(curItem)
+    {
+    }
+
+    virtual bool ProcessPlayitem(Playitem::Ptr item)
+    {
+      Callback.OnPlayitem(item);
+      return !Callback.IsCanceled();
+    }
+
+    virtual void ShowProgress(const Log::MessageData& msg)
+    {
+      if (0 != msg.Level)
+      {
+        return;
+      }
+      if (msg.Text)
+      {
+        const QString text = ToQString(*msg.Text);
+        Log::Debug(THIS_MODULE, "Scanning %1%", *msg.Text);
+        Callback.OnReport(text, CurrentItem);
+      }
+      if (msg.Progress)
+      {
+        const uint_t curProgress = *msg.Progress;
+        Log::Debug(THIS_MODULE, "Progress %1%", curProgress);
+        Callback.OnProgress(curProgress, CurrentItemNum);
+      }
+    }
+  private:
+    ScannerCallback& Callback;
+    const unsigned CurrentItemNum;
+    const QString& CurrentItem;
+  };
+
+  class OpenScanner : public Scanner
+  {
+  public:
+    OpenScanner(PlayitemsProvider& provider, ScannerCallback& callback, const QStringList& items)
+      : Provider(provider)
+      , Callback(callback)
+      , UnresolvedItems(items)
+    {
+    }
+
+    virtual unsigned Resolve()
+    {
+      ResolveItems(Callback, UnresolvedItems, ResolvedItems);
+      return ResolvedItems.size();
+    }
+
+    virtual void Process()
+    {
+      const unsigned totalItems = ResolvedItems.size();
+      for (unsigned curItemNum = 0; !ResolvedItems.empty() && !Callback.IsCanceled(); ++curItemNum)
+      {
+        const QString& curItem = ResolvedItems.takeFirst();
+        OpenItem(curItem, curItemNum);
+        Callback.OnProgress(curItemNum * 100 / totalItems, curItemNum);
+        Callback.OnReport(QString(), curItem);
+      }
+    }
+  private:
+    void OpenItem(const QString& itemPath, unsigned itemNum)
+    {
+      const String& strPath = FromQString(itemPath);
+      const Parameters::Accessor::Ptr itemParams = Parameters::Container::Create();
+      DetectParametersWrapper detectParams(Callback, itemNum, itemPath);
+      if (const Error& e = Provider.OpenModule(strPath, itemParams, detectParams))
+      {
+        Callback.OnError(e);
+      }
+    }
+  private:
+    PlayitemsProvider& Provider;
+    ScannerCallback& Callback;
+    QStringList UnresolvedItems;
+    QStringList ResolvedItems;
+  };
+
+  class DetectScanner : public Scanner
+  {
+  public:
+    DetectScanner(PlayitemsProvider& provider, ScannerCallback& callback, const QStringList& items)
+      : Provider(provider)
+      , Callback(callback)
+      , UnresolvedItems(items)
+    {
+    }
+
+    virtual unsigned Resolve()
+    {
+      ResolveItems(Callback, UnresolvedItems, ResolvedItems);
+      return ResolvedItems.size();
+    }
+
+    virtual void Process()
+    {
+      for (unsigned curItemNum = 0; !ResolvedItems.empty() && !Callback.IsCanceled(); ++curItemNum)
+      {
+        const QString& curItem = ResolvedItems.takeFirst();
+        DetectSubitems(curItem, curItemNum);
+      }
+    }
+  private:
+    void DetectSubitems(const QString& itemPath, unsigned itemNum)
+    {
+      const String& strPath = FromQString(itemPath);
+      const Parameters::Accessor::Ptr itemParams = Parameters::Container::Create();
+      DetectParametersWrapper detectParams(Callback, itemNum, itemPath);
+      if (const Error& e = Provider.DetectModules(strPath, itemParams, detectParams))
+      {
+        Callback.OnError(e);
+      }
+    }
+  private:
+    PlayitemsProvider& Provider;
+    ScannerCallback& Callback;
+    QStringList UnresolvedItems;
+    QStringList ResolvedItems;
+  };
+
+
+  Scanner::Ptr Scanner::CreateOpener(PlayitemsProvider& provider, ScannerCallback& callback, const QStringList& items)
+  {
+    return Scanner::Ptr(new OpenScanner(provider, callback, items));
+  }
+
+  Scanner::Ptr Scanner::CreateDetector(PlayitemsProvider& provider, ScannerCallback& callback, const QStringList& items)
+  {
+    return Scanner::Ptr(new DetectScanner(provider, callback, items));
+  }
+
+  class PlaylistScannerImpl : public PlaylistScanner
+                            , private ScannerCallback
+  {
+    typedef QList<Scanner::Ptr> ScannersQueue;
   public:
     PlaylistScannerImpl(QObject* owner, PlayitemsProvider::Ptr provider)
       : Provider(provider)
@@ -53,8 +237,10 @@ namespace
       {
         this->wait();
       }
-      QStringList& queue = deepScan ? ScanQueue : OpenQueue;
-      queue.append(items);
+      const Scanner::Ptr scanner = deepScan
+        ? Scanner::CreateDetector(*Provider, *this, items)
+        : Scanner::CreateOpener(*Provider, *this, items);
+      Queue.append(scanner);
       this->start();
     }
 
@@ -62,110 +248,65 @@ namespace
     {
       QMutexLocker lock(&QueueLock);
       Canceled = true;
-      ScanQueue.clear();
-      OpenQueue.clear();
+      Queue.clear();
     }
 
     virtual void run()
     {
       Canceled = false;
+      ItemsDone = ItemsTotal = 0;
       OnScanStart();
-      for (ItemsDone = 0, ItemsTotal = 0; !Canceled;)
+      while (Scanner::Ptr scanner = GetNextScanner())
       {
-        bool deepScan = false;
-        {
-          QMutexLocker lock(&QueueLock);
-          const bool hasToOpen = !OpenQueue.empty();
-          const bool hasToScan = !ScanQueue.empty();
-          if (!hasToOpen && !hasToScan)
-          {
-            break;
-          }
-          deepScan = hasToScan;
-          QStringList& queue = deepScan ? ScanQueue : OpenQueue;
-          CurrentItem = queue.takeFirst();
-        }
-        ProcessCurrentItem(deepScan);
+        OnResolvingStart();
+        const unsigned newItems = scanner->Resolve();
+        OnResolvingStop();
+        ItemsTotal += newItems;
+        scanner->Process();
+        ItemsDone += newItems;
       }
       OnScanStop();
     }
   private:
-    void ProcessCurrentItem(bool deepScan)
+    Scanner::Ptr GetNextScanner()
     {
-      QStringList subitems;
-      ResolveCurrentSubitems(subitems);
-      ItemsTotal += subitems.size();
-      const Parameters::Accessor::Ptr commonParams = Parameters::Container::Create();
-      for (QStringList::ConstIterator it = subitems.constBegin(), lim = subitems.constEnd(); !Canceled && it != lim; ++it, ++ItemsDone)
+      QMutexLocker lock(&QueueLock);
+      if (Canceled || Queue.empty())
       {
-        const String& strPath = FromQString(*it);
-        if (deepScan)
-        {
-          if (const Error& e = Provider->DetectModules(strPath, commonParams, *this))
-          {
-            //TODO: check and show error
-            e.GetText();
-          }
-        }
-        else
-        {
-          if (const Error& e = Provider->OpenModule(strPath, commonParams, *this))
-          {
-            //TODO: check and show error
-            e.GetText();
-          }
-          if (!FilterMessage())
-          {
-            OnProgress(100 * ItemsDone / ItemsTotal, ItemsDone, ItemsTotal);
-          }
-        }
+        return Scanner::Ptr();
       }
+      return Queue.takeFirst();
     }
 
-    void ResolveCurrentSubitems(QStringList& subitems)
+    virtual bool IsCanceled() const
     {
-      if (QFileInfo(CurrentItem).isDir())
-      {
-        OnProgress(0, 0, 0);
-        for (QDirIterator iterator(CurrentItem, QDir::Files, QDirIterator::Subdirectories); !Canceled && iterator.hasNext(); )
-        {
-          subitems.append(iterator.next());
-        }
-      }
-      else
-      {
-        subitems.append(CurrentItem);
-      }
+      return Canceled;
     }
 
-    virtual bool ProcessPlayitem(Playitem::Ptr item)
+    virtual void OnPlayitem(const Playitem::Ptr& item)
     {
       OnGetItem(item);
-      return !Canceled;
     }
 
-    virtual void ShowProgress(const Log::MessageData& msg)
+    virtual void OnProgress(unsigned progress, unsigned curItem)
     {
-      if (0 != msg.Level)
+      if (!FilterMessage())
       {
-        return;
+        OnProgressStatus(progress, ItemsDone + curItem, ItemsTotal);
       }
-      if (FilterMessage())
+    }
+
+    virtual void OnReport(const QString& report, const QString& item)
+    {
+      if (!FilterMessage())
       {
-        return;
+        OnProgressMessage(report, item);
       }
-      if (msg.Progress)
-      {
-        const uint_t curProgress = *msg.Progress;
-        Log::Debug(THIS_MODULE, "Progress %1% (%2%/%3%)", curProgress, ItemsDone, ItemsTotal);
-        OnProgress(curProgress, ItemsDone, ItemsTotal);
-      }
-      if (msg.Text)
-      {
-        const QString text = ToQString(*msg.Text);
-        Log::Debug(THIS_MODULE, "Scanning %1%", *msg.Text);
-        OnProgressMessage(text, CurrentItem);
-      }
+    }
+
+    virtual void OnError(const Error& err)
+    {
+      //TODO
     }
 
     bool FilterMessage()
@@ -181,14 +322,12 @@ namespace
   private:
     const PlayitemsProvider::Ptr Provider;
     QMutex QueueLock;
-    QStringList OpenQueue;
-    QStringList ScanQueue;
+    ScannersQueue Queue;
     //TODO: possibly use events
     volatile bool Canceled;
-    volatile unsigned ItemsDone;
-    volatile unsigned ItemsTotal;
+    unsigned ItemsDone;
+    unsigned ItemsTotal;
     std::time_t LastMessageTime;
-    QString CurrentItem;
   };
 }
 
