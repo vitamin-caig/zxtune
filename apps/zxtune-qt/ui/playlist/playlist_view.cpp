@@ -42,11 +42,13 @@ namespace
     PlaylistTableViewImpl(QWidget* parent, const PlayitemStateCallback& callback, PlaylistModel& model)
       : Callback(callback)
       , Model(model)
+      , Font(QString::fromUtf8(FONT_FAMILY), FONT_SIZE)
     {
       //setup self
       setParent(parent);
       setModel(&Model);
       setItemDelegate(PlaylistItemTableView::Create(this, Callback));
+      setFont(Font);
       //setup ui
       setAcceptDrops(true);
       setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -62,7 +64,8 @@ namespace
       //setup dynamic ui
       if (QHeaderView* const horHeader = horizontalHeader())
       {
-        horHeader->setDefaultAlignment(Qt::AlignLeft);
+        horHeader->setFont(Font);
+        horHeader->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
         horHeader->setHighlightSections(false);
         horHeader->setTextElideMode(Qt::ElideRight);
         horHeader->resizeSection(PlaylistModel::COLUMN_TYPEICON, ICON_WIDTH);
@@ -71,8 +74,9 @@ namespace
       }
       if (QHeaderView* const verHeader = verticalHeader())
       {
+        verHeader->setFont(Font);
+        verHeader->setDefaultAlignment(Qt::AlignRight | Qt::AlignVCenter);
         verHeader->setDefaultSectionSize(ROW_HEIGTH);
-        verHeader->setVisible(false);
       }
 
       //signals
@@ -115,6 +119,7 @@ namespace
   private:
     const PlayitemStateCallback& Callback;
     PlaylistModel& Model;
+    QFont Font;
   };
 
   class PlaylistItemTableViewImpl : public PlaylistItemTableView
@@ -122,7 +127,6 @@ namespace
   public:
     PlaylistItemTableViewImpl(QWidget* parent, const PlayitemStateCallback& callback)
       : Callback(callback)
-      , Font(QString::fromUtf8(FONT_FAMILY), FONT_SIZE)
       , Palette()
     {
       setParent(parent);
@@ -137,7 +141,6 @@ namespace
   private:
     void FillItemStyle(const QModelIndex& index, QStyleOptionViewItem& style) const
     {
-      style.font = Font;
       style.state &= ~QStyle::State_HasFocus;
       const bool isSelected = 0 != (style.state & QStyle::State_Selected);
       const bool isPaused = Callback.IsPaused(index);
@@ -154,7 +157,6 @@ namespace
     }
   private:
     const PlayitemStateCallback& Callback;
-    QFont Font;
     QPalette Palette;
   };
 }

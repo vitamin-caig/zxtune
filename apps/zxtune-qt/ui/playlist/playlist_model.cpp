@@ -430,6 +430,10 @@ namespace
         const RowDataProvider& provider = Providers.GetProvider(role);
         return provider.GetHeader(section);
       }
+      else if (Qt::Vertical == orientation && Qt::DisplayRole == role)
+      {
+        return QVariant(section);
+      }
       return QVariant();
     }
 
