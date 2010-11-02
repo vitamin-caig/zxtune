@@ -215,6 +215,28 @@ namespace
     return Scanner::Ptr(new DetectScanner(provider, callback, items));
   }
 
+  class EventFilter
+  {
+  public:
+    EventFilter()
+      : LastTime(0)
+    {
+    }
+
+    bool operator()()
+    {
+      const std::time_t curTime = ::std::time(0);
+      if (curTime == LastTime)
+      {
+        return true;
+      }
+      LastTime = curTime;
+      return false;
+    }
+  private:
+    std::time_t LastTime;
+  };
+
   class PlaylistScannerImpl : public PlaylistScanner
                             , private ScannerCallback
   {
@@ -225,7 +247,6 @@ namespace
       , Canceled(false)
       , ItemsDone()
       , ItemsTotal()
-      , LastMessageTime()
     {
       setParent(owner);
     }
@@ -290,7 +311,7 @@ namespace
 
     virtual void OnProgress(unsigned progress, unsigned curItem)
     {
-      if (!FilterMessage())
+      if (!StatusFilter())
       {
         OnProgressStatus(progress, ItemsDone + curItem, ItemsTotal);
       }
@@ -298,7 +319,7 @@ namespace
 
     virtual void OnReport(const QString& report, const QString& item)
     {
-      if (!FilterMessage())
+      if (!MessageFilter())
       {
         OnProgressMessage(report, item);
       }
@@ -308,17 +329,6 @@ namespace
     {
       //TODO
     }
-
-    bool FilterMessage()
-    {
-      const std::time_t curTime = ::std::time(0);
-      if (curTime == LastMessageTime)
-      {
-        return true;
-      }
-      LastMessageTime = curTime;
-      return false;
-    }
   private:
     const PlayitemsProvider::Ptr Provider;
     QMutex QueueLock;
@@ -327,7 +337,8 @@ namespace
     volatile bool Canceled;
     unsigned ItemsDone;
     unsigned ItemsTotal;
-    std::time_t LastMessageTime;
+    EventFilter StatusFilter;
+    EventFilter MessageFilter;
   };
 }
 

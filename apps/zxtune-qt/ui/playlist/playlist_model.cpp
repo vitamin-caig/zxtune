@@ -432,7 +432,8 @@ namespace
       }
       else if (Qt::Vertical == orientation && Qt::DisplayRole == role)
       {
-        return QVariant(section);
+        //item number is 1-based
+        return QVariant(section + 1);
       }
       return QVariant();
     }
