@@ -55,6 +55,7 @@ namespace
       setParent(parent);
       setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum));
       setMinimumSize(64, 32);
+      setWindowTitle(tr("Analyzer"));
     }
 
     virtual void InitState(ZXTune::Module::Player::ConstPtr player)

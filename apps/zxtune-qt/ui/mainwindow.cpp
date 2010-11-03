@@ -41,143 +41,46 @@ Author:
 
 namespace
 {
-  class LayoutControl
-  {
-  public:
-    LayoutControl(QMainWindow* mainWindow, QWidget* controlled,
-                     QMenu* layoutMenu, const char* menuTitle)
-      : Action(new QAction(mainWindow))
-    {
-      //setup action
-      Action->setCheckable(true);
-      Action->setChecked(true);//TODO
-      Action->setText(QApplication::translate(mainWindow->objectName().toStdString().c_str(), menuTitle, 0, QApplication::UnicodeUTF8));
-      //integrate
-      layoutMenu->addAction(Action);
-      controlled->connect(Action, SIGNAL(toggled(bool)), SLOT(setVisible(bool)));
-    }
-  private:
-    QAction* const Action;
-  };
-
-  template<class T>
-  class ToolbarControl
-  {
-  public:
-    ToolbarControl(QMainWindow* mainWindow, QMenu* layoutMenu, const char* menuTitle, bool lastInRow)
-      : Control(T::Create(mainWindow))
-      , Toolbar(new QToolBar(mainWindow))
-      , Layout(mainWindow, Toolbar, layoutMenu, menuTitle)
-    {
-      //setup toolbar
-      QSizePolicy sizePolicy1(QSizePolicy::Maximum, QSizePolicy::MinimumExpanding);
-      sizePolicy1.setHorizontalStretch(0);
-      sizePolicy1.setVerticalStretch(0);
-      sizePolicy1.setHeightForWidth(Toolbar->sizePolicy().hasHeightForWidth());
-      Toolbar->setSizePolicy(sizePolicy1);
-      Toolbar->setAllowedAreas(Qt::TopToolBarArea);
-      Toolbar->setFloatable(false);
-      Toolbar->setContextMenuPolicy(Qt::PreventContextMenu);
-      mainWindow->addToolBar(Qt::TopToolBarArea, Toolbar);
-      if (lastInRow)
-      {
-        mainWindow->addToolBarBreak();
-      }
-      Toolbar->addWidget(Control);
-    }
-
-    //accessors
-    T* operator -> () const
-    {
-      return Control;
-    }
-
-    operator T* () const
-    {
-      return Control;
-    }
-  private:
-    T* const Control;
-    QToolBar* const Toolbar;
-    const LayoutControl Layout;
-  };
-
-  template<class T>
-  class WidgetControl
-  {
-  public:
-    WidgetControl(QMainWindow* mainWindow, QMenu* layoutMenu, const char* menuTitle)
-      : Control(T::Create(mainWindow))
-      , Layout(mainWindow, Control, layoutMenu, menuTitle)
-    {
-      mainWindow->centralWidget()->layout()->addWidget(Control);
-    }
-    //accessors
-    T* operator -> () const
-    {
-      return Control;
-    }
-
-    operator T* () const
-    {
-      return Control;
-    }
-  private:
-    T* const Control;
-    const LayoutControl Layout;
-  };
-
-
-  class UiHelper : public Ui::MainWindow
-  {
-  public:
-    explicit UiHelper(QMainWindow* mainWindow)
-    {
-      setupUi(mainWindow);
-    }
-  };
-
   class MainWindowImpl : public MainWindow
-                       , private UiHelper
+                       , public Ui::MainWindow
   {
   public:
     MainWindowImpl(int argc, char* argv[])
-      : UiHelper(this)
-      , About(AboutDialog::Create(this))
+      : About(AboutDialog::Create(this))
       , Components(ComponentsDialog::Create(this))
-      , Controls(this, menuLayout, "Controls", false)
-      , Volume(this, menuLayout, "Volume", true)
-      , Status(this, menuLayout, "Status", false)
-      , Seeking(this, menuLayout, "Seeking", true)
-      , Analyzer(this, menuLayout, "Analyzer", true)
-      , Collection(this, menuLayout, "Playlist")
+      , Controls(PlaybackControls::Create(this))
+      , Volume(VolumeControl::Create(this))
+      , Status(StatusControl::Create(this))
+      , Seeking(SeekControls::Create(this))
+      , Analyzer(AnalyzerControl::Create(this))
+      , MultiPlaylist(PlaylistContainerView::Create(this))
       , Playback(PlaybackSupport::Create(this))
     {
-      //TODO: remove
-      {
-        QStringList items;
-        for (int param = 1; param < argc; ++param)
-        {
-          items.append(QString::fromUtf8(argv[param]));
-        }
-        Collection->CreatePlaylist(items);
-      }
+      setupUi(this);
       //fill menu
       menubar->addMenu(Controls->GetActionsMenu());
-      menubar->addMenu(Collection->GetActionsMenu());
+      menubar->addMenu(MultiPlaylist->GetActionsMenu());
+      //fill toolbar and layout menu
+      AddWidgetWithLayoutControl(AddWidgetOnToolbar(Controls, false));
+      AddWidgetWithLayoutControl(AddWidgetOnToolbar(Volume, true));
+      AddWidgetWithLayoutControl(AddWidgetOnToolbar(Status, false));
+      AddWidgetWithLayoutControl(AddWidgetOnToolbar(Seeking, true));
+      AddWidgetWithLayoutControl(AddWidgetOnToolbar(Analyzer, false));
+      AddWidgetWithLayoutControl(AddWidgetOnLayout(MultiPlaylist));
 
+      //connect root actions
       Components->connect(actionComponents, SIGNAL(triggered()), SLOT(Show()));
       About->connect(actionAbout, SIGNAL(triggered()), SLOT(Show()));
       this->connect(actionAboutQt, SIGNAL(triggered()), SLOT(ShowAboutQt()));
-      //connect root actions
-      Collection->connect(Controls, SIGNAL(OnPrevious()), SLOT(Prev()));
-      Collection->connect(Controls, SIGNAL(OnNext()), SLOT(Next()));
-      Collection->connect(Playback, SIGNAL(OnStartModule(ZXTune::Module::Player::ConstPtr)), SLOT(Play()));
-      Collection->connect(Playback, SIGNAL(OnResumeModule()), SLOT(Play()));
-      Collection->connect(Playback, SIGNAL(OnPauseModule()), SLOT(Pause()));
-      Collection->connect(Playback, SIGNAL(OnStopModule()), SLOT(Stop()));
-      Collection->connect(Playback, SIGNAL(OnFinishModule()), SLOT(Finish()));
-      Playback->connect(Collection, SIGNAL(OnItemActivated(const Playitem&)), SLOT(SetItem(const Playitem&)));
+
+      MultiPlaylist->connect(Controls, SIGNAL(OnPrevious()), SLOT(Prev()));
+      MultiPlaylist->connect(Controls, SIGNAL(OnNext()), SLOT(Next()));
+      MultiPlaylist->connect(Playback, SIGNAL(OnStartModule(ZXTune::Module::Player::ConstPtr)), SLOT(Play()));
+      MultiPlaylist->connect(Playback, SIGNAL(OnResumeModule()), SLOT(Play()));
+      MultiPlaylist->connect(Playback, SIGNAL(OnPauseModule()), SLOT(Pause()));
+      MultiPlaylist->connect(Playback, SIGNAL(OnStopModule()), SLOT(Stop()));
+      MultiPlaylist->connect(Playback, SIGNAL(OnFinishModule()), SLOT(Finish()));
+      Playback->connect(MultiPlaylist, SIGNAL(OnItemActivated(const Playitem&)), SLOT(SetItem(const Playitem&)));
       Playback->connect(Controls, SIGNAL(OnPlay()), SLOT(Play()));
       Playback->connect(Controls, SIGNAL(OnStop()), SLOT(Stop()));
       Playback->connect(Controls, SIGNAL(OnPause()), SLOT(Pause()));
@@ -197,6 +100,16 @@ namespace
       this->connect(Playback, SIGNAL(OnStopModule()), SLOT(StopModule()));
 
       StopModule();
+
+      //TODO: remove
+      {
+        QStringList items;
+        for (int param = 1; param < argc; ++param)
+        {
+          items.append(QString::fromUtf8(argv[param]));
+        }
+        MultiPlaylist->CreatePlaylist(items);
+      }
     }
 
     virtual void StartModule(ZXTune::Module::Player::ConstPtr player)
@@ -217,14 +130,53 @@ namespace
       QMessageBox::aboutQt(this);
     }
   private:
+    QToolBar* AddWidgetOnToolbar(QWidget* widget, bool lastInRow)
+    {
+      QToolBar* const toolBar = new QToolBar(this);
+      QSizePolicy sizePolicy(QSizePolicy::Maximum, QSizePolicy::MinimumExpanding);
+      sizePolicy.setHorizontalStretch(0);
+      sizePolicy.setVerticalStretch(0);
+      sizePolicy.setHeightForWidth(toolBar->sizePolicy().hasHeightForWidth());
+      toolBar->setSizePolicy(sizePolicy);
+      toolBar->setAllowedAreas(Qt::TopToolBarArea);
+      toolBar->setFloatable(false);
+      toolBar->setContextMenuPolicy(Qt::PreventContextMenu);
+      toolBar->addWidget(widget);
+      toolBar->setWindowTitle(widget->windowTitle());
+
+      addToolBar(Qt::TopToolBarArea, toolBar);
+      if (lastInRow)
+      {
+        addToolBarBreak();
+      }
+      return toolBar;
+    }
+
+    void AddWidgetWithLayoutControl(QWidget* widget)
+    {
+      QAction* const action = new QAction(widget);
+      action->setCheckable(true);
+      action->setChecked(true);//TODO
+      action->setText(widget->windowTitle());
+      //integrate
+      menuLayout->addAction(action);
+      widget->connect(action, SIGNAL(toggled(bool)), SLOT(setVisible(bool)));
+    }
+
+    QWidget* AddWidgetOnLayout(QWidget* widget)
+    {
+      centralWidget()->layout()->addWidget(widget);
+      return widget;
+    }
+  private:
     AboutDialog* const About;
     ComponentsDialog* const Components;
-    ToolbarControl<PlaybackControls> Controls;
-    ToolbarControl<VolumeControl> Volume;
-    ToolbarControl<StatusControl> Status;
-    ToolbarControl<SeekControls> Seeking;
-    ToolbarControl<AnalyzerControl> Analyzer;
-    WidgetControl<PlaylistContainerView> Collection;
+    PlaybackControls* const Controls;
+    VolumeControl* const Volume;
+    StatusControl* const Status;
+    SeekControls* const Seeking;
+    AnalyzerControl* const Analyzer;
+    PlaylistContainerView* const MultiPlaylist;
     PlaybackSupport* const Playback;
   };
 }
