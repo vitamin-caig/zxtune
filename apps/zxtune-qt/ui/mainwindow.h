@@ -29,6 +29,8 @@ public:
 public slots:
   virtual void StartModule(ZXTune::Module::Player::ConstPtr) = 0;
   virtual void StopModule() = 0;
+
+  virtual void ShowAboutQt() = 0;
 };
 
 #endif //ZXTUNE_QT_MAINWINDOW_H_DEFINED

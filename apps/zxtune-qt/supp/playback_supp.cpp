@@ -23,18 +23,15 @@ Author:
 #include <sound/backend.h>
 //qt includes
 #include <QtCore/QMutex>
-#include <QtCore/QThread>
-#include <QtGui/QWidget>
 
 namespace
 {
-  class PlaybackSupportImpl : virtual public PlaybackSupport
-                            , virtual private QThread
+  class PlaybackSupportImpl : public PlaybackSupport
   {
   public:
-    explicit PlaybackSupportImpl(QWidget* owner)
+    explicit PlaybackSupportImpl(QObject* owner)
     {
-      PlaybackSupport::setParent(owner);
+      setParent(owner);
     }
 
     virtual ~PlaybackSupportImpl()
@@ -182,7 +179,7 @@ namespace
   };
 }
 
-PlaybackSupport* PlaybackSupport::Create(QWidget* owner)
+PlaybackSupport* PlaybackSupport::Create(QObject* owner)
 {
   REGISTER_METATYPE(ZXTune::Module::Player::ConstPtr);
   assert(owner);

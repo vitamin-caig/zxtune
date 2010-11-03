@@ -18,9 +18,7 @@ Author:
 //std includes
 #include <cassert>
 //qt includes
-#include <QtGui/QMainWindow>
 #include <QtGui/QMenu>
-#include <QtGui/QMenuBar>
 
 namespace
 {
@@ -28,19 +26,12 @@ namespace
                              , private Ui::PlaybackControls
   {
   public:
-    explicit PlaybackControlsImpl(QMainWindow* parent)
+    explicit PlaybackControlsImpl(QWidget* parent)
+      : ActionsMenu(new QMenu(tr("Playback"), this))
     {
       setParent(parent);
       setupUi(this);
-      //create and fill menu
-      QMenuBar* const menuBar = parent->menuBar();
-      QMenu* const menu = menuBar->addMenu(QString::fromUtf8("Playback"));
-      menu->addAction(actionPlay);
-      menu->addAction(actionPause);
-      menu->addAction(actionStop);
-      menu->addSeparator();
-      menu->addAction(actionPrevious);
-      menu->addAction(actionNext);
+      SetupMenu();
       
       //connect actions with self signals
       connect(actionPlay, SIGNAL(triggered()), SIGNAL(OnPlay()));
@@ -49,10 +40,27 @@ namespace
       connect(actionPrevious, SIGNAL(triggered()), SIGNAL(OnPrevious()));
       connect(actionNext, SIGNAL(triggered()), SIGNAL(OnNext()));
     }
+
+    virtual QMenu* GetActionsMenu() const
+    {
+      return ActionsMenu;
+    }
+  private:
+    void SetupMenu()
+    {
+      ActionsMenu->addAction(actionPlay);
+      ActionsMenu->addAction(actionPause);
+      ActionsMenu->addAction(actionStop);
+      ActionsMenu->addSeparator();
+      ActionsMenu->addAction(actionPrevious);
+      ActionsMenu->addAction(actionNext);
+    }
+  private:
+    QMenu* const ActionsMenu;
   };
 }
 
-PlaybackControls* PlaybackControls::Create(QMainWindow* parent)
+PlaybackControls* PlaybackControls::Create(QWidget* parent)
 {
   assert(parent);
   return new PlaybackControlsImpl(parent);

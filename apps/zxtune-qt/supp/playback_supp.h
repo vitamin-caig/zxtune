@@ -18,13 +18,13 @@ Author:
 #include <core/module_types.h>
 #include <sound/backend.h>
 //qt includes
-#include <QtCore/QObject>
+#include <QtCore/QThread>
 
-class PlaybackSupport : public QObject
+class PlaybackSupport : public QThread
 {
   Q_OBJECT
 public:
-  static PlaybackSupport* Create(QWidget* owner);
+  static PlaybackSupport* Create(QObject* owner);
 
 public slots:
   virtual void SetItem(const class Playitem& item) = 0;

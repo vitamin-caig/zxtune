@@ -25,9 +25,7 @@ Author:
 //qt includes
 #include <QtCore/QUrl>
 #include <QtGui/QFileDialog>
-#include <QtGui/QMainWindow>
 #include <QtGui/QMenu>
-#include <QtGui/QMenuBar>
 
 namespace
 {
@@ -56,29 +54,17 @@ namespace
                                   , public Ui::PlaylistContainerView
   {
   public:
-    explicit PlaylistContainerViewImpl(QMainWindow* parent)
+    explicit PlaylistContainerViewImpl(QWidget* parent)
       : Provider(PlayitemsProvider::Create())
       , Container(PlaylistContainer::Create(this))
+      , ActionsMenu(new QMenu(tr("Playlist"), this))
       , AddFileDirectory(QDir::currentPath())
       , ActivePlaylistView(0)
     {
       //setup self
       setParent(parent);
       setupUi(this);
-
-      //create and fill menu
-      QMenuBar* const menuBar = parent->menuBar();
-      QMenu* const menu = menuBar->addMenu(tr("Playlist"));
-      menu->addAction(actionAddFiles);
-      menu->addAction(actionAddFolders);
-      menu->addAction(actionDeepScan);
-      //menu->addAction(actionLoad);
-      //menu->addAction(actionSave);
-      menu->addSeparator();
-      menu->addAction(actionClear);
-      //menu->addSeparator();
-      //menu->addAction(actionLoop);
-      //menu->addAction(actionRandom);
+      SetupMenu();
 
       //connect actions
       this->connect(actionAddFiles, SIGNAL(triggered()), SLOT(AddFiles()));
@@ -92,6 +78,11 @@ namespace
       PlaylistScanner& scanner = playlist.GetScanner();
       const bool deepScan = actionDeepScan->isChecked();
       scanner.AddItems(items, deepScan);
+    }
+
+    virtual QMenu* GetActionsMenu() const
+    {
+      return ActionsMenu;
     }
 
     virtual void Play()
@@ -151,6 +142,20 @@ namespace
       ProcessDialog(QFileDialog::Directory);
     }
   private:
+    void SetupMenu()
+    {
+      ActionsMenu->addAction(actionAddFiles);
+      ActionsMenu->addAction(actionAddFolders);
+      ActionsMenu->addAction(actionDeepScan);
+      //ActionsMenu->addAction(actionLoad);
+      //ActionsMenu->addAction(actionSave);
+      ActionsMenu->addSeparator();
+      ActionsMenu->addAction(actionClear);
+      //ActionsMenu->addSeparator();
+      //ActionsMenu->addAction(actionLoop);
+      //ActionsMenu->addAction(actionRandom);
+    }
+
     void ProcessDialog(QFileDialog::FileMode mode)
     {
       QFileDialog dialog(this);
@@ -211,6 +216,7 @@ namespace
   private:
     PlayitemsProvider::Ptr Provider;
     PlaylistContainer* const Container;
+    QMenu* const ActionsMenu;
     //state context
     QString AddFileDirectory;
     PlaylistView* ActivePlaylistView;
@@ -222,7 +228,7 @@ PlaylistContainer* PlaylistContainer::Create(QObject* parent)
   return new PlaylistContainerImpl(parent);
 }
 
-PlaylistContainerView* PlaylistContainerView::Create(QMainWindow* parent)
+PlaylistContainerView* PlaylistContainerView::Create(QWidget* parent)
 {
   REGISTER_METATYPE(Playitem::Ptr);
   assert(parent);

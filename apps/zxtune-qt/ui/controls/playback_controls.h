@@ -22,7 +22,9 @@ class PlaybackControls : public QWidget
   Q_OBJECT
 public:
   //creator
-  static PlaybackControls* Create(class QMainWindow* parent);
+  static PlaybackControls* Create(QWidget* parent);
+
+  virtual class QMenu* GetActionsMenu() const = 0;
 signals:
   void OnPlay();
   void OnPause();

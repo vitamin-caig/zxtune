@@ -57,8 +57,9 @@
     <property name="title">
      <string>Player</string>
     </property>
-    <addaction name="actionAbout"/>
     <addaction name="actionComponents"/>
+    <addaction name="actionAbout"/>
+    <addaction name="actionAboutQt"/>
     <addaction name="separator"/>
     <addaction name="actionQuit"/>
    </widget>
@@ -75,6 +76,16 @@
     <string>Quit</string>
    </property>
   </action>
+  <action name="actionComponents">
+   <property name="icon">
+    <iconset>
+     <normalon>:/application/components.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Components</string>
+   </property>
+  </action>
   <action name="actionAbout">
    <property name="icon">
     <iconset>
@@ -85,14 +96,9 @@
     <string>About</string>
    </property>
   </action>
-  <action name="actionComponents">
-   <property name="icon">
-    <iconset>
-     <normalon>:/application/components.png</normalon>
-    </iconset>
-   </property>
+  <action name="actionAboutQt">
    <property name="text">
-    <string>Components</string>
+    <string>About QT</string>
    </property>
   </action>
  </widget>

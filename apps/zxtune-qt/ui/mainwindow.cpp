@@ -34,6 +34,7 @@ Author:
 #include <core/module_attrs.h>
 //qt includes
 #include <QtGui/QApplication>
+#include <QtGui/QMessageBox>
 #include <QtGui/QToolBar>
 //text includes
 #include "text/text.h"
@@ -161,9 +162,13 @@ namespace
         }
         Collection->CreatePlaylist(items);
       }
+      //fill menu
+      menubar->addMenu(Controls->GetActionsMenu());
+      menubar->addMenu(Collection->GetActionsMenu());
 
-      About->connect(actionAbout, SIGNAL(triggered()), SLOT(Show()));
       Components->connect(actionComponents, SIGNAL(triggered()), SLOT(Show()));
+      About->connect(actionAbout, SIGNAL(triggered()), SLOT(Show()));
+      this->connect(actionAboutQt, SIGNAL(triggered()), SLOT(ShowAboutQt()));
       //connect root actions
       Collection->connect(Controls, SIGNAL(OnPrevious()), SLOT(Prev()));
       Collection->connect(Controls, SIGNAL(OnNext()), SLOT(Next()));
@@ -205,6 +210,11 @@ namespace
     virtual void StopModule()
     {
       setWindowTitle(ToQString(GetProgramTitle()));
+    }
+
+    virtual void ShowAboutQt()
+    {
+      QMessageBox::aboutQt(this);
     }
   private:
     AboutDialog* const About;
