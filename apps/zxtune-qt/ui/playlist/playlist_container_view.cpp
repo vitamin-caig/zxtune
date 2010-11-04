@@ -1,6 +1,6 @@
 /*
 Abstract:
-  Playlist container implementation
+  Playlist container view implementation
 
 Last changed:
   $Id$
@@ -12,13 +12,14 @@ Author:
 */
 
 //local includes
-#include "playlist_container.h"
-#include "playlist_container_ui.h"
-#include "playlist_container_moc.h"
+#include "playlist_container_view.h"
+#include "playlist_container_view_ui.h"
+#include "playlist_container_view_moc.h"
 #include "playlist_view.h"
-#include "playlist_model.h"
-#include "playlist_scanner.h"
-#include "playlist.h"
+#include "supp/playlist/playlist.h"
+#include "supp/playlist/playlist_container.h"
+#include "supp/playlist/playlist_model.h"
+#include "supp/playlist/playlist_scanner.h"
 #include "ui/utils.h"
 //std includes
 #include <cassert>
@@ -30,25 +31,6 @@ Author:
 namespace
 {
   const std::string THIS_MODULE("UI::Playlist");
-
-  class PlaylistContainerImpl : public PlaylistContainer
-  {
-  public:
-    explicit PlaylistContainerImpl(QObject* parent)
-      : Provider(PlayitemsProvider::Create())
-    {
-      //setup self
-      setParent(parent);
-    }
-
-    virtual PlaylistSupport* CreatePlaylist(const QString& name)
-    {
-      PlaylistSupport* const playlist = PlaylistSupport::Create(this, name, Provider);
-      return playlist;
-    }
-  private:
-    const PlayitemsProvider::Ptr Provider;
-  };
 
   class PlaylistContainerViewImpl : public PlaylistContainerView
                                   , public Ui::PlaylistContainerView
@@ -221,11 +203,6 @@ namespace
     QString AddFileDirectory;
     PlaylistView* ActivePlaylistView;
   };
-}
-
-PlaylistContainer* PlaylistContainer::Create(QObject* parent)
-{
-  return new PlaylistContainerImpl(parent);
 }
 
 PlaylistContainerView* PlaylistContainerView::Create(QWidget* parent)

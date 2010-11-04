@@ -24,7 +24,7 @@ Author:
 #include "ui/controls/volume_control.h"
 #include "ui/informational/aboutdialog.h"
 #include "ui/informational/componentsdialog.h"
-#include "ui/playlist/playlist_container.h"
+#include "ui/playlist/playlist_container_view.h"
 #include "supp/playback_supp.h"
 #include <apps/base/app.h>
 //common includes

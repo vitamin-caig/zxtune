@@ -1,6 +1,6 @@
 /*
 Abstract:
-  Playlist container
+  Playlist container view
 
 Last changed:
   $Id$
@@ -11,23 +11,11 @@ Author:
   This file is a part of zxtune-qt application based on zxtune library
 */
 
-#ifndef ZXTUNE_QT_PLAYLIST_CONTAINER_H_DEFINED
-#define ZXTUNE_QT_PLAYLIST_CONTAINER_H_DEFINED
+#ifndef ZXTUNE_QT_PLAYLIST_CONTAINER_VIEW_H_DEFINED
+#define ZXTUNE_QT_PLAYLIST_CONTAINER_VIEWH_DEFINED
 
-//local includes
-#include "supp/playitems_provider.h"
 //qt includes
 #include <QtGui/QWidget>
-
-class PlaylistContainer : public QObject
-{
-  Q_OBJECT
-public:
-  //creator
-  static PlaylistContainer* Create(QObject* parent);
-
-  virtual class PlaylistSupport* CreatePlaylist(const QString& name) = 0;
-};
 
 class PlaylistContainerView : public QWidget
 {
@@ -52,7 +40,7 @@ public slots:
   virtual void AddFiles() = 0;
   virtual void AddFolders() = 0;
 signals:
-  void OnItemActivated(const Playitem&);
+  void OnItemActivated(const class Playitem&);
 };
 
-#endif //ZXTUNE_QT_PLAYLIST_CONTAINER_H_DEFINED
+#endif //ZXTUNE_QT_PLAYLIST_CONTAINER_VIEW_H_DEFINED

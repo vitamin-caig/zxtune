@@ -12,9 +12,9 @@ Author:
 */
 
 //local includes
-#include "playlist_model.h"
 #include "playlist_table_view.h"
 #include "playlist_table_view_moc.h"
+#include "supp/playlist/playlist_model.h"
 //common includes
 #include <logging.h>
 //boost includes

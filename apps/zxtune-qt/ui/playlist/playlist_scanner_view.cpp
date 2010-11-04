@@ -12,10 +12,10 @@ Author:
 */
 
 //local includes
-#include "playlist_scanner.h"
 #include "playlist_scanner_view.h"
 #include "playlist_scanner_view_ui.h"
 #include "playlist_scanner_view_moc.h"
+#include "supp/playlist/playlist_scanner.h"
 
 namespace
 {

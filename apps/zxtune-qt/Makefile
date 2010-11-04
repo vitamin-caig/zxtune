@@ -4,6 +4,10 @@ include $(path_step)/default.mak
 source_files = qt_app \
                supp/playitems_provider \
                ui/format
+
+#playlist
+moc_files += supp/playlist/playlist_scanner supp/playlist/playlist_model supp/playlist/playlist supp/playlist/playlist_container
+
 #ui-related
 
 #main window is specific for platforms
@@ -27,9 +31,9 @@ ui_files += ui/informational/aboutdialog \
 
 #moc_files += ui/informational/components_model
 
-#playlist
-ui_files += ui/playlist/playlist_container ui/playlist/playlist_scanner_view
-moc_files += ui/playlist/playlist ui/playlist/playlist_model ui/playlist/playlist_scanner ui/playlist/playlist_view ui/playlist/playlist_table_view
+#playlist ui
+ui_files += ui/playlist/playlist_container_view ui/playlist/playlist_scanner_view
+moc_files +=  ui/playlist/playlist_view ui/playlist/playlist_table_view
 
 #other
 moc_files += supp/playback_supp
