@@ -70,8 +70,6 @@ public:
   virtual Error OpenModule(const String& path,
     Parameters::Accessor::Ptr commonParams, PlayitemDetectParameters& detectParams) = 0;
 
-  virtual void ResetCache() = 0;
-
   static Ptr Create();
 };
 
