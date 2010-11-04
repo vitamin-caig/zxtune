@@ -29,7 +29,7 @@ ui_files += ui/informational/aboutdialog \
 
 #playlist
 ui_files += ui/playlist/playlist_container ui/playlist/playlist_scanner_view
-moc_files += ui/playlist/playlist ui/playlist/playlist_model ui/playlist/playlist_scanner ui/playlist/playlist_view
+moc_files += ui/playlist/playlist ui/playlist/playlist_model ui/playlist/playlist_scanner ui/playlist/playlist_view ui/playlist/playlist_table_view
 
 #other
 moc_files += supp/playback_supp
@@ -40,7 +40,7 @@ moc_dir := .moc
 ui_headers := $(addprefix $(ui_dir)/,$(notdir $(ui_files:=_ui.h)))
 moc_headers := $(addprefix $(moc_dir)/,$(notdir $(ui_files:=_moc.h) $(moc_files:=_moc.h)))
 
-source_files += $(ui_files) $(moc_files) 
+source_files += $(ui_files) $(moc_files)
 generated_files += $(ui_headers) $(moc_headers)
 
 include_path = . $(ui_dir) $(moc_dir)

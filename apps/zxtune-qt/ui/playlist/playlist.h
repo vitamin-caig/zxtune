@@ -17,8 +17,7 @@ Author:
 //local includes
 #include "supp/playitems_provider.h"
 //qt includes
-#include <QtCore/QModelIndex>
-#include <QtGui/QWidget>
+#include <QtCore/QObject>
 
 enum PlayitemState
 {
@@ -54,16 +53,6 @@ public:
   virtual class PlaylistScanner& GetScanner() const = 0;
   virtual class PlaylistModel& GetModel() const = 0;
   virtual PlayitemIterator& GetIterator() const = 0;
-};
-
-class PlaylistView : public QWidget
-{
-  Q_OBJECT
-public:
-  static PlaylistView* Create(QWidget* parent, const PlaylistSupport& playlist);
-
-  virtual const PlaylistSupport& GetPlaylist() const = 0;
-  virtual void Update() = 0;
 };
 
 #endif //ZXTUNE_QT_PLAYLIST_H_DEFINED

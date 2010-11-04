@@ -12,161 +12,124 @@ Author:
 */
 
 //local includes
-#include "playlist_model.h"
+#include "playlist.h"
+#include "playlist_scanner.h"
+#include "playlist_scanner_view.h"
+#include "playlist_table_view.h"
 #include "playlist_view.h"
 #include "playlist_view_moc.h"
-//common includes
-#include <logging.h>
 //boost includes
 #include <boost/bind.hpp>
 //qt includes
 #include <QtCore/QUrl>
 #include <QtGui/QDragEnterEvent>
 #include <QtGui/QHeaderView>
+#include <QtGui/QVBoxLayout>
 
 namespace
 {
-  const std::string THIS_MODULE("UI::PlaylistView");
-
-  //Options
-  const char FONT_FAMILY[] = "Arial";
-  const int_t FONT_SIZE = 8;
-  const int_t ROW_HEIGTH = 16;
-  const int_t ICON_WIDTH = 24;
-  const int_t TITLE_WIDTH = 320;
-  const int_t DURATION_WIDTH = 60;
-
-  class PlaylistTableViewImpl : public PlaylistTableView
+  class PlayitemStateCallbackImpl : public PlayitemStateCallback
   {
   public:
-    PlaylistTableViewImpl(QWidget* parent, const PlayitemStateCallback& callback, PlaylistModel& model)
-      : Callback(callback)
-      , Model(model)
-      , Font(QString::fromUtf8(FONT_FAMILY), FONT_SIZE)
+    explicit PlayitemStateCallbackImpl(PlayitemIterator& iter)
+      : Iterator(iter)
+    {
+    }
+
+    virtual bool IsPlaying(const QModelIndex& index) const
+    {
+      assert(index.isValid());
+      if (const Playitem* operationalItem = Iterator.Get())
+      {
+        const Playitem* const indexItem = static_cast<const Playitem*>(index.internalPointer());
+        return indexItem == operationalItem &&
+               Iterator.GetState() == PLAYING;
+      }
+      return false;
+    }
+
+    virtual bool IsPaused(const QModelIndex& index) const
+    {
+      assert(index.isValid());
+      if (const Playitem* operationalItem = Iterator.Get())
+      {
+        const Playitem* const indexItem = static_cast<const Playitem*>(index.internalPointer());
+        return indexItem == operationalItem &&
+               Iterator.GetState() == PAUSED;
+      }
+      return false;
+    }
+  private:
+    const PlayitemIterator& Iterator;
+  };
+
+  const Qt::KeyboardModifiers DEEPSCAN_KEY = Qt::AltModifier;
+
+  class PlaylistViewImpl : public PlaylistView
+  {
+  public:
+    PlaylistViewImpl(QWidget* parent, const PlaylistSupport& playlist)
+      : Playlist(playlist)
+      , State(Playlist.GetIterator())
+      , Layout(new QVBoxLayout(this))
+      , ScannerView(PlaylistScannerView::Create(this, Playlist.GetScanner()))
+      , View(PlaylistTableView::Create(this, State, Playlist.GetModel()))
     {
       //setup self
       setParent(parent);
-      setModel(&Model);
-      setItemDelegate(PlaylistItemTableView::Create(this, Callback));
-      setFont(Font);
       //setup ui
       setAcceptDrops(true);
-      setEditTriggers(QAbstractItemView::NoEditTriggers);
-      setSelectionMode(QAbstractItemView::ExtendedSelection);
-      setSelectionBehavior(QAbstractItemView::SelectRows);
-      setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
-      setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
-      setShowGrid(false);
-      setGridStyle(Qt::NoPen);
-      setSortingEnabled(true);
-      setWordWrap(false);
-      setCornerButtonEnabled(false);
-      //setup dynamic ui
-      if (QHeaderView* const horHeader = horizontalHeader())
-      {
-        horHeader->setFont(Font);
-        horHeader->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-        horHeader->setHighlightSections(false);
-        horHeader->setTextElideMode(Qt::ElideRight);
-        horHeader->resizeSection(PlaylistModel::COLUMN_TYPEICON, ICON_WIDTH);
-        horHeader->resizeSection(PlaylistModel::COLUMN_TITLE, TITLE_WIDTH);
-        horHeader->resizeSection(PlaylistModel::COLUMN_DURATION, DURATION_WIDTH);
-      }
-      if (QHeaderView* const verHeader = verticalHeader())
-      {
-        verHeader->setFont(Font);
-        verHeader->setDefaultAlignment(Qt::AlignRight | Qt::AlignVCenter);
-        verHeader->setDefaultSectionSize(ROW_HEIGTH);
-      }
-
-      //signals
-      this->connect(this, SIGNAL(activated(const QModelIndex&)), SLOT(ActivateItem(const QModelIndex&)));
+      Layout->setSpacing(0);
+      Layout->setMargin(0);
+      Layout->addWidget(View);
+      Layout->addWidget(ScannerView);
+      //setup connections
+      PlayitemIterator& iter = Playlist.GetIterator();
+      iter.connect(View, SIGNAL(OnItemActivated(unsigned, const Playitem&)), SLOT(Reset(unsigned)));
     }
 
-    virtual void ActivateItem(const QModelIndex& index)
+    virtual const PlaylistSupport& GetPlaylist() const
     {
-      const unsigned number = index.row();
-      if (const Playitem::Ptr item = Model.GetItem(number))
-      {
-        OnItemActivated(number, *item);
-      }
+      return Playlist;
     }
 
-    //QWidget virtuals
-    virtual void keyReleaseEvent(QKeyEvent* event)
+    virtual void Update()
     {
-      const int curKey = event->key();
-      if (curKey == Qt::Key_Delete || curKey == Qt::Key_Backspace)
+      View->viewport()->update();
+    }
+
+    virtual void dragEnterEvent(QDragEnterEvent* event)
+    {
+      const bool deepScan = event->keyboardModifiers() & DEEPSCAN_KEY;
+      event->setDropAction(deepScan ? Qt::CopyAction : Qt::MoveAction);
+      event->acceptProposedAction();
+    }
+
+    virtual void dropEvent(QDropEvent* event)
+    {
+      if (event->mimeData()->hasUrls())
       {
-        ClearSelected();
-      }
-      else
-      {
-        QWidget::keyReleaseEvent(event);
+        const QList<QUrl>& urls = event->mimeData()->urls();
+        QStringList files;
+        std::for_each(urls.begin(), urls.end(),
+          boost::bind(&QStringList::push_back, &files,
+            boost::bind(&QUrl::toLocalFile, _1)));
+        PlaylistScanner& scanner = Playlist.GetScanner();
+        //TODO: use key modifiers and change cursor
+        const bool deepScan = event->keyboardModifiers() & DEEPSCAN_KEY;
+        scanner.AddItems(files, deepScan);
       }
     }
   private:
-    void ClearSelected()
-    {
-      const QItemSelectionModel* const selection = selectionModel();
-      const QModelIndexList& items = selection->selectedRows();
-      QSet<unsigned> indexes;
-      std::for_each(items.begin(), items.end(),
-        boost::bind(&QSet<unsigned>::insert, &indexes, 
-          boost::bind(&QModelIndex::row, _1)));
-      Model.RemoveItems(indexes);
-    }
-  private:
-    const PlayitemStateCallback& Callback;
-    PlaylistModel& Model;
-    QFont Font;
-  };
-
-  class PlaylistItemTableViewImpl : public PlaylistItemTableView
-  {
-  public:
-    PlaylistItemTableViewImpl(QWidget* parent, const PlayitemStateCallback& callback)
-      : Callback(callback)
-      , Palette()
-    {
-      setParent(parent);
-    }
-
-    virtual void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
-    {
-      QStyleOptionViewItem fixedOption(option);
-      FillItemStyle(index, fixedOption);
-      PlaylistItemTableView::paint(painter, fixedOption, index);
-    }
-  private:
-    void FillItemStyle(const QModelIndex& index, QStyleOptionViewItem& style) const
-    {
-      style.state &= ~QStyle::State_HasFocus;
-      const bool isSelected = 0 != (style.state & QStyle::State_Selected);
-      const bool isPaused = Callback.IsPaused(index);
-      const bool isPlaying = Callback.IsPlaying(index);
-      if (isPaused || isPlaying)
-      {
-        style.state |= QStyle::State_Selected;
-        const QBrush& bgBrush = isPaused ? Palette.mid() : Palette.text();
-        const QBrush& txtBrush = isSelected ? Palette.highlight() : Palette.base();
-        QPalette& palette = style.palette;
-        palette.setBrush(QPalette::Highlight, bgBrush);
-        palette.setBrush(QPalette::HighlightedText, txtBrush);
-      }
-    }
-  private:
-    const PlayitemStateCallback& Callback;
-    QPalette Palette;
+    const PlaylistSupport& Playlist;
+    PlayitemStateCallbackImpl State;
+    QVBoxLayout* const Layout;
+    PlaylistScannerView* const ScannerView;
+    PlaylistTableView* const View;
   };
 }
 
-PlaylistItemTableView* PlaylistItemTableView::Create(QWidget* parent, const PlayitemStateCallback& callback)
+PlaylistView* PlaylistView::Create(QWidget* parent, const PlaylistSupport& playlist)
 {
-  return new PlaylistItemTableViewImpl(parent, callback);
-}
-
-PlaylistTableView* PlaylistTableView::Create(QWidget* parent, const PlayitemStateCallback& callback, PlaylistModel& model)
-{
-  return new PlaylistTableViewImpl(parent, callback, model);
+  return new PlaylistViewImpl(parent, playlist);
 }
