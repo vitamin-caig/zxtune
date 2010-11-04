@@ -3,7 +3,7 @@ Abstract:
   Playback support implementation
 
 Last changed:
-  $Id: playback_thread.cpp 513 2010-05-19 12:50:41Z vitamin.caig $
+  $Id$
 
 Author:
   (C) Vitamin/CAIG/2001

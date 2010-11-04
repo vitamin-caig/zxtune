@@ -3,7 +3,7 @@ Abstract:
   Playback support interface
 
 Last changed:
-  $Id: playback_thread.h 503 2010-05-16 11:08:27Z vitamin.caig $
+  $Id$
 
 Author:
   (C) Vitamin/CAIG/2001

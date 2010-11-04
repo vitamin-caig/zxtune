@@ -3,7 +3,7 @@ Abstract:
   Playlist data caching provider implementation
 
 Last changed:
-  $Id: playitems_provider.cpp 511 2010-05-18 17:08:54Z vitamin.caig $
+  $Id$
 
 Author:
   (C) Vitamin/CAIG/2001
