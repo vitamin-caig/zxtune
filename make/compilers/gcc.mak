@@ -36,13 +36,14 @@ LD_MODE_FLAGS += --coverage
 endif
 
 DEFINITIONS = $(defines) $($(platform)_definitions) __STDC_CONSTANT_MACROS
+INCLUDES = $(include_dirs) $($(platform)_include_dirs)
 
 #setup flags
 CXXFLAGS := $(CXX_PLATFORM_FLAGS) $(CXX_MODE_FLAGS) $(cxx_flags) -c -MMD -g3 \
 	$(addprefix -D, $(DEFINITIONS)) \
 	-funroll-loops -funsigned-char -fno-strict-aliasing \
 	-W -Wall -Wextra -ansi -pipe \
-	$(addprefix -I, $(include_dirs) $($(platform)_include_dirs))
+	$(addprefix -I, $(INCLUDES))
 
 ARFLAGS := cru
 LDFLAGS := $(LD_PLATFORM_FLAGS) $(LD_MODE_FLAGS) $(ld_flags)
@@ -50,7 +51,7 @@ LDFLAGS := $(LD_PLATFORM_FLAGS) $(LD_MODE_FLAGS) $(ld_flags)
 #specify endpoint commands
 build_obj_cmd = $(CXX) $(CXXFLAGS) $1 -o $2
 build_lib_cmd = $(AR) $(ARFLAGS) $2 $1
-link_cmd = $(LDD) $(LDFLAGS) -o $@ $(object_files) \
+link_cmd = $(LDD) $(LDFLAGS) -o $@ $(OBJECTS) \
 	$(if $(libraries),-L$(libs_dir) $(addprefix -l,$(libraries)),) \
 	$(if $(dynamic_libs),-L$(output_dir) $(addprefix -l,$(dynamic_libs)),) \
 	$(addprefix -L,$($(platform)_libraries_dirs)) $(addprefix -l,$($(platform)_libraries))

@@ -17,7 +17,7 @@ mode := debug
 endif
 
 #set directories
-include_dirs = $(path_step)/include $(path_step)/src $(include_path) $(path_step) 
+include_dirs += $(path_step)/include $(path_step)/src $(path_step)
 libs_dir = $(path_step)/lib/$(platform)/$(mode)$(suffix)
 objs_dir = $(path_step)/obj/$(platform)/$(mode)$(suffix)
 bins_dir = $(path_step)/bin/$(platform)/$(mode)
@@ -46,8 +46,6 @@ else
 $(error Invalid target)
 endif
 
-generated_files += $(text_files:=.h)
-
 #main target
 all: $(target)
 
@@ -61,29 +59,16 @@ endif
 
 #process texts if required
 ifdef text_files
-dep_texts = $(other_text_files:=.txt)
-source_files += $(text_files)
-
-#textator can be get from
-#http://code.google.com/p/textator
-#if were no changes in txt files, just touch .h and .cpp files in this folder or change TEXTATOR to true
-TEXTATOR := textator
-TEXTATOR_FLAGS := --verbose --process --cpp --symboltype "Char" --memtype "extern const" --tab 2 --width 112
-
-%$(src_suffix): %.txt $(dep_texts)
-	$(TEXTATOR) $(TEXTATOR_FLAGS) --inline --output $@ $<
-
-%.h: %.txt $(dep_texts)
-	$(TEXTATOR) $(TEXTATOR_FLAGS) --noinline --output $@ $<
+include $(path_step)/make/textator.mak
 endif
 
+SOURCES = $(addsuffix $(src_suffix),$(source_files))
+
 #calculate object files from sources
-object_files += $(foreach src,$(notdir $(source_files)),\
-                  $(objects_dir)/$(call makeobj_name,$(src)))
+OBJECTS = $(foreach src,$(notdir $(source_files)), $(objects_dir)/$(call makeobj_name,$(src)))
 
 #calculate object files from windows resources
-object_files += $(foreach res,$(notdir $($(platform)_resources)),\
-		  $(objects_dir)/$(call makeres_name,$(res)))
+RESOURCES += $(foreach res,$(notdir $($(platform)_resources)), $(objects_dir)/$(call makeres_name,$(res)))
 
 #make objects and binaries dir
 $(objects_dir):
@@ -97,17 +82,17 @@ $(output_dir):
 #build target
 ifdef library_name
 #simple libraries
-$(target): $(object_files) | $(output_dir)
+$(target): $(generated_files) $(SOURCES) $(OBJECTS) $(RESOURCES) | $(output_dir)
 	$(call build_lib_cmd,$^,$@)
 else
 #binary and dynamic libraries with dependencies
-libs_files = $(foreach lib,$(libraries),$(libs_dir)/$(call makelib_name,$(lib)))
+LIBS = $(foreach lib,$(libraries),$(libs_dir)/$(call makelib_name,$(lib)))
 
-$(target): $(object_files) $(libs_files) | $(output_dir)
+$(target): $(generated_files) $(SOURCES) $(OBJECTS) $(RESOURCES) $(LIBS) | $(output_dir)
 	$(link_cmd)
 	$(postlink_cmd)
 
-$(libs_files): deps
+$(LIBS): deps
 
 deps: $(depends)
 
@@ -115,7 +100,7 @@ $(depends):
 	$(MAKE) -C $(addprefix $(path_step)/,$@) $(if $(pic),pic=1,) $(MAKECMDGOALS)
 endif
 
-$(object_files): | $(objects_dir) $(addsuffix $(src_suffix),$(source_files)) $(addsuffix $(res_suffix),$($(platform)_resources)) $(generated_files)
+$(OBJECTS): | $(objects_dir) $(SOURCES) $(generated_files)
 
 VPATH = $(dir $(source_files) $($(platform)_resources))
 
@@ -147,6 +132,7 @@ help:
 	@echo   help - this page
 	@echo Accepted flags via flag=value options for make:
 	@echo   profile - enable profiling. Default no
+	@echo   release - enable release build. Default no
 	@echo   platform - selected platform. Default '$(platform)'
 	@echo   arch - selected architecture. Default is '$(arch)'
 	@echo   CXX - used compiler. Default '$(CXX)'
