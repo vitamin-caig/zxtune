@@ -13,8 +13,7 @@ Author:
 
 //local includes
 #include "aboutdialog.h"
-#include "aboutdialog_ui.h"
-#include "aboutdialog_moc.h"
+#include "aboutdialog.ui.h"
 #include "ui/utils.h"
 #include <apps/base/app.h>
 //common includes

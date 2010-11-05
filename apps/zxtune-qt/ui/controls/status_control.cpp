@@ -13,8 +13,7 @@ Author:
 
 //local includes
 #include "status_control.h"
-#include "status_control_ui.h"
-#include "status_control_moc.h"
+#include "status_control.ui.h"
 #include "ui/utils.h"
 //common includes
 #include <parameters.h>
@@ -37,7 +36,7 @@ namespace
       setParent(parent);
       setupUi(this);
     }
-    
+
     virtual void InitState(ZXTune::Module::Player::ConstPtr player)
     {
       TrackState = player->GetTrackState();

@@ -37,15 +37,15 @@ moc_files +=  ui/playlist/playlist_view ui/playlist/playlist_table_view
 moc_files += supp/playback_supp
 
 ui_dir := .ui
-moc_dir := .moc
 
-ui_headers := $(addprefix $(ui_dir)/,$(notdir $(ui_files:=_ui.h)))
-moc_headers := $(addprefix $(moc_dir)/,$(notdir $(ui_files:=_moc.h) $(moc_files:=_moc.h)))
+ui_headers := $(addprefix $(ui_dir)/,$(notdir $(ui_files:=.ui)))
+moc_sources := $(addprefix ,$(notdir $(ui_files:=.moc) $(moc_files:=.moc)))
 
 source_files += $(ui_files) $(moc_files)
-generated_files += $(ui_headers) $(moc_headers)
+generated_headers += $(ui_headers)
+generated_sources += $(moc_sources)
 
-include_dirs = . $(ui_dir) $(moc_dir)
+include_dirs = . $(ui_dir)
 
 text_files := text/text
 
@@ -66,7 +66,13 @@ pkg_additional_files_dingux := dist/dingux/menuitem.cfg dist/dingux/zxtune-wrapp
 
 #qt-based resources
 qrc_files := res/icons
-source_files += $(addprefix $(objects_dir)/,$(notdir $(qrc_files)))
+qrc_sources = $(addsuffix .qrc,$(notdir $(qrc_files)))
+#source_files += $(addprefix $(objects_dir)/,$(notdir $(qrc_files)))
+generated_sources += $(qrc_sources)
+
+vpath %.qrc $(sort $(dir $(qrc_files)))
+vpath %.ui $(sort $(dir $(ui_files)))
+vpath %.h $(sort $(dir $(moc_files) $(ui_files)))
 
 #platform-specific resources
 windows_resources := res/zxtune-qt
@@ -75,24 +81,19 @@ mingw_resources := res/zxtune-qt
 include $(path_step)/makefile.mak
 include $(path_step)/make/package.mak
 
-VPATH += res
-
-#generated headers and files
-$(ui_headers): | $(ui_dir)
-$(moc_headers): | $(moc_dir)
-
-$(ui_dir) $(moc_dir):
+#generated headers
+$(ui_dir):
 	$(call makedir_cmd,$@)
 
 UIC := uic
 MOC := moc
 RCC := rcc
 
-$(ui_dir)/%_ui.h: %.ui | $(ui_dir)
+$(ui_dir)/%.ui.h: %.ui | $(ui_dir)
 	$(UIC) $< -o $@
 
-$(moc_dir)/%_moc.h: %.h | $(moc_dir)
-	$(MOC) $(addprefix -D,$(DEFINITIONS)) -i $< -o $@
+%.moc$(src_suffix): %.h
+	$(MOC) $(addprefix -D,$(DEFINITIONS)) $< -o $@
 
-$(objects_dir)/%.cpp: %.qrc
+%.qrc$(src_suffix): %.qrc
 	$(RCC) -name $(basename $(notdir $<)) -o $@ $<

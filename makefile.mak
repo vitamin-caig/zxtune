@@ -5,6 +5,10 @@ include $(path_step)/make/default.mak
 src_suffix := .cpp
 res_suffix := .rc
 
+%$(src_suffix) :
+
+%$(res_suffix) :
+
 ifneq ($(or $(pic),$(dynamic_name)),)
 pic := 1
 suffix := _pic
@@ -18,8 +22,8 @@ endif
 
 #set directories
 include_dirs += $(path_step)/include $(path_step)/src $(path_step)
-libs_dir = $(path_step)/lib/$(platform)/$(mode)$(suffix)
 objs_dir = $(path_step)/obj/$(platform)/$(mode)$(suffix)
+libs_dir = $(path_step)/lib/$(platform)/$(mode)$(suffix)
 bins_dir = $(path_step)/bin/$(platform)/$(mode)
 
 #set platform-specific parameters
@@ -62,10 +66,13 @@ ifdef text_files
 include $(path_step)/make/textator.mak
 endif
 
+GENERATED_HEADERS = $(addsuffix .h,$(generated_headers))
+
 SOURCES = $(addsuffix $(src_suffix),$(source_files))
+GENERATED_SOURCES = $(addsuffix $(src_suffix),$(generated_sources))
 
 #calculate object files from sources
-OBJECTS = $(foreach src,$(notdir $(source_files)), $(objects_dir)/$(call makeobj_name,$(src)))
+OBJECTS = $(foreach src, $(notdir $(source_files) $(generated_sources)), $(objects_dir)/$(call makeobj_name,$(src)))
 
 #calculate object files from windows resources
 RESOURCES += $(foreach res,$(notdir $($(platform)_resources)), $(objects_dir)/$(call makeres_name,$(res)))
@@ -82,13 +89,13 @@ $(output_dir):
 #build target
 ifdef library_name
 #simple libraries
-$(target): $(generated_files) $(SOURCES) $(OBJECTS) $(RESOURCES) | $(output_dir)
+$(target): $(OBJECTS) $(RESOURCES) | $(output_dir)
 	$(call build_lib_cmd,$^,$@)
 else
 #binary and dynamic libraries with dependencies
 LIBS = $(foreach lib,$(libraries),$(libs_dir)/$(call makelib_name,$(lib)))
 
-$(target): $(generated_files) $(SOURCES) $(OBJECTS) $(RESOURCES) $(LIBS) | $(output_dir)
+$(target): $(OBJECTS) $(RESOURCES) $(LIBS) | $(output_dir)
 	$(link_cmd)
 	$(postlink_cmd)
 
@@ -97,17 +104,20 @@ $(LIBS): deps
 deps: $(depends)
 
 $(depends):
-	$(MAKE) -C $(addprefix $(path_step)/,$@) $(if $(pic),pic=1,) $(MAKECMDGOALS)
+	$(MAKE) -C $(addprefix $(path_step)/,$@) $(MAKECMDGOALS)
 endif
 
-$(OBJECTS): | $(objects_dir) $(SOURCES) $(generated_files)
+$(OBJECTS): | $(GENERATED_HEADERS) $(objects_dir)
 
-VPATH = $(dir $(source_files) $($(platform)_resources))
+$(RESOURCES): | $(objects_dir)
+
+vpath %$(src_suffix) $(sort $(dir $(source_files) $(generated_source_files)))
+vpath %$(res_suffix) $(sort $(dir $($(platform)_resources)))
 
 $(objects_dir)/%$(call makeobj_name,): %$(src_suffix)
 	$(call build_obj_cmd,$(CURDIR)/$<,$@)
 
-$(objects_dir)/%$(call makeres_name,): %$(res_suffix) | $(objects_dir)
+$(objects_dir)/%$(call makeres_name,): %$(res_suffix)
 	$(call makeres_cmd,$<,$@)
 
 .PHONY: clean clean_all

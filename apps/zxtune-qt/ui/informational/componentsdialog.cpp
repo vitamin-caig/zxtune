@@ -13,8 +13,7 @@ Author:
 
 //local includes
 #include "componentsdialog.h"
-#include "componentsdialog_ui.h"
-#include "componentsdialog_moc.h"
+#include "componentsdialog.ui.h"
 #include "ui/utils.h"
 //library includes
 #include <core/plugin.h>

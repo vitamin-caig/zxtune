@@ -13,7 +13,6 @@ Author:
 
 //local includes
 #include "playlist_model.h"
-#include "playlist_model_moc.h"
 #include "ui/utils.h"
 //common includes
 #include <formatter.h>

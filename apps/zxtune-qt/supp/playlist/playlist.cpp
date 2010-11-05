@@ -13,7 +13,6 @@ Author:
 
 //local includes
 #include "playlist.h"
-#include "playlist_moc.h"
 #include "playlist_model.h"
 #include "playlist_scanner.h"
 

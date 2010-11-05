@@ -13,8 +13,7 @@ Author:
 
 //local includes
 #include "volume_control.h"
-#include "volume_control_ui.h"
-#include "volume_control_moc.h"
+#include "volume_control.ui.h"
 //common includes
 #include <error.h>
 //std includes

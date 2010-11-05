@@ -14,7 +14,6 @@ Author:
 //local includes
 #include "playlist.h"
 #include "playlist_container.h"
-#include "playlist_container_moc.h"
 
 namespace
 {

@@ -15,7 +15,6 @@ Author:
 #include "playlist_scanner_view.h"
 #include "playlist_table_view.h"
 #include "playlist_view.h"
-#include "playlist_view_moc.h"
 #include "supp/playlist/playlist.h"
 #include "supp/playlist/playlist_scanner.h"
 //boost includes

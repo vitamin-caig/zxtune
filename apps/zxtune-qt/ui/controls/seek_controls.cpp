@@ -13,8 +13,7 @@ Author:
 
 //local includes
 #include "seek_controls.h"
-#include "seek_controls_ui.h"
-#include "seek_controls_moc.h"
+#include "seek_controls.ui.h"
 #include "ui/utils.h"
 //common includes
 #include <formatter.h>

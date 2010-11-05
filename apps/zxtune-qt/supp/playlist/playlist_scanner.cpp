@@ -13,7 +13,6 @@ Author:
 
 //local includes
 #include "playlist_scanner.h"
-#include "playlist_scanner_moc.h"
 #include "ui/utils.h"
 //common includes
 #include <error.h>

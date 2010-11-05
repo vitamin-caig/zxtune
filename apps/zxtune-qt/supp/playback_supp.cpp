@@ -13,7 +13,6 @@ Author:
 
 //local includes
 #include "playback_supp.h"
-#include "playback_supp_moc.h"
 #include "supp/playitems_provider.h"
 #include "ui/utils.h"
 //common includes

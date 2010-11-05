@@ -13,8 +13,7 @@ Author:
 
 //local includes
 #include "playlist_container_view.h"
-#include "playlist_container_view_ui.h"
-#include "playlist_container_view_moc.h"
+#include "playlist_container_view.ui.h"
 #include "playlist_view.h"
 #include "supp/playlist/playlist.h"
 #include "supp/playlist/playlist_container.h"

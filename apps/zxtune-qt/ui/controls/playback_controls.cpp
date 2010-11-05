@@ -13,8 +13,7 @@ Author:
 
 //local includes
 #include "playback_controls.h"
-#include "playback_controls_ui.h"
-#include "playback_controls_moc.h"
+#include "playback_controls.ui.h"
 //std includes
 #include <cassert>
 //qt includes
@@ -32,7 +31,7 @@ namespace
       setParent(parent);
       setupUi(this);
       SetupMenu();
-      
+
       //connect actions with self signals
       connect(actionPlay, SIGNAL(triggered()), SIGNAL(OnPlay()));
       connect(actionPause, SIGNAL(triggered()), SIGNAL(OnPause()));

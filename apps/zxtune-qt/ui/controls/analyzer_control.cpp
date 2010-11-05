@@ -13,7 +13,6 @@ Author:
 
 //local includes
 #include "analyzer_control.h"
-#include "analyzer_control_moc.h"
 //library includes
 #include <core/module_types.h>
 //std includes
@@ -30,14 +29,14 @@ namespace
   const uint_t MAX_BANDS = 12 * 9;
   const uint_t BAR_WIDTH = 3;
   const uint_t LEVELS_FALLBACK = 20;
-  
+
   typedef boost::array<uint_t, MAX_BANDS> Analyzed;
-  
+
   inline uint_t SafeSub(uint_t lh, uint_t rh)
   {
     return lh >= rh ? lh - rh : 0;
   }
-  
+
   inline void StoreValue(const ZXTune::Module::Analyzer::BandAndLevel& chan, Analyzed& result)
   {
     if (chan.first < MAX_BANDS)
@@ -45,7 +44,7 @@ namespace
       result[chan.first] = chan.second;
     }
   }
-  
+
   class AnalyzerControlImpl : public AnalyzerControl
   {
   public:
@@ -63,7 +62,7 @@ namespace
       Analyzer = player->GetAnalyzer();
       CloseState();
     }
-    
+
     virtual void UpdateState()
     {
       std::transform(Levels.begin(), Levels.end(), Levels.begin(), boost::bind(&SafeSub, _1, LEVELS_FALLBACK));
@@ -71,13 +70,13 @@ namespace
       std::for_each(State.begin(), State.end(), boost::bind(&StoreValue, _1, boost::ref(Levels)));
       DoRepaint();
     }
-    
+
     void CloseState()
     {
       std::fill(Levels.begin(), Levels.end(), 0);
       DoRepaint();
     }
-    
+
     virtual void paintEvent(QPaintEvent*)
     {
       QPainter painter(this);
