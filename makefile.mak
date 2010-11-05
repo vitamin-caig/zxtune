@@ -1,4 +1,4 @@
-include $(path_step)/default.mak
+include $(path_step)/make/default.mak
 
 .SUFFIXES:
 
@@ -23,7 +23,7 @@ definitions += $(defines) __STDC_CONSTANT_MACROS
 include $(path_step)/make/platforms/$(platform).mak
 
 #set features
-include $(path_step)/features.mak
+include $(path_step)/make/features.mak
 
 #tune output according to type
 ifdef library_name
@@ -132,8 +132,7 @@ clean_self:
 
 clean_deps: $(depends)
 
-include $(path_step)/codeblocks.mak
-include $(path_step)/package.mak
+include $(path_step)/make/codeblocks.mak
 
 #show some help
 help:

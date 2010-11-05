@@ -22,6 +22,7 @@ pkg_additional_files = ../zxtune.conf $(output_dir)/$(binary_name)_$(pkg_lang).$
 pkg_additional_files_dingux := dist/dingux/menuitem.cfg dist/dingux/readme.txt dist/dingux/zxtune.png
 
 include $(path_step)/makefile.mak
+include $(path_step)/make/package.mak
 
 $(output_dir)/$(binary_name)_$(pkg_lang).$(manual_format): dist/$(binary_name).txt | $(output_dir)
 	$(TEXTATOR) --process --keys $(pkg_lang),$(manual_format) --asm --output $@ $<

@@ -76,6 +76,7 @@ windows_resources := res/zxtune-qt
 mingw_resources := res/zxtune-qt
 
 include $(path_step)/makefile.mak
+include $(path_step)/make/package.mak
 
 object_files += $(qrc_compiled)
 VPATH += $(dir $(qrc_files))
