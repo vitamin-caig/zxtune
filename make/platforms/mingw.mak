@@ -13,7 +13,7 @@ compiler=gcc
 CXX_PLATFORM_FLAGS = -mthreads -march=native
 LD_PLATFORM_FLAGS = -mthreads -static 
 ifdef release
-LD_PLATFORM_FLAGS += -Wl,-subsystem,$(if $(qt_libraries),windows,console)
+LD_PLATFORM_FLAGS += -Wl,-subsystem,$(ifdef $(qt_libraries),windows,console)
 else
 LD_PLATFORM_FLAGS += -Wl,-subsystem,console
 endif
@@ -23,9 +23,12 @@ support_waveout = 1
 support_aylpt_dlportio = 1
 #support_sdl = 1
 
-#to support latest boost building scheme
-definitions += BOOST_THREAD_USE_LIB
-
 #simple library naming convention used
+ifdef boost_libraries
+mingw_definitions += BOOST_THREAD_USE_LIB
 mingw_libraries += $(foreach lib,$(boost_libraries),boost_$(lib))
-mingw_libraries := $(foreach lib,$(qt_libraries),Qt$(lib)) $(mingw_libraries)
+endif
+
+ifdef qt_libraries
+mingw_libraries += $(foreach lib,$(qt_libraries),Qt$(lib))
+endif

@@ -15,7 +15,7 @@ echo "Updating"
 svn up > /dev/null || (echo "Failed to update"; exit 1)
 
 echo "Clearing"
-rm -Rf lib/${Platform}/${Mode} obj/${Platform}/${Mode} || exit 1;
+rm -Rf bin/${Platform}/${Mode} lib/${Platform}/${Mode} obj/${Platform}/${Mode} || exit 1;
 
 # adding additional platform properties if required
 case ${Arch} in

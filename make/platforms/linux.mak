@@ -14,8 +14,11 @@ support_oss = 1
 support_alsa = 1
 #support_sdl = 1
 
-#additional include directories which are intended to be standard
-include_dirs += /usr/include/qt4
-
+ifdef boost_libraries
 linux_libraries += $(foreach lib,$(boost_libraries),boost_$(lib)-mt)
+endif
+
+ifdef qt_libraries
 linux_libraries += $(foreach lib,$(qt_libraries),Qt$(lib))
+include_dirs += /usr/include/qt4
+endif

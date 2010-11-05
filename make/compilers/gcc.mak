@@ -19,7 +19,7 @@ LD_MODE_FLAGS += -pg
 else
 CXX_MODE_FLAGS += -fdata-sections -ffunction-sections
 ifdef release
-LD_MODE_FLAGS += -s -Wl,-O3,-x,--gc-sections,--relax
+LD_MODE_FLAGS += -Wl,-O3,-x,--gc-sections,--relax
 endif
 endif
 
@@ -35,15 +35,17 @@ CXX_MODE_FLAGS += --coverage
 LD_MODE_FLAGS += --coverage
 endif
 
+DEFINITIONS = $(defines) $($(platform)_definitions) __STDC_CONSTANT_MACROS
+
 #setup flags
-CXXFLAGS := $(CXX_PLATFORM_FLAGS) $(CXX_MODE_FLAGS) -c -MMD -g3 \
-	$(addprefix -D, $(definitions)) \
+CXXFLAGS := $(CXX_PLATFORM_FLAGS) $(CXX_MODE_FLAGS) $(cxx_flags) -c -MMD -g3 \
+	$(addprefix -D, $(DEFINITIONS)) \
 	-funroll-loops -funsigned-char -fno-strict-aliasing \
 	-W -Wall -Wextra -ansi -pipe \
 	$(addprefix -I, $(include_dirs) $($(platform)_include_dirs))
 
 ARFLAGS := cru
-LDFLAGS := $(LD_PLATFORM_FLAGS) $(LD_MODE_FLAGS)
+LDFLAGS := $(LD_PLATFORM_FLAGS) $(LD_MODE_FLAGS) $(ld_flags)
 
 #specify endpoint commands
 build_obj_cmd = $(CXX) $(CXXFLAGS) $1 -o $2

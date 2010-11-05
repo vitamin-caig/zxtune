@@ -17,13 +17,10 @@ mode := debug
 endif
 
 #set directories
-include_dirs = $(path_step)/include $(path_step)/src $(path_step) $(include_path)
+include_dirs = $(path_step)/include $(path_step)/src $(include_path) $(path_step) 
 libs_dir = $(path_step)/lib/$(platform)/$(mode)$(suffix)
 objs_dir = $(path_step)/obj/$(platform)/$(mode)$(suffix)
 bins_dir = $(path_step)/bin/$(platform)/$(mode)
-
-#setup environment
-definitions += $(defines) __STDC_CONSTANT_MACROS
 
 #set platform-specific parameters
 include $(path_step)/make/platforms/$(platform).mak
