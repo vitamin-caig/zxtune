@@ -8,14 +8,16 @@ rmfiles_cmd = rm -f $(1)
 showtime_cmd = date +"%x %X"
 
 compiler=gcc
-CXX=${TOOLCHAIN_PATH}/usr/bin/mipsel-linux-g++
-cxx_mode_flags += --sysroot=${TOOLCHAIN_PATH} -B${TOOLCHAIN_PATH} -mips32 \
-  -D'WCHAR_MIN=(0)' -D'WCHAR_MAX=((8 << sizeof(wchar_t)) - 1)'
-LDD=$(CXX)
-ld_mode_flags += --sysroot=${TOOLCHAIN_PATH} -L${TOOLCHAIN_PATH}/usr/mipsel-linux/lib -lstdc++ -lgcc -lc -lm -ldl -lpthread -s
-AR=${TOOLCHAIN_PATH}/usr/bin/mipsel-linux-ar
-OBJCOPY=${TOOLCHAIN_PATH}/usr/bin/mipsel-linux-objcopy
-STRIP=${TOOLCHAIN_PATH}/usr/bin/mipsel-linux-strip
+CXX = ${TOOLCHAIN_PATH}/usr/bin/mipsel-linux-g++
+CXX_PLATFORM_FLAGS = --sysroot=${TOOLCHAIN_PATH} -B${TOOLCHAIN_PATH} -mips32 -D'WCHAR_MIN=(0)' -D'WCHAR_MAX=((8 << sizeof(wchar_t)) - 1)'
+LDD = $(CXX)
+LD_PLATFORM_FLAGS = --sysroot=${TOOLCHAIN_PATH}
+AR = ${TOOLCHAIN_PATH}/usr/bin/mipsel-linux-ar
+OBJCOPY = ${TOOLCHAIN_PATH}/usr/bin/mipsel-linux-objcopy
+STRIP = ${TOOLCHAIN_PATH}/usr/bin/mipsel-linux-strip
+
+dingux_libraries = stdc++ gcc c m dl pthread
+dingux_libraries_dirs = ${TOOLCHAIN_PATH}/usr/mipsel-linux/lib
 
 #built-in features
 support_oss = 1

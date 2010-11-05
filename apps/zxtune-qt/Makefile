@@ -1,6 +1,6 @@
 binary_name := zxtune-qt
 path_step := ../..
-include $(path_step)/default.mak
+
 source_files = qt_app \
                supp/playitems_provider \
                ui/format
@@ -29,8 +29,6 @@ moc_files += ui/controls/analyzer_control
 ui_files += ui/informational/aboutdialog \
             ui/informational/componentsdialog
 
-#moc_files += ui/informational/components_model
-
 #playlist ui
 ui_files += ui/playlist/playlist_container_view ui/playlist/playlist_scanner_view
 moc_files +=  ui/playlist/playlist_view ui/playlist/playlist_table_view
@@ -57,7 +55,7 @@ depends := apps/base src/core src/devices src/io src/sound src/tools
 boost_libraries := thread
 
 qt_libraries := Gui Core
-windows_libraries := gdi32 user32 advapi32 shell32 ole32 oleaut32 imm32 comdlg32 wsock32 winspool uuid oldnames $(if $(subst release,,$(mode)),comsuppwd,comsuppw)
+windows_libraries := gdi32 user32 advapi32 shell32 ole32 oleaut32 imm32 comdlg32 wsock32 winspool uuid oldnames comsuppw$(ifdef release,,d)
 mingw_libraries := gdi32 shell32 ole32 imm32 comdlg32 wsock32 winspool uuid
 
 definitions = QT_LARGEFILE_SUPPORT QT_GUI_LIB QT_CORE_LIB QT_THREAD_SUPPORT

@@ -10,12 +10,12 @@ rmfiles_cmd = del /Q $(subst /,\,$(1))
 showtime_cmd = echo %TIME%
 
 compiler=gcc
-cxx_mode_flags += -mthreads -march=native
-ld_mode_flags += -mthreads -static 
-ifeq ($(mode),release)
-ld_mode_flags += -Wl,-subsystem,$(if $(qt_libraries),windows,console)
+CXX_PLATFORM_FLAGS = -mthreads -march=native
+LD_PLATFORM_FLAGS = -mthreads -static 
+ifdef release
+LD_PLATFORM_FLAGS += -Wl,-subsystem,$(if $(qt_libraries),windows,console)
 else
-ld_mode_flags += -Wl,-subsystem,console
+LD_PLATFORM_FLAGS += -Wl,-subsystem,console
 endif
 
 #built-in features

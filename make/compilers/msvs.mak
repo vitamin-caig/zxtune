@@ -3,22 +3,21 @@ LDD := link.exe
 AR := lib.exe
 
 #set options according to mode
-ifeq ($(mode),release)
-cxx_mode_flags += /Ox /DNDEBUG /MD
-ld_mode_flags += msvcrt.lib msvcprt.lib /SUBSYSTEM:$(if $(qt_libraries),WINDOWS,CONSOLE)
-else ifeq ($(mode),debug)
-cxx_mode_flags += /Od /MDd
-ld_mode_flags += msvcrtd.lib msvcprtd.lib /SUBSYSTEM:CONSOLE
+ifdef release
+CXX_MODE_FLAGS = /Ox /DNDEBUG /MD
+LD_MODE_FLAGS = msvcrt.lib msvcprt.lib /SUBSYSTEM:$(if $(qt_libraries),WINDOWS,CONSOLE)
 else
-$(error Invalid mode)
+CXX_MODE_FLAGS = /Od /MDd
+LD_MODE_FLAGS = msvcrtd.lib msvcprtd.lib /SUBSYSTEM:CONSOLE
 endif
 
 ifdef pic
-cxx_mode_flags += /LD
-ld_mode_flags += /DLL
+CXX_MODE_FLAGS += /LD
+LD_MODE_FLAGS += /DLL
 endif
 
-cxx_mode_flags += \
+#setup flags
+CXXFLAGS := /nologo /c $(CXX_PLATFORM_FLAGS) $(CXX_MODE_FLAGS) \
 	/W3 \
 	/D_SCL_SECURE_NO_WARNINGS \
 	$(addprefix /D, $(definitions)) \
@@ -26,13 +25,17 @@ cxx_mode_flags += \
 	/GA /GF /Gy /Y- \
 	$(addprefix /I, $(include_dirs))
 
-build_obj_cmd = $(CXX) $(cxx_flags) $(cxx_mode_flags) /nologo /c /Fo$2 $1
-build_lib_cmd = $(AR) /NOLOGO /NODEFAULTLIB /OUT:$2 $1
-#ignore some warnings for Qt
-link_cmd = $(LDD) $(ld_mode_flags) /NOLOGO /INCREMENTAL:NO /DEBUG\
+ARFLAGS = /NOLOGO /NODEFAULTLIB
+
+LDFLAGS = /NOLOGO $(LD_PLATFORM_FLAGS) $(LD_MODE_FLAGS) \
+	/INCREMENTAL:NO /DEBUG\
 	/IGNORE:4217 /IGNORE:4049\
-	/OPT:REF,NOWIN98,ICF=5 /NODEFAULTLIB\
-	/OUT:$@ $(object_files) \
+	/OPT:REF,NOWIN98,ICF=5 /NODEFAULTLIB
+
+build_obj_cmd = $(CXX) $(CXXFLAGS) /Fo$2 $1
+build_lib_cmd = $(AR) $(ARFLAGS) /OUT:$2 $1
+#ignore some warnings for Qt
+link_cmd = $(LDD) $(LDFLAGS) /OUT:$@ $(object_files) \
 	kernel32.lib $(addsuffix .lib,$(windows_libraries))\
 	$(if $(libraries),/LIBPATH:$(libs_dir) $(addsuffix .lib,$(libraries)),)\
 	$(if $(dynamic_libs),/LIBPATH:$(output_dir) $(addprefix /DELAYLOAD:,$(addsuffix .dll,$(dynamic_libs))) $(addsuffix .lib,$(dynamic_libs)),)\

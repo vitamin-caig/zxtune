@@ -10,6 +10,12 @@ pic := 1
 suffix := _pic
 endif
 
+ifdef release
+mode := release
+else
+mode := debug
+endif
+
 #set directories
 include_dirs = $(path_step)/include $(path_step)/src $(path_step) $(include_path)
 libs_dir = $(path_step)/lib/$(platform)/$(mode)$(suffix)
@@ -143,7 +149,6 @@ help:
 	@echo   package - create package
 	@echo   help - this page
 	@echo Accepted flags via flag=value options for make:
-	@echo   mode - compilation mode (release,debug). Default '$(mode)'
 	@echo   profile - enable profiling. Default no
 	@echo   platform - selected platform. Default '$(platform)'
 	@echo   arch - selected architecture. Default is '$(arch)'

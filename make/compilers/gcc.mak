@@ -6,51 +6,49 @@ OBJCOPY := $(if $(OBJCOPY),$(OBJCOPY),objcopy)
 STRIP := $(if $(STRIP),$(STRIP),strip)
 
 #set options according to mode
-ifeq ($(mode),release)
-cxx_mode_flags += -O2 -DNDEBUG
-else ifeq ($(mode),debug)
-cxx_mode_flags += -O0
+ifdef release
+CXX_MODE_FLAGS = -O2 -DNDEBUG
 else
-$(error Invalid mode)
+CXX_MODE_FLAGS = -O0
 endif
 
 #setup profiling
 ifdef profile
-cxx_mode_flags += -pg
-ld_mode_flags += -pg
+CXX_MODE_FLAGS += -pg
+LD_MODE_FLAGS += -pg
 else
-cxx_mode_flags += -fdata-sections -ffunction-sections
-ifeq ($(mode),release)
-ld_mode_flags += -Wl,-O3,-x,--gc-sections,--relax
+CXX_MODE_FLAGS += -fdata-sections -ffunction-sections
+ifdef release
+LD_MODE_FLAGS += -s -Wl,-O3,-x,--gc-sections,--relax
 endif
 endif
 
 #setup PIC code
 ifdef pic
-cxx_mode_flags += -fPIC
-ld_mode_flags += -shared
+CXX_MODE_FLAGS += -fPIC
+LD_MODE_FLAGS += -shared
 endif
 
 #setup code coverage
 ifdef coverage
-cxx_mode_flags += --coverage
-ld_mode_flags += --coverage
+CXX_MODE_FLAGS += --coverage
+LD_MODE_FLAGS += --coverage
 endif
 
 #setup flags
-CXX_FLAGS := $(cxx_mode_flags) $(cxx_flags) -g3 \
+CXXFLAGS := $(CXX_PLATFORM_FLAGS) $(CXX_MODE_FLAGS) -c -MMD -g3 \
 	$(addprefix -D, $(definitions)) \
 	-funroll-loops -funsigned-char -fno-strict-aliasing \
 	-W -Wall -Wextra -ansi -pipe \
 	$(addprefix -I, $(include_dirs) $($(platform)_include_dirs))
 
-AR_FLAGS := cru
-LD_FLAGS := $(ld_mode_flags) $(ld_flags)
+ARFLAGS := cru
+LDFLAGS := $(LD_PLATFORM_FLAGS) $(LD_MODE_FLAGS)
 
 #specify endpoint commands
-build_obj_cmd = $(CXX) $(CXX_FLAGS) -c -MMD $1 -o $2
-build_lib_cmd = $(AR) $(AR_FLAGS) $2 $1
-link_cmd = $(LDD) $(LD_FLAGS) -o $@ $(object_files) \
+build_obj_cmd = $(CXX) $(CXXFLAGS) $1 -o $2
+build_lib_cmd = $(AR) $(ARFLAGS) $2 $1
+link_cmd = $(LDD) $(LDFLAGS) -o $@ $(object_files) \
 	$(if $(libraries),-L$(libs_dir) $(addprefix -l,$(libraries)),) \
 	$(if $(dynamic_libs),-L$(output_dir) $(addprefix -l,$(dynamic_libs)),) \
 	$(addprefix -L,$($(platform)_libraries_dirs)) $(addprefix -l,$($(platform)_libraries))
