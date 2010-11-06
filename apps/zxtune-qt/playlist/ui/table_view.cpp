@@ -12,8 +12,8 @@ Author:
 */
 
 //local includes
-#include "playlist_table_view.h"
-#include "supp/playlist/playlist_model.h"
+#include "table_view.h"
+#include "playlist/supp/model.h"
 //common includes
 #include <logging.h>
 //boost includes

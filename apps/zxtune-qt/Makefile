@@ -5,9 +5,6 @@ source_files = qt_app \
                supp/playitems_provider \
                ui/format
 
-#playlist
-moc_files += supp/playlist/playlist_scanner supp/playlist/playlist_model supp/playlist/playlist supp/playlist/playlist_container
-
 #ui-related
 
 #main window is specific for platforms
@@ -29,10 +26,6 @@ moc_files += ui/controls/analyzer_control
 ui_files += ui/informational/aboutdialog \
             ui/informational/componentsdialog
 
-#playlist ui
-ui_files += ui/playlist/playlist_container_view ui/playlist/playlist_scanner_view
-moc_files +=  ui/playlist/playlist_view ui/playlist/playlist_table_view
-
 #other
 moc_files += supp/playback_supp
 
@@ -40,8 +33,8 @@ include_dirs = .
 
 text_files := text/text
 
-libraries := zxtune_app_base core devices io sound tools
-depends := apps/base src/core src/devices src/io src/sound src/tools
+libraries := zxtune_app_base core devices io sound tools playlist_ui playlist_supp
+depends := apps/base src/core src/devices src/io src/sound src/tools apps/zxtune-qt/playlist/supp apps/zxtune-qt/playlist/ui
 
 boost_libraries := thread
 

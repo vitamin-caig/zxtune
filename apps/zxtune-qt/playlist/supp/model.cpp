@@ -12,7 +12,7 @@ Author:
 */
 
 //local includes
-#include "playlist_model.h"
+#include "model.h"
 #include "ui/utils.h"
 //common includes
 #include <formatter.h>

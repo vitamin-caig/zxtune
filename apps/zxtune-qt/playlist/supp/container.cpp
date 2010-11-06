@@ -13,7 +13,7 @@ Author:
 
 //local includes
 #include "playlist.h"
-#include "playlist_container.h"
+#include "container.h"
 
 namespace
 {

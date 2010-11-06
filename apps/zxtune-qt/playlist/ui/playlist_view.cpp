@@ -12,11 +12,11 @@ Author:
 */
 
 //local includes
-#include "playlist_scanner_view.h"
-#include "playlist_table_view.h"
+#include "scanner_view.h"
+#include "table_view.h"
 #include "playlist_view.h"
-#include "supp/playlist/playlist.h"
-#include "supp/playlist/playlist_scanner.h"
+#include "playlist/supp/playlist.h"
+#include "playlist/supp/scanner.h"
 //boost includes
 #include <boost/bind.hpp>
 //qt includes

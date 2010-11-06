@@ -13,8 +13,8 @@ Author:
 
 //local includes
 #include "playlist.h"
-#include "playlist_model.h"
-#include "playlist_scanner.h"
+#include "model.h"
+#include "scanner.h"
 
 namespace
 {

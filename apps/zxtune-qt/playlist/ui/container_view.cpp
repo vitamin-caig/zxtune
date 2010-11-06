@@ -12,13 +12,13 @@ Author:
 */
 
 //local includes
-#include "playlist_container_view.h"
-#include "playlist_container_view.ui.h"
+#include "container_view.h"
+#include "container_view.ui.h"
 #include "playlist_view.h"
-#include "supp/playlist/playlist.h"
-#include "supp/playlist/playlist_container.h"
-#include "supp/playlist/playlist_model.h"
-#include "supp/playlist/playlist_scanner.h"
+#include "playlist/supp/playlist.h"
+#include "playlist/supp/container.h"
+#include "playlist/supp/model.h"
+#include "playlist/supp/scanner.h"
 #include "ui/utils.h"
 //std includes
 #include <cassert>
