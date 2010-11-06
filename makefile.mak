@@ -66,6 +66,11 @@ ifdef text_files
 include $(path_step)/make/textator.mak
 endif
 
+#process qt if required
+ifneq ($(or $(qt_libraries),$(ui_files),$(moc_files),$(qrc_files)),)
+include $(path_step)/make/qt.mak
+endif
+
 GENERATED_HEADERS = $(addsuffix .h,$(generated_headers))
 
 SOURCES = $(addsuffix $(src_suffix),$(source_files))
@@ -150,3 +155,4 @@ help:
 	@echo   LD - used linker. Default '$(LD)'
 	@echo   ld_flags - some specific linking flags. Default '$(ld_flags)'
 	@echo   defines - additional defines.  Default '$(defines)'
+
