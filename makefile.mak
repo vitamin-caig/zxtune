@@ -9,6 +9,8 @@ res_suffix := .rc
 
 %$(res_suffix) :
 
+%.mak :
+
 ifneq ($(or $(pic),$(dynamic_name)),)
 pic := 1
 suffix := _pic

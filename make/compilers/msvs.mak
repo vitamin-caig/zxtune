@@ -37,6 +37,7 @@ LDFLAGS = /NOLOGO $(LD_PLATFORM_FLAGS) $(LD_MODE_FLAGS) $(ld_flags) \
 	/OPT:REF,NOWIN98,ICF=5 /NODEFAULTLIB
 
 build_obj_cmd = $(CXX) $(CXXFLAGS) /Fo$2 $1
+build_obj_cmd_nodeps = $(build_obj_cmd)
 build_lib_cmd = $(AR) $(ARFLAGS) /OUT:$2 $1
 #ignore some warnings for Qt
 link_cmd = $(LDD) $(LDFLAGS) /OUT:$@ $(OBJECTS) \

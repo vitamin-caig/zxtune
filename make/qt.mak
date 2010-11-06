@@ -1,6 +1,6 @@
 ui_dir = $(objects_dir)/.ui
 ui_headers = $(addprefix $(ui_dir)/,$(notdir $(ui_files:=.ui)))
-moc_sources = $(addprefix ,$(notdir $(ui_files:=.moc) $(moc_files:=.moc)))
+moc_sources = $(ui_files:=.moc) $(moc_files:=.moc)
 
 source_files += $(ui_files) $(moc_files)
 generated_headers += $(ui_headers)
@@ -10,7 +10,7 @@ include_dirs += $(ui_dir)
 
 defines += QT_LARGEFILE_SUPPORT QT_GUI_LIB QT_CORE_LIB QT_THREAD_SUPPORT
 
-qrc_sources = $(addsuffix .qrc,$(notdir $(qrc_files)))
+qrc_sources = $(qrc_files:=.qrc)
 generated_sources += $(qrc_sources)
 
 vpath %.qrc $(sort $(dir $(qrc_files)))
@@ -32,3 +32,10 @@ $(ui_dir)/%.ui.h: %.ui | $(ui_dir)
 
 %.qrc$(src_suffix): %.qrc
 	$(RCC) -name $(basename $(notdir $<)) -o $@ $<
+
+#disable dependencies generation for generated files
+$(objects_dir)/%$(call makeobj_name,.moc): %.moc$(src_suffix)
+	$(call build_obj_cmd_nodeps,$(CURDIR)/$<,$@)
+
+$(objects_dir)/%$(call makeobj_name,.qrc): %.qrc$(src_suffix)
+	$(call build_obj_cmd_nodeps,$(CURDIR)/$<,$@)
