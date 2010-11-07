@@ -29,15 +29,13 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("UI::Playlist");
-
   class PlaylistContainerViewImpl : public PlaylistContainerView
                                   , public Ui::PlaylistContainerView
   {
   public:
     explicit PlaylistContainerViewImpl(QWidget* parent)
-      : Provider(PlayitemsProvider::Create())
-      , Container(PlaylistContainer::Create(this))
+      //TODO: from global parameters
+      : Container(PlaylistContainer::Create(this, Parameters::Container::Create(), Parameters::Container::Create()))
       , ActionsMenu(new QMenu(tr("Playlist"), this))
       , AddFileDirectory(QDir::currentPath())
       , ActivePlaylistView(0)
@@ -195,7 +193,6 @@ namespace
       return ActivePlaylistView->GetPlaylist();
     }
   private:
-    PlayitemsProvider::Ptr Provider;
     PlaylistContainer* const Container;
     QMenu* const ActionsMenu;
     //state context

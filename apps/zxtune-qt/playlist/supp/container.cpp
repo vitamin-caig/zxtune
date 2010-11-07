@@ -20,8 +20,8 @@ namespace
   class PlaylistContainerImpl : public PlaylistContainer
   {
   public:
-    explicit PlaylistContainerImpl(QObject* parent)
-      : Provider(PlayitemsProvider::Create())
+    PlaylistContainerImpl(QObject* parent, Parameters::Accessor::Ptr ioParams, Parameters::Accessor::Ptr coreParams)
+      : Provider(PlayitemsProvider::Create(ioParams, coreParams))
     {
       //setup self
       setParent(parent);
@@ -37,7 +37,7 @@ namespace
   };
 }
 
-PlaylistContainer* PlaylistContainer::Create(QObject* parent)
+PlaylistContainer* PlaylistContainer::Create(QObject* parent, Parameters::Accessor::Ptr ioParams, Parameters::Accessor::Ptr coreParams)
 {
-  return new PlaylistContainerImpl(parent);
+  return new PlaylistContainerImpl(parent, ioParams, coreParams);
 }

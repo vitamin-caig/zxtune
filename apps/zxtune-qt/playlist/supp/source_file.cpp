@@ -112,9 +112,8 @@ namespace
     void OpenItem(const QString& itemPath, unsigned itemNum)
     {
       const String& strPath = FromQString(itemPath);
-      const Parameters::Accessor::Ptr itemParams = Parameters::Container::Create();
       DetectParametersWrapper detectParams(Callback, itemNum, itemPath);
-      if (const Error& e = Provider.OpenModule(strPath, itemParams, detectParams))
+      if (const Error& e = Provider.OpenModule(strPath, detectParams))
       {
         Callback.OnError(e);
       }
@@ -154,9 +153,8 @@ namespace
     void DetectSubitems(const QString& itemPath, unsigned itemNum)
     {
       const String& strPath = FromQString(itemPath);
-      const Parameters::Accessor::Ptr itemParams = Parameters::Container::Create();
       DetectParametersWrapper detectParams(Callback, itemNum, itemPath);
-      if (const Error& e = Provider.DetectModules(strPath, itemParams, detectParams))
+      if (const Error& e = Provider.DetectModules(strPath, detectParams))
       {
         Callback.OnError(e);
       }

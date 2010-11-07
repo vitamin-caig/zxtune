@@ -221,13 +221,13 @@ namespace
         //location-specific
         const String& subPath,
         //module-specific
-        Parameters::Accessor::Ptr moduleParams,
+        Parameters::Accessor::Ptr coreParams,
         Parameters::Container::Ptr adjustedParams,
         PlayitemAttributes::Ptr attributes)
       : Source(source)
       , SubPath(subPath)
       , AdjustedParams(adjustedParams)
-      , ModuleParams(Parameters::CreateMergedAccessor(AdjustedParams, moduleParams))
+      , ModuleParams(Parameters::CreateMergedAccessor(AdjustedParams, coreParams))
       , Attributes(attributes)
     {
     }
@@ -245,7 +245,7 @@ namespace
       return module;
     }
 
-    virtual Parameters::Accessor::Ptr GetAdjustedParameters() const
+    virtual Parameters::Container::Ptr GetAdjustedParameters() const
     {
       return AdjustedParams;
     }
@@ -261,9 +261,9 @@ namespace
   {
   public:
     DetectParametersAdapter(PlayitemDetectParameters& delegate,
-                            CachedDataProvider::Ptr provider, Parameters::Accessor::Ptr commonParams, const String& dataPath)
+                            CachedDataProvider::Ptr provider, Parameters::Accessor::Ptr coreParams, const String& dataPath)
       : Delegate(delegate)
-      , CommonParams(commonParams)
+      , CoreParams(coreParams)
       , DataPath(dataPath)
       , Source(boost::make_shared<DataSource>(provider, dataPath))
     {
@@ -277,16 +277,13 @@ namespace
 
     virtual Error ProcessModule(const String& subPath, ZXTune::Module::Holder::Ptr holder) const
     {
-      const Parameters::Accessor::Ptr pathProperties = CreatePathProperties(DataPath, subPath);
+      //adjusted parameters- simple path properties, separate for each playitem
+      const Parameters::Container::Ptr adjustedParams = CreateInitialAdjustedParameters(subPath);
       const ZXTune::Module::Information::Ptr originalInfo = holder->GetModuleInformation();
       const Parameters::Accessor::Ptr originalProperties = originalInfo->Properties();
-      const Parameters::Accessor::Ptr extendedProperties = Parameters::CreateMergedAccessor(pathProperties, originalProperties);
+      const Parameters::Accessor::Ptr extendedProperties = Parameters::CreateMergedAccessor(adjustedParams, originalProperties);
       const PlayitemAttributes::Ptr attributes = boost::make_shared<PlayitemAttributesImpl>(*originalInfo, *extendedProperties);
-      //no adjusted parameters here- just empty container, separate for each playitem
-      const Parameters::Container::Ptr adjustedParams = Parameters::Container::Create();
-      const Parameters::Accessor::Ptr moduleParams = Parameters::CreateMergedAccessor(CommonParams, pathProperties);
-      const Playitem::Ptr playitem = boost::make_shared<PlayitemImpl>(Source, subPath,
-        moduleParams, adjustedParams, attributes);
+      const Playitem::Ptr playitem = boost::make_shared<PlayitemImpl>(Source, subPath, CoreParams, adjustedParams, attributes);
       return Delegate.ProcessPlayitem(playitem) ? Error() : Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
     }
 
@@ -295,8 +292,16 @@ namespace
       Delegate.ShowProgress(message);
     }
   private:
+    Parameters::Container::Ptr CreateInitialAdjustedParameters(const String& subPath) const
+    {
+      const Parameters::Accessor::Ptr pathProperties = CreatePathProperties(DataPath, subPath);
+      const Parameters::Container::Ptr result = Parameters::Container::Create();
+      pathProperties->Process(*result);
+      return result;
+    }
+  private:
     PlayitemDetectParameters& Delegate;
-    const Parameters::Accessor::Ptr CommonParams;
+    const Parameters::Accessor::Ptr CoreParams;
     const String DataPath;
     const DataSource::Ptr Source;
   };
@@ -304,13 +309,13 @@ namespace
   class PlayitemsProviderImpl : public PlayitemsProvider
   {
   public:
-    explicit PlayitemsProviderImpl(Parameters::Accessor::Ptr ioParams)
+    explicit PlayitemsProviderImpl(Parameters::Accessor::Ptr ioParams, Parameters::Accessor::Ptr coreParams)
       : Provider(new CachedDataProvider(ioParams))
+      , CoreParams(coreParams)
     {
     }
 
-    virtual Error DetectModules(const String& path,
-                                Parameters::Accessor::Ptr commonParams, PlayitemDetectParameters& detectParams)
+    virtual Error DetectModules(const String& path, PlayitemDetectParameters& detectParams)
     {
       try
       {
@@ -318,8 +323,8 @@ namespace
         ThrowIfError(ZXTune::IO::SplitUri(path, dataPath, subPath));
         const ZXTune::IO::DataContainer::Ptr data = Provider->GetData(dataPath);
 
-        const DetectParametersAdapter params(detectParams, Provider, commonParams, dataPath);
-        ThrowIfError(ZXTune::DetectModules(commonParams, params, data, subPath));
+        const DetectParametersAdapter params(detectParams, Provider, CoreParams, dataPath);
+        ThrowIfError(ZXTune::DetectModules(CoreParams, params, data, subPath));
         return Error();
       }
       catch (const Error& e)
@@ -328,8 +333,7 @@ namespace
       }
     }
 
-    virtual Error OpenModule(const String& path,
-                             Parameters::Accessor::Ptr commonParams, PlayitemDetectParameters& detectParams)
+    virtual Error OpenModule(const String& path, PlayitemDetectParameters& detectParams)
     {
       try
       {
@@ -337,9 +341,9 @@ namespace
         ThrowIfError(ZXTune::IO::SplitUri(path, dataPath, subPath));
         const ZXTune::IO::DataContainer::Ptr data = Provider->GetData(dataPath);
 
-        const DetectParametersAdapter params(detectParams, Provider, commonParams, dataPath);
+        const DetectParametersAdapter params(detectParams, Provider, CoreParams, dataPath);
         ZXTune::Module::Holder::Ptr result;
-        ThrowIfError(ZXTune::OpenModule(commonParams, data, subPath, result));
+        ThrowIfError(ZXTune::OpenModule(CoreParams, data, subPath, result));
         ThrowIfError(params.ProcessModule(subPath, result));
         return Error();
       }
@@ -350,12 +354,11 @@ namespace
     }
   private:
     CachedDataProvider::Ptr Provider;
+    const Parameters::Accessor::Ptr CoreParams;
   };
 }
 
-PlayitemsProvider::Ptr PlayitemsProvider::Create()
+PlayitemsProvider::Ptr PlayitemsProvider::Create(Parameters::Accessor::Ptr ioParams, Parameters::Accessor::Ptr coreParams)
 {
-  //TODO
-  const Parameters::Accessor::Ptr ioParams = Parameters::Container::Create();
-  return PlayitemsProvider::Ptr(new PlayitemsProviderImpl(ioParams));
+  return PlayitemsProvider::Ptr(new PlayitemsProviderImpl(ioParams, coreParams));
 }

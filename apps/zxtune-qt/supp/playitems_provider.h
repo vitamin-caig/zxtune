@@ -43,7 +43,7 @@ public:
 
   virtual const PlayitemAttributes& GetAttributes() const = 0;
   virtual ZXTune::Module::Holder::Ptr GetModule() const = 0;
-  virtual Parameters::Accessor::Ptr GetAdjustedParameters() const = 0;
+  virtual Parameters::Container::Ptr GetAdjustedParameters() const = 0;
 };
 
 Q_DECLARE_METATYPE(Playitem::Ptr);
@@ -64,13 +64,11 @@ public:
 
   virtual ~PlayitemsProvider() {}
 
-  virtual Error DetectModules(const String& path,
-    Parameters::Accessor::Ptr commonParams, PlayitemDetectParameters& detectParams) = 0;
+  virtual Error DetectModules(const String& path, PlayitemDetectParameters& detectParams) = 0;
 
-  virtual Error OpenModule(const String& path,
-    Parameters::Accessor::Ptr commonParams, PlayitemDetectParameters& detectParams) = 0;
+  virtual Error OpenModule(const String& path, PlayitemDetectParameters& detectParams) = 0;
 
-  static Ptr Create();
+  static Ptr Create(Parameters::Accessor::Ptr ioParams, Parameters::Accessor::Ptr coreParams);
 };
 
 #endif //ZXTUNE_QT_PLAYITEMS_PROVIDER_H_DEFINED

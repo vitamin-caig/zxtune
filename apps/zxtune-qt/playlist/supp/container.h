@@ -14,6 +14,8 @@ Author:
 #ifndef ZXTUNE_QT_PLAYLIST_CONTAINER_H_DEFINED
 #define ZXTUNE_QT_PLAYLIST_CONTAINER_H_DEFINED
 
+//common includes
+#include <parameters.h>
 //qt includes
 #include <QtCore/QObject>
 
@@ -22,7 +24,7 @@ class PlaylistContainer : public QObject
   Q_OBJECT
 public:
   //creator
-  static PlaylistContainer* Create(QObject* parent);
+  static PlaylistContainer* Create(QObject* parent, Parameters::Accessor::Ptr ioParams, Parameters::Accessor::Ptr coreParams);
 
   virtual class PlaylistSupport* CreatePlaylist(const QString& name) = 0;
 };
