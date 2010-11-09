@@ -36,11 +36,9 @@ text_files := text/text
 libraries := zxtune_app_base core devices io sound tools playlist_ui playlist_supp
 depends := apps/base src/core src/devices src/io src/sound src/tools apps/zxtune-qt/playlist/supp apps/zxtune-qt/playlist/ui
 
-boost_libraries := thread
+boost_libraries = thread
 
-qt_libraries := Gui Core
-windows_libraries := gdi32 user32 advapi32 shell32 ole32 oleaut32 imm32 comdlg32 wsock32 winspool uuid oldnames comsuppw$(ifdef release,,d)
-mingw_libraries := gdi32 shell32 ole32 imm32 comdlg32 wsock32 winspool uuid
+qt_libraries = Gui Core
 
 #packaging
 pkg_additional_files_linux := dist/linux/zxTune.desktop res/zxtune.png

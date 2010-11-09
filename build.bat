@@ -20,5 +20,6 @@ ECHO Done!
 GOTO Exit
 :Error
 ECHO Failed
+SET
 :Exit
 pause

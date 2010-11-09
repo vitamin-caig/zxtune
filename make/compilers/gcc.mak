@@ -1,9 +1,12 @@
 #basic definitions for tools
-CXX := $(if $(CXX),$(CXX),g++)
-LDD := $(if $(LDD),$(LDD),g++)
-AR := $(if $(AR),$(AR),ar)
-OBJCOPY := $(if $(OBJCOPY),$(OBJCOPY),objcopy)
-STRIP := $(if $(STRIP),$(STRIP),strip)
+CXX ?= g++
+LDD ?= g++
+AR ?= ar
+OBJCOPY ?= objcopy
+STRIP ?= strip
+
+LINKER_BEGIN_GROUP ?= -Wl,-(
+LINKER_END_GROUP ?= -Wl,-)
 
 #set options according to mode
 ifdef release
@@ -36,14 +39,14 @@ LD_MODE_FLAGS += --coverage
 endif
 
 DEFINITIONS = $(defines) $($(platform)_definitions) __STDC_CONSTANT_MACROS
-INCLUDES = $(include_dirs) $($(platform)_include_dirs)
+INCLUDES = $(sort $(include_dirs) $($(platform)_include_dirs))
 
 #setup flags
 CXXFLAGS = $(CXX_PLATFORM_FLAGS) $(CXX_MODE_FLAGS) $(cxx_flags) -c -g3 \
-	$(addprefix -D, $(DEFINITIONS)) \
+	$(addprefix -D,$(DEFINITIONS)) \
 	-funroll-loops -funsigned-char -fno-strict-aliasing \
 	-W -Wall -Wextra -ansi -pipe \
-	$(addprefix -I, $(INCLUDES))
+	$(addprefix -I,$(INCLUDES))
 
 ARFLAGS := cru
 LDFLAGS = $(LD_PLATFORM_FLAGS) $(LD_MODE_FLAGS) $(ld_flags)
@@ -52,10 +55,12 @@ LDFLAGS = $(LD_PLATFORM_FLAGS) $(LD_MODE_FLAGS) $(ld_flags)
 build_obj_cmd = $(CXX) $(CXXFLAGS) -MMD $1 -o $2
 build_obj_cmd_nodeps = $(CXX) $(CXXFLAGS) $1 -o $2
 build_lib_cmd = $(AR) $(ARFLAGS) $2 $1
-link_cmd = $(LDD) $(LDFLAGS) -o $@ $(OBJECTS) \
-	$(if $(libraries),-L$(libs_dir) $(addprefix -l,$(libraries)),) \
-	$(if $(dynamic_libs),-L$(output_dir) $(addprefix -l,$(dynamic_libs)),) \
-	$(addprefix -L,$($(platform)_libraries_dirs)) $(addprefix -l,$($(platform)_libraries))
+link_cmd = $(LDD) $(LDFLAGS) -o $@ $(OBJECTS) $(RESOURCES) \
+	$(if $(libraries),-L$(libs_dir)\
+          $(LINKER_BEGIN_GROUP) $(addprefix -l,$(libraries)) $(LINKER_END_GROUP),)\
+        $(addprefix -L,$($(platform)_libraries_dirs))\
+        $(LINKER_BEGIN_GROUP) $(addprefix -l,$(sort $($(platform)_libraries))) $(LINKER_END_GROUP)\
+	$(if $(dynamic_libs),-L$(output_dir) $(addprefix -l,$(dynamic_libs)),)
 
 #specify postlink command- generate pdb file
 postlink_cmd = $(OBJCOPY) --only-keep-debug $@ $@.pdb && \

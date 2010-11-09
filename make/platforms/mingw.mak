@@ -18,6 +18,8 @@ else
 LD_PLATFORM_FLAGS += -Wl,-subsystem,console
 endif
 
+mingw_definitions += BOOST_THREAD_USE_LIB
+
 #built-in features
 support_waveout = 1
 support_aylpt_dlportio = 1
@@ -25,7 +27,6 @@ support_aylpt_dlportio = 1
 
 #simple library naming convention used
 ifdef boost_libraries
-mingw_definitions += BOOST_THREAD_USE_LIB
 mingw_libraries += $(foreach lib,$(boost_libraries),boost_$(lib))
 endif
 

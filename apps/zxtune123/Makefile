@@ -15,8 +15,8 @@ other_text_files := text/cmdline text/messages text/conversion text/cmd_keys_loc
 libraries := core devices sound tools io zxtune_app_base
 depends := src/tools src/core src/devices src/sound src/io apps/base
 
-windows_libraries := advapi32
-boost_libraries := thread program_options
+windows_libraries = advapi32
+boost_libraries = thread program_options
 
 manual_format := txt
 pkg_additional_files = ../zxtune.conf $(output_dir)/$(binary_name)_$(pkg_lang).$(manual_format)

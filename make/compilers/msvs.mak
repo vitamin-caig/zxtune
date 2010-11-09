@@ -40,10 +40,10 @@ build_obj_cmd = $(CXX) $(CXXFLAGS) /Fo$2 $1
 build_obj_cmd_nodeps = $(build_obj_cmd)
 build_lib_cmd = $(AR) $(ARFLAGS) /OUT:$2 $1
 #ignore some warnings for Qt
-link_cmd = $(LDD) $(LDFLAGS) /OUT:$@ $(OBJECTS) \
-	$(addsuffix .lib,$(windows_libraries))\
+link_cmd = $(LDD) $(LDFLAGS) /OUT:$@ $(OBJECTS) $(RESOURCES) \
 	$(if $(libraries),/LIBPATH:$(libs_dir) $(addsuffix .lib,$(libraries)),)\
 	$(if $(dynamic_libs),/LIBPATH:$(output_dir) $(addprefix /DELAYLOAD:,$(addsuffix .dll,$(dynamic_libs))) $(addsuffix .lib,$(dynamic_libs)),)\
+	$(addsuffix .lib,$(sort $($(platform)_libraries)))\
 	/PDB:$@.pdb
 
 postlink_cmd = mt.exe -manifest $@.manifest -outputresource:$@ || ECHO No manifest
