@@ -25,10 +25,11 @@ namespace
                              , private Ui::PlaybackControls
   {
   public:
-    explicit PlaybackControlsImpl(QWidget* parent)
-      : ActionsMenu(new QMenu(tr("Playback"), this))
+    explicit PlaybackControlsImpl(QWidget& parent)
+      : ::PlaybackControls(parent)
+      , ActionsMenu(new QMenu(tr("Playback"), this))
     {
-      setParent(parent);
+      //setup self
       setupUi(this);
       SetupMenu();
 
@@ -59,8 +60,11 @@ namespace
   };
 }
 
-PlaybackControls* PlaybackControls::Create(QWidget* parent)
+PlaybackControls::PlaybackControls(QWidget& parent) : QWidget(&parent)
 {
-  assert(parent);
+}
+
+PlaybackControls* PlaybackControls::Create(QWidget& parent)
+{
   return new PlaybackControlsImpl(parent);
 }

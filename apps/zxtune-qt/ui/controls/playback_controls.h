@@ -20,9 +20,11 @@ Author:
 class PlaybackControls : public QWidget
 {
   Q_OBJECT
+protected:
+  explicit PlaybackControls(QWidget& parent);
 public:
   //creator
-  static PlaybackControls* Create(QWidget* parent);
+  static PlaybackControls* Create(QWidget& parent);
 
   virtual class QMenu* GetActionsMenu() const = 0;
 signals:

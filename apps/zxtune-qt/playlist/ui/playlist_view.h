@@ -20,8 +20,10 @@ Author:
 class PlaylistView : public QWidget
 {
   Q_OBJECT
+protected:
+  explicit PlaylistView(QWidget& parent);
 public:
-  static PlaylistView* Create(QWidget* parent, const class PlaylistSupport& playlist);
+  static PlaylistView* Create(QWidget& parent, const class PlaylistSupport& playlist);
 
   virtual const class PlaylistSupport& GetPlaylist() const = 0;
   virtual void Update() = 0;

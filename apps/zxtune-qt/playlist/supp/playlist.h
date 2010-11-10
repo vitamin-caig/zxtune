@@ -29,6 +29,8 @@ enum PlayitemState
 class PlayitemIterator : public QObject
 {
   Q_OBJECT
+protected:
+  explicit PlayitemIterator(QObject& parent);
 public:
   //access
   virtual const Playitem* Get() const = 0;
@@ -47,8 +49,10 @@ signals:
 class PlaylistSupport : public QObject
 {
   Q_OBJECT
+protected:
+  explicit PlaylistSupport(QObject& parent);
 public:
-  static PlaylistSupport* Create(QObject* parent, const QString& name, PlayitemsProvider::Ptr provider);
+  static PlaylistSupport* Create(QObject& parent, const QString& name, PlayitemsProvider::Ptr provider);
 
   virtual class PlaylistScanner& GetScanner() const = 0;
   virtual class PlaylistModel& GetModel() const = 0;

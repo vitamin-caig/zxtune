@@ -31,9 +31,10 @@ namespace
                           , private Ui::StatusControl
   {
   public:
-    explicit StatusControlImpl(QWidget* parent)
+    explicit StatusControlImpl(QWidget& parent)
+      : ::StatusControl(parent)
     {
-      setParent(parent);
+      //setup self
       setupUi(this);
     }
 
@@ -67,8 +68,11 @@ namespace
   };
 }
 
-StatusControl* StatusControl::Create(QWidget* parent)
+StatusControl::StatusControl(QWidget& parent) : QWidget(&parent)
 {
-  assert(parent);
+}
+
+StatusControl* StatusControl::Create(QWidget& parent)
+{
   return new StatusControlImpl(parent);
 }

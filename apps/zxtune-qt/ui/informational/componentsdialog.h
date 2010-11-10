@@ -20,8 +20,10 @@ Author:
 class ComponentsDialog : public QDialog
 {
   Q_OBJECT
+protected:
+  explicit ComponentsDialog(QWidget& parent);
 public:
-  static ComponentsDialog* Create(class QWidget* parent);
+  static ComponentsDialog* Create(QWidget& parent);
 
 public slots:
   virtual void Show() = 0;

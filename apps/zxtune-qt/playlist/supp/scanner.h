@@ -22,8 +22,10 @@ Author:
 class PlaylistScanner : public QThread
 {
   Q_OBJECT
+protected:
+  explicit PlaylistScanner(QObject& parent);
 public:
-  static PlaylistScanner* Create(QObject* owner, PlayitemsProvider::Ptr provider);
+  static PlaylistScanner* Create(QObject& parent, PlayitemsProvider::Ptr provider);
 
   virtual void AddItems(const QStringList& items, bool deepScan) = 0;
 public slots:

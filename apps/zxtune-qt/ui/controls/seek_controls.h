@@ -22,9 +22,11 @@ Author:
 class SeekControls : public QWidget
 {
   Q_OBJECT
+protected:
+  explicit SeekControls(QWidget& parent);
 public:
   //creator
-  static SeekControls* Create(QWidget* parent);
+  static SeekControls* Create(QWidget& parent);
 
 public slots:
   virtual void InitState(ZXTune::Module::Player::ConstPtr) = 0;

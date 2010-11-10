@@ -31,16 +31,20 @@ public:
 class PlaylistItemTableView : public QItemDelegate
 {
   Q_OBJECT
+protected:
+  explicit PlaylistItemTableView(QWidget& parent);
 public:
-  static PlaylistItemTableView* Create(QWidget* parent, const PlayitemStateCallback& callback);
+  static PlaylistItemTableView* Create(QWidget& parent, const PlayitemStateCallback& callback);
 };
 
 class PlaylistTableView : public QTableView
 {
   Q_OBJECT
+protected:
+  explicit PlaylistTableView(QWidget& parent);
 public:
   //creator
-  static PlaylistTableView* Create(QWidget* parent, const PlayitemStateCallback& callback, class PlaylistModel& model);
+  static PlaylistTableView* Create(QWidget& parent, const PlayitemStateCallback& callback, class PlaylistModel& model);
 
 public slots:
   virtual void ActivateItem(const QModelIndex&) = 0;

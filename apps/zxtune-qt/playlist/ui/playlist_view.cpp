@@ -67,15 +67,14 @@ namespace
   class PlaylistViewImpl : public PlaylistView
   {
   public:
-    PlaylistViewImpl(QWidget* parent, const PlaylistSupport& playlist)
-      : Playlist(playlist)
+    PlaylistViewImpl(QWidget& parent, const PlaylistSupport& playlist)
+      : PlaylistView(parent)
+      , Playlist(playlist)
       , State(Playlist.GetIterator())
       , Layout(new QVBoxLayout(this))
-      , ScannerView(PlaylistScannerView::Create(this, Playlist.GetScanner()))
-      , View(PlaylistTableView::Create(this, State, Playlist.GetModel()))
+      , ScannerView(PlaylistScannerView::Create(*this, Playlist.GetScanner()))
+      , View(PlaylistTableView::Create(*this, State, Playlist.GetModel()))
     {
-      //setup self
-      setParent(parent);
       //setup ui
       setAcceptDrops(true);
       Layout->setSpacing(0);
@@ -128,7 +127,11 @@ namespace
   };
 }
 
-PlaylistView* PlaylistView::Create(QWidget* parent, const PlaylistSupport& playlist)
+PlaylistView::PlaylistView(QWidget& parent) : QWidget(&parent)
+{
+}
+
+PlaylistView* PlaylistView::Create(QWidget& parent, const PlaylistSupport& playlist)
 {
   return new PlaylistViewImpl(parent, playlist);
 }

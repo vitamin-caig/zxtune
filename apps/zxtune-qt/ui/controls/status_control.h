@@ -22,9 +22,11 @@ Author:
 class StatusControl : public QWidget
 {
   Q_OBJECT
+protected:
+  explicit StatusControl(QWidget& parent);
 public:
   //creator
-  static StatusControl* Create(QWidget* parent);
+  static StatusControl* Create(QWidget& parent);
 
 public slots:
   virtual void InitState(ZXTune::Module::Player::ConstPtr) = 0;

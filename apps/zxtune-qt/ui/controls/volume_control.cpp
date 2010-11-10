@@ -26,10 +26,11 @@ namespace
                           , public Ui::VolumeControl
   {
   public:
-    explicit VolumeControlImpl(QWidget* parent)
-      : LastUpdateTime(0)
+    explicit VolumeControlImpl(QWidget& parent)
+      : ::VolumeControl(parent)
+      , LastUpdateTime(0)
     {
-      setParent(parent);
+      //setup self
       setupUi(this);
       this->setEnabled(false);
       this->connect(volumeLevel, SIGNAL(valueChanged(int)), SLOT(SetLevel(int)));
@@ -77,8 +78,11 @@ namespace
   };
 }
 
-VolumeControl* VolumeControl::Create(QWidget* parent)
+VolumeControl::VolumeControl(QWidget& parent) : QWidget(&parent)
 {
-  assert(parent);
+}
+
+VolumeControl* VolumeControl::Create(QWidget& parent)
+{
   return new VolumeControlImpl(parent);
 }

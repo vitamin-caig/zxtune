@@ -21,13 +21,13 @@ namespace
   class PlayitemIteratorImpl : public PlayitemIterator
   {
   public:
-    PlayitemIteratorImpl(QObject* parent, const PlaylistModel& model)
-      : Model(model)
+    PlayitemIteratorImpl(QObject& parent, const PlaylistModel& model)
+      : PlayitemIterator(parent)
+      , Model(model)
       , Index(0)
       , Item(Model.GetItem(Index))
       , State(STOPPED)
     {
-      setParent(parent);
     }
 
     virtual const Playitem* Get() const
@@ -78,13 +78,13 @@ namespace
   class PlaylistSupportImpl : public PlaylistSupport
   {
   public:
-    PlaylistSupportImpl(QObject* parent, const QString& name, PlayitemsProvider::Ptr provider)
-      : Scanner(PlaylistScanner::Create(this, provider))
-      , Model(PlaylistModel::Create(this))
-      , Iterator(new PlayitemIteratorImpl(this, *Model))
+    PlaylistSupportImpl(QObject& parent, const QString& name, PlayitemsProvider::Ptr provider)
+      : PlaylistSupport(parent)
+      , Scanner(PlaylistScanner::Create(*this, provider))
+      , Model(PlaylistModel::Create(*this))
+      , Iterator(new PlayitemIteratorImpl(*this, *Model))
     {
       //setup self
-      setParent(parent);
       setObjectName(name);
       //setup connections
       Model->connect(Scanner, SIGNAL(OnGetItem(Playitem::Ptr)), SLOT(AddItem(Playitem::Ptr)));
@@ -119,7 +119,15 @@ namespace
   };
 }
 
-PlaylistSupport* PlaylistSupport::Create(QObject* parent, const QString& name, PlayitemsProvider::Ptr provider)
+PlayitemIterator::PlayitemIterator(QObject& parent) : QObject(&parent)
+{
+}
+
+PlaylistSupport::PlaylistSupport(QObject& parent) : QObject(&parent)
+{
+}
+
+PlaylistSupport* PlaylistSupport::Create(QObject& parent, const QString& name, PlayitemsProvider::Ptr provider)
 {
   return new PlaylistSupportImpl(parent, name, provider);
 }

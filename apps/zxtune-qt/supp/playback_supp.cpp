@@ -28,9 +28,9 @@ namespace
   class PlaybackSupportImpl : public PlaybackSupport
   {
   public:
-    explicit PlaybackSupportImpl(QObject* owner)
+    explicit PlaybackSupportImpl(QObject& parent)
+      : PlaybackSupport(parent)
     {
-      setParent(owner);
     }
 
     virtual ~PlaybackSupportImpl()
@@ -178,9 +178,12 @@ namespace
   };
 }
 
-PlaybackSupport* PlaybackSupport::Create(QObject* owner)
+PlaybackSupport::PlaybackSupport(QObject& parent) : QThread(&parent)
+{
+}
+
+PlaybackSupport* PlaybackSupport::Create(QObject& parent)
 {
   REGISTER_METATYPE(ZXTune::Module::Player::ConstPtr);
-  assert(owner);
-  return new PlaybackSupportImpl(owner);
+  return new PlaybackSupportImpl(parent);
 }

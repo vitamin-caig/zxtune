@@ -22,9 +22,11 @@ Author:
 class VolumeControl : public QWidget
 {
   Q_OBJECT
+protected:
+  explicit VolumeControl(QWidget& parent);
 public:
   //creator
-  static VolumeControl* Create(QWidget* parent);
+  static VolumeControl* Create(QWidget& parent);
 
 public slots:
   virtual void SetBackend(const ZXTune::Sound::Backend&) = 0;

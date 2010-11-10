@@ -38,15 +38,15 @@ namespace
   class PlaylistTableViewImpl : public PlaylistTableView
   {
   public:
-    PlaylistTableViewImpl(QWidget* parent, const PlayitemStateCallback& callback, PlaylistModel& model)
-      : Callback(callback)
+    PlaylistTableViewImpl(QWidget& parent, const PlayitemStateCallback& callback, PlaylistModel& model)
+      : PlaylistTableView(parent)
+      , Callback(callback)
       , Model(model)
       , Font(QString::fromUtf8(FONT_FAMILY), FONT_SIZE)
     {
       //setup self
-      setParent(parent);
       setModel(&Model);
-      setItemDelegate(PlaylistItemTableView::Create(this, Callback));
+      setItemDelegate(PlaylistItemTableView::Create(*this, Callback));
       setFont(Font);
       //setup ui
       setAcceptDrops(true);
@@ -124,11 +124,11 @@ namespace
   class PlaylistItemTableViewImpl : public PlaylistItemTableView
   {
   public:
-    PlaylistItemTableViewImpl(QWidget* parent, const PlayitemStateCallback& callback)
-      : Callback(callback)
+    PlaylistItemTableViewImpl(QWidget& parent, const PlayitemStateCallback& callback)
+      : PlaylistItemTableView(parent)
+      , Callback(callback)
       , Palette()
     {
-      setParent(parent);
     }
 
     virtual void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
@@ -160,12 +160,20 @@ namespace
   };
 }
 
-PlaylistItemTableView* PlaylistItemTableView::Create(QWidget* parent, const PlayitemStateCallback& callback)
+PlaylistItemTableView::PlaylistItemTableView(QWidget& parent) : QItemDelegate(&parent)
+{
+}
+
+PlaylistItemTableView* PlaylistItemTableView::Create(QWidget& parent, const PlayitemStateCallback& callback)
 {
   return new PlaylistItemTableViewImpl(parent, callback);
 }
 
-PlaylistTableView* PlaylistTableView::Create(QWidget* parent, const PlayitemStateCallback& callback, PlaylistModel& model)
+PlaylistTableView::PlaylistTableView(QWidget& parent) : QTableView(&parent)
+{
+}
+
+PlaylistTableView* PlaylistTableView::Create(QWidget& parent, const PlayitemStateCallback& callback, PlaylistModel& model)
 {
   return new PlaylistTableViewImpl(parent, callback, model);
 }

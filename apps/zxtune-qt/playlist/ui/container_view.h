@@ -20,9 +20,11 @@ Author:
 class PlaylistContainerView : public QWidget
 {
   Q_OBJECT
+protected:
+  explicit PlaylistContainerView(QWidget& parent);
 public:
   //creator
-  static PlaylistContainerView* Create(QWidget* parent);
+  static PlaylistContainerView* Create(QWidget& parent);
 
   virtual void CreatePlaylist(const class QStringList& items) = 0;
   virtual class QMenu* GetActionsMenu() const = 0;

@@ -5,8 +5,6 @@ generated_headers += $(text_files)
 #generated_sources += $(notdir $(text_files:=$(txt_suffix)))
 source_files += $(text_files)
 
-vpath %$(txt_suffix) $(dir $(text_files))
-
 #textator can be get from
 #http://code.google.com/p/textator
 #if were no changes in txt files, just touch .h and .cpp files in this folder or change TEXTATOR to true

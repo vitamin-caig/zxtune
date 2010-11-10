@@ -48,10 +48,10 @@ namespace
   class AnalyzerControlImpl : public AnalyzerControl
   {
   public:
-    explicit AnalyzerControlImpl(QWidget* parent)
-      : Levels()
+    explicit AnalyzerControlImpl(QWidget& parent)
+      : AnalyzerControl(parent)
+      , Levels()
     {
-      setParent(parent);
       setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum));
       setMinimumSize(64, 32);
       setWindowTitle(tr("Analyzer"));
@@ -112,8 +112,11 @@ namespace
   };
 }
 
-AnalyzerControl* AnalyzerControl::Create(QWidget* parent)
+AnalyzerControl::AnalyzerControl(QWidget& parent) : QWidget(&parent)
 {
-  assert(parent);
+}
+
+AnalyzerControl* AnalyzerControl::Create(QWidget& parent)
+{
   return new AnalyzerControlImpl(parent);
 }

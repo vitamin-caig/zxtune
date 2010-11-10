@@ -324,13 +324,13 @@ namespace
   class PlaylistModelImpl : public PlaylistModel
   {
   public:
-    explicit PlaylistModelImpl(QObject* parent)
-      : Providers()
+    explicit PlaylistModelImpl(QObject& parent)
+      : PlaylistModel(parent)
+      , Providers()
       , Synchronizer(QMutex::Recursive)
       , FetchedItemsCount()
       , Container(new PlayitemsContainer())
     {
-      setParent(parent);
     }
 
     //new virtuals
@@ -492,7 +492,11 @@ namespace
   };
 }
 
-PlaylistModel* PlaylistModel::Create(QObject* parent)
+PlaylistModel::PlaylistModel(QObject& parent) : QAbstractItemModel(&parent)
+{
+}
+
+PlaylistModel* PlaylistModel::Create(QObject& parent)
 {
   return new PlaylistModelImpl(parent);
 }

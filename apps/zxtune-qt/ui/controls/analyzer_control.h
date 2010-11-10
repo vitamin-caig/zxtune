@@ -22,9 +22,11 @@ Author:
 class AnalyzerControl : public QWidget
 {
   Q_OBJECT
+protected:
+  explicit AnalyzerControl(QWidget& parent);
 public:
   //creator
-  static AnalyzerControl* Create(QWidget* parent);
+  static AnalyzerControl* Create(QWidget& parent);
 
 public slots:
   virtual void InitState(ZXTune::Module::Player::ConstPtr) = 0;

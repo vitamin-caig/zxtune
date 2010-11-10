@@ -27,7 +27,8 @@ namespace
                         , private Ui::AboutDialog
   {
   public:
-    explicit AboutDialogImpl(QWidget* /*parent*/)
+    explicit AboutDialogImpl(QWidget& parent)
+      : ::AboutDialog(parent)
     {
       //do not set parent
       setupUi(this);
@@ -44,7 +45,11 @@ namespace
   };
 }
 
-AboutDialog* AboutDialog::Create(QWidget* parent)
+AboutDialog::AboutDialog(QWidget& parent) : QDialog(&parent)
+{
+}
+
+AboutDialog* AboutDialog::Create(QWidget& parent)
 {
   return new AboutDialogImpl(parent);
 }

@@ -33,15 +33,15 @@ namespace
                                   , public Ui::PlaylistContainerView
   {
   public:
-    explicit PlaylistContainerViewImpl(QWidget* parent)
+    explicit PlaylistContainerViewImpl(QWidget& parent)
+      : ::PlaylistContainerView(parent)
       //TODO: from global parameters
-      : Container(PlaylistContainer::Create(this, Parameters::Container::Create(), Parameters::Container::Create()))
+      , Container(PlaylistContainer::Create(*this, Parameters::Container::Create(), Parameters::Container::Create()))
       , ActionsMenu(new QMenu(tr("Playlist"), this))
       , AddFileDirectory(QDir::currentPath())
       , ActivePlaylistView(0)
     {
       //setup self
-      setParent(parent);
       setupUi(this);
       SetupMenu();
 
@@ -166,7 +166,7 @@ namespace
 
     void RegisterPlaylist(PlaylistSupport& playlist)
     {
-      PlaylistView* const plView = PlaylistView::Create(this, playlist);
+      PlaylistView* const plView = PlaylistView::Create(*this, playlist);
       widgetsContainer->addTab(plView, playlist.objectName());
       PlayitemIterator& iter = playlist.GetIterator();
       this->connect(&iter, SIGNAL(OnItem(const Playitem&)), SIGNAL(OnItemActivated(const Playitem&)));
@@ -201,9 +201,12 @@ namespace
   };
 }
 
-PlaylistContainerView* PlaylistContainerView::Create(QWidget* parent)
+PlaylistContainerView::PlaylistContainerView(QWidget& parent) : QWidget(&parent)
+{
+}
+
+PlaylistContainerView* PlaylistContainerView::Create(QWidget& parent)
 {
   REGISTER_METATYPE(Playitem::Ptr);
-  assert(parent);
   return new PlaylistContainerViewImpl(parent);
 }

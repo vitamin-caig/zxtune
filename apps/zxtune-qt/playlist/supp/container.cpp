@@ -20,16 +20,15 @@ namespace
   class PlaylistContainerImpl : public PlaylistContainer
   {
   public:
-    PlaylistContainerImpl(QObject* parent, Parameters::Accessor::Ptr ioParams, Parameters::Accessor::Ptr coreParams)
-      : Provider(PlayitemsProvider::Create(ioParams, coreParams))
+    PlaylistContainerImpl(QObject& parent, Parameters::Accessor::Ptr ioParams, Parameters::Accessor::Ptr coreParams)
+      : PlaylistContainer(parent)
+      , Provider(PlayitemsProvider::Create(ioParams, coreParams))
     {
-      //setup self
-      setParent(parent);
     }
 
     virtual PlaylistSupport* CreatePlaylist(const QString& name)
     {
-      PlaylistSupport* const playlist = PlaylistSupport::Create(this, name, Provider);
+      PlaylistSupport* const playlist = PlaylistSupport::Create(*this, name, Provider);
       return playlist;
     }
   private:
@@ -37,7 +36,11 @@ namespace
   };
 }
 
-PlaylistContainer* PlaylistContainer::Create(QObject* parent, Parameters::Accessor::Ptr ioParams, Parameters::Accessor::Ptr coreParams)
+PlaylistContainer::PlaylistContainer(QObject& parent) : QObject(&parent)
+{
+}
+
+PlaylistContainer* PlaylistContainer::Create(QObject& parent, Parameters::Accessor::Ptr ioParams, Parameters::Accessor::Ptr coreParams)
 {
   return new PlaylistContainerImpl(parent, ioParams, coreParams);
 }

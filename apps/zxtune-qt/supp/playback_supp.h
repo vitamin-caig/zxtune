@@ -23,8 +23,10 @@ Author:
 class PlaybackSupport : public QThread
 {
   Q_OBJECT
+protected:
+  explicit PlaybackSupport(QObject& parent);
 public:
-  static PlaybackSupport* Create(QObject* owner);
+  static PlaybackSupport* Create(QObject& parent);
 
 public slots:
   virtual void SetItem(const class Playitem& item) = 0;

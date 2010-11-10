@@ -22,9 +22,11 @@ Author:
 class PlaylistContainer : public QObject
 {
   Q_OBJECT
+protected:
+  explicit PlaylistContainer(QObject& parent);
 public:
   //creator
-  static PlaylistContainer* Create(QObject* parent, Parameters::Accessor::Ptr ioParams, Parameters::Accessor::Ptr coreParams);
+  static PlaylistContainer* Create(QObject& parent, Parameters::Accessor::Ptr ioParams, Parameters::Accessor::Ptr coreParams);
 
   virtual class PlaylistSupport* CreatePlaylist(const QString& name) = 0;
 };

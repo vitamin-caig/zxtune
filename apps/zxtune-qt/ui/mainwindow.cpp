@@ -45,15 +45,15 @@ namespace
   {
   public:
     MainWindowImpl(int argc, char* argv[])
-      : About(AboutDialog::Create(this))
-      , Components(ComponentsDialog::Create(this))
-      , Controls(PlaybackControls::Create(this))
-      , Volume(VolumeControl::Create(this))
-      , Status(StatusControl::Create(this))
-      , Seeking(SeekControls::Create(this))
-      , Analyzer(AnalyzerControl::Create(this))
-      , MultiPlaylist(PlaylistContainerView::Create(this))
-      , Playback(PlaybackSupport::Create(this))
+      : About(AboutDialog::Create(*this))
+      , Components(ComponentsDialog::Create(*this))
+      , Controls(PlaybackControls::Create(*this))
+      , Volume(VolumeControl::Create(*this))
+      , Status(StatusControl::Create(*this))
+      , Seeking(SeekControls::Create(*this))
+      , Analyzer(AnalyzerControl::Create(*this))
+      , MultiPlaylist(PlaylistContainerView::Create(*this))
+      , Playback(PlaybackSupport::Create(*this))
     {
       setupUi(this);
       //fill menu

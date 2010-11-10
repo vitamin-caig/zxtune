@@ -22,6 +22,8 @@ Author:
 class PlaylistModel : public QAbstractItemModel
 {
   Q_OBJECT
+protected:
+  explicit PlaylistModel(QObject& parent);
 public:
   enum Columns
   {
@@ -33,7 +35,7 @@ public:
   };
 
   //creator
-  static PlaylistModel* Create(QObject* parent = 0);
+  static PlaylistModel* Create(QObject& parent);
 
   virtual Playitem::Ptr GetItem(unsigned index) const = 0;
   virtual void Clear() = 0;

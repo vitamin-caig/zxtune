@@ -302,9 +302,9 @@ namespace
                              , private Ui::ComponentsDialog
   {
   public:
-    explicit ComponentsDialogImpl(QWidget* /*parent*/)
+    explicit ComponentsDialogImpl(QWidget& parent)
+      : ::ComponentsDialog(parent)
     {
-      //do not set parent
       setupUi(this);
       FillPluginsTree();
       FillBackendsTree();
@@ -351,7 +351,11 @@ namespace
   };
 }
 
-ComponentsDialog* ComponentsDialog::Create(QWidget* parent)
+ComponentsDialog::ComponentsDialog(QWidget& parent) : QDialog(&parent)
+{
+}
+
+ComponentsDialog* ComponentsDialog::Create(QWidget& parent)
 {
   return new ComponentsDialogImpl(parent);
 }

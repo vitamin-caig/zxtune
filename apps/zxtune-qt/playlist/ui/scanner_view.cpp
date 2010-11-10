@@ -22,11 +22,11 @@ namespace
                                 , private Ui::PlaylistScannerView
   {
   public:
-    PlaylistScannerViewImpl(QWidget* parent, PlaylistScanner& scanner)
-      : Scanner(scanner)
+    PlaylistScannerViewImpl(QWidget& parent, PlaylistScanner& scanner)
+      : ::PlaylistScannerView(parent)
+      , Scanner(scanner)
     {
       //setup self
-      setParent(parent);
       setupUi(this);
       hide();
       //make connections with scanner
@@ -82,7 +82,11 @@ namespace
   };
 }
 
-PlaylistScannerView* PlaylistScannerView::Create(QWidget* parent, PlaylistScanner& scanner)
+PlaylistScannerView::PlaylistScannerView(QWidget& parent) : QWidget(&parent)
+{
+}
+
+PlaylistScannerView* PlaylistScannerView::Create(QWidget& parent, PlaylistScanner& scanner)
 {
   return new PlaylistScannerViewImpl(parent, scanner);
 }

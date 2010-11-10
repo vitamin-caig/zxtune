@@ -51,13 +51,13 @@ namespace
   {
     typedef QList<ScannerSource::Ptr> ScannersQueue;
   public:
-    PlaylistScannerImpl(QObject* owner, PlayitemsProvider::Ptr provider)
-      : Provider(provider)
+    PlaylistScannerImpl(QObject& parent, PlayitemsProvider::Ptr provider)
+      : PlaylistScanner(parent)
+      , Provider(provider)
       , Canceled(false)
       , ItemsDone()
       , ItemsTotal()
     {
-      setParent(owner);
     }
 
     virtual void AddItems(const QStringList& items, bool deepScan)
@@ -151,8 +151,11 @@ namespace
   };
 }
 
-PlaylistScanner* PlaylistScanner::Create(QObject* owner, PlayitemsProvider::Ptr provider)
+PlaylistScanner::PlaylistScanner(QObject& parent) : QThread(&parent)
 {
-  assert(owner);
-  return new PlaylistScannerImpl(owner, provider);
+}
+
+PlaylistScanner* PlaylistScanner::Create(QObject& parent, PlayitemsProvider::Ptr provider)
+{
+  return new PlaylistScannerImpl(parent, provider);
 }

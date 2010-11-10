@@ -24,9 +24,10 @@ namespace
                          , private Ui::SeekControls
   {
   public:
-    explicit SeekControlsImpl(QWidget* parent)
+    explicit SeekControlsImpl(QWidget& parent)
+      : ::SeekControls(parent)
     {
-      setParent(parent);
+      //setup self
       setupUi(this);
       timePosition->setRange(0, 0);
       this->connect(timePosition, SIGNAL(sliderMoved(int)), SIGNAL(OnSeeking(int)));
@@ -59,8 +60,11 @@ namespace
   };
 }
 
-SeekControls* SeekControls::Create(QWidget* parent)
+SeekControls::SeekControls(QWidget& parent) : QWidget(&parent)
 {
-  assert(parent);
+}
+
+SeekControls* SeekControls::Create(QWidget& parent)
+{
   return new SeekControlsImpl(parent);
 }
