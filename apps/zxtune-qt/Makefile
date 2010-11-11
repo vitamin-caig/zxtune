@@ -39,6 +39,9 @@ depends := apps/base src/core src/devices src/io src/sound src/tools apps/zxtune
 boost_libraries = thread
 
 qt_libraries = Gui Core
+ifeq ($(platform),dingux)
+qt_libraries += Network
+endif
 
 #packaging
 pkg_additional_files_linux := dist/linux/zxTune.desktop res/zxtune.png

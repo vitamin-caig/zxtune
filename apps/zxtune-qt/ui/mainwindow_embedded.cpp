@@ -13,11 +13,10 @@ Author:
 
 //local includes
 #include "mainwindow_embedded.h"
-#include "mainwindow_embedded_ui.h"
-#include "mainwindow_embedded_moc.h"
+#include "mainwindow_embedded.ui.h"
 #include "ui/controls/analyzer_control.h"
 #include "ui/controls/playback_controls.h"
-#include "ui/playlist/playlist.h"
+#include "playlist/ui/container_view.h"
 #include "supp/playback_supp.h"
 //common includes
 #include <logging.h>
@@ -29,88 +28,71 @@ Author:
 
 namespace
 {
-  template<class T>
-  class WidgetControl
-  {
-  public:
-    WidgetControl(QMainWindow* mainWindow, bool visible)
-      : Control(T::Create(mainWindow))
-    {
-      mainWindow->centralWidget()->layout()->addWidget(Control);
-      Control->setVisible(visible);
-    }
-    //accessors
-    T* operator -> () const
-    {
-      return Control;
-    }
-
-    operator T* () const
-    {
-      return Control;
-    }
-  private:
-    T* const Control;
-  };
-
-  
-  class UiHelper : public Ui::MainWindow
-  {
-  public:
-    explicit UiHelper(QMainWindow* mainWindow)
-    {
-      setupUi(mainWindow);
-    }
-  };
-
   class MainWindowEmbeddedImpl : public MainWindowEmbedded
-                               , private UiHelper
+                               , private Ui::MainWindowEmbedded
   {
   public:
     MainWindowEmbeddedImpl(int /*argc*/, char* /*argv*/[])
-      : UiHelper(this)
       //, Seeking(this, menuLayout, "Seeking")
-      , Controls(this, false)
-      , Analyzer(this, true)
-      , Collection(this, true)
-      , Playback(PlaybackSupport::Create(this))
+      : Controls(PlaybackControls::Create(*this))
+      , Analyzer(AnalyzerControl::Create(*this))
+      , Playlist(PlaylistContainerView::Create(*this))
+      , Playback(PlaybackSupport::Create(*this))
     {
+      setupUi(this);
       statusBar()->addWidget(new QLabel(
-        QString::fromUtf8("X-Space A-Ctrl B-Alt Y-Shift Select-Esc Start-Enter LH-Tab RH-Backspace"), this));
+        tr("X-Space A-Ctrl B-Alt Y-Shift Select-Esc Start-Enter LH-Tab RH-Backspace"), this));
+      //fill menu
+      menubar->addMenu(Controls->GetActionsMenu());
+      menubar->addMenu(Playlist->GetActionsMenu());
+      //fill toolbar and layout menu
+      AddWidgetWithLayoutControl(AddWidgetOnLayout(Analyzer));
+      AddWidgetWithLayoutControl(AddWidgetOnLayout(Playlist));
 
       //connect root actions
-      Collection->connect(Controls, SIGNAL(OnPrevious()), SLOT(PrevItem()));
-      Collection->connect(Controls, SIGNAL(OnNext()), SLOT(NextItem()));
-      Collection->connect(Playback, SIGNAL(OnStartModule(ZXTune::Module::Player::ConstPtr)), SLOT(PlayItem()));
-      Collection->connect(Playback, SIGNAL(OnResumeModule()), SLOT(PlayItem()));
-      Collection->connect(Playback, SIGNAL(OnPauseModule()), SLOT(PauseItem()));
-      Collection->connect(Playback, SIGNAL(OnStopModule()), SLOT(StopItem()));
-      Collection->connect(Playback, SIGNAL(OnFinishModule()), SLOT(NextItem()));
-      Playback->connect(Collection, SIGNAL(OnItemSet(const Playitem&)), SLOT(SetItem(const Playitem&)));
-      Playback->connect(Collection, SIGNAL(OnItemSelected(const Playitem&)), SLOT(SelectItem(const Playitem&)));
+      Playlist->connect(Controls, SIGNAL(OnPrevious()), SLOT(Prev()));
+      Playlist->connect(Controls, SIGNAL(OnNext()), SLOT(Next()));
+      Playlist->connect(Playback, SIGNAL(OnStartModule(ZXTune::Module::Player::ConstPtr)), SLOT(Play()));
+      Playlist->connect(Playback, SIGNAL(OnResumeModule()), SLOT(Play()));
+      Playlist->connect(Playback, SIGNAL(OnPauseModule()), SLOT(Pause()));
+      Playlist->connect(Playback, SIGNAL(OnStopModule()), SLOT(Stop()));
+      Playlist->connect(Playback, SIGNAL(OnFinishModule()), SLOT(Finish()));
+      Playback->connect(Playlist, SIGNAL(OnItemActivated(const Playitem&)), SLOT(SetItem(const Playitem&)));
       Playback->connect(Controls, SIGNAL(OnPlay()), SLOT(Play()));
       Playback->connect(Controls, SIGNAL(OnStop()), SLOT(Stop()));
       Playback->connect(Controls, SIGNAL(OnPause()), SLOT(Pause()));
-      //Playback->connect(Seeking, SIGNAL(OnSeeking(int)), SLOT(Seek(int)));
-      //Seeking->connect(Playback, SIGNAL(OnStartModule(const ZXTune::Module::Information&)), SLOT(InitState(const ZXTune::Module::Information&)));
-      //Seeking->connect(Playback, SIGNAL(OnUpdateState(uint, const ZXTune::Module::Tracking&, const ZXTune::Module::Analyze::ChannelsState&)),
-        //SLOT(UpdateState(uint)));
-      //Seeking->connect(Playback, SIGNAL(OnStopModule(const ZXTune::Module::Information&)), SLOT(CloseState(const ZXTune::Module::Information&)));
-      Analyzer->connect(Playback, SIGNAL(OnStopModule()), SLOT(InitState()));
+      Analyzer->connect(Playback, SIGNAL(OnStartModule(ZXTune::Module::Player::ConstPtr)), SLOT(InitState(ZXTune::Module::Player::ConstPtr)));
+      Analyzer->connect(Playback, SIGNAL(OnStopModule()), SLOT(CloseState()));
       Analyzer->connect(Playback, SIGNAL(OnUpdateState()), SLOT(UpdateState()));
     }
   private:
-    WidgetControl<PlaybackControls> Controls;
-    //ToolbarControl<SeekControls> Seeking;
-    WidgetControl<AnalyzerControl> Analyzer;
-    WidgetControl<Playlist> Collection;
+    void AddWidgetWithLayoutControl(QWidget* widget)
+    {
+      QAction* const action = new QAction(widget);
+      action->setCheckable(true);
+      action->setChecked(true);//TODO
+      action->setText(widget->windowTitle());
+      //integrate
+      menuLayout->addAction(action);
+      widget->connect(action, SIGNAL(toggled(bool)), SLOT(setVisible(bool)));
+    }
+
+    QWidget* AddWidgetOnLayout(QWidget* widget)
+    {
+      centralWidget()->layout()->addWidget(widget);
+      return widget;
+    }
+  private:
+    PlaybackControls* const Controls;
+    AnalyzerControl* const Analyzer;
+    PlaylistContainerView* const Playlist;
     PlaybackSupport* const Playback;
   };
 }
 
 QPointer<MainWindowEmbedded> MainWindowEmbedded::Create(int argc, char* argv[])
 {
-  qApp->setFont(QFont(QString::fromUtf8("DejaVuSans")));
+  //qApp->setFont(QFont(QString::fromUtf8("DejaVuSans")));
   //TODO: create proper window
   QPointer<MainWindowEmbedded> res(new MainWindowEmbeddedImpl(argc, argv));
   QApplication::setOverrideCursor(QCursor(Qt::BlankCursor));

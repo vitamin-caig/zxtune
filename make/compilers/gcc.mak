@@ -5,8 +5,8 @@ AR ?= ar
 OBJCOPY ?= objcopy
 STRIP ?= strip
 
-LINKER_BEGIN_GROUP ?= -Wl,-(
-LINKER_END_GROUP ?= -Wl,-)
+LINKER_BEGIN_GROUP ?= -Wl,'-('
+LINKER_END_GROUP ?= -Wl,'-)'
 
 #set options according to mode
 ifdef release

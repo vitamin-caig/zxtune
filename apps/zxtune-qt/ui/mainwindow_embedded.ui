@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow">
+ <class>MainWindowEmbedded</class>
+ <widget class="QMainWindow" name="MainWindowEmbedded">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -54,7 +54,13 @@
     </property>
     <addaction name="actionQuit"/>
    </widget>
+   <widget class="QMenu" name="menuLayout">
+    <property name="title">
+     <string notr="true">Layout</string>
+    </property>
+   </widget>
    <addaction name="menuPlayer"/>
+   <addaction name="menuLayout"/>
   </widget>
   <action name="actionQuit">
    <property name="icon">
@@ -74,7 +80,7 @@
   <connection>
    <sender>actionQuit</sender>
    <signal>triggered()</signal>
-   <receiver>MainWindow</receiver>
+   <receiver>MainWindowEmbedded</receiver>
    <slot>close()</slot>
    <hints>
     <hint type="sourcelabel">

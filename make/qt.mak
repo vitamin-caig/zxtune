@@ -16,10 +16,12 @@ generated_sources += $(qrc_sources)
 ifneq (,$(findstring Core,$(qt_libraries)))
 windows_libraries += kernel32 user32 shell32 uuid ole32 advapi32 ws2_32 oldnames
 mingw_libraries += kernel32 user32 shell32 uuid ole32 advapi32 ws2_32 z
+dingux_libraries += z
 endif
 ifneq (,$(findstring Gui,$(qt_libraries)))
 windows_libraries += gdi32 comdlg32 oleaut32 imm32 winmm winspool ws2_32 ole32 user32 advapi32 oldnames
 mingw_libraries += gdi32 comdlg32 oleaut32 imm32 winmm winspool ws2_32 ole32 uuid user32 advapi32 png z
+dingux_libraries += png z
 endif
 
 vpath %.qrc $(sort $(dir $(qrc_files)))
