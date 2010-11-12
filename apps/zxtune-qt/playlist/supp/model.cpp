@@ -226,6 +226,51 @@ namespace
   {
     typedef std::list<PlayitemWrapper> ItemsContainer;
     typedef std::vector<ItemsContainer::iterator> IteratorsArray;
+
+    class PlayitemIteratorImpl : public Playitem::Iterator
+    {
+    public:
+      explicit PlayitemIteratorImpl(const IteratorsArray& iters)
+      {
+        Items.reserve(iters.size());
+        for (IteratorsArray::const_iterator it = iters.begin(), lim = iters.end();
+          it != lim; ++it)
+        {
+          Items.push_back((*it)->GetPlayitem());
+        }
+        Current = Items.begin();
+      }
+
+      virtual bool IsValid() const
+      {
+        return Current != Items.end();
+      }
+
+      virtual Playitem::Ptr Get() const
+      {
+        if (Current != Items.end())
+        {
+          return *Current;
+        }
+        assert(!"Playitems iterator is out of range");
+        return Playitem::Ptr();
+      }
+
+      virtual void Next()
+      {
+        if (Current != Items.end())
+        {
+          ++Current;
+        }
+        else
+        {
+          assert(!"Playitems iterator is out of range");
+        }
+      }
+    private:
+      std::vector<Playitem::Ptr> Items;
+      std::vector<Playitem::Ptr>::const_iterator Current;
+    };
   public:
     PlayitemsContainer()
       : TooltipTemplate(StringTemplate::Create(Text::TOOLTIP_TEMPLATE))
@@ -254,7 +299,24 @@ namespace
       return &*it;
     }
 
-    void Remove(const QSet<unsigned>& indexes)
+    Playitem::Iterator::Ptr GetAllItems() const
+    {
+      return Playitem::Iterator::Ptr(new PlayitemIteratorImpl(Iterators));
+    }
+
+    Playitem::Iterator::Ptr GetItems(const QSet<unsigned>& items) const
+    {
+      IteratorsArray choosenItems;
+      choosenItems.reserve(items.count());
+      for (QSet<unsigned>::const_iterator it = items.begin(), lim = items.end();
+        it != lim; ++it)
+      {
+        choosenItems.push_back(Iterators[*it]);
+      }
+      return Playitem::Iterator::Ptr(new PlayitemIteratorImpl(choosenItems));
+    }
+
+    void RemoveItems(const QSet<unsigned>& indexes)
     {
       IteratorsArray newIters;
       newIters.reserve(Iterators.size() - indexes.count());
@@ -344,10 +406,26 @@ namespace
       return Playitem::Ptr();
     }
 
-    virtual void AddItem(Playitem::Ptr item)
+    virtual Playitem::Iterator::Ptr GetItems() const
     {
       QMutexLocker locker(&Synchronizer);
-      Container->AddItem(item);
+      return Container->GetAllItems();
+    }
+
+    virtual Playitem::Iterator::Ptr GetItems(const QSet<unsigned>& items) const
+    {
+      QMutexLocker locker(&Synchronizer);
+      return Container->GetItems(items);
+    }
+
+    virtual void AddItems(Playitem::Iterator::Ptr iter)
+    {
+      QMutexLocker locker(&Synchronizer);
+      for (; iter->IsValid(); iter->Next())
+      {
+        const Playitem::Ptr item = iter->Get();
+        Container->AddItem(item);
+      }
     }
 
     virtual void Clear()
@@ -361,10 +439,17 @@ namespace
     virtual void RemoveItems(const QSet<unsigned>& items)
     {
       QMutexLocker locker(&Synchronizer);
-      Container->Remove(items);
+      Container->RemoveItems(items);
       FetchedItemsCount = Container->CountItems();
       reset();
     }
+
+    virtual void AddItem(Playitem::Ptr item)
+    {
+      QMutexLocker locker(&Synchronizer);
+      Container->AddItem(item);
+    }
+
 
     //base model virtuals
     virtual bool canFetchMore(const QModelIndex& /*index*/) const
@@ -394,8 +479,8 @@ namespace
       if (const PlayitemWrapper* item = Container->GetItemByIndex(row))
       {
         const Playitem::Ptr playitem = item->GetPlayitem();
-        void* const data = static_cast<void*>(playitem.get());
-        return createIndex(row, column, data);
+        const void* const data = static_cast<const void*>(playitem.get());
+        return createIndex(row, column, const_cast<void*>(data));
       }
       return EMPTY_INDEX;
     }
@@ -451,7 +536,7 @@ namespace
       if (const PlayitemWrapper* item = Container->GetItemByIndex(itemNum))
       {
         const RowDataProvider& provider = Providers.GetProvider(role);
-        assert(static_cast<void*>(item->GetPlayitem().get()) == index.internalPointer());
+        assert(static_cast<const void*>(item->GetPlayitem().get()) == index.internalPointer());
         return provider.GetData(*item, fieldNum);
       }
       return QVariant();

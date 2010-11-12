@@ -37,7 +37,12 @@ public:
   //creator
   static PlaylistModel* Create(QObject& parent);
 
+  //accessors
   virtual Playitem::Ptr GetItem(unsigned index) const = 0;
+  virtual Playitem::Iterator::Ptr GetItems() const = 0;
+  virtual Playitem::Iterator::Ptr GetItems(const QSet<unsigned>& items) const = 0;
+  //modifiers
+  virtual void AddItems(Playitem::Iterator::Ptr iter) = 0;
   virtual void Clear() = 0;
   virtual void RemoveItems(const QSet<unsigned>& items) = 0;
 public slots:

@@ -14,6 +14,8 @@ Author:
 #ifndef ZXTUNE_QT_PLAYITEMS_PROVIDER_H_DEFINED
 #define ZXTUNE_QT_PLAYITEMS_PROVIDER_H_DEFINED
 
+//common includes
+#include <iterator.h>
 //library includes
 #include <core/module_detect.h>
 //qt includes
@@ -37,7 +39,8 @@ public:
 class Playitem
 {
 public:
-  typedef boost::shared_ptr<Playitem> Ptr;
+  typedef boost::shared_ptr<const Playitem> Ptr;
+  typedef ObjectIterator<Playitem::Ptr> Iterator;
 
   virtual ~Playitem() {}
 
