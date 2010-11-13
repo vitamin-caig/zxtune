@@ -43,6 +43,51 @@ namespace
     return FromQString(file.canonicalFilePath());
   }
 
+  String FromUtf8String(const std::string& str)
+  {
+    const QString utf8(QString::fromUtf8(str.c_str()));
+    return FromQString(utf8);
+  }
+
+  /*
+    Versions:
+    0 -
+    1 - PlayerFrequency parameter is in mHz
+    2 - 
+    3 - \n tag in Comment field
+    4 -
+    5 -
+    6 - UTF8 in all parameters field 
+  */
+  class VersionLayer
+  {
+  public:
+    explicit VersionLayer(int vers)
+      : Version(vers)
+    {
+    }
+
+    String DecodeString(const std::string& str) const
+    {
+      return Version > 5
+        ? FromUtf8String(str)
+        : FromStdString(str);
+    }
+
+    Parameters::IntType DecodeFrameduration(Parameters::IntType playerFreq) const
+    {
+      if (!playerFreq)
+      {
+        return Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT;
+      }
+      const Parameters::IntType divisor = Version > 0 
+        ? UINT64_C(1000000000) : UINT64_C(1000000);
+      return divisor / playerFreq;
+    }
+  private:
+    const int Version;
+  };
+
   int CheckAYLBySignature(const String& signature)
   {
     static const Char AYL_SIGNATURE[] = 
@@ -179,140 +224,163 @@ namespace
     Playitem::Ptr Item;
   };
 
-
-  Parameters::IntType DecodeChipType(const String& value)
+  class ParametersFilter : public Parameters::Modifier
   {
-    return value == "YM" ? 1 : 0;
-  }
+  public:
+    ParametersFilter(const VersionLayer& version, Parameters::Modifier& delegate)
+      : Version(version)
+      , Delegate(delegate)
+    {
+    }
 
-  Parameters::IntType DecodeChipLayout(const String& value)
-  {
-    if (value == "ACB")
+    virtual void SetIntValue(const Parameters::NameType& name, Parameters::IntType val)
     {
-      return ZXTune::AYM::LAYOUT_ACB;
-    }
-    else if (value == "BAC")
-    {
-      return ZXTune::AYM::LAYOUT_BAC;
-    }
-    else if (value == "BCA")
-    {
-      return ZXTune::AYM::LAYOUT_BCA;
-    }
-    else if (value == "CAB")
-    {
-      return ZXTune::AYM::LAYOUT_CAB;
-    }
-    else if (value == "CBA")
-    {
-      return ZXTune::AYM::LAYOUT_CBA;
-    }
-    else
-    {
-      //default fallback
-      return ZXTune::AYM::LAYOUT_ABC;
-    }
-  }
-
-  Parameters::IntType DecodeClockrate(const String& value)
-  {
-    const Parameters::ValueType val = Parameters::ConvertFromString(value);
-    if (const Parameters::IntType* asInt = boost::get<const Parameters::IntType>(&val))
-    {
-      return *asInt;
-    }
-    return Parameters::ZXTune::Sound::CLOCKRATE_DEFAULT;
-  }
-
-  Parameters::IntType DecodeFrameduration(const String& value)
-  {
-    const Parameters::ValueType val = Parameters::ConvertFromString(value);
-    if (const Parameters::IntType* asInt = boost::get<const Parameters::IntType>(&val))
-    {
-      if (*asInt)
+      Log::Debug(THIS_MODULE, "  property %1%=%2%", name, val);
+      if (name == "ChipFrequency")
       {
-        //TODO: divisor is 1M for playlist ver 0
-        const Parameters::IntType divisor = UINT64_C(1000000000);
-        return divisor / *asInt;
+        Delegate.SetIntValue(Parameters::ZXTune::Sound::CLOCKRATE, val);
+      }
+      else if (name == "PlayerFrequency")
+      {
+        Delegate.SetIntValue(Parameters::ZXTune::Sound::FRAMEDURATION, 
+          Version.DecodeFrameduration(val));
+      }
+      else
+      {
+        //try to process as string
+        Delegate.SetStringValue(name, Parameters::ConvertToString(val));
       }
     }
-    return Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT;
-  }
 
-  void DecodeParameter(const String& name, const String& value, Parameters::Container& container)
-  {
-    Log::Debug(THIS_MODULE, "  Decode %1%='%2%'", name, value);
-    if (name == "ChipType")
+    virtual void SetStringValue(const Parameters::NameType& name, const Parameters::StringType& val)
     {
-      container.SetIntValue(Parameters::ZXTune::Core::AYM::TYPE, DecodeChipType(value));
+      Log::Debug(THIS_MODULE, "  property %1%='%2%'", name, val);
+      if (name == "ChipType")
+      {
+        Delegate.SetIntValue(Parameters::ZXTune::Core::AYM::TYPE, DecodeChipType(val));
+      }
+      //ignore "Channels"
+      else if (name == "ChannelsAllocation")
+      {
+        Delegate.SetIntValue(Parameters::ZXTune::Core::AYM::LAYOUT, DecodeChipLayout(val));
+      }
+      //ignore "Offset", "Length", "Address", "Loop", "Time", "Original"
+      else if (name == "Name")
+      {
+        Delegate.SetStringValue(ZXTune::Module::ATTR_TITLE, Version.DecodeString(val));
+      }
+      else if (name == "Author")
+      {
+        Delegate.SetStringValue(ZXTune::Module::ATTR_AUTHOR, Version.DecodeString(val));
+      }
+      else if (name == "Program" || name == "Tracker")
+      {
+        Delegate.SetStringValue(ZXTune::Module::ATTR_PROGRAM, Version.DecodeString(val));
+      }
+      else if (name == "Computer")
+      {
+        Delegate.SetStringValue(ZXTune::Module::ATTR_COMPUTER, Version.DecodeString(val));
+      }
+      else if (name == "Date")
+      {
+        Delegate.SetStringValue(ZXTune::Module::ATTR_DATE, Version.DecodeString(val));
+      }
+      else if (name == "Comment")
+      {
+        //TODO: process escape sequence
+        Delegate.SetStringValue(ZXTune::Module::ATTR_COMMENT, Version.DecodeString(val));
+      }
+      //ignore "Tracker", "Type", "ams_andsix", "FormatSpec"
     }
-    //ignore "Channels"
-    else if (name == "ChannelsAllocation")
-    {
-      container.SetIntValue(Parameters::ZXTune::Core::AYM::LAYOUT, DecodeChipLayout(value));
-    }
-    else if (name == "ChipFrequency")
-    {
-      container.SetIntValue(Parameters::ZXTune::Sound::CLOCKRATE, DecodeClockrate(value));
-    }
-    else if (name == "PlayerFrequency")
-    {
-      container.SetIntValue(Parameters::ZXTune::Sound::FRAMEDURATION, DecodeFrameduration(value));
-    }
-    //ignore "Offset", "Length", "Address", "Loop", "Time", "Original"
-    else if (name == "Name")
-    {
-      container.SetStringValue(ZXTune::Module::ATTR_TITLE, value);
-    }
-    else if (name == "Author")
-    {
-      container.SetStringValue(ZXTune::Module::ATTR_AUTHOR, value);
-    }
-    else if (name == "Program" || name == "Tracker")
-    {
-      container.SetStringValue(ZXTune::Module::ATTR_PROGRAM, value);
-    }
-    else if (name == "Computer")
-    {
-      container.SetStringValue(ZXTune::Module::ATTR_COMPUTER, value);
-    }
-    else if (name == "Date")
-    {
-      container.SetStringValue(ZXTune::Module::ATTR_DATE, value);
-    }
-    else if (name == "Comment")
-    {
-      container.SetStringValue(ZXTune::Module::ATTR_COMMENT, value);
-    }
-    //ignore "Tracker", "Type", "ams_andsix", "FormatSpec"
-  }
 
-  Playitem::Ptr OpenPlayitem(const PlayitemsProvider& provider, const String& path, const StringMap& parameters)
-  {
-    CollectorStub collector;
-    //error is ignored, just take from collector
-    provider.DetectModules(path, collector);
-    if (const Playitem::Ptr item = collector.GetItem())
+    virtual void SetDataValue(const Parameters::NameType& name, const Parameters::DataType& val)
     {
-      Log::Debug(THIS_MODULE, "Opened '%1%'", path);
-      const Parameters::Container::Ptr params = item->GetAdjustedParameters();
-      std::for_each(parameters.begin(), parameters.end(),
-        boost::bind(&DecodeParameter, 
-          boost::bind(&StringMap::value_type::first, _1),
-          boost::bind(&StringMap::value_type::second, _1),
-          boost::ref(*params)));
-      return item;
+      //try to process as string
+      Delegate.SetStringValue(name, Parameters::ConvertToString(val));
     }
-    Log::Debug(THIS_MODULE, "Failed to open '%1%'", path);
-    return Playitem::Ptr();
-  }
+  private:
+    static Parameters::IntType DecodeChipType(const String& value)
+    {
+      return value == "YM" ? 1 : 0;
+    }
+
+    static Parameters::IntType DecodeChipLayout(const String& value)
+    {
+      if (value == "ACB")
+      {
+        return ZXTune::AYM::LAYOUT_ACB;
+      }
+      else if (value == "BAC")
+      {
+        return ZXTune::AYM::LAYOUT_BAC;
+      }
+      else if (value == "BCA")
+      {
+        return ZXTune::AYM::LAYOUT_BCA;
+      }
+      else if (value == "CAB")
+      {
+        return ZXTune::AYM::LAYOUT_CAB;
+      }
+      else if (value == "CBA")
+      {
+        return ZXTune::AYM::LAYOUT_CBA;
+      }
+      else
+      {
+        //default fallback
+        return ZXTune::AYM::LAYOUT_ABC;
+      }
+    }
+  private:
+    const VersionLayer& Version;
+    Parameters::Modifier& Delegate;
+  };
+
+  class PlayitemAccessor
+  {
+  public:
+    PlayitemAccessor(PlayitemsProvider::Ptr provider, const String& basePath, int vers)
+      : Provider(provider)
+      , BasePath(basePath)
+      , Version(vers)
+    {
+    }
+
+    Playitem::Ptr GetItem(const AYLIterator& iterator) const
+    {
+      const String& itemPath = iterator.GetPath();
+      const String path = ConcatenatePath(BasePath, itemPath);
+      return OpenPlayitem(path, iterator.GetParameters());
+    }
+  private:
+    Playitem::Ptr OpenPlayitem(const String& path, const StringMap& parameters) const
+    {
+      CollectorStub collector;
+      //error is ignored, just take from collector
+      Provider->DetectModules(path, collector);
+      if (const Playitem::Ptr item = collector.GetItem())
+      {
+        Log::Debug(THIS_MODULE, "Opened '%1%'", path);
+        const Parameters::Container::Ptr params = item->GetAdjustedParameters();
+        ParametersFilter filter(Version, *params);
+        Parameters::ParseStringMap(parameters, filter);
+        return item;
+      }
+      Log::Debug(THIS_MODULE, "Failed to open '%1%'", path);
+      return Playitem::Ptr();
+    }
+  private:
+    const PlayitemsProvider::Ptr Provider;
+    const String BasePath;
+    const VersionLayer Version;
+  };
 
   class PlayitemsIterator : public Playitem::Iterator
   {
   public:
-    PlayitemsIterator(PlayitemsProvider::Ptr provider, const String& basePath, const StringArray& lines)
-      : Provider(provider)
-      , BasePath(basePath)
+    PlayitemsIterator(PlayitemsProvider::Ptr provider, const String& basePath, int vers, const StringArray& lines)
+      : Accessor(provider, basePath, vers)
       , Subiterator(lines)
     {
       FetchItem();
@@ -336,20 +404,17 @@ namespace
   private:
     void FetchItem()
     {
+      Item.reset(); 
       for (; Subiterator.IsValid(); Subiterator.Next())
       {
-        const String& itemPath = Subiterator.GetPath();
-        const String path = ConcatenatePath(BasePath, itemPath);
-        if (Item = OpenPlayitem(*Provider, path, Subiterator.GetParameters()))
+        if (Item = Accessor.GetItem(Subiterator))
         {
           return;
         }
       }
-      Item.reset(); 
     }
   private:
-    const PlayitemsProvider::Ptr Provider;
-    const String BasePath;
+    PlayitemAccessor Accessor;
     AYLIterator Subiterator;
     Playitem::Ptr Item;
   };
@@ -364,7 +429,6 @@ namespace
 
 Playitem::Iterator::Ptr OpenAYLPlaylist(PlayitemsProvider::Ptr provider, const QString& filename)
 {
-  Log::Debug(THIS_MODULE, "Trying to open '%1%' as a playlist", FromQString(filename));
   const QFileInfo info(filename);
   if (!info.isFile() || !info.isReadable() ||
       !CheckAYLByName(info.fileName()))
@@ -379,12 +443,12 @@ Playitem::Iterator::Ptr OpenAYLPlaylist(PlayitemsProvider::Ptr provider, const Q
   }
   QTextStream stream(&device);
   const String header = FromQString(stream.readLine(0).simplified());
-  const int version = CheckAYLBySignature(header);
-  if (version < 0)
+  const int vers = CheckAYLBySignature(header);
+  if (vers < 0)
   {
     return Playitem::Iterator::Ptr();
   }
-  Log::Debug(THIS_MODULE, "Processing AYL version %1%", version);
+  Log::Debug(THIS_MODULE, "Processing AYL version %1%", vers);
   StringArray lines;
   while (!stream.atEnd())
   {
@@ -392,7 +456,7 @@ Playitem::Iterator::Ptr OpenAYLPlaylist(PlayitemsProvider::Ptr provider, const Q
     lines.push_back(FromQString(line));
   }
   const String basePath = FromQString(info.absolutePath());
-  return Playitem::Iterator::Ptr(new PlayitemsIterator(provider, basePath, lines));
+  return Playitem::Iterator::Ptr(new PlayitemsIterator(provider, basePath, vers, lines));
 }
 
 Playitem::Iterator::Ptr OpenPlaylist(PlayitemsProvider::Ptr provider, const QString& filename)
