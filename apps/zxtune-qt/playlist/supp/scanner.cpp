@@ -68,8 +68,8 @@ namespace
         this->wait();
       }
       const ScannerSource::Ptr scanner = deepScan
-        ? ScannerSource::CreateDetectFileSource(*Provider, *this, items)
-        : ScannerSource::CreateOpenFileSource(*Provider, *this, items);
+        ? ScannerSource::CreateDetectFileSource(Provider, *this, items)
+        : ScannerSource::CreateOpenFileSource(Provider, *this, items);
       Queue.append(scanner);
       this->start();
     }

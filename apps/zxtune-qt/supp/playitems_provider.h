@@ -67,9 +67,9 @@ public:
 
   virtual ~PlayitemsProvider() {}
 
-  virtual Error DetectModules(const String& path, PlayitemDetectParameters& detectParams) = 0;
+  virtual Error DetectModules(const String& path, PlayitemDetectParameters& detectParams) const = 0;
 
-  virtual Error OpenModule(const String& path, PlayitemDetectParameters& detectParams) = 0;
+  virtual Error OpenModule(const String& path, PlayitemDetectParameters& detectParams) const = 0;
 
   static Ptr Create(Parameters::Accessor::Ptr ioParams, Parameters::Accessor::Ptr coreParams);
 };

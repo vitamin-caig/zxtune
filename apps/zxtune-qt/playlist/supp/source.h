@@ -42,8 +42,8 @@ public:
   virtual unsigned Resolve() = 0;
   virtual void Process() = 0;
 
-  static Ptr CreateOpenFileSource(PlayitemsProvider& provider, ScannerCallback& callback, const QStringList& items);
-  static Ptr CreateDetectFileSource(PlayitemsProvider& provider, ScannerCallback& callback, const QStringList& items);
+  static Ptr CreateOpenFileSource(PlayitemsProvider::Ptr provider, ScannerCallback& callback, const QStringList& items);
+  static Ptr CreateDetectFileSource(PlayitemsProvider::Ptr provider, ScannerCallback& callback, const QStringList& items);
 };
 
 #endif //ZXTUNE_QT_PLAYLIST_SOURCE_H_DEFINED

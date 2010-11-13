@@ -315,7 +315,7 @@ namespace
     {
     }
 
-    virtual Error DetectModules(const String& path, PlayitemDetectParameters& detectParams)
+    virtual Error DetectModules(const String& path, PlayitemDetectParameters& detectParams) const
     {
       try
       {
@@ -333,7 +333,7 @@ namespace
       }
     }
 
-    virtual Error OpenModule(const String& path, PlayitemDetectParameters& detectParams)
+    virtual Error OpenModule(const String& path, PlayitemDetectParameters& detectParams) const
     {
       try
       {
@@ -353,7 +353,7 @@ namespace
       }
     }
   private:
-    CachedDataProvider::Ptr Provider;
+    const CachedDataProvider::Ptr Provider;
     const Parameters::Accessor::Ptr CoreParams;
   };
 }
