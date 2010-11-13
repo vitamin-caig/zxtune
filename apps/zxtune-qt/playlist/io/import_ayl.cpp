@@ -22,6 +22,8 @@ Author:
 #include <core/module_attrs.h>
 #include <devices/aym.h>
 #include <sound/sound_parameters.h>
+//std includes
+#include <cctype>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/variant/get.hpp>
