@@ -9,7 +9,7 @@ showtime_cmd = date +"%x %X"
 
 compiler=gcc
 CXX = ${TOOLCHAIN_PATH}/usr/bin/mipsel-linux-g++
-CXX_PLATFORM_FLAGS = --sysroot=${TOOLCHAIN_PATH} -B${TOOLCHAIN_PATH} -mips32
+CXX_PLATFORM_FLAGS = --sysroot=${TOOLCHAIN_PATH} -B${TOOLCHAIN_PATH} -mips32 -fvisibility=hidden -fvisibility-inlines-hidden
 LDD = $(CXX)
 LD_PLATFORM_FLAGS = --sysroot=${TOOLCHAIN_PATH}
 AR = ${TOOLCHAIN_PATH}/usr/bin/mipsel-linux-ar

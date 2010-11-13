@@ -30,8 +30,6 @@ endif
 ifdef pic
 CXX_MODE_FLAGS += -fPIC
 LD_MODE_FLAGS += -shared
-else
-CXX_MODE_FLAGS += -fvisibility=hidden -fvisibility-inlines-hidden
 endif
 
 #setup code coverage
