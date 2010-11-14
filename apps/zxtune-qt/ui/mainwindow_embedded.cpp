@@ -92,10 +92,8 @@ namespace
 
 QPointer<MainWindowEmbedded> MainWindowEmbedded::Create(int argc, char* argv[])
 {
-  //qApp->setFont(QFont(QString::fromUtf8("DejaVuSans")));
   //TODO: create proper window
   QPointer<MainWindowEmbedded> res(new MainWindowEmbeddedImpl(argc, argv));
-  QApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
   res->setWindowFlags(Qt::FramelessWindowHint);
   res->showMaximized();
   return res;

@@ -47,7 +47,8 @@ endif
 
 #packaging
 pkg_additional_files_linux := dist/linux/zxTune.desktop res/zxtune.png
-pkg_additional_files_dingux := dist/dingux/menuitem.cfg dist/dingux/zxtune-wrapper.sh dist/dingux/readme.txt res/zxtune.png
+pkg_additional_files_dingux := $(wildcard dist/dingux/dmenu/*) $(wildcard dist/dingux/gmenu/*) $(wildcard dist/dingux/fonts/*) \
+                               dist/dingux/zxtune-wrapper.sh dist/dingux/readme.txt res/zxtune32.png
 
 #qt-based resources
 qrc_files := res/icons

@@ -20,7 +20,7 @@ boost_libraries = thread program_options
 
 manual_format := txt
 pkg_additional_files = ../zxtune.conf $(output_dir)/$(binary_name)_$(pkg_lang).$(manual_format)
-pkg_additional_files_dingux := dist/dingux/menuitem.cfg dist/dingux/readme.txt dist/dingux/zxtune.png
+pkg_additional_files_dingux := $(wildcard dist/dingux/dmenu/*) $(wildcard dist/dingux/gmenu/*) dist/dingux/readme.txt dist/dingux/zxtune.png
 
 include $(path_step)/makefile.mak
 include $(path_step)/make/package.mak
