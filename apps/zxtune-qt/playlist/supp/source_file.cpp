@@ -45,11 +45,12 @@ namespace
 
   bool ProcessAsPlaylist(PlayitemsProvider::Ptr provider, const QString& path, ScannerCallback& callback)
   {
-    const Playitem::Iterator::Ptr iter = OpenPlaylist(provider, path);
-    if (!iter.get())
+    const PlaylistIOContainer::Ptr playlist = OpenPlaylist(provider, path);
+    if (!playlist.get())
     {
       return false;
     }
+    const Playitem::Iterator::Ptr iter = playlist->GetItems();
     for (; !callback.IsCanceled() && iter->IsValid(); iter->Next())
     {
       const Playitem::Ptr item = iter->Get();

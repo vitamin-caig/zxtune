@@ -25,7 +25,7 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("UI::PlaylistTableView");
+  const std::string THIS_MODULE("Playlist::View::Table");
 
   //Options
   const char FONT_FAMILY[] = "Arial";

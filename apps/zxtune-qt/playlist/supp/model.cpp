@@ -32,7 +32,7 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("UI::PlaylistModel");
+  const std::string THIS_MODULE("Playlist::Model");
 
   const QModelIndex EMPTY_INDEX = QModelIndex();
 

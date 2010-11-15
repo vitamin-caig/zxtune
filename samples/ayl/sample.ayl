@@ -1,0 +1,77 @@
+ZX Spectrum Sound Chip Emulator Play List File v1.5
+..\asc\BLUEBIRD.asc
+<
+Author=ANDREW KUZNETSOV
+Name=BLUE BIRD
+Length=4453
+Time=15360
+Loop=0
+>
+..\asc\SANDRA.asc
+<
+Author=ANDREW KUZNETSOV
+Name=AROUND MY HEART
+Length=5549
+Time=9504
+Loop=0
+>
+..\pt2\4jour#2.pt2
+<
+Name=FOR JOURNAL#2/LEO/CAIG/200797/
+Length=5577
+Time=4800
+Loop=720
+>
+..\pt2\Illusion.pt2
+<
+Name="LIGHT'96" COMPOSED BY DENI...
+Length=4406
+Time=10080
+Loop=1536
+>
+..\pt3\Lat_mix2.pt3
+<
+Author=DAVOS/HS/CPU,CHEREPOVETS (C)1999
+Name=LATITUDE EFFECT,origin.by EXALOT
+Length=2888
+Time=6528
+Loop=1536
+>
+..\pt3\Speccy2.pt3
+<
+Author=DAVOS/HS/CPU, CHEREPOVETS(c)1999
+Name=SPECCY ALIVE IN OUR HEARTS......
+Length=8045
+Time=11712
+Loop=1152
+>
+..\stc\stracker.stc
+<
+Author=Kicia
+Name=Sound Tracker
+Length=3903
+Time=7680
+Loop=0
+>
+..\stp\ZXGuide3_07.stp
+<
+Length=1914
+Time=1920
+Loop=0
+>
+..\ts\long_day.pt3
+<
+Author=Voxel_triumph 2006
+Name=long...long...day chip(1)
+Length=1420
+Time=5760
+Loop=0
+>
+<
+Author=Voxel_triumph 2006              
+Name=long...long...day chip       
+Length=788
+Offset=1420
+Time=5760
+Comment=TurboSound module
+>

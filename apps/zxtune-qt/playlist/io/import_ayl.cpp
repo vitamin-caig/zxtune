@@ -13,6 +13,7 @@ Author:
 
 //local includes
 #include "import.h"
+#include "container_impl.h"
 #include "ui/utils.h"
 //common includes
 #include <error.h>
@@ -25,8 +26,7 @@ Author:
 //std includes
 #include <cctype>
 //boost includes
-#include <boost/bind.hpp>
-#include <boost/variant/get.hpp>
+#include <boost/make_shared.hpp>
 //qt includes
 #include <QtCore/QDir>
 #include <QtCore/QFile>
@@ -36,7 +36,7 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("UI::PlaylistAYL");
+  const std::string THIS_MODULE("Playlist::IO::AYL");
 
   String ConcatenatePath(const String& baseDirPath, const String& subPath)
   {
@@ -111,7 +111,7 @@ namespace
     return -1;
   }
 
-  class AYLIterator
+  class AYLContainer
   {
     struct AYLEntry
     {
@@ -121,7 +121,8 @@ namespace
     typedef std::vector<AYLEntry> AYLEntries;
     typedef RangeIterator<StringArray::const_iterator> LinesIterator;
   public:
-    explicit AYLIterator(const StringArray& lines)
+    explicit AYLContainer(const StringArray& lines)
+      : Container(boost::make_shared<AYLEntries>())
     {
       LinesIterator iter(lines.begin(), lines.end());
       while (iter)
@@ -129,37 +130,54 @@ namespace
         AYLEntry entry;
         entry.Path = *iter;
         ++iter;
-        ParseParameters(iter, entry.Parameters);
-        Container.push_back(entry);
+        while (ParseParameters(iter, entry.Parameters)) {}
+        Container->push_back(entry);
       }
-      Current = Container.begin();
     }
 
-    bool IsValid() const
+    class Iterator
     {
-      return Current != Container.end();
-    }
+    public:
+      explicit Iterator(boost::shared_ptr<const AYLEntries> container)
+        : Container(container)
+        , Delegate(Container->begin(), Container->end())
+      {
+      }
 
-    const String GetPath() const
-    {
-      return Current->Path;
-    }
+      bool IsValid() const
+      {
+        return Delegate;
+      }
 
-    const StringMap& GetParameters() const
-    {
-      return Current->Parameters;
-    }
+      const String GetPath() const
+      {
+        return Delegate->Path;
+      }
 
-    void Next()
+      const StringMap& GetParameters() const
+      {
+        return Delegate->Parameters;
+      }
+
+      void Next()
+      {
+        ++Delegate;
+      }
+    private:
+      const boost::shared_ptr<const AYLEntries> Container;
+      RangeIterator<AYLEntries::const_iterator> Delegate;
+    };
+
+    Iterator GetIterator() const
     {
-      ++Current;
+      return Iterator(Container);
     }
   private:
-    static void ParseParameters(LinesIterator& iter, StringMap& parameters)
+    static bool ParseParameters(LinesIterator& iter, StringMap& parameters)
     {
       if (!iter || !CheckForParametersBegin(*iter))
       {
-        return;
+        return false;
       }
       while (++iter)
       {
@@ -171,6 +189,7 @@ namespace
         }
         SplitParametersString(line, parameters);
       }
+      return true;
     }
 
     static bool CheckForParametersBegin(const String& line)
@@ -196,34 +215,7 @@ namespace
       }
     }
   private:
-    AYLEntries Container;
-    AYLEntries::const_iterator Current;
-  };
-
-  class CollectorStub : public PlayitemDetectParameters
-  {
-  public:
-    virtual bool ProcessPlayitem(Playitem::Ptr item)
-    {
-      if (Item)
-      {
-        //do not support more than one module in container
-        return false;
-      }
-      Item = item;
-      return true;
-    }
-
-    virtual void ShowProgress(const Log::MessageData& /*msg*/)
-    {
-    }
-
-    Playitem::Ptr GetItem() const
-    {
-      return Item;
-    }
-  private:
-    Playitem::Ptr Item;
+    const boost::shared_ptr<AYLEntries> Container;
   };
 
   class ParametersFilter : public Parameters::Modifier
@@ -339,88 +331,26 @@ namespace
     Parameters::Modifier& Delegate;
   };
 
-  class PlayitemAccessor
+  PlaylistContainerItemsPtr CreateItemsFromStrings(const String& basePath, int vers, const StringArray& lines)
   {
-  public:
-    PlayitemAccessor(PlayitemsProvider::Ptr provider, const String& basePath, int vers)
-      : Provider(provider)
-      , BasePath(basePath)
-      , Version(vers)
+    const AYLContainer aylItems(lines);
+    const VersionLayer version(vers);
+    const boost::shared_ptr<PlaylistContainerItems> items = boost::make_shared<PlaylistContainerItems>();
+    for (AYLContainer::Iterator iter = aylItems.GetIterator(); iter.IsValid(); iter.Next())
     {
+      const String& itemPath = iter.GetPath();
+      Log::Debug(THIS_MODULE, "Processing '%1%'", itemPath);
+      PlaylistContainerItem item;
+      item.Path = ConcatenatePath(basePath, itemPath);
+      const Parameters::Container::Ptr adjustedParams = Parameters::Container::Create();
+      ParametersFilter filter(version, *adjustedParams);
+      const StringMap& itemParams = iter.GetParameters();
+      Parameters::ParseStringMap(itemParams, filter);
+      item.AdjustedParameters = adjustedParams;
+      items->push_back(item);
     }
-
-    Playitem::Ptr GetItem(const AYLIterator& iterator) const
-    {
-      const String& itemPath = iterator.GetPath();
-      const String path = ConcatenatePath(BasePath, itemPath);
-      return OpenPlayitem(path, iterator.GetParameters());
-    }
-  private:
-    Playitem::Ptr OpenPlayitem(const String& path, const StringMap& parameters) const
-    {
-      CollectorStub collector;
-      //error is ignored, just take from collector
-      Provider->DetectModules(path, collector);
-      if (const Playitem::Ptr item = collector.GetItem())
-      {
-        Log::Debug(THIS_MODULE, "Opened '%1%'", path);
-        const Parameters::Container::Ptr params = item->GetAdjustedParameters();
-        ParametersFilter filter(Version, *params);
-        Parameters::ParseStringMap(parameters, filter);
-        return item;
-      }
-      Log::Debug(THIS_MODULE, "Failed to open '%1%'", path);
-      return Playitem::Ptr();
-    }
-  private:
-    const PlayitemsProvider::Ptr Provider;
-    const String BasePath;
-    const VersionLayer Version;
-  };
-
-  class PlayitemsIterator : public Playitem::Iterator
-  {
-  public:
-    PlayitemsIterator(PlayitemsProvider::Ptr provider, const String& basePath, int vers, const StringArray& lines)
-      : Accessor(provider, basePath, vers)
-      , Subiterator(lines)
-    {
-      FetchItem();
-    }
-
-    virtual bool IsValid() const
-    {
-      return Subiterator.IsValid();
-    }
-
-    virtual Playitem::Ptr Get() const
-    {
-      return Item;
-    }
-
-    virtual void Next()
-    {
-      Subiterator.Next();
-      FetchItem();
-    }
-  private:
-    void FetchItem()
-    {
-      Item.reset(); 
-      for (; Subiterator.IsValid(); Subiterator.Next())
-      {
-        if (Item = Accessor.GetItem(Subiterator))
-        {
-          return;
-        }
-      }
-    }
-  private:
-    PlayitemAccessor Accessor;
-    AYLIterator Subiterator;
-    Playitem::Ptr Item;
-  };
-
+    return items;
+  }
 
   bool CheckAYLByName(const QString& filename)
   {
@@ -429,26 +359,26 @@ namespace
   }
 }
 
-Playitem::Iterator::Ptr OpenAYLPlaylist(PlayitemsProvider::Ptr provider, const QString& filename)
+PlaylistIOContainer::Ptr OpenAYLPlaylist(PlayitemsProvider::Ptr provider, const QString& filename)
 {
   const QFileInfo info(filename);
   if (!info.isFile() || !info.isReadable() ||
       !CheckAYLByName(info.fileName()))
   {
-    return Playitem::Iterator::Ptr();
+    return PlaylistIOContainer::Ptr();
   }
   QFile device(filename);
   if (!device.open(QIODevice::ReadOnly | QIODevice::Text))
   {
     assert(!"Failed to open playlist");
-    return Playitem::Iterator::Ptr();
+    return PlaylistIOContainer::Ptr();
   }
   QTextStream stream(&device);
   const String header = FromQString(stream.readLine(0).simplified());
   const int vers = CheckAYLBySignature(header);
   if (vers < 0)
   {
-    return Playitem::Iterator::Ptr();
+    return PlaylistIOContainer::Ptr();
   }
   Log::Debug(THIS_MODULE, "Processing AYL version %1%", vers);
   StringArray lines;
@@ -458,10 +388,14 @@ Playitem::Iterator::Ptr OpenAYLPlaylist(PlayitemsProvider::Ptr provider, const Q
     lines.push_back(FromQString(line));
   }
   const String basePath = FromQString(info.absolutePath());
-  return Playitem::Iterator::Ptr(new PlayitemsIterator(provider, basePath, vers, lines));
+
+  //TODO: fill
+  const Parameters::Container::Ptr properties = Parameters::Container::Create();
+  const PlaylistContainerItemsPtr items = CreateItemsFromStrings(basePath, vers, lines);
+  return CreatePlaylistIOContainer(provider, properties, items);
 }
 
-Playitem::Iterator::Ptr OpenPlaylist(PlayitemsProvider::Ptr provider, const QString& filename)
+PlaylistIOContainer::Ptr OpenPlaylist(PlayitemsProvider::Ptr provider, const QString& filename)
 {
   return OpenAYLPlaylist(provider, filename);
 }
