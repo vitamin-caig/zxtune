@@ -173,7 +173,7 @@ namespace
     const QFileInfo& fileInfo)
   {
     const QString basePath = fileInfo.absolutePath();
-    QFile device(basePath);
+    QFile device(fileInfo.absoluteFilePath());
     if (!device.open(QIODevice::ReadOnly | QIODevice::Text))
     {
       assert(!"Failed to open XSPF playlist");

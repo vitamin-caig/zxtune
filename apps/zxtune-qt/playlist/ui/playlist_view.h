@@ -26,6 +26,7 @@ public:
   static PlaylistView* Create(QWidget& parent, const class PlaylistSupport& playlist);
 
   virtual const class PlaylistSupport& GetPlaylist() const = 0;
+public slots:
   virtual void Update() = 0;
 };
 

@@ -84,6 +84,7 @@ namespace
       //setup connections
       PlayitemIterator& iter = Playlist.GetIterator();
       iter.connect(View, SIGNAL(OnItemActivated(unsigned, const Playitem&)), SLOT(Reset(unsigned)));
+      View->connect(&Playlist.GetScanner(), SIGNAL(OnScanStop()), SLOT(updateGeometries()));
     }
 
     virtual const PlaylistSupport& GetPlaylist() const

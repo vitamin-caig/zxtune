@@ -14,9 +14,35 @@ Author:
 //local includes
 #include "playlist.h"
 #include "container.h"
+#include "scanner.h"
+#include "playlist/io/import.h"
+#include "ui/utils.h"
+//qt includes
+#include <QtCore/QSet>
 
 namespace
 {
+  QString GetPlaylistName(const Parameters::Accessor& params)
+  {
+    Parameters::StringType name;
+    if (params.FindStringValue(Playlist::ATTRIBUTE_NAME, name))
+    {
+      return ToQString(name);
+    }
+    assert(!"No playlist name");
+    return QString::fromUtf8("NoName");
+  }
+
+  int GetPlaylistSize(const Parameters::Accessor& params)
+  {
+    Parameters::IntType size = 0;
+    if (params.FindIntValue(Playlist::ATTRIBUTE_SIZE, size))
+    {
+      return static_cast<int>(size);
+    }
+    return -1;
+  }
+
   class PlaylistContainerImpl : public PlaylistContainer
   {
   public:
@@ -29,10 +55,40 @@ namespace
     virtual PlaylistSupport* CreatePlaylist(const QString& name)
     {
       PlaylistSupport* const playlist = PlaylistSupport::Create(*this, name, Provider);
+      Items.insert(playlist);
       return playlist;
+    }
+
+    virtual PlaylistSupport* OpenPlaylist(const QString& filename)
+    {
+      if (PlaylistIOContainer::Ptr container = ::OpenPlaylist(Provider, filename))
+      {
+        const Parameters::Accessor::Ptr plParams = container->GetProperties();
+        const QString plName = GetPlaylistName(*plParams);
+        const int plSize = GetPlaylistSize(*plParams);
+        PlaylistSupport* const playlist = CreatePlaylist(plName);
+        PlaylistScanner& scanner = playlist->GetScanner();
+        scanner.AddItems(container->GetItems(), plSize);
+        return playlist;
+      }
+      return 0;
+    }
+
+    virtual void RemovePlaylist(const PlaylistSupport* playlist)
+    {
+      if (Items.contains(playlist))
+      {
+        Items.remove(playlist);
+        delete playlist;//TODO
+      }
+      else
+      {
+        assert(!"Invalid playlist specified to remove");
+      }
     }
   private:
     const PlayitemsProvider::Ptr Provider;
+    QSet<const PlaylistSupport*> Items;
   };
 }
 

@@ -29,6 +29,9 @@ public:
   static PlaylistContainer* Create(QObject& parent, Parameters::Accessor::Ptr ioParams, Parameters::Accessor::Ptr coreParams);
 
   virtual class PlaylistSupport* CreatePlaylist(const QString& name) = 0;
+  virtual class PlaylistSupport* OpenPlaylist(const QString& filename) = 0;
+
+  virtual void RemovePlaylist(const class PlaylistSupport* playlist) = 0;
 };
 
 #endif //ZXTUNE_QT_PLAYLIST_CONTAINER_H_DEFINED

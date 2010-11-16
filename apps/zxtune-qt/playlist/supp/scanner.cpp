@@ -74,6 +74,18 @@ namespace
       this->start();
     }
 
+    virtual void AddItems(Playitem::Iterator::Ptr items, int countHint)
+    {
+      QMutexLocker lock(&QueueLock);
+      if (Canceled)
+      {
+        this->wait();
+      }
+      const ScannerSource::Ptr scanner = ScannerSource::CreateIteratorSource(*this, items);
+      Queue.append(scanner);
+      this->start();
+    }
+
     virtual void Cancel()
     {
       QMutexLocker lock(&QueueLock);

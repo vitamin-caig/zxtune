@@ -44,6 +44,7 @@ public:
 
   static Ptr CreateOpenFileSource(PlayitemsProvider::Ptr provider, ScannerCallback& callback, const QStringList& items);
   static Ptr CreateDetectFileSource(PlayitemsProvider::Ptr provider, ScannerCallback& callback, const QStringList& items);
+  static Ptr CreateIteratorSource(ScannerCallback& callback, Playitem::Iterator::Ptr iterator, int countHint = -1);
 };
 
 #endif //ZXTUNE_QT_PLAYLIST_SOURCE_H_DEFINED

@@ -21,6 +21,7 @@ Author:
 namespace Playlist
 {
   const Char ATTRIBUTE_NAME[] = {'N', 'a', 'm', 'e', 0};
+  const Char ATTRIBUTE_SIZE[] = {'S', 'i', 'z', 'e', 0};
 }
 
 PlaylistIOContainer::Ptr OpenPlaylist(PlayitemsProvider::Ptr provider, const class QString& filename);

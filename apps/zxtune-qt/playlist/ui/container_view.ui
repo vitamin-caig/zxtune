@@ -25,6 +25,9 @@
      <property name="currentIndex">
       <number>-1</number>
      </property>
+     <property name="tabsClosable">
+      <bool>true</bool>
+     </property>
     </widget>
    </item>
   </layout>
@@ -44,6 +47,16 @@
    </property>
    <property name="text">
     <string>Deep scanning</string>
+   </property>
+  </action>
+  <action name="actionLoad">
+   <property name="text">
+    <string>Open</string>
+   </property>
+  </action>
+  <action name="actionClose">
+   <property name="text">
+    <string>Close</string>
    </property>
   </action>
   <action name="actionClear">
@@ -85,7 +98,8 @@
   <action name="actionAddFolders">
    <property name="icon">
     <iconset resource="../../res/icons.qrc">
-     <normaloff>:/playlist/addfolders.png</normaloff>:/playlist/addfolders.png</iconset>
+     <normalon>:/playlist/addfolders.png</normalon>
+    </iconset>
    </property>
    <property name="text">
     <string>Add folders</string>
