@@ -1,7 +1,7 @@
 library_name := playlist_io
 path_step := ../../../..
 
-source_files := container_impl import_ayl
+source_files := container_impl import import_ayl import_xspf
 
 include_dirs = ../..
 

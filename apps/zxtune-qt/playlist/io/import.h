@@ -20,5 +20,6 @@ Author:
 
 PlaylistIOContainer::Ptr OpenPlaylist(PlayitemsProvider::Ptr provider, const class QString& filename);
 PlaylistIOContainer::Ptr OpenAYLPlaylist(PlayitemsProvider::Ptr provider, const class QString& filename);
+PlaylistIOContainer::Ptr OpenXSPFPlaylist(PlayitemsProvider::Ptr provider, const class QString& filename);
 
 #endif //ZXTUNE_QT_PLAYLIST_IMPORT_H_DEFINED

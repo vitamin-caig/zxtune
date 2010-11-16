@@ -394,8 +394,3 @@ PlaylistIOContainer::Ptr OpenAYLPlaylist(PlayitemsProvider::Ptr provider, const 
   const PlaylistContainerItemsPtr items = CreateItemsFromStrings(basePath, vers, lines);
   return CreatePlaylistIOContainer(provider, properties, items);
 }
-
-PlaylistIOContainer::Ptr OpenPlaylist(PlayitemsProvider::Ptr provider, const QString& filename)
-{
-  return OpenAYLPlaylist(provider, filename);
-}
