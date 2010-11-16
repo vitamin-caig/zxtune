@@ -1,0 +1,40 @@
+< __HEADER__
+> "Generated from '$Id:'"
+
+< __RAWHEADER__
+__cpp> "#ifndef ZXTUNE_QT_PLAYLIST_XSPF_TAGS_H_DEFINED\n"
+__cpp> "#define ZXTUNE_QT_PLAYLIST_XSPF_TAGS_H_DEFINED\n"
+__cpp> "#include <char_type.h>\n\n"
+__cpp> "namespace XSPF\n"
+__cpp> "{\n"
+
+< __RAWFOOTER__
+__cpp> "}//namespace XSPF\n"
+__cpp> "#endif //ZXTUNE_QT_PLAYLIST_XSPF_TAGS_H_DEFINED\n"
+
+< SUFFIX
+> ".xspf"
+
+< ROOT_TAG
+> "playlist"
+
+< VERSION_ATTR
+> "version"
+
+< TRACKLIST_TAG
+> "trackList"
+
+< ITEM_TAG
+> "track"
+
+< ITEM_LOCATION_TAG
+> "location"
+
+< ITEM_CREATOR_TAG
+> "creator"
+
+< ITEM_TITLE_TAG
+> "title"
+
+< ITEM_ANNOTATION_TAG
+> "annotation"

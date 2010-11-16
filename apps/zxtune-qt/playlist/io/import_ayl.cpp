@@ -15,6 +15,7 @@ Author:
 #include "import.h"
 #include "container_impl.h"
 #include "ui/utils.h"
+#include "tags/ayl.h"
 //common includes
 #include <error.h>
 #include <logging.h>
@@ -92,14 +93,7 @@ namespace
 
   int CheckAYLBySignature(const String& signature)
   {
-    static const Char AYL_SIGNATURE[] = 
-    {
-     'Z','X',' ','S','p','e','c','t','r','u','m',' ',
-     'S','o','u','n','d',' ','C','h','i','p',' ','E','m','u','l','a','t','o','r',' ',
-     'P','l','a','y',' ','L','i','s','t',' ','F','i','l','e',' ','v','1','.',
-     0
-    };
-    const String strSignature(AYL_SIGNATURE);
+    const String strSignature(AYL::SIGNATURE);
     if (0 == signature.find(strSignature))
     {
       const Char versChar = signature[strSignature.size()];
@@ -230,11 +224,11 @@ namespace
     virtual void SetIntValue(const Parameters::NameType& name, Parameters::IntType val)
     {
       Log::Debug(THIS_MODULE, "  property %1%=%2%", name, val);
-      if (name == "ChipFrequency")
+      if (name == AYL::CHIP_FREQUENCY)
       {
         Delegate.SetIntValue(Parameters::ZXTune::Sound::CLOCKRATE, val);
       }
-      else if (name == "PlayerFrequency")
+      else if (name == AYL::PLAYER_FREQUENCY)
       {
         Delegate.SetIntValue(Parameters::ZXTune::Sound::FRAMEDURATION, 
           Version.DecodeFrameduration(val));
@@ -249,37 +243,37 @@ namespace
     virtual void SetStringValue(const Parameters::NameType& name, const Parameters::StringType& val)
     {
       Log::Debug(THIS_MODULE, "  property %1%='%2%'", name, val);
-      if (name == "ChipType")
+      if (name == AYL::CHIP_TYPE)
       {
         Delegate.SetIntValue(Parameters::ZXTune::Core::AYM::TYPE, DecodeChipType(val));
       }
       //ignore "Channels"
-      else if (name == "ChannelsAllocation")
+      else if (name == AYL::CHANNELS_ALLOCATION)
       {
         Delegate.SetIntValue(Parameters::ZXTune::Core::AYM::LAYOUT, DecodeChipLayout(val));
       }
       //ignore "Offset", "Length", "Address", "Loop", "Time", "Original"
-      else if (name == "Name")
+      else if (name == AYL::NAME)
       {
         Delegate.SetStringValue(ZXTune::Module::ATTR_TITLE, Version.DecodeString(val));
       }
-      else if (name == "Author")
+      else if (name == AYL::AUTHOR)
       {
         Delegate.SetStringValue(ZXTune::Module::ATTR_AUTHOR, Version.DecodeString(val));
       }
-      else if (name == "Program" || name == "Tracker")
+      else if (name == AYL::PROGRAM || name == AYL::TRACKER)
       {
         Delegate.SetStringValue(ZXTune::Module::ATTR_PROGRAM, Version.DecodeString(val));
       }
-      else if (name == "Computer")
+      else if (name == AYL::COMPUTER)
       {
         Delegate.SetStringValue(ZXTune::Module::ATTR_COMPUTER, Version.DecodeString(val));
       }
-      else if (name == "Date")
+      else if (name == AYL::DATE)
       {
         Delegate.SetStringValue(ZXTune::Module::ATTR_DATE, Version.DecodeString(val));
       }
-      else if (name == "Comment")
+      else if (name == AYL::COMMENT)
       {
         //TODO: process escape sequence
         Delegate.SetStringValue(ZXTune::Module::ATTR_COMMENT, Version.DecodeString(val));
@@ -295,28 +289,28 @@ namespace
   private:
     static Parameters::IntType DecodeChipType(const String& value)
     {
-      return value == "YM" ? 1 : 0;
+      return value == AYL::YM ? 1 : 0;
     }
 
     static Parameters::IntType DecodeChipLayout(const String& value)
     {
-      if (value == "ACB")
+      if (value == AYL::ACB)
       {
         return ZXTune::AYM::LAYOUT_ACB;
       }
-      else if (value == "BAC")
+      else if (value == AYL::BAC)
       {
         return ZXTune::AYM::LAYOUT_BAC;
       }
-      else if (value == "BCA")
+      else if (value == AYL::BCA)
       {
         return ZXTune::AYM::LAYOUT_BCA;
       }
-      else if (value == "CAB")
+      else if (value == AYL::CAB)
       {
         return ZXTune::AYM::LAYOUT_CAB;
       }
-      else if (value == "CBA")
+      else if (value == AYL::CBA)
       {
         return ZXTune::AYM::LAYOUT_CBA;
       }
@@ -354,7 +348,7 @@ namespace
 
   bool CheckAYLByName(const QString& filename)
   {
-    static const QString AYL_SUFFIX = QString::fromUtf8(".ayl");
+    static const QString AYL_SUFFIX = QString::fromUtf8(AYL::SUFFIX);
     return filename.endsWith(AYL_SUFFIX, Qt::CaseInsensitive);
   }
 }
@@ -389,8 +383,8 @@ PlaylistIOContainer::Ptr OpenAYLPlaylist(PlayitemsProvider::Ptr provider, const 
   }
   const String basePath = FromQString(info.absolutePath());
 
-  //TODO: fill
   const Parameters::Container::Ptr properties = Parameters::Container::Create();
   const PlaylistContainerItemsPtr items = CreateItemsFromStrings(basePath, vers, lines);
+  properties->SetStringValue(Playlist::ATTRIBUTE_NAME, FromQString(info.baseName()));
   return CreatePlaylistIOContainer(provider, properties, items);
 }

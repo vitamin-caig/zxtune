@@ -1,0 +1,74 @@
+< __HEADER__
+> "Generated from '$Id:'"
+
+< __RAWHEADER__
+__cpp> "#ifndef ZXTUNE_QT_PLAYLIST_AYL_TAGS_H_DEFINED\n"
+__cpp> "#define ZXTUNE_QT_PLAYLIST_AYL_TAGS_H_DEFINED\n"
+__cpp> "#include <char_type.h>\n\n"
+__cpp> "namespace AYL\n"
+__cpp> "{\n"
+
+< __RAWFOOTER__
+__cpp> "}//namespace AYL\n"
+__cpp> "#endif //ZXTUNE_QT_PLAYLIST_AYL_TAGS_H_DEFINED\n"
+
+< SUFFIX
+> ".ayl"
+
+< SIGNATURE
+> "ZX Spectrum Sound Chip Emulator Play List File v1."
+
+< CHIP_FREQUENCY
+> "ChipFrequency"
+
+< PLAYER_FREQUENCY
+> "PlayerFrequency"
+
+< CHIP_TYPE
+> "ChipType"
+
+< CHANNELS_ALLOCATION
+> "ChannelsAllocation"
+
+< NAME
+> "Name"
+
+< AUTHOR
+> "Author"
+
+< PROGRAM
+> "Program"
+
+< TRACKER
+> "Tracker"
+
+< COMPUTER
+> "Computer"
+
+< DATE
+> "Date"
+
+< COMMENT
+> "Comment"
+
+< YM
+> "YM"
+
+< ABC
+> "ABC"
+
+< ACB
+> "ACB"
+
+< BAC
+> "BAC"
+
+< BCA
+> "BCA"
+
+< CAB
+> "CAB"
+
+< CBA
+> "CBA"
+
