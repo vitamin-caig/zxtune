@@ -186,8 +186,10 @@ namespace
     }
 
     const Parameters::Container::Ptr properties = Parameters::Container::Create();
+    const PlaylistContainerItemsPtr items = reader.GetItems();
     properties->SetStringValue(Playlist::ATTRIBUTE_NAME, FromQString(fileInfo.baseName()));
-    return CreatePlaylistIOContainer(provider, properties, reader.GetItems());
+    properties->SetIntValue(Playlist::ATTRIBUTE_SIZE, items->size());
+    return CreatePlaylistIOContainer(provider, properties, items);
   }
 
   bool CheckXSPFByName(const QString& filename)

@@ -80,6 +80,13 @@ namespace
 
       //signals
       this->connect(this, SIGNAL(activated(const QModelIndex&)), SLOT(ActivateItem(const QModelIndex&)));
+
+      Log::Debug(THIS_MODULE, "Created at %1%", this);
+    }
+
+    virtual ~PlaylistTableViewImpl()
+    {
+      Log::Debug(THIS_MODULE, "Destroyed at %1%", this);
     }
 
     virtual void ActivateItem(const QModelIndex& index)

@@ -17,6 +17,7 @@ Author:
 #include "ui/utils.h"
 //common includes
 #include <error.h>
+#include <logging.h>
 //qt includes
 #include <QtCore/QMutex>
 //std includes
@@ -24,6 +25,8 @@ Author:
 
 namespace
 {
+  const std::string THIS_MODULE("Playlist::Scanner");
+
   class EventFilter
   {
   public:
@@ -58,6 +61,12 @@ namespace
       , ItemsDone()
       , ItemsTotal()
     {
+      Log::Debug(THIS_MODULE, "Created at %1%", this);
+    }
+
+    virtual ~PlaylistScannerImpl()
+    {
+      Log::Debug(THIS_MODULE, "Destroyed at %1%", this);
     }
 
     virtual void AddItems(const QStringList& items, bool deepScan)
@@ -81,7 +90,7 @@ namespace
       {
         this->wait();
       }
-      const ScannerSource::Ptr scanner = ScannerSource::CreateIteratorSource(*this, items);
+      const ScannerSource::Ptr scanner = ScannerSource::CreateIteratorSource(*this, items, countHint);
       Queue.append(scanner);
       this->start();
     }

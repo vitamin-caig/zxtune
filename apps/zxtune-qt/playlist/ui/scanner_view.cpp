@@ -15,9 +15,13 @@ Author:
 #include "scanner_view.h"
 #include "scanner_view.ui.h"
 #include "playlist/supp/scanner.h"
+//common includes
+#include <logging.h>
 
 namespace
 {
+  const std::string THIS_MODULE("Playlist::Scanner::View");
+
   class PlaylistScannerViewImpl : public PlaylistScannerView
                                 , private Ui::PlaylistScannerView
   {
@@ -37,11 +41,17 @@ namespace
       this->connect(&Scanner, SIGNAL(OnResolvingStart()), this, SLOT(ShowResolving()));
       this->connect(&Scanner, SIGNAL(OnResolvingStop()), this, SLOT(HideResolving()));
       this->connect(scanCancel, SIGNAL(clicked()), SLOT(ScanCancel()));
+
+      Log::Debug(THIS_MODULE, "Created at %1%", this);
+    }
+
+    virtual ~PlaylistScannerViewImpl()
+    {
+      Log::Debug(THIS_MODULE, "Destroyed at %1%", this);
     }
 
     virtual void ScanStart()
     {
-      scanCancel->setEnabled(true);
       show();
     }
 
@@ -54,6 +64,7 @@ namespace
     virtual void ScanStop()
     {
       hide();
+      scanCancel->setEnabled(true);
     }
 
     virtual void ShowProgress(unsigned progress, unsigned itemsDone, unsigned totalItems)
@@ -61,6 +72,7 @@ namespace
       const QString itemsProgressText = QString("%1/%2").arg(itemsDone).arg(totalItems);
       itemsProgress->setText(itemsProgressText);
       scanProgress->setValue(progress);
+      CheckedShow();
     }
 
     virtual void ShowProgressMessage(const QString& message)
@@ -71,11 +83,20 @@ namespace
     virtual void ShowResolving()
     {
       itemsProgress->setText(tr("Searching..."));
+      CheckedShow();
     }
 
     virtual void HideResolving()
     {
       itemsProgress->setText(QString());
+    }
+  private:
+    void CheckedShow()
+    {
+      if (!isVisible())
+      {
+        show();
+      }
     }
   private:
     PlaylistScanner& Scanner;

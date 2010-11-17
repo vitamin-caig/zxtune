@@ -17,6 +17,8 @@ Author:
 #include "playlist_view.h"
 #include "playlist/supp/playlist.h"
 #include "playlist/supp/scanner.h"
+//local includes
+#include <logging.h>
 //boost includes
 #include <boost/bind.hpp>
 //qt includes
@@ -27,6 +29,8 @@ Author:
 
 namespace
 {
+  const std::string THIS_MODULE("Playlist::View");
+
   class PlayitemStateCallbackImpl : public PlayitemStateCallback
   {
   public:
@@ -85,6 +89,13 @@ namespace
       PlayitemIterator& iter = Playlist.GetIterator();
       iter.connect(View, SIGNAL(OnItemActivated(unsigned, const Playitem&)), SLOT(Reset(unsigned)));
       View->connect(&Playlist.GetScanner(), SIGNAL(OnScanStop()), SLOT(updateGeometries()));
+
+      Log::Debug(THIS_MODULE, "Created at %1%", this);
+    }
+
+    virtual ~PlaylistViewImpl()
+    {
+      Log::Debug(THIS_MODULE, "Destroyed at %1%", this);
     }
 
     virtual const PlaylistSupport& GetPlaylist() const

@@ -31,7 +31,7 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("Playlist::ContainerView");
+  const std::string THIS_MODULE("Playlist::Container::View");
 
   class PlaylistContainerViewImpl : public PlaylistContainerView
                                   , public Ui::PlaylistContainerView
@@ -59,6 +59,13 @@ namespace
 
       this->connect(widgetsContainer, SIGNAL(currentChanged(int)), SLOT(ActivatePlaylist(int)));
       this->connect(widgetsContainer, SIGNAL(tabCloseRequested(int)), SLOT(ClosePlaylist(int)));
+
+      Log::Debug(THIS_MODULE, "Created at %1%", this);
+    }
+
+    virtual ~PlaylistContainerViewImpl()
+    {
+      Log::Debug(THIS_MODULE, "Destroyed at %1%", this);
     }
 
     virtual void CreatePlaylist(const QStringList& items)
@@ -172,6 +179,7 @@ namespace
         ActivePlaylistView = 0;
         SwitchToLastPlaylist();
       }
+      delete view;
     }
   private:
     void SetupMenu()

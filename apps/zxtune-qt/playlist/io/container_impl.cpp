@@ -28,13 +28,9 @@ namespace
   public:
     virtual bool ProcessPlayitem(Playitem::Ptr item)
     {
-      if (Item)
-      {
-        //do not support more than one module in container
-        return false;
-      }
+      assert(!Item);
       Item = item;
-      return true;
+      return false;
     }
 
     virtual void ShowProgress(const Log::MessageData& /*msg*/)

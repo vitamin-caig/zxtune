@@ -386,5 +386,6 @@ PlaylistIOContainer::Ptr OpenAYLPlaylist(PlayitemsProvider::Ptr provider, const 
   const Parameters::Container::Ptr properties = Parameters::Container::Create();
   const PlaylistContainerItemsPtr items = CreateItemsFromStrings(basePath, vers, lines);
   properties->SetStringValue(Playlist::ATTRIBUTE_NAME, FromQString(info.baseName()));
+  properties->SetIntValue(Playlist::ATTRIBUTE_SIZE, items->size());
   return CreatePlaylistIOContainer(provider, properties, items);
 }

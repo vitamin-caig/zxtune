@@ -393,6 +393,12 @@ namespace
       , FetchedItemsCount()
       , Container(new PlayitemsContainer())
     {
+      Log::Debug(THIS_MODULE, "Created at %1%", this);
+    }
+
+    virtual ~PlaylistModelImpl()
+    {
+      Log::Debug(THIS_MODULE, "Destroyed at %1%", this);
     }
 
     //new virtuals
@@ -473,8 +479,6 @@ namespace
       {
         return EMPTY_INDEX;
       }
-      Log::Debug(THIS_MODULE, "Create index row=%1% col=%2%",
-        row, column);
       QMutexLocker locker(&Synchronizer);
       if (const PlayitemWrapper* item = Container->GetItemByIndex(row))
       {
@@ -509,8 +513,6 @@ namespace
     {
       if (Qt::Horizontal == orientation)
       {
-        Log::Debug(THIS_MODULE, "Request header data section=%1% role=%2%",
-          section, role);
         const RowDataProvider& provider = Providers.GetProvider(role);
         return provider.GetHeader(section);
       }
@@ -530,8 +532,6 @@ namespace
       }
       const int_t fieldNum = index.column();
       const int_t itemNum = index.row();
-      Log::Debug(THIS_MODULE, "Request data row=%1% col=%2% role=%3%",
-        itemNum, fieldNum, role);
       QMutexLocker locker(&Synchronizer);
       if (const PlayitemWrapper* item = Container->GetItemByIndex(itemNum))
       {

@@ -44,7 +44,7 @@ namespace
         const unsigned curProgress = CountHint == -1
           ? curItemNum % 100
           : curItemNum * 100 / CountHint;
-        Callback.OnProgress(curProgress, 1);
+        Callback.OnProgress(curProgress, curItemNum);
       }
     }
   private:

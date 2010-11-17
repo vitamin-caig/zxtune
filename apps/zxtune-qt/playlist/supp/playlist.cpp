@@ -15,9 +15,12 @@ Author:
 #include "playlist.h"
 #include "model.h"
 #include "scanner.h"
+//common includes
+#include <logging.h>
 
 namespace
 {
+  const std::string THIS_MODULE("Playlist::Support");
   class PlayitemIteratorImpl : public PlayitemIterator
   {
   public:
@@ -88,10 +91,14 @@ namespace
       setObjectName(name);
       //setup connections
       Model->connect(Scanner, SIGNAL(OnGetItem(Playitem::Ptr)), SLOT(AddItem(Playitem::Ptr)));
+
+      Log::Debug(THIS_MODULE, "Created at %1%", this);
     }
 
     virtual ~PlaylistSupportImpl()
     {
+      Log::Debug(THIS_MODULE, "Destroyed at %1%", this);
+
       Scanner->Cancel();
       Scanner->wait();
     }
