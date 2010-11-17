@@ -12,6 +12,9 @@ CXX = ${TOOLCHAIN_PATH}/usr/bin/mipsel-linux-g++
 CXX_PLATFORM_FLAGS = --sysroot=${TOOLCHAIN_PATH} -B${TOOLCHAIN_PATH} -mips32 -fvisibility=hidden -fvisibility-inlines-hidden
 LDD = $(CXX)
 LD_PLATFORM_FLAGS = --sysroot=${TOOLCHAIN_PATH}
+ifdef release
+LD_PLATFORM_FLAGS += -Wl,-O3,-x,--gc-sections,--relax
+endif
 AR = ${TOOLCHAIN_PATH}/usr/bin/mipsel-linux-ar
 OBJCOPY = ${TOOLCHAIN_PATH}/usr/bin/mipsel-linux-objcopy
 STRIP = ${TOOLCHAIN_PATH}/usr/bin/mipsel-linux-strip

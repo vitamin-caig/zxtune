@@ -21,9 +21,6 @@ CXX_MODE_FLAGS += -pg
 LD_MODE_FLAGS += -pg
 else
 CXX_MODE_FLAGS += -fdata-sections -ffunction-sections
-ifdef release
-LD_MODE_FLAGS += -Wl,-O3,-x,--gc-sections,--relax
-endif
 endif
 
 #setup PIC code
@@ -34,6 +31,9 @@ endif
 
 #setup code coverage
 ifdef coverage
+ifdef release
+$(error Code coverage is not supported in release mode)
+endif
 CXX_MODE_FLAGS += --coverage
 LD_MODE_FLAGS += --coverage
 endif

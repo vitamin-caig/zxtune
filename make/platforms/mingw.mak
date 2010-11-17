@@ -13,7 +13,7 @@ compiler=gcc
 CXX_PLATFORM_FLAGS = -mthreads -march=native
 LD_PLATFORM_FLAGS = -mthreads -static 
 ifdef release
-LD_PLATFORM_FLAGS += -Wl,-subsystem,$(ifdef $(qt_libraries),windows,console)
+LD_PLATFORM_FLAGS += -Wl,-O3,-x,--gc-sections,--relax,-subsystem,$(ifdef $(qt_libraries),windows,console)
 else
 LD_PLATFORM_FLAGS += -Wl,-subsystem,console
 endif

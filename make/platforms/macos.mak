@@ -9,20 +9,17 @@ showtime_cmd = date +"%x %X"
 
 compiler=gcc
 CXX_PLATFORM_FLAGS = -fvisibility=hidden -fvisibility-inlines-hidden
-ifdef release
-LD_PLATFORM_FLAGS += -Wl,-O3,-x,--gc-sections,--relax
-endif
+LINKER_BEGIN_GROUP=
+LINKER_END_GROUP=
 
 #built-in features
-support_oss = 1
-support_alsa = 1
-#support_sdl = 1
+support_sdl = 1
 
 ifdef boost_libraries
-linux_libraries += $(foreach lib,$(boost_libraries),boost_$(lib)-mt)
+macos_libraries += $(foreach lib,$(boost_libraries),boost_$(lib))
 endif
 
 ifdef qt_libraries
-linux_libraries += $(foreach lib,$(qt_libraries),Qt$(lib))
-include_dirs += /usr/include/qt4
+CXX_PLATFORM_FLAGS += $(addprefix -FQt,$(qt_libraries))
+LD_PLATFORM_FLAGS += -bundle $(addprefix -framework Qt,$(qt_libraries))
 endif
