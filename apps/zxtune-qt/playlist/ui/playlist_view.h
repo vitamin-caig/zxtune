@@ -23,11 +23,13 @@ class PlaylistView : public QWidget
 protected:
   explicit PlaylistView(QWidget& parent);
 public:
-  static PlaylistView* Create(QWidget& parent, const class PlaylistSupport& playlist);
+  static PlaylistView* Create(QWidget& parent, class PlaylistSupport& playlist);
 
   virtual const class PlaylistSupport& GetPlaylist() const = 0;
 public slots:
   virtual void Update() = 0;
+signals:
+  void OnItemActivated(const class Playitem&);
 };
 
 #endif //ZXTUNE_QT_PLAYLIST_VIEW_H_DEFINED

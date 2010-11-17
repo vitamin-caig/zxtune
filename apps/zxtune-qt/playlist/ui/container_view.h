@@ -43,9 +43,10 @@ public slots:
   virtual void AddFolders() = 0;
   virtual void LoadPlaylist() = 0;
 
-  virtual void ActivatePlaylist(int index) = 0;
   virtual void CloseCurrentPlaylist() = 0;
   virtual void ClosePlaylist(int index) = 0;
+private slots:
+  virtual void PlaylistItemActivated(const class Playitem&) = 0;
 signals:
   void OnItemActivated(const class Playitem&);
 };

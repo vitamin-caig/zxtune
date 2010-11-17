@@ -57,7 +57,6 @@ namespace
 
       this->connect(actionClear, SIGNAL(triggered()), SLOT(Clear()));
 
-      this->connect(widgetsContainer, SIGNAL(currentChanged(int)), SLOT(ActivatePlaylist(int)));
       this->connect(widgetsContainer, SIGNAL(tabCloseRequested(int)), SLOT(ClosePlaylist(int)));
 
       Log::Debug(THIS_MODULE, "Created at %1%", this);
@@ -152,15 +151,6 @@ namespace
       }
     }
 
-    virtual void ActivatePlaylist(int index)
-    {
-      if (QWidget* widget = widgetsContainer->widget(index))
-      {
-        ActivePlaylistView = static_cast<PlaylistView*>(widget);
-        Log::Debug(THIS_MODULE, "Activated playlist idx=%1% val=%2%", index, ActivePlaylistView);
-      }
-    }
-
     virtual void CloseCurrentPlaylist()
     {
       ClosePlaylist(widgetsContainer->currentIndex());
@@ -169,9 +159,7 @@ namespace
     virtual void ClosePlaylist(int index)
     {
       PlaylistView* const view = static_cast<PlaylistView*>(widgetsContainer->widget(index));
-      const PlaylistSupport* const playlist = &view->GetPlaylist();
       widgetsContainer->removeTab(index);
-      Container->RemovePlaylist(playlist);
       Log::Debug(THIS_MODULE, "Closed playlist idx=%1% val=%2%, active=%3%",
         index, view, ActivePlaylistView);
       if (view == ActivePlaylistView)
@@ -179,7 +167,23 @@ namespace
         ActivePlaylistView = 0;
         SwitchToLastPlaylist();
       }
-      delete view;
+      view->deleteLater();
+    }
+  private:
+    void PlaylistItemActivated(const class Playitem& item)
+    {
+      if (QObject* sender = this->sender())
+      {
+        assert(dynamic_cast<PlaylistView*>(sender));
+        PlaylistView* const newView = static_cast<PlaylistView*>(sender);
+        if (newView != ActivePlaylistView)
+        {
+          Log::Debug(THIS_MODULE, "Switched playlist %1% -> %2%", newView, ActivePlaylistView);
+          UpdateState(STOPPED);
+          ActivePlaylistView = newView;
+        }
+      }
+      OnItemActivated(item);
     }
   private:
     void SetupMenu()
@@ -242,8 +246,8 @@ namespace
     {
       PlaylistView* const plView = PlaylistView::Create(*this, playlist);
       widgetsContainer->addTab(plView, playlist.objectName());
-      PlayitemIterator& iter = playlist.GetIterator();
-      this->connect(&iter, SIGNAL(OnItem(const Playitem&)), SIGNAL(OnItemActivated(const Playitem&)));
+      this->connect(plView, SIGNAL(OnItemActivated(const Playitem&)),
+        SLOT(PlaylistItemActivated(const Playitem&)));
       if (!ActivePlaylistView)
       {
         ActivePlaylistView = plView;
@@ -278,6 +282,15 @@ namespace
       else
       {
         CreateAnonymousPlaylist();
+      }
+    }
+
+    void ActivatePlaylist(int index)
+    {
+      if (QWidget* widget = widgetsContainer->widget(index))
+      {
+        ActivePlaylistView = static_cast<PlaylistView*>(widget);
+        Log::Debug(THIS_MODULE, "Switching to playlist idx=%1% val=%2%", index, ActivePlaylistView);
       }
     }
   private:

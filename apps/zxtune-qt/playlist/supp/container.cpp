@@ -17,8 +17,6 @@ Author:
 #include "scanner.h"
 #include "playlist/io/import.h"
 #include "ui/utils.h"
-//qt includes
-#include <QtCore/QSet>
 
 namespace
 {
@@ -55,7 +53,6 @@ namespace
     virtual PlaylistSupport* CreatePlaylist(const QString& name)
     {
       PlaylistSupport* const playlist = PlaylistSupport::Create(*this, name, Provider);
-      Items.insert(playlist);
       return playlist;
     }
 
@@ -73,22 +70,8 @@ namespace
       }
       return 0;
     }
-
-    virtual void RemovePlaylist(const PlaylistSupport* playlist)
-    {
-      if (Items.contains(playlist))
-      {
-        Items.remove(playlist);
-        delete playlist;//TODO
-      }
-      else
-      {
-        assert(!"Invalid playlist specified to remove");
-      }
-    }
   private:
     const PlayitemsProvider::Ptr Provider;
-    QSet<const PlaylistSupport*> Items;
   };
 }
 

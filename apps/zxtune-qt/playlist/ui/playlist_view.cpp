@@ -71,7 +71,7 @@ namespace
   class PlaylistViewImpl : public PlaylistView
   {
   public:
-    PlaylistViewImpl(QWidget& parent, const PlaylistSupport& playlist)
+    PlaylistViewImpl(QWidget& parent, PlaylistSupport& playlist)
       : PlaylistView(parent)
       , Playlist(playlist)
       , State(Playlist.GetIterator())
@@ -88,6 +88,7 @@ namespace
       //setup connections
       PlayitemIterator& iter = Playlist.GetIterator();
       iter.connect(View, SIGNAL(OnItemActivated(unsigned, const Playitem&)), SLOT(Reset(unsigned)));
+      this->connect(&iter, SIGNAL(OnItem(const Playitem&)), SIGNAL(OnItemActivated(const Playitem&)));
       View->connect(&Playlist.GetScanner(), SIGNAL(OnScanStop()), SLOT(updateGeometries()));
 
       Log::Debug(THIS_MODULE, "Created at %1%", this);
@@ -95,6 +96,7 @@ namespace
 
     virtual ~PlaylistViewImpl()
     {
+      Playlist.deleteLater();
       Log::Debug(THIS_MODULE, "Destroyed at %1%", this);
     }
 
@@ -131,7 +133,7 @@ namespace
       }
     }
   private:
-    const PlaylistSupport& Playlist;
+    PlaylistSupport& Playlist;
     PlayitemStateCallbackImpl State;
     QVBoxLayout* const Layout;
     PlaylistScannerView* const ScannerView;
@@ -143,7 +145,7 @@ PlaylistView::PlaylistView(QWidget& parent) : QWidget(&parent)
 {
 }
 
-PlaylistView* PlaylistView::Create(QWidget& parent, const PlaylistSupport& playlist)
+PlaylistView* PlaylistView::Create(QWidget& parent, PlaylistSupport& playlist)
 {
   return new PlaylistViewImpl(parent, playlist);
 }
