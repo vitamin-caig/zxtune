@@ -34,6 +34,17 @@ namespace
 {
   const std::string THIS_MODULE("Playlist::Container::View");
 
+  QString ExtractPlaylistName(const PlaylistIOContainer& container, const QString& defVal)
+  {
+    const Parameters::Accessor::Ptr params = container.GetProperties();
+    Parameters::StringType val;
+    if (params->FindStringValue(Playlist::ATTRIBUTE_NAME, val))
+    {
+      return ToQString(val);
+    }
+    return defVal;
+  }
+
   class FileDialogWrapper
   {
   public:
@@ -45,8 +56,10 @@ namespace
       Dialog.setOption(QFileDialog::HideNameFilterDetails, true);
     }
 
-    bool OpenSingleFile(QString& file)
+    bool OpenSingleFile(const QString& title, const QString& filters, QString& file)
     {
+      Dialog.setWindowTitle(title);
+      Dialog.setNameFilter(filters);
       Dialog.setFileMode(QFileDialog::ExistingFile);
       Dialog.setOption(QFileDialog::ShowDirsOnly, false);
       SetROMode();
@@ -59,8 +72,10 @@ namespace
       return false;
     }
 
-    bool OpenMultipleFiles(QStringList& files)
+    bool OpenMultipleFiles(const QString& title, const QString& filters, QStringList& files)
     {
+      Dialog.setWindowTitle(title);
+      Dialog.setNameFilter(filters);
       Dialog.setFileMode(QFileDialog::ExistingFiles);
       Dialog.setOption(QFileDialog::ShowDirsOnly, false);
       SetROMode();
@@ -73,8 +88,9 @@ namespace
       return false;
     }
 
-    bool OpenMultipleFolders(QStringList& folders)
+    bool OpenMultipleFolders(const QString& title, QStringList& folders)
     {
+      Dialog.setWindowTitle(title);
       Dialog.setFileMode(QFileDialog::Directory);
       Dialog.setOption(QFileDialog::ShowDirsOnly, true);
       SetROMode();
@@ -87,8 +103,12 @@ namespace
       return false;
     }
 
-    bool SaveFile(QString& filename)
+    bool SaveFile(const QString& title, const QString& suffix, QString& filename)
     {
+      Dialog.setWindowTitle(title);
+      Dialog.setDefaultSuffix(suffix);
+      Dialog.setNameFilter(QString::fromUtf8("*.") + suffix);
+      Dialog.selectFile(filename);
       Dialog.setFileMode(QFileDialog::AnyFile);
       Dialog.setOption(QFileDialog::ShowDirsOnly, false);
       SetRWMode();
@@ -219,7 +239,8 @@ namespace
     virtual void AddFiles()
     {
       QStringList files;
-      if (FileDialog.OpenMultipleFiles(files))
+      if (FileDialog.OpenMultipleFiles(actionAddFiles->text(), 
+        tr("All files (*.*)"), files))
       {
         const PlaylistSupport& playlist = GetCurrentPlaylist();
         PlaylistScanner& scanner = playlist.GetScanner();
@@ -231,7 +252,7 @@ namespace
     virtual void AddFolders()
     {
       QStringList folders;
-      if (FileDialog.OpenMultipleFolders(folders))
+      if (FileDialog.OpenMultipleFolders(actionAddFolders->text(), folders))
       {
         const PlaylistSupport& playlist = GetCurrentPlaylist();
         PlaylistScanner& scanner = playlist.GetScanner();
@@ -248,7 +269,8 @@ namespace
     virtual void LoadPlaylist()
     {
       QString file;
-      if (FileDialog.OpenSingleFile(file))
+      if (FileDialog.OpenSingleFile(actionLoadPlaylist->text(),
+         tr("Playlist files (*.xspf *.ayl)"), file))
       {
         if (PlaylistSupport* const pl = Container->OpenPlaylist(file))
         {
@@ -259,12 +281,13 @@ namespace
 
     virtual void SavePlaylist()
     {
-      QString filename;
-      if (FileDialog.SaveFile(filename))
+      PlaylistView* const view = static_cast<PlaylistView*>(widgetsContainer->currentWidget());
+      const PlaylistSupport& playlist = view->GetPlaylist();
+      const PlaylistIOContainer::Ptr container = playlist.GetContainer();
+      QString filename = ExtractPlaylistName(*container, playlist.GetName());
+      if (FileDialog.SaveFile(actionSavePlaylist->text(),
+        QString::fromUtf8("xspf"), filename))
       {
-        PlaylistView* const view = static_cast<PlaylistView*>(widgetsContainer->currentWidget());
-        const PlaylistSupport& playlist = view->GetPlaylist();
-        const PlaylistIOContainer::Ptr container = playlist.GetContainer();
         if (!SaveXSPFPlaylist(container, filename))
         {
           assert(!"Failed to save");
@@ -335,7 +358,7 @@ namespace
     void RegisterPlaylist(PlaylistSupport& playlist)
     {
       PlaylistView* const plView = PlaylistView::Create(*this, playlist);
-      widgetsContainer->addTab(plView, playlist.objectName());
+      widgetsContainer->addTab(plView, playlist.GetName());
       this->connect(plView, SIGNAL(OnItemActivated(const Playitem&)),
         SLOT(PlaylistItemActivated(const Playitem&)));
       if (!ActivePlaylistView)

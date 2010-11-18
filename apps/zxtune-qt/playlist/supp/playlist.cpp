@@ -110,12 +110,11 @@ namespace
   public:
     PlaylistSupportImpl(QObject& parent, const QString& name, PlayitemsProvider::Ptr provider)
       : PlaylistSupport(parent)
+      , Name(name)
       , Scanner(PlaylistScanner::Create(*this, provider))
       , Model(PlaylistModel::Create(*this))
       , Iterator(new PlayitemIteratorImpl(*this, *Model))
     {
-      //setup self
-      setObjectName(name);
       //setup connections
       Model->connect(Scanner, SIGNAL(OnGetItem(Playitem::Ptr)), SLOT(AddItem(Playitem::Ptr)));
 
@@ -128,6 +127,11 @@ namespace
 
       Scanner->Cancel();
       Scanner->wait();
+    }
+
+    virtual QString GetName() const
+    {
+      return Name;
     }
 
     virtual class PlaylistScanner& GetScanner() const
@@ -147,9 +151,10 @@ namespace
 
     virtual PlaylistIOContainer::Ptr GetContainer() const
     {
-      return boost::make_shared<PlaylistIOContainerImpl>(objectName(), *Model);
+      return boost::make_shared<PlaylistIOContainerImpl>(Name, *Model);
     }
   private:
+    const QString Name;
     PlayitemsProvider::Ptr Provider;
     PlaylistScanner* const Scanner;
     PlaylistModel* const Model;

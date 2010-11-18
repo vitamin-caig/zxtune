@@ -107,7 +107,7 @@
   </action>
   <action name="actionAddFolders">
    <property name="icon">
-    <iconset resource="../../res/icons.qrc">
+    <iconset>
      <normalon>:/playlist/addfolders.png</normalon>
     </iconset>
    </property>

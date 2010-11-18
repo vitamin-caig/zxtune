@@ -55,6 +55,7 @@ protected:
 public:
   static PlaylistSupport* Create(QObject& parent, const QString& name, PlayitemsProvider::Ptr provider);
 
+  virtual QString GetName() const = 0;
   virtual class PlaylistScanner& GetScanner() const = 0;
   virtual class PlaylistModel& GetModel() const = 0;
   virtual PlayitemIterator& GetIterator() const = 0;
