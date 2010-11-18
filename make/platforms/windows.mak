@@ -24,7 +24,7 @@ ifdef boost_libraries
 # msvs - version of MSVS used to compile and link
 # -gd - used for debug libraries
 # version - boost version major_minor
-windows_libraries += $(foreach lib,$(boost_libraries),$(if $(boost_dynamic),,lib)boost_$(lib)-$(MSVS_VERSION)-mt$(ifdef release,,-gd)-$(BOOST_VERSION))
+windows_libraries += $(foreach lib,$(boost_libraries),$(if $(boost_dynamic),,lib)boost_$(lib)-$(MSVS_VERSION)-mt$(if $(release),,-gd)-$(BOOST_VERSION))
 endif
 
 ifdef qt_libraries
@@ -33,5 +33,5 @@ ifdef qt_libraries
 # lib - library name
 # d - used for debug libraries
 # 4 - used for dynamic linkage
-windows_libraries += $(foreach lib,$(if $(qt_libraries),$(qt_libraries) main,),Qt$(lib)$(ifdef release,,d)$(if $(qt_dynamic),4,))
+windows_libraries += $(foreach lib,$(if $(qt_libraries),$(qt_libraries) main,),Qt$(lib)$(if $(release),,d)$(if $(qt_dynamic),4,))
 endif

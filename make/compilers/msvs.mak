@@ -19,7 +19,7 @@ endif
 #specific
 DEFINITIONS = $(defines) $($(platform)_definitions) __STDC_CONSTANT_MACROS _SCL_SECURE_NO_WARNINGS
 INCLUDES = $(include_dirs) $($(platform)_include_dirs)
-windows_libraries += kernel32 $(addsuffix $(ifdef release,,d), msvcrt msvcprt)
+windows_libraries += kernel32 $(addsuffix $(if $(release),,d), msvcrt msvcprt)
 
 #setup flags
 CXXFLAGS = /nologo /c $(CXX_PLATFORM_FLAGS) $(CXX_MODE_FLAGS) $(cxx_flags) \

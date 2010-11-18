@@ -10,10 +10,16 @@ rmfiles_cmd = del /Q $(subst /,\,$(1))
 showtime_cmd = echo %TIME%
 
 compiler=gcc
-CXX_PLATFORM_FLAGS = -mthreads -march=native
+CXX_PLATFORM_FLAGS = -mthreads -march=native -mmmx
 LD_PLATFORM_FLAGS = -mthreads -static 
 ifdef release
-LD_PLATFORM_FLAGS += -Wl,-O3,-x,--gc-sections,--relax,-subsystem,$(ifdef $(qt_libraries),windows,console)
+CXX_PLATFORM_FLAGS += -minline-all-stringops
+LD_PLATFORM_FLAGS += -Wl,-O3,-x,--gc-sections,--relax,--kill-at
+endif
+
+ifdef qt_libraries
+mingw_libraries += $(foreach lib,$(qt_libraries),Qt$(lib))
+LD_PLATFORM_FLAGS += -Wl,-subsystem,$(if $(release),windows,console)
 else
 LD_PLATFORM_FLAGS += -Wl,-subsystem,console
 endif
@@ -28,8 +34,4 @@ support_aylpt_dlportio = 1
 #simple library naming convention used
 ifdef boost_libraries
 mingw_libraries += $(foreach lib,$(boost_libraries),boost_$(lib))
-endif
-
-ifdef qt_libraries
-mingw_libraries += $(foreach lib,$(qt_libraries),Qt$(lib))
 endif
