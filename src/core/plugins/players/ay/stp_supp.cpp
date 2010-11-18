@@ -244,7 +244,7 @@ namespace
     }
 
     template<class T>
-    Sample(uint_t loop, T from, T to)
+    Sample(int_t loop, T from, T to)
       : Loop(loop), Lines(from, to)
     {
     }
@@ -515,7 +515,7 @@ namespace
     uint_t ParseSample(uint_t offset, const STPAreas& areas, Log::MessagesCollector& warner)
     {
       const STPSample& sample = areas.GetSample(offset);
-      const int_t realLoop = std::min<int_t>(std::max<int_t>(sample.Loop, 0), sample.Size);
+      const int_t realLoop = std::min<int_t>(sample.Loop, sample.Size);
       Samples.push_back(Sample(realLoop, sample.Data, sample.Data + sample.Size));
       if (sample.Loop != realLoop)
       {
