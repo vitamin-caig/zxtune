@@ -15,6 +15,7 @@ Author:
 #include "container_view.h"
 #include "container_view.ui.h"
 #include "playlist_view.h"
+#include "playlist/io/export.h"
 #include "playlist/supp/playlist.h"
 #include "playlist/supp/container.h"
 #include "playlist/supp/model.h"
@@ -33,6 +34,92 @@ namespace
 {
   const std::string THIS_MODULE("Playlist::Container::View");
 
+  class FileDialogWrapper
+  {
+  public:
+    explicit FileDialogWrapper(QWidget& parent)
+      : Dialog(&parent, QString(), QDir::currentPath())
+    {
+      Dialog.setViewMode(QFileDialog::Detail);
+      Dialog.setOption(QFileDialog::DontUseNativeDialog, true);
+      Dialog.setOption(QFileDialog::HideNameFilterDetails, true);
+    }
+
+    bool OpenSingleFile(QString& file)
+    {
+      Dialog.setFileMode(QFileDialog::ExistingFile);
+      Dialog.setOption(QFileDialog::ShowDirsOnly, false);
+      SetROMode();
+
+      if (ProcessDialog())
+      {
+        file = Dialog.selectedFiles().front();
+        return true;
+      }
+      return false;
+    }
+
+    bool OpenMultipleFiles(QStringList& files)
+    {
+      Dialog.setFileMode(QFileDialog::ExistingFiles);
+      Dialog.setOption(QFileDialog::ShowDirsOnly, false);
+      SetROMode();
+
+      if (ProcessDialog())
+      {
+        files = Dialog.selectedFiles();
+        return true;
+      }
+      return false;
+    }
+
+    bool OpenMultipleFolders(QStringList& folders)
+    {
+      Dialog.setFileMode(QFileDialog::Directory);
+      Dialog.setOption(QFileDialog::ShowDirsOnly, true);
+      SetROMode();
+
+      if (ProcessDialog())
+      {
+        folders = Dialog.selectedFiles();
+        return true;
+      }
+      return false;
+    }
+
+    bool SaveFile(QString& filename)
+    {
+      Dialog.setFileMode(QFileDialog::AnyFile);
+      Dialog.setOption(QFileDialog::ShowDirsOnly, false);
+      SetRWMode();
+      if (ProcessDialog())
+      {
+        filename = Dialog.selectedFiles().front();
+        return true;
+      }
+      return false;
+    }
+  private:
+    bool ProcessDialog()
+    {
+      return QDialog::Accepted == Dialog.exec();
+    }
+
+    void SetROMode()
+    {
+      Dialog.setOption(QFileDialog::ReadOnly, true);
+      Dialog.setAcceptMode(QFileDialog::AcceptOpen);
+    }
+
+    void SetRWMode()
+    {
+      Dialog.setOption(QFileDialog::ReadOnly, false);
+      Dialog.setAcceptMode(QFileDialog::AcceptSave);
+    }
+  private:
+    QFileDialog Dialog;
+  };
+
   class PlaylistContainerViewImpl : public PlaylistContainerView
                                   , public Ui::PlaylistContainerView
   {
@@ -42,7 +129,7 @@ namespace
       //TODO: from global parameters
       , Container(PlaylistContainer::Create(*this, Parameters::Container::Create(), Parameters::Container::Create()))
       , ActionsMenu(new QMenu(tr("Playlist"), this))
-      , AddFileDirectory(QDir::currentPath())
+      , FileDialog(*this)
       , ActivePlaylistView(0)
     {
       //setup self
@@ -52,10 +139,12 @@ namespace
       //connect actions
       this->connect(actionAddFiles, SIGNAL(triggered()), SLOT(AddFiles()));
       this->connect(actionAddFolders, SIGNAL(triggered()), SLOT(AddFolders()));
-      this->connect(actionLoad, SIGNAL(triggered()), SLOT(LoadPlaylist()));
-      this->connect(actionClose, SIGNAL(triggered()), SLOT(CloseCurrentPlaylist()));
-
-      this->connect(actionClear, SIGNAL(triggered()), SLOT(Clear()));
+      //playlist actions
+      this->connect(actionCreatePlaylist, SIGNAL(triggered()), SLOT(CreatePlaylist()));
+      this->connect(actionLoadPlaylist, SIGNAL(triggered()), SLOT(LoadPlaylist()));
+      this->connect(actionSavePlaylist, SIGNAL(triggered()), SLOT(SavePlaylist()));
+      this->connect(actionClosePlaylist, SIGNAL(triggered()), SLOT(CloseCurrentPlaylist()));
+      this->connect(actionClearPlaylist, SIGNAL(triggered()), SLOT(Clear()));
 
       this->connect(widgetsContainer, SIGNAL(tabCloseRequested(int)), SLOT(ClosePlaylist(int)));
 
@@ -129,25 +218,57 @@ namespace
 
     virtual void AddFiles()
     {
-      ProcessFilesDialog(QFileDialog::ExistingFiles);
+      QStringList files;
+      if (FileDialog.OpenMultipleFiles(files))
+      {
+        const PlaylistSupport& playlist = GetCurrentPlaylist();
+        PlaylistScanner& scanner = playlist.GetScanner();
+        const bool deepScan = actionDeepScan->isChecked();
+        scanner.AddItems(files, deepScan);
+      }
     }
 
     virtual void AddFolders()
     {
-      ProcessFilesDialog(QFileDialog::Directory);
+      QStringList folders;
+      if (FileDialog.OpenMultipleFolders(folders))
+      {
+        const PlaylistSupport& playlist = GetCurrentPlaylist();
+        PlaylistScanner& scanner = playlist.GetScanner();
+        const bool deepScan = actionDeepScan->isChecked();
+        scanner.AddItems(folders, deepScan);
+      }
+    }
+
+    virtual void CreatePlaylist()
+    {
+      CreateAnonymousPlaylist();
     }
 
     virtual void LoadPlaylist()
     {
-      QStringList files;
-      if (!ProcessDialog(QFileDialog::ExistingFile, files))
+      QString file;
+      if (FileDialog.OpenSingleFile(file))
       {
-        return;
+        if (PlaylistSupport* const pl = Container->OpenPlaylist(file))
+        {
+          RegisterPlaylist(*pl);
+        }
       }
-      assert(files.size() == 1);
-      if (PlaylistSupport* const pl = Container->OpenPlaylist(files.front()))
+    }
+
+    virtual void SavePlaylist()
+    {
+      QString filename;
+      if (FileDialog.SaveFile(filename))
       {
-        RegisterPlaylist(*pl);
+        PlaylistView* const view = static_cast<PlaylistView*>(widgetsContainer->currentWidget());
+        const PlaylistSupport& playlist = view->GetPlaylist();
+        const PlaylistIOContainer::Ptr container = playlist.GetContainer();
+        if (!SaveXSPFPlaylist(container, filename))
+        {
+          assert(!"Failed to save");
+        }
       }
     }
 
@@ -192,46 +313,15 @@ namespace
       ActionsMenu->addAction(actionAddFolders);
       ActionsMenu->addAction(actionDeepScan);
       ActionsMenu->addSeparator();
-      ActionsMenu->addAction(actionLoad);
-      ActionsMenu->addAction(actionClose);
-      //ActionsMenu->addAction(actionSave);
+      ActionsMenu->addAction(actionCreatePlaylist);
+      ActionsMenu->addAction(actionLoadPlaylist);
+      ActionsMenu->addAction(actionSavePlaylist);
+      ActionsMenu->addAction(actionClosePlaylist);
       ActionsMenu->addSeparator();
-      ActionsMenu->addAction(actionClear);
+      ActionsMenu->addAction(actionClearPlaylist);
       //ActionsMenu->addSeparator();
       //ActionsMenu->addAction(actionLoop);
       //ActionsMenu->addAction(actionRandom);
-    }
-
-    void ProcessFilesDialog(QFileDialog::FileMode mode)
-    {
-      QStringList files;
-      if (ProcessDialog(mode, files))
-      {
-        const PlaylistSupport& playlist = GetCurrentPlaylist();
-        PlaylistScanner& scanner = playlist.GetScanner();
-        const bool deepScan = actionDeepScan->isChecked();
-        scanner.AddItems(files, deepScan);
-      }
-    }
-
-    bool ProcessDialog(QFileDialog::FileMode mode, QStringList& files)
-    {
-      QFileDialog dialog(this);
-      dialog.setFileMode(mode);
-      dialog.setAcceptMode(QFileDialog::AcceptOpen);
-      dialog.setViewMode(QFileDialog::Detail);
-      dialog.setOption(QFileDialog::DontUseNativeDialog, true);
-      dialog.setOption(QFileDialog::ReadOnly, true);
-      dialog.setOption(QFileDialog::HideNameFilterDetails, true);
-      dialog.setOption(QFileDialog::ShowDirsOnly, mode == QFileDialog::Directory);
-      dialog.setDirectory(AddFileDirectory);
-      if (QDialog::Accepted == dialog.exec())
-      {
-        AddFileDirectory = dialog.directory().absolutePath();
-        files = dialog.selectedFiles();
-        return true;
-      }
-      return false;
     }
 
     PlaylistSupport& CreateAnonymousPlaylist()
@@ -297,7 +387,7 @@ namespace
     PlaylistContainer* const Container;
     QMenu* const ActionsMenu;
     //state context
-    QString AddFileDirectory;
+    FileDialogWrapper FileDialog;
     PlaylistView* ActivePlaylistView;
   };
 }

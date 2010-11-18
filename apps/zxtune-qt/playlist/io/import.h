@@ -18,12 +18,6 @@ Author:
 #include "container.h"
 #include "supp/playitems_provider.h"
 
-namespace Playlist
-{
-  const Char ATTRIBUTE_NAME[] = {'N', 'a', 'm', 'e', 0};
-  const Char ATTRIBUTE_SIZE[] = {'S', 'i', 'z', 'e', 0};
-}
-
 PlaylistIOContainer::Ptr OpenPlaylist(PlayitemsProvider::Ptr provider, const class QString& filename);
 PlaylistIOContainer::Ptr OpenAYLPlaylist(PlayitemsProvider::Ptr provider, const class QString& filename);
 PlaylistIOContainer::Ptr OpenXSPFPlaylist(PlayitemsProvider::Ptr provider, const class QString& filename);

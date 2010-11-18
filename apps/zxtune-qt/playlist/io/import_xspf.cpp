@@ -36,8 +36,6 @@ namespace
 {
   const std::string THIS_MODULE("Playlist::IO::XSPF");
 
-  const char SUPPORTED_XSPF_VERSION[] = "1";
-
   QString ConcatenatePath(const QString& baseDirPath, const QString& subPath)
   {
     const QDir baseDir(baseDirPath);
@@ -59,11 +57,14 @@ namespace
     {
       if (XML.readNextStartElement())
       {
-        if (XML.name() != XSPF::ROOT_TAG ||
-            XML.attributes().value(XSPF::VERSION_ATTR) != SUPPORTED_XSPF_VERSION)
+        if (XML.name() != XSPF::ROOT_TAG)
         {
           Log::Debug(THIS_MODULE, "Invalid playlist format");
           return false;
+        }
+        if (XML.attributes().value(XSPF::VERSION_ATTR) != XSPF::VERSION_VALUE)
+        {
+          Log::Debug(THIS_MODULE, "  unknown version");
         }
         return ParsePlaylist();
       }

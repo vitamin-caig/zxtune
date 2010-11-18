@@ -21,6 +21,15 @@ __cpp> "#endif //ZXTUNE_QT_PLAYLIST_XSPF_TAGS_H_DEFINED\n"
 < VERSION_ATTR
 > "version"
 
+< VERSION_VALUE
+> "1"
+
+< XMLNS_ATTR
+> "xmlns"
+
+< XMLNS_VALUE
+> "http://xspf.org/ns/0/"
+
 < TRACKLIST_TAG
 > "trackList"
 

@@ -16,6 +16,7 @@ Author:
 
 //local includes
 #include "supp/playitems_provider.h"
+#include "playlist/io/container.h"
 //qt includes
 #include <QtCore/QObject>
 
@@ -57,6 +58,8 @@ public:
   virtual class PlaylistScanner& GetScanner() const = 0;
   virtual class PlaylistModel& GetModel() const = 0;
   virtual PlayitemIterator& GetIterator() const = 0;
+
+  virtual PlaylistIOContainer::Ptr GetContainer() const = 0;
 };
 
 #endif //ZXTUNE_QT_PLAYLIST_H_DEFINED

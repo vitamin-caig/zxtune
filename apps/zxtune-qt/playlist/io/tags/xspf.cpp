@@ -32,5 +32,14 @@ extern const Char TRACKLIST_TAG[] = {
 extern const Char VERSION_ATTR[] = {
   'v','e','r','s','i','o','n',0
 };
+extern const Char VERSION_VALUE[] = {
+  '1',0
+};
+extern const Char XMLNS_ATTR[] = {
+  'x','m','l','n','s',0
+};
+extern const Char XMLNS_VALUE[] = {
+  'h','t','t','p',':','/','/','x','s','p','f','.','o','r','g','/','n','s','/','0','/',0
+};
 }//namespace XSPF
 #endif //ZXTUNE_QT_PLAYLIST_XSPF_TAGS_H_DEFINED

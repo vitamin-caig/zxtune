@@ -15,8 +15,11 @@ Author:
 #include "playlist.h"
 #include "model.h"
 #include "scanner.h"
+#include "ui/utils.h"
 //common includes
 #include <logging.h>
+//boost includes
+#include <boost/make_shared.hpp>
 
 namespace
 {
@@ -78,6 +81,30 @@ namespace
     PlayitemState State;
   };
 
+  class PlaylistIOContainerImpl : public PlaylistIOContainer
+  {
+  public:
+    PlaylistIOContainerImpl(const QString& name, const PlaylistModel& model)
+      : Properties(Parameters::Container::Create())
+      , Model(model)
+    {
+      Properties->SetStringValue(Playlist::ATTRIBUTE_NAME, FromQString(name));
+    }
+
+    virtual Parameters::Accessor::Ptr GetProperties() const
+    {
+      return Properties;
+    }
+
+    virtual Playitem::Iterator::Ptr GetItems() const
+    {
+      return Model.GetItems();
+    }
+  private:
+    const Parameters::Container::Ptr Properties;
+    const PlaylistModel& Model;
+  };
+
   class PlaylistSupportImpl : public PlaylistSupport
   {
   public:
@@ -118,6 +145,10 @@ namespace
       return *Iterator;
     }
 
+    virtual PlaylistIOContainer::Ptr GetContainer() const
+    {
+      return boost::make_shared<PlaylistIOContainerImpl>(objectName(), *Model);
+    }
   private:
     PlayitemsProvider::Ptr Provider;
     PlaylistScanner* const Scanner;

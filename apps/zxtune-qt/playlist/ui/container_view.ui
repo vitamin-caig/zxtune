@@ -49,24 +49,34 @@
     <string>Deep scanning</string>
    </property>
   </action>
-  <action name="actionLoad">
+  <action name="actionCreatePlaylist">
    <property name="text">
-    <string>Open</string>
+    <string>Create playlist</string>
    </property>
   </action>
-  <action name="actionClose">
+  <action name="actionLoadPlaylist">
    <property name="text">
-    <string>Close</string>
+    <string>Open playlist</string>
    </property>
   </action>
-  <action name="actionClear">
+  <action name="actionSavePlaylist">
+   <property name="text">
+    <string>Save playlist</string>
+   </property>
+  </action>
+  <action name="actionClosePlaylist">
+   <property name="text">
+    <string>Close playlist</string>
+   </property>
+  </action>
+  <action name="actionClearPlaylist">
    <property name="icon">
     <iconset>
      <normalon>:/playlist/clear.png</normalon>
     </iconset>
    </property>
    <property name="text">
-    <string>Clear</string>
+    <string>Clear playlist</string>
    </property>
   </action>
   <action name="actionLoop">

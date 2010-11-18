@@ -14,5 +14,8 @@ extern const Char ROOT_TAG[];
 extern const Char SUFFIX[];
 extern const Char TRACKLIST_TAG[];
 extern const Char VERSION_ATTR[];
+extern const Char VERSION_VALUE[];
+extern const Char XMLNS_ATTR[];
+extern const Char XMLNS_VALUE[];
 }//namespace XSPF
 #endif //ZXTUNE_QT_PLAYLIST_XSPF_TAGS_H_DEFINED
