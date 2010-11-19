@@ -18,7 +18,6 @@ Author:
 #include "playlist/io/export.h"
 #include "playlist/supp/playlist.h"
 #include "playlist/supp/container.h"
-#include "playlist/supp/model.h"
 #include "playlist/supp/scanner.h"
 #include "ui/utils.h"
 //common includes
@@ -182,10 +181,9 @@ namespace
 
     virtual void CreatePlaylist(const QStringList& items)
     {
-      const Playlist::Controller& playlist = CreateAnonymousPlaylist();
-      Playlist::Scanner& scanner = playlist.GetScanner();
+      Playlist::UI::View& pl = CreateAnonymousPlaylist();
       const bool deepScan = actionDeepScan->isChecked();
-      scanner.AddItems(items, deepScan);
+      pl.AddItems(items, deepScan);
     }
 
     virtual QMenu* GetActionsMenu() const
@@ -195,49 +193,37 @@ namespace
 
     virtual void Play()
     {
-      UpdateState(Playlist::Item::PLAYING);
+      GetActivePlaylist().Play();
     }
 
     virtual void Pause()
     {
-      UpdateState(Playlist::Item::PAUSED);
+      GetActivePlaylist().Pause();
     }
 
     virtual void Stop()
     {
-      UpdateState(Playlist::Item::STOPPED);
+      GetActivePlaylist().Stop();
     }
 
     virtual void Finish()
     {
-      const Playlist::Controller& playlist = GetCurrentPlaylist();
-      Playlist::Item::Iterator& iter = playlist.GetIterator();
-      if (!iter.Next())
-      {
-        Stop();
-      }
+      GetActivePlaylist().Finish();
     }
 
     virtual void Next()
     {
-      const Playlist::Controller& playlist = GetCurrentPlaylist();
-      Playlist::Item::Iterator& iter = playlist.GetIterator();
-      iter.Next();
+      GetActivePlaylist().Next();
     }
 
     virtual void Prev()
     {
-      const Playlist::Controller& playlist = GetCurrentPlaylist();
-      Playlist::Item::Iterator& iter = playlist.GetIterator();
-      iter.Prev();
+      GetActivePlaylist().Prev();
     }
 
     virtual void Clear()
     {
-      const Playlist::Controller& playlist = GetCurrentPlaylist();
-      Playlist::Model& model = playlist.GetModel();
-      model.Clear();
-      ActivePlaylistView->Update();
+      GetVisiblePlaylist().Clear();
     }
 
     virtual void AddFiles()
@@ -246,10 +232,8 @@ namespace
       if (FileDialog.OpenMultipleFiles(actionAddFiles->text(), 
         tr("All files (*.*)"), files))
       {
-        const Playlist::Controller& playlist = GetCurrentPlaylist();
-        Playlist::Scanner& scanner = playlist.GetScanner();
         const bool deepScan = actionDeepScan->isChecked();
-        scanner.AddItems(files, deepScan);
+        GetVisiblePlaylist().AddItems(files, deepScan);
       }
     }
 
@@ -258,10 +242,8 @@ namespace
       QStringList folders;
       if (FileDialog.OpenMultipleFolders(actionAddFolders->text(), folders))
       {
-        const Playlist::Controller& playlist = GetCurrentPlaylist();
-        Playlist::Scanner& scanner = playlist.GetScanner();
         const bool deepScan = actionDeepScan->isChecked();
-        scanner.AddItems(folders, deepScan);
+        GetVisiblePlaylist().AddItems(folders, deepScan);
       }
     }
 
@@ -285,10 +267,9 @@ namespace
 
     virtual void SavePlaylist()
     {
-      Playlist::UI::View* const view = static_cast<Playlist::UI::View*>(widgetsContainer->currentWidget());
-      const Playlist::Controller& playlist = view->GetPlaylist();
-      const Playlist::IO::Container::Ptr container = playlist.GetContainer();
-      QString filename = ExtractPlaylistName(*container, playlist.GetName());
+      const Playlist::Controller& controller = GetVisiblePlaylist().GetPlaylist();
+      const Playlist::IO::Container::Ptr container = controller.GetContainer();
+      QString filename = ExtractPlaylistName(*container, controller.GetName());
       if (FileDialog.SaveFile(actionSavePlaylist->text(),
         QString::fromUtf8("xspf"), filename))
       {
@@ -333,10 +314,8 @@ namespace
         std::for_each(urls.begin(), urls.end(),
           boost::bind(&QStringList::push_back, &files,
             boost::bind(&QUrl::toLocalFile, _1)));
-        const Playlist::Controller& playlist = GetCurrentPlaylist();
-        Playlist::Scanner& scanner = playlist.GetScanner();
         const bool deepScan = actionDeepScan->isChecked();
-        scanner.AddItems(files, deepScan);
+        GetVisiblePlaylist().AddItems(files, deepScan);
       }
     }
   private:
@@ -349,7 +328,7 @@ namespace
         if (newView != ActivePlaylistView)
         {
           Log::Debug(THIS_MODULE, "Switched playlist %1% -> %2%", newView, ActivePlaylistView);
-          UpdateState(Playlist::Item::STOPPED);
+          ActivePlaylistView->Stop();
           ActivePlaylistView = newView;
         }
       }
@@ -373,15 +352,14 @@ namespace
       //ActionsMenu->addAction(actionRandom);
     }
 
-    Playlist::Controller& CreateAnonymousPlaylist()
+    Playlist::UI::View& CreateAnonymousPlaylist()
     {
       Log::Debug(THIS_MODULE, "Create default playlist");
       Playlist::Controller* const pl = Container->CreatePlaylist(tr("Default"));
-      RegisterPlaylist(*pl);
-      return *pl;
+      return RegisterPlaylist(*pl);
     }
 
-    void RegisterPlaylist(Playlist::Controller& playlist)
+    Playlist::UI::View& RegisterPlaylist(Playlist::Controller& playlist)
     {
       Playlist::UI::View* const plView = Playlist::UI::View::Create(*this, playlist);
       widgetsContainer->addTab(plView, playlist.GetName());
@@ -392,23 +370,25 @@ namespace
         ActivePlaylistView = plView;
       }
       widgetsContainer->setCurrentWidget(plView);
+      return *plView;
     }
 
-    void UpdateState(Playlist::Item::State state)
-    {
-      const Playlist::Controller& playlist = GetCurrentPlaylist();
-      Playlist::Item::Iterator& iter = playlist.GetIterator();
-      iter.SetState(state);
-      ActivePlaylistView->Update();
-    }
-
-    const Playlist::Controller& GetCurrentPlaylist()
+    Playlist::UI::View& GetActivePlaylist()
     {
       if (!ActivePlaylistView)
       {
-        CreateAnonymousPlaylist();
+        return CreateAnonymousPlaylist();
       }
-      return ActivePlaylistView->GetPlaylist();
+      return *ActivePlaylistView;
+    }
+
+    Playlist::UI::View& GetVisiblePlaylist()
+    {
+      if (Playlist::UI::View* view = static_cast<Playlist::UI::View*>(widgetsContainer->currentWidget()))
+      {
+        return *view;
+      }
+      return GetActivePlaylist();
     }
 
     void SwitchToLastPlaylist()

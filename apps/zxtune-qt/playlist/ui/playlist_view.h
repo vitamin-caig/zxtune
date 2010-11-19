@@ -34,7 +34,15 @@ namespace Playlist
 
       virtual const Playlist::Controller& GetPlaylist() const = 0;
     public slots:
-      virtual void Update() = 0;
+      virtual void AddItems(const QStringList& items, bool deepScan) = 0;
+
+      virtual void Play() = 0;
+      virtual void Pause() = 0;
+      virtual void Stop() = 0;
+      virtual void Finish() = 0;
+      virtual void Next() = 0;
+      virtual void Prev() = 0;
+      virtual void Clear() = 0;
     signals:
       void OnItemActivated(const Playitem&);
     };

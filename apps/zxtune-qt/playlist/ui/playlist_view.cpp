@@ -15,6 +15,7 @@ Author:
 #include "scanner_view.h"
 #include "table_view.h"
 #include "playlist_view.h"
+#include "playlist/supp/model.h"
 #include "playlist/supp/playlist.h"
 #include "playlist/supp/scanner.h"
 //local includes
@@ -98,11 +99,67 @@ namespace
       return Controller;
     }
 
-    virtual void Update()
+    //modifiers
+    virtual void AddItems(const QStringList& items, bool deepScan)
+    {
+      Playlist::Scanner& scanner = Controller.GetScanner();
+      scanner.AddItems(items, deepScan);
+    }
+
+    virtual void Play()
+    {
+      UpdateState(Playlist::Item::PLAYING);
+    }
+
+    virtual void Pause()
+    {
+      UpdateState(Playlist::Item::PAUSED);
+    }
+
+    virtual void Stop()
+    {
+      UpdateState(Playlist::Item::STOPPED);
+    }
+
+    virtual void Finish()
+    {
+      Playlist::Item::Iterator& iter = Controller.GetIterator();
+      if (!iter.Next())
+      {
+        Stop();
+      }
+    }
+
+    virtual void Next()
+    {
+      Playlist::Item::Iterator& iter = Controller.GetIterator();
+      iter.Next();
+    }
+
+    virtual void Prev()
+    {
+      Playlist::Item::Iterator& iter = Controller.GetIterator();
+      iter.Prev();
+    }
+
+    virtual void Clear()
+    {
+      Playlist::Model& model = Controller.GetModel();
+      model.Clear();
+      Update();
+    }
+  private:
+    void UpdateState(Playlist::Item::State state)
+    {
+      Playlist::Item::Iterator& iter = Controller.GetIterator();
+      iter.SetState(state);
+      Update();
+    }
+
+    void Update()
     {
       View->viewport()->update();
     }
-
   private:
     Playlist::Controller& Controller;
     PlayitemStateCallbackImpl State;
