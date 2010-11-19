@@ -11,8 +11,8 @@ Author:
   This file is a part of zxtune-qt application based on zxtune library
 */
 
-#ifndef ZXTUNE_QT_PLAYLIST_VIEW_H_DEFINED
-#define ZXTUNE_QT_PLAYLIST_VIEW_H_DEFINED
+#ifndef ZXTUNE_QT_PLAYLIST_UI_PLAYLIST_VIEW_H_DEFINED
+#define ZXTUNE_QT_PLAYLIST_UI_PLAYLIST_VIEW_H_DEFINED
 
 //qt includes
 #include <QtGui/QWidget>
@@ -49,4 +49,4 @@ namespace Playlist
   }
 }
 
-#endif //ZXTUNE_QT_PLAYLIST_VIEW_H_DEFINED
+#endif //ZXTUNE_QT_PLAYLIST_UI_PLAYLIST_VIEW_H_DEFINED

@@ -12,7 +12,7 @@ Author:
 */
 
 //local includes
-#include "playlist.h"
+#include "controller.h"
 #include "model.h"
 #include "scanner.h"
 #include "ui/utils.h"

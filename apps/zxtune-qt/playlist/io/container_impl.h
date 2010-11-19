@@ -11,8 +11,8 @@ Author:
   This file is a part of zxtune-qt application based on zxtune library
 */
 
-#ifndef ZXTUNE_QT_PLAYLIST_CONTAINER_IMPL_H_DEFINED
-#define ZXTUNE_QT_PLAYLIST_CONTAINER_IMPL_H_DEFINED
+#ifndef ZXTUNE_QT_PLAYLIST_IO_CONTAINER_IMPL_H_DEFINED
+#define ZXTUNE_QT_PLAYLIST_IO_CONTAINER_IMPL_H_DEFINED
 
 //local includes
 #include "container.h"
@@ -38,4 +38,4 @@ namespace Playlist
   }
 }
 
-#endif //ZXTUNE_QT_PLAYLIST_CONTAINER_IMPL_H_DEFINED
+#endif //ZXTUNE_QT_PLAYLIST_IO_CONTAINER_IMPL_H_DEFINED

@@ -11,8 +11,8 @@ Author:
   This file is a part of zxtune-qt application based on zxtune library
 */
 
-#ifndef ZXTUNE_QT_PLAYLIST_H_DEFINED
-#define ZXTUNE_QT_PLAYLIST_H_DEFINED
+#ifndef ZXTUNE_QT_PLAYLIST_SUPP_CONTROLLER_H_DEFINED
+#define ZXTUNE_QT_PLAYLIST_SUPP_CONTROLLER_H_DEFINED
 
 //local includes
 #include "supp/playitems_provider.h"
@@ -72,4 +72,4 @@ namespace Playlist
   };
 }
 
-#endif //ZXTUNE_QT_PLAYLIST_H_DEFINED
+#endif //ZXTUNE_QT_PLAYLIST_SUPP_CONTROLLER_H_DEFINED

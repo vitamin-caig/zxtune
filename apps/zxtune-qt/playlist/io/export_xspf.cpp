@@ -23,6 +23,7 @@ Author:
 //qt includes
 #include <QtCore/QFile>
 #include <QtCore/QString>
+#include <QtCore/QUrl>
 #include <QtCore/QXmlStreamWriter>
 //text includes
 #include "text/text.h"
@@ -128,7 +129,8 @@ namespace
       if (name == ZXTune::Module::ATTR_FULLPATH)
       {
         Log::Debug(THIS_MODULE, "  saving item attribute %1%='%2%'", name, val);
-        XML.writeTextElement(XSPF::ITEM_LOCATION_TAG, valStr);
+        const QUrl url(valStr);
+        XML.writeTextElement(XSPF::ITEM_LOCATION_TAG, url.toEncoded());
       }
       else if (name == ZXTune::Module::ATTR_TITLE)
       {

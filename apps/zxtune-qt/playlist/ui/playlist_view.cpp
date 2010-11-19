@@ -16,7 +16,7 @@ Author:
 #include "table_view.h"
 #include "playlist_view.h"
 #include "playlist/supp/model.h"
-#include "playlist/supp/playlist.h"
+#include "playlist/supp/controller.h"
 #include "playlist/supp/scanner.h"
 //local includes
 #include <logging.h>
