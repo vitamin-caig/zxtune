@@ -68,7 +68,8 @@ namespace
 
       if (ProcessDialog())
       {
-        file = Dialog.selectedFiles().front();
+        const QStringList& files = Dialog.selectedFiles();
+        file = files.front();
         return true;
       }
       return false;
@@ -116,7 +117,8 @@ namespace
       SetRWMode();
       if (ProcessDialog())
       {
-        filename = Dialog.selectedFiles().front();
+        const QStringList& files = Dialog.selectedFiles();
+        filename = files.front();
         return true;
       }
       return false;
@@ -193,37 +195,44 @@ namespace
 
     virtual void Play()
     {
-      GetActivePlaylist().Play();
+      Playlist::UI::View& pl = GetActivePlaylist();
+      pl.Play();
     }
 
     virtual void Pause()
     {
-      GetActivePlaylist().Pause();
+      Playlist::UI::View& pl = GetActivePlaylist();
+      pl.Pause();
     }
 
     virtual void Stop()
     {
-      GetActivePlaylist().Stop();
+      Playlist::UI::View& pl = GetActivePlaylist();
+      pl.Stop();
     }
 
     virtual void Finish()
     {
-      GetActivePlaylist().Finish();
+      Playlist::UI::View& pl = GetActivePlaylist();
+      pl.Finish();
     }
 
     virtual void Next()
     {
-      GetActivePlaylist().Next();
+      Playlist::UI::View& pl = GetActivePlaylist();
+      pl.Next();
     }
 
     virtual void Prev()
     {
-      GetActivePlaylist().Prev();
+      Playlist::UI::View& pl = GetActivePlaylist();
+      pl.Prev();
     }
 
     virtual void Clear()
     {
-      GetVisiblePlaylist().Clear();
+      Playlist::UI::View& pl = GetVisiblePlaylist();
+      pl.Clear();
     }
 
     virtual void AddFiles()
@@ -232,8 +241,7 @@ namespace
       if (FileDialog.OpenMultipleFiles(actionAddFiles->text(), 
         tr("All files (*.*)"), files))
       {
-        const bool deepScan = actionDeepScan->isChecked();
-        GetVisiblePlaylist().AddItems(files, deepScan);
+        AddItemsToVisiblePlaylist(files);
       }
     }
 
@@ -242,8 +250,7 @@ namespace
       QStringList folders;
       if (FileDialog.OpenMultipleFolders(actionAddFolders->text(), folders))
       {
-        const bool deepScan = actionDeepScan->isChecked();
-        GetVisiblePlaylist().AddItems(folders, deepScan);
+        AddItemsToVisiblePlaylist(folders);
       }
     }
 
@@ -267,7 +274,8 @@ namespace
 
     virtual void SavePlaylist()
     {
-      const Playlist::Controller& controller = GetVisiblePlaylist().GetPlaylist();
+      Playlist::UI::View& pl = GetVisiblePlaylist();
+      const Playlist::Controller& controller = pl.GetPlaylist();
       const Playlist::IO::Container::Ptr container = controller.GetContainer();
       QString filename = ExtractPlaylistName(*container, controller.GetName());
       if (FileDialog.SaveFile(actionSavePlaylist->text(),
@@ -307,19 +315,19 @@ namespace
 
     virtual void dropEvent(QDropEvent* event)
     {
-      if (event->mimeData()->hasUrls())
+      const QMimeData* const mimeData = event->mimeData();
+      if (mimeData && mimeData->hasUrls())
       {
-        const QList<QUrl>& urls = event->mimeData()->urls();
+        const QList<QUrl>& urls = mimeData->urls();
         QStringList files;
         std::for_each(urls.begin(), urls.end(),
           boost::bind(&QStringList::push_back, &files,
             boost::bind(&QUrl::toLocalFile, _1)));
-        const bool deepScan = actionDeepScan->isChecked();
-        GetVisiblePlaylist().AddItems(files, deepScan);
+        AddItemsToVisiblePlaylist(files);
       }
     }
   private:
-    void PlaylistItemActivated(const class Playitem& item)
+    void PlaylistItemActivated(const Playitem& item)
     {
       if (QObject* sender = this->sender())
       {
@@ -389,6 +397,13 @@ namespace
         return *view;
       }
       return GetActivePlaylist();
+    }
+
+    void AddItemsToVisiblePlaylist(const QStringList& items)
+    {
+      const bool deepScan = actionDeepScan->isChecked();
+      Playlist::UI::View& pl = GetVisiblePlaylist();
+      pl.AddItems(items, deepScan);
     }
 
     void SwitchToLastPlaylist()

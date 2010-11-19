@@ -30,6 +30,12 @@ __cpp> "#endif //ZXTUNE_QT_PLAYLIST_XSPF_TAGS_H_DEFINED\n"
 < XMLNS_VALUE
 > "http://xspf.org/ns/0/"
 
+< EXTENSION_TAG
+> "extension"
+
+< APPLICATION_ATTR
+> "application"
+
 < TRACKLIST_TAG
 > "trackList"
 
@@ -47,3 +53,13 @@ __cpp> "#endif //ZXTUNE_QT_PLAYLIST_XSPF_TAGS_H_DEFINED\n"
 
 < ITEM_ANNOTATION_TAG
 > "annotation"
+
+< ITEM_DURATION_TAG
+> "duration"
+
+#custom tags
+< EXTENDED_PROPERTY_TAG
+> "property"
+
+< EXTENDED_PROPERTY_NAME_ATTR
+> "name"

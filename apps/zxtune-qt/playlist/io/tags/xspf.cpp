@@ -5,11 +5,26 @@
 
 namespace XSPF
 {
+extern const Char APPLICATION_ATTR[] = {
+  'a','p','p','l','i','c','a','t','i','o','n',0
+};
+extern const Char EXTENDED_PROPERTY_NAME_ATTR[] = {
+  'n','a','m','e',0
+};
+extern const Char EXTENDED_PROPERTY_TAG[] = {
+  'p','r','o','p','e','r','t','y',0
+};
+extern const Char EXTENSION_TAG[] = {
+  'e','x','t','e','n','s','i','o','n',0
+};
 extern const Char ITEM_ANNOTATION_TAG[] = {
   'a','n','n','o','t','a','t','i','o','n',0
 };
 extern const Char ITEM_CREATOR_TAG[] = {
   'c','r','e','a','t','o','r',0
+};
+extern const Char ITEM_DURATION_TAG[] = {
+  'd','u','r','a','t','i','o','n',0
 };
 extern const Char ITEM_LOCATION_TAG[] = {
   'l','o','c','a','t','i','o','n',0

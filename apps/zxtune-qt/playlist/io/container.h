@@ -21,8 +21,14 @@ Author:
 
 namespace Playlist
 {
-  const Char ATTRIBUTE_NAME[] = {'N', 'a', 'm', 'e', 0};
-  const Char ATTRIBUTE_SIZE[] = {'S', 'i', 'z', 'e', 0};
+  const Char ATTRIBUTE_NAME[] = 
+  {
+    'z','x','t','u','n','e','.','a','p','p','.','p','l','a','y','l','i','s','t','.','n', 'a', 'm', 'e', 0
+  };
+  const Char ATTRIBUTE_SIZE[] =
+  {
+    'z','x','t','u','n','e','.','a','p','p','.','p','l','a','y','l','i','s','t','.','s', 'i', 'z', 'e', 0
+  };
 
   namespace IO
   {

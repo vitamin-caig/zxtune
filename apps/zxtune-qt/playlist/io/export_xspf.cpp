@@ -19,57 +19,166 @@ Author:
 #include <logging.h>
 //library includes
 #include <core/module_attrs.h>
+#include <sound/sound_parameters.h>
 //qt includes
 #include <QtCore/QFile>
 #include <QtCore/QString>
 #include <QtCore/QXmlStreamWriter>
+//text includes
+#include "text/text.h"
 
 namespace
 {
   const std::string THIS_MODULE("Playlist::IO::XSPF");
 
-  class PropertiesSaver : public Parameters::Visitor
+  typedef bool (*AttributesFilter)(const Parameters::NameType&);
+
+  class ExtendedPropertiesSaver : public Parameters::Visitor
   {
   public:
-    PropertiesSaver(QXmlStreamWriter& xml, const Char* tag)
+    explicit ExtendedPropertiesSaver(QXmlStreamWriter& xml, AttributesFilter filter = 0)
       : XML(xml)
+      , Filter(filter)
     {
-      XML.writeStartElement(tag);
+      XML.writeStartElement(XSPF::EXTENSION_TAG);
+      XML.writeAttribute(XSPF::APPLICATION_ATTR, Text::PROGRAM_SITE);
     }
 
-    virtual ~PropertiesSaver()
+    virtual ~ExtendedPropertiesSaver()
     {
       XML.writeEndElement();
     }
 
     virtual void SetIntValue(const Parameters::NameType& name, Parameters::IntType val)
     {
-      Log::Debug(THIS_MODULE, "  saving attribute %1%=%2%", name, val);
+      if (Filter && Filter(name))
+      {
+        return;
+      }
+      Log::Debug(THIS_MODULE, "  saving extended attribute %1%=%2%", name, val);
+      SaveProperty(name, val);
     }
 
     virtual void SetStringValue(const Parameters::NameType& name, const Parameters::StringType& val)
     {
-      Log::Debug(THIS_MODULE, "  saving attribute %1%='%2%'", name, val);
+      if (Filter && Filter(name))
+      {
+        return;
+      }
+      Log::Debug(THIS_MODULE, "  saving extended attribute %1%='%2%'", name, val);
+      SaveProperty(name, val);
+    }
+
+    virtual void SetDataValue(const Parameters::NameType& name, const Parameters::DataType& val)
+    {
+      if (Filter && Filter(name))
+      {
+        return;
+      }
+      Log::Debug(THIS_MODULE, "  saving extended attribute %1%=data(%2%)", name, val.size());
+      SaveProperty(name, val);
+    }
+  private:
+    template<class T>
+    void SaveProperty(const Parameters::NameType& name, const T& value)
+    {
+      const String strVal = Parameters::ConvertToString(value);
+      XML.writeStartElement(XSPF::EXTENDED_PROPERTY_TAG);
+      XML.writeAttribute(XSPF::EXTENDED_PROPERTY_NAME_ATTR, ToQString(name));
+      XML.writeCharacters(ToQString(strVal));
+      XML.writeEndElement();
+    }
+  private:
+    QXmlStreamWriter& XML;
+    const AttributesFilter Filter;
+  };
+
+  class ItemPropertiesSaver : private Parameters::Visitor
+  {
+  public:
+    explicit ItemPropertiesSaver(QXmlStreamWriter& xml)
+      : XML(xml)
+    {
+      XML.writeStartElement(XSPF::ITEM_TAG);
+    }
+
+    virtual ~ItemPropertiesSaver()
+    {
+      XML.writeEndElement();
+    }
+
+    void Process(const ZXTune::Module::Information& info)
+    {
+      //save common properties
+      const Parameters::Accessor::Ptr props = info.Properties();
+      props->Process(*this);
+      SaveDuration(info, *props);
+      SaveExtendedProperties(*props);
+    }
+
+  private:
+    virtual void SetIntValue(const Parameters::NameType& /*name*/, Parameters::IntType /*val*/)
+    {
+    }
+
+    virtual void SetStringValue(const Parameters::NameType& name, const Parameters::StringType& val)
+    {
+      const String value = Parameters::ConvertToString(val);
+      const QString valStr = ToQString(value);
       if (name == ZXTune::Module::ATTR_FULLPATH)
       {
-        XML.writeTextElement(XSPF::ITEM_LOCATION_TAG, ToQString(val));
+        Log::Debug(THIS_MODULE, "  saving item attribute %1%='%2%'", name, val);
+        XML.writeTextElement(XSPF::ITEM_LOCATION_TAG, valStr);
       }
       else if (name == ZXTune::Module::ATTR_TITLE)
       {
-        XML.writeTextElement(XSPF::ITEM_TITLE_TAG, ToQString(val));
+        Log::Debug(THIS_MODULE, "  saving item attribute %1%='%2%'", name, val);
+        XML.writeTextElement(XSPF::ITEM_TITLE_TAG, valStr);
       }
       else if (name == ZXTune::Module::ATTR_AUTHOR)
       {
-        XML.writeTextElement(XSPF::ITEM_CREATOR_TAG, ToQString(val));
+        Log::Debug(THIS_MODULE, "  saving item attribute %1%='%2%'", name, val);
+        XML.writeTextElement(XSPF::ITEM_CREATOR_TAG, valStr);
       }
       else if (name == ZXTune::Module::ATTR_COMMENT)
       {
-        XML.writeTextElement(XSPF::ITEM_ANNOTATION_TAG, ToQString(val));
+        Log::Debug(THIS_MODULE, "  saving item attribute %1%='%2%'", name, val);
+        XML.writeTextElement(XSPF::ITEM_ANNOTATION_TAG, valStr);
       }
     }
 
     virtual void SetDataValue(const Parameters::NameType& /*name*/, const Parameters::DataType& /*val*/)
     {
+    }
+  private:
+    void SaveDuration(const ZXTune::Module::Information& info, const Parameters::Accessor& props)
+    {
+      Parameters::IntType frameDuration = Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT;
+      props.FindIntValue(Parameters::ZXTune::Sound::FRAMEDURATION, frameDuration);
+      const uint64_t msecDuration = info.FramesCount() * frameDuration / 1000;
+      Log::Debug(THIS_MODULE, "  saving item attribute Duration=%1%", msecDuration);
+      XML.writeTextElement(XSPF::ITEM_DURATION_TAG, QString::number(msecDuration));
+    }
+
+    static bool FilterExtendedProperties(const Parameters::NameType& name)
+    {
+      return 
+        //skip path-related properties
+        name == ZXTune::Module::ATTR_FULLPATH ||
+        name == ZXTune::Module::ATTR_PATH ||
+        name == ZXTune::Module::ATTR_FILENAME ||
+        name == ZXTune::Module::ATTR_SUBPATH ||
+        //skip existing properties
+        name == ZXTune::Module::ATTR_AUTHOR ||
+        name == ZXTune::Module::ATTR_TITLE ||
+        name == ZXTune::Module::ATTR_COMMENT
+      ;
+    }
+
+    void SaveExtendedProperties(const Parameters::Accessor& props)
+    {
+      ExtendedPropertiesSaver saver(XML, &FilterExtendedProperties);
+      props.Process(saver);
     }
   private:
     QXmlStreamWriter& XML;
@@ -91,6 +200,8 @@ namespace
 
     void WriteProperties(const Parameters::Accessor& props)
     {
+      ExtendedPropertiesSaver saver(XML);
+      props.Process(saver);
     }
 
     void WriteItems(Playitem::Iterator::Ptr iter)
@@ -114,10 +225,9 @@ namespace
       Log::Debug(THIS_MODULE, "Save playitem '%1%'", item.GetAttributes().GetTitle());
       const ZXTune::Module::Holder::Ptr holder = item.GetModule();
       const ZXTune::Module::Information::Ptr info = holder->GetModuleInformation();
-      const Parameters::Accessor::Ptr props = info->Properties();
 
-      PropertiesSaver saver(XML, XSPF::ITEM_TAG);
-      props->Process(saver);
+      ItemPropertiesSaver saver(XML);
+      saver.Process(*info);
     }
   private:
     QXmlStreamWriter XML;

@@ -5,8 +5,13 @@
 
 namespace XSPF
 {
+extern const Char APPLICATION_ATTR[];
+extern const Char EXTENDED_PROPERTY_NAME_ATTR[];
+extern const Char EXTENDED_PROPERTY_TAG[];
+extern const Char EXTENSION_TAG[];
 extern const Char ITEM_ANNOTATION_TAG[];
 extern const Char ITEM_CREATOR_TAG[];
+extern const Char ITEM_DURATION_TAG[];
 extern const Char ITEM_LOCATION_TAG[];
 extern const Char ITEM_TAG[];
 extern const Char ITEM_TITLE_TAG[];

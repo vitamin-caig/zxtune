@@ -20,6 +20,10 @@ extern const Char MODULE_TITLE_FORMAT[] = {
 extern const Char PROGRAM_NAME[] = {
   'z','x','t','u','n','e','-','q','t',0
 };
+extern const Char PROGRAM_SITE[] = {
+  'h','t','t','p',':','/','/','z','x','t','u','n','e','.','g','o','o','g','l','e','c','o','d','e','.','c','o',
+  'm',0
+};
 extern const Char TITLE_FORMAT[] = {
   '%','2','%',' ','[','%','1','%',']',0
 };
