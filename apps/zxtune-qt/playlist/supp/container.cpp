@@ -50,20 +50,20 @@ namespace
     {
     }
 
-    virtual Playlist::Support* CreatePlaylist(const QString& name)
+    virtual Playlist::Controller* CreatePlaylist(const QString& name)
     {
-      Playlist::Support* const playlist = Playlist::Support::Create(*this, name, Provider);
+      Playlist::Controller* const playlist = Playlist::Controller::Create(*this, name, Provider);
       return playlist;
     }
 
-    virtual Playlist::Support* OpenPlaylist(const QString& filename)
+    virtual Playlist::Controller* OpenPlaylist(const QString& filename)
     {
       if (Playlist::IO::Container::Ptr container = Playlist::IO::Open(Provider, filename))
       {
         const Parameters::Accessor::Ptr plParams = container->GetProperties();
         const QString plName = GetPlaylistName(*plParams);
         const int plSize = GetPlaylistSize(*plParams);
-        Playlist::Support* const playlist = CreatePlaylist(plName);
+        Playlist::Controller* const playlist = CreatePlaylist(plName);
         Playlist::Scanner& scanner = playlist->GetScanner();
         scanner.AddItems(container->GetItems(), plSize);
         return playlist;

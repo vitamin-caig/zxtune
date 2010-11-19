@@ -23,7 +23,7 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("Playlist::Support");
+  const std::string THIS_MODULE("Playlist::Controller");
 
   class ItemIteratorImpl : public Playlist::Item::Iterator
   {
@@ -106,11 +106,11 @@ namespace
     const Playlist::Model& Model;
   };
 
-  class SupportImpl : public Playlist::Support
+  class ControllerImpl : public Playlist::Controller
   {
   public:
-    SupportImpl(QObject& parent, const QString& name, PlayitemsProvider::Ptr provider)
-      : Playlist::Support(parent)
+    ControllerImpl(QObject& parent, const QString& name, PlayitemsProvider::Ptr provider)
+      : Playlist::Controller(parent)
       , Name(name)
       , Scanner(Playlist::Scanner::Create(*this, provider))
       , Model(Playlist::Model::Create(*this))
@@ -122,7 +122,7 @@ namespace
       Log::Debug(THIS_MODULE, "Created at %1%", this);
     }
 
-    virtual ~SupportImpl()
+    virtual ~ControllerImpl()
     {
       Log::Debug(THIS_MODULE, "Destroyed at %1%", this);
 
@@ -172,12 +172,12 @@ namespace Playlist
     }
   }
 
-  Support::Support(QObject& parent) : QObject(&parent)
+  Controller::Controller(QObject& parent) : QObject(&parent)
   {
   }
 
-  Support* Support::Create(QObject& parent, const QString& name, PlayitemsProvider::Ptr provider)
+  Controller* Controller::Create(QObject& parent, const QString& name, PlayitemsProvider::Ptr provider)
   {
-    return new SupportImpl(parent, name, provider);
+    return new ControllerImpl(parent, name, provider);
   }
 }

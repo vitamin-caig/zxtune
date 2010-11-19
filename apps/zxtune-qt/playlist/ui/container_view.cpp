@@ -25,8 +25,11 @@ Author:
 #include <logging.h>
 //std includes
 #include <cassert>
+//boost includes
+#include <boost/bind.hpp>
 //qt includes
 #include <QtCore/QUrl>
+#include <QtGui/QDragEnterEvent>
 #include <QtGui/QFileDialog>
 #include <QtGui/QMenu>
 
@@ -154,6 +157,7 @@ namespace
     {
       //setup self
       setupUi(this);
+      setAcceptDrops(true);
       SetupMenu();
 
       //connect actions
@@ -178,7 +182,7 @@ namespace
 
     virtual void CreatePlaylist(const QStringList& items)
     {
-      const Playlist::Support& playlist = CreateAnonymousPlaylist();
+      const Playlist::Controller& playlist = CreateAnonymousPlaylist();
       Playlist::Scanner& scanner = playlist.GetScanner();
       const bool deepScan = actionDeepScan->isChecked();
       scanner.AddItems(items, deepScan);
@@ -206,7 +210,7 @@ namespace
 
     virtual void Finish()
     {
-      const Playlist::Support& playlist = GetCurrentPlaylist();
+      const Playlist::Controller& playlist = GetCurrentPlaylist();
       Playlist::Item::Iterator& iter = playlist.GetIterator();
       if (!iter.Next())
       {
@@ -216,21 +220,21 @@ namespace
 
     virtual void Next()
     {
-      const Playlist::Support& playlist = GetCurrentPlaylist();
+      const Playlist::Controller& playlist = GetCurrentPlaylist();
       Playlist::Item::Iterator& iter = playlist.GetIterator();
       iter.Next();
     }
 
     virtual void Prev()
     {
-      const Playlist::Support& playlist = GetCurrentPlaylist();
+      const Playlist::Controller& playlist = GetCurrentPlaylist();
       Playlist::Item::Iterator& iter = playlist.GetIterator();
       iter.Prev();
     }
 
     virtual void Clear()
     {
-      const Playlist::Support& playlist = GetCurrentPlaylist();
+      const Playlist::Controller& playlist = GetCurrentPlaylist();
       Playlist::Model& model = playlist.GetModel();
       model.Clear();
       ActivePlaylistView->Update();
@@ -242,7 +246,7 @@ namespace
       if (FileDialog.OpenMultipleFiles(actionAddFiles->text(), 
         tr("All files (*.*)"), files))
       {
-        const Playlist::Support& playlist = GetCurrentPlaylist();
+        const Playlist::Controller& playlist = GetCurrentPlaylist();
         Playlist::Scanner& scanner = playlist.GetScanner();
         const bool deepScan = actionDeepScan->isChecked();
         scanner.AddItems(files, deepScan);
@@ -254,7 +258,7 @@ namespace
       QStringList folders;
       if (FileDialog.OpenMultipleFolders(actionAddFolders->text(), folders))
       {
-        const Playlist::Support& playlist = GetCurrentPlaylist();
+        const Playlist::Controller& playlist = GetCurrentPlaylist();
         Playlist::Scanner& scanner = playlist.GetScanner();
         const bool deepScan = actionDeepScan->isChecked();
         scanner.AddItems(folders, deepScan);
@@ -272,7 +276,7 @@ namespace
       if (FileDialog.OpenSingleFile(actionLoadPlaylist->text(),
          tr("Playlist files (*.xspf *.ayl)"), file))
       {
-        if (Playlist::Support* const pl = Container->OpenPlaylist(file))
+        if (Playlist::Controller* const pl = Container->OpenPlaylist(file))
         {
           RegisterPlaylist(*pl);
         }
@@ -282,7 +286,7 @@ namespace
     virtual void SavePlaylist()
     {
       Playlist::UI::View* const view = static_cast<Playlist::UI::View*>(widgetsContainer->currentWidget());
-      const Playlist::Support& playlist = view->GetPlaylist();
+      const Playlist::Controller& playlist = view->GetPlaylist();
       const Playlist::IO::Container::Ptr container = playlist.GetContainer();
       QString filename = ExtractPlaylistName(*container, playlist.GetName());
       if (FileDialog.SaveFile(actionSavePlaylist->text(),
@@ -312,6 +316,28 @@ namespace
         SwitchToLastPlaylist();
       }
       view->deleteLater();
+    }
+
+    //base virtuals
+    virtual void dragEnterEvent(QDragEnterEvent* event)
+    {
+      event->acceptProposedAction();
+    }
+
+    virtual void dropEvent(QDropEvent* event)
+    {
+      if (event->mimeData()->hasUrls())
+      {
+        const QList<QUrl>& urls = event->mimeData()->urls();
+        QStringList files;
+        std::for_each(urls.begin(), urls.end(),
+          boost::bind(&QStringList::push_back, &files,
+            boost::bind(&QUrl::toLocalFile, _1)));
+        const Playlist::Controller& playlist = GetCurrentPlaylist();
+        Playlist::Scanner& scanner = playlist.GetScanner();
+        const bool deepScan = actionDeepScan->isChecked();
+        scanner.AddItems(files, deepScan);
+      }
     }
   private:
     void PlaylistItemActivated(const class Playitem& item)
@@ -347,15 +373,15 @@ namespace
       //ActionsMenu->addAction(actionRandom);
     }
 
-    Playlist::Support& CreateAnonymousPlaylist()
+    Playlist::Controller& CreateAnonymousPlaylist()
     {
       Log::Debug(THIS_MODULE, "Create default playlist");
-      Playlist::Support* const pl = Container->CreatePlaylist(tr("Default"));
+      Playlist::Controller* const pl = Container->CreatePlaylist(tr("Default"));
       RegisterPlaylist(*pl);
       return *pl;
     }
 
-    void RegisterPlaylist(Playlist::Support& playlist)
+    void RegisterPlaylist(Playlist::Controller& playlist)
     {
       Playlist::UI::View* const plView = Playlist::UI::View::Create(*this, playlist);
       widgetsContainer->addTab(plView, playlist.GetName());
@@ -370,13 +396,13 @@ namespace
 
     void UpdateState(Playlist::Item::State state)
     {
-      const Playlist::Support& playlist = GetCurrentPlaylist();
+      const Playlist::Controller& playlist = GetCurrentPlaylist();
       Playlist::Item::Iterator& iter = playlist.GetIterator();
       iter.SetState(state);
       ActivePlaylistView->Update();
     }
 
-    const Playlist::Support& GetCurrentPlaylist()
+    const Playlist::Controller& GetCurrentPlaylist()
     {
       if (!ActivePlaylistView)
       {

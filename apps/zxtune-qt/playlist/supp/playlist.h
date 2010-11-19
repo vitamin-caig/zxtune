@@ -22,6 +22,9 @@ Author:
 
 namespace Playlist
 {
+  class Scanner;
+  class Model;
+
   namespace Item
   {
     enum State
@@ -52,17 +55,17 @@ namespace Playlist
     };
   }
 
-  class Support : public QObject
+  class Controller : public QObject
   {
     Q_OBJECT
   protected:
-    explicit Support(QObject& parent);
+    explicit Controller(QObject& parent);
   public:
-    static Support* Create(QObject& parent, const QString& name, PlayitemsProvider::Ptr provider);
+    static Controller* Create(QObject& parent, const QString& name, PlayitemsProvider::Ptr provider);
 
     virtual QString GetName() const = 0;
-    virtual class Scanner& GetScanner() const = 0;
-    virtual class Model& GetModel() const = 0;
+    virtual Scanner& GetScanner() const = 0;
+    virtual Model& GetModel() const = 0;
     virtual Item::Iterator& GetIterator() const = 0;
 
     virtual IO::Container::Ptr GetContainer() const = 0;

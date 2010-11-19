@@ -21,6 +21,8 @@ Author:
 
 namespace Playlist
 {
+  class Controller;
+
   class Container : public QObject
   {
     Q_OBJECT
@@ -30,8 +32,8 @@ namespace Playlist
     //creator
     static Container* Create(QObject& parent, Parameters::Accessor::Ptr ioParams, Parameters::Accessor::Ptr coreParams);
 
-    virtual class Support* CreatePlaylist(const QString& name) = 0;
-    virtual class Support* OpenPlaylist(const QString& filename) = 0;
+    virtual Controller* CreatePlaylist(const QString& name) = 0;
+    virtual Controller* OpenPlaylist(const QString& filename) = 0;
   };
 }
 

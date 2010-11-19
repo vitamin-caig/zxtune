@@ -17,9 +17,10 @@ Author:
 //qt includes
 #include <QtGui/QWidget>
 
+class Playitem;
 namespace Playlist
 {
-  class Support;
+  class Controller;
 
   namespace UI
   {
@@ -29,13 +30,13 @@ namespace Playlist
     protected:
       explicit View(QWidget& parent);
     public:
-      static View* Create(QWidget& parent, Playlist::Support& playlist);
+      static View* Create(QWidget& parent, Playlist::Controller& playlist);
 
-      virtual const class Playlist::Support& GetPlaylist() const = 0;
+      virtual const Playlist::Controller& GetPlaylist() const = 0;
     public slots:
       virtual void Update() = 0;
     signals:
-      void OnItemActivated(const class Playitem&);
+      void OnItemActivated(const Playitem&);
     };
   }
 }
