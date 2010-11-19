@@ -49,13 +49,13 @@ namespace
     std::time_t LastTime;
   };
 
-  class PlaylistScannerImpl : public PlaylistScanner
-                            , private ScannerCallback
+  class ScannerImpl : public Playlist::Scanner
+                    , private Playlist::ScannerCallback
   {
-    typedef QList<ScannerSource::Ptr> ScannersQueue;
+    typedef QList<Playlist::ScannerSource::Ptr> ScannersQueue;
   public:
-    PlaylistScannerImpl(QObject& parent, PlayitemsProvider::Ptr provider)
-      : PlaylistScanner(parent)
+    ScannerImpl(QObject& parent, PlayitemsProvider::Ptr provider)
+      : Playlist::Scanner(parent)
       , Provider(provider)
       , Canceled(false)
       , ItemsDone()
@@ -64,7 +64,7 @@ namespace
       Log::Debug(THIS_MODULE, "Created at %1%", this);
     }
 
-    virtual ~PlaylistScannerImpl()
+    virtual ~ScannerImpl()
     {
       Log::Debug(THIS_MODULE, "Destroyed at %1%", this);
     }
@@ -76,9 +76,9 @@ namespace
       {
         this->wait();
       }
-      const ScannerSource::Ptr scanner = deepScan
-        ? ScannerSource::CreateDetectFileSource(Provider, *this, items)
-        : ScannerSource::CreateOpenFileSource(Provider, *this, items);
+      const Playlist::ScannerSource::Ptr scanner = deepScan
+        ? Playlist::ScannerSource::CreateDetectFileSource(Provider, *this, items)
+        : Playlist::ScannerSource::CreateOpenFileSource(Provider, *this, items);
       Queue.append(scanner);
       this->start();
     }
@@ -90,7 +90,8 @@ namespace
       {
         this->wait();
       }
-      const ScannerSource::Ptr scanner = ScannerSource::CreateIteratorSource(*this, items, countHint);
+      const Playlist::ScannerSource::Ptr scanner = 
+        Playlist::ScannerSource::CreateIteratorSource(*this, items, countHint);
       Queue.append(scanner);
       this->start();
     }
@@ -107,7 +108,7 @@ namespace
       Canceled = false;
       ItemsDone = ItemsTotal = 0;
       OnScanStart();
-      while (ScannerSource::Ptr scanner = GetNextScanner())
+      while (Playlist::ScannerSource::Ptr scanner = GetNextScanner())
       {
         OnResolvingStart();
         const unsigned newItems = scanner->Resolve();
@@ -119,12 +120,12 @@ namespace
       OnScanStop();
     }
   private:
-    ScannerSource::Ptr GetNextScanner()
+    Playlist::ScannerSource::Ptr GetNextScanner()
     {
       QMutexLocker lock(&QueueLock);
       if (Canceled || Queue.empty())
       {
-        return ScannerSource::Ptr();
+        return Playlist::ScannerSource::Ptr();
       }
       return Queue.takeFirst();
     }
@@ -172,11 +173,14 @@ namespace
   };
 }
 
-PlaylistScanner::PlaylistScanner(QObject& parent) : QThread(&parent)
+namespace Playlist
 {
-}
+  Scanner::Scanner(QObject& parent) : QThread(&parent)
+  {
+  }
 
-PlaylistScanner* PlaylistScanner::Create(QObject& parent, PlayitemsProvider::Ptr provider)
-{
-  return new PlaylistScannerImpl(parent, provider);
+  Scanner* Scanner::Create(QObject& parent, PlayitemsProvider::Ptr provider)
+  {
+    return new ScannerImpl(parent, provider);
+  }
 }

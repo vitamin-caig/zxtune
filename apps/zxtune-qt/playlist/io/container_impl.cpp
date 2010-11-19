@@ -45,7 +45,7 @@ namespace
     Playitem::Ptr Item;
   };
 
-  Playitem::Ptr OpenItem(const PlayitemsProvider& provider, const PlaylistContainerItem& item)
+  Playitem::Ptr OpenItem(const PlayitemsProvider& provider, const Playlist::IO::ContainerItem& item)
   {
     CollectorStub collector;
     //error is ignored, just take from collector
@@ -64,7 +64,7 @@ namespace
   class PlayitemIteratorImpl : public Playitem::Iterator
   {
   public:
-    PlayitemIteratorImpl(PlayitemsProvider::Ptr provider, PlaylistContainerItemsPtr container)
+    PlayitemIteratorImpl(PlayitemsProvider::Ptr provider, Playlist::IO::ContainerItemsPtr container)
       : Provider(provider)
       , Container(container)
       , Current(Container->begin())
@@ -101,17 +101,17 @@ namespace
     }
   private:
     const PlayitemsProvider::Ptr Provider;
-    const PlaylistContainerItemsPtr Container;
-    PlaylistContainerItems::const_iterator Current;
+    const Playlist::IO::ContainerItemsPtr Container;
+    Playlist::IO::ContainerItems::const_iterator Current;
     Playitem::Ptr Item;
   };
 
-  class PlaylistIOContainerImpl : public PlaylistIOContainer
+  class ContainerImpl : public Playlist::IO::Container
   {
   public:
-    PlaylistIOContainerImpl(PlayitemsProvider::Ptr provider,
+    ContainerImpl(PlayitemsProvider::Ptr provider,
       Parameters::Accessor::Ptr properties,
-      PlaylistContainerItemsPtr items)
+      Playlist::IO::ContainerItemsPtr items)
       : Provider(provider)
       , Properties(properties)
       , Items(items)
@@ -130,13 +130,19 @@ namespace
   private:
     const PlayitemsProvider::Ptr Provider;
     const Parameters::Accessor::Ptr Properties;
-    const PlaylistContainerItemsPtr Items;
+    const Playlist::IO::ContainerItemsPtr Items;
   };
 }
 
-PlaylistIOContainer::Ptr CreatePlaylistIOContainer(PlayitemsProvider::Ptr provider,
-  Parameters::Accessor::Ptr properties,
-  PlaylistContainerItemsPtr items)
+namespace Playlist
 {
-  return boost::make_shared<PlaylistIOContainerImpl>(provider, properties, items);
+  namespace IO
+  {
+    Container::Ptr CreateContainer(PlayitemsProvider::Ptr provider,
+      Parameters::Accessor::Ptr properties,
+      ContainerItemsPtr items)
+    {
+      return boost::make_shared<ContainerImpl>(provider, properties, items);
+    }
+  }
 }

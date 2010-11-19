@@ -325,16 +325,16 @@ namespace
     Parameters::Modifier& Delegate;
   };
 
-  PlaylistContainerItemsPtr CreateItemsFromStrings(const String& basePath, int vers, const StringArray& lines)
+  Playlist::IO::ContainerItemsPtr CreateItemsFromStrings(const String& basePath, int vers, const StringArray& lines)
   {
     const AYLContainer aylItems(lines);
     const VersionLayer version(vers);
-    const boost::shared_ptr<PlaylistContainerItems> items = boost::make_shared<PlaylistContainerItems>();
+    const boost::shared_ptr<Playlist::IO::ContainerItems> items = boost::make_shared<Playlist::IO::ContainerItems>();
     for (AYLContainer::Iterator iter = aylItems.GetIterator(); iter.IsValid(); iter.Next())
     {
       const String& itemPath = iter.GetPath();
       Log::Debug(THIS_MODULE, "Processing '%1%'", itemPath);
-      PlaylistContainerItem item;
+      Playlist::IO::ContainerItem item;
       item.Path = ConcatenatePath(basePath, itemPath);
       const Parameters::Container::Ptr adjustedParams = Parameters::Container::Create();
       ParametersFilter filter(version, *adjustedParams);
@@ -353,39 +353,45 @@ namespace
   }
 }
 
-PlaylistIOContainer::Ptr OpenAYLPlaylist(PlayitemsProvider::Ptr provider, const QString& filename)
+namespace Playlist
 {
-  const QFileInfo info(filename);
-  if (!info.isFile() || !info.isReadable() ||
-      !CheckAYLByName(info.fileName()))
+  namespace IO
   {
-    return PlaylistIOContainer::Ptr();
-  }
-  QFile device(filename);
-  if (!device.open(QIODevice::ReadOnly | QIODevice::Text))
-  {
-    assert(!"Failed to open playlist");
-    return PlaylistIOContainer::Ptr();
-  }
-  QTextStream stream(&device);
-  const String header = FromQString(stream.readLine(0).simplified());
-  const int vers = CheckAYLBySignature(header);
-  if (vers < 0)
-  {
-    return PlaylistIOContainer::Ptr();
-  }
-  Log::Debug(THIS_MODULE, "Processing AYL version %1%", vers);
-  StringArray lines;
-  while (!stream.atEnd())
-  {
-    const QString line = stream.readLine(0).simplified();
-    lines.push_back(FromQString(line));
-  }
-  const String basePath = FromQString(info.absolutePath());
+    Container::Ptr OpenAYL(PlayitemsProvider::Ptr provider, const QString& filename)
+    {
+      const QFileInfo info(filename);
+      if (!info.isFile() || !info.isReadable() ||
+          !CheckAYLByName(info.fileName()))
+      {
+        return Container::Ptr();
+      }
+      QFile device(filename);
+      if (!device.open(QIODevice::ReadOnly | QIODevice::Text))
+      {
+        assert(!"Failed to open playlist");
+        return Container::Ptr();
+      }
+      QTextStream stream(&device);
+      const String header = FromQString(stream.readLine(0).simplified());
+      const int vers = CheckAYLBySignature(header);
+      if (vers < 0)
+      {
+        return Container::Ptr();
+      }
+      Log::Debug(THIS_MODULE, "Processing AYL version %1%", vers);
+      StringArray lines;
+      while (!stream.atEnd())
+      {
+        const QString line = stream.readLine(0).simplified();
+        lines.push_back(FromQString(line));
+      }
+      const String basePath = FromQString(info.absolutePath());
 
-  const Parameters::Container::Ptr properties = Parameters::Container::Create();
-  const PlaylistContainerItemsPtr items = CreateItemsFromStrings(basePath, vers, lines);
-  properties->SetStringValue(Playlist::ATTRIBUTE_NAME, FromQString(info.baseName()));
-  properties->SetIntValue(Playlist::ATTRIBUTE_SIZE, items->size());
-  return CreatePlaylistIOContainer(provider, properties, items);
+      const Parameters::Container::Ptr properties = Parameters::Container::Create();
+      const ContainerItemsPtr items = CreateItemsFromStrings(basePath, vers, lines);
+      properties->SetStringValue(Playlist::ATTRIBUTE_NAME, FromQString(info.baseName()));
+      properties->SetIntValue(Playlist::ATTRIBUTE_SIZE, items->size());
+      return Playlist::IO::CreateContainer(provider, properties, items);
+    }
+  }
 }

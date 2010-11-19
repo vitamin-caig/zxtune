@@ -19,17 +19,20 @@ Author:
 //qt includes
 #include <QtCore/QObject>
 
-class PlaylistContainer : public QObject
+namespace Playlist
 {
-  Q_OBJECT
-protected:
-  explicit PlaylistContainer(QObject& parent);
-public:
-  //creator
-  static PlaylistContainer* Create(QObject& parent, Parameters::Accessor::Ptr ioParams, Parameters::Accessor::Ptr coreParams);
+  class Container : public QObject
+  {
+    Q_OBJECT
+  protected:
+    explicit Container(QObject& parent);
+  public:
+    //creator
+    static Container* Create(QObject& parent, Parameters::Accessor::Ptr ioParams, Parameters::Accessor::Ptr coreParams);
 
-  virtual class PlaylistSupport* CreatePlaylist(const QString& name) = 0;
-  virtual class PlaylistSupport* OpenPlaylist(const QString& filename) = 0;
-};
+    virtual class Support* CreatePlaylist(const QString& name) = 0;
+    virtual class Support* OpenPlaylist(const QString& filename) = 0;
+  };
+}
 
 #endif //ZXTUNE_QT_PLAYLIST_CONTAINER_H_DEFINED

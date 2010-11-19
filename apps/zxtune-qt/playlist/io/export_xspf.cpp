@@ -124,15 +124,22 @@ namespace
   };
 }
 
-bool SaveXSPFPlaylist(PlaylistIOContainer::Ptr container, const class QString& filename)
+namespace Playlist
 {
-  QFile device(filename);
-  if (!device.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))
+  namespace IO
   {
-    return false;
+    bool SaveXSPF(Container::Ptr container, const class QString& filename)
+    {
+      QFile device(filename);
+      if (!device.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))
+      {
+        return false;
+      }
+      XSPFWriter writer(device);
+      writer.WriteProperties(*container->GetProperties());
+      writer.WriteItems(container->GetItems());
+      return true;
+    }
   }
-  XSPFWriter writer(device);
-  writer.WriteProperties(*container->GetProperties());
-  writer.WriteItems(container->GetItems());
-  return true;
 }
+

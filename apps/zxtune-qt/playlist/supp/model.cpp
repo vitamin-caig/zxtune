@@ -128,7 +128,7 @@ namespace
     {
       switch (column)
       {
-      case PlaylistModel::COLUMN_TYPEICON:
+      case Playlist::Model::COLUMN_TYPEICON:
         {
           const String& iconPath = Text::TYPEICONS_RESOURCE_PREFIX + item.GetType();
           return QIcon(ToQString(iconPath));
@@ -146,10 +146,10 @@ namespace
     {
       switch (column)
       {
-      case PlaylistModel::COLUMN_TITLE:
-        return PlaylistModel::tr("Author - Title");
-      case PlaylistModel::COLUMN_DURATION:
-        return PlaylistModel::tr("Duration");
+      case Playlist::Model::COLUMN_TITLE:
+        return Playlist::Model::tr("Author - Title");
+      case Playlist::Model::COLUMN_DURATION:
+        return Playlist::Model::tr("Duration");
       default:
         return QVariant();
       };
@@ -159,12 +159,12 @@ namespace
     {
       switch (column)
       {
-      case PlaylistModel::COLUMN_TITLE:
+      case Playlist::Model::COLUMN_TITLE:
         {
           const String& title = item.GetTitle();
           return ToQString(title);
         }
-      case PlaylistModel::COLUMN_DURATION:
+      case Playlist::Model::COLUMN_DURATION:
         {
           const String& strFormat = FormatTime(item.GetDuration(), 20000);//TODO
           return ToQString(strFormat);
@@ -383,11 +383,11 @@ namespace
     const bool Ascending;
   };
 
-  class PlaylistModelImpl : public PlaylistModel
+  class ModelImpl : public Playlist::Model
   {
   public:
-    explicit PlaylistModelImpl(QObject& parent)
-      : PlaylistModel(parent)
+    explicit ModelImpl(QObject& parent)
+      : Playlist::Model(parent)
       , Providers()
       , Synchronizer(QMutex::Recursive)
       , FetchedItemsCount()
@@ -396,7 +396,7 @@ namespace
       Log::Debug(THIS_MODULE, "Created at %1%", this);
     }
 
-    virtual ~PlaylistModelImpl()
+    virtual ~ModelImpl()
     {
       Log::Debug(THIS_MODULE, "Destroyed at %1%", this);
     }
@@ -577,11 +577,14 @@ namespace
   };
 }
 
-PlaylistModel::PlaylistModel(QObject& parent) : QAbstractItemModel(&parent)
+namespace Playlist
 {
-}
+  Model::Model(QObject& parent) : QAbstractItemModel(&parent)
+  {
+  }
 
-PlaylistModel* PlaylistModel::Create(QObject& parent)
-{
-  return new PlaylistModelImpl(parent);
+  Model* Model::Create(QObject& parent)
+  {
+    return new ModelImpl(parent);
+  }
 }

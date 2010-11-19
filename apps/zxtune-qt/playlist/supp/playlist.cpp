@@ -24,15 +24,16 @@ Author:
 namespace
 {
   const std::string THIS_MODULE("Playlist::Support");
-  class PlayitemIteratorImpl : public PlayitemIterator
+
+  class ItemIteratorImpl : public Playlist::Item::Iterator
   {
   public:
-    PlayitemIteratorImpl(QObject& parent, const PlaylistModel& model)
-      : PlayitemIterator(parent)
+    ItemIteratorImpl(QObject& parent, const Playlist::Model& model)
+      : Playlist::Item::Iterator(parent)
       , Model(model)
       , Index(0)
       , Item(Model.GetItem(Index))
-      , State(STOPPED)
+      , State(Playlist::Item::STOPPED)
     {
     }
 
@@ -41,7 +42,7 @@ namespace
       return Item.get();
     }
 
-    virtual PlayitemState GetState() const
+    virtual Playlist::Item::State GetState() const
     {
       return State;
     }
@@ -52,7 +53,7 @@ namespace
       {
         Index = idx;
         Item = item;
-        State = STOPPED;
+        State = Playlist::Item::STOPPED;
         OnItem(*Item);
         return true;
       }
@@ -70,21 +71,21 @@ namespace
              Reset(Index - 1);
     }
 
-    virtual void SetState(PlayitemState state)
+    virtual void SetState(Playlist::Item::State state)
     {
       State = state;
     }
   private:
-    const PlaylistModel& Model;
+    const Playlist::Model& Model;
     unsigned Index;
     Playitem::Ptr Item;
-    PlayitemState State;
+    Playlist::Item::State State;
   };
 
-  class PlaylistIOContainerImpl : public PlaylistIOContainer
+  class ContainerImpl : public Playlist::IO::Container
   {
   public:
-    PlaylistIOContainerImpl(const QString& name, const PlaylistModel& model)
+    ContainerImpl(const QString& name, const Playlist::Model& model)
       : Properties(Parameters::Container::Create())
       , Model(model)
     {
@@ -102,18 +103,18 @@ namespace
     }
   private:
     const Parameters::Container::Ptr Properties;
-    const PlaylistModel& Model;
+    const Playlist::Model& Model;
   };
 
-  class PlaylistSupportImpl : public PlaylistSupport
+  class SupportImpl : public Playlist::Support
   {
   public:
-    PlaylistSupportImpl(QObject& parent, const QString& name, PlayitemsProvider::Ptr provider)
-      : PlaylistSupport(parent)
+    SupportImpl(QObject& parent, const QString& name, PlayitemsProvider::Ptr provider)
+      : Playlist::Support(parent)
       , Name(name)
-      , Scanner(PlaylistScanner::Create(*this, provider))
-      , Model(PlaylistModel::Create(*this))
-      , Iterator(new PlayitemIteratorImpl(*this, *Model))
+      , Scanner(Playlist::Scanner::Create(*this, provider))
+      , Model(Playlist::Model::Create(*this))
+      , Iterator(new ItemIteratorImpl(*this, *Model))
     {
       //setup connections
       Model->connect(Scanner, SIGNAL(OnGetItem(Playitem::Ptr)), SLOT(AddItem(Playitem::Ptr)));
@@ -121,7 +122,7 @@ namespace
       Log::Debug(THIS_MODULE, "Created at %1%", this);
     }
 
-    virtual ~PlaylistSupportImpl()
+    virtual ~SupportImpl()
     {
       Log::Debug(THIS_MODULE, "Destroyed at %1%", this);
 
@@ -134,43 +135,49 @@ namespace
       return Name;
     }
 
-    virtual class PlaylistScanner& GetScanner() const
+    virtual class Playlist::Scanner& GetScanner() const
     {
       return *Scanner;
     }
 
-    virtual class PlaylistModel& GetModel() const
+    virtual class Playlist::Model& GetModel() const
     {
       return *Model;
     }
 
-    virtual PlayitemIterator& GetIterator() const
+    virtual Playlist::Item::Iterator& GetIterator() const
     {
       return *Iterator;
     }
 
-    virtual PlaylistIOContainer::Ptr GetContainer() const
+    virtual Playlist::IO::Container::Ptr GetContainer() const
     {
-      return boost::make_shared<PlaylistIOContainerImpl>(Name, *Model);
+      return boost::make_shared<ContainerImpl>(Name, *Model);
     }
   private:
     const QString Name;
     PlayitemsProvider::Ptr Provider;
-    PlaylistScanner* const Scanner;
-    PlaylistModel* const Model;
-    PlayitemIterator* const Iterator;
+    Playlist::Scanner* const Scanner;
+    Playlist::Model* const Model;
+    Playlist::Item::Iterator* const Iterator;
   };
 }
 
-PlayitemIterator::PlayitemIterator(QObject& parent) : QObject(&parent)
+namespace Playlist
 {
-}
+  namespace Item
+  {
+    Iterator::Iterator(QObject& parent) : QObject(&parent)
+    {
+    }
+  }
 
-PlaylistSupport::PlaylistSupport(QObject& parent) : QObject(&parent)
-{
-}
+  Support::Support(QObject& parent) : QObject(&parent)
+  {
+  }
 
-PlaylistSupport* PlaylistSupport::Create(QObject& parent, const QString& name, PlayitemsProvider::Ptr provider)
-{
-  return new PlaylistSupportImpl(parent, name, provider);
+  Support* Support::Create(QObject& parent, const QString& name, PlayitemsProvider::Ptr provider)
+  {
+    return new SupportImpl(parent, name, provider);
+  }
 }

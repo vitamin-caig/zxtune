@@ -41,30 +41,30 @@ namespace
     return -1;
   }
 
-  class PlaylistContainerImpl : public PlaylistContainer
+  class ContainerImpl : public Playlist::Container
   {
   public:
-    PlaylistContainerImpl(QObject& parent, Parameters::Accessor::Ptr ioParams, Parameters::Accessor::Ptr coreParams)
-      : PlaylistContainer(parent)
+    ContainerImpl(QObject& parent, Parameters::Accessor::Ptr ioParams, Parameters::Accessor::Ptr coreParams)
+      : Playlist::Container(parent)
       , Provider(PlayitemsProvider::Create(ioParams, coreParams))
     {
     }
 
-    virtual PlaylistSupport* CreatePlaylist(const QString& name)
+    virtual Playlist::Support* CreatePlaylist(const QString& name)
     {
-      PlaylistSupport* const playlist = PlaylistSupport::Create(*this, name, Provider);
+      Playlist::Support* const playlist = Playlist::Support::Create(*this, name, Provider);
       return playlist;
     }
 
-    virtual PlaylistSupport* OpenPlaylist(const QString& filename)
+    virtual Playlist::Support* OpenPlaylist(const QString& filename)
     {
-      if (PlaylistIOContainer::Ptr container = ::OpenPlaylist(Provider, filename))
+      if (Playlist::IO::Container::Ptr container = Playlist::IO::Open(Provider, filename))
       {
         const Parameters::Accessor::Ptr plParams = container->GetProperties();
         const QString plName = GetPlaylistName(*plParams);
         const int plSize = GetPlaylistSize(*plParams);
-        PlaylistSupport* const playlist = CreatePlaylist(plName);
-        PlaylistScanner& scanner = playlist->GetScanner();
+        Playlist::Support* const playlist = CreatePlaylist(plName);
+        Playlist::Scanner& scanner = playlist->GetScanner();
         scanner.AddItems(container->GetItems(), plSize);
         return playlist;
       }
@@ -75,11 +75,14 @@ namespace
   };
 }
 
-PlaylistContainer::PlaylistContainer(QObject& parent) : QObject(&parent)
+namespace Playlist
 {
-}
+  Container::Container(QObject& parent) : QObject(&parent)
+  {
+  }
 
-PlaylistContainer* PlaylistContainer::Create(QObject& parent, Parameters::Accessor::Ptr ioParams, Parameters::Accessor::Ptr coreParams)
-{
-  return new PlaylistContainerImpl(parent, ioParams, coreParams);
+  Container* Container::Create(QObject& parent, Parameters::Accessor::Ptr ioParams, Parameters::Accessor::Ptr coreParams)
+  {
+    return new ContainerImpl(parent, ioParams, coreParams);
+  }
 }

@@ -18,38 +18,48 @@ Author:
 #include <QtGui/QItemDelegate>
 #include <QtGui/QTableView>
 
-class PlayitemStateCallback
+class Playitem;
+
+namespace Playlist
 {
-public:
-  virtual ~PlayitemStateCallback() {}
+  class Model;
 
-  virtual bool IsPlaying(const QModelIndex& index) const = 0;
-  virtual bool IsPaused(const QModelIndex& index) const = 0;
-};
+  namespace UI
+  {
+    class TableViewStateCallback
+    {
+    public:
+      virtual ~TableViewStateCallback() {}
 
-//table view
-class PlaylistItemTableView : public QItemDelegate
-{
-  Q_OBJECT
-protected:
-  explicit PlaylistItemTableView(QWidget& parent);
-public:
-  static PlaylistItemTableView* Create(QWidget& parent, const PlayitemStateCallback& callback);
-};
+      virtual bool IsPlaying(const QModelIndex& index) const = 0;
+      virtual bool IsPaused(const QModelIndex& index) const = 0;
+    };
 
-class PlaylistTableView : public QTableView
-{
-  Q_OBJECT
-protected:
-  explicit PlaylistTableView(QWidget& parent);
-public:
-  //creator
-  static PlaylistTableView* Create(QWidget& parent, const PlayitemStateCallback& callback, class PlaylistModel& model);
+    //table view
+    class TableViewItem : public QItemDelegate
+    {
+      Q_OBJECT
+    protected:
+      explicit TableViewItem(QWidget& parent);
+    public:
+      static TableViewItem* Create(QWidget& parent, const TableViewStateCallback& callback);
+    };
 
-public slots:
-  virtual void ActivateItem(const QModelIndex&) = 0;
-signals:
-  void OnItemActivated(unsigned index, const class Playitem& item);
-};
+    class TableView : public QTableView
+    {
+      Q_OBJECT
+    protected:
+      explicit TableView(QWidget& parent);
+    public:
+      //creator
+      static TableView* Create(QWidget& parent, const TableViewStateCallback& callback, Playlist::Model& model);
+
+    public slots:
+      virtual void ActivateItem(const QModelIndex&) = 0;
+    signals:
+      void OnItemActivated(unsigned index, const Playitem& item);
+    };
+  }
+}
 
 #endif //ZXTUNE_QT_PLAYLIST_VIEW_H_DEFINED

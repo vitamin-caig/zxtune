@@ -19,17 +19,23 @@ Author:
 //common includes
 #include <parameters.h>
 
-struct PlaylistContainerItem
+namespace Playlist
 {
-  String Path;
-  Parameters::Accessor::Ptr AdjustedParameters;
-};
+  namespace IO
+  {
+    struct ContainerItem
+    {
+      String Path;
+      Parameters::Accessor::Ptr AdjustedParameters;
+    };
 
-typedef std::vector<PlaylistContainerItem> PlaylistContainerItems;
-typedef boost::shared_ptr<const PlaylistContainerItems> PlaylistContainerItemsPtr;
+    typedef std::vector<ContainerItem> ContainerItems;
+    typedef boost::shared_ptr<const ContainerItems> ContainerItemsPtr;
 
-PlaylistIOContainer::Ptr CreatePlaylistIOContainer(PlayitemsProvider::Ptr provider,
-  Parameters::Accessor::Ptr properties,
-  PlaylistContainerItemsPtr items);
+    Container::Ptr CreateContainer(PlayitemsProvider::Ptr provider,
+      Parameters::Accessor::Ptr properties,
+      ContainerItemsPtr items);
+  }
+}
 
 #endif //ZXTUNE_QT_PLAYLIST_CONTAINER_IMPL_H_DEFINED

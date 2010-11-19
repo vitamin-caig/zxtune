@@ -49,7 +49,7 @@ namespace
     XSPFReader(const QString& basePath, QIODevice& device)
       : BasePath(basePath)
       , XML(&device)
-      , Items(boost::make_shared<PlaylistContainerItems>())
+      , Items(boost::make_shared<Playlist::IO::ContainerItems>())
     {
     }
 
@@ -71,7 +71,7 @@ namespace
       return !XML.error();
     }
 
-    PlaylistContainerItemsPtr GetItems() const
+    Playlist::IO::ContainerItemsPtr GetItems() const
     {
       return Items;
     }
@@ -111,7 +111,7 @@ namespace
     bool ParseTrackItem()
     {
       assert(XML.isStartElement() && XML.name() == XSPF::ITEM_TAG);
-      PlaylistContainerItem item;
+      Playlist::IO::ContainerItem item;
       const Parameters::Container::Ptr attributes = Parameters::Container::Create();
       while (XML.readNextStartElement())
       {
@@ -167,10 +167,10 @@ namespace
     const QString BasePath;
     QXmlStreamReader XML;
     //context
-    const boost::shared_ptr<PlaylistContainerItems> Items;
+    const boost::shared_ptr<Playlist::IO::ContainerItems> Items;
   };
 
-  PlaylistIOContainer::Ptr CreateXSPFPlaylist(PlayitemsProvider::Ptr provider,
+  Playlist::IO::Container::Ptr CreateXSPFPlaylist(PlayitemsProvider::Ptr provider,
     const QFileInfo& fileInfo)
   {
     const QString basePath = fileInfo.absolutePath();
@@ -178,19 +178,19 @@ namespace
     if (!device.open(QIODevice::ReadOnly | QIODevice::Text))
     {
       assert(!"Failed to open XSPF playlist");
-      return PlaylistIOContainer::Ptr();
+      return Playlist::IO::Container::Ptr();
     }
     XSPFReader reader(basePath, device);
     if (!reader.Parse())
     {
-      return PlaylistIOContainer::Ptr();
+      return Playlist::IO::Container::Ptr();
     }
 
     const Parameters::Container::Ptr properties = Parameters::Container::Create();
-    const PlaylistContainerItemsPtr items = reader.GetItems();
+    const Playlist::IO::ContainerItemsPtr items = reader.GetItems();
     properties->SetStringValue(Playlist::ATTRIBUTE_NAME, FromQString(fileInfo.baseName()));
     properties->SetIntValue(Playlist::ATTRIBUTE_SIZE, items->size());
-    return CreatePlaylistIOContainer(provider, properties, items);
+    return Playlist::IO::CreateContainer(provider, properties, items);
   }
 
   bool CheckXSPFByName(const QString& filename)
@@ -200,13 +200,19 @@ namespace
   }
 }
 
-PlaylistIOContainer::Ptr OpenXSPFPlaylist(PlayitemsProvider::Ptr provider, const QString& filename)
+namespace Playlist
 {
-  const QFileInfo info(filename);
-  if (!info.isFile() || !info.isReadable() ||
-      !CheckXSPFByName(info.fileName()))
+  namespace IO
   {
-    return PlaylistIOContainer::Ptr();
+    Container::Ptr OpenXSPF(PlayitemsProvider::Ptr provider, const QString& filename)
+    {
+      const QFileInfo info(filename);
+      if (!info.isFile() || !info.isReadable() ||
+          !CheckXSPFByName(info.fileName()))
+      {
+        return Container::Ptr();
+      }
+      return CreateXSPFPlaylist(provider, info);
+    }
   }
-  return CreateXSPFPlaylist(provider, info);
 }

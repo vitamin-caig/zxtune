@@ -17,6 +17,12 @@ Author:
 //local includes
 #include "container.h"
 
-bool SaveXSPFPlaylist(PlaylistIOContainer::Ptr container, const class QString& filename);
+namespace Playlist
+{
+  namespace IO
+  {
+    bool SaveXSPF(Container::Ptr container, const class QString& filename);
+  }
+}
 
 #endif //ZXTUNE_QT_PLAYLIST_EXPORT_H_DEFINED

@@ -23,17 +23,20 @@ namespace Playlist
 {
   const Char ATTRIBUTE_NAME[] = {'N', 'a', 'm', 'e', 0};
   const Char ATTRIBUTE_SIZE[] = {'S', 'i', 'z', 'e', 0};
+
+  namespace IO
+  {
+    class Container
+    {
+    public:
+      typedef boost::shared_ptr<const Container> Ptr;
+
+      virtual ~Container() {}
+
+      virtual Parameters::Accessor::Ptr GetProperties() const = 0;
+      virtual Playitem::Iterator::Ptr GetItems() const = 0;
+    };
+  }
 }
-
-class PlaylistIOContainer
-{
-public:
-  typedef boost::shared_ptr<const PlaylistIOContainer> Ptr;
-
-  virtual ~PlaylistIOContainer() {}
-
-  virtual Parameters::Accessor::Ptr GetProperties() const = 0;
-  virtual Playitem::Iterator::Ptr GetItems() const = 0;
-};
 
 #endif //ZXTUNE_QT_PLAYLIST_IO_CONTAINER_H_DEFINED

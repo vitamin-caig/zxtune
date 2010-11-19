@@ -18,8 +18,16 @@ Author:
 #include "container.h"
 #include "supp/playitems_provider.h"
 
-PlaylistIOContainer::Ptr OpenPlaylist(PlayitemsProvider::Ptr provider, const class QString& filename);
-PlaylistIOContainer::Ptr OpenAYLPlaylist(PlayitemsProvider::Ptr provider, const class QString& filename);
-PlaylistIOContainer::Ptr OpenXSPFPlaylist(PlayitemsProvider::Ptr provider, const class QString& filename);
+namespace Playlist
+{
+  namespace IO
+  {
+    //common
+    Container::Ptr Open(PlayitemsProvider::Ptr provider, const class QString& filename);
+    //specific
+    Container::Ptr OpenAYL(PlayitemsProvider::Ptr provider, const class QString& filename);
+    Container::Ptr OpenXSPF(PlayitemsProvider::Ptr provider, const class QString& filename);
+  }
+}
 
 #endif //ZXTUNE_QT_PLAYLIST_IMPORT_H_DEFINED

@@ -13,15 +13,21 @@ Author:
 
 #include "import.h"
 
-PlaylistIOContainer::Ptr OpenPlaylist(PlayitemsProvider::Ptr provider, const QString& filename)
+namespace Playlist
 {
-  if (PlaylistIOContainer::Ptr res = OpenAYLPlaylist(provider, filename))
+  namespace IO
   {
-    return res;
+    Container::Ptr Open(PlayitemsProvider::Ptr provider, const QString& filename)
+    {
+      if (Container::Ptr res = OpenAYL(provider, filename))
+      {
+        return res;
+      }
+      else if (Container::Ptr res = OpenXSPF(provider, filename))
+      {
+        return res;
+      }
+      return Container::Ptr();
+    }
   }
-  else if (PlaylistIOContainer::Ptr res = OpenXSPFPlaylist(provider, filename))
-  {
-    return res;
-  }
-  return PlaylistIOContainer::Ptr();
 }

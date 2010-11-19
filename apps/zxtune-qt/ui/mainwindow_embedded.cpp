@@ -36,7 +36,7 @@ namespace
       //, Seeking(this, menuLayout, "Seeking")
       : Controls(PlaybackControls::Create(*this))
       , Analyzer(AnalyzerControl::Create(*this))
-      , Playlist(PlaylistContainerView::Create(*this))
+      , Playlist(Playlist::UI::ContainerView::Create(*this))
       , Playback(PlaybackSupport::Create(*this))
     {
       setupUi(this);
@@ -85,7 +85,7 @@ namespace
   private:
     PlaybackControls* const Controls;
     AnalyzerControl* const Analyzer;
-    PlaylistContainerView* const Playlist;
+    Playlist::UI::ContainerView* const Playlist;
     PlaybackSupport* const Playback;
   };
 }

@@ -17,19 +17,27 @@ Author:
 //qt includes
 #include <QtGui/QWidget>
 
-class PlaylistView : public QWidget
+namespace Playlist
 {
-  Q_OBJECT
-protected:
-  explicit PlaylistView(QWidget& parent);
-public:
-  static PlaylistView* Create(QWidget& parent, class PlaylistSupport& playlist);
+  class Support;
 
-  virtual const class PlaylistSupport& GetPlaylist() const = 0;
-public slots:
-  virtual void Update() = 0;
-signals:
-  void OnItemActivated(const class Playitem&);
-};
+  namespace UI
+  {
+    class View : public QWidget
+    {
+      Q_OBJECT
+    protected:
+      explicit View(QWidget& parent);
+    public:
+      static View* Create(QWidget& parent, Playlist::Support& playlist);
+
+      virtual const class Playlist::Support& GetPlaylist() const = 0;
+    public slots:
+      virtual void Update() = 0;
+    signals:
+      void OnItemActivated(const class Playitem&);
+    };
+  }
+}
 
 #endif //ZXTUNE_QT_PLAYLIST_VIEW_H_DEFINED

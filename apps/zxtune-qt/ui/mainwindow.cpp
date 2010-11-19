@@ -52,7 +52,7 @@ namespace
       , Status(StatusControl::Create(*this))
       , Seeking(SeekControls::Create(*this))
       , Analyzer(AnalyzerControl::Create(*this))
-      , MultiPlaylist(PlaylistContainerView::Create(*this))
+      , MultiPlaylist(Playlist::UI::ContainerView::Create(*this))
       , Playback(PlaybackSupport::Create(*this))
     {
       setupUi(this);
@@ -175,7 +175,7 @@ namespace
     StatusControl* const Status;
     SeekControls* const Seeking;
     AnalyzerControl* const Analyzer;
-    PlaylistContainerView* const MultiPlaylist;
+    Playlist::UI::ContainerView* const MultiPlaylist;
     PlaybackSupport* const Playback;
   };
 }

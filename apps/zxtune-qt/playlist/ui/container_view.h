@@ -17,41 +17,52 @@ Author:
 //qt includes
 #include <QtGui/QWidget>
 
-class PlaylistContainerView : public QWidget
+class Playitem;
+
+class QMenu;
+class QStringList;
+
+namespace Playlist
 {
-  Q_OBJECT
-protected:
-  explicit PlaylistContainerView(QWidget& parent);
-public:
-  //creator
-  static PlaylistContainerView* Create(QWidget& parent);
+  namespace UI
+  {
+    class ContainerView : public QWidget
+    {
+      Q_OBJECT
+    protected:
+      explicit ContainerView(QWidget& parent);
+    public:
+      //creator
+      static ContainerView* Create(QWidget& parent);
 
-  virtual void CreatePlaylist(const class QStringList& items) = 0;
-  virtual class QMenu* GetActionsMenu() const = 0;
+      virtual void CreatePlaylist(const QStringList& items) = 0;
+      virtual QMenu* GetActionsMenu() const = 0;
 
-public slots:
-  //navigate
-  virtual void Play() = 0;
-  virtual void Pause() = 0;
-  virtual void Stop() = 0;
-  virtual void Finish() = 0;
-  virtual void Next() = 0;
-  virtual void Prev() = 0;
-  //actions
-  virtual void Clear() = 0;
-  virtual void AddFiles() = 0;
-  virtual void AddFolders() = 0;
-  //playlist actions
-  virtual void CreatePlaylist() = 0;
-  virtual void LoadPlaylist() = 0;
-  virtual void SavePlaylist() = 0;
+    public slots:
+      //navigate
+      virtual void Play() = 0;
+      virtual void Pause() = 0;
+      virtual void Stop() = 0;
+      virtual void Finish() = 0;
+      virtual void Next() = 0;
+      virtual void Prev() = 0;
+      //actions
+      virtual void Clear() = 0;
+      virtual void AddFiles() = 0;
+      virtual void AddFolders() = 0;
+      //playlist actions
+      virtual void CreatePlaylist() = 0;
+      virtual void LoadPlaylist() = 0;
+      virtual void SavePlaylist() = 0;
 
-  virtual void CloseCurrentPlaylist() = 0;
-  virtual void ClosePlaylist(int index) = 0;
-private slots:
-  virtual void PlaylistItemActivated(const class Playitem&) = 0;
-signals:
-  void OnItemActivated(const class Playitem&);
-};
+      virtual void CloseCurrentPlaylist() = 0;
+      virtual void ClosePlaylist(int index) = 0;
+    private slots:
+      virtual void PlaylistItemActivated(const Playitem&) = 0;
+    signals:
+      void OnItemActivated(const Playitem&);
+    };
+  }
+}
 
 #endif //ZXTUNE_QT_PLAYLIST_CONTAINER_VIEW_H_DEFINED

@@ -20,10 +20,10 @@ Author:
 
 namespace
 {
-  class IteratorSource : public ScannerSource
+  class IteratorSource : public Playlist::ScannerSource
   {
   public:
-    IteratorSource(ScannerCallback& callback, Playitem::Iterator::Ptr iterator, int countHint)
+    IteratorSource(Playlist::ScannerCallback& callback, Playitem::Iterator::Ptr iterator, int countHint)
       : Callback(callback)
       , Iterator(iterator)
       , CountHint(countHint)
@@ -48,13 +48,16 @@ namespace
       }
     }
   private:
-    ScannerCallback& Callback;
+    Playlist::ScannerCallback& Callback;
     const Playitem::Iterator::Ptr Iterator;
     const int CountHint;
   };
 }
 
-ScannerSource::Ptr ScannerSource::CreateIteratorSource(ScannerCallback& callback, Playitem::Iterator::Ptr iterator, int countHint)
+namespace Playlist
 {
-  return ScannerSource::Ptr(new IteratorSource(callback, iterator, countHint));
+  ScannerSource::Ptr ScannerSource::CreateIteratorSource(ScannerCallback& callback, Playitem::Iterator::Ptr iterator, int countHint)
+  {
+    return ScannerSource::Ptr(new IteratorSource(callback, iterator, countHint));
+  }
 }

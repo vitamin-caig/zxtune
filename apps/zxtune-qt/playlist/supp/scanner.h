@@ -19,29 +19,32 @@ Author:
 //qt includes
 #include <QtCore/QThread>
 
-class PlaylistScanner : public QThread
+namespace Playlist
 {
-  Q_OBJECT
-protected:
-  explicit PlaylistScanner(QObject& parent);
-public:
-  static PlaylistScanner* Create(QObject& parent, PlayitemsProvider::Ptr provider);
+  class Scanner : public QThread
+  {
+    Q_OBJECT
+  protected:
+    explicit Scanner(QObject& parent);
+  public:
+    static Scanner* Create(QObject& parent, PlayitemsProvider::Ptr provider);
 
-  virtual void AddItems(const QStringList& items, bool deepScan) = 0;
-  virtual void AddItems(Playitem::Iterator::Ptr items, int countHint = -1) = 0;
-public slots:
-  //asynchronous, doesn't wait until real stop
-  virtual void Cancel() = 0;
-signals:
-  //for UI
-  void OnScanStart();
-  void OnProgressStatus(unsigned progress, unsigned itemsDone, unsigned totalItems);
-  void OnProgressMessage(const QString& message, const QString& item);
-  void OnScanStop();
-  void OnResolvingStart();
-  void OnResolvingStop();
-  //for BL
-  void OnGetItem(Playitem::Ptr);
-};
+    virtual void AddItems(const QStringList& items, bool deepScan) = 0;
+    virtual void AddItems(Playitem::Iterator::Ptr items, int countHint = -1) = 0;
+  public slots:
+    //asynchronous, doesn't wait until real stop
+    virtual void Cancel() = 0;
+  signals:
+    //for UI
+    void OnScanStart();
+    void OnProgressStatus(unsigned progress, unsigned itemsDone, unsigned totalItems);
+    void OnProgressMessage(const QString& message, const QString& item);
+    void OnScanStop();
+    void OnResolvingStart();
+    void OnResolvingStop();
+    //for BL
+    void OnGetItem(Playitem::Ptr);
+  };
+}
 
 #endif //ZXTUNE_QT_PLAYLIST_SCANNER_H_DEFINED

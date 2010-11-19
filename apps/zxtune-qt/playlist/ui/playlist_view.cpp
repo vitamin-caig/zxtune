@@ -29,12 +29,12 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("Playlist::View");
+  const std::string THIS_MODULE("Playlist::UI::View");
 
-  class PlayitemStateCallbackImpl : public PlayitemStateCallback
+  class PlayitemStateCallbackImpl : public Playlist::UI::TableViewStateCallback
   {
   public:
-    explicit PlayitemStateCallbackImpl(PlayitemIterator& iter)
+    explicit PlayitemStateCallbackImpl(Playlist::Item::Iterator& iter)
       : Iterator(iter)
     {
     }
@@ -46,7 +46,7 @@ namespace
       {
         const Playitem* const indexItem = static_cast<const Playitem*>(index.internalPointer());
         return indexItem == operationalItem &&
-               Iterator.GetState() == PLAYING;
+               Iterator.GetState() == Playlist::Item::PLAYING;
       }
       return false;
     }
@@ -58,26 +58,26 @@ namespace
       {
         const Playitem* const indexItem = static_cast<const Playitem*>(index.internalPointer());
         return indexItem == operationalItem &&
-               Iterator.GetState() == PAUSED;
+               Iterator.GetState() == Playlist::Item::PAUSED;
       }
       return false;
     }
   private:
-    const PlayitemIterator& Iterator;
+    const Playlist::Item::Iterator& Iterator;
   };
 
   const Qt::KeyboardModifiers DEEPSCAN_KEY = Qt::AltModifier;
 
-  class PlaylistViewImpl : public PlaylistView
+  class ViewImpl : public Playlist::UI::View
   {
   public:
-    PlaylistViewImpl(QWidget& parent, PlaylistSupport& playlist)
-      : PlaylistView(parent)
-      , Playlist(playlist)
-      , State(Playlist.GetIterator())
+    ViewImpl(QWidget& parent, Playlist::Support& playlist)
+      : Playlist::UI::View(parent)
+      , Controller(playlist)
+      , State(Controller.GetIterator())
       , Layout(new QVBoxLayout(this))
-      , ScannerView(PlaylistScannerView::Create(*this, Playlist.GetScanner()))
-      , View(PlaylistTableView::Create(*this, State, Playlist.GetModel()))
+      , ScannerView(Playlist::UI::ScannerView::Create(*this, Controller.GetScanner()))
+      , View(Playlist::UI::TableView::Create(*this, State, Controller.GetModel()))
     {
       //setup ui
       setAcceptDrops(true);
@@ -86,23 +86,23 @@ namespace
       Layout->addWidget(View);
       Layout->addWidget(ScannerView);
       //setup connections
-      PlayitemIterator& iter = Playlist.GetIterator();
+      Playlist::Item::Iterator& iter = Controller.GetIterator();
       iter.connect(View, SIGNAL(OnItemActivated(unsigned, const Playitem&)), SLOT(Reset(unsigned)));
       this->connect(&iter, SIGNAL(OnItem(const Playitem&)), SIGNAL(OnItemActivated(const Playitem&)));
-      View->connect(&Playlist.GetScanner(), SIGNAL(OnScanStop()), SLOT(updateGeometries()));
+      View->connect(&Controller.GetScanner(), SIGNAL(OnScanStop()), SLOT(updateGeometries()));
 
       Log::Debug(THIS_MODULE, "Created at %1%", this);
     }
 
-    virtual ~PlaylistViewImpl()
+    virtual ~ViewImpl()
     {
-      Playlist.deleteLater();
+      Controller.deleteLater();
       Log::Debug(THIS_MODULE, "Destroyed at %1%", this);
     }
 
-    virtual const PlaylistSupport& GetPlaylist() const
+    virtual const Playlist::Support& GetPlaylist() const
     {
-      return Playlist;
+      return Controller;
     }
 
     virtual void Update()
@@ -126,26 +126,32 @@ namespace
         std::for_each(urls.begin(), urls.end(),
           boost::bind(&QStringList::push_back, &files,
             boost::bind(&QUrl::toLocalFile, _1)));
-        PlaylistScanner& scanner = Playlist.GetScanner();
+        Playlist::Scanner& scanner = Controller.GetScanner();
         //TODO: use key modifiers and change cursor
         const bool deepScan = event->keyboardModifiers() & DEEPSCAN_KEY;
         scanner.AddItems(files, deepScan);
       }
     }
   private:
-    PlaylistSupport& Playlist;
+    Playlist::Support& Controller;
     PlayitemStateCallbackImpl State;
     QVBoxLayout* const Layout;
-    PlaylistScannerView* const ScannerView;
-    PlaylistTableView* const View;
+    Playlist::UI::ScannerView* const ScannerView;
+    Playlist::UI::TableView* const View;
   };
 }
 
-PlaylistView::PlaylistView(QWidget& parent) : QWidget(&parent)
+namespace Playlist
 {
-}
+  namespace UI
+  {
+    View::View(QWidget& parent) : QWidget(&parent)
+    {
+    }
 
-PlaylistView* PlaylistView::Create(QWidget& parent, PlaylistSupport& playlist)
-{
-  return new PlaylistViewImpl(parent, playlist);
+    View* View::Create(QWidget& parent, Playlist::Support& playlist)
+    {
+      return new ViewImpl(parent, playlist);
+    }
+  }
 }

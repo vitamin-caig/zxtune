@@ -20,14 +20,14 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("Playlist::Scanner::View");
+  const std::string THIS_MODULE("Playlist::UI::ScannerView");
 
-  class PlaylistScannerViewImpl : public PlaylistScannerView
-                                , private Ui::PlaylistScannerView
+  class ScannerViewImpl : public Playlist::UI::ScannerView
+                        , private Ui::PlaylistScannerView
   {
   public:
-    PlaylistScannerViewImpl(QWidget& parent, PlaylistScanner& scanner)
-      : ::PlaylistScannerView(parent)
+    ScannerViewImpl(QWidget& parent, Playlist::Scanner& scanner)
+      : Playlist::UI::ScannerView(parent)
       , Scanner(scanner)
     {
       //setup self
@@ -45,7 +45,7 @@ namespace
       Log::Debug(THIS_MODULE, "Created at %1%", this);
     }
 
-    virtual ~PlaylistScannerViewImpl()
+    virtual ~ScannerViewImpl()
     {
       Log::Debug(THIS_MODULE, "Destroyed at %1%", this);
     }
@@ -99,15 +99,21 @@ namespace
       }
     }
   private:
-    PlaylistScanner& Scanner;
+    Playlist::Scanner& Scanner;
   };
 }
 
-PlaylistScannerView::PlaylistScannerView(QWidget& parent) : QWidget(&parent)
+namespace Playlist
 {
-}
+  namespace UI
+  {
+    ScannerView::ScannerView(QWidget& parent) : QWidget(&parent)
+    {
+    }
 
-PlaylistScannerView* PlaylistScannerView::Create(QWidget& parent, PlaylistScanner& scanner)
-{
-  return new PlaylistScannerViewImpl(parent, scanner);
+    ScannerView* ScannerView::Create(QWidget& parent, Playlist::Scanner& scanner)
+    {
+      return new ScannerViewImpl(parent, scanner);
+    }
+  }
 }

@@ -32,9 +32,9 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("Playlist::Container::View");
+  const std::string THIS_MODULE("Playlist::UI::ContainerView");
 
-  QString ExtractPlaylistName(const PlaylistIOContainer& container, const QString& defVal)
+  QString ExtractPlaylistName(const Playlist::IO::Container& container, const QString& defVal)
   {
     const Parameters::Accessor::Ptr params = container.GetProperties();
     Parameters::StringType val;
@@ -140,14 +140,14 @@ namespace
     QFileDialog Dialog;
   };
 
-  class PlaylistContainerViewImpl : public PlaylistContainerView
-                                  , public Ui::PlaylistContainerView
+  class ContainerViewImpl : public Playlist::UI::ContainerView
+                          , public Ui::PlaylistContainerView
   {
   public:
-    explicit PlaylistContainerViewImpl(QWidget& parent)
-      : ::PlaylistContainerView(parent)
+    explicit ContainerViewImpl(QWidget& parent)
+      : Playlist::UI::ContainerView(parent)
       //TODO: from global parameters
-      , Container(PlaylistContainer::Create(*this, Parameters::Container::Create(), Parameters::Container::Create()))
+      , Container(Playlist::Container::Create(*this, Parameters::Container::Create(), Parameters::Container::Create()))
       , ActionsMenu(new QMenu(tr("Playlist"), this))
       , FileDialog(*this)
       , ActivePlaylistView(0)
@@ -171,15 +171,15 @@ namespace
       Log::Debug(THIS_MODULE, "Created at %1%", this);
     }
 
-    virtual ~PlaylistContainerViewImpl()
+    virtual ~ContainerViewImpl()
     {
       Log::Debug(THIS_MODULE, "Destroyed at %1%", this);
     }
 
     virtual void CreatePlaylist(const QStringList& items)
     {
-      const PlaylistSupport& playlist = CreateAnonymousPlaylist();
-      PlaylistScanner& scanner = playlist.GetScanner();
+      const Playlist::Support& playlist = CreateAnonymousPlaylist();
+      Playlist::Scanner& scanner = playlist.GetScanner();
       const bool deepScan = actionDeepScan->isChecked();
       scanner.AddItems(items, deepScan);
     }
@@ -191,23 +191,23 @@ namespace
 
     virtual void Play()
     {
-      UpdateState(PLAYING);
+      UpdateState(Playlist::Item::PLAYING);
     }
 
     virtual void Pause()
     {
-      UpdateState(PAUSED);
+      UpdateState(Playlist::Item::PAUSED);
     }
 
     virtual void Stop()
     {
-      UpdateState(STOPPED);
+      UpdateState(Playlist::Item::STOPPED);
     }
 
     virtual void Finish()
     {
-      const PlaylistSupport& playlist = GetCurrentPlaylist();
-      PlayitemIterator& iter = playlist.GetIterator();
+      const Playlist::Support& playlist = GetCurrentPlaylist();
+      Playlist::Item::Iterator& iter = playlist.GetIterator();
       if (!iter.Next())
       {
         Stop();
@@ -216,22 +216,22 @@ namespace
 
     virtual void Next()
     {
-      const PlaylistSupport& playlist = GetCurrentPlaylist();
-      PlayitemIterator& iter = playlist.GetIterator();
+      const Playlist::Support& playlist = GetCurrentPlaylist();
+      Playlist::Item::Iterator& iter = playlist.GetIterator();
       iter.Next();
     }
 
     virtual void Prev()
     {
-      const PlaylistSupport& playlist = GetCurrentPlaylist();
-      PlayitemIterator& iter = playlist.GetIterator();
+      const Playlist::Support& playlist = GetCurrentPlaylist();
+      Playlist::Item::Iterator& iter = playlist.GetIterator();
       iter.Prev();
     }
 
     virtual void Clear()
     {
-      const PlaylistSupport& playlist = GetCurrentPlaylist();
-      PlaylistModel& model = playlist.GetModel();
+      const Playlist::Support& playlist = GetCurrentPlaylist();
+      Playlist::Model& model = playlist.GetModel();
       model.Clear();
       ActivePlaylistView->Update();
     }
@@ -242,8 +242,8 @@ namespace
       if (FileDialog.OpenMultipleFiles(actionAddFiles->text(), 
         tr("All files (*.*)"), files))
       {
-        const PlaylistSupport& playlist = GetCurrentPlaylist();
-        PlaylistScanner& scanner = playlist.GetScanner();
+        const Playlist::Support& playlist = GetCurrentPlaylist();
+        Playlist::Scanner& scanner = playlist.GetScanner();
         const bool deepScan = actionDeepScan->isChecked();
         scanner.AddItems(files, deepScan);
       }
@@ -254,8 +254,8 @@ namespace
       QStringList folders;
       if (FileDialog.OpenMultipleFolders(actionAddFolders->text(), folders))
       {
-        const PlaylistSupport& playlist = GetCurrentPlaylist();
-        PlaylistScanner& scanner = playlist.GetScanner();
+        const Playlist::Support& playlist = GetCurrentPlaylist();
+        Playlist::Scanner& scanner = playlist.GetScanner();
         const bool deepScan = actionDeepScan->isChecked();
         scanner.AddItems(folders, deepScan);
       }
@@ -272,7 +272,7 @@ namespace
       if (FileDialog.OpenSingleFile(actionLoadPlaylist->text(),
          tr("Playlist files (*.xspf *.ayl)"), file))
       {
-        if (PlaylistSupport* const pl = Container->OpenPlaylist(file))
+        if (Playlist::Support* const pl = Container->OpenPlaylist(file))
         {
           RegisterPlaylist(*pl);
         }
@@ -281,14 +281,14 @@ namespace
 
     virtual void SavePlaylist()
     {
-      PlaylistView* const view = static_cast<PlaylistView*>(widgetsContainer->currentWidget());
-      const PlaylistSupport& playlist = view->GetPlaylist();
-      const PlaylistIOContainer::Ptr container = playlist.GetContainer();
+      Playlist::UI::View* const view = static_cast<Playlist::UI::View*>(widgetsContainer->currentWidget());
+      const Playlist::Support& playlist = view->GetPlaylist();
+      const Playlist::IO::Container::Ptr container = playlist.GetContainer();
       QString filename = ExtractPlaylistName(*container, playlist.GetName());
       if (FileDialog.SaveFile(actionSavePlaylist->text(),
         QString::fromUtf8("xspf"), filename))
       {
-        if (!SaveXSPFPlaylist(container, filename))
+        if (!Playlist::IO::SaveXSPF(container, filename))
         {
           assert(!"Failed to save");
         }
@@ -302,7 +302,7 @@ namespace
 
     virtual void ClosePlaylist(int index)
     {
-      PlaylistView* const view = static_cast<PlaylistView*>(widgetsContainer->widget(index));
+      Playlist::UI::View* const view = static_cast<Playlist::UI::View*>(widgetsContainer->widget(index));
       widgetsContainer->removeTab(index);
       Log::Debug(THIS_MODULE, "Closed playlist idx=%1% val=%2%, active=%3%",
         index, view, ActivePlaylistView);
@@ -318,12 +318,12 @@ namespace
     {
       if (QObject* sender = this->sender())
       {
-        assert(dynamic_cast<PlaylistView*>(sender));
-        PlaylistView* const newView = static_cast<PlaylistView*>(sender);
+        assert(dynamic_cast<Playlist::UI::View*>(sender));
+        Playlist::UI::View* const newView = static_cast<Playlist::UI::View*>(sender);
         if (newView != ActivePlaylistView)
         {
           Log::Debug(THIS_MODULE, "Switched playlist %1% -> %2%", newView, ActivePlaylistView);
-          UpdateState(STOPPED);
+          UpdateState(Playlist::Item::STOPPED);
           ActivePlaylistView = newView;
         }
       }
@@ -347,17 +347,17 @@ namespace
       //ActionsMenu->addAction(actionRandom);
     }
 
-    PlaylistSupport& CreateAnonymousPlaylist()
+    Playlist::Support& CreateAnonymousPlaylist()
     {
       Log::Debug(THIS_MODULE, "Create default playlist");
-      PlaylistSupport* const pl = Container->CreatePlaylist(tr("Default"));
+      Playlist::Support* const pl = Container->CreatePlaylist(tr("Default"));
       RegisterPlaylist(*pl);
       return *pl;
     }
 
-    void RegisterPlaylist(PlaylistSupport& playlist)
+    void RegisterPlaylist(Playlist::Support& playlist)
     {
-      PlaylistView* const plView = PlaylistView::Create(*this, playlist);
+      Playlist::UI::View* const plView = Playlist::UI::View::Create(*this, playlist);
       widgetsContainer->addTab(plView, playlist.GetName());
       this->connect(plView, SIGNAL(OnItemActivated(const Playitem&)),
         SLOT(PlaylistItemActivated(const Playitem&)));
@@ -368,15 +368,15 @@ namespace
       widgetsContainer->setCurrentWidget(plView);
     }
 
-    void UpdateState(PlayitemState state)
+    void UpdateState(Playlist::Item::State state)
     {
-      const PlaylistSupport& playlist = GetCurrentPlaylist();
-      PlayitemIterator& iter = playlist.GetIterator();
+      const Playlist::Support& playlist = GetCurrentPlaylist();
+      Playlist::Item::Iterator& iter = playlist.GetIterator();
       iter.SetState(state);
       ActivePlaylistView->Update();
     }
 
-    const PlaylistSupport& GetCurrentPlaylist()
+    const Playlist::Support& GetCurrentPlaylist()
     {
       if (!ActivePlaylistView)
       {
@@ -402,25 +402,31 @@ namespace
     {
       if (QWidget* widget = widgetsContainer->widget(index))
       {
-        ActivePlaylistView = static_cast<PlaylistView*>(widget);
+        ActivePlaylistView = static_cast<Playlist::UI::View*>(widget);
         Log::Debug(THIS_MODULE, "Switching to playlist idx=%1% val=%2%", index, ActivePlaylistView);
       }
     }
   private:
-    PlaylistContainer* const Container;
+    Playlist::Container* const Container;
     QMenu* const ActionsMenu;
     //state context
     FileDialogWrapper FileDialog;
-    PlaylistView* ActivePlaylistView;
+    Playlist::UI::View* ActivePlaylistView;
   };
 }
 
-PlaylistContainerView::PlaylistContainerView(QWidget& parent) : QWidget(&parent)
+namespace Playlist
 {
-}
+  namespace UI
+  {
+    ContainerView::ContainerView(QWidget& parent) : QWidget(&parent)
+    {
+    }
 
-PlaylistContainerView* PlaylistContainerView::Create(QWidget& parent)
-{
-  REGISTER_METATYPE(Playitem::Ptr);
-  return new PlaylistContainerViewImpl(parent);
+    ContainerView* ContainerView::Create(QWidget& parent)
+    {
+      REGISTER_METATYPE(::Playitem::Ptr);
+      return new ContainerViewImpl(parent);
+    }
+  }
 }

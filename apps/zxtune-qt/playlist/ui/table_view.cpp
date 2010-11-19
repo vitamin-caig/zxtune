@@ -25,7 +25,7 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("Playlist::View::Table");
+  const std::string THIS_MODULE("Playlist::UI::TableView");
 
   //Options
   const char FONT_FAMILY[] = "Arial";
@@ -35,18 +35,19 @@ namespace
   const int_t TITLE_WIDTH = 320;
   const int_t DURATION_WIDTH = 60;
 
-  class PlaylistTableViewImpl : public PlaylistTableView
+  class TableViewImpl : public Playlist::UI::TableView
   {
   public:
-    PlaylistTableViewImpl(QWidget& parent, const PlayitemStateCallback& callback, PlaylistModel& model)
-      : PlaylistTableView(parent)
+    TableViewImpl(QWidget& parent, const Playlist::UI::TableViewStateCallback& callback,
+      Playlist::Model& model)
+      : Playlist::UI::TableView(parent)
       , Callback(callback)
       , Model(model)
       , Font(QString::fromUtf8(FONT_FAMILY), FONT_SIZE)
     {
       //setup self
       setModel(&Model);
-      setItemDelegate(PlaylistItemTableView::Create(*this, Callback));
+      setItemDelegate(Playlist::UI::TableViewItem::Create(*this, Callback));
       setFont(Font);
       //setup ui
       setAcceptDrops(true);
@@ -67,9 +68,9 @@ namespace
         horHeader->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
         horHeader->setHighlightSections(false);
         horHeader->setTextElideMode(Qt::ElideRight);
-        horHeader->resizeSection(PlaylistModel::COLUMN_TYPEICON, ICON_WIDTH);
-        horHeader->resizeSection(PlaylistModel::COLUMN_TITLE, TITLE_WIDTH);
-        horHeader->resizeSection(PlaylistModel::COLUMN_DURATION, DURATION_WIDTH);
+        horHeader->resizeSection(Playlist::Model::COLUMN_TYPEICON, ICON_WIDTH);
+        horHeader->resizeSection(Playlist::Model::COLUMN_TITLE, TITLE_WIDTH);
+        horHeader->resizeSection(Playlist::Model::COLUMN_DURATION, DURATION_WIDTH);
       }
       if (QHeaderView* const verHeader = verticalHeader())
       {
@@ -84,7 +85,7 @@ namespace
       Log::Debug(THIS_MODULE, "Created at %1%", this);
     }
 
-    virtual ~PlaylistTableViewImpl()
+    virtual ~TableViewImpl()
     {
       Log::Debug(THIS_MODULE, "Destroyed at %1%", this);
     }
@@ -123,16 +124,17 @@ namespace
       Model.RemoveItems(indexes);
     }
   private:
-    const PlayitemStateCallback& Callback;
-    PlaylistModel& Model;
+    const Playlist::UI::TableViewStateCallback& Callback;
+    Playlist::Model& Model;
     QFont Font;
   };
 
-  class PlaylistItemTableViewImpl : public PlaylistItemTableView
+  class TableViewItemImpl : public Playlist::UI::TableViewItem
   {
   public:
-    PlaylistItemTableViewImpl(QWidget& parent, const PlayitemStateCallback& callback)
-      : PlaylistItemTableView(parent)
+    TableViewItemImpl(QWidget& parent, 
+      const Playlist::UI::TableViewStateCallback& callback)
+      : Playlist::UI::TableViewItem(parent)
       , Callback(callback)
       , Palette()
     {
@@ -142,7 +144,7 @@ namespace
     {
       QStyleOptionViewItem fixedOption(option);
       FillItemStyle(index, fixedOption);
-      PlaylistItemTableView::paint(painter, fixedOption, index);
+      Playlist::UI::TableViewItem::paint(painter, fixedOption, index);
     }
   private:
     void FillItemStyle(const QModelIndex& index, QStyleOptionViewItem& style) const
@@ -162,25 +164,31 @@ namespace
       }
     }
   private:
-    const PlayitemStateCallback& Callback;
+    const Playlist::UI::TableViewStateCallback& Callback;
     QPalette Palette;
   };
 }
 
-PlaylistItemTableView::PlaylistItemTableView(QWidget& parent) : QItemDelegate(&parent)
+namespace Playlist
 {
-}
+  namespace UI
+  {
+    TableViewItem::TableViewItem(QWidget& parent) : QItemDelegate(&parent)
+    {
+    }
 
-PlaylistItemTableView* PlaylistItemTableView::Create(QWidget& parent, const PlayitemStateCallback& callback)
-{
-  return new PlaylistItemTableViewImpl(parent, callback);
-}
+    TableViewItem* TableViewItem::Create(QWidget& parent, const TableViewStateCallback& callback)
+    {
+      return new TableViewItemImpl(parent, callback);
+    }
 
-PlaylistTableView::PlaylistTableView(QWidget& parent) : QTableView(&parent)
-{
-}
+    TableView::TableView(QWidget& parent) : QTableView(&parent)
+    {
+    }
 
-PlaylistTableView* PlaylistTableView::Create(QWidget& parent, const PlayitemStateCallback& callback, PlaylistModel& model)
-{
-  return new PlaylistTableViewImpl(parent, callback, model);
+    TableView* TableView::Create(QWidget& parent, const TableViewStateCallback& callback, Playlist::Model& model)
+    {
+      return new TableViewImpl(parent, callback, model);
+    }
+  }
 }
