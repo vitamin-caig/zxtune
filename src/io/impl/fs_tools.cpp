@@ -26,10 +26,11 @@ namespace
   const Char FS_DELIMITERS[] =
   {
   //windows-based systems supports two types of delimiters
+    '/',
   #ifdef _WIN32
     '\\',
   #endif
-    '/', '\0'
+     '\0'
   };
 
   inline bool IsNotFSSymbol(Char sym)
