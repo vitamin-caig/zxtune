@@ -20,8 +20,9 @@
    <string>zxtune-qt</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../res/icons.qrc">
-    <normaloff>:/zxtune.png</normaloff>:/zxtune.png</iconset>
+   <iconset>
+    <normalon>:/zxtune.png</normalon>
+   </iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
@@ -97,6 +98,11 @@
    </property>
   </action>
   <action name="actionAboutQt">
+   <property name="icon">
+    <iconset>
+     <normalon>:/application/aboutqt.png</normalon>
+    </iconset>
+   </property>
    <property name="text">
     <string>About QT</string>
    </property>
@@ -111,16 +117,6 @@
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
    <slot>close()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>159</x>
-     <y>119</y>
-    </hint>
-   </hints>
   </connection>
  </connections>
 </ui>

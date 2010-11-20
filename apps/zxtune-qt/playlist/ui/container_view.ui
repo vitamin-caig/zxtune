@@ -53,21 +53,41 @@
    </property>
   </action>
   <action name="actionCreatePlaylist">
+   <property name="icon">
+    <iconset>
+     <normalon>:/playlist/create.png</normalon>
+    </iconset>
+   </property>
    <property name="text">
     <string>Create playlist</string>
    </property>
   </action>
   <action name="actionLoadPlaylist">
+   <property name="icon">
+    <iconset>
+     <normalon>:/playlist/open.png</normalon>
+    </iconset>
+   </property>
    <property name="text">
     <string>Open playlist</string>
    </property>
   </action>
   <action name="actionSavePlaylist">
+   <property name="icon">
+    <iconset>
+     <normalon>:/playlist/save.png</normalon>
+    </iconset>
+   </property>
    <property name="text">
     <string>Save playlist</string>
    </property>
   </action>
   <action name="actionClosePlaylist">
+   <property name="icon">
+    <iconset>
+     <normalon>:/playlist/close.png</normalon>
+    </iconset>
+   </property>
    <property name="text">
     <string>Close playlist</string>
    </property>
