@@ -47,8 +47,9 @@ namespace
         ThrowIfError(::tcgetattr(STDIN_FILENO, &OldProps), THIS_LINE);
         struct termios newProps = OldProps;
         newProps.c_lflag &= ~(ICANON | ECHO);
+        newProps.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | INLCR | IGNCR | ICRNL | IXON);
         newProps.c_cc[VMIN] = 0;
-        newProps.c_cc[VTIME] = 1;
+        newProps.c_cc[VTIME] = 0;
         ThrowIfError(::tcsetattr(STDIN_FILENO, TCSANOW, &newProps), THIS_LINE);
       }
     }
@@ -71,13 +72,13 @@ namespace
 #if defined TIOCGSIZE
       struct ttysize ts;
       ThrowIfError(ioctl(STDOUT_FILENO, TIOCGSIZE, &ts), THIS_LINE);
-      return SizeType(ts.ts_cols, ts.rs_lines);
+      return SizeType(ts.ts_cols, ts.ts_lines);
 #elif defined TIOCGWINSZ
       struct winsize ws;
       ThrowIfError(ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws), THIS_LINE);
       return SizeType(ws.ws_col, ws.ws_row);
 #else
-#error Unknown console mode for linux
+      return SizeType(-1, -1);
 #endif
     }
     
