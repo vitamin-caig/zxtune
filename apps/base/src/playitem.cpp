@@ -31,8 +31,9 @@ namespace
     PathPropertiesAccessor(const String& path, const String& subpath)
       : Path(path)
       , Filename(ZXTune::IO::ExtractLastPathComponent(Path, Dir))
+      , Subpath(subpath)
     {
-      ThrowIfError(IO::CombineUri(Path, subpath, Uri));
+      ThrowIfError(IO::CombineUri(Path, Subpath, Uri));
     }
 
     virtual bool FindIntValue(const Parameters::NameType& /*name*/, Parameters::IntType& /*val*/) const
@@ -42,7 +43,12 @@ namespace
 
     virtual bool FindStringValue(const Parameters::NameType& name, Parameters::StringType& val) const
     {
-      if (name == Module::ATTR_FILENAME)
+      if (name == Module::ATTR_SUBPATH)
+      {
+        val = Subpath;
+        return true;
+      }
+      else if (name == Module::ATTR_FILENAME)
       {
         val = Filename;
         return true;
@@ -67,6 +73,7 @@ namespace
 
     virtual void Process(Parameters::Visitor& visitor) const
     {
+      visitor.SetStringValue(Module::ATTR_SUBPATH, Subpath);
       visitor.SetStringValue(Module::ATTR_FILENAME, Filename);
       visitor.SetStringValue(Module::ATTR_PATH, Path);
       visitor.SetStringValue(Module::ATTR_FULLPATH, Uri);
@@ -75,6 +82,7 @@ namespace
     const String Path;
     String Dir;//before filename
     const String Filename;
+    const String Subpath;
     String Uri;
   };
 

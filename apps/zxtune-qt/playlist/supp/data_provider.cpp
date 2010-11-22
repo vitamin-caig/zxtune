@@ -191,7 +191,6 @@ namespace
       : Type(GetModuleType(properties))
       , Title(GetModuleTitle(Text::MODULE_PLAYLIST_FORMAT, properties))
       , Duration(info.FramesCount())
-      , DurationString(FormatTime(Duration, 20000))//TODO
     {
     }
 
@@ -212,13 +211,12 @@ namespace
 
     virtual String GetDurationString() const
     {
-      return DurationString;
+      return FormatTime(Duration, 20000);//TODO
     }
   private:
     const String Type;
     const String Title;
     const unsigned Duration;
-    const String DurationString;
   };
 
   class DataImpl : public Playlist::Item::Data
@@ -227,14 +225,11 @@ namespace
     DataImpl(
         //container-specific
         DataSource::Ptr source,
-        //location-specific
-        const String& subPath,
         //module-specific
         Parameters::Accessor::Ptr coreParams,
         Parameters::Container::Ptr adjustedParams,
         Playlist::Item::Attributes::Ptr attributes)
       : Source(source)
-      , SubPath(subPath)
       , AdjustedParams(adjustedParams)
       , ModuleParams(Parameters::CreateMergedAccessor(AdjustedParams, coreParams))
       , Attributes(attributes)
@@ -249,8 +244,9 @@ namespace
     virtual ZXTune::Module::Holder::Ptr GetModule() const
     {
       const ZXTune::IO::DataContainer::Ptr data = Source->GetData();
+      const String subPath = GetSubpath();
       ZXTune::Module::Holder::Ptr module;
-      ThrowIfError(ZXTune::OpenModule(ModuleParams, data, SubPath, module));
+      ThrowIfError(ZXTune::OpenModule(ModuleParams, data, subPath, module));
       return module;
     }
 
@@ -259,8 +255,14 @@ namespace
       return AdjustedParams;
     }
   private:
+    String GetSubpath() const
+    {
+      Parameters::StringType subpath;
+      AdjustedParams->FindStringValue(ZXTune::Module::ATTR_SUBPATH, subpath);
+      return subpath;
+    }
+  private:
     const DataSource::Ptr Source;
-    const String SubPath;
     const Parameters::Container::Ptr AdjustedParams;
     const Parameters::Accessor::Ptr ModuleParams;
     const Playlist::Item::Attributes::Ptr Attributes;
@@ -292,7 +294,7 @@ namespace
       const Parameters::Accessor::Ptr originalProperties = originalInfo->Properties();
       const Parameters::Accessor::Ptr extendedProperties = Parameters::CreateMergedAccessor(adjustedParams, originalProperties);
       const Playlist::Item::Attributes::Ptr attributes = boost::make_shared<AttributesImpl>(*originalInfo, *extendedProperties);
-      const Playlist::Item::Data::Ptr playitem = boost::make_shared<DataImpl>(Source, subPath, CoreParams, adjustedParams, attributes);
+      const Playlist::Item::Data::Ptr playitem = boost::make_shared<DataImpl>(Source, CoreParams, adjustedParams, attributes);
       return Delegate.ProcessItem(playitem) ? Error() : Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
     }
 
