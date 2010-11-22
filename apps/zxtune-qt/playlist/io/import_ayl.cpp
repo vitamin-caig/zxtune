@@ -125,6 +125,7 @@ namespace
         entry.Path = *iter;
         ++iter;
         while (ParseParameters(iter, entry.Parameters)) {}
+        std::replace(entry.Path.begin(), entry.Path.end(), '\\', '/');
         Container->push_back(entry);
       }
     }
