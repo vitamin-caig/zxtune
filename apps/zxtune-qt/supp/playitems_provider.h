@@ -33,7 +33,8 @@ public:
 
   virtual String GetType() const = 0;
   virtual String GetTitle() const = 0;
-  virtual uint_t GetDuration() const = 0;
+  virtual uint_t GetDurationValue() const = 0;
+  virtual String GetDurationString() const = 0;
 };
 
 class Playitem

@@ -18,6 +18,7 @@ Author:
 #include <apps/base/playitem.h>
 //common includes
 #include <error_tools.h>
+#include <formatter.h>
 #include <logging.h>
 //library includes
 #include <core/error_codes.h>
@@ -202,9 +203,14 @@ namespace
       return Title;
     }
 
-    virtual uint_t GetDuration() const
+    virtual uint_t GetDurationValue() const
     {
       return Duration;
+    }
+
+    virtual String GetDurationString() const
+    {
+      return FormatTime(Duration, 20000);//TODO
     }
   private:
     const String Type;

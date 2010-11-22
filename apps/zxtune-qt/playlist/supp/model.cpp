@@ -15,7 +15,6 @@ Author:
 #include "model.h"
 #include "ui/utils.h"
 //common includes
-#include <formatter.h>
 #include <logging.h>
 #include <template_parameters.h>
 //library includes
@@ -57,25 +56,31 @@ namespace
       return attrs.GetType();
     }
 
-    String GetTitle() const
+    QString GetTitle() const
     {
       const PlayitemAttributes& attrs = Item->GetAttributes();
-      return attrs.GetTitle();
+      return ToQString(attrs.GetTitle());
     }
 
-    uint_t GetDuration() const
+    uint_t GetDurationValue() const
     {
       const PlayitemAttributes& attrs = Item->GetAttributes();
-      return attrs.GetDuration();
+      return attrs.GetDurationValue();
     }
 
-    String GetTooltip() const
+    QString GetDurationString() const
+    {
+      const PlayitemAttributes& attrs = Item->GetAttributes();
+      return ToQString(attrs.GetDurationString());
+    }
+
+    QString GetTooltip() const
     {
       const Parameters::Accessor::Ptr props = GetProperties();
       const Parameters::FieldsSourceAdapter<SkipFieldsSource> fields(*props);
-      return TooltipTemplate.Instantiate(fields);
+      const String tooltip = TooltipTemplate.Instantiate(fields);
+      return ToQString(tooltip);
     }
-
 
     Playitem::Ptr GetPlayitem() const
     {
@@ -160,15 +165,9 @@ namespace
       switch (column)
       {
       case Playlist::Model::COLUMN_TITLE:
-        {
-          const String& title = item.GetTitle();
-          return ToQString(title);
-        }
+        return item.GetTitle();
       case Playlist::Model::COLUMN_DURATION:
-        {
-          const String& strFormat = FormatTime(item.GetDuration(), 20000);//TODO
-          return ToQString(strFormat);
-        }
+        return item.GetDurationString();
       default:
         return QVariant();
       };
@@ -185,8 +184,7 @@ namespace
 
     virtual QVariant GetData(const PlayitemWrapper& item, unsigned /*column*/) const
     {
-      const String& tooltip = item.GetTooltip();
-      return ToQString(tooltip);
+      return item.GetTooltip();
     }
   };
 
@@ -554,10 +552,10 @@ namespace
         comparer.reset(new TypedPlayitemsComparer<String>(&PlayitemWrapper::GetType, ascending));
         break;
       case COLUMN_TITLE:
-        comparer.reset(new TypedPlayitemsComparer<String>(&PlayitemWrapper::GetTitle, ascending));
+        comparer.reset(new TypedPlayitemsComparer<QString>(&PlayitemWrapper::GetTitle, ascending));
         break;
       case COLUMN_DURATION:
-        comparer.reset(new TypedPlayitemsComparer<uint_t>(&PlayitemWrapper::GetDuration, ascending));
+        comparer.reset(new TypedPlayitemsComparer<uint_t>(&PlayitemWrapper::GetDurationValue, ascending));
         break;
       default:
         break;
