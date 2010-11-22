@@ -17,7 +17,7 @@ Author:
 //common includes
 #include <iterator.h>
 //library includes
-#include <core/module_detect.h>
+#include <core/module_holder.h>
 //qt includes
 #include <QtCore/QMetaType>
 //boost includes
@@ -58,7 +58,8 @@ public:
   virtual ~PlayitemDetectParameters() {}
 
   virtual bool ProcessPlayitem(Playitem::Ptr item) = 0;
-  virtual void ShowProgress(const Log::MessageData& msg) = 0;
+  virtual void ShowProgress(unsigned progress) = 0;
+  virtual void ShowMessage(const String& message) = 0;
 };
 
 class PlayitemsProvider

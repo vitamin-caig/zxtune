@@ -75,22 +75,15 @@ namespace
       return !Callback.IsCanceled();
     }
 
-    virtual void ShowProgress(const Log::MessageData& msg)
+    virtual void ShowProgress(unsigned progress)
     {
-      if (0 != msg.Level)
-      {
-        return;
-      }
-      if (msg.Text)
-      {
-        const QString text = ToQString(*msg.Text);
-        Callback.OnReport(text, CurrentItem);
-      }
-      if (msg.Progress)
-      {
-        const uint_t curProgress = *msg.Progress;
-        Callback.OnProgress(curProgress, CurrentItemNum);
-      }
+      Callback.OnProgress(progress, CurrentItemNum);
+    }
+
+    virtual void ShowMessage(const String& message)
+    {
+      const QString text = ToQString(message);
+      Callback.OnReport(text, CurrentItem);
     }
   private:
     Playlist::ScannerCallback& Callback;

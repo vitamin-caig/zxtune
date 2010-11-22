@@ -23,6 +23,7 @@ Author:
 //library includes
 #include <core/error_codes.h>
 #include <core/module_attrs.h>
+#include <core/module_detect.h>
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
 #include <io/fs_tools.h>
@@ -295,7 +296,18 @@ namespace
 
     virtual void ReportMessage(const Log::MessageData& message) const
     {
-      Delegate.ShowProgress(message);
+      if (0 != message.Level)
+      {
+        return;
+      }
+      if (message.Text)
+      {
+        Delegate.ShowMessage(*message.Text);
+      }
+      if (message.Progress)
+      {
+        Delegate.ShowProgress(*message.Progress);
+      }
     }
   private:
     Parameters::Container::Ptr CreateInitialAdjustedParameters(const String& subPath) const

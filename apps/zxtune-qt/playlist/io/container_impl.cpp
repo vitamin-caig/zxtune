@@ -33,7 +33,11 @@ namespace
       return false;
     }
 
-    virtual void ShowProgress(const Log::MessageData& /*msg*/)
+    virtual void ShowProgress(unsigned /*progress*/)
+    {
+    }
+
+    virtual void ShowMessage(const String& /*message*/)
     {
     }
 
