@@ -15,7 +15,7 @@ Author:
 #define ZXTUNE_QT_PLAYLIST_SUPP_CONTROLLER_H_DEFINED
 
 //local includes
-#include "supp/playitems_provider.h"
+#include "data_provider.h"
 #include "playlist/io/container.h"
 //qt includes
 #include <QtCore/QObject>
@@ -27,6 +27,7 @@ namespace Playlist
 
   namespace Item
   {
+    //dynamic part
     enum State
     {
       STOPPED,
@@ -41,7 +42,7 @@ namespace Playlist
       explicit Iterator(QObject& parent);
     public:
       //access
-      virtual const Playitem* Get() const = 0;
+      virtual const Data* GetData() const = 0;
       virtual State GetState() const = 0;
       //change
       virtual void SetState(State state) = 0;
@@ -51,7 +52,7 @@ namespace Playlist
       virtual bool Next() = 0;
       virtual bool Prev() = 0;
     signals:
-      void OnItem(const Playitem&);
+      void OnItem(const Playlist::Item::Data&);
     };
   }
 
@@ -61,7 +62,7 @@ namespace Playlist
   protected:
     explicit Controller(QObject& parent);
   public:
-    static Controller* Create(QObject& parent, const QString& name, PlayitemsProvider::Ptr provider);
+    static Controller* Create(QObject& parent, const QString& name, Item::DataProvider::Ptr provider);
 
     virtual QString GetName() const = 0;
     virtual Scanner& GetScanner() const = 0;

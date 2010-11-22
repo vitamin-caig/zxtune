@@ -2,7 +2,6 @@ binary_name := zxtune-qt
 path_step := ../..
 
 source_files = qt_app \
-               supp/playitems_provider \
                ui/format
 
 #ui-related

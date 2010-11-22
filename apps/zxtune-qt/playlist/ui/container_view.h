@@ -17,13 +17,16 @@ Author:
 //qt includes
 #include <QtGui/QWidget>
 
-class Playitem;
-
 class QMenu;
 class QStringList;
 
 namespace Playlist
 {
+  namespace Item
+  {
+    class Data;
+  }
+
   namespace UI
   {
     class ContainerView : public QWidget
@@ -58,9 +61,9 @@ namespace Playlist
       virtual void CloseCurrentPlaylist() = 0;
       virtual void ClosePlaylist(int index) = 0;
     private slots:
-      virtual void PlaylistItemActivated(const Playitem&) = 0;
+      virtual void PlaylistItemActivated(const Playlist::Item::Data&) = 0;
     signals:
-      void OnItemActivated(const Playitem&);
+      void OnItemActivated(const Playlist::Item::Data&);
     };
   }
 }

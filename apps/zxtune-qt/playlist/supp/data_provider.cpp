@@ -12,7 +12,7 @@ Author:
 */
 
 //local includes
-#include "playitems_provider.h"
+#include "data_provider.h"
 #include "ui/format.h"
 #include "ui/utils.h"
 #include <apps/base/playitem.h>
@@ -39,7 +39,7 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("UI::PlaylistProvider");
+  const std::string THIS_MODULE("Playlist::DataProvider");
 
   //cached data provider
   class CachedDataProvider
@@ -184,13 +184,14 @@ namespace
     return String();
   }
 
-  class PlayitemAttributesImpl : public PlayitemAttributes
+  class AttributesImpl : public Playlist::Item::Attributes
   {
   public:
-    PlayitemAttributesImpl(const ZXTune::Module::Information& info, const Parameters::Accessor& properties)
+    AttributesImpl(const ZXTune::Module::Information& info, const Parameters::Accessor& properties)
       : Type(GetModuleType(properties))
       , Title(GetModuleTitle(Text::MODULE_PLAYLIST_FORMAT, properties))
       , Duration(info.FramesCount())
+      , DurationString(FormatTime(Duration, 20000))//TODO
     {
     }
 
@@ -204,25 +205,26 @@ namespace
       return Title;
     }
 
-    virtual uint_t GetDurationValue() const
+    virtual unsigned GetDurationValue() const
     {
       return Duration;
     }
 
     virtual String GetDurationString() const
     {
-      return FormatTime(Duration, 20000);//TODO
+      return DurationString;
     }
   private:
     const String Type;
     const String Title;
-    const uint_t Duration;
+    const unsigned Duration;
+    const String DurationString;
   };
 
-  class PlayitemImpl : public Playitem
+  class DataImpl : public Playlist::Item::Data
   {
   public:
-    PlayitemImpl(
+    DataImpl(
         //container-specific
         DataSource::Ptr source,
         //location-specific
@@ -230,7 +232,7 @@ namespace
         //module-specific
         Parameters::Accessor::Ptr coreParams,
         Parameters::Container::Ptr adjustedParams,
-        PlayitemAttributes::Ptr attributes)
+        Playlist::Item::Attributes::Ptr attributes)
       : Source(source)
       , SubPath(subPath)
       , AdjustedParams(adjustedParams)
@@ -239,7 +241,7 @@ namespace
     {
     }
 
-    virtual const PlayitemAttributes& GetAttributes() const
+    virtual const Playlist::Item::Attributes& GetAttributes() const
     {
       return *Attributes;
     }
@@ -261,13 +263,13 @@ namespace
     const String SubPath;
     const Parameters::Container::Ptr AdjustedParams;
     const Parameters::Accessor::Ptr ModuleParams;
-    const PlayitemAttributes::Ptr Attributes;
+    const Playlist::Item::Attributes::Ptr Attributes;
   };
 
   class DetectParametersAdapter : public ZXTune::DetectParameters
   {
   public:
-    DetectParametersAdapter(PlayitemDetectParameters& delegate,
+    DetectParametersAdapter(Playlist::Item::DetectParameters& delegate,
                             CachedDataProvider::Ptr provider, Parameters::Accessor::Ptr coreParams, const String& dataPath)
       : Delegate(delegate)
       , CoreParams(coreParams)
@@ -289,9 +291,9 @@ namespace
       const ZXTune::Module::Information::Ptr originalInfo = holder->GetModuleInformation();
       const Parameters::Accessor::Ptr originalProperties = originalInfo->Properties();
       const Parameters::Accessor::Ptr extendedProperties = Parameters::CreateMergedAccessor(adjustedParams, originalProperties);
-      const PlayitemAttributes::Ptr attributes = boost::make_shared<PlayitemAttributesImpl>(*originalInfo, *extendedProperties);
-      const Playitem::Ptr playitem = boost::make_shared<PlayitemImpl>(Source, subPath, CoreParams, adjustedParams, attributes);
-      return Delegate.ProcessPlayitem(playitem) ? Error() : Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
+      const Playlist::Item::Attributes::Ptr attributes = boost::make_shared<AttributesImpl>(*originalInfo, *extendedProperties);
+      const Playlist::Item::Data::Ptr playitem = boost::make_shared<DataImpl>(Source, subPath, CoreParams, adjustedParams, attributes);
+      return Delegate.ProcessItem(playitem) ? Error() : Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
     }
 
     virtual void ReportMessage(const Log::MessageData& message) const
@@ -318,22 +320,22 @@ namespace
       return result;
     }
   private:
-    PlayitemDetectParameters& Delegate;
+    Playlist::Item::DetectParameters& Delegate;
     const Parameters::Accessor::Ptr CoreParams;
     const String DataPath;
     const DataSource::Ptr Source;
   };
 
-  class PlayitemsProviderImpl : public PlayitemsProvider
+  class DataProviderImpl : public Playlist::Item::DataProvider
   {
   public:
-    explicit PlayitemsProviderImpl(Parameters::Accessor::Ptr ioParams, Parameters::Accessor::Ptr coreParams)
+    DataProviderImpl(Parameters::Accessor::Ptr ioParams, Parameters::Accessor::Ptr coreParams)
       : Provider(new CachedDataProvider(ioParams))
       , CoreParams(coreParams)
     {
     }
 
-    virtual Error DetectModules(const String& path, PlayitemDetectParameters& detectParams) const
+    virtual Error DetectModules(const String& path, Playlist::Item::DetectParameters& detectParams) const
     {
       try
       {
@@ -351,7 +353,7 @@ namespace
       }
     }
 
-    virtual Error OpenModule(const String& path, PlayitemDetectParameters& detectParams) const
+    virtual Error OpenModule(const String& path, Playlist::Item::DetectParameters& detectParams) const
     {
       try
       {
@@ -376,7 +378,13 @@ namespace
   };
 }
 
-PlayitemsProvider::Ptr PlayitemsProvider::Create(Parameters::Accessor::Ptr ioParams, Parameters::Accessor::Ptr coreParams)
+namespace Playlist
 {
-  return PlayitemsProvider::Ptr(new PlayitemsProviderImpl(ioParams, coreParams));
+  namespace Item
+  {
+    DataProvider::Ptr DataProvider::Create(Parameters::Accessor::Ptr ioParams, Parameters::Accessor::Ptr coreParams)
+    {
+      return boost::make_shared<DataProviderImpl>(ioParams, coreParams);
+    }
+  }
 }

@@ -17,10 +17,13 @@ Author:
 //qt includes
 #include <QtGui/QWidget>
 
-class Playitem;
 namespace Playlist
 {
   class Controller;
+  namespace Item
+  {
+    class Data;
+  }
 
   namespace UI
   {
@@ -44,7 +47,7 @@ namespace Playlist
       virtual void Prev() = 0;
       virtual void Clear() = 0;
     signals:
-      void OnItemActivated(const Playitem&);
+      void OnItemActivated(const Playlist::Item::Data&);
     };
   }
 }

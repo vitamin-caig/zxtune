@@ -327,7 +327,7 @@ namespace
       }
     }
   private:
-    void PlaylistItemActivated(const Playitem& item)
+    void PlaylistItemActivated(const Playlist::Item::Data& item)
     {
       if (QObject* sender = this->sender())
       {
@@ -371,8 +371,8 @@ namespace
     {
       Playlist::UI::View* const plView = Playlist::UI::View::Create(*this, playlist);
       widgetsContainer->addTab(plView, playlist.GetName());
-      this->connect(plView, SIGNAL(OnItemActivated(const Playitem&)),
-        SLOT(PlaylistItemActivated(const Playitem&)));
+      this->connect(plView, SIGNAL(OnItemActivated(const Playlist::Item::Data&)),
+        SLOT(PlaylistItemActivated(const Playlist::Item::Data&)));
       if (!ActivePlaylistView)
       {
         ActivePlaylistView = plView;
@@ -446,7 +446,6 @@ namespace Playlist
 
     ContainerView* ContainerView::Create(QWidget& parent)
     {
-      REGISTER_METATYPE(::Playitem::Ptr);
       return new ContainerViewImpl(parent);
     }
   }

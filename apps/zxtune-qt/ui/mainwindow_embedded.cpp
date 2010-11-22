@@ -57,7 +57,7 @@ namespace
       Playlist->connect(Playback, SIGNAL(OnPauseModule()), SLOT(Pause()));
       Playlist->connect(Playback, SIGNAL(OnStopModule()), SLOT(Stop()));
       Playlist->connect(Playback, SIGNAL(OnFinishModule()), SLOT(Finish()));
-      Playback->connect(Playlist, SIGNAL(OnItemActivated(const Playitem&)), SLOT(SetItem(const Playitem&)));
+      Playback->connect(Playlist, SIGNAL(OnItemActivated(const Playlist::Item::Data&)), SLOT(SetItem(const Playlist::Item::Data&)));
       Playback->connect(Controls, SIGNAL(OnPlay()), SLOT(Play()));
       Playback->connect(Controls, SIGNAL(OnStop()), SLOT(Stop()));
       Playback->connect(Controls, SIGNAL(OnPause()), SLOT(Pause()));

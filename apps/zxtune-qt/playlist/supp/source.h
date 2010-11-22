@@ -15,7 +15,7 @@ Author:
 #define ZXTUNE_QT_PLAYLIST_SOURCE_H_DEFINED
 
 //local includes
-#include "supp/playitems_provider.h"
+#include "data_provider.h"
 //qt includes
 #include <QtCore/QStringList>
 
@@ -28,7 +28,7 @@ namespace Playlist
 
     virtual bool IsCanceled() const = 0;
 
-    virtual void OnPlayitem(const Playitem::Ptr& item) = 0;
+    virtual void OnItem(const Item::Data::Ptr& item) = 0;
     virtual void OnProgress(unsigned progress, unsigned curItem) = 0;
     virtual void OnReport(const QString& report, const QString& item) = 0;
     virtual void OnError(const class Error& err) = 0;
@@ -44,9 +44,9 @@ namespace Playlist
     virtual unsigned Resolve() = 0;
     virtual void Process() = 0;
 
-    static Ptr CreateOpenFileSource(PlayitemsProvider::Ptr provider, ScannerCallback& callback, const QStringList& items);
-    static Ptr CreateDetectFileSource(PlayitemsProvider::Ptr provider, ScannerCallback& callback, const QStringList& items);
-    static Ptr CreateIteratorSource(ScannerCallback& callback, Playitem::Iterator::Ptr iterator, int countHint = -1);
+    static Ptr CreateOpenFileSource(Item::DataProvider::Ptr provider, ScannerCallback& callback, const QStringList& items);
+    static Ptr CreateDetectFileSource(Item::DataProvider::Ptr provider, ScannerCallback& callback, const QStringList& items);
+    static Ptr CreateIteratorSource(ScannerCallback& callback, Item::Data::Iterator::Ptr iterator, int countHint = -1);
   };
 }
 

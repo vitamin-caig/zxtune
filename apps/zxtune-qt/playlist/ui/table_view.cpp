@@ -93,7 +93,7 @@ namespace
     virtual void ActivateItem(const QModelIndex& index)
     {
       const unsigned number = index.row();
-      if (const Playitem::Ptr item = Model.GetItem(number))
+      if (const Playlist::Item::Data::Ptr item = Model.GetItem(number))
       {
         OnItemActivated(number, *item);
       }

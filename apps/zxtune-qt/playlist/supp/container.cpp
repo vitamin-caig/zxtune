@@ -46,7 +46,7 @@ namespace
   public:
     ContainerImpl(QObject& parent, Parameters::Accessor::Ptr ioParams, Parameters::Accessor::Ptr coreParams)
       : Playlist::Container(parent)
-      , Provider(PlayitemsProvider::Create(ioParams, coreParams))
+      , Provider(Playlist::Item::DataProvider::Create(ioParams, coreParams))
     {
     }
 
@@ -71,7 +71,7 @@ namespace
       return 0;
     }
   private:
-    const PlayitemsProvider::Ptr Provider;
+    const Playlist::Item::DataProvider::Ptr Provider;
   };
 }
 

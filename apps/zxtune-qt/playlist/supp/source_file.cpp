@@ -43,23 +43,23 @@ namespace
     }
   }
 
-  bool ProcessAsPlaylist(PlayitemsProvider::Ptr provider, const QString& path, Playlist::ScannerCallback& callback)
+  bool ProcessAsPlaylist(Playlist::Item::DataProvider::Ptr provider, const QString& path, Playlist::ScannerCallback& callback)
   {
     const Playlist::IO::Container::Ptr playlist = Playlist::IO::Open(provider, path);
     if (!playlist.get())
     {
       return false;
     }
-    const Playitem::Iterator::Ptr iter = playlist->GetItems();
+    const Playlist::Item::Data::Iterator::Ptr iter = playlist->GetItems();
     for (; !callback.IsCanceled() && iter->IsValid(); iter->Next())
     {
-      const Playitem::Ptr item = iter->Get();
-      callback.OnPlayitem(item);
+      const Playlist::Item::Data::Ptr item = iter->Get();
+      callback.OnItem(item);
     }
     return true;
   }
 
-  class DetectParametersWrapper : public PlayitemDetectParameters
+  class DetectParametersWrapper : public Playlist::Item::DetectParameters
   {
   public:
     DetectParametersWrapper(Playlist::ScannerCallback& callback, unsigned curItemNum, const QString& curItem)
@@ -69,9 +69,9 @@ namespace
     {
     }
 
-    virtual bool ProcessPlayitem(Playitem::Ptr item)
+    virtual bool ProcessItem(Playlist::Item::Data::Ptr item)
     {
-      Callback.OnPlayitem(item);
+      Callback.OnItem(item);
       return !Callback.IsCanceled();
     }
 
@@ -94,7 +94,7 @@ namespace
   class OpenFileScanner : public Playlist::ScannerSource
   {
   public:
-    OpenFileScanner(PlayitemsProvider::Ptr provider, Playlist::ScannerCallback& callback, const QStringList& items)
+    OpenFileScanner(Playlist::Item::DataProvider::Ptr provider, Playlist::ScannerCallback& callback, const QStringList& items)
       : Provider(provider)
       , Callback(callback)
       , UnresolvedItems(items)
@@ -132,7 +132,7 @@ namespace
       }
     }
   private:
-    const PlayitemsProvider::Ptr Provider;
+    const Playlist::Item::DataProvider::Ptr Provider;
     Playlist::ScannerCallback& Callback;
     QStringList UnresolvedItems;
     QStringList ResolvedItems;
@@ -141,7 +141,7 @@ namespace
   class DetectModuleScanner : public Playlist::ScannerSource
   {
   public:
-    DetectModuleScanner(PlayitemsProvider::Ptr provider, Playlist::ScannerCallback& callback, const QStringList& items)
+    DetectModuleScanner(Playlist::Item::DataProvider::Ptr provider, Playlist::ScannerCallback& callback, const QStringList& items)
       : Provider(provider)
       , Callback(callback)
       , UnresolvedItems(items)
@@ -176,7 +176,7 @@ namespace
       }
     }
   private:
-    const PlayitemsProvider::Ptr Provider;
+    const Playlist::Item::DataProvider::Ptr Provider;
     Playlist::ScannerCallback& Callback;
     QStringList UnresolvedItems;
     QStringList ResolvedItems;
@@ -185,12 +185,14 @@ namespace
 
 namespace Playlist
 {
-  ScannerSource::Ptr ScannerSource::CreateOpenFileSource(PlayitemsProvider::Ptr provider, ScannerCallback& callback, const QStringList& items)
+  ScannerSource::Ptr ScannerSource::CreateOpenFileSource(Playlist::Item::DataProvider::Ptr provider, ScannerCallback& callback,
+    const QStringList& items)
   {
     return ScannerSource::Ptr(new OpenFileScanner(provider, callback, items));
   }
 
-  ScannerSource::Ptr ScannerSource::CreateDetectFileSource(PlayitemsProvider::Ptr provider, ScannerCallback& callback, const QStringList& items)
+  ScannerSource::Ptr ScannerSource::CreateDetectFileSource(Playlist::Item::DataProvider::Ptr provider, ScannerCallback& callback,
+    const QStringList& items)
   {
     return ScannerSource::Ptr(new DetectModuleScanner(provider, callback, items));
   }

@@ -17,11 +17,12 @@ Author:
 //local includes
 #include "container.h"
 
+class QString;
 namespace Playlist
 {
   namespace IO
   {
-    bool SaveXSPF(Container::Ptr container, const class QString& filename);
+    bool SaveXSPF(Container::Ptr container, const QString& filename);
   }
 }
 

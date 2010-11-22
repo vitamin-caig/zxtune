@@ -16,17 +16,18 @@ Author:
 
 //local includes
 #include "container.h"
-#include "supp/playitems_provider.h"
+#include "playlist/supp/data_provider.h"
 
+class QString;
 namespace Playlist
 {
   namespace IO
   {
     //common
-    Container::Ptr Open(PlayitemsProvider::Ptr provider, const class QString& filename);
+    Container::Ptr Open(Item::DataProvider::Ptr provider, const QString& filename);
     //specific
-    Container::Ptr OpenAYL(PlayitemsProvider::Ptr provider, const class QString& filename);
-    Container::Ptr OpenXSPF(PlayitemsProvider::Ptr provider, const class QString& filename);
+    Container::Ptr OpenAYL(Item::DataProvider::Ptr provider, const QString& filename);
+    Container::Ptr OpenXSPF(Item::DataProvider::Ptr provider, const QString& filename);
   }
 }
 

@@ -170,7 +170,7 @@ namespace
     const boost::shared_ptr<Playlist::IO::ContainerItems> Items;
   };
 
-  Playlist::IO::Container::Ptr CreateXSPFPlaylist(PlayitemsProvider::Ptr provider,
+  Playlist::IO::Container::Ptr CreateXSPFPlaylist(Playlist::Item::DataProvider::Ptr provider,
     const QFileInfo& fileInfo)
   {
     const QString basePath = fileInfo.absolutePath();
@@ -204,7 +204,7 @@ namespace Playlist
 {
   namespace IO
   {
-    Container::Ptr OpenXSPF(PlayitemsProvider::Ptr provider, const QString& filename)
+    Container::Ptr OpenXSPF(Item::DataProvider::Ptr provider, const QString& filename)
     {
       const QFileInfo info(filename);
       if (!info.isFile() || !info.isReadable() ||

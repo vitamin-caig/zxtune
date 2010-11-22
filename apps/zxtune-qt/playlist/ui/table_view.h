@@ -18,11 +18,14 @@ Author:
 #include <QtGui/QItemDelegate>
 #include <QtGui/QTableView>
 
-class Playitem;
-
 namespace Playlist
 {
   class Model;
+
+  namespace Item
+  {
+    class Data;
+  }
 
   namespace UI
   {
@@ -57,7 +60,7 @@ namespace Playlist
     public slots:
       virtual void ActivateItem(const QModelIndex&) = 0;
     signals:
-      void OnItemActivated(unsigned index, const Playitem& item);
+      void OnItemActivated(unsigned index, const Playlist::Item::Data& item);
     };
   }
 }

@@ -13,7 +13,7 @@ Author:
 
 //local includes
 #include "playback_supp.h"
-#include "supp/playitems_provider.h"
+#include "playlist/supp/data.h"
 #include "ui/utils.h"
 //common includes
 #include <error.h>
@@ -38,7 +38,7 @@ namespace
       this->wait();
     }
 
-    virtual void SetItem(const Playitem& item)
+    virtual void SetItem(const Playlist::Item::Data& item)
     {
       OpenBackend();
       Backend->SetModule(item.GetModule());

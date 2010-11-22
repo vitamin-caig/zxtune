@@ -206,12 +206,12 @@ namespace
       props.Process(saver);
     }
 
-    void WriteItems(Playitem::Iterator::Ptr iter)
+    void WriteItems(Playlist::Item::Data::Iterator::Ptr iter)
     {
       XML.writeStartElement(XSPF::TRACKLIST_TAG);
       for (; iter->IsValid(); iter->Next())
       {
-        const Playitem::Ptr item = iter->Get();
+        const Playlist::Item::Data::Ptr item = iter->Get();
         WriteItem(*item);
       }
       XML.writeEndElement();
@@ -222,7 +222,7 @@ namespace
       XML.writeEndDocument();
     }
   private:
-    void WriteItem(const Playitem& item)
+    void WriteItem(const Playlist::Item::Data& item)
     {
       Log::Debug(THIS_MODULE, "Save playitem '%1%'", item.GetAttributes().GetTitle());
       const ZXTune::Module::Holder::Ptr holder = item.GetModule();
@@ -240,7 +240,7 @@ namespace Playlist
 {
   namespace IO
   {
-    bool SaveXSPF(Container::Ptr container, const class QString& filename)
+    bool SaveXSPF(Container::Ptr container, const QString& filename)
     {
       QFile device(filename);
       if (!device.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))

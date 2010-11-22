@@ -37,7 +37,7 @@ namespace
     {
     }
 
-    virtual const Playitem* Get() const
+    virtual const Playlist::Item::Data* GetData() const
     {
       return Item.get();
     }
@@ -49,7 +49,7 @@ namespace
 
     virtual bool Reset(unsigned idx)
     {
-      if (Playitem::Ptr item = Model.GetItem(idx))
+      if (Playlist::Item::Data::Ptr item = Model.GetItem(idx))
       {
         Index = idx;
         Item = item;
@@ -78,7 +78,7 @@ namespace
   private:
     const Playlist::Model& Model;
     unsigned Index;
-    Playitem::Ptr Item;
+    Playlist::Item::Data::Ptr Item;
     Playlist::Item::State State;
   };
 
@@ -97,7 +97,7 @@ namespace
       return Properties;
     }
 
-    virtual Playitem::Iterator::Ptr GetItems() const
+    virtual Playlist::Item::Data::Iterator::Ptr GetItems() const
     {
       return Model.GetItems();
     }
@@ -109,7 +109,7 @@ namespace
   class ControllerImpl : public Playlist::Controller
   {
   public:
-    ControllerImpl(QObject& parent, const QString& name, PlayitemsProvider::Ptr provider)
+    ControllerImpl(QObject& parent, const QString& name, Playlist::Item::DataProvider::Ptr provider)
       : Playlist::Controller(parent)
       , Name(name)
       , Scanner(Playlist::Scanner::Create(*this, provider))
@@ -117,7 +117,7 @@ namespace
       , Iterator(new ItemIteratorImpl(*this, *Model))
     {
       //setup connections
-      Model->connect(Scanner, SIGNAL(OnGetItem(Playitem::Ptr)), SLOT(AddItem(Playitem::Ptr)));
+      Model->connect(Scanner, SIGNAL(OnGetItem(Playlist::Item::Data::Ptr)), SLOT(AddItem(Playlist::Item::Data::Ptr)));
 
       Log::Debug(THIS_MODULE, "Created at %1%", this);
     }
@@ -156,7 +156,7 @@ namespace
     }
   private:
     const QString Name;
-    PlayitemsProvider::Ptr Provider;
+    Playlist::Item::DataProvider::Ptr Provider;
     Playlist::Scanner* const Scanner;
     Playlist::Model* const Model;
     Playlist::Item::Iterator* const Iterator;
@@ -176,7 +176,7 @@ namespace Playlist
   {
   }
 
-  Controller* Controller::Create(QObject& parent, const QString& name, PlayitemsProvider::Ptr provider)
+  Controller* Controller::Create(QObject& parent, const QString& name, Playlist::Item::DataProvider::Ptr provider)
   {
     return new ControllerImpl(parent, name, provider);
   }

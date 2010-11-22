@@ -54,7 +54,7 @@ namespace
   {
     typedef QList<Playlist::ScannerSource::Ptr> ScannersQueue;
   public:
-    ScannerImpl(QObject& parent, PlayitemsProvider::Ptr provider)
+    ScannerImpl(QObject& parent, Playlist::Item::DataProvider::Ptr provider)
       : Playlist::Scanner(parent)
       , Provider(provider)
       , Canceled(false)
@@ -83,7 +83,7 @@ namespace
       this->start();
     }
 
-    virtual void AddItems(Playitem::Iterator::Ptr items, int countHint)
+    virtual void AddItems(Playlist::Item::Data::Iterator::Ptr items, int countHint)
     {
       QMutexLocker lock(&QueueLock);
       if (Canceled)
@@ -135,7 +135,7 @@ namespace
       return Canceled;
     }
 
-    virtual void OnPlayitem(const Playitem::Ptr& item)
+    virtual void OnItem(const Playlist::Item::Data::Ptr& item)
     {
       OnGetItem(item);
     }
@@ -161,7 +161,7 @@ namespace
       //TODO
     }
   private:
-    const PlayitemsProvider::Ptr Provider;
+    const Playlist::Item::DataProvider::Ptr Provider;
     QMutex QueueLock;
     ScannersQueue Queue;
     //TODO: possibly use events
@@ -179,8 +179,9 @@ namespace Playlist
   {
   }
 
-  Scanner* Scanner::Create(QObject& parent, PlayitemsProvider::Ptr provider)
+  Scanner* Scanner::Create(QObject& parent, Playlist::Item::DataProvider::Ptr provider)
   {
+    REGISTER_METATYPE(Playlist::Item::Data::Ptr);
     return new ScannerImpl(parent, provider);
   }
 }

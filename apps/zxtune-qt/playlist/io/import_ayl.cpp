@@ -357,7 +357,7 @@ namespace Playlist
 {
   namespace IO
   {
-    Container::Ptr OpenAYL(PlayitemsProvider::Ptr provider, const QString& filename)
+    Container::Ptr OpenAYL(Item::DataProvider::Ptr provider, const QString& filename)
     {
       const QFileInfo info(filename);
       if (!info.isFile() || !info.isReadable() ||

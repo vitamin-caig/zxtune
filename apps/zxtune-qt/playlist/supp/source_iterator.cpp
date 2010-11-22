@@ -23,7 +23,7 @@ namespace
   class IteratorSource : public Playlist::ScannerSource
   {
   public:
-    IteratorSource(Playlist::ScannerCallback& callback, Playitem::Iterator::Ptr iterator, int countHint)
+    IteratorSource(Playlist::ScannerCallback& callback, Playlist::Item::Data::Iterator::Ptr iterator, int countHint)
       : Callback(callback)
       , Iterator(iterator)
       , CountHint(countHint)
@@ -39,8 +39,8 @@ namespace
     {
       for (unsigned curItemNum = 0; Iterator->IsValid() && !Callback.IsCanceled(); ++curItemNum, Iterator->Next())
       {
-        const Playitem::Ptr curItem = Iterator->Get();
-        Callback.OnPlayitem(curItem);
+        const Playlist::Item::Data::Ptr curItem = Iterator->Get();
+        Callback.OnItem(curItem);
         const unsigned curProgress = CountHint == -1
           ? curItemNum % 100
           : curItemNum * 100 / CountHint;
@@ -49,14 +49,14 @@ namespace
     }
   private:
     Playlist::ScannerCallback& Callback;
-    const Playitem::Iterator::Ptr Iterator;
+    const Playlist::Item::Data::Iterator::Ptr Iterator;
     const int CountHint;
   };
 }
 
 namespace Playlist
 {
-  ScannerSource::Ptr ScannerSource::CreateIteratorSource(ScannerCallback& callback, Playitem::Iterator::Ptr iterator, int countHint)
+  ScannerSource::Ptr ScannerSource::CreateIteratorSource(ScannerCallback& callback, Playlist::Item::Data::Iterator::Ptr iterator, int countHint)
   {
     return ScannerSource::Ptr(new IteratorSource(callback, iterator, countHint));
   }

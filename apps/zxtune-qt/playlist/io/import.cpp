@@ -17,7 +17,7 @@ namespace Playlist
 {
   namespace IO
   {
-    Container::Ptr Open(PlayitemsProvider::Ptr provider, const QString& filename)
+    Container::Ptr Open(Item::DataProvider::Ptr provider, const QString& filename)
     {
       if (Container::Ptr res = OpenAYL(provider, filename))
       {

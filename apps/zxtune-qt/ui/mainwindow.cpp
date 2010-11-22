@@ -79,7 +79,7 @@ namespace
       MultiPlaylist->connect(Playback, SIGNAL(OnPauseModule()), SLOT(Pause()));
       MultiPlaylist->connect(Playback, SIGNAL(OnStopModule()), SLOT(Stop()));
       MultiPlaylist->connect(Playback, SIGNAL(OnFinishModule()), SLOT(Finish()));
-      Playback->connect(MultiPlaylist, SIGNAL(OnItemActivated(const Playitem&)), SLOT(SetItem(const Playitem&)));
+      Playback->connect(MultiPlaylist, SIGNAL(OnItemActivated(const Playlist::Item::Data&)), SLOT(SetItem(const Playlist::Item::Data&)));
       Playback->connect(Controls, SIGNAL(OnPlay()), SLOT(Play()));
       Playback->connect(Controls, SIGNAL(OnStop()), SLOT(Stop()));
       Playback->connect(Controls, SIGNAL(OnPause()), SLOT(Pause()));

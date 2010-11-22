@@ -16,6 +16,7 @@ Author:
 
 //local includes
 #include "container.h"
+#include "playlist/supp/data_provider.h"
 //common includes
 #include <parameters.h>
 
@@ -32,7 +33,7 @@ namespace Playlist
     typedef std::vector<ContainerItem> ContainerItems;
     typedef boost::shared_ptr<const ContainerItems> ContainerItemsPtr;
 
-    Container::Ptr CreateContainer(PlayitemsProvider::Ptr provider,
+    Container::Ptr CreateContainer(Item::DataProvider::Ptr provider,
       Parameters::Accessor::Ptr properties,
       ContainerItemsPtr items);
   }

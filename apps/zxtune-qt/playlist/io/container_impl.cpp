@@ -23,10 +23,10 @@ namespace
 {
   const std::string THIS_MODULE("Playlist::IO::Base");
 
-  class CollectorStub : public PlayitemDetectParameters
+  class CollectorStub : public Playlist::Item::DetectParameters
   {
   public:
-    virtual bool ProcessPlayitem(Playitem::Ptr item)
+    virtual bool ProcessItem(Playlist::Item::Data::Ptr item)
     {
       assert(!Item);
       Item = item;
@@ -41,20 +41,20 @@ namespace
     {
     }
 
-    Playitem::Ptr GetItem() const
+    Playlist::Item::Data::Ptr GetItem() const
     {
       return Item;
     }
   private:
-    Playitem::Ptr Item;
+    Playlist::Item::Data::Ptr Item;
   };
 
-  Playitem::Ptr OpenItem(const PlayitemsProvider& provider, const Playlist::IO::ContainerItem& item)
+  Playlist::Item::Data::Ptr OpenItem(const Playlist::Item::DataProvider& provider, const Playlist::IO::ContainerItem& item)
   {
     CollectorStub collector;
     //error is ignored, just take from collector
     provider.DetectModules(item.Path, collector);
-    if (const Playitem::Ptr realItem = collector.GetItem())
+    if (const Playlist::Item::Data::Ptr realItem = collector.GetItem())
     {
       Log::Debug(THIS_MODULE, "Opened '%1%'", item.Path);
       const Parameters::Container::Ptr newParams = realItem->GetAdjustedParameters();
@@ -62,13 +62,13 @@ namespace
       return realItem;
     }
     Log::Debug(THIS_MODULE, "Failed to open '%1%'", item.Path);
-    return Playitem::Ptr();
+    return Playlist::Item::Data::Ptr();
   }
 
-  class PlayitemIteratorImpl : public Playitem::Iterator
+  class PlayitemIteratorImpl : public Playlist::Item::Data::Iterator
   {
   public:
-    PlayitemIteratorImpl(PlayitemsProvider::Ptr provider, Playlist::IO::ContainerItemsPtr container)
+    PlayitemIteratorImpl(Playlist::Item::DataProvider::Ptr provider, Playlist::IO::ContainerItemsPtr container)
       : Provider(provider)
       , Container(container)
       , Current(Container->begin())
@@ -81,7 +81,7 @@ namespace
       return Current != Container->end();
     }
   
-    virtual Playitem::Ptr Get() const
+    virtual Playlist::Item::Data::Ptr Get() const
     {
       return Item;
     }
@@ -104,16 +104,16 @@ namespace
       }
     }
   private:
-    const PlayitemsProvider::Ptr Provider;
+    const Playlist::Item::DataProvider::Ptr Provider;
     const Playlist::IO::ContainerItemsPtr Container;
     Playlist::IO::ContainerItems::const_iterator Current;
-    Playitem::Ptr Item;
+    Playlist::Item::Data::Ptr Item;
   };
 
   class ContainerImpl : public Playlist::IO::Container
   {
   public:
-    ContainerImpl(PlayitemsProvider::Ptr provider,
+    ContainerImpl(Playlist::Item::DataProvider::Ptr provider,
       Parameters::Accessor::Ptr properties,
       Playlist::IO::ContainerItemsPtr items)
       : Provider(provider)
@@ -127,12 +127,12 @@ namespace
       return Properties;
     }
 
-    virtual Playitem::Iterator::Ptr GetItems() const
+    virtual Playlist::Item::Data::Iterator::Ptr GetItems() const
     {
-      return Playitem::Iterator::Ptr(new PlayitemIteratorImpl(Provider, Items));
+      return Playlist::Item::Data::Iterator::Ptr(new PlayitemIteratorImpl(Provider, Items));
     }
   private:
-    const PlayitemsProvider::Ptr Provider;
+    const Playlist::Item::DataProvider::Ptr Provider;
     const Parameters::Accessor::Ptr Properties;
     const Playlist::IO::ContainerItemsPtr Items;
   };
@@ -142,7 +142,7 @@ namespace Playlist
 {
   namespace IO
   {
-    Container::Ptr CreateContainer(PlayitemsProvider::Ptr provider,
+    Container::Ptr CreateContainer(Item::DataProvider::Ptr provider,
       Parameters::Accessor::Ptr properties,
       ContainerItemsPtr items)
     {

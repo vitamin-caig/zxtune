@@ -39,9 +39,9 @@ namespace
     virtual bool IsPlaying(const QModelIndex& index) const
     {
       assert(index.isValid());
-      if (const Playitem* operationalItem = Iterator.Get())
+      if (const Playlist::Item::Data* operationalItem = Iterator.GetData())
       {
-        const Playitem* const indexItem = static_cast<const Playitem*>(index.internalPointer());
+        const Playlist::Item::Data* const indexItem = static_cast<const Playlist::Item::Data*>(index.internalPointer());
         return indexItem == operationalItem &&
                Iterator.GetState() == Playlist::Item::PLAYING;
       }
@@ -51,9 +51,9 @@ namespace
     virtual bool IsPaused(const QModelIndex& index) const
     {
       assert(index.isValid());
-      if (const Playitem* operationalItem = Iterator.Get())
+      if (const Playlist::Item::Data* operationalItem = Iterator.GetData())
       {
-        const Playitem* const indexItem = static_cast<const Playitem*>(index.internalPointer());
+        const Playlist::Item::Data* const indexItem = static_cast<const Playlist::Item::Data*>(index.internalPointer());
         return indexItem == operationalItem &&
                Iterator.GetState() == Playlist::Item::PAUSED;
       }
@@ -81,8 +81,8 @@ namespace
       Layout->addWidget(ScannerView);
       //setup connections
       Playlist::Item::Iterator& iter = Controller.GetIterator();
-      iter.connect(View, SIGNAL(OnItemActivated(unsigned, const Playitem&)), SLOT(Reset(unsigned)));
-      this->connect(&iter, SIGNAL(OnItem(const Playitem&)), SIGNAL(OnItemActivated(const Playitem&)));
+      iter.connect(View, SIGNAL(OnItemActivated(unsigned, const Playlist::Item::Data&)), SLOT(Reset(unsigned)));
+      this->connect(&iter, SIGNAL(OnItem(const Playlist::Item::Data&)), SIGNAL(OnItemActivated(const Playlist::Item::Data&)));
       View->connect(&Controller.GetScanner(), SIGNAL(OnScanStop()), SLOT(updateGeometries()));
 
       Log::Debug(THIS_MODULE, "Created at %1%", this);

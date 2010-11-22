@@ -15,7 +15,7 @@ Author:
 #define ZXTUNE_QT_PLAYLIST_IO_CONTAINER_H_DEFINED
 
 //local includes
-#include "supp/playitems_provider.h"
+#include "playlist/supp/data.h"
 //common includes
 #include <parameters.h>
 
@@ -40,7 +40,7 @@ namespace Playlist
       virtual ~Container() {}
 
       virtual Parameters::Accessor::Ptr GetProperties() const = 0;
-      virtual Playitem::Iterator::Ptr GetItems() const = 0;
+      virtual Item::Data::Iterator::Ptr GetItems() const = 0;
     };
   }
 }

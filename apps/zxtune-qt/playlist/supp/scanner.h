@@ -15,7 +15,7 @@ Author:
 #define ZXTUNE_QT_PLAYLIST_SUPP_SCANNER_H_DEFINED
 
 //local includes
-#include "supp/playitems_provider.h"
+#include "data_provider.h"
 //qt includes
 #include <QtCore/QThread>
 
@@ -27,10 +27,10 @@ namespace Playlist
   protected:
     explicit Scanner(QObject& parent);
   public:
-    static Scanner* Create(QObject& parent, PlayitemsProvider::Ptr provider);
+    static Scanner* Create(QObject& parent, Item::DataProvider::Ptr provider);
 
     virtual void AddItems(const QStringList& items, bool deepScan) = 0;
-    virtual void AddItems(Playitem::Iterator::Ptr items, int countHint = -1) = 0;
+    virtual void AddItems(Item::Data::Iterator::Ptr items, int countHint = -1) = 0;
   public slots:
     //asynchronous, doesn't wait until real stop
     virtual void Cancel() = 0;
@@ -43,7 +43,7 @@ namespace Playlist
     void OnResolvingStart();
     void OnResolvingStop();
     //for BL
-    void OnGetItem(Playitem::Ptr);
+    void OnGetItem(Playlist::Item::Data::Ptr);
   };
 }
 

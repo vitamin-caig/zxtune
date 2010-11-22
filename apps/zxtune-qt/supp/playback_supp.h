@@ -20,6 +20,14 @@ Author:
 //qt includes
 #include <QtCore/QThread>
 
+namespace Playlist
+{
+  namespace Item
+  {
+    class Data;
+  }
+}
+
 class PlaybackSupport : public QThread
 {
   Q_OBJECT
@@ -29,7 +37,7 @@ public:
   static PlaybackSupport* Create(QObject& parent);
 
 public slots:
-  virtual void SetItem(const class Playitem& item) = 0;
+  virtual void SetItem(const Playlist::Item::Data& item) = 0;
   virtual void Play() = 0;
   virtual void Stop() = 0;
   virtual void Pause() = 0;
