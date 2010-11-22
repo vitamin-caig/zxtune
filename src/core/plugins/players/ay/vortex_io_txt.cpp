@@ -110,13 +110,13 @@ namespace
   }
 
   //check uppercased symbols
-  inline bool CheckSym(boost::call_traits<uint64_t>::param_type setof, char sym)
+  inline bool CheckSym(uint64_t setof, char sym)
   {
     return setof == ANY || (sym >= ' ' && sym < ' ' + 64 && 0 != (setof & (SPACE << (sym - ' '))));
   }
 
   //check if all string symbols are acceptible
-  inline bool CheckStr(boost::call_traits<uint64_t>::param_type setof, const std::string& str)
+  inline bool CheckStr(uint64_t setof, const std::string& str)
   {
     return str.end() == std::find_if(str.begin(), str.end(), !boost::bind(&CheckSym, setof,
       boost::bind(static_cast<int (*)(int)>(&std::toupper), _1)));

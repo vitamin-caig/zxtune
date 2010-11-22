@@ -227,15 +227,15 @@ namespace
     {
       if (fieldName == Module::ATTR_CURRENT_POSITION)
       {
-        return Parameters::ConvertToString(Parameters::ValueType(State.Position()));
+        return Parameters::ConvertToString(State.Position());
       }
       else if (fieldName == Module::ATTR_CURRENT_PATTERN)
       {
-        return Parameters::ConvertToString(Parameters::ValueType(State.Pattern()));
+        return Parameters::ConvertToString(State.Pattern());
       }
       else if (fieldName == Module::ATTR_CURRENT_LINE)
       {
-        return Parameters::ConvertToString(Parameters::ValueType(State.Line()));
+        return Parameters::ConvertToString(State.Line());
       }
       return SkipFieldsSource::GetFieldValue(fieldName);
     }

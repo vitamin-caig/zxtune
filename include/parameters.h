@@ -14,7 +14,6 @@
 #include <string_helpers.h>
 //boost includes
 #include <boost/shared_ptr.hpp>
-#include <boost/variant/variant.hpp>
 
 //! @brief Namespace is used to keep parameters-working related types and functions
 namespace Parameters
@@ -35,8 +34,6 @@ namespace Parameters
 
   //! @brief %Parameters name type
   typedef String NameType;
-  //! @brief Complex variant value type
-  typedef boost::variant<IntType, StringType, DataType> ValueType;
 
   //! @brief Delimiter between namespaces in parameters' names
   const NameType::value_type NAMESPACE_DELIMITER = '.';
@@ -47,9 +44,9 @@ namespace Parameters
   //@}
 
   //! @brief Converting parameter value to string
-  String ConvertToString(const ValueType& val);
-  //! @brief Converting string to parameter value
-  ValueType ConvertFromString(const String& val);
+  String ConvertToString(IntType val);
+  String ConvertToString(StringType val);
+  String ConvertToString(DataType val);
 
   //! @brief Interface to modify properties and parameters
   class Modifier

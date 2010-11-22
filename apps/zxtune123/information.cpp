@@ -35,6 +35,8 @@ Author:
 #include <iostream>
 //boost includes
 #include <boost/tuple/tuple.hpp>
+#include <boost/variant/get.hpp>
+#include <boost/variant/variant.hpp>
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/value_semantic.hpp>
 //text includes
@@ -151,7 +153,8 @@ namespace
     }
   }
   
-  typedef boost::tuple<String, String, Parameters::ValueType> OptionDesc;
+  typedef boost::variant<Parameters::IntType, Parameters::StringType> ValueType;
+  typedef boost::tuple<String, String, ValueType> OptionDesc;
   
   void ShowOption(const OptionDesc& opt)
   {
@@ -162,15 +165,15 @@ namespace
     }
     else
     {
-      const String& defVal(Parameters::ConvertToString(opt.get<2>()));
-      if (defVal.empty())
+      const Parameters::StringType* defValString = boost::get<const Parameters::StringType>(&opt.get<2>());
+      if (defValString && defValString->empty())
       {
         StdOut << (Formatter(Text::INFO_OPTION_INFO) % opt.get<0>() % opt.get<1>()).str();
       }
       else
       {
         StdOut << (Formatter(Text::INFO_OPTION_INFO_DEFAULTS)
-          % opt.get<0>() % opt.get<1>() % defVal).str();
+          % opt.get<0>() % opt.get<1>() % *defValString).str();
       }
     }
   }

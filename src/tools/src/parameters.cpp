@@ -19,8 +19,6 @@ Author:
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
-#include <boost/variant/apply_visitor.hpp>
-#include <boost/variant/static_visitor.hpp>
 
 namespace
 {
@@ -149,25 +147,6 @@ namespace
     }
     return str;
   }
-
-  class AsStringVisitor : public boost::static_visitor<String>
-  {
-  public:
-    String operator()(const DataType& dmp) const
-    {
-      return DataToString(dmp);
-    }
-
-    String operator()(const StringType& str) const
-    {
-      return StringToString(str);
-    }
-
-    String operator()(IntType var) const
-    {
-      return IntegerToString(var);
-    }
-  };
 
   template<class T>
   bool FindByName(const std::map<NameType, T>& map, const NameType& name, T& res)
@@ -352,28 +331,19 @@ namespace
 
 namespace Parameters
 {
-  String ConvertToString(const ValueType& val)
+  String ConvertToString(IntType val)
   {
-    return boost::apply_visitor(AsStringVisitor(), val);
+    return IntegerToString(val);
   }
 
-  ValueType ConvertFromString(const String& val)
+  String ConvertToString(StringType val)
   {
-    if (IsData(val))
-    {
-      Dump res;
-      DataFromString(val, res);
-      return ValueType(res);
-    }
-    else if (IsInteger(val))
-    {
-      const IntType res = IntegerFromString(val);
-      return ValueType(res);
-    }
-    else
-    {
-      return ValueType(StringFromString(val));
-    }
+    return StringToString(val);
+  }
+
+  String ConvertToString(DataType val)
+  {
+    return DataToString(val);
   }
 
   void ParseStringMap(const StringMap& map, Modifier& modifier)

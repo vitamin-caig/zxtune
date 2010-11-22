@@ -32,7 +32,7 @@ namespace Parameters
       StringType strVal;
       if (Params.FindIntValue(fieldName, intVal))
       {
-        return ConvertToString(ValueType(intVal));
+        return ConvertToString(intVal);
       }
       else if (Params.FindStringValue(fieldName, strVal))
       {
