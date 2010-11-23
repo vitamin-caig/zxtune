@@ -26,20 +26,6 @@ namespace Playlist
 {
   namespace Item
   {
-    //static part
-    class Attributes
-    {
-    public:
-      typedef boost::shared_ptr<const Attributes> Ptr;
-
-      virtual ~Attributes() {}
-
-      virtual String GetType() const = 0;
-      virtual String GetTitle() const = 0;
-      virtual unsigned GetDurationValue() const = 0;
-      virtual String GetDurationString() const = 0;
-    };
-
     class Data
     {
     public:
@@ -48,9 +34,15 @@ namespace Playlist
 
       virtual ~Data() {}
 
-      virtual const Attributes& GetAttributes() const = 0;
+      //common
       virtual ZXTune::Module::Holder::Ptr GetModule() const = 0;
       virtual Parameters::Container::Ptr GetAdjustedParameters() const = 0;
+      //playlist-related
+      virtual String GetType() const = 0;
+      virtual String GetTitle() const = 0;
+      virtual unsigned GetDurationValue() const = 0;
+      virtual String GetDurationString() const = 0;
+      virtual String GetTooltip() const = 0;
     };
   }
 }

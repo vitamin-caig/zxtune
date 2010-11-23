@@ -20,6 +20,7 @@ Author:
 #include <error_tools.h>
 #include <formatter.h>
 #include <logging.h>
+#include <template_parameters.h>
 //library includes
 #include <core/error_codes.h>
 #include <core/module_attrs.h>
@@ -173,75 +174,16 @@ namespace
     const String DataPath;
   };
 
-  String GetModuleType(const Parameters::Accessor& props)
-  {
-    Parameters::StringType typeStr;
-    if (props.FindStringValue(ZXTune::Module::ATTR_TYPE, typeStr))
-    {
-      return typeStr;
-    }
-    assert(!"Invalid module type");
-    return String();
-  }
-
-  class AttributesImpl : public Playlist::Item::Attributes
+  class ModuleSource
   {
   public:
-    AttributesImpl(const ZXTune::Module::Information& info, const Parameters::Accessor& properties)
-      : Type(GetModuleType(properties))
-      , Title(GetModuleTitle(Text::MODULE_PLAYLIST_FORMAT, properties))
-      , Duration(info.FramesCount())
-    {
-    }
-
-    virtual String GetType() const
-    {
-      return Type;
-    }
-
-    virtual String GetTitle() const
-    {
-      return Title;
-    }
-
-    virtual unsigned GetDurationValue() const
-    {
-      return Duration;
-    }
-
-    virtual String GetDurationString() const
-    {
-      return FormatTime(Duration, 20000);//TODO
-    }
-  private:
-    const String Type;
-    const String Title;
-    const unsigned Duration;
-  };
-
-  class DataImpl : public Playlist::Item::Data
-  {
-  public:
-    DataImpl(
-        //container-specific
-        DataSource::Ptr source,
-        //module-specific
-        Parameters::Accessor::Ptr coreParams,
-        Parameters::Container::Ptr adjustedParams,
-        Playlist::Item::Attributes::Ptr attributes)
+    ModuleSource(DataSource::Ptr source, Parameters::Accessor::Ptr moduleParams)
       : Source(source)
-      , AdjustedParams(adjustedParams)
-      , ModuleParams(Parameters::CreateMergedAccessor(AdjustedParams, coreParams))
-      , Attributes(attributes)
+      , ModuleParams(moduleParams)
     {
     }
 
-    virtual const Playlist::Item::Attributes& GetAttributes() const
-    {
-      return *Attributes;
-    }
-
-    virtual ZXTune::Module::Holder::Ptr GetModule() const
+    ZXTune::Module::Holder::Ptr GetModule() const
     {
       const ZXTune::IO::DataContainer::Ptr data = Source->GetData();
       const String subPath = GetSubpath();
@@ -249,31 +191,148 @@ namespace
       ThrowIfError(ZXTune::OpenModule(ModuleParams, data, subPath, module));
       return module;
     }
+  private:
+    String GetSubpath() const
+    {
+      Parameters::StringType subpath;
+      ModuleParams->FindStringValue(ZXTune::Module::ATTR_SUBPATH, subpath);
+      return subpath;
+    }
+  private:
+    const DataSource::Ptr Source;
+    const Parameters::Accessor::Ptr ModuleParams;
+  };
+
+  String GetModuleType(Parameters::Accessor::Ptr props)
+  {
+    Parameters::StringType typeStr;
+    if (props->FindStringValue(ZXTune::Module::ATTR_TYPE, typeStr))
+    {
+      return typeStr;
+    }
+    assert(!"Invalid module type");
+    return String();
+  }
+
+  class DynamicAttributesProvider
+  {
+  public:
+    typedef boost::shared_ptr<const DynamicAttributesProvider> Ptr;
+
+    DynamicAttributesProvider()
+      : TitleTemplate(StringTemplate::Create(Text::MODULE_PLAYLIST_FORMAT))
+      , DummyTitle(TitleTemplate->Instantiate(SkipFieldsSource()))
+      , TooltipTemplate(StringTemplate::Create(Text::TOOLTIP_TEMPLATE))
+    {
+    }
+
+    String GetTitle(const Parameters::Accessor& properties) const
+    {
+      const Parameters::FieldsSourceAdapter<SkipFieldsSource> adapter(properties);
+      String result = TitleTemplate->Instantiate(adapter);
+      if (result == DummyTitle)
+      {
+        properties.FindStringValue(ZXTune::Module::ATTR_FULLPATH, result);
+      }
+      return result;
+    }
+
+    String GetTooltip(const Parameters::Accessor& properties) const
+    {
+      const Parameters::FieldsSourceAdapter<SkipFieldsSource> adapter(properties);
+      return TooltipTemplate->Instantiate(adapter);
+    }
+  private:
+    const StringTemplate::Ptr TitleTemplate;
+    const String DummyTitle;
+    const StringTemplate::Ptr TooltipTemplate;
+  };
+
+  class DataImpl : public Playlist::Item::Data
+  {
+  public:
+    DataImpl(DynamicAttributesProvider::Ptr attributes,
+        ZXTune::Module::Information::Ptr info,
+        const ModuleSource& source,
+        Parameters::Container::Ptr adjustedParams)
+      : Attributes(attributes)
+      , Source(source)
+      , AdjustedParams(adjustedParams)
+      , Type(GetModuleType(info->Properties()))
+      , DurationInFrames(info->FramesCount())
+    {
+    }
+
+    virtual ZXTune::Module::Holder::Ptr GetModule() const
+    {
+      return Source.GetModule();
+    }
 
     virtual Parameters::Container::Ptr GetAdjustedParameters() const
     {
       return AdjustedParams;
     }
-  private:
-    String GetSubpath() const
+
+    //playlist-related properties
+    virtual String GetType() const
     {
-      Parameters::StringType subpath;
-      AdjustedParams->FindStringValue(ZXTune::Module::ATTR_SUBPATH, subpath);
-      return subpath;
+      return Type;
+    }
+
+    virtual String GetTitle() const
+    {
+      if (Title.empty())
+      {
+        AcquireTitle();
+      }
+      return Title;
+    }
+
+    virtual unsigned GetDurationValue() const
+    {
+      return DurationInFrames;
+    }
+
+    virtual String GetDurationString() const
+    {
+      return FormatTime(DurationInFrames, 20000);//TODO
+    }
+
+    virtual String GetTooltip() const
+    {
+      const Parameters::Accessor::Ptr properties = GetModuleProperties();
+      return Attributes->GetTooltip(*properties);
     }
   private:
-    const DataSource::Ptr Source;
+    void AcquireTitle() const
+    {
+      const Parameters::Accessor::Ptr properties = GetModuleProperties();
+      Title = Attributes->GetTitle(*properties);
+    }
+
+    Parameters::Accessor::Ptr GetModuleProperties() const
+    {
+      const ZXTune::Module::Holder::Ptr holder = Source.GetModule();
+      const ZXTune::Module::Information::Ptr info = holder->GetModuleInformation();
+      return info->Properties();
+    }
+  private:
+    const DynamicAttributesProvider::Ptr Attributes;
+    const ModuleSource Source;
     const Parameters::Container::Ptr AdjustedParams;
-    const Parameters::Accessor::Ptr ModuleParams;
-    const Playlist::Item::Attributes::Ptr Attributes;
+    const String Type;
+    mutable String Title;
+    unsigned DurationInFrames;
   };
 
   class DetectParametersAdapter : public ZXTune::DetectParameters
   {
   public:
     DetectParametersAdapter(Playlist::Item::DetectParameters& delegate,
+                            DynamicAttributesProvider::Ptr attributes,
                             CachedDataProvider::Ptr provider, Parameters::Accessor::Ptr coreParams, const String& dataPath)
       : Delegate(delegate)
+      , Attributes(attributes)
       , CoreParams(coreParams)
       , DataPath(dataPath)
       , Source(boost::make_shared<DataSource>(provider, dataPath))
@@ -290,11 +349,10 @@ namespace
     {
       //adjusted parameters- simple path properties, separate for each playitem
       const Parameters::Container::Ptr adjustedParams = CreateInitialAdjustedParameters(subPath);
-      const ZXTune::Module::Information::Ptr originalInfo = holder->GetModuleInformation();
-      const Parameters::Accessor::Ptr originalProperties = originalInfo->Properties();
-      const Parameters::Accessor::Ptr extendedProperties = Parameters::CreateMergedAccessor(adjustedParams, originalProperties);
-      const Playlist::Item::Attributes::Ptr attributes = boost::make_shared<AttributesImpl>(*originalInfo, *extendedProperties);
-      const Playlist::Item::Data::Ptr playitem = boost::make_shared<DataImpl>(Source, CoreParams, adjustedParams, attributes);
+  
+      const ZXTune::Module::Information::Ptr info = holder->GetModuleInformation();
+      const ModuleSource itemSource(Source, Parameters::CreateMergedAccessor(adjustedParams, CoreParams));
+      const Playlist::Item::Data::Ptr playitem = boost::make_shared<DataImpl>(Attributes, info, itemSource, adjustedParams);
       return Delegate.ProcessItem(playitem) ? Error() : Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
     }
 
@@ -323,6 +381,7 @@ namespace
     }
   private:
     Playlist::Item::DetectParameters& Delegate;
+    const DynamicAttributesProvider::Ptr Attributes;
     const Parameters::Accessor::Ptr CoreParams;
     const String DataPath;
     const DataSource::Ptr Source;
@@ -334,6 +393,7 @@ namespace
     DataProviderImpl(Parameters::Accessor::Ptr ioParams, Parameters::Accessor::Ptr coreParams)
       : Provider(new CachedDataProvider(ioParams))
       , CoreParams(coreParams)
+      , Attributes(boost::make_shared<DynamicAttributesProvider>()) 
     {
     }
 
@@ -345,7 +405,7 @@ namespace
         ThrowIfError(ZXTune::IO::SplitUri(path, dataPath, subPath));
         const ZXTune::IO::DataContainer::Ptr data = Provider->GetData(dataPath);
 
-        const DetectParametersAdapter params(detectParams, Provider, CoreParams, dataPath);
+        const DetectParametersAdapter params(detectParams, Attributes, Provider, CoreParams, dataPath);
         ThrowIfError(ZXTune::DetectModules(CoreParams, params, data, subPath));
         return Error();
       }
@@ -363,7 +423,7 @@ namespace
         ThrowIfError(ZXTune::IO::SplitUri(path, dataPath, subPath));
         const ZXTune::IO::DataContainer::Ptr data = Provider->GetData(dataPath);
 
-        const DetectParametersAdapter params(detectParams, Provider, CoreParams, dataPath);
+        const DetectParametersAdapter params(detectParams, Attributes, Provider, CoreParams, dataPath);
         ZXTune::Module::Holder::Ptr result;
         ThrowIfError(ZXTune::OpenModule(CoreParams, data, subPath, result));
         ThrowIfError(params.ProcessModule(subPath, result));
@@ -377,6 +437,7 @@ namespace
   private:
     const CachedDataProvider::Ptr Provider;
     const Parameters::Accessor::Ptr CoreParams;
+    const DynamicAttributesProvider::Ptr Attributes;
   };
 }
 

@@ -224,7 +224,7 @@ namespace
   private:
     void WriteItem(const Playlist::Item::Data& item)
     {
-      Log::Debug(THIS_MODULE, "Save playitem '%1%'", item.GetAttributes().GetTitle());
+      Log::Debug(THIS_MODULE, "Save playitem");
       const ZXTune::Module::Holder::Ptr holder = item.GetModule();
       const ZXTune::Module::Information::Ptr info = holder->GetModuleInformation();
 

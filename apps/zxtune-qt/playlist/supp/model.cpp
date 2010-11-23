@@ -35,76 +35,13 @@ namespace
 
   const QModelIndex EMPTY_INDEX = QModelIndex();
 
-  class PlayitemWrapper
-  {
-  public:
-    PlayitemWrapper(Playlist::Item::Data::Ptr item, const StringTemplate& tooltipTemplate)
-      : Item(item)
-      , TooltipTemplate(tooltipTemplate)
-    {
-    }
-
-    PlayitemWrapper(const PlayitemWrapper& rh)
-      : Item(rh.Item)
-      , TooltipTemplate(rh.TooltipTemplate)
-    {
-    }
-
-    QString GetType() const
-    {
-      const Playlist::Item::Attributes& attrs = Item->GetAttributes();
-      return ToQString(attrs.GetType());
-    }
-
-    QString GetTitle() const
-    {
-      const Playlist::Item::Attributes& attrs = Item->GetAttributes();
-      return ToQString(attrs.GetTitle());
-    }
-
-    uint_t GetDurationValue() const
-    {
-      const Playlist::Item::Attributes& attrs = Item->GetAttributes();
-      return attrs.GetDurationValue();
-    }
-
-    QString GetDurationString() const
-    {
-      const Playlist::Item::Attributes& attrs = Item->GetAttributes();
-      return ToQString(attrs.GetDurationString());
-    }
-
-    QString GetTooltip() const
-    {
-      const Parameters::Accessor::Ptr props = GetProperties();
-      const Parameters::FieldsSourceAdapter<SkipFieldsSource> fields(*props);
-      const String tooltip = TooltipTemplate.Instantiate(fields);
-      return ToQString(tooltip);
-    }
-
-    Playlist::Item::Data::Ptr GetItemData() const
-    {
-      return Item;
-    }
-  private:
-    Parameters::Accessor::Ptr GetProperties() const
-    {
-      const ZXTune::Module::Holder::Ptr holder = Item->GetModule();
-      const ZXTune::Module::Information::Ptr info = holder->GetModuleInformation();
-      return info->Properties();
-    }
-  private:
-    const Playlist::Item::Data::Ptr Item;
-    const StringTemplate& TooltipTemplate;
-  };
-
   class RowDataProvider
   {
   public:
     virtual ~RowDataProvider() {}
 
     virtual QVariant GetHeader(unsigned column) const = 0;
-    virtual QVariant GetData(const PlayitemWrapper& item, unsigned column) const = 0;
+    virtual QVariant GetData(const Playlist::Item::Data& item, unsigned column) const = 0;
   };
 
   class DummyDataProvider : public RowDataProvider
@@ -115,7 +52,7 @@ namespace
       return QVariant();
     }
 
-    virtual QVariant GetData(const PlayitemWrapper& /*item*/, unsigned /*column*/) const
+    virtual QVariant GetData(const Playlist::Item::Data& /*item*/, unsigned /*column*/) const
     {
       return QVariant();
     }
@@ -129,14 +66,14 @@ namespace
       return QVariant();
     }
 
-    virtual QVariant GetData(const PlayitemWrapper& item, unsigned column) const
+    virtual QVariant GetData(const Playlist::Item::Data& item, unsigned column) const
     {
       switch (column)
       {
       case Playlist::Model::COLUMN_TYPEICON:
         {
-          QString iconPath = Text::TYPEICONS_RESOURCE_PREFIX;
-          iconPath += item.GetType();
+          const QString iconPath = ToQString(
+            Text::TYPEICONS_RESOURCE_PREFIX + item.GetType());
           return QIcon(iconPath);
         }
       default:
@@ -161,14 +98,14 @@ namespace
       };
     }
 
-    virtual QVariant GetData(const PlayitemWrapper& item, unsigned column) const
+    virtual QVariant GetData(const Playlist::Item::Data& item, unsigned column) const
     {
       switch (column)
       {
       case Playlist::Model::COLUMN_TITLE:
-        return item.GetTitle();
+        return ToQString(item.GetTitle());
       case Playlist::Model::COLUMN_DURATION:
-        return item.GetDurationString();
+        return ToQString(item.GetDurationString());
       default:
         return QVariant();
       };
@@ -183,9 +120,9 @@ namespace
       return QVariant();
     }
 
-    virtual QVariant GetData(const PlayitemWrapper& item, unsigned /*column*/) const
+    virtual QVariant GetData(const Playlist::Item::Data& item, unsigned /*column*/) const
     {
-      return item.GetTooltip();
+      return ToQString(item.GetTooltip());
     }
   };
 
@@ -221,11 +158,11 @@ namespace
     const DummyDataProvider Dummy;
   };
 
+  typedef std::list<Playlist::Item::Data::Ptr> ItemsContainer;
+  typedef std::vector<ItemsContainer::iterator> IteratorsArray;
+
   class PlayitemsContainer
   {
-    typedef std::list<PlayitemWrapper> ItemsContainer;
-    typedef std::vector<ItemsContainer::iterator> IteratorsArray;
-
     class PlayitemIteratorImpl : public Playlist::Item::Data::Iterator
     {
     public:
@@ -235,7 +172,7 @@ namespace
         for (IteratorsArray::const_iterator it = iters.begin(), lim = iters.end();
           it != lim; ++it)
         {
-          Items.push_back((*it)->GetItemData());
+          Items.push_back(**it);
         }
         Current = Items.begin();
       }
@@ -272,13 +209,12 @@ namespace
     };
   public:
     PlayitemsContainer()
-      : TooltipTemplate(StringTemplate::Create(Text::TOOLTIP_TEMPLATE))
     {
     }
 
     void AddItem(Playlist::Item::Data::Ptr item)
     {
-      Items.push_back(PlayitemWrapper(item, *TooltipTemplate));
+      Items.push_back(item);
       IteratorsArray::value_type it = Items.end();
       Iterators.push_back(--it);
     }
@@ -288,14 +224,14 @@ namespace
       return Items.size();
     }
 
-    const PlayitemWrapper* GetItemByIndex(int idx) const
+    Playlist::Item::Data::Ptr GetItemByIndex(int idx) const
     {
       if (idx >= int(Iterators.size()))
       {
-        return 0;
+        return Playlist::Item::Data::Ptr();
       }
       const IteratorsArray::value_type it = Iterators[idx];
-      return &*it;
+      return *it;
     }
 
     Playlist::Item::Data::Iterator::Ptr GetAllItems() const
@@ -342,18 +278,15 @@ namespace
     public:
       virtual ~Comparer() {}
 
-      virtual bool CompareItems(const PlayitemWrapper& lh, const PlayitemWrapper& rh) const = 0;
+      virtual bool CompareItems(IteratorsArray::value_type lh, IteratorsArray::value_type rh) const = 0;
     };
 
     void Sort(const Comparer& cmp)
     {
       std::stable_sort(Iterators.begin(), Iterators.end(),
-        boost::bind(&Comparer::CompareItems, &cmp,
-          boost::bind(&IteratorsArray::value_type::operator *, _1),
-          boost::bind(&IteratorsArray::value_type::operator *, _2)));
+        boost::bind(&Comparer::CompareItems, &cmp, _1, _2));
     }
   private:
-    const StringTemplate::Ptr TooltipTemplate;
     ItemsContainer Items;
     IteratorsArray Iterators;
   };
@@ -362,17 +295,17 @@ namespace
   class TypedPlayitemsComparer : public PlayitemsContainer::Comparer
   {
   public:
-    typedef T (PlayitemWrapper::*Functor)() const;
+    typedef T (Playlist::Item::Data::*Functor)() const;
     TypedPlayitemsComparer(Functor fn, bool ascending)
       : Getter(fn)
       , Ascending(ascending)
     {
     }
 
-    bool CompareItems(const PlayitemWrapper& lh, const PlayitemWrapper& rh) const
+    bool CompareItems(IteratorsArray::value_type lh, IteratorsArray::value_type rh) const
     {
-      const T& val1 = (lh.*Getter)();
-      const T& val2 = (rh.*Getter)();
+      const T val1 = ((**lh).*Getter)();
+      const T val2 = ((**rh).*Getter)();
       return Ascending
         ? val1 < val2
         : val1 > val2;
@@ -404,11 +337,7 @@ namespace
     virtual Playlist::Item::Data::Ptr GetItem(unsigned index) const
     {
       QMutexLocker locker(&Synchronizer);
-      if (const PlayitemWrapper* wrapper = Container->GetItemByIndex(index))
-      {
-        return wrapper->GetItemData();
-      }
-      return Playlist::Item::Data::Ptr();
+      return Container->GetItemByIndex(index);
     }
 
     virtual Playlist::Item::Data::Iterator::Ptr GetItems() const
@@ -479,10 +408,9 @@ namespace
         return EMPTY_INDEX;
       }
       QMutexLocker locker(&Synchronizer);
-      if (const PlayitemWrapper* item = Container->GetItemByIndex(row))
+      if (const Playlist::Item::Data::Ptr item = Container->GetItemByIndex(row))
       {
-        const Playlist::Item::Data::Ptr playitem = item->GetItemData();
-        const void* const data = static_cast<const void*>(playitem.get());
+        const void* const data = static_cast<const void*>(item.get());
         return createIndex(row, column, const_cast<void*>(data));
       }
       return EMPTY_INDEX;
@@ -532,10 +460,10 @@ namespace
       const int_t fieldNum = index.column();
       const int_t itemNum = index.row();
       QMutexLocker locker(&Synchronizer);
-      if (const PlayitemWrapper* item = Container->GetItemByIndex(itemNum))
+      if (const Playlist::Item::Data::Ptr item = Container->GetItemByIndex(itemNum))
       {
         const RowDataProvider& provider = Providers.GetProvider(role);
-        assert(static_cast<const void*>(item->GetItemData().get()) == index.internalPointer());
+        assert(static_cast<const void*>(item.get()) == index.internalPointer());
         return provider.GetData(*item, fieldNum);
       }
       return QVariant();
@@ -550,13 +478,13 @@ namespace
       switch (column)
       {
       case COLUMN_TYPEICON:
-        comparer.reset(new TypedPlayitemsComparer<QString>(&PlayitemWrapper::GetType, ascending));
+        comparer.reset(new TypedPlayitemsComparer<String>(&Playlist::Item::Data::GetType, ascending));
         break;
       case COLUMN_TITLE:
-        comparer.reset(new TypedPlayitemsComparer<QString>(&PlayitemWrapper::GetTitle, ascending));
+        comparer.reset(new TypedPlayitemsComparer<String>(&Playlist::Item::Data::GetTitle, ascending));
         break;
       case COLUMN_DURATION:
-        comparer.reset(new TypedPlayitemsComparer<uint_t>(&PlayitemWrapper::GetDurationValue, ascending));
+        comparer.reset(new TypedPlayitemsComparer<unsigned>(&Playlist::Item::Data::GetDurationValue, ascending));
         break;
       default:
         break;
