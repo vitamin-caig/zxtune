@@ -30,6 +30,7 @@ Author:
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
 #include <QtCore/QString>
+#include <QtCore/QUrl>
 #include <QtCore/QXmlStreamReader>
 
 namespace
@@ -82,11 +83,17 @@ namespace
       while (XML.readNextStartElement())
       {
         const QStringRef& tagName = XML.name();
-        if (tagName == XSPF::TRACKLIST_TAG &&
-            !ParseTracklist())
+        if (tagName == XSPF::TRACKLIST_TAG)
         {
-          Log::Debug(THIS_MODULE, "Failed to parse tracklist");
-          return false;
+          if (!ParseTracklist())
+          {
+            Log::Debug(THIS_MODULE, "Failed to parse tracklist");
+            return false;
+          }
+        }
+        else //TODO: process playlist properties
+        {
+          XML.skipCurrentElement();
         }
       }
       return !XML.error();
@@ -98,11 +105,19 @@ namespace
       while (XML.readNextStartElement())
       {
         const QStringRef& tagName = XML.name();
-        if (tagName == XSPF::ITEM_TAG &&
-            !ParseTrackItem())
+        if (tagName == XSPF::ITEM_TAG)
         {
-          Log::Debug(THIS_MODULE, "Failed to parse trackitem");
-          return false;
+          if (!ParseTrackItem())
+          {
+            Log::Debug(THIS_MODULE, "Failed to parse trackitem: %1% at %2%:%3%",
+              FromQString(XML.errorString()), XML.lineNumber(), XML.columnNumber());
+            return false;
+          }
+        }
+        else
+        {
+          Log::Debug(THIS_MODULE, "Unknown item in tracklist");
+          XML.skipCurrentElement();
         }
       }
       return !XML.error();
@@ -136,8 +151,8 @@ namespace
     String ParseTrackitemLocation()
     {
       assert(XML.isStartElement() && XML.name() == XSPF::ITEM_LOCATION_TAG);
-      const QString& location = XML.readElementText();
-      return FromQString(ConcatenatePath(BasePath, location));
+      const QUrl url(XML.readElementText());
+      return FromQString(ConcatenatePath(BasePath, url.toString()));
     }
 
     void ParseTrackitemAttribute(const QStringRef& attr, Parameters::Modifier& props)
@@ -160,7 +175,12 @@ namespace
       }
       else
       {
-        Log::Debug(THIS_MODULE, "Unknown playitem attribute '%1%'", FromQString(attr.toString()));
+        if (attr != XSPF::ITEM_DURATION_TAG &&
+            attr != XSPF::EXTENSION_TAG)
+        {
+          Log::Debug(THIS_MODULE, "Unknown playitem attribute '%1%'", FromQString(attr.toString()));
+        }
+        XML.skipCurrentElement();
       }
     }
   private:
@@ -177,12 +197,13 @@ namespace
     QFile device(fileInfo.absoluteFilePath());
     if (!device.open(QIODevice::ReadOnly | QIODevice::Text))
     {
-      assert(!"Failed to open XSPF playlist");
+      assert(!"Failed to open playlist");
       return Playlist::IO::Container::Ptr();
     }
     XSPFReader reader(basePath, device);
     if (!reader.Parse())
     {
+      Log::Debug(THIS_MODULE, "Failed to parse playlist");
       return Playlist::IO::Container::Ptr();
     }
 
@@ -190,6 +211,7 @@ namespace
     const Playlist::IO::ContainerItemsPtr items = reader.GetItems();
     properties->SetStringValue(Playlist::ATTRIBUTE_NAME, FromQString(fileInfo.baseName()));
     properties->SetIntValue(Playlist::ATTRIBUTE_SIZE, items->size());
+    Log::Debug(THIS_MODULE, "Parsed playlist with %1% items", items->size());
     return Playlist::IO::CreateContainer(provider, properties, items);
   }
 

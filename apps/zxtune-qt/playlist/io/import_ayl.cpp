@@ -33,6 +33,7 @@ Author:
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
 #include <QtCore/QString>
+#include <QtCore/QTextCodec>
 #include <QtCore/QTextStream>
 
 namespace
@@ -44,12 +45,6 @@ namespace
     const QDir baseDir(ToQString(baseDirPath));
     const QFileInfo file(baseDir, ToQString(subPath));
     return FromQString(file.canonicalFilePath());
-  }
-
-  String FromUtf8String(const std::string& str)
-  {
-    const QString utf8(QString::fromUtf8(str.c_str()));
-    return FromQString(utf8);
   }
 
   /*
@@ -67,14 +62,14 @@ namespace
   public:
     explicit VersionLayer(int vers)
       : Version(vers)
+      , Codec(QTextCodec::codecForName(Version > 5 ? "UTF-8" : "Windows-1251"))
     {
+      assert(Codec);
     }
 
     String DecodeString(const std::string& str) const
     {
-      return Version > 5
-        ? FromUtf8String(str)
-        : FromStdString(str);
+      return FromQString(Codec->toUnicode(str.c_str()));
     }
 
     Parameters::IntType DecodeFrameduration(Parameters::IntType playerFreq) const
@@ -89,6 +84,7 @@ namespace
     }
   private:
     const int Version;
+    const QTextCodec* Codec;
   };
 
   int CheckAYLBySignature(const String& signature)
@@ -234,11 +230,7 @@ namespace
         Delegate.SetIntValue(Parameters::ZXTune::Sound::FRAMEDURATION, 
           Version.DecodeFrameduration(val));
       }
-      else
-      {
-        //try to process as string
-        Delegate.SetStringValue(name, Parameters::ConvertToString(val));
-      }
+      //ignore "Loop", "Length", "Time"
     }
 
     virtual void SetStringValue(const Parameters::NameType& name, const Parameters::StringType& val)

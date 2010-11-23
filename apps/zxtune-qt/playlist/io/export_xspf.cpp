@@ -84,9 +84,10 @@ namespace
     void SaveProperty(const Parameters::NameType& name, const T& value)
     {
       const String strVal = Parameters::ConvertToString(value);
+      const QString strToSave = ToQString(strVal).trimmed();
       XML.writeStartElement(XSPF::EXTENDED_PROPERTY_TAG);
       XML.writeAttribute(XSPF::EXTENDED_PROPERTY_NAME_ATTR, ToQString(name));
-      XML.writeCharacters(ToQString(strVal));
+      XML.writeCharacters(strToSave.toUtf8());
       XML.writeEndElement();
     }
   private:
@@ -125,7 +126,8 @@ namespace
     virtual void SetStringValue(const Parameters::NameType& name, const Parameters::StringType& val)
     {
       const String value = Parameters::ConvertToString(val);
-      const QString valStr = ToQString(value);
+      //save trimmed to keep xml
+      const QString valStr = ToQString(value).trimmed();
       if (name == ZXTune::Module::ATTR_FULLPATH)
       {
         Log::Debug(THIS_MODULE, "  saving item attribute %1%='%2%'", name, val);
@@ -135,17 +137,17 @@ namespace
       else if (name == ZXTune::Module::ATTR_TITLE)
       {
         Log::Debug(THIS_MODULE, "  saving item attribute %1%='%2%'", name, val);
-        XML.writeTextElement(XSPF::ITEM_TITLE_TAG, valStr);
+        SaveText(XSPF::ITEM_TITLE_TAG, valStr);
       }
       else if (name == ZXTune::Module::ATTR_AUTHOR)
       {
         Log::Debug(THIS_MODULE, "  saving item attribute %1%='%2%'", name, val);
-        XML.writeTextElement(XSPF::ITEM_CREATOR_TAG, valStr);
+        SaveText(XSPF::ITEM_CREATOR_TAG, valStr);
       }
       else if (name == ZXTune::Module::ATTR_COMMENT)
       {
         Log::Debug(THIS_MODULE, "  saving item attribute %1%='%2%'", name, val);
-        XML.writeTextElement(XSPF::ITEM_ANNOTATION_TAG, valStr);
+        SaveText(XSPF::ITEM_ANNOTATION_TAG, valStr);
       }
     }
 
@@ -162,6 +164,11 @@ namespace
       XML.writeTextElement(XSPF::ITEM_DURATION_TAG, QString::number(msecDuration));
     }
 
+    void SaveText(const Char* tag, const QString& value)
+    {
+      XML.writeTextElement(tag, value.toUtf8());
+    }
+
     static bool FilterExtendedProperties(const Parameters::NameType& name)
     {
       return 
@@ -173,7 +180,10 @@ namespace
         //skip existing properties
         name == ZXTune::Module::ATTR_AUTHOR ||
         name == ZXTune::Module::ATTR_TITLE ||
-        name == ZXTune::Module::ATTR_COMMENT
+        name == ZXTune::Module::ATTR_COMMENT ||
+        //skip redundand properties
+        name == ZXTune::Module::ATTR_WARNINGS_COUNT ||
+        name == ZXTune::Module::ATTR_WARNINGS
       ;
     }
 
