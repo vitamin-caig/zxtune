@@ -32,7 +32,14 @@ namespace
 {
   const std::string THIS_MODULE("Playlist::IO::XSPF");
 
+  const unsigned XSPF_VERSION = 1;
+
   typedef bool (*AttributesFilter)(const Parameters::NameType&);
+
+  QString ConvertString(const String& str)
+  {
+    return QUrl::toPercentEncoding(str.c_str());
+  }
 
   class ExtendedPropertiesSaver : public Parameters::Visitor
   {
@@ -84,10 +91,9 @@ namespace
     void SaveProperty(const Parameters::NameType& name, const T& value)
     {
       const String strVal = Parameters::ConvertToString(value);
-      const QString strToSave = ToQString(strVal).trimmed();
       XML.writeStartElement(XSPF::EXTENDED_PROPERTY_TAG);
       XML.writeAttribute(XSPF::EXTENDED_PROPERTY_NAME_ATTR, ToQString(name));
-      XML.writeCharacters(strToSave.toUtf8());
+      XML.writeCharacters(ConvertString(strVal));
       XML.writeEndElement();
     }
   private:
@@ -126,12 +132,11 @@ namespace
     virtual void SetStringValue(const Parameters::NameType& name, const Parameters::StringType& val)
     {
       const String value = Parameters::ConvertToString(val);
-      //save trimmed to keep xml
-      const QString valStr = ToQString(value).trimmed();
+      const QString valStr = ConvertString(value);
       if (name == ZXTune::Module::ATTR_FULLPATH)
       {
         Log::Debug(THIS_MODULE, "  saving item attribute %1%='%2%'", name, val);
-        const QUrl url(valStr);
+        const QUrl url(ToQString(value));
         XML.writeTextElement(XSPF::ITEM_LOCATION_TAG, url.toEncoded());
       }
       else if (name == ZXTune::Module::ATTR_TITLE)
@@ -166,7 +171,7 @@ namespace
 
     void SaveText(const Char* tag, const QString& value)
     {
-      XML.writeTextElement(tag, value.toUtf8());
+      XML.writeTextElement(tag, value);
     }
 
     static bool FilterExtendedProperties(const Parameters::NameType& name)
@@ -214,6 +219,7 @@ namespace
     {
       ExtendedPropertiesSaver saver(XML);
       props.Process(saver);
+      saver.SetIntValue(Playlist::ATTRIBUTE_VERSION, XSPF_VERSION);
     }
 
     void WriteItems(Playlist::Item::Data::Iterator::Ptr iter)

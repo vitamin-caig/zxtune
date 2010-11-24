@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<playlist version="1" xmlns="http://xspf.org/ns/0/">
+  <extension application="http://zxtune.googlecode.com">
+    <property name="zxtune.app.playlist.name">sample</property>
+    <property name="zxtune.app.playlist.version">1</property>
+  </extension>
+  <trackList>
+    <track>
+      <creator>ANDREW%20KUZNETSOV</creator>
+      <location>../asc/BLUEBIRD.asc</location>
+      <title>BLUE%20BIRD</title>
+      <duration>307200</duration>
+      <extension application="http://zxtune.googlecode.com">
+        <property name="CRC">3382786631</property>
+        <property name="FixedCRC">1184494065</property>
+        <property name="Size">4453</property>
+        <property name="Program">ASC%20Sound%20Master</property>
+        <property name="Type">ASC</property>
+      </extension>
+    </track>
+    <track>
+      <creator>ANDREW%20KUZNETSOV</creator>
+      <location>../asc/SANDRA.asc</location>
+      <title>AROUND%20MY%20HEART</title>
+      <duration>190080</duration>
+      <extension application="http://zxtune.googlecode.com">
+        <property name="CRC">459799544</property>
+        <property name="FixedCRC">78377521</property>
+        <property name="Size">5549</property>
+        <property name="Program">ASC%20Sound%20Master</property>
+        <property name="Type">ASC</property>
+      </extension>
+    </track>
+    <track>
+      <creator>LEO%2FCAIG</creator>
+      <location>../pt2/4jour#2.pt2</location>
+      <title>FOR%20JOURNAL%232</title>
+      <duration>96000</duration>
+      <extension application="http://zxtune.googlecode.com">
+        <property name="CRC">97711468</property>
+        <property name="FixedCRC">2693277369</property>
+        <property name="Size">5577</property>
+        <property name="Program">ProTracker%20v2.x</property>
+        <property name="Type">PT2</property>
+      </extension>
+    </track>
+    <track>
+      <creator>DENI</creator>
+      <annotation>From%20demo%20Illusion</annotation>
+      <location>../pt2/Illusion.pt2</location>
+      <title>LIGHT%2796</title>
+      <duration>201600</duration>
+      <extension application="http://zxtune.googlecode.com">
+        <property name="CRC">2106134992</property>
+        <property name="FixedCRC">3711164909</property>
+        <property name="Size">4406</property>
+        <property name="Program">ProTracker%20v2.x</property>
+        <property name="Type">PT2</property>
+      </extension>
+    </track>
+    <track>
+      <creator>DAVOS%2FHS%2FCPU</creator>
+      <location>../pt3/Lat_mix2.pt3</location>
+      <title>LATITUDE%20EFFECT%2Corigin.by%20EXALOT</title>
+      <duration>130560</duration>
+      <extension application="http://zxtune.googlecode.com">
+        <property name="CRC">3835078706</property>
+        <property name="FixedCRC">3606121712</property>
+        <property name="Size">2888</property>
+        <property name="Program">ProTracker%203.3</property>
+        <property name="Type">PT3</property>
+      </extension>
+    </track>
+    <track>
+      <creator>DAVOS%2FHS%2FCPU</creator>
+      <location>../pt3/Speccy2.pt3</location>
+      <title>SPECCY%20ALIVE%20IN%20OUR%20HEARTS......</title>
+      <duration>234240</duration>
+      <extension application="http://zxtune.googlecode.com">
+        <property name="CRC">1162529201</property>
+        <property name="FixedCRC">2435546833</property>
+        <property name="Size">8045</property>
+        <property name="Program">ProTracker%203.3</property>
+        <property name="Type">PT3</property>
+      </extension>
+    </track>
+    <track>
+      <creator>Kicia</creator>
+      <location>../stc/stracker.stc</location>
+      <title>Sound%20Tracker</title>
+      <duration>153600</duration>
+      <extension application="http://zxtune.googlecode.com">
+        <property name="CRC">825531333</property>
+        <property name="FixedCRC">1674203183</property>
+        <property name="Size">3903</property>
+        <property name="Program">SONG%20BY%20ST%20COMPILE</property>
+        <property name="Type">STC</property>
+      </extension>
+    </track>
+    <track>
+      <location>../stp/ZXGuide3_07.stp</location>
+      <duration>38400</duration>
+      <extension application="http://zxtune.googlecode.com">
+        <property name="CRC">441644047</property>
+        <property name="FixedCRC">1122884469</property>
+        <property name="Size">1914</property>
+        <property name="Program">SoundTrackerPro</property>
+        <property name="Type">STP</property>
+      </extension>
+    </track>
+    <track>
+      <creator>Voxel_triumph</creator>
+      <annotation>TurboSound%20module</annotation>
+      <location>../ts/long_day.pt3</location>
+      <title>long...long...day</title>
+      <duration>115200</duration>
+      <extension application="http://zxtune.googlecode.com">
+        <property name="Type">TS</property>
+        <property name="CRC">3922833680</property>
+        <property name="FixedCRC">4292257987</property>
+        <property name="Size">1420</property>
+        <property name="Program">ProTracker%203.5</property>
+        <property name="Type">PT3</property>
+      </extension>
+    </track>
+  </trackList>
+</playlist>
