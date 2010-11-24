@@ -17,6 +17,9 @@ Author:
 #include "scanner.h"
 #include "playlist/io/import.h"
 #include "ui/utils.h"
+//boost includes
+#include <boost/make_shared.hpp>
+#include <boost/ref.hpp>
 
 namespace
 {
@@ -50,25 +53,24 @@ namespace
     {
     }
 
-    virtual Playlist::Controller* CreatePlaylist(const QString& name)
+    virtual Playlist::Controller::Ptr CreatePlaylist(const QString& name)
     {
-      Playlist::Controller* const playlist = Playlist::Controller::Create(*this, name, Provider);
-      return playlist;
+      return Playlist::Controller::Create(*this, name, Provider);
     }
 
-    virtual Playlist::Controller* OpenPlaylist(const QString& filename)
+    virtual Playlist::Controller::Ptr OpenPlaylist(const QString& filename)
     {
       if (Playlist::IO::Container::Ptr container = Playlist::IO::Open(Provider, filename))
       {
         const Parameters::Accessor::Ptr plParams = container->GetProperties();
         const QString plName = GetPlaylistName(*plParams);
         const int plSize = GetPlaylistSize(*plParams);
-        Playlist::Controller* const playlist = CreatePlaylist(plName);
-        Playlist::Scanner& scanner = playlist->GetScanner();
-        scanner.AddItems(container->GetItems(), plSize);
+        const Playlist::Controller::Ptr playlist = CreatePlaylist(plName);
+        const Playlist::Scanner::Ptr scanner = playlist->GetScanner();
+        scanner->AddItems(container->GetItems(), plSize);
         return playlist;
       }
-      return 0;
+      return Playlist::Controller::Ptr();
     }
   private:
     const Playlist::Item::DataProvider::Ptr Provider;
@@ -81,8 +83,8 @@ namespace Playlist
   {
   }
 
-  Container* Container::Create(QObject& parent, Parameters::Accessor::Ptr ioParams, Parameters::Accessor::Ptr coreParams)
+  Container::Ptr Container::Create(QObject& parent, Parameters::Accessor::Ptr ioParams, Parameters::Accessor::Ptr coreParams)
   {
-    return new ContainerImpl(parent, ioParams, coreParams);
+    return boost::make_shared<ContainerImpl>(boost::ref(parent), ioParams, coreParams);
   }
 }

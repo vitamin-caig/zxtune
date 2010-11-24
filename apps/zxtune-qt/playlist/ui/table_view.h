@@ -14,14 +14,14 @@ Author:
 #ifndef ZXTUNE_QT_PLAYLIST_UI_TABLE_VIEW_H_DEFINED
 #define ZXTUNE_QT_PLAYLIST_UI_TABLE_VIEW_H_DEFINED
 
+//local includes
+#include "playlist/supp/model.h"
 //qt includes
 #include <QtGui/QItemDelegate>
 #include <QtGui/QTableView>
 
 namespace Playlist
 {
-  class Model;
-
   namespace Item
   {
     class Data;
@@ -55,7 +55,7 @@ namespace Playlist
       explicit TableView(QWidget& parent);
     public:
       //creator
-      static TableView* Create(QWidget& parent, const TableViewStateCallback& callback, Playlist::Model& model);
+      static TableView* Create(QWidget& parent, const TableViewStateCallback& callback, Playlist::Model::Ptr model);
 
     public slots:
       virtual void ActivateItem(const QModelIndex&) = 0;

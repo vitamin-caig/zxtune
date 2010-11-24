@@ -203,10 +203,10 @@ namespace
     const Parameters::Accessor::Ptr ModuleParams;
   };
 
-  String GetModuleType(Parameters::Accessor::Ptr props)
+  String GetModuleType(const Parameters::Accessor& props)
   {
     Parameters::StringType typeStr;
-    if (props->FindStringValue(ZXTune::Module::ATTR_TYPE, typeStr))
+    if (props.FindStringValue(ZXTune::Module::ATTR_TYPE, typeStr))
     {
       return typeStr;
     }
@@ -252,14 +252,15 @@ namespace
   {
   public:
     DataImpl(DynamicAttributesProvider::Ptr attributes,
-        ZXTune::Module::Information::Ptr info,
         const ModuleSource& source,
-        Parameters::Container::Ptr adjustedParams)
+        Parameters::Container::Ptr adjustedParams,
+        unsigned duration, const Parameters::Accessor& moduleProps)
       : Attributes(attributes)
       , Source(source)
       , AdjustedParams(adjustedParams)
-      , Type(GetModuleType(info->Properties()))
-      , DurationInFrames(info->FramesCount())
+      , Type(GetModuleType(moduleProps))
+      , Title(Attributes->GetTitle(moduleProps))
+      , DurationInFrames(duration)
     {
     }
 
@@ -270,6 +271,7 @@ namespace
 
     virtual Parameters::Container::Ptr GetAdjustedParameters() const
     {
+      Title.clear();
       return AdjustedParams;
     }
 
@@ -322,7 +324,7 @@ namespace
     const Parameters::Container::Ptr AdjustedParams;
     const String Type;
     mutable String Title;
-    unsigned DurationInFrames;
+    const unsigned DurationInFrames;
   };
 
   class DetectParametersAdapter : public ZXTune::DetectParameters
@@ -352,7 +354,9 @@ namespace
   
       const ZXTune::Module::Information::Ptr info = holder->GetModuleInformation();
       const ModuleSource itemSource(Source, Parameters::CreateMergedAccessor(adjustedParams, CoreParams));
-      const Playlist::Item::Data::Ptr playitem = boost::make_shared<DataImpl>(Attributes, info, itemSource, adjustedParams);
+      const Parameters::Accessor::Ptr moduleProps = Parameters::CreateMergedAccessor(adjustedParams, info->Properties());
+      const Playlist::Item::Data::Ptr playitem = boost::make_shared<DataImpl>(Attributes, itemSource, adjustedParams,
+        info->FramesCount(), *moduleProps);
       return Delegate.ProcessItem(playitem) ? Error() : Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
     }
 

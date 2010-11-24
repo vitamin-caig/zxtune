@@ -265,9 +265,9 @@ namespace
       if (FileDialog.OpenSingleFile(actionLoadPlaylist->text(),
          tr("Playlist files (*.xspf *.ayl)"), file))
       {
-        if (Playlist::Controller* const pl = Container->OpenPlaylist(file))
+        if (Playlist::Controller::Ptr pl = Container->OpenPlaylist(file))
         {
-          RegisterPlaylist(*pl);
+          RegisterPlaylist(pl);
         }
       }
     }
@@ -363,14 +363,14 @@ namespace
     Playlist::UI::View& CreateAnonymousPlaylist()
     {
       Log::Debug(THIS_MODULE, "Create default playlist");
-      Playlist::Controller* const pl = Container->CreatePlaylist(tr("Default"));
-      return RegisterPlaylist(*pl);
+      const Playlist::Controller::Ptr pl = Container->CreatePlaylist(tr("Default"));
+      return RegisterPlaylist(pl);
     }
 
-    Playlist::UI::View& RegisterPlaylist(Playlist::Controller& playlist)
+    Playlist::UI::View& RegisterPlaylist(Playlist::Controller::Ptr playlist)
     {
       Playlist::UI::View* const plView = Playlist::UI::View::Create(*this, playlist);
-      widgetsContainer->addTab(plView, playlist.GetName());
+      widgetsContainer->addTab(plView, playlist->GetName());
       this->connect(plView, SIGNAL(OnItemActivated(const Playlist::Item::Data&)),
         SLOT(PlaylistItemActivated(const Playlist::Item::Data&)));
       if (!ActivePlaylistView)
@@ -428,7 +428,7 @@ namespace
       }
     }
   private:
-    Playlist::Container* const Container;
+    const Playlist::Container::Ptr Container;
     QMenu* const ActionsMenu;
     //state context
     FileDialogWrapper FileDialog;

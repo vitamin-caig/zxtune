@@ -36,8 +36,10 @@ namespace Playlist
       COLUMNS_COUNT
     };
 
+    typedef Model* Ptr;
+
     //creator
-    static Model* Create(QObject& parent);
+    static Ptr Create(QObject& parent);
 
     //accessors
     virtual Item::Data::Ptr GetItem(unsigned index) const = 0;

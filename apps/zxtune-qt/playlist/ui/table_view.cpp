@@ -39,14 +39,14 @@ namespace
   {
   public:
     TableViewImpl(QWidget& parent, const Playlist::UI::TableViewStateCallback& callback,
-      Playlist::Model& model)
+      Playlist::Model::Ptr model)
       : Playlist::UI::TableView(parent)
       , Callback(callback)
       , Model(model)
       , Font(QString::fromUtf8(FONT_FAMILY), FONT_SIZE)
     {
       //setup self
-      setModel(&Model);
+      setModel(Model);
       setItemDelegate(Playlist::UI::TableViewItem::Create(*this, Callback));
       setFont(Font);
       //setup ui
@@ -93,7 +93,7 @@ namespace
     virtual void ActivateItem(const QModelIndex& index)
     {
       const unsigned number = index.row();
-      if (const Playlist::Item::Data::Ptr item = Model.GetItem(number))
+      if (const Playlist::Item::Data::Ptr item = Model->GetItem(number))
       {
         OnItemActivated(number, *item);
       }
@@ -121,11 +121,11 @@ namespace
       std::for_each(items.begin(), items.end(),
         boost::bind(&QSet<unsigned>::insert, &indexes,
           boost::bind(&QModelIndex::row, _1)));
-      Model.RemoveItems(indexes);
+      Model->RemoveItems(indexes);
     }
   private:
     const Playlist::UI::TableViewStateCallback& Callback;
-    Playlist::Model& Model;
+    const Playlist::Model::Ptr Model;
     QFont Font;
   };
 
@@ -186,7 +186,7 @@ namespace Playlist
     {
     }
 
-    TableView* TableView::Create(QWidget& parent, const TableViewStateCallback& callback, Playlist::Model& model)
+    TableView* TableView::Create(QWidget& parent, const TableViewStateCallback& callback, Playlist::Model::Ptr model)
     {
       return new TableViewImpl(parent, callback, model);
     }

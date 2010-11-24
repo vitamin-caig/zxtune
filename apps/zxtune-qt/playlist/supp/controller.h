@@ -17,14 +17,13 @@ Author:
 //local includes
 #include "data_provider.h"
 #include "playlist/io/container.h"
+#include "playlist/supp/model.h"
+#include "playlist/supp/scanner.h"
 //qt includes
 #include <QtCore/QObject>
 
 namespace Playlist
 {
-  class Scanner;
-  class Model;
-
   namespace Item
   {
     //dynamic part
@@ -41,6 +40,8 @@ namespace Playlist
     protected:
       explicit Iterator(QObject& parent);
     public:
+      typedef Iterator* Ptr;
+
       //access
       virtual const Data* GetData() const = 0;
       virtual State GetState() const = 0;
@@ -62,12 +63,14 @@ namespace Playlist
   protected:
     explicit Controller(QObject& parent);
   public:
-    static Controller* Create(QObject& parent, const QString& name, Item::DataProvider::Ptr provider);
+    typedef boost::shared_ptr<const Controller> Ptr;
+
+    static Ptr Create(QObject& parent, const QString& name, Item::DataProvider::Ptr provider);
 
     virtual QString GetName() const = 0;
-    virtual Scanner& GetScanner() const = 0;
-    virtual Model& GetModel() const = 0;
-    virtual Item::Iterator& GetIterator() const = 0;
+    virtual Scanner::Ptr GetScanner() const = 0;
+    virtual Model::Ptr GetModel() const = 0;
+    virtual Item::Iterator::Ptr GetIterator() const = 0;
 
     virtual IO::Container::Ptr GetContainer() const = 0;
   };

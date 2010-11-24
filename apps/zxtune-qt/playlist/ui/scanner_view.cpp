@@ -26,7 +26,7 @@ namespace
                         , private Ui::PlaylistScannerView
   {
   public:
-    ScannerViewImpl(QWidget& parent, Playlist::Scanner& scanner)
+    ScannerViewImpl(QWidget& parent, Playlist::Scanner::Ptr scanner)
       : Playlist::UI::ScannerView(parent)
       , Scanner(scanner)
     {
@@ -34,12 +34,12 @@ namespace
       setupUi(this);
       hide();
       //make connections with scanner
-      this->connect(&Scanner, SIGNAL(OnScanStart()), this, SLOT(ScanStart()));
-      this->connect(&Scanner, SIGNAL(OnScanStop()), this, SLOT(ScanStop()));
-      this->connect(&Scanner, SIGNAL(OnProgressStatus(unsigned, unsigned, unsigned)), SLOT(ShowProgress(unsigned, unsigned, unsigned)));
-      this->connect(&Scanner, SIGNAL(OnProgressMessage(const QString&, const QString&)), SLOT(ShowProgressMessage(const QString&)));
-      this->connect(&Scanner, SIGNAL(OnResolvingStart()), this, SLOT(ShowResolving()));
-      this->connect(&Scanner, SIGNAL(OnResolvingStop()), this, SLOT(HideResolving()));
+      this->connect(Scanner, SIGNAL(OnScanStart()), this, SLOT(ScanStart()));
+      this->connect(Scanner, SIGNAL(OnScanStop()), this, SLOT(ScanStop()));
+      this->connect(Scanner, SIGNAL(OnProgressStatus(unsigned, unsigned, unsigned)), SLOT(ShowProgress(unsigned, unsigned, unsigned)));
+      this->connect(Scanner, SIGNAL(OnProgressMessage(const QString&, const QString&)), SLOT(ShowProgressMessage(const QString&)));
+      this->connect(Scanner, SIGNAL(OnResolvingStart()), this, SLOT(ShowResolving()));
+      this->connect(Scanner, SIGNAL(OnResolvingStop()), this, SLOT(HideResolving()));
       this->connect(scanCancel, SIGNAL(clicked()), SLOT(ScanCancel()));
 
       Log::Debug(THIS_MODULE, "Created at %1%", this);
@@ -58,7 +58,7 @@ namespace
     virtual void ScanCancel()
     {
       scanCancel->setEnabled(false);
-      Scanner.Cancel();
+      Scanner->Cancel();
     }
 
     virtual void ScanStop()
@@ -99,7 +99,7 @@ namespace
       }
     }
   private:
-    Playlist::Scanner& Scanner;
+    const Playlist::Scanner::Ptr Scanner;
   };
 }
 
@@ -111,7 +111,7 @@ namespace Playlist
     {
     }
 
-    ScannerView* ScannerView::Create(QWidget& parent, Playlist::Scanner& scanner)
+    ScannerView* ScannerView::Create(QWidget& parent, Playlist::Scanner::Ptr scanner)
     {
       return new ScannerViewImpl(parent, scanner);
     }

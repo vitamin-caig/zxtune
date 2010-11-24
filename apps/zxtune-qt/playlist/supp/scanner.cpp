@@ -179,7 +179,7 @@ namespace Playlist
   {
   }
 
-  Scanner* Scanner::Create(QObject& parent, Playlist::Item::DataProvider::Ptr provider)
+  Scanner::Ptr Scanner::Create(QObject& parent, Playlist::Item::DataProvider::Ptr provider)
   {
     REGISTER_METATYPE(Playlist::Item::Data::Ptr);
     return new ScannerImpl(parent, provider);

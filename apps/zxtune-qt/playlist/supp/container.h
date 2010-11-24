@@ -14,6 +14,8 @@ Author:
 #ifndef ZXTUNE_QT_PLAYLIST_SUPP_CONTAINER_H_DEFINED
 #define ZXTUNE_QT_PLAYLIST_SUPP_CONTAINER_H_DEFINED
 
+//local includes
+#include "controller.h"
 //common includes
 #include <parameters.h>
 //qt includes
@@ -21,19 +23,19 @@ Author:
 
 namespace Playlist
 {
-  class Controller;
-
   class Container : public QObject
   {
     Q_OBJECT
   protected:
     explicit Container(QObject& parent);
   public:
-    //creator
-    static Container* Create(QObject& parent, Parameters::Accessor::Ptr ioParams, Parameters::Accessor::Ptr coreParams);
+    typedef boost::shared_ptr<Container> Ptr;
 
-    virtual Controller* CreatePlaylist(const QString& name) = 0;
-    virtual Controller* OpenPlaylist(const QString& filename) = 0;
+    //creator
+    static Ptr Create(QObject& parent, Parameters::Accessor::Ptr ioParams, Parameters::Accessor::Ptr coreParams);
+
+    virtual Controller::Ptr CreatePlaylist(const QString& name) = 0;
+    virtual Controller::Ptr OpenPlaylist(const QString& filename) = 0;
   };
 }
 

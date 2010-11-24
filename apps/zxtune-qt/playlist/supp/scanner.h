@@ -27,7 +27,9 @@ namespace Playlist
   protected:
     explicit Scanner(QObject& parent);
   public:
-    static Scanner* Create(QObject& parent, Item::DataProvider::Ptr provider);
+    typedef Scanner* Ptr;
+
+    static Ptr Create(QObject& parent, Item::DataProvider::Ptr provider);
 
     virtual void AddItems(const QStringList& items, bool deepScan) = 0;
     virtual void AddItems(Item::Data::Iterator::Ptr items, int countHint = -1) = 0;

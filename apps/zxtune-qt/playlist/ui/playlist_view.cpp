@@ -66,13 +66,13 @@ namespace
   class ViewImpl : public Playlist::UI::View
   {
   public:
-    ViewImpl(QWidget& parent, Playlist::Controller& playlist)
+    ViewImpl(QWidget& parent, Playlist::Controller::Ptr playlist)
       : Playlist::UI::View(parent)
       , Controller(playlist)
-      , State(Controller.GetIterator())
+      , State(*Controller->GetIterator())
       , Layout(new QVBoxLayout(this))
-      , ScannerView(Playlist::UI::ScannerView::Create(*this, Controller.GetScanner()))
-      , View(Playlist::UI::TableView::Create(*this, State, Controller.GetModel()))
+      , ScannerView(Playlist::UI::ScannerView::Create(*this, Controller->GetScanner()))
+      , View(Playlist::UI::TableView::Create(*this, State, Controller->GetModel()))
     {
       //setup ui
       Layout->setSpacing(0);
@@ -80,30 +80,29 @@ namespace
       Layout->addWidget(View);
       Layout->addWidget(ScannerView);
       //setup connections
-      Playlist::Item::Iterator& iter = Controller.GetIterator();
-      iter.connect(View, SIGNAL(OnItemActivated(unsigned, const Playlist::Item::Data&)), SLOT(Reset(unsigned)));
-      this->connect(&iter, SIGNAL(OnItem(const Playlist::Item::Data&)), SIGNAL(OnItemActivated(const Playlist::Item::Data&)));
-      View->connect(&Controller.GetScanner(), SIGNAL(OnScanStop()), SLOT(updateGeometries()));
+      const Playlist::Item::Iterator::Ptr iter = Controller->GetIterator();
+      iter->connect(View, SIGNAL(OnItemActivated(unsigned, const Playlist::Item::Data&)), SLOT(Reset(unsigned)));
+      this->connect(iter, SIGNAL(OnItem(const Playlist::Item::Data&)), SIGNAL(OnItemActivated(const Playlist::Item::Data&)));
+      View->connect(Controller->GetScanner(), SIGNAL(OnScanStop()), SLOT(updateGeometries()));
 
       Log::Debug(THIS_MODULE, "Created at %1%", this);
     }
 
     virtual ~ViewImpl()
     {
-      Controller.deleteLater();
       Log::Debug(THIS_MODULE, "Destroyed at %1%", this);
     }
 
     virtual const Playlist::Controller& GetPlaylist() const
     {
-      return Controller;
+      return *Controller;
     }
 
     //modifiers
     virtual void AddItems(const QStringList& items, bool deepScan)
     {
-      Playlist::Scanner& scanner = Controller.GetScanner();
-      scanner.AddItems(items, deepScan);
+      const Playlist::Scanner::Ptr scanner = Controller->GetScanner();
+      scanner->AddItems(items, deepScan);
     }
 
     virtual void Play()
@@ -123,8 +122,8 @@ namespace
 
     virtual void Finish()
     {
-      Playlist::Item::Iterator& iter = Controller.GetIterator();
-      if (!iter.Next())
+      const Playlist::Item::Iterator::Ptr iter = Controller->GetIterator();
+      if (!iter->Next())
       {
         Stop();
       }
@@ -132,27 +131,27 @@ namespace
 
     virtual void Next()
     {
-      Playlist::Item::Iterator& iter = Controller.GetIterator();
-      iter.Next();
+      const Playlist::Item::Iterator::Ptr iter = Controller->GetIterator();
+      iter->Next();
     }
 
     virtual void Prev()
     {
-      Playlist::Item::Iterator& iter = Controller.GetIterator();
-      iter.Prev();
+      const Playlist::Item::Iterator::Ptr iter = Controller->GetIterator();
+      iter->Prev();
     }
 
     virtual void Clear()
     {
-      Playlist::Model& model = Controller.GetModel();
-      model.Clear();
+      const Playlist::Model::Ptr model = Controller->GetModel();
+      model->Clear();
       Update();
     }
   private:
     void UpdateState(Playlist::Item::State state)
     {
-      Playlist::Item::Iterator& iter = Controller.GetIterator();
-      iter.SetState(state);
+      const Playlist::Item::Iterator::Ptr iter = Controller->GetIterator();
+      iter->SetState(state);
       Update();
     }
 
@@ -161,7 +160,7 @@ namespace
       View->viewport()->update();
     }
   private:
-    Playlist::Controller& Controller;
+    const Playlist::Controller::Ptr Controller;
     PlayitemStateCallbackImpl State;
     QVBoxLayout* const Layout;
     Playlist::UI::ScannerView* const ScannerView;
@@ -177,7 +176,7 @@ namespace Playlist
     {
     }
 
-    View* View::Create(QWidget& parent, Playlist::Controller& playlist)
+    View* View::Create(QWidget& parent, Playlist::Controller::Ptr playlist)
     {
       return new ViewImpl(parent, playlist);
     }

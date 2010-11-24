@@ -510,7 +510,7 @@ namespace Playlist
   {
   }
 
-  Model* Model::Create(QObject& parent)
+  Model::Ptr Model::Create(QObject& parent)
   {
     return new ModelImpl(parent);
   }

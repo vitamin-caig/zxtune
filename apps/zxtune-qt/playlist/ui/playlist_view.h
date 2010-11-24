@@ -14,12 +14,13 @@ Author:
 #ifndef ZXTUNE_QT_PLAYLIST_UI_PLAYLIST_VIEW_H_DEFINED
 #define ZXTUNE_QT_PLAYLIST_UI_PLAYLIST_VIEW_H_DEFINED
 
+//local includes
+#include "playlist/supp/controller.h"
 //qt includes
 #include <QtGui/QWidget>
 
 namespace Playlist
 {
-  class Controller;
   namespace Item
   {
     class Data;
@@ -33,7 +34,7 @@ namespace Playlist
     protected:
       explicit View(QWidget& parent);
     public:
-      static View* Create(QWidget& parent, Playlist::Controller& playlist);
+      static View* Create(QWidget& parent, Playlist::Controller::Ptr playlist);
 
       virtual const Playlist::Controller& GetPlaylist() const = 0;
     public slots:

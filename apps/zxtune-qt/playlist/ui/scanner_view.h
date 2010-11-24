@@ -14,13 +14,13 @@ Author:
 #ifndef ZXTUNE_QT_PLAYLIST_UI_SCANNER_VIEW_H_DEFINED
 #define ZXTUNE_QT_PLAYLIST_UI_SCANNER_VIEW_H_DEFINED
 
+//local includes
+#include "playlist/supp/scanner.h"
 //qt includes
 #include <QtGui/QWidget>
 
 namespace Playlist
 {
-  class Scanner;
-
   namespace UI
   {
     class ScannerView : public QWidget
@@ -29,7 +29,7 @@ namespace Playlist
     protected:
       explicit ScannerView(QWidget& parent);
     public:
-      static ScannerView* Create(QWidget& parent, Playlist::Scanner& scanner);
+      static ScannerView* Create(QWidget& parent, Playlist::Scanner::Ptr scanner);
 
     public slots:
       virtual void ScanStart() = 0;

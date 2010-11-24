@@ -20,6 +20,7 @@ Author:
 #include <logging.h>
 //boost includes
 #include <boost/make_shared.hpp>
+#include <boost/ref.hpp>
 
 namespace
 {
@@ -28,11 +29,11 @@ namespace
   class ItemIteratorImpl : public Playlist::Item::Iterator
   {
   public:
-    ItemIteratorImpl(QObject& parent, const Playlist::Model& model)
+    ItemIteratorImpl(QObject& parent, Playlist::Model::Ptr model)
       : Playlist::Item::Iterator(parent)
       , Model(model)
       , Index(0)
-      , Item(Model.GetItem(Index))
+      , Item(Model->GetItem(Index))
       , State(Playlist::Item::STOPPED)
     {
     }
@@ -49,7 +50,7 @@ namespace
 
     virtual bool Reset(unsigned idx)
     {
-      if (Playlist::Item::Data::Ptr item = Model.GetItem(idx))
+      if (Playlist::Item::Data::Ptr item = Model->GetItem(idx))
       {
         Index = idx;
         Item = item;
@@ -76,7 +77,7 @@ namespace
       State = state;
     }
   private:
-    const Playlist::Model& Model;
+    const Playlist::Model::Ptr Model;
     unsigned Index;
     Playlist::Item::Data::Ptr Item;
     Playlist::Item::State State;
@@ -85,7 +86,7 @@ namespace
   class ContainerImpl : public Playlist::IO::Container
   {
   public:
-    ContainerImpl(const QString& name, const Playlist::Model& model)
+    ContainerImpl(const QString& name, Playlist::Model::Ptr model)
       : Properties(Parameters::Container::Create())
       , Model(model)
     {
@@ -99,11 +100,11 @@ namespace
 
     virtual Playlist::Item::Data::Iterator::Ptr GetItems() const
     {
-      return Model.GetItems();
+      return Model->GetItems();
     }
   private:
     const Parameters::Container::Ptr Properties;
-    const Playlist::Model& Model;
+    const Playlist::Model::Ptr Model;
   };
 
   class ControllerImpl : public Playlist::Controller
@@ -114,7 +115,7 @@ namespace
       , Name(name)
       , Scanner(Playlist::Scanner::Create(*this, provider))
       , Model(Playlist::Model::Create(*this))
-      , Iterator(new ItemIteratorImpl(*this, *Model))
+      , Iterator(new ItemIteratorImpl(*this, Model))
     {
       //setup connections
       Model->connect(Scanner, SIGNAL(OnGetItem(Playlist::Item::Data::Ptr)), SLOT(AddItem(Playlist::Item::Data::Ptr)));
@@ -135,31 +136,31 @@ namespace
       return Name;
     }
 
-    virtual class Playlist::Scanner& GetScanner() const
+    virtual Playlist::Scanner::Ptr GetScanner() const
     {
-      return *Scanner;
+      return Scanner;
     }
 
-    virtual class Playlist::Model& GetModel() const
+    virtual Playlist::Model::Ptr GetModel() const
     {
-      return *Model;
+      return Model;
     }
 
-    virtual Playlist::Item::Iterator& GetIterator() const
+    virtual Playlist::Item::Iterator::Ptr GetIterator() const
     {
-      return *Iterator;
+      return Iterator;
     }
 
     virtual Playlist::IO::Container::Ptr GetContainer() const
     {
-      return boost::make_shared<ContainerImpl>(Name, *Model);
+      return boost::make_shared<ContainerImpl>(Name, Model);
     }
   private:
     const QString Name;
     Playlist::Item::DataProvider::Ptr Provider;
-    Playlist::Scanner* const Scanner;
-    Playlist::Model* const Model;
-    Playlist::Item::Iterator* const Iterator;
+    const Playlist::Scanner::Ptr Scanner;
+    const Playlist::Model::Ptr Model;
+    const Playlist::Item::Iterator::Ptr Iterator;
   };
 }
 
@@ -176,8 +177,8 @@ namespace Playlist
   {
   }
 
-  Controller* Controller::Create(QObject& parent, const QString& name, Playlist::Item::DataProvider::Ptr provider)
+  Controller::Ptr Controller::Create(QObject& parent, const QString& name, Playlist::Item::DataProvider::Ptr provider)
   {
-    return new ControllerImpl(parent, name, provider);
+    return boost::make_shared<ControllerImpl>(boost::ref(parent), name, provider);
   }
 }
