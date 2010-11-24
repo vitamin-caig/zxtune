@@ -200,16 +200,16 @@ namespace
     {
     }
 
-    int_t GetDevice(int_t defVal) const
+    int_t GetDevice() const
     {
-      Parameters::IntType device = defVal;
+      Parameters::IntType device = Parameters::ZXTune::Sound::Backends::Win32::DEVICE_DEFAULT;
       Accessor.FindIntValue(Parameters::ZXTune::Sound::Backends::Win32::DEVICE, device);
       return static_cast<int_t>(device);
     }
 
-    uint_t GetBuffers(uint_t defVal) const
+    uint_t GetBuffers() const
     {
-      Parameters::IntType buffers = defVal;
+      Parameters::IntType buffers = Parameters::ZXTune::Sound::Backends::Win32::BUFFERS_DEFAULT;
       if (Accessor.FindIntValue(Parameters::ZXTune::Sound::Backends::Win32::BUFFERS, buffers) &&
           !in_range<Parameters::IntType>(buffers, BUFFERS_MIN, BUFFERS_MAX))
       {
@@ -219,9 +219,9 @@ namespace
       return static_cast<uint_t>(buffers);
     }
 
-    uint_t GetFrequency(uint_t defVal) const
+    uint_t GetFrequency() const
     {
-      Parameters::IntType res = defVal;
+      Parameters::IntType res = Parameters::ZXTune::Sound::FREQUENCY_DEFAULT;
       Accessor.FindIntValue(Parameters::ZXTune::Sound::FREQUENCY, res);
       return static_cast<uint_t>(res);
     }
@@ -291,9 +291,9 @@ namespace
       const Win32BackendParameters newParams(updates);
 
       // own parameters and sound frequency affects this backend
-      const int_t newDevice = newParams.GetDevice(Device);
-      const uint_t newBuffers = newParams.GetBuffers(Buffers.size());
-      const uint_t newFreq = newParams.GetFrequency(RenderingParameters.SoundFreq);
+      const int_t newDevice = newParams.GetDevice();
+      const uint_t newBuffers = newParams.GetBuffers();
+      const uint_t newFreq = newParams.GetFrequency();
 
       const bool deviceChanged = newDevice != Device;
       const bool buffersChanged = newBuffers != Buffers.size();

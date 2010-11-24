@@ -98,6 +98,7 @@ namespace ZXTune
       volatile Backend::State CurrentState;
       volatile bool InProcess;//STOP => STOPPING, STARTED => STARTING
       Error RenderError;
+      const Parameters::Container::Ptr CurrentParameters;
       //context
       uint_t Channels;
       Converter::Ptr FilterObject;

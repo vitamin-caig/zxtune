@@ -193,17 +193,17 @@ namespace
     //modifier virtuals
     virtual void SetIntValue(const NameType& name, IntType val)
     {
-      Integers.insert(IntegerMap::value_type(name, val));
+      Integers[name] = val;
     }
 
     virtual void SetStringValue(const NameType& name, const StringType& val)
     {
-      Strings.insert(StringMap::value_type(name, val));
+      Strings[name] = val;
     }
 
     virtual void SetDataValue(const NameType& name, const DataType& val)
     {
-      Datas.insert(DataMap::value_type(name, val));
+      Datas[name] = val;
     }
 
   private:
