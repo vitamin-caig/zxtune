@@ -349,12 +349,13 @@ namespace
 
     virtual Error ProcessModule(const String& subPath, ZXTune::Module::Holder::Ptr holder) const
     {
-      //adjusted parameters- simple path properties, separate for each playitem
-      const Parameters::Container::Ptr adjustedParams = CreateInitialAdjustedParameters(subPath);
+      const Parameters::Accessor::Ptr pathProps = CreatePathProperties(DataPath, subPath);
+      const Parameters::Container::Ptr adjustedParams = Parameters::Container::Create();
+      const Parameters::Accessor::Ptr perItemParameters = Parameters::CreateMergedAccessor(adjustedParams, CoreParams);
   
       const ZXTune::Module::Information::Ptr info = holder->GetModuleInformation();
-      const ModuleSource itemSource(Source, Parameters::CreateMergedAccessor(adjustedParams, CoreParams));
-      const Parameters::Accessor::Ptr moduleProps = Parameters::CreateMergedAccessor(adjustedParams, info->Properties());
+      const ModuleSource itemSource(Source, Parameters::CreateMergedAccessor(pathProps, perItemParameters));
+      const Parameters::Accessor::Ptr moduleProps = Parameters::CreateMergedAccessor(pathProps, info->Properties());
       const Playlist::Item::Data::Ptr playitem = boost::make_shared<DataImpl>(Attributes, itemSource, adjustedParams,
         info->FramesCount(), *moduleProps);
       return Delegate.ProcessItem(playitem) ? Error() : Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
@@ -374,14 +375,6 @@ namespace
       {
         Delegate.ShowProgress(*message.Progress);
       }
-    }
-  private:
-    Parameters::Container::Ptr CreateInitialAdjustedParameters(const String& subPath) const
-    {
-      const Parameters::Accessor::Ptr pathProperties = CreatePathProperties(DataPath, subPath);
-      const Parameters::Container::Ptr result = Parameters::Container::Create();
-      pathProperties->Process(*result);
-      return result;
     }
   private:
     Playlist::Item::DetectParameters& Delegate;

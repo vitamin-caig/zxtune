@@ -34,7 +34,7 @@ class PlaybackSupport : public QThread
 protected:
   explicit PlaybackSupport(QObject& parent);
 public:
-  static PlaybackSupport* Create(QObject& parent);
+  static PlaybackSupport* Create(QObject& parent, Parameters::Accessor::Ptr sndOptions);
 
 public slots:
   virtual void SetItem(const Playlist::Item::Data& item) = 0;

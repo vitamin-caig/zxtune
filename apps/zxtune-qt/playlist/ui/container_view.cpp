@@ -148,10 +148,9 @@ namespace
                           , public Ui::PlaylistContainerView
   {
   public:
-    explicit ContainerViewImpl(QWidget& parent)
+    ContainerViewImpl(QWidget& parent, Parameters::Accessor::Ptr ioParams, Parameters::Accessor::Ptr coreParams)
       : Playlist::UI::ContainerView(parent)
-      //TODO: from global parameters
-      , Container(Playlist::Container::Create(*this, Parameters::Container::Create(), Parameters::Container::Create()))
+      , Container(Playlist::Container::Create(*this, ioParams, coreParams))
       , ActionsMenu(new QMenu(tr("Playlist"), this))
       , FileDialog(*this)
       , ActivePlaylistView(0)
@@ -444,9 +443,9 @@ namespace Playlist
     {
     }
 
-    ContainerView* ContainerView::Create(QWidget& parent)
+    ContainerView* ContainerView::Create(QWidget& parent, Parameters::Accessor::Ptr ioParams, Parameters::Accessor::Ptr coreParams)
     {
-      return new ContainerViewImpl(parent);
+      return new ContainerViewImpl(parent, ioParams, coreParams);
     }
   }
 }

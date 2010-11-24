@@ -54,13 +54,14 @@ namespace
   class XSPFReader
   {
   public:
-    XSPFReader(const QString& basePath, QIODevice& device)
+    XSPFReader(const QString& basePath, const QString& autoName, QIODevice& device)
       : BasePath(basePath)
       , XML(&device)
       , Version(0)
       , Properties(Parameters::Container::Create())
       , Items(boost::make_shared<Playlist::IO::ContainerItems>())
     {
+      Properties->SetStringValue(Playlist::ATTRIBUTE_NAME, FromQString(autoName));
     }
 
     bool Parse()
@@ -72,7 +73,8 @@ namespace
           Log::Debug(THIS_MODULE, "Invalid format");
           return false;
         }
-        if (XML.attributes().value(XSPF::VERSION_ATTR) != XSPF::VERSION_VALUE)
+        const QXmlStreamAttributes attributes = XML.attributes();
+        if (attributes.value(XSPF::VERSION_ATTR) != XSPF::VERSION_VALUE)
         {
           Log::Debug(THIS_MODULE, "  unknown format version");
         }
@@ -99,9 +101,9 @@ namespace
         const QStringRef& tagName = XML.name();
         if (tagName == XSPF::EXTENSION_TAG)
         {
+          Log::Debug(THIS_MODULE, " Parsing playlist extension");
           ParseExtension(*Properties);
           Properties->FindIntValue(Playlist::ATTRIBUTE_VERSION, Version);
-          Log::Debug(THIS_MODULE, "Version %1%", Version);
         }
         else if (tagName == XSPF::TRACKLIST_TAG)
         {
@@ -147,23 +149,25 @@ namespace
     bool ParseTrackItem()
     {
       assert(XML.isStartElement() && XML.name() == XSPF::ITEM_TAG);
+      Log::Debug(THIS_MODULE, " Parsing item");
       Playlist::IO::ContainerItem item;
-      const Parameters::Container::Ptr attributes = Parameters::Container::Create();
+      const Parameters::Container::Ptr parameters = Parameters::Container::Create();
       while (XML.readNextStartElement())
       {
         const QStringRef& tagName = XML.name();
         if (tagName == XSPF::ITEM_LOCATION_TAG)
         {
           item.Path = ParseTrackitemLocation();
+          Log::Debug(THIS_MODULE, "  parsed location %1%", item.Path);
         }
         else
         {
-          ParseTrackitemAttribute(tagName, *attributes);
+          ParseTrackitemParameters(tagName, *parameters);
         }
       }
       if (!item.Path.empty())
       {
-        item.AdjustedParameters = attributes;
+        item.AdjustedParameters = parameters;
         Items->push_back(item);
       }
       return !XML.error();
@@ -176,26 +180,30 @@ namespace
       return FromQString(ConcatenatePath(BasePath, url.toString()));
     }
 
-    void ParseTrackitemAttribute(const QStringRef& attr, Parameters::Modifier& props)
+    void ParseTrackitemParameters(const QStringRef& attr, Parameters::Modifier& props)
     {
       assert(XML.isStartElement() && XML.name() == attr);
       if (attr == XSPF::ITEM_CREATOR_TAG)
       {
         const String author = ConvertString(XML.readElementText());
         props.SetStringValue(ZXTune::Module::ATTR_AUTHOR, author);
-      }
+        Log::Debug(THIS_MODULE, "  parsed author %1%", author);
+     }
       else if (attr == XSPF::ITEM_TITLE_TAG)
       {
         const String title = ConvertString(XML.readElementText());
         props.SetStringValue(ZXTune::Module::ATTR_TITLE, title);
+        Log::Debug(THIS_MODULE, "  parsed title %1%", title);
       }
       else if (attr == XSPF::ITEM_ANNOTATION_TAG)
       {
         const String annotation = ConvertString(XML.readElementText());
         props.SetStringValue(ZXTune::Module::ATTR_COMMENT, annotation);
+        Log::Debug(THIS_MODULE, "  parsed comment %1%", annotation);
       }
       else if (attr == XSPF::EXTENSION_TAG)
       {
+        Log::Debug(THIS_MODULE, "  parsing extension");
         ParseExtension(props);
       }
       else
@@ -223,16 +231,22 @@ namespace
         {
           XML.skipCurrentElement();
         }
-        const QStringRef& propName = XML.attributes().value(XSPF::EXTENDED_PROPERTY_NAME_ATTR);
+        const QXmlStreamAttributes attributes = XML.attributes();
+        const QStringRef& propName = attributes.value(XSPF::EXTENDED_PROPERTY_NAME_ATTR);
         const QString& propValue = XML.readElementText();
-        strings[FromQString(propName.toString())] = ConvertString(propValue);
+        const String propNameStr = FromQString(propName.toString());
+        const String propValStr = ConvertString(propValue);
+        strings[propNameStr] = propValStr;
+        Log::Debug(THIS_MODULE, "  parsing extended property %1%='%2%'", 
+          propNameStr, propValStr);
       }
       Parameters::ParseStringMap(strings, props);
     }
 
     bool CheckForZXTuneExtension()
     {
-      return XML.attributes().value(XSPF::APPLICATION_ATTR) == Text::PROGRAM_SITE;
+      const QXmlStreamAttributes attributes = XML.attributes();
+      return attributes.value(XSPF::APPLICATION_ATTR) == Text::PROGRAM_SITE;
     }
 
     String ConvertString(const QString& input) const
@@ -254,14 +268,15 @@ namespace
   Playlist::IO::Container::Ptr CreateXSPFPlaylist(Playlist::Item::DataProvider::Ptr provider,
     const QFileInfo& fileInfo)
   {
-    const QString basePath = fileInfo.absolutePath();
     QFile device(fileInfo.absoluteFilePath());
     if (!device.open(QIODevice::ReadOnly | QIODevice::Text))
     {
       assert(!"Failed to open playlist");
       return Playlist::IO::Container::Ptr();
     }
-    XSPFReader reader(basePath, device);
+    const QString basePath = fileInfo.absolutePath();
+    const QString autoName = fileInfo.baseName();
+    XSPFReader reader(basePath, autoName, device);
     if (!reader.Parse())
     {
       Log::Debug(THIS_MODULE, "Failed to parse");

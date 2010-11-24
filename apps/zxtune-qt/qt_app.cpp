@@ -15,6 +15,7 @@ Author:
 #include "ui/mainwindow.h"
 #include "ui/mainwindow_embedded.h"
 #include <apps/base/app.h>
+#include <apps/base/parsing.h>
 //qt includes
 #include <QtGui/QApplication>
 
@@ -24,10 +25,17 @@ inline void InitResources()
 }
 
 //external declaration
-QPointer<QMainWindow> CreateMainWindow(int arg, char* argv[]);
+QPointer<QMainWindow> CreateMainWindow(Parameters::Container::Ptr options, const StringArray& cmdline);
 
 namespace
 {
+  Parameters::Container::Ptr OpenConfigFile()
+  {
+    const Parameters::Container::Ptr result = Parameters::Container::Create();
+    ParseConfigFile(String(), *result);
+    return result;
+  }
+
   class QTApplication : public Application
   {
   public:
@@ -40,7 +48,10 @@ namespace
       QApplication qapp(argc, argv);
       InitResources();
       //main ui
-      QPointer<QMainWindow> win = CreateMainWindow(argc, argv);
+      const Parameters::Container::Ptr options = OpenConfigFile();
+      StringArray cmdline(argc - 1);
+      std::transform(argv + 1, argv + argc, cmdline.begin(), &FromStdString);
+      QPointer<QMainWindow> win = CreateMainWindow(options, cmdline);
       return qapp.exec();
     }
   };

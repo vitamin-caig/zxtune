@@ -24,7 +24,7 @@ class MainWindow : public QMainWindow
 {
   Q_OBJECT
 public:
-  static QPointer<MainWindow> Create(int argc, char* argv[]);
+  static QPointer<MainWindow> Create(Parameters::Container::Ptr options, const StringArray& cmdline);
 
 public slots:
   virtual void StartModule(ZXTune::Module::Player::ConstPtr) = 0;

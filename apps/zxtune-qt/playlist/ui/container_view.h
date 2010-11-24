@@ -14,6 +14,8 @@ Author:
 #ifndef ZXTUNE_QT_PLAYLIST_UI_CONTAINER_VIEW_H_DEFINED
 #define ZXTUNE_QT_PLAYLIST_UI_CONTAINER_VIEW_H_DEFINED
 
+//common includes
+#include <parameters.h>
 //qt includes
 #include <QtGui/QWidget>
 
@@ -36,7 +38,7 @@ namespace Playlist
       explicit ContainerView(QWidget& parent);
     public:
       //creator
-      static ContainerView* Create(QWidget& parent);
+      static ContainerView* Create(QWidget& parent, Parameters::Accessor::Ptr ioParams, Parameters::Accessor::Ptr coreParams);
 
       virtual void CreatePlaylist(const QStringList& items) = 0;
       virtual QMenu* GetActionsMenu() const = 0;

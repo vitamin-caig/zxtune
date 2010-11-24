@@ -28,8 +28,9 @@ namespace
   class PlaybackSupportImpl : public PlaybackSupport
   {
   public:
-    explicit PlaybackSupportImpl(QObject& parent)
+    PlaybackSupportImpl(QObject& parent, Parameters::Accessor::Ptr sndOptions)
       : PlaybackSupport(parent)
+      , SoundOptions(sndOptions)
     {
     }
 
@@ -144,11 +145,10 @@ namespace
       using namespace ZXTune;
       //create backend
       {
-        const Parameters::Accessor::Ptr soundParams = Parameters::Container::Create();
         for (Sound::BackendCreator::Iterator::Ptr backends = Sound::EnumerateBackends();
           backends->IsValid(); backends->Next())
         {
-          if (!backends->Get()->CreateBackend(soundParams, Backend))
+          if (!backends->Get()->CreateBackend(SoundOptions, Backend))
           {
             break;
           }
@@ -173,6 +173,7 @@ namespace
       OnSetBackend(*Backend);
     }
   private:
+    const Parameters::Accessor::Ptr SoundOptions;
     ZXTune::Sound::Backend::Ptr Backend;
     ZXTune::Module::Player::ConstPtr Player;
   };
@@ -182,8 +183,8 @@ PlaybackSupport::PlaybackSupport(QObject& parent) : QThread(&parent)
 {
 }
 
-PlaybackSupport* PlaybackSupport::Create(QObject& parent)
+PlaybackSupport* PlaybackSupport::Create(QObject& parent, Parameters::Accessor::Ptr sndOptions)
 {
   REGISTER_METATYPE(ZXTune::Module::Player::ConstPtr);
-  return new PlaybackSupportImpl(parent);
+  return new PlaybackSupportImpl(parent, sndOptions);
 }

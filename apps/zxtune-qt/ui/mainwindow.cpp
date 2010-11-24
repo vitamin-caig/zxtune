@@ -44,16 +44,17 @@ namespace
                        , public Ui::MainWindow
   {
   public:
-    MainWindowImpl(int argc, char* argv[])
-      : About(AboutDialog::Create(*this))
+    MainWindowImpl(Parameters::Container::Ptr options, const StringArray& cmdline)
+      : Options(options)
+      , About(AboutDialog::Create(*this))
       , Components(ComponentsDialog::Create(*this))
       , Controls(PlaybackControls::Create(*this))
       , Volume(VolumeControl::Create(*this))
       , Status(StatusControl::Create(*this))
       , Seeking(SeekControls::Create(*this))
       , Analyzer(AnalyzerControl::Create(*this))
-      , MultiPlaylist(Playlist::UI::ContainerView::Create(*this))
-      , Playback(PlaybackSupport::Create(*this))
+      , MultiPlaylist(Playlist::UI::ContainerView::Create(*this, Options, Options))
+      , Playback(PlaybackSupport::Create(*this, Options))
     {
       setupUi(this);
       //fill menu
@@ -103,10 +104,8 @@ namespace
       //TODO: remove
       {
         QStringList items;
-        for (int param = 1; param < argc; ++param)
-        {
-          items.append(QString::fromUtf8(argv[param]));
-        }
+        std::transform(cmdline.begin(), cmdline.end(),
+          std::back_inserter(items), &ToQString);
         MultiPlaylist->CreatePlaylist(items);
       }
     }
@@ -168,6 +167,7 @@ namespace
       return widget;
     }
   private:
+    const Parameters::Container::Ptr Options;
     AboutDialog* const About;
     ComponentsDialog* const Components;
     PlaybackControls* const Controls;
@@ -180,14 +180,14 @@ namespace
   };
 }
 
-QPointer<MainWindow> MainWindow::Create(int argc, char* argv[])
+QPointer<MainWindow> MainWindow::Create(Parameters::Container::Ptr options, const StringArray& cmdline)
 {
-  QPointer<MainWindow> res(new MainWindowImpl(argc, argv));
+  QPointer<MainWindow> res(new MainWindowImpl(options, cmdline));
   res->show();
   return res;
 }
 
-QPointer<QMainWindow> CreateMainWindow(int argc, char* argv[])
+QPointer<QMainWindow> CreateMainWindow(Parameters::Container::Ptr options, const StringArray& cmdline)
 {
-  return QPointer<QMainWindow>(MainWindow::Create(argc, argv));
+  return QPointer<QMainWindow>(MainWindow::Create(options, cmdline));
 }

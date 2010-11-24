@@ -107,6 +107,9 @@
         <property name="Program">SoundTrackerPro</property>
         <property name="Type">STP</property>
       </extension>
+      <extension application="http://zxtune.googlecode.com">
+        <property name="zxtune.sound.frequency">16000</property>
+      </extension>
     </track>
     <track>
       <creator>Voxel_triumph</creator>

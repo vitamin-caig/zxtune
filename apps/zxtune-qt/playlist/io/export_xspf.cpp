@@ -18,8 +18,11 @@ Author:
 //common includes
 #include <logging.h>
 //library includes
+#include <zxtune.h>
 #include <core/module_attrs.h>
 #include <sound/sound_parameters.h>
+//boost includes
+#include <boost/scoped_ptr.hpp>
 //qt includes
 #include <QtCore/QFile>
 #include <QtCore/QString>
@@ -43,18 +46,36 @@ namespace
 
   class ExtendedPropertiesSaver : public Parameters::Visitor
   {
+    class StringPropertySaver
+    {
+    public:
+      explicit StringPropertySaver(QXmlStreamWriter& xml)
+        : XML(xml)
+      {
+        XML.writeStartElement(XSPF::EXTENSION_TAG);
+        XML.writeAttribute(XSPF::APPLICATION_ATTR, Text::PROGRAM_SITE);
+      }
+
+      ~StringPropertySaver()
+      {
+        XML.writeEndElement();
+      }
+
+      void SaveProperty(const Parameters::NameType& name, const String& strVal)
+      {
+        XML.writeStartElement(XSPF::EXTENDED_PROPERTY_TAG);
+        XML.writeAttribute(XSPF::EXTENDED_PROPERTY_NAME_ATTR, ToQString(name));
+        XML.writeCharacters(ConvertString(strVal));
+        XML.writeEndElement();
+      }
+    private:
+      QXmlStreamWriter& XML;
+    };
   public:
-    explicit ExtendedPropertiesSaver(QXmlStreamWriter& xml, AttributesFilter filter = 0)
+    ExtendedPropertiesSaver(QXmlStreamWriter& xml, AttributesFilter filter = 0)
       : XML(xml)
       , Filter(filter)
     {
-      XML.writeStartElement(XSPF::EXTENSION_TAG);
-      XML.writeAttribute(XSPF::APPLICATION_ATTR, Text::PROGRAM_SITE);
-    }
-
-    virtual ~ExtendedPropertiesSaver()
-    {
-      XML.writeEndElement();
     }
 
     virtual void SetIntValue(const Parameters::NameType& name, Parameters::IntType val)
@@ -90,15 +111,17 @@ namespace
     template<class T>
     void SaveProperty(const Parameters::NameType& name, const T& value)
     {
+      if (!Saver)
+      {
+        Saver.reset(new StringPropertySaver(XML));
+      }
       const String strVal = Parameters::ConvertToString(value);
-      XML.writeStartElement(XSPF::EXTENDED_PROPERTY_TAG);
-      XML.writeAttribute(XSPF::EXTENDED_PROPERTY_NAME_ATTR, ToQString(name));
-      XML.writeCharacters(ConvertString(strVal));
-      XML.writeEndElement();
+      Saver->SaveProperty(name, strVal);
     }
   private:
     QXmlStreamWriter& XML;
     const AttributesFilter Filter;
+    boost::scoped_ptr<StringPropertySaver> Saver;
   };
 
   class ItemPropertiesSaver : private Parameters::Visitor
@@ -115,15 +138,23 @@ namespace
       XML.writeEndElement();
     }
 
-    void Process(const ZXTune::Module::Information& info)
+    void SaveModuleProperties(const ZXTune::Module::Information& info)
     {
       //save common properties
       const Parameters::Accessor::Ptr props = info.Properties();
+      Log::Debug(THIS_MODULE, " Save basic properties");
       props->Process(*this);
       SaveDuration(info, *props);
+      Log::Debug(THIS_MODULE, " Save extended properties");
       SaveExtendedProperties(*props);
     }
 
+    void SaveAdjustedParameters(const Parameters::Accessor& params)
+    {
+      Log::Debug(THIS_MODULE, " Save adjusted parameters");
+      ExtendedPropertiesSaver saver(XML, &KeepOnlyParameters);
+      params.Process(saver);
+    }
   private:
     virtual void SetIntValue(const Parameters::NameType& /*name*/, Parameters::IntType /*val*/)
     {
@@ -188,8 +219,15 @@ namespace
         name == ZXTune::Module::ATTR_COMMENT ||
         //skip redundand properties
         name == ZXTune::Module::ATTR_WARNINGS_COUNT ||
-        name == ZXTune::Module::ATTR_WARNINGS
+        name == ZXTune::Module::ATTR_WARNINGS ||
+        //skip mixed properties
+        !KeepOnlyParameters(name)
       ;
+    }
+
+    static bool KeepOnlyParameters(const Parameters::NameType& name)
+    {
+      return 0 != name.find(Parameters::ZXTune::PREFIX);
     }
 
     void SaveExtendedProperties(const Parameters::Accessor& props)
@@ -245,7 +283,10 @@ namespace
       const ZXTune::Module::Information::Ptr info = holder->GetModuleInformation();
 
       ItemPropertiesSaver saver(XML);
-      saver.Process(*info);
+      saver.SaveModuleProperties(*info);
+
+      const Parameters::Accessor::Ptr adjustedParams = item.GetAdjustedParameters();
+      saver.SaveAdjustedParameters(*adjustedParams);
     }
   private:
     QXmlStreamWriter XML;
