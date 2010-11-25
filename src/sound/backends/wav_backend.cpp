@@ -132,13 +132,6 @@ namespace
         intParam != 0;
     }
 
-    uint_t GetFrameDuration() const
-    {
-      Parameters::IntType res = Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT;
-      Accessor.FindIntValue(Parameters::ZXTune::Sound::FRAMEDURATION, res);
-      return static_cast<uint_t>(res);
-    }
-
     uint_t GetSplitPeriod() const
     {
       Parameters::IntType period = 0;
@@ -159,10 +152,10 @@ namespace
   class CuesheetLogger : public TrackProcessor
   {
   public:
-    explicit CuesheetLogger(const String& wavName, const WavBackendParameters& params)
+    explicit CuesheetLogger(const String& wavName, const RenderParameters& sndParams, const WavBackendParameters& wavParams)
       : File(IO::CreateFile(wavName + FILE_CUE_EXT, true))
-      , FrameDuration(params.GetFrameDuration())
-      , SplitPeriod(params.GetSplitPeriod())
+      , FrameDuration(sndParams.FrameDurationMicrosec())
+      , SplitPeriod(wavParams.GetSplitPeriod())
       , PrevPosition(~0)
       , PrevLine(0)
     {
@@ -347,7 +340,7 @@ namespace
   class ComplexTrackProcessor : public TrackProcessor
   {
   public:
-    ComplexTrackProcessor(const WavBackendParameters& backendParameters, const RenderParameters& soundParams, const Module::Information& info)
+    ComplexTrackProcessor(const RenderParameters& soundParams, const WavBackendParameters& backendParameters, const Module::Information& info)
     {
       //acquire name template
       const String nameTemplate = backendParameters.GetFilenameTemplate();
@@ -356,11 +349,11 @@ namespace
       const String fileName = InstantiateTemplate(nameTemplate, moduleFields);
       Log::Debug(THIS_MODULE, "Fixed filename template: '%1%'", fileName);
       const bool doRewrite = backendParameters.CheckIfRewrite();
-      Writer.reset(new FileWriter(soundParams.SoundFreq, fileName, doRewrite));
+      Writer.reset(new FileWriter(soundParams.SoundFreq(), fileName, doRewrite));
       //prepare cuesheet if required
       if (backendParameters.HasCuesheet())
       {
-        Logger.reset(new CuesheetLogger(fileName, backendParameters));
+        Logger.reset(new CuesheetLogger(fileName, soundParams, backendParameters));
       }
     }
 
@@ -390,8 +383,8 @@ namespace
                    , private boost::noncopyable
   {
   public:
-    WAVBackend()
-      : BackendParams(Parameters::Container::Create())
+    explicit WAVBackend(Parameters::Accessor::Ptr soundParams)
+      : BackendImpl(soundParams)
     {
     }
     virtual ~WAVBackend()
@@ -413,8 +406,8 @@ namespace
       if (Player)
       {
         const Module::Information::Ptr info = Player->GetInformation();
-        const WavBackendParameters backendParameters(*BackendParams);
-        Processor.reset(new ComplexTrackProcessor(backendParameters, RenderingParameters, *info));
+        const WavBackendParameters backendParameters(*SoundParameters);
+        Processor.reset(new ComplexTrackProcessor(*RenderingParameters, backendParameters, *info));
         State = Player->GetTrackState();
       }
     }
@@ -430,16 +423,6 @@ namespace
 
     virtual void OnResume()
     {
-    }
-
-    virtual void OnParametersChanged(const Parameters::Accessor& params)
-    {
-      if (Processor.get())
-      {
-        // changing any of the properties 'on fly' is not supported
-        throw Error(THIS_LINE, BACKEND_INVALID_PARAMETER, Text::SOUND_ERROR_BACKEND_INVALID_STATE);
-      }
-      params.Process(*BackendParams);
     }
 
     virtual bool OnRenderFrame()
@@ -460,7 +443,6 @@ namespace
 #endif
     }
   private:
-    const Parameters::Container::Ptr BackendParams;
     TrackProcessor::Ptr Processor;
     Module::TrackState::Ptr State;
 #ifdef BOOST_BIG_ENDIAN

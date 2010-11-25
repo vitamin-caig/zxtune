@@ -29,10 +29,8 @@ namespace ZXTune
     {
       SafeBackendWrapper(BackendInformation::Ptr info, Parameters::Accessor::Ptr params)
         : Information(info)
-        , Delegate(new Impl())
+        , Delegate(new Impl(params))
       {
-        //apply parameters to delegate
-        Delegate->SetParameters(*params);
         //perform fast test to detect if parameters are correct
         Delegate->OnStartup();
         Delegate->OnShutdown();

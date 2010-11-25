@@ -25,7 +25,7 @@ namespace ZXTune
   //forward declarations
   namespace Sound
   {
-    struct RenderParameters;
+    class RenderParameters;
   }
   
   namespace DAC

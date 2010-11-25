@@ -22,6 +22,7 @@ Author:
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/error_codes.h>
+#include <sound/sound_parameters.h>
 //platform-dependent includes
 #include <windows.h>
 //std includes
@@ -233,8 +234,9 @@ namespace
                      , private boost::noncopyable
   {
   public:
-    Win32Backend()
-      : Buffers(Parameters::ZXTune::Sound::Backends::Win32::BUFFERS_DEFAULT)
+    explicit Win32Backend(Parameters::Accessor::Ptr soundParams)
+      : BackendImpl(soundParams)
+      , Buffers(Parameters::ZXTune::Sound::Backends::Win32::BUFFERS_DEFAULT)
       , CurrentBuffer(&Buffers.front(), &Buffers.back() + 1)
       , Event(::CreateEvent(0, FALSE, FALSE, 0))
       //device identifier used for opening and volume control
@@ -297,7 +299,7 @@ namespace
 
       const bool deviceChanged = newDevice != Device;
       const bool buffersChanged = newBuffers != Buffers.size();
-      const bool freqChanged = newFreq != RenderingParameters.SoundFreq;
+      const bool freqChanged = newFreq != Format.nSamplesPerSec;
       if (deviceChanged || buffersChanged || freqChanged)
       {
         Locker lock(BackendMutex);
@@ -328,19 +330,18 @@ namespace
     void DoStartup()
     {
       assert(0 == WaveHandle);
-      ::WAVEFORMATEX wfx;
 
-      std::memset(&wfx, 0, sizeof(wfx));
-      wfx.wFormatTag = WAVE_FORMAT_PCM;
-      wfx.nChannels = OUTPUT_CHANNELS;
-      wfx.nSamplesPerSec = static_cast< ::DWORD>(RenderingParameters.SoundFreq);
-      wfx.nBlockAlign = sizeof(MultiSample);
-      wfx.nAvgBytesPerSec = wfx.nSamplesPerSec * wfx.nBlockAlign;
-      wfx.wBitsPerSample = 8 * sizeof(Sample);
+      std::memset(&Format, 0, sizeof(Format));
+      Format.wFormatTag = WAVE_FORMAT_PCM;
+      Format.nChannels = OUTPUT_CHANNELS;
+      Format.nSamplesPerSec = static_cast< ::DWORD>(RenderingParameters->SoundFreq());
+      Format.nBlockAlign = sizeof(MultiSample);
+      Format.nAvgBytesPerSec = Format.nSamplesPerSec * Format.nBlockAlign;
+      Format.wBitsPerSample = 8 * sizeof(Sample);
 
-      CheckMMResult(::waveOutOpen(&WaveHandle, static_cast< ::UINT>(Device), &wfx, DWORD_PTR(Event), 0,
+      CheckMMResult(::waveOutOpen(&WaveHandle, static_cast< ::UINT>(Device), &Format, DWORD_PTR(Event), 0,
         CALLBACK_EVENT | WAVE_FORMAT_DIRECT), THIS_LINE);
-      std::for_each(Buffers.begin(), Buffers.end(), boost::bind(&WaveBuffer::Allocate, _1, WaveHandle, Event, boost::cref(RenderingParameters)));
+      std::for_each(Buffers.begin(), Buffers.end(), boost::bind(&WaveBuffer::Allocate, _1, WaveHandle, Event, boost::cref(*RenderingParameters)));
       CheckPlatformResult(0 != ::ResetEvent(Event), THIS_LINE);
     }
 
@@ -360,6 +361,7 @@ namespace
     ::HANDLE Event;
     int_t Device;
     ::HWAVEOUT WaveHandle;
+    ::WAVEFORMATEX Format;
     VolumeControl::Ptr VolumeController;
   };
 

@@ -34,7 +34,6 @@ namespace ZXTune
       virtual void OnShutdown() = 0;
       virtual void OnPause() = 0;
       virtual void OnResume() = 0;
-      virtual void OnParametersChanged(const Parameters::Accessor& newParams) = 0;
       virtual void OnBufferReady(std::vector<MultiSample>& buffer) = 0;
       virtual bool OnRenderFrame() = 0;
     };
@@ -43,7 +42,7 @@ namespace ZXTune
     class BackendImpl : public BackendWorker
     {
     public:
-      BackendImpl();
+      explicit BackendImpl(Parameters::Accessor::Ptr soundParams);
       virtual ~BackendImpl();
 
       Error SetModule(Module::Holder::Ptr holder);
@@ -61,8 +60,6 @@ namespace ZXTune
 
       Error SetMixer(const std::vector<MultiGain>& data);
       Error SetFilter(Converter::Ptr converter);
-
-      void SetParameters(const Parameters::Accessor& params);
     protected:
       virtual bool OnRenderFrame();
     private:
@@ -79,7 +76,8 @@ namespace ZXTune
       void SendSignal(uint_t sig);
     protected:
       //inheritances' context
-      RenderParameters RenderingParameters;
+      const Parameters::Accessor::Ptr SoundParameters;
+      RenderParameters::Ptr RenderingParameters;
       Module::Player::Ptr Player;
     protected:
       //sync
@@ -98,7 +96,6 @@ namespace ZXTune
       volatile Backend::State CurrentState;
       volatile bool InProcess;//STOP => STOPPING, STARTED => STARTING
       Error RenderError;
-      const Parameters::Container::Ptr CurrentParameters;
       //context
       uint_t Channels;
       Converter::Ptr FilterObject;

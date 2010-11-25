@@ -37,6 +37,11 @@ namespace
                     , private boost::noncopyable
   {
   public:
+    explicit NullBackend(Parameters::Accessor::Ptr soundParams)
+      : BackendImpl(soundParams)
+    {
+    }
+
     VolumeControl::Ptr GetVolumeControl() const
     {
       return VolumeControl::Ptr();
@@ -55,10 +60,6 @@ namespace
     }
     
     virtual void OnResume()
-    {
-    }
-    
-    virtual void OnParametersChanged(const Parameters::Accessor& /*updates*/)
     {
     }
     

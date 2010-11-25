@@ -28,7 +28,7 @@ namespace ZXTune
 {
   namespace Sound
   {
-    struct RenderParameters;
+    class RenderParameters;
   }
 
   namespace Module

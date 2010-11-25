@@ -26,6 +26,7 @@ Author:
 #include <sound/backends_parameters.h>
 #include <sound/filter.h>
 #include <sound/render_params.h>
+#include <sound/sound_parameters.h>
 //std includes
 #include <algorithm>
 #include <cctype>

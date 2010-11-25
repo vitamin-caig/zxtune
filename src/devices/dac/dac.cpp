@@ -209,10 +209,10 @@ namespace
 
       // calculate new step
       std::for_each(State.begin(), State.end(),
-        boost::bind(&ChipImpl::CalcSampleStep, this, params.SoundFreq, _1));
+        boost::bind(&ChipImpl::CalcSampleStep, this, params.SoundFreq(), _1));
 
       // samples to apply
-      const uint_t doSamples = static_cast<uint_t>(uint64_t(src.Tick - CurrentTick) * params.SoundFreq / params.ClockFreq);
+      const uint_t doSamples = static_cast<uint_t>(uint64_t(src.Tick - CurrentTick) * params.SoundFreq() / params.ClockFreq());
 
       const std::const_mem_fun_ref_t<Sound::Sample, ChannelState> getter = src.Interpolate ?
         std::mem_fun_ref(&ChannelState::GetInterpolatedValue) : std::mem_fun_ref(&ChannelState::GetValue);

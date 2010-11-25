@@ -433,7 +433,7 @@ namespace
       DAC::DataChunk chunk;
       RenderData(chunk);
 
-      CurrentState = StateIterator->NextFrame(params.ClocksPerFrame(), params.Looping)
+      CurrentState = StateIterator->NextFrame(params.ClocksPerFrame(), params.Looping())
         ? MODULE_PLAYING : MODULE_STOPPED;
 
       chunk.Tick = StateIterator->AbsoluteTick();

@@ -39,12 +39,13 @@ namespace
   const String AYLPT_BACKEND_VERSION(FromStdString("$Rev$"));
 
   class AYLPTBackend : public BackendImpl
-                       , private boost::noncopyable
+                     , private boost::noncopyable
   {
   public:
     //TODO: parametrize
-    AYLPTBackend()
-      : RenderPos(0)
+    explicit AYLPTBackend(Parameters::Accessor::Ptr soundParams)
+      : BackendImpl(soundParams)
+      , RenderPos(0)
       , Dumper(DLPortIO::CreateDumper())
       , Stub(MultichannelReceiver::CreateStub())
     {
@@ -94,16 +95,12 @@ namespace
     {
     }
 
-    virtual void OnParametersChanged(const Parameters::Accessor& /*newParams*/)
-    {
-    }
-
     virtual bool OnRenderFrame()
     {
       Locker lock(PlayerMutex);
       //to update state
       Module::Player::PlaybackState state;
-      ThrowIfError(Player->RenderFrame(RenderingParameters, state, *Stub));
+      ThrowIfError(Player->RenderFrame(*RenderingParameters, state, *Stub));
       return Module::Player::MODULE_PLAYING == state &&
              DoOutput();
     }
@@ -138,7 +135,7 @@ namespace
         }
       }
       //wait for next frame time
-      const boost::system_time nextFrameTime = OutputTime + boost::posix_time::microseconds(RenderingParameters.FrameDurationMicrosec);
+      const boost::system_time nextFrameTime = OutputTime + boost::posix_time::microseconds(RenderingParameters->FrameDurationMicrosec());
       {
         //lock mutex and wait for unlocking (which never happends) until frame ends
         boost::mutex localMutex;

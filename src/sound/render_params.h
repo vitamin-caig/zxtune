@@ -10,8 +10,8 @@
 #ifndef __RENDER_PARAMS_H_DEFINED__
 #define __RENDER_PARAMS_H_DEFINED__
 
-//library includes
-#include <sound/sound_parameters.h>
+//common includes
+#include <parameters.h>
 
 namespace ZXTune
 {
@@ -29,37 +29,27 @@ namespace ZXTune
     };
 
     //! @brief Input parameters for rendering
-    struct RenderParameters
+    class RenderParameters
     {
-      // Fill with the default parameters
-      RenderParameters()
-        : ClockFreq(Parameters::ZXTune::Sound::CLOCKRATE_DEFAULT)
-        , SoundFreq(Parameters::ZXTune::Sound::FREQUENCY_DEFAULT)
-        , FrameDurationMicrosec(Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT)
-        , Looping(static_cast<LoopMode>(Parameters::ZXTune::Sound::LOOPMODE_DEFAULT))
-      {
-      }
+    public:
+      typedef boost::shared_ptr<const RenderParameters> Ptr;
+
+      virtual ~RenderParameters() {}
     
       //! Basic clock frequency for PSG
-      uint64_t ClockFreq;
+      virtual uint64_t ClockFreq() const = 0;
       //! Rendering sound frequency
-      uint_t SoundFreq;
+      virtual uint_t SoundFreq() const = 0;
       //! Frame duration in us
-      uint_t FrameDurationMicrosec;
+      virtual uint_t FrameDurationMicrosec() const = 0;
       //! Loop mode
-      LoopMode Looping;
+      virtual LoopMode Looping() const = 0;
+      //! PSG clocks count per one frame
+      virtual uint_t ClocksPerFrame() const = 0;
+      //! Sound samples count per one frame
+      virtual uint_t SamplesPerFrame() const = 0;
 
-      //! Calculating PSG clocks count per one frame
-      uint_t ClocksPerFrame() const
-      {
-        return static_cast<uint_t>(ClockFreq * FrameDurationMicrosec / 1000000);
-      }
-
-      //! Calculating sound samples count per one frame
-      uint_t SamplesPerFrame() const
-      {
-        return static_cast<uint_t>(SoundFreq * FrameDurationMicrosec / 1000000);
-      }
+      static Ptr Create(Parameters::Accessor::Ptr soundParameters);
     };
   }
 }

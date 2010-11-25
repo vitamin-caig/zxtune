@@ -100,25 +100,6 @@ namespace
     mutable boost::mutex Mutex;
   };
 
-  void UpdateRenderParameters(const Parameters::Accessor& params, RenderParameters& renderParams)
-  {
-    Parameters::IntType intVal = Parameters::ZXTune::Sound::FREQUENCY_DEFAULT;
-    params.FindIntValue(Parameters::ZXTune::Sound::FREQUENCY, intVal);
-    renderParams.SoundFreq = static_cast<uint_t>(intVal);
-
-    intVal = Parameters::ZXTune::Sound::CLOCKRATE_DEFAULT;
-    params.FindIntValue(Parameters::ZXTune::Sound::CLOCKRATE, intVal);
-    renderParams.ClockFreq = static_cast<uint64_t>(intVal);
-
-    intVal = Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT;
-    params.FindIntValue(Parameters::ZXTune::Sound::FRAMEDURATION, intVal);
-    renderParams.FrameDurationMicrosec = static_cast<uint_t>(intVal);
-
-    intVal = Parameters::ZXTune::Sound::LOOPMODE_DEFAULT;
-    if (params.FindIntValue(Parameters::ZXTune::Sound::LOOPMODE, intVal))
-    renderParams.Looping = static_cast<LoopMode>(intVal);
-  }
-
   class Unlocker
   {
   public:
@@ -158,13 +139,13 @@ namespace ZXTune
 {
   namespace Sound
   {
-    BackendImpl::BackendImpl()
-      : RenderingParameters()
+    BackendImpl::BackendImpl(Parameters::Accessor::Ptr soundParams)
+      : SoundParameters(soundParams)
+      , RenderingParameters(RenderParameters::Create(SoundParameters))
       , Player()
       , Signaller(SignalsDispatcher::Create())
       , SyncBarrier(TOTAL_WORKING_THREADS)
       , CurrentState(Backend::NOTOPENED), InProcess(false)
-      , CurrentParameters(Parameters::Container::Create())
       , Channels(0), Renderer(new BufferRenderer(Buffer))
     {
       MixersSet.resize(MAX_MIXERS_COUNT);
@@ -201,9 +182,8 @@ namespace ZXTune
             Log::Debug(THIS_MODULE, "Creating the player");
             Module::Player::Ptr tmpPlayer(new SafePlayerWrapper(holder->CreatePlayer()));
             StopPlayback();
-            const Parameters::Accessor::Ptr newParams = Parameters::CreateMergedAccessor(info->Properties(), CurrentParameters);
-            OnParametersChanged(*newParams);
-            UpdateRenderParameters(*newParams, RenderingParameters);
+            const Parameters::Accessor::Ptr newParams = Parameters::CreateMergedAccessor(info->Properties(), SoundParameters);
+            RenderingParameters = RenderParameters::Create(newParams);
             Player = tmpPlayer;
           }
           Channels = physicalChannels;
@@ -397,11 +377,6 @@ namespace ZXTune
       }
     }
 
-    void BackendImpl::SetParameters(const Parameters::Accessor& params)
-    {
-      params.Process(*CurrentParameters);
-    }
-
     //internal functions
     void BackendImpl::DoStartup()
     {
@@ -476,10 +451,10 @@ namespace ZXTune
         Locker lock(PlayerMutex);
         if (Mixer::Ptr mixer = MixersSet[Channels - 1])
         {
-          Buffer.reserve(RenderingParameters.SamplesPerFrame());
+          Buffer.reserve(RenderingParameters->SamplesPerFrame());
           Buffer.clear();
           Module::Player::PlaybackState state;
-          ThrowIfError(Player->RenderFrame(RenderingParameters, state, *mixer));
+          ThrowIfError(Player->RenderFrame(*RenderingParameters, state, *mixer));
           res = Module::Player::MODULE_PLAYING == state;
         }
       }

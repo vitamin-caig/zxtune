@@ -448,13 +448,15 @@ namespace
 
     void ApplyData(const Sound::RenderParameters& params, const DataChunk& data)
     {
+      const uint64_t newClocks = params.ClockFreq();
+      const uint_t newSound = params.SoundFreq();
       //for more precise rendering
-      if (TicksPerSec != params.ClockFreq ||
-          SoundFreq != params.SoundFreq)
+      if (TicksPerSec != newClocks ||
+          SoundFreq != newSound)
       {
         RenderStartTick = CurrentTick;
-        SoundFreq = params.SoundFreq;
-        TicksPerSec = params.ClockFreq;
+        TicksPerSec = newClocks;
+        SoundFreq = newSound;
         SamplesDone = 1;
         CalcNextSoundTick();
       }
@@ -504,7 +506,7 @@ namespace
                             const DataChunk& src,
                             Sound::MultichannelReceiver& dst)
     {
-      TicksPerSecond = params.ClockFreq;
+      TicksPerSecond = params.ClockFreq();
       Render.ApplyData(src);
       Clock.ApplyData(params, src);
       for (;;)

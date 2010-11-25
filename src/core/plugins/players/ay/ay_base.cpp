@@ -122,7 +122,7 @@ namespace
       synthesizer.InitData(StateIterator->AbsoluteTick() + ticksDelta);
       Renderer->SynthesizeData(*StateIterator, synthesizer);
 
-      CurrentState = StateIterator->NextFrame(ticksDelta, params.Looping)
+      CurrentState = StateIterator->NextFrame(ticksDelta, params.Looping())
         ? MODULE_PLAYING : MODULE_STOPPED;
 
       const AYM::DataChunk& chunk = synthesizer.GetData();
@@ -227,7 +227,7 @@ namespace
       synthesizer.InitData(StateIterator->AbsoluteTick() + ticksDelta);
       Renderer->SynthesizeData(*StateIterator, synthesizer);
 
-      CurrentState = StateIterator->NextFrame(ticksDelta, params.Looping)
+      CurrentState = StateIterator->NextFrame(ticksDelta, params.Looping())
         ? MODULE_PLAYING : MODULE_STOPPED;
 
       const AYM::DataChunk& chunk = synthesizer.GetData();

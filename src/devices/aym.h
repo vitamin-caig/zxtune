@@ -25,7 +25,7 @@ namespace ZXTune
   //forward declaration
   namespace Sound
   {
-    struct RenderParameters;
+    class RenderParameters;
   }
   
   namespace AYM

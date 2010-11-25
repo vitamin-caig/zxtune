@@ -71,6 +71,7 @@ namespace Parameters
   typedef Modifier Visitor;
 
   //! @brief Interface to give access to properties and parameters
+  //! @invariant If value is not changed, parameter is not affected
   class Accessor
   {
   public:
@@ -93,7 +94,8 @@ namespace Parameters
   // All accessed properties are prioritized by the first one
   Accessor::Ptr CreateMergedAccessor(Accessor::Ptr first, Accessor::Ptr second);
 
-  //! Service type to simply properties keep and give access
+  //! @brief Service type to simply properties keep and give access
+  //! @invariant Only last value is kept for multiple assignment
   class Container : public Accessor
                   , public Modifier
   {

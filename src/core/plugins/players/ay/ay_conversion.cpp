@@ -53,10 +53,11 @@ namespace ZXTune
       {
         Player::Ptr player(creator(chip));
         Sound::MultichannelReceiver::Ptr receiver = Sound::MultichannelReceiver::CreateStub();
-        Sound::RenderParameters params;
+        const Sound::RenderParameters::Ptr params = Sound::RenderParameters::Create(
+          Parameters::Container::Create());
         for (Player::PlaybackState state = Player::MODULE_PLAYING; Player::MODULE_PLAYING == state;)
         {
-          if (const Error& err = player->RenderFrame(params, state, *receiver))
+          if (const Error& err = player->RenderFrame(*params, state, *receiver))
           {
             result = Error(THIS_LINE, ERROR_MODULE_CONVERT, errMsg).AddSuberror(err);
             return true;
