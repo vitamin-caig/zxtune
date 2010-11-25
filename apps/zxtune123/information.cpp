@@ -165,15 +165,18 @@ namespace
     }
     else
     {
-      const Parameters::StringType* defValString = boost::get<const Parameters::StringType>(&opt.get<2>());
+      const String& optName = opt.get<0>();
+      const String& optDesc = opt.get<1>();
+      const ValueType& defVal = opt.get<2>();
+      const Parameters::StringType* defValString = boost::get<const Parameters::StringType>(&defVal);
       if (defValString && defValString->empty())
       {
-        StdOut << (Formatter(Text::INFO_OPTION_INFO) % opt.get<0>() % opt.get<1>()).str();
+        StdOut << (Formatter(Text::INFO_OPTION_INFO) % optName % optDesc).str();
       }
       else
       {
         StdOut << (Formatter(Text::INFO_OPTION_INFO_DEFAULTS)
-          % opt.get<0>() % opt.get<1>() % *defValString).str();
+          % optName % optDesc % defVal).str();
       }
     }
   }
