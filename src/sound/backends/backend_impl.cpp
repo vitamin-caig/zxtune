@@ -184,6 +184,7 @@ namespace ZXTune
             StopPlayback();
             const Parameters::Accessor::Ptr newParams = Parameters::CreateMergedAccessor(info->Properties(), SoundParameters);
             RenderingParameters = RenderParameters::Create(newParams);
+            OnParametersChanged(*newParams);
             Player = tmpPlayer;
           }
           Channels = physicalChannels;

@@ -24,6 +24,7 @@ Author:
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/error_codes.h>
+#include <sound/sound_parameters.h>
 //platform-specific includes
 #include <errno.h>
 #include <fcntl.h>
@@ -182,25 +183,18 @@ namespace
     {
     }
 
-    String GetDeviceName(const String& defVal) const
+    String GetDeviceName() const
     {
-      Parameters::StringType strVal = defVal;
+      Parameters::StringType strVal = Parameters::ZXTune::Sound::Backends::OSS::DEVICE_DEFAULT;
       Accessor.FindStringValue(Parameters::ZXTune::Sound::Backends::OSS::DEVICE, strVal);
       return strVal;
     }
 
-    String GetMixerName(const String& defVal) const
+    String GetMixerName() const
     {
-      Parameters::StringType strVal = defVal;
+      Parameters::StringType strVal = Parameters::ZXTune::Sound::Backends::OSS::MIXER_DEFAULT;
       Accessor.FindStringValue(Parameters::ZXTune::Sound::Backends::OSS::MIXER, strVal);
       return strVal;
-    }
-
-    uint_t GetFrequency(uint_t defVal) const
-    {
-      Parameters::IntType res = defVal;
-      Accessor.FindIntValue(Parameters::ZXTune::Sound::FREQUENCY, res);
-      return static_cast<uint_t>(res);
     }
   private:
     const Parameters::Accessor& Accessor;
@@ -211,10 +205,12 @@ namespace
                    , private boost::noncopyable
   {
   public:
-    OSSBackend()
-      : MixerName(Parameters::ZXTune::Sound::Backends::OSS::MIXER_DEFAULT)
+    explicit OSSBackend(Parameters::Accessor::Ptr soundParams)
+      : BackendImpl(soundParams)
+      , MixerName(Parameters::ZXTune::Sound::Backends::OSS::MIXER_DEFAULT)
       , DeviceName(Parameters::ZXTune::Sound::Backends::OSS::DEVICE_DEFAULT)
       , CurrentBuffer(Buffers.begin(), Buffers.end())
+      , Samplerate(RenderingParameters->SoundFreq())
       , VolumeController(new OSSVolumeControl(BackendMutex, MixHandle))
     {
     }
@@ -254,20 +250,24 @@ namespace
       const OSSBackendParameters curParams(updates);
 
       //check for parameters requires restarting
-      const String& newDevice = curParams.GetDeviceName(DeviceName);
-      const String& newMixer = curParams.GetMixerName(MixerName);
-      const uint_t newFreq = curParams.GetFrequency(RenderingParameters.SoundFreq);
+      const String& newDevice = curParams.GetDeviceName();
+      const String& newMixer = curParams.GetMixerName();
+      const uint_t newFreq = RenderingParameters->SoundFreq();
 
       const bool deviceChanged = newDevice != DeviceName;
       const bool mixerChanged = newMixer != MixerName;
-      const bool freqChanged = newFreq != RenderingParameters.SoundFreq;
+      const bool freqChanged = newFreq != Samplerate;
       if (deviceChanged || mixerChanged || freqChanged)
       {
         Locker lock(BackendMutex);
         const bool needStartup(-1 != DevHandle.Get());
         DoShutdown();
+        Log::Debug(THIS_MODULE, "Device %1% => %2%", DeviceName, newDevice);
         DeviceName = newDevice;
+        Log::Debug(THIS_MODULE, "Mixer %1% => %2%", MixerName, newMixer);
         MixerName = newMixer;
+        Log::Debug(THIS_MODULE, "Samplerate %1% => %2%", Samplerate, newFreq);
+        Samplerate = newFreq;
 
         if (needStartup)
         {
@@ -309,7 +309,8 @@ namespace
       tmp = OUTPUT_CHANNELS;
       tmpDevice.CheckResult(-1 != ::ioctl(tmpDevice.Get(), SNDCTL_DSP_CHANNELS, &tmp), THIS_LINE);
 
-      tmp = RenderingParameters.SoundFreq;
+      tmp = Samplerate;
+      Log::Debug(THIS_MODULE, "Setting frequency to %1%", Samplerate);
       tmpDevice.CheckResult(-1 != ::ioctl(tmpDevice.Get(), SNDCTL_DSP_SPEED, &tmp), THIS_LINE);
 
       DevHandle.Swap(tmpDevice);
@@ -331,6 +332,7 @@ namespace
     AutoDescriptor DevHandle;
     boost::array<std::vector<MultiSample>, 2> Buffers;
     CycledIterator<std::vector<MultiSample>*> CurrentBuffer;
+    uint_t Samplerate;
     VolumeControl::Ptr VolumeController;
   };
 

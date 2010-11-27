@@ -25,6 +25,7 @@ Author:
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/error_codes.h>
+#include <sound/sound_parameters.h>
 //platform-specific includes
 #include <alsa/asoundlib.h>
 #include <alsa/pcm.h>
@@ -338,23 +339,23 @@ namespace
     {
     }
 
-    String GetDeviceName(const String& defVal) const
+    String GetDeviceName() const
     {
-      Parameters::StringType strVal = defVal;
+      Parameters::StringType strVal = Parameters::ZXTune::Sound::Backends::ALSA::DEVICE_DEFAULT;
       Accessor.FindStringValue(Parameters::ZXTune::Sound::Backends::ALSA::DEVICE, strVal);
       return strVal;
     }
 
-    String GetMixerName(const String& defVal) const
+    String GetMixerName() const
     {
-      Parameters::StringType strVal = defVal;
+      Parameters::StringType strVal = Parameters::ZXTune::Sound::Backends::ALSA::DEVICE_DEFAULT;
       Accessor.FindStringValue(Parameters::ZXTune::Sound::Backends::ALSA::MIXER, strVal);
       return strVal;
     }
 
-    uint_t GetBuffersCount(uint_t defVal) const
+    uint_t GetBuffersCount() const
     {
-      Parameters::IntType val = defVal;
+      Parameters::IntType val = Parameters::ZXTune::Sound::Backends::ALSA::BUFFERS_DEFAULT;
       if (Accessor.FindIntValue(Parameters::ZXTune::Sound::Backends::ALSA::BUFFERS, val) &&
           (!in_range<Parameters::IntType>(val, BUFFERS_MIN, BUFFERS_MAX)))
       {
@@ -362,13 +363,6 @@ namespace
           Text::SOUND_ERROR_ALSA_BACKEND_INVALID_BUFFERS, static_cast<int_t>(val), BUFFERS_MIN, BUFFERS_MAX);
       }
       return static_cast<uint_t>(val);
-    }
-
-    uint_t GetFrequency(uint_t defVal) const
-    {
-      Parameters::IntType res = defVal;
-      Accessor.FindIntValue(Parameters::ZXTune::Sound::FREQUENCY, res);
-      return static_cast<uint_t>(res);
     }
   private:
     const Parameters::Accessor& Accessor;
@@ -378,9 +372,11 @@ namespace
                     , private boost::noncopyable
   {
   public:
-    AlsaBackend()
-      : DeviceName(Parameters::ZXTune::Sound::Backends::ALSA::DEVICE_DEFAULT)
+    explicit AlsaBackend(Parameters::Accessor::Ptr soundParams)
+      : BackendImpl(soundParams)
+      , DeviceName(Parameters::ZXTune::Sound::Backends::ALSA::DEVICE_DEFAULT)
       , Buffers(Parameters::ZXTune::Sound::Backends::ALSA::BUFFERS_DEFAULT)
+      , Samplerate(RenderingParameters->SoundFreq())
       , DevHandle()
       , MixHandle()
       , CanPause(0)
@@ -431,15 +427,15 @@ namespace
       const AlsaBackendParameters curParams(updates);
 
       //check for parameters requires restarting
-      const String& newDevice = curParams.GetDeviceName(DeviceName);
-      const String& newMixer = curParams.GetMixerName(MixerName);
-      const uint_t newBuffers = curParams.GetBuffersCount(Buffers);
-      const uint_t newFreq = curParams.GetFrequency(RenderingParameters.SoundFreq);
+      const String& newDevice = curParams.GetDeviceName();
+      const String& newMixer = curParams.GetMixerName();
+      const uint_t newBuffers = curParams.GetBuffersCount();
+      const uint_t newFreq = RenderingParameters->SoundFreq();
 
       const bool deviceChanged = newDevice != DeviceName;
       const bool mixerChanged = newMixer != MixerName;
       const bool buffersChanged = newBuffers != Buffers;
-      const bool freqChanged = newFreq != RenderingParameters.SoundFreq;
+      const bool freqChanged = newFreq != Samplerate;
       if (deviceChanged || mixerChanged || buffersChanged || freqChanged)
       {
         Locker lock(BackendMutex);
@@ -448,6 +444,7 @@ namespace
         DeviceName = newDevice;
         MixerName = newMixer;
         Buffers = static_cast<unsigned>(newBuffers);
+        Samplerate = newFreq;
 
         if (needStartup)
         {
@@ -508,14 +505,14 @@ namespace
       tmpDevice.CheckedCall(&::snd_pcm_hw_params_set_format, hwParams, fmt, THIS_LINE);
       Log::Debug(THIS_MODULE, "Setting channels");
       tmpDevice.CheckedCall(&::snd_pcm_hw_params_set_channels, hwParams, unsigned(OUTPUT_CHANNELS), THIS_LINE);
-      Log::Debug(THIS_MODULE, "Setting frequency to %1%", RenderingParameters.SoundFreq);
-      tmpDevice.CheckedCall(&::snd_pcm_hw_params_set_rate, hwParams, unsigned(RenderingParameters.SoundFreq), 0, THIS_LINE);
+      Log::Debug(THIS_MODULE, "Setting frequency to %1%", Samplerate);
+      tmpDevice.CheckedCall(&::snd_pcm_hw_params_set_rate, hwParams, Samplerate, 0, THIS_LINE);
       Log::Debug(THIS_MODULE, "Setting buffers count to %1%", Buffers);
       int dir = 0;
       tmpDevice.CheckedCall(&::snd_pcm_hw_params_set_periods_near, hwParams, &Buffers, &dir, THIS_LINE);
       Log::Debug(THIS_MODULE, "Actually set to %1%", Buffers);
 
-      snd_pcm_uframes_t minBufSize(Buffers * RenderingParameters.SamplesPerFrame());
+      snd_pcm_uframes_t minBufSize(Buffers * RenderingParameters->SamplesPerFrame());
       Log::Debug(THIS_MODULE, "Setting buffer size to %1% frames", minBufSize);
       tmpDevice.CheckedCall(&::snd_pcm_hw_params_set_buffer_size_near, hwParams, &minBufSize, THIS_LINE);
       Log::Debug(THIS_MODULE, "Actually set %1% frames", minBufSize);
@@ -545,6 +542,7 @@ namespace
     String DeviceName;
     String MixerName;
     unsigned Buffers;
+    unsigned Samplerate;
     AutoDevice DevHandle;
     AutoMixer MixHandle;
     bool CanPause;

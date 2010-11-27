@@ -66,6 +66,10 @@ namespace
     virtual void OnBufferReady(std::vector<MultiSample>& /*buffer*/)
     {
     }
+    
+    virtual void OnParametersChanged(const Parameters::Accessor& /*updates*/)
+    {
+    }
   };
 
   class NullBackendCreator : public BackendCreator

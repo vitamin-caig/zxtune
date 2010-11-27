@@ -32,6 +32,7 @@ namespace ZXTune
         , Delegate(new Impl(params))
       {
         //perform fast test to detect if parameters are correct
+        Delegate->OnParametersChanged(*params);
         Delegate->OnStartup();
         Delegate->OnShutdown();
       }

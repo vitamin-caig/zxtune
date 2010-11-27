@@ -442,6 +442,15 @@ namespace
       Processor->FinishFrame(buffer);
 #endif
     }
+
+    virtual void OnParametersChanged(const Parameters::Accessor& /*params*/)
+    {
+      if (Processor.get())
+      {
+        // changing any of the properties 'on fly' is not supported
+        throw Error(THIS_LINE, BACKEND_INVALID_PARAMETER, Text::SOUND_ERROR_BACKEND_INVALID_STATE);
+      }
+    }
   private:
     TrackProcessor::Ptr Processor;
     Module::TrackState::Ptr State;

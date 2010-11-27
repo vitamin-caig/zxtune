@@ -24,6 +24,7 @@ Author:
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/error_codes.h>
+#include <sound/sound_parameters.h>
 //platform-dependent includes
 #include <SDL/SDL.h>
 //boost includes
@@ -68,9 +69,9 @@ namespace
     {
     }
 
-    uint_t GetBuffersCount(uint_t defVal) const
+    uint_t GetBuffersCount() const
     {
-      Parameters::IntType val = defVal;
+      Parameters::IntType val = Parameters::ZXTune::Sound::Backends::SDL::BUFFERS_DEFAULT;
       if (Accessor.FindIntValue(Parameters::ZXTune::Sound::Backends::SDL::BUFFERS, val) &&
           (!in_range<Parameters::IntType>(val, BUFFERS_MIN, BUFFERS_MAX)))
       {
@@ -78,13 +79,6 @@ namespace
           Text::SOUND_ERROR_SDL_BACKEND_INVALID_BUFFERS, static_cast<int_t>(val), BUFFERS_MIN, BUFFERS_MAX);
       }
       return static_cast<uint_t>(val);
-    }
-
-    uint_t GetFrequency(uint_t defVal) const
-    {
-      Parameters::IntType res = defVal;
-      Accessor.FindIntValue(Parameters::ZXTune::Sound::FREQUENCY, res);
-      return static_cast<uint_t>(res);
     }
   private:
     const Parameters::Accessor& Accessor;
@@ -94,12 +88,14 @@ namespace
                    , private boost::noncopyable
   {
   public:
-    SDLBackend()
-      : WasInitialized(::SDL_WasInit(SDL_INIT_EVERYTHING))
+    explicit SDLBackend(Parameters::Accessor::Ptr soundParams)
+      : BackendImpl(soundParams)
+      , WasInitialized(::SDL_WasInit(SDL_INIT_EVERYTHING))
       , BuffersCount(Parameters::ZXTune::Sound::Backends::SDL::BUFFERS_DEFAULT)
       , Buffers(BuffersCount)
       , FillIter(&Buffers.front(), &Buffers.back() + 1)
       , PlayIter(FillIter)
+      , Samplerate(RenderingParameters->SoundFreq())
     {
       if (0 == WasInitialized)
       {
@@ -160,11 +156,11 @@ namespace
     {
       const SDLBackendParameters curParams(updates);
       //check for parameters requires restarting
-      const uint_t newBuffers = curParams.GetBuffersCount(BuffersCount);
-      const uint_t newFreq = curParams.GetFrequency(RenderingParameters.SoundFreq);
+      const uint_t newBuffers = curParams.GetBuffersCount();
+      const uint_t newFreq = RenderingParameters->SoundFreq();
 
       const bool buffersChanged = newBuffers != BuffersCount;
-      const bool freqChanged = newFreq != RenderingParameters.SoundFreq;
+      const bool freqChanged = newFreq != Samplerate;
       if (buffersChanged || freqChanged)
       {
         Locker lock(BackendMutex);
@@ -174,6 +170,7 @@ namespace
           ::SDL_CloseAudio();
         }
         BuffersCount = newBuffers;
+        Samplerate = newFreq;
 
         if (needStartup)
         {
@@ -214,9 +211,9 @@ namespace
         assert(!"Invalid format");
       }
 
-      format.freq = static_cast<int>(RenderingParameters.SoundFreq);
+      format.freq = Samplerate;
       format.channels = static_cast< ::Uint8>(OUTPUT_CHANNELS);
-      format.samples = BuffersCount * RenderingParameters.SamplesPerFrame();
+      format.samples = BuffersCount * RenderingParameters->SamplesPerFrame();
       //fix if size is not power of 2
       if (0 != (format.samples & (format.samples - 1)))
       {
@@ -277,6 +274,7 @@ namespace
     uint_t BuffersCount;
     std::vector<Buffer> Buffers;
     CycledIterator<Buffer*> FillIter, PlayIter;
+    uint_t Samplerate;
   };
 
   class SDLBackendCreator : public BackendCreator

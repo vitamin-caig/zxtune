@@ -36,6 +36,7 @@ namespace ZXTune
       virtual void OnResume() = 0;
       virtual void OnBufferReady(std::vector<MultiSample>& buffer) = 0;
       virtual bool OnRenderFrame() = 0;
+      virtual void OnParametersChanged(const Parameters::Accessor& updates) = 0;
     };
 
     // Internal implementation for backend
