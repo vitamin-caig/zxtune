@@ -33,6 +33,12 @@ namespace Playlist
       PAUSED,
       PLAYING
     };
+    
+    enum Playorder
+    {
+      LOOPED = 1,
+      RANDOMIZED = 2
+    };
 
     class Iterator : public QObject
     {
@@ -50,8 +56,8 @@ namespace Playlist
     public slots:
       //navigate
       virtual bool Reset(unsigned idx) = 0;
-      virtual bool Next() = 0;
-      virtual bool Prev() = 0;
+      virtual bool Next(unsigned playorderMode) = 0;
+      virtual bool Prev(unsigned playorderMode) = 0;
     signals:
       void OnItem(const Playlist::Item::Data&);
     };

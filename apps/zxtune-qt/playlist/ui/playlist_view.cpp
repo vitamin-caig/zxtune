@@ -73,6 +73,7 @@ namespace
       , Layout(new QVBoxLayout(this))
       , ScannerView(Playlist::UI::ScannerView::Create(*this, Controller->GetScanner()))
       , View(Playlist::UI::TableView::Create(*this, State, Controller->GetModel()))
+      , PlayorderMode(0)
     {
       //setup ui
       Layout->setSpacing(0);
@@ -123,7 +124,7 @@ namespace
     virtual void Finish()
     {
       const Playlist::Item::Iterator::Ptr iter = Controller->GetIterator();
-      if (!iter->Next())
+      if (!iter->Next(PlayorderMode))
       {
         Stop();
       }
@@ -132,13 +133,13 @@ namespace
     virtual void Next()
     {
       const Playlist::Item::Iterator::Ptr iter = Controller->GetIterator();
-      iter->Next();
+      iter->Next(PlayorderMode);
     }
 
     virtual void Prev()
     {
       const Playlist::Item::Iterator::Ptr iter = Controller->GetIterator();
-      iter->Prev();
+      iter->Prev(PlayorderMode);
     }
 
     virtual void Clear()
@@ -146,6 +147,30 @@ namespace
       const Playlist::Model::Ptr model = Controller->GetModel();
       model->Clear();
       Update();
+    }
+
+    virtual void SetIsLooped(bool enabled)
+    {
+      if (enabled)
+      {
+        PlayorderMode |= Playlist::Item::LOOPED;
+      }
+      else
+      {
+        PlayorderMode &= ~Playlist::Item::LOOPED;
+      }
+    }
+    
+    virtual void SetIsRandomized(bool enabled)
+    {
+      if (enabled)
+      {
+        PlayorderMode |= Playlist::Item::RANDOMIZED;
+      }
+      else
+      {
+        PlayorderMode &= ~Playlist::Item::RANDOMIZED;
+      }
     }
   private:
     void UpdateState(Playlist::Item::State state)
@@ -165,6 +190,7 @@ namespace
     QVBoxLayout* const Layout;
     Playlist::UI::ScannerView* const ScannerView;
     Playlist::UI::TableView* const View;
+    unsigned PlayorderMode;
   };
 }
 

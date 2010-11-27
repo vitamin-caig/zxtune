@@ -47,6 +47,9 @@ namespace Playlist
       virtual void Next() = 0;
       virtual void Prev() = 0;
       virtual void Clear() = 0;
+      
+      virtual void SetIsLooped(bool enabled) = 0;
+      virtual void SetIsRandomized(bool enabled) = 0;
     signals:
       void OnItemActivated(const Playlist::Item::Data&);
     };

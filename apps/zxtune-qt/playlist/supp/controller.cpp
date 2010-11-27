@@ -26,6 +26,12 @@ namespace
 {
   const std::string THIS_MODULE("Playlist::Controller");
 
+  unsigned Randomized(unsigned idx, unsigned total)
+  {
+    ::srand(::time(0) * idx);
+    return ::rand() % total;
+  }
+
   class ItemIteratorImpl : public Playlist::Item::Iterator
   {
   public:
@@ -50,9 +56,33 @@ namespace
 
     virtual bool Reset(unsigned idx)
     {
-      if (Playlist::Item::Data::Ptr item = Model->GetItem(idx))
+      if (SelectItem(idx))
       {
         Index = idx;
+        return true;
+      }
+      return false;
+    }
+
+    virtual bool Next(unsigned playorderMode)
+    {
+      return Navigate(Index + 1, playorderMode);
+    }
+
+    virtual bool Prev(unsigned playorderMode)
+    {
+      return Navigate(int(Index) - 1, playorderMode);
+    }
+
+    virtual void SetState(Playlist::Item::State state)
+    {
+      State = state;
+    }
+  private:
+    bool SelectItem(unsigned idx)
+    {
+      if (Playlist::Item::Data::Ptr item = Model->GetItem(idx))
+      {
         Item = item;
         State = Playlist::Item::STOPPED;
         OnItem(*Item);
@@ -60,21 +90,39 @@ namespace
       }
       return false;
     }
-
-    virtual bool Next()
+    
+    bool Navigate(int newIndex, unsigned playorderMode)
     {
-      return Reset(Index + 1);
-    }
-
-    virtual bool Prev()
-    {
-      return Index &&
-             Reset(Index - 1);
-    }
-
-    virtual void SetState(Playlist::Item::State state)
-    {
-      State = state;
+      const unsigned itemsCount = Model->CountItems();
+      if (!itemsCount)
+      {
+        return false;
+      }
+      const bool isEnd = newIndex > int(itemsCount) || newIndex < 0;
+      if (isEnd)
+      {
+        if (Playlist::Item::LOOPED == (playorderMode & Playlist::Item::LOOPED))
+        {
+          newIndex = (newIndex + itemsCount) % itemsCount;
+        }
+        else
+        {
+          return false;
+        }
+      }
+      const bool isRandom = Playlist::Item::RANDOMIZED == (playorderMode & Playlist::Item::RANDOMIZED);
+      const unsigned mappedIndex = isRandom 
+        ? Randomized(newIndex, itemsCount)
+        : newIndex;
+      if (SelectItem(mappedIndex))
+      {
+        Index = newIndex;
+        return true;
+      }
+      else
+      {
+        return false;
+      }
     }
   private:
     const Playlist::Model::Ptr Model;

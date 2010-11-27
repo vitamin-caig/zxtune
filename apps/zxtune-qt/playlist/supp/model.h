@@ -42,6 +42,7 @@ namespace Playlist
     static Ptr Create(QObject& parent);
 
     //accessors
+    virtual unsigned CountItems() const = 0;
     virtual Item::Data::Ptr GetItem(unsigned index) const = 0;
     virtual Item::Data::Iterator::Ptr GetItems() const = 0;
     virtual Item::Data::Iterator::Ptr GetItems(const QSet<unsigned>& items) const = 0;

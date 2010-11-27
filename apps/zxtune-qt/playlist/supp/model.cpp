@@ -334,6 +334,11 @@ namespace
     }
 
     //new virtuals
+    virtual unsigned CountItems() const
+    {
+      return Container->CountItems();
+    }
+    
     virtual Playlist::Item::Data::Ptr GetItem(unsigned index) const
     {
       QMutexLocker locker(&Synchronizer);

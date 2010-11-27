@@ -354,9 +354,9 @@ namespace
       ActionsMenu->addAction(actionClosePlaylist);
       ActionsMenu->addSeparator();
       ActionsMenu->addAction(actionClearPlaylist);
-      //ActionsMenu->addSeparator();
-      //ActionsMenu->addAction(actionLoop);
-      //ActionsMenu->addAction(actionRandom);
+      ActionsMenu->addSeparator();
+      ActionsMenu->addAction(actionLoop);
+      ActionsMenu->addAction(actionRandom);
     }
 
     Playlist::UI::View& CreateAnonymousPlaylist()
@@ -372,6 +372,8 @@ namespace
       widgetsContainer->addTab(plView, playlist->GetName());
       this->connect(plView, SIGNAL(OnItemActivated(const Playlist::Item::Data&)),
         SLOT(PlaylistItemActivated(const Playlist::Item::Data&)));
+      plView->connect(actionLoop, SIGNAL(triggered(bool)), SLOT(SetIsLooped(bool)));
+      plView->connect(actionRandom, SIGNAL(triggered(bool)), SLOT(SetIsRandomized(bool)));
       if (!ActivePlaylistView)
       {
         ActivePlaylistView = plView;
