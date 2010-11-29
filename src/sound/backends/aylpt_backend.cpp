@@ -87,6 +87,10 @@ namespace
     {
     }
 
+    virtual void OnParametersChanged(const Parameters::Accessor&)
+    {
+    }
+
     virtual void OnPause()
     {
     }
