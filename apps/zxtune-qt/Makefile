@@ -45,6 +45,7 @@ qt_libraries += Network
 endif
 
 #packaging
+pkg_additional_files := ../zxtune.conf
 pkg_additional_files_linux := dist/linux/zxTune.desktop res/zxtune.png
 pkg_additional_files_dingux := $(wildcard dist/dingux/dmenu/*) $(wildcard dist/dingux/gmenu/*) $(wildcard dist/dingux/fonts/*) \
                                dist/dingux/zxtune-wrapper.sh dist/dingux/readme.txt res/zxtune32.png
