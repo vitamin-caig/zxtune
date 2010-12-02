@@ -28,7 +28,7 @@ namespace
 {
   const std::string THIS_MODULE("Playlist::UI::View");
 
-  class PlayitemStateCallbackImpl : public Playlist::UI::TableViewStateCallback
+  class PlayitemStateCallbackImpl : public Playlist::Item::StateCallback
   {
   public:
     explicit PlayitemStateCallbackImpl(Playlist::Item::Iterator& iter)
@@ -36,28 +36,22 @@ namespace
     {
     }
 
-    virtual bool IsPlaying(const QModelIndex& index) const
+    virtual Playlist::Item::State GetState(const QModelIndex& index) const
     {
       assert(index.isValid());
-      if (const Playlist::Item::Data* operationalItem = Iterator.GetData())
+      if (const Playlist::Item::Data* const indexItem = static_cast<const Playlist::Item::Data*>(index.internalPointer()))
       {
-        const Playlist::Item::Data* const indexItem = static_cast<const Playlist::Item::Data*>(index.internalPointer());
-        return indexItem == operationalItem &&
-               Iterator.GetState() == Playlist::Item::PLAYING;
+        const Playlist::Item::Data* operationalItem = Iterator.GetData();
+        if (indexItem == operationalItem)
+        {
+          return Iterator.GetState();
+        }
+        else if (indexItem->IsValid())
+        {
+          return Playlist::Item::STOPPED;
+        }
       }
-      return false;
-    }
-
-    virtual bool IsPaused(const QModelIndex& index) const
-    {
-      assert(index.isValid());
-      if (const Playlist::Item::Data* operationalItem = Iterator.GetData())
-      {
-        const Playlist::Item::Data* const indexItem = static_cast<const Playlist::Item::Data*>(index.internalPointer());
-        return indexItem == operationalItem &&
-               Iterator.GetState() == Playlist::Item::PAUSED;
-      }
-      return false;
+      return Playlist::Item::ERROR;
     }
   private:
     const Playlist::Item::Iterator& Iterator;

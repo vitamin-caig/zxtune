@@ -40,13 +40,6 @@ namespace
 {
   const std::string THIS_MODULE("Playlist::IO::AYL");
 
-  String ConcatenatePath(const String& baseDirPath, const String& subPath)
-  {
-    const QDir baseDir(ToQString(baseDirPath));
-    const QFileInfo file(baseDir, ToQString(subPath));
-    return FromQString(file.canonicalFilePath());
-  }
-
   /*
     Versions:
     0 -
@@ -113,8 +106,11 @@ namespace
   public:
     explicit AYLContainer(const StringArray& lines)
       : Container(boost::make_shared<AYLEntries>())
+      , Parameters()
     {
       LinesIterator iter(lines.begin(), lines.end());
+      //parse playlist parameters
+      while (ParseParameters(iter, Parameters)) {}
       while (iter)
       {
         AYLEntry entry;
@@ -163,6 +159,11 @@ namespace
     {
       return Iterator(Container);
     }
+
+    const StringMap& GetParameters() const
+    {
+      return Parameters;
+    }
   private:
     static bool ParseParameters(LinesIterator& iter, StringMap& parameters)
     {
@@ -207,6 +208,7 @@ namespace
     }
   private:
     const boost::shared_ptr<AYLEntries> Container;
+    StringMap Parameters;
   };
 
   class ParametersFilter : public Parameters::Modifier
@@ -318,17 +320,26 @@ namespace
     Parameters::Modifier& Delegate;
   };
 
-  Playlist::IO::ContainerItemsPtr CreateItemsFromStrings(const String& basePath, int vers, const StringArray& lines)
+  Parameters::Container::Ptr CreateProperties(const VersionLayer& version, const AYLContainer& aylItems)
   {
-    const AYLContainer aylItems(lines);
-    const VersionLayer version(vers);
+    const Parameters::Container::Ptr properties = Parameters::Container::Create();
+    ParametersFilter filter(version, *properties);
+    const StringMap& listParams = aylItems.GetParameters();
+    Parameters::ParseStringMap(listParams, filter);
+    return properties;
+  }
+
+  Playlist::IO::ContainerItemsPtr CreateItems(const QString& basePath, const VersionLayer& version, const AYLContainer& aylItems)
+  {
+    const QDir baseDir(basePath);
     const boost::shared_ptr<Playlist::IO::ContainerItems> items = boost::make_shared<Playlist::IO::ContainerItems>();
     for (AYLContainer::Iterator iter = aylItems.GetIterator(); iter.IsValid(); iter.Next())
     {
       const String& itemPath = iter.GetPath();
       Log::Debug(THIS_MODULE, "Processing '%1%'", itemPath);
       Playlist::IO::ContainerItem item;
-      item.Path = ConcatenatePath(basePath, itemPath);
+      const QString absItemPath = baseDir.absoluteFilePath(ToQString(itemPath));
+      item.Path = FromQString(baseDir.cleanPath(absItemPath));
       const Parameters::Container::Ptr adjustedParams = Parameters::Container::Create();
       ParametersFilter filter(version, *adjustedParams);
       const StringMap& itemParams = iter.GetParameters();
@@ -378,10 +389,11 @@ namespace Playlist
         const QString line = stream.readLine(0).simplified();
         lines.push_back(FromQString(line));
       }
-      const String basePath = FromQString(info.absolutePath());
-
-      const Parameters::Container::Ptr properties = Parameters::Container::Create();
-      const ContainerItemsPtr items = CreateItemsFromStrings(basePath, vers, lines);
+      const QString basePath = info.absolutePath();
+      const VersionLayer version(vers);
+      const AYLContainer aylItems(lines);
+      const ContainerItemsPtr items = CreateItems(basePath, version, aylItems);
+      const Parameters::Container::Ptr properties = CreateProperties(version, aylItems);
       properties->SetStringValue(Playlist::ATTRIBUTE_NAME, FromQString(info.baseName()));
       properties->SetIntValue(Playlist::ATTRIBUTE_SIZE, items->size());
       return Playlist::IO::CreateContainer(provider, properties, items);

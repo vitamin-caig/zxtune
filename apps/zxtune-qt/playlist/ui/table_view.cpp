@@ -13,6 +13,7 @@ Author:
 
 //local includes
 #include "table_view.h"
+#include "playlist/supp/controller.h"
 #include "playlist/supp/model.h"
 //common includes
 #include <logging.h>
@@ -38,16 +39,15 @@ namespace
   class TableViewImpl : public Playlist::UI::TableView
   {
   public:
-    TableViewImpl(QWidget& parent, const Playlist::UI::TableViewStateCallback& callback,
+    TableViewImpl(QWidget& parent, const Playlist::Item::StateCallback& callback,
       Playlist::Model::Ptr model)
       : Playlist::UI::TableView(parent)
-      , Callback(callback)
       , Model(model)
       , Font(QString::fromUtf8(FONT_FAMILY), FONT_SIZE)
     {
       //setup self
       setModel(Model);
-      setItemDelegate(Playlist::UI::TableViewItem::Create(*this, Callback));
+      setItemDelegate(Playlist::UI::TableViewItem::Create(*this, callback));
       setFont(Font);
       //setup ui
       setAcceptDrops(true);
@@ -124,7 +124,6 @@ namespace
       Model->RemoveItems(indexes);
     }
   private:
-    const Playlist::UI::TableViewStateCallback& Callback;
     const Playlist::Model::Ptr Model;
     QFont Font;
   };
@@ -133,7 +132,7 @@ namespace
   {
   public:
     TableViewItemImpl(QWidget& parent, 
-      const Playlist::UI::TableViewStateCallback& callback)
+      const Playlist::Item::StateCallback& callback)
       : Playlist::UI::TableViewItem(parent)
       , Callback(callback)
       , Palette()
@@ -149,22 +148,58 @@ namespace
   private:
     void FillItemStyle(const QModelIndex& index, QStyleOptionViewItem& style) const
     {
+      //disable focus to remove per-cell dotted border
       style.state &= ~QStyle::State_HasFocus;
-      const bool isSelected = 0 != (style.state & QStyle::State_Selected);
-      const bool isPaused = Callback.IsPaused(index);
-      const bool isPlaying = Callback.IsPlaying(index);
-      if (isPaused || isPlaying)
+      const Playlist::Item::State state = Callback.GetState(index);
+      if (state == Playlist::Item::STOPPED)
       {
-        style.state |= QStyle::State_Selected;
-        const QBrush& bgBrush = isPaused ? Palette.mid() : Palette.text();
-        const QBrush& txtBrush = isSelected ? Palette.highlight() : Palette.base();
-        QPalette& palette = style.palette;
-        palette.setBrush(QPalette::Highlight, bgBrush);
-        palette.setBrush(QPalette::HighlightedText, txtBrush);
+        return;
+      }
+      const QBrush& textColor = Palette.text();
+      const QBrush& baseColor = Palette.base();
+      const QBrush& highlightColor = Palette.highlight();
+      const QBrush& disabledColor = Palette.mid();
+
+      QPalette& palette = style.palette;
+      const bool isSelected = 0 != (style.state & QStyle::State_Selected);
+      //force selection to apply only 2 brushes instead of 3
+      style.state |= QStyle::State_Selected;
+
+      switch (state)
+      {
+      case Playlist::Item::PLAYING:
+        {
+          //invert, propagate selection to text
+          const QBrush& itemText = isSelected ? highlightColor : baseColor;
+          const QBrush& itemBack = textColor;
+          palette.setBrush(QPalette::HighlightedText, itemText);
+          palette.setBrush(QPalette::Highlight, itemBack);
+        }
+        break;
+      case Playlist::Item::PAUSED:
+        {
+          //disable bg, propagate selection to text
+          const QBrush& itemText = isSelected ? highlightColor : baseColor;
+          const QBrush& itemBack = disabledColor;
+          palette.setBrush(QPalette::HighlightedText, itemText);
+          palette.setBrush(QPalette::Highlight, itemBack);
+        }
+        break;
+      case Playlist::Item::ERROR:
+        {
+          //disable text
+          const QBrush& itemText = disabledColor;
+          const QBrush& itemBack = isSelected ? highlightColor : baseColor;
+          palette.setBrush(QPalette::HighlightedText, itemText);
+          palette.setBrush(QPalette::Highlight, itemBack);
+        }
+        break;
+      default:
+        assert(!"Invalid playitem state");
       }
     }
   private:
-    const Playlist::UI::TableViewStateCallback& Callback;
+    const Playlist::Item::StateCallback& Callback;
     QPalette Palette;
   };
 }
@@ -177,7 +212,7 @@ namespace Playlist
     {
     }
 
-    TableViewItem* TableViewItem::Create(QWidget& parent, const TableViewStateCallback& callback)
+    TableViewItem* TableViewItem::Create(QWidget& parent, const Item::StateCallback& callback)
     {
       return new TableViewItemImpl(parent, callback);
     }
@@ -186,7 +221,7 @@ namespace Playlist
     {
     }
 
-    TableView* TableView::Create(QWidget& parent, const TableViewStateCallback& callback, Playlist::Model::Ptr model)
+    TableView* TableView::Create(QWidget& parent, const Item::StateCallback& callback, Playlist::Model::Ptr model)
     {
       return new TableViewImpl(parent, callback, model);
     }

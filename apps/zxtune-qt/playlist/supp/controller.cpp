@@ -32,14 +32,16 @@ namespace
     return ::rand() % total;
   }
 
+  const unsigned NO_INDEX = ~0;
+
   class ItemIteratorImpl : public Playlist::Item::Iterator
   {
   public:
     ItemIteratorImpl(QObject& parent, Playlist::Model::Ptr model)
       : Playlist::Item::Iterator(parent)
       , Model(model)
-      , Index(0)
-      , Item(Model->GetItem(Index))
+      , Index(NO_INDEX)
+      , Item()
       , State(Playlist::Item::STOPPED)
     {
     }
@@ -54,24 +56,23 @@ namespace
       return State;
     }
 
-    virtual bool Reset(unsigned idx)
+    virtual void Reset(unsigned idx)
     {
-      if (SelectItem(idx))
-      {
-        Index = idx;
-        return true;
-      }
-      return false;
+      SelectItem(idx);
     }
 
     virtual bool Next(unsigned playorderMode)
     {
-      return Navigate(Index + 1, playorderMode);
+      return 
+        Index != NO_INDEX &&
+        Navigate(Index + 1, playorderMode);
     }
 
     virtual bool Prev(unsigned playorderMode)
     {
-      return Navigate(int(Index) - 1, playorderMode);
+      return 
+        Index != NO_INDEX &&
+        Navigate(int(Index) - 1, playorderMode);
     }
 
     virtual void SetState(Playlist::Item::State state)
@@ -84,8 +85,16 @@ namespace
       if (Playlist::Item::Data::Ptr item = Model->GetItem(idx))
       {
         Item = item;
-        State = Playlist::Item::STOPPED;
-        OnItem(*Item);
+        Index = idx;
+        if (Item->IsValid())
+        {
+          State = Playlist::Item::STOPPED;
+          OnItem(*Item);
+        }
+        else
+        {
+          State = Playlist::Item::ERROR;
+        }
         return true;
       }
       return false;
@@ -114,15 +123,7 @@ namespace
       const unsigned mappedIndex = isRandom 
         ? Randomized(newIndex, itemsCount)
         : newIndex;
-      if (SelectItem(mappedIndex))
-      {
-        Index = newIndex;
-        return true;
-      }
-      else
-      {
-        return false;
-      }
+      return SelectItem(mappedIndex);
     }
   private:
     const Playlist::Model::Ptr Model;

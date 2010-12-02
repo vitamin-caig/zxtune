@@ -149,6 +149,14 @@ namespace
       SaveExtendedProperties(*props);
     }
 
+    void SaveStubModuleProperties(const Parameters::Accessor& props)
+    {
+      Log::Debug(THIS_MODULE, " Save basic stub properties");
+      props.Process(*this);
+      Log::Debug(THIS_MODULE, " Save stub extended properties");
+      SaveExtendedProperties(props);
+    }
+
     void SaveAdjustedParameters(const Parameters::Accessor& params)
     {
       Log::Debug(THIS_MODULE, " Save adjusted parameters");
@@ -279,13 +287,18 @@ namespace
     void WriteItem(const Playlist::Item::Data& item)
     {
       Log::Debug(THIS_MODULE, "Save playitem");
-      const ZXTune::Module::Holder::Ptr holder = item.GetModule();
-      const ZXTune::Module::Information::Ptr info = holder->GetModuleInformation();
-
       ItemPropertiesSaver saver(XML);
-      saver.SaveModuleProperties(*info);
-
       const Parameters::Accessor::Ptr adjustedParams = item.GetAdjustedParameters();
+      if (const ZXTune::Module::Holder::Ptr holder = item.GetModule())
+      {
+        const ZXTune::Module::Information::Ptr info = holder->GetModuleInformation();
+
+        saver.SaveModuleProperties(*info);
+      }
+      else
+      {
+        saver.SaveStubModuleProperties(*adjustedParams);
+      }
       saver.SaveAdjustedParameters(*adjustedParams);
     }
   private:

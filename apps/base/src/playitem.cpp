@@ -242,6 +242,13 @@ Parameters::Accessor::Ptr CreatePathProperties(const String& path, const String&
   return boost::make_shared<PathPropertiesAccessor>(path, subpath);
 }
 
+Parameters::Accessor::Ptr CreatePathProperties(const String& fullpath)
+{
+  String path, subpath;
+  ThrowIfError(ZXTune::IO::SplitUri(fullpath, path, subpath));
+  return CreatePathProperties(path, subpath);
+}
+
 ZXTune::Module::Information::Ptr CreateMixinPropertiesInformation(ZXTune::Module::Information::Ptr info, Parameters::Accessor::Ptr mixinProps)
 {
   return boost::make_shared<MixinPropertiesInfo>(info, mixinProps);

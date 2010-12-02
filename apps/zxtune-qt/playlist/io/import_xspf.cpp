@@ -44,18 +44,11 @@ namespace
     VERSION_WITH_TEXT_FIELDS_ESCAPING = 1
   };
 
-  QString ConcatenatePath(const QString& baseDirPath, const QString& subPath)
-  {
-    const QDir baseDir(baseDirPath);
-    const QFileInfo file(baseDir, subPath);
-    return file.canonicalFilePath();
-  }
-
   class XSPFReader
   {
   public:
     XSPFReader(const QString& basePath, const QString& autoName, QIODevice& device)
-      : BasePath(basePath)
+      : BaseDir(basePath)
       , XML(&device)
       , Version(0)
       , Properties(Parameters::Container::Create())
@@ -177,7 +170,8 @@ namespace
     {
       assert(XML.isStartElement() && XML.name() == XSPF::ITEM_LOCATION_TAG);
       const QUrl url(XML.readElementText());
-      return FromQString(ConcatenatePath(BasePath, url.toString()));
+      const QString& itemLocation = BaseDir.absoluteFilePath(url.toString());
+      return FromQString(BaseDir.cleanPath(itemLocation));
     }
 
     void ParseTrackitemParameters(const QStringRef& attr, Parameters::Modifier& props)
@@ -257,7 +251,7 @@ namespace
       return FromQString(decoded);
     }
   private:
-    const QString BasePath;
+    const QDir BaseDir;
     QXmlStreamReader XML;
     //context
     Parameters::IntType Version;

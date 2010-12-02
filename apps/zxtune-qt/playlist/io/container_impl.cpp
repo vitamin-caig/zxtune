@@ -13,6 +13,7 @@ Author:
 
 //local includes
 #include "container_impl.h"
+#include <apps/base/playitem.h>
 //common includes
 #include <error.h>
 #include <logging.h>
@@ -26,10 +27,16 @@ namespace
   class CollectorStub : public Playlist::Item::DetectParameters
   {
   public:
+    explicit CollectorStub(const Parameters::Accessor& params)
+      : Params(params)
+    {
+    }
+
     virtual bool ProcessItem(Playlist::Item::Data::Ptr item)
     {
       assert(!Item);
       Item = item;
+      Params.Process(*Item->GetAdjustedParameters());
       return false;
     }
 
@@ -46,24 +53,159 @@ namespace
       return Item;
     }
   private:
+    const Parameters::Accessor& Params;
     Playlist::Item::Data::Ptr Item;
   };
 
-  Playlist::Item::Data::Ptr OpenItem(const Playlist::Item::DataProvider& provider, const Playlist::IO::ContainerItem& item)
+  class StubData : public Playlist::Item::Data
   {
-    CollectorStub collector;
-    //error is ignored, just take from collector
-    provider.DetectModules(item.Path, collector);
-    if (const Playlist::Item::Data::Ptr realItem = collector.GetItem())
+  public:
+    StubData(const String& path, const Parameters::Accessor& params)
+      : Path(path)
+      , Params(Parameters::Container::Create())
     {
-      Log::Debug(THIS_MODULE, "Opened '%1%'", item.Path);
-      const Parameters::Container::Ptr newParams = realItem->GetAdjustedParameters();
-      item.AdjustedParameters->Process(*newParams);
-      return realItem;
+      params.Process(*Params);
+      const Parameters::Accessor::Ptr pathProps = CreatePathProperties(path);
+      pathProps->Process(*Params);
     }
-    Log::Debug(THIS_MODULE, "Failed to open '%1%'", item.Path);
-    return Playlist::Item::Data::Ptr();
-  }
+
+    //common
+    virtual ZXTune::Module::Holder::Ptr GetModule() const
+    {
+      return ZXTune::Module::Holder::Ptr();
+    }
+
+    virtual Parameters::Container::Ptr GetAdjustedParameters() const
+    {
+      return Params;
+    }
+
+    //playlist-related
+    virtual bool IsValid() const
+    {
+      return false;
+    }
+
+    virtual String GetType() const
+    {
+      return String();
+    }
+
+    virtual String GetTitle() const
+    {
+      return Path;
+    }
+
+    virtual unsigned GetDurationValue() const
+    {
+      return 0;
+    }
+
+    virtual String GetDurationString() const
+    {
+      return String();
+    }
+
+    virtual String GetTooltip() const
+    {
+      return Path;
+    }
+  private:
+    const String Path;
+    const Parameters::Container::Ptr Params;
+  };
+
+  class DelayLoadItemData : public Playlist::Item::Data
+  {
+  public:
+    DelayLoadItemData(Playlist::Item::DataProvider::Ptr provider, const Playlist::IO::ContainerItem& item)
+      : Provider(provider)
+      , Path(item.Path)
+      , Params(item.AdjustedParameters)
+      , Valid(true)
+    {
+    }
+    
+    //common
+    virtual ZXTune::Module::Holder::Ptr GetModule() const
+    {
+      AcquireDelegate();
+      const ZXTune::Module::Holder::Ptr res = Delegate->GetModule();
+      if (!res && Valid)
+      {
+        Valid = false;
+      }
+      return res;
+    }
+
+    virtual Parameters::Container::Ptr GetAdjustedParameters() const
+    {
+      AcquireDelegate();
+      return Delegate->GetAdjustedParameters();
+    }
+
+    //playlist-related
+    virtual bool IsValid() const
+    {
+      return Valid;
+    }
+
+    virtual String GetType() const
+    {
+      AcquireDelegate();
+      return Delegate->GetType();
+    }
+
+    virtual String GetTitle() const
+    {
+      AcquireDelegate();
+      return Delegate->GetTitle();
+    }
+
+    virtual unsigned GetDurationValue() const
+    {
+      AcquireDelegate();
+      return Delegate->GetDurationValue();
+    }
+
+    virtual String GetDurationString() const
+    {
+      AcquireDelegate();
+      return Delegate->GetDurationString();
+    }
+
+    virtual String GetTooltip() const
+    {
+      AcquireDelegate();
+      return Delegate->GetTooltip();
+    }
+  private:
+    void AcquireDelegate() const
+    {
+      if (!Delegate)
+      {
+        CollectorStub collector(*Params);
+        Provider->DetectModules(Path, collector);
+        if (const Playlist::Item::Data::Ptr realItem = collector.GetItem())
+        {
+          Log::Debug(THIS_MODULE, "Opened '%1%'", Path);
+          Delegate = realItem;
+        }
+        else
+        {
+          Log::Debug(THIS_MODULE, "Failed to open '%1%'", Path);
+          Delegate = boost::make_shared<StubData>(Path, *Params);
+          Valid = false;
+        }
+      }
+    }
+  private:
+    const Playlist::Item::DataProvider::Ptr Provider;
+    const String Path;
+    const Parameters::Accessor::Ptr Params;
+    mutable bool Valid;
+    mutable Playlist::Item::Data::Ptr Delegate;
+  };
 
   class PlayitemIteratorImpl : public Playlist::Item::Data::Iterator
   {
@@ -73,7 +215,6 @@ namespace
       , Container(container)
       , Current(Container->begin())
     {
-      FetchItem();
     }
 
     virtual bool IsValid() const
@@ -83,31 +224,18 @@ namespace
   
     virtual Playlist::Item::Data::Ptr Get() const
     {
-      return Item;
+      return boost::make_shared<DelayLoadItemData>(Provider, *Current);
     }
 
     virtual void Next()
     {
       assert(IsValid() || !"Invalid playitems iterator");
       ++Current;
-      FetchItem();
-    }
-  private:
-    void FetchItem()
-    {
-      for (Item.reset(); Current != Container->end(); ++Current)
-      {
-        if (Item = OpenItem(*Provider, *Current))
-        {
-          break;
-        }
-      }
     }
   private:
     const Playlist::Item::DataProvider::Ptr Provider;
     const Playlist::IO::ContainerItemsPtr Container;
     Playlist::IO::ContainerItems::const_iterator Current;
-    Playlist::Item::Data::Ptr Item;
   };
 
   class ContainerImpl : public Playlist::IO::Container

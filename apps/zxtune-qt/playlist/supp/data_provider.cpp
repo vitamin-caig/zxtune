@@ -276,6 +276,11 @@ namespace
     }
 
     //playlist-related properties
+    virtual bool IsValid() const
+    {
+      return true;
+    }
+
     virtual String GetType() const
     {
       return Type;

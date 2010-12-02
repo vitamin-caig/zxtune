@@ -16,6 +16,7 @@ Author:
 #include <core/module_holder.h>
 
 Parameters::Accessor::Ptr CreatePathProperties(const String& path, const String& subpath);
+Parameters::Accessor::Ptr CreatePathProperties(const String& fullpath);
 
 ZXTune::Module::Information::Ptr CreateMixinPropertiesInformation(ZXTune::Module::Information::Ptr info, Parameters::Accessor::Ptr mixinProps);
 

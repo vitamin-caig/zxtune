@@ -31,13 +31,22 @@ namespace Playlist
     {
       STOPPED,
       PAUSED,
-      PLAYING
+      PLAYING,
+      ERROR,
     };
     
     enum Playorder
     {
       LOOPED = 1,
       RANDOMIZED = 2
+    };
+
+    class StateCallback
+    {
+    public:
+      virtual ~StateCallback() {}
+
+      virtual State GetState(const QModelIndex& index) const = 0;
     };
 
     class Iterator : public QObject
@@ -55,7 +64,7 @@ namespace Playlist
       virtual void SetState(State state) = 0;
     public slots:
       //navigate
-      virtual bool Reset(unsigned idx) = 0;
+      virtual void Reset(unsigned idx) = 0;
       virtual bool Next(unsigned playorderMode) = 0;
       virtual bool Prev(unsigned playorderMode) = 0;
     signals:

@@ -25,19 +25,12 @@ namespace Playlist
   namespace Item
   {
     class Data;
+    class StateCallback;
   }
+  class Model;
 
   namespace UI
   {
-    class TableViewStateCallback
-    {
-    public:
-      virtual ~TableViewStateCallback() {}
-
-      virtual bool IsPlaying(const QModelIndex& index) const = 0;
-      virtual bool IsPaused(const QModelIndex& index) const = 0;
-    };
-
     //table view
     class TableViewItem : public QItemDelegate
     {
@@ -45,7 +38,7 @@ namespace Playlist
     protected:
       explicit TableViewItem(QWidget& parent);
     public:
-      static TableViewItem* Create(QWidget& parent, const TableViewStateCallback& callback);
+      static TableViewItem* Create(QWidget& parent, const Item::StateCallback& callback);
     };
 
     class TableView : public QTableView
@@ -55,7 +48,7 @@ namespace Playlist
       explicit TableView(QWidget& parent);
     public:
       //creator
-      static TableView* Create(QWidget& parent, const TableViewStateCallback& callback, Playlist::Model::Ptr model);
+      static TableView* Create(QWidget& parent, const Item::StateCallback& callback, Playlist::Model::Ptr model);
 
     public slots:
       virtual void ActivateItem(const QModelIndex&) = 0;

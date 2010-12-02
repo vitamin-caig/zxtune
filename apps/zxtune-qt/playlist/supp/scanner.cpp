@@ -18,10 +18,14 @@ Author:
 //common includes
 #include <error.h>
 #include <logging.h>
+//library includes
+#include <core/error_codes.h>
 //qt includes
 #include <QtCore/QMutex>
 //std includes
 #include <ctime>
+
+#define FILE_TAG EA26A866
 
 namespace
 {
@@ -142,6 +146,10 @@ namespace
 
     virtual void OnProgress(unsigned progress, unsigned curItem)
     {
+      if (Canceled)
+      {
+        throw Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
+      }
       if (!StatusFilter())
       {
         OnProgressStatus(progress, ItemsDone + curItem, ItemsTotal);
@@ -150,6 +158,10 @@ namespace
 
     virtual void OnReport(const QString& report, const QString& item)
     {
+      if (Canceled)
+      {
+        throw Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
+      }
       if (!MessageFilter())
       {
         OnProgressMessage(report, item);
