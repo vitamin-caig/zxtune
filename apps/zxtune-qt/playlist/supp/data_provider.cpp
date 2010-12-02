@@ -248,7 +248,67 @@ namespace
     const StringTemplate::Ptr TooltipTemplate;
   };
 
+  class PropertyChangedCallback
+  {
+  public:
+    virtual ~PropertyChangedCallback() {}
+
+    virtual void OnPropertyChanged(const Parameters::NameType& name) const = 0;
+  };
+
+  class PropertyTrackedParametersWrapper : public Parameters::Container
+  {
+  public:
+    PropertyTrackedParametersWrapper(Parameters::Container& delegate, const PropertyChangedCallback& callback)
+      : Delegate(delegate)
+      , Callback(callback)
+    {
+    }
+
+    virtual bool FindIntValue(const Parameters::NameType& name, Parameters::IntType& val) const
+    {
+      return Delegate.FindIntValue(name, val);
+    }
+
+    virtual bool FindStringValue(const Parameters::NameType& name, Parameters::StringType& val) const
+    {
+      return Delegate.FindStringValue(name, val);
+    }
+
+    virtual bool FindDataValue(const Parameters::NameType& name, Parameters::DataType& val) const
+    {
+      return Delegate.FindDataValue(name, val);
+    }
+
+    virtual void Process(Parameters::Visitor& visitor) const
+    {
+      Delegate.Process(visitor);
+    }
+
+    virtual void SetIntValue(const Parameters::NameType& name, Parameters::IntType val)
+    {
+      Delegate.SetIntValue(name, val);
+      Callback.OnPropertyChanged(name);
+    }
+
+    virtual void SetStringValue(const Parameters::NameType& name, const Parameters::StringType& val)
+    {
+      Delegate.SetStringValue(name, val);
+      Callback.OnPropertyChanged(name);
+    }
+
+    virtual void SetDataValue(const Parameters::NameType& name, const Parameters::DataType& val)
+    {
+      Delegate.SetDataValue(name, val);
+      Callback.OnPropertyChanged(name);
+    }
+  private:
+    Parameters::Container& Delegate;
+    const PropertyChangedCallback& Callback;
+  };
+
   class DataImpl : public Playlist::Item::Data
+                 , private PropertyChangedCallback
   {
   public:
     DataImpl(DynamicAttributesProvider::Ptr attributes,
@@ -271,8 +331,8 @@ namespace
 
     virtual Parameters::Container::Ptr GetAdjustedParameters() const
     {
-      Title.clear();
-      return AdjustedParams;
+      const PropertyChangedCallback& cb = *this;
+      return boost::make_shared<PropertyTrackedParametersWrapper>(boost::ref(*AdjustedParams), cb);
     }
 
     //playlist-related properties
@@ -324,6 +384,11 @@ namespace
       return info->Properties();
     }
   private:
+    virtual void OnPropertyChanged(const Parameters::NameType& /*name*/) const
+    {
+      Title.clear();
+    }
+  private:
     const DynamicAttributesProvider::Ptr Attributes;
     const ModuleSource Source;
     const Parameters::Container::Ptr AdjustedParams;
@@ -355,7 +420,7 @@ namespace
     virtual Error ProcessModule(const String& subPath, ZXTune::Module::Holder::Ptr holder) const
     {
       const Parameters::Accessor::Ptr pathProps = CreatePathProperties(DataPath, subPath);
-      const Parameters::Container::Ptr adjustedParams = Parameters::Container::Create();
+      const Parameters::Container::Ptr adjustedParams = Delegate.CreateInitialAdjustedParameters();
       const Parameters::Accessor::Ptr perItemParameters = Parameters::CreateMergedAccessor(adjustedParams, CoreParams);
   
       const ZXTune::Module::Information::Ptr info = holder->GetModuleInformation();

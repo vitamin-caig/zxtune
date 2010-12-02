@@ -32,11 +32,17 @@ namespace
     {
     }
 
+    virtual Parameters::Container::Ptr CreateInitialAdjustedParameters() const
+    {
+      const Parameters::Container::Ptr res = Parameters::Container::Create();
+      Params.Process(*res);
+      return res;
+    }
+
     virtual bool ProcessItem(Playlist::Item::Data::Ptr item)
     {
       assert(!Item);
       Item = item;
-      Params.Process(*Item->GetAdjustedParameters());
       return false;
     }
 
@@ -131,10 +137,7 @@ namespace
     {
       AcquireDelegate();
       const ZXTune::Module::Holder::Ptr res = Delegate->GetModule();
-      if (!res && Valid)
-      {
-        Valid = false;
-      }
+      Valid = res;
       return res;
     }
 

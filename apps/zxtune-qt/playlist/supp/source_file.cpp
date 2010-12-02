@@ -69,6 +69,11 @@ namespace
     {
     }
 
+    virtual Parameters::Container::Ptr CreateInitialAdjustedParameters() const
+    {
+      return Parameters::Container::Create();
+    }
+
     virtual bool ProcessItem(Playlist::Item::Data::Ptr item)
     {
       Callback.OnItem(item);
