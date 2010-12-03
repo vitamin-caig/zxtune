@@ -23,6 +23,7 @@ Author:
 #include <boost/bind.hpp>
 #include <boost/scoped_ptr.hpp>
 //qt includes
+#include <QtCore/QMimeData>
 #include <QtCore/QMutex>
 #include <QtCore/QSet>
 #include <QtGui/QIcon>
@@ -242,12 +243,7 @@ namespace
     Playlist::Item::Data::Iterator::Ptr GetItems(const QSet<unsigned>& items) const
     {
       IteratorsArray choosenItems;
-      choosenItems.reserve(items.count());
-      for (QSet<unsigned>::const_iterator it = items.begin(), lim = items.end();
-        it != lim; ++it)
-      {
-        choosenItems.push_back(Iterators[*it]);
-      }
+      GetChoosenItems(items, choosenItems);
       return Playlist::Item::Data::Iterator::Ptr(new PlayitemIteratorImpl(choosenItems));
     }
 
@@ -273,6 +269,28 @@ namespace
       Iterators.swap(newIters);
     }
 
+    void MoveItems(const QSet<unsigned>& indexes, unsigned destination)
+    {
+      IteratorsArray beforeItems, movedItems, afterItems;
+      for (std::size_t idx = 0, lim = Iterators.size(); idx != lim; ++idx)
+      {
+        const IteratorsArray::value_type iter = Iterators[idx];
+        if (indexes.contains(idx))
+        {
+          movedItems.push_back(iter);
+        }
+        else
+        {
+          IteratorsArray& targetSubset = idx < destination
+            ? beforeItems : afterItems;
+          targetSubset.push_back(iter);
+        }
+      }
+      const IteratorsArray::iterator movedTo = std::copy(beforeItems.begin(), beforeItems.end(), Iterators.begin());
+      const IteratorsArray::iterator restAfter = std::copy(movedItems.begin(), movedItems.end(), movedTo);
+      std::copy(afterItems.begin(), afterItems.end(), restAfter);
+    }
+
     class Comparer
     {
     public:
@@ -285,6 +303,18 @@ namespace
     {
       std::stable_sort(Iterators.begin(), Iterators.end(),
         boost::bind(&Comparer::CompareItems, &cmp, _1, _2));
+    }
+  private:
+    void GetChoosenItems(const QSet<unsigned>& items, IteratorsArray& result) const
+    {
+      IteratorsArray choosenItems;
+      choosenItems.reserve(items.count());
+      for (QSet<unsigned>::const_iterator it = items.begin(), lim = items.end();
+        it != lim; ++it)
+      {
+        choosenItems.push_back(Iterators[*it]);
+      }
+      choosenItems.swap(result);
     }
   private:
     ItemsContainer Items;
@@ -314,6 +344,8 @@ namespace
     const Functor Getter;
     const bool Ascending;
   };
+
+  const char ITEMS_MIMETYPE[] = "application/playlist.indexes";
 
   class ModelImpl : public Playlist::Model
   {
@@ -389,8 +421,97 @@ namespace
       Container->AddItem(item);
     }
 
-
     //base model virtuals
+
+    /* Drag'n'Drop support*/
+    virtual Qt::DropActions supportedDropActions() const
+    {
+      return Qt::MoveAction;
+    }
+
+    virtual Qt::ItemFlags flags(const QModelIndex& index) const
+    {
+      const Qt::ItemFlags defaultFlags = Playlist::Model::flags(index);
+
+      const Playlist::Item::Data* const indexItem = index.isValid()
+        ? static_cast<const Playlist::Item::Data*>(index.internalPointer())
+        : 0;
+      if (indexItem && indexItem->IsValid())
+      {
+         return Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled | defaultFlags;
+      }
+      else
+      {
+        return Qt::ItemIsDropEnabled | defaultFlags;
+      }
+    }
+
+    virtual QStringList mimeTypes() const
+    {
+      QStringList types;
+      types << ITEMS_MIMETYPE;
+      return types;
+    }
+
+    virtual QMimeData* mimeData(const QModelIndexList& indexes) const
+    {
+      QMimeData* const mimeData = new QMimeData();
+      QByteArray encodedData;
+      QDataStream stream(&encodedData, QIODevice::WriteOnly);
+
+      foreach (const QModelIndex& index, indexes)
+      {
+        if (index.isValid())
+        {
+          stream << index.row();
+        }
+      }
+
+      mimeData->setData(ITEMS_MIMETYPE, encodedData);
+      return mimeData;
+    }
+
+    virtual bool dropMimeData(const QMimeData* data, Qt::DropAction action, int /*row*/, int /*column*/, const QModelIndex& parent)
+    {
+      if (action == Qt::IgnoreAction)
+      {
+        return true;
+      }
+
+      if (!data->hasFormat(ITEMS_MIMETYPE))
+      {
+        return false;
+      }
+
+      int beginRow = 0;
+
+      if (parent.isValid())
+      {
+        beginRow = parent.row();
+      }
+
+      QByteArray encodedData = data->data(ITEMS_MIMETYPE);
+      QDataStream stream(&encodedData, QIODevice::ReadOnly);
+      QSet<unsigned> movedItems;
+      while (!stream.atEnd()) 
+      {
+        unsigned idx;
+        stream >> idx;
+        movedItems.insert(idx);
+      }    
+      if (movedItems.empty())
+      {
+        return false;
+      }
+      Log::Debug(THIS_MODULE, "Moving %1% items to row %2%", movedItems.size(), beginRow);
+      QMutexLocker locker(&Synchronizer);
+      Container->MoveItems(movedItems, beginRow);
+      reset();
+      return true;
+    }
+
+    /* end of Drag'n'Drop support */
+
     virtual bool canFetchMore(const QModelIndex& /*index*/) const
     {
       QMutexLocker locker(&Synchronizer);

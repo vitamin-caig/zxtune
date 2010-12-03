@@ -51,6 +51,9 @@ namespace
       setFont(Font);
       //setup ui
       setAcceptDrops(true);
+      setDragEnabled(true);
+      setDragDropMode(QAbstractItemView::InternalMove);
+      setDropIndicatorShown(true);
       setEditTriggers(QAbstractItemView::NoEditTriggers);
       setSelectionMode(QAbstractItemView::ExtendedSelection);
       setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -77,6 +80,7 @@ namespace
         verHeader->setFont(Font);
         verHeader->setDefaultAlignment(Qt::AlignRight | Qt::AlignVCenter);
         verHeader->setDefaultSectionSize(ROW_HEIGTH);
+        verHeader->setResizeMode(QHeaderView::Fixed);
       }
 
       //signals
