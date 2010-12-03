@@ -421,13 +421,13 @@ namespace
     {
       const Parameters::Accessor::Ptr pathProps = CreatePathProperties(DataPath, subPath);
       const Parameters::Container::Ptr adjustedParams = Delegate.CreateInitialAdjustedParameters();
-      const Parameters::Accessor::Ptr perItemParameters = Parameters::CreateMergedAccessor(adjustedParams, CoreParams);
+      const Parameters::Accessor::Ptr perItemParameters = Parameters::CreateMergedAccessor(pathProps, adjustedParams, CoreParams);
   
+      const ModuleSource itemSource(Source, perItemParameters);
       const ZXTune::Module::Information::Ptr info = holder->GetModuleInformation();
-      const ModuleSource itemSource(Source, Parameters::CreateMergedAccessor(pathProps, perItemParameters));
-      const Parameters::Accessor::Ptr moduleProps = Parameters::CreateMergedAccessor(pathProps, info->Properties());
+      const Parameters::Accessor::Ptr lookupModuleProps = Parameters::CreateMergedAccessor(pathProps, adjustedParams, info->Properties());
       const Playlist::Item::Data::Ptr playitem = boost::make_shared<DataImpl>(Attributes, itemSource, adjustedParams,
-        info->FramesCount(), *moduleProps);
+        info->FramesCount(), *lookupModuleProps);
       return Delegate.ProcessItem(playitem) ? Error() : Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
     }
 

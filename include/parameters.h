@@ -93,6 +93,7 @@ namespace Parameters
 
   // All accessed properties are prioritized by the first one
   Accessor::Ptr CreateMergedAccessor(Accessor::Ptr first, Accessor::Ptr second);
+  Accessor::Ptr CreateMergedAccessor(Accessor::Ptr first, Accessor::Ptr second, Accessor::Ptr third);
 
   //! @brief Service type to simply properties keep and give access
   //! @invariant Only last value is kept for multiple assignment

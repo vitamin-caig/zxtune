@@ -121,13 +121,45 @@ namespace
     const Parameters::Container::Ptr Params;
   };
 
+  class DelayLoadItemProvider
+  {
+  public:
+    typedef std::auto_ptr<const DelayLoadItemProvider> Ptr;
+
+    DelayLoadItemProvider(Playlist::Item::DataProvider::Ptr provider, Parameters::Accessor::Ptr playlistParams, const Playlist::IO::ContainerItem& item)
+      : Provider(provider)
+      , Params(Parameters::CreateMergedAccessor(item.AdjustedParameters, playlistParams))
+      , Path(item.Path)
+    {
+    }
+
+    Playlist::Item::Data::Ptr OpenItem() const
+    {
+      CollectorStub collector(*Params);
+      Provider->DetectModules(Path, collector);
+      return collector.GetItem();
+    }
+
+    Playlist::Item::Data::Ptr OpenStub() const
+    {
+      return boost::make_shared<StubData>(Path, *Params);
+    }
+
+    String GetPath() const
+    {
+      return Path;
+    }
+  private:
+    const Playlist::Item::DataProvider::Ptr Provider;
+    const Parameters::Accessor::Ptr Params;
+    const String Path;
+  };
+
   class DelayLoadItemData : public Playlist::Item::Data
   {
   public:
-    DelayLoadItemData(Playlist::Item::DataProvider::Ptr provider, const Playlist::IO::ContainerItem& item)
+    explicit DelayLoadItemData(DelayLoadItemProvider::Ptr provider)
       : Provider(provider)
-      , Path(item.Path)
-      , Params(item.AdjustedParameters)
       , Valid(true)
     {
     }
@@ -187,25 +219,24 @@ namespace
     {
       if (!Delegate)
       {
-        CollectorStub collector(*Params);
-        Provider->DetectModules(Path, collector);
-        if (const Playlist::Item::Data::Ptr realItem = collector.GetItem())
+        const String& path = Provider->GetPath();
+        if (const Playlist::Item::Data::Ptr realItem = Provider->OpenItem())
         {
-          Log::Debug(THIS_MODULE, "Opened '%1%'", Path);
+          Log::Debug(THIS_MODULE, "Opened '%1%'", path);
           Delegate = realItem;
         }
         else
         {
-          Log::Debug(THIS_MODULE, "Failed to open '%1%'", Path);
-          Delegate = boost::make_shared<StubData>(Path, *Params);
+          Log::Debug(THIS_MODULE, "Failed to open '%1%'", path);
+          Delegate = Provider->OpenStub();
           Valid = false;
         }
+        //release unneed
+        Provider.reset();
       }
     }
   private:
-    const Playlist::Item::DataProvider::Ptr Provider;
-    const String Path;
-    const Parameters::Accessor::Ptr Params;
+    mutable DelayLoadItemProvider::Ptr Provider;
     mutable bool Valid;
     mutable Playlist::Item::Data::Ptr Delegate;
   };
@@ -213,21 +244,25 @@ namespace
   class PlayitemIteratorImpl : public Playlist::Item::Data::Iterator
   {
   public:
-    PlayitemIteratorImpl(Playlist::Item::DataProvider::Ptr provider, Playlist::IO::ContainerItemsPtr container)
+    PlayitemIteratorImpl(Playlist::Item::DataProvider::Ptr provider,
+      Parameters::Accessor::Ptr properties,
+      Playlist::IO::ContainerItemsPtr items)
       : Provider(provider)
-      , Container(container)
-      , Current(Container->begin())
+      , Properties(properties)
+      , Items(items)
+      , Current(Items->begin())
     {
     }
 
     virtual bool IsValid() const
     {
-      return Current != Container->end();
+      return Current != Items->end();
     }
   
     virtual Playlist::Item::Data::Ptr Get() const
     {
-      return boost::make_shared<DelayLoadItemData>(Provider, *Current);
+      DelayLoadItemProvider::Ptr provider(new DelayLoadItemProvider(Provider, Properties, *Current));
+      return boost::make_shared<DelayLoadItemData>(boost::ref(provider));
     }
 
     virtual void Next()
@@ -237,7 +272,8 @@ namespace
     }
   private:
     const Playlist::Item::DataProvider::Ptr Provider;
-    const Playlist::IO::ContainerItemsPtr Container;
+    const Parameters::Accessor::Ptr Properties;
+    const Playlist::IO::ContainerItemsPtr Items;
     Playlist::IO::ContainerItems::const_iterator Current;
   };
 
@@ -260,7 +296,7 @@ namespace
 
     virtual Playlist::Item::Data::Iterator::Ptr GetItems() const
     {
-      return Playlist::Item::Data::Iterator::Ptr(new PlayitemIteratorImpl(Provider, Items));
+      return Playlist::Item::Data::Iterator::Ptr(new PlayitemIteratorImpl(Provider, Properties, Items));
     }
   private:
     const Playlist::Item::DataProvider::Ptr Provider;

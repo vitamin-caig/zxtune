@@ -215,47 +215,48 @@ namespace
     DataMap Datas;
   };
 
-  class MergedAccessor : public Accessor
+  class MergedVisitor : public Visitor
   {
-    class MergedVisitor : public Visitor
-    {
-    public:
-      explicit MergedVisitor(Visitor& delegate)
-        : Delegate(delegate)
-      {
-      }
-
-      virtual void SetIntValue(const NameType& name, IntType val)
-      {
-        if (DoneIntegers.insert(name).second)
-        {
-          return Delegate.SetIntValue(name, val);
-        }
-      }
-
-      virtual void SetStringValue(const NameType& name, const StringType& val)
-      {
-        if (DoneStrings.insert(name).second)
-        {
-          return Delegate.SetStringValue(name, val);
-        }
-      }
-
-      virtual void SetDataValue(const NameType& name, const DataType& val)
-      {
-        if (DoneDatas.insert(name).second)
-        {
-          return Delegate.SetDataValue(name, val);
-        }
-      }
-    private:
-      Visitor& Delegate;
-      std::set<NameType> DoneIntegers;
-      std::set<NameType> DoneStrings;
-      std::set<NameType> DoneDatas;
-    };
   public:
-    MergedAccessor(Accessor::Ptr first, Accessor::Ptr second)
+    explicit MergedVisitor(Visitor& delegate)
+      : Delegate(delegate)
+    {
+    }
+
+    virtual void SetIntValue(const NameType& name, IntType val)
+    {
+      if (DoneIntegers.insert(name).second)
+      {
+        return Delegate.SetIntValue(name, val);
+      }
+    }
+
+    virtual void SetStringValue(const NameType& name, const StringType& val)
+    {
+      if (DoneStrings.insert(name).second)
+      {
+        return Delegate.SetStringValue(name, val);
+      }
+    }
+
+    virtual void SetDataValue(const NameType& name, const DataType& val)
+    {
+      if (DoneDatas.insert(name).second)
+      {
+        return Delegate.SetDataValue(name, val);
+      }
+    }
+  private:
+    Visitor& Delegate;
+    std::set<NameType> DoneIntegers;
+    std::set<NameType> DoneStrings;
+    std::set<NameType> DoneDatas;
+  };
+
+  class DoubleAccessor : public Accessor
+  {
+  public:
+    DoubleAccessor(Accessor::Ptr first, Accessor::Ptr second)
       : First(first)
       , Second(second)
     {
@@ -263,17 +264,20 @@ namespace
 
     virtual bool FindIntValue(const NameType& name, IntType& val) const
     {
-      return First->FindIntValue(name, val) || Second->FindIntValue(name, val);
+      return First->FindIntValue(name, val) || 
+             Second->FindIntValue(name, val);
     }
 
     virtual bool FindStringValue(const NameType& name, StringType& val) const
     {
-      return First->FindStringValue(name, val) || Second->FindStringValue(name, val);
+      return First->FindStringValue(name, val) || 
+             Second->FindStringValue(name, val);
     }
 
     virtual bool FindDataValue(const NameType& name, DataType& val) const
     {
-      return First->FindDataValue(name, val) || Second->FindDataValue(name, val);
+      return First->FindDataValue(name, val) || 
+             Second->FindDataValue(name, val);
     }
 
     virtual void Process(Visitor& visitor) const
@@ -285,6 +289,50 @@ namespace
   private:
     const Accessor::Ptr First;
     const Accessor::Ptr Second;
+  };
+
+  class TripleAccessor : public Accessor
+  {
+  public:
+    TripleAccessor(Accessor::Ptr first, Accessor::Ptr second, Accessor::Ptr third)
+      : First(first)
+      , Second(second)
+      , Third(third)
+    {
+    }
+
+    virtual bool FindIntValue(const NameType& name, IntType& val) const
+    {
+      return First->FindIntValue(name, val) || 
+             Second->FindIntValue(name, val) ||
+             Third->FindIntValue(name, val);
+    }
+
+    virtual bool FindStringValue(const NameType& name, StringType& val) const
+    {
+      return First->FindStringValue(name, val) || 
+             Second->FindStringValue(name, val) ||
+             Third->FindStringValue(name, val);
+    }
+
+    virtual bool FindDataValue(const NameType& name, DataType& val) const
+    {
+      return First->FindDataValue(name, val) || 
+             Second->FindDataValue(name, val) ||
+             Third->FindDataValue(name, val);
+    }
+
+    virtual void Process(Visitor& visitor) const
+    {
+      MergedVisitor mergedVisitor(visitor);
+      First->Process(mergedVisitor);
+      Second->Process(mergedVisitor);
+      Third->Process(mergedVisitor);
+    }
+  private:
+    const Accessor::Ptr First;
+    const Accessor::Ptr Second;
+    const Accessor::Ptr Third;
   };
 
   class StringConvertor : public StringMap
@@ -354,7 +402,12 @@ namespace Parameters
 
   Accessor::Ptr CreateMergedAccessor(Accessor::Ptr first, Accessor::Ptr second)
   {
-    return boost::make_shared<MergedAccessor>(first, second);
+    return boost::make_shared<DoubleAccessor>(first, second);
+  }
+
+  Accessor::Ptr CreateMergedAccessor(Accessor::Ptr first, Accessor::Ptr second, Accessor::Ptr third)
+  {
+    return boost::make_shared<TripleAccessor>(first, second, third);
   }
 
   Container::Ptr Container::Create()
