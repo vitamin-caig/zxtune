@@ -483,12 +483,9 @@ namespace
         return false;
       }
 
-      int beginRow = 0;
-
-      if (parent.isValid())
-      {
-        beginRow = parent.row();
-      }
+      const unsigned beginRow = parent.isValid()
+        ? parent.row()
+        : rowCount(EMPTY_INDEX);
 
       QByteArray encodedData = data->data(ITEMS_MIMETYPE);
       QDataStream stream(&encodedData, QIODevice::ReadOnly);

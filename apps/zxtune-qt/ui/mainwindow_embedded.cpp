@@ -32,12 +32,12 @@ namespace
                                , private Ui::MainWindowEmbedded
   {
   public:
-    MainWindowEmbeddedImpl(int /*argc*/, char* /*argv*/[])
-      //, Seeking(this, menuLayout, "Seeking")
-      : Controls(PlaybackControls::Create(*this))
+    MainWindowEmbeddedImpl(Parameters::Container::Ptr options, const StringArray& /*cmdline*/)
+      : Options(options)
+      , Controls(PlaybackControls::Create(*this))
       , Analyzer(AnalyzerControl::Create(*this))
-      , Playlist(Playlist::UI::ContainerView::Create(*this))
-      , Playback(PlaybackSupport::Create(*this))
+      , Playlist(Playlist::UI::ContainerView::Create(*this, Options, Options))
+      , Playback(PlaybackSupport::Create(*this, Options))
     {
       setupUi(this);
       statusBar()->addWidget(new QLabel(
@@ -83,6 +83,7 @@ namespace
       return widget;
     }
   private:
+    const Parameters::Container::Ptr Options;
     PlaybackControls* const Controls;
     AnalyzerControl* const Analyzer;
     Playlist::UI::ContainerView* const Playlist;
@@ -90,16 +91,16 @@ namespace
   };
 }
 
-QPointer<MainWindowEmbedded> MainWindowEmbedded::Create(int argc, char* argv[])
+QPointer<MainWindowEmbedded> MainWindowEmbedded::Create(Parameters::Container::Ptr options, const StringArray& cmdline)
 {
   //TODO: create proper window
-  QPointer<MainWindowEmbedded> res(new MainWindowEmbeddedImpl(argc, argv));
+  QPointer<MainWindowEmbedded> res(new MainWindowEmbeddedImpl(options, cmdline));
   res->setWindowFlags(Qt::FramelessWindowHint);
   res->showMaximized();
   return res;
 }
 
-QPointer<QMainWindow> CreateMainWindow(int argc, char* argv[])
+QPointer<QMainWindow> CreateMainWindow(Parameters::Container::Ptr options, const StringArray& cmdline)
 {
-  return QPointer<QMainWindow>(MainWindowEmbedded::Create(argc, argv));
+  return QPointer<QMainWindow>(MainWindowEmbedded::Create(options, cmdline));
 }

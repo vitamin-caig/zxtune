@@ -5,6 +5,8 @@
 library_name := playlist_io
 path_step := ../../../..
 
+use_qt := 1
+
 source_files := container_impl import import_ayl import_xspf export_xspf
 
 text_files := tags/xspf tags/ayl

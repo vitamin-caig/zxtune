@@ -32,7 +32,6 @@ Author:
 #include <QtCore/QDir>
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
-#include <QtCore/QString>
 #include <QtCore/QTextCodec>
 #include <QtCore/QTextStream>
 
@@ -77,7 +76,7 @@ namespace
     }
   private:
     const int Version;
-    const QTextCodec* Codec;
+    const QTextCodec* const Codec;
   };
 
   int CheckAYLBySignature(const String& signature)

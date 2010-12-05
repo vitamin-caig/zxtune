@@ -50,6 +50,7 @@ namespace
   public:
     explicit AnalyzerControlImpl(QWidget& parent)
       : AnalyzerControl(parent)
+      , Palette()
       , Levels()
     {
       setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum));
@@ -79,12 +80,13 @@ namespace
 
     virtual void paintEvent(QPaintEvent*)
     {
+      const QBrush& back = Palette.window();
+      const QBrush& mask = Palette.shadow();
+      const QBrush& brush = Palette.toolTipBase();
       QPainter painter(this);
       const int curWidth = width();
       const int curHeight = height();
-      painter.eraseRect(0, 0, curWidth, curHeight);
-      const QColor mask(0, 0, 0);
-      const QColor brush(0xff, 0xff, 0xff);
+      painter.fillRect(0, 0, curWidth, curHeight, back);
       for (uint_t band = 0; band < std::min<uint_t>(curWidth / BAR_WIDTH, MAX_BANDS); ++band)
       {
         if (const int scaledValue = Levels[band] * (curHeight - 1) / 100)
@@ -106,6 +108,7 @@ namespace
       }
     }
   private:
+    const QPalette Palette;
     ZXTune::Module::Analyzer::Ptr Analyzer;
     std::vector<ZXTune::Module::Analyzer::BandAndLevel> State;
     Analyzed Levels;

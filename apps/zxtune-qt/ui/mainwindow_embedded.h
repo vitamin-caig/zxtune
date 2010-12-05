@@ -17,12 +17,14 @@ Author:
 //qt includes
 #include <QtCore/QPointer>
 #include <QtGui/QMainWindow>
+//common includes
+#include <parameters.h>
 
 class MainWindowEmbedded : public QMainWindow
 {
   Q_OBJECT
 public:
-  static QPointer<MainWindowEmbedded> Create(int arg, char* argv[]);
+  static QPointer<MainWindowEmbedded> Create(Parameters::Container::Ptr options, const StringArray& cmdline);
 };
 
 #endif //ZXTUNE_QT_MAINWINDOW_H_DEFINED
