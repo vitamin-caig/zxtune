@@ -19,7 +19,7 @@ ifdef boost_libraries
 macos_libraries += $(foreach lib,$(boost_libraries),boost_$(lib))
 endif
 
-ifdef qt_libraries
+ifdef use_qt
 CXX_PLATFORM_FLAGS += $(addprefix -FQt,$(qt_libraries))
 LD_PLATFORM_FLAGS += -bundle $(addprefix -framework Qt,$(qt_libraries))
 endif

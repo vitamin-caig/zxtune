@@ -69,7 +69,7 @@ include $(path_step)/make/textator.mak
 endif
 
 #process qt if required
-ifneq ($(or $(qt_libraries),$(ui_files),$(moc_files),$(qrc_files)),)
+ifneq ($(or $(use_qt),$(qt_libraries),$(ui_files),$(moc_files),$(qrc_files)),)
 include $(path_step)/make/qt.mak
 endif
 

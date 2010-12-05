@@ -18,11 +18,17 @@ support_oss = 1
 support_alsa = 1
 #support_sdl = 1
 
-ifdef boost_libraries
-linux_libraries += $(foreach lib,$(boost_libraries),boost_$(lib)-mt)
+ifdef STATIC_BOOST_PATH
+include_dirs += $(STATIC_BOOST_PATH)/include
+linux_libraries_dirs += $(STATIC_BOOST_PATH)/lib
 endif
 
-ifdef qt_libraries
-linux_libraries += $(foreach lib,$(qt_libraries),Qt$(lib))
+#multithread release libraries
+linux_libraries += $(foreach lib,$(boost_libraries),boost_$(lib)-mt)
+
+ifdef use_qt
 include_dirs += /usr/include/qt4
 endif
+
+#release libraries
+linux_libraries += $(foreach lib,$(qt_libraries),Qt$(lib))

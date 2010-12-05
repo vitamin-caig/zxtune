@@ -27,7 +27,7 @@ ifdef boost_libraries
 windows_libraries += $(foreach lib,$(boost_libraries),$(if $(boost_dynamic),,lib)boost_$(lib)-$(MSVS_VERSION)-mt$(if $(release),,-gd)-$(BOOST_VERSION))
 endif
 
-ifdef qt_libraries
+ifdef use_qt
 # buildable qt names convention used
 # Qt[lib][d][4].lib
 # lib - library name

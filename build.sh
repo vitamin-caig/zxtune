@@ -7,6 +7,24 @@ Arch=$3
 Formats=txt
 Languages=en
 
+BUILD_DIR=${BUILD_DIR-`pwd`/../Build}
+QT_VERSION=${QT_VERSION-4.7.1}
+BOOST_VERSION=${BOOST_VERSION-1.45.0}
+QT_DIR=${BUILD_DIR}/qt-${QT_VERSION}-${Platform}-${Arch}
+BOOST_DIR=${BUILD_DIR}/boost-${BOOST_VERSION}-${Platform}-${Arch}
+if [ -d ${QT_DIR} ]; then
+  echo Using static QT ver ${QT_VERSION}
+  export STATIC_QT_PATH=${QT_DIR}
+else
+  echo Warning: ${QT_DIR} does not exists
+fi
+if [ -d ${BOOST_DIR} ]; then
+  echo Using static boost ver ${BOOST_VERSION}
+  export STATIC_BOOST_PATH=${BOOST_DIR}
+else
+  echo Warning: ${BOOST_DIR} does not exists
+fi
+
 # checking for textator or assume that texts are correct
 textator --version > /dev/null 2>&1 || touch text/*.cpp text/*.h
 

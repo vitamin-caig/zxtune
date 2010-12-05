@@ -8,20 +8,29 @@ generated_sources += $(moc_sources)
 
 include_dirs += $(ui_dir)
 
-defines += QT_LARGEFILE_SUPPORT QT_GUI_LIB QT_CORE_LIB QT_THREAD_SUPPORT
-
 qrc_sources = $(qrc_files:=.qrc)
 generated_sources += $(qrc_sources)
+
+ifdef STATIC_QT_PATH
+include_dirs += $(STATIC_QT_PATH)/include
+$(platform)_libraries_dirs += $(STATIC_QT_PATH)/lib
+endif
 
 ifneq (,$(findstring Core,$(qt_libraries)))
 windows_libraries += kernel32 user32 shell32 uuid ole32 advapi32 ws2_32 oldnames
 mingw_libraries += kernel32 user32 shell32 uuid ole32 advapi32 ws2_32 z
+ifdef STATIC_QT_PATH
+linux_libraries += pthread z
 dingux_libraries += z
+endif
 endif
 ifneq (,$(findstring Gui,$(qt_libraries)))
 windows_libraries += gdi32 comdlg32 oleaut32 imm32 winmm winspool ws2_32 ole32 user32 advapi32 oldnames
 mingw_libraries += gdi32 comdlg32 oleaut32 imm32 winmm winspool ws2_32 ole32 uuid user32 advapi32 png z
+ifdef STATIC_QT_PATH
+linux_libraries += png freetype SM ICE Xrender fontconfig freetype Xext X11 z
 dingux_libraries += png z
+endif
 endif
 
 vpath %.qrc $(sort $(dir $(qrc_files)))

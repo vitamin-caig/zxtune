@@ -17,7 +17,7 @@ CXX_PLATFORM_FLAGS += -minline-all-stringops
 LD_PLATFORM_FLAGS += -Wl,-O3,-x,--gc-sections,--relax,--kill-at
 endif
 
-ifdef qt_libraries
+ifdef use_qt
 mingw_libraries += $(foreach lib,$(qt_libraries),Qt$(lib))
 LD_PLATFORM_FLAGS += -Wl,-subsystem,$(if $(release),windows,console)
 else

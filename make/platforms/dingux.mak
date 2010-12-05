@@ -28,11 +28,13 @@ dingux_libraries_dirs = ${TOOLCHAIN_PATH}/usr/mipsel-linux/lib
 support_oss = 1
 #support_sdl = 1
 
-ifdef boost_libraries
-#support only static multithread libraries
-dingux_libraries += $(foreach lib,$(boost_libraries),boost_$(lib))
+ifdef STATIC_BOOST_PATH
+include_dirs += $(STATIC_BOOST_PATH)/include
+dingux_libraries_dirs += $(STATIC_BOOST_PATH)/lib
 endif
 
-ifdef qt_libraries
+#support only static multithread release libraries
+dingux_libraries += $(foreach lib,$(boost_libraries),boost_$(lib))
+
+#support static release libraries
 dingux_libraries += $(foreach lib,$(qt_libraries),Qt$(lib))
-endif
