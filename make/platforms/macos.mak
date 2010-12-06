@@ -15,11 +15,7 @@ LINKER_END_GROUP=
 #built-in features
 support_sdl = 1
 
-ifdef boost_libraries
 macos_libraries += $(foreach lib,$(boost_libraries),boost_$(lib))
-endif
 
-ifdef use_qt
 CXX_PLATFORM_FLAGS += $(addprefix -FQt,$(qt_libraries))
-LD_PLATFORM_FLAGS += -bundle $(addprefix -framework Qt,$(qt_libraries))
-endif
+LD_PLATFORM_FLAGS += $(addprefix -framework Qt,$(qt_libraries))

@@ -38,8 +38,16 @@ rm -Rf bin/${Platform}/${Mode} lib/${Platform}/${Mode} obj/${Platform}/${Mode} |
 # adding additional platform properties if required
 case ${Arch} in
     ppc | ppc64 | powerpc)
-	test `grep cpu /proc/cpuinfo | uniq | cut -f 3 -d " "` = "altivec" && cxx_flags="-mabi=altivec -maltivec"
-	test `grep cpu /proc/cpuinfo | uniq | cut -f 2 -d " " | sed -e 's/,//g'` = "PPC970MP" && cxx_flags="${cxx_flags} -mtune=970 -mcpu=970"
+      test `grep cpu /proc/cpuinfo | uniq | cut -f 3 -d " "` = "altivec" && cxx_flags="-mabi=altivec -maltivec"
+      test `grep cpu /proc/cpuinfo | uniq | cut -f 2 -d " " | sed -e 's/,//g'` = "PPC970MP" && cxx_flags="${cxx_flags} -mtune=970 -mcpu=970"
+    ;;
+    x86_64)
+      cxx_flags="-m64"
+      ld_flags="-m64"
+    ;;
+    i386 | i486 | i586 | i686)
+      cxx_flags="-m32 -march=${Arch}"
+      ld_flags="-m32"
     ;;
     *)
     ;;
@@ -48,6 +56,6 @@ esac
 for Binary in ${Binaries}
 do
 echo "Building ${Binary} with mode=${Mode} platform=${Platform} arch=${Arch}"
-time make -j `grep processor /proc/cpuinfo | wc -l` package ${Mode}=1 platform=${Platform} arch=${Arch} cxx_flags="${cxx_flags}" -C apps/${Binary} || exit 1;
+time make -j `grep processor /proc/cpuinfo | wc -l` package ${Mode}=1 platform=${Platform} arch=${Arch} cxx_flags="${cxx_flags}" ld_flags="${ld_flags}" -C apps/${Binary} || exit 1;
 done
 echo Done

@@ -23,8 +23,6 @@ else
 LD_PLATFORM_FLAGS += -Wl,-subsystem,console
 endif
 
-mingw_libraries += $(foreach lib,$(qt_libraries),Qt$(lib))
-
 mingw_definitions += BOOST_THREAD_USE_LIB
 
 #built-in features
@@ -34,3 +32,6 @@ support_aylpt_dlportio = 1
 
 #simple library naming convention used
 mingw_libraries += $(foreach lib,$(boost_libraries),boost_$(lib))
+
+mingw_libraries += $(foreach lib,$(qt_libraries),Qt$(lib))
+

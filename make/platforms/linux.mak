@@ -8,7 +8,7 @@ rmfiles_cmd = rm -f $(1)
 showtime_cmd = date +"%x %X"
 
 compiler=gcc
-CXX_PLATFORM_FLAGS = -fvisibility=hidden -fvisibility-inlines-hidden
+CXX_PLATFORM_FLAGS = -fvisibility=hidden -fvisibility-inlines-hidden -mmmx
 ifdef release
 LD_PLATFORM_FLAGS += -Wl,-O3,-x,--gc-sections,--relax
 endif
@@ -25,10 +25,6 @@ endif
 
 #multithread release libraries
 linux_libraries += $(foreach lib,$(boost_libraries),boost_$(lib)-mt)
-
-ifdef use_qt
-include_dirs += /usr/include/qt4
-endif
 
 #release libraries
 linux_libraries += $(foreach lib,$(qt_libraries),Qt$(lib))
