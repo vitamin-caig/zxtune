@@ -107,7 +107,7 @@ namespace
       {
         return false;
       }
-      const bool isEnd = newIndex > int(itemsCount) || newIndex < 0;
+      const bool isEnd = newIndex >= int(itemsCount) || newIndex < 0;
       if (isEnd)
       {
         if (Playlist::Item::LOOPED == (playorderMode & Playlist::Item::LOOPED))
