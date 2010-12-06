@@ -18,11 +18,12 @@ LD_PLATFORM_FLAGS += -Wl,-O3,-x,--gc-sections,--relax,--kill-at
 endif
 
 ifdef use_qt
-mingw_libraries += $(foreach lib,$(qt_libraries),Qt$(lib))
 LD_PLATFORM_FLAGS += -Wl,-subsystem,$(if $(release),windows,console)
 else
 LD_PLATFORM_FLAGS += -Wl,-subsystem,console
 endif
+
+mingw_libraries += $(foreach lib,$(qt_libraries),Qt$(lib))
 
 mingw_definitions += BOOST_THREAD_USE_LIB
 
@@ -32,6 +33,4 @@ support_aylpt_dlportio = 1
 #support_sdl = 1
 
 #simple library naming convention used
-ifdef boost_libraries
 mingw_libraries += $(foreach lib,$(boost_libraries),boost_$(lib))
-endif

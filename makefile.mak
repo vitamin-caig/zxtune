@@ -22,6 +22,10 @@ else
 mode := debug
 endif
 
+ifneq ($(or $(qt_libraries),$(ui_files),$(moc_files),$(qrc_files)),)
+use_qt := 1
+endif
+
 #set directories
 include_dirs += $(path_step)/include $(path_step)/src $(path_step)
 objs_dir = $(path_step)/obj/$(platform)/$(mode)$(suffix)
@@ -69,7 +73,7 @@ include $(path_step)/make/textator.mak
 endif
 
 #process qt if required
-ifneq ($(or $(use_qt),$(qt_libraries),$(ui_files),$(moc_files),$(qrc_files)),)
+ifdef use_qt
 include $(path_step)/make/qt.mak
 endif
 
