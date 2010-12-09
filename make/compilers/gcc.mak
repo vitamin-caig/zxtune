@@ -15,6 +15,10 @@ else
 CXX_MODE_FLAGS = -O0
 endif
 
+ifdef static_runtime
+LD_MODE_FLAGS = -static-libstdc++
+endif
+
 #setup profiling
 ifdef profile
 CXX_MODE_FLAGS += -pg
