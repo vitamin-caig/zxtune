@@ -59,3 +59,9 @@ mingw_resources := res/zxtune-qt
 
 include $(path_step)/makefile.mak
 include $(path_step)/make/package.mak
+
+install:
+	install -D $(target) $(DESTDIR)/usr/bin/$(binary_name)
+	install -m644 -D ../zxtune.conf $(DESTDIR)/usr/share/zxtune/zxtune.conf
+	install -m644 -D dist/linux/zxTune.desktop $(DESTDIR)/usr/share/applications/zxTune.desktop
+	install -m644 -D res/zxtune.png $(DESTDIR)/usr/share/icons/zxtune.png

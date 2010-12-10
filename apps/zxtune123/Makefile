@@ -21,11 +21,17 @@ windows_libraries = advapi32
 boost_libraries = thread program_options
 
 manual_format := txt
-pkg_additional_files = ../zxtune.conf $(output_dir)/$(binary_name)_$(pkg_lang).$(manual_format)
+manual_file = $(binary_name)_$(pkg_lang).$(manual_format)
+pkg_additional_files = ../zxtune.conf $(output_dir)/$(manual_file)
 pkg_additional_files_dingux := $(wildcard dist/dingux/dmenu/*) $(wildcard dist/dingux/gmenu/*) dist/dingux/readme.txt dist/dingux/zxtune.png
 
 include $(path_step)/makefile.mak
 include $(path_step)/make/package.mak
 
-$(output_dir)/$(binary_name)_$(pkg_lang).$(manual_format): dist/$(binary_name).txt | $(output_dir)
+install: $(output_dir)/$(manual_file)
+	install -D $(target) $(DESTDIR)/usr/bin/$(binary_name)
+	install -m644 -D ../zxtune.conf $(DESTDIR)/usr/share/zxtune/zxtune.conf
+	install -m644 -D $(output_dir)/$(manual_file) $(DESTDIR)/usr/share/zxtune/$(manual_file)
+
+$(output_dir)/$(manual_file): dist/$(binary_name).txt | $(output_dir)
 	$(TEXTATOR) --process --keys $(pkg_lang),$(manual_format) --asm --output $@ $<
