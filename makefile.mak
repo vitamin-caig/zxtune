@@ -28,9 +28,9 @@ endif
 
 #set directories
 include_dirs += $(path_step)/include $(path_step)/src $(path_step)
-objs_dir = $(path_step)/obj/$(platform)/$(mode)$(suffix)
-libs_dir = $(path_step)/lib/$(platform)/$(mode)$(suffix)
-bins_dir = $(path_step)/bin/$(platform)/$(mode)
+objs_dir = $(path_step)/obj/$(platform)$(if $(arch),_$(arch),)/$(mode)$(suffix)
+libs_dir = $(path_step)/lib/$(platform)$(if $(arch),_$(arch),)/$(mode)$(suffix)
+bins_dir = $(path_step)/bin/$(platform)$(if $(arch),_$(arch),)/$(mode)
 
 #set platform-specific parameters
 include $(path_step)/make/platforms/$(platform).mak
@@ -131,7 +131,7 @@ $(objects_dir)/%$(call makeobj_name,): %$(src_suffix)
 $(objects_dir)/%$(call makeres_name,): %$(res_suffix)
 	$(call makeres_cmd,$<,$@)
 
-.PHONY: clean clean_all
+.PHONY: clean
 
 clean: clean_self clean_deps
 

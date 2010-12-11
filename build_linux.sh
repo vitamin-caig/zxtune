@@ -1,3 +1,3 @@
 #!/bin/sh
 
-./build.sh "zxtune-qt zxtune123" linux `uname -m`
+./build.sh linux `uname -m`

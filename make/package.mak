@@ -13,7 +13,7 @@ pkg_debug := $(pkg_dir)/$(binary_name)_debug.$(pkg_suffix)
 
 package: | $(pkg_dir)
 	@$(MAKE) -s clean_package
-	$(info Creating package at $(pkg_dir))
+	$(info Creating package for $(binary_name) at $(pkg_dir))
 	@$(MAKE) $(pkg_file) > $(pkg_log) 2>&1
 	@$(call rmfiles_cmd,$(pkg_manual) $(pkg_build_log))
 

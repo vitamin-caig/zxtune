@@ -1,9 +1,8 @@
 #!/bin/sh
 
-Binaries=$1
-Platform=$2
+Platform=$1
+Arch=$2
 Mode=release
-Arch=$3
 Formats=txt
 Languages=en
 
@@ -25,6 +24,8 @@ else
   echo Warning: ${BOOST_DIR} does not exists
 fi
 
+makecmd="make platform=${Platform} ${Mode}=1 arch=${Arch} -C apps"
+
 # checking for textator or assume that texts are correct
 textator --version > /dev/null 2>&1 || touch text/*.cpp text/*.h
 
@@ -33,7 +34,7 @@ echo "Updating"
 svn up > /dev/null || (echo "Failed to update"; exit 1)
 
 echo "Clearing"
-rm -Rf bin/${Platform}/${Mode} lib/${Platform}/${Mode} obj/${Platform}/${Mode} || exit 1;
+${makecmd} clean > /dev/null || exit 1
 
 # adding additional platform properties if required
 case ${Arch} in
@@ -53,9 +54,5 @@ case ${Arch} in
     ;;
 esac
 
-for Binary in ${Binaries}
-do
-echo "Building ${Binary} with mode=${Mode} platform=${Platform} arch=${Arch}"
-time make -j `grep processor /proc/cpuinfo | wc -l` package ${Mode}=1 static_runtime=1 platform=${Platform} arch=${Arch} cxx_flags="${cxx_flags}" ld_flags="${ld_flags}" -C apps/${Binary} || exit 1;
-done
-echo Done
+time ${makecmd} -j `grep processor /proc/cpuinfo | wc -l` package static_runtime=1 cxx_flags="${cxx_flags}" ld_flags="${ld_flags}" && echo Done
+
