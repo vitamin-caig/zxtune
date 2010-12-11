@@ -81,7 +81,7 @@ namespace
     virtual void paintEvent(QPaintEvent*)
     {
       const QBrush& back = Palette.window();
-      const QBrush& mask = Palette.shadow();
+      const QBrush& mask = Palette.toolTipText();
       const QBrush& brush = Palette.toolTipBase();
       QPainter painter(this);
       const int curWidth = width();
