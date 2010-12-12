@@ -8,7 +8,7 @@ rmfiles_cmd = rm -f $(1)
 showtime_cmd = date +"%x %X"
 
 compiler=gcc
-CXX_PLATFORM_FLAGS = -fvisibility=hidden -fvisibility-inlines-hidden -mmmx
+CXX_PLATFORM_FLAGS = -fvisibility=hidden -fvisibility-inlines-hidden
 ifdef release
 LD_PLATFORM_FLAGS += -Wl,-O3,-x,--gc-sections,--relax
 endif
