@@ -21,7 +21,6 @@ Author:
 #include <boost/bind.hpp>
 //qt includes
 #include <QtCore/QUrl>
-#include <QtGui/QDragEnterEvent>
 #include <QtGui/QHeaderView>
 
 namespace
@@ -42,11 +41,10 @@ namespace
     TableViewImpl(QWidget& parent, const Playlist::Item::StateCallback& callback,
       Playlist::Model::Ptr model)
       : Playlist::UI::TableView(parent)
-      , Model(model)
       , Font(QString::fromUtf8(FONT_FAMILY), FONT_SIZE)
     {
       //setup self
-      setModel(Model);
+      setModel(model);
       setItemDelegate(Playlist::UI::TableViewItem::Create(*this, callback));
       setFont(Font);
       //setup ui
@@ -94,48 +92,31 @@ namespace
       Log::Debug(THIS_MODULE, "Destroyed at %1%", this);
     }
 
-    virtual void ActivateItem(const QModelIndex& index)
-    {
-      const unsigned number = index.row();
-      if (const Playlist::Item::Data::Ptr item = Model->GetItem(number))
-      {
-        OnItemActivated(number, *item);
-      }
-    }
-
-    //QWidget virtuals
-    virtual void keyReleaseEvent(QKeyEvent* event)
-    {
-      const int curKey = event->key();
-      if (curKey == Qt::Key_Delete || curKey == Qt::Key_Backspace)
-      {
-        ClearSelected();
-      }
-      else
-      {
-        QWidget::keyReleaseEvent(event);
-      }
-    }
-  private:
-    void ClearSelected()
+    virtual void GetSelectedItems(QSet<unsigned>& indices) const
     {
       const QItemSelectionModel* const selection = selectionModel();
       const QModelIndexList& items = selection->selectedRows();
-      QSet<unsigned> indexes;
       std::for_each(items.begin(), items.end(),
-        boost::bind(&QSet<unsigned>::insert, &indexes,
+        boost::bind(&QSet<unsigned>::insert, &indices,
           boost::bind(&QModelIndex::row, _1)));
-      Model->RemoveItems(indexes);
+    }
+
+    virtual void ActivateItem(const QModelIndex& index)
+    {
+      if (index.isValid())
+      {
+        const unsigned number = index.row();
+        OnItemActivated(number);
+      }
     }
   private:
-    const Playlist::Model::Ptr Model;
     QFont Font;
   };
 
   class TableViewItemImpl : public Playlist::UI::TableViewItem
   {
   public:
-    TableViewItemImpl(QWidget& parent, 
+    TableViewItemImpl(QWidget& parent,
       const Playlist::Item::StateCallback& callback)
       : Playlist::UI::TableViewItem(parent)
       , Callback(callback)

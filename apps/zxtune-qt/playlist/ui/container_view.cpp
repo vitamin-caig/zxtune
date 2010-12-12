@@ -237,7 +237,7 @@ namespace
     virtual void AddFiles()
     {
       QStringList files;
-      if (FileDialog.OpenMultipleFiles(actionAddFiles->text(), 
+      if (FileDialog.OpenMultipleFiles(actionAddFiles->text(),
         tr("All files (*.*)"), files))
       {
         AddItemsToVisiblePlaylist(files);
@@ -352,7 +352,6 @@ namespace
       ActionsMenu->addAction(actionLoadPlaylist);
       ActionsMenu->addAction(actionSavePlaylist);
       ActionsMenu->addAction(actionClosePlaylist);
-      ActionsMenu->addSeparator();
       ActionsMenu->addAction(actionClearPlaylist);
       ActionsMenu->addSeparator();
       ActionsMenu->addAction(actionLoop);
