@@ -23,7 +23,7 @@ $(pkg_dir):
 .PHONY: clean_package
 
 clean_package:
-	-$(call rmfiles_cmd,$(pkg_file) $(pkg_debug) $(pkg_log))
+	-$(call rmfiles_cmd,$(pkg_file) $(pkg_debug) $(pkg_build_log) $(pkg_log))
 
 $(pkg_file): $(pkg_debug) $(pkg_additional_files) $(pkg_additional_files_$(platform))
 	@$(call showtime_cmd)
