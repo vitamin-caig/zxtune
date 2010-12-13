@@ -383,7 +383,8 @@ namespace
     const PT3Sample* const sample(safe_ptr_cast<const PT3Sample*>(&data[off]));
     if (0 == offset || !sample->Size)
     {
-      return Vortex::Sample();//safe
+      static const Vortex::Sample::Line STUB_LINE;
+      return Vortex::Sample(0, &STUB_LINE, &STUB_LINE + 1);//safe
     }
     std::vector<Vortex::Sample::Line> tmpData(sample->Size);
     std::transform(sample->Data, sample->Data + sample->Size, tmpData.begin(), ParseSampleLine);
@@ -398,7 +399,8 @@ namespace
     const PT3Ornament* const ornament(safe_ptr_cast<const PT3Ornament*>(&data[off]));
     if (0 == offset || !ornament->Size)
     {
-      return SimpleOrnament();//safe version
+      static const int_t STUB_LINE;
+      return SimpleOrnament(0, &STUB_LINE, &STUB_LINE + 1);//safe version
     }
     rawSize = std::max<std::size_t>(rawSize, off + ornament->GetSize());
     return SimpleOrnament(ornament->Loop, ornament->Data, ornament->Data + ornament->Size);
@@ -410,10 +412,10 @@ namespace
       , AYMPatternCursors& cursors
       , Vortex::Track::Line& line
       , Log::MessagesCollector& warner
-      , uint_t& noiseBase
       )
     {
-      bool wasEnvelope(false), wasNoisebase(false);
+      bool wasEnvelope(false);
+      uint_t noiseBase = ~0;
       assert(line.Channels.size() == cursors.size());
       Vortex::Track::Line::ChannelsArray::iterator channel(line.Channels.begin());
       for (AYMPatternCursors::iterator cur = cursors.begin(); cur != cursors.end(); ++cur, ++channel)
@@ -499,11 +501,8 @@ namespace
           }
           else if (cmd >= 0x20 && cmd <= 0x3f)
           {
-            //noisebase should be in channel B
-            //Log::Assert(channelWarner, chan == 1, Text::WARNING_INVALID_NOISE_BASE);
-            Log::Assert(channelWarner, !wasNoisebase, Text::WARNING_DUPLICATE_NOISEBASE);
+            Log::Assert(channelWarner, noiseBase == ~0, Text::WARNING_DUPLICATE_NOISEBASE);
             noiseBase = cmd - 0x20;
-            wasNoisebase = true;
           }
           else if (cmd >= 0x40 && cmd <= 0x4f)
           {
@@ -631,7 +630,7 @@ namespace
         }
         cur->Counter = cur->Period;
       }
-      if (noiseBase)
+      if (noiseBase != ~0)
       {
         //place to channel B
         line.Channels[1].Commands.push_back(Vortex::Track::Command(Vortex::NOISEBASE, noiseBase));
@@ -674,7 +673,6 @@ namespace
         AYMPatternCursors cursors;
         std::transform(pattern->Offsets.begin(), pattern->Offsets.end(), cursors.begin(), &fromLE<uint16_t>);
         pat.reserve(MAX_PATTERN_SIZE);
-        uint_t noiseBase(0);
         do
         {
           const uint_t patternSize = pat.size();
@@ -685,7 +683,7 @@ namespace
           Log::ParamPrefixedCollector patLineWarner(patternWarner, Text::LINE_WARN_PREFIX, patternSize);
           pat.push_back(Vortex::Track::Line());
           Vortex::Track::Line& line(pat.back());
-          ParsePattern(data, cursors, line, patLineWarner, noiseBase);
+          ParsePattern(data, cursors, line, patLineWarner);
           //skip lines
           if (const uint_t linesToSkip = cursors.GetMinCounter())
           {

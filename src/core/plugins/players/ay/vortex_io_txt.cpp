@@ -45,6 +45,7 @@ namespace
 
   // fixed identificators
   const char MODULE_DELIMITER = '=';
+  const std::string VORTEX_TRACKER_FLAG("VortexTrackerII=0");
   const std::string MODULE_VERSION("Version");
   const std::string MODULE_TITLE("Title");
   const std::string MODULE_AUTHOR("Author");
@@ -369,8 +370,8 @@ namespace
         break;
       case Vortex::VIBRATE:
         commands[0] = '6';
-        commands[1] = ToHexSym(it->Param1);
-        commands[2] = ToHexSym(it->Param2);
+        commands[2] = ToHexSym(it->Param1);
+        commands[3] = ToHex(it->Param2);
         break;
       case Vortex::ENVELOPE:
         envType = it->Param1;
@@ -387,8 +388,8 @@ namespace
     if (commands[0] == '.' && tempo)
     {
       commands[0] = 'B';
-      commands[2] = ToHexSym(tempo / 10);
-      commands[3] = ToHex(tempo % 10);
+      commands[2] = ToHexSym(tempo / 16);
+      commands[3] = ToHex(tempo % 16);
       tempo = 0;
     }
 
@@ -505,20 +506,38 @@ namespace
     return result;
   }
 
-  inline std::string PatternLineToString(const Vortex::Track::Line& line)
+  template<class iterator>
+  void SampleToString(uint_t idx, const Vortex::Sample& sample, iterator& iter)
+  {
+    if (sample.GetSize())
+    {
+      *iter = SECTION_SAMPLE + string_cast(idx) + SECTION_END;
+      uint_t lpos = sample.GetLoop();
+      for (uint_t idx = 0; idx < sample.GetSize(); ++idx, --lpos)
+      {
+        *iter = SampleLineToString(sample.GetLine(idx), !lpos);
+      }
+      *iter = std::string();//free
+    }
+  }
+
+  inline std::string PatternLineToString(const Vortex::Track::Line& line, uint_t& noiseBase)
   {
     static const std::string DELIMITER("|");
-    uint_t envBase = 0, noiseBase = 0;
+    uint_t envBase = 0;
     StringArray channels(line.Channels.size());
     uint_t tempo = line.Tempo ? *line.Tempo : 0;
     std::string result;
+    uint_t newNoiseBase = ~0;
     for (Vortex::Track::Line::ChannelsArray::const_iterator it = line.Channels.begin();
       it != line.Channels.end(); ++it)
     {
       result += DELIMITER;
-      result += UnparseChannel(*it, tempo, envBase, noiseBase);
+      result += UnparseChannel(*it, tempo, envBase, newNoiseBase);
     }
-    return ToHex(envBase, 4) + DELIMITER + ToHex(noiseBase, 2) + result;
+    const uint_t curNoiseBase = newNoiseBase != ~0 ?
+      (noiseBase = newNoiseBase) : noiseBase;
+    return ToHex(envBase, 4) + DELIMITER + ToHex(curNoiseBase, 2) + result;
   }
 
   inline uint_t GetVortexNotetable(const String& freqTable)
@@ -922,6 +941,7 @@ namespace ZXTune
 
         // fill header
         *iter = SECTION_MODULE;
+        *iter = VORTEX_TRACKER_FLAG;
         //process version info
         {
           const uint_t resVersion = 30 + (in_range<uint_t>(version, 1, 9) ? version : GetVortexVersion(freqTable));
@@ -962,17 +982,7 @@ namespace ZXTune
         //store samples
         for (uint_t idx = 1; idx != data.Samples.size(); ++idx)
         {
-          const Vortex::Sample& sample = data.Samples[idx];
-          if (sample.GetSize())
-          {
-            *iter = SECTION_SAMPLE + string_cast(idx) + SECTION_END;
-            uint_t lpos = sample.GetLoop();
-            for (uint_t idx = 0; idx < sample.GetSize(); ++idx, --lpos)
-            {
-              *iter = SampleLineToString(sample.GetLine(idx), !lpos);
-            }
-            *iter = std::string();//free
-          }
+          SampleToString(idx, data.Samples[idx], iter);
         }
         //store patterns
         for (uint_t idx = 0; idx != data.Patterns.size(); ++idx)
@@ -981,7 +991,8 @@ namespace ZXTune
           if (!pattern.empty())
           {
             *iter = SECTION_PATTERN + string_cast(idx) + SECTION_END;
-            std::transform(pattern.begin(), pattern.end(), iter, PatternLineToString);
+            uint_t noiseBase = 0;
+            std::transform(pattern.begin(), pattern.end(), iter, boost::bind(&PatternLineToString, _1, boost::ref(noiseBase)));
             *iter = std::string();
           }
         }

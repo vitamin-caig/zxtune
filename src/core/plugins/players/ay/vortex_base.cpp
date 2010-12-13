@@ -339,6 +339,7 @@ namespace
         chanSynth.EnableTone();
       }
       //apply level
+      dst.VolSlide = clamp<int_t>(dst.VolSlide + curSampleLine.VolumeSlideAddon, -15, 15);
       chanSynth.SetLevel(GetVolume(dst.Volume, clamp<int_t>(dst.VolSlide + curSampleLine.Level, 0, 15)));
       //apply envelope
       if (dst.Envelope && !curSampleLine.EnvMask)
@@ -349,7 +350,7 @@ namespace
       if (curSampleLine.NoiseMask)
       {
         const int_t envAddon = curSampleLine.NoiseOrEnvelopeOffset + dst.EnvSliding;
-        if (curSampleLine.NoiseOrEnvelopeOffset)
+        if (curSampleLine.KeepNoiseOrEnvelopeOffset)
         {
           dst.EnvSliding = envAddon;
         }
@@ -382,7 +383,6 @@ namespace
           dst.ToneSlider.Counter = 0;
         }
       }
-      dst.VolSlide = clamp<int_t>(dst.VolSlide + curSampleLine.VolumeSlideAddon, -15, 15);
 
       if (++dst.PosInSample >= curSample.GetSize())
       {

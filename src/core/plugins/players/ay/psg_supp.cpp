@@ -184,8 +184,7 @@ namespace
       using namespace Conversion;
       Error result;
       //converting to PSG and raw ripping are the same
-      if (parameter_cast<RawConvertParam>(&param) ||
-          parameter_cast<PSGConvertParam>(&param))
+      if (parameter_cast<RawConvertParam>(&param))
       {
         const uint8_t* const data = static_cast<const uint8_t*>(RawData->Data());
         dst.assign(data, data + RawData->Size());
@@ -232,8 +231,7 @@ namespace
 
     virtual void Reset()
     {
-      PlayerState.Mask = AYM::DataChunk::MASK_ALL_REGISTERS;
-      PlayerState.Data[AYM::DataChunk::REG_MIXER] = 0xff;
+      PlayerState = AYM::DataChunk();
     }
   private:
     const PSGData::Ptr Data;

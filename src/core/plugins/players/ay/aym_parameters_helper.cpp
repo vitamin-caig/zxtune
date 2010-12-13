@@ -175,7 +175,7 @@ namespace
           throw MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,
             Text::MODULE_ERROR_INVALID_LAYOUT, intParam);
         }
-        Chunk.Data[DataChunk::PARAM_LAYOUT] = intParam;
+        Chunk.Data[DataChunk::PARAM_LAYOUT] = static_cast<uint8_t>(intParam);
       }
     }
 
