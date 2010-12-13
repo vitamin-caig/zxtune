@@ -383,7 +383,7 @@ namespace
     const PT3Sample* const sample(safe_ptr_cast<const PT3Sample*>(&data[off]));
     if (0 == offset || !sample->Size)
     {
-      static const Vortex::Sample::Line STUB_LINE;
+      static const Vortex::Sample::Line STUB_LINE = Vortex::Sample::Line();
       return Vortex::Sample(0, &STUB_LINE, &STUB_LINE + 1);//safe
     }
     std::vector<Vortex::Sample::Line> tmpData(sample->Size);
@@ -399,7 +399,7 @@ namespace
     const PT3Ornament* const ornament(safe_ptr_cast<const PT3Ornament*>(&data[off]));
     if (0 == offset || !ornament->Size)
     {
-      static const int_t STUB_LINE;
+      static const int_t STUB_LINE = 0;
       return SimpleOrnament(0, &STUB_LINE, &STUB_LINE + 1);//safe version
     }
     rawSize = std::max<std::size_t>(rawSize, off + ornament->GetSize());
@@ -415,7 +415,7 @@ namespace
       )
     {
       bool wasEnvelope(false);
-      uint_t noiseBase = ~0;
+      int_t noiseBase = -1;
       assert(line.Channels.size() == cursors.size());
       Vortex::Track::Line::ChannelsArray::iterator channel(line.Channels.begin());
       for (AYMPatternCursors::iterator cur = cursors.begin(); cur != cursors.end(); ++cur, ++channel)
@@ -501,7 +501,7 @@ namespace
           }
           else if (cmd >= 0x20 && cmd <= 0x3f)
           {
-            Log::Assert(channelWarner, noiseBase == ~0, Text::WARNING_DUPLICATE_NOISEBASE);
+            Log::Assert(channelWarner, noiseBase == -1, Text::WARNING_DUPLICATE_NOISEBASE);
             noiseBase = cmd - 0x20;
           }
           else if (cmd >= 0x40 && cmd <= 0x4f)
@@ -630,7 +630,7 @@ namespace
         }
         cur->Counter = cur->Period;
       }
-      if (noiseBase != ~0)
+      if (noiseBase != -1)
       {
         //place to channel B
         line.Channels[1].Commands.push_back(Vortex::Track::Command(Vortex::NOISEBASE, noiseBase));

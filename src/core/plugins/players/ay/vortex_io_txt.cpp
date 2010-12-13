@@ -339,7 +339,7 @@ namespace
   }
 
   inline std::string UnparseChannel(const Vortex::Track::Line::Chan& chan, uint_t& tempo,
-    uint_t& envBase, uint_t& noiseBase)
+    uint_t& envBase, int_t& noiseBase)
   {
     uint_t envType = 0;
     int_t targetNote = -1;
@@ -528,14 +528,14 @@ namespace
     StringArray channels(line.Channels.size());
     uint_t tempo = line.Tempo ? *line.Tempo : 0;
     std::string result;
-    uint_t newNoiseBase = ~0;
+    int_t newNoiseBase = -1;
     for (Vortex::Track::Line::ChannelsArray::const_iterator it = line.Channels.begin();
       it != line.Channels.end(); ++it)
     {
       result += DELIMITER;
       result += UnparseChannel(*it, tempo, envBase, newNoiseBase);
     }
-    const uint_t curNoiseBase = newNoiseBase != ~0 ?
+    const uint_t curNoiseBase = newNoiseBase != -1 ?
       (noiseBase = newNoiseBase) : noiseBase;
     return ToHex(envBase, 4) + DELIMITER + ToHex(curNoiseBase, 2) + result;
   }
