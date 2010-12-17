@@ -1108,25 +1108,8 @@ namespace
            areas.CheckPatterns();
   }
 
-  Holder::Ptr CreateSTCModule(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, const MetaContainer& container, ModuleRegion& region)
-  {
-    try
-    {
-      const Holder::Ptr holder(new STCHolder(plugin, parameters, container, region));
-#ifdef SELF_TEST
-      holder->CreatePlayer();
-#endif
-      return holder;
-    }
-    catch (const Error&/*e*/)
-    {
-      Log::Debug("Core::STCSupp", "Failed to create holder");
-    }
-    return Holder::Ptr();
-  }
-
   //////////////////////////////////////////////////////////////////////////
-  class STCPlugin : public PlayerPlugin
+  class STCPlugin : public MultiCheckedPlayerPluginHelper
                   , public boost::enable_shared_from_this<STCPlugin>
   {
   public:
@@ -1149,19 +1132,34 @@ namespace
     {
       return CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
     }
-
-    virtual bool Check(const IO::DataContainer& inputData) const
+  private:
+    virtual DetectorIterator GetDetectors() const
     {
-      return PerformCheck(&CheckSTCModule, DETECTORS, ArrayEnd(DETECTORS), inputData);
+      return DetectorIterator(DETECTORS, ArrayEnd(DETECTORS));
     }
 
-    virtual Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
-                                             const MetaContainer& container,
-                                             ModuleRegion& region) const
+    virtual bool CheckData(const uint8_t* data, std::size_t size) const
+    {
+      return CheckSTCModule(data, size);
+    }
+
+    virtual Holder::Ptr TryToCreateModule(Parameters::Accessor::Ptr parameters,
+      const MetaContainer& container, ModuleRegion& region) const
     {
       const Plugin::Ptr plugin = shared_from_this();
-      return PerformCreate(&CheckSTCModule, &CreateSTCModule, DETECTORS, ArrayEnd(DETECTORS),
-        plugin, parameters, container, region);
+      try
+      {
+        const Holder::Ptr holder(new STCHolder(plugin, parameters, container, region));
+#ifdef SELF_TEST
+        holder->CreatePlayer();
+#endif
+        return holder;
+      }
+      catch (const Error&/*e*/)
+      {
+        Log::Debug("Core::STCSupp", "Failed to create holder");
+      }
+      return Holder::Ptr();
     }
   };
 }

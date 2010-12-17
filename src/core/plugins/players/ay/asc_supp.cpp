@@ -12,7 +12,6 @@ Author:
 //local includes
 #include "ay_base.h"
 #include "ay_conversion.h"
-#include <core/plugins/detect_helper.h>
 #include <core/plugins/utils.h>
 #include <core/plugins/players/module_properties.h>
 //common includes
@@ -1211,16 +1210,30 @@ namespace
 
     virtual bool Check(const IO::DataContainer& inputData) const
     {
-      return PerformCheck(&CheckASCModule, 0, 0, inputData);
+      const uint8_t* const data = static_cast<const uint8_t*>(inputData.Data());
+      const std::size_t limit = inputData.Size();
+      return CheckASCModule(data, limit);
     }
 
     virtual Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
                                              const MetaContainer& container,
                                              ModuleRegion& region) const
     {
-      const Plugin::Ptr plugin = shared_from_this();
-      return PerformCreate(&CheckASCModule, &CreateASCModule, 0, 0,
-        plugin, parameters, container, region);
+      const std::size_t limit(container.Data->Size());
+      const uint8_t* const data(static_cast<const uint8_t*>(container.Data->Data()));
+
+      ModuleRegion tmpRegion;
+      //try to detect without player
+      if (CheckASCModule(data, limit))
+      {
+        const Plugin::Ptr plugin = shared_from_this();
+        if (Module::Holder::Ptr holder = CreateASCModule(plugin, parameters, container, tmpRegion))
+        {
+          region = tmpRegion;
+          return holder;
+        }
+      }
+      return Module::Holder::Ptr();
     }
   };
 }

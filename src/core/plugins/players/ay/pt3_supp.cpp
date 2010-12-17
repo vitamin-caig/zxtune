@@ -953,29 +953,8 @@ namespace
       : AY_TRACK;
   }
 
-  Holder::Ptr CreatePT3Module(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, const MetaContainer& container, ModuleRegion& region)
-  {
-    try
-    {
-      const uint_t tsPatternOffset = GetTSModulePatternOffset(container, region);
-      const bool isTSModule = AY_TRACK != tsPatternOffset;
-      const Holder::Ptr holder = isTSModule
-        ? Holder::Ptr(new PT3TSHolder(plugin, parameters, tsPatternOffset, container, region))
-        : Holder::Ptr(new PT3Holder(plugin, parameters, Vortex::Track::ModuleData::Create(), container, region));
-#ifdef SELF_TEST
-      holder->CreatePlayer();
-#endif
-      return holder;
-    }
-    catch (const Error&/*e*/)
-    {
-      Log::Debug("Core::PT3Supp", "Failed to create holder");
-    }
-    return Holder::Ptr();
-  }
-
   //////////////////////////////////////////////////////////////////////////
-  class PT3Plugin : public PlayerPlugin
+  class PT3Plugin : public MultiCheckedPlayerPluginHelper
                   , public boost::enable_shared_from_this<PT3Plugin>
   {
   public:
@@ -999,19 +978,38 @@ namespace
       return CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW |
         GetSupportedAYMFormatConvertors() | GetSupportedVortexFormatConvertors();
     }
-
-    virtual bool Check(const IO::DataContainer& inputData) const
+  private:
+    virtual DetectorIterator GetDetectors() const
     {
-      return PerformCheck(&CheckPT3Module, DETECTORS, ArrayEnd(DETECTORS), inputData);
+      return DetectorIterator(DETECTORS, ArrayEnd(DETECTORS));
     }
 
-    virtual Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
-                                             const MetaContainer& container,
-                                             ModuleRegion& region) const
+    virtual bool CheckData(const uint8_t* data, std::size_t size) const
+    {
+      return CheckPT3Module(data, size);
+    }
+
+    virtual Holder::Ptr TryToCreateModule(Parameters::Accessor::Ptr parameters,
+      const MetaContainer& container, ModuleRegion& region) const
     {
       const Plugin::Ptr plugin = shared_from_this();
-      return PerformCreate(&CheckPT3Module, &CreatePT3Module, DETECTORS, ArrayEnd(DETECTORS),
-        plugin, parameters, container, region);
+      try
+      {
+        const uint_t tsPatternOffset = GetTSModulePatternOffset(container, region);
+        const bool isTSModule = AY_TRACK != tsPatternOffset;
+        const Holder::Ptr holder = isTSModule
+          ? Holder::Ptr(new PT3TSHolder(plugin, parameters, tsPatternOffset, container, region))
+          : Holder::Ptr(new PT3Holder(plugin, parameters, Vortex::Track::ModuleData::Create(), container, region));
+#ifdef SELF_TEST
+        holder->CreatePlayer();
+#endif
+        return holder;
+      }
+      catch (const Error&/*e*/)
+      {
+        Log::Debug("Core::PT3Supp", "Failed to create holder");
+      }
+      return Holder::Ptr();
     }
   };
 }
