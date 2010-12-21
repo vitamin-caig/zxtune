@@ -169,7 +169,8 @@ namespace
     String ParseTrackitemLocation()
     {
       assert(XML.isStartElement() && XML.name() == XSPF::ITEM_LOCATION_TAG);
-      const QUrl url(XML.readElementText());
+      const QString location = XML.readElementText();;
+      const QUrl url(QUrl::fromPercentEncoding(location.toUtf8()));
       const QString& itemLocation = BaseDir.absoluteFilePath(url.toString());
       return FromQString(BaseDir.cleanPath(itemLocation));
     }

@@ -12,6 +12,8 @@ Author:
 #ifndef __CORE_PLUGINS_PLAYERS_UTILS_H_DEFINED__
 #define __CORE_PLUGINS_PLAYERS_UTILS_H_DEFINED__
 
+//common includes
+#include <tools.h>
 //std includes
 #include <algorithm>
 #include <cctype>
@@ -33,12 +35,16 @@ inline String GetTRDosName(const char (&name)[8], const char (&type)[3])
   static const Char FORBIDDEN_SYMBOLS[] = {'\\', '/', '\?', '\0'};
   static const Char TRDOS_REPLACER('_');
   const String& strName = FromCharArray(name);
-  const String& strType = FromCharArray(type);
   String fname(OptimizeString(strName, TRDOS_REPLACER));
   std::replace_if(fname.begin(), fname.end(), boost::algorithm::is_any_of(FORBIDDEN_SYMBOLS), TRDOS_REPLACER);
-  return std::isalnum(type[0])
-    ? fname + Char('.') + boost::algorithm::trim_right_copy_if(strType, !boost::algorithm::is_alnum())
-    : fname;
+  if (!std::isalnum(type[0]))
+  {
+    return fname;
+  }
+  fname += '.';
+  const char* const invalidSym = std::find_if(type, ArrayEnd(type), !boost::algorithm::is_alnum());
+  fname += String(type, invalidSym);
+  return fname;
 }
 
 struct TRDFileEntry
