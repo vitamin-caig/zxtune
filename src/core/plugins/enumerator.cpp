@@ -17,6 +17,7 @@ Author:
 //common includes
 #include <error_tools.h>
 #include <logging.h>
+#include <tools.h>
 //library includes
 #include <core/error_codes.h>
 #include <core/module_attrs.h>
@@ -47,6 +48,20 @@ namespace
   typedef std::vector<ContainerPlugin::Ptr> ContainerPluginsArray;
 
   const Char ROOT_SUBPATH[] = {'/', 0};
+
+  const Char IMPLICIT_PLUGIN_PREFIX[] = {'#', 'u', 'n', 0};
+
+  String EncodeImplicitPluginToPath(const String& pluginId)
+  {
+    return String(IMPLICIT_PLUGIN_PREFIX) + pluginId;
+  }
+
+  String DecodeImplicitPluginFromPath(const String& path)
+  {
+    return 0 == path.find(IMPLICIT_PLUGIN_PREFIX)
+      ? path.substr(ArraySize(IMPLICIT_PLUGIN_PREFIX) - 1)
+      : String();
+  }
 
   class LoggerHelper
   {
@@ -262,32 +277,21 @@ namespace
       tmpResult.Path = ROOT_SUBPATH;
       tmpResult.Data = data;
 
-      for (bool hasResolved = true; hasResolved;)
+      while (!pathToOpen.empty())
       {
-        hasResolved = false;
         Log::Debug(THIS_MODULE, "Resolving '%1%' + '%2%'", tmpResult.Path, pathToOpen);
         //check for implicit containers
-        while (ResolveImplicit(commonParams, tmpResult))
+        if (ResolveImplicit(commonParams, tmpResult, pathToOpen))
         {
-          const Plugin::Ptr lastPlugin = tmpResult.Plugins->GetLast();
-          Log::Debug(THIS_MODULE, "Detected implicit plugin %1%", lastPlugin->Id());
-          hasResolved = true;
+          continue;
         }
 
         //check for other subcontainers
-        if (!pathToOpen.empty())
+        if (ResolveContainer(commonParams, tmpResult, pathToOpen))
         {
-          if (ResolveContainer(commonParams, tmpResult, pathToOpen))
-          {
-            const Plugin::Ptr lastPlugin = tmpResult.Plugins->GetLast();
-            Log::Debug(THIS_MODULE, "Detected nested container %1%", lastPlugin->Id());
-            hasResolved = true;
-          }
-          else
-          {
-            throw MakeFormattedError(THIS_LINE, Module::ERROR_FIND_SUBMODULE, Text::MODULE_ERROR_FIND_SUBMODULE, pathToOpen);
-          }
+          continue;
         }
+        throw MakeFormattedError(THIS_LINE, Module::ERROR_FIND_SUBMODULE, Text::MODULE_ERROR_FIND_SUBMODULE, pathToOpen);
       }
       Log::Debug(THIS_MODULE, "Resolved path '%1%'", subpath);
       result.Data = tmpResult.Data;
@@ -393,9 +397,11 @@ namespace
             region.Offset, region.Size, input.Plugins->Count());
           logger(*plugin);
 
+          const String pathComponent = EncodeImplicitPluginToPath(plugin->Id());
+
           MetaContainer nested;
           nested.Data = subdata;
-          nested.Path = input.Path;
+          nested.Path = IO::AppendPath(input.Path, pathComponent);
           nested.Plugins = input.Plugins->Clone();
           nested.Plugins->Add(plugin);
           ModuleRegion nestedRegion;
@@ -441,12 +447,23 @@ namespace
       region.Size = 0;
     }
 
-    bool ResolveImplicit(const Parameters::Accessor& commonParams, MetaContainer& data) const
+    bool ResolveImplicit(const Parameters::Accessor& commonParams, MetaContainer& data, String& pathToOpen) const
     {
+      String restPath;
+      const String pathComponent = IO::ExtractFirstPathComponent(pathToOpen, restPath);
+      const String pluginId = DecodeImplicitPluginFromPath(pathComponent);
+      if (pluginId.empty())
+      {
+        return false;
+      }
       for (ImplicitPluginsArray::const_iterator it = ImplicitPlugins.begin(), lim = ImplicitPlugins.end();
         it != lim; ++it)
       {
         const ImplicitPlugin::Ptr plugin = *it;
+        if (plugin->Id() != pluginId)
+        {
+          continue;
+        }
         if (!plugin->Check(*data.Data))
         {
           continue;
@@ -454,8 +471,11 @@ namespace
         ModuleRegion resRegion;
         if (IO::DataContainer::Ptr subdata = plugin->ExtractSubdata(commonParams, data, resRegion))
         {
+          Log::Debug(THIS_MODULE, "Detected implicit plugin %1%", plugin->Id());
+          data.Path = IO::AppendPath(data.Path, pathComponent);
           data.Data = subdata;
           data.Plugins->Add(plugin);
+          pathToOpen = restPath;
           return true;
         }
         //TODO: dispatch heavy checks- return false if not enabled
@@ -476,6 +496,7 @@ namespace
         String restPath;
         if (IO::DataContainer::Ptr subdata = plugin->Open(commonParams, data, pathToOpen, restPath))
         {
+          Log::Debug(THIS_MODULE, "Detected nested container %1%", plugin->Id());
           assert(String::npos != pathToOpen.rfind(restPath));
           const String processedPath = pathToOpen.substr(0, pathToOpen.rfind(restPath));
           data.Path += processedPath;
