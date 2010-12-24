@@ -1,6 +1,6 @@
 /*
 Abstract:
-  FDI implicit convertors support
+  FDI convertors support
 
 Last changed:
   $Id$
@@ -143,7 +143,7 @@ namespace
   }
   
   //////////////////////////////////////////////////////////////////////////
-  class FDIPlugin : public ImplicitPlugin
+  class FDIPlugin : public ArchivePlugin
   {
   public:
     virtual String Id() const
@@ -227,7 +227,7 @@ namespace ZXTune
 {
   void RegisterFDIConvertor(PluginsEnumerator& enumerator)
   {
-    const ImplicitPlugin::Ptr plugin(new FDIPlugin());
+    const ArchivePlugin::Ptr plugin(new FDIPlugin());
     enumerator.RegisterPlugin(plugin);
   }
 }

@@ -1,6 +1,6 @@
 /*
 Abstract:
-  DSQ implicit convertors support
+  DSQ convertors support
 
 Last changed:
   $Id$
@@ -382,7 +382,7 @@ getbit:
     return true;
   }
 
-  class DSQPlugin : public ImplicitPlugin
+  class DSQPlugin : public ArchivePlugin
   {
   public:
     virtual String Id() const
@@ -441,7 +441,7 @@ namespace ZXTune
 {
   void RegisterDSQConvertor(PluginsEnumerator& enumerator)
   {
-    const ImplicitPlugin::Ptr plugin(new DSQPlugin());
+    const ArchivePlugin::Ptr plugin(new DSQPlugin());
     enumerator.RegisterPlugin(plugin);
   }
 }

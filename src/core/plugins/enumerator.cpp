@@ -11,9 +11,9 @@ Author:
 
 //local includes
 #include "enumerator.h"
-#include "players/plugins_list.h"
-#include "implicit/plugins_list.h"
+#include "archives/plugins_list.h"
 #include "containers/plugins_list.h"
+#include "players/plugins_list.h"
 //common includes
 #include <error_tools.h>
 #include <logging.h>
@@ -44,22 +44,23 @@ namespace
   const std::string THIS_MODULE("Core::Enumerator");
 
   typedef std::vector<PlayerPlugin::Ptr> PlayerPluginsArray;
-  typedef std::vector<ImplicitPlugin::Ptr> ImplicitPluginsArray;
+  typedef std::vector<ArchivePlugin::Ptr> ArchivePluginsArray;
   typedef std::vector<ContainerPlugin::Ptr> ContainerPluginsArray;
 
   const Char ROOT_SUBPATH[] = {'/', 0};
 
-  const Char IMPLICIT_PLUGIN_PREFIX[] = {'#', 'u', 'n', 0};
+  const Char ARCHIVE_PLUGIN_PREFIX[] = {'+', 'u', 'n', 0};
 
-  String EncodeImplicitPluginToPath(const String& pluginId)
+  String EncodeArchivePluginToPath(const String& pluginId)
   {
-    return String(IMPLICIT_PLUGIN_PREFIX) + pluginId;
+    return String(ARCHIVE_PLUGIN_PREFIX) + pluginId;
   }
 
-  String DecodeImplicitPluginFromPath(const String& path)
+  String DecodeArchivePluginFromPath(const String& path)
   {
-    return 0 == path.find(IMPLICIT_PLUGIN_PREFIX)
-      ? path.substr(ArraySize(IMPLICIT_PLUGIN_PREFIX) - 1)
+    static const String PREFIX(ARCHIVE_PLUGIN_PREFIX);
+    return 0 == path.find(PREFIX)
+      ? path.substr(PREFIX.size())
       : String();
   }
 
@@ -234,7 +235,7 @@ namespace
     PluginsEnumeratorImpl()
     {
       RegisterContainerPlugins(*this);
-      RegisterImplicitPlugins(*this);
+      RegisterArchivePlugins(*this);
       RegisterPlayerPlugins(*this);
     }
 
@@ -245,11 +246,11 @@ namespace
       Log::Debug(THIS_MODULE, "Registered player %1%", plugin->Id());
     }
 
-    virtual void RegisterPlugin(ImplicitPlugin::Ptr plugin)
+    virtual void RegisterPlugin(ArchivePlugin::Ptr plugin)
     {
       AllPlugins.push_back(plugin);
-      ImplicitPlugins.push_back(plugin);
-      Log::Debug(THIS_MODULE, "Registered implicit container %1%", plugin->Id());
+      ArchivePlugins.push_back(plugin);
+      Log::Debug(THIS_MODULE, "Registered archive container %1%", plugin->Id());
     }
 
     virtual void RegisterPlugin(ContainerPlugin::Ptr plugin)
@@ -280,8 +281,8 @@ namespace
       while (!pathToOpen.empty())
       {
         Log::Debug(THIS_MODULE, "Resolving '%1%' + '%2%'", tmpResult.Path, pathToOpen);
-        //check for implicit containers
-        if (ResolveImplicit(commonParams, tmpResult, pathToOpen))
+        //check for archives
+        if (ResolveArchive(commonParams, tmpResult, pathToOpen))
         {
           continue;
         }
@@ -311,8 +312,8 @@ namespace
         return;
       }
 
-      //try to process implicit
-      if (DetectImplicit(modulesParams, detectParams, data, region))
+      //try to process archives
+      if (DetectArchive(modulesParams, detectParams, data, region))
       {
         return;
       }
@@ -371,15 +372,15 @@ namespace
       return false;
     }
 
-    bool DetectImplicit(Parameters::Accessor::Ptr modulesParams, const DetectParameters& detectParams, const MetaContainer& input,
+    bool DetectArchive(Parameters::Accessor::Ptr modulesParams, const DetectParameters& detectParams, const MetaContainer& input,
       ModuleRegion& region) const
     {
-      LoggerHelper logger(detectParams, input, input.Path.empty() ? Text::MODULE_PROGRESS_DETECT_IMPLICIT_NOPATH : Text::MODULE_PROGRESS_DETECT_IMPLICIT);
+      LoggerHelper logger(detectParams, input, input.Path.empty() ? Text::MODULE_PROGRESS_DETECT_ARCHIVE_NOPATH : Text::MODULE_PROGRESS_DETECT_ARCHIVE);
 
-      for (ImplicitPluginsArray::const_iterator it = ImplicitPlugins.begin(), lim = ImplicitPlugins.end();
+      for (ArchivePluginsArray::const_iterator it = ArchivePlugins.begin(), lim = ArchivePlugins.end();
         it != lim; ++it)
       {
-        const ImplicitPlugin::Ptr plugin = *it;
+        const ArchivePlugin::Ptr plugin = *it;
         if (detectParams.FilterPlugin(*plugin))
         {
           continue;//filtered plugin
@@ -389,7 +390,7 @@ namespace
           continue;//invalid plugin
         }
         //find first suitable
-        Log::Debug(THIS_MODULE, "%3%:  Checking implicit container %1% at path '%2%'",
+        Log::Debug(THIS_MODULE, "%3%:  Checking archive %1% at path '%2%'",
           plugin->Id(), input.Path, input.Plugins->Count());
         if (IO::DataContainer::Ptr subdata = plugin->ExtractSubdata(*modulesParams, input, region))
         {
@@ -397,7 +398,7 @@ namespace
             region.Offset, region.Size, input.Plugins->Count());
           logger(*plugin);
 
-          const String pathComponent = EncodeImplicitPluginToPath(plugin->Id());
+          const String pathComponent = EncodeArchivePluginToPath(plugin->Id());
 
           MetaContainer nested;
           nested.Data = subdata;
@@ -447,19 +448,19 @@ namespace
       region.Size = 0;
     }
 
-    bool ResolveImplicit(const Parameters::Accessor& commonParams, MetaContainer& data, String& pathToOpen) const
+    bool ResolveArchive(const Parameters::Accessor& commonParams, MetaContainer& data, String& pathToOpen) const
     {
       String restPath;
       const String pathComponent = IO::ExtractFirstPathComponent(pathToOpen, restPath);
-      const String pluginId = DecodeImplicitPluginFromPath(pathComponent);
+      const String pluginId = DecodeArchivePluginFromPath(pathComponent);
       if (pluginId.empty())
       {
         return false;
       }
-      for (ImplicitPluginsArray::const_iterator it = ImplicitPlugins.begin(), lim = ImplicitPlugins.end();
+      for (ArchivePluginsArray::const_iterator it = ArchivePlugins.begin(), lim = ArchivePlugins.end();
         it != lim; ++it)
       {
-        const ImplicitPlugin::Ptr plugin = *it;
+        const ArchivePlugin::Ptr plugin = *it;
         if (plugin->Id() != pluginId)
         {
           continue;
@@ -471,7 +472,7 @@ namespace
         ModuleRegion resRegion;
         if (IO::DataContainer::Ptr subdata = plugin->ExtractSubdata(commonParams, data, resRegion))
         {
-          Log::Debug(THIS_MODULE, "Detected implicit plugin %1%", plugin->Id());
+          Log::Debug(THIS_MODULE, "Detected archive plugin %1%", plugin->Id());
           data.Path = IO::AppendPath(data.Path, pathComponent);
           data.Data = subdata;
           data.Plugins->Add(plugin);
@@ -512,7 +513,7 @@ namespace
   private:
     PluginsList AllPlugins;
     ContainerPluginsArray ContainerPlugins;
-    ImplicitPluginsArray ImplicitPlugins;
+    ArchivePluginsArray ArchivePlugins;
     PlayerPluginsArray PlayerPlugins;
   };
 }

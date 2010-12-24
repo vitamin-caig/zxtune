@@ -37,8 +37,8 @@ namespace ZXTune
       ERROR_NO_MEMORY,
       //! @internal Failed to find container plugin
       ERROR_FIND_CONTAINER_PLUGIN,
-      //! @internal Failed to find implicit plugin
-      ERROR_FIND_IMPLICIT_PLUGIN,
+      //! @internal Failed to find archive plugin
+      ERROR_FIND_ARCHIVE_PLUGIN,
       //! @internal Failed to find player plugin
       ERROR_FIND_PLAYER_PLUGIN
     };

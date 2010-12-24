@@ -1,6 +1,6 @@
 /*
 Abstract:
-  Implicit plugins list
+  Archive plugins list
 
 Last changed:
   $Id$
@@ -9,8 +9,8 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-#ifndef __CORE_PLUGINS_IMPLICITS_LIST_H_DEFINED__
-#define __CORE_PLUGINS_IMPLICITS_LIST_H_DEFINED__
+#ifndef __CORE_PLUGINS_ARCHIVES_LIST_H_DEFINED__
+#define __CORE_PLUGINS_ARCHIVES_LIST_H_DEFINED__
 
 namespace ZXTune
 {
@@ -23,7 +23,7 @@ namespace ZXTune
   void RegisterFDIConvertor(PluginsEnumerator& enumerator);
   void RegisterDSQConvertor(PluginsEnumerator& enumerator);
 
-  void RegisterImplicitPlugins(PluginsEnumerator& enumerator)
+  void RegisterArchivePlugins(PluginsEnumerator& enumerator)
   {
     RegisterHobetaConvertor(enumerator);
     RegisterHrust1xConvertor(enumerator);
@@ -33,4 +33,4 @@ namespace ZXTune
   }
 }
 
-#endif //__CORE_PLUGINS_IMPLICITS_LIST_H_DEFINED__
+#endif //__CORE_PLUGINS_ARCHIVES_LIST_H_DEFINED__

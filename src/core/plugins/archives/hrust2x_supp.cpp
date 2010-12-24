@@ -1,6 +1,6 @@
 /*
 Abstract:
-  Hrust 2.x implicit convertors support
+  Hrust 2.x convertors support
 
 Last changed:
   $Id$
@@ -164,7 +164,7 @@ namespace
   }
 
   //////////////////////////////////////////////////////////////////////////
-  class Hrust2xPlugin : public ImplicitPlugin
+  class Hrust2xPlugin : public ArchivePlugin
   {
   public:
     virtual String Id() const
@@ -285,7 +285,7 @@ namespace ZXTune
 {
   void RegisterHrust2xConvertor(PluginsEnumerator& enumerator)
   {
-    const ImplicitPlugin::Ptr plugin(new Hrust2xPlugin());
+    const ArchivePlugin::Ptr plugin(new Hrust2xPlugin());
     enumerator.RegisterPlugin(plugin);
   }
 }

@@ -48,24 +48,29 @@ namespace
     'r','a','w','_','s','c','a','n','e','r','_','r','e','c','u','r','s','i','o','n','_','d','e','p','t','h','\0'
   };
 
-  const Char RAW_REST_PART[] = {'.', 'r', 'a', 'w', 0};
+  const Char RAW_PREFIX[] = {'+', 0};
 
-  //\d+\.raw
+  //\+\d+
   inline bool CheckIfRawPart(const String& str, std::size_t& offset)
   {
-    std::size_t res = 0;
-    String rest;
-    InStringStream stream(str);
-    return (stream >> res) && (stream >> rest) && (rest == RAW_REST_PART) &&
-    // path '0.raw' is enabled now
-      (offset = res, true);
+    static const String PREFIX(RAW_PREFIX);
+
+    Parameters::IntType res = 0;
+    if (!str.empty() && 
+        0 == str.find(PREFIX) &&
+        Parameters::ConvertFromString(str.substr(PREFIX.size()), res))
+    {
+      offset = res;
+      return true;
+    }
+    return false;
   }
 
   inline String CreateRawPart(std::size_t offset)
   {
-    OutStringStream stream;
-    stream << offset << RAW_REST_PART;
-    return stream.str();
+    String res(RAW_PREFIX);
+    res += Parameters::ConvertToString(offset);
+    return res;
   }
 
   class RawPluginParameters

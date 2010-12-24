@@ -1,6 +1,6 @@
 /*
 Abstract:
-  Hobeta implicit convertors support
+  Hobeta convertors support
 
 Last changed:
   $Id$
@@ -77,7 +77,7 @@ namespace
   }
 
   //////////////////////////////////////////////////////////////////////////
-  class HobetaPlugin : public ImplicitPlugin
+  class HobetaPlugin : public ArchivePlugin
   {
   public:
     virtual String Id() const
@@ -125,7 +125,7 @@ namespace ZXTune
 {
   void RegisterHobetaConvertor(PluginsEnumerator& enumerator)
   {
-    const ImplicitPlugin::Ptr plugin(new HobetaPlugin());
+    const ArchivePlugin::Ptr plugin(new HobetaPlugin());
     enumerator.RegisterPlugin(plugin);
   }
 }

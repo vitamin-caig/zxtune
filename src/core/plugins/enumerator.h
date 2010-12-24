@@ -84,7 +84,7 @@ namespace ZXTune
   public:
     typedef boost::shared_ptr<const PlayerPlugin> Ptr;
 
-    //! @brief Checking if data contains implicit subdata
+    //! @brief Checking if data contains module
     //! @return true if possibly yes, false if defenitely no
     virtual bool Check(const IO::DataContainer& inputData) const = 0;
     
@@ -98,12 +98,12 @@ namespace ZXTune
                                              ModuleRegion& region) const = 0;
   };
 
-  class ImplicitPlugin : public Plugin
+  class ArchivePlugin : public Plugin
   {
   public:
-    typedef boost::shared_ptr<const ImplicitPlugin> Ptr;
+    typedef boost::shared_ptr<const ArchivePlugin> Ptr;
 
-    //! @brief Checking if data contains implicit subdata
+    //! @brief Checking if data contains subdata
     //! @return true if possibly yes, false if defenitely no
     virtual bool Check(const IO::DataContainer& inputData) const = 0;
 
@@ -122,7 +122,7 @@ namespace ZXTune
   public:
     typedef boost::shared_ptr<const ContainerPlugin> Ptr;
 
-    //! @brief Checking if data contains implicit subdata
+    //! @brief Checking if data contains valid subdata
     //! @return true if possibly yes, false if defenitely no
     virtual bool Check(const IO::DataContainer& inputData) const = 0;
 
@@ -156,8 +156,8 @@ namespace ZXTune
 
     //endpoint modules support
     virtual void RegisterPlugin(PlayerPlugin::Ptr plugin) = 0;
-    //implicit containers support
-    virtual void RegisterPlugin(ImplicitPlugin::Ptr plugin) = 0;
+    //archives containers support
+    virtual void RegisterPlugin(ArchivePlugin::Ptr plugin) = 0;
     //nested containers support
     virtual void RegisterPlugin(ContainerPlugin::Ptr plugin) = 0;
 

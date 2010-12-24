@@ -1,8 +1,8 @@
 library_name := core
 path_step := ../..
 source_dirs := plugins \
+               plugins/archives \
                plugins/containers \
-               plugins/implicit \
                plugins/players \
                plugins/players/ay \
                plugins/players/dac
