@@ -48,6 +48,11 @@ namespace Parameters
   String ConvertToString(StringType val);
   String ConvertToString(DataType val);
 
+  //! @brief Converting parameter value from string
+  bool ConvertFromString(const String& str, IntType& res);
+  bool ConvertFromString(const String& str, StringType& res);
+  bool ConvertFromString(const String& str, DataType& res);
+
   //! @brief Interface to modify properties and parameters
   class Modifier
   {

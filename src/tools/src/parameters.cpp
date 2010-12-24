@@ -394,6 +394,32 @@ namespace Parameters
     return DataToString(val);
   }
 
+  bool ConvertFromString(const String& str, IntType& res)
+  {
+    if (IsInteger(str))
+    {
+      res = IntegerFromString(str);
+      return true;
+    }
+    return false;
+  }
+
+  bool ConvertFromString(const String& str, StringType& res)
+  {
+    res = StringFromString(str);
+    return true;
+  }
+
+  bool ConvertFromString(const String& str, DataType& res)
+  {
+    if (IsData(str))
+    {
+      DataFromString(str, res);
+      return true;
+    }
+    return false;
+  }
+
   void ParseStringMap(const StringMap& map, Modifier& modifier)
   {
     std::for_each(map.begin(), map.end(), 
