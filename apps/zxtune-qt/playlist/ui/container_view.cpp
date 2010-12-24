@@ -106,11 +106,11 @@ namespace
       return false;
     }
 
-    bool SaveFile(const QString& title, const QString& suffix, QString& filename)
+    bool SaveFile(const QString& title, const QString& suffix, const QString& filter, QString& filename)
     {
       Dialog.setWindowTitle(title);
       Dialog.setDefaultSuffix(suffix);
-      Dialog.setNameFilter(QString::fromUtf8("*.") + suffix);
+      Dialog.setNameFilter(filter);
       Dialog.selectFile(filename);
       Dialog.setFileMode(QFileDialog::AnyFile);
       Dialog.setOption(QFileDialog::ShowDirsOnly, false);
@@ -278,7 +278,9 @@ namespace
       const Playlist::IO::Container::Ptr container = controller.GetContainer();
       QString filename = ExtractPlaylistName(*container, controller.GetName());
       if (FileDialog.SaveFile(actionSavePlaylist->text(),
-        QString::fromUtf8("xspf"), filename))
+        QString::fromUtf8("xspf"),
+        QString::fromUtf8("Playlist files (*.xspf)"),
+        filename))
       {
         if (!Playlist::IO::SaveXSPF(container, filename))
         {

@@ -49,7 +49,7 @@ namespace
     return ZXTune::CAP_STOR_MULTITRACK == (plugin.Capabilities() & ZXTune::CAP_STOR_MULTITRACK);
   }
 
-  bool IsImplicitPlugin(const ZXTune::Plugin& plugin)
+  bool IsArchivePlugin(const ZXTune::Plugin& plugin)
   {
     assert(!IsPlayerPlugin(plugin));
     return ZXTune::CAP_STOR_CONTAINER == (plugin.Capabilities() & ZXTune::CAP_STOR_CONTAINER);
@@ -81,7 +81,7 @@ namespace
       , Ayms(new QTreeWidgetItem(Players, QStringList(ComponentsDialog::tr("AY/YM"))))
       , Dacs(new QTreeWidgetItem(Players, QStringList(ComponentsDialog::tr("DAC"))))
       , Multitracks(new QTreeWidgetItem(Containers, QStringList(ComponentsDialog::tr("Multitrack"))))
-      , Implicits(new QTreeWidgetItem(Containers, QStringList(ComponentsDialog::tr("Implicit"))))
+      , Archives(new QTreeWidgetItem(Containers, QStringList(ComponentsDialog::tr("Archive"))))
     {
     }
 
@@ -151,9 +151,9 @@ namespace
       {
         AddContainerPluginItem(plugin, *Multitracks);
       }
-      else if (IsImplicitPlugin(plugin))
+      else if (IsArchivePlugin(plugin))
       {
-        AddContainerPluginItem(plugin, *Implicits);
+        AddContainerPluginItem(plugin, *Archives);
       }
       else
       {
@@ -194,7 +194,7 @@ namespace
     QTreeWidgetItem* const Ayms;
     QTreeWidgetItem* const Dacs;
     QTreeWidgetItem* const Multitracks;
-    QTreeWidgetItem* const Implicits;
+    QTreeWidgetItem* const Archives;
   };
 
   bool IsPlaybackBackend(const ZXTune::Sound::BackendInformation& backend)
