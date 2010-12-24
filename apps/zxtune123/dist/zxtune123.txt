@@ -74,17 +74,12 @@ html> "</pre>\n"
 
 = SAMPLE_PATH_1
 > SAMPLE_SECT_BEGIN
-> SAMPLE_BEGIN "FILE.trd?FILE1.C/125.raw" SAMPLE_END
+> SAMPLE_BEGIN "FILE.trd?FILE1.C/+125" SAMPLE_END
 > SAMPLE_SECT_END
 
 = SAMPLE_PATH_1_1
 > SAMPLE_SECT_BEGIN
-> SAMPLE_BEGIN "FILE.trd?FILE1.C/125.raw/50.raw" SAMPLE_END
-> SAMPLE_SECT_END
-
-= SAMPLE_PATH_1_2
-> SAMPLE_SECT_BEGIN
-> SAMPLE_BEGIN "FILE.trd?FILE1.C/175.raw" SAMPLE_END
+> SAMPLE_BEGIN "FILE.trd?FILE1.C/+125/+unHRIP1/+50" SAMPLE_END
 > SAMPLE_SECT_END
 
 = SAMPLE_PLUGIN_ALLOW
@@ -129,7 +124,7 @@ html> "</pre>\n"
 
 = SAMPLE_WAV_RESULT_1
 > SAMPLE_SECT_BEGIN
-> SAMPLE_BEGIN "1/FILE_trd_FILE1_C_125_raw.wav" SAMPLE_END
+> SAMPLE_BEGIN "1/FILE_trd_FILE1_C_+125.wav" SAMPLE_END
 > SAMPLE_SECT_END
 
 = SAMPLE_MIXER_LAYOUT
@@ -189,7 +184,7 @@ en> SAMPLE_BEGIN "[-+]?[:digit:]+\t\t\t- integer value (64 bit signed integer)" 
 en> SAMPLE_BEGIN "any other\t\t\t- string value" SAMPLE_END
 en> SAMPLE_SECT_END
 
-en> "To force value to be a string (even if it's not looked as a string), quote it "
+en> "To force value to be a string (even if it's looked as not a string), quote it "
 en> "with the \"'\" symbol. E.g.: \"'123'\" - is a string, but \"123\" is integer. If "
 en> "string already contains \"'\" symbol at the beginning and/or end, it should be "
 en> "escaped too.\n"
@@ -260,13 +255,14 @@ en> "currently supported plugins use " PRE_BEGIN "--" CMD_INFO_LIST_PLUGINS_KEY 
 en> "plugin identifier, some of the additional information and supported "
 en> "capabilities. There are three categories of plugins.\n"
 
-en> "Container plugins. Used to support \"containers\" - blocks of data with "
+en> "Multitrack plugins. Used to support \"containers\" - blocks of data with "
 en> "specific structure which are used for identification and getting access to "
 en> "subsequent data inside. Usually, it's filename. All of these plugins has "
 en> PRE_BEGIN "stor_multitrack" PRE_END " capability.\n"
 
-en> "Implicit container plugins. They provides transformation of data block from "
-en> "one form to another without any access specialization. All of these plugins "
+en> "Archive container plugins. They provides transformation of data block from "
+en> "one form to another without any possibility to identify subdata inside. Uses path component in form " 
+en> PRE_BEGIN "+un${Id}" PRE_END ", where \"Id\" is plugin identifier. All of these plugins "
 en> "has " PRE_BEGIN "stor_container" PRE_END " capability.\n"
 
 en> "Module plugins. They are endpoint plugins used to perform interpretation and "
@@ -278,7 +274,7 @@ en> "section below.\n\n"
 
 en> "There's one more plugin, which is formally \"container\", but has some specific "
 en> "meaning- raw scanner. It's used to search modules inside raw data dump. It has "
-en> PRE_BEGIN "stor_multitrack" PRE_END " and " PRE_BEGIN "stor_scaner" PRE_END " capabilities and uses " PRE_BEGIN "${number}.raw" PRE_END " virtual "
+en> PRE_BEGIN "stor_multitrack" PRE_END " and " PRE_BEGIN "stor_scaner" PRE_END " capabilities and uses " PRE_BEGIN "+${number}" PRE_END " virtual "
 en> "\"filenames\" to specify internal data path, where \"number\" is just an offset "
 en> "of data in bytes (BTW, zero offset can be specified, but never returned).\n"
 en> "Some of the container plugins has " PRE_BEGIN "stor_plain" PRE_END " capability, which means that "
@@ -290,30 +286,12 @@ en> "components. E.g.:\n"
 
 en> SAMPLE_PATH_1
 
-en> "in the simplest case means that there's some data inside file " PRE_BEGIN "FILE1.C" PRE_END " which "
-en> "is located in local file " PRE_BEGIN "FILE.trd" PRE_END " in offset of 125 bytes. Every container "
+en> "in the simplest case means that there's some data inside file " PRE_BEGIN "FILE1.C" PRE_END " at offset of 125 bytes which "
+en> "is located in local file " PRE_BEGIN "FILE.trd" PRE_END ". Every container "
 en> "plugin should be addressed by at least one component.\n"
-en> "Implicit containers has no path component, so example above can be treated "
-en> "also as:\n"
-
-en> SAMPLE_SECT_BEGIN
-en> SAMPLE_BEGIN "local file: FILE.trd" SAMPLE_END
-en> SAMPLE_BEGIN " file inside: FILE1.C" SAMPLE_END
-en> SAMPLE_BEGIN "  implicit container: (no path)" SAMPLE_END
-en> SAMPLE_BEGIN "   file inside: 125.raw" SAMPLE_END
-en> SAMPLE_BEGIN "    implicit container: (no path)" SAMPLE_END
-en> SAMPLE_BEGIN "     ..." SAMPLE_END
-en> SAMPLE_SECT_END
-
-en> "So, it causes some \"strange\" path which looks like:\n"
+en> "Archive containers' path components clarifies nesting and avoids ambiguity:"
 
 en> SAMPLE_PATH_1_1
-
-en> "which is NOT equal to:\n"
-
-en> SAMPLE_PATH_1_2
-
-en> "in common case, because of implicit plugins.\n"
 
 en> "While processing input data you can use " PRE_BEGIN "--" CMD_INPUT_ALLOW_PLUGIN_KEY PRE_END " key to explicitly "
 en> "specify what plugins you want to use and/or " PRE_BEGIN "--" CMD_INPUT_DENY_PLUGIN_KEY PRE_END " to explicitly "
@@ -335,9 +313,9 @@ en> SAMPLE_FILTER_PLUGIN
 en> "Filters are not applied for explicitly specified subpath. E.g. if the next "
 en> "path is specified:\n"
 
-en> SAMPLE_PATH_1_2
+en> SAMPLE_PATH_1_1
 
-en> "TRD and Raw plugins will be used to resolve initial path even if they are disabled.\n"
+en> "TRD, HRUST1 and Raw plugins will be used to resolve initial path even if they are disabled.\n"
 
 en> HEAD_BEGIN "ATTRIBUTES" HEAD_END
 en> "Every module has variable set of attributes which is filled while processing. "
