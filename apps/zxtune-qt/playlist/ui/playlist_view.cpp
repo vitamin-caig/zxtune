@@ -83,7 +83,7 @@ namespace
       //setup connections
       const Playlist::Item::Iterator::Ptr iter = Controller->GetIterator();
       iter->connect(View, SIGNAL(OnItemActivated(unsigned)), SLOT(Reset(unsigned)));
-      this->connect(iter, SIGNAL(OnItem(const Playlist::Item::Data&)), SIGNAL(OnItemActivated(const Playlist::Item::Data&)));
+      this->connect(iter, SIGNAL(OnItem(unsigned)), SLOT(ItemActivated(unsigned)));
       View->connect(Controller->GetScanner(), SIGNAL(OnScanStop()), SLOT(updateGeometries()));
 
       this->connect(&PlayAction, SIGNAL(triggered()), SLOT(PlaySelected()));
@@ -127,7 +127,13 @@ namespace
     virtual void Finish()
     {
       const Playlist::Item::Iterator::Ptr iter = Controller->GetIterator();
-      if (!iter->Next(PlayorderMode))
+      bool hasMoreItems = false;
+      while (iter->Next(PlayorderMode) &&
+             Playlist::Item::ERROR == iter->GetState())
+      {
+        hasMoreItems = true;
+      }
+      if (!hasMoreItems)
       {
         Stop();
       }
@@ -136,13 +142,21 @@ namespace
     virtual void Next()
     {
       const Playlist::Item::Iterator::Ptr iter = Controller->GetIterator();
-      iter->Next(PlayorderMode);
+      //skip invalid ones
+      while (iter->Next(PlayorderMode) &&
+             Playlist::Item::ERROR == iter->GetState())
+      {
+      }
     }
 
     virtual void Prev()
     {
       const Playlist::Item::Iterator::Ptr iter = Controller->GetIterator();
-      iter->Prev(PlayorderMode);
+      //skip invalid ones
+      while (iter->Prev(PlayorderMode) &&
+             Playlist::Item::ERROR == iter->GetState())
+      {
+      }      
     }
 
     virtual void Clear()
@@ -198,6 +212,16 @@ namespace
       View->GetSelectedItems(selected);
       const Playlist::Model::Ptr model = Controller->GetModel();
       model->RemoveItems(selected);
+    }
+
+    virtual void ItemActivated(unsigned idx)
+    {
+      const Playlist::Model::Ptr model = Controller->GetModel();
+      if (Playlist::Item::Data::Ptr item = model->GetItem(idx))
+      {
+        View->NavigateItem(idx);
+        OnItemActivated(*item);
+      }
     }
 
     //qwidget virtuals

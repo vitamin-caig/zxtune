@@ -332,7 +332,7 @@ namespace
     {
       if (QObject* sender = this->sender())
       {
-        assert(dynamic_cast<Playlist::UI::View*>(sender));
+        //assert(dynamic_cast<Playlist::UI::View*>(sender));
         Playlist::UI::View* const newView = static_cast<Playlist::UI::View*>(sender);
         if (newView != ActivePlaylistView)
         {

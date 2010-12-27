@@ -57,6 +57,8 @@ namespace Playlist
 
       virtual void PlaySelected() const = 0;
       virtual void RemoveSelected() const = 0;
+    private slots:
+      virtual void ItemActivated(unsigned idx) = 0;
     signals:
       void OnItemActivated(const Playlist::Item::Data&);
     };

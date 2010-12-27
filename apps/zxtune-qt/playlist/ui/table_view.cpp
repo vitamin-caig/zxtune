@@ -101,6 +101,13 @@ namespace
           boost::bind(&QModelIndex::row, _1)));
     }
 
+    virtual void NavigateItem(unsigned index)
+    {
+      QAbstractItemModel* const curModel = model();
+      const QModelIndex idx = curModel->index(index, 0);
+      scrollTo(idx, QAbstractItemView::EnsureVisible);
+    }
+
     virtual void ActivateItem(const QModelIndex& index)
     {
       if (index.isValid())

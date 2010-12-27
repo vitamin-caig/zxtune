@@ -44,9 +44,11 @@ namespace
       OpenBackend();
       Backend->SetModule(item.GetModule());
       this->wait();
-      Player = Backend->GetPlayer();
-      Backend->Play();
-      this->start();
+      if (Player = Backend->GetPlayer())
+      {
+        Backend->Play();
+        this->start();
+      }
     }
 
     virtual void Play()
