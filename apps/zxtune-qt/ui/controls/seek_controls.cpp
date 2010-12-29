@@ -30,7 +30,7 @@ namespace
       //setup self
       setupUi(this);
       timePosition->setRange(0, 0);
-      this->connect(timePosition, SIGNAL(sliderMoved(int)), SIGNAL(OnSeeking(int)));
+      this->connect(timePosition, SIGNAL(valueChanged(int)), SIGNAL(OnSeeking(int)));
     }
 
     virtual void InitState(ZXTune::Module::Player::ConstPtr player)
@@ -45,7 +45,7 @@ namespace
       const uint_t curFrame = TrackState->Frame();
       if (!timePosition->isSliderDown())
       {
-        timePosition->setValue(curFrame);
+        timePosition->setSliderPosition(curFrame);
       }
       timeDisplay->setText(ToQString(FormatTime(curFrame, 20000/*TODO*/)));
     }
