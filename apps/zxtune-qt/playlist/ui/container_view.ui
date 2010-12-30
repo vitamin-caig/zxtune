@@ -128,14 +128,14 @@
     <string>Random</string>
    </property>
   </action>
-  <action name="actionAddFolders">
+  <action name="actionAddFolder">
    <property name="icon">
     <iconset>
-     <normalon>:/playlist/addfolders.png</normalon>
+     <normalon>:/playlist/addfolder.png</normalon>
     </iconset>
    </property>
    <property name="text">
-    <string>Add folders</string>
+    <string>Add folder</string>
    </property>
   </action>
  </widget>

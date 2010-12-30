@@ -20,6 +20,7 @@ Author:
 #include "playlist/supp/container.h"
 #include "playlist/supp/scanner.h"
 #include "ui/utils.h"
+#include "ui/tools/filedialog.h"
 //common includes
 #include <logging.h>
 //std includes
@@ -29,7 +30,6 @@ Author:
 //qt includes
 #include <QtCore/QUrl>
 #include <QtGui/QDragEnterEvent>
-#include <QtGui/QFileDialog>
 #include <QtGui/QMenu>
 
 namespace
@@ -47,103 +47,6 @@ namespace
     return defVal;
   }
 
-  class FileDialogWrapper
-  {
-  public:
-    explicit FileDialogWrapper(QWidget& parent)
-      : Dialog(&parent, QString(), QDir::currentPath())
-    {
-      Dialog.setViewMode(QFileDialog::Detail);
-      Dialog.setOption(QFileDialog::DontUseNativeDialog, true);
-      Dialog.setOption(QFileDialog::HideNameFilterDetails, true);
-    }
-
-    bool OpenSingleFile(const QString& title, const QString& filters, QString& file)
-    {
-      Dialog.setWindowTitle(title);
-      Dialog.setNameFilter(filters);
-      Dialog.setFileMode(QFileDialog::ExistingFile);
-      Dialog.setOption(QFileDialog::ShowDirsOnly, false);
-      SetROMode();
-
-      if (ProcessDialog())
-      {
-        const QStringList& files = Dialog.selectedFiles();
-        file = files.front();
-        return true;
-      }
-      return false;
-    }
-
-    bool OpenMultipleFiles(const QString& title, const QString& filters, QStringList& files)
-    {
-      Dialog.setWindowTitle(title);
-      Dialog.setNameFilter(filters);
-      Dialog.setFileMode(QFileDialog::ExistingFiles);
-      Dialog.setOption(QFileDialog::ShowDirsOnly, false);
-      SetROMode();
-
-      if (ProcessDialog())
-      {
-        files = Dialog.selectedFiles();
-        return true;
-      }
-      return false;
-    }
-
-    bool OpenMultipleFolders(const QString& title, QStringList& folders)
-    {
-      Dialog.setWindowTitle(title);
-      Dialog.setFileMode(QFileDialog::Directory);
-      Dialog.setOption(QFileDialog::ShowDirsOnly, true);
-      SetROMode();
-
-      if (ProcessDialog())
-      {
-        folders = Dialog.selectedFiles();
-        return true;
-      }
-      return false;
-    }
-
-    bool SaveFile(const QString& title, const QString& suffix, const QString& filter, QString& filename)
-    {
-      Dialog.setWindowTitle(title);
-      Dialog.setDefaultSuffix(suffix);
-      Dialog.setNameFilter(filter);
-      Dialog.selectFile(filename);
-      Dialog.setFileMode(QFileDialog::AnyFile);
-      Dialog.setOption(QFileDialog::ShowDirsOnly, false);
-      SetRWMode();
-      if (ProcessDialog())
-      {
-        const QStringList& files = Dialog.selectedFiles();
-        filename = files.front();
-        return true;
-      }
-      return false;
-    }
-  private:
-    bool ProcessDialog()
-    {
-      return QDialog::Accepted == Dialog.exec();
-    }
-
-    void SetROMode()
-    {
-      Dialog.setOption(QFileDialog::ReadOnly, true);
-      Dialog.setAcceptMode(QFileDialog::AcceptOpen);
-    }
-
-    void SetRWMode()
-    {
-      Dialog.setOption(QFileDialog::ReadOnly, false);
-      Dialog.setAcceptMode(QFileDialog::AcceptSave);
-    }
-  private:
-    QFileDialog Dialog;
-  };
-
   class ContainerViewImpl : public Playlist::UI::ContainerView
                           , public Ui::PlaylistContainerView
   {
@@ -152,7 +55,7 @@ namespace
       : Playlist::UI::ContainerView(parent)
       , Container(Playlist::Container::Create(*this, ioParams, coreParams))
       , ActionsMenu(new QMenu(tr("Playlist"), this))
-      , FileDialog(*this)
+      , Filer(FileDialog::Create(*this))
       , ActivePlaylistView(0)
     {
       //setup self
@@ -162,7 +65,7 @@ namespace
 
       //connect actions
       this->connect(actionAddFiles, SIGNAL(triggered()), SLOT(AddFiles()));
-      this->connect(actionAddFolders, SIGNAL(triggered()), SLOT(AddFolders()));
+      this->connect(actionAddFolder, SIGNAL(triggered()), SLOT(AddFolder()));
       //playlist actions
       this->connect(actionCreatePlaylist, SIGNAL(triggered()), SLOT(CreatePlaylist()));
       this->connect(actionLoadPlaylist, SIGNAL(triggered()), SLOT(LoadPlaylist()));
@@ -237,17 +140,18 @@ namespace
     virtual void AddFiles()
     {
       QStringList files;
-      if (FileDialog.OpenMultipleFiles(actionAddFiles->text(),
+      if (Filer->OpenMultipleFiles(actionAddFiles->text(),
         tr("All files (*.*)"), files))
       {
         AddItemsToVisiblePlaylist(files);
       }
     }
 
-    virtual void AddFolders()
+    virtual void AddFolder()
     {
       QStringList folders;
-      if (FileDialog.OpenMultipleFolders(actionAddFolders->text(), folders))
+      folders += QString();
+      if (Filer->OpenFolder(actionAddFolder->text(), folders.front()))
       {
         AddItemsToVisiblePlaylist(folders);
       }
@@ -261,7 +165,7 @@ namespace
     virtual void LoadPlaylist()
     {
       QString file;
-      if (FileDialog.OpenSingleFile(actionLoadPlaylist->text(),
+      if (Filer->OpenSingleFile(actionLoadPlaylist->text(),
          tr("Playlist files (*.xspf *.ayl)"), file))
       {
         if (Playlist::Controller::Ptr pl = Container->OpenPlaylist(file))
@@ -277,7 +181,7 @@ namespace
       const Playlist::Controller& controller = pl.GetPlaylist();
       const Playlist::IO::Container::Ptr container = controller.GetContainer();
       QString filename = ExtractPlaylistName(*container, controller.GetName());
-      if (FileDialog.SaveFile(actionSavePlaylist->text(),
+      if (Filer->SaveFile(actionSavePlaylist->text(),
         QString::fromUtf8("xspf"),
         QString::fromUtf8("Playlist files (*.xspf)"),
         filename))
@@ -347,7 +251,7 @@ namespace
     void SetupMenu()
     {
       ActionsMenu->addAction(actionAddFiles);
-      ActionsMenu->addAction(actionAddFolders);
+      ActionsMenu->addAction(actionAddFolder);
       ActionsMenu->addAction(actionDeepScan);
       ActionsMenu->addSeparator();
       ActionsMenu->addAction(actionCreatePlaylist);
@@ -432,8 +336,8 @@ namespace
   private:
     const Playlist::Container::Ptr Container;
     QMenu* const ActionsMenu;
+    const FileDialog::Ptr Filer;
     //state context
-    FileDialogWrapper FileDialog;
     Playlist::UI::View* ActivePlaylistView;
   };
 }

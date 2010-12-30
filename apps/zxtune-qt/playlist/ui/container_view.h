@@ -54,7 +54,7 @@ namespace Playlist
       //actions
       virtual void Clear() = 0;
       virtual void AddFiles() = 0;
-      virtual void AddFolders() = 0;
+      virtual void AddFolder() = 0;
       //playlist actions
       virtual void CreatePlaylist() = 0;
       virtual void LoadPlaylist() = 0;

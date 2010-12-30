@@ -2,7 +2,8 @@ binary_name := zxtune-qt
 path_step := ../..
 
 source_files = qt_app \
-               ui/format
+               ui/format \
+               ui/tools/filedialog
 
 #ui-related
 
