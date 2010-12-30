@@ -43,7 +43,7 @@ namespace Playlist
 
       virtual Error OpenModule(const String& path, DetectParameters& detectParams) const = 0;
 
-      static Ptr Create(Parameters::Accessor::Ptr ioParams, Parameters::Accessor::Ptr coreParams);
+      static Ptr Create(Parameters::Accessor::Ptr parameters);
     };
   }
 }

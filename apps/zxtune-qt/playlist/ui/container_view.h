@@ -38,7 +38,7 @@ namespace Playlist
       explicit ContainerView(QWidget& parent);
     public:
       //creator
-      static ContainerView* Create(QWidget& parent, Parameters::Accessor::Ptr ioParams, Parameters::Accessor::Ptr coreParams);
+      static ContainerView* Create(QWidget& parent, Parameters::Accessor::Ptr parameters);
 
       virtual void CreatePlaylist(const QStringList& items) = 0;
       virtual QMenu* GetActionsMenu() const = 0;

@@ -32,7 +32,7 @@ namespace Playlist
     typedef boost::shared_ptr<Container> Ptr;
 
     //creator
-    static Ptr Create(QObject& parent, Parameters::Accessor::Ptr ioParams, Parameters::Accessor::Ptr coreParams);
+    static Ptr Create(QObject& parent, Parameters::Accessor::Ptr parameters);
 
     virtual Controller::Ptr CreatePlaylist(const QString& name) = 0;
     virtual Controller::Ptr OpenPlaylist(const QString& filename) = 0;

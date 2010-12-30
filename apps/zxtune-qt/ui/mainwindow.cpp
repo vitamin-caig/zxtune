@@ -53,7 +53,7 @@ namespace
       , Status(StatusControl::Create(*this))
       , Seeking(SeekControls::Create(*this))
       , Analyzer(AnalyzerControl::Create(*this))
-      , MultiPlaylist(Playlist::UI::ContainerView::Create(*this, Options, Options))
+      , MultiPlaylist(Playlist::UI::ContainerView::Create(*this, Options))
       , Playback(PlaybackSupport::Create(*this, Options))
     {
       setupUi(this);

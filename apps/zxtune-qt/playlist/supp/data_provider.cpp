@@ -422,7 +422,7 @@ namespace
       const Parameters::Accessor::Ptr pathProps = CreatePathProperties(DataPath, subPath);
       const Parameters::Container::Ptr adjustedParams = Delegate.CreateInitialAdjustedParameters();
       const Parameters::Accessor::Ptr perItemParameters = Parameters::CreateMergedAccessor(pathProps, adjustedParams, CoreParams);
-  
+
       const ModuleSource itemSource(Source, perItemParameters);
       const ZXTune::Module::Information::Ptr info = holder->GetModuleInformation();
       const Parameters::Accessor::Ptr lookupModuleProps = Parameters::CreateMergedAccessor(pathProps, adjustedParams, info->Properties());
@@ -457,10 +457,10 @@ namespace
   class DataProviderImpl : public Playlist::Item::DataProvider
   {
   public:
-    DataProviderImpl(Parameters::Accessor::Ptr ioParams, Parameters::Accessor::Ptr coreParams)
-      : Provider(new CachedDataProvider(ioParams))
-      , CoreParams(coreParams)
-      , Attributes(boost::make_shared<DynamicAttributesProvider>()) 
+    explicit DataProviderImpl(Parameters::Accessor::Ptr parameters)
+      : Provider(new CachedDataProvider(parameters))
+      , CoreParams(parameters)
+      , Attributes(boost::make_shared<DynamicAttributesProvider>())
     {
     }
 
@@ -512,9 +512,9 @@ namespace Playlist
 {
   namespace Item
   {
-    DataProvider::Ptr DataProvider::Create(Parameters::Accessor::Ptr ioParams, Parameters::Accessor::Ptr coreParams)
+    DataProvider::Ptr DataProvider::Create(Parameters::Accessor::Ptr parameters)
     {
-      return boost::make_shared<DataProviderImpl>(ioParams, coreParams);
+      return boost::make_shared<DataProviderImpl>(parameters);
     }
   }
 }

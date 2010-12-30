@@ -47,9 +47,9 @@ namespace
   class ContainerImpl : public Playlist::Container
   {
   public:
-    ContainerImpl(QObject& parent, Parameters::Accessor::Ptr ioParams, Parameters::Accessor::Ptr coreParams)
+    ContainerImpl(QObject& parent, Parameters::Accessor::Ptr parameters)
       : Playlist::Container(parent)
-      , Provider(Playlist::Item::DataProvider::Create(ioParams, coreParams))
+      , Provider(Playlist::Item::DataProvider::Create(parameters))
     {
     }
 
@@ -83,8 +83,8 @@ namespace Playlist
   {
   }
 
-  Container::Ptr Container::Create(QObject& parent, Parameters::Accessor::Ptr ioParams, Parameters::Accessor::Ptr coreParams)
+  Container::Ptr Container::Create(QObject& parent, Parameters::Accessor::Ptr parameters)
   {
-    return boost::make_shared<ContainerImpl>(boost::ref(parent), ioParams, coreParams);
+    return boost::make_shared<ContainerImpl>(boost::ref(parent), parameters);
   }
 }
