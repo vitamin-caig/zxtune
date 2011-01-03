@@ -27,7 +27,8 @@ ui_files += ui/informational/aboutdialog \
             ui/informational/componentsdialog
 
 #other
-moc_files += supp/playback_supp
+moc_files += supp/playback_supp \
+             ui/tools/parameters_helpers
 
 include_dirs = .
 

@@ -16,11 +16,13 @@ Author:
 #include "container_view.ui.h"
 #include "playlist_view.h"
 #include "playlist/io/export.h"
+#include "playlist/playlist_parameters.h"
 #include "playlist/supp/controller.h"
 #include "playlist/supp/container.h"
 #include "playlist/supp/scanner.h"
 #include "ui/utils.h"
 #include "ui/tools/filedialog.h"
+#include "ui/tools/parameters_helpers.h"
 //common includes
 #include <logging.h>
 //std includes
@@ -51,8 +53,9 @@ namespace
                           , public Ui::PlaylistContainerView
   {
   public:
-    ContainerViewImpl(QWidget& parent, Parameters::Accessor::Ptr parameters)
+    ContainerViewImpl(QWidget& parent, Parameters::Container::Ptr parameters)
       : Playlist::UI::ContainerView(parent)
+      , Options(parameters)
       , Container(Playlist::Container::Create(*this, parameters))
       , ActionsMenu(new QMenu(tr("Playlist"), this))
       , Filer(FileDialog::Create(*this))
@@ -75,6 +78,10 @@ namespace
 
       this->connect(widgetsContainer, SIGNAL(tabCloseRequested(int)), SLOT(ClosePlaylist(int)));
 
+      Parameters::BooleanValue::Bind(*actionDeepScan, *Options, Parameters::ZXTuneQT::Playlist::DEEP_SCANNING, Parameters::ZXTuneQT::Playlist::DEEP_SCANNING_DEFAULT);
+      Parameters::BooleanValue::Bind(*actionLoop, *Options, Parameters::ZXTuneQT::Playlist::LOOPED, Parameters::ZXTuneQT::Playlist::LOOPED_DEFAULT);
+      Parameters::BooleanValue::Bind(*actionRandom, *Options, Parameters::ZXTuneQT::Playlist::RANDOMIZED, Parameters::ZXTuneQT::Playlist::RANDOMIZED_DEFAULT);
+
       Log::Debug(THIS_MODULE, "Created at %1%", this);
     }
 
@@ -86,8 +93,7 @@ namespace
     virtual void CreatePlaylist(const QStringList& items)
     {
       Playlist::UI::View& pl = CreateAnonymousPlaylist();
-      const bool deepScan = actionDeepScan->isChecked();
-      pl.AddItems(items, deepScan);
+      pl.AddItems(items);
     }
 
     virtual QMenu* GetActionsMenu() const
@@ -273,12 +279,10 @@ namespace
 
     Playlist::UI::View& RegisterPlaylist(Playlist::Controller::Ptr playlist)
     {
-      Playlist::UI::View* const plView = Playlist::UI::View::Create(*this, playlist);
+      Playlist::UI::View* const plView = Playlist::UI::View::Create(*this, playlist, Options);
       widgetsContainer->addTab(plView, playlist->GetName());
       this->connect(plView, SIGNAL(OnItemActivated(const Playlist::Item::Data&)),
         SLOT(PlaylistItemActivated(const Playlist::Item::Data&)));
-      plView->connect(actionLoop, SIGNAL(triggered(bool)), SLOT(SetIsLooped(bool)));
-      plView->connect(actionRandom, SIGNAL(triggered(bool)), SLOT(SetIsRandomized(bool)));
       if (!ActivePlaylistView)
       {
         ActivePlaylistView = plView;
@@ -307,9 +311,8 @@ namespace
 
     void AddItemsToVisiblePlaylist(const QStringList& items)
     {
-      const bool deepScan = actionDeepScan->isChecked();
       Playlist::UI::View& pl = GetVisiblePlaylist();
-      pl.AddItems(items, deepScan);
+      pl.AddItems(items);
     }
 
     void SwitchToLastPlaylist()
@@ -334,6 +337,7 @@ namespace
       }
     }
   private:
+    const Parameters::Container::Ptr Options;
     const Playlist::Container::Ptr Container;
     QMenu* const ActionsMenu;
     const FileDialog::Ptr Filer;
@@ -350,7 +354,7 @@ namespace Playlist
     {
     }
 
-    ContainerView* ContainerView::Create(QWidget& parent, Parameters::Accessor::Ptr parameters)
+    ContainerView* ContainerView::Create(QWidget& parent, Parameters::Container::Ptr parameters)
     {
       return new ContainerViewImpl(parent, parameters);
     }

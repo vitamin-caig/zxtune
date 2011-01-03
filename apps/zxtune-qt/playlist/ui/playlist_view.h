@@ -36,11 +36,11 @@ namespace Playlist
     protected:
       explicit View(QWidget& parent);
     public:
-      static View* Create(QWidget& parent, Playlist::Controller::Ptr playlist);
+      static View* Create(QWidget& parent, Playlist::Controller::Ptr playlist, Parameters::Accessor::Ptr params);
 
       virtual const Playlist::Controller& GetPlaylist() const = 0;
     public slots:
-      virtual void AddItems(const QStringList& items, bool deepScan) = 0;
+      virtual void AddItems(const QStringList& items) = 0;
 
       virtual void Play() = 0;
       virtual void Pause() = 0;
@@ -49,9 +49,6 @@ namespace Playlist
       virtual void Next() = 0;
       virtual void Prev() = 0;
       virtual void Clear() = 0;
-
-      virtual void SetIsLooped(bool enabled) = 0;
-      virtual void SetIsRandomized(bool enabled) = 0;
 
       virtual QMenu* GetPlaylistMenu() const = 0;
 

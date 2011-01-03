@@ -15,6 +15,7 @@ Author:
 #include "scanner_view.h"
 #include "table_view.h"
 #include "playlist_view.h"
+#include "playlist/playlist_parameters.h"
 #include "playlist/supp/model.h"
 #include "playlist/supp/controller.h"
 #include "playlist/supp/scanner.h"
@@ -59,12 +60,43 @@ namespace
     const Playlist::Item::Iterator& Iterator;
   };
 
+  class PlaylistOptionsWrapper
+  {
+  public:
+    explicit PlaylistOptionsWrapper(Parameters::Accessor::Ptr params)
+      : Params(params)
+    {
+    }
+
+    bool IsDeepScanning() const
+    {
+      Parameters::IntType val = Parameters::ZXTuneQT::Playlist::DEEP_SCANNING_DEFAULT;
+      Params->FindIntValue(Parameters::ZXTuneQT::Playlist::DEEP_SCANNING, val);
+      return val != 0;
+    }
+
+    unsigned GetPlayorderMode() const
+    {
+      Parameters::IntType isLooped = Parameters::ZXTuneQT::Playlist::LOOPED_DEFAULT;
+      Params->FindIntValue(Parameters::ZXTuneQT::Playlist::LOOPED, isLooped);
+      Parameters::IntType isRandom = Parameters::ZXTuneQT::Playlist::RANDOMIZED_DEFAULT;
+      Params->FindIntValue(Parameters::ZXTuneQT::Playlist::RANDOMIZED, isRandom);
+      return
+        (isLooped ? Playlist::Item::LOOPED : 0) |
+        (isRandom ? Playlist::Item::RANDOMIZED: 0)
+      ;
+    }
+  private:
+    const Parameters::Accessor::Ptr Params;
+  };
+
   class ViewImpl : public Playlist::UI::View
   {
   public:
-    ViewImpl(QWidget& parent, Playlist::Controller::Ptr playlist)
+    ViewImpl(QWidget& parent, Playlist::Controller::Ptr playlist, Parameters::Accessor::Ptr params)
       : Playlist::UI::View(parent)
       , Controller(playlist)
+      , Options(PlaylistOptionsWrapper(params))
       , PlaylistMenu(new QMenu(this))
       , PlayAction(QIcon(":/playback/play.png"), tr("Play"), this)
       , DeleteAction(QIcon(":/application/exit.png"), tr("Delete"), this)
@@ -72,7 +104,6 @@ namespace
       , Layout(new QVBoxLayout(this))
       , ScannerView(Playlist::UI::ScannerView::Create(*this, Controller->GetScanner()))
       , View(Playlist::UI::TableView::Create(*this, State, Controller->GetModel()))
-      , PlayorderMode(0)
     {
       //setup ui
       SetupMenu();
@@ -103,9 +134,10 @@ namespace
     }
 
     //modifiers
-    virtual void AddItems(const QStringList& items, bool deepScan)
+    virtual void AddItems(const QStringList& items)
     {
       const Playlist::Scanner::Ptr scanner = Controller->GetScanner();
+      const bool deepScan = Options.IsDeepScanning();
       scanner->AddItems(items, deepScan);
     }
 
@@ -128,7 +160,8 @@ namespace
     {
       const Playlist::Item::Iterator::Ptr iter = Controller->GetIterator();
       bool hasMoreItems = false;
-      while (iter->Next(PlayorderMode) &&
+      const unsigned playorderMode = Options.GetPlayorderMode();
+      while (iter->Next(playorderMode) &&
              Playlist::Item::ERROR == iter->GetState())
       {
         hasMoreItems = true;
@@ -143,7 +176,8 @@ namespace
     {
       const Playlist::Item::Iterator::Ptr iter = Controller->GetIterator();
       //skip invalid ones
-      while (iter->Next(PlayorderMode) &&
+      const unsigned playorderMode = Options.GetPlayorderMode();
+      while (iter->Next(playorderMode) &&
              Playlist::Item::ERROR == iter->GetState())
       {
       }
@@ -153,10 +187,11 @@ namespace
     {
       const Playlist::Item::Iterator::Ptr iter = Controller->GetIterator();
       //skip invalid ones
-      while (iter->Prev(PlayorderMode) &&
+      const unsigned playorderMode = Options.GetPlayorderMode();
+      while (iter->Prev(playorderMode) &&
              Playlist::Item::ERROR == iter->GetState())
       {
-      }      
+      }
     }
 
     virtual void Clear()
@@ -164,30 +199,6 @@ namespace
       const Playlist::Model::Ptr model = Controller->GetModel();
       model->Clear();
       Update();
-    }
-
-    virtual void SetIsLooped(bool enabled)
-    {
-      if (enabled)
-      {
-        PlayorderMode |= Playlist::Item::LOOPED;
-      }
-      else
-      {
-        PlayorderMode &= ~Playlist::Item::LOOPED;
-      }
-    }
-
-    virtual void SetIsRandomized(bool enabled)
-    {
-      if (enabled)
-      {
-        PlayorderMode |= Playlist::Item::RANDOMIZED;
-      }
-      else
-      {
-        PlayorderMode &= ~Playlist::Item::RANDOMIZED;
-      }
     }
 
     virtual QMenu* GetPlaylistMenu() const
@@ -263,6 +274,7 @@ namespace
     }
   private:
     const Playlist::Controller::Ptr Controller;
+    const PlaylistOptionsWrapper Options;
     QMenu* const PlaylistMenu;
     QAction PlayAction;
     QAction DeleteAction;
@@ -271,7 +283,6 @@ namespace
     QVBoxLayout* const Layout;
     Playlist::UI::ScannerView* const ScannerView;
     Playlist::UI::TableView* const View;
-    unsigned PlayorderMode;
   };
 }
 
@@ -283,9 +294,9 @@ namespace Playlist
     {
     }
 
-    View* View::Create(QWidget& parent, Playlist::Controller::Ptr playlist)
+    View* View::Create(QWidget& parent, Playlist::Controller::Ptr playlist, Parameters::Accessor::Ptr params)
     {
-      return new ViewImpl(parent, playlist);
+      return new ViewImpl(parent, playlist, params);
     }
   }
 }
