@@ -10,7 +10,7 @@ rmfiles_cmd = $(if $(1),del /Q $(subst /,\,$(1)),)
 showtime_cmd = echo %TIME%
 
 compiler=gcc
-CXX_PLATFORM_FLAGS = -mthreads -march=native -mmmx
+CXX_PLATFORM_FLAGS = -mthreads -march=i686 -mtune=generic -m32 -mmmx
 LD_PLATFORM_FLAGS = -mthreads -static 
 ifdef release
 CXX_PLATFORM_FLAGS += -minline-all-stringops
