@@ -13,6 +13,7 @@ Author:
 
 //local includes
 #include "analyzer_control.h"
+#include "supp/playback_supp.h"
 //library includes
 #include <core/module_types.h>
 //std includes
@@ -48,7 +49,7 @@ namespace
   class AnalyzerControlImpl : public AnalyzerControl
   {
   public:
-    explicit AnalyzerControlImpl(QWidget& parent)
+    AnalyzerControlImpl(QWidget& parent, PlaybackSupport& supp)
       : AnalyzerControl(parent)
       , Palette()
       , Levels()
@@ -56,6 +57,10 @@ namespace
       setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum));
       setMinimumSize(64, 32);
       setWindowTitle(tr("Analyzer"));
+
+      this->connect(&supp, SIGNAL(OnStartModule(ZXTune::Module::Player::ConstPtr)), SLOT(InitState(ZXTune::Module::Player::ConstPtr)));
+      this->connect(&supp, SIGNAL(OnStopModule()), SLOT(CloseState()));
+      this->connect(&supp, SIGNAL(OnUpdateState()), SLOT(UpdateState()));
     }
 
     virtual void InitState(ZXTune::Module::Player::ConstPtr player)
@@ -119,7 +124,7 @@ AnalyzerControl::AnalyzerControl(QWidget& parent) : QWidget(&parent)
 {
 }
 
-AnalyzerControl* AnalyzerControl::Create(QWidget& parent)
+AnalyzerControl* AnalyzerControl::Create(QWidget& parent, PlaybackSupport& supp)
 {
-  return new AnalyzerControlImpl(parent);
+  return new AnalyzerControlImpl(parent, supp);
 }

@@ -19,6 +19,8 @@ Author:
 //qt includes
 #include <QtGui/QWidget>
 
+class PlaybackSupport;
+
 class SeekControls : public QWidget
 {
   Q_OBJECT
@@ -26,7 +28,7 @@ protected:
   explicit SeekControls(QWidget& parent);
 public:
   //creator
-  static SeekControls* Create(QWidget& parent);
+  static SeekControls* Create(QWidget& parent, PlaybackSupport& supp);
 
 public slots:
   virtual void InitState(ZXTune::Module::Player::ConstPtr) = 0;

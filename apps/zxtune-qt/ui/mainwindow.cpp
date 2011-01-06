@@ -46,15 +46,15 @@ namespace
   public:
     MainWindowImpl(Parameters::Container::Ptr options, const StringArray& cmdline)
       : Options(options)
+      , Playback(PlaybackSupport::Create(*this, Options))
       , About(AboutDialog::Create(*this))
       , Components(ComponentsDialog::Create(*this))
-      , Controls(PlaybackControls::Create(*this))
-      , Volume(VolumeControl::Create(*this))
-      , Status(StatusControl::Create(*this))
-      , Seeking(SeekControls::Create(*this))
-      , Analyzer(AnalyzerControl::Create(*this))
+      , Controls(PlaybackControls::Create(*this, *Playback))
+      , Volume(VolumeControl::Create(*this, *Playback))
+      , Status(StatusControl::Create(*this, *Playback))
+      , Seeking(SeekControls::Create(*this, *Playback))
+      , Analyzer(AnalyzerControl::Create(*this, *Playback))
       , MultiPlaylist(Playlist::UI::ContainerView::Create(*this, Options))
-      , Playback(PlaybackSupport::Create(*this, Options))
     {
       setupUi(this);
       //fill menu
@@ -81,21 +81,6 @@ namespace
       MultiPlaylist->connect(Playback, SIGNAL(OnStopModule()), SLOT(Stop()));
       MultiPlaylist->connect(Playback, SIGNAL(OnFinishModule()), SLOT(Finish()));
       Playback->connect(MultiPlaylist, SIGNAL(OnItemActivated(const Playlist::Item::Data&)), SLOT(SetItem(const Playlist::Item::Data&)));
-      Playback->connect(Controls, SIGNAL(OnPlay()), SLOT(Play()));
-      Playback->connect(Controls, SIGNAL(OnStop()), SLOT(Stop()));
-      Playback->connect(Controls, SIGNAL(OnPause()), SLOT(Pause()));
-      Playback->connect(Seeking, SIGNAL(OnSeeking(int)), SLOT(Seek(int)));
-      Seeking->connect(Playback, SIGNAL(OnStartModule(ZXTune::Module::Player::ConstPtr)), SLOT(InitState(ZXTune::Module::Player::ConstPtr)));
-      Seeking->connect(Playback, SIGNAL(OnUpdateState()), SLOT(UpdateState()));
-      Seeking->connect(Playback, SIGNAL(OnStopModule()), SLOT(CloseState()));
-      Analyzer->connect(Playback, SIGNAL(OnStartModule(ZXTune::Module::Player::ConstPtr)), SLOT(InitState(ZXTune::Module::Player::ConstPtr)));
-      Analyzer->connect(Playback, SIGNAL(OnStopModule()), SLOT(CloseState()));
-      Analyzer->connect(Playback, SIGNAL(OnUpdateState()), SLOT(UpdateState()));
-      Status->connect(Playback, SIGNAL(OnStartModule(ZXTune::Module::Player::ConstPtr)), SLOT(InitState(ZXTune::Module::Player::ConstPtr)));
-      Status->connect(Playback, SIGNAL(OnUpdateState()), SLOT(UpdateState()));
-      Status->connect(Playback, SIGNAL(OnStopModule()), SLOT(CloseState()));
-      Volume->connect(Playback, SIGNAL(OnUpdateState()), SLOT(UpdateState()));
-      Volume->connect(Playback, SIGNAL(OnSetBackend(const ZXTune::Sound::Backend&)), SLOT(SetBackend(const ZXTune::Sound::Backend&)));
       this->connect(Playback, SIGNAL(OnStartModule(ZXTune::Module::Player::ConstPtr)), SLOT(StartModule(ZXTune::Module::Player::ConstPtr)));
       this->connect(Playback, SIGNAL(OnStopModule()), SLOT(StopModule()));
 
@@ -168,6 +153,7 @@ namespace
     }
   private:
     const Parameters::Container::Ptr Options;
+    PlaybackSupport* const Playback;
     AboutDialog* const About;
     ComponentsDialog* const Components;
     PlaybackControls* const Controls;
@@ -176,7 +162,6 @@ namespace
     SeekControls* const Seeking;
     AnalyzerControl* const Analyzer;
     Playlist::UI::ContainerView* const MultiPlaylist;
-    PlaybackSupport* const Playback;
   };
 }
 

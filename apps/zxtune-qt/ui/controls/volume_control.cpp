@@ -14,6 +14,7 @@ Author:
 //local includes
 #include "volume_control.h"
 #include "volume_control.ui.h"
+#include "supp/playback_supp.h"
 //common includes
 #include <error.h>
 //std includes
@@ -26,7 +27,7 @@ namespace
                           , public Ui::VolumeControl
   {
   public:
-    explicit VolumeControlImpl(QWidget& parent)
+    VolumeControlImpl(QWidget& parent, PlaybackSupport& supp)
       : ::VolumeControl(parent)
       , LastUpdateTime(0)
     {
@@ -34,6 +35,9 @@ namespace
       setupUi(this);
       this->setEnabled(false);
       this->connect(volumeLevel, SIGNAL(valueChanged(int)), SLOT(SetLevel(int)));
+
+      this->connect(&supp, SIGNAL(OnUpdateState()), SLOT(UpdateState()));
+      this->connect(&supp, SIGNAL(OnSetBackend(const ZXTune::Sound::Backend&)), SLOT(SetBackend(const ZXTune::Sound::Backend&)));
     }
 
     virtual void SetBackend(const ZXTune::Sound::Backend& backend)
@@ -82,7 +86,7 @@ VolumeControl::VolumeControl(QWidget& parent) : QWidget(&parent)
 {
 }
 
-VolumeControl* VolumeControl::Create(QWidget& parent)
+VolumeControl* VolumeControl::Create(QWidget& parent, PlaybackSupport& supp)
 {
-  return new VolumeControlImpl(parent);
+  return new VolumeControlImpl(parent, supp);
 }

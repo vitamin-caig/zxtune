@@ -14,6 +14,7 @@ Author:
 //local includes
 #include "seek_controls.h"
 #include "seek_controls.ui.h"
+#include "supp/playback_supp.h"
 #include "ui/utils.h"
 //common includes
 #include <formatter.h>
@@ -24,13 +25,18 @@ namespace
                          , private Ui::SeekControls
   {
   public:
-    explicit SeekControlsImpl(QWidget& parent)
+    SeekControlsImpl(QWidget& parent, PlaybackSupport& supp)
       : ::SeekControls(parent)
     {
       //setup self
       setupUi(this);
       timePosition->setRange(0, 0);
       this->connect(timePosition, SIGNAL(valueChanged(int)), SIGNAL(OnSeeking(int)));
+
+      this->connect(&supp, SIGNAL(OnStartModule(ZXTune::Module::Player::ConstPtr)), SLOT(InitState(ZXTune::Module::Player::ConstPtr)));
+      this->connect(&supp, SIGNAL(OnUpdateState()), SLOT(UpdateState()));
+      this->connect(&supp, SIGNAL(OnStopModule()), SLOT(CloseState()));
+      supp.connect(this, SIGNAL(OnSeeking(int)), SLOT(Seek(int)));
     }
 
     virtual void InitState(ZXTune::Module::Player::ConstPtr player)
@@ -64,7 +70,7 @@ SeekControls::SeekControls(QWidget& parent) : QWidget(&parent)
 {
 }
 
-SeekControls* SeekControls::Create(QWidget& parent)
+SeekControls* SeekControls::Create(QWidget& parent, PlaybackSupport& supp)
 {
-  return new SeekControlsImpl(parent);
+  return new SeekControlsImpl(parent, supp);
 }

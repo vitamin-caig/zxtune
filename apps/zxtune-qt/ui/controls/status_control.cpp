@@ -14,6 +14,7 @@ Author:
 //local includes
 #include "status_control.h"
 #include "status_control.ui.h"
+#include "supp/playback_supp.h"
 #include "ui/utils.h"
 //common includes
 #include <parameters.h>
@@ -31,11 +32,15 @@ namespace
                           , private Ui::StatusControl
   {
   public:
-    explicit StatusControlImpl(QWidget& parent)
+    StatusControlImpl(QWidget& parent, PlaybackSupport& supp)
       : ::StatusControl(parent)
     {
       //setup self
       setupUi(this);
+
+      this->connect(&supp, SIGNAL(OnStartModule(ZXTune::Module::Player::ConstPtr)), SLOT(InitState(ZXTune::Module::Player::ConstPtr)));
+      this->connect(&supp, SIGNAL(OnUpdateState()), SLOT(UpdateState()));
+      this->connect(&supp, SIGNAL(OnStopModule()), SLOT(CloseState()));
     }
 
     virtual void InitState(ZXTune::Module::Player::ConstPtr player)
@@ -72,7 +77,7 @@ StatusControl::StatusControl(QWidget& parent) : QWidget(&parent)
 {
 }
 
-StatusControl* StatusControl::Create(QWidget& parent)
+StatusControl* StatusControl::Create(QWidget& parent, PlaybackSupport& supp)
 {
-  return new StatusControlImpl(parent);
+  return new StatusControlImpl(parent, supp);
 }

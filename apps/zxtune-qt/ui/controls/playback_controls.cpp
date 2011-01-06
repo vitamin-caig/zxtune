@@ -14,6 +14,7 @@ Author:
 //local includes
 #include "playback_controls.h"
 #include "playback_controls.ui.h"
+#include "supp/playback_supp.h"
 //std includes
 #include <cassert>
 //qt includes
@@ -25,7 +26,7 @@ namespace
                              , private Ui::PlaybackControls
   {
   public:
-    explicit PlaybackControlsImpl(QWidget& parent)
+    PlaybackControlsImpl(QWidget& parent, PlaybackSupport& supp)
       : ::PlaybackControls(parent)
       , ActionsMenu(new QMenu(tr("Playback"), this))
     {
@@ -39,6 +40,10 @@ namespace
       connect(actionStop, SIGNAL(triggered()), SIGNAL(OnStop()));
       connect(actionPrevious, SIGNAL(triggered()), SIGNAL(OnPrevious()));
       connect(actionNext, SIGNAL(triggered()), SIGNAL(OnNext()));
+
+      supp.connect(this, SIGNAL(OnPlay()), SLOT(Play()));
+      supp.connect(this, SIGNAL(OnStop()), SLOT(Stop()));
+      supp.connect(this, SIGNAL(OnPause()), SLOT(Pause()));
     }
 
     virtual QMenu* GetActionsMenu() const
@@ -64,7 +69,7 @@ PlaybackControls::PlaybackControls(QWidget& parent) : QWidget(&parent)
 {
 }
 
-PlaybackControls* PlaybackControls::Create(QWidget& parent)
+PlaybackControls* PlaybackControls::Create(QWidget& parent, PlaybackSupport& supp)
 {
-  return new PlaybackControlsImpl(parent);
+  return new PlaybackControlsImpl(parent, supp);
 }

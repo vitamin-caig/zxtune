@@ -34,10 +34,10 @@ namespace
   public:
     MainWindowEmbeddedImpl(Parameters::Container::Ptr options, const StringArray& /*cmdline*/)
       : Options(options)
-      , Controls(PlaybackControls::Create(*this))
-      , Analyzer(AnalyzerControl::Create(*this))
-      , Playlist(Playlist::UI::ContainerView::Create(*this, Options, Options))
       , Playback(PlaybackSupport::Create(*this, Options))
+      , Controls(PlaybackControls::Create(*this, *Playback))
+      , Analyzer(AnalyzerControl::Create(*this, *Playback))
+      , Playlist(Playlist::UI::ContainerView::Create(*this, Options))
     {
       setupUi(this);
       statusBar()->addWidget(new QLabel(
@@ -58,12 +58,6 @@ namespace
       Playlist->connect(Playback, SIGNAL(OnStopModule()), SLOT(Stop()));
       Playlist->connect(Playback, SIGNAL(OnFinishModule()), SLOT(Finish()));
       Playback->connect(Playlist, SIGNAL(OnItemActivated(const Playlist::Item::Data&)), SLOT(SetItem(const Playlist::Item::Data&)));
-      Playback->connect(Controls, SIGNAL(OnPlay()), SLOT(Play()));
-      Playback->connect(Controls, SIGNAL(OnStop()), SLOT(Stop()));
-      Playback->connect(Controls, SIGNAL(OnPause()), SLOT(Pause()));
-      Analyzer->connect(Playback, SIGNAL(OnStartModule(ZXTune::Module::Player::ConstPtr)), SLOT(InitState(ZXTune::Module::Player::ConstPtr)));
-      Analyzer->connect(Playback, SIGNAL(OnStopModule()), SLOT(CloseState()));
-      Analyzer->connect(Playback, SIGNAL(OnUpdateState()), SLOT(UpdateState()));
     }
   private:
     void AddWidgetWithLayoutControl(QWidget* widget)
@@ -84,10 +78,10 @@ namespace
     }
   private:
     const Parameters::Container::Ptr Options;
+    PlaybackSupport* const Playback;
     PlaybackControls* const Controls;
     AnalyzerControl* const Analyzer;
     Playlist::UI::ContainerView* const Playlist;
-    PlaybackSupport* const Playback;
   };
 }
 
