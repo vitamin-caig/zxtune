@@ -34,7 +34,8 @@ namespace
       if (QFileInfo(curItem).isDir())
       {
         Log::Debug(THIS_MODULE, "Resolving directory '%1%'", FromQString(curItem));
-        for (QDirIterator iterator(curItem, QDir::Files, QDirIterator::Subdirectories); !callback.IsCanceled() && iterator.hasNext(); )
+        const QDir::Filters filter = QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden;
+        for (QDirIterator iterator(curItem, filter, QDirIterator::Subdirectories); !callback.IsCanceled() && iterator.hasNext(); )
         {
           const QString& curFile = iterator.next();
           Log::Debug(THIS_MODULE, "Added '%1%'", FromQString(curFile));
