@@ -28,7 +28,8 @@ namespace ZXTune
     }
     for (DetectorIterator chain = GetDetectors(); chain; ++chain)
     {
-      if (DetectFormat(data, limit, chain->PlayerFP) &&
+      if (limit > chain->PlayerSize &&
+          DetectFormat(data, limit, chain->PlayerFP) &&
           CheckData(data + chain->PlayerSize, limit - chain->PlayerSize))
       {
         return true;

@@ -107,17 +107,23 @@ namespace
     const std::size_t dataOffset = fromLE(header->DataOffset);
     const uint_t cylinders = fromLE(header->Cylinders);
     const uint_t sides = fromLE(header->Sides);
-    if (dataOffset < sizeof(*header) || dataOffset > limit ||
+    if (dataOffset < sizeof(*header) || 
+        dataOffset > limit ||
         !cylinders || !sides)
     {
       return false;
     }
+    std::size_t trackInfoOffset = sizeof(*header) + fromLE(header->InfoSize);
 
-    const FDITrack* trackInfo = safe_ptr_cast<const FDITrack*>(data + sizeof(*header) + fromLE(header->InfoSize));
     for (uint_t cyl = 0; cyl != cylinders; ++cyl)
     {
       for (uint_t sid = 0; sid != sides; ++sid)
       {
+        if (trackInfoOffset + sizeof (FDITrack) > limit)
+        {
+          return false;
+        }
+        const FDITrack* const trackInfo = safe_ptr_cast<const FDITrack*>(data + trackInfoOffset);
         for (std::size_t secNum = 0; secNum != trackInfo->SectorsCount; ++secNum)
         {
           const FDITrack::Sector* const sector = trackInfo->Sectors + secNum;
@@ -135,8 +141,7 @@ namespace
           }
         }
         //calculate next track by offset
-        trackInfo = safe_ptr_cast<const FDITrack*>(safe_ptr_cast<const uint8_t*>(trackInfo) +
-          sizeof(*trackInfo) + (trackInfo->SectorsCount - 1) * sizeof(trackInfo->Sectors));
+        trackInfoOffset += sizeof(*trackInfo) + (trackInfo->SectorsCount - 1) * sizeof(trackInfo->Sectors);
       }
     }
     return true;
@@ -185,12 +190,13 @@ namespace
 
       Dump buffer;
       buffer.reserve(FDI_MAX_SIZE);
-      const FDITrack* trackInfo = safe_ptr_cast<const FDITrack*>(data + sizeof(*header) + fromLE(header->InfoSize));
+      std::size_t trackInfoOffset = sizeof(*header) + fromLE(header->InfoSize);
       std::size_t rawSize = dataOffset;
       for (uint_t cyl = 0; cyl != cylinders; ++cyl)
       {
         for (uint_t sid = 0; sid != sides; ++sid)
         {
+          const FDITrack* const trackInfo = safe_ptr_cast<const FDITrack*>(data + trackInfoOffset);
           typedef std::vector<SectorDescr> SectorDescrs;
           //collect sectors reference
           SectorDescrs sectors;
@@ -212,8 +218,7 @@ namespace
             buffer.insert(buffer.end(), it->Begin, it->End);
           }
           //calculate next track by offset
-          trackInfo = safe_ptr_cast<const FDITrack*>(safe_ptr_cast<const uint8_t*>(trackInfo) +
-            sizeof(*trackInfo) + (trackInfo->SectorsCount - 1) * sizeof(trackInfo->Sectors));
+          trackInfoOffset += sizeof(*trackInfo) + (trackInfo->SectorsCount - 1) * sizeof(trackInfo->Sectors);
         }
       }
       region.Offset = 0;
