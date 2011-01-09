@@ -1,5 +1,5 @@
 # Maintainer: vitamin.caig@gmail.com
-pkgname=zxtune
+pkgname=zxtune-svn
 pkgver=VERSION
 pkgrel=1
 pkgdesc="ZX Spectrum sound chiptunes playback support"
@@ -8,6 +8,7 @@ url="http://zxtune.googlecode.com"
 license=('GPL3')
 depends=('boost-libs>=1.40' 'qt>=4.5.0' 'textator')
 makedepends=('subversion')
+provides=('zxtune')
 options=(!strip !docs !libtool !emptydirs !zipman makeflags)
 _svntrunk="http://zxtune.googlecode.com/svn/tags/ver3"
 _svnmod="zxtune"
