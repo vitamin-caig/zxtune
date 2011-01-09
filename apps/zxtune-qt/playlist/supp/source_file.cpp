@@ -24,6 +24,8 @@ Author:
 
 namespace
 {
+  const std::string THIS_MODULE("Playlist::IO");
+
   void ResolveItems(Playlist::ScannerCallback& callback, QStringList& unresolved, QStringList& resolved)
   {
     while (!callback.IsCanceled() && !unresolved.empty())
@@ -31,13 +33,17 @@ namespace
       const QString& curItem = unresolved.takeFirst();
       if (QFileInfo(curItem).isDir())
       {
+        Log::Debug(THIS_MODULE, "Resolving directory '%1%'", FromQString(curItem));
         for (QDirIterator iterator(curItem, QDir::Files, QDirIterator::Subdirectories); !callback.IsCanceled() && iterator.hasNext(); )
         {
-          resolved.append(iterator.next());
+          const QString& curFile = iterator.next();
+          Log::Debug(THIS_MODULE, "Added '%1%'", FromQString(curFile));
+          resolved.append(curFile);
         }
       }
       else
       {
+        Log::Debug(THIS_MODULE, "Added '%1%'", FromQString(curItem));
         resolved.append(curItem);
       }
     }
