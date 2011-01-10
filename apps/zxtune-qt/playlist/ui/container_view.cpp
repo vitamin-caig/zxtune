@@ -27,11 +27,7 @@ Author:
 #include <logging.h>
 //std includes
 #include <cassert>
-//boost includes
-#include <boost/bind.hpp>
 //qt includes
-#include <QtCore/QUrl>
-#include <QtGui/QDragEnterEvent>
 #include <QtGui/QMenu>
 
 namespace
@@ -63,7 +59,6 @@ namespace
     {
       //setup self
       setupUi(this);
-      setAcceptDrops(true);
       SetupMenu();
 
       //connect actions
@@ -216,26 +211,6 @@ namespace
         SwitchToLastPlaylist();
       }
       view->deleteLater();
-    }
-
-    //base virtuals
-    virtual void dragEnterEvent(QDragEnterEvent* event)
-    {
-      event->acceptProposedAction();
-    }
-
-    virtual void dropEvent(QDropEvent* event)
-    {
-      const QMimeData* const mimeData = event->mimeData();
-      if (mimeData && mimeData->hasUrls())
-      {
-        const QList<QUrl>& urls = mimeData->urls();
-        QStringList files;
-        std::for_each(urls.begin(), urls.end(),
-          boost::bind(&QStringList::push_back, &files,
-            boost::bind(&QUrl::toLocalFile, _1)));
-        AddItemsToVisiblePlaylist(files);
-      }
     }
   private:
     void PlaylistItemActivated(const Playlist::Item::Data& item)

@@ -54,9 +54,9 @@
      <string notr="true">Layout</string>
     </property>
    </widget>
-   <widget class="QMenu" name="menuFile">
+   <widget class="QMenu" name="menuApplication">
     <property name="title">
-     <string>Player</string>
+     <string>Application</string>
     </property>
     <addaction name="actionComponents"/>
     <addaction name="actionAbout"/>
@@ -64,7 +64,7 @@
     <addaction name="separator"/>
     <addaction name="actionQuit"/>
    </widget>
-   <addaction name="menuFile"/>
+   <addaction name="menuApplication"/>
    <addaction name="menuLayout"/>
   </widget>
   <action name="actionQuit">

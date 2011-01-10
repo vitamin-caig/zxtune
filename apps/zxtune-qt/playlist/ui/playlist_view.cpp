@@ -21,7 +21,11 @@ Author:
 #include "playlist/supp/scanner.h"
 //local includes
 #include <logging.h>
+//boost includes
+#include <boost/bind.hpp>
 //qt includes
+#include <QtCore/QUrl>
+#include <QtGui/QDragEnterEvent>
 #include <QtGui/QHeaderView>
 #include <QtGui/QKeyEvent>
 #include <QtGui/QMenu>
@@ -107,6 +111,7 @@ namespace
     {
       //setup ui
       SetupMenu();
+      setAcceptDrops(true);
       Layout->setSpacing(0);
       Layout->setMargin(0);
       Layout->addWidget(View);
@@ -253,6 +258,25 @@ namespace
     {
       QMenu* const menu = GetPlaylistMenu();
       menu->exec(event->globalPos());
+    }
+
+    virtual void dragEnterEvent(QDragEnterEvent* event)
+    {
+      event->acceptProposedAction();
+    }
+
+    virtual void dropEvent(QDropEvent* event)
+    {
+      const QMimeData* const mimeData = event->mimeData();
+      if (mimeData && mimeData->hasUrls())
+      {
+        const QList<QUrl>& urls = mimeData->urls();
+        QStringList files;
+        std::for_each(urls.begin(), urls.end(),
+          boost::bind(&QStringList::push_back, &files,
+            boost::bind(&QUrl::toLocalFile, _1)));
+        AddItems(files);
+      }
     }
   private:
     void SetupMenu()
