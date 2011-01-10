@@ -145,17 +145,19 @@ namespace
       State.Mask = data.Mask;
     }
 
-    void Tick()
+    bool Tick()
     {
-      DoCycle(0 != (DutyCycleMask & DataChunk::DUTY_CYCLE_MASK_A), GetToneA(), TimerA, BitA);
-      DoCycle(0 != (DutyCycleMask & DataChunk::DUTY_CYCLE_MASK_B), GetToneB(), TimerB, BitB);
-      DoCycle(0 != (DutyCycleMask & DataChunk::DUTY_CYCLE_MASK_C), GetToneC(), TimerC, BitC);
+      bool res = false;
+      res |= DoCycle(0 != (DutyCycleMask & DataChunk::DUTY_CYCLE_MASK_A), GetToneA(), TimerA, BitA);
+      res |= DoCycle(0 != (DutyCycleMask & DataChunk::DUTY_CYCLE_MASK_B), GetToneB(), TimerB, BitB);
+      res |= DoCycle(0 != (DutyCycleMask & DataChunk::DUTY_CYCLE_MASK_C), GetToneC(), TimerC, BitC);
 
       if (DoCycle(0 != (DutyCycleMask & DataChunk::DUTY_CYCLE_MASK_N), GetToneN(), TimerN, BitN))
       {
         TimerN = 0;
         Noise = (Noise * 2 + 1) ^ (((Noise >> 16) ^ (Noise >> 13)) & 1);
         BitN = (Noise & 0x10000) ? ~0 : 0;
+        res = true;
       }
       if (DoCycle(0 != (DutyCycleMask & DataChunk::DUTY_CYCLE_MASK_E), GetToneE(), TimerE, BitE))
       {
@@ -189,7 +191,9 @@ namespace
             }
           }
         }
+        res = true;
       }//envelope
+      return res;
     }
 
     void GetLevels(ChannelsData& result) const
@@ -366,9 +370,8 @@ namespace
   class Renderer
   {
   public:
-    explicit Renderer(PSG& generator)
-      : Generator(generator)
-      , Interpolate(false)
+    Renderer()
+      : Interpolate(false)
       , Levels()
       , AccumulatedSamples()
     {
@@ -378,27 +381,31 @@ namespace
     {
       std::fill(Levels.begin(), Levels.end(), 0);
       AccumulatedSamples = 0;
-      return Generator.Reset();
     }
 
     void ApplyData(const DataChunk& data)
     {
       Interpolate = 0 != (data.Mask & DataChunk::INTERPOLATE);
-      return Generator.ApplyData(data);
     }
 
-    void Tick()
+    void Tick(PSG& generator)
     {
       if (Interpolate)
       {
-        Generator.GetLevels(Levels);
+        if (generator.Tick())
+        {
+          generator.GetLevels(Levels);
+        }
         std::transform(Levels.begin(), Levels.end(), Accumulators.begin(), Accumulators.begin(), std::plus<uint_t>());
         ++AccumulatedSamples;
       }
-      Generator.Tick();
+      else
+      {
+        generator.Tick();
+      }
     }
 
-    void GetLevels(std::vector<Sound::Sample>& result)
+    void GetLevels(const PSG& generator, std::vector<Sound::Sample>& result)
     {
       assert(result.size() == CHANNELS);//for optimization
       if (Interpolate)
@@ -409,12 +416,11 @@ namespace
       }
       else
       {
-        Generator.GetLevels(Levels);
+        generator.GetLevels(Levels);
         std::copy(Levels.begin(), Levels.end(), result.begin());
       }
     }
   private:
-    PSG& Generator;
     bool Interpolate;
     ChannelsData Levels;
     boost::array<uint_t, CHANNELS> Accumulators;
@@ -463,15 +469,21 @@ namespace
       LastTick = data.Tick;
     }
 
-    bool Tick(bool& outSound)
+    bool Tick()
     {
       assert(CurrentTick < LastTick);
       CurrentTick += AYM_CLOCK_DIVISOR;
-      if ( (outSound = CurrentTick >= NextSoundTick) )
+      if (CurrentTick >= NextSoundTick)
       {
         ++SamplesDone;
         CalcNextSoundTick();
+        return true;
       }
+      return false;
+    }
+
+    bool InFrame() const
+    {
       return CurrentTick < LastTick;
     }
   private:
@@ -496,8 +508,7 @@ namespace
   {
   public:
     ChipImpl()
-      : Render(Generator)
-      , Result(CHANNELS)
+      : Result(CHANNELS)
     {
       Reset();
     }
@@ -507,21 +518,16 @@ namespace
                             Sound::MultichannelReceiver& dst)
     {
       TicksPerSecond = params.ClockFreq();
+      Generator.ApplyData(src);
       Render.ApplyData(src);
       Clock.ApplyData(params, src);
-      for (;;)
+      while (Clock.InFrame())
       {
-        bool renderSound = false;
-        const bool inFrame = Clock.Tick(renderSound);
-        Render.Tick();
-        if (renderSound)
+        Render.Tick(Generator);
+        if (Clock.Tick())
         {
-          Render.GetLevels(Result);
+          Render.GetLevels(Generator, Result);
           dst.ApplyData(Result);
-        }
-        if (!inFrame)
-        {
-          break;
         }
       }
     }
@@ -533,6 +539,7 @@ namespace
 
     virtual void Reset()
     {
+      Generator.Reset();
       Render.Reset();
       Clock.Reset();
     }
