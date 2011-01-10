@@ -10,7 +10,9 @@ showtime_cmd = date +"%x %X"
 compiler=gcc
 CXX_PLATFORM_FLAGS = -fvisibility=hidden -fvisibility-inlines-hidden
 ifdef release
+ifndef profile
 LD_PLATFORM_FLAGS += -Wl,-O3,-x,--gc-sections,--relax
+endif
 endif
 
 #built-in features
