@@ -390,18 +390,15 @@ namespace
 
     void Tick(PSG& generator)
     {
+      const bool psgUpdated = generator.Tick();
       if (Interpolate)
       {
-        if (generator.Tick())
+        if (psgUpdated)
         {
           generator.GetLevels(Levels);
         }
         std::transform(Levels.begin(), Levels.end(), Accumulators.begin(), Accumulators.begin(), std::plus<uint_t>());
         ++AccumulatedSamples;
-      }
-      else
-      {
-        generator.Tick();
       }
     }
 
