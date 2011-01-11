@@ -238,38 +238,33 @@ namespace
     const Accessor::Ptr Second;
   };
 
-  class FixedProperties : public Accessor
+  class TSModuleProperties : public Accessor
   {
   public:
-    FixedProperties(Accessor::Ptr first, Accessor::Ptr second)
-      : Delegate(boost::make_shared<MergedModuleProperties>(first, second))
+    virtual bool FindIntValue(const NameType& /*name*/, IntType& /*val*/) const
     {
-    }
-
-    virtual bool FindIntValue(const NameType& name, IntType& val) const
-    {
-      return Delegate->FindIntValue(name, val);
+      return false;
     }
 
     virtual bool FindStringValue(const NameType& name, StringType& val) const
     {
-      return (name == ATTR_TYPE)
-        ? (val = TS_PLUGIN_ID, true)
-        : Delegate->FindStringValue(name, val);
+      if (name == ATTR_TYPE)
+      {
+        val = TS_PLUGIN_ID;
+        return true;
+      }
+      return false;
     }
 
-    virtual bool FindDataValue(const NameType& name, DataType& val) const
+    virtual bool FindDataValue(const NameType& /*name*/, DataType& /*val*/) const
     {
-      return Delegate->FindDataValue(name, val);
+      return false;
     }
 
     virtual void Process(Visitor& visitor) const
     {
       visitor.SetStringValue(ATTR_TYPE, TS_PLUGIN_ID);
-      Delegate->Process(visitor);
     }
-  private:
-    const Accessor::Ptr Delegate;
   };
 
   class MergedModuleInfo : public Information
@@ -316,7 +311,9 @@ namespace
     {
       if (!Props)
       {
-        Props.reset(new FixedProperties(First->Properties(), Second->Properties()));
+        const Parameters::Accessor::Ptr tsProps = boost::make_shared<TSModuleProperties>();
+        const Parameters::Accessor::Ptr mixProps = boost::make_shared<MergedModuleProperties>(First->Properties(), Second->Properties());
+        Props = CreateMergedAccessor(tsProps, mixProps);
       }
       return Props;
     }
