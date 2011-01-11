@@ -80,7 +80,7 @@ namespace
 
     virtual void SetIntValue(const Parameters::NameType& name, Parameters::IntType val)
     {
-      if (Filter && Filter(name))
+      if (Filter && !Filter(name))
       {
         return;
       }
@@ -90,7 +90,7 @@ namespace
 
     virtual void SetStringValue(const Parameters::NameType& name, const Parameters::StringType& val)
     {
-      if (Filter && Filter(name))
+      if (Filter && !Filter(name))
       {
         return;
       }
@@ -100,7 +100,7 @@ namespace
 
     virtual void SetDataValue(const Parameters::NameType& name, const Parameters::DataType& val)
     {
-      if (Filter && Filter(name))
+      if (Filter && !Filter(name))
       {
         return;
       }
@@ -213,34 +213,39 @@ namespace
       XML.writeTextElement(tag, value);
     }
 
-    static bool FilterExtendedProperties(const Parameters::NameType& name)
+    static bool KeepExtendedProperties(const Parameters::NameType& name)
     {
       return 
         //skip path-related properties
-        name == ZXTune::Module::ATTR_FULLPATH ||
-        name == ZXTune::Module::ATTR_PATH ||
-        name == ZXTune::Module::ATTR_FILENAME ||
-        name == ZXTune::Module::ATTR_SUBPATH ||
+        name != ZXTune::Module::ATTR_FULLPATH &&
+        name != ZXTune::Module::ATTR_PATH &&
+        name != ZXTune::Module::ATTR_FILENAME &&
+        name != ZXTune::Module::ATTR_SUBPATH &&
         //skip existing properties
-        name == ZXTune::Module::ATTR_AUTHOR ||
-        name == ZXTune::Module::ATTR_TITLE ||
-        name == ZXTune::Module::ATTR_COMMENT ||
+        name != ZXTune::Module::ATTR_AUTHOR &&
+        name != ZXTune::Module::ATTR_TITLE &&
+        name != ZXTune::Module::ATTR_COMMENT &&
         //skip redundand properties
-        name == ZXTune::Module::ATTR_WARNINGS_COUNT ||
-        name == ZXTune::Module::ATTR_WARNINGS ||
-        //skip mixed properties
-        !KeepOnlyParameters(name)
+        name != ZXTune::Module::ATTR_WARNINGS_COUNT &&
+        name != ZXTune::Module::ATTR_WARNINGS &&
+        //keep zxtune parameters and other attributes
+        (!IsParameter(name) || KeepOnlyParameters(name))
       ;
+    }
+
+    static bool IsParameter(const Parameters::NameType& name)
+    {
+      return Parameters::NameType::npos != name.find(Parameters::NAMESPACE_DELIMITER);
     }
 
     static bool KeepOnlyParameters(const Parameters::NameType& name)
     {
-      return 0 != name.find(Parameters::ZXTune::PREFIX);
+      return 0 == name.find(Parameters::ZXTune::PREFIX);
     }
 
     void SaveExtendedProperties(const Parameters::Accessor& props)
     {
-      ExtendedPropertiesSaver saver(XML, &FilterExtendedProperties);
+      ExtendedPropertiesSaver saver(XML, &KeepExtendedProperties);
       props.Process(saver);
     }
   private:
