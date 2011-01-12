@@ -318,8 +318,9 @@ namespace
       for (StringArray::const_iterator it = Files.begin(), lim = Files.end(); it != lim; ++it)
       {
         ZXTune::IO::DataContainer::Ptr data;
-        String subpath;
-        ThrowIfError(ZXTune::IO::OpenData(*it, *IOParams, 0, data, subpath));
+        String path, subpath;
+        ThrowIfError(ZXTune::IO::SplitUri(*it, path, subpath));
+        ThrowIfError(ZXTune::IO::OpenData(path, *IOParams, 0, data));
 
         const ModulesProcessor processor(*it, callback);
         const DetectParametersImpl params(*Filter, processor, ShowProgress);

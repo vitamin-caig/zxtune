@@ -110,10 +110,7 @@ namespace
     ZXTune::IO::DataContainer::Ptr OpenNewData(const String& dataPath) const
     {
       ZXTune::IO::DataContainer::Ptr data;
-      String subpath;
-      ThrowIfError(ZXTune::IO::OpenData(dataPath, *Params, ZXTune::IO::ProgressCallback(),
-        data, subpath));
-      assert(subpath.empty());
+      ThrowIfError(ZXTune::IO::OpenData(dataPath, *Params, ZXTune::IO::ProgressCallback(), data));
       return data;
     }
 
