@@ -10,7 +10,7 @@ LINKER_END_GROUP ?= -Wl,'-)'
 
 #set options according to mode
 ifdef release
-CXX_MODE_FLAGS = -O2 -DNDEBUG
+CXX_MODE_FLAGS = -O2 -DNDEBUG -funroll-loops -finline-functions
 else
 CXX_MODE_FLAGS = -O0
 endif
@@ -48,7 +48,7 @@ INCLUDES = $(sort $(include_dirs) $($(platform)_include_dirs))
 #setup flags
 CXXFLAGS = -g3 $(CXX_PLATFORM_FLAGS) $(CXX_MODE_FLAGS) $(cxx_flags) \
 	$(addprefix -D,$(DEFINITIONS)) \
-	-funroll-loops -funsigned-char -fno-strict-aliasing \
+	-funsigned-char -fno-strict-aliasing \
 	-W -Wall -Wextra -ansi -pipe \
 	$(addprefix -I,$(INCLUDES))
 

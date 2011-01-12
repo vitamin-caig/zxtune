@@ -43,11 +43,11 @@ case ${Arch} in
       test `grep cpu /proc/cpuinfo | uniq | cut -f 2 -d " " | sed -e 's/,//g'` = "PPC970MP" && cxx_flags="${cxx_flags} -mtune=970 -mcpu=970"
     ;;
     x86_64)
-      cxx_flags="-m64 -march=x86-64 -mtune=generic"
+      cxx_flags="-m64 -march=x86-64 -mtune=generic -mmmx"
       ld_flags="-m64"
     ;;
     i386 | i486 | i586 | i686)
-      cxx_flags="-m32 -march=${Arch} -mtune=generic"
+      cxx_flags="-m32 -march=${Arch} -mtune=generic -mmmx"
       ld_flags="-m32"
     ;;
     *)
