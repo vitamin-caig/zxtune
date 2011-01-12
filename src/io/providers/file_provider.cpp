@@ -221,7 +221,7 @@ namespace
       return (String::npos == schemePos || uri.substr(0, schemePos) == SCHEME_FILE) && IsOrdered(basePos, subPos);
     }
   
-    virtual Error Split(const String& uri, String& baseUri, String& subpath) const
+    virtual Error Split(const String& uri, String& path, String& subpath) const
     {
       const String::size_type schemePos = uri.find(SCHEME_SIGN);
       const String::size_type basePos = String::npos == schemePos ? 0 : schemePos + ArraySize(SCHEME_SIGN) - 1;
@@ -232,21 +232,21 @@ namespace
       }
       if (String::npos != subPos)
       {
-        baseUri = uri.substr(basePos, subPos - basePos);
+        path = uri.substr(basePos, subPos - basePos);
         subpath = uri.substr(subPos + 1);
       }
       else
       {
-        baseUri = uri.substr(basePos);
+        path = uri.substr(basePos);
         subpath = String();
       }
       return Error();
     }
   
-    virtual Error Combine(const String& baseUri, const String& subpath, String& uri) const
+    virtual Error Combine(const String& path, const String& subpath, String& uri) const
     {
       String base, sub;
-      if (const Error& e = Split(baseUri, base, sub))
+      if (const Error& e = Split(path, base, sub))
       {
         return e;
       }
@@ -260,23 +260,17 @@ namespace
     }
   
     //no callback
-    virtual Error Open(const String& uri, const Parameters::Accessor& params, const ProgressCallback& /*cb*/,
-      DataContainer::Ptr& result, String& subpath) const
+    virtual Error Open(const String& path, const Parameters::Accessor& params, const ProgressCallback& /*cb*/,
+      DataContainer::Ptr& result) const
     {
-      String openUri, openSub;
-      if (const Error& e = Split(uri, openUri, openSub))
-      {
-        return e;
-      }
       try
       {
-        result = DataContainer::Ptr(new FileDataContainer(openUri, params));
-        subpath = openSub;
+        result = DataContainer::Ptr(new FileDataContainer(path, params));
         return Error();
       }
       catch (const Error& e)
       {
-        return MakeFormattedError(THIS_LINE, ERROR_NOT_OPENED, Text::IO_ERROR_NOT_OPENED, openUri).AddSuberror(e);
+        return MakeFormattedError(THIS_LINE, ERROR_NOT_OPENED, Text::IO_ERROR_NOT_OPENED, path).AddSuberror(e);
       }
     }
   };

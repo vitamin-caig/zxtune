@@ -114,37 +114,37 @@ namespace
       Log::Debug(THIS_MODULE, "Registered provider '%1%'", provider->Id());
     }
 
-    virtual Error OpenUri(const String& uri, const Parameters::Accessor& params, const ProgressCallback& cb, DataContainer::Ptr& result, String& subpath) const
+    virtual Error OpenData(const String& path, const Parameters::Accessor& params, const ProgressCallback& cb, DataContainer::Ptr& result) const
     {
-      Log::Debug(THIS_MODULE, "Opening uri '%1%'", uri);
+      Log::Debug(THIS_MODULE, "Opening path '%1%'", path);
+      if (const DataProvider* provider = FindProvider(path))
+      {
+        Log::Debug(THIS_MODULE, " Used provider '%1%'", provider->Id());
+        return provider->Open(path, params, cb, result);
+      }
+      Log::Debug(THIS_MODULE, " No suitable provider found");
+      return Error(THIS_LINE, ERROR_NOT_SUPPORTED, Text::IO_ERROR_NOT_SUPPORTED_URI);
+    }
+
+    virtual Error SplitUri(const String& uri, String& path, String& subpath) const
+    {
+      Log::Debug(THIS_MODULE, "Splitting uri '%1%'", uri);
       if (const DataProvider* provider = FindProvider(uri))
       {
         Log::Debug(THIS_MODULE, " Used provider '%1%'", provider->Id());
-        return provider->Open(uri, params, cb, result, subpath);
+        return provider->Split(uri, path, subpath);
       }
       Log::Debug(THIS_MODULE, " No suitable provider found");
       return Error(THIS_LINE, ERROR_NOT_SUPPORTED, Text::IO_ERROR_NOT_SUPPORTED_URI);
     }
 
-    virtual Error SplitUri(const String& uri, String& baseUri, String& subpath) const
+    virtual Error CombineUri(const String& path, const String& subpath, String& uri) const
     {
-      Log::Debug(THIS_MODULE, "Splitting uri '%1%'", uri);
-      if (const DataProvider* provider = FindProvider(baseUri))
+      Log::Debug(THIS_MODULE, "Combining path '%1%' and subpath '%2%'", path, subpath);
+      if (const DataProvider* provider = FindProvider(path))
       {
         Log::Debug(THIS_MODULE, " Used provider '%1%'", provider->Id());
-        return provider->Split(uri, baseUri, subpath);
-      }
-      Log::Debug(THIS_MODULE, " No suitable provider found");
-      return Error(THIS_LINE, ERROR_NOT_SUPPORTED, Text::IO_ERROR_NOT_SUPPORTED_URI);
-    }
-
-    virtual Error CombineUri(const String& baseUri, const String& subpath, String& uri) const
-    {
-      Log::Debug(THIS_MODULE, "Combining uri '%1%' and subpath '%2%'", baseUri, subpath);
-      if (const DataProvider* provider = FindProvider(baseUri))
-      {
-        Log::Debug(THIS_MODULE, " Used provider '%1%'", provider->Id());
-        return provider->Combine(baseUri, subpath, uri);
+        return provider->Combine(path, subpath, uri);
       }
       Log::Debug(THIS_MODULE, " No suitable provider found");
       return Error(THIS_LINE, ERROR_NOT_SUPPORTED, Text::IO_ERROR_NOT_SUPPORTED_URI);
@@ -181,11 +181,11 @@ namespace ZXTune
       return instance;
     }
 
-    Error OpenData(const String& uri, const Parameters::Accessor& params, const ProgressCallback& cb, DataContainer::Ptr& data, String& subpath)
+    Error OpenData(const String& path, const Parameters::Accessor& params, const ProgressCallback& cb, DataContainer::Ptr& data)
     {
       try
       {
-        return ProvidersEnumerator::Instance().OpenUri(uri, params, cb, data, subpath);
+        return ProvidersEnumerator::Instance().OpenData(path, params, cb, data);
       }
       catch (const std::bad_alloc&)
       {
@@ -193,14 +193,14 @@ namespace ZXTune
       }
     }
 
-    Error SplitUri(const String& uri, String& baseUri, String& subpath)
+    Error SplitUri(const String& uri, String& path, String& subpath)
     {
-      return ProvidersEnumerator::Instance().SplitUri(uri, baseUri, subpath);
+      return ProvidersEnumerator::Instance().SplitUri(uri, path, subpath);
     }
 
-    Error CombineUri(const String& baseUri, const String& subpath, String& uri)
+    Error CombineUri(const String& path, const String& subpath, String& uri)
     {
-      return ProvidersEnumerator::Instance().CombineUri(baseUri, subpath, uri);
+      return ProvidersEnumerator::Instance().CombineUri(path, subpath, uri);
     }
 
     Provider::Iterator::Ptr EnumerateProviders()

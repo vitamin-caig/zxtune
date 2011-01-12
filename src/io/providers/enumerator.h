@@ -28,12 +28,12 @@ namespace ZXTune
       // Check if provider supports that scheme
       virtual bool Check(const String& uri) const = 0;
       // Split uri
-      virtual Error Split(const String& uri, String& basePath, String& subPath) const = 0;
+      virtual Error Split(const String& uri, String& path, String& subPath) const = 0;
       // Combine uri
-      virtual Error Combine(const String& basePath, const String& subPath, String& uri) const = 0;
+      virtual Error Combine(const String& path, const String& subPath, String& uri) const = 0;
       // Open data
-      virtual Error Open(const String& uri, const Parameters::Accessor& parameters, 
-                         const ProgressCallback& callback, DataContainer::Ptr& result, String& subpath) const = 0;
+      virtual Error Open(const String& path, const Parameters::Accessor& parameters, 
+                         const ProgressCallback& callback, DataContainer::Ptr& result) const = 0;
     };
 
     // internal enumerator interface
@@ -44,10 +44,10 @@ namespace ZXTune
       //registration
       virtual void RegisterProvider(DataProvider::Ptr provider) = 0;
       
-      virtual Error OpenUri(const String& uri, const Parameters::Accessor& params, const ProgressCallback& cb,
-                            DataContainer::Ptr& result, String& subpath) const = 0;
-      virtual Error SplitUri(const String& uri, String& baseUri, String& subpath) const = 0;
-      virtual Error CombineUri(const String& baseUri, const String& subpath, String& uri) const = 0;
+      virtual Error OpenData(const String& path, const Parameters::Accessor& params, const ProgressCallback& cb,
+                            DataContainer::Ptr& result) const = 0;
+      virtual Error SplitUri(const String& uri, String& path, String& subpath) const = 0;
+      virtual Error CombineUri(const String& path, const String& subpath, String& uri) const = 0;
       
       virtual Provider::Iterator::Ptr Enumerate() const = 0;
       

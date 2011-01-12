@@ -34,27 +34,26 @@ namespace ZXTune
     typedef boost::function<Error(const String&, uint_t)> ProgressCallback;
 
     //! @brief Performs opening specified uri
-    //! @param uri Full path including external data identifier and raw data subpath delimited by scheme-specific delimiter
+    //! @param path External data identifier
     //! @param params %Parameters accessor to setup providers work
     //! @param cb Callback for long-time controlable operations
     //! @param data Reference to result data container
-    //! @param subpath Rest part of the uri which specifies path inside data dump
     //! @return Error() in case of success
-    Error OpenData(const String& uri, const Parameters::Accessor& params, const ProgressCallback& cb, DataContainer::Ptr& data, String& subpath);
+    Error OpenData(const String& path, const Parameters::Accessor& params, const ProgressCallback& cb, DataContainer::Ptr& data);
 
     //! @brief Performs splitting specified uri to filesystem and internal parts
     //! @param uri Full path
-    //! @param baseUri Reference to external identifier result
+    //! @param path Reference to external identifier result
     //! @param subpath Reference to internal identifier result
     //! @return Error() in case of success
-    Error SplitUri(const String& uri, String& baseUri, String& subpath);
+    Error SplitUri(const String& uri, String& path, String& subpath);
 
     //! @brief Performs combining external and internal identifiers in scheme-dependent style
-    //! @param baseUri External data identifier
+    //! @param path External data identifier
     //! @param subpath Internal data identifier
     //! @param uri Reference to merged uri result
     //! @return Error() in case of success
-    Error CombineUri(const String& baseUri, const String& subpath, String& uri);
+    Error CombineUri(const String& path, const String& subpath, String& uri);
 
     //! @brief Provider information interface
     class Provider

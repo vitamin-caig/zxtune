@@ -73,7 +73,7 @@ namespace
   void OutProvider(ZXTune::IO::Provider::Ptr info)
   {
     std::cout << 
-      "Provider: " << info->Name() << std::endl <<
+      "Provider: " << info->Id() << std::endl <<
       "Description: " << info->Description() << std::endl <<
       "Version: " << info->Version() << std::endl;
   }
