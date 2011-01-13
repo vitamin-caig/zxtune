@@ -228,8 +228,8 @@ namespace
         //skip redundand properties
         name != ZXTune::Module::ATTR_WARNINGS_COUNT &&
         name != ZXTune::Module::ATTR_WARNINGS &&
-        //keep zxtune parameters and other attributes
-        (!IsParameter(name) || KeepOnlyParameters(name))
+        //skip all the parameters
+        !IsParameter(name)
       ;
     }
 
