@@ -36,6 +36,9 @@ extern const Char HRUST1X_PLUGIN_INFO[] = {
 extern const Char HRUST2X_PLUGIN_INFO[] = {
   'H','r','u','s','t','2','.','x',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
 };
+extern const Char MSP_PLUGIN_INFO[] = {
+  'M','s','P','a','c','k',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
+};
 extern const Char PDT_EDITOR[] = {
   'P','r','o','D','i','g','i',' ','T','r','a','c','k','e','r',' ','v','0','.','0','x',0
 };
