@@ -22,9 +22,6 @@ Author:
 //std includes
 #include <algorithm>
 #include <iterator>
-#include <numeric>
-//boost includes
-#include <boost/bind.hpp>
 //text includes
 #include <core/text/plugins.h>
 
@@ -36,6 +33,8 @@ namespace
   const String MSP_PLUGIN_VERSION(FromStdString("$Rev$"));
 
   const char MSP_SIGNATURE[] = {'M', 's', 'P', 'k'};
+
+  const std::size_t DEPACKER_SIZE = 0xe5;
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -55,13 +54,13 @@ namespace
     //+c
     uint16_t DstAddress;
     //+e
-    uint8_t BitStream[0];
+    uint8_t BitStream[2];
   } PACK_POST;
 #ifdef USE_PRAGMA_PACK
 #pragma pack(pop)
 #endif
 
-  BOOST_STATIC_ASSERT(sizeof(MSPHeader) == 0x0e);
+  BOOST_STATIC_ASSERT(sizeof(MSPHeader) == 0x10);
 
   //msk bitstream decoder (equal to hrust1)
   class Bitstream
@@ -112,49 +111,64 @@ namespace
     uint_t Mask;
   };
 
-  unsigned GetPackedSize(const MSPHeader& header)
+  uint_t GetPackedSize(const MSPHeader& header)
   {
-    const unsigned lastBytesCount = fromLE(header.LastSrcRestBytes) - fromLE(header.LastSrcPacked);
-    return sizeof(MSPHeader) + fromLE(header.SizeOfPacked) + lastBytesCount - 2;
+    const uint_t lastBytesCount = fromLE(header.LastSrcRestBytes) - fromLE(header.LastSrcPacked);
+    return sizeof(MSPHeader) + fromLE(header.SizeOfPacked) + lastBytesCount - 4;
   }
 
-  unsigned GetUnpackedSize(const MSPHeader& header)
+  uint_t GetUnpackedSize(const MSPHeader& header)
   {
     return fromLE(header.LastDstPacked) - fromLE(header.DstAddress) + 1;
   }
 
-  unsigned GetOffset(Bitstream& stream)
+  bool CheckMSP(const MSPHeader* header, std::size_t limit)
+  {
+    BOOST_STATIC_ASSERT(sizeof(header->Signature) == sizeof(MSP_SIGNATURE));
+    if (limit < sizeof(*header) ||
+        0 != std::memcmp(header->Signature, MSP_SIGNATURE, sizeof(header->Signature)))
+    {
+      return false;
+    }
+    const uint_t packed = GetPackedSize(*header);
+    const uint_t unpacked = GetUnpackedSize(*header);
+    return fromLE(header->LastSrcRestBytes) > fromLE(header->LastSrcPacked) &&
+      packed <= limit &&
+      unpacked >= fromLE(header->SizeOfPacked);
+  }
+
+  uint_t GetOffset(Bitstream& stream)
   {
     if (stream.GetBit())
     {
       return stream.GetByte() + 1;
     }
-    const unsigned code1 = stream.GetBits(3);
+    const uint_t code1 = stream.GetBits(3);
     if (code1 < 2)
     {
       return 256 * (code1 + 1) + stream.GetByte() + 1;
     }
-    const unsigned code2 = 2 * code1 + stream.GetBit();
+    const uint_t code2 = 2 * code1 + stream.GetBit();
     if (code2 < 8)
     {
       return 256 * (code2 - 1) + stream.GetByte() + 1;
     }
-    const unsigned code3 = 2 * code2 + stream.GetBit();
+    const uint_t code3 = 2 * code2 + stream.GetBit();
     if (code3 < 0x17)
     {
       return 256 * (code3 - 9) + stream.GetByte() + 1;
     }
-    const unsigned code4 = (2 * code3 + stream.GetBit()) & 0x1f;
+    const uint_t code4 = (2 * code3 + stream.GetBit()) & 0x1f;
     if (code4 < 0x1f)
     {
       return 256 * code4 + stream.GetByte() + 1;
     }
-    const unsigned hidisp = stream.GetByte();
-    const unsigned lodisp = stream.GetByte();
+    const uint_t hidisp = stream.GetByte();
+    const uint_t lodisp = stream.GetByte();
     return 256 * hidisp + lodisp + 1;
   }
 
-  inline bool CopyFromBack(unsigned offset, Dump& dst, uint_t count)
+  inline bool CopyFromBack(uint_t offset, Dump& dst, uint_t count)
   {
     const std::size_t size = dst.size();
     if (offset > size)
@@ -169,28 +183,15 @@ namespace
     return true;
   }
 
-  bool CheckMSP(const MSPHeader& header, std::size_t limit)
+  bool DecodeMSP(const MSPHeader& header, Dump& res)
   {
-    BOOST_STATIC_ASSERT(sizeof(header.Signature) == sizeof(MSP_SIGNATURE));
-    if (0 != std::memcmp(header.Signature, MSP_SIGNATURE, sizeof(header.Signature)))
-    {
-      return false;
-    }
-    const unsigned packed = GetPackedSize(header);
-    const unsigned unpacked = GetUnpackedSize(header);
-    return fromLE(header.LastSrcRestBytes) > fromLE(header.LastSrcPacked) &&
-      packed <= limit &&
-      unpacked >= fromLE(header.SizeOfPacked);
-  }
-
-  bool DecodeMSP(const MSPHeader* header, Dump& res)
-  {
-    const unsigned lastBytesCount = fromLE(header->LastSrcRestBytes) - fromLE(header->LastSrcPacked);
-    const uint_t packedSize = fromLE(header->SizeOfPacked);
-    const unsigned unpackedSize = GetUnpackedSize(*header);
+    const unsigned lastBytesCount = fromLE(header.LastSrcRestBytes) - fromLE(header.LastSrcPacked);
+    const uint_t packedSize = fromLE(header.SizeOfPacked);
+    const unsigned unpackedSize = GetUnpackedSize(header);
     Dump dst;
+    dst.reserve(unpackedSize);
 
-    Bitstream stream(header->BitStream, packedSize);
+    Bitstream stream(header.BitStream, packedSize);
     while (!stream.Eof())
     {
       //%0 - put byte
@@ -246,10 +247,55 @@ namespace
     {
       return false;
     }
-    const uint8_t* const lastBytes = header->BitStream + packedSize - 2;
+    const uint8_t* const lastBytes = header.BitStream + packedSize - 2;
     std::copy(lastBytes, lastBytes + lastBytesCount, std::back_inserter(dst));
     res.swap(dst);
     return true;
+  }
+
+  class MSPData
+  {
+  public:
+    MSPData(const uint8_t* data, std::size_t size)
+      : Header(0)
+    {
+      const MSPHeader* const header = safe_ptr_cast<const MSPHeader*>(data);
+      if (CheckMSP(header, size))
+      {
+        Header = header;
+      }
+    }
+
+    bool IsValid() const
+    {
+      return Header != 0;
+    }
+
+    uint_t PackedSize() const
+    {
+      assert(Header);
+      return GetPackedSize(*Header);
+    }
+
+    bool Decode(Dump& res) const
+    {
+      assert(Header);
+      return DecodeMSP(*Header, res);
+    }
+  private:
+    const MSPHeader* Header;
+  };
+
+  IO::DataContainer::Ptr DoDecodeMSP(const MSPData& data, std::size_t offset, ModuleRegion& region)
+  {
+    Dump res;
+    if (data.Decode(res))
+    {
+      region.Offset = offset;
+      region.Size = data.PackedSize();
+      return IO::CreateDataContainer(res);
+    }
+    return IO::DataContainer::Ptr();
   }
 
   class MSPPlugin : public ArchivePlugin
@@ -279,12 +325,13 @@ namespace
     {
       const uint8_t* const data = static_cast<const uint8_t*>(inputData.Data());
       const std::size_t limit = inputData.Size();
-      if (limit < sizeof(MSPHeader))
+      const MSPData dataWithDepacker(data + DEPACKER_SIZE, limit - DEPACKER_SIZE);
+      if (limit >= DEPACKER_SIZE && dataWithDepacker.IsValid())
       {
-        return false;
+        return true;
       }
-      const MSPHeader* const header = safe_ptr_cast<const MSPHeader*>(data);
-      return CheckMSP(*header, limit);
+      const MSPData singleData(data, limit);
+      return singleData.IsValid();
     }
 
     virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Accessor& /*commonParams*/,
@@ -292,18 +339,18 @@ namespace
     {
       const IO::DataContainer& inputData = *input.Data;
       const uint8_t* const data = static_cast<const uint8_t*>(inputData.Data());
-      const MSPHeader* const header = safe_ptr_cast<const MSPHeader*>(data);
-      assert(CheckMSP(*header, inputData.Size()));
-
-      Dump res;
-      //only check without depacker- depackers are separate
-      if (DecodeMSP(header, res))
+      const std::size_t limit = inputData.Size();
+      if (limit >= DEPACKER_SIZE)
       {
-        region.Offset = 0;
-        region.Size = GetPackedSize(*header);
-        return IO::CreateDataContainer(res);
+        const MSPData dataWithDepacker(data + DEPACKER_SIZE, limit - DEPACKER_SIZE);
+        if (dataWithDepacker.IsValid())
+        {
+          return DoDecodeMSP(dataWithDepacker, DEPACKER_SIZE, region);
+        }
       }
-      return IO::DataContainer::Ptr();
+      const MSPData singleData(data, limit);
+      assert(singleData.IsValid());
+      return DoDecodeMSP(singleData, 0, region);
     }
   };
 }

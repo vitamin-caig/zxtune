@@ -133,24 +133,35 @@ namespace
     return CopyFromBack(offset, dst) && (dst.push_back(data), true) && CopyFromBack(offset, dst);
   }
 
+  uint_t GetPackedSize(const Hrust1xHeader& header)
+  {
+    return fromLE(header.PackedSize);
+  }
+
+  uint_t GetUnpackedSize(const Hrust1xHeader& header)
+  {
+    return fromLE(header.DataSize);
+  }
+
   bool CheckHrust1(const Hrust1xHeader* header, std::size_t size)
   {
     if (size < sizeof(*header) ||
-        header->ID[0] != 'H' || header->ID[1] != 'R' ||
-        fromLE(header->PackedSize) > fromLE(header->DataSize) ||
-        fromLE(header->PackedSize) > size)
+        header->ID[0] != 'H' || header->ID[1] != 'R')
     {
       return false;
     }
-    return true;
+    const uint_t packedSize = GetPackedSize(*header);
+    const uint_t unpackedSize = GetUnpackedSize(*header);
+    return packedSize <= unpackedSize && packedSize <= size;
   }
 
-  bool DecodeHrust1(const Hrust1xHeader* header, Dump& result)
+  bool DecodeHrust1(const Hrust1xHeader& header, Dump& result)
   {
+    const uint_t unpackedSize = GetUnpackedSize(header);
     Dump dst;
-    dst.reserve(fromLE(header->DataSize));
+    dst.reserve(unpackedSize);
 
-    Bitstream stream(header->BitStream, fromLE(header->PackedSize) - 12);
+    Bitstream stream(header.BitStream, GetPackedSize(header) - 12);
     //put first byte
     dst.push_back(stream.GetByte());
     uint_t refBits = 2;
@@ -310,14 +321,59 @@ namespace
       }
     }
     //put remaining bytes
-    std::copy(header->LastBytes, ArrayEnd(header->LastBytes), std::back_inserter(dst));
+    std::copy(header.LastBytes, ArrayEnd(header.LastBytes), std::back_inserter(dst));
     //valid if match
-    if (dst.size() == fromLE(header->DataSize))
+    if (dst.size() != unpackedSize)
     {
-      result.swap(dst);
-      return true;
+      return false;
     }
-    return false;
+    result.swap(dst);
+    return true;
+  }
+
+  class Hrust1Data
+  {
+  public:
+    Hrust1Data(const uint8_t* data, std::size_t size)
+      : Header(0)
+    {
+      const Hrust1xHeader* const header = safe_ptr_cast<const Hrust1xHeader*>(data);
+      if (CheckHrust1(header, size))
+      {
+        Header = header;
+      }
+    }
+
+    bool IsValid() const
+    {
+      return Header != 0;
+    }
+
+    uint_t PackedSize() const
+    {
+      assert(Header);
+      return GetPackedSize(*Header);
+    }
+
+    bool Decode(Dump& res) const
+    {
+      assert(Header);
+      return DecodeHrust1(*Header, res);
+    }
+  private:
+    const Hrust1xHeader* Header;
+  };
+
+  IO::DataContainer::Ptr DoDecodeHrust1(const Hrust1Data& data, std::size_t offset, ModuleRegion& region)
+  {
+    Dump res;
+    if (data.Decode(res))
+    {
+      region.Offset = offset;
+      region.Size = data.PackedSize();
+      return IO::CreateDataContainer(res);
+    }
+    return IO::DataContainer::Ptr();
   }
 
   //////////////////////////////////////////////////////////////////////////
@@ -346,51 +402,34 @@ namespace
 
     virtual bool Check(const IO::DataContainer& inputData) const
     {
-      const Hrust1xHeader* const header1 = static_cast<const Hrust1xHeader*>(inputData.Data());
+      const uint8_t* const data = static_cast<const uint8_t*>(inputData.Data());
       const std::size_t limit = inputData.Size();
-      if (CheckHrust1(header1, limit))
+      const Hrust1Data dataWithDepacker(data + DEPACKER_SIZE, limit - DEPACKER_SIZE);
+      if (limit >= DEPACKER_SIZE && dataWithDepacker.IsValid())
       {
         return true;
       }
-      const Hrust1xHeader* const header2 = safe_ptr_cast<const Hrust1xHeader*>(static_cast<const uint8_t*>(inputData.Data()) +
-        DEPACKER_SIZE);
-      if (limit > DEPACKER_SIZE &&
-          CheckHrust1(header2, limit - DEPACKER_SIZE))
-      {
-        return true;
-      }
-      return false;
+      const Hrust1Data singleData(data, limit);
+      return singleData.IsValid();
     }
 
     virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Accessor& /*commonParams*/,
       const MetaContainer& input, ModuleRegion& region) const
     {
       const IO::DataContainer& inputData = *input.Data;
+      const uint8_t* const data = static_cast<const uint8_t*>(inputData.Data());
       const std::size_t limit = inputData.Size();
-      const Hrust1xHeader* const header1 = static_cast<const Hrust1xHeader*>(inputData.Data());
-      Dump res;
-      //check without depacker
-      if (CheckHrust1(header1, limit))          
+      if (limit >= DEPACKER_SIZE)
       {
-        if (DecodeHrust1(header1, res))
+        const Hrust1Data dataWithDepacker(data + DEPACKER_SIZE, limit - DEPACKER_SIZE);
+        if (dataWithDepacker.IsValid())
         {
-          region.Offset = 0;
-          region.Size = fromLE(header1->PackedSize);
-          return IO::CreateDataContainer(res);
+          return DoDecodeHrust1(dataWithDepacker, DEPACKER_SIZE, region);
         }
-        //it's useless to check corrupted stream as depacker
-        return IO::DataContainer::Ptr();
       }
-      const Hrust1xHeader* const header2 = safe_ptr_cast<const Hrust1xHeader*>(static_cast<const uint8_t*>(inputData.Data()) +
-        DEPACKER_SIZE);
-      assert(CheckHrust1(header2, limit - DEPACKER_SIZE));
-      if (DecodeHrust1(header2, res))
-      {
-        region.Offset = DEPACKER_SIZE;
-        region.Size = fromLE(header2->PackedSize);
-        return IO::CreateDataContainer(res);
-      }
-      return IO::DataContainer::Ptr();
+      const Hrust1Data singleData(data, limit);
+      assert(singleData.IsValid());
+      return DoDecodeHrust1(singleData, 0, region);
     }
   };
 }
