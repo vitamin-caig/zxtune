@@ -55,63 +55,63 @@ namespace
   const uint_t MAX_PATTERN_COUNT = 64;//TODO
 
   //checkers
-  const DetectFormatChain DETECTORS[] =
+  const DataPrefix PLAYERS[] =
   {
     //PT20
     {
-      "21??"    //ld hl,xxxx
-      "c3??"    //jp xxxx
-      "c3+563+" //jp xxxx:ds 561
-      "f3"      //di
-      "e5"      //push hl
-      "22??"    //ld (xxxx),hl
-      "e5"      //push hl
-      "7e"      //ld a,(hl)
-      "32??"    //ld (xxxx),a
-      "32??"    //ld (xxxx),a
-      "23"      //inc hl
-      "23"      //inc hl
-      "7e"      //ld a,(hl)
-      "23"      //inc hl
-      "22??"    //ld (xxxx),hl
-      "11??"    //ld de,xxxx(32)
-      "19"      //add hl,de
-      "19"      //add hl,de
-      "22??"    //ld (xxxx),hl
-      "19"      //add hl,de
-      "5e"      //ld e,(hl)
-      "23"      //inc hl
-      "56"      //ld d,(hl)
-      "23"      //inc hl
-      "01??"    //ld bc,xxxx(30)
-      "09"      //add hl,bc
+      "21??"    // ld hl,xxxx
+      "c3??"    // jp xxxx
+      "c3+563+" // jp xxxx:ds 561
+      "f3"      // di
+      "e5"      // push hl
+      "22??"    // ld (xxxx),hl
+      "e5"      // push hl
+      "7e"      // ld a,(hl)
+      "32??"    // ld (xxxx),a
+      "32??"    // ld (xxxx),a
+      "23"      // inc hl
+      "23"      // inc hl
+      "7e"      // ld a,(hl)
+      "23"      // inc hl
+      "22??"    // ld (xxxx),hl
+      "11??"    // ld de,xxxx(32)
+      "19"      // add hl,de
+      "19"      // add hl,de
+      "22??"    // ld (xxxx),hl
+      "19"      // add hl,de
+      "5e"      // ld e,(hl)
+      "23"      // inc hl
+      "56"      // ld d,(hl)
+      "23"      // inc hl
+      "01??"    // ld bc,xxxx(30)
+      "09"      // add hl,bc
       ,
       2591
     },
     //PT21
     {
-      "21??"    //ld hl,xxxx
-      "c3??"    //jp xxxx
-      "c3+14+"  //jp xxxx
-                //ds 12
+      "21??"    // ld hl,xxxx
+      "c3??"    // jp xxxx
+      "c3+14+"  // jp xxxx
+                // ds 12
       "322e31"
       ,
       0xa2f
     },
     //PT24
     {
-      "21??"    //ld hl,xxxx
-      "1803"    //jr $+3
-      "c3??"    //jp xxxx
-      "f3"      //di
-      "e5"      //push hl
-      "7e"      //ld a,(hl)
-      "32??"    //ld (xxxx),a
-      "32??"    //ld (xxxx),a
-      "23"      //inc hl
-      "23"      //inc hl
-      "7e"      //ld a,(hl)
-      "23"      //inc hl
+      "21??"    // ld hl,xxxx
+      "1803"    // jr $+3
+      "c3??"    // jp xxxx
+      "f3"      // di
+      "e5"      // push hl
+      "7e"      // ld a,(hl)
+      "32??"    // ld (xxxx),a
+      "32??"    // ld (xxxx),a
+      "23"      // inc hl
+      "23"      // inc hl
+      "7e"      // ld a,(hl)
+      "23"      // inc hl
       ,
       2629
     }
@@ -897,8 +897,9 @@ namespace
   }
 
   //////////////////////////////////////////////////////////////////////////
-  class PT2Plugin : public MultiCheckedPlayerPluginHelper
+  class PT2Plugin : public PlayerPlugin
                   , public boost::enable_shared_from_this<PT2Plugin>
+                  , private ModuleDetector
   {
   public:
     virtual String Id() const
@@ -920,10 +921,20 @@ namespace
     {
       return CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
     }
-  private:
-    virtual DetectorIterator GetDetectors() const
+
+    virtual bool Check(const IO::DataContainer& inputData) const
     {
-      return DetectorIterator(DETECTORS, ArrayEnd(DETECTORS));
+      return CheckDataFormat(*this, inputData);
+    }
+
+    Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters, const MetaContainer& container, ModuleRegion& region) const
+    {
+      return CreateModuleFromData(*this, parameters, container, region);
+    }
+  private:
+    virtual DataPrefixIterator GetPrefixes() const
+    {
+      return DataPrefixIterator(PLAYERS, ArrayEnd(PLAYERS));
     }
 
     virtual bool CheckData(const uint8_t* data, std::size_t size) const

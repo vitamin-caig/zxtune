@@ -58,56 +58,56 @@ namespace
   const uint_t SAMPLE_ORNAMENT_SIZE = 32;
 
   //detectors
-  static const DetectFormatChain DETECTORS[] =
+  static const DataPrefix PLAYERS[] =
   {
     {
-      "21??"   //ld hl,xxxx
-      "c3??"   //jp xxxx
-      "c3??"   //jp xxxx
-      "f3"     //di
-      "7e"     //ld a,(hl)
-      "32??"   //ld (xxxx),a
-      "22??"   //ld (xxxx),hl
-      "23"     //inc hl
-      "cd??"   //call xxxx
-      "1a"     //ld a,(de)
-      "13"     //inc de
-      "3c"     //inc a
-      "32??"   //ld (xxxx),a
-      "ed53??" //ld (xxxx),de
-      "cd??"   //call xxxx
-      "ed53??" //ld (xxxx),de
-      "d5"     //push de
-      "cd??"   //call xxxx
-      "ed53??" //ld (xxxx),de
-      "21??"   //ld hl,xxxx
-      "cd??"   //call xxxx
-      "eb"     //ex de,hl
-      "22??"   //ld (xxxx),hl
-      "21??"   //ld hl,xxxx
-      "22??"   //ld(xxxx),hl
-      "21??"   //ld hl,xxxx
-      "11??"   //ld de,xxxx
-      "01??"   //ld bc,xxxx
-      "70"     //ld (hl),b
-      "edb0"   //ldir
-      "e1"     //pop hl
-      "01??"   //ld bc,xxxx
-      "af"     //xor a
-      "cd??"   //call xxxx
-      "3d"     //dec a
-      "32??"   //ld (xxxx),a
-      "32??"   //ld (xxxx),a
-      "32??"   //ld (xxxx),a
-      "3e?"    //ld a,x
-      "32??"   //ld (xxxx),a
-      "23"     //inc hl
-      "22??"   //ld (xxxx),hl
-      "22??"   //ld (xxxx),hl
-      "22??"   //ld (xxxx),hl
-      "cd??"   //call xxxx
-      "fb"     //ei
-      "c9"     //ret
+      "21??"    // ld hl,xxxx
+      "c3??"    // jp xxxx
+      "c3??"    // jp xxxx
+      "f3"      // di
+      "7e"      // ld a,(hl)
+      "32??"    // ld (xxxx),a
+      "22??"    // ld (xxxx),hl
+      "23"      // inc hl
+      "cd??"    // call xxxx
+      "1a"      // ld a,(de)
+      "13"      // inc de
+      "3c"      // inc a
+      "32??"    // ld (xxxx),a
+      "ed53??"  // ld (xxxx),de
+      "cd??"    // call xxxx
+      "ed53??"  // ld (xxxx),de
+      "d5"      // push de
+      "cd??"    // call xxxx
+      "ed53??"  // ld (xxxx),de
+      "21??"    // ld hl,xxxx
+      "cd??"    // call xxxx
+      "eb"      // ex de,hl
+      "22??"    // ld (xxxx),hl
+      "21??"    // ld hl,xxxx
+      "22??"    // ld(xxxx),hl
+      "21??"    // ld hl,xxxx
+      "11??"    // ld de,xxxx
+      "01??"    // ld bc,xxxx
+      "70"      // ld (hl),b
+      "edb0"    // ldir
+      "e1"      // pop hl
+      "01??"    // ld bc,xxxx
+      "af"      // xor a
+      "cd??"    // call xxxx
+      "3d"      // dec a
+      "32??"    // ld (xxxx),a
+      "32??"    // ld (xxxx),a
+      "32??"    // ld (xxxx),a
+      "3e?"     // ld a,x
+      "32??"    // ld (xxxx),a
+      "23"      // inc hl
+      "22??"    // ld (xxxx),hl
+      "22??"    // ld (xxxx),hl
+      "22??"    // ld (xxxx),hl
+      "cd??"    // call xxxx
+      "fb"      // ei
+      "c9"      // ret
       ,
       0x43c
     }
@@ -1109,8 +1109,9 @@ namespace
   }
 
   //////////////////////////////////////////////////////////////////////////
-  class STCPlugin : public MultiCheckedPlayerPluginHelper
+  class STCPlugin : public PlayerPlugin
                   , public boost::enable_shared_from_this<STCPlugin>
+                  , private ModuleDetector
   {
   public:
     virtual String Id() const
@@ -1132,10 +1133,20 @@ namespace
     {
       return CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
     }
-  private:
-    virtual DetectorIterator GetDetectors() const
+
+    virtual bool Check(const IO::DataContainer& inputData) const
     {
-      return DetectorIterator(DETECTORS, ArrayEnd(DETECTORS));
+      return CheckDataFormat(*this, inputData);
+    }
+
+    Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters, const MetaContainer& container, ModuleRegion& region) const
+    {
+      return CreateModuleFromData(*this, parameters, container, region);
+    }
+  private:
+    virtual DataPrefixIterator GetPrefixes() const
+    {
+      return DataPrefixIterator(PLAYERS, ArrayEnd(PLAYERS));
     }
 
     virtual bool CheckData(const uint8_t* data, std::size_t size) const

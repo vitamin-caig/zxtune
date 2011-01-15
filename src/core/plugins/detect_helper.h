@@ -19,28 +19,45 @@ Author:
 
 namespace ZXTune
 {
-  struct DetectFormatChain
+  struct DataPrefix
   {
     //no default ctor to declare as a structure
-    const std::string PlayerFP;
-    const std::size_t PlayerSize;
+    const std::string PrefixDetectString;
+    const std::size_t PrefixSize;
   };
-  
-  class MultiCheckedPlayerPluginHelper : public PlayerPlugin
+
+  typedef RangeIterator<const DataPrefix*> DataPrefixIterator;
+
+  class DataDetector
   {
   public:
-    virtual bool Check(const IO::DataContainer& inputData) const;
+    virtual ~DataDetector() {}
 
-    virtual Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
-                                             const MetaContainer& container,
-                                             ModuleRegion& region) const;
-  protected:
-    typedef RangeIterator<const DetectFormatChain*> DetectorIterator;
-    virtual DetectorIterator GetDetectors() const = 0;
     virtual bool CheckData(const uint8_t* data, std::size_t size) const = 0;
+    virtual DataPrefixIterator GetPrefixes() const = 0;
+  };
+
+  class ModuleDetector : public DataDetector
+  {
+  public:
     virtual Module::Holder::Ptr TryToCreateModule(Parameters::Accessor::Ptr parameters,
       const MetaContainer& container, ModuleRegion& region) const = 0;
   };
+
+  class ArchiveDetector : public DataDetector
+  {
+  public:
+    virtual IO::DataContainer::Ptr TryToExtractSubdata(const Parameters::Accessor& parameters,
+      const MetaContainer& container, ModuleRegion& region) const = 0;
+  };
+
+  bool CheckDataFormat(const DataDetector& detector, const IO::DataContainer& inputData);
+
+  Module::Holder::Ptr CreateModuleFromData(const ModuleDetector& detector,
+    Parameters::Accessor::Ptr parameters, const MetaContainer& container, ModuleRegion& region);
+
+  IO::DataContainer::Ptr ExtractSubdataFromData(const ArchiveDetector& detector,
+    const Parameters::Accessor& parameters, const MetaContainer& container, ModuleRegion& region);
 }
 
 #endif //__CORE_PLUGINS_DETECT_HELPER_H_DEFINED__

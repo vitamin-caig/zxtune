@@ -58,29 +58,29 @@ namespace
   const uint_t MAX_SAMPLE_SIZE = 32;
 
   //detectors
-  const DetectFormatChain DETECTORS[] =
+  const DataPrefix PLAYERS[] =
   {
     //STP0
     {
-      "21??"   // ld hl,xxxx
-      "c3??"   // jp xxxx
-      "c3??"   // jp xxxx
-      "ed4b??" // ld bc,(xxxx)
-      "c3??"   // jp xxxx
-      "+62+"   // id+name
-      "f3"     // di
-      "22??"   // ld (xxxx),hl
-      "3e?"    // ld a,xx
-      "32??"   // ld (xxxx),a
-      "32??"   // ld (xxxx),a
-      "32??"   // ld (xxxx),a
-      "7e"     // ld a,(hl)
-      "23"     // inc hl
-      "32??"   // ld (xxxx),a
-      "cd??"   // call xxxx
-      "7e"     // ld a,(hl)
-      "32??"   // ld (xxxx),a
-      "23"     // inc hl
+      "21??"    // ld hl,xxxx
+      "c3??"    // jp xxxx
+      "c3??"    // jp xxxx
+      "ed4b??"  // ld bc,(xxxx)
+      "c3??"    // jp xxxx
+      "+62+"    // id+name
+      "f3"      // di
+      "22??"    // ld (xxxx),hl
+      "3e?"     // ld a,xx
+      "32??"    // ld (xxxx),a
+      "32??"    // ld (xxxx),a
+      "32??"    // ld (xxxx),a
+      "7e"      // ld a,(hl)
+      "23"      // inc hl
+      "32??"    // ld (xxxx),a
+      "cd??"    // call xxxx
+      "7e"      // ld a,(hl)
+      "32??"    // ld (xxxx),a
+      "23"      // inc hl
       ,
       1896
     }
@@ -1015,8 +1015,9 @@ namespace
   }
 
   //////////////////////////////////////////////////////////////////////////
-  class STPPlugin : public MultiCheckedPlayerPluginHelper
+  class STPPlugin : public PlayerPlugin
                   , public boost::enable_shared_from_this<STPPlugin>
+                  , private ModuleDetector
   {
   public:
     virtual String Id() const
@@ -1038,10 +1039,20 @@ namespace
     {
       return CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
     }
-  private:
-    virtual DetectorIterator GetDetectors() const
+
+    virtual bool Check(const IO::DataContainer& inputData) const
     {
-      return DetectorIterator(DETECTORS, ArrayEnd(DETECTORS));
+      return CheckDataFormat(*this, inputData);
+    }
+
+    Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters, const MetaContainer& container, ModuleRegion& region) const
+    {
+      return CreateModuleFromData(*this, parameters, container, region);
+    }
+  private:
+    virtual DataPrefixIterator GetPrefixes() const
+    {
+      return DataPrefixIterator(PLAYERS, ArrayEnd(PLAYERS));
     }
 
     virtual bool CheckData(const uint8_t* data, std::size_t size) const

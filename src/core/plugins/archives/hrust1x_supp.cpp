@@ -10,6 +10,7 @@ Author:
 */
 
 //local includes
+#include <core/plugins/detect_helper.h>
 #include <core/plugins/enumerator.h>
 #include <core/plugins/utils.h>
 //common includes
@@ -32,7 +33,32 @@ namespace
   const Char HRUST1X_PLUGIN_ID[] = {'H', 'R', 'U', 'S', 'T', '1', '\0'};
   const String HRUST1X_PLUGIN_VERSION(FromStdString("$Rev$"));
 
-  const std::size_t DEPACKER_SIZE = 0x103;
+  //checkers
+  const DataPrefix DEPACKERS[] =
+  {
+    {
+      "f3"      // di
+      "ed73??"  // ld (xxxx),sp
+      "11??"    // ld de,xxxx
+      "21??"    // ld hl,xxxx
+      "01??"    // ld bc,xxxx
+      "d5"      // push de
+      "edb0"    // ldir
+      "13"      // inc de
+      "13"      // inc de
+      "d5"      // push de
+      "dde1"    // pop ix
+      "0e?"     // ld c,xx
+      "09"      // add hl,bc
+      "edb0"    // ldir
+      "21??"    // ld hl,xxxx
+      "11??"    // ld de,xxxx
+      "01??"    // ld bc,xxxx
+      "c9"      // ret
+      ,
+      0x103
+    }
+  };
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -364,20 +390,9 @@ namespace
     const Hrust1xHeader* Header;
   };
 
-  IO::DataContainer::Ptr DoDecodeHrust1(const Hrust1Data& data, std::size_t offset, ModuleRegion& region)
-  {
-    Dump res;
-    if (data.Decode(res))
-    {
-      region.Offset = offset;
-      region.Size = data.PackedSize();
-      return IO::CreateDataContainer(res);
-    }
-    return IO::DataContainer::Ptr();
-  }
-
   //////////////////////////////////////////////////////////////////////////
   class Hrust1xPlugin : public ArchivePlugin
+                      , private ArchiveDetector
   {
   public:
     virtual String Id() const
@@ -394,7 +409,7 @@ namespace
     {
       return HRUST1X_PLUGIN_VERSION;
     }
-    
+
     virtual uint_t Capabilities() const
     {
       return CAP_STOR_CONTAINER;
@@ -402,34 +417,41 @@ namespace
 
     virtual bool Check(const IO::DataContainer& inputData) const
     {
-      const uint8_t* const data = static_cast<const uint8_t*>(inputData.Data());
-      const std::size_t limit = inputData.Size();
-      const Hrust1Data dataWithDepacker(data + DEPACKER_SIZE, limit - DEPACKER_SIZE);
-      if (limit >= DEPACKER_SIZE && dataWithDepacker.IsValid())
-      {
-        return true;
-      }
-      const Hrust1Data singleData(data, limit);
-      return singleData.IsValid();
+      return CheckDataFormat(*this, inputData);
     }
 
-    virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Accessor& /*commonParams*/,
+    virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Accessor& parameters,
       const MetaContainer& input, ModuleRegion& region) const
     {
-      const IO::DataContainer& inputData = *input.Data;
+      return ExtractSubdataFromData(*this, parameters, input, region);
+    }
+  private:
+    virtual bool CheckData(const uint8_t* data, std::size_t size) const
+    {
+      const Hrust1Data hrustData(data, size);
+      return hrustData.IsValid();
+    }
+
+    virtual DataPrefixIterator GetPrefixes() const
+    {
+      return DataPrefixIterator(DEPACKERS, ArrayEnd(DEPACKERS));
+    }
+
+    virtual IO::DataContainer::Ptr TryToExtractSubdata(const Parameters::Accessor& /*parameters*/,
+      const MetaContainer& container, ModuleRegion& region) const
+    {
+      const IO::DataContainer& inputData = *container.Data;
       const uint8_t* const data = static_cast<const uint8_t*>(inputData.Data());
       const std::size_t limit = inputData.Size();
-      if (limit >= DEPACKER_SIZE)
+
+      const Hrust1Data hrustData(data + region.Offset, limit - region.Offset);
+      Dump res;
+      if (hrustData.Decode(res))
       {
-        const Hrust1Data dataWithDepacker(data + DEPACKER_SIZE, limit - DEPACKER_SIZE);
-        if (dataWithDepacker.IsValid())
-        {
-          return DoDecodeHrust1(dataWithDepacker, DEPACKER_SIZE, region);
-        }
+        region.Size = hrustData.PackedSize();
+        return IO::CreateDataContainer(res);
       }
-      const Hrust1Data singleData(data, limit);
-      assert(singleData.IsValid());
-      return DoDecodeHrust1(singleData, 0, region);
+      return IO::DataContainer::Ptr();
     }
   };
 }

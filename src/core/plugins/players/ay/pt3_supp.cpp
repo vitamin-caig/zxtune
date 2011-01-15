@@ -58,7 +58,8 @@ namespace
   const uint_t MAX_ORNAMENT_SIZE = 64;
 
   //checkers
-  static const DetectFormatChain DETECTORS[] = {
+  static const DataPrefix PLAYERS[] =
+  {
     //PT3.4 without signatures
     {
       "21??"    // ld hl,xxxx
@@ -954,8 +955,9 @@ namespace
   }
 
   //////////////////////////////////////////////////////////////////////////
-  class PT3Plugin : public MultiCheckedPlayerPluginHelper
+  class PT3Plugin : public PlayerPlugin
                   , public boost::enable_shared_from_this<PT3Plugin>
+                  , private ModuleDetector
   {
   public:
     virtual String Id() const
@@ -978,10 +980,20 @@ namespace
       return CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW |
         GetSupportedAYMFormatConvertors() | GetSupportedVortexFormatConvertors();
     }
-  private:
-    virtual DetectorIterator GetDetectors() const
+
+    virtual bool Check(const IO::DataContainer& inputData) const
     {
-      return DetectorIterator(DETECTORS, ArrayEnd(DETECTORS));
+      return CheckDataFormat(*this, inputData);
+    }
+
+    Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters, const MetaContainer& container, ModuleRegion& region) const
+    {
+      return CreateModuleFromData(*this, parameters, container, region);
+    }
+  private:
+    virtual DataPrefixIterator GetPrefixes() const
+    {
+      return DataPrefixIterator(PLAYERS, ArrayEnd(PLAYERS));
     }
 
     virtual bool CheckData(const uint8_t* data, std::size_t size) const
