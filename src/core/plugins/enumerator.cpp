@@ -409,6 +409,7 @@ namespace
           DetectModules(modulesParams, detectParams, nested, nestedRegion);
           return true;
         }
+        Log::Debug(THIS_MODULE, "%1%:  Failed to detect", input.Plugins->Count());
         //TODO: dispatch heavy checks- return false if not enabled
       }
       return false;
@@ -442,6 +443,7 @@ namespace
           ThrowIfError(detectParams.ProcessModule(input.Path, module));
           return;
         }
+        Log::Debug(THIS_MODULE, "%1%:  Failed to detect", input.Plugins->Count());
         //TODO: dispatch heavy checks- return false if not enabled
       }
       region.Offset = 0;

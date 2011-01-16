@@ -16,13 +16,14 @@ namespace ZXTune
 {
   //forward declaration
   class PluginsEnumerator;
-  
+
   void RegisterHobetaConvertor(PluginsEnumerator& enumerator);
   void RegisterHrust1xConvertor(PluginsEnumerator& enumerator);
   void RegisterHrust2xConvertor(PluginsEnumerator& enumerator);
   void RegisterFDIConvertor(PluginsEnumerator& enumerator);
   void RegisterDSQConvertor(PluginsEnumerator& enumerator);
   void RegisterMSPConvertor(PluginsEnumerator& enumerator);
+  void RegisterTRUSHConvertor(PluginsEnumerator& enumerator);
 
   void RegisterArchivePlugins(PluginsEnumerator& enumerator)
   {
@@ -32,6 +33,7 @@ namespace ZXTune
     RegisterFDIConvertor(enumerator);
     RegisterDSQConvertor(enumerator);
     RegisterMSPConvertor(enumerator);
+    RegisterTRUSHConvertor(enumerator);
   }
 }
 

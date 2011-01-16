@@ -122,6 +122,9 @@ extern const Char STP_PLUGIN_INFO[] = {
 extern const Char TRD_PLUGIN_INFO[] = {
   'T','R','D',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
 };
+extern const Char TRUSH_PLUGIN_INFO[] = {
+  'T','r','u','s','h',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
+};
 extern const Char TS_PLUGIN_INFO[] = {
   'T','u','r','b','o','S','o','u','n','d',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
 };

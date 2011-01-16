@@ -39,6 +39,7 @@ extern const Char STC_PLUGIN_INFO[];
 extern const Char STP_EDITOR[];
 extern const Char STP_PLUGIN_INFO[];
 extern const Char TRD_PLUGIN_INFO[];
+extern const Char TRUSH_PLUGIN_INFO[];
 extern const Char TS_PLUGIN_INFO[];
 extern const Char TXT_ERROR_INVALID_STRING[];
 extern const Char TXT_PLUGIN_INFO[];
