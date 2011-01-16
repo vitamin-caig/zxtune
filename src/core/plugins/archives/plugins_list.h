@@ -24,6 +24,7 @@ namespace ZXTune
   void RegisterDSQConvertor(PluginsEnumerator& enumerator);
   void RegisterMSPConvertor(PluginsEnumerator& enumerator);
   void RegisterTRUSHConvertor(PluginsEnumerator& enumerator);
+  void RegisterLZSConvertor(PluginsEnumerator& enumerator);
 
   void RegisterArchivePlugins(PluginsEnumerator& enumerator)
   {
@@ -34,6 +35,7 @@ namespace ZXTune
     RegisterDSQConvertor(enumerator);
     RegisterMSPConvertor(enumerator);
     RegisterTRUSHConvertor(enumerator);
+    RegisterLZSConvertor(enumerator);
   }
 }
 
