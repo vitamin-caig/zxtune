@@ -9,8 +9,8 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-#ifndef __CORE_PLUGINS_PLAYERS_UTILS_H_DEFINED__
-#define __CORE_PLUGINS_PLAYERS_UTILS_H_DEFINED__
+#ifndef __CORE_PLUGINS_UTILS_H_DEFINED__
+#define __CORE_PLUGINS_UTILS_H_DEFINED__
 
 //common includes
 #include <tools.h>
@@ -107,25 +107,7 @@ PACK_PRE struct Hrust2xHeader
 
 BOOST_STATIC_ASSERT(sizeof(Hrust2xHeader) == 8);
 
-template<class Iterator, class ConstIterator>
-void RecursiveCopy(ConstIterator srcBegin, ConstIterator srcEnd, Iterator dstBegin)
-{
-  const ConstIterator constDst = dstBegin;
-  if (std::distance(srcEnd, constDst) >= 0)
-  {
-    std::copy(srcBegin, srcEnd, dstBegin);
-  }
-  else
-  {
-    Iterator dst = dstBegin;
-    for (ConstIterator src = srcBegin; src != srcEnd; ++src, ++dst)
-    {
-      *dst = *src;
-    }
-  }
-}
-
 // implemented in hrust2x plugin, size is packed, dst is not cleared
 bool DecodeHrust2x(const Hrust2xHeader* header, uint_t size, Dump& dst);
 
-#endif //__CORE_PLUGINS_PLAYERS_UTILS_H_DEFINED__
+#endif //__CORE_PLUGINS_UTILS_H_DEFINED__

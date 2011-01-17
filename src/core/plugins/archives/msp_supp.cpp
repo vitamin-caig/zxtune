@@ -11,9 +11,9 @@ Author:
 */
 
 //local includes
+#include "pack_utils.h"
 #include <core/plugins/detect_helper.h>
 #include <core/plugins/enumerator.h>
-#include <core/plugins/utils.h>
 //common includes
 #include <byteorder.h>
 #include <detector.h>
@@ -203,21 +203,6 @@ namespace
     const uint_t hidisp = stream.GetByte();
     const uint_t lodisp = stream.GetByte();
     return 256 * hidisp + lodisp + 1;
-  }
-
-  inline bool CopyFromBack(uint_t offset, Dump& dst, uint_t count)
-  {
-    const std::size_t size = dst.size();
-    if (offset > size)
-    {
-      return false;//invalid backref
-    }
-    dst.resize(size + count);
-    const Dump::iterator dstStart = dst.begin() + size;
-    const Dump::const_iterator srcStart = dstStart - offset;
-    const Dump::const_iterator srcEnd = srcStart + count;
-    RecursiveCopy(srcStart, srcEnd, dstStart);
-    return true;
   }
 
   bool DecodeMSP(const MSPHeader& header, Dump& res)

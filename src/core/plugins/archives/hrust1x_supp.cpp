@@ -11,9 +11,9 @@ Author:
 */
 
 //local includes
+#include "pack_utils.h"
 #include <core/plugins/detect_helper.h>
 #include <core/plugins/enumerator.h>
-#include <core/plugins/utils.h>
 //common includes
 #include <byteorder.h>
 #include <tools.h>
@@ -163,7 +163,7 @@ namespace
     uint_t Mask;
   };
 
-  inline bool CopyFromBack(int_t offset, Dump& dst)
+  inline bool CopyByteFromBack(int_t offset, Dump& dst)
   {
     assert(offset <= 0);
     const std::size_t size = dst.size();
@@ -176,25 +176,9 @@ namespace
     return true;
   }
 
-  inline bool CopyFromBack(int_t offset, Dump& dst, uint_t count)
-  {
-    assert(offset <= 0);
-    const std::size_t size = dst.size();
-    if (uint_t(-offset) > size)
-    {
-      return false;//invalid backref
-    }
-    dst.resize(size + count);
-    const Dump::iterator dstStart = dst.begin() + size;
-    const Dump::const_iterator srcStart = dstStart + offset;
-    const Dump::const_iterator srcEnd = srcStart + count;
-    RecursiveCopy(srcStart, srcEnd, dstStart);
-    return true;
-  }
-
   inline bool CopyBreaked(int_t offset, Dump& dst, uint8_t data)
   {
-    return CopyFromBack(offset, dst) && (dst.push_back(data), true) && CopyFromBack(offset, dst);
+    return CopyByteFromBack(offset, dst) && (dst.push_back(data), true) && CopyByteFromBack(offset, dst);
   }
 
   uint_t GetPackedSize(const Hrust1xHeader& header)
@@ -246,7 +230,7 @@ namespace
       if (0 == len)
       {
         const int_t offset = static_cast<int16_t>(0xfff8 + stream.GetBits(3));
-        if (!CopyFromBack(offset, dst))
+        if (!CopyByteFromBack(offset, dst))
         {
           return false;
         }
@@ -292,7 +276,7 @@ namespace
         {
           offset = static_cast<int16_t>(0xffe0 + stream.GetBits(5));
         }
-        if (!CopyFromBack(offset, dst, 2))
+        if (!CopyFromBack(-offset, dst, 2))
         {
           return false;
         }
@@ -379,7 +363,7 @@ namespace
         offset |= stream.GetByte();
         offset = static_cast<int16_t>(offset & 0xffff);
       }
-      if (!CopyFromBack(offset, dst, len))
+      if (!CopyFromBack(-offset, dst, len))
       {
         return false;
       }

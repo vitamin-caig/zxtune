@@ -11,6 +11,7 @@ Author:
 */
 
 //local includes
+#include "pack_utils.h"
 #include <core/plugins/enumerator.h>
 #include <core/plugins/utils.h>
 //common includes
@@ -119,22 +120,6 @@ namespace
       }
       return static_cast<int16_t>((res << 8) + stream.GetByte());
     }
-  }
-
-  inline bool CopyFromBack(int_t offset, Dump& dst, uint_t count)
-  {
-    assert(offset <= 0);
-    const std::size_t size = dst.size();
-    if (uint_t(-offset) > size)
-    {
-      return false;//invalid backref
-    }
-    dst.resize(size + count);
-    const Dump::iterator dstStart = dst.begin() + size;
-    const Dump::const_iterator srcStart = dstStart + offset;
-    const Dump::const_iterator srcEnd = srcStart + count;
-    RecursiveCopy(srcStart, srcEnd, dstStart);
-    return true;
   }
 
   bool CheckHrust2(const Hrust21Header* header, std::size_t size)
@@ -250,7 +235,7 @@ bool DecodeHrust2x(const Hrust2xHeader* header, uint_t size, Dump& dst)
           len = len * 256 | stream.GetByte();
         }
         const int_t offset = GetDist(stream);
-        if (!CopyFromBack(offset, dst, len))
+        if (!CopyFromBack(-offset, dst, len))
         {
           return false;
         }
@@ -272,7 +257,7 @@ bool DecodeHrust2x(const Hrust2xHeader* header, uint_t size, Dump& dst)
       const int_t offset = 1 == len
         ? static_cast<int16_t>(0xfff8 + stream.GetBits(3))
         : (2 == len ? static_cast<int16_t>(0xff00 + stream.GetByte()) : GetDist(stream));
-      if (!CopyFromBack(offset, dst, len))
+      if (!CopyFromBack(-offset, dst, len))
       {
         return false;
       }

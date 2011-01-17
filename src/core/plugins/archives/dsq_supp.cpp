@@ -11,8 +11,8 @@ Author:
 */
 
 //local includes
+#include "pack_utils.h"
 #include <core/plugins/enumerator.h>
-#include <core/plugins/utils.h>
 //common includes
 #include <byteorder.h>
 #include <detector.h>
@@ -313,22 +313,6 @@ getbit:
     const unsigned LongOffsetBits;
   };
 
-  inline bool CopyFromBack(int_t offset, Dump& dst, uint_t count)
-  {
-    assert(offset <= 0);
-    const std::size_t size = dst.size();
-    if (uint_t(-offset) > size)
-    {
-      return false;//invalid backref
-    }
-    dst.resize(size + count);
-    const Dump::iterator dstStart = dst.begin() + size;
-    const Dump::const_iterator srcStart = dstStart + offset;
-    const Dump::const_iterator srcEnd = srcStart + count;
-    RecursiveCopy(srcStart, srcEnd, dstStart);
-    return true;
-  }
-
   bool DSQDepacker::Check(uint_t limit) const
   {
     if ((GetPackedSize() + sizeof(*this) > limit) ||
@@ -370,11 +354,10 @@ getbit:
         else
         {
           const uint_t offset = helper.GetOffset();
-          if (offset > reverse.size())
+          if (!CopyFromBack(offset, reverse, len))
           {
             return false;
           }
-          CopyFromBack(-static_cast<int_t>(offset), reverse, len);
         }
       }
     }
