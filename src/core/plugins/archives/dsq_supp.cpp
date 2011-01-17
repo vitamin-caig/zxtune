@@ -7,6 +7,7 @@ Last changed:
 
 Author:
   (C) Vitamin/CAIG/2001
+  (C) Based on XLook sources by HalfElf
 */
 
 //local includes

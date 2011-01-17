@@ -7,6 +7,7 @@ Last changed:
 
 Author:
   (C) Vitamin/CAIG/2001
+  (C) Based on XLook sources by HalfElf
 */
 
 //local includes
@@ -57,6 +58,43 @@ namespace
       "c9"      // ret
       ,
       0x103
+    },
+
+    {
+      "dd21??"  // ld ix,xxxx
+      "dd39"    // add ix,sp
+      "d5"      // push de
+      "f9"      // ld sp,hl
+      "c1"      // pop bc
+      "eb"      // ex de,hl
+      "c1"      // pop bc
+      "0b"      // dec bc
+      "09"      // add hl,bc
+      "eb"      // ex de,hl
+      "c1"      // pop bc
+      "0b"      // dec bc
+      "09"      // add hl,bc
+      "ed52"    // sbc hl,de
+      "19"      // add hl,de
+      "38?"     // jr c,...
+      "54"      // ld d,h
+      "5d"      // ld e,l
+      "edb8"    // lddr
+      "eb"      // ex de,hl
+      "dd560b"  // ld d,(ix+0xb)
+      "dd5e0a"  // ld e,(ix+0xa)
+      "f9"      // ld sp,hl
+      "e1"      // pop hl
+      "e1"      // pop hl
+      "e1"      // pop hl
+      "06?"     // ld b,xx (6)
+      "3b"      // dec sp
+      "f1"      // pop af
+      "dd7706"  // ld (ix+6),a
+      "dd23"    // inc ix
+      "10?"     // djnz xxx, (0xf7)
+      ,
+      0x100
     }
   };
 
