@@ -11,6 +11,7 @@ Author:
 */
 
 //local includes
+#include "hrust1_bitstream.h"
 #include "pack_utils.h"
 #include <core/plugins/detect_helper.h>
 #include <core/plugins/enumerator.h>
@@ -94,54 +95,7 @@ namespace
 
   BOOST_STATIC_ASSERT(sizeof(MSPHeader) == 0x10);
 
-  //msk bitstream decoder (equal to hrust1)
-  class Bitstream
-  {
-  public:
-    Bitstream(const uint8_t* data, std::size_t size)
-      : Data(data), End(Data + size), Bits(), Mask(0x8000)
-    {
-      Bits = GetByte();
-      Bits |= 256 * GetByte();
-    }
-
-    bool Eof() const
-    {
-      return Data >= End;
-    }
-
-    uint8_t GetByte()
-    {
-      return Eof() ? 0 : *Data++;
-    }
-
-    uint_t GetBit()
-    {
-      const uint_t result = (Bits & Mask) != 0 ? 1 : 0;
-      if (!(Mask >>= 1))
-      {
-        Bits = GetByte();
-        Bits |= 256 * GetByte();
-        Mask = 0x8000;
-      }
-      return result;
-    }
-
-    uint_t GetBits(unsigned count)
-    {
-      uint_t result = 0;
-      while (count--)
-      {
-        result = 2 * result | GetBit();
-      }
-      return result;
-    }
-  private:
-    const uint8_t* Data;
-    const uint8_t* const End;
-    uint_t Bits;
-    uint_t Mask;
-  };
+  typedef Hrust1Bitstream Bitstream;
 
   uint_t GetPackedSize(const MSPHeader& header)
   {

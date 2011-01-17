@@ -11,6 +11,7 @@ Author:
 */
 
 //local includes
+#include "hrust1_bitstream.h"
 #include "pack_utils.h"
 #include <core/plugins/enumerator.h>
 //common includes
@@ -39,8 +40,6 @@ namespace
     'A', 'L', 'E', 'X', 'A', 'N', 'D', 'E', 'R', ' ', 'T', 'R', 'U', 'S', 'H', ' ', 'O', 'D', 'E', 'S', 'S', 'A'
   };
 
-  const std::size_t DEPACKER_SIZE = 0x119;
-
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif
@@ -55,65 +54,21 @@ namespace
     //+27
     char Signature[0x24];
     //+4b
+    char Padding3[0xce];
+    //+119
+    uint8_t Bitstream[2];
   } PACK_POST;
 #ifdef USE_PRAGMA_PACK
 #pragma pack(pop)
 #endif
 
-  BOOST_STATIC_ASSERT(sizeof(TRUSHHeader) == 0x4b);
+  BOOST_STATIC_ASSERT(sizeof(TRUSHHeader) == 0x11b);
 
-  //msk bitstream decoder (equal to hrust1)
-  class Bitstream
-  {
-  public:
-    Bitstream(const uint8_t* data, std::size_t size)
-      : Data(data), End(Data + size), Bits(), Mask(0x8000)
-    {
-      Bits = GetByte();
-      Bits |= 256 * GetByte();
-    }
-
-    bool Eof() const
-    {
-      return Data >= End;
-    }
-
-    uint8_t GetByte()
-    {
-      return Eof() ? 0 : *Data++;
-    }
-
-    uint_t GetBit()
-    {
-      const uint_t result = (Bits & Mask) != 0 ? 1 : 0;
-      if (!(Mask >>= 1))
-      {
-        Bits = GetByte();
-        Bits |= 256 * GetByte();
-        Mask = 0x8000;
-      }
-      return result;
-    }
-
-    uint_t GetBits(unsigned count)
-    {
-      uint_t result = 0;
-      while (count--)
-      {
-        result = 2 * result | GetBit();
-      }
-      return result;
-    }
-  private:
-    const uint8_t* Data;
-    const uint8_t* const End;
-    uint_t Bits;
-    uint_t Mask;
-  };
+  typedef Hrust1Bitstream Bitstream;
 
   uint_t GetPackedSize(const TRUSHHeader& header)
   {
-    return DEPACKER_SIZE + fromLE(header.SizeOfPacked);
+    return sizeof(header) + fromLE(header.SizeOfPacked) - sizeof(header.Bitstream);
   }
 
   bool CheckTRUSH(const TRUSHHeader* header, std::size_t limit)
@@ -126,7 +81,7 @@ namespace
     }
     const uint_t packed = GetPackedSize(*header);
     return packed <= limit &&
-      0xff == *(safe_ptr_cast<const uint8_t*>(header) + packed - 1);
+      0xff == header->Bitstream[fromLE(header->SizeOfPacked) - 1];
   }
 
   uint_t GetOffset(Bitstream& stream)
@@ -161,8 +116,7 @@ namespace
     Dump dst;
     dst.reserve(packedSize * 2);//TODO
 
-    const uint8_t* const bistream = safe_ptr_cast<const uint8_t*>(&header) + DEPACKER_SIZE;
-    Bitstream stream(bistream, packedSize);
+    Bitstream stream(header.Bitstream, packedSize);
     while (!stream.Eof())
     {
       //%0 - put byte
