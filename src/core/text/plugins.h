@@ -17,6 +17,7 @@ extern const Char HRUST1X_PLUGIN_INFO[];
 extern const Char HRUST2X_PLUGIN_INFO[];
 extern const Char LZS_PLUGIN_INFO[];
 extern const Char MSP_PLUGIN_INFO[];
+extern const Char PCD_PLUGIN_INFO[];
 extern const Char PDT_EDITOR[];
 extern const Char PDT_PLUGIN_INFO[];
 extern const Char PLUGIN_HRIP_PROGRESS[];

@@ -76,6 +76,10 @@ __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 < MSP_PLUGIN_INFO
 > "MsPack" CONTAINER_DESCRIPTION
 
+#PCD
+< PCD_PLUGIN_INFO
+> "Powerfull Code Decreaser" CONTAINER_DESCRIPTION
+
 #ProDigi
 = PDT_EDITOR_NOVER
 > "ProDigi Tracker"
