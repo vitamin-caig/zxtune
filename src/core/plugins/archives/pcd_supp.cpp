@@ -34,8 +34,6 @@ namespace
   const Char PCD_PLUGIN_ID[] = {'P', 'C', 'D', '\0'};
   const String PCD_PLUGIN_VERSION(FromStdString("$Rev$"));
 
-  //bitstream at start+0xcc
-  //last bytes at start+0xc9
   const std::string DEPACKER_6_1 = 
       "f3"      // di
       "21??"    // ld hl,xxxx 0xc017   depacker src
@@ -73,6 +71,40 @@ namespace
       "13"      // inc de
       "18f1"    // jr ...
   ;
+
+  const std::string DEPACKER_6_2 =
+      "f3"
+      "21??"    // ld hl,xxxx 0x6026   depacker src
+      "11??"    // ld de,xxxx 0x5b00   depacker target
+      "01a300"  // ld bc,xxxx 0x00a3   depacker size
+      "edb0"    // ldir
+      "011001"  // ld bc,xxxx ; 0x110
+      "d9"      // exx
+      "22??"    // ld (xxxx),hl 0x5b97
+      "21??"    // ld hl,xxxx 0xb244   last of src packed (data = +0x14)
+      "11??"    // ld de,xxxx 0xfaa4   last of dst packed (data = +0x17)
+      "01??"    // ld bc,xxxx 0x517c   packed size (data = +0x1a)
+      "ed73??"  // ld (xxxx),sp 0x0000
+      "31??"    // ld sp,xxxx   0xa929
+      "c3??"    // jp xxxx 0x5b00
+      "edb8"    // lddr                +0x26
+      "11??"    // ld de,xxxx 0x6000   target of depack (data = +0x29)
+      "60"      // ld h,b
+      "d9"      // exx
+      "1002"    // djnz xxx, (2)
+      "e1"      // pop hl
+      "41"      // ld b,c
+      "29"      // add hl,hl
+      "3007"    // jr nc,xx
+      "3b"      // dec sp
+      "f1"      // pop af
+      "d9"      // exx
+      "12"      // ld (de),a
+      "13"      // inc de
+      "18f1"    // jr ...
+  ;
+
+
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif
@@ -91,31 +123,38 @@ namespace
     //+0x14
     uint16_t PackedSize;
     //+0x16
-    uint8_t Padding4[0x4];
-    //+0x1a
-    uint16_t RestBytesSrcMoved;
-    //+0x1c
-    uint8_t Padding5;
-    //+0x1d
-    uint8_t Padding6[0xf];
-    //+0x2c
-    uint16_t DepackDst;
-    //+0x2e
-    uint8_t Padding7[0x9b];
+    uint8_t Padding4[0xb3];
     //+0xc9
     uint8_t LastBytes[3];
     uint8_t Bitstream[2];
+  } PACK_POST;
 
-    unsigned GetPackedSize() const
-    {
-      return sizeof(*this) + fromLE(PackedSize) - sizeof(LastBytes) - sizeof(Bitstream);
-    }
+  PACK_PRE struct PCD62Depacker
+  {
+    //+0
+    uint8_t Padding1[0x14];
+    //+0x14
+    uint16_t LastOfSrcPacked;
+    //+0x16
+    uint8_t Padding2;
+    //+0x17
+    uint16_t LastOfDstPacked;
+    //+0x19
+    uint8_t Padding3;
+    //+0x1a
+    uint16_t PackedSize;
+    //+0x1c
+    uint8_t Padding4[0xa8];
+    //+0xc4
+    uint8_t LastBytes[5];
+    uint8_t Bitstream[2];
   } PACK_POST;
 #ifdef USE_PRAGMA_PACK
 #pragma pack(pop)
 #endif
 
   BOOST_STATIC_ASSERT(sizeof(PCD61Depacker) == 0xc9 + 5);
+  BOOST_STATIC_ASSERT(sizeof(PCD62Depacker) == 0xc4 + 7);
 
   class Bitstream
   {
@@ -162,7 +201,14 @@ namespace
     uint_t Mask;
   };
 
-  bool CheckPCD61(const PCD61Depacker* header, std::size_t limit)
+  template<class Header>
+  uint_t GetPackedSize(const Header& header)
+  {
+    return sizeof(Header) + fromLE(header.PackedSize) - sizeof(header.LastBytes) - sizeof(header.Bitstream);
+  }
+
+  template<class Header>
+  bool FastCheckPCD(const Header* header, std::size_t limit)
   {
     if (limit < sizeof(*header))
     {
@@ -175,20 +221,12 @@ namespace
     {
       return false;
     }
-    const uint_t movedPackedDataStart = fromLE(header->LastOfDstPacked) - fromLE(header->PackedSize) + 1;
-    if (movedPackedDataStart != fromLE(header->RestBytesSrcMoved))
-    {
-      return false;
-    }
-    const uint_t packed = header->GetPackedSize();
-    if (packed > limit)
-    {
-      return false;
-    }
-    return DetectFormat(header->Padding1, limit, DEPACKER_6_1);
+    const uint_t packed = GetPackedSize(*header);
+    return packed <= limit;
   }
 
-  bool DecodePCD61(const PCD61Depacker& header, Dump& res)
+  template<class Header>
+  bool DecodePCD(const Header& header, Dump& res)
   {
     const uint_t packedSize = fromLE(header.PackedSize) - sizeof(header.LastBytes);
     Dump dst;
@@ -272,33 +310,46 @@ namespace
   {
   public:
     PCDData(const uint8_t* data, std::size_t size)
-      : Header(0)
+      : Header1(0)
+      , Header2(0)
     {
-      const PCD61Depacker* const header = safe_ptr_cast<const PCD61Depacker*>(data);
-      if (CheckPCD61(header, size))
+      const PCD61Depacker* const header1 = safe_ptr_cast<const PCD61Depacker*>(data);
+      const PCD62Depacker* const header2 = safe_ptr_cast<const PCD62Depacker*>(data);
+      if (FastCheckPCD(header1, size) &&
+          DetectFormat(data, size, DEPACKER_6_1))
       {
-        Header = header;
+        Header1 = header1;
+      }
+      else if (FastCheckPCD(header2, size) &&
+          DetectFormat(data, size, DEPACKER_6_2))
+      {
+        Header2 = header2;
       }
     }
 
     bool IsValid() const
     {
-      return Header != 0;
+      return Header1 != 0 || Header2 != 0;
     }
 
     uint_t PackedSize() const
     {
-      assert(Header);
-      return Header->GetPackedSize();
+      assert(Header1 || Header2);
+      return Header1
+        ? GetPackedSize(*Header1)
+        : GetPackedSize(*Header2);
     }
 
     bool Decode(Dump& res) const
     {
-      assert(Header);
-      return DecodePCD61(*Header, res);
+      assert(Header1 || Header2);
+      return Header1
+        ? DecodePCD(*Header1, res)
+        : DecodePCD(*Header2, res);
     }
   private:
-    const PCD61Depacker* Header;
+    const PCD61Depacker* Header1;
+    const PCD62Depacker* Header2;
   };
 
   class PCDPlugin : public ArchivePlugin
