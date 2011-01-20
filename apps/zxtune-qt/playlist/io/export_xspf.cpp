@@ -240,7 +240,8 @@ namespace
 
     static bool KeepOnlyParameters(const Parameters::NameType& name)
     {
-      return 0 == name.find(Parameters::ZXTune::PREFIX);
+      return 0 == name.find(Parameters::ZXTune::PREFIX) &&
+             0 != name.find(Playlist::ATTRIBUTES_PREFIX);
     }
 
     void SaveExtendedProperties(const Parameters::Accessor& props)

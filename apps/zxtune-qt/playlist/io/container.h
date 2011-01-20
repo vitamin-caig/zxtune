@@ -21,6 +21,11 @@ Author:
 
 namespace Playlist
 {
+  const Char ATTRIBUTES_PREFIX[] =
+  {
+    'z','x','t','u','n','e','.','a','p','p','.','p','l','a','y','l','i','s','t','.',0
+  };
+
   const Char ATTRIBUTE_NAME[] = 
   {
     'z','x','t','u','n','e','.','a','p','p','.','p','l','a','y','l','i','s','t','.','n','a','m','e',0
