@@ -54,22 +54,13 @@ namespace
 #endif
 
   //hrust2x bitstream decoder
-  class Bitstream
+  class Bitstream : public ByteStream
   {
   public:
-    Bitstream(const void* data, std::size_t size)
-      : Data(static_cast<const uint8_t*>(data)), End(Data + size), Bits(), Mask(0)
+    Bitstream(const uint8_t* data, std::size_t size)
+      : ByteStream(data, size)
+      , Bits(), Mask(0)
     {
-    }
-
-    bool Eof() const
-    {
-      return Data >= End;
-    }
-
-    uint8_t GetByte()
-    {
-      return Eof() ? 0 : *Data++;
     }
 
     uint_t GetBit()
@@ -92,8 +83,6 @@ namespace
       return result;
     }
   private:
-    const uint8_t* Data;
-    const uint8_t* const End;
     uint_t Bits;
     uint_t Mask;
   };

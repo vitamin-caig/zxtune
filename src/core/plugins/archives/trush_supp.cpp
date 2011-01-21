@@ -153,8 +153,7 @@ namespace
         }
         else if (0xfe == data)
         {
-          len = stream.GetByte();
-          len += 256 * stream.GetByte();
+          len = stream.GetLEWord();
         }
         else
         {

@@ -17,6 +17,35 @@ Author:
 //std includes
 #include <algorithm>
 
+class ByteStream
+{
+public:
+  ByteStream(const uint8_t* data, std::size_t size)
+    : Data(data), End(Data + size)
+  {
+  }
+
+  bool Eof() const
+  {
+    return Data >= End;
+  }
+
+  uint8_t GetByte()
+  {
+    return Eof() ? 0 : *Data++;
+  }
+
+  uint_t GetLEWord()
+  {
+    const uint_t lo = GetByte();
+    const uint_t hi = GetByte();
+    return 256 * hi + lo;
+  }
+private:
+  const uint8_t* Data;
+  const uint8_t* const End;
+};
+
 template<class Iterator, class ConstIterator>
 void RecursiveCopy(ConstIterator srcBegin, ConstIterator srcEnd, Iterator dstBegin)
 {

@@ -156,30 +156,20 @@ namespace
   BOOST_STATIC_ASSERT(sizeof(PCD61Depacker) == 0xc9 + 5);
   BOOST_STATIC_ASSERT(sizeof(PCD62Depacker) == 0xc4 + 7);
 
-  class Bitstream
+  class Bitstream : public ByteStream
   {
   public:
     Bitstream(const uint8_t* data, std::size_t size)
-      : Data(data), End(Data + size), Bits(), Mask(0)
+      : ByteStream(data, size)
+      , Bits(), Mask(0)
     {
-    }
-
-    bool Eof() const
-    {
-      return Data >= End;
-    }
-
-    uint8_t GetByte()
-    {
-      return Eof() ? 0 : *Data++;
     }
 
     uint_t GetBit()
     {
       if (!(Mask >>= 1))
       {
-        Bits = GetByte();
-        Bits |= 256 * GetByte();
+        Bits = GetLEWord();
         Mask = 0x8000;
       }
       return (Bits & Mask) != 0 ? 1 : 0;
@@ -195,8 +185,6 @@ namespace
       return result;
     }
   private:
-    const uint8_t* Data;
-    const uint8_t* const End;
     uint_t Bits;
     uint_t Mask;
   };

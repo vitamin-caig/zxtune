@@ -12,30 +12,20 @@ Author:
 #ifndef __CORE_PLUGINS_ARCHIVES_PACK_HRUST1_BITSTREAM_H_DEFINED__
 #define __CORE_PLUGINS_ARCHIVES_PACK_HRUST1_BITSTREAM_H_DEFINED__
 
-//common includes
-#include <types.h>
+//local includes
+#include "pack_utils.h"
 
 //Hrust1-compatible bitstream:
 // -16 bit mask MSB->LSB order
 // -mask is taken at the beginning
-class Hrust1Bitstream
+class Hrust1Bitstream : public ByteStream
 {
 public:
   Hrust1Bitstream(const uint8_t* data, std::size_t size)
-    : Data(data), End(Data + size), Bits(), Mask(0x8000)
+    : ByteStream(data, size)
+    , Bits(), Mask()
   {
-    Bits = GetByte();
-    Bits |= 256 * GetByte();
-  }
-
-  bool Eof() const
-  {
-    return Data >= End;
-  }
-
-  uint8_t GetByte()
-  {
-    return Eof() ? 0 : *Data++;
+    InitMask();
   }
 
   uint_t GetBit()
@@ -43,9 +33,7 @@ public:
     const uint_t result = (Bits & Mask) != 0 ? 1 : 0;
     if (!(Mask >>= 1))
     {
-      Bits = GetByte();
-      Bits |= 256 * GetByte();
-      Mask = 0x8000;
+      InitMask();
     }
     return result;
   }
@@ -60,8 +48,12 @@ public:
     return result;
   }
 private:
-  const uint8_t* Data;
-  const uint8_t* const End;
+  void InitMask()
+  {
+    Bits = GetLEWord();
+    Mask = 0x8000;
+  }
+private:
   uint_t Bits;
   uint_t Mask;
 };
