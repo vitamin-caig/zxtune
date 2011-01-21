@@ -139,68 +139,73 @@ namespace
 
   bool CheckLZS(const LZSHeader* header, std::size_t limit)
   {
-    if (limit < sizeof(*header) ||
-        !DetectFormat(safe_ptr_cast<const uint8_t*>(header), limit, LZS_DEPACKER_PATTERN)
-        )
+    if (limit < sizeof(*header))
     {
       return false;
     }
     const uint_t packed = GetPackedSize(*header);
-    return packed <= limit;
+    if (packed > limit)
+    {
+      return false;
+    }
+    return DetectFormat(safe_ptr_cast<const uint8_t*>(header), limit, LZS_DEPACKER_PATTERN);
   }
 
   bool DecodeLZS(const LZSHeader& header, Dump& res)
   {
     const uint_t packedSize = fromLE(header.SizeOfPacked);
     const uint8_t* src = safe_ptr_cast<const uint8_t*>(&header) + DEPACKER_SIZE;
-    const uint8_t* const srcEnd = src + packedSize;
     Dump dst;
     dst.reserve(packedSize * 2);//TODO
 
-    while (src != srcEnd)
+    ByteStream stream(src, packedSize);
+    while (!stream.Eof())
     {
-      const uint_t data = *src++;
+      const uint_t data = stream.GetByte();
+      if (0x80 == data)
+      {
+        //exit
+        break;
+      }
+      //at least one more byte required
+      if (stream.Eof())
+      {
+        return false;
+      }
       const uint_t code = data & 0xc0;
       if (0x80 == code)
       {
-        if (const uint_t len = data & 0x3f)
+        uint_t len = data & 0x3f;
+        assert(len);
+        for (; len && !stream.Eof(); --len)
         {
-          if (src + len > srcEnd)
-          {
-            return false;
-          }
-          std::copy(src, src + len, std::back_inserter(dst));
-          src += len;
+          dst.push_back(stream.GetByte());
         }
-        else
+        if (len)
         {
-          break;
+          return false;
         }
       }
       else if (0xc0 == code)
       {
         const uint_t len = (data & 0x3f) + 3;
-        if (src == srcEnd)
-        {
-          return false;
-        }
-        std::fill_n(std::back_inserter(dst), len, *src++);
+        const uint_t data = stream.GetByte();
+        std::fill_n(std::back_inserter(dst), len, data);
       }
       else
       {
-        if (src == srcEnd)
-        {
-          return false;
-        }
         const uint_t len = ((data & 0xf0) >> 4) + 3;
-        const uint_t offset = 256 * (data & 0x0f) + *src++;
+        const uint_t offset = 256 * (data & 0x0f) + stream.GetByte();
         if (!CopyFromBack(offset, dst, len))
         {
           return false;
         }
       }
     }
-    std::copy(src, srcEnd, std::back_inserter(dst));
+    while (!stream.Eof())
+    {
+      dst.push_back(stream.GetByte());
+    }
     res.swap(dst);
     return true;
   }
