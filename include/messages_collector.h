@@ -7,6 +7,7 @@
 *
 **/
 
+#pragma once
 #ifndef __MESSAGES_COLLECTOR_H_DEFINED__
 #define __MESSAGES_COLLECTOR_H_DEFINED__
 

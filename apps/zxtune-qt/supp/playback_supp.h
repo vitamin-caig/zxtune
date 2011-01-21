@@ -11,6 +11,7 @@ Author:
   This file is a part of zxtune-qt application based on zxtune library
 */
 
+#pragma once
 #ifndef ZXTUNE_PLAYBACK_SUPP_H_DEFINED
 #define ZXTUNE_PLAYBACK_SUPP_H_DEFINED
 

@@ -7,6 +7,7 @@
 *
 **/
 
+#pragma once
 #ifndef __TYPES_H_DEFINED__
 #define __TYPES_H_DEFINED__
 

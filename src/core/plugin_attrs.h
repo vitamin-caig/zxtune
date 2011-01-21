@@ -7,6 +7,7 @@
 *
 **/
 
+#pragma once
 #ifndef __CORE_PLUGIN_ATTRS_H_DEFINED__
 #define __CORE_PLUGIN_ATTRS_H_DEFINED__
 
@@ -46,7 +47,7 @@ namespace ZXTune
     CAP_STOR_SCANER     = 0x0800,
     //! Use plain transformation, can be covered by scaner
     CAP_STOR_PLAIN      = 0x1000,
-    
+
     //! Conversion-related capabilities
     CAP_CONVERSION_MASK = 0xffff0000,
     //! Support raw conversion (save ripped data)

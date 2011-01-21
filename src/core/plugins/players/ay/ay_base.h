@@ -9,6 +9,7 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+#pragma once
 #ifndef __CORE_PLUGINS_PLAYERS_AY_BASE_H_DEFINED__
 #define __CORE_PLUGINS_PLAYERS_AY_BASE_H_DEFINED__
 
@@ -47,7 +48,7 @@ namespace ZXTune
     {
     public:
       typedef boost::shared_ptr<AYMDataRenderer> Ptr;
-      
+
       virtual ~AYMDataRenderer() {}
 
       virtual void SynthesizeData(const TrackState& state, AYMTrackSynthesizer& synthesizer) = 0;
@@ -56,7 +57,7 @@ namespace ZXTune
 
     Player::Ptr CreateAYMStreamPlayer(Information::Ptr info, AYMDataRenderer::Ptr renderer, AYM::Chip::Ptr device);
 
-    Player::Ptr CreateAYMTrackPlayer(Information::Ptr info, TrackModuleData::Ptr data, 
+    Player::Ptr CreateAYMTrackPlayer(Information::Ptr info, TrackModuleData::Ptr data,
       AYMDataRenderer::Ptr renderer, AYM::Chip::Ptr device, const String& defaultTable);
   }
 }

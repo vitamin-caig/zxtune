@@ -9,6 +9,7 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+#pragma once
 #ifndef __DAC_H_DEFINED__
 #define __DAC_H_DEFINED__
 
@@ -27,7 +28,7 @@ namespace ZXTune
   {
     class RenderParameters;
   }
-  
+
   namespace DAC
   {
     struct DataChunk
@@ -73,7 +74,7 @@ namespace ZXTune
         : Enabled(), Band(), LevelInPercents()
       {
       }
-        
+
       //Is channel enabled to output
       bool Enabled;
       //Currently played tone band (up to 96)

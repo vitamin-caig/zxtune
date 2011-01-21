@@ -9,6 +9,7 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+#pragma once
 #ifndef __CORE_PLUGINS_ENUMERATOR_H_DEFINED__
 #define __CORE_PLUGINS_ENUMERATOR_H_DEFINED__
 
@@ -87,7 +88,7 @@ namespace ZXTune
     //! @brief Checking if data contains module
     //! @return true if possibly yes, false if defenitely no
     virtual bool Check(const IO::DataContainer& inputData) const = 0;
-    
+
     //! @brief Creating module on specified input data
     //! @param parameters Options for modules detection and creation
     //! @param inputData Source memory data
@@ -172,7 +173,7 @@ namespace ZXTune
     virtual void DetectModules(Parameters::Accessor::Ptr modulesParams, const DetectParameters& params, const MetaContainer& data,
       ModuleRegion& region) const = 0;
     //single module opening
-    virtual void OpenModule(Parameters::Accessor::Ptr modulesParams, const MetaContainer& data, 
+    virtual void OpenModule(Parameters::Accessor::Ptr modulesParams, const MetaContainer& data,
       Module::Holder::Ptr& holder) const = 0;
 
     //instantiator

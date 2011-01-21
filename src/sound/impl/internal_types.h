@@ -9,6 +9,7 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+#pragma once
 #ifndef __SOUND_IMPL_INTERNAL_TYPES_H_DEFINED__
 #define __SOUND_IMPL_INTERNAL_TYPES_H_DEFINED__
 
@@ -23,13 +24,13 @@ namespace ZXTune
 
     /// Precision for fixed-point calculations (num(float) = num(int) / FIXED_POINT_PRECISION)
     const uint_t FIXED_POINT_PRECISION = 256;
-        
+
     template<class T>
     inline T Gain2Fixed(Gain gain)
     {
       return static_cast<T>(gain * FIXED_POINT_PRECISION);
     }
-    
+
     template<class T>
     inline boost::array<T, OUTPUT_CHANNELS> MultiGain2MultiFixed(const MultiGain& mg)
     {

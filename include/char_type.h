@@ -7,6 +7,7 @@
 *
 **/
 
+#pragma once
 #ifndef __CHAR_TYPE_H_DEFINED__
 #define __CHAR_TYPE_H_DEFINED__
 

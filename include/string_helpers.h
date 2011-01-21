@@ -7,6 +7,7 @@
 *
 **/
 
+#pragma once
 #ifndef __STRING_HELPERS_H_DEFINED__
 #define __STRING_HELPERS_H_DEFINED__
 

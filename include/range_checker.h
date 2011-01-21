@@ -7,6 +7,7 @@
 *
 **/
 
+#pragma once
 #ifndef __RANGE_CHECKER_H_DEFINED__
 #define __RANGE_CHECKER_H_DEFINED__
 

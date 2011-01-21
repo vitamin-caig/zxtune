@@ -7,6 +7,7 @@
 *
 **/
 
+#pragma once
 #ifndef __DATA_STREAMING_H_DEFINED__
 #define __DATA_STREAMING_H_DEFINED__
 
@@ -27,14 +28,14 @@ public:
   typedef T InDataType;
   //! @brief Pointer type
   typedef typename boost::shared_ptr<DataReceiver<T> > Ptr;
-  
+
   virtual ~DataReceiver() {}
-  
+
   //! @brief Data consuming point
   virtual void ApplyData(const T& data) = 0;
   //! @brief Flushing all possible accumulated data
   virtual void Flush() = 0;
-  
+
   static Ptr CreateStub()
   {
     return Ptr(new StubImpl);

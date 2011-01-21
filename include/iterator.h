@@ -7,6 +7,7 @@
 *
 **/
 
+#pragma once
 #ifndef __ITERATOR_H_DEFINED__
 #define __ITERATOR_H_DEFINED__
 

@@ -9,6 +9,7 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+#pragma once
 #ifndef __IO_ENUMERATOR_H_DEFINED__
 #define __IO_ENUMERATOR_H_DEFINED__
 
@@ -32,7 +33,7 @@ namespace ZXTune
       // Combine uri
       virtual Error Combine(const String& path, const String& subPath, String& uri) const = 0;
       // Open data
-      virtual Error Open(const String& path, const Parameters::Accessor& parameters, 
+      virtual Error Open(const String& path, const Parameters::Accessor& parameters,
                          const ProgressCallback& callback, DataContainer::Ptr& result) const = 0;
     };
 
@@ -43,14 +44,14 @@ namespace ZXTune
       virtual ~ProvidersEnumerator() {}
       //registration
       virtual void RegisterProvider(DataProvider::Ptr provider) = 0;
-      
+
       virtual Error OpenData(const String& path, const Parameters::Accessor& params, const ProgressCallback& cb,
                             DataContainer::Ptr& result) const = 0;
       virtual Error SplitUri(const String& uri, String& path, String& subpath) const = 0;
       virtual Error CombineUri(const String& path, const String& subpath, String& uri) const = 0;
-      
+
       virtual Provider::Iterator::Ptr Enumerate() const = 0;
-      
+
       static ProvidersEnumerator& Instance();
     };
   }

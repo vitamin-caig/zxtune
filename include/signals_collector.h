@@ -7,6 +7,7 @@
 *
 **/
 
+#pragma once
 #ifndef __SIGNALS_COLLECTOR_H_DEFINED__
 #define __SIGNALS_COLLECTOR_H_DEFINED__
 

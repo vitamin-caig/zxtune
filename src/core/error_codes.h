@@ -7,6 +7,7 @@
 *
 **/
 
+#pragma once
 #ifndef __CORE_ERROR_CODES_H_DEFINED__
 #define __CORE_ERROR_CODES_H_DEFINED__
 

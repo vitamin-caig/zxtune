@@ -7,6 +7,7 @@
 *
 **/
 
+#pragma once
 #ifndef __ERROR_H_DEFINED__
 #define __ERROR_H_DEFINED__
 
@@ -64,7 +65,7 @@ public:
     const char* Function;
     //! Source line
     uint_t Line;
-    
+
     bool operator == (const Location& rh) const
     {
       return Tag == rh.Tag;
@@ -92,7 +93,7 @@ public:
   ~Error()
   {
   }
-  
+
   Error(const Error& rh) : ErrorMeta(rh.ErrorMeta)
   {
   }
@@ -102,10 +103,10 @@ public:
     return *this;
   }
   //@}
-  
+
   //@{
   //! @name Hierarchy-related functions
-  
+
   //! @brief Adding suberror
   //! @param e Reference to other object. Empty objects are ignored
   //! @return Modified current object
@@ -119,24 +120,24 @@ public:
   //! @param callback Callback which will be called on each level by stack starting from 0
   void WalkSuberrors(const boost::function<void(uint_t, LocationRef, CodeType, const String&)>& callback) const;
   //@}
-  
+
   //@{
   //! @name Content accessors
-  
+
   //! @brief Text accessor
   String GetText() const;
   //! @brief Code accessor
   CodeType GetCode() const;
-  
+
   //! @brief Implicit casting to error code
   operator CodeType () const;
   //! @brief Checking if %Code != 0
   bool operator ! () const;
   //@}
-  
+
   //@{
   //! @name Serialization-related functions
-  
+
   //! @brief Converting location to string
   //! @note Location#Tag (hex) format is used for release
   //! @note Location#Tag (hex) (Location#File : Location#Line, Location#Function) format is used for debug

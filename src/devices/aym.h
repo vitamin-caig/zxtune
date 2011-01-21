@@ -9,6 +9,7 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+#pragma once
 #ifndef __AYM_H_DEFINED__
 #define __AYM_H_DEFINED__
 
@@ -27,12 +28,12 @@ namespace ZXTune
   {
     class RenderParameters;
   }
-  
+
   namespace AYM
   {
     const uint_t CHANNELS = 3;
     const uint_t LOGICAL_CHANNELS = 4;
-    
+
     struct DataChunk
     {
       //registers offsets in data
@@ -126,7 +127,7 @@ namespace ZXTune
         : Name(name), Enabled(), Band(), LevelInPercents()
       {
       }
-        
+
       //Short channel abbreviation
       Char Name;
       //Is channel enabled to output

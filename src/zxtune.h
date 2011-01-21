@@ -7,6 +7,7 @@
 *
 **/
 
+#pragma once
 #ifndef __ZXTUNE_H_DEFINED__
 #define __ZXTUNE_H_DEFINED__
 

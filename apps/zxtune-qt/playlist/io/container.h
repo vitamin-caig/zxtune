@@ -11,6 +11,7 @@ Author:
   This file is a part of zxtune-qt application based on zxtune library
 */
 
+#pragma once
 #ifndef ZXTUNE_QT_PLAYLIST_IO_CONTAINER_H_DEFINED
 #define ZXTUNE_QT_PLAYLIST_IO_CONTAINER_H_DEFINED
 
@@ -26,7 +27,7 @@ namespace Playlist
     'z','x','t','u','n','e','.','a','p','p','.','p','l','a','y','l','i','s','t','.',0
   };
 
-  const Char ATTRIBUTE_NAME[] = 
+  const Char ATTRIBUTE_NAME[] =
   {
     'z','x','t','u','n','e','.','a','p','p','.','p','l','a','y','l','i','s','t','.','n','a','m','e',0
   };

@@ -8,6 +8,7 @@
 * @see #Formatter type for format string specification
 **/
 
+#pragma once
 #ifndef __ERROR_TOOLS_H_DEFINED__
 #define __ERROR_TOOLS_H_DEFINED__
 

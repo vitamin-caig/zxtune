@@ -7,6 +7,7 @@
 *
 **/
 
+#pragma once
 #ifndef __TOOLS_H_DEFINED__
 #define __TOOLS_H_DEFINED__
 

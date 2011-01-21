@@ -7,10 +7,11 @@ Last changed:
 
 Author:
   (C) Vitamin/CAIG/2001
-  
+
   This file is a part of zxtune123 application based on zxtune library
 */
 
+#pragma once
 #ifndef ZXTUNE123_SOUND_H_DEFINED
 #define ZXTUNE123_SOUND_H_DEFINED
 
@@ -43,7 +44,7 @@ public:
 
   //parameters
   virtual uint_t GetFrameDuration() const = 0;
-  
+
   static std::auto_ptr<SoundComponent> Create(Parameters::Accessor::Ptr configParams);
 };
 

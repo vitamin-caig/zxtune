@@ -7,6 +7,7 @@
 *
 **/
 
+#pragma once
 #ifndef __LOGGING_H_DEFINED__
 #define __LOGGING_H_DEFINED__
 
@@ -82,7 +83,7 @@ namespace Log
         .str());
     }
   }
-  
+
   template<class P1, class P2>
   inline void Debug(const std::string& module, const char* msg, const P1& p1, const P2& p2)
   {

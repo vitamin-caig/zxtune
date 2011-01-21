@@ -9,6 +9,7 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+#pragma once
 #ifndef BASE_APP_H_DEFINED
 #define BASE_APP_H_DEFINED
 

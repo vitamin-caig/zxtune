@@ -7,6 +7,7 @@
 *
 **/
 
+#pragma once
 #ifndef __API_DYNAMIC_H_DEFINED__
 #define __API_DYNAMIC_H_DEFINED__
 

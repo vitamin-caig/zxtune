@@ -9,6 +9,7 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+#pragma once
 #ifndef __CORE_PLUGINS_PLAYERS_AY_CONVERSION_H_DEFINED__
 #define __CORE_PLUGINS_PLAYERS_AY_CONVERSION_H_DEFINED__
 

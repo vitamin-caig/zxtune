@@ -7,6 +7,7 @@
 *
 **/
 
+#pragma once
 #ifndef __CORE_MODULE_PLAYER_H_DEFINED__
 #define __CORE_MODULE_PLAYER_H_DEFINED__
 

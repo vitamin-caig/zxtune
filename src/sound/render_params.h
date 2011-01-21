@@ -7,6 +7,7 @@
 *
 **/
 
+#pragma once
 #ifndef __RENDER_PARAMS_H_DEFINED__
 #define __RENDER_PARAMS_H_DEFINED__
 
@@ -35,7 +36,7 @@ namespace ZXTune
       typedef boost::shared_ptr<const RenderParameters> Ptr;
 
       virtual ~RenderParameters() {}
-    
+
       //! Basic clock frequency for PSG
       virtual uint64_t ClockFreq() const = 0;
       //! Rendering sound frequency

@@ -7,6 +7,7 @@
 *
 **/
 
+#pragma once
 #ifndef __SOUND_ERROR_CODES_H_DEFINED__
 #define __SOUND_ERROR_CODES_H_DEFINED__
 

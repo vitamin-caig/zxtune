@@ -7,6 +7,7 @@
 *
 **/
 
+#pragma once
 #ifndef __IO_PROVIDER_H_DEFINED__
 #define __IO_PROVIDER_H_DEFINED__
 

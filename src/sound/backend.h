@@ -7,6 +7,7 @@
 *
 **/
 
+#pragma once
 #ifndef __SOUND_BACKEND_H_DEFINED__
 #define __SOUND_BACKEND_H_DEFINED__
 

@@ -9,6 +9,7 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+#pragma once
 #ifndef __CORE_PLUGINS_PLAYERS_VORTEX_BASE_H_DEFINED__
 #define __CORE_PLUGINS_PLAYERS_VORTEX_BASE_H_DEFINED__
 
@@ -34,7 +35,7 @@ namespace ZXTune
         REAL,
         NATURAL
       };
-      
+
       String GetFreqTable(NoteTable table, uint_t version);
 
       //sample type

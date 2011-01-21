@@ -7,6 +7,7 @@
 *
 **/
 
+#pragma once
 #ifndef __CORE_MODULE_ATTRS_H_DEFINED__
 #define __CORE_MODULE_ATTRS_H_DEFINED__
 
@@ -19,7 +20,7 @@ namespace ZXTune
   {
     //@{
     //! @name Built-in attributes
-    
+
     //! %Module type attribute @see PluginInformation#Id
     const Char ATTR_TYPE[] = {'T', 'y', 'p', 'e', '\0'};
     //! %Module containers chain
@@ -49,10 +50,10 @@ namespace ZXTune
     //! Raw module size in bytes
     const Char ATTR_SIZE[] = {'S', 'i', 'z', 'e', '\0'};
     //@}
-    
+
     //@{
     //! @name External attributes
-    
+
     //! Module's input data filename
     const Char ATTR_FILENAME[] = {'F', 'i', 'l', 'e', 'n', 'a', 'm', 'e', '\0'};
     //! Path of module's input data
@@ -60,10 +61,10 @@ namespace ZXTune
     //! Full path of module including path of input data and subpath
     const Char ATTR_FULLPATH[] = {'F', 'u', 'l', 'l', 'p', 'a', 't', 'h', '\0'};
     //@}
-    
+
     //@{
     //! @name Runtime attributes
-    
+
     //! Current module position
     const Char ATTR_CURRENT_POSITION[] = {'C', 'u', 'r', 'P', 'o', 's', 'i', 't', 'i', 'o', 'n', '\0'};
     //! Current module pattern

@@ -7,6 +7,7 @@
 *
 **/
 
+#pragma once
 #ifndef __BYTEORDER_H_DEFINED__
 #define __BYTEORDER_H_DEFINED__
 

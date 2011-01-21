@@ -7,6 +7,7 @@
 *
 **/
 
+#pragma once
 #ifndef __CORE_CONVERT_PARAMETERS_H_DEFINED__
 #define __CORE_CONVERT_PARAMETERS_H_DEFINED__
 

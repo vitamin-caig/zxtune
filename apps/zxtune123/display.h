@@ -11,6 +11,7 @@ Author:
   This file is a part of zxtune123 application based on zxtune library
 */
 
+#pragma once
 #ifndef ZXTUNE123_DISPLAY_H_DEFINED
 #define ZXTUNE123_DISPLAY_H_DEFINED
 

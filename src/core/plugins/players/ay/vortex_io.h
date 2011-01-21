@@ -9,6 +9,7 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+#pragma once
 #ifndef __CORE_PLUGINS_PLAYERS_VORTEX_IO_H_DEFINED__
 #define __CORE_PLUGINS_PLAYERS_VORTEX_IO_H_DEFINED__
 
@@ -29,7 +30,7 @@ namespace ZXTune
     {
       // TXT input-output
       // version is minor value
-      Error ConvertFromText(const std::string& text, Vortex::Track::ModuleData& data, 
+      Error ConvertFromText(const std::string& text, Vortex::Track::ModuleData& data,
         TrackInfo& resInfo, ModuleProperties& resProps,
         uint_t& version, String& freqTable);
       std::string ConvertToText(const Vortex::Track::ModuleData& data, const Information& info, uint_t version, const String& freqTable);

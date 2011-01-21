@@ -8,6 +8,8 @@ Last changed:
 Author:
   (C) Vitamin/CAIG/2001
 */
+
+#pragma once
 #ifndef __SOUND_BACKENDS_ENUMERATOR_H_DEFINED__
 #define __SOUND_BACKENDS_ENUMERATOR_H_DEFINED__
 

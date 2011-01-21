@@ -7,6 +7,7 @@
 *
 **/
 
+#pragma once
 #ifndef __IO_FS_TOOLS_H_DEFINED__
 #define __IO_FS_TOOLS_H_DEFINED__
 
@@ -24,19 +25,19 @@ namespace ZXTune
     //! @param str Input filename
     //! @return Equivalent filename in single-char format
     std::string ConvertToFilename(const String& str);
-    
+
     //! @brief Extracting first component from complex path
     //! @param path Input path
     //! @param restPart The rest part besides the first component
     //! @return The first component of specified path
     String ExtractFirstPathComponent(const String& path, String& restPart);
-    
+
     //! @brief Extracting last component from complex path (usually filename)
     //! @param path Input path
     //! @param restPart The rest part before the last component
     //! @return The last component of specified path
     String ExtractLastPathComponent(const String& path, String& restPart);
-    
+
     //! @brief Appending component to existing path
     //! @param path1 Base path
     //! @param path2 Additional component

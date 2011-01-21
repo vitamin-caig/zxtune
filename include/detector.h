@@ -7,6 +7,7 @@
 *
 **/
 
+#pragma once
 #ifndef __DETECTOR_H_DEFINED__
 #define __DETECTOR_H_DEFINED__
 

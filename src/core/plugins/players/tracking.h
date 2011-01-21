@@ -9,6 +9,7 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+#pragma once
 #ifndef __CORE_PLUGINS_PLAYERS_TRACKING_H_DEFINED__
 #define __CORE_PLUGINS_PLAYERS_TRACKING_H_DEFINED__
 
@@ -339,7 +340,7 @@ namespace ZXTune
 
       uint_t GetMaxCounter() const
       {
-        return std::max_element(Parent::begin(), Parent::end(), 
+        return std::max_element(Parent::begin(), Parent::end(),
           Parent::value_type::CompareByCounter)->Counter;
       }
 

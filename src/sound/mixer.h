@@ -7,6 +7,7 @@
 *
 **/
 
+#pragma once
 #ifndef __SOUND_MIXER_H_DEFINED__
 #define __SOUND_MIXER_H_DEFINED__
 
@@ -25,13 +26,13 @@ namespace ZXTune
     public:
       //! @brief Pointer type
       typedef boost::shared_ptr<Mixer> Ptr;
-      
+
       //! @brief Setting up the mixing matrix
       //! @param data Mixing matrix
       //! @return Error() in case of success
       virtual Error SetMatrix(const std::vector<MultiGain>& data) = 0;
     };
-    
+
     //! @brief Creating mixer instance
     //! @param channels Input channels count
     //! @param result Reference to result value

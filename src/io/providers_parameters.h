@@ -7,6 +7,7 @@
 *
 **/
 
+#pragma once
 #ifndef __IO_PROVIDERS_PARAMETERS_H_DEFINED__
 #define __IO_PROVIDERS_PARAMETERS_H_DEFINED__
 
@@ -33,7 +34,7 @@ namespace Parameters
         {
           //@{
           //! @name Memory-mapping usage data size threshold parameter.
-          
+
           //! Default value
           const IntType MMAP_THRESHOLD_DEFAULT = 16384;
           //! Parameter name

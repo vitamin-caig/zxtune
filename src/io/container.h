@@ -7,6 +7,7 @@
 *
 **/
 
+#pragma once
 #ifndef __IO_CONTAINER_H_DEFINED__
 #define __IO_CONTAINER_H_DEFINED__
 
@@ -68,7 +69,7 @@ namespace ZXTune
       {
         return Lenght;
       }
-      
+
       //! @brief Getting raw data pointer
       const uint8_t* Data() const
       {

@@ -8,6 +8,8 @@ Last changed:
 Author:
   (C) Vitamin/CAIG/2001
 */
+
+#pragma once
 #ifndef __CORE_PLUGINS_PLAYERS_DAC_BASE_DEFINED__
 #define __CORE_PLUGINS_PLAYERS_DAC_BASE_DEFINED__
 

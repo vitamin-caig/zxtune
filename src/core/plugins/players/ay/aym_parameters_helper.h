@@ -9,6 +9,7 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+#pragma once
 #ifndef __AYM_PARAMETERS_HELPER_H_DEFINED__
 #define __AYM_PARAMETERS_HELPER_H_DEFINED__
 

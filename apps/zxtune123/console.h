@@ -7,10 +7,11 @@ Last changed:
 
 Author:
   (C) Vitamin/CAIG/2001
-  
+
   This file is a part of zxtune123 application based on zxtune library
 */
 
+#pragma once
 #ifndef ZXTUNE123_CONSOLE_H_DEFINED
 #define ZXTUNE123_CONSOLE_H_DEFINED
 
@@ -39,9 +40,9 @@ public:
     INPUT_KEY_ENTER = 13,
   };
   virtual uint_t GetPressedKey() const = 0;
-  
+
   virtual void WaitForKeyRelease() const = 0;
-  
+
   static Console& Self();
 };
 

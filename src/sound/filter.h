@@ -7,6 +7,7 @@
 *
 **/
 
+#pragma once
 #ifndef __SOUND_FILTER_H_DEFINED__
 #define __SOUND_FILTER_H_DEFINED__
 
@@ -25,7 +26,7 @@ namespace ZXTune
     public:
       //! @brief Pointer type
       typedef boost::shared_ptr<Filter> Ptr;
-      
+
       //! @brief Switching filter to bandpass mode
       //! @param freq Working sound frequency in Hz
       //! @param lowCutoff Low cutoff edge in Hz
@@ -33,7 +34,7 @@ namespace ZXTune
       //! @return Error() in case of success
       virtual Error SetBandpassParameters(uint_t freq, uint_t lowCutoff, uint_t highCutoff) = 0;
     };
-    
+
     //! @brief Creating FIR-filter instance
     //! @param order Filter order
     //! @param filter Reference to result value

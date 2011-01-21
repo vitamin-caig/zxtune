@@ -7,10 +7,11 @@ Last changed:
 
 Author:
   (C) Vitamin/CAIG/2001
-  
+
   This file is a part of zxtune123 application based on zxtune library
 */
 
+#pragma once
 #ifndef ZXTUNE123_INFORMATION_H_DEFINED
 #define ZXTUNE123_INFORMATION_H_DEFINED
 
@@ -34,7 +35,7 @@ public:
   virtual const boost::program_options::options_description& GetOptionsDescription() const = 0;
   //return true if should exit
   virtual bool Process() const = 0;
-  
+
   static std::auto_ptr<InformationComponent> Create();
 };
 

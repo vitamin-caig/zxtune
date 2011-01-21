@@ -7,6 +7,7 @@
 *
 **/
 
+#pragma once
 #ifndef __FORMATTER_TYPE_H_DEFINED__
 #define __FORMATTER_TYPE_H_DEFINED__
 

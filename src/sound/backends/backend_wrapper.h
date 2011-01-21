@@ -9,6 +9,10 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+#pragma once
+#ifndef __SOUND_BACKEND_WRAPPER_H_DEFINED__
+#define __SOUND_BACKEND_WRAPPER_H_DEFINED__
+
 //common includes
 #include <error_tools.h>
 //library includes
@@ -126,3 +130,5 @@ namespace ZXTune
     };
   }
 }
+
+#endif //__SOUND_BACKEND_WRAPPER_H_DEFINED__

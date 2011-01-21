@@ -7,6 +7,7 @@
 *
 **/
 
+#pragma once
 #ifndef __CORE_PARAMETERS_H_DEFINED__
 #define __CORE_PARAMETERS_H_DEFINED__
 
@@ -66,7 +67,7 @@ namespace Parameters
           'z','x','t','u','n','e','.','c','o','r','e','.','a','y','m','.','l','a','y','o','u','t','\0'
         };
       }
-      
+
       //! @brief DAC-realated parameters namespace
       namespace DAC
       {
