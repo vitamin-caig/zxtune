@@ -16,11 +16,14 @@ Author:
 #include "tags/xspf.h"
 #include "ui/utils.h"
 //common includes
+#include <error_tools.h>
 #include <logging.h>
 //library includes
 #include <zxtune.h>
 #include <core/module_attrs.h>
+#include <io/error_codes.h>
 #include <sound/sound_parameters.h>
+#include <io/text/io.h>
 //boost includes
 #include <boost/scoped_ptr.hpp>
 //qt includes
@@ -30,6 +33,8 @@ Author:
 #include <QtCore/QXmlStreamWriter>
 //text includes
 #include "text/text.h"
+
+#define FILE_TAG A016CAAF
 
 namespace
 {
@@ -215,7 +220,7 @@ namespace
 
     static bool KeepExtendedProperties(const Parameters::NameType& name)
     {
-      return 
+      return
         //skip path-related properties
         name != ZXTune::Module::ATTR_FULLPATH &&
         name != ZXTune::Module::ATTR_PATH &&
@@ -274,13 +279,14 @@ namespace
       saver.SetIntValue(Playlist::ATTRIBUTE_VERSION, XSPF_VERSION);
     }
 
-    void WriteItems(Playlist::Item::Data::Iterator::Ptr iter)
+    void WriteItems(Playlist::Item::Data::Iterator::Ptr iter, Playlist::IO::ExportCallback& cb)
     {
       XML.writeStartElement(XSPF::TRACKLIST_TAG);
-      for (; iter->IsValid(); iter->Next())
+      for (unsigned doneItems = 0; iter->IsValid() && !cb.IsCanceled(); iter->Next())
       {
         const Playlist::Item::Data::Ptr item = iter->Get();
         WriteItem(*item);
+        cb.Progress(++doneItems);
       }
       XML.writeEndElement();
     }
@@ -310,23 +316,58 @@ namespace
   private:
     QXmlStreamWriter XML;
   };
+
+  class ProgressCallbackWrapper : public Playlist::IO::ExportCallback
+  {
+  public:
+    ProgressCallbackWrapper(unsigned total, Playlist::IO::ExportCallback& delegate)
+      : Total(total)
+      , Delegate(delegate)
+      , CurProgress(~0)
+      , Canceled()
+    {
+    }
+
+    virtual void Progress(unsigned items)
+    {
+      const unsigned newProgress = items * 100 / Total;
+      if (CurProgress != newProgress)
+      {
+        Delegate.Progress(CurProgress = newProgress);
+        Canceled = Delegate.IsCanceled();
+      }
+    }
+
+    virtual bool IsCanceled() const
+    {
+      return Canceled;
+    }
+  private:
+    const unsigned Total;
+    Playlist::IO::ExportCallback& Delegate;
+    unsigned CurProgress;
+    bool Canceled;
+  };
 }
 
 namespace Playlist
 {
   namespace IO
   {
-    bool SaveXSPF(Container::Ptr container, const QString& filename)
+    Error SaveXSPF(Container::Ptr container, const QString& filename, ExportCallback& cb)
     {
       QFile device(filename);
       if (!device.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))
       {
-        return false;
+        return MakeFormattedError(THIS_LINE, ZXTune::IO::ERROR_IO_ERROR, Text::IO_ERROR_NOT_OPENED, FromQString(filename));
       }
       XSPFWriter writer(device);
-      writer.WriteProperties(*container->GetProperties());
-      writer.WriteItems(container->GetItems());
-      return true;
+      const Parameters::Accessor::Ptr playlistProperties = container->GetProperties();
+      writer.WriteProperties(*playlistProperties);
+      const unsigned itemsCount = container->GetItemsCount();
+      ProgressCallbackWrapper progress(itemsCount, cb);
+      writer.WriteItems(container->GetItems(), progress);
+      return Error();
     }
   }
 }

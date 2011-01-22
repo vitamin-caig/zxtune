@@ -31,10 +31,6 @@ namespace Playlist
   {
     'z','x','t','u','n','e','.','a','p','p','.','p','l','a','y','l','i','s','t','.','n','a','m','e',0
   };
-  const Char ATTRIBUTE_SIZE[] =
-  {
-    'z','x','t','u','n','e','.','a','p','p','.','p','l','a','y','l','i','s','t','.','s','i','z','e',0
-  };
   const Char ATTRIBUTE_VERSION[] =
   {
     'z','x','t','u','n','e','.','a','p','p','.','p','l','a','y','l','i','s','t','.','v','e','r','s','i','o','n',0
@@ -51,6 +47,7 @@ namespace Playlist
 
       virtual Parameters::Accessor::Ptr GetProperties() const = 0;
       virtual Item::Data::Iterator::Ptr GetItems() const = 0;
+      virtual unsigned GetItemsCount() const = 0;
     };
   }
 }

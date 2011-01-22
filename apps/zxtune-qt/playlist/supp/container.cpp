@@ -34,16 +34,6 @@ namespace
     return QString::fromUtf8("NoName");
   }
 
-  int GetPlaylistSize(const Parameters::Accessor& params)
-  {
-    Parameters::IntType size = 0;
-    if (params.FindIntValue(Playlist::ATTRIBUTE_SIZE, size))
-    {
-      return static_cast<int>(size);
-    }
-    return -1;
-  }
-
   class ContainerImpl : public Playlist::Container
   {
   public:
@@ -64,7 +54,7 @@ namespace
       {
         const Parameters::Accessor::Ptr plParams = container->GetProperties();
         const QString plName = GetPlaylistName(*plParams);
-        const int plSize = GetPlaylistSize(*plParams);
+        const unsigned plSize = container->GetItemsCount();
         const Playlist::Controller::Ptr playlist = CreatePlaylist(plName);
         const Playlist::Scanner::Ptr scanner = playlist->GetScanner();
         scanner->AddItems(container->GetItems(), plSize);

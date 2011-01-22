@@ -163,7 +163,7 @@ namespace
       , Valid(true)
     {
     }
-    
+
     //common
     virtual ZXTune::Module::Holder::Ptr GetModule() const
     {
@@ -258,7 +258,7 @@ namespace
     {
       return Current != Items->end();
     }
-  
+
     virtual Playlist::Item::Data::Ptr Get() const
     {
       DelayLoadItemProvider::Ptr provider(new DelayLoadItemProvider(Provider, Properties, *Current));
@@ -297,6 +297,11 @@ namespace
     virtual Playlist::Item::Data::Iterator::Ptr GetItems() const
     {
       return Playlist::Item::Data::Iterator::Ptr(new PlayitemIteratorImpl(Provider, Properties, Items));
+    }
+
+    virtual unsigned GetItemsCount() const
+    {
+      return Items->size();
     }
   private:
     const Playlist::Item::DataProvider::Ptr Provider;

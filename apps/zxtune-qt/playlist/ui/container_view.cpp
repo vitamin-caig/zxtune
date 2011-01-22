@@ -24,11 +24,13 @@ Author:
 #include "ui/tools/filedialog.h"
 #include "ui/tools/parameters_helpers.h"
 //common includes
+#include <error.h>
 #include <logging.h>
 //std includes
 #include <cassert>
 //qt includes
 #include <QtGui/QMenu>
+#include <QtGui/QProgressDialog>
 
 namespace
 {
@@ -43,6 +45,38 @@ namespace
       return ToQString(val);
     }
     return defVal;
+  }
+
+  class CallbackWrapper : public Playlist::IO::ExportCallback
+  {
+  public:
+    CallbackWrapper(QProgressDialog& dlg)
+      : Dialog(dlg)
+    {
+    }
+
+    virtual void Progress(unsigned current)
+    {
+      Dialog.setValue(current);
+    }
+
+    virtual bool IsCanceled() const
+    {
+      return Dialog.wasCanceled();
+    }
+  private:
+    QProgressDialog& Dialog;
+  };
+
+  void SavePlaylistWithProgress(QWidget& owner, Playlist::IO::Container::Ptr container, const QString& filename)
+  {
+    QProgressDialog dlg(Playlist::UI::ContainerView::tr("Saving playlist"), Playlist::UI::ContainerView::tr("Cancel"), 0, 100, &owner);
+    dlg.setWindowModality(Qt::WindowModal);
+    CallbackWrapper callbackWrapper(dlg);
+    if (const Error& err = Playlist::IO::SaveXSPF(container, filename, callbackWrapper))
+    {
+      assert(!"Failed to save");
+    }
   }
 
   class ContainerViewImpl : public Playlist::UI::ContainerView
@@ -187,10 +221,7 @@ namespace
         QString::fromUtf8("Playlist files (*.xspf)"),
         filename))
       {
-        if (!Playlist::IO::SaveXSPF(container, filename))
-        {
-          assert(!"Failed to save");
-        }
+        SavePlaylistWithProgress(*this, container, filename);
       }
     }
 

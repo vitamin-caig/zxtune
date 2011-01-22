@@ -23,7 +23,16 @@ namespace Playlist
 {
   namespace IO
   {
-    bool SaveXSPF(Container::Ptr container, const QString& filename);
+    class ExportCallback
+    {
+    public:
+      virtual ~ExportCallback() {}
+
+      virtual void Progress(unsigned percents) = 0;
+      virtual bool IsCanceled() const = 0;
+    };
+
+    Error SaveXSPF(Container::Ptr container, const QString& filename, ExportCallback& cb);
   }
 }
 

@@ -43,11 +43,11 @@ namespace
     Versions:
     0 -
     1 - PlayerFrequency parameter is in mHz
-    2 - 
+    2 -
     3 - \n tag in Comment field
     4 -
     5 -
-    6 - UTF8 in all parameters field 
+    6 - UTF8 in all parameters field
   */
   class VersionLayer
   {
@@ -70,7 +70,7 @@ namespace
       {
         return Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT;
       }
-      const Parameters::IntType divisor = Version > 0 
+      const Parameters::IntType divisor = Version > 0
         ? UINT64_C(1000000000) : UINT64_C(1000000);
       return divisor / playerFreq;
     }
@@ -228,7 +228,7 @@ namespace
       }
       else if (name == AYL::PLAYER_FREQUENCY)
       {
-        Delegate.SetIntValue(Parameters::ZXTune::Sound::FRAMEDURATION, 
+        Delegate.SetIntValue(Parameters::ZXTune::Sound::FRAMEDURATION,
           Version.DecodeFrameduration(val));
       }
       //ignore "Loop", "Length", "Time"
@@ -394,7 +394,6 @@ namespace Playlist
       const ContainerItemsPtr items = CreateItems(basePath, version, aylItems);
       const Parameters::Container::Ptr properties = CreateProperties(version, aylItems);
       properties->SetStringValue(Playlist::ATTRIBUTE_NAME, FromQString(info.baseName()));
-      properties->SetIntValue(Playlist::ATTRIBUTE_SIZE, items->size());
       return Playlist::IO::CreateContainer(provider, properties, items);
     }
   }

@@ -105,7 +105,6 @@ namespace
             Log::Debug(THIS_MODULE, "Failed to parse tracklist");
             return false;
           }
-          Properties->SetIntValue(Playlist::ATTRIBUTE_SIZE, Items->size());
         }
         else
         {
@@ -232,7 +231,7 @@ namespace
         const String propNameStr = FromQString(propName.toString());
         const String propValStr = ConvertString(propValue);
         strings[propNameStr] = propValStr;
-        Log::Debug(THIS_MODULE, "  parsing extended property %1%='%2%'", 
+        Log::Debug(THIS_MODULE, "  parsing extended property %1%='%2%'",
           propNameStr, propValStr);
       }
       Parameters::ParseStringMap(strings, props);

@@ -63,14 +63,14 @@ namespace
 
     virtual bool Next(unsigned playorderMode)
     {
-      return 
+      return
         Index != NO_INDEX &&
         Navigate(Index + 1, playorderMode);
     }
 
     virtual bool Prev(unsigned playorderMode)
     {
-      return 
+      return
         Index != NO_INDEX &&
         Navigate(int(Index) - 1, playorderMode);
     }
@@ -99,7 +99,7 @@ namespace
       }
       return false;
     }
-    
+
     bool Navigate(int newIndex, unsigned playorderMode)
     {
       const unsigned itemsCount = Model->CountItems();
@@ -120,7 +120,7 @@ namespace
         }
       }
       const bool isRandom = Playlist::Item::RANDOMIZED == (playorderMode & Playlist::Item::RANDOMIZED);
-      const unsigned mappedIndex = isRandom 
+      const unsigned mappedIndex = isRandom
         ? Randomized(newIndex, itemsCount)
         : newIndex;
       return SelectItem(mappedIndex);
@@ -150,6 +150,11 @@ namespace
     virtual Playlist::Item::Data::Iterator::Ptr GetItems() const
     {
       return Model->GetItems();
+    }
+
+    virtual unsigned GetItemsCount() const
+    {
+      return Model->CountItems();
     }
   private:
     const Parameters::Container::Ptr Properties;
