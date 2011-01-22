@@ -78,7 +78,7 @@ include $(wildcard $(objects_dir)/*.d)
 
 analyze:
 	@echo "Analyzing $(target)" > coverage.log
-	@for i in $(source_files);do gcov -lp -o $(objects_dir) $$i >> coverage.log; done
+	@for i in $(SOURCES);do gcov -lp -o $(objects_dir) $$i >> coverage.log; done
 	@echo `pwd`
 	@perl $(path_step)/make/compilers/gcc_coverage.pl
 
