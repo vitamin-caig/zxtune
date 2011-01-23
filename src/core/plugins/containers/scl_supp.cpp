@@ -82,6 +82,11 @@ namespace
   BOOST_STATIC_ASSERT(sizeof(SCLEntry) == 14);
   BOOST_STATIC_ASSERT(sizeof(SCLHeader) == 23);
 
+  uint_t SumDataSize(uint_t prevSize, const SCLEntry& entry)
+  {
+    return prevSize + entry.Size();
+  }
+
   bool CheckSCLFile(const IO::FastDump& data)
   {
     const uint_t limit = data.Size();
@@ -91,14 +96,24 @@ namespace
     }
     const SCLHeader* const header = safe_ptr_cast<const SCLHeader*>(data.Data());
     if (0 != std::memcmp(header->ID, SINCLAIR_ID, sizeof(SINCLAIR_ID)) ||
-        0 == header->BlocksCount ||
-        //minimal size according to blocks count
-        limit < sizeof(*header) - sizeof(header->Blocks) + (BYTES_PER_SECTOR + sizeof(header->Blocks) * header->BlocksCount)
-       )
+        0 == header->BlocksCount)
     {
       return false;
     }
-    return true;
+    const uint_t descriptionsSize = sizeof(*header) + sizeof(header->Blocks) * (header->BlocksCount - 1);
+    if (descriptionsSize > limit)
+    {
+      return false;
+    }
+    const uint_t dataSize = std::accumulate(header->Blocks, header->Blocks + header->BlocksCount, 0, &SumDataSize);
+    if (descriptionsSize + dataSize + sizeof(uint32_t) > limit)
+    {
+      return false;
+    }
+    const uint_t checksumOffset = descriptionsSize + dataSize;
+    const uint32_t storedChecksum = fromLE(*safe_ptr_cast<const uint32_t*>(data.Data() + checksumOffset));
+    const uint32_t checksum = std::accumulate(data.Data(), data.Data() + checksumOffset, uint32_t(0));
+    return storedChecksum == checksum;
   }
 
   //fill descriptors array and return actual container size
@@ -108,7 +123,6 @@ namespace
     {
       return TRDos::FilesSet::Ptr();
     }
-    const uint_t limit = data.Size();
     const SCLHeader* const header = safe_ptr_cast<const SCLHeader*>(data.Data());
 
     TRDos::FilesSet::Ptr res = TRDos::FilesSet::Create();
@@ -118,13 +132,7 @@ namespace
     for (uint_t idx = 0; idx != header->BlocksCount; ++idx)
     {
       const SCLEntry& entry = header->Blocks[idx];
-      const std::size_t nextOffset = offset + entry.SizeInSectors * BYTES_PER_SECTOR;
-      if (nextOffset > limit)
-      {
-        //file is trunkated
-        break;
-      }
-
+      const std::size_t nextOffset = offset + entry.Size();
       const String entryName = TRDos::GetEntryName(entry.Name, entry.Type);
       const TRDos::FileEntry& newOne = TRDos::FileEntry(entryName, offset, entry.Size());
       res->AddEntry(newOne);
