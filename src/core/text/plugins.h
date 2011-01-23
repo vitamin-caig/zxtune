@@ -13,6 +13,7 @@ extern const Char DSQ_PLUGIN_INFO[];
 extern const Char FDI_PLUGIN_INFO[];
 extern const Char HOBETA_PLUGIN_INFO[];
 extern const Char HRIP_PLUGIN_INFO[];
+extern const Char HRUM_PLUGIN_INFO[];
 extern const Char HRUST1X_PLUGIN_INFO[];
 extern const Char HRUST2X_PLUGIN_INFO[];
 extern const Char LZS_PLUGIN_INFO[];

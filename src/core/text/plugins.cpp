@@ -30,6 +30,9 @@ extern const Char HOBETA_PLUGIN_INFO[] = {
 extern const Char HRIP_PLUGIN_INFO[] = {
   'H','R','i','P',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
 };
+extern const Char HRUM_PLUGIN_INFO[] = {
+  'H','r','u','m',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
+};
 extern const Char HRUST1X_PLUGIN_INFO[] = {
   'H','r','u','s','t','1','.','x',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
 };
