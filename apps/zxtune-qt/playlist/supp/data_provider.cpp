@@ -185,7 +185,7 @@ namespace
       const ZXTune::IO::DataContainer::Ptr data = Source->GetData();
       const String subPath = GetSubpath();
       ZXTune::Module::Holder::Ptr module;
-      ThrowIfError(ZXTune::OpenModule(ModuleParams, data, subPath, module));
+      ZXTune::OpenModule(ModuleParams, data, subPath, module);
       return module;
     }
   private:
@@ -318,12 +318,15 @@ namespace
       , Type(GetModuleType(moduleProps))
       , Title(Attributes->GetTitle(moduleProps))
       , DurationInFrames(duration)
+      , Valid(true)
     {
     }
 
     virtual ZXTune::Module::Holder::Ptr GetModule() const
     {
-      return Source.GetModule();
+      const ZXTune::Module::Holder::Ptr res = Source.GetModule();
+      Valid = res;
+      return res;
     }
 
     virtual Parameters::Container::Ptr GetAdjustedParameters() const
@@ -335,7 +338,7 @@ namespace
     //playlist-related properties
     virtual bool IsValid() const
     {
-      return true;
+      return Valid;
     }
 
     virtual String GetType() const
@@ -364,21 +367,29 @@ namespace
 
     virtual String GetTooltip() const
     {
-      const Parameters::Accessor::Ptr properties = GetModuleProperties();
-      return Attributes->GetTooltip(*properties);
+      if (const Parameters::Accessor::Ptr properties = GetModuleProperties())
+      {
+        return Attributes->GetTooltip(*properties);
+      }
+      return String();
     }
   private:
     void AcquireTitle() const
     {
-      const Parameters::Accessor::Ptr properties = GetModuleProperties();
-      Title = Attributes->GetTitle(*properties);
+      if (const Parameters::Accessor::Ptr properties = GetModuleProperties())
+      {
+        Title = Attributes->GetTitle(*properties);
+      }
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const
     {
-      const ZXTune::Module::Holder::Ptr holder = Source.GetModule();
-      const ZXTune::Module::Information::Ptr info = holder->GetModuleInformation();
-      return info->Properties();
+      if (const ZXTune::Module::Holder::Ptr holder = GetModule())
+      {
+        const ZXTune::Module::Information::Ptr info = holder->GetModuleInformation();
+        return info->Properties();
+      }
+      return Parameters::Accessor::Ptr();
     }
   private:
     virtual void OnPropertyChanged(const Parameters::NameType& /*name*/) const
@@ -392,6 +403,7 @@ namespace
     const String Type;
     mutable String Title;
     const unsigned DurationInFrames;
+    mutable bool Valid;
   };
 
   class DetectParametersAdapter : public ZXTune::DetectParameters

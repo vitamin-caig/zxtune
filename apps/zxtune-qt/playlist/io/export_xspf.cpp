@@ -361,13 +361,20 @@ namespace Playlist
       {
         return MakeFormattedError(THIS_LINE, ZXTune::IO::ERROR_IO_ERROR, Text::IO_ERROR_NOT_OPENED, FromQString(filename));
       }
-      XSPFWriter writer(device);
-      const Parameters::Accessor::Ptr playlistProperties = container->GetProperties();
-      writer.WriteProperties(*playlistProperties);
-      const unsigned itemsCount = container->GetItemsCount();
-      ProgressCallbackWrapper progress(itemsCount, cb);
-      writer.WriteItems(container->GetItems(), progress);
-      return Error();
+      try
+      {
+        XSPFWriter writer(device);
+        const Parameters::Accessor::Ptr playlistProperties = container->GetProperties();
+        writer.WriteProperties(*playlistProperties);
+        const unsigned itemsCount = container->GetItemsCount();
+        ProgressCallbackWrapper progress(itemsCount, cb);
+        writer.WriteItems(container->GetItems(), progress);
+        return Error();
+      }
+      catch (const Error& e)
+      {
+        return e;
+      }
     }
   }
 }
