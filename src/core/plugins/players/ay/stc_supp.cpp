@@ -470,8 +470,12 @@ namespace
         }
         else
         {
-          throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
+          warner.AddMessage(Text::WARNING_INVALID_POSITIONS);
         }
+      }
+      if (Positions.empty())
+      {
+        throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
       }
       Log::Assert(warner, Positions.size() == positionsCount, Text::WARNING_INVALID_POSITIONS);
       return areas.GetPositionsLimit();
@@ -551,10 +555,6 @@ namespace
       do
       {
         const uint_t curPatternSize = dst.size();
-        if (curPatternSize > MAX_PATTERN_SIZE)
-        {
-          throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
-        }
         Log::ParamPrefixedCollector lineWarner(warner, Text::LINE_WARN_PREFIX, curPatternSize);
         dst.push_back(STCTrack::Line());
         STCTrack::Line& line(dst.back());
@@ -1061,8 +1061,7 @@ namespace
       }
       const uint_t offset = Areas.GetAreaAddress(STCAreas::POSITIONS);
       const STCPositions* const positions = safe_ptr_cast<const STCPositions*>(&Data[offset]);
-      return positions->Lenght &&
-             0 == (size - 1) % sizeof(STCPositions::STCPosEntry) &&
+      return 0 == (size - 1) % sizeof(STCPositions::STCPosEntry) &&
              positions->Lenght == (size - 1) / sizeof(STCPositions::STCPosEntry) - 1;
     }
 
