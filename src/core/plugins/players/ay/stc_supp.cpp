@@ -470,7 +470,7 @@ namespace
         }
         else
         {
-          warner.AddMessage(Text::WARNING_INVALID_POSITIONS);
+          throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
         }
       }
       Log::Assert(warner, Positions.size() == positionsCount, Text::WARNING_INVALID_POSITIONS);
@@ -1061,7 +1061,8 @@ namespace
       }
       const uint_t offset = Areas.GetAreaAddress(STCAreas::POSITIONS);
       const STCPositions* const positions = safe_ptr_cast<const STCPositions*>(&Data[offset]);
-      return 0 == (size - 1) % sizeof(STCPositions::STCPosEntry) &&
+      return positions->Lenght &&
+             0 == (size - 1) % sizeof(STCPositions::STCPosEntry) &&
              positions->Lenght == (size - 1) / sizeof(STCPositions::STCPosEntry) - 1;
     }
 
