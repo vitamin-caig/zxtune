@@ -12,6 +12,7 @@ Author:
 //local includes
 #include <core/plugins/enumerator.h>
 #include <core/plugins/utils.h>
+#include "trdos_utils.h"
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
@@ -81,8 +82,6 @@ namespace
   BOOST_STATIC_ASSERT(sizeof(SCLEntry) == 14);
   BOOST_STATIC_ASSERT(sizeof(SCLHeader) == 23);
 
-  typedef std::vector<TRDFileEntry> FileDescriptions;
-
   bool CheckSCLFile(const IO::FastDump& data)
   {
     const uint_t limit = data.Size();
@@ -103,17 +102,17 @@ namespace
   }
 
   //fill descriptors array and return actual container size
-  uint_t ParseSCLFile(const IO::FastDump& data, FileDescriptions& descrs)
+  TRDos::FilesSet::Ptr ParseSCLFile(const IO::FastDump& data, std::size_t& parsedSize)
   {
     if (!CheckSCLFile(data))
     {
-      return 0;
+      return TRDos::FilesSet::Ptr();
     }
     const uint_t limit = data.Size();
     const SCLHeader* const header = safe_ptr_cast<const SCLHeader*>(data.Data());
 
-    FileDescriptions res;
-    res.reserve(header->BlocksCount);
+    TRDos::FilesSet::Ptr res = TRDos::FilesSet::Create();
+    //res.reserve(header->BlocksCount);
     std::size_t offset = safe_ptr_cast<const uint8_t*>(header->Blocks + header->BlocksCount) -
                     safe_ptr_cast<const uint8_t*>(header);
     for (uint_t idx = 0; idx != header->BlocksCount; ++idx)
@@ -126,40 +125,32 @@ namespace
         break;
       }
 
-      const TRDFileEntry& newOne = TRDFileEntry(GetTRDosName(entry.Name, entry.Type), offset, entry.Size());
-      if (!res.empty() &&
-          res.back().IsMergeable(newOne))
-      {
-        res.back().Merge(newOne);
-      }
-      else
-      {
-        res.push_back(newOne);
-      }
+      const String entryName = TRDos::GetEntryName(entry.Name, entry.Type);
+      const TRDos::FileEntry& newOne = TRDos::FileEntry(entryName, offset, entry.Size());
+      res->AddEntry(newOne);
       offset = nextOffset;
     }
-    descrs.swap(res);
-    return offset;
+    parsedSize = offset;
+    return res;
   }
 
   class LoggerHelper
   {
   public:
-    LoggerHelper(const DetectParameters& params, const MetaContainer& data, const FileDescriptions& files)
+    LoggerHelper(const DetectParameters& params, const MetaContainer& data, const uint_t files)
       : Params(params)
       , Path(data.Path)
       , Format(Path.empty() ? Text::PLUGIN_SCL_PROGRESS_NOPATH : Text::PLUGIN_SCL_PROGRESS)
-      , Total(files.size())
-      , Begin(files.begin())
+      , Total(files)
+      , Current()
     {
       Message.Level = data.Plugins->CalculateContainersNesting();
     }
 
-    void operator()(const FileDescriptions::const_iterator& cur)
+    void operator()(const TRDos::FileEntry& cur)
     {
-      const uint_t curCount = std::distance(Begin, cur);
-      Message.Progress = 100 * curCount / Total;
-      Message.Text = (SafeFormatter(Format) % cur->Name % Path).str();
+      Message.Progress = 100 * Current++ / Total;
+      Message.Text = (SafeFormatter(Format) % cur.Name % Path).str();
       Params.ReportMessage(Message);
     }
   private:
@@ -167,7 +158,7 @@ namespace
     const String Path;
     const String Format;
     const uint_t Total;
-    const FileDescriptions::const_iterator Begin;
+    uint_t Current;
     Log::MessageData Message;
   };
 
@@ -206,27 +197,30 @@ namespace
       const MetaContainer& data, ModuleRegion& region) const
     {
       const IO::FastDump dump(*data.Data);
-      FileDescriptions files;
-      const uint_t parsedSize = ParseSCLFile(dump, files);
-      if (!parsedSize)
+      std::size_t parsedSize = 0;
+      const TRDos::FilesSet::Ptr files = ParseSCLFile(dump, parsedSize);
+      if (!files.get())
       {
         return false;
       }
-
-      const PluginsEnumerator& enumerator = PluginsEnumerator::Instance();
-
-      MetaContainer subcontainer;
-      subcontainer.Plugins = data.Plugins->Clone();
-      subcontainer.Plugins->Add(shared_from_this());
-      ModuleRegion curRegion;
-
-      LoggerHelper logger(detectParams, data, files);
-      for (FileDescriptions::const_iterator it = files.begin(), lim = files.end(); it != lim; ++it)
+      if (uint_t entriesCount = files->GetEntriesCount())
       {
-        subcontainer.Data = data.Data->GetSubcontainer(it->Offset, it->Size);
-        subcontainer.Path = IO::AppendPath(data.Path, it->Name);
-        logger(it);
-        enumerator.DetectModules(params, detectParams, subcontainer, curRegion);
+        const PluginsEnumerator& enumerator = PluginsEnumerator::Instance();
+
+        MetaContainer subcontainer;
+        subcontainer.Plugins = data.Plugins->Clone();
+        subcontainer.Plugins->Add(shared_from_this());
+        ModuleRegion curRegion;
+
+        LoggerHelper logger(detectParams, data, entriesCount);
+        for (TRDos::FilesSet::Iterator::Ptr it = files->GetEntries(); it->IsValid(); it->Next())
+        {
+          const TRDos::FileEntry& entry = it->Get();
+          subcontainer.Data = data.Data->GetSubcontainer(entry.Offset, entry.Size);
+          subcontainer.Path = IO::AppendPath(data.Path, entry.Name);
+          logger(entry);
+          enumerator.DetectModules(params, detectParams, subcontainer, curRegion);
+        }
       }
       region.Offset = 0;
       region.Size = parsedSize;
@@ -238,20 +232,22 @@ namespace
     {
       String restComp;
       const String& pathComp = IO::ExtractFirstPathComponent(inPath, restComp);
-      FileDescriptions files;
-      if (pathComp.empty() ||
-          !ParseSCLFile(IO::FastDump(*inData.Data), files))
+      if (pathComp.empty())
       {
         return IO::DataContainer::Ptr();
       }
-      const FileDescriptions::const_iterator fileIt = std::find_if(files.begin(), files.end(),
-        boost::bind(&TRDFileEntry::Name, _1) == pathComp);
-      if (fileIt != files.end())
+      const IO::FastDump dump(*inData.Data);
+      std::size_t parsedSize = 0;
+      const TRDos::FilesSet::Ptr files = ParseSCLFile(dump, parsedSize);
+      const TRDos::FileEntry* const entryToOpen = files.get()
+        ? files->FindEntry(pathComp)
+        : 0;
+      if (!entryToOpen)
       {
-        restPath = restComp;
-        return inData.Data->GetSubcontainer(fileIt->Offset, fileIt->Size);
+        return IO::DataContainer::Ptr();
       }
-      return IO::DataContainer::Ptr();
+      restPath = restComp;
+      return inData.Data->GetSubcontainer(entryToOpen->Offset, entryToOpen->Size);
     }
   };
 }

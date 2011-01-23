@@ -10,6 +10,7 @@ Author:
 */
 
 //local includes
+#include "trdos_utils.h"
 #include <core/plugins/enumerator.h>
 #include <core/plugins/utils.h>
 //common includes
@@ -289,7 +290,7 @@ namespace
       {
         return ERROR;
       }
-      const String& filename = GetTRDosName(header.Name, header.Type);
+      const String& filename = TRDos::GetEntryName(header.Name, header.Type);
       //decode
       {
         Dump tmp;
@@ -338,7 +339,7 @@ namespace
     const HripBlockHeadersList& headers, Dump& dst)
   {
     if (!headers.empty() &&
-        filename == GetTRDosName(headers.front()->Name, headers.front()->Type))//found file
+        filename == TRDos::GetEntryName(headers.front()->Name, headers.front()->Type))//found file
     {
       return DecodeHripFile(headers, ignoreCorrupted, dst) ? EXIT : ERROR;
     }
