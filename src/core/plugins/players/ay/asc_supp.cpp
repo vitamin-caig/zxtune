@@ -693,7 +693,7 @@ namespace
       Data->InitialTempo = header->Tempo;
 
       //fill region
-      region.Size = rawSize;
+      region.Size = std::min(rawSize, data.Size());
       RawData = region.Extract(*container.Data);
 
       //meta properties

@@ -684,8 +684,10 @@ namespace
       const uint_t patLim = Data->ParsePatterns(areas, *warner);
       const uint_t posLim = Data->ParsePositions(areas, *warner);
 
+      const uint_t maxLim = std::max(std::max(smpLim, ornLim), std::max(patLim, posLim));
       //fill region
-      region.Size = std::max(std::max(smpLim, ornLim), std::max(patLim, posLim));
+      region.Size = std::min(data.Size(), maxLim);
+        
       RawData = region.Extract(*container.Data);
 
       //meta properties
