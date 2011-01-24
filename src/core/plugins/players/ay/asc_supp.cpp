@@ -702,7 +702,7 @@ namespace
         const ASCID* const id = safe_ptr_cast<const ASCID*>(header->Positions + header->Length);
         const bool validId = id->Check();
         const std::size_t fixedOffset = sizeof(ASCHeader) + validId ? sizeof(*id) : 0;
-        const ModuleRegion fixedRegion(fixedOffset, rawSize - fixedOffset);
+        const ModuleRegion fixedRegion(fixedOffset, region.Size - fixedOffset);
         props->SetSource(RawData, fixedRegion);
         if (validId)
         {

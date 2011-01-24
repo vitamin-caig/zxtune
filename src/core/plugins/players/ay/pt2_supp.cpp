@@ -543,7 +543,7 @@ namespace
       const ModuleProperties::Ptr props = ModuleProperties::Create(PT2_PLUGIN_ID);
       {
         const std::size_t fixedOffset(sizeof(PT2Header) + header->Length - 1);
-        const ModuleRegion fixedRegion(fixedOffset, rawSize -  fixedOffset);
+        const ModuleRegion fixedRegion(fixedOffset, region.Size -  fixedOffset);
         props->SetSource(RawData, fixedRegion);
       }
       props->SetTitle(OptimizeString(FromCharArray(header->Name)));
