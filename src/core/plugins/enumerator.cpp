@@ -26,7 +26,6 @@ Author:
 #include <io/fs_tools.h>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/crc.hpp>
 #include <boost/ref.hpp>
 #include <boost/bind/apply.hpp>
 #include <boost/make_shared.hpp>
@@ -522,21 +521,6 @@ namespace
 
 namespace ZXTune
 {
-  uint_t ModuleRegion::Checksum(const IO::DataContainer& container) const
-  {
-    const uint8_t* const data = static_cast<const uint8_t*>(container.Data());
-    assert(Offset + Size <= container.Size());
-    boost::crc_32_type crcCalc;
-    crcCalc.process_bytes(data + Offset, Size);
-    return crcCalc.checksum();
-  }
-
-  IO::DataContainer::Ptr ModuleRegion::Extract(const IO::DataContainer& container) const
-  {
-    const uint8_t* const data = static_cast<const uint8_t*>(container.Data());
-    return IO::CreateDataContainer(data + Offset, Size);
-  }
-
   PluginsChain::Ptr PluginsChain::Create()
   {
     return boost::make_shared<PluginsChainImpl>();
