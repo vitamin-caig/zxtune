@@ -1057,27 +1057,37 @@ namespace
     bool CheckPositions() const
     {
       const uint_t size = Areas.GetAreaSize(STCAreas::POSITIONS);
-      if (0 == size)
-      {
-        return false;
-      }
-      const uint_t offset = Areas.GetAreaAddress(STCAreas::POSITIONS);
-      const STCPositions* const positions = safe_ptr_cast<const STCPositions*>(&Data[offset]);
-      return 0 == (size - 1) % sizeof(STCPositions::STCPosEntry) &&
-             positions->Lenght == (size - 1) / sizeof(STCPositions::STCPosEntry) - 1;
-    }
-
-    bool CheckPatterns() const
-    {
-      if (0 == Areas.GetAreaSize(STCAreas::PATTERNS))
+      if (0 == size ||
+          0 != (size - 1) % sizeof(STCPositions::STCPosEntry))
       {
         return false;
       }
       const uint_t limit = Areas.GetAreaAddress(STCAreas::END);
-      uint_t offset = Areas.GetAreaAddress(STCAreas::PATTERNS);
+      const uint_t offset = Areas.GetAreaAddress(STCAreas::POSITIONS);
+      if (offset > limit)
+      {
+        return false;
+      }
+      const STCPositions* const positions = safe_ptr_cast<const STCPositions*>(&Data[offset]);
+      return positions->Lenght == (size - 1) / sizeof(STCPositions::STCPosEntry) - 1;
+    }
+
+    bool CheckPatterns() const
+    {
+      const uint_t size = Areas.GetAreaSize(STCAreas::PATTERNS);
+      if (0 == size)
+      {
+        return false;
+      }
+      const uint_t limit = Areas.GetAreaAddress(STCAreas::END);
+      const uint_t offset = Areas.GetAreaAddress(STCAreas::PATTERNS);
+      if (offset > limit)
+      {
+        return false;
+      }
       const STCPattern* const patterns = safe_ptr_cast<const STCPattern*>(&Data[offset]);
-      for (const STCPattern* pattern = patterns; *pattern && offset < limit;
-        ++pattern, offset += sizeof(*pattern))
+      const STCPattern* const patternsLimit = patterns + size / sizeof(STCPattern);
+      for (const STCPattern* pattern = patterns; *pattern && pattern != patternsLimit; ++pattern)
       {
         if (!pattern->Number || pattern->Number >= MAX_PATTERN_COUNT)
         {
