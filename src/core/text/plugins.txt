@@ -28,6 +28,10 @@ __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 < ASC_EDITOR
 > "ASC Sound Master"
 
+#CC3
+< CC3_PLUGIN_INFO
+> "CodeCruncher v3" CONTAINER_DESCRIPTION
+
 #CHI
 = CHI_EDITOR_NOVER
 > "ChipTracker"

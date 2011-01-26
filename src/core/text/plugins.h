@@ -7,6 +7,7 @@ namespace Text
 {
 extern const Char ASC_EDITOR[];
 extern const Char ASC_PLUGIN_INFO[];
+extern const Char CC3_PLUGIN_INFO[];
 extern const Char CHI_EDITOR[];
 extern const Char CHI_PLUGIN_INFO[];
 extern const Char DSQ_PLUGIN_INFO[];

@@ -1,6 +1,6 @@
 /*
 Abstract:
-  LS convertors support
+  LZS convertors support
 
 Last changed:
   $Id$
@@ -35,11 +35,6 @@ namespace
 
   const std::size_t DEPACKER_SIZE = 0x82;
   const std::string LZS_DEPACKER_PATTERN(
-#if 0
-      //decoding loop core pattern
-      "+38+"
-      "06007ecb7f201de60f47"
-#else
       "cd??"    // call xxxx
       "?"       // di/nop
       "ed73??"  // ld (xxxx),sp
@@ -112,7 +107,6 @@ namespace
       "31??"    // ld sp,xxxx
       "?"       // di/ei
       "c3??"    // jp xxxx (0x0052)
-#endif
   );
 
 #ifdef USE_PRAGMA_PACK
