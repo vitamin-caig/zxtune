@@ -29,12 +29,9 @@ Author:
 //text includes
 #include <core/text/plugins.h>
 
-namespace
+namespace DataSquieezer
 {
-  using namespace ZXTune;
-
-  const Char DSQ_PLUGIN_ID[] = {'D', 'S', 'Q', '\0'};
-  const String DSQ_PLUGIN_VERSION(FromStdString("$Rev$"));
+  const std::size_t MAX_DECODED_SIZE = 0xc000;
 
   /*
      classic depacker
@@ -49,7 +46,7 @@ namespace
      %00,offset=0x21+b9
      backcopy len bytes from offset,continue
   */
-  const std::string DSQ_DEPACKER_PATTERN(
+  const std::string DEPACKER_PATTERN(
     "11??"      // ld de,xxxx ;buffer
     "21??"      // ld hl,xxxx ;addr+start depacker
     "d5"        // push de
@@ -67,6 +64,7 @@ namespace
     "e5"        // push hl
 //last depacked. word parameter. offset=0x21
     "11??"      // ld de,xxxx ;last depacked byte
+/*
                 //depcycle:
     "210100"    // ld hl,1    ;l- bytes to copy
     "cd??"      // call getbit
@@ -133,42 +131,38 @@ namespace
     "388f"      // jr c,depcycle
     "e1"        // pop hl
     "d9"        // exx
-  );
-/*
-+96  c3 92 9c	jp xxxx  ;jump to addr
-
-;0xbf83 getting bits set, b- count
-getbits to ba(bc)
-+99  af		xor a
-+9a  4f		ld c,a
-+9b  cd 90 bf	call getbit
-+9e  cb 11	rl c
-+a0  17		rla         
-+a1  10 f8	djnz +9b
-+a3  47		ld b,a
-+a4  79		ld a,c
-+a5  c9		ret
-
-;0xbf90 getting bit
-getbit:
-+a6  d9		exx
-+a7  10 03	djnz +ac
-+a9  41		ld b,c
-+aa  5e		ld e,(hl)
-+ab  2b		dec hl
-+ac  cb 13	rl e
-+ae  d9		exx
-+af  c9		ret
+    "c3929c"    // jp xxxx  ;jump to addr
+//0xbf83 getting bits set, b- count
+//getbits to ba(bc)
+    "af"        // xor a
+    "4f"        // ld c,a
+    "cd??"      // call getbit
+    "cb11"      // rl c
+    "17"        // rla
+    "10f8"      // djnz +9b
+    "47"        // ld b,a
+    "79"        // ld a,c
+    "c9"        // ret
+//0xbf90 getting bit
+//getbit:
+    "d9"        // exx
+    "1003"      // djnz +ac
+    "41"        // ld b,c
+    "5e"        // ld e,(hl)
+    "2b"        // dec hl
+    "cb13"      // rl e
+    "d9"        // exx
+    "c9"        // ret
 */
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif
-  PACK_PRE struct DSQDepacker
+  PACK_PRE struct FormatHeader
   {
     uint8_t Padding1[0x13];
     //+0x13
-    uint16_t PackedSize;
+    uint16_t SizeOfPacked;
     //+0x15
     uint8_t Padding2[0x0c];
     //+0x21
@@ -183,25 +177,14 @@ getbit:
     uint16_t DstRend;
     //+0x90
     uint8_t Padding5[0x20];
-
-    uint_t GetPackedSize() const
-    {
-      return fromLE(PackedSize);
-    }
-
-    uint_t GetDepackedSize() const
-    {
-      return fromLE(DstRbegin) - fromLE(DstRend);
-    }
-
-    bool Check(uint_t limit) const;
-    bool Decode(Dump& dst) const;
+    //+0xb0
+    uint8_t Data[1];
   } PACK_POST;
 #ifdef USE_PRAGMA_PACK
 #pragma pack(pop)
 #endif
 
-  BOOST_STATIC_ASSERT(sizeof(DSQDepacker) == 0xb0);
+  BOOST_STATIC_ASSERT(sizeof(FormatHeader) == 0xb0 + 1);
 
   //dsq bitstream decoder
   class Bitstream
@@ -248,21 +231,113 @@ getbit:
     uint_t Mask;
   };
 
-  class BitstreamHelper
+  class Container
   {
   public:
-    BitstreamHelper(Bitstream& stream, unsigned longOffsetBits)
-      : Stream(stream)
-      , LongOffsetBits(longOffsetBits)
+    Container(const void* data, std::size_t size)
+      : Data(static_cast<const uint8_t*>(data))
+      , Size(size)
     {
     }
 
-    unsigned GetData()
+    bool FastCheck() const
     {
-      return Stream.GetBits(8);
+      if (Size < sizeof(FormatHeader))
+      {
+        return false;
+      }
+      const uint_t usedSize = GetUsedSize();
+      if (Size < usedSize)
+      {
+        return false;
+      }
+      const FormatHeader& header = GetHeader();
+      return fromLE(header.DstRend) < fromLE(header.DstRbegin) && header.LongOffsetBits <= 16;
     }
 
-    unsigned GetLength()
+    bool FullCheck() const
+    {
+      if (!FastCheck())
+      {
+        return false;
+      }
+      return DetectFormat(Data, Size, DEPACKER_PATTERN);
+    }
+
+    uint_t GetUsedSize() const
+    {
+      const FormatHeader& header = GetHeader();
+      return sizeof(header) + fromLE(header.SizeOfPacked) - sizeof(header.Data);
+    }
+
+    uint_t GetDepackedSize() const
+    {
+      const FormatHeader& header = GetHeader();
+      return fromLE(header.DstRbegin) - fromLE(header.DstRend);
+    }
+
+    const FormatHeader& GetHeader() const
+    {
+      assert(Size >= sizeof(FormatHeader));
+      return *safe_ptr_cast<const FormatHeader*>(Data);
+    }
+  private:
+    const uint8_t* const Data;
+    const std::size_t Size;
+  };
+
+  class Decoder
+  {
+  public:
+    explicit Decoder(const Container& container)
+      : IsValid(container.FastCheck())
+      , Header(container.GetHeader())
+      , Stream(Header.Data, fromLE(Header.SizeOfPacked))
+    {
+    }
+
+    const Dump* GetDecodedData()
+    {
+      if (IsValid && !Stream.Eof())
+      {
+        IsValid = DecodeData();
+      }
+      return IsValid ? &Decoded : 0;
+    }
+  private:
+    bool DecodeData()
+    {
+      const uint_t unpackedSize = fromLE(Header.DstRbegin) - fromLE(Header.DstRend);
+      Decoded.reserve(unpackedSize);
+      while (!Stream.Eof() &&
+             Decoded.size() < unpackedSize)
+      {
+        if (!Stream.GetBit())
+        {
+          Decoded.push_back(Stream.GetBits(8));
+        }
+        else if (!DecodeCmd())
+        {
+          return false;
+        }
+      }
+      std::reverse(Decoded.begin(), Decoded.end());
+      return true;
+    }
+
+    bool DecodeCmd()
+    {
+      const uint_t len = GetLength();
+      if (len == 0x17)
+      {
+        CopySingleBytes();
+        return true;
+      }
+      const uint_t off = GetOffset();
+      return CopyFromBack(off, Decoded, len);
+    }
+
+    uint_t GetLength()
     {
       //%1
       if (Stream.GetBit())
@@ -283,8 +358,8 @@ getbit:
         return 8 + Stream.GetBits(4);
       }
       //%1000
-      unsigned res = 0x17;
-      for (unsigned add = 0xff; add == 0xff;)
+      uint_t res = 0x17;
+      for (uint_t add = 0xff; add == 0xff;)
       {
         add = Stream.GetBits(8);
         res += add;
@@ -292,12 +367,12 @@ getbit:
       return res;
     }
 
-    unsigned GetOffset()
+    uint_t GetOffset()
     {
       if (Stream.GetBit())
       {
         //%1
-        return 0x221 + Stream.GetBits(LongOffsetBits);
+        return 0x221 + Stream.GetBits(Header.LongOffsetBits);
       }
       //%0
       if (Stream.GetBit())
@@ -308,63 +383,26 @@ getbit:
       //%00
       return 0x21 + Stream.GetBits(9);
     }
+
+    void CopySingleBytes()
+    {
+      const uint_t count = 14 + Stream.GetBits(5);
+      std::generate_n(std::back_inserter(Decoded), count, boost::bind(&Bitstream::GetBits, &Stream, 8));
+    }
   private:
-    Bitstream& Stream;
-    const unsigned LongOffsetBits;
+    bool IsValid;
+    const FormatHeader& Header;
+    Bitstream Stream;
+    Dump Decoded;
   };
+}
 
-  bool DSQDepacker::Check(uint_t limit) const
-  {
-    if ((GetPackedSize() + sizeof(*this) > limit) ||
-        (fromLE(DstRend) >= fromLE(DstRbegin)) ||
-        !DetectFormat(Padding1, sizeof(*this), DSQ_DEPACKER_PATTERN))
-    {
-      return false;
-    }
-    return true;
-  }
+namespace
+{
+  using namespace ZXTune;
 
-  bool DSQDepacker::Decode(Dump& res) const
-  {
-    const uint_t packedSize = GetPackedSize();
-    const uint_t unpackedSize = GetDepackedSize();
-    Dump reverse;
-    reverse.reserve(unpackedSize);
-
-    std::back_insert_iterator<Dump> target(reverse);
-    Bitstream stream(Padding1 + sizeof(*this), packedSize);
-    BitstreamHelper helper(stream, LongOffsetBits);
-    while (!stream.Eof() &&
-           reverse.size() < unpackedSize)
-    {
-      //%0
-      if (!stream.GetBit())
-      {
-        *target = helper.GetData();
-        ++target;
-      }
-      else
-      {
-        const unsigned len = helper.GetLength();
-        if (len == 0x17)
-        {
-          const unsigned count = 14 + stream.GetBits(5);
-          std::generate_n(target, count, boost::bind(&BitstreamHelper::GetData, &helper));
-        }
-        else
-        {
-          const uint_t offset = helper.GetOffset();
-          if (!CopyFromBack(offset, reverse, len))
-          {
-            return false;
-          }
-        }
-      }
-    }
-    std::reverse(reverse.begin(), reverse.end());
-    res.swap(reverse);
-    return true;
-  }
+  const Char DSQ_PLUGIN_ID[] = {'D', 'S', 'Q', '\0'};
+  const String DSQ_PLUGIN_VERSION(FromStdString("$Rev$"));
 
   class DSQPlugin : public ArchivePlugin
   {
@@ -383,7 +421,7 @@ getbit:
     {
       return DSQ_PLUGIN_VERSION;
     }
-    
+
     virtual uint_t Capabilities() const
     {
       return CAP_STOR_CONTAINER;
@@ -391,30 +429,21 @@ getbit:
 
     virtual bool Check(const IO::DataContainer& inputData) const
     {
-      const uint8_t* const data = static_cast<const uint8_t*>(inputData.Data());
-      const std::size_t limit = inputData.Size();
-      if (limit < sizeof(DSQDepacker))
-      {
-        return false;
-      }
-      const DSQDepacker* const depacker = safe_ptr_cast<const DSQDepacker*>(data);
-      return depacker->Check(limit);
+      const DataSquieezer::Container container(inputData.Data(), inputData.Size());
+      return container.FullCheck();
     }
 
     virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Accessor& /*commonParams*/,
       const MetaContainer& input, ModuleRegion& region) const
     {
       const IO::DataContainer& inputData = *input.Data;
-      const uint8_t* const data = static_cast<const uint8_t*>(inputData.Data());
-      const DSQDepacker* const depacker = safe_ptr_cast<const DSQDepacker*>(data);
-      assert(depacker->Check(inputData.Size()));
-
-      Dump res;
-      if (depacker->Decode(res))
+      const DataSquieezer::Container container(inputData.Data(), inputData.Size());
+      assert(container.FullCheck());
+      DataSquieezer::Decoder decoder(container);
+      if (const Dump* res = decoder.GetDecodedData())
       {
-        region.Offset = 0;
-        region.Size = depacker->GetPackedSize();
-        return IO::CreateDataContainer(res);
+        region.Size = container.GetUsedSize();
+        return IO::CreateDataContainer(*res);
       }
       return IO::DataContainer::Ptr();
     }

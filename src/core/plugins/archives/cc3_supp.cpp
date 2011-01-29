@@ -170,9 +170,9 @@ namespace CodeCruncher3
   class Container
   {
   public:
-    explicit Container(const ZXTune::IO::DataContainer& inputData)
-      : Data(static_cast<const uint8_t*>(inputData.Data()))
-      , Size(inputData.Size())
+    Container(const void* data, std::size_t size)
+      : Data(static_cast<const uint8_t*>(data))
+      , Size(size)
     {
     }
 
@@ -237,20 +237,20 @@ namespace CodeCruncher3
   private:
     bool DecodeData()
     {
+      // The main concern is to decode data as much as possible, skipping defenitely invalid structure
       Decoded.reserve(2 * fromLE(Header.SizeOfPacked));
       //assume that first byte always exists due to header format
       while (!Stream.Eof() && Decoded.size() < MAX_DECODED_SIZE)
       {
         const uint_t data = Stream.GetByte();
-        const bool isEnd = Stream.Eof();
         if (IsFinishMarker(data))
         {
           //exit
           //do not check if real decoded size is equal to calculated;
           //do not check if eof is reached
-          return true;
+          break;
         }
-        else if (isEnd)
+        else if (Stream.Eof())
         {
           return false;
         }
@@ -262,7 +262,12 @@ namespace CodeCruncher3
           return false;
         }
       }
-      return false;
+      //copy rest bytes to stream
+      while (!Stream.Eof())
+      {
+        Decoded.push_back(Stream.GetByte());
+      }
+      return true;
     }
 
     bool ProcessBackReference(uint_t data)
@@ -348,7 +353,7 @@ namespace
 
     virtual bool Check(const IO::DataContainer& inputData) const
     {
-      const CodeCruncher3::Container container(inputData);
+      const CodeCruncher3::Container container(inputData.Data(), inputData.Size());
       return container.FullCheck();
     }
 
@@ -356,7 +361,7 @@ namespace
       const MetaContainer& input, ModuleRegion& region) const
     {
       const IO::DataContainer& inputData = *input.Data;
-      const CodeCruncher3::Container container(inputData);
+      const CodeCruncher3::Container container(inputData.Data(), inputData.Size());
       assert(container.FullCheck());
       CodeCruncher3::Decoder decoder(container);
       if (const Dump* res = decoder.GetDecodedData())

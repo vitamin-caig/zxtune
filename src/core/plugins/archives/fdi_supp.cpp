@@ -70,6 +70,10 @@ namespace
   BOOST_STATIC_ASSERT(sizeof(FDITrack) == 14);
 
   const std::size_t FDI_MAX_SIZE = 1048576;
+  const uint_t MIN_CYLINDERS_COUNT = 40;
+  const uint_t MAX_CYLINDERS_COUNT = 100;
+  const uint_t MIN_SIDES_COUNT = 1;
+  const uint_t MAX_SIDES_COUNT = 2;
   const uint8_t FDI_ID[] = {'F', 'D', 'I'};
 
   struct SectorDescr
@@ -105,11 +109,18 @@ namespace
       return false;
     }
     const std::size_t dataOffset = fromLE(header->DataOffset);
+    if (dataOffset < sizeof(*header) ||
+        dataOffset > limit)
+    {
+      return false;
+    }
     const uint_t cylinders = fromLE(header->Cylinders);
+    if (!in_range(cylinders, MIN_CYLINDERS_COUNT, MAX_CYLINDERS_COUNT))
+    {
+      return false;
+    }
     const uint_t sides = fromLE(header->Sides);
-    if (dataOffset < sizeof(*header) || 
-        dataOffset > limit ||
-        !cylinders || !sides)
+    if (!in_range(sides, MIN_SIDES_COUNT, MAX_SIDES_COUNT))
     {
       return false;
     }
@@ -119,7 +130,7 @@ namespace
     {
       for (uint_t sid = 0; sid != sides; ++sid)
       {
-        if (trackInfoOffset + sizeof (FDITrack) > limit)
+        if (trackInfoOffset + sizeof(FDITrack) > limit)
         {
           return false;
         }
@@ -146,7 +157,7 @@ namespace
     }
     return true;
   }
-  
+
   //////////////////////////////////////////////////////////////////////////
   class FDIPlugin : public ArchivePlugin
   {
@@ -165,7 +176,7 @@ namespace
     {
       return FDI_PLUGIN_VERSION;
     }
-    
+
     virtual uint_t Capabilities() const
     {
       return CAP_STOR_CONTAINER;
