@@ -154,6 +154,7 @@ namespace DataSquieezer
     "d9"        // exx
     "c9"        // ret
 */
+  );
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -268,12 +269,6 @@ namespace DataSquieezer
     {
       const FormatHeader& header = GetHeader();
       return sizeof(header) + fromLE(header.SizeOfPacked) - sizeof(header.Data);
-    }
-
-    uint_t GetDepackedSize() const
-    {
-      const FormatHeader& header = GetHeader();
-      return fromLE(header.DstRbegin) - fromLE(header.DstRend);
     }
 
     const FormatHeader& GetHeader() const

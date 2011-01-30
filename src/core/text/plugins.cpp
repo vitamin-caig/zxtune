@@ -25,6 +25,9 @@ extern const Char CHI_PLUGIN_INFO[] = {
 extern const Char DSQ_PLUGIN_INFO[] = {
   'D','a','t','a','S','q','u','e','e','z','e','r',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
 };
+extern const Char ESV_PLUGIN_INFO[] = {
+  'E','S','V',' ','C','r','u','n','c','h','e','r',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
+};
 extern const Char FDI_PLUGIN_INFO[] = {
   'F','D','I',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
 };
@@ -44,7 +47,7 @@ extern const Char HRUST2X_PLUGIN_INFO[] = {
   'H','r','u','s','t','2','.','x',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
 };
 extern const Char LZS_PLUGIN_INFO[] = {
-  'L','Z','P','a','c','k',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
+  'L','Z','S',' ','P','a','c','k',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
 };
 extern const Char MSP_PLUGIN_INFO[] = {
   'M','s','P','a','c','k',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0

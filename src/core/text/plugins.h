@@ -11,6 +11,7 @@ extern const Char CC3_PLUGIN_INFO[];
 extern const Char CHI_EDITOR[];
 extern const Char CHI_PLUGIN_INFO[];
 extern const Char DSQ_PLUGIN_INFO[];
+extern const Char ESV_PLUGIN_INFO[];
 extern const Char FDI_PLUGIN_INFO[];
 extern const Char HOBETA_PLUGIN_INFO[];
 extern const Char HRIP_PLUGIN_INFO[];

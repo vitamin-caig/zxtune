@@ -17,6 +17,7 @@ Author:
 #include <types.h>
 //std includes
 #include <algorithm>
+#include <cassert>
 
 class ByteStream
 {
@@ -80,5 +81,64 @@ inline bool CopyFromBack(uint_t offset, Dump& dst, uint_t count)
   RecursiveCopy(srcStart, srcEnd, dstStart);
   return true;
 }
+
+// src - first or last byte of source data to copy (e.g. hl)
+// dst - first or last byte of target data to copy (e.g. de)
+// count - count of bytes to copy (e.g. bc)
+// dirCode - second byte of ldir/lddr operation (0xb8 for lddr, 0xb0 for ldir)
+class DataMovementChecker
+{
+public:
+  DataMovementChecker(uint_t src, uint_t dst, uint_t count, uint_t dirCode)
+    : Forward(0xb0 == dirCode)
+    , Backward(0xb8 == dirCode)
+    , Source(src)
+    , Target(dst)
+    , Size(count)
+  {
+  }
+
+  bool IsValid() const
+  {
+    if (Forward)
+    {
+      //while (Size--) *Target++ = *Source++
+      return Source > Target &&
+        Source + Size <= 0x10000;
+    }
+    else if (Backward)
+    {
+      //while (Size--) *Target-- = Source--
+      return Source < Target &&
+        Source >= Size;
+    }
+    else
+    {
+      return false;
+    }
+  }
+
+  uint_t FirstOfMovedData() const
+  {
+    assert(Forward != Backward);
+    return Forward
+      ? Target
+      : Target - Size + 1;
+  }
+
+  uint_t LastOfMovedData() const
+  {
+    assert(Forward != Backward);
+    return Backward
+      ? Target
+      : Target + Size - 1;
+  }
+private:
+  const bool Forward;
+  const bool Backward;
+  const uint_t Source;
+  const uint_t Target;
+  const uint_t Size;
+};
 
 #endif //__CORE_PLUGINS_ARCHIVES_PACK_UTILS_H_DEFINED__
