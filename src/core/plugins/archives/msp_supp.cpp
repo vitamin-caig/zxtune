@@ -41,7 +41,7 @@ namespace
   const DataPrefix DEPACKERS[] =
   {
     {
-      "f3"      // di
+      "?"       // di/nop
       "ed73??"  // ld (xxxx),sp
       "d9"      // exx
       "22??"    // ld (xxxx),hl

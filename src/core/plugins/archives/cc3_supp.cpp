@@ -148,11 +148,27 @@ namespace CodeCruncher3
   PACK_PRE struct FormatHeader
   {
     //+0
-    uint8_t Padding1[0x17];
+    uint8_t Padding1[0x11];
+    //+0x11
+    uint16_t PackedSource;
+    //+0x13
+    uint8_t Padding2;
+    //+0x14
+    uint16_t PackedTarget;
+    //+0x16
+    uint8_t Padding3;
     //+0x17
     uint16_t SizeOfPacked;
     //+0x19
-    uint8_t Padding2[0x80];
+    uint8_t Padding4[2];
+    //+0x1b
+    uint8_t PackedDataCopyDirection;
+    //+0x1c
+    uint8_t Padding5;
+    //+0x1d
+    uint16_t FirstOfPacked;
+    //+0x1f
+    uint8_t Padding6[0x7a];
     //+0x99
     uint8_t Data[1];
   } PACK_POST;
@@ -179,6 +195,16 @@ namespace CodeCruncher3
     bool FastCheck() const
     {
       if (Size < sizeof(FormatHeader))
+      {
+        return false;
+      }
+      const FormatHeader& header = GetHeader();
+      const DataMovementChecker checker(fromLE(header.PackedSource), fromLE(header.PackedTarget), fromLE(header.SizeOfPacked), header.PackedDataCopyDirection);
+      if (!checker.IsValid())
+      {
+        return false;
+      }
+      if (checker.FirstOfMovedData() != fromLE(header.FirstOfPacked))
       {
         return false;
       }

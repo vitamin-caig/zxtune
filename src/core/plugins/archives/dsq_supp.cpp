@@ -52,14 +52,13 @@ namespace DataSquieezer
     "d5"        // push de
     "01??"      // ld bc,xxxx ;rest depacker size
     "edb0"      // ldir
-    "11??"      // ld de,xxxx ;addr
-    "21??"      // ld hl,xxxx ;packed data start
-//packed size. word parameter. offset=0x13
-    "01??"      // ld bc,xxxx ;packed size
+    "11??"      // ld de,xxxx (data = +0x0d) ;addr
+    "21??"      // ld hl,xxxx (data = +0x10) ;packed data start
+    "01??"      // ld bc,xxxx (data = +0x13) ;packed size
     "c9"        // ret
-    "edb0"      // ldir
+    "ed?"       // ldir/lddr  (data = +0x17)
     "010801"    // ld bc,#108 ;b- counter of bits, c=8
-    "21??"      // ld hl,xxxx ;last packed byte
+    "21??"      // ld hl,xxxx (data = +0x1c) ;last packed byte
     "d9"        // exx
     "e5"        // push hl
 //last depacked. word parameter. offset=0x21
@@ -161,23 +160,40 @@ namespace DataSquieezer
 #endif
   PACK_PRE struct FormatHeader
   {
-    uint8_t Padding1[0x13];
+    //+0
+    uint8_t Padding1[0x0d];
+    //+0x0d
+    uint16_t PackedTarget;
+    //+0x0f
+    uint8_t Padding2;
+    //+0x10
+    uint16_t PackedSource;
+    //+0x12
+    uint8_t Padding3;
     //+0x13
     uint16_t SizeOfPacked;
     //+0x15
-    uint8_t Padding2[0x0c];
+    uint8_t Padding4[2];
+    //+0x17
+    uint8_t PackedDataCopyDirection;
+    //+0x18
+    uint8_t Padding5[0x04];
+    //+0x1c
+    uint16_t LastOfPacked;
+    //+0x1e
+    uint8_t Padding6[0x3];
     //+0x21
-    uint16_t DstRbegin;
+    uint16_t LastOfDepacked;
     //+0x23
-    uint8_t Padding3[0x5f];
+    uint8_t Padding7[0x5f];
     //+0x82
     uint8_t LongOffsetBits;
     //+0x83
-    uint8_t Padding4[0xb];
+    uint8_t Padding8[0xb];
     //+0x8e
-    uint16_t DstRend;
+    uint16_t DepackedLimit; //+1 for real first
     //+0x90
-    uint8_t Padding5[0x20];
+    uint8_t Padding9[0x20];
     //+0xb0
     uint8_t Data[1];
   } PACK_POST;
@@ -247,13 +263,30 @@ namespace DataSquieezer
       {
         return false;
       }
+      const FormatHeader& header = GetHeader();
+      if (!in_range<uint_t>(header.LongOffsetBits, 0x00, 0x10))
+      {
+        return false;
+      }
+      if (fromLE(header.LastOfDepacked) < fromLE(header.DepackedLimit))
+      {
+        return false;
+      }
+      const DataMovementChecker checker(fromLE(header.PackedSource), fromLE(header.PackedTarget), fromLE(header.SizeOfPacked), header.PackedDataCopyDirection);
+      if (!checker.IsValid())
+      {
+        return false;
+      }
+      if (checker.LastOfMovedData() != fromLE(header.LastOfPacked))
+      {
+        return false;
+      }
       const uint_t usedSize = GetUsedSize();
       if (Size < usedSize)
       {
         return false;
       }
-      const FormatHeader& header = GetHeader();
-      return fromLE(header.DstRend) < fromLE(header.DstRbegin) && header.LongOffsetBits <= 16;
+      return true;
     }
 
     bool FullCheck() const
@@ -302,7 +335,7 @@ namespace DataSquieezer
   private:
     bool DecodeData()
     {
-      const uint_t unpackedSize = fromLE(Header.DstRbegin) - fromLE(Header.DstRend);
+      const uint_t unpackedSize = fromLE(Header.LastOfDepacked) - fromLE(Header.DepackedLimit);
       Decoded.reserve(unpackedSize);
       while (!Stream.Eof() &&
              Decoded.size() < unpackedSize)

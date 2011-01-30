@@ -36,7 +36,7 @@ namespace
 
   //checkers
   const std::string HRUM_DEPACKER =
-      "f3"      // di
+      "?"       // di/nop
       "ed73??"  // ld (xxxx),sp
       "21??"    // ld hl,xxxx   start+0x1f
       "11??"    // ld de,xxxx   tmp buffer
@@ -49,6 +49,7 @@ namespace
       "11??"    // ld de,xxxx   last byte of dst packed (data = +0x19)
       "01??"    // ld bc,xxxx   size of packed          (data = +0x1c)
       "c9"      // ret
+      "ed?"     // lddr/ldir
   ;
 
 #ifdef USE_PRAGMA_PACK
@@ -61,24 +62,28 @@ namespace
     //+0x12
     uint16_t DepackAddress;
     //+0x14
-    uint8_t Padding2[5];
-    //+0x19
-    uint16_t DstPacked;
-    //+0x1b
+    uint8_t Padding2[2];
+    //+0x16
+    uint16_t PackedSource;
+    //+0x18
     uint8_t Padding3;
+    //+0x19
+    uint16_t PackedTarget;
+    //+0x1b
+    uint8_t Padding4;
     //+0x1c
     uint16_t SizeOfPacked;
     //+0x1e
-    uint8_t Padding4[2];
+    uint8_t Padding5[2];
     //+0x20
     uint8_t PackedCopyDirection;
     //+0x21
-    uint8_t Padding5[0x70];
+    uint8_t Padding6[0x70];
     //+0x91
     uint8_t LastBytes[5];
     //+0x96 taken from stack to initialize variables, always 0x1010
     //packed data starts from here
-    uint8_t Padding6[2];
+    uint8_t Padding7[2];
     //+0x98
     uint8_t BitStream[2];
     //+0x9a
@@ -123,12 +128,12 @@ namespace
   {
     if (header.PackedCopyDirection == 0xb8)//lddr
     {
-      return fromLE(header.DstPacked) + 1 - fromLE(header.DepackAddress);
+      return fromLE(header.PackedTarget) + 1 - fromLE(header.DepackAddress);
     }
     else //ldir
     {
       assert(header.PackedCopyDirection == 0xb0);
-      return fromLE(header.DstPacked) + fromLE(header.SizeOfPacked) - fromLE(header.DepackAddress);
+      return fromLE(header.PackedTarget) + fromLE(header.SizeOfPacked) - fromLE(header.DepackAddress);
     }
   }
 
@@ -142,7 +147,7 @@ namespace
     {
     case 0xb8:
     case 0xb0:
-      if (fromLE(header->DstPacked) <= fromLE(header->DepackAddress))
+      if (fromLE(header->PackedTarget) <= fromLE(header->DepackAddress))
       {
         return false;
       }

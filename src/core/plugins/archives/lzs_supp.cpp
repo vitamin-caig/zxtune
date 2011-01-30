@@ -48,7 +48,7 @@ namespace
       "01??"    // ld bc,xxxx ;size of packed. at +x1b
       "c9"      // ret
       //+1e
-      "edb8"    // lddr
+      "ed?"     // lddr/ldir
       "21??"    // ld hl,xxxx
       "11??"    // ld de,xxxx
       "06?"     // ld b,xx (0)

@@ -100,6 +100,9 @@ public:
 
   bool IsValid() const
   {
+    return Forward || Backward;
+    //do not check other due to overlap possibility
+    /*
     if (Forward)
     {
       //while (Size--) *Target++ = *Source++
@@ -116,6 +119,7 @@ public:
     {
       return false;
     }
+    */
   }
 
   uint_t FirstOfMovedData() const
@@ -123,7 +127,7 @@ public:
     assert(Forward != Backward);
     return Forward
       ? Target
-      : Target - Size + 1;
+      : (Target - Size + 1) & 0xffff;
   }
 
   uint_t LastOfMovedData() const
@@ -131,7 +135,7 @@ public:
     assert(Forward != Backward);
     return Backward
       ? Target
-      : Target + Size - 1;
+      : (Target + Size - 1) & 0xffff;
   }
 private:
   const bool Forward;
