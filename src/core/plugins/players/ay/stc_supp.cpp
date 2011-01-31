@@ -552,6 +552,7 @@ namespace
       AYMPatternCursors cursors;
       std::transform(pattern.Offsets.begin(), pattern.Offsets.end(), cursors.begin(), &fromLE<uint16_t>);
       dst.reserve(MAX_PATTERN_SIZE);
+      uint_t& channelACursor = cursors.front().Offset;
       do
       {
         const uint_t curPatternSize = dst.size();
@@ -566,8 +567,9 @@ namespace
           dst.resize(dst.size() + linesToSkip);//add dummies
         }
       }
-      while (0xff != data[cursors.front().Offset] ||
-             0 != cursors.front().Counter);
+      while (channelACursor < data.Size() &&
+             (0xff != data[channelACursor] ||
+             0 != cursors.front().Counter));
       Log::Assert(warner, 0 == cursors.GetMaxCounter(), Text::WARNING_PERIODS);
       Log::Assert(warner, dst.size() <= MAX_PATTERN_SIZE, Text::WARNING_INVALID_PATTERN_SIZE);
       const uint_t maxOffset = 1 + cursors.GetMaxOffset();
