@@ -706,6 +706,10 @@ namespace
           Data->Positions.push_back(*curPos / 3);
         }
       }
+      if (Data->Positions.empty())
+      {
+        throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
+      }
       Log::Assert(*warner, header->Length == Data->Positions.size(), Text::WARNING_INVALID_LENGTH);
       Data->LoopPosition = header->Loop;
       Data->InitialTempo = header->Tempo;

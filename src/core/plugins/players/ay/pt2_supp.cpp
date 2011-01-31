@@ -347,6 +347,10 @@ namespace
         Log::ParamPrefixedCollector channelWarner(warner, Text::CHANNEL_WARN_PREFIX, std::distance(line.Channels.begin(), channel));
         for (;;)
         {
+          if (data.Size() <= cur->Offset)
+          {
+            throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
+          }
           const uint_t cmd(data[cur->Offset++]);
           const std::size_t restbytes = data.Size() - cur->Offset;
           if (cmd >= 0xe1) //sample

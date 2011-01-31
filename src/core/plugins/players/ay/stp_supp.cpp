@@ -496,6 +496,10 @@ namespace
           warner.AddMessage(Text::WARNING_INVALID_POSITIONS);
         }
       }
+      if (Positions.empty())
+      {
+        throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
+      }
       Log::Assert(warner, Positions.size() == positionsCount, Text::WARNING_INVALID_POSITIONS);
       return areas.GetPositionsLimit();
     }
@@ -573,6 +577,10 @@ namespace
 
       for (;;)
       {
+        if (data.Size() <= cur.Offset)
+        {
+          throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
+        }
         const uint_t cmd = data[cur.Offset++];
         const std::size_t restbytes = data.Size() - cur.Offset;
         if (cmd >= 1 && cmd <= 0x60)//note
