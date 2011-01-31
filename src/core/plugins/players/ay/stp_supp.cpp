@@ -533,10 +533,6 @@ namespace
       do
       {
         const uint_t curPatternSize = dst.size();
-        if (curPatternSize > MAX_PATTERN_SIZE)
-        {
-          throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
-        }
         Log::ParamPrefixedCollector lineWarner(warner, Text::LINE_WARN_PREFIX, curPatternSize);
         dst.push_back(STPTrack::Line());
         STPTrack::Line& line = dst.back();
@@ -985,8 +981,13 @@ namespace
       }
       const STPOrnament* const ornament = safe_ptr_cast<const STPOrnament*>(data + offset);
       //may be empty
-      if (ornament->Size > MAX_ORNAMENT_SIZE || ornament->Loop > MAX_ORNAMENT_SIZE ||
-          (ornament->Size && !checker->AddRange(offset, ornament->GetSize())))
+      if (!ornament->Size)
+      {
+        continue;
+      }
+      if (ornament->Size > MAX_ORNAMENT_SIZE || 
+          ornament->Loop > MAX_ORNAMENT_SIZE || 
+          offset + ornament->GetSize() > limit)
       {
         return false;
       }
@@ -1006,8 +1007,13 @@ namespace
       }
       const STPSample* const sample = safe_ptr_cast<const STPSample*>(data + offset);
       //may be empty
-      if (sample->Size > MAX_SAMPLE_SIZE || sample->Loop > int_t(MAX_SAMPLE_SIZE) ||
-          (sample->Size && !checker->AddRange(offset, sample->GetSize())))
+      if (!sample->Size)
+      {
+        continue;
+      }
+      if (sample->Size > MAX_SAMPLE_SIZE || 
+          sample->Loop > int_t(MAX_SAMPLE_SIZE) ||
+          offset + sample->GetSize() > limit)
       {
         return false;
       }
