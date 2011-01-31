@@ -534,6 +534,7 @@ namespace
       AYMPatternCursors cursors;
       std::transform(pattern.Offsets.begin(), pattern.Offsets.end(), cursors.begin(), std::ptr_fun(&fromLE<uint16_t>));
       dst.reserve(MAX_PATTERN_SIZE);
+      uint_t& channelACursor = cursors.front().Offset;
       do
       {
         const uint_t curPatternSize = dst.size();
@@ -548,8 +549,8 @@ namespace
           dst.resize(dst.size() + linesToSkip);//add dummies
         }
       }
-      while (0x00 != data[cursors.front().Offset] ||
-             cursors.front().Counter);
+      while (channelACursor < data.Size() &&
+             (0 != data[channelACursor] || 0 != cursors.front().Counter));
       Log::Assert(warner, 0 == cursors.GetMaxCounter(), Text::WARNING_PERIODS);
       Log::Assert(warner, dst.size() <= MAX_PATTERN_SIZE, Text::WARNING_INVALID_PATTERN_SIZE);
       const uint_t maxOffset = 1 + cursors.GetMaxOffset();
@@ -575,14 +576,10 @@ namespace
         return;//has to skip
       }
 
-      for (;;)
+      for (const std::size_t dataSize = data.Size(); cur.Offset < dataSize;)
       {
-        if (data.Size() <= cur.Offset)
-        {
-          throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
-        }
         const uint_t cmd = data[cur.Offset++];
-        const std::size_t restbytes = data.Size() - cur.Offset;
+        const std::size_t restbytes = dataSize - cur.Offset;
         if (cmd >= 1 && cmd <= 0x60)//note
         {
           channel.SetNote(cmd - 1, warner);

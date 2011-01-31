@@ -427,10 +427,10 @@ namespace
         const uint_t idx = std::distance(line.Channels.begin(), channel);
         Log::ParamPrefixedCollector channelWarner(warner, Text::CHANNEL_WARN_PREFIX, idx);
         bool continueSample = false;
-        for (;;)
+        for (const std::size_t dataSize = data.Size(); cur->Offset < dataSize;)
         {
           const uint_t cmd = data[cur->Offset++];
-          const std::size_t restbytes = data.Size() - cur->Offset;
+          const std::size_t restbytes = dataSize - cur->Offset;
           if (cmd <= 0x55)//note
           {
             if (!continueSample)
@@ -665,13 +665,10 @@ namespace
           boost::bind(std::plus<uint_t>(), patternsOff, boost::bind(&fromLE<uint16_t>, _1)));
         uint_t envelopes = 0;
         pat.reserve(MAX_PATTERN_SIZE);
+        uint_t& channelACursor = cursors.front().Offset;
         do
         {
           const uint_t patternSize = pat.size();
-          if (patternSize > MAX_PATTERN_SIZE)
-          {
-            throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
-          }
           Log::ParamPrefixedCollector patLineWarner(patternWarner, Text::LINE_WARN_PREFIX, patternSize);
           pat.push_back(ASCTrack::Line());
           ASCTrack::Line& line(pat.back());
@@ -683,7 +680,8 @@ namespace
             pat.resize(pat.size() + linesToSkip);//add dummies
           }
         }
-        while (0xff != data[cursors.front().Offset] || cursors.front().Counter);
+        while (channelACursor < data.Size() &&
+          (0xff != data[channelACursor] || 0 != cursors.front().Counter));
         //as warnings
         Log::Assert(patternWarner, 0 == cursors.GetMaxCounter(), Text::WARNING_PERIODS);
         Log::Assert(patternWarner, pat.size() <= MAX_PATTERN_SIZE, Text::WARNING_INVALID_PATTERN_SIZE);

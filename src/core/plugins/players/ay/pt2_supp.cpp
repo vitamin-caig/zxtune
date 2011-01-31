@@ -348,7 +348,7 @@ namespace
         for (const std::size_t dataSize = data.Size(); cur->Offset < dataSize;)
         {
           const uint_t cmd(data[cur->Offset++]);
-          const std::size_t restbytes = data.Size() - cur->Offset;
+          const std::size_t restbytes = dataSize - cur->Offset;
           if (cmd >= 0xe1) //sample
           {
             const uint_t num = cmd - 0xe0;
