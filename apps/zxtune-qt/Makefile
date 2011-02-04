@@ -46,18 +46,22 @@ ifeq ($(platform),dingux)
 qt_libraries += Network
 endif
 
+theme_resources = res/theme_$(gui_theme)
+
 #packaging
 pkg_additional_files := ../zxtune.conf
-pkg_additional_files_linux := dist/linux/zxTune.desktop res/zxtune.png
+pkg_additional_files_linux := dist/linux/zxTune.desktop $(theme_resources)/zxtune.png
 pkg_additional_files_dingux := $(wildcard dist/dingux/dmenu/*) $(wildcard dist/dingux/gmenu/*) $(wildcard dist/dingux/fonts/*) \
-                               dist/dingux/zxtune-wrapper.sh dist/dingux/readme.txt res/zxtune32.png
+                               dist/dingux/zxtune-wrapper.sh dist/dingux/readme.txt $(theme_resources)/zxtune32.png
 
 #qt-based resources
-qrc_files := res/icons
+qrc_files := res/icons $(theme_resources)/theme
 
 #platform-specific resources
 windows_resources := res/zxtune-qt
 mingw_resources := res/zxtune-qt
+
+defines += GUI_THEME=$(gui_theme)
 
 include $(path_step)/makefile.mak
 include $(path_step)/make/package.mak
@@ -66,4 +70,4 @@ install:
 	install -D $(target) $(DESTDIR)/usr/bin/$(binary_name)
 	install -m644 -D ../zxtune.conf $(DESTDIR)/usr/share/zxtune/zxtune.conf
 	install -m644 -D dist/linux/zxTune.desktop $(DESTDIR)/usr/share/applications/zxTune.desktop
-	install -m644 -D res/zxtune.png $(DESTDIR)/usr/share/icons/zxtune.png
+	install -m644 -D $(theme_resources)/zxtune.png $(DESTDIR)/usr/share/icons/zxtune.png

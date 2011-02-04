@@ -1,6 +1,6 @@
-IDI_ICON1	ICON	DISCARDABLE	"zxtune.ico"
-
-#include <windows.h>
+#ifndef GUI_THEME
+#define GUI_THEME default
+#endif
 
 #ifndef ZXTUNE_VERSION
 #define ZXTUNE_VERSION develop
@@ -14,6 +14,10 @@ IDI_ICON1	ICON	DISCARDABLE	"zxtune.ico"
 
 #define TOSTRING(a) #a
 #define STR(a) TOSTRING(a)
+
+IDI_ICON1	ICON	DISCARDABLE	"theme_" STR(GUI_THEME) "/zxtune.ico"
+
+#include <windows.h>
 
 1 VERSIONINFO
 #ifndef NDEBUG

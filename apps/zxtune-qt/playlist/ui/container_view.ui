@@ -108,7 +108,8 @@
    </property>
    <property name="icon">
     <iconset>
-     <normalon>:/playlist/looped.png</normalon>
+     <normalon>:/playlist/looped_on.png</normalon>
+     <normaloff>:/playlist/looped_off.png</normaloff>
     </iconset>
    </property>
    <property name="text">
@@ -121,7 +122,8 @@
    </property>
    <property name="icon">
     <iconset>
-     <normalon>:/playlist/random.png</normalon>
+     <normalon>:/playlist/random_on.png</normalon>
+     <normaloff>:/playlist/random_off.png</normaloff>
     </iconset>
    </property>
    <property name="text">
