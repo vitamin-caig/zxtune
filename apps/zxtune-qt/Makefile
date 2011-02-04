@@ -1,5 +1,6 @@
 binary_name := zxtune-qt
 path_step := ../..
+include $(path_step)/make/default.mak
 
 source_files = qt_app \
                ui/format \
@@ -61,7 +62,7 @@ qrc_files := res/icons $(theme_resources)/theme
 windows_resources := res/zxtune-qt
 mingw_resources := res/zxtune-qt
 
-defines += GUI_THEME=$(gui_theme)
+$(platform)_definitions += GUI_THEME=$(gui_theme)
 
 include $(path_step)/makefile.mak
 include $(path_step)/make/package.mak

@@ -14,8 +14,12 @@
 
 #define TOSTRING(a) #a
 #define STR(a) TOSTRING(a)
+#define STRCAT(a, b) a##b
+#define DIRPATH(a, b) a/b
 
-IDI_ICON1	ICON	DISCARDABLE	"theme_" STR(GUI_THEME) "/zxtune.ico"
+#define APPLICATION_ICON(STYLE) DIRPATH(STRCAT(theme_, STYLE), zxtune.ico)
+
+IDI_ICON1	ICON	DISCARDABLE	STR(APPLICATION_ICON(GUI_THEME))
 
 #include <windows.h>
 
