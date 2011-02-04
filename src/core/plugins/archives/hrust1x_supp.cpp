@@ -397,7 +397,7 @@ namespace
     }
 
     virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Accessor& parameters,
-      const MetaContainer& input, ModuleRegion& region) const
+      const IO::DataContainer& input, ModuleRegion& region) const
     {
       return ExtractSubdataFromData(*this, parameters, input, region);
     }
@@ -414,17 +414,13 @@ namespace
     }
 
     virtual IO::DataContainer::Ptr TryToExtractSubdata(const Parameters::Accessor& /*parameters*/,
-      const MetaContainer& container, ModuleRegion& region) const
+      const IO::DataContainer& data, std::size_t& packedSize) const
     {
-      const IO::DataContainer& inputData = *container.Data;
-      const uint8_t* const data = static_cast<const uint8_t*>(inputData.Data());
-      const std::size_t limit = inputData.Size();
-
-      const Hrust1Data hrustData(data + region.Offset, limit - region.Offset);
+      const Hrust1Data hrustData(static_cast<const uint8_t*>(data.Data()), data.Size());
       Dump res;
       if (hrustData.Decode(res))
       {
-        region.Size = hrustData.PackedSize();
+        packedSize = hrustData.PackedSize();
         return IO::CreateDataContainer(res);
       }
       return IO::DataContainer::Ptr();

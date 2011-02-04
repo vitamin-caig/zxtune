@@ -291,9 +291,9 @@ namespace
     }
 
     virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Accessor& parameters,
-      const MetaContainer& input, ModuleRegion& region) const
+      const IO::DataContainer& data, ModuleRegion& region) const
     {
-      return ExtractSubdataFromData(*this, parameters, input, region);
+      return ExtractSubdataFromData(*this, parameters, data, region);
     }
   private:
     virtual bool CheckData(const uint8_t* data, std::size_t size) const
@@ -308,17 +308,13 @@ namespace
     }
 
     virtual IO::DataContainer::Ptr TryToExtractSubdata(const Parameters::Accessor& /*parameters*/,
-      const MetaContainer& container, ModuleRegion& region) const
+      const IO::DataContainer& data, std::size_t& packedSize) const
     {
-      const IO::DataContainer& inputData = *container.Data;
-      const uint8_t* const data = static_cast<const uint8_t*>(inputData.Data());
-      const std::size_t limit = inputData.Size();
-
-      const MSPData mspData(data + region.Offset, limit - region.Offset);
+      const MSPData mspData(static_cast<const uint8_t*>(data.Data()), data.Size());
       Dump res;
       if (mspData.Decode(res))
       {
-        region.Size = mspData.PackedSize();
+        packedSize = mspData.PackedSize();
         return IO::CreateDataContainer(res);
       }
       return IO::DataContainer::Ptr();

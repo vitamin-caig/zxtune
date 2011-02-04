@@ -384,14 +384,14 @@ namespace
     }
 
     virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Accessor& /*parameters*/,
-      const MetaContainer& input, ModuleRegion& region) const
+      const IO::DataContainer& data, ModuleRegion& region) const
     {
-      const IO::DataContainer& inputData = *input.Data;
-      const CodeCruncher3::Container container(inputData.Data(), inputData.Size());
+      const CodeCruncher3::Container container(data.Data(), data.Size());
       assert(container.FullCheck());
       CodeCruncher3::Decoder decoder(container);
       if (const Dump* res = decoder.GetDecodedData())
       {
+        region.Offset = 0;
         region.Size = container.GetUsedSize();
         return IO::CreateDataContainer(*res);
       }

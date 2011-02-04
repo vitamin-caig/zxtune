@@ -114,7 +114,7 @@ namespace ZXTune
     //! @param region Reference to result region subdata is extracted from
     //! @return Not empty pointer if data is extracted, empty elsewhere
     virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Accessor& parameters,
-                                                  const MetaContainer& inputData,
+                                                  const IO::DataContainer& inputData,
                                                   ModuleRegion& region) const = 0;
   };
 

@@ -106,17 +106,16 @@ namespace
     }
 
     virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Accessor& /*commonParams*/,
-      const MetaContainer& input, ModuleRegion& region) const
+      const IO::DataContainer& data, ModuleRegion& region) const
     {
-      const IO::DataContainer& inputData = *input.Data;
-      assert(CheckHobeta(inputData));
+      assert(CheckHobeta(data));
 
-      const Header* const header = safe_ptr_cast<const Header*>(inputData.Data());
+      const Header* const header = safe_ptr_cast<const Header*>(data.Data());
       const std::size_t dataSize = fromLE(header->Length);
       const std::size_t fullSize = fromLE(header->FullLength);
       region.Offset = 0;
       region.Size = fullSize + sizeof(*header);
-      return inputData.GetSubcontainer(sizeof(*header), dataSize);
+      return data.GetSubcontainer(sizeof(*header), dataSize);
     }
   };
 }

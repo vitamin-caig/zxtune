@@ -462,14 +462,14 @@ namespace
     }
 
     virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Accessor& /*commonParams*/,
-      const MetaContainer& input, ModuleRegion& region) const
+      const IO::DataContainer& data, ModuleRegion& region) const
     {
-      const IO::DataContainer& inputData = *input.Data;
-      const DataSquieezer::Container container(inputData.Data(), inputData.Size());
+      const DataSquieezer::Container container(data.Data(), data.Size());
       assert(container.FullCheck());
       DataSquieezer::Decoder decoder(container);
       if (const Dump* res = decoder.GetDecodedData())
       {
+        region.Offset = 0;
         region.Size = container.GetUsedSize();
         return IO::CreateDataContainer(*res);
       }

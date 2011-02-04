@@ -429,26 +429,27 @@ namespace
     }
 
     virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Accessor& /*parameters*/,
-      const MetaContainer& input, ModuleRegion& region) const
+      const IO::DataContainer& data, ModuleRegion& region) const
     {
-      const IO::DataContainer& inputData = *input.Data;
       {
-        const PowerfullCodeDecreaser::Container<PowerfullCodeDecreaser::Version61> container61(inputData.Data(), inputData.Size());
+        const PowerfullCodeDecreaser::Container<PowerfullCodeDecreaser::Version61> container61(data.Data(), data.Size());
         if (container61.FastCheck())
         {
           PowerfullCodeDecreaser::Decoder<PowerfullCodeDecreaser::Version61> decoder61(container61);
           if (const Dump* res = decoder61.GetDecodedData())
           {
+            region.Offset = 0;
             region.Size = container61.GetUsedSize();
             return IO::CreateDataContainer(*res);
           }
         }
       }
       {
-        const PowerfullCodeDecreaser::Container<PowerfullCodeDecreaser::Version62> container62(inputData.Data(), inputData.Size());
+        const PowerfullCodeDecreaser::Container<PowerfullCodeDecreaser::Version62> container62(data.Data(), data.Size());
         PowerfullCodeDecreaser::Decoder<PowerfullCodeDecreaser::Version62> decoder62(container62);
         if (const Dump* res = decoder62.GetDecodedData())
         {
+          region.Offset = 0;
           region.Size = container62.GetUsedSize();
           return IO::CreateDataContainer(*res);
         }

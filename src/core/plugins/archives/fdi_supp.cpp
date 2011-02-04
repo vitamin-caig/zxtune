@@ -188,13 +188,12 @@ namespace
     }
 
     virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Accessor& /*commonParams*/,
-      const MetaContainer& input, ModuleRegion& region) const
+      const IO::DataContainer& data, ModuleRegion& region) const
     {
-      const IO::DataContainer& inputData = *input.Data;
-      assert(CheckFDI(inputData));
+      assert(CheckFDI(data));
 
-      const uint8_t* const data = static_cast<const uint8_t*>(inputData.Data());
-      const FDIHeader* const header = safe_ptr_cast<const FDIHeader*>(data);
+      const uint8_t* const rawData = static_cast<const uint8_t*>(data.Data());
+      const FDIHeader* const header = safe_ptr_cast<const FDIHeader*>(rawData);
       const std::size_t dataOffset = fromLE(header->DataOffset);
       const uint_t cylinders = fromLE(header->Cylinders);
       const uint_t sides = fromLE(header->Sides);
@@ -207,7 +206,7 @@ namespace
       {
         for (uint_t sid = 0; sid != sides; ++sid)
         {
-          const FDITrack* const trackInfo = safe_ptr_cast<const FDITrack*>(data + trackInfoOffset);
+          const FDITrack* const trackInfo = safe_ptr_cast<const FDITrack*>(rawData + trackInfoOffset);
           typedef std::vector<SectorDescr> SectorDescrs;
           //collect sectors reference
           SectorDescrs sectors;
@@ -217,7 +216,7 @@ namespace
             const FDITrack::Sector* const sector = trackInfo->Sectors + secNum;
             const std::size_t secSize = 128 << sector->Size;
             const std::size_t offset = dataOffset + fromLE(sector->Offset) + fromLE(trackInfo->Offset);
-            sectors.push_back(SectorDescr(sector->Number, data + offset, data + offset + secSize));
+            sectors.push_back(SectorDescr(sector->Number, rawData + offset, rawData + offset + secSize));
             rawSize = std::max(rawSize, offset + secSize);
           }
 

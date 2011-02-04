@@ -170,11 +170,10 @@ namespace
     }
 
     virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Accessor& /*commonParams*/,
-      const MetaContainer& input, ModuleRegion& region) const
+      const IO::DataContainer& data, ModuleRegion& region) const
     {
-      const IO::DataContainer& inputData = *input.Data;
-      const Hrust21Header* const header = static_cast<const Hrust21Header*>(inputData.Data());
-      assert(CheckHrust2(header, inputData.Size()));
+      const Hrust21Header* const header = static_cast<const Hrust21Header*>(data.Data());
+      assert(CheckHrust2(header, data.Size()));
 
       Dump res;
       //only check without depacker- depackers are separate

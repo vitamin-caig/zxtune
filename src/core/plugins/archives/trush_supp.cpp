@@ -243,16 +243,14 @@ namespace
     }
 
     virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Accessor& /*parameters*/,
-      const MetaContainer& input, ModuleRegion& region) const
+      const IO::DataContainer& data, ModuleRegion& region) const
     {
-      const IO::DataContainer& inputData = *input.Data;
-      const uint8_t* const data = static_cast<const uint8_t*>(inputData.Data());
-      const std::size_t size = inputData.Size();
-      const TRUSHData trushData(data, size);
+      const TRUSHData trushData(static_cast<const uint8_t*>(data.Data()), data.Size());
       assert(trushData.IsValid());
       Dump res;
       if (trushData.Decode(res))
       {
+        region.Offset = 0;
         region.Size = trushData.PackedSize();
         return IO::CreateDataContainer(res);
       }

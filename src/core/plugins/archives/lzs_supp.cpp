@@ -269,16 +269,14 @@ namespace
     }
 
     virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Accessor& /*parameters*/,
-      const MetaContainer& input, ModuleRegion& region) const
+      const IO::DataContainer& data, ModuleRegion& region) const
     {
-      const IO::DataContainer& inputData = *input.Data;
-      const uint8_t* const data = static_cast<const uint8_t*>(inputData.Data());
-      const std::size_t size = inputData.Size();
-      const LZSData lzsData(data, size);
+      const LZSData lzsData(static_cast<const uint8_t*>(data.Data()), data.Size());
       assert(lzsData.IsValid());
       Dump res;
       if (lzsData.Decode(res))
       {
+        region.Offset = 0;
         region.Size = lzsData.PackedSize();
         return IO::CreateDataContainer(res);
       }

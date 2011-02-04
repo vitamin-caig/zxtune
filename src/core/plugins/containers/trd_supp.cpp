@@ -124,7 +124,9 @@ namespace
     }
     const CatEntry* catEntry = safe_ptr_cast<const CatEntry*>(data.Data());
     const RangeChecker::Ptr checker = RangeChecker::Create(TRD_MODULE_SIZE);
-    for (uint_t idx = 0; idx != MAX_FILES_COUNT && NOENTRY != catEntry->Name[0]; ++idx, ++catEntry)
+    checker->AddRange(0, SECTORS_IN_TRACK * BYTES_PER_SECTOR);
+    uint_t idx = 0;
+    for (; idx != MAX_FILES_COUNT && NOENTRY != catEntry->Name[0]; ++idx, ++catEntry)
     {
       if (!catEntry->SizeInSectors)
       {
@@ -137,7 +139,7 @@ namespace
         return false;
       }
     }
-    return true;
+    return idx > 0;
   }
 
   TRDos::FilesSet::Ptr ParseTRDFile(const IO::FastDump& data)

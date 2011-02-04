@@ -49,7 +49,7 @@ namespace ZXTune
   {
   public:
     virtual IO::DataContainer::Ptr TryToExtractSubdata(const Parameters::Accessor& parameters,
-      const MetaContainer& container, ModuleRegion& region) const = 0;
+      const IO::DataContainer& data, std::size_t& originalDataSize) const = 0;
   };
 
   bool CheckDataFormat(const DataDetector& detector, const IO::DataContainer& inputData);
@@ -58,7 +58,7 @@ namespace ZXTune
     Parameters::Accessor::Ptr parameters, const MetaContainer& container, ModuleRegion& region);
 
   IO::DataContainer::Ptr ExtractSubdataFromData(const ArchiveDetector& detector,
-    const Parameters::Accessor& parameters, const MetaContainer& container, ModuleRegion& region);
+    const Parameters::Accessor& parameters, const IO::DataContainer& data, ModuleRegion& region);
 }
 
 #endif //__CORE_PLUGINS_DETECT_HELPER_H_DEFINED__

@@ -297,16 +297,14 @@ namespace
     }
 
     virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Accessor& /*parameters*/,
-      const MetaContainer& input, ModuleRegion& region) const
+      const IO::DataContainer& data, ModuleRegion& region) const
     {
-      const IO::DataContainer& inputData = *input.Data;
-      const uint8_t* const data = static_cast<const uint8_t*>(inputData.Data());
-      const std::size_t size = inputData.Size();
-      const HrumData hrumData(data, size);
+      const HrumData hrumData(static_cast<const uint8_t*>(data.Data()), data.Size());
       assert(hrumData.IsValid());
       Dump res;
       if (hrumData.Decode(res))
       {
+        region.Offset = 0;
         region.Size = hrumData.PackedSize();
         return IO::CreateDataContainer(res);
       }

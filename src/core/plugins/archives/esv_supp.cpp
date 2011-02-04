@@ -453,14 +453,14 @@ namespace
     }
 
     virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Accessor& /*commonParams*/,
-      const MetaContainer& input, ModuleRegion& region) const
+      const IO::DataContainer& data, ModuleRegion& region) const
     {
-      const IO::DataContainer& inputData = *input.Data;
-      const ESVCruncher::Container container(inputData.Data(), inputData.Size());
+      const ESVCruncher::Container container(data.Data(), data.Size());
       assert(container.FullCheck());
       ESVCruncher::Decoder decoder(container);
       if (const Dump* res = decoder.GetDecodedData())
       {
+        region.Offset = 0;
         region.Size = container.GetUsedSize();
         return IO::CreateDataContainer(*res);
       }

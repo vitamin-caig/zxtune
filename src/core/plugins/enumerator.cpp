@@ -384,14 +384,15 @@ namespace
         {
           continue;//filtered plugin
         }
-        if (!plugin->Check(*input.Data))
+        const IO::DataContainer& dataContainer = *input.Data;
+        if (!plugin->Check(dataContainer))
         {
           continue;//invalid plugin
         }
         //find first suitable
         Log::Debug(THIS_MODULE, "%3%:  Checking archive %1% at path '%2%'",
           plugin->Id(), input.Path, input.Plugins->Count());
-        if (IO::DataContainer::Ptr subdata = plugin->ExtractSubdata(*modulesParams, input, region))
+        if (IO::DataContainer::Ptr subdata = plugin->ExtractSubdata(*modulesParams, dataContainer, region))
         {
           Log::Debug(THIS_MODULE, "%3%:  Detected at region (%1%;%2%)",
             region.Offset, region.Size, input.Plugins->Count());
@@ -466,12 +467,13 @@ namespace
         {
           continue;
         }
-        if (!plugin->Check(*data.Data))
+        const IO::DataContainer& dataContainer = *data.Data;
+        if (!plugin->Check(dataContainer))
         {
           continue;
         }
         ModuleRegion resRegion;
-        if (IO::DataContainer::Ptr subdata = plugin->ExtractSubdata(commonParams, data, resRegion))
+        if (IO::DataContainer::Ptr subdata = plugin->ExtractSubdata(commonParams, dataContainer, resRegion))
         {
           Log::Debug(THIS_MODULE, "Detected archive plugin %1%", plugin->Id());
           data.Path = IO::AppendPath(data.Path, pathComponent);
