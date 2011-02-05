@@ -4,7 +4,8 @@ include $(path_step)/make/default.mak
 
 source_files = qt_app \
                ui/format \
-               ui/tools/filedialog
+               ui/tools/filedialog \
+               ui/tools/errordialog
 
 #ui-related
 

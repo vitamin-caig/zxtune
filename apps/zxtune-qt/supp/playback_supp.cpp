@@ -15,16 +15,73 @@ Author:
 #include "playback_supp.h"
 #include "playlist/supp/data.h"
 #include "ui/utils.h"
+#include "ui/tools/errordialog.h"
 //common includes
 #include <error.h>
 #include <tools.h>
 //library includes
 #include <sound/backend.h>
+//boost inlcudes
+#include <boost/bind.hpp>
 //qt includes
 #include <QtCore/QMutex>
 
 namespace
 {
+  bool IsNullBackend(const ZXTune::Sound::BackendCreator& creator)
+  {
+    static const Char NULL_BACKEND_ID[] = {'n', 'u', 'l', 'l', 0};
+    return creator.Id() == NULL_BACKEND_ID;
+  }
+
+  void ShowErrors(const std::list<Error>& errors)
+  {
+    const QString title(PlaybackSupport::tr("<b>Error while initializing sound subsystem</b>"));
+    std::for_each(errors.begin(), errors.end(), boost::bind(&ShowErrorMessage, title, _1));
+  }
+
+  ZXTune::Sound::Backend::Ptr CreateBackend(Parameters::Accessor::Ptr params)
+  {
+    using namespace ZXTune;
+    //create backend
+    ZXTune::Sound::Backend::Ptr result;
+    std::list<Error> errors;
+    for (Sound::BackendCreator::Iterator::Ptr backends = Sound::EnumerateBackends();
+      backends->IsValid(); backends->Next())
+    {
+      const Sound::BackendCreator::Ptr creator = backends->Get();
+      if (IsNullBackend(*creator))
+      {
+        ShowErrors(errors);
+        return ZXTune::Sound::Backend::Ptr();
+      }
+      if (const Error& err = creator->CreateBackend(params, result))
+      {
+        errors.push_back(err);
+      }
+      else
+      {
+        break;
+      }
+    }
+    static const Sound::MultiGain MIXER3[] =
+    {
+      { {1.0, 0.0} },
+      { {0.5, 0.5} },
+      { {0.0, 1.0} }
+    };
+    static const Sound::MultiGain MIXER4[] =
+    {
+      { {1.0, 0.0} },
+      { {0.7, 0.3} },
+      { {0.3, 0.7} },
+      { {0.0, 1.0} }
+    };
+    result->SetMixer(std::vector<Sound::MultiGain>(MIXER3, ArrayEnd(MIXER3)));
+    result->SetMixer(std::vector<Sound::MultiGain>(MIXER4, ArrayEnd(MIXER4)));
+    return result;
+  }
+
   class PlaybackSupportImpl : public PlaybackSupport
   {
   public:
@@ -42,12 +99,15 @@ namespace
     virtual void SetItem(const Playlist::Item::Data& item)
     {
       OpenBackend();
-      Backend->SetModule(item.GetModule());
-      this->wait();
-      if (Player = Backend->GetPlayer())
+      if (Backend.get())
       {
-        Backend->Play();
-        this->start();
+        Backend->SetModule(item.GetModule());
+        this->wait();
+        if (Player = Backend->GetPlayer())
+        {
+          Backend->Play();
+          this->start();
+        }
       }
     }
 
@@ -144,35 +204,11 @@ namespace
       {
         return;
       }
-      using namespace ZXTune;
-      //create backend
+      Backend = CreateBackend(SoundOptions);
+      if (Backend.get())
       {
-        for (Sound::BackendCreator::Iterator::Ptr backends = Sound::EnumerateBackends();
-          backends->IsValid(); backends->Next())
-        {
-          if (!backends->Get()->CreateBackend(SoundOptions, Backend))
-          {
-            break;
-          }
-        }
-        assert(Backend.get());
-        static const Sound::MultiGain MIXER3[] =
-        {
-          { {1.0, 0.0} },
-          { {0.5, 0.5} },
-          { {0.0, 1.0} }
-        };
-        static const Sound::MultiGain MIXER4[] =
-        {
-          { {1.0, 0.0} },
-          { {0.7, 0.3} },
-          { {0.3, 0.7} },
-          { {0.0, 1.0} }
-        };
-        Backend->SetMixer(std::vector<Sound::MultiGain>(MIXER3, ArrayEnd(MIXER3)));
-        Backend->SetMixer(std::vector<Sound::MultiGain>(MIXER4, ArrayEnd(MIXER4)));
+        OnSetBackend(*Backend);
       }
-      OnSetBackend(*Backend);
     }
   private:
     const Parameters::Accessor::Ptr SoundOptions;
