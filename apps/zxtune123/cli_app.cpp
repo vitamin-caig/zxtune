@@ -115,12 +115,18 @@ namespace
         ConversionParameter.reset(new ZXTune::Module::Conversion::TXTConvertParam());
         CapabilityMask = ZXTune::CAP_CONV_TXT;
       }
+      else if (mode == Text::CONVERSION_MODE_DEBUGAY)
+      {
+        ConversionParameter.reset(new ZXTune::Module::Conversion::DebugAYConvertParam());
+        CapabilityMask = ZXTune::CAP_CONV_PSG | ZXTune::CAP_CONV_ZX50;
+      }
       else
       {
         throw Error(THIS_LINE, CONVERT_PARAMETERS, Text::CONVERT_ERROR_INVALID_MODE);
       }
       FileNameTemplate = StringTemplate::Create(nameTemplate);
     }
+
     bool ProcessItem(ZXTune::Module::Holder::Ptr holder) const
     {
       const ZXTune::Module::Information::Ptr info = holder->GetModuleInformation();

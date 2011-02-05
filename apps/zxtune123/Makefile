@@ -23,7 +23,7 @@ boost_libraries = thread program_options
 manual_format := txt
 manual_file = $(binary_name)_$(pkg_lang).$(manual_format)
 pkg_additional_files = ../zxtune.conf
-ifneq ($(USE_TEXTATOR),)
+ifeq ($(NO_TEXTATOR),)
 pkg_additional_files += $(output_dir)/$(manual_file)
 endif
 pkg_additional_files_dingux := $(wildcard dist/dingux/dmenu/*) $(wildcard dist/dingux/gmenu/*) dist/dingux/readme.txt dist/dingux/zxtune.png

@@ -59,6 +59,15 @@ namespace ZXTune
         {
         }
       };
+
+      //! @brief %Parameter for converting to debug stream output
+      struct DebugAYConvertParam : public Parameter
+      {
+        static const uint64_t TYPE_ID = ParamID7<'D', 'e', 'b', 'u', 'g', 'A', 'Y'>::Value;
+        DebugAYConvertParam() : Parameter(TYPE_ID)
+        {
+        }
+      };
     }
   }
 }

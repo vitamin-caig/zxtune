@@ -15,6 +15,10 @@ extern const Char MODULE_ERROR_CONVERSION_UNSUPPORTED[] = {
   'U','n','s','u','p','p','o','r','t','e','d',' ','c','o','n','v','e','r','s','i','o','n',' ','m','o','d','e',
   '.',0
 };
+extern const Char MODULE_ERROR_CONVERT_DEBUGAY[] = {
+  'F','a','i','l','e','d',' ','t','o',' ','c','o','n','v','e','r','t',' ','t','o',' ','D','e','b','u','g','A',
+  'Y',' ','f','o','r','m','a','t','.',0
+};
 extern const Char MODULE_ERROR_CONVERT_PSG[] = {
   'F','a','i','l','e','d',' ','t','o',' ','c','o','n','v','e','r','t',' ','t','o',' ','P','S','G',' ','f','o',
   'r','m','a','t','.',0

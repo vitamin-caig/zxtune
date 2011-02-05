@@ -48,6 +48,12 @@ namespace ZXTune
         chip = AYM::CreateZX50Dumper(tmp);
         errMsg = Text::MODULE_ERROR_CONVERT_ZX50;
       }
+      //convert to debugay
+      else if (parameter_cast<DebugAYConvertParam>(&param))
+      {
+        chip = AYM::CreateDebugDumper(tmp);
+        errMsg = Text::MODULE_ERROR_CONVERT_DEBUGAY;
+      }
 
       if (chip.get())
       {

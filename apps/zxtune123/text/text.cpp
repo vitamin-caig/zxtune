@@ -30,6 +30,9 @@ extern const Char CONFIG_DESC[] = {
 extern const Char CONFIG_KEY[] = {
   'c','o','n','f','i','g',0
 };
+extern const Char CONVERSION_MODE_DEBUGAY[] = {
+  'd','e','b','u','g','a','y',0
+};
 extern const Char CONVERSION_MODE_PSG[] = {
   'p','s','g',0
 };
