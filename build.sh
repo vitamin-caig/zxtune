@@ -52,7 +52,7 @@ cpus=`grep processor /proc/cpuinfo | wc -l`
 makecmd="make platform=${Platform} ${Mode}=1 arch=${Arch} -C apps"
 
 # checking for textator or assume that texts are correct
-textator --version > /dev/null 2>&1 && export USE_TEXTATOR=textator || echo "No textator used"
+textator --version > /dev/null 2>&1 || export NO_TEXTATOR=1 && echo "No textator used"
 
 # get current build and vesion
 echo "Updating"
