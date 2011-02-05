@@ -56,10 +56,10 @@ textator --version > /dev/null 2>&1 && export USE_TEXTATOR=textator || echo "No 
 
 # get current build and vesion
 echo "Updating"
-#svn up > /dev/null || (echo "Failed to update"; exit 1)
+svn up > /dev/null || (echo "Failed to update"; exit 1)
 
 echo "Clearing"
-#${makecmd} clean > /dev/null || exit 1
+${makecmd} clean > /dev/null || exit 1
 
 # adding additional platform properties if required
 case ${Arch} in

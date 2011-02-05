@@ -47,7 +47,7 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Sound;
 
-  const std::string THIS_MODULE("OSSBackend");
+  const std::string THIS_MODULE("Sound::Backend::OSS");
 
   const uint_t MAX_OSS_VOLUME = 100;
 
@@ -304,13 +304,15 @@ namespace
 
       BOOST_STATIC_ASSERT(1 == sizeof(Sample) || 2 == sizeof(Sample));
       int tmp(2 == sizeof(Sample) ? AFMT_S16_NE : AFMT_S8);
+      Log::Debug(THIS_MODULE, "Setting format to %1%", tmp);
       tmpDevice.CheckResult(-1 != ::ioctl(tmpDevice.Get(), SNDCTL_DSP_SETFMT, &tmp), THIS_LINE);
 
       tmp = OUTPUT_CHANNELS;
+      Log::Debug(THIS_MODULE, "Setting channels to %1%", tmp);
       tmpDevice.CheckResult(-1 != ::ioctl(tmpDevice.Get(), SNDCTL_DSP_CHANNELS, &tmp), THIS_LINE);
 
       tmp = Samplerate;
-      Log::Debug(THIS_MODULE, "Setting frequency to %1%", Samplerate);
+      Log::Debug(THIS_MODULE, "Setting frequency to %1%", tmp);
       tmpDevice.CheckResult(-1 != ::ioctl(tmpDevice.Get(), SNDCTL_DSP_SPEED, &tmp), THIS_LINE);
 
       DevHandle.Swap(tmpDevice);

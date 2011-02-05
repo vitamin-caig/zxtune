@@ -42,7 +42,7 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Sound;
 
-  const std::string THIS_MODULE("WavBackend");
+  const std::string THIS_MODULE("Sound::Backend::Wav");
 
   const Char WAV_BACKEND_ID[] = {'w', 'a', 'v', 0};
   const String WAV_BACKEND_VERSION(FromStdString("$Rev$"));

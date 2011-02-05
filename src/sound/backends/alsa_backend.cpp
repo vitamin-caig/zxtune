@@ -42,7 +42,7 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Sound;
 
-  const std::string THIS_MODULE("ALSABackend");
+  const std::string THIS_MODULE("Sound::Backend::ALSA");
 
   const Char ALSA_BACKEND_ID[] = {'a', 'l', 's', 'a', 0};
   const String ALSA_BACKEND_VERSION(FromStdString("$Rev$"));
@@ -197,6 +197,7 @@ namespace
           }
           else if (MixerName == mixName)
           {
+            Log::Debug(THIS_MODULE, "Found mixer: %1%", mixName);
             break;
           }
         }
@@ -348,7 +349,7 @@ namespace
 
     String GetMixerName() const
     {
-      Parameters::StringType strVal = Parameters::ZXTune::Sound::Backends::ALSA::DEVICE_DEFAULT;
+      Parameters::StringType strVal;
       Accessor.FindStringValue(Parameters::ZXTune::Sound::Backends::ALSA::MIXER, strVal);
       return strVal;
     }

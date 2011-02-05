@@ -40,7 +40,7 @@ namespace
 {
   using namespace ZXTune::Sound;
 
-  const std::string THIS_MODULE("SDL");
+  const std::string THIS_MODULE("Sound::Backend::SDL");
 
   const Char SDL_BACKEND_ID[] = {'s', 'd', 'l', 0};
   const String SDL_BACKEND_VERSION(FromStdString("$Rev$"));
