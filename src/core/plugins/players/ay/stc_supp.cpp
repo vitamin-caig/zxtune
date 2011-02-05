@@ -689,7 +689,7 @@ namespace
       const std::size_t maxLim = std::max(std::max(smpLim, ornLim), std::max(patLim, posLim));
       //fill region
       region.Size = std::min(data.Size(), maxLim);
-        
+
       RawData = region.Extract(*container.Data);
 
       //meta properties
@@ -766,13 +766,21 @@ namespace
     void SetTone(int_t halftones, int_t offset)
     {
       ChanSynth.SetTone(halftones + Transposition, offset);
-      ChanSynth.EnableTone();
+    }
+
+    void DisableTone()
+    {
+      ChanSynth.DisableTone();
     }
 
     void SetNoise(int_t level)
     {
       MainSynth.SetNoise(level);
-      ChanSynth.EnableNoise();
+    }
+
+    void DisableNoise()
+    {
+      ChanSynth.DisableNoise();
     }
 
   private:
@@ -850,10 +858,18 @@ namespace
       {
         synthesizer.SetTone(halftones, curSampleLine.Effect);
       }
+      else
+      {
+        synthesizer.DisableTone();
+      }
       //apply noise
       if (!curSampleLine.NoiseMask)
       {
         synthesizer.SetNoise(curSampleLine.Noise);
+      }
+      else
+      {
+        synthesizer.DisableNoise();
       }
     }
 

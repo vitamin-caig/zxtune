@@ -887,13 +887,19 @@ namespace
                                 Data->Transpositions[state.Position()] +
                                 (dst.Envelope ? 0 : curOrnament.GetLine(dst.PosInOrnament));
         chanSynth.SetTone(halftones, dst.TonSlide + curSampleLine.Vibrato);
-        chanSynth.EnableTone();
+      }
+      else
+      {
+        chanSynth.DisableTone();
       }
       //apply noise
       if (!curSampleLine.NoiseMask)
       {
         trackSynth.SetNoise(curSampleLine.Noise);
-        chanSynth.EnableNoise();
+      }
+      else
+      {
+        chanSynth.DisableNoise();
       }
 
       if (++dst.PosInOrnament >= curOrnament.GetSize())
@@ -990,8 +996,8 @@ namespace
       {
         continue;
       }
-      if (ornament->Size > MAX_ORNAMENT_SIZE || 
-          ornament->Loop > MAX_ORNAMENT_SIZE || 
+      if (ornament->Size > MAX_ORNAMENT_SIZE ||
+          ornament->Loop > MAX_ORNAMENT_SIZE ||
           offset + ornament->GetSize() > limit)
       {
         return false;
@@ -1016,7 +1022,7 @@ namespace
       {
         continue;
       }
-      if (sample->Size > MAX_SAMPLE_SIZE || 
+      if (sample->Size > MAX_SAMPLE_SIZE ||
           sample->Loop > int_t(MAX_SAMPLE_SIZE) ||
           offset + sample->GetSize() > limit)
       {

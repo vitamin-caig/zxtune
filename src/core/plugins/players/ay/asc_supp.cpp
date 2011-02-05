@@ -1017,9 +1017,9 @@ namespace
       dst.CurrentNoise += curOrnamentLine.NoiseAddon;
 
       //mixer
-      if (!curSampleLine.ToneMask)
+      if (curSampleLine.ToneMask)
       {
-        chanSynt.EnableTone();
+        chanSynt.DisableTone();
       }
       if (curSampleLine.NoiseMask && sampleEnvelope)
       {
@@ -1034,7 +1034,10 @@ namespace
       if (!curSampleLine.NoiseMask)
       {
         trackSynt.SetNoise((dst.CurrentNoise + dst.Sliding / 256) & 0x1f);
-        chanSynt.EnableNoise();
+      }
+      else
+      {
+        chanSynt.DisableNoise();
       }
 
       //recalc positions

@@ -58,9 +58,9 @@ namespace ZXTune
 
     void SetTone(int_t halfTones, int_t offset) const;
     void SetLevel(int_t level) const;
-    void EnableTone() const;
+    void DisableTone() const;
     void EnableEnvelope() const;
-    void EnableNoise() const;
+    void DisableNoise() const;
   private:
     const uint_t Channel;
     const AYM::ParametersHelper& Helper;
@@ -79,7 +79,7 @@ namespace ZXTune
     void InitData(uint64_t tickToPlay);
     const AYM::DataChunk& GetData() const;
 
-    void SetNoise(int_t level);
+    void SetNoise(uint_t level);
     void SetEnvelopeType(uint_t type);
     void SetEnvelopeTone(uint_t tone);
 

@@ -209,7 +209,7 @@ namespace ZXTune
   {
     const Module::FrequencyTable& freqTable = Helper.GetFreqTable();
     const int_t halftone = clamp<int_t>(halfTones, 0, freqTable.size() - 1);
-    const uint_t tone = static_cast<uint_t>(clamp<int_t>(int_t(freqTable[halftone]) + offset, 0, 0xfff));
+    const uint_t tone = (freqTable[halftone] + offset) & 0xfff;
 
     const uint_t reg = AYM::DataChunk::REG_TONEA_L + 2 * Channel;
     Chunk.Data[reg] = static_cast<uint8_t>(tone & 0xff);
@@ -224,9 +224,9 @@ namespace ZXTune
     Chunk.Mask |= 1 << reg;
   }
 
-  void AYMChannelSynthesizer::EnableTone() const
+  void AYMChannelSynthesizer::DisableTone() const
   {
-    Chunk.Data[AYM::DataChunk::REG_MIXER] &= ~(AYM::DataChunk::REG_MASK_TONEA << Channel);
+    Chunk.Data[AYM::DataChunk::REG_MIXER] |= (AYM::DataChunk::REG_MASK_TONEA << Channel);
     Chunk.Mask |= 1 << AYM::DataChunk::REG_MIXER;
   }
 
@@ -237,9 +237,9 @@ namespace ZXTune
     Chunk.Mask |= 1 << reg;
   }
 
-  void AYMChannelSynthesizer::EnableNoise() const
+  void AYMChannelSynthesizer::DisableNoise() const
   {
-    Chunk.Data[AYM::DataChunk::REG_MIXER] &= ~(AYM::DataChunk::REG_MASK_NOISEA << Channel);
+    Chunk.Data[AYM::DataChunk::REG_MIXER] |= (AYM::DataChunk::REG_MASK_NOISEA << Channel);
     Chunk.Mask |= 1 << AYM::DataChunk::REG_MIXER;
   }
 
@@ -247,9 +247,6 @@ namespace ZXTune
   {
     Helper.GetDataChunk(Chunk);
     Chunk.Tick = tickToPlay;
-    //disable all channels
-    Chunk.Data[AYM::DataChunk::REG_MIXER] = 0x3f;
-    Chunk.Mask |= 1 << AYM::DataChunk::REG_MIXER;
   }
 
   const AYM::DataChunk& AYMTrackSynthesizer::GetData() const
@@ -257,9 +254,9 @@ namespace ZXTune
     return Chunk;
   }
 
-  void AYMTrackSynthesizer::SetNoise(int_t level)
+  void AYMTrackSynthesizer::SetNoise(uint_t level)
   {
-    Chunk.Data[AYM::DataChunk::REG_TONEN] = static_cast<uint8_t>(clamp<int_t>(level, 0, 31));
+    Chunk.Data[AYM::DataChunk::REG_TONEN] = level & 31;
     Chunk.Mask |= 1 << AYM::DataChunk::REG_TONEN;
   }
 

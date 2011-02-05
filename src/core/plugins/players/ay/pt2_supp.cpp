@@ -733,7 +733,7 @@ namespace
 
     void SynthesizeChannel(PT2ChannelState& dst, const AYMChannelSynthesizer& chanSynth, AYMTrackSynthesizer& trackSynt)
     {
-      if (!dst.Enabled || !dst.SampleNum)
+      if (!dst.Enabled)
       {
         chanSynth.SetLevel(0);
         return;
@@ -744,11 +744,11 @@ namespace
       const SimpleOrnament& curOrnament = Data->Ornaments[dst.OrnamentNum];
 
       //apply tone
-      if (!curSampleLine.ToneOff)
+      const int_t halftones = int_t(dst.Note) + curOrnament.GetLine(dst.PosInOrnament);
+      chanSynth.SetTone(halftones, dst.Sliding + curSampleLine.Vibrato);
+      if (curSampleLine.ToneOff)
       {
-        const int_t halftones = int_t(dst.Note) + curOrnament.GetLine(dst.PosInOrnament);
-        chanSynth.SetTone(halftones, dst.Sliding + curSampleLine.Vibrato);
-        chanSynth.EnableTone();
+        chanSynth.DisableTone();
       }
       //apply level
       chanSynth.SetLevel(GetVolume(dst.Volume, curSampleLine.Level));
@@ -761,7 +761,10 @@ namespace
       if (!curSampleLine.NoiseOff)
       {
         trackSynt.SetNoise(curSampleLine.Noise + dst.NoiseAdd);
-        chanSynth.EnableNoise();
+      }
+      else
+      {
+        chanSynth.DisableNoise();
       }
 
       //recalculate gliss

@@ -334,9 +334,9 @@ namespace
 
       //apply tone
       chanSynth.SetTone(halfTones, toneOffset);
-      if (!curSampleLine.ToneMask)
+      if (curSampleLine.ToneMask)
       {
-        chanSynth.EnableTone();
+        chanSynth.DisableTone();
       }
       //apply level
       dst.VolSlide = clamp<int_t>(dst.VolSlide + curSampleLine.VolumeSlideAddon, -15, 15);
@@ -355,6 +355,7 @@ namespace
           dst.EnvSliding = envAddon;
         }
         envelopeAddon += envAddon;
+        chanSynth.DisableNoise();
       }
       else
       {
@@ -363,8 +364,7 @@ namespace
         {
           dst.NoiseSliding = noiseAddon;
         }
-        trackSynth.SetNoise((PlayerState.CommState.NoiseBase + noiseAddon) & 0x1f);
-        chanSynth.EnableNoise();
+        trackSynth.SetNoise(PlayerState.CommState.NoiseBase + noiseAddon);
       }
 
       if (dst.ToneSlider.Update() &&
