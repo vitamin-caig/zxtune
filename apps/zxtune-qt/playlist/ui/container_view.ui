@@ -28,6 +28,9 @@
      <property name="tabsClosable">
       <bool>true</bool>
      </property>
+     <property name="movable">
+      <bool>true</bool>
+     </property>
     </widget>
    </item>
   </layout>
@@ -108,9 +111,8 @@
    </property>
    <property name="icon">
     <iconset>
-     <normalon>:/playlist/looped_on.png</normalon>
      <normaloff>:/playlist/looped_off.png</normaloff>
-    </iconset>
+     <normalon>:/playlist/looped_on.png</normalon>:/playlist/looped_off.png</iconset>
    </property>
    <property name="text">
     <string>Loop</string>
@@ -122,9 +124,8 @@
    </property>
    <property name="icon">
     <iconset>
-     <normalon>:/playlist/random_on.png</normalon>
      <normaloff>:/playlist/random_off.png</normaloff>
-    </iconset>
+     <normalon>:/playlist/random_on.png</normalon>:/playlist/random_off.png</iconset>
    </property>
    <property name="text">
     <string>Random</string>

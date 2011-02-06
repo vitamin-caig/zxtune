@@ -20,7 +20,6 @@ Author:
 //qt includes
 #include <QtGui/QWidget>
 
-class QMenu;
 namespace Playlist
 {
   namespace Item
@@ -49,8 +48,6 @@ namespace Playlist
       virtual void Next() = 0;
       virtual void Prev() = 0;
       virtual void Clear() = 0;
-
-      virtual QMenu* GetPlaylistMenu() const = 0;
     private slots:
       virtual void ItemActivated(unsigned idx) = 0;
     signals:

@@ -21,6 +21,7 @@ Author:
 #include "playlist/supp/container.h"
 #include "playlist/supp/scanner.h"
 #include "ui/utils.h"
+#include "ui/tools/errordialog.h"
 #include "ui/tools/filedialog.h"
 #include "ui/tools/parameters_helpers.h"
 //common includes
@@ -29,6 +30,7 @@ Author:
 //std includes
 #include <cassert>
 //qt includes
+#include <QtGui/QContextMenuEvent>
 #include <QtGui/QMenu>
 #include <QtGui/QProgressDialog>
 
@@ -75,7 +77,7 @@ namespace
     CallbackWrapper callbackWrapper(dlg);
     if (const Error& err = Playlist::IO::SaveXSPF(container, filename, callbackWrapper))
     {
-      assert(!"Failed to save");
+      ShowErrorMessage(Playlist::UI::ContainerView::tr("Failed to save playlist"), err);
     }
   }
 
@@ -242,6 +244,12 @@ namespace
         SwitchToLastPlaylist();
       }
       view->deleteLater();
+    }
+
+    //qwidget virtuals
+    virtual void contextMenuEvent(QContextMenuEvent* event)
+    {
+      ActionsMenu->exec(event->globalPos());
     }
   private:
     void PlaylistItemActivated(const Playlist::Item::Data& item)

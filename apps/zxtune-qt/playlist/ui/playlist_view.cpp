@@ -200,11 +200,6 @@ namespace
       Update();
     }
 
-    virtual QMenu* GetPlaylistMenu() const
-    {
-      return PlaylistMenu;
-    }
-
     virtual void ItemActivated(unsigned idx)
     {
       const Playlist::Model::Ptr model = Controller->GetModel();
@@ -231,8 +226,7 @@ namespace
 
     virtual void contextMenuEvent(QContextMenuEvent* event)
     {
-      QMenu* const menu = GetPlaylistMenu();
-      menu->exec(event->globalPos());
+      PlaylistMenu->exec(event->globalPos());
     }
 
     virtual void dragEnterEvent(QDragEnterEvent* event)
