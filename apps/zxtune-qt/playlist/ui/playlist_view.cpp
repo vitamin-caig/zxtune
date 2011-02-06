@@ -14,6 +14,7 @@ Author:
 //local includes
 #include "scanner_view.h"
 #include "table_view.h"
+#include "playlist_contextmenu.h"
 #include "playlist_view.h"
 #include "playlist/playlist_parameters.h"
 #include "playlist/supp/model.h"
@@ -28,7 +29,6 @@ Author:
 #include <QtGui/QDragEnterEvent>
 #include <QtGui/QHeaderView>
 #include <QtGui/QKeyEvent>
-#include <QtGui/QMenu>
 #include <QtGui/QVBoxLayout>
 
 namespace
@@ -101,16 +101,13 @@ namespace
       : Playlist::UI::View(parent)
       , Controller(playlist)
       , Options(PlaylistOptionsWrapper(params))
-      , PlaylistMenu(new QMenu(this))
-      , PlayAction(QIcon(":/playback/play.png"), tr("Play"), this)
-      , DeleteAction(QIcon(":/application/exit.png"), tr("Delete"), this)
       , State(*Controller->GetIterator())
       , Layout(new QVBoxLayout(this))
       , ScannerView(Playlist::UI::ScannerView::Create(*this, Controller->GetScanner()))
       , View(Playlist::UI::TableView::Create(*this, State, Controller->GetModel()))
+      , PlaylistMenu(Playlist::UI::ContextMenu::Create(*View, playlist))
     {
       //setup ui
-      SetupMenu();
       setAcceptDrops(true);
       Layout->setSpacing(0);
       Layout->setMargin(0);
@@ -121,9 +118,6 @@ namespace
       iter->connect(View, SIGNAL(OnItemActivated(unsigned)), SLOT(Reset(unsigned)));
       this->connect(iter, SIGNAL(OnItem(unsigned)), SLOT(ItemActivated(unsigned)));
       View->connect(Controller->GetScanner(), SIGNAL(OnScanStop()), SLOT(updateGeometries()));
-
-      this->connect(&PlayAction, SIGNAL(triggered()), SLOT(PlaySelected()));
-      this->connect(&DeleteAction, SIGNAL(triggered()), SLOT(RemoveSelected()));
 
       Log::Debug(THIS_MODULE, "Created at %1%", this);
     }
@@ -211,25 +205,6 @@ namespace
       return PlaylistMenu;
     }
 
-    virtual void PlaySelected() const
-    {
-      QSet<unsigned> selected;
-      View->GetSelectedItems(selected);
-      if (!selected.empty())
-      {
-        const Playlist::Item::Iterator::Ptr iter = Controller->GetIterator();
-        iter->Reset(*selected.begin());
-      }
-    }
-
-    virtual void RemoveSelected() const
-    {
-      QSet<unsigned> selected;
-      View->GetSelectedItems(selected);
-      const Playlist::Model::Ptr model = Controller->GetModel();
-      model->RemoveItems(selected);
-    }
-
     virtual void ItemActivated(unsigned idx)
     {
       const Playlist::Model::Ptr model = Controller->GetModel();
@@ -246,7 +221,7 @@ namespace
       const int curKey = event->key();
       if (curKey == Qt::Key_Delete || curKey == Qt::Key_Backspace)
       {
-        RemoveSelected();
+        PlaylistMenu->RemoveSelected();
       }
       else
       {
@@ -279,12 +254,6 @@ namespace
       }
     }
   private:
-    void SetupMenu()
-    {
-      PlaylistMenu->addAction(&PlayAction);
-      PlaylistMenu->addAction(&DeleteAction);
-    }
-
     void UpdateState(Playlist::Item::State state)
     {
       const Playlist::Item::Iterator::Ptr iter = Controller->GetIterator();
@@ -299,14 +268,12 @@ namespace
   private:
     const Playlist::Controller::Ptr Controller;
     const PlaylistOptionsWrapper Options;
-    QMenu* const PlaylistMenu;
-    QAction PlayAction;
-    QAction DeleteAction;
     //state
     PlayitemStateCallbackImpl State;
     QVBoxLayout* const Layout;
     Playlist::UI::ScannerView* const ScannerView;
     Playlist::UI::TableView* const View;
+    Playlist::UI::ContextMenu* const PlaylistMenu;
   };
 }
 

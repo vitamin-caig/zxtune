@@ -34,5 +34,7 @@
     <file alias="looped_off.png">list_looped.png</file>
     <file alias="random_on.png">list_random.png</file>
     <file alias="random_off.png">list_random.png</file>
+    <file alias="delete.png">app_exit.png</file>
+    <!--<file alias="crop.png">list_crop.png</file>-->
   </qresource>
 </RCC>
