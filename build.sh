@@ -5,9 +5,11 @@ Arch=$2
 Formats=txt
 Languages=en
 
+if [ "${skip_updating}" = "" ]; then
 # get current build and vesion
 echo "Updating"
 svn up > /dev/null || (echo "Failed to update" && exit 1)
+fi
 
 . make/platforms/setup_qt.sh || exit 1
 . make/platforms/setup_boost.sh || exit 1
@@ -23,8 +25,10 @@ fi
 cpus=`grep processor /proc/cpuinfo | wc -l`
 makecmd="make platform=${Platform} release=1 arch=${Arch} -C apps"
 
+if [ "${skip_clearing}" = "" ]; then
 echo "Clearing"
 ${makecmd} clean > /dev/null || exit 1
+fi
 
 # adding additional platform properties if required
 case ${Arch} in
