@@ -1,7 +1,4 @@
 <RCC>
-  <qresource>
-    <file>logo.png</file>
-  </qresource>
   <qresource prefix="/types">
     <file alias="ASC">type_asc.png</file>
     <file alias="CHI">type_chi.png</file>

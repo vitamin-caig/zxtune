@@ -1,5 +1,6 @@
 <RCC>
   <qresource>
+    <file>logo.png</file>
     <file>zxtune.png</file>
   </qresource>
   <qresource prefix="/controls">
