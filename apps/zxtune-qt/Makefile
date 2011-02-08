@@ -8,7 +8,7 @@ source_files = qt_app \
                ui/tools/errordialog
 
 #ui-related
-gui_theme ?= default
+gui_theme ?= restorer
 
 #main window is specific for platforms
 ifeq ($(platform),dingux)
