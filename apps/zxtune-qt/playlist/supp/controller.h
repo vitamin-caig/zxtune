@@ -69,7 +69,7 @@ namespace Playlist
       virtual bool Next(unsigned playorderMode) = 0;
       virtual bool Prev(unsigned playorderMode) = 0;
     signals:
-      void OnItem(unsigned idx);
+      void OnListItemActivated(unsigned idx, const Playlist::Item::Data& data);
     };
   }
 

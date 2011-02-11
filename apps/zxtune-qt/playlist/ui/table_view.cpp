@@ -101,7 +101,7 @@ namespace
           boost::bind(&QModelIndex::row, _1)));
     }
 
-    virtual void NavigateItem(unsigned index)
+    virtual void ActivateTableRow(unsigned index)
     {
       QAbstractItemModel* const curModel = model();
       const QModelIndex idx = curModel->index(index, 0);
@@ -113,7 +113,7 @@ namespace
       if (index.isValid())
       {
         const unsigned number = index.row();
-        OnItemActivated(number);
+        OnTableRowActivated(number);
       }
     }
   private:

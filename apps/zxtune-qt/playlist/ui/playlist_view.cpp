@@ -115,8 +115,9 @@ namespace
       Layout->addWidget(ScannerView);
       //setup connections
       const Playlist::Item::Iterator::Ptr iter = Controller->GetIterator();
-      iter->connect(View, SIGNAL(OnItemActivated(unsigned)), SLOT(Reset(unsigned)));
-      this->connect(iter, SIGNAL(OnItem(unsigned)), SLOT(ItemActivated(unsigned)));
+      iter->connect(View, SIGNAL(OnTableRowActivated(unsigned)), SLOT(Reset(unsigned)));
+      this->connect(iter, SIGNAL(OnListItemActivated(unsigned, const Playlist::Item::Data&)), 
+        SLOT(ListItemActivated(unsigned, const Playlist::Item::Data&)));
       View->connect(Controller->GetScanner(), SIGNAL(OnScanStop()), SLOT(updateGeometries()));
 
       Log::Debug(THIS_MODULE, "Created at %1%", this);
@@ -200,14 +201,10 @@ namespace
       Update();
     }
 
-    virtual void ItemActivated(unsigned idx)
+    virtual void ListItemActivated(unsigned idx, const Playlist::Item::Data& data)
     {
-      const Playlist::Model::Ptr model = Controller->GetModel();
-      if (Playlist::Item::Data::Ptr item = model->GetItem(idx))
-      {
-        View->NavigateItem(idx);
-        OnItemActivated(*item);
-      }
+      View->ActivateTableRow(idx);
+      OnItemActivated(data);
     }
 
     //qwidget virtuals

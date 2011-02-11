@@ -89,7 +89,7 @@ namespace
         if (Item->IsValid())
         {
           State = Playlist::Item::STOPPED;
-          OnItem(Index);
+          OnListItemActivated(Index, *item);
         }
         else
         {
