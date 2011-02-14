@@ -17,6 +17,8 @@ Author:
 
 //local includes
 #include "data.h"
+//std includes
+#include <map>
 //qt includes
 #include <QtCore/QAbstractItemModel>
 
@@ -39,24 +41,11 @@ namespace Playlist
 
     typedef Model* Ptr;
 
-    class Iterator
-    {
-    public:
-      typedef std::auto_ptr<Iterator> Ptr;
-      virtual ~Iterator() {}
-
-      virtual bool IsValid() const = 0;
-      virtual unsigned GetIndex() const = 0;
-      virtual void Next() = 0;
-      virtual void Prev() = 0;
-    };
-
     //creator
     static Ptr Create(QObject& parent);
 
     //accessors
     virtual unsigned CountItems() const = 0;
-    virtual Iterator::Ptr GetIterator(unsigned index) const = 0;
     virtual Item::Data::Ptr GetItem(unsigned index) const = 0;
     virtual Item::Data::Iterator::Ptr GetItems() const = 0;
     virtual Item::Data::Iterator::Ptr GetItems(const QSet<unsigned>& items) const = 0;

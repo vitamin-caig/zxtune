@@ -160,61 +160,78 @@ namespace
   };
 
   typedef std::list<Playlist::Item::Data::Ptr> ItemsContainer;
-  typedef std::list<ItemsContainer::iterator> IteratorsContainer;
-  typedef std::vector<ItemsContainer::iterator> IteratorsArray;
+
+  template<class Container, class ItersContainer>
+  void GetChoosenItems(Container& items, const QSet<unsigned>& indexes, ItersContainer& result)
+  {
+    typedef typename ItersContainer::value_type Iterator;
+    ItersContainer choosenItems;
+    if (!items.empty())
+    {
+      unsigned lastIndex = 0;
+      Iterator lastIterator = items.begin();
+      for (QSet<unsigned>::const_iterator idxIt = indexes.begin(), idxLim = indexes.end(); idxIt != idxLim; ++idxIt)
+      {
+        const unsigned curIndex = *idxIt;
+        const unsigned delta = curIndex - lastIndex;
+        std::advance(lastIterator, delta);
+        choosenItems.push_back(lastIterator);
+        lastIndex = curIndex;
+      }
+    }
+    choosenItems.swap(result);
+  }
+
+  class PlayitemIteratorImpl : public Playlist::Item::Data::Iterator
+  {
+  public:
+    template<class ItersContainer>
+    explicit PlayitemIteratorImpl(const ItersContainer& iters)
+      : Items(iters.size())
+      , Current(Items.begin())
+    {
+      std::transform(iters.begin(), iters.end(), Items.begin(), std::mem_fun_ref(&ItersContainer::value_type::operator *));
+    }
+
+    explicit PlayitemIteratorImpl(const ItemsContainer& items)
+      : Items(items.begin(), items.end())
+      , Current(Items.begin())
+    {
+    }
+
+    virtual bool IsValid() const
+    {
+      return Current != Items.end();
+    }
+
+    virtual Playlist::Item::Data::Ptr Get() const
+    {
+      if (Current != Items.end())
+      {
+        return *Current;
+      }
+      assert(!"Playitems iterator is out of range");
+      return Playlist::Item::Data::Ptr();
+    }
+
+    virtual void Next()
+    {
+      if (Current != Items.end())
+      {
+        ++Current;
+      }
+      else
+      {
+        assert(!"Playitems iterator is out of range");
+      }
+    }
+  private:
+    std::vector<Playlist::Item::Data::Ptr> Items;
+    std::vector<Playlist::Item::Data::Ptr>::const_iterator Current;
+  };
 
   class PlayitemsContainer
   {
-    class PlayitemIteratorImpl : public Playlist::Item::Data::Iterator
-    {
-    public:
-      template<class ItersContainer>
-      explicit PlayitemIteratorImpl(const ItersContainer& iters)
-        : Items(iters.size())
-        , Current(Items.begin())
-      {
-        std::transform(iters.begin(), iters.end(), Items.begin(), std::mem_fun_ref(&ItersContainer::value_type::operator *));
-      }
-
-      virtual bool IsValid() const
-      {
-        return Current != Items.end();
-      }
-
-      virtual Playlist::Item::Data::Ptr Get() const
-      {
-        if (Current != Items.end())
-        {
-          return *Current;
-        }
-        assert(!"Playitems iterator is out of range");
-        return Playlist::Item::Data::Ptr();
-      }
-
-      virtual void Next()
-      {
-        if (Current != Items.end())
-        {
-          ++Current;
-        }
-        else
-        {
-          assert(!"Playitems iterator is out of range");
-        }
-      }
-    private:
-      std::vector<Playlist::Item::Data::Ptr> Items;
-      std::vector<Playlist::Item::Data::Ptr>::const_iterator Current;
-    };
-
-    class ModelIteratorImpl : public Playlist::Model::Iterator
-    {
-    public:
-      virtual bool IsValid() const = 0;
-      virtual unsigned GetIndex() const = 0;
-      virtual void Next() = 0;
-      virtual void Prev() = 0;
-    };
   public:
     PlayitemsContainer()
     {
@@ -223,8 +240,6 @@ namespace
     void AddItem(Playlist::Item::Data::Ptr item)
     {
       Items.push_back(item);
-      IteratorsArray::value_type it = Items.end();
-      Iterators.push_back(--it);
     }
 
     std::size_t CountItems() const
@@ -232,34 +247,26 @@ namespace
       return Items.size();
     }
 
-    Playlist::Model::Iterator::Ptr GetIterator(unsigned idx) const
-    {
-      if (idx >= int(Iterators.size()))
-      {
-        return Playlist::Model::Iterator::Ptr();
-      }
-      return Playlist::Model::Iterator::Ptr();
-    }
-
     Playlist::Item::Data::Ptr GetItemByIndex(int idx) const
     {
-      if (idx >= int(Iterators.size()))
+      if (idx >= int(Items.size()) || idx < 0)
       {
         return Playlist::Item::Data::Ptr();
       }
-      const IteratorsContainer::const_iterator it = GetIteratorByIndex(idx);
-      return **it;
+      const ItemsContainer::const_iterator it = GetIteratorByIndex(idx);
+      return *it;
     }
 
     Playlist::Item::Data::Iterator::Ptr GetAllItems() const
     {
-      return Playlist::Item::Data::Iterator::Ptr(new PlayitemIteratorImpl(Iterators));
+      return Playlist::Item::Data::Iterator::Ptr(new PlayitemIteratorImpl(Items));
     }
 
-    Playlist::Item::Data::Iterator::Ptr GetItems(const QSet<unsigned>& items) const
+    Playlist::Item::Data::Iterator::Ptr GetItems(const QSet<unsigned>& indexes) const
     {
-      IteratorsArray choosenItems;
-      GetChoosenItems(items, choosenItems);
+      std::vector<ItemsContainer::const_iterator> choosenItems;
+      GetChoosenItems(Items, indexes, choosenItems);
+      assert(unsigned(indexes.size()) == choosenItems.size());
       return Playlist::Item::Data::Iterator::Ptr(new PlayitemIteratorImpl(choosenItems));
     }
 
@@ -269,35 +276,35 @@ namespace
       {
         return;
       }
-      IteratorsArray itersToRemove;
-      GetChoosenItems(indexes, itersToRemove);
+      std::vector<ItemsContainer::iterator> itersToRemove;
+      GetChoosenItems(Items, indexes, itersToRemove);
+      assert(unsigned(indexes.size()) == itersToRemove.size());
       std::for_each(itersToRemove.begin(), itersToRemove.end(),
         boost::bind(&ItemsContainer::erase, &Items, _1));
-      std::for_each(itersToRemove.begin(), itersToRemove.end(),
-        boost::bind(&IteratorsContainer::remove, &Iterators, _1));
     }
 
     void MoveItems(const QSet<unsigned>& indexes, unsigned destination)
     {
-      IteratorsArray beforeItems, movedItems, afterItems;
-      std::size_t idx = 0;
-
-      for (IteratorsContainer::const_iterator it = Iterators.begin(), lim = Iterators.end(); it != lim; ++it, ++idx)
+      if (indexes.empty())
       {
-        if (indexes.contains(idx))
-        {
-          movedItems.push_back(*it);
-        }
-        else
-        {
-          IteratorsArray& targetSubset = idx < destination
-            ? beforeItems : afterItems;
-          targetSubset.push_back(*it);
-        }
+        return;
       }
-      const IteratorsContainer::iterator movedTo = std::copy(beforeItems.begin(), beforeItems.end(), Iterators.begin());
-      const IteratorsContainer::iterator restAfter = std::copy(movedItems.begin(), movedItems.end(), movedTo);
-      std::copy(afterItems.begin(), afterItems.end(), restAfter);
+      ItemsContainer::iterator delimiter = GetIteratorByIndex(destination);
+
+      std::vector<ItemsContainer::iterator> movedIters;
+      GetChoosenItems(Items, indexes, movedIters);
+      assert(unsigned(indexes.size()) == movedIters.size());
+
+      ItemsContainer movedItems;
+      std::for_each(movedIters.begin(), movedIters.end(), 
+        boost::bind(&ItemsContainer::splice, &movedItems, movedItems.end(), boost::ref(Items), _1));
+      
+      ItemsContainer afterItems;
+      afterItems.splice(afterItems.begin(), Items, delimiter, Items.end());
+
+      //gathering back
+      Items.splice(Items.end(), movedItems);
+      Items.splice(Items.end(), afterItems);
     }
 
     class Comparer
@@ -310,37 +317,10 @@ namespace
 
     void Sort(const Comparer& cmp)
     {
-      Iterators.sort(ComparerWrapper(cmp));
+      Items.sort(ComparerWrapper(cmp));
     }
   private:
-    IteratorsContainer::const_iterator GetIteratorByIndex(unsigned idx) const
-    {
-      IteratorsContainer::const_iterator res = Iterators.begin();
-      std::advance(res, idx);
-      return res;
-    }
-
-    template<class ItersContainer>
-    void GetChoosenItems(const QSet<unsigned>& items, ItersContainer& result) const
-    {
-      ItersContainer choosenItems;
-      if (!items.empty())
-      {
-        unsigned lastIndex = 0;
-        IteratorsContainer::const_iterator lastIterator = Iterators.begin();
-        for (QSet<unsigned>::const_iterator itemsIt = items.begin(), itemsLim = items.end(); itemsIt != itemsLim; ++itemsIt)
-        {
-          const unsigned curIndex = *itemsIt;
-          const unsigned delta = curIndex - lastIndex;
-          std::advance(lastIterator, delta);
-          choosenItems.push_back(*lastIterator);
-          lastIndex = curIndex;
-        }
-      }
-      choosenItems.swap(result);
-    }
-
-    class ComparerWrapper : public std::binary_function<ItemsContainer::const_iterator, ItemsContainer::const_iterator, bool>
+    class ComparerWrapper : public std::binary_function<ItemsContainer::value_type, ItemsContainer::value_type, bool>
     {
     public:
       explicit ComparerWrapper(const Comparer& cmp)
@@ -350,14 +330,27 @@ namespace
 
       result_type operator()(first_argument_type lh, second_argument_type rh) const
       {
-        return Cmp.CompareItems(**lh, **rh);
+        return Cmp.CompareItems(*lh, *rh);
       }
     private:
       const Comparer& Cmp;
     };
+
+    ItemsContainer::const_iterator GetIteratorByIndex(unsigned idx) const
+    {
+      ItemsContainer::const_iterator it = Items.begin();
+      std::advance(it, idx);
+      return it;
+    }
+
+    ItemsContainer::iterator GetIteratorByIndex(unsigned idx)
+    {
+      ItemsContainer::iterator it = Items.begin();
+      std::advance(it, idx);
+      return it;
+    }
   private:
     ItemsContainer Items;
-    IteratorsContainer Iterators;
   };
 
   template<class T>
@@ -408,11 +401,6 @@ namespace
     virtual unsigned CountItems() const
     {
       return Container->CountItems();
-    }
-
-    virtual Iterator::Ptr GetIterator(unsigned index) const
-    {
-      return Iterator::Ptr();
     }
 
     virtual Playlist::Item::Data::Ptr GetItem(unsigned index) const
