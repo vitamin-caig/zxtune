@@ -271,7 +271,7 @@ namespace
       }
       IteratorsArray itersToRemove;
       GetChoosenItems(indexes, itersToRemove);
-      std::for_each(itersToRemove.begin(), itersToRemove.end(), 
+      std::for_each(itersToRemove.begin(), itersToRemove.end(),
         boost::bind(&ItemsContainer::erase, &Items, _1));
       std::for_each(itersToRemove.begin(), itersToRemove.end(),
         boost::bind(&IteratorsContainer::remove, &Iterators, _1));
@@ -279,26 +279,25 @@ namespace
 
     void MoveItems(const QSet<unsigned>& indexes, unsigned destination)
     {
-      /*
       IteratorsArray beforeItems, movedItems, afterItems;
-      for (std::size_t idx = 0, lim = Iterators.size(); idx != lim; ++idx)
+      std::size_t idx = 0;
+
+      for (IteratorsContainer::const_iterator it = Iterators.begin(), lim = Iterators.end(); it != lim; ++it, ++idx)
       {
-        const IteratorsArray::value_type iter = Iterators[idx];
         if (indexes.contains(idx))
         {
-          movedItems.push_back(iter);
+          movedItems.push_back(*it);
         }
         else
         {
           IteratorsArray& targetSubset = idx < destination
             ? beforeItems : afterItems;
-          targetSubset.push_back(iter);
+          targetSubset.push_back(*it);
         }
       }
-      const IteratorsArray::iterator movedTo = std::copy(beforeItems.begin(), beforeItems.end(), Iterators.begin());
-      const IteratorsArray::iterator restAfter = std::copy(movedItems.begin(), movedItems.end(), movedTo);
+      const IteratorsContainer::iterator movedTo = std::copy(beforeItems.begin(), beforeItems.end(), Iterators.begin());
+      const IteratorsContainer::iterator restAfter = std::copy(movedItems.begin(), movedItems.end(), movedTo);
       std::copy(afterItems.begin(), afterItems.end(), restAfter);
-      */
     }
 
     class Comparer
@@ -415,7 +414,7 @@ namespace
     {
       return Iterator::Ptr();
     }
-    
+
     virtual Playlist::Item::Data::Ptr GetItem(unsigned index) const
     {
       QMutexLocker locker(&Synchronizer);
@@ -535,12 +534,12 @@ namespace
       QByteArray encodedData = data->data(ITEMS_MIMETYPE);
       QDataStream stream(&encodedData, QIODevice::ReadOnly);
       QSet<unsigned> movedItems;
-      while (!stream.atEnd()) 
+      while (!stream.atEnd())
       {
         unsigned idx;
         stream >> idx;
         movedItems.insert(idx);
-      }    
+      }
       if (movedItems.empty())
       {
         return false;
