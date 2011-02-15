@@ -40,6 +40,7 @@ namespace Playlist
     };
 
     typedef Model* Ptr;
+    typedef std::map<unsigned, unsigned> OldToNewIndexMap;
 
     //creator
     static Ptr Create(QObject& parent);
@@ -55,6 +56,8 @@ namespace Playlist
     virtual void RemoveItems(const QSet<unsigned>& items) = 0;
   public slots:
     virtual void AddItem(Playlist::Item::Data::Ptr item) = 0;
+  signals:
+    void OnIndexesChanged(const Playlist::Model::OldToNewIndexMap& map);
   };
 }
 

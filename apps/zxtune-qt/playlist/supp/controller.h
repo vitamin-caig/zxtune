@@ -63,11 +63,14 @@ namespace Playlist
       virtual State GetState() const = 0;
       //change
       virtual void SetState(State state) = 0;
+      //navigate
+      virtual bool Next(unsigned playorderMode) = 0;
+      virtual bool Prev(unsigned playorderMode) = 0;
     public slots:
       //navigate
       virtual void Reset(unsigned idx) = 0;
-      virtual bool Next(unsigned playorderMode) = 0;
-      virtual bool Prev(unsigned playorderMode) = 0;
+      //updates
+      virtual void IndexesChanged(const Playlist::Model::OldToNewIndexMap& remapping) = 0;
     signals:
       void OnListItemActivated(unsigned idx, const Playlist::Item::Data& data);
     };

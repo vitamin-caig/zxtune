@@ -22,6 +22,7 @@ Author:
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/scoped_ptr.hpp>
+#include <boost/iterator/counting_iterator.hpp>
 //qt includes
 #include <QtCore/QMimeData>
 #include <QtCore/QMutex>
@@ -159,13 +160,11 @@ namespace
     const DummyDataProvider Dummy;
   };
 
-  typedef std::list<Playlist::Item::Data::Ptr> ItemsContainer;
-
-  template<class Container, class ItersContainer>
-  void GetChoosenItems(Container& items, const QSet<unsigned>& indexes, ItersContainer& result)
+  template<class Container, class Iterators>
+  void GetChoosenItems(Container& items, const QSet<unsigned>& indexes, Iterators& result)
   {
-    typedef typename ItersContainer::value_type Iterator;
-    ItersContainer choosenItems;
+    typedef typename Iterators::value_type Iterator;
+    Iterators choosenItems;
     if (!items.empty())
     {
       unsigned lastIndex = 0;
@@ -182,21 +181,15 @@ namespace
     choosenItems.swap(result);
   }
 
+  typedef std::vector<Playlist::Item::Data::Ptr> ItemsArray;
+
   class PlayitemIteratorImpl : public Playlist::Item::Data::Iterator
   {
   public:
-    template<class ItersContainer>
-    explicit PlayitemIteratorImpl(const ItersContainer& iters)
-      : Items(iters.size())
-      , Current(Items.begin())
+    explicit PlayitemIteratorImpl(ItemsArray& items)
     {
-      std::transform(iters.begin(), iters.end(), Items.begin(), std::mem_fun_ref(&ItersContainer::value_type::operator *));
-    }
-
-    explicit PlayitemIteratorImpl(const ItemsContainer& items)
-      : Items(items.begin(), items.end())
-      , Current(Items.begin())
-    {
+      Items.swap(items);
+      Current = Items.begin();
     }
 
     virtual bool IsValid() const
@@ -226,8 +219,8 @@ namespace
       }
     }
   private:
-    std::vector<Playlist::Item::Data::Ptr> Items;
-    std::vector<Playlist::Item::Data::Ptr>::const_iterator Current;
+    ItemsArray Items;
+    ItemsArray::const_iterator Current;
   };
 
   class PlayitemsContainer
@@ -239,7 +232,8 @@ namespace
 
     void AddItem(Playlist::Item::Data::Ptr item)
     {
-      Items.push_back(item);
+      const IndexedItem idxItem(item, Items.size());
+      Items.push_back(idxItem);
     }
 
     std::size_t CountItems() const
@@ -254,19 +248,24 @@ namespace
         return Playlist::Item::Data::Ptr();
       }
       const ItemsContainer::const_iterator it = GetIteratorByIndex(idx);
-      return *it;
+      return it->first;
     }
 
     Playlist::Item::Data::Iterator::Ptr GetAllItems() const
     {
-      return Playlist::Item::Data::Iterator::Ptr(new PlayitemIteratorImpl(Items));
+      ItemsArray allItems(Items.size());
+      std::transform(Items.begin(), Items.end(), allItems.begin(), boost::mem_fn(&IndexedItem::first));
+      return Playlist::Item::Data::Iterator::Ptr(new PlayitemIteratorImpl(allItems));
     }
 
     Playlist::Item::Data::Iterator::Ptr GetItems(const QSet<unsigned>& indexes) const
     {
-      std::vector<ItemsContainer::const_iterator> choosenItems;
-      GetChoosenItems(Items, indexes, choosenItems);
-      assert(unsigned(indexes.size()) == choosenItems.size());
+      std::vector<ItemsContainer::const_iterator> choosenIterators;
+      GetChoosenItems(Items, indexes, choosenIterators);
+      assert(unsigned(indexes.size()) == choosenIterators.size());
+      ItemsArray choosenItems(choosenIterators.size());
+      std::transform(choosenIterators.begin(), choosenIterators.end(), choosenItems.begin(),
+        boost::bind(&ItemsContainer::value_type::first, boost::bind(&ItemsContainer::const_iterator::operator ->, _1)));
       return Playlist::Item::Data::Iterator::Ptr(new PlayitemIteratorImpl(choosenItems));
     }
 
@@ -319,7 +318,34 @@ namespace
     {
       Items.sort(ComparerWrapper(cmp));
     }
+
+    void GetIndexRemapping(Playlist::Model::OldToNewIndexMap& idxMap) const
+    {
+      Playlist::Model::OldToNewIndexMap result;
+      std::transform(Items.begin(), Items.end(), boost::counting_iterator<unsigned>(0), std::inserter(result, result.end()),
+        boost::bind(&MakeIndexPair, _1, _2));
+      idxMap.swap(result);
+    }
+
+    void ResetIndexes()
+    {
+      std::transform(Items.begin(), Items.end(), boost::counting_iterator<unsigned>(0), Items.begin(),
+        boost::bind(&UpdateItemIndex, _1, _2));
+    }
   private:
+    typedef std::pair<Playlist::Item::Data::Ptr, unsigned> IndexedItem;
+    typedef std::list<IndexedItem> ItemsContainer;
+
+    static Playlist::Model::OldToNewIndexMap::value_type MakeIndexPair(const IndexedItem& item, unsigned idx)
+    {
+      return Playlist::Model::OldToNewIndexMap::value_type(item.second, idx);
+    }
+
+    static IndexedItem UpdateItemIndex(const IndexedItem& item, unsigned idx)
+    {
+      return IndexedItem(item.first, idx);
+    }
+
     class ComparerWrapper : public std::binary_function<ItemsContainer::value_type, ItemsContainer::value_type, bool>
     {
     public:
@@ -330,7 +356,7 @@ namespace
 
       result_type operator()(first_argument_type lh, second_argument_type rh) const
       {
-        return Cmp.CompareItems(*lh, *rh);
+        return Cmp.CompareItems(*lh.first, *rh.first);
       }
     private:
       const Comparer& Cmp;
@@ -435,6 +461,7 @@ namespace
     {
       QMutexLocker locker(&Synchronizer);
       Container.reset(new PlayitemsContainer());
+      NotifyAboutIndexChanged();
       FetchedItemsCount = 0;
       reset();
     }
@@ -443,6 +470,7 @@ namespace
     {
       QMutexLocker locker(&Synchronizer);
       Container->RemoveItems(items);
+      NotifyAboutIndexChanged();
       FetchedItemsCount = Container->CountItems();
       reset();
     }
@@ -535,6 +563,7 @@ namespace
       Log::Debug(THIS_MODULE, "Moving %1% items to row %2%", movedItems.size(), beginRow);
       QMutexLocker locker(&Synchronizer);
       Container->MoveItems(movedItems, beginRow);
+      NotifyAboutIndexChanged();
       reset();
       return true;
     }
@@ -648,8 +677,17 @@ namespace
       {
         QMutexLocker locker(&Synchronizer);
         Container->Sort(*comparer);
+        NotifyAboutIndexChanged();
         reset();
       }
+    }
+  private:
+    void NotifyAboutIndexChanged()
+    {
+      Playlist::Model::OldToNewIndexMap remapping;
+      Container->GetIndexRemapping(remapping);
+      Container->ResetIndexes();
+      OnIndexesChanged(remapping);
     }
   private:
     const DataProvidersSet Providers;

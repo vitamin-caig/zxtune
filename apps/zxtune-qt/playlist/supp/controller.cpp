@@ -34,6 +34,16 @@ namespace
 
   const unsigned NO_INDEX = ~0;
 
+  const unsigned* FindNewIndex(const Playlist::Model::OldToNewIndexMap& remapping, unsigned oldIdx)
+  {
+    const Playlist::Model::OldToNewIndexMap::const_iterator it = remapping.find(oldIdx);
+    if (it != remapping.end())
+    {
+      return &it->second;
+    }
+    return 0;
+  }
+
   class ItemIteratorImpl : public Playlist::Item::Iterator
   {
   public:
@@ -56,11 +66,6 @@ namespace
       return State;
     }
 
-    virtual void Reset(unsigned idx)
-    {
-      SelectItem(idx);
-    }
-
     virtual bool Next(unsigned playorderMode)
     {
       return
@@ -79,11 +84,46 @@ namespace
     {
       State = state;
     }
+
+    virtual void Reset(unsigned idx)
+    {
+      SelectItem(idx);
+    }
+
+    virtual void IndexesChanged(const Playlist::Model::OldToNewIndexMap& remapping)
+    {
+      Log::Debug(THIS_MODULE, "Iterator: index changed.");
+      if (UpdateCurrentIndex(remapping))
+      {
+        return;
+      }
+      //removed
+      //try to find next one
+      for (unsigned oldIdx = Index + 1, totalOldItems = remapping.rbegin()->first + 1; oldIdx < totalOldItems; ++oldIdx)
+      {
+        if (SetNewIndex(remapping, oldIdx))
+        {
+          return;
+        }
+      }
+      //try to find previous one
+      for (unsigned oldIdx = Index; oldIdx; --oldIdx)
+      {
+        if (SetNewIndex(remapping, oldIdx - 1))
+        {
+          return;
+        }
+      }
+      //invalidated
+      Index = NO_INDEX;
+      Log::Debug(THIS_MODULE, "Iterator: invalidated after removing.");
+    }
   private:
     bool SelectItem(unsigned idx)
     {
       if (Playlist::Item::Data::Ptr item = Model->GetItem(idx))
       {
+        Log::Debug(THIS_MODULE, "Iterator: selected %1%", idx);
         Item = item;
         Index = idx;
         if (Item->IsValid())
@@ -124,6 +164,33 @@ namespace
         ? Randomized(newIndex, itemsCount)
         : newIndex;
       return SelectItem(mappedIndex);
+    }
+
+    bool UpdateCurrentIndex(const Playlist::Model::OldToNewIndexMap& remapping)
+    {
+      if (NO_INDEX == Index)
+      {
+        Log::Debug(THIS_MODULE, "Iterator: nothing to update");
+        return true;
+      }
+      if (const unsigned* newIdx = FindNewIndex(remapping, Index))
+      {
+        //updated
+        Log::Debug(THIS_MODULE, "Iterator: index updated %1% -> %2%", Index, *newIdx);
+        Index = *newIdx;
+        return true;
+      }
+      return false;
+    }
+
+    bool SetNewIndex(const Playlist::Model::OldToNewIndexMap& remapping, unsigned oldIdx)
+    {
+      if (const unsigned* newIdx = FindNewIndex(remapping, oldIdx))
+      {
+        //updated
+        return SelectItem(*newIdx);
+      }
+      return false;
     }
   private:
     const Playlist::Model::Ptr Model;
@@ -173,6 +240,8 @@ namespace
     {
       //setup connections
       Model->connect(Scanner, SIGNAL(OnGetItem(Playlist::Item::Data::Ptr)), SLOT(AddItem(Playlist::Item::Data::Ptr)));
+      Iterator->connect(Model, SIGNAL(OnIndexesChanged(const Playlist::Model::OldToNewIndexMap&)), 
+        SLOT(IndexesChanged(const Playlist::Model::OldToNewIndexMap&)));
 
       Log::Debug(THIS_MODULE, "Created at %1%", this);
     }
