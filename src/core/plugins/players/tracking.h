@@ -151,9 +151,8 @@ namespace ZXTune
         {
         }
 
-        void SetTempo(uint_t val, Log::MessagesCollector& warner)
+        void SetTempo(uint_t val)
         {
-          Log::Assert(warner, !Tempo, Text::WARNING_DUPLICATE_TEMPO);
           Tempo = val;
         }
 
@@ -184,33 +183,28 @@ namespace ZXTune
           }
 
           //modifiers
-          void SetEnabled(bool val, Log::MessagesCollector& warner)
+          void SetEnabled(bool val)
           {
-            Log::Assert(warner, !Enabled, Text::WARNING_DUPLICATE_STATE);
             Enabled = val;
           }
 
-          void SetNote(uint_t val, Log::MessagesCollector& warner)
+          void SetNote(uint_t val)
           {
-            Log::Assert(warner, !Note, Text::WARNING_DUPLICATE_NOTE);
             Note = val;
           }
 
-          void SetSample(uint_t val, Log::MessagesCollector& warner)
+          void SetSample(uint_t val)
           {
-            Log::Assert(warner, !SampleNum, Text::WARNING_DUPLICATE_SAMPLE);
             SampleNum = val;
           }
 
-          void SetOrnament(uint_t val, Log::MessagesCollector& warner)
+          void SetOrnament(uint_t val)
           {
-            Log::Assert(warner, !OrnamentNum, Text::WARNING_DUPLICATE_ORNAMENT);
             OrnamentNum = val;
           }
 
-          void SetVolume(uint_t val, Log::MessagesCollector& warner)
+          void SetVolume(uint_t val)
           {
-            Log::Assert(warner, !Volume, Text::WARNING_DUPLICATE_VOLUME);
             Volume = val;
           }
 

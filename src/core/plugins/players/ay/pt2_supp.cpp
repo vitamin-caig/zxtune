@@ -19,7 +19,6 @@ Author:
 #include <byteorder.h>
 #include <error_tools.h>
 #include <logging.h>
-#include <messages_collector.h>
 #include <range_checker.h>
 #include <tools.h>
 //library includes
@@ -332,7 +331,6 @@ namespace
     void ParsePattern(const IO::FastDump& data
       , AYMPatternCursors& cursors
       , PT2Track::Line& line
-      , Log::MessagesCollector& warner
       )
     {
       assert(line.Channels.size() == cursors.size());
@@ -344,7 +342,6 @@ namespace
           continue;//has to skip
         }
 
-        Log::ParamPrefixedCollector channelWarner(warner, Text::CHANNEL_WARN_PREFIX, std::distance(line.Channels.begin(), channel));
         for (const std::size_t dataSize = data.Size(); cur->Offset < dataSize;)
         {
           const uint_t cmd(data[cur->Offset++]);
@@ -352,17 +349,16 @@ namespace
           if (cmd >= 0xe1) //sample
           {
             const uint_t num = cmd - 0xe0;
-            channel->SetSample(num, channelWarner);
-            Log::Assert(channelWarner, Data->Samples[num].GetSize() != 0, Text::WARNING_INVALID_SAMPLE);
+            channel->SetSample(num);
           }
           else if (cmd == 0xe0) //sample 0 - shut up
           {
-            channel->SetEnabled(false, channelWarner);
+            channel->SetEnabled(false);
             break;
           }
           else if (cmd >= 0x80 && cmd <= 0xdf)//note
           {
-            channel->SetEnabled(true, channelWarner);
+            channel->SetEnabled(true);
             const uint_t note(cmd - 0x80);
             //for note gliss calculate limit manually
             const PT2Track::CommandsArray::iterator noteGlissCmd(
@@ -373,14 +369,12 @@ namespace
             }
             else
             {
-              channel->SetNote(note, channelWarner);
+              channel->SetNote(note);
             }
             break;
           }
           else if (cmd == 0x7f) //env off
           {
-            Log::Assert(channelWarner, !channel->FindCommand(ENVELOPE) && !channel->FindCommand(NOENVELOPE),
-              Text::WARNING_DUPLICATE_ENVELOPE);
             channel->Commands.push_back(NOENVELOPE);
           }
           else if (cmd >= 0x71 && cmd <= 0x7e) //envelope
@@ -390,8 +384,6 @@ namespace
             {
               throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
             }
-            Log::Assert(channelWarner, !channel->FindCommand(ENVELOPE) && !channel->FindCommand(NOENVELOPE),
-              Text::WARNING_DUPLICATE_ENVELOPE);
             channel->Commands.push_back(
               PT2Track::Command(ENVELOPE, cmd - 0x70, data[cur->Offset] | (uint_t(data[cur->Offset + 1]) << 8)));
             cur->Offset += 2;
@@ -403,8 +395,7 @@ namespace
           else if (cmd >= 0x60 && cmd <= 0x6f)//ornament
           {
             const uint_t num = cmd - 0x60;
-            channel->SetOrnament(num, channelWarner);
-            Log::Assert(channelWarner, !num || Data->Ornaments[num].GetSize(), Text::WARNING_INVALID_ORNAMENT);
+            channel->SetOrnament(num);
           }
           else if (cmd >= 0x20 && cmd <= 0x5f)//skip
           {
@@ -412,7 +403,7 @@ namespace
           }
           else if (cmd >= 0x10 && cmd <= 0x1f)//volume
           {
-            channel->SetVolume(cmd - 0x10, channelWarner);
+            channel->SetVolume(cmd - 0x10);
           }
           else if (cmd == 0x0f)//new delay
           {
@@ -421,7 +412,7 @@ namespace
             {
               throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
             }
-            line.SetTempo(data[cur->Offset++], channelWarner);
+            line.SetTempo(data[cur->Offset++]);
           }
           else if (cmd == 0x0e)//gliss
           {
@@ -439,8 +430,6 @@ namespace
             {
               throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
             }
-            //too late when note is filled
-            Log::Assert(channelWarner, !channel->Note, Text::WARNING_INVALID_NOTE_GLISS);
             channel->Commands.push_back(PT2Track::Command(GLISS_NOTE, static_cast<int8_t>(data[cur->Offset])));
             //ignore delta due to error
             cur->Offset += 3;
@@ -475,8 +464,6 @@ namespace
       const PT2Header* const header = safe_ptr_cast<const PT2Header*>(&data[0]);
       const PT2Pattern* patterns = safe_ptr_cast<const PT2Pattern*>(&data[fromLE(header->PatternsOffset)]);
 
-      Log::MessagesCollector::Ptr warner(Log::MessagesCollector::Create());
-
       std::size_t rawSize = 0;
       //fill samples
       Data->Samples.reserve(header->SamplesOffsets.size());
@@ -492,7 +479,6 @@ namespace
       uint_t index(0);
       for (const PT2Pattern* pattern = patterns; pattern->Check(); ++pattern, ++index)
       {
-        Log::ParamPrefixedCollector patternWarner(*warner, Text::PATTERN_WARN_PREFIX, index);
         PT2Track::Pattern& pat = Data->Patterns[index];
 
         AYMPatternCursors cursors;
@@ -502,10 +488,9 @@ namespace
         do
         {
           const uint_t patternSize = pat.size();
-          Log::ParamPrefixedCollector patLineWarner(patternWarner, Text::LINE_WARN_PREFIX, patternSize);
           pat.push_back(PT2Track::Line());
           PT2Track::Line& line = pat.back();
-          ParsePattern(data, cursors, line, patLineWarner);
+          ParsePattern(data, cursors, line);
           //skip lines
           if (const uint_t linesToSkip = cursors.GetMinCounter())
           {
@@ -515,9 +500,6 @@ namespace
         }
         while (channelACursor < data.Size() &&
           (0 != data[channelACursor] || 0 != cursors.front().Counter));
-        //as warnings
-        Log::Assert(patternWarner, 0 == cursors.GetMaxCounter(), Text::WARNING_PERIODS);
-        Log::Assert(patternWarner, pat.size() <= MAX_PATTERN_SIZE, Text::WARNING_INVALID_PATTERN_SIZE);
         rawSize = std::max<std::size_t>(rawSize, 1 + cursors.GetMaxOffset());
       }
 
@@ -529,7 +511,6 @@ namespace
           Data->Positions.push_back(*curPos);
         }
       }
-      Log::Assert(*warner, header->Length == Data->Positions.size(), Text::WARNING_INVALID_LENGTH);
       Data->LoopPosition = header->Loop;
       Data->InitialTempo = header->Tempo;
 
@@ -546,7 +527,6 @@ namespace
       }
       props->SetTitle(OptimizeString(FromCharArray(header->Name)));
       props->SetProgram(Text::PT2_EDITOR);
-      props->SetWarnings(warner);
       props->SetPlugins(container.Plugins);
       props->SetPath(container.Path);
 

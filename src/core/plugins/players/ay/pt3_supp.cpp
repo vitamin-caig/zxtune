@@ -20,7 +20,6 @@ Author:
 #include <byteorder.h>
 #include <error_tools.h>
 #include <logging.h>
-#include <messages_collector.h>
 #include <range_checker.h>
 #include <tools.h>
 //library includes
@@ -412,7 +411,6 @@ namespace
     void ParsePattern(const IO::FastDump& data
       , AYMPatternCursors& cursors
       , Vortex::Track::Line& line
-      , Log::MessagesCollector& warner
       )
     {
       bool wasEnvelope(false);
@@ -426,7 +424,6 @@ namespace
           continue;//has to skip
         }
 
-        Log::ParamPrefixedCollector channelWarner(warner, Text::CHANNEL_WARN_PREFIX, std::distance(line.Channels.begin(), channel));
         for (const std::size_t dataSize = data.Size(); cur->Offset < dataSize;)
         {
           const uint_t cmd(data[cur->Offset++]);
@@ -476,7 +473,6 @@ namespace
             {
               const uint_t envPeriod(data[cur->Offset + 1] + (uint_t(data[cur->Offset]) << 8));
               cur->Offset += 2;
-              Log::Assert(channelWarner, !wasEnvelope, Text::WARNING_DUPLICATE_ENVELOPE);
               channel->Commands.push_back(Vortex::Track::Command(Vortex::ENVELOPE, cmd - (cmd >= 0xb2 ? 0xb1 : 0x10), envPeriod));
               wasEnvelope = true;
             }
@@ -488,28 +484,24 @@ namespace
             if (hasOrn) //has ornament command
             {
               const uint_t num(cmd - 0xf0);
-              Log::Assert(channelWarner, !num || Data->Ornaments[num].GetSize(), Text::WARNING_INVALID_ORNAMENT);
-              channel->SetOrnament(num, channelWarner);
+              channel->SetOrnament(num);
             }
 
             if (hasSmp)
             {
               const uint_t doubleSampNum(data[cur->Offset++]);
               const bool sampValid(doubleSampNum < MAX_SAMPLES_COUNT * 2 && 0 == (doubleSampNum & 1));
-              Log::Assert(channelWarner, sampValid, Text::WARNING_INVALID_SAMPLE);
-              channel->SetSample(sampValid ? (doubleSampNum / 2) : 0, channelWarner);
+              channel->SetSample(sampValid ? (doubleSampNum / 2) : 0);
             }
           }
           else if (cmd >= 0x20 && cmd <= 0x3f)
           {
-            Log::Assert(channelWarner, noiseBase == -1, Text::WARNING_DUPLICATE_NOISEBASE);
             noiseBase = cmd - 0x20;
           }
           else if (cmd >= 0x40 && cmd <= 0x4f)
           {
             const uint_t num(cmd - 0x40);
-            Log::Assert(channelWarner, !num || Data->Ornaments[num].GetSize(), Text::WARNING_INVALID_ORNAMENT);
-            channel->SetOrnament(num, channelWarner);
+            channel->SetOrnament(num);
           }
           else if (cmd >= 0x50 && cmd <= 0xaf)
           {
@@ -521,9 +513,9 @@ namespace
             }
             else
             {
-              channel->SetNote(note, channelWarner);
+              channel->SetNote(note);
             }
-            channel->SetEnabled(true, channelWarner);
+            channel->SetEnabled(true);
             break;
           }
           else if (cmd == 0xb0)
@@ -540,12 +532,12 @@ namespace
           }
           else if (cmd == 0xc0)
           {
-            channel->SetEnabled(false, channelWarner);
+            channel->SetEnabled(false);
             break;
           }
           else if (cmd >= 0xc1 && cmd <= 0xcf)
           {
-            channel->SetVolume(cmd - 0xc0, channelWarner);
+            channel->SetVolume(cmd - 0xc0);
           }
           else if (cmd == 0xd0)
           {
@@ -554,7 +546,7 @@ namespace
           else if (cmd >= 0xd1 && cmd <= 0xef)
           {
             //TODO: check for empty sample
-            channel->SetSample(cmd - 0xd0, channelWarner);
+            channel->SetSample(cmd - 0xd0);
           }
         }
         //parse parameters
@@ -569,7 +561,7 @@ namespace
             {
               throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
             }
-            line.SetTempo(data[cur->Offset++], channelWarner);
+            line.SetTempo(data[cur->Offset++]);
             break;
           case Vortex::SLIDEENV:
           case Vortex::GLISS:
@@ -598,7 +590,6 @@ namespace
             const uint_t offset(data[cur->Offset++]);
             const bool isValid(offset < (channel->OrnamentNum ?
               Data->Ornaments[*channel->OrnamentNum].GetSize() : MAX_ORNAMENT_SIZE));
-            Log::Assert(channelWarner, isValid, Text::WARNING_INVALID_ORNAMENT_OFFSET);
             it->Param1 = isValid ? offset : 0;
             break;
           }
@@ -612,7 +603,6 @@ namespace
               const uint_t offset(data[cur->Offset++]);
               const bool isValid(offset < (channel->SampleNum ?
                 Data->Samples[*channel->SampleNum].GetSize() : MAX_SAMPLE_SIZE));
-              Log::Assert(channelWarner, isValid, Text::WARNING_INVALID_SAMPLE_OFFSET);
               it->Param1 = isValid ? offset : 0;
             }
             break;
@@ -649,8 +639,6 @@ namespace
       const IO::FastDump& data = IO::FastDump(*container.Data, region.Offset);
       const PT3Header* const header(safe_ptr_cast<const PT3Header*>(&data[0]));
 
-      Log::MessagesCollector::Ptr warner(Log::MessagesCollector::Create());
-
       std::size_t rawSize(0);
       //fill samples
       Data->Samples.reserve(header->SamplesOffsets.size());
@@ -668,7 +656,6 @@ namespace
       const PT3Pattern* patterns(safe_ptr_cast<const PT3Pattern*>(&data[fromLE(header->PatternsOffset)]));
       for (const PT3Pattern* pattern = patterns; pattern->Check() && index < Data->Patterns.size(); ++pattern, ++index)
       {
-        Log::ParamPrefixedCollector patternWarner(*warner, Text::PATTERN_WARN_PREFIX, index);
         Vortex::Track::Pattern& pat(Data->Patterns[index]);
 
         AYMPatternCursors cursors;
@@ -677,11 +664,9 @@ namespace
         uint_t& channelACursor = cursors.front().Offset;
         do
         {
-          const uint_t patternSize = pat.size();
-          Log::ParamPrefixedCollector patLineWarner(patternWarner, Text::LINE_WARN_PREFIX, patternSize);
           pat.push_back(Vortex::Track::Line());
           Vortex::Track::Line& line(pat.back());
-          ParsePattern(data, cursors, line, patLineWarner);
+          ParsePattern(data, cursors, line);
           //skip lines
           if (const uint_t linesToSkip = cursors.GetMinCounter())
           {
@@ -691,9 +676,6 @@ namespace
         }
         while (channelACursor < data.Size() &&
           (0 != data[channelACursor] || 0 != cursors.front().Counter));
-        //as warnings
-        Log::Assert(patternWarner, 0 == cursors.GetMaxCounter(), Text::WARNING_PERIODS);
-        Log::Assert(patternWarner, pat.size() <= MAX_PATTERN_SIZE, Text::WARNING_INVALID_PATTERN_SIZE);
         rawSize = std::max<std::size_t>(rawSize, 1 + cursors.GetMaxOffset());
       }
       //fill order
@@ -708,7 +690,6 @@ namespace
       {
         throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
       }
-      Log::Assert(*warner, header->Length == Data->Positions.size(), Text::WARNING_INVALID_LENGTH);
       Data->LoopPosition = header->Loop;
       Data->InitialTempo = header->Tempo;
 
@@ -726,7 +707,6 @@ namespace
       props->SetTitle(OptimizeString(FromCharArray(header->TrackName)));
       props->SetAuthor(OptimizeString(FromCharArray(header->TrackAuthor)));
       props->SetProgram(OptimizeString(String(header->Id, header->Optional1)));
-      props->SetWarnings(warner);
       props->SetPlugins(container.Plugins);
       props->SetPath(container.Path);
 

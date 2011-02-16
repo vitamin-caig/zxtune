@@ -19,7 +19,6 @@ Author:
 #include <byteorder.h>
 #include <error_tools.h>
 #include <logging.h>
-#include <messages_collector.h>
 #include <range_checker.h>
 #include <tools.h>
 //library includes
@@ -433,35 +432,33 @@ namespace
       return props;
     }
 
-    uint_t ParseOrnaments(const STPAreas& areas, Log::MessagesCollector& warner)
+    uint_t ParseOrnaments(const STPAreas& areas)
     {
       const STPOrnaments& ornaments = areas.GetOrnaments();
       Ornaments.reserve(ornaments.Offsets.size());
       uint_t resLimit = areas.GetOrnamentsLimit();
       for (uint_t idx = 0; idx != ornaments.Offsets.size(); ++idx)
       {
-        Log::ParamPrefixedCollector ornWarner(warner, Text::ORNAMENT_WARN_PREFIX, idx);
         const uint_t offset = fromLE(ornaments.Offsets[idx]);
-        const uint_t ornLimit = ParseOrnament(offset, areas, ornWarner);
+        const uint_t ornLimit = ParseOrnament(offset, areas);
         resLimit = std::max(resLimit, ornLimit);
       }
       return resLimit;
     }
 
-    uint_t ParseSamples(const STPAreas& areas, Log::MessagesCollector& warner)
+    uint_t ParseSamples(const STPAreas& areas)
     {
       const STPSamples& samples = areas.GetSamples();
       Samples.reserve(samples.Offsets.size());
       for (uint_t idx = 0; idx != samples.Offsets.size(); ++idx)
       {
-        Log::ParamPrefixedCollector smpWarner(warner, Text::SAMPLE_WARN_PREFIX, idx);
         const uint_t offset = fromLE(samples.Offsets[idx]);
-        ParseSample(offset, areas, smpWarner);
+        ParseSample(offset, areas);
       }
       return areas.GetSamplesLimit();
     }
 
-    uint_t ParsePatterns(const STPAreas& areas, Log::MessagesCollector& warner)
+    uint_t ParsePatterns(const STPAreas& areas)
     {
       assert(!Samples.empty());
       assert(!Ornaments.empty());
@@ -470,16 +467,15 @@ namespace
       for (RangeIterator<const STPPattern*> iter = areas.GetPatterns(); iter; ++iter)
       {
         const STPPattern& pattern = *iter;
-        Log::ParamPrefixedCollector patternWarner(warner, Text::PATTERN_WARN_PREFIX, Patterns.size());
         Patterns.push_back(STPTrack::Pattern());
         STPTrack::Pattern& dst = Patterns.back();
-        const uint_t patLimit = ParsePattern(areas.GetOriginalData(), pattern, dst, patternWarner);
+        const uint_t patLimit = ParsePattern(areas.GetOriginalData(), pattern, dst);
         resLimit = std::max(resLimit, patLimit);
       }
       return resLimit;
     }
 
-    uint_t ParsePositions(const STPAreas& areas, Log::MessagesCollector& warner)
+    uint_t ParsePositions(const STPAreas& areas)
     {
       assert(!Patterns.empty());
       uint_t positionsCount = 0;
@@ -491,45 +487,31 @@ namespace
         {
           AddPosition(entry);
         }
-        else
-        {
-          warner.AddMessage(Text::WARNING_INVALID_POSITIONS);
-        }
       }
       if (Positions.empty())
       {
         throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
       }
-      Log::Assert(warner, Positions.size() == positionsCount, Text::WARNING_INVALID_POSITIONS);
       return areas.GetPositionsLimit();
     }
   private:
-    uint_t ParseOrnament(uint_t offset, const STPAreas& areas, Log::MessagesCollector& warner)
+    uint_t ParseOrnament(uint_t offset, const STPAreas& areas)
     {
       const STPOrnament& ornament = areas.GetOrnament(offset);
       const uint_t realLoop = std::min<uint_t>(ornament.Loop, ornament.Size);
       Ornaments.push_back(SimpleOrnament(realLoop, ornament.Data, ornament.Data + ornament.Size));
-      if (ornament.Loop != realLoop)
-      {
-        warner.AddMessage(Text::WARNING_LOOP_OUT_BOUND);
-      }
       return offset + sizeof(STPOrnament) + (ornament.Size - 1) * sizeof(ornament.Data[0]);
     }
 
-    uint_t ParseSample(uint_t offset, const STPAreas& areas, Log::MessagesCollector& warner)
+    uint_t ParseSample(uint_t offset, const STPAreas& areas)
     {
       const STPSample& sample = areas.GetSample(offset);
       const int_t realLoop = std::min<int_t>(sample.Loop, sample.Size);
       Samples.push_back(Sample(realLoop, sample.Data, sample.Data + sample.Size));
-      if (sample.Loop != realLoop)
-      {
-        warner.AddMessage(Text::WARNING_LOOP_OUT_BOUND);
-      }
       return offset + sizeof(STPSample) + (sample.Size - 1) * sizeof(sample.Data[0]);
     }
 
-    uint_t ParsePattern(const IO::FastDump& data, const STPPattern& pattern,
-      STPTrack::Pattern& dst, Log::MessagesCollector& warner)
+    uint_t ParsePattern(const IO::FastDump& data, const STPPattern& pattern, STPTrack::Pattern& dst)
     {
       AYMPatternCursors cursors;
       std::transform(pattern.Offsets.begin(), pattern.Offsets.end(), cursors.begin(), std::ptr_fun(&fromLE<uint16_t>));
@@ -537,11 +519,9 @@ namespace
       uint_t& channelACursor = cursors.front().Offset;
       do
       {
-        const uint_t curPatternSize = dst.size();
-        Log::ParamPrefixedCollector lineWarner(warner, Text::LINE_WARN_PREFIX, curPatternSize);
         dst.push_back(STPTrack::Line());
         STPTrack::Line& line = dst.back();
-        ParsePatternLine(data, cursors, line, lineWarner);
+        ParsePatternLine(data, cursors, line);
         //skip lines
         if (const uint_t linesToSkip = cursors.GetMinCounter())
         {
@@ -551,25 +531,21 @@ namespace
       }
       while (channelACursor < data.Size() &&
              (0 != data[channelACursor] || 0 != cursors.front().Counter));
-      Log::Assert(warner, 0 == cursors.GetMaxCounter(), Text::WARNING_PERIODS);
-      Log::Assert(warner, dst.size() <= MAX_PATTERN_SIZE, Text::WARNING_INVALID_PATTERN_SIZE);
       const uint_t maxOffset = 1 + cursors.GetMaxOffset();
       return maxOffset;
     }
 
-    void ParsePatternLine(const IO::FastDump& data, AYMPatternCursors& cursors, STPTrack::Line& line, Log::MessagesCollector& warner)
+    void ParsePatternLine(const IO::FastDump& data, AYMPatternCursors& cursors, STPTrack::Line& line)
     {
       assert(line.Channels.size() == cursors.size());
       STPTrack::Line::ChannelsArray::iterator channel(line.Channels.begin());
       for (AYMPatternCursors::iterator cur = cursors.begin(); cur != cursors.end(); ++cur, ++channel)
       {
-        Log::ParamPrefixedCollector channelWarner(warner, Text::CHANNEL_WARN_PREFIX, std::distance(line.Channels.begin(), channel));
-        ParsePatternLineChannel(data, *cur, *channel, channelWarner);
+        ParsePatternLineChannel(data, *cur, *channel);
       }
     }
 
-    void ParsePatternLineChannel(const IO::FastDump& data, PatternCursor& cur, STPTrack::Line::Chan& channel,
-      Log::MessagesCollector& warner)
+    void ParsePatternLineChannel(const IO::FastDump& data, PatternCursor& cur, STPTrack::Line::Chan& channel)
     {
       if (cur.Counter--)
       {
@@ -582,21 +558,18 @@ namespace
         const std::size_t restbytes = dataSize - cur.Offset;
         if (cmd >= 1 && cmd <= 0x60)//note
         {
-          channel.SetNote(cmd - 1, warner);
-          channel.SetEnabled(true, warner);
+          channel.SetNote(cmd - 1);
+          channel.SetEnabled(true);
           break;
         }
         else if (cmd >= 0x61 && cmd <= 0x6f)//sample
         {
-          channel.SetSample(cmd - 0x61, warner);
+          channel.SetSample(cmd - 0x61);
         }
         else if (cmd >= 0x70 && cmd <= 0x7f)//ornament
         {
-          Log::Assert(warner, !channel.FindCommand(ENVELOPE), Text::WARNING_DUPLICATE_ENVELOPE);
-          channel.SetOrnament(cmd - 0x70, warner);
+          channel.SetOrnament(cmd - 0x70);
           channel.Commands.push_back(STPTrack::Command(NOENVELOPE));
-          //TODO
-          Log::Assert(warner, !channel.FindCommand(GLISS), "duplicate gliss");
           channel.Commands.push_back(STPTrack::Command(GLISS, 0));
         }
         else if (cmd >= 0x80 && cmd <= 0xbf) //skip
@@ -609,16 +582,14 @@ namespace
           {
             throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
           }
-          Log::Assert(warner, !channel.FindCommand(NOENVELOPE), Text::WARNING_DUPLICATE_ENVELOPE);
           channel.Commands.push_back(STPTrack::Command(ENVELOPE, cmd - 0xc0,
             cmd != 0xc0 ? data[cur.Offset++] : 0));
-          channel.SetOrnament(0, warner);
-          Log::Assert(warner, !channel.FindCommand(GLISS), "duplicate gliss");
+          channel.SetOrnament(0);
           channel.Commands.push_back(STPTrack::Command(GLISS, 0));
         }
         else if (cmd >= 0xd0 && cmd <= 0xdf)//reset
         {
-          channel.SetEnabled(false, warner);
+          channel.SetEnabled(false);
           break;
         }
         else if (cmd >= 0xe0 && cmd <= 0xef)//empty
@@ -631,12 +602,11 @@ namespace
           {
             throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
           }
-          Log::Assert(warner, !channel.FindCommand(GLISS), "duplicate gliss");
           channel.Commands.push_back(STPTrack::Command(GLISS, static_cast<int8_t>(data[cur.Offset++])));
         }
         else if (cmd >= 0xf1 && cmd <= 0xff) //volume
         {
-          channel.SetVolume(cmd - 0xf1, warner);
+          channel.SetVolume(cmd - 0xf1);
         }
       }
       cur.Counter = cur.Period;
@@ -673,13 +643,11 @@ namespace
       const IO::FastDump& data = IO::FastDump(*container.Data, region.Offset);
       const STPAreas areas(data);
 
-      Log::MessagesCollector::Ptr warner(Log::MessagesCollector::Create());
-
       const ModuleProperties::Ptr props = Data->ParseInformation(areas);
-      const uint_t ornLim = Data->ParseOrnaments(areas, *warner);
-      const uint_t smpLim = Data->ParseSamples(areas, *warner);
-      const uint_t patLim = Data->ParsePatterns(areas, *warner);
-      const uint_t posLim = Data->ParsePositions(areas, *warner);
+      const uint_t ornLim = Data->ParseOrnaments(areas);
+      const uint_t smpLim = Data->ParseSamples(areas);
+      const uint_t patLim = Data->ParsePatterns(areas);
+      const uint_t posLim = Data->ParsePositions(areas);
 
       const std::size_t maxLim = std::max(std::max(smpLim, ornLim), std::max(patLim, posLim));
       //fill region
@@ -692,7 +660,6 @@ namespace
         const ModuleRegion fixedRegion(fixedOffset, region.Size -  fixedOffset);
         props->SetSource(RawData, fixedRegion);
       }
-      props->SetWarnings(warner);
       props->SetPlugins(container.Plugins);
       props->SetPath(container.Path);
 

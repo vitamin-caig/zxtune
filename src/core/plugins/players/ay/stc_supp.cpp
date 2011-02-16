@@ -19,7 +19,6 @@ Author:
 #include <byteorder.h>
 #include <error_tools.h>
 #include <logging.h>
-#include <messages_collector.h>
 #include <range_checker.h>
 #include <tools.h>
 //library includes
@@ -420,7 +419,7 @@ namespace
       return props;
     }
 
-    uint_t ParseSamples(const STCAreas& areas, Log::MessagesCollector& warner)
+    uint_t ParseSamples(const STCAreas& areas)
     {
       Samples.resize(MAX_SAMPLES_COUNT);
       for (RangeIterator<const STCSample*> iter = areas.GetSamples(); iter; ++iter)
@@ -430,15 +429,11 @@ namespace
         {
           AddSample(sample);
         }
-        else
-        {
-          warner.AddMessage(Text::WARNING_INVALID_SAMPLE);
-        }
       }
       return areas.GetSamplesLimit();
     }
 
-    uint_t ParseOrnaments(const STCAreas& areas, Log::MessagesCollector& warner)
+    uint_t ParseOrnaments(const STCAreas& areas)
     {
       Ornaments.resize(MAX_ORNAMENTS_COUNT);
       for (RangeIterator<const STCOrnament*> iter = areas.GetOrnaments(); iter; ++iter)
@@ -448,15 +443,11 @@ namespace
         {
           AddOrnament(ornament);
         }
-        else
-        {
-          warner.AddMessage(Text::WARNING_INVALID_ORNAMENT);
-        }
       }
       return areas.GetOrnamentsLimit();
     }
 
-    uint_t ParsePositions(const STCAreas& areas, Log::MessagesCollector& warner)
+    uint_t ParsePositions(const STCAreas& areas)
     {
       assert(!Patterns.empty());
       uint_t positionsCount = 0;
@@ -468,20 +459,15 @@ namespace
         {
           AddPosition(entry);
         }
-        else
-        {
-          warner.AddMessage(Text::WARNING_INVALID_POSITIONS);
-        }
       }
       if (Positions.empty())
       {
         throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
       }
-      Log::Assert(warner, Positions.size() == positionsCount, Text::WARNING_INVALID_POSITIONS);
       return areas.GetPositionsLimit();
     }
 
-    uint_t ParsePatterns(const STCAreas& areas, Log::MessagesCollector& warner)
+    uint_t ParsePatterns(const STCAreas& areas)
     {
       assert(!Samples.empty());
       assert(!Ornaments.empty());
@@ -493,14 +479,9 @@ namespace
         assert(pattern);
         if (CheckPattern(pattern))
         {
-          Log::ParamPrefixedCollector patternWarner(warner, Text::PATTERN_WARN_PREFIX, pattern.Number - 1);
           STCTrack::Pattern& dst(Patterns[pattern.Number - 1]);
-          const uint_t patLimit = ParsePattern(areas.GetOriginalData(), pattern, dst, patternWarner);
+          const uint_t patLimit = ParsePattern(areas.GetOriginalData(), pattern, dst);
           resLimit = std::max(resLimit, patLimit);
-        }
-        else
-        {
-          warner.AddMessage(Text::WARNING_INVALID_PATTERN);
         }
       }
       return resLimit;
@@ -547,7 +528,7 @@ namespace
       return 0 != pattern.Number && pattern.Number < MAX_PATTERN_COUNT;
     }
 
-    uint_t ParsePattern(const IO::FastDump& data, const STCPattern& pattern, STCTrack::Pattern& dst, Log::MessagesCollector& warner)
+    uint_t ParsePattern(const IO::FastDump& data, const STCPattern& pattern, STCTrack::Pattern& dst)
     {
       AYMPatternCursors cursors;
       std::transform(pattern.Offsets.begin(), pattern.Offsets.end(), cursors.begin(), &fromLE<uint16_t>);
@@ -555,11 +536,9 @@ namespace
       uint_t& channelACursor = cursors.front().Offset;
       do
       {
-        const uint_t curPatternSize = dst.size();
-        Log::ParamPrefixedCollector lineWarner(warner, Text::LINE_WARN_PREFIX, curPatternSize);
         dst.push_back(STCTrack::Line());
         STCTrack::Line& line(dst.back());
-        ParsePatternLine(data, cursors, line, lineWarner);
+        ParsePatternLine(data, cursors, line);
         //skip lines
         if (const uint_t linesToSkip = cursors.GetMinCounter())
         {
@@ -570,25 +549,21 @@ namespace
       while (channelACursor < data.Size() &&
              (0xff != data[channelACursor] ||
              0 != cursors.front().Counter));
-      Log::Assert(warner, 0 == cursors.GetMaxCounter(), Text::WARNING_PERIODS);
-      Log::Assert(warner, dst.size() <= MAX_PATTERN_SIZE, Text::WARNING_INVALID_PATTERN_SIZE);
       const uint_t maxOffset = 1 + cursors.GetMaxOffset();
       return maxOffset;
     }
 
-    void ParsePatternLine(const IO::FastDump& data, AYMPatternCursors& cursors, STCTrack::Line& line, Log::MessagesCollector& warner)
+    void ParsePatternLine(const IO::FastDump& data, AYMPatternCursors& cursors, STCTrack::Line& line)
     {
       assert(line.Channels.size() == cursors.size());
       STCTrack::Line::ChannelsArray::iterator channel(line.Channels.begin());
       for (AYMPatternCursors::iterator cur = cursors.begin(); cur != cursors.end(); ++cur, ++channel)
       {
-        Log::ParamPrefixedCollector channelWarner(warner, Text::CHANNEL_WARN_PREFIX, std::distance(line.Channels.begin(), channel));
-        ParsePatternLineChannel(data, *cur, *channel, channelWarner);
+        ParsePatternLineChannel(data, *cur, *channel);
       }
     }
 
-    void ParsePatternLineChannel(const IO::FastDump& data, PatternCursor& cur, STCTrack::Line::Chan& channel,
-      Log::MessagesCollector& warner)
+    void ParsePatternLineChannel(const IO::FastDump& data, PatternCursor& cur, STCTrack::Line::Chan& channel)
     {
       if (cur.Counter--)
       {
@@ -603,27 +578,24 @@ namespace
         //ornament==0 and sample==0 are valid - no ornament and no sample respectively
         if (cmd <= 0x5f)//note
         {
-          channel.SetNote(cmd, warner);
-          channel.SetEnabled(true, warner);
+          channel.SetNote(cmd);
+          channel.SetEnabled(true);
           break;
         }
         else if (cmd >= 0x60 && cmd <= 0x6f)//sample
         {
           const uint_t num = cmd - 0x60;
-          channel.SetSample(num, warner);
-          Log::Assert(warner, !num || Samples[num].GetSize(), Text::WARNING_INVALID_SAMPLE);
+          channel.SetSample(num);
         }
         else if (cmd >= 0x70 && cmd <= 0x7f)//ornament
         {
-          Log::Assert(warner, !channel.FindCommand(ENVELOPE), Text::WARNING_DUPLICATE_ENVELOPE);
           channel.Commands.push_back(STCTrack::Command(NOENVELOPE));
           const uint_t num = cmd - 0x70;
-          channel.SetOrnament(num, warner);
-          Log::Assert(warner, !num || Ornaments[num].GetSize(), Text::WARNING_INVALID_ORNAMENT);
+          channel.SetOrnament(num);
         }
         else if (cmd == 0x80)//reset
         {
-          channel.SetEnabled(false, warner);
+          channel.SetEnabled(false);
           break;
         }
         else if (cmd == 0x81)//empty
@@ -632,9 +604,7 @@ namespace
         }
         else if (cmd >= 0x82 && cmd <= 0x8e)//orn 0, without/with envelope
         {
-          channel.SetOrnament(0, warner);
-          Log::Assert(warner, !channel.FindCommand(ENVELOPE) && !channel.FindCommand(NOENVELOPE),
-            Text::WARNING_DUPLICATE_ENVELOPE);
+          channel.SetOrnament(0);
           if (cmd == 0x82)
           {
             channel.Commands.push_back(STCTrack::Command(NOENVELOPE));
@@ -678,13 +648,11 @@ namespace
       const IO::FastDump& data = IO::FastDump(*container.Data, region.Offset);
       const STCAreas areas(data);
 
-      Log::MessagesCollector::Ptr warner(Log::MessagesCollector::Create());
-
       const ModuleProperties::Ptr props = Data->ParseInformation(areas);
-      const uint_t smpLim = Data->ParseSamples(areas, *warner);
-      const uint_t ornLim = Data->ParseOrnaments(areas, *warner);
-      const uint_t patLim = Data->ParsePatterns(areas, *warner);
-      const uint_t posLim = Data->ParsePositions(areas, *warner);
+      const uint_t smpLim = Data->ParseSamples(areas);
+      const uint_t ornLim = Data->ParseOrnaments(areas);
+      const uint_t patLim = Data->ParsePatterns(areas);
+      const uint_t posLim = Data->ParsePositions(areas);
 
       const std::size_t maxLim = std::max(std::max(smpLim, ornLim), std::max(patLim, posLim));
       //fill region
@@ -699,7 +667,6 @@ namespace
       }
       props->SetPlugins(container.Plugins);
       props->SetPath(container.Path);
-      props->SetWarnings(warner);
 
       Info->SetLogicalChannels(AYM::LOGICAL_CHANNELS);
       Info->SetModuleProperties(Parameters::CreateMergedAccessor(parameters, props));

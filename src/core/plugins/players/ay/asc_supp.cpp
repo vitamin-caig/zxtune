@@ -18,7 +18,6 @@ Author:
 #include <byteorder.h>
 #include <error_tools.h>
 #include <logging.h>
-#include <messages_collector.h>
 #include <range_checker.h>
 #include <tools.h>
 //library includes
@@ -410,7 +409,6 @@ namespace
     static void ParsePattern(const IO::FastDump& data
       , AYMPatternCursors& cursors
       , ASCTrack::Line& line
-      , Log::MessagesCollector& warner
       , uint_t& envelopes
       )
     {
@@ -424,8 +422,6 @@ namespace
           continue;//has to skip
         }
 
-        const uint_t idx = std::distance(line.Channels.begin(), channel);
-        Log::ParamPrefixedCollector channelWarner(warner, Text::CHANNEL_WARN_PREFIX, idx);
         bool continueSample = false;
         for (const std::size_t dataSize = data.Size(); cur->Offset < dataSize;)
         {
@@ -435,7 +431,7 @@ namespace
           {
             if (!continueSample)
             {
-              channel->SetEnabled(true, channelWarner);
+              channel->SetEnabled(true);
             }
             if (!channel->Commands.empty() &&
                 SLIDE == channel->Commands.back().Type)
@@ -447,7 +443,7 @@ namespace
             }
             else
             {
-              channel->SetNote(cmd, channelWarner);
+              channel->SetNote(cmd);
             }
             if (envelopes & envMask)
             {
@@ -481,7 +477,7 @@ namespace
           }
           else if (cmd == 0x5f) //shut
           {
-            channel->SetEnabled(false, channelWarner);
+            channel->SetEnabled(false);
             break;
           }
           else if (cmd >= 0x60 && cmd <= 0x9f) //skip
@@ -490,21 +486,21 @@ namespace
           }
           else if (cmd >= 0xa0 && cmd <= 0xbf) //sample
           {
-            channel->SetSample(cmd - 0xa0, channelWarner);
+            channel->SetSample(cmd - 0xa0);
           }
           else if (cmd >= 0xc0 && cmd <= 0xdf) //ornament
           {
-            channel->SetOrnament(cmd - 0xc0, channelWarner);
+            channel->SetOrnament(cmd - 0xc0);
           }
           else if (cmd == 0xe0) // envelope full vol
           {
-            channel->SetVolume(15, channelWarner);
+            channel->SetVolume(15);
             channel->Commands.push_back(ASCTrack::Command(ENVELOPE_ON));
             envelopes |= envMask;
           }
           else if (cmd >= 0xe1 && cmd <= 0xef) // noenvelope vol
           {
-            channel->SetVolume(cmd - 0xe0, channelWarner);
+            channel->SetVolume(cmd - 0xe0);
             channel->Commands.push_back(ASCTrack::Command(ENVELOPE_OFF));
             envelopes &= ~envMask;
           }
@@ -534,7 +530,7 @@ namespace
             {
               throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
             }
-            line.SetTempo(data[cur->Offset++], channelWarner);
+            line.SetTempo(data[cur->Offset++]);
           }
           else if (cmd == 0xf5 || cmd == 0xf6) //slide
           {
@@ -568,7 +564,6 @@ namespace
             else
             {
               //strange situation...
-              channelWarner.AddMessage(Text::WARNING_DUPLICATE_ENVELOPE);
               cmdIt->Param1 = cmd & 0xf;
             }
           }
@@ -596,8 +591,6 @@ namespace
 
       const ASCHeader* const header = safe_ptr_cast<const ASCHeader*>(&data[0]);
 
-      Log::MessagesCollector::Ptr warner(Log::MessagesCollector::Create());
-
       std::size_t rawSize = 0;
       //parse samples
       {
@@ -613,12 +606,6 @@ namespace
           const ASCSample* const sample = safe_ptr_cast<const ASCSample*>(&data[samplesOff + sampleOffset]);
           Data->Samples.push_back(Sample(*sample));
           const Sample& smp = Data->Samples.back();
-          if (smp.GetLoop() > smp.GetLoopLimit() || smp.GetLoopLimit() >= smp.GetSize())
-          {
-            Log::ParamPrefixedCollector lineWarner(*warner, Text::SAMPLE_WARN_PREFIX, index);
-            Log::Assert(lineWarner, smp.GetLoop() <= smp.GetLoopLimit(), Text::WARNING_LOOP_OUT_LIMIT);
-            Log::Assert(lineWarner, smp.GetLoopLimit() < smp.GetSize(), Text::WARNING_LOOP_OUT_BOUND);
-          }
           rawSize = std::max(rawSize, samplesOff + sampleOffset + smp.GetSize() * sizeof(ASCSample::Line));
         }
       }
@@ -637,12 +624,6 @@ namespace
           const ASCOrnament* const ornament = safe_ptr_cast<const ASCOrnament*>(&data[ornamentsOff + ornamentOffset]);
           Data->Ornaments.push_back(ASCTrack::Ornament(*ornament));
           const Ornament& orn = Data->Ornaments.back();
-          if (orn.GetLoop() > orn.GetLoopLimit() || orn.GetLoopLimit() >= orn.GetSize())
-          {
-            Log::ParamPrefixedCollector lineWarner(*warner, Text::ORNAMENT_WARN_PREFIX, index);
-            Log::Assert(lineWarner, orn.GetLoop() <= orn.GetLoopLimit(), Text::WARNING_LOOP_OUT_LIMIT);
-            Log::Assert(lineWarner, orn.GetLoopLimit() < orn.GetSize(), Text::WARNING_LOOP_OUT_BOUND);
-          }
           rawSize = std::max(rawSize, ornamentsOff + ornamentOffset + orn.GetSize() * sizeof(ASCOrnament::Line));
         }
       }
@@ -657,7 +638,6 @@ namespace
       Data->Patterns.resize(patternsCount);
       for (uint_t patNum = 0; patNum < patternsCount; ++patNum, ++pattern)
       {
-        Log::ParamPrefixedCollector patternWarner(*warner, Text::PATTERN_WARN_PREFIX, patNum);
         ASCTrack::Pattern& pat(Data->Patterns[patNum]);
 
         AYMPatternCursors cursors;
@@ -668,11 +648,9 @@ namespace
         uint_t& channelACursor = cursors.front().Offset;
         do
         {
-          const uint_t patternSize = pat.size();
-          Log::ParamPrefixedCollector patLineWarner(patternWarner, Text::LINE_WARN_PREFIX, patternSize);
           pat.push_back(ASCTrack::Line());
           ASCTrack::Line& line(pat.back());
-          ParsePattern(data, cursors, line, patLineWarner, envelopes);
+          ParsePattern(data, cursors, line, envelopes);
           //skip lines
           if (const uint_t linesToSkip = cursors.GetMinCounter())
           {
@@ -682,9 +660,6 @@ namespace
         }
         while (channelACursor < data.Size() &&
           (0xff != data[channelACursor] || 0 != cursors.front().Counter));
-        //as warnings
-        Log::Assert(patternWarner, 0 == cursors.GetMaxCounter(), Text::WARNING_PERIODS);
-        Log::Assert(patternWarner, pat.size() <= MAX_PATTERN_SIZE, Text::WARNING_INVALID_PATTERN_SIZE);
         rawSize = std::max<std::size_t>(rawSize, 1 + cursors.GetMaxOffset());
       }
       Data->LoopPosition = header->Loop;
@@ -711,7 +686,6 @@ namespace
       props->SetPlugins(container.Plugins);
       props->SetPath(container.Path);
       props->SetProgram(Text::ASC_EDITOR);
-      props->SetWarnings(warner);
 
       Info->SetLogicalChannels(AYM::LOGICAL_CHANNELS);
       Info->SetModuleProperties(Parameters::CreateMergedAccessor(parameters, props));

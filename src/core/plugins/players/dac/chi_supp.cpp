@@ -19,7 +19,6 @@ Author:
 #include <byteorder.h>
 #include <error_tools.h>
 #include <logging.h>
-#include <messages_collector.h>
 #include <tools.h>
 //library includes
 #include <core/convert_parameters.h>
@@ -182,7 +181,7 @@ namespace
 
   class CHIHolder : public Holder
   {
-    static void ParsePattern(const CHIPattern& src, Log::MessagesCollector& warner, CHITrack::Pattern& res)
+    static void ParsePattern(const CHIPattern& src, CHITrack::Pattern& res)
     {
       CHITrack::Pattern result;
       result.reserve(MAX_PATTERN_SIZE);
@@ -193,8 +192,6 @@ namespace
         CHITrack::Line& dstLine = result.back();
         for (uint_t chanNum = 0; chanNum != CHANNELS_COUNT; ++chanNum)
         {
-          Log::ParamPrefixedCollector channelWarner(warner, Text::LINE_CHANNEL_WARN_PREFIX, lineNum, chanNum);
-
           CHITrack::Line::Chan& dstChan = dstLine.Channels[chanNum];
           const CHINote& metaNote = src.Notes[lineNum][chanNum];
           const uint_t note = metaNote.GetNote();
@@ -236,7 +233,6 @@ namespace
             //first channel - tempo
             if (0 == chanNum)
             {
-              Log::Assert(channelWarner, !dstLine.Tempo, Text::WARNING_DUPLICATE_TEMPO);
               dstLine.Tempo = param.GetParameter();
             }
             //last channel - stop
@@ -244,14 +240,9 @@ namespace
             {
               end = true;
             }
-            else
-            {
-              channelWarner.AddMessage(Text::WARNING_INVALID_CHANNEL);
-            }
           }
         }
       }
-      Log::Assert(warner, result.size() <= MAX_PATTERN_SIZE, Text::WARNING_TOO_LONG);
       result.swap(res);
     }
 
@@ -266,8 +257,6 @@ namespace
       const IO::FastDump& data(*container.Data);
       const CHIHeader* const header(safe_ptr_cast<const CHIHeader*>(data.Data()));
 
-      Log::MessagesCollector::Ptr warner(Log::MessagesCollector::Create());
-
       //fill order
       Data->Positions.resize(header->Length + 1);
       std::copy(header->Positions, header->Positions + header->Length + 1, Data->Positions.begin());
@@ -278,8 +267,7 @@ namespace
       const CHIPattern* const patBegin(safe_ptr_cast<const CHIPattern*>(&data[sizeof(CHIHeader)]));
       for (const CHIPattern* pat = patBegin; pat != patBegin + patternsCount; ++pat)
       {
-        Log::ParamPrefixedCollector patternWarner(*warner, Text::PATTERN_WARN_PREFIX, pat - patBegin);
-        ParsePattern(*pat, patternWarner, Data->Patterns[pat - patBegin]);
+        ParsePattern(*pat, Data->Patterns[pat - patBegin]);
       }
       //fill samples
       const uint8_t* sampleData(safe_ptr_cast<const uint8_t*>(patBegin + patternsCount));
@@ -297,7 +285,6 @@ namespace
           sampleData += alignedSize;
           if (size != fromLE(srcSample.Length))
           {
-            warner->AddMessage(Text::WARNING_UNEXPECTED_END);
             break;
           }
           memLeft -= alignedSize;
@@ -321,7 +308,6 @@ namespace
       props->SetPath(container.Path);
       props->SetTitle(OptimizeString(FromCharArray(header->Name)));
       props->SetProgram((Formatter(Text::CHI_EDITOR) % FromCharArray(header->Version)).str());
-      props->SetWarnings(warner);
 
       //fill tracking properties
       Info->SetModuleProperties(Parameters::CreateMergedAccessor(parameters, props));

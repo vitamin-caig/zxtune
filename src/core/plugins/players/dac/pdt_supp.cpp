@@ -19,7 +19,6 @@ Author:
 #include <byteorder.h>
 #include <error_tools.h>
 #include <logging.h>
-#include <messages_collector.h>
 #include <tools.h>
 //library includes
 #include <core/convert_parameters.h>
@@ -230,7 +229,7 @@ namespace
 
   class PDTHolder : public Holder
   {
-    static void ParsePattern(const PDTPattern& src, Log::MessagesCollector& warner, PDTTrack::Pattern& res)
+    static void ParsePattern(const PDTPattern& src, PDTTrack::Pattern& res)
     {
       PDTTrack::Pattern result;
       result.reserve(PATTERN_SIZE);
@@ -241,8 +240,6 @@ namespace
         PDTTrack::Line& dstLine(result.back());
         for (uint_t chanNum = 0; chanNum != CHANNELS_COUNT && !end; ++chanNum)
         {
-          Log::ParamPrefixedCollector channelWarner(warner, Text::LINE_CHANNEL_WARN_PREFIX, lineNum, chanNum);
-
           PDTTrack::Line::Chan& dstChan(dstLine.Channels[chanNum]);
           const PDTNote& note(src.Notes[lineNum][chanNum]);
           const uint_t halftones = note.GetNote();
@@ -256,7 +253,6 @@ namespace
           switch (note.GetCommand())
           {
           case CMD_SPEED:
-            Log::Assert(channelWarner, !dstLine.Tempo, Text::WARNING_DUPLICATE_TEMPO);
             dstLine.Tempo = note.GetParameter();
             break;
           case CMD_SPECIAL:
@@ -289,11 +285,10 @@ namespace
             }
             break;
           default:
-            channelWarner.AddMessage(Text::WARNING_UNSUPPORTED_COMMAND);
+            break;
           }
         }
       }
-      Log::Assert(warner, result.size() <= PATTERN_SIZE, Text::WARNING_TOO_LONG);
       result.swap(res);
     }
 
@@ -308,8 +303,6 @@ namespace
       const IO::FastDump& data(*container.Data);
       const PDTHeader* const header(safe_ptr_cast<const PDTHeader*>(data.Data()));
 
-      Log::MessagesCollector::Ptr warner(Log::MessagesCollector::Create());
-
       //fill order
       Data->Positions.resize(header->Lenght);
       std::copy(header->Positions.begin(), header->Positions.begin() + header->Lenght, Data->Positions.begin());
@@ -318,8 +311,7 @@ namespace
       Data->Patterns.resize(header->Patterns.size());
       for (uint_t patIdx = 0; patIdx != header->Patterns.size(); ++patIdx)
       {
-        Log::ParamPrefixedCollector patternWarner(*warner, Text::PATTERN_WARN_PREFIX, patIdx);
-        ParsePattern(header->Patterns[patIdx], patternWarner, Data->Patterns[patIdx]);
+        ParsePattern(header->Patterns[patIdx], Data->Patterns[patIdx]);
       }
 
       //fill samples
@@ -370,7 +362,6 @@ namespace
       props->SetPath(container.Path);
       props->SetTitle(OptimizeString(FromCharArray(header->Title)));
       props->SetProgram(Text::PDT_EDITOR);
-      props->SetWarnings(warner);
 
       //set tracking
       Info->SetModuleProperties(Parameters::CreateMergedAccessor(parameters, props));
