@@ -58,6 +58,8 @@ namespace Playlist
     virtual void AddItem(Playlist::Item::Data::Ptr item) = 0;
   signals:
     void OnIndexesChanged(const Playlist::Model::OldToNewIndexMap& map);
+    void OnSortStart();
+    void OnSortStop();
   };
 }
 

@@ -22,6 +22,7 @@ Author:
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/scoped_ptr.hpp>
+#include <boost/thread.hpp>
 #include <boost/iterator/counting_iterator.hpp>
 //qt includes
 #include <QtCore/QMimeData>
@@ -226,10 +227,6 @@ namespace
   class PlayitemsContainer
   {
   public:
-    PlayitemsContainer()
-    {
-    }
-
     void AddItem(Playlist::Item::Data::Ptr item)
     {
       const IndexedItem idxItem(item, Items.size());
@@ -309,6 +306,7 @@ namespace
     class Comparer
     {
     public:
+      typedef boost::shared_ptr<const Comparer> Ptr;
       virtual ~Comparer() {}
 
       virtual bool CompareItems(const Playlist::Item::Data& lh, const Playlist::Item::Data& rh) const = 0;
@@ -403,6 +401,21 @@ namespace
     const bool Ascending;
   };
 
+  PlayitemsContainer::Comparer::Ptr CreateComparerByColumn(int column, bool ascending)
+  {
+    switch (column)
+    {
+    case Playlist::Model::COLUMN_TYPEICON:
+      return PlayitemsContainer::Comparer::Ptr(new TypedPlayitemsComparer<String>(&Playlist::Item::Data::GetType, ascending));
+    case Playlist::Model::COLUMN_TITLE:
+      return PlayitemsContainer::Comparer::Ptr(new TypedPlayitemsComparer<String>(&Playlist::Item::Data::GetTitle, ascending));
+    case Playlist::Model::COLUMN_DURATION:
+      return PlayitemsContainer::Comparer::Ptr(new TypedPlayitemsComparer<unsigned>(&Playlist::Item::Data::GetDurationValue, ascending));
+    default:
+      return PlayitemsContainer::Comparer::Ptr();
+    }
+  }
+
   const char ITEMS_MIMETYPE[] = "application/playlist.indexes";
 
   class ModelImpl : public Playlist::Model
@@ -463,7 +476,6 @@ namespace
       Container.reset(new PlayitemsContainer());
       NotifyAboutIndexChanged();
       FetchedItemsCount = 0;
-      reset();
     }
 
     virtual void RemoveItems(const QSet<unsigned>& items)
@@ -472,7 +484,6 @@ namespace
       Container->RemoveItems(items);
       NotifyAboutIndexChanged();
       FetchedItemsCount = Container->CountItems();
-      reset();
     }
 
     virtual void AddItem(Playlist::Item::Data::Ptr item)
@@ -564,7 +575,6 @@ namespace
       QMutexLocker locker(&Synchronizer);
       Container->MoveItems(movedItems, beginRow);
       NotifyAboutIndexChanged();
-      reset();
       return true;
     }
 
@@ -647,7 +657,7 @@ namespace
       if (const Playlist::Item::Data::Ptr item = Container->GetItemByIndex(itemNum))
       {
         const RowDataProvider& provider = Providers.GetProvider(role);
-        assert(static_cast<const void*>(item.get()) == index.internalPointer());
+        //assert(static_cast<const void*>(item.get()) == index.internalPointer());
         return provider.GetData(*item, fieldNum);
       }
       return QVariant();
@@ -658,42 +668,43 @@ namespace
       Log::Debug(THIS_MODULE, "Sort data in column=%1% by order=%2%",
         column, order);
       const bool ascending = order == Qt::AscendingOrder;
-      boost::scoped_ptr<PlayitemsContainer::Comparer> comparer;
-      switch (column)
+      if (PlayitemsContainer::Comparer::Ptr comparer = CreateComparerByColumn(column, ascending))
       {
-      case COLUMN_TYPEICON:
-        comparer.reset(new TypedPlayitemsComparer<String>(&Playlist::Item::Data::GetType, ascending));
-        break;
-      case COLUMN_TITLE:
-        comparer.reset(new TypedPlayitemsComparer<String>(&Playlist::Item::Data::GetTitle, ascending));
-        break;
-      case COLUMN_DURATION:
-        comparer.reset(new TypedPlayitemsComparer<unsigned>(&Playlist::Item::Data::GetDurationValue, ascending));
-        break;
-      default:
-        break;
-      }
-      if (comparer)
-      {
-        QMutexLocker locker(&Synchronizer);
-        Container->Sort(*comparer);
-        NotifyAboutIndexChanged();
-        reset();
+        AsyncSorter = boost::thread(std::mem_fun(&ModelImpl::PerformSort), this, comparer);
       }
     }
   private:
+    void PerformSort(PlayitemsContainer::Comparer::Ptr comparer)
+    {
+      OnSortStart();
+      boost::scoped_ptr<PlayitemsContainer> tmpContainer;
+      {
+        QMutexLocker locker(&Synchronizer);
+        tmpContainer.reset(new PlayitemsContainer(*Container));
+      }
+      tmpContainer->Sort(*comparer);
+      {
+        QMutexLocker locker(&Synchronizer);
+        Container.swap(tmpContainer);
+        NotifyAboutIndexChanged();
+      }
+      OnSortStop();
+    }
+
     void NotifyAboutIndexChanged()
     {
       Playlist::Model::OldToNewIndexMap remapping;
       Container->GetIndexRemapping(remapping);
       Container->ResetIndexes();
       OnIndexesChanged(remapping);
+      reset();
     }
   private:
     const DataProvidersSet Providers;
     mutable QMutex Synchronizer;
     std::size_t FetchedItemsCount;
     boost::scoped_ptr<PlayitemsContainer> Container;
+    mutable boost::thread AsyncSorter;
   };
 }
 
@@ -705,6 +716,7 @@ namespace Playlist
 
   Model::Ptr Model::Create(QObject& parent)
   {
+    REGISTER_METATYPE(Playlist::Model::OldToNewIndexMap);
     return new ModelImpl(parent);
   }
 }

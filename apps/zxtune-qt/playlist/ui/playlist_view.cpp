@@ -120,6 +120,10 @@ namespace
         SLOT(ListItemActivated(unsigned, const Playlist::Item::Data&)));
       View->connect(Controller->GetScanner(), SIGNAL(OnScanStop()), SLOT(updateGeometries()));
 
+      const Playlist::Model::Ptr model = Controller->GetModel();
+      this->connect(model, SIGNAL(OnSortStart()), SLOT(Disable()));
+      this->connect(model, SIGNAL(OnSortStop()), SLOT(Enable()));
+
       Log::Debug(THIS_MODULE, "Created at %1%", this);
     }
 
@@ -205,6 +209,16 @@ namespace
     {
       View->ActivateTableRow(idx);
       OnItemActivated(data);
+    }
+
+    virtual void Enable()
+    {
+      setEnabled(true);
+    }
+
+    virtual void Disable()
+    {
+      setEnabled(false);
     }
 
     //qwidget virtuals

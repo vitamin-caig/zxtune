@@ -50,6 +50,8 @@ namespace Playlist
       virtual void Clear() = 0;
     private slots:
       virtual void ListItemActivated(unsigned idx, const Playlist::Item::Data& data) = 0;
+      virtual void Enable() = 0;
+      virtual void Disable() = 0;
     signals:
       void OnItemActivated(const Playlist::Item::Data&);
     };
