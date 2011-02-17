@@ -162,3 +162,7 @@ help:
 	@echo   ld_flags - some specific linking flags. Default '$(ld_flags)'
 	@echo   defines - additional defines.  Default '$(defines)'
 
+ifdef binary_name
+test: $(target)
+	$^
+endif

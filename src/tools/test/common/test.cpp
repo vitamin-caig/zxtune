@@ -22,12 +22,15 @@ namespace
     {
       std::cout << "Failed test for " << typeid(orig).name() <<
         " has=0x" << std::hex << result << " expected=0x" << std::hex << test << std::endl;
+      throw 1;
     }
   }
   
   void Test(const String& msg, bool val)
   {
     std::cout << (val ? "Passed" : "Failed") << " test for " << msg << std::endl;
+    if (!val)
+      throw 1;
   }
   
   template<class Policy>
@@ -60,12 +63,15 @@ namespace
     else
     {
       std::cout << "Failed test for '" << templ << "' (result is '" << res << "')" << std::endl;
+      throw 1;
     }
   }
 }
 
 int main()
 {
+  try
+  {
   std::cout << "sizeof(int_t)=" << sizeof(int_t) << std::endl;
   std::cout << "sizeof(uint_t)=" << sizeof(uint_t) << std::endl;
   std::cout << "---- Test for byteorder working ----" << std::endl;
@@ -143,5 +149,10 @@ int main()
     Test("Adding zero-sized to busy valid", shared->AddRange(70, 0));
     Test("Adding zero-sized to busy invalid", !shared->AddRange(80, 0));
     Test("Check result", shared->GetAffectedRange() == std::pair<std::size_t, std::size_t>(20, 90));
+  }
+  }
+  catch (int code)
+  {
+    return code;
   }
 }

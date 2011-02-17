@@ -1,7 +1,3 @@
-#ifdef DYNAMIC_ERROR_TEST
-#include "../error_dynamic/error_dynamic.h"
-#endif
-
 #include <error.h>
 
 #include <boost/bind.hpp>
@@ -28,6 +24,8 @@ namespace
   void Test(bool res, const String& text, unsigned line)
   {
     std::cout << (res ? "Passed" : "Failed") << " test '" << text << "' at " << line << std::endl;
+    if (!res)
+      throw 1;
   }
 
   void ErrOuter(unsigned /*level*/, Error::LocationRef loc, Error::CodeType code, const String& text)
@@ -101,22 +99,8 @@ int main()
     std::cout << "\n\nDisplaying catched error stack" << std::endl;
     ShowError(e);
   }
-
-#ifdef DYNAMIC_ERROR_TEST
-  try
+  catch (int code)
   {
-    Error errBase(THIS_LINE, Error::ModuleCode<'B', 'I', 'N'>::Value, "Base error from binary");
-    errBase.AddSuberror(ReturnErrorByValue());
-    errBase.AddSuberror(Error(THIS_LINE, Error::ModuleCode<'I', 'N', 'T'>::Value, "Intermediate error from binary"));
-    Error err;
-    ReturnErrorByReference(err);
-    errBase.AddSuberror(err);
-    throw errBase;
+    return code;
   }
-  catch (const Error& e)
-  {
-    std::cout << "Displaying catched mixed error stack" << std::endl;
-    ShowError(e);
-  }
-#endif
 }

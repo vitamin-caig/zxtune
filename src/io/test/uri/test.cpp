@@ -32,10 +32,6 @@ namespace
 
   const char FILE_URI_NO[] = "?part1/part2\\part3\?part4#part5";
 
-  const char HTTP_URI[] = "http://example.com#subpath";
-  const char HTTP_URI_BASE[] = "http://example.com";
-  const char HTTP_URI_SUBPATH[] = "subpath";
-
   void ErrOuter(unsigned /*level*/, Error::LocationRef loc, Error::CodeType code, const String& text)
   {
     const String txt = (Formatter("\t%1%\n\tCode: %2%\n\tAt: %3%\n\t--------\n") % text % Error::CodeToString(code) % Error::LocationToString(loc)).str();
@@ -51,17 +47,19 @@ namespace
     return e;
   }
 
-  bool Test(const Error& res, const String& text, unsigned line)
+  void Test(const Error& res, const String& text, unsigned line)
   {
     std::cout << (res ? "Failed" : "Passed") << " test '" << text << "' at " << line << std::endl;
     ShowIfError(res);
-    return !res;
+    if (res)
+      throw 1;
   }
 
-  bool Test(bool res, const String& text, unsigned line)
+  void Test(bool res, const String& text, unsigned line)
   {
     std::cout << (res ? "Passed" : "Failed") << " test '" << text << "' at " << line << std::endl;
-    return res;
+    if (!res)
+      throw 1;
   }
 
   void TestEq(const String& str, const String& ref, const String& text, unsigned line)
@@ -81,30 +79,19 @@ namespace
   void TestSplitUri(const String& uri, const String& baseEq, const String& subEq, const String& type)
   {
     String base, subpath;
-    if (Test(ZXTune::IO::SplitUri(uri, base, subpath), String("Splitting ") + type, __LINE__))
-    {
-      TestEq(base, baseEq, " testing base", __LINE__);
-      TestEq(subpath, subEq, " testing subpath", __LINE__);
-      String result;
-      if (Test(ZXTune::IO::CombineUri(base, subpath, result), String("Combining ") + type, __LINE__))
-      {
-        Test(String::npos != uri.find(result), String(" testing result"), __LINE__);
-      }
-      else
-      {
-        std::cout << "Skipped result test" << std::endl;
-      }
-    }
-    else
-    {
-      std::cout << "Skipped result test" << std::endl;
-      std::cout << "Skipped combining test" << std::endl;
-    }
+    Test(ZXTune::IO::SplitUri(uri, base, subpath), String("Splitting ") + type, __LINE__);
+    TestEq(base, baseEq, " testing base", __LINE__);
+    TestEq(subpath, subEq, " testing subpath", __LINE__);
+    String result;
+    Test(ZXTune::IO::CombineUri(base, subpath, result), String("Combining ") + type, __LINE__);
+    Test(String::npos != uri.find(result), String(" testing result"), __LINE__);
   }
 }
 
 int main()
 {
+  try
+  {
   using namespace ZXTune::IO;
   std::cout << "------ test for enumeration -------\n";
 
@@ -122,10 +109,14 @@ int main()
   TestSplitUri(FILE_URI3, FILE_URI3_BASE, FILE_URI_SUBPATH, "neutral file uri");
   TestSplitUri(FILE_URI4, FILE_URI4_BASE, FILE_URI_SUBPATH, "complex file uri");
   TestSplitUri(FILE_URI5, FILE_URI5_BASE, FILE_URI_SUBPATH, "file uri with scheme");
-  TestSplitUri(HTTP_URI, HTTP_URI_BASE, HTTP_URI_SUBPATH, "http uri");
   Test(SplitUri(FILE_URI_NO, base, subpath) == ERROR_NOT_SUPPORTED, "Splitting uri with no base uri", __LINE__);
   
   std::cout << "------ test for combiners --------\n";
   Test(CombineUri(INVALID_URI, FILE_URI_SUBPATH, base) == ERROR_NOT_SUPPORTED, "Combining invalid uri", __LINE__);
   Test(!CombineUri(FILE_URI1, FILE_URI_SUBPATH, base) && base == FILE_URI1, "Combining redundant uri", __LINE__);
+  }
+  catch (int code)
+  {
+    return code;
+  }
 }

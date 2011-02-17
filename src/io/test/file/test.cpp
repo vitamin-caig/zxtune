@@ -77,5 +77,6 @@ int main()
   catch (const Error& e)
   {
     e.WalkSuberrors(ErrOuter);
+    return 1;
   }
 }

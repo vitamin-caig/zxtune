@@ -1,5 +1,5 @@
-binary_name := io_uri_test
-path_step := ../..
+binary_name := io_test_uri
+path_step := ../../../..
 source_files := test
 
 libraries := io tools
