@@ -114,7 +114,7 @@ namespace ZXTune
     };
 
     // Basic template class for tracking support (used as simple parametrized namespace)
-    template<uint_t ChannelsCount, class SampleType, class OrnamentType = SimpleOrnament>
+    template<uint_t ChannelsCount, class CommandType, class SampleType, class OrnamentType = SimpleOrnament>
     class TrackingSupport
     {
     public:
@@ -127,17 +127,17 @@ namespace ZXTune
         Command() : Type(), Param1(), Param2(), Param3()
         {
         }
-        Command(uint_t type, int_t p1 = 0, int_t p2 = 0, int_t p3 = 0)
+        Command(CommandType type, int_t p1 = 0, int_t p2 = 0, int_t p3 = 0)
           : Type(type), Param1(p1), Param2(p2), Param3(p3)
         {
         }
 
-        bool operator == (uint_t type) const
+        bool operator == (CommandType type) const
         {
           return Type == type;
         }
 
-        uint_t Type;
+        CommandType Type;
         int_t Param1;
         int_t Param2;
         int_t Param3;
@@ -170,7 +170,7 @@ namespace ZXTune
             return !Enabled && !Note && !SampleNum && !OrnamentNum && !Volume && Commands.empty();
           }
 
-          bool FindCommand(uint_t type) const
+          bool FindCommand(CommandType type) const
           {
             return Commands.end() != std::find(Commands.begin(), Commands.end(), type);
           }

@@ -170,7 +170,7 @@ namespace
   //stub for ornament
   struct VoidType {};
 
-  typedef TrackingSupport<CHANNELS_COUNT, Sample, VoidType> CHITrack;
+  typedef TrackingSupport<CHANNELS_COUNT, CmdType, Sample, VoidType> CHITrack;
 
   // perform module 'playback' right after creating (debug purposes)
   #ifndef NDEBUG

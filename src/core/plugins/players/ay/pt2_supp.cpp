@@ -322,7 +322,7 @@ namespace
     NOISE_ADD
   };
 
-  typedef TrackingSupport<AYM::CHANNELS, Sample> PT2Track;
+  typedef TrackingSupport<AYM::CHANNELS, CmdType, Sample> PT2Track;
 
   Player::Ptr CreatePT2Player(Information::Ptr info, PT2Track::ModuleData::Ptr data, AYM::Chip::Ptr device);
 
@@ -487,7 +487,6 @@ namespace
         uint_t& channelACursor = cursors.front().Offset;
         do
         {
-          const uint_t patternSize = pat.size();
           pat.push_back(PT2Track::Line());
           PT2Track::Line& line = pat.back();
           ParsePattern(data, cursors, line);

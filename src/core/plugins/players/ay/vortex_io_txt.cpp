@@ -383,6 +383,8 @@ namespace
       case Vortex::NOISEBASE:
         noiseBase = it->Param1;
         break;
+      default:
+        break;
       }
     }
     if (commands[0] == '.' && tempo)
@@ -850,7 +852,7 @@ namespace ZXTune
   {
     namespace Vortex
     {
-      Error ConvertFromText(const std::string& text, Vortex::Track::ModuleData& resData, 
+      Error ConvertFromText(const std::string& text, Vortex::Track::ModuleData& resData,
         TrackInfo& resInfo, ModuleProperties& resProps,
         uint_t& resVersion, String& resFreqTable)
       {

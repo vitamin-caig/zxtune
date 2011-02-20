@@ -278,7 +278,7 @@ namespace
     NOENVELOPE,   //0p
   };
 
-  typedef TrackingSupport<AYM::CHANNELS, Sample> STCTrack;
+  typedef TrackingSupport<AYM::CHANNELS, CmdType, Sample> STCTrack;
   typedef std::vector<int_t> STCTransposition;
 
   typedef PatternCursorSet<AYM::CHANNELS> PatternCursors;

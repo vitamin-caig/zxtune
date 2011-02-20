@@ -218,7 +218,7 @@ namespace
     Dump Data;
   };
 
-  typedef TrackingSupport<CHANNELS_COUNT, Sample, Ornament> PDTTrack;
+  typedef TrackingSupport<CHANNELS_COUNT, uint_t, Sample, Ornament> PDTTrack;
 
   // perform module 'playback' right after creating (debug purposes)
   #ifndef NDEBUG

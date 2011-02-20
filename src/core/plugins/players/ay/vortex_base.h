@@ -123,7 +123,7 @@ namespace ZXTune
       //for unification
       typedef SimpleOrnament Ornament;
 
-      typedef TrackingSupport<AYM::CHANNELS, Sample, Ornament> Track;
+      typedef TrackingSupport<AYM::CHANNELS, Commands, Sample, Ornament> Track;
 
       //creating simple player based on parsed data and parameters
       Player::Ptr CreatePlayer(Information::Ptr info, Track::ModuleData::Ptr data,

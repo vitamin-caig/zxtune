@@ -617,6 +617,8 @@ namespace
             it->Param2 = static_cast<int16_t>(256 * data[cur->Offset + 1] + data[cur->Offset]);
             cur->Offset += 2;
             break;
+          default:
+            break;
           }
         }
         cur->Counter = cur->Period;

@@ -400,7 +400,7 @@ namespace
   };
 
   // tracker type
-  typedef TrackingSupport<AYM::CHANNELS, Sample, Ornament> ASCTrack;
+  typedef TrackingSupport<AYM::CHANNELS, CmdType, Sample, Ornament> ASCTrack;
 
   Player::Ptr CreateASCPlayer(Information::Ptr info, ASCTrack::ModuleData::Ptr data, AYM::Chip::Ptr device);
 

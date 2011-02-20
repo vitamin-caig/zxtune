@@ -297,7 +297,7 @@ namespace
     GLISS,        //1p
   };
 
-  typedef TrackingSupport<AYM::CHANNELS, Sample> STPTrack;
+  typedef TrackingSupport<AYM::CHANNELS, CmdType, Sample> STPTrack;
   typedef std::vector<int_t> STPTransposition;
 
   class STPAreas
