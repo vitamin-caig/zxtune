@@ -22,6 +22,7 @@ namespace Formats
     Decoder::Ptr CreateDataSquieezerDecoder();
     Decoder::Ptr CreateESVCruncherDecoder();
     Decoder::Ptr CreateHrumDecoder();
+    Decoder::Ptr CreateHrust1Decoder();
     Decoder::Ptr CreatePowerfullCodeDecreaser6Decoder();
   }
 }
