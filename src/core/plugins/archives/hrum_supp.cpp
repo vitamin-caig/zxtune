@@ -27,58 +27,57 @@ Author:
 //text includes
 #include <core/text/plugins.h>
 
-namespace
+namespace Hrum
 {
-  using namespace ZXTune;
-
-  const Char HRUM_PLUGIN_ID[] = {'H', 'R', 'U', 'M', '\0'};
-  const String HRUM_PLUGIN_VERSION(FromStdString("$Rev$"));
-
+  const std::size_t MAX_DECODED_SIZE = 0xc000;
   //checkers
-  const std::string HRUM_DEPACKER =
-      "?"       // di/nop
-      "ed73??"  // ld (xxxx),sp
-      "21??"    // ld hl,xxxx   start+0x1f
-      "11??"    // ld de,xxxx   tmp buffer
-      "017700"  // ld bc,0x0077 size of depacker
-      "d5"      // push de
-      "edb0"    // ldir
-      "11??"    // ld de,xxxx   dst of depack (data = +0x12)
-      "d9"      // exx
-      "21??"    // ld hl,xxxx   last byte of src packed (data = +0x16)
-      "11??"    // ld de,xxxx   last byte of dst packed (data = +0x19)
-      "01??"    // ld bc,xxxx   size of packed          (data = +0x1c)
-      "c9"      // ret
-      "ed?"     // lddr/ldir
+  const std::string DEPACKER_PATTERN =
+    "?"       // di/nop
+    "ed73??"  // ld (xxxx),sp
+    "21??"    // ld hl,xxxx   start+0x1f
+    "11??"    // ld de,xxxx   tmp buffer
+    "017700"  // ld bc,0x0077 size of depacker
+    "d5"      // push de
+    "edb0"    // ldir
+    "11??"    // ld de,xxxx   dst of depack (data = +0x12)
+    "d9"      // exx
+    "21??"    // ld hl,xxxx   last byte of src packed (data = +0x16)
+    "11??"    // ld de,xxxx   last byte of dst packed (data = +0x19)
+    "01??"    // ld bc,xxxx   size of packed          (data = +0x1c)
+    "c9"      // ret
+    "ed?"     // lddr/ldir
+    "16?"     // ld d,xx
+    "31??"    // ld sp,xxxx   ;start of moved packed (data = +0x24)
+    "c1"      // pop bc
   ;
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif
-  PACK_PRE struct HrumDepacker
+  PACK_PRE struct FormatHeader
   {
     //+0
-    uint8_t Padding1[0x12];
-    //+0x12
-    uint16_t DepackAddress;
-    //+0x14
-    uint8_t Padding2[2];
+    uint8_t Padding1[0x16];
     //+0x16
     uint16_t PackedSource;
     //+0x18
-    uint8_t Padding3;
+    uint8_t Padding2;
     //+0x19
     uint16_t PackedTarget;
     //+0x1b
-    uint8_t Padding4;
+    uint8_t Padding3;
     //+0x1c
     uint16_t SizeOfPacked;
     //+0x1e
-    uint8_t Padding5[2];
+    uint8_t Padding4[2];
     //+0x20
-    uint8_t PackedCopyDirection;
+    uint8_t PackedDataCopyDirection;
     //+0x21
-    uint8_t Padding6[0x70];
+    uint8_t Padding5[3];
+    //+0x24
+    uint16_t FirstOfPacked;
+    //+0x26
+    uint8_t Padding6[0x6b];
     //+0x91
     uint8_t LastBytes[5];
     //+0x96 taken from stack to initialize variables, always 0x1010
@@ -94,7 +93,61 @@ namespace
 #pragma pack(pop)
 #endif
 
-  BOOST_STATIC_ASSERT(sizeof(HrumDepacker) == 0x9b);
+  BOOST_STATIC_ASSERT(sizeof(FormatHeader) == 0x9b);
+
+  class Container
+  {
+  public:
+    Container(const void* data, std::size_t size)
+      : Data(static_cast<const uint8_t*>(data))
+      , Size(size)
+    {
+    }
+
+    bool FastCheck() const
+    {
+      if (Size < sizeof(FormatHeader))
+      {
+        return false;
+      }
+      const FormatHeader& header = GetHeader();
+      const DataMovementChecker checker(fromLE(header.PackedSource), fromLE(header.PackedTarget), fromLE(header.SizeOfPacked), header.PackedDataCopyDirection);
+      if (!checker.IsValid())
+      {
+        return false;
+      }
+      if (checker.FirstOfMovedData() != fromLE(header.FirstOfPacked))
+      {
+        return false;
+      }
+      return true;
+    }
+
+    bool FullCheck() const
+    {
+      if (!FastCheck())
+      {
+        return false;
+      }
+      return DetectFormat(Data, Size, DEPACKER_PATTERN);
+    }
+
+    uint_t GetUsedSize() const
+    {
+      const FormatHeader& header = GetHeader();
+      return sizeof(header) - (sizeof(header.Padding7) + sizeof(header.BitStream) + sizeof(header.ByteStream))
+        + fromLE(header.SizeOfPacked);
+    }
+
+    const FormatHeader& GetHeader() const
+    {
+      assert(Size >= sizeof(FormatHeader));
+      return *safe_ptr_cast<const FormatHeader*>(Data);
+    }
+  private:
+    const uint8_t* const Data;
+    const std::size_t Size;
+  };
 
   class Bitstream : public Hrust1Bitstream
   {
@@ -118,151 +171,109 @@ namespace
     }
   };
 
-  uint_t GetPackedSize(const HrumDepacker& header)
+  class Decoder
   {
-    return sizeof(header) - 5/*last 3 members of header*/
-      + fromLE(header.SizeOfPacked);
-  }
+  public:
+    explicit Decoder(const Container& container)
+      : IsValid(container.FastCheck())
+      , Header(container.GetHeader())
+      , Stream(Header.BitStream, fromLE(Header.SizeOfPacked) - 2)
+    {
+    }
 
-  uint_t GetUnpackedSize(const HrumDepacker& header)
-  {
-    if (header.PackedCopyDirection == 0xb8)//lddr
+    const Dump* GetDecodedData()
     {
-      return fromLE(header.PackedTarget) + 1 - fromLE(header.DepackAddress);
-    }
-    else //ldir
-    {
-      assert(header.PackedCopyDirection == 0xb0);
-      return fromLE(header.PackedTarget) + fromLE(header.SizeOfPacked) - fromLE(header.DepackAddress);
-    }
-  }
-
-  bool CheckHrum(const HrumDepacker* header, std::size_t size)
-  {
-    if (size < sizeof(*header))
-    {
-      return false;
-    }
-    switch (header->PackedCopyDirection)
-    {
-    case 0xb8:
-    case 0xb0:
-      if (fromLE(header->PackedTarget) <= fromLE(header->DepackAddress))
+      if (IsValid && !Stream.Eof())
       {
-        return false;
+        IsValid = DecodeData();
       }
-      break;
-    default:
-      return false;
+      return IsValid ? &Decoded : 0;
     }
-    const uint_t packedSize = GetPackedSize(*header);
-    const uint_t unpackedSize = GetUnpackedSize(*header);
-    return packedSize <= unpackedSize && packedSize <= size;
-  }
-
-  bool DecodeHrum(const HrumDepacker& header, Dump& result)
-  {
-    const uint_t unpackedSize = GetUnpackedSize(header);
-    Dump dst;
-    dst.reserve(unpackedSize);
-
-    Bitstream stream(header.BitStream, fromLE(header.SizeOfPacked) - 2);
-    //put first byte
-    dst.push_back(stream.GetByte());
-    while (!stream.Eof())
+  private:
+    bool DecodeData()
     {
-      while (stream.GetBit())
+      // The main concern is to decode data as much as possible, skipping defenitely invalid structure
+      Decoded.reserve(2 * fromLE(Header.SizeOfPacked));
+      //put first byte
+      Decoded.push_back(Stream.GetByte());
+      //assume that first byte always exists due to header format
+      while (!Stream.Eof() && Decoded.size() < MAX_DECODED_SIZE)
       {
-        dst.push_back(stream.GetByte());
-      }
-      uint_t len = 1;
-      for (uint_t bits = 3; bits == 0x3 && len != 0x10;)
-      {
-         bits = stream.GetBits(2);
-         len += bits;
-      }
-      uint_t offset = 0;
-      if (4 == len)
-      {
-        len = stream.GetByte();
-        if (!len)
+        if (Stream.GetBit())
         {
-          //eof
-          break;
+          Decoded.push_back(Stream.GetByte());
+          continue;
         }
-        offset = stream.GetDist();
-      }
-      else
-      {
-        if (len > 4)
+        uint_t len = DecodeLen();
+        uint_t offset = 0;
+        if (4 == len)
         {
-          --len;
-        }
-        if (1 == len)
-        {
-          offset = 0xfff8 + stream.GetBits(3);
+          len = Stream.GetByte();
+          if (!len)
+          {
+            //eof
+            break;
+          }
+          offset = Stream.GetDist();
         }
         else
         {
-          if (2 == len)
+          if (len > 4)
           {
-            offset = 0xff00 + stream.GetByte();
+            --len;
           }
-          else
-          {
-            offset = stream.GetDist();
-          }
+          offset = DecodeOffsetByLen(len);
+        }
+        if (!CopyFromBack(-static_cast<int16_t>(offset), Decoded, len))
+        {
+          return false;
         }
       }
-      if (!CopyFromBack(-static_cast<int16_t>(offset), dst, len))
-      {
-        return false;
-      }
-    }
-    //put remaining bytes
-    std::copy(header.LastBytes, ArrayEnd(header.LastBytes), std::back_inserter(dst));
-    //valid if match
-    if (dst.size() != unpackedSize)
-    {
-      return false;
-    }
-    result.swap(dst);
-    return true;
-  }
-
-  class HrumData
-  {
-  public:
-    HrumData(const uint8_t* data, std::size_t size)
-      : Header(0)
-    {
-      const HrumDepacker* const header = safe_ptr_cast<const HrumDepacker*>(data);
-      if (CheckHrum(header, size) &&
-          DetectFormat(data, size, HRUM_DEPACKER))
-      {
-        Header = header;
-      }
-    }
-
-    bool IsValid() const
-    {
-      return Header != 0;
-    }
-
-    uint_t PackedSize() const
-    {
-      assert(Header);
-      return GetPackedSize(*Header);
-    }
-
-    bool Decode(Dump& res) const
-    {
-      assert(Header);
-      return DecodeHrum(*Header, res);
+      //put remaining bytes
+      std::copy(Header.LastBytes, ArrayEnd(Header.LastBytes), std::back_inserter(Decoded));
+      return true;
     }
   private:
-    const HrumDepacker* Header;
+    uint_t DecodeLen()
+    {
+      uint_t len = 1;
+      for (uint_t bits = 3; bits == 0x3 && len != 0x10;)
+      {
+         bits = Stream.GetBits(2);
+         len += bits;
+      }
+      return len;
+    }
+
+    uint_t DecodeOffsetByLen(uint_t len)
+    {
+      if (1 == len)
+      {
+        return 0xfff8 + Stream.GetBits(3);
+      }
+      else if (2 == len)
+      {
+        return 0xff00 + Stream.GetByte();
+      }
+      else
+      {
+        return Stream.GetDist();
+      }
+    }
+  private:
+    bool IsValid;
+    const FormatHeader& Header;
+    Bitstream Stream;
+    Dump Decoded;
   };
+}
+
+namespace
+{
+  using namespace ZXTune;
+
+  const Char HRUM_PLUGIN_ID[] = {'H', 'R', 'U', 'M', '\0'};
+  const String HRUM_PLUGIN_VERSION(FromStdString("$Rev$"));
 
   //////////////////////////////////////////////////////////////////////////
   class HrumPlugin : public ArchivePlugin
@@ -290,23 +301,21 @@ namespace
 
     virtual bool Check(const IO::DataContainer& inputData) const
     {
-      const uint8_t* const data = static_cast<const uint8_t*>(inputData.Data());
-      const std::size_t size = inputData.Size();
-      const HrumData hrumData(data, size);
-      return hrumData.IsValid();
+      const Hrum::Container container(inputData.Data(), inputData.Size());
+      return container.FullCheck();
     }
 
     virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Accessor& /*parameters*/,
       const IO::DataContainer& data, ModuleRegion& region) const
     {
-      const HrumData hrumData(static_cast<const uint8_t*>(data.Data()), data.Size());
-      assert(hrumData.IsValid());
-      Dump res;
-      if (hrumData.Decode(res))
+      const Hrum::Container container(data.Data(), data.Size());
+      assert(container.FullCheck());
+      Hrum::Decoder decoder(container);
+      if (const Dump* res = decoder.GetDecodedData())
       {
         region.Offset = 0;
-        region.Size = hrumData.PackedSize();
-        return IO::CreateDataContainer(res);
+        region.Size = container.GetUsedSize();
+        return IO::CreateDataContainer(*res);
       }
       return IO::DataContainer::Ptr();
     }
