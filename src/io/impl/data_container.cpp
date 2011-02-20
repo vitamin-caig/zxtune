@@ -20,13 +20,13 @@ namespace
 {
   using namespace ZXTune::IO;
 
-  typedef boost::shared_array<uint8_t> SharedArray;
+  typedef boost::shared_ptr<Dump> SharedDump;
 
   //implementation of DataContainer based on shared array data
   class DataContainerImpl : public DataContainer
   {
   public:
-    DataContainerImpl(const SharedArray& arr, std::size_t offset, std::size_t size)
+    DataContainerImpl(const SharedDump& arr, std::size_t offset, std::size_t size)
       : Buffer(arr), Offset(offset), Length(size)
     {
     }
@@ -38,7 +38,7 @@ namespace
 
     virtual const void* Data() const
     {
-      return Buffer.get() + Offset;
+      return Buffer->data() + Offset;
     }
 
     virtual Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
@@ -48,7 +48,7 @@ namespace
       return Ptr(new DataContainerImpl(Buffer, Offset + offset, size));
     }
   private:
-    const SharedArray Buffer;
+    const SharedDump Buffer;
     const std::size_t Offset;
     const std::size_t Length;
   };
@@ -61,14 +61,22 @@ namespace ZXTune
     //construct container from data dump. Use memcpy since shared_array is less usable in common code
     DataContainer::Ptr CreateDataContainer(const Dump& data)
     {
-      const std::size_t allsize = data.size() * sizeof(data.front());
-      return CreateDataContainer(&data[0], allsize);
+      const SharedDump buffer(new Dump(data));
+      const std::size_t size = data.size() * sizeof(data.front());
+      return DataContainer::Ptr(new DataContainerImpl(buffer, 0, size));
     }
 
     DataContainer::Ptr CreateDataContainer(const void* data, std::size_t size)
     {
-      const SharedArray buffer(new uint8_t[size]);
-      std::memcpy(buffer.get(), data, size);
+      const SharedDump buffer(new Dump(size / sizeof(Dump::value_type)));
+      std::memcpy(buffer->data(), data, size);
+      return DataContainer::Ptr(new DataContainerImpl(buffer, 0, size));
+    }
+
+    DataContainer::Ptr CreateDataContainer(std::auto_ptr<Dump> data)
+    {
+      const SharedDump buffer(data);
+      const std::size_t size = buffer->size() * sizeof(buffer->front());
       return DataContainer::Ptr(new DataContainerImpl(buffer, 0, size));
     }
   }

@@ -65,7 +65,7 @@ namespace
       if (res.get())
       {
         region.Offset = 0;
-        return IO::CreateDataContainer(*res);
+        return IO::CreateDataContainer(res);
       }
       return IO::DataContainer::Ptr();
     }

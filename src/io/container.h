@@ -40,6 +40,7 @@ namespace ZXTune
     //! @brief Creating data container based on raw data
     DataContainer::Ptr CreateDataContainer(const Dump& data);
     DataContainer::Ptr CreateDataContainer(const void* data, std::size_t size);
+    DataContainer::Ptr CreateDataContainer(std::auto_ptr<Dump> data);
 
     //! @brief Fast std::vector-alike wrapper around DataContainer
     class FastDump
