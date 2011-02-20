@@ -38,7 +38,7 @@ namespace
 
     virtual const void* Data() const
     {
-      return Buffer->data() + Offset;
+      return &(*Buffer)[Offset];
     }
 
     virtual Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
@@ -69,7 +69,7 @@ namespace ZXTune
     DataContainer::Ptr CreateDataContainer(const void* data, std::size_t size)
     {
       const SharedDump buffer(new Dump(size / sizeof(Dump::value_type)));
-      std::memcpy(buffer->data(), data, size);
+      std::memcpy(&buffer->front(), data, size);
       return DataContainer::Ptr(new DataContainerImpl(buffer, 0, size));
     }
 
