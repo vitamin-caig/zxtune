@@ -37,9 +37,9 @@ include_dirs = .
 
 text_files := text/text
 
-libraries := zxtune_app_base core devices io sound tools \
+libraries := zxtune_app_base core devices formats io sound tools \
              playlist_ui playlist_supp playlist_io
-depends := apps/base src/core src/devices src/io src/sound src/tools \
+depends := apps/base src/core src/devices src/formats src/io src/sound src/tools \
            apps/zxtune-qt/playlist/supp apps/zxtune-qt/playlist/ui apps/zxtune-qt/playlist/io
 
 boost_libraries = thread
