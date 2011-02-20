@@ -19,6 +19,10 @@ namespace Formats
   namespace Packed
   {
     Decoder::Ptr CreateCodeCruncher3Decoder();
+    Decoder::Ptr CreateDataSquieezerDecoder();
+    Decoder::Ptr CreateESVCruncherDecoder();
+    Decoder::Ptr CreateHrumDecoder();
+    Decoder::Ptr CreatePowerfullCodeDecreaser6Decoder();
   }
 }
 
