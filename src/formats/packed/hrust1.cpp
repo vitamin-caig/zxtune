@@ -62,7 +62,8 @@ namespace Hrust1
       {
         return false;
       }
-      return GetUsedSize() <= Size;
+      const std::size_t usedSize = GetUsedSize();
+      return in_range(usedSize, sizeof(header), Size);
     }
 
     uint_t GetUsedSize() const
@@ -87,8 +88,9 @@ namespace Hrust1
     explicit DataDecoder(const Container& container)
       : IsValid(container.FastCheck())
       , Header(container.GetHeader())
-      , Stream(Header.BitStream, fromLE(Header.PackedSize) - 12)
+      , Stream(Header.BitStream, container.GetUsedSize() - 12)
     {
+      assert(!Stream.Eof());
     }
 
     Dump* GetDecodedData()

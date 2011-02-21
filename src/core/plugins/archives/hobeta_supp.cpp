@@ -53,6 +53,10 @@ namespace
   bool CheckHobeta(const IO::DataContainer& inputData)
   {
     const std::size_t limit = inputData.Size();
+    if (limit < sizeof(Header))
+    {
+      return false;
+    }
     const uint8_t* const data = static_cast<const uint8_t*>(inputData.Data());
     const Header* const header = safe_ptr_cast<const Header*>(data);
     const std::size_t dataSize = fromLE(header->Length);
