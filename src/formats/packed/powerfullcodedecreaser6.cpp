@@ -34,7 +34,7 @@ namespace PowerfullCodeDecreaser6
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif
-    PACK_PRE struct FormatHeader
+    PACK_PRE struct RawHeader
     {
       //+0
       uint8_t Padding1[0xe];
@@ -58,7 +58,7 @@ namespace PowerfullCodeDecreaser6
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(FormatHeader) == 0xc9 + 3 + 2);
+    BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0xc9 + 3 + 2);
   };
 
   struct Version62
@@ -68,7 +68,7 @@ namespace PowerfullCodeDecreaser6
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif
-    PACK_PRE struct FormatHeader
+    PACK_PRE struct RawHeader
     {
       //+0
       uint8_t Padding1[0x14];
@@ -92,7 +92,7 @@ namespace PowerfullCodeDecreaser6
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(FormatHeader) == 0xc4 + 5 + 2);
+    BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0xc4 + 5 + 2);
   };
 
   const std::string Version61::DEPACKER_PATTERN =
@@ -177,7 +177,7 @@ namespace PowerfullCodeDecreaser6
 
     bool FastCheck() const
     {
-      if (Size < sizeof(typename Version::FormatHeader))
+      if (Size < sizeof(typename Version::RawHeader))
       {
         return false;
       }
@@ -196,14 +196,14 @@ namespace PowerfullCodeDecreaser6
 
     uint_t GetUsedSize() const
     {
-      const typename Version::FormatHeader& header = GetHeader();
+      const typename Version::RawHeader& header = GetHeader();
       return sizeof(header) + fromLE(header.SizeOfPacked) - sizeof(header.LastBytes) - sizeof(header.Bitstream);
     }
 
-    const typename Version::FormatHeader& GetHeader() const
+    const typename Version::RawHeader& GetHeader() const
     {
-      assert(Size >= sizeof(typename Version::FormatHeader));
-      return *safe_ptr_cast<const typename Version::FormatHeader*>(Data);
+      assert(Size >= sizeof(typename Version::RawHeader));
+      return *safe_ptr_cast<const typename Version::RawHeader*>(Data);
     }
   private:
     const uint8_t* const Data;
@@ -284,7 +284,7 @@ namespace PowerfullCodeDecreaser6
       }
       return true;
     }
-
+  private:
     bool GetSingleBytes()
     {
       while (Stream.GetBit())
@@ -379,7 +379,7 @@ namespace PowerfullCodeDecreaser6
     }
   private:
     bool IsValid;
-    const typename Version::FormatHeader& Header;
+    const typename Version::RawHeader& Header;
   };
 }
 

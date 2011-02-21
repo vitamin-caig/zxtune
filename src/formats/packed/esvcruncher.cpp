@@ -147,7 +147,7 @@ namespace ESVCruncher
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif
-  PACK_PRE struct FormatHeader
+  PACK_PRE struct RawHeader
   {
     //+0x00
     uint8_t Padding1[0x0e];
@@ -190,7 +190,7 @@ namespace ESVCruncher
 #pragma pack(pop)
 #endif
 
-  BOOST_STATIC_ASSERT(sizeof(FormatHeader) == 0xba + 1);
+  BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0xba + 1);
 
   //dsq bitstream decoder
   class Bitstream
@@ -248,11 +248,11 @@ namespace ESVCruncher
 
     bool FastCheck() const
     {
-      if (Size < sizeof(FormatHeader))
+      if (Size < sizeof(RawHeader))
       {
         return false;
       }
-      const FormatHeader& header = GetHeader();
+      const RawHeader& header = GetHeader();
       if (!in_range<uint_t>(header.WindowSize, 0x0b, 0x0f))
       {
         return false;
@@ -289,14 +289,14 @@ namespace ESVCruncher
 
     uint_t GetUsedSize() const
     {
-      const FormatHeader& header = GetHeader();
+      const RawHeader& header = GetHeader();
       return sizeof(header) + fromLE(header.SizeOfPacked) - sizeof(header.Data);
     }
 
-    const FormatHeader& GetHeader() const
+    const RawHeader& GetHeader() const
     {
-      assert(Size >= sizeof(FormatHeader));
-      return *safe_ptr_cast<const FormatHeader*>(Data);
+      assert(Size >= sizeof(RawHeader));
+      return *safe_ptr_cast<const RawHeader*>(Data);
     }
   private:
     const uint8_t* const Data;
@@ -406,7 +406,7 @@ namespace ESVCruncher
     }
   private:
     bool IsValid;
-    const FormatHeader& Header;
+    const RawHeader& Header;
     Bitstream Stream;
     Dump Decoded;
   };

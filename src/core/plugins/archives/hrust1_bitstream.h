@@ -48,6 +48,17 @@ public:
     }
     return result;
   }
+
+  uint_t GetLen()
+  {
+    uint_t len = 0;
+    for (uint_t bits = 3; bits == 0x3 && len != 0xf;)
+    {
+      bits = GetBits(2);
+      len += bits;
+    }
+    return len;
+  }
 private:
   void InitMask()
   {

@@ -23,6 +23,8 @@ Author:
 
 namespace Hrust1
 {
+  const std::size_t MAX_DECODED_SIZE = 0xc000;
+
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif
@@ -79,82 +81,157 @@ namespace Hrust1
     const std::size_t Size;
   };
 
-  typedef Hrust1Bitstream Bitstream;
-
-  inline bool CopyByteFromBack(int_t offset, Dump& dst)
+  class DataDecoder
   {
-    assert(offset <= 0);
-    const std::size_t size = dst.size();
-    if (uint_t(-offset) > size)
+  public:
+    explicit DataDecoder(const Container& container)
+      : IsValid(container.FastCheck())
+      , Header(container.GetHeader())
+      , Stream(Header.BitStream, fromLE(Header.PackedSize) - 12)
     {
-      return false;//invalid backreference
     }
-    const Dump::value_type val = dst[size + offset];
-    dst.push_back(val);
-    return true;
-  }
 
-  inline bool CopyBreaked(int_t offset, Dump& dst, uint8_t data)
-  {
-    return CopyByteFromBack(offset, dst) && (dst.push_back(data), true) && CopyByteFromBack(offset, dst);
-  }
-
-  bool DecodeHrust1(const RawHeader& header, Dump& result)
-  {
-    const uint_t unpackedSize = fromLE(header.DataSize);
-    Dump dst;
-    dst.reserve(unpackedSize);
-
-    Bitstream stream(header.BitStream, fromLE(header.PackedSize) - 12);
-    //put first byte
-    dst.push_back(stream.GetByte());
-    uint_t refBits = 2;
-    while (!stream.Eof())
+    Dump* GetDecodedData()
     {
-      //%1 - put byte
-      while (stream.GetBit())
+      if (IsValid && !Stream.Eof())
       {
-        dst.push_back(stream.GetByte());
+        IsValid = DecodeData();
       }
-      uint_t len = 0;
-      for (uint_t bits = 3; bits == 0x3 && len != 0xf;)
-      {
-         bits = stream.GetBits(2), len += bits;
-      }
+      return IsValid ? &Decoded : 0;
+    }
+  private:
+    bool DecodeData()
+    {
+      Decoded.reserve(fromLE(Header.DataSize));
 
-      //%0 00,-disp3 - copy byte with offset
-      if (0 == len)
+      //put first byte
+      Decoded.push_back(Stream.GetByte());
+      uint_t refBits = 2;
+      while (!Stream.Eof() && Decoded.size() < MAX_DECODED_SIZE)
       {
-        const int_t offset = static_cast<int16_t>(0xfff8 + stream.GetBits(3));
-        if (!CopyByteFromBack(offset, dst))
+        //%1 - put byte
+        if (Stream.GetBit())
         {
-          return false;
+          Decoded.push_back(Stream.GetByte());
+          continue;
         }
-        continue;
-      }
-      //%0 01 - copy 2 bytes
-      else if (1 == len)
-      {
-        const uint_t code = stream.GetBits(2);
-        int_t offset = 0;
-        //%10: -dispH=0xff
-        if (2 == code)
-        {
-          uint_t byte = stream.GetByte();
-          if (byte >= 0xe0)
-          {
-            byte <<= 1;
-            ++byte;
-            byte ^= 2;
-            byte &= 0xff;
+        uint_t len = Stream.GetLen();
 
-            if (byte == 0xff)//inc refsize
+        //%0 00,-disp3 - copy byte with offset
+        if (0 == len)
+        {
+          const int_t offset = static_cast<int16_t>(0xfff8 + Stream.GetBits(3));
+          if (!CopyByteFromBack(offset))
+          {
+            return false;
+          }
+          continue;
+        }
+        //%0 01 - copy 2 bytes
+        else if (1 == len)
+        {
+          const uint_t code = Stream.GetBits(2);
+          int_t offset = 0;
+          //%10: -dispH=0xff
+          if (2 == code)
+          {
+            uint_t byte = Stream.GetByte();
+            if (byte >= 0xe0)
             {
-              ++refBits;
+              byte <<= 1;
+              ++byte;
+              byte ^= 2;
+              byte &= 0xff;
+
+              if (byte == 0xff)//inc refsize
+              {
+                ++refBits;
+                continue;
+              }
+              const int_t offset = static_cast<int16_t>(0xff00 + byte - 0xf);
+              if (!CopyBreaked(offset))
+              {
+                return false;
+              }
               continue;
             }
+            offset = static_cast<int16_t>(0xff00 + byte);
+          }
+          //%00..01: -dispH=#fd..#fe,-dispL
+          else if (0 == code || 1 == code)
+          {
+            offset = static_cast<int16_t>((code ? 0xfe00 : 0xfd00) + Stream.GetByte());
+          }
+          //%11,-disp5
+          else if (3 == code)
+          {
+            offset = static_cast<int16_t>(0xffe0 + Stream.GetBits(5));
+          }
+          if (!CopyFromBack(-offset, Decoded, 2))
+          {
+            return false;
+          }
+          continue;
+        }
+        //%0 1100...
+        else if (3 == len)
+        {
+          //%011001
+          if (Stream.GetBit())
+          {
+            const int_t offset = static_cast<int16_t>(0xfff0 + Stream.GetBits(4));
+            if (!CopyBreaked(offset))
+            {
+              return false;
+            }
+            continue;
+          }
+          //%0110001
+          else if (Stream.GetBit())
+          {
+            const uint_t count = 2 * (6 + Stream.GetBits(4));
+            for (uint_t bytes = 0; bytes < count; ++bytes)
+            {
+              Decoded.push_back(Stream.GetByte());
+            }
+            continue;
+          }
+          else
+          {
+            len = Stream.GetBits(7);
+            if (0xf == len)
+            {
+              break;//EOF
+            }
+            else if (len < 0xf)
+            {
+              len = 256 * len + Stream.GetByte();
+            }
+          }
+        }
+
+        if (2 == len)
+        {
+          ++len;
+        }
+        const uint_t code = Stream.GetBits(2);
+        int_t offset = 0;
+        if (1 == code)
+        {
+          uint_t byte = Stream.GetByte();
+          if (byte >= 0xe0)
+          {
+            if (len > 3)
+            {
+              return false;
+            }
+            byte <<= 1;
+            ++byte;
+            byte ^= 3;
+            byte &= 0xff;
+
             const int_t offset = static_cast<int16_t>(0xff00 + byte - 0xf);
-            if (!CopyBreaked(offset, dst, stream.GetByte()))
+            if (!CopyBreaked(offset))
             {
               return false;
             }
@@ -162,134 +239,54 @@ namespace Hrust1
           }
           offset = static_cast<int16_t>(0xff00 + byte);
         }
-        //%00..01: -dispH=#fd..#fe,-dispL
-        else if (0 == code || 1 == code)
+        else if (0 == code)
         {
-          offset = static_cast<int16_t>((code ? 0xfe00 : 0xfd00) + stream.GetByte());
+          offset = static_cast<int16_t>(0xfe00 + Stream.GetByte());
         }
-        //%11,-disp5
+        else if (2 == code)
+        {
+          offset = static_cast<int16_t>(0xffe0 + Stream.GetBits(5));
+        }
         else if (3 == code)
         {
-          offset = static_cast<int16_t>(0xffe0 + stream.GetBits(5));
+          static const uint_t Mask[] = {0, 0, 0xfc, 0xf8, 0xf0, 0xe0, 0xc0, 0x80, 0};
+          offset = 256 * (Mask[refBits] + Stream.GetBits(refBits));
+          offset |= Stream.GetByte();
+          offset = static_cast<int16_t>(offset & 0xffff);
         }
-        if (!CopyFromBack(-offset, dst, 2))
+        if (!CopyFromBack(-offset, Decoded, len))
         {
           return false;
         }
-        continue;
       }
-      //%0 1100...
-      else if (3 == len)
-      {
-        //%011001
-        if (stream.GetBit())
-        {
-          const int_t offset = static_cast<int16_t>(0xfff0 + stream.GetBits(4));
-          if (!CopyBreaked(offset, dst, stream.GetByte()))
-          {
-            return false;
-          }
-          continue;
-        }
-        //%0110001
-        else if (stream.GetBit())
-        {
-          const uint_t count = 2 * (6 + stream.GetBits(4));
-          for (uint_t bytes = 0; bytes < count; ++bytes)
-          {
-            dst.push_back(stream.GetByte());
-          }
-          continue;
-        }
-        else
-        {
-          len = stream.GetBits(7);
-          if (0xf == len)
-          {
-            break;//EOF
-          }
-          else if (len < 0xf)
-          {
-            len = 256 * len + stream.GetByte();
-          }
-        }
-      }
-
-      if (2 == len)
-      {
-        ++len;
-      }
-      const uint_t code = stream.GetBits(2);
-      int_t offset = 0;
-      if (1 == code)
-      {
-        uint_t byte = stream.GetByte();
-        if (byte >= 0xe0)
-        {
-          if (len > 3)
-          {
-            return false;
-          }
-          byte <<= 1;
-          ++byte;
-          byte ^= 3;
-          byte &= 0xff;
-
-          const int_t offset = static_cast<int16_t>(0xff00 + byte - 0xf);
-          if (!CopyBreaked(offset, dst, stream.GetByte()))
-          {
-            return false;
-          }
-          continue;
-        }
-        offset = static_cast<int16_t>(0xff00 + byte);
-      }
-      else if (0 == code)
-      {
-        offset = static_cast<int16_t>(0xfe00 + stream.GetByte());
-      }
-      else if (2 == code)
-      {
-        offset = static_cast<int16_t>(0xffe0 + stream.GetBits(5));
-      }
-      else if (3 == code)
-      {
-        static const uint_t Mask[] = {0, 0, 0xfc, 0xf8, 0xf0, 0xe0, 0xc0, 0x80, 0};
-        offset = 256 * (Mask[refBits] + stream.GetBits(refBits));
-        offset |= stream.GetByte();
-        offset = static_cast<int16_t>(offset & 0xffff);
-      }
-      if (!CopyFromBack(-offset, dst, len))
-      {
-        return false;
-      }
-    }
-    //put remaining bytes
-    std::copy(header.LastBytes, ArrayEnd(header.LastBytes), std::back_inserter(dst));
-    result.swap(dst);
-    return true;
-  }
-
-  class DataDecoder
-  {
-  public:
-    explicit DataDecoder(const Container& container)
-      : IsValid(container.FastCheck())
-      , Header(container.GetHeader())
-    {
+      //put remaining bytes
+      std::copy(Header.LastBytes, ArrayEnd(Header.LastBytes), std::back_inserter(Decoded));
+      return true;
     }
 
-    Dump* GetDecodedData()
+    bool CopyByteFromBack(int_t offset)
     {
-      if (IsValid && Decoded.empty())
+      assert(offset <= 0);
+      const std::size_t size = Decoded.size();
+      if (uint_t(-offset) > size)
       {
-        IsValid = DecodeHrust1(Header, Decoded);
+        return false;//invalid backreference
       }
-      return IsValid ? &Decoded : 0;
+      const Dump::value_type val = Decoded[size + offset];
+      Decoded.push_back(val);
+      return true;
+    }
+
+    bool CopyBreaked(int_t offset)
+    {
+      return CopyByteFromBack(offset) && 
+             (Decoded.push_back(Stream.GetByte()), true) && 
+             CopyByteFromBack(offset);
     }
   private:
     bool IsValid;
     const RawHeader& Header;
+    Hrust1Bitstream Stream;
     Dump Decoded;
   };
 }

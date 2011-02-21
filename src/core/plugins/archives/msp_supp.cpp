@@ -176,12 +176,7 @@ namespace
         dst.push_back(stream.GetByte());
         continue;
       }
-      uint_t len = 0;
-      for (uint_t bits = 3; bits == 0x3 && len != 0xf;)
-      {
-        bits = stream.GetBits(2);
-        len += bits;
-      }
+      uint_t len = stream.GetLen();
       len += 2;
       if (2 == len)
       {

@@ -51,7 +51,7 @@ namespace Hrum
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif
-  PACK_PRE struct FormatHeader
+  PACK_PRE struct RawHeader
   {
     //+0
     uint8_t Padding1[0x16];
@@ -90,7 +90,7 @@ namespace Hrum
 #pragma pack(pop)
 #endif
 
-  BOOST_STATIC_ASSERT(sizeof(FormatHeader) == 0x9b);
+  BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0x9b);
 
   class Container
   {
@@ -103,11 +103,11 @@ namespace Hrum
 
     bool FastCheck() const
     {
-      if (Size < sizeof(FormatHeader))
+      if (Size < sizeof(RawHeader))
       {
         return false;
       }
-      const FormatHeader& header = GetHeader();
+      const RawHeader& header = GetHeader();
       const DataMovementChecker checker(fromLE(header.PackedSource), fromLE(header.PackedTarget), fromLE(header.SizeOfPacked), header.PackedDataCopyDirection);
       if (!checker.IsValid())
       {
@@ -131,15 +131,15 @@ namespace Hrum
 
     uint_t GetUsedSize() const
     {
-      const FormatHeader& header = GetHeader();
+      const RawHeader& header = GetHeader();
       return sizeof(header) - (sizeof(header.Padding7) + sizeof(header.BitStream) + sizeof(header.ByteStream))
         + fromLE(header.SizeOfPacked);
     }
 
-    const FormatHeader& GetHeader() const
+    const RawHeader& GetHeader() const
     {
-      assert(Size >= sizeof(FormatHeader));
-      return *safe_ptr_cast<const FormatHeader*>(Data);
+      assert(Size >= sizeof(RawHeader));
+      return *safe_ptr_cast<const RawHeader*>(Data);
     }
   private:
     const uint8_t* const Data;
@@ -201,7 +201,7 @@ namespace Hrum
           Decoded.push_back(Stream.GetByte());
           continue;
         }
-        uint_t len = DecodeLen();
+        uint_t len = 1 + Stream.GetLen();
         uint_t offset = 0;
         if (4 == len)
         {
@@ -231,17 +231,6 @@ namespace Hrum
       return true;
     }
   private:
-    uint_t DecodeLen()
-    {
-      uint_t len = 1;
-      for (uint_t bits = 3; bits == 0x3 && len != 0x10;)
-      {
-         bits = Stream.GetBits(2);
-         len += bits;
-      }
-      return len;
-    }
-
     uint_t DecodeOffsetByLen(uint_t len)
     {
       if (1 == len)
@@ -259,7 +248,7 @@ namespace Hrum
     }
   private:
     bool IsValid;
-    const FormatHeader& Header;
+    const RawHeader& Header;
     Bitstream Stream;
     Dump Decoded;
   };

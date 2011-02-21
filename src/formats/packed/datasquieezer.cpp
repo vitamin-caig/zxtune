@@ -154,7 +154,7 @@ namespace DataSquieezer
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif
-  PACK_PRE struct FormatHeader
+  PACK_PRE struct RawHeader
   {
     //+0
     uint8_t Padding1[0x0d];
@@ -197,7 +197,7 @@ namespace DataSquieezer
 #pragma pack(pop)
 #endif
 
-  BOOST_STATIC_ASSERT(sizeof(FormatHeader) == 0xb0 + 1);
+  BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0xb0 + 1);
 
   //dsq bitstream decoder
   class Bitstream
@@ -255,11 +255,11 @@ namespace DataSquieezer
 
     bool FastCheck() const
     {
-      if (Size < sizeof(FormatHeader))
+      if (Size < sizeof(RawHeader))
       {
         return false;
       }
-      const FormatHeader& header = GetHeader();
+      const RawHeader& header = GetHeader();
       if (!in_range<uint_t>(header.LongOffsetBits, 0x00, 0x10))
       {
         return false;
@@ -296,14 +296,14 @@ namespace DataSquieezer
 
     uint_t GetUsedSize() const
     {
-      const FormatHeader& header = GetHeader();
+      const RawHeader& header = GetHeader();
       return sizeof(header) + fromLE(header.SizeOfPacked) - sizeof(header.Data);
     }
 
-    const FormatHeader& GetHeader() const
+    const RawHeader& GetHeader() const
     {
-      assert(Size >= sizeof(FormatHeader));
-      return *safe_ptr_cast<const FormatHeader*>(Data);
+      assert(Size >= sizeof(RawHeader));
+      return *safe_ptr_cast<const RawHeader*>(Data);
     }
   private:
     const uint8_t* const Data;
@@ -415,7 +415,7 @@ namespace DataSquieezer
     }
   private:
     bool IsValid;
-    const FormatHeader& Header;
+    const RawHeader& Header;
     Bitstream Stream;
     Dump Decoded;
   };
