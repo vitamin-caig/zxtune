@@ -162,6 +162,7 @@ namespace ZXTune
     Chip::Ptr CreatePSGDumper(Dump& data);
     Chip::Ptr CreateZX50Dumper(Dump& data);
     Chip::Ptr CreateDebugDumper(Dump& data);
+    Chip::Ptr CreateRawStreamDumper(Dump& data);
   }
 }
 

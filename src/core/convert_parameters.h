@@ -68,6 +68,15 @@ namespace ZXTune
         {
         }
       };
+      
+      //! @brief %Parameter for converting to raw ay stream format
+      struct AYDumpConvertParam : public Parameter
+      {
+        static const uint64_t TYPE_ID = ParamID6<'A', 'Y', 'D', 'u', 'm', 'p'>::Value;
+        AYDumpConvertParam() : Parameter(TYPE_ID)
+        {
+        }
+      };
     }
   }
 }

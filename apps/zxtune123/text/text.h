@@ -13,6 +13,7 @@ extern const Char CLOCKRATE_KEY[];
 extern const Char COMMON_ERROR[];
 extern const Char CONFIG_DESC[];
 extern const Char CONFIG_KEY[];
+extern const Char CONVERSION_MODE_AYDUMP[];
 extern const Char CONVERSION_MODE_DEBUGAY[];
 extern const Char CONVERSION_MODE_PSG[];
 extern const Char CONVERSION_MODE_RAW[];

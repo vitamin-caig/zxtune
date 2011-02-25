@@ -54,6 +54,12 @@ namespace ZXTune
         chip = AYM::CreateDebugDumper(tmp);
         errMsg = Text::MODULE_ERROR_CONVERT_DEBUGAY;
       }
+      //convert to aydump
+      else if (parameter_cast<AYDumpConvertParam>(&param))
+      {
+        chip = AYM::CreateRawStreamDumper(tmp);
+        errMsg = Text::MODULE_ERROR_CONVERT_AYDUMP;
+      }
 
       if (chip.get())
       {
