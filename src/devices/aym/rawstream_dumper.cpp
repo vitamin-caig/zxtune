@@ -23,6 +23,8 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::AYM;
 
+  const uint8_t NO_R13 = 0xff;
+
   class RawStreamDumper : public Chip
   {
   public:
@@ -45,6 +47,10 @@ namespace
             const uint_t data = src.Data[reg];
             CurChunk.Data[reg] = data;
           }
+        }
+        if (0 == (src.Mask & (1 << DataChunk::REG_ENV)))
+        {
+          CurChunk.Data[DataChunk::REG_ENV] = NO_R13;
         }
         CurChunk.Tick = src.Tick;
         AddFrame();
