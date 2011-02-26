@@ -306,11 +306,11 @@ namespace
     enum AreaTypes
     {
       HEADER,
+      IDENTIFIER,
       POSITIONS,
       PATTERNS,
       ORNAMENTS,
       SAMPLES,
-      FREE,
       END,
     };
 
@@ -320,6 +320,7 @@ namespace
       const STPHeader* const header = safe_ptr_cast<const STPHeader*>(Data.Data());
 
       Areas.AddArea(HEADER, 0);
+      Areas.AddArea(IDENTIFIER, sizeof(*header));
       Areas.AddArea(POSITIONS, fromLE(header->PositionsOffset));
       Areas.AddArea(PATTERNS, fromLE(header->PatternsOffset));
       Areas.AddArea(ORNAMENTS, fromLE(header->OrnamentsOffset));
@@ -638,7 +639,7 @@ namespace
       , Info(TrackInfo::Create(Data))
     {
       //assume that data is ok
-      const IO::FastDump& data = IO::FastDump(*container.Data, region.Offset);
+      const IO::FastDump& data = IO::FastDump(*container.Data, region.Offset, MAX_MODULE_SIZE);
       const STPAreas areas(data);
 
       const ModuleProperties::Ptr props = Data->ParseInformation(areas);
@@ -897,6 +898,135 @@ namespace
     return CreateAYMTrackPlayer(info, data, renderer, device, TABLE_SOUNDTRACKER);
   }
 
+  class STPAreasChecker : public STPAreas
+  {
+  public:
+    explicit STPAreasChecker(const IO::FastDump& data)
+      : STPAreas(data)
+    {
+    }
+
+    bool CheckLayout() const
+    {
+      return sizeof(STPHeader) == Areas.GetAreaSize(STPAreas::HEADER) &&
+             Areas.Undefined == Areas.GetAreaSize(STPAreas::END);
+    }
+
+    bool CheckHeader() const
+    {
+      const STPHeader& header = GetHeader();
+      return header.Tempo != 0;
+    }
+
+    bool CheckSamples() const
+    {
+      const uint_t samplesOffset = Areas.GetAreaAddress(STPAreas::SAMPLES);
+      const uint_t limit = Areas.GetAreaAddress(STPAreas::END);
+      if (samplesOffset + sizeof(STPSamples) > limit)
+      {
+        return false;
+      }
+
+      const STPSamples* const samples = safe_ptr_cast<const STPSamples*>(&Data[samplesOffset]);
+      for (const uint16_t* smpOff = samples->Offsets.begin(); smpOff != samples->Offsets.end(); ++smpOff)
+      {
+        const uint_t offset = fromLE(*smpOff);
+        if (!offset || offset + STPSample::GetMinimalSize() > limit)
+        {
+          return false;
+        }
+        const STPSample* const sample = safe_ptr_cast<const STPSample*>(&Data[offset]);
+        //may be empty
+        if (!sample->Size)
+        {
+          continue;
+        }
+        if (sample->Size > MAX_SAMPLE_SIZE ||
+            sample->Loop > int_t(MAX_SAMPLE_SIZE) ||
+            offset + sample->GetSize() > limit)
+        {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    bool CheckOrnaments() const
+    {
+      const uint_t ornamentsOffset = Areas.GetAreaAddress(STPAreas::ORNAMENTS);
+      const uint_t limit = Areas.GetAreaAddress(STPAreas::END);
+      if (ornamentsOffset + sizeof(STPOrnaments) > limit)
+      {
+        return false;
+      }
+      const STPOrnaments* const ornaments = safe_ptr_cast<const STPOrnaments*>(&Data[ornamentsOffset]);
+      for (const uint16_t* ornOff = ornaments->Offsets.begin(); ornOff != ornaments->Offsets.end(); ++ornOff)
+      {
+        const uint_t offset = fromLE(*ornOff);
+        if (!offset || offset + STPOrnament::GetMinimalSize() > limit)
+        {
+          return false;
+        }
+        const STPOrnament* const ornament = safe_ptr_cast<const STPOrnament*>(&Data[offset]);
+        //may be empty
+        if (!ornament->Size)
+        {
+          continue;
+        }
+        if (ornament->Size > MAX_ORNAMENT_SIZE ||
+            ornament->Loop > MAX_ORNAMENT_SIZE ||
+            offset + ornament->GetSize() > limit)
+        {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    bool CheckPositions() const
+    {
+      const uint_t offset = Areas.GetAreaAddress(STPAreas::POSITIONS);
+      const uint_t limit = Areas.GetAreaAddress(STPAreas::END);
+      if (offset + sizeof(STPPositions) > limit)
+      {
+        return false;
+      }
+      // check positions
+      const STPPositions* const positions = safe_ptr_cast<const STPPositions*>(&Data[offset]);
+      if (!positions->Lenght ||
+          positions->Data + positions->Lenght != std::find_if(positions->Data, positions->Data + positions->Lenght,
+            boost::bind<uint8_t>(std::modulus<uint8_t>(), boost::bind(&STPPositions::STPPosEntry::PatternOffset, _1), 6))
+         )
+      {
+        return false;
+      }
+      return true;
+    }
+
+    bool CheckPatterns() const
+    {
+      const uint_t offset = Areas.GetAreaAddress(STPAreas::PATTERNS);
+      const uint_t limit = Areas.GetAreaAddress(STPAreas::END);
+      if (offset + sizeof(STPPattern) > limit)
+      {
+        return false;
+      }
+      if (Areas.GetAreaSize(STPAreas::PATTERNS) < sizeof(STPPattern))
+      {
+        return false;
+      }
+      for (RangeIterator<const STPPattern*> pattern = GetPatterns(); pattern; ++pattern)
+      {
+        if (pattern->Offsets.end() != std::find_if(pattern->Offsets.begin(), pattern->Offsets.end(),
+          boost::bind(&fromLE<uint16_t>, _1) > limit - 1))
+        {
+          return false;
+        }
+      }
+      return true;
+    }
+  };
+
   bool CheckSTPModule(const uint8_t* data, std::size_t size)
   {
     const std::size_t limit = std::min(size, MAX_MODULE_SIZE);
@@ -904,99 +1034,16 @@ namespace
     {
       return false;
     }
-    const STPHeader* const header = safe_ptr_cast<const STPHeader*>(data);
 
-    const std::size_t positionsOffset = fromLE(header->PositionsOffset);
-    const std::size_t patternsOffset = fromLE(header->PatternsOffset);
-    const std::size_t ornamentsOffset = fromLE(header->OrnamentsOffset);
-    const std::size_t samplesOffset = fromLE(header->SamplesOffset);
+    const IO::FastDump dump(data, limit);
+    const STPAreasChecker areas(dump);
 
-    if (header->Tempo == 0 ||
-        positionsOffset > limit ||
-        patternsOffset >= ornamentsOffset || (ornamentsOffset - patternsOffset) % sizeof(STPPattern) != 0
-        )
-    {
-      return false;
-    }
-
-    RangeChecker::Ptr checker(RangeChecker::CreateShared(limit));
-    checker->AddRange(0, sizeof(*header));
-
-    //check for patterns range
-    if (!checker->AddRange(patternsOffset, ornamentsOffset - patternsOffset))
-    {
-      return false;
-    }
-
-    const STPId* id = safe_ptr_cast<const STPId*>(header + 1);
-    if (id->Check() && !checker->AddRange(sizeof(*header), sizeof(*id)))
-    {
-      return false;
-    }
-
-    // check positions
-    const STPPositions* const positions = safe_ptr_cast<const STPPositions*>(data + positionsOffset);
-    if (!positions->Lenght ||
-        !checker->AddRange(positionsOffset, sizeof(STPPositions::STPPosEntry) * (positions->Lenght - 1)) ||
-        positions->Data + positions->Lenght != std::find_if(positions->Data, positions->Data + positions->Lenght,
-          boost::bind<uint8_t>(std::modulus<uint8_t>(), boost::bind(&STPPositions::STPPosEntry::PatternOffset, _1), 6))
-       )
-    {
-      return false;
-    }
-    //check ornaments
-    const STPOrnaments* const ornaments = safe_ptr_cast<const STPOrnaments*>(data + ornamentsOffset);
-    if (!checker->AddRange(ornamentsOffset, sizeof(*ornaments)))
-    {
-      return false;
-    }
-    for (const uint16_t* ornOff = ornaments->Offsets.begin(); ornOff != ornaments->Offsets.end(); ++ornOff)
-    {
-      const uint_t offset = fromLE(*ornOff);
-      if (!offset || offset + STPOrnament::GetMinimalSize() > limit)
-      {
-        return false;
-      }
-      const STPOrnament* const ornament = safe_ptr_cast<const STPOrnament*>(data + offset);
-      //may be empty
-      if (!ornament->Size)
-      {
-        continue;
-      }
-      if (ornament->Size > MAX_ORNAMENT_SIZE ||
-          ornament->Loop > MAX_ORNAMENT_SIZE ||
-          offset + ornament->GetSize() > limit)
-      {
-        return false;
-      }
-    }
-    //check samples
-    const STPSamples* const samples = safe_ptr_cast<const STPSamples*>(data + samplesOffset);
-    if (!checker->AddRange(samplesOffset, sizeof(*samples)))
-    {
-      return false;
-    }
-    for (const uint16_t* smpOff = samples->Offsets.begin(); smpOff != samples->Offsets.end(); ++smpOff)
-    {
-      const uint_t offset = fromLE(*smpOff);
-      if (!offset || offset + STPSample::GetMinimalSize() > limit)
-      {
-        return false;
-      }
-      const STPSample* const sample = safe_ptr_cast<const STPSample*>(data + offset);
-      //may be empty
-      if (!sample->Size)
-      {
-        continue;
-      }
-      if (sample->Size > MAX_SAMPLE_SIZE ||
-          sample->Loop > int_t(MAX_SAMPLE_SIZE) ||
-          offset + sample->GetSize() > limit)
-      {
-        return false;
-      }
-    }
-    return true;
+    return areas.CheckLayout() &&
+           areas.CheckHeader() &&
+           areas.CheckSamples() &&
+           areas.CheckOrnaments() &&
+           areas.CheckPositions() &&
+           areas.CheckPatterns();
   }
 
   //////////////////////////////////////////////////////////////////////////

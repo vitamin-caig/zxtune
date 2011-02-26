@@ -66,52 +66,51 @@ public:
 template<class KeyType, std::size_t AreasCount, class AddrType = std::size_t>
 class AreaController
 {
-  enum
-  {
-    NoArea = ~AddrType(0)
-  };
   typedef boost::array<AddrType, AreasCount> Area2AddrMap;
 public:
+  enum
+  {
+    Undefined = ~AddrType(0)
+  };
+
   AreaController()
   {
-    Areas.assign(NoArea);
+    Areas.assign(Undefined);
   }
 
   void AddArea(KeyType key, AddrType addr)
   {
-    assert(NoArea == Areas[key]);
+    assert(Undefined == Areas[key]);
     Areas[key] = addr;
   }
 
   AddrType GetAreaAddress(KeyType key) const
   {
     const AddrType res = Areas[key];
-    assert(NoArea != res);
+    assert(Undefined != res);
     return res;
   }
 
   AddrType GetAreaSize(KeyType key) const
   {
     const AddrType begin = Areas[key];
-    if (NoArea == begin)
+    if (Undefined == begin)
     {
       //no such area
       return 0;
     }
-    return FindSize(begin);
-  }
-private:
-  AddrType FindSize(AddrType addr) const
-  {
-    AddrType res = 0;
-    for (typename Area2AddrMap::const_iterator it = Areas.begin(), lim = Areas.end(); it != lim; ++it)
+    AddrType res = Undefined;
+    for (std::size_t idx = 0; idx < AreasCount; ++idx)
     {
-      if (*it <= addr || NoArea == *it)
+      const AddrType curAddr = Areas[idx];
+      if (Undefined == curAddr ||
+          curAddr < begin ||
+          idx == key)
       {
         continue;
       }
-      const AddrType size = *it - addr;
-      if (!res || res > size)
+      const AddrType size = curAddr - begin;
+      if (res == Undefined || res > size)
       {
         res = size;
       }

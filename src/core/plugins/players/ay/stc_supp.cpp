@@ -49,7 +49,7 @@ namespace
   const String STC_PLUGIN_VERSION(FromStdString("$Rev$"));
 
   //hints
-  const std::size_t MAX_STC_MODULE_SIZE = 16384;
+  const std::size_t MAX_MODULE_SIZE = 16384;
   const uint_t MAX_SAMPLES_COUNT = 16;
   const uint_t MAX_ORNAMENTS_COUNT = 16;
   const uint_t MAX_PATTERN_SIZE = 64;
@@ -293,7 +293,6 @@ namespace
       POSITIONS,
       ORNAMENTS,
       PATTERNS,
-      FREE,
       END
     };
 
@@ -616,13 +615,9 @@ namespace
             channel.Commands.push_back(STCTrack::Command(ENVELOPE, cmd - 0x80, data[cur.Offset++]));
           }
         }
-        else if (cmd < 0xa1 || !restbytes)
-        {
-          throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
-        }
         else //skip
         {
-          cur.Period = cmd - 0xa1;
+          cur.Period = (cmd - 0xa1) & 0xff;
         }
       }
       cur.Counter = cur.Period;
@@ -643,7 +638,7 @@ namespace
       , Info(TrackInfo::Create(Data))
     {
       //assume that data is ok
-      const IO::FastDump& data = IO::FastDump(*container.Data, region.Offset);
+      const IO::FastDump& data = IO::FastDump(*container.Data, region.Offset, MAX_MODULE_SIZE);
       const STCAreas areas(data);
 
       const ModuleProperties::Ptr props = Data->ParseInformation(areas);
@@ -1024,7 +1019,7 @@ namespace
     bool CheckLayout() const
     {
       return sizeof(STCHeader) == Areas.GetAreaSize(STCAreas::HEADER) &&
-             0 == Areas.GetAreaSize(STCAreas::END);
+             Areas.Undefined == Areas.GetAreaSize(STCAreas::END);
     }
 
     bool CheckSamples() const
@@ -1088,8 +1083,9 @@ namespace
     }
   };
 
-  bool CheckSTCModule(const uint8_t* data, std::size_t limit)
+  bool CheckSTCModule(const uint8_t* data, std::size_t size)
   {
+    const std::size_t limit = std::min(size, MAX_MODULE_SIZE);
     if (limit < sizeof(STCHeader))
     {
       return false;

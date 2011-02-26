@@ -33,6 +33,20 @@ namespace
       throw 1;
   }
   
+  template<class T>
+  void Test(const String& msg, T result, T reference)
+  {
+    if (result == reference)
+    {
+      std::cout << "Passed test for " << msg << std::endl;
+    }
+    else
+    {
+      std::cout << "Failed test for " << msg << " (got: " << result << " expected: " << reference << ")" << std::endl;
+      throw 1;
+    }
+  }
+  
   template<class Policy>
   class FieldsSourceFromMap : public Policy
   {
@@ -65,6 +79,25 @@ namespace
       std::cout << "Failed test for '" << templ << "' (result is '" << res << "')" << std::endl;
       throw 1;
     }
+  }
+
+  enum AreaTypes
+  {
+    BEGIN,
+    SECTION1,
+    SECTION2,
+    UNSPECIFIED,
+    END,
+  };
+  typedef AreaController<AreaTypes, 1 + END, uint_t> Areas;
+
+  void TestAreaSizes(const std::string& test, const Areas& area, uint_t bsize, uint_t s1size, uint_t s2size, uint_t esize)
+  {
+    Test(test + ": size of begin", area.GetAreaSize(BEGIN), bsize);
+    Test(test + ": size of sect1", area.GetAreaSize(SECTION1), s1size);
+    Test(test + ": size of sect2", area.GetAreaSize(SECTION2), s2size);
+    Test(test + ": size of end", area.GetAreaSize(END), esize);
+    Test(test + ": size of unspec", area.GetAreaSize(UNSPECIFIED), uint_t(0));
   }
 }
 
@@ -149,6 +182,33 @@ int main()
     Test("Adding zero-sized to busy valid", shared->AddRange(70, 0));
     Test("Adding zero-sized to busy invalid", !shared->AddRange(80, 0));
     Test("Check result", shared->GetAffectedRange() == std::pair<std::size_t, std::size_t>(20, 90));
+  }
+  std::cout << "---- Test for area controller ----" << std::endl;
+  {
+    {
+      Areas areas;
+      areas.AddArea(BEGIN, 0);
+      areas.AddArea(SECTION1, 10);
+      areas.AddArea(SECTION2, 20);
+      areas.AddArea(END, 30);
+      TestAreaSizes("Ordered", areas, 10, 10, 10, Areas::Undefined);
+    }
+    {
+      Areas areas;
+      areas.AddArea(BEGIN, 40);
+      areas.AddArea(SECTION1, 30);
+      areas.AddArea(SECTION2, 20);
+      areas.AddArea(END, 10);
+      TestAreaSizes("Reversed", areas, Areas::Undefined, 10, 10, 10);
+    }
+    {
+      Areas areas;
+      areas.AddArea(BEGIN, 0);
+      areas.AddArea(SECTION1, 30);
+      areas.AddArea(SECTION2, 30);
+      areas.AddArea(END, 10);
+      TestAreaSizes("Duplicated", areas, 10, 0, 0, 20);
+    }
   }
   }
   catch (int code)
