@@ -515,18 +515,16 @@ namespace
     {
       AYMPatternCursors cursors;
       std::transform(pattern.Offsets.begin(), pattern.Offsets.end(), cursors.begin(), std::ptr_fun(&fromLE<uint16_t>));
-      dst.reserve(MAX_PATTERN_SIZE);
       uint_t& channelACursor = cursors.front().Offset;
       do
       {
-        dst.push_back(STPTrack::Line());
-        STPTrack::Line& line = dst.back();
+        STPTrack::Line& line = dst.AddLine();
         ParsePatternLine(data, cursors, line);
         //skip lines
         if (const uint_t linesToSkip = cursors.GetMinCounter())
         {
           cursors.SkipLines(linesToSkip);
-          dst.resize(dst.size() + linesToSkip);//add dummies
+          dst.AddLines(linesToSkip);
         }
       }
       while (channelACursor < data.Size() &&
@@ -616,7 +614,7 @@ namespace
     {
       const uint_t patNum = entry.PatternOffset / 6;
       assert(0 == entry.PatternOffset % 6);
-      return patNum < Patterns.size() && !Patterns[patNum].empty();
+      return patNum < Patterns.size() && !Patterns[patNum].IsEmpty();
     }
 
     void AddPosition(const STPPositions::STPPosEntry& entry)
@@ -751,15 +749,17 @@ namespace
   private:
     void GetNewLineState(const TrackState& state, AYMTrackSynthesizer& synthesizer)
     {
-      const STPTrack::Line& line = Data->Patterns[state.Pattern()][state.Line()];
-      for (uint_t chan = 0; chan != line.Channels.size(); ++chan)
+      if (const STPTrack::Line* line = Data->Patterns[state.Pattern()].GetLine(state.Line()))
       {
-        const STPTrack::Line::Chan& src = line.Channels[chan];
-        if (src.Empty())
+        for (uint_t chan = 0; chan != line->Channels.size(); ++chan)
         {
-          continue;
+          const STPTrack::Line::Chan& src = line->Channels[chan];
+          if (src.Empty())
+          {
+            continue;
+          }
+          GetNewChannelState(src, PlayerState[chan], synthesizer);
         }
-        GetNewChannelState(src, PlayerState[chan], synthesizer);
       }
     }
 

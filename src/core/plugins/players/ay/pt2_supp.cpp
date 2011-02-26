@@ -483,18 +483,16 @@ namespace
 
         AYMPatternCursors cursors;
         std::transform(pattern->Offsets.begin(), pattern->Offsets.end(), cursors.begin(), &fromLE<uint16_t>);
-        pat.reserve(MAX_PATTERN_SIZE);
         uint_t& channelACursor = cursors.front().Offset;
         do
         {
-          pat.push_back(PT2Track::Line());
-          PT2Track::Line& line = pat.back();
+          PT2Track::Line& line = pat.AddLine();
           ParsePattern(data, cursors, line);
           //skip lines
           if (const uint_t linesToSkip = cursors.GetMinCounter())
           {
             cursors.SkipLines(linesToSkip);
-            pat.resize(pat.size() + linesToSkip);//add dummies
+            pat.AddLines(linesToSkip);//add dummies
           }
         }
         while (channelACursor < data.Size() &&
@@ -505,7 +503,7 @@ namespace
       //fill order
       for (const uint8_t* curPos = header->Positions; POS_END_MARKER != *curPos; ++curPos)
       {
-        if (!Data->Patterns[*curPos].empty())
+        if (!Data->Patterns[*curPos].IsEmpty())
         {
           Data->Positions.push_back(*curPos);
         }
@@ -623,16 +621,17 @@ namespace
   private:
     void GetNewLineState(const TrackState& state, AYMTrackSynthesizer& synthesizer)
     {
-      const PT2Track::Line& line(Data->Patterns[state.Pattern()][state.Line()]);
-
-      for (uint_t chan = 0; chan != line.Channels.size(); ++chan)
+      if (const PT2Track::Line* line = Data->Patterns[state.Pattern()].GetLine(state.Line()))
       {
-        const PT2Track::Line::Chan& src(line.Channels[chan]);
-        if (src.Empty())
+        for (uint_t chan = 0; chan != line->Channels.size(); ++chan)
         {
-          continue;
+          const PT2Track::Line::Chan& src = line->Channels[chan];
+          if (src.Empty())
+          {
+            continue;
+          }
+          GetNewChannelState(src, PlayerState[chan], synthesizer);
         }
-        GetNewChannelState(src, PlayerState[chan], synthesizer);
       }
     }
 

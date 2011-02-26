@@ -513,7 +513,7 @@ namespace
     bool CheckPosition(const STCPositions::STCPosEntry& entry) const
     {
       const uint_t patNum = entry.PatternNum - 1;
-      return patNum < MAX_PATTERN_COUNT && !Patterns[patNum].empty();
+      return patNum < MAX_PATTERN_COUNT && !Patterns[patNum].IsEmpty();
     }
 
     void AddPosition(const STCPositions::STCPosEntry& entry)
@@ -532,18 +532,16 @@ namespace
     {
       AYMPatternCursors cursors;
       std::transform(pattern.Offsets.begin(), pattern.Offsets.end(), cursors.begin(), &fromLE<uint16_t>);
-      dst.reserve(MAX_PATTERN_SIZE);
       uint_t& channelACursor = cursors.front().Offset;
       do
       {
-        dst.push_back(STCTrack::Line());
-        STCTrack::Line& line(dst.back());
+        STCTrack::Line& line = dst.AddLine();
         ParsePatternLine(data, cursors, line);
         //skip lines
         if (const uint_t linesToSkip = cursors.GetMinCounter())
         {
           cursors.SkipLines(linesToSkip);
-          dst.resize(dst.size() + linesToSkip);//add dummies
+          dst.AddLines(linesToSkip);
         }
       }
       while (channelACursor < data.Size() &&
@@ -966,21 +964,23 @@ namespace
   private:
     void GetNewLineState(const TrackState& state, AYMTrackSynthesizer& synthesizer)
     {
-      const STCTrack::Line& line(Data->Patterns[state.Pattern()][state.Line()]);
-      if (const STCTrack::Line::Chan& src = line.Channels[0])
+      if (const STCTrack::Line* line = Data->Patterns[state.Pattern()].GetLine(state.Line()))
       {
-        StateA.SetNewState(src);
-        ProcessEnvelopeCommands(src.Commands, synthesizer);
-      }
-      if (const STCTrack::Line::Chan& src = line.Channels[1])
-      {
-        StateB.SetNewState(src);
-        ProcessEnvelopeCommands(src.Commands, synthesizer);
-      }
-      if (const STCTrack::Line::Chan& src = line.Channels[2])
-      {
-        StateC.SetNewState(src);
-        ProcessEnvelopeCommands(src.Commands, synthesizer);
+        if (const STCTrack::Line::Chan& src = line->Channels[0])
+        {
+          StateA.SetNewState(src);
+          ProcessEnvelopeCommands(src.Commands, synthesizer);
+        }
+        if (const STCTrack::Line::Chan& src = line->Channels[1])
+        {
+          StateB.SetNewState(src);
+          ProcessEnvelopeCommands(src.Commands, synthesizer);
+        }
+        if (const STCTrack::Line::Chan& src = line->Channels[2])
+        {
+          StateC.SetNewState(src);
+          ProcessEnvelopeCommands(src.Commands, synthesizer);
+        }
       }
     }
 

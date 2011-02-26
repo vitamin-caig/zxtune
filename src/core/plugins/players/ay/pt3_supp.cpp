@@ -662,18 +662,16 @@ namespace
 
         AYMPatternCursors cursors;
         std::transform(pattern->Offsets.begin(), pattern->Offsets.end(), cursors.begin(), &fromLE<uint16_t>);
-        pat.reserve(MAX_PATTERN_SIZE);
         uint_t& channelACursor = cursors.front().Offset;
         do
         {
-          pat.push_back(Vortex::Track::Line());
-          Vortex::Track::Line& line(pat.back());
+          Vortex::Track::Line& line = pat.AddLine();
           ParsePattern(data, cursors, line);
           //skip lines
           if (const uint_t linesToSkip = cursors.GetMinCounter())
           {
             cursors.SkipLines(linesToSkip);
-            pat.resize(pat.size() + linesToSkip);//add dummies
+            pat.AddLines(linesToSkip);
           }
         }
         while (channelACursor < data.Size() &&
@@ -683,7 +681,7 @@ namespace
       //fill order
       for (const uint8_t* curPos = header->Positions; curPos != header->Positions + header->Length; ++curPos)
       {
-        if (0 == *curPos % 3 && !Data->Patterns[*curPos / 3].empty())
+        if (0 == *curPos % 3 && !Data->Patterns[*curPos / 3].IsEmpty())
         {
           Data->Positions.push_back(*curPos / 3);
         }
@@ -777,8 +775,8 @@ namespace
     virtual uint_t GetCurrentPatternSize(const TrackState& state) const
     {
       const uint_t originalPattern = Vortex::Track::ModuleData::GetCurrentPattern(state);
-      const uint_t size1 = Patterns[originalPattern].size();
-      const uint_t size2 = Patterns[Base - 1 - originalPattern].size();
+      const uint_t size1 = Patterns[originalPattern].GetSize();
+      const uint_t size2 = Patterns[Base - 1 - originalPattern].GetSize();
       return std::min(size1, size2);
     }
 
@@ -786,13 +784,19 @@ namespace
     {
       const uint_t originalPattern = Vortex::Track::ModuleData::GetCurrentPattern(state);
       const uint_t originalLine = state.Line();
-      if (const boost::optional<uint_t>& tempo = Patterns[originalPattern][originalLine].Tempo)
+      if (const Vortex::Track::Line* line = Patterns[originalPattern].GetLine(originalLine))
       {
-        return *tempo;
+        if (const boost::optional<uint_t>& tempo = line->Tempo)
+        {
+          return *tempo;
+        }
       }
-      if (const boost::optional<uint_t>& tempo = Patterns[Base - 1 - originalPattern][originalLine].Tempo)
+      if (const Vortex::Track::Line* line = Patterns[Base - 1 - originalPattern].GetLine(originalLine))
       {
-        return *tempo;
+        if (const boost::optional<uint_t>& tempo = line->Tempo)
+        {
+          return *tempo;
+        }
       }
       return 0;
     }

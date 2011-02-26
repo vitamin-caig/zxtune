@@ -232,12 +232,10 @@ namespace
     static void ParsePattern(const PDTPattern& src, PDTTrack::Pattern& res)
     {
       PDTTrack::Pattern result;
-      result.reserve(PATTERN_SIZE);
       bool end(false);
       for (uint_t lineNum = 0; lineNum != PATTERN_SIZE && !end; ++lineNum)
       {
-        result.push_back(PDTTrack::Line());
-        PDTTrack::Line& dstLine(result.back());
+        PDTTrack::Line dstLine = PDTTrack::Line();
         for (uint_t chanNum = 0; chanNum != CHANNELS_COUNT && !end; ++chanNum)
         {
           PDTTrack::Line::Chan& dstChan(dstLine.Channels[chanNum]);
@@ -273,7 +271,6 @@ namespace
                 break;
               case COMMAND_ENDPATTERN:
                 end = true;
-                result.pop_back();
                 break;
               case COMMAND_BLOCKCHANNEL:
                 dstChan.Enabled = false;
@@ -288,8 +285,12 @@ namespace
             break;
           }
         }
+        if (!end)
+        {
+          result.AddLine() = dstLine;
+        }
       }
-      result.swap(res);
+      result.Swap(res);
     }
 
   public:
@@ -544,7 +545,7 @@ namespace
     void RenderData(DAC::DataChunk& chunk)
     {
       std::vector<DAC::DataChunk::ChannelData> res;
-      const PDTTrack::Line& line = Data->Patterns[StateIterator->Pattern()][StateIterator->Line()];
+      const PDTTrack::Line* const line = Data->Patterns[StateIterator->Pattern()].GetLine(StateIterator->Line());
       for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
       {
         DAC::DataChunk::ChannelData dst;
@@ -552,9 +553,9 @@ namespace
         OrnamentState& ornament = Ornaments[chan];
         const int_t prevOffset = ornament.GetOffset();
         ornament.Update();
-        if (0 == StateIterator->Quirk())//begin note
+        if (line && 0 == StateIterator->Quirk())//begin note
         {
-          const PDTTrack::Line::Chan& src = line.Channels[chan];
+          const PDTTrack::Line::Chan& src = line->Channels[chan];
 
           //ChannelState& dst(Channels[chan]);
           if (src.Enabled)

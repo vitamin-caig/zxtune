@@ -758,13 +758,12 @@ namespace
       {
         continue;
       }
-      tmp.push_back(Vortex::Track::Line());
-      if (!PatternLineFromString(*it, tmp.back()))
+      if (!PatternLineFromString(*it, tmp.AddLine()))
       {
         return it;
       }
     }
-    pat.swap(tmp);
+    pat.Swap(tmp);
     return it;
   }
 
@@ -990,13 +989,21 @@ namespace ZXTune
         for (uint_t idx = 0; idx != data.Patterns.size(); ++idx)
         {
           const Vortex::Track::Pattern& pattern = data.Patterns[idx];
-          if (!pattern.empty())
+          if (pattern.IsEmpty())
           {
-            *iter = SECTION_PATTERN + string_cast(idx) + SECTION_END;
-            uint_t noiseBase = 0;
-            std::transform(pattern.begin(), pattern.end(), iter, boost::bind(&PatternLineToString, _1, boost::ref(noiseBase)));
-            *iter = std::string();
+            continue;
           }
+          *iter = SECTION_PATTERN + string_cast(idx) + SECTION_END;
+          uint_t noiseBase = 0;
+          for (uint_t idx = 0, lim = pattern.GetSize(); idx != lim; ++idx)
+          {
+            static const Vortex::Track::Line EMPTY_LINE;
+            const Vortex::Track::Line* const patLine = pattern.GetLine(idx);
+            const Vortex::Track::Line& line = patLine ? *patLine : EMPTY_LINE;
+            *iter = PatternLineToString(line, noiseBase);
+            ++iter;
+          }
+          *iter = std::string();
         }
         const char DELIMITER[] = "\n";
         return boost::algorithm::join(asArray, DELIMITER);

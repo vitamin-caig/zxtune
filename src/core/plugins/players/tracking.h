@@ -220,7 +220,53 @@ namespace ZXTune
         ChannelsArray Channels;
       };
 
-      typedef std::vector<Line> Pattern;
+      class Pattern
+      {
+      public:
+        Pattern()
+          : Size(0)
+        {
+        }
+
+        Line& AddLine()
+        {
+          return Lines[Size++];
+        }
+
+        void AddLines(uint_t newLines)
+        {
+          Size += newLines;
+        }
+
+        const Line* GetLine(uint_t row) const
+        {
+          assert(row < Size);
+          const typename LinesMap::const_iterator it = Lines.find(row);
+          return it == Lines.end()
+            ? 0
+            : &it->second;
+        }
+
+        uint_t GetSize() const
+        {
+          return Size;
+        }
+
+        bool IsEmpty() const
+        {
+          return 0 == Size;
+        }
+
+        void Swap(Pattern& rh)
+        {
+          Lines.swap(rh.Lines);
+          std::swap(Size, rh.Size);
+        }
+      private:
+        typedef typename std::map<uint_t, Line> LinesMap;
+        LinesMap Lines;
+        uint_t Size;
+      };
 
       // Holder-related types
       class ModuleData : public TrackModuleData
@@ -263,7 +309,7 @@ namespace ZXTune
         virtual uint_t GetPatternsCount() const
         {
           return std::count_if(Patterns.begin(), Patterns.end(),
-            !boost::bind(&Pattern::empty, _1));
+            !boost::bind(&Pattern::IsEmpty, _1));
         }
 
         virtual uint_t GetCurrentPattern(const TrackState& state) const
@@ -273,14 +319,17 @@ namespace ZXTune
 
         virtual uint_t GetCurrentPatternSize(const TrackState& state) const
         {
-          return Patterns[GetCurrentPattern(state)].size();
+          return Patterns[GetCurrentPattern(state)].GetSize();
         }
 
         virtual uint_t GetNewTempo(const TrackState& state) const
         {
-          if (const boost::optional<uint_t>& tempo = Patterns[GetCurrentPattern(state)][state.Line()].Tempo)
+          if (const Line* line = Patterns[GetCurrentPattern(state)].GetLine(state.Line()))
           {
-            return *tempo;
+            if (const boost::optional<uint_t>& tempo = line->Tempo)
+            {
+              return *tempo;
+            }
           }
           return 0;
         }

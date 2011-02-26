@@ -187,15 +187,17 @@ namespace
         PlayerState.CommState.NoiseBase = 0;
       }
 
-      const Vortex::Track::Line& line = Data->Patterns[state.Pattern()][state.Line()];
-      for (uint_t chan = 0; chan != line.Channels.size(); ++chan)
+      if (const Vortex::Track::Line* line = Data->Patterns[state.Pattern()].GetLine(state.Line()))
       {
-        const Vortex::Track::Line::Chan& src = line.Channels[chan];
-        if (src.Empty())
+        for (uint_t chan = 0; chan != line->Channels.size(); ++chan)
         {
-          continue;
+          const Vortex::Track::Line::Chan& src = line->Channels[chan];
+          if (src.Empty())
+          {
+            continue;
+          }
+          GetNewChannelState(src, PlayerState.ChanState[chan], synthesizer);
         }
-        GetNewChannelState(src, PlayerState.ChanState[chan], synthesizer);
       }
     }
 

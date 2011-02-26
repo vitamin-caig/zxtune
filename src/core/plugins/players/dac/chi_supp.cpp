@@ -184,12 +184,10 @@ namespace
     static void ParsePattern(const CHIPattern& src, CHITrack::Pattern& res)
     {
       CHITrack::Pattern result;
-      result.reserve(MAX_PATTERN_SIZE);
       bool end = false;
       for (uint_t lineNum = 0; lineNum != MAX_PATTERN_SIZE && !end; ++lineNum)
       {
-        result.push_back(CHITrack::Line());
-        CHITrack::Line& dstLine = result.back();
+        CHITrack::Line& dstLine = result.AddLine();
         for (uint_t chanNum = 0; chanNum != CHANNELS_COUNT; ++chanNum)
         {
           CHITrack::Line::Chan& dstChan = dstLine.Channels[chanNum];
@@ -243,7 +241,7 @@ namespace
           }
         }
       }
-      result.swap(res);
+      result.Swap(res);
     }
 
   public:
@@ -476,7 +474,7 @@ namespace
     void RenderData(DAC::DataChunk& chunk)
     {
       std::vector<DAC::DataChunk::ChannelData> res;
-      const CHITrack::Line& line(Data->Patterns[StateIterator->Pattern()][StateIterator->Line()]);
+      const CHITrack::Line* const line = Data->Patterns[StateIterator->Pattern()].GetLine(StateIterator->Line());
       for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
       {
         GlissData& gliss(Gliss[chan]);
@@ -488,9 +486,9 @@ namespace
           dst.Mask |= DAC::DataChunk::ChannelData::MASK_FREQSLIDE;
         }
         //begin note
-        if (0 == StateIterator->Quirk())
+        if (line && 0 == StateIterator->Quirk())
         {
-          const CHITrack::Line::Chan& src(line.Channels[chan]);
+          const CHITrack::Line::Chan& src = line->Channels[chan];
           if (src.Enabled)
           {
             if (!(dst.Enabled = *src.Enabled))

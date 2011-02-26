@@ -644,18 +644,16 @@ namespace
         std::transform(pattern->Offsets.begin(), pattern->Offsets.end(), cursors.begin(),
           boost::bind(std::plus<uint_t>(), patternsOff, boost::bind(&fromLE<uint16_t>, _1)));
         uint_t envelopes = 0;
-        pat.reserve(MAX_PATTERN_SIZE);
         uint_t& channelACursor = cursors.front().Offset;
         do
         {
-          pat.push_back(ASCTrack::Line());
-          ASCTrack::Line& line(pat.back());
+          ASCTrack::Line& line = pat.AddLine();
           ParsePattern(data, cursors, line, envelopes);
           //skip lines
           if (const uint_t linesToSkip = cursors.GetMinCounter())
           {
             cursors.SkipLines(linesToSkip);
-            pat.resize(pat.size() + linesToSkip);//add dummies
+            pat.AddLines(linesToSkip);
           }
         }
         while (channelACursor < data.Size() &&
@@ -801,20 +799,20 @@ namespace
       {
         std::for_each(PlayerState.begin(), PlayerState.end(), std::mem_fun_ref(&ASCChannelState::ResetBaseNoise));
       }
-
-      const ASCTrack::Line& line = Data->Patterns[state.Pattern()][state.Line()];
-
-      for (uint_t chan = 0; chan != line.Channels.size(); ++chan)
+      if (const ASCTrack::Line* line = Data->Patterns[state.Pattern()].GetLine(state.Line()))
       {
-        const ASCTrack::Line::Chan& src = line.Channels[chan];
-        if (src.Empty())
+        for (uint_t chan = 0; chan != line->Channels.size(); ++chan)
         {
-          continue;
-        }
-        GetNewChannelState(src, PlayerState[chan], synthesizer);
-        if (src.FindCommand(BREAK_SAMPLE))
-        {
-          breakSamples |= 1 << chan;
+          const ASCTrack::Line::Chan& src = line->Channels[chan];
+          if (src.Empty())
+          {
+            continue;
+          }
+          GetNewChannelState(src, PlayerState[chan], synthesizer);
+          if (src.FindCommand(BREAK_SAMPLE))
+          {
+            breakSamples |= 1 << chan;
+          }
         }
       }
     }
