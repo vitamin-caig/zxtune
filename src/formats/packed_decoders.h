@@ -21,6 +21,7 @@ namespace Formats
     Decoder::Ptr CreateCodeCruncher3Decoder();
     Decoder::Ptr CreateDataSquieezerDecoder();
     Decoder::Ptr CreateESVCruncherDecoder();
+    Decoder::Ptr CreateLZSDecoder();
     Decoder::Ptr CreateHrumDecoder();
     Decoder::Ptr CreateHrust1Decoder();
     Decoder::Ptr CreatePowerfullCodeDecreaser6Decoder();
