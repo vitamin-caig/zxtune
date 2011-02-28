@@ -930,13 +930,14 @@ namespace
 
     bool CheckSamples() const
     {
-      const uint_t samplesOffset = Areas.GetAreaAddress(STPAreas::SAMPLES);
-      const uint_t limit = Areas.GetAreaAddress(STPAreas::END);
-      if (samplesOffset + sizeof(STPSamples) > limit)
+      const uint_t size = Areas.GetAreaSize(STPAreas::SAMPLES);
+      if (sizeof(STPSamples) != size)
       {
         return false;
       }
 
+      const uint_t samplesOffset = Areas.GetAreaAddress(STPAreas::SAMPLES);
+      const uint_t limit = Areas.GetAreaAddress(STPAreas::END);
       const STPSamples* const samples = safe_ptr_cast<const STPSamples*>(&Data[samplesOffset]);
       for (const uint16_t* smpOff = samples->Offsets.begin(); smpOff != samples->Offsets.end(); ++smpOff)
       {
@@ -952,7 +953,6 @@ namespace
           continue;
         }
         if (sample->Size > MAX_SAMPLE_SIZE ||
-            sample->Loop > int_t(MAX_SAMPLE_SIZE) ||
             offset + sample->GetSize() > limit)
         {
           return false;
@@ -963,12 +963,14 @@ namespace
 
     bool CheckOrnaments() const
     {
-      const uint_t ornamentsOffset = Areas.GetAreaAddress(STPAreas::ORNAMENTS);
-      const uint_t limit = Areas.GetAreaAddress(STPAreas::END);
-      if (ornamentsOffset + sizeof(STPOrnaments) > limit)
+      const uint_t size = Areas.GetAreaSize(STPAreas::ORNAMENTS);
+      if (sizeof(STPOrnaments) != size)
       {
         return false;
       }
+
+      const uint_t ornamentsOffset = Areas.GetAreaAddress(STPAreas::ORNAMENTS);
+      const uint_t limit = Areas.GetAreaAddress(STPAreas::END);
       const STPOrnaments* const ornaments = safe_ptr_cast<const STPOrnaments*>(&Data[ornamentsOffset]);
       for (const uint16_t* ornOff = ornaments->Offsets.begin(); ornOff != ornaments->Offsets.end(); ++ornOff)
       {
@@ -984,7 +986,6 @@ namespace
           continue;
         }
         if (ornament->Size > MAX_ORNAMENT_SIZE ||
-            ornament->Loop > MAX_ORNAMENT_SIZE ||
             offset + ornament->GetSize() > limit)
         {
           return false;
@@ -1048,12 +1049,31 @@ namespace
     const IO::FastDump dump(data, limit);
     const STPAreasChecker areas(dump);
 
-    return areas.CheckLayout() &&
-           areas.CheckHeader() &&
-           areas.CheckSamples() &&
-           areas.CheckOrnaments() &&
-           areas.CheckPositions() &&
-           areas.CheckPatterns();
+    if (!areas.CheckLayout())
+    {
+      return false;
+    }
+    if (!areas.CheckHeader())
+    {
+      return false;
+    }
+    if (!areas.CheckSamples())
+    {
+      return false;
+    }
+    if (!areas.CheckOrnaments())
+    {
+      return false;
+    }
+    if (!areas.CheckPositions())
+    {
+      return false;
+    }
+    if (!areas.CheckPatterns())
+    {
+      return false;
+    }
+    return true;
   }
 
   //////////////////////////////////////////////////////////////////////////

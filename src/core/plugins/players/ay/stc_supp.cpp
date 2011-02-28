@@ -450,18 +450,12 @@ namespace
     uint_t ParsePositions(const STCAreas& areas)
     {
       assert(!Patterns.empty());
-      for (RangeIterator<const STCPositions::STCPosEntry*> iter = areas.GetPositions(); iter; ++iter)
+      for (RangeIterator<const STCPositions::STCPosEntry*> iter = areas.GetPositions(); iter && iter->Check(); ++iter)
       {
         const STCPositions::STCPosEntry& entry = *iter;
-        if (entry.Check())
-        {
-          AddPosition(entry);
-        }
+        AddPosition(entry);
       }
-      if (Positions.empty())
-      {
-        throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
-      }
+      assert(!Positions.empty());
       return areas.GetPositionsLimit();
     }
 
@@ -1028,7 +1022,17 @@ namespace
     {
       const uint_t size = Areas.GetAreaSize(STCAreas::POSITIONS);
       if (0 == size ||
-          Areas.Undefined == size)
+          Areas.Undefined == size ||
+          0 != (size - 1) % sizeof(STCPositions::STCPosEntry))
+      {
+        return false;
+      }
+      uint_t positions = 0;
+      for (RangeIterator<const STCPositions::STCPosEntry*> iter = GetPositions(); iter && iter->Check(); ++iter)
+      {
+        ++positions;
+      }
+      if (!positions)
       {
         return false;
       }
