@@ -266,7 +266,7 @@ namespace ZXTune
         }
       private:
         typedef typename std::pair<uint_t, Line> LineWithNumber;
-        typedef typename std::list<LineWithNumber> LinesList;
+        typedef typename std::vector<LineWithNumber> LinesList;
         LinesList Lines;
         uint_t Size;
       };

@@ -53,7 +53,7 @@ namespace
   const uint_t MAX_SAMPLES_COUNT = 16;
   const uint_t MAX_ORNAMENTS_COUNT = 16;
   const uint_t MAX_PATTERN_SIZE = 64;
-  const uint_t MAX_PATTERN_COUNT = 32;
+  const uint_t MAX_PATTERNS_COUNT = 32;
   const uint_t SAMPLE_ORNAMENT_SIZE = 32;
 
   //detectors
@@ -134,6 +134,11 @@ namespace
     {
       uint8_t PatternNum;
       int8_t PatternHeight;
+
+      bool Check() const
+      {
+        return in_range<uint_t>(PatternNum, 1, MAX_PATTERNS_COUNT);
+      }
     } PACK_POST;
     STCPosEntry Data[1];
   } PACK_POST;
@@ -143,9 +148,14 @@ namespace
     uint8_t Number;
     boost::array<uint16_t, AYM::CHANNELS> Offsets;
 
-    operator bool () const
+    bool Check() const
     {
-      return 0xff != Number;
+      return in_range<uint_t>(Number, 1, MAX_PATTERNS_COUNT);
+    }
+
+    uint_t GetIndex() const
+    {
+      return Number - 1;
     }
   } PACK_POST;
 
@@ -153,6 +163,11 @@ namespace
   {
     uint8_t Number;
     int8_t Data[SAMPLE_ORNAMENT_SIZE];
+
+    bool Check() const
+    {
+      return in_range<uint_t>(Number, 0, MAX_ORNAMENTS_COUNT - 1);
+    }
   } PACK_POST;
 
   PACK_PRE struct STCSample
@@ -201,8 +216,12 @@ namespace
     Line Data[SAMPLE_ORNAMENT_SIZE];
     uint8_t Loop;
     uint8_t LoopSize;
-  } PACK_POST;
 
+    bool Check() const
+    {
+      return in_range<uint_t>(Number, 0, MAX_SAMPLES_COUNT - 1);
+    }
+  } PACK_POST;
 #ifdef USE_PRAGMA_PACK
 #pragma pack(pop)
 #endif
@@ -357,16 +376,7 @@ namespace
 
     RangeIterator<const STCPattern*> GetPatterns() const
     {
-      const std::pair<const STCPattern*, const STCPattern*> patRange = GetPatternsRange();
-      return RangeIterator<const STCPattern*>(patRange.first, patRange.second);
-    }
-
-    uint_t GetPatternsLimit() const
-    {
-      const uint_t offset = Areas.GetAreaAddress(PATTERNS);
-      const std::pair<const STCPattern*, const STCPattern*> patRange = GetPatternsRange();
-      const uint_t size = 1 + sizeof(*patRange.first) * (patRange.second - patRange.first);
-      return offset + size;
+      return GetIterator<STCPattern>(PATTERNS);
     }
   private:
     template<class T>
@@ -384,15 +394,6 @@ namespace
       const uint_t offset = Areas.GetAreaAddress(id);
       const uint_t count = Areas.GetAreaSize(id) / sizeof(T);
       return offset + count * sizeof(T);
-    }
-
-    std::pair<const STCPattern*, const STCPattern*> GetPatternsRange() const
-    {
-      const uint_t offset = Areas.GetAreaAddress(PATTERNS);
-      const STCPattern* const begin = safe_ptr_cast<const STCPattern*>(&Data[offset]);
-      const STCPattern* const end = begin + Areas.GetAreaSize(PATTERNS) / sizeof(*begin);
-      const STCPattern* const lastPattern = std::find_if(begin, end, std::logical_not<STCPattern>());
-      return std::make_pair(begin, lastPattern);
     }
   protected:
     const IO::FastDump& Data;
@@ -424,7 +425,7 @@ namespace
       for (RangeIterator<const STCSample*> iter = areas.GetSamples(); iter; ++iter)
       {
         const STCSample& sample = *iter;
-        if (CheckSample(sample))
+        if (sample.Check())
         {
           AddSample(sample);
         }
@@ -438,7 +439,7 @@ namespace
       for (RangeIterator<const STCOrnament*> iter = areas.GetOrnaments(); iter; ++iter)
       {
         const STCOrnament& ornament = *iter;
-        if (CheckOrnament(ornament))
+        if (ornament.Check())
         {
           AddOrnament(ornament);
         }
@@ -449,12 +450,10 @@ namespace
     uint_t ParsePositions(const STCAreas& areas)
     {
       assert(!Patterns.empty());
-      uint_t positionsCount = 0;
-      for (RangeIterator<const STCPositions::STCPosEntry*> iter = areas.GetPositions();
-        iter; ++iter, ++positionsCount)
+      for (RangeIterator<const STCPositions::STCPosEntry*> iter = areas.GetPositions(); iter; ++iter)
       {
         const STCPositions::STCPosEntry& entry = *iter;
-        if (CheckPosition(entry))
+        if (entry.Check())
         {
           AddPosition(entry);
         }
@@ -471,60 +470,36 @@ namespace
       assert(!Samples.empty());
       assert(!Ornaments.empty());
       uint_t resLimit = 0;
-      Patterns.resize(MAX_PATTERN_COUNT);
-      for (RangeIterator<const STCPattern*> iter = areas.GetPatterns(); iter; ++iter)
+      Patterns.resize(MAX_PATTERNS_COUNT);
+      for (RangeIterator<const STCPattern*> iter = areas.GetPatterns(); iter && iter->Check(); ++iter)
       {
         const STCPattern& pattern = *iter;
-        assert(pattern);
-        if (CheckPattern(pattern))
-        {
-          STCTrack::Pattern& dst(Patterns[pattern.Number - 1]);
-          const uint_t patLimit = ParsePattern(areas.GetOriginalData(), pattern, dst);
-          resLimit = std::max(resLimit, patLimit);
-        }
+
+        STCTrack::Pattern& dst(Patterns[pattern.GetIndex()]);
+        const uint_t patLimit = ParsePattern(areas.GetOriginalData(), pattern, dst);
+        resLimit = std::max(resLimit, patLimit);
       }
       return resLimit;
     }
   private:
-    bool CheckSample(const STCSample& sample) const
-    {
-      return sample.Number < Samples.size();
-    }
-
     void AddSample(const STCSample& sample)
     {
-      assert(CheckSample(sample));
+      assert(sample.Check());
       Samples[sample.Number] = Sample(sample);
-    }
-
-    bool CheckOrnament(const STCOrnament& ornament) const
-    {
-      return ornament.Number < Ornaments.size();
     }
 
     void AddOrnament(const STCOrnament& ornament)
     {
-      assert(CheckOrnament(ornament));
+      assert(ornament.Check());
       Ornaments[ornament.Number] =
         STCTrack::Ornament(ArraySize(ornament.Data), ornament.Data, ArrayEnd(ornament.Data));
     }
 
-    bool CheckPosition(const STCPositions::STCPosEntry& entry) const
-    {
-      const uint_t patNum = entry.PatternNum - 1;
-      return patNum < MAX_PATTERN_COUNT && !Patterns[patNum].IsEmpty();
-    }
-
     void AddPosition(const STCPositions::STCPosEntry& entry)
     {
-      assert(CheckPosition(entry));
+      assert(entry.Check());
       Positions.push_back(entry.PatternNum - 1);
       Transpositions.push_back(entry.PatternHeight);
-    }
-
-    bool CheckPattern(const STCPattern& pattern) const
-    {
-      return 0 != pattern.Number && pattern.Number < MAX_PATTERN_COUNT;
     }
 
     uint_t ParsePattern(const IO::FastDump& data, const STCPattern& pattern, STCTrack::Pattern& dst)
@@ -1029,67 +1004,64 @@ namespace
       {
         return false;
       }
+      //do not check header.Size
       return true;
     }
 
     bool CheckSamples() const
     {
       const uint_t size = Areas.GetAreaSize(STCAreas::SAMPLES);
-      return size != 0 && 0 == size % sizeof(STCSample);
+      return 0 != size &&
+             Areas.Undefined != size &&
+             0 == size % sizeof(STCSample);
     }
 
     bool CheckOrnaments() const
     {
       const uint_t size = Areas.GetAreaSize(STCAreas::ORNAMENTS);
-      return size != 0 && 0 == size % sizeof(STCOrnament);
+      return 0 != size &&
+             Areas.Undefined != size &&
+             0 == size % sizeof(STCOrnament);
     }
 
     bool CheckPositions() const
     {
       const uint_t size = Areas.GetAreaSize(STCAreas::POSITIONS);
       if (0 == size ||
-          0 != (size - 1) % sizeof(STCPositions::STCPosEntry))
+          Areas.Undefined == size)
       {
         return false;
       }
       const uint_t limit = Areas.GetAreaAddress(STCAreas::END);
-      const uint_t offset = Areas.GetAreaAddress(STCAreas::POSITIONS);
-      if (offset > limit)
-      {
-        return false;
-      }
-      const STCPositions* const positions = safe_ptr_cast<const STCPositions*>(&Data[offset]);
-      return positions->Lenght == (size - 1) / sizeof(STCPositions::STCPosEntry) - 1;
+      return GetPositionsLimit() <= limit;
     }
 
     bool CheckPatterns() const
     {
       const uint_t size = Areas.GetAreaSize(STCAreas::PATTERNS);
-      if (0 == size)
+      if (0 == size ||
+          Areas.Undefined == size)
       {
         return false;
       }
       const uint_t limit = Areas.GetAreaAddress(STCAreas::END);
-      const uint_t offset = Areas.GetAreaAddress(STCAreas::PATTERNS);
-      if (offset > limit)
+      uint_t usedPatterns = 0;
+      for (RangeIterator<const STCPattern*> pattern = GetPatterns(); pattern && pattern->Check(); ++pattern)
       {
-        return false;
-      }
-      const STCPattern* const patterns = safe_ptr_cast<const STCPattern*>(&Data[offset]);
-      const STCPattern* const patternsLimit = patterns + size / sizeof(STCPattern);
-      for (const STCPattern* pattern = patterns; *pattern && pattern != patternsLimit; ++pattern)
-      {
-        if (!pattern->Number || pattern->Number >= MAX_PATTERN_COUNT)
+        const uint_t patNum = pattern->GetIndex();
+        const uint_t patMask = 1 << patNum;
+        if (usedPatterns & patMask)
         {
-          continue;
+          return false;
         }
         if (pattern->Offsets.end() != std::find_if(pattern->Offsets.begin(), pattern->Offsets.end(),
           boost::bind(&fromLE<uint16_t>, _1) > limit - 1))
         {
           return false;
         }
+        usedPatterns |= patMask;
       }
-      return true;
+      return usedPatterns != 0;
     }
   };
 
@@ -1104,12 +1076,31 @@ namespace
     const IO::FastDump dump(data, limit);
     const STCAreasChecker areas(dump);
 
-    return areas.CheckLayout() &&
-           areas.CheckHeader() &&
-           areas.CheckSamples() &&
-           areas.CheckOrnaments() &&
-           areas.CheckPositions() &&
-           areas.CheckPatterns();
+    if (!areas.CheckLayout())
+    {
+      return false;
+    }
+    if (!areas.CheckHeader())
+    {
+      return false;
+    }
+    if (!areas.CheckSamples())
+    {
+      return false;
+    }
+    if (!areas.CheckOrnaments())
+    {
+      return false;
+    }
+    if (!areas.CheckPositions())
+    {
+      return false;
+    }
+    if (!areas.CheckPatterns())
+    {
+      return false;
+    }
+    return true;
   }
 
   //////////////////////////////////////////////////////////////////////////
