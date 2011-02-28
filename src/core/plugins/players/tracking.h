@@ -230,7 +230,8 @@ namespace ZXTune
 
         Line& AddLine()
         {
-          return Lines[Size++];
+          Lines.push_back(LineWithNumber(Size++, Line()));
+          return Lines.back().second;
         }
 
         void AddLines(uint_t newLines)
@@ -241,8 +242,9 @@ namespace ZXTune
         const Line* GetLine(uint_t row) const
         {
           assert(row < Size);
-          const typename LinesMap::const_iterator it = Lines.find(row);
-          return it == Lines.end()
+          const typename LinesList::const_iterator it = std::lower_bound(Lines.begin(), Lines.end(), row,
+            boost::bind(&LineWithNumber::first, _1) < _2);
+          return it == Lines.end() || it->first != row
             ? 0
             : &it->second;
         }
@@ -263,8 +265,9 @@ namespace ZXTune
           std::swap(Size, rh.Size);
         }
       private:
-        typedef typename std::map<uint_t, Line> LinesMap;
-        LinesMap Lines;
+        typedef typename std::pair<uint_t, Line> LineWithNumber;
+        typedef typename std::list<LineWithNumber> LinesList;
+        LinesList Lines;
         uint_t Size;
       };
 

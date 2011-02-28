@@ -50,6 +50,7 @@ namespace
 
   //hints
   const std::size_t MAX_MODULE_SIZE = 16384;
+  const uint_t MAX_PATTERNS_COUNT = 256;
   const uint_t MAX_SAMPLES_COUNT = 15;
   const uint_t MAX_ORNAMENTS_COUNT = 16;
   const uint_t MAX_PATTERN_SIZE = 64;
@@ -465,8 +466,13 @@ namespace
       assert(!Ornaments.empty());
       uint_t resLimit = 0;
 
+      Patterns.reserve(MAX_PATTERNS_COUNT);
       for (RangeIterator<const STPPattern*> iter = areas.GetPatterns(); iter; ++iter)
       {
+        if (Patterns.size() >= MAX_PATTERNS_COUNT)
+        {
+          throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
+        }
         const STPPattern& pattern = *iter;
         Patterns.push_back(STPTrack::Pattern());
         STPTrack::Pattern& dst = Patterns.back();
@@ -915,7 +921,11 @@ namespace
     bool CheckHeader() const
     {
       const STPHeader& header = GetHeader();
-      return header.Tempo != 0;
+      if (!in_range<uint_t>(header.Tempo, 1, 15))
+      {
+        return false;
+      }
+      return true;
     }
 
     bool CheckSamples() const

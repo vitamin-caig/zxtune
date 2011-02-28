@@ -1022,6 +1022,16 @@ namespace
              Areas.Undefined == Areas.GetAreaSize(STCAreas::END);
     }
 
+    bool CheckHeader() const
+    {
+      const STCHeader& header = GetHeader();
+      if (!in_range<uint_t>(header.Tempo, 1, 15))
+      {
+        return false;
+      }
+      return true;
+    }
+
     bool CheckSamples() const
     {
       const uint_t size = Areas.GetAreaSize(STCAreas::SAMPLES);
@@ -1095,6 +1105,7 @@ namespace
     const STCAreasChecker areas(dump);
 
     return areas.CheckLayout() &&
+           areas.CheckHeader() &&
            areas.CheckSamples() &&
            areas.CheckOrnaments() &&
            areas.CheckPositions() &&
