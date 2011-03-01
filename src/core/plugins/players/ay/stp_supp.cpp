@@ -952,8 +952,7 @@ namespace
         {
           continue;
         }
-        if (sample->Size > MAX_SAMPLE_SIZE ||
-            offset + sample->GetSize() > limit)
+        if (offset + sample->GetSize() > limit)
         {
           return false;
         }
@@ -985,8 +984,7 @@ namespace
         {
           continue;
         }
-        if (ornament->Size > MAX_ORNAMENT_SIZE ||
-            offset + ornament->GetSize() > limit)
+        if (offset + ornament->GetSize() > limit)
         {
           return false;
         }
