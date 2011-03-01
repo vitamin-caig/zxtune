@@ -385,7 +385,7 @@ namespace Playlist
       StringArray lines;
       while (!stream.atEnd())
       {
-        const QString line = stream.readLine(0).simplified();
+        const QString line = stream.readLine(0).trimmed();
         lines.push_back(FromQString(line));
       }
       const QString basePath = info.absolutePath();
