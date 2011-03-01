@@ -26,4 +26,4 @@ __cpp> "#endif //__TEXT_TOOLS_H_DEFINED__\n"
 > "%1%:%2$02u.%3$02u"
 
 < TIME_FORMAT_HOURS
-> TIME_FORMAT ".%4$02u"
+> "%1%:%2$02u:%3$02u.%4$02u"
