@@ -32,17 +32,26 @@ namespace
 
     virtual void SetTitle(const String& title)
     {
-      Container->SetStringValue(ATTR_TITLE, title);
+      if (!title.empty())
+      {
+        Container->SetStringValue(ATTR_TITLE, title);
+      }
     }
 
     virtual void SetAuthor(const String& author)
     {
-      Container->SetStringValue(ATTR_AUTHOR, author);
+      if (!author.empty())
+      {
+        Container->SetStringValue(ATTR_AUTHOR, author);
+      }
     }
 
     virtual void SetProgram(const String& program)
     {
-      Container->SetStringValue(ATTR_PROGRAM, program);
+      if (!program.empty())
+      {
+        Container->SetStringValue(ATTR_PROGRAM, program);
+      }
     }
 
     virtual void SetWarnings(Log::MessagesCollector::Ptr warns)
@@ -59,6 +68,7 @@ namespace
     {
       Plugins = plugins;
     }
+
     virtual void SetSource(IO::DataContainer::Ptr src, const ModuleRegion& fixedRegion)
     {
       Source = src;

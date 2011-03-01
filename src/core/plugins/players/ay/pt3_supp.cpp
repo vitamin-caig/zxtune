@@ -861,14 +861,20 @@ namespace
     {
       return false;
     }
+    if (!header->Length)
+    {
+      return false;
+    }
     const std::size_t patOff(fromLE(header->PatternsOffset));
-    if (!header->Length ||
-        patOff >= size || patOff < sizeof(*header) ||
-        0xff != data[patOff - 1] ||
+    if (patOff >= size || patOff < sizeof(*header))
+    {
+      return false;
+    }
+    if (0xff != data[patOff - 1] ||
         &header->Positions[header->Length] != data + patOff - 1 ||
         &data[patOff - 1] != std::find_if(header->Positions, data + patOff - 1,
           std::bind2nd(std::modulus<uint8_t>(), 3))
-      )
+       )
     {
       return false;
     }
