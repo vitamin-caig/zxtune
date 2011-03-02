@@ -931,7 +931,7 @@ namespace
     bool CheckSamples() const
     {
       const uint_t size = Areas.GetAreaSize(STPAreas::SAMPLES);
-      if (sizeof(STPSamples) != size)
+      if (sizeof(STPSamples) > size)
       {
         return false;
       }
