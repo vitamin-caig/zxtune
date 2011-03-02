@@ -7,21 +7,17 @@ Last changed:
 
 Author:
   (C) Vitamin/CAIG/2001
-  (C) Based on XLook sources by HalfElf
 */
 
 //local includes
-#include "pack_utils.h"
+#include <core/plugins/detect_helper.h>
 #include <core/plugins/enumerator.h>
-#include <core/plugins/utils.h>
 //common includes
-#include <byteorder.h>
 #include <tools.h>
 //library includes
 #include <core/plugin_attrs.h>
+#include <formats/packed_decoders.h>
 #include <io/container.h>
-//std includes
-#include <numeric>
 //text includes
 #include <core/text/plugins.h>
 
@@ -32,116 +28,14 @@ namespace
   const Char HRUST2X_PLUGIN_ID[] = {'H', 'R', 'U', 'S', 'T', '2', '\0'};
   const String HRUST2X_PLUGIN_VERSION(FromStdString("$Rev$"));
 
-#ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
-#endif
-  PACK_PRE struct Hrust21Header
-  {
-    uint8_t ID[3];//'hr2'
-    uint8_t Flag;//'1' | 128
-    uint16_t DataSize;
-    uint16_t PackedSize;
-    Hrust2xHeader PackedData;
-
-    //flag bits
-    enum
-    {
-      NO_COMPRESSION = 128
-    };
-  } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
-#endif
-
-  //hrust2x bitstream decoder
-  class Bitstream : public ByteStream
-  {
-  public:
-    Bitstream(const uint8_t* data, std::size_t size)
-      : ByteStream(data, size)
-      , Bits(), Mask(0)
-    {
-    }
-
-    uint_t GetBit()
-    {
-      if (!(Mask >>= 1))
-      {
-        Bits = GetByte();
-        Mask = 0x80;
-      }
-      return Bits & Mask ? 1 : 0;
-    }
-
-    uint_t GetBits(unsigned count)
-    {
-      uint_t result = 0;
-      while (count--)
-      {
-        result = 2 * result | GetBit();
-      }
-      return result;
-    }
-  private:
-    uint_t Bits;
-    uint_t Mask;
-  };
-
-  inline int_t GetDist(Bitstream& stream)
-  {
-    //%1,disp8
-    if (stream.GetBit())
-    {
-      return static_cast<int16_t>(0xff00 + stream.GetByte());
-    }
-    else
-    {
-      //%011x,%010xx,%001xxx,%000xxxx,%0000000
-      uint_t res = 0xffff;
-      for (uint_t bits = 4 - stream.GetBits(2); bits; --bits)
-      {
-        res = (res << 1) + stream.GetBit() - 1;
-      }
-      res &= 0xffff;
-      if (0xffe1 == res)
-      {
-        res = stream.GetByte();
-      }
-      return static_cast<int16_t>((res << 8) + stream.GetByte());
-    }
-  }
-
-  bool CheckHrust2(const Hrust21Header* header, std::size_t size)
-  {
-    //check for format
-    if (size < sizeof(*header) ||
-      header->ID[0] != 'h' || header->ID[1] != 'r' || header->ID[2] != '2' ||
-      fromLE(header->PackedSize) > fromLE(header->DataSize) ||
-      fromLE(header->PackedSize) > size)
-    {
-      return false;
-    }
-    return true;
-  }
-
-  bool DecodeHrust2(const Hrust21Header* header, Dump& dst)
-  {
-    if (0 != (header->Flag & header->NO_COMPRESSION))
-    {
-      //just copy
-      dst.resize(fromLE(header->DataSize));
-      std::memcpy(&dst[0], header->PackedData.LastBytes, dst.size());
-      return true;
-    }
-    dst.reserve(fromLE(header->DataSize));
-    return DecodeHrust2x(&header->PackedData, fromLE(header->PackedSize), dst) &&
-      dst.size() == fromLE(header->DataSize);//valid if match
-  }
-
-  //////////////////////////////////////////////////////////////////////////
   class Hrust2xPlugin : public ArchivePlugin
   {
   public:
+    Hrust2xPlugin()
+      : Decoder(Formats::Packed::CreateHrust2Decoder())
+    {
+    }
+
     virtual String Id() const
     {
       return HRUST2X_PLUGIN_ID;
@@ -164,95 +58,23 @@ namespace
 
     virtual bool Check(const IO::DataContainer& inputData) const
     {
-      const std::size_t limit = inputData.Size();
-      const Hrust21Header* const header = static_cast<const Hrust21Header*>(inputData.Data());
-      return CheckHrust2(header, limit);
+      return Decoder->Check(inputData.Data(), inputData.Size());
     }
 
     virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Accessor& /*commonParams*/,
       const IO::DataContainer& data, ModuleRegion& region) const
     {
-      const Hrust21Header* const header = static_cast<const Hrust21Header*>(data.Data());
-      assert(CheckHrust2(header, data.Size()));
-
-      Dump res;
-      //only check without depacker- depackers are separate
-      if (DecodeHrust2(header, res))
+      std::auto_ptr<Dump> res = Decoder->Decode(data.Data(), data.Size(), region.Size);
+      if (res.get())
       {
         region.Offset = 0;
-        region.Size = fromLE(header->PackedSize) + 8;
         return IO::CreateDataContainer(res);
       }
       return IO::DataContainer::Ptr();
     }
+  private:
+    const Formats::Packed::Decoder::Ptr Decoder;
   };
-}
-
-//function from global namespace- used in hrip depacker
-bool DecodeHrust2x(const Hrust2xHeader* header, uint_t size, Dump& dst)
-{
-  //put first byte
-  dst.push_back(header->FirstByte);
-  //start bitstream
-  Bitstream stream(header->BitStream, size);
-  while (!stream.Eof())
-  {
-    //%1,byte
-    while (stream.GetBit())
-    {
-      dst.push_back(stream.GetByte());
-    }
-    uint_t len = 1;
-    for (uint_t bits = 3; bits == 0x3 && len != 0x10;)
-    {
-      bits = stream.GetBits(2), len += bits;
-    }
-    //%01100..
-    if (4 == len)
-    {
-      //%011001
-      if (stream.GetBit())
-      {
-        uint_t len = stream.GetByte();
-        if (!len)
-        {
-          break;//eof
-        }
-        else if (len < 16)
-        {
-          len = len * 256 | stream.GetByte();
-        }
-        const int_t offset = GetDist(stream);
-        if (!CopyFromBack(-offset, dst, len))
-        {
-          return false;
-        }
-      }
-      else//%011000xxxx
-      {
-        for (uint_t len = 2 * (stream.GetBits(4) + 6); len; --len)
-        {
-          dst.push_back(stream.GetByte());
-        }
-      }
-    }
-    else
-    {
-      if (len > 4)
-      {
-        --len;
-      }
-      const int_t offset = 1 == len
-        ? static_cast<int16_t>(0xfff8 + stream.GetBits(3))
-        : (2 == len ? static_cast<int16_t>(0xff00 + stream.GetByte()) : GetDist(stream));
-      if (!CopyFromBack(-offset, dst, len))
-      {
-        return false;
-      }
-    }
-  }
-  std::copy(header->LastBytes, ArrayEnd(header->LastBytes), std::back_inserter(dst));
-  return true;
 }
 
 namespace ZXTune

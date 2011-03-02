@@ -29,24 +29,4 @@ inline String OptimizeString(const String& str, Char replace = '\?')
   return res;
 }
 
-/////// Packing-related
-
-#ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
-#endif
-PACK_PRE struct Hrust2xHeader
-{
-  uint8_t LastBytes[6];
-  uint8_t FirstByte;
-  uint8_t BitStream[1];
-} PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
-#endif
-
-BOOST_STATIC_ASSERT(sizeof(Hrust2xHeader) == 8);
-
-// implemented in hrust2x plugin, size is packed, dst is not cleared
-bool DecodeHrust2x(const Hrust2xHeader* header, uint_t size, Dump& dst);
-
 #endif //__CORE_PLUGINS_UTILS_H_DEFINED__

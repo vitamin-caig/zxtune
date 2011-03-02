@@ -25,6 +25,8 @@ namespace Formats
     Decoder::Ptr CreateMSPackDecoder();
     Decoder::Ptr CreateHrumDecoder();
     Decoder::Ptr CreateHrust1Decoder();
+    Decoder::Ptr CreateHrust2Decoder();
+    Decoder::Ptr CreateHrust2RawDecoder();
     Decoder::Ptr CreatePowerfullCodeDecreaser6Decoder();
     Decoder::Ptr CreateTRUSHDecoder();
   }
