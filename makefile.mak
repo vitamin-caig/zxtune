@@ -26,11 +26,14 @@ ifneq ($(or $(qt_libraries),$(ui_files),$(moc_files),$(qrc_files)),)
 use_qt := 1
 endif
 
+platform_pathname = $(platform)$(if $(arch),_$(arch),)
+mode_pathname = $(mode)$(if $(profile),_profile,)
+
 #set directories
 include_dirs += $(path_step)/include $(path_step)/src $(path_step)
-objs_dir = $(path_step)/obj/$(platform)$(if $(arch),_$(arch),)/$(mode)$(suffix)
-libs_dir = $(path_step)/lib/$(platform)$(if $(arch),_$(arch),)/$(mode)$(suffix)
-bins_dir = $(path_step)/bin/$(platform)$(if $(arch),_$(arch),)/$(mode)
+objs_dir = $(path_step)/obj/$(platform_pathname)/$(mode_pathname)$(suffix)
+libs_dir = $(path_step)/lib/$(platform_pathname)/$(mode_pathname)$(suffix)
+bins_dir = $(path_step)/bin/$(platform_pathname)/$(mode_pathname)
 
 #set platform-specific parameters
 include $(path_step)/make/platforms/$(platform).mak
