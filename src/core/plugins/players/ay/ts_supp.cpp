@@ -52,7 +52,7 @@ namespace
   const String TS_PLUGIN_VERSION(FromStdString("$Rev$"));
 
   const std::size_t TS_MIN_SIZE = 256;
-  const std::size_t MAX_MODULE_SIZE = 1 << 14;
+  const std::size_t MAX_MODULE_SIZE = 16384;
   const std::size_t TS_MAX_SIZE = MAX_MODULE_SIZE * 2;
   //TODO: parametrize
   const std::size_t SEARCH_THRESHOLD = TS_MIN_SIZE;
@@ -452,8 +452,8 @@ namespace
   /////////////////////////////////////////////////////////////////////////////
   std::size_t FindFooter(const IO::FastDump& dump, std::size_t threshold)
   {
-    const std::size_t limit = std::min(dump.Size(), TS_MAX_SIZE);
-    if (limit < TS_MIN_SIZE)
+    const std::size_t limit = dump.Size();
+    if (!in_range(limit, TS_MIN_SIZE, TS_MAX_SIZE))
     {
       return 0;
     }
