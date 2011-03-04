@@ -306,14 +306,16 @@ namespace
         data.Data->Size(), data.Path, data.Plugins->Count());
 
       //try to detect container and pass control there
-      if (DetectContainer(modulesParams, detectParams, data, region))
+      if (DetectContainer(modulesParams, detectParams, data, region.Size))
       {
+        region.Offset = 0;
         return;
       }
 
       //try to process archives
-      if (DetectArchive(modulesParams, detectParams, data, region))
+      if (DetectArchive(modulesParams, detectParams, data, region.Size))
       {
+        region.Offset = 0;
         return;
       }
       //try to detect and process single modules
@@ -345,7 +347,7 @@ namespace
 
   private:
     bool DetectContainer(Parameters::Accessor::Ptr params, const DetectParameters& detectParams, const MetaContainer& input,
-      ModuleRegion& region) const
+      std::size_t& usedSize) const
     {
       for (ContainerPluginsArray::const_iterator it = ContainerPlugins.begin(), lim = ContainerPlugins.end();
         it != lim; ++it)
@@ -361,10 +363,10 @@ namespace
         }
         Log::Debug(THIS_MODULE, "%3%:  Checking container plugin %1% for path '%2%'",
           plugin->Id(), input.Path, input.Plugins->Count());
-        if (plugin->Process(params, detectParams, input, region))
+        if (plugin->Process(params, detectParams, input, usedSize))
         {
-          Log::Debug(THIS_MODULE, "%5%:  Container plugin %1% for path '%2%' processed at region (%3%;%4%)",
-            plugin->Id(), input.Path, region.Offset, region.Size, input.Plugins->Count());
+          Log::Debug(THIS_MODULE, "%4%:  Container plugin %1% for path '%2%' processed at size %3%",
+            plugin->Id(), input.Path, usedSize, input.Plugins->Count());
           return true;
         }
       }
@@ -372,7 +374,7 @@ namespace
     }
 
     bool DetectArchive(Parameters::Accessor::Ptr modulesParams, const DetectParameters& detectParams, const MetaContainer& input,
-      ModuleRegion& region) const
+      std::size_t& usedSize) const
     {
       LoggerHelper logger(detectParams, input, input.Path.empty() ? Text::MODULE_PROGRESS_DETECT_ARCHIVE_NOPATH : Text::MODULE_PROGRESS_DETECT_ARCHIVE);
 
@@ -392,10 +394,10 @@ namespace
         //find first suitable
         Log::Debug(THIS_MODULE, "%3%:  Checking archive %1% at path '%2%'",
           plugin->Id(), input.Path, input.Plugins->Count());
-        if (IO::DataContainer::Ptr subdata = plugin->ExtractSubdata(*modulesParams, dataContainer, region))
+        if (IO::DataContainer::Ptr subdata = plugin->ExtractSubdata(*modulesParams, dataContainer, usedSize))
         {
-          Log::Debug(THIS_MODULE, "%3%:  Detected at region (%1%;%2%)",
-            region.Offset, region.Size, input.Plugins->Count());
+          Log::Debug(THIS_MODULE, "%2%:  Detected at data size %1%",
+            usedSize, input.Plugins->Count());
           logger(*plugin);
 
           const String pathComponent = EncodeArchivePluginToPath(plugin->Id());
@@ -472,8 +474,8 @@ namespace
         {
           continue;
         }
-        ModuleRegion resRegion;
-        if (IO::DataContainer::Ptr subdata = plugin->ExtractSubdata(commonParams, dataContainer, resRegion))
+        std::size_t usedSize = 0;
+        if (IO::DataContainer::Ptr subdata = plugin->ExtractSubdata(commonParams, dataContainer, usedSize))
         {
           Log::Debug(THIS_MODULE, "Detected archive plugin %1%", plugin->Id());
           data.Path = IO::AppendPath(data.Path, pathComponent);

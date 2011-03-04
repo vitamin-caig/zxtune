@@ -58,7 +58,7 @@ namespace ZXTune
     Parameters::Accessor::Ptr parameters, const MetaContainer& container, ModuleRegion& region);
 
   IO::DataContainer::Ptr ExtractSubdataFromData(const ArchiveDetector& detector,
-    const Parameters::Accessor& parameters, const IO::DataContainer& data, ModuleRegion& region);
+    const Parameters::Accessor& parameters, const IO::DataContainer& data, std::size_t& usedSize);
 }
 
 #endif //__CORE_PLUGINS_DETECT_HELPER_H_DEFINED__

@@ -111,11 +111,11 @@ namespace ZXTune
     //! @brief Extracting subdata from specified input data
     //! @param parameters Options for subdata extraction
     //! @param inputData Source memory data
-    //! @param region Reference to result region subdata is extracted from
+    //! @param usedSize Reference to result data size used to extract
     //! @return Not empty pointer if data is extracted, empty elsewhere
     virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Accessor& parameters,
                                                   const IO::DataContainer& inputData,
-                                                  ModuleRegion& region) const = 0;
+                                                  std::size_t& usedSize) const = 0;
   };
 
   class ContainerPlugin : public Plugin
@@ -131,12 +131,12 @@ namespace ZXTune
     //! @param parameters Options for processing
     //! @param detectParams Detection-specific parameters
     //! @param inputData Source memory data
-    //! @param region Reference to result region subdata container detected at
+    //! @param usedSize Reference to result data size container detected at
     //! @return true if processed and region contains busy data
     virtual bool Process(Parameters::Accessor::Ptr parameters,
                           const DetectParameters& detectParams,
                           const MetaContainer& inputData,
-                          ModuleRegion& region) const = 0;
+                          std::size_t& usedSize) const = 0;
 
     //! @brief Opening subdata by specified path
     //! @param parameters Options for opening

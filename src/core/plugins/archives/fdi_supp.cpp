@@ -275,15 +275,14 @@ namespace
     }
 
     virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Accessor& /*commonParams*/,
-      const IO::DataContainer& data, ModuleRegion& region) const
+      const IO::DataContainer& data, std::size_t& usedSize) const
     {
       const FullDiskImage::Container container(data.Data(), data.Size());
       assert(container.FastCheck());
       FullDiskImage::Decoder decoder(container);
       if (const Dump* res = decoder.GetDecodedData())
       {
-        region.Offset = 0;
-        region.Size = decoder.GetUsedSize();
+        usedSize = decoder.GetUsedSize();
         return IO::CreateDataContainer(*res);
       }
       return IO::DataContainer::Ptr();

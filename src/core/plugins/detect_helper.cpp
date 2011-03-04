@@ -92,7 +92,7 @@ namespace ZXTune
       tmpRegion.Offset = chain->PrefixSize;
       if (limit < chain->PrefixSize ||
           !DetectFormat(data, limit, chain->PrefixDetectString) ||
-          !detector.CheckData(data + chain->PrefixSize, limit - region.Offset))
+          !detector.CheckData(data + chain->PrefixSize, limit - tmpRegion.Offset))
       {
         continue;
       }
@@ -106,7 +106,7 @@ namespace ZXTune
   }
 
   IO::DataContainer::Ptr ExtractSubdataFromData(const ArchiveDetector& detector,
-    const Parameters::Accessor& parameters, const IO::DataContainer& data, ModuleRegion& region)
+    const Parameters::Accessor& parameters, const IO::DataContainer& data, std::size_t& usedSize)
   {
     const std::size_t limit(data.Size());
     const uint8_t* const rawData(static_cast<const uint8_t*>(data.Data()));
@@ -114,11 +114,8 @@ namespace ZXTune
     //try to detect without prefix
     if (detector.CheckData(rawData, limit))
     {
-      std::size_t packedSize = 0;
-      if (IO::DataContainer::Ptr subdata = detector.TryToExtractSubdata(parameters, data, packedSize))
+      if (IO::DataContainer::Ptr subdata = detector.TryToExtractSubdata(parameters, data, usedSize))
       {
-        region.Offset = 0;
-        region.Size = packedSize;
         return subdata;
       }
     }
@@ -136,8 +133,7 @@ namespace ZXTune
       std::size_t packedSize = 0;
       if (IO::DataContainer::Ptr subdata = detector.TryToExtractSubdata(parameters, subcontainer, packedSize))
       {
-        region.Offset = dataOffset;
-        region.Size = packedSize;
+        usedSize = dataOffset + packedSize;
         return subdata;
       }
     }

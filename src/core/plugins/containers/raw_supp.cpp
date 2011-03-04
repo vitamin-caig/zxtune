@@ -216,7 +216,7 @@ namespace
 
     virtual bool Process(Parameters::Accessor::Ptr params,
       const DetectParameters& detectParams,
-      const MetaContainer& data, ModuleRegion& region) const
+      const MetaContainer& data, std::size_t& usedSize) const
     {
       RawPluginParameters pluginParams(*params);
       {
@@ -249,8 +249,7 @@ namespace
       if (curRegion.Size != 0 &&
           curRegion.Offset + curRegion.Size + minRawSize >= limit)
       {
-        region.Offset = 0;
-        region.Size = limit;
+        usedSize = limit;
         return true;
       }
 
@@ -276,8 +275,7 @@ namespace
       }
       if (wasResult)
       {
-        region.Offset = 0;
-        region.Size = limit;
+        usedSize = limit;
       }
       return wasResult;
     }

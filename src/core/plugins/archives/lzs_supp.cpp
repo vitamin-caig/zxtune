@@ -61,12 +61,11 @@ namespace
     }
 
     virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Accessor& /*commonParams*/,
-      const IO::DataContainer& data, ModuleRegion& region) const
+      const IO::DataContainer& data, std::size_t& usedSize) const
     {
-      std::auto_ptr<Dump> res = Decoder->Decode(data.Data(), data.Size(), region.Size);
+      std::auto_ptr<Dump> res = Decoder->Decode(data.Data(), data.Size(), usedSize);
       if (res.get())
       {
-        region.Offset = 0;
         return IO::CreateDataContainer(res);
       }
       return IO::DataContainer::Ptr();

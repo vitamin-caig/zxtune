@@ -234,7 +234,7 @@ namespace
 
     virtual bool Process(Parameters::Accessor::Ptr params,
       const DetectParameters& detectParams,
-      const MetaContainer& data, ModuleRegion& region) const
+      const MetaContainer& data, std::size_t& usedSize) const
     {
       //do not search if there's already TRD plugin (cannot be nested...)
       /*
@@ -270,8 +270,7 @@ namespace
           enumerator.DetectModules(params, detectParams, subcontainer, curRegion);
         }
       }
-      region.Offset = 0;
-      region.Size = TRD_MODULE_SIZE;
+      usedSize = TRD_MODULE_SIZE;
       return true;
     }
 

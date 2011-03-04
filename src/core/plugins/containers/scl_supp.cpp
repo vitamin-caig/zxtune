@@ -202,7 +202,7 @@ namespace
 
     virtual bool Process(Parameters::Accessor::Ptr params,
       const DetectParameters& detectParams,
-      const MetaContainer& data, ModuleRegion& region) const
+      const MetaContainer& data, std::size_t& usedSize) const
     {
       const IO::FastDump dump(*data.Data);
       std::size_t parsedSize = 0;
@@ -230,8 +230,7 @@ namespace
           enumerator.DetectModules(params, detectParams, subcontainer, curRegion);
         }
       }
-      region.Offset = 0;
-      region.Size = parsedSize;
+      usedSize = parsedSize;
       return true;
     }
 

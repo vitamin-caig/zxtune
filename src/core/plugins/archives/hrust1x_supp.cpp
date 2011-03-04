@@ -129,9 +129,9 @@ namespace
     }
 
     virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Accessor& parameters,
-      const IO::DataContainer& input, ModuleRegion& region) const
+      const IO::DataContainer& input, std::size_t& usedSize) const
     {
-      return ExtractSubdataFromData(*this, parameters, input, region);
+      return ExtractSubdataFromData(*this, parameters, input, usedSize);
     }
   private:
     virtual bool CheckData(const uint8_t* data, std::size_t size) const

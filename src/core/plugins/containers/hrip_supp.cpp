@@ -280,7 +280,7 @@ namespace
     }
 
     //main entry
-    bool Process(ModuleRegion& region)
+    bool Process(std::size_t& usedSize)
     {
       uint_t totalFiles = 0, archiveSize = 0;
 
@@ -294,8 +294,7 @@ namespace
         Log::Debug("Core::HRiPSupp", "Failed to parse archive, possible corrupted");
         return false;
       }
-      region.Offset = 0;
-      region.Size = archiveSize;
+      usedSize = archiveSize;
       return true;
     }
 
@@ -400,12 +399,12 @@ namespace
     }
 
     virtual bool Process(Parameters::Accessor::Ptr params, const DetectParameters& detectParams,
-      const MetaContainer& data, ModuleRegion& region) const
+      const MetaContainer& data, std::size_t& usedSize) const
     {
       MetaContainer nested(data);
       nested.Plugins->Add(shared_from_this());
       Enumerator cb(params, detectParams, nested);
-      return cb.Process(region);
+      return cb.Process(usedSize);
     }
 
     virtual IO::DataContainer::Ptr Open(const Parameters::Accessor& commonParams,
