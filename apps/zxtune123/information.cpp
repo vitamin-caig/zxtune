@@ -82,6 +82,8 @@ namespace
       CapsPair(ZXTune::CAP_CONV_PSG, Text::INFO_CONV_PSG),
       CapsPair(ZXTune::CAP_CONV_ZX50, Text::INFO_CONV_ZX50),
       CapsPair(ZXTune::CAP_CONV_TXT, Text::INFO_CONV_TXT),
+      CapsPair(ZXTune::CAP_CONV_AYDUMP, Text::INFO_CONV_AYDUMP),
+      CapsPair(ZXTune::CAP_CONV_FYM, Text::INFO_CONV_FYM),
       //limiter
       CapsPair()
     };

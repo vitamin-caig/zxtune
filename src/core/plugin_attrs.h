@@ -62,6 +62,10 @@ namespace ZXTune
     CAP_CONV_ZX50       = 0x00100000,
     //! Support text vortex format conversion
     CAP_CONV_TXT        = 0x00200000,
+    //! Support raw aydump conversion
+    CAP_CONV_AYDUMP     = 0x00400000,
+    //! Support .fym format conversion
+    CAP_CONV_FYM        = 0x00800000,
   };
 }
 

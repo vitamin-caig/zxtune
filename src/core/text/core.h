@@ -10,6 +10,7 @@ extern const Char MODULE_ERROR_CANCELED[];
 extern const Char MODULE_ERROR_CONVERSION_UNSUPPORTED[];
 extern const Char MODULE_ERROR_CONVERT_AYDUMP[];
 extern const Char MODULE_ERROR_CONVERT_DEBUGAY[];
+extern const Char MODULE_ERROR_CONVERT_FYM[];
 extern const Char MODULE_ERROR_CONVERT_PSG[];
 extern const Char MODULE_ERROR_CONVERT_ZX50[];
 extern const Char MODULE_ERROR_FIND_SUBMODULE[];

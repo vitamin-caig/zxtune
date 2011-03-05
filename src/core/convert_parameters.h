@@ -77,6 +77,15 @@ namespace ZXTune
         {
         }
       };
+
+      //! @brief %Parameter for converting to FYM format
+      struct FYMConvertParam : public Parameter
+      {
+        static const uint64_t TYPE_ID = ParamID3<'F', 'Y', 'M'>::Value;
+        FYMConvertParam() : Parameter(TYPE_ID)
+        {
+        }
+      };
     }
   }
 }

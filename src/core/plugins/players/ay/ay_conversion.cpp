@@ -24,6 +24,176 @@ Author:
 
 #define FILE_TAG ED36600C
 
+namespace
+{
+  using namespace ZXTune;
+  using namespace ZXTune::Module;
+
+  class AYMFormatConvertor
+  {
+  public:
+    typedef std::auto_ptr<const AYMFormatConvertor> Ptr;
+    virtual ~AYMFormatConvertor() {}
+
+    virtual Error Convert(const boost::function<Player::Ptr(AYM::Chip::Ptr)>& creator, Dump& dst) const = 0;
+  };
+
+  class SimpleAYMFormatConvertor : public AYMFormatConvertor
+  {
+  public:
+    virtual Error Convert(const boost::function<Player::Ptr(AYM::Chip::Ptr)>& creator, Dump& dst) const
+    {
+      Dump tmp;
+      AYM::Chip::Ptr chip = AYM::CreateRawStreamDumper(tmp);
+      Player::Ptr player(creator(chip));
+      const Module::Information::Ptr info = player->GetInformation();
+      const Parameters::Accessor::Ptr props = info->Properties();
+
+      Sound::MultichannelReceiver::Ptr receiver = Sound::MultichannelReceiver::CreateStub();
+      const Sound::RenderParameters::Ptr params = Sound::RenderParameters::Create(props);
+      for (Player::PlaybackState state = Player::MODULE_PLAYING; Player::MODULE_PLAYING == state;)
+      {
+        if (const Error& err = player->RenderFrame(*params, state, *receiver))
+        {
+          return Error(THIS_LINE, ERROR_MODULE_CONVERT, GetErrorMessage()).AddSuberror(err);
+        }
+      }
+      
+      dst.swap(tmp);
+      return Error();
+    }
+  protected:
+    virtual AYM::Chip::Ptr CreateChip(Dump& tmp) const = 0;
+    virtual String GetErrorMessage() const = 0;
+  };
+
+  class PSGFormatConvertor : public SimpleAYMFormatConvertor
+  {
+  private:
+    virtual AYM::Chip::Ptr CreateChip(Dump& tmp) const
+    {
+      return AYM::CreatePSGDumper(tmp);
+    }
+
+    virtual String GetErrorMessage() const
+    {
+      return Text::MODULE_ERROR_CONVERT_PSG;
+    }
+  };
+
+  class ZX50FormatConvertor : public SimpleAYMFormatConvertor
+  {
+  private:
+    virtual AYM::Chip::Ptr CreateChip(Dump& tmp) const
+    {
+      return AYM::CreateZX50Dumper(tmp);
+    }
+
+    virtual String GetErrorMessage() const
+    {
+      return Text::MODULE_ERROR_CONVERT_ZX50;
+    }
+  };
+
+  class DebugAYFormatConvertor : public SimpleAYMFormatConvertor
+  {
+  private:
+    virtual AYM::Chip::Ptr CreateChip(Dump& tmp) const
+    {
+      return AYM::CreateDebugDumper(tmp);
+    }
+
+    virtual String GetErrorMessage() const
+    {
+      return Text::MODULE_ERROR_CONVERT_DEBUGAY;
+    }
+  };
+
+  class AYDumpFormatConvertor : public SimpleAYMFormatConvertor
+  {
+  private:
+    virtual AYM::Chip::Ptr CreateChip(Dump& tmp) const
+    {
+      return AYM::CreateRawStreamDumper(tmp);
+    }
+
+    virtual String GetErrorMessage() const
+    {
+      return Text::MODULE_ERROR_CONVERT_AYDUMP;
+    }
+  };
+
+  class FYMFormatConvertor : public AYMFormatConvertor
+  {
+#ifdef USE_PRAGMA_PACK
+#pragma pack(push,1)
+#endif
+    PACK_PRE struct FYMHeader
+    {
+      uint32_t HeaderSize;
+      uint32_t FramesCount;
+      uint32_t LoopFrame;
+      uint32_t PSGFreq;
+      uint32_t IntFreq;
+    } PACK_POST;
+#ifdef USE_PRAGMA_PACK
+#pragma pack(pop)
+#endif
+  public:
+    virtual Error Convert(const boost::function<Player::Ptr(AYM::Chip::Ptr)>& creator, Dump& dst) const
+    {
+      Dump rawDump;
+      AYM::Chip::Ptr chip = AYM::CreateRawStreamDumper(rawDump);
+      Player::Ptr player(creator(chip));
+      const Module::Information::Ptr info = player->GetInformation();
+      const Parameters::Accessor::Ptr props = info->Properties();
+
+      Sound::MultichannelReceiver::Ptr receiver = Sound::MultichannelReceiver::CreateStub();
+      const Sound::RenderParameters::Ptr params = Sound::RenderParameters::Create(props);
+      for (Player::PlaybackState state = Player::MODULE_PLAYING; Player::MODULE_PLAYING == state;)
+      {
+        if (const Error& err = player->RenderFrame(*params, state, *receiver))
+        {
+          return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERT_FYM).AddSuberror(err);
+        }
+      }
+
+      String name, author;
+      props->FindStringValue(ATTR_TITLE, name);
+      props->FindStringValue(ATTR_AUTHOR, author);
+      const std::size_t headerSize = sizeof(FYMHeader) + (name.size() + 1) + (author.size() + 1);
+
+      Dump result(sizeof(FYMHeader));
+      {
+        FYMHeader* const header = safe_ptr_cast<FYMHeader*>(&result[0]);
+        header->HeaderSize = headerSize;
+        header->FramesCount = info->FramesCount();
+        header->LoopFrame = info->LoopFrame();
+        header->PSGFreq = params->ClockFreq();
+        header->IntFreq = 1000000 / params->FrameDurationMicrosec();
+      }
+      std::copy(name.begin(), name.end(), std::back_inserter(result));
+      result.push_back(0);
+      std::copy(author.begin(), author.end(), std::back_inserter(result));
+      result.push_back(0);
+
+      result.resize(headerSize + rawDump.size());
+      //todo optimize
+      const uint_t frames = info->FramesCount();
+      assert(frames * 14 == rawDump.size());
+      for (uint_t reg = 0; reg < 14; ++reg)
+      {
+        for (uint_t frm = 0; frm < frames; ++frm)
+        {
+          result[headerSize + frames * reg + frm] = rawDump[14 * frm + reg];
+        }
+      }
+      dst.swap(result);
+      return Error();
+    }
+  };
+}
+
 namespace ZXTune
 {
   namespace Module
@@ -32,51 +202,37 @@ namespace ZXTune
     bool ConvertAYMFormat(const boost::function<Player::Ptr(AYM::Chip::Ptr)>& creator, const Conversion::Parameter& param, Dump& dst, Error& result)
     {
       using namespace Conversion;
-      Dump tmp;
-      AYM::Chip::Ptr chip;
-      String errMsg;
+      AYMFormatConvertor::Ptr convertor;
 
       //convert to PSG
       if (parameter_cast<PSGConvertParam>(&param))
       {
-        chip = AYM::CreatePSGDumper(tmp);
-        errMsg = Text::MODULE_ERROR_CONVERT_PSG;
+        convertor.reset(new PSGFormatConvertor());
       }
       //convert to ZX50
       else if (parameter_cast<ZX50ConvertParam>(&param))
       {
-        chip = AYM::CreateZX50Dumper(tmp);
-        errMsg = Text::MODULE_ERROR_CONVERT_ZX50;
+        convertor.reset(new ZX50FormatConvertor());
       }
       //convert to debugay
       else if (parameter_cast<DebugAYConvertParam>(&param))
       {
-        chip = AYM::CreateDebugDumper(tmp);
-        errMsg = Text::MODULE_ERROR_CONVERT_DEBUGAY;
+        convertor.reset(new DebugAYFormatConvertor());
       }
       //convert to aydump
       else if (parameter_cast<AYDumpConvertParam>(&param))
       {
-        chip = AYM::CreateRawStreamDumper(tmp);
-        errMsg = Text::MODULE_ERROR_CONVERT_AYDUMP;
+        convertor.reset(new AYDumpFormatConvertor());
+      }
+      //convert to fym
+      else if (parameter_cast<FYMConvertParam>(&param))
+      {
+        convertor.reset(new FYMFormatConvertor());
       }
 
-      if (chip.get())
+      if (convertor.get())
       {
-        Player::Ptr player(creator(chip));
-        Sound::MultichannelReceiver::Ptr receiver = Sound::MultichannelReceiver::CreateStub();
-        const Sound::RenderParameters::Ptr params = Sound::RenderParameters::Create(
-          Parameters::Container::Create());
-        for (Player::PlaybackState state = Player::MODULE_PLAYING; Player::MODULE_PLAYING == state;)
-        {
-          if (const Error& err = player->RenderFrame(*params, state, *receiver))
-          {
-            result = Error(THIS_LINE, ERROR_MODULE_CONVERT, errMsg).AddSuberror(err);
-            return true;
-          }
-        }
-        dst.swap(tmp);
-        result = Error();
+        result = convertor->Convert(creator, dst);
         return true;
       }
       return false;
@@ -84,7 +240,7 @@ namespace ZXTune
 
     uint_t GetSupportedAYMFormatConvertors()
     {
-      return CAP_CONV_PSG | CAP_CONV_ZX50;
+      return CAP_CONV_PSG | CAP_CONV_ZX50 | CAP_CONV_AYDUMP | CAP_CONV_FYM;
     }
 
     //vortex-based conversion

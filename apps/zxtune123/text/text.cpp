@@ -36,6 +36,9 @@ extern const Char CONVERSION_MODE_AYDUMP[] = {
 extern const Char CONVERSION_MODE_DEBUGAY[] = {
   'd','e','b','u','g','a','y',0
 };
+extern const Char CONVERSION_MODE_FYM[] = {
+  'f','y','m',0
+};
 extern const Char CONVERSION_MODE_PSG[] = {
   'p','s','g',0
 };
@@ -62,7 +65,7 @@ extern const Char CONVERT_DESC[] = {
   ' ','m','o','d','e',' ','-',' ','s','p','e','c','i','f','y',' ','c','o','n','v','e','r','s','i','o','n',' ',
   'm','o','d','e','.',' ','C','u','r','r','e','n','t','l','y',' ','s','u','p','p','o','r','t','e','d',' ','a',
   'r','e',':',' ','r','a','w',',','p','s','g',',','z','x','5','0',',','t','x','t',',','a','y','d','u','m','p',
-  '\n',
+  ',','f','y','m','\n',
   ' ','f','i','l','e','n','a','m','e',' ','-',' ','f','i','l','e','n','a','m','e',' ','t','e','m','p','l','a',
   't','e',' ','w','i','t','h',' ','a','n','y',' ','m','o','d','u','l','e','\'','s',' ','a','t','t','r','i','b',
   'u','t','e','s','\n',
@@ -279,6 +282,12 @@ extern const Char INFO_CAP_SYSTEM[] = {
 };
 extern const Char INFO_CAP_TS[] = {
   'd','e','v','_','t','s',0
+};
+extern const Char INFO_CONV_AYDUMP[] = {
+  'c','o','n','v','_','a','y','d','u','m','p',0
+};
+extern const Char INFO_CONV_FYM[] = {
+  'c','o','n','v','_','f','y','m',0
 };
 extern const Char INFO_CONV_PSG[] = {
   'c','o','n','v','_','p','s','g',0
