@@ -72,7 +72,7 @@ namespace ZXTune
   }
 
   Module::Holder::Ptr CreateModuleFromData(const ModuleDetector& detector,
-    Parameters::Accessor::Ptr parameters, const MetaContainer& container, ModuleRegion& region)
+    Parameters::Accessor::Ptr parameters, const MetaContainer& container, std::size_t& usedSize)
   {
     const std::size_t limit(container.Data->Size());
     const uint8_t* const data(static_cast<const uint8_t*>(container.Data->Data()));
@@ -83,7 +83,7 @@ namespace ZXTune
     {
       if (Module::Holder::Ptr holder = detector.TryToCreateModule(parameters, container, tmpRegion))
       {
-        region = tmpRegion;
+        usedSize = tmpRegion.Offset + tmpRegion.Size;
         return holder;
       }
     }
@@ -98,7 +98,7 @@ namespace ZXTune
       }
       if (Module::Holder::Ptr holder = detector.TryToCreateModule(parameters, container, tmpRegion))
       {
-        region = tmpRegion;
+        usedSize = tmpRegion.Offset + tmpRegion.Size;
         return holder;
       }
     }

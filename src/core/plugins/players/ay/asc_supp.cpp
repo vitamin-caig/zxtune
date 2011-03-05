@@ -1190,7 +1190,7 @@ namespace
 
     virtual Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
                                              const MetaContainer& container,
-                                             ModuleRegion& region) const
+                                             std::size_t& usedSize) const
     {
       const std::size_t limit(container.Data->Size());
       const uint8_t* const data(static_cast<const uint8_t*>(container.Data->Data()));
@@ -1202,7 +1202,7 @@ namespace
         const Plugin::Ptr plugin = shared_from_this();
         if (Module::Holder::Ptr holder = CreateASCModule(plugin, parameters, container, tmpRegion))
         {
-          region = tmpRegion;
+          usedSize = tmpRegion.Offset + tmpRegion.Size;
           return holder;
         }
       }

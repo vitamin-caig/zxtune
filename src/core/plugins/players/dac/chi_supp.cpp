@@ -602,17 +602,19 @@ namespace
 
     virtual Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
                                              const MetaContainer& container,
-                                             ModuleRegion& region) const
+                                             std::size_t& usedSize) const
     {
       assert(CheckCHI(*container.Data));
       //try to create holder
       try
       {
         const Plugin::Ptr plugin = shared_from_this();
+        ModuleRegion region;
         const Module::Holder::Ptr holder(new CHIHolder(plugin, parameters, container, region));
 #ifdef SELF_TEST
         holder->CreatePlayer();
 #endif
+        usedSize = region.Offset + region.Size;
         return holder;
       }
       catch (const Error&/*e*/)

@@ -232,9 +232,9 @@ namespace
       return CheckTRDFile(dump);
     }
 
-    virtual bool Process(Parameters::Accessor::Ptr params,
+    virtual std::size_t Process(Parameters::Accessor::Ptr params,
       const DetectParameters& detectParams,
-      const MetaContainer& data, std::size_t& usedSize) const
+      const MetaContainer& data) const
     {
       //do not search if there's already TRD plugin (cannot be nested...)
       /*
@@ -249,7 +249,7 @@ namespace
       const TRDos::FilesSet::Ptr files = ParseTRDFile(dump);
       if (!files.get())
       {
-        return false;
+        return 0;
       }
       if (uint_t entriesCount = files->GetEntriesCount())
       {
@@ -258,8 +258,6 @@ namespace
         MetaContainer subcontainer;
         subcontainer.Plugins = data.Plugins->Clone();
         subcontainer.Plugins->Add(shared_from_this());
-        ModuleRegion curRegion;
-
         LoggerHelper logger(detectParams, data, entriesCount);
         for (TRDos::FilesSet::Iterator::Ptr it = files->GetEntries(); it->IsValid(); it->Next())
         {
@@ -267,11 +265,10 @@ namespace
           subcontainer.Data = data.Data->GetSubcontainer(entry.Offset, entry.Size);
           subcontainer.Path = IO::AppendPath(data.Path, entry.Name);
           logger(entry);
-          enumerator.DetectModules(params, detectParams, subcontainer, curRegion);
+          enumerator.DetectModules(params, detectParams, subcontainer);
         }
       }
-      usedSize = TRD_MODULE_SIZE;
-      return true;
+      return TRD_MODULE_SIZE;
     }
 
     IO::DataContainer::Ptr Open(const Parameters::Accessor& /*commonParams*/,

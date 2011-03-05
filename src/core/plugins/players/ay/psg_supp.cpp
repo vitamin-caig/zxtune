@@ -287,14 +287,16 @@ namespace
 
     virtual Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
                                              const MetaContainer& container,
-                                             ModuleRegion& region) const
+                                             std::size_t& usedSize) const
     {
       assert(CheckPSG(*container.Data));
 
       try
       {
         const Plugin::Ptr plugin = shared_from_this();
+        ModuleRegion region;
         const Module::Holder::Ptr holder(new PSGHolder(plugin, parameters, container, region));
+        usedSize = region.Offset + region.Size;
         return holder;
       }
       catch (const Error&/*e*/)

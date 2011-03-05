@@ -519,7 +519,7 @@ namespace
 
     virtual Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
                                              const MetaContainer& container,
-                                             ModuleRegion& region) const
+                                             std::size_t& usedSize) const
     {
       const IO::FastDump dump(*container.Data);
 
@@ -534,17 +534,15 @@ namespace
       try
       {
         MetaContainer subdata(container);
-        Module::Holder::Ptr holder1;
         subdata.Data = container.Data->GetSubcontainer(0, firstModuleSize);
-        enumerator.OpenModule(parameters, subdata, holder1);
+        const Module::Holder::Ptr holder1 = enumerator.OpenModule(parameters, subdata);
         if (InvalidHolder(*holder1))
         {
           Log::Debug(THIS_MODULE, "Invalid first module holder");
           return Module::Holder::Ptr();
         }
-        Module::Holder::Ptr holder2;
         subdata.Data = container.Data->GetSubcontainer(firstModuleSize, footerOffset - firstModuleSize);
-        enumerator.OpenModule(parameters, subdata, holder2);
+        const Module::Holder::Ptr holder2 = enumerator.OpenModule(parameters, subdata);
         if (InvalidHolder(*holder2))
         {
           Log::Debug(THIS_MODULE, "Failed to create second module holder");
@@ -556,11 +554,12 @@ namespace
         {
           Log::Debug(THIS_MODULE, "Invalid footer structure");
         }
-        region.Offset = 0;
-        region.Size = footerOffset + sizeof(*footer);
-        const IO::DataContainer::Ptr rawData = region.Extract(*container.Data);
+        const std::size_t dataSize = footerOffset + sizeof(*footer);
+        const IO::DataContainer::Ptr rawData = container.Data->GetSubcontainer(0,  dataSize);
         const Module::Holder::Ptr holder(new TSHolder(plugin, rawData, holder1, holder2));
+        
         //TODO: proper data attributes calculation calculation
+        usedSize = dataSize;
         return holder;
       }
       catch (const Error&)

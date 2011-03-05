@@ -214,22 +214,22 @@ namespace
       return inputData.Size() >= MIN_MINIMAL_RAW_SIZE;
     }
 
-    virtual bool Process(Parameters::Accessor::Ptr params,
+    virtual std::size_t Process(Parameters::Accessor::Ptr params,
       const DetectParameters& detectParams,
-      const MetaContainer& data, std::size_t& usedSize) const
+      const MetaContainer& data) const
     {
       RawPluginParameters pluginParams(*params);
       {
         //do not search right after previous raw plugin
         if (data.Plugins->Count() && data.Plugins->GetLast()->Id() == RAW_PLUGIN_ID)
         {
-          return false;
+          return 0;
         }
 
         //special mark to determine if plugin is called due to recursive scan
         if (pluginParams.GetRecursiveDepth() == int_t(data.Plugins->Count()))
         {
-          return false;
+          return 0;
         }
       }
 
@@ -237,47 +237,42 @@ namespace
 
       const std::size_t limit = data.Data->Size();
       //process without offset
-      ModuleRegion curRegion;
-      {
-        const Parameters::Accessor::Ptr newParams =
-          boost::make_shared<DepthLimitedParameters>(params, data.Plugins->Count());
-        enumerator.DetectModules(newParams, detectParams, data, curRegion);
-      }
+      const Parameters::Accessor::Ptr paramsForCheckAtBegin =
+        boost::make_shared<DepthLimitedParameters>(params, data.Plugins->Count());
+      const std::size_t dataUsedAtBegin = enumerator.DetectModules(paramsForCheckAtBegin, detectParams, data);
+
       const std::size_t minRawSize = pluginParams.GetMinimalSize();
 
       //check for further scanning possibility
-      if (curRegion.Size != 0 &&
-          curRegion.Offset + curRegion.Size + minRawSize >= limit)
+      if (dataUsedAtBegin != 0 &&
+          dataUsedAtBegin + minRawSize >= limit)
       {
-        usedSize = limit;
-        return true;
+        return limit;
       }
 
       const std::size_t scanStep = pluginParams.GetScanStep();
 
       //to determine was scaner really affected
-      bool wasResult = curRegion.Size != 0;
+      bool wasResult = dataUsedAtBegin != 0;
 
       MetaContainer subcontainer;
       subcontainer.Plugins = data.Plugins->Clone();
       subcontainer.Plugins->Add(shared_from_this());
 
       LoggerHelper logger(detectParams, data, limit);
-      for (std::size_t offset = std::max(curRegion.Offset + curRegion.Size, std::size_t(1));
-        offset + minRawSize < limit;
-        offset += std::max(curRegion.Offset + curRegion.Size, std::size_t(scanStep)))
+      for (std::size_t offset = std::max(dataUsedAtBegin, scanStep);
+        offset + minRawSize < limit;)
       {
         logger(offset);
         subcontainer.Data = data.Data->GetSubcontainer(offset, limit - offset);
         subcontainer.Path = IO::AppendPath(data.Path, CreateRawPart(offset));
-        enumerator.DetectModules(params, detectParams, subcontainer, curRegion);
-        wasResult = wasResult || curRegion.Size != 0;
+        const std::size_t usedSize = enumerator.DetectModules(params, detectParams, subcontainer);
+        wasResult = wasResult || usedSize != 0;
+        offset += std::max(usedSize, scanStep);
       }
-      if (wasResult)
-      {
-        usedSize = limit;
-      }
-      return wasResult;
+      return wasResult
+        ? limit
+        : 0;
     }
 
     IO::DataContainer::Ptr Open(const Parameters::Accessor& /*commonParams*/,

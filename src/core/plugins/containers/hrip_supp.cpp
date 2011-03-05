@@ -280,22 +280,21 @@ namespace
     }
 
     //main entry
-    bool Process(std::size_t& usedSize)
+    std::size_t Process()
     {
       uint_t totalFiles = 0, archiveSize = 0;
 
       if (OK != CheckHrip(Container->Data(), Container->Size(), totalFiles, archiveSize))
       {
-        return false;
+        return 0;
       }
       if (ParseHrip(Container->Data(), archiveSize,
             boost::bind(&Enumerator::ProcessFile, this, totalFiles, _1, _2), IgnoreCorrupted) != OK)
       {
         Log::Debug("Core::HRiPSupp", "Failed to parse archive, possible corrupted");
-        return false;
+        return 0;
       }
-      usedSize = archiveSize;
-      return true;
+      return archiveSize;
     }
 
   private:
@@ -330,8 +329,7 @@ namespace
         DetectParams.ReportMessage(message);
       }
 
-      ModuleRegion curRegion;
-      PluginsEnumerator::Instance().DetectModules(Params, DetectParams, SubMetacontainer, curRegion);
+      PluginsEnumerator::Instance().DetectModules(Params, DetectParams, SubMetacontainer);
       return CONTINUE;
     }
   private:
@@ -398,13 +396,13 @@ namespace
              filesCount != 0;
     }
 
-    virtual bool Process(Parameters::Accessor::Ptr params, const DetectParameters& detectParams,
-      const MetaContainer& data, std::size_t& usedSize) const
+    virtual std::size_t Process(Parameters::Accessor::Ptr params, const DetectParameters& detectParams,
+      const MetaContainer& data) const
     {
       MetaContainer nested(data);
       nested.Plugins->Add(shared_from_this());
       Enumerator cb(params, detectParams, nested);
-      return cb.Process(usedSize);
+      return cb.Process();
     }
 
     virtual IO::DataContainer::Ptr Open(const Parameters::Accessor& commonParams,

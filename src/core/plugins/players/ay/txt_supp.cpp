@@ -175,7 +175,7 @@ namespace
     
     virtual Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
                                              const MetaContainer& container,
-                                             ModuleRegion& region) const
+                                             std::size_t& usedSize) const
     {
       const std::size_t dataSize = container.Data->Size();
       const char* const data = static_cast<const char*>(container.Data->Data());
@@ -199,7 +199,7 @@ namespace
     #ifdef SELF_TEST
         holder->CreatePlayer();
     #endif
-        region = tmpRegion;
+        usedSize = tmpRegion.Offset + tmpRegion.Size;
         return holder;
       }
       catch (const Error& e)

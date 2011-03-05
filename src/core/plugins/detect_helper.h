@@ -55,7 +55,7 @@ namespace ZXTune
   bool CheckDataFormat(const DataDetector& detector, const IO::DataContainer& inputData);
 
   Module::Holder::Ptr CreateModuleFromData(const ModuleDetector& detector,
-    Parameters::Accessor::Ptr parameters, const MetaContainer& container, ModuleRegion& region);
+    Parameters::Accessor::Ptr parameters, const MetaContainer& container, std::size_t& usedSize);
 
   IO::DataContainer::Ptr ExtractSubdataFromData(const ArchiveDetector& detector,
     const Parameters::Accessor& parameters, const IO::DataContainer& data, std::size_t& usedSize);

@@ -299,30 +299,28 @@ namespace
       result.Plugins = tmpResult.Plugins;
     }
 
-    virtual void DetectModules(Parameters::Accessor::Ptr modulesParams, const DetectParameters& detectParams,
-      const MetaContainer& data, ModuleRegion& region) const
+    virtual std::size_t DetectModules(Parameters::Accessor::Ptr modulesParams, const DetectParameters& detectParams,
+      const MetaContainer& data) const
     {
       Log::Debug(THIS_MODULE, "%3%: Detecting modules in data of size %1%, path '%2%'",
         data.Data->Size(), data.Path, data.Plugins->Count());
 
       //try to detect container and pass control there
-      if (DetectContainer(modulesParams, detectParams, data, region.Size))
+      if (std::size_t usedSize = DetectContainer(modulesParams, detectParams, data))
       {
-        region.Offset = 0;
-        return;
+        return usedSize;
       }
 
       //try to process archives
-      if (DetectArchive(modulesParams, detectParams, data, region.Size))
+      if (std::size_t usedSize = DetectArchive(modulesParams, detectParams, data))
       {
-        region.Offset = 0;
-        return;
+        return usedSize;
       }
       //try to detect and process single modules
-      DetectModule(modulesParams, detectParams, data, region);
+      return DetectModule(modulesParams, detectParams, data);
     }
 
-    virtual void OpenModule(Parameters::Accessor::Ptr moduleParams, const MetaContainer& input, Module::Holder::Ptr& holder) const
+    virtual Module::Holder::Ptr OpenModule(Parameters::Accessor::Ptr moduleParams, const MetaContainer& input) const
     {
       for (PlayerPluginsArray::const_iterator it = PlayerPlugins.begin(), lim = PlayerPlugins.end();
         it != lim; ++it)
@@ -332,13 +330,12 @@ namespace
         {
           continue;//invalid plugin
         }
-        ModuleRegion region;
-        if (Module::Holder::Ptr module = plugin->CreateModule(moduleParams, input, region))
+        std::size_t usedSize = 0;
+        if (Module::Holder::Ptr module = plugin->CreateModule(moduleParams, input, usedSize))
         {
           Log::Debug(THIS_MODULE, "%2%: Opened player plugin %1%",
             plugin->Id(), input.Plugins->Count());
-          holder = module;
-          return;
+          return module;
         }
         //TODO: dispatch heavy checks- return false if not enabled
       }
@@ -346,8 +343,7 @@ namespace
     }
 
   private:
-    bool DetectContainer(Parameters::Accessor::Ptr params, const DetectParameters& detectParams, const MetaContainer& input,
-      std::size_t& usedSize) const
+    std::size_t DetectContainer(Parameters::Accessor::Ptr params, const DetectParameters& detectParams, const MetaContainer& input) const
     {
       for (ContainerPluginsArray::const_iterator it = ContainerPlugins.begin(), lim = ContainerPlugins.end();
         it != lim; ++it)
@@ -363,18 +359,17 @@ namespace
         }
         Log::Debug(THIS_MODULE, "%3%:  Checking container plugin %1% for path '%2%'",
           plugin->Id(), input.Path, input.Plugins->Count());
-        if (plugin->Process(params, detectParams, input, usedSize))
+        if (std::size_t usedSize = plugin->Process(params, detectParams, input))
         {
           Log::Debug(THIS_MODULE, "%4%:  Container plugin %1% for path '%2%' processed at size %3%",
             plugin->Id(), input.Path, usedSize, input.Plugins->Count());
-          return true;
+          return usedSize;
         }
       }
-      return false;
+      return 0;
     }
 
-    bool DetectArchive(Parameters::Accessor::Ptr modulesParams, const DetectParameters& detectParams, const MetaContainer& input,
-      std::size_t& usedSize) const
+    std::size_t DetectArchive(Parameters::Accessor::Ptr modulesParams, const DetectParameters& detectParams, const MetaContainer& input) const
     {
       LoggerHelper logger(detectParams, input, input.Path.empty() ? Text::MODULE_PROGRESS_DETECT_ARCHIVE_NOPATH : Text::MODULE_PROGRESS_DETECT_ARCHIVE);
 
@@ -394,6 +389,7 @@ namespace
         //find first suitable
         Log::Debug(THIS_MODULE, "%3%:  Checking archive %1% at path '%2%'",
           plugin->Id(), input.Path, input.Plugins->Count());
+        std::size_t usedSize = 0;
         if (IO::DataContainer::Ptr subdata = plugin->ExtractSubdata(*modulesParams, dataContainer, usedSize))
         {
           Log::Debug(THIS_MODULE, "%2%:  Detected at data size %1%",
@@ -407,18 +403,16 @@ namespace
           nested.Path = IO::AppendPath(input.Path, pathComponent);
           nested.Plugins = input.Plugins->Clone();
           nested.Plugins->Add(plugin);
-          ModuleRegion nestedRegion;
-          DetectModules(modulesParams, detectParams, nested, nestedRegion);
-          return true;
+          DetectModules(modulesParams, detectParams, nested);
+          return usedSize;
         }
         Log::Debug(THIS_MODULE, "%1%:  Failed to detect", input.Plugins->Count());
         //TODO: dispatch heavy checks- return false if not enabled
       }
-      return false;
+      return 0;
     }
 
-    void DetectModule(Parameters::Accessor::Ptr moduleParams, const DetectParameters& detectParams, const MetaContainer& input,
-      ModuleRegion& region) const
+    std::size_t DetectModule(Parameters::Accessor::Ptr moduleParams, const DetectParameters& detectParams, const MetaContainer& input) const
     {
       LoggerHelper logger(detectParams, input, input.Path.empty() ? Text::MODULE_PROGRESS_DETECT_PLAYER_NOPATH : Text::MODULE_PROGRESS_DETECT_PLAYER);
       for (PlayerPluginsArray::const_iterator it = PlayerPlugins.begin(), lim = PlayerPlugins.end();
@@ -435,21 +429,21 @@ namespace
         }
         Log::Debug(THIS_MODULE, "%3%:  Checking module plugin %1% at path '%2%'",
           plugin->Id(), input.Path, input.Plugins->Count());
-        if (Module::Holder::Ptr module = plugin->CreateModule(moduleParams, input, region))
+        std::size_t usedSize = 0;
+        if (Module::Holder::Ptr module = plugin->CreateModule(moduleParams, input, usedSize))
         {
-          Log::Debug(THIS_MODULE, "%3%:  Detected at region (%1%;%2%)",
-            region.Offset, region.Size, input.Plugins->Count());
+          Log::Debug(THIS_MODULE, "%2%:  Detected at size %1%",
+            usedSize, input.Plugins->Count());
 
           logger(*plugin);
 
           ThrowIfError(detectParams.ProcessModule(input.Path, module));
-          return;
+          return usedSize;
         }
         Log::Debug(THIS_MODULE, "%1%:  Failed to detect", input.Plugins->Count());
         //TODO: dispatch heavy checks- return false if not enabled
       }
-      region.Offset = 0;
-      region.Size = 0;
+      return 0;
     }
 
     bool ResolveArchive(const Parameters::Accessor& commonParams, MetaContainer& data, String& pathToOpen) const
@@ -553,8 +547,7 @@ namespace ZXTune
       const PluginsEnumerator& enumerator(PluginsEnumerator::Instance());
       MetaContainer subcontainer;
       enumerator.ResolveSubpath(*modulesParams, data, startSubpath, subcontainer);
-      ModuleRegion region;
-      enumerator.DetectModules(modulesParams, detectParams, subcontainer, region);
+      enumerator.DetectModules(modulesParams, detectParams, subcontainer);
       return Error();
     }
     catch (const Error& e)
@@ -581,7 +574,7 @@ namespace ZXTune
       MetaContainer subcontainer;
       enumerator.ResolveSubpath(*moduleParams, data, subpath, subcontainer);
       //try to detect and process single modules
-      enumerator.OpenModule(moduleParams, subcontainer, result);
+      result = enumerator.OpenModule(moduleParams, subcontainer);
       return Error();
     }
     catch (const Error& e)

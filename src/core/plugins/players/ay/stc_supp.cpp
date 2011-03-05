@@ -1138,9 +1138,9 @@ namespace
       return CheckDataFormat(*this, inputData);
     }
 
-    Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters, const MetaContainer& container, ModuleRegion& region) const
+    Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters, const MetaContainer& container, std::size_t& usedSize) const
     {
-      return CreateModuleFromData(*this, parameters, container, region);
+      return CreateModuleFromData(*this, parameters, container, usedSize);
     }
   private:
     virtual DataPrefixIterator GetPrefixes() const

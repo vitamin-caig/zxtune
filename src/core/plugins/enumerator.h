@@ -92,11 +92,11 @@ namespace ZXTune
     //! @brief Creating module on specified input data
     //! @param parameters Options for modules detection and creation
     //! @param inputData Source memory data
-    //! @param region Reference to result region where module is detected
+    //! @param usedSize Reference to result data size used to create
     //! @return Not empty pointer if found, empty elsewhere
     virtual Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
                                              const MetaContainer& inputData,
-                                             ModuleRegion& region) const = 0;
+                                             std::size_t& usedSize) const = 0;
   };
 
   class ArchivePlugin : public Plugin
@@ -131,12 +131,10 @@ namespace ZXTune
     //! @param parameters Options for processing
     //! @param detectParams Detection-specific parameters
     //! @param inputData Source memory data
-    //! @param usedSize Reference to result data size container detected at
-    //! @return true if processed and region contains busy data
-    virtual bool Process(Parameters::Accessor::Ptr parameters,
+    //! @return Size of processed data
+    virtual std::size_t Process(Parameters::Accessor::Ptr parameters,
                           const DetectParameters& detectParams,
-                          const MetaContainer& inputData,
-                          std::size_t& usedSize) const = 0;
+                          const MetaContainer& inputData) const = 0;
 
     //! @brief Opening subdata by specified path
     //! @param parameters Options for opening
@@ -170,11 +168,10 @@ namespace ZXTune
     virtual void ResolveSubpath(const Parameters::Accessor& coreParams, IO::DataContainer::Ptr data,
       const String& subpath, MetaContainer& result) const = 0;
     //full module detection
-    virtual void DetectModules(Parameters::Accessor::Ptr modulesParams, const DetectParameters& params, const MetaContainer& data,
-      ModuleRegion& region) const = 0;
+    // @return Size of used data
+    virtual std::size_t DetectModules(Parameters::Accessor::Ptr modulesParams, const DetectParameters& params, const MetaContainer& data) const = 0;
     //single module opening
-    virtual void OpenModule(Parameters::Accessor::Ptr modulesParams, const MetaContainer& data,
-      Module::Holder::Ptr& holder) const = 0;
+    virtual Module::Holder::Ptr OpenModule(Parameters::Accessor::Ptr modulesParams, const MetaContainer& data) const = 0;
 
     //instantiator
     static PluginsEnumerator& Instance();
