@@ -184,6 +184,50 @@ namespace
     Log::MessageData Message;
   };
 
+  class ScanDataContainer : public IO::DataContainer
+  {
+  public:
+    typedef boost::shared_ptr<ScanDataContainer> Ptr;
+
+    ScanDataContainer(const IO::DataContainer& delegate, std::size_t offset)
+      : Delegate(delegate)
+      , OriginalSize(delegate.Size())
+      , OriginalData(static_cast<const uint8_t*>(delegate.Data()))
+      , Offset(offset)
+    {
+    }
+
+    virtual std::size_t Size() const
+    {
+      return OriginalSize - Offset;
+    }
+
+    virtual const void* Data() const
+    {
+      return OriginalData + Offset;
+    }
+
+    virtual IO::DataContainer::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
+    {
+      return Delegate.GetSubcontainer(offset + Offset, size);
+    }
+
+    std::size_t GetOffset()
+    {
+      return Offset;
+    }
+
+    void Move(std::size_t step)
+    {
+      Offset += step;
+    }
+  private:
+    const IO::DataContainer& Delegate;
+    const std::size_t OriginalSize;
+    const uint8_t* const OriginalData;
+    std::size_t Offset;
+  };
+
   class RawScaner : public ContainerPlugin
                   , public boost::enable_shared_from_this<RawScaner>
   {
@@ -244,8 +288,7 @@ namespace
       const std::size_t minRawSize = pluginParams.GetMinimalSize();
 
       //check for further scanning possibility
-      if (dataUsedAtBegin != 0 &&
-          dataUsedAtBegin + minRawSize >= limit)
+      if (dataUsedAtBegin + minRawSize >= limit)
       {
         return limit;
       }
@@ -260,15 +303,18 @@ namespace
       subcontainer.Plugins->Add(shared_from_this());
 
       LoggerHelper logger(detectParams, data, limit);
-      for (std::size_t offset = std::max(dataUsedAtBegin, scanStep);
-        offset + minRawSize < limit;)
+
+      const ScanDataContainer::Ptr container = boost::make_shared<ScanDataContainer>(*data.Data, std::max(dataUsedAtBegin, scanStep));
+      subcontainer.Data = container;
+
+      while (container->Size() >= minRawSize)
       {
+        const std::size_t offset = container->GetOffset();
         logger(offset);
-        subcontainer.Data = data.Data->GetSubcontainer(offset, limit - offset);
         subcontainer.Path = IO::AppendPath(data.Path, CreateRawPart(offset));
         const std::size_t usedSize = enumerator.DetectModules(params, detectParams, subcontainer);
         wasResult = wasResult || usedSize != 0;
-        offset += std::max(usedSize, scanStep);
+        container->Move(std::max(usedSize, scanStep));
       }
       return wasResult
         ? limit
