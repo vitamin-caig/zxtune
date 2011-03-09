@@ -93,10 +93,6 @@ namespace
       const std::size_t offset = (data[4] == INT_BEGIN) ? 4 : sizeof(PSGHeader);
       std::size_t size = data.Size() - offset;
       const uint8_t* bdata = &data[offset];
-      if (INT_BEGIN != *bdata)
-      {
-        throw Error(THIS_LINE, ERROR_INVALID_FORMAT);
-      }
       //detect as much chunks as possible, in despite of real format issues
       AYM::DataChunk dummy;
       AYM::DataChunk* chunk = &dummy;
