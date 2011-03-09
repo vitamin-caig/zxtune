@@ -39,13 +39,12 @@ public:
   virtual ~SourceComponent() {}
   // commandline-related part
   virtual const boost::program_options::options_description& GetOptionsDescription() const = 0;
+  virtual void ParseParameters() = 0;
   // throw
   virtual void Initialize() = 0;
   virtual void ProcessItems(const OnItemCallback& callback) = 0;
 
-  virtual const Parameters::Accessor& GetCoreOptions() const = 0;
-
-  static std::auto_ptr<SourceComponent> Create(Parameters::Accessor::Ptr configParams);
+  static std::auto_ptr<SourceComponent> Create(Parameters::Container::Ptr configParams);
 };
 
 #endif //ZXTUNE123_SOURCE_H_DEFINED

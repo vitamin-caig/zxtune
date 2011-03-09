@@ -265,6 +265,8 @@ namespace
           return true;
         }
         ThrowIfError(ParseConfigFile(configFile, *ConfigParams));
+        Sourcer->ParseParameters();
+        Sounder->ParseParameters();
         return false;
       }
       catch (const std::exception& e)

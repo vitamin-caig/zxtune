@@ -106,16 +106,12 @@ namespace
 
     virtual void SetModule(ZXTune::Module::Player::ConstPtr player, uint_t frameDuration)
     {
-      if (Silent)
-      {
-        return;
-      }
       Player = player;
       const ZXTune::Module::Information::Ptr info = Player->GetInformation();
       TotalFrames = info->FramesCount();
       FrameDuration = frameDuration;
       TrackState = Player->GetTrackState();
-      if (ShowAnalyze)
+      if (!Silent && ShowAnalyze)
       {
         Analyzer = Player->GetAnalyzer();
       }
@@ -124,6 +120,10 @@ namespace
         Analyzer.reset();
       }
 
+      if (Silent)
+      {
+        return;
+      }
 #if 1
       StdOut
         << std::endl

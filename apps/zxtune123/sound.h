@@ -37,6 +37,7 @@ public:
   virtual ~SoundComponent() {}
   // commandline-related part
   virtual const boost::program_options::options_description& GetOptionsDescription() const = 0;
+  virtual void ParseParameters() = 0;
   // throw
   virtual void Initialize() = 0;
   // functional part
@@ -45,7 +46,7 @@ public:
   //parameters
   virtual uint_t GetFrameDuration() const = 0;
 
-  static std::auto_ptr<SoundComponent> Create(Parameters::Accessor::Ptr configParams);
+  static std::auto_ptr<SoundComponent> Create(Parameters::Container::Ptr configParams);
 };
 
 #endif //ZXTUNE123_SOUND_H_DEFINED

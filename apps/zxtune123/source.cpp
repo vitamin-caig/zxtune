@@ -255,9 +255,8 @@ namespace
   class Source : public SourceComponent
   {
   public:
-    Source(Parameters::Accessor::Ptr configParams)
-      : IOParams(configParams)
-      , CoreParams(configParams)
+    Source(Parameters::Container::Ptr configParams)
+      : Params(configParams)
       , OptionsDescription(Text::INPUT_SECTION)
       , ShowProgress(false)
       , YM(false)
@@ -278,21 +277,14 @@ namespace
       return OptionsDescription;
     }
 
-    // throw
-    virtual void Initialize()
+    virtual void ParseParameters()
     {
-      if (Files.empty())
-      {
-        throw Error(THIS_LINE, NO_INPUT_FILES, Text::INPUT_ERROR_NO_FILES);
-      }
-      Filter.reset(new PluginsFilter(Allowed, Denied));
-
       if (!ProvidersOptions.empty())
       {
         const Parameters::Container::Ptr ioParams = Parameters::Container::Create();
         ThrowIfError(ParseParametersString(Parameters::ZXTune::IO::Providers::PREFIX,
           ProvidersOptions, *ioParams));
-        IOParams = Parameters::CreateMergedAccessor(ioParams, IOParams);
+        ioParams->Process(*Params);
       }
 
       if (!CoreOptions.empty() || YM)
@@ -307,8 +299,18 @@ namespace
         {
           coreParams->SetIntValue(Parameters::ZXTune::Core::AYM::TYPE, 1);
         }
-        CoreParams = Parameters::CreateMergedAccessor(coreParams, CoreParams);
+        coreParams->Process(*Params);
       }
+    }
+
+    // throw
+    virtual void Initialize()
+    {
+      if (Files.empty())
+      {
+        throw Error(THIS_LINE, NO_INPUT_FILES, Text::INPUT_ERROR_NO_FILES);
+      }
+      Filter.reset(new PluginsFilter(Allowed, Denied));
     }
 
     virtual void ProcessItems(const OnItemCallback& callback)
@@ -320,21 +322,15 @@ namespace
         ZXTune::IO::DataContainer::Ptr data;
         String path, subpath;
         ThrowIfError(ZXTune::IO::SplitUri(*it, path, subpath));
-        ThrowIfError(ZXTune::IO::OpenData(path, *IOParams, 0, data));
+        ThrowIfError(ZXTune::IO::OpenData(path, *Params, 0, data));
 
         const ModulesProcessor processor(*it, callback);
         const DetectParametersImpl params(*Filter, processor, ShowProgress);
-        ThrowIfError(ZXTune::DetectModules(CoreParams, params, data, subpath));
+        ThrowIfError(ZXTune::DetectModules(Params, params, data, subpath));
       }
     }
-
-    virtual const Parameters::Accessor& GetCoreOptions() const
-    {
-      return *CoreParams;
-    }
   private:
-    Parameters::Accessor::Ptr IOParams;
-    Parameters::Accessor::Ptr CoreParams;
+    const Parameters::Container::Ptr Params;
     boost::program_options::options_description OptionsDescription;
     StringArray Files;
     String ProvidersOptions;
@@ -347,7 +343,7 @@ namespace
   };
 }
 
-std::auto_ptr<SourceComponent> SourceComponent::Create(Parameters::Accessor::Ptr configParams)
+std::auto_ptr<SourceComponent> SourceComponent::Create(Parameters::Container::Ptr configParams)
 {
   return std::auto_ptr<SourceComponent>(new Source(configParams));
 }
