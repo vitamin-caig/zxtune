@@ -58,10 +58,11 @@ namespace
   const uint_t MAX_SAMPLE_SIZE = 32;
 
   //detectors
-  const DataPrefix PLAYERS[] =
+  const DataPrefixChecker PLAYERS[] =
   {
     //STP0
-    {
+    DataPrefixChecker
+    (
       "21??"    // ld hl,xxxx
       "c3??"    // jp xxxx
       "c3??"    // jp xxxx
@@ -83,7 +84,7 @@ namespace
       "23"      // inc hl
       ,
       1896
-    }
+    )
   };
   //////////////////////////////////////////////////////////////////////////
 #ifdef USE_PRAGMA_PACK

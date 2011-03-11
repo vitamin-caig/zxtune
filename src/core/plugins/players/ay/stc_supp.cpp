@@ -57,9 +57,10 @@ namespace
   const uint_t SAMPLE_ORNAMENT_SIZE = 32;
 
   //detectors
-  static const DataPrefix PLAYERS[] =
+  static const DataPrefixChecker PLAYERS[] =
   {
-    {
+    DataPrefixChecker
+    (
       "21??"    // ld hl,xxxx
       "c3??"    // jp xxxx
       "c3??"    // jp xxxx
@@ -109,7 +110,7 @@ namespace
       "c9"      // ret
       ,
       0x43c
-    }
+    )
   };
 
 

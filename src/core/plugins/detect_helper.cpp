@@ -62,7 +62,7 @@ namespace ZXTune
     for (DataPrefixIterator chain = detector.GetPrefixes(); chain; ++chain)
     {
       if (limit > chain->PrefixSize &&
-          DetectFormat(data, limit, chain->PrefixDetectString) &&
+          chain->CheckPrefix(data, limit) &&
           detector.CheckData(data + chain->PrefixSize, limit - chain->PrefixSize))
       {
         return true;
@@ -91,7 +91,7 @@ namespace ZXTune
     {
       tmpRegion.Offset = chain->PrefixSize;
       if (limit < chain->PrefixSize ||
-          !DetectFormat(data, limit, chain->PrefixDetectString) ||
+          !chain->CheckPrefix(data, limit) ||
           !detector.CheckData(data + chain->PrefixSize, limit - tmpRegion.Offset))
       {
         continue;
@@ -124,7 +124,7 @@ namespace ZXTune
     {
       const std::size_t dataOffset = chain->PrefixSize;
       if (limit < dataOffset ||
-          !DetectFormat(rawData, dataOffset, chain->PrefixDetectString) ||
+          !chain->CheckPrefix(rawData, dataOffset) ||
           !detector.CheckData(rawData + dataOffset, limit - dataOffset))
       {
         continue;

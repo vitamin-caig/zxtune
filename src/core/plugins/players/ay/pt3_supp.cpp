@@ -57,10 +57,11 @@ namespace
   const uint_t MAX_ORNAMENT_SIZE = 64;
 
   //checkers
-  static const DataPrefix PLAYERS[] =
+  static const DataPrefixChecker PLAYERS[] =
   {
     //PT3.4 without signatures
-    {
+    DataPrefixChecker
+    (
       "21??"    // ld hl,xxxx
       "18?"     // jr xx
       "c3??"    // jp xxxx
@@ -72,9 +73,10 @@ namespace
       "09"      // add hl,bc
       ,
       3559
-    },
+    ),
     //PT3x
-    {
+    DataPrefixChecker
+    (
       "21??"    // ld hl,xxxx
       "18?"     // jr xx
       "c3??"    // jp xxxx
@@ -88,9 +90,10 @@ namespace
       "09"      // add hl,bc
       ,
       3617
-    },
+    ),
     //PT3.5x
-    {
+    DataPrefixChecker
+    (
       "21??"    // ld hl,xxxx
       "18?"     // jr xx
       "c3??"    // jp xxxx
@@ -105,9 +108,10 @@ namespace
       "09"      // add hl,bc
       ,
       3462
-    },
+    ),
     //PT3.5 without player text
-    {
+    DataPrefixChecker
+    (
       "21??"    // ld hl,xxxx
       "18?"     // jr xx
       "c3??"    // jp xxxx
@@ -133,9 +137,10 @@ namespace
       "09"      // add hl,bc
       ,
       0xc89
-    },
+    ),
     //Vortex1
-    {
+    DataPrefixChecker
+    (
       "21??"    // ld hl,xxxx
       "18?"     // jr xx
       "c3??"    // jp xxxx
@@ -157,9 +162,10 @@ namespace
       "c3"      // jp xxxx
       ,
       0x86e
-    },
+    ),
     //Vortex2
-    {
+    DataPrefixChecker
+    (
       "21??"    // ld hl,xxxx
       "18?"     // jr xx
       "c3??"    // jp xxxx
@@ -186,9 +192,10 @@ namespace
       "09"      // add hl,bc
       ,
       0xc00
-    },
+    ),
     //Vortex1.0
-    {
+    DataPrefixChecker
+    (
       "21??"    // ld hl,xxxx
       "18?"     // jr xx
       "c3??"    // jp xxxx
@@ -214,7 +221,7 @@ namespace
       "09"      // add hl,bc
       ,
       0xc00
-    }
+    )
   };
   //////////////////////////////////////////////////////////////////////////
   //possible values for Mode field

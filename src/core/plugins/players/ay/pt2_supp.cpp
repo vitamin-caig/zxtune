@@ -54,10 +54,11 @@ namespace
   const uint_t MAX_PATTERN_COUNT = 64;//TODO
 
   //checkers
-  const DataPrefix PLAYERS[] =
+  const DataPrefixChecker PLAYERS[] =
   {
     //PT20
-    {
+    DataPrefixChecker
+    (
       "21??"    // ld hl,xxxx
       "c3??"    // jp xxxx
       "c3+563+" // jp xxxx:ds 561
@@ -86,9 +87,10 @@ namespace
       "09"      // add hl,bc
       ,
       2591
-    },
+    ),
     //PT21
-    {
+    DataPrefixChecker
+    (
       "21??"    // ld hl,xxxx
       "c3??"    // jp xxxx
       "c3+14+"  // jp xxxx
@@ -96,9 +98,10 @@ namespace
       "322e31"
       ,
       0xa2f
-    },
+    ),
     //PT24
-    {
+    DataPrefixChecker
+    (
       "21??"    // ld hl,xxxx
       "1803"    // jr $+3
       "c3??"    // jp xxxx
@@ -113,7 +116,7 @@ namespace
       "23"      // inc hl
       ,
       2629
-    }
+    )
   };
 
   //////////////////////////////////////////////////////////////////////////

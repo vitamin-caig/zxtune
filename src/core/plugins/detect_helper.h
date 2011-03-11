@@ -16,18 +16,24 @@ Author:
 //local includes
 #include "enumerator.h"
 //common includes
+#include <detector.h>
 #include <iterator.h>
 
 namespace ZXTune
 {
-  struct DataPrefix
+  struct DataPrefixChecker
   {
-    //no default ctor to declare as a structure
-    const std::string PrefixDetectString;
+    const DetectFormatHelper CheckPrefix;
     const std::size_t PrefixSize;
+
+    DataPrefixChecker(const std::string& pattern, std::size_t size)
+      : CheckPrefix(pattern)
+      , PrefixSize(size)
+    {
+    }
   };
 
-  typedef RangeIterator<const DataPrefix*> DataPrefixIterator;
+  typedef RangeIterator<const DataPrefixChecker*> DataPrefixIterator;
 
   class DataDetector
   {

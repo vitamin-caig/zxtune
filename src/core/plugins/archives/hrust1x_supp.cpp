@@ -31,9 +31,10 @@ namespace
   const String HRUST1X_PLUGIN_VERSION(FromStdString("$Rev$"));
 
   //checkers
-  const DataPrefix DEPACKERS[] =
+  const DataPrefixChecker DEPACKERS[] =
   {
-    {
+    DataPrefixChecker
+    (
       "f3"      // di
       "ed73??"  // ld (xxxx),sp
       "11??"    // ld de,xxxx
@@ -54,9 +55,10 @@ namespace
       "c9"      // ret
       ,
       0x103
-    },
+    ),
 
-    {
+    DataPrefixChecker
+    (
       "dd21??"  // ld ix,xxxx
       "dd39"    // add ix,sp
       "d5"      // push de
@@ -91,7 +93,7 @@ namespace
       "10?"     // djnz xxx, (0xf7)
       ,
       0x100
-    }
+    )
   };
 
   class Hrust1xPlugin : public ArchivePlugin

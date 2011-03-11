@@ -29,9 +29,10 @@ namespace
   const String MSP_PLUGIN_VERSION(FromStdString("$Rev$"));
 
   //checkers
-  const DataPrefix DEPACKERS[] =
+  const DataPrefixChecker DEPACKERS[] =
   {
-    {
+    DataPrefixChecker
+    (
       "?"       // di/nop
       "ed73??"  // ld (xxxx),sp
       "d9"      // exx
@@ -55,7 +56,7 @@ namespace
       "c3??"    // jp xxxx
       ,
       0xe5
-    }
+    )
   };
 
   class MSPPlugin : public ArchivePlugin
