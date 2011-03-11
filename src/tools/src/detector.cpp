@@ -11,56 +11,133 @@ Author:
 
 //local includes
 #include "detector.h"
+#include "iterator.h"
 //std includes
 #include <cassert>
 #include <cctype>
 
 namespace
 {
+  const char ANY_BYTE_TEXT = '?';
+  const char SKIP_BYTES_TEXT = '+';
+
+  //hybyte=value lobyte=mask
+  const uint16_t ANY_BYTE_BIN = 0x0000;
+
+  uint16_t MakeByteBin(uint_t byte)
+  {
+    return byte * 256 + 0xff;
+  }
+
+  bool MatchByteBin(uint16_t bin, uint8_t byte)
+  {
+    return bin == ANY_BYTE_BIN ||
+      MakeByteBin(byte) == bin;
+  }
+
   inline uint8_t ToHex(char c)
   {
     assert(std::isxdigit(c));
     return std::isdigit(c) ? c - '0' : std::toupper(c) - 'A' + 10;
   }
+
+  typedef RangeIterator<std::string::const_iterator> PatternIterator;
+  typedef RangeIterator<BinaryPattern::const_iterator> BinaryPatternIterator;
+
+  std::size_t GetBytesToSkip(PatternIterator& it)
+  {
+    std::size_t skip = 0;
+    while (SKIP_BYTES_TEXT != *++it)
+    {
+      assert((it && std::isdigit(*it)) || !"Invalid pattern format");
+      skip = skip * 10 + (*it - '0');
+    }
+    return skip;
+  }
+
+  uint8_t GetByte(PatternIterator& it)
+  {
+    const char sym(*it);
+    ++it;
+    assert(it || !"Invalid pattern format");
+    const char sym1(*it);
+    return ToHex(sym) * 16 + ToHex(sym1);
+  }
 }
 
 bool DetectFormat(const uint8_t* data, std::size_t size, const std::string& pattern)
 {
-  for (std::string::const_iterator it = pattern.begin(), lim(pattern.end());
-    0 != size && it != lim; ++data, ++it, --size)
+  for (PatternIterator it(pattern.begin(), pattern.end()); it; ++data, ++it, --size)
   {
+    if (!size)
+    {
+      //data finished earlier than data
+      return false;
+    }
     const char sym(*it);
-    if ('?' == sym)
+    if (ANY_BYTE_TEXT == sym)
     {
       continue;//skip
     }
-    else if ('+' == sym)//skip
+    else if (SKIP_BYTES_TEXT == sym)//skip
     {
-      std::size_t skip(0);
-      while ('+' != *++it)
-      {
-        assert((std::isdigit(*it) && it != lim) || !"Invalid pattern format");
-        skip = skip * 10 + (*it - '0');
-      }
+      const std::size_t skip = GetBytesToSkip(it);
       if (skip >= size)
       {
         return false;
       }
-      --skip;
-      size -= skip;
-      data += skip;
+      size -= skip - 1;
+      data += skip - 1;
     }
     else
     {
-      ++it;
-      assert(it != lim || !"Invalid pattern format");
-      const char sym1(*it);
-      const uint8_t byte(ToHex(sym) * 16 + ToHex(sym1));
+      const uint8_t byte = GetByte(it);
       if (byte != *data)
       {
         return false;
       }
     }
   }
-  return 0 != size;
+  return true;
 }
+
+bool DetectFormat(const uint8_t* data, std::size_t size, const BinaryPattern& pattern)
+{
+  for (BinaryPatternIterator it(pattern.begin(), pattern.end()); it; ++data, ++it, --size)
+  {
+    if (!size)
+    {
+      return false;
+    }
+    if (!MatchByteBin(*it, *data))
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
+void CompileDetectPattern(const std::string& textPattern, BinaryPattern& binPattern)
+{
+  BinaryPattern result;
+  for (PatternIterator it(textPattern.begin(), textPattern.end()); it; ++it)
+  {
+    const char sym(*it);
+    if (ANY_BYTE_TEXT == sym)
+    {
+      result.push_back(ANY_BYTE_BIN);
+    }
+    else if (SKIP_BYTES_TEXT == sym)//skip
+    {
+      const std::size_t skip = GetBytesToSkip(it);
+      std::fill_n(std::back_inserter(result), skip, ANY_BYTE_BIN);
+    }
+    else
+    {
+      const uint8_t byte = GetByte(it);
+      result.push_back(MakeByteBin(byte));
+    }
+  }
+  binPattern.swap(result);
+}
+

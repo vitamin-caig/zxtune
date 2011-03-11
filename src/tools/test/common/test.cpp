@@ -4,6 +4,8 @@
 #include <parameters.h>
 #include <range_checker.h>
 #include <messages_collector.h>
+#include <detector.h>
+#include <tools.h>
 
 #include <iostream>
 #include <boost/bind.hpp>
@@ -98,6 +100,15 @@ namespace
     Test(test + ": size of sect2", area.GetAreaSize(SECTION2), s2size);
     Test(test + ": size of end", area.GetAreaSize(END), esize);
     Test(test + ": size of unspec", area.GetAreaSize(UNSPECIFIED), uint_t(0));
+  }
+
+  void TestDetector(const std::string& test, bool ref, const std::string& pattern)
+  {
+    static const uint8_t SAMPLE[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+    Test("Check for " + test + " (text)", ref == DetectFormat(SAMPLE, ArraySize(SAMPLE), pattern));
+    BinaryPattern binPattern;
+    CompileDetectPattern(pattern, binPattern);
+    Test("Check for " + test + " (binary)", ref == DetectFormat(SAMPLE, ArraySize(SAMPLE), binPattern));
   }
 }
 
@@ -209,6 +220,17 @@ int main()
       areas.AddArea(END, 10);
       TestAreaSizes("Duplicated", areas, 10, 0, 0, 20);
     }
+  }
+  std::cout << "---- Test for format detector ----" << std::endl;
+  {
+    TestDetector("whole explicit match", true, "00010203040506070809");
+    TestDetector("partial explicit match", true, "000102030405");
+    TestDetector("whole mask match", true, "?010203040506070809");
+    TestDetector("partial mask match", true, "00?02030405");
+    TestDetector("whole skip match", true, "00+8+09");
+    TestDetector("partial skip match", true, "00+4+05");
+    TestDetector("full oversize unmatch", false, "000102030405060708090a");
+    TestDetector("unmatch", false, "01");
   }
   }
   catch (int code)
