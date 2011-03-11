@@ -278,15 +278,6 @@ namespace ESVCruncher
       return true;
     }
 
-    bool FullCheck() const
-    {
-      if (!FastCheck())
-      {
-        return false;
-      }
-      return DetectFormat(Data, Size, DEPACKER_PATTERN);
-    }
-
     uint_t GetUsedSize() const
     {
       const RawHeader& header = GetHeader();
@@ -419,16 +410,21 @@ namespace Formats
     class ESVCruncherDecoder : public Decoder
     {
     public:
+      ESVCruncherDecoder()
+        : DetectFormat(ESVCruncher::DEPACKER_PATTERN)
+      {
+      }
+
       virtual bool Check(const void* data, std::size_t availSize) const
       {
         const ESVCruncher::Container container(data, availSize);
-        return container.FullCheck();
+        return container.FastCheck() && DetectFormat(data, availSize);
       }
 
       virtual std::auto_ptr<Dump> Decode(const void* data, std::size_t availSize, std::size_t& usedSize) const
       {
         const ESVCruncher::Container container(data, availSize);
-        assert(container.FullCheck());
+        assert(container.FastCheck());
         ESVCruncher::DataDecoder decoder(container);
         if (Dump* decoded = decoder.GetDecodedData())
         {
@@ -439,6 +435,8 @@ namespace Formats
         }
         return std::auto_ptr<Dump>();
       }
+    private:
+      const DetectFormatHelper DetectFormat;
     };
 
     Decoder::Ptr CreateESVCruncherDecoder()

@@ -173,15 +173,6 @@ namespace LZS
       return true;
     }
 
-    bool FullCheck() const
-    {
-      if (!FastCheck())
-      {
-        return false;
-      }
-      return DetectFormat(Data, Size, DEPACKER_PATTERN);
-    }
-
     uint_t GetUsedSize() const
     {
       const RawHeader& header = GetHeader();
@@ -287,16 +278,21 @@ namespace Formats
     class LZSDecoder : public Decoder
     {
     public:
+      LZSDecoder()
+        : DetectFormat(LZS::DEPACKER_PATTERN)
+      {
+      }
+
       virtual bool Check(const void* data, std::size_t availSize) const
       {
         const LZS::Container container(data, availSize);
-        return container.FullCheck();
+        return container.FastCheck() && DetectFormat(data, availSize);
       }
 
       virtual std::auto_ptr<Dump> Decode(const void* data, std::size_t availSize, std::size_t& usedSize) const
       {
         const LZS::Container container(data, availSize);
-        assert(container.FullCheck());
+        assert(container.FastCheck());
         LZS::DataDecoder decoder(container);
         if (Dump* decoded = decoder.GetDecodedData())
         {
@@ -307,6 +303,8 @@ namespace Formats
         }
         return std::auto_ptr<Dump>();
       }
+    private:
+      const DetectFormatHelper DetectFormat;
     };
 
     Decoder::Ptr CreateLZSDecoder()

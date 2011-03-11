@@ -185,15 +185,6 @@ namespace PowerfullCodeDecreaser6
       return usedSize <= Size;
     }
 
-    bool FullCheck() const
-    {
-      if (!FastCheck())
-      {
-        return false;
-      }
-      return DetectFormat(Data, Size, Version::DEPACKER_PATTERN);
-    }
-
     uint_t GetUsedSize() const
     {
       const typename Version::RawHeader& header = GetHeader();
@@ -390,15 +381,21 @@ namespace Formats
     class PowerfullCodeDecreaser6Decoder : public Decoder
     {
     public:
+      PowerfullCodeDecreaser6Decoder()
+        : DetectFormat61(PowerfullCodeDecreaser6::Version61::DEPACKER_PATTERN)
+        , DetectFormat62(PowerfullCodeDecreaser6::Version62::DEPACKER_PATTERN)
+      {
+      }
+
       virtual bool Check(const void* data, std::size_t availSize) const
       {
         const PowerfullCodeDecreaser6::Container<PowerfullCodeDecreaser6::Version61> container61(data, availSize);
-        if (container61.FullCheck())
+        if (container61.FastCheck() && DetectFormat61(data, availSize))
         {
           return true;
         }
         const PowerfullCodeDecreaser6::Container<PowerfullCodeDecreaser6::Version62> container62(data, availSize);
-        return container62.FullCheck();
+        return container62.FastCheck() && DetectFormat62(data, availSize);
       }
 
       virtual std::auto_ptr<Dump> Decode(const void* data, std::size_t availSize, std::size_t& usedSize) const
@@ -430,6 +427,9 @@ namespace Formats
         }
         return std::auto_ptr<Dump>();
       }
+    private:
+      const DetectFormatHelper DetectFormat61;
+      const DetectFormatHelper DetectFormat62;
     };
 
     Decoder::Ptr CreatePowerfullCodeDecreaser6Decoder()

@@ -27,4 +27,20 @@ bool DetectFormat(const uint8_t* data, std::size_t size, const BinaryPattern& pa
 
 void CompileDetectPattern(const std::string& textPattern, BinaryPattern& binPattern);
 
+class DetectFormatHelper
+{
+public:
+  explicit DetectFormatHelper(const std::string& txtPattern)
+  {
+    CompileDetectPattern(txtPattern, Pattern);
+  }
+
+  bool operator ()(const void* data, std::size_t size) const
+  {
+    return DetectFormat(static_cast<const uint8_t*>(data), size, Pattern);
+  }
+private:
+  BinaryPattern Pattern;
+};
+
 #endif //__DETECTOR_H_DEFINED__
