@@ -44,7 +44,7 @@ namespace
     virtual Error Convert(const boost::function<Player::Ptr(AYM::Chip::Ptr)>& creator, Dump& dst) const
     {
       Dump tmp;
-      AYM::Chip::Ptr chip = AYM::CreateRawStreamDumper(tmp);
+      AYM::Chip::Ptr chip = CreateChip(tmp);
       Player::Ptr player(creator(chip));
       const Module::Information::Ptr info = player->GetInformation();
       const Parameters::Accessor::Ptr props = info->Properties();
