@@ -33,6 +33,7 @@ Author:
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/thread/mutex.hpp>
+#include <boost/algorithm/string/replace.hpp>
 //text includes
 #include "text/text.h"
 
@@ -211,6 +212,28 @@ namespace
     return String();
   }
 
+  class HTMLEscapedFieldsSourceAdapter : public Parameters::FieldsSourceAdapter<SkipFieldsSource>
+  {
+    typedef Parameters::FieldsSourceAdapter<SkipFieldsSource> Parent;
+  public:
+    explicit HTMLEscapedFieldsSourceAdapter(const Parameters::Accessor& props)
+      : Parent(props)
+    {
+    }
+
+    virtual String GetFieldValue(const String& fieldName) const
+    {
+      static const Char AMPERSAND[] = {'&', 0};
+      static const Char AMPERSAND_ESCAPED[] = {'&', 'a', 'm', 'p', ';', 0};
+      static const Char LBRACKET[] = {'<', 0};
+      static const Char LBRACKET_ESCAPED[] = {'&', 'l', 't', ';', 0};
+      String result = Parent::GetFieldValue(fieldName);
+      boost::algorithm::replace_all(result, AMPERSAND, AMPERSAND_ESCAPED);
+      boost::algorithm::replace_all(result, LBRACKET, LBRACKET_ESCAPED);
+      return result;
+    }
+  };
+
   class DynamicAttributesProvider
   {
   public:
@@ -236,7 +259,7 @@ namespace
 
     String GetTooltip(const Parameters::Accessor& properties) const
     {
-      const Parameters::FieldsSourceAdapter<SkipFieldsSource> adapter(properties);
+      const HTMLEscapedFieldsSourceAdapter adapter(properties);
       return TooltipTemplate->Instantiate(adapter);
     }
   private:
