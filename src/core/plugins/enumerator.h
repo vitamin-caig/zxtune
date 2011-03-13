@@ -84,6 +84,7 @@ namespace ZXTune
   {
   public:
     typedef boost::shared_ptr<const PlayerPlugin> Ptr;
+    typedef ObjectIterator<PlayerPlugin::Ptr> Iterator;
 
     //! @brief Checking if data contains module
     //! @return true if possibly yes, false if defenitely no
@@ -103,6 +104,7 @@ namespace ZXTune
   {
   public:
     typedef boost::shared_ptr<const ArchivePlugin> Ptr;
+    typedef ObjectIterator<ArchivePlugin::Ptr> Iterator;
 
     //! @brief Checking if data contains subdata
     //! @return true if possibly yes, false if defenitely no
@@ -122,6 +124,7 @@ namespace ZXTune
   {
   public:
     typedef boost::shared_ptr<const ContainerPlugin> Ptr;
+    typedef ObjectIterator<ContainerPlugin::Ptr> Iterator;
 
     //! @brief Checking if data contains valid subdata
     //! @return true if possibly yes, false if defenitely no
@@ -164,6 +167,9 @@ namespace ZXTune
     virtual Plugin::Iterator::Ptr Enumerate() const = 0;
 
     //private interface
+    virtual PlayerPlugin::Iterator::Ptr EnumeratePlayers() const = 0;
+    virtual ArchivePlugin::Iterator::Ptr EnumerateArchives() const = 0;
+    virtual ContainerPlugin::Iterator::Ptr EnumerateContainers() const = 0;
     //resolve subpath
     virtual void ResolveSubpath(const Parameters::Accessor& coreParams, IO::DataContainer::Ptr data,
       const String& subpath, MetaContainer& result) const = 0;

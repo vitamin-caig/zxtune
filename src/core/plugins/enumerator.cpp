@@ -42,6 +42,7 @@ namespace
 
   const std::string THIS_MODULE("Core::Enumerator");
 
+  typedef std::vector<Plugin::Ptr> PluginsArray;
   typedef std::vector<PlayerPlugin::Ptr> PlayerPluginsArray;
   typedef std::vector<ArchivePlugin::Ptr> ArchivePluginsArray;
   typedef std::vector<ContainerPlugin::Ptr> ContainerPluginsArray;
@@ -87,41 +88,13 @@ namespace
     Log::MessageData Message;
   };
 
-  typedef std::list<Plugin::Ptr> PluginsList;
-
-  class PluginStub : public Plugin
+  template<class PluginType>
+  class TypedPluginIterator : public PluginType::Iterator
   {
   public:
-    virtual String Id() const
-    {
-      return String();
-    }
-
-    virtual String Description() const
-    {
-      return String();
-    }
-
-    virtual String Version() const
-    {
-      return String();
-    }
-
-    virtual uint_t Capabilities() const
-    {
-      return 0;
-    }
-
-    static void Deleter(PluginStub*)
-    {
-    }
-  };
-
-  class PluginIteratorImpl : public Plugin::Iterator
-  {
-  public:
-    PluginIteratorImpl(PluginsList::const_iterator from,
-                       PluginsList::const_iterator to)
+    typedef std::vector<typename PluginType::Ptr> TypedPluginsList;
+    TypedPluginIterator(typename TypedPluginsList::const_iterator from,
+      typename TypedPluginsList::const_iterator to)
       : Pos(from), Limit(to)
     {
     }
@@ -131,7 +104,7 @@ namespace
       return Pos != Limit;
     }
 
-    virtual Plugin::Ptr Get() const
+    virtual typename PluginType::Ptr Get() const
     {
       //since this implementation is passed to external client, make it as safe as possible
       if (Pos != Limit)
@@ -139,8 +112,7 @@ namespace
         return *Pos;
       }
       assert(!"Plugin iterator is out of range");
-      static PluginStub stub;
-      return Plugin::Ptr(&stub, &PluginStub::Deleter);
+      return typename PluginType::Ptr();
     }
 
     virtual void Next()
@@ -155,12 +127,13 @@ namespace
       }
     }
   private:
-    PluginsList::const_iterator Pos;
-    const PluginsList::const_iterator Limit;
+    typename TypedPluginsList::const_iterator Pos;
+    const typename TypedPluginsList::const_iterator Limit;
   };
 
   class PluginsChainImpl : public PluginsChain
   {
+    typedef std::list<Plugin::Ptr> PluginsList;
   public:
     PluginsChainImpl()
       : NestingCache(-1)
@@ -186,8 +159,7 @@ namespace
         return Container.back();
       }
       assert(!"No plugins in chain");
-      static PluginStub stub;
-      return Plugin::Ptr(&stub, &PluginStub::Deleter);
+      return Plugin::Ptr();
     }
 
     virtual PluginsChain::Ptr Clone() const
@@ -262,7 +234,23 @@ namespace
     //public interface
     virtual Plugin::Iterator::Ptr Enumerate() const
     {
-      return Plugin::Iterator::Ptr(new PluginIteratorImpl(AllPlugins.begin(), AllPlugins.end()));
+      return Plugin::Iterator::Ptr(new TypedPluginIterator<Plugin>(AllPlugins.begin(), AllPlugins.end()));
+    }
+
+    //private interface
+    virtual PlayerPlugin::Iterator::Ptr EnumeratePlayers() const
+    {
+      return PlayerPlugin::Iterator::Ptr(new TypedPluginIterator<PlayerPlugin>(PlayerPlugins.begin(), PlayerPlugins.end()));
+    }
+
+    virtual ArchivePlugin::Iterator::Ptr EnumerateArchives() const
+    {
+      return ArchivePlugin::Iterator::Ptr(new TypedPluginIterator<ArchivePlugin>(ArchivePlugins.begin(), ArchivePlugins.end()));
+    }
+
+    virtual ContainerPlugin::Iterator::Ptr EnumerateContainers() const
+    {
+      return ContainerPlugin::Iterator::Ptr(new TypedPluginIterator<ContainerPlugin>(ContainerPlugins.begin(), ContainerPlugins.end()));
     }
 
     // Open subpath in despite of filter and other
@@ -510,7 +498,7 @@ namespace
       return false;
     }
   private:
-    PluginsList AllPlugins;
+    PluginsArray AllPlugins;
     ContainerPluginsArray ContainerPlugins;
     ArchivePluginsArray ArchivePlugins;
     PlayerPluginsArray PlayerPlugins;
