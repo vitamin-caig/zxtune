@@ -16,19 +16,7 @@ fi
 # checking for textator or assume that texts are correct
 textator --version > /dev/null 2>&1 || export NO_TEXTATOR=1
 
-if [ "x${STATIC_QT_PATH}y${STATIC_BOOST_PATH}" != "xy" ]; then
-echo Using static runtime
-options="static_runtime=1"
-Arch+="-any"
-fi
-
 cpus=`grep processor /proc/cpuinfo | wc -l`
-makecmd="make platform=${Platform} release=1 arch=${Arch} -C apps"
-
-if [ "${skip_clearing}" = "" ]; then
-echo "Clearing"
-${makecmd} clean > /dev/null || exit 1
-fi
 
 # adding additional platform properties if required
 case ${Arch} in
@@ -48,4 +36,15 @@ case ${Arch} in
     ;;
 esac
 
+if [ "x${STATIC_QT_PATH}y${STATIC_BOOST_PATH}" != "xy" ]; then
+echo Using static runtime
+options="static_runtime=1"
+Arch+="-any"
+fi
+
+makecmd="make platform=${Platform} release=1 arch=${Arch} -C apps"
+if [ "${skip_clearing}" = "" ]; then
+echo "Clearing"
+${makecmd} clean > /dev/null || exit 1
+fi
 time ${makecmd} -j ${cpus} package ${options} cxx_flags="${cxx_flags}" ld_flags="${ld_flags}" && echo Done
