@@ -278,7 +278,7 @@ namespace Hrust2
       {
         //just copy
         Decoded.resize(size);
-        std::memcpy(&Decoded, &Header.Stream, size);
+        std::memcpy(&Decoded[0], &Header.Stream, size);
         return true;
       }
       RawDataDecoder decoder(Header.Stream, fromLE(Header.PackedSize));
