@@ -2,4 +2,4 @@
 
 call make\platforms\setup_mingw.bat
 
-call build.bat mingw x86
+call build.bat

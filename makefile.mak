@@ -65,6 +65,10 @@ all: $(target)
 #set compiler-specific parameters
 include $(path_step)/make/compilers/$(compiler).mak
 
+#set default environment
+$(platform)_definitions += "BUILD_PLATFORM=$(platform)"
+$(platform)_definitions += "BUILD_ARCH=$(arch)"
+
 #calculate input source files
 ifdef source_dirs
 source_files += $(basename $(wildcard $(addsuffix /*$(src_suffix),$(source_dirs))))
