@@ -12,7 +12,7 @@ Author:
 //local includes
 #include "ay_base.h"
 #include "ay_conversion.h"
-#include <core/plugins/enumerator.h>
+#include <core/plugins/registrator.h>
 #include <core/plugins/players/module_properties.h>
 #include <core/plugins/players/streaming.h>
 //common includes
@@ -306,9 +306,9 @@ namespace
 
 namespace ZXTune
 {
-  void RegisterPSGSupport(PluginsEnumerator& enumerator)
+  void RegisterPSGSupport(PluginsRegistrator& registrator)
   {
     const PlayerPlugin::Ptr plugin(new PSGPlugin());
-    enumerator.RegisterPlugin(plugin);
+    registrator.RegisterPlugin(plugin);
   }
 }

@@ -10,7 +10,8 @@ Author:
 */
 
 //local includes
-#include <core/plugins/enumerator.h>
+#include <core/plugins/enumerator.h>//TODO
+#include <core/plugins/registrator.h>
 #include "trdos_utils.h"
 //common includes
 #include <byteorder.h>
@@ -254,7 +255,7 @@ namespace
       }
       if (uint_t entriesCount = files->GetEntriesCount())
       {
-        const PluginsEnumerator& enumerator = PluginsEnumerator::Instance();
+        const PluginsEnumeratorOld& oldEnumerator = PluginsEnumeratorOld::Instance();
 
         MetaContainer subcontainer;
         subcontainer.Plugins = data.Plugins->Clone();
@@ -266,7 +267,7 @@ namespace
           subcontainer.Data = data.Data->GetSubcontainer(entry.Offset, entry.Size);
           subcontainer.Path = IO::AppendPath(data.Path, entry.Name);
           logger(entry);
-          enumerator.DetectModules(params, detectParams, subcontainer);
+          oldEnumerator.DetectModules(params, detectParams, subcontainer);
         }
       }
       return TRD_MODULE_SIZE;
@@ -298,9 +299,9 @@ namespace
 
 namespace ZXTune
 {
-  void RegisterTRDContainer(PluginsEnumerator& enumerator)
+  void RegisterTRDContainer(PluginsRegistrator& registrator)
   {
     const ContainerPlugin::Ptr plugin(new TRDPlugin());
-    enumerator.RegisterPlugin(plugin);
+    registrator.RegisterPlugin(plugin);
   }
 }

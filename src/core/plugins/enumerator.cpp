@@ -90,49 +90,6 @@ namespace
     Log::MessageData Message;
   };
 
-  template<class PluginType>
-  class TypedPluginIterator : public PluginType::Iterator
-  {
-  public:
-    typedef std::vector<typename PluginType::Ptr> TypedPluginsList;
-    TypedPluginIterator(typename TypedPluginsList::const_iterator from,
-      typename TypedPluginsList::const_iterator to)
-      : Pos(from), Limit(to)
-    {
-    }
-
-    virtual bool IsValid() const
-    {
-      return Pos != Limit;
-    }
-
-    virtual typename PluginType::Ptr Get() const
-    {
-      //since this implementation is passed to external client, make it as safe as possible
-      if (Pos != Limit)
-      {
-        return *Pos;
-      }
-      assert(!"Plugin iterator is out of range");
-      return typename PluginType::Ptr();
-    }
-
-    virtual void Next()
-    {
-      if (Pos != Limit)
-      {
-        ++Pos;
-      }
-      else
-      {
-        assert(!"Plugin iterator is out of range");
-      }
-    }
-  private:
-    typename TypedPluginsList::const_iterator Pos;
-    const typename TypedPluginsList::const_iterator Limit;
-  };
-
   class PluginsChainImpl : public PluginsChain
   {
     typedef std::list<Plugin::Ptr> PluginsList;
@@ -202,14 +159,68 @@ namespace
     mutable int_t NestingCache;
   };
 
-  class PluginsEnumeratorImpl : public PluginsEnumerator
+  class FilteredPluginsRegistrator : public PluginsRegistrator
   {
   public:
-    PluginsEnumeratorImpl()
+    FilteredPluginsRegistrator(PluginsRegistrator& delegate, const PluginsEnumerator::Filter& filter)
+      : Delegate(delegate)
+      , Filter(filter)
     {
-      RegisterContainerPlugins(*this);
-      RegisterArchivePlugins(*this);
-      RegisterPlayerPlugins(*this);
+    }
+
+    virtual void RegisterPlugin(PlayerPlugin::Ptr plugin)
+    {
+      if (Filter.IsPluginEnabled(*plugin))
+      {
+        Delegate.RegisterPlugin(plugin);
+      }
+    }
+
+    virtual void RegisterPlugin(ArchivePlugin::Ptr plugin)
+    {
+      if (Filter.IsPluginEnabled(*plugin))
+      {
+        Delegate.RegisterPlugin(plugin);
+      }
+    }
+
+    virtual void RegisterPlugin(ContainerPlugin::Ptr plugin)
+    {
+      if (Filter.IsPluginEnabled(*plugin))
+      {
+        Delegate.RegisterPlugin(plugin);
+      }
+    }
+  private:
+    PluginsRegistrator& Delegate;
+    const PluginsEnumerator::Filter& Filter;
+  };
+
+  void RegisterAllPlugins(PluginsRegistrator& registrator)
+  {
+    RegisterContainerPlugins(registrator);
+    RegisterArchivePlugins(registrator);
+    RegisterPlayerPlugins(registrator);
+  }
+
+  void RegisterPlugins(PluginsRegistrator& registrator, const PluginsEnumerator::Filter& filter)
+  {
+    FilteredPluginsRegistrator filtered(registrator, filter);
+    RegisterAllPlugins(filtered);
+  }
+
+  class PluginsContainer : public PluginsRegistrator
+                         , public PluginsEnumerator
+  {
+  public:
+    PluginsContainer()
+    {
+      RegisterAllPlugins(*this);
+    }
+
+    explicit PluginsContainer(const PluginsEnumerator::Filter& filter)
+    {
+      RegisterPlugins(*this, filter);
     }
 
     virtual void RegisterPlugin(PlayerPlugin::Ptr plugin)
@@ -236,25 +247,37 @@ namespace
     //public interface
     virtual Plugin::Iterator::Ptr Enumerate() const
     {
-      return Plugin::Iterator::Ptr(new TypedPluginIterator<Plugin>(AllPlugins.begin(), AllPlugins.end()));
+      return CreateRangedObjectIteratorAdapter(AllPlugins.begin(), AllPlugins.end());
     }
 
     //private interface
     virtual PlayerPlugin::Iterator::Ptr EnumeratePlayers() const
     {
-      return PlayerPlugin::Iterator::Ptr(new TypedPluginIterator<PlayerPlugin>(PlayerPlugins.begin(), PlayerPlugins.end()));
+      return CreateRangedObjectIteratorAdapter(PlayerPlugins.begin(), PlayerPlugins.end());
     }
 
     virtual ArchivePlugin::Iterator::Ptr EnumerateArchives() const
     {
-      return ArchivePlugin::Iterator::Ptr(new TypedPluginIterator<ArchivePlugin>(ArchivePlugins.begin(), ArchivePlugins.end()));
+      return CreateRangedObjectIteratorAdapter(ArchivePlugins.begin(), ArchivePlugins.end());
     }
 
     virtual ContainerPlugin::Iterator::Ptr EnumerateContainers() const
     {
-      return ContainerPlugin::Iterator::Ptr(new TypedPluginIterator<ContainerPlugin>(ContainerPlugins.begin(), ContainerPlugins.end()));
+      return CreateRangedObjectIteratorAdapter(ContainerPlugins.begin(), ContainerPlugins.end());
     }
+  private:
+    PluginsArray AllPlugins;
+    ContainerPluginsArray ContainerPlugins;
+    ArchivePluginsArray ArchivePlugins;
+    PlayerPluginsArray PlayerPlugins;
 
+    //TODO: remove
+    friend class PluginsEnumeratorOldImpl;
+  };
+
+  class PluginsEnumeratorOldImpl : public PluginsEnumeratorOld, private PluginsContainer
+  {
+  public:
     // Open subpath in despite of filter and other
     virtual void ResolveSubpath(const Parameters::Accessor& commonParams, IO::DataContainer::Ptr data,
       const String& subpath, MetaContainer& result) const
@@ -499,30 +522,37 @@ namespace
       }
       return false;
     }
-  private:
-    PluginsArray AllPlugins;
-    ContainerPluginsArray ContainerPlugins;
-    ArchivePluginsArray ArchivePlugins;
-    PlayerPluginsArray PlayerPlugins;
   };
 }
 
 namespace ZXTune
 {
+  PluginsEnumerator::Ptr PluginsEnumerator::Create()
+  {
+    static PluginsContainer Instance;
+    return PluginsEnumerator::Ptr(&Instance, &NullDeleter<PluginsEnumerator>);
+  }
+
+  PluginsEnumerator::Ptr PluginsEnumerator::Create(const PluginsEnumerator::Filter& filter)
+  {
+    return PluginsEnumerator::Ptr(new PluginsContainer(filter));
+  }
+
   PluginsChain::Ptr PluginsChain::Create()
   {
     return boost::make_shared<PluginsChainImpl>();
   }
 
-  PluginsEnumerator& PluginsEnumerator::Instance()
+  PluginsEnumeratorOld& PluginsEnumeratorOld::Instance()
   {
-    static PluginsEnumeratorImpl instance;
+    static PluginsEnumeratorOldImpl instance;
     return instance;
   }
 
   Plugin::Iterator::Ptr EnumeratePlugins()
   {
-    return PluginsEnumerator::Instance().Enumerate();
+    //TODO: remove
+    return PluginsEnumerator::Create()->Enumerate();
   }
 
   Error DetectModules(Parameters::Accessor::Ptr modulesParams, const DetectParameters& detectParams,
@@ -534,7 +564,7 @@ namespace ZXTune
     }
     try
     {
-      const PluginsEnumerator& enumerator(PluginsEnumerator::Instance());
+      const PluginsEnumeratorOld& enumerator(PluginsEnumeratorOld::Instance());
       MetaContainer subcontainer;
       enumerator.ResolveSubpath(*modulesParams, data, startSubpath, subcontainer);
       enumerator.DetectModules(modulesParams, detectParams, subcontainer);
@@ -560,7 +590,7 @@ namespace ZXTune
     }
     try
     {
-      const PluginsEnumerator& enumerator(PluginsEnumerator::Instance());
+      const PluginsEnumeratorOld& enumerator(PluginsEnumeratorOld::Instance());
       MetaContainer subcontainer;
       enumerator.ResolveSubpath(*moduleParams, data, subpath, subcontainer);
       //try to detect and process single modules

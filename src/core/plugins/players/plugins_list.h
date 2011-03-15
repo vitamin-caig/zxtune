@@ -16,20 +16,20 @@ Author:
 namespace ZXTune
 {
   //forward declaration
-  class PluginsEnumerator;
+  class PluginsRegistrator;
 
-  void RegisterTSSupport(PluginsEnumerator& enumerator);
-  void RegisterPSGSupport(PluginsEnumerator& enumerator);
-  void RegisterSTCSupport(PluginsEnumerator& enumerator);
-  void RegisterPT2Support(PluginsEnumerator& enumerator);
-  void RegisterPT3Support(PluginsEnumerator& enumerator);
-  void RegisterASCSupport(PluginsEnumerator& enumerator);
-  void RegisterSTPSupport(PluginsEnumerator& enumerator);
-  void RegisterTXTSupport(PluginsEnumerator& enumerator);
-  void RegisterPDTSupport(PluginsEnumerator& enumerator);
-  void RegisterCHISupport(PluginsEnumerator& enumerator);
+  void RegisterTSSupport(PluginsRegistrator& enumerator);
+  void RegisterPSGSupport(PluginsRegistrator& enumerator);
+  void RegisterSTCSupport(PluginsRegistrator& enumerator);
+  void RegisterPT2Support(PluginsRegistrator& enumerator);
+  void RegisterPT3Support(PluginsRegistrator& enumerator);
+  void RegisterASCSupport(PluginsRegistrator& enumerator);
+  void RegisterSTPSupport(PluginsRegistrator& enumerator);
+  void RegisterTXTSupport(PluginsRegistrator& enumerator);
+  void RegisterPDTSupport(PluginsRegistrator& enumerator);
+  void RegisterCHISupport(PluginsRegistrator& enumerator);
 
-  void RegisterPlayerPlugins(PluginsEnumerator& enumerator)
+  void RegisterPlayerPlugins(PluginsRegistrator& enumerator)
   {
     //try TS first
     RegisterTSSupport(enumerator);

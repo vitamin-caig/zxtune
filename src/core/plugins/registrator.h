@@ -29,8 +29,6 @@ namespace ZXTune
     virtual void RegisterPlugin(ArchivePlugin::Ptr plugin) = 0;
     //nested containers support
     virtual void RegisterPlugin(ContainerPlugin::Ptr plugin) = 0;
-
-    static PluginsRegistrator& Instance();
   };
 }
 

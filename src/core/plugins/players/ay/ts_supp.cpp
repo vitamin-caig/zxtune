@@ -11,7 +11,7 @@ Author:
 
 //local includes
 #include "ts_base.h"
-#include <core/plugins/enumerator.h>
+#include <core/plugins/registrator.h>
 #include <core/plugins/players/tracking.h>
 //common includes
 #include <byteorder.h>
@@ -529,20 +529,20 @@ namespace
       const Footer* const footer = safe_ptr_cast<const Footer*>(dump.Data() + footerOffset);
       const std::size_t firstModuleSize = fromLE(footer->Size1);
 
-      const PluginsEnumerator& enumerator(PluginsEnumerator::Instance());
+      const PluginsEnumeratorOld& oldEnumerator(PluginsEnumeratorOld::Instance());
 
       try
       {
         MetaContainer subdata(container);
         subdata.Data = container.Data->GetSubcontainer(0, firstModuleSize);
-        const Module::Holder::Ptr holder1 = enumerator.OpenModule(parameters, subdata);
+        const Module::Holder::Ptr holder1 = oldEnumerator.OpenModule(parameters, subdata);
         if (InvalidHolder(*holder1))
         {
           Log::Debug(THIS_MODULE, "Invalid first module holder");
           return Module::Holder::Ptr();
         }
         subdata.Data = container.Data->GetSubcontainer(firstModuleSize, footerOffset - firstModuleSize);
-        const Module::Holder::Ptr holder2 = enumerator.OpenModule(parameters, subdata);
+        const Module::Holder::Ptr holder2 = oldEnumerator.OpenModule(parameters, subdata);
         if (InvalidHolder(*holder2))
         {
           Log::Debug(THIS_MODULE, "Failed to create second module holder");
@@ -573,9 +573,9 @@ namespace
 
 namespace ZXTune
 {
-  void RegisterTSSupport(PluginsEnumerator& enumerator)
+  void RegisterTSSupport(PluginsRegistrator& registrator)
   {
     const PlayerPlugin::Ptr plugin(new TSPlugin());
-    enumerator.RegisterPlugin(plugin);
+    registrator.RegisterPlugin(plugin);
   }
 }

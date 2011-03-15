@@ -12,7 +12,7 @@ Author:
 //local includes
 #include "../tracking.h"
 #include "dac_base.h"
-#include <core/plugins/enumerator.h>
+#include <core/plugins/registrator.h>
 #include <core/plugins/utils.h>
 #include <core/plugins/players/module_properties.h>
 //common includes
@@ -720,9 +720,9 @@ namespace
 
 namespace ZXTune
 {
-  void RegisterPDTSupport(PluginsEnumerator& enumerator)
+  void RegisterPDTSupport(PluginsRegistrator& registrator)
   {
     const PlayerPlugin::Ptr plugin(new PDTPlugin());
-    enumerator.RegisterPlugin(plugin);
+    registrator.RegisterPlugin(plugin);
   }
 }

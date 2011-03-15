@@ -11,7 +11,7 @@ Author:
 
 //local includes
 #include <core/plugins/detect_helper.h>
-#include <core/plugins/enumerator.h>
+#include <core/plugins/registrator.h>
 //common includes
 #include <tools.h>
 //library includes
@@ -126,9 +126,9 @@ namespace
 
 namespace ZXTune
 {
-  void RegisterMSPConvertor(PluginsEnumerator& enumerator)
+  void RegisterMSPConvertor(PluginsRegistrator& registrator)
   {
     const ArchivePlugin::Ptr plugin(new MSPPlugin());
-    enumerator.RegisterPlugin(plugin);
+    registrator.RegisterPlugin(plugin);
   }
 }

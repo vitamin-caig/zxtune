@@ -11,7 +11,8 @@ Author:
 
 //local includes
 #include "trdos_utils.h"
-#include <core/plugins/enumerator.h>
+#include <core/plugins/enumerator.h>//TODO
+#include <core/plugins/registrator.h>
 #include <core/plugins/utils.h>
 //common includes
 #include <byteorder.h>
@@ -330,7 +331,7 @@ namespace
         DetectParams.ReportMessage(message);
       }
 
-      PluginsEnumerator::Instance().DetectModules(Params, DetectParams, SubMetacontainer);
+      PluginsEnumeratorOld::Instance().DetectModules(Params, DetectParams, SubMetacontainer);
       return CONTINUE;
     }
   private:
@@ -439,9 +440,9 @@ namespace
 
 namespace ZXTune
 {
-  void RegisterHRIPContainer(PluginsEnumerator& enumerator)
+  void RegisterHRIPContainer(PluginsRegistrator& registrator)
   {
     const ContainerPlugin::Ptr plugin(new HRIPPlugin());
-    enumerator.RegisterPlugin(plugin);
+    registrator.RegisterPlugin(plugin);
   }
 }

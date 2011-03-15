@@ -13,7 +13,7 @@ Author:
 #include "ay_conversion.h"
 #include "vortex_io.h"
 #include "aym_parameters_helper.h"
-#include <core/plugins/enumerator.h>
+#include <core/plugins/registrator.h>
 #include <core/plugins/players/module_properties.h>
 //common includes
 #include <byteorder.h>
@@ -213,9 +213,9 @@ namespace
 
 namespace ZXTune
 {
-  void RegisterTXTSupport(PluginsEnumerator& enumerator)
+  void RegisterTXTSupport(PluginsRegistrator& registrator)
   {
     const PlayerPlugin::Ptr plugin(new TXTPlugin());
-    enumerator.RegisterPlugin(plugin);
+    registrator.RegisterPlugin(plugin);
   }
 }

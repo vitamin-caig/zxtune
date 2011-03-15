@@ -10,7 +10,7 @@ Author:
 */
 
 //local includes
-#include <core/plugins/enumerator.h>
+#include <core/plugins/registrator.h>
 //library includes
 #include <core/plugin_attrs.h>
 #include <formats/packed_decoders.h>
@@ -75,9 +75,9 @@ namespace
 
 namespace ZXTune
 {
-  void RegisterPCDConvertor(PluginsEnumerator& enumerator)
+  void RegisterPCDConvertor(PluginsRegistrator& registrator)
   {
     const ArchivePlugin::Ptr plugin(new PCDPlugin());
-    enumerator.RegisterPlugin(plugin);
+    registrator.RegisterPlugin(plugin);
   }
 }

@@ -1177,9 +1177,9 @@ namespace
 
 namespace ZXTune
 {
-  void RegisterSTCSupport(PluginsEnumerator& enumerator)
+  void RegisterSTCSupport(PluginsRegistrator& registrator)
   {
     const PlayerPlugin::Ptr plugin(new STCPlugin());
-    enumerator.RegisterPlugin(plugin);
+    registrator.RegisterPlugin(plugin);
   }
 }

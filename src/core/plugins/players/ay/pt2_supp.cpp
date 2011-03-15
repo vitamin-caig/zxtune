@@ -947,9 +947,9 @@ namespace
 
 namespace ZXTune
 {
-  void RegisterPT2Support(PluginsEnumerator& enumerator)
+  void RegisterPT2Support(PluginsRegistrator& registrator)
   {
     const PlayerPlugin::Ptr plugin(new PT2Plugin());
-    enumerator.RegisterPlugin(plugin);
+    registrator.RegisterPlugin(plugin);
   }
 }

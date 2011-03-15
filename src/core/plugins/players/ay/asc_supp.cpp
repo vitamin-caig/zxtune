@@ -1213,9 +1213,9 @@ namespace
 
 namespace ZXTune
 {
-  void RegisterASCSupport(PluginsEnumerator& enumerator)
+  void RegisterASCSupport(PluginsRegistrator& registrator)
   {
     const PlayerPlugin::Ptr plugin(new ASCPlugin());
-    enumerator.RegisterPlugin(plugin);
+    registrator.RegisterPlugin(plugin);
   }
 }

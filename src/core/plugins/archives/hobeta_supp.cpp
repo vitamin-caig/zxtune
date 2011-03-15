@@ -10,7 +10,7 @@ Author:
 */
 
 //local includes
-#include <core/plugins/enumerator.h>
+#include <core/plugins/registrator.h>
 //common includes
 #include <byteorder.h>
 #include <tools.h>
@@ -125,9 +125,9 @@ namespace
 
 namespace ZXTune
 {
-  void RegisterHobetaConvertor(PluginsEnumerator& enumerator)
+  void RegisterHobetaConvertor(PluginsRegistrator& registrator)
   {
     const ArchivePlugin::Ptr plugin(new HobetaPlugin());
-    enumerator.RegisterPlugin(plugin);
+    registrator.RegisterPlugin(plugin);
   }
 }

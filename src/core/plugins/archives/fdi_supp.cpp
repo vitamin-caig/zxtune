@@ -10,7 +10,7 @@ Author:
 */
 
 //local includes
-#include <core/plugins/enumerator.h>
+#include <core/plugins/registrator.h>
 //common includes
 #include <byteorder.h>
 #include <tools.h>
@@ -293,9 +293,9 @@ namespace
 
 namespace ZXTune
 {
-  void RegisterFDIConvertor(PluginsEnumerator& enumerator)
+  void RegisterFDIConvertor(PluginsRegistrator& registrator)
   {
     const ArchivePlugin::Ptr plugin(new FDIPlugin());
-    enumerator.RegisterPlugin(plugin);
+    registrator.RegisterPlugin(plugin);
   }
 }

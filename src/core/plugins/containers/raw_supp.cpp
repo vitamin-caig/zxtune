@@ -10,7 +10,8 @@ Author:
 */
 
 //local includes
-#include <core/plugins/enumerator.h>
+#include <core/plugins/enumerator.h>//TODO
+#include <core/plugins/registrator.h>
 //common includes
 #include <error_tools.h>
 #include <logging.h>
@@ -278,13 +279,13 @@ namespace
         }
       }
 
-      const PluginsEnumerator& enumerator = PluginsEnumerator::Instance();
+      const PluginsEnumeratorOld& oldEnumerator = PluginsEnumeratorOld::Instance();
 
       const std::size_t limit = data.Data->Size();
       //process without offset
       const Parameters::Accessor::Ptr paramsForCheckAtBegin =
         boost::make_shared<DepthLimitedParameters>(params, data.Plugins->Count());
-      const std::size_t dataUsedAtBegin = enumerator.DetectModules(paramsForCheckAtBegin, detectParams, data);
+      const std::size_t dataUsedAtBegin = oldEnumerator.DetectModules(paramsForCheckAtBegin, detectParams, data);
 
       const std::size_t minRawSize = pluginParams.GetMinimalSize();
 
@@ -313,7 +314,7 @@ namespace
         const std::size_t offset = container->GetOffset();
         logger(offset);
         subcontainer.Path = IO::AppendPath(data.Path, CreateRawPart(offset));
-        const std::size_t usedSize = enumerator.DetectModules(params, detectParams, subcontainer);
+        const std::size_t usedSize = oldEnumerator.DetectModules(params, detectParams, subcontainer);
         wasResult = wasResult || usedSize != 0;
         container->Move(std::max(usedSize, scanStep));
       }
@@ -346,9 +347,9 @@ namespace
 
 namespace ZXTune
 {
-  void RegisterRawContainer(PluginsEnumerator& enumerator)
+  void RegisterRawContainer(PluginsRegistrator& registrator)
   {
     const ContainerPlugin::Ptr plugin(new RawScaner());
-    enumerator.RegisterPlugin(plugin);
+    registrator.RegisterPlugin(plugin);
   }
 }

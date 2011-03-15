@@ -16,35 +16,35 @@ Author:
 namespace ZXTune
 {
   //forward declaration
-  class PluginsEnumerator;
+  class PluginsRegistrator;
 
-  void RegisterHobetaConvertor(PluginsEnumerator& enumerator);
-  void RegisterHrust1xConvertor(PluginsEnumerator& enumerator);
-  void RegisterHrust2xConvertor(PluginsEnumerator& enumerator);
-  void RegisterFDIConvertor(PluginsEnumerator& enumerator);
-  void RegisterDSQConvertor(PluginsEnumerator& enumerator);
-  void RegisterMSPConvertor(PluginsEnumerator& enumerator);
-  void RegisterTRUSHConvertor(PluginsEnumerator& enumerator);
-  void RegisterLZSConvertor(PluginsEnumerator& enumerator);
-  void RegisterPCDConvertor(PluginsEnumerator& enumerator);
-  void RegisterHrumConvertor(PluginsEnumerator& enumerator);
-  void RegisterCC3Convertor(PluginsEnumerator& enumerator);
-  void RegisterESVConvertor(PluginsEnumerator& enumerator);
+  void RegisterHobetaConvertor(PluginsRegistrator& registrator);
+  void RegisterHrust1xConvertor(PluginsRegistrator& registrator);
+  void RegisterHrust2xConvertor(PluginsRegistrator& registrator);
+  void RegisterFDIConvertor(PluginsRegistrator& registrator);
+  void RegisterDSQConvertor(PluginsRegistrator& registrator);
+  void RegisterMSPConvertor(PluginsRegistrator& registrator);
+  void RegisterTRUSHConvertor(PluginsRegistrator& registrator);
+  void RegisterLZSConvertor(PluginsRegistrator& registrator);
+  void RegisterPCDConvertor(PluginsRegistrator& registrator);
+  void RegisterHrumConvertor(PluginsRegistrator& registrator);
+  void RegisterCC3Convertor(PluginsRegistrator& registrator);
+  void RegisterESVConvertor(PluginsRegistrator& registrator);
 
-  void RegisterArchivePlugins(PluginsEnumerator& enumerator)
+  void RegisterArchivePlugins(PluginsRegistrator& registrator)
   {
-    RegisterHobetaConvertor(enumerator);
-    RegisterHrust1xConvertor(enumerator);
-    RegisterHrust2xConvertor(enumerator);
-    RegisterFDIConvertor(enumerator);
-    RegisterDSQConvertor(enumerator);
-    RegisterMSPConvertor(enumerator);
-    RegisterTRUSHConvertor(enumerator);
-    RegisterLZSConvertor(enumerator);
-    RegisterPCDConvertor(enumerator);
-    RegisterHrumConvertor(enumerator);
-    RegisterCC3Convertor(enumerator);
-    RegisterESVConvertor(enumerator);
+    RegisterHobetaConvertor(registrator);
+    RegisterHrust1xConvertor(registrator);
+    RegisterHrust2xConvertor(registrator);
+    RegisterFDIConvertor(registrator);
+    RegisterDSQConvertor(registrator);
+    RegisterMSPConvertor(registrator);
+    RegisterTRUSHConvertor(registrator);
+    RegisterLZSConvertor(registrator);
+    RegisterPCDConvertor(registrator);
+    RegisterHrumConvertor(registrator);
+    RegisterCC3Convertor(registrator);
+    RegisterESVConvertor(registrator);
   }
 }
 

@@ -10,7 +10,7 @@ Author:
 */
 
 //local includes
-#include <core/plugins/enumerator.h>
+#include <core/plugins/registrator.h>
 //common includes
 #include <tools.h>
 //library includes
@@ -77,9 +77,9 @@ namespace
 
 namespace ZXTune
 {
-  void RegisterLZSConvertor(PluginsEnumerator& enumerator)
+  void RegisterLZSConvertor(PluginsRegistrator& registrator)
   {
     const ArchivePlugin::Ptr plugin(new LZSPlugin());
-    enumerator.RegisterPlugin(plugin);
+    registrator.RegisterPlugin(plugin);
   }
 }
