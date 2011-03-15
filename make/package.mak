@@ -1,6 +1,5 @@
 #package generating
-#TODO: make proper revision number width
-pkg_revision := $(subst :,_,0$(shell svnversion $(path_step)))
+pkg_revision := $(subst :,_,$(shell svnversion $(path_step)))
 pkg_subversion := $(if $(release),,_dbg)
 pkg_suffix := zip
 

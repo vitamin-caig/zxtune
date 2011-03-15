@@ -9,7 +9,7 @@ textator --version > /dev/null 2>&1 || export NO_TEXTATOR=1
 BOOST_DEPENDENCY="boost-libs="`pacman -Q boost | sed -nr 's/boost (.*)-.*/\1/pg'`
 QT_DEPENDENCY="qt>=4.5.0"
 
-Revision=0`svnversion | sed -r 's/:/_/g'`
+Revision=`svnversion | sed -r 's/:/_/g'`
 
 CurDir=`pwd`
 BuildDir=Builds/Revision${Revision}_linux_${Arch}-archlinux
