@@ -10,7 +10,7 @@ Author:
 */
 
 //local includes
-#include "enumerator.h"
+#include "detect_helper.h"
 
 namespace
 {

@@ -18,6 +18,7 @@ Author:
 #include <core/plugin_attrs.h>
 #include <io/container.h>
 //std includes
+#include <cstring>
 #include <numeric>
 //text includes
 #include <core/text/plugins.h>

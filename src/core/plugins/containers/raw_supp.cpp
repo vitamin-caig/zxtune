@@ -17,6 +17,7 @@ Author:
 #include <tools.h>
 //library includes
 #include <core/error_codes.h>
+#include <core/module_detect.h>
 #include <core/plugin_attrs.h>
 #include <core/plugins_parameters.h>
 #include <io/container.h>
