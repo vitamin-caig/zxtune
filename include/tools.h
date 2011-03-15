@@ -112,4 +112,10 @@ inline T absolute(T val)
   return val >= 0 ? val : -val;
 }
 
+//! @brief Stub deleter for shared pointers
+template<class T>
+void NullDeleter(T*)
+{
+}
+
 #endif //__TOOLS_H_DEFINED__

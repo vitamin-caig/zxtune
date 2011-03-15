@@ -155,4 +155,39 @@ public:
   virtual void Next() = 0;
 };
 
+template<class I>
+class RangedObjectIteratorAdapter : public ObjectIterator<typename std::iterator_traits<I>::value_type>
+{
+public:
+  explicit RangedObjectIteratorAdapter(I from, I to)
+    : Range(from, to)
+  {
+  }
+
+  virtual bool IsValid() const
+  {
+    return Range;
+  }
+
+  virtual typename std::iterator_traits<I>::value_type Get() const
+  {
+    assert(Range);
+    return *Range;
+  }
+
+  virtual void Next()
+  {
+    assert(Range);
+    ++Range;
+  }
+private:
+  RangeIterator<I> Range;
+};
+
+template<class I>
+typename RangedObjectIteratorAdapter<I>::Ptr CreateRangedObjectIteratorAdapter(I from, I to)
+{
+  return typename RangedObjectIteratorAdapter<I>::Ptr(new RangedObjectIteratorAdapter<I>(from, to));
+}
+
 #endif //__ITERATOR_H_DEFINED__
