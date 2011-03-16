@@ -17,6 +17,8 @@ Author:
 
 namespace
 {
+  using namespace Log;
+
   // environment variable used to switch on logging
   const char DEBUG_LOG_VARIABLE[] = "ZXTUNE_DEBUG_LOG";
 
@@ -52,10 +54,57 @@ namespace
   private:
     const char* const Variable;
   };
+
+  class ProgressCallbackImpl : public ProgressCallback
+  {
+  public:
+    ProgressCallbackImpl(uint_t total, const MessageData& baseData, const MessageReceiver& receiver)
+      : Total(total)
+      , Receiver(receiver)
+      , Data(baseData)
+    {
+      Data.Progress = -1;
+    }
+
+    virtual void OnProgress(uint_t current)
+    {
+      const uint_t curProg = GetProgress(current);
+      if (curProg != *Data.Progress)
+      {
+        Data.Progress = curProg;
+        Receiver.ReportMessage(Data);
+      }
+    }
+
+    virtual void OnProgress(uint_t current, const String& message)
+    {
+      const uint_t curProg = GetProgress(current);
+      if (curProg != *Data.Progress)
+      {
+        Data.Progress = curProg;
+        Data.Text = message;
+        Receiver.ReportMessage(Data);
+      }
+    }
+  private:
+    uint_t GetProgress(uint_t position) const
+    {
+      return static_cast<uint_t>(uint64_t(position) * 100 / Total);
+    }
+  private:
+    const uint_t Total;
+    const MessageReceiver& Receiver;
+    MessageData Data;
+  };
 }
 
 namespace Log
 {
+  ProgressCallback::Ptr CreateProgressCallback(uint_t total, const Log::MessageData& baseData, const MessageReceiver& receiver)
+  {
+    return ProgressCallback::Ptr(new ProgressCallbackImpl(total, baseData, receiver));
+  }
+
   //public gate
 
   bool IsDebuggingEnabled(const std::string& module)

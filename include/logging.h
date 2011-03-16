@@ -16,6 +16,7 @@
 //std includes
 #include <cassert>
 #include <string>
+#include <memory>
 //boost includes
 #include <boost/format.hpp>
 #include <boost/optional.hpp>
@@ -38,6 +39,27 @@ namespace Log
     //! Optional progress in percents
     boost::optional<uint_t> Progress;
   };
+
+  //! @brief Base message receiver interface
+  class MessageReceiver
+  {
+  public:
+    virtual ~MessageReceiver() {}
+
+    virtual void ReportMessage(const MessageData& message) const = 0;
+  };
+
+  //! @brief Progress receiver
+  class ProgressCallback
+  {
+  public:
+    typedef std::auto_ptr<ProgressCallback> Ptr;
+    virtual ~ProgressCallback() {}
+    virtual void OnProgress(uint_t current) = 0;
+    virtual void OnProgress(uint_t current, const String& message) = 0;
+  };
+
+  ProgressCallback::Ptr CreateProgressCallback(uint_t total, const Log::MessageData& baseData, const Log::MessageReceiver& receiver);
 
   //! @brief Checks if debugging messages output for specified module is enabled
   bool IsDebuggingEnabled(const std::string& module);

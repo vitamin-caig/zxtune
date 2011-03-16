@@ -11,16 +11,14 @@
 #ifndef __CORE_MODULE_DETECT_H_DEFINED__
 #define __CORE_MODULE_DETECT_H_DEFINED__
 
+//common includes
+#include <logging.h>
 //library includes
 #include <io/container.h>//for IO::DataContainer::Ptr
 #include <core/module_holder.h>//for Module::Holder::Ptr
 
 //forward declarations
 class Error;
-namespace Log
-{
-  struct MessageData;
-}
 
 namespace Parameters
 {
@@ -34,7 +32,7 @@ namespace ZXTune
   class Plugin;
 
   //! @brief Paremeters for modules' detection
-  class DetectParameters
+  class DetectParameters : public Log::MessageReceiver
   {
   public:
     virtual ~DetectParameters() {}
@@ -48,9 +46,6 @@ namespace ZXTune
     //! @param holder Found module
     //! @return Error() to continue, else to cancel.
     virtual Error ProcessModule(const String& subpath, Module::Holder::Ptr holder) const = 0;
-    //! @brief Logging callback
-    //! @param message %Log message to report
-    virtual void ReportMessage(const Log::MessageData& message) const = 0;
   };
 
   //! @brief Perform module detection
