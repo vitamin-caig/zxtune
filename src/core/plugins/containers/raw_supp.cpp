@@ -159,32 +159,13 @@ namespace
     const std::size_t Depth;
   };
 
-  class LoggerHelper
+  Log::ProgressCallback::Ptr CreateProgress(const DetectParameters& params, const MetaContainer& data, uint_t limit)
   {
-  public:
-    LoggerHelper(const DetectParameters& params, const MetaContainer& data, uint_t limit)
-      : Params(params)
-      , Total(limit)
-    {
-      Message.Level = data.Plugins->CalculateContainersNesting();
-      Message.Text = data.Path.empty() ? String(Text::PLUGIN_RAW_PROGRESS_NOPATH) : (Formatter(Text::PLUGIN_RAW_PROGRESS) % data.Path).str();
-      Message.Progress = -1;
-    }
-
-    void operator()(uint_t offset)
-    {
-      const uint_t curProg = static_cast<uint_t>(uint64_t(offset) * 100 / Total);
-      if (curProg != *Message.Progress)
-      {
-        Message.Progress = curProg;
-        Params.ReportMessage(Message);
-      }
-    }
-  private:
-    const DetectParameters& Params;
-    const uint_t Total;
-    Log::MessageData Message;
-  };
+    Log::MessageData msg;
+    msg.Level = data.Plugins->CalculateContainersNesting();
+    msg.Text = data.Path.empty() ? String(Text::PLUGIN_RAW_PROGRESS_NOPATH) : (Formatter(Text::PLUGIN_RAW_PROGRESS) % data.Path).str();
+    return Log::CreateProgressCallback(limit, msg, params);
+  }
 
   class ScanDataContainer : public IO::DataContainer
   {
@@ -304,15 +285,14 @@ namespace
       subcontainer.Plugins = data.Plugins->Clone();
       subcontainer.Plugins->Add(shared_from_this());
 
-      LoggerHelper logger(detectParams, data, limit);
-
       const ScanDataContainer::Ptr container = boost::make_shared<ScanDataContainer>(*data.Data, std::max(dataUsedAtBegin, scanStep));
       subcontainer.Data = container;
 
+      const Log::ProgressCallback::Ptr callback = CreateProgress(detectParams, data, limit);
       while (container->Size() >= minRawSize)
       {
         const std::size_t offset = container->GetOffset();
-        logger(offset);
+        callback->OnProgress(offset);
         subcontainer.Path = IO::AppendPath(data.Path, CreateRawPart(offset));
         const std::size_t usedSize = oldEnumerator.DetectModules(params, detectParams, subcontainer);
         wasResult = wasResult || usedSize != 0;

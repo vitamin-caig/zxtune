@@ -12,7 +12,7 @@ Author:
 //local includes
 #include <core/plugins/enumerator.h>//TODO
 #include <core/plugins/registrator.h>
-#include "trdos_utils.h"
+#include "trdos_process.h"
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
@@ -146,10 +146,7 @@ namespace
 
   TRDos::FilesSet::Ptr ParseTRDFile(const IO::FastDump& data)
   {
-    if (!CheckTRDFile(data))
-    {
-      return TRDos::FilesSet::Ptr();
-    }
+    assert(CheckTRDFile(data));
 
     TRDos::FilesSet::Ptr res = TRDos::FilesSet::Create();
 
@@ -175,34 +172,6 @@ namespace
     }
     return res;
   }
-
-  class LoggerHelper
-  {
-  public:
-    LoggerHelper(const DetectParameters& params, const MetaContainer& data, uint_t files)
-      : Params(params)
-      , Path(data.Path)
-      , Format(Path.empty() ? Text::PLUGIN_TRD_PROGRESS_NOPATH : Text::PLUGIN_TRD_PROGRESS)
-      , Total(files)
-      , Current()
-    {
-      Message.Level = data.Plugins->CalculateContainersNesting();
-    }
-
-    void operator()(const TRDos::FileEntry& cur)
-    {
-      Message.Progress = 100 * Current++ / Total;
-      Message.Text = (SafeFormatter(Format) % cur.Name % Path).str();
-      Params.ReportMessage(Message);
-    }
-  private:
-    const DetectParameters& Params;
-    const String Path;
-    const String Format;
-    const uint_t Total;
-    uint_t Current;
-    Log::MessageData Message;
-  };
 
   class TRDPlugin : public ContainerPlugin
                   , public boost::enable_shared_from_this<TRDPlugin>
@@ -238,39 +207,22 @@ namespace
       const DetectParameters& detectParams,
       const MetaContainer& data) const
     {
-      //do not search if there's already TRD plugin (cannot be nested...)
-      /*
-      if (data.Plugins->Count() &&
-          data.PluginsChain.end() != std::find_if(data.PluginsChain.begin(), data.PluginsChain.end(),
-            boost::bind(&Plugin::Id, _1) == TRD_PLUGIN_ID))
-      {
-        return false;
-      }
-      */
       const IO::FastDump dump(*data.Data);
-      const TRDos::FilesSet::Ptr files = ParseTRDFile(dump);
-      if (!files.get())
+      if (!CheckTRDFile(dump))
       {
         return 0;
       }
-      if (uint_t entriesCount = files->GetEntriesCount())
+      const TRDos::FilesSet::Ptr files = ParseTRDFile(dump);
+      if (files->GetEntriesCount())
       {
-        const PluginsEnumeratorOld& oldEnumerator = PluginsEnumeratorOld::Instance();
-
-        MetaContainer subcontainer;
-        subcontainer.Plugins = data.Plugins->Clone();
-        subcontainer.Plugins->Add(shared_from_this());
-        LoggerHelper logger(detectParams, data, entriesCount);
-        for (TRDos::FilesSet::Iterator::Ptr it = files->GetEntries(); it->IsValid(); it->Next())
-        {
-          const TRDos::FileEntry& entry = it->Get();
-          subcontainer.Data = data.Data->GetSubcontainer(entry.Offset, entry.Size);
-          subcontainer.Path = IO::AppendPath(data.Path, entry.Name);
-          logger(entry);
-          oldEnumerator.DetectModules(params, detectParams, subcontainer);
-        }
+        ProcessEntries(params, detectParams, data, shared_from_this(), *files);
+        return TRD_MODULE_SIZE;
       }
-      return TRD_MODULE_SIZE;
+      else
+      {
+        //try to process as raw data
+        return 0;
+      }
     }
 
     IO::DataContainer::Ptr Open(const Parameters::Accessor& /*commonParams*/,

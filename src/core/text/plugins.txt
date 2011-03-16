@@ -12,14 +12,18 @@ __cpp> "{\n"
 __cpp> "}//namespace Text\n"
 __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 
-= PLUGIN_SUBPATH
-> " at subpath '%2%'"
-
 = PLAYER_DESCRIPTION
 > " modules support"
 
 = CONTAINER_DESCRIPTION
 > " format support"
+
+#common
+< CONTAINER_PLUGIN_PROGRESS_NOPATH
+> "%1% container processing for '%2%'"
+
+< CONTAINER_PLUGIN_PROGRESS
+> CONTAINER_PLUGIN_PROGRESS_NOPATH " at subpath '%3%'"
 
 #ASC
 < ASC_PLUGIN_INFO
@@ -78,7 +82,7 @@ __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 > "HRiP container processing for '%1%'"
 
 < PLUGIN_HRIP_PROGRESS
-> PLUGIN_HRIP_PROGRESS_NOPATH PLUGIN_SUBPATH
+> PLUGIN_HRIP_PROGRESS_NOPATH " at subpath '%2%'"
 
 #LZS
 < LZS_PLUGIN_INFO
@@ -140,12 +144,6 @@ __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 < SCL_PLUGIN_INFO
 > "SCL" CONTAINER_DESCRIPTION
 
-< PLUGIN_SCL_PROGRESS_NOPATH
-> "SCL container processing for '%1%'"
-
-< PLUGIN_SCL_PROGRESS
-> PLUGIN_SCL_PROGRESS_NOPATH PLUGIN_SUBPATH
-
 #STC
 < STC_PLUGIN_INFO
 > STC_EDITOR PLAYER_DESCRIPTION
@@ -163,12 +161,6 @@ __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 #TRD
 < TRD_PLUGIN_INFO
 > "TRD" CONTAINER_DESCRIPTION
-
-< PLUGIN_TRD_PROGRESS_NOPATH
-> "TRD container processing for '%1%'"
-
-< PLUGIN_TRD_PROGRESS
-> PLUGIN_TRD_PROGRESS_NOPATH PLUGIN_SUBPATH
 
 #TRUSH
 < TRUSH_PLUGIN_INFO

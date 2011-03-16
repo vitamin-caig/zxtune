@@ -13,7 +13,7 @@ Author:
 #include <core/plugins/enumerator.h>//TODO
 #include <core/plugins/registrator.h>
 #include <core/plugins/utils.h>
-#include "trdos_utils.h"
+#include "trdos_process.h"
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
@@ -121,10 +121,7 @@ namespace
   //fill descriptors array and return actual container size
   TRDos::FilesSet::Ptr ParseSCLFile(const IO::FastDump& data, std::size_t& parsedSize)
   {
-    if (!CheckSCLFile(data))
-    {
-      return TRDos::FilesSet::Ptr();
-    }
+    assert(CheckSCLFile(data));
     const SCLHeader* const header = safe_ptr_cast<const SCLHeader*>(data.Data());
 
     TRDos::FilesSet::Ptr res = TRDos::FilesSet::Create();
@@ -143,34 +140,6 @@ namespace
     parsedSize = offset;
     return res;
   }
-
-  class LoggerHelper
-  {
-  public:
-    LoggerHelper(const DetectParameters& params, const MetaContainer& data, const uint_t files)
-      : Params(params)
-      , Path(data.Path)
-      , Format(Path.empty() ? Text::PLUGIN_SCL_PROGRESS_NOPATH : Text::PLUGIN_SCL_PROGRESS)
-      , Total(files)
-      , Current()
-    {
-      Message.Level = data.Plugins->CalculateContainersNesting();
-    }
-
-    void operator()(const TRDos::FileEntry& cur)
-    {
-      Message.Progress = 100 * Current++ / Total;
-      Message.Text = (SafeFormatter(Format) % cur.Name % Path).str();
-      Params.ReportMessage(Message);
-    }
-  private:
-    const DetectParameters& Params;
-    const String Path;
-    const String Format;
-    const uint_t Total;
-    uint_t Current;
-    Log::MessageData Message;
-  };
 
   class SCLPlugin : public ContainerPlugin
                   , public boost::enable_shared_from_this<SCLPlugin>
@@ -207,29 +176,15 @@ namespace
       const MetaContainer& data) const
     {
       const IO::FastDump dump(*data.Data);
-      std::size_t parsedSize = 0;
-      const TRDos::FilesSet::Ptr files = ParseSCLFile(dump, parsedSize);
-      if (!files.get())
+      if (!CheckSCLFile(dump))
       {
         return 0;
       }
-      if (uint_t entriesCount = files->GetEntriesCount())
+      std::size_t parsedSize = 0;
+      const TRDos::FilesSet::Ptr files = ParseSCLFile(dump, parsedSize);
+      if (files->GetEntriesCount())
       {
-        const PluginsEnumeratorOld& oldEnumerator = PluginsEnumeratorOld::Instance();
-
-        MetaContainer subcontainer;
-        subcontainer.Plugins = data.Plugins->Clone();
-        subcontainer.Plugins->Add(shared_from_this());
-
-        LoggerHelper logger(detectParams, data, entriesCount);
-        for (TRDos::FilesSet::Iterator::Ptr it = files->GetEntries(); it->IsValid(); it->Next())
-        {
-          const TRDos::FileEntry& entry = it->Get();
-          subcontainer.Data = data.Data->GetSubcontainer(entry.Offset, entry.Size);
-          subcontainer.Path = IO::AppendPath(data.Path, entry.Name);
-          logger(entry);
-          oldEnumerator.DetectModules(params, detectParams, subcontainer);
-        }
+        ProcessEntries(params, detectParams, data, shared_from_this(), *files);
       }
       return parsedSize;
     }

@@ -22,6 +22,14 @@ extern const Char CHI_EDITOR[] = {
 extern const Char CHI_PLUGIN_INFO[] = {
   'C','h','i','p','T','r','a','c','k','e','r',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
 };
+extern const Char CONTAINER_PLUGIN_PROGRESS[] = {
+  '%','1','%',' ','c','o','n','t','a','i','n','e','r',' ','p','r','o','c','e','s','s','i','n','g',' ','f','o',
+  'r',' ','\'','%','2','%','\'',' ','a','t',' ','s','u','b','p','a','t','h',' ','\'','%','3','%','\'',0
+};
+extern const Char CONTAINER_PLUGIN_PROGRESS_NOPATH[] = {
+  '%','1','%',' ','c','o','n','t','a','i','n','e','r',' ','p','r','o','c','e','s','s','i','n','g',' ','f','o',
+  'r',' ','\'','%','2','%','\'',0
+};
 extern const Char DSQ_PLUGIN_INFO[] = {
   'D','a','t','a','S','q','u','e','e','z','e','r',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
 };
@@ -77,22 +85,6 @@ extern const Char PLUGIN_RAW_PROGRESS[] = {
 };
 extern const Char PLUGIN_RAW_PROGRESS_NOPATH[] = {
   'R','a','w',' ','s','c','a','n','e','r',' ','p','r','o','c','e','s','s','i','n','g',0
-};
-extern const Char PLUGIN_SCL_PROGRESS[] = {
-  'S','C','L',' ','c','o','n','t','a','i','n','e','r',' ','p','r','o','c','e','s','s','i','n','g',' ','f','o',
-  'r',' ','\'','%','1','%','\'',' ','a','t',' ','s','u','b','p','a','t','h',' ','\'','%','2','%','\'',0
-};
-extern const Char PLUGIN_SCL_PROGRESS_NOPATH[] = {
-  'S','C','L',' ','c','o','n','t','a','i','n','e','r',' ','p','r','o','c','e','s','s','i','n','g',' ','f','o',
-  'r',' ','\'','%','1','%','\'',0
-};
-extern const Char PLUGIN_TRD_PROGRESS[] = {
-  'T','R','D',' ','c','o','n','t','a','i','n','e','r',' ','p','r','o','c','e','s','s','i','n','g',' ','f','o',
-  'r',' ','\'','%','1','%','\'',' ','a','t',' ','s','u','b','p','a','t','h',' ','\'','%','2','%','\'',0
-};
-extern const Char PLUGIN_TRD_PROGRESS_NOPATH[] = {
-  'T','R','D',' ','c','o','n','t','a','i','n','e','r',' ','p','r','o','c','e','s','s','i','n','g',' ','f','o',
-  'r',' ','\'','%','1','%','\'',0
 };
 extern const Char PSG_PLUGIN_INFO[] = {
   'P','S','G',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
