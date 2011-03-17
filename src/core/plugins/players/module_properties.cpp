@@ -64,7 +64,7 @@ namespace
       Container->SetStringValue(ATTR_SUBPATH, path);
     }
 
-    virtual void SetPlugins(PluginsChain::Ptr plugins)
+    virtual void SetPlugins(PluginsChain::ConstPtr plugins)
     {
       Plugins = plugins;
     }
@@ -176,7 +176,7 @@ namespace
   private:
     const Parameters::Container::Ptr Container;
     mutable Log::MessagesCollector::Ptr Warnings;
-    mutable PluginsChain::Ptr Plugins;
+    mutable PluginsChain::ConstPtr Plugins;
     mutable IO::DataContainer::Ptr Source;
     ModuleRegion FixedRegion;
   };

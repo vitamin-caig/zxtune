@@ -10,9 +10,11 @@ Author:
 */
 
 //local includes
-#include <core/plugins/core.h>
-#include <core/plugins/registrator.h>
 #include "trdos_process.h"
+#include "core/src/callback.h"
+#include "core/plugins/registrator.h"
+#include "core/plugins/utils.h"
+#include "core/src/core.h"
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
@@ -203,9 +205,9 @@ namespace
       return CheckTRDFile(dump);
     }
 
-    virtual std::size_t Process(Module::Container::Ptr container, const Module::DetectCallback& callback) const
+    virtual std::size_t Process(DataLocation::Ptr location, const Module::DetectCallback& callback) const
     {
-      const IO::DataContainer::Ptr data = container->GetData();
+      const IO::DataContainer::Ptr data = location->GetData();
       const IO::FastDump dump(*data);
       if (!CheckTRDFile(dump))
       {
@@ -214,7 +216,7 @@ namespace
       const TRDos::FilesSet::Ptr files = ParseTRDFile(dump);
       if (files->GetEntriesCount())
       {
-        ProcessEntries(container, callback, shared_from_this(), *files);
+        ProcessEntries(location, callback, shared_from_this(), *files);
         return TRD_MODULE_SIZE;
       }
       else

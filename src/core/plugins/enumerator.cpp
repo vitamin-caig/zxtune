@@ -10,30 +10,21 @@ Author:
 */
 
 //local includes
-#include "core.h"
 #include "registrator.h"
 #include "archives/plugins_list.h"
 #include "containers/plugins_list.h"
 #include "players/plugins_list.h"
+#include "core/src/callback.h"
+#include "core/src/core.h"
 //common includes
 #include <error_tools.h>
 #include <logging.h>
 #include <tools.h>
 //library includes
 #include <core/error_codes.h>
-#include <core/module_attrs.h>
 #include <core/module_detect.h>
-#include <core/plugin_attrs.h>
-#include <io/container.h>
-#include <io/fs_tools.h>
 //std includes
 #include <list>
-//boost includes
-#include <boost/bind.hpp>
-#include <boost/ref.hpp>
-#include <boost/bind/apply.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/algorithm/string/join.hpp>
 //text includes
 #include <core/text/core.h>
 
@@ -49,74 +40,6 @@ namespace
   typedef std::vector<PlayerPlugin::Ptr> PlayerPluginsArray;
   typedef std::vector<ArchivePlugin::Ptr> ArchivePluginsArray;
   typedef std::vector<ContainerPlugin::Ptr> ContainerPluginsArray;
-
-  class PluginsChainImpl : public PluginsChain
-  {
-    typedef std::list<Plugin::Ptr> PluginsList;
-  public:
-    PluginsChainImpl()
-      : NestingCache(-1)
-    {
-    }
-
-    PluginsChainImpl(const PluginsList& list)
-      : Container(list)
-      , NestingCache(-1)
-    {
-    }
-
-    virtual void Add(Plugin::Ptr plugin)
-    {
-      Container.push_back(plugin);
-      NestingCache = -1;
-    }
-
-    virtual Plugin::Ptr GetLast() const
-    {
-      if (!Container.empty())
-      {
-        return Container.back();
-      }
-      return Plugin::Ptr();
-    }
-
-    virtual PluginsChain::Ptr Clone() const
-    {
-      return boost::make_shared<PluginsChainImpl>(Container);
-    }
-
-    virtual uint_t Count() const
-    {
-      return Container.size();
-    }
-
-    virtual String AsString() const
-    {
-      StringArray ids(Container.size());
-      std::transform(Container.begin(), Container.end(),
-        ids.begin(), boost::mem_fn(&Plugin::Id));
-      return boost::algorithm::join(ids, String(Text::MODULE_CONTAINERS_DELIMITER));
-    }
-
-    virtual uint_t CalculateContainersNesting() const
-    {
-      if (-1 == NestingCache)
-      {
-        NestingCache = std::count_if(Container.begin(), Container.end(),
-          &IsMultitrackPlugin);
-      }
-      return static_cast<uint_t>(NestingCache);
-    }
-  private:
-    static bool IsMultitrackPlugin(const Plugin::Ptr plugin)
-    {
-      const uint_t caps = plugin->Capabilities();
-      return CAP_STOR_MULTITRACK == (caps & CAP_STOR_MULTITRACK);
-    }
-  private:
-    PluginsList Container;
-    mutable int_t NestingCache;
-  };
 
   class FilteredPluginsRegistrator : public PluginsRegistrator
   {
@@ -242,7 +165,7 @@ namespace
       Plugins = PluginsEnumerator::Create(*this);
     }
 
-    virtual PluginsEnumerator::Ptr GetEnabledPlugins() const
+    virtual PluginsEnumerator::Ptr GetUsedPlugins() const
     {
       return Plugins;
     }
@@ -252,17 +175,17 @@ namespace
       return CoreParams;
     }
 
-    virtual Parameters::Accessor::Ptr GetModuleParameters(const Module::Container& container) const
+    virtual Parameters::Accessor::Ptr CreateModuleParameters(const DataLocation& /*location*/) const
     {
       return CoreParams;
     }
 
-    virtual Error ProcessModule(const Module::Container& container, Module::Holder::Ptr holder) const
+    virtual Error ProcessModule(const DataLocation& location, Module::Holder::Ptr holder) const
     {
-      return DetectParams.ProcessModule(container.GetPath(), holder);
+      return DetectParams.ProcessModule(location.GetPath(), holder);
     }
 
-    virtual Log::ProgressCallback* GetProgressCallback() const
+    virtual Log::ProgressCallback* GetProgress() const
     {
       return DetectParams.GetProgressCallback();
     }
@@ -291,11 +214,6 @@ namespace ZXTune
     return PluginsEnumerator::Ptr(new PluginsContainer(filter));
   }
 
-  PluginsChain::Ptr PluginsChain::Create()
-  {
-    return boost::make_shared<PluginsChainImpl>();
-  }
-
   Plugin::Iterator::Ptr EnumeratePlugins()
   {
     //TODO: remove
@@ -311,9 +229,9 @@ namespace ZXTune
     }
     try
     {
-      const Module::Container::Ptr container = Module::OpenContainer(moduleParams, data, startSubpath);
+      const DataLocation::Ptr location = OpenLocation(moduleParams, data, startSubpath);
       const DetectCallbackAdapter callback(detectParams, moduleParams);
-      Module::DetectModules(container, callback);
+      Module::Detect(location, callback);
       return Error();
     }
     catch (const Error& e)
@@ -336,8 +254,9 @@ namespace ZXTune
     }
     try
     {
-      const Module::Container::Ptr container = Module::OpenContainer(moduleParams, data, subpath);
-      if (Module::Holder::Ptr holder = Module::OpenModule(container, moduleParams))
+      const DataLocation::Ptr location = OpenLocation(moduleParams, data, subpath);
+      const PluginsEnumerator::Ptr plugins = PluginsEnumerator::Create();
+      if (Module::Holder::Ptr holder = Module::Open(location, plugins, moduleParams))
       {
         result = holder;
         return Error();

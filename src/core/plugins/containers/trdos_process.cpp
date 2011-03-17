@@ -11,8 +11,8 @@ Author:
 
 //local includes
 #include "trdos_process.h"
-#include <core/plugins/callback.h>
-#include <core/plugins/utils.h>
+#include "core/plugins/utils.h"
+#include "core/src/callback.h"
 //common includes
 #include <formatter.h>
 #include <logging.h>
@@ -58,20 +58,20 @@ namespace
 
 namespace TRDos
 {
-  void ProcessEntries(ZXTune::Module::Container::Ptr container, const ZXTune::Module::DetectCallback& callback, ZXTune::Plugin::Ptr plugin, const FilesSet& files)
+  void ProcessEntries(ZXTune::DataLocation::Ptr location, const ZXTune::Module::DetectCallback& callback, ZXTune::Plugin::Ptr plugin, const FilesSet& files)
   {
-    const ZXTune::IO::DataContainer::Ptr data = container->GetData();
+    const ZXTune::IO::DataContainer::Ptr data = location->GetData();
     const Log::ProgressCallback::Ptr progress = CreateProgressCallback(callback, files.GetEntriesCount());
-    LoggerHelper logger(progress.get(), *plugin, container->GetPath());
-    const ZXTune::Module::NoProgressDetectCallback noProgressCallback(callback);
+    LoggerHelper logger(progress.get(), *plugin, location->GetPath());
+    const ZXTune::Module::NoProgressDetectCallbackAdapter noProgressCallback(callback);
     for (TRDos::FilesSet::Iterator::Ptr it = files.GetEntries(); it->IsValid(); it->Next())
     {
       const TRDos::FileEntry& entry = it->Get();
       const IO::DataContainer::Ptr subData = data->GetSubcontainer(entry.Offset, entry.Size);
       const String subPath = entry.Name;
-      const ZXTune::Module::Container::Ptr subContainer = CreateSubcontainer(container, plugin, subData, subPath);
+      const ZXTune::DataLocation::Ptr subLocation = CreateNestedLocation(location, plugin, subData, subPath);
       logger(entry);
-      ZXTune::Module::DetectModules(subContainer, noProgressCallback);
+      ZXTune::Module::Detect(subLocation, noProgressCallback);
     }
   }
 }

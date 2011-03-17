@@ -14,7 +14,7 @@ Author:
 #define __CORE_PLUGINS_TYPES_H_DEFINED__
 
 //local includes
-#include "container.h"
+#include "core/src/location.h"
 //common includes
 #include <types.h>
 //library includes
@@ -81,7 +81,7 @@ namespace ZXTune
     //! @return true if possibly yes, false if defenitely no
     virtual bool Check(const IO::DataContainer& inputData) const = 0;
 
-    virtual std::size_t Process(Module::Container::Ptr container, const Module::DetectCallback& callback) const = 0;
+    virtual std::size_t Process(DataLocation::Ptr location, const Module::DetectCallback& callback) const = 0;
 
     //! @brief Opening subdata by specified path
     //! @param parameters Options for opening

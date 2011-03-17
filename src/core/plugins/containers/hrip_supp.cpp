@@ -11,8 +11,8 @@ Author:
 
 //local includes
 #include "trdos_utils.h"
-#include <core/plugins/callback.h>
-#include <core/plugins/enumerator.h>
+#include <core/src/callback.h>
+#include <core/src/core.h>
 #include <core/plugins/registrator.h>
 #include <core/plugins/utils.h>
 //common includes
@@ -270,8 +270,8 @@ namespace
   class Enumerator
   {
   public:
-    Enumerator(Module::Container::Ptr container, Plugin::Ptr plugin, const Module::DetectCallback& callback)
-      : Container(container)
+    Enumerator(DataLocation::Ptr location, Plugin::Ptr plugin, const Module::DetectCallback& callback)
+      : Location(location)
       , HripPlugin(plugin)
       , Callback(callback)
       , IgnoreCorrupted(CheckIgnoreCorrupted(*Callback.GetPluginsParameters()))
@@ -283,7 +283,7 @@ namespace
     {
       uint_t totalFiles = 0, archiveSize = 0;
 
-      const IO::DataContainer::Ptr data = Container->GetData();
+      const IO::DataContainer::Ptr data = Location->GetData();
       if (OK != CheckHrip(data->Data(), data->Size(), totalFiles, archiveSize))
       {
         return 0;
@@ -318,21 +318,21 @@ namespace
       }
       const IO::DataContainer::Ptr subData = IO::CreateDataContainer(decodedData);
 
-      if (Log::ProgressCallback* cb = Callback.GetProgressCallback())
+      if (Log::ProgressCallback* cb = Callback.GetProgress())
       {
         const uint_t progress = 100 * (fileNum + 1) / totalFiles;
-        const String path = Container->GetPath();
+        const String path = Location->GetPath();
         const String text((SafeFormatter(path.empty() ? Text::PLUGIN_HRIP_PROGRESS_NOPATH : Text::PLUGIN_HRIP_PROGRESS) % subPath % path).str());
         cb->OnProgress(progress, text);
       }
 
-      const Module::Container::Ptr subContainer = CreateSubcontainer(Container, HripPlugin, subData, subPath);
-      const Module::NoProgressDetectCallback noProgressCallback(Callback);
-      Module::DetectModules(subContainer, noProgressCallback);
+      const DataLocation::Ptr subLocation = CreateNestedLocation(Location, HripPlugin, subData, subPath);
+      const Module::NoProgressDetectCallbackAdapter noProgressCallback(Callback);
+      Module::Detect(subLocation, noProgressCallback);
       return CONTINUE;
     }
   private:
-    const Module::Container::Ptr Container;
+    const DataLocation::Ptr Location;
     const Plugin::Ptr HripPlugin;
     const Module::DetectCallback& Callback;
     const bool IgnoreCorrupted;
@@ -381,9 +381,9 @@ namespace
              filesCount != 0;
     }
 
-    virtual std::size_t Process(Module::Container::Ptr container, const Module::DetectCallback& callback) const
+    virtual std::size_t Process(DataLocation::Ptr location, const Module::DetectCallback& callback) const
     {
-      Enumerator cb(container, shared_from_this(), callback);
+      Enumerator cb(location, shared_from_this(), callback);
       return cb.Process();
     }
 

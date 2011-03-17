@@ -15,11 +15,11 @@ Author:
 
 //local includes
 #include "trdos_utils.h"
-#include <core/plugins/core.h>
+#include "core/src/core.h"
 
 namespace TRDos
 {
-  void ProcessEntries(ZXTune::Module::Container::Ptr container, const ZXTune::Module::DetectCallback& callback, ZXTune::Plugin::Ptr plugin, const FilesSet& files);
+  void ProcessEntries(ZXTune::DataLocation::Ptr location, const ZXTune::Module::DetectCallback& callback, ZXTune::Plugin::Ptr plugin, const FilesSet& files);
 }
 
 #endif //__CORE_PLUGINS_CONTAINERS_TRDOS_PROCESS_H_DEFINED__

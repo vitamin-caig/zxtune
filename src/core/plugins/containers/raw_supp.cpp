@@ -10,7 +10,8 @@ Author:
 */
 
 //local includes
-#include <core/plugins/callback.h>
+#include <core/src/callback.h>
+#include <core/src/core.h>
 #include <core/plugins/registrator.h>
 #include <core/plugins/utils.h>
 //common includes
@@ -230,12 +231,12 @@ namespace
     std::size_t Offset;
   };
 
-  class ScanModuleContainer : public Module::Container
+  class ScanDataLocation : public DataLocation
   {
   public:
-    typedef boost::shared_ptr<ScanModuleContainer> Ptr;
+    typedef boost::shared_ptr<ScanDataLocation> Ptr;
 
-    ScanModuleContainer(Module::Container::Ptr parent, Plugin::Ptr subPlugin, std::size_t offset)
+    ScanDataLocation(DataLocation::Ptr parent, Plugin::Ptr subPlugin, std::size_t offset)
       : Parent(parent)
       , Subdata(boost::make_shared<ScanDataContainer>(Parent->GetData(), offset))
       , Subplugin(subPlugin)
@@ -255,9 +256,7 @@ namespace
 
     virtual PluginsChain::ConstPtr GetPlugins() const
     {
-      const PluginsChain::Ptr result = Parent->GetPlugins()->Clone();
-      result->Add(Subplugin);
-      return result;
+      return PluginsChain::CreateMerged(Parent->GetPlugins(), Subplugin);
     }
 
     bool HasToScan(std::size_t minSize) const
@@ -275,7 +274,7 @@ namespace
       return Subdata->Move(step);
     }
   private:
-    const Module::Container::Ptr Parent;
+    const DataLocation::Ptr Parent;
     const ScanDataContainer::Ptr Subdata;
     const Plugin::Ptr Subplugin;
   };
@@ -336,10 +335,10 @@ namespace
       return inputData.Size() >= MIN_MINIMAL_RAW_SIZE;
     }
 
-    virtual std::size_t Process(Module::Container::Ptr container, const Module::DetectCallback& callback) const
+    virtual std::size_t Process(DataLocation::Ptr location, const Module::DetectCallback& callback) const
     {
       //do not search right after previous raw plugin
-      const PluginsChain::ConstPtr plugins = container->GetPlugins();
+      const PluginsChain::ConstPtr plugins = location->GetPlugins();
       if (CheckIfLastIsScanner(*plugins))
       {
         return 0;
@@ -353,13 +352,13 @@ namespace
       {
         return 0;
       }
-      const IO::DataContainer::Ptr data = container->GetData();
+      const IO::DataContainer::Ptr data = location->GetData();
       const std::size_t limit = data->Size();
       //process without offset
       const Parameters::Accessor::Ptr paramsForCheckAtBegin =
         boost::make_shared<DepthLimitedParameters>(pluginParams, pluginsInChain);
       const NewParamsCallback newCallback(callback, paramsForCheckAtBegin);
-      const std::size_t dataUsedAtBegin = Module::DetectModules(container, newCallback);
+      const std::size_t dataUsedAtBegin = Module::Detect(location, newCallback);
 
       const std::size_t minRawSize = scanParams.GetMinimalSize();
 
@@ -377,17 +376,17 @@ namespace
 
       const ContainerPlugin::Ptr subPlugin = shared_from_this();
       const std::size_t startOffset = std::max(dataUsedAtBegin, scanStep);
-      const ScanModuleContainer::Ptr subContainer = boost::make_shared<ScanModuleContainer>(container, subPlugin, startOffset);
+      const ScanDataLocation::Ptr subLocation = boost::make_shared<ScanDataLocation>(location, subPlugin, startOffset);
 
-      const Log::ProgressCallback::Ptr progress(new RawProgressCallback(callback, limit, container->GetPath()));
-      const Module::NoProgressDetectCallback noProgressCallback(callback);
-      while (subContainer->HasToScan(minRawSize))
+      const Log::ProgressCallback::Ptr progress(new RawProgressCallback(callback, limit, location->GetPath()));
+      const Module::NoProgressDetectCallbackAdapter noProgressCallback(callback);
+      while (subLocation->HasToScan(minRawSize))
       {
-        const std::size_t offset = subContainer->GetOffset();
+        const std::size_t offset = subLocation->GetOffset();
         progress->OnProgress(offset);
-        const std::size_t usedSize = Module::DetectModules(subContainer, noProgressCallback);
+        const std::size_t usedSize = Module::Detect(subLocation, noProgressCallback);
         wasResult = wasResult || usedSize != 0;
-        subContainer->Move(std::max(usedSize, scanStep));
+        subLocation->Move(std::max(usedSize, scanStep));
       }
       return wasResult
         ? limit

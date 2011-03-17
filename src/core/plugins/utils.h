@@ -14,7 +14,7 @@ Author:
 #define __CORE_PLUGINS_UTILS_H_DEFINED__
 
 //local includes
-#include "core.h"
+#include "core/src/callback.h"
 //common includes
 #include <logging.h>
 #include <tools.h>
@@ -34,7 +34,7 @@ inline String OptimizeString(const String& str, Char replace = '\?')
 
 inline Log::ProgressCallback::Ptr CreateProgressCallback(const ZXTune::Module::DetectCallback& callback, uint_t limit)
 {
-  if (Log::ProgressCallback* cb = callback.GetProgressCallback())
+  if (Log::ProgressCallback* cb = callback.GetProgress())
   {
     return Log::CreatePercentProgressCallback(limit, *cb);
   }

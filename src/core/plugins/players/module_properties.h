@@ -35,7 +35,7 @@ namespace ZXTune
       virtual void SetProgram(const String& program) = 0;
       virtual void SetWarnings(Log::MessagesCollector::Ptr warns) = 0;
       virtual void SetPath(const String& path) = 0;
-      virtual void SetPlugins(PluginsChain::Ptr plugins) = 0;
+      virtual void SetPlugins(PluginsChain::ConstPtr plugins) = 0;
       virtual void SetSource(IO::DataContainer::Ptr src, const struct ModuleRegion& fixedRegion) = 0;
 
       static Ptr Create(const String& pluginId);

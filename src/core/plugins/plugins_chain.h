@@ -28,13 +28,12 @@ namespace ZXTune
 
     virtual void Add(Plugin::Ptr plugin) = 0;
     virtual Plugin::Ptr GetLast() const = 0;
-    virtual PluginsChain::Ptr Clone() const = 0;
 
     virtual uint_t Count() const = 0;
     virtual String AsString() const = 0;
-    virtual uint_t CalculateContainersNesting() const = 0;
 
     static Ptr Create();
+    static Ptr CreateMerged(PluginsChain::ConstPtr parent, Plugin::Ptr newOne);
   };
 }
 

@@ -5,7 +5,8 @@ source_dirs := plugins \
                plugins/containers \
                plugins/players \
                plugins/players/ay \
-               plugins/players/dac
+               plugins/players/dac \
+               src
 
 text_files := text/core text/plugins text/warnings
 

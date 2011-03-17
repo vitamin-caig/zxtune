@@ -1,6 +1,6 @@
 /*
 Abstract:
-  Module container used for opening and resolving
+  Module location used for opening and resolving
 
 Last changed:
   $Id$
@@ -10,7 +10,8 @@ Author:
 */
 
 //local includes
-#include "core.h"
+#include "location.h"
+#include "core/plugins/enumerator.h"
 //library includes
 #include <io/fs_tools.h>
 //boost includes
@@ -136,10 +137,10 @@ namespace
     String Path;
   };
 
-  class ResolvedContainer : public Module::Container
+  class ResolvedLocation : public DataLocation
   {
   public:
-    ResolvedContainer(IO::DataContainer::Ptr data, const String& path, PluginsChain::Ptr plugins)
+    ResolvedLocation(IO::DataContainer::Ptr data, const String& path, PluginsChain::Ptr plugins)
       : Data(data)
       , Path(path)
       , Plugins(plugins)
@@ -169,54 +170,34 @@ namespace
 
 namespace ZXTune
 {
-  namespace Module
+  DataLocation::Ptr CreateLocation(Parameters::Accessor::Ptr coreParams, IO::DataContainer::Ptr data)
   {
-    Container::Ptr OpenContainer(Parameters::Accessor::Ptr coreParams, IO::DataContainer::Ptr data, const String& subpath)
-    {
-      const PluginsChain::Ptr resolvedPlugins = PluginsChain::Create();
-      if (subpath.empty())
-      {
-        return boost::make_shared<ResolvedContainer>(data, subpath, resolvedPlugins);
-      }
+    return OpenLocation(coreParams, data, String());
+  }
 
-      const PluginsEnumerator::Ptr usedPlugins = PluginsEnumerator::Create();
-      ResolvedPluginsIterator iter(usedPlugins, coreParams, data, subpath);
-      while (iter.HasMoreToResolve())
-      {
-        if (const Plugin::Ptr plugin = iter.ResolveNextPlugin())
-        {
-          resolvedPlugins->Add(plugin);
-        }
-        else
-        {
-          //Log::Debug(THIS_MODULE, "Failed to resolve subpath '%1%'", iter.GetUnresolvedPath());
-          return Container::Ptr();
-        }
-      }
-      const IO::DataContainer::Ptr resolvedData = iter.GetResolvedData();
-      return boost::make_shared<ResolvedContainer>(resolvedData, subpath, resolvedPlugins);
+  DataLocation::Ptr OpenLocation(Parameters::Accessor::Ptr coreParams, IO::DataContainer::Ptr data, const String& subpath)
+  {
+    const PluginsChain::Ptr resolvedPlugins = PluginsChain::Create();
+    if (subpath.empty())
+    {
+      return boost::make_shared<ResolvedLocation>(data, subpath, resolvedPlugins);
     }
 
-    Holder::Ptr OpenModule(Container::Ptr container, Parameters::Accessor::Ptr moduleParams)
+    const PluginsEnumerator::Ptr usedPlugins = PluginsEnumerator::Create();
+    ResolvedPluginsIterator iter(usedPlugins, coreParams, data, subpath);
+    while (iter.HasMoreToResolve())
     {
-      //TODO: remove
-      const MetaContainer input = MetaContainerFromContainer(*container);
-      const PluginsEnumerator::Ptr usedPlugins = PluginsEnumerator::Create();
-      for (PlayerPlugin::Iterator::Ptr plugins = usedPlugins->EnumeratePlayers(); plugins->IsValid(); plugins->Next())
+      if (const Plugin::Ptr plugin = iter.ResolveNextPlugin())
       {
-        const PlayerPlugin::Ptr plugin = plugins->Get();
-        if (!plugin->Check(*input.Data))
-        {
-          continue;//invalid plugin
-        }
-        std::size_t usedSize = 0;
-        if (Module::Holder::Ptr module = plugin->CreateModule(moduleParams, input, usedSize))
-        {
-          return module;
-        }
-        //TODO: dispatch heavy checks- return false if not enabled
+        resolvedPlugins->Add(plugin);
       }
-      return Holder::Ptr();
+      else
+      {
+        //Log::Debug(THIS_MODULE, "Failed to resolve subpath '%1%'", iter.GetUnresolvedPath());
+        return DataLocation::Ptr();
+      }
     }
+    const IO::DataContainer::Ptr resolvedData = iter.GetResolvedData();
+    return boost::make_shared<ResolvedLocation>(resolvedData, subpath, resolvedPlugins);
   }
 }
