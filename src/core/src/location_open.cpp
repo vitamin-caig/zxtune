@@ -115,10 +115,7 @@ namespace
         }
         String restPath;
 
-        MetaContainer input;
-        input.Data = Data;
-        input.Path = Path;
-        if (IO::DataContainer::Ptr subdata = plugin->Open(*Params, input, Path, restPath))
+        if (IO::DataContainer::Ptr subdata = plugin->Open(*Params, *Data, Path, restPath))
         {
           //assert(String::npos != Path.rfind(restPath));
           //Log::Debug(THIS_MODULE, "Resolved path components '%1%' with container plugin %2%", Path.substr(0, Path.rfind(restPath)), plugin->Id());

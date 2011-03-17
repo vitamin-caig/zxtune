@@ -24,8 +24,6 @@ Author:
 
 namespace ZXTune
 {
-  struct MetaContainer;
-
   class PlayerPlugin : public Plugin
   {
   public:
@@ -90,7 +88,7 @@ namespace ZXTune
     //! @param restPath Reference to rest part of path which is not handled by current plugin
     //! @return Not empty pointer if data is opened
     virtual IO::DataContainer::Ptr Open(const Parameters::Accessor& parameters,
-                                        const MetaContainer& inputData,
+                                        const IO::DataContainer& inputData,
                                         const String& fullPath,
                                         String& restPath) const = 0;
   };

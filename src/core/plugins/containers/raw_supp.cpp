@@ -394,20 +394,15 @@ namespace
     }
 
     IO::DataContainer::Ptr Open(const Parameters::Accessor& /*commonParams*/,
-      const MetaContainer& inData, const String& inPath, String& restPath) const
+      const IO::DataContainer& inData, const String& inPath, String& restPath) const
     {
-      //do not open right after self
-      if (CheckIfLastIsScanner(*inData.Plugins))
-      {
-        return IO::DataContainer::Ptr();
-      }
       String restComp;
       const String& pathComp = IO::ExtractFirstPathComponent(inPath, restComp);
       std::size_t offset = 0;
       if (CheckIfRawPart(pathComp, offset))
       {
         restPath = restComp;
-        return inData.Data->GetSubcontainer(offset, inData.Data->Size() - offset);
+        return inData.GetSubcontainer(offset, inData.Size() - offset);
       }
       return IO::DataContainer::Ptr();
     }

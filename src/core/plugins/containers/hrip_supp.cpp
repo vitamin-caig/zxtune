@@ -388,7 +388,7 @@ namespace
     }
 
     virtual IO::DataContainer::Ptr Open(const Parameters::Accessor& commonParams,
-      const MetaContainer& inData, const String& inPath,
+      const IO::DataContainer& inData, const String& inPath,
       String& restPath) const
     {
       String restComp;
@@ -400,9 +400,8 @@ namespace
       }
       Dump dmp;
       const bool ignoreCorrupted = CheckIgnoreCorrupted(commonParams);
-      const IO::DataContainer& container = *inData.Data;
       //ignore corrupted blocks while searching, but try to decode it using proper parameters
-      if (OK != ParseHrip(container.Data(), container.Size(),
+      if (OK != ParseHrip(inData.Data(), inData.Size(),
             boost::bind(&FindFileCallback, pathComp, ignoreCorrupted, _1, _2, boost::ref(dmp)), true))
       {
         Log::Debug("Core::HRiPSupp", "Failed to parse archive, possible corrupted");

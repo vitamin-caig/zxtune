@@ -42,24 +42,6 @@ namespace ZXTune
   DataLocation::Ptr OpenLocation(Parameters::Accessor::Ptr coreParams, IO::DataContainer::Ptr data, const String& subpath);
 
   DataLocation::Ptr CreateNestedLocation(DataLocation::Ptr parent, Plugin::Ptr subPlugin, IO::DataContainer::Ptr subData, const String& subPath);
-
-  //module container descriptor- all required data
-  //TODO: remove
-  struct MetaContainer
-  {
-    IO::DataContainer::Ptr Data;
-    String Path;
-    PluginsChain::ConstPtr Plugins;
-  };
-
-  inline MetaContainer MetaContainerFromLocation(const DataLocation& location)
-  {
-    MetaContainer result;
-    result.Data = location.GetData();
-    result.Path = location.GetPath();
-    result.Plugins = location.GetPlugins();
-    return result;
-  }
 }
 
 #endif //__CORE_DATA_LOCATION_H_DEFINED__

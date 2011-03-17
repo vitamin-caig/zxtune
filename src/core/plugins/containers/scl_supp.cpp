@@ -190,7 +190,7 @@ namespace
     }
 
     IO::DataContainer::Ptr Open(const Parameters::Accessor& /*commonParams*/,
-      const MetaContainer& inData, const String& inPath, String& restPath) const
+      const IO::DataContainer& inData, const String& inPath, String& restPath) const
     {
       String restComp;
       const String& pathComp = IO::ExtractFirstPathComponent(inPath, restComp);
@@ -198,7 +198,7 @@ namespace
       {
         return IO::DataContainer::Ptr();
       }
-      const IO::FastDump dump(*inData.Data);
+      const IO::FastDump dump(inData);
       std::size_t parsedSize = 0;
       const TRDos::FilesSet::Ptr files = ParseSCLFile(dump, parsedSize);
       const TRDos::FileEntry* const entryToOpen = files.get()
@@ -209,7 +209,7 @@ namespace
         return IO::DataContainer::Ptr();
       }
       restPath = restComp;
-      return inData.Data->GetSubcontainer(entryToOpen->Offset, entryToOpen->Size);
+      return inData.GetSubcontainer(entryToOpen->Offset, entryToOpen->Size);
     }
   };
 }

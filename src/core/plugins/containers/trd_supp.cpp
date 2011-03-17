@@ -227,7 +227,7 @@ namespace
     }
 
     IO::DataContainer::Ptr Open(const Parameters::Accessor& /*commonParams*/,
-      const MetaContainer& inData, const String& inPath, String& restPath) const
+      const IO::DataContainer& inData, const String& inPath, String& restPath) const
     {
       String restComp;
       const String& pathComp = IO::ExtractFirstPathComponent(inPath, restComp);
@@ -235,7 +235,7 @@ namespace
       {
         return IO::DataContainer::Ptr();
       }
-      const IO::FastDump dump(*inData.Data);
+      const IO::FastDump dump(inData);
       const TRDos::FilesSet::Ptr files = ParseTRDFile(dump);
       const TRDos::FileEntry* const entryToOpen = files.get()
         ? files->FindEntry(pathComp)
@@ -245,7 +245,7 @@ namespace
         return IO::DataContainer::Ptr();
       }
       restPath = restComp;
-      return inData.Data->GetSubcontainer(entryToOpen->Offset, entryToOpen->Size);
+      return inData.GetSubcontainer(entryToOpen->Offset, entryToOpen->Size);
     }
   };
 }
