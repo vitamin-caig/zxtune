@@ -13,11 +13,11 @@ Author:
 #ifndef __CORE_PLUGINS_UTILS_H_DEFINED__
 #define __CORE_PLUGINS_UTILS_H_DEFINED__
 
+//local includes
+#include "core.h"
 //common includes
 #include <logging.h>
 #include <tools.h>
-//library includes
-#include <core/module_detect.h>
 //std includes
 #include <algorithm>
 #include <cctype>
@@ -32,9 +32,9 @@ inline String OptimizeString(const String& str, Char replace = '\?')
   return res;
 }
 
-inline Log::ProgressCallback::Ptr CreateProgressCallback(const ZXTune::DetectParameters& params, uint_t limit)
+inline Log::ProgressCallback::Ptr CreateProgressCallback(const ZXTune::Module::DetectCallback& callback, uint_t limit)
 {
-  if (Log::ProgressCallback* cb = params.GetProgressCallback())
+  if (Log::ProgressCallback* cb = callback.GetProgressCallback())
   {
     return Log::CreatePercentProgressCallback(limit, *cb);
   }

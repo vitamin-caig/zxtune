@@ -24,6 +24,7 @@ Author:
 #include <core/core_parameters.h>
 #include <core/error_codes.h>
 #include <core/module_attrs.h>
+#include <core/module_detect.h>
 #include <core/plugin_attrs.h>
 #include <devices/aym.h>
 #include <io/container.h>
@@ -529,20 +530,19 @@ namespace
       const Footer* const footer = safe_ptr_cast<const Footer*>(dump.Data() + footerOffset);
       const std::size_t firstModuleSize = fromLE(footer->Size1);
 
-      const PluginsEnumeratorOld& oldEnumerator(PluginsEnumeratorOld::Instance());
-
       try
       {
-        MetaContainer subdata(container);
-        subdata.Data = container.Data->GetSubcontainer(0, firstModuleSize);
-        const Module::Holder::Ptr holder1 = oldEnumerator.OpenModule(parameters, subdata);
+        IO::DataContainer::Ptr subdata = container.Data->GetSubcontainer(0, firstModuleSize);
+        Module::Holder::Ptr holder1;
+        ThrowIfError(OpenModule(parameters, subdata, String(), holder1));
         if (InvalidHolder(*holder1))
         {
           Log::Debug(THIS_MODULE, "Invalid first module holder");
           return Module::Holder::Ptr();
         }
-        subdata.Data = container.Data->GetSubcontainer(firstModuleSize, footerOffset - firstModuleSize);
-        const Module::Holder::Ptr holder2 = oldEnumerator.OpenModule(parameters, subdata);
+        subdata = container.Data->GetSubcontainer(firstModuleSize, footerOffset - firstModuleSize);
+        Module::Holder::Ptr holder2;
+        ThrowIfError(OpenModule(parameters, subdata, String(), holder2));
         if (InvalidHolder(*holder2))
         {
           Log::Debug(THIS_MODULE, "Failed to create second module holder");

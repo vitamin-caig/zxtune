@@ -13,11 +13,12 @@ Author:
 #ifndef __CORE_PLUGINS_DETECT_HELPER_H_DEFINED__
 #define __CORE_PLUGINS_DETECT_HELPER_H_DEFINED__
 
-//local includes
-#include "enumerator.h"
 //common includes
 #include <detector.h>
 #include <iterator.h>
+//library includes
+#include <core/module_holder.h>
+#include <io/container.h>
 
 namespace ZXTune
 {
@@ -32,6 +33,9 @@ namespace ZXTune
     {
     }
   };
+
+  struct ModuleRegion;
+  struct MetaContainer;
 
   typedef RangeIterator<const DataPrefixChecker*> DataPrefixIterator;
 

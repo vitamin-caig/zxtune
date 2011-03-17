@@ -10,7 +10,7 @@ Author:
 */
 
 //local includes
-#include <core/plugins/enumerator.h>//TODO
+#include <core/plugins/core.h>
 #include <core/plugins/registrator.h>
 #include "trdos_process.h"
 //common includes
@@ -203,11 +203,10 @@ namespace
       return CheckTRDFile(dump);
     }
 
-    virtual std::size_t Process(Parameters::Accessor::Ptr params,
-      const DetectParameters& detectParams,
-      const MetaContainer& data) const
+    virtual std::size_t Process(Module::Container::Ptr container, const Module::DetectCallback& callback) const
     {
-      const IO::FastDump dump(*data.Data);
+      const IO::DataContainer::Ptr data = container->GetData();
+      const IO::FastDump dump(*data);
       if (!CheckTRDFile(dump))
       {
         return 0;
@@ -215,7 +214,7 @@ namespace
       const TRDos::FilesSet::Ptr files = ParseTRDFile(dump);
       if (files->GetEntriesCount())
       {
-        ProcessEntries(params, detectParams, data, shared_from_this(), *files);
+        ProcessEntries(container, callback, shared_from_this(), *files);
         return TRD_MODULE_SIZE;
       }
       else

@@ -13,6 +13,8 @@ Author:
 #ifndef __CORE_PLUGINS_TYPES_H_DEFINED__
 #define __CORE_PLUGINS_TYPES_H_DEFINED__
 
+//local includes
+#include "container.h"
 //common includes
 #include <types.h>
 //library includes
@@ -22,47 +24,7 @@ Author:
 
 namespace ZXTune
 {
-  class PluginsChain
-  {
-  public:
-    typedef boost::shared_ptr<PluginsChain> Ptr;
-    typedef boost::shared_ptr<const PluginsChain> ConstPtr;
-
-    virtual ~PluginsChain() {}
-
-    virtual void Add(Plugin::Ptr plugin) = 0;
-    virtual Plugin::Ptr GetLast() const = 0;
-    virtual PluginsChain::Ptr Clone() const = 0;
-
-    virtual uint_t Count() const = 0;
-    virtual String AsString() const = 0;
-    virtual uint_t CalculateContainersNesting() const = 0;
-
-    static Ptr Create();
-  };
-
-  //module container descriptor- all required data
-  //TODO: remove
-  struct MetaContainer
-  {
-    MetaContainer()
-      : Plugins(PluginsChain::Create())
-    {
-    }
-
-    MetaContainer(const MetaContainer& rh)
-      : Data(rh.Data)
-      , Path(rh.Path)
-      , Plugins(rh.Plugins->Clone())
-    {
-    }
-
-    IO::DataContainer::Ptr Data;
-    String Path;
-    PluginsChain::Ptr Plugins;
-  };
-
-  class DetectParameters;
+  struct MetaContainer;
 
   class PlayerPlugin : public Plugin
   {
@@ -104,6 +66,11 @@ namespace ZXTune
                                                   std::size_t& usedSize) const = 0;
   };
 
+  namespace Module
+  {
+    class DetectCallback;
+  }
+
   class ContainerPlugin : public Plugin
   {
   public:
@@ -114,14 +81,7 @@ namespace ZXTune
     //! @return true if possibly yes, false if defenitely no
     virtual bool Check(const IO::DataContainer& inputData) const = 0;
 
-    //! @brief Process input data as container
-    //! @param parameters Options for processing
-    //! @param detectParams Detection-specific parameters
-    //! @param inputData Source memory data
-    //! @return Size of processed data
-    virtual std::size_t Process(Parameters::Accessor::Ptr parameters,
-                          const DetectParameters& detectParams,
-                          const MetaContainer& inputData) const = 0;
+    virtual std::size_t Process(Module::Container::Ptr container, const Module::DetectCallback& callback) const = 0;
 
     //! @brief Opening subdata by specified path
     //! @param parameters Options for opening

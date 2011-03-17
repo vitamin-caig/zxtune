@@ -14,6 +14,7 @@ Author:
 #include "ay_conversion.h"
 #include <core/plugins/detect_helper.h>
 #include <core/plugins/utils.h>
+#include <core/plugins/registrator.h>
 #include <core/plugins/players/module_properties.h>
 //common includes
 #include <byteorder.h>

@@ -13,6 +13,7 @@ Author:
 #include "ay_base.h"
 #include "ay_conversion.h"
 #include <core/plugins/utils.h>
+#include <core/plugins/registrator.h>
 #include <core/plugins/players/module_properties.h>
 //common includes
 #include <byteorder.h>

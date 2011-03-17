@@ -10,7 +10,9 @@ Author:
 */
 
 //local includes
+#include "container.h"
 #include "detect_helper.h"
+#include "enumerator.h"
 //common includes
 #include <detector.h>
 

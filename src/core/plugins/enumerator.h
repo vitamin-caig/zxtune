@@ -15,7 +15,6 @@ Author:
 
 //local includes
 #include "plugins_types.h"
-#include "registrator.h"
 
 namespace ZXTune
 {
@@ -44,9 +43,6 @@ namespace ZXTune
     static Ptr Create(const Filter& filter);
   };
 
-  //TODO: compatibility
-  class DetectParameters;
-
   //TODO: remove
   struct ModuleRegion
   {
@@ -62,22 +58,6 @@ namespace ZXTune
 
     uint_t Checksum(const IO::DataContainer& container) const;
     IO::DataContainer::Ptr Extract(const IO::DataContainer& container) const;
-  };
-
-  class PluginsEnumeratorOld
-  {
-  public:
-    //resolve subpath
-    virtual void ResolveSubpath(const Parameters::Accessor& coreParams, IO::DataContainer::Ptr data,
-      const String& subpath, MetaContainer& result) const = 0;
-    //full module detection
-    // @return Size of used data
-    virtual std::size_t DetectModules(Parameters::Accessor::Ptr modulesParams, const DetectParameters& params, const MetaContainer& data) const = 0;
-    //single module opening
-    virtual Module::Holder::Ptr OpenModule(Parameters::Accessor::Ptr modulesParams, const MetaContainer& data) const = 0;
-
-    //instantiator
-    static PluginsEnumeratorOld& Instance();
   };
 }
 

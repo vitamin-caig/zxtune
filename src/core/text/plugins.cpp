@@ -5,6 +5,9 @@
 
 namespace Text
 {
+extern const Char ARCHIVE_PLUGIN_PREFIX[] = {
+  '+','u','n',0
+};
 extern const Char ASC_EDITOR[] = {
   'A','S','C',' ','S','o','u','n','d',' ','M','a','s','t','e','r',0
 };

@@ -10,7 +10,8 @@ Author:
 */
 
 //local includes
-#include "enumerator.h"
+#include "core.h"
+#include "registrator.h"
 #include "archives/plugins_list.h"
 #include "containers/plugins_list.h"
 #include "players/plugins_list.h"
@@ -49,23 +50,6 @@ namespace
   typedef std::vector<ArchivePlugin::Ptr> ArchivePluginsArray;
   typedef std::vector<ContainerPlugin::Ptr> ContainerPluginsArray;
 
-  const Char ROOT_SUBPATH[] = {'/', 0};
-
-  const Char ARCHIVE_PLUGIN_PREFIX[] = {'+', 'u', 'n', 0};
-
-  String EncodeArchivePluginToPath(const String& pluginId)
-  {
-    return String(ARCHIVE_PLUGIN_PREFIX) + pluginId;
-  }
-
-  String DecodeArchivePluginFromPath(const String& path)
-  {
-    static const String PREFIX(ARCHIVE_PLUGIN_PREFIX);
-    return 0 == path.find(PREFIX)
-      ? path.substr(PREFIX.size())
-      : String();
-  }
-
   class PluginsChainImpl : public PluginsChain
   {
     typedef std::list<Plugin::Ptr> PluginsList;
@@ -93,7 +77,6 @@ namespace
       {
         return Container.back();
       }
-      assert(!"No plugins in chain");
       return Plugin::Ptr();
     }
 
@@ -246,252 +229,52 @@ namespace
     ContainerPluginsArray ContainerPlugins;
     ArchivePluginsArray ArchivePlugins;
     PlayerPluginsArray PlayerPlugins;
-
-    //TODO: remove
-    friend class PluginsEnumeratorOldImpl;
   };
 
-  class PluginsEnumeratorOldImpl : public PluginsEnumeratorOld, private PluginsContainer
+  class DetectCallbackAdapter : public Module::DetectCallback
+                              , private PluginsEnumerator::Filter
   {
   public:
-    // Open subpath in despite of filter and other
-    virtual void ResolveSubpath(const Parameters::Accessor& commonParams, IO::DataContainer::Ptr data,
-      const String& subpath, MetaContainer& result) const
+    DetectCallbackAdapter(const DetectParameters& detectParams, Parameters::Accessor::Ptr coreParams)
+      : DetectParams(detectParams)
+      , CoreParams(coreParams)
     {
-      assert(data.get());
-      // Navigate through known path
-      String pathToOpen(subpath);
-
-      MetaContainer tmpResult;
-      tmpResult.Path = ROOT_SUBPATH;
-      tmpResult.Data = data;
-
-      while (!pathToOpen.empty())
-      {
-        Log::Debug(THIS_MODULE, "Resolving '%1%' + '%2%'", tmpResult.Path, pathToOpen);
-        //check for archives
-        if (ResolveArchive(commonParams, tmpResult, pathToOpen))
-        {
-          continue;
-        }
-
-        //check for other subcontainers
-        if (ResolveContainer(commonParams, tmpResult, pathToOpen))
-        {
-          continue;
-        }
-        throw MakeFormattedError(THIS_LINE, Module::ERROR_FIND_SUBMODULE, Text::MODULE_ERROR_FIND_SUBMODULE, pathToOpen);
-      }
-      Log::Debug(THIS_MODULE, "Resolved path '%1%'", subpath);
-      result.Data = tmpResult.Data;
-      result.Path = subpath;
-      result.Plugins = tmpResult.Plugins;
+      Plugins = PluginsEnumerator::Create(*this);
     }
 
-    virtual std::size_t DetectModules(Parameters::Accessor::Ptr modulesParams, const DetectParameters& detectParams,
-      const MetaContainer& data) const
+    virtual PluginsEnumerator::Ptr GetEnabledPlugins() const
     {
-      Log::Debug(THIS_MODULE, "%3%: Detecting modules in data of size %1%, path '%2%'",
-        data.Data->Size(), data.Path, data.Plugins->Count());
-
-      //try to detect container and pass control there
-      if (std::size_t usedSize = DetectContainer(modulesParams, detectParams, data))
-      {
-        return usedSize;
-      }
-
-      //try to process archives
-      if (std::size_t usedSize = DetectArchive(modulesParams, detectParams, data))
-      {
-        return usedSize;
-      }
-      //try to detect and process single modules
-      return DetectModule(modulesParams, detectParams, data);
+      return Plugins;
     }
 
-    virtual Module::Holder::Ptr OpenModule(Parameters::Accessor::Ptr moduleParams, const MetaContainer& input) const
+    virtual Parameters::Accessor::Ptr GetPluginsParameters() const
     {
-      for (PlayerPluginsArray::const_iterator it = PlayerPlugins.begin(), lim = PlayerPlugins.end();
-        it != lim; ++it)
-      {
-        const PlayerPlugin::Ptr plugin = *it;
-        if (!plugin->Check(*input.Data))
-        {
-          continue;//invalid plugin
-        }
-        std::size_t usedSize = 0;
-        if (Module::Holder::Ptr module = plugin->CreateModule(moduleParams, input, usedSize))
-        {
-          Log::Debug(THIS_MODULE, "%2%: Opened player plugin %1%",
-            plugin->Id(), input.Plugins->Count());
-          return module;
-        }
-        //TODO: dispatch heavy checks- return false if not enabled
-      }
-      throw MakeFormattedError(THIS_LINE, Module::ERROR_FIND_SUBMODULE, Text::MODULE_ERROR_FIND_SUBMODULE, input.Path);
+      return CoreParams;
     }
 
+    virtual Parameters::Accessor::Ptr GetModuleParameters(const Module::Container& container) const
+    {
+      return CoreParams;
+    }
+
+    virtual Error ProcessModule(const Module::Container& container, Module::Holder::Ptr holder) const
+    {
+      return DetectParams.ProcessModule(container.GetPath(), holder);
+    }
+
+    virtual Log::ProgressCallback* GetProgressCallback() const
+    {
+      return DetectParams.GetProgressCallback();
+    }
+
+    virtual bool IsPluginEnabled(const Plugin& plugin) const
+    {
+      return !DetectParams.FilterPlugin(plugin);
+    }
   private:
-    std::size_t DetectContainer(Parameters::Accessor::Ptr params, const DetectParameters& detectParams, const MetaContainer& input) const
-    {
-      for (ContainerPluginsArray::const_iterator it = ContainerPlugins.begin(), lim = ContainerPlugins.end();
-        it != lim; ++it)
-      {
-        const ContainerPlugin::Ptr plugin = *it;
-        if (detectParams.FilterPlugin(*plugin))
-        {
-          continue;//filtered plugin
-        }
-        if (!plugin->Check(*input.Data))
-        {
-          continue;//invalid plugin
-        }
-        Log::Debug(THIS_MODULE, "%3%:  Checking container plugin %1% for path '%2%'",
-          plugin->Id(), input.Path, input.Plugins->Count());
-        if (std::size_t usedSize = plugin->Process(params, detectParams, input))
-        {
-          Log::Debug(THIS_MODULE, "%4%:  Container plugin %1% for path '%2%' processed at size %3%",
-            plugin->Id(), input.Path, usedSize, input.Plugins->Count());
-          return usedSize;
-        }
-      }
-      return 0;
-    }
-
-    std::size_t DetectArchive(Parameters::Accessor::Ptr modulesParams, const DetectParameters& detectParams, const MetaContainer& input) const
-    {
-      for (ArchivePluginsArray::const_iterator it = ArchivePlugins.begin(), lim = ArchivePlugins.end();
-        it != lim; ++it)
-      {
-        const ArchivePlugin::Ptr plugin = *it;
-        if (detectParams.FilterPlugin(*plugin))
-        {
-          continue;//filtered plugin
-        }
-        const IO::DataContainer& dataContainer = *input.Data;
-        if (!plugin->Check(dataContainer))
-        {
-          continue;//invalid plugin
-        }
-        //find first suitable
-        Log::Debug(THIS_MODULE, "%3%:  Checking archive %1% at path '%2%'",
-          plugin->Id(), input.Path, input.Plugins->Count());
-        std::size_t usedSize = 0;
-        if (IO::DataContainer::Ptr subdata = plugin->ExtractSubdata(*modulesParams, dataContainer, usedSize))
-        {
-          Log::Debug(THIS_MODULE, "%2%:  Detected at data size %1%",
-            usedSize, input.Plugins->Count());
-
-          const String pathComponent = EncodeArchivePluginToPath(plugin->Id());
-
-          MetaContainer nested;
-          nested.Data = subdata;
-          nested.Path = IO::AppendPath(input.Path, pathComponent);
-          nested.Plugins = input.Plugins->Clone();
-          nested.Plugins->Add(plugin);
-          DetectModules(modulesParams, detectParams, nested);
-          return usedSize;
-        }
-        Log::Debug(THIS_MODULE, "%1%:  Failed to detect", input.Plugins->Count());
-        //TODO: dispatch heavy checks- return false if not enabled
-      }
-      return 0;
-    }
-
-    std::size_t DetectModule(Parameters::Accessor::Ptr moduleParams, const DetectParameters& detectParams, const MetaContainer& input) const
-    {
-      for (PlayerPluginsArray::const_iterator it = PlayerPlugins.begin(), lim = PlayerPlugins.end();
-        it != lim; ++it)
-      {
-        const PlayerPlugin::Ptr plugin = *it;
-        if (detectParams.FilterPlugin(*plugin))
-        {
-          continue;//filtered plugin
-        }
-        if (!plugin->Check(*input.Data))
-        {
-          continue;//invalid plugin
-        }
-        Log::Debug(THIS_MODULE, "%3%:  Checking module plugin %1% at path '%2%'",
-          plugin->Id(), input.Path, input.Plugins->Count());
-        std::size_t usedSize = 0;
-        if (Module::Holder::Ptr module = plugin->CreateModule(moduleParams, input, usedSize))
-        {
-          Log::Debug(THIS_MODULE, "%2%:  Detected at size %1%",
-            usedSize, input.Plugins->Count());
-
-          ThrowIfError(detectParams.ProcessModule(input.Path, module));
-          return usedSize;
-        }
-        Log::Debug(THIS_MODULE, "%1%:  Failed to detect", input.Plugins->Count());
-        //TODO: dispatch heavy checks- return false if not enabled
-      }
-      return 0;
-    }
-
-    bool ResolveArchive(const Parameters::Accessor& commonParams, MetaContainer& data, String& pathToOpen) const
-    {
-      String restPath;
-      const String pathComponent = IO::ExtractFirstPathComponent(pathToOpen, restPath);
-      const String pluginId = DecodeArchivePluginFromPath(pathComponent);
-      if (pluginId.empty())
-      {
-        return false;
-      }
-      for (ArchivePluginsArray::const_iterator it = ArchivePlugins.begin(), lim = ArchivePlugins.end();
-        it != lim; ++it)
-      {
-        const ArchivePlugin::Ptr plugin = *it;
-        if (plugin->Id() != pluginId)
-        {
-          continue;
-        }
-        const IO::DataContainer& dataContainer = *data.Data;
-        if (!plugin->Check(dataContainer))
-        {
-          continue;
-        }
-        std::size_t usedSize = 0;
-        if (IO::DataContainer::Ptr subdata = plugin->ExtractSubdata(commonParams, dataContainer, usedSize))
-        {
-          Log::Debug(THIS_MODULE, "Detected archive plugin %1%", plugin->Id());
-          data.Path = IO::AppendPath(data.Path, pathComponent);
-          data.Data = subdata;
-          data.Plugins->Add(plugin);
-          pathToOpen = restPath;
-          return true;
-        }
-        //TODO: dispatch heavy checks- return false if not enabled
-      }
-      return false;
-    }
-
-    bool ResolveContainer(const Parameters::Accessor& commonParams, MetaContainer& data, String& pathToOpen) const
-    {
-      for (ContainerPluginsArray::const_iterator it = ContainerPlugins.begin(), lim = ContainerPlugins.end();
-        it != lim; ++it)
-      {
-        const ContainerPlugin::Ptr plugin = *it;
-        if (!plugin->Check(*data.Data))
-        {
-          continue;
-        }
-        String restPath;
-        if (IO::DataContainer::Ptr subdata = plugin->Open(commonParams, data, pathToOpen, restPath))
-        {
-          Log::Debug(THIS_MODULE, "Detected nested container %1%", plugin->Id());
-          assert(String::npos != pathToOpen.rfind(restPath));
-          const String processedPath = pathToOpen.substr(0, pathToOpen.rfind(restPath));
-          data.Path += processedPath;
-          data.Data = subdata;
-          data.Plugins->Add(plugin);
-          pathToOpen = restPath;
-          return true;
-        }
-        //TODO: dispatch heavy checks- return false if not enabled
-      }
-      return false;
-    }
+    const DetectParameters& DetectParams;
+    const Parameters::Accessor::Ptr CoreParams;
+    PluginsEnumerator::Ptr Plugins;
   };
 }
 
@@ -513,19 +296,13 @@ namespace ZXTune
     return boost::make_shared<PluginsChainImpl>();
   }
 
-  PluginsEnumeratorOld& PluginsEnumeratorOld::Instance()
-  {
-    static PluginsEnumeratorOldImpl instance;
-    return instance;
-  }
-
   Plugin::Iterator::Ptr EnumeratePlugins()
   {
     //TODO: remove
     return PluginsEnumerator::Create()->Enumerate();
   }
 
-  Error DetectModules(Parameters::Accessor::Ptr modulesParams, const DetectParameters& detectParams,
+  Error DetectModules(Parameters::Accessor::Ptr moduleParams, const DetectParameters& detectParams,
     IO::DataContainer::Ptr data, const String& startSubpath)
   {
     if (!data.get())
@@ -534,10 +311,9 @@ namespace ZXTune
     }
     try
     {
-      const PluginsEnumeratorOld& enumerator(PluginsEnumeratorOld::Instance());
-      MetaContainer subcontainer;
-      enumerator.ResolveSubpath(*modulesParams, data, startSubpath, subcontainer);
-      enumerator.DetectModules(modulesParams, detectParams, subcontainer);
+      const Module::Container::Ptr container = Module::OpenContainer(moduleParams, data, startSubpath);
+      const DetectCallbackAdapter callback(detectParams, moduleParams);
+      Module::DetectModules(container, callback);
       return Error();
     }
     catch (const Error& e)
@@ -560,17 +336,13 @@ namespace ZXTune
     }
     try
     {
-      const PluginsEnumeratorOld& enumerator(PluginsEnumeratorOld::Instance());
-      MetaContainer subcontainer;
-      enumerator.ResolveSubpath(*moduleParams, data, subpath, subcontainer);
-      //try to detect and process single modules
-      result = enumerator.OpenModule(moduleParams, subcontainer);
-      return Error();
-    }
-    catch (const Error& e)
-    {
-      Error err = MakeFormattedError(THIS_LINE, Module::ERROR_FIND_SUBMODULE, Text::MODULE_ERROR_FIND_SUBMODULE, subpath);
-      return err.AddSuberror(e);
+      const Module::Container::Ptr container = Module::OpenContainer(moduleParams, data, subpath);
+      if (Module::Holder::Ptr holder = Module::OpenModule(container, moduleParams))
+      {
+        result = holder;
+        return Error();
+      }
+      return MakeFormattedError(THIS_LINE, Module::ERROR_FIND_SUBMODULE, Text::MODULE_ERROR_FIND_SUBMODULE, subpath);
     }
     catch (const std::bad_alloc&)
     {

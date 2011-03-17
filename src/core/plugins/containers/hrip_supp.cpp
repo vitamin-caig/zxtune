@@ -11,7 +11,8 @@ Author:
 
 //local includes
 #include "trdos_utils.h"
-#include <core/plugins/enumerator.h>//TODO
+#include <core/plugins/callback.h>
+#include <core/plugins/enumerator.h>
 #include <core/plugins/registrator.h>
 #include <core/plugins/utils.h>
 //common includes
@@ -269,14 +270,11 @@ namespace
   class Enumerator
   {
   public:
-    Enumerator(Parameters::Accessor::Ptr commonParams, const DetectParameters& detectParams,
-      const MetaContainer& data)
-      : Params(commonParams)
-      , IgnoreCorrupted(CheckIgnoreCorrupted(*Params))
-      , DetectParams(detectParams)
-      , Container(data.Data)
-      , Path(data.Path)
-      , SubMetacontainer(data)
+    Enumerator(Module::Container::Ptr container, Plugin::Ptr plugin, const Module::DetectCallback& callback)
+      : Container(container)
+      , HripPlugin(plugin)
+      , Callback(callback)
+      , IgnoreCorrupted(CheckIgnoreCorrupted(*Callback.GetPluginsParameters()))
     {
     }
 
@@ -285,11 +283,12 @@ namespace
     {
       uint_t totalFiles = 0, archiveSize = 0;
 
-      if (OK != CheckHrip(Container->Data(), Container->Size(), totalFiles, archiveSize))
+      const IO::DataContainer::Ptr data = Container->GetData();
+      if (OK != CheckHrip(data->Data(), data->Size(), totalFiles, archiveSize))
       {
         return 0;
       }
-      if (ParseHrip(Container->Data(), archiveSize,
+      if (ParseHrip(data->Data(), archiveSize,
             boost::bind(&Enumerator::ProcessFile, this, totalFiles, _1, _2), IgnoreCorrupted) != OK)
       {
         Log::Debug("Core::HRiPSupp", "Failed to parse archive, possible corrupted");
@@ -310,35 +309,33 @@ namespace
       {
         return ERROR;
       }
-      const String& filename = TRDos::GetEntryName(header.Name, header.Type);
+      const String& subPath = TRDos::GetEntryName(header.Name, header.Type);
       //decode
+      std::auto_ptr<Dump> decodedData(new Dump());
+      if (!DecodeHripFile(headers, IgnoreCorrupted, *decodedData))
       {
-        Dump tmp;
-        if (!DecodeHripFile(headers, IgnoreCorrupted, tmp))
-        {
-          return ERROR;
-        }
-        SubMetacontainer.Data = IO::CreateDataContainer(tmp);
-        SubMetacontainer.Path = IO::AppendPath(Path, filename);
+        return ERROR;
       }
+      const IO::DataContainer::Ptr subData = IO::CreateDataContainer(decodedData);
 
-      if (Log::ProgressCallback* cb = DetectParams.GetProgressCallback())
+      if (Log::ProgressCallback* cb = Callback.GetProgressCallback())
       {
         const uint_t progress = 100 * (fileNum + 1) / totalFiles;
-        const String text((SafeFormatter(Path.empty() ? Text::PLUGIN_HRIP_PROGRESS_NOPATH : Text::PLUGIN_HRIP_PROGRESS) % filename % Path).str());
+        const String path = Container->GetPath();
+        const String text((SafeFormatter(path.empty() ? Text::PLUGIN_HRIP_PROGRESS_NOPATH : Text::PLUGIN_HRIP_PROGRESS) % subPath % path).str());
         cb->OnProgress(progress, text);
       }
 
-      PluginsEnumeratorOld::Instance().DetectModules(Params, DetectParams, SubMetacontainer);
+      const Module::Container::Ptr subContainer = CreateSubcontainer(Container, HripPlugin, subData, subPath);
+      const Module::NoProgressDetectCallback noProgressCallback(Callback);
+      Module::DetectModules(subContainer, noProgressCallback);
       return CONTINUE;
     }
   private:
-    const Parameters::Accessor::Ptr Params;
+    const Module::Container::Ptr Container;
+    const Plugin::Ptr HripPlugin;
+    const Module::DetectCallback& Callback;
     const bool IgnoreCorrupted;
-    const DetectParameters& DetectParams;
-    const IO::DataContainer::Ptr Container;
-    const String Path;
-    MetaContainer SubMetacontainer;
   };
 
   CallbackState FindFileCallback(const String& filename, bool ignoreCorrupted, uint_t /*fileNum*/,
@@ -384,12 +381,9 @@ namespace
              filesCount != 0;
     }
 
-    virtual std::size_t Process(Parameters::Accessor::Ptr params, const DetectParameters& detectParams,
-      const MetaContainer& data) const
+    virtual std::size_t Process(Module::Container::Ptr container, const Module::DetectCallback& callback) const
     {
-      MetaContainer nested(data);
-      nested.Plugins->Add(shared_from_this());
-      Enumerator cb(params, detectParams, nested);
+      Enumerator cb(container, shared_from_this(), callback);
       return cb.Process();
     }
 

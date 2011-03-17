@@ -11,7 +11,7 @@ Author:
 
 //local includes
 #include "trdos_process.h"
-#include <core/plugins/enumerator.h>
+#include <core/plugins/callback.h>
 #include <core/plugins/utils.h>
 //common includes
 #include <formatter.h>
@@ -58,22 +58,20 @@ namespace
 
 namespace TRDos
 {
-  void ProcessEntries(Parameters::Accessor::Ptr params, const DetectParameters& detectParams, const MetaContainer& data, Plugin::Ptr plugin, const FilesSet& files)
+  void ProcessEntries(ZXTune::Module::Container::Ptr container, const ZXTune::Module::DetectCallback& callback, ZXTune::Plugin::Ptr plugin, const FilesSet& files)
   {
-    MetaContainer subcontainer;
-    subcontainer.Plugins = data.Plugins->Clone();
-    subcontainer.Plugins->Add(plugin);
-
-    const Log::ProgressCallback::Ptr progress = CreateProgressCallback(detectParams, files.GetEntriesCount());
-    LoggerHelper logger(progress.get(), *plugin, data.Path);
-    const ZXTune::PluginsEnumeratorOld& oldEnumerator = ZXTune::PluginsEnumeratorOld::Instance();
+    const ZXTune::IO::DataContainer::Ptr data = container->GetData();
+    const Log::ProgressCallback::Ptr progress = CreateProgressCallback(callback, files.GetEntriesCount());
+    LoggerHelper logger(progress.get(), *plugin, container->GetPath());
+    const ZXTune::Module::NoProgressDetectCallback noProgressCallback(callback);
     for (TRDos::FilesSet::Iterator::Ptr it = files.GetEntries(); it->IsValid(); it->Next())
     {
       const TRDos::FileEntry& entry = it->Get();
-      subcontainer.Data = data.Data->GetSubcontainer(entry.Offset, entry.Size);
-      subcontainer.Path = IO::AppendPath(data.Path, entry.Name);
+      const IO::DataContainer::Ptr subData = data->GetSubcontainer(entry.Offset, entry.Size);
+      const String subPath = entry.Name;
+      const ZXTune::Module::Container::Ptr subContainer = CreateSubcontainer(container, plugin, subData, subPath);
       logger(entry);
-      oldEnumerator.DetectModules(params, detectParams, subcontainer);
+      ZXTune::Module::DetectModules(subContainer, noProgressCallback);
     }
   }
 }

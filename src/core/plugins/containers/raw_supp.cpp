@@ -10,7 +10,7 @@ Author:
 */
 
 //local includes
-#include <core/plugins/enumerator.h>//TODO
+#include <core/plugins/callback.h>
 #include <core/plugins/registrator.h>
 #include <core/plugins/utils.h>
 //common includes
@@ -163,8 +163,8 @@ namespace
   class RawProgressCallback : public Log::ProgressCallback
   {
   public:
-    RawProgressCallback(const DetectParameters& params, uint_t limit, const String& path)
-      : Delegate(CreateProgressCallback(params, limit))
+    RawProgressCallback(const Module::DetectCallback& callback, uint_t limit, const String& path)
+      : Delegate(CreateProgressCallback(callback, limit))
       , Text(path.empty() ? String(Text::PLUGIN_RAW_PROGRESS_NOPATH) : (Formatter(Text::PLUGIN_RAW_PROGRESS) % path).str())
     {
     }
@@ -186,41 +186,15 @@ namespace
     const String Text;
   };
 
-  class NoProgressDetectParameters : public DetectParameters
-  {
-  public:
-    NoProgressDetectParameters(const DetectParameters& delegate)
-      : Delegate(delegate)
-    {
-    }
-
-    virtual bool FilterPlugin(const Plugin& plugin) const
-    {
-      return Delegate.FilterPlugin(plugin);
-    }
-
-    virtual Error ProcessModule(const String& subpath, Module::Holder::Ptr holder) const
-    {
-      return Delegate.ProcessModule(subpath, holder);
-    }
-
-    virtual Log::ProgressCallback* GetProgressCallback() const
-    {
-      return 0;
-    }
-  private:
-    const DetectParameters& Delegate;
-  };
-
   class ScanDataContainer : public IO::DataContainer
   {
   public:
     typedef boost::shared_ptr<ScanDataContainer> Ptr;
 
-    ScanDataContainer(const IO::DataContainer& delegate, std::size_t offset)
+    ScanDataContainer(IO::DataContainer::Ptr delegate, std::size_t offset)
       : Delegate(delegate)
-      , OriginalSize(delegate.Size())
-      , OriginalData(static_cast<const uint8_t*>(delegate.Data()))
+      , OriginalSize(delegate->Size())
+      , OriginalData(static_cast<const uint8_t*>(delegate->Data()))
       , Offset(offset)
     {
     }
@@ -237,7 +211,7 @@ namespace
 
     virtual IO::DataContainer::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
     {
-      return Delegate.GetSubcontainer(offset + Offset, size);
+      return Delegate->GetSubcontainer(offset + Offset, size);
     }
 
     std::size_t GetOffset()
@@ -250,11 +224,87 @@ namespace
       Offset += step;
     }
   private:
-    const IO::DataContainer& Delegate;
+    const IO::DataContainer::Ptr Delegate;
     const std::size_t OriginalSize;
     const uint8_t* const OriginalData;
     std::size_t Offset;
   };
+
+  class ScanModuleContainer : public Module::Container
+  {
+  public:
+    typedef boost::shared_ptr<ScanModuleContainer> Ptr;
+
+    ScanModuleContainer(Module::Container::Ptr parent, Plugin::Ptr subPlugin, std::size_t offset)
+      : Parent(parent)
+      , Subdata(boost::make_shared<ScanDataContainer>(Parent->GetData(), offset))
+      , Subplugin(subPlugin)
+    {
+    }
+
+    virtual IO::DataContainer::Ptr GetData() const
+    {
+      return Subdata;
+    }
+
+    virtual String GetPath() const
+    {
+      const String subPath = CreateRawPart(Subdata->GetOffset());
+      return IO::AppendPath(Parent->GetPath(), subPath);
+    }
+
+    virtual PluginsChain::ConstPtr GetPlugins() const
+    {
+      const PluginsChain::Ptr result = Parent->GetPlugins()->Clone();
+      result->Add(Subplugin);
+      return result;
+    }
+
+    bool HasToScan(std::size_t minSize) const
+    {
+      return Subdata->Size() >= minSize;
+    }
+
+    std::size_t GetOffset()
+    {
+      return Subdata->GetOffset();
+    }
+
+    void Move(std::size_t step)
+    {
+      return Subdata->Move(step);
+    }
+  private:
+    const Module::Container::Ptr Parent;
+    const ScanDataContainer::Ptr Subdata;
+    const Plugin::Ptr Subplugin;
+  };
+
+  class NewParamsCallback : public Module::DetectCallbackDelegate
+  {
+  public:
+    NewParamsCallback(const Module::DetectCallback& delegate, Parameters::Accessor::Ptr plugParams)
+      : DetectCallbackDelegate(delegate)
+      , PluginsParams(plugParams)
+    {
+    }
+
+    virtual Parameters::Accessor::Ptr GetPluginsParameters() const
+    {
+      return PluginsParams;
+    }
+  private:
+    const Parameters::Accessor::Ptr PluginsParams;
+  };
+
+  bool CheckIfLastIsScanner(const PluginsChain& plugins)
+  {
+    if (Plugin::Ptr lastPlugin = plugins.GetLast())
+    {
+      return lastPlugin->Id() == RAW_PLUGIN_ID;
+    }
+    return false;
+  }
 
   class RawScaner : public ContainerPlugin
                   , public boost::enable_shared_from_this<RawScaner>
@@ -286,34 +336,32 @@ namespace
       return inputData.Size() >= MIN_MINIMAL_RAW_SIZE;
     }
 
-    virtual std::size_t Process(Parameters::Accessor::Ptr params,
-      const DetectParameters& detectParams,
-      const MetaContainer& data) const
+    virtual std::size_t Process(Module::Container::Ptr container, const Module::DetectCallback& callback) const
     {
-      RawPluginParameters pluginParams(*params);
+      //do not search right after previous raw plugin
+      const PluginsChain::ConstPtr plugins = container->GetPlugins();
+      if (CheckIfLastIsScanner(*plugins))
       {
-        //do not search right after previous raw plugin
-        if (data.Plugins->Count() && data.Plugins->GetLast()->Id() == RAW_PLUGIN_ID)
-        {
-          return 0;
-        }
-
-        //special mark to determine if plugin is called due to recursive scan
-        if (pluginParams.GetRecursiveDepth() == int_t(data.Plugins->Count()))
-        {
-          return 0;
-        }
+        return 0;
       }
 
-      const PluginsEnumeratorOld& oldEnumerator = PluginsEnumeratorOld::Instance();
-
-      const std::size_t limit = data.Data->Size();
+      const Parameters::Accessor::Ptr pluginParams = callback.GetPluginsParameters();
+      RawPluginParameters scanParams(*pluginParams);
+      //special mark to determine if plugin is called due to recursive scan
+      const uint_t pluginsInChain = plugins->Count();
+      if (scanParams.GetRecursiveDepth() == int_t(pluginsInChain))
+      {
+        return 0;
+      }
+      const IO::DataContainer::Ptr data = container->GetData();
+      const std::size_t limit = data->Size();
       //process without offset
       const Parameters::Accessor::Ptr paramsForCheckAtBegin =
-        boost::make_shared<DepthLimitedParameters>(params, data.Plugins->Count());
-      const std::size_t dataUsedAtBegin = oldEnumerator.DetectModules(paramsForCheckAtBegin, detectParams, data);
+        boost::make_shared<DepthLimitedParameters>(pluginParams, pluginsInChain);
+      const NewParamsCallback newCallback(callback, paramsForCheckAtBegin);
+      const std::size_t dataUsedAtBegin = Module::DetectModules(container, newCallback);
 
-      const std::size_t minRawSize = pluginParams.GetMinimalSize();
+      const std::size_t minRawSize = scanParams.GetMinimalSize();
 
       //check for further scanning possibility
       if (dataUsedAtBegin + minRawSize >= limit)
@@ -321,28 +369,25 @@ namespace
         return limit;
       }
 
-      const std::size_t scanStep = pluginParams.GetScanStep();
+      const std::size_t scanStep = scanParams.GetScanStep();
 
       //to determine was scaner really affected
       bool wasResult = dataUsedAtBegin != 0;
 
-      MetaContainer subcontainer;
-      subcontainer.Plugins = data.Plugins->Clone();
-      subcontainer.Plugins->Add(shared_from_this());
 
-      const ScanDataContainer::Ptr container = boost::make_shared<ScanDataContainer>(*data.Data, std::max(dataUsedAtBegin, scanStep));
-      subcontainer.Data = container;
+      const ContainerPlugin::Ptr subPlugin = shared_from_this();
+      const std::size_t startOffset = std::max(dataUsedAtBegin, scanStep);
+      const ScanModuleContainer::Ptr subContainer = boost::make_shared<ScanModuleContainer>(container, subPlugin, startOffset);
 
-      const Log::ProgressCallback::Ptr callback(new RawProgressCallback(detectParams, limit, data.Path));
-      const NoProgressDetectParameters noProgressDetection(detectParams);
-      while (container->Size() >= minRawSize)
+      const Log::ProgressCallback::Ptr progress(new RawProgressCallback(callback, limit, container->GetPath()));
+      const Module::NoProgressDetectCallback noProgressCallback(callback);
+      while (subContainer->HasToScan(minRawSize))
       {
-        const std::size_t offset = container->GetOffset();
-        callback->OnProgress(offset);
-        subcontainer.Path = IO::AppendPath(data.Path, CreateRawPart(offset));
-        const std::size_t usedSize = oldEnumerator.DetectModules(params, noProgressDetection, subcontainer);
+        const std::size_t offset = subContainer->GetOffset();
+        progress->OnProgress(offset);
+        const std::size_t usedSize = Module::DetectModules(subContainer, noProgressCallback);
         wasResult = wasResult || usedSize != 0;
-        container->Move(std::max(usedSize, scanStep));
+        subContainer->Move(std::max(usedSize, scanStep));
       }
       return wasResult
         ? limit
@@ -353,8 +398,7 @@ namespace
       const MetaContainer& inData, const String& inPath, String& restPath) const
     {
       //do not open right after self
-      if (inData.Plugins->Count() &&
-          inData.Plugins->GetLast()->Id() == RAW_PLUGIN_ID)
+      if (CheckIfLastIsScanner(*inData.Plugins))
       {
         return IO::DataContainer::Ptr();
       }
