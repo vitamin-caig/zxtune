@@ -12,10 +12,10 @@ Author:
 //local includes
 #include "ay_base.h"
 #include "ay_conversion.h"
-#include <core/plugins/detect_helper.h>
-#include <core/plugins/utils.h>
-#include <core/plugins/registrator.h>
-#include <core/plugins/players/module_properties.h>
+#include "core/plugins/detect_helper.h"
+#include "core/plugins/utils.h"
+#include "core/plugins/registrator.h"
+#include "core/plugins/players/module_properties.h"
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
@@ -602,14 +602,14 @@ namespace
   class STCHolder : public Holder
   {
   public:
-    STCHolder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters,
-        const MetaContainer& container, ModuleRegion& region)
+    STCHolder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, const DataLocation& location, ModuleRegion& region)
       : SrcPlugin(plugin)
       , Data(boost::make_shared<STCModuleData>())
       , Info(TrackInfo::Create(Data))
     {
       //assume that data is ok
-      const IO::FastDump& data = IO::FastDump(*container.Data, region.Offset, MAX_MODULE_SIZE);
+      const IO::DataContainer::Ptr allData = location.GetData();
+      const IO::FastDump& data = IO::FastDump(*allData, region.Offset, MAX_MODULE_SIZE);
       const STCAreas areas(data);
 
       const ModuleProperties::Ptr props = Data->ParseInformation(areas);
@@ -622,15 +622,15 @@ namespace
       //fill region
       region.Size = std::min(data.Size(), maxLim);
 
-      RawData = region.Extract(*container.Data);
+      RawData = region.Extract(*allData);
 
       //meta properties
       {
         const ModuleRegion fixedRegion(sizeof(STCHeader), region.Size - sizeof(STCHeader));
         props->SetSource(RawData, fixedRegion);
       }
-      props->SetPlugins(container.Plugins);
-      props->SetPath(container.Path);
+      props->SetPlugins(location.GetPlugins());
+      props->SetPath(location.GetPath());
 
       Info->SetLogicalChannels(AYM::LOGICAL_CHANNELS);
       Info->SetModuleProperties(Parameters::CreateMergedAccessor(parameters, props));
@@ -1140,9 +1140,9 @@ namespace
       return CheckDataFormat(*this, inputData);
     }
 
-    Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters, const MetaContainer& container, std::size_t& usedSize) const
+    Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters, const DataLocation& location, std::size_t& usedSize) const
     {
-      return CreateModuleFromData(*this, parameters, container, usedSize);
+      return CreateModuleFromData(*this, parameters, location, usedSize);
     }
   private:
     virtual DataPrefixIterator GetPrefixes() const
@@ -1156,12 +1156,12 @@ namespace
     }
 
     virtual Holder::Ptr TryToCreateModule(Parameters::Accessor::Ptr parameters,
-      const MetaContainer& container, ModuleRegion& region) const
+      const DataLocation& location, ModuleRegion& region) const
     {
       const Plugin::Ptr plugin = shared_from_this();
       try
       {
-        const Holder::Ptr holder(new STCHolder(plugin, parameters, container, region));
+        const Holder::Ptr holder(new STCHolder(plugin, parameters, location, region));
 #ifdef SELF_TEST
         holder->CreatePlayer();
 #endif

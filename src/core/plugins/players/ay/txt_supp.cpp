@@ -58,24 +58,25 @@ namespace
   {
   public:
     //region must be filled
-    TXTHolder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, const MetaContainer& container, const ModuleRegion& region)
+    TXTHolder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, const DataLocation& location, const ModuleRegion& region)
       : SrcPlugin(plugin)
       , Data(Vortex::Track::ModuleData::Create())
       , Info(TrackInfo::Create(Data))
     {
-      const char* const dataIt = static_cast<const char*>(container.Data->Data());
+      const IO::DataContainer::Ptr rawData = location.GetData();
+      const char* const dataIt = static_cast<const char*>(rawData->Data());
       const char* const endIt = dataIt + region.Size;
 
       const ModuleProperties::Ptr props = ModuleProperties::Create(TXT_PLUGIN_ID);
       ThrowIfError(Vortex::ConvertFromText(std::string(dataIt, endIt),
         *Data, *Info, *props, Version, FreqTableName));
-      RawData = region.Extract(*container.Data);
+      RawData = region.Extract(*rawData);
 
       //meta properties
       //TODO: calculate fixed data in ConvertFromText
       props->SetSource(RawData, region);
-      props->SetPlugins(container.Plugins);
-      props->SetPath(container.Path);
+      props->SetPlugins(location.GetPlugins());
+      props->SetPath(location.GetPath());
 
       Info->SetModuleProperties(CreateMergedAccessor(parameters, props));
     }
@@ -174,15 +175,16 @@ namespace
     }
     
     virtual Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
-                                             const MetaContainer& container,
+                                             const DataLocation& location,
                                              std::size_t& usedSize) const
     {
-      const std::size_t dataSize = container.Data->Size();
-      const char* const data = static_cast<const char*>(container.Data->Data());
-      assert(CheckTXT(*container.Data));
+      const IO::DataContainer::Ptr data = location.GetData();
+      const std::size_t dataSize = data->Size();
+      const char* const rawData = static_cast<const char*>(data->Data());
+      assert(CheckTXT(*data));
       
-      const char* const dataEnd = std::find_if(data, data + std::min(MAX_MODULE_SIZE, dataSize), &CheckSymbol);
-      const std::size_t limit = dataEnd - data;
+      const char* const dataEnd = std::find_if(rawData, rawData + std::min(MAX_MODULE_SIZE, dataSize), &CheckSymbol);
+      const std::size_t limit = dataEnd - rawData;
 
       if (limit < MIN_MODULE_SIZE)
       {
@@ -195,7 +197,7 @@ namespace
       try
       {
         const Plugin::Ptr plugin = shared_from_this();
-        const Module::Holder::Ptr holder(new TXTHolder(plugin, parameters, container, tmpRegion));
+        const Module::Holder::Ptr holder(new TXTHolder(plugin, parameters, location, tmpRegion));
     #ifdef SELF_TEST
         holder->CreatePlayer();
     #endif

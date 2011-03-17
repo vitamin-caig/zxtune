@@ -84,11 +84,12 @@ namespace
   class PSGHolder : public Holder
   {
   public:
-    PSGHolder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, const MetaContainer& container, ModuleRegion& region)
+    PSGHolder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, const DataLocation& location, ModuleRegion& region)
       : SrcPlugin(plugin)
       , Data(boost::make_shared<PSGData>())
     {
-      const IO::FastDump data = *container.Data;
+      const IO::DataContainer::Ptr rawData = location.GetData();
+      const IO::FastDump data(*rawData);
       //workaround for some emulators
       const std::size_t offset = (data[4] == INT_BEGIN) ? 4 : sizeof(PSGHeader);
       std::size_t size = data.Size() - offset;
@@ -149,13 +150,13 @@ namespace
       //fill region
       region.Offset = 0;
       region.Size = data.Size() - size;
-      RawData = region.Extract(*container.Data);
+      RawData = region.Extract(*rawData);
 
       //meta properties
       const ModuleProperties::Ptr props = ModuleProperties::Create(PSG_PLUGIN_ID);
       props->SetSource(RawData, region);
-      props->SetPlugins(container.Plugins);
-      props->SetPath(container.Path);
+      props->SetPlugins(location.GetPlugins());
+      props->SetPath(location.GetPath());
       Info = CreateStreamInfo(Data->Dump.size(), AYM::LOGICAL_CHANNELS, AYM::CHANNELS, 
         Parameters::CreateMergedAccessor(parameters, props));
     }
@@ -282,16 +283,14 @@ namespace
     }
 
     virtual Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
-                                             const MetaContainer& container,
+                                             const DataLocation& location,
                                              std::size_t& usedSize) const
     {
-      assert(CheckPSG(*container.Data));
-
       try
       {
         const Plugin::Ptr plugin = shared_from_this();
         ModuleRegion region;
-        const Module::Holder::Ptr holder(new PSGHolder(plugin, parameters, container, region));
+        const Module::Holder::Ptr holder(new PSGHolder(plugin, parameters, location, region));
         usedSize = region.Offset + region.Size;
         return holder;
       }

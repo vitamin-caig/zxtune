@@ -11,8 +11,9 @@ Author:
 
 //local includes
 #include "ts_base.h"
-#include <core/plugins/registrator.h>
-#include <core/plugins/players/tracking.h>
+#include "core/src/core.h"
+#include "core/plugins/registrator.h"
+#include "core/plugins/players/tracking.h"
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
@@ -480,6 +481,34 @@ namespace
     }
   }
 
+  class SubdataLocation : public DataLocation
+  {
+  public:
+    SubdataLocation(const DataLocation& parent, IO::DataContainer::Ptr data)
+      : Parent(parent)
+      , Data(data)
+    {
+    }
+
+    virtual IO::DataContainer::Ptr GetData() const
+    {
+      return Data;
+    }
+
+    virtual String GetPath() const
+    {
+      return Parent.GetPath();
+    }
+
+    virtual PluginsChain::ConstPtr GetPlugins() const
+    {
+      return Parent.GetPlugins();
+    }
+  private:
+    const DataLocation& Parent;
+    const IO::DataContainer::Ptr Data;
+  };
+
   inline bool InvalidHolder(const Module::Holder& holder)
   {
     const uint_t caps = holder.GetPlugin()->Capabilities();
@@ -519,10 +548,11 @@ namespace
     }
 
     virtual Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
-                                             const MetaContainer& container,
+                                             const DataLocation& location,
                                              std::size_t& usedSize) const
     {
-      const IO::FastDump dump(*container.Data);
+      const IO::DataContainer::Ptr data = location.GetData();
+      const IO::FastDump dump(*data);
 
       const std::size_t footerOffset = FindFooter(dump, SEARCH_THRESHOLD);
       assert(footerOffset);
@@ -532,17 +562,17 @@ namespace
 
       try
       {
-        IO::DataContainer::Ptr subdata = container.Data->GetSubcontainer(0, firstModuleSize);
-        Module::Holder::Ptr holder1;
-        ThrowIfError(OpenModule(parameters, subdata, String(), holder1));
+        const PluginsEnumerator::Ptr usedPlugins = PluginsEnumerator::Create();
+        const DataLocation::Ptr firstSubLocation = boost::make_shared<SubdataLocation>(location, data->GetSubcontainer(0, firstModuleSize));
+
+        const Module::Holder::Ptr holder1 = Module::Open(firstSubLocation, usedPlugins, parameters);
         if (InvalidHolder(*holder1))
         {
           Log::Debug(THIS_MODULE, "Invalid first module holder");
           return Module::Holder::Ptr();
         }
-        subdata = container.Data->GetSubcontainer(firstModuleSize, footerOffset - firstModuleSize);
-        Module::Holder::Ptr holder2;
-        ThrowIfError(OpenModule(parameters, subdata, String(), holder2));
+        const DataLocation::Ptr secondSubLocation = boost::make_shared<SubdataLocation>(location, data->GetSubcontainer(firstModuleSize, footerOffset - firstModuleSize));
+        const Module::Holder::Ptr holder2 = Module::Open(secondSubLocation, usedPlugins, parameters);
         if (InvalidHolder(*holder2))
         {
           Log::Debug(THIS_MODULE, "Failed to create second module holder");
@@ -555,7 +585,7 @@ namespace
           Log::Debug(THIS_MODULE, "Invalid footer structure");
         }
         const std::size_t dataSize = footerOffset + sizeof(*footer);
-        const IO::DataContainer::Ptr rawData = container.Data->GetSubcontainer(0,  dataSize);
+        const IO::DataContainer::Ptr rawData = data->GetSubcontainer(0, dataSize);
         const Module::Holder::Ptr holder(new TSHolder(plugin, rawData, holder1, holder2));
         
         //TODO: proper data attributes calculation calculation

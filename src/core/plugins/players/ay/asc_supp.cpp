@@ -12,9 +12,9 @@ Author:
 //local includes
 #include "ay_base.h"
 #include "ay_conversion.h"
-#include <core/plugins/utils.h>
-#include <core/plugins/registrator.h>
-#include <core/plugins/players/module_properties.h>
+#include "core/plugins/utils.h"
+#include "core/plugins/registrator.h"
+#include "core/plugins/players/module_properties.h"
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
@@ -582,13 +582,14 @@ namespace
       }
     }
   public:
-    ASCHolder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, const MetaContainer& container, ModuleRegion& region)
+    ASCHolder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, const DataLocation& location, ModuleRegion& region)
       : SrcPlugin(plugin)
       , Data(ASCTrack::ModuleData::Create())
       , Info(TrackInfo::Create(Data))
     {
       //assume all data is correct
-      const IO::FastDump& data = IO::FastDump(*container.Data, region.Offset);
+      const IO::DataContainer::Ptr rawData = location.GetData();
+      const IO::FastDump& data = IO::FastDump(*rawData, region.Offset);
 
       const ASCHeader* const header = safe_ptr_cast<const ASCHeader*>(&data[0]);
 
@@ -666,7 +667,7 @@ namespace
 
       //fill region
       region.Size = std::min(rawSize, data.Size());
-      RawData = region.Extract(*container.Data);
+      RawData = region.Extract(*rawData);
 
       //meta properties
       const ModuleProperties::Ptr props = ModuleProperties::Create(ASC_PLUGIN_ID);
@@ -682,8 +683,8 @@ namespace
           props->SetAuthor(OptimizeString(FromCharArray(id->Author)));
         }
       }
-      props->SetPlugins(container.Plugins);
-      props->SetPath(container.Path);
+      props->SetPlugins(location.GetPlugins());
+      props->SetPath(location.GetPath());
       props->SetProgram(Text::ASC_EDITOR);
 
       Info->SetLogicalChannels(AYM::LOGICAL_CHANNELS);
@@ -1140,23 +1141,6 @@ namespace
     return true;
   }
 
-  Holder::Ptr CreateASCModule(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, const MetaContainer& container, ModuleRegion& region)
-  {
-    try
-    {
-      const Holder::Ptr holder(new ASCHolder(plugin, parameters, container, region));
-#ifdef SELF_TEST
-      holder->CreatePlayer();
-#endif
-      return holder;
-    }
-    catch (const Error&/*e*/)
-    {
-      Log::Debug("Core::ASCSupp", "Failed to create holder");
-    }
-    return Holder::Ptr();
-  }
-
   //////////////////////////////////////////////////////////////////////////
   class ASCPlugin : public PlayerPlugin
                   , public boost::enable_shared_from_this<ASCPlugin>
@@ -1190,24 +1174,25 @@ namespace
     }
 
     virtual Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
-                                             const MetaContainer& container,
+                                             const DataLocation& location,
                                              std::size_t& usedSize) const
     {
-      const std::size_t limit(container.Data->Size());
-      const uint8_t* const data(static_cast<const uint8_t*>(container.Data->Data()));
-
-      ModuleRegion tmpRegion;
-      //try to detect without player
-      if (CheckASCModule(data, limit))
+      const Plugin::Ptr plugin = shared_from_this();
+      try
       {
-        const Plugin::Ptr plugin = shared_from_this();
-        if (Module::Holder::Ptr holder = CreateASCModule(plugin, parameters, container, tmpRegion))
-        {
-          usedSize = tmpRegion.Offset + tmpRegion.Size;
-          return holder;
-        }
+        ModuleRegion region;
+        const Holder::Ptr holder(new ASCHolder(plugin, parameters, location, region));
+#ifdef SELF_TEST
+        holder->CreatePlayer();
+#endif
+        usedSize = region.Offset + region.Size;
+        return holder;
       }
-      return Module::Holder::Ptr();
+      catch (const Error&/*e*/)
+      {
+        Log::Debug("Core::ASCSupp", "Failed to create holder");
+      }
+      return Holder::Ptr();
     }
   };
 }

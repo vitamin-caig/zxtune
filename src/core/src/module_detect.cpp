@@ -82,17 +82,16 @@ namespace
   {
     const PluginsEnumerator::Ptr usedPlugins = callback.GetUsedPlugins();
     const IO::DataContainer::Ptr data = location->GetData();
-    const MetaContainer input = MetaContainerFromLocation(*location);
     for (PlayerPlugin::Iterator::Ptr plugins = usedPlugins->EnumeratePlayers(); plugins->IsValid(); plugins->Next())
     {
       const PlayerPlugin::Ptr plugin = plugins->Get();
-      if (!plugin->Check(*input.Data))
+      if (!plugin->Check(*data))
       {
         continue;
       }
       const Parameters::Accessor::Ptr moduleParams = callback.CreateModuleParameters(*location);
       std::size_t usedSize = 0;
-      if (Module::Holder::Ptr module = plugin->CreateModule(moduleParams, input, usedSize))
+      if (Module::Holder::Ptr module = plugin->CreateModule(moduleParams, *location, usedSize))
       {
         ThrowIfError(callback.ProcessModule(*location, module));
         return usedSize;

@@ -35,7 +35,7 @@ namespace ZXTune
   };
 
   struct ModuleRegion;
-  struct MetaContainer;
+  class DataLocation;
 
   typedef RangeIterator<const DataPrefixChecker*> DataPrefixIterator;
 
@@ -52,7 +52,7 @@ namespace ZXTune
   {
   public:
     virtual Module::Holder::Ptr TryToCreateModule(Parameters::Accessor::Ptr parameters,
-      const MetaContainer& container, ModuleRegion& region) const = 0;
+      const DataLocation& location, ModuleRegion& region) const = 0;
   };
 
   class ArchiveDetector : public DataDetector
@@ -65,7 +65,7 @@ namespace ZXTune
   bool CheckDataFormat(const DataDetector& detector, const IO::DataContainer& inputData);
 
   Module::Holder::Ptr CreateModuleFromData(const ModuleDetector& detector,
-    Parameters::Accessor::Ptr parameters, const MetaContainer& container, std::size_t& usedSize);
+    Parameters::Accessor::Ptr parameters, const DataLocation& location, std::size_t& usedSize);
 
   IO::DataContainer::Ptr ExtractSubdataFromData(const ArchiveDetector& detector,
     const Parameters::Accessor& parameters, const IO::DataContainer& data, std::size_t& usedSize);

@@ -74,16 +74,17 @@ namespace ZXTune
   }
 
   Module::Holder::Ptr CreateModuleFromData(const ModuleDetector& detector,
-    Parameters::Accessor::Ptr parameters, const MetaContainer& container, std::size_t& usedSize)
+    Parameters::Accessor::Ptr parameters, const DataLocation& location, std::size_t& usedSize)
   {
-    const std::size_t limit(container.Data->Size());
-    const uint8_t* const data(static_cast<const uint8_t*>(container.Data->Data()));
+    const IO::DataContainer::Ptr data = location.GetData();
+    const std::size_t limit(data->Size());
+    const uint8_t* const rawData(static_cast<const uint8_t*>(data->Data()));
 
     ModuleRegion tmpRegion;
     //try to detect without player
-    if (detector.CheckData(data, limit))
+    if (detector.CheckData(rawData, limit))
     {
-      if (Module::Holder::Ptr holder = detector.TryToCreateModule(parameters, container, tmpRegion))
+      if (Module::Holder::Ptr holder = detector.TryToCreateModule(parameters, location, tmpRegion))
       {
         usedSize = tmpRegion.Offset + tmpRegion.Size;
         return holder;
@@ -93,12 +94,12 @@ namespace ZXTune
     {
       tmpRegion.Offset = chain->PrefixSize;
       if (limit < chain->PrefixSize ||
-          !chain->CheckPrefix(data, limit) ||
-          !detector.CheckData(data + chain->PrefixSize, limit - tmpRegion.Offset))
+          !chain->CheckPrefix(rawData, limit) ||
+          !detector.CheckData(rawData + chain->PrefixSize, limit - tmpRegion.Offset))
       {
         continue;
       }
-      if (Module::Holder::Ptr holder = detector.TryToCreateModule(parameters, container, tmpRegion))
+      if (Module::Holder::Ptr holder = detector.TryToCreateModule(parameters, location, tmpRegion))
       {
         usedSize = tmpRegion.Offset + tmpRegion.Size;
         return holder;

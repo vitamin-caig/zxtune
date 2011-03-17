@@ -246,13 +246,14 @@ namespace
 
   public:
     CHIHolder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters,
-      const MetaContainer& container, ModuleRegion& region)
+      const DataLocation& location, ModuleRegion& region)
       : SrcPlugin(plugin)
       , Data(CHITrack::ModuleData::Create())
       , Info(TrackInfo::Create(Data))
     {
       //assume data is correct
-      const IO::FastDump& data(*container.Data);
+      const IO::DataContainer::Ptr rawData = location.GetData();
+      const IO::FastDump& data(*rawData);
       const CHIHeader* const header(safe_ptr_cast<const CHIHeader*>(data.Data()));
 
       //fill order
@@ -294,7 +295,7 @@ namespace
       //fill region
       region.Offset = 0;
       region.Size = data.Size() - memLeft;
-      RawData = region.Extract(*container.Data);
+      RawData = region.Extract(*rawData);
 
       //meta properties
       const ModuleProperties::Ptr props = ModuleProperties::Create(CHI_PLUGIN_ID);
@@ -302,8 +303,8 @@ namespace
         const ModuleRegion fixedRegion(sizeof(CHIHeader), sizeof(CHIPattern) * patternsCount);
         props->SetSource(RawData, fixedRegion);
       }
-      props->SetPlugins(container.Plugins);
-      props->SetPath(container.Path);
+      props->SetPlugins(location.GetPlugins());
+      props->SetPath(location.GetPath());
       props->SetTitle(OptimizeString(FromCharArray(header->Name)));
       props->SetProgram((Formatter(Text::CHI_EDITOR) % FromCharArray(header->Version)).str());
 
@@ -601,16 +602,15 @@ namespace
     }
 
     virtual Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
-                                             const MetaContainer& container,
+                                             const DataLocation& location,
                                              std::size_t& usedSize) const
     {
-      assert(CheckCHI(*container.Data));
       //try to create holder
       try
       {
         const Plugin::Ptr plugin = shared_from_this();
         ModuleRegion region;
-        const Module::Holder::Ptr holder(new CHIHolder(plugin, parameters, container, region));
+        const Module::Holder::Ptr holder(new CHIHolder(plugin, parameters, location, region));
 #ifdef SELF_TEST
         holder->CreatePlayer();
 #endif

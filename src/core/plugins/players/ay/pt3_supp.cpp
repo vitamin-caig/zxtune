@@ -13,10 +13,10 @@ Author:
 #include "ay_base.h"
 #include "ay_conversion.h"
 #include "aym_parameters_helper.h"
-#include <core/plugins/detect_helper.h>
-#include <core/plugins/utils.h>
-#include <core/plugins/registrator.h>
-#include <core/plugins/players/module_properties.h>
+#include "core/plugins/detect_helper.h"
+#include "core/plugins/utils.h"
+#include "core/plugins/registrator.h"
+#include "core/plugins/players/module_properties.h"
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
@@ -639,14 +639,15 @@ namespace
     }
   public:
     PT3Holder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, Vortex::Track::ModuleData::RWPtr moduleData,
-      const MetaContainer& container, ModuleRegion& region)
+      const DataLocation& location, ModuleRegion& region)
       : SrcPlugin(plugin)
       , Data(moduleData)
       , Info(TrackInfo::Create(Data))
       , Version()
     {
       //assume all data is correct
-      const IO::FastDump& data = IO::FastDump(*container.Data, region.Offset);
+      const IO::DataContainer::Ptr rawData = location.GetData();
+      const IO::FastDump& data = IO::FastDump(*rawData, region.Offset);
       const PT3Header* const header(safe_ptr_cast<const PT3Header*>(&data[0]));
 
       std::size_t rawSize(0);
@@ -703,7 +704,7 @@ namespace
 
       //fill region
       region.Size = std::min(rawSize, data.Size());
-      RawData = region.Extract(*container.Data);
+      RawData = region.Extract(*rawData);
 
       //meta properties
       const ModuleProperties::Ptr props = ModuleProperties::Create(PT3_PLUGIN_ID);
@@ -715,8 +716,8 @@ namespace
       props->SetTitle(OptimizeString(FromCharArray(header->TrackName)));
       props->SetAuthor(OptimizeString(FromCharArray(header->TrackAuthor)));
       props->SetProgram(OptimizeString(String(header->Id, header->Optional1)));
-      props->SetPlugins(container.Plugins);
-      props->SetPath(container.Path);
+      props->SetPlugins(location.GetPlugins());
+      props->SetPath(location.GetPath());
 
       //tracking properties
       Version = std::isdigit(header->Subversion) ? header->Subversion - '0' : 6;
@@ -833,8 +834,8 @@ namespace
   class PT3TSHolder : public PT3Holder
   {
   public:
-    PT3TSHolder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, uint_t patOffset, const MetaContainer& container, ModuleRegion& region)
-      : PT3Holder(plugin, parameters, boost::make_shared<TSModuleData>(patOffset), container, region)
+    PT3TSHolder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, uint_t patOffset, const DataLocation& location, ModuleRegion& region)
+      : PT3Holder(plugin, parameters, boost::make_shared<TSModuleData>(patOffset), location, region)
       , PatOffset(patOffset)
     {
       Info->SetLogicalChannels(Info->LogicalChannels() * 2);
@@ -945,9 +946,10 @@ namespace
     return true;
   }
 
-  uint_t GetTSModulePatternOffset(const MetaContainer& container, const ModuleRegion& region)
+  uint_t GetTSModulePatternOffset(const DataLocation& location, const ModuleRegion& region)
   {
-    const IO::FastDump& data = IO::FastDump(*container.Data, region.Offset);
+    const IO::DataContainer::Ptr rawData = location.GetData();
+    const IO::FastDump& data = IO::FastDump(*rawData, region.Offset);
     const PT3Header* const header(safe_ptr_cast<const PT3Header*>(&data[0]));
     const uint_t patOffset = header->Mode;
     const uint_t patternsCount = 1 + *std::max_element(header->Positions, header->Positions + header->Length) / 3;
@@ -988,9 +990,9 @@ namespace
       return CheckDataFormat(*this, inputData);
     }
 
-    Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters, const MetaContainer& container, std::size_t& usedSize) const
+    Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters, const DataLocation& location, std::size_t& usedSize) const
     {
-      return CreateModuleFromData(*this, parameters, container, usedSize);
+      return CreateModuleFromData(*this, parameters, location, usedSize);
     }
   private:
     virtual DataPrefixIterator GetPrefixes() const
@@ -1004,16 +1006,16 @@ namespace
     }
 
     virtual Holder::Ptr TryToCreateModule(Parameters::Accessor::Ptr parameters,
-      const MetaContainer& container, ModuleRegion& region) const
+      const DataLocation& location, ModuleRegion& region) const
     {
       const Plugin::Ptr plugin = shared_from_this();
       try
       {
-        const uint_t tsPatternOffset = GetTSModulePatternOffset(container, region);
+        const uint_t tsPatternOffset = GetTSModulePatternOffset(location, region);
         const bool isTSModule = AY_TRACK != tsPatternOffset;
         const Holder::Ptr holder = isTSModule
-          ? Holder::Ptr(new PT3TSHolder(plugin, parameters, tsPatternOffset, container, region))
-          : Holder::Ptr(new PT3Holder(plugin, parameters, Vortex::Track::ModuleData::Create(), container, region));
+          ? Holder::Ptr(new PT3TSHolder(plugin, parameters, tsPatternOffset, location, region))
+          : Holder::Ptr(new PT3Holder(plugin, parameters, Vortex::Track::ModuleData::Create(), location, region));
 #ifdef SELF_TEST
         holder->CreatePlayer();
 #endif

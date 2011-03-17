@@ -239,7 +239,7 @@ namespace
     ScanDataLocation(DataLocation::Ptr parent, Plugin::Ptr subPlugin, std::size_t offset)
       : Parent(parent)
       , Subdata(boost::make_shared<ScanDataContainer>(Parent->GetData(), offset))
-      , Subplugin(subPlugin)
+      , Subplugins(PluginsChain::CreateMerged(Parent->GetPlugins(), subPlugin))
     {
     }
 
@@ -256,7 +256,7 @@ namespace
 
     virtual PluginsChain::ConstPtr GetPlugins() const
     {
-      return PluginsChain::CreateMerged(Parent->GetPlugins(), Subplugin);
+      return Subplugins;
     }
 
     bool HasToScan(std::size_t minSize) const
@@ -276,7 +276,7 @@ namespace
   private:
     const DataLocation::Ptr Parent;
     const ScanDataContainer::Ptr Subdata;
-    const Plugin::Ptr Subplugin;
+    const PluginsChain::ConstPtr Subplugins;
   };
 
   class NewParamsCallback : public Module::DetectCallbackDelegate
