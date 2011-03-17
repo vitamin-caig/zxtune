@@ -55,54 +55,52 @@ namespace
     const char* const Variable;
   };
 
-  class ProgressCallbackImpl : public ProgressCallback
+  class ProcentProgressCallback : public ProgressCallback
   {
   public:
-    ProgressCallbackImpl(uint_t total, const MessageData& baseData, const MessageReceiver& receiver)
+    ProcentProgressCallback(uint_t total, ProgressCallback& delegate)
       : Total(total)
-      , Receiver(receiver)
-      , Data(baseData)
+      , Delegate(delegate)
+      , Current(-1)
     {
-      Data.Progress = -1;
     }
 
     virtual void OnProgress(uint_t current)
     {
-      const uint_t curProg = GetProgress(current);
-      if (curProg != *Data.Progress)
+      const int_t curProg = ScaleToProgress(current);
+      if (curProg != Current)
       {
-        Data.Progress = curProg;
-        Receiver.ReportMessage(Data);
+        Current = curProg;
+        Delegate.OnProgress(static_cast<uint_t>(Current));
       }
     }
 
     virtual void OnProgress(uint_t current, const String& message)
     {
-      const uint_t curProg = GetProgress(current);
-      if (curProg != *Data.Progress)
+      const int_t curProg = ScaleToProgress(current);
+      if (curProg != Current)
       {
-        Data.Progress = curProg;
-        Data.Text = message;
-        Receiver.ReportMessage(Data);
+        Current = curProg;
+        Delegate.OnProgress(static_cast<uint_t>(Current), message);
       }
     }
   private:
-    uint_t GetProgress(uint_t position) const
+    int_t ScaleToProgress(uint_t position) const
     {
       return static_cast<uint_t>(uint64_t(position) * 100 / Total);
     }
   private:
     const uint_t Total;
-    const MessageReceiver& Receiver;
-    MessageData Data;
+    ProgressCallback& Delegate;
+    int_t Current;
   };
 }
 
 namespace Log
 {
-  ProgressCallback::Ptr CreateProgressCallback(uint_t total, const Log::MessageData& baseData, const MessageReceiver& receiver)
+  ProgressCallback::Ptr CreatePercentProgressCallback(uint_t total, ProgressCallback& delegate)
   {
-    return ProgressCallback::Ptr(new ProgressCallbackImpl(total, baseData, receiver));
+    return ProgressCallback::Ptr(new ProcentProgressCallback(total, delegate));
   }
 
   //public gate

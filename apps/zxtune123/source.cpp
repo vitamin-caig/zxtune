@@ -53,43 +53,61 @@ namespace
 
   typedef std::set<String> StringSet;
 
-  void DoLog(const Log::MessageData& msg)
+  void OutputString(uint_t width, const String& text)
   {
-    //show only first-level messages
-    if (msg.Level)
+    const String::size_type curSize = text.size();
+    if (curSize < width)
     {
-      return;
-    }
-    const Console& console = Console::Self();
-    if (console.GetPressedKey() == Console::INPUT_KEY_CANCEL)
-    {
-      console.WaitForKeyRelease();
-      throw Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
-    }
-    const int_t width = console.GetSize().first;
-    if (width < 0)
-    {
-      return;
-    }
-    String log;
-    if (msg.Text)
-    {
-      log = *msg.Text;
-    }
-    if (msg.Progress)
-    {
-      log += (Formatter(Text::PROGRESS_FORMAT) % *msg.Progress).str();
-    }
-    if (int_t(log.size()) < width)
-    {
-      log.resize(width - 1, ' ');
-      StdOut << log << '\r' << std::flush;
+      StdOut << text << String(width - curSize - 1, ' ') << '\r';
     }
     else
     {
-      StdOut << log << std::endl;
+      StdOut << text << '\n';
     }
+    StdOut << std::flush;
   }
+
+  class ProgressCallbackImpl : public Log::ProgressCallback
+  {
+  public:
+    ProgressCallbackImpl()
+      : Cons(Console::Self())
+    {
+    }
+
+    virtual void OnProgress(uint_t current)
+    {
+      static const Char EMPTY[] = {0};
+      OnProgress(current, EMPTY);
+    }
+    virtual void OnProgress(uint_t current, const String& message)
+    {
+      CheckForExit();
+      if (const uint_t currentWidth = GetCurrentWidth())
+      {
+        String text = message;
+        text += (Formatter(Text::PROGRESS_FORMAT) % current).str();
+        OutputString(currentWidth, text);
+      }
+    }
+  private:
+    void CheckForExit() const
+    {
+      if (Cons.GetPressedKey() == Console::INPUT_KEY_CANCEL)
+      {
+        Cons.WaitForKeyRelease();
+        throw Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
+      }
+    }
+
+    uint_t GetCurrentWidth() const
+    {
+      const int_t width = Cons.GetSize().first;
+      return width >= 0 ? static_cast<uint_t>(width) : 0;
+    }
+  private:
+    const Console& Cons;
+  };
 
   void Parse(const StringSet& allplugs, const String& str, StringSet& plugs, uint_t& caps)
   {
@@ -225,7 +243,7 @@ namespace
     DetectParametersImpl(const PluginsFilter& filter, const ModulesProcessor& processor, bool showLogs)
       : Filter(filter)
       , Processor(processor)
-      , ShowLogs(showLogs)
+      , ProgressCallback(showLogs ? new ProgressCallbackImpl() : 0)
     {
     }
 
@@ -239,17 +257,14 @@ namespace
       return Processor.ProcessModule(subpath, holder);
     }
 
-    virtual void ReportMessage(const Log::MessageData& message) const
+    virtual Log::ProgressCallback* GetProgressCallback() const
     {
-      if (ShowLogs)
-      {
-        DoLog(message);
-      }
+      return ProgressCallback.get();
     }
   private:
     const PluginsFilter& Filter;
     const ModulesProcessor& Processor;
-    const bool ShowLogs;
+    const Log::ProgressCallback::Ptr ProgressCallback;
   };
 
   class Source : public SourceComponent

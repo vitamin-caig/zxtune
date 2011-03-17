@@ -429,6 +429,29 @@ namespace
     mutable bool Valid;
   };
 
+  class ProgressCallbackAdapter : public Log::ProgressCallback
+  {
+  public:
+    explicit ProgressCallbackAdapter(Playlist::Item::DetectParameters& delegate)
+      : Delegate(delegate)
+    {
+    }
+
+    virtual void OnProgress(uint_t current)
+    {
+      Delegate.ShowProgress(current);
+    }
+
+    virtual void OnProgress(uint_t current, const String& message)
+    {
+      Delegate.ShowProgress(current);
+      Delegate.ShowMessage(message);
+    }
+  private:
+    Playlist::Item::DetectParameters& Delegate;
+  };
+ 
+
   class DetectParametersAdapter : public ZXTune::DetectParameters
   {
   public:
@@ -436,6 +459,7 @@ namespace
                             DynamicAttributesProvider::Ptr attributes,
                             CachedDataProvider::Ptr provider, Parameters::Accessor::Ptr coreParams, const String& dataPath)
       : Delegate(delegate)
+      , ProgressCallback(Delegate)
       , Attributes(attributes)
       , CoreParams(coreParams)
       , DataPath(dataPath)
@@ -463,23 +487,13 @@ namespace
       return Delegate.ProcessItem(playitem) ? Error() : Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
     }
 
-    virtual void ReportMessage(const Log::MessageData& message) const
+    virtual Log::ProgressCallback* GetProgressCallback() const
     {
-      if (0 != message.Level)
-      {
-        return;
-      }
-      if (message.Text)
-      {
-        Delegate.ShowMessage(*message.Text);
-      }
-      if (message.Progress)
-      {
-        Delegate.ShowProgress(*message.Progress);
-      }
+      return &ProgressCallback;
     }
   private:
     Playlist::Item::DetectParameters& Delegate;
+    mutable ProgressCallbackAdapter ProgressCallback;
     const DynamicAttributesProvider::Ptr Attributes;
     const Parameters::Accessor::Ptr CoreParams;
     const String DataPath;

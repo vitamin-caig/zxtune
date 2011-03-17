@@ -12,6 +12,7 @@ Author:
 //local includes
 #include <core/plugins/enumerator.h>//TODO
 #include <core/plugins/registrator.h>
+#include <core/plugins/utils.h>
 //common includes
 #include <error_tools.h>
 #include <logging.h>
@@ -159,13 +160,57 @@ namespace
     const std::size_t Depth;
   };
 
-  Log::ProgressCallback::Ptr CreateProgress(const DetectParameters& params, const MetaContainer& data, uint_t limit)
+  class RawProgressCallback : public Log::ProgressCallback
   {
-    Log::MessageData msg;
-    msg.Level = data.Plugins->CalculateContainersNesting();
-    msg.Text = data.Path.empty() ? String(Text::PLUGIN_RAW_PROGRESS_NOPATH) : (Formatter(Text::PLUGIN_RAW_PROGRESS) % data.Path).str();
-    return Log::CreateProgressCallback(limit, msg, params);
-  }
+  public:
+    RawProgressCallback(const DetectParameters& params, uint_t limit, const String& path)
+      : Delegate(CreateProgressCallback(params, limit))
+      , Text(path.empty() ? String(Text::PLUGIN_RAW_PROGRESS_NOPATH) : (Formatter(Text::PLUGIN_RAW_PROGRESS) % path).str())
+    {
+    }
+
+    virtual void OnProgress(uint_t current)
+    {
+      OnProgress(current, Text);
+    }
+
+    virtual void OnProgress(uint_t current, const String& message)
+    {
+      if (Delegate.get())
+      {
+        Delegate->OnProgress(current, message);
+      }
+    }
+  private:
+    const Log::ProgressCallback::Ptr Delegate;
+    const String Text;
+  };
+
+  class NoProgressDetectParameters : public DetectParameters
+  {
+  public:
+    NoProgressDetectParameters(const DetectParameters& delegate)
+      : Delegate(delegate)
+    {
+    }
+
+    virtual bool FilterPlugin(const Plugin& plugin) const
+    {
+      return Delegate.FilterPlugin(plugin);
+    }
+
+    virtual Error ProcessModule(const String& subpath, Module::Holder::Ptr holder) const
+    {
+      return Delegate.ProcessModule(subpath, holder);
+    }
+
+    virtual Log::ProgressCallback* GetProgressCallback() const
+    {
+      return 0;
+    }
+  private:
+    const DetectParameters& Delegate;
+  };
 
   class ScanDataContainer : public IO::DataContainer
   {
@@ -288,13 +333,14 @@ namespace
       const ScanDataContainer::Ptr container = boost::make_shared<ScanDataContainer>(*data.Data, std::max(dataUsedAtBegin, scanStep));
       subcontainer.Data = container;
 
-      const Log::ProgressCallback::Ptr callback = CreateProgress(detectParams, data, limit);
+      const Log::ProgressCallback::Ptr callback(new RawProgressCallback(detectParams, limit, data.Path));
+      const NoProgressDetectParameters noProgressDetection(detectParams);
       while (container->Size() >= minRawSize)
       {
         const std::size_t offset = container->GetOffset();
         callback->OnProgress(offset);
         subcontainer.Path = IO::AppendPath(data.Path, CreateRawPart(offset));
-        const std::size_t usedSize = oldEnumerator.DetectModules(params, detectParams, subcontainer);
+        const std::size_t usedSize = oldEnumerator.DetectModules(params, noProgressDetection, subcontainer);
         wasResult = wasResult || usedSize != 0;
         container->Move(std::max(usedSize, scanStep));
       }

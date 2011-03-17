@@ -66,30 +66,6 @@ namespace
       : String();
   }
 
-  class LoggerHelper
-  {
-  public:
-    LoggerHelper(const DetectParameters& detectParams, const MetaContainer& input, const String& msgFormat)
-      : Params(detectParams)
-      , Path(input.Path)
-      , Format(msgFormat)
-    {
-      const uint_t level = input.Plugins->CalculateContainersNesting();
-      Message.Level = level;
-    }
-
-    void operator () (const Plugin& plugin)
-    {
-      Message.Text = (SafeFormatter(Format) % plugin.Id() % Path).str();
-      Params.ReportMessage(Message);
-    }
-  private:
-    const DetectParameters& Params;
-    const String Path;
-    const String Format;
-    Log::MessageData Message;
-  };
-
   class PluginsChainImpl : public PluginsChain
   {
     typedef std::list<Plugin::Ptr> PluginsList;
@@ -384,8 +360,6 @@ namespace
 
     std::size_t DetectArchive(Parameters::Accessor::Ptr modulesParams, const DetectParameters& detectParams, const MetaContainer& input) const
     {
-      LoggerHelper logger(detectParams, input, input.Path.empty() ? Text::MODULE_PROGRESS_DETECT_ARCHIVE_NOPATH : Text::MODULE_PROGRESS_DETECT_ARCHIVE);
-
       for (ArchivePluginsArray::const_iterator it = ArchivePlugins.begin(), lim = ArchivePlugins.end();
         it != lim; ++it)
       {
@@ -407,7 +381,6 @@ namespace
         {
           Log::Debug(THIS_MODULE, "%2%:  Detected at data size %1%",
             usedSize, input.Plugins->Count());
-          logger(*plugin);
 
           const String pathComponent = EncodeArchivePluginToPath(plugin->Id());
 
@@ -427,7 +400,6 @@ namespace
 
     std::size_t DetectModule(Parameters::Accessor::Ptr moduleParams, const DetectParameters& detectParams, const MetaContainer& input) const
     {
-      LoggerHelper logger(detectParams, input, input.Path.empty() ? Text::MODULE_PROGRESS_DETECT_PLAYER_NOPATH : Text::MODULE_PROGRESS_DETECT_PLAYER);
       for (PlayerPluginsArray::const_iterator it = PlayerPlugins.begin(), lim = PlayerPlugins.end();
         it != lim; ++it)
       {
@@ -447,8 +419,6 @@ namespace
         {
           Log::Debug(THIS_MODULE, "%2%:  Detected at size %1%",
             usedSize, input.Plugins->Count());
-
-          logger(*plugin);
 
           ThrowIfError(detectParams.ProcessModule(input.Path, module));
           return usedSize;
@@ -529,8 +499,8 @@ namespace ZXTune
 {
   PluginsEnumerator::Ptr PluginsEnumerator::Create()
   {
-    static PluginsContainer Instance;
-    return PluginsEnumerator::Ptr(&Instance, &NullDeleter<PluginsEnumerator>);
+    static PluginsContainer instance;
+    return PluginsEnumerator::Ptr(&instance, NullDeleter<PluginsEnumerator>());
   }
 
   PluginsEnumerator::Ptr PluginsEnumerator::Create(const PluginsEnumerator::Filter& filter)

@@ -114,8 +114,9 @@ inline T absolute(T val)
 
 //! @brief Stub deleter for shared pointers
 template<class T>
-void NullDeleter(T*)
+class NullDeleter
 {
-}
-
+public:
+  void operator()(T*) {}
+};
 #endif //__TOOLS_H_DEFINED__

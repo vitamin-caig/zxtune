@@ -30,10 +30,5 @@ extern const Char MODULE_LAYOUT_BAC[];
 extern const Char MODULE_LAYOUT_BCA[];
 extern const Char MODULE_LAYOUT_CAB[];
 extern const Char MODULE_LAYOUT_CBA[];
-extern const Char MODULE_PROGRESS_DETECT_ARCHIVE[];
-extern const Char MODULE_PROGRESS_DETECT_ARCHIVE_NOPATH[];
-extern const Char MODULE_PROGRESS_DETECT_PLAYER[];
-extern const Char MODULE_PROGRESS_DETECT_PLAYER_NOPATH[];
-extern const Char MODULE_PROGRESS_OPEN_ARCHIVE_NOPATH[];
 }//namespace Text
 #endif //__TEXT_CORE_H_DEFINED__

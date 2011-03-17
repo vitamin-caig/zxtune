@@ -12,6 +12,7 @@ Author:
 //local includes
 #include "trdos_process.h"
 #include <core/plugins/enumerator.h>
+#include <core/plugins/utils.h>
 //common includes
 #include <formatter.h>
 #include <logging.h>
@@ -25,17 +26,10 @@ namespace
 {
   using namespace ZXTune;
 
-  Log::ProgressCallback::Ptr CreateProgressCallback(const DetectParameters& params, const MetaContainer& data, uint_t limit)
-  {
-    Log::MessageData msg;
-    msg.Level = data.Plugins->CalculateContainersNesting();
-    return Log::CreateProgressCallback(limit, msg, params);
-  }
-
   class LoggerHelper
   {
   public:
-    LoggerHelper(Log::ProgressCallback& callback, const Plugin& plugin, const String& path)
+    LoggerHelper(Log::ProgressCallback* callback, const Plugin& plugin, const String& path)
       : Callback(callback)
       , Path(path)
       , Format(new Formatter(Path.empty() ? Text::CONTAINER_PLUGIN_PROGRESS_NOPATH : Text::CONTAINER_PLUGIN_PROGRESS))
@@ -46,13 +40,16 @@ namespace
 
     void operator()(const TRDos::FileEntry& cur)
     {
-      const String text = Path.empty()
-        ? (Formatter(*Format) % cur.Name).str()
-        : (Formatter(*Format) % cur.Name % Path).str();
-      Callback.OnProgress(Current++, text);
+      if (Callback)
+      {
+        const String text = Path.empty()
+          ? (Formatter(*Format) % cur.Name).str()
+          : (Formatter(*Format) % cur.Name % Path).str();
+        Callback->OnProgress(Current++, text);
+      }
     }
   private:
-    Log::ProgressCallback& Callback;
+    Log::ProgressCallback* const Callback;
     const String Path;
     const std::auto_ptr<Formatter> Format;
     uint_t Current;
@@ -67,8 +64,8 @@ namespace TRDos
     subcontainer.Plugins = data.Plugins->Clone();
     subcontainer.Plugins->Add(plugin);
 
-    const Log::ProgressCallback::Ptr progress = CreateProgressCallback(detectParams, data, files.GetEntriesCount());
-    LoggerHelper logger(*progress, *plugin, data.Path);
+    const Log::ProgressCallback::Ptr progress = CreateProgressCallback(detectParams, files.GetEntriesCount());
+    LoggerHelper logger(progress.get(), *plugin, data.Path);
     const ZXTune::PluginsEnumeratorOld& oldEnumerator = ZXTune::PluginsEnumeratorOld::Instance();
     for (TRDos::FilesSet::Iterator::Ptr it = files.GetEntries(); it->IsValid(); it->Next())
     {

@@ -32,7 +32,7 @@ namespace ZXTune
   class Plugin;
 
   //! @brief Paremeters for modules' detection
-  class DetectParameters : public Log::MessageReceiver
+  class DetectParameters
   {
   public:
     virtual ~DetectParameters() {}
@@ -46,6 +46,10 @@ namespace ZXTune
     //! @param holder Found module
     //! @return Error() to continue, else to cancel.
     virtual Error ProcessModule(const String& subpath, Module::Holder::Ptr holder) const = 0;
+
+    //! @brief Request for progress callback
+    //! @return 0 if client doesn't want to receive progress notifications
+    virtual Log::ProgressCallback* GetProgressCallback() const = 0;
   };
 
   //! @brief Perform module detection

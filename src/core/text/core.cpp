@@ -95,23 +95,5 @@ extern const Char MODULE_LAYOUT_CAB[] = {
 extern const Char MODULE_LAYOUT_CBA[] = {
   'C','B','A',0
 };
-extern const Char MODULE_PROGRESS_DETECT_ARCHIVE[] = {
-  'D','e','t','e','c','t','e','d',' ','a','r','c','h','i','v','e',' ','\'','%','1','%','\'',' ','a','t',' ','s',
-  'u','b','p','a','t','h',' ','\'','%','2','%','\'',0
-};
-extern const Char MODULE_PROGRESS_DETECT_ARCHIVE_NOPATH[] = {
-  'D','e','t','e','c','t','e','d',' ','a','r','c','h','i','v','e',' ','\'','%','1','%','\'',0
-};
-extern const Char MODULE_PROGRESS_DETECT_PLAYER[] = {
-  'D','e','t','e','c','t','e','d',' ','p','l','a','y','e','r',' ','m','o','d','u','l','e',' ','\'','%','1','%',
-  '\'',' ','a','t',' ','s','u','b','p','a','t','h',' ','\'','%','2','%','\'',0
-};
-extern const Char MODULE_PROGRESS_DETECT_PLAYER_NOPATH[] = {
-  'D','e','t','e','c','t','e','d',' ','p','l','a','y','e','r',' ','m','o','d','u','l','e',' ','\'','%','1','%',
-  '\'',0
-};
-extern const Char MODULE_PROGRESS_OPEN_ARCHIVE_NOPATH[] = {
-  'O','p','e','n','i','n','g',' ','a','r','c','h','i','v','e',' ','\'','%','1','%','\'',0
-};
 }//namespace Text
 #endif //__TEXT_CORE_H_DEFINED__

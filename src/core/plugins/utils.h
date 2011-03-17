@@ -14,7 +14,10 @@ Author:
 #define __CORE_PLUGINS_UTILS_H_DEFINED__
 
 //common includes
+#include <logging.h>
 #include <tools.h>
+//library includes
+#include <core/module_detect.h>
 //std includes
 #include <algorithm>
 #include <cctype>
@@ -27,6 +30,15 @@ inline String OptimizeString(const String& str, Char replace = '\?')
   String res(boost::algorithm::trim_copy_if(str, !boost::is_from_range('\x21', '\x7f')));
   std::replace_if(res.begin(), res.end(), std::ptr_fun<int, int>(&std::iscntrl), replace);
   return res;
+}
+
+inline Log::ProgressCallback::Ptr CreateProgressCallback(const ZXTune::DetectParameters& params, uint_t limit)
+{
+  if (Log::ProgressCallback* cb = params.GetProgressCallback())
+  {
+    return Log::CreatePercentProgressCallback(limit, *cb);
+  }
+  return Log::ProgressCallback::Ptr();
 }
 
 #endif //__CORE_PLUGINS_UTILS_H_DEFINED__

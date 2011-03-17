@@ -24,31 +24,6 @@
 //! @brief Namespace is used for logging and other informational purposes
 namespace Log
 {
-  //! @brief Message structure
-  struct MessageData
-  {
-    MessageData()
-      : Level(0)
-    {
-    }
-
-    //! Message level, 0-based
-    uint_t Level;
-    //! Optional text
-    boost::optional<String> Text;
-    //! Optional progress in percents
-    boost::optional<uint_t> Progress;
-  };
-
-  //! @brief Base message receiver interface
-  class MessageReceiver
-  {
-  public:
-    virtual ~MessageReceiver() {}
-
-    virtual void ReportMessage(const MessageData& message) const = 0;
-  };
-
   //! @brief Progress receiver
   class ProgressCallback
   {
@@ -59,7 +34,7 @@ namespace Log
     virtual void OnProgress(uint_t current, const String& message) = 0;
   };
 
-  ProgressCallback::Ptr CreateProgressCallback(uint_t total, const Log::MessageData& baseData, const Log::MessageReceiver& receiver);
+  ProgressCallback::Ptr CreatePercentProgressCallback(uint_t total, ProgressCallback& delegate);
 
   //! @brief Checks if debugging messages output for specified module is enabled
   bool IsDebuggingEnabled(const std::string& module);

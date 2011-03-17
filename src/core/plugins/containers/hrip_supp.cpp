@@ -276,7 +276,6 @@ namespace
       , DetectParams(detectParams)
       , Container(data.Data)
       , Path(data.Path)
-      , LogLevel(-1)
       , SubMetacontainer(data)
     {
     }
@@ -323,27 +322,15 @@ namespace
         SubMetacontainer.Path = IO::AppendPath(Path, filename);
       }
 
+      if (Log::ProgressCallback* cb = DetectParams.GetProgressCallback())
       {
-        Log::MessageData message;
-        message.Level = GetLogLevel();
-        message.Progress = 100 * (fileNum + 1) / totalFiles;
-        message.Text = (SafeFormatter(Path.empty() ? Text::PLUGIN_HRIP_PROGRESS_NOPATH : Text::PLUGIN_HRIP_PROGRESS) % filename % Path).str();
-        DetectParams.ReportMessage(message);
+        const uint_t progress = 100 * (fileNum + 1) / totalFiles;
+        const String text((SafeFormatter(Path.empty() ? Text::PLUGIN_HRIP_PROGRESS_NOPATH : Text::PLUGIN_HRIP_PROGRESS) % filename % Path).str());
+        cb->OnProgress(progress, text);
       }
 
       PluginsEnumeratorOld::Instance().DetectModules(Params, DetectParams, SubMetacontainer);
       return CONTINUE;
-    }
-  private:
-    //for optimization purposes
-    uint_t GetLogLevel() const
-    {
-      if (-1 == LogLevel)
-      {
-        LogLevel = static_cast<int_t>(
-          SubMetacontainer.Plugins->CalculateContainersNesting() - 1);
-      }
-      return LogLevel;
     }
   private:
     const Parameters::Accessor::Ptr Params;
@@ -351,7 +338,6 @@ namespace
     const DetectParameters& DetectParams;
     const IO::DataContainer::Ptr Container;
     const String Path;
-    mutable int_t LogLevel;
     MetaContainer SubMetacontainer;
   };
 
