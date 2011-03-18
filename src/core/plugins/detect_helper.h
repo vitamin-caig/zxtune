@@ -13,6 +13,8 @@ Author:
 #ifndef __CORE_PLUGINS_DETECT_HELPER_H_DEFINED__
 #define __CORE_PLUGINS_DETECT_HELPER_H_DEFINED__
 
+//local includes
+#include <core/src/location.h>
 //common includes
 #include <detector.h>
 #include <iterator.h>
@@ -35,7 +37,6 @@ namespace ZXTune
   };
 
   struct ModuleRegion;
-  class DataLocation;
 
   typedef RangeIterator<const DataPrefixChecker*> DataPrefixIterator;
 
@@ -52,7 +53,7 @@ namespace ZXTune
   {
   public:
     virtual Module::Holder::Ptr TryToCreateModule(Parameters::Accessor::Ptr parameters,
-      const DataLocation& location, ModuleRegion& region) const = 0;
+      DataLocation::Ptr location, ModuleRegion& region) const = 0;
   };
 
   class ArchiveDetector : public DataDetector
@@ -65,7 +66,7 @@ namespace ZXTune
   bool CheckDataFormat(const DataDetector& detector, const IO::DataContainer& inputData);
 
   Module::Holder::Ptr CreateModuleFromData(const ModuleDetector& detector,
-    Parameters::Accessor::Ptr parameters, const DataLocation& location, std::size_t& usedSize);
+    Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, std::size_t& usedSize);
 
   IO::DataContainer::Ptr ExtractSubdataFromData(const ArchiveDetector& detector,
     const Parameters::Accessor& parameters, const IO::DataContainer& data, std::size_t& usedSize);

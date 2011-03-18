@@ -39,6 +39,8 @@ namespace
 {
   using namespace ZXTune;
 
+  const std::string THIS_MODULE("Core::RawScaner");
+
   const Char RAW_PLUGIN_ID[] = {'R', 'A', 'W', 0};
   const String RAW_PLUGIN_VERSION(FromStdString("$Rev$"));
 
@@ -376,7 +378,7 @@ namespace
 
       const ContainerPlugin::Ptr subPlugin = shared_from_this();
       const std::size_t startOffset = std::max(dataUsedAtBegin, scanStep);
-      const ScanDataLocation::Ptr subLocation = boost::make_shared<ScanDataLocation>(location, subPlugin, startOffset);
+      ScanDataLocation::Ptr subLocation = boost::make_shared<ScanDataLocation>(location, subPlugin, startOffset);
 
       const Log::ProgressCallback::Ptr progress(new RawProgressCallback(callback, limit, location->GetPath()));
       const Module::NoProgressDetectCallbackAdapter noProgressCallback(callback);
@@ -386,6 +388,11 @@ namespace
         progress->OnProgress(offset);
         const std::size_t usedSize = Module::Detect(subLocation, noProgressCallback);
         wasResult = wasResult || usedSize != 0;
+        if (!subLocation.unique())
+        {
+          Log::Debug(THIS_MODULE, "Sublocation is captured. Duplicate.");
+          subLocation = boost::make_shared<ScanDataLocation>(location, subPlugin, offset);
+        }
         subLocation->Move(std::max(usedSize, scanStep));
       }
       return wasResult

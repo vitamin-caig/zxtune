@@ -641,13 +641,13 @@ namespace
   class STPHolder : public Holder
   {
   public:
-    STPHolder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, const DataLocation& location, ModuleRegion& region)
+    STPHolder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, ModuleRegion& region)
       : SrcPlugin(plugin)
       , Data(boost::make_shared<STPModuleData>())
       , Info(TrackInfo::Create(Data))
     {
       //assume that data is ok
-      const IO::DataContainer::Ptr rawData = location.GetData();
+      const IO::DataContainer::Ptr rawData = location->GetData();
       const IO::FastDump& data = IO::FastDump(*rawData, region.Offset, MAX_MODULE_SIZE);
       const STPAreas areas(data);
 
@@ -668,8 +668,8 @@ namespace
         const ModuleRegion fixedRegion(fixedOffset, region.Size -  fixedOffset);
         props->SetSource(RawData, fixedRegion);
       }
-      props->SetPlugins(location.GetPlugins());
-      props->SetPath(location.GetPath());
+      props->SetPlugins(location->GetPlugins());
+      props->SetPath(location->GetPath());
 
       Info->SetLogicalChannels(AYM::LOGICAL_CHANNELS);
       Info->SetModuleProperties(CreateMergedAccessor(parameters, props));
@@ -1108,7 +1108,7 @@ namespace
       return CheckDataFormat(*this, inputData);
     }
 
-    Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters, const DataLocation& location, std::size_t& usedSize) const
+    Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, std::size_t& usedSize) const
     {
       return CreateModuleFromData(*this, parameters, location, usedSize);
     }
@@ -1124,7 +1124,7 @@ namespace
     }
 
     virtual Holder::Ptr TryToCreateModule(Parameters::Accessor::Ptr parameters,
-      const DataLocation& location, ModuleRegion& region) const
+      DataLocation::Ptr location, ModuleRegion& region) const
     {
       const Plugin::Ptr plugin = shared_from_this();
       try

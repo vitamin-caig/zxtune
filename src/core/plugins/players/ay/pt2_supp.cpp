@@ -458,13 +458,13 @@ namespace
     }
 
   public:
-    PT2Holder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, const DataLocation& location, ModuleRegion& region)
+    PT2Holder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, ModuleRegion& region)
       : SrcPlugin(plugin)
       , Data(PT2Track::ModuleData::Create())
       , Info(TrackInfo::Create(Data))
     {
       //assume all data is correct
-      const IO::DataContainer::Ptr rawData = location.GetData();
+      const IO::DataContainer::Ptr rawData = location->GetData();
       const IO::FastDump& data = IO::FastDump(*rawData, region.Offset);
       const PT2Header* const header = safe_ptr_cast<const PT2Header*>(&data[0]);
       const PT2Pattern* patterns = safe_ptr_cast<const PT2Pattern*>(&data[fromLE(header->PatternsOffset)]);
@@ -529,8 +529,8 @@ namespace
       }
       props->SetTitle(OptimizeString(FromCharArray(header->Name)));
       props->SetProgram(Text::PT2_EDITOR);
-      props->SetPlugins(location.GetPlugins());
-      props->SetPath(location.GetPath());
+      props->SetPlugins(location->GetPlugins());
+      props->SetPath(location->GetPath());
 
       Info->SetLogicalChannels(AYM::LOGICAL_CHANNELS);
       Info->SetModuleProperties(CreateMergedAccessor(parameters, props));
@@ -911,7 +911,7 @@ namespace
       return CheckDataFormat(*this, inputData);
     }
 
-    Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters, const DataLocation& location, std::size_t& usedSize) const
+    Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, std::size_t& usedSize) const
     {
       return CreateModuleFromData(*this, parameters, location, usedSize);
     }
@@ -927,7 +927,7 @@ namespace
     }
 
     virtual Holder::Ptr TryToCreateModule(Parameters::Accessor::Ptr parameters,
-      const DataLocation& location, ModuleRegion& region) const
+      DataLocation::Ptr location, ModuleRegion& region) const
     {
       const Plugin::Ptr plugin = shared_from_this();
       try

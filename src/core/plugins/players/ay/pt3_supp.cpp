@@ -639,14 +639,14 @@ namespace
     }
   public:
     PT3Holder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, Vortex::Track::ModuleData::RWPtr moduleData,
-      const DataLocation& location, ModuleRegion& region)
+      DataLocation::Ptr location, ModuleRegion& region)
       : SrcPlugin(plugin)
       , Data(moduleData)
       , Info(TrackInfo::Create(Data))
       , Version()
     {
       //assume all data is correct
-      const IO::DataContainer::Ptr rawData = location.GetData();
+      const IO::DataContainer::Ptr rawData = location->GetData();
       const IO::FastDump& data = IO::FastDump(*rawData, region.Offset);
       const PT3Header* const header(safe_ptr_cast<const PT3Header*>(&data[0]));
 
@@ -716,8 +716,8 @@ namespace
       props->SetTitle(OptimizeString(FromCharArray(header->TrackName)));
       props->SetAuthor(OptimizeString(FromCharArray(header->TrackAuthor)));
       props->SetProgram(OptimizeString(String(header->Id, header->Optional1)));
-      props->SetPlugins(location.GetPlugins());
-      props->SetPath(location.GetPath());
+      props->SetPlugins(location->GetPlugins());
+      props->SetPath(location->GetPath());
 
       //tracking properties
       Version = std::isdigit(header->Subversion) ? header->Subversion - '0' : 6;
@@ -834,7 +834,7 @@ namespace
   class PT3TSHolder : public PT3Holder
   {
   public:
-    PT3TSHolder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, uint_t patOffset, const DataLocation& location, ModuleRegion& region)
+    PT3TSHolder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, uint_t patOffset, DataLocation::Ptr location, ModuleRegion& region)
       : PT3Holder(plugin, parameters, boost::make_shared<TSModuleData>(patOffset), location, region)
       , PatOffset(patOffset)
     {
@@ -990,7 +990,7 @@ namespace
       return CheckDataFormat(*this, inputData);
     }
 
-    Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters, const DataLocation& location, std::size_t& usedSize) const
+    Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, std::size_t& usedSize) const
     {
       return CreateModuleFromData(*this, parameters, location, usedSize);
     }
@@ -1006,12 +1006,12 @@ namespace
     }
 
     virtual Holder::Ptr TryToCreateModule(Parameters::Accessor::Ptr parameters,
-      const DataLocation& location, ModuleRegion& region) const
+      DataLocation::Ptr location, ModuleRegion& region) const
     {
       const Plugin::Ptr plugin = shared_from_this();
       try
       {
-        const uint_t tsPatternOffset = GetTSModulePatternOffset(location, region);
+        const uint_t tsPatternOffset = GetTSModulePatternOffset(*location, region);
         const bool isTSModule = AY_TRACK != tsPatternOffset;
         const Holder::Ptr holder = isTSModule
           ? Holder::Ptr(new PT3TSHolder(plugin, parameters, tsPatternOffset, location, region))

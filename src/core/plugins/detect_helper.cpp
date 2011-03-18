@@ -74,9 +74,9 @@ namespace ZXTune
   }
 
   Module::Holder::Ptr CreateModuleFromData(const ModuleDetector& detector,
-    Parameters::Accessor::Ptr parameters, const DataLocation& location, std::size_t& usedSize)
+    Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, std::size_t& usedSize)
   {
-    const IO::DataContainer::Ptr data = location.GetData();
+    const IO::DataContainer::Ptr data = location->GetData();
     const std::size_t limit(data->Size());
     const uint8_t* const rawData(static_cast<const uint8_t*>(data->Data()));
 

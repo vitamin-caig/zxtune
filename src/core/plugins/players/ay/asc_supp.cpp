@@ -582,13 +582,13 @@ namespace
       }
     }
   public:
-    ASCHolder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, const DataLocation& location, ModuleRegion& region)
+    ASCHolder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, ModuleRegion& region)
       : SrcPlugin(plugin)
       , Data(ASCTrack::ModuleData::Create())
       , Info(TrackInfo::Create(Data))
     {
       //assume all data is correct
-      const IO::DataContainer::Ptr rawData = location.GetData();
+      const IO::DataContainer::Ptr rawData = location->GetData();
       const IO::FastDump& data = IO::FastDump(*rawData, region.Offset);
 
       const ASCHeader* const header = safe_ptr_cast<const ASCHeader*>(&data[0]);
@@ -683,8 +683,8 @@ namespace
           props->SetAuthor(OptimizeString(FromCharArray(id->Author)));
         }
       }
-      props->SetPlugins(location.GetPlugins());
-      props->SetPath(location.GetPath());
+      props->SetPlugins(location->GetPlugins());
+      props->SetPath(location->GetPath());
       props->SetProgram(Text::ASC_EDITOR);
 
       Info->SetLogicalChannels(AYM::LOGICAL_CHANNELS);
@@ -1174,7 +1174,7 @@ namespace
     }
 
     virtual Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
-                                             const DataLocation& location,
+                                             DataLocation::Ptr location,
                                              std::size_t& usedSize) const
     {
       const Plugin::Ptr plugin = shared_from_this();

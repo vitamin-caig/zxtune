@@ -58,12 +58,12 @@ namespace
   {
   public:
     //region must be filled
-    TXTHolder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, const DataLocation& location, const ModuleRegion& region)
+    TXTHolder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, const ModuleRegion& region)
       : SrcPlugin(plugin)
       , Data(Vortex::Track::ModuleData::Create())
       , Info(TrackInfo::Create(Data))
     {
-      const IO::DataContainer::Ptr rawData = location.GetData();
+      const IO::DataContainer::Ptr rawData = location->GetData();
       const char* const dataIt = static_cast<const char*>(rawData->Data());
       const char* const endIt = dataIt + region.Size;
 
@@ -75,8 +75,8 @@ namespace
       //meta properties
       //TODO: calculate fixed data in ConvertFromText
       props->SetSource(RawData, region);
-      props->SetPlugins(location.GetPlugins());
-      props->SetPath(location.GetPath());
+      props->SetPlugins(location->GetPlugins());
+      props->SetPath(location->GetPath());
 
       Info->SetModuleProperties(CreateMergedAccessor(parameters, props));
     }
@@ -175,10 +175,10 @@ namespace
     }
     
     virtual Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
-                                             const DataLocation& location,
+                                             DataLocation::Ptr location,
                                              std::size_t& usedSize) const
     {
-      const IO::DataContainer::Ptr data = location.GetData();
+      const IO::DataContainer::Ptr data = location->GetData();
       const std::size_t dataSize = data->Size();
       const char* const rawData = static_cast<const char*>(data->Data());
       assert(CheckTXT(*data));

@@ -40,7 +40,7 @@ namespace ZXTune
     //! @param usedSize Reference to result data size used to create
     //! @return Not empty pointer if found, empty elsewhere
     virtual Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
-                                             const DataLocation& inputData,
+                                             DataLocation::Ptr inputData,
                                              std::size_t& usedSize) const = 0;
   };
 

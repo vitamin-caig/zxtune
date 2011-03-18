@@ -295,13 +295,13 @@ namespace
 
   public:
     PDTHolder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters,
-      const DataLocation& location, ModuleRegion& region)
+      DataLocation::Ptr location, ModuleRegion& region)
       : SrcPlugin(plugin)
       , Data(PDTTrack::ModuleData::Create())
       , Info(TrackInfo::Create(Data))
     {
       //assume that data is ok
-      const IO::DataContainer::Ptr rawData = location.GetData();
+      const IO::DataContainer::Ptr rawData = location->GetData();
       const IO::FastDump& data(*rawData);
       const PDTHeader* const header(safe_ptr_cast<const PDTHeader*>(data.Data()));
 
@@ -360,8 +360,8 @@ namespace
         const ModuleRegion fixedRegion(sizeof(PDTHeader) - sizeof(header->Patterns), sizeof(header->Patterns));
         props->SetSource(RawData, fixedRegion);
       }
-      props->SetPlugins(location.GetPlugins());
-      props->SetPath(location.GetPath());
+      props->SetPlugins(location->GetPlugins());
+      props->SetPath(location->GetPath());
       props->SetTitle(OptimizeString(FromCharArray(header->Title)));
       props->SetProgram(Text::PDT_EDITOR);
 
@@ -694,7 +694,7 @@ namespace
     }
 
     virtual Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
-                                             const DataLocation& location,
+                                             DataLocation::Ptr location,
                                              std::size_t& usedSize) const
     {
       //try to create holder

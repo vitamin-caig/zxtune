@@ -91,7 +91,7 @@ namespace
       }
       const Parameters::Accessor::Ptr moduleParams = callback.CreateModuleParameters(*location);
       std::size_t usedSize = 0;
-      if (Module::Holder::Ptr module = plugin->CreateModule(moduleParams, *location, usedSize))
+      if (Module::Holder::Ptr module = plugin->CreateModule(moduleParams, location, usedSize))
       {
         ThrowIfError(callback.ProcessModule(*location, module));
         return usedSize;

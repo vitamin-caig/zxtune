@@ -41,6 +41,7 @@ namespace ZXTune
   DataLocation::Ptr CreateLocation(Parameters::Accessor::Ptr coreParams, IO::DataContainer::Ptr data);
   DataLocation::Ptr OpenLocation(Parameters::Accessor::Ptr coreParams, IO::DataContainer::Ptr data, const String& subpath);
 
+  DataLocation::Ptr CreateNestedLocation(DataLocation::Ptr parent, IO::DataContainer::Ptr subData);
   DataLocation::Ptr CreateNestedLocation(DataLocation::Ptr parent, Plugin::Ptr subPlugin, IO::DataContainer::Ptr subData, const String& subPath);
 }
 

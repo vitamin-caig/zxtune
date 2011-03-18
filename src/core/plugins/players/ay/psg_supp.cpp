@@ -84,11 +84,11 @@ namespace
   class PSGHolder : public Holder
   {
   public:
-    PSGHolder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, const DataLocation& location, ModuleRegion& region)
+    PSGHolder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, ModuleRegion& region)
       : SrcPlugin(plugin)
       , Data(boost::make_shared<PSGData>())
     {
-      const IO::DataContainer::Ptr rawData = location.GetData();
+      const IO::DataContainer::Ptr rawData = location->GetData();
       const IO::FastDump data(*rawData);
       //workaround for some emulators
       const std::size_t offset = (data[4] == INT_BEGIN) ? 4 : sizeof(PSGHeader);
@@ -155,8 +155,8 @@ namespace
       //meta properties
       const ModuleProperties::Ptr props = ModuleProperties::Create(PSG_PLUGIN_ID);
       props->SetSource(RawData, region);
-      props->SetPlugins(location.GetPlugins());
-      props->SetPath(location.GetPath());
+      props->SetPlugins(location->GetPlugins());
+      props->SetPath(location->GetPath());
       Info = CreateStreamInfo(Data->Dump.size(), AYM::LOGICAL_CHANNELS, AYM::CHANNELS, 
         Parameters::CreateMergedAccessor(parameters, props));
     }
@@ -283,7 +283,7 @@ namespace
     }
 
     virtual Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
-                                             const DataLocation& location,
+                                             DataLocation::Ptr location,
                                              std::size_t& usedSize) const
     {
       try
