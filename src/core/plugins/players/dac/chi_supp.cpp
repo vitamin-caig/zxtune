@@ -247,8 +247,8 @@ namespace
   public:
     CHIHolder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters,
       DataLocation::Ptr location, ModuleRegion& region)
-      : SrcPlugin(plugin)
-      , Data(CHITrack::ModuleData::Create())
+      : Data(CHITrack::ModuleData::Create())
+      , Properties(ModuleProperties::Create(plugin, location))
       , Info(TrackInfo::Create(Data))
     {
       //assume data is correct
@@ -295,25 +295,22 @@ namespace
       //fill region
       region.Offset = 0;
       region.Size = data.Size() - memLeft;
-      //TODO: remove
-      RawData = region.Extract(*rawData);
 
       //meta properties
-      const ModuleProperties::Ptr props = ModuleProperties::Create(plugin, location);
       {
         const ModuleRegion fixedRegion(sizeof(CHIHeader), sizeof(CHIPattern) * patternsCount);
-        props->SetSource(region, fixedRegion);
+        Properties->SetSource(region, fixedRegion);
       }
-      props->SetTitle(OptimizeString(FromCharArray(header->Name)));
-      props->SetProgram((Formatter(Text::CHI_EDITOR) % FromCharArray(header->Version)).str());
+      Properties->SetTitle(OptimizeString(FromCharArray(header->Name)));
+      Properties->SetProgram((Formatter(Text::CHI_EDITOR) % FromCharArray(header->Version)).str());
 
       //fill tracking properties
-      Info->SetModuleProperties(Parameters::CreateMergedAccessor(parameters, props));
+      Info->SetModuleProperties(Parameters::CreateMergedAccessor(parameters, Properties));
     }
 
     virtual Plugin::Ptr GetPlugin() const
     {
-      return SrcPlugin;
+      return Properties->GetPlugin();
     }
 
     virtual Information::Ptr GetModuleInformation() const
@@ -341,8 +338,7 @@ namespace
       using namespace Conversion;
       if (parameter_cast<RawConvertParam>(&param))
       {
-        const uint8_t* const data = static_cast<const uint8_t*>(RawData->Data());
-        dst.assign(data, data + RawData->Size());
+        Properties->GetData(dst);
       }
       else
       {
@@ -351,8 +347,8 @@ namespace
       return Error();
     }
   private:
-    const Plugin::Ptr SrcPlugin;
     const CHITrack::ModuleData::RWPtr Data;
+    const ModuleProperties::Ptr Properties;
     const TrackInfo::Ptr Info;
     IO::DataContainer::Ptr RawData;
   };

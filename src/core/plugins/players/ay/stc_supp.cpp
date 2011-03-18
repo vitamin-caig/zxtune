@@ -601,8 +601,8 @@ namespace
   {
   public:
     STCHolder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, ModuleRegion& region)
-      : SrcPlugin(plugin)
-      , Data(boost::make_shared<STCModuleData>())
+      : Data(boost::make_shared<STCModuleData>())
+      , Properties(ModuleProperties::Create(plugin, location))
       , Info(TrackInfo::Create(Data))
     {
       //assume that data is ok
@@ -610,8 +610,7 @@ namespace
       const IO::FastDump& data = IO::FastDump(*allData, region.Offset, MAX_MODULE_SIZE);
       const STCAreas areas(data);
 
-      const ModuleProperties::Ptr props = ModuleProperties::Create(plugin, location);
-      Data->ParseInformation(areas, *props);
+      Data->ParseInformation(areas, *Properties);
       const uint_t smpLim = Data->ParseSamples(areas);
       const uint_t ornLim = Data->ParseOrnaments(areas);
       const uint_t patLim = Data->ParsePatterns(areas);
@@ -621,21 +620,18 @@ namespace
       //fill region
       region.Size = std::min(data.Size(), maxLim);
 
-      //TODO: remove
-      RawData = region.Extract(*allData);
-
       //meta properties
       {
         const ModuleRegion fixedRegion(sizeof(STCHeader), region.Size - sizeof(STCHeader));
-        props->SetSource(region, fixedRegion);
+        Properties->SetSource(region, fixedRegion);
       }
       Info->SetLogicalChannels(AYM::LOGICAL_CHANNELS);
-      Info->SetModuleProperties(Parameters::CreateMergedAccessor(parameters, props));
+      Info->SetModuleProperties(Parameters::CreateMergedAccessor(parameters, Properties));
     }
 
     virtual Plugin::Ptr GetPlugin() const
     {
-      return SrcPlugin;
+      return Properties->GetPlugin();
     }
 
     virtual Information::Ptr GetModuleInformation() const
@@ -654,8 +650,7 @@ namespace
       Error result;
       if (parameter_cast<RawConvertParam>(&param))
       {
-        const uint8_t* const data = static_cast<const uint8_t*>(RawData->Data());
-        dst.assign(data, data + RawData->Size());
+        Properties->GetData(dst);
       }
       else if (!ConvertAYMFormat(boost::bind(&CreateSTCPlayer, boost::cref(Info), boost::cref(Data), _1),
         param, dst, result))
@@ -665,10 +660,9 @@ namespace
       return result;
     }
   private:
-    const Plugin::Ptr SrcPlugin;
     const STCModuleData::RWPtr Data;
+    const ModuleProperties::Ptr Properties;
     const TrackInfo::Ptr Info;
-    IO::DataContainer::Ptr RawData;
   };
 
   class STCChannelSynthesizer

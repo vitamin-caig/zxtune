@@ -24,11 +24,11 @@ namespace
   class ModulePropertiesImpl : public ModuleProperties
   {
   public:
-    ModulePropertiesImpl(const String& pluginId, DataLocation::Ptr location)
+    ModulePropertiesImpl(Plugin::Ptr plugin, DataLocation::Ptr location)
       : Container(Parameters::Container::Create())
+      , Plug(plugin)
       , Location(location)
     {
-      Container->SetStringValue(ATTR_TYPE, pluginId);
     }
 
     virtual void SetTitle(const String& title)
@@ -60,31 +60,34 @@ namespace
       Warnings = warns;
     }
 
-    /*
-    virtual void SetPath(const String& path)
-    {
-      Container->SetStringValue(ATTR_SUBPATH, path);
-    }
-
-    virtual void SetPlugins(PluginsChain::ConstPtr plugins)
-    {
-      Plugins = plugins;
-    }
-
-    virtual void SetSource(IO::DataContainer::Ptr src, const ModuleRegion& fixedRegion)
-    {
-      Source = src;
-      FixedRegion = fixedRegion;
-    }
-    */
     virtual void SetSource(const ModuleRegion& usedRegion, const ModuleRegion& fixedRegion)
     {
       UsedRegion = usedRegion;
       FixedRegion = fixedRegion;
     }
 
+    virtual Plugin::Ptr GetPlugin() const
+    {
+      return Plug;
+    }
+
+    virtual void GetData(Dump& dump) const
+    {
+      const IO::DataContainer::Ptr data = Location.get()
+        ? UsedRegion.Extract(*Location->GetData())
+        : Data;
+      const uint8_t* const rawData = static_cast<const uint8_t*>(data->Data());
+      dump.assign(rawData, rawData + data->Size());
+    }
+
+    // accessor virtuals
     virtual bool FindIntValue(const Parameters::NameType& name, Parameters::IntType& val) const
     {
+      if (name == ATTR_SIZE)
+      {
+        val = UsedRegion.Size;
+        return true;
+      }
       CheckWarningsProperties(name);
       CheckLocationProperties(name);
       return Container->FindIntValue(name, val);
@@ -92,6 +95,11 @@ namespace
 
     virtual bool FindStringValue(const Parameters::NameType& name, Parameters::StringType& val) const
     {
+      if (name == ATTR_TYPE)
+      {
+        val = Plug->Id();
+        return true;
+      }
       CheckWarningsProperties(name);
       CheckLocationProperties(name);
       return Container->FindStringValue(name, val);
@@ -104,6 +112,8 @@ namespace
 
     virtual void Process(Parameters::Visitor& visitor) const
     {
+      visitor.SetIntValue(ATTR_SIZE, UsedRegion.Size);
+      visitor.SetStringValue(ATTR_TYPE, Plug->Id());
       FillWarningsProperties();
       FillLocationProperties();
       Container->Process(visitor);
@@ -142,7 +152,6 @@ namespace
       }
       if (//data
           name == ATTR_CRC ||
-          name == ATTR_SIZE ||
           name == ATTR_FIXEDCRC ||
           //plugins
           name == ATTR_CONTAINER ||
@@ -162,7 +171,7 @@ namespace
       }
       //data
       const IO::DataContainer::Ptr allData = Location->GetData();
-      Container->SetIntValue(ATTR_SIZE, UsedRegion.Size);
+      Data = UsedRegion.Extract(*allData);
       Container->SetIntValue(ATTR_CRC, UsedRegion.Checksum(*allData)); 
       Container->SetIntValue(ATTR_FIXEDCRC, FixedRegion.Checksum(*allData));
       //plugins
@@ -182,10 +191,12 @@ namespace
     }
   private:
     const Parameters::Container::Ptr Container;
+    const Plugin::Ptr Plug;
     mutable Log::MessagesCollector::Ptr Warnings;
     mutable DataLocation::Ptr Location;
     ModuleRegion UsedRegion;
     ModuleRegion FixedRegion;
+    mutable IO::DataContainer::Ptr Data;
    };
 }
 
@@ -195,7 +206,7 @@ namespace ZXTune
   {
     ModuleProperties::Ptr ModuleProperties::Create(PlayerPlugin::Ptr plugin, DataLocation::Ptr location)
     {
-      return boost::make_shared<ModulePropertiesImpl>(plugin->Id(), location);
+      return boost::make_shared<ModulePropertiesImpl>(plugin, location);
     }
   }
 }

@@ -59,30 +59,27 @@ namespace
   public:
     //region must be filled
     TXTHolder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, const ModuleRegion& region)
-      : SrcPlugin(plugin)
-      , Data(Vortex::Track::ModuleData::Create())
+      : Data(Vortex::Track::ModuleData::Create())
+      , Properties(ModuleProperties::Create(plugin, location))
       , Info(TrackInfo::Create(Data))
     {
       const IO::DataContainer::Ptr rawData = location->GetData();
       const char* const dataIt = static_cast<const char*>(rawData->Data());
       const char* const endIt = dataIt + region.Size;
 
-      const ModuleProperties::Ptr props = ModuleProperties::Create(plugin, location);
       ThrowIfError(Vortex::ConvertFromText(std::string(dataIt, endIt),
-        *Data, *Info, *props, Version, FreqTableName));
-      //TODO: remove
-      RawData = region.Extract(*rawData);
+        *Data, *Info, *Properties, Version, FreqTableName));
 
       //meta properties
       //TODO: calculate fixed data in ConvertFromText
-      props->SetSource(region, region);
+      Properties->SetSource(region, region);
 
-      Info->SetModuleProperties(CreateMergedAccessor(parameters, props));
+      Info->SetModuleProperties(CreateMergedAccessor(parameters, Properties));
     }
 
     virtual Plugin::Ptr GetPlugin() const
     {
-      return SrcPlugin;
+      return Properties->GetPlugin();
     }
 
     virtual Information::Ptr GetModuleInformation() const
@@ -101,9 +98,7 @@ namespace
       Error result;
       if (parameter_cast<RawConvertParam>(&param))
       {
-        const uint8_t* const data = static_cast<const uint8_t*>(RawData->Data());
-        dst.assign(data, data + RawData->Size());
-        return Error();
+        Properties->GetData(dst);
       }
       else if (ConvertAYMFormat(boost::bind(&Vortex::CreatePlayer, boost::cref(Info), boost::cref(Data), Version, FreqTableName, _1),
         param, dst, result))
@@ -117,10 +112,9 @@ namespace
       return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
     }
   private:
-    const Plugin::Ptr SrcPlugin;
     const Vortex::Track::ModuleData::RWPtr Data;
+    const ModuleProperties::Ptr Properties;
     const TrackInfo::Ptr Info;
-    IO::DataContainer::Ptr RawData;
     uint_t Version;
     String FreqTableName;
   };

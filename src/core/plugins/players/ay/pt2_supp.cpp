@@ -459,8 +459,8 @@ namespace
 
   public:
     PT2Holder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, ModuleRegion& region)
-      : SrcPlugin(plugin)
-      , Data(PT2Track::ModuleData::Create())
+      : Data(PT2Track::ModuleData::Create())
+      , Properties(ModuleProperties::Create(plugin, location))
       , Info(TrackInfo::Create(Data))
     {
       //assume all data is correct
@@ -518,26 +518,23 @@ namespace
 
       //fill region
       region.Size = std::min(rawSize, data.Size());
-      //TODO: remove
-      RawData = region.Extract(*rawData);
 
       //meta properties
-      const ModuleProperties::Ptr props = ModuleProperties::Create(plugin, location);
       {
         const std::size_t fixedOffset(sizeof(PT2Header) + header->Length - 1);
         const ModuleRegion fixedRegion(fixedOffset, region.Size -  fixedOffset);
-        props->SetSource(region, fixedRegion);
+        Properties->SetSource(region, fixedRegion);
       }
-      props->SetTitle(OptimizeString(FromCharArray(header->Name)));
-      props->SetProgram(Text::PT2_EDITOR);
+      Properties->SetTitle(OptimizeString(FromCharArray(header->Name)));
+      Properties->SetProgram(Text::PT2_EDITOR);
 
       Info->SetLogicalChannels(AYM::LOGICAL_CHANNELS);
-      Info->SetModuleProperties(CreateMergedAccessor(parameters, props));
+      Info->SetModuleProperties(CreateMergedAccessor(parameters, Properties));
     }
 
     virtual Plugin::Ptr GetPlugin() const
     {
-      return SrcPlugin;
+      return Properties->GetPlugin();
     }
 
     virtual Information::Ptr GetModuleInformation() const
@@ -556,8 +553,7 @@ namespace
       Error result;
       if (parameter_cast<RawConvertParam>(&param))
       {
-        const uint8_t* const data = static_cast<const uint8_t*>(RawData->Data());
-        dst.assign(data, data + RawData->Size());
+        Properties->GetData(dst);
       }
       else if (!ConvertAYMFormat(boost::bind(&CreatePT2Player, boost::cref(Info), boost::cref(Data), _1), param, dst, result))
       {
@@ -566,10 +562,9 @@ namespace
       return result;
     }
   private:
-    const Plugin::Ptr SrcPlugin;
     const PT2Track::ModuleData::RWPtr Data;
+    const ModuleProperties::Ptr Properties;
     const TrackInfo::Ptr Info;
-    IO::DataContainer::Ptr RawData;
   };
 
   inline uint_t GetVolume(uint_t volume, uint_t level)

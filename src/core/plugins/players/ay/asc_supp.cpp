@@ -583,8 +583,8 @@ namespace
     }
   public:
     ASCHolder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, ModuleRegion& region)
-      : SrcPlugin(plugin)
-      , Data(ASCTrack::ModuleData::Create())
+      : Data(ASCTrack::ModuleData::Create())
+      , Properties(ModuleProperties::Create(plugin, location))
       , Info(TrackInfo::Create(Data))
     {
       //assume all data is correct
@@ -667,32 +667,29 @@ namespace
 
       //fill region
       region.Size = std::min(rawSize, data.Size());
-      //TODO: remove
-      RawData = region.Extract(*rawData);
 
       //meta properties
-      const ModuleProperties::Ptr props = ModuleProperties::Create(plugin, location);
       {
         const ASCID* const id = safe_ptr_cast<const ASCID*>(header->Positions + header->Length);
         const bool validId = id->Check();
         const std::size_t fixedOffset = sizeof(ASCHeader) + validId ? sizeof(*id) : 0;
         const ModuleRegion fixedRegion(fixedOffset, region.Size - fixedOffset);
-        props->SetSource(region, fixedRegion);
+        Properties->SetSource(region, fixedRegion);
         if (validId)
         {
-          props->SetTitle(OptimizeString(FromCharArray(id->Title)));
-          props->SetAuthor(OptimizeString(FromCharArray(id->Author)));
+          Properties->SetTitle(OptimizeString(FromCharArray(id->Title)));
+          Properties->SetAuthor(OptimizeString(FromCharArray(id->Author)));
         }
       }
-      props->SetProgram(Text::ASC_EDITOR);
+      Properties->SetProgram(Text::ASC_EDITOR);
 
       Info->SetLogicalChannels(AYM::LOGICAL_CHANNELS);
-      Info->SetModuleProperties(Parameters::CreateMergedAccessor(parameters, props));
+      Info->SetModuleProperties(Parameters::CreateMergedAccessor(parameters, Properties));
     }
 
     virtual Plugin::Ptr GetPlugin() const
     {
-      return SrcPlugin;
+      return Properties->GetPlugin();
     }
 
     virtual Information::Ptr GetModuleInformation() const
@@ -711,8 +708,7 @@ namespace
       Error result;
       if (parameter_cast<RawConvertParam>(&param))
       {
-        const uint8_t* const data = static_cast<const uint8_t*>(RawData->Data());
-        dst.assign(data, data + RawData->Size());
+        Properties->GetData(dst);
       }
       else if (!ConvertAYMFormat(boost::bind(&CreateASCPlayer, boost::cref(Info), boost::cref(Data), _1),
         param, dst, result))
@@ -722,10 +718,9 @@ namespace
       return result;
     }
   private:
-    const Plugin::Ptr SrcPlugin;
     const ASCTrack::ModuleData::RWPtr Data;
+    const ModuleProperties::Ptr Properties;
     const TrackInfo::Ptr Info;
-    IO::DataContainer::Ptr RawData;
   };
 
   struct ASCChannelState

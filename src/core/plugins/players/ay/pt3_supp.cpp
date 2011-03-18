@@ -640,8 +640,8 @@ namespace
   public:
     PT3Holder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, Vortex::Track::ModuleData::RWPtr moduleData,
       DataLocation::Ptr location, ModuleRegion& region)
-      : SrcPlugin(plugin)
-      , Data(moduleData)
+      : Data(moduleData)
+      , Properties(ModuleProperties::Create(plugin, location))
       , Info(TrackInfo::Create(Data))
       , Version()
     {
@@ -704,31 +704,28 @@ namespace
 
       //fill region
       region.Size = std::min(rawSize, data.Size());
-      //TODO: remove
-      RawData = region.Extract(*rawData);
 
       //meta properties
-      const ModuleProperties::Ptr props = ModuleProperties::Create(plugin, location);
       {
         const std::size_t fixedOffset(sizeof(PT3Header) + header->Length - 1);
         const ModuleRegion fixedRegion(fixedOffset, region.Size -  fixedOffset);
-        props->SetSource(region, fixedRegion);
+        Properties->SetSource(region, fixedRegion);
       }
-      props->SetTitle(OptimizeString(FromCharArray(header->TrackName)));
-      props->SetAuthor(OptimizeString(FromCharArray(header->TrackAuthor)));
-      props->SetProgram(OptimizeString(String(header->Id, header->Optional1)));
+      Properties->SetTitle(OptimizeString(FromCharArray(header->TrackName)));
+      Properties->SetAuthor(OptimizeString(FromCharArray(header->TrackAuthor)));
+      Properties->SetProgram(OptimizeString(String(header->Id, header->Optional1)));
 
       //tracking properties
       Version = std::isdigit(header->Subversion) ? header->Subversion - '0' : 6;
       FreqTableName = Vortex::GetFreqTable(static_cast<Vortex::NoteTable>(header->FreqTableNum), Version);
 
       Info->SetLogicalChannels(AYM::LOGICAL_CHANNELS);
-      Info->SetModuleProperties(Parameters::CreateMergedAccessor(parameters, props));
+      Info->SetModuleProperties(Parameters::CreateMergedAccessor(parameters, Properties));
     }
 
     virtual Plugin::Ptr GetPlugin() const
     {
-      return SrcPlugin;
+      return Properties->GetPlugin();
     }
 
     virtual Information::Ptr GetModuleInformation() const
@@ -747,8 +744,7 @@ namespace
       Error result;
       if (parameter_cast<RawConvertParam>(&param))
       {
-        const uint8_t* const data = static_cast<const uint8_t*>(RawData->Data());
-        dst.assign(data, data + RawData->Size());
+        Properties->GetData(dst);
         return Error();
       }
       else if (ConvertAYMFormat(boost::bind(&Vortex::CreatePlayer, boost::cref(Info), boost::cref(Data), Version, FreqTableName, _1),
@@ -763,10 +759,9 @@ namespace
       return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
     }
   protected:
-    const Plugin::Ptr SrcPlugin;
     const Vortex::Track::ModuleData::RWPtr Data;
+    const ModuleProperties::Ptr Properties;
     const TrackInfo::Ptr Info;
-    IO::DataContainer::Ptr RawData;
     uint_t Version;
     String FreqTableName;
   };

@@ -85,7 +85,7 @@ namespace
   {
   public:
     PSGHolder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, ModuleRegion& region)
-      : SrcPlugin(plugin)
+      : Properties(ModuleProperties::Create(plugin, location))
       , Data(boost::make_shared<PSGData>())
     {
       const IO::DataContainer::Ptr rawData = location->GetData();
@@ -150,19 +150,16 @@ namespace
       //fill region
       region.Offset = 0;
       region.Size = data.Size() - size;
-      //TODO: remove
-      RawData = region.Extract(*rawData);
 
       //meta properties
-      const ModuleProperties::Ptr props = ModuleProperties::Create(plugin, location);
-      props->SetSource(region, region);
+      Properties->SetSource(region, region);
       Info = CreateStreamInfo(Data->Dump.size(), AYM::LOGICAL_CHANNELS, AYM::CHANNELS, 
-        Parameters::CreateMergedAccessor(parameters, props));
+        Parameters::CreateMergedAccessor(parameters, Properties));
     }
 
     virtual Plugin::Ptr GetPlugin() const
     {
-      return SrcPlugin;
+      return Properties->GetPlugin();
     }
 
     virtual Information::Ptr GetModuleInformation() const
@@ -182,8 +179,7 @@ namespace
       //converting to PSG and raw ripping are the same
       if (parameter_cast<RawConvertParam>(&param))
       {
-        const uint8_t* const data = static_cast<const uint8_t*>(RawData->Data());
-        dst.assign(data, data + RawData->Size());
+        Properties->GetData(dst);
       }
       else if (!ConvertAYMFormat(boost::bind(&CreatePSGPlayer, boost::cref(Info), boost::cref(Data), _1),
         param, dst, result))
@@ -193,10 +189,9 @@ namespace
       return result;
     }
   private:
-    const Plugin::Ptr SrcPlugin;
+    const ModuleProperties::Ptr Properties;
     const PSGData::RWPtr Data;
     Information::Ptr Info;
-    IO::DataContainer::Ptr RawData;
   };
 
   class PSGDataRenderer : public AYMDataRenderer

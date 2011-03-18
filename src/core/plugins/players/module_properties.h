@@ -36,6 +36,9 @@ namespace ZXTune
       virtual void SetWarnings(Log::MessagesCollector::Ptr warns) = 0;
       virtual void SetSource(const struct ModuleRegion& usedRegion, const struct ModuleRegion& fixedRegion) = 0;
 
+      virtual Plugin::Ptr GetPlugin() const = 0;
+      virtual void GetData(Dump& dump) const = 0;
+
       static Ptr Create(PlayerPlugin::Ptr plugin, DataLocation::Ptr location);
     };
   }

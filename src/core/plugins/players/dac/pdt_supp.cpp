@@ -296,8 +296,8 @@ namespace
   public:
     PDTHolder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters,
       DataLocation::Ptr location, ModuleRegion& region)
-      : SrcPlugin(plugin)
-      , Data(PDTTrack::ModuleData::Create())
+      : Data(PDTTrack::ModuleData::Create())
+      , Properties(ModuleProperties::Create(plugin, location))
       , Info(TrackInfo::Create(Data))
     {
       //assume that data is ok
@@ -352,25 +352,21 @@ namespace
       //fill region
       region.Offset = 0;
       region.Size = MODULE_SIZE;
-      //TODO: remove
-      RawData = region.Extract(*rawData);
-
       //meta properties
-      const ModuleProperties::Ptr props = ModuleProperties::Create(plugin, location);
       {
         const ModuleRegion fixedRegion(sizeof(PDTHeader) - sizeof(header->Patterns), sizeof(header->Patterns));
-        props->SetSource(region, fixedRegion);
+        Properties->SetSource(region, fixedRegion);
       }
-      props->SetTitle(OptimizeString(FromCharArray(header->Title)));
-      props->SetProgram(Text::PDT_EDITOR);
+      Properties->SetTitle(OptimizeString(FromCharArray(header->Title)));
+      Properties->SetProgram(Text::PDT_EDITOR);
 
       //set tracking
-      Info->SetModuleProperties(Parameters::CreateMergedAccessor(parameters, props));
+      Info->SetModuleProperties(Parameters::CreateMergedAccessor(parameters, Properties));
     }
 
     virtual Plugin::Ptr GetPlugin() const
     {
-      return SrcPlugin;
+      return Properties->GetPlugin();
     }
 
     virtual Information::Ptr GetModuleInformation() const
@@ -398,8 +394,7 @@ namespace
       using namespace Conversion;
       if (parameter_cast<RawConvertParam>(&param))
       {
-        const uint8_t* const data = static_cast<const uint8_t*>(RawData->Data());
-        dst.assign(data, data + RawData->Size());
+        Properties->GetData(dst);
       }
       else
       {
@@ -408,10 +403,9 @@ namespace
       return Error();
     }
   private:
-    const Plugin::Ptr SrcPlugin;
     const PDTTrack::ModuleData::RWPtr Data;
+    const ModuleProperties::Ptr Properties;
     const TrackInfo::Ptr Info;
-    IO::DataContainer::Ptr RawData;
   };
 
   class PDTPlayer : public Player
