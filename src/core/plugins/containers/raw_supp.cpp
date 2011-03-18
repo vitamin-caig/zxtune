@@ -217,6 +217,11 @@ namespace
       return Delegate->GetSubcontainer(offset + Offset, size);
     }
 
+    bool HasToScan(std::size_t minSize) const
+    {
+      return Offset + minSize <= OriginalSize;
+    }
+
     std::size_t GetOffset()
     {
       return Offset;
@@ -263,7 +268,7 @@ namespace
 
     bool HasToScan(std::size_t minSize) const
     {
-      return Subdata->Size() >= minSize;
+      return Subdata->HasToScan(minSize);
     }
 
     std::size_t GetOffset()
