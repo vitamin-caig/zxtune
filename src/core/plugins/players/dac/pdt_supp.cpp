@@ -294,7 +294,7 @@ namespace
     }
 
   public:
-    PDTHolder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters,
+    PDTHolder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters,
       DataLocation::Ptr location, ModuleRegion& region)
       : SrcPlugin(plugin)
       , Data(PDTTrack::ModuleData::Create())
@@ -352,16 +352,15 @@ namespace
       //fill region
       region.Offset = 0;
       region.Size = MODULE_SIZE;
+      //TODO: remove
       RawData = region.Extract(*rawData);
 
       //meta properties
-      const ModuleProperties::Ptr props = ModuleProperties::Create(PDT_PLUGIN_ID);
+      const ModuleProperties::Ptr props = ModuleProperties::Create(plugin, location);
       {
         const ModuleRegion fixedRegion(sizeof(PDTHeader) - sizeof(header->Patterns), sizeof(header->Patterns));
-        props->SetSource(RawData, fixedRegion);
+        props->SetSource(region, fixedRegion);
       }
-      props->SetPlugins(location->GetPlugins());
-      props->SetPath(location->GetPath());
       props->SetTitle(OptimizeString(FromCharArray(header->Title)));
       props->SetProgram(Text::PDT_EDITOR);
 
@@ -700,7 +699,7 @@ namespace
       //try to create holder
       try
       {
-        const Plugin::Ptr plugin = shared_from_this();
+        const PlayerPlugin::Ptr plugin = shared_from_this();
         ModuleRegion region;
         const Module::Holder::Ptr holder(new PDTHolder(plugin, parameters, location, region));
   #ifdef SELF_TEST

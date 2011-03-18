@@ -58,7 +58,7 @@ namespace
   {
   public:
     //region must be filled
-    TXTHolder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, const ModuleRegion& region)
+    TXTHolder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, const ModuleRegion& region)
       : SrcPlugin(plugin)
       , Data(Vortex::Track::ModuleData::Create())
       , Info(TrackInfo::Create(Data))
@@ -67,16 +67,15 @@ namespace
       const char* const dataIt = static_cast<const char*>(rawData->Data());
       const char* const endIt = dataIt + region.Size;
 
-      const ModuleProperties::Ptr props = ModuleProperties::Create(TXT_PLUGIN_ID);
+      const ModuleProperties::Ptr props = ModuleProperties::Create(plugin, location);
       ThrowIfError(Vortex::ConvertFromText(std::string(dataIt, endIt),
         *Data, *Info, *props, Version, FreqTableName));
+      //TODO: remove
       RawData = region.Extract(*rawData);
 
       //meta properties
       //TODO: calculate fixed data in ConvertFromText
-      props->SetSource(RawData, region);
-      props->SetPlugins(location->GetPlugins());
-      props->SetPath(location->GetPath());
+      props->SetSource(region, region);
 
       Info->SetModuleProperties(CreateMergedAccessor(parameters, props));
     }
@@ -196,7 +195,7 @@ namespace
       //try to create holder
       try
       {
-        const Plugin::Ptr plugin = shared_from_this();
+        const PlayerPlugin::Ptr plugin = shared_from_this();
         const Module::Holder::Ptr holder(new TXTHolder(plugin, parameters, location, tmpRegion));
     #ifdef SELF_TEST
         holder->CreatePlayer();

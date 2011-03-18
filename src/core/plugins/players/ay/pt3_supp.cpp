@@ -638,7 +638,7 @@ namespace
       }
     }
   public:
-    PT3Holder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, Vortex::Track::ModuleData::RWPtr moduleData,
+    PT3Holder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, Vortex::Track::ModuleData::RWPtr moduleData,
       DataLocation::Ptr location, ModuleRegion& region)
       : SrcPlugin(plugin)
       , Data(moduleData)
@@ -704,20 +704,19 @@ namespace
 
       //fill region
       region.Size = std::min(rawSize, data.Size());
+      //TODO: remove
       RawData = region.Extract(*rawData);
 
       //meta properties
-      const ModuleProperties::Ptr props = ModuleProperties::Create(PT3_PLUGIN_ID);
+      const ModuleProperties::Ptr props = ModuleProperties::Create(plugin, location);
       {
         const std::size_t fixedOffset(sizeof(PT3Header) + header->Length - 1);
         const ModuleRegion fixedRegion(fixedOffset, region.Size -  fixedOffset);
-        props->SetSource(RawData, fixedRegion);
+        props->SetSource(region, fixedRegion);
       }
       props->SetTitle(OptimizeString(FromCharArray(header->TrackName)));
       props->SetAuthor(OptimizeString(FromCharArray(header->TrackAuthor)));
       props->SetProgram(OptimizeString(String(header->Id, header->Optional1)));
-      props->SetPlugins(location->GetPlugins());
-      props->SetPath(location->GetPath());
 
       //tracking properties
       Version = std::isdigit(header->Subversion) ? header->Subversion - '0' : 6;
@@ -834,7 +833,7 @@ namespace
   class PT3TSHolder : public PT3Holder
   {
   public:
-    PT3TSHolder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, uint_t patOffset, DataLocation::Ptr location, ModuleRegion& region)
+    PT3TSHolder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, uint_t patOffset, DataLocation::Ptr location, ModuleRegion& region)
       : PT3Holder(plugin, parameters, boost::make_shared<TSModuleData>(patOffset), location, region)
       , PatOffset(patOffset)
     {
@@ -1008,7 +1007,7 @@ namespace
     virtual Holder::Ptr TryToCreateModule(Parameters::Accessor::Ptr parameters,
       DataLocation::Ptr location, ModuleRegion& region) const
     {
-      const Plugin::Ptr plugin = shared_from_this();
+      const PlayerPlugin::Ptr plugin = shared_from_this();
       try
       {
         const uint_t tsPatternOffset = GetTSModulePatternOffset(*location, region);

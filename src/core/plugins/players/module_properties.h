@@ -14,7 +14,7 @@ Author:
 #define __CORE_PLUGINS_PLAYERS_MODULE_PROPERTIES_H_DEFINED__
 
 //local includes
-#include <core/plugins/enumerator.h>
+#include "core/plugins/enumerator.h"
 //common includes
 #include <messages_collector.h>
 #include <parameters.h>
@@ -34,11 +34,9 @@ namespace ZXTune
       virtual void SetAuthor(const String& author) = 0;
       virtual void SetProgram(const String& program) = 0;
       virtual void SetWarnings(Log::MessagesCollector::Ptr warns) = 0;
-      virtual void SetPath(const String& path) = 0;
-      virtual void SetPlugins(PluginsChain::ConstPtr plugins) = 0;
-      virtual void SetSource(IO::DataContainer::Ptr src, const struct ModuleRegion& fixedRegion) = 0;
+      virtual void SetSource(const struct ModuleRegion& usedRegion, const struct ModuleRegion& fixedRegion) = 0;
 
-      static Ptr Create(const String& pluginId);
+      static Ptr Create(PlayerPlugin::Ptr plugin, DataLocation::Ptr location);
     };
   }
 }

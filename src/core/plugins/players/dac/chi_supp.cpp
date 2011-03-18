@@ -245,7 +245,7 @@ namespace
     }
 
   public:
-    CHIHolder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters,
+    CHIHolder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters,
       DataLocation::Ptr location, ModuleRegion& region)
       : SrcPlugin(plugin)
       , Data(CHITrack::ModuleData::Create())
@@ -295,16 +295,15 @@ namespace
       //fill region
       region.Offset = 0;
       region.Size = data.Size() - memLeft;
+      //TODO: remove
       RawData = region.Extract(*rawData);
 
       //meta properties
-      const ModuleProperties::Ptr props = ModuleProperties::Create(CHI_PLUGIN_ID);
+      const ModuleProperties::Ptr props = ModuleProperties::Create(plugin, location);
       {
         const ModuleRegion fixedRegion(sizeof(CHIHeader), sizeof(CHIPattern) * patternsCount);
-        props->SetSource(RawData, fixedRegion);
+        props->SetSource(region, fixedRegion);
       }
-      props->SetPlugins(location->GetPlugins());
-      props->SetPath(location->GetPath());
       props->SetTitle(OptimizeString(FromCharArray(header->Name)));
       props->SetProgram((Formatter(Text::CHI_EDITOR) % FromCharArray(header->Version)).str());
 
@@ -608,7 +607,7 @@ namespace
       //try to create holder
       try
       {
-        const Plugin::Ptr plugin = shared_from_this();
+        const PlayerPlugin::Ptr plugin = shared_from_this();
         ModuleRegion region;
         const Module::Holder::Ptr holder(new CHIHolder(plugin, parameters, location, region));
 #ifdef SELF_TEST

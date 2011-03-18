@@ -582,7 +582,7 @@ namespace
       }
     }
   public:
-    ASCHolder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, ModuleRegion& region)
+    ASCHolder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, ModuleRegion& region)
       : SrcPlugin(plugin)
       , Data(ASCTrack::ModuleData::Create())
       , Info(TrackInfo::Create(Data))
@@ -667,24 +667,23 @@ namespace
 
       //fill region
       region.Size = std::min(rawSize, data.Size());
+      //TODO: remove
       RawData = region.Extract(*rawData);
 
       //meta properties
-      const ModuleProperties::Ptr props = ModuleProperties::Create(ASC_PLUGIN_ID);
+      const ModuleProperties::Ptr props = ModuleProperties::Create(plugin, location);
       {
         const ASCID* const id = safe_ptr_cast<const ASCID*>(header->Positions + header->Length);
         const bool validId = id->Check();
         const std::size_t fixedOffset = sizeof(ASCHeader) + validId ? sizeof(*id) : 0;
         const ModuleRegion fixedRegion(fixedOffset, region.Size - fixedOffset);
-        props->SetSource(RawData, fixedRegion);
+        props->SetSource(region, fixedRegion);
         if (validId)
         {
           props->SetTitle(OptimizeString(FromCharArray(id->Title)));
           props->SetAuthor(OptimizeString(FromCharArray(id->Author)));
         }
       }
-      props->SetPlugins(location->GetPlugins());
-      props->SetPath(location->GetPath());
       props->SetProgram(Text::ASC_EDITOR);
 
       Info->SetLogicalChannels(AYM::LOGICAL_CHANNELS);
@@ -1177,7 +1176,7 @@ namespace
                                              DataLocation::Ptr location,
                                              std::size_t& usedSize) const
     {
-      const Plugin::Ptr plugin = shared_from_this();
+      const PlayerPlugin::Ptr plugin = shared_from_this();
       try
       {
         ModuleRegion region;

@@ -24,8 +24,9 @@ namespace
   class ModulePropertiesImpl : public ModuleProperties
   {
   public:
-    explicit ModulePropertiesImpl(const String& pluginId)
+    ModulePropertiesImpl(const String& pluginId, DataLocation::Ptr location)
       : Container(Parameters::Container::Create())
+      , Location(location)
     {
       Container->SetStringValue(ATTR_TYPE, pluginId);
     }
@@ -59,6 +60,7 @@ namespace
       Warnings = warns;
     }
 
+    /*
     virtual void SetPath(const String& path)
     {
       Container->SetStringValue(ATTR_SUBPATH, path);
@@ -74,18 +76,24 @@ namespace
       Source = src;
       FixedRegion = fixedRegion;
     }
+    */
+    virtual void SetSource(const ModuleRegion& usedRegion, const ModuleRegion& fixedRegion)
+    {
+      UsedRegion = usedRegion;
+      FixedRegion = fixedRegion;
+    }
 
     virtual bool FindIntValue(const Parameters::NameType& name, Parameters::IntType& val) const
     {
       CheckWarningsProperties(name);
-      CheckSourceProperties(name);
+      CheckLocationProperties(name);
       return Container->FindIntValue(name, val);
     }
 
     virtual bool FindStringValue(const Parameters::NameType& name, Parameters::StringType& val) const
     {
       CheckWarningsProperties(name);
-      CheckPluginsProperties(name);
+      CheckLocationProperties(name);
       return Container->FindStringValue(name, val);
     }
 
@@ -97,8 +105,7 @@ namespace
     virtual void Process(Parameters::Visitor& visitor) const
     {
       FillWarningsProperties();
-      FillPluginsProperties();
-      FillSourceProperties();
+      FillLocationProperties();
       Container->Process(visitor);
     }
 
@@ -127,68 +134,68 @@ namespace
       Warnings.reset();
     }
 
-    void CheckPluginsProperties(const Parameters::NameType& name) const
+    void CheckLocationProperties(const Parameters::NameType& name) const
     {
-      if (Plugins.get() &&
-          name == ATTR_CONTAINER)
-      {
-        FillPluginsProperties();
-      }
-    }
-
-    void FillPluginsProperties() const
-    {
-      if (!Plugins.get())
+      if (!Location.get())
       {
         return;
       }
-      const String& plugins = Plugins->AsString();
-      if (!plugins.empty())
+      if (//data
+          name == ATTR_CRC ||
+          name == ATTR_SIZE ||
+          name == ATTR_FIXEDCRC ||
+          //plugins
+          name == ATTR_CONTAINER ||
+          //path
+          name == ATTR_SUBPATH
+          )
       {
-        Container->SetStringValue(ATTR_CONTAINER, plugins);
-      }
-      Plugins.reset();
-    }
-
-    void CheckSourceProperties(const Parameters::NameType& name) const
-    {
-      if (Source.get() &&
-          (name == ATTR_CRC ||
-           name == ATTR_SIZE ||
-           name == ATTR_FIXEDCRC))
-      {
-        FillSourceProperties();
+        FillLocationProperties();
       }
     }
 
-    void FillSourceProperties() const
+    void FillLocationProperties() const
     {
-      if (!Source.get())
+      if (!Location.get())
       {
         return;
       }
-      const ModuleRegion allRegion(0, Source->Size());
-      Container->SetIntValue(ATTR_SIZE, allRegion.Size);
-      Container->SetIntValue(ATTR_CRC, allRegion.Checksum(*Source)); 
-      Container->SetIntValue(ATTR_FIXEDCRC, FixedRegion.Checksum(*Source)); 
-      Source.reset();
+      //data
+      const IO::DataContainer::Ptr allData = Location->GetData();
+      Container->SetIntValue(ATTR_SIZE, UsedRegion.Size);
+      Container->SetIntValue(ATTR_CRC, UsedRegion.Checksum(*allData)); 
+      Container->SetIntValue(ATTR_FIXEDCRC, FixedRegion.Checksum(*allData));
+      //plugins
+      const PluginsChain::ConstPtr plugins = Location->GetPlugins();
+      const String& container = plugins->AsString();
+      if (!container.empty())
+      {
+        Container->SetStringValue(ATTR_CONTAINER, container);
+      }
+      //path
+      const String& subpath = Location->GetPath();
+      if (!subpath.empty())
+      {
+        Container->SetStringValue(ATTR_SUBPATH, subpath);
+      }
+      Location.reset();
     }
   private:
     const Parameters::Container::Ptr Container;
     mutable Log::MessagesCollector::Ptr Warnings;
-    mutable PluginsChain::ConstPtr Plugins;
-    mutable IO::DataContainer::Ptr Source;
+    mutable DataLocation::Ptr Location;
+    ModuleRegion UsedRegion;
     ModuleRegion FixedRegion;
-  };
+   };
 }
 
 namespace ZXTune
 {
   namespace Module
   {
-    ModuleProperties::Ptr ModuleProperties::Create(const String& pluginId)
+    ModuleProperties::Ptr ModuleProperties::Create(PlayerPlugin::Ptr plugin, DataLocation::Ptr location)
     {
-      return boost::make_shared<ModulePropertiesImpl>(pluginId);
+      return boost::make_shared<ModulePropertiesImpl>(plugin->Id(), location);
     }
   }
 }

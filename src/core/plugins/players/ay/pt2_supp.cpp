@@ -458,7 +458,7 @@ namespace
     }
 
   public:
-    PT2Holder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, ModuleRegion& region)
+    PT2Holder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, ModuleRegion& region)
       : SrcPlugin(plugin)
       , Data(PT2Track::ModuleData::Create())
       , Info(TrackInfo::Create(Data))
@@ -518,19 +518,18 @@ namespace
 
       //fill region
       region.Size = std::min(rawSize, data.Size());
+      //TODO: remove
       RawData = region.Extract(*rawData);
 
       //meta properties
-      const ModuleProperties::Ptr props = ModuleProperties::Create(PT2_PLUGIN_ID);
+      const ModuleProperties::Ptr props = ModuleProperties::Create(plugin, location);
       {
         const std::size_t fixedOffset(sizeof(PT2Header) + header->Length - 1);
         const ModuleRegion fixedRegion(fixedOffset, region.Size -  fixedOffset);
-        props->SetSource(RawData, fixedRegion);
+        props->SetSource(region, fixedRegion);
       }
       props->SetTitle(OptimizeString(FromCharArray(header->Name)));
       props->SetProgram(Text::PT2_EDITOR);
-      props->SetPlugins(location->GetPlugins());
-      props->SetPath(location->GetPath());
 
       Info->SetLogicalChannels(AYM::LOGICAL_CHANNELS);
       Info->SetModuleProperties(CreateMergedAccessor(parameters, props));
@@ -929,7 +928,7 @@ namespace
     virtual Holder::Ptr TryToCreateModule(Parameters::Accessor::Ptr parameters,
       DataLocation::Ptr location, ModuleRegion& region) const
     {
-      const Plugin::Ptr plugin = shared_from_this();
+      const PlayerPlugin::Ptr plugin = shared_from_this();
       try
       {
         const Holder::Ptr holder(new PT2Holder(plugin, parameters, location, region));

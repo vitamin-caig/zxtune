@@ -421,19 +421,17 @@ namespace
     {
     }
 
-    ModuleProperties::Ptr ParseInformation(const STPAreas& areas)
+    void ParseInformation(const STPAreas& areas, ModuleProperties& props)
     {
       const STPHeader& header = areas.GetHeader();
       InitialTempo = header.Tempo;
       LoopPosition = areas.GetLoopPosition();
-      const ModuleProperties::Ptr props = ModuleProperties::Create(STP_PLUGIN_ID);
-      props->SetProgram(Text::STP_EDITOR);
+      props.SetProgram(Text::STP_EDITOR);
       const STPId& id = *safe_ptr_cast<const STPId*>(&header + 1);
       if (id.Check())
       {
-        props->SetTitle(OptimizeString(FromCharArray(id.Title)));
+        props.SetTitle(OptimizeString(FromCharArray(id.Title)));
       }
-      return props;
     }
 
     uint_t ParseOrnaments(const STPAreas& areas)
@@ -641,7 +639,7 @@ namespace
   class STPHolder : public Holder
   {
   public:
-    STPHolder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, ModuleRegion& region)
+    STPHolder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, ModuleRegion& region)
       : SrcPlugin(plugin)
       , Data(boost::make_shared<STPModuleData>())
       , Info(TrackInfo::Create(Data))
@@ -651,7 +649,9 @@ namespace
       const IO::FastDump& data = IO::FastDump(*rawData, region.Offset, MAX_MODULE_SIZE);
       const STPAreas areas(data);
 
-      const ModuleProperties::Ptr props = Data->ParseInformation(areas);
+      const ModuleProperties::Ptr props = ModuleProperties::Create(plugin, location);
+
+      Data->ParseInformation(areas, *props);
       const uint_t ornLim = Data->ParseOrnaments(areas);
       const uint_t smpLim = Data->ParseSamples(areas);
       const uint_t patLim = Data->ParsePatterns(areas);
@@ -660,16 +660,15 @@ namespace
       const std::size_t maxLim = std::max(std::max(smpLim, ornLim), std::max(patLim, posLim));
       //fill region
       region.Size = std::min(data.Size(), maxLim);
+      //TODO: remove
       RawData = region.Extract(*rawData);
 
       //meta properties
       {
         const std::size_t fixedOffset = sizeof(STPHeader);
         const ModuleRegion fixedRegion(fixedOffset, region.Size -  fixedOffset);
-        props->SetSource(RawData, fixedRegion);
+        props->SetSource(region, fixedRegion);
       }
-      props->SetPlugins(location->GetPlugins());
-      props->SetPath(location->GetPath());
 
       Info->SetLogicalChannels(AYM::LOGICAL_CHANNELS);
       Info->SetModuleProperties(CreateMergedAccessor(parameters, props));
@@ -1126,7 +1125,7 @@ namespace
     virtual Holder::Ptr TryToCreateModule(Parameters::Accessor::Ptr parameters,
       DataLocation::Ptr location, ModuleRegion& region) const
     {
-      const Plugin::Ptr plugin = shared_from_this();
+      const PlayerPlugin::Ptr plugin = shared_from_this();
       try
       {
         const Holder::Ptr holder(new STPHolder(plugin, parameters, location, region));

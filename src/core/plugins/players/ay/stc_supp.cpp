@@ -412,13 +412,11 @@ namespace
     {
     }
 
-    ModuleProperties::Ptr ParseInformation(const STCAreas& areas)
+    void ParseInformation(const STCAreas& areas, ModuleProperties& properties)
     {
       const STCHeader& header = areas.GetHeader();
       InitialTempo = header.Tempo;
-      const ModuleProperties::Ptr props = ModuleProperties::Create(STC_PLUGIN_ID);
-      props->SetProgram(OptimizeString(FromCharArray(header.Identifier)));
-      return props;
+      properties.SetProgram(OptimizeString(FromCharArray(header.Identifier)));
     }
 
     uint_t ParseSamples(const STCAreas& areas)
@@ -602,7 +600,7 @@ namespace
   class STCHolder : public Holder
   {
   public:
-    STCHolder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, ModuleRegion& region)
+    STCHolder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, ModuleRegion& region)
       : SrcPlugin(plugin)
       , Data(boost::make_shared<STCModuleData>())
       , Info(TrackInfo::Create(Data))
@@ -612,7 +610,8 @@ namespace
       const IO::FastDump& data = IO::FastDump(*allData, region.Offset, MAX_MODULE_SIZE);
       const STCAreas areas(data);
 
-      const ModuleProperties::Ptr props = Data->ParseInformation(areas);
+      const ModuleProperties::Ptr props = ModuleProperties::Create(plugin, location);
+      Data->ParseInformation(areas, *props);
       const uint_t smpLim = Data->ParseSamples(areas);
       const uint_t ornLim = Data->ParseOrnaments(areas);
       const uint_t patLim = Data->ParsePatterns(areas);
@@ -622,16 +621,14 @@ namespace
       //fill region
       region.Size = std::min(data.Size(), maxLim);
 
+      //TODO: remove
       RawData = region.Extract(*allData);
 
       //meta properties
       {
         const ModuleRegion fixedRegion(sizeof(STCHeader), region.Size - sizeof(STCHeader));
-        props->SetSource(RawData, fixedRegion);
+        props->SetSource(region, fixedRegion);
       }
-      props->SetPlugins(location->GetPlugins());
-      props->SetPath(location->GetPath());
-
       Info->SetLogicalChannels(AYM::LOGICAL_CHANNELS);
       Info->SetModuleProperties(Parameters::CreateMergedAccessor(parameters, props));
     }
@@ -1158,7 +1155,7 @@ namespace
     virtual Holder::Ptr TryToCreateModule(Parameters::Accessor::Ptr parameters,
       DataLocation::Ptr location, ModuleRegion& region) const
     {
-      const Plugin::Ptr plugin = shared_from_this();
+      const PlayerPlugin::Ptr plugin = shared_from_this();
       try
       {
         const Holder::Ptr holder(new STCHolder(plugin, parameters, location, region));

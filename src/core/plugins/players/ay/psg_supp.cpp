@@ -84,7 +84,7 @@ namespace
   class PSGHolder : public Holder
   {
   public:
-    PSGHolder(Plugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, ModuleRegion& region)
+    PSGHolder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, ModuleRegion& region)
       : SrcPlugin(plugin)
       , Data(boost::make_shared<PSGData>())
     {
@@ -150,13 +150,12 @@ namespace
       //fill region
       region.Offset = 0;
       region.Size = data.Size() - size;
+      //TODO: remove
       RawData = region.Extract(*rawData);
 
       //meta properties
-      const ModuleProperties::Ptr props = ModuleProperties::Create(PSG_PLUGIN_ID);
-      props->SetSource(RawData, region);
-      props->SetPlugins(location->GetPlugins());
-      props->SetPath(location->GetPath());
+      const ModuleProperties::Ptr props = ModuleProperties::Create(plugin, location);
+      props->SetSource(region, region);
       Info = CreateStreamInfo(Data->Dump.size(), AYM::LOGICAL_CHANNELS, AYM::CHANNELS, 
         Parameters::CreateMergedAccessor(parameters, props));
     }
@@ -288,7 +287,7 @@ namespace
     {
       try
       {
-        const Plugin::Ptr plugin = shared_from_this();
+        const PlayerPlugin::Ptr plugin = shared_from_this();
         ModuleRegion region;
         const Module::Holder::Ptr holder(new PSGHolder(plugin, parameters, location, region));
         usedSize = region.Offset + region.Size;
