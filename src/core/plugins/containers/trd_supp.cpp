@@ -157,13 +157,19 @@ namespace
     const CatEntry* catEntry = safe_ptr_cast<const CatEntry*>(data.Data());
     for (uint_t idx = 0; idx != MAX_FILES_COUNT && NOENTRY != catEntry->Name[0]; ++idx, ++catEntry)
     {
-      if (DELETED == catEntry->Name[0])
+      //TODO: parametrize this
+      const bool isDeleted = DELETED == catEntry->Name[0];
+      if (isDeleted)
       {
         ++deleted;
       }
-      else if (catEntry->SizeInSectors)
+      if (catEntry->SizeInSectors)
       {
-        const String entryName = TRDos::GetEntryName(catEntry->Name, catEntry->Type);
+        String entryName = TRDos::GetEntryName(catEntry->Name, catEntry->Type);
+        if (isDeleted)
+        {
+          entryName.insert(0, 1, '~');
+        }
         const TRDos::FileEntry& newOne = TRDos::FileEntry(entryName, catEntry->Offset(), catEntry->Size());
         res->AddEntry(newOne);
       }
