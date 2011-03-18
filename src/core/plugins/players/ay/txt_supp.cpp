@@ -97,6 +97,7 @@ namespace
       if (parameter_cast<RawConvertParam>(&param))
       {
         Properties->GetData(dst);
+        return result;
       }
       else if (ConvertAYMFormat(boost::bind(&Vortex::CreatePlayer, boost::cref(Info), boost::cref(Data), Version, FreqTableName, _1),
         param, dst, result))

@@ -12,7 +12,7 @@ Author:
 //local includes
 #include "callback.h"
 #include "core.h"
-#include "core\plugins\plugins_types.h"
+#include "core/plugins/plugins_types.h"
 //common includes
 #include <error.h>
 //library includes
