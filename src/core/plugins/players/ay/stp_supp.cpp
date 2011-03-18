@@ -642,7 +642,7 @@ namespace
     STPHolder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, ModuleRegion& region)
       : Data(boost::make_shared<STPModuleData>())
       , Properties(ModuleProperties::Create(plugin, location))
-      , Info(TrackInfo::Create(Data))
+      , Info(CreateTrackInfo(Data, AYM::LOGICAL_CHANNELS, parameters, Properties))
     {
       //assume that data is ok
       const IO::DataContainer::Ptr rawData = location->GetData();
@@ -665,9 +665,6 @@ namespace
         const ModuleRegion fixedRegion(fixedOffset, region.Size -  fixedOffset);
         Properties->SetSource(region, fixedRegion);
       }
-
-      Info->SetLogicalChannels(AYM::LOGICAL_CHANNELS);
-      Info->SetModuleProperties(CreateMergedAccessor(parameters, Properties));
     }
 
     virtual Plugin::Ptr GetPlugin() const
@@ -703,7 +700,7 @@ namespace
   private:
     const STPModuleData::RWPtr Data;
     const ModuleProperties::Ptr Properties;
-    const TrackInfo::Ptr Info;
+    const Information::Ptr Info;
   };
 
   struct STPChannelState

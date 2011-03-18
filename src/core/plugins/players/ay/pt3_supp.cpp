@@ -639,10 +639,10 @@ namespace
     }
   public:
     PT3Holder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, Vortex::Track::ModuleData::RWPtr moduleData,
-      DataLocation::Ptr location, ModuleRegion& region)
+      DataLocation::Ptr location, unsigned logicalChannels, ModuleRegion& region)
       : Data(moduleData)
       , Properties(ModuleProperties::Create(plugin, location))
-      , Info(TrackInfo::Create(Data))
+      , Info(CreateTrackInfo(Data, logicalChannels, parameters, Properties))
       , Version()
     {
       //assume all data is correct
@@ -718,9 +718,6 @@ namespace
       //tracking properties
       Version = std::isdigit(header->Subversion) ? header->Subversion - '0' : 6;
       FreqTableName = Vortex::GetFreqTable(static_cast<Vortex::NoteTable>(header->FreqTableNum), Version);
-
-      Info->SetLogicalChannels(AYM::LOGICAL_CHANNELS);
-      Info->SetModuleProperties(Parameters::CreateMergedAccessor(parameters, Properties));
     }
 
     virtual Plugin::Ptr GetPlugin() const
@@ -761,7 +758,7 @@ namespace
   protected:
     const Vortex::Track::ModuleData::RWPtr Data;
     const ModuleProperties::Ptr Properties;
-    const TrackInfo::Ptr Info;
+    const Information::Ptr Info;
     uint_t Version;
     String FreqTableName;
   };
@@ -829,10 +826,9 @@ namespace
   {
   public:
     PT3TSHolder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, uint_t patOffset, DataLocation::Ptr location, ModuleRegion& region)
-      : PT3Holder(plugin, parameters, boost::make_shared<TSModuleData>(patOffset), location, region)
+      : PT3Holder(plugin, parameters, boost::make_shared<TSModuleData>(patOffset), location, AYM::LOGICAL_CHANNELS * 2, region)
       , PatOffset(patOffset)
     {
-      Info->SetLogicalChannels(Info->LogicalChannels() * 2);
     }
 
     virtual Player::Ptr CreatePlayer() const
@@ -1009,7 +1005,7 @@ namespace
         const bool isTSModule = AY_TRACK != tsPatternOffset;
         const Holder::Ptr holder = isTSModule
           ? Holder::Ptr(new PT3TSHolder(plugin, parameters, tsPatternOffset, location, region))
-          : Holder::Ptr(new PT3Holder(plugin, parameters, Vortex::Track::ModuleData::Create(), location, region));
+          : Holder::Ptr(new PT3Holder(plugin, parameters, Vortex::Track::ModuleData::Create(), location, AYM::LOGICAL_CHANNELS, region));
 #ifdef SELF_TEST
         holder->CreatePlayer();
 #endif

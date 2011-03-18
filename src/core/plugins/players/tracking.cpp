@@ -196,12 +196,15 @@ namespace
     uint64_t AbsTick;
   };
 
-  class TrackInfoImpl : public TrackInfo
+  class InformationImpl : public Information
   {
   public:
-    explicit TrackInfoImpl(TrackModuleData::Ptr data)
+    InformationImpl(TrackModuleData::Ptr data, uint_t logicalChannels, 
+      Parameters::Accessor::Ptr parameters, Parameters::Accessor::Ptr properties)
       : Data(data)
-      , LogicChannels(data->GetChannelsCount())
+      , LogicChannels(logicalChannels)
+      , Params(parameters)
+      , Props(properties)
       , Frames(), LoopFrameNum()
     {
     }
@@ -250,21 +253,8 @@ namespace
 
     virtual Parameters::Accessor::Ptr Properties() const
     {
-      assert(ModuleProperties);
-      return ModuleProperties;
+      return Parameters::CreateMergedAccessor(Params, Props);
     }
-
-    //modifiers
-    virtual void SetLogicalChannels(uint_t channels)
-    {
-      LogicChannels = channels;
-    }
-
-    virtual void SetModuleProperties(Parameters::Accessor::Ptr props)
-    {
-      ModuleProperties = props;
-    }
-
   private:
     void Initialize() const
     {
@@ -273,7 +263,7 @@ namespace
         return;//initialized
       }
       //emulate playback
-      const Information::Ptr dummyInfo = boost::make_shared<TrackInfoImpl>(*this);
+      const Information::Ptr dummyInfo = boost::make_shared<InformationImpl>(*this);
       const TrackStateIterator::Ptr dummyIterator = TrackStateIterator::Create(dummyInfo, Data, Analyzer::Ptr());
 
       const uint_t loopPosNum = Data->GetLoopPosition();
@@ -294,8 +284,9 @@ namespace
     }
   private:
     const TrackModuleData::Ptr Data;
-    uint_t LogicChannels;
-    Parameters::Accessor::Ptr ModuleProperties;
+    const uint_t LogicChannels;
+    const Parameters::Accessor::Ptr Params;
+    const Parameters::Accessor::Ptr Props;
     mutable uint_t Frames;
     mutable uint_t LoopFrameNum;
   };
@@ -311,9 +302,10 @@ namespace ZXTune
       return boost::make_shared<TrackStateIteratorImpl>(info, data, analyze);
     }
 
-    TrackInfo::Ptr TrackInfo::Create(TrackModuleData::Ptr data)
+    Information::Ptr CreateTrackInfo(TrackModuleData::Ptr data, uint_t logicalChannels, 
+      Parameters::Accessor::Ptr parameters, Parameters::Accessor::Ptr properties)
     {
-      return boost::make_shared<TrackInfoImpl>(data);
+      return boost::make_shared<InformationImpl>(data, logicalChannels, parameters, properties);
     }
   }
 }

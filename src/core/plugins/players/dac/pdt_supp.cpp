@@ -298,7 +298,7 @@ namespace
       DataLocation::Ptr location, ModuleRegion& region)
       : Data(PDTTrack::ModuleData::Create())
       , Properties(ModuleProperties::Create(plugin, location))
-      , Info(TrackInfo::Create(Data))
+      , Info(CreateTrackInfo(Data, CHANNELS_COUNT, parameters, Properties))
     {
       //assume that data is ok
       const IO::DataContainer::Ptr rawData = location->GetData();
@@ -359,9 +359,6 @@ namespace
       }
       Properties->SetTitle(OptimizeString(FromCharArray(header->Title)));
       Properties->SetProgram(Text::PDT_EDITOR);
-
-      //set tracking
-      Info->SetModuleProperties(Parameters::CreateMergedAccessor(parameters, Properties));
     }
 
     virtual Plugin::Ptr GetPlugin() const
@@ -405,7 +402,7 @@ namespace
   private:
     const PDTTrack::ModuleData::RWPtr Data;
     const ModuleProperties::Ptr Properties;
-    const TrackInfo::Ptr Info;
+    const Information::Ptr Info;
   };
 
   class PDTPlayer : public Player

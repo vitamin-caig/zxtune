@@ -249,7 +249,7 @@ namespace
       DataLocation::Ptr location, ModuleRegion& region)
       : Data(CHITrack::ModuleData::Create())
       , Properties(ModuleProperties::Create(plugin, location))
-      , Info(TrackInfo::Create(Data))
+      , Info(CreateTrackInfo(Data, CHANNELS_COUNT, parameters, Properties))
     {
       //assume data is correct
       const IO::DataContainer::Ptr rawData = location->GetData();
@@ -303,9 +303,6 @@ namespace
       }
       Properties->SetTitle(OptimizeString(FromCharArray(header->Name)));
       Properties->SetProgram((Formatter(Text::CHI_EDITOR) % FromCharArray(header->Version)).str());
-
-      //fill tracking properties
-      Info->SetModuleProperties(Parameters::CreateMergedAccessor(parameters, Properties));
     }
 
     virtual Plugin::Ptr GetPlugin() const
@@ -349,8 +346,7 @@ namespace
   private:
     const CHITrack::ModuleData::RWPtr Data;
     const ModuleProperties::Ptr Properties;
-    const TrackInfo::Ptr Info;
-    IO::DataContainer::Ptr RawData;
+    const Information::Ptr Info;
   };
 
   class CHIPlayer : public Player

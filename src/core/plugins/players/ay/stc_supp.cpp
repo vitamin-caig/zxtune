@@ -603,7 +603,7 @@ namespace
     STCHolder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, ModuleRegion& region)
       : Data(boost::make_shared<STCModuleData>())
       , Properties(ModuleProperties::Create(plugin, location))
-      , Info(TrackInfo::Create(Data))
+      , Info(CreateTrackInfo(Data, AYM::LOGICAL_CHANNELS, parameters, Properties))
     {
       //assume that data is ok
       const IO::DataContainer::Ptr allData = location->GetData();
@@ -625,8 +625,6 @@ namespace
         const ModuleRegion fixedRegion(sizeof(STCHeader), region.Size - sizeof(STCHeader));
         Properties->SetSource(region, fixedRegion);
       }
-      Info->SetLogicalChannels(AYM::LOGICAL_CHANNELS);
-      Info->SetModuleProperties(Parameters::CreateMergedAccessor(parameters, Properties));
     }
 
     virtual Plugin::Ptr GetPlugin() const
@@ -662,7 +660,7 @@ namespace
   private:
     const STCModuleData::RWPtr Data;
     const ModuleProperties::Ptr Properties;
-    const TrackInfo::Ptr Info;
+    const Information::Ptr Info;
   };
 
   class STCChannelSynthesizer

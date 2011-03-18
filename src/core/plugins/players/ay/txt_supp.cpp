@@ -61,20 +61,18 @@ namespace
     TXTHolder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, const ModuleRegion& region)
       : Data(Vortex::Track::ModuleData::Create())
       , Properties(ModuleProperties::Create(plugin, location))
-      , Info(TrackInfo::Create(Data))
+      , Info(CreateTrackInfo(Data, AYM::LOGICAL_CHANNELS, parameters, Properties))
     {
       const IO::DataContainer::Ptr rawData = location->GetData();
       const char* const dataIt = static_cast<const char*>(rawData->Data());
       const char* const endIt = dataIt + region.Size;
 
       ThrowIfError(Vortex::ConvertFromText(std::string(dataIt, endIt),
-        *Data, *Info, *Properties, Version, FreqTableName));
+        *Data, *Properties, Version, FreqTableName));
 
       //meta properties
       //TODO: calculate fixed data in ConvertFromText
       Properties->SetSource(region, region);
-
-      Info->SetModuleProperties(CreateMergedAccessor(parameters, Properties));
     }
 
     virtual Plugin::Ptr GetPlugin() const
@@ -114,7 +112,7 @@ namespace
   private:
     const Vortex::Track::ModuleData::RWPtr Data;
     const ModuleProperties::Ptr Properties;
-    const TrackInfo::Ptr Info;
+    const Information::Ptr Info;
     uint_t Version;
     String FreqTableName;
   };

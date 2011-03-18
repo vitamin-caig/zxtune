@@ -585,7 +585,7 @@ namespace
     ASCHolder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, ModuleRegion& region)
       : Data(ASCTrack::ModuleData::Create())
       , Properties(ModuleProperties::Create(plugin, location))
-      , Info(TrackInfo::Create(Data))
+      , Info(CreateTrackInfo(Data, AYM::LOGICAL_CHANNELS, parameters, Properties))
     {
       //assume all data is correct
       const IO::DataContainer::Ptr rawData = location->GetData();
@@ -682,9 +682,6 @@ namespace
         }
       }
       Properties->SetProgram(Text::ASC_EDITOR);
-
-      Info->SetLogicalChannels(AYM::LOGICAL_CHANNELS);
-      Info->SetModuleProperties(Parameters::CreateMergedAccessor(parameters, Properties));
     }
 
     virtual Plugin::Ptr GetPlugin() const
@@ -720,7 +717,7 @@ namespace
   private:
     const ASCTrack::ModuleData::RWPtr Data;
     const ModuleProperties::Ptr Properties;
-    const TrackInfo::Ptr Info;
+    const Information::Ptr Info;
   };
 
   struct ASCChannelState

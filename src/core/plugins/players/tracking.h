@@ -102,16 +102,8 @@ namespace ZXTune
       virtual bool NextFrame(uint64_t ticksToSkip, Sound::LoopMode mode) = 0;
     };
 
-    class TrackInfo : public Information
-    {
-    public:
-      typedef boost::shared_ptr<TrackInfo> Ptr;
-
-      virtual void SetLogicalChannels(uint_t channels) = 0;
-      virtual void SetModuleProperties(Parameters::Accessor::Ptr props) = 0;
-
-      static Ptr Create(TrackModuleData::Ptr data);
-    };
+    Information::Ptr CreateTrackInfo(TrackModuleData::Ptr data, uint_t logicalChannels, 
+      Parameters::Accessor::Ptr parameters, Parameters::Accessor::Ptr properties);
 
     // Basic template class for tracking support (used as simple parametrized namespace)
     template<uint_t ChannelsCount, class CommandType, class SampleType, class OrnamentType = SimpleOrnament>

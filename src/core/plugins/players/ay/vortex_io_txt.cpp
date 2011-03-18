@@ -851,8 +851,7 @@ namespace ZXTune
   {
     namespace Vortex
     {
-      Error ConvertFromText(const std::string& text, Vortex::Track::ModuleData& resData,
-        TrackInfo& resInfo, ModuleProperties& resProps,
+      Error ConvertFromText(const std::string& text, Vortex::Track::ModuleData& resData, ModuleProperties& resProps,
         uint_t& resVersion, String& resFreqTable)
       {
         typedef std::vector<std::string> LinesArray;
@@ -925,7 +924,6 @@ namespace ZXTune
         freqTable = Vortex::GetFreqTable(static_cast<Vortex::NoteTable>(descr.Notetable), version);
 
         data.Positions.swap(descr.Order);
-        resInfo.SetLogicalChannels(AYM::LOGICAL_CHANNELS);
 
         //apply result
         resData = data;
