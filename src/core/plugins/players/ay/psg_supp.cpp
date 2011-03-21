@@ -84,7 +84,7 @@ namespace
   class PSGHolder : public Holder
   {
   public:
-    PSGHolder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, ModuleRegion& region)
+    PSGHolder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, std::size_t& usedSize)
       : Properties(ModuleProperties::Create(plugin, location))
       , Data(boost::make_shared<PSGData>())
     {
@@ -147,12 +147,10 @@ namespace
         }
       }
 
-      //fill region
-      region.Offset = 0;
-      region.Size = data.Size() - size;
+      usedSize = data.Size() - size;
 
       //meta properties
-      Properties->SetSource(region, region);
+      Properties->SetSource(usedSize, ModuleRegion(0, usedSize));
       Info = CreateStreamInfo(Data->Dump.size(), AYM::LOGICAL_CHANNELS, AYM::CHANNELS, 
         Parameters::CreateMergedAccessor(parameters, Properties));
     }
@@ -283,9 +281,7 @@ namespace
       try
       {
         const PlayerPlugin::Ptr plugin = shared_from_this();
-        ModuleRegion region;
-        const Module::Holder::Ptr holder(new PSGHolder(plugin, parameters, location, region));
-        usedSize = region.Offset + region.Size;
+        const Module::Holder::Ptr holder(new PSGHolder(plugin, parameters, location, usedSize));
         return holder;
       }
       catch (const Error&/*e*/)

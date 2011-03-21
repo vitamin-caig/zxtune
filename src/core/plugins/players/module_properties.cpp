@@ -60,9 +60,9 @@ namespace
       Warnings = warns;
     }
 
-    virtual void SetSource(const ModuleRegion& usedRegion, const ModuleRegion& fixedRegion)
+    virtual void SetSource(std::size_t usedSize, const ModuleRegion& fixedRegion)
     {
-      UsedRegion = usedRegion;
+      UsedRegion = ModuleRegion(0, usedSize);
       FixedRegion = fixedRegion;
     }
 

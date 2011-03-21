@@ -295,7 +295,7 @@ namespace
 
   public:
     PDTHolder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters,
-      DataLocation::Ptr location, ModuleRegion& region)
+      DataLocation::Ptr location, std::size_t& usedSize)
       : Data(PDTTrack::ModuleData::Create())
       , Properties(ModuleProperties::Create(plugin, location))
       , Info(CreateTrackInfo(Data, CHANNELS_COUNT, parameters, Properties))
@@ -349,13 +349,10 @@ namespace
       Data->LoopPosition = header->Loop;
       Data->InitialTempo = header->Tempo;
 
-      //fill region
-      region.Offset = 0;
-      region.Size = MODULE_SIZE;
-      //meta properties
+      usedSize = MODULE_SIZE;
       {
         const ModuleRegion fixedRegion(sizeof(PDTHeader) - sizeof(header->Patterns), sizeof(header->Patterns));
-        Properties->SetSource(region, fixedRegion);
+        Properties->SetSource(usedSize, fixedRegion);
       }
       Properties->SetTitle(OptimizeString(FromCharArray(header->Title)));
       Properties->SetProgram(Text::PDT_EDITOR);
@@ -691,12 +688,10 @@ namespace
       try
       {
         const PlayerPlugin::Ptr plugin = shared_from_this();
-        ModuleRegion region;
-        const Module::Holder::Ptr holder(new PDTHolder(plugin, parameters, location, region));
+        const Module::Holder::Ptr holder(new PDTHolder(plugin, parameters, location, usedSize));
   #ifdef SELF_TEST
         holder->CreatePlayer();
   #endif
-        usedSize = region.Offset + region.Size;
         return holder;
       }
       catch (const Error&/*e*/)

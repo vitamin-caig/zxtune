@@ -458,14 +458,14 @@ namespace
     }
 
   public:
-    PT2Holder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, ModuleRegion& region)
+    PT2Holder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, std::size_t& usedSize)
       : Data(PT2Track::ModuleData::Create())
       , Properties(ModuleProperties::Create(plugin, location))
       , Info(CreateTrackInfo(Data, AYM::LOGICAL_CHANNELS, parameters, Properties))
     {
       //assume all data is correct
       const IO::DataContainer::Ptr rawData = location->GetData();
-      const IO::FastDump& data = IO::FastDump(*rawData, region.Offset);
+      const IO::FastDump& data = IO::FastDump(*rawData);
       const PT2Header* const header = safe_ptr_cast<const PT2Header*>(&data[0]);
       const PT2Pattern* patterns = safe_ptr_cast<const PT2Pattern*>(&data[fromLE(header->PatternsOffset)]);
 
@@ -517,13 +517,13 @@ namespace
       Data->InitialTempo = header->Tempo;
 
       //fill region
-      region.Size = std::min(rawSize, data.Size());
+      usedSize = std::min(rawSize, data.Size());
 
       //meta properties
       {
         const std::size_t fixedOffset(sizeof(PT2Header) + header->Length - 1);
-        const ModuleRegion fixedRegion(fixedOffset, region.Size -  fixedOffset);
-        Properties->SetSource(region, fixedRegion);
+        const ModuleRegion fixedRegion(fixedOffset, usedSize -  fixedOffset);
+        Properties->SetSource(usedSize, fixedRegion);
       }
       Properties->SetTitle(OptimizeString(FromCharArray(header->Name)));
       Properties->SetProgram(Text::PT2_EDITOR);
@@ -918,12 +918,12 @@ namespace
     }
 
     virtual Holder::Ptr TryToCreateModule(Parameters::Accessor::Ptr parameters,
-      DataLocation::Ptr location, ModuleRegion& region) const
+      DataLocation::Ptr location, std::size_t& usedSize) const
     {
       const PlayerPlugin::Ptr plugin = shared_from_this();
       try
       {
-        const Holder::Ptr holder(new PT2Holder(plugin, parameters, location, region));
+        const Holder::Ptr holder(new PT2Holder(plugin, parameters, location, usedSize));
 #ifdef SELF_TEST
         holder->CreatePlayer();
 #endif

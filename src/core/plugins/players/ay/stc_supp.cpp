@@ -600,14 +600,14 @@ namespace
   class STCHolder : public Holder
   {
   public:
-    STCHolder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, ModuleRegion& region)
+    STCHolder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, std::size_t& usedSize)
       : Data(boost::make_shared<STCModuleData>())
       , Properties(ModuleProperties::Create(plugin, location))
       , Info(CreateTrackInfo(Data, AYM::LOGICAL_CHANNELS, parameters, Properties))
     {
       //assume that data is ok
       const IO::DataContainer::Ptr allData = location->GetData();
-      const IO::FastDump& data = IO::FastDump(*allData, region.Offset, MAX_MODULE_SIZE);
+      const IO::FastDump& data = IO::FastDump(*allData, 0, MAX_MODULE_SIZE);
       const STCAreas areas(data);
 
       Data->ParseInformation(areas, *Properties);
@@ -617,13 +617,12 @@ namespace
       const uint_t posLim = Data->ParsePositions(areas);
 
       const std::size_t maxLim = std::max(std::max(smpLim, ornLim), std::max(patLim, posLim));
-      //fill region
-      region.Size = std::min(data.Size(), maxLim);
+      usedSize = std::min(data.Size(), maxLim);
 
       //meta properties
       {
-        const ModuleRegion fixedRegion(sizeof(STCHeader), region.Size - sizeof(STCHeader));
-        Properties->SetSource(region, fixedRegion);
+        const ModuleRegion fixedRegion(sizeof(STCHeader), usedSize - sizeof(STCHeader));
+        Properties->SetSource(usedSize, fixedRegion);
       }
     }
 
@@ -1145,12 +1144,12 @@ namespace
     }
 
     virtual Holder::Ptr TryToCreateModule(Parameters::Accessor::Ptr parameters,
-      DataLocation::Ptr location, ModuleRegion& region) const
+      DataLocation::Ptr location, std::size_t& usedSize) const
     {
       const PlayerPlugin::Ptr plugin = shared_from_this();
       try
       {
-        const Holder::Ptr holder(new STCHolder(plugin, parameters, location, region));
+        const Holder::Ptr holder(new STCHolder(plugin, parameters, location, usedSize));
 #ifdef SELF_TEST
         holder->CreatePlayer();
 #endif

@@ -639,14 +639,14 @@ namespace
   class STPHolder : public Holder
   {
   public:
-    STPHolder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, ModuleRegion& region)
+    STPHolder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, std::size_t& usedSize)
       : Data(boost::make_shared<STPModuleData>())
       , Properties(ModuleProperties::Create(plugin, location))
       , Info(CreateTrackInfo(Data, AYM::LOGICAL_CHANNELS, parameters, Properties))
     {
       //assume that data is ok
       const IO::DataContainer::Ptr rawData = location->GetData();
-      const IO::FastDump& data = IO::FastDump(*rawData, region.Offset, MAX_MODULE_SIZE);
+      const IO::FastDump& data = IO::FastDump(*rawData, 0, MAX_MODULE_SIZE);
       const STPAreas areas(data);
 
       Data->ParseInformation(areas, *Properties);
@@ -656,14 +656,13 @@ namespace
       const uint_t posLim = Data->ParsePositions(areas);
 
       const std::size_t maxLim = std::max(std::max(smpLim, ornLim), std::max(patLim, posLim));
-      //fill region
-      region.Size = std::min(data.Size(), maxLim);
+      usedSize = std::min(data.Size(), maxLim);
 
       //meta properties
       {
         const std::size_t fixedOffset = sizeof(STPHeader);
-        const ModuleRegion fixedRegion(fixedOffset, region.Size -  fixedOffset);
-        Properties->SetSource(region, fixedRegion);
+        const ModuleRegion fixedRegion(fixedOffset, usedSize -  fixedOffset);
+        Properties->SetSource(usedSize, fixedRegion);
       }
     }
 
@@ -1114,12 +1113,12 @@ namespace
     }
 
     virtual Holder::Ptr TryToCreateModule(Parameters::Accessor::Ptr parameters,
-      DataLocation::Ptr location, ModuleRegion& region) const
+      DataLocation::Ptr location, std::size_t& usedSize) const
     {
       const PlayerPlugin::Ptr plugin = shared_from_this();
       try
       {
-        const Holder::Ptr holder(new STPHolder(plugin, parameters, location, region));
+        const Holder::Ptr holder(new STPHolder(plugin, parameters, location, usedSize));
 #ifdef SELF_TEST
         holder->CreatePlayer();
 #endif

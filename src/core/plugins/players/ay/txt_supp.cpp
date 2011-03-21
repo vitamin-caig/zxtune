@@ -57,22 +57,21 @@ namespace
   class TXTHolder : public Holder
   {
   public:
-    //region must be filled
-    TXTHolder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, const ModuleRegion& region)
+    TXTHolder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, std::size_t usedSize)
       : Data(Vortex::Track::ModuleData::Create())
       , Properties(ModuleProperties::Create(plugin, location))
       , Info(CreateTrackInfo(Data, AYM::LOGICAL_CHANNELS, parameters, Properties))
     {
       const IO::DataContainer::Ptr rawData = location->GetData();
       const char* const dataIt = static_cast<const char*>(rawData->Data());
-      const char* const endIt = dataIt + region.Size;
+      const char* const endIt = dataIt + usedSize;
 
       ThrowIfError(Vortex::ConvertFromText(std::string(dataIt, endIt),
         *Data, *Properties, Version, FreqTableName));
 
       //meta properties
       //TODO: calculate fixed data in ConvertFromText
-      Properties->SetSource(region, region);
+      Properties->SetSource(usedSize, ModuleRegion(0, usedSize));
     }
 
     virtual Plugin::Ptr GetPlugin() const
@@ -183,17 +182,14 @@ namespace
         return Module::Holder::Ptr();
       }
 
-      ModuleRegion tmpRegion;
-      tmpRegion.Size = limit;
-      //try to create holder
       try
       {
         const PlayerPlugin::Ptr plugin = shared_from_this();
-        const Module::Holder::Ptr holder(new TXTHolder(plugin, parameters, location, tmpRegion));
+        const Module::Holder::Ptr holder(new TXTHolder(plugin, parameters, location, limit));
     #ifdef SELF_TEST
         holder->CreatePlayer();
     #endif
-        usedSize = tmpRegion.Offset + tmpRegion.Size;
+        usedSize = limit;
         return holder;
       }
       catch (const Error& e)

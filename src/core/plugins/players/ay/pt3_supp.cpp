@@ -639,7 +639,7 @@ namespace
     }
   public:
     PT3Holder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, Vortex::Track::ModuleData::RWPtr moduleData,
-      DataLocation::Ptr location, unsigned logicalChannels, ModuleRegion& region)
+      DataLocation::Ptr location, unsigned logicalChannels, std::size_t& usedSize)
       : Data(moduleData)
       , Properties(ModuleProperties::Create(plugin, location))
       , Info(CreateTrackInfo(Data, logicalChannels, parameters, Properties))
@@ -647,7 +647,7 @@ namespace
     {
       //assume all data is correct
       const IO::DataContainer::Ptr rawData = location->GetData();
-      const IO::FastDump& data = IO::FastDump(*rawData, region.Offset);
+      const IO::FastDump& data = IO::FastDump(*rawData);
       const PT3Header* const header(safe_ptr_cast<const PT3Header*>(&data[0]));
 
       std::size_t rawSize(0);
@@ -702,14 +702,13 @@ namespace
       Data->LoopPosition = header->Loop;
       Data->InitialTempo = header->Tempo;
 
-      //fill region
-      region.Size = std::min(rawSize, data.Size());
+      usedSize = std::min(rawSize, data.Size());
 
       //meta properties
       {
         const std::size_t fixedOffset(sizeof(PT3Header) + header->Length - 1);
-        const ModuleRegion fixedRegion(fixedOffset, region.Size -  fixedOffset);
-        Properties->SetSource(region, fixedRegion);
+        const ModuleRegion fixedRegion(fixedOffset, usedSize -  fixedOffset);
+        Properties->SetSource(usedSize, fixedRegion);
       }
       Properties->SetTitle(OptimizeString(FromCharArray(header->TrackName)));
       Properties->SetAuthor(OptimizeString(FromCharArray(header->TrackAuthor)));
@@ -825,8 +824,8 @@ namespace
   class PT3TSHolder : public PT3Holder
   {
   public:
-    PT3TSHolder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, uint_t patOffset, DataLocation::Ptr location, ModuleRegion& region)
-      : PT3Holder(plugin, parameters, boost::make_shared<TSModuleData>(patOffset), location, AYM::LOGICAL_CHANNELS * 2, region)
+    PT3TSHolder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, uint_t patOffset, DataLocation::Ptr location, std::size_t& usedSize)
+      : PT3Holder(plugin, parameters, boost::make_shared<TSModuleData>(patOffset), location, AYM::LOGICAL_CHANNELS * 2, usedSize)
       , PatOffset(patOffset)
     {
     }
@@ -936,10 +935,10 @@ namespace
     return true;
   }
 
-  uint_t GetTSModulePatternOffset(const DataLocation& location, const ModuleRegion& region)
+  uint_t GetTSModulePatternOffset(const DataLocation& location)
   {
     const IO::DataContainer::Ptr rawData = location.GetData();
-    const IO::FastDump& data = IO::FastDump(*rawData, region.Offset);
+    const IO::FastDump& data = IO::FastDump(*rawData);
     const PT3Header* const header(safe_ptr_cast<const PT3Header*>(&data[0]));
     const uint_t patOffset = header->Mode;
     const uint_t patternsCount = 1 + *std::max_element(header->Positions, header->Positions + header->Length) / 3;
@@ -996,16 +995,16 @@ namespace
     }
 
     virtual Holder::Ptr TryToCreateModule(Parameters::Accessor::Ptr parameters,
-      DataLocation::Ptr location, ModuleRegion& region) const
+      DataLocation::Ptr location, std::size_t& usedSize) const
     {
       const PlayerPlugin::Ptr plugin = shared_from_this();
       try
       {
-        const uint_t tsPatternOffset = GetTSModulePatternOffset(*location, region);
+        const uint_t tsPatternOffset = GetTSModulePatternOffset(*location);
         const bool isTSModule = AY_TRACK != tsPatternOffset;
         const Holder::Ptr holder = isTSModule
-          ? Holder::Ptr(new PT3TSHolder(plugin, parameters, tsPatternOffset, location, region))
-          : Holder::Ptr(new PT3Holder(plugin, parameters, Vortex::Track::ModuleData::Create(), location, AYM::LOGICAL_CHANNELS, region));
+          ? Holder::Ptr(new PT3TSHolder(plugin, parameters, tsPatternOffset, location, usedSize))
+          : Holder::Ptr(new PT3Holder(plugin, parameters, Vortex::Track::ModuleData::Create(), location, AYM::LOGICAL_CHANNELS, usedSize));
 #ifdef SELF_TEST
         holder->CreatePlayer();
 #endif

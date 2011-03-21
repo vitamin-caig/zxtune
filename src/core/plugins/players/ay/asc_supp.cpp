@@ -582,14 +582,14 @@ namespace
       }
     }
   public:
-    ASCHolder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, ModuleRegion& region)
+    ASCHolder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, std::size_t& usedSize)
       : Data(ASCTrack::ModuleData::Create())
       , Properties(ModuleProperties::Create(plugin, location))
       , Info(CreateTrackInfo(Data, AYM::LOGICAL_CHANNELS, parameters, Properties))
     {
       //assume all data is correct
       const IO::DataContainer::Ptr rawData = location->GetData();
-      const IO::FastDump& data = IO::FastDump(*rawData, region.Offset);
+      const IO::FastDump& data = IO::FastDump(*rawData);
 
       const ASCHeader* const header = safe_ptr_cast<const ASCHeader*>(&data[0]);
 
@@ -666,15 +666,15 @@ namespace
       Data->InitialTempo = header->Tempo;
 
       //fill region
-      region.Size = std::min(rawSize, data.Size());
+      usedSize = std::min(rawSize, data.Size());
 
       //meta properties
       {
         const ASCID* const id = safe_ptr_cast<const ASCID*>(header->Positions + header->Length);
         const bool validId = id->Check();
         const std::size_t fixedOffset = sizeof(ASCHeader) + validId ? sizeof(*id) : 0;
-        const ModuleRegion fixedRegion(fixedOffset, region.Size - fixedOffset);
-        Properties->SetSource(region, fixedRegion);
+        const ModuleRegion fixedRegion(fixedOffset, usedSize - fixedOffset);
+        Properties->SetSource(usedSize, fixedRegion);
         if (validId)
         {
           Properties->SetTitle(OptimizeString(FromCharArray(id->Title)));
@@ -1171,12 +1171,10 @@ namespace
       const PlayerPlugin::Ptr plugin = shared_from_this();
       try
       {
-        ModuleRegion region;
-        const Holder::Ptr holder(new ASCHolder(plugin, parameters, location, region));
+        const Holder::Ptr holder(new ASCHolder(plugin, parameters, location, usedSize));
 #ifdef SELF_TEST
         holder->CreatePlayer();
 #endif
-        usedSize = region.Offset + region.Size;
         return holder;
       }
       catch (const Error&/*e*/)

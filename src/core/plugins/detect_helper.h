@@ -53,7 +53,7 @@ namespace ZXTune
   {
   public:
     virtual Module::Holder::Ptr TryToCreateModule(Parameters::Accessor::Ptr parameters,
-      DataLocation::Ptr location, ModuleRegion& region) const = 0;
+      DataLocation::Ptr location, std::size_t& usedSize) const = 0;
   };
 
   class ArchiveDetector : public DataDetector
