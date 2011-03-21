@@ -231,7 +231,7 @@ namespace
       return CreatePathProperties(Path, subpath);
     }
 
-    virtual Error ProcessModule(ZXTune::Module::Holder::Ptr holder) const
+    virtual Error ProcessModule(const String& /*subpath*/, ZXTune::Module::Holder::Ptr holder) const
     {
       try
       {
