@@ -261,7 +261,7 @@ namespace
       return IO::AppendPath(Parent->GetPath(), subPath);
     }
 
-    virtual PluginsChain::ConstPtr GetPlugins() const
+    virtual PluginsChain::Ptr GetPlugins() const
     {
       return Subplugins;
     }
@@ -283,7 +283,7 @@ namespace
   private:
     const DataLocation::Ptr Parent;
     const ScanDataContainer::Ptr Subdata;
-    const PluginsChain::ConstPtr Subplugins;
+    const PluginsChain::Ptr Subplugins;
   };
 
   class NewParamsCallback : public Module::DetectCallbackDelegate
@@ -345,7 +345,7 @@ namespace
     virtual std::size_t Process(DataLocation::Ptr location, const Module::DetectCallback& callback) const
     {
       //do not search right after previous raw plugin
-      const PluginsChain::ConstPtr plugins = location->GetPlugins();
+      const PluginsChain::Ptr plugins = location->GetPlugins();
       if (CheckIfLastIsScanner(*plugins))
       {
         return 0;

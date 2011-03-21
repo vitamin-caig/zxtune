@@ -175,7 +175,7 @@ namespace
       Container->SetIntValue(ATTR_CRC, UsedRegion.Checksum(*allData)); 
       Container->SetIntValue(ATTR_FIXEDCRC, FixedRegion.Checksum(*allData));
       //plugins
-      const PluginsChain::ConstPtr plugins = Location->GetPlugins();
+      const PluginsChain::Ptr plugins = Location->GetPlugins();
       const String& container = plugins->AsString();
       if (!container.empty())
       {

@@ -31,7 +31,7 @@ namespace ZXTune
 
     virtual IO::DataContainer::Ptr GetData() const = 0;
     virtual String GetPath() const = 0;
-    virtual PluginsChain::ConstPtr GetPlugins() const = 0;
+    virtual PluginsChain::Ptr GetPlugins() const = 0;
   };
 
   //! @param coreParams Parameters for plugins processing

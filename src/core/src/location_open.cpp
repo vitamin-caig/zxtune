@@ -14,9 +14,14 @@ Author:
 #include "core/plugins/enumerator.h"
 //library includes
 #include <io/fs_tools.h>
+//std includes
+#include <vector>
 //boost includes
 #include <boost/make_shared.hpp>
+#include <boost/mem_fn.hpp>
+#include <boost/algorithm/string/join.hpp>
 //text includes
+#include <core/text/core.h>
 #include <core/text/plugins.h>
 
 namespace
@@ -35,6 +40,42 @@ namespace
     assert(IsArchivePluginPathComponent(component));
     return component.substr(ARCHIVE_PLUGIN_PREFIX.size());
   }
+  
+  class ResolvedPluginsChain : public PluginsChain
+  {
+    typedef std::vector<Plugin::Ptr> PluginsList;
+  public:
+    typedef boost::shared_ptr<ResolvedPluginsChain> Ptr;
+  
+    void Add(Plugin::Ptr plugin)
+    {
+      Container.push_back(plugin);
+    }
+
+    virtual Plugin::Ptr GetLast() const
+    {
+      if (!Container.empty())
+      {
+        return Container.back();
+      }
+      return Plugin::Ptr();
+    }
+
+    virtual uint_t Count() const
+    {
+      return Container.size();
+    }
+
+    virtual String AsString() const
+    {
+      StringArray ids(Container.size());
+      std::transform(Container.begin(), Container.end(),
+        ids.begin(), boost::mem_fn(&Plugin::Id));
+      return boost::algorithm::join(ids, String(Text::MODULE_CONTAINERS_DELIMITER));
+    }
+  private:
+    PluginsList Container;
+  };
 
   class ResolvedPluginsIterator
   {
@@ -154,7 +195,7 @@ namespace
       return Path;
     }
 
-    virtual PluginsChain::ConstPtr GetPlugins() const
+    virtual PluginsChain::Ptr GetPlugins() const
     {
       return Plugins;
     }
@@ -174,7 +215,7 @@ namespace ZXTune
 
   DataLocation::Ptr OpenLocation(Parameters::Accessor::Ptr coreParams, IO::DataContainer::Ptr data, const String& subpath)
   {
-    const PluginsChain::Ptr resolvedPlugins = PluginsChain::Create();
+    const ResolvedPluginsChain::Ptr resolvedPlugins = boost::make_shared<ResolvedPluginsChain>();
     if (subpath.empty())
     {
       return boost::make_shared<ResolvedLocation>(data, subpath, resolvedPlugins);

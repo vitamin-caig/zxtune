@@ -39,7 +39,7 @@ namespace
       return Parent->GetPath();
     }
 
-    virtual PluginsChain::ConstPtr GetPlugins() const
+    virtual PluginsChain::Ptr GetPlugins() const
     {
       return Parent->GetPlugins();
     }
@@ -69,7 +69,7 @@ namespace
       return IO::AppendPath(Parent->GetPath(), SubPath);
     }
 
-    virtual PluginsChain::ConstPtr GetPlugins() const
+    virtual PluginsChain::Ptr GetPlugins() const
     {
       return PluginsChain::CreateMerged(Parent->GetPlugins(), SubPlugin);
     }

@@ -21,19 +21,15 @@ namespace ZXTune
   class PluginsChain
   {
   public:
-    typedef boost::shared_ptr<PluginsChain> Ptr;
-    typedef boost::shared_ptr<const PluginsChain> ConstPtr;
+    typedef boost::shared_ptr<const PluginsChain> Ptr;
 
     virtual ~PluginsChain() {}
 
-    virtual void Add(Plugin::Ptr plugin) = 0;
     virtual Plugin::Ptr GetLast() const = 0;
-
     virtual uint_t Count() const = 0;
     virtual String AsString() const = 0;
 
-    static Ptr Create();
-    static Ptr CreateMerged(PluginsChain::ConstPtr parent, Plugin::Ptr newOne);
+    static Ptr CreateMerged(PluginsChain::Ptr parent, Plugin::Ptr newOne);
   };
 }
 
