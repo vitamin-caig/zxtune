@@ -175,9 +175,9 @@ namespace
       return CoreParams;
     }
 
-    virtual Parameters::Accessor::Ptr CreateModuleParameters(const DataLocation& /*location*/) const
+    virtual Parameters::Accessor::Ptr CreateModuleParameters(const DataLocation& location) const
     {
-      return CoreParams;
+      return DetectParams.CreateModuleParams(location.GetPath());
     }
 
     virtual Error ProcessModule(const DataLocation& location, Module::Holder::Ptr holder) const

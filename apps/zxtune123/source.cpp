@@ -210,39 +210,13 @@ namespace
     boost::unordered_set<String> FilteredPlugins;
   };
 
-  class ModulesProcessor
-  {
-  public:
-    ModulesProcessor(const String& path, const OnItemCallback& callback)
-      : Path(path)
-      , Callback(callback)
-    {
-    }
-
-    Error ProcessModule(const String& subpath, const ZXTune::Module::Holder::Ptr& module) const
-    {
-      try
-      {
-        const Parameters::Accessor::Ptr pathProps = CreatePathProperties(Path, subpath);
-        const ZXTune::Module::Holder::Ptr holder = CreateMixinPropertiesModule(module, pathProps, pathProps);
-        return Callback(holder) ? Error() : Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
-      }
-      catch (const Error& e)
-      {
-        return e;
-      }
-    }
-  private:
-    const String Path;
-    const OnItemCallback& Callback;
-  };
-
   class DetectParametersImpl : public ZXTune::DetectParameters
   {
   public:
-    DetectParametersImpl(const PluginsFilter& filter, const ModulesProcessor& processor, bool showLogs)
+    DetectParametersImpl(const PluginsFilter& filter, const String& path, const OnItemCallback& callback, bool showLogs)
       : Filter(filter)
-      , Processor(processor)
+      , Path(path)
+      , Callback(callback)
       , ProgressCallback(showLogs ? new ProgressCallbackImpl() : 0)
     {
     }
@@ -251,10 +225,22 @@ namespace
     {
       return Filter.IsPluginFiltered(plugin);
     }
-
-    virtual Error ProcessModule(const String& subpath, ZXTune::Module::Holder::Ptr holder) const
+    
+    virtual Parameters::Accessor::Ptr CreateModuleParams(const String& subpath) const
     {
-      return Processor.ProcessModule(subpath, holder);
+      return CreatePathProperties(Path, subpath);
+    }
+
+    virtual Error ProcessModule(ZXTune::Module::Holder::Ptr holder) const
+    {
+      try
+      {
+        return Callback(holder) ? Error() : Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
+      }
+      catch (const Error& e)
+      {
+        return e;
+      }
     }
 
     virtual Log::ProgressCallback* GetProgressCallback() const
@@ -263,7 +249,8 @@ namespace
     }
   private:
     const PluginsFilter& Filter;
-    const ModulesProcessor& Processor;
+    const String Path;
+    const OnItemCallback& Callback;
     const Log::ProgressCallback::Ptr ProgressCallback;
   };
 
@@ -339,8 +326,7 @@ namespace
         ThrowIfError(ZXTune::IO::SplitUri(*it, path, subpath));
         ThrowIfError(ZXTune::IO::OpenData(path, *Params, 0, data));
 
-        const ModulesProcessor processor(*it, callback);
-        const DetectParametersImpl params(*Filter, processor, ShowProgress);
+        const DetectParametersImpl params(*Filter, path, callback, ShowProgress);
         ThrowIfError(ZXTune::DetectModules(Params, params, data, subpath));
       }
     }

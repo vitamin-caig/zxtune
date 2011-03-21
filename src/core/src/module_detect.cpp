@@ -49,8 +49,7 @@ namespace
 
     virtual Parameters::Accessor::Ptr GetPluginsParameters() const
     {
-      assert(!"Should not be called");
-      return Parameters::Accessor::Ptr();
+      return Parameters::Container::Create();
     }
 
     virtual Parameters::Accessor::Ptr CreateModuleParameters(const DataLocation& /*location*/) const

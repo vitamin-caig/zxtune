@@ -167,6 +167,11 @@ namespace
     {
       return Provider->GetData(DataPath);
     }
+
+    String GetDataPath() const
+    {
+      return DataPath;
+    }
   private:
     const CachedDataProvider::Ptr Provider;
     const String DataPath;
@@ -175,30 +180,26 @@ namespace
   class ModuleSource
   {
   public:
-    ModuleSource(DataSource::Ptr source, Parameters::Accessor::Ptr moduleParams)
+    ModuleSource(DataSource::Ptr source, const String& subPath, Parameters::Accessor::Ptr adjustedParams)
       : Source(source)
-      , ModuleParams(moduleParams)
+      , SubPath(subPath)
+      , AdjustedParams(adjustedParams)
     {
     }
 
     ZXTune::Module::Holder::Ptr GetModule() const
     {
       const ZXTune::IO::DataContainer::Ptr data = Source->GetData();
-      const String subPath = GetSubpath();
+      const Parameters::Accessor::Ptr pathParams = CreatePathProperties(Source->GetDataPath(), SubPath);
+      const Parameters::Accessor::Ptr moduleParams = Parameters::CreateMergedAccessor(pathParams, AdjustedParams);
       ZXTune::Module::Holder::Ptr module;
-      ZXTune::OpenModule(ModuleParams, data, subPath, module);
+      ZXTune::OpenModule(moduleParams, data, SubPath, module);
       return module;
     }
   private:
-    String GetSubpath() const
-    {
-      Parameters::StringType subpath;
-      ModuleParams->FindStringValue(ZXTune::Module::ATTR_SUBPATH, subpath);
-      return subpath;
-    }
-  private:
     const DataSource::Ptr Source;
-    const Parameters::Accessor::Ptr ModuleParams;
+    const String SubPath;
+    const Parameters::Accessor::Ptr AdjustedParams;
   };
 
   String GetModuleType(const Parameters::Accessor& props)
@@ -472,16 +473,20 @@ namespace
       //TODO: from parameters
       return false;
     }
+    
+    virtual Parameters::Accessor::Ptr CreateModuleParams(const String& subPath) const
+    {
+      return CreatePathProperties(DataPath, subPath);
+    }
 
     virtual Error ProcessModule(const String& subPath, ZXTune::Module::Holder::Ptr holder) const
     {
-      const Parameters::Accessor::Ptr pathProps = CreatePathProperties(DataPath, subPath);
       const Parameters::Container::Ptr adjustedParams = Delegate.CreateInitialAdjustedParameters();
-      const Parameters::Accessor::Ptr perItemParameters = Parameters::CreateMergedAccessor(pathProps, adjustedParams, CoreParams);
+      const Parameters::Accessor::Ptr perItemParameters = Parameters::CreateMergedAccessor(adjustedParams, CoreParams);
 
-      const ModuleSource itemSource(Source, perItemParameters);
+      const ModuleSource itemSource(Source, subPath, perItemParameters);
       const ZXTune::Module::Information::Ptr info = holder->GetModuleInformation();
-      const Parameters::Accessor::Ptr lookupModuleProps = Parameters::CreateMergedAccessor(pathProps, adjustedParams, info->Properties());
+      const Parameters::Accessor::Ptr lookupModuleProps = Parameters::CreateMergedAccessor(adjustedParams, info->Properties());
       const Playlist::Item::Data::Ptr playitem = boost::make_shared<DataImpl>(Attributes, itemSource, adjustedParams,
         info->FramesCount(), *lookupModuleProps);
       return Delegate.ProcessItem(playitem) ? Error() : Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);

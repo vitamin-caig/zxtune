@@ -41,6 +41,9 @@ namespace ZXTune
     //! @param plugin Reference to plugin intended to be processed
     //! @return true to skip false to process
     virtual bool FilterPlugin(const Plugin& plugin) const = 0;
+    //! @brief Called before module creating
+    //! @param subpath Subpath for processed module
+    virtual Parameters::Accessor::Ptr CreateModuleParams(const String& subpath) const = 0;
     //! @brief Called on each detected module.
     //! @param subpath Subpath for processed module
     //! @param holder Found module
