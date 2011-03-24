@@ -98,20 +98,23 @@ namespace
         return;
       }
       //removed
-      //try to find next one
-      for (unsigned oldIdx = Index + 1, totalOldItems = remapping.rbegin()->first + 1; oldIdx < totalOldItems; ++oldIdx)
+      if (!remapping.empty())
       {
-        if (SetNewIndex(remapping, oldIdx))
+        //try to find next one
+        for (unsigned oldIdx = Index + 1, totalOldItems = remapping.rbegin()->first + 1; oldIdx < totalOldItems; ++oldIdx)
         {
-          return;
+          if (SetNewIndex(remapping, oldIdx))
+          {
+            return;
+          }
         }
-      }
-      //try to find previous one
-      for (unsigned oldIdx = Index; oldIdx; --oldIdx)
-      {
-        if (SetNewIndex(remapping, oldIdx - 1))
+        //try to find previous one
+        for (unsigned oldIdx = Index; oldIdx; --oldIdx)
         {
-          return;
+          if (SetNewIndex(remapping, oldIdx - 1))
+          {
+            return;
+          }
         }
       }
       //invalidated
