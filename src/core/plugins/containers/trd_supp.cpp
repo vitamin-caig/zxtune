@@ -31,6 +31,7 @@ Author:
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
+#include <boost/make_shared.hpp>
 //text includes
 #include <core/text/core.h>
 #include <core/text/plugins.h>
@@ -100,6 +101,7 @@ namespace
     uint8_t Type;
     uint8_t Files;
     uint16_t FreeSectors;
+    //+231
     uint8_t ID;//0x10
     uint8_t Reserved2[12];
     uint8_t DeletedFiles;
@@ -181,6 +183,38 @@ namespace
     return res;
   }
 
+  class TRDDetectionResult : public DetectionResult
+  {
+  public:
+    TRDDetectionResult(std::size_t parsedSize, IO::DataContainer::Ptr rawData)
+      : ParsedSize(parsedSize)
+      , RawData(rawData)
+    {
+    }
+
+    virtual std::size_t GetAffectedDataSize() const
+    {
+      return ParsedSize;
+    }
+
+    virtual std::size_t GetLookaheadOffset() const
+    {
+      const uint_t size = RawData->Size();
+      if (size < TRD_MODULE_SIZE)
+      {
+        return size;
+      }
+      const uint8_t* const begin = static_cast<const uint8_t*>(RawData->Data());
+      const uint8_t* const idStart = begin + SERVICE_SECTOR_NUM * BYTES_PER_SECTOR + offsetof(ServiceSector, ID);
+      const uint8_t* const end = begin + size;
+      return std::find(idStart + 1, end, static_cast<uint8_t>(TRDOS_ID)) - idStart;
+    }
+  private:
+    const std::size_t ParsedSize;
+    const IO::DataContainer::Ptr RawData;
+  };
+
+
   class TRDPlugin : public ContainerPlugin
                   , public boost::enable_shared_from_this<TRDPlugin>
   {
@@ -205,31 +239,21 @@ namespace
       return CAP_STOR_MULTITRACK | CAP_STOR_PLAIN;
     }
 
-    virtual bool Check(const IO::DataContainer& inputData) const
+    virtual DetectionResult::Ptr Detect(DataLocation::Ptr input, const Module::DetectCallback& callback) const
     {
-      const IO::FastDump dump(inputData);
-      return CheckTRDFile(dump);
-    }
-
-    virtual std::size_t Process(DataLocation::Ptr location, const Module::DetectCallback& callback) const
-    {
-      const IO::DataContainer::Ptr data = location->GetData();
-      const IO::FastDump dump(*data);
-      if (!CheckTRDFile(dump))
+      const IO::DataContainer::Ptr rawData = input->GetData();
+      const IO::FastDump dump(*rawData);
+      std::size_t parsedSize = 0;
+      if (CheckTRDFile(dump))
       {
-        return 0;
+        const TRDos::FilesSet::Ptr files = ParseTRDFile(dump);
+        if (files->GetEntriesCount())
+        {
+          ProcessEntries(input, callback, shared_from_this(), *files);
+          parsedSize = TRD_MODULE_SIZE;
+        }
       }
-      const TRDos::FilesSet::Ptr files = ParseTRDFile(dump);
-      if (files->GetEntriesCount())
-      {
-        ProcessEntries(location, callback, shared_from_this(), *files);
-        return TRD_MODULE_SIZE;
-      }
-      else
-      {
-        //try to process as raw data
-        return 0;
-      }
+      return boost::make_shared<TRDDetectionResult>(parsedSize, rawData);
     }
 
     IO::DataContainer::Ptr Open(const Parameters::Accessor& /*commonParams*/,
@@ -242,6 +266,10 @@ namespace
         return IO::DataContainer::Ptr();
       }
       const IO::FastDump dump(inData);
+      if (!CheckTRDFile(dump))
+      {
+        return IO::DataContainer::Ptr();
+      }
       const TRDos::FilesSet::Ptr files = ParseTRDFile(dump);
       const TRDos::FileEntry* const entryToOpen = files.get()
         ? files->FindEntry(pathComp)

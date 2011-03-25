@@ -15,6 +15,24 @@
 #include <types.h>
 //std includes
 #include <string>
+//boost includes
+#include <boost/shared_ptr.hpp>
+
+//! Abstract data detection result
+class DetectionResult
+{
+public:
+  typedef boost::shared_ptr<const DetectionResult> Ptr;
+  virtual ~DetectionResult() {}
+
+  //! @brief Returns data size that is processed in current location
+  //! @invariant 0 if not processed
+  virtual std::size_t GetAffectedDataSize() const = 0;
+  //! @brief It's useless to detect in nearest lookahead offset bytes
+  //! @invariant 0 if processed
+  virtual std::size_t GetLookaheadOffset() const = 0;
+};
+
 
 //Pattern format
 //xx - match byte (hex)

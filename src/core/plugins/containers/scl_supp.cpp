@@ -32,6 +32,7 @@ Author:
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
+#include <boost/make_shared.hpp>
 //text includes
 #include <core/text/core.h>
 #include <core/text/plugins.h>
@@ -142,6 +143,36 @@ namespace
     return res;
   }
 
+  class SCLDetectionResult : public DetectionResult
+  {
+  public:
+    SCLDetectionResult(std::size_t parsedSize, IO::DataContainer::Ptr rawData)
+      : ParsedSize(parsedSize)
+      , RawData(rawData)
+    {
+    }
+
+    virtual std::size_t GetAffectedDataSize() const
+    {
+      return ParsedSize;
+    }
+
+    virtual std::size_t GetLookaheadOffset() const
+    {
+      const uint_t size = RawData->Size();
+      if (size < SCL_MIN_SIZE)
+      {
+        return size;
+      }
+      const uint8_t* const begin = static_cast<const uint8_t*>(RawData->Data());
+      const uint8_t* const end = begin + size;
+      return std::search(begin, end, SINCLAIR_ID, ArrayEnd(SINCLAIR_ID)) - begin;
+    }
+  private:
+    const std::size_t ParsedSize;
+    const IO::DataContainer::Ptr RawData;
+  };
+
   class SCLPlugin : public ContainerPlugin
                   , public boost::enable_shared_from_this<SCLPlugin>
   {
@@ -166,27 +197,20 @@ namespace
       return CAP_STOR_MULTITRACK | CAP_STOR_PLAIN;
     }
 
-    virtual bool Check(const IO::DataContainer& inputData) const
+    virtual DetectionResult::Ptr Detect(DataLocation::Ptr input, const Module::DetectCallback& callback) const
     {
-      const IO::FastDump dump(inputData);
-      return CheckSCLFile(dump);
-    }
-
-    virtual std::size_t Process(DataLocation::Ptr location, const Module::DetectCallback& callback) const
-    {
-      const IO::DataContainer::Ptr data = location->GetData();
-      const IO::FastDump dump(*data);
-      if (!CheckSCLFile(dump))
-      {
-        return 0;
-      }
+      const IO::DataContainer::Ptr rawData = input->GetData();
+      const IO::FastDump dump(*rawData);
       std::size_t parsedSize = 0;
-      const TRDos::FilesSet::Ptr files = ParseSCLFile(dump, parsedSize);
-      if (files->GetEntriesCount())
+      if (CheckSCLFile(dump))
       {
-        ProcessEntries(location, callback, shared_from_this(), *files);
+        const TRDos::FilesSet::Ptr files = ParseSCLFile(dump, parsedSize);
+        if (files->GetEntriesCount())
+        {
+          ProcessEntries(input, callback, shared_from_this(), *files);
+        }
       }
-      return parsedSize;
+      return boost::make_shared<SCLDetectionResult>(parsedSize, rawData);
     }
 
     IO::DataContainer::Ptr Open(const Parameters::Accessor& /*commonParams*/,
@@ -199,6 +223,10 @@ namespace
         return IO::DataContainer::Ptr();
       }
       const IO::FastDump dump(inData);
+      if (!CheckSCLFile(dump))
+      {
+        return IO::DataContainer::Ptr();
+      }
       std::size_t parsedSize = 0;
       const TRDos::FilesSet::Ptr files = ParseSCLFile(dump, parsedSize);
       const TRDos::FileEntry* const entryToOpen = files.get()

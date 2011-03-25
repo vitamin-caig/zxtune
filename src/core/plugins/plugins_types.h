@@ -16,6 +16,7 @@ Author:
 //local includes
 #include "core/src/location.h"
 //common includes
+#include <detector.h>
 #include <types.h>
 //library includes
 #include <core/module_holder.h>
@@ -24,6 +25,11 @@ Author:
 
 namespace ZXTune
 {
+  namespace Module
+  {
+    class DetectCallback;
+  }
+
   class PlayerPlugin : public Plugin
   {
   public:
@@ -64,22 +70,14 @@ namespace ZXTune
                                                   std::size_t& usedSize) const = 0;
   };
 
-  namespace Module
-  {
-    class DetectCallback;
-  }
-
   class ContainerPlugin : public Plugin
   {
   public:
     typedef boost::shared_ptr<const ContainerPlugin> Ptr;
     typedef ObjectIterator<ContainerPlugin::Ptr> Iterator;
 
-    //! @brief Checking if data contains valid subdata
-    //! @return true if possibly yes, false if defenitely no
-    virtual bool Check(const IO::DataContainer& inputData) const = 0;
-
-    virtual std::size_t Process(DataLocation::Ptr location, const Module::DetectCallback& callback) const = 0;
+    //! @brief Detect modules in data
+    virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const = 0;
 
     //! @brief Opening subdata by specified path
     //! @param parameters Options for opening

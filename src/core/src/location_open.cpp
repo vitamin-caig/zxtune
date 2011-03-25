@@ -150,12 +150,7 @@ namespace
       for (ContainerPlugin::Iterator::Ptr iter = Plugins->EnumerateContainers(); iter->IsValid(); iter->Next())
       {
         const ContainerPlugin::Ptr plugin = iter->Get();
-        if (!plugin->Check(*Data))
-        {
-          continue;
-        }
         String restPath;
-
         if (IO::DataContainer::Ptr subdata = plugin->Open(*Params, *Data, Path, restPath))
         {
           //assert(String::npos != Path.rfind(restPath));
@@ -164,7 +159,6 @@ namespace
           Path = restPath;
           return plugin;
         }
-        //TODO: dispatch heavy checks- break if not enabled
       }
       return Plugin::Ptr();
     }

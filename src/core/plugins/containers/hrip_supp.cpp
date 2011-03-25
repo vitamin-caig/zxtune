@@ -32,6 +32,7 @@ Author:
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
+#include <boost/make_shared.hpp>
 //text includes
 #include <core/text/core.h>
 #include <core/text/plugins.h>
@@ -266,6 +267,37 @@ namespace
     return params.FindIntValue(Parameters::ZXTune::Core::Plugins::Hrip::IGNORE_CORRUPTED, val) && val != 0;
   }
 
+  class HripDetectionResult : public DetectionResult
+  {
+  public:
+    HripDetectionResult(std::size_t parsedSize, IO::DataContainer::Ptr rawData)
+      : ParsedSize(parsedSize)
+      , RawData(rawData)
+    {
+    }
+
+    virtual std::size_t GetAffectedDataSize() const
+    {
+      return ParsedSize;
+    }
+
+    virtual std::size_t GetLookaheadOffset() const
+    {
+      const uint_t size = RawData->Size();
+
+      if (size < sizeof(HripHeader))
+      {
+        return size;
+      }
+      const uint8_t* const begin = static_cast<const uint8_t*>(RawData->Data());
+      const uint8_t* const end = begin + size;
+      return std::search(begin, end, HRIP_ID, ArrayEnd(HRIP_ID)) - begin;
+    }
+  private:
+    const std::size_t ParsedSize;
+    const IO::DataContainer::Ptr RawData;
+  };
+
   //files enumeration purposes wrapper
   class Enumerator
   {
@@ -279,22 +311,22 @@ namespace
     }
 
     //main entry
-    std::size_t Process()
+    DetectionResult::Ptr Process()
     {
-      uint_t totalFiles = 0, archiveSize = 0;
+      const IO::DataContainer::Ptr rawData = Location->GetData();
 
-      const IO::DataContainer::Ptr data = Location->GetData();
-      if (OK != CheckHrip(data->Data(), data->Size(), totalFiles, archiveSize))
+      uint_t totalFiles = 0, archiveSize = 0;
+      while (OK == CheckHrip(rawData->Data(), rawData->Size(), totalFiles, archiveSize))
       {
-        return 0;
-      }
-      if (ParseHrip(data->Data(), archiveSize,
+        if (ParseHrip(rawData->Data(), archiveSize,
             boost::bind(&Enumerator::ProcessFile, this, totalFiles, _1, _2), IgnoreCorrupted) != OK)
-      {
-        Log::Debug("Core::HRiPSupp", "Failed to parse archive, possible corrupted");
-        return 0;
+        {
+          Log::Debug("Core::HRiPSupp", "Failed to parse archive, possible corrupted");
+          archiveSize = 0;
+        }
+        break;
       }
-      return archiveSize;
+      return boost::make_shared<HripDetectionResult>(archiveSize, rawData);
     }
 
   private:
@@ -373,17 +405,9 @@ namespace
       return CAP_STOR_MULTITRACK;
     }
 
-    virtual bool Check(const IO::DataContainer& inputData) const
+    virtual DetectionResult::Ptr Detect(DataLocation::Ptr input, const Module::DetectCallback& callback) const
     {
-      uint_t filesCount = 0;
-      uint_t archiveSize = 0;
-      return INVALID != CheckHrip(inputData.Data(), inputData.Size(), filesCount, archiveSize) &&
-             filesCount != 0;
-    }
-
-    virtual std::size_t Process(DataLocation::Ptr location, const Module::DetectCallback& callback) const
-    {
-      Enumerator cb(location, shared_from_this(), callback);
+      Enumerator cb(input, shared_from_this(), callback);
       return cb.Process();
     }
 

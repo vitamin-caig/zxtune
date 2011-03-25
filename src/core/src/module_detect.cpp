@@ -15,6 +15,7 @@ Author:
 #include "core/plugins/plugins_types.h"
 //common includes
 #include <error.h>
+#include <logging.h>
 //library includes
 #include <io/fs_tools.h>
 //boost includes
@@ -25,6 +26,8 @@ Author:
 namespace
 {
   using namespace ZXTune;
+
+  const std::string THIS_MODULE("Core::Detection");
 
   const String ARCHIVE_PLUGIN_PREFIX(Text::ARCHIVE_PLUGIN_PREFIX);
 
@@ -78,10 +81,10 @@ namespace
     mutable Module::Holder::Ptr Result;
   };
   
-  class DetectionContext
+  class DataProcessorImpl : public DataProcessor
   {
   public:
-    DetectionContext(DataLocation::Ptr location, const Module::DetectCallback& callback)
+    DataProcessorImpl(DataLocation::Ptr location, const Module::DetectCallback& callback)
       : Location(location)
       , Data(Location->GetData())
       , Callback(callback)
@@ -89,25 +92,23 @@ namespace
       , Params(Callback.GetPluginsParameters())
     {
     }
-    
-    std::size_t DetectContainer() const
+
+    virtual std::size_t ProcessContainers() const
     {
       for (ContainerPlugin::Iterator::Ptr iter = UsedPlugins->EnumerateContainers(); iter->IsValid(); iter->Next())
       {
         const ContainerPlugin::Ptr plugin = iter->Get();
-        if (!plugin->Check(*Data))
+        const DetectionResult::Ptr result = plugin->Detect(Location, Callback);
+        if (std::size_t usedSize = result->GetAffectedDataSize())
         {
-          continue;
-        }
-        if (std::size_t usedSize = plugin->Process(Location, Callback))
-        {
+          Log::Debug(THIS_MODULE, "Detected %1% in %2% bytes at %3%.", plugin->Id(), usedSize, Location->GetPath());
           return usedSize;
         }
       }
       return 0;
     }
 
-    std::size_t DetectArchive() const
+    virtual std::size_t ProcessArchives() const
     {
       for (ArchivePlugin::Iterator::Ptr iter = UsedPlugins->EnumerateArchives(); iter->IsValid(); iter->Next())
       {
@@ -119,6 +120,7 @@ namespace
         std::size_t usedSize = 0;
         if (IO::DataContainer::Ptr subdata = plugin->ExtractSubdata(*Params, *Data, usedSize))
         {
+          Log::Debug(THIS_MODULE, "Detected %1% in %2% bytes at %3%.", plugin->Id(), usedSize, Location->GetPath());
           const String subpath = EncodeArchivePluginToPath(plugin->Id());
           const DataLocation::Ptr subLocation = CreateNestedLocation(Location, plugin, subdata, subpath);
           Module::Detect(subLocation, Callback);
@@ -129,7 +131,7 @@ namespace
       return 0;
     }
 
-    std::size_t DetectModule() const
+    virtual std::size_t ProcessModules() const
     {
       for (PlayerPlugin::Iterator::Ptr plugins = UsedPlugins->EnumeratePlayers(); plugins->IsValid(); plugins->Next())
       {
@@ -142,6 +144,7 @@ namespace
         std::size_t usedSize = 0;
         if (Module::Holder::Ptr module = plugin->CreateModule(moduleParams, Location, usedSize))
         {
+          Log::Debug(THIS_MODULE, "Detected %1% in %2% bytes at %3%.", plugin->Id(), usedSize, Location->GetPath());
           ThrowIfError(Callback.ProcessModule(*Location, module));
           return usedSize;
         }
@@ -160,28 +163,38 @@ namespace
 
 namespace ZXTune
 {
+  DataProcessor::Ptr DataProcessor::Create(DataLocation::Ptr location, const Module::DetectCallback& callback)
+  {
+    return boost::make_shared<DataProcessorImpl>(location, callback);
+  }
+
   namespace Module
   {
     Holder::Ptr Open(DataLocation::Ptr location, PluginsEnumerator::Ptr usedPlugins, Parameters::Accessor::Ptr moduleParams)
     {
       const OpenModuleCallback callback(usedPlugins, moduleParams);
-      const DetectionContext ctx(location, callback);
-      ctx.DetectModule();
+      const DataProcessorImpl detector(location, callback);
+      detector.ProcessModules();
       return callback.GetResult();
     }
 
     std::size_t Detect(DataLocation::Ptr location, const DetectCallback& callback)
     {
-      const DetectionContext ctx(location, callback);
-      if (std::size_t usedSize = ctx.DetectContainer())
+      const DataProcessorImpl detector(location, callback);
+      return Detect(detector);
+    }
+
+    std::size_t Detect(const DataProcessor& detector)
+    {
+      if (std::size_t usedSize = detector.ProcessContainers())
       {
         return usedSize;
       }
-      if (std::size_t usedSize = ctx.DetectArchive())
+      if (std::size_t usedSize = detector.ProcessArchives())
       {
         return usedSize;
       }
-      return ctx.DetectModule();
+      return detector.ProcessModules();
     }
   }
 }
