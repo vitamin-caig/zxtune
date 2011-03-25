@@ -42,6 +42,7 @@ bool DetectFormat(const uint8_t* data, std::size_t size, const std::string& patt
 
 typedef std::vector<uint16_t> BinaryPattern;
 bool DetectFormat(const uint8_t* data, std::size_t size, const BinaryPattern& pattern);
+std::size_t DetectFormatLookahead(const uint8_t* data, std::size_t size, const BinaryPattern& pattern);
 
 void CompileDetectPattern(const std::string& textPattern, BinaryPattern& binPattern);
 
@@ -56,6 +57,22 @@ public:
   bool operator ()(const void* data, std::size_t size) const
   {
     return DetectFormat(static_cast<const uint8_t*>(data), size, Pattern);
+  }
+private:
+  BinaryPattern Pattern;
+};
+
+class LookaheadFormatHelper
+{
+public:
+  explicit LookaheadFormatHelper(const std::string& txtPattern)
+  {
+    CompileDetectPattern(txtPattern, Pattern);
+  }
+
+  std::size_t operator ()(const void* data, std::size_t size) const
+  {
+    return DetectFormatLookahead(static_cast<const uint8_t*>(data), size, Pattern);
   }
 private:
   BinaryPattern Pattern;

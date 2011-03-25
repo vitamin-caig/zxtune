@@ -29,10 +29,15 @@ namespace
     return byte * 256 + 0xff;
   }
 
-  bool MatchByteBin(uint16_t bin, uint8_t byte)
+  bool MatchPatternBinByByte(uint16_t bin, uint8_t byte)
   {
     return bin == ANY_BYTE_BIN ||
       MakeByteBin(byte) == bin;
+  }
+
+  bool MatchByteByPatternBin(uint8_t byte, uint16_t bin)
+  {
+    return MatchPatternBinByByte(bin, byte);
   }
 
   inline uint8_t ToHex(char c)
@@ -42,7 +47,6 @@ namespace
   }
 
   typedef RangeIterator<std::string::const_iterator> PatternIterator;
-  typedef RangeIterator<BinaryPattern::const_iterator> BinaryPatternIterator;
 
   std::size_t GetBytesToSkip(PatternIterator& it)
   {
@@ -67,54 +71,27 @@ namespace
 
 bool DetectFormat(const uint8_t* data, std::size_t size, const std::string& pattern)
 {
-  for (PatternIterator it(pattern.begin(), pattern.end()); it; ++data, ++it, --size)
-  {
-    if (!size)
-    {
-      //data finished earlier than data
-      return false;
-    }
-    const char sym(*it);
-    if (ANY_BYTE_TEXT == sym)
-    {
-      continue;//skip
-    }
-    else if (SKIP_BYTES_TEXT == sym)//skip
-    {
-      const std::size_t skip = GetBytesToSkip(it);
-      if (skip >= size)
-      {
-        return false;
-      }
-      size -= skip - 1;
-      data += skip - 1;
-    }
-    else
-    {
-      const uint8_t byte = GetByte(it);
-      if (byte != *data)
-      {
-        return false;
-      }
-    }
-  }
-  return true;
+  BinaryPattern binary;
+  CompileDetectPattern(pattern, binary);
+  return DetectFormat(data, size, binary);
 }
 
 bool DetectFormat(const uint8_t* data, std::size_t size, const BinaryPattern& pattern)
 {
-  for (BinaryPatternIterator it(pattern.begin(), pattern.end()); it; ++data, ++it, --size)
+  if (pattern.size() > size)
   {
-    if (!size)
-    {
-      return false;
-    }
-    if (!MatchByteBin(*it, *data))
-    {
-      return false;
-    }
+    return false;
   }
-  return true;
+  return std::equal(pattern.begin(), pattern.end(), data, &MatchPatternBinByByte);
+}
+
+std::size_t DetectFormatLookahead(const uint8_t* data, std::size_t size, const BinaryPattern& pattern)
+{
+  if (pattern.size() > size)
+  {
+    return size;
+  }
+  return std::search(data, data + size, pattern.begin(), pattern.end(), &MatchByteByPatternBin) - data;
 }
 
 void CompileDetectPattern(const std::string& textPattern, BinaryPattern& binPattern)

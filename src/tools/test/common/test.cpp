@@ -110,6 +110,14 @@ namespace
     CompileDetectPattern(pattern, binPattern);
     Test("Check for " + test + " (binary)", ref == DetectFormat(SAMPLE, ArraySize(SAMPLE), binPattern));
   }
+
+  void TestDetectorLookahead(const std::string& test, std::size_t ref, const std::string& pattern)
+  {
+    static const uint8_t SAMPLE[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+    BinaryPattern binPattern;
+    CompileDetectPattern(pattern, binPattern);
+    Test("Check for " + test + " lookahead (binary)", ref == DetectFormatLookahead(SAMPLE, ArraySize(SAMPLE), binPattern));
+  }
 }
 
 int main()
@@ -231,6 +239,10 @@ int main()
     TestDetector("partial skip match", true, "00+4+05");
     TestDetector("full oversize unmatch", false, "000102030405060708090a");
     TestDetector("unmatch", false, "01");
+    TestDetectorLookahead("full oversize unmatch", 10, "000102030405060708090a");
+    TestDetectorLookahead("unmatch", 1, "01");
+    TestDetectorLookahead("unmatch 2", 7, "07");
+    TestDetectorLookahead("unmatch 3", 10, "0706");
   }
   }
   catch (int code)
