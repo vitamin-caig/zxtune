@@ -116,9 +116,6 @@ namespace
   BOOST_STATIC_ASSERT(sizeof(ServiceSector) == 256);
 
   const std::string TRD_SERVICE_SECTOR_PATTERN = 
-    "00"    //zero
-    "+224+" //reserved
-    "+2+"   //free
     "16"    //type DS_DD
     "?"     //files
     "??"    //free sectors
@@ -215,7 +212,7 @@ namespace
       {
         return size;
       }
-      const std::size_t skipBytes = SERVICE_SECTOR_NUM * BYTES_PER_SECTOR;
+      const std::size_t skipBytes = SERVICE_SECTOR_NUM * BYTES_PER_SECTOR + offsetof(ServiceSector, Type);
       const uint8_t* const begin = static_cast<const uint8_t*>(RawData->Data()) + skipBytes;
       return LookaheadServiceSector(begin, size - skipBytes);
     }
