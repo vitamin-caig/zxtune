@@ -101,7 +101,6 @@ namespace
     uint8_t Type;
     uint8_t Files;
     uint16_t FreeSectors;
-    //+231
     uint8_t ID;//0x10
     uint8_t Reserved2[12];
     uint8_t DeletedFiles;
@@ -115,6 +114,18 @@ namespace
 
   BOOST_STATIC_ASSERT(sizeof(CatEntry) == 16);
   BOOST_STATIC_ASSERT(sizeof(ServiceSector) == 256);
+
+  const std::string TRD_SERVICE_SECTOR_PATTERN = 
+    "00"    //zero
+    "+224+" //reserved
+    "+2+"   //free
+    "16"    //type DS_DD
+    "?"     //files
+    "??"    //free sectors
+    "10"    //ID
+  ;
+
+  const LookaheadFormatHelper LookaheadServiceSector(TRD_SERVICE_SECTOR_PATTERN);
 
   bool CheckTRDFile(const IO::FastDump& data)
   {
@@ -204,10 +215,9 @@ namespace
       {
         return size;
       }
-      const uint8_t* const begin = static_cast<const uint8_t*>(RawData->Data());
-      const uint8_t* const idStart = begin + SERVICE_SECTOR_NUM * BYTES_PER_SECTOR + offsetof(ServiceSector, ID);
-      const uint8_t* const end = begin + size;
-      return std::find(idStart + 1, end, static_cast<uint8_t>(TRDOS_ID)) - idStart;
+      const std::size_t skipBytes = SERVICE_SECTOR_NUM * BYTES_PER_SECTOR;
+      const uint8_t* const begin = static_cast<const uint8_t*>(RawData->Data()) + skipBytes;
+      return LookaheadServiceSector(begin, size - skipBytes);
     }
   private:
     const std::size_t ParsedSize;

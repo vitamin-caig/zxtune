@@ -253,10 +253,12 @@ namespace
     class IteratorImpl : public P::Iterator
     {
     public:
-      IteratorImpl(typename PluginsList::const_iterator it, typename PluginsList::const_iterator lim)
+      IteratorImpl(typename PluginsList::const_iterator it, typename PluginsList::const_iterator lim, std::size_t offset)
         : Cur(it)
         , Lim(lim)
+        , Offset(offset)
       {
+        SkipUnaffected();
       }
 
       virtual bool IsValid() const
@@ -274,10 +276,20 @@ namespace
       {
         assert(Cur != Lim);
         ++Cur;
+        SkipUnaffected();
+      }
+    private:
+      void SkipUnaffected()
+      {
+        while (Cur != Lim && Cur->first > Offset)
+        {
+          ++Cur;
+        }
       }
     private:
       typename PluginsList::const_iterator Cur;
       const typename PluginsList::const_iterator Lim;
+      const std::size_t Offset;
     };
   public:
     explicit LookaheadPluginsStorage(typename P::Iterator::Ptr iterator)
@@ -292,9 +304,7 @@ namespace
 
     typename P::Iterator::Ptr Enumerate() const
     {
-      const typename PluginsList::const_iterator lastOfValid = std::partition(Plugins.begin(), Plugins.end(),
-        boost::bind(&OffsetAndPlugin::first, _1) <= Offset);
-      return typename P::Iterator::Ptr(new IteratorImpl(Plugins.begin(), lastOfValid));
+      return typename P::Iterator::Ptr(new IteratorImpl(Plugins.begin(), Plugins.end(), Offset));
     }
 
     void SetOffset(std::size_t offset)
@@ -317,7 +327,7 @@ namespace
     }
   private:
     std::size_t Offset;
-    mutable PluginsList Plugins;
+    PluginsList Plugins;
   };
 
   class RawDetectionPlugins : public PluginsEnumerator
@@ -477,6 +487,10 @@ namespace
         return boost::make_shared<RawDetectionResult>(0, size);
       }
 
+      const Log::ProgressCallback::Ptr progress(new RawProgressCallback(callback, size, input->GetPath()));
+      const Module::NoProgressDetectCallbackAdapter noProgressCallback(callback);
+
+
       const PluginsEnumerator::Ptr availablePlugins = callback.GetUsedPlugins();
       const RawDetectionPlugins::Ptr usedPlugins = boost::make_shared<RawDetectionPlugins>(availablePlugins);
 
@@ -484,19 +498,20 @@ namespace
       usedPlugins->SetPluginLookahead(*thisPlugin, size);
       ScanDataLocation::Ptr subLocation = boost::make_shared<ScanDataLocation>(input, thisPlugin, 0);
 
-      const Log::ProgressCallback::Ptr progress(new RawProgressCallback(callback, size, input->GetPath()));
-      const Module::NoProgressDetectCallbackAdapter noProgressCallback(callback);
-
+      DataProcessor::Ptr processor(new RawDataDetector(*usedPlugins, subLocation, noProgressCallback));
+      int_t useCount = subLocation.use_count();
       while (subLocation->HasToScan(minRawSize))
       {
         const std::size_t offset = subLocation->GetOffset();
         progress->OnProgress(offset);
         usedPlugins->SetOffset(offset);
-        const std::size_t usedSize = Module::Detect(RawDataDetector(*usedPlugins, subLocation, noProgressCallback));
-        if (!subLocation.unique())
+        const std::size_t usedSize = Module::Detect(*processor);
+        if (subLocation.use_count() != useCount)
         {
           Log::Debug(THIS_MODULE, "Sublocation is captured. Duplicate.");
           subLocation = boost::make_shared<ScanDataLocation>(input, thisPlugin, offset);
+          processor.reset(new RawDataDetector(*usedPlugins, subLocation, noProgressCallback));
+          useCount = subLocation.use_count();
         }
         subLocation->Move(std::max(usedSize, scanStep));
       }
