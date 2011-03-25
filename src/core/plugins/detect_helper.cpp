@@ -99,8 +99,10 @@ namespace ZXTune
       }
       const IO::DataContainer::Ptr subData = data->GetSubcontainer(dataOffset, limit - dataOffset);
       const DataLocation::Ptr subLocation = CreateNestedLocation(location, subData);
-      if (Module::Holder::Ptr holder = detector.TryToCreateModule(parameters, subLocation, usedSize))
+      std::size_t moduleSize = 0;
+      if (Module::Holder::Ptr holder = detector.TryToCreateModule(parameters, subLocation, moduleSize))
       {
+        usedSize = dataOffset + moduleSize;
         return holder;
       }
     }
