@@ -150,6 +150,10 @@ namespace
       for (ContainerPlugin::Iterator::Ptr iter = Plugins->EnumerateContainers(); iter->IsValid(); iter->Next())
       {
         const ContainerPlugin::Ptr plugin = iter->Get();
+        if (!plugin->Check(*Data))
+        {
+          continue;
+        }
         String restPath;
         if (IO::DataContainer::Ptr subdata = plugin->Open(*Params, *Data, Path, restPath))
         {

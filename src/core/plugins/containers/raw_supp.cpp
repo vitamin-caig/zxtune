@@ -420,29 +420,6 @@ namespace
     const Module::DetectCallback& Callback;
   };
 
-  class RawDetectionResult : public DetectionResult
-  {
-  public:
-    RawDetectionResult(std::size_t usedSize, std::size_t unusedSize)
-      : UsedSize(usedSize)
-      , UnusedSize(unusedSize)
-    {
-    }
-
-    virtual std::size_t GetMatchedDataSize() const
-    {
-      return UsedSize;
-    }
-
-    virtual std::size_t GetLookaheadOffset() const
-    {
-      return UnusedSize;
-    }
-  private:
-    const std::size_t UsedSize;
-    const std::size_t UnusedSize;
-  };
-
   class RawScaner : public ContainerPlugin
                   , public boost::enable_shared_from_this<RawScaner>
   {
@@ -467,6 +444,12 @@ namespace
       return CAP_STOR_MULTITRACK | CAP_STOR_SCANER;
     }
 
+    virtual bool Check(const IO::DataContainer& inputData) const
+    {
+      //check only size restrictions
+      return inputData.Size() >= MIN_MINIMAL_RAW_SIZE;
+    }
+
     virtual DetectionResult::Ptr Detect(DataLocation::Ptr input, const Module::DetectCallback& callback) const
     {
       const IO::DataContainer::Ptr rawData = input->GetData();
@@ -474,7 +457,7 @@ namespace
       if (size < MIN_MINIMAL_RAW_SIZE)
       {
         Log::Debug(THIS_MODULE, "Size is too small (%1%)", size);
-        return boost::make_shared<RawDetectionResult>(0, size);
+        return DetectionResult::Create(0, size);
       }
 
       const Parameters::Accessor::Ptr pluginParams = callback.GetPluginsParameters();
@@ -484,7 +467,7 @@ namespace
       if (size < minRawSize + scanStep)
       {
         Log::Debug(THIS_MODULE, "Size is too small (%1%)", size);
-        return boost::make_shared<RawDetectionResult>(0, size);
+        return DetectionResult::Create(0, size);
       }
 
       const Log::ProgressCallback::Ptr progress(new RawProgressCallback(callback, size, input->GetPath()));
@@ -515,7 +498,7 @@ namespace
         }
         subLocation->Move(std::max(usedSize, scanStep));
       }
-      return boost::make_shared<RawDetectionResult>(size, 0);
+      return DetectionResult::Create(size, 0);
     }
 
     IO::DataContainer::Ptr Open(const Parameters::Accessor& /*commonParams*/,

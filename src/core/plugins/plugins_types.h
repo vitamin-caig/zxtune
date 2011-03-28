@@ -76,6 +76,10 @@ namespace ZXTune
     typedef boost::shared_ptr<const ContainerPlugin> Ptr;
     typedef ObjectIterator<ContainerPlugin::Ptr> Iterator;
 
+    //! @brief Checking if data contains valid subdata
+    //! @return true if possibly yes, false if defenitely no
+    virtual bool Check(const IO::DataContainer& inputData) const = 0;
+
     //! @brief Detect modules in data
     virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const = 0;
 
