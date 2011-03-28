@@ -12,9 +12,12 @@ Author:
 //local includes
 #include "detector.h"
 #include "iterator.h"
+//common includes
+#include <types.h>
 //std includes
 #include <cassert>
 #include <cctype>
+#include <vector>
 //boost includes
 #include <boost/make_shared.hpp>
 
@@ -22,6 +25,8 @@ namespace
 {
   const char ANY_BYTE_TEXT = '?';
   const char SKIP_BYTES_TEXT = '+';
+
+  typedef std::vector<uint16_t> BinaryPattern;
 
   //hybyte=value lobyte=mask
   const uint16_t ANY_BYTE_BIN = 0x0000;
@@ -70,6 +75,48 @@ namespace
     return ToHex(sym) * 16 + ToHex(sym1);
   }
 
+  std::size_t DetectFormatLookahead(const uint8_t* data, std::size_t size, const BinaryPattern& pattern)
+  {
+    if (pattern.size() > size)
+    {
+      return size;
+    }
+    return std::search(data, data + size, pattern.begin(), pattern.end(), &MatchByteByPatternBin) - data;
+  }
+
+  bool DetectFormat(const uint8_t* data, std::size_t size, const BinaryPattern& pattern)
+  {
+    if (pattern.size() > size)
+    {
+      return false;
+    }
+    return std::equal(pattern.begin(), pattern.end(), data, &MatchPatternBinByByte);
+  }
+
+  void CompileDetectPattern(const std::string& textPattern, BinaryPattern& binPattern)
+  {
+    BinaryPattern result;
+    for (PatternIterator it(textPattern.begin(), textPattern.end()); it; ++it)
+    {
+      const char sym(*it);
+      if (ANY_BYTE_TEXT == sym)
+      {
+        result.push_back(ANY_BYTE_BIN);
+      }
+      else if (SKIP_BYTES_TEXT == sym)//skip
+      {
+        const std::size_t skip = GetBytesToSkip(it);
+        std::fill_n(std::back_inserter(result), skip, ANY_BYTE_BIN);
+      }
+      else
+      {
+        const uint8_t byte = GetByte(it);
+        result.push_back(MakeByteBin(byte));
+      }
+    }
+    binPattern.swap(result);
+  }
+
   class DetectionResultImpl : public DetectionResult
   {
   public:
@@ -93,15 +140,6 @@ namespace
     const std::size_t LookAhead;
   };
 
-  std::size_t DetectFormatLookahead(const uint8_t* data, std::size_t size, const BinaryPattern& pattern)
-  {
-    if (pattern.size() > size)
-    {
-      return size;
-    }
-    return std::search(data, data + size, pattern.begin(), pattern.end(), &MatchByteByPatternBin) - data;
-  }
-
   class DataFormatImpl : public DataFormat
   {
   public:
@@ -122,39 +160,6 @@ namespace
   private:
     BinaryPattern Pattern;
   };
-}
-
-bool DetectFormat(const uint8_t* data, std::size_t size, const BinaryPattern& pattern)
-{
-  if (pattern.size() > size)
-  {
-    return false;
-  }
-  return std::equal(pattern.begin(), pattern.end(), data, &MatchPatternBinByByte);
-}
-
-void CompileDetectPattern(const std::string& textPattern, BinaryPattern& binPattern)
-{
-  BinaryPattern result;
-  for (PatternIterator it(textPattern.begin(), textPattern.end()); it; ++it)
-  {
-    const char sym(*it);
-    if (ANY_BYTE_TEXT == sym)
-    {
-      result.push_back(ANY_BYTE_BIN);
-    }
-    else if (SKIP_BYTES_TEXT == sym)//skip
-    {
-      const std::size_t skip = GetBytesToSkip(it);
-      std::fill_n(std::back_inserter(result), skip, ANY_BYTE_BIN);
-    }
-    else
-    {
-      const uint8_t byte = GetByte(it);
-      result.push_back(MakeByteBin(byte));
-    }
-  }
-  binPattern.swap(result);
 }
 
 DetectionResult::Ptr DetectionResult::Create(std::size_t matchedSize, std::size_t lookAhead)

@@ -26,11 +26,11 @@ namespace ZXTune
 {
   struct DataPrefixChecker
   {
-    const DetectFormatHelper CheckPrefix;
+    const DataFormat::Ptr Prefix;
     const std::size_t PrefixSize;
 
     DataPrefixChecker(const std::string& pattern, std::size_t size)
-      : CheckPrefix(pattern)
+      : Prefix(DataFormat::Create(pattern))
       , PrefixSize(size)
     {
     }

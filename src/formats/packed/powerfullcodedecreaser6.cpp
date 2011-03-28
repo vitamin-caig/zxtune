@@ -382,20 +382,20 @@ namespace Formats
     {
     public:
       PowerfullCodeDecreaser6Decoder()
-        : DetectFormat61(PowerfullCodeDecreaser6::Version61::DEPACKER_PATTERN)
-        , DetectFormat62(PowerfullCodeDecreaser6::Version62::DEPACKER_PATTERN)
+        : Depacker61(DataFormat::Create(PowerfullCodeDecreaser6::Version61::DEPACKER_PATTERN))
+        , Depacker62(DataFormat::Create(PowerfullCodeDecreaser6::Version62::DEPACKER_PATTERN))
       {
       }
 
       virtual bool Check(const void* data, std::size_t availSize) const
       {
         const PowerfullCodeDecreaser6::Container<PowerfullCodeDecreaser6::Version61> container61(data, availSize);
-        if (container61.FastCheck() && DetectFormat61(data, availSize))
+        if (container61.FastCheck() && Depacker61->Match(data, availSize))
         {
           return true;
         }
         const PowerfullCodeDecreaser6::Container<PowerfullCodeDecreaser6::Version62> container62(data, availSize);
-        return container62.FastCheck() && DetectFormat62(data, availSize);
+        return container62.FastCheck() && Depacker62->Match(data, availSize);
       }
 
       virtual std::auto_ptr<Dump> Decode(const void* data, std::size_t availSize, std::size_t& usedSize) const
@@ -428,8 +428,8 @@ namespace Formats
         return std::auto_ptr<Dump>();
       }
     private:
-      const DetectFormatHelper DetectFormat61;
-      const DetectFormatHelper DetectFormat62;
+      const DataFormat::Ptr Depacker61;
+      const DataFormat::Ptr Depacker62;
     };
 
     Decoder::Ptr CreatePowerfullCodeDecreaser6Decoder()

@@ -342,14 +342,14 @@ namespace Formats
     {
     public:
       CodeCruncher3Decoder()
-        : DetectFormat(CodeCruncher3::DEPACKER_PATTERN)
+        : Depacker(DataFormat::Create(CodeCruncher3::DEPACKER_PATTERN))
       {
       }
 
       virtual bool Check(const void* data, std::size_t availSize) const
       {
         const CodeCruncher3::Container container(data, availSize);
-        return container.FastCheck() && DetectFormat(data, availSize);
+        return container.FastCheck() && Depacker->Match(data, availSize);
       }
 
       virtual std::auto_ptr<Dump> Decode(const void* data, std::size_t availSize, std::size_t& usedSize) const
@@ -367,7 +367,7 @@ namespace Formats
         return std::auto_ptr<Dump>();
       }
     private:
-      const DetectFormatHelper DetectFormat;
+      const DataFormat::Ptr Depacker;
     };
 
     Decoder::Ptr CreateCodeCruncher3Decoder()

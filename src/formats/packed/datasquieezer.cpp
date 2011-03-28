@@ -420,14 +420,14 @@ namespace Formats
     {
     public:
       DataSquieezerDecoder()
-        : DetectFormat(DataSquieezer::DEPACKER_PATTERN)
+        : Depacker(DataFormat::Create(DataSquieezer::DEPACKER_PATTERN))
       {
       }
 
       virtual bool Check(const void* data, std::size_t availSize) const
       {
         const DataSquieezer::Container container(data, availSize);
-        return container.FastCheck() && DetectFormat(data, availSize);
+        return container.FastCheck() && Depacker->Match(data, availSize);
       }
 
       virtual std::auto_ptr<Dump> Decode(const void* data, std::size_t availSize, std::size_t& usedSize) const
@@ -445,7 +445,7 @@ namespace Formats
         return std::auto_ptr<Dump>();
       }
     private:
-      const DetectFormatHelper DetectFormat;
+      const DataFormat::Ptr Depacker;
     };
 
     Decoder::Ptr CreateDataSquieezerDecoder()
