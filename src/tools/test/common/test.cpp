@@ -102,21 +102,13 @@ namespace
     Test(test + ": size of unspec", area.GetAreaSize(UNSPECIFIED), uint_t(0));
   }
 
-  void TestDetector(const std::string& test, bool ref, const std::string& pattern)
+  void TestDetector(const std::string& test, const std::string& pattern, bool matched, std::size_t lookAhead)
   {
     static const uint8_t SAMPLE[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-    Test("Check for " + test + " (text)", ref == DetectFormat(SAMPLE, ArraySize(SAMPLE), pattern));
-    BinaryPattern binPattern;
-    CompileDetectPattern(pattern, binPattern);
-    Test("Check for " + test + " (binary)", ref == DetectFormat(SAMPLE, ArraySize(SAMPLE), binPattern));
-  }
-
-  void TestDetectorLookahead(const std::string& test, std::size_t ref, const std::string& pattern)
-  {
-    static const uint8_t SAMPLE[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-    BinaryPattern binPattern;
-    CompileDetectPattern(pattern, binPattern);
-    Test("Check for " + test + " lookahead (binary)", ref == DetectFormatLookahead(SAMPLE, ArraySize(SAMPLE), binPattern));
+    const DataFormat::Ptr format = DataFormat::Create(pattern);
+    Test("Check for " + test + " match", matched == format->Match(SAMPLE, ArraySize(SAMPLE)));
+    const std::size_t lookahead = format->Search(SAMPLE, ArraySize(SAMPLE));
+    Test("Check for " + test + " lookahead", lookahead == lookAhead);
   }
 }
 
@@ -231,18 +223,16 @@ int main()
   }
   std::cout << "---- Test for format detector ----" << std::endl;
   {
-    TestDetector("whole explicit match", true, "00010203040506070809");
-    TestDetector("partial explicit match", true, "000102030405");
-    TestDetector("whole mask match", true, "?010203040506070809");
-    TestDetector("partial mask match", true, "00?02030405");
-    TestDetector("whole skip match", true, "00+8+09");
-    TestDetector("partial skip match", true, "00+4+05");
-    TestDetector("full oversize unmatch", false, "000102030405060708090a");
-    TestDetector("unmatch", false, "01");
-    TestDetectorLookahead("full oversize unmatch", 10, "000102030405060708090a");
-    TestDetectorLookahead("unmatch", 1, "01");
-    TestDetectorLookahead("unmatch 2", 7, "07");
-    TestDetectorLookahead("unmatch 3", 10, "0706");
+    TestDetector("whole explicit match", "00010203040506070809", true, 0);
+    TestDetector("partial explicit match", "000102030405", true, 0);
+    TestDetector("whole mask match", "?010203040506070809", true, 0);
+    TestDetector("partial mask match", "00?02030405", true, 0);
+    TestDetector("whole skip match", "00+8+09", true, 0);
+    TestDetector("partial skip match", "00+4+05", true, 0);
+    TestDetector("full oversize unmatch", "000102030405060708090a", false, 10);
+    TestDetector("matched from 1", "01", false, 1);
+    TestDetector("matched from 7", "07", false, 7);
+    TestDetector("fully unmatched", "0706", false, 10);
   }
   }
   catch (int code)

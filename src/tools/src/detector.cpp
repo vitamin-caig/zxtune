@@ -15,6 +15,8 @@ Author:
 //std includes
 #include <cassert>
 #include <cctype>
+//boost includes
+#include <boost/make_shared.hpp>
 
 namespace
 {
@@ -67,13 +69,59 @@ namespace
     const char sym1(*it);
     return ToHex(sym) * 16 + ToHex(sym1);
   }
-}
 
-bool DetectFormat(const uint8_t* data, std::size_t size, const std::string& pattern)
-{
-  BinaryPattern binary;
-  CompileDetectPattern(pattern, binary);
-  return DetectFormat(data, size, binary);
+  class DetectionResultImpl : public DetectionResult
+  {
+  public:
+    DetectionResultImpl(std::size_t matchedSize, std::size_t lookAhead)
+      : MatchedSize(matchedSize)
+      , LookAhead(lookAhead)
+    {
+    }
+
+    virtual std::size_t GetMatchedDataSize() const
+    {
+      return MatchedSize;
+    }
+
+    virtual std::size_t GetLookaheadOffset() const
+    {
+      return LookAhead;
+    }
+  private:
+    const std::size_t MatchedSize;
+    const std::size_t LookAhead;
+  };
+
+  std::size_t DetectFormatLookahead(const uint8_t* data, std::size_t size, const BinaryPattern& pattern)
+  {
+    if (pattern.size() > size)
+    {
+      return size;
+    }
+    return std::search(data, data + size, pattern.begin(), pattern.end(), &MatchByteByPatternBin) - data;
+  }
+
+  class DataFormatImpl : public DataFormat
+  {
+  public:
+    explicit DataFormatImpl(const std::string& pattern)
+    {
+      CompileDetectPattern(pattern, Pattern);
+    }
+
+    virtual bool Match(const void* data, std::size_t size) const
+    {
+      return DetectFormat(static_cast<const uint8_t*>(data), size, Pattern);
+    }
+
+    virtual std::size_t Search(const void* data, std::size_t size) const
+    {
+      return DetectFormatLookahead(static_cast<const uint8_t*>(data), size, Pattern);
+    }
+  private:
+    BinaryPattern Pattern;
+  };
 }
 
 bool DetectFormat(const uint8_t* data, std::size_t size, const BinaryPattern& pattern)
@@ -83,15 +131,6 @@ bool DetectFormat(const uint8_t* data, std::size_t size, const BinaryPattern& pa
     return false;
   }
   return std::equal(pattern.begin(), pattern.end(), data, &MatchPatternBinByByte);
-}
-
-std::size_t DetectFormatLookahead(const uint8_t* data, std::size_t size, const BinaryPattern& pattern)
-{
-  if (pattern.size() > size)
-  {
-    return size;
-  }
-  return std::search(data, data + size, pattern.begin(), pattern.end(), &MatchByteByPatternBin) - data;
 }
 
 void CompileDetectPattern(const std::string& textPattern, BinaryPattern& binPattern)
@@ -118,3 +157,12 @@ void CompileDetectPattern(const std::string& textPattern, BinaryPattern& binPatt
   binPattern.swap(result);
 }
 
+DetectionResult::Ptr DetectionResult::Create(std::size_t matchedSize, std::size_t lookAhead)
+{
+  return boost::make_shared<DetectionResultImpl>(matchedSize, lookAhead);
+}
+
+DataFormat::Ptr DataFormat::Create(const std::string& pattern)
+{
+  return boost::make_shared<DataFormatImpl>(pattern);
+}

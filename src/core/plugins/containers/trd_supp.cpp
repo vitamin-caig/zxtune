@@ -122,7 +122,7 @@ namespace
     "10"    //ID
   ;
 
-  const LookaheadFormatHelper LookaheadServiceSector(TRD_SERVICE_SECTOR_PATTERN);
+  const DataFormat::Ptr ServiceSectorFormat = DataFormat::Create(TRD_SERVICE_SECTOR_PATTERN);
 
   bool CheckTRDFile(const IO::FastDump& data)
   {
@@ -200,7 +200,7 @@ namespace
     {
     }
 
-    virtual std::size_t GetAffectedDataSize() const
+    virtual std::size_t GetMatchedDataSize() const
     {
       return ParsedSize;
     }
@@ -214,7 +214,7 @@ namespace
       }
       const std::size_t skipBytes = SERVICE_SECTOR_NUM * BYTES_PER_SECTOR + offsetof(ServiceSector, Type);
       const uint8_t* const begin = static_cast<const uint8_t*>(RawData->Data()) + skipBytes;
-      return LookaheadServiceSector(begin, size - skipBytes);
+      return ServiceSectorFormat->Search(begin, size - skipBytes);
     }
   private:
     const std::size_t ParsedSize;

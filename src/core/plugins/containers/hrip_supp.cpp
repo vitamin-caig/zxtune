@@ -276,7 +276,7 @@ namespace
     {
     }
 
-    virtual std::size_t GetAffectedDataSize() const
+    virtual std::size_t GetMatchedDataSize() const
     {
       return ParsedSize;
     }

@@ -99,7 +99,7 @@ namespace
       {
         const ContainerPlugin::Ptr plugin = iter->Get();
         const DetectionResult::Ptr result = plugin->Detect(Location, Callback);
-        if (std::size_t usedSize = result->GetAffectedDataSize())
+        if (std::size_t usedSize = result->GetMatchedDataSize())
         {
           Log::Debug(THIS_MODULE, "Detected %1% in %2% bytes at %3%.", plugin->Id(), usedSize, Location->GetPath());
           return usedSize;
