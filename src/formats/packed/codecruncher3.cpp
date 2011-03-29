@@ -361,7 +361,7 @@ namespace Formats
       virtual std::auto_ptr<Dump> Decode(const void* data, std::size_t availSize, std::size_t& usedSize) const
       {
         const CodeCruncher3::Container container(data, availSize);
-        if (!container.FastCheck())
+        if (!container.FastCheck() || !Depacker->Match(data, availSize))
         {
           return std::auto_ptr<Dump>();
         }

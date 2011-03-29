@@ -402,7 +402,7 @@ namespace
           return usedSize;
         }
         const std::size_t lookahead = result->GetLookaheadOffset();
-        Plugins.SetPluginLookahead(plugin, std::max(lookahead, MIN_SCAN_STEP));
+        Plugins.SetPluginLookahead(plugin, std::max<std::size_t>(lookahead, MIN_SCAN_STEP));
       }
       return 0;
     }
@@ -425,7 +425,7 @@ namespace
           return usedSize;
         }
         const std::size_t lookahead = result->GetLookaheadOffset();
-        Plugins.SetPluginLookahead(plugin, std::max(lookahead, MIN_SCAN_STEP));
+        Plugins.SetPluginLookahead(plugin, std::max<std::size_t>(lookahead, MIN_SCAN_STEP));
         //TODO: dispatch heavy checks- return false if not enabled
       }
       return 0;

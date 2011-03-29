@@ -448,7 +448,7 @@ namespace Formats
       {
         {
           const PowerfullCodeDecreaser6::Container<PowerfullCodeDecreaser6::Version61> container61(data, availSize);
-          if (container61.FastCheck())
+          if (container61.FastCheck() && Depacker61->Match(data, availSize))
           {
             PowerfullCodeDecreaser6::DataDecoder<PowerfullCodeDecreaser6::Version61> decoder61(container61);
             if (Dump* decoded = decoder61.GetDecodedData())
@@ -462,7 +462,7 @@ namespace Formats
         }
         {
           const PowerfullCodeDecreaser6::Container<PowerfullCodeDecreaser6::Version62> container62(data, availSize);
-          if (container62.FastCheck())
+          if (container62.FastCheck() && Depacker62->Match(data, availSize))
           {
             PowerfullCodeDecreaser6::DataDecoder<PowerfullCodeDecreaser6::Version62> decoder62(container62);
             if (Dump* decoded = decoder62.GetDecodedData())
