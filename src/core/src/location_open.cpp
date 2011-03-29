@@ -133,8 +133,8 @@ namespace
         {
           continue;
         }
-        std::size_t usedSize = 0;
-        if (IO::DataContainer::Ptr subdata = plugin->ExtractSubdata(*Params, *Data, usedSize))
+        const ArchiveExtractionResult::Ptr result = plugin->ExtractSubdata(*Params, Data);
+        if (IO::DataContainer::Ptr subdata = result->GetExtractedData())
         {
           Data = subdata;
           Path = restPath;

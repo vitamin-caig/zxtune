@@ -312,14 +312,13 @@ namespace
       Offset = offset;
     }
 
-    bool SetPluginLookahead(const Plugin& plugin, std::size_t lookahead)
+    bool SetPluginLookahead(Plugin::Ptr plugin, std::size_t lookahead)
     {
-      const String id = plugin.Id();
       const typename PluginsList::iterator it = std::find_if(Plugins.begin(), Plugins.end(),
-        boost::bind(&Plugin::Id, boost::bind(&OffsetAndPlugin::second, _1)) == id);
+        boost::bind(&OffsetAndPlugin::second, _1) == plugin);
       if (it != Plugins.end())
       {
-        Log::Debug(THIS_MODULE, "Disabling check of %1% for neareast %2% bytes starting from %3%", id, lookahead, Offset);
+        Log::Debug(THIS_MODULE, "Disabling check of %1% for neareast %2% bytes starting from %3%", plugin->Id(), lookahead, Offset);
         it->first += lookahead;
         return true;
       }
@@ -337,6 +336,7 @@ namespace
 
     explicit RawDetectionPlugins(PluginsEnumerator::Ptr parent)
       : Parent(parent)
+      , Archives(parent->EnumerateArchives())
       , Containers(parent->EnumerateContainers())
     {
     }
@@ -354,7 +354,7 @@ namespace
 
     virtual ArchivePlugin::Iterator::Ptr EnumerateArchives() const
     {
-      return Parent->EnumerateArchives();
+      return Archives.Enumerate();
     }
 
     virtual ContainerPlugin::Iterator::Ptr EnumerateContainers() const
@@ -365,14 +365,17 @@ namespace
     void SetOffset(std::size_t offset)
     {
       Containers.SetOffset(offset);
+      Archives.SetOffset(offset);
     }
 
-    void SetPluginLookahead(const Plugin& plugin, std::size_t lookahead)
+    void SetPluginLookahead(Plugin::Ptr plugin, std::size_t lookahead)
     {
-      Containers.SetPluginLookahead(plugin, lookahead);
+      Containers.SetPluginLookahead(plugin, lookahead) ||
+      Archives.SetPluginLookahead(plugin, lookahead);
     }
   private:
     const PluginsEnumerator::Ptr Parent;
+    LookaheadPluginsStorage<ArchivePlugin> Archives;
     LookaheadPluginsStorage<ContainerPlugin> Containers;
   };
 
@@ -399,14 +402,33 @@ namespace
           return usedSize;
         }
         const std::size_t lookahead = result->GetLookaheadOffset();
-        Plugins.SetPluginLookahead(*plugin, lookahead);
+        Plugins.SetPluginLookahead(plugin, std::max(lookahead, MIN_SCAN_STEP));
       }
       return 0;
     }
 
     virtual std::size_t ProcessArchives() const
     {
-      return Delegate->ProcessArchives();
+      const Parameters::Accessor::Ptr params = Callback.GetPluginsParameters();
+      const IO::DataContainer::Ptr data = Location->GetData();
+      for (ArchivePlugin::Iterator::Ptr iter = Plugins.EnumerateArchives(); iter->IsValid(); iter->Next())
+      {
+        const ArchivePlugin::Ptr plugin = iter->Get();
+        const ArchiveExtractionResult::Ptr result = plugin->ExtractSubdata(*params, data);
+        if (IO::DataContainer::Ptr subdata = result->GetExtractedData())
+        {
+          const std::size_t usedSize = result->GetMatchedDataSize();
+          Log::Debug(THIS_MODULE, "Detected %1% in %2% bytes at %3%.", plugin->Id(), usedSize, Location->GetPath());
+          const String subpath = Text::ARCHIVE_PLUGIN_PREFIX + plugin->Id();
+          const DataLocation::Ptr subLocation = CreateNestedLocation(Location, plugin, subdata, subpath);
+          Module::Detect(subLocation, Callback);
+          return usedSize;
+        }
+        const std::size_t lookahead = result->GetLookaheadOffset();
+        Plugins.SetPluginLookahead(plugin, std::max(lookahead, MIN_SCAN_STEP));
+        //TODO: dispatch heavy checks- return false if not enabled
+      }
+      return 0;
     }
 
     virtual std::size_t ProcessModules() const
@@ -478,7 +500,7 @@ namespace
       const RawDetectionPlugins::Ptr usedPlugins = boost::make_shared<RawDetectionPlugins>(availablePlugins);
 
       const ContainerPlugin::Ptr thisPlugin = shared_from_this();
-      usedPlugins->SetPluginLookahead(*thisPlugin, size);
+      usedPlugins->SetPluginLookahead(thisPlugin, size);
       ScanDataLocation::Ptr subLocation = boost::make_shared<ScanDataLocation>(input, thisPlugin, 0);
 
       DataProcessor::Ptr processor(new RawDataDetector(*usedPlugins, subLocation, noProgressCallback));

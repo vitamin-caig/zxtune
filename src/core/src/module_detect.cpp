@@ -117,9 +117,10 @@ namespace
         {
           continue;
         }
-        std::size_t usedSize = 0;
-        if (IO::DataContainer::Ptr subdata = plugin->ExtractSubdata(*Params, *Data, usedSize))
+        const ArchiveExtractionResult::Ptr result = plugin->ExtractSubdata(*Params, Data);
+        if (IO::DataContainer::Ptr subdata = result->GetExtractedData())
         {
+          const std::size_t usedSize = result->GetMatchedDataSize();
           Log::Debug(THIS_MODULE, "Detected %1% in %2% bytes at %3%.", plugin->Id(), usedSize, Location->GetPath());
           const String subpath = EncodeArchivePluginToPath(plugin->Id());
           const DataLocation::Ptr subLocation = CreateNestedLocation(Location, plugin, subdata, subpath);

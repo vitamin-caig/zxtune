@@ -50,6 +50,14 @@ namespace ZXTune
                                              std::size_t& usedSize) const = 0;
   };
 
+  class ArchiveExtractionResult : public DetectionResult
+  {
+  public:
+    typedef boost::shared_ptr<const ArchiveExtractionResult> Ptr;
+
+    virtual IO::DataContainer::Ptr GetExtractedData() const = 0;
+  };
+
   class ArchivePlugin : public Plugin
   {
   public:
@@ -65,9 +73,8 @@ namespace ZXTune
     //! @param inputData Source memory data
     //! @param usedSize Reference to result data size used to extract
     //! @return Not empty pointer if data is extracted, empty elsewhere
-    virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Accessor& parameters,
-                                                  const IO::DataContainer& inputData,
-                                                  std::size_t& usedSize) const = 0;
+    virtual ArchiveExtractionResult::Ptr ExtractSubdata(const Parameters::Accessor& parameters,
+                                                       IO::DataContainer::Ptr inputData) const = 0;
   };
 
   class ContainerPlugin : public Plugin

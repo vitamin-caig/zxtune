@@ -10,7 +10,7 @@ Author:
 */
 
 //local includes
-#include <core/plugins/detect_helper.h>
+#include "extraction_result.h"
 #include <core/plugins/registrator.h>
 //common includes
 #include <tools.h>
@@ -33,7 +33,6 @@ namespace
   public:
     Hrust2xPlugin()
       : Decoder(Formats::Packed::CreateHrust2Decoder())
-      , Format(Decoder->GetFormat())
     {
     }
 
@@ -59,22 +58,16 @@ namespace
 
     virtual bool Check(const IO::DataContainer& inputData) const
     {
-      return Format->Match(inputData.Data(), inputData.Size());
+      return Decoder->Check(inputData.Data(), inputData.Size());
     }
 
-    virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Accessor& /*commonParams*/,
-      const IO::DataContainer& data, std::size_t& usedSize) const
+    virtual ArchiveExtractionResult::Ptr ExtractSubdata(const Parameters::Accessor& /*parameters*/,
+      IO::DataContainer::Ptr input) const
     {
-      std::auto_ptr<Dump> res = Decoder->Decode(data.Data(), data.Size(), usedSize);
-      if (res.get())
-      {
-        return IO::CreateDataContainer(res);
-      }
-      return IO::DataContainer::Ptr();
+      return ExtractDataFromArchive(*Decoder, input);
     }
   private:
     const Formats::Packed::Decoder::Ptr Decoder;
-    const DataFormat::Ptr Format;
   };
 }
 

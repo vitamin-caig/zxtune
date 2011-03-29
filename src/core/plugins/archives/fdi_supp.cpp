@@ -20,6 +20,8 @@ Author:
 //std includes
 #include <cstring>
 #include <numeric>
+//boost includes
+#include <boost/make_shared.hpp>
 //text includes
 #include <core/text/plugins.h>
 
@@ -246,6 +248,63 @@ namespace
   const Char FDI_PLUGIN_ID[] = {'F', 'D', 'I', 0};
   const String FDI_PLUGIN_VERSION(FromStdString("$Rev$"));
 
+  class FDIExtractionResult : public ArchiveExtractionResult
+  {
+  public:
+    explicit FDIExtractionResult(IO::DataContainer::Ptr data)
+      : RawData(data)
+      , PackedSize(0)
+    {
+    }
+
+    virtual std::size_t GetMatchedDataSize() const
+    {
+      TryToExtract();
+      return PackedSize;
+    }
+
+    virtual std::size_t GetLookaheadOffset() const
+    {
+      const uint_t size = RawData->Size();
+      if (size < sizeof(FullDiskImage::RawHeader))
+      {
+        return size;
+      }
+      const uint8_t* const begin = static_cast<const uint8_t*>(RawData->Data());
+      const uint8_t* const end = begin + size;
+      return std::search(begin, end, FullDiskImage::FDI_ID, ArrayEnd(FullDiskImage::FDI_ID)) - begin;
+    }
+
+    virtual IO::DataContainer::Ptr GetExtractedData() const
+    {
+      TryToExtract();
+      return ExtractedData;
+    }
+  private:
+    void TryToExtract() const
+    {
+      if (PackedSize)
+      {
+        return;
+      }
+      const FullDiskImage::Container container(RawData->Data(), RawData->Size());
+      if (!container.FastCheck())
+      {
+        return;
+      }
+      FullDiskImage::Decoder decoder(container);
+      if (const Dump* res = decoder.GetDecodedData())
+      {
+        PackedSize = decoder.GetUsedSize();
+        ExtractedData =  IO::CreateDataContainer(*res);
+      }
+    }
+  private:
+    const IO::DataContainer::Ptr RawData;
+    mutable std::size_t PackedSize;
+    mutable IO::DataContainer::Ptr ExtractedData;
+  };
+
   class FDIPlugin : public ArchivePlugin
   {
   public:
@@ -275,18 +334,10 @@ namespace
       return container.FastCheck();
     }
 
-    virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Accessor& /*commonParams*/,
-      const IO::DataContainer& data, std::size_t& usedSize) const
+    virtual ArchiveExtractionResult::Ptr ExtractSubdata(const Parameters::Accessor& /*parameters*/,
+      IO::DataContainer::Ptr input) const
     {
-      const FullDiskImage::Container container(data.Data(), data.Size());
-      assert(container.FastCheck());
-      FullDiskImage::Decoder decoder(container);
-      if (const Dump* res = decoder.GetDecodedData())
-      {
-        usedSize = decoder.GetUsedSize();
-        return IO::CreateDataContainer(*res);
-      }
-      return IO::DataContainer::Ptr();
+      return boost::make_shared<FDIExtractionResult>(input);
     }
   };
 }

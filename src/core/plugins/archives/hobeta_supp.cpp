@@ -19,6 +19,8 @@ Author:
 #include <io/container.h>
 //std includes
 #include <numeric>
+//boost includes
+#include <boost/make_shared.hpp>
 //text includes
 #include <core/text/plugins.h>
 
@@ -80,6 +82,57 @@ namespace
     return false;
   }
 
+  class HobetaExtractionResult : public ArchiveExtractionResult
+  {
+  public:
+    explicit HobetaExtractionResult(IO::DataContainer::Ptr data)
+      : RawData(data)
+      , PackedSize(0)
+    {
+    }
+
+    virtual std::size_t GetMatchedDataSize() const
+    {
+      TryToExtract();
+      return PackedSize;
+    }
+
+    virtual std::size_t GetLookaheadOffset() const
+    {
+      const uint_t size = RawData->Size();
+      if (size < sizeof(Header))
+      {
+        return size;
+      }
+      const uint8_t* const begin = static_cast<const uint8_t*>(RawData->Data());
+      const uint8_t* const end = begin + size;
+      return std::search_n(begin, end, 11, uint8_t(' '), std::greater<uint8_t>()) - begin;
+    }
+
+    virtual IO::DataContainer::Ptr GetExtractedData() const
+    {
+      TryToExtract();
+      return ExtractedData;
+    }
+  private:
+    void TryToExtract() const
+    {
+      if (PackedSize || !CheckHobeta(*RawData))
+      {
+        return;
+      }
+      const Header* const header = safe_ptr_cast<const Header*>(RawData->Data());
+      const std::size_t dataSize = fromLE(header->Length);
+      const std::size_t fullSize = fromLE(header->FullLength);
+      PackedSize = fullSize + sizeof(*header);
+      ExtractedData = RawData->GetSubcontainer(sizeof(*header), dataSize);
+    }
+  private:
+    const IO::DataContainer::Ptr RawData;
+    mutable std::size_t PackedSize;
+    mutable IO::DataContainer::Ptr ExtractedData;
+  };
+
   //////////////////////////////////////////////////////////////////////////
   class HobetaPlugin : public ArchivePlugin
   {
@@ -109,16 +162,10 @@ namespace
       return CheckHobeta(inputData);
     }
 
-    virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Accessor& /*commonParams*/,
-      const IO::DataContainer& data, std::size_t& usedSize) const
+    virtual ArchiveExtractionResult::Ptr ExtractSubdata(const Parameters::Accessor& /*parameters*/,
+      IO::DataContainer::Ptr input) const
     {
-      assert(CheckHobeta(data));
-
-      const Header* const header = safe_ptr_cast<const Header*>(data.Data());
-      const std::size_t dataSize = fromLE(header->Length);
-      const std::size_t fullSize = fromLE(header->FullLength);
-      usedSize = fullSize + sizeof(*header);
-      return data.GetSubcontainer(sizeof(*header), dataSize);
+      return boost::make_shared<HobetaExtractionResult>(input);
     }
   };
 }

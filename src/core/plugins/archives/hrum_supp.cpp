@@ -10,6 +10,7 @@ Author:
 */
 
 //local includes
+#include "extraction_result.h"
 #include <core/plugins/registrator.h>
 //library includes
 #include <core/plugin_attrs.h>
@@ -31,7 +32,6 @@ namespace
   public:
     HrumPlugin()
       : Decoder(Formats::Packed::CreateHrumDecoder())
-      , Format(Decoder->GetFormat())
     {
     }
     
@@ -57,22 +57,16 @@ namespace
 
     virtual bool Check(const IO::DataContainer& inputData) const
     {
-      return Format->Match(inputData.Data(), inputData.Size());
+      return Decoder->Check(inputData.Data(), inputData.Size());
     }
 
-    virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Accessor& /*commonParams*/,
-      const IO::DataContainer& data, std::size_t& usedSize) const
+    virtual ArchiveExtractionResult::Ptr ExtractSubdata(const Parameters::Accessor& /*parameters*/,
+      IO::DataContainer::Ptr input) const
     {
-      std::auto_ptr<Dump> res = Decoder->Decode(data.Data(), data.Size(), usedSize);
-      if (res.get())
-      {
-        return IO::CreateDataContainer(res);
-      }
-      return IO::DataContainer::Ptr();
+      return ExtractDataFromArchive(*Decoder, input);
     }
   private:
     const Formats::Packed::Decoder::Ptr Decoder;
-    const DataFormat::Ptr Format;
   };
 }
 
