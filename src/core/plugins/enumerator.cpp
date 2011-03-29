@@ -229,10 +229,13 @@ namespace ZXTune
     }
     try
     {
-      const DataLocation::Ptr location = OpenLocation(moduleParams, data, startSubpath);
-      const DetectCallbackAdapter callback(detectParams, moduleParams);
-      Module::Detect(location, callback);
-      return Error();
+      if (const DataLocation::Ptr location = OpenLocation(moduleParams, data, startSubpath))
+      {
+        const DetectCallbackAdapter callback(detectParams, moduleParams);
+        Module::Detect(location, callback);
+        return Error();
+      }
+      return MakeFormattedError(THIS_LINE, Module::ERROR_FIND_SUBMODULE, Text::MODULE_ERROR_FIND_SUBMODULE, startSubpath);
     }
     catch (const Error& e)
     {
@@ -254,12 +257,14 @@ namespace ZXTune
     }
     try
     {
-      const DataLocation::Ptr location = OpenLocation(moduleParams, data, subpath);
-      const PluginsEnumerator::Ptr plugins = PluginsEnumerator::Create();
-      if (Module::Holder::Ptr holder = Module::Open(location, plugins, moduleParams))
+      if (const DataLocation::Ptr location = OpenLocation(moduleParams, data, subpath))
       {
-        result = holder;
-        return Error();
+        const PluginsEnumerator::Ptr plugins = PluginsEnumerator::Create();
+        if (Module::Holder::Ptr holder = Module::Open(location, plugins, moduleParams))
+        {
+          result = holder;
+          return Error();
+        }
       }
       return MakeFormattedError(THIS_LINE, Module::ERROR_FIND_SUBMODULE, Text::MODULE_ERROR_FIND_SUBMODULE, subpath);
     }
