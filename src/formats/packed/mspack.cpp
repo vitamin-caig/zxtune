@@ -23,12 +23,14 @@ Author:
 #include <algorithm>
 #include <iterator>
 #include <cstring>
+//boost includes
+#include <boost/make_shared.hpp>
 
 namespace MSPack
 {
   const std::size_t MAX_DECODED_SIZE = 0xc000;
 
-  const char MSP_SIGNATURE[] = {'M', 's', 'P', 'k'};
+  const char SIGNATURE[] = {'M', 's', 'P', 'k'};
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -72,8 +74,8 @@ namespace MSPack
         return false;
       }
       const RawHeader& header = GetHeader();
-      BOOST_STATIC_ASSERT(sizeof(header.Signature) == sizeof(MSP_SIGNATURE));
-      if (0 != std::memcmp(header.Signature, MSP_SIGNATURE, sizeof(header.Signature)))
+      BOOST_STATIC_ASSERT(sizeof(header.Signature) == sizeof(SIGNATURE));
+      if (0 != std::memcmp(header.Signature, SIGNATURE, sizeof(header.Signature)))
       {
         return false;
       }
@@ -221,6 +223,29 @@ namespace MSPack
     Hrust1Bitstream Stream;
     Dump Decoded;
   };
+
+  class Format : public DataFormat
+  {
+  public:
+    virtual bool Match(const void* data, std::size_t size) const
+    {
+      if (ArraySize(SIGNATURE) > size)
+      {
+        return false;
+      }
+      return std::equal(SIGNATURE, ArrayEnd(SIGNATURE), static_cast<const uint8_t*>(data));
+    }
+
+    virtual std::size_t Search(const void* data, std::size_t size) const
+    {
+      if (ArraySize(SIGNATURE) > size)
+      {
+        return size;
+      }
+      const uint8_t* const rawData = static_cast<const uint8_t*>(data);
+      return std::search(rawData, rawData + size, SIGNATURE, ArrayEnd(SIGNATURE)) - rawData;
+    }
+  };
 }
 
 namespace Formats
@@ -230,6 +255,11 @@ namespace Formats
     class MSPackDecoder : public Decoder
     {
     public:
+      virtual DataFormat::Ptr GetFormat() const
+      {
+        return boost::make_shared<MSPack::Format>();
+      }
+
       virtual bool Check(const void* data, std::size_t availSize) const
       {
         const MSPack::Container container(data, availSize);
@@ -239,7 +269,6 @@ namespace Formats
       virtual std::auto_ptr<Dump> Decode(const void* data, std::size_t availSize, std::size_t& usedSize) const
       {
         const MSPack::Container container(data, availSize);
-        assert(container.Check());
         MSPack::DataDecoder decoder(container);
         if (Dump* decoded = decoder.GetDecodedData())
         {

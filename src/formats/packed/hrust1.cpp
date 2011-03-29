@@ -20,10 +20,14 @@ Author:
 #include <formats/packed.h>
 //std includes
 #include <numeric>
+//boost includes
+#include <boost/make_shared.hpp>
 
 namespace Hrust1
 {
   const std::size_t MAX_DECODED_SIZE = 0xc000;
+
+  const uint8_t SIGNATURE[] = {'H', 'R'};
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -57,8 +61,8 @@ namespace Hrust1
         return false;
       }
       const RawHeader& header = GetHeader();
-      if (header.ID[0] != 'H' ||
-          header.ID[1] != 'R')
+      if (header.ID[0] != SIGNATURE[0] ||
+          header.ID[1] != SIGNATURE[1])
       {
         return false;
       }
@@ -291,6 +295,29 @@ namespace Hrust1
     Hrust1Bitstream Stream;
     Dump Decoded;
   };
+
+  class Format : public DataFormat
+  {
+  public:
+    virtual bool Match(const void* data, std::size_t size) const
+    {
+      if (ArraySize(SIGNATURE) > size)
+      {
+        return false;
+      }
+      return std::equal(SIGNATURE, ArrayEnd(SIGNATURE), static_cast<const uint8_t*>(data));
+    }
+
+    virtual std::size_t Search(const void* data, std::size_t size) const
+    {
+      if (ArraySize(SIGNATURE) > size)
+      {
+        return size;
+      }
+      const uint8_t* const rawData = static_cast<const uint8_t*>(data);
+      return std::search(rawData, rawData + size, SIGNATURE, ArrayEnd(SIGNATURE)) - rawData;
+    }
+  };
 }
 
 namespace Formats
@@ -300,6 +327,11 @@ namespace Formats
     class Hrust1Decoder : public Decoder
     {
     public:
+      virtual DataFormat::Ptr GetFormat() const
+      {
+        return boost::make_shared<Hrust1::Format>();
+      }
+
       virtual bool Check(const void* data, std::size_t availSize) const
       {
         const Hrust1::Container container(data, availSize);
@@ -309,7 +341,6 @@ namespace Formats
       virtual std::auto_ptr<Dump> Decode(const void* data, std::size_t availSize, std::size_t& usedSize) const
       {
         const Hrust1::Container container(data, availSize);
-        assert(container.FastCheck());
         Hrust1::DataDecoder decoder(container);
         if (Dump* decoded = decoder.GetDecodedData())
         {

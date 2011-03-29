@@ -102,6 +102,7 @@ namespace
   public:
     Hrust1xPlugin()
       : Decoder(Formats::Packed::CreateHrust1Decoder())
+      , Format(Decoder->GetFormat())
     {
     }
 
@@ -138,7 +139,7 @@ namespace
   private:
     virtual bool CheckData(const uint8_t* data, std::size_t size) const
     {
-      return Decoder->Check(data, size);
+      return Format->Match(data, size);
     }
 
     virtual DataPrefixIterator GetPrefixes() const
@@ -158,6 +159,7 @@ namespace
     }
   private:
     const Formats::Packed::Decoder::Ptr Decoder;
+    const DataFormat::Ptr Format;
   };
 }
 

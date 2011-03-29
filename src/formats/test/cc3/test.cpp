@@ -1,4 +1,5 @@
 #include <tools.h>
+#include <types.h>
 #include <formats/packed_decoders.h>
 
 #include <fstream>
@@ -34,7 +35,8 @@ namespace
       Dump test;
       OpenFile(testname, test);
       std::cout << " testing " << testname << std::endl;
-      if (!decoder.Check(&test[0], test.size()))
+      const DataFormat::Ptr format = decoder.GetFormat();
+      if (!format->Match(&test[0], test.size()))
       {
         throw std::runtime_error("Failed to check for sanity.");
       }

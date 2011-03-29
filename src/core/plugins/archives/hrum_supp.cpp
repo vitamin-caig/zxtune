@@ -31,6 +31,7 @@ namespace
   public:
     HrumPlugin()
       : Decoder(Formats::Packed::CreateHrumDecoder())
+      , Format(Decoder->GetFormat())
     {
     }
     
@@ -56,7 +57,7 @@ namespace
 
     virtual bool Check(const IO::DataContainer& inputData) const
     {
-      return Decoder->Check(inputData.Data(), inputData.Size());
+      return Format->Match(inputData.Data(), inputData.Size());
     }
 
     virtual IO::DataContainer::Ptr ExtractSubdata(const Parameters::Accessor& /*commonParams*/,
@@ -71,6 +72,7 @@ namespace
     }
   private:
     const Formats::Packed::Decoder::Ptr Decoder;
+    const DataFormat::Ptr Format;
   };
 }
 

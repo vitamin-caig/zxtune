@@ -415,6 +415,11 @@ namespace Formats
       {
       }
 
+      virtual DataFormat::Ptr GetFormat() const
+      {
+        return Depacker;
+      }
+
       virtual bool Check(const void* data, std::size_t availSize) const
       {
         const ESVCruncher::Container container(data, availSize);

@@ -257,6 +257,11 @@ namespace Formats
       {
       }
 
+      virtual DataFormat::Ptr GetFormat() const
+      {
+        return Depacker;
+      }
+
       virtual bool Check(const void* data, std::size_t availSize) const
       {
         const Hrum::Container container(data, availSize);
@@ -266,7 +271,6 @@ namespace Formats
       virtual std::auto_ptr<Dump> Decode(const void* data, std::size_t availSize, std::size_t& usedSize) const
       {
         const Hrum::Container container(data, availSize);
-        assert(container.FastCheck());
         Hrum::DataDecoder decoder(container);
         if (Dump* decoded = decoder.GetDecodedData())
         {

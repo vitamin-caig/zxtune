@@ -21,12 +21,14 @@ Author:
 #include <formats/packed.h>
 //std includes
 #include <cstring>
+//boost includes
+#include <boost/make_shared.hpp>
 
 namespace TRUSH
 {
   const std::size_t MAX_DECODED_SIZE = 0xc000;
 
-  const char TRUSH_SIGNATURE[] =
+  const char SIGNATURE[] =
   {
     'C', 'O', 'M', 'P', 'R', 'E', 'S', 'S', 'O', 'R', ' ', 'B', 'Y', ' ',
     'A', 'L', 'E', 'X', 'A', 'N', 'D', 'E', 'R', ' ', 'T', 'R', 'U', 'S', 'H', ' ', 'O', 'D', 'E', 'S', 'S', 'A'
@@ -72,8 +74,8 @@ namespace TRUSH
         return false;
       }
       const RawHeader& header = GetHeader();
-      BOOST_STATIC_ASSERT(sizeof(header.Signature) == sizeof(TRUSH_SIGNATURE));
-      if (0 != std::memcmp(header.Signature, TRUSH_SIGNATURE, sizeof(header.Signature)))
+      BOOST_STATIC_ASSERT(sizeof(header.Signature) == sizeof(SIGNATURE));
+      if (0 != std::memcmp(header.Signature, SIGNATURE, sizeof(header.Signature)))
       {
         return false;
       }
@@ -214,6 +216,31 @@ namespace TRUSH
     Hrust1Bitstream Stream;
     Dump Decoded;
   };
+
+  class Format : public DataFormat
+  {
+  public:
+    virtual bool Match(const void* data, std::size_t size) const
+    {
+      const std::size_t signatureOffset = offsetof(RawHeader, Signature);
+      if (signatureOffset + ArraySize(SIGNATURE) > size)
+      {
+        return false;
+      }
+      return std::equal(SIGNATURE, ArrayEnd(SIGNATURE), static_cast<const uint8_t*>(data) + signatureOffset);
+    }
+
+    virtual std::size_t Search(const void* data, std::size_t size) const
+    {
+      const std::size_t signatureOffset = offsetof(RawHeader, Signature);
+      if (signatureOffset + ArraySize(SIGNATURE) > size)
+      {
+        return size;
+      }
+      const uint8_t* const rawData = static_cast<const uint8_t*>(data) + signatureOffset;
+      return std::search(rawData, rawData + size - signatureOffset, SIGNATURE, ArrayEnd(SIGNATURE)) - rawData;
+    }
+  };
 }
 
 
@@ -224,6 +251,11 @@ namespace Formats
     class TRUSHDecoder : public Decoder
     {
     public:
+      virtual DataFormat::Ptr GetFormat() const
+      {
+        return boost::make_shared<TRUSH::Format>();
+      }
+
       virtual bool Check(const void* data, std::size_t availSize) const
       {
         const TRUSH::Container container(data, availSize);
@@ -233,7 +265,6 @@ namespace Formats
       virtual std::auto_ptr<Dump> Decode(const void* data, std::size_t availSize, std::size_t& usedSize) const
       {
         const TRUSH::Container container(data, availSize);
-        assert(container.Check());
         TRUSH::DataDecoder decoder(container);
         if (Dump* decoded = decoder.GetDecodedData())
         {

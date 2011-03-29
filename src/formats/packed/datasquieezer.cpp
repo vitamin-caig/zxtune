@@ -424,6 +424,11 @@ namespace Formats
       {
       }
 
+      virtual DataFormat::Ptr GetFormat() const
+      {
+        return Depacker;
+      }
+
       virtual bool Check(const void* data, std::size_t availSize) const
       {
         const DataSquieezer::Container container(data, availSize);

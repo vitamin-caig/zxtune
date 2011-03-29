@@ -21,10 +21,14 @@ Author:
 //std includes
 #include <numeric>
 #include <cstring>
+//boost includes
+#include <boost/make_shared.hpp>
 
 namespace Hrust2
 {
   const std::size_t MAX_DECODED_SIZE = 0xc000;
+
+  const uint8_t SIGNATURE[] = {'h', 'r', '2'};
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -139,9 +143,9 @@ namespace Hrust2
         return false;
       }
       const FormatHeader& header = GetHeader();
-      if (header.ID[0] != 'h' ||
-          header.ID[1] != 'r' ||
-          header.ID[2] != '2')
+      if (header.ID[0] != SIGNATURE[0] ||
+          header.ID[1] != SIGNATURE[1] ||
+          header.ID[2] != SIGNATURE[2])
       {
         return false;
       }
@@ -294,6 +298,43 @@ namespace Hrust2
     const FormatHeader& Header;
     Dump Decoded;
   };
+
+  class RawFormat : public DataFormat
+  {
+  public:
+    virtual bool Match(const void* /*data*/, std::size_t size) const
+    {
+      return size >= sizeof(RawHeader);
+    }
+
+    virtual std::size_t Search(const void* /*data*/, std::size_t size) const
+    {
+      return size >= sizeof(RawHeader) ? 0 : size;
+    }
+  };
+
+  class Format : public DataFormat
+  {
+  public:
+    virtual bool Match(const void* data, std::size_t size) const
+    {
+      if (ArraySize(SIGNATURE) > size)
+      {
+        return false;
+      }
+      return std::equal(SIGNATURE, ArrayEnd(SIGNATURE), static_cast<const uint8_t*>(data));
+    }
+
+    virtual std::size_t Search(const void* data, std::size_t size) const
+    {
+      if (ArraySize(SIGNATURE) > size)
+      {
+        return size;
+      }
+      const uint8_t* const rawData = static_cast<const uint8_t*>(data);
+      return std::search(rawData, rawData + size, SIGNATURE, ArrayEnd(SIGNATURE)) - rawData;
+    }
+  };
 }
 
 namespace Formats
@@ -303,6 +344,11 @@ namespace Formats
     class Hrust2RawDecoder : public Decoder
     {
     public:
+      virtual DataFormat::Ptr GetFormat() const
+      {
+        return boost::make_shared<Hrust2::RawFormat>();
+      }
+
       virtual bool Check(const void* /*data*/, std::size_t availSize) const
       {
         return availSize >= sizeof(Hrust2::RawHeader);
@@ -310,7 +356,10 @@ namespace Formats
 
       virtual std::auto_ptr<Dump> Decode(const void* data, std::size_t availSize, std::size_t& usedSize) const
       {
-        assert(Check(data, availSize));
+        if (availSize < sizeof(Hrust2::RawHeader))
+        {
+          return std::auto_ptr<Dump>();
+        }
         const Hrust2::RawHeader& header = *static_cast<const Hrust2::RawHeader*>(data);
         Hrust2::RawDataDecoder decoder(header, availSize);
         if (Dump* decoded = decoder.GetDecodedData())
@@ -327,6 +376,11 @@ namespace Formats
     class Hrust2Decoder : public Decoder
     {
     public:
+      virtual DataFormat::Ptr GetFormat() const
+      {
+        return boost::make_shared<Hrust2::Format>();
+      }
+
       virtual bool Check(const void* data, std::size_t availSize) const
       {
         const Hrust2::Container container(data, availSize);
@@ -336,7 +390,6 @@ namespace Formats
       virtual std::auto_ptr<Dump> Decode(const void* data, std::size_t availSize, std::size_t& usedSize) const
       {
         const Hrust2::Container container(data, availSize);
-        assert(container.FastCheck());
         Hrust2::DataDecoder decoder(container);
         if (Dump* decoded = decoder.GetDecodedData())
         {
