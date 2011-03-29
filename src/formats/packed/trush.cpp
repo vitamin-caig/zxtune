@@ -69,7 +69,7 @@ namespace TRUSH
 
     bool Check() const
     {
-      if (Size < sizeof(RawHeader))
+      if (Size <= sizeof(RawHeader))
       {
         return false;
       }
@@ -107,7 +107,7 @@ namespace TRUSH
       , Header(container.GetHeader())
       , Stream(Header.BitStream, fromLE(Header.SizeOfPacked))
     {
-      assert(!Stream.Eof());
+      assert(IsValid && !Stream.Eof());
     }
 
     Dump* GetDecodedData()
@@ -265,6 +265,10 @@ namespace Formats
       virtual std::auto_ptr<Dump> Decode(const void* data, std::size_t availSize, std::size_t& usedSize) const
       {
         const TRUSH::Container container(data, availSize);
+        if (!container.Check())
+        {
+          return std::auto_ptr<Dump>();
+        }
         TRUSH::DataDecoder decoder(container);
         if (Dump* decoded = decoder.GetDecodedData())
         {

@@ -69,7 +69,7 @@ namespace MSPack
 
     bool Check() const
     {
-      if (sizeof(RawHeader) > Size)
+      if (Size <= sizeof(RawHeader))
       {
         return false;
       }
@@ -117,7 +117,7 @@ namespace MSPack
       , Header(container.GetHeader())
       , Stream(Header.BitStream, fromLE(Header.SizeOfPacked))
     {
-      assert(!Stream.Eof());
+      assert(IsValid && !Stream.Eof());
     }
 
     Dump* GetDecodedData()
@@ -269,6 +269,10 @@ namespace Formats
       virtual std::auto_ptr<Dump> Decode(const void* data, std::size_t availSize, std::size_t& usedSize) const
       {
         const MSPack::Container container(data, availSize);
+        if (!container.Check())
+        {
+          return std::auto_ptr<Dump>();
+        }
         MSPack::DataDecoder decoder(container);
         if (Dump* decoded = decoder.GetDecodedData())
         {

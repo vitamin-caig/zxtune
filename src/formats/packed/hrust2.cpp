@@ -264,6 +264,7 @@ namespace Hrust2
       : IsValid(container.FastCheck())
       , Header(container.GetHeader())
     {
+      assert(IsValid);
     }
 
     Dump* GetDecodedData()
@@ -390,6 +391,10 @@ namespace Formats
       virtual std::auto_ptr<Dump> Decode(const void* data, std::size_t availSize, std::size_t& usedSize) const
       {
         const Hrust2::Container container(data, availSize);
+        if (!container.FastCheck())
+        {
+          return std::auto_ptr<Dump>();
+        }
         Hrust2::DataDecoder decoder(container);
         if (Dump* decoded = decoder.GetDecodedData())
         {

@@ -167,6 +167,7 @@ namespace Hrum
       , Header(container.GetHeader())
       , Stream(Header.BitStream, fromLE(Header.SizeOfPacked) - sizeof(Header.Padding7))
     {
+      assert(IsValid && !Stream.Eof());
     }
 
     Dump* GetDecodedData()
@@ -271,6 +272,10 @@ namespace Formats
       virtual std::auto_ptr<Dump> Decode(const void* data, std::size_t availSize, std::size_t& usedSize) const
       {
         const Hrum::Container container(data, availSize);
+        if (!container.FastCheck())
+        {
+          return std::auto_ptr<Dump>();
+        }
         Hrum::DataDecoder decoder(container);
         if (Dump* decoded = decoder.GetDecodedData())
         {

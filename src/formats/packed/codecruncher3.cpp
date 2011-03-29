@@ -237,6 +237,7 @@ namespace CodeCruncher3
       , Header(container.GetHeader())
       , Stream(Header.Data, fromLE(Header.SizeOfPacked))
     {
+      assert(IsValid && !Stream.Eof());
     }
 
     Dump* GetDecodedData()
@@ -360,7 +361,10 @@ namespace Formats
       virtual std::auto_ptr<Dump> Decode(const void* data, std::size_t availSize, std::size_t& usedSize) const
       {
         const CodeCruncher3::Container container(data, availSize);
-        assert(container.FastCheck());
+        if (!container.FastCheck())
+        {
+          return std::auto_ptr<Dump>();
+        }
         CodeCruncher3::DataDecoder decoder(container);
         if (Dump* decoded = decoder.GetDecodedData())
         {

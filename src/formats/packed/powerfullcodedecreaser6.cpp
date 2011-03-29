@@ -179,7 +179,12 @@ namespace PowerfullCodeDecreaser6
 
     bool FastCheck() const
     {
-      if (Size < sizeof(typename Version::RawHeader))
+      if (Size <= sizeof(typename Version::RawHeader))
+      {
+        return false;
+      }
+      const typename Version::RawHeader& header = GetHeader();
+      if (fromLE(header.SizeOfPacked) <= sizeof(header.LastBytes))
       {
         return false;
       }
@@ -243,6 +248,7 @@ namespace PowerfullCodeDecreaser6
     explicit BitstreamDecoder(const Header& header)
       : Stream(header.Bitstream, fromLE(header.SizeOfPacked) - sizeof(header.LastBytes))
     {
+      assert(!Stream.Eof());
     }
 
     bool DecodeMainData()
@@ -348,6 +354,7 @@ namespace PowerfullCodeDecreaser6
       , IsValid(container.FastCheck())
       , Header(container.GetHeader())
     {
+      assert(IsValid && !Stream.Eof());
     }
 
     Dump* GetDecodedData()
@@ -399,7 +406,7 @@ namespace PowerfullCodeDecreaser6
     virtual std::size_t Search(const void* data, std::size_t size) const
     {
       const std::size_t firstOffset = Depacker61->Search(data, size);
-      const std::size_t secondOffset = Depacker62->Search(data, size);
+      const std::size_t secondOffset = Depacker62->Search(data, firstOffset);
       return std::min(firstOffset, secondOffset);
     }
   private:
@@ -455,13 +462,16 @@ namespace Formats
         }
         {
           const PowerfullCodeDecreaser6::Container<PowerfullCodeDecreaser6::Version62> container62(data, availSize);
-          PowerfullCodeDecreaser6::DataDecoder<PowerfullCodeDecreaser6::Version62> decoder62(container62);
-          if (Dump* decoded = decoder62.GetDecodedData())
+          if (container62.FastCheck())
           {
-            usedSize = container62.GetUsedSize();
-            std::auto_ptr<Dump> res(new Dump());
-            res->swap(*decoded);
-            return res;
+            PowerfullCodeDecreaser6::DataDecoder<PowerfullCodeDecreaser6::Version62> decoder62(container62);
+            if (Dump* decoded = decoder62.GetDecodedData())
+            {
+              usedSize = container62.GetUsedSize();
+              std::auto_ptr<Dump> res(new Dump());
+              res->swap(*decoded);
+              return res;
+            }
           }
         }
         return std::auto_ptr<Dump>();

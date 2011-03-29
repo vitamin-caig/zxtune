@@ -56,7 +56,7 @@ namespace Hrust1
 
     bool FastCheck() const
     {
-      if (Size < sizeof(RawHeader))
+      if (Size <= sizeof(RawHeader))
       {
         return false;
       }
@@ -94,7 +94,7 @@ namespace Hrust1
       , Header(container.GetHeader())
       , Stream(Header.BitStream, container.GetUsedSize() - 12)
     {
-      assert(!Stream.Eof());
+      assert(IsValid && !Stream.Eof());
     }
 
     Dump* GetDecodedData()
@@ -341,6 +341,10 @@ namespace Formats
       virtual std::auto_ptr<Dump> Decode(const void* data, std::size_t availSize, std::size_t& usedSize) const
       {
         const Hrust1::Container container(data, availSize);
+        if (!container.FastCheck())
+        {
+          return std::auto_ptr<Dump>();
+        }
         Hrust1::DataDecoder decoder(container);
         if (Dump* decoded = decoder.GetDecodedData())
         {

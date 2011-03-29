@@ -302,6 +302,7 @@ namespace ESVCruncher
       , Header(container.GetHeader())
       , Stream(Header.Data, fromLE(Header.SizeOfPacked))
     {
+      assert(IsValid && !Stream.Eof());
     }
 
     Dump* GetDecodedData()
@@ -429,7 +430,10 @@ namespace Formats
       virtual std::auto_ptr<Dump> Decode(const void* data, std::size_t availSize, std::size_t& usedSize) const
       {
         const ESVCruncher::Container container(data, availSize);
-        assert(container.FastCheck());
+        if (!container.FastCheck())
+        {
+          return std::auto_ptr<Dump>();
+        }
         ESVCruncher::DataDecoder decoder(container);
         if (Dump* decoded = decoder.GetDecodedData())
         {
