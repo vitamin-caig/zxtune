@@ -63,9 +63,13 @@ extern const Char LZS_PLUGIN_INFO[] = {
 extern const Char MSP_PLUGIN_INFO[] = {
   'M','s','P','a','c','k',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
 };
-extern const Char PCD_PLUGIN_INFO[] = {
-  'P','o','w','e','r','f','u','l','l',' ','C','o','d','e',' ','D','e','c','r','e','a','s','e','r',' ','f','o',
-  'r','m','a','t',' ','s','u','p','p','o','r','t',0
+extern const Char PCD61_PLUGIN_INFO[] = {
+  'P','o','w','e','r','f','u','l','l',' ','C','o','d','e',' ','D','e','c','r','e','a','s','e','r',' ','v','6',
+  '.','1',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
+};
+extern const Char PCD62_PLUGIN_INFO[] = {
+  'P','o','w','e','r','f','u','l','l',' ','C','o','d','e',' ','D','e','c','r','e','a','s','e','r',' ','v','6',
+  '.','2',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
 };
 extern const Char PDT_EDITOR[] = {
   'P','r','o','D','i','g','i',' ','T','r','a','c','k','e','r',' ','v','0','.','0','x',0

@@ -23,26 +23,26 @@ namespace
 {
   using namespace ZXTune;
 
-  const Char PCD_PLUGIN_ID[] = {'P', 'C', 'D', '\0'};
+  const Char PCD61_PLUGIN_ID[] = {'P', 'C', 'D', '6', '1', '\0'};
+  const Char PCD62_PLUGIN_ID[] = {'P', 'C', 'D', '6', '2', '\0'};
   const String PCD_PLUGIN_VERSION(FromStdString("$Rev$"));
 
-  class PCDPlugin : public ArchivePlugin
+  class PCD61Plugin : public ArchivePlugin
   {
   public:
-    PCDPlugin()
-      : Decoder61(Formats::Packed::CreatePowerfullCodeDecreaser61Decoder())
-      , Decoder62(Formats::Packed::CreatePowerfullCodeDecreaser62Decoder())
+    PCD61Plugin()
+      : Decoder(Formats::Packed::CreatePowerfullCodeDecreaser61Decoder())
     {
     }
     
     virtual String Id() const
     {
-      return PCD_PLUGIN_ID;
+      return PCD61_PLUGIN_ID;
     }
 
     virtual String Description() const
     {
-      return Text::PCD_PLUGIN_INFO;
+      return Text::PCD61_PLUGIN_INFO;
     }
 
     virtual String Version() const
@@ -57,25 +57,58 @@ namespace
 
     virtual bool Check(const IO::DataContainer& inputData) const
     {
-      const void* const data = inputData.Data();
-      const std::size_t size = inputData.Size();
-      return Decoder61->Check(data, size) || Decoder62->Check(data, size);
+      return Decoder->Check(inputData.Data(), inputData.Size());
     }
 
     virtual ArchiveExtractionResult::Ptr ExtractSubdata(const Parameters::Accessor& /*parameters*/,
       IO::DataContainer::Ptr input) const
     {
-      const void* const data = input->Data();
-      const std::size_t size = input->Size();
-      if (Decoder61->Check(data, size))
-      {
-        return ExtractDataFromArchive(*Decoder61, input);
-      }
-      return ExtractDataFromArchive(*Decoder62, input);
+      return ExtractDataFromArchive(*Decoder, input);
     }
   private:
-    const Formats::Packed::Decoder::Ptr Decoder61;
-    const Formats::Packed::Decoder::Ptr Decoder62;
+    const Formats::Packed::Decoder::Ptr Decoder;
+  };
+
+  class PCD62Plugin : public ArchivePlugin
+  {
+  public:
+    PCD62Plugin()
+      : Decoder(Formats::Packed::CreatePowerfullCodeDecreaser62Decoder())
+    {
+    }
+    
+    virtual String Id() const
+    {
+      return PCD62_PLUGIN_ID;
+    }
+
+    virtual String Description() const
+    {
+      return Text::PCD62_PLUGIN_INFO;
+    }
+
+    virtual String Version() const
+    {
+      return PCD_PLUGIN_VERSION;
+    }
+
+    virtual uint_t Capabilities() const
+    {
+      return CAP_STOR_CONTAINER;
+    }
+
+    virtual bool Check(const IO::DataContainer& inputData) const
+    {
+      return Decoder->Check(inputData.Data(), inputData.Size());
+    }
+
+    virtual ArchiveExtractionResult::Ptr ExtractSubdata(const Parameters::Accessor& /*parameters*/,
+      IO::DataContainer::Ptr input) const
+    {
+      return ExtractDataFromArchive(*Decoder, input);
+    }
+  private:
+    const Formats::Packed::Decoder::Ptr Decoder;
   };
 }
 
@@ -83,7 +116,9 @@ namespace ZXTune
 {
   void RegisterPCDConvertor(PluginsRegistrator& registrator)
   {
-    const ArchivePlugin::Ptr plugin(new PCDPlugin());
-    registrator.RegisterPlugin(plugin);
+    const ArchivePlugin::Ptr plugin61(new PCD61Plugin());
+    const ArchivePlugin::Ptr plugin62(new PCD62Plugin());
+    registrator.RegisterPlugin(plugin61);
+    registrator.RegisterPlugin(plugin62);
   }
 }

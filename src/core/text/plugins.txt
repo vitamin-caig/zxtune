@@ -96,8 +96,11 @@ __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 > "MsPack" CONTAINER_DESCRIPTION
 
 #PCD
-< PCD_PLUGIN_INFO
-> "Powerfull Code Decreaser" CONTAINER_DESCRIPTION
+< PCD61_PLUGIN_INFO
+> "Powerfull Code Decreaser v6.1" CONTAINER_DESCRIPTION
+
+< PCD62_PLUGIN_INFO
+> "Powerfull Code Decreaser v6.2" CONTAINER_DESCRIPTION
 
 #ProDigi
 = PDT_EDITOR_NOVER
