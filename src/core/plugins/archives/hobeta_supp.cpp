@@ -38,8 +38,8 @@ namespace
 #endif
   PACK_PRE struct Header
   {
-    uint8_t Filename[8];
-    uint8_t Filetype[3];
+    uint8_t Filename[9];
+    uint16_t Start;
     uint16_t Length;
     uint16_t FullLength;
     uint16_t CRC;
@@ -68,7 +68,7 @@ namespace
         dataSize + sizeof(*header) > limit ||
         fullSize != align<std::size_t>(dataSize, 256) ||
         //check for valid name
-        header->Filetype + 1 != std::find_if(header->Filename, header->Filetype + 1,
+        ArrayEnd(header->Filename) != std::find_if(header->Filename, ArrayEnd(header->Filename),
           std::bind2nd(std::less<uint8_t>(), uint8_t(' ')))
         )
     {
@@ -106,7 +106,7 @@ namespace
       }
       const uint8_t* const begin = static_cast<const uint8_t*>(RawData->Data());
       const uint8_t* const end = begin + size;
-      return std::search_n(begin, end, 11, uint8_t(' '), std::greater<uint8_t>()) - begin;
+      return std::search_n(begin, end, 9, uint8_t(' '), std::greater<uint8_t>()) - begin;
     }
 
     virtual IO::DataContainer::Ptr GetExtractedData() const
