@@ -109,39 +109,4 @@ namespace ZXTune
     }
     return Module::Holder::Ptr();
   }
-
-  IO::DataContainer::Ptr ExtractSubdataFromData(const ArchiveDetector& detector,
-    const Parameters::Accessor& parameters, const IO::DataContainer& data, std::size_t& usedSize)
-  {
-    const std::size_t limit(data.Size());
-    const uint8_t* const rawData(static_cast<const uint8_t*>(data.Data()));
-
-    //try to detect without prefix
-    if (detector.CheckData(rawData, limit))
-    {
-      if (IO::DataContainer::Ptr subdata = detector.TryToExtractSubdata(parameters, data, usedSize))
-      {
-        return subdata;
-      }
-    }
-    //check all the prefixes
-    for (DataPrefixIterator chain = detector.GetPrefixes(); chain; ++chain)
-    {
-      const std::size_t dataOffset = chain->PrefixSize;
-      if (limit < dataOffset ||
-          !chain->Prefix->Match(rawData, dataOffset) ||
-          !detector.CheckData(rawData + dataOffset, limit - dataOffset))
-      {
-        continue;
-      }
-      const FastDataContainer subcontainer(data, dataOffset);
-      std::size_t packedSize = 0;
-      if (IO::DataContainer::Ptr subdata = detector.TryToExtractSubdata(parameters, subcontainer, packedSize))
-      {
-        usedSize = dataOffset + packedSize;
-        return subdata;
-      }
-    }
-    return IO::DataContainer::Ptr();
-  }
 }

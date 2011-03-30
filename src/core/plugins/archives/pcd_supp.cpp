@@ -30,7 +30,8 @@ namespace
   {
   public:
     PCDPlugin()
-      : Decoder(Formats::Packed::CreatePowerfullCodeDecreaser6Decoder())
+      : Decoder61(Formats::Packed::CreatePowerfullCodeDecreaser61Decoder())
+      , Decoder62(Formats::Packed::CreatePowerfullCodeDecreaser62Decoder())
     {
     }
     
@@ -56,16 +57,25 @@ namespace
 
     virtual bool Check(const IO::DataContainer& inputData) const
     {
-      return Decoder->Check(inputData.Data(), inputData.Size());
+      const void* const data = inputData.Data();
+      const std::size_t size = inputData.Size();
+      return Decoder61->Check(data, size) || Decoder62->Check(data, size);
     }
 
     virtual ArchiveExtractionResult::Ptr ExtractSubdata(const Parameters::Accessor& /*parameters*/,
       IO::DataContainer::Ptr input) const
     {
-      return ExtractDataFromArchive(*Decoder, input);
+      const void* const data = input->Data();
+      const std::size_t size = input->Size();
+      if (Decoder61->Check(data, size))
+      {
+        return ExtractDataFromArchive(*Decoder61, input);
+      }
+      return ExtractDataFromArchive(*Decoder62, input);
     }
   private:
-    const Formats::Packed::Decoder::Ptr Decoder;
+    const Formats::Packed::Decoder::Ptr Decoder61;
+    const Formats::Packed::Decoder::Ptr Decoder62;
   };
 }
 

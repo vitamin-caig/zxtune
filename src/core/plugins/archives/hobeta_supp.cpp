@@ -106,7 +106,7 @@ namespace
       }
       const uint8_t* const begin = static_cast<const uint8_t*>(RawData->Data());
       const uint8_t* const end = begin + size;
-      return std::search_n(begin, end, 9, uint8_t(' '), std::greater<uint8_t>()) - begin;
+      return std::search_n(begin, end, 9, uint8_t(' '), std::greater_equal<uint8_t>()) - begin;
     }
 
     virtual IO::DataContainer::Ptr GetExtractedData() const

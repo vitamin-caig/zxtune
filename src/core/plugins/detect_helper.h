@@ -56,20 +56,10 @@ namespace ZXTune
       DataLocation::Ptr location, std::size_t& usedSize) const = 0;
   };
 
-  class ArchiveDetector : public DataDetector
-  {
-  public:
-    virtual IO::DataContainer::Ptr TryToExtractSubdata(const Parameters::Accessor& parameters,
-      const IO::DataContainer& data, std::size_t& originalDataSize) const = 0;
-  };
-
   bool CheckDataFormat(const DataDetector& detector, const IO::DataContainer& inputData);
 
   Module::Holder::Ptr CreateModuleFromData(const ModuleDetector& detector,
     Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, std::size_t& usedSize);
-
-  IO::DataContainer::Ptr ExtractSubdataFromData(const ArchiveDetector& detector,
-    const Parameters::Accessor& parameters, const IO::DataContainer& data, std::size_t& usedSize);
 }
 
 #endif //__CORE_PLUGINS_DETECT_HELPER_H_DEFINED__
