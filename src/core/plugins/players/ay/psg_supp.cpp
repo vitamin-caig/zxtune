@@ -12,9 +12,10 @@ Author:
 //local includes
 #include "ay_base.h"
 #include "ay_conversion.h"
-#include <core/plugins/registrator.h>
-#include <core/plugins/players/module_properties.h>
-#include <core/plugins/players/streaming.h>
+#include "core/plugins/registrator.h"
+#include "core/plugins/players/creation_result.h"
+#include "core/plugins/players/module_properties.h"
+#include "core/plugins/players/streaming.h"
 //common includes
 #include <tools.h>
 #include <logging.h>
@@ -84,11 +85,10 @@ namespace
   class PSGHolder : public Holder
   {
   public:
-    PSGHolder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, std::size_t& usedSize)
-      : Properties(ModuleProperties::Create(plugin, location))
+    PSGHolder(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr rawData, std::size_t& usedSize)
+      : Properties(properties)
       , Data(boost::make_shared<PSGData>())
     {
-      const IO::DataContainer::Ptr rawData = location->GetData();
       const IO::FastDump data(*rawData);
       //workaround for some emulators
       const std::size_t offset = (data[4] == INT_BEGIN) ? 4 : sizeof(PSGHeader);
@@ -245,10 +245,17 @@ namespace
        PSG_MARKER == header->Marker;
   }
 
+  const std::string PSG_FORMAT(
+    "505347" // uint8_t Sign[3];
+  );
+
   class PSGPlugin : public PlayerPlugin
+                  , public ModulesFactory
                   , public boost::enable_shared_from_this<PSGPlugin>
   {
   public:
+    typedef boost::shared_ptr<const PSGPlugin> Ptr;
+
     virtual String Id() const
     {
       return PSG_PLUGIN_ID;
@@ -274,21 +281,34 @@ namespace
       return CheckPSG(inputData);
     }
 
-    virtual Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
-                                             DataLocation::Ptr location,
-                                             std::size_t& usedSize) const
+    virtual ModuleCreationResult::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
+                                                   DataLocation::Ptr inputData) const
     {
+      const PSGPlugin::Ptr self = shared_from_this();
+      return CreateModuleFromLocation(self, self, parameters, inputData);
+    }
+  private:
+    virtual DataFormat::Ptr GetFormat() const
+    {
+      return DataFormat::Create(PSG_FORMAT);
+    }
+
+    virtual Holder::Ptr CreateModule(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize) const
+    {
+      if (!Check(*data))
+      {
+        return Holder::Ptr();
+      }
       try
       {
-        const PlayerPlugin::Ptr plugin = shared_from_this();
-        const Module::Holder::Ptr holder(new PSGHolder(plugin, parameters, location, usedSize));
+        const Holder::Ptr holder(new PSGHolder(properties, parameters, data, usedSize));
         return holder;
       }
       catch (const Error&/*e*/)
       {
         Log::Debug("Core::PSGSupp", "Failed to create holder");
       }
-      return Module::Holder::Ptr();
+      return Holder::Ptr();
     }
   };
 }

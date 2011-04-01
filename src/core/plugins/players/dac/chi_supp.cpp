@@ -11,10 +11,11 @@ Author:
 
 //local includes
 #include "dac_base.h"
-#include <core/plugins/registrator.h>
-#include <core/plugins/utils.h>
-#include <core/plugins/players/module_properties.h>
-#include <core/plugins/players/tracking.h>
+#include "core/plugins/registrator.h"
+#include "core/plugins/utils.h"
+#include "core/plugins/players/creation_result.h"
+#include "core/plugins/players/module_properties.h"
+#include "core/plugins/players/tracking.h"
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
@@ -245,14 +246,12 @@ namespace
     }
 
   public:
-    CHIHolder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters,
-      DataLocation::Ptr location, std::size_t& usedSize)
+    CHIHolder(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr rawData, std::size_t& usedSize)
       : Data(CHITrack::ModuleData::Create())
-      , Properties(ModuleProperties::Create(plugin, location))
+      , Properties(properties)
       , Info(CreateTrackInfo(Data, CHANNELS_COUNT, parameters, Properties))
     {
       //assume data is correct
-      const IO::DataContainer::Ptr rawData = location->GetData();
       const IO::FastDump& data(*rawData);
       const CHIHeader* const header(safe_ptr_cast<const CHIHeader*>(data.Data()));
 
@@ -561,10 +560,18 @@ namespace
     return true;
   }
 
+  const std::string CHI_FORMAT(
+    "4348495076"    // uint8_t Signature[5];
+    "3x2e3x"        // char Version[3];
+  );
+
   class CHIPlugin : public PlayerPlugin
+                  , public ModulesFactory
                   , public boost::enable_shared_from_this<CHIPlugin>
   {
   public:
+    typedef boost::shared_ptr<const CHIPlugin> Ptr;
+
     virtual String Id() const
     {
       return CHI_PLUGIN_ID;
@@ -590,25 +597,34 @@ namespace
       return CheckCHI(inputData);
     }
 
-    virtual Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
-                                             DataLocation::Ptr location,
-                                             std::size_t& usedSize) const
+    virtual ModuleCreationResult::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
+                                                   DataLocation::Ptr inputData) const
     {
-      //try to create holder
+      const CHIPlugin::Ptr self = shared_from_this();
+      return CreateModuleFromLocation(self, self, parameters, inputData);
+    }
+  private:
+    virtual DataFormat::Ptr GetFormat() const
+    {
+      return DataFormat::Create(CHI_FORMAT);
+    }
+
+    virtual Holder::Ptr CreateModule(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize) const
+    {
+      if (!Check(*data))
+      {
+        return Holder::Ptr();
+      }
       try
       {
-        const PlayerPlugin::Ptr plugin = shared_from_this();
-        const Module::Holder::Ptr holder(new CHIHolder(plugin, parameters, location, usedSize));
-#ifdef SELF_TEST
-        holder->CreatePlayer();
-#endif
+        const Holder::Ptr holder(new CHIHolder(properties, parameters, data, usedSize));
         return holder;
       }
       catch (const Error&/*e*/)
       {
         Log::Debug("Core::CHISupp", "Failed to create holder");
       }
-      return Module::Holder::Ptr();
+      return Holder::Ptr();
     }
   };
 }

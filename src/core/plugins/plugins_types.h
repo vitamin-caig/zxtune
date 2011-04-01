@@ -30,6 +30,14 @@ namespace ZXTune
     class DetectCallback;
   }
 
+  class ModuleCreationResult : public DetectionResult
+  {
+  public:
+    typedef boost::shared_ptr<const ModuleCreationResult> Ptr;
+
+    virtual Module::Holder::Ptr GetModule() const = 0;
+  };
+
   class PlayerPlugin : public Plugin
   {
   public:
@@ -45,9 +53,8 @@ namespace ZXTune
     //! @param inputData Source memory data
     //! @param usedSize Reference to result data size used to create
     //! @return Not empty pointer if found, empty elsewhere
-    virtual Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
-                                             DataLocation::Ptr inputData,
-                                             std::size_t& usedSize) const = 0;
+    virtual ModuleCreationResult::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
+                                                   DataLocation::Ptr inputData) const = 0;
   };
 
   class ArchiveExtractionResult : public DetectionResult

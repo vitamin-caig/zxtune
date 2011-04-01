@@ -13,6 +13,7 @@ Author:
 #include "ts_base.h"
 #include "core/src/core.h"
 #include "core/plugins/registrator.h"
+#include "core/plugins/players/creation_result.h"
 #include "core/plugins/players/tracking.h"
 //common includes
 #include <byteorder.h>
@@ -56,8 +57,6 @@ namespace
   const std::size_t TS_MIN_SIZE = 256;
   const std::size_t MAX_MODULE_SIZE = 16384;
   const std::size_t TS_MAX_SIZE = MAX_MODULE_SIZE * 2;
-  //TODO: parametrize
-  const std::size_t SEARCH_THRESHOLD = TS_MIN_SIZE;
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -333,8 +332,8 @@ namespace
   class TSHolder : public Holder, public boost::enable_shared_from_this<TSHolder>
   {
   public:
-    TSHolder(Plugin::Ptr plugin, IO::DataContainer::Ptr data, const Holder::Ptr& holder1, const Holder::Ptr& holder2)
-      : SrcPlugin(plugin)
+    TSHolder(PlayerPlugin::Ptr plugin, IO::DataContainer::Ptr data, const Holder::Ptr& holder1, const Holder::Ptr& holder2)
+      : Plug(plugin)
       , RawData(data)
       , Holder1(holder1), Holder2(holder2)
       , Info(new MergedModuleInfo(Holder1->GetModuleInformation(), Holder2->GetModuleInformation()))
@@ -343,7 +342,7 @@ namespace
 
     virtual Plugin::Ptr GetPlugin() const
     {
-      return SrcPlugin;
+      return Plug;
     }
 
     virtual Information::Ptr GetModuleInformation() const
@@ -372,8 +371,8 @@ namespace
     }
   private:
     friend class TSPlayer;
-    const Plugin::Ptr SrcPlugin;
-    IO::DataContainer::Ptr RawData;
+    const PlayerPlugin::Ptr Plug;
+    const IO::DataContainer::Ptr RawData;
     const Holder::Ptr Holder1;
     const Holder::Ptr Holder2;
     const Information::Ptr Info;
@@ -451,36 +450,15 @@ namespace
     return Player::Ptr(new TSPlayer(holder));
   }
 
-  /////////////////////////////////////////////////////////////////////////////
-  std::size_t FindFooter(const IO::FastDump& dump, std::size_t threshold)
-  {
-    const std::size_t limit = dump.Size();
-    if (!in_range(limit, TS_MIN_SIZE, TS_MAX_SIZE))
-    {
-      return 0;
-    }
-    const std::size_t inStart = limit >= threshold
-      ? std::max(TS_MIN_SIZE, limit - threshold) : TS_MIN_SIZE;
-    for (const uint8_t* begin = dump.Data() + inStart, *end = dump.Data() + limit;;)
-    {
-      const uint8_t* const found = std::search(begin, end, TS_ID, ArrayEnd(TS_ID));
-      if (found == end)
-      {
-        return 0;
-      }
-      const std::size_t footerOffset = found + sizeof(TS_ID) - sizeof(Footer) - dump.Data();
-      const Footer* const footer = safe_ptr_cast<const Footer*>(&dump[footerOffset]);
-      const std::size_t size1 = fromLE(footer->Size1);
-      const std::size_t size2 = fromLE(footer->Size2);
-      if (size1 + size2 <= footerOffset &&
-          size1 >= TS_MIN_SIZE && size2 >= TS_MIN_SIZE)
-      {
-        return footerOffset;
-      }
-      begin = found + ArraySize(TS_ID);
-    }
-  }
+  const std::string TS_FOOTER_FORMAT(
+    "%0xxxxxxx%0xxxxxxx%0xxxxxxx21"  // uint8_t ID1[4];//'PT3!' or other type
+    "?%00xxxxxx"                     // uint16_t Size1;
+    "%0xxxxxxx%0xxxxxxx%0xxxxxxx21"  // uint8_t ID2[4];//same
+    "?%00xxxxxx"                     // uint16_t Size2;
+    "30325453"                       // uint8_t ID3[4];//'02TS'
+  );
 
+  /////////////////////////////////////////////////////////////////////////////
   inline bool InvalidHolder(const Module::Holder& holder)
   {
     const uint_t caps = holder.GetPlugin()->Capabilities();
@@ -488,11 +466,119 @@ namespace
            0 != (caps & (CAP_DEVICE_MASK ^ CAP_DEV_AYM));
   }
 
-  //////////////////////////////////////////////////////////////////////////
-  class TSPlugin : public PlayerPlugin
-                  , public boost::enable_shared_from_this<TSPlugin>
+  class TSCreationResult : public ModuleCreationResult
   {
   public:
+    TSCreationResult(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr inputData)
+      : Plug(plugin)
+      , Parameters(parameters)
+      , Location(inputData)
+      , UsedSize(0)
+      , Lookahead(0)
+    {
+    }
+
+    virtual std::size_t GetMatchedDataSize() const
+    {
+      TryToCreate();
+      return UsedSize;
+    }
+
+    virtual std::size_t GetLookaheadOffset() const
+    {
+      TryToCreate();
+      return Lookahead;
+    }
+
+    virtual Module::Holder::Ptr GetModule() const
+    {
+      TryToCreate();
+      return Holder;
+    }
+  private:
+    void TryToCreate() const
+    {
+      if (UsedSize || Lookahead)
+      {
+        return;
+      }
+      const IO::DataContainer::Ptr data = Location->GetData();
+      const DataFormat::Ptr format = DataFormat::Create(TS_FOOTER_FORMAT);
+      const uint8_t* const rawData = static_cast<const uint8_t*>(data->Data());
+      const std::size_t size = data->Size();
+      const std::size_t footerOffset = format->Search(rawData, size);
+      //no footer in nearest data
+      if (footerOffset == size)
+      {
+        Lookahead = size;
+        return;
+      }
+      const Footer& footer = *safe_ptr_cast<const Footer*>(rawData + footerOffset);
+      const std::size_t firstModuleSize = fromLE(footer.Size1);
+      const std::size_t secondModuleSize = fromLE(footer.Size2);
+      const std::size_t totalModulesSize = firstModuleSize + secondModuleSize;
+      const std::size_t dataSize = footerOffset + sizeof(footer);
+      if (totalModulesSize != footerOffset)
+      {
+        Lookahead = totalModulesSize > footerOffset
+          ? dataSize
+          : size;
+        return;
+      }
+
+      try
+      {
+        const PluginsEnumerator::Ptr usedPlugins = PluginsEnumerator::Create();
+        const DataLocation::Ptr firstSubLocation = CreateNestedLocation(Location, data->GetSubcontainer(0, firstModuleSize));
+
+        const Module::Holder::Ptr holder1 = Module::Open(firstSubLocation, usedPlugins, Parameters);
+        if (InvalidHolder(*holder1))
+        {
+          Log::Debug(THIS_MODULE, "Invalid first module holder");
+          Lookahead = dataSize;
+          return;
+        }
+        const DataLocation::Ptr secondSubLocation = CreateNestedLocation(Location, data->GetSubcontainer(firstModuleSize, footerOffset - firstModuleSize));
+        const Module::Holder::Ptr holder2 = Module::Open(secondSubLocation, usedPlugins, Parameters);
+        if (InvalidHolder(*holder2))
+        {
+          Log::Debug(THIS_MODULE, "Failed to create second module holder");
+          Lookahead = dataSize;
+          return;
+        }
+        //try to create merged holder
+        const IO::DataContainer::Ptr rawData = data->GetSubcontainer(0, dataSize);
+        Holder.reset(new TSHolder(Plug, data, holder1, holder2));
+        //TODO: proper data attributes calculation
+        UsedSize = dataSize;
+      }
+      catch (const Error&)
+      {
+        Log::Debug(THIS_MODULE, "Failed to create holder");
+      }
+    }
+  private:
+    const PlayerPlugin::Ptr Plug;
+    const Parameters::Accessor::Ptr Parameters;
+    const DataLocation::Ptr Location;
+    mutable std::size_t UsedSize;
+    mutable std::size_t Lookahead;
+    mutable Module::Holder::Ptr Holder;
+  };
+
+
+
+  class TSPlugin : public PlayerPlugin
+                 , public boost::enable_shared_from_this<TSPlugin>
+  {
+  public:
+    typedef boost::shared_ptr<const TSPlugin> Ptr;
+
+    TSPlugin()
+      : FooterFormat(DataFormat::Create(TS_FOOTER_FORMAT))
+    {
+    }
+
     virtual String Id() const
     {
       return TS_PLUGIN_ID;
@@ -515,61 +601,29 @@ namespace
 
     virtual bool Check(const IO::DataContainer& inputData) const
     {
-      const IO::FastDump dump(inputData);
-      return FindFooter(dump, SEARCH_THRESHOLD) != 0;
+      const uint8_t* const rawData = static_cast<const uint8_t*>(inputData.Data());
+      const std::size_t size = inputData.Size();
+      const std::size_t footerOffset = FooterFormat->Search(rawData, size);
+      //no footer in nearest data
+      if (footerOffset == size)
+      {
+        return false;
+      }
+      const Footer& footer = *safe_ptr_cast<const Footer*>(rawData + footerOffset);
+      const std::size_t firstModuleSize = fromLE(footer.Size1);
+      const std::size_t secondModuleSize = fromLE(footer.Size2);
+      const std::size_t totalModulesSize = firstModuleSize + secondModuleSize;
+      return totalModulesSize == footerOffset;
     }
 
-    virtual Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
-                                             DataLocation::Ptr location,
-                                             std::size_t& usedSize) const
+    virtual ModuleCreationResult::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
+                                                   DataLocation::Ptr inputData) const
     {
-      const IO::DataContainer::Ptr data = location->GetData();
-      const IO::FastDump dump(*data);
-
-      const std::size_t footerOffset = FindFooter(dump, SEARCH_THRESHOLD);
-      assert(footerOffset);
-
-      const Footer* const footer = safe_ptr_cast<const Footer*>(dump.Data() + footerOffset);
-      const std::size_t firstModuleSize = fromLE(footer->Size1);
-
-      try
-      {
-        const PluginsEnumerator::Ptr usedPlugins = PluginsEnumerator::Create();
-        const DataLocation::Ptr firstSubLocation = CreateNestedLocation(location, data->GetSubcontainer(0, firstModuleSize));
-
-        const Module::Holder::Ptr holder1 = Module::Open(firstSubLocation, usedPlugins, parameters);
-        if (InvalidHolder(*holder1))
-        {
-          Log::Debug(THIS_MODULE, "Invalid first module holder");
-          return Module::Holder::Ptr();
-        }
-        const DataLocation::Ptr secondSubLocation = CreateNestedLocation(location, data->GetSubcontainer(firstModuleSize, footerOffset - firstModuleSize));
-        const Module::Holder::Ptr holder2 = Module::Open(secondSubLocation, usedPlugins, parameters);
-        if (InvalidHolder(*holder2))
-        {
-          Log::Debug(THIS_MODULE, "Failed to create second module holder");
-          return Module::Holder::Ptr();
-        }
-        //try to create merged holder
-        const Plugin::Ptr plugin = shared_from_this();
-        if (firstModuleSize + fromLE(footer->Size2) != footerOffset)
-        {
-          Log::Debug(THIS_MODULE, "Invalid footer structure");
-        }
-        const std::size_t dataSize = footerOffset + sizeof(*footer);
-        const IO::DataContainer::Ptr rawData = data->GetSubcontainer(0, dataSize);
-        const Module::Holder::Ptr holder(new TSHolder(plugin, rawData, holder1, holder2));
-        
-        //TODO: proper data attributes calculation calculation
-        usedSize = dataSize;
-        return holder;
-      }
-      catch (const Error&)
-      {
-        Log::Debug(THIS_MODULE, "Failed to create holder");
-      }
-      return Module::Holder::Ptr();
+      const TSPlugin::Ptr self = shared_from_this();
+      return boost::make_shared<TSCreationResult>(self, parameters, inputData);
     }
+  private:
+    const DataFormat::Ptr FooterFormat;
   };
 }
 

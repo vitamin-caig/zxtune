@@ -14,6 +14,7 @@ Author:
 #include "ay_conversion.h"
 #include "core/plugins/utils.h"
 #include "core/plugins/registrator.h"
+#include "core/plugins/players/creation_result.h"
 #include "core/plugins/players/module_properties.h"
 //common includes
 #include <byteorder.h>
@@ -582,13 +583,12 @@ namespace
       }
     }
   public:
-    ASCHolder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, std::size_t& usedSize)
+    ASCHolder(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr rawData, std::size_t& usedSize)
       : Data(ASCTrack::ModuleData::Create())
-      , Properties(ModuleProperties::Create(plugin, location))
+      , Properties(properties)
       , Info(CreateTrackInfo(Data, AYM::LOGICAL_CHANNELS, parameters, Properties))
     {
       //assume all data is correct
-      const IO::DataContainer::Ptr rawData = location->GetData();
       const IO::FastDump& data = IO::FastDump(*rawData);
 
       const ASCHeader* const header = safe_ptr_cast<const ASCHeader*>(&data[0]);
@@ -1132,11 +1132,24 @@ namespace
     return true;
   }
 
+  const std::string ASC_FORMAT(
+    "0x"            // uint8_t Tempo; 0..15
+    "?"             // uint8_t Loop; any byte
+    "?%00xxxxxx"    // uint16_t PatternsOffset; 0..3fff
+    "?%00xxxxxx"    // uint16_t SamplesOffset; 0..3fff
+    "?%00xxxxxx"    // uint16_t OrnamentsOffset; 0..3fff
+    "?"             // uint8_t Length; any byte
+    "%000xxxxx"     // uint8_t Positions[1]; 0..31
+  );
+
   //////////////////////////////////////////////////////////////////////////
   class ASCPlugin : public PlayerPlugin
+                  , public ModulesFactory
                   , public boost::enable_shared_from_this<ASCPlugin>
   {
   public:
+    typedef boost::shared_ptr<const ASCPlugin> Ptr;
+
     virtual String Id() const
     {
       return ASC_PLUGIN_ID;
@@ -1164,17 +1177,27 @@ namespace
       return CheckASCModule(data, limit);
     }
 
-    virtual Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
-                                             DataLocation::Ptr location,
-                                             std::size_t& usedSize) const
+    virtual ModuleCreationResult::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
+                                                   DataLocation::Ptr inputData) const
     {
-      const PlayerPlugin::Ptr plugin = shared_from_this();
+      const ASCPlugin::Ptr self = shared_from_this();
+      return CreateModuleFromLocation(self, self, parameters, inputData);
+    }
+  private:
+    virtual DataFormat::Ptr GetFormat() const
+    {
+      return DataFormat::Create(ASC_FORMAT);
+    }
+
+    virtual Holder::Ptr CreateModule(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize) const
+    {
+      if (!Check(*data))
+      {
+        return Holder::Ptr();
+      }
       try
       {
-        const Holder::Ptr holder(new ASCHolder(plugin, parameters, location, usedSize));
-#ifdef SELF_TEST
-        holder->CreatePlayer();
-#endif
+        const Holder::Ptr holder(new ASCHolder(properties, parameters, data, usedSize));
         return holder;
       }
       catch (const Error&/*e*/)

@@ -13,9 +13,9 @@ Author:
 #include "ay_base.h"
 #include "ay_conversion.h"
 #include "aym_parameters_helper.h"
-#include "core/plugins/detect_helper.h"
 #include "core/plugins/utils.h"
 #include "core/plugins/registrator.h"
+#include "core/plugins/players/creation_result.h"
 #include "core/plugins/players/module_properties.h"
 //common includes
 #include <byteorder.h>
@@ -57,173 +57,6 @@ namespace
   const uint_t MAX_ORNAMENTS_COUNT = 16;
   const uint_t MAX_ORNAMENT_SIZE = 64;
 
-  //checkers
-  static const DataPrefixChecker PLAYERS[] =
-  {
-    //PT3.4 without signatures
-    DataPrefixChecker
-    (
-      "21??"    // ld hl,xxxx
-      "18?"     // jr xx
-      "c3??"    // jp xxxx
-      "f3"      // di
-      "ed73??"  // ld (xxxx),sp
-      "22??"    // ld (xxxx),hl
-      "e5"      // push hl
-      "01??"    // ld bc,xxxx(0x63)
-      "09"      // add hl,bc
-      ,
-      3559
-    ),
-    //PT3x
-    DataPrefixChecker
-    (
-      "21??"    // ld hl,xxxx
-      "18?"     // jr xx
-      "c3??"    // jp xxxx
-      "c3+35+"  // jp xx:ds 33
-      "f3"      // di
-      "22??"    // ld (xxxx),hl
-      "22??"
-      "22??"
-      "22??"
-      "016400"  // ld bc,0x64
-      "09"      // add hl,bc
-      ,
-      3617
-    ),
-    //PT3.5x
-    DataPrefixChecker
-    (
-      "21??"    // ld hl,xxxx
-      "18?"     // jr xx
-      "c3??"    // jp xxxx
-      "c3+37+"  // jp xx:ds 35
-      "f3"      // di
-      "ed73??"  // ld (xxxx),sp
-      "22??"    // ld (xxxx),hl
-      "22??"
-      "22??"
-      "22??"
-      "016400"  // ld bc,0x64
-      "09"      // add hl,bc
-      ,
-      3462
-    ),
-    //PT3.5 without player text
-    DataPrefixChecker
-    (
-      "21??"    // ld hl,xxxx
-      "18?"     // jr xx
-      "c3??"    // jp xxxx
-      "18?"     // jr xx
-      "f3"      // di
-      "ed73??"  // ld (xxxx),sp
-      "22??"    // ld (xxxx),hl
-      "44"      // ld b,h
-      "4d"      // ld c,l
-      "11??"    // ld de,xxxx
-      "19"      // add hl,de
-      "7e"      // ld a,(hl)
-      "23"      // inc hl
-      "32??"    // ld (xxxx),a
-      "f9"      // ld sp,hl
-      "19"      // add hl,de
-      "22??"    // ld (xxxx),hl
-      "f1"      // pop af
-      "5f"      // ld e,a
-      "19"      // add hl,de
-      "22??"    // ld (xxxx),hl
-      "e1"      // pop hl
-      "09"      // add hl,bc
-      ,
-      0xc89
-    ),
-    //Vortex1
-    DataPrefixChecker
-    (
-      "21??"    // ld hl,xxxx
-      "18?"     // jr xx
-      "c3??"    // jp xxxx
-      "18+25+"  // jr xx:ds 24
-      "21??"    // ld hl,xxxx
-      "cbfe"    // set 7,(hl)
-      "cb46"    // bit 0,(hl)
-      "c8"      // ret z
-      "e1"      // pop hl
-      "21??"    // ld hl,xxxx
-      "34"      // inc (hl)
-      "21??"    // ld hl,xxxx
-      "34"      // inc (hl)
-      "af"      // xor a
-      "67"      // ld h,a
-      "6f"      // ld l,a
-      "32??"    // ld (xxxx),a
-      "22??"    // ld (xxxx),hl
-      "c3"      // jp xxxx
-      ,
-      0x86e
-    ),
-    //Vortex2
-    DataPrefixChecker
-    (
-      "21??"    // ld hl,xxxx
-      "18?"     // jr xx
-      "c3??"    // jp xxxx
-      "18?"     // jr xx
-      "?"       // db xx
-      "f3"      // di
-      "ed73??"  // ld (xxxx),sp
-      "22??"    // ld (xxxx),hl
-      "44"      // ld b,h
-      "4d"      // ld c,l
-      "11??"    // ld de,xxxx
-      "19"      // add hl,de
-      "7e"      // ld a,(hl)
-      "23"      // inc hl
-      "32??"    // ld (xxxx),a
-      "f9"      // ld sp,hl
-      "19"      // add hl,de
-      "22??"    // ld (xxxx),hl
-      "f1"      // pop af
-      "5f"      // ld e,a
-      "19"      // add hl,de
-      "22??"    // ld (xxxx),hl
-      "e1"      // pop hl
-      "09"      // add hl,bc
-      ,
-      0xc00
-    ),
-    //Vortex1.0
-    DataPrefixChecker
-    (
-      "21??"    // ld hl,xxxx
-      "18?"     // jr xx
-      "c3??"    // jp xxxx
-      "18?"     // jr xx
-      "f3"      // di
-      "ed73??"  // ld (xxxx),sp
-      "22??"    // ld (xxxx),hl
-      "44"      // ld b,h
-      "4d"      // ld c,l
-      "11??"    // ld de,xxxx
-      "19"      // add hl,de
-      "7e"      // ld a,(hl)
-      "23"      // inc hl
-      "32??"    // ld (xxxx),hl
-      "f9"      // ld sp,hl
-      "19"      // add hl,de
-      "22??"    // ld (xxxx),hl
-      "f1"      // pop af
-      "5f"      // ld e,a
-      "19"      // add hl,de
-      "22??"    // ld (xxxx),hl
-      "e1"      // pop hl
-      "09"      // add hl,bc
-      ,
-      0xc00
-    )
-  };
   //////////////////////////////////////////////////////////////////////////
   //possible values for Mode field
   const uint_t AY_TRACK = 0x20;
@@ -638,15 +471,14 @@ namespace
       }
     }
   public:
-    PT3Holder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, Vortex::Track::ModuleData::RWPtr moduleData,
-      DataLocation::Ptr location, unsigned logicalChannels, std::size_t& usedSize)
+    PT3Holder(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, Vortex::Track::ModuleData::RWPtr moduleData,
+      IO::DataContainer::Ptr rawData, unsigned logicalChannels, std::size_t& usedSize)
       : Data(moduleData)
-      , Properties(ModuleProperties::Create(plugin, location))
+      , Properties(properties)
       , Info(CreateTrackInfo(Data, logicalChannels, parameters, Properties))
       , Version()
     {
       //assume all data is correct
-      const IO::DataContainer::Ptr rawData = location->GetData();
       const IO::FastDump& data = IO::FastDump(*rawData);
       const PT3Header* const header(safe_ptr_cast<const PT3Header*>(&data[0]));
 
@@ -824,8 +656,8 @@ namespace
   class PT3TSHolder : public PT3Holder
   {
   public:
-    PT3TSHolder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, uint_t patOffset, DataLocation::Ptr location, std::size_t& usedSize)
-      : PT3Holder(plugin, parameters, boost::make_shared<TSModuleData>(patOffset), location, AYM::LOGICAL_CHANNELS * 2, usedSize)
+    PT3TSHolder(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, uint_t patOffset, IO::DataContainer::Ptr rawData, std::size_t& usedSize)
+      : PT3Holder(properties, parameters, boost::make_shared<TSModuleData>(patOffset), rawData, AYM::LOGICAL_CHANNELS * 2, usedSize)
       , PatOffset(patOffset)
     {
     }
@@ -935,10 +767,9 @@ namespace
     return true;
   }
 
-  uint_t GetTSModulePatternOffset(const DataLocation& location)
+  uint_t GetTSModulePatternOffset(const IO::DataContainer& rawData)
   {
-    const IO::DataContainer::Ptr rawData = location.GetData();
-    const IO::FastDump& data = IO::FastDump(*rawData);
+    const IO::FastDump& data = IO::FastDump(rawData);
     const PT3Header* const header(safe_ptr_cast<const PT3Header*>(&data[0]));
     const uint_t patOffset = header->Mode;
     const uint_t patternsCount = 1 + *std::max_element(header->Positions, header->Positions + header->Length) / 3;
@@ -947,12 +778,38 @@ namespace
       : AY_TRACK;
   }
 
+  const std::string PT3_FORMAT(
+    "+13+"       // uint8_t Id[13];        //'ProTracker 3.'
+    "?"          // uint8_t Subversion;
+    "+16+"       // uint8_t Optional1[16]; //' compilation of '
+    "+32+"       // char TrackName[32];
+    "+4+"        // uint8_t Optional2[4]; //' by '
+    "+32+"       // char TrackAuthor[32];
+    "?"          // uint8_t Mode;
+    "0x"         // uint8_t FreqTableNum;
+    "?"          // uint8_t Tempo;
+    "?"          // uint8_t Length;
+    "?"          // uint8_t Loop;
+    "?%00xxxxxx" // uint16_t PatternsOffset;
+    //boost::array<uint16_t, MAX_SAMPLES_COUNT> SamplesOffsets;
+    "?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx"
+    "?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx"
+    "?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx"
+    "?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx"
+    //boost::array<uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
+    "?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx"
+    "?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx"
+    "%0xxxxxxx"  //uint8_t Positions[1]; //finished by marker
+  );
+
   //////////////////////////////////////////////////////////////////////////
   class PT3Plugin : public PlayerPlugin
+                  , public ModulesFactory
                   , public boost::enable_shared_from_this<PT3Plugin>
-                  , private ModuleDetector
   {
   public:
+    typedef boost::shared_ptr<const PT3Plugin> Ptr;
+
     virtual String Id() const
     {
       return PT3_PLUGIN_ID;
@@ -976,38 +833,34 @@ namespace
 
     virtual bool Check(const IO::DataContainer& inputData) const
     {
-      return CheckDataFormat(*this, inputData);
+      return CheckPT3Module(static_cast<const uint8_t*>(inputData.Data()), inputData.Size());
     }
 
-    Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, std::size_t& usedSize) const
+    virtual ModuleCreationResult::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
+                                                   DataLocation::Ptr inputData) const
     {
-      return CreateModuleFromData(*this, parameters, location, usedSize);
+      const PT3Plugin::Ptr self = shared_from_this();
+      return CreateModuleFromLocation(self, self, parameters, inputData);
     }
   private:
-    virtual DataPrefixIterator GetPrefixes() const
+    virtual DataFormat::Ptr GetFormat() const
     {
-      return DataPrefixIterator(PLAYERS, ArrayEnd(PLAYERS));
+      return DataFormat::Create(PT3_FORMAT);
     }
 
-    virtual bool CheckData(const uint8_t* data, std::size_t size) const
+    virtual Holder::Ptr CreateModule(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize) const
     {
-      return CheckPT3Module(data, size);
-    }
-
-    virtual Holder::Ptr TryToCreateModule(Parameters::Accessor::Ptr parameters,
-      DataLocation::Ptr location, std::size_t& usedSize) const
-    {
-      const PlayerPlugin::Ptr plugin = shared_from_this();
+      if (!Check(*data))
+      {
+        return Holder::Ptr();
+      }
       try
       {
-        const uint_t tsPatternOffset = GetTSModulePatternOffset(*location);
+        const uint_t tsPatternOffset = GetTSModulePatternOffset(*data);
         const bool isTSModule = AY_TRACK != tsPatternOffset;
         const Holder::Ptr holder = isTSModule
-          ? Holder::Ptr(new PT3TSHolder(plugin, parameters, tsPatternOffset, location, usedSize))
-          : Holder::Ptr(new PT3Holder(plugin, parameters, Vortex::Track::ModuleData::Create(), location, AYM::LOGICAL_CHANNELS, usedSize));
-#ifdef SELF_TEST
-        holder->CreatePlayer();
-#endif
+          ? Holder::Ptr(new PT3TSHolder(properties, parameters, tsPatternOffset, data, usedSize))
+          : Holder::Ptr(new PT3Holder(properties, parameters, Vortex::Track::ModuleData::Create(), data, AYM::LOGICAL_CHANNELS, usedSize));
         return holder;
       }
       catch (const Error&/*e*/)

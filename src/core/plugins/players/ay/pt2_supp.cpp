@@ -12,10 +12,10 @@ Author:
 //local includes
 #include "ay_base.h"
 #include "ay_conversion.h"
-#include <core/plugins/detect_helper.h>
-#include <core/plugins/utils.h>
-#include <core/plugins/registrator.h>
-#include <core/plugins/players/module_properties.h>
+#include "core/plugins/utils.h"
+#include "core/plugins/registrator.h"
+#include "core/plugins/players/creation_result.h"
+#include "core/plugins/players/module_properties.h"
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
@@ -53,72 +53,6 @@ namespace
   const std::size_t MAX_MODULE_SIZE = 16384;
   const uint_t MAX_PATTERN_SIZE = 64;
   const uint_t MAX_PATTERN_COUNT = 64;//TODO
-
-  //checkers
-  const DataPrefixChecker PLAYERS[] =
-  {
-    //PT20
-    DataPrefixChecker
-    (
-      "21??"    // ld hl,xxxx
-      "c3??"    // jp xxxx
-      "c3+563+" // jp xxxx:ds 561
-      "f3"      // di
-      "e5"      // push hl
-      "22??"    // ld (xxxx),hl
-      "e5"      // push hl
-      "7e"      // ld a,(hl)
-      "32??"    // ld (xxxx),a
-      "32??"    // ld (xxxx),a
-      "23"      // inc hl
-      "23"      // inc hl
-      "7e"      // ld a,(hl)
-      "23"      // inc hl
-      "22??"    // ld (xxxx),hl
-      "11??"    // ld de,xxxx(32)
-      "19"      // add hl,de
-      "19"      // add hl,de
-      "22??"    // ld (xxxx),hl
-      "19"      // add hl,de
-      "5e"      // ld e,(hl)
-      "23"      // inc hl
-      "56"      // ld d,(hl)
-      "23"      // inc hl
-      "01??"    // ld bc,xxxx(30)
-      "09"      // add hl,bc
-      ,
-      2591
-    ),
-    //PT21
-    DataPrefixChecker
-    (
-      "21??"    // ld hl,xxxx
-      "c3??"    // jp xxxx
-      "c3+14+"  // jp xxxx
-                // ds 12
-      "322e31"
-      ,
-      0xa2f
-    ),
-    //PT24
-    DataPrefixChecker
-    (
-      "21??"    // ld hl,xxxx
-      "1803"    // jr $+3
-      "c3??"    // jp xxxx
-      "f3"      // di
-      "e5"      // push hl
-      "7e"      // ld a,(hl)
-      "32??"    // ld (xxxx),a
-      "32??"    // ld (xxxx),a
-      "23"      // inc hl
-      "23"      // inc hl
-      "7e"      // ld a,(hl)
-      "23"      // inc hl
-      ,
-      2629
-    )
-  };
 
   //////////////////////////////////////////////////////////////////////////
 #ifdef USE_PRAGMA_PACK
@@ -458,13 +392,12 @@ namespace
     }
 
   public:
-    PT2Holder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, std::size_t& usedSize)
+    PT2Holder(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr rawData, std::size_t& usedSize)
       : Data(PT2Track::ModuleData::Create())
-      , Properties(ModuleProperties::Create(plugin, location))
+      , Properties(properties)
       , Info(CreateTrackInfo(Data, AYM::LOGICAL_CHANNELS, parameters, Properties))
     {
       //assume all data is correct
-      const IO::DataContainer::Ptr rawData = location->GetData();
       const IO::FastDump& data = IO::FastDump(*rawData);
       const PT2Header* const header = safe_ptr_cast<const PT2Header*>(&data[0]);
       const PT2Pattern* patterns = safe_ptr_cast<const PT2Pattern*>(&data[fromLE(header->PatternsOffset)]);
@@ -871,12 +804,31 @@ namespace
     return true;
   }
 
+  const std::string PT2_FORMAT(
+    "0x"          // uint8_t Tempo; 1..15
+    "?"          // uint8_t Length;
+    "?"          // uint8_t Loop;
+    //boost::array<uint16_t, 32> SamplesOffsets;
+    "?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx"
+    "?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx"
+    "?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx"
+    "?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx"
+    //boost::array<uint16_t, 16> OrnamentsOffsets;
+    "?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx"
+    "?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx"
+    "?%00xxxxxx" // uint16_t PatternsOffset;
+    "+30+"       // char Name[30];
+    "%0xxxxxxx"  // uint8_t Positions[1];
+  );
+
   //////////////////////////////////////////////////////////////////////////
   class PT2Plugin : public PlayerPlugin
+                  , public ModulesFactory
                   , public boost::enable_shared_from_this<PT2Plugin>
-                  , private ModuleDetector
   {
   public:
+    typedef boost::shared_ptr<const PT2Plugin> Ptr;
+
     virtual String Id() const
     {
       return PT2_PLUGIN_ID;
@@ -899,34 +851,30 @@ namespace
 
     virtual bool Check(const IO::DataContainer& inputData) const
     {
-      return CheckDataFormat(*this, inputData);
+      return CheckPT2Module(static_cast<const uint8_t*>(inputData.Data()), inputData.Size());
     }
 
-    Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, std::size_t& usedSize) const
+    virtual ModuleCreationResult::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
+                                                   DataLocation::Ptr inputData) const
     {
-      return CreateModuleFromData(*this, parameters, location, usedSize);
+      const PT2Plugin::Ptr self = shared_from_this();
+      return CreateModuleFromLocation(self, self, parameters, inputData);
     }
   private:
-    virtual DataPrefixIterator GetPrefixes() const
+    virtual DataFormat::Ptr GetFormat() const
     {
-      return DataPrefixIterator(PLAYERS, ArrayEnd(PLAYERS));
+      return DataFormat::Create(PT2_FORMAT);
     }
 
-    virtual bool CheckData(const uint8_t* data, std::size_t size) const
+    virtual Holder::Ptr CreateModule(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize) const
     {
-      return CheckPT2Module(data, size);
-    }
-
-    virtual Holder::Ptr TryToCreateModule(Parameters::Accessor::Ptr parameters,
-      DataLocation::Ptr location, std::size_t& usedSize) const
-    {
-      const PlayerPlugin::Ptr plugin = shared_from_this();
+      if (!Check(*data))
+      {
+        return Holder::Ptr();
+      }
       try
       {
-        const Holder::Ptr holder(new PT2Holder(plugin, parameters, location, usedSize));
-#ifdef SELF_TEST
-        holder->CreatePlayer();
-#endif
+        const Holder::Ptr holder(new PT2Holder(properties, parameters, data, usedSize));
         return holder;
       }
       catch (const Error&/*e*/)

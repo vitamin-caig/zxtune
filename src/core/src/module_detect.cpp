@@ -142,9 +142,10 @@ namespace
           continue;
         }
         const Parameters::Accessor::Ptr moduleParams = Callback.CreateModuleParameters(*Location);
-        std::size_t usedSize = 0;
-        if (Module::Holder::Ptr module = plugin->CreateModule(moduleParams, Location, usedSize))
+        const ModuleCreationResult::Ptr result = plugin->CreateModule(moduleParams, Location);
+        if (Module::Holder::Ptr module = result->GetModule())
         {
+          const std::size_t usedSize = result->GetMatchedDataSize();
           Log::Debug(THIS_MODULE, "Detected %1% in %2% bytes at %3%.", plugin->Id(), usedSize, Location->GetPath());
           ThrowIfError(Callback.ProcessModule(*Location, module));
           return usedSize;

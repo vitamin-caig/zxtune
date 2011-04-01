@@ -13,8 +13,9 @@ Author:
 #include "ay_conversion.h"
 #include "vortex_io.h"
 #include "aym_parameters_helper.h"
-#include <core/plugins/registrator.h>
-#include <core/plugins/players/module_properties.h>
+#include "core/plugins/registrator.h"
+#include "core/plugins/players/creation_result.h"
+#include "core/plugins/players/module_properties.h"
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
@@ -51,24 +52,29 @@ namespace
   const std::size_t MIN_MODULE_SIZE = 256;
   const std::size_t MAX_MODULE_SIZE = 524288;//512k is more than enough
 
-  const char TXT_MODULE_ID[] = {'[', 'M', 'o', 'd', 'u', 'l', 'e', ']'};
-
   ////////////////////////////////////////////
+  inline bool CheckSymbol(char sym)
+  {
+    return !(sym >= ' ' || sym == '\r' || sym == '\n');
+  }
+  
   class TXTHolder : public Holder
   {
   public:
-    TXTHolder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, std::size_t usedSize)
+    TXTHolder(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize)
       : Data(Vortex::Track::ModuleData::Create())
-      , Properties(ModuleProperties::Create(plugin, location))
+      , Properties(properties)
       , Info(CreateTrackInfo(Data, AYM::LOGICAL_CHANNELS, parameters, Properties))
     {
-      const IO::DataContainer::Ptr rawData = location->GetData();
-      const char* const dataIt = static_cast<const char*>(rawData->Data());
-      const char* const endIt = dataIt + usedSize;
+      const std::size_t dataSize = data->Size();
+      const char* const rawData = static_cast<const char*>(data->Data());
+      const char* const dataEnd = std::find_if(rawData, rawData + std::min(MAX_MODULE_SIZE, dataSize), &CheckSymbol);
+      const std::size_t limit = dataEnd - rawData;
 
-      ThrowIfError(Vortex::ConvertFromText(std::string(dataIt, endIt),
+      ThrowIfError(Vortex::ConvertFromText(std::string(rawData, dataEnd),
         *Data, *Properties, Version, FreqTableName));
 
+      usedSize = limit;
       //meta properties
       //TODO: calculate fixed data in ConvertFromText
       Properties->SetSource(usedSize, ModuleRegion(0, usedSize));
@@ -117,28 +123,23 @@ namespace
     String FreqTableName;
   };
 
-  //////////////////////////////////////////////////////////////////////////
-  inline bool CheckSymbol(char sym)
-  {
-    return !(sym >= ' ' || sym == '\r' || sym == '\n');
-  }
-  
-  bool CheckTXT(const IO::DataContainer& inputData)
-  {
-    const std::size_t dataSize = inputData.Size();
-    const char* const data = static_cast<const char*>(inputData.Data());
-    if (dataSize < sizeof(TXT_MODULE_ID) ||
-        0 != std::memcmp(data, TXT_MODULE_ID, sizeof(TXT_MODULE_ID)))
-    {
-      return false;
-    }
-    return true;
-  }
+  const std::string TXT_FORMAT(
+    "5b4d6f64756c655d" //[Module]
+  );
 
+  //////////////////////////////////////////////////////////////////////////
   class TXTPlugin : public PlayerPlugin
+                  , public ModulesFactory
                   , public boost::enable_shared_from_this<TXTPlugin>
   {
   public:
+    typedef boost::shared_ptr<const TXTPlugin> Ptr;
+
+    TXTPlugin()
+      : Format(DataFormat::Create(TXT_FORMAT))
+    {
+    }
+
     virtual String Id() const
     {
       return TXT_PLUGIN_ID;
@@ -162,42 +163,40 @@ namespace
 
     virtual bool Check(const IO::DataContainer& inputData) const
     {
-      return CheckTXT(inputData);
+      return Format->Match(inputData.Data(), inputData.Size());
     }
     
-    virtual Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
-                                             DataLocation::Ptr location,
-                                             std::size_t& usedSize) const
+    virtual ModuleCreationResult::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
+                                                   DataLocation::Ptr inputData) const
     {
-      const IO::DataContainer::Ptr data = location->GetData();
-      const std::size_t dataSize = data->Size();
-      const char* const rawData = static_cast<const char*>(data->Data());
-      assert(CheckTXT(*data));
-      
-      const char* const dataEnd = std::find_if(rawData, rawData + std::min(MAX_MODULE_SIZE, dataSize), &CheckSymbol);
-      const std::size_t limit = dataEnd - rawData;
+      const TXTPlugin::Ptr self = shared_from_this();
+      return CreateModuleFromLocation(self, self, parameters, inputData);
+    }
+  private:
+    virtual DataFormat::Ptr GetFormat() const
+    {
+      return Format;
+    }
 
-      if (limit < MIN_MODULE_SIZE)
+    virtual Holder::Ptr CreateModule(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize) const
+    {
+      if (data->Size() < MIN_MODULE_SIZE || !Check(*data))
       {
-        return Module::Holder::Ptr();
+        return Holder::Ptr();
       }
-
       try
       {
-        const PlayerPlugin::Ptr plugin = shared_from_this();
-        const Module::Holder::Ptr holder(new TXTHolder(plugin, parameters, location, limit));
-    #ifdef SELF_TEST
-        holder->CreatePlayer();
-    #endif
-        usedSize = limit;
+        const Holder::Ptr holder(new TXTHolder(properties, parameters, data, usedSize));
         return holder;
       }
       catch (const Error& e)
       {
         Log::Debug("Core::TXTSupp", "Failed to create holder ('%1%')", e.GetText());
       }
-      return Module::Holder::Ptr();
+      return Holder::Ptr();
     }
+  private:
+    const DataFormat::Ptr Format;
   };
 }
 

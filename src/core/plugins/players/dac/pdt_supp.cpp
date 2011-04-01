@@ -12,9 +12,10 @@ Author:
 //local includes
 #include "../tracking.h"
 #include "dac_base.h"
-#include <core/plugins/registrator.h>
-#include <core/plugins/utils.h>
-#include <core/plugins/players/module_properties.h>
+#include "core/plugins/registrator.h"
+#include "core/plugins/utils.h"
+#include "core/plugins/players/creation_result.h"
+#include "core/plugins/players/module_properties.h"
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
@@ -294,14 +295,12 @@ namespace
     }
 
   public:
-    PDTHolder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters,
-      DataLocation::Ptr location, std::size_t& usedSize)
+    PDTHolder(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr rawData, std::size_t& usedSize)
       : Data(PDTTrack::ModuleData::Create())
-      , Properties(ModuleProperties::Create(plugin, location))
+      , Properties(properties)
       , Info(CreateTrackInfo(Data, CHANNELS_COUNT, parameters, Properties))
     {
       //assume that data is ok
-      const IO::DataContainer::Ptr rawData = location->GetData();
       const IO::FastDump& data(*rawData);
       const PDTHeader* const header(safe_ptr_cast<const PDTHeader*>(data.Data()));
 
@@ -651,10 +650,28 @@ namespace
     return true;
   }
 
+  const std::string PDT_FORMAT(
+    //boost::array<PDTOrnament, ORNAMENTS_COUNT> Ornaments;
+    "%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0"
+    "%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0"
+    "%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0"
+    "%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0"
+    "%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0"
+    "%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0"
+    "%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0"
+    "%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0"
+    "%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0"
+    "%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0"
+    "%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0"
+  );
+
   class PDTPlugin : public PlayerPlugin
+                  , public ModulesFactory
                   , public boost::enable_shared_from_this<PDTPlugin>
   {
   public:
+    typedef boost::shared_ptr<const PDTPlugin> Ptr;
+
     virtual String Id() const
     {
       return PDT_PLUGIN_ID;
@@ -680,25 +697,34 @@ namespace
       return CheckPDT(inputData);
     }
 
-    virtual Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
-                                             DataLocation::Ptr location,
-                                             std::size_t& usedSize) const
+    virtual ModuleCreationResult::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
+                                                   DataLocation::Ptr inputData) const
     {
-      //try to create holder
+      const PDTPlugin::Ptr self = shared_from_this();
+      return CreateModuleFromLocation(self, self, parameters, inputData);
+    }
+  private:
+    virtual DataFormat::Ptr GetFormat() const
+    {
+      return DataFormat::Create(PDT_FORMAT);
+    }
+
+    virtual Holder::Ptr CreateModule(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize) const
+    {
+      if (!Check(*data))
+      {
+        return Holder::Ptr();
+      }
       try
       {
-        const PlayerPlugin::Ptr plugin = shared_from_this();
-        const Module::Holder::Ptr holder(new PDTHolder(plugin, parameters, location, usedSize));
-  #ifdef SELF_TEST
-        holder->CreatePlayer();
-  #endif
+        const Holder::Ptr holder(new PDTHolder(properties, parameters, data, usedSize));
         return holder;
       }
       catch (const Error&/*e*/)
       {
         Log::Debug("Core::PDTSupp", "Failed to create holder");
       }
-      return Module::Holder::Ptr();
+      return Holder::Ptr();
     }
   };
 }

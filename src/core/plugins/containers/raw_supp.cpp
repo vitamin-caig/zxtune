@@ -336,6 +336,7 @@ namespace
 
     explicit RawDetectionPlugins(PluginsEnumerator::Ptr parent)
       : Parent(parent)
+      , Players(parent->EnumeratePlayers())
       , Archives(parent->EnumerateArchives())
       , Containers(parent->EnumerateContainers())
     {
@@ -349,7 +350,7 @@ namespace
 
     virtual PlayerPlugin::Iterator::Ptr EnumeratePlayers() const
     {
-      return Parent->EnumeratePlayers();
+      return Players.Enumerate();
     }
 
     virtual ArchivePlugin::Iterator::Ptr EnumerateArchives() const
@@ -366,15 +367,18 @@ namespace
     {
       Containers.SetOffset(offset);
       Archives.SetOffset(offset);
+      Players.SetOffset(offset);
     }
 
     void SetPluginLookahead(Plugin::Ptr plugin, std::size_t lookahead)
     {
-      Containers.SetPluginLookahead(plugin, lookahead) ||
-      Archives.SetPluginLookahead(plugin, lookahead);
+      Players.SetPluginLookahead(plugin, lookahead) ||
+      Archives.SetPluginLookahead(plugin, lookahead) ||
+      Containers.SetPluginLookahead(plugin, lookahead);
     }
   private:
     const PluginsEnumerator::Ptr Parent;
+    LookaheadPluginsStorage<PlayerPlugin> Players;
     LookaheadPluginsStorage<ArchivePlugin> Archives;
     LookaheadPluginsStorage<ContainerPlugin> Containers;
   };
@@ -409,8 +413,8 @@ namespace
 
     virtual std::size_t ProcessArchives() const
     {
-      const Parameters::Accessor::Ptr params = Callback.GetPluginsParameters();
-      const IO::DataContainer::Ptr data = Location->GetData();
+      const Parameters::Accessor::Ptr params = GetPluginParams();
+      const IO::DataContainer::Ptr data = GetData();
       for (ArchivePlugin::Iterator::Ptr iter = Plugins.EnumerateArchives(); iter->IsValid(); iter->Next())
       {
         const ArchivePlugin::Ptr plugin = iter->Get();
@@ -433,13 +437,59 @@ namespace
 
     virtual std::size_t ProcessModules() const
     {
-      return Delegate->ProcessModules();
+      for (PlayerPlugin::Iterator::Ptr iter = Plugins.EnumeratePlayers(); iter->IsValid(); iter->Next())
+      {
+        const PlayerPlugin::Ptr plugin = iter->Get();
+        const Parameters::Accessor::Ptr moduleParams = GetModuleParams();
+        const ModuleCreationResult::Ptr result = plugin->CreateModule(moduleParams, Location);
+        if (Module::Holder::Ptr module = result->GetModule())
+        {
+          const std::size_t usedSize = result->GetMatchedDataSize();
+          Log::Debug(THIS_MODULE, "Detected %1% in %2% bytes at %3%.", plugin->Id(), usedSize, Location->GetPath());
+          ThrowIfError(Callback.ProcessModule(*Location, module));
+          return usedSize;
+        }
+        const std::size_t lookahead = result->GetLookaheadOffset();
+        Plugins.SetPluginLookahead(plugin, std::max<std::size_t>(lookahead, MIN_SCAN_STEP));
+        //TODO: dispatch heavy checks- return false if not enabled
+      }
+      return 0;
+    }
+  private:
+    Parameters::Accessor::Ptr GetPluginParams() const
+    {
+      if (!ModuleParams)
+      {
+        PluginsParams = Callback.GetPluginsParameters();
+      }
+      return PluginsParams;
+    }
+
+    IO::DataContainer::Ptr GetData() const
+    {
+      if (!RawData)
+      {
+        RawData = Location->GetData();
+      }
+      return RawData;
+    }
+
+    Parameters::Accessor::Ptr GetModuleParams() const
+    {
+      if (!ModuleParams)
+      {
+        ModuleParams = Callback.CreateModuleParameters(*Location);
+      }
+      return ModuleParams;
     }
   private:
     RawDetectionPlugins& Plugins;
     const DataProcessor::Ptr Delegate;
     const DataLocation::Ptr Location;
     const Module::DetectCallback& Callback;
+    mutable Parameters::Accessor::Ptr PluginsParams;
+    mutable Parameters::Accessor::Ptr ModuleParams;
+    mutable IO::DataContainer::Ptr RawData;
   };
 
   class RawScaner : public ContainerPlugin

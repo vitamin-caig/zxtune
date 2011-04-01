@@ -12,9 +12,9 @@ Author:
 //local includes
 #include "ay_base.h"
 #include "ay_conversion.h"
-#include "core/plugins/detect_helper.h"
 #include "core/plugins/utils.h"
 #include "core/plugins/registrator.h"
+#include "core/plugins/players/creation_result.h"
 #include "core/plugins/players/module_properties.h"
 //common includes
 #include <byteorder.h>
@@ -58,35 +58,6 @@ namespace
   const uint_t MAX_ORNAMENT_SIZE = 32;
   const uint_t MAX_SAMPLE_SIZE = 32;
 
-  //detectors
-  const DataPrefixChecker PLAYERS[] =
-  {
-    //STP0
-    DataPrefixChecker
-    (
-      "21??"    // ld hl,xxxx
-      "c3??"    // jp xxxx
-      "c3??"    // jp xxxx
-      "ed4b??"  // ld bc,(xxxx)
-      "c3??"    // jp xxxx
-      "+62+"    // id+name
-      "f3"      // di
-      "22??"    // ld (xxxx),hl
-      "3e?"     // ld a,xx
-      "32??"    // ld (xxxx),a
-      "32??"    // ld (xxxx),a
-      "32??"    // ld (xxxx),a
-      "7e"      // ld a,(hl)
-      "23"      // inc hl
-      "32??"    // ld (xxxx),a
-      "cd??"    // call xxxx
-      "7e"      // ld a,(hl)
-      "32??"    // ld (xxxx),a
-      "23"      // inc hl
-      ,
-      1896
-    )
-  };
   //////////////////////////////////////////////////////////////////////////
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -639,13 +610,12 @@ namespace
   class STPHolder : public Holder
   {
   public:
-    STPHolder(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, std::size_t& usedSize)
+    STPHolder(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr rawData, std::size_t& usedSize)
       : Data(boost::make_shared<STPModuleData>())
-      , Properties(ModuleProperties::Create(plugin, location))
+      , Properties(properties)
       , Info(CreateTrackInfo(Data, AYM::LOGICAL_CHANNELS, parameters, Properties))
     {
       //assume that data is ok
-      const IO::DataContainer::Ptr rawData = location->GetData();
       const IO::FastDump& data = IO::FastDump(*rawData, 0, MAX_MODULE_SIZE);
       const STPAreas areas(data);
 
@@ -1066,12 +1036,38 @@ namespace
     return true;
   }
 
-  //////////////////////////////////////////////////////////////////////////
-  class STPPlugin : public PlayerPlugin
-                  , public boost::enable_shared_from_this<STPPlugin>
-                  , private ModuleDetector
+  const std::string STP_FORMAT(
+    "0x"         // uint8_t Tempo; 0..15
+    "?%00xxxxxx" // uint16_t PositionsOffset; 0..3fff
+    "?%00xxxxxx" // uint16_t PatternsOffset; 0..3fff
+    "?%00xxxxxx" // uint16_t OrnamentsOffset; 0..3fff
+    "?%00xxxxxx" // uint16_t SamplesOffset; 0..3fff
+  );
+
+  class STPFormat : public DataFormat
   {
   public:
+    virtual bool Match(const void* data, std::size_t size) const
+    {
+      return CheckSTPModule(static_cast<const uint8_t*>(data), size);
+    }
+
+    virtual std::size_t Search(const void* data, std::size_t size) const
+    {
+      //TODO: more precise matching
+      const uint8_t* const rawData = static_cast<const uint8_t*>(data);
+      return std::find_if(rawData, rawData + size, boost::bind(&in_range<uint8_t>, _1, 1, 15)) - rawData;
+    }
+  };
+
+  //////////////////////////////////////////////////////////////////////////
+  class STPPlugin : public PlayerPlugin
+                  , public ModulesFactory
+                  , public boost::enable_shared_from_this<STPPlugin>
+  {
+  public:
+    typedef boost::shared_ptr<const STPPlugin> Ptr;
+
     virtual String Id() const
     {
       return STP_PLUGIN_ID;
@@ -1094,34 +1090,30 @@ namespace
 
     virtual bool Check(const IO::DataContainer& inputData) const
     {
-      return CheckDataFormat(*this, inputData);
+      return CheckSTPModule(static_cast<const uint8_t*>(inputData.Data()), inputData.Size());
     }
 
-    Module::Holder::Ptr CreateModule(Parameters::Accessor::Ptr parameters, DataLocation::Ptr location, std::size_t& usedSize) const
+    virtual ModuleCreationResult::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
+                                                   DataLocation::Ptr inputData) const
     {
-      return CreateModuleFromData(*this, parameters, location, usedSize);
+      const STPPlugin::Ptr self = shared_from_this();
+      return CreateModuleFromLocation(self, self, parameters, inputData);
     }
   private:
-    virtual DataPrefixIterator GetPrefixes() const
+    virtual DataFormat::Ptr GetFormat() const
     {
-      return DataPrefixIterator(PLAYERS, ArrayEnd(PLAYERS));
+      return DataFormat::Create(STP_FORMAT);
     }
 
-    virtual bool CheckData(const uint8_t* data, std::size_t size) const
+    virtual Holder::Ptr CreateModule(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize) const
     {
-      return CheckSTPModule(data, size);
-    }
-
-    virtual Holder::Ptr TryToCreateModule(Parameters::Accessor::Ptr parameters,
-      DataLocation::Ptr location, std::size_t& usedSize) const
-    {
-      const PlayerPlugin::Ptr plugin = shared_from_this();
+      if (!Check(*data))
+      {
+        return Holder::Ptr();
+      }
       try
       {
-        const Holder::Ptr holder(new STPHolder(plugin, parameters, location, usedSize));
-#ifdef SELF_TEST
-        holder->CreatePlayer();
-#endif
+        const Holder::Ptr holder(new STPHolder(properties, parameters, data, usedSize));
         return holder;
       }
       catch (const Error&/*e*/)
