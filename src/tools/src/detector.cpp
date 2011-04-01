@@ -24,38 +24,61 @@ Author:
 namespace
 {
   const char ANY_BYTE_TEXT = '?';
+  const char ANY_NIBBLE_TEXT = 'x';
   const char SKIP_BYTES_TEXT = '+';
+  const char BINARY_MASK_TEXT = '%';
 
-  typedef std::vector<uint16_t> BinaryPattern;
+  const char ANY_BIT_TEXT = 'x';
+  const char ZERO_BIT_TEXT = '0';
+  const char ONE_BIT_TEXT = '1';
 
-  //hybyte=value lobyte=mask
-  const uint16_t ANY_BYTE_BIN = 0x0000;
-
-  uint16_t MakeByteBin(uint_t byte)
+  struct PatternEntry
   {
-    return byte * 256 + 0xff;
+    uint8_t Mask;
+    uint8_t Value;
+
+    PatternEntry()
+      : Mask(), Value()
+    {
+    }
+
+    PatternEntry(uint8_t mask, uint8_t val)
+      : Mask(mask), Value(val)
+    {
+    }
+  };
+
+  BOOST_STATIC_ASSERT(sizeof(PatternEntry) == 2);
+
+  bool operator == (const PatternEntry& lh, uint8_t rh)
+  {
+    return lh.Mask ? ((lh.Mask & rh) == lh.Value) : true;
   }
 
-  bool MatchPatternBinByByte(uint16_t bin, uint8_t byte)
+  bool operator == (uint8_t lh, const PatternEntry& rh)
   {
-    return bin == ANY_BYTE_BIN ||
-      MakeByteBin(byte) == bin;
+    return rh == lh;
   }
 
-  bool MatchByteByPatternBin(uint8_t byte, uint16_t bin)
+  typedef std::vector<PatternEntry> BinaryPattern;
+
+  inline uint8_t NibbleToMask(char c)
   {
-    return MatchPatternBinByByte(bin, byte);
+    assert(std::isxdigit(c) || ANY_NIBBLE_TEXT == c);
+    return ANY_NIBBLE_TEXT == c
+      ? 0 : 0xf;
   }
 
-  inline uint8_t ToHex(char c)
+  inline uint8_t NibbleToValue(char c)
   {
-    assert(std::isxdigit(c));
-    return std::isdigit(c) ? c - '0' : std::toupper(c) - 'A' + 10;
+    assert(std::isxdigit(c) || ANY_NIBBLE_TEXT == c);
+    return ANY_NIBBLE_TEXT == c
+      ? 0 : (std::isdigit(c) ? c - '0' : std::toupper(c) - 'A' + 10);
   }
 
   typedef RangeIterator<std::string::const_iterator> PatternIterator;
 
-  std::size_t GetBytesToSkip(PatternIterator& it)
+  std::size_t ParseSkipBytes(PatternIterator& it)
   {
     std::size_t skip = 0;
     while (SKIP_BYTES_TEXT != *++it)
@@ -66,13 +89,40 @@ namespace
     return skip;
   }
 
-  uint8_t GetByte(PatternIterator& it)
+  PatternEntry ParseNibbles(PatternIterator& it)
   {
-    const char sym(*it);
+    const char hiNibble(*it);
     ++it;
     assert(it || !"Invalid pattern format");
-    const char sym1(*it);
-    return ToHex(sym) * 16 + ToHex(sym1);
+    const char loNibble(*it);
+    const uint8_t mask = NibbleToMask(hiNibble) * 16 + NibbleToMask(loNibble);
+    const uint8_t value = NibbleToValue(hiNibble) * 16 + NibbleToValue(loNibble);
+    return PatternEntry(mask, value);
+  }
+
+  PatternEntry ParseBinary(PatternIterator& it)
+  {
+    uint8_t mask = 0;
+    uint8_t value = 0;
+    for (uint_t bitmask = 128; bitmask; bitmask >>= 1)
+    {
+      ++it;
+      assert(it || !"Invalid pattern format");
+      switch (*it)
+      {
+      case ONE_BIT_TEXT:
+        value |= bitmask;
+      case ZERO_BIT_TEXT:
+        mask |= bitmask;
+        break;
+      case ANY_BIT_TEXT:
+        break;
+      default: 
+        assert(!"Invalid pattern format");
+        break;
+      }
+    }
+    return PatternEntry(mask, value);
   }
 
   std::size_t DetectFormatLookahead(const uint8_t* data, std::size_t size, const BinaryPattern& pattern)
@@ -81,7 +131,7 @@ namespace
     {
       return size;
     }
-    return std::search(data, data + size, pattern.begin(), pattern.end(), &MatchByteByPatternBin) - data;
+    return std::search(data, data + size, pattern.begin(), pattern.end()) - data;
   }
 
   bool DetectFormat(const uint8_t* data, std::size_t size, const BinaryPattern& pattern)
@@ -90,28 +140,38 @@ namespace
     {
       return false;
     }
-    return std::equal(pattern.begin(), pattern.end(), data, &MatchPatternBinByByte);
+    return std::equal(pattern.begin(), pattern.end(), data);
   }
 
   void CompileDetectPattern(const std::string& textPattern, BinaryPattern& binPattern)
   {
+    static const PatternEntry ANY_BYTE(0, 0);
+
     BinaryPattern result;
     for (PatternIterator it(textPattern.begin(), textPattern.end()); it; ++it)
     {
-      const char sym(*it);
-      if (ANY_BYTE_TEXT == sym)
+      switch (*it)
       {
-        result.push_back(ANY_BYTE_BIN);
-      }
-      else if (SKIP_BYTES_TEXT == sym)//skip
-      {
-        const std::size_t skip = GetBytesToSkip(it);
-        std::fill_n(std::back_inserter(result), skip, ANY_BYTE_BIN);
-      }
-      else
-      {
-        const uint8_t byte = GetByte(it);
-        result.push_back(MakeByteBin(byte));
+      case ANY_BYTE_TEXT:
+        result.push_back(ANY_BYTE);
+        break;
+      case SKIP_BYTES_TEXT:
+        {
+          const std::size_t skip = ParseSkipBytes(it);
+          std::fill_n(std::back_inserter(result), skip, ANY_BYTE);
+        }
+        break;
+      case BINARY_MASK_TEXT:
+        {
+          const PatternEntry& entry = ParseBinary(it);
+          result.push_back(entry);
+        }
+        break;
+      default:
+        {
+          const PatternEntry& entry = ParseNibbles(it);
+          result.push_back(entry);
+        }
       }
     }
     binPattern.swap(result);

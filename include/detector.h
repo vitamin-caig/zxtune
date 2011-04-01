@@ -37,9 +37,10 @@ public:
 };
 
 //Text pattern format:
-//  xx - match byte (hex)
-//  ? - any byte
-//  +xx+ - skip xx bytes (dec)
+//  \?            - any byte
+//  [0-9a-fx]{2} - match byte/nibble
+//  \+[0-9]+\+         - skip xx bytes (dec)
+//  %[01x]{8}    - match byte by bits
 
 //! Data format description
 class DataFormat
