@@ -440,7 +440,8 @@ namespace
       for (PlayerPlugin::Iterator::Ptr iter = Plugins.EnumeratePlayers(); iter->IsValid(); iter->Next())
       {
         const PlayerPlugin::Ptr plugin = iter->Get();
-        const Parameters::Accessor::Ptr moduleParams = GetModuleParams();
+        //do not use cache- location is mutable
+        const Parameters::Accessor::Ptr moduleParams = Callback.CreateModuleParameters(*Location);
         const ModuleCreationResult::Ptr result = plugin->CreateModule(moduleParams, Location);
         if (Module::Holder::Ptr module = result->GetModule())
         {
@@ -458,7 +459,7 @@ namespace
   private:
     Parameters::Accessor::Ptr GetPluginParams() const
     {
-      if (!ModuleParams)
+      if (!PluginsParams)
       {
         PluginsParams = Callback.GetPluginsParameters();
       }
@@ -473,22 +474,12 @@ namespace
       }
       return RawData;
     }
-
-    Parameters::Accessor::Ptr GetModuleParams() const
-    {
-      if (!ModuleParams)
-      {
-        ModuleParams = Callback.CreateModuleParameters(*Location);
-      }
-      return ModuleParams;
-    }
   private:
     RawDetectionPlugins& Plugins;
     const DataProcessor::Ptr Delegate;
     const DataLocation::Ptr Location;
     const Module::DetectCallback& Callback;
     mutable Parameters::Accessor::Ptr PluginsParams;
-    mutable Parameters::Accessor::Ptr ModuleParams;
     mutable IO::DataContainer::Ptr RawData;
   };
 
