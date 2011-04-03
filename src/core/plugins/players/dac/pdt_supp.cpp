@@ -672,6 +672,11 @@ namespace
   public:
     typedef boost::shared_ptr<const PDTPlugin> Ptr;
 
+    PDTPlugin()
+      : Format(DataFormat::Create(PDT_FORMAT))
+    {
+    }
+    
     virtual String Id() const
     {
       return PDT_PLUGIN_ID;
@@ -706,7 +711,7 @@ namespace
   private:
     virtual DataFormat::Ptr GetFormat() const
     {
-      return DataFormat::Create(PDT_FORMAT);
+      return Format;
     }
 
     virtual Holder::Ptr CreateModule(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize) const
@@ -726,6 +731,8 @@ namespace
       }
       return Holder::Ptr();
     }
+  private:
+    const DataFormat::Ptr Format;
   };
 }
 
