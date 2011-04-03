@@ -437,11 +437,11 @@ namespace
 
     virtual std::size_t ProcessModules() const
     {
+      const Parameters::Accessor::Ptr moduleParams = Callback.CreateModuleParameters(*Location);
       for (PlayerPlugin::Iterator::Ptr iter = Plugins.EnumeratePlayers(); iter->IsValid(); iter->Next())
       {
         const PlayerPlugin::Ptr plugin = iter->Get();
         //do not use cache- location is mutable
-        const Parameters::Accessor::Ptr moduleParams = Callback.CreateModuleParameters(*Location);
         const ModuleCreationResult::Ptr result = plugin->CreateModule(moduleParams, Location);
         if (Module::Holder::Ptr module = result->GetModule())
         {
