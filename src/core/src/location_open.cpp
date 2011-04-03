@@ -133,7 +133,7 @@ namespace
         {
           continue;
         }
-        const ArchiveExtractionResult::Ptr result = plugin->ExtractSubdata(*Params, Data);
+        const ArchiveExtractionResult::Ptr result = plugin->ExtractSubdata(Data);
         if (IO::DataContainer::Ptr subdata = result->GetExtractedData())
         {
           Data = subdata;

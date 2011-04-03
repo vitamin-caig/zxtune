@@ -60,8 +60,7 @@ namespace
       return Decoder->Check(inputData.Data(), inputData.Size());
     }
 
-    virtual ArchiveExtractionResult::Ptr ExtractSubdata(const Parameters::Accessor& /*parameters*/,
-      IO::DataContainer::Ptr input) const
+    virtual ArchiveExtractionResult::Ptr ExtractSubdata(IO::DataContainer::Ptr input) const
     {
       return ExtractDataFromArchive(*Decoder, input);
     }

@@ -162,8 +162,7 @@ namespace
       return CheckHobeta(inputData);
     }
 
-    virtual ArchiveExtractionResult::Ptr ExtractSubdata(const Parameters::Accessor& /*parameters*/,
-      IO::DataContainer::Ptr input) const
+    virtual ArchiveExtractionResult::Ptr ExtractSubdata(IO::DataContainer::Ptr input) const
     {
       return boost::make_shared<HobetaExtractionResult>(input);
     }

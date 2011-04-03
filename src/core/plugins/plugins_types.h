@@ -76,12 +76,8 @@ namespace ZXTune
     virtual bool Check(const IO::DataContainer& inputData) const = 0;
 
     //! @brief Extracting subdata from specified input data
-    //! @param parameters Options for subdata extraction
     //! @param inputData Source memory data
-    //! @param usedSize Reference to result data size used to extract
-    //! @return Not empty pointer if data is extracted, empty elsewhere
-    virtual ArchiveExtractionResult::Ptr ExtractSubdata(const Parameters::Accessor& parameters,
-                                                       IO::DataContainer::Ptr inputData) const = 0;
+    virtual ArchiveExtractionResult::Ptr ExtractSubdata(IO::DataContainer::Ptr inputData) const = 0;
   };
 
   class ContainerPlugin : public Plugin

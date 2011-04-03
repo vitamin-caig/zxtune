@@ -413,12 +413,11 @@ namespace
 
     virtual std::size_t ProcessArchives() const
     {
-      const Parameters::Accessor::Ptr params = GetPluginParams();
       const IO::DataContainer::Ptr data = GetData();
       for (ArchivePlugin::Iterator::Ptr iter = Plugins.EnumerateArchives(); iter->IsValid(); iter->Next())
       {
         const ArchivePlugin::Ptr plugin = iter->Get();
-        const ArchiveExtractionResult::Ptr result = plugin->ExtractSubdata(*params, data);
+        const ArchiveExtractionResult::Ptr result = plugin->ExtractSubdata(data);
         if (IO::DataContainer::Ptr subdata = result->GetExtractedData())
         {
           const std::size_t usedSize = result->GetMatchedDataSize();
