@@ -417,19 +417,14 @@ namespace
       for (ArchivePlugin::Iterator::Ptr iter = Plugins.EnumerateArchives(); iter->IsValid(); iter->Next())
       {
         const ArchivePlugin::Ptr plugin = iter->Get();
-        const ArchiveExtractionResult::Ptr result = plugin->ExtractSubdata(data);
-        if (IO::DataContainer::Ptr subdata = result->GetExtractedData())
+        const DetectionResult::Ptr result = plugin->Detect(Location, Callback);
+        if (std::size_t usedSize = result->GetMatchedDataSize())
         {
-          const std::size_t usedSize = result->GetMatchedDataSize();
           Log::Debug(THIS_MODULE, "Detected %1% in %2% bytes at %3%.", plugin->Id(), usedSize, Location->GetPath());
-          const String subpath = Text::ARCHIVE_PLUGIN_PREFIX + plugin->Id();
-          const DataLocation::Ptr subLocation = CreateNestedLocation(Location, plugin, subdata, subpath);
-          Module::Detect(subLocation, Callback);
           return usedSize;
         }
         const std::size_t lookahead = result->GetLookaheadOffset();
         Plugins.SetPluginLookahead(plugin, std::max<std::size_t>(lookahead, MIN_SCAN_STEP));
-        //TODO: dispatch heavy checks- return false if not enabled
       }
       return 0;
     }

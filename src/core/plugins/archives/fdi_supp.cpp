@@ -10,7 +10,9 @@ Author:
 */
 
 //local includes
-#include <core/plugins/registrator.h>
+#include "core/plugins/registrator.h"
+#include "core/src/callback.h"
+#include "core/src/core.h"
 //common includes
 #include <byteorder.h>
 #include <tools.h>
@@ -21,6 +23,7 @@ Author:
 #include <cstring>
 #include <numeric>
 //boost includes
+#include <boost/enable_shared_from_this.hpp>
 #include <boost/make_shared.hpp>
 //text includes
 #include <core/text/plugins.h>
@@ -248,6 +251,22 @@ namespace
   const Char FDI_PLUGIN_ID[] = {'F', 'D', 'I', 0};
   const String FDI_PLUGIN_VERSION(FromStdString("$Rev$"));
 
+  IO::DataContainer::Ptr ExtractFDI(const IO::DataContainer& data, std::size_t& packedSize)
+  {
+    const FullDiskImage::Container container(data.Data(), data.Size());
+    if (!container.FastCheck())
+    {
+      return IO::DataContainer::Ptr();
+    }
+    FullDiskImage::Decoder decoder(container);
+    if (const Dump* res = decoder.GetDecodedData())
+    {
+      packedSize = decoder.GetUsedSize();
+      return IO::CreateDataContainer(*res);
+    }
+    return IO::DataContainer::Ptr();
+  }
+
   class FDIExtractionResult : public ArchiveExtractionResult
   {
   public:
@@ -287,17 +306,7 @@ namespace
       {
         return;
       }
-      const FullDiskImage::Container container(RawData->Data(), RawData->Size());
-      if (!container.FastCheck())
-      {
-        return;
-      }
-      FullDiskImage::Decoder decoder(container);
-      if (const Dump* res = decoder.GetDecodedData())
-      {
-        PackedSize = decoder.GetUsedSize();
-        ExtractedData =  IO::CreateDataContainer(*res);
-      }
+      ExtractedData = ExtractFDI(*RawData, PackedSize);
     }
   private:
     const IO::DataContainer::Ptr RawData;
@@ -306,6 +315,7 @@ namespace
   };
 
   class FDIPlugin : public ArchivePlugin
+                  , public boost::enable_shared_from_this<FDIPlugin>
   {
   public:
     virtual String Id() const
@@ -332,6 +342,22 @@ namespace
     {
       const FullDiskImage::Container container(inputData.Data(), inputData.Size());
       return container.FastCheck();
+    }
+
+    virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
+    {
+      const IO::DataContainer::Ptr rawData = inputData->GetData();
+      std::size_t packedSize = 0;
+      if (const IO::DataContainer::Ptr subData = ExtractFDI(*rawData, packedSize))
+      {
+        const Plugin::Ptr plugin = shared_from_this();
+        const ZXTune::Module::NoProgressDetectCallbackAdapter noProgressCallback(callback);
+        const String subPath = Text::ARCHIVE_PLUGIN_PREFIX + plugin->Id();
+        const ZXTune::DataLocation::Ptr subLocation = CreateNestedLocation(inputData, plugin, subData, subPath);
+        ZXTune::Module::Detect(subLocation, noProgressCallback);
+        return DetectionResult::Create(packedSize, 0);
+      }
+      return boost::make_shared<FDIExtractionResult>(rawData);
     }
 
     virtual ArchiveExtractionResult::Ptr ExtractSubdata(IO::DataContainer::Ptr input) const

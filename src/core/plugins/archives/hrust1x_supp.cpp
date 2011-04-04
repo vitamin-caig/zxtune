@@ -17,6 +17,8 @@ Author:
 //library includes
 #include <core/plugin_attrs.h>
 #include <formats/packed_decoders.h>
+//boost includes
+#include <boost/enable_shared_from_this.hpp>
 //text includes
 #include <core/text/plugins.h>
 
@@ -30,6 +32,7 @@ namespace
   const String HRUST1X_PLUGIN_VERSION(FromStdString("$Rev$"));
 
   class Hrust1xPlugin : public ArchivePlugin
+                      , public boost::enable_shared_from_this<Hrust1xPlugin>
   {
   public:
     Hrust1xPlugin()
@@ -60,6 +63,11 @@ namespace
     virtual bool Check(const IO::DataContainer& inputData) const
     {
       return Decoder->Check(inputData.Data(), inputData.Size());
+    }
+
+    virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
+    {
+      return DetectModulesInArchive(shared_from_this(), *Decoder, inputData, callback);
     }
 
     virtual ArchiveExtractionResult::Ptr ExtractSubdata(IO::DataContainer::Ptr input) const

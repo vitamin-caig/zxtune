@@ -113,18 +113,10 @@ namespace
       for (ArchivePlugin::Iterator::Ptr iter = UsedPlugins->EnumerateArchives(); iter->IsValid(); iter->Next())
       {
         const ArchivePlugin::Ptr plugin = iter->Get();
-        if (!plugin->Check(*Data))
+        const DetectionResult::Ptr result = plugin->Detect(Location, Callback);
+        if (std::size_t usedSize = result->GetMatchedDataSize())
         {
-          continue;
-        }
-        const ArchiveExtractionResult::Ptr result = plugin->ExtractSubdata(Data);
-        if (IO::DataContainer::Ptr subdata = result->GetExtractedData())
-        {
-          const std::size_t usedSize = result->GetMatchedDataSize();
           Log::Debug(THIS_MODULE, "Detected %1% in %2% bytes at %3%.", plugin->Id(), usedSize, Location->GetPath());
-          const String subpath = EncodeArchivePluginToPath(plugin->Id());
-          const DataLocation::Ptr subLocation = CreateNestedLocation(Location, plugin, subdata, subpath);
-          Module::Detect(subLocation, Callback);
           return usedSize;
         }
         //TODO: dispatch heavy checks- return false if not enabled

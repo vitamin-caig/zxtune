@@ -75,6 +75,9 @@ namespace ZXTune
     //! @return true if possibly yes, false if defenitely no
     virtual bool Check(const IO::DataContainer& inputData) const = 0;
 
+    //! @brief Detect modules in data
+    virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const = 0;
+
     //! @brief Extracting subdata from specified input data
     //! @param inputData Source memory data
     virtual ArchiveExtractionResult::Ptr ExtractSubdata(IO::DataContainer::Ptr inputData) const = 0;

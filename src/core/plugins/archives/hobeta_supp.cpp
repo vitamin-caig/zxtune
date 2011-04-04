@@ -10,7 +10,9 @@ Author:
 */
 
 //local includes
-#include <core/plugins/registrator.h>
+#include "core/plugins/registrator.h"
+#include "core/src/callback.h"
+#include "core/src/core.h"
 //common includes
 #include <byteorder.h>
 #include <tools.h>
@@ -20,6 +22,7 @@ Author:
 //std includes
 #include <numeric>
 //boost includes
+#include <boost/enable_shared_from_this.hpp>
 #include <boost/make_shared.hpp>
 //text includes
 #include <core/text/plugins.h>
@@ -82,6 +85,19 @@ namespace
     return false;
   }
 
+  IO::DataContainer::Ptr ExtractHobeta(const IO::DataContainer& data, std::size_t& packedSize)
+  {
+    if (!CheckHobeta(data))
+    {
+      return IO::DataContainer::Ptr();
+    }
+    const Header* const header = safe_ptr_cast<const Header*>(data.Data());
+    const std::size_t dataSize = fromLE(header->Length);
+    const std::size_t fullSize = fromLE(header->FullLength);
+    packedSize = fullSize + sizeof(*header);
+    return data.GetSubcontainer(sizeof(*header), dataSize);
+  }
+
   class HobetaExtractionResult : public ArchiveExtractionResult
   {
   public:
@@ -117,15 +133,11 @@ namespace
   private:
     void TryToExtract() const
     {
-      if (PackedSize || !CheckHobeta(*RawData))
+      if (PackedSize)
       {
         return;
       }
-      const Header* const header = safe_ptr_cast<const Header*>(RawData->Data());
-      const std::size_t dataSize = fromLE(header->Length);
-      const std::size_t fullSize = fromLE(header->FullLength);
-      PackedSize = fullSize + sizeof(*header);
-      ExtractedData = RawData->GetSubcontainer(sizeof(*header), dataSize);
+      ExtractedData = ExtractHobeta(*RawData, PackedSize);
     }
   private:
     const IO::DataContainer::Ptr RawData;
@@ -135,6 +147,7 @@ namespace
 
   //////////////////////////////////////////////////////////////////////////
   class HobetaPlugin : public ArchivePlugin
+                     , public boost::enable_shared_from_this<HobetaPlugin>
   {
   public:
     virtual String Id() const
@@ -160,6 +173,22 @@ namespace
     virtual bool Check(const IO::DataContainer& inputData) const
     {
       return CheckHobeta(inputData);
+    }
+
+    virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
+    {
+      const IO::DataContainer::Ptr rawData = inputData->GetData();
+      std::size_t packedSize = 0;
+      if (const IO::DataContainer::Ptr subData = ExtractHobeta(*rawData, packedSize))
+      {
+        const Plugin::Ptr plugin = shared_from_this();
+        const ZXTune::Module::NoProgressDetectCallbackAdapter noProgressCallback(callback);
+        const String subPath = Text::ARCHIVE_PLUGIN_PREFIX + plugin->Id();
+        const ZXTune::DataLocation::Ptr subLocation = CreateNestedLocation(inputData, plugin, subData, subPath);
+        ZXTune::Module::Detect(subLocation, noProgressCallback);
+        return DetectionResult::Create(packedSize, 0);
+      }
+      return boost::make_shared<HobetaExtractionResult>(rawData);
     }
 
     virtual ArchiveExtractionResult::Ptr ExtractSubdata(IO::DataContainer::Ptr input) const

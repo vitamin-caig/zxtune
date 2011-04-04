@@ -21,6 +21,9 @@ Author:
 
 namespace ZXTune
 {
+  DetectionResult::Ptr DetectModulesInArchive(Plugin::Ptr plugin, const Formats::Packed::Decoder& decoder, 
+    DataLocation::Ptr inputData, const Module::DetectCallback& callback);
+
   ArchiveExtractionResult::Ptr ExtractDataFromArchive(const Formats::Packed::Decoder& decoder, IO::DataContainer::Ptr data);
 }
 
