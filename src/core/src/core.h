@@ -28,19 +28,6 @@ namespace Log
 
 namespace ZXTune
 {
-  class DataProcessor
-  {
-  public:
-    typedef boost::shared_ptr<const DataProcessor> Ptr;
-    virtual ~DataProcessor() {}
-
-    virtual std::size_t ProcessContainers() const = 0;
-    virtual std::size_t ProcessArchives() const = 0;
-    virtual std::size_t ProcessModules() const = 0;
-
-    static Ptr Create(DataLocation::Ptr location, const Module::DetectCallback& callback);
-  };
-
   namespace Module
   {
     //! @param location Source data location
@@ -53,7 +40,6 @@ namespace ZXTune
     //! @param params Detect callback
     //! @return Size in bytes of source data processed
     std::size_t Detect(DataLocation::Ptr location, const DetectCallback& callback);
-    std::size_t Detect(const DataProcessor& detector);
   }
 }
 

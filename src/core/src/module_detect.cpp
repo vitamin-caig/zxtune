@@ -81,107 +81,46 @@ namespace
     mutable Module::Holder::Ptr Result;
   };
   
-  class DataProcessorImpl : public DataProcessor
+  template<class Type>
+  std::size_t DetectByPlugins(typename Type::Iterator::Ptr plugins, DataLocation::Ptr location, const Module::DetectCallback& callback)
   {
-  public:
-    DataProcessorImpl(DataLocation::Ptr location, const Module::DetectCallback& callback)
-      : Location(location)
-      , Data(Location->GetData())
-      , Callback(callback)
-      , UsedPlugins(Callback.GetUsedPlugins())
-      , Params(Callback.GetPluginsParameters())
+    for (; plugins->IsValid(); plugins->Next())
     {
-    }
-
-    virtual std::size_t ProcessContainers() const
-    {
-      for (ContainerPlugin::Iterator::Ptr iter = UsedPlugins->EnumerateContainers(); iter->IsValid(); iter->Next())
+      const typename Type::Ptr plugin = plugins->Get();
+      const DetectionResult::Ptr result = plugin->Detect(location, callback);
+      if (std::size_t usedSize = result->GetMatchedDataSize())
       {
-        const ContainerPlugin::Ptr plugin = iter->Get();
-        const DetectionResult::Ptr result = plugin->Detect(Location, Callback);
-        if (std::size_t usedSize = result->GetMatchedDataSize())
-        {
-          Log::Debug(THIS_MODULE, "Detected %1% in %2% bytes at %3%.", plugin->Id(), usedSize, Location->GetPath());
-          return usedSize;
-        }
+        Log::Debug(THIS_MODULE, "Detected %1% in %2% bytes at %3%.", plugin->Id(), usedSize, location->GetPath());
+        return usedSize;
       }
-      return 0;
     }
-
-    virtual std::size_t ProcessArchives() const
-    {
-      for (ArchivePlugin::Iterator::Ptr iter = UsedPlugins->EnumerateArchives(); iter->IsValid(); iter->Next())
-      {
-        const ArchivePlugin::Ptr plugin = iter->Get();
-        const DetectionResult::Ptr result = plugin->Detect(Location, Callback);
-        if (std::size_t usedSize = result->GetMatchedDataSize())
-        {
-          Log::Debug(THIS_MODULE, "Detected %1% in %2% bytes at %3%.", plugin->Id(), usedSize, Location->GetPath());
-          return usedSize;
-        }
-        //TODO: dispatch heavy checks- return false if not enabled
-      }
-      return 0;
-    }
-
-    virtual std::size_t ProcessModules() const
-    {
-      for (PlayerPlugin::Iterator::Ptr plugins = UsedPlugins->EnumeratePlayers(); plugins->IsValid(); plugins->Next())
-      {
-        const PlayerPlugin::Ptr plugin = plugins->Get();
-        const DetectionResult::Ptr result = plugin->Detect(Location, Callback);
-        if (std::size_t usedSize = result->GetMatchedDataSize())
-        {
-          Log::Debug(THIS_MODULE, "Detected %1% in %2% bytes at %3%.", plugin->Id(), usedSize, Location->GetPath());
-          return usedSize;
-        }
-        //TODO: dispatch heavy checks- return false if not enabled
-      }
-      return 0;
-    }
-  private:
-    const DataLocation::Ptr Location;
-    const IO::DataContainer::Ptr Data;
-    const Module::DetectCallback& Callback;
-    const PluginsEnumerator::Ptr UsedPlugins;
-    const Parameters::Accessor::Ptr Params;
-  };
+    return 0;
+  }
 }
 
 namespace ZXTune
 {
-  DataProcessor::Ptr DataProcessor::Create(DataLocation::Ptr location, const Module::DetectCallback& callback)
-  {
-    return boost::make_shared<DataProcessorImpl>(location, callback);
-  }
-
   namespace Module
   {
     Holder::Ptr Open(DataLocation::Ptr location, PluginsEnumerator::Ptr usedPlugins, Parameters::Accessor::Ptr moduleParams)
     {
       const OpenModuleCallback callback(usedPlugins, moduleParams);
-      const DataProcessorImpl detector(location, callback);
-      detector.ProcessModules();
+      Detect(location, callback);
       return callback.GetResult();
     }
 
     std::size_t Detect(DataLocation::Ptr location, const DetectCallback& callback)
     {
-      const DataProcessorImpl detector(location, callback);
-      return Detect(detector);
-    }
-
-    std::size_t Detect(const DataProcessor& detector)
-    {
-      if (std::size_t usedSize = detector.ProcessContainers())
+      const PluginsEnumerator::Ptr usedPlugins = callback.GetUsedPlugins();
+      if (std::size_t usedSize = DetectByPlugins<ContainerPlugin>(usedPlugins->EnumerateContainers(), location, callback))
       {
         return usedSize;
       }
-      if (std::size_t usedSize = detector.ProcessArchives())
+      if (std::size_t usedSize = DetectByPlugins<ArchivePlugin>(usedPlugins->EnumerateArchives(), location, callback))
       {
         return usedSize;
       }
-      return detector.ProcessModules();
+      return DetectByPlugins<PlayerPlugin>(usedPlugins->EnumeratePlayers(), location, callback);
     }
   }
 }

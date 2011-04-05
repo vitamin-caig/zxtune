@@ -306,13 +306,18 @@ namespace
     {
       return typename P::Iterator::Ptr(new IteratorImpl(Plugins.begin(), Plugins.end(), Offset));
     }
+    
+    bool HasPluginsToProcess() const
+    {
+      return std::find_if(Plugins.begin(), Plugins.end(), boost::bind(&OffsetAndPlugin::first, _1) <= Offset) != Plugins.end();
+    }
 
     void SetOffset(std::size_t offset)
     {
       Offset = offset;
     }
 
-    bool SetPluginLookahead(Plugin::Ptr plugin, std::size_t lookahead)
+    void SetPluginLookahead(Plugin::Ptr plugin, std::size_t lookahead)
     {
       const typename PluginsList::iterator it = std::find_if(Plugins.begin(), Plugins.end(),
         boost::bind(&OffsetAndPlugin::second, _1) == plugin);
@@ -320,47 +325,35 @@ namespace
       {
         Log::Debug(THIS_MODULE, "Disabling check of %1% for neareast %2% bytes starting from %3%", plugin->Id(), lookahead, Offset);
         it->first += lookahead;
-        return true;
       }
-      return false;
     }
   private:
     std::size_t Offset;
     PluginsList Plugins;
   };
 
-  class RawDetectionPlugins : public PluginsEnumerator
+  class RawDetectionPlugins
   {
   public:
-    typedef boost::shared_ptr<RawDetectionPlugins> Ptr;
-
-    explicit RawDetectionPlugins(PluginsEnumerator::Ptr parent)
-      : Parent(parent)
-      , Players(parent->EnumeratePlayers())
+    RawDetectionPlugins(PluginsEnumerator::Ptr parent, ContainerPlugin::Ptr denied)
+      : Players(parent->EnumeratePlayers())
       , Archives(parent->EnumerateArchives())
       , Containers(parent->EnumerateContainers())
     {
+      Containers.SetPluginLookahead(denied, ~std::size_t(0));
     }
 
-    virtual Plugin::Iterator::Ptr Enumerate() const
+    std::size_t Detect(DataLocation::Ptr input, const Module::DetectCallback& callback)
     {
-      assert(!"Should not be called");
-      return Parent->Enumerate();
-    }
-
-    virtual PlayerPlugin::Iterator::Ptr EnumeratePlayers() const
-    {
-      return Players.Enumerate();
-    }
-
-    virtual ArchivePlugin::Iterator::Ptr EnumerateArchives() const
-    {
-      return Archives.Enumerate();
-    }
-
-    virtual ContainerPlugin::Iterator::Ptr EnumerateContainers() const
-    {
-      return Containers.Enumerate();
+      if (std::size_t res = DetectIn(Containers, input, callback))
+      {
+        return res;
+      }
+      if (std::size_t res = DetectIn(Archives, input, callback))
+      {
+        return res;
+      }
+      return DetectIn(Players, input, callback);
     }
 
     void SetOffset(std::size_t offset)
@@ -369,87 +362,32 @@ namespace
       Archives.SetOffset(offset);
       Players.SetOffset(offset);
     }
-
-    void SetPluginLookahead(Plugin::Ptr plugin, std::size_t lookahead)
+  private:
+    template<class Type>
+    std::size_t DetectIn(LookaheadPluginsStorage<Type>& container, DataLocation::Ptr input, const Module::DetectCallback& callback) const
     {
-      Players.SetPluginLookahead(plugin, lookahead) ||
-      Archives.SetPluginLookahead(plugin, lookahead) ||
-      Containers.SetPluginLookahead(plugin, lookahead);
+      if (!container.HasPluginsToProcess())
+      {
+        return 0;
+      }
+      for (typename Type::Iterator::Ptr iter = container.Enumerate(); iter->IsValid(); iter->Next())
+      {
+        const typename Type::Ptr plugin = iter->Get();
+        const DetectionResult::Ptr result = plugin->Detect(input, callback);
+        if (std::size_t usedSize = result->GetMatchedDataSize())
+        {
+          Log::Debug(THIS_MODULE, "Detected %1% in %2% bytes at %3%.", plugin->Id(), usedSize, input->GetPath());
+          return usedSize;
+        }
+        const std::size_t lookahead = result->GetLookaheadOffset();
+        container.SetPluginLookahead(plugin, std::max<std::size_t>(lookahead, MIN_SCAN_STEP));
+      }
+      return 0;
     }
   private:
-    const PluginsEnumerator::Ptr Parent;
     LookaheadPluginsStorage<PlayerPlugin> Players;
     LookaheadPluginsStorage<ArchivePlugin> Archives;
     LookaheadPluginsStorage<ContainerPlugin> Containers;
-  };
-
-  class RawDataDetector : public DataProcessor
-  {
-  public:
-    RawDataDetector(RawDetectionPlugins& plugins, DataLocation::Ptr input, const Module::DetectCallback& callback)
-      : Plugins(plugins)
-      , Delegate(DataProcessor::Create(input, callback))
-      , Location(input)
-      , Callback(callback)
-    {
-    }
-
-    virtual std::size_t ProcessContainers() const
-    {
-      for (ContainerPlugin::Iterator::Ptr iter = Plugins.EnumerateContainers(); iter->IsValid(); iter->Next())
-      {
-        const ContainerPlugin::Ptr plugin = iter->Get();
-        const DetectionResult::Ptr result = plugin->Detect(Location, Callback);
-        if (std::size_t usedSize = result->GetMatchedDataSize())
-        {
-          Log::Debug(THIS_MODULE, "Detected %1% in %2% bytes at %3%.", plugin->Id(), usedSize, Location->GetPath());
-          return usedSize;
-        }
-        const std::size_t lookahead = result->GetLookaheadOffset();
-        Plugins.SetPluginLookahead(plugin, std::max<std::size_t>(lookahead, MIN_SCAN_STEP));
-      }
-      return 0;
-    }
-
-    virtual std::size_t ProcessArchives() const
-    {
-      for (ArchivePlugin::Iterator::Ptr iter = Plugins.EnumerateArchives(); iter->IsValid(); iter->Next())
-      {
-        const ArchivePlugin::Ptr plugin = iter->Get();
-        const DetectionResult::Ptr result = plugin->Detect(Location, Callback);
-        if (std::size_t usedSize = result->GetMatchedDataSize())
-        {
-          Log::Debug(THIS_MODULE, "Detected %1% in %2% bytes at %3%.", plugin->Id(), usedSize, Location->GetPath());
-          return usedSize;
-        }
-        const std::size_t lookahead = result->GetLookaheadOffset();
-        Plugins.SetPluginLookahead(plugin, std::max<std::size_t>(lookahead, MIN_SCAN_STEP));
-      }
-      return 0;
-    }
-
-    virtual std::size_t ProcessModules() const
-    {
-      for (PlayerPlugin::Iterator::Ptr iter = Plugins.EnumeratePlayers(); iter->IsValid(); iter->Next())
-      {
-        const PlayerPlugin::Ptr plugin = iter->Get();
-        const DetectionResult::Ptr result = plugin->Detect(Location, Callback);
-        if (std::size_t usedSize = result->GetMatchedDataSize())
-        {
-          Log::Debug(THIS_MODULE, "Detected %1% in %2% bytes at %3%.", plugin->Id(), usedSize, Location->GetPath());
-          return usedSize;
-        }
-        const std::size_t lookahead = result->GetLookaheadOffset();
-        Plugins.SetPluginLookahead(plugin, std::max<std::size_t>(lookahead, MIN_SCAN_STEP));
-        //TODO: dispatch heavy checks- return false if not enabled
-      }
-      return 0;
-    }
-  private:
-    RawDetectionPlugins& Plugins;
-    const DataProcessor::Ptr Delegate;
-    const DataLocation::Ptr Location;
-    const Module::DetectCallback& Callback;
   };
 
   class RawScaner : public ContainerPlugin
@@ -508,26 +446,21 @@ namespace
 
 
       const PluginsEnumerator::Ptr availablePlugins = callback.GetUsedPlugins();
-      const RawDetectionPlugins::Ptr usedPlugins = boost::make_shared<RawDetectionPlugins>(availablePlugins);
-
       const ContainerPlugin::Ptr thisPlugin = shared_from_this();
-      usedPlugins->SetPluginLookahead(thisPlugin, size);
+      RawDetectionPlugins usedPlugins(availablePlugins, thisPlugin);
+
       ScanDataLocation::Ptr subLocation = boost::make_shared<ScanDataLocation>(input, thisPlugin, 0);
 
-      DataProcessor::Ptr processor(new RawDataDetector(*usedPlugins, subLocation, noProgressCallback));
-      int_t useCount = subLocation.use_count();
       while (subLocation->HasToScan(minRawSize))
       {
         const std::size_t offset = subLocation->GetOffset();
         progress->OnProgress(offset);
-        usedPlugins->SetOffset(offset);
-        const std::size_t usedSize = Module::Detect(*processor);
-        if (subLocation.use_count() != useCount)
+        usedPlugins.SetOffset(offset);
+        const std::size_t usedSize = usedPlugins.Detect(subLocation, noProgressCallback);
+        if (!subLocation.unique())
         {
           Log::Debug(THIS_MODULE, "Sublocation is captured. Duplicate.");
           subLocation = boost::make_shared<ScanDataLocation>(input, thisPlugin, offset);
-          processor.reset(new RawDataDetector(*usedPlugins, subLocation, noProgressCallback));
-          useCount = subLocation.use_count();
         }
         subLocation->Move(std::max(usedSize, scanStep));
       }
