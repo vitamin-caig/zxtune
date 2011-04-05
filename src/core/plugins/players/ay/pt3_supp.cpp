@@ -787,7 +787,7 @@ namespace
     "+32+"       // char TrackAuthor[32];
     "?"          // uint8_t Mode;
     "0x"         // uint8_t FreqTableNum;
-    "?"          // uint8_t Tempo;
+    "%00xxxxxx"  // uint8_t Tempo;
     "?"          // uint8_t Length;
     "?"          // uint8_t Loop;
     "?%00xxxxxx" // uint16_t PatternsOffset;

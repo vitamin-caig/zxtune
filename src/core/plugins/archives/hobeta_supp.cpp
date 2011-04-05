@@ -24,6 +24,7 @@ Author:
 //std includes
 #include <numeric>
 //boost includes
+#include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/make_shared.hpp>
 //text includes
@@ -102,7 +103,7 @@ namespace
       }
       const uint8_t* const begin = static_cast<const uint8_t*>(data);
       const uint8_t* const end = begin + size;
-      return std::search_n(begin, end, 9, uint8_t(' '), std::greater_equal<uint8_t>()) - begin;
+      return std::search_n(begin, end, 9, uint8_t(' '), boost::bind(&in_range<uint8_t>, _1, _2, 127)) - begin;
     }
   };
 

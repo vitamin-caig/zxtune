@@ -116,10 +116,10 @@ namespace
   BOOST_STATIC_ASSERT(sizeof(ServiceSector) == 256);
 
   const std::string TRD_SERVICE_SECTOR_PATTERN = 
-    "16"    //type DS_DD
-    "?"     //files
-    "??"    //free sectors
-    "10"    //ID
+    "16"            //type DS_DD
+    "%0xxxxxxx"     //files
+    "?%00000xxx"    //free sectors
+    "10"            //ID
   ;
 
   const DataFormat::Ptr ServiceSectorFormat = DataFormat::Create(TRD_SERVICE_SECTOR_PATTERN);

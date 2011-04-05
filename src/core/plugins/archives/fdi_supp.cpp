@@ -246,7 +246,10 @@ namespace FullDiskImage
   };
 
   const std::string FORMAT_PATTERN(
-    "464449"
+    "464449"      // uint8_t ID[3]
+    "%0000000x"   // uint8_t ReadOnly;
+    "%0xxxxxxx"   // uint16_t Cylinders;
+    "%000000xx"   // uint16_t Sides;
   );
 }
 
