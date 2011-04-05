@@ -419,32 +419,32 @@ namespace
       return cb.Process();
     }
 
-    virtual IO::DataContainer::Ptr Open(const Parameters::Accessor& commonParams,
-      const IO::DataContainer& inData, const String& inPath,
-      String& restPath) const
+    virtual DataLocation::Ptr Open(const Parameters::Accessor& commonParams, DataLocation::Ptr location, const String& inPath) const
     {
       String restComp;
       const String& pathComp = IO::ExtractFirstPathComponent(inPath, restComp);
       if (pathComp.empty())
       {
         //nothing to open
-        return IO::DataContainer::Ptr();
+        return DataLocation::Ptr();
       }
-      Dump dmp;
+      const IO::DataContainer::Ptr inData = location->GetData();
+      std::auto_ptr<Dump> dmp(new Dump()); 
       const bool ignoreCorrupted = CheckIgnoreCorrupted(commonParams);
       //ignore corrupted blocks while searching, but try to decode it using proper parameters
-      if (OK != ParseHrip(inData.Data(), inData.Size(),
-            boost::bind(&FindFileCallback, pathComp, ignoreCorrupted, _1, _2, boost::ref(dmp)), true))
+      if (OK != ParseHrip(inData->Data(), inData->Size(),
+            boost::bind(&FindFileCallback, pathComp, ignoreCorrupted, _1, _2, boost::ref(*dmp)), true))
       {
         Log::Debug("Core::HRiPSupp", "Failed to parse archive, possible corrupted");
-        return IO::DataContainer::Ptr();
+        return DataLocation::Ptr();
       }
-      if (dmp.empty())
+      if (dmp->empty())
       {
-        return IO::DataContainer::Ptr();
+        return DataLocation::Ptr();
       }
-      restPath = restComp;
-      return IO::CreateDataContainer(dmp);
+      const Plugin::Ptr subPlugin = shared_from_this();
+      const IO::DataContainer::Ptr subData = IO::CreateDataContainer(dmp);
+      return CreateNestedLocation(location, subPlugin, subData, pathComp); 
     }
   };
 }

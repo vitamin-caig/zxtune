@@ -219,19 +219,19 @@ namespace
       return boost::make_shared<SCLDetectionResult>(parsedSize, rawData);
     }
 
-    IO::DataContainer::Ptr Open(const Parameters::Accessor& /*commonParams*/,
-      const IO::DataContainer& inData, const String& inPath, String& restPath) const
+    virtual DataLocation::Ptr Open(const Parameters::Accessor& /*commonParams*/, DataLocation::Ptr location, const String& inPath) const
     {
       String restComp;
       const String& pathComp = IO::ExtractFirstPathComponent(inPath, restComp);
       if (pathComp.empty())
       {
-        return IO::DataContainer::Ptr();
+        return DataLocation::Ptr();
       }
-      const IO::FastDump dump(inData);
+      const IO::DataContainer::Ptr inData = location->GetData();
+      const IO::FastDump dump(*inData); 
       if (!CheckSCLFile(dump))
       {
-        return IO::DataContainer::Ptr();
+        return DataLocation::Ptr();
       }
       std::size_t parsedSize = 0;
       const TRDos::FilesSet::Ptr files = ParseSCLFile(dump, parsedSize);
@@ -240,10 +240,11 @@ namespace
         : 0;
       if (!entryToOpen)
       {
-        return IO::DataContainer::Ptr();
+        return DataLocation::Ptr();
       }
-      restPath = restComp;
-      return inData.GetSubcontainer(entryToOpen->Offset, entryToOpen->Size);
+      const Plugin::Ptr subPlugin = shared_from_this();
+      const IO::DataContainer::Ptr subData = inData->GetSubcontainer(entryToOpen->Offset, entryToOpen->Size);
+      return CreateNestedLocation(location, subPlugin, subData, pathComp); 
     }
   };
 }

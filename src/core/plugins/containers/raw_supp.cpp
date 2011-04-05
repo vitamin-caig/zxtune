@@ -527,6 +527,7 @@ namespace
         return DetectionResult::Create(0, size);
       }
 
+      Log::Debug(THIS_MODULE, "Detecting modules in raw data at '%1%'", input->GetPath());
       const Log::ProgressCallback::Ptr progress(new RawProgressCallback(callback, size, input->GetPath()));
       const Module::NoProgressDetectCallbackAdapter noProgressCallback(callback);
 
@@ -558,18 +559,19 @@ namespace
       return DetectionResult::Create(size, 0);
     }
 
-    IO::DataContainer::Ptr Open(const Parameters::Accessor& /*commonParams*/,
-      const IO::DataContainer& inData, const String& inPath, String& restPath) const
+    virtual DataLocation::Ptr Open(const Parameters::Accessor& /*commonParams*/, DataLocation::Ptr location, const String& inPath) const
     {
       String restComp;
       const String& pathComp = IO::ExtractFirstPathComponent(inPath, restComp);
       std::size_t offset = 0;
       if (CheckIfRawPart(pathComp, offset))
       {
-        restPath = restComp;
-        return inData.GetSubcontainer(offset, inData.Size() - offset);
+        const IO::DataContainer::Ptr inData = location->GetData();
+        const Plugin::Ptr subPlugin = shared_from_this();
+        const IO::DataContainer::Ptr subData = inData->GetSubcontainer(offset, inData->Size() - offset);
+        return CreateNestedLocation(location, subPlugin, subData, pathComp); 
       }
-      return IO::DataContainer::Ptr();
+      return DataLocation::Ptr();
     }
   };
 }

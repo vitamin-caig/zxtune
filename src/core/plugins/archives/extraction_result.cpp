@@ -155,8 +155,7 @@ namespace ZXTune
     if (res.get())
     {
       const IO::DataContainer::Ptr subData = IO::CreateDataContainer(res);
-      const String subPath = EncodeArchivePluginToPath(plugin->Id());
-      return CreateNestedLocation(inputData, plugin, subData, subPath);
+      return CreateNestedLocation(inputData, plugin, subData, pathComponent);
     }
     return DataLocation::Ptr();
   }

@@ -102,14 +102,12 @@ namespace ZXTune
 
     //! @brief Opening subdata by specified path
     //! @param parameters Options for opening
-    //! @param inputData Source memory data
-    //! @param fullPath Full subdata path
-    //! @param restPath Reference to rest part of path which is not handled by current plugin
+    //! @param inputData Source data location
+    //! @param fullPath Subdata path to be opened 
     //! @return Not empty pointer if data is opened
-    virtual IO::DataContainer::Ptr Open(const Parameters::Accessor& parameters,
-                                        const IO::DataContainer& inputData,
-                                        const String& fullPath,
-                                        String& restPath) const = 0;
+    virtual DataLocation::Ptr Open(const Parameters::Accessor& parameters,
+                                   DataLocation::Ptr inputData,
+                                   const String& pathToOpen) const = 0;   
   };
 }
 
