@@ -10,6 +10,7 @@ Author:
 */
 
 //local includes
+#include "extraction_result.h"
 #include "core/plugins/registrator.h"
 #include "core/src/callback.h"
 #include "core/src/core.h"
@@ -18,6 +19,7 @@ Author:
 #include <tools.h>
 //library includes
 #include <core/plugin_attrs.h>
+#include <formats/packed.h>
 #include <io/container.h>
 //std includes
 #include <cstring>
@@ -161,7 +163,7 @@ namespace FullDiskImage
     {
     }
 
-    const Dump* GetDecodedData()
+    Dump* GetDecodedData()
     {
       if (IsValid && Decoded.empty())
       {
@@ -242,6 +244,56 @@ namespace FullDiskImage
     Dump Decoded;
     std::size_t UsedSize;
   };
+
+  const std::string FORMAT_PATTERN(
+    "464449"
+  );
+}
+
+namespace Formats
+{
+  namespace Packed
+  {
+    class FullDiskImageDecoder : public Decoder
+    {
+    public:
+      FullDiskImageDecoder()
+        : Format(DataFormat::Create(FullDiskImage::FORMAT_PATTERN))
+      {
+      }
+
+      virtual DataFormat::Ptr GetFormat() const
+      {
+        return Format;
+      }
+
+      virtual bool Check(const void* data, std::size_t availSize) const
+      {
+        const FullDiskImage::Container container(data, availSize);
+        return container.FastCheck();
+      }
+
+      virtual std::auto_ptr<Dump> Decode(const void* data, std::size_t availSize, std::size_t& usedSize) const
+      {
+        const FullDiskImage::Container container(data, availSize);
+        if (!container.FastCheck())
+        {
+          return std::auto_ptr<Dump>();
+        }
+        FullDiskImage::Decoder decoder(container);
+        if (Dump* decoded = decoder.GetDecodedData())
+        {
+          usedSize = decoder.GetUsedSize();
+          std::auto_ptr<Dump> res(new Dump());
+          res->swap(*decoded);
+          return res;
+        }
+        return std::auto_ptr<Dump>();
+      }
+    private:
+      const DataFormat::Ptr Format;
+    };
+  }
 }
 
 namespace
@@ -318,6 +370,11 @@ namespace
                   , public boost::enable_shared_from_this<FDIPlugin>
   {
   public:
+    FDIPlugin()
+      : Decoder(new Formats::Packed::FullDiskImageDecoder())
+    {
+    }
+
     virtual String Id() const
     {
       return FDI_PLUGIN_ID;
@@ -346,24 +403,22 @@ namespace
 
     virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
     {
-      const IO::DataContainer::Ptr rawData = inputData->GetData();
-      std::size_t packedSize = 0;
-      if (const IO::DataContainer::Ptr subData = ExtractFDI(*rawData, packedSize))
-      {
-        const Plugin::Ptr plugin = shared_from_this();
-        const ZXTune::Module::NoProgressDetectCallbackAdapter noProgressCallback(callback);
-        const String subPath = Text::ARCHIVE_PLUGIN_PREFIX + plugin->Id();
-        const ZXTune::DataLocation::Ptr subLocation = CreateNestedLocation(inputData, plugin, subData, subPath);
-        ZXTune::Module::Detect(subLocation, noProgressCallback);
-        return DetectionResult::Create(packedSize, 0);
-      }
-      return boost::make_shared<FDIExtractionResult>(rawData);
+      return DetectModulesInArchive(shared_from_this(), *Decoder, inputData, callback);
+    }
+
+    virtual DataLocation::Ptr Open(const Parameters::Accessor& /*parameters*/,
+                                   DataLocation::Ptr inputData,
+                                   const String& pathToOpen) const
+    {
+      return OpenDataFromArchive(shared_from_this(), *Decoder, inputData, pathToOpen);
     }
 
     virtual ArchiveExtractionResult::Ptr ExtractSubdata(IO::DataContainer::Ptr input) const
     {
       return boost::make_shared<FDIExtractionResult>(input);
     }
+  private:
+    const Formats::Packed::Decoder::Ptr Decoder;
   };
 }
 

@@ -68,6 +68,13 @@ namespace
       return DetectModulesInArchive(shared_from_this(), *Decoder, inputData, callback);
     }
 
+    virtual DataLocation::Ptr Open(const Parameters::Accessor& /*parameters*/,
+                                   DataLocation::Ptr inputData,
+                                   const String& pathToOpen) const
+    {
+      return OpenDataFromArchive(shared_from_this(), *Decoder, inputData, pathToOpen);
+    }
+
     virtual ArchiveExtractionResult::Ptr ExtractSubdata(IO::DataContainer::Ptr input) const
     {
       return ExtractDataFromArchive(*Decoder, input);
@@ -113,6 +120,13 @@ namespace
     virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
     {
       return DetectModulesInArchive(shared_from_this(), *Decoder, inputData, callback);
+    }
+
+    virtual DataLocation::Ptr Open(const Parameters::Accessor& /*parameters*/,
+                                   DataLocation::Ptr inputData,
+                                   const String& pathToOpen) const
+    {
+      return OpenDataFromArchive(shared_from_this(), *Decoder, inputData, pathToOpen);
     }
 
     virtual ArchiveExtractionResult::Ptr ExtractSubdata(IO::DataContainer::Ptr input) const

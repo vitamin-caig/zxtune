@@ -78,6 +78,10 @@ namespace ZXTune
     //! @brief Detect modules in data
     virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const = 0;
 
+    virtual DataLocation::Ptr Open(const Parameters::Accessor& parameters,
+                                   DataLocation::Ptr inputData,
+                                   const String& pathToOpen) const = 0; 
+
     //! @brief Extracting subdata from specified input data
     //! @param inputData Source memory data
     virtual ArchiveExtractionResult::Ptr ExtractSubdata(IO::DataContainer::Ptr inputData) const = 0;
