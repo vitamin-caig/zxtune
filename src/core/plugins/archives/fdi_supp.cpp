@@ -303,69 +303,6 @@ namespace
   const Char FDI_PLUGIN_ID[] = {'F', 'D', 'I', 0};
   const String FDI_PLUGIN_VERSION(FromStdString("$Rev$"));
 
-  IO::DataContainer::Ptr ExtractFDI(const IO::DataContainer& data, std::size_t& packedSize)
-  {
-    const FullDiskImage::Container container(data.Data(), data.Size());
-    if (!container.FastCheck())
-    {
-      return IO::DataContainer::Ptr();
-    }
-    FullDiskImage::Decoder decoder(container);
-    if (const Dump* res = decoder.GetDecodedData())
-    {
-      packedSize = decoder.GetUsedSize();
-      return IO::CreateDataContainer(*res);
-    }
-    return IO::DataContainer::Ptr();
-  }
-
-  class FDIExtractionResult : public ArchiveExtractionResult
-  {
-  public:
-    explicit FDIExtractionResult(IO::DataContainer::Ptr data)
-      : RawData(data)
-      , PackedSize(0)
-    {
-    }
-
-    virtual std::size_t GetMatchedDataSize() const
-    {
-      TryToExtract();
-      return PackedSize;
-    }
-
-    virtual std::size_t GetLookaheadOffset() const
-    {
-      const uint_t size = RawData->Size();
-      if (size < sizeof(FullDiskImage::RawHeader))
-      {
-        return size;
-      }
-      const uint8_t* const begin = static_cast<const uint8_t*>(RawData->Data());
-      const uint8_t* const end = begin + size;
-      return std::search(begin, end, FullDiskImage::FDI_ID, ArrayEnd(FullDiskImage::FDI_ID)) - begin;
-    }
-
-    virtual IO::DataContainer::Ptr GetExtractedData() const
-    {
-      TryToExtract();
-      return ExtractedData;
-    }
-  private:
-    void TryToExtract() const
-    {
-      if (PackedSize)
-      {
-        return;
-      }
-      ExtractedData = ExtractFDI(*RawData, PackedSize);
-    }
-  private:
-    const IO::DataContainer::Ptr RawData;
-    mutable std::size_t PackedSize;
-    mutable IO::DataContainer::Ptr ExtractedData;
-  };
-
   class FDIPlugin : public ArchivePlugin
                   , public boost::enable_shared_from_this<FDIPlugin>
   {
@@ -395,12 +332,6 @@ namespace
       return CAP_STOR_CONTAINER;
     }
 
-    virtual bool Check(const IO::DataContainer& inputData) const
-    {
-      const FullDiskImage::Container container(inputData.Data(), inputData.Size());
-      return container.FastCheck();
-    }
-
     virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
     {
       return DetectModulesInArchive(shared_from_this(), *Decoder, inputData, callback);
@@ -411,11 +342,6 @@ namespace
                                    const String& pathToOpen) const
     {
       return OpenDataFromArchive(shared_from_this(), *Decoder, inputData, pathToOpen);
-    }
-
-    virtual ArchiveExtractionResult::Ptr ExtractSubdata(IO::DataContainer::Ptr input) const
-    {
-      return boost::make_shared<FDIExtractionResult>(input);
     }
   private:
     const Formats::Packed::Decoder::Ptr Decoder;

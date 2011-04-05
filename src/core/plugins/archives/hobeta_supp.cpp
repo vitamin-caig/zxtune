@@ -86,66 +86,6 @@ namespace
     return false;
   }
 
-  IO::DataContainer::Ptr ExtractHobeta(const IO::DataContainer& data, std::size_t& packedSize)
-  {
-    if (!CheckHobeta(data.Data(), data.Size()))
-    {
-      return IO::DataContainer::Ptr();
-    }
-    const Header* const header = safe_ptr_cast<const Header*>(data.Data());
-    const std::size_t dataSize = fromLE(header->Length);
-    const std::size_t fullSize = fromLE(header->FullLength);
-    packedSize = fullSize + sizeof(*header);
-    return data.GetSubcontainer(sizeof(*header), dataSize);
-  }
-
-  class HobetaExtractionResult : public ArchiveExtractionResult
-  {
-  public:
-    explicit HobetaExtractionResult(IO::DataContainer::Ptr data)
-      : RawData(data)
-      , PackedSize(0)
-    {
-    }
-
-    virtual std::size_t GetMatchedDataSize() const
-    {
-      TryToExtract();
-      return PackedSize;
-    }
-
-    virtual std::size_t GetLookaheadOffset() const
-    {
-      const uint_t size = RawData->Size();
-      if (size < sizeof(Header))
-      {
-        return size;
-      }
-      const uint8_t* const begin = static_cast<const uint8_t*>(RawData->Data());
-      const uint8_t* const end = begin + size;
-      return std::search_n(begin, end, 9, uint8_t(' '), std::greater_equal<uint8_t>()) - begin;
-    }
-
-    virtual IO::DataContainer::Ptr GetExtractedData() const
-    {
-      TryToExtract();
-      return ExtractedData;
-    }
-  private:
-    void TryToExtract() const
-    {
-      if (PackedSize)
-      {
-        return;
-      }
-      ExtractedData = ExtractHobeta(*RawData, PackedSize);
-    }
-  private:
-    const IO::DataContainer::Ptr RawData;
-    mutable std::size_t PackedSize;
-    mutable IO::DataContainer::Ptr ExtractedData;
-  };
-
   class HobetaFormat : public DataFormat
   {
   public:
@@ -231,11 +171,6 @@ namespace
       return CAP_STOR_CONTAINER | CAP_STOR_PLAIN;
     }
 
-    virtual bool Check(const IO::DataContainer& inputData) const
-    {
-      return CheckHobeta(inputData.Data(), inputData.Size());
-    }
-
     virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
     {
       return DetectModulesInArchive(shared_from_this(), *Decoder, inputData, callback);
@@ -246,11 +181,6 @@ namespace
                                    const String& pathToOpen) const
     {
       return OpenDataFromArchive(shared_from_this(), *Decoder, inputData, pathToOpen);
-    }
-
-    virtual ArchiveExtractionResult::Ptr ExtractSubdata(IO::DataContainer::Ptr input) const
-    {
-      return boost::make_shared<HobetaExtractionResult>(input);
     }
   private:
     const Formats::Packed::Decoder::Ptr Decoder;

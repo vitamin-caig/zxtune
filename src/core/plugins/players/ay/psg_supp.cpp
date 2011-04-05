@@ -291,13 +291,6 @@ namespace
       const PSGPlugin::Ptr self = shared_from_this();
       return DetectModuleInLocation(self, self, inputData, callback);
     }
-
-    virtual ModuleCreationResult::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
-                                                   DataLocation::Ptr inputData) const
-    {
-      const PSGPlugin::Ptr self = shared_from_this();
-      return CreateModuleFromLocation(self, self, parameters, inputData);
-    }
   private:
     virtual DataFormat::Ptr GetFormat() const
     {

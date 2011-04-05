@@ -37,8 +37,6 @@ namespace ZXTune
   }
 
   DetectionResult::Ptr DetectModuleInLocation(ModulesFactory::Ptr factory, PlayerPlugin::Ptr plugin, DataLocation::Ptr inputData, const Module::DetectCallback& callback);
-
-  ModuleCreationResult::Ptr CreateModuleFromLocation(ModulesFactory::Ptr factory, PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr inputData);
 }
 
 #endif //__CORE_PLUGINS_PLAYER_CREATION_RESULT_H_DEFINED__

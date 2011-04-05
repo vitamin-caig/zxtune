@@ -30,14 +30,6 @@ namespace ZXTune
     class DetectCallback;
   }
 
-  class ModuleCreationResult : public DetectionResult
-  {
-  public:
-    typedef boost::shared_ptr<const ModuleCreationResult> Ptr;
-
-    virtual Module::Holder::Ptr GetModule() const = 0;
-  };
-
   class PlayerPlugin : public Plugin
   {
   public:
@@ -50,22 +42,6 @@ namespace ZXTune
 
     //! @brief Detect modules in data
     virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const = 0;
-
-    //! @brief Creating module on specified input data
-    //! @param parameters Options for modules detection and creation
-    //! @param inputData Source memory data
-    //! @param usedSize Reference to result data size used to create
-    //! @return Not empty pointer if found, empty elsewhere
-    virtual ModuleCreationResult::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
-                                                   DataLocation::Ptr inputData) const = 0;
-  };
-
-  class ArchiveExtractionResult : public DetectionResult
-  {
-  public:
-    typedef boost::shared_ptr<const ArchiveExtractionResult> Ptr;
-
-    virtual IO::DataContainer::Ptr GetExtractedData() const = 0;
   };
 
   class ArchivePlugin : public Plugin
@@ -74,20 +50,12 @@ namespace ZXTune
     typedef boost::shared_ptr<const ArchivePlugin> Ptr;
     typedef ObjectIterator<ArchivePlugin::Ptr> Iterator;
 
-    //! @brief Checking if data contains subdata
-    //! @return true if possibly yes, false if defenitely no
-    virtual bool Check(const IO::DataContainer& inputData) const = 0;
-
     //! @brief Detect modules in data
     virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const = 0;
 
     virtual DataLocation::Ptr Open(const Parameters::Accessor& parameters,
                                    DataLocation::Ptr inputData,
                                    const String& pathToOpen) const = 0; 
-
-    //! @brief Extracting subdata from specified input data
-    //! @param inputData Source memory data
-    virtual ArchiveExtractionResult::Ptr ExtractSubdata(IO::DataContainer::Ptr inputData) const = 0;
   };
 
   class ContainerPlugin : public Plugin
@@ -95,10 +63,6 @@ namespace ZXTune
   public:
     typedef boost::shared_ptr<const ContainerPlugin> Ptr;
     typedef ObjectIterator<ContainerPlugin::Ptr> Iterator;
-
-    //! @brief Checking if data contains valid subdata
-    //! @return true if possibly yes, false if defenitely no
-    virtual bool Check(const IO::DataContainer& inputData) const = 0;
 
     //! @brief Detect modules in data
     virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const = 0;

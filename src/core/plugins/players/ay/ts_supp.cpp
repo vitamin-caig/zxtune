@@ -466,108 +466,6 @@ namespace
            0 != (caps & (CAP_DEVICE_MASK ^ CAP_DEV_AYM));
   }
 
-  class TSCreationResult : public ModuleCreationResult
-  {
-  public:
-    TSCreationResult(PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr inputData)
-      : Plug(plugin)
-      , Parameters(parameters)
-      , Location(inputData)
-      , UsedSize(0)
-      , Lookahead(0)
-    {
-    }
-
-    virtual std::size_t GetMatchedDataSize() const
-    {
-      TryToCreate();
-      return UsedSize;
-    }
-
-    virtual std::size_t GetLookaheadOffset() const
-    {
-      TryToCreate();
-      return Lookahead;
-    }
-
-    virtual Module::Holder::Ptr GetModule() const
-    {
-      TryToCreate();
-      return Holder;
-    }
-  private:
-    void TryToCreate() const
-    {
-      if (UsedSize || Lookahead)
-      {
-        return;
-      }
-      const IO::DataContainer::Ptr data = Location->GetData();
-      const DataFormat::Ptr format = DataFormat::Create(TS_FOOTER_FORMAT);
-      const uint8_t* const rawData = static_cast<const uint8_t*>(data->Data());
-      const std::size_t size = data->Size();
-      const std::size_t footerOffset = format->Search(rawData, size);
-      //no footer in nearest data
-      if (footerOffset == size)
-      {
-        Lookahead = size;
-        return;
-      }
-      const Footer& footer = *safe_ptr_cast<const Footer*>(rawData + footerOffset);
-      const std::size_t firstModuleSize = fromLE(footer.Size1);
-      const std::size_t secondModuleSize = fromLE(footer.Size2);
-      const std::size_t totalModulesSize = firstModuleSize + secondModuleSize;
-      const std::size_t dataSize = footerOffset + sizeof(footer);
-      if (totalModulesSize != footerOffset)
-      {
-        Lookahead = totalModulesSize > footerOffset
-          ? dataSize
-          : size;
-        return;
-      }
-
-      try
-      {
-        const PluginsEnumerator::Ptr usedPlugins = PluginsEnumerator::Create();
-        const DataLocation::Ptr firstSubLocation = CreateNestedLocation(Location, data->GetSubcontainer(0, firstModuleSize));
-
-        const Module::Holder::Ptr holder1 = Module::Open(firstSubLocation, usedPlugins, Parameters);
-        if (InvalidHolder(*holder1))
-        {
-          Log::Debug(THIS_MODULE, "Invalid first module holder");
-          Lookahead = dataSize;
-          return;
-        }
-        const DataLocation::Ptr secondSubLocation = CreateNestedLocation(Location, data->GetSubcontainer(firstModuleSize, footerOffset - firstModuleSize));
-        const Module::Holder::Ptr holder2 = Module::Open(secondSubLocation, usedPlugins, Parameters);
-        if (InvalidHolder(*holder2))
-        {
-          Log::Debug(THIS_MODULE, "Failed to create second module holder");
-          Lookahead = dataSize;
-          return;
-        }
-        //try to create merged holder
-        const IO::DataContainer::Ptr rawData = data->GetSubcontainer(0, dataSize);
-        Holder.reset(new TSHolder(Plug, data, holder1, holder2));
-        //TODO: proper data attributes calculation
-        UsedSize = dataSize;
-      }
-      catch (const Error&)
-      {
-        Log::Debug(THIS_MODULE, "Failed to create holder");
-      }
-    }
-  private:
-    const PlayerPlugin::Ptr Plug;
-    const Parameters::Accessor::Ptr Parameters;
-    const DataLocation::Ptr Location;
-    mutable std::size_t UsedSize;
-    mutable std::size_t Lookahead;
-    mutable Module::Holder::Ptr Holder;
-  };
-
-
-
   class TSPlugin : public PlayerPlugin
                  , public boost::enable_shared_from_this<TSPlugin>
   {
@@ -661,7 +559,7 @@ namespace
         }
         //try to create merged holder
         const IO::DataContainer::Ptr rawData = data->GetSubcontainer(0, dataSize);
-        const Module::Holder::Ptr holder(new TSHolder(shared_from_this(), data, holder1, holder2));
+        const Module::Holder::Ptr holder(new TSHolder(shared_from_this(), rawData, holder1, holder2));
         //TODO: proper data attributes calculation
         ThrowIfError(callback.ProcessModule(*inputData, holder));
         return DetectionResult::Create(dataSize, 0);
@@ -671,13 +569,6 @@ namespace
         Log::Debug(THIS_MODULE, "Failed to create holder");
       }
       return DetectionResult::Create(0, dataSize);
-    }
-
-    virtual ModuleCreationResult::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
-                                                   DataLocation::Ptr inputData) const
-    {
-      const TSPlugin::Ptr self = shared_from_this();
-      return boost::make_shared<TSCreationResult>(self, parameters, inputData);
     }
   private:
     const DataFormat::Ptr FooterFormat;

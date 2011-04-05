@@ -60,11 +60,6 @@ namespace
       return CAP_STOR_CONTAINER;
     }
 
-    virtual bool Check(const IO::DataContainer& inputData) const
-    {
-      return Decoder->Check(inputData.Data(), inputData.Size());
-    }
-
     virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
     {
       return DetectModulesInArchive(shared_from_this(), *Decoder, inputData, callback);
@@ -75,11 +70,6 @@ namespace
                                    const String& pathToOpen) const
     {
       return OpenDataFromArchive(shared_from_this(), *Decoder, inputData, pathToOpen);
-    }
-
-    virtual ArchiveExtractionResult::Ptr ExtractSubdata(IO::DataContainer::Ptr input) const
-    {
-      return ExtractDataFromArchive(*Decoder, input);
     }
   private:
     const Formats::Packed::Decoder::Ptr Decoder;

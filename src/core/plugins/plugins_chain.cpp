@@ -33,16 +33,6 @@ namespace
     {
     }
 
-    virtual void Add(Plugin::Ptr /*plugin*/)
-    {
-      assert(!"Should not be called");
-    }
-
-    virtual Plugin::Ptr GetLast() const
-    {
-      return NewPlug;
-    }
-
     virtual uint_t Count() const
     {
       return Parent->Count() + 1;
