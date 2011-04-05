@@ -841,6 +841,12 @@ namespace
       return CheckPT3Module(static_cast<const uint8_t*>(inputData.Data()), inputData.Size());
     }
 
+    virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
+    {
+      const PT3Plugin::Ptr self = shared_from_this();
+      return DetectModuleInLocation(self, self, inputData, callback);
+    }
+
     virtual ModuleCreationResult::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
                                                    DataLocation::Ptr inputData) const
     {
@@ -855,12 +861,9 @@ namespace
 
     virtual Holder::Ptr CreateModule(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize) const
     {
-      if (!Check(*data))
-      {
-        return Holder::Ptr();
-      }
       try
       {
+        assert(Check(*data));
         const uint_t tsPatternOffset = GetTSModulePatternOffset(*data);
         const bool isTSModule = AY_TRACK != tsPatternOffset;
         const Holder::Ptr holder = isTSModule

@@ -31,6 +31,13 @@ namespace ZXTune
     virtual Module::Holder::Ptr CreateModule(Module::ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize) const = 0;
   };
 
+  namespace Module
+  {
+    class DetectCallback;
+  }
+
+  DetectionResult::Ptr DetectModuleInLocation(ModulesFactory::Ptr factory, PlayerPlugin::Ptr plugin, DataLocation::Ptr inputData, const Module::DetectCallback& callback);
+
   ModuleCreationResult::Ptr CreateModuleFromLocation(ModulesFactory::Ptr factory, PlayerPlugin::Ptr plugin, Parameters::Accessor::Ptr parameters, DataLocation::Ptr inputData);
 }
 

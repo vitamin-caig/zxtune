@@ -13,8 +13,8 @@ Author:
 #include "ts_base.h"
 #include "core/src/core.h"
 #include "core/plugins/registrator.h"
-#include "core/plugins/players/creation_result.h"
 #include "core/plugins/players/tracking.h"
+#include "core/src/callback.h"
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
@@ -614,6 +614,63 @@ namespace
       const std::size_t secondModuleSize = fromLE(footer.Size2);
       const std::size_t totalModulesSize = firstModuleSize + secondModuleSize;
       return totalModulesSize == footerOffset;
+    }
+
+    virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
+    {
+      const IO::DataContainer::Ptr data = inputData->GetData();
+      const uint8_t* const rawData = static_cast<const uint8_t*>(data->Data());
+      const std::size_t size = data->Size();
+      const std::size_t footerOffset = FooterFormat->Search(rawData, size);
+      //no footer in nearest data
+      if (footerOffset == size)
+      {
+        return DetectionResult::Create(0, size);
+      }
+      const Footer& footer = *safe_ptr_cast<const Footer*>(rawData + footerOffset);
+      const std::size_t firstModuleSize = fromLE(footer.Size1);
+      const std::size_t secondModuleSize = fromLE(footer.Size2);
+      const std::size_t totalModulesSize = firstModuleSize + secondModuleSize;
+      const std::size_t dataSize = footerOffset + sizeof(footer);
+      if (totalModulesSize != footerOffset)
+      {
+        const std::size_t lookahead = totalModulesSize > footerOffset
+          ? dataSize
+          : size;
+        return DetectionResult::Create(0, lookahead);
+      }
+
+      try
+      {
+        const PluginsEnumerator::Ptr usedPlugins = PluginsEnumerator::Create();
+        const DataLocation::Ptr firstSubLocation = CreateNestedLocation(inputData, data->GetSubcontainer(0, firstModuleSize));
+        const Parameters::Accessor::Ptr parameters = callback.GetPluginsParameters();
+
+        const Module::Holder::Ptr holder1 = Module::Open(firstSubLocation, usedPlugins, parameters);
+        if (InvalidHolder(*holder1))
+        {
+          Log::Debug(THIS_MODULE, "Invalid first module holder");
+          return DetectionResult::Create(0, dataSize);
+        }
+        const DataLocation::Ptr secondSubLocation = CreateNestedLocation(inputData, data->GetSubcontainer(firstModuleSize, footerOffset - firstModuleSize));
+        const Module::Holder::Ptr holder2 = Module::Open(secondSubLocation, usedPlugins, parameters);
+        if (InvalidHolder(*holder2))
+        {
+          Log::Debug(THIS_MODULE, "Failed to create second module holder");
+          return DetectionResult::Create(0, dataSize);
+        }
+        //try to create merged holder
+        const IO::DataContainer::Ptr rawData = data->GetSubcontainer(0, dataSize);
+        const Module::Holder::Ptr holder(new TSHolder(shared_from_this(), data, holder1, holder2));
+        //TODO: proper data attributes calculation
+        ThrowIfError(callback.ProcessModule(*inputData, holder));
+        return DetectionResult::Create(dataSize, 0);
+      }
+      catch (const Error&)
+      {
+        Log::Debug(THIS_MODULE, "Failed to create holder");
+      }
+      return DetectionResult::Create(0, dataSize);
     }
 
     virtual ModuleCreationResult::Ptr CreateModule(Parameters::Accessor::Ptr parameters,

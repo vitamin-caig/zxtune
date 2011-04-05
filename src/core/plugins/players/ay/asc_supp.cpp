@@ -1182,6 +1182,12 @@ namespace
       return CheckASCModule(data, limit);
     }
 
+    virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
+    {
+      const ASCPlugin::Ptr self = shared_from_this();
+      return DetectModuleInLocation(self, self, inputData, callback);
+    }
+
     virtual ModuleCreationResult::Ptr CreateModule(Parameters::Accessor::Ptr parameters,
                                                    DataLocation::Ptr inputData) const
     {
@@ -1196,12 +1202,9 @@ namespace
 
     virtual Holder::Ptr CreateModule(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize) const
     {
-      if (!Check(*data))
-      {
-        return Holder::Ptr();
-      }
       try
       {
+        assert(Check(*data));
         const Holder::Ptr holder(new ASCHolder(properties, parameters, data, usedSize));
         return holder;
       }

@@ -48,6 +48,9 @@ namespace ZXTune
     //! @return true if possibly yes, false if defenitely no
     virtual bool Check(const IO::DataContainer& inputData) const = 0;
 
+    //! @brief Detect modules in data
+    virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const = 0;
+
     //! @brief Creating module on specified input data
     //! @param parameters Options for modules detection and creation
     //! @param inputData Source memory data

@@ -129,17 +129,10 @@ namespace
       for (PlayerPlugin::Iterator::Ptr plugins = UsedPlugins->EnumeratePlayers(); plugins->IsValid(); plugins->Next())
       {
         const PlayerPlugin::Ptr plugin = plugins->Get();
-        if (!plugin->Check(*Data))
+        const DetectionResult::Ptr result = plugin->Detect(Location, Callback);
+        if (std::size_t usedSize = result->GetMatchedDataSize())
         {
-          continue;
-        }
-        const Parameters::Accessor::Ptr moduleParams = Callback.CreateModuleParameters(*Location);
-        const ModuleCreationResult::Ptr result = plugin->CreateModule(moduleParams, Location);
-        if (Module::Holder::Ptr module = result->GetModule())
-        {
-          const std::size_t usedSize = result->GetMatchedDataSize();
           Log::Debug(THIS_MODULE, "Detected %1% in %2% bytes at %3%.", plugin->Id(), usedSize, Location->GetPath());
-          ThrowIfError(Callback.ProcessModule(*Location, module));
           return usedSize;
         }
         //TODO: dispatch heavy checks- return false if not enabled

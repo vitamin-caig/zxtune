@@ -413,7 +413,6 @@ namespace
 
     virtual std::size_t ProcessArchives() const
     {
-      const IO::DataContainer::Ptr data = GetData();
       for (ArchivePlugin::Iterator::Ptr iter = Plugins.EnumerateArchives(); iter->IsValid(); iter->Next())
       {
         const ArchivePlugin::Ptr plugin = iter->Get();
@@ -431,17 +430,13 @@ namespace
 
     virtual std::size_t ProcessModules() const
     {
-      const Parameters::Accessor::Ptr moduleParams = Callback.CreateModuleParameters(*Location);
       for (PlayerPlugin::Iterator::Ptr iter = Plugins.EnumeratePlayers(); iter->IsValid(); iter->Next())
       {
         const PlayerPlugin::Ptr plugin = iter->Get();
-        //do not use cache- location is mutable
-        const ModuleCreationResult::Ptr result = plugin->CreateModule(moduleParams, Location);
-        if (Module::Holder::Ptr module = result->GetModule())
+        const DetectionResult::Ptr result = plugin->Detect(Location, Callback);
+        if (std::size_t usedSize = result->GetMatchedDataSize())
         {
-          const std::size_t usedSize = result->GetMatchedDataSize();
           Log::Debug(THIS_MODULE, "Detected %1% in %2% bytes at %3%.", plugin->Id(), usedSize, Location->GetPath());
-          ThrowIfError(Callback.ProcessModule(*Location, module));
           return usedSize;
         }
         const std::size_t lookahead = result->GetLookaheadOffset();
@@ -451,30 +446,10 @@ namespace
       return 0;
     }
   private:
-    Parameters::Accessor::Ptr GetPluginParams() const
-    {
-      if (!PluginsParams)
-      {
-        PluginsParams = Callback.GetPluginsParameters();
-      }
-      return PluginsParams;
-    }
-
-    IO::DataContainer::Ptr GetData() const
-    {
-      if (!RawData)
-      {
-        RawData = Location->GetData();
-      }
-      return RawData;
-    }
-  private:
     RawDetectionPlugins& Plugins;
     const DataProcessor::Ptr Delegate;
     const DataLocation::Ptr Location;
     const Module::DetectCallback& Callback;
-    mutable Parameters::Accessor::Ptr PluginsParams;
-    mutable IO::DataContainer::Ptr RawData;
   };
 
   class RawScaner : public ContainerPlugin
