@@ -39,15 +39,15 @@ namespace
   class OpenModuleCallback : public Module::DetectCallback
   {
   public:
-    OpenModuleCallback(PluginsEnumerator::Ptr usedPlugins, Parameters::Accessor::Ptr moduleParams)
-      : Plugins(usedPlugins)
-      , ModuleParams(moduleParams)
+    OpenModuleCallback(Parameters::Accessor::Ptr moduleParams)
+      : ModuleParams(moduleParams)
     {
     }
 
     virtual PluginsEnumerator::Ptr GetUsedPlugins() const
     {
-      return Plugins;
+      assert(!"Should not be called");
+      return PluginsEnumerator::Ptr();
     }
 
     virtual Parameters::Accessor::Ptr GetPluginsParameters() const
@@ -76,7 +76,6 @@ namespace
       return Result;
     }
   private:
-    const PluginsEnumerator::Ptr Plugins;
     const Parameters::Accessor::Ptr ModuleParams;
     mutable Module::Holder::Ptr Result;
   };
@@ -96,16 +95,77 @@ namespace
     }
     return 0;
   }
+
+  class DetectionResultImpl : public DetectionResult
+  {
+  public:
+    explicit DetectionResultImpl(std::size_t matchedSize, std::size_t unmatchedSize)
+      : MatchedSize(matchedSize)
+      , UnmatchedSize(unmatchedSize)
+    {
+    }
+
+    virtual std::size_t GetMatchedDataSize() const
+    {
+      return MatchedSize;
+    }
+
+    virtual std::size_t GetLookaheadOffset() const
+    {
+      return UnmatchedSize;
+    }
+  private:
+    const std::size_t MatchedSize;
+    const std::size_t UnmatchedSize;
+  };
+
+  class UnmatchedDetectionResult : public DetectionResult
+  {
+  public:
+    UnmatchedDetectionResult(DataFormat::Ptr format, IO::DataContainer::Ptr data)
+      : Format(format)
+      , RawData(data)
+    {
+    }
+
+    virtual std::size_t GetMatchedDataSize() const
+    {
+      return 0;
+    }
+
+    virtual std::size_t GetLookaheadOffset() const
+    {
+      return Format->Search(RawData->Data(), RawData->Size());
+    }
+  private:
+    const DataFormat::Ptr Format;
+    const IO::DataContainer::Ptr RawData;
+  };
 }
 
 namespace ZXTune
 {
+  DetectionResult::Ptr DetectionResult::CreateMatched(std::size_t matchedSize)
+  {
+    return boost::make_shared<DetectionResultImpl>(matchedSize, 0);
+  }
+
+  DetectionResult::Ptr DetectionResult::CreateUnmatched(DataFormat::Ptr format, IO::DataContainer::Ptr data)
+  {
+    return boost::make_shared<UnmatchedDetectionResult>(format, data);
+  }
+
+  DetectionResult::Ptr DetectionResult::CreateUnmatched(std::size_t unmatchedSize)
+  {
+    return boost::make_shared<DetectionResultImpl>(0, unmatchedSize);
+  }
+
   namespace Module
   {
     Holder::Ptr Open(DataLocation::Ptr location, PluginsEnumerator::Ptr usedPlugins, Parameters::Accessor::Ptr moduleParams)
     {
-      const OpenModuleCallback callback(usedPlugins, moduleParams);
-      Detect(location, callback);
+      const OpenModuleCallback callback(moduleParams);
+      DetectByPlugins<PlayerPlugin>(usedPlugins->EnumeratePlayers(), location, callback);
       return callback.GetResult();
     }
 

@@ -523,7 +523,7 @@ namespace
       //no footer in nearest data
       if (footerOffset == size)
       {
-        return DetectionResult::Create(0, size);
+        return DetectionResult::CreateUnmatched(size);
       }
       const Footer& footer = *safe_ptr_cast<const Footer*>(rawData + footerOffset);
       const std::size_t firstModuleSize = fromLE(footer.Size1);
@@ -535,40 +535,40 @@ namespace
         const std::size_t lookahead = totalModulesSize > footerOffset
           ? dataSize
           : size;
-        return DetectionResult::Create(0, lookahead);
+        return DetectionResult::CreateUnmatched(lookahead);
       }
 
       try
       {
         const PluginsEnumerator::Ptr usedPlugins = PluginsEnumerator::Create();
         const DataLocation::Ptr firstSubLocation = CreateNestedLocation(inputData, data->GetSubcontainer(0, firstModuleSize));
-        const Parameters::Accessor::Ptr parameters = callback.GetPluginsParameters();
+        const Parameters::Accessor::Ptr parameters = callback.CreateModuleParameters(*inputData);
 
         const Module::Holder::Ptr holder1 = Module::Open(firstSubLocation, usedPlugins, parameters);
         if (InvalidHolder(*holder1))
         {
           Log::Debug(THIS_MODULE, "Invalid first module holder");
-          return DetectionResult::Create(0, dataSize);
+          return DetectionResult::CreateUnmatched(dataSize);
         }
         const DataLocation::Ptr secondSubLocation = CreateNestedLocation(inputData, data->GetSubcontainer(firstModuleSize, footerOffset - firstModuleSize));
         const Module::Holder::Ptr holder2 = Module::Open(secondSubLocation, usedPlugins, parameters);
         if (InvalidHolder(*holder2))
         {
           Log::Debug(THIS_MODULE, "Failed to create second module holder");
-          return DetectionResult::Create(0, dataSize);
+          return DetectionResult::CreateUnmatched(dataSize);
         }
         //try to create merged holder
         const IO::DataContainer::Ptr rawData = data->GetSubcontainer(0, dataSize);
         const Module::Holder::Ptr holder(new TSHolder(shared_from_this(), rawData, holder1, holder2));
         //TODO: proper data attributes calculation
         ThrowIfError(callback.ProcessModule(*inputData, holder));
-        return DetectionResult::Create(dataSize, 0);
+        return DetectionResult::CreateMatched(dataSize);
       }
       catch (const Error&)
       {
         Log::Debug(THIS_MODULE, "Failed to create holder");
       }
-      return DetectionResult::Create(0, dataSize);
+      return DetectionResult::CreateUnmatched(dataSize);
     }
   private:
     const DataFormat::Ptr FooterFormat;

@@ -36,6 +36,11 @@ namespace
       return PluginsChain::Ptr(&instance, NullDeleter<EmptyPluginsChain>());
     }
 
+    virtual Plugin::Ptr GetLast() const
+    {
+      return Plugin::Ptr();
+    }
+
     virtual uint_t Count() const
     {
       return 0;

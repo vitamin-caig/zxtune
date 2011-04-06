@@ -41,30 +41,6 @@ namespace
     assert(IsArchivePluginPathComponent(component));
     return component.substr(ARCHIVE_PLUGIN_PREFIX.size());
   }
- 
-
-  class ArchiveDetectionResultImpl : public DetectionResult
-  {
-  public:
-    ArchiveDetectionResultImpl(DataFormat::Ptr format, IO::DataContainer::Ptr data)
-      : Format(format)
-      , RawData(data)
-    {
-    }
-
-    virtual std::size_t GetMatchedDataSize() const
-    {
-      return 0;
-    }
-
-    virtual std::size_t GetLookaheadOffset() const
-    {
-      return Format->Search(RawData->Data(), RawData->Size());
-    }
-  private:
-    const DataFormat::Ptr Format;
-    const IO::DataContainer::Ptr RawData;
-  };
 }
 
 namespace ZXTune
@@ -82,10 +58,10 @@ namespace ZXTune
       const String subPath = EncodeArchivePluginToPath(plugin->Id());
       const ZXTune::DataLocation::Ptr subLocation = CreateNestedLocation(inputData, plugin, subData, subPath);
       ZXTune::Module::Detect(subLocation, noProgressCallback);
-      return DetectionResult::Create(packedSize, 0);
+      return DetectionResult::CreateMatched(packedSize);
     }
     const DataFormat::Ptr format = decoder.GetFormat();
-    return boost::make_shared<ArchiveDetectionResultImpl>(format, rawData);
+    return DetectionResult::CreateUnmatched(format, rawData);
   }
 
   DataLocation::Ptr OpenDataFromArchive(Plugin::Ptr plugin, const Formats::Packed::Decoder& decoder,

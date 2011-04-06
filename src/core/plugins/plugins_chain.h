@@ -25,6 +25,7 @@ namespace ZXTune
 
     virtual ~PluginsChain() {}
 
+    virtual Plugin::Ptr GetLast() const = 0;
     virtual uint_t Count() const = 0;
     virtual String AsString() const = 0;
 

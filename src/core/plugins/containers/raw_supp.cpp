@@ -427,7 +427,7 @@ namespace
       if (size < MIN_MINIMAL_RAW_SIZE)
       {
         Log::Debug(THIS_MODULE, "Size is too small (%1%)", size);
-        return DetectionResult::Create(0, size);
+        return DetectionResult::CreateUnmatched(size);
       }
 
       const Parameters::Accessor::Ptr pluginParams = callback.GetPluginsParameters();
@@ -437,7 +437,15 @@ namespace
       if (size < minRawSize + scanStep)
       {
         Log::Debug(THIS_MODULE, "Size is too small (%1%)", size);
-        return DetectionResult::Create(0, size);
+        return DetectionResult::CreateUnmatched(size);
+      }
+      if (const Plugin::Ptr lastPlugin = input->GetPlugins()->GetLast())
+      {
+        if (lastPlugin->Id() == RAW_PLUGIN_ID)
+        {
+          Log::Debug(THIS_MODULE, "Recursive raw. Skipping.");
+          return DetectionResult::CreateUnmatched(size);
+        }
       }
 
       Log::Debug(THIS_MODULE, "Detecting modules in raw data at '%1%'", input->GetPath());
@@ -464,7 +472,7 @@ namespace
         }
         subLocation->Move(std::max(usedSize, scanStep));
       }
-      return DetectionResult::Create(size, 0);
+      return DetectionResult::CreateMatched(size);
     }
 
     virtual DataLocation::Ptr Open(const Parameters::Accessor& /*commonParams*/, DataLocation::Ptr location, const String& inPath) const
