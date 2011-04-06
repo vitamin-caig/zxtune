@@ -16,31 +16,13 @@
 //boost includes
 #include <boost/shared_ptr.hpp>
 
-//! Abstract data detection result
-class DetectionResult
-{
-public:
-  typedef boost::shared_ptr<const DetectionResult> Ptr;
-  virtual ~DetectionResult() {}
-
-  //! @brief Returns data size that is processed in current data position
-  //! @return Size of input data format detected
-  //! @invariant Return 0 if data is not matched at the beginning
-  virtual std::size_t GetMatchedDataSize() const = 0;
-  //! @brief Search format in forward data
-  //! @return Offset in input data where perform next checking
-  //! @invariant Return 0 if current data matches format
-  //! @invariant Return input data size if no data at all
-  virtual std::size_t GetLookaheadOffset() const = 0;
-
-  static Ptr Create(std::size_t matchedSize, std::size_t lookAhead);
-};
-
-//Text pattern format:
-//  \?            - any byte
+//Text pattern format (in regular expression notation):
+//  \?           - any byte
 //  [0-9a-fx]{2} - match byte/nibble
-//  \+[0-9]+\+         - skip xx bytes (dec)
+//  \+[0-9]+\+   - skip xx bytes (dec)
 //  %[01x]{8}    - match byte by bits
+//  '.           - match symbol
+//  [0-9]{2}-[0-9]{2} - match byte by range
 
 //! Data format description
 class DataFormat

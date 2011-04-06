@@ -237,6 +237,8 @@ int main()
     TestDetector("nibbles unmatched", "0x1x", false, 15);
     TestDetector("binary matched", "%0x0x0x0x%x0x0x0x1", true, 0);
     TestDetector("binary unmatched", "%00010xxx%00011xxx", false, 0x17);
+    TestDetector("ranged matched", "00-0200-02", true, 0);
+    TestDetector("ranged unmatched", "10-12", false, 0x10);
   }
   }
   catch (int code)
