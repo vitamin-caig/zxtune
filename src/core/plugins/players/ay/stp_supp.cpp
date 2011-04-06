@@ -1095,7 +1095,9 @@ namespace
 
     virtual bool Check(const IO::DataContainer& inputData) const
     {
-      return CheckSTPModule(static_cast<const uint8_t*>(inputData.Data()), inputData.Size());
+      const uint8_t* const data = static_cast<const uint8_t*>(inputData.Data());
+      const std::size_t size = inputData.Size();
+      return Format->Match(data, size) && CheckSTPModule(data, size);
     }
 
     virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const

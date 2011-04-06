@@ -459,9 +459,13 @@ namespace
   );
 
   /////////////////////////////////////////////////////////////////////////////
-  inline bool InvalidHolder(const Module::Holder& holder)
+  inline bool InvalidHolder(Module::Holder::Ptr holder)
   {
-    const uint_t caps = holder.GetPlugin()->Capabilities();
+    if (!holder)
+    {
+      return true;
+    }
+    const uint_t caps = holder->GetPlugin()->Capabilities();
     return 0 != (caps & (CAP_STORAGE_MASK ^ CAP_STOR_MODULE)) ||
            0 != (caps & (CAP_DEVICE_MASK ^ CAP_DEV_AYM));
   }
@@ -534,41 +538,34 @@ namespace
       {
         const std::size_t lookahead = totalModulesSize > footerOffset
           ? dataSize
-          : size;
+          : footerOffset - totalModulesSize;
         return DetectionResult::CreateUnmatched(lookahead);
       }
 
-      try
-      {
-        const PluginsEnumerator::Ptr usedPlugins = PluginsEnumerator::Create();
-        const DataLocation::Ptr firstSubLocation = CreateNestedLocation(inputData, data->GetSubcontainer(0, firstModuleSize));
-        const Parameters::Accessor::Ptr parameters = callback.CreateModuleParameters(*inputData);
+      const PluginsEnumerator::Ptr usedPlugins = PluginsEnumerator::Create();
+      const DataLocation::Ptr firstSubLocation = CreateNestedLocation(inputData, data->GetSubcontainer(0, firstModuleSize));
+      const Parameters::Accessor::Ptr parameters = callback.CreateModuleParameters(*inputData);
 
-        const Module::Holder::Ptr holder1 = Module::Open(firstSubLocation, usedPlugins, parameters);
-        if (InvalidHolder(*holder1))
-        {
-          Log::Debug(THIS_MODULE, "Invalid first module holder");
-          return DetectionResult::CreateUnmatched(dataSize);
-        }
-        const DataLocation::Ptr secondSubLocation = CreateNestedLocation(inputData, data->GetSubcontainer(firstModuleSize, footerOffset - firstModuleSize));
-        const Module::Holder::Ptr holder2 = Module::Open(secondSubLocation, usedPlugins, parameters);
-        if (InvalidHolder(*holder2))
-        {
-          Log::Debug(THIS_MODULE, "Failed to create second module holder");
-          return DetectionResult::CreateUnmatched(dataSize);
-        }
-        //try to create merged holder
-        const IO::DataContainer::Ptr rawData = data->GetSubcontainer(0, dataSize);
-        const Module::Holder::Ptr holder(new TSHolder(shared_from_this(), rawData, holder1, holder2));
-        //TODO: proper data attributes calculation
-        ThrowIfError(callback.ProcessModule(*inputData, holder));
-        return DetectionResult::CreateMatched(dataSize);
-      }
-      catch (const Error&)
+      const Module::Holder::Ptr holder1 = Module::Open(firstSubLocation, usedPlugins, parameters);
+      if (InvalidHolder(holder1))
       {
-        Log::Debug(THIS_MODULE, "Failed to create holder");
+        Log::Debug(THIS_MODULE, "Invalid first module holder");
+        return DetectionResult::CreateUnmatched(dataSize);
       }
-      return DetectionResult::CreateUnmatched(dataSize);
+      const DataLocation::Ptr secondSubLocation = CreateNestedLocation(inputData, data->GetSubcontainer(firstModuleSize, footerOffset - firstModuleSize));
+      const Module::Holder::Ptr holder2 = Module::Open(secondSubLocation, usedPlugins, parameters);
+      if (InvalidHolder(holder2))
+      {
+        Log::Debug(THIS_MODULE, "Failed to create second module holder");
+        return DetectionResult::CreateUnmatched(dataSize);
+      }
+      //try to create merged holder
+      const IO::DataContainer::Ptr tsData = data->GetSubcontainer(0, dataSize);
+
+      const Module::Holder::Ptr holder(new TSHolder(shared_from_this(), tsData, holder1, holder2));
+      //TODO: proper data attributes calculation
+      ThrowIfError(callback.ProcessModule(*inputData, holder));
+      return DetectionResult::CreateMatched(dataSize);
     }
   private:
     const DataFormat::Ptr FooterFormat;

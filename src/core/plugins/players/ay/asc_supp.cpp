@@ -1133,12 +1133,12 @@ namespace
   }
 
   const std::string ASC_FORMAT(
-    "01-0f"         // uint8_t Tempo; 0..15
-    "?"             // uint8_t Loop; any byte
+    "03-32"         // uint8_t Tempo; 3..50
+    "00-63"         // uint8_t Loop; 0..99
     "?00-3f"        // uint16_t PatternsOffset; 0..3fff
     "?00-3f"        // uint16_t SamplesOffset; 0..3fff
     "?00-3f"        // uint16_t OrnamentsOffset; 0..3fff
-    "?"             // uint8_t Length; any byte
+    "01-64"         // uint8_t Length; 1..100
     "00-1f"         // uint8_t Positions[1]; 0..31
   );
 
@@ -1179,7 +1179,7 @@ namespace
     {
       const uint8_t* const data = static_cast<const uint8_t*>(inputData.Data());
       const std::size_t limit = inputData.Size();
-      return CheckASCModule(data, limit);
+      return Format->Match(data, limit) && CheckASCModule(data, limit);
     }
 
     virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const

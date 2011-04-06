@@ -787,7 +787,7 @@ namespace
     "+32+"       // char TrackAuthor[32];
     "?"          // uint8_t Mode;
     "00-06"      // uint8_t FreqTableNum;
-    "03-3f"      // uint8_t Tempo;
+    "01-3f"      // uint8_t Tempo;
     "?"          // uint8_t Length;
     "?"          // uint8_t Loop;
     "?00-3f"     // uint16_t PatternsOffset;
@@ -799,7 +799,6 @@ namespace
     //boost::array<uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
     "?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f"
     "?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f"
-    "00-55"      //uint8_t Positions[1]; //finished by marker
   );
 
   //////////////////////////////////////////////////////////////////////////
@@ -838,7 +837,9 @@ namespace
 
     virtual bool Check(const IO::DataContainer& inputData) const
     {
-      return CheckPT3Module(static_cast<const uint8_t*>(inputData.Data()), inputData.Size());
+      const uint8_t* const data = static_cast<const uint8_t*>(inputData.Data());
+      const std::size_t size = inputData.Size();
+      return Format->Match(data, size) && CheckPT3Module(data, size);
     }
 
     virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const

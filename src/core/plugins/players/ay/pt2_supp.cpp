@@ -805,9 +805,9 @@ namespace
   }
 
   const std::string PT2_FORMAT(
-    "01-0f"      // uint8_t Tempo; 1..15
-    "01-3f"      // uint8_t Length;
-    "01-3f"      // uint8_t Loop;
+    "02-0f"      // uint8_t Tempo; 2..15
+    "01-ff"      // uint8_t Length; 1..100
+    "00-fe"      // uint8_t Loop; 0..99
     //boost::array<uint16_t, 32> SamplesOffsets;
     "?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f"
     "?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f"
@@ -854,7 +854,9 @@ namespace
 
     virtual bool Check(const IO::DataContainer& inputData) const
     {
-      return CheckPT2Module(static_cast<const uint8_t*>(inputData.Data()), inputData.Size());
+      const uint8_t* const data = static_cast<const uint8_t*>(inputData.Data());
+      const std::size_t size = inputData.Size();
+      return Format->Match(data, size) && CheckPT2Module(data, size);
     }
 
     virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const

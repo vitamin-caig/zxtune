@@ -1080,7 +1080,9 @@ namespace
 
     virtual bool Check(const IO::DataContainer& inputData) const
     {
-      return CheckSTCModule(static_cast<const uint8_t*>(inputData.Data()), inputData.Size());
+      const uint8_t* const data = static_cast<const uint8_t*>(inputData.Data());
+      const std::size_t size = inputData.Size();
+      return Format->Match(data, size) && CheckSTCModule(data, size);
     }
 
     virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
@@ -1098,7 +1100,7 @@ namespace
     {
       try
       {
-        assert(!Check(*data));
+        assert(Check(*data));
         const Holder::Ptr holder(new STCHolder(properties, parameters, data, usedSize));
         return holder;
       }
