@@ -117,7 +117,7 @@ namespace
 
   const std::string TRD_SERVICE_SECTOR_PATTERN = 
     "16"            //type DS_DD
-    "%0xxxxxxx"     //files
+    "?"             //files
     "?%00000xxx"    //free sectors
     "10"            //ID
   ;

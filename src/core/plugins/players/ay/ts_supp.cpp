@@ -455,7 +455,7 @@ namespace
     "?%00xxxxxx"                     // uint16_t Size1;
     "%0xxxxxxx%0xxxxxxx%0xxxxxxx21"  // uint8_t ID2[4];//same
     "?%00xxxxxx"                     // uint16_t Size2;
-    "30325453"                       // uint8_t ID3[4];//'02TS'
+    "'0'2'T'S"                       // uint8_t ID3[4];//'02TS'
   );
 
   /////////////////////////////////////////////////////////////////////////////

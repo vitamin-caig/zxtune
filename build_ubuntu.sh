@@ -3,7 +3,7 @@
 Arch=${1-`uname -m`}
 
 echo "Updating"
-svn up > /dev/null || (echo "Failed to update" && exit 1)
+#svn up > /dev/null || (echo "Failed to update" && exit 1)
 
 . make/platforms/setup_qt.sh || exit 1
 . make/platforms/setup_boost.sh || exit 1
@@ -77,7 +77,7 @@ Architecture: ${PkgArch}\n\
 Priority: optional\n\
 Section: sound\n\
 Maintainer: Vitamin <vitamin.caig@gmail.com>\n\
-Depends: libc6, libboost-thread1.40.0, libqtgui4 (>= 4.6.0), libqtcore4 (>= 4.6.0), libasound2\n\
+Depends: libc6, libqtgui4 (>= 4.6.0), libqtcore4 (>= 4.6.0), libasound2\n\
 Description: QT4-based application based on ZXTune library\n\
  This package provides zxtune-qt application\n\
  used to play chiptunes from ZX Spectrum.\n"\

@@ -1133,13 +1133,13 @@ namespace
   }
 
   const std::string ASC_FORMAT(
-    "0x"            // uint8_t Tempo; 0..15
+    "01-0f"         // uint8_t Tempo; 0..15
     "?"             // uint8_t Loop; any byte
-    "?%00xxxxxx"    // uint16_t PatternsOffset; 0..3fff
-    "?%00xxxxxx"    // uint16_t SamplesOffset; 0..3fff
-    "?%00xxxxxx"    // uint16_t OrnamentsOffset; 0..3fff
+    "?00-3f"        // uint16_t PatternsOffset; 0..3fff
+    "?00-3f"        // uint16_t SamplesOffset; 0..3fff
+    "?00-3f"        // uint16_t OrnamentsOffset; 0..3fff
     "?"             // uint8_t Length; any byte
-    "%000xxxxx"     // uint8_t Positions[1]; 0..31
+    "00-1f"         // uint8_t Positions[1]; 0..31
   );
 
   //////////////////////////////////////////////////////////////////////////

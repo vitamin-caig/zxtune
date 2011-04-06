@@ -805,20 +805,18 @@ namespace
   }
 
   const std::string PT2_FORMAT(
-    "0x"          // uint8_t Tempo; 1..15
-    "?"          // uint8_t Length;
-    "?"          // uint8_t Loop;
+    "01-0f"      // uint8_t Tempo; 1..15
+    "01-3f"      // uint8_t Length;
+    "01-3f"      // uint8_t Loop;
     //boost::array<uint16_t, 32> SamplesOffsets;
-    "?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx"
-    "?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx"
-    "?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx"
-    "?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx"
+    "?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f"
+    "?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f"
+    "?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f"
+    "?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f"
     //boost::array<uint16_t, 16> OrnamentsOffsets;
-    "?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx"
-    "?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx"
-    "?%00xxxxxx" // uint16_t PatternsOffset;
-    "+30+"       // char Name[30];
-    "%0xxxxxxx"  // uint8_t Positions[1];
+    "?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f"
+    "?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f"
+    "?00-3f" // uint16_t PatternsOffset;
   );
 
   //////////////////////////////////////////////////////////////////////////

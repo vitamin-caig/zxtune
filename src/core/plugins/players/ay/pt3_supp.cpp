@@ -786,20 +786,20 @@ namespace
     "+4+"        // uint8_t Optional2[4]; //' by '
     "+32+"       // char TrackAuthor[32];
     "?"          // uint8_t Mode;
-    "0x"         // uint8_t FreqTableNum;
-    "%00xxxxxx"  // uint8_t Tempo;
+    "00-06"      // uint8_t FreqTableNum;
+    "03-3f"      // uint8_t Tempo;
     "?"          // uint8_t Length;
     "?"          // uint8_t Loop;
-    "?%00xxxxxx" // uint16_t PatternsOffset;
+    "?00-3f"     // uint16_t PatternsOffset;
     //boost::array<uint16_t, MAX_SAMPLES_COUNT> SamplesOffsets;
-    "?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx"
-    "?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx"
-    "?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx"
-    "?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx"
+    "?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f"
+    "?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f"
+    "?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f"
+    "?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f"
     //boost::array<uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
-    "?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx"
-    "?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx?%00xxxxxx"
-    "%0xxxxxxx"  //uint8_t Positions[1]; //finished by marker
+    "?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f"
+    "?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f"
+    "00-55"      //uint8_t Positions[1]; //finished by marker
   );
 
   //////////////////////////////////////////////////////////////////////////

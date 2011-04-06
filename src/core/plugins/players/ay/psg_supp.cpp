@@ -246,7 +246,7 @@ namespace
   }
 
   const std::string PSG_FORMAT(
-    "505347" // uint8_t Sign[3];
+    "'P'S'G" // uint8_t Sign[3];
   );
 
   class PSGPlugin : public PlayerPlugin

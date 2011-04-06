@@ -1037,11 +1037,11 @@ namespace
   }
 
   const std::string STP_FORMAT(
-    "0x"         // uint8_t Tempo; 0..15
-    "?%00xxxxxx" // uint16_t PositionsOffset; 0..3fff
-    "?%00xxxxxx" // uint16_t PatternsOffset; 0..3fff
-    "?%00xxxxxx" // uint16_t OrnamentsOffset; 0..3fff
-    "?%00xxxxxx" // uint16_t SamplesOffset; 0..3fff
+    "01-0f"  // uint8_t Tempo; 0..15
+    "?00-3f" // uint16_t PositionsOffset; 0..3fff
+    "?00-3f" // uint16_t PatternsOffset; 0..3fff
+    "?00-3f" // uint16_t OrnamentsOffset; 0..3fff
+    "?00-3f" // uint16_t SamplesOffset; 0..3fff
   );
 
   class STPFormat : public DataFormat
