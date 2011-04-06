@@ -123,7 +123,7 @@ namespace Binary
     Pattern result;
     for (PatternIterator it(textPattern.begin(), textPattern.end()); it; ++it)
     {
-      switch (char c = *it)
+      switch (*it)
       {
       case ANY_BYTE_TEXT:
         result.push_back(ANY_BYTE);
@@ -142,7 +142,8 @@ namespace Binary
         break;
       case SYMBOL_TEXT:
         {
-          const PatternEntry& entry = PatternEntry(0xff, static_cast<uint8_t>(c));
+          const uint8_t val = static_cast<uint8_t>(*++it);
+          const PatternEntry& entry = PatternEntry(0xff, val);
           result.push_back(entry);
         }
         break;
@@ -246,7 +247,8 @@ namespace Ranged
         break;
       case SYMBOL_TEXT:
         {
-          const PatternEntry& entry = PatternEntry(static_cast<uint8_t>(c), static_cast<uint8_t>(c));
+          const uint8_t val = static_cast<uint8_t>(*++it);
+          const PatternEntry& entry = PatternEntry(val, val);
           result.push_back(entry);
         }
         break;
