@@ -652,17 +652,54 @@ namespace
 
   const std::string PDT_FORMAT(
     //boost::array<PDTOrnament, ORNAMENTS_COUNT> Ornaments;
-    "%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0"
-    "%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0"
-    "%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0"
-    "%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0"
-    "%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0"
-    "%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0"
-    "%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0"
-    "%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0"
-    "%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0"
-    "%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0"
-    "%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0%xxxxxxx0"
+    "+176+"
+    //boost::array<PDTOrnamentLoop, ORNAMENTS_COUNT> OrnLoops;
+    "+22+"
+    //uint8_t Padding1[6];
+    "+6+"
+    //char Title[32];
+    "+32+"
+    //uint8_t Tempo;
+    "03-63"
+    //uint8_t Start;
+    "00-ef"
+    //uint8_t Loop;
+    "00-ef"
+    //uint8_t Lenght;
+    "01-f0"
+    //uint8_t Padding2[16];
+    "00000000000000000000000000000000"
+    //boost::array<PDTSample, SAMPLES_COUNT> Samples;
+    /*
+    uint8_t Name[8];
+    uint16_t Start;
+    uint16_t Size;
+    uint16_t Loop;
+    uint8_t Page;
+    uint8_t Padding;
+    "+8+ ?5b-ff ?00-40 ?5b-ff 00-07 00"
+    "+8+ ?5b-ff ?00-40 ?5b-ff 00-07 00"
+    "+8+ ?5b-ff ?00-40 ?5b-ff 00-07 00"
+    "+8+ ?5b-ff ?00-40 ?5b-ff 00-07 00"
+    "+8+ ?5b-ff ?00-40 ?5b-ff 00-07 00"
+    "+8+ ?5b-ff ?00-40 ?5b-ff 00-07 00"
+    "+8+ ?5b-ff ?00-40 ?5b-ff 00-07 00"
+    "+8+ ?5b-ff ?00-40 ?5b-ff 00-07 00"
+    "+8+ ?5b-ff ?00-40 ?5b-ff 00-07 00"
+    "+8+ ?5b-ff ?00-40 ?5b-ff 00-07 00"
+    "+8+ ?5b-ff ?00-40 ?5b-ff 00-07 00"
+    "+8+ ?5b-ff ?00-40 ?5b-ff 00-07 00"
+    "+8+ ?5b-ff ?00-40 ?5b-ff 00-07 00"
+    "+8+ ?5b-ff ?00-40 ?5b-ff 00-07 00"
+    "+8+ ?5b-ff ?00-40 ?5b-ff 00-07 00"
+    "+8+ ?5b-ff ?00-40 ?5b-ff 00-07 00"
+    */
+    /*
+    boost::array<uint8_t, POSITIONS_COUNT> Positions;
+    uint16_t LastDatas[PAGES_COUNT];
+    uint8_t FreeRAM;
+    uint8_t Padding3[5];
+    */
   );
 
   class PDTPlugin : public PlayerPlugin
@@ -699,7 +736,7 @@ namespace
 
     virtual bool Check(const IO::DataContainer& inputData) const
     {
-      return CheckPDT(inputData);
+      return Format->Match(inputData.Data(), inputData.Size()) && CheckPDT(inputData);
     }
 
     virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
