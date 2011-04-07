@@ -240,6 +240,7 @@ int main()
     TestDetector("binary unmatched", "%00010xxx%00011xxx", false, 0x17);
     TestDetector("ranged matched", "00-0200-02", true, 0);
     TestDetector("ranged unmatched", "10-12", false, 0x10);
+    TestDetector("symbol unmatched", "'a'b'c'd'e", false, 32);
   }
   }
   catch (int code)

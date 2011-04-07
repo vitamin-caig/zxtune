@@ -17,9 +17,8 @@ Author:
 //std includes
 #include <cassert>
 #include <cctype>
+#include <stdexcept>
 #include <vector>
-//boost includes
-#include <boost/make_shared.hpp>
 
 namespace
 {
@@ -47,46 +46,44 @@ namespace
     return skip;
   }
 
-  struct Binary
-  {
-    typedef std::pair<uint8_t, uint8_t> PatternEntry;
-    BOOST_STATIC_ASSERT(sizeof(PatternEntry) == 2);
-    typedef std::vector<PatternEntry> Pattern;
+  typedef std::pair<uint8_t, uint8_t> PatternEntry;
+  BOOST_STATIC_ASSERT(sizeof(PatternEntry) == 2);
+  typedef std::vector<PatternEntry> Pattern;
 
+  void Check(const PatternIterator& it)
+  {
+    if (!it)
+    {
+      throw std::out_of_range("Unexpected end of text pattern");
+    }
+  }
+
+  void CheckParam(bool cond, const char* msg)
+  {
+    if (!cond)
+    {
+      throw std::invalid_argument(msg);
+    }
+  }
+
+  struct BinaryTraits
+  {
     inline static PatternEntry GetAnyByte()
     {
       return PatternEntry(0, 0);
     }
 
-    inline static bool CompareEntryToByte(const PatternEntry& lh, uint8_t rh)
+    inline static bool Match(const PatternEntry& lh, uint8_t rh)
     {
       return lh.first ? ((lh.first & rh) == lh.second) : true;
     }
 
-    inline static bool CompareByteToEntry(uint8_t lh, const PatternEntry& rh)
-    {
-      return CompareEntryToByte(rh, lh);
-    }
-
-    inline static uint8_t NibbleToMask(char c)
-    {
-      assert(std::isxdigit(c) || ANY_NIBBLE_TEXT == c);
-      return ANY_NIBBLE_TEXT == c
-        ? 0 : 0xf;
-    }
-
-    inline static uint8_t NibbleToValue(char c)
-    {
-      assert(std::isxdigit(c) || ANY_NIBBLE_TEXT == c);
-      return ANY_NIBBLE_TEXT == c
-        ? 0 : (std::isdigit(c) ? c - '0' : std::toupper(c) - 'A' + 10);
-    }
-
     inline static PatternEntry ParseNibbles(PatternIterator& it)
     {
+      Check(it);
       const char hiNibble(*it);
       ++it;
-      assert(it || !"Invalid pattern format");
+      Check(it);
       const char loNibble(*it);
       const uint8_t mask = NibbleToMask(hiNibble) * 16 + NibbleToMask(loNibble);
       const uint8_t value = NibbleToValue(hiNibble) * 16 + NibbleToValue(loNibble);
@@ -100,7 +97,7 @@ namespace
       for (uint_t bitmask = 128; bitmask; bitmask >>= 1)
       {
         ++it;
-        assert(it || !"Invalid pattern format");
+        Check(it);
         switch (*it)
         {
         case ONE_BIT_TEXT:
@@ -111,144 +108,151 @@ namespace
         case ANY_BIT_TEXT:
           break;
         default: 
-          assert(!"Invalid pattern format");
+          CheckParam(false, "Invalid binary pattern format");
           break;
         }
       }
       return PatternEntry(mask, value);
     }
 
-    static void CompilePattern(const std::string& textPattern, Pattern& binPattern)
+    inline static PatternEntry ParseSymbol(PatternIterator& it)
     {
-      Pattern result;
-      for (PatternIterator it(textPattern.begin(), textPattern.end()); it; ++it)
-      {
-        switch (*it)
-        {
-        case ANY_BYTE_TEXT:
-          result.push_back(GetAnyByte());
-          break;
-        case SKIP_BYTES_TEXT:
-          {
-            const std::size_t skip = ParseSkipBytes(it);
-            std::fill_n(std::back_inserter(result), skip, GetAnyByte());
-          }
-          break;
-        case BINARY_MASK_TEXT:
-          {
-            const PatternEntry& entry = ParseBinary(it);
-            result.push_back(entry);
-          }
-          break;
-        case SYMBOL_TEXT:
-          {
-            const uint8_t val = static_cast<uint8_t>(*++it);
-            const PatternEntry& entry = PatternEntry(0xff, val);
-            result.push_back(entry);
-          }
-          break;
-        case ' ':
-        case '\n':
-        case '\r':
-        case '\t':
-          break;
-        default:
-          {
-            const PatternEntry& entry = ParseNibbles(it);
-            result.push_back(entry);
-          }
-        }
-      }
-      binPattern.swap(result);
+      Check(++it);
+      const uint8_t val = static_cast<uint8_t>(*it);
+      return PatternEntry(0xff, val);
+    }
+
+    inline static PatternEntry ParseRange(const PatternEntry& /*prev*/, PatternIterator& /*it*/)
+    {
+      throw std::domain_error("Binary pattern doesn't support ranges");
+    }
+  private:
+    inline static uint8_t NibbleToMask(char c)
+    {
+      CheckParam(std::isxdigit(c) || ANY_NIBBLE_TEXT == c, "Invalid binary nibble format");
+      return ANY_NIBBLE_TEXT == c
+        ? 0 : 0xf;
+    }
+
+    inline static uint8_t NibbleToValue(char c)
+    {
+      CheckParam(std::isxdigit(c) || ANY_NIBBLE_TEXT == c, "Invalid binary nibble format");
+      return ANY_NIBBLE_TEXT == c
+        ? 0 : (std::isdigit(c) ? c - '0' : std::toupper(c) - 'A' + 10);
     }
   };
 
-  struct Ranged
+  struct RangedTraits
   {
-    typedef std::pair<uint8_t, uint8_t> PatternEntry;
-    BOOST_STATIC_ASSERT(sizeof(PatternEntry) == 2);
-    typedef std::vector<PatternEntry> Pattern;
-
     inline static PatternEntry GetAnyByte()
     {
       return PatternEntry(0, 255);
     }
 
-    inline static bool CompareEntryToByte(const PatternEntry& lh, uint8_t rh)
+    inline static bool Match(const PatternEntry& lh, uint8_t rh)
     {
       return lh.first <= rh && rh <= lh.second;
     }
 
-    inline static bool CompareByteToEntry(uint8_t lh, const PatternEntry& rh)
+    inline static PatternEntry ParseNibbles(PatternIterator& it)
     {
-      return CompareEntryToByte(rh, lh);
-    }
-
-    inline static uint8_t NibbleToValue(char c)
-    {
-      assert(std::isxdigit(c));
-      return (std::isdigit(c) ? c - '0' : std::toupper(c) - 'A' + 10);
-    }
-
-    inline static uint8_t ParseNibbles(PatternIterator& it)
-    {
+      Check(it);
       const char hiNibble(*it);
       ++it;
-      assert(it || !"Invalid pattern format");
+      Check(it);
       const char loNibble(*it);
-      return NibbleToValue(hiNibble) * 16 + NibbleToValue(loNibble);
+      const uint8_t val = NibbleToValue(hiNibble) * 16 + NibbleToValue(loNibble);
+      return PatternEntry(val, val);
     }
 
-    static void CompilePattern(const std::string& textPattern, Pattern& rngPattern)
+    inline static PatternEntry ParseBinary(PatternIterator& /*it*/)
     {
-      Pattern result;
-      for (PatternIterator it(textPattern.begin(), textPattern.end()); it; ++it)
-      {
-        switch (*it)
-        {
-        case ANY_BYTE_TEXT:
-          result.push_back(GetAnyByte());
-          break;
-        case SKIP_BYTES_TEXT:
-          {
-            const std::size_t skip = ParseSkipBytes(it);
-            std::fill_n(std::back_inserter(result), skip, GetAnyByte());
-          }
-          break;
-        case SYMBOL_TEXT:
-          {
-            const uint8_t val = static_cast<uint8_t>(*++it);
-            const PatternEntry& entry = PatternEntry(val, val);
-            result.push_back(entry);
-          }
-          break;
-        case RANGE_TEXT:
-          {
-            assert(!result.empty() && result.back().first == result.back().second);
-            const uint8_t upper = ParseNibbles(++it);
-            result.back().second = upper;
-          }
-          break;
-        case ' ':
-        case '\n':
-        case '\r':
-        case '\t':
-          break;
-        default:
-          {
-            const uint8_t b = ParseNibbles(it);
-            result.push_back(PatternEntry(b, b));
-          }
-        }
-      }
-      rngPattern.swap(result);
+      throw std::domain_error("Range pattern doesn't support binaries");
+    }
+
+    inline static PatternEntry ParseSymbol(PatternIterator& it)
+    {
+      Check(++it);
+      const uint8_t val = static_cast<uint8_t>(*it);
+      return PatternEntry(val, val);
+    }
+
+    inline static PatternEntry ParseRange(const PatternEntry& prev, PatternIterator& it)
+    {
+      ++it;
+      CheckParam(prev.first == prev.second, "Invalid range format");
+      const PatternEntry next = ParseNibbles(it);
+      return PatternEntry(prev.first, next.second);
+    }
+  private:
+    inline static uint8_t NibbleToValue(char c)
+    {
+      CheckParam(std::isxdigit(c), "Invalid range nibble value");
+      return (std::isdigit(c) ? c - '0' : std::toupper(c) - 'A' + 10);
     }
   };
 
-  template<class Type>
+  template<class Traits>
+  void CompilePattern(const std::string& textPattern, Pattern& compiled)
+  {
+    Pattern result;
+    for (PatternIterator it(textPattern.begin(), textPattern.end()); it; ++it)
+    {
+      switch (*it)
+      {
+      case ANY_BYTE_TEXT:
+        result.push_back(Traits::GetAnyByte());
+        break;
+      case SKIP_BYTES_TEXT:
+        {
+          const std::size_t skip = ParseSkipBytes(it);
+          std::fill_n(std::back_inserter(result), skip, Traits::GetAnyByte());
+        }
+        break;
+      case BINARY_MASK_TEXT:
+        {
+          const PatternEntry& entry = Traits::ParseBinary(it);
+          result.push_back(entry);
+        }
+        break;
+      case SYMBOL_TEXT:
+        {
+          const PatternEntry& entry = Traits::ParseSymbol(it);
+          result.push_back(entry);
+        }
+        break;
+      case RANGE_TEXT:
+        {
+          CheckParam(!result.empty(), "Invalid range format");
+          PatternEntry& last = result.back();
+          last = Traits::ParseRange(last, it);
+        }
+        break;
+      case ' ':
+      case '\n':
+      case '\r':
+      case '\t':
+        break;
+      default:
+        {
+          const PatternEntry& entry = Traits::ParseNibbles(it);
+          result.push_back(entry);
+        }
+      }
+    }
+    compiled.swap(result);
+  }
+
+  template<class Traits>
+  bool MatchByte(uint8_t lh, const PatternEntry& rh)
+  {
+    return Traits::Match(rh, lh);
+  }
+
+  template<class Traits>
   class Format : public DataFormat
   {
-    explicit Format(typename Type::Pattern::const_iterator from, typename Type::Pattern::const_iterator to, std::size_t offset)
+    explicit Format(Pattern::const_iterator from, Pattern::const_iterator to, std::size_t offset)
       : Pat(from, to)
       , Offset(offset)
     {
@@ -256,14 +260,14 @@ namespace
   public:
     static DataFormat::Ptr Create(const std::string& pattern)
     {
-      typename Type::Pattern pat;
-      Type::CompilePattern(pattern, pat);
-      const typename Type::Pattern::const_iterator first = pat.begin();
-      const typename Type::Pattern::const_iterator last = pat.end();
-      const typename Type::Pattern::const_iterator firstNotAny = std::find_if(first, last, 
-        std::bind2nd(std::not_equal_to<typename Type::PatternEntry>(), Type::GetAnyByte()));
+      Pattern pat;
+      CompilePattern<Traits>(pattern, pat);
+      const Pattern::const_iterator first = pat.begin();
+      const Pattern::const_iterator last = pat.end();
+      const Pattern::const_iterator firstNotAny = std::find_if(first, last, 
+        std::bind2nd(std::not_equal_to<PatternEntry>(), Traits::GetAnyByte()));
       const std::size_t offset = std::distance(first, firstNotAny);
-      return DataFormat::Ptr(new Format<Type>(firstNotAny, last, offset));
+      return DataFormat::Ptr(new Format<Traits>(firstNotAny, last, offset));
     }
 
     virtual bool Match(const void* data, std::size_t size) const
@@ -273,7 +277,7 @@ namespace
         return false;
       }
       const uint8_t* const typedData = static_cast<const uint8_t*>(data) + Offset;
-      return std::equal(Pat.begin(), Pat.end(), typedData, &Type::CompareEntryToByte);
+      return std::equal(Pat.begin(), Pat.end(), typedData, &Traits::Match);
     }
 
     virtual std::size_t Search(const void* data, std::size_t size) const
@@ -283,10 +287,10 @@ namespace
         return size;
       }
       const uint8_t* const typedData = static_cast<const uint8_t*>(data) + Offset;
-      return std::search(typedData, typedData + size - Offset, Pat.begin(), Pat.end(), &Type::CompareByteToEntry) - typedData;
+      return std::search(typedData, typedData + size - Offset, Pat.begin(), Pat.end(), &MatchByte<Traits>) - typedData;
     }
   private:
-    const typename Type::Pattern Pat;
+    const Pattern Pat;
     const std::size_t Offset;
   };
 }
@@ -298,12 +302,11 @@ DataFormat::Ptr DataFormat::Create(const std::string& pattern)
   const bool hasRanges = pattern.find(RANGE_TEXT) != std::string::npos;
   if (!hasRanges)
   {
-    return Format<Binary>::Create(pattern);
+    return Format<BinaryTraits>::Create(pattern);
   }
   else if (hasRanges && !hasBinaryMasks)
   {
-    return Format<Ranged>::Create(pattern);
+    return Format<RangedTraits>::Create(pattern);
   }
-  assert(!"Invalid pattern format");
-  return DataFormat::Ptr();
+  throw std::invalid_argument("Invalid pattern structure");
 }
