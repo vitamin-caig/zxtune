@@ -87,31 +87,22 @@ namespace
     return false;
   }
 
-  class HobetaFormat : public DataFormat
-  {
-  public:
-    virtual bool Match(const void* data, std::size_t size) const
-    {
-      return CheckHobeta(data, size);
-    }
-
-    virtual std::size_t Search(const void* data, std::size_t size) const
-    {
-      if (size < sizeof(Header))
-      {
-        return size;
-      }
-      const uint8_t* const begin = static_cast<const uint8_t*>(data);
-      const uint8_t* const end = begin + size;
-      return std::search_n(begin, end, 9, uint8_t(' '), boost::bind(&in_range<uint8_t>, _1, _2, 127)) - begin;
-    }
-  };
+  const std::string HOBETA_FORMAT(
+    //Filename
+    "20-7a 20-7a 20-7a 20-7a 20-7a 20-7a 20-7a 20-7a 20-7a"
+    //Start
+    "??"
+    //Length
+    "?01-ff"
+    //FullLength
+    "02-ff"
+  );
 
   class HobetaDecoder : public Formats::Packed::Decoder
   {
   public:
     HobetaDecoder()
-      : Format(new HobetaFormat())
+      : Format(DataFormat::Create(HOBETA_FORMAT))
     {
     }
 
@@ -122,7 +113,7 @@ namespace
 
     virtual bool Check(const void* data, std::size_t availSize) const
     {
-      return CheckHobeta(data, availSize);
+      return Format->Match(data, availSize) && CheckHobeta(data, availSize);
     }
 
     virtual std::auto_ptr<Dump> Decode(const void* rawData, std::size_t availSize, std::size_t& usedSize) const
