@@ -12,10 +12,10 @@ Author:
 */
 
 //local includes
-#include "utils.h"
-#include "format.h"
 #include "mainwindow.h"
 #include "mainwindow.ui.h"
+#include "ui/format.h"
+#include "ui/utils.h"
 #include "ui/controls/analyzer_control.h"
 #include "ui/controls/playback_controls.h"
 #include "ui/controls/seek_controls.h"
@@ -170,9 +170,4 @@ QPointer<MainWindow> MainWindow::Create(Parameters::Container::Ptr options, cons
   QPointer<MainWindow> res(new MainWindowImpl(options, cmdline));
   res->show();
   return res;
-}
-
-QPointer<QMainWindow> CreateMainWindow(Parameters::Container::Ptr options, const StringArray& cmdline)
-{
-  return QPointer<QMainWindow>(MainWindow::Create(options, cmdline));
 }

@@ -12,8 +12,7 @@ Author:
 */
 
 //local includes
-#include "ui/mainwindow.h"
-#include "ui/mainwindow_embedded.h"
+#include "ui/factory.h"
 #include <apps/base/app.h>
 #include <apps/base/parsing.h>
 //qt includes
@@ -23,9 +22,6 @@ inline void InitResources()
 {
   Q_INIT_RESOURCE(icons);
 }
-
-//external declaration
-QPointer<QMainWindow> CreateMainWindow(Parameters::Container::Ptr options, const StringArray& cmdline);
 
 namespace
 {
@@ -51,7 +47,7 @@ namespace
       const Parameters::Container::Ptr options = OpenConfigFile();
       StringArray cmdline(argc - 1);
       std::transform(argv + 1, argv + argc, cmdline.begin(), &FromStdString);
-      QPointer<QMainWindow> win = CreateMainWindow(options, cmdline);
+      const QPointer<QMainWindow> win = WidgetsFactory::Instance().CreateMainWindow(options, cmdline);
       return qapp.exec();
     }
   };

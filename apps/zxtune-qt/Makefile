@@ -2,51 +2,40 @@ binary_name := zxtune-qt
 path_step := ../..
 include $(path_step)/make/default.mak
 
-source_files = qt_app \
-               ui/format \
-               ui/tools/filedialog \
-               ui/tools/errordialog
+source_files = qt_app
 
 #ui-related
 gui_theme ?= restorer
 
-#main window is specific for platforms
-ifeq ($(platform),dingux)
-ui_files += ui/mainwindow_embedded
-else
-ui_files += ui/mainwindow
-endif
-
-#controls
-ui_files += ui/controls/playback_controls \
-            ui/controls/seek_controls \
-            ui/controls/status_control \
-            ui/controls/volume_control
-
-moc_files += ui/controls/analyzer_control
-
-#informational
-ui_files += ui/informational/aboutdialog \
-            ui/informational/componentsdialog
-
 #other
-moc_files += supp/playback_supp \
-             ui/tools/parameters_helpers
+moc_files += supp/playback_supp
 
 include_dirs = .
 
 text_files := text/text
 
-libraries := zxtune_app_base core devices formats io sound tools \
-             playlist_ui playlist_supp playlist_io
-depends := apps/base src/core src/devices src/formats src/io src/sound src/tools \
-           apps/zxtune-qt/playlist/supp apps/zxtune-qt/playlist/ui apps/zxtune-qt/playlist/io
+libraries = zxtune_app_base core devices formats io sound tools \
+             playlist_ui playlist_supp playlist_io ui_common
+
+depends = apps/base src/core src/devices src/formats src/io src/sound src/tools \
+           apps/zxtune-qt/playlist/supp apps/zxtune-qt/playlist/ui apps/zxtune-qt/playlist/io \
+           apps/zxtune-qt/ui
 
 boost_libraries = thread
 
 qt_libraries = Gui Core
+
 ifeq ($(platform),dingux)
+embedded := 1
 qt_libraries += Network
+endif
+
+ifdef embedded
+libraries += ui_embedded
+depends += apps/zxtune-qt/ui/embedded
+else
+libraries += ui_desktop
+depends += apps/zxtune-qt/ui/desktop
 endif
 
 theme_resources = res/theme_$(gui_theme)

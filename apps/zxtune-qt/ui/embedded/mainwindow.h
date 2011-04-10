@@ -21,11 +21,11 @@ Author:
 //common includes
 #include <parameters.h>
 
-class MainWindowEmbedded : public QMainWindow
+class EmbeddedMainWindow : public QMainWindow
 {
   Q_OBJECT
 public:
-  static QPointer<MainWindowEmbedded> Create(Parameters::Container::Ptr options, const StringArray& cmdline);
+  static QPointer<EmbeddedMainWindow> Create(Parameters::Container::Ptr options, const StringArray& cmdline);
 };
 
 #endif //ZXTUNE_QT_MAINWINDOW_H_DEFINED

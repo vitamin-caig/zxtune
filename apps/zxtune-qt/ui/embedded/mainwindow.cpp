@@ -12,8 +12,8 @@ Author:
 */
 
 //local includes
-#include "mainwindow_embedded.h"
-#include "mainwindow_embedded.ui.h"
+#include "mainwindow.h"
+#include "mainwindow.ui.h"
 #include "ui/controls/analyzer_control.h"
 #include "ui/controls/playback_controls.h"
 #include "playlist/ui/container_view.h"
@@ -28,11 +28,11 @@ Author:
 
 namespace
 {
-  class MainWindowEmbeddedImpl : public MainWindowEmbedded
+  class EmbeddedMainWindowImpl : public EmbeddedMainWindow
                                , private Ui::MainWindowEmbedded
   {
   public:
-    MainWindowEmbeddedImpl(Parameters::Container::Ptr options, const StringArray& /*cmdline*/)
+    EmbeddedMainWindowImpl(Parameters::Container::Ptr options, const StringArray& /*cmdline*/)
       : Options(options)
       , Playback(PlaybackSupport::Create(*this, Options))
       , Controls(PlaybackControls::Create(*this, *Playback))
@@ -85,16 +85,11 @@ namespace
   };
 }
 
-QPointer<MainWindowEmbedded> MainWindowEmbedded::Create(Parameters::Container::Ptr options, const StringArray& cmdline)
+QPointer<EmbeddedMainWindow> EmbeddedMainWindow::Create(Parameters::Container::Ptr options, const StringArray& cmdline)
 {
   //TODO: create proper window
-  QPointer<MainWindowEmbedded> res(new MainWindowEmbeddedImpl(options, cmdline));
+  QPointer<EmbeddedMainWindow> res(new EmbeddedMainWindowImpl(options, cmdline));
   res->setWindowFlags(Qt::FramelessWindowHint);
   res->showMaximized();
   return res;
-}
-
-QPointer<QMainWindow> CreateMainWindow(Parameters::Container::Ptr options, const StringArray& cmdline)
-{
-  return QPointer<QMainWindow>(MainWindowEmbedded::Create(options, cmdline));
 }
