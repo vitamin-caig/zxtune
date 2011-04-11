@@ -282,8 +282,8 @@ namespace
         837200, 886980, 939730, 995610,1054800,1117500,1184000,1254400,1329000,1408000,1491700,1580400
       };
       const uint_t freq = static_cast<uint_t>(ticksPerSec * FREQ_MULTIPLIER / (2 * AYM_CLOCK_DIVISOR * (period ? period : 1)));
-      const uint_t maxBand = ArraySize(FREQ_TABLE) - 1;
-      const uint_t currentBand = std::lower_bound(FREQ_TABLE, ArrayEnd(FREQ_TABLE), freq) - FREQ_TABLE;
+      const uint_t maxBand = static_cast<uint_t>(ArraySize(FREQ_TABLE) - 1);
+      const uint_t currentBand = static_cast<uint_t>(std::lower_bound(FREQ_TABLE, ArrayEnd(FREQ_TABLE), freq) - FREQ_TABLE);
       return std::min(currentBand, maxBand);
     }
   private:

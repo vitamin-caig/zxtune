@@ -93,7 +93,7 @@ namespace
 
   bool CheckSCLFile(const IO::FastDump& data)
   {
-    const uint_t limit = data.Size();
+    const std::size_t limit = data.Size();
     if (limit < SCL_MIN_SIZE)
     {
       return false;
@@ -104,17 +104,17 @@ namespace
     {
       return false;
     }
-    const uint_t descriptionsSize = sizeof(*header) + sizeof(header->Blocks) * (header->BlocksCount - 1);
+    const std::size_t descriptionsSize = sizeof(*header) + sizeof(header->Blocks) * (header->BlocksCount - 1);
     if (descriptionsSize > limit)
     {
       return false;
     }
-    const uint_t dataSize = std::accumulate(header->Blocks, header->Blocks + header->BlocksCount, 0, &SumDataSize);
+    const std::size_t dataSize = std::accumulate(header->Blocks, header->Blocks + header->BlocksCount, 0, &SumDataSize);
     if (descriptionsSize + dataSize + sizeof(uint32_t) > limit)
     {
       return false;
     }
-    const uint_t checksumOffset = descriptionsSize + dataSize;
+    const std::size_t checksumOffset = descriptionsSize + dataSize;
     const uint32_t storedChecksum = fromLE(*safe_ptr_cast<const uint32_t*>(data.Data() + checksumOffset));
     const uint32_t checksum = std::accumulate(data.Data(), data.Data() + checksumOffset, uint32_t(0));
     return storedChecksum == checksum;
@@ -159,7 +159,7 @@ namespace
 
     virtual std::size_t GetLookaheadOffset() const
     {
-      const uint_t size = RawData->Size();
+      const std::size_t size = RawData->Size();
       if (size < SCL_MIN_SIZE)
       {
         return size;

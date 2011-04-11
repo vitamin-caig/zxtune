@@ -56,7 +56,7 @@ namespace ZXTune
 
       uint_t GetSize() const
       {
-        return Lines.size();
+        return static_cast<uint_t>(Lines.size());
       }
 
       int_t GetLine(uint_t pos) const
@@ -235,7 +235,7 @@ namespace ZXTune
         {
           assert(row < Size);
           const typename LinesList::const_iterator it = std::lower_bound(Lines.begin(), Lines.end(), row,
-            boost::bind(&LineWithNumber::first, _1) < _2);
+            boost::bind<uint_t>(&LineWithNumber::first, _1) < _2);
           return it == Lines.end() || it->first != row
             ? 0
             : &it->second;
@@ -298,13 +298,13 @@ namespace ZXTune
 
         virtual uint_t GetPositionsCount() const
         {
-          return Positions.size();
+          return static_cast<uint_t>(Positions.size());
         }
 
         virtual uint_t GetPatternsCount() const
         {
-          return std::count_if(Patterns.begin(), Patterns.end(),
-            !boost::bind(&Pattern::IsEmpty, _1));
+          return static_cast<uint_t>(std::count_if(Patterns.begin(), Patterns.end(),
+            !boost::bind(&Pattern::IsEmpty, _1)));
         }
 
         virtual uint_t GetCurrentPattern(const TrackState& state) const

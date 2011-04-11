@@ -151,7 +151,7 @@ namespace
 
       //meta properties
       Properties->SetSource(usedSize, ModuleRegion(0, usedSize));
-      Info = CreateStreamInfo(Data->Dump.size(), AYM::LOGICAL_CHANNELS, AYM::CHANNELS, 
+      Info = CreateStreamInfo(static_cast<uint_t>(Data->Dump.size()), AYM::LOGICAL_CHANNELS, AYM::CHANNELS, 
         Parameters::CreateMergedAccessor(parameters, Properties));
     }
 

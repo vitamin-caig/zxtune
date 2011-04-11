@@ -83,7 +83,7 @@ namespace
     return (val1 + val2) / 2;
   }
 
-  template<uint_t Channels>
+  template<std::size_t Channels>
   class TSMixer : public Sound::MultichannelReceiver
   {
   public:
@@ -102,7 +102,7 @@ namespace
       }
       else //store
       {
-        std::memcpy(Cursor->begin(), &data[0], std::min<uint_t>(Channels, data.size()) * sizeof(Sound::Sample));
+        std::memcpy(Cursor->begin(), &data[0], std::min(Channels, data.size()) * sizeof(Sound::Sample));
       }
       ++Cursor;
     }

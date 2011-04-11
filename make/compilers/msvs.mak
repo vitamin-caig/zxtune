@@ -17,7 +17,7 @@ LD_MODE_FLAGS += /DLL
 endif
 
 #specific
-DEFINITIONS = $(defines) $($(platform)_definitions) __STDC_CONSTANT_MACROS _SCL_SECURE_NO_WARNINGS _SECURE_SCL=0
+DEFINITIONS = $(defines) $($(platform)_definitions) __STDC_CONSTANT_MACROS _SCL_SECURE_NO_WARNINGS _CRT_SECURE_NO_WARNINGS
 INCLUDES = $(include_dirs) $($(platform)_include_dirs)
 windows_libraries += kernel32 $(addsuffix $(if $(release),,d), msvcrt msvcprt)
 

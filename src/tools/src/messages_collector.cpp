@@ -32,7 +32,7 @@ namespace
 
     virtual uint_t CountMessages() const
     {
-      return Messages.size();
+      return static_cast<uint_t>(Messages.size());
     }
 
     virtual String GetMessages(Char delimiter) const

@@ -80,7 +80,7 @@ namespace ZXTune
 
         uint_t GetSize() const
         {
-          return Lines.size();
+          return static_cast<uint_t>(Lines.size());
         }
 
         const Line& GetLine(const uint_t idx) const

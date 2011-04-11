@@ -57,7 +57,7 @@ namespace
   //kaiser implementation
   inline void DoFFT(const double alpha, std::vector<double>& coeffs)
   {
-    const uint_t order = coeffs.size();
+    const uint_t order = static_cast<uint_t>(coeffs.size());
     const double denom = bessel(alpha);
     const double center = double(order - 1) / 2;
     for (uint_t tap = 0; tap < order; ++tap)
@@ -175,7 +175,7 @@ namespace
         const Gain PASSGAIN = 0.90, STOPGAIN = 0;
 
         //check parameters
-        const uint_t order = Matrix.size();
+        const uint_t order = static_cast<uint_t>(Matrix.size());
         CheckParams(order, MIN_ORDER, MAX_ORDER, THIS_LINE, Text::SOUND_ERROR_FILTER_ORDER);
         CheckParams(highCutoff, freq / order, freq / 2, THIS_LINE, Text::SOUND_ERROR_FILTER_HIGH_CUTOFF);
         CheckParams(lowCutoff, uint_t(0), highCutoff, THIS_LINE, Text::SOUND_ERROR_FILTER_LOW_CUTOFF);

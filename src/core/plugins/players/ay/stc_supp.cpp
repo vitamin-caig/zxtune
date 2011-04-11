@@ -184,8 +184,8 @@ namespace
     }
 
     explicit Sample(const STCSample& sample)
-      : Loop(std::min<uint_t>(sample.Loop, ArraySize(sample.Data)))
-      , LoopLimit(std::min<uint_t>(sample.Loop + sample.LoopSize + 1, ArraySize(sample.Data)))
+      : Loop(std::min<uint_t>(sample.Loop, static_cast<uint_t>(ArraySize(sample.Data))))
+      , LoopLimit(std::min<uint_t>(sample.Loop + sample.LoopSize + 1, static_cast<uint_t>(ArraySize(sample.Data))))
       , Lines(sample.Data, ArrayEnd(sample.Data))
     {
     }
@@ -220,7 +220,7 @@ namespace
 
     uint_t GetSize() const
     {
-      return Lines.size();
+      return static_cast<uint_t>(Lines.size());
     }
 
     const Line& GetLine(uint_t idx) const
@@ -269,7 +269,7 @@ namespace
       Areas.AddArea(POSITIONS, fromLE(header->PositionsOffset));
       Areas.AddArea(ORNAMENTS, fromLE(header->OrnamentsOffset));
       Areas.AddArea(PATTERNS, fromLE(header->PatternsOffset));
-      Areas.AddArea(END, data.Size());
+      Areas.AddArea(END, static_cast<uint_t>(data.Size()));
     }
 
     const IO::FastDump& GetOriginalData() const
@@ -428,7 +428,7 @@ namespace
     {
       assert(ornament.Check());
       Ornaments[ornament.Number] =
-        STCTrack::Ornament(ArraySize(ornament.Data), ornament.Data, ArrayEnd(ornament.Data));
+        STCTrack::Ornament(static_cast<uint_t>(ArraySize(ornament.Data)), ornament.Data, ArrayEnd(ornament.Data));
     }
 
     void AddPosition(const STCPositions::STCPosEntry& entry)

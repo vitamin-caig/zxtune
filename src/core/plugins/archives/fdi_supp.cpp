@@ -84,7 +84,7 @@ namespace FullDiskImage
     SectorDescr() : Num(), Begin(), End()
     {
     }
-    SectorDescr(std::size_t num, const uint8_t* beg, const uint8_t* end) : Num(num), Begin(beg), End(end)
+    SectorDescr(uint_t num, const uint8_t* beg, const uint8_t* end) : Num(num), Begin(beg), End(end)
     {
     }
     uint_t Num;

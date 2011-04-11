@@ -207,7 +207,7 @@ namespace
 
     virtual std::size_t GetLookaheadOffset() const
     {
-      const uint_t size = RawData->Size();
+      const std::size_t size = RawData->Size();
       if (size < TRD_MODULE_SIZE)
       {
         return size;

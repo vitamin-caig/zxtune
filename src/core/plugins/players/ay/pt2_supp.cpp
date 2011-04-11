@@ -203,7 +203,7 @@ namespace
 
     uint_t GetSize() const
     {
-      return Lines.size();
+      return static_cast<uint_t>(Lines.size());
     }
 
     const Line& GetLine(uint_t idx) const
@@ -724,7 +724,7 @@ namespace
     {
       return false;
     }
-    const uint_t lowlimit(1 +
+    const std::size_t lowlimit(1 +
       std::find(header->Positions, data + header->Length + sizeof(*header) + 1, POS_END_MARKER) - data);
     if (lowlimit - sizeof(*header) != header->Length)//too big positions list
     {
@@ -751,7 +751,7 @@ namespace
             !checker->AddRange(patOff + sizeof(PT2Pattern) * patternsCount, sizeof(PT2Pattern)) ||
             //simple check if in range- performance issue
             patPos->Offsets.end() != std::find_if(patPos->Offsets.begin(), patPos->Offsets.end(),
-              !boost::bind(&in_range<uint_t>, boost::bind(&fromLE<uint16_t>, _1), lowlimit, size)))
+              !boost::bind(&in_range<std::size_t>, boost::bind(&fromLE<uint16_t>, _1), lowlimit, size)))
         {
           return false;
         }

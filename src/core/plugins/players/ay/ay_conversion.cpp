@@ -166,10 +166,10 @@ namespace
       Dump result(sizeof(FYMHeader));
       {
         FYMHeader* const header = safe_ptr_cast<FYMHeader*>(&result[0]);
-        header->HeaderSize = headerSize;
+        header->HeaderSize = static_cast<uint32_t>(headerSize);
         header->FramesCount = info->FramesCount();
         header->LoopFrame = info->LoopFrame();
-        header->PSGFreq = params->ClockFreq();
+        header->PSGFreq = static_cast<uint32_t>(params->ClockFreq());
         header->IntFreq = 1000000 / params->FrameDurationMicrosec();
       }
       std::copy(name.begin(), name.end(), std::back_inserter(result));

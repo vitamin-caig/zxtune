@@ -89,9 +89,9 @@ namespace
   std::vector<ZXTune::Sound::MultiGain> ParseMixerMatrix(const String& str)
   {
     //check for layout
-    if (str.end() == std::find_if(str.begin(), str.end(), std::bind1st(std::ptr_fun(&InvalidChannelLetter), str.size())))
+    if (str.end() == std::find_if(str.begin(), str.end(), std::bind1st(std::ptr_fun(&InvalidChannelLetter), static_cast<uint_t>(str.size()))))
     {
-      const uint_t channels = str.size();
+      const std::size_t channels = str.size();
       //letter- position in result matrix
       //letter position- output channel
       //letter case- level

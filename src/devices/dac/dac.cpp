@@ -83,7 +83,7 @@ namespace
     }
 
     Sample(const Dump& data, uint_t loop)
-      : Size(data.size()), Loop(loop), Data(data)
+      : Size(static_cast<uint_t>(data.size())), Loop(loop), Data(data)
       , Gain(MAX_LEVEL * (std::accumulate(&Data[0], &Data[0] + Size, uint_t(0), GainAdder) / Size) / std::numeric_limits<Dump::value_type>::max())
     {
     }
@@ -288,7 +288,7 @@ namespace
         std::transform(FREQ_TABLE.begin(), FREQ_TABLE.end(), FreqTable.begin(),
           boost::bind(GetStepByFrequency, _1, TableFreq, SampleFreq));
         //determine maximal notes count by zero limiter in table
-        MaxNotes = std::distance(FreqTable.begin(), std::find(FreqTable.begin(), FreqTable.end(), 0));
+        MaxNotes = static_cast<uint_t>(std::distance(FreqTable.begin(), std::find(FreqTable.begin(), FreqTable.end(), 0)));
       }
       const int_t toneStep = static_cast<int_t>(FreqTable[clamp<int_t>(int_t(state.Note) + state.NoteSlide,
         0, MaxNotes - 1)]);

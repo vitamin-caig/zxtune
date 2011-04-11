@@ -134,7 +134,7 @@ namespace
 
     virtual uint_t GetEntriesCount() const
     {
-      return Entries.size();
+      return static_cast<uint_t>(Entries.size());
     }
 
     virtual const FileEntry* FindEntry(const String& name) const

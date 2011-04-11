@@ -28,14 +28,14 @@ namespace TRDos
     {
     }
 
-    FileEntry(const String& name, uint_t off, uint_t sz)
+    FileEntry(const String& name, std::size_t off, std::size_t sz)
       : Name(name), Offset(off), Size(sz)
     {
     }
 
     String Name;
-    uint_t Offset;
-    uint_t Size;
+    std::size_t Offset;
+    std::size_t Size;
   };
 
   class FilesSet

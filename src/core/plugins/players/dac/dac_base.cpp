@@ -35,8 +35,8 @@ namespace
     virtual uint_t ActiveChannels() const
     {
       FillState();
-      return std::count_if(StateCache.begin(), StateCache.end(),
-        boost::mem_fn(&DAC::ChanState::Enabled));
+      return static_cast<uint_t>(std::count_if(StateCache.begin(), StateCache.end(),
+        boost::mem_fn(&DAC::ChanState::Enabled)));
     }
 
     virtual void BandLevels(std::vector<std::pair<uint_t, uint_t> >& bandLevels) const

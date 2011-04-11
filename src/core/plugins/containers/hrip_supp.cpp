@@ -94,7 +94,7 @@ namespace
   BOOST_STATIC_ASSERT(sizeof(HripBlockHeader) == 29);
 
   // crc16 calculating routine
-  inline uint_t CalcCRC(const uint8_t* data, uint_t size)
+  inline uint_t CalcCRC(const uint8_t* data, std::size_t size)
   {
     uint_t result = 0;
     while (size--)
@@ -283,7 +283,7 @@ namespace
 
     virtual std::size_t GetLookaheadOffset() const
     {
-      const uint_t size = RawData->Size();
+      const std::size_t size = RawData->Size();
 
       if (size < sizeof(HripHeader))
       {

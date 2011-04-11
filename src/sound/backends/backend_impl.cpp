@@ -331,7 +331,7 @@ namespace ZXTune
     {
       try
       {
-        const uint_t mixChannels = data.size();
+        const uint_t mixChannels = static_cast<uint_t>(data.size());
         CheckChannels(mixChannels);
 
         Locker lock(PlayerMutex);

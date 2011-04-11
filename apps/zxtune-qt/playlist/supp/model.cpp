@@ -229,7 +229,7 @@ namespace
   public:
     void AddItem(Playlist::Item::Data::Ptr item)
     {
-      const IndexedItem idxItem(item, Items.size());
+      const IndexedItem idxItem(item, static_cast<uint_t>(Items.size()));
       Items.push_back(idxItem);
     }
 
@@ -439,7 +439,7 @@ namespace
     //new virtuals
     virtual unsigned CountItems() const
     {
-      return Container->CountItems();
+      return static_cast<unsigned>(Container->CountItems());
     }
 
     virtual Playlist::Item::Data::Ptr GetItem(unsigned index) const
@@ -483,7 +483,7 @@ namespace
       QMutexLocker locker(&Synchronizer);
       Container->RemoveItems(items);
       NotifyAboutIndexChanged();
-      FetchedItemsCount = Container->CountItems();
+      FetchedItemsCount = static_cast<int>(Container->CountItems());
     }
 
     virtual void AddItem(Playlist::Item::Data::Ptr item)
@@ -583,13 +583,13 @@ namespace
     virtual bool canFetchMore(const QModelIndex& /*index*/) const
     {
       QMutexLocker locker(&Synchronizer);
-      return FetchedItemsCount < Container->CountItems();
+      return FetchedItemsCount < static_cast<int>(Container->CountItems());
     }
 
     virtual void fetchMore(const QModelIndex& /*index*/)
     {
       QMutexLocker locker(&Synchronizer);
-      const std::size_t nextCount = Container->CountItems();
+      const int nextCount = static_cast<int>(Container->CountItems());
       beginInsertRows(EMPTY_INDEX, FetchedItemsCount, nextCount - 1);
       FetchedItemsCount = nextCount;
       endInsertRows();
@@ -702,7 +702,7 @@ namespace
   private:
     const DataProvidersSet Providers;
     mutable QMutex Synchronizer;
-    std::size_t FetchedItemsCount;
+    int FetchedItemsCount;
     boost::scoped_ptr<PlayitemsContainer> Container;
     mutable boost::thread AsyncSorter;
   };

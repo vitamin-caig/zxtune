@@ -118,7 +118,7 @@ namespace
       //prepare dump
       AYM::DataChunk chunk;
       {
-        const uint_t limit = RenderData.size();
+        const std::size_t limit = RenderData.size();
         if (RenderPos + 2 > limit)
         {
           return false;
@@ -153,7 +153,7 @@ namespace
     }
   private:
     Dump RenderData;
-    uint_t RenderPos;
+    std::size_t RenderPos;
     AYLPTDumper::Ptr Dumper;
     const Sound::MultichannelReceiver::Ptr Stub;
     boost::system_time OutputTime;

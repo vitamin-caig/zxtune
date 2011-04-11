@@ -250,7 +250,7 @@ namespace
 
     uint_t GetSize() const
     {
-      return Lines.size();
+      return static_cast<uint_t>(Lines.size());
     }
 
     const Line& GetLine(uint_t idx) const
@@ -299,7 +299,7 @@ namespace
       Areas.AddArea(PATTERNS, fromLE(header->PatternsOffset));
       Areas.AddArea(ORNAMENTS, fromLE(header->OrnamentsOffset));
       Areas.AddArea(SAMPLES, fromLE(header->SamplesOffset));
-      Areas.AddArea(END, data.Size());
+      Areas.AddArea(END, static_cast<uint_t>(data.Size()));
     }
 
     const IO::FastDump& GetOriginalData() const

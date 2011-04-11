@@ -314,7 +314,7 @@ namespace
 
     virtual Player::Ptr CreatePlayer() const
     {
-      const uint_t totalSamples(Data->Samples.size());
+      const uint_t totalSamples = static_cast<uint_t>(Data->Samples.size());
       DAC::Chip::Ptr chip(DAC::CreateChip(CHANNELS_COUNT, totalSamples, BASE_FREQ));
       for (uint_t idx = 0; idx != totalSamples; ++idx)
       {

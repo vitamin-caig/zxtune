@@ -301,7 +301,7 @@ namespace
 
     virtual unsigned GetItemsCount() const
     {
-      return Items->size();
+      return static_cast<unsigned>(Items->size());
     }
   private:
     const Playlist::Item::DataProvider::Ptr Provider;

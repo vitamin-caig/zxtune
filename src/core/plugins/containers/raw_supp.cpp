@@ -449,7 +449,7 @@ namespace
       }
 
       Log::Debug(THIS_MODULE, "Detecting modules in raw data at '%1%'", input->GetPath());
-      const Log::ProgressCallback::Ptr progress(new RawProgressCallback(callback, size, input->GetPath()));
+      const Log::ProgressCallback::Ptr progress(new RawProgressCallback(callback, static_cast<uint_t>(size), input->GetPath()));
       const Module::NoProgressDetectCallbackAdapter noProgressCallback(callback);
 
 
@@ -462,7 +462,7 @@ namespace
       while (subLocation->HasToScan(minRawSize))
       {
         const std::size_t offset = subLocation->GetOffset();
-        progress->OnProgress(offset);
+        progress->OnProgress(static_cast<uint_t>(offset));
         usedPlugins.SetOffset(offset);
         const std::size_t usedSize = usedPlugins.Detect(subLocation, noProgressCallback);
         if (!subLocation.unique())

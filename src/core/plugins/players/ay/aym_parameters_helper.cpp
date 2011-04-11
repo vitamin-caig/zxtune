@@ -208,7 +208,7 @@ namespace ZXTune
   void AYMChannelSynthesizer::SetTone(int_t halfTones, int_t offset) const
   {
     const Module::FrequencyTable& freqTable = Helper.GetFreqTable();
-    const int_t halftone = clamp<int_t>(halfTones, 0, freqTable.size() - 1);
+    const int_t halftone = clamp<int_t>(halfTones, 0, static_cast<int_t>(freqTable.size()) - 1);
     const uint_t tone = (freqTable[halftone] + offset) & 0xfff;
 
     const uint_t reg = AYM::DataChunk::REG_TONEA_L + 2 * Channel;
@@ -276,8 +276,8 @@ namespace ZXTune
   int_t AYMTrackSynthesizer::GetSlidingDifference(int_t halfToneFrom, int_t halfToneTo)
   {
     const Module::FrequencyTable& freqTable = Helper.GetFreqTable();
-    const int_t halfFrom = clamp<int_t>(halfToneFrom, 0, freqTable.size() - 1);
-    const int_t halfTo = clamp<int_t>(halfToneTo, 0, freqTable.size() - 1);
+    const int_t halfFrom = clamp<int_t>(halfToneFrom, 0, static_cast<int_t>(freqTable.size()) - 1);
+    const int_t halfTo = clamp<int_t>(halfToneTo, 0, static_cast<int_t>(freqTable.size()) - 1);
     const int_t toneFrom = freqTable[halfFrom];
     const int_t toneTo = freqTable[halfTo];
     return toneTo - toneFrom;

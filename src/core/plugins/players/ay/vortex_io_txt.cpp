@@ -440,7 +440,7 @@ namespace
 
     if (loopIt != parts.end())
     {
-      loop = std::distance(parts.begin(), loopIt);
+      loop = static_cast<uint_t>(std::distance(parts.begin(), loopIt));
       *loopIt = loopIt->substr(1);
     }
     else
@@ -643,7 +643,7 @@ namespace
       }
       if (loop)
       {
-        loopPos = tmp.size() - 1;
+        loopPos = static_cast<uint_t>(tmp.size() - 1);
       }
     }
     sample = Vortex::Sample(loopPos, tmp.begin(), tmp.end());
@@ -968,10 +968,10 @@ namespace ZXTune
         for (uint_t idx = 1; idx != data.Ornaments.size(); ++idx)
         {
           const Vortex::Ornament& ornament = data.Ornaments[idx];
-          if (ornament.GetSize())
+          if (uint_t ornSize = ornament.GetSize())
           {
-            std::vector<int_t> data(ornament.GetSize());
-            std::transform(boost::counting_iterator<uint_t>(0), boost::counting_iterator<uint_t>(data.size()),
+            std::vector<int_t> data(ornSize);
+            std::transform(boost::counting_iterator<uint_t>(0), boost::counting_iterator<uint_t>(ornSize),
               data.begin(), boost::bind(&Vortex::Ornament::GetLine, &ornament, _1));
             *iter = SECTION_ORNAMENT + string_cast(idx) + SECTION_END;
             *iter = UnparseLoopedList(data, ornament.GetLoop());

@@ -291,7 +291,7 @@ namespace
 
     uint_t GetSize() const
     {
-      return Lines.size();
+      return static_cast<uint_t>(Lines.size());
     }
 
     const Line& GetLine(uint_t idx) const
@@ -358,7 +358,7 @@ namespace
 
     uint_t GetSize() const
     {
-      return Lines.size();
+      return static_cast<uint_t>(Lines.size());
     }
 
     const Line& GetLine(uint_t idx) const
@@ -1095,7 +1095,7 @@ namespace
       if (samples->Offsets.end() !=
         std::find_if(samples->Offsets.begin(), samples->Offsets.end(),
           !boost::bind(&RangeChecker::AddRange, checker.get(),
-             boost::bind(std::plus<uint_t>(), samplesOffset, boost::bind(&fromLE<uint16_t>, _1)),
+             boost::bind(std::plus<std::size_t>(), samplesOffset, boost::bind(&fromLE<uint16_t>, _1)),
              sizeof(ASCSample::Line))))
       {
         return false;
@@ -1107,7 +1107,7 @@ namespace
       if (ornaments->Offsets.end() !=
         std::find_if(ornaments->Offsets.begin(), ornaments->Offsets.end(),
           !boost::bind(&RangeChecker::AddRange, checker.get(),
-            boost::bind(std::plus<uint_t>(), ornamentsOffset, boost::bind(&fromLE<uint16_t>, _1)),
+            boost::bind(std::plus<std::size_t>(), ornamentsOffset, boost::bind(&fromLE<uint16_t>, _1)),
             sizeof(ASCOrnament::Line))))
       {
         return false;
@@ -1122,7 +1122,7 @@ namespace
         if (pattern->Offsets.end() !=
           std::find_if(pattern->Offsets.begin(), pattern->Offsets.end(),
           !boost::bind(&RangeChecker::AddRange, checker.get(),
-             boost::bind(std::plus<uint_t>(), patternsOffset, boost::bind(&fromLE<uint16_t>, _1)),
+             boost::bind(std::plus<std::size_t>(), patternsOffset, boost::bind(&fromLE<uint16_t>, _1)),
              1)))
         {
           return false;

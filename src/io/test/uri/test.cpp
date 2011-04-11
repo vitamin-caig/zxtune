@@ -14,6 +14,10 @@ namespace
   const char FILE_URI_EMPTY[] = "file";
   const char EMPTY[] = {0};
 
+  const char NET_URI[] = "//network-path/share/filename?part1/part2";
+  const char NET_URI_BASE[] = "//network-path/share/filename";
+  const char NET_URI_SUBPATH[] = "part1/part2";
+
   const char FILE_URI1[] = "C:\\disk\\file\?part1/part2\\part3\?part4#part5";
   const char FILE_URI1_BASE[] = "C:\\disk\\file";
   const char FILE_URI_SUBPATH[] = "part1/part2\\part3\?part4#part5";
@@ -104,6 +108,7 @@ int main()
   std::cout << "------ test for splitters/combiners ------\n";
   Test(SplitUri(INVALID_URI, base, subpath) == ERROR_NOT_SUPPORTED, "Splitting invalid uri", __LINE__);
   TestSplitUri(FILE_URI_EMPTY, FILE_URI_EMPTY, EMPTY, "uri without subpath");
+  TestSplitUri(NET_URI, NET_URI_BASE, NET_URI_SUBPATH, "windows network uri");
   TestSplitUri(FILE_URI1, FILE_URI1_BASE, FILE_URI_SUBPATH, "windows file uri");
   TestSplitUri(FILE_URI2, FILE_URI2_BASE, FILE_URI_SUBPATH, "posix file uri");
   TestSplitUri(FILE_URI3, FILE_URI3_BASE, FILE_URI_SUBPATH, "neutral file uri");

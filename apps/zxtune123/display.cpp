@@ -192,7 +192,7 @@ namespace
       const String::size_type markerPos = data.find(MARKER);
 
       String prog(ScrSize.first - totalSize, '-');
-      const uint_t pos = frame * (ScrSize.first - totalSize) / TotalFrames;
+      const std::size_t pos = frame * (ScrSize.first - totalSize) / TotalFrames;
       prog[pos] = StateSymbol(state);
       data.replace(markerPos, 1, prog);
       assert(PLAYING_HEIGHT == static_cast<std::size_t>(std::count(data.begin(), data.end(), '\n')));
@@ -201,7 +201,7 @@ namespace
 
     void ShowAnalyzer(uint_t high)
     {
-      const uint_t width = AnalyzerData.size();
+      const std::size_t width = AnalyzerData.size();
       std::string buffer(width, ' ');
       for (int_t y = high; y; --y)
       {
