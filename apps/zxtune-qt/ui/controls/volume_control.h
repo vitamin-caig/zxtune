@@ -15,16 +15,10 @@ Author:
 #ifndef ZXTUNE_QT_VOLUMECONTROL_H_DEFINED
 #define ZXTUNE_QT_VOLUMECONTROL_H_DEFINED
 
+//library includes
+#include <sound/backend.h>
 //qt includes
 #include <QtGui/QWidget>
-
-namespace ZXTune
-{
-  namespace Sound
-  {
-    class Backend;
-  }
-}
 
 class PlaybackSupport;
 
@@ -38,7 +32,7 @@ public:
   static VolumeControl* Create(QWidget& parent, PlaybackSupport& supp);
 
 public slots:
-  virtual void SetBackend(const ZXTune::Sound::Backend&) = 0;
+  virtual void SetBackend(ZXTune::Sound::Backend::Ptr) = 0;
   virtual void UpdateState() = 0;
 private slots:
   virtual void SetLevel(int level) = 0;

@@ -37,12 +37,12 @@ namespace
       this->connect(volumeLevel, SIGNAL(valueChanged(int)), SLOT(SetLevel(int)));
 
       this->connect(&supp, SIGNAL(OnUpdateState()), SLOT(UpdateState()));
-      this->connect(&supp, SIGNAL(OnSetBackend(const ZXTune::Sound::Backend&)), SLOT(SetBackend(const ZXTune::Sound::Backend&)));
+      this->connect(&supp, SIGNAL(OnSetBackend(ZXTune::Sound::Backend::Ptr)), SLOT(SetBackend(ZXTune::Sound::Backend::Ptr)));
     }
 
-    virtual void SetBackend(const ZXTune::Sound::Backend& backend)
+    virtual void SetBackend(ZXTune::Sound::Backend::Ptr backend)
     {
-      Controller = backend.GetVolumeControl();
+      Controller = backend->GetVolumeControl();
       this->setEnabled(Controller != 0);
     }
 

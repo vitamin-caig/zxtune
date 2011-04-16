@@ -279,20 +279,19 @@ namespace
     {
       try
       {
-        ZXTune::Sound::Backend& backend(Sounder->GetBackend());
-        ThrowIfError(backend.SetModule(holder));
+        const ZXTune::Sound::Backend::Ptr backend = Sounder->CreateBackend(holder);
 
         const uint_t frameDuration = Sounder->GetFrameDuration();
 
         const ZXTune::Module::Information::Ptr info = holder->GetModuleInformation();
         const uint_t seekStepFrames(info->FramesCount() * SeekStep / 100);
-        ThrowIfError(backend.Play());
+        ThrowIfError(backend->Play());
 
-        Display->SetModule(backend.GetPlayer(), static_cast<uint_t>(frameDuration));
+        Display->SetModule(backend->GetPlayer(), static_cast<uint_t>(frameDuration));
 
         ZXTune::Sound::Gain curVolume = ZXTune::Sound::Gain();
         ZXTune::Sound::MultiGain allVolume;
-        ZXTune::Sound::VolumeControl::Ptr volCtrl(backend.GetVolumeControl());
+        ZXTune::Sound::VolumeControl::Ptr volCtrl(backend->GetVolumeControl());
         const bool noVolume = volCtrl.get() == 0;
         if (!noVolume)
         {
@@ -305,7 +304,7 @@ namespace
 
         for (;;)
         {
-          state = backend.GetCurrentState(&stateError);
+          state = backend->GetCurrentState(&stateError);
 
           if (ZXTune::Sound::Backend::FAILED == state)
           {
@@ -322,10 +321,10 @@ namespace
             case 'Q':
               return false;
             case Console::INPUT_KEY_LEFT:
-              ThrowIfError(backend.SetPosition(curFrame < seekStepFrames ? 0 : curFrame - seekStepFrames));
+              ThrowIfError(backend->SetPosition(curFrame < seekStepFrames ? 0 : curFrame - seekStepFrames));
               break;
             case Console::INPUT_KEY_RIGHT:
-              ThrowIfError(backend.SetPosition(curFrame + seekStepFrames));
+              ThrowIfError(backend->SetPosition(curFrame + seekStepFrames));
               break;
             case Console::INPUT_KEY_DOWN:
               if (!noVolume)
@@ -348,17 +347,17 @@ namespace
             case Console::INPUT_KEY_ENTER:
               if (ZXTune::Sound::Backend::STARTED == state)
               {
-                ThrowIfError(backend.Pause());
+                ThrowIfError(backend->Pause());
                 Console::Self().WaitForKeyRelease();
               }
               else
               {
                 Console::Self().WaitForKeyRelease();
-                ThrowIfError(backend.Play());
+                ThrowIfError(backend->Play());
               }
               break;
             case ' ':
-              ThrowIfError(backend.Stop());
+              ThrowIfError(backend->Stop());
               state = ZXTune::Sound::Backend::STOPPED;
               Console::Self().WaitForKeyRelease();
               break;

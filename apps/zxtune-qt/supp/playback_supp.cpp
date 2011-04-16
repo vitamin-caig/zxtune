@@ -40,7 +40,7 @@ namespace
     std::for_each(errors.begin(), errors.end(), boost::bind(&ShowErrorMessage, title, _1));
   }
 
-  ZXTune::Sound::Backend::Ptr CreateBackend(Parameters::Accessor::Ptr params)
+  ZXTune::Sound::Backend::Ptr CreateBackend(Parameters::Accessor::Ptr params, ZXTune::Module::Holder::Ptr module)
   {
     using namespace ZXTune;
     //create backend
@@ -55,7 +55,7 @@ namespace
         ShowErrors(errors);
         return ZXTune::Sound::Backend::Ptr();
       }
-      if (const Error& err = creator->CreateBackend(params, result))
+      if (const Error& err = creator->CreateBackend(params, module, result))
       {
         errors.push_back(err);
       }
@@ -98,10 +98,10 @@ namespace
 
     virtual void SetItem(const Playlist::Item::Data& item)
     {
-      OpenBackend();
+      Backend = CreateBackend(SoundOptions, item.GetModule());
       if (Backend.get())
       {
-        Backend->SetModule(item.GetModule());
+        OnSetBackend(Backend);
         this->wait();
         if (Player = Backend->GetPlayer())
         {
@@ -198,19 +198,6 @@ namespace
       OnStopModule();
     }
   private:
-    void OpenBackend()
-    {
-      if (Backend.get())
-      {
-        return;
-      }
-      Backend = CreateBackend(SoundOptions);
-      if (Backend.get())
-      {
-        OnSetBackend(*Backend);
-      }
-    }
-  private:
     const Parameters::Accessor::Ptr SoundOptions;
     ZXTune::Sound::Backend::Ptr Backend;
     ZXTune::Module::Player::ConstPtr Player;
@@ -223,6 +210,7 @@ PlaybackSupport::PlaybackSupport(QObject& parent) : QThread(&parent)
 
 PlaybackSupport* PlaybackSupport::Create(QObject& parent, Parameters::Accessor::Ptr sndOptions)
 {
+  REGISTER_METATYPE(ZXTune::Sound::Backend::Ptr);
   REGISTER_METATYPE(ZXTune::Module::Player::ConstPtr);
   return new PlaybackSupportImpl(parent, sndOptions);
 }

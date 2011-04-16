@@ -38,10 +38,9 @@ public:
   // commandline-related part
   virtual const boost::program_options::options_description& GetOptionsDescription() const = 0;
   virtual void ParseParameters() = 0;
-  // throw
   virtual void Initialize() = 0;
   // functional part
-  virtual ZXTune::Sound::Backend& GetBackend() = 0;
+  virtual ZXTune::Sound::Backend::Ptr CreateBackend(ZXTune::Module::Holder::Ptr module) = 0;
 
   //parameters
   virtual uint_t GetFrameDuration() const = 0;
