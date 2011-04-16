@@ -17,7 +17,7 @@ namespace
 	using namespace Async;
 	
 	const Error FailedToPrepareError(THIS_LINE, 1, "Failed to prepare");
-	const Error FailedToExecuteError(THIS_LINE, 1, "Failed to execute");
+	const Error FailedToExecuteError(THIS_LINE, 2, "Failed to execute");
 	
 	class InvalidOperation : public Operation
 	{
@@ -29,7 +29,7 @@ namespace
 		
 		virtual Error Execute()
 		{
-			throw Error(THIS_LINE, 1, "Should not be called");
+			throw Error(THIS_LINE, 3, "Should not be called");
 		}
 	};
 
@@ -72,13 +72,13 @@ namespace
 		{
 			if (err != FailedToPrepareError)
 			{
-				throw Error(THIS_LINE, 1, "Invalid error returned").AddSuberror(err);
+				throw Error(THIS_LINE, 4, "Invalid error returned").AddSuberror(err);
 			}
 			std::cout << "Succeed\n";
 		}
 		else
 		{
-			throw Error(THIS_LINE, 1, "Should not create activity");
+			throw Error(THIS_LINE, 5, "Should not create activity");
 		}
 	}
 	
@@ -90,19 +90,19 @@ namespace
     boost::this_thread::sleep(boost::posix_time::milliseconds(100));
     if (result->IsExecuted())
     {
-      throw Error(THIS_LINE, 1, "Activity should be finished");
+      throw Error(THIS_LINE, 6, "Activity should be finished");
     }
 		if (const Error& err = result->Wait())
 		{
 			if (err != FailedToExecuteError)
 			{
-				throw Error(THIS_LINE, 1, "Invalid error returned").AddSuberror(err);
+				throw Error(THIS_LINE, 7, "Invalid error returned").AddSuberror(err);
 			}
 			std::cout << "Succeed\n";
 		}
 		else
 		{
-			throw Error(THIS_LINE, 1, "Activity should not finish successfully");
+			throw Error(THIS_LINE, 8, "Activity should not finish successfully");
 		}
 	}
 
@@ -113,12 +113,12 @@ namespace
     ThrowIfError(Activity::Create(boost::make_shared<LongOperation>(), result));
     if (!result->IsExecuted())
     {
-      throw Error(THIS_LINE, 1, "Activity should be executed now");
+      throw Error(THIS_LINE, 9, "Activity should be executed now");
     }
     ThrowIfError(result->Wait());
     if (result->IsExecuted())
     {
-      throw Error(THIS_LINE, 1, "Activity is still executed");
+      throw Error(THIS_LINE, 10, "Activity is still executed");
     }
   }
 }
