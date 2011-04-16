@@ -16,8 +16,6 @@
 #include <signals_collector.h>
 //library includes
 #include <core/module_holder.h> // for Module::Holder::Ptr, Converter::Ptr and other
-//std includes
-#include <memory>
 
 //forward declarations
 class Error;
@@ -70,18 +68,12 @@ namespace ZXTune
     {
     public:
       //! @brief Pointer type
-      typedef std::auto_ptr<Backend> Ptr;
+      typedef boost::shared_ptr<Backend> Ptr;
 
       virtual ~Backend() {}
 
       //! @brief Retrieving backend information
       virtual BackendInformation::Ptr GetInformation() const = 0;
-
-      //! @brief Binding module to backend
-      //! @param holder Specified module
-      //! @return Error() in case of success
-      //! @note Previously binded module playback will be stopped
-      virtual Error SetModule(Module::Holder::Ptr holder) = 0;
 
       //! @brief Retrieving read-only access to current module player
       //! @result Weak read-only reference to thread-safe player instance, empty if there are no binded module
@@ -184,7 +176,7 @@ namespace ZXTune
       //! @param params %Backend-related parameters
       //! @param result Reference to result value
       //! @return Error() in case of success
-      virtual Error CreateBackend(Parameters::Accessor::Ptr params, Backend::Ptr& result) const = 0;
+      virtual Error CreateBackend(Parameters::Accessor::Ptr params, Module::Holder::Ptr module, Backend::Ptr& result) const = 0;
     };
 
     //! @brief Enumerating supported sound backends

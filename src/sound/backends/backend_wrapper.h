@@ -31,22 +31,22 @@ namespace ZXTune
     template<class Impl>
     class SafeBackendWrapper : public Backend
     {
-      SafeBackendWrapper(BackendInformation::Ptr info, Parameters::Accessor::Ptr params)
+      SafeBackendWrapper(BackendInformation::Ptr info, Parameters::Accessor::Ptr params, Module::Holder::Ptr module)
         : Information(info)
         , Delegate(new Impl(params))
       {
         //perform fast test to detect if parameters are correct
-        Delegate->OnParametersChanged(*params);
+        Delegate->SetModule(module);
         Delegate->OnStartup();
         Delegate->OnShutdown();
       }
     public:
-      static Error Create(BackendInformation::Ptr info, Parameters::Accessor::Ptr params,
+      static Error Create(BackendInformation::Ptr info, Parameters::Accessor::Ptr params, Module::Holder::Ptr module,
         Backend::Ptr& result, Error::LocationRef loc)
       {
         try
         {
-          result.reset(new SafeBackendWrapper<Impl>(info, params));
+          result.reset(new SafeBackendWrapper<Impl>(info, params, module));
           return Error();
         }
         catch (const Error& e)
@@ -68,11 +68,6 @@ namespace ZXTune
       virtual BackendInformation::Ptr GetInformation() const
       {
         return Information;
-      }
-
-      virtual Error SetModule(Module::Holder::Ptr holder)
-      {
-        return Delegate->SetModule(holder);
       }
 
       virtual Module::Player::ConstPtr GetPlayer() const

@@ -362,10 +362,10 @@ namespace
       return CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
     }
 
-    virtual Error CreateBackend(Parameters::Accessor::Ptr params, Backend::Ptr& result) const
+    virtual Error CreateBackend(Parameters::Accessor::Ptr params, Module::Holder::Ptr module, Backend::Ptr& result) const
     {
       const BackendInformation::Ptr info = shared_from_this();
-      return SafeBackendWrapper<OSSBackend>::Create(info, params, result, THIS_LINE);
+      return SafeBackendWrapper<OSSBackend>::Create(info, params, module, result, THIS_LINE);
     }
   };
 }

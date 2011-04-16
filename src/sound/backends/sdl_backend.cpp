@@ -38,6 +38,7 @@ Author:
 
 namespace
 {
+  using namespace ZXTune;
   using namespace ZXTune::Sound;
 
   const std::string THIS_MODULE("Sound::Backend::SDL");
@@ -301,10 +302,10 @@ namespace
       return CAP_TYPE_SYSTEM;
     }
 
-    virtual Error CreateBackend(Parameters::Accessor::Ptr params, Backend::Ptr& result) const
+    virtual Error CreateBackend(Parameters::Accessor::Ptr params, Module::Holder::Ptr module, Backend::Ptr& result) const
     {
       const BackendInformation::Ptr info = shared_from_this();
-      return SafeBackendWrapper<SDLBackend>::Create(info, params, result, THIS_LINE);
+      return SafeBackendWrapper<SDLBackend>::Create(info, params, module, result, THIS_LINE);
     }
   };
 }

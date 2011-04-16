@@ -27,6 +27,7 @@ Author:
 
 namespace
 {
+  using namespace ZXTune;
   using namespace ZXTune::Sound;
 
   const Char NULL_BACKEND_ID[] = {'n', 'u', 'l', 'l', 0};
@@ -50,23 +51,23 @@ namespace
     virtual void OnStartup()
     {
     }
-    
+
     virtual void OnShutdown()
     {
     }
-    
+
     virtual void OnPause()
     {
     }
-    
+
     virtual void OnResume()
     {
     }
-    
+
     virtual void OnBufferReady(std::vector<MultiSample>& /*buffer*/)
     {
     }
-    
+
     virtual void OnParametersChanged(const Parameters::Accessor& /*updates*/)
     {
     }
@@ -96,10 +97,10 @@ namespace
       return CAP_TYPE_STUB;
     }
 
-    virtual Error CreateBackend(Parameters::Accessor::Ptr params, Backend::Ptr& result) const
+    virtual Error CreateBackend(Parameters::Accessor::Ptr params, Module::Holder::Ptr module, Backend::Ptr& result) const
     {
       const BackendInformation::Ptr info = shared_from_this();
-      return SafeBackendWrapper<NullBackend>::Create(info, params, result, THIS_LINE);
+      return SafeBackendWrapper<NullBackend>::Create(info, params, module, result, THIS_LINE);
     }
   };
 }
