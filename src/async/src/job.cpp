@@ -160,10 +160,6 @@ namespace
       const boost::mutex::scoped_lock lock(Mutex);
       if (Act)
       {
-        if (Act->IsExecuted())
-        {
-          Signal.Set(STOP);
-        }
         return FinishAction();//TODO: wrap error
       }
       return BuildStopStoppedError();
@@ -214,6 +210,8 @@ namespace
       Signal.Set(STOP);
       const Error err = Act->Wait();
       Act.reset();
+      Signal.Reset();
+      State.Reset();
       return err;
     }
   private:

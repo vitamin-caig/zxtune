@@ -70,6 +70,12 @@ namespace Async
           : val3);
     }
 
+    void Reset()
+    {
+      boost::mutex::scoped_lock lock(Mutex);
+      Value = 0;
+    }
+
     bool Check(Type val) const
     {
       boost::mutex::scoped_lock lock(Mutex);

@@ -1,6 +1,7 @@
 #include <async/activity.h>
 #include <boost/thread/thread.hpp>
 #include <boost/make_shared.hpp>
+#include <iostream>
 
 #define FILE_TAG 238D7960
 
@@ -16,15 +17,22 @@ namespace
 {
 	using namespace Async;
 	
-	const Error FailedToPrepareError(THIS_LINE, 1, "Failed to prepare");
-	const Error FailedToExecuteError(THIS_LINE, 2, "Failed to execute");
+	Error FailedToPrepareError()
+  {
+    return Error(THIS_LINE, 1, "Failed to prepare");
+  }
+
+	Error FailedToExecuteError()
+  {
+    return Error(THIS_LINE, 2, "Failed to execute");
+  }
 	
 	class InvalidOperation : public Operation
 	{
 	public:
 		virtual Error Prepare()
 		{
-			return FailedToPrepareError;
+			return FailedToPrepareError();
 		}
 		
 		virtual Error Execute()
@@ -43,7 +51,7 @@ namespace
 		
 		virtual Error Execute()
 		{
-			return FailedToExecuteError;
+			return FailedToExecuteError();
 		}
 	};
 
@@ -70,7 +78,7 @@ namespace
 		Activity::Ptr result;
 		if (const Error& err = Activity::Create(boost::make_shared<InvalidOperation>(), result))
 		{
-			if (err != FailedToPrepareError)
+			if (err != FailedToPrepareError())
 			{
 				throw Error(THIS_LINE, 4, "Invalid error returned").AddSuberror(err);
 			}
@@ -94,7 +102,7 @@ namespace
     }
 		if (const Error& err = result->Wait())
 		{
-			if (err != FailedToExecuteError)
+			if (err != FailedToExecuteError())
 			{
 				throw Error(THIS_LINE, 7, "Invalid error returned").AddSuberror(err);
 			}
