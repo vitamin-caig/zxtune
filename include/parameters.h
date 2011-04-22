@@ -54,27 +54,38 @@ namespace Parameters
   bool ConvertFromString(const String& str, StringType& res);
   bool ConvertFromString(const String& str, DataType& res);
 
-  //! @brief Interface to modify properties and parameters
-  class Modifier
+  //! @brief Interface to add/modify properties and parameters
+  class Visitor
+  {
+  public:
+    //! Pointer type
+    typedef boost::shared_ptr<Visitor> Ptr;
+
+    virtual ~Visitor() {}
+
+    //! Add/modify integer parameter
+    virtual void SetIntValue(const NameType& name, IntType val) = 0;
+    //! Add/modify string parameter
+    virtual void SetStringValue(const NameType& name, const StringType& val) = 0;
+    //! Add/modify data parameter
+    virtual void SetDataValue(const NameType& name, const DataType& val) = 0;
+  };
+
+  void ParseStringMap(const StringMap& map, Visitor& visitor);
+
+  class Modifier : public Visitor
   {
   public:
     //! Pointer type
     typedef boost::shared_ptr<Modifier> Ptr;
 
-    virtual ~Modifier() {}
-
-    //! Modifying integer parameters
-    virtual void SetIntValue(const NameType& name, IntType val) = 0;
-    //! Modifying string parameters
-    virtual void SetStringValue(const NameType& name, const StringType& val) = 0;
-    //! Modifying data parameters
-    virtual void SetDataValue(const NameType& name, const DataType& val) = 0;
+    //! Remove integer parameter
+    virtual void RemoveIntValue(const NameType& name) = 0;
+    //! Remove string parameter
+    virtual void RemoveStringValue(const NameType& name) = 0;
+    //! Remove data parameter
+    virtual void RemoveDataValue(const NameType& name) = 0;
   };
-
-  void ParseStringMap(const StringMap& map, Modifier& modifier);
-
-  //! @brief Use modifier interface as a visitor
-  typedef Modifier Visitor;
 
   //! @brief Interface to give access to properties and parameters
   //! @invariant If value is not changed, parameter is not affected
@@ -115,6 +126,17 @@ namespace Parameters
 
   //other functions
   void Convert(const Accessor& ac, StringMap& strings);
+
+
+  class PropertyChangedCallback
+  {
+  public:
+    virtual ~PropertyChangedCallback() {}
+
+    virtual void OnPropertyChanged(const Parameters::NameType& name) const = 0;
+  };
+
+  Container::Ptr CreatePropertyTrackedContainer(Container::Ptr delegate, const PropertyChangedCallback& callback);
 }
 
 #endif //__PARAMETERS_TYPES_H_DEFINED__

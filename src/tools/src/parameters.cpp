@@ -190,7 +190,7 @@ namespace
         boost::bind(&DataMap::value_type::first, _1), boost::bind(&DataMap::value_type::second, _1)));
     }
 
-    //modifier virtuals
+    //visitor virtuals
     virtual void SetIntValue(const NameType& name, IntType val)
     {
       Integers[name] = val;
@@ -204,6 +204,22 @@ namespace
     virtual void SetDataValue(const NameType& name, const DataType& val)
     {
       Datas[name] = val;
+    }
+
+    //modifier virtuals
+    virtual void RemoveIntValue(const NameType& name)
+    {
+      Integers.erase(name);
+    }
+
+    virtual void RemoveStringValue(const NameType& name)
+    {
+      Strings.erase(name);
+    }
+
+    virtual void RemoveDataValue(const NameType& name)
+    {
+      Datas.erase(name);
     }
 
   private:
@@ -355,7 +371,7 @@ namespace
     }
   };
 
-  void SetValue(Modifier& modifier, const StringMap::value_type& pair)
+  void SetValue(Visitor& visitor, const StringMap::value_type& pair)
   {
     const NameType& name = pair.first;
     const String& val = pair.second;
@@ -363,18 +379,87 @@ namespace
     {
       DataType res;
       DataFromString(val, res);
-      modifier.SetDataValue(name, res);
+      visitor.SetDataValue(name, res);
     }
     else if (IsInteger(val))
     {
       const IntType res = IntegerFromString(val);
-      modifier.SetIntValue(name, res);
+      visitor.SetIntValue(name, res);
     }
     else
     {
-      modifier.SetStringValue(name, StringFromString(val));
+      visitor.SetStringValue(name, StringFromString(val));
     }
   }
+
+  class PropertyTrackedContainer : public Container
+  {
+  public:
+    PropertyTrackedContainer(Container::Ptr delegate, const PropertyChangedCallback& callback)
+      : Delegate(delegate)
+      , Callback(callback)
+    {
+    }
+
+    virtual bool FindIntValue(const NameType& name, IntType& val) const
+    {
+      return Delegate->FindIntValue(name, val);
+    }
+
+    virtual bool FindStringValue(const NameType& name, StringType& val) const
+    {
+      return Delegate->FindStringValue(name, val);
+    }
+
+    virtual bool FindDataValue(const NameType& name, DataType& val) const
+    {
+      return Delegate->FindDataValue(name, val);
+    }
+
+    virtual void Process(Visitor& visitor) const
+    {
+      Delegate->Process(visitor);
+    }
+
+    virtual void SetIntValue(const NameType& name, IntType val)
+    {
+      Delegate->SetIntValue(name, val);
+      Callback.OnPropertyChanged(name);
+    }
+
+    virtual void SetStringValue(const NameType& name, const StringType& val)
+    {
+      Delegate->SetStringValue(name, val);
+      Callback.OnPropertyChanged(name);
+    }
+
+    virtual void SetDataValue(const NameType& name, const DataType& val)
+    {
+      Delegate->SetDataValue(name, val);
+      Callback.OnPropertyChanged(name);
+    }
+
+    virtual void RemoveIntValue(const NameType& name)
+    {
+      Delegate->RemoveIntValue(name);
+      Callback.OnPropertyChanged(name);
+    }
+
+    virtual void RemoveStringValue(const NameType& name)
+    {
+      Delegate->RemoveStringValue(name);
+      Callback.OnPropertyChanged(name);
+    }
+
+    virtual void RemoveDataValue(const NameType& name)
+    {
+      Delegate->RemoveDataValue(name);
+      Callback.OnPropertyChanged(name);
+    }
+  private:
+    const Container::Ptr Delegate;
+    const PropertyChangedCallback& Callback;
+  };
 }
 
 namespace Parameters
@@ -420,10 +505,10 @@ namespace Parameters
     return false;
   }
 
-  void ParseStringMap(const StringMap& map, Modifier& modifier)
+  void ParseStringMap(const StringMap& map, Visitor& visitor)
   {
     std::for_each(map.begin(), map.end(), 
-      boost::bind(&SetValue, boost::ref(modifier), _1));
+      boost::bind(&SetValue, boost::ref(visitor), _1));
   }
 
   Accessor::Ptr CreateMergedAccessor(Accessor::Ptr first, Accessor::Ptr second)
@@ -446,5 +531,10 @@ namespace Parameters
     StringConvertor cnv;
     ac.Process(cnv);
     cnv.swap(strings);
+  }
+
+  Container::Ptr CreatePropertyTrackedContainer(Container::Ptr delegate, const PropertyChangedCallback& callback)
+  {
+    return boost::make_shared<PropertyTrackedContainer>(delegate, callback);
   }
 }
