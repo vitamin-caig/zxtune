@@ -210,10 +210,10 @@ namespace
     StringMap Parameters;
   };
 
-  class ParametersFilter : public Parameters::Modifier
+  class ParametersFilter : public Parameters::Visitor
   {
   public:
-    ParametersFilter(const VersionLayer& version, Parameters::Modifier& delegate)
+    ParametersFilter(const VersionLayer& version, Parameters::Visitor& delegate)
       : Version(version)
       , Delegate(delegate)
     {
@@ -316,7 +316,7 @@ namespace
     }
   private:
     const VersionLayer& Version;
-    Parameters::Modifier& Delegate;
+    Parameters::Visitor& Delegate;
   };
 
   Parameters::Container::Ptr CreateProperties(const VersionLayer& version, const AYLContainer& aylItems)
