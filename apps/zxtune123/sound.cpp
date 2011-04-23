@@ -155,6 +155,55 @@ namespace
     throw MakeFormattedError(THIS_LINE, INVALID_PARAMETER, Text::SOUND_ERROR_INVALID_FILTER, str);
   }
 
+  class BackendParams : public ZXTune::Sound::BackendParameters
+  {
+  public:
+    BackendParams(Parameters::Container::Ptr config, const StringArray& mixers, const String& filter)
+      : Params(config)
+    {
+      std::for_each(mixers.begin(), mixers.end(), boost::bind(&BackendParams::AddMixer, this, _1));
+      if (!filter.empty())
+      {
+        Parameters::IntType freq = Parameters::ZXTune::Sound::FREQUENCY_DEFAULT;
+        Params->FindIntValue(Parameters::ZXTune::Sound::FREQUENCY, freq);
+        Filter = CreateFilter(static_cast<uint_t>(freq), filter);
+      }
+    }
+
+    virtual Parameters::Accessor::Ptr GetDefaultParameters() const
+    {
+      return Params;
+    }
+
+    virtual ZXTune::Sound::Mixer::Ptr GetMixer(uint_t channels) const
+    {
+      ZXTune::Sound::Mixer::Ptr& mixer = Mixers[channels];
+      if (!mixer)
+      {
+        ThrowIfError(ZXTune::Sound::CreateMixer(channels, mixer));
+      }
+      return mixer;
+    }
+
+    virtual ZXTune::Sound::Converter::Ptr GetFilter() const
+    {
+      return Filter;
+    }
+  private:
+    void AddMixer(const String& txt)
+    {
+      const std::vector<ZXTune::Sound::MultiGain>& matrix = ParseMixerMatrix(txt);
+      const uint_t chans = matrix.size();
+      ZXTune::Sound::Mixer::Ptr& newMixer = Mixers[chans];
+      ThrowIfError(ZXTune::Sound::CreateMixer(chans, newMixer));
+      ThrowIfError(newMixer->SetMatrix(matrix));
+    }
+  private:
+    const Parameters::Container::Ptr Params;
+    mutable std::map<uint_t, ZXTune::Sound::Mixer::Ptr> Mixers;
+    ZXTune::Sound::Converter::Ptr Filter;
+  };
+
   class Sound : public SoundComponent
   {
     typedef std::list<std::pair<ZXTune::Sound::BackendCreator::Ptr, String> > PerBackendOptions;
@@ -229,21 +278,12 @@ namespace
         Mixers.push_back(DEFAULT_MIXER_3);
         Mixers.push_back(DEFAULT_MIXER_4);
       }
-      MixerObjects.resize(Mixers.size());
-      std::transform(Mixers.begin(), Mixers.end(), MixerObjects.begin(), ParseMixerMatrix);
-
-      if (!Filter.empty())
-      {
-        Parameters::IntType freq = Parameters::ZXTune::Sound::FREQUENCY_DEFAULT;
-        Params->FindIntValue(Parameters::ZXTune::Sound::FREQUENCY, freq);
-        FilterObject = CreateFilter(static_cast<uint_t>(freq), Filter);
-      }
     }
 
     virtual ZXTune::Sound::Backend::Ptr CreateBackend(ZXTune::Module::Holder::Ptr module)
     {
       ZXTune::Sound::Backend::Ptr backend;
-      if (!Creator || Creator->CreateBackend(Params, module, backend))
+      if (!Creator || Creator->CreateBackend(GetParams(), module, backend))
       {
         std::list<ZXTune::Sound::BackendCreator::Ptr> backends;
         {
@@ -267,7 +307,7 @@ namespace
           backends.begin(), lim = backends.end(); it != lim; ++it)
         {
           Log::Debug(THIS_MODULE, "Trying backend %1%", (*it)->Id());
-          if (const Error& e = (*it)->CreateBackend(Params, module, backend))
+          if (const Error& e = (*it)->CreateBackend(GetParams(), module, backend))
           {
             Log::Debug(THIS_MODULE, " failed");
             if (1 == backends.size())
@@ -286,14 +326,6 @@ namespace
       {
         throw Error(THIS_LINE, NO_BACKENDS, Text::SOUND_ERROR_NO_BACKEND);
       }
-
-      std::for_each(MixerObjects.begin(), MixerObjects.end(),
-        boost::bind(&ThrowIfError, boost::bind(&ZXTune::Sound::Backend::SetMixer, backend.get(), _1)));
-      //setup filter
-      if (FilterObject)
-      {
-        ThrowIfError(backend->SetFilter(FilterObject));
-      }
       return backend;
     }
 
@@ -303,7 +335,11 @@ namespace
       Params->FindIntValue(Parameters::ZXTune::Sound::FRAMEDURATION, frameDuration);
       return static_cast<uint_t>(frameDuration);
     }
-
+  private:
+    ZXTune::Sound::BackendParameters::Ptr GetParams() const
+    {
+      return ZXTune::Sound::BackendParameters::Ptr(new BackendParams(Params, Mixers, Filter));
+    }
   private:
     const Parameters::Container::Ptr Params;
     boost::program_options::options_description OptionsDescription;
@@ -313,9 +349,6 @@ namespace
     bool Looped;
     StringArray Mixers;
     String Filter;
-
-    std::vector<std::vector<ZXTune::Sound::MultiGain> > MixerObjects;
-    ZXTune::Sound::Converter::Ptr FilterObject;
 
     ZXTune::Sound::BackendCreator::Ptr Creator;
   };

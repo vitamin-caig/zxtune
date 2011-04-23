@@ -40,7 +40,71 @@ namespace
     std::for_each(errors.begin(), errors.end(), boost::bind(&ShowErrorMessage, title, _1));
   }
 
-  ZXTune::Sound::Backend::Ptr CreateBackend(Parameters::Accessor::Ptr params, ZXTune::Module::Holder::Ptr module)
+  const ZXTune::Sound::MultiGain MIXER3[] =
+  {
+    { {1.0, 0.0} },
+    { {0.5, 0.5} },
+    { {0.0, 1.0} }
+  };
+  const ZXTune::Sound::MultiGain MIXER4[] =
+  {
+    { {1.0, 0.0} },
+    { {0.7, 0.3} },
+    { {0.3, 0.7} },
+    { {0.0, 1.0} }
+  };
+
+  ZXTune::Sound::Mixer::Ptr CreateMixer(const ZXTune::Sound::MultiGain* matrix, uint_t chans)
+  {
+    ZXTune::Sound::Mixer::Ptr res;
+    ThrowIfError(ZXTune::Sound::CreateMixer(chans, res));
+    std::vector<ZXTune::Sound::MultiGain> mtx(matrix, matrix + chans);
+    ThrowIfError(res->SetMatrix(mtx));
+    return res;
+  }
+
+  class BackendParams : public ZXTune::Sound::BackendParameters
+  {
+  public:
+    explicit BackendParams(Parameters::Accessor::Ptr params)
+      : Params(params)
+      , Mixer3(CreateMixer(MIXER3, 3))
+      , Mixer4(CreateMixer(MIXER4, 4))
+    {
+    }
+
+    virtual Parameters::Accessor::Ptr GetDefaultParameters() const
+    {
+      return Params;
+    }
+
+    virtual ZXTune::Sound::Mixer::Ptr GetMixer(uint_t channels) const
+    {
+      if (channels == 3)
+      {
+        return Mixer3;
+      }
+      else if (channels == 4)
+      {
+        return Mixer4;
+      }
+      else
+      {
+        return ZXTune::Sound::Mixer::Ptr();
+      }
+    }
+
+    virtual ZXTune::Sound::Converter::Ptr GetFilter() const
+    {
+      return ZXTune::Sound::Converter::Ptr();
+    }
+  private:
+    const Parameters::Accessor::Ptr Params;
+    const ZXTune::Sound::Mixer::Ptr Mixer3;
+    const ZXTune::Sound::Mixer::Ptr Mixer4;
+  };
+
+  ZXTune::Sound::Backend::Ptr CreateBackend(ZXTune::Sound::BackendParameters::Ptr params, ZXTune::Module::Holder::Ptr module)
   {
     using namespace ZXTune;
     //create backend
@@ -64,21 +128,6 @@ namespace
         break;
       }
     }
-    static const Sound::MultiGain MIXER3[] =
-    {
-      { {1.0, 0.0} },
-      { {0.5, 0.5} },
-      { {0.0, 1.0} }
-    };
-    static const Sound::MultiGain MIXER4[] =
-    {
-      { {1.0, 0.0} },
-      { {0.7, 0.3} },
-      { {0.3, 0.7} },
-      { {0.0, 1.0} }
-    };
-    result->SetMixer(std::vector<Sound::MultiGain>(MIXER3, ArrayEnd(MIXER3)));
-    result->SetMixer(std::vector<Sound::MultiGain>(MIXER4, ArrayEnd(MIXER4)));
     return result;
   }
 
@@ -87,7 +136,7 @@ namespace
   public:
     PlaybackSupportImpl(QObject& parent, Parameters::Accessor::Ptr sndOptions)
       : PlaybackSupport(parent)
-      , SoundOptions(sndOptions)
+      , Params(new BackendParams(sndOptions))
     {
     }
 
@@ -98,7 +147,7 @@ namespace
 
     virtual void SetItem(const Playlist::Item::Data& item)
     {
-      Backend = CreateBackend(SoundOptions, item.GetModule());
+      Backend = CreateBackend(Params, item.GetModule());
       if (Backend.get())
       {
         OnSetBackend(Backend);
@@ -198,7 +247,7 @@ namespace
       OnStopModule();
     }
   private:
-    const Parameters::Accessor::Ptr SoundOptions;
+    const ZXTune::Sound::BackendParameters::Ptr Params;
     ZXTune::Sound::Backend::Ptr Backend;
     ZXTune::Module::Player::ConstPtr Player;
   };
