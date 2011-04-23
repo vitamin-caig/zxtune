@@ -205,14 +205,15 @@ namespace
                    , private boost::noncopyable
   {
   public:
-    explicit OSSBackend(Parameters::Accessor::Ptr soundParams)
-      : BackendImpl(soundParams)
+    OSSBackend(BackendParameters::Ptr params, Module::Holder::Ptr module)
+      : BackendImpl(params, module)
       , MixerName(Parameters::ZXTune::Sound::Backends::OSS::MIXER_DEFAULT)
       , DeviceName(Parameters::ZXTune::Sound::Backends::OSS::DEVICE_DEFAULT)
       , CurrentBuffer(Buffers.begin(), Buffers.end())
       , Samplerate(RenderingParameters->SoundFreq())
       , VolumeController(new OSSVolumeControl(BackendMutex, MixHandle))
     {
+      OnParametersChanged(*SoundParameters);
     }
 
     virtual ~OSSBackend()
@@ -362,7 +363,7 @@ namespace
       return CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
     }
 
-    virtual Error CreateBackend(Parameters::Accessor::Ptr params, Module::Holder::Ptr module, Backend::Ptr& result) const
+    virtual Error CreateBackend(BackendParameters::Ptr params, Module::Holder::Ptr module, Backend::Ptr& result) const
     {
       const BackendInformation::Ptr info = shared_from_this();
       return SafeBackendWrapper<OSSBackend>::Create(info, params, module, result, THIS_LINE);

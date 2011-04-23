@@ -234,8 +234,8 @@ namespace
                      , private boost::noncopyable
   {
   public:
-    explicit Win32Backend(Parameters::Accessor::Ptr soundParams)
-      : BackendImpl(soundParams)
+    Win32Backend(BackendParameters::Ptr params, Module::Holder::Ptr module)
+      : BackendImpl(params, module)
       , Buffers(Parameters::ZXTune::Sound::Backends::Win32::BUFFERS_DEFAULT)
       , CurrentBuffer(&Buffers.front(), &Buffers.back() + 1)
       , Event(::CreateEvent(0, FALSE, FALSE, 0))
@@ -244,6 +244,7 @@ namespace
       , WaveHandle(0)
       , VolumeController(new Win32VolumeController(BackendMutex, Device))
     {
+      OnParametersChanged(*SoundParameters);
     }
 
     virtual ~Win32Backend()
@@ -389,7 +390,7 @@ namespace
       return CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
     }
 
-    virtual Error CreateBackend(Parameters::Accessor::Ptr params, Module::Holder::Ptr module, Backend::Ptr& result) const
+    virtual Error CreateBackend(BackendParameters::Ptr params, Module::Holder::Ptr module, Backend::Ptr& result) const
     {
       const BackendInformation::Ptr info = shared_from_this();
       return SafeBackendWrapper<Win32Backend>::Create(info, params, module, result, THIS_LINE);

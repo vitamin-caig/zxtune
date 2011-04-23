@@ -89,14 +89,14 @@ namespace
                    , private boost::noncopyable
   {
   public:
-    explicit SDLBackend(Parameters::Accessor::Ptr soundParams)
-      : BackendImpl(soundParams)
+    SDLBackend(BackendParameters::Ptr params, Module::Holder::Ptr module)
+      : BackendImpl(params, module)
       , WasInitialized(::SDL_WasInit(SDL_INIT_EVERYTHING))
       , BuffersCount(Parameters::ZXTune::Sound::Backends::SDL::BUFFERS_DEFAULT)
       , Buffers(BuffersCount)
       , FillIter(&Buffers.front(), &Buffers.back() + 1)
       , PlayIter(FillIter)
-      , Samplerate(RenderingParameters->SoundFreq())
+      , Samplerate(0)
     {
       if (0 == WasInitialized)
       {
@@ -108,6 +108,7 @@ namespace
         Log::Debug(THIS_MODULE, "Initializing sound subsystem");
         CheckCall(::SDL_InitSubSystem(SDL_INIT_AUDIO) == 0, THIS_LINE);
       }
+      OnParametersChanged(*SoundParameters);
     }
 
     virtual ~SDLBackend()
@@ -302,7 +303,7 @@ namespace
       return CAP_TYPE_SYSTEM;
     }
 
-    virtual Error CreateBackend(Parameters::Accessor::Ptr params, Module::Holder::Ptr module, Backend::Ptr& result) const
+    virtual Error CreateBackend(BackendParameters::Ptr params, Module::Holder::Ptr module, Backend::Ptr& result) const
     {
       const BackendInformation::Ptr info = shared_from_this();
       return SafeBackendWrapper<SDLBackend>::Create(info, params, module, result, THIS_LINE);

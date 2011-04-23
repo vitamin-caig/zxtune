@@ -139,72 +139,32 @@ namespace ZXTune
 {
   namespace Sound
   {
-    BackendImpl::BackendImpl(Parameters::Accessor::Ptr soundParams)
-      : SoundParameters(soundParams)
+    BackendImpl::BackendImpl(BackendParameters::Ptr params, Module::Holder::Ptr holder)
+      : Params(params)
+      , Player(new SafePlayerWrapper(holder->CreatePlayer()))
+      , SoundParameters(Parameters::CreateMergedAccessor(Player->GetInformation()->Properties(), Params->GetDefaultParameters()))
       , RenderingParameters(RenderParameters::Create(SoundParameters))
-      , Player()
       , Signaller(SignalsDispatcher::Create())
       , SyncBarrier(TOTAL_WORKING_THREADS)
-      , CurrentState(Backend::NOTOPENED), InProcess(false)
-      , Channels(0), Renderer(new BufferRenderer(Buffer))
+      , CurrentState(Backend::STOPPED), InProcess(false)
+      , CurrentMixer(Params->GetMixer(Player->GetInformation()->PhysicalChannels()))
+      , Renderer(new BufferRenderer(Buffer))
     {
-      MixersSet.resize(MAX_MIXERS_COUNT);
+      if (Converter::Ptr filter = Params->GetFilter())
+      {
+        filter->SetTarget(Renderer);
+        CurrentMixer->SetTarget(filter);
+      }
+      else
+      {
+        CurrentMixer->SetTarget(Renderer);
+      }
     }
 
     BackendImpl::~BackendImpl()
     {
       assert(Backend::STOPPED == CurrentState ||
-          Backend::NOTOPENED == CurrentState ||
           Backend::FAILED == CurrentState);
-    }
-
-    Error BackendImpl::SetModule(Module::Holder::Ptr holder)
-    {
-      try
-      {
-        if (!holder)
-        {
-          Log::Debug(THIS_MODULE, "Reseting the holder");
-          Locker lock(PlayerMutex);
-          StopPlayback();
-          Player.reset();
-          CurrentState = Backend::NOTOPENED;
-        }
-        else
-        {
-          Log::Debug(THIS_MODULE, "Opening the holder");
-          const Module::Information::Ptr info = holder->GetModuleInformation();
-          const uint_t physicalChannels = info->PhysicalChannels();
-          CheckChannels(physicalChannels);
-
-          Locker lock(PlayerMutex);
-          {
-            Log::Debug(THIS_MODULE, "Creating the player");
-            Module::Player::Ptr tmpPlayer(new SafePlayerWrapper(holder->CreatePlayer()));
-            StopPlayback();
-            const Parameters::Accessor::Ptr newParams = Parameters::CreateMergedAccessor(info->Properties(), SoundParameters);
-            RenderingParameters = RenderParameters::Create(newParams);
-            OnParametersChanged(*newParams);
-            Player = tmpPlayer;
-          }
-          Channels = physicalChannels;
-          Mixer::Ptr& curMixer = MixersSet[Channels - 1];
-          if (!curMixer)
-          {
-            ThrowIfError(CreateMixer(Channels, curMixer));
-          }
-          curMixer->SetTarget(FilterObject ? FilterObject : Renderer);
-          CurrentState = Backend::STOPPED;
-          SendSignal(Backend::MODULE_OPEN);
-        }
-        RenderError = Error();
-        Log::Debug(THIS_MODULE, "Done!");
-        return Error();
-      }
-      catch (const Error& e)
-      {
-        return Error(THIS_LINE, BACKEND_SETUP_ERROR, Text::SOUND_ERROR_BACKEND_SETUP_BACKEND).AddSuberror(e);
-      }
     }
 
     Module::Player::ConstPtr BackendImpl::GetPlayer() const
@@ -327,57 +287,6 @@ namespace ZXTune
       return Signaller->CreateCollector(signalsMask);
     }
 
-    Error BackendImpl::SetMixer(const std::vector<MultiGain>& data)
-    {
-      try
-      {
-        const uint_t mixChannels = static_cast<uint_t>(data.size());
-        CheckChannels(mixChannels);
-
-        Locker lock(PlayerMutex);
-
-        Mixer::Ptr& curMixer = MixersSet[mixChannels - 1];
-        if (!curMixer)
-        {
-          ThrowIfError(CreateMixer(mixChannels, curMixer));
-        }
-        ThrowIfError(curMixer->SetMatrix(data));
-        //update only if current mutex updated
-        if (Channels)
-        {
-          curMixer->SetTarget(FilterObject ? FilterObject : Renderer);
-        }
-        return Error();
-      }
-      catch (const Error& e)
-      {
-        return Error(THIS_LINE, BACKEND_SETUP_ERROR, Text::SOUND_ERROR_BACKEND_SETUP_BACKEND).AddSuberror(e);
-      }
-    }
-
-    Error BackendImpl::SetFilter(Converter::Ptr converter)
-    {
-      try
-      {
-        if (!converter)
-        {
-          throw Error(THIS_LINE, BACKEND_INVALID_PARAMETER, Text::SOUND_ERROR_BACKEND_INVALID_FILTER);
-        }
-        Locker lock(PlayerMutex);
-        FilterObject = converter;
-        FilterObject->SetTarget(Renderer);
-        if (Channels)
-        {
-          MixersSet[Channels]->SetTarget(FilterObject);
-        }
-        return Error();
-      }
-      catch (const Error& e)
-      {
-        return Error(THIS_LINE, BACKEND_SETUP_ERROR, Text::SOUND_ERROR_BACKEND_SETUP_BACKEND).AddSuberror(e);
-      }
-    }
-
     //internal functions
     void BackendImpl::DoStartup()
     {
@@ -450,14 +359,11 @@ namespace ZXTune
       bool res = false;
       {
         Locker lock(PlayerMutex);
-        if (Mixer::Ptr mixer = MixersSet[Channels - 1])
-        {
-          Buffer.reserve(RenderingParameters->SamplesPerFrame());
-          Buffer.clear();
-          Module::Player::PlaybackState state;
-          ThrowIfError(Player->RenderFrame(*RenderingParameters, state, *mixer));
-          res = Module::Player::MODULE_PLAYING == state;
-        }
+        Buffer.reserve(RenderingParameters->SamplesPerFrame());
+        Buffer.clear();
+        Module::Player::PlaybackState state;
+        ThrowIfError(Player->RenderFrame(*RenderingParameters, state, *CurrentMixer));
+        res = Module::Player::MODULE_PLAYING == state;
       }
       DoBufferReady(Buffer);
       return res;

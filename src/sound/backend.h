@@ -16,6 +16,7 @@
 #include <signals_collector.h>
 //library includes
 #include <core/module_holder.h> // for Module::Holder::Ptr, Converter::Ptr and other
+#include <sound/mixer.h>
 
 //forward declarations
 class Error;
@@ -147,20 +148,22 @@ namespace ZXTune
       //! @return Pointer to new collector registered in backend. Automatically unregistered when expired
       virtual SignalsCollector::Ptr CreateSignalsCollector(uint_t signalsMask) const = 0;
 
-      //! @brief Setting the mixers to use
-      //! @param data Input mixer matrix
-      //! @return Error() in case of success
-      //! @note By default all mixers are set to mono mixing. Use this function to change it
-      virtual Error SetMixer(const std::vector<MultiGain>& data) = 0;
-
-      //! @brief Setting the filter to sound stream post-process
-      //! @param converter Filter object
-      //! @return Error() in case of success
-      virtual Error SetFilter(Converter::Ptr converter) = 0;
-
       //! @brief Getting volume controller
       //! @return Pointer to volume control object if supported, empty pointer if not
       virtual VolumeControl::Ptr GetVolumeControl() const = 0;
+    };
+
+    class BackendParameters
+    {
+    public:
+      //! Pointer type
+      typedef boost::shared_ptr<const BackendParameters> Ptr;
+ 
+      virtual ~BackendParameters() {}
+
+      virtual Parameters::Accessor::Ptr GetDefaultParameters() const = 0;
+      virtual Mixer::Ptr GetMixer(uint_t channels) const = 0;
+      virtual Converter::Ptr GetFilter() const = 0;
     };
 
     //! @brief Backend creator interface
@@ -176,7 +179,7 @@ namespace ZXTune
       //! @param params %Backend-related parameters
       //! @param result Reference to result value
       //! @return Error() in case of success
-      virtual Error CreateBackend(Parameters::Accessor::Ptr params, Module::Holder::Ptr module, Backend::Ptr& result) const = 0;
+      virtual Error CreateBackend(BackendParameters::Ptr params, Module::Holder::Ptr module, Backend::Ptr& result) const = 0;
     };
 
     //! @brief Enumerating supported sound backends

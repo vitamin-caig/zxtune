@@ -43,8 +43,8 @@ namespace
   {
   public:
     //TODO: parametrize
-    explicit AYLPTBackend(Parameters::Accessor::Ptr soundParams)
-      : BackendImpl(soundParams)
+    explicit AYLPTBackend(BackendParameters::Ptr params, Module::Holder::Ptr module)
+      : BackendImpl(params, module)
       , RenderPos(0)
       , Dumper(DLPortIO::CreateDumper())
       , Stub(MultichannelReceiver::CreateStub())
@@ -184,7 +184,7 @@ namespace
       return CAP_TYPE_HARDWARE;
     }
 
-    virtual Error CreateBackend(Parameters::Accessor::Ptr params, Module::Holder::Ptr module, Backend::Ptr& result) const
+    virtual Error CreateBackend(BackendParameters::Ptr params, Module::Holder::Ptr module, Backend::Ptr& result) const
     {
       const BackendInformation::Ptr info = shared_from_this();
       return SafeBackendWrapper<AYLPTBackend>::Create(info, params, module, result, THIS_LINE);

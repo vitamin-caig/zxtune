@@ -38,8 +38,8 @@ namespace
                     , private boost::noncopyable
   {
   public:
-    explicit NullBackend(Parameters::Accessor::Ptr soundParams)
-      : BackendImpl(soundParams)
+    explicit NullBackend(BackendParameters::Ptr params, Module::Holder::Ptr module)
+      : BackendImpl(params, module)
     {
     }
 
@@ -97,7 +97,7 @@ namespace
       return CAP_TYPE_STUB;
     }
 
-    virtual Error CreateBackend(Parameters::Accessor::Ptr params, Module::Holder::Ptr module, Backend::Ptr& result) const
+    virtual Error CreateBackend(BackendParameters::Ptr params, Module::Holder::Ptr module, Backend::Ptr& result) const
     {
       const BackendInformation::Ptr info = shared_from_this();
       return SafeBackendWrapper<NullBackend>::Create(info, params, module, result, THIS_LINE);

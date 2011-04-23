@@ -44,7 +44,7 @@ namespace ZXTune
     class BackendImpl : public BackendWorker
     {
     public:
-      explicit BackendImpl(Parameters::Accessor::Ptr soundParams);
+      BackendImpl(BackendParameters::Ptr params, Module::Holder::Ptr holder);
       virtual ~BackendImpl();
 
       Error SetModule(Module::Holder::Ptr holder);
@@ -59,9 +59,6 @@ namespace ZXTune
       Backend::State GetCurrentState(Error* error) const;
 
       SignalsCollector::Ptr CreateSignalsCollector(uint_t signalsMask) const;
-
-      Error SetMixer(const std::vector<MultiGain>& data);
-      Error SetFilter(Converter::Ptr converter);
     protected:
       virtual bool OnRenderFrame();
     private:
@@ -78,9 +75,10 @@ namespace ZXTune
       void SendSignal(uint_t sig);
     protected:
       //inheritances' context
+      const BackendParameters::Ptr Params;
+      const Module::Player::Ptr Player;
       const Parameters::Accessor::Ptr SoundParameters;
       RenderParameters::Ptr RenderingParameters;
-      Module::Player::Ptr Player;
     protected:
       //sync
       typedef boost::lock_guard<boost::mutex> Locker;
@@ -99,9 +97,7 @@ namespace ZXTune
       volatile bool InProcess;//STOP => STOPPING, STARTED => STARTING
       Error RenderError;
       //context
-      uint_t Channels;
-      Converter::Ptr FilterObject;
-      std::vector<Mixer::Ptr> MixersSet;
+      const Mixer::Ptr CurrentMixer;
       Receiver::Ptr Renderer;
       std::vector<MultiSample> Buffer;
     };

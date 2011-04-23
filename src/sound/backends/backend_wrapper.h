@@ -31,17 +31,16 @@ namespace ZXTune
     template<class Impl>
     class SafeBackendWrapper : public Backend
     {
-      SafeBackendWrapper(BackendInformation::Ptr info, Parameters::Accessor::Ptr params, Module::Holder::Ptr module)
+      SafeBackendWrapper(BackendInformation::Ptr info, BackendParameters::Ptr params, Module::Holder::Ptr module)
         : Information(info)
-        , Delegate(new Impl(params))
+        , Delegate(new Impl(params, module))
       {
         //perform fast test to detect if parameters are correct
-        Delegate->SetModule(module);
         Delegate->OnStartup();
         Delegate->OnShutdown();
       }
     public:
-      static Error Create(BackendInformation::Ptr info, Parameters::Accessor::Ptr params, Module::Holder::Ptr module,
+      static Error Create(BackendInformation::Ptr info, BackendParameters::Ptr params, Module::Holder::Ptr module,
         Backend::Ptr& result, Error::LocationRef loc)
       {
         try
@@ -103,16 +102,6 @@ namespace ZXTune
       virtual SignalsCollector::Ptr CreateSignalsCollector(uint_t signalsMask) const
       {
         return Delegate->CreateSignalsCollector(signalsMask);
-      }
-
-      virtual Error SetMixer(const std::vector<MultiGain>& data)
-      {
-        return Delegate->SetMixer(data);
-      }
-
-      virtual Error SetFilter(Converter::Ptr converter)
-      {
-        return Delegate->SetFilter(converter);
       }
 
       virtual VolumeControl::Ptr GetVolumeControl() const
