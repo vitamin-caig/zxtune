@@ -114,8 +114,8 @@ namespace
   class OSSVolumeControl : public VolumeControl
   {
   public:
-    OSSVolumeControl(boost::mutex& backendMutex, AutoDescriptor& mixer)
-      : BackendMutex(backendMutex), MixHandle(mixer)
+    OSSVolumeControl(boost::mutex& stateMutex, AutoDescriptor& mixer)
+      : StateMutex(stateMutex), MixHandle(mixer)
     {
     }
 
@@ -124,7 +124,7 @@ namespace
       try
       {
         Log::Debug(THIS_MODULE, "GetVolume");
-        boost::lock_guard<boost::mutex> lock(BackendMutex);
+        boost::mutex::scoped_lock lock(StateMutex);
         if (-1 != MixHandle.Get())
         {
           boost::array<uint8_t, sizeof(int)> buf;
@@ -154,7 +154,7 @@ namespace
       try
       {
         Log::Debug(THIS_MODULE, "SetVolume");
-        boost::lock_guard<boost::mutex> lock(BackendMutex);
+        boost::mutex::scoped_lock lock(StateMutex);
         if (-1 != MixHandle.Get())
         {
           boost::array<uint8_t, sizeof(int)> buf = { {0} };
@@ -171,7 +171,7 @@ namespace
       }
     }
   private:
-    boost::mutex& BackendMutex;
+    boost::mutex& StateMutex;
     AutoDescriptor& MixHandle;
   };
 
@@ -211,7 +211,7 @@ namespace
       , DeviceName(Parameters::ZXTune::Sound::Backends::OSS::DEVICE_DEFAULT)
       , CurrentBuffer(Buffers.begin(), Buffers.end())
       , Samplerate(RenderingParameters->SoundFreq())
-      , VolumeController(new OSSVolumeControl(BackendMutex, MixHandle))
+      , VolumeController(new OSSVolumeControl(StateMutex, MixHandle))
     {
       OnParametersChanged(*SoundParameters);
     }
@@ -228,13 +228,11 @@ namespace
 
     virtual void OnStartup()
     {
-      Locker lock(BackendMutex);
       DoStartup();
     }
 
     virtual void OnShutdown()
     {
-      Locker lock(BackendMutex);
       DoShutdown();
     }
 
@@ -260,7 +258,7 @@ namespace
       const bool freqChanged = newFreq != Samplerate;
       if (deviceChanged || mixerChanged || freqChanged)
       {
-        Locker lock(BackendMutex);
+        boost::mutex::scoped_lock lock(StateMutex);
         const bool needStartup(-1 != DevHandle.Get());
         DoShutdown();
         Log::Debug(THIS_MODULE, "Device %1% => %2%", DeviceName, newDevice);
@@ -279,7 +277,6 @@ namespace
 
     virtual void OnBufferReady(std::vector<MultiSample>& buffer)
     {
-      Locker lock(BackendMutex);
       std::vector<MultiSample>& buf(*CurrentBuffer);
       buf.swap(buffer);
       assert(-1 != DevHandle.Get());
@@ -329,6 +326,7 @@ namespace
       Log::Debug(THIS_MODULE, "Successfully closed");
     }
   private:
+    boost::mutex StateMutex;
     String MixerName;
     AutoDescriptor MixHandle;
     String DeviceName;

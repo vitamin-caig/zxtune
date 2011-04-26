@@ -181,7 +181,11 @@ namespace
 
     virtual void Pause()
     {
-      const ZXTune::Sound::Backend::State curState = Backend.get() ? Backend->GetCurrentState() : ZXTune::Sound::Backend::NOTOPENED;
+      if (!Backend.get())
+      {
+        return;
+      }
+      const ZXTune::Sound::Backend::State curState = Backend->GetCurrentState();
       if (ZXTune::Sound::Backend::STARTED == curState)
       {
         Backend->Pause();

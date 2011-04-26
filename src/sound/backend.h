@@ -104,8 +104,6 @@ namespace ZXTune
       //! @brief Current playback state
       enum State
       {
-        //! No any binded module
-        NOTOPENED,
         //! Error ocurred, in common, equal to STOPPED
         FAILED,
         //! Playback is stopped
@@ -126,20 +124,18 @@ namespace ZXTune
         //@{
         //! @name Module-related signals
 
-        //! New module specified
-        MODULE_OPEN =   0x01,
         //! Starting playback after stop
-        MODULE_START =  0x02,
+        MODULE_START =  0x01,
         //! Starting playback after pause
-        MODULE_RESUME = 0x04,
+        MODULE_RESUME = 0x02,
         //! Pausing
-        MODULE_PAUSE =  0x08,
+        MODULE_PAUSE =  0x04,
         //! Stopping
-        MODULE_STOP  =  0x10,
+        MODULE_STOP  =  0x08,
         //! Playback is finished
-        MODULE_FINISH = 0x20,
+        MODULE_FINISH = 0x10,
         //! Seeking performed
-        MODULE_SEEK   = 0x40,
+        MODULE_SEEK   = 0x20,
         //@}
       };
 

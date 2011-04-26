@@ -299,7 +299,7 @@ namespace
           curVolume = std::accumulate(allVolume.begin(), allVolume.end(), curVolume) / allVolume.size();
         }
 
-        ZXTune::Sound::Backend::State state = ZXTune::Sound::Backend::NOTOPENED;
+        ZXTune::Sound::Backend::State state = ZXTune::Sound::Backend::FAILED;
         Error stateError;
 
         for (;;)

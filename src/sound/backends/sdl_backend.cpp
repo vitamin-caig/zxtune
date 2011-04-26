@@ -132,25 +132,21 @@ namespace
 
     virtual void OnStartup()
     {
-      Locker lock(BackendMutex);
       DoStartup();
     }
 
     virtual void OnShutdown()
     {
-      Locker lock(BackendMutex);
       ::SDL_CloseAudio();
     }
 
     virtual void OnPause()
     {
-      Locker lock(BackendMutex);
       ::SDL_PauseAudio(1);
     }
 
     virtual void OnResume()
     {
-      Locker lock(BackendMutex);
       ::SDL_PauseAudio(0);
     }
 
@@ -165,7 +161,6 @@ namespace
       const bool freqChanged = newFreq != Samplerate;
       if (buffersChanged || freqChanged)
       {
-        Locker lock(BackendMutex);
         const bool needStartup = SDL_AUDIO_STOPPED != ::SDL_GetAudioStatus();
         if (needStartup)
         {
@@ -183,7 +178,6 @@ namespace
 
     virtual void OnBufferReady(std::vector<MultiSample>& buffer)
     {
-      Locker lock(BackendMutex);
       boost::unique_lock<boost::mutex> locker(BufferMutex);
       while (FillIter->ToPlay)
       {

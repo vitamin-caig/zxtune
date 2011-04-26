@@ -309,26 +309,26 @@ namespace
   class AlsaVolumeControl : public VolumeControl
   {
   public:
-    AlsaVolumeControl(boost::mutex& backendMutex, AutoMixer& mixer)
-      : BackendMutex(backendMutex), Mixer(mixer)
+    AlsaVolumeControl(boost::mutex& stateMutex, AutoMixer& mixer)
+      : StateMutex(stateMutex), Mixer(mixer)
     {
     }
 
     virtual Error GetVolume(MultiGain& volume) const
     {
       Log::Debug(THIS_MODULE, "GetVolume");
-      boost::lock_guard<boost::mutex> lock(BackendMutex);
+      boost::mutex::scoped_lock lock(StateMutex);
       return Mixer.GetVolume(volume);
     }
 
     virtual Error SetVolume(const MultiGain& volume)
     {
       Log::Debug(THIS_MODULE, "SetVolume");
-      boost::lock_guard<boost::mutex> lock(BackendMutex);
+      boost::mutex::scoped_lock lock(StateMutex);
       return Mixer.SetVolume(volume);
     }
   private:
-    boost::mutex& BackendMutex;
+    boost::mutex& StateMutex;
     AutoMixer& Mixer;
   };
 
@@ -381,7 +381,7 @@ namespace
       , DevHandle()
       , MixHandle()
       , CanPause(0)
-      , VolumeController(new AlsaVolumeControl(BackendMutex, MixHandle))
+      , VolumeController(new AlsaVolumeControl(StateMutex, MixHandle))
     {
       OnParametersChanged(*SoundParameters);
     }
@@ -398,13 +398,11 @@ namespace
 
     virtual void OnStartup()
     {
-      Locker lock(BackendMutex);
       DoStartup();
     }
 
     virtual void OnShutdown()
     {
-      Locker lock(BackendMutex);
       DoShutdown();
     }
 
@@ -440,7 +438,7 @@ namespace
       const bool freqChanged = newFreq != Samplerate;
       if (deviceChanged || mixerChanged || buffersChanged || freqChanged)
       {
-        Locker lock(BackendMutex);
+        Locker lock(StateMutex);
         const bool needStartup(DevHandle.Get() != 0);
         DoShutdown();
         DeviceName = newDevice;
@@ -457,7 +455,6 @@ namespace
 
     virtual void OnBufferReady(std::vector<MultiSample>& buffer)
     {
-      Locker lock(BackendMutex);
       assert(0 != DevHandle.Get());
       const MultiSample* data = &buffer[0];
       std::size_t size = buffer.size();
@@ -541,6 +538,7 @@ namespace
     }
 
   private:
+    boost::mutex StateMutex;
     String DeviceName;
     String MixerName;
     unsigned Buffers;

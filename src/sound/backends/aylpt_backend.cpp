@@ -49,27 +49,18 @@ namespace
       , Dumper(DLPortIO::CreateDumper())
       , Stub(MultichannelReceiver::CreateStub())
     {
-    }
-
-    Error SetModule(Module::Holder::Ptr holder)
-    {
-      if (holder.get())
+      const Plugin::Ptr plugin = module->GetPlugin();
+      const uint_t REQUIRED_CAPS = CAP_DEV_AYM | CAP_STOR_MODULE | CAP_CONV_ZX50;
+      if (REQUIRED_CAPS != (plugin->Capabilities() & REQUIRED_CAPS))
       {
-        const Plugin::Ptr plugin = holder->GetPlugin();
-        const uint_t REQUIRED_CAPS = CAP_DEV_AYM | CAP_STOR_MODULE | CAP_CONV_ZX50;
-        if (REQUIRED_CAPS != (plugin->Capabilities() & REQUIRED_CAPS))
-        {
-          return Error(THIS_LINE, BACKEND_SETUP_ERROR, Text::SOUND_ERROR_AYLPT_BACKEND_DUMP);
-        }
-
-        static const Module::Conversion::ZX50ConvertParam cnvParam;
-        if (const Error& e = holder->Convert(cnvParam, RenderData))
-        {
-          return Error(THIS_LINE, BACKEND_SETUP_ERROR, Text::SOUND_ERROR_AYLPT_BACKEND_DUMP).AddSuberror(e);
-        }
-        RenderPos = 0;
+        throw Error(THIS_LINE, BACKEND_SETUP_ERROR, Text::SOUND_ERROR_AYLPT_BACKEND_DUMP);
       }
-      return BackendImpl::SetModule(holder);
+
+      static const Module::Conversion::ZX50ConvertParam cnvParam;
+      if (const Error& e = module->Convert(cnvParam, RenderData))
+      {
+        throw Error(THIS_LINE, BACKEND_SETUP_ERROR, Text::SOUND_ERROR_AYLPT_BACKEND_DUMP).AddSuberror(e);
+      }
     }
 
     VolumeControl::Ptr GetVolumeControl() const
@@ -101,7 +92,6 @@ namespace
 
     virtual bool OnRenderFrame()
     {
-      Locker lock(PlayerMutex);
       //to update state
       Module::Player::PlaybackState state;
       ThrowIfError(Player->RenderFrame(*RenderingParameters, state, *Stub));

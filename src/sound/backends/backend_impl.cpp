@@ -178,7 +178,6 @@ namespace ZXTune
       try
       {
         Locker lock(PlayerMutex);
-        CheckState();
 
         const Backend::State prevState = CurrentState;
         if (Backend::STOPPED == prevState)
@@ -219,7 +218,6 @@ namespace ZXTune
       try
       {
         Locker lock(PlayerMutex);
-        CheckState();
         if (Backend::STARTED == CurrentState)
         {
           Log::Debug(THIS_MODULE, "Pausing playback");
@@ -242,7 +240,6 @@ namespace ZXTune
       try
       {
         Locker lock(PlayerMutex);
-        CheckState();
         StopPlayback();
         return Error();
       }
@@ -257,7 +254,6 @@ namespace ZXTune
       try
       {
         Locker lock(PlayerMutex);
-        CheckState();
         if (Backend::STOPPED == CurrentState)
         {
           return Error();
@@ -315,15 +311,6 @@ namespace ZXTune
     void BackendImpl::DoBufferReady(std::vector<MultiSample>& buffer)
     {
       OnBufferReady(buffer);
-    }
-
-    void BackendImpl::CheckState() const
-    {
-      ThrowIfError(RenderError);
-      if (Backend::NOTOPENED == CurrentState)
-      {
-        throw Error(THIS_LINE, BACKEND_CONTROL_ERROR, Text::SOUND_ERROR_BACKEND_INVALID_STATE);
-      }
     }
 
     void BackendImpl::StopPlayback()

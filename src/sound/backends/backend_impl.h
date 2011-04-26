@@ -47,7 +47,6 @@ namespace ZXTune
       BackendImpl(BackendParameters::Ptr params, Module::Holder::Ptr holder);
       virtual ~BackendImpl();
 
-      Error SetModule(Module::Holder::Ptr holder);
       Module::Player::ConstPtr GetPlayer() const;
 
       // playback control functions
@@ -68,7 +67,6 @@ namespace ZXTune
       void DoResume();
       void DoBufferReady(std::vector<MultiSample>& buffer);
     private:
-      void CheckState() const;
       void StopPlayback();
       bool SafeRenderFrame();
       void RenderFunc();
@@ -79,12 +77,11 @@ namespace ZXTune
       const Module::Player::Ptr Player;
       const Parameters::Accessor::Ptr SoundParameters;
       RenderParameters::Ptr RenderingParameters;
-    protected:
+    private:
       //sync
       typedef boost::lock_guard<boost::mutex> Locker;
       mutable boost::mutex BackendMutex;
       mutable boost::mutex PlayerMutex;
-    private:
       //events-related
       const SignalsDispatcher::Ptr Signaller;
       //sync-related

@@ -143,8 +143,8 @@ namespace
   class Win32VolumeController : public VolumeControl
   {
   public:
-    Win32VolumeController(boost::mutex& backendMutex, int_t& device)
-      : BackendMutex(backendMutex), Device(device)
+    Win32VolumeController(boost::mutex& stateMutex, int_t& device)
+      : StateMutex(stateMutex), Device(device)
     {
     }
 
@@ -153,7 +153,7 @@ namespace
       // use exceptions for simplification
       try
       {
-        boost::lock_guard<boost::mutex> lock(BackendMutex);
+        boost::mutex::scoped_lock lock(StateMutex);
         boost::array<uint16_t, OUTPUT_CHANNELS> buffer;
         BOOST_STATIC_ASSERT(sizeof(buffer) == sizeof(DWORD));
         CheckMMResult(::waveOutGetVolume(reinterpret_cast< ::HWAVEOUT>(Device), safe_ptr_cast<LPDWORD>(&buffer[0])), THIS_LINE);
@@ -175,7 +175,7 @@ namespace
       // use exceptions for simplification
       try
       {
-        boost::lock_guard<boost::mutex> lock(BackendMutex);
+        boost::mutex::scoped_lock lock(StateMutex);
         boost::array<uint16_t, OUTPUT_CHANNELS> buffer;
         std::transform(volume.begin(), volume.end(), buffer.begin(), std::bind2nd(std::multiplies<Gain>(), Gain(MAX_WIN32_VOLUME)));
         BOOST_STATIC_ASSERT(sizeof(buffer) == sizeof(DWORD));
@@ -189,7 +189,7 @@ namespace
     }
 
   private:
-    boost::mutex& BackendMutex;
+    boost::mutex& StateMutex;
     int_t& Device;
   };
 
@@ -242,14 +242,13 @@ namespace
       //device identifier used for opening and volume control
       , Device(Parameters::ZXTune::Sound::Backends::Win32::DEVICE_DEFAULT)
       , WaveHandle(0)
-      , VolumeController(new Win32VolumeController(BackendMutex, Device))
+      , VolumeController(new Win32VolumeController(StateMutex, Device))
     {
       OnParametersChanged(*SoundParameters);
     }
 
     virtual ~Win32Backend()
     {
-      Locker lock(BackendMutex);
       assert(0 == WaveHandle || !"Win32Backend::Stop should be called before exit");
       ::CloseHandle(Event);
     }
@@ -261,19 +260,16 @@ namespace
 
     virtual void OnStartup()
     {
-      Locker lock(BackendMutex);
       DoStartup();
     }
 
     virtual void OnShutdown()
     {
-      Locker lock(BackendMutex);
       DoShutdown();
     }
 
     virtual void OnPause()
     {
-      Locker lock(BackendMutex);
       if (0 != WaveHandle)
       {
         CheckMMResult(::waveOutPause(WaveHandle), THIS_LINE);
@@ -282,7 +278,6 @@ namespace
 
     virtual void OnResume()
     {
-      Locker lock(BackendMutex);
       if (0 != WaveHandle)
       {
         CheckMMResult(::waveOutRestart(WaveHandle), THIS_LINE);
@@ -303,7 +298,7 @@ namespace
       const bool freqChanged = newFreq != Format.nSamplesPerSec;
       if (deviceChanged || buffersChanged || freqChanged)
       {
-        Locker lock(BackendMutex);
+        boost::mutex::scoped_lock lock(StateMutex);
         const bool needStartup = 0 != WaveHandle;
         DoShutdown();
         // device changed
@@ -321,7 +316,6 @@ namespace
 
     virtual void OnBufferReady(std::vector<MultiSample>& buffer)
     {
-      Locker lock(BackendMutex);
       // buffer is just sent to playback, so we can safely lock here
       CurrentBuffer->Process(buffer);
       ++CurrentBuffer;
@@ -357,6 +351,7 @@ namespace
       }
     }
   private:
+    boost::mutex StateMutex;
     std::vector<WaveBuffer> Buffers;
     CycledIterator<WaveBuffer*> CurrentBuffer;
     ::HANDLE Event;
