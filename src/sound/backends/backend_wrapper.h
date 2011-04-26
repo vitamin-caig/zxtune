@@ -99,7 +99,7 @@ namespace ZXTune
         return Delegate->GetCurrentState(error);
       }
 
-      virtual SignalsCollector::Ptr CreateSignalsCollector(uint_t signalsMask) const
+      virtual Async::Signals::Collector::Ptr CreateSignalsCollector(uint_t signalsMask) const
       {
         return Delegate->CreateSignalsCollector(signalsMask);
       }

@@ -6,6 +6,12 @@
 
 #define FILE_TAG 8D106607
 
+//fix for new boost versions
+namespace boost
+{
+  void tss_cleanup_implemented() { }
+}
+
 namespace
 {
 	void ShowError(unsigned /*level*/, Error::LocationRef loc, Error::CodeType code, const String& text)
@@ -53,40 +59,32 @@ namespace
     
     virtual Error Initialize()
     {
-#ifndef NDEBUG
-      std::cerr << " " << __FUNCTION__ " called (" << InitError << ")" << std::endl;
-#endif
+      std::cerr << " " << __FUNCTION__ << " called (" << InitError << ")" << std::endl;
       return InitError;
     }
     
     virtual Error Finalize()
     {
-#ifndef NDEBUG
-      std::cerr << " " << __FUNCTION__ " called (" << FinalError << ")" << std::endl;
-#endif
+      std::cerr << " " << __FUNCTION__ << " called (" << FinalError << ")" << std::endl;
       return FinalError;
     }
 
     virtual Error Suspend()
     {
-#ifndef NDEBUG
-      std::cerr << " " << __FUNCTION__ " called (" << SuspendError << ")" << std::endl;
-#endif
+      std::cerr << " " << __FUNCTION__ << " called (" << SuspendError << ")" << std::endl;
       return SuspendError;
     }
     
     virtual Error Resume()
     {
-#ifndef NDEBUG
-      std::cerr << " " << __FUNCTION__ " called (" << ResumeError << ")" << std::endl;
-#endif
+      std::cerr << " " << __FUNCTION__ << " called (" << ResumeError << ")" << std::endl;
       return ResumeError;
     }
 
     virtual Error ExecuteCycle()
     {
 #ifndef NDEBUG
-      std::cerr << " " << __FUNCTION__ " called (" << ExecError << ")" << std::endl;
+      std::cerr << " " << __FUNCTION__ << " called (" << ExecError << ")" << std::endl;
 #endif
       return ExecError;
     }
@@ -94,7 +92,7 @@ namespace
     virtual bool IsFinished() const
     {
 #ifndef NDEBUG
-      std::cerr << " " << __FUNCTION__ " called (" << Finished << ")" << std::endl;
+      std::cerr << " " << __FUNCTION__ << " called (" << Finished << ")" << std::endl;
 #endif
       return Finished;
     }
@@ -373,6 +371,19 @@ namespace
     }
     std::cout << "Succeed\n";
   }
+
+  void TestNoStopCall()
+  {
+    std::cout << "Test for stopping on destruction" << std::endl;
+    {
+      TempWorker worker;
+      const Job::Ptr job = Job::Create(Job::Worker::Ptr(&worker, NullDeleter<Job::Worker>()));
+      worker.Finished = false;
+      ThrowIfError(job->Start());
+      boost::this_thread::sleep(boost::posix_time::milliseconds(3000));
+    }
+    std::cout << "Succeed\n";
+  }
 }
 
 int main()
@@ -388,6 +399,7 @@ int main()
     TestSimpleWorkflow();
     TestDoubleWorkflow();
     TestDuplicatedCalls();
+    TestNoStopCall();
   }
   catch (const Error& err)
   {

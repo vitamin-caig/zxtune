@@ -13,7 +13,7 @@
 
 //common includes
 #include <iterator.h>
-#include <signals_collector.h>
+#include <async/signals_collector.h>
 //library includes
 #include <core/module_holder.h> // for Module::Holder::Ptr, Converter::Ptr and other
 #include <sound/mixer.h>
@@ -142,7 +142,7 @@ namespace ZXTune
       //! @brief Creating new signals collector
       //! @param signalsMask Required signals mask
       //! @return Pointer to new collector registered in backend. Automatically unregistered when expired
-      virtual SignalsCollector::Ptr CreateSignalsCollector(uint_t signalsMask) const = 0;
+      virtual Async::Signals::Collector::Ptr CreateSignalsCollector(uint_t signalsMask) const = 0;
 
       //! @brief Getting volume controller
       //! @return Pointer to volume control object if supported, empty pointer if not

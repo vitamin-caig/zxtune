@@ -57,7 +57,7 @@ namespace ZXTune
 
       Backend::State GetCurrentState(Error* error) const;
 
-      SignalsCollector::Ptr CreateSignalsCollector(uint_t signalsMask) const;
+      Async::Signals::Collector::Ptr CreateSignalsCollector(uint_t signalsMask) const;
     protected:
       virtual bool OnRenderFrame();
     private:
@@ -83,7 +83,7 @@ namespace ZXTune
       mutable boost::mutex BackendMutex;
       mutable boost::mutex PlayerMutex;
       //events-related
-      const SignalsDispatcher::Ptr Signaller;
+      const Async::Signals::Dispatcher::Ptr Signaller;
       //sync-related
       boost::thread RenderThread;
       boost::barrier SyncBarrier;

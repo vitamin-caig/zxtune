@@ -144,7 +144,7 @@ namespace ZXTune
       , Player(new SafePlayerWrapper(holder->CreatePlayer()))
       , SoundParameters(Parameters::CreateMergedAccessor(Player->GetInformation()->Properties(), Params->GetDefaultParameters()))
       , RenderingParameters(RenderParameters::Create(SoundParameters))
-      , Signaller(SignalsDispatcher::Create())
+      , Signaller(Async::Signals::Dispatcher::Create())
       , SyncBarrier(TOTAL_WORKING_THREADS)
       , CurrentState(Backend::STOPPED), InProcess(false)
       , CurrentMixer(Params->GetMixer(Player->GetInformation()->PhysicalChannels()))
@@ -278,7 +278,7 @@ namespace ZXTune
       return CurrentState;
     }
 
-    SignalsCollector::Ptr BackendImpl::CreateSignalsCollector(uint_t signalsMask) const
+    Async::Signals::Collector::Ptr BackendImpl::CreateSignalsCollector(uint_t signalsMask) const
     {
       return Signaller->CreateCollector(signalsMask);
     }

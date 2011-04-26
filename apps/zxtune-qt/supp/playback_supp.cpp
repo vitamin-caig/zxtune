@@ -211,7 +211,7 @@ namespace
       //notify about start
       OnStartModule(Player);
 
-      SignalsCollector::Ptr signaller = Backend->CreateSignalsCollector(
+      const Async::Signals::Collector::Ptr signaller = Backend->CreateSignalsCollector(
         Sound::Backend::MODULE_RESUME | Sound::Backend::MODULE_PAUSE |
         Sound::Backend::MODULE_STOP | Sound::Backend::MODULE_FINISH);
       for (;;)
