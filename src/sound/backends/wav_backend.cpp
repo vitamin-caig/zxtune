@@ -29,7 +29,6 @@ Author:
 #include <algorithm>
 #include <fstream>
 //boost includes
-#include <boost/enable_shared_from_this.hpp>
 #include <boost/noncopyable.hpp>
 //text includes
 #include <sound/text/backends.h>
@@ -425,10 +424,9 @@ namespace
     {
     }
 
-    virtual bool OnRenderFrame()
+    virtual void OnFrame()
     {
       Processor->BeginFrame(*State);
-      return BackendImpl::OnRenderFrame();
     }
 
     virtual void OnBufferReady(std::vector<MultiSample>& buffer)
@@ -442,15 +440,6 @@ namespace
       Processor->FinishFrame(buffer);
 #endif
     }
-
-    virtual void OnParametersChanged(const Parameters::Accessor& /*params*/)
-    {
-      if (Processor.get())
-      {
-        // changing any of the properties 'on fly' is not supported
-        throw Error(THIS_LINE, BACKEND_INVALID_PARAMETER, Text::SOUND_ERROR_BACKEND_INVALID_STATE);
-      }
-    }
   private:
     TrackProcessor::Ptr Processor;
     Module::TrackState::Ptr State;
@@ -460,7 +449,6 @@ namespace
   };
 
   class WAVBackendCreator : public BackendCreator
-                          , public boost::enable_shared_from_this<WAVBackendCreator>
   {
   public:
     virtual String Id() const
@@ -485,8 +473,7 @@ namespace
 
     virtual Error CreateBackend(BackendParameters::Ptr params, Module::Holder::Ptr module, Backend::Ptr& result) const
     {
-      const BackendInformation::Ptr info = shared_from_this();
-      return SafeBackendWrapper<WAVBackend>::Create(info, params, module, result, THIS_LINE);
+      return SafeBackendWrapper<WAVBackend>::Create(Id(), params, module, result, THIS_LINE);
     }
   };
 }

@@ -28,7 +28,6 @@ Author:
 //platform-dependent includes
 #include <SDL/SDL.h>
 //boost includes
-#include <boost/enable_shared_from_this.hpp>
 #include <boost/noncopyable.hpp>
 //text includes
 #include <sound/text/backends.h>
@@ -150,7 +149,7 @@ namespace
       ::SDL_PauseAudio(0);
     }
 
-    virtual void OnParametersChanged(const Parameters::Accessor& updates)
+    void OnParametersChanged(const Parameters::Accessor& updates)
     {
       const SDLBackendParameters curParams(updates);
       //check for parameters requires restarting
@@ -175,6 +174,11 @@ namespace
         }
       }
     }
+
+    virtual void OnFrame()
+    {
+    }
+
 
     virtual void OnBufferReady(std::vector<MultiSample>& buffer)
     {
@@ -274,7 +278,6 @@ namespace
   };
 
   class SDLBackendCreator : public BackendCreator
-                          , public boost::enable_shared_from_this<SDLBackendCreator>
   {
   public:
     virtual String Id() const
@@ -299,8 +302,7 @@ namespace
 
     virtual Error CreateBackend(BackendParameters::Ptr params, Module::Holder::Ptr module, Backend::Ptr& result) const
     {
-      const BackendInformation::Ptr info = shared_from_this();
-      return SafeBackendWrapper<SDLBackend>::Create(info, params, module, result, THIS_LINE);
+      return SafeBackendWrapper<SDLBackend>::Create(Id(), params, module, result, THIS_LINE);
     }
   };
 }

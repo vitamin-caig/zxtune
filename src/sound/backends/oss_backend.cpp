@@ -34,7 +34,6 @@ Author:
 //std includes
 #include <algorithm>
 //boost includes
-#include <boost/enable_shared_from_this.hpp>
 #include <boost/noncopyable.hpp>
 //text includes
 #include <sound/text/backends.h>
@@ -244,7 +243,7 @@ namespace
     {
     }
 
-    virtual void OnParametersChanged(const Parameters::Accessor& updates)
+    void OnParametersChanged(const Parameters::Accessor& updates)
     {
       const OSSBackendParameters curParams(updates);
 
@@ -273,6 +272,10 @@ namespace
           DoStartup();
         }
       }
+    }
+
+    virtual void OnFrame()
+    {
     }
 
     virtual void OnBufferReady(std::vector<MultiSample>& buffer)
@@ -338,7 +341,6 @@ namespace
   };
 
   class OSSBackendCreator : public BackendCreator
-                          , public boost::enable_shared_from_this<OSSBackendCreator>
   {
   public:
     virtual String Id() const
@@ -363,8 +365,7 @@ namespace
 
     virtual Error CreateBackend(BackendParameters::Ptr params, Module::Holder::Ptr module, Backend::Ptr& result) const
     {
-      const BackendInformation::Ptr info = shared_from_this();
-      return SafeBackendWrapper<OSSBackend>::Create(info, params, module, result, THIS_LINE);
+      return SafeBackendWrapper<OSSBackend>::Create(Id(), params, module, result, THIS_LINE);
     }
   };
 }

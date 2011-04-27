@@ -23,8 +23,6 @@ Author:
 #include <devices/aym.h>
 #include <sound/backend_attrs.h>
 #include <sound/error_codes.h>
-//boost includes
-#include <boost/enable_shared_from_this.hpp>
 //text includes
 #include <sound/text/backends.h>
 
@@ -78,10 +76,6 @@ namespace
     {
     }
 
-    virtual void OnParametersChanged(const Parameters::Accessor&)
-    {
-    }
-
     virtual void OnPause()
     {
     }
@@ -90,13 +84,9 @@ namespace
     {
     }
 
-    virtual bool OnRenderFrame()
+    virtual void OnFrame()
     {
-      //to update state
-      Module::Player::PlaybackState state;
-      ThrowIfError(Player->RenderFrame(*RenderingParameters, state, *Stub));
-      return Module::Player::MODULE_PLAYING == state &&
-             DoOutput();
+      DoOutput();
     }
 
     virtual void OnBufferReady(std::vector<MultiSample>& /*buffer*/)
@@ -151,7 +141,6 @@ namespace
   };
 
   class AYLPTBackendCreator : public BackendCreator
-                            , public boost::enable_shared_from_this<AYLPTBackendCreator>
   {
   public:
     virtual String Id() const
@@ -176,8 +165,7 @@ namespace
 
     virtual Error CreateBackend(BackendParameters::Ptr params, Module::Holder::Ptr module, Backend::Ptr& result) const
     {
-      const BackendInformation::Ptr info = shared_from_this();
-      return SafeBackendWrapper<AYLPTBackend>::Create(info, params, module, result, THIS_LINE);
+      return SafeBackendWrapper<AYLPTBackend>::Create(Id(), params, module, result, THIS_LINE);
     }
   };
 }

@@ -29,8 +29,6 @@ Author:
 //platform-specific includes
 #include <alsa/asoundlib.h>
 #include <alsa/pcm.h>
-//boost includes
-#include <boost/enable_shared_from_this.hpp>
 //text includes
 #include <sound/text/backends.h>
 #include <sound/text/sound.h>
@@ -422,7 +420,7 @@ namespace
       }
     }
 
-    virtual void OnParametersChanged(const Parameters::Accessor& updates)
+    void OnParametersChanged(const Parameters::Accessor& updates)
     {
       const AlsaBackendParameters curParams(updates);
 
@@ -438,7 +436,7 @@ namespace
       const bool freqChanged = newFreq != Samplerate;
       if (deviceChanged || mixerChanged || buffersChanged || freqChanged)
       {
-        Locker lock(StateMutex);
+        const boost::mutex::scoped_lock lock(StateMutex);
         const bool needStartup(DevHandle.Get() != 0);
         DoShutdown();
         DeviceName = newDevice;
@@ -451,6 +449,10 @@ namespace
           DoStartup();
         }
       }
+    }
+
+    virtual void OnFrame()
+    {
     }
 
     virtual void OnBufferReady(std::vector<MultiSample>& buffer)
@@ -550,7 +552,6 @@ namespace
   };
 
   class AlsaBackendCreator : public BackendCreator
-                           , public boost::enable_shared_from_this<AlsaBackendCreator>
   {
   public:
     virtual String Id() const
@@ -575,8 +576,7 @@ namespace
 
     virtual Error CreateBackend(BackendParameters::Ptr params, Module::Holder::Ptr module, Backend::Ptr& result) const
     {
-      const BackendInformation::Ptr info = shared_from_this();
-      return SafeBackendWrapper<AlsaBackend>::Create(info, params, module, result, THIS_LINE);
+      return SafeBackendWrapper<AlsaBackend>::Create(Id(), params, module, result, THIS_LINE);
     }
   };
 }

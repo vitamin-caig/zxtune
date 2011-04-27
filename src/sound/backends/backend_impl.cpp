@@ -35,18 +35,6 @@ namespace
   //playing thread and starting/stopping thread
   const std::size_t TOTAL_WORKING_THREADS = 2;
 
-  const uint_t MIN_MIXERS_COUNT = 1;
-  const uint_t MAX_MIXERS_COUNT = 8;
-
-  inline void CheckChannels(uint_t chans)
-  {
-    if (!in_range(chans, MIN_MIXERS_COUNT, MAX_MIXERS_COUNT))
-    {
-      throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
-        Text::SOUND_ERROR_BACKEND_INVALID_CHANNELS, chans, MIN_MIXERS_COUNT, MAX_MIXERS_COUNT);
-    }
-  }
-
   class SafePlayerWrapper : public Module::Player
   {
   public:
@@ -308,11 +296,6 @@ namespace ZXTune
       SendSignal(Backend::MODULE_RESUME);
     }
 
-    void BackendImpl::DoBufferReady(std::vector<MultiSample>& buffer)
-    {
-      OnBufferReady(buffer);
-    }
-
     void BackendImpl::StopPlayback()
     {
       const Backend::State curState = CurrentState;
@@ -341,9 +324,10 @@ namespace ZXTune
       }
     }
 
-    bool BackendImpl::OnRenderFrame()
+    bool BackendImpl::RenderFrame()
     {
       bool res = false;
+      OnFrame();
       {
         Locker lock(PlayerMutex);
         Buffer.reserve(RenderingParameters->SamplesPerFrame());
@@ -352,7 +336,7 @@ namespace ZXTune
         ThrowIfError(Player->RenderFrame(*RenderingParameters, state, *CurrentMixer));
         res = Module::Player::MODULE_PLAYING == state;
       }
-      DoBufferReady(Buffer);
+      OnBufferReady(Buffer);
       return res;
     }
 
@@ -375,7 +359,7 @@ namespace ZXTune
           }
           else if (Backend::STARTED == curState)
           {
-            if (!OnRenderFrame())
+            if (!RenderFrame())
             {
               CurrentState = Backend::STOPPED;
               InProcess = true; //stopping begin

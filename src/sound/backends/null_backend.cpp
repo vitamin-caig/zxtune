@@ -17,7 +17,6 @@ Author:
 #include <sound/backend_attrs.h>
 #include <sound/error_codes.h>
 //boost includes
-#include <boost/enable_shared_from_this.hpp>
 #include <boost/noncopyable.hpp>
 //text includes
 #include <sound/text/backends.h>
@@ -64,17 +63,16 @@ namespace
     {
     }
 
-    virtual void OnBufferReady(std::vector<MultiSample>& /*buffer*/)
+    virtual void OnFrame()
     {
     }
 
-    virtual void OnParametersChanged(const Parameters::Accessor& /*updates*/)
+    virtual void OnBufferReady(std::vector<MultiSample>& /*buffer*/)
     {
     }
   };
 
   class NullBackendCreator : public BackendCreator
-                           , public boost::enable_shared_from_this<NullBackendCreator>
   {
   public:
     virtual String Id() const
@@ -99,8 +97,7 @@ namespace
 
     virtual Error CreateBackend(BackendParameters::Ptr params, Module::Holder::Ptr module, Backend::Ptr& result) const
     {
-      const BackendInformation::Ptr info = shared_from_this();
-      return SafeBackendWrapper<NullBackend>::Create(info, params, module, result, THIS_LINE);
+      return SafeBackendWrapper<NullBackend>::Create(Id(), params, module, result, THIS_LINE);
     }
   };
 }

@@ -29,7 +29,6 @@ Author:
 #include <algorithm>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/enable_shared_from_this.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/ref.hpp>
 //text includes
@@ -284,7 +283,7 @@ namespace
       }
     }
 
-    virtual void OnParametersChanged(const Parameters::Accessor& updates)
+    void OnParametersChanged(const Parameters::Accessor& updates)
     {
       const Win32BackendParameters newParams(updates);
 
@@ -312,6 +311,10 @@ namespace
           DoStartup();
         }
       }
+    }
+
+    virtual void OnFrame()
+    {
     }
 
     virtual void OnBufferReady(std::vector<MultiSample>& buffer)
@@ -362,7 +365,6 @@ namespace
   };
 
   class Win32BackendCreator : public BackendCreator
-                            , public boost::enable_shared_from_this<Win32BackendCreator>
   {
   public:
     virtual String Id() const
@@ -387,8 +389,7 @@ namespace
 
     virtual Error CreateBackend(BackendParameters::Ptr params, Module::Holder::Ptr module, Backend::Ptr& result) const
     {
-      const BackendInformation::Ptr info = shared_from_this();
-      return SafeBackendWrapper<Win32Backend>::Create(info, params, module, result, THIS_LINE);
+      return SafeBackendWrapper<Win32Backend>::Create(Id(), params, module, result, THIS_LINE);
     }
   };
 }

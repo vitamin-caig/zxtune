@@ -35,9 +35,8 @@ namespace ZXTune
       virtual void OnShutdown() = 0;
       virtual void OnPause() = 0;
       virtual void OnResume() = 0;
+      virtual void OnFrame() = 0;
       virtual void OnBufferReady(std::vector<MultiSample>& buffer) = 0;
-      virtual bool OnRenderFrame() = 0;
-      virtual void OnParametersChanged(const Parameters::Accessor& updates) = 0;
     };
 
     // Internal implementation for backend
@@ -58,19 +57,17 @@ namespace ZXTune
       Backend::State GetCurrentState(Error* error) const;
 
       Async::Signals::Collector::Ptr CreateSignalsCollector(uint_t signalsMask) const;
-    protected:
-      virtual bool OnRenderFrame();
     private:
       void DoStartup();
       void DoShutdown();
       void DoPause();
       void DoResume();
-      void DoBufferReady(std::vector<MultiSample>& buffer);
     private:
       void StopPlayback();
       bool SafeRenderFrame();
       void RenderFunc();
       void SendSignal(uint_t sig);
+      bool RenderFrame();
     protected:
       //inheritances' context
       const BackendParameters::Ptr Params;
@@ -79,7 +76,6 @@ namespace ZXTune
       RenderParameters::Ptr RenderingParameters;
     private:
       //sync
-      typedef boost::lock_guard<boost::mutex> Locker;
       mutable boost::mutex BackendMutex;
       mutable boost::mutex PlayerMutex;
       //events-related

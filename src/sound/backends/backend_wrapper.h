@@ -31,27 +31,26 @@ namespace ZXTune
     template<class Impl>
     class SafeBackendWrapper : public Backend
     {
-      SafeBackendWrapper(BackendInformation::Ptr info, BackendParameters::Ptr params, Module::Holder::Ptr module)
-        : Information(info)
-        , Delegate(new Impl(params, module))
+      SafeBackendWrapper(BackendParameters::Ptr params, Module::Holder::Ptr module)
+        : Delegate(new Impl(params, module))
       {
         //perform fast test to detect if parameters are correct
         Delegate->OnStartup();
         Delegate->OnShutdown();
       }
     public:
-      static Error Create(BackendInformation::Ptr info, BackendParameters::Ptr params, Module::Holder::Ptr module,
+      static Error Create(const String& id, BackendParameters::Ptr params, Module::Holder::Ptr module,
         Backend::Ptr& result, Error::LocationRef loc)
       {
         try
         {
-          result.reset(new SafeBackendWrapper<Impl>(info, params, module));
+          result.reset(new SafeBackendWrapper<Impl>(params, module));
           return Error();
         }
         catch (const Error& e)
         {
           return MakeFormattedError(loc, BACKEND_FAILED_CREATE,
-            Text::SOUND_ERROR_BACKEND_FAILED, info->Id()).AddSuberror(e);
+            Text::SOUND_ERROR_BACKEND_FAILED, id).AddSuberror(e);
         }
         catch (const std::bad_alloc&)
         {
@@ -62,11 +61,6 @@ namespace ZXTune
       virtual ~SafeBackendWrapper()
       {
         Delegate->Stop();//TODO: warn if error
-      }
-
-      virtual BackendInformation::Ptr GetInformation() const
-      {
-        return Information;
       }
 
       virtual Module::Player::ConstPtr GetPlayer() const
@@ -109,7 +103,6 @@ namespace ZXTune
         return Delegate->GetVolumeControl();
       }
     private:
-      const BackendInformation::Ptr Information;
       boost::scoped_ptr<Impl> Delegate;
     };
   }
