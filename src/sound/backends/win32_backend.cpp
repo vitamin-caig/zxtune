@@ -207,7 +207,7 @@ namespace
       return static_cast<int_t>(device);
     }
 
-    uint_t GetBuffers() const
+    std::size_t GetBuffers() const
     {
       Parameters::IntType buffers = Parameters::ZXTune::Sound::Backends::Win32::BUFFERS_DEFAULT;
       if (Accessor.FindIntValue(Parameters::ZXTune::Sound::Backends::Win32::BUFFERS, buffers) &&
@@ -216,55 +216,66 @@ namespace
         throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
           Text::SOUND_ERROR_WIN32_BACKEND_INVALID_BUFFERS, static_cast<int_t>(buffers), BUFFERS_MIN, BUFFERS_MAX);
       }
-      return static_cast<uint_t>(buffers);
-    }
-
-    uint_t GetFrequency() const
-    {
-      Parameters::IntType res = Parameters::ZXTune::Sound::FREQUENCY_DEFAULT;
-      Accessor.FindIntValue(Parameters::ZXTune::Sound::FREQUENCY, res);
-      return static_cast<uint_t>(res);
+      return static_cast<std::size_t>(buffers);
     }
   private:
     const Parameters::Accessor& Accessor;
   };
 
-  class Win32Backend : public BackendImpl
-                     , private boost::noncopyable
+  class Win32BackendWorker : public BackendWorker
+                           , private boost::noncopyable
   {
   public:
-    explicit Win32Backend(CreateBackendParameters::Ptr params)
-      : BackendImpl(params)
-      , Buffers(Parameters::ZXTune::Sound::Backends::Win32::BUFFERS_DEFAULT)
-      , CurrentBuffer(&Buffers.front(), &Buffers.back() + 1)
+    explicit Win32BackendWorker(Parameters::Accessor::Ptr params)
+      : BackendParams(params)
+      , RenderingParameters(RenderParameters::Create(BackendParams))
       , Event(::CreateEvent(0, FALSE, FALSE, 0))
       //device identifier used for opening and volume control
-      , Device(Parameters::ZXTune::Sound::Backends::Win32::DEVICE_DEFAULT)
+      , Device(0)
       , WaveHandle(0)
       , VolumeController(new Win32VolumeController(StateMutex, Device))
     {
-      OnParametersChanged(*SoundParameters);
     }
 
-    virtual ~Win32Backend()
+    virtual ~Win32BackendWorker()
     {
       assert(0 == WaveHandle || !"Win32Backend::Stop should be called before exit");
       ::CloseHandle(Event);
     }
 
-    VolumeControl::Ptr GetVolumeControl() const
-    {
-      return VolumeController;
-    }
-
     virtual void OnStartup()
     {
-      DoStartup();
+      assert(0 == WaveHandle);
+
+      const Win32BackendParameters params(*BackendParams);
+      const boost::mutex::scoped_lock lock(StateMutex);
+      Device = params.GetDevice();
+      Buffers.resize(params.GetBuffers());
+      CurrentBuffer = CycledIterator<WaveBuffer*>(&Buffers.front(), &Buffers.back() + 1);
+
+      std::memset(&Format, 0, sizeof(Format));
+      Format.wFormatTag = WAVE_FORMAT_PCM;
+      Format.nChannels = OUTPUT_CHANNELS;
+      Format.nSamplesPerSec = static_cast< ::DWORD>(RenderingParameters->SoundFreq());
+      Format.nBlockAlign = sizeof(MultiSample);
+      Format.nAvgBytesPerSec = Format.nSamplesPerSec * Format.nBlockAlign;
+      Format.wBitsPerSample = 8 * sizeof(Sample);
+
+      CheckMMResult(::waveOutOpen(&WaveHandle, static_cast< ::UINT>(Device), &Format, DWORD_PTR(Event), 0,
+        CALLBACK_EVENT | WAVE_FORMAT_DIRECT), THIS_LINE);
+      std::for_each(Buffers.begin(), Buffers.end(), boost::bind(&WaveBuffer::Allocate, _1, WaveHandle, Event, boost::cref(*RenderingParameters)));
+      CheckPlatformResult(0 != ::ResetEvent(Event), THIS_LINE);
     }
 
     virtual void OnShutdown()
     {
-      DoShutdown();
+      if (0 != WaveHandle)
+      {
+        std::for_each(Buffers.begin(), Buffers.end(), boost::mem_fn(&WaveBuffer::Release));
+        CheckMMResult(::waveOutReset(WaveHandle), THIS_LINE);
+        CheckMMResult(::waveOutClose(WaveHandle), THIS_LINE);
+        WaveHandle = 0;
+      }
     }
 
     virtual void OnPause()
@@ -283,36 +294,6 @@ namespace
       }
     }
 
-    void OnParametersChanged(const Parameters::Accessor& updates)
-    {
-      const Win32BackendParameters newParams(updates);
-
-      // own parameters and sound frequency affects this backend
-      const int_t newDevice = newParams.GetDevice();
-      const uint_t newBuffers = newParams.GetBuffers();
-      const uint_t newFreq = newParams.GetFrequency();
-
-      const bool deviceChanged = newDevice != Device;
-      const bool buffersChanged = newBuffers != Buffers.size();
-      const bool freqChanged = newFreq != Format.nSamplesPerSec;
-      if (deviceChanged || buffersChanged || freqChanged)
-      {
-        boost::mutex::scoped_lock lock(StateMutex);
-        const bool needStartup = 0 != WaveHandle;
-        DoShutdown();
-        // device changed
-        Device = newDevice;
-        // buffers count changed
-        Buffers.resize(static_cast<std::size_t>(newBuffers));
-        CurrentBuffer = CycledIterator<WaveBuffer*>(&Buffers.front(), &Buffers.back() + 1);
-
-        if (needStartup)
-        {
-          DoStartup();
-        }
-      }
-    }
-
     virtual void OnFrame()
     {
     }
@@ -324,36 +305,13 @@ namespace
       ++CurrentBuffer;
     }
 
-  private:
-    void DoStartup()
+    virtual VolumeControl::Ptr GetVolumeControl() const
     {
-      assert(0 == WaveHandle);
-
-      std::memset(&Format, 0, sizeof(Format));
-      Format.wFormatTag = WAVE_FORMAT_PCM;
-      Format.nChannels = OUTPUT_CHANNELS;
-      Format.nSamplesPerSec = static_cast< ::DWORD>(RenderingParameters->SoundFreq());
-      Format.nBlockAlign = sizeof(MultiSample);
-      Format.nAvgBytesPerSec = Format.nSamplesPerSec * Format.nBlockAlign;
-      Format.wBitsPerSample = 8 * sizeof(Sample);
-
-      CheckMMResult(::waveOutOpen(&WaveHandle, static_cast< ::UINT>(Device), &Format, DWORD_PTR(Event), 0,
-        CALLBACK_EVENT | WAVE_FORMAT_DIRECT), THIS_LINE);
-      std::for_each(Buffers.begin(), Buffers.end(), boost::bind(&WaveBuffer::Allocate, _1, WaveHandle, Event, boost::cref(*RenderingParameters)));
-      CheckPlatformResult(0 != ::ResetEvent(Event), THIS_LINE);
-    }
-
-    void DoShutdown()
-    {
-      if (0 != WaveHandle)
-      {
-        std::for_each(Buffers.begin(), Buffers.end(), boost::mem_fn(&WaveBuffer::Release));
-        CheckMMResult(::waveOutReset(WaveHandle), THIS_LINE);
-        CheckMMResult(::waveOutClose(WaveHandle), THIS_LINE);
-        WaveHandle = 0;
-      }
+      return VolumeController;
     }
   private:
+    const Parameters::Accessor::Ptr BackendParams;
+    const RenderParameters::Ptr RenderingParameters;
     boost::mutex StateMutex;
     std::vector<WaveBuffer> Buffers;
     CycledIterator<WaveBuffer*> CurrentBuffer;
@@ -361,7 +319,7 @@ namespace
     int_t Device;
     ::HWAVEOUT WaveHandle;
     ::WAVEFORMATEX Format;
-    VolumeControl::Ptr VolumeController;
+    const VolumeControl::Ptr VolumeController;
   };
 
   class Win32BackendCreator : public BackendCreator
@@ -389,7 +347,24 @@ namespace
 
     virtual Error CreateBackend(CreateBackendParameters::Ptr params, Backend::Ptr& result) const
     {
-      return SafeBackendWrapper<Win32Backend>::Create(Id(), params, result, THIS_LINE);
+      try
+      {
+        const Parameters::Accessor::Ptr allParams = params->GetParameters();
+        const BackendWorker::Ptr worker(new Win32BackendWorker(allParams));
+        worker->OnStartup();
+        worker->OnShutdown();
+        result = Sound::CreateBackend(params, worker);
+        return Error();
+      }
+      catch (const Error& e)
+      {
+        return MakeFormattedError(THIS_LINE, BACKEND_FAILED_CREATE,
+          Text::SOUND_ERROR_BACKEND_FAILED, Id()).AddSuberror(e);
+      }
+      catch (const std::bad_alloc&)
+      {
+        return Error(THIS_LINE, BACKEND_NO_MEMORY, Text::SOUND_ERROR_BACKEND_NO_MEMORY);
+      }
     }
   };
 }

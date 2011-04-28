@@ -29,6 +29,7 @@ namespace ZXTune
     class BackendWorker
     {
     public:
+      typedef boost::shared_ptr<BackendWorker> Ptr;
       virtual ~BackendWorker() {}
 
       virtual void OnStartup() = 0;
@@ -37,6 +38,7 @@ namespace ZXTune
       virtual void OnResume() = 0;
       virtual void OnFrame() = 0;
       virtual void OnBufferReady(std::vector<MultiSample>& buffer) = 0;
+      virtual VolumeControl::Ptr GetVolumeControl() const = 0;
     };
 
     // Internal implementation for backend
@@ -94,6 +96,8 @@ namespace ZXTune
       Receiver::Ptr Renderer;
       std::vector<MultiSample> Buffer;
     };
+
+    Backend::Ptr CreateBackend(CreateBackendParameters::Ptr params, BackendWorker::Ptr worker);
   }
 }
 

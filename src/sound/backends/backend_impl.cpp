@@ -16,8 +16,11 @@ Author:
 #include <error_tools.h>
 #include <logging.h>
 //library includes
+#include <async/job.h>
 #include <sound/error_codes.h>
 #include <sound/sound_parameters.h>
+//boost includes
+#include <boost/make_shared.hpp>
 //text includes
 #include <sound/text/sound.h>
 
@@ -403,6 +406,272 @@ namespace ZXTune
     void BackendImpl::SendSignal(uint_t sig)
     {
       Signaller->Notify(sig);
+    }
+  }
+}
+
+//new interface
+namespace
+{
+  using namespace ZXTune;
+  using namespace Sound;
+
+  class MixerWithFilter : public Mixer
+  {
+  public:
+    MixerWithFilter(Mixer::Ptr mixer, Converter::Ptr filter)
+      : Delegate(mixer)
+      , Filter(filter)
+    {
+      Delegate->SetTarget(Filter);
+    }
+    
+    virtual void ApplyData(const Mixer::InDataType& data)
+    {
+      Delegate->ApplyData(data);
+    }
+
+    virtual void Flush()
+    {
+      Delegate->Flush();
+    }
+
+    virtual void SetTarget(DataReceiver<Mixer::OutDataType>::Ptr target)
+    {
+      Filter->SetTarget(target);
+    }
+
+    virtual Error SetMatrix(const std::vector<MultiGain>& data)
+    {
+      return Delegate->SetMatrix(data);
+    }
+  private:
+    const Mixer::Ptr Delegate;
+    const Converter::Ptr Filter;
+  };
+
+  Mixer::Ptr CreateMixer(const CreateBackendParameters& params)
+  {
+    const Mixer::Ptr mixer = params.GetMixer();
+    const Converter::Ptr filter = params.GetFilter();
+    return filter ? boost::make_shared<MixerWithFilter>(mixer, filter) : mixer;
+  }
+
+  class Renderer
+  {
+    Renderer(RenderParameters::Ptr renderParams, Module::Player::Ptr player, Mixer::Ptr mixer)
+      : RenderingParameters(renderParams)
+      , Player(player)
+      , Mix(mixer)
+    {
+      const Receiver::Ptr target(new BufferRenderer(Buffer));
+      Mix->SetTarget(target);
+    }
+  public:
+    typedef boost::shared_ptr<Renderer> Ptr;
+
+    static Ptr Create(const CreateBackendParameters& params, Module::Player::Ptr player)
+    {
+      const RenderParameters::Ptr renderParams = RenderParameters::Create(params.GetParameters());
+      const Mixer::Ptr mixer = CreateMixer(params);
+      return Renderer::Ptr(new Renderer(renderParams, player, mixer));
+    }
+
+    Module::Player::PlaybackState ApplyFrame()
+    {
+      Buffer.reserve(RenderingParameters->SamplesPerFrame());
+      Buffer.clear();
+      Module::Player::PlaybackState state;
+      ThrowIfError(Player->RenderFrame(*RenderingParameters, state, *Mix));
+      return state;
+    }
+
+    std::vector<MultiSample>& GetBuffer()
+    {
+      return Buffer;
+    }
+  private:
+    const RenderParameters::Ptr RenderingParameters;
+    const Module::Player::Ptr Player;
+    const Mixer::Ptr Mix;
+    std::vector<MultiSample> Buffer;
+  };
+
+  class AsyncWrapper : public Async::Job::Worker
+  {
+  public:
+    AsyncWrapper(BackendWorker::Ptr worker, Async::Signals::Dispatcher& signaller, Renderer::Ptr render)
+      : Delegate(worker)
+      , Signaller(signaller)
+      , Render(render)
+      , State(Module::Player::MODULE_STOPPED)
+    {
+    }
+
+    virtual Error Initialize()
+    {
+      try
+      {
+        Delegate->OnStartup();
+        State = Module::Player::MODULE_PLAYING;
+        Signaller.Notify(Backend::MODULE_START);
+        return Error();
+      }
+      catch (const Error& e)
+      {
+        return Error(THIS_LINE, BACKEND_CONTROL_ERROR, Text::SOUND_ERROR_BACKEND_PLAYBACK).AddSuberror(e);
+      }
+    }
+
+    virtual Error Finalize()
+    {
+      try
+      {
+        State = Module::Player::MODULE_STOPPED;
+        Signaller.Notify(Backend::MODULE_STOP);
+        Delegate->OnShutdown();
+        return Error();
+      }
+      catch (const Error& e)
+      {
+        return Error(THIS_LINE, BACKEND_CONTROL_ERROR, Text::SOUND_ERROR_BACKEND_STOP).AddSuberror(e);
+      }
+    }
+
+    virtual Error Suspend()
+    {
+      try
+      {
+        Delegate->OnPause();
+        Signaller.Notify(Backend::MODULE_PAUSE);
+        return Error();
+      }
+      catch (const Error& e)
+      {
+        return Error(THIS_LINE, BACKEND_CONTROL_ERROR, Text::SOUND_ERROR_BACKEND_PAUSE).AddSuberror(e);
+      }
+    }
+
+    virtual Error Resume() 
+    {
+      try
+      {
+        Delegate->OnResume();
+        Signaller.Notify(Backend::MODULE_RESUME);
+        return Error();
+      }
+      catch (const Error& e)
+      {
+        return Error(THIS_LINE, BACKEND_CONTROL_ERROR, Text::SOUND_ERROR_BACKEND_PLAYBACK).AddSuberror(e);
+      }
+    }
+
+    virtual Error ExecuteCycle()
+    {
+      try
+      {
+        Delegate->OnFrame();
+        State = Render->ApplyFrame();
+        Delegate->OnBufferReady(Render->GetBuffer());
+        if (IsFinished())
+        {
+          Signaller.Notify(Backend::MODULE_FINISH);
+        }
+        return Error();
+      }
+      catch (const Error& err)
+      {
+        return err;
+      }
+    }
+
+    virtual bool IsFinished() const
+    {
+      return State != Module::Player::MODULE_PLAYING;
+    }
+  private:
+    const BackendWorker::Ptr Delegate;
+    Async::Signals::Dispatcher& Signaller;
+    const Renderer::Ptr Render;
+    Module::Player::PlaybackState State;
+  };
+
+  class BackendInternal : public Backend
+  {
+  public:
+    BackendInternal(CreateBackendParameters::Ptr params, BackendWorker::Ptr worker)
+      : Worker(worker)
+      , Signaller(Async::Signals::Dispatcher::Create())
+      , Player(new SafePlayerWrapper(params->GetModule()->CreatePlayer()))
+      , Job(Async::Job::Create(Async::Job::Worker::Ptr(new AsyncWrapper(Worker, *Signaller, Renderer::Create(*params, Player)))))
+    {
+    }
+
+    virtual Module::Player::ConstPtr GetPlayer() const
+    {
+      return Player;
+    }
+
+    virtual Error Play()
+    {
+      return Job->Start();
+    }
+
+    virtual Error Pause()
+    {
+      return Job->Pause();
+    }
+
+    virtual Error Stop()
+    {
+      return Job->Stop();
+    }
+
+    virtual Error SetPosition(uint_t frame)
+    {
+      try
+      {
+        ThrowIfError(Player->SetPosition(frame));
+        Signaller->Notify(Backend::MODULE_SEEK);
+        return Error();
+      }
+      catch (const Error& e)
+      {
+        return Error(THIS_LINE, BACKEND_CONTROL_ERROR, Text::SOUND_ERROR_BACKEND_SEEK).AddSuberror(e);
+      }
+    }
+
+    virtual State GetCurrentState(Error* error) const
+    {
+      return Job->IsActive()
+        ? (Job->IsPaused() ? Backend::PAUSED : Backend::STARTED)
+        : Backend::STOPPED;
+    }
+
+    virtual Async::Signals::Collector::Ptr CreateSignalsCollector(uint_t signalsMask) const
+    {
+      return Signaller->CreateCollector(signalsMask);
+    }
+
+    virtual VolumeControl::Ptr GetVolumeControl() const
+    {
+      return Worker->GetVolumeControl();
+    }
+  private:
+    const BackendWorker::Ptr Worker;
+    const Async::Signals::Dispatcher::Ptr Signaller;
+    const Module::Player::Ptr Player;
+    const Async::Job::Ptr Job;
+  };
+}
+
+namespace ZXTune
+{
+  namespace Sound
+  {
+    Backend::Ptr CreateBackend(CreateBackendParameters::Ptr params, BackendWorker::Ptr worker)
+    {
+      return boost::make_shared<BackendInternal>(params, worker);
     }
   }
 }
