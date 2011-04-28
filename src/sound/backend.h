@@ -146,16 +146,17 @@ namespace ZXTune
       virtual VolumeControl::Ptr GetVolumeControl() const = 0;
     };
 
-    class BackendParameters
+    class CreateBackendParameters
     {
     public:
       //! Pointer type
-      typedef boost::shared_ptr<const BackendParameters> Ptr;
+      typedef boost::shared_ptr<const CreateBackendParameters> Ptr;
  
-      virtual ~BackendParameters() {}
+      virtual ~CreateBackendParameters() {}
 
-      virtual Parameters::Accessor::Ptr GetDefaultParameters() const = 0;
-      virtual Mixer::Ptr GetMixer(uint_t channels) const = 0;
+      virtual Parameters::Accessor::Ptr GetParameters() const = 0;
+      virtual Module::Holder::Ptr GetModule() const = 0;
+      virtual Mixer::Ptr GetMixer() const = 0;
       virtual Converter::Ptr GetFilter() const = 0;
     };
 
@@ -172,7 +173,7 @@ namespace ZXTune
       //! @param params %Backend-related parameters
       //! @param result Reference to result value
       //! @return Error() in case of success
-      virtual Error CreateBackend(BackendParameters::Ptr params, Module::Holder::Ptr module, Backend::Ptr& result) const = 0;
+      virtual Error CreateBackend(CreateBackendParameters::Ptr params, Backend::Ptr& result) const = 0;
     };
 
     //! @brief Enumerating supported sound backends

@@ -204,8 +204,8 @@ namespace
                    , private boost::noncopyable
   {
   public:
-    OSSBackend(BackendParameters::Ptr params, Module::Holder::Ptr module)
-      : BackendImpl(params, module)
+    explicit OSSBackend(CreateBackendParameters::Ptr params)
+      : BackendImpl(params)
       , MixerName(Parameters::ZXTune::Sound::Backends::OSS::MIXER_DEFAULT)
       , DeviceName(Parameters::ZXTune::Sound::Backends::OSS::DEVICE_DEFAULT)
       , CurrentBuffer(Buffers.begin(), Buffers.end())
@@ -363,9 +363,9 @@ namespace
       return CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
     }
 
-    virtual Error CreateBackend(BackendParameters::Ptr params, Module::Holder::Ptr module, Backend::Ptr& result) const
+    virtual Error CreateBackend(CreateBackendParameters::Ptr params, Backend::Ptr& result) const
     {
-      return SafeBackendWrapper<OSSBackend>::Create(Id(), params, module, result, THIS_LINE);
+      return SafeBackendWrapper<OSSBackend>::Create(Id(), params, result, THIS_LINE);
     }
   };
 }

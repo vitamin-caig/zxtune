@@ -127,15 +127,15 @@ namespace ZXTune
 {
   namespace Sound
   {
-    BackendImpl::BackendImpl(BackendParameters::Ptr params, Module::Holder::Ptr holder)
+    BackendImpl::BackendImpl(CreateBackendParameters::Ptr params)
       : Params(params)
-      , Player(new SafePlayerWrapper(holder->CreatePlayer()))
-      , SoundParameters(Parameters::CreateMergedAccessor(Player->GetInformation()->Properties(), Params->GetDefaultParameters()))
+      , Player(new SafePlayerWrapper(Params->GetModule()->CreatePlayer()))
+      , SoundParameters(Params->GetParameters())
       , RenderingParameters(RenderParameters::Create(SoundParameters))
       , Signaller(Async::Signals::Dispatcher::Create())
       , SyncBarrier(TOTAL_WORKING_THREADS)
       , CurrentState(Backend::STOPPED), InProcess(false)
-      , CurrentMixer(Params->GetMixer(Player->GetInformation()->PhysicalChannels()))
+      , CurrentMixer(Params->GetMixer())
       , Renderer(new BufferRenderer(Buffer))
     {
       if (Converter::Ptr filter = Params->GetFilter())

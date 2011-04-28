@@ -371,8 +371,8 @@ namespace
                     , private boost::noncopyable
   {
   public:
-    AlsaBackend(BackendParameters::Ptr params, Module::Holder::Ptr module)
-      : BackendImpl(params, module)
+    explicit AlsaBackend(CreateBackendParameters::Ptr params)
+      : BackendImpl(params)
       , DeviceName(Parameters::ZXTune::Sound::Backends::ALSA::DEVICE_DEFAULT)
       , Buffers(Parameters::ZXTune::Sound::Backends::ALSA::BUFFERS_DEFAULT)
       , Samplerate(RenderingParameters->SoundFreq())
@@ -574,9 +574,9 @@ namespace
       return CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
     }
 
-    virtual Error CreateBackend(BackendParameters::Ptr params, Module::Holder::Ptr module, Backend::Ptr& result) const
+    virtual Error CreateBackend(CreateBackendParameters::Ptr params, Backend::Ptr& result) const
     {
-      return SafeBackendWrapper<AlsaBackend>::Create(Id(), params, module, result, THIS_LINE);
+      return SafeBackendWrapper<AlsaBackend>::Create(Id(), params, result, THIS_LINE);
     }
   };
 }

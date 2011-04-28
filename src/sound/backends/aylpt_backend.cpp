@@ -41,12 +41,13 @@ namespace
   {
   public:
     //TODO: parametrize
-    explicit AYLPTBackend(BackendParameters::Ptr params, Module::Holder::Ptr module)
-      : BackendImpl(params, module)
+    explicit AYLPTBackend(CreateBackendParameters::Ptr params)
+      : BackendImpl(params)
       , RenderPos(0)
       , Dumper(DLPortIO::CreateDumper())
       , Stub(MultichannelReceiver::CreateStub())
     {
+      const Module::Holder::Ptr module = params->GetModule();
       const Plugin::Ptr plugin = module->GetPlugin();
       const uint_t REQUIRED_CAPS = CAP_DEV_AYM | CAP_STOR_MODULE | CAP_CONV_ZX50;
       if (REQUIRED_CAPS != (plugin->Capabilities() & REQUIRED_CAPS))
@@ -163,9 +164,9 @@ namespace
       return CAP_TYPE_HARDWARE;
     }
 
-    virtual Error CreateBackend(BackendParameters::Ptr params, Module::Holder::Ptr module, Backend::Ptr& result) const
+    virtual Error CreateBackend(CreateBackendParameters::Ptr params, Backend::Ptr& result) const
     {
-      return SafeBackendWrapper<AYLPTBackend>::Create(Id(), params, module, result, THIS_LINE);
+      return SafeBackendWrapper<AYLPTBackend>::Create(Id(), params, result, THIS_LINE);
     }
   };
 }

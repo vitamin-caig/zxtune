@@ -233,8 +233,8 @@ namespace
                      , private boost::noncopyable
   {
   public:
-    Win32Backend(BackendParameters::Ptr params, Module::Holder::Ptr module)
-      : BackendImpl(params, module)
+    explicit Win32Backend(CreateBackendParameters::Ptr params)
+      : BackendImpl(params)
       , Buffers(Parameters::ZXTune::Sound::Backends::Win32::BUFFERS_DEFAULT)
       , CurrentBuffer(&Buffers.front(), &Buffers.back() + 1)
       , Event(::CreateEvent(0, FALSE, FALSE, 0))
@@ -387,9 +387,9 @@ namespace
       return CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
     }
 
-    virtual Error CreateBackend(BackendParameters::Ptr params, Module::Holder::Ptr module, Backend::Ptr& result) const
+    virtual Error CreateBackend(CreateBackendParameters::Ptr params, Backend::Ptr& result) const
     {
-      return SafeBackendWrapper<Win32Backend>::Create(Id(), params, module, result, THIS_LINE);
+      return SafeBackendWrapper<Win32Backend>::Create(Id(), params, result, THIS_LINE);
     }
   };
 }

@@ -31,20 +31,20 @@ namespace ZXTune
     template<class Impl>
     class SafeBackendWrapper : public Backend
     {
-      SafeBackendWrapper(BackendParameters::Ptr params, Module::Holder::Ptr module)
-        : Delegate(new Impl(params, module))
+      explicit SafeBackendWrapper(CreateBackendParameters::Ptr params)
+        : Delegate(new Impl(params))
       {
         //perform fast test to detect if parameters are correct
         Delegate->OnStartup();
         Delegate->OnShutdown();
       }
     public:
-      static Error Create(const String& id, BackendParameters::Ptr params, Module::Holder::Ptr module,
+      static Error Create(const String& id, CreateBackendParameters::Ptr params,
         Backend::Ptr& result, Error::LocationRef loc)
       {
         try
         {
-          result.reset(new SafeBackendWrapper<Impl>(params, module));
+          result.reset(new SafeBackendWrapper<Impl>(params));
           return Error();
         }
         catch (const Error& e)

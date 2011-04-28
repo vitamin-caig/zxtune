@@ -59,7 +59,7 @@ namespace
         return 0;
       }
 
-      virtual Error CreateBackend(BackendParameters::Ptr /*params*/, Module::Holder::Ptr /*module*/, Backend::Ptr& /*result*/) const
+      virtual Error CreateBackend(CreateBackendParameters::Ptr /*params*/, Backend::Ptr& /*result*/) const
       {
         return Error(THIS_LINE, BACKEND_NOT_FOUND, Text::SOUND_ERROR_BACKEND_NOT_FOUND);
       }

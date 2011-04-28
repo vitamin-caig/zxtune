@@ -63,33 +63,35 @@ namespace
     return res;
   }
 
-  class BackendParams : public ZXTune::Sound::BackendParameters
+  class BackendParams : public ZXTune::Sound::CreateBackendParameters
   {
   public:
-    explicit BackendParams(Parameters::Accessor::Ptr params)
+    BackendParams(Parameters::Accessor::Ptr params, ZXTune::Module::Holder::Ptr module)
       : Params(params)
-      , Mixer3(CreateMixer(MIXER3, 3))
-      , Mixer4(CreateMixer(MIXER4, 4))
+      , Module(module)
+      , Info(Module->GetModuleInformation())
     {
     }
 
-    virtual Parameters::Accessor::Ptr GetDefaultParameters() const
+    virtual Parameters::Accessor::Ptr GetParameters() const
     {
-      return Params;
+      return Parameters::CreateMergedAccessor(Info->Properties(), Params);
     }
 
-    virtual ZXTune::Sound::Mixer::Ptr GetMixer(uint_t channels) const
+    virtual ZXTune::Module::Holder::Ptr GetModule() const
     {
-      if (channels == 3)
+      return Module;
+    }
+
+    virtual ZXTune::Sound::Mixer::Ptr GetMixer() const
+    {
+      switch (Info->PhysicalChannels())
       {
-        return Mixer3;
-      }
-      else if (channels == 4)
-      {
-        return Mixer4;
-      }
-      else
-      {
+      case 3:
+        return CreateMixer(MIXER3, 3);
+      case 4:
+        return CreateMixer(MIXER4, 4);
+      default:
         return ZXTune::Sound::Mixer::Ptr();
       }
     }
@@ -100,15 +102,16 @@ namespace
     }
   private:
     const Parameters::Accessor::Ptr Params;
-    const ZXTune::Sound::Mixer::Ptr Mixer3;
-    const ZXTune::Sound::Mixer::Ptr Mixer4;
+    const ZXTune::Module::Holder::Ptr Module;
+    const ZXTune::Module::Information::Ptr Info;
   };
 
-  ZXTune::Sound::Backend::Ptr CreateBackend(ZXTune::Sound::BackendParameters::Ptr params, ZXTune::Module::Holder::Ptr module)
+  ZXTune::Sound::Backend::Ptr CreateBackend(Parameters::Accessor::Ptr params, ZXTune::Module::Holder::Ptr module)
   {
     using namespace ZXTune;
     //create backend
-    ZXTune::Sound::Backend::Ptr result;
+    const Sound::CreateBackendParameters::Ptr createParams(new BackendParams(params, module));
+    Sound::Backend::Ptr result;
     std::list<Error> errors;
     for (Sound::BackendCreator::Iterator::Ptr backends = Sound::EnumerateBackends();
       backends->IsValid(); backends->Next())
@@ -117,9 +120,9 @@ namespace
       if (IsNullBackend(*creator))
       {
         ShowErrors(errors);
-        return ZXTune::Sound::Backend::Ptr();
+        return Sound::Backend::Ptr();
       }
-      if (const Error& err = creator->CreateBackend(params, module, result))
+      if (const Error& err = creator->CreateBackend(createParams, result))
       {
         errors.push_back(err);
       }
@@ -136,7 +139,7 @@ namespace
   public:
     PlaybackSupportImpl(QObject& parent, Parameters::Accessor::Ptr sndOptions)
       : PlaybackSupport(parent)
-      , Params(new BackendParams(sndOptions))
+      , Params(sndOptions)
     {
     }
 
@@ -251,7 +254,7 @@ namespace
       OnStopModule();
     }
   private:
-    const ZXTune::Sound::BackendParameters::Ptr Params;
+    const Parameters::Accessor::Ptr Params;
     ZXTune::Sound::Backend::Ptr Backend;
     ZXTune::Module::Player::ConstPtr Player;
   };

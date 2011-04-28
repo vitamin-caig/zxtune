@@ -382,8 +382,8 @@ namespace
                    , private boost::noncopyable
   {
   public:
-    WAVBackend(BackendParameters::Ptr params, Module::Holder::Ptr module)
-      : BackendImpl(params, module)
+    explicit WAVBackend(CreateBackendParameters::Ptr params)
+      : BackendImpl(params)
     {
     }
     virtual ~WAVBackend()
@@ -471,9 +471,9 @@ namespace
       return CAP_TYPE_FILE;
     }
 
-    virtual Error CreateBackend(BackendParameters::Ptr params, Module::Holder::Ptr module, Backend::Ptr& result) const
+    virtual Error CreateBackend(CreateBackendParameters::Ptr params, Backend::Ptr& result) const
     {
-      return SafeBackendWrapper<WAVBackend>::Create(Id(), params, module, result, THIS_LINE);
+      return SafeBackendWrapper<WAVBackend>::Create(Id(), params, result, THIS_LINE);
     }
   };
 }

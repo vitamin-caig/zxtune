@@ -88,8 +88,8 @@ namespace
                    , private boost::noncopyable
   {
   public:
-    SDLBackend(BackendParameters::Ptr params, Module::Holder::Ptr module)
-      : BackendImpl(params, module)
+    explicit SDLBackend(CreateBackendParameters::Ptr params)
+      : BackendImpl(params)
       , WasInitialized(::SDL_WasInit(SDL_INIT_EVERYTHING))
       , BuffersCount(Parameters::ZXTune::Sound::Backends::SDL::BUFFERS_DEFAULT)
       , Buffers(BuffersCount)
@@ -300,9 +300,9 @@ namespace
       return CAP_TYPE_SYSTEM;
     }
 
-    virtual Error CreateBackend(BackendParameters::Ptr params, Module::Holder::Ptr module, Backend::Ptr& result) const
+    virtual Error CreateBackend(CreateBackendParameters::Ptr params, Backend::Ptr& result) const
     {
-      return SafeBackendWrapper<SDLBackend>::Create(Id(), params, module, result, THIS_LINE);
+      return SafeBackendWrapper<SDLBackend>::Create(Id(), params, result, THIS_LINE);
     }
   };
 }

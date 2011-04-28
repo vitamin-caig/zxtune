@@ -43,7 +43,7 @@ namespace ZXTune
     class BackendImpl : public BackendWorker
     {
     public:
-      BackendImpl(BackendParameters::Ptr params, Module::Holder::Ptr holder);
+      explicit BackendImpl(CreateBackendParameters::Ptr params);
       virtual ~BackendImpl();
 
       Module::Player::ConstPtr GetPlayer() const;
@@ -70,7 +70,7 @@ namespace ZXTune
       bool RenderFrame();
     protected:
       //inheritances' context
-      const BackendParameters::Ptr Params;
+      const CreateBackendParameters::Ptr Params;
       const Module::Player::Ptr Player;
       const Parameters::Accessor::Ptr SoundParameters;
       RenderParameters::Ptr RenderingParameters;

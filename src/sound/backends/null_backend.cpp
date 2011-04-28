@@ -37,8 +37,8 @@ namespace
                     , private boost::noncopyable
   {
   public:
-    explicit NullBackend(BackendParameters::Ptr params, Module::Holder::Ptr module)
-      : BackendImpl(params, module)
+    explicit NullBackend(CreateBackendParameters::Ptr params)
+      : BackendImpl(params)
     {
     }
 
@@ -95,9 +95,9 @@ namespace
       return CAP_TYPE_STUB;
     }
 
-    virtual Error CreateBackend(BackendParameters::Ptr params, Module::Holder::Ptr module, Backend::Ptr& result) const
+    virtual Error CreateBackend(CreateBackendParameters::Ptr params, Backend::Ptr& result) const
     {
-      return SafeBackendWrapper<NullBackend>::Create(Id(), params, module, result, THIS_LINE);
+      return SafeBackendWrapper<NullBackend>::Create(Id(), params, result, THIS_LINE);
     }
   };
 }

@@ -155,13 +155,46 @@ namespace
     throw MakeFormattedError(THIS_LINE, INVALID_PARAMETER, Text::SOUND_ERROR_INVALID_FILTER, str);
   }
 
-  class BackendParams : public ZXTune::Sound::BackendParameters
+  class CommonBackendParameters
   {
   public:
-    BackendParams(Parameters::Container::Ptr config, const StringArray& mixers, const String& filter)
+    CommonBackendParameters(Parameters::Container::Ptr config)
       : Params(config)
     {
-      std::for_each(mixers.begin(), mixers.end(), boost::bind(&BackendParams::AddMixer, this, _1));
+    }
+
+    void SetBackendParameters(const String& id, const String& options)
+    {
+      ThrowIfError(ParseParametersString(String(Parameters::ZXTune::Sound::Backends::PREFIX) + id,
+        options, *Params));
+    }
+
+    void SetSoundParameters(const StringMap& options)
+    {
+      StringMap optimized;
+      std::remove_copy_if(options.begin(), options.end(), std::inserter(optimized, optimized.end()),
+        boost::bind(&String::empty, boost::bind(&StringMap::value_type::second, _1)));
+      if (!optimized.empty())
+      {
+        Parameters::ParseStringMap(optimized, *Params);
+      }
+    }
+
+    void SetLooped(bool looped)
+    {
+      if (looped)
+      {
+        Params->SetIntValue(Parameters::ZXTune::Sound::LOOPMODE, ZXTune::Sound::LOOP_NORMAL);
+      }
+    }
+
+    void SetMixers(const StringArray& mixers)
+    {
+      std::for_each(mixers.begin(), mixers.end(), boost::bind(&CommonBackendParameters::AddMixer, this, _1));
+    }
+
+    void SetFilter(const String& filter)
+    {
       if (!filter.empty())
       {
         Parameters::IntType freq = Parameters::ZXTune::Sound::FREQUENCY_DEFAULT;
@@ -170,12 +203,12 @@ namespace
       }
     }
 
-    virtual Parameters::Accessor::Ptr GetDefaultParameters() const
+    Parameters::Accessor::Ptr GetDefaultParameters() const
     {
       return Params;
     }
 
-    virtual ZXTune::Sound::Mixer::Ptr GetMixer(uint_t channels) const
+    ZXTune::Sound::Mixer::Ptr GetMixer(uint_t channels) const
     {
       ZXTune::Sound::Mixer::Ptr& mixer = Mixers[channels];
       if (!mixer)
@@ -185,9 +218,16 @@ namespace
       return mixer;
     }
 
-    virtual ZXTune::Sound::Converter::Ptr GetFilter() const
+    ZXTune::Sound::Converter::Ptr GetFilter() const
     {
       return Filter;
+    }
+
+    uint_t GetFrameDuration() const
+    {
+      Parameters::IntType frameDuration = Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT;
+      Params->FindIntValue(Parameters::ZXTune::Sound::FRAMEDURATION, frameDuration);
+      return static_cast<uint_t>(frameDuration);
     }
   private:
     void AddMixer(const String& txt)
@@ -204,12 +244,47 @@ namespace
     ZXTune::Sound::Converter::Ptr Filter;
   };
 
+  class CreateBackendParams : public ZXTune::Sound::CreateBackendParameters
+  {
+  public:
+    CreateBackendParams(const CommonBackendParameters& params, ZXTune::Module::Holder::Ptr module)
+      : Params(params)
+      , Module(module)
+      , Info(Module->GetModuleInformation())
+    {
+    }
+
+    virtual Parameters::Accessor::Ptr GetParameters() const
+    {
+      return Parameters::CreateMergedAccessor(Info->Properties(), Params.GetDefaultParameters());
+    }
+
+    virtual ZXTune::Module::Holder::Ptr GetModule() const
+    {
+      return Module;
+    }
+
+    virtual ZXTune::Sound::Mixer::Ptr GetMixer() const
+    {
+      return Params.GetMixer(Info->PhysicalChannels());
+    }
+
+    virtual ZXTune::Sound::Converter::Ptr GetFilter() const
+    {
+      return Params.GetFilter();
+    }
+  private:
+    const CommonBackendParameters& Params;
+    const ZXTune::Module::Holder::Ptr Module;
+    const ZXTune::Module::Information::Ptr Info;
+  };
+
   class Sound : public SoundComponent
   {
     typedef std::list<std::pair<ZXTune::Sound::BackendCreator::Ptr, String> > PerBackendOptions;
   public:
     explicit Sound(Parameters::Container::Ptr configParams)
-      : Params(configParams)
+      : Params(new CommonBackendParameters(configParams))
       , OptionsDescription(Text::SOUND_SECTION)
       , Looped(false)
     {
@@ -250,40 +325,30 @@ namespace
           if (it->second != NOTUSED_MARK && !it->second.empty())
           {
             const ZXTune::Sound::BackendCreator::Ptr creator = it->first;
-            ThrowIfError(ParseParametersString(String(Parameters::ZXTune::Sound::Backends::PREFIX) + creator->Id(),
-              it->second, *Params));
+            Params->SetBackendParameters(creator->Id(), it->second);
           }
         }
       }
-      {
-        StringMap optimized;
-        std::remove_copy_if(SoundOptions.begin(), SoundOptions.end(), std::inserter(optimized, optimized.end()),
-          boost::bind(&String::empty, boost::bind(&StringMap::value_type::second, _1)));
-        if (!optimized.empty())
-        {
-          Parameters::ParseStringMap(optimized, *Params);
-        }
-        if (Looped)
-        {
-          Params->SetIntValue(Parameters::ZXTune::Sound::LOOPMODE, ZXTune::Sound::LOOP_NORMAL);
-        }
-      }
-    }
-
-    void Initialize()
-    {
-      //setup mixers
+      Params->SetSoundParameters(SoundOptions);
+      Params->SetLooped(Looped);
       if (Mixers.empty())
       {
         Mixers.push_back(DEFAULT_MIXER_3);
         Mixers.push_back(DEFAULT_MIXER_4);
       }
+      Params->SetMixers(Mixers);
+      Params->SetFilter(Filter);
+    }
+
+    void Initialize()
+    {
     }
 
     virtual ZXTune::Sound::Backend::Ptr CreateBackend(ZXTune::Module::Holder::Ptr module)
     {
+      const ZXTune::Sound::CreateBackendParameters::Ptr createParams(new CreateBackendParams(*Params, module));
       ZXTune::Sound::Backend::Ptr backend;
-      if (!Creator || Creator->CreateBackend(GetParams(), module, backend))
+      if (!Creator || Creator->CreateBackend(createParams, backend))
       {
         std::list<ZXTune::Sound::BackendCreator::Ptr> backends;
         {
@@ -307,7 +372,7 @@ namespace
           backends.begin(), lim = backends.end(); it != lim; ++it)
         {
           Log::Debug(THIS_MODULE, "Trying backend %1%", (*it)->Id());
-          if (const Error& e = (*it)->CreateBackend(GetParams(), module, backend))
+          if (const Error& e = (*it)->CreateBackend(createParams, backend))
           {
             Log::Debug(THIS_MODULE, " failed");
             if (1 == backends.size())
@@ -331,17 +396,10 @@ namespace
 
     virtual uint_t GetFrameDuration() const
     {
-      Parameters::IntType frameDuration = Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT;
-      Params->FindIntValue(Parameters::ZXTune::Sound::FRAMEDURATION, frameDuration);
-      return static_cast<uint_t>(frameDuration);
+      return Params->GetFrameDuration();
     }
   private:
-    ZXTune::Sound::BackendParameters::Ptr GetParams() const
-    {
-      return ZXTune::Sound::BackendParameters::Ptr(new BackendParams(Params, Mixers, Filter));
-    }
-  private:
-    const Parameters::Container::Ptr Params;
+    const std::auto_ptr<CommonBackendParameters> Params;
     boost::program_options::options_description OptionsDescription;
     PerBackendOptions BackendOptions;
     StringMap SoundOptions;
