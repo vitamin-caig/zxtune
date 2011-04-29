@@ -312,10 +312,10 @@ namespace
       return Info;
     }
 
-    virtual Player::Ptr CreatePlayer() const
+    virtual Player::Ptr CreatePlayer(Sound::MultichannelReceiver::Ptr target) const
     {
       const uint_t totalSamples = static_cast<uint_t>(Data->Samples.size());
-      DAC::Chip::Ptr chip(DAC::CreateChip(CHANNELS_COUNT, totalSamples, BASE_FREQ));
+      DAC::Chip::Ptr chip(DAC::CreateChip(CHANNELS_COUNT, totalSamples, BASE_FREQ, target));
       for (uint_t idx = 0; idx != totalSamples; ++idx)
       {
         const Sample& smp(Data->Samples[idx]);
@@ -400,8 +400,7 @@ namespace
     }
 
     virtual Error RenderFrame(const Sound::RenderParameters& params,
-                              PlaybackState& state,
-                              Sound::MultichannelReceiver& receiver)
+                              PlaybackState& state)
     {
       DAC::DataChunk chunk;
       RenderData(chunk);
@@ -411,12 +410,7 @@ namespace
 
       chunk.Tick = StateIterator->AbsoluteTick();
       chunk.Interpolate = Interpolation;
-      Device->RenderData(params, chunk, receiver);
-
-      if (MODULE_STOPPED == CurrentState)
-      {
-        receiver.Flush();
-      }
+      Device->RenderData(params, chunk);
       state = CurrentState;
       return Error();
     }

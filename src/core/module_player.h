@@ -68,8 +68,7 @@ namespace ZXTune
       //! @param state Playback state player transitioned to
       //! @param receiver Output stream receiver
       //! @return Error() in case of success
-      virtual Error RenderFrame(const Sound::RenderParameters& params, PlaybackState& state,
-        Sound::MultichannelReceiver& receiver) = 0;
+      virtual Error RenderFrame(const Sound::RenderParameters& params, PlaybackState& state) = 0;
 
       //! @brief Performing reset to initial state
       //! @return Error() in case of success

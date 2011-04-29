@@ -504,15 +504,15 @@ namespace
   class ChipImpl : public Chip
   {
   public:
-    ChipImpl()
-      : Result(CHANNELS)
+    explicit ChipImpl(Sound::MultichannelReceiver::Ptr target)
+      : Target(target)
+      , Result(CHANNELS)
     {
       Reset();
     }
 
     virtual void RenderData(const Sound::RenderParameters& params,
-                            const DataChunk& src,
-                            Sound::MultichannelReceiver& dst)
+                            const DataChunk& src)
     {
       TicksPerSecond = params.ClockFreq();
       Generator.ApplyData(src);
@@ -524,7 +524,7 @@ namespace
         if (Clock.Tick())
         {
           Render.GetLevels(Generator, Result);
-          dst.ApplyData(Result);
+          Target->ApplyData(Result);
         }
       }
     }
@@ -542,6 +542,7 @@ namespace
     }
 
   protected:
+    const Sound::MultichannelReceiver::Ptr Target;
     PSG Generator;
     Renderer Render;
     ClockSource Clock;
@@ -555,9 +556,9 @@ namespace ZXTune
 {
   namespace AYM
   {
-    Chip::Ptr CreateChip()
+    Chip::Ptr CreateChip(Sound::MultichannelReceiver::Ptr target)
     {
-      return Chip::Ptr(new ChipImpl);
+      return Chip::Ptr(new ChipImpl(target));
     }
   }
 }

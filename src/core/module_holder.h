@@ -41,7 +41,7 @@ namespace ZXTune
 
       //! @brief Creating new player instance
       //! @return New player
-      virtual Player::Ptr CreatePlayer() const = 0;
+      virtual Player::Ptr CreatePlayer(Sound::MultichannelReceiver::Ptr target) const = 0;
 
       //! @brief Converting to specified format
       //! @param param Specify format to convert

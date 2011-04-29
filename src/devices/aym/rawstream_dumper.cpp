@@ -35,8 +35,7 @@ namespace
     }
 
     virtual void RenderData(const Sound::RenderParameters& params,
-                            const DataChunk& src,
-                            Sound::MultichannelReceiver& /*dst*/)
+                            const DataChunk& src)
     {
       if (const uint_t intsPassed = static_cast<uint_t>((src.Tick - CurChunk.Tick) / params.ClocksPerFrame()))
       {

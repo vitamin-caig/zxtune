@@ -28,8 +28,7 @@ namespace ZXTune
 
       //some virtuals from DAC::Device
       virtual void RenderData(const Sound::RenderParameters& params,
-                              const DAC::DataChunk& src,
-                              Sound::MultichannelReceiver& dst) = 0;
+                              const DAC::DataChunk& src) = 0;
 
       virtual void Reset() = 0;
 

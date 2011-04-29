@@ -34,8 +34,7 @@ namespace
     }
     
     virtual void RenderData(const Sound::RenderParameters& params,
-                            const DataChunk& src,
-                            Sound::MultichannelReceiver& /*dst*/)
+                            const DataChunk& src)
     {
       //no data check
       if (0 == (src.Mask & DataChunk::MASK_ALL_REGISTERS))

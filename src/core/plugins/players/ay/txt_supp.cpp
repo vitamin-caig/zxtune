@@ -90,9 +90,9 @@ namespace
       return Info;
     }
 
-    virtual Player::Ptr CreatePlayer() const
+    virtual Player::Ptr CreatePlayer(Sound::MultichannelReceiver::Ptr target) const
     {
-      return Vortex::CreatePlayer(Info, Data, Version, FreqTableName, AYM::CreateChip());
+      return Vortex::CreatePlayer(Info, Data, Version, FreqTableName, AYM::CreateChip(target));
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const

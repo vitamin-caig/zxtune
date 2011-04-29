@@ -54,10 +54,9 @@ namespace
     }
 
     virtual void RenderData(const Sound::RenderParameters& params,
-                            const AYM::DataChunk& src,
-                            Sound::MultichannelReceiver& dst)
+                            const AYM::DataChunk& src)
     {
-      Device->RenderData(params, src, dst);
+      Device->RenderData(params, src);
       CurState = 0;
     }
 
@@ -112,8 +111,7 @@ namespace
     }
 
     virtual Error RenderFrame(const Sound::RenderParameters& params,
-                              PlaybackState& state,
-                              Sound::MultichannelReceiver& receiver)
+                              PlaybackState& state)
     {
       const uint64_t ticksDelta = params.ClocksPerFrame();
 
@@ -126,12 +124,7 @@ namespace
         ? MODULE_PLAYING : MODULE_STOPPED;
 
       const AYM::DataChunk& chunk = synthesizer.GetData();
-      Device->RenderData(params, chunk, receiver);
-
-      if (MODULE_STOPPED == CurrentState)
-      {
-        receiver.Flush();
-      }
+      Device->RenderData(params, chunk);
       state = CurrentState;
       return Error();
     }
@@ -217,8 +210,7 @@ namespace
     }
 
     virtual Error RenderFrame(const Sound::RenderParameters& params,
-                              PlaybackState& state,
-                              Sound::MultichannelReceiver& receiver)
+                              PlaybackState& state)
     {
       const uint64_t ticksDelta = params.ClocksPerFrame();
 
@@ -231,12 +223,7 @@ namespace
         ? MODULE_PLAYING : MODULE_STOPPED;
 
       const AYM::DataChunk& chunk = synthesizer.GetData();
-      Device->RenderData(params, chunk, receiver);
-
-      if (MODULE_STOPPED == CurrentState)
-      {
-        receiver.Flush();
-      }
+      Device->RenderData(params, chunk);
       state = CurrentState;
       return Error();
     }

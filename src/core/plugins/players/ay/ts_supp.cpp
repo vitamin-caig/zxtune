@@ -77,62 +77,6 @@ namespace
 
   BOOST_STATIC_ASSERT(sizeof(Footer) == 16);
 
-  template<class T>
-  inline T avg(T val1, T val2)
-  {
-    return (val1 + val2) / 2;
-  }
-
-  template<std::size_t Channels>
-  class TSMixer : public Sound::MultichannelReceiver
-  {
-  public:
-    TSMixer() : Buffer(), Cursor(Buffer.end()), SampleBuf(Channels), Receiver(0)
-    {
-    }
-
-    virtual void ApplyData(const std::vector<Sound::Sample>& data)
-    {
-      assert(data.size() == Channels);
-
-      if (Receiver) //mix and out
-      {
-        std::transform(data.begin(), data.end(), Cursor->begin(), SampleBuf.begin(), avg<Sound::Sample>);
-        Receiver->ApplyData(SampleBuf);
-      }
-      else //store
-      {
-        std::memcpy(Cursor->begin(), &data[0], std::min(Channels, data.size()) * sizeof(Sound::Sample));
-      }
-      ++Cursor;
-    }
-
-    virtual void Flush()
-    {
-    }
-
-    void Reset(const Sound::RenderParameters& params)
-    {
-      //assert(Cursor == Buffer.end());
-      Buffer.resize(params.SamplesPerFrame());
-      Cursor = Buffer.begin();
-      Receiver = 0;
-    }
-
-    void Switch(Sound::MultichannelReceiver& receiver)
-    {
-      //assert(Cursor == Buffer.end());
-      Receiver = &receiver;
-      Cursor = Buffer.begin();
-    }
-  private:
-    typedef boost::array<Sound::Sample, Channels> InternalSample;
-    std::vector<InternalSample> Buffer;
-    typename std::vector<InternalSample>::iterator Cursor;
-    std::vector<Sound::Sample> SampleBuf;
-    Sound::MultichannelReceiver* Receiver;
-  };
-
   using namespace Parameters;
   class MergedModuleProperties : public Accessor
   {
@@ -326,9 +270,6 @@ namespace
 
   //////////////////////////////////////////////////////////////////////////
 
-  class TSHolder;
-  Player::Ptr CreateTSPlayer(boost::shared_ptr<const TSHolder> mod);
-
   class TSHolder : public Holder, public boost::enable_shared_from_this<TSHolder>
   {
   public:
@@ -350,9 +291,9 @@ namespace
       return Info;
     }
 
-    virtual Player::Ptr CreatePlayer() const
+    virtual Player::Ptr CreatePlayer(Sound::MultichannelReceiver::Ptr target) const
     {
-      return CreateTSPlayer(shared_from_this());
+      return CreateTSPlayer(Info, Holder1, Holder2, target);
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -370,85 +311,12 @@ namespace
       }
     }
   private:
-    friend class TSPlayer;
     const PlayerPlugin::Ptr Plug;
     const IO::DataContainer::Ptr RawData;
     const Holder::Ptr Holder1;
     const Holder::Ptr Holder2;
     const Information::Ptr Info;
   };
-
-  class TSPlayer : public Player
-  {
-  public:
-    explicit TSPlayer(boost::shared_ptr<const TSHolder> holder)
-      : Info(holder->GetModuleInformation())
-      , Player1(holder->Holder1->CreatePlayer())
-      , Player2(holder->Holder2->CreatePlayer())
-    {
-    }
-
-    virtual Information::Ptr GetInformation() const
-    {
-      return Info;
-    }
-
-    virtual TrackState::Ptr GetTrackState() const
-    {
-      return CreateTSTrackState(Player1->GetTrackState(), Player2->GetTrackState());
-    }
-
-    virtual Analyzer::Ptr GetAnalyzer() const
-    {
-      return CreateTSAnalyzer(Player1->GetAnalyzer(), Player2->GetAnalyzer());
-    }
-
-    virtual Error RenderFrame(const Sound::RenderParameters& params,
-                              PlaybackState& state,
-                              Sound::MultichannelReceiver& receiver)
-    {
-      PlaybackState state1, state2;
-      Mixer.Reset(params);
-      if (const Error& e = Player1->RenderFrame(params, state1, Mixer))
-      {
-        return e;
-      }
-      Mixer.Switch(receiver);
-      if (const Error& e = Player2->RenderFrame(params, state2, Mixer))
-      {
-        return e;
-      }
-      state = state1 == MODULE_STOPPED || state2 == MODULE_STOPPED ? MODULE_STOPPED : MODULE_PLAYING;
-      return Error();
-    }
-
-    virtual Error Reset()
-    {
-      if (const Error& e = Player1->Reset())
-      {
-        return e;
-      }
-      return Player2->Reset();
-    }
-
-    virtual Error SetPosition(uint_t frame)
-    {
-      if (const Error& e = Player1->SetPosition(frame))
-      {
-        return e;
-      }
-      return Player2->SetPosition(frame);
-    }
-  private:
-    const Information::Ptr Info;
-    Player::Ptr Player1, Player2;
-    TSMixer<AYM::CHANNELS> Mixer;
-  };
-
-  Player::Ptr CreateTSPlayer(boost::shared_ptr<const TSHolder> holder)
-  {
-    return Player::Ptr(new TSPlayer(holder));
-  }
 
   const std::string TS_FOOTER_FORMAT(
     "%0xxxxxxx%0xxxxxxx%0xxxxxxx21"  // uint8_t ID1[4];//'PT3!' or other type

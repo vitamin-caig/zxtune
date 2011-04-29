@@ -96,8 +96,7 @@ namespace ZXTune
 
       /// render single data chunk
       virtual void RenderData(const Sound::RenderParameters& params,
-                              const DataChunk& src,
-                              Sound::MultichannelReceiver& dst) = 0;
+                              const DataChunk& src) = 0;
 
       virtual void GetState(ChannelsState& state) const = 0;
 
@@ -106,7 +105,7 @@ namespace ZXTune
     };
 
     /// Virtual constructors
-    Chip::Ptr CreateChip(uint_t channels, uint_t samples, uint_t sampleFreq);
+    Chip::Ptr CreateChip(uint_t channels, uint_t samples, uint_t sampleFreq, Sound::MultichannelReceiver::Ptr target);
   }
 }
 

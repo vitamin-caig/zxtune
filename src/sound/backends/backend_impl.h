@@ -73,6 +73,7 @@ namespace ZXTune
     protected:
       //inheritances' context
       const CreateBackendParameters::Ptr Params;
+      const Mixer::Ptr CurrentMixer;
       const Module::Player::Ptr Player;
       const Parameters::Accessor::Ptr SoundParameters;
       RenderParameters::Ptr RenderingParameters;
@@ -92,7 +93,6 @@ namespace ZXTune
       volatile bool InProcess;//STOP => STOPPING, STARTED => STARTING
       Error RenderError;
       //context
-      const Mixer::Ptr CurrentMixer;
       Receiver::Ptr Renderer;
       std::vector<MultiSample> Buffer;
     };

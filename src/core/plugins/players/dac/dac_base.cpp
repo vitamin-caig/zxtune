@@ -48,10 +48,9 @@ namespace
     }
 
     virtual void RenderData(const Sound::RenderParameters& params,
-                            const DAC::DataChunk& src,
-                            Sound::MultichannelReceiver& dst)
+                            const DAC::DataChunk& src)
     {
-      Device->RenderData(params, src, dst);
+      Device->RenderData(params, src);
       CurState = 0;
     }
 

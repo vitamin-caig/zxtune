@@ -181,8 +181,9 @@ namespace
   class ChipImpl : public Chip
   {
   public:
-    ChipImpl(uint_t samples, uint_t sampleFreq)
-      : Samples(samples), MaxGain(0), CurrentTick(0)
+    ChipImpl(uint_t samples, uint_t sampleFreq, Sound::MultichannelReceiver::Ptr target)
+      : Target(target)
+      , Samples(samples), MaxGain(0), CurrentTick(0)
       , SampleFreq(sampleFreq)
       , TableFreq(0)
     {
@@ -200,8 +201,7 @@ namespace
     }
 
     virtual void RenderData(const Sound::RenderParameters& params,
-                            const DataChunk& src,
-                            Sound::MultichannelReceiver& dst)
+                            const DataChunk& src)
     {
       // update internal state
       std::for_each(src.Channels.begin(), src.Channels.end(),
@@ -221,7 +221,7 @@ namespace
       {
         std::transform(State.begin(), State.end(), result.begin(), getter);
         std::for_each(State.begin(), State.end(), std::mem_fun_ref(&ChannelState::SkipStep));
-        dst.ApplyData(result);
+        Target->ApplyData(result);
       }
       CurrentTick = src.Tick;
     }
@@ -299,6 +299,7 @@ namespace
       assert(state.SampleStep);
     }
   private:
+    const Sound::MultichannelReceiver::Ptr Target;
     std::vector<Sample> Samples;
     uint_t MaxGain;
     uint64_t CurrentTick;
@@ -316,12 +317,12 @@ namespace ZXTune
 {
   namespace DAC
   {
-    Chip::Ptr CreateChip(uint_t channels, uint_t samples, uint_t sampleFreq)
+    Chip::Ptr CreateChip(uint_t channels, uint_t samples, uint_t sampleFreq, Sound::MultichannelReceiver::Ptr target)
     {
       switch (channels)
       {
       case 4:
-        return Chip::Ptr(new ChipImpl<4>(samples, sampleFreq));
+        return Chip::Ptr(new ChipImpl<4>(samples, sampleFreq, target));
       default:
         assert(!"Invalid channels count");
         return Chip::Ptr();

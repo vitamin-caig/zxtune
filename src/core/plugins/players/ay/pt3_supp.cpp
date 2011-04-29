@@ -13,6 +13,7 @@ Author:
 #include "ay_base.h"
 #include "ay_conversion.h"
 #include "aym_parameters_helper.h"
+#include "ts_base.h"
 #include "core/plugins/utils.h"
 #include "core/plugins/registrator.h"
 #include "core/plugins/players/creation_result.h"
@@ -561,9 +562,9 @@ namespace
       return Info;
     }
 
-    virtual Player::Ptr CreatePlayer() const
+    virtual Player::Ptr CreatePlayer(Sound::MultichannelReceiver::Ptr target) const
     {
-      return Vortex::CreatePlayer(Info, Data, Version, FreqTableName, AYM::CreateChip());
+      return Vortex::CreatePlayer(Info, Data, Version, FreqTableName, AYM::CreateChip(target));
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -662,11 +663,12 @@ namespace
     {
     }
 
-    virtual Player::Ptr CreatePlayer() const
+    virtual Player::Ptr CreatePlayer(Sound::MultichannelReceiver::Ptr target) const
     {
-      const Player::Ptr player1 = Vortex::CreatePlayer(Info, Data, Version, FreqTableName, AYM::CreateChip());
-      const Player::Ptr player2 = Vortex::CreatePlayer(Info, boost::make_shared<MirroredModuleData>(PatOffset, *Data), Version, FreqTableName, AYM::CreateChip());
-      return Vortex::CreateTSPlayer(Info, player1, player2);
+      const TSMixer::Ptr mixer = CreateTSMixer(target);
+      const Player::Ptr player1 = Vortex::CreatePlayer(Info, Data, Version, FreqTableName, AYM::CreateChip(mixer));
+      const Player::Ptr player2 = Vortex::CreatePlayer(Info, boost::make_shared<MirroredModuleData>(PatOffset, *Data), Version, FreqTableName, AYM::CreateChip(mixer));
+      return CreateTSPlayer(Info, player1, player2, mixer);
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const

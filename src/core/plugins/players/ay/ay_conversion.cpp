@@ -49,11 +49,10 @@ namespace
       const Module::Information::Ptr info = player->GetInformation();
       const Parameters::Accessor::Ptr props = info->Properties();
 
-      Sound::MultichannelReceiver::Ptr receiver = Sound::MultichannelReceiver::CreateStub();
       const Sound::RenderParameters::Ptr params = Sound::RenderParameters::Create(props);
       for (Player::PlaybackState state = Player::MODULE_PLAYING; Player::MODULE_PLAYING == state;)
       {
-        if (const Error& err = player->RenderFrame(*params, state, *receiver))
+        if (const Error& err = player->RenderFrame(*params, state))
         {
           return Error(THIS_LINE, ERROR_MODULE_CONVERT, GetErrorMessage()).AddSuberror(err);
         }
@@ -148,11 +147,10 @@ namespace
       const Module::Information::Ptr info = player->GetInformation();
       const Parameters::Accessor::Ptr props = info->Properties();
 
-      Sound::MultichannelReceiver::Ptr receiver = Sound::MultichannelReceiver::CreateStub();
       const Sound::RenderParameters::Ptr params = Sound::RenderParameters::Create(props);
       for (Player::PlaybackState state = Player::MODULE_PLAYING; Player::MODULE_PLAYING == state;)
       {
-        if (const Error& err = player->RenderFrame(*params, state, *receiver))
+        if (const Error& err = player->RenderFrame(*params, state))
         {
           return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERT_FYM).AddSuberror(err);
         }

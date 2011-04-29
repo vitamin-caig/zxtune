@@ -36,8 +36,7 @@ namespace ZXTune
 
       //some virtuals from AYM::Chip
       virtual void RenderData(const Sound::RenderParameters& params,
-                              const AYM::DataChunk& src,
-                              Sound::MultichannelReceiver& dst) = 0;
+                              const AYM::DataChunk& src) = 0;
 
       virtual void Reset() = 0;
 

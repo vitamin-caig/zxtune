@@ -646,9 +646,9 @@ namespace
       return Info;
     }
 
-    virtual Player::Ptr CreatePlayer() const
+    virtual Player::Ptr CreatePlayer(Sound::MultichannelReceiver::Ptr target) const
     {
-      return CreateSTPPlayer(Info, Data, AYM::CreateChip());
+      return CreateSTPPlayer(Info, Data, AYM::CreateChip(target));
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
