@@ -299,17 +299,9 @@ namespace
           curVolume = std::accumulate(allVolume.begin(), allVolume.end(), curVolume) / allVolume.size();
         }
 
-        ZXTune::Sound::Backend::State state = ZXTune::Sound::Backend::FAILED;
-        Error stateError;
-
         for (;;)
         {
-          state = backend->GetCurrentState(&stateError);
-
-          if (ZXTune::Sound::Backend::FAILED == state)
-          {
-            throw stateError;
-          }
+          ZXTune::Sound::Backend::State state = backend->GetCurrentState();
 
           const uint_t curFrame = Display->BeginFrame(state);
 

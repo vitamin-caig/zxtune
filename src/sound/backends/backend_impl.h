@@ -56,7 +56,7 @@ namespace ZXTune
       Error Stop();
       Error SetPosition(uint_t frame);
 
-      Backend::State GetCurrentState(Error* error) const;
+      Backend::State GetCurrentState() const;
 
       Async::Signals::Collector::Ptr CreateSignalsCollector(uint_t signalsMask) const;
     private:

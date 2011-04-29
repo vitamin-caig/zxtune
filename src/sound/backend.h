@@ -101,8 +101,6 @@ namespace ZXTune
       //! @brief Current playback state
       enum State
       {
-        //! Error ocurred, in common, equal to STOPPED
-        FAILED,
         //! Playback is stopped
         STOPPED,
         //! Playback is paused
@@ -111,9 +109,8 @@ namespace ZXTune
         STARTED
       };
       //! @brief Retrieving current playback state
-      //! @param error Optional pointer to result error
       //! @return Current state
-      virtual State GetCurrentState(Error* error = 0) const = 0;
+      virtual State GetCurrentState() const = 0;
 
       //! @brief Signals specification
       enum Signal

@@ -259,13 +259,8 @@ namespace ZXTune
       }
     }
 
-    Backend::State BackendImpl::GetCurrentState(Error* error) const
+    Backend::State BackendImpl::GetCurrentState() const
     {
-      Locker lock(PlayerMutex);
-      if (error)
-      {
-        *error = RenderError;
-      }
       return CurrentState;
     }
 
@@ -395,7 +390,7 @@ namespace ZXTune
         //if any...
         PauseEvent.notify_all();
         Log::Debug(THIS_MODULE, "Stopping playback thread by error");
-        CurrentState = Backend::FAILED;
+        CurrentState = Backend::STOPPED;
         SendSignal(Backend::MODULE_STOP);
         SyncBarrier.wait();
         InProcess = false;
@@ -641,7 +636,7 @@ namespace
       }
     }
 
-    virtual State GetCurrentState(Error* error) const
+    virtual State GetCurrentState() const
     {
       return Job->IsActive()
         ? (Job->IsPaused() ? Backend::PAUSED : Backend::STARTED)
