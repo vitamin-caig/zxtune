@@ -30,7 +30,6 @@ Author:
 #include <core/plugin_attrs.h>
 #include <io/container.h>
 //boost includes
-#include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
 //text includes
 #include <core/text/core.h>
@@ -265,6 +264,7 @@ namespace
   Player::Ptr CreatePT2Player(Information::Ptr info, PT2Track::ModuleData::Ptr data, AYM::Chip::Ptr device);
 
   class PT2Holder : public Holder
+                  , private ConversionFactory
   {
     void ParsePattern(const IO::FastDump& data
       , AYMPatternCursors& cursors
@@ -485,11 +485,16 @@ namespace
       {
         Properties->GetData(dst);
       }
-      else if (!ConvertAYMFormat(boost::bind(&CreatePT2Player, boost::cref(Info), boost::cref(Data), _1), param, dst, result))
+      else if (!ConvertAYMFormat(param, *this, dst, result))
       {
         return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
       }
       return result;
+    }
+  private:
+    virtual Player::Ptr CreatePlayer(AYM::Chip::Ptr chip) const
+    {
+      return CreatePT2Player(Info, Data, chip);
     }
   private:
     const PT2Track::ModuleData::RWPtr Data;

@@ -33,7 +33,6 @@ Author:
 #include <io/container.h>
 #include <sound/render_params.h>
 //boost includes
-#include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
 //text includes
 #include <core/text/core.h>
@@ -249,6 +248,7 @@ namespace
   }
 
   class PT3Holder : public Holder
+                  , private ConversionFactory
   {
     void ParsePattern(const IO::FastDump& data
       , AYMPatternCursors& cursors
@@ -576,8 +576,7 @@ namespace
         Properties->GetData(dst);
         return Error();
       }
-      else if (ConvertAYMFormat(boost::bind(&Vortex::CreatePlayer, boost::cref(Info), boost::cref(Data), Version, FreqTableName, _1),
-        param, dst, result))
+      else if (ConvertAYMFormat(param, *this, dst, result))
       {
         return result;
       }
@@ -586,6 +585,11 @@ namespace
         return result;
       }
       return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
+    }
+  private:
+    virtual Player::Ptr CreatePlayer(AYM::Chip::Ptr chip) const
+    {
+      return Vortex::CreatePlayer(Info, Data, Version, FreqTableName, chip);
     }
   protected:
     const Vortex::Track::ModuleData::RWPtr Data;

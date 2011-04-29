@@ -26,7 +26,6 @@ Author:
 #include <core/plugin_attrs.h>
 #include <io/container.h>
 //boost includes
-#include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/make_shared.hpp>
 //text includes
@@ -83,6 +82,7 @@ namespace
   Player::Ptr CreatePSGPlayer(Information::Ptr info, PSGData::Ptr data, AYM::Chip::Ptr device);
 
   class PSGHolder : public Holder
+                  , private ConversionFactory
   {
   public:
     PSGHolder(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr rawData, std::size_t& usedSize)
@@ -179,12 +179,16 @@ namespace
       {
         Properties->GetData(dst);
       }
-      else if (!ConvertAYMFormat(boost::bind(&CreatePSGPlayer, boost::cref(Info), boost::cref(Data), _1),
-        param, dst, result))
+      else if (!ConvertAYMFormat(param, *this, dst, result))
       {
         return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
       }
       return result;
+    }
+  private:
+    virtual Player::Ptr CreatePlayer(AYM::Chip::Ptr chip) const
+    {
+      return CreatePSGPlayer(Info, Data, chip);
     }
   private:
     const ModuleProperties::Ptr Properties;

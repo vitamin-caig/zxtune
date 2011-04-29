@@ -31,7 +31,6 @@ Author:
 //std includes
 #include <cctype>
 //boost includes
-#include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/algorithm/string.hpp>
 //text includes
@@ -59,6 +58,7 @@ namespace
   }
   
   class TXTHolder : public Holder
+                  , private ConversionFactory
   {
   public:
     TXTHolder(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize)
@@ -104,8 +104,7 @@ namespace
         Properties->GetData(dst);
         return result;
       }
-      else if (ConvertAYMFormat(boost::bind(&Vortex::CreatePlayer, boost::cref(Info), boost::cref(Data), Version, FreqTableName, _1),
-        param, dst, result))
+      else if (ConvertAYMFormat(param, *this, dst, result))
       {
         return result;
       }
@@ -114,6 +113,11 @@ namespace
         return result;
       }
       return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
+    }
+  private:
+    virtual Player::Ptr CreatePlayer(AYM::Chip::Ptr chip) const
+    {
+      return Vortex::CreatePlayer(Info, Data, Version, FreqTableName, chip);
     }
   private:
     const Vortex::Track::ModuleData::RWPtr Data;

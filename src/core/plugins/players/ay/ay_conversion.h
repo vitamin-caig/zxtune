@@ -17,8 +17,6 @@ Author:
 #include "vortex_base.h"
 //library includes
 #include <core/module_player.h>
-//boost includes
-#include <boost/function.hpp>
 
 //forward declarations
 class Error;
@@ -32,13 +30,20 @@ namespace ZXTune
       struct Parameter;
     }
 
+    class ConversionFactory
+    {
+    public:
+      virtual ~ConversionFactory() {}
+
+      virtual Player::Ptr CreatePlayer(AYM::Chip::Ptr chip) const = 0;
+    };
     //! @brief Simple helper for conversion to AYM-related formats
     //! @param creator Function to create player based on specified device
     //! @param param Input convertion parameter
     //! @param dst Destination data
     //! @param result Result state
     //! @return true if parameter is processed
-    bool ConvertAYMFormat(const boost::function<Player::Ptr(AYM::Chip::Ptr)>& creator, const Conversion::Parameter& param, Dump& dst, Error& result);
+    bool ConvertAYMFormat(const Conversion::Parameter& spec, const ConversionFactory& factory, Dump& dst, Error& result);
 
     //! @brief Mask for supported AYM-related formats
     uint_t GetSupportedAYMFormatConvertors();

@@ -30,7 +30,6 @@ Author:
 #include <core/plugin_attrs.h>
 #include <io/container.h>
 //boost includes
-#include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
 //text includes
 #include <core/text/core.h>
@@ -407,6 +406,7 @@ namespace
   Player::Ptr CreateASCPlayer(Information::Ptr info, ASCTrack::ModuleData::Ptr data, AYM::Chip::Ptr device);
 
   class ASCHolder : public Holder
+                  , private ConversionFactory
   {
     static void ParsePattern(const IO::FastDump& data
       , AYMPatternCursors& cursors
@@ -707,12 +707,16 @@ namespace
       {
         Properties->GetData(dst);
       }
-      else if (!ConvertAYMFormat(boost::bind(&CreateASCPlayer, boost::cref(Info), boost::cref(Data), _1),
-        param, dst, result))
+      else if (!ConvertAYMFormat(param, *this, dst, result))
       {
         return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
       }
       return result;
+    }
+  private:
+    virtual Player::Ptr CreatePlayer(AYM::Chip::Ptr chip) const
+    {
+      return CreateASCPlayer(Info, Data, chip);
     }
   private:
     const ASCTrack::ModuleData::RWPtr Data;

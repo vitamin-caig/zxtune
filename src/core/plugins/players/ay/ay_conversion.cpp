@@ -35,17 +35,17 @@ namespace
     typedef std::auto_ptr<const AYMFormatConvertor> Ptr;
     virtual ~AYMFormatConvertor() {}
 
-    virtual Error Convert(const boost::function<Player::Ptr(AYM::Chip::Ptr)>& creator, Dump& dst) const = 0;
+    virtual Error Convert(const ConversionFactory& factory, Dump& dst) const = 0;
   };
 
   class SimpleAYMFormatConvertor : public AYMFormatConvertor
   {
   public:
-    virtual Error Convert(const boost::function<Player::Ptr(AYM::Chip::Ptr)>& creator, Dump& dst) const
+    virtual Error Convert(const ConversionFactory& factory, Dump& dst) const
     {
       Dump tmp;
       AYM::Chip::Ptr chip = CreateChip(tmp);
-      Player::Ptr player(creator(chip));
+      const Player::Ptr player = factory.CreatePlayer(chip);
       const Module::Information::Ptr info = player->GetInformation();
       const Parameters::Accessor::Ptr props = info->Properties();
 
@@ -139,11 +139,11 @@ namespace
 #pragma pack(pop)
 #endif
   public:
-    virtual Error Convert(const boost::function<Player::Ptr(AYM::Chip::Ptr)>& creator, Dump& dst) const
+    virtual Error Convert(const ConversionFactory& factory, Dump& dst) const
     {
       Dump rawDump;
       AYM::Chip::Ptr chip = AYM::CreateRawStreamDumper(rawDump);
-      Player::Ptr player(creator(chip));
+      const Player::Ptr player = factory.CreatePlayer(chip);
       const Module::Information::Ptr info = player->GetInformation();
       const Parameters::Accessor::Ptr props = info->Properties();
 
@@ -197,40 +197,40 @@ namespace ZXTune
   namespace Module
   {
     //aym-based conversion
-    bool ConvertAYMFormat(const boost::function<Player::Ptr(AYM::Chip::Ptr)>& creator, const Conversion::Parameter& param, Dump& dst, Error& result)
+    bool ConvertAYMFormat(const Conversion::Parameter& spec, const ConversionFactory& factory, Dump& dst, Error& result)
     {
       using namespace Conversion;
       AYMFormatConvertor::Ptr convertor;
 
       //convert to PSG
-      if (parameter_cast<PSGConvertParam>(&param))
+      if (parameter_cast<PSGConvertParam>(&spec))
       {
         convertor.reset(new PSGFormatConvertor());
       }
       //convert to ZX50
-      else if (parameter_cast<ZX50ConvertParam>(&param))
+      else if (parameter_cast<ZX50ConvertParam>(&spec))
       {
         convertor.reset(new ZX50FormatConvertor());
       }
       //convert to debugay
-      else if (parameter_cast<DebugAYConvertParam>(&param))
+      else if (parameter_cast<DebugAYConvertParam>(&spec))
       {
         convertor.reset(new DebugAYFormatConvertor());
       }
       //convert to aydump
-      else if (parameter_cast<AYDumpConvertParam>(&param))
+      else if (parameter_cast<AYDumpConvertParam>(&spec))
       {
         convertor.reset(new AYDumpFormatConvertor());
       }
       //convert to fym
-      else if (parameter_cast<FYMConvertParam>(&param))
+      else if (parameter_cast<FYMConvertParam>(&spec))
       {
         convertor.reset(new FYMFormatConvertor());
       }
 
       if (convertor.get())
       {
-        result = convertor->Convert(creator, dst);
+        result = convertor->Convert(factory, dst);
         return true;
       }
       return false;
