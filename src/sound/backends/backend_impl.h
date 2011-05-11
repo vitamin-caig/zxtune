@@ -48,6 +48,7 @@ namespace ZXTune
       explicit BackendImpl(CreateBackendParameters::Ptr params);
       virtual ~BackendImpl();
 
+      Module::Holder::Ptr GetModule() const;
       Module::Player::ConstPtr GetPlayer() const;
 
       // playback control functions
@@ -72,8 +73,8 @@ namespace ZXTune
       bool RenderFrame();
     protected:
       //inheritances' context
-      const CreateBackendParameters::Ptr Params;
       const Mixer::Ptr CurrentMixer;
+      const Module::Holder::Ptr Holder;
       const Module::Player::Ptr Player;
       const Parameters::Accessor::Ptr SoundParameters;
       RenderParameters::Ptr RenderingParameters;

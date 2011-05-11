@@ -130,17 +130,17 @@ namespace ZXTune
   namespace Sound
   {
     BackendImpl::BackendImpl(CreateBackendParameters::Ptr params)
-      : Params(params)
-      , CurrentMixer(Params->GetMixer())
-      , Player(new SafePlayerWrapper(Params->GetModule()->CreatePlayer(CurrentMixer)))
-      , SoundParameters(Params->GetParameters())
+      : CurrentMixer(params->GetMixer())
+      , Holder(params->GetModule())
+      , Player(new SafePlayerWrapper(Holder->CreatePlayer(CurrentMixer)))
+      , SoundParameters(params->GetParameters())
       , RenderingParameters(RenderParameters::Create(SoundParameters))
       , Signaller(Async::Signals::Dispatcher::Create())
       , SyncBarrier(TOTAL_WORKING_THREADS)
       , CurrentState(Backend::STOPPED), InProcess(false)
       , Renderer(new BufferRenderer(Buffer))
     {
-      if (Converter::Ptr filter = Params->GetFilter())
+      if (Converter::Ptr filter = params->GetFilter())
       {
         filter->SetTarget(Renderer);
         CurrentMixer->SetTarget(filter);
@@ -155,6 +155,11 @@ namespace ZXTune
     {
       assert(Backend::STOPPED == CurrentState ||
           Backend::FAILED == CurrentState);
+    }
+
+    Module::Holder::Ptr BackendImpl::GetModule() const
+    {
+      return Holder;
     }
 
     Module::Player::ConstPtr BackendImpl::GetPlayer() const
@@ -603,9 +608,15 @@ namespace
       : Worker(worker)
       , Signaller(Async::Signals::Dispatcher::Create())
       , Mix(CreateMixer(*params))
-      , Player(new SafePlayerWrapper(params->GetModule()->CreatePlayer(Mix)))
+      , Holder(params->GetModule())
+      , Player(new SafePlayerWrapper(Holder->CreatePlayer(Mix)))
       , Job(Async::Job::Create(Async::Job::Worker::Ptr(new AsyncWrapper(Worker, *Signaller, Renderer::Create(*params, Player, Mix)))))
     {
+    }
+
+    virtual Module::Holder::Ptr GetModule() const
+    {
+      return Holder;
     }
 
     virtual Module::Player::ConstPtr GetPlayer() const
@@ -662,6 +673,7 @@ namespace
     const BackendWorker::Ptr Worker;
     const Async::Signals::Dispatcher::Ptr Signaller;
     const Mixer::Ptr Mix;
+    const Module::Holder::Ptr Holder;
     const Module::Player::Ptr Player;
     const Async::Job::Ptr Job;
   };
