@@ -586,7 +586,7 @@ namespace
     ASCHolder(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr rawData, std::size_t& usedSize)
       : Data(ASCTrack::ModuleData::Create())
       , Properties(properties)
-      , Info(CreateTrackInfo(Data, AYM::LOGICAL_CHANNELS, parameters, Properties))
+      , Info(CreateTrackInfo(Data, AYM::CHANNELS, parameters, Properties))
     {
       //assume all data is correct
       const IO::FastDump& data = IO::FastDump(*rawData);

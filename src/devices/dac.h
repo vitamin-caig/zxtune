@@ -17,8 +17,6 @@ Author:
 #include <types.h>
 //library includes
 #include <sound/receiver.h>
-//std includes
-#include <memory>
 
 //supporting for multichannel sample-based DAC
 namespace ZXTune
@@ -87,7 +85,7 @@ namespace ZXTune
     class Chip
     {
     public:
-      typedef std::auto_ptr<Chip> Ptr;
+      typedef boost::shared_ptr<Chip> Ptr;
 
       virtual ~Chip() {}
 

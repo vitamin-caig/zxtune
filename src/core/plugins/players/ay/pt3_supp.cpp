@@ -662,7 +662,7 @@ namespace
   {
   public:
     PT3TSHolder(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, uint_t patOffset, IO::DataContainer::Ptr rawData, std::size_t& usedSize)
-      : PT3Holder(properties, parameters, boost::make_shared<TSModuleData>(patOffset), rawData, AYM::LOGICAL_CHANNELS * 2, usedSize)
+      : PT3Holder(properties, parameters, boost::make_shared<TSModuleData>(patOffset), rawData, AYM::CHANNELS * 2, usedSize)
       , PatOffset(patOffset)
     {
     }
@@ -868,7 +868,7 @@ namespace
         const bool isTSModule = AY_TRACK != tsPatternOffset;
         const Holder::Ptr holder = isTSModule
           ? Holder::Ptr(new PT3TSHolder(properties, parameters, tsPatternOffset, data, usedSize))
-          : Holder::Ptr(new PT3Holder(properties, parameters, Vortex::Track::ModuleData::Create(), data, AYM::LOGICAL_CHANNELS, usedSize));
+          : Holder::Ptr(new PT3Holder(properties, parameters, Vortex::Track::ModuleData::Create(), data, AYM::CHANNELS, usedSize));
         return holder;
       }
       catch (const Error&/*e*/)

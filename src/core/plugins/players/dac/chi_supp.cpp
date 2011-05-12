@@ -365,8 +365,8 @@ namespace
     CHIPlayer(Information::Ptr info, CHITrack::ModuleData::Ptr data, DAC::Chip::Ptr device)
       : Info(info)
       , Data(data)
-      , Device(DACDevice::Create(device))
-      , StateIterator(TrackStateIterator::Create(Info, Data, Device))
+      , Device(device)
+      , StateIterator(TrackStateIterator::Create(Info, Data))
       , CurrentState(MODULE_STOPPED)
       , Interpolation(false)
     {
@@ -396,7 +396,7 @@ namespace
 
     virtual Analyzer::Ptr GetAnalyzer() const
     {
-      return Device;
+      return CreateDACAnalyzer(Device);
     }
 
     virtual Error RenderFrame(const Sound::RenderParameters& params,
@@ -520,7 +520,7 @@ namespace
   private:
     const Information::Ptr Info;
     const CHITrack::ModuleData::Ptr Data;
-    const DACDevice::Ptr Device;
+    const DAC::Chip::Ptr Device;
     const TrackStateIterator::Ptr StateIterator;
     PlaybackState CurrentState;
     boost::array<GlissData, CHANNELS_COUNT> Gliss;

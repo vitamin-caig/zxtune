@@ -613,7 +613,7 @@ namespace
     STPHolder(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr rawData, std::size_t& usedSize)
       : Data(boost::make_shared<STPModuleData>())
       , Properties(properties)
-      , Info(CreateTrackInfo(Data, AYM::LOGICAL_CHANNELS, parameters, Properties))
+      , Info(CreateTrackInfo(Data, AYM::CHANNELS, parameters, Properties))
     {
       //assume that data is ok
       const IO::FastDump& data = IO::FastDump(*rawData, 0, MAX_MODULE_SIZE);

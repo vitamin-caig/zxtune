@@ -28,67 +28,44 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Module;
 
-  class AYMDeviceImpl : public AYMDevice
+  class AYMAnalyzer : public Analyzer
   {
   public:
-    explicit AYMDeviceImpl(AYM::Chip::Ptr device)
+    explicit AYMAnalyzer(AYM::Chip::Ptr device)
       : Device(device)
-      , CurState(0)
     {
     }
 
     //analyzer virtuals
     virtual uint_t ActiveChannels() const
     {
-      FillState();
-      return static_cast<uint_t>(std::count_if(StateCache.begin(), StateCache.end(),
+      AYM::ChannelsState state;
+      Device->GetState(state);
+      return static_cast<uint_t>(std::count_if(state.begin(), state.end(),
         boost::mem_fn(&AYM::ChanState::Enabled)));
     }
 
     virtual void BandLevels(std::vector<std::pair<uint_t, uint_t> >& bandLevels) const
     {
-      FillState();
-      bandLevels.resize(StateCache.size());
-      std::transform(StateCache.begin(), StateCache.end(), bandLevels.begin(),
+      AYM::ChannelsState state;
+      Device->GetState(state);
+      bandLevels.resize(state.size());
+      std::transform(state.begin(), state.end(), bandLevels.begin(),
         boost::bind(&std::make_pair<uint_t, uint_t>, boost::bind(&AYM::ChanState::Band, _1), boost::bind(&AYM::ChanState::LevelInPercents, _1)));
-    }
-
-    virtual void RenderData(const Sound::RenderParameters& params,
-                            const AYM::DataChunk& src)
-    {
-      Device->RenderData(params, src);
-      CurState = 0;
-    }
-
-    virtual void Reset()
-    {
-      Device->Reset();
-      CurState = 0;
-    }
-  private:
-    void FillState() const
-    {
-      if (!CurState)
-      {
-        Device->GetState(StateCache);
-        CurState = &StateCache;
-      }
     }
   private:
     const AYM::Chip::Ptr Device;
-    mutable AYM::ChannelsState* CurState;
-    mutable AYM::ChannelsState StateCache;
   };
 
   class AYMStreamPlayer : public Player
   {
   public:
-    AYMStreamPlayer(Information::Ptr info, AYMDataRenderer::Ptr renderer, AYMDevice::Ptr device)
+    AYMStreamPlayer(Information::Ptr info, AYMDataRenderer::Ptr renderer, AYM::Chip::Ptr device)
       : Info(info)
       , Renderer(renderer)
       , Device(device)
       , AYMHelper(AYM::ParametersHelper::Create(TABLE_SOUNDTRACKER))
-      , StateIterator(StreamStateIterator::Create(Info, Device))
+      , StateIterator(StreamStateIterator::Create(Info))
       , CurrentState(MODULE_STOPPED)
     {
       AYMHelper->SetParameters(*Info->Properties());
@@ -107,7 +84,7 @@ namespace
 
     virtual Analyzer::Ptr GetAnalyzer() const
     {
-      return Device;
+      return boost::make_shared<AYMAnalyzer>(Device);
     }
 
     virtual Error RenderFrame(const Sound::RenderParameters& params,
@@ -163,7 +140,7 @@ namespace
   private:
     const Information::Ptr Info;
     const AYMDataRenderer::Ptr Renderer;
-    const AYMDevice::Ptr Device;
+    const AYM::Chip::Ptr Device;
     const AYM::ParametersHelper::Ptr AYMHelper;
     const StreamStateIterator::Ptr StateIterator;
     PlaybackState CurrentState;
@@ -173,12 +150,12 @@ namespace
   {
   public:
     AYMTrackPlayer(Information::Ptr info, TrackModuleData::Ptr data, 
-      AYMDataRenderer::Ptr renderer, AYMDevice::Ptr device, const String& defaultTable)
+      AYMDataRenderer::Ptr renderer, AYM::Chip::Ptr device, const String& defaultTable)
       : Info(info)
       , Renderer(renderer)
       , Device(device)
       , AYMHelper(AYM::ParametersHelper::Create(defaultTable))
-      , StateIterator(TrackStateIterator::Create(Info, data, Device))
+      , StateIterator(TrackStateIterator::Create(Info, data))
       , CurrentState(MODULE_STOPPED)
     {
       AYMHelper->SetParameters(*Info->Properties());
@@ -206,7 +183,7 @@ namespace
 
     virtual Analyzer::Ptr GetAnalyzer() const
     {
-      return Device;
+      return boost::make_shared<AYMAnalyzer>(Device);
     }
 
     virtual Error RenderFrame(const Sound::RenderParameters& params,
@@ -263,7 +240,7 @@ namespace
   private:
     const Information::Ptr Info;
     const AYMDataRenderer::Ptr Renderer;
-    const AYMDevice::Ptr Device;
+    const AYM::Chip::Ptr Device;
     const AYM::ParametersHelper::Ptr AYMHelper;
     const TrackStateIterator::Ptr StateIterator;
     PlaybackState CurrentState;
@@ -274,22 +251,15 @@ namespace ZXTune
 {
   namespace Module
   {
-    AYMDevice::Ptr AYMDevice::Create(AYM::Chip::Ptr device)
-    {
-      return AYMDevice::Ptr(new AYMDeviceImpl(device));
-    }
-
     Player::Ptr CreateAYMStreamPlayer(Information::Ptr info, AYMDataRenderer::Ptr renderer, AYM::Chip::Ptr device)
     {
-      const AYMDevice::Ptr wrappedDevice = AYMDevice::Create(device);
-      return boost::make_shared<AYMStreamPlayer>(info, renderer, wrappedDevice);
+      return boost::make_shared<AYMStreamPlayer>(info, renderer, device);
     }
 
     Player::Ptr CreateAYMTrackPlayer(Information::Ptr info, TrackModuleData::Ptr data, 
       AYMDataRenderer::Ptr renderer, AYM::Chip::Ptr device, const String& defaultTable)
     {
-      const AYMDevice::Ptr wrappedDevice = AYMDevice::Create(device);
-      return boost::make_shared<AYMTrackPlayer>(info, data, renderer, wrappedDevice, defaultTable);
+      return boost::make_shared<AYMTrackPlayer>(info, data, renderer, device, defaultTable);
     }
   }
 }

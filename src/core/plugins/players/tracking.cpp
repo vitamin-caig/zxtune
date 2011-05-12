@@ -23,8 +23,8 @@ namespace
   class TrackStateIteratorImpl : public TrackStateIterator
   {
   public:
-    TrackStateIteratorImpl(Information::Ptr info, TrackModuleData::Ptr data, Analyzer::Ptr analyze)
-      : Info(info), Data(data), Analyze(analyze)
+    TrackStateIteratorImpl(Information::Ptr info, TrackModuleData::Ptr data)
+      : Info(info), Data(data)
     {
       Reset();
     }
@@ -67,7 +67,7 @@ namespace
 
     virtual uint_t Channels() const
     {
-      return Analyze->ActiveChannels();
+      return Data->GetActiveChannels(*this);
     }
 
     virtual uint_t AbsoluteFrame() const
@@ -185,7 +185,6 @@ namespace
     //context
     const Information::Ptr Info;
     const TrackModuleData::Ptr Data;
-    const Analyzer::Ptr Analyze;
     //state
     uint_t CurPosition;
     uint_t CurLine;
@@ -264,7 +263,7 @@ namespace
       }
       //emulate playback
       const Information::Ptr dummyInfo = boost::make_shared<InformationImpl>(*this);
-      const TrackStateIterator::Ptr dummyIterator = TrackStateIterator::Create(dummyInfo, Data, Analyzer::Ptr());
+      const TrackStateIterator::Ptr dummyIterator = TrackStateIterator::Create(dummyInfo, Data);
 
       const uint_t loopPosNum = Data->GetLoopPosition();
       TrackStateIterator& iterator = *dummyIterator;
@@ -296,10 +295,9 @@ namespace ZXTune
 {
   namespace Module
   {
-    TrackStateIterator::Ptr TrackStateIterator::Create(
-      Information::Ptr info, TrackModuleData::Ptr data, Analyzer::Ptr analyze)
+    TrackStateIterator::Ptr TrackStateIterator::Create(Information::Ptr info, TrackModuleData::Ptr data)
     {
-      return boost::make_shared<TrackStateIteratorImpl>(info, data, analyze);
+      return boost::make_shared<TrackStateIteratorImpl>(info, data);
     }
 
     Information::Ptr CreateTrackInfo(TrackModuleData::Ptr data, uint_t logicalChannels, 

@@ -19,13 +19,14 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Module;
 
+  const uint_t STREAM_LOGICAL_CHANNELS = 1;
+
   class StreamInfo : public Information
   {
   public:
-    explicit StreamInfo(uint_t frames, uint_t logChannels, uint_t physChannels,
+    explicit StreamInfo(uint_t frames, uint_t physChannels,
       Parameters::Accessor::Ptr props)
       : TotalFrames(frames)
-      , LogChans(logChannels)
       , PhysChans(physChannels)
       , Props(props)
     {
@@ -52,7 +53,7 @@ namespace
     }
     virtual uint_t LogicalChannels() const
     {
-      return LogChans;
+      return STREAM_LOGICAL_CHANNELS;
     }
     virtual uint_t PhysicalChannels() const
     {
@@ -68,7 +69,6 @@ namespace
     }
   private:
     const uint_t TotalFrames;
-    const uint_t LogChans;
     const uint_t PhysChans;
     const Parameters::Accessor::Ptr Props;
   };
@@ -76,8 +76,8 @@ namespace
   class StreamStateIteratorImpl : public StreamStateIterator
   {
   public:
-    StreamStateIteratorImpl(Information::Ptr info, Analyzer::Ptr analyze)
-      : Info(info), Analyze(analyze)
+    explicit StreamStateIteratorImpl(Information::Ptr info)
+      : Info(info)
     {
       Reset();
     }
@@ -120,7 +120,7 @@ namespace
 
     virtual uint_t Channels() const
     {
-      return Analyze->ActiveChannels();
+      return STREAM_LOGICAL_CHANNELS;
     }
 
     virtual uint_t AbsoluteFrame() const
@@ -196,7 +196,6 @@ namespace
   private:
     //context
     const Information::Ptr Info;
-    const Analyzer::Ptr Analyze;
     //state
     uint_t CurFrame;
     uint_t AbsFrame;
@@ -208,15 +207,14 @@ namespace ZXTune
 {
   namespace Module
   {
-    Information::Ptr CreateStreamInfo(uint_t frames, uint_t logChannels, uint_t physChannels,
-      Parameters::Accessor::Ptr props)
+    Information::Ptr CreateStreamInfo(uint_t frames, uint_t physChannels, Parameters::Accessor::Ptr props)
     {
-      return boost::make_shared<StreamInfo>(frames, logChannels, physChannels, props);
+      return boost::make_shared<StreamInfo>(frames, physChannels, props);
     }
 
-    StreamStateIterator::Ptr StreamStateIterator::Create(Information::Ptr info, Analyzer::Ptr analyze)
+    StreamStateIterator::Ptr StreamStateIterator::Create(Information::Ptr info)
     {
-      return boost::make_shared<StreamStateIteratorImpl>(info, analyze);
+      return boost::make_shared<StreamStateIteratorImpl>(info);
     }
   }
 }

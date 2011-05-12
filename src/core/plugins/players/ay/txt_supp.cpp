@@ -64,7 +64,7 @@ namespace
     TXTHolder(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize)
       : Data(Vortex::Track::ModuleData::Create())
       , Properties(properties)
-      , Info(CreateTrackInfo(Data, AYM::LOGICAL_CHANNELS, parameters, Properties))
+      , Info(CreateTrackInfo(Data, AYM::CHANNELS, parameters, Properties))
     {
       const std::size_t dataSize = data->Size();
       const char* const rawData = static_cast<const char*>(data->Data());

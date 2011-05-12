@@ -86,6 +86,7 @@ namespace ZXTune
       virtual uint_t GetCurrentPattern(const TrackState& state) const = 0;
       virtual uint_t GetCurrentPatternSize(const TrackState& state) const = 0;
       virtual uint_t GetNewTempo(const TrackState& state) const = 0;
+      virtual uint_t GetActiveChannels(const TrackState& state) const = 0;
     };
 
     class TrackStateIterator : public TrackState
@@ -93,7 +94,7 @@ namespace ZXTune
     public:
       typedef boost::shared_ptr<TrackStateIterator> Ptr;
 
-      static Ptr Create(Information::Ptr info, TrackModuleData::Ptr data, Analyzer::Ptr analyze);
+      static Ptr Create(Information::Ptr info, TrackModuleData::Ptr data);
 
       virtual void Reset() = 0;
 
@@ -325,6 +326,15 @@ namespace ZXTune
             {
               return *tempo;
             }
+          }
+          return 0;
+        }
+
+        virtual uint_t GetActiveChannels(const TrackState& state) const
+        {
+          if (const Line* line = Patterns[GetCurrentPattern(state)].GetLine(state.Line()))
+          {
+            return static_cast<uint_t>(std::count_if(line->Channels.begin(), line->Channels.end(), !boost::bind(&Line::Chan::Empty, _1)));
           }
           return 0;
         }

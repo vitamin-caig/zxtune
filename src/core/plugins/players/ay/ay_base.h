@@ -29,20 +29,6 @@ namespace ZXTune
   {
     typedef PatternCursorSet<AYM::CHANNELS> AYMPatternCursors;
 
-    class AYMDevice : public Analyzer
-    {
-    public:
-      typedef boost::shared_ptr<AYMDevice> Ptr;
-
-      //some virtuals from AYM::Chip
-      virtual void RenderData(const Sound::RenderParameters& params,
-                              const AYM::DataChunk& src) = 0;
-
-      virtual void Reset() = 0;
-
-      static Ptr Create(AYM::Chip::Ptr device);
-    };
-
     class AYMDataRenderer
     {
     public:

@@ -224,17 +224,29 @@ namespace
     virtual void GetState(uint64_t ticksPerSec, ChannelsState& state) const
     {
       const uint_t MAX_LEVEL = 100;
+      //one channel is noise
+      ChanState& noiseChan = state[CHANNELS];
+      noiseChan = ChanState('N');
+      noiseChan.Band = GetBandByPeriod(ticksPerSec, GetToneN());
       //one channel is envelope    
-      ChanState& envChan = state[CHANNELS];
+      ChanState& envChan = state[CHANNELS + 1];
       envChan = ChanState('E');
       envChan.Band = GetBandByPeriod(ticksPerSec, 16 * GetToneE());
-      const uint_t noiseBand = GetBandByPeriod(ticksPerSec, GetToneN());
       const uint_t mixer = ~Mixer;
       for (uint_t chan = 0; chan != CHANNELS; ++chan) 
       {
         const uint_t volReg = State.Data[DataChunk::REG_VOLA + chan];
+        const bool hasNoise = 0 != (mixer & (uint_t(DataChunk::REG_MASK_NOISEA) << chan));
+        const bool hasTone = 0 != (mixer & (uint_t(DataChunk::REG_MASK_TONEA) << chan));
+        const bool hasEnv = 0 != (volReg & DataChunk::REG_MASK_ENV);
+        //accumulate level in noise channel
+        if (hasNoise)
+        {
+          noiseChan.Enabled = true;
+          noiseChan.LevelInPercents += MAX_LEVEL / CHANNELS;
+        }
         //accumulate level in envelope channel      
-        if (volReg & DataChunk::REG_MASK_ENV)
+        if (hasEnv)
         {        
           envChan.Enabled = true;
           envChan.LevelInPercents += MAX_LEVEL / CHANNELS;
@@ -242,15 +254,13 @@ namespace
         //calculate tone channel
         ChanState& channel = state[chan];
         channel.Name = 'A' + chan;
-        const bool hasNoise = 0 != (mixer & (uint_t(DataChunk::REG_MASK_NOISEA) << chan));
-        const bool hasTone = 0 != (mixer & (uint_t(DataChunk::REG_MASK_TONEA) << chan));
-        if ( (channel.Enabled = hasNoise || hasTone) )
+        if (hasTone)
         {
+          channel.Enabled = true;
           channel.LevelInPercents = (volReg & DataChunk::REG_MASK_VOL) * MAX_LEVEL / 15;
-          channel.Band = hasTone
-            ? GetBandByPeriod(ticksPerSec, 256 * State.Data[DataChunk::REG_TONEA_H + chan * 2] |
-              State.Data[DataChunk::REG_TONEA_L + chan * 2])
-            : noiseBand;
+          const uint_t chanTone = 256 * State.Data[DataChunk::REG_TONEA_H + chan * 2] +
+            State.Data[DataChunk::REG_TONEA_L + chan * 2];
+          channel.Band = GetBandByPeriod(ticksPerSec, chanTone);
         }
       } 
     }

@@ -21,19 +21,7 @@ namespace ZXTune
 {
   namespace Module
   {
-    class DACDevice : public Analyzer
-    {
-    public:
-      typedef boost::shared_ptr<DACDevice> Ptr;
-
-      //some virtuals from DAC::Device
-      virtual void RenderData(const Sound::RenderParameters& params,
-                              const DAC::DataChunk& src) = 0;
-
-      virtual void Reset() = 0;
-
-      static Ptr Create(DAC::Chip::Ptr device);
-    };
+    Analyzer::Ptr CreateDACAnalyzer(DAC::Chip::Ptr device);
   }
 }
 

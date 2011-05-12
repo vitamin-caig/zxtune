@@ -15,6 +15,7 @@ Author:
 #include <limits>
 //boost includes
 #include <boost/bind.hpp>
+#include <boost/make_shared.hpp>
 #include <boost/mem_fn.hpp>
 
 namespace
@@ -22,56 +23,33 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Module;
 
-  class DACDeviceImpl : public DACDevice
+  class DACAnalyzer : public Analyzer
   {
   public:
-    explicit DACDeviceImpl(DAC::Chip::Ptr device)
+    explicit DACAnalyzer(DAC::Chip::Ptr device)
       : Device(device)
-      , CurState(0)
     {
     }
 
     //analyzer virtuals
     virtual uint_t ActiveChannels() const
     {
-      FillState();
-      return static_cast<uint_t>(std::count_if(StateCache.begin(), StateCache.end(),
+      DAC::ChannelsState state;
+      Device->GetState(state);
+      return static_cast<uint_t>(std::count_if(state.begin(), state.end(),
         boost::mem_fn(&DAC::ChanState::Enabled)));
     }
 
     virtual void BandLevels(std::vector<std::pair<uint_t, uint_t> >& bandLevels) const
     {
-      FillState();
-      bandLevels.resize(StateCache.size());
-      std::transform(StateCache.begin(), StateCache.end(), bandLevels.begin(),
+      DAC::ChannelsState state;
+      Device->GetState(state);
+      bandLevels.resize(state.size());
+      std::transform(state.begin(), state.end(), bandLevels.begin(),
         boost::bind(&std::make_pair<uint_t, uint_t>, boost::bind(&DAC::ChanState::Band, _1), boost::bind(&DAC::ChanState::LevelInPercents, _1)));
-    }
-
-    virtual void RenderData(const Sound::RenderParameters& params,
-                            const DAC::DataChunk& src)
-    {
-      Device->RenderData(params, src);
-      CurState = 0;
-    }
-
-    virtual void Reset()
-    {
-      Device->Reset();
-      CurState = 0;
-    }
-  private:
-    void FillState() const
-    {
-      if (!CurState)
-      {
-        Device->GetState(StateCache);
-        CurState = &StateCache;
-      }
     }
   private:
     const DAC::Chip::Ptr Device;
-    mutable DAC::ChannelsState* CurState;
-    mutable DAC::ChannelsState StateCache;
   };
 }
 
@@ -79,9 +57,9 @@ namespace ZXTune
 {
   namespace Module
   {
-    DACDevice::Ptr DACDevice::Create(DAC::Chip::Ptr device)
+    Analyzer::Ptr CreateDACAnalyzer(DAC::Chip::Ptr device)
     {
-      return DACDevice::Ptr(new DACDeviceImpl(device));
+      return boost::make_shared<DACAnalyzer>(device);
     }
   }
 }

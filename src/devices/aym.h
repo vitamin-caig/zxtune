@@ -17,8 +17,6 @@ Author:
 #include <types.h>
 //library includes
 #include <sound/receiver.h>
-//std includes
-#include <memory>
 
 //supporting for AY/YM-based modules
 namespace ZXTune
@@ -32,7 +30,7 @@ namespace ZXTune
   namespace AYM
   {
     const uint_t CHANNELS = 3;
-    const uint_t LOGICAL_CHANNELS = 4;
+    const uint_t VOICES = 5;
 
     struct DataChunk
     {
@@ -137,12 +135,12 @@ namespace ZXTune
       //Currently played tone level percentage
       uint_t LevelInPercents;
     };
-    typedef boost::array<ChanState, LOGICAL_CHANNELS> ChannelsState;
+    typedef boost::array<ChanState, VOICES> ChannelsState;
 
     class Chip
     {
     public:
-      typedef std::auto_ptr<Chip> Ptr;
+      typedef boost::shared_ptr<Chip> Ptr;
 
       virtual ~Chip() {}
 

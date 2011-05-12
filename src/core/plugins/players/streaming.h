@@ -21,15 +21,14 @@ namespace ZXTune
 {
   namespace Module
   {
-    Information::Ptr CreateStreamInfo(uint_t frames, uint_t logChannels, uint_t physChannels,
-      Parameters::Accessor::Ptr props);
+    Information::Ptr CreateStreamInfo(uint_t frames, uint_t physChannels, Parameters::Accessor::Ptr props);
 
     class StreamStateIterator : public TrackState
     {
     public:
       typedef boost::shared_ptr<StreamStateIterator> Ptr;
 
-      static Ptr Create(Information::Ptr info, Analyzer::Ptr analyze);
+      static Ptr Create(Information::Ptr info);
 
       virtual void Reset() = 0;
 
