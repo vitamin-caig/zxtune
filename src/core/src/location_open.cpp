@@ -24,6 +24,29 @@ namespace
 
   const std::string THIS_MODULE("Core");
 
+  class EmptyDataPath : public DataPath
+  {
+    EmptyDataPath()
+    {
+    }
+  public:
+    static Ptr Create()
+    {
+      static EmptyDataPath instance;
+      return Ptr(&instance, NullDeleter<EmptyDataPath>());
+    }
+
+    virtual String AsString() const
+    {
+      return String();
+    }
+
+    virtual String GetFirstComponent() const
+    {
+      return String();
+    }
+  };
+
   class EmptyPluginsChain : public PluginsChain
   {
     EmptyPluginsChain()
@@ -65,9 +88,9 @@ namespace
       return Data;
     }
 
-    virtual String GetPath() const
+    virtual DataPath::Ptr GetPath() const
     {
-      return String();
+      return EmptyDataPath::Create();
     }
 
     virtual PluginsChain::Ptr GetPlugins() const
@@ -78,12 +101,12 @@ namespace
     const IO::DataContainer::Ptr Data;
   };
 
-  DataLocation::Ptr Resolve(const PluginsEnumerator& plugins, const Parameters::Accessor& coreParams, DataLocation::Ptr location, const String& pathToResolve)
+  DataLocation::Ptr TryToOpenLocation(const PluginsEnumerator& plugins, const Parameters::Accessor& coreParams, DataLocation::Ptr location, const DataPath& subPath)
   {
     for (ArchivePlugin::Iterator::Ptr iter = plugins.EnumerateArchives(); iter->IsValid(); iter->Next())
     {
       const ArchivePlugin::Ptr plugin = iter->Get();
-      if (DataLocation::Ptr result = plugin->Open(coreParams, location, pathToResolve))
+      if (DataLocation::Ptr result = plugin->Open(coreParams, location, subPath))
       {
         return result;
       }
@@ -91,7 +114,7 @@ namespace
     for (ContainerPlugin::Iterator::Ptr iter = plugins.EnumerateContainers(); iter->IsValid(); iter->Next())
     {
       const ContainerPlugin::Ptr plugin = iter->Get();
-      if (DataLocation::Ptr result = plugin->Open(coreParams, location, pathToResolve))
+      if (DataLocation::Ptr result = plugin->Open(coreParams, location, subPath))
       {
         return result;
       }
@@ -115,30 +138,20 @@ namespace ZXTune
       return initialLocation;
     }
 
-    String pathToResolve = subpath;
+    const DataPath::Ptr pathToResolve = CreateDataPath(subpath);
     const PluginsEnumerator::Ptr usedPlugins = PluginsEnumerator::Create();
     DataLocation::Ptr resolvedLocation = initialLocation;
-    while (!pathToResolve.empty())
+    for (DataPath::Ptr unresolved = pathToResolve; unresolved; unresolved = SubstractDataPath(*pathToResolve, *resolvedLocation->GetPath()))
     {
-      Log::Debug(THIS_MODULE, "Resolving '%1%'", pathToResolve);
-      if (const DataLocation::Ptr loc = Resolve(*usedPlugins, *coreParams, resolvedLocation, pathToResolve))
+      const String toResolve = unresolved->AsString();
+      Log::Debug(THIS_MODULE, "Resolving '%1%'", toResolve);
+      if (!(resolvedLocation = TryToOpenLocation(*usedPlugins, *coreParams, resolvedLocation, *unresolved)))
       {
-        resolvedLocation = loc;
-        const String resolvedPath = resolvedLocation->GetPath();
-        if (resolvedPath == subpath)
-        {
-          break;
-        }
-        assert(0 == subpath.find(resolvedPath));
-        pathToResolve = subpath.substr(resolvedPath.size() + 1);
-      }
-      else
-      {
-        Log::Debug(THIS_MODULE, "Failed to resolve subpath '%1%'", pathToResolve);
+        Log::Debug(THIS_MODULE, "Failed to resolve subpath '%1%'", toResolve);
         return DataLocation::Ptr();
       }
     }
-    Log::Debug(THIS_MODULE, "Resolved '%1%'", resolvedLocation->GetPath());
+    Log::Debug(THIS_MODULE, "Resolved '%1%'", resolvedLocation->GetPath()->AsString());
     return resolvedLocation;
   }
 }

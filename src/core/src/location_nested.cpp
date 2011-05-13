@@ -11,8 +11,6 @@ Author:
 
 //local includes
 #include "location.h"
-//library includes
-#include <io/fs_tools.h>
 //boost includes
 #include <boost/make_shared.hpp>
 
@@ -34,7 +32,7 @@ namespace
       return SubData;
     }
 
-    virtual String GetPath() const
+    virtual DataPath::Ptr GetPath() const
     {
       return Parent->GetPath();
     }
@@ -55,7 +53,7 @@ namespace
       : Parent(parent)
       , SubData(subData)
       , SubPlugin(subPlugin)
-      , SubPath(subPath)
+      , Subpath(subPath)
     {
     }
 
@@ -64,9 +62,9 @@ namespace
       return SubData;
     }
 
-    virtual String GetPath() const
+    virtual DataPath::Ptr GetPath() const
     {
-      return IO::AppendPath(Parent->GetPath(), SubPath);
+      return CreateMergedDataPath(Parent->GetPath(), Subpath);
     }
 
     virtual PluginsChain::Ptr GetPlugins() const
@@ -77,7 +75,7 @@ namespace
     const DataLocation::Ptr Parent;
     const IO::DataContainer::Ptr SubData;
     const Plugin::Ptr SubPlugin;
-    const String SubPath;
+    const String Subpath;
   };
 }
 
@@ -88,7 +86,7 @@ namespace ZXTune
     return boost::make_shared<NestedDataLocation>(parent, subData);
   }
 
-  DataLocation::Ptr CreateNestedLocation(DataLocation::Ptr parent, Plugin::Ptr subPlugin, IO::DataContainer::Ptr subData, const String& subPath)
+  DataLocation::Ptr CreateNestedLocation(DataLocation::Ptr parent, IO::DataContainer::Ptr subData, Plugin::Ptr subPlugin, const String& subPath)
   {
     return boost::make_shared<NestedLocation>(parent, subPlugin, subData, subPath);
   }

@@ -12,6 +12,9 @@ __cpp> "{\n"
 __cpp> "}//namespace Text\n"
 __cpp> "#endif //__TEXT_CORE_H_DEFINED__\n"
 
+< MODULE_SUBPATH_DELIMITER
+> "/"
+
 < MODULE_CONTAINERS_DELIMITER
 > ">"
 

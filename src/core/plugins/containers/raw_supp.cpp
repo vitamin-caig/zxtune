@@ -24,7 +24,6 @@ Author:
 #include <core/plugin_attrs.h>
 #include <core/plugins_parameters.h>
 #include <io/container.h>
-#include <io/fs_tools.h>
 //std includes
 #include <list>
 //boost includes
@@ -203,13 +202,13 @@ namespace
       return Subdata;
     }
 
-    virtual String GetPath() const
+    virtual DataPath::Ptr GetPath() const
     {
-      const String parentPath = Parent->GetPath();
+      const DataPath::Ptr parentPath = Parent->GetPath();
       if (std::size_t offset = Subdata->GetOffset())
       {
         const String subPath = CreateRawPart(offset);
-        return IO::AppendPath(parentPath, subPath);
+        return CreateMergedDataPath(parentPath, subPath);
       }
       return parentPath;
     }
@@ -449,7 +448,7 @@ namespace
       }
 
       Log::Debug(THIS_MODULE, "Detecting modules in raw data at '%1%'", input->GetPath());
-      const Log::ProgressCallback::Ptr progress(new RawProgressCallback(callback, static_cast<uint_t>(size), input->GetPath()));
+      const Log::ProgressCallback::Ptr progress(new RawProgressCallback(callback, static_cast<uint_t>(size), input->GetPath()->AsString()));
       const Module::NoProgressDetectCallbackAdapter noProgressCallback(callback);
 
 
@@ -475,17 +474,16 @@ namespace
       return DetectionResult::CreateMatched(size);
     }
 
-    virtual DataLocation::Ptr Open(const Parameters::Accessor& /*commonParams*/, DataLocation::Ptr location, const String& inPath) const
+    virtual DataLocation::Ptr Open(const Parameters::Accessor& /*commonParams*/, DataLocation::Ptr location, const DataPath& inPath) const
     {
-      String restComp;
-      const String& pathComp = IO::ExtractFirstPathComponent(inPath, restComp);
+      const String& pathComp = inPath.GetFirstComponent();
       std::size_t offset = 0;
       if (CheckIfRawPart(pathComp, offset))
       {
         const IO::DataContainer::Ptr inData = location->GetData();
         const Plugin::Ptr subPlugin = shared_from_this();
         const IO::DataContainer::Ptr subData = inData->GetSubcontainer(offset, inData->Size() - offset);
-        return CreateNestedLocation(location, subPlugin, subData, pathComp); 
+        return CreateNestedLocation(location, subData, subPlugin, pathComp); 
       }
       return DataLocation::Ptr();
     }

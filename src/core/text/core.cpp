@@ -95,5 +95,8 @@ extern const Char MODULE_LAYOUT_CAB[] = {
 extern const Char MODULE_LAYOUT_CBA[] = {
   'C','B','A',0
 };
+extern const Char MODULE_SUBPATH_DELIMITER[] = {
+  '/',0
+};
 }//namespace Text
 #endif //__TEXT_CORE_H_DEFINED__

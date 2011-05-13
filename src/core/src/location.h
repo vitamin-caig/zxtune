@@ -15,6 +15,7 @@ Author:
 
 //local includes
 #include "core/plugins/plugins_chain.h"
+#include "core/src/path.h"
 //common includes
 #include <parameters.h>
 //library includes
@@ -30,7 +31,7 @@ namespace ZXTune
     virtual ~DataLocation() {}
 
     virtual IO::DataContainer::Ptr GetData() const = 0;
-    virtual String GetPath() const = 0;
+    virtual DataPath::Ptr GetPath() const = 0;
     virtual PluginsChain::Ptr GetPlugins() const = 0;
   };
 
@@ -42,7 +43,7 @@ namespace ZXTune
   DataLocation::Ptr OpenLocation(Parameters::Accessor::Ptr coreParams, IO::DataContainer::Ptr data, const String& subpath);
 
   DataLocation::Ptr CreateNestedLocation(DataLocation::Ptr parent, IO::DataContainer::Ptr subData);
-  DataLocation::Ptr CreateNestedLocation(DataLocation::Ptr parent, Plugin::Ptr subPlugin, IO::DataContainer::Ptr subData, const String& subPath);
+  DataLocation::Ptr CreateNestedLocation(DataLocation::Ptr parent, IO::DataContainer::Ptr subData, Plugin::Ptr subPlugin, const String& subPath);
 }
 
 #endif //__CORE_DATA_LOCATION_H_DEFINED__

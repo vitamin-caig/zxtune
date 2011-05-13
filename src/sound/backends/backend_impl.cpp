@@ -153,8 +153,7 @@ namespace ZXTune
 
     BackendImpl::~BackendImpl()
     {
-      assert(Backend::STOPPED == CurrentState ||
-          Backend::FAILED == CurrentState);
+      assert(Backend::STOPPED == CurrentState);
     }
 
     Module::Holder::Ptr BackendImpl::GetModule() const

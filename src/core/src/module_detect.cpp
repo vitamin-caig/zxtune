@@ -16,8 +16,6 @@ Author:
 //common includes
 #include <error.h>
 #include <logging.h>
-//library includes
-#include <io/fs_tools.h>
 //boost includes
 #include <boost/make_shared.hpp>
 //text includes

@@ -182,7 +182,7 @@ namespace
         Container->SetStringValue(ATTR_CONTAINER, container);
       }
       //path
-      const String& subpath = Location->GetPath();
+      const String& subpath = Location->GetPath()->AsString();
       if (!subpath.empty())
       {
         Container->SetStringValue(ATTR_SUBPATH, subpath);

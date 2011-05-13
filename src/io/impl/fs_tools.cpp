@@ -61,21 +61,6 @@ namespace ZXTune
 #endif
     }
     
-    String ExtractFirstPathComponent(const String& path, String& restPart)
-    {
-      const String::size_type delimPos = path.find_first_of(FS_DELIMITERS);
-      if (String::npos == delimPos)
-      {
-        restPart.clear();
-        return path;
-      }
-      else
-      {
-        restPart = path.substr(delimPos + 1);
-        return path.substr(0, delimPos);
-      }
-    }
-
     String ExtractLastPathComponent(const String& path, String& restPart)
     {
       const String::size_type delimPos = path.find_last_of(FS_DELIMITERS);

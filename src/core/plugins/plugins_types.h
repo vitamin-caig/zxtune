@@ -77,26 +77,15 @@ namespace ZXTune
 
     virtual DataLocation::Ptr Open(const Parameters::Accessor& parameters,
                                    DataLocation::Ptr inputData,
-                                   const String& pathToOpen) const = 0; 
+                                   const DataPath& pathToOpen) const = 0; 
   };
 
-  class ContainerPlugin : public Plugin
+  //for compatibility
+  class ContainerPlugin : public ArchivePlugin
   {
   public:
     typedef boost::shared_ptr<const ContainerPlugin> Ptr;
     typedef ObjectIterator<ContainerPlugin::Ptr> Iterator;
-
-    //! @brief Detect modules in data
-    virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const = 0;
-
-    //! @brief Opening subdata by specified path
-    //! @param parameters Options for opening
-    //! @param inputData Source data location
-    //! @param fullPath Subdata path to be opened 
-    //! @return Not empty pointer if data is opened
-    virtual DataLocation::Ptr Open(const Parameters::Accessor& parameters,
-                                   DataLocation::Ptr inputData,
-                                   const String& pathToOpen) const = 0;   
   };
 }
 

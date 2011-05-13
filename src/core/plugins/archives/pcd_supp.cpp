@@ -65,7 +65,7 @@ namespace
 
     virtual DataLocation::Ptr Open(const Parameters::Accessor& /*parameters*/,
                                    DataLocation::Ptr inputData,
-                                   const String& pathToOpen) const
+                                   const DataPath& pathToOpen) const
     {
       return OpenDataFromArchive(shared_from_this(), *Decoder, inputData, pathToOpen);
     }
@@ -109,7 +109,7 @@ namespace
 
     virtual DataLocation::Ptr Open(const Parameters::Accessor& /*parameters*/,
                                    DataLocation::Ptr inputData,
-                                   const String& pathToOpen) const
+                                   const DataPath& pathToOpen) const
     {
       return OpenDataFromArchive(shared_from_this(), *Decoder, inputData, pathToOpen);
     }

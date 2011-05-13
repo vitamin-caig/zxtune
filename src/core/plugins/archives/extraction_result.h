@@ -24,7 +24,7 @@ namespace ZXTune
   DetectionResult::Ptr DetectModulesInArchive(Plugin::Ptr plugin, const Formats::Packed::Decoder& decoder, 
     DataLocation::Ptr inputData, const Module::DetectCallback& callback);
   DataLocation::Ptr OpenDataFromArchive(Plugin::Ptr plugin, const Formats::Packed::Decoder& decoder,
-    DataLocation::Ptr location, const String& pathToOpen);
+    DataLocation::Ptr location, const DataPath& pathToOpen);
 }
 
 #endif //__CORE_PLUGINS_ARCHIVE_EXTRACTION_RESULT_H_DEFINED__

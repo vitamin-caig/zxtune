@@ -177,12 +177,14 @@ namespace
 
     virtual Parameters::Accessor::Ptr CreateModuleParameters(const DataLocation& location) const
     {
-      return DetectParams.CreateModuleParams(location.GetPath());
+      const DataPath::Ptr subPath = location.GetPath();
+      return DetectParams.CreateModuleParams(subPath->AsString());
     }
 
     virtual Error ProcessModule(const DataLocation& location, Module::Holder::Ptr holder) const
     {
-      return DetectParams.ProcessModule(location.GetPath(), holder);
+      const DataPath::Ptr subPath = location.GetPath();
+      return DetectParams.ProcessModule(subPath->AsString(), holder);
     }
 
     virtual Log::ProgressCallback* GetProgress() const

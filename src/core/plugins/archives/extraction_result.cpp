@@ -13,8 +13,6 @@ Author:
 #include "extraction_result.h"
 #include "core/src/callback.h"
 #include "core/src/core.h"
-//library includes
-#include <io/fs_tools.h>
 //boost includes
 #include <boost/make_shared.hpp>
 //text includes
@@ -56,7 +54,7 @@ namespace ZXTune
       const ZXTune::Module::NoProgressDetectCallbackAdapter noProgressCallback(callback);
       const IO::DataContainer::Ptr subData = IO::CreateDataContainer(res);
       const String subPath = EncodeArchivePluginToPath(plugin->Id());
-      const ZXTune::DataLocation::Ptr subLocation = CreateNestedLocation(inputData, plugin, subData, subPath);
+      const ZXTune::DataLocation::Ptr subLocation = CreateNestedLocation(inputData, subData, plugin, subPath);
       ZXTune::Module::Detect(subLocation, noProgressCallback);
       return DetectionResult::CreateMatched(packedSize);
     }
@@ -65,10 +63,9 @@ namespace ZXTune
   }
 
   DataLocation::Ptr OpenDataFromArchive(Plugin::Ptr plugin, const Formats::Packed::Decoder& decoder,
-    DataLocation::Ptr inputData, const String& pathToOpen)
+    DataLocation::Ptr inputData, const DataPath& pathToOpen)
   {
-    String restPath;
-    const String pathComponent = IO::ExtractFirstPathComponent(pathToOpen, restPath);
+    const String pathComponent = pathToOpen.GetFirstComponent();
     if (!IsArchivePluginPathComponent(pathComponent))
     {
       return DataLocation::Ptr();
@@ -84,7 +81,7 @@ namespace ZXTune
     if (res.get())
     {
       const IO::DataContainer::Ptr subData = IO::CreateDataContainer(res);
-      return CreateNestedLocation(inputData, plugin, subData, pathComponent);
+      return CreateNestedLocation(inputData, subData, plugin, pathComponent);
     }
     return DataLocation::Ptr();
   }

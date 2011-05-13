@@ -18,7 +18,6 @@ Author:
 #include <logging.h>
 //library includes
 #include <core/module_detect.h>
-#include <io/fs_tools.h>
 //text includes
 #include <core/text/plugins.h>
 
@@ -62,14 +61,14 @@ namespace TRDos
   {
     const ZXTune::IO::DataContainer::Ptr data = location->GetData();
     const Log::ProgressCallback::Ptr progress = CreateProgressCallback(callback, files.GetEntriesCount());
-    LoggerHelper logger(progress.get(), *plugin, location->GetPath());
+    LoggerHelper logger(progress.get(), *plugin, location->GetPath()->AsString());
     const ZXTune::Module::NoProgressDetectCallbackAdapter noProgressCallback(callback);
     for (TRDos::FilesSet::Iterator::Ptr it = files.GetEntries(); it->IsValid(); it->Next())
     {
       const TRDos::FileEntry& entry = it->Get();
       const IO::DataContainer::Ptr subData = data->GetSubcontainer(entry.Offset, entry.Size);
       const String subPath = entry.Name;
-      const ZXTune::DataLocation::Ptr subLocation = CreateNestedLocation(location, plugin, subData, subPath);
+      const ZXTune::DataLocation::Ptr subLocation = CreateNestedLocation(location, subData, plugin, subPath);
       logger(entry);
       ZXTune::Module::Detect(subLocation, noProgressCallback);
     }

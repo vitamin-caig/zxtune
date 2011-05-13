@@ -26,12 +26,6 @@ namespace ZXTune
     //! @return Equivalent filename in single-char format
     std::string ConvertToFilename(const String& str);
 
-    //! @brief Extracting first component from complex path
-    //! @param path Input path
-    //! @param restPart The rest part besides the first component
-    //! @return The first component of specified path
-    String ExtractFirstPathComponent(const String& path, String& restPart);
-
     //! @brief Extracting last component from complex path (usually filename)
     //! @param path Input path
     //! @param restPart The rest part before the last component

@@ -26,7 +26,6 @@ Author:
 #include <core/plugin_attrs.h>
 #include <core/plugins_parameters.h>
 #include <io/container.h>
-#include <io/fs_tools.h>
 //std includes
 #include <numeric>
 //boost includes
@@ -219,10 +218,9 @@ namespace
       return boost::make_shared<SCLDetectionResult>(parsedSize, rawData);
     }
 
-    virtual DataLocation::Ptr Open(const Parameters::Accessor& /*commonParams*/, DataLocation::Ptr location, const String& inPath) const
+    virtual DataLocation::Ptr Open(const Parameters::Accessor& /*commonParams*/, DataLocation::Ptr location, const DataPath& inPath) const
     {
-      String restComp;
-      const String& pathComp = IO::ExtractFirstPathComponent(inPath, restComp);
+      const String& pathComp = inPath.GetFirstComponent();
       if (pathComp.empty())
       {
         return DataLocation::Ptr();
@@ -244,7 +242,7 @@ namespace
       }
       const Plugin::Ptr subPlugin = shared_from_this();
       const IO::DataContainer::Ptr subData = inData->GetSubcontainer(entryToOpen->Offset, entryToOpen->Size);
-      return CreateNestedLocation(location, subPlugin, subData, pathComp); 
+      return CreateNestedLocation(location, subData, subPlugin, pathComp); 
     }
   };
 }

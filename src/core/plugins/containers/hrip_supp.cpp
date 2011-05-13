@@ -28,7 +28,6 @@ Author:
 #include <core/plugins_parameters.h>
 #include <formats/packed_decoders.h>
 #include <io/container.h>
-#include <io/fs_tools.h>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
@@ -353,12 +352,12 @@ namespace
       if (Log::ProgressCallback* cb = Callback.GetProgress())
       {
         const uint_t progress = 100 * (fileNum + 1) / totalFiles;
-        const String path = Location->GetPath();
+        const String path = Location->GetPath()->AsString();
         const String text((SafeFormatter(path.empty() ? Text::PLUGIN_HRIP_PROGRESS_NOPATH : Text::PLUGIN_HRIP_PROGRESS) % subPath % path).str());
         cb->OnProgress(progress, text);
       }
 
-      const DataLocation::Ptr subLocation = CreateNestedLocation(Location, HripPlugin, subData, subPath);
+      const DataLocation::Ptr subLocation = CreateNestedLocation(Location, subData, HripPlugin, subPath);
       const Module::NoProgressDetectCallbackAdapter noProgressCallback(Callback);
       Module::Detect(subLocation, noProgressCallback);
       return CONTINUE;
@@ -419,10 +418,9 @@ namespace
       return cb.Process();
     }
 
-    virtual DataLocation::Ptr Open(const Parameters::Accessor& commonParams, DataLocation::Ptr location, const String& inPath) const
+    virtual DataLocation::Ptr Open(const Parameters::Accessor& commonParams, DataLocation::Ptr location, const DataPath& inPath) const
     {
-      String restComp;
-      const String& pathComp = IO::ExtractFirstPathComponent(inPath, restComp);
+      const String& pathComp = inPath.GetFirstComponent();
       if (pathComp.empty())
       {
         //nothing to open
@@ -444,7 +442,7 @@ namespace
       }
       const Plugin::Ptr subPlugin = shared_from_this();
       const IO::DataContainer::Ptr subData = IO::CreateDataContainer(dmp);
-      return CreateNestedLocation(location, subPlugin, subData, pathComp); 
+      return CreateNestedLocation(location, subData, subPlugin, pathComp); 
     }
   };
 }
