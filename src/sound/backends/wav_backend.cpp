@@ -75,7 +75,6 @@ namespace
   const uint8_t DATA[] = {'d', 'a', 't', 'a'};
 
   const Char FILE_WAVE_EXT[] = {'.', 'w', 'a', 'v', '\0'};
-  const Char FILE_CUE_EXT[] = {'.', 'c', 'u', 'e', '\0'};
 
   class TrackProcessor
   {
@@ -86,9 +85,6 @@ namespace
     virtual void BeginFrame(const Module::TrackState& state) = 0;
     virtual void FinishFrame(const std::vector<MultiSample>& data) = 0;
   };
-
-  const uint_t MIN_CUESHEET_PERIOD = 4;
-  const uint_t MAX_CUESHEET_PERIOD = 48;
 
   class WavBackendParameters
   {
@@ -124,87 +120,8 @@ namespace
         intParam != 0;
     }
 
-    bool HasCuesheet() const
-    {
-      Parameters::IntType intParam = 0;
-      return Accessor.FindIntValue(Parameters::ZXTune::Sound::Backends::Wav::CUESHEET, intParam) &&
-        intParam != 0;
-    }
-
-    uint_t GetSplitPeriod() const
-    {
-      Parameters::IntType period = 0;
-
-      if (Accessor.FindIntValue(Parameters::ZXTune::Sound::Backends::Wav::CUESHEET_PERIOD, period) &&
-          !in_range<Parameters::IntType>(period, MIN_CUESHEET_PERIOD, MAX_CUESHEET_PERIOD))
-      {
-        throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
-          Text::CUESHEET_ERROR_INVALID_PERIOD, period, MIN_CUESHEET_PERIOD, MAX_CUESHEET_PERIOD);
-      }
-      return static_cast<uint_t>(period);
-    }
-
   private:
     const Parameters::Accessor& Accessor;
-  };
-
-  class CuesheetLogger : public TrackProcessor
-  {
-  public:
-    explicit CuesheetLogger(const String& wavName, const RenderParameters& sndParams, const WavBackendParameters& wavParams)
-      : File(IO::CreateFile(wavName + FILE_CUE_EXT, true))
-      , FrameDuration(sndParams.FrameDurationMicrosec())
-      , SplitPeriod(wavParams.GetSplitPeriod())
-      , PrevPosition(~0)
-      , PrevLine(0)
-    {
-      String path;
-      *File << (Formatter(Text::CUESHEET_BEGIN) % IO::ExtractLastPathComponent(wavName, path)).str();
-    }
-
-    void BeginFrame(const Module::TrackState& state)
-    {
-      const uint_t curPosition = state.Position();
-      const uint_t curLine = state.Line();
-      const bool positionChanged = PrevPosition != curPosition;
-      const bool splitOcurred =
-           SplitPeriod != 0 && //period specified
-           0 == state.Quirk() && //new line
-           0 == curLine % SplitPeriod && //line number is multiple of period
-           (positionChanged || curLine > PrevLine); //to prevent reseting line to 0 after an end
-
-      if (positionChanged)
-      {
-        *File << (Formatter(Text::CUESHEET_TRACK_ITEM)
-          % (curPosition + 1)
-          % state.Pattern()).str();
-      }
-      if (positionChanged || splitOcurred)
-      {
-        const uint_t curFrame = state.Frame();
-        const uint_t CUEFRAMES_PER_SECOND = 75;
-        const uint_t CUEFRAMES_PER_MINUTE = 60 * CUEFRAMES_PER_SECOND;
-        const uint_t cueTotalFrames = static_cast<uint_t>(uint64_t(curFrame) * FrameDuration * CUEFRAMES_PER_SECOND / 1000000);
-        const uint_t cueMinutes = cueTotalFrames / CUEFRAMES_PER_MINUTE;
-        const uint_t cueSeconds = (cueTotalFrames - cueMinutes * CUEFRAMES_PER_MINUTE) / CUEFRAMES_PER_SECOND;
-        const uint_t cueFrames = cueTotalFrames % CUEFRAMES_PER_SECOND;
-        *File << (Formatter(Text::CUESHEET_TRACK_INDEX)
-          % (SplitPeriod ? curLine / SplitPeriod + 1 : 1)
-          % cueMinutes % cueSeconds % cueFrames).str();
-        PrevPosition = curPosition;
-        PrevLine = curLine;
-      }
-    }
-
-    void FinishFrame(const std::vector<MultiSample>&)
-    {
-    }
-  private:
-    const std::auto_ptr<std::ofstream> File;
-    const uint_t FrameDuration;
-    const uint_t SplitPeriod;
-    uint_t PrevPosition;
-    uint_t PrevLine;
   };
 
   class StateFieldsSource : public SkipFieldsSource
@@ -349,33 +266,19 @@ namespace
       Log::Debug(THIS_MODULE, "Fixed filename template: '%1%'", fileName);
       const bool doRewrite = backendParameters.CheckIfRewrite();
       Writer.reset(new FileWriter(soundParams.SoundFreq(), fileName, doRewrite));
-      //prepare cuesheet if required
-      if (backendParameters.HasCuesheet())
-      {
-        Logger.reset(new CuesheetLogger(fileName, soundParams, backendParameters));
-      }
     }
 
     void BeginFrame(const Module::TrackState& state)
     {
       Writer->BeginFrame(state);
-      if (Logger.get())
-      {
-        Logger->BeginFrame(state);
-      }
     }
 
     void FinishFrame(const std::vector<MultiSample>& data)
     {
       Writer->FinishFrame(data);
-      if (Logger.get())
-      {
-        Logger->FinishFrame(data);
-      }
     }
   private:
     TrackProcessor::Ptr Writer;
-    TrackProcessor::Ptr Logger;
   };
 
   class WAVBackend : public BackendImpl

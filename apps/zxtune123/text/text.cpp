@@ -447,15 +447,6 @@ extern const Char INFO_OPTIONS_SOUND_BACKENDS_OSS_MIXER[] = {
 extern const Char INFO_OPTIONS_SOUND_BACKENDS_TITLE[] = {
   ' ','S','o','u','n','d',' ','b','a','c','k','e','n','d','s',' ','o','p','t','i','o','n','s',':',0
 };
-extern const Char INFO_OPTIONS_SOUND_BACKENDS_WAV_CUESHEET[] = {
-  'w','r','i','t','e',' ','p','a','t','t','e','r','n','s',' ','c','u','e','s','h','e','e','t',' ','f','o','r',
-  ' ','g','e','n','e','r','a','t','e','d',' ','f','i','l','e',0
-};
-extern const Char INFO_OPTIONS_SOUND_BACKENDS_WAV_CUESHEET_PERIOD[] = {
-  'a','d','d','i','t','i','o','n','a','l','l','y',' ','g','e','n','e','r','a','t','e',' ','i','n','d','e','x',
-  ' ','w','i','t','h','i','n',' ','s','p','e','c','i','f','i','e','d',' ','p','e','r','i','o','d',' ','f','o',
-  'r',' ','e','a','c','h',' ','p','a','t','t','e','r','n',0
-};
 extern const Char INFO_OPTIONS_SOUND_BACKENDS_WAV_FILENAME[] = {
   'f','i','l','e','n','a','m','e',' ','t','e','m','p','l','a','t','e',' ','t','o',' ','s','a','v','e',' ','w',
   'a','v',' ','f','i','l','e',' ','(','s','e','e',' ','-','-','l','i','s','t','-','a','t','t','r','i','b','u',
