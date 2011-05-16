@@ -115,6 +115,11 @@ namespace
       return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
     }
   private:
+    virtual Information::Ptr GetInformation() const
+    {
+      return Info;
+    }
+
     virtual Player::Ptr CreatePlayer(AYM::Chip::Ptr chip) const
     {
       return Vortex::CreatePlayer(Info, Data, Version, FreqTableName, chip);

@@ -363,14 +363,13 @@ namespace
     };
   public:
     CHIPlayer(Information::Ptr info, CHITrack::ModuleData::Ptr data, DAC::Chip::Ptr device)
-      : Info(info)
-      , Data(data)
+      : Data(data)
       , Device(device)
-      , StateIterator(TrackStateIterator::Create(Info, Data))
+      , StateIterator(TrackStateIterator::Create(info, Data))
       , CurrentState(MODULE_STOPPED)
       , Interpolation(false)
     {
-      SetParameters(*Info->Properties());
+      SetParameters(*info->Properties());
 #ifdef SELF_TEST
 //perform self-test
       DAC::DataChunk chunk;
@@ -382,11 +381,6 @@ namespace
       while (StateIterator->NextFrame(0, Sound::LOOP_NONE));
       Reset();
 #endif
-    }
-
-    virtual Information::Ptr GetInformation() const
-    {
-      return Info;
     }
 
     virtual TrackState::Ptr GetTrackState() const
@@ -426,7 +420,6 @@ namespace
 
     virtual Error SetPosition(uint_t frame)
     {
-      frame = std::min(frame, Info->FramesCount() - 1);
       if (frame < StateIterator->Frame())
       {
         //reset to beginning in case of moving back
@@ -518,7 +511,6 @@ namespace
       chunk.Channels.swap(res);
     }
   private:
-    const Information::Ptr Info;
     const CHITrack::ModuleData::Ptr Data;
     const DAC::Chip::Ptr Device;
     const TrackStateIterator::Ptr StateIterator;

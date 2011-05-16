@@ -33,8 +33,8 @@ namespace ZXTune
     TrackState::Ptr CreateTSTrackState(TrackState::Ptr first, TrackState::Ptr second);
     Analyzer::Ptr CreateTSAnalyzer(Analyzer::Ptr first, Analyzer::Ptr second);
     TSMixer::Ptr CreateTSMixer(Sound::MultichannelReceiver::Ptr delegate);
-    Player::Ptr CreateTSPlayer(Information::Ptr info, Holder::Ptr first, Holder::Ptr second, Sound::MultichannelReceiver::Ptr target);
-    Player::Ptr CreateTSPlayer(Information::Ptr info, Player::Ptr first, Player::Ptr second, TSMixer::Ptr mixer);
+    Player::Ptr CreateTSPlayer(Holder::Ptr first, Holder::Ptr second, Sound::MultichannelReceiver::Ptr target);
+    Player::Ptr CreateTSPlayer(Player::Ptr first, Player::Ptr second, TSMixer::Ptr mixer);
   }
 }
 #endif //__CORE_PLUGINS_PLAYERS_TS_BASE_H_DEFINED__

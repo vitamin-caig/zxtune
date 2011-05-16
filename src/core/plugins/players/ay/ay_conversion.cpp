@@ -46,7 +46,7 @@ namespace
       Dump tmp;
       AYM::Chip::Ptr chip = CreateChip(tmp);
       const Player::Ptr player = factory.CreatePlayer(chip);
-      const Module::Information::Ptr info = player->GetInformation();
+      const Module::Information::Ptr info = factory.GetInformation();
       const Parameters::Accessor::Ptr props = info->Properties();
 
       const Sound::RenderParameters::Ptr params = Sound::RenderParameters::Create(props);
@@ -144,7 +144,7 @@ namespace
       Dump rawDump;
       AYM::Chip::Ptr chip = AYM::CreateRawStreamDumper(rawDump);
       const Player::Ptr player = factory.CreatePlayer(chip);
-      const Module::Information::Ptr info = player->GetInformation();
+      const Module::Information::Ptr info = factory.GetInformation();
       const Parameters::Accessor::Ptr props = info->Properties();
 
       const Sound::RenderParameters::Ptr params = Sound::RenderParameters::Create(props);

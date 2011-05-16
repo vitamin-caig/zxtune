@@ -183,17 +183,11 @@ namespace
   class TSPlayer : public Player
   {
   public:
-    TSPlayer(Information::Ptr info, Player::Ptr first, Player::Ptr second, TSMixer::Ptr mixer)
-      : Info(info)
-      , Mixer(mixer)
+    TSPlayer(Player::Ptr first, Player::Ptr second, TSMixer::Ptr mixer)
+      : Mixer(mixer)
       , Player1(first)
       , Player2(second)
     {
-    }
-
-    virtual Information::Ptr GetInformation() const
-    {
-      return Info;
     }
 
     virtual TrackState::Ptr GetTrackState() const
@@ -242,7 +236,6 @@ namespace
       return Player2->SetPosition(frame);
     }
   private:
-    const Information::Ptr Info;
     const TSMixer::Ptr Mixer;
     const Player::Ptr Player1;
     const Player::Ptr Player2;
@@ -268,15 +261,15 @@ namespace ZXTune
       return boost::make_shared<TSMixerImpl>(delegate);
     }
 
-    Player::Ptr CreateTSPlayer(Information::Ptr info, Holder::Ptr first, Holder::Ptr second, Sound::MultichannelReceiver::Ptr target)
+    Player::Ptr CreateTSPlayer(Holder::Ptr first, Holder::Ptr second, Sound::MultichannelReceiver::Ptr target)
     {
       const TSMixer::Ptr mixer = CreateTSMixer(target);
-      return CreateTSPlayer(info, first->CreatePlayer(mixer), second->CreatePlayer(mixer), mixer);
+      return CreateTSPlayer(first->CreatePlayer(mixer), second->CreatePlayer(mixer), mixer);
     }
 
-    Player::Ptr CreateTSPlayer(Information::Ptr info, Player::Ptr first, Player::Ptr second, TSMixer::Ptr mixer)
+    Player::Ptr CreateTSPlayer(Player::Ptr first, Player::Ptr second, TSMixer::Ptr mixer)
     {
-      return boost::make_shared<TSPlayer>(info, first, second, mixer);
+      return boost::make_shared<TSPlayer>(first, second, mixer);
     }
   }
 }

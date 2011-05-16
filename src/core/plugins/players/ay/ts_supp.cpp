@@ -293,7 +293,7 @@ namespace
 
     virtual Player::Ptr CreatePlayer(Sound::MultichannelReceiver::Ptr target) const
     {
-      return CreateTSPlayer(Info, Holder1, Holder2, target);
+      return CreateTSPlayer(Holder1, Holder2, target);
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const

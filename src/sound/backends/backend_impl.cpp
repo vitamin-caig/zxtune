@@ -50,12 +50,6 @@ namespace
       }
     }
 
-    virtual Module::Information::Ptr GetInformation() const
-    {
-      Locker lock(Mutex);
-      return Delegate->GetInformation();
-    }
-
     virtual Module::TrackState::Ptr GetTrackState() const
     {
       Locker lock(Mutex);

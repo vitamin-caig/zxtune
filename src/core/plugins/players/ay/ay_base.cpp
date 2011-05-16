@@ -61,20 +61,14 @@ namespace
   {
   public:
     AYMStreamPlayer(Information::Ptr info, AYMDataRenderer::Ptr renderer, AYM::Chip::Ptr device)
-      : Info(info)
-      , Renderer(renderer)
+      : Renderer(renderer)
       , Device(device)
       , AYMHelper(AYM::ParametersHelper::Create(TABLE_SOUNDTRACKER))
-      , StateIterator(StreamStateIterator::Create(Info))
+      , StateIterator(StreamStateIterator::Create(info))
       , CurrentState(MODULE_STOPPED)
     {
-      AYMHelper->SetParameters(*Info->Properties());
+      AYMHelper->SetParameters(*info->Properties());
       Reset();
-    }
-
-    virtual Information::Ptr GetInformation() const
-    {
-      return Info;
     }
 
     virtual TrackState::Ptr GetTrackState() const
@@ -117,7 +111,6 @@ namespace
 
     virtual Error SetPosition(uint_t frame)
     {
-      frame = std::min(frame, Info->FramesCount() - 1);
       if (frame < StateIterator->Frame())
       {
         //reset to beginning in case of moving back
@@ -138,7 +131,6 @@ namespace
       return Error();
     }
   private:
-    const Information::Ptr Info;
     const AYMDataRenderer::Ptr Renderer;
     const AYM::Chip::Ptr Device;
     const AYM::ParametersHelper::Ptr AYMHelper;
@@ -151,14 +143,13 @@ namespace
   public:
     AYMTrackPlayer(Information::Ptr info, TrackModuleData::Ptr data, 
       AYMDataRenderer::Ptr renderer, AYM::Chip::Ptr device, const String& defaultTable)
-      : Info(info)
-      , Renderer(renderer)
+      : Renderer(renderer)
       , Device(device)
       , AYMHelper(AYM::ParametersHelper::Create(defaultTable))
-      , StateIterator(TrackStateIterator::Create(Info, data))
+      , StateIterator(TrackStateIterator::Create(info, data))
       , CurrentState(MODULE_STOPPED)
     {
-      AYMHelper->SetParameters(*Info->Properties());
+      AYMHelper->SetParameters(*info->Properties());
 #ifndef NDEBUG
 //perform self-test
       AYMTrackSynthesizer synthesizer(*AYMHelper);
@@ -169,11 +160,6 @@ namespace
       while (StateIterator->NextFrame(0, Sound::LOOP_NONE));
       Reset();
 #endif
-    }
-
-    virtual Information::Ptr GetInformation() const
-    {
-      return Info;
     }
 
     virtual TrackState::Ptr GetTrackState() const
@@ -216,7 +202,6 @@ namespace
 
     virtual Error SetPosition(uint_t frame)
     {
-      frame = std::min(frame, Info->FramesCount() - 1);
       if (frame < StateIterator->Frame())
       {
         //reset to beginning in case of moving back
@@ -238,7 +223,6 @@ namespace
     }
 
   private:
-    const Information::Ptr Info;
     const AYMDataRenderer::Ptr Renderer;
     const AYM::Chip::Ptr Device;
     const AYM::ParametersHelper::Ptr AYMHelper;

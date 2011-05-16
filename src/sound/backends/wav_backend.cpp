@@ -304,14 +304,10 @@ namespace
     {
       assert(!Processor.get());
 
-      //if playback now
-      if (Player)
-      {
-        const Module::Information::Ptr info = Player->GetInformation();
-        const WavBackendParameters backendParameters(*SoundParameters);
-        Processor.reset(new ComplexTrackProcessor(*RenderingParameters, backendParameters, *info));
-        State = Player->GetTrackState();
-      }
+      const Module::Information::Ptr info = Holder->GetModuleInformation();
+      const WavBackendParameters backendParameters(*SoundParameters);
+      Processor.reset(new ComplexTrackProcessor(*RenderingParameters, backendParameters, *info));
+      State = Player->GetTrackState();
     }
 
     virtual void OnShutdown()

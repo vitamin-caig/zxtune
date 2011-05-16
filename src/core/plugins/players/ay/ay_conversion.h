@@ -35,6 +35,7 @@ namespace ZXTune
     public:
       virtual ~ConversionFactory() {}
 
+      virtual Information::Ptr GetInformation() const = 0;
       virtual Player::Ptr CreatePlayer(AYM::Chip::Ptr chip) const = 0;
     };
     //! @brief Simple helper for conversion to AYM-related formats

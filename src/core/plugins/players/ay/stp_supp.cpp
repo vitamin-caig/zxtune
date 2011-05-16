@@ -666,6 +666,11 @@ namespace
       return result;
     }
   private:
+    virtual Information::Ptr GetInformation() const
+    {
+      return Info;
+    }
+
     virtual Player::Ptr CreatePlayer(AYM::Chip::Ptr chip) const
     {
       return CreateSTPPlayer(Info, Data, chip);

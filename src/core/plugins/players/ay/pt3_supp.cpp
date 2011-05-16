@@ -587,6 +587,11 @@ namespace
       return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
     }
   private:
+    virtual Information::Ptr GetInformation() const
+    {
+      return Info;
+    }
+
     virtual Player::Ptr CreatePlayer(AYM::Chip::Ptr chip) const
     {
       return Vortex::CreatePlayer(Info, Data, Version, FreqTableName, chip);
@@ -672,7 +677,7 @@ namespace
       const TSMixer::Ptr mixer = CreateTSMixer(target);
       const Player::Ptr player1 = Vortex::CreatePlayer(Info, Data, Version, FreqTableName, AYM::CreateChip(mixer));
       const Player::Ptr player2 = Vortex::CreatePlayer(Info, boost::make_shared<MirroredModuleData>(PatOffset, *Data), Version, FreqTableName, AYM::CreateChip(mixer));
-      return CreateTSPlayer(Info, player1, player2, mixer);
+      return CreateTSPlayer(player1, player2, mixer);
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
