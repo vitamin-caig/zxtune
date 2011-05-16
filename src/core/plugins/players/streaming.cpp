@@ -73,10 +73,10 @@ namespace
     const Parameters::Accessor::Ptr Props;
   };
 
-  class StreamStateIteratorImpl : public StreamStateIterator
+  class StreamStateIterator : public StateIterator
   {
   public:
-    explicit StreamStateIteratorImpl(Information::Ptr info)
+    explicit StreamStateIterator(Information::Ptr info)
       : Info(info)
     {
       Reset();
@@ -212,9 +212,9 @@ namespace ZXTune
       return boost::make_shared<StreamInfo>(frames, physChannels, props);
     }
 
-    StreamStateIterator::Ptr StreamStateIterator::Create(Information::Ptr info)
+    StateIterator::Ptr CreateStreamStateIterator(Information::Ptr info)
     {
-      return boost::make_shared<StreamStateIteratorImpl>(info);
+      return boost::make_shared<StreamStateIterator>(info);
     }
   }
 }

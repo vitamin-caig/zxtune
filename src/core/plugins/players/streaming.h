@@ -13,9 +13,8 @@ Author:
 #ifndef __CORE_PLUGINS_PLAYERS_STREAMING_H_DEFINED__
 #define __CORE_PLUGINS_PLAYERS_STREAMING_H_DEFINED__
 
-//library includes
-#include <core/module_types.h>
-#include <sound/render_params.h>// for LoopMode
+//local includes
+#include "state_iterator.h"
 
 namespace ZXTune
 {
@@ -23,19 +22,7 @@ namespace ZXTune
   {
     Information::Ptr CreateStreamInfo(uint_t frames, uint_t physChannels, Parameters::Accessor::Ptr props);
 
-    class StreamStateIterator : public TrackState
-    {
-    public:
-      typedef boost::shared_ptr<StreamStateIterator> Ptr;
-
-      static Ptr Create(Information::Ptr info);
-
-      virtual void Reset() = 0;
-
-      virtual void ResetPosition() = 0;
-
-      virtual bool NextFrame(uint64_t ticksToSkip, Sound::LoopMode mode) = 0;
-    };
+    StateIterator::Ptr CreateStreamStateIterator(Information::Ptr info);
   }
 }
 

@@ -20,10 +20,10 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Module;
 
-  class TrackStateIteratorImpl : public TrackStateIterator
+  class TrackStateIterator : public StateIterator
   {
   public:
-    TrackStateIteratorImpl(Information::Ptr info, TrackModuleData::Ptr data)
+    TrackStateIterator(Information::Ptr info, TrackModuleData::Ptr data)
       : Info(info), Data(data)
     {
       Reset();
@@ -263,10 +263,10 @@ namespace
       }
       //emulate playback
       const Information::Ptr dummyInfo = boost::make_shared<InformationImpl>(*this);
-      const TrackStateIterator::Ptr dummyIterator = TrackStateIterator::Create(dummyInfo, Data);
+      const TrackStateIterator::Ptr dummyIterator = CreateTrackStateIterator(dummyInfo, Data);
 
       const uint_t loopPosNum = Data->GetLoopPosition();
-      TrackStateIterator& iterator = *dummyIterator;
+      StateIterator& iterator = *dummyIterator;
       while (iterator.NextFrame(0, Sound::LOOP_NONE))
       {
         //check for loop
@@ -295,15 +295,15 @@ namespace ZXTune
 {
   namespace Module
   {
-    TrackStateIterator::Ptr TrackStateIterator::Create(Information::Ptr info, TrackModuleData::Ptr data)
-    {
-      return boost::make_shared<TrackStateIteratorImpl>(info, data);
-    }
-
     Information::Ptr CreateTrackInfo(TrackModuleData::Ptr data, uint_t logicalChannels, 
       Parameters::Accessor::Ptr parameters, Parameters::Accessor::Ptr properties)
     {
       return boost::make_shared<InformationImpl>(data, logicalChannels, parameters, properties);
+    }
+
+    StateIterator::Ptr CreateTrackStateIterator(Information::Ptr info, TrackModuleData::Ptr data)
+    {
+      return boost::make_shared<TrackStateIterator>(info, data);
     }
   }
 }

@@ -14,6 +14,7 @@ Author:
 #define __CORE_PLUGINS_PLAYERS_TRACKING_H_DEFINED__
 
 //local includes
+#include "state_iterator.h"
 #include <core/plugins/enumerator.h>
 //common includes
 #include <messages_collector.h>
@@ -89,22 +90,10 @@ namespace ZXTune
       virtual uint_t GetActiveChannels(const TrackState& state) const = 0;
     };
 
-    class TrackStateIterator : public TrackState
-    {
-    public:
-      typedef boost::shared_ptr<TrackStateIterator> Ptr;
-
-      static Ptr Create(Information::Ptr info, TrackModuleData::Ptr data);
-
-      virtual void Reset() = 0;
-
-      virtual void ResetPosition() = 0;
-
-      virtual bool NextFrame(uint64_t ticksToSkip, Sound::LoopMode mode) = 0;
-    };
-
     Information::Ptr CreateTrackInfo(TrackModuleData::Ptr data, uint_t logicalChannels, 
       Parameters::Accessor::Ptr parameters, Parameters::Accessor::Ptr properties);
+
+    StateIterator::Ptr CreateTrackStateIterator(Information::Ptr info, TrackModuleData::Ptr data);
 
     // Basic template class for tracking support (used as simple parametrized namespace)
     template<uint_t ChannelsCount, class CommandType, class SampleType, class OrnamentType = SimpleOrnament>

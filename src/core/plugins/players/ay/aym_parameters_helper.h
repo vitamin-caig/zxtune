@@ -29,7 +29,7 @@ namespace ZXTune
     class ParametersHelper
     {
     public:
-      typedef std::auto_ptr<ParametersHelper> Ptr;
+      typedef boost::shared_ptr<ParametersHelper> Ptr;
 
       virtual ~ParametersHelper() {}
 

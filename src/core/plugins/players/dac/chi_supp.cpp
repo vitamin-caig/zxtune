@@ -365,7 +365,7 @@ namespace
     CHIPlayer(Information::Ptr info, CHITrack::ModuleData::Ptr data, DAC::Chip::Ptr device)
       : Data(data)
       , Device(device)
-      , StateIterator(TrackStateIterator::Create(info, Data))
+      , Iterator(CreateTrackStateIterator(info, Data))
       , CurrentState(MODULE_STOPPED)
       , Interpolation(false)
     {
@@ -375,17 +375,17 @@ namespace
       DAC::DataChunk chunk;
       do
       {
-        assert(Data->Positions.size() > StateIterator->Position());
+        assert(Data->Positions.size() > Iterator->Position());
         RenderData(chunk);
       }
-      while (StateIterator->NextFrame(0, Sound::LOOP_NONE));
+      while (Iterator->NextFrame(0, Sound::LOOP_NONE));
       Reset();
 #endif
     }
 
     virtual TrackState::Ptr GetTrackState() const
     {
-      return StateIterator;
+      return Iterator;
     }
 
     virtual Analyzer::Ptr GetAnalyzer() const
@@ -399,10 +399,10 @@ namespace
       DAC::DataChunk chunk;
       RenderData(chunk);
 
-      CurrentState = StateIterator->NextFrame(params.ClocksPerFrame(), params.Looping())
+      CurrentState = Iterator->NextFrame(params.ClocksPerFrame(), params.Looping())
         ? MODULE_PLAYING : MODULE_STOPPED;
 
-      chunk.Tick = StateIterator->AbsoluteTick();
+      chunk.Tick = Iterator->AbsoluteTick();
       chunk.Interpolate = Interpolation;
       Device->RenderData(params, chunk);
       state = CurrentState;
@@ -412,7 +412,7 @@ namespace
     virtual Error Reset()
     {
       Device->Reset();
-      StateIterator->Reset();
+      Iterator->Reset();
       std::fill(Gliss.begin(), Gliss.end(), GlissData());
       CurrentState = MODULE_STOPPED;
       return Error();
@@ -420,18 +420,18 @@ namespace
 
     virtual Error SetPosition(uint_t frame)
     {
-      if (frame < StateIterator->Frame())
+      if (frame < Iterator->Frame())
       {
         //reset to beginning in case of moving back
-        StateIterator->ResetPosition();
+        Iterator->ResetPosition();
       }
       //fast forward
       DAC::DataChunk chunk;
-      while (StateIterator->Frame() < frame)
+      while (Iterator->Frame() < frame)
       {
         //do not update tick for proper rendering
         RenderData(chunk);
-        if (!StateIterator->NextFrame(0, Sound::LOOP_NONE))
+        if (!Iterator->NextFrame(0, Sound::LOOP_NONE))
         {
           break;
         }
@@ -450,7 +450,7 @@ namespace
     void RenderData(DAC::DataChunk& chunk)
     {
       std::vector<DAC::DataChunk::ChannelData> res;
-      const CHITrack::Line* const line = Data->Patterns[StateIterator->Pattern()].GetLine(StateIterator->Line());
+      const CHITrack::Line* const line = Data->Patterns[Iterator->Pattern()].GetLine(Iterator->Line());
       for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
       {
         GlissData& gliss(Gliss[chan]);
@@ -462,7 +462,7 @@ namespace
           dst.Mask |= DAC::DataChunk::ChannelData::MASK_FREQSLIDE;
         }
         //begin note
-        if (line && 0 == StateIterator->Quirk())
+        if (line && 0 == Iterator->Quirk())
         {
           const CHITrack::Line::Chan& src = line->Channels[chan];
           if (src.Enabled)
@@ -513,7 +513,7 @@ namespace
   private:
     const CHITrack::ModuleData::Ptr Data;
     const DAC::Chip::Ptr Device;
-    const TrackStateIterator::Ptr StateIterator;
+    const StateIterator::Ptr Iterator;
     PlaybackState CurrentState;
     boost::array<GlissData, CHANNELS_COUNT> Gliss;
     bool Interpolation;
