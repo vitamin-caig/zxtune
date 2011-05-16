@@ -104,16 +104,15 @@ namespace
       }
     }
 
-    virtual void SetModule(ZXTune::Module::Player::ConstPtr player, uint_t frameDuration)
+    virtual void SetModule(ZXTune::Sound::Backend::Ptr player, uint_t frameDuration)
     {
-      Player = player;
-      const ZXTune::Module::Information::Ptr info = Player->GetInformation();
+      const ZXTune::Module::Information::Ptr info = player->GetModuleInformation();
       TotalFrames = info->FramesCount();
       FrameDuration = frameDuration;
-      TrackState = Player->GetTrackState();
+      TrackState = player->GetTrackState();
       if (!Silent && ShowAnalyze)
       {
-        Analyzer = Player->GetAnalyzer();
+        Analyzer = player->GetAnalyzer();
       }
       else
       {
@@ -237,7 +236,6 @@ namespace
     Console::SizeType ScrSize;
     uint_t TotalFrames;
     uint_t FrameDuration;
-    ZXTune::Module::Player::ConstPtr Player;
     ZXTune::Module::TrackState::Ptr TrackState;
     ZXTune::Module::Analyzer::Ptr Analyzer;
     std::vector<int_t> AnalyzerData;

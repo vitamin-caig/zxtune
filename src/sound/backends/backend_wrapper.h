@@ -63,14 +63,19 @@ namespace ZXTune
         Delegate->Stop();//TODO: warn if error
       }
 
-      virtual Module::Holder::Ptr GetModule() const
+      virtual Module::Information::Ptr GetModuleInformation() const
       {
-        return Delegate->GetModule();
+        return Delegate->GetModuleInformation();
       }
 
-      virtual Module::Player::ConstPtr GetPlayer() const
+      virtual Module::TrackState::Ptr GetTrackState() const
       {
-        return Delegate->GetPlayer();
+        return Delegate->GetTrackState();
+      }
+
+      virtual Module::Analyzer::Ptr GetAnalyzer() const
+      {
+        return Delegate->GetAnalyzer();
       }
 
       virtual Error Play()

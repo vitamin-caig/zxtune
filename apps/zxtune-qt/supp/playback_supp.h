@@ -45,7 +45,7 @@ public slots:
   virtual void Seek(int frame) = 0;
 signals:
   void OnSetBackend(ZXTune::Sound::Backend::Ptr);
-  void OnStartModule(ZXTune::Module::Player::ConstPtr);
+  void OnStartModule(ZXTune::Sound::Backend::Ptr);
   void OnUpdateState();
   void OnPauseModule();
   void OnResumeModule();

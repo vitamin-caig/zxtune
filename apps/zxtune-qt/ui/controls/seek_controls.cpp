@@ -33,15 +33,15 @@ namespace
       timePosition->setRange(0, 0);
       this->connect(timePosition, SIGNAL(valueChanged(int)), SIGNAL(OnSeeking(int)));
 
-      this->connect(&supp, SIGNAL(OnStartModule(ZXTune::Module::Player::ConstPtr)), SLOT(InitState(ZXTune::Module::Player::ConstPtr)));
+      this->connect(&supp, SIGNAL(OnStartModule(ZXTune::Sound::Backend::Ptr)), SLOT(InitState(ZXTune::Sound::Backend::Ptr)));
       this->connect(&supp, SIGNAL(OnUpdateState()), SLOT(UpdateState()));
       this->connect(&supp, SIGNAL(OnStopModule()), SLOT(CloseState()));
       supp.connect(this, SIGNAL(OnSeeking(int)), SLOT(Seek(int)));
     }
 
-    virtual void InitState(ZXTune::Module::Player::ConstPtr player)
+    virtual void InitState(ZXTune::Sound::Backend::Ptr player)
     {
-      const ZXTune::Module::Information::Ptr info = player->GetInformation();
+      const ZXTune::Module::Information::Ptr info = player->GetModuleInformation();
       timePosition->setRange(0, info->FramesCount());
       TrackState = player->GetTrackState();
     }

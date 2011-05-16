@@ -156,15 +156,19 @@ namespace ZXTune
       assert(Backend::STOPPED == CurrentState);
     }
 
-    Module::Holder::Ptr BackendImpl::GetModule() const
+    Module::Information::Ptr BackendImpl::GetModuleInformation() const
     {
-      return Holder;
+      return Holder->GetModuleInformation();
     }
 
-    Module::Player::ConstPtr BackendImpl::GetPlayer() const
+    Module::TrackState::Ptr BackendImpl::GetTrackState() const
     {
-      Locker lock(PlayerMutex);
-      return Module::Player::ConstPtr(Player);
+      return Player->GetTrackState();
+    }
+
+    Module::Analyzer::Ptr BackendImpl::GetAnalyzer() const
+    {
+      return Player->GetAnalyzer();
     }
 
     Error BackendImpl::Play()
@@ -613,14 +617,19 @@ namespace
     {
     }
 
-    virtual Module::Holder::Ptr GetModule() const
+    virtual Module::Information::Ptr GetModuleInformation() const
     {
-      return Holder;
+      return Holder->GetModuleInformation();
     }
 
-    virtual Module::Player::ConstPtr GetPlayer() const
+    virtual Module::TrackState::Ptr GetTrackState() const
     {
-      return Player;
+      return Player->GetTrackState();
+    }
+
+    virtual Module::Analyzer::Ptr GetAnalyzer() const
+    {
+      return Player->GetAnalyzer();
     }
 
     virtual Error Play()

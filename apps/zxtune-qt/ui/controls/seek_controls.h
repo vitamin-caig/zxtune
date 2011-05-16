@@ -16,7 +16,7 @@ Author:
 #define ZXTUNE_QT_SEEKCONTROL_H_DEFINED
 
 //library includes
-#include <core/module_player.h>
+#include <sound/backend.h>
 //qt includes
 #include <QtGui/QWidget>
 
@@ -32,7 +32,7 @@ public:
   static SeekControls* Create(QWidget& parent, PlaybackSupport& supp);
 
 public slots:
-  virtual void InitState(ZXTune::Module::Player::ConstPtr) = 0;
+  virtual void InitState(ZXTune::Sound::Backend::Ptr) = 0;
   virtual void UpdateState() = 0;
   virtual void CloseState() = 0;
 signals:

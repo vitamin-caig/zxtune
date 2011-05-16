@@ -73,12 +73,14 @@ namespace ZXTune
 
       virtual ~Backend() {}
 
-      //! @brief Getting currently played module
-      virtual Module::Holder::Ptr GetModule() const = 0;
+      //! @brief Current module information
+      virtual Module::Information::Ptr GetModuleInformation() const = 0;
 
-      //! @brief Retrieving read-only access to current module player
-      //! @result Weak read-only reference to thread-safe player instance, empty if there are no binded module
-      virtual Module::Player::ConstPtr GetPlayer() const = 0;
+      //! @brief Current tracking status
+      virtual Module::TrackState::Ptr GetTrackState() const = 0;
+
+      //! @brief Getting analyzer interface
+      virtual Module::Analyzer::Ptr GetAnalyzer() const = 0;
 
       //! @brief Starting playback after stop or pause
       //! @return Error() in case of success

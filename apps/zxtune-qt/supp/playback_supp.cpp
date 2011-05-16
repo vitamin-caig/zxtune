@@ -151,22 +151,19 @@ namespace
     virtual void SetItem(const Playlist::Item::Data& item)
     {
       Backend = CreateBackend(Params, item.GetModule());
-      if (Backend.get())
+      if (Backend)
       {
         OnSetBackend(Backend);
         this->wait();
-        if (Player = Backend->GetPlayer())
-        {
-          Backend->Play();
-          this->start();
-        }
+        Backend->Play();
+        this->start();
       }
     }
 
     virtual void Play()
     {
       //play only if any module selected or set
-      if (0 != Player.use_count())
+      if (Backend)
       {
         Backend->Play();
         this->start();
@@ -175,7 +172,7 @@ namespace
 
     virtual void Stop()
     {
-      if (Backend.get())
+      if (Backend)
       {
         Backend->Stop();
         this->wait();
@@ -184,7 +181,7 @@ namespace
 
     virtual void Pause()
     {
-      if (!Backend.get())
+      if (!Backend)
       {
         return;
       }
@@ -201,7 +198,7 @@ namespace
 
     virtual void Seek(int frame)
     {
-      if (Backend.get())
+      if (Backend)
       {
         Backend->SetPosition(frame);
       }
@@ -212,7 +209,7 @@ namespace
       using namespace ZXTune;
 
       //notify about start
-      OnStartModule(Player);
+      OnStartModule(Backend);
 
       const Async::Signals::Collector::Ptr signaller = Backend->CreateSignalsCollector(
         Sound::Backend::MODULE_RESUME | Sound::Backend::MODULE_PAUSE |
@@ -256,7 +253,6 @@ namespace
   private:
     const Parameters::Accessor::Ptr Params;
     ZXTune::Sound::Backend::Ptr Backend;
-    ZXTune::Module::Player::ConstPtr Player;
   };
 }
 
@@ -267,6 +263,5 @@ PlaybackSupport::PlaybackSupport(QObject& parent) : QThread(&parent)
 PlaybackSupport* PlaybackSupport::Create(QObject& parent, Parameters::Accessor::Ptr sndOptions)
 {
   REGISTER_METATYPE(ZXTune::Sound::Backend::Ptr);
-  REGISTER_METATYPE(ZXTune::Module::Player::ConstPtr);
   return new PlaybackSupportImpl(parent, sndOptions);
 }

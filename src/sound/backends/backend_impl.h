@@ -48,8 +48,9 @@ namespace ZXTune
       explicit BackendImpl(CreateBackendParameters::Ptr params);
       virtual ~BackendImpl();
 
-      Module::Holder::Ptr GetModule() const;
-      Module::Player::ConstPtr GetPlayer() const;
+      Module::Information::Ptr GetModuleInformation() const;
+      Module::TrackState::Ptr GetTrackState() const;
+      Module::Analyzer::Ptr GetAnalyzer() const;
 
       // playback control functions
       Error Play();

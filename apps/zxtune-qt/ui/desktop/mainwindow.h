@@ -16,7 +16,7 @@ Author:
 #define ZXTUNE_QT_MAINWINDOW_H_DEFINED
 
 //library includes
-#include <core/module_player.h>
+#include <sound/backend.h>
 //qt includes
 #include <QtCore/QPointer>
 #include <QtGui/QMainWindow>
@@ -28,7 +28,7 @@ public:
   static QPointer<MainWindow> Create(Parameters::Container::Ptr options, const StringArray& cmdline);
 
 public slots:
-  virtual void StartModule(ZXTune::Module::Player::ConstPtr) = 0;
+  virtual void StartModule(ZXTune::Sound::Backend::Ptr) = 0;
   virtual void StopModule() = 0;
 
   virtual void ShowAboutQt() = 0;

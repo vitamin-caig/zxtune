@@ -52,7 +52,7 @@ namespace
       //connect root actions
       Playlist->connect(Controls, SIGNAL(OnPrevious()), SLOT(Prev()));
       Playlist->connect(Controls, SIGNAL(OnNext()), SLOT(Next()));
-      Playlist->connect(Playback, SIGNAL(OnStartModule(ZXTune::Module::Player::ConstPtr)), SLOT(Play()));
+      Playlist->connect(Playback, SIGNAL(OnStartModule(ZXTune::Sound::Backend::Ptr)), SLOT(Play()));
       Playlist->connect(Playback, SIGNAL(OnResumeModule()), SLOT(Play()));
       Playlist->connect(Playback, SIGNAL(OnPauseModule()), SLOT(Pause()));
       Playlist->connect(Playback, SIGNAL(OnStopModule()), SLOT(Stop()));
