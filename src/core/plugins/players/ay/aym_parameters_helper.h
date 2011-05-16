@@ -43,58 +43,54 @@ namespace ZXTune
 
       static Ptr Create(const String& defaultFreqTable);
     };
+
+    class ChannelBuilder
+    {
+    public:
+      ChannelBuilder(uint_t chan, const Module::FrequencyTable& table, AYM::DataChunk& chunk)
+        : Channel(chan)
+        , Table(table)
+        , Chunk(chunk)
+      {
+      }
+
+      void SetTone(int_t halfTones, int_t offset) const;
+      void SetLevel(int_t level) const;
+      void DisableTone() const;
+      void EnableEnvelope() const;
+      void DisableNoise() const;
+    private:
+      const uint_t Channel;
+      const Module::FrequencyTable& Table;
+      AYM::DataChunk& Chunk;
+    };
+
+    class TrackBuilder
+    {
+    public:
+      explicit TrackBuilder(const Module::FrequencyTable& table, AYM::DataChunk& chunk)
+        : Table(table)
+        , Chunk(chunk)
+      {
+      }
+
+      void SetNoise(uint_t level) const;
+      void SetEnvelopeType(uint_t type) const;
+      void SetEnvelopeTone(uint_t tone) const;
+
+      void SetRawChunk(const AYM::DataChunk& chunk) const;
+
+      int_t GetSlidingDifference(int_t halfToneFrom, int_t halfToneTo) const;
+
+      ChannelBuilder GetChannel(uint_t chan) const
+      {
+        return ChannelBuilder(chan, Table, Chunk);
+      }
+    private:
+      const Module::FrequencyTable& Table;
+      AYM::DataChunk& Chunk;
+    };
   }
-
-  //Temporary adapters
-  class AYMChannelSynthesizer
-  {
-  public:
-    AYMChannelSynthesizer(uint_t chan, const AYM::ParametersHelper& helper, AYM::DataChunk& chunk)
-      : Channel(chan)
-      , Helper(helper)
-      , Chunk(chunk)
-    {
-    }
-
-    void SetTone(int_t halfTones, int_t offset) const;
-    void SetLevel(int_t level) const;
-    void DisableTone() const;
-    void EnableEnvelope() const;
-    void DisableNoise() const;
-  private:
-    const uint_t Channel;
-    const AYM::ParametersHelper& Helper;
-    AYM::DataChunk& Chunk;
-  };
-
-  class AYMTrackSynthesizer
-  {
-  public:
-    explicit AYMTrackSynthesizer(const AYM::ParametersHelper& helper)
-      : Helper(helper)
-    {
-    }
-
-    //infrastructure
-    void InitData(uint64_t tickToPlay);
-    const AYM::DataChunk& GetData() const;
-
-    void SetNoise(uint_t level);
-    void SetEnvelopeType(uint_t type);
-    void SetEnvelopeTone(uint_t tone);
-
-    void SetRawChunk(const AYM::DataChunk& chunk);
-
-    int_t GetSlidingDifference(int_t halfToneFrom, int_t halfToneTo);
-
-    AYMChannelSynthesizer GetChannel(uint_t chan)
-    {
-      return AYMChannelSynthesizer(chan, Helper, Chunk);
-    }
-  private:
-    const AYM::ParametersHelper& Helper;
-    AYM::DataChunk Chunk;
-  };
 }
 
 #endif //__AYM_PARAMETERS_HELPER_H_DEFINED__

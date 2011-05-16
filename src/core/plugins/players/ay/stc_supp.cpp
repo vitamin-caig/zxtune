@@ -612,50 +612,50 @@ namespace
     const Information::Ptr Info;
   };
 
-  class STCChannelSynthesizer
+  class STCChannelBuilder
   {
   public:
-    STCChannelSynthesizer(uint_t transposition, AYMTrackSynthesizer& synth, uint_t chanNum)
+    STCChannelBuilder(uint_t transposition, const AYM::TrackBuilder& track, uint_t chanNum)
       : Transposition(transposition)
-      , MainSynth(synth)
-      , ChanSynth(synth.GetChannel(chanNum))
+      , Track(track)
+      , Channel(Track.GetChannel(chanNum))
     {
     }
 
-    void SetLevel(uint_t level)
+    void SetLevel(uint_t level) const
     {
-      ChanSynth.SetLevel(level);
+      Channel.SetLevel(level);
     }
 
-    void EnableEnvelope()
+    void EnableEnvelope() const
     {
-      ChanSynth.EnableEnvelope();
+      Channel.EnableEnvelope();
     }
 
-    void SetTone(int_t halftones, int_t offset)
+    void SetTone(int_t halftones, int_t offset) const
     {
-      ChanSynth.SetTone(halftones + Transposition, offset);
+      Channel.SetTone(halftones + Transposition, offset);
     }
 
-    void DisableTone()
+    void DisableTone() const
     {
-      ChanSynth.DisableTone();
+      Channel.DisableTone();
     }
 
-    void SetNoise(int_t level)
+    void SetNoise(int_t level) const
     {
-      MainSynth.SetNoise(level);
+      Track.SetNoise(level);
     }
 
-    void DisableNoise()
+    void DisableNoise() const
     {
-      ChanSynth.DisableNoise();
+      Channel.DisableNoise();
     }
 
   private:
     const uint_t Transposition;
-    AYMTrackSynthesizer& MainSynth;
-    const AYMChannelSynthesizer ChanSynth;
+    const AYM::TrackBuilder& Track;
+    const AYM::ChannelBuilder Channel;
   };
 
   struct STCChannelState
@@ -704,41 +704,41 @@ namespace
       }
     }
 
-    void Synthesize(STCChannelSynthesizer& synthesizer) const
+    void Synthesize(const STCChannelBuilder& channel) const
     {
       if (!Enabled)
       {
-        synthesizer.SetLevel(0);
+        channel.SetLevel(0);
         return;
       }
 
       const STCTrack::Sample::Line& curSampleLine = CurSample->GetLine(PosInSample);
 
       //apply level
-      synthesizer.SetLevel(curSampleLine.Level);
+      channel.SetLevel(curSampleLine.Level);
       //apply envelope
       if (Envelope)
       {
-        synthesizer.EnableEnvelope();
+        channel.EnableEnvelope();
       }
       //apply tone
       const int_t halftones = int_t(Note) + CurOrnament->GetLine(PosInSample);
       if (!curSampleLine.EnvelopeMask)
       {
-        synthesizer.SetTone(halftones, curSampleLine.Effect);
+        channel.SetTone(halftones, curSampleLine.Effect);
       }
       else
       {
-        synthesizer.DisableTone();
+        channel.DisableTone();
       }
       //apply noise
       if (!curSampleLine.NoiseMask)
       {
-        synthesizer.SetNoise(curSampleLine.Noise);
+        channel.SetNoise(curSampleLine.Noise);
       }
       else
       {
-        synthesizer.DisableNoise();
+        channel.DisableNoise();
       }
     }
 
@@ -825,13 +825,13 @@ namespace
     const STCTrack::Ornament* CurOrnament;
   };
 
-  void ProcessEnvelopeCommands(const STCTrack::CommandsArray& commands, AYMTrackSynthesizer& synthesizer)
+  void ProcessEnvelopeCommands(const STCTrack::CommandsArray& commands, const AYM::TrackBuilder& track)
   {
     const STCTrack::CommandsArray::const_iterator it = std::find(commands.begin(), commands.end(), ENVELOPE);
     if (it != commands.end())
     {
-      synthesizer.SetEnvelopeType(it->Param1);
-      synthesizer.SetEnvelopeTone(it->Param2);
+      track.SetEnvelopeType(it->Param1);
+      track.SetEnvelopeTone(it->Param2);
     }
   }
 
@@ -853,55 +853,55 @@ namespace
       StateC.Reset();
     }
 
-    virtual void SynthesizeData(const TrackState& state, AYMTrackSynthesizer& synthesizer)
+    virtual void SynthesizeData(const TrackState& state, const AYM::TrackBuilder& track)
     {
       if (0 == state.Quirk())
       {
-        GetNewLineState(state, synthesizer);
+        GetNewLineState(state, track);
       }
-      SynthesizeChannelsData(state, synthesizer);
+      SynthesizeChannelsData(state, track);
       StateA.Iterate();
       StateB.Iterate();
       StateC.Iterate();
     }
 
   private:
-    void GetNewLineState(const TrackState& state, AYMTrackSynthesizer& synthesizer)
+    void GetNewLineState(const TrackState& state, const AYM::TrackBuilder& track)
     {
       if (const STCTrack::Line* line = Data->Patterns[state.Pattern()].GetLine(state.Line()))
       {
         if (const STCTrack::Line::Chan& src = line->Channels[0])
         {
           StateA.SetNewState(src);
-          ProcessEnvelopeCommands(src.Commands, synthesizer);
+          ProcessEnvelopeCommands(src.Commands, track);
         }
         if (const STCTrack::Line::Chan& src = line->Channels[1])
         {
           StateB.SetNewState(src);
-          ProcessEnvelopeCommands(src.Commands, synthesizer);
+          ProcessEnvelopeCommands(src.Commands, track);
         }
         if (const STCTrack::Line::Chan& src = line->Channels[2])
         {
           StateC.SetNewState(src);
-          ProcessEnvelopeCommands(src.Commands, synthesizer);
+          ProcessEnvelopeCommands(src.Commands, track);
         }
       }
     }
 
-    void SynthesizeChannelsData(const TrackState& state, AYMTrackSynthesizer& synthesizer)
+    void SynthesizeChannelsData(const TrackState& state, const AYM::TrackBuilder& track)
     {
       const uint_t transposition = Data->Transpositions[state.Position()];
       {
-        STCChannelSynthesizer synth(transposition, synthesizer, 0);
-        StateA.Synthesize(synth);
+        STCChannelBuilder channel(transposition, track, 0);
+        StateA.Synthesize(channel);
       }
       {
-        STCChannelSynthesizer synth(transposition, synthesizer, 1);
-        StateB.Synthesize(synth);
+        STCChannelBuilder channel(transposition, track, 1);
+        StateB.Synthesize(channel);
       }
       {
-        STCChannelSynthesizer synth(transposition, synthesizer, 2);
-        StateC.Synthesize(synth);
+        STCChannelBuilder channel(transposition, track, 2);
+        StateC.Synthesize(channel);
       }
     }
   private:

@@ -209,7 +209,7 @@ namespace
     {
     }
 
-    virtual void SynthesizeData(const TrackState& state, AYMTrackSynthesizer& synthesizer)
+    virtual void SynthesizeData(const TrackState& state, const AYM::TrackBuilder& track)
     {
       const AYM::DataChunk& data = Data->Dump[state.Frame()];
       //collect state
@@ -222,7 +222,7 @@ namespace
         }
       }
       //apply result
-      synthesizer.SetRawChunk(PlayerState);
+      track.SetRawChunk(PlayerState);
       //reset envelope mask
       PlayerState.Mask &= ~(uint_t(1) << AYM::DataChunk::REG_ENV);
     }

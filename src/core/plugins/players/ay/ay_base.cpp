@@ -69,10 +69,11 @@ namespace
 #ifndef NDEBUG
 //perform self-test
       Reset();
-      AYMTrackSynthesizer synthesizer(*AYMHelper);
+      AYM::DataChunk chunk;
+      const AYM::TrackBuilder track(AYMHelper->GetFreqTable(), chunk);
       do
       {
-        Renderer->SynthesizeData(*Iterator, synthesizer);
+        Renderer->SynthesizeData(*Iterator, track);
       }
       while (Iterator->NextFrame(0, Sound::LOOP_NONE));
 #endif
@@ -93,14 +94,14 @@ namespace
     {
       const uint64_t ticksDelta = params.ClocksPerFrame();
 
-      AYMTrackSynthesizer synthesizer(*AYMHelper);
+      AYM::DataChunk chunk;
+      AYMHelper->GetDataChunk(chunk);
+      chunk.Tick = Iterator->AbsoluteTick() + ticksDelta;
+      const AYM::TrackBuilder track(AYMHelper->GetFreqTable(), chunk);
 
-      synthesizer.InitData(Iterator->AbsoluteTick() + ticksDelta);
-      Renderer->SynthesizeData(*Iterator, synthesizer);
+      Renderer->SynthesizeData(*Iterator, track);
 
       const bool res = Iterator->NextFrame(ticksDelta, params.Looping());
-
-      const AYM::DataChunk& chunk = synthesizer.GetData();
       Device->RenderData(params, chunk);
       return res;
     }
@@ -121,11 +122,12 @@ namespace
         Renderer->Reset();
       }
       //fast forward
-      AYMTrackSynthesizer synthesizer(*AYMHelper);
+      AYM::DataChunk chunk;
+      const AYM::TrackBuilder track(AYMHelper->GetFreqTable(), chunk);
       while (Iterator->Frame() < frame)
       {
         //do not update tick for proper rendering
-        Renderer->SynthesizeData(*Iterator, synthesizer);
+        Renderer->SynthesizeData(*Iterator, track);
         if (!Iterator->NextFrame(0, Sound::LOOP_NONE))
         {
           break;

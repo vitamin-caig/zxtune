@@ -36,7 +36,7 @@ namespace ZXTune
 
       virtual ~AYMDataRenderer() {}
 
-      virtual void SynthesizeData(const TrackState& state, AYMTrackSynthesizer& synthesizer) = 0;
+      virtual void SynthesizeData(const TrackState& state, const AYM::TrackBuilder& track) = 0;
       virtual void Reset() = 0;
     };
 

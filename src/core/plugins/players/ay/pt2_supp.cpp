@@ -549,16 +549,16 @@ namespace
       std::fill(PlayerState.begin(), PlayerState.end(), PT2ChannelState());
     }
 
-    virtual void SynthesizeData(const TrackState& state, AYMTrackSynthesizer& synthesizer)
+    virtual void SynthesizeData(const TrackState& state, const AYM::TrackBuilder& track)
     {
       if (0 == state.Quirk())
       {
-        GetNewLineState(state, synthesizer);
+        GetNewLineState(state, track);
       }
-      SynthesizeChannelsData(synthesizer);
+      SynthesizeChannelsData(track);
     }
   private:
-    void GetNewLineState(const TrackState& state, AYMTrackSynthesizer& synthesizer)
+    void GetNewLineState(const TrackState& state, const AYM::TrackBuilder& track)
     {
       if (const PT2Track::Line* line = Data->Patterns[state.Pattern()].GetLine(state.Line()))
       {
@@ -569,12 +569,12 @@ namespace
           {
             continue;
           }
-          GetNewChannelState(src, PlayerState[chan], synthesizer);
+          GetNewChannelState(src, PlayerState[chan], track);
         }
       }
     }
 
-    void GetNewChannelState(const PT2Track::Line::Chan& src, PT2ChannelState& dst, AYMTrackSynthesizer& synthesizer)
+    void GetNewChannelState(const PT2Track::Line::Chan& src, PT2ChannelState& dst, const AYM::TrackBuilder& track)
     {
       if (src.Enabled)
       {
@@ -611,8 +611,8 @@ namespace
         switch (it->Type)
         {
         case ENVELOPE:
-          synthesizer.SetEnvelopeType(it->Param1);
-          synthesizer.SetEnvelopeTone(it->Param2);
+          track.SetEnvelopeType(it->Param1);
+          track.SetEnvelopeTone(it->Param2);
           dst.Envelope = true;
           break;
         case NOENVELOPE:
@@ -639,20 +639,20 @@ namespace
       }
     }
 
-    void SynthesizeChannelsData(AYMTrackSynthesizer& synthesizer)
+    void SynthesizeChannelsData(const AYM::TrackBuilder& track)
     {
       for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
       {
-        const AYMChannelSynthesizer& chanSynt = synthesizer.GetChannel(chan);
-        SynthesizeChannel(PlayerState[chan], chanSynt, synthesizer);
+        const AYM::ChannelBuilder& channel = track.GetChannel(chan);
+        SynthesizeChannel(PlayerState[chan], channel, track);
       }
     }
 
-    void SynthesizeChannel(PT2ChannelState& dst, const AYMChannelSynthesizer& chanSynth, AYMTrackSynthesizer& trackSynt)
+    void SynthesizeChannel(PT2ChannelState& dst, const AYM::ChannelBuilder& channel, const AYM::TrackBuilder& track)
     {
       if (!dst.Enabled)
       {
-        chanSynth.SetLevel(0);
+        channel.SetLevel(0);
         return;
       }
 
@@ -662,32 +662,32 @@ namespace
 
       //apply tone
       const int_t halftones = int_t(dst.Note) + curOrnament.GetLine(dst.PosInOrnament);
-      chanSynth.SetTone(halftones, dst.Sliding + curSampleLine.Vibrato);
+      channel.SetTone(halftones, dst.Sliding + curSampleLine.Vibrato);
       if (curSampleLine.ToneOff)
       {
-        chanSynth.DisableTone();
+        channel.DisableTone();
       }
       //apply level
-      chanSynth.SetLevel(GetVolume(dst.Volume, curSampleLine.Level));
+      channel.SetLevel(GetVolume(dst.Volume, curSampleLine.Level));
       //apply envelope
       if (dst.Envelope)
       {
-        chanSynth.EnableEnvelope();
+        channel.EnableEnvelope();
       }
       //apply noise
       if (!curSampleLine.NoiseOff)
       {
-        trackSynt.SetNoise(curSampleLine.Noise + dst.NoiseAdd);
+        track.SetNoise(curSampleLine.Noise + dst.NoiseAdd);
       }
       else
       {
-        chanSynth.DisableNoise();
+        channel.DisableNoise();
       }
 
       //recalculate gliss
       if (dst.SlidingTargetNote != LIMITER)
       {
-        const int_t absoluteSlidingRange = trackSynt.GetSlidingDifference(dst.Note, dst.SlidingTargetNote);
+        const int_t absoluteSlidingRange = track.GetSlidingDifference(dst.Note, dst.SlidingTargetNote);
         const int_t realSlidingRange = absoluteSlidingRange - (dst.Sliding + dst.Glissade);
 
         if ((dst.Glissade > 0 && realSlidingRange <= 0) ||

@@ -203,90 +203,77 @@ namespace ZXTune
     {
       return ParametersHelper::Ptr(new ParametersHelperImpl(defaultFreqTable));
     }
-  }
 
-  void AYMChannelSynthesizer::SetTone(int_t halfTones, int_t offset) const
-  {
-    const Module::FrequencyTable& freqTable = Helper.GetFreqTable();
-    const int_t halftone = clamp<int_t>(halfTones, 0, static_cast<int_t>(freqTable.size()) - 1);
-    const uint_t tone = (freqTable[halftone] + offset) & 0xfff;
+    void ChannelBuilder::SetTone(int_t halfTones, int_t offset) const
+    {
+      const int_t halftone = clamp<int_t>(halfTones, 0, static_cast<int_t>(Table.size()) - 1);
+      const uint_t tone = (Table[halftone] + offset) & 0xfff;
 
-    const uint_t reg = AYM::DataChunk::REG_TONEA_L + 2 * Channel;
-    Chunk.Data[reg] = static_cast<uint8_t>(tone & 0xff);
-    Chunk.Data[reg + 1] = static_cast<uint8_t>(tone >> 8);
-    Chunk.Mask |= (1 << reg) | (1 << (reg + 1));
-  }
+      const uint_t reg = AYM::DataChunk::REG_TONEA_L + 2 * Channel;
+      Chunk.Data[reg] = static_cast<uint8_t>(tone & 0xff);
+      Chunk.Data[reg + 1] = static_cast<uint8_t>(tone >> 8);
+      Chunk.Mask |= (1 << reg) | (1 << (reg + 1));
+    }
 
-  void AYMChannelSynthesizer::SetLevel(int_t level) const
-  {
-    const uint_t reg = AYM::DataChunk::REG_VOLA + Channel;
-    Chunk.Data[reg] = static_cast<uint8_t>(clamp<int_t>(level, 0, 15));
-    Chunk.Mask |= 1 << reg;
-  }
+    void ChannelBuilder::SetLevel(int_t level) const
+    {
+      const uint_t reg = AYM::DataChunk::REG_VOLA + Channel;
+      Chunk.Data[reg] = static_cast<uint8_t>(clamp<int_t>(level, 0, 15));
+      Chunk.Mask |= 1 << reg;
+    }
 
-  void AYMChannelSynthesizer::DisableTone() const
-  {
-    Chunk.Data[AYM::DataChunk::REG_MIXER] |= (AYM::DataChunk::REG_MASK_TONEA << Channel);
-    Chunk.Mask |= 1 << AYM::DataChunk::REG_MIXER;
-  }
+    void ChannelBuilder::DisableTone() const
+    {
+      Chunk.Data[AYM::DataChunk::REG_MIXER] |= (AYM::DataChunk::REG_MASK_TONEA << Channel);
+      Chunk.Mask |= 1 << AYM::DataChunk::REG_MIXER;
+    }
 
-  void AYMChannelSynthesizer::EnableEnvelope() const
-  {
-    const uint_t reg = AYM::DataChunk::REG_VOLA + Channel;
-    Chunk.Data[reg] |= AYM::DataChunk::REG_MASK_ENV;
-    Chunk.Mask |= 1 << reg;
-  }
+    void ChannelBuilder::EnableEnvelope() const
+    {
+      const uint_t reg = AYM::DataChunk::REG_VOLA + Channel;
+      Chunk.Data[reg] |= AYM::DataChunk::REG_MASK_ENV;
+      Chunk.Mask |= 1 << reg;
+    }
 
-  void AYMChannelSynthesizer::DisableNoise() const
-  {
-    Chunk.Data[AYM::DataChunk::REG_MIXER] |= (AYM::DataChunk::REG_MASK_NOISEA << Channel);
-    Chunk.Mask |= 1 << AYM::DataChunk::REG_MIXER;
-  }
+    void ChannelBuilder::DisableNoise() const
+    {
+      Chunk.Data[AYM::DataChunk::REG_MIXER] |= (AYM::DataChunk::REG_MASK_NOISEA << Channel);
+      Chunk.Mask |= 1 << AYM::DataChunk::REG_MIXER;
+    }
 
-  void AYMTrackSynthesizer::InitData(uint64_t tickToPlay)
-  {
-    Helper.GetDataChunk(Chunk);
-    Chunk.Tick = tickToPlay;
-  }
+    void TrackBuilder::SetNoise(uint_t level) const
+    {
+      Chunk.Data[AYM::DataChunk::REG_TONEN] = level & 31;
+      Chunk.Mask |= 1 << AYM::DataChunk::REG_TONEN;
+    }
 
-  const AYM::DataChunk& AYMTrackSynthesizer::GetData() const
-  {
-    return Chunk;
-  }
+    void TrackBuilder::SetEnvelopeType(uint_t type) const
+    {
+      Chunk.Data[AYM::DataChunk::REG_ENV] = static_cast<uint8_t>(type);
+      Chunk.Mask |= 1 << AYM::DataChunk::REG_ENV;
+    }
 
-  void AYMTrackSynthesizer::SetNoise(uint_t level)
-  {
-    Chunk.Data[AYM::DataChunk::REG_TONEN] = level & 31;
-    Chunk.Mask |= 1 << AYM::DataChunk::REG_TONEN;
-  }
+    void TrackBuilder::SetEnvelopeTone(uint_t tone) const
+    {
+      Chunk.Data[AYM::DataChunk::REG_TONEE_L] = static_cast<uint8_t>(tone & 0xff);
+      Chunk.Data[AYM::DataChunk::REG_TONEE_H] = static_cast<uint8_t>(tone >> 8);
+      Chunk.Mask |= (1 << AYM::DataChunk::REG_TONEE_L) | (1 << AYM::DataChunk::REG_TONEE_H);
+    }
 
-  void AYMTrackSynthesizer::SetEnvelopeType(uint_t type)
-  {
-    Chunk.Data[AYM::DataChunk::REG_ENV] = static_cast<uint8_t>(type);
-    Chunk.Mask |= 1 << AYM::DataChunk::REG_ENV;
-  }
+    int_t TrackBuilder::GetSlidingDifference(int_t halfToneFrom, int_t halfToneTo) const
+    {
+      const int_t halfFrom = clamp<int_t>(halfToneFrom, 0, static_cast<int_t>(Table.size()) - 1);
+      const int_t halfTo = clamp<int_t>(halfToneTo, 0, static_cast<int_t>(Table.size()) - 1);
+      const int_t toneFrom = Table[halfFrom];
+      const int_t toneTo = Table[halfTo];
+      return toneTo - toneFrom;
+    }
 
-  void AYMTrackSynthesizer::SetEnvelopeTone(uint_t tone)
-  {
-    Chunk.Data[AYM::DataChunk::REG_TONEE_L] = static_cast<uint8_t>(tone & 0xff);
-    Chunk.Data[AYM::DataChunk::REG_TONEE_H] = static_cast<uint8_t>(tone >> 8);
-    Chunk.Mask |= (1 << AYM::DataChunk::REG_TONEE_L) | (1 << AYM::DataChunk::REG_TONEE_H);
-  }
-
-  int_t AYMTrackSynthesizer::GetSlidingDifference(int_t halfToneFrom, int_t halfToneTo)
-  {
-    const Module::FrequencyTable& freqTable = Helper.GetFreqTable();
-    const int_t halfFrom = clamp<int_t>(halfToneFrom, 0, static_cast<int_t>(freqTable.size()) - 1);
-    const int_t halfTo = clamp<int_t>(halfToneTo, 0, static_cast<int_t>(freqTable.size()) - 1);
-    const int_t toneFrom = freqTable[halfFrom];
-    const int_t toneTo = freqTable[halfTo];
-    return toneTo - toneFrom;
-  }
-
-  void AYMTrackSynthesizer::SetRawChunk(const AYM::DataChunk& chunk)
-  {
-    std::copy(chunk.Data.begin(), chunk.Data.end(), Chunk.Data.begin());
-    Chunk.Mask &= ~AYM::DataChunk::MASK_ALL_REGISTERS;
-    Chunk.Mask |= chunk.Mask & AYM::DataChunk::MASK_ALL_REGISTERS;
+    void TrackBuilder::SetRawChunk(const AYM::DataChunk& chunk) const
+    {
+      std::copy(chunk.Data.begin(), chunk.Data.end(), Chunk.Data.begin());
+      Chunk.Mask &= ~AYM::DataChunk::MASK_ALL_REGISTERS;
+      Chunk.Mask |= chunk.Mask & AYM::DataChunk::MASK_ALL_REGISTERS;
+    }
   }
 }
