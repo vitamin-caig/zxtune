@@ -40,11 +40,11 @@ namespace ZXTune
       virtual void Reset() = 0;
     };
 
-    Player::Ptr CreateAYMPlayer(AYM::ParametersHelper::Ptr params, StateIterator::Ptr iterator, AYMDataRenderer::Ptr renderer, AYM::Chip::Ptr device);
+    Renderer::Ptr CreateAYMRenderer(AYM::ParametersHelper::Ptr params, StateIterator::Ptr iterator, AYMDataRenderer::Ptr renderer, AYM::Chip::Ptr device);
 
-    Player::Ptr CreateAYMStreamPlayer(Information::Ptr info, AYMDataRenderer::Ptr renderer, AYM::Chip::Ptr device);
+    Renderer::Ptr CreateAYMStreamRenderer(Information::Ptr info, AYMDataRenderer::Ptr renderer, AYM::Chip::Ptr device);
 
-    Player::Ptr CreateAYMTrackPlayer(Information::Ptr info, TrackModuleData::Ptr data,
+    Renderer::Ptr CreateAYMTrackRenderer(Information::Ptr info, TrackModuleData::Ptr data,
       AYMDataRenderer::Ptr renderer, AYM::Chip::Ptr device, const String& defaultTable);
   }
 }

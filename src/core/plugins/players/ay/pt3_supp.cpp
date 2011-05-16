@@ -562,9 +562,9 @@ namespace
       return Info;
     }
 
-    virtual Player::Ptr CreatePlayer(Sound::MultichannelReceiver::Ptr target) const
+    virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
     {
-      return Vortex::CreatePlayer(Info, Data, Version, FreqTableName, AYM::CreateChip(target));
+      return Vortex::CreateRenderer(Info, Data, Version, FreqTableName, AYM::CreateChip(target));
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -592,9 +592,9 @@ namespace
       return Info;
     }
 
-    virtual Player::Ptr CreatePlayer(AYM::Chip::Ptr chip) const
+    virtual Renderer::Ptr CreateRenderer(AYM::Chip::Ptr chip) const
     {
-      return Vortex::CreatePlayer(Info, Data, Version, FreqTableName, chip);
+      return Vortex::CreateRenderer(Info, Data, Version, FreqTableName, chip);
     }
   protected:
     const Vortex::Track::ModuleData::RWPtr Data;
@@ -672,12 +672,12 @@ namespace
     {
     }
 
-    virtual Player::Ptr CreatePlayer(Sound::MultichannelReceiver::Ptr target) const
+    virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
     {
       const TSMixer::Ptr mixer = CreateTSMixer(target);
-      const Player::Ptr player1 = Vortex::CreatePlayer(Info, Data, Version, FreqTableName, AYM::CreateChip(mixer));
-      const Player::Ptr player2 = Vortex::CreatePlayer(Info, boost::make_shared<MirroredModuleData>(PatOffset, *Data), Version, FreqTableName, AYM::CreateChip(mixer));
-      return CreateTSPlayer(player1, player2, mixer);
+      const Renderer::Ptr renderer1 = Vortex::CreateRenderer(Info, Data, Version, FreqTableName, AYM::CreateChip(mixer));
+      const Renderer::Ptr renderer2 = Vortex::CreateRenderer(Info, boost::make_shared<MirroredModuleData>(PatOffset, *Data), Version, FreqTableName, AYM::CreateChip(mixer));
+      return CreateTSRenderer(renderer1, renderer2, mixer);
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const

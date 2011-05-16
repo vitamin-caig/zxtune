@@ -178,7 +178,7 @@ namespace
   #define SELF_TEST
   #endif
 
-  Player::Ptr CreateCHIPlayer(Information::Ptr info, CHITrack::ModuleData::Ptr data, DAC::Chip::Ptr device);
+  Renderer::Ptr CreateCHIRenderer(Information::Ptr info, CHITrack::ModuleData::Ptr data, DAC::Chip::Ptr device);
 
   class CHIHolder : public Holder
   {
@@ -312,7 +312,7 @@ namespace
       return Info;
     }
 
-    virtual Player::Ptr CreatePlayer(Sound::MultichannelReceiver::Ptr target) const
+    virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
     {
       const uint_t totalSamples = static_cast<uint_t>(Data->Samples.size());
       DAC::Chip::Ptr chip(DAC::CreateChip(CHANNELS_COUNT, totalSamples, BASE_FREQ, target));
@@ -324,7 +324,7 @@ namespace
           chip->SetSample(idx, smp.Data, smp.Loop);
         }
       }
-      return CreateCHIPlayer(Info, Data, chip);
+      return CreateCHIRenderer(Info, Data, chip);
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -346,7 +346,7 @@ namespace
     const Information::Ptr Info;
   };
 
-  class CHIPlayer : public Player
+  class CHIRenderer : public Renderer
   {
     struct GlissData
     {
@@ -362,11 +362,10 @@ namespace
       }
     };
   public:
-    CHIPlayer(Information::Ptr info, CHITrack::ModuleData::Ptr data, DAC::Chip::Ptr device)
+    CHIRenderer(Information::Ptr info, CHITrack::ModuleData::Ptr data, DAC::Chip::Ptr device)
       : Data(data)
       , Device(device)
       , Iterator(CreateTrackStateIterator(info, Data))
-      , CurrentState(MODULE_STOPPED)
       , Interpolation(false)
     {
       SetParameters(*info->Properties());
@@ -393,32 +392,27 @@ namespace
       return CreateDACAnalyzer(Device);
     }
 
-    virtual Error RenderFrame(const Sound::RenderParameters& params,
-                              PlaybackState& state)
+    virtual bool RenderFrame(const Sound::RenderParameters& params)
     {
       DAC::DataChunk chunk;
       RenderData(chunk);
 
-      CurrentState = Iterator->NextFrame(params.ClocksPerFrame(), params.Looping())
-        ? MODULE_PLAYING : MODULE_STOPPED;
+      const bool res = Iterator->NextFrame(params.ClocksPerFrame(), params.Looping());
 
       chunk.Tick = Iterator->AbsoluteTick();
       chunk.Interpolate = Interpolation;
       Device->RenderData(params, chunk);
-      state = CurrentState;
-      return Error();
+      return res;
     }
 
-    virtual Error Reset()
+    virtual void Reset()
     {
       Device->Reset();
       Iterator->Reset();
       std::fill(Gliss.begin(), Gliss.end(), GlissData());
-      CurrentState = MODULE_STOPPED;
-      return Error();
     }
 
-    virtual Error SetPosition(uint_t frame)
+    virtual void SetPosition(uint_t frame)
     {
       if (frame < Iterator->Frame())
       {
@@ -436,7 +430,6 @@ namespace
           break;
         }
       }
-      return Error();
     }
 
   private:
@@ -514,14 +507,13 @@ namespace
     const CHITrack::ModuleData::Ptr Data;
     const DAC::Chip::Ptr Device;
     const StateIterator::Ptr Iterator;
-    PlaybackState CurrentState;
     boost::array<GlissData, CHANNELS_COUNT> Gliss;
     bool Interpolation;
   };
 
-  Player::Ptr CreateCHIPlayer(Information::Ptr info, CHITrack::ModuleData::Ptr data, DAC::Chip::Ptr device)
+  Renderer::Ptr CreateCHIRenderer(Information::Ptr info, CHITrack::ModuleData::Ptr data, DAC::Chip::Ptr device)
   {
-    return Player::Ptr(new CHIPlayer(info, data, device));
+    return Renderer::Ptr(new CHIRenderer(info, data, device));
   }
 
   bool CheckCHI(const IO::DataContainer& data)

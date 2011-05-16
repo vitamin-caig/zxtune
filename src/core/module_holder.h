@@ -12,7 +12,7 @@
 #define __CORE_MODULE_HOLDER_H_DEFINED__
 
 //library includes
-#include <core/module_player.h>
+#include "plugins/players/renderer.h"
 #include <core/plugin.h>
 
 namespace ZXTune
@@ -39,9 +39,9 @@ namespace ZXTune
       //! @brief Retrieving info about loaded module
       virtual Information::Ptr GetModuleInformation() const = 0;
 
-      //! @brief Creating new player instance
+      //! @brief Creating new renderer instance
       //! @return New player
-      virtual Player::Ptr CreatePlayer(Sound::MultichannelReceiver::Ptr target) const = 0;
+      virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const = 0;
 
       //! @brief Converting to specified format
       //! @param param Specify format to convert

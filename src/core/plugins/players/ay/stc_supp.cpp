@@ -536,7 +536,7 @@ namespace
     STCTransposition Transpositions;
   };
 
-  Player::Ptr CreateSTCPlayer(Information::Ptr info, STCModuleData::Ptr data, AYM::Chip::Ptr device);
+  Renderer::Ptr CreateSTCRenderer(Information::Ptr info, STCModuleData::Ptr data, AYM::Chip::Ptr device);
 
   class STCHolder : public Holder
                   , private ConversionFactory
@@ -577,9 +577,9 @@ namespace
       return Info;
     }
 
-    virtual Player::Ptr CreatePlayer(Sound::MultichannelReceiver::Ptr target) const
+    virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
     {
-      return CreateSTCPlayer(Info, Data, AYM::CreateChip(target));
+      return CreateSTCRenderer(Info, Data, AYM::CreateChip(target));
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -602,9 +602,9 @@ namespace
       return Info;
     }
 
-    virtual Player::Ptr CreatePlayer(AYM::Chip::Ptr chip) const
+    virtual Renderer::Ptr CreateRenderer(AYM::Chip::Ptr chip) const
     {
-      return CreateSTCPlayer(Info, Data, chip);
+      return CreateSTCRenderer(Info, Data, chip);
     }
   private:
     const STCModuleData::RWPtr Data;
@@ -911,10 +911,10 @@ namespace
     STCChannelState StateC;
   };
 
-  Player::Ptr CreateSTCPlayer(Information::Ptr info, STCModuleData::Ptr data, AYM::Chip::Ptr device)
+  Renderer::Ptr CreateSTCRenderer(Information::Ptr info, STCModuleData::Ptr data, AYM::Chip::Ptr device)
   {
     const AYMDataRenderer::Ptr renderer = boost::make_shared<STCDataRenderer>(data);
-    return CreateAYMTrackPlayer(info, data, renderer, device, TABLE_SOUNDTRACKER);
+    return CreateAYMTrackRenderer(info, data, renderer, device, TABLE_SOUNDTRACKER);
   }
 
   class STCAreasChecker : public STCAreas

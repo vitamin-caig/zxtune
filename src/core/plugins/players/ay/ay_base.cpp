@@ -57,15 +57,14 @@ namespace
     const AYM::Chip::Ptr Device;
   };
 
-  class AYMPlayer : public Player
+  class AYMRenderer : public Renderer
   {
   public:
-    AYMPlayer(AYM::ParametersHelper::Ptr params, StateIterator::Ptr iterator, AYMDataRenderer::Ptr renderer, AYM::Chip::Ptr device)
+    AYMRenderer(AYM::ParametersHelper::Ptr params, StateIterator::Ptr iterator, AYMDataRenderer::Ptr renderer, AYM::Chip::Ptr device)
       : Renderer(renderer)
       , Device(device)
       , AYMHelper(params)
       , Iterator(iterator)
-      , CurrentState(MODULE_STOPPED)
     {
 #ifndef NDEBUG
 //perform self-test
@@ -90,8 +89,7 @@ namespace
       return boost::make_shared<AYMAnalyzer>(Device);
     }
 
-    virtual Error RenderFrame(const Sound::RenderParameters& params,
-                              PlaybackState& state)
+    virtual bool RenderFrame(const Sound::RenderParameters& params)
     {
       const uint64_t ticksDelta = params.ClocksPerFrame();
 
@@ -100,25 +98,21 @@ namespace
       synthesizer.InitData(Iterator->AbsoluteTick() + ticksDelta);
       Renderer->SynthesizeData(*Iterator, synthesizer);
 
-      CurrentState = Iterator->NextFrame(ticksDelta, params.Looping())
-        ? MODULE_PLAYING : MODULE_STOPPED;
+      const bool res = Iterator->NextFrame(ticksDelta, params.Looping());
 
       const AYM::DataChunk& chunk = synthesizer.GetData();
       Device->RenderData(params, chunk);
-      state = CurrentState;
-      return Error();
+      return res;
     }
 
-    virtual Error Reset()
+    virtual void Reset()
     {
       Device->Reset();
       Iterator->Reset();
       Renderer->Reset();
-      CurrentState = MODULE_STOPPED;
-      return Error();
     }
 
-    virtual Error SetPosition(uint_t frame)
+    virtual void SetPosition(uint_t frame)
     {
       if (frame < Iterator->Frame())
       {
@@ -137,14 +131,12 @@ namespace
           break;
         }
       }
-      return Error();
     }
   private:
     const AYMDataRenderer::Ptr Renderer;
     const AYM::Chip::Ptr Device;
     const AYM::ParametersHelper::Ptr AYMHelper;
     const StateIterator::Ptr Iterator;
-    PlaybackState CurrentState;
   };
 }
 
@@ -152,26 +144,26 @@ namespace ZXTune
 {
   namespace Module
   {
-    Player::Ptr CreateAYMPlayer(AYM::ParametersHelper::Ptr params, StateIterator::Ptr iterator, AYMDataRenderer::Ptr renderer, AYM::Chip::Ptr device)
+    Renderer::Ptr CreateAYMRenderer(AYM::ParametersHelper::Ptr params, StateIterator::Ptr iterator, AYMDataRenderer::Ptr renderer, AYM::Chip::Ptr device)
     {
-      return boost::make_shared<AYMPlayer>(params, iterator, renderer, device);
+      return boost::make_shared<AYMRenderer>(params, iterator, renderer, device);
     }
 
-    Player::Ptr CreateAYMStreamPlayer(Information::Ptr info, AYMDataRenderer::Ptr renderer, AYM::Chip::Ptr device)
+    Renderer::Ptr CreateAYMStreamRenderer(Information::Ptr info, AYMDataRenderer::Ptr renderer, AYM::Chip::Ptr device)
     {
       const AYM::ParametersHelper::Ptr params = AYM::ParametersHelper::Create(TABLE_SOUNDTRACKER);
       params->SetParameters(*info->Properties());
       const StateIterator::Ptr iterator = CreateStreamStateIterator(info);
-      return CreateAYMPlayer(params, iterator, renderer, device);
+      return CreateAYMRenderer(params, iterator, renderer, device);
     }
 
-    Player::Ptr CreateAYMTrackPlayer(Information::Ptr info, TrackModuleData::Ptr data, 
+    Renderer::Ptr CreateAYMTrackRenderer(Information::Ptr info, TrackModuleData::Ptr data, 
       AYMDataRenderer::Ptr renderer, AYM::Chip::Ptr device, const String& defaultTable)
     {
       const AYM::ParametersHelper::Ptr params = AYM::ParametersHelper::Create(defaultTable);
       params->SetParameters(*info->Properties());
       const StateIterator::Ptr iterator = CreateTrackStateIterator(info, data);
-      return CreateAYMPlayer(params, iterator, renderer, device);
+      return CreateAYMRenderer(params, iterator, renderer, device);
     }
   }
 }

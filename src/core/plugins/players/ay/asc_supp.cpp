@@ -403,7 +403,7 @@ namespace
   // tracker type
   typedef TrackingSupport<AYM::CHANNELS, CmdType, Sample, Ornament> ASCTrack;
 
-  Player::Ptr CreateASCPlayer(Information::Ptr info, ASCTrack::ModuleData::Ptr data, AYM::Chip::Ptr device);
+  Renderer::Ptr CreateASCRenderer(Information::Ptr info, ASCTrack::ModuleData::Ptr data, AYM::Chip::Ptr device);
 
   class ASCHolder : public Holder
                   , private ConversionFactory
@@ -694,9 +694,9 @@ namespace
       return Info;
     }
 
-    virtual Player::Ptr CreatePlayer(Sound::MultichannelReceiver::Ptr target) const
+    virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
     {
-      return CreateASCPlayer(Info, Data, AYM::CreateChip(target));
+      return CreateASCRenderer(Info, Data, AYM::CreateChip(target));
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -719,9 +719,9 @@ namespace
       return Info;
     }
 
-    virtual Player::Ptr CreatePlayer(AYM::Chip::Ptr chip) const
+    virtual Renderer::Ptr CreateRenderer(AYM::Chip::Ptr chip) const
     {
-      return CreateASCPlayer(Info, Data, chip);
+      return CreateASCRenderer(Info, Data, chip);
     }
   private:
     const ASCTrack::ModuleData::RWPtr Data;
@@ -1051,10 +1051,10 @@ namespace
     boost::array<ASCChannelState, AYM::CHANNELS> PlayerState;
   };
 
-  Player::Ptr CreateASCPlayer(Information::Ptr info, ASCTrack::ModuleData::Ptr data, AYM::Chip::Ptr device)
+  Renderer::Ptr CreateASCRenderer(Information::Ptr info, ASCTrack::ModuleData::Ptr data, AYM::Chip::Ptr device)
   {
     const AYMDataRenderer::Ptr renderer = boost::make_shared<ASCDataRenderer>(data);
-    return CreateAYMTrackPlayer(info, data, renderer, device, TABLE_ASM);
+    return CreateAYMTrackRenderer(info, data, renderer, device, TABLE_ASM);
   }
 
   //////////////////////////////////////////////////////////////////////////

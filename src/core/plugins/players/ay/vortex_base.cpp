@@ -435,11 +435,11 @@ namespace ZXTune
       }
 
 
-      Player::Ptr CreatePlayer(Information::Ptr info, Track::ModuleData::Ptr data,
+      Renderer::Ptr CreateRenderer(Information::Ptr info, Track::ModuleData::Ptr data,
          uint_t version, const String& freqTableName, AYM::Chip::Ptr device)
       {
         const AYMDataRenderer::Ptr renderer = boost::make_shared<VortexDataRenderer>(data, version);
-        return CreateAYMTrackPlayer(info, data, renderer, device, freqTableName);
+        return CreateAYMTrackRenderer(info, data, renderer, device, freqTableName);
       }
     }
   }

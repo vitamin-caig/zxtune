@@ -38,10 +38,10 @@ namespace
   //playing thread and starting/stopping thread
   const std::size_t TOTAL_WORKING_THREADS = 2;
 
-  class SafePlayerWrapper : public Module::Player
+  class SafeRendererWrapper : public Module::Renderer
   {
   public:
-    explicit SafePlayerWrapper(Module::Player::Ptr player)
+    explicit SafeRendererWrapper(Module::Renderer::Ptr player)
       : Delegate(player)
     {
       if (!Delegate.get())
@@ -62,25 +62,25 @@ namespace
       return Delegate->GetAnalyzer();
     }
 
-    virtual Error RenderFrame(const Sound::RenderParameters& params, PlaybackState& state)
+    virtual bool RenderFrame(const Sound::RenderParameters& params)
     {
       Locker lock(Mutex);
-      return Delegate->RenderFrame(params, state);
+      return Delegate->RenderFrame(params);
     }
 
-    virtual Error Reset()
+    virtual void Reset()
     {
       Locker lock(Mutex);
       return Delegate->Reset();
     }
 
-    virtual Error SetPosition(uint_t frame)
+    virtual void SetPosition(uint_t frame)
     {
       Locker lock(Mutex);
       return Delegate->SetPosition(frame);
     }
   private:
-    const Module::Player::Ptr Delegate;
+    const Module::Renderer::Ptr Delegate;
     mutable boost::mutex Mutex;
   };
 
@@ -126,7 +126,7 @@ namespace ZXTune
     BackendImpl::BackendImpl(CreateBackendParameters::Ptr params)
       : CurrentMixer(params->GetMixer())
       , Holder(params->GetModule())
-      , Player(new SafePlayerWrapper(Holder->CreatePlayer(CurrentMixer)))
+      , Player(new SafeRendererWrapper(Holder->CreateRenderer(CurrentMixer)))
       , SoundParameters(params->GetParameters())
       , RenderingParameters(RenderParameters::Create(SoundParameters))
       , Signaller(Async::Signals::Dispatcher::Create())
@@ -250,7 +250,7 @@ namespace ZXTune
         {
           return Error();
         }
-        ThrowIfError(Player->SetPosition(frame));
+        Player->SetPosition(frame);
         SendSignal(Backend::MODULE_SEEK);
         return Error();
       }
@@ -331,9 +331,8 @@ namespace ZXTune
         Locker lock(PlayerMutex);
         Buffer.reserve(RenderingParameters->SamplesPerFrame());
         Buffer.clear();
-        Module::Player::PlaybackState state;
-        ThrowIfError(Player->RenderFrame(*RenderingParameters, state));
-        if (!(res = Module::Player::MODULE_PLAYING == state))
+        res = Player->RenderFrame(*RenderingParameters);
+        if (!res)
         {
           CurrentMixer->Flush();
         }
@@ -458,9 +457,9 @@ namespace
 
   class Renderer
   {
-    Renderer(RenderParameters::Ptr renderParams, Module::Player::Ptr player, Mixer::Ptr mixer)
+    Renderer(RenderParameters::Ptr renderParams, Module::Renderer::Ptr renderer, Mixer::Ptr mixer)
       : RenderingParameters(renderParams)
-      , Player(player)
+      , Source(renderer)
       , Mix(mixer)
     {
       const Receiver::Ptr target(new BufferRenderer(Buffer));
@@ -469,23 +468,22 @@ namespace
   public:
     typedef boost::shared_ptr<Renderer> Ptr;
 
-    static Ptr Create(const CreateBackendParameters& params, Module::Player::Ptr player, Mixer::Ptr mixer)
+    static Ptr Create(const CreateBackendParameters& params, Module::Renderer::Ptr renderer, Mixer::Ptr mixer)
     {
       const RenderParameters::Ptr renderParams = RenderParameters::Create(params.GetParameters());
-      return Renderer::Ptr(new Renderer(renderParams, player, mixer));
+      return Renderer::Ptr(new Renderer(renderParams, renderer, mixer));
     }
 
-    Module::Player::PlaybackState ApplyFrame()
+    bool ApplyFrame()
     {
       Buffer.reserve(RenderingParameters->SamplesPerFrame());
       Buffer.clear();
-      Module::Player::PlaybackState state;
-      ThrowIfError(Player->RenderFrame(*RenderingParameters, state));
-      if (state == Module::Player::MODULE_STOPPED)
+      const bool res = Source->RenderFrame(*RenderingParameters);
+      if (!res)
       {
         Mix->Flush();
       }
-      return state;
+      return res;
     }
 
     std::vector<MultiSample>& GetBuffer()
@@ -494,7 +492,7 @@ namespace
     }
   private:
     const RenderParameters::Ptr RenderingParameters;
-    const Module::Player::Ptr Player;
+    const Module::Renderer::Ptr Source;
     const Mixer::Ptr Mix;
     std::vector<MultiSample> Buffer;
   };
@@ -506,7 +504,7 @@ namespace
       : Delegate(worker)
       , Signaller(signaller)
       , Render(render)
-      , State(Module::Player::MODULE_STOPPED)
+      , Playing(false)
     {
     }
 
@@ -515,7 +513,7 @@ namespace
       try
       {
         Delegate->OnStartup();
-        State = Module::Player::MODULE_PLAYING;
+        Playing = true;
         Signaller.Notify(Backend::MODULE_START);
         return Error();
       }
@@ -529,7 +527,7 @@ namespace
     {
       try
       {
-        State = Module::Player::MODULE_STOPPED;
+        Playing = false;
         Signaller.Notify(Backend::MODULE_STOP);
         Delegate->OnShutdown();
         return Error();
@@ -573,7 +571,7 @@ namespace
       try
       {
         Delegate->OnFrame();
-        State = Render->ApplyFrame();
+        Playing = Render->ApplyFrame();
         Delegate->OnBufferReady(Render->GetBuffer());
         if (IsFinished())
         {
@@ -589,13 +587,13 @@ namespace
 
     virtual bool IsFinished() const
     {
-      return State != Module::Player::MODULE_PLAYING;
+      return !Playing;
     }
   private:
     const BackendWorker::Ptr Delegate;
     Async::Signals::Dispatcher& Signaller;
     const Renderer::Ptr Render;
-    Module::Player::PlaybackState State;
+    bool Playing;
   };
 
   class BackendInternal : public Backend
@@ -606,8 +604,8 @@ namespace
       , Signaller(Async::Signals::Dispatcher::Create())
       , Mix(CreateMixer(*params))
       , Holder(params->GetModule())
-      , Player(new SafePlayerWrapper(Holder->CreatePlayer(Mix)))
-      , Job(Async::Job::Create(Async::Job::Worker::Ptr(new AsyncWrapper(Worker, *Signaller, Renderer::Create(*params, Player, Mix)))))
+      , Renderer(new SafeRendererWrapper(Holder->CreateRenderer(Mix)))
+      , Job(Async::Job::Create(Async::Job::Worker::Ptr(new AsyncWrapper(Worker, *Signaller, Renderer::Create(*params, Renderer, Mix)))))
     {
     }
 
@@ -618,12 +616,12 @@ namespace
 
     virtual Module::TrackState::Ptr GetTrackState() const
     {
-      return Player->GetTrackState();
+      return Renderer->GetTrackState();
     }
 
     virtual Module::Analyzer::Ptr GetAnalyzer() const
     {
-      return Player->GetAnalyzer();
+      return Renderer->GetAnalyzer();
     }
 
     virtual Error Play()
@@ -645,7 +643,7 @@ namespace
     {
       try
       {
-        ThrowIfError(Player->SetPosition(frame));
+        Renderer->SetPosition(frame);
         Signaller->Notify(Backend::MODULE_SEEK);
         return Error();
       }
@@ -676,7 +674,7 @@ namespace
     const Async::Signals::Dispatcher::Ptr Signaller;
     const Mixer::Ptr Mix;
     const Module::Holder::Ptr Holder;
-    const Module::Player::Ptr Player;
+    const Module::Renderer::Ptr Renderer;
     const Async::Job::Ptr Job;
   };
 }

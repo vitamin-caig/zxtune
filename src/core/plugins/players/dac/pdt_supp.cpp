@@ -226,7 +226,7 @@ namespace
   #define SELF_TEST
   #endif
 
-  Player::Ptr CreatePDTPlayer(Information::Ptr info, PDTTrack::ModuleData::Ptr data, DAC::Chip::Ptr device);
+  Renderer::Ptr CreatePDTRenderer(Information::Ptr info, PDTTrack::ModuleData::Ptr data, DAC::Chip::Ptr device);
 
   class PDTHolder : public Holder
   {
@@ -367,7 +367,7 @@ namespace
       return Info;
     }
 
-    virtual Player::Ptr CreatePlayer(Sound::MultichannelReceiver::Ptr target) const
+    virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
     {
       const uint_t totalSamples = static_cast<uint_t>(Data->Samples.size());
       DAC::Chip::Ptr chip(DAC::CreateChip(CHANNELS_COUNT, totalSamples, BASE_FREQ, target));
@@ -379,7 +379,7 @@ namespace
           chip->SetSample(idx, smp.Data, smp.Loop);
         }
       }
-      return CreatePDTPlayer(Info, Data, chip);
+      return CreatePDTRenderer(Info, Data, chip);
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -401,7 +401,7 @@ namespace
     const Information::Ptr Info;
   };
 
-  class PDTPlayer : public Player
+  class PDTRenderer : public Renderer
   {
     struct OrnamentState
     {
@@ -431,11 +431,10 @@ namespace
       }
     };
   public:
-    PDTPlayer(Information::Ptr info, PDTTrack::ModuleData::Ptr data, DAC::Chip::Ptr device)
+    PDTRenderer(Information::Ptr info, PDTTrack::ModuleData::Ptr data, DAC::Chip::Ptr device)
       : Data(data)
       , Device(device)
       , Iterator(CreateTrackStateIterator(info, Data))
-      , CurrentState(MODULE_STOPPED)
       , Interpolation(false)
     {
       SetParameters(*info->Properties());
@@ -462,32 +461,27 @@ namespace
       return CreateDACAnalyzer(Device);
     }
 
-    virtual Error RenderFrame(const Sound::RenderParameters& params,
-                              PlaybackState& state)
+    virtual bool RenderFrame(const Sound::RenderParameters& params)
     {
       DAC::DataChunk chunk;
       RenderData(chunk);
 
-      CurrentState = Iterator->NextFrame(params.ClocksPerFrame(), params.Looping())
-        ? MODULE_PLAYING : MODULE_STOPPED;
+      const bool res = Iterator->NextFrame(params.ClocksPerFrame(), params.Looping());
 
       chunk.Tick = Iterator->AbsoluteTick();
       chunk.Interpolate = Interpolation;
       Device->RenderData(params, chunk);
-      state = CurrentState;
-      return Error();
+      return res;
     }
 
-    virtual Error Reset()
+    virtual void Reset()
     {
       Device->Reset();
       Iterator->Reset();
       std::for_each(Ornaments.begin(), Ornaments.end(), std::mem_fun_ref(&OrnamentState::Reset));
-      CurrentState = MODULE_STOPPED;
-      return Error();
     }
 
-    virtual Error SetPosition(uint_t frame)
+    virtual void SetPosition(uint_t frame)
     {
       if (frame < Iterator->Frame())
       {
@@ -505,7 +499,6 @@ namespace
           break;
         }
       }
-      return Error();
     }
 
   private:
@@ -579,14 +572,13 @@ namespace
     const PDTTrack::ModuleData::Ptr Data;
     const DAC::Chip::Ptr Device;
     const StateIterator::Ptr Iterator;
-    PlaybackState CurrentState;
     boost::array<OrnamentState, CHANNELS_COUNT> Ornaments;
     bool Interpolation;
   };
 
-  Player::Ptr CreatePDTPlayer(Information::Ptr info, PDTTrack::ModuleData::Ptr data, DAC::Chip::Ptr device)
+  Renderer::Ptr CreatePDTRenderer(Information::Ptr info, PDTTrack::ModuleData::Ptr data, DAC::Chip::Ptr device)
   {
-    return Player::Ptr(new PDTPlayer(info, data, device));
+    return Renderer::Ptr(new PDTRenderer(info, data, device));
   }
 
   //////////////////////////////////////////////////////////////////////////

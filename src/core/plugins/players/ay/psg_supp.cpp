@@ -79,7 +79,7 @@ namespace
     std::vector<AYM::DataChunk> Dump;
   };
 
-  Player::Ptr CreatePSGPlayer(Information::Ptr info, PSGData::Ptr data, AYM::Chip::Ptr device);
+  Renderer::Ptr CreatePSGRenderer(Information::Ptr info, PSGData::Ptr data, AYM::Chip::Ptr device);
 
   class PSGHolder : public Holder
                   , private ConversionFactory
@@ -165,9 +165,9 @@ namespace
       return Info;
     }
 
-    virtual Player::Ptr CreatePlayer(Sound::MultichannelReceiver::Ptr target) const
+    virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
     {
-      return CreatePSGPlayer(Info, Data, AYM::CreateChip(target));
+      return CreatePSGRenderer(Info, Data, AYM::CreateChip(target));
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -191,9 +191,9 @@ namespace
       return Info;
     }
 
-    virtual Player::Ptr CreatePlayer(AYM::Chip::Ptr chip) const
+    virtual Renderer::Ptr CreateRenderer(AYM::Chip::Ptr chip) const
     {
-      return CreatePSGPlayer(Info, Data, chip);
+      return CreatePSGRenderer(Info, Data, chip);
     }
   private:
     const ModuleProperties::Ptr Properties;
@@ -237,10 +237,10 @@ namespace
     AYM::DataChunk PlayerState;
   };
 
-  Player::Ptr CreatePSGPlayer(Information::Ptr info, PSGData::Ptr data, AYM::Chip::Ptr device)
+  Renderer::Ptr CreatePSGRenderer(Information::Ptr info, PSGData::Ptr data, AYM::Chip::Ptr device)
   {
     const AYMDataRenderer::Ptr renderer = boost::make_shared<PSGDataRenderer>(data);
-    return CreateAYMStreamPlayer(info, renderer, device);
+    return CreateAYMStreamRenderer(info, renderer, device);
   }
 
   bool CheckPSG(const IO::DataContainer& inputData)

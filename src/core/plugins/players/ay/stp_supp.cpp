@@ -604,7 +604,7 @@ namespace
   };
 
   // forward declaration
-  Player::Ptr CreateSTPPlayer(Information::Ptr info, STPModuleData::Ptr data, AYM::Chip::Ptr device);
+  Renderer::Ptr CreateSTPRenderer(Information::Ptr info, STPModuleData::Ptr data, AYM::Chip::Ptr device);
 
   class STPHolder : public Holder
                   , private ConversionFactory
@@ -646,9 +646,9 @@ namespace
       return Info;
     }
 
-    virtual Player::Ptr CreatePlayer(Sound::MultichannelReceiver::Ptr target) const
+    virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
     {
-      return CreateSTPPlayer(Info, Data, AYM::CreateChip(target));
+      return CreateSTPRenderer(Info, Data, AYM::CreateChip(target));
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -671,9 +671,9 @@ namespace
       return Info;
     }
 
-    virtual Player::Ptr CreatePlayer(AYM::Chip::Ptr chip) const
+    virtual Renderer::Ptr CreateRenderer(AYM::Chip::Ptr chip) const
     {
-      return CreateSTPPlayer(Info, Data, chip);
+      return CreateSTPRenderer(Info, Data, chip);
     }
   private:
     const STPModuleData::RWPtr Data;
@@ -869,10 +869,10 @@ namespace
     boost::array<STPChannelState, AYM::CHANNELS> PlayerState;
   };
 
-  Player::Ptr CreateSTPPlayer(Information::Ptr info, STPModuleData::Ptr data, AYM::Chip::Ptr device)
+  Renderer::Ptr CreateSTPRenderer(Information::Ptr info, STPModuleData::Ptr data, AYM::Chip::Ptr device)
   {
     const AYMDataRenderer::Ptr renderer = boost::make_shared<STPDataRenderer>(data);
-    return CreateAYMTrackPlayer(info, data, renderer, device, TABLE_SOUNDTRACKER);
+    return CreateAYMTrackRenderer(info, data, renderer, device, TABLE_SOUNDTRACKER);
   }
 
   class STPAreasChecker : public STPAreas

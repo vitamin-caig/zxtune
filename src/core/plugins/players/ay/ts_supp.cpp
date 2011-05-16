@@ -291,9 +291,9 @@ namespace
       return Info;
     }
 
-    virtual Player::Ptr CreatePlayer(Sound::MultichannelReceiver::Ptr target) const
+    virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
     {
-      return CreateTSPlayer(Holder1, Holder2, target);
+      return CreateTSRenderer(Holder1, Holder2, target);
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const

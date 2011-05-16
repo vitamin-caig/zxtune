@@ -43,23 +43,23 @@ namespace
   public:
     virtual Error Convert(const ConversionFactory& factory, Dump& dst) const
     {
-      Dump tmp;
-      AYM::Chip::Ptr chip = CreateChip(tmp);
-      const Player::Ptr player = factory.CreatePlayer(chip);
-      const Module::Information::Ptr info = factory.GetInformation();
-      const Parameters::Accessor::Ptr props = info->Properties();
-
-      const Sound::RenderParameters::Ptr params = Sound::RenderParameters::Create(props);
-      for (Player::PlaybackState state = Player::MODULE_PLAYING; Player::MODULE_PLAYING == state;)
+      try
       {
-        if (const Error& err = player->RenderFrame(*params, state))
-        {
-          return Error(THIS_LINE, ERROR_MODULE_CONVERT, GetErrorMessage()).AddSuberror(err);
-        }
+        Dump tmp;
+        AYM::Chip::Ptr chip = CreateChip(tmp);
+        const Renderer::Ptr renderer = factory.CreateRenderer(chip);
+        const Module::Information::Ptr info = factory.GetInformation();
+        const Parameters::Accessor::Ptr props = info->Properties();
+
+        const Sound::RenderParameters::Ptr params = Sound::RenderParameters::Create(props);
+        while (renderer->RenderFrame(*params)) {}
+        dst.swap(tmp);
+        return Error();
       }
-      
-      dst.swap(tmp);
-      return Error();
+      catch (const Error& err)
+      {
+        return Error(THIS_LINE, ERROR_MODULE_CONVERT, GetErrorMessage()).AddSuberror(err);
+      }
     }
   protected:
     virtual AYM::Chip::Ptr CreateChip(Dump& tmp) const = 0;
@@ -141,53 +141,54 @@ namespace
   public:
     virtual Error Convert(const ConversionFactory& factory, Dump& dst) const
     {
-      Dump rawDump;
-      AYM::Chip::Ptr chip = AYM::CreateRawStreamDumper(rawDump);
-      const Player::Ptr player = factory.CreatePlayer(chip);
-      const Module::Information::Ptr info = factory.GetInformation();
-      const Parameters::Accessor::Ptr props = info->Properties();
-
-      const Sound::RenderParameters::Ptr params = Sound::RenderParameters::Create(props);
-      for (Player::PlaybackState state = Player::MODULE_PLAYING; Player::MODULE_PLAYING == state;)
+      try
       {
-        if (const Error& err = player->RenderFrame(*params, state))
+        Dump rawDump;
+        AYM::Chip::Ptr chip = AYM::CreateRawStreamDumper(rawDump);
+        const Renderer::Ptr renderer = factory.CreateRenderer(chip);
+        const Module::Information::Ptr info = factory.GetInformation();
+        const Parameters::Accessor::Ptr props = info->Properties();
+
+        const Sound::RenderParameters::Ptr params = Sound::RenderParameters::Create(props);
+        while (renderer->RenderFrame(*params)) {}
+
+        String name, author;
+        props->FindStringValue(ATTR_TITLE, name);
+        props->FindStringValue(ATTR_AUTHOR, author);
+        const std::size_t headerSize = sizeof(FYMHeader) + (name.size() + 1) + (author.size() + 1);
+
+        Dump result(sizeof(FYMHeader));
         {
-          return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERT_FYM).AddSuberror(err);
+          FYMHeader* const header = safe_ptr_cast<FYMHeader*>(&result[0]);
+          header->HeaderSize = static_cast<uint32_t>(headerSize);
+          header->FramesCount = info->FramesCount();
+          header->LoopFrame = info->LoopFrame();
+          header->PSGFreq = static_cast<uint32_t>(params->ClockFreq());
+          header->IntFreq = 1000000 / params->FrameDurationMicrosec();
         }
-      }
+        std::copy(name.begin(), name.end(), std::back_inserter(result));
+        result.push_back(0);
+        std::copy(author.begin(), author.end(), std::back_inserter(result));
+        result.push_back(0);
 
-      String name, author;
-      props->FindStringValue(ATTR_TITLE, name);
-      props->FindStringValue(ATTR_AUTHOR, author);
-      const std::size_t headerSize = sizeof(FYMHeader) + (name.size() + 1) + (author.size() + 1);
-
-      Dump result(sizeof(FYMHeader));
-      {
-        FYMHeader* const header = safe_ptr_cast<FYMHeader*>(&result[0]);
-        header->HeaderSize = static_cast<uint32_t>(headerSize);
-        header->FramesCount = info->FramesCount();
-        header->LoopFrame = info->LoopFrame();
-        header->PSGFreq = static_cast<uint32_t>(params->ClockFreq());
-        header->IntFreq = 1000000 / params->FrameDurationMicrosec();
-      }
-      std::copy(name.begin(), name.end(), std::back_inserter(result));
-      result.push_back(0);
-      std::copy(author.begin(), author.end(), std::back_inserter(result));
-      result.push_back(0);
-
-      result.resize(headerSize + rawDump.size());
-      //todo optimize
-      const uint_t frames = info->FramesCount();
-      assert(frames * 14 == rawDump.size());
-      for (uint_t reg = 0; reg < 14; ++reg)
-      {
-        for (uint_t frm = 0; frm < frames; ++frm)
+        result.resize(headerSize + rawDump.size());
+        //todo optimize
+        const uint_t frames = info->FramesCount();
+        assert(frames * 14 == rawDump.size());
+        for (uint_t reg = 0; reg < 14; ++reg)
         {
-          result[headerSize + frames * reg + frm] = rawDump[14 * frm + reg];
+          for (uint_t frm = 0; frm < frames; ++frm)
+          {
+            result[headerSize + frames * reg + frm] = rawDump[14 * frm + reg];
+          }
         }
+        dst.swap(result);
+        return Error();
       }
-      dst.swap(result);
-      return Error();
+      catch (const Error& err)
+      {
+        return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERT_FYM).AddSuberror(err);
+      }
     }
   };
 }

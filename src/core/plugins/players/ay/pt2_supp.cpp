@@ -261,7 +261,7 @@ namespace
 
   typedef TrackingSupport<AYM::CHANNELS, CmdType, Sample> PT2Track;
 
-  Player::Ptr CreatePT2Player(Information::Ptr info, PT2Track::ModuleData::Ptr data, AYM::Chip::Ptr device);
+  Renderer::Ptr CreatePT2Renderer(Information::Ptr info, PT2Track::ModuleData::Ptr data, AYM::Chip::Ptr device);
 
   class PT2Holder : public Holder
                   , private ConversionFactory
@@ -472,9 +472,9 @@ namespace
       return Info;
     }
 
-    virtual Player::Ptr CreatePlayer(Sound::MultichannelReceiver::Ptr target) const
+    virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
     {
-      return CreatePT2Player(Info, Data, AYM::CreateChip(target));
+      return CreatePT2Renderer(Info, Data, AYM::CreateChip(target));
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -497,9 +497,9 @@ namespace
       return Info;
     }
 
-    virtual Player::Ptr CreatePlayer(AYM::Chip::Ptr chip) const
+    virtual Renderer::Ptr CreateRenderer(AYM::Chip::Ptr chip) const
     {
-      return CreatePT2Player(Info, Data, chip);
+      return CreatePT2Renderer(Info, Data, chip);
     }
   private:
     const PT2Track::ModuleData::RWPtr Data;
@@ -714,10 +714,10 @@ namespace
     boost::array<PT2ChannelState, AYM::CHANNELS> PlayerState;
   };
 
-  Player::Ptr CreatePT2Player(Information::Ptr info, PT2Track::ModuleData::Ptr data, AYM::Chip::Ptr device)
+  Renderer::Ptr CreatePT2Renderer(Information::Ptr info, PT2Track::ModuleData::Ptr data, AYM::Chip::Ptr device)
   {
     const AYMDataRenderer::Ptr renderer = boost::make_shared<PT2DataRenderer>(data);
-    return CreateAYMTrackPlayer(info, data, renderer, device, TABLE_PROTRACKER2);
+    return CreateAYMTrackRenderer(info, data, renderer, device, TABLE_PROTRACKER2);
   }
 
   //////////////////////////////////////////////////

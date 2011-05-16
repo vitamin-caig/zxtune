@@ -180,65 +180,50 @@ namespace
     CycledIterator<BufferType::iterator> MixCursor;
   };
 
-  class TSPlayer : public Player
+  class TSRenderer : public Renderer
   {
   public:
-    TSPlayer(Player::Ptr first, Player::Ptr second, TSMixer::Ptr mixer)
+    TSRenderer(Renderer::Ptr first, Renderer::Ptr second, TSMixer::Ptr mixer)
       : Mixer(mixer)
-      , Player1(first)
-      , Player2(second)
+      , Renderer1(first)
+      , Renderer2(second)
     {
     }
 
     virtual TrackState::Ptr GetTrackState() const
     {
-      return CreateTSTrackState(Player1->GetTrackState(), Player2->GetTrackState());
+      return CreateTSTrackState(Renderer1->GetTrackState(), Renderer2->GetTrackState());
     }
 
     virtual Analyzer::Ptr GetAnalyzer() const
     {
-      return CreateTSAnalyzer(Player1->GetAnalyzer(), Player2->GetAnalyzer());
+      return CreateTSAnalyzer(Renderer1->GetAnalyzer(), Renderer2->GetAnalyzer());
     }
 
-    virtual Error RenderFrame(const Sound::RenderParameters& params,
-                              PlaybackState& state)
+    virtual bool RenderFrame(const Sound::RenderParameters& params)
     {
-      PlaybackState state1, state2;
       Mixer->SetStream(0);
-      if (const Error& e = Player1->RenderFrame(params, state1))
-      {
-        return e;
-      }
+      const bool res1 = Renderer1->RenderFrame(params);
       Mixer->SetStream(1);
-      if (const Error& e = Player2->RenderFrame(params, state2))
-      {
-        return e;
-      }
-      state = state1 == MODULE_STOPPED || state2 == MODULE_STOPPED ? MODULE_STOPPED : MODULE_PLAYING;
-      return Error();
+      const bool res2 = Renderer2->RenderFrame(params);
+      return res1 && res2;
     }
 
-    virtual Error Reset()
+    virtual void Reset()
     {
-      if (const Error& e = Player1->Reset())
-      {
-        return e;
-      }
-      return Player2->Reset();
+      Renderer1->Reset();
+      Renderer2->Reset();
     }
 
-    virtual Error SetPosition(uint_t frame)
+    virtual void SetPosition(uint_t frame)
     {
-      if (const Error& e = Player1->SetPosition(frame))
-      {
-        return e;
-      }
-      return Player2->SetPosition(frame);
+      Renderer1->SetPosition(frame);
+      Renderer2->SetPosition(frame);
     }
   private:
     const TSMixer::Ptr Mixer;
-    const Player::Ptr Player1;
-    const Player::Ptr Player2;
+    const Renderer::Ptr Renderer1;
+    const Renderer::Ptr Renderer2;
   };
 }
 
@@ -261,15 +246,15 @@ namespace ZXTune
       return boost::make_shared<TSMixerImpl>(delegate);
     }
 
-    Player::Ptr CreateTSPlayer(Holder::Ptr first, Holder::Ptr second, Sound::MultichannelReceiver::Ptr target)
+    Renderer::Ptr CreateTSRenderer(Holder::Ptr first, Holder::Ptr second, Sound::MultichannelReceiver::Ptr target)
     {
       const TSMixer::Ptr mixer = CreateTSMixer(target);
-      return CreateTSPlayer(first->CreatePlayer(mixer), second->CreatePlayer(mixer), mixer);
+      return CreateTSRenderer(first->CreateRenderer(mixer), second->CreateRenderer(mixer), mixer);
     }
 
-    Player::Ptr CreateTSPlayer(Player::Ptr first, Player::Ptr second, TSMixer::Ptr mixer)
+    Renderer::Ptr CreateTSRenderer(Renderer::Ptr first, Renderer::Ptr second, TSMixer::Ptr mixer)
     {
-      return boost::make_shared<TSPlayer>(first, second, mixer);
+      return boost::make_shared<TSRenderer>(first, second, mixer);
     }
   }
 }

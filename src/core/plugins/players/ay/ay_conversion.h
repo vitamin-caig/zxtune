@@ -15,8 +15,7 @@ Author:
 
 //local includes
 #include "vortex_base.h"
-//library includes
-#include <core/module_player.h>
+#include "core/plugins/players/renderer.h"
 
 //forward declarations
 class Error;
@@ -36,7 +35,7 @@ namespace ZXTune
       virtual ~ConversionFactory() {}
 
       virtual Information::Ptr GetInformation() const = 0;
-      virtual Player::Ptr CreatePlayer(AYM::Chip::Ptr chip) const = 0;
+      virtual Renderer::Ptr CreateRenderer(AYM::Chip::Ptr chip) const = 0;
     };
     //! @brief Simple helper for conversion to AYM-related formats
     //! @param creator Function to create player based on specified device

@@ -76,7 +76,7 @@ namespace ZXTune
       //inheritances' context
       const Mixer::Ptr CurrentMixer;
       const Module::Holder::Ptr Holder;
-      const Module::Player::Ptr Player;
+      const Module::Renderer::Ptr Player;
       const Parameters::Accessor::Ptr SoundParameters;
       RenderParameters::Ptr RenderingParameters;
     private:

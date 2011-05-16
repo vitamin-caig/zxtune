@@ -90,9 +90,9 @@ namespace
       return Info;
     }
 
-    virtual Player::Ptr CreatePlayer(Sound::MultichannelReceiver::Ptr target) const
+    virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
     {
-      return Vortex::CreatePlayer(Info, Data, Version, FreqTableName, AYM::CreateChip(target));
+      return Vortex::CreateRenderer(Info, Data, Version, FreqTableName, AYM::CreateChip(target));
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -120,9 +120,9 @@ namespace
       return Info;
     }
 
-    virtual Player::Ptr CreatePlayer(AYM::Chip::Ptr chip) const
+    virtual Renderer::Ptr CreateRenderer(AYM::Chip::Ptr chip) const
     {
-      return Vortex::CreatePlayer(Info, Data, Version, FreqTableName, chip);
+      return Vortex::CreateRenderer(Info, Data, Version, FreqTableName, chip);
     }
   private:
     const Vortex::Track::ModuleData::RWPtr Data;
