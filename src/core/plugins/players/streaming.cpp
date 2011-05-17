@@ -138,12 +138,16 @@ namespace
     {
       AbsFrame = 0;
       AbsTick = 0;
-      ResetPosition();
+      CurFrame = 0;
     }
 
-    virtual void ResetPosition()
+    virtual void Seek(uint_t frameNum)
     {
       CurFrame = 0;
+      if (frameNum)
+      {
+        SeekIterator(*this, frameNum);
+      }
     }
 
     virtual bool NextFrame(uint64_t ticksToSkip, Sound::LoopMode mode)
@@ -184,13 +188,13 @@ namespace
 
     bool ProcessNoLoop()
     {
-      ResetPosition();
+      Seek(0);
       return false;
     }
 
     bool ProcessBeginLoop()
     {
-      ResetPosition();
+      Seek(0);
       return true;
     }
   private:

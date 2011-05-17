@@ -28,10 +28,13 @@ namespace ZXTune
 
       virtual void Reset() = 0;
 
-      virtual void ResetPosition() = 0;
-
       virtual bool NextFrame(uint64_t ticksToSkip, Sound::LoopMode mode) = 0;
+
+      virtual void Seek(uint_t frameNum) = 0;
     };
+
+    //! @invariant iter.Frame() <= frameNum
+    void SeekIterator(StateIterator& iter, uint_t frameNum);
   }
 }
 

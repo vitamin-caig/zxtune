@@ -85,10 +85,10 @@ namespace
     {
       AbsFrame = 0;
       AbsTick = 0;
-      ResetPosition();
+      Seek(0);
     }
 
-    virtual void ResetPosition()
+    virtual void Seek(uint_t frameNum)
     {
       CurFrame = 0;
       CurPosition = 0;
@@ -97,6 +97,10 @@ namespace
       if (!UpdateTempo())
       {
         CurTempo = Info->Tempo();
+      }
+      if (frameNum)
+      {
+        SeekIterator(*this, frameNum);
       }
     }
 
@@ -172,13 +176,13 @@ namespace
 
     bool ProcessNoLoop()
     {
-      ResetPosition();
+      Seek(0);
       return false;
     }
 
     bool ProcessBeginLoop()
     {
-      ResetPosition();
+      Seek(0);
       return true;
     }
   private:

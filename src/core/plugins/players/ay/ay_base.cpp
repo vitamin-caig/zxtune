@@ -118,7 +118,7 @@ namespace
       if (frame < Iterator->Frame())
       {
         //reset to beginning in case of moving back
-        Iterator->ResetPosition();
+        Iterator->Seek(0);
         Renderer->Reset();
       }
       //fast forward
