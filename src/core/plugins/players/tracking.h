@@ -14,7 +14,7 @@ Author:
 #define __CORE_PLUGINS_PLAYERS_TRACKING_H_DEFINED__
 
 //local includes
-#include "state_iterator.h"
+#include "iterator.h"
 #include <core/plugins/enumerator.h>
 //common includes
 #include <messages_collector.h>

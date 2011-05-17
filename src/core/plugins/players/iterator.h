@@ -1,6 +1,6 @@
 /*
 Abstract:
-  State iterator interface
+  Module terator interface
 
 Last changed:
   $Id$
@@ -10,8 +10,8 @@ Author:
 */
 
 #pragma once
-#ifndef __CORE_PLUGINS_PLAYERS_STATE_ITERATOR_H_DEFINED__
-#define __CORE_PLUGINS_PLAYERS_STATE_ITERATOR_H_DEFINED__
+#ifndef __CORE_PLUGINS_PLAYERS_ITERATOR_H_DEFINED__
+#define __CORE_PLUGINS_PLAYERS_ITERATOR_H_DEFINED__
 
 //library includes
 #include <core/module_types.h>
@@ -21,10 +21,12 @@ namespace ZXTune
 {
   namespace Module
   {
-    class StateIterator : public TrackState
+    class Iterator
     {
     public:
-      typedef boost::shared_ptr<StateIterator> Ptr;
+      typedef boost::shared_ptr<Iterator> Ptr;
+
+      virtual ~Iterator() {}
 
       virtual void Reset() = 0;
 
@@ -33,9 +35,16 @@ namespace ZXTune
       virtual void Seek(uint_t frameNum) = 0;
     };
 
+    class StateIterator : public TrackState
+                        , public Iterator
+    {
+    public:
+      typedef boost::shared_ptr<StateIterator> Ptr;
+    };
+
     //! @invariant iter.Frame() <= frameNum
     void SeekIterator(StateIterator& iter, uint_t frameNum);
   }
 }
 
-#endif //__CORE_PLUGINS_PLAYERS_STATE_ITERATOR_H_DEFINED__
+#endif //__CORE_PLUGINS_PLAYERS_ITERATOR_H_DEFINED__

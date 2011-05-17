@@ -10,7 +10,7 @@ Author:
 */
 
 //local includes
-#include "state_iterator.h"
+#include "iterator.h"
 
 namespace ZXTune
 {

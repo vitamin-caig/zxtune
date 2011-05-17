@@ -14,7 +14,7 @@ Author:
 #define __CORE_PLUGINS_PLAYERS_STREAMING_H_DEFINED__
 
 //local includes
-#include "state_iterator.h"
+#include "iterator.h"
 
 namespace ZXTune
 {
