@@ -564,7 +564,7 @@ namespace
 
     virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
     {
-      return Vortex::CreateRenderer(Info, Data, Version, FreqTableName, AYM::CreateChip(target));
+      return Vortex::CreateRenderer(Info, Data, Version, FreqTableName, Devices::AYM::CreateChip(target));
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -592,7 +592,7 @@ namespace
       return Info;
     }
 
-    virtual Renderer::Ptr CreateRenderer(AYM::Chip::Ptr chip) const
+    virtual Renderer::Ptr CreateRenderer(Devices::AYM::Chip::Ptr chip) const
     {
       return Vortex::CreateRenderer(Info, Data, Version, FreqTableName, chip);
     }
@@ -667,7 +667,7 @@ namespace
   {
   public:
     PT3TSHolder(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, uint_t patOffset, IO::DataContainer::Ptr rawData, std::size_t& usedSize)
-      : PT3Holder(properties, parameters, boost::make_shared<TSModuleData>(patOffset), rawData, AYM::CHANNELS * 2, usedSize)
+      : PT3Holder(properties, parameters, boost::make_shared<TSModuleData>(patOffset), rawData, Devices::AYM::CHANNELS * 2, usedSize)
       , PatOffset(patOffset)
     {
     }
@@ -675,8 +675,8 @@ namespace
     virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
     {
       const TSMixer::Ptr mixer = CreateTSMixer(target);
-      const Renderer::Ptr renderer1 = Vortex::CreateRenderer(Info, Data, Version, FreqTableName, AYM::CreateChip(mixer));
-      const Renderer::Ptr renderer2 = Vortex::CreateRenderer(Info, boost::make_shared<MirroredModuleData>(PatOffset, *Data), Version, FreqTableName, AYM::CreateChip(mixer));
+      const Renderer::Ptr renderer1 = Vortex::CreateRenderer(Info, Data, Version, FreqTableName, Devices::AYM::CreateChip(mixer));
+      const Renderer::Ptr renderer2 = Vortex::CreateRenderer(Info, boost::make_shared<MirroredModuleData>(PatOffset, *Data), Version, FreqTableName, Devices::AYM::CreateChip(mixer));
       return CreateTSRenderer(renderer1, renderer2, mixer);
     }
 
@@ -873,7 +873,7 @@ namespace
         const bool isTSModule = AY_TRACK != tsPatternOffset;
         const Holder::Ptr holder = isTSModule
           ? Holder::Ptr(new PT3TSHolder(properties, parameters, tsPatternOffset, data, usedSize))
-          : Holder::Ptr(new PT3Holder(properties, parameters, Vortex::Track::ModuleData::Create(), data, AYM::CHANNELS, usedSize));
+          : Holder::Ptr(new PT3Holder(properties, parameters, Vortex::Track::ModuleData::Create(), data, Devices::AYM::CHANNELS, usedSize));
         return holder;
       }
       catch (const Error&/*e*/)

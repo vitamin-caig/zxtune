@@ -10,23 +10,18 @@ Author:
 */
 
 #pragma once
-#ifndef __AYM_H_DEFINED__
-#define __AYM_H_DEFINED__
+#ifndef __DEVICES_AYM_H_DEFINED__
+#define __DEVICES_AYM_H_DEFINED__
 
 //common includes
 #include <types.h>
 //library includes
 #include <sound/receiver.h>
+#include <sound/render_params.h>
 
 //supporting for AY/YM-based modules
-namespace ZXTune
+namespace Devices
 {
-  //forward declaration
-  namespace Sound
-  {
-    class RenderParameters;
-  }
-
   namespace AYM
   {
     const uint_t CHANNELS = 3;
@@ -145,7 +140,7 @@ namespace ZXTune
       virtual ~Chip() {}
 
       /// render single data chunk
-      virtual void RenderData(const Sound::RenderParameters& params,
+      virtual void RenderData(const ZXTune::Sound::RenderParameters& params,
                               const DataChunk& src) = 0;
 
       virtual void GetState(ChannelsState& state) const = 0;
@@ -155,7 +150,7 @@ namespace ZXTune
     };
 
     /// Virtual constructors
-    Chip::Ptr CreateChip(Sound::MultichannelReceiver::Ptr target);
+    Chip::Ptr CreateChip(ZXTune::Sound::MultichannelReceiver::Ptr target);
     Chip::Ptr CreatePSGDumper(Dump& data);
     Chip::Ptr CreateZX50Dumper(Dump& data);
     Chip::Ptr CreateDebugDumper(Dump& data);
@@ -163,4 +158,4 @@ namespace ZXTune
   }
 }
 
-#endif //__DEVICE_AYM_H_DEFINED__
+#endif //__DEVICES_AYM_H_DEFINED__

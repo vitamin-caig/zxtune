@@ -13,15 +13,12 @@ Author:
 #include <devices/aym.h>
 //common includes
 #include <tools.h>
-//library includes
-#include <sound/render_params.h>
 //std includes
 #include <algorithm>
 
 namespace
 {
-  using namespace ZXTune;
-  using namespace ZXTune::AYM;
+  using namespace Devices::AYM;
 
   char HexSymbol(uint_t sym)
   {
@@ -37,7 +34,7 @@ namespace
       Reset();
     }
 
-    virtual void RenderData(const Sound::RenderParameters& params,
+    virtual void RenderData(const ZXTune::Sound::RenderParameters& params,
                             const DataChunk& src)
     {
       //no data check
@@ -134,7 +131,7 @@ namespace
   };
 }
 
-namespace ZXTune
+namespace Devices
 {
   namespace AYM
   {

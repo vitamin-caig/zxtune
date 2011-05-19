@@ -31,7 +31,7 @@ namespace
   class AYMAnalyzer : public Analyzer
   {
   public:
-    explicit AYMAnalyzer(AYM::Chip::Ptr device)
+    explicit AYMAnalyzer(Devices::AYM::Chip::Ptr device)
       : Device(device)
     {
     }
@@ -39,28 +39,28 @@ namespace
     //analyzer virtuals
     virtual uint_t ActiveChannels() const
     {
-      AYM::ChannelsState state;
+      Devices::AYM::ChannelsState state;
       Device->GetState(state);
       return static_cast<uint_t>(std::count_if(state.begin(), state.end(),
-        boost::mem_fn(&AYM::ChanState::Enabled)));
+        boost::mem_fn(&Devices::AYM::ChanState::Enabled)));
     }
 
     virtual void BandLevels(std::vector<std::pair<uint_t, uint_t> >& bandLevels) const
     {
-      AYM::ChannelsState state;
+      Devices::AYM::ChannelsState state;
       Device->GetState(state);
       bandLevels.resize(state.size());
       std::transform(state.begin(), state.end(), bandLevels.begin(),
-        boost::bind(&std::make_pair<uint_t, uint_t>, boost::bind(&AYM::ChanState::Band, _1), boost::bind(&AYM::ChanState::LevelInPercents, _1)));
+        boost::bind(&std::make_pair<uint_t, uint_t>, boost::bind(&Devices::AYM::ChanState::Band, _1), boost::bind(&Devices::AYM::ChanState::LevelInPercents, _1)));
     }
   private:
-    const AYM::Chip::Ptr Device;
+    const Devices::AYM::Chip::Ptr Device;
   };
 
   class AYMRenderer : public Renderer
   {
   public:
-    AYMRenderer(AYM::ParametersHelper::Ptr params, StateIterator::Ptr iterator, AYMDataRenderer::Ptr renderer, AYM::Chip::Ptr device)
+    AYMRenderer(AYM::ParametersHelper::Ptr params, StateIterator::Ptr iterator, AYMDataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device)
       : Renderer(renderer)
       , Device(device)
       , AYMHelper(params)
@@ -69,7 +69,7 @@ namespace
 #ifndef NDEBUG
 //perform self-test
       Reset();
-      AYM::DataChunk chunk;
+      Devices::AYM::DataChunk chunk;
       const AYM::TrackBuilder track(AYMHelper->GetFreqTable(), chunk);
       do
       {
@@ -94,7 +94,7 @@ namespace
     {
       const uint64_t ticksDelta = params.ClocksPerFrame();
 
-      AYM::DataChunk chunk;
+      Devices::AYM::DataChunk chunk;
       AYMHelper->GetDataChunk(chunk);
       chunk.Tick = Iterator->AbsoluteTick() + ticksDelta;
       const AYM::TrackBuilder track(AYMHelper->GetFreqTable(), chunk);
@@ -122,7 +122,7 @@ namespace
         Renderer->Reset();
       }
       //fast forward
-      AYM::DataChunk chunk;
+      Devices::AYM::DataChunk chunk;
       const AYM::TrackBuilder track(AYMHelper->GetFreqTable(), chunk);
       while (Iterator->Frame() < frame)
       {
@@ -136,7 +136,7 @@ namespace
     }
   private:
     const AYMDataRenderer::Ptr Renderer;
-    const AYM::Chip::Ptr Device;
+    const Devices::AYM::Chip::Ptr Device;
     const AYM::ParametersHelper::Ptr AYMHelper;
     const StateIterator::Ptr Iterator;
   };
@@ -146,12 +146,12 @@ namespace ZXTune
 {
   namespace Module
   {
-    Renderer::Ptr CreateAYMRenderer(AYM::ParametersHelper::Ptr params, StateIterator::Ptr iterator, AYMDataRenderer::Ptr renderer, AYM::Chip::Ptr device)
+    Renderer::Ptr CreateAYMRenderer(AYM::ParametersHelper::Ptr params, StateIterator::Ptr iterator, AYMDataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device)
     {
       return boost::make_shared<AYMRenderer>(params, iterator, renderer, device);
     }
 
-    Renderer::Ptr CreateAYMStreamRenderer(Information::Ptr info, AYMDataRenderer::Ptr renderer, AYM::Chip::Ptr device)
+    Renderer::Ptr CreateAYMStreamRenderer(Information::Ptr info, AYMDataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device)
     {
       const AYM::ParametersHelper::Ptr params = AYM::ParametersHelper::Create(TABLE_SOUNDTRACKER);
       params->SetParameters(*info->Properties());
@@ -160,7 +160,7 @@ namespace ZXTune
     }
 
     Renderer::Ptr CreateAYMTrackRenderer(Information::Ptr info, TrackModuleData::Ptr data, 
-      AYMDataRenderer::Ptr renderer, AYM::Chip::Ptr device, const String& defaultTable)
+      AYMDataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device, const String& defaultTable)
     {
       const AYM::ParametersHelper::Ptr params = AYM::ParametersHelper::Create(defaultTable);
       params->SetParameters(*info->Properties());

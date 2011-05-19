@@ -39,7 +39,7 @@ namespace ZXTune
       //frequency table according to parameters
       virtual const Module::FrequencyTable& GetFreqTable() const = 0;
       //initial data chunk according to parameters
-      virtual void GetDataChunk(DataChunk& dst) const = 0;
+      virtual void GetDataChunk(Devices::AYM::DataChunk& dst) const = 0;
 
       static Ptr Create(const String& defaultFreqTable);
     };
@@ -47,7 +47,7 @@ namespace ZXTune
     class ChannelBuilder
     {
     public:
-      ChannelBuilder(uint_t chan, const Module::FrequencyTable& table, AYM::DataChunk& chunk)
+      ChannelBuilder(uint_t chan, const Module::FrequencyTable& table, Devices::AYM::DataChunk& chunk)
         : Channel(chan)
         , Table(table)
         , Chunk(chunk)
@@ -62,13 +62,13 @@ namespace ZXTune
     private:
       const uint_t Channel;
       const Module::FrequencyTable& Table;
-      AYM::DataChunk& Chunk;
+      Devices::AYM::DataChunk& Chunk;
     };
 
     class TrackBuilder
     {
     public:
-      explicit TrackBuilder(const Module::FrequencyTable& table, AYM::DataChunk& chunk)
+      explicit TrackBuilder(const Module::FrequencyTable& table, Devices::AYM::DataChunk& chunk)
         : Table(table)
         , Chunk(chunk)
       {
@@ -78,7 +78,7 @@ namespace ZXTune
       void SetEnvelopeType(uint_t type) const;
       void SetEnvelopeTone(uint_t tone) const;
 
-      void SetRawChunk(const AYM::DataChunk& chunk) const;
+      void SetRawChunk(const Devices::AYM::DataChunk& chunk) const;
 
       int_t GetSlidingDifference(int_t halfToneFrom, int_t halfToneTo) const;
 
@@ -88,7 +88,7 @@ namespace ZXTune
       }
     private:
       const Module::FrequencyTable& Table;
-      AYM::DataChunk& Chunk;
+      Devices::AYM::DataChunk& Chunk;
     };
   }
 }

@@ -76,10 +76,10 @@ namespace
     typedef boost::shared_ptr<PSGData> RWPtr;
     typedef boost::shared_ptr<const PSGData> Ptr;
 
-    std::vector<AYM::DataChunk> Dump;
+    std::vector<Devices::AYM::DataChunk> Dump;
   };
 
-  Renderer::Ptr CreatePSGRenderer(Information::Ptr info, PSGData::Ptr data, AYM::Chip::Ptr device);
+  Renderer::Ptr CreatePSGRenderer(Information::Ptr info, PSGData::Ptr data, Devices::AYM::Chip::Ptr device);
 
   class PSGHolder : public Holder
                   , private ConversionFactory
@@ -95,8 +95,8 @@ namespace
       std::size_t size = data.Size() - offset;
       const uint8_t* bdata = &data[offset];
       //detect as much chunks as possible, in despite of real format issues
-      AYM::DataChunk dummy;
-      AYM::DataChunk* chunk = &dummy;
+      Devices::AYM::DataChunk dummy;
+      Devices::AYM::DataChunk* chunk = &dummy;
       while (size)
       {
         const uint_t reg = *bdata;
@@ -151,7 +151,7 @@ namespace
 
       //meta properties
       Properties->SetSource(usedSize, ModuleRegion(0, usedSize));
-      Info = CreateStreamInfo(static_cast<uint_t>(Data->Dump.size()), AYM::CHANNELS, 
+      Info = CreateStreamInfo(static_cast<uint_t>(Data->Dump.size()), Devices::AYM::CHANNELS, 
         Parameters::CreateMergedAccessor(parameters, Properties));
     }
 
@@ -167,7 +167,7 @@ namespace
 
     virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
     {
-      return CreatePSGRenderer(Info, Data, AYM::CreateChip(target));
+      return CreatePSGRenderer(Info, Data, Devices::AYM::CreateChip(target));
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -191,7 +191,7 @@ namespace
       return Info;
     }
 
-    virtual Renderer::Ptr CreateRenderer(AYM::Chip::Ptr chip) const
+    virtual Renderer::Ptr CreateRenderer(Devices::AYM::Chip::Ptr chip) const
     {
       return CreatePSGRenderer(Info, Data, chip);
     }
@@ -211,9 +211,9 @@ namespace
 
     virtual void SynthesizeData(const TrackState& state, const AYM::TrackBuilder& track)
     {
-      const AYM::DataChunk& data = Data->Dump[state.Frame()];
+      const Devices::AYM::DataChunk& data = Data->Dump[state.Frame()];
       //collect state
-      for (uint_t reg = 0, mask = (data.Mask & AYM::DataChunk::MASK_ALL_REGISTERS); mask; ++reg, mask >>= 1)
+      for (uint_t reg = 0, mask = (data.Mask & Devices::AYM::DataChunk::MASK_ALL_REGISTERS); mask; ++reg, mask >>= 1)
       {
         if (0 != (mask & 1))
         {
@@ -224,20 +224,20 @@ namespace
       //apply result
       track.SetRawChunk(PlayerState);
       //reset envelope mask
-      PlayerState.Mask &= ~(uint_t(1) << AYM::DataChunk::REG_ENV);
+      PlayerState.Mask &= ~(uint_t(1) << Devices::AYM::DataChunk::REG_ENV);
     }
 
     virtual void Reset()
     {
-      PlayerState = AYM::DataChunk();
+      PlayerState = Devices::AYM::DataChunk();
     }
   private:
     const PSGData::Ptr Data;
     //internal state
-    AYM::DataChunk PlayerState;
+    Devices::AYM::DataChunk PlayerState;
   };
 
-  Renderer::Ptr CreatePSGRenderer(Information::Ptr info, PSGData::Ptr data, AYM::Chip::Ptr device)
+  Renderer::Ptr CreatePSGRenderer(Information::Ptr info, PSGData::Ptr data, Devices::AYM::Chip::Ptr device)
   {
     const AYMDataRenderer::Ptr renderer = boost::make_shared<PSGDataRenderer>(data);
     return CreateAYMStreamRenderer(info, renderer, device);

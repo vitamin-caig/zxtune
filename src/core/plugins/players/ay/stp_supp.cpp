@@ -102,7 +102,7 @@ namespace
 
   PACK_PRE struct STPPattern
   {
-    boost::array<uint16_t, AYM::CHANNELS> Offsets;
+    boost::array<uint16_t, Devices::AYM::CHANNELS> Offsets;
   } PACK_POST;
 
   PACK_PRE struct STPOrnament
@@ -270,7 +270,7 @@ namespace
     GLISS,        //1p
   };
 
-  typedef TrackingSupport<AYM::CHANNELS, CmdType, Sample> STPTrack;
+  typedef TrackingSupport<Devices::AYM::CHANNELS, CmdType, Sample> STPTrack;
   typedef std::vector<int_t> STPTransposition;
 
   class STPAreas
@@ -604,7 +604,7 @@ namespace
   };
 
   // forward declaration
-  Renderer::Ptr CreateSTPRenderer(Information::Ptr info, STPModuleData::Ptr data, AYM::Chip::Ptr device);
+  Renderer::Ptr CreateSTPRenderer(Information::Ptr info, STPModuleData::Ptr data, Devices::AYM::Chip::Ptr device);
 
   class STPHolder : public Holder
                   , private ConversionFactory
@@ -613,7 +613,7 @@ namespace
     STPHolder(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr rawData, std::size_t& usedSize)
       : Data(boost::make_shared<STPModuleData>())
       , Properties(properties)
-      , Info(CreateTrackInfo(Data, AYM::CHANNELS, parameters, Properties))
+      , Info(CreateTrackInfo(Data, Devices::AYM::CHANNELS, parameters, Properties))
     {
       //assume that data is ok
       const IO::FastDump& data = IO::FastDump(*rawData, 0, MAX_MODULE_SIZE);
@@ -648,7 +648,7 @@ namespace
 
     virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
     {
-      return CreateSTPRenderer(Info, Data, AYM::CreateChip(target));
+      return CreateSTPRenderer(Info, Data, Devices::AYM::CreateChip(target));
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -671,7 +671,7 @@ namespace
       return Info;
     }
 
-    virtual Renderer::Ptr CreateRenderer(AYM::Chip::Ptr chip) const
+    virtual Renderer::Ptr CreateRenderer(Devices::AYM::Chip::Ptr chip) const
     {
       return CreateSTPRenderer(Info, Data, chip);
     }
@@ -866,10 +866,10 @@ namespace
     }
   private:
     const STPModuleData::Ptr Data;
-    boost::array<STPChannelState, AYM::CHANNELS> PlayerState;
+    boost::array<STPChannelState, Devices::AYM::CHANNELS> PlayerState;
   };
 
-  Renderer::Ptr CreateSTPRenderer(Information::Ptr info, STPModuleData::Ptr data, AYM::Chip::Ptr device)
+  Renderer::Ptr CreateSTPRenderer(Information::Ptr info, STPModuleData::Ptr data, Devices::AYM::Chip::Ptr device)
   {
     const AYMDataRenderer::Ptr renderer = boost::make_shared<STPDataRenderer>(data);
     return CreateAYMTrackRenderer(info, data, renderer, device, TABLE_SOUNDTRACKER);

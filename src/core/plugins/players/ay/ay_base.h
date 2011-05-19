@@ -27,7 +27,7 @@ namespace ZXTune
 {
   namespace Module
   {
-    typedef PatternCursorSet<AYM::CHANNELS> AYMPatternCursors;
+    typedef PatternCursorSet<Devices::AYM::CHANNELS> AYMPatternCursors;
 
     class AYMDataRenderer
     {
@@ -40,12 +40,12 @@ namespace ZXTune
       virtual void Reset() = 0;
     };
 
-    Renderer::Ptr CreateAYMRenderer(AYM::ParametersHelper::Ptr params, StateIterator::Ptr iterator, AYMDataRenderer::Ptr renderer, AYM::Chip::Ptr device);
+    Renderer::Ptr CreateAYMRenderer(AYM::ParametersHelper::Ptr params, StateIterator::Ptr iterator, AYMDataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device);
 
-    Renderer::Ptr CreateAYMStreamRenderer(Information::Ptr info, AYMDataRenderer::Ptr renderer, AYM::Chip::Ptr device);
+    Renderer::Ptr CreateAYMStreamRenderer(Information::Ptr info, AYMDataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device);
 
     Renderer::Ptr CreateAYMTrackRenderer(Information::Ptr info, TrackModuleData::Ptr data,
-      AYMDataRenderer::Ptr renderer, AYM::Chip::Ptr device, const String& defaultTable);
+      AYMDataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device, const String& defaultTable);
   }
 }
 

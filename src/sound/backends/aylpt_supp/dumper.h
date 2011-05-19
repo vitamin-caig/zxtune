@@ -18,13 +18,16 @@ Author:
 //std includes
 #include <memory>
 
-namespace ZXTune
+namespace Devices
 {
   namespace AYM
   {
     struct DataChunk;
   }
+}
 
+namespace ZXTune
+{
   class AYLPTDumper
   {
   public:
@@ -39,7 +42,7 @@ namespace ZXTune
 
     virtual ~AYLPTDumper() {}
 
-    virtual void Process(const AYM::DataChunk& chunk) = 0;
+    virtual void Process(const Devices::AYM::DataChunk& chunk) = 0;
   };
 
   //DLPortIO support

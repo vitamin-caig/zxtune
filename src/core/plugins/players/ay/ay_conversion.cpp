@@ -46,7 +46,7 @@ namespace
       try
       {
         Dump tmp;
-        AYM::Chip::Ptr chip = CreateChip(tmp);
+        const Devices::AYM::Chip::Ptr chip = CreateChip(tmp);
         const Renderer::Ptr renderer = factory.CreateRenderer(chip);
         const Module::Information::Ptr info = factory.GetInformation();
         const Parameters::Accessor::Ptr props = info->Properties();
@@ -62,16 +62,16 @@ namespace
       }
     }
   protected:
-    virtual AYM::Chip::Ptr CreateChip(Dump& tmp) const = 0;
+    virtual Devices::AYM::Chip::Ptr CreateChip(Dump& tmp) const = 0;
     virtual String GetErrorMessage() const = 0;
   };
 
   class PSGFormatConvertor : public SimpleAYMFormatConvertor
   {
   private:
-    virtual AYM::Chip::Ptr CreateChip(Dump& tmp) const
+    virtual Devices::AYM::Chip::Ptr CreateChip(Dump& tmp) const
     {
-      return AYM::CreatePSGDumper(tmp);
+      return Devices::AYM::CreatePSGDumper(tmp);
     }
 
     virtual String GetErrorMessage() const
@@ -83,9 +83,9 @@ namespace
   class ZX50FormatConvertor : public SimpleAYMFormatConvertor
   {
   private:
-    virtual AYM::Chip::Ptr CreateChip(Dump& tmp) const
+    virtual Devices::AYM::Chip::Ptr CreateChip(Dump& tmp) const
     {
-      return AYM::CreateZX50Dumper(tmp);
+      return Devices::AYM::CreateZX50Dumper(tmp);
     }
 
     virtual String GetErrorMessage() const
@@ -97,9 +97,9 @@ namespace
   class DebugAYFormatConvertor : public SimpleAYMFormatConvertor
   {
   private:
-    virtual AYM::Chip::Ptr CreateChip(Dump& tmp) const
+    virtual Devices::AYM::Chip::Ptr CreateChip(Dump& tmp) const
     {
-      return AYM::CreateDebugDumper(tmp);
+      return Devices::AYM::CreateDebugDumper(tmp);
     }
 
     virtual String GetErrorMessage() const
@@ -111,9 +111,9 @@ namespace
   class AYDumpFormatConvertor : public SimpleAYMFormatConvertor
   {
   private:
-    virtual AYM::Chip::Ptr CreateChip(Dump& tmp) const
+    virtual Devices::AYM::Chip::Ptr CreateChip(Dump& tmp) const
     {
-      return AYM::CreateRawStreamDumper(tmp);
+      return Devices::AYM::CreateRawStreamDumper(tmp);
     }
 
     virtual String GetErrorMessage() const
@@ -144,7 +144,7 @@ namespace
       try
       {
         Dump rawDump;
-        AYM::Chip::Ptr chip = AYM::CreateRawStreamDumper(rawDump);
+        const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateRawStreamDumper(rawDump);
         const Renderer::Ptr renderer = factory.CreateRenderer(chip);
         const Module::Information::Ptr info = factory.GetInformation();
         const Parameters::Accessor::Ptr props = info->Properties();

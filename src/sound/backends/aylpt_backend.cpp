@@ -97,7 +97,7 @@ namespace
     bool DoOutput()
     {
       //prepare dump
-      AYM::DataChunk chunk;
+      Devices::AYM::DataChunk chunk;
       {
         const std::size_t limit = RenderData.size();
         if (RenderPos + 2 > limit)
@@ -111,7 +111,7 @@ namespace
         {
           return false;
         }
-        for (uint_t reg = 0; reg <= AYM::DataChunk::REG_ENV && msk; ++reg, msk >>= 1)
+        for (uint_t reg = 0; reg <= Devices::AYM::DataChunk::REG_ENV && msk; ++reg, msk >>= 1)
         {
           if (msk & 1)
           {

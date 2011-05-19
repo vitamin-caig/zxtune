@@ -64,7 +64,7 @@ namespace
     TXTHolder(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize)
       : Data(Vortex::Track::ModuleData::Create())
       , Properties(properties)
-      , Info(CreateTrackInfo(Data, AYM::CHANNELS, parameters, Properties))
+      , Info(CreateTrackInfo(Data, Devices::AYM::CHANNELS, parameters, Properties))
     {
       const std::size_t dataSize = data->Size();
       const char* const rawData = static_cast<const char*>(data->Data());
@@ -92,7 +92,7 @@ namespace
 
     virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
     {
-      return Vortex::CreateRenderer(Info, Data, Version, FreqTableName, AYM::CreateChip(target));
+      return Vortex::CreateRenderer(Info, Data, Version, FreqTableName, Devices::AYM::CreateChip(target));
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -120,7 +120,7 @@ namespace
       return Info;
     }
 
-    virtual Renderer::Ptr CreateRenderer(AYM::Chip::Ptr chip) const
+    virtual Renderer::Ptr CreateRenderer(Devices::AYM::Chip::Ptr chip) const
     {
       return Vortex::CreateRenderer(Info, Data, Version, FreqTableName, chip);
     }

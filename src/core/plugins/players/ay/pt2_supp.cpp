@@ -259,9 +259,9 @@ namespace
     NOISE_ADD
   };
 
-  typedef TrackingSupport<AYM::CHANNELS, CmdType, Sample> PT2Track;
+  typedef TrackingSupport<Devices::AYM::CHANNELS, CmdType, Sample> PT2Track;
 
-  Renderer::Ptr CreatePT2Renderer(Information::Ptr info, PT2Track::ModuleData::Ptr data, AYM::Chip::Ptr device);
+  Renderer::Ptr CreatePT2Renderer(Information::Ptr info, PT2Track::ModuleData::Ptr data, Devices::AYM::Chip::Ptr device);
 
   class PT2Holder : public Holder
                   , private ConversionFactory
@@ -395,7 +395,7 @@ namespace
     PT2Holder(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr rawData, std::size_t& usedSize)
       : Data(PT2Track::ModuleData::Create())
       , Properties(properties)
-      , Info(CreateTrackInfo(Data, AYM::CHANNELS, parameters, Properties))
+      , Info(CreateTrackInfo(Data, Devices::AYM::CHANNELS, parameters, Properties))
     {
       //assume all data is correct
       const IO::FastDump& data = IO::FastDump(*rawData);
@@ -474,7 +474,7 @@ namespace
 
     virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
     {
-      return CreatePT2Renderer(Info, Data, AYM::CreateChip(target));
+      return CreatePT2Renderer(Info, Data, Devices::AYM::CreateChip(target));
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -497,7 +497,7 @@ namespace
       return Info;
     }
 
-    virtual Renderer::Ptr CreateRenderer(AYM::Chip::Ptr chip) const
+    virtual Renderer::Ptr CreateRenderer(Devices::AYM::Chip::Ptr chip) const
     {
       return CreatePT2Renderer(Info, Data, chip);
     }
@@ -711,10 +711,10 @@ namespace
     }
   private:
     const PT2Track::ModuleData::Ptr Data;
-    boost::array<PT2ChannelState, AYM::CHANNELS> PlayerState;
+    boost::array<PT2ChannelState, Devices::AYM::CHANNELS> PlayerState;
   };
 
-  Renderer::Ptr CreatePT2Renderer(Information::Ptr info, PT2Track::ModuleData::Ptr data, AYM::Chip::Ptr device)
+  Renderer::Ptr CreatePT2Renderer(Information::Ptr info, PT2Track::ModuleData::Ptr data, Devices::AYM::Chip::Ptr device)
   {
     const AYMDataRenderer::Ptr renderer = boost::make_shared<PT2DataRenderer>(data);
     return CreateAYMTrackRenderer(info, data, renderer, device, TABLE_PROTRACKER2);

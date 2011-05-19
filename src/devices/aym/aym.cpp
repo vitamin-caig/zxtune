@@ -15,9 +15,6 @@ Author:
 #include <devices/aym.h>
 //common includes
 #include <tools.h>
-//library includes
-#include <sound/sound_types.h>
-#include <sound/render_params.h>
 //std includes
 #include <cassert>
 #include <functional>
@@ -26,8 +23,7 @@ Author:
 
 namespace
 {
-  using namespace ZXTune;
-  using namespace ZXTune::AYM;
+  using namespace Devices::AYM;
 
   enum
   {
@@ -41,14 +37,14 @@ namespace
   BOOST_STATIC_ASSERT(DataChunk::PARAM_LAST < 8 * sizeof(uint_t));
 
   // chip-specific volume tables- ym supports 32 volume steps, ay - only 16
-  const Sound::Sample AYVolumeTab[32] =
+  const ZXTune::Sound::Sample AYVolumeTab[32] =
   {
     0x0000, 0x0000, 0x0340, 0x0340, 0x04C0, 0x04C0, 0x06F2, 0x06F2,
     0x0A44, 0x0A44, 0x0F13, 0x0F13, 0x1510, 0x1510, 0x227E, 0x227E,
     0x289F, 0x289F, 0x414E, 0x414E, 0x5B21, 0x5B21, 0x7258, 0x7258,
     0x905E, 0x905E, 0xB550, 0xB550, 0xD7A0, 0xD7A0, 0xFFFF, 0xFFFF
   };
-  const Sound::Sample YMVolumeTab[32] =
+  const ZXTune::Sound::Sample YMVolumeTab[32] =
   {
     0x0000, 0x0000, 0x00EF, 0x01D0, 0x0290, 0x032A, 0x03EE, 0x04D2,
     0x0611, 0x0782, 0x0912, 0x0A36, 0x0C31, 0x0EB6, 0x1130, 0x13A0,
@@ -71,7 +67,7 @@ namespace
 
   const uint_t AYM_CLOCK_DIVISOR = 8;
 
-  typedef boost::array<Sound::Sample, CHANNELS> ChannelsData;
+  typedef boost::array<ZXTune::Sound::Sample, CHANNELS> ChannelsData;
 
   //PSG-related functionality
   class PSG
@@ -351,7 +347,7 @@ namespace
       return false;
     }
 
-    Sound::Sample GetVolume(uint_t regVol) const
+    ZXTune::Sound::Sample GetVolume(uint_t regVol) const
     {
       assert(regVol < 32);
       return ((State.Mask & DataChunk::YM_CHIP) ? YMVolumeTab : AYVolumeTab)[regVol] / 2;
@@ -412,7 +408,7 @@ namespace
       }
     }
 
-    void GetLevels(const PSG& generator, std::vector<Sound::Sample>& result)
+    void GetLevels(const PSG& generator, std::vector<ZXTune::Sound::Sample>& result)
     {
       assert(result.size() == CHANNELS);//for optimization
       if (Interpolate)
@@ -459,7 +455,7 @@ namespace
       SamplesDone = 0;
     }
 
-    void ApplyData(const Sound::RenderParameters& params, const DataChunk& data)
+    void ApplyData(const ZXTune::Sound::RenderParameters& params, const DataChunk& data)
     {
       const uint64_t newClocks = params.ClockFreq();
       const uint_t newSound = params.SoundFreq();
@@ -514,14 +510,14 @@ namespace
   class ChipImpl : public Chip
   {
   public:
-    explicit ChipImpl(Sound::MultichannelReceiver::Ptr target)
+    explicit ChipImpl(ZXTune::Sound::MultichannelReceiver::Ptr target)
       : Target(target)
       , Result(CHANNELS)
     {
       Reset();
     }
 
-    virtual void RenderData(const Sound::RenderParameters& params,
+    virtual void RenderData(const ZXTune::Sound::RenderParameters& params,
                             const DataChunk& src)
     {
       TicksPerSecond = params.ClockFreq();
@@ -552,21 +548,21 @@ namespace
     }
 
   protected:
-    const Sound::MultichannelReceiver::Ptr Target;
+    const ZXTune::Sound::MultichannelReceiver::Ptr Target;
     PSG Generator;
     Renderer Render;
     ClockSource Clock;
     //context
     uint64_t TicksPerSecond;
-    std::vector<Sound::Sample> Result;
+    std::vector<ZXTune::Sound::Sample> Result;
   };
 }
 
-namespace ZXTune
+namespace Devices
 {
   namespace AYM
   {
-    Chip::Ptr CreateChip(Sound::MultichannelReceiver::Ptr target)
+    Chip::Ptr CreateChip(ZXTune::Sound::MultichannelReceiver::Ptr target)
     {
       return Chip::Ptr(new ChipImpl(target));
     }

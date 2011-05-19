@@ -151,7 +151,7 @@ namespace
 
   struct VortexState
   {
-    boost::array<ChannelState, AYM::CHANNELS> ChanState;
+    boost::array<ChannelState, Devices::AYM::CHANNELS> ChanState;
     CommonState CommState;
   };
 
@@ -436,7 +436,7 @@ namespace ZXTune
 
 
       Renderer::Ptr CreateRenderer(Information::Ptr info, Track::ModuleData::Ptr data,
-         uint_t version, const String& freqTableName, AYM::Chip::Ptr device)
+         uint_t version, const String& freqTableName, Devices::AYM::Chip::Ptr device)
       {
         const AYMDataRenderer::Ptr renderer = boost::make_shared<VortexDataRenderer>(data, version);
         return CreateAYMTrackRenderer(info, data, renderer, device, freqTableName);

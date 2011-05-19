@@ -89,7 +89,7 @@ namespace
   PACK_PRE struct STCPattern
   {
     uint8_t Number;
-    boost::array<uint16_t, AYM::CHANNELS> Offsets;
+    boost::array<uint16_t, Devices::AYM::CHANNELS> Offsets;
 
     bool Check() const
     {
@@ -240,10 +240,10 @@ namespace
     NOENVELOPE,   //0p
   };
 
-  typedef TrackingSupport<AYM::CHANNELS, CmdType, Sample> STCTrack;
+  typedef TrackingSupport<Devices::AYM::CHANNELS, CmdType, Sample> STCTrack;
   typedef std::vector<int_t> STCTransposition;
 
-  typedef PatternCursorSet<AYM::CHANNELS> PatternCursors;
+  typedef PatternCursorSet<Devices::AYM::CHANNELS> PatternCursors;
 
   class STCAreas
   {
@@ -536,7 +536,7 @@ namespace
     STCTransposition Transpositions;
   };
 
-  Renderer::Ptr CreateSTCRenderer(Information::Ptr info, STCModuleData::Ptr data, AYM::Chip::Ptr device);
+  Renderer::Ptr CreateSTCRenderer(Information::Ptr info, STCModuleData::Ptr data, Devices::AYM::Chip::Ptr device);
 
   class STCHolder : public Holder
                   , private ConversionFactory
@@ -545,7 +545,7 @@ namespace
     STCHolder(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr allData, std::size_t& usedSize)
       : Data(boost::make_shared<STCModuleData>())
       , Properties(properties)
-      , Info(CreateTrackInfo(Data, AYM::CHANNELS, parameters, Properties))
+      , Info(CreateTrackInfo(Data, Devices::AYM::CHANNELS, parameters, Properties))
     {
       //assume that data is ok
       const IO::FastDump& data = IO::FastDump(*allData, 0, MAX_MODULE_SIZE);
@@ -579,7 +579,7 @@ namespace
 
     virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
     {
-      return CreateSTCRenderer(Info, Data, AYM::CreateChip(target));
+      return CreateSTCRenderer(Info, Data, Devices::AYM::CreateChip(target));
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -602,7 +602,7 @@ namespace
       return Info;
     }
 
-    virtual Renderer::Ptr CreateRenderer(AYM::Chip::Ptr chip) const
+    virtual Renderer::Ptr CreateRenderer(Devices::AYM::Chip::Ptr chip) const
     {
       return CreateSTCRenderer(Info, Data, chip);
     }
@@ -911,7 +911,7 @@ namespace
     STCChannelState StateC;
   };
 
-  Renderer::Ptr CreateSTCRenderer(Information::Ptr info, STCModuleData::Ptr data, AYM::Chip::Ptr device)
+  Renderer::Ptr CreateSTCRenderer(Information::Ptr info, STCModuleData::Ptr data, Devices::AYM::Chip::Ptr device)
   {
     const AYMDataRenderer::Ptr renderer = boost::make_shared<STCDataRenderer>(data);
     return CreateAYMTrackRenderer(info, data, renderer, device, TABLE_SOUNDTRACKER);

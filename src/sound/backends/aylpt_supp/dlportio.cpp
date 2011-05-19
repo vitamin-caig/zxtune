@@ -75,7 +75,7 @@ namespace
       Out(CMD_PORT, INIT_CMD);
     }
 
-    virtual void Process(const AYM::DataChunk& chunk)
+    virtual void Process(const Devices::AYM::DataChunk& chunk)
     {
       for (uint_t msk = chunk.Mask, reg = 0; msk; msk >>= 1, ++reg)
       {

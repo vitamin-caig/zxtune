@@ -123,11 +123,11 @@ namespace ZXTune
       //for unification
       typedef SimpleOrnament Ornament;
 
-      typedef TrackingSupport<AYM::CHANNELS, Commands, Sample, Ornament> Track;
+      typedef TrackingSupport<Devices::AYM::CHANNELS, Commands, Sample, Ornament> Track;
 
       //creating simple player based on parsed data and parameters
       Renderer::Ptr CreateRenderer(Information::Ptr info, Track::ModuleData::Ptr data,
-         uint_t version, const String& freqTableName, AYM::Chip::Ptr device);
+         uint_t version, const String& freqTableName, Devices::AYM::Chip::Ptr device);
     }
   }
 }
