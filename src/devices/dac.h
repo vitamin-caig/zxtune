@@ -10,23 +10,18 @@ Author:
 */
 
 #pragma once
-#ifndef __DAC_H_DEFINED__
-#define __DAC_H_DEFINED__
+#ifndef __DEVICES_DAC_H_DEFINED__
+#define __DEVICES_DAC_H_DEFINED__
 
 //common includes
 #include <types.h>
 //library includes
 #include <sound/receiver.h>
+#include <sound/render_params.h>
 
 //supporting for multichannel sample-based DAC
-namespace ZXTune
+namespace Devices
 {
-  //forward declarations
-  namespace Sound
-  {
-    class RenderParameters;
-  }
-
   namespace DAC
   {
     struct DataChunk
@@ -93,7 +88,7 @@ namespace ZXTune
       virtual void SetSample(uint_t idx, const Dump& data, uint_t loop) = 0;
 
       /// render single data chunk
-      virtual void RenderData(const Sound::RenderParameters& params,
+      virtual void RenderData(const ZXTune::Sound::RenderParameters& params,
                               const DataChunk& src) = 0;
 
       virtual void GetState(ChannelsState& state) const = 0;
@@ -103,8 +98,8 @@ namespace ZXTune
     };
 
     /// Virtual constructors
-    Chip::Ptr CreateChip(uint_t channels, uint_t samples, uint_t sampleFreq, Sound::MultichannelReceiver::Ptr target);
+    Chip::Ptr CreateChip(uint_t channels, uint_t samples, uint_t sampleFreq, ZXTune::Sound::MultichannelReceiver::Ptr target);
   }
 }
 
-#endif //__DEVICE_AYM_H_DEFINED__
+#endif //__DEVICES_DAC_H_DEFINED__

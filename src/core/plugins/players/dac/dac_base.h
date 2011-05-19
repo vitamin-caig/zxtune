@@ -21,7 +21,7 @@ namespace ZXTune
 {
   namespace Module
   {
-    Analyzer::Ptr CreateDACAnalyzer(DAC::Chip::Ptr device);
+    Analyzer::Ptr CreateDACAnalyzer(Devices::DAC::Chip::Ptr device);
   }
 }
 

@@ -27,7 +27,6 @@ Author:
 #include <core/error_codes.h>
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
-#include <devices/dac.h>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
@@ -226,7 +225,7 @@ namespace
   #define SELF_TEST
   #endif
 
-  Renderer::Ptr CreatePDTRenderer(Information::Ptr info, PDTTrack::ModuleData::Ptr data, DAC::Chip::Ptr device);
+  Renderer::Ptr CreatePDTRenderer(Information::Ptr info, PDTTrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device);
 
   class PDTHolder : public Holder
   {
@@ -370,7 +369,7 @@ namespace
     virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
     {
       const uint_t totalSamples = static_cast<uint_t>(Data->Samples.size());
-      DAC::Chip::Ptr chip(DAC::CreateChip(CHANNELS_COUNT, totalSamples, BASE_FREQ, target));
+      const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(CHANNELS_COUNT, totalSamples, BASE_FREQ, target));
       for (uint_t idx = 0; idx != totalSamples; ++idx)
       {
         const Sample& smp = Data->Samples[idx];
@@ -431,7 +430,7 @@ namespace
       }
     };
   public:
-    PDTRenderer(Information::Ptr info, PDTTrack::ModuleData::Ptr data, DAC::Chip::Ptr device)
+    PDTRenderer(Information::Ptr info, PDTTrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
       : Data(data)
       , Device(device)
       , Iterator(CreateTrackStateIterator(info, Data))
@@ -440,7 +439,7 @@ namespace
       SetParameters(*info->Properties());
 #ifdef SELF_TEST
 //perform self-test
-      DAC::DataChunk chunk;
+      Devices::DAC::DataChunk chunk;
       do
       {
         assert(Data->Positions.size() > Iterator->Position());
@@ -463,7 +462,7 @@ namespace
 
     virtual bool RenderFrame(const Sound::RenderParameters& params)
     {
-      DAC::DataChunk chunk;
+      Devices::DAC::DataChunk chunk;
       RenderData(chunk);
 
       const bool res = Iterator->NextFrame(params.ClocksPerFrame(), params.Looping());
@@ -489,7 +488,7 @@ namespace
         Iterator->Seek(0);
       }
       //fast forward
-      DAC::DataChunk chunk;
+      Devices::DAC::DataChunk chunk;
       while (Iterator->Frame() < frame)
       {
         //do not update tick for proper rendering
@@ -509,13 +508,13 @@ namespace
         intVal != 0;
     }
 
-    void RenderData(DAC::DataChunk& chunk)
+    void RenderData(Devices::DAC::DataChunk& chunk)
     {
-      std::vector<DAC::DataChunk::ChannelData> res;
+      std::vector<Devices::DAC::DataChunk::ChannelData> res;
       const PDTTrack::Line* const line = Data->Patterns[Iterator->Pattern()].GetLine(Iterator->Line());
       for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
       {
-        DAC::DataChunk::ChannelData dst;
+        Devices::DAC::DataChunk::ChannelData dst;
         dst.Channel = chan;
         OrnamentState& ornament = Ornaments[chan];
         const int_t prevOffset = ornament.GetOffset();
@@ -530,9 +529,9 @@ namespace
             if ( !(dst.Enabled = *src.Enabled) )
             {
               dst.PosInSample = 0;
-              dst.Mask |= DAC::DataChunk::ChannelData::MASK_POSITION;
+              dst.Mask |= Devices::DAC::DataChunk::ChannelData::MASK_POSITION;
             }
-            dst.Mask |= DAC::DataChunk::ChannelData::MASK_ENABLED;
+            dst.Mask |= Devices::DAC::DataChunk::ChannelData::MASK_ENABLED;
           }
 
           if (src.Note)
@@ -546,18 +545,18 @@ namespace
             if (src.SampleNum)
             {
               dst.SampleNum = *src.SampleNum;
-              dst.Mask |= DAC::DataChunk::ChannelData::MASK_SAMPLE;
+              dst.Mask |= Devices::DAC::DataChunk::ChannelData::MASK_SAMPLE;
             }
             dst.Note = *src.Note;
             dst.PosInSample = 0;
-            dst.Mask |= DAC::DataChunk::ChannelData::MASK_NOTE | DAC::DataChunk::ChannelData::MASK_POSITION;
+            dst.Mask |= Devices::DAC::DataChunk::ChannelData::MASK_NOTE | Devices::DAC::DataChunk::ChannelData::MASK_POSITION;
           }
         }
         const int_t newOffset = ornament.GetOffset();
         if (newOffset != prevOffset)
         {
           dst.NoteSlide = newOffset;
-          dst.Mask |= DAC::DataChunk::ChannelData::MASK_NOTESLIDE;
+          dst.Mask |= Devices::DAC::DataChunk::ChannelData::MASK_NOTESLIDE;
         }
 
         if (dst.Mask)
@@ -570,13 +569,13 @@ namespace
   private:
     const Information::Ptr Info;
     const PDTTrack::ModuleData::Ptr Data;
-    const DAC::Chip::Ptr Device;
+    const Devices::DAC::Chip::Ptr Device;
     const StateIterator::Ptr Iterator;
     boost::array<OrnamentState, CHANNELS_COUNT> Ornaments;
     bool Interpolation;
   };
 
-  Renderer::Ptr CreatePDTRenderer(Information::Ptr info, PDTTrack::ModuleData::Ptr data, DAC::Chip::Ptr device)
+  Renderer::Ptr CreatePDTRenderer(Information::Ptr info, PDTTrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
   {
     return Renderer::Ptr(new PDTRenderer(info, data, device));
   }
