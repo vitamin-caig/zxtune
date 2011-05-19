@@ -9,6 +9,8 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+//local includes
+#include "ay_base.h"
 //common includes
 #include <error.h>
 #include <iterator.h>
@@ -117,16 +119,17 @@ namespace
     return (val1 + val2) / 2;
   }
 
-  class TSMixerImpl : public TSMixer
+  template<class MultiSample>
+  class DoubleReceiverImpl : public DoubleReceiver<MultiSample>
   {
   public:
-    explicit TSMixerImpl(Sound::MultichannelReceiver::Ptr delegate)
+    explicit DoubleReceiverImpl(typename DataReceiver<MultiSample>::Ptr delegate)
       : Delegate(delegate)
       , Stream()
     {
     }
 
-    virtual void ApplyData(const std::vector<Sound::Sample>& data)
+    virtual void ApplyData(const MultiSample& data)
     {
       if (Stream)
       {
@@ -150,7 +153,7 @@ namespace
     {
       if ((Stream = idx))
       {
-        MixCursor = CycledIterator<BufferType::iterator>(Buffer.begin(), Buffer.end());
+        MixCursor = CycledIterator<typename BufferType::iterator>(Buffer.begin(), Buffer.end());
       }
       else
       {
@@ -158,32 +161,32 @@ namespace
       }
     }
   private:
-    void Store(const std::vector<Sound::Sample>& data)
+    void Store(const MultiSample& data)
     {
       Buffer.push_back(data);
     }
 
-    void Mix(const std::vector<Sound::Sample>& data)
+    void Mix(const MultiSample& data)
     {
       assert(MixCursor->size() == data.size());
-      const SamplesVector::iterator bufIter = MixCursor->begin();
-      std::transform(data.begin(), data.end(), bufIter, bufIter, &avg<Sound::Sample>);
+      const typename MultiSample::iterator bufIter = MixCursor->begin();
+      std::transform(data.begin(), data.end(), bufIter, bufIter, &avg<typename MultiSample::value_type>);
       Delegate->ApplyData(*MixCursor);
       ++MixCursor;
     }
   private:
-    const Sound::MultichannelReceiver::Ptr Delegate;
+    const typename DataReceiver<MultiSample>::Ptr Delegate;
     uint_t Stream;
-    typedef std::vector<Sound::Sample> SamplesVector;
-    typedef std::vector<SamplesVector> BufferType;
+    typedef std::vector<MultiSample> BufferType;
     BufferType Buffer;
-    CycledIterator<BufferType::iterator> MixCursor;
+    CycledIterator<typename BufferType::iterator> MixCursor;
   };
 
+  template<class Type>
   class TSRenderer : public Renderer
   {
   public:
-    TSRenderer(Renderer::Ptr first, Renderer::Ptr second, TSMixer::Ptr mixer)
+    TSRenderer(Renderer::Ptr first, Renderer::Ptr second, typename DoubleReceiver<Type>::Ptr mixer)
       : Mixer(mixer)
       , Renderer1(first)
       , Renderer2(second)
@@ -221,7 +224,7 @@ namespace
       Renderer2->SetPosition(frame);
     }
   private:
-    const TSMixer::Ptr Mixer;
+    const typename DoubleReceiver<Type>::Ptr Mixer;
     const Renderer::Ptr Renderer1;
     const Renderer::Ptr Renderer2;
   };
@@ -243,18 +246,27 @@ namespace ZXTune
 
     TSMixer::Ptr CreateTSMixer(Sound::MultichannelReceiver::Ptr delegate)
     {
-      return boost::make_shared<TSMixerImpl>(delegate);
+      typedef DoubleReceiverImpl<std::vector<Sound::Sample> > Impl;
+      return boost::make_shared<Impl>(delegate);
+    }
+
+    AYMTSMixer::Ptr CreateTSMixer(Devices::AYM::Receiver::Ptr delegate)
+    {
+      typedef DoubleReceiverImpl<Devices::AYM::MultiSample> Impl;
+      return boost::make_shared<Impl>(delegate);
     }
 
     Renderer::Ptr CreateTSRenderer(Holder::Ptr first, Holder::Ptr second, Sound::MultichannelReceiver::Ptr target)
     {
       const TSMixer::Ptr mixer = CreateTSMixer(target);
-      return CreateTSRenderer(first->CreateRenderer(mixer), second->CreateRenderer(mixer), mixer);
+      typedef TSRenderer<std::vector<Sound::Sample> > Impl;
+      return boost::make_shared<Impl>(first->CreateRenderer(mixer), second->CreateRenderer(mixer), mixer);
     }
 
-    Renderer::Ptr CreateTSRenderer(Renderer::Ptr first, Renderer::Ptr second, TSMixer::Ptr mixer)
+    Renderer::Ptr CreateTSRenderer(Renderer::Ptr first, Renderer::Ptr second, AYMTSMixer::Ptr mixer)
     {
-      return boost::make_shared<TSRenderer>(first, second, mixer);
+      typedef TSRenderer<Devices::AYM::MultiSample> Impl;
+      return boost::make_shared<Impl>(first, second, mixer);
     }
   }
 }

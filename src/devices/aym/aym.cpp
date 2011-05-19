@@ -36,15 +36,17 @@ namespace
 
   BOOST_STATIC_ASSERT(DataChunk::PARAM_LAST < 8 * sizeof(uint_t));
 
+  typedef Sample VolumeTable[32];
+
   // chip-specific volume tables- ym supports 32 volume steps, ay - only 16
-  const ZXTune::Sound::Sample AYVolumeTab[32] =
+  const VolumeTable AYVolumeTab =
   {
     0x0000, 0x0000, 0x0340, 0x0340, 0x04C0, 0x04C0, 0x06F2, 0x06F2,
     0x0A44, 0x0A44, 0x0F13, 0x0F13, 0x1510, 0x1510, 0x227E, 0x227E,
     0x289F, 0x289F, 0x414E, 0x414E, 0x5B21, 0x5B21, 0x7258, 0x7258,
     0x905E, 0x905E, 0xB550, 0xB550, 0xD7A0, 0xD7A0, 0xFFFF, 0xFFFF
   };
-  const ZXTune::Sound::Sample YMVolumeTab[32] =
+  const VolumeTable YMVolumeTab =
   {
     0x0000, 0x0000, 0x00EF, 0x01D0, 0x0290, 0x032A, 0x03EE, 0x04D2,
     0x0611, 0x0782, 0x0912, 0x0A36, 0x0C31, 0x0EB6, 0x1130, 0x13A0,
@@ -66,8 +68,6 @@ namespace
 
 
   const uint_t AYM_CLOCK_DIVISOR = 8;
-
-  typedef boost::array<ZXTune::Sound::Sample, CHANNELS> ChannelsData;
 
   //PSG-related functionality
   class PSG
@@ -192,7 +192,7 @@ namespace
       return res;
     }
 
-    void GetLevels(ChannelsData& result) const
+    void GetLevels(MultiSample& result) const
     {
       const uint_t HighLevel = ~0u;
       //references to mixered bits. updated automatically
@@ -211,9 +211,11 @@ namespace
 
       assert(Layout < ArraySize(LAYOUTS));
       const LayoutData& layout = LAYOUTS[Layout];
-      result[layout[0]] = GetVolume(toneBitA & noiseBitA & outA);
-      result[layout[1]] = GetVolume(toneBitB & noiseBitB & outB);
-      result[layout[2]] = GetVolume(toneBitC & noiseBitC & outC);
+      const VolumeTable& table = IsYM() ? YMVolumeTab : AYVolumeTab;
+      assert(outA < 32 && outB < 32 && outC < 32);
+      result[layout[0]] = table[toneBitA & noiseBitA & outA];
+      result[layout[1]] = table[toneBitB & noiseBitB & outB];
+      result[layout[2]] = table[toneBitC & noiseBitC & outC];
     }
 
 
@@ -347,10 +349,9 @@ namespace
       return false;
     }
 
-    ZXTune::Sound::Sample GetVolume(uint_t regVol) const
+    bool IsYM() const
     {
-      assert(regVol < 32);
-      return ((State.Mask & DataChunk::YM_CHIP) ? YMVolumeTab : AYVolumeTab)[regVol] / 2;
+      return 0 != (State.Mask & DataChunk::YM_CHIP);
     }
   private:
     //registers state
@@ -408,7 +409,7 @@ namespace
       }
     }
 
-    void GetLevels(const PSG& generator, std::vector<ZXTune::Sound::Sample>& result)
+    void GetLevels(const PSG& generator, MultiSample& result)
     {
       assert(result.size() == CHANNELS);//for optimization
       if (Interpolate)
@@ -425,7 +426,7 @@ namespace
     }
   private:
     bool Interpolate;
-    ChannelsData Levels;
+    MultiSample Levels;
     boost::array<uint_t, CHANNELS> Accumulators;
     uint_t AccumulatedSamples;
   };
@@ -510,9 +511,8 @@ namespace
   class ChipImpl : public Chip
   {
   public:
-    explicit ChipImpl(ZXTune::Sound::MultichannelReceiver::Ptr target)
+    explicit ChipImpl(Receiver::Ptr target)
       : Target(target)
-      , Result(CHANNELS)
     {
       Reset();
     }
@@ -548,13 +548,13 @@ namespace
     }
 
   protected:
-    const ZXTune::Sound::MultichannelReceiver::Ptr Target;
+    const Receiver::Ptr Target;
     PSG Generator;
     Renderer Render;
     ClockSource Clock;
     //context
     uint64_t TicksPerSecond;
-    std::vector<ZXTune::Sound::Sample> Result;
+    MultiSample Result;
   };
 }
 
@@ -562,7 +562,7 @@ namespace Devices
 {
   namespace AYM
   {
-    Chip::Ptr CreateChip(ZXTune::Sound::MultichannelReceiver::Ptr target)
+    Chip::Ptr CreateChip(Receiver::Ptr target)
     {
       return Chip::Ptr(new ChipImpl(target));
     }

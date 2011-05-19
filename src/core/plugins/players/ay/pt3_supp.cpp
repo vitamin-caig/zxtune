@@ -564,7 +564,8 @@ namespace
 
     virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
     {
-      return Vortex::CreateRenderer(Info, Data, Version, FreqTableName, Devices::AYM::CreateChip(target));
+      const Devices::AYM::Receiver::Ptr receiver = CreateAYMReceiver(target);
+      return Vortex::CreateRenderer(Info, Data, Version, FreqTableName, Devices::AYM::CreateChip(receiver));
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -674,7 +675,8 @@ namespace
 
     virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
     {
-      const TSMixer::Ptr mixer = CreateTSMixer(target);
+      const Devices::AYM::Receiver::Ptr receiver = CreateAYMReceiver(target);
+      const AYMTSMixer::Ptr mixer = CreateTSMixer(receiver);
       const Renderer::Ptr renderer1 = Vortex::CreateRenderer(Info, Data, Version, FreqTableName, Devices::AYM::CreateChip(mixer));
       const Renderer::Ptr renderer2 = Vortex::CreateRenderer(Info, boost::make_shared<MirroredModuleData>(PatOffset, *Data), Version, FreqTableName, Devices::AYM::CreateChip(mixer));
       return CreateTSRenderer(renderer1, renderer2, mixer);

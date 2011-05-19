@@ -40,6 +40,8 @@ namespace ZXTune
       virtual void Reset() = 0;
     };
 
+    Devices::AYM::Receiver::Ptr CreateAYMReceiver(Sound::MultichannelReceiver::Ptr target);
+
     Renderer::Ptr CreateAYMRenderer(AYM::ParametersHelper::Ptr params, StateIterator::Ptr iterator, AYMDataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device);
 
     Renderer::Ptr CreateAYMStreamRenderer(Information::Ptr info, AYMDataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device);

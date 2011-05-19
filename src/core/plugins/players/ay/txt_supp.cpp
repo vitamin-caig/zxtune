@@ -10,6 +10,7 @@ Author:
 */
 
 //local includes
+#include "ay_base.h"
 #include "ay_conversion.h"
 #include "vortex_io.h"
 #include "aym_parameters_helper.h"
@@ -92,7 +93,8 @@ namespace
 
     virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
     {
-      return Vortex::CreateRenderer(Info, Data, Version, FreqTableName, Devices::AYM::CreateChip(target));
+      const Devices::AYM::Receiver::Ptr receiver = CreateAYMReceiver(target);
+      return Vortex::CreateRenderer(Info, Data, Version, FreqTableName, Devices::AYM::CreateChip(receiver));
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const

@@ -28,6 +28,35 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Module;
 
+  class AYMReceiver : public Devices::AYM::Receiver
+  {
+  public:
+    explicit AYMReceiver(Sound::MultichannelReceiver::Ptr target)
+      : Target(target)
+      , Data(Devices::AYM::CHANNELS)
+    {
+    }
+
+    virtual void ApplyData(const Devices::AYM::MultiSample& data)
+    {
+      std::transform(data.begin(), data.end(), Data.begin(), &AYMSampleToSoundSample);
+      Target->ApplyData(Data);
+    }
+
+    virtual void Flush()
+    {
+      Target->Flush();
+    }
+  private:
+    inline static Sound::Sample AYMSampleToSoundSample(Devices::AYM::Sample in)
+    {
+      return in / 2;
+    }
+  private:
+    const Sound::MultichannelReceiver::Ptr Target;
+    std::vector<Sound::Sample> Data;
+  };
+
   class AYMAnalyzer : public Analyzer
   {
   public:
@@ -146,6 +175,11 @@ namespace ZXTune
 {
   namespace Module
   {
+    Devices::AYM::Receiver::Ptr CreateAYMReceiver(Sound::MultichannelReceiver::Ptr target)
+    {
+      return boost::make_shared<AYMReceiver>(target);
+    }
+
     Renderer::Ptr CreateAYMRenderer(AYM::ParametersHelper::Ptr params, StateIterator::Ptr iterator, AYMDataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device)
     {
       return boost::make_shared<AYMRenderer>(params, iterator, renderer, device);

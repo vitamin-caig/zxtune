@@ -14,10 +14,13 @@ Author:
 #define __DEVICES_AYM_H_DEFINED__
 
 //common includes
+#include <data_streaming.h>
 #include <types.h>
 //library includes
-#include <sound/receiver.h>
+//TODO: remove
 #include <sound/render_params.h>
+//boost includes
+#include <boost/array.hpp>
 
 //supporting for AY/YM-based modules
 namespace Devices
@@ -149,8 +152,15 @@ namespace Devices
       virtual void Reset() = 0;
     };
 
+    // Sound is rendered in unsigned 16-bit values
+    typedef uint16_t Sample;
+    // 3 channels per sample
+    typedef boost::array<Sample, CHANNELS> MultiSample;
+    // Result sound stream receiver
+    typedef DataReceiver<MultiSample> Receiver;
+
     /// Virtual constructors
-    Chip::Ptr CreateChip(ZXTune::Sound::MultichannelReceiver::Ptr target);
+    Chip::Ptr CreateChip(Receiver::Ptr target);
     Chip::Ptr CreatePSGDumper(Dump& data);
     Chip::Ptr CreateZX50Dumper(Dump& data);
     Chip::Ptr CreateDebugDumper(Dump& data);

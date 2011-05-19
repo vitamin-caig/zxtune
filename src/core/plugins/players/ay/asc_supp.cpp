@@ -696,7 +696,8 @@ namespace
 
     virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
     {
-      return CreateASCRenderer(Info, Data, Devices::AYM::CreateChip(target));
+      const Devices::AYM::Receiver::Ptr receiver = CreateAYMReceiver(target);
+      return CreateASCRenderer(Info, Data, Devices::AYM::CreateChip(receiver));
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
