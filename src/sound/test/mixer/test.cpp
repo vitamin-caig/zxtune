@@ -6,6 +6,8 @@
 #include <iostream>
 #include <iomanip>
 
+#define FILE_TAG 25E829A2
+
 namespace
 {
   using namespace ZXTune::Sound;
@@ -56,15 +58,15 @@ namespace
   };
 
   template<class T>
-  std::vector<T> MakeMatrix(const T& mg)
+  std::vector<T> MakeMatrix(unsigned chans, const T& mg)
   {
-    return std::vector<T>(&mg, &mg + 1);
+    return std::vector<T>(chans, mg);
   }
 
   void ErrOuter(unsigned /*level*/, Error::LocationRef loc, Error::CodeType code, const String& text)
   {
     const String txt = (Formatter("\t%1%\n\tCode: %2%\n\tAt: %3%\n\t--------\n") % text % Error::CodeToString(code) % Error::LocationToString(loc)).str();
-    std::cerr << txt;
+    std::cerr << txt << std::endl;
   }
   
   bool ShowIfError(const Error& e)
@@ -91,7 +93,9 @@ namespace
       }
       else
       {
-        std::cout << "Failed (in=<" << data[0] << ',' << data[1] << "> exp=<" << ToCompare[0] << ',' << ToCompare[1] << '>';
+        const String txt = (Formatter("Failed. Value=<%1%,%2%> while expected=<%3%,%4%>") % 
+          data[0] % data[1] % ToCompare[0] % ToCompare[1]).str();
+        throw Error(THIS_LINE, 1, txt);
       }
     }
     
@@ -114,45 +118,49 @@ int main()
   
   try
   {
-    Target* tgt = 0;
-    Receiver::Ptr receiver(tgt = new Target);
-  
-    Mixer::Ptr mixer;
-    ThrowIfError(CreateMixer(1, mixer));
-    
-    mixer->SetTarget(receiver);
-  
-    std::cout << "--- Test for invalid matrix---\n";
-    if (const Error& e = mixer->SetMatrix(MakeMatrix(INVALID_GAIN)))
+    for (unsigned chans = 1; chans <= 4; ++chans)
     {
-      std::cout << " Passed\n";
-      e.WalkSuberrors(ErrOuter);
-    }
-    else
-    {
-      std::cout << " Failed\n";
-    }
+      std::cout << "**** Testing for " << chans << " channels ****\n";
+      Target* tgt = 0;
+      Receiver::Ptr receiver(tgt = new Target);
     
-    assert(ArraySize(OUTS) == ArraySize(GAINS) * ArraySize(INPUTS));
-    assert(ArraySize(GAINS) == ArraySize(GAIN_NAMES));
-    assert(ArraySize(INPUTS) == ArraySize(INPUT_NAMES));
+      Mixer::Ptr mixer;
+      ThrowIfError(CreateMixer(chans, mixer));
+      
+      mixer->SetTarget(receiver);
     
-    const MultiSample* result(OUTS);
-    for (unsigned matrix = 0; matrix != ArraySize(GAINS); ++matrix)
-    {
-      std::cout << "--- Test for " << GAIN_NAMES[matrix] << " matrix ---\n";
-      ThrowIfError(mixer->SetMatrix(MakeMatrix(GAINS[matrix])));
-      for (unsigned input = 0; input != ArraySize(INPUTS); ++input, ++result)
+      std::cout << "--- Test for invalid matrix---\n";
+      if (const Error& e = mixer->SetMatrix(MakeMatrix(chans, INVALID_GAIN)))
       {
-        tgt->SetData(*result);
-        mixer->ApplyData(MakeMatrix(INPUTS[input]));
-        std::cout << " checking for " << INPUT_NAMES[input] << " input\n";
+        std::cout << " Passed\n";
+        e.WalkSuberrors(ErrOuter);
+      }
+      else
+      {
+        throw Error(THIS_LINE, 1, "Failed");
+      }
+      
+      assert(ArraySize(OUTS) == ArraySize(GAINS) * ArraySize(INPUTS));
+      assert(ArraySize(GAINS) == ArraySize(GAIN_NAMES));
+      assert(ArraySize(INPUTS) == ArraySize(INPUT_NAMES));
+      
+      const MultiSample* result(OUTS);
+      for (unsigned matrix = 0; matrix != ArraySize(GAINS); ++matrix)
+      {
+        std::cout << "--- Test for " << GAIN_NAMES[matrix] << " matrix ---\n";
+        ThrowIfError(mixer->SetMatrix(MakeMatrix(chans, GAINS[matrix])));
+        for (unsigned input = 0; input != ArraySize(INPUTS); ++input, ++result)
+        {
+          tgt->SetData(*result);
+          mixer->ApplyData(MakeMatrix(chans, INPUTS[input]));
+          std::cout << " checking for " << INPUT_NAMES[input] << " input\n";
+        }
       }
     }
+    std::cout << " Succeed!" << std::endl;
   }
   catch (const Error& e)
   {
-    std::cout << " Failed\n";
     e.WalkSuberrors(ErrOuter);
   }
 }

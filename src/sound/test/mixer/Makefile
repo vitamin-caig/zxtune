@@ -1,5 +1,5 @@
-binary_name := snd_mixer_test
-path_step := ../..
+binary_name := sound_test_mixer
+path_step := ../../../..
 source_files := test
 
 libraries := sound tools
