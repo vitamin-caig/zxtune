@@ -43,10 +43,10 @@ namespace
       return static_cast<uint_t>(FoundProperty(FRAMEDURATION, FRAMEDURATION_DEFAULT));
     }
 
-    virtual ZXTune::Sound::LoopMode Looping() const
+    virtual bool Looped() const
     {
       using namespace Parameters::ZXTune::Sound;
-      return static_cast<ZXTune::Sound::LoopMode>(FoundProperty(LOOPMODE, LOOPMODE_DEFAULT));
+      return 0 != FoundProperty(LOOPED, 0);
     }
 
     virtual uint_t ClocksPerFrame() const

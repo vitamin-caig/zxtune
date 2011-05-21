@@ -57,15 +57,12 @@ namespace Parameters
       };
 
       //@{
-      //! @name Loop mode
-      //! @see ZXTune#Sound#LoopMode
+      //! @name Looped playback
 
-      //! Default value (no looping)
-      const IntType LOOPMODE_DEFAULT = 0;
       //! Parameter name
-      const Char LOOPMODE[] =
+      const Char LOOPED[] =
       {
-        'z','x','t','u','n','e','.','s','o','u','n','d','.','l','o','o','p','m','o','d','e','\0'
+        'z','x','t','u','n','e','.','s','o','u','n','d','.','l','o','o','p','e','d','\0'
       };
       //@}
     }

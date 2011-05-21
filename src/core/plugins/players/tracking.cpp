@@ -104,24 +104,24 @@ namespace
       }
     }
 
-    virtual bool NextFrame(uint64_t ticksToSkip, Sound::LoopMode mode)
+    virtual bool NextFrame(uint64_t ticksToSkip, bool looped)
     {
       ++CurFrame;
       ++AbsFrame;
       AbsTick += ticksToSkip;
       if (++CurQuirk >= Tempo() &&
-          !NextLine(mode))
+          !NextLine(looped))
       {
         return false;
       }
       return true;
     }
   private:
-    bool NextLine(Sound::LoopMode mode)
+    bool NextLine(bool looped)
     {
       CurQuirk = 0;
       if (++CurLine >= PatternSize() &&
-          !NextPosition(mode))
+          !NextPosition(looped))
       {
         return false;
       }
@@ -129,11 +129,11 @@ namespace
       return true;
     }
 
-    bool NextPosition(Sound::LoopMode mode)
+    bool NextPosition(bool looped)
     {
       CurLine = 0;
       if (++CurPosition >= Info->PositionsCount() &&
-          !ProcessLoop(mode))
+          !ProcessLoop(looped))
       {
         return false;
       }
@@ -150,20 +150,11 @@ namespace
       return false;
     }
 
-    bool ProcessLoop(Sound::LoopMode mode)
+    bool ProcessLoop(bool looped)
     {
-      switch (mode)
-      {
-      case Sound::LOOP_NORMAL:
-        return ProcessNormalLoop();
-      case Sound::LOOP_NONE:
-        return ProcessNoLoop();
-      case Sound::LOOP_BEGIN:
-        return ProcessBeginLoop();
-      default:
-        assert(!"Invalid mode");
-        return false;
-      }
+      return looped
+        ? ProcessNormalLoop()
+        : ProcessNoLoop();
     }
 
     bool ProcessNormalLoop()
@@ -178,12 +169,6 @@ namespace
     {
       Seek(0);
       return false;
-    }
-
-    bool ProcessBeginLoop()
-    {
-      Seek(0);
-      return true;
     }
   private:
     //context
@@ -271,7 +256,7 @@ namespace
 
       const uint_t loopPosNum = Data->GetLoopPosition();
       StateIterator& iterator = *dummyIterator;
-      while (iterator.NextFrame(0, Sound::LOOP_NONE))
+      while (iterator.NextFrame(0, false))
       {
         //check for loop
         if (0 == iterator.Line() &&

@@ -21,7 +21,7 @@ namespace ZXTune
       assert(iter.Frame() <= frameNum);
       while (iter.Frame() < frameNum)
       {
-        if (!iter.NextFrame(0, Sound::LOOP_NONE))
+        if (!iter.NextFrame(0, false))
         {
           break;
         }

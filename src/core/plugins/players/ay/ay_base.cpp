@@ -104,7 +104,7 @@ namespace
       {
         Renderer->SynthesizeData(*Iterator, track);
       }
-      while (Iterator->NextFrame(0, Sound::LOOP_NONE));
+      while (Iterator->NextFrame(0, false));
 #endif
       Reset();
     }
@@ -130,7 +130,7 @@ namespace
 
       Renderer->SynthesizeData(*Iterator, track);
 
-      const bool res = Iterator->NextFrame(ticksDelta, params.Looping());
+      const bool res = Iterator->NextFrame(ticksDelta, params.Looped());
       Device->RenderData(params, chunk);
       return res;
     }
@@ -157,7 +157,7 @@ namespace
       {
         //do not update tick for proper rendering
         Renderer->SynthesizeData(*Iterator, track);
-        if (!Iterator->NextFrame(0, Sound::LOOP_NONE))
+        if (!Iterator->NextFrame(0, false))
         {
           break;
         }

@@ -135,7 +135,7 @@ extern const Char INFO_OPTIONS_SOUND_BACKENDS_WIN32_DEVICE[];
 extern const Char INFO_OPTIONS_SOUND_CLOCKRATE[];
 extern const Char INFO_OPTIONS_SOUND_FRAMEDURATION[];
 extern const Char INFO_OPTIONS_SOUND_FREQUENCY[];
-extern const Char INFO_OPTIONS_SOUND_LOOPMODE[];
+extern const Char INFO_OPTIONS_SOUND_LOOPED[];
 extern const Char INFO_OPTIONS_SOUND_TITLE[];
 extern const Char INFO_OPTION_INFO[];
 extern const Char INFO_OPTION_INFO_DEFAULTS[];

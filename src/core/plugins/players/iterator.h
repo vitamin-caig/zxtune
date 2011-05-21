@@ -15,7 +15,6 @@ Author:
 
 //library includes
 #include <core/module_types.h>
-#include <sound/render_params.h>// for LoopMode
 
 namespace ZXTune
 {
@@ -30,7 +29,7 @@ namespace ZXTune
 
       virtual void Reset() = 0;
 
-      virtual bool NextFrame(uint64_t ticksToSkip, Sound::LoopMode mode) = 0;
+      virtual bool NextFrame(uint64_t ticksToSkip, bool looped) = 0;
 
       virtual void Seek(uint_t frameNum) = 0;
     };

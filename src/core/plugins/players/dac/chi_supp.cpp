@@ -376,7 +376,7 @@ namespace
         assert(Data->Positions.size() > Iterator->Position());
         RenderData(chunk);
       }
-      while (Iterator->NextFrame(0, Sound::LOOP_NONE));
+      while (Iterator->NextFrame(0, false));
       Reset();
 #endif
     }
@@ -396,7 +396,7 @@ namespace
       Devices::DAC::DataChunk chunk;
       RenderData(chunk);
 
-      const bool res = Iterator->NextFrame(params.ClocksPerFrame(), params.Looping());
+      const bool res = Iterator->NextFrame(params.ClocksPerFrame(), params.Looped());
 
       chunk.Tick = Iterator->AbsoluteTick();
       chunk.Interpolate = Interpolation;
@@ -424,7 +424,7 @@ namespace
       {
         //do not update tick for proper rendering
         RenderData(chunk);
-        if (!Iterator->NextFrame(0, Sound::LOOP_NONE))
+        if (!Iterator->NextFrame(0, false))
         {
           break;
         }

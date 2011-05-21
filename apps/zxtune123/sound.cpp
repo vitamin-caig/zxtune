@@ -184,7 +184,7 @@ namespace
     {
       if (looped)
       {
-        Params->SetIntValue(Parameters::ZXTune::Sound::LOOPMODE, ZXTune::Sound::LOOP_NORMAL);
+        Params->SetIntValue(Parameters::ZXTune::Sound::LOOPED, true);
       }
     }
 

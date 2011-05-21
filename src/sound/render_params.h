@@ -18,17 +18,6 @@ namespace ZXTune
 {
   namespace Sound
   {
-    //! @brief Looping mode
-    enum LoopMode
-    {
-      //! Stop right after reaching the end
-      LOOP_NONE = 0,
-      //! Continue playback from internally defined position (beginning if not supported)
-      LOOP_NORMAL,
-      //! Continue playback from the beginning
-      LOOP_BEGIN
-    };
-
     //! @brief Input parameters for rendering
     class RenderParameters
     {
@@ -44,7 +33,7 @@ namespace ZXTune
       //! Frame duration in us
       virtual uint_t FrameDurationMicrosec() const = 0;
       //! Loop mode
-      virtual LoopMode Looping() const = 0;
+      virtual bool Looped() const = 0;
       //! PSG clocks count per one frame
       virtual uint_t ClocksPerFrame() const = 0;
       //! Sound samples count per one frame

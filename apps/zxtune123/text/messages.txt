@@ -134,8 +134,8 @@
 < INFO_OPTIONS_SOUND_FRAMEDURATION
 > "frame duration in microseconds"
 
-< INFO_OPTIONS_SOUND_LOOPMODE
-> "loop mode while playback (0- none, 1- normal, 2- from beginning)"
+< INFO_OPTIONS_SOUND_LOOPED
+> "loop playback"
 
 < INFO_OPTIONS_SOUND_BACKENDS_TITLE
 > " Sound backends options:"

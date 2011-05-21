@@ -150,33 +150,24 @@ namespace
       }
     }
 
-    virtual bool NextFrame(uint64_t ticksToSkip, Sound::LoopMode mode)
+    virtual bool NextFrame(uint64_t ticksToSkip, bool looped)
     {
       ++CurFrame;
       ++AbsFrame;
       AbsTick += ticksToSkip;
       if (CurFrame >= Info->FramesCount() &&
-          !ProcessLoop(mode))
+          !ProcessLoop(looped))
       {
         return false;
       }
       return true;
     }
   private:
-    bool ProcessLoop(Sound::LoopMode mode)
+    bool ProcessLoop(bool looped)
     {
-      switch (mode)
-      {
-      case Sound::LOOP_NORMAL:
-        return ProcessNormalLoop();
-      case Sound::LOOP_NONE:
-        return ProcessNoLoop();
-      case Sound::LOOP_BEGIN:
-        return ProcessBeginLoop();
-      default:
-        assert(!"Invalid mode");
-        return false;
-      }
+      return looped
+        ? ProcessNormalLoop()
+        : ProcessNoLoop();
     }
 
     bool ProcessNormalLoop()
@@ -190,12 +181,6 @@ namespace
     {
       Seek(0);
       return false;
-    }
-
-    bool ProcessBeginLoop()
-    {
-      Seek(0);
-      return true;
     }
   private:
     //context

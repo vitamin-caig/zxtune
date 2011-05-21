@@ -473,10 +473,8 @@ extern const Char INFO_OPTIONS_SOUND_FRAMEDURATION[] = {
 extern const Char INFO_OPTIONS_SOUND_FREQUENCY[] = {
   's','o','u','n','d',' ','f','r','e','q','u','e','n','c','y',' ','i','n',' ','H','z',0
 };
-extern const Char INFO_OPTIONS_SOUND_LOOPMODE[] = {
-  'l','o','o','p',' ','m','o','d','e',' ','w','h','i','l','e',' ','p','l','a','y','b','a','c','k',' ','(','0',
-  '-',' ','n','o','n','e',',',' ','1','-',' ','n','o','r','m','a','l',',',' ','2','-',' ','f','r','o','m',' ',
-  'b','e','g','i','n','n','i','n','g',')',0
+extern const Char INFO_OPTIONS_SOUND_LOOPED[] = {
+  'l','o','o','p',' ','p','l','a','y','b','a','c','k',0
 };
 extern const Char INFO_OPTIONS_SOUND_TITLE[] = {
   ' ','S','o','u','n','d',' ','o','p','t','i','o','n','s',':',0
