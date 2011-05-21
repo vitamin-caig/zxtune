@@ -108,7 +108,7 @@ namespace
     const DataFormat::Ptr format = DataFormat::Create(pattern);
     Test("Check for " + test + " match", matched == format->Match(SAMPLE, ArraySize(SAMPLE)));
     const std::size_t lookahead = format->Search(SAMPLE, ArraySize(SAMPLE));
-    Test("Check for " + test + " lookahead", lookahead == lookAhead);
+    Test("Check for " + test + " lookahead", lookahead, lookAhead);
   }
 }
 
@@ -241,6 +241,7 @@ int main()
     TestDetector("ranged matched", "00-0200-02", true, 0);
     TestDetector("ranged unmatched", "10-12", false, 0x10);
     TestDetector("symbol unmatched", "'a'b'c'd'e", false, 32);
+    TestDetector("partially matched at end", "1d1e1f20", false, 32);
   }
   }
   catch (int code)

@@ -95,7 +95,7 @@ namespace
     //Length
     "?01-ff"
     //FullLength
-    "02-ff"
+    "0001-ff"
   );
 
   class HobetaDecoder : public Formats::Packed::Decoder
