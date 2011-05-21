@@ -345,11 +345,40 @@ namespace
       {
         return size;
       }
-      const uint8_t* const typedData = static_cast<const uint8_t*>(data) + Offset;
-      return std::search(typedData, typedData + size - Offset, Pat.begin(), Pat.end(), &MatchByte<Traits>) - typedData;
+      const uint8_t* const typedData = static_cast<const uint8_t*>(data);
+      const uint8_t* const typedEnd = typedData + size;
+      const uint8_t* const result = std::search(typedData + Offset, typedEnd, Pat.begin(), Pat.end(), &MatchByte<Traits>);
+      if (result == typedEnd)
+      {
+        return size;
+      }
+      return result - typedData - Offset;
     }
   private:
     const typename Traits::Pattern Pat;
+    const std::size_t Offset;
+  };
+
+  class AlwaysMatchFormat : public DataFormat
+  {
+  public:
+    explicit AlwaysMatchFormat(std::size_t offset)
+      : Offset(offset)
+    {
+    }
+
+    virtual bool Match(const void* /*data*/, std::size_t size) const
+    {
+      return Offset < size;
+    }
+
+    virtual std::size_t Search(const void* /*data*/, std::size_t size) const
+    {
+      return Offset < size
+        ? 0
+        : size;
+    }
+  private:
     const std::size_t Offset;
   };
 
@@ -363,7 +392,9 @@ namespace
     const typename Traits::Pattern::const_iterator firstNotAny = std::find_if(first, last, 
       std::bind2nd(std::not_equal_to<typename Traits::PatternEntry>(), Traits::GetAnyByte()));
     const std::size_t offset = std::distance(first, firstNotAny);
-    return DataFormat::Ptr(new Format<Traits>(firstNotAny, last, offset));
+    return firstNotAny != last
+      ? DataFormat::Ptr(new Format<Traits>(firstNotAny, last, offset))
+      : DataFormat::Ptr(new AlwaysMatchFormat(offset));
   }
 }
 

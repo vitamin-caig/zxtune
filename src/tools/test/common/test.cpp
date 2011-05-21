@@ -241,7 +241,10 @@ int main()
     TestDetector("ranged matched", "00-0200-02", true, 0);
     TestDetector("ranged unmatched", "10-12", false, 0x10);
     TestDetector("symbol unmatched", "'a'b'c'd'e", false, 32);
+    TestDetector("matched from 1 with skip at begin", "?0203", false, 1);
+    TestDetector("unmatched with skip at begin", "?0302", false, 32);
     TestDetector("partially matched at end", "1d1e1f20", false, 32);
+    TestDetector("partially matched at end with skipping", "?1d1e1f202122", false, 32);
   }
   }
   catch (int code)
