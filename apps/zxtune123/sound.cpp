@@ -250,13 +250,13 @@ namespace
     CreateBackendParams(const CommonBackendParameters& params, ZXTune::Module::Holder::Ptr module)
       : Params(params)
       , Module(module)
-      , Info(Module->GetModuleInformation())
+      , Channels(Module->GetModuleInformation()->PhysicalChannels())
     {
     }
 
     virtual Parameters::Accessor::Ptr GetParameters() const
     {
-      return Parameters::CreateMergedAccessor(Info->Properties(), Params.GetDefaultParameters());
+      return Parameters::CreateMergedAccessor(Module->GetModuleProperties(), Params.GetDefaultParameters());
     }
 
     virtual ZXTune::Module::Holder::Ptr GetModule() const
@@ -266,7 +266,7 @@ namespace
 
     virtual ZXTune::Sound::Mixer::Ptr GetMixer() const
     {
-      return Params.GetMixer(Info->PhysicalChannels());
+      return Params.GetMixer(Channels);
     }
 
     virtual ZXTune::Sound::Converter::Ptr GetFilter() const
@@ -276,7 +276,7 @@ namespace
   private:
     const CommonBackendParameters& Params;
     const ZXTune::Module::Holder::Ptr Module;
-    const ZXTune::Module::Information::Ptr Info;
+    const uint_t Channels;
   };
 
   class Sound : public SoundComponent

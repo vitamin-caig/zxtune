@@ -476,8 +476,9 @@ namespace
       IO::DataContainer::Ptr rawData, unsigned logicalChannels, std::size_t& usedSize)
       : Data(moduleData)
       , Properties(properties)
-      , Info(CreateTrackInfo(Data, logicalChannels, parameters, Properties))
+      , Info(CreateTrackInfo(Data, logicalChannels))
       , Version()
+      , Params(parameters)
     {
       //assume all data is correct
       const IO::FastDump& data = IO::FastDump(*rawData);
@@ -562,10 +563,15 @@ namespace
       return Info;
     }
 
+    virtual Parameters::Accessor::Ptr GetModuleProperties() const
+    {
+      return Parameters::CreateMergedAccessor(Params, Properties);
+    }
+
     virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
     {
       const Devices::AYM::Receiver::Ptr receiver = CreateAYMReceiver(target);
-      return Vortex::CreateRenderer(Info, Data, Version, FreqTableName, Devices::AYM::CreateChip(receiver));
+      return Vortex::CreateRenderer(GetModuleProperties(), Info, Data, Version, FreqTableName, Devices::AYM::CreateChip(receiver));
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -581,7 +587,7 @@ namespace
       {
         return result;
       }
-      else if (ConvertVortexFormat(*Data, *Info, param, Version, FreqTableName, dst, result))
+      else if (ConvertVortexFormat(*Data, *Info, *GetModuleProperties(), param, Version, FreqTableName, dst, result))
       {
         return result;
       }
@@ -590,12 +596,17 @@ namespace
   private:
     virtual Information::Ptr GetInformation() const
     {
-      return Info;
+      return GetModuleInformation();
+    }
+
+    virtual Parameters::Accessor::Ptr GetProperties() const
+    {
+      return GetModuleProperties();
     }
 
     virtual Renderer::Ptr CreateRenderer(Devices::AYM::Chip::Ptr chip) const
     {
-      return Vortex::CreateRenderer(Info, Data, Version, FreqTableName, chip);
+      return Vortex::CreateRenderer(GetModuleProperties(), Info, Data, Version, FreqTableName, chip);
     }
   protected:
     const Vortex::Track::ModuleData::RWPtr Data;
@@ -603,6 +614,7 @@ namespace
     const Information::Ptr Info;
     uint_t Version;
     String FreqTableName;
+    const Parameters::Accessor::Ptr Params;
   };
 
   //TODO: remove inheritance
@@ -677,8 +689,8 @@ namespace
     {
       const Devices::AYM::Receiver::Ptr receiver = CreateAYMReceiver(target);
       const AYMTSMixer::Ptr mixer = CreateTSMixer(receiver);
-      const Renderer::Ptr renderer1 = Vortex::CreateRenderer(Info, Data, Version, FreqTableName, Devices::AYM::CreateChip(mixer));
-      const Renderer::Ptr renderer2 = Vortex::CreateRenderer(Info, boost::make_shared<MirroredModuleData>(PatOffset, *Data), Version, FreqTableName, Devices::AYM::CreateChip(mixer));
+      const Renderer::Ptr renderer1 = Vortex::CreateRenderer(GetModuleProperties(), Info, Data, Version, FreqTableName, Devices::AYM::CreateChip(mixer));
+      const Renderer::Ptr renderer2 = Vortex::CreateRenderer(GetModuleProperties(), Info, boost::make_shared<MirroredModuleData>(PatOffset, *Data), Version, FreqTableName, Devices::AYM::CreateChip(mixer));
       return CreateTSRenderer(renderer1, renderer2, mixer);
     }
 

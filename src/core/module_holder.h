@@ -39,6 +39,9 @@ namespace ZXTune
       //! @brief Retrieving info about loaded module
       virtual Information::Ptr GetModuleInformation() const = 0;
 
+      //! @brief Retrieving properties of loaded module
+      virtual Parameters::Accessor::Ptr GetModuleProperties() const = 0;
+
       //! @brief Creating new renderer instance
       //! @return New player
       virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const = 0;

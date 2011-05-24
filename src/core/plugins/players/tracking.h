@@ -90,8 +90,7 @@ namespace ZXTune
       virtual uint_t GetActiveChannels(const TrackState& state) const = 0;
     };
 
-    Information::Ptr CreateTrackInfo(TrackModuleData::Ptr data, uint_t logicalChannels, 
-      Parameters::Accessor::Ptr parameters, Parameters::Accessor::Ptr properties);
+    Information::Ptr CreateTrackInfo(TrackModuleData::Ptr data, uint_t logicalChannels);
 
     StateIterator::Ptr CreateTrackStateIterator(Information::Ptr info, TrackModuleData::Ptr data);
 

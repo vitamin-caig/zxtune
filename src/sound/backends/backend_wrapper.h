@@ -68,6 +68,11 @@ namespace ZXTune
         return Delegate->GetModuleInformation();
       }
 
+      virtual Parameters::Accessor::Ptr GetModuleProperties() const
+      {
+        return Delegate->GetModuleProperties();
+      }
+
       virtual Module::TrackState::Ptr GetTrackState() const
       {
         return Delegate->GetTrackState();

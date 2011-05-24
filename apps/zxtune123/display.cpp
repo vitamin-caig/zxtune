@@ -106,6 +106,7 @@ namespace
     virtual void SetModule(ZXTune::Sound::Backend::Ptr player, uint_t frameDuration)
     {
       const ZXTune::Module::Information::Ptr info = player->GetModuleInformation();
+      const Parameters::Accessor::Ptr props = player->GetModuleProperties();
       TotalFrames = info->FramesCount();
       FrameDuration = frameDuration;
       TrackState = player->GetTrackState();
@@ -125,7 +126,7 @@ namespace
 #if 1
       StdOut
         << std::endl
-        << InformationTemplate->Instantiate(Parameters::FieldsSourceAdapter<FillFieldsSource>(*info->Properties()))
+        << InformationTemplate->Instantiate(Parameters::FieldsSourceAdapter<FillFieldsSource>(*props))
         << Strings::Format(Text::ITEM_INFO_ADDON, Strings::FormatTime(info->FramesCount(), frameDuration),
           info->LogicalChannels(), info->PhysicalChannels());
 #else

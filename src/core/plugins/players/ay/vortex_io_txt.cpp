@@ -931,7 +931,7 @@ namespace ZXTune
         return Error();
       }
 
-      std::string ConvertToText(const Vortex::Track::ModuleData& data, const Information& info, uint_t version, const String& freqTable)
+      std::string ConvertToText(const Vortex::Track::ModuleData& data, const Information& info, const Parameters::Accessor& props, uint_t version, const String& freqTable)
       {
         typedef std::vector<std::string> LinesArray;
         LinesArray asArray;
@@ -946,15 +946,14 @@ namespace ZXTune
           *iter = MODULE_VERSION + MODULE_DELIMITER +
               char('0' + resVersion / 10) + '.' + char('0' + resVersion % 10);
         }
-        const Parameters::Accessor::Ptr props(info.Properties());
         //process title info
         String strVal;
-        if (props->FindStringValue(Module::ATTR_TITLE, strVal))
+        if (props.FindStringValue(Module::ATTR_TITLE, strVal))
         {
           *iter = MODULE_TITLE + MODULE_DELIMITER + ToStdString(strVal);
         }
         //process author info
-        if (props->FindStringValue(Module::ATTR_AUTHOR, strVal))
+        if (props.FindStringValue(Module::ATTR_AUTHOR, strVal))
         {
           *iter = MODULE_AUTHOR + MODULE_DELIMITER + ToStdString(strVal);
         }

@@ -76,8 +76,6 @@ namespace ZXTune
       virtual uint_t PhysicalChannels() const = 0;
       //! Initial tempo
       virtual uint_t Tempo() const = 0;
-      //! %Module properties @see core/module_attrs.h
-      virtual Parameters::Accessor::Ptr Properties() const = 0;
     };
 
     //! @brief %Sound analyzer interface

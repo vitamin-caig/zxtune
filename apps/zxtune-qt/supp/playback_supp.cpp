@@ -70,12 +70,13 @@ namespace
       : Params(params)
       , Module(module)
       , Info(Module->GetModuleInformation())
+      , Properties(Module->GetModuleProperties())
     {
     }
 
     virtual Parameters::Accessor::Ptr GetParameters() const
     {
-      return Parameters::CreateMergedAccessor(Info->Properties(), Params);
+      return Parameters::CreateMergedAccessor(Properties, Params);
     }
 
     virtual ZXTune::Module::Holder::Ptr GetModule() const
@@ -104,6 +105,7 @@ namespace
     const Parameters::Accessor::Ptr Params;
     const ZXTune::Module::Holder::Ptr Module;
     const ZXTune::Module::Information::Ptr Info;
+    const Parameters::Accessor::Ptr Properties;
   };
 
   ZXTune::Sound::Backend::Ptr CreateBackend(Parameters::Accessor::Ptr params, ZXTune::Module::Holder::Ptr module)

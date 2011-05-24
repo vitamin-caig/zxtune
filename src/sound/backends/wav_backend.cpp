@@ -256,12 +256,12 @@ namespace
   class ComplexTrackProcessor : public TrackProcessor
   {
   public:
-    ComplexTrackProcessor(const RenderParameters& soundParams, const WavBackendParameters& backendParameters, const Module::Information& info)
+    ComplexTrackProcessor(const RenderParameters& soundParams, const WavBackendParameters& backendParameters, const Parameters::Accessor& props)
     {
       //acquire name template
       const String nameTemplate = backendParameters.GetFilenameTemplate();
       Log::Debug(THIS_MODULE, "Original filename template: '%1%'", nameTemplate);
-      const ModuleFieldsSource moduleFields(*info.Properties());
+      const ModuleFieldsSource moduleFields(props);
       const String fileName = InstantiateTemplate(nameTemplate, moduleFields);
       Log::Debug(THIS_MODULE, "Fixed filename template: '%1%'", fileName);
       const bool doRewrite = backendParameters.CheckIfRewrite();
@@ -304,9 +304,9 @@ namespace
     {
       assert(!Processor.get());
 
-      const Module::Information::Ptr info = Holder->GetModuleInformation();
+      const Parameters::Accessor::Ptr props = Holder->GetModuleProperties();
       const WavBackendParameters backendParameters(*SoundParameters);
-      Processor.reset(new ComplexTrackProcessor(*RenderingParameters, backendParameters, *info));
+      Processor.reset(new ComplexTrackProcessor(*RenderingParameters, backendParameters, *props));
       State = Player->GetTrackState();
     }
 

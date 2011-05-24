@@ -143,15 +143,14 @@ namespace
       XML.writeEndElement();
     }
 
-    void SaveModuleProperties(const ZXTune::Module::Information& info)
+    void SaveModuleProperties(const ZXTune::Module::Information& info, const Parameters::Accessor& props)
     {
       //save common properties
-      const Parameters::Accessor::Ptr props = info.Properties();
       Log::Debug(THIS_MODULE, " Save basic properties");
-      props->Process(*this);
-      SaveDuration(info, *props);
+      props.Process(*this);
+      SaveDuration(info, props);
       Log::Debug(THIS_MODULE, " Save extended properties");
-      SaveExtendedProperties(*props);
+      SaveExtendedProperties(props);
     }
 
     void SaveStubModuleProperties(const Parameters::Accessor& props)
@@ -304,8 +303,8 @@ namespace
       if (const ZXTune::Module::Holder::Ptr holder = item.GetModule())
       {
         const ZXTune::Module::Information::Ptr info = holder->GetModuleInformation();
-
-        saver.SaveModuleProperties(*info);
+        const Parameters::Accessor::Ptr props = holder->GetModuleProperties();
+        saver.SaveModuleProperties(*info, *props);
       }
       else
       {

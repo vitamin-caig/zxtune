@@ -155,6 +155,11 @@ namespace ZXTune
       return Holder->GetModuleInformation();
     }
 
+    Parameters::Accessor::Ptr BackendImpl::GetModuleProperties() const
+    {
+      return Holder->GetModuleProperties();
+    }
+
     Module::TrackState::Ptr BackendImpl::GetTrackState() const
     {
       return Player->GetTrackState();
@@ -612,6 +617,11 @@ namespace
     virtual Module::Information::Ptr GetModuleInformation() const
     {
       return Holder->GetModuleInformation();
+    }
+
+    virtual Parameters::Accessor::Ptr GetModuleProperties() const
+    {
+      return Holder->GetModuleProperties();
     }
 
     virtual Module::TrackState::Ptr GetTrackState() const

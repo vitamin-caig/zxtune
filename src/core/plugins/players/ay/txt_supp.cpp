@@ -65,7 +65,8 @@ namespace
     TXTHolder(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize)
       : Data(Vortex::Track::ModuleData::Create())
       , Properties(properties)
-      , Info(CreateTrackInfo(Data, Devices::AYM::CHANNELS, parameters, Properties))
+      , Info(CreateTrackInfo(Data, Devices::AYM::CHANNELS))
+      , Params(parameters)
     {
       const std::size_t dataSize = data->Size();
       const char* const rawData = static_cast<const char*>(data->Data());
@@ -91,10 +92,15 @@ namespace
       return Info;
     }
 
+    virtual Parameters::Accessor::Ptr GetModuleProperties() const
+    {
+      return Parameters::CreateMergedAccessor(Params, Properties);
+    }
+
     virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
     {
       const Devices::AYM::Receiver::Ptr receiver = CreateAYMReceiver(target);
-      return Vortex::CreateRenderer(Info, Data, Version, FreqTableName, Devices::AYM::CreateChip(receiver));
+      return Vortex::CreateRenderer(GetModuleProperties(), Info, Data, Version, FreqTableName, Devices::AYM::CreateChip(receiver));
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -110,7 +116,7 @@ namespace
       {
         return result;
       }
-      else if (ConvertVortexFormat(*Data, *Info, param, Version, FreqTableName, dst, result))
+      else if (ConvertVortexFormat(*Data, *Info, *GetModuleProperties(), param, Version, FreqTableName, dst, result))
       {
         return result;
       }
@@ -119,12 +125,17 @@ namespace
   private:
     virtual Information::Ptr GetInformation() const
     {
-      return Info;
+      return GetModuleInformation();
+    }
+
+    virtual Parameters::Accessor::Ptr GetProperties() const
+    {
+      return GetModuleProperties();
     }
 
     virtual Renderer::Ptr CreateRenderer(Devices::AYM::Chip::Ptr chip) const
     {
-      return Vortex::CreateRenderer(Info, Data, Version, FreqTableName, chip);
+      return Vortex::CreateRenderer(GetModuleProperties(), Info, Data, Version, FreqTableName, chip);
     }
   private:
     const Vortex::Track::ModuleData::RWPtr Data;
@@ -132,6 +143,7 @@ namespace
     const Information::Ptr Info;
     uint_t Version;
     String FreqTableName;
+    const Parameters::Accessor::Ptr Params;
   };
 
   const std::string TXT_FORMAT(

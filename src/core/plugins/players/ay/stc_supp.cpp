@@ -536,7 +536,7 @@ namespace
     STCTransposition Transpositions;
   };
 
-  Renderer::Ptr CreateSTCRenderer(Information::Ptr info, STCModuleData::Ptr data, Devices::AYM::Chip::Ptr device);
+  Renderer::Ptr CreateSTCRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, STCModuleData::Ptr data, Devices::AYM::Chip::Ptr device);
 
   class STCHolder : public Holder
                   , private ConversionFactory
@@ -545,7 +545,8 @@ namespace
     STCHolder(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr allData, std::size_t& usedSize)
       : Data(boost::make_shared<STCModuleData>())
       , Properties(properties)
-      , Info(CreateTrackInfo(Data, Devices::AYM::CHANNELS, parameters, Properties))
+      , Info(CreateTrackInfo(Data, Devices::AYM::CHANNELS))
+      , Params(parameters)
     {
       //assume that data is ok
       const IO::FastDump& data = IO::FastDump(*allData, 0, MAX_MODULE_SIZE);
@@ -577,10 +578,15 @@ namespace
       return Info;
     }
 
+    virtual Parameters::Accessor::Ptr GetModuleProperties() const
+    {
+      return Parameters::CreateMergedAccessor(Params, Properties);
+    }
+
     virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
     {
       const Devices::AYM::Receiver::Ptr receiver = CreateAYMReceiver(target);
-      return CreateSTCRenderer(Info, Data, Devices::AYM::CreateChip(receiver));
+      return CreateSTCRenderer(GetModuleProperties(), Info, Data, Devices::AYM::CreateChip(receiver));
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -600,17 +606,23 @@ namespace
   private:
     virtual Information::Ptr GetInformation() const
     {
-      return Info;
+      return GetModuleInformation();
+    }
+
+    virtual Parameters::Accessor::Ptr GetProperties() const
+    {
+      return GetModuleProperties();
     }
 
     virtual Renderer::Ptr CreateRenderer(Devices::AYM::Chip::Ptr chip) const
     {
-      return CreateSTCRenderer(Info, Data, chip);
+      return CreateSTCRenderer(GetModuleProperties(), Info, Data, chip);
     }
   private:
     const STCModuleData::RWPtr Data;
     const ModuleProperties::Ptr Properties;
     const Information::Ptr Info;
+    const Parameters::Accessor::Ptr Params;
   };
 
   class STCChannelBuilder
@@ -912,10 +924,10 @@ namespace
     STCChannelState StateC;
   };
 
-  Renderer::Ptr CreateSTCRenderer(Information::Ptr info, STCModuleData::Ptr data, Devices::AYM::Chip::Ptr device)
+  Renderer::Ptr CreateSTCRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, STCModuleData::Ptr data, Devices::AYM::Chip::Ptr device)
   {
     const AYMDataRenderer::Ptr renderer = boost::make_shared<STCDataRenderer>(data);
-    return CreateAYMTrackRenderer(info, data, renderer, device, TABLE_SOUNDTRACKER);
+    return CreateAYMTrackRenderer(params, info, data, renderer, device, TABLE_SOUNDTRACKER);
   }
 
   class STCAreasChecker : public STCAreas

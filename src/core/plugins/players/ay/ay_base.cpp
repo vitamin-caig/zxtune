@@ -185,21 +185,21 @@ namespace ZXTune
       return boost::make_shared<AYMRenderer>(params, iterator, renderer, device);
     }
 
-    Renderer::Ptr CreateAYMStreamRenderer(Information::Ptr info, AYMDataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device)
+    Renderer::Ptr CreateAYMStreamRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, AYMDataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device)
     {
-      const AYM::ParametersHelper::Ptr params = AYM::ParametersHelper::Create(TABLE_SOUNDTRACKER);
-      params->SetParameters(*info->Properties());
+      const AYM::ParametersHelper::Ptr ayParams = AYM::ParametersHelper::Create(TABLE_SOUNDTRACKER);
+      ayParams->SetParameters(*params);
       const StateIterator::Ptr iterator = CreateStreamStateIterator(info);
-      return CreateAYMRenderer(params, iterator, renderer, device);
+      return CreateAYMRenderer(ayParams, iterator, renderer, device);
     }
 
-    Renderer::Ptr CreateAYMTrackRenderer(Information::Ptr info, TrackModuleData::Ptr data, 
+    Renderer::Ptr CreateAYMTrackRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, TrackModuleData::Ptr data, 
       AYMDataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device, const String& defaultTable)
     {
-      const AYM::ParametersHelper::Ptr params = AYM::ParametersHelper::Create(defaultTable);
-      params->SetParameters(*info->Properties());
+      const AYM::ParametersHelper::Ptr ayParams = AYM::ParametersHelper::Create(defaultTable);
+      ayParams->SetParameters(*params);
       const StateIterator::Ptr iterator = CreateTrackStateIterator(info, data);
-      return CreateAYMRenderer(params, iterator, renderer, device);
+      return CreateAYMRenderer(ayParams, iterator, renderer, device);
     }
   }
 }

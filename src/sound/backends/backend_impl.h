@@ -49,6 +49,7 @@ namespace ZXTune
       virtual ~BackendImpl();
 
       Module::Information::Ptr GetModuleInformation() const;
+      Parameters::Accessor::Ptr GetModuleProperties() const;
       Module::TrackState::Ptr GetTrackState() const;
       Module::Analyzer::Ptr GetAnalyzer() const;
 

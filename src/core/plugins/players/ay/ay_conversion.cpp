@@ -48,8 +48,7 @@ namespace
         Dump tmp;
         const Devices::AYM::Chip::Ptr chip = CreateChip(tmp);
         const Renderer::Ptr renderer = factory.CreateRenderer(chip);
-        const Module::Information::Ptr info = factory.GetInformation();
-        const Parameters::Accessor::Ptr props = info->Properties();
+        const Parameters::Accessor::Ptr props = factory.GetProperties();
 
         const Sound::RenderParameters::Ptr params = Sound::RenderParameters::Create(props);
         while (renderer->RenderFrame(*params)) {}
@@ -146,8 +145,8 @@ namespace
         Dump rawDump;
         const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateRawStreamDumper(rawDump);
         const Renderer::Ptr renderer = factory.CreateRenderer(chip);
-        const Module::Information::Ptr info = factory.GetInformation();
-        const Parameters::Accessor::Ptr props = info->Properties();
+        const Information::Ptr info = factory.GetInformation();
+        const Parameters::Accessor::Ptr props = factory.GetProperties();
 
         const Sound::RenderParameters::Ptr params = Sound::RenderParameters::Create(props);
         while (renderer->RenderFrame(*params)) {}
@@ -243,7 +242,7 @@ namespace ZXTune
     }
 
     //vortex-based conversion
-    bool ConvertVortexFormat(const Vortex::Track::ModuleData& data, const Information& info, const Conversion::Parameter& param,
+    bool ConvertVortexFormat(const Vortex::Track::ModuleData& data, const Information& info, const Parameters::Accessor& props, const Conversion::Parameter& param,
       uint_t version, const String& freqTable,
       Dump& dst, Error& result)
     {
@@ -252,7 +251,7 @@ namespace ZXTune
       //convert to TXT
       if (parameter_cast<TXTConvertParam>(&param))
       {
-        const std::string& asString = Vortex::ConvertToText(data, info, version, freqTable);
+        const std::string& asString = Vortex::ConvertToText(data, info, props, version, freqTable);
         dst.assign(asString.begin(), asString.end());
         result = Error();
         return true;

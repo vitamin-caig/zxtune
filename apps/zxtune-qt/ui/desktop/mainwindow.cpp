@@ -97,10 +97,10 @@ namespace
 
     virtual void StartModule(ZXTune::Sound::Backend::Ptr player)
     {
-      const ZXTune::Module::Information::Ptr info = player->GetModuleInformation();
+      const Parameters::Accessor::Ptr props = player->GetModuleProperties();
       setWindowTitle(ToQString(Strings::Format(Text::TITLE_FORMAT,
         GetProgramTitle(),
-        GetModuleTitle(Text::MODULE_TITLE_FORMAT, *info->Properties()))));
+        GetModuleTitle(Text::MODULE_TITLE_FORMAT, *props))));
     }
 
     virtual void StopModule()

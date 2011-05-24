@@ -252,20 +252,9 @@ namespace
     {
       return std::min(First->Tempo(), Second->Tempo());
     }
-    virtual Parameters::Accessor::Ptr Properties() const
-    {
-      if (!Props)
-      {
-        const Parameters::Accessor::Ptr tsProps = boost::make_shared<TSModuleProperties>();
-        const Parameters::Accessor::Ptr mixProps = boost::make_shared<MergedModuleProperties>(First->Properties(), Second->Properties());
-        Props = CreateMergedAccessor(tsProps, mixProps);
-      }
-      return Props;
-    }
   private:
     const Information::Ptr First;
     const Information::Ptr Second;
-    mutable Parameters::Accessor::Ptr Props;
   };
 
   //////////////////////////////////////////////////////////////////////////
@@ -289,6 +278,14 @@ namespace
     virtual Information::Ptr GetModuleInformation() const
     {
       return Info;
+    }
+
+
+    virtual Parameters::Accessor::Ptr GetModuleProperties() const
+    {
+      const Parameters::Accessor::Ptr tsProps = boost::make_shared<TSModuleProperties>();
+      const Parameters::Accessor::Ptr mixProps = boost::make_shared<MergedModuleProperties>(Holder1->GetModuleProperties(), Holder2->GetModuleProperties());
+      return Parameters::CreateMergedAccessor(tsProps, mixProps);
     }
 
     virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const

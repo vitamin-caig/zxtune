@@ -56,11 +56,10 @@ namespace
     StdOut << Error::AttributesToString(loc, code, text);
   }
 
-  String GetModuleId(const ZXTune::Module::Information& info)
+  String GetModuleId(const Parameters::Accessor& props)
   {
-    const Parameters::Accessor::Ptr accessor(info.Properties());
     String res;
-    accessor->FindStringValue(ZXTune::Module::ATTR_FULLPATH, res);
+    props.FindStringValue(ZXTune::Module::ATTR_FULLPATH, res);
     return res;
   }
 
@@ -139,8 +138,8 @@ namespace
 
     bool ProcessItem(ZXTune::Module::Holder::Ptr holder) const
     {
-      const ZXTune::Module::Information::Ptr info = holder->GetModuleInformation();
-      const String id = GetModuleId(*info);
+      const Parameters::Accessor::Ptr props = holder->GetModuleProperties();
+      const String id = GetModuleId(*props);
       {
         const ZXTune::Plugin::Ptr plugin = holder->GetPlugin();
         if (!(plugin->Capabilities() & CapabilityMask))
@@ -152,7 +151,7 @@ namespace
       Dump result;
       ThrowIfError(holder->Convert(*ConversionParameter, result));
       //prepare result filename
-      const String& filename = FileNameTemplate->Instantiate(ModuleFieldsSource(*info->Properties()));
+      const String& filename = FileNameTemplate->Instantiate(ModuleFieldsSource(*props));
       std::ofstream file(filename.c_str(), std::ios::binary);
       file.write(safe_ptr_cast<const char*>(&result[0]), static_cast<std::streamsize>(result.size() * sizeof(result.front())));
       if (!file)

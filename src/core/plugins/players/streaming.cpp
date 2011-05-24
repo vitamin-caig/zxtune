@@ -24,11 +24,9 @@ namespace
   class StreamInfo : public Information
   {
   public:
-    explicit StreamInfo(uint_t frames, uint_t physChannels,
-      Parameters::Accessor::Ptr props)
+    explicit StreamInfo(uint_t frames, uint_t physChannels)
       : TotalFrames(frames)
       , PhysChans(physChannels)
-      , Props(props)
     {
     }
     virtual uint_t PositionsCount() const
@@ -63,14 +61,9 @@ namespace
     {
       return 1;
     }
-    virtual Parameters::Accessor::Ptr Properties() const
-    {
-      return Props;
-    }
   private:
     const uint_t TotalFrames;
     const uint_t PhysChans;
-    const Parameters::Accessor::Ptr Props;
   };
 
   class StreamStateIterator : public StateIterator
@@ -196,9 +189,9 @@ namespace ZXTune
 {
   namespace Module
   {
-    Information::Ptr CreateStreamInfo(uint_t frames, uint_t physChannels, Parameters::Accessor::Ptr props)
+    Information::Ptr CreateStreamInfo(uint_t frames, uint_t physChannels)
     {
-      return boost::make_shared<StreamInfo>(frames, physChannels, props);
+      return boost::make_shared<StreamInfo>(frames, physChannels);
     }
 
     StateIterator::Ptr CreateStreamStateIterator(Information::Ptr info)

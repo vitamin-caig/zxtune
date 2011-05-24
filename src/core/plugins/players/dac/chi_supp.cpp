@@ -177,7 +177,7 @@ namespace
   #define SELF_TEST
   #endif
 
-  Renderer::Ptr CreateCHIRenderer(Information::Ptr info, CHITrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device);
+  Renderer::Ptr CreateCHIRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, CHITrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device);
 
   class CHIHolder : public Holder
   {
@@ -248,7 +248,8 @@ namespace
     CHIHolder(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr rawData, std::size_t& usedSize)
       : Data(CHITrack::ModuleData::Create())
       , Properties(properties)
-      , Info(CreateTrackInfo(Data, CHANNELS_COUNT, parameters, Properties))
+      , Info(CreateTrackInfo(Data, CHANNELS_COUNT))
+      , Params(parameters)
     {
       //assume data is correct
       const IO::FastDump& data(*rawData);
@@ -311,6 +312,11 @@ namespace
       return Info;
     }
 
+    virtual Parameters::Accessor::Ptr GetModuleProperties() const
+    {
+      return Parameters::CreateMergedAccessor(Params, Properties);
+    }
+
     virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
     {
       const uint_t totalSamples = static_cast<uint_t>(Data->Samples.size());
@@ -323,7 +329,7 @@ namespace
           chip->SetSample(idx, smp.Data, smp.Loop);
         }
       }
-      return CreateCHIRenderer(Info, Data, chip);
+      return CreateCHIRenderer(GetModuleProperties(), Info, Data, chip);
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -343,6 +349,7 @@ namespace
     const CHITrack::ModuleData::RWPtr Data;
     const ModuleProperties::Ptr Properties;
     const Information::Ptr Info;
+    const Parameters::Accessor::Ptr Params;
   };
 
   class CHIRenderer : public Renderer
@@ -361,13 +368,13 @@ namespace
       }
     };
   public:
-    CHIRenderer(Information::Ptr info, CHITrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
+    CHIRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, CHITrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
       : Data(data)
       , Device(device)
       , Iterator(CreateTrackStateIterator(info, Data))
       , Interpolation(false)
     {
-      SetParameters(*info->Properties());
+      SetParameters(*params);
 #ifdef SELF_TEST
 //perform self-test
       Devices::DAC::DataChunk chunk;
@@ -510,9 +517,9 @@ namespace
     bool Interpolation;
   };
 
-  Renderer::Ptr CreateCHIRenderer(Information::Ptr info, CHITrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
+  Renderer::Ptr CreateCHIRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, CHITrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
   {
-    return Renderer::Ptr(new CHIRenderer(info, data, device));
+    return Renderer::Ptr(new CHIRenderer(params, info, data, device));
   }
 
   bool CheckCHI(const IO::DataContainer& data)

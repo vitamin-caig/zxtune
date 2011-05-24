@@ -351,8 +351,7 @@ namespace
     {
       if (const ZXTune::Module::Holder::Ptr holder = GetModule())
       {
-        const ZXTune::Module::Information::Ptr info = holder->GetModuleInformation();
-        return info->Properties();
+        return holder->GetModuleProperties();
       }
       return Parameters::Accessor::Ptr();
     }
@@ -427,7 +426,8 @@ namespace
 
       const ModuleSource itemSource(Source, subPath, perItemParameters);
       const ZXTune::Module::Information::Ptr info = holder->GetModuleInformation();
-      const Parameters::Accessor::Ptr lookupModuleProps = Parameters::CreateMergedAccessor(adjustedParams, info->Properties());
+      const Parameters::Accessor::Ptr moduleProps = holder->GetModuleProperties();
+      const Parameters::Accessor::Ptr lookupModuleProps = Parameters::CreateMergedAccessor(adjustedParams, moduleProps);
       const Playlist::Item::Data::Ptr playitem = boost::make_shared<DataImpl>(Attributes, itemSource, adjustedParams,
         info->FramesCount(), *lookupModuleProps);
       return Delegate.ProcessItem(playitem) ? Error() : Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);

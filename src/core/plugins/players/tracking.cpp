@@ -187,12 +187,9 @@ namespace
   class InformationImpl : public Information
   {
   public:
-    InformationImpl(TrackModuleData::Ptr data, uint_t logicalChannels, 
-      Parameters::Accessor::Ptr parameters, Parameters::Accessor::Ptr properties)
+    InformationImpl(TrackModuleData::Ptr data, uint_t logicalChannels)
       : Data(data)
       , LogicChannels(logicalChannels)
-      , Params(parameters)
-      , Props(properties)
       , Frames(), LoopFrameNum()
     {
     }
@@ -238,11 +235,6 @@ namespace
     {
       return Data->GetInitialTempo();
     }
-
-    virtual Parameters::Accessor::Ptr Properties() const
-    {
-      return Parameters::CreateMergedAccessor(Params, Props);
-    }
   private:
     void Initialize() const
     {
@@ -273,8 +265,6 @@ namespace
   private:
     const TrackModuleData::Ptr Data;
     const uint_t LogicChannels;
-    const Parameters::Accessor::Ptr Params;
-    const Parameters::Accessor::Ptr Props;
     mutable uint_t Frames;
     mutable uint_t LoopFrameNum;
   };
@@ -284,10 +274,9 @@ namespace ZXTune
 {
   namespace Module
   {
-    Information::Ptr CreateTrackInfo(TrackModuleData::Ptr data, uint_t logicalChannels, 
-      Parameters::Accessor::Ptr parameters, Parameters::Accessor::Ptr properties)
+    Information::Ptr CreateTrackInfo(TrackModuleData::Ptr data, uint_t logicalChannels)
     {
-      return boost::make_shared<InformationImpl>(data, logicalChannels, parameters, properties);
+      return boost::make_shared<InformationImpl>(data, logicalChannels);
     }
 
     StateIterator::Ptr CreateTrackStateIterator(Information::Ptr info, TrackModuleData::Ptr data)

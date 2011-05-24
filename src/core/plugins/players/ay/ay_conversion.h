@@ -35,6 +35,7 @@ namespace ZXTune
       virtual ~ConversionFactory() {}
 
       virtual Information::Ptr GetInformation() const = 0;
+      virtual Parameters::Accessor::Ptr GetProperties() const = 0;
       virtual Renderer::Ptr CreateRenderer(Devices::AYM::Chip::Ptr chip) const = 0;
     };
     //! @brief Simple helper for conversion to AYM-related formats
@@ -57,7 +58,7 @@ namespace ZXTune
     //! @param dst Destination data
     //! @param result Result state
     //! @return true if parameter is processed
-    bool ConvertVortexFormat(const Vortex::Track::ModuleData& data, const Information& info, const Conversion::Parameter& param,
+    bool ConvertVortexFormat(const Vortex::Track::ModuleData& data, const Information& info, const Parameters::Accessor& props, const Conversion::Parameter& param,
       uint_t version, const String& freqTable,
       Dump& dst, Error& result);
 

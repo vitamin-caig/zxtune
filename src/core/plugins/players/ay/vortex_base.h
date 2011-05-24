@@ -126,7 +126,7 @@ namespace ZXTune
       typedef TrackingSupport<Devices::AYM::CHANNELS, Commands, Sample, Ornament> Track;
 
       //creating simple player based on parsed data and parameters
-      Renderer::Ptr CreateRenderer(Information::Ptr info, Track::ModuleData::Ptr data,
+      Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, Track::ModuleData::Ptr data,
          uint_t version, const String& freqTableName, Devices::AYM::Chip::Ptr device);
     }
   }

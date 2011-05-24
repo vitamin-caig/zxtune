@@ -33,7 +33,7 @@ namespace ZXTune
       Error ConvertFromText(const std::string& text, Vortex::Track::ModuleData& data,
         ModuleProperties& resProps,
         uint_t& version, String& freqTable);
-      std::string ConvertToText(const Vortex::Track::ModuleData& data, const Information& info, uint_t version, const String& freqTable);
+      std::string ConvertToText(const Vortex::Track::ModuleData& data, const Information& info, const Parameters::Accessor& props, uint_t version, const String& freqTable);
     }
   }
 }
