@@ -127,7 +127,7 @@ namespace ZXTune
 
       //creating simple player based on parsed data and parameters
       Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, Track::ModuleData::Ptr data,
-         uint_t version, const String& freqTableName, Devices::AYM::Chip::Ptr device);
+         uint_t version, Devices::AYM::Chip::Ptr device);
     }
   }
 }

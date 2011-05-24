@@ -152,6 +152,7 @@ namespace
 
       //meta properties
       Properties->SetSource(usedSize, ModuleRegion(0, usedSize));
+      Properties->SetFreqtable(TABLE_SOUNDTRACKER);//TODO: remove
       Info = CreateStreamInfo(static_cast<uint_t>(Data->Dump.size()), Devices::AYM::CHANNELS);
     }
 

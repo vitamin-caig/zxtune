@@ -34,6 +34,7 @@ namespace ZXTune
       virtual void SetAuthor(const String& author) = 0;
       virtual void SetProgram(const String& program) = 0;
       virtual void SetWarnings(Log::MessagesCollector::Ptr warns) = 0;
+      virtual void SetFreqtable(const String& table) = 0;
       virtual void SetSource(std::size_t usedSize, const struct ModuleRegion& fixedRegion) = 0;
 
       virtual Plugin::Ptr GetPlugin() const = 0;

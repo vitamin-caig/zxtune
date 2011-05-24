@@ -683,6 +683,7 @@ namespace
         }
       }
       Properties->SetProgram(Text::ASC_EDITOR);
+      Properties->SetFreqtable(TABLE_ASM);
     }
 
     virtual Plugin::Ptr GetPlugin() const
@@ -1067,7 +1068,7 @@ namespace
   Renderer::Ptr CreateASCRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, ASCTrack::ModuleData::Ptr data, Devices::AYM::Chip::Ptr device)
   {
     const AYMDataRenderer::Ptr renderer = boost::make_shared<ASCDataRenderer>(data);
-    return CreateAYMTrackRenderer(params, info, data, renderer, device, TABLE_ASM);
+    return CreateAYMTrackRenderer(params, info, data, renderer, device);
   }
 
   //////////////////////////////////////////////////////////////////////////

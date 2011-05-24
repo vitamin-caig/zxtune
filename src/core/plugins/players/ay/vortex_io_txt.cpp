@@ -16,6 +16,7 @@ Author:
 #include <error_tools.h>
 #include <tools.h>
 //library includes
+#include <core/core_parameters.h>
 #include <core/error_codes.h>
 #include <core/freq_tables.h>
 #include <core/module_attrs.h>
@@ -852,7 +853,7 @@ namespace ZXTune
     namespace Vortex
     {
       Error ConvertFromText(const std::string& text, Vortex::Track::ModuleData& resData, ModuleProperties& resProps,
-        uint_t& resVersion, String& resFreqTable)
+        uint_t& resVersion)
       {
         typedef std::vector<std::string> LinesArray;
         LinesArray lines;
@@ -864,7 +865,6 @@ namespace ZXTune
         //transactional result
         Vortex::Track::ModuleData data;
         uint_t version = 0;
-        String freqTable;
 
         for (LinesArray::const_iterator it = lines.begin(), lim = lines.end(); it != lim;)
         {
@@ -920,18 +920,18 @@ namespace ZXTune
 
         //tracking properties
         version = descr.Version % 10;
-        freqTable = Vortex::GetFreqTable(static_cast<Vortex::NoteTable>(descr.Notetable), version);
+        const String& freqTable = Vortex::GetFreqTable(static_cast<Vortex::NoteTable>(descr.Notetable), version);
+        resProps.SetFreqtable(freqTable);
 
         data.Positions.swap(descr.Order);
 
         //apply result
         resData = data;
         resVersion = version;
-        resFreqTable = freqTable;
         return Error();
       }
 
-      std::string ConvertToText(const Vortex::Track::ModuleData& data, const Information& info, const Parameters::Accessor& props, uint_t version, const String& freqTable)
+      std::string ConvertToText(const Vortex::Track::ModuleData& data, const Information& info, const Parameters::Accessor& props, uint_t version)
       {
         typedef std::vector<std::string> LinesArray;
         LinesArray asArray;
@@ -941,6 +941,8 @@ namespace ZXTune
         *iter = SECTION_MODULE;
         *iter = VORTEX_TRACKER_FLAG;
         //process version info
+        String freqTable = TABLE_PROTRACKER3_3;
+        props.FindStringValue(Parameters::ZXTune::Core::AYM::TABLE, freqTable);
         {
           const uint_t resVersion = 30 + (in_range<uint_t>(version, 1, 9) ? version : GetVortexVersion(freqTable));
           *iter = MODULE_VERSION + MODULE_DELIMITER +

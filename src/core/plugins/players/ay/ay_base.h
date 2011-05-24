@@ -47,7 +47,7 @@ namespace ZXTune
     Renderer::Ptr CreateAYMStreamRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, AYMDataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device);
 
     Renderer::Ptr CreateAYMTrackRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, TrackModuleData::Ptr data,
-      AYMDataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device, const String& defaultTable);
+      AYMDataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device);
   }
 }
 

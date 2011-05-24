@@ -635,6 +635,7 @@ namespace
         const ModuleRegion fixedRegion(fixedOffset, usedSize -  fixedOffset);
         Properties->SetSource(usedSize, fixedRegion);
       }
+      Properties->SetFreqtable(TABLE_SOUNDTRACKER);
     }
 
     virtual Plugin::Ptr GetPlugin() const
@@ -885,7 +886,7 @@ namespace
   Renderer::Ptr CreateSTPRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, STPModuleData::Ptr data, Devices::AYM::Chip::Ptr device)
   {
     const AYMDataRenderer::Ptr renderer = boost::make_shared<STPDataRenderer>(data);
-    return CreateAYMTrackRenderer(params, info, data, renderer, device, TABLE_SOUNDTRACKER);
+    return CreateAYMTrackRenderer(params, info, data, renderer, device);
   }
 
   class STPAreasChecker : public STPAreas

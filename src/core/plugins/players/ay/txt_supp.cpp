@@ -74,7 +74,7 @@ namespace
       const std::size_t limit = dataEnd - rawData;
 
       ThrowIfError(Vortex::ConvertFromText(std::string(rawData, dataEnd),
-        *Data, *Properties, Version, FreqTableName));
+        *Data, *Properties, Version));
 
       usedSize = limit;
       //meta properties
@@ -100,7 +100,7 @@ namespace
     virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
     {
       const Devices::AYM::Receiver::Ptr receiver = CreateAYMReceiver(target);
-      return Vortex::CreateRenderer(GetModuleProperties(), Info, Data, Version, FreqTableName, Devices::AYM::CreateChip(receiver));
+      return Vortex::CreateRenderer(GetModuleProperties(), Info, Data, Version, Devices::AYM::CreateChip(receiver));
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -116,7 +116,7 @@ namespace
       {
         return result;
       }
-      else if (ConvertVortexFormat(*Data, *Info, *GetModuleProperties(), param, Version, FreqTableName, dst, result))
+      else if (ConvertVortexFormat(*Data, *Info, *GetModuleProperties(), param, Version, dst, result))
       {
         return result;
       }
@@ -135,14 +135,13 @@ namespace
 
     virtual Renderer::Ptr CreateRenderer(Devices::AYM::Chip::Ptr chip) const
     {
-      return Vortex::CreateRenderer(GetModuleProperties(), Info, Data, Version, FreqTableName, chip);
+      return Vortex::CreateRenderer(GetModuleProperties(), Info, Data, Version, chip);
     }
   private:
     const Vortex::Track::ModuleData::RWPtr Data;
     const ModuleProperties::Ptr Properties;
     const Information::Ptr Info;
     uint_t Version;
-    String FreqTableName;
     const Parameters::Accessor::Ptr Params;
   };
 

@@ -550,7 +550,8 @@ namespace
 
       //tracking properties
       Version = std::isdigit(header->Subversion) ? header->Subversion - '0' : 6;
-      FreqTableName = Vortex::GetFreqTable(static_cast<Vortex::NoteTable>(header->FreqTableNum), Version);
+      const String freqTable = Vortex::GetFreqTable(static_cast<Vortex::NoteTable>(header->FreqTableNum), Version);
+      Properties->SetFreqtable(freqTable);
     }
 
     virtual Plugin::Ptr GetPlugin() const
@@ -571,7 +572,7 @@ namespace
     virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
     {
       const Devices::AYM::Receiver::Ptr receiver = CreateAYMReceiver(target);
-      return Vortex::CreateRenderer(GetModuleProperties(), Info, Data, Version, FreqTableName, Devices::AYM::CreateChip(receiver));
+      return Vortex::CreateRenderer(GetModuleProperties(), Info, Data, Version, Devices::AYM::CreateChip(receiver));
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -587,7 +588,7 @@ namespace
       {
         return result;
       }
-      else if (ConvertVortexFormat(*Data, *Info, *GetModuleProperties(), param, Version, FreqTableName, dst, result))
+      else if (ConvertVortexFormat(*Data, *Info, *GetModuleProperties(), param, Version, dst, result))
       {
         return result;
       }
@@ -606,14 +607,13 @@ namespace
 
     virtual Renderer::Ptr CreateRenderer(Devices::AYM::Chip::Ptr chip) const
     {
-      return Vortex::CreateRenderer(GetModuleProperties(), Info, Data, Version, FreqTableName, chip);
+      return Vortex::CreateRenderer(GetModuleProperties(), Info, Data, Version, chip);
     }
   protected:
     const Vortex::Track::ModuleData::RWPtr Data;
     const ModuleProperties::Ptr Properties;
     const Information::Ptr Info;
     uint_t Version;
-    String FreqTableName;
     const Parameters::Accessor::Ptr Params;
   };
 
@@ -689,8 +689,8 @@ namespace
     {
       const Devices::AYM::Receiver::Ptr receiver = CreateAYMReceiver(target);
       const AYMTSMixer::Ptr mixer = CreateTSMixer(receiver);
-      const Renderer::Ptr renderer1 = Vortex::CreateRenderer(GetModuleProperties(), Info, Data, Version, FreqTableName, Devices::AYM::CreateChip(mixer));
-      const Renderer::Ptr renderer2 = Vortex::CreateRenderer(GetModuleProperties(), Info, boost::make_shared<MirroredModuleData>(PatOffset, *Data), Version, FreqTableName, Devices::AYM::CreateChip(mixer));
+      const Renderer::Ptr renderer1 = Vortex::CreateRenderer(GetModuleProperties(), Info, Data, Version, Devices::AYM::CreateChip(mixer));
+      const Renderer::Ptr renderer2 = Vortex::CreateRenderer(GetModuleProperties(), Info, boost::make_shared<MirroredModuleData>(PatOffset, *Data), Version, Devices::AYM::CreateChip(mixer));
       return CreateTSRenderer(renderer1, renderer2, mixer);
     }
 

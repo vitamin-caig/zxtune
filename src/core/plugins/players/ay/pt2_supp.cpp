@@ -461,6 +461,7 @@ namespace
       }
       Properties->SetTitle(OptimizeString(FromCharArray(header->Name)));
       Properties->SetProgram(Text::PT2_EDITOR);
+      Properties->SetFreqtable(TABLE_PROTRACKER2);
     }
 
     virtual Plugin::Ptr GetPlugin() const
@@ -730,7 +731,7 @@ namespace
   Renderer::Ptr CreatePT2Renderer(Parameters::Accessor::Ptr params, Information::Ptr info, PT2Track::ModuleData::Ptr data, Devices::AYM::Chip::Ptr device)
   {
     const AYMDataRenderer::Ptr renderer = boost::make_shared<PT2DataRenderer>(data);
-    return CreateAYMTrackRenderer(params, info, data, renderer, device, TABLE_PROTRACKER2);
+    return CreateAYMTrackRenderer(params, info, data, renderer, device);
   }
 
   //////////////////////////////////////////////////

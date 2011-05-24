@@ -88,12 +88,6 @@ namespace
   class ParametersHelperImpl : public ParametersHelper
   {
   public:
-    explicit ParametersHelperImpl(const String& freqTableName)
-      : Chunk()
-    {
-      ThrowIfError(Module::GetFreqTable(freqTableName, FreqTable));
-    }
-
     virtual void SetParameters(const Parameters::Accessor& params)
     {
       Parameters::IntType intParam = 0;
@@ -138,6 +132,10 @@ namespace
             Text::MODULE_ERROR_INVALID_FREQ_TABLE_SIZE, dataParam.size());
         }
         std::memcpy(&FreqTable.front(), &dataParam.front(), dataParam.size());
+      }
+      else
+      {
+        assert(!"Empty frequency table specified");
       }
       // duty cycle value parameter
       if (params.FindIntValue(Parameters::ZXTune::Core::AYM::DUTY_CYCLE, intParam))
@@ -199,9 +197,9 @@ namespace ZXTune
 {
   namespace AYM
   {
-    ParametersHelper::Ptr ParametersHelper::Create(const String& defaultFreqTable)
+    ParametersHelper::Ptr ParametersHelper::Create()
     {
-      return ParametersHelper::Ptr(new ParametersHelperImpl(defaultFreqTable));
+      return ParametersHelper::Ptr(new ParametersHelperImpl());
     }
 
     void ChannelBuilder::SetTone(int_t halfTones, int_t offset) const

@@ -12,6 +12,7 @@ Author:
 //local includes
 #include "module_properties.h"
 //library includes
+#include <core/core_parameters.h>
 #include <core/module_attrs.h>
 //boost includes
 #include <boost/make_shared.hpp>
@@ -58,6 +59,12 @@ namespace
     virtual void SetWarnings(Log::MessagesCollector::Ptr warns)
     {
       Warnings = warns;
+    }
+
+    virtual void SetFreqtable(const String& table)
+    {
+      assert(!table.empty());
+      Container->SetStringValue(Parameters::ZXTune::Core::AYM::TABLE, table);
     }
 
     virtual void SetSource(std::size_t usedSize, const ModuleRegion& fixedRegion)

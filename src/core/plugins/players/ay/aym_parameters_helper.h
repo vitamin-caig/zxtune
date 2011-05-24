@@ -41,7 +41,7 @@ namespace ZXTune
       //initial data chunk according to parameters
       virtual void GetDataChunk(Devices::AYM::DataChunk& dst) const = 0;
 
-      static Ptr Create(const String& defaultFreqTable);
+      static Ptr Create();
     };
 
     class ChannelBuilder

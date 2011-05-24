@@ -187,16 +187,16 @@ namespace ZXTune
 
     Renderer::Ptr CreateAYMStreamRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, AYMDataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device)
     {
-      const AYM::ParametersHelper::Ptr ayParams = AYM::ParametersHelper::Create(TABLE_SOUNDTRACKER);
+      const AYM::ParametersHelper::Ptr ayParams = AYM::ParametersHelper::Create();
       ayParams->SetParameters(*params);
       const StateIterator::Ptr iterator = CreateStreamStateIterator(info);
       return CreateAYMRenderer(ayParams, iterator, renderer, device);
     }
 
     Renderer::Ptr CreateAYMTrackRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, TrackModuleData::Ptr data, 
-      AYMDataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device, const String& defaultTable)
+      AYMDataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device)
     {
-      const AYM::ParametersHelper::Ptr ayParams = AYM::ParametersHelper::Create(defaultTable);
+      const AYM::ParametersHelper::Ptr ayParams = AYM::ParametersHelper::Create();
       ayParams->SetParameters(*params);
       const StateIterator::Ptr iterator = CreateTrackStateIterator(info, data);
       return CreateAYMRenderer(ayParams, iterator, renderer, device);
