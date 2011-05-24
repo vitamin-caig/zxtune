@@ -145,8 +145,7 @@ namespace
         const ZXTune::Plugin::Ptr plugin = holder->GetPlugin();
         if (!(plugin->Capabilities() & CapabilityMask))
         {
-          Display.Message((Formatter(Text::CONVERT_SKIPPED) %
-            id % plugin->Id()).str());
+          Display.Message(Strings::Format(Text::CONVERT_SKIPPED, id, plugin->Id()));
           return true;
         }
       }
@@ -161,7 +160,7 @@ namespace
         throw MakeFormattedError(THIS_LINE, CONVERT_PARAMETERS,
           Text::CONVERT_ERROR_WRITE_FILE, filename);
       }
-      Display.Message((Formatter(Text::CONVERT_DONE) % id % filename).str());
+      Display.Message(Strings::Format(Text::CONVERT_DONE, id, filename));
       return true;
     }
   private:
@@ -228,7 +227,7 @@ namespace
 
         String configFile;
         String providersOptions, coreOptions;
-        options_description options((Formatter(Text::USAGE_SECTION) % *argv).str());
+        options_description options(Strings::Format(Text::USAGE_SECTION, *argv));
         options.add_options()
           (Text::HELP_KEY, Text::HELP_DESC)
           (Text::VERSION_KEY, Text::VERSION_DESC)

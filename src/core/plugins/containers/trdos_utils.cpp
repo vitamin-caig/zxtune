@@ -13,7 +13,7 @@ Author:
 #include "trdos_utils.h"
 #include <core/plugins/utils.h>
 //common includes
-#include <formatter.h>
+#include <format.h>
 //boost includes
 #include <boost/bind.hpp>
 
@@ -73,7 +73,7 @@ namespace
       const String::size_type dotPos = Name.find_last_of('.');
       const String base = Name.substr(0, dotPos);
       const String ext = dotPos == String::npos ? String() : Name.substr(dotPos);
-      return (Formatter(DISAMBIG_NAME_FORMAT) % base % Idx % ext).str();
+      return Strings::Format(DISAMBIG_NAME_FORMAT, base, Idx, ext);
     }
   private:
     const String Name;

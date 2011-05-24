@@ -14,7 +14,7 @@ Author:
 #include "core/plugins/utils.h"
 #include "core/src/callback.h"
 //common includes
-#include <formatter.h>
+#include <format.h>
 #include <logging.h>
 //library includes
 #include <core/module_detect.h>
@@ -30,11 +30,10 @@ namespace
   public:
     LoggerHelper(Log::ProgressCallback* callback, const Plugin& plugin, const String& path)
       : Callback(callback)
+      , Id(plugin.Id())
       , Path(path)
-      , Format(new Formatter(Path.empty() ? Text::CONTAINER_PLUGIN_PROGRESS_NOPATH : Text::CONTAINER_PLUGIN_PROGRESS))
       , Current()
     {
-      (*Format) % plugin.Id();
     }
 
     void operator()(const TRDos::FileEntry& cur)
@@ -42,15 +41,15 @@ namespace
       if (Callback)
       {
         const String text = Path.empty()
-          ? (Formatter(*Format) % cur.Name).str()
-          : (Formatter(*Format) % cur.Name % Path).str();
+          ? Strings::Format(Text::CONTAINER_PLUGIN_PROGRESS_NOPATH, Id, cur.Name)
+          : Strings::Format(Text::CONTAINER_PLUGIN_PROGRESS, Id, cur.Name, Path);
         Callback->OnProgress(Current++, text);
       }
     }
   private:
     Log::ProgressCallback* const Callback;
+    const String Id;
     const String Path;
-    const std::auto_ptr<Formatter> Format;
     uint_t Current;
   };
 }

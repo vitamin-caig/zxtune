@@ -13,7 +13,7 @@ Author:
 #include "vortex_io.h"
 #include <core/plugins/players/module_properties.h>
 //common includes
-#include <formatter.h>
+#include <error_tools.h>
 #include <tools.h>
 //library includes
 #include <core/error_codes.h>
@@ -866,7 +866,6 @@ namespace ZXTune
         uint_t version = 0;
         String freqTable;
 
-        Formatter fmt(Text::TXT_ERROR_INVALID_STRING);
         for (LinesArray::const_iterator it = lines.begin(), lim = lines.end(); it != lim;)
         {
           const std::string& string = *it;
@@ -877,7 +876,7 @@ namespace ZXTune
             const LinesArray::const_iterator stop = DescriptionFromStrings(it, next, descr);
             if (next != stop)
             {
-              return Error(THIS_LINE, ERROR_INVALID_FORMAT, (fmt % *stop).str());
+              return MakeFormattedError(THIS_LINE, ERROR_INVALID_FORMAT, Text::TXT_ERROR_INVALID_STRING, *stop);
             }
           }
           else if (OrnamentHeaderFromString(string, idx))
@@ -885,7 +884,7 @@ namespace ZXTune
             data.Ornaments.resize(idx + 1);
             if (!OrnamentFromString(*it, data.Ornaments[idx]))
             {
-              return Error(THIS_LINE, ERROR_INVALID_FORMAT, (fmt % *it).str());
+              return MakeFormattedError(THIS_LINE, ERROR_INVALID_FORMAT, Text::TXT_ERROR_INVALID_STRING, *it);
             }
           }
           else if (SampleHeaderFromString(string, idx))
@@ -894,7 +893,7 @@ namespace ZXTune
             const StringArray::const_iterator stop = SampleFromStrings(it, next, data.Samples[idx]);
             if (next != stop)
             {
-              return Error(THIS_LINE, ERROR_INVALID_FORMAT, (fmt % *stop).str());
+              return MakeFormattedError(THIS_LINE, ERROR_INVALID_FORMAT, Text::TXT_ERROR_INVALID_STRING, *stop);
             }
           }
           else if (PatternHeaderFromString(string, idx))
@@ -903,12 +902,12 @@ namespace ZXTune
             const LinesArray::const_iterator stop = PatternFromStrings(it, next, data.Patterns[idx]);
             if (next != stop)
             {
-              return Error(THIS_LINE, ERROR_INVALID_FORMAT, (fmt % *stop).str());
+              return MakeFormattedError(THIS_LINE, ERROR_INVALID_FORMAT, Text::TXT_ERROR_INVALID_STRING, *stop);
             }
           }
           else
           {
-            return Error(THIS_LINE, ERROR_INVALID_FORMAT, (fmt % string).str());
+              return MakeFormattedError(THIS_LINE, ERROR_INVALID_FORMAT, Text::TXT_ERROR_INVALID_STRING, string);
           }
           it = next;
         }
@@ -917,7 +916,7 @@ namespace ZXTune
 
         resProps.SetTitle(descr.Title);
         resProps.SetAuthor(descr.Author);
-        resProps.SetProgram((Formatter(Text::VORTEX_EDITOR) % (descr.Version / 10) % (descr.Version % 10)).str());
+        resProps.SetProgram(Strings::Format(Text::VORTEX_EDITOR, descr.Version / 10, descr.Version % 10));
 
         //tracking properties
         version = descr.Version % 10;

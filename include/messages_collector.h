@@ -12,7 +12,7 @@
 #define __MESSAGES_COLLECTOR_H_DEFINED__
 
 //common includes
-#include <formatter.h>
+#include <types.h>
 //std includes
 #include <memory>
 
@@ -72,25 +72,6 @@ namespace Log
   private:
     const String Prefix;
     MessagesCollector& Delegate;
-  };
-
-  //! @brief Simple wrapper used to prepend each message by formatted prefix
-  class ParamPrefixedCollector : public PrefixedCollector
-  {
-  public:
-    template<class T>
-    ParamPrefixedCollector(MessagesCollector& collector, const String& pfxfmt, T param)
-      : PrefixedCollector((Formatter(pfxfmt) % param).str(), collector)
-    {
-    }
-
-    template<class T1, class T2>
-    ParamPrefixedCollector(MessagesCollector& collector, const String& pfxfmt
-        , T1 param1
-        , T2 param2)
-      : PrefixedCollector((Formatter(pfxfmt) % param1 % param2).str(), collector)
-    {
-    }
   };
 }
 

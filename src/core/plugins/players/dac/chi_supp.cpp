@@ -298,7 +298,7 @@ namespace
         Properties->SetSource(usedSize, fixedRegion);
       }
       Properties->SetTitle(OptimizeString(FromCharArray(header->Name)));
-      Properties->SetProgram((Formatter(Text::CHI_EDITOR) % FromCharArray(header->Version)).str());
+      Properties->SetProgram(Strings::Format(Text::CHI_EDITOR, FromCharArray(header->Version)));
     }
 
     virtual Plugin::Ptr GetPlugin() const

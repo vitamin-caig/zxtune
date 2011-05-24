@@ -17,7 +17,7 @@ Author:
 #include "ui/utils.h"
 #include <apps/base/app.h>
 //common includes
-#include <formatter.h>
+#include <format.h>
 //text includes
 #include "text/text.h"
 
@@ -33,7 +33,7 @@ namespace
       //do not set parent
       setupUi(this);
       const String appVersion = GetProgramVersionString();
-      const String feedbackText = (Formatter(Text::FEEDBACK_TEXT) % appVersion).str();
+      const String feedbackText = Strings::Format(Text::FEEDBACK_TEXT, appVersion);
       setWindowTitle(ToQString(appVersion));
       feedbackLabel->setText(ToQString(feedbackText));
     }

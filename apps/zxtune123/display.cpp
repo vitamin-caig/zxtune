@@ -17,7 +17,7 @@ Author:
 #include <apps/base/app.h>
 //common includes
 #include <error.h>
-#include <formatter.h>
+#include <format.h>
 #include <template_parameters.h>
 //boost includes
 #include <boost/bind.hpp>
@@ -41,11 +41,10 @@ namespace
 
   inline void ShowTrackingStatus(const ZXTune::Module::TrackState& state)
   {
-    const String& dump = (Formatter(Text::TRACKING_STATUS)
-      % state.Position() % state.Pattern()
-      % state.Line() % state.Quirk()
-      % state.Channels() % state.Tempo()
-    ).str();
+    const String& dump = Strings::Format(Text::TRACKING_STATUS,
+      state.Position(), state.Pattern(),
+      state.Line(), state.Quirk(),
+      state.Channels(), state.Tempo());
     assert(TRACKING_HEIGHT == static_cast<std::size_t>(std::count(dump.begin(), dump.end(), '\n')));
     StdOut << dump;
   }
@@ -127,8 +126,8 @@ namespace
       StdOut
         << std::endl
         << InformationTemplate->Instantiate(Parameters::FieldsSourceAdapter<FillFieldsSource>(*info->Properties()))
-        << (Formatter(Text::ITEM_INFO_ADDON) % FormatTime(info->FramesCount(), frameDuration) %
-          info->LogicalChannels() % info->PhysicalChannels()).str();
+        << Strings::Format(Text::ITEM_INFO_ADDON, Strings::FormatTime(info->FramesCount(), frameDuration),
+          info->LogicalChannels(), info->PhysicalChannels());
 #else
       std::for_each(strProps.begin(), strProps.end(), &OutProp);
 #endif
@@ -186,7 +185,7 @@ namespace
     void ShowPlaybackStatus(uint_t frame, ZXTune::Sound::Backend::State state) const
     {
       const Char MARKER = '\x1';
-      String data((Formatter(Text::PLAYBACK_STATUS) % FormatTime(frame, FrameDuration) % MARKER).str());
+      String data = Strings::Format(Text::PLAYBACK_STATUS, Strings::FormatTime(frame, FrameDuration), MARKER);
       const String::size_type totalSize = data.size() - 1 - PLAYING_HEIGHT;
       const String::size_type markerPos = data.find(MARKER);
 

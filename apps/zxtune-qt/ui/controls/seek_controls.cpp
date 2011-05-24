@@ -17,7 +17,7 @@ Author:
 #include "supp/playback_supp.h"
 #include "ui/utils.h"
 //common includes
-#include <formatter.h>
+#include <format.h>
 
 namespace
 {
@@ -53,7 +53,7 @@ namespace
       {
         timePosition->setSliderPosition(curFrame);
       }
-      timeDisplay->setText(ToQString(FormatTime(curFrame, 20000/*TODO*/)));
+      timeDisplay->setText(ToQString(Strings::FormatTime(curFrame, 20000/*TODO*/)));
     }
 
     virtual void CloseState()

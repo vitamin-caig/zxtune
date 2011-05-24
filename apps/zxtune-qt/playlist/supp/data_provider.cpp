@@ -18,7 +18,7 @@ Author:
 #include <apps/base/playitem.h>
 //common includes
 #include <error_tools.h>
-#include <formatter.h>
+#include <format.h>
 #include <logging.h>
 #include <template_parameters.h>
 //library includes
@@ -327,7 +327,7 @@ namespace
 
     virtual String GetDurationString() const
     {
-      return FormatTime(DurationInFrames, 20000);//TODO
+      return Strings::FormatTime(DurationInFrames, 20000);//TODO
     }
 
     virtual String GetTooltip() const

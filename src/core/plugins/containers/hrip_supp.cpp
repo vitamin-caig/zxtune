@@ -353,7 +353,9 @@ namespace
       {
         const uint_t progress = 100 * (fileNum + 1) / totalFiles;
         const String path = Location->GetPath()->AsString();
-        const String text((SafeFormatter(path.empty() ? Text::PLUGIN_HRIP_PROGRESS_NOPATH : Text::PLUGIN_HRIP_PROGRESS) % subPath % path).str());
+        const String text = path.empty()
+          ? Strings::Format(Text::PLUGIN_HRIP_PROGRESS_NOPATH, subPath)
+          : Strings::Format(Text::PLUGIN_HRIP_PROGRESS, subPath, path);
         cb->OnProgress(progress, text);
       }
 

@@ -115,7 +115,7 @@ namespace
   public:
     RawProgressCallback(const Module::DetectCallback& callback, uint_t limit, const String& path)
       : Delegate(CreateProgressCallback(callback, limit))
-      , Text(path.empty() ? String(Text::PLUGIN_RAW_PROGRESS_NOPATH) : (Formatter(Text::PLUGIN_RAW_PROGRESS) % path).str())
+      , Text(path.empty() ? String(Text::PLUGIN_RAW_PROGRESS_NOPATH) : Strings::Format(Text::PLUGIN_RAW_PROGRESS, path))
     {
     }
 

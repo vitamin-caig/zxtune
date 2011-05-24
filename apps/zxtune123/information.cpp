@@ -16,7 +16,7 @@ Author:
 #include <apps/base/app.h>
 //common includes
 #include <tools.h>
-#include <formatter.h>
+#include <format.h>
 //library includes
 #include <core/core_parameters.h>
 #include <core/freq_tables.h>
@@ -109,8 +109,8 @@ namespace
   
   inline void ShowPlugin(const ZXTune::Plugin& plugin)
   {
-    StdOut << (Formatter(Text::INFO_PLUGIN_INFO)
-       % plugin.Id() % plugin.Description() % plugin.Version() % PluginCaps(plugin.Capabilities())).str();
+    StdOut << Strings::Format(Text::INFO_PLUGIN_INFO,
+      plugin.Id(), plugin.Description(), plugin.Version(), PluginCaps(plugin.Capabilities()));
   }
 
   inline void ShowPlugins()
@@ -124,8 +124,8 @@ namespace
   
   inline void ShowBackend(const ZXTune::Sound::BackendInformation& info)
   {
-    StdOut << (Formatter(Text::INFO_BACKEND_INFO)
-      % info.Id() % info.Description() % info.Version() % BackendCaps(info.Capabilities())).str();
+    StdOut << Strings::Format(Text::INFO_BACKEND_INFO,
+      info.Id(), info.Description(), info.Version(), BackendCaps(info.Capabilities()));
   }
   
   inline void ShowBackends()
@@ -140,8 +140,8 @@ namespace
   
   inline void ShowProvider(const ZXTune::IO::Provider& provider)
   {
-    StdOut << (Formatter(Text::INFO_PROVIDER_INFO)
-      % provider.Id() % provider.Description() % provider.Version()).str();
+    StdOut << Strings::Format(Text::INFO_PROVIDER_INFO,
+      provider.Id(), provider.Description(), provider.Version());
   }
   
   inline void ShowProviders()
@@ -173,12 +173,12 @@ namespace
       const Parameters::StringType* defValString = boost::get<const Parameters::StringType>(&defVal);
       if (defValString && defValString->empty())
       {
-        StdOut << (Formatter(Text::INFO_OPTION_INFO) % optName % optDesc).str();
+        StdOut << Strings::Format(Text::INFO_OPTION_INFO, optName, optDesc);
       }
       else
       {
-        StdOut << (Formatter(Text::INFO_OPTION_INFO_DEFAULTS)
-          % optName % optDesc % defVal).str();
+        StdOut << Strings::Format(Text::INFO_OPTION_INFO_DEFAULTS,
+          optName, optDesc, defVal);
       }
     }
   }
@@ -274,7 +274,7 @@ namespace
   typedef std::pair<String, String> AttrType;
   void ShowAttribute(const AttrType& arg)
   {
-    StdOut << (Formatter(Text::INFO_ATTRIBUTE_INFO) % arg.first % arg.second).str();
+    StdOut << Strings::Format(Text::INFO_ATTRIBUTE_INFO, arg.first, arg.second);
   }
   
   void ShowAttributes()

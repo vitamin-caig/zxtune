@@ -27,7 +27,7 @@ Author:
 #include "supp/playback_supp.h"
 #include <apps/base/app.h>
 //common includes
-#include <formatter.h>
+#include <format.h>
 #include <logging.h>
 //library includes
 #include <core/module_attrs.h>
@@ -98,9 +98,9 @@ namespace
     virtual void StartModule(ZXTune::Sound::Backend::Ptr player)
     {
       const ZXTune::Module::Information::Ptr info = player->GetModuleInformation();
-      setWindowTitle(ToQString((Formatter(Text::TITLE_FORMAT)
-        % GetProgramTitle()
-        % GetModuleTitle(Text::MODULE_TITLE_FORMAT, *info->Properties())).str()));
+      setWindowTitle(ToQString(Strings::Format(Text::TITLE_FORMAT,
+        GetProgramTitle(),
+        GetModuleTitle(Text::MODULE_TITLE_FORMAT, *info->Properties()))));
     }
 
     virtual void StopModule()

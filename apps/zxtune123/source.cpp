@@ -86,7 +86,7 @@ namespace
       if (const uint_t currentWidth = GetCurrentWidth())
       {
         String text = message;
-        text += (Formatter(Text::PROGRESS_FORMAT) % current).str();
+        text += Strings::Format(Text::PROGRESS_FORMAT, current);
         OutputString(currentWidth, text);
       }
     }

@@ -12,7 +12,7 @@ Author:
 //local includes
 #include <apps/base/app.h>
 //common includes
-#include <formatter.h>
+#include <format.h>
 //text includes
 #include "../text/base_text.h"
 
@@ -56,12 +56,12 @@ String GetProgramTitle()
 
 String GetProgramVersionString()
 {
-  return (Formatter(Text::PROGRAM_VERSION_STRING)
-    % GetProgramTitle()
-    % FromStdString(PROGRAM_VERSION)
-    % FromStdString(PROGRAM_DATE)
-    % FromStdString(PROGRAM_PLATFORM)
-    % FromStdString(PROGRAM_ARCH)).str();
+  return Strings::Format(Text::PROGRAM_VERSION_STRING,
+    GetProgramTitle(),
+    FromStdString(PROGRAM_VERSION),
+    FromStdString(PROGRAM_DATE),
+    FromStdString(PROGRAM_PLATFORM),
+    FromStdString(PROGRAM_ARCH));
 }
 
 //fix for new boost versions
