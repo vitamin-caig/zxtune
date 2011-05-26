@@ -87,12 +87,23 @@ namespace
     }
   }
 
-  class ChipParametersImpl : public ChipParameters
+  class ChipParametersImpl : public Devices::AYM::ChipParameters
   {
   public:
     explicit ChipParametersImpl(Parameters::Accessor::Ptr params)
       : Params(params)
+      , SoundParams(Sound::RenderParameters::Create(params))
     {
+    }
+
+    virtual uint_t ClockFreq() const
+    {
+      return SoundParams->ClockFreq();
+    }
+
+    virtual uint_t SoundFreq() const
+    {
+      return SoundParams->SoundFreq();
     }
 
     virtual bool IsYM() const
@@ -143,6 +154,7 @@ namespace
     }
   private:
     const Parameters::Accessor::Ptr Params;
+    const Sound::RenderParameters::Ptr SoundParams;
   };
 
   class TrackParametersImpl : public TrackParameters
@@ -209,7 +221,7 @@ namespace
     }
   }
 
-  void FillDataChunkFlags(const ChipParameters& params, Devices::AYM::DataChunk& dst)
+  void FillDataChunkFlags(const Devices::AYM::ChipParameters& params, Devices::AYM::DataChunk& dst)
   {
     Devices::AYM::DataChunk res;
     //type
@@ -262,7 +274,7 @@ namespace
     {
       params.Process(*Params);
       ConvertChipParameters(*Params);
-      const ChipParameters::Ptr chipParams = ChipParameters::Create(Params);
+      const Devices::AYM::ChipParameters::Ptr chipParams = CreateChipParameters(Params);
       FillDataChunkFlags(*chipParams, Chunk);
     }
 
@@ -287,7 +299,7 @@ namespace ZXTune
 {
   namespace AYM
   {
-    ChipParameters::Ptr ChipParameters::Create(Parameters::Accessor::Ptr params)
+    Devices::AYM::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params)
     {
       return boost::make_shared<ChipParametersImpl>(params);
     }

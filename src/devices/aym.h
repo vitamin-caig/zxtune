@@ -159,6 +159,22 @@ namespace Devices
     // Result sound stream receiver
     typedef DataReceiver<MultiSample> Receiver;
 
+    class ChipParameters
+    {
+    public:
+      typedef boost::shared_ptr<const ChipParameters> Ptr;
+
+      virtual ~ChipParameters() {}
+
+      virtual uint_t ClockFreq() const = 0;
+      virtual uint_t SoundFreq() const = 0;
+      virtual bool IsYM() const = 0;
+      virtual bool Interpolate() const = 0;
+      virtual uint_t DutyCycleValue() const = 0;
+      virtual uint_t DutyCycleMask() const = 0;
+      virtual LayoutType Layout() const = 0;
+    };
+
     /// Virtual constructors
     Chip::Ptr CreateChip(Receiver::Ptr target);
     Chip::Ptr CreatePSGDumper(Dump& data);

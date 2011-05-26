@@ -25,21 +25,7 @@ namespace ZXTune
 {
   namespace AYM
   {
-    class ChipParameters
-    {
-    public:
-      typedef boost::shared_ptr<const ChipParameters> Ptr;
-
-      virtual ~ChipParameters() {}
-
-      virtual bool IsYM() const = 0;
-      virtual bool Interpolate() const = 0;
-      virtual uint_t DutyCycleValue() const = 0;
-      virtual uint_t DutyCycleMask() const = 0;
-      virtual Devices::AYM::LayoutType Layout() const = 0;
-
-      static Ptr Create(Parameters::Accessor::Ptr params);
-    };
+    Devices::AYM::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params);
 
     class TrackParameters
     {
