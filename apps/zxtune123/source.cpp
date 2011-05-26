@@ -213,8 +213,9 @@ namespace
   class DetectParametersImpl : public ZXTune::DetectParameters
   {
   public:
-    DetectParametersImpl(const PluginsFilter& filter, const String& path, const OnItemCallback& callback, bool showLogs)
-      : Filter(filter)
+    DetectParametersImpl(Parameters::Accessor::Ptr params, const PluginsFilter& filter, const String& path, const OnItemCallback& callback, bool showLogs)
+      : Params(params)
+      , Filter(filter)
       , Path(path)
       , Callback(callback)
       , ProgressCallback(showLogs ? new ProgressCallbackImpl() : 0)
@@ -228,7 +229,7 @@ namespace
     
     virtual Parameters::Accessor::Ptr CreateModuleParams(const String& subpath) const
     {
-      return CreatePathProperties(Path, subpath);
+      return Parameters::CreateMergedAccessor(CreatePathProperties(Path, subpath), Params);
     }
 
     virtual Error ProcessModule(const String& /*subpath*/, ZXTune::Module::Holder::Ptr holder) const
@@ -248,6 +249,7 @@ namespace
       return ProgressCallback.get();
     }
   private:
+    const Parameters::Accessor::Ptr Params;
     const PluginsFilter& Filter;
     const String Path;
     const OnItemCallback& Callback;
@@ -326,7 +328,7 @@ namespace
         ThrowIfError(ZXTune::IO::SplitUri(*it, path, subpath));
         ThrowIfError(ZXTune::IO::OpenData(path, *Params, 0, data));
 
-        const DetectParametersImpl params(*Filter, path, callback, ShowProgress);
+        const DetectParametersImpl params(Params, *Filter, path, callback, ShowProgress);
         ThrowIfError(ZXTune::DetectModules(Params, params, data, subpath));
       }
     }
