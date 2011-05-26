@@ -18,6 +18,8 @@ Author:
 //library includes
 #include <core/error_codes.h>
 #include <core/core_parameters.h>
+//boost includes
+#include <boost/make_shared.hpp>
 //std includes
 #include <numeric>
 //text includes
@@ -85,101 +87,188 @@ namespace
     }
   }
 
-  class ParametersHelperImpl : public ParametersHelper
+  class ChipParametersImpl : public ChipParameters
   {
   public:
-    virtual void SetParameters(const Parameters::Accessor& params)
+    explicit ChipParametersImpl(Parameters::Accessor::Ptr params)
+      : Params(params)
     {
-      Parameters::IntType intParam = 0;
-      Parameters::StringType strParam;
-      Parameters::DataType dataParam;
-      // chip type parameter
-      if (params.FindIntValue(Parameters::ZXTune::Core::AYM::TYPE, intParam))
+    }
+
+    virtual bool IsYM() const
+    {
+      Parameters::IntType intVal = 0;
+      Params->FindIntValue(Parameters::ZXTune::Core::AYM::TYPE, intVal);
+      return intVal != 0;
+    }
+
+    virtual bool Interpolate() const
+    {
+      Parameters::IntType intVal = 0;
+      Params->FindIntValue(Parameters::ZXTune::Core::AYM::INTERPOLATION, intVal);
+      return intVal != 0;
+    }
+
+    virtual uint_t DutyCycleValue() const
+    {
+      Parameters::IntType intVal = 50;
+      const bool found = Params->FindIntValue(Parameters::ZXTune::Core::AYM::DUTY_CYCLE, intVal);
+      //duty cycle in percents should be in range 1..99 inc
+      if (found && (intVal < 1 || intVal > 99))
       {
-        if (intParam)
-        {
-          Chunk.Mask |= Devices::AYM::DataChunk::YM_CHIP;
-        }
-        else
-        {
-          Chunk.Mask &= ~Devices::AYM::DataChunk::YM_CHIP;
-        }
+        throw MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,
+          Text::MODULE_ERROR_INVALID_DUTY_CYCLE, intVal);
       }
-      // interpolation parameter
-      if (params.FindIntValue(Parameters::ZXTune::Core::AYM::INTERPOLATION, intParam))
+      return static_cast<uint_t>(intVal);
+    }
+
+    virtual uint_t DutyCycleMask() const
+    {
+      Parameters::IntType intVal = 0;
+      Params->FindIntValue(Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MASK, intVal);
+      return static_cast<uint_t>(intVal);
+    }
+
+    virtual Devices::AYM::LayoutType Layout() const
+    {
+      Parameters::IntType intVal = Devices::AYM::LAYOUT_ABC;
+      const bool found = Params->FindIntValue(Parameters::ZXTune::Core::AYM::LAYOUT, intVal);
+      if (found && (intVal < static_cast<int_t>(Devices::AYM::LAYOUT_ABC) ||
+            intVal >= static_cast<int_t>(Devices::AYM::LAYOUT_LAST)))
       {
-        if (intParam)
-        {
-          Chunk.Mask |= Devices::AYM::DataChunk::INTERPOLATE;
-        }
-        else
-        {
-          Chunk.Mask &= ~Devices::AYM::DataChunk::INTERPOLATE;
-        }
+        throw MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,
+          Text::MODULE_ERROR_INVALID_LAYOUT, intVal);
       }
-      // freqtable parameter
-      if (params.FindStringValue(Parameters::ZXTune::Core::AYM::TABLE, strParam))
+      return static_cast<Devices::AYM::LayoutType>(intVal);
+    }
+  private:
+    const Parameters::Accessor::Ptr Params;
+  };
+
+  class TrackParametersImpl : public TrackParameters
+  {
+  public:
+    explicit TrackParametersImpl(Parameters::Accessor::Ptr params)
+      : Params(params)
+    {
+    }
+
+    virtual const Module::FrequencyTable& FreqTable() const
+    {
+      UpdateTable();
+      return Table;
+    }
+  private:
+    void UpdateTable() const
+    {
+      Parameters::StringType newName;
+      if (Params->FindStringValue(Parameters::ZXTune::Core::AYM::TABLE, newName))
       {
-        // as name
-        ThrowIfError(Module::GetFreqTable(strParam, FreqTable));
+        if (newName != TableName)
+        {
+          ThrowIfError(Module::GetFreqTable(newName, Table));
+        }
+        return;
       }
-      else if (params.FindDataValue(Parameters::ZXTune::Core::AYM::TABLE, dataParam))
+      Parameters::DataType newData;
+      if (Params->FindDataValue(Parameters::ZXTune::Core::AYM::TABLE, newData))
       {
         // as dump
-        if (dataParam.size() != FreqTable.size() * sizeof(FreqTable.front()))
+        if (newData.size() != Table.size() * sizeof(Table.front()))
         {
           throw MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,
-            Text::MODULE_ERROR_INVALID_FREQ_TABLE_SIZE, dataParam.size());
+            Text::MODULE_ERROR_INVALID_FREQ_TABLE_SIZE, newData.size());
         }
-        std::memcpy(&FreqTable.front(), &dataParam.front(), dataParam.size());
+        std::memcpy(&Table.front(), &newData.front(), newData.size());
       }
       else
       {
         assert(!"Empty frequency table specified");
       }
-      // duty cycle value parameter
-      if (params.FindIntValue(Parameters::ZXTune::Core::AYM::DUTY_CYCLE, intParam))
-      {
-        //duty cycle in percents should be in range 1..99 inc
-        if (intParam < 1 || intParam > 99)
-        {
-          throw MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,
-            Text::MODULE_ERROR_INVALID_DUTY_CYCLE, intParam);
-        }
-        Chunk.Data[Devices::AYM::DataChunk::PARAM_DUTY_CYCLE] = static_cast<uint8_t>(intParam);
-      }
-      // duty cycle mask parameter
-      if (params.FindStringValue(Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MASK, strParam))
-      {
-        // as string mask
-        Chunk.Data[Devices::AYM::DataChunk::PARAM_DUTY_CYCLE_MASK] = std::accumulate(strParam.begin(), strParam.end(), 0, LetterToMask);
-      }
-      else if (params.FindIntValue(Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MASK, intParam))
-      {
-        // as integer mask
-        Chunk.Data[Devices::AYM::DataChunk::PARAM_DUTY_CYCLE_MASK] = static_cast<uint8_t>(intParam);
-      }
-      // layout parameter
-      if (params.FindStringValue(Parameters::ZXTune::Core::AYM::LAYOUT, strParam))
-      {
-        // as string mask
-        Chunk.Data[Devices::AYM::DataChunk::PARAM_LAYOUT] = String2Layout(strParam);
-      }
-      else if (params.FindIntValue(Parameters::ZXTune::Core::AYM::LAYOUT, intParam))
-      {
-        if (intParam < static_cast<int_t>(Devices::AYM::LAYOUT_ABC) ||
-            intParam >= static_cast<int_t>(Devices::AYM::LAYOUT_LAST))
-        {
-          throw MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,
-            Text::MODULE_ERROR_INVALID_LAYOUT, intParam);
-        }
-        Chunk.Data[Devices::AYM::DataChunk::PARAM_LAYOUT] = static_cast<uint8_t>(intParam);
-      }
+    }
+  private:
+    const Parameters::Accessor::Ptr Params;
+    mutable String TableName;
+    mutable Module::FrequencyTable Table;
+  };
+
+  void ConvertChipParameters(Parameters::Container& params)
+  {
+    Parameters::StringType strParam;
+    //convert duty cycle mask
+    if (params.FindStringValue(Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MASK, strParam))
+    {
+      const Parameters::IntType numVal = std::accumulate(strParam.begin(), strParam.end(), 0, LetterToMask);
+      params.SetIntValue(Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MASK, numVal);
+    }
+    //convert layout string
+    if (params.FindStringValue(Parameters::ZXTune::Core::AYM::LAYOUT, strParam))
+    {
+      const Parameters::IntType numVal = String2Layout(strParam);
+      params.SetIntValue(Parameters::ZXTune::Core::AYM::LAYOUT, numVal);
+    }
+  }
+
+  void FillDataChunkFlags(const ChipParameters& params, Devices::AYM::DataChunk& dst)
+  {
+    Devices::AYM::DataChunk res;
+    //type
+    if (params.IsYM())
+    {
+      res.Mask |= Devices::AYM::DataChunk::YM_CHIP;
+    }
+    else
+    {
+      res.Mask &= ~Devices::AYM::DataChunk::YM_CHIP;
+    }
+
+    // interpolation
+    if (params.Interpolate())
+    {
+      res.Mask |= Devices::AYM::DataChunk::INTERPOLATE;
+    }
+    else
+    {
+      res.Mask &= ~Devices::AYM::DataChunk::INTERPOLATE;
+    }
+
+    // duty cycle value
+    if (uint_t intParam = params.DutyCycleValue())
+    {
+      //duty cycle in percents should be in range 1..99 inc
+      res.Data[Devices::AYM::DataChunk::PARAM_DUTY_CYCLE] = static_cast<uint8_t>(intParam);
+    }
+    // duty cycle mask
+    if (uint_t intParam = params.DutyCycleMask())
+    {
+      res.Data[Devices::AYM::DataChunk::PARAM_DUTY_CYCLE_MASK] = static_cast<uint8_t>(intParam);
+    }
+    // layout
+    res.Data[Devices::AYM::DataChunk::PARAM_LAYOUT] = static_cast<uint8_t>(params.Layout());
+    dst = res;
+  }
+
+
+  class ParametersHelperImpl : public ParametersHelper
+  {
+  public:
+    ParametersHelperImpl()
+      : Params(Parameters::Container::Create())
+      , TrackParams(TrackParameters::Create(Params))
+    {
+    }
+
+    virtual void SetParameters(const Parameters::Accessor& params)
+    {
+      params.Process(*Params);
+      ConvertChipParameters(*Params);
+      const ChipParameters::Ptr chipParams = ChipParameters::Create(Params);
+      FillDataChunkFlags(*chipParams, Chunk);
     }
 
     virtual const Module::FrequencyTable& GetFreqTable() const
     {
-      return FreqTable;
+      return TrackParams->FreqTable();
     }
 
     virtual void GetDataChunk(Devices::AYM::DataChunk& dst) const
@@ -188,7 +277,8 @@ namespace
     }
 
   private:
-    Module::FrequencyTable FreqTable;
+    const Parameters::Container::Ptr Params;
+    const TrackParameters::Ptr TrackParams;
     Devices::AYM::DataChunk Chunk;
   };
 }
@@ -197,6 +287,16 @@ namespace ZXTune
 {
   namespace AYM
   {
+    ChipParameters::Ptr ChipParameters::Create(Parameters::Accessor::Ptr params)
+    {
+      return boost::make_shared<ChipParametersImpl>(params);
+    }
+
+    TrackParameters::Ptr TrackParameters::Create(Parameters::Accessor::Ptr params)
+    {
+      return boost::make_shared<TrackParametersImpl>(params);
+    }
+
     ParametersHelper::Ptr ParametersHelper::Create()
     {
       return ParametersHelper::Ptr(new ParametersHelperImpl());
