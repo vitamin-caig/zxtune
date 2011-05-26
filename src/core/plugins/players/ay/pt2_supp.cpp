@@ -481,8 +481,11 @@ namespace
 
     virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
     {
+      const Parameters::Accessor::Ptr params = GetModuleProperties();
       const Devices::AYM::Receiver::Ptr receiver = CreateAYMReceiver(target);
-      return CreatePT2Renderer(GetModuleProperties(), Info, Data, Devices::AYM::CreateChip(receiver));
+      const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
+      const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateChip(chipParams, receiver);
+      return CreatePT2Renderer(params, Info, Data, chip);
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const

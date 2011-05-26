@@ -176,7 +176,7 @@ namespace Devices
     };
 
     /// Virtual constructors
-    Chip::Ptr CreateChip(Receiver::Ptr target);
+    Chip::Ptr CreateChip(ChipParameters::Ptr params, Receiver::Ptr target);
     Chip::Ptr CreatePSGDumper(Dump& data);
     Chip::Ptr CreateZX50Dumper(Dump& data);
     Chip::Ptr CreateDebugDumper(Dump& data);

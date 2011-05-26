@@ -571,8 +571,11 @@ namespace
 
     virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
     {
+      const Parameters::Accessor::Ptr params = GetModuleProperties();
       const Devices::AYM::Receiver::Ptr receiver = CreateAYMReceiver(target);
-      return Vortex::CreateRenderer(GetModuleProperties(), Info, Data, Version, Devices::AYM::CreateChip(receiver));
+      const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
+      const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateChip(chipParams, receiver);
+      return Vortex::CreateRenderer(params, Info, Data, Version, chip);
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -687,10 +690,14 @@ namespace
 
     virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
     {
+      const Parameters::Accessor::Ptr params = GetModuleProperties();
       const Devices::AYM::Receiver::Ptr receiver = CreateAYMReceiver(target);
       const AYMTSMixer::Ptr mixer = CreateTSMixer(receiver);
-      const Renderer::Ptr renderer1 = Vortex::CreateRenderer(GetModuleProperties(), Info, Data, Version, Devices::AYM::CreateChip(mixer));
-      const Renderer::Ptr renderer2 = Vortex::CreateRenderer(GetModuleProperties(), Info, boost::make_shared<MirroredModuleData>(PatOffset, *Data), Version, Devices::AYM::CreateChip(mixer));
+      const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
+      const Devices::AYM::Chip::Ptr chip1 = Devices::AYM::CreateChip(chipParams, mixer);
+      const Devices::AYM::Chip::Ptr chip2 = Devices::AYM::CreateChip(chipParams, mixer);
+      const Renderer::Ptr renderer1 = Vortex::CreateRenderer(params, Info, Data, Version, chip1);
+      const Renderer::Ptr renderer2 = Vortex::CreateRenderer(params, Info, boost::make_shared<MirroredModuleData>(PatOffset, *Data), Version, chip2);
       return CreateTSRenderer(renderer1, renderer2, mixer);
     }
 

@@ -511,8 +511,9 @@ namespace
   class ChipImpl : public Chip
   {
   public:
-    explicit ChipImpl(Receiver::Ptr target)
-      : Target(target)
+    ChipImpl(ChipParameters::Ptr params, Receiver::Ptr target)
+      : Params(params)
+      , Target(target)
     {
       Reset();
     }
@@ -548,6 +549,7 @@ namespace
     }
 
   protected:
+    const ChipParameters::Ptr Params;
     const Receiver::Ptr Target;
     PSG Generator;
     Renderer Render;
@@ -562,9 +564,9 @@ namespace Devices
 {
   namespace AYM
   {
-    Chip::Ptr CreateChip(Receiver::Ptr target)
+    Chip::Ptr CreateChip(ChipParameters::Ptr params, Receiver::Ptr target)
     {
-      return Chip::Ptr(new ChipImpl(target));
+      return Chip::Ptr(new ChipImpl(params, target));
     }
   }
 }
