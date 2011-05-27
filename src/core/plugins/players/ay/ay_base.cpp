@@ -187,8 +187,7 @@ namespace ZXTune
 
     Renderer::Ptr CreateAYMStreamRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, AYMDataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device)
     {
-      const AYM::ParametersHelper::Ptr ayParams = AYM::ParametersHelper::Create();
-      ayParams->SetParameters(*params);
+      const AYM::ParametersHelper::Ptr ayParams = AYM::ParametersHelper::Create(params);
       const StateIterator::Ptr iterator = CreateStreamStateIterator(info);
       return CreateAYMRenderer(ayParams, iterator, renderer, device);
     }
@@ -196,8 +195,7 @@ namespace ZXTune
     Renderer::Ptr CreateAYMTrackRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, TrackModuleData::Ptr data, 
       AYMDataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device)
     {
-      const AYM::ParametersHelper::Ptr ayParams = AYM::ParametersHelper::Create();
-      ayParams->SetParameters(*params);
+      const AYM::ParametersHelper::Ptr ayParams = AYM::ParametersHelper::Create(params);
       const StateIterator::Ptr iterator = CreateTrackStateIterator(info, data);
       return CreateAYMRenderer(ayParams, iterator, renderer, device);
     }

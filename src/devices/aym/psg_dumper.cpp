@@ -32,13 +32,14 @@ namespace
   class PSGDumper : public Chip
   {
   public:
-    explicit PSGDumper(Dump& data)
-      : Data(data)
+    PSGDumper(uint_t clocksPerFrame, Dump& data)
+      : ClocksPerFrame(clocksPerFrame)
+      , Data(data)
     {
       Reset();
     }
     
-    virtual void RenderData(const ZXTune::Sound::RenderParameters& params,
+    virtual void RenderData(const ZXTune::Sound::RenderParameters& /*params*/,
                             const DataChunk& src)
     {
       //no data check
@@ -62,7 +63,7 @@ namespace
           return;//no differences
         }
       }
-      if (const uint_t intsPassed = static_cast<uint_t>((src.Tick - CurChunk.Tick) / params.ClocksPerFrame()))
+      if (const uint_t intsPassed = static_cast<uint_t>((src.Tick - CurChunk.Tick) / ClocksPerFrame))
       {
         Dump frame;
         std::back_insert_iterator<Dump> inserter(frame);
@@ -116,6 +117,7 @@ namespace
     }
 
   private:
+    const uint_t ClocksPerFrame;
     Dump& Data;
     DataChunk CurChunk;
   };
@@ -125,9 +127,9 @@ namespace Devices
 {
   namespace AYM
   {
-    Chip::Ptr CreatePSGDumper(Dump& data)
+    Chip::Ptr CreatePSGDumper(uint_t clocksPerFrame, Dump& data)
     {
-      return Chip::Ptr(new PSGDumper(data));
+      return Chip::Ptr(new PSGDumper(clocksPerFrame, data));
     }
   }
 }

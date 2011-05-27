@@ -28,13 +28,14 @@ namespace
   class DebugDumper : public Chip
   {
   public:
-    explicit DebugDumper(Dump& data)
-      : Data(data)
+    DebugDumper(uint_t clocksPerFrame, Dump& data)
+      : ClocksPerFrame(clocksPerFrame)
+      , Data(data)
     {
       Reset();
     }
 
-    virtual void RenderData(const ZXTune::Sound::RenderParameters& params,
+    virtual void RenderData(const ZXTune::Sound::RenderParameters& /*params*/,
                             const DataChunk& src)
     {
       //no data check
@@ -62,7 +63,7 @@ namespace
           return;//no differences
         }
       }
-      if (const uint_t intsPassed = static_cast<uint_t>((src.Tick - CurChunk.Tick) / params.ClocksPerFrame()))
+      if (const uint_t intsPassed = static_cast<uint_t>((src.Tick - CurChunk.Tick) / ClocksPerFrame))
       {
         assert(intsPassed);
         for (uint_t reg = 0, mask = src.Mask & DataChunk::MASK_ALL_REGISTERS; mask; ++reg, mask >>= 1)
@@ -126,6 +127,7 @@ namespace
       Data.push_back('\n');
     }
   private:
+    const uint_t ClocksPerFrame;
     Dump& Data;
     DataChunk CurChunk;
   };
@@ -135,9 +137,9 @@ namespace Devices
 {
   namespace AYM
   {
-    Chip::Ptr CreateDebugDumper(Dump& data)
+    Chip::Ptr CreateDebugDumper(uint_t clocksPerFrame, Dump& data)
     {
-      return Chip::Ptr(new DebugDumper(data));
+      return Chip::Ptr(new DebugDumper(clocksPerFrame, data));
     }
   }
 }

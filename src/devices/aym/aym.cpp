@@ -34,7 +34,7 @@ namespace
                     (1 << DataChunk::REG_VOLB) | (1 << DataChunk::REG_VOLC),
   };
 
-  BOOST_STATIC_ASSERT(DataChunk::PARAM_LAST < 8 * sizeof(uint_t));
+  BOOST_STATIC_ASSERT(DataChunk::REG_LAST < 8 * sizeof(uint_t));
 
   typedef boost::array<Sample, 32> VolumeTable;
 
@@ -69,31 +69,103 @@ namespace
 
   const uint_t AYM_CLOCK_DIVISOR = 8;
 
+  const uint_t MAX_DUTYCYCLE = 100;
+  const uint_t NO_DUTYCYCLE = MAX_DUTYCYCLE / 2;
+
   //PSG-related functionality
-  class PSG
+  class Generator
   {
   public:
-    PSG()
-      : VolA(State.Data[DataChunk::REG_VOLA]), VolB(State.Data[DataChunk::REG_VOLB]), VolC(State.Data[DataChunk::REG_VOLC])
-      , Mixer(State.Data[DataChunk::REG_MIXER])
-      , EnvType(State.Data[DataChunk::REG_ENV])
-      , BitA(), BitB(), BitC(), BitN(), BitE()
-      , TimerA(), TimerB(), TimerC(), TimerN(), TimerE()
-      , Envelope(), Decay(), Noise()
-      , DutyCycle(State.Data[DataChunk::PARAM_DUTY_CYCLE])
-      , DutyCycleMask(State.Data[DataChunk::PARAM_DUTY_CYCLE_MASK])
-      , Layout(State.Data[DataChunk::PARAM_LAYOUT])
+    Generator()
+      : Counter()
+      , Level()
     {
-      State.Data[DataChunk::REG_MIXER] = 0xff;
     }
 
     void Reset()
     {
+      Counter = 0;
+      Level = 0;
+    }
+
+    bool Tick(uint_t period)
+    {
+      if (++Counter >= period)
+      {
+        Counter = 0;
+        Level = ~Level;
+        return true;
+      }
+      return false;
+    }
+
+    /*
+    Perform square pulse width according to current state and duty parameter
+    e.g. if duty == 25
+      _     _
+     | |   | |
+    _| |___| |_
+
+     |1| 3 |1| ...
+
+    positive pulse width is 1/4 of period value
+    */
+    bool Tick(uint_t period, uint_t dutyCycle)
+    {
+      assert(dutyCycle != NO_DUTYCYCLE);
+      assert(dutyCycle > 0 && dutyCycle < MAX_DUTYCYCLE);
+      const uint_t dutedPeriod = (Level ? MAX_DUTYCYCLE - dutyCycle : dutyCycle) * period * 2 / MAX_DUTYCYCLE;
+      return Tick(dutedPeriod);
+    }
+
+    uint_t GetLevel() const
+    {
+      return Level;
+    }
+
+    void SetLevel(uint_t level)
+    {
+      Level = level;
+    }
+  private:
+    uint_t Counter;
+    uint_t Level;
+  };
+
+  class Renderer
+  {
+  public:
+    virtual ~Renderer() {}
+
+    virtual void Reset() = 0;
+    virtual bool Tick() = 0;
+    virtual void GetLevels(MultiSample& result) const = 0;
+  };
+
+  class AYMRenderer : public Renderer
+  {
+  public:
+    explicit AYMRenderer(const ChipParameters& params)
+      : Params(params)
+      , VolA(State.Data[DataChunk::REG_VOLA]), VolB(State.Data[DataChunk::REG_VOLB]), VolC(State.Data[DataChunk::REG_VOLC])
+      , Mixer(State.Data[DataChunk::REG_MIXER])
+      , EnvType(State.Data[DataChunk::REG_ENV])
+      , Envelope(), Decay(), Noise()
+    {
+      State.Data[DataChunk::REG_MIXER] = 0xff;
+    }
+
+    virtual void Reset()
+    {
       State = DataChunk();
       State.Data[DataChunk::REG_MIXER] = 0xff;
-      BitA = BitB = BitC = BitN = 0;
-      TimerA = TimerB = TimerC = TimerN = TimerE = 0;
-      Envelope = Decay = 0;
+      GenA.Reset();
+      GenB.Reset();
+      GenC.Reset();
+      GenN.Reset();
+      GenE.Reset();
+      Envelope = 0;
+      Decay = 0;
       Noise = 0;
     }
 
@@ -102,60 +174,59 @@ namespace
       assert(data.Tick > State.Tick);
       for (uint_t idx = 0, mask = 1; idx != data.Data.size(); ++idx, mask <<= 1)
       {
-        if (idx > DataChunk::REG_ENV)
+        if (0 == (data.Mask & mask))
         {
-          //copy parameters
-          State.Data[idx] = data.Data[idx];
+          //no new data
+          continue;
         }
-        else if (0 != (data.Mask & mask))
+        //copy registers
+        uint8_t reg = data.Data[idx];
+        //limit values
+        if (mask & REGS_4BIT_SET)
         {
-          //copy registers
-          uint8_t reg = data.Data[idx];
-          //limit values
-          if (mask & REGS_4BIT_SET)
-          {
-            reg &= 0x0f;
-          }
-          else if (mask & REGS_5BIT_SET)
-          {
-            reg &= 0x1f;
-          }
-          //update r13 
-          if (DataChunk::REG_ENV == idx)
-          {
-            TimerE = 0;
-            if (reg & 4) //down-up envelopes
-            {
-              Envelope = 0;
-              Decay = 1;
-            }
-            else //up-down envelopes
-            {
-              Envelope = 31;
-              Decay = -1;
-            }
-          }
-          State.Data[idx] = reg;
+          reg &= 0x0f;
         }
+        else if (mask & REGS_5BIT_SET)
+        {
+          reg &= 0x1f;
+        }
+        //update r13 
+        if (DataChunk::REG_ENV == idx)
+        {
+          GenE.Reset();
+          if (reg & 4) //down-up envelopes
+          {
+            Envelope = 0;
+            Decay = 1;
+          }
+          else //up-down envelopes
+          {
+            Envelope = 31;
+            Decay = -1;
+          }
+        }
+        State.Data[idx] = reg;
       }
       State.Mask = data.Mask;
     }
 
-    bool Tick()
+    virtual bool Tick()
     {
       bool res = false;
-      res |= DoCycle(0 != (DutyCycleMask & DataChunk::DUTY_CYCLE_MASK_A), GetToneA(), TimerA, BitA);
-      res |= DoCycle(0 != (DutyCycleMask & DataChunk::DUTY_CYCLE_MASK_B), GetToneB(), TimerB, BitB);
-      res |= DoCycle(0 != (DutyCycleMask & DataChunk::DUTY_CYCLE_MASK_C), GetToneC(), TimerC, BitC);
+      const uint_t dutyCycleMask = Params.DutyCycleMask();
+      const uint_t dutyCycleVal = Params.DutyCycleValue();
 
-      if (DoCycle(0 != (DutyCycleMask & DataChunk::DUTY_CYCLE_MASK_N), GetToneN(), TimerN, BitN))
+      res |= DoCycle(0 != (dutyCycleMask & DataChunk::DUTY_CYCLE_MASK_A) ? dutyCycleVal : NO_DUTYCYCLE, GetToneA(), GenA);
+      res |= DoCycle(0 != (dutyCycleMask & DataChunk::DUTY_CYCLE_MASK_B) ? dutyCycleVal : NO_DUTYCYCLE, GetToneB(), GenB);
+      res |= DoCycle(0 != (dutyCycleMask & DataChunk::DUTY_CYCLE_MASK_C) ? dutyCycleVal : NO_DUTYCYCLE, GetToneC(), GenC);
+
+      if (DoCycle(0 != (dutyCycleMask & DataChunk::DUTY_CYCLE_MASK_N) ? dutyCycleVal : NO_DUTYCYCLE, GetToneN(), GenN))
       {
-        TimerN = 0;
         Noise = (Noise * 2 + 1) ^ (((Noise >> 16) ^ (Noise >> 13)) & 1);
-        BitN = (Noise & 0x10000) ? ~0 : 0;
+        GenN.SetLevel((Noise & 0x10000) ? ~0 : 0);
         res = true;
       }
-      if (DoCycle(0 != (DutyCycleMask & DataChunk::DUTY_CYCLE_MASK_E), GetToneE(), TimerE, BitE))
+      if (DoCycle(0 != (dutyCycleMask & DataChunk::DUTY_CYCLE_MASK_E) ? dutyCycleVal : NO_DUTYCYCLE, GetToneE(), GenE))
       {
         Envelope += Decay;
         if (Envelope & ~31u)
@@ -192,26 +263,25 @@ namespace
       return res;
     }
 
-    void GetLevels(MultiSample& result) const
+    virtual void GetLevels(MultiSample& result) const
     {
       const uint_t HighLevel = ~0u;
       //references to mixered bits. updated automatically
       const uint_t levelA = (((VolA & DataChunk::REG_MASK_VOL) << 1) + 1);
       const uint_t levelB = (((VolB & DataChunk::REG_MASK_VOL) << 1) + 1);
       const uint_t levelC = (((VolC & DataChunk::REG_MASK_VOL) << 1) + 1);
-      const uint_t toneBitA = (Mixer & DataChunk::REG_MASK_TONEA) ? HighLevel : BitA;
-      const uint_t noiseBitA = (Mixer & DataChunk::REG_MASK_NOISEA) ? HighLevel : BitN;
+      const uint_t toneBitA = (Mixer & DataChunk::REG_MASK_TONEA) ? HighLevel : GenA.GetLevel();
+      const uint_t noiseBitA = (Mixer & DataChunk::REG_MASK_NOISEA) ? HighLevel : GenN.GetLevel();
       const uint_t outA = (VolA & DataChunk::REG_MASK_ENV) ? Envelope : levelA;
-      const uint_t toneBitB = (Mixer & DataChunk::REG_MASK_TONEB) ? HighLevel : BitB;
-      const uint_t noiseBitB = (Mixer & DataChunk::REG_MASK_NOISEB) ? HighLevel : BitN;
+      const uint_t toneBitB = (Mixer & DataChunk::REG_MASK_TONEB) ? HighLevel : GenB.GetLevel();
+      const uint_t noiseBitB = (Mixer & DataChunk::REG_MASK_NOISEB) ? HighLevel : GenN.GetLevel();
       const uint_t outB = (VolB & DataChunk::REG_MASK_ENV) ? Envelope : levelB;
-      const uint_t toneBitC = (Mixer & DataChunk::REG_MASK_TONEC) ? HighLevel : BitC;
-      const uint_t noiseBitC = (Mixer & DataChunk::REG_MASK_NOISEC) ? HighLevel : BitN;
+      const uint_t toneBitC = (Mixer & DataChunk::REG_MASK_TONEC) ? HighLevel : GenC.GetLevel();
+      const uint_t noiseBitC = (Mixer & DataChunk::REG_MASK_NOISEC) ? HighLevel : GenN.GetLevel();
       const uint_t outC = (VolC & DataChunk::REG_MASK_ENV) ? Envelope : levelC;
 
-      assert(Layout < ArraySize(LAYOUTS));
-      const LayoutData& layout = LAYOUTS[Layout];
-      const VolumeTable& table = IsYM() ? YMVolumeTab : AYVolumeTab;
+      const LayoutData& layout = LAYOUTS[Params.Layout()];
+      const VolumeTable& table = Params.IsYM() ? YMVolumeTab : AYVolumeTab;
       assert(outA < 32 && outB < 32 && outC < 32);
       result[layout[0]] = table[toneBitA & noiseBitA & outA];
       result[layout[1]] = table[toneBitB & noiseBitB & outB];
@@ -219,8 +289,9 @@ namespace
     }
 
 
-    virtual void GetState(uint64_t ticksPerSec, ChannelsState& state) const
+    virtual void GetState(ChannelsState& state) const
     {
+      const uint64_t ticksPerSec = Params.ClockFreq();
       const uint_t MAX_LEVEL = 100;
       //one channel is noise
       ChanState& noiseChan = state[CHANNELS];
@@ -264,7 +335,7 @@ namespace
     }
 
   private:
-    uint_t GetBandByPeriod(uint64_t ticksPerSec, uint_t period) const
+    static uint_t GetBandByPeriod(uint64_t ticksPerSec, uint_t period)
     {
       const uint_t FREQ_MULTIPLIER = 100;
       //table in Hz * FREQ_MULTIPLIER
@@ -319,41 +390,17 @@ namespace
     {
       return 256 * State.Data[DataChunk::REG_TONEE_H] + State.Data[DataChunk::REG_TONEE_L];
     }
-    /*
-    calculate square pulse width according to current state and duty parameter
-    e.g. if duty == 25
-      _     _
-     | |   | |
-    _| |___| |_
-
-     |1| 3 |1| ...
-
-    positive pulse width is 1/4 of period value
-    */
-    static inline uint_t GetDutedTone(uint_t duty, uint_t state, uint_t tone)
-    {
-      assert(duty > 0 && duty < 100);
-      return (state ? 100 - duty : duty) * tone * 2 / 100;
-    }
 
     //perform one cycle
     //return true if bit is updated (flipped)
-    bool DoCycle(bool duted, uint_t tone, uint_t& timer, uint_t& bit) const
+    static bool DoCycle(uint_t dutyCycle, uint_t tone, Generator& generator)
     {
-      if (++timer >= (duted ? GetDutedTone(DutyCycle, bit, tone) : tone))
-      {
-        timer = 0;
-        bit = ~bit;
-        return true;
-      }
-      return false;
-    }
-
-    bool IsYM() const
-    {
-      return 0 != (State.Mask & DataChunk::YM_CHIP);
+      return dutyCycle != NO_DUTYCYCLE
+        ? generator.Tick(tone, dutyCycle)
+        : generator.Tick(tone);
     }
   private:
+    const ChipParameters& Params;
     //registers state
     DataChunk State;
     //aliases for registers
@@ -362,80 +409,65 @@ namespace
     uint8_t& VolC;
     uint8_t& Mixer;
     uint8_t& EnvType;
-    //counters state
-    uint_t BitA, BitB, BitC, BitN, BitE/*fake*/;
-    uint_t TimerA, TimerB, TimerC, TimerN, TimerE;
+    //generators
+    Generator GenA;
+    Generator GenB;
+    Generator GenC;
+    Generator GenN;
+    Generator GenE;
+    //state
     uint_t Envelope;
     int_t Decay;
     uint32_t Noise;
-    //related parameters
-    uint8_t& DutyCycle;
-    uint8_t& DutyCycleMask;
-    uint8_t& Layout;
   };
 
-  class Renderer
+  class InterpolatedRenderer : public Renderer
   {
   public:
-    Renderer()
-      : Interpolate(false)
+    explicit InterpolatedRenderer(Renderer& delegate)
+      : Delegate(delegate)
       , Levels()
       , AccumulatedSamples()
     {
     }
 
-    void Reset()
+    virtual void Reset()
     {
       std::fill(Levels.begin(), Levels.end(), 0);
       AccumulatedSamples = 0;
+      Delegate.Reset();
     }
 
-    void ApplyData(const DataChunk& data)
+    virtual bool Tick()
     {
-      Interpolate = 0 != (data.Mask & DataChunk::INTERPOLATE);
+      if (Delegate.Tick())
+      {
+        Delegate.GetLevels(Levels);
+      }
+      std::transform(Levels.begin(), Levels.end(), Accumulators.begin(), Accumulators.begin(), std::plus<uint_t>());
+      ++AccumulatedSamples;
+      return true;
     }
 
-    void Tick(PSG& generator)
+    virtual void GetLevels(MultiSample& result) const
     {
-      const bool psgUpdated = generator.Tick();
-      if (Interpolate)
-      {
-        if (psgUpdated)
-        {
-          generator.GetLevels(Levels);
-        }
-        std::transform(Levels.begin(), Levels.end(), Accumulators.begin(), Accumulators.begin(), std::plus<uint_t>());
-        ++AccumulatedSamples;
-      }
-    }
-
-    void GetLevels(const PSG& generator, MultiSample& result)
-    {
-      assert(result.size() == CHANNELS);//for optimization
-      if (Interpolate)
-      {
-        std::transform(Accumulators.begin(), Accumulators.end(), result.begin(), std::bind2nd(std::divides<uint_t>(), AccumulatedSamples));
-        std::fill(Accumulators.begin(), Accumulators.end(), 0);
-        AccumulatedSamples = 0;
-      }
-      else
-      {
-        generator.GetLevels(Levels);
-        std::copy(Levels.begin(), Levels.end(), result.begin());
-      }
+      std::transform(Accumulators.begin(), Accumulators.end(), result.begin(), std::bind2nd(std::divides<uint_t>(), AccumulatedSamples));
+      std::fill(Accumulators.begin(), Accumulators.end(), 0);
+      AccumulatedSamples = 0;
     }
   private:
-    bool Interpolate;
+    Renderer& Delegate;
     MultiSample Levels;
-    boost::array<uint_t, CHANNELS> Accumulators;
-    uint_t AccumulatedSamples;
+    mutable boost::array<uint_t, CHANNELS> Accumulators;
+    mutable uint_t AccumulatedSamples;
   };
 
   class ClockSource
   {
   public:
-    ClockSource()
-      : CurrentTick()
+    explicit ClockSource(const ChipParameters& params)
+      : Params(params)
+      , CurrentTick()
       , NextSoundTick()
       , LastTick()
       , TicksPerSec()
@@ -456,10 +488,10 @@ namespace
       SamplesDone = 0;
     }
 
-    void ApplyData(const ZXTune::Sound::RenderParameters& params, const DataChunk& data)
+    void ApplyData(const DataChunk& data)
     {
-      const uint64_t newClocks = params.ClockFreq();
-      const uint_t newSound = params.SoundFreq();
+      const uint64_t newClocks = Params.ClockFreq();
+      const uint_t newSound = Params.SoundFreq();
       //for more precise rendering
       if (TicksPerSec != newClocks ||
           SoundFreq != newSound)
@@ -497,6 +529,7 @@ namespace
       assert(NextSoundTick > CurrentTick);
     }
   private:
+    const ChipParameters& Params;
     //context
     uint64_t CurrentTick;
     uint64_t NextSoundTick;
@@ -514,23 +547,27 @@ namespace
     ChipImpl(ChipParameters::Ptr params, Receiver::Ptr target)
       : Params(params)
       , Target(target)
+      , PSG(*Params)
+      , Render(PSG)
+      , Clock(*Params)
     {
       Reset();
     }
 
-    virtual void RenderData(const ZXTune::Sound::RenderParameters& params,
+    virtual void RenderData(const ZXTune::Sound::RenderParameters& /*params*/,
                             const DataChunk& src)
     {
-      TicksPerSecond = params.ClockFreq();
-      Generator.ApplyData(src);
-      Render.ApplyData(src);
-      Clock.ApplyData(params, src);
+      PSG.ApplyData(src);
+      Clock.ApplyData(src);
+      Renderer& render = Params->Interpolate()
+        ? static_cast<Renderer&>(Render)
+        : static_cast<Renderer&>(PSG);
       while (Clock.InFrame())
       {
-        Render.Tick(Generator);
+        render.Tick();
         if (Clock.Tick())
         {
-          Render.GetLevels(Generator, Result);
+          render.GetLevels(Result);
           Target->ApplyData(Result);
         }
       }
@@ -538,12 +575,11 @@ namespace
 
     virtual void GetState(ChannelsState& state) const
     {
-      return Generator.GetState(TicksPerSecond, state);
+      return PSG.GetState(state);
     }
 
     virtual void Reset()
     {
-      Generator.Reset();
       Render.Reset();
       Clock.Reset();
     }
@@ -551,11 +587,10 @@ namespace
   protected:
     const ChipParameters::Ptr Params;
     const Receiver::Ptr Target;
-    PSG Generator;
-    Renderer Render;
+    AYMRenderer PSG;
+    InterpolatedRenderer Render;
     ClockSource Clock;
     //context
-    uint64_t TicksPerSecond;
     MultiSample Result;
   };
 }

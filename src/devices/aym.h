@@ -50,26 +50,15 @@ namespace Devices
         REG_TONEE_H,
         REG_ENV,
 
-        //parameters offsets in data
-        PARAM_DUTY_CYCLE,
-        PARAM_DUTY_CYCLE_MASK,
-        PARAM_LAYOUT,
-
         //limiter
-        PARAM_LAST,
+        REG_LAST,
       };
 
       //masks
       enum
       {
         //to mark all registers actual
-        MASK_ALL_REGISTERS = (1 << (REG_ENV + 1)) - 1,
-
-        //only bits, no data
-        //use YM chip
-        YM_CHIP = 1 << (REG_ENV + 1),
-        //use interpolation
-        INTERPOLATE = YM_CHIP << 1,
+        MASK_ALL_REGISTERS = (1 << REG_LAST) - 1,
 
         //bits in REG_VOL*
         REG_MASK_VOL = 0x0f,
@@ -82,7 +71,6 @@ namespace Devices
         REG_MASK_TONEC = 0x04,
         REG_MASK_NOISEC = 0x20,
 
-        //bits in PARAM_DUTY_CYCLE_MASK
         DUTY_CYCLE_MASK_A = 1,
         DUTY_CYCLE_MASK_B = 2,
         DUTY_CYCLE_MASK_C = 4,
@@ -95,7 +83,7 @@ namespace Devices
       }
       uint64_t Tick;
       uint_t Mask;
-      boost::array<uint8_t, PARAM_LAST> Data;
+      boost::array<uint8_t, REG_LAST> Data;
     };
 
     //layout mode
@@ -177,10 +165,10 @@ namespace Devices
 
     /// Virtual constructors
     Chip::Ptr CreateChip(ChipParameters::Ptr params, Receiver::Ptr target);
-    Chip::Ptr CreatePSGDumper(Dump& data);
-    Chip::Ptr CreateZX50Dumper(Dump& data);
-    Chip::Ptr CreateDebugDumper(Dump& data);
-    Chip::Ptr CreateRawStreamDumper(Dump& data);
+    Chip::Ptr CreatePSGDumper(uint_t clocksPerFrame, Dump& data);
+    Chip::Ptr CreateZX50Dumper(uint_t clocksPerFrame, Dump& data);
+    Chip::Ptr CreateDebugDumper(uint_t clocksPerFrame, Dump& data);
+    Chip::Ptr CreateRawStreamDumper(uint_t clocksPerFrame, Dump& data);
   }
 }
 

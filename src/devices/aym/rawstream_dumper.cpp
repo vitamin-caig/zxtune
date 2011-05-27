@@ -25,16 +25,17 @@ namespace
   class RawStreamDumper : public Chip
   {
   public:
-    explicit RawStreamDumper(Dump& data)
-      : Data(data)
+    RawStreamDumper(uint_t clocksPerFrame, Dump& data)
+      : ClocksPerFrame(clocksPerFrame)
+      , Data(data)
     {
       Reset();
     }
 
-    virtual void RenderData(const ZXTune::Sound::RenderParameters& params,
+    virtual void RenderData(const ZXTune::Sound::RenderParameters& /*params*/,
                             const DataChunk& src)
     {
-      if (const uint_t intsPassed = static_cast<uint_t>((src.Tick - CurChunk.Tick) / params.ClocksPerFrame()))
+      if (const uint_t intsPassed = static_cast<uint_t>((src.Tick - CurChunk.Tick) / ClocksPerFrame))
       {
         for (uint_t reg = 0, mask = src.Mask & DataChunk::MASK_ALL_REGISTERS; mask; ++reg, mask >>= 1)
         {
@@ -69,6 +70,7 @@ namespace
       std::copy(CurChunk.Data.begin(), CurChunk.Data.begin() + DataChunk::REG_ENV + 1, std::back_inserter(Data));
     }
   private:
+    const uint_t ClocksPerFrame;
     Dump& Data;
     DataChunk CurChunk;
   };
@@ -78,9 +80,9 @@ namespace Devices
 {
   namespace AYM
   {
-    Chip::Ptr CreateRawStreamDumper(Dump& data)
+    Chip::Ptr CreateRawStreamDumper(uint_t clocksPerFrame, Dump& data)
     {
-      return Chip::Ptr(new RawStreamDumper(data));
+      return Chip::Ptr(new RawStreamDumper(clocksPerFrame, data));
     }
   }
 }

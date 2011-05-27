@@ -24,13 +24,14 @@ namespace
   class ZX50Dumper : public Chip
   {
   public:
-    explicit ZX50Dumper(Dump& data)
-      : Data(data)
+    ZX50Dumper(uint_t clocksPerFrame, Dump& data)
+      : ClocksPerFrame(clocksPerFrame)
+      , Data(data)
     {
       Reset();
     }
     
-    virtual void RenderData(const ZXTune::Sound::RenderParameters& params,
+    virtual void RenderData(const ZXTune::Sound::RenderParameters& /*params*/,
                             const DataChunk& src)
     {
       //no data check
@@ -54,7 +55,7 @@ namespace
           return;//no differences
         }
       }
-      if (const uint_t intsPassed = static_cast<uint_t>((src.Tick - CurChunk.Tick) / params.ClocksPerFrame()))
+      if (const uint_t intsPassed = static_cast<uint_t>((src.Tick - CurChunk.Tick) / ClocksPerFrame))
       {
         Dump frame;
         frame.reserve(intsPassed * sizeof(uint16_t) + CountBits(src.Mask));
@@ -92,6 +93,7 @@ namespace
     }
 
   private:
+    const uint_t ClocksPerFrame;
     Dump& Data;
     DataChunk CurChunk;
   };
@@ -101,9 +103,9 @@ namespace Devices
 {
   namespace AYM
   {
-    Chip::Ptr CreateZX50Dumper(Dump& data)
+    Chip::Ptr CreateZX50Dumper(uint_t clocksPerFrame, Dump& data)
     {
-      return Chip::Ptr(new ZX50Dumper(data));
+      return Chip::Ptr(new ZX50Dumper(clocksPerFrame, data));
     }
   }
 }
