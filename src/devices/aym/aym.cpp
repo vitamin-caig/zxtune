@@ -109,11 +109,6 @@ namespace
     {
       return Level;
     }
-
-    void SetLevel(uint_t level)
-    {
-      Level = level;
-    }
   private:
     uint_t Counter;
     uint_t Level;
@@ -218,7 +213,6 @@ namespace
       if (DoCycle(0 != (DutyCycleMask & DataChunk::DUTY_CYCLE_MASK_N), GetToneN(), GenN))
       {
         Noise = (Noise * 2 + 1) ^ (((Noise >> 16) ^ (Noise >> 13)) & 1);
-        GenN.SetLevel((Noise & 0x10000) ? ~0 : 0);
         res = true;
       }
       if (DoCycle(0 != (DutyCycleMask & DataChunk::DUTY_CYCLE_MASK_E), GetToneE(), GenE))
@@ -261,18 +255,19 @@ namespace
     virtual void GetLevels(MultiSample& result) const
     {
       const uint_t HighLevel = ~0u;
+      const uint_t noiseBit = (Noise & 0x10000) ? HighLevel : 0;
       //references to mixered bits. updated automatically
       const uint_t levelA = (((VolA & DataChunk::REG_MASK_VOL) << 1) + 1);
       const uint_t levelB = (((VolB & DataChunk::REG_MASK_VOL) << 1) + 1);
       const uint_t levelC = (((VolC & DataChunk::REG_MASK_VOL) << 1) + 1);
       const uint_t toneBitA = (Mixer & DataChunk::REG_MASK_TONEA) ? HighLevel : GenA.GetLevel();
-      const uint_t noiseBitA = (Mixer & DataChunk::REG_MASK_NOISEA) ? HighLevel : GenN.GetLevel();
+      const uint_t noiseBitA = (Mixer & DataChunk::REG_MASK_NOISEA) ? HighLevel : noiseBit;
       const uint_t outA = (VolA & DataChunk::REG_MASK_ENV) ? Envelope : levelA;
       const uint_t toneBitB = (Mixer & DataChunk::REG_MASK_TONEB) ? HighLevel : GenB.GetLevel();
-      const uint_t noiseBitB = (Mixer & DataChunk::REG_MASK_NOISEB) ? HighLevel : GenN.GetLevel();
+      const uint_t noiseBitB = (Mixer & DataChunk::REG_MASK_NOISEB) ? HighLevel : noiseBit;
       const uint_t outB = (VolB & DataChunk::REG_MASK_ENV) ? Envelope : levelB;
       const uint_t toneBitC = (Mixer & DataChunk::REG_MASK_TONEC) ? HighLevel : GenC.GetLevel();
-      const uint_t noiseBitC = (Mixer & DataChunk::REG_MASK_NOISEC) ? HighLevel : GenN.GetLevel();
+      const uint_t noiseBitC = (Mixer & DataChunk::REG_MASK_NOISEC) ? HighLevel : noiseBit;
       const uint_t outC = (VolC & DataChunk::REG_MASK_ENV) ? Envelope : levelC;
 
       const VolumeTable& table = IsYM ? YMVolumeTab : AYVolumeTab;
