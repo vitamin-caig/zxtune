@@ -87,12 +87,17 @@ namespace
 
     positive pulse width is 1/4 of period value
     */
-    bool Tick(uint_t period)
+    bool Tick()
     {
-      const uint_t dutedPeriod = (Level ? MAX_DUTYCYCLE - DutyCycle : DutyCycle) * period * 2 / MAX_DUTYCYCLE;
-      if (++Counter >= dutedPeriod)
+      ++Counter;
+      if (Counter >= FullPeriod)
       {
         Counter = 0;
+        Level = ~Level;
+        return true;
+      }
+      else if (Counter == HalfPeriod)
+      {
         Level = ~Level;
         return true;
       }
@@ -108,11 +113,25 @@ namespace
     {
       assert(dutyCycle > 0 && dutyCycle < MAX_DUTYCYCLE);
       DutyCycle = dutyCycle;
+      UpdateHalfPeriod();
+    }
+
+    void SetPeriod(uint_t period)
+    {
+      FullPeriod = period * 2;
+      UpdateHalfPeriod();
+    }
+  private:
+    void UpdateHalfPeriod()
+    {
+      HalfPeriod = DutyCycle * FullPeriod / MAX_DUTYCYCLE;
     }
   private:
     uint_t Counter;
     uint_t Level;
     uint_t DutyCycle;
+    uint_t HalfPeriod;
+    uint_t FullPeriod;
   };
 
   class Renderer
@@ -157,10 +176,15 @@ namespace
       State = DataChunk();
       State.Data[DataChunk::REG_MIXER] = 0xff;
       GenA.Reset();
+      GenA.SetPeriod(0);
       GenB.Reset();
+      GenB.SetPeriod(0);
       GenC.Reset();
+      GenC.SetPeriod(0);
       GenN.Reset();
+      GenN.SetPeriod(0);
       GenE.Reset();
+      GenE.SetPeriod(0);
       Envelope = 0;
       Decay = 0;
       Noise = 0;
@@ -168,7 +192,6 @@ namespace
 
     void ApplyData(const DataChunk& data)
     {
-      assert(data.Tick > State.Tick);
       for (uint_t idx = 0, mask = 1; idx != data.Data.size(); ++idx, mask <<= 1)
       {
         if (0 == (data.Mask & mask))
@@ -204,22 +227,41 @@ namespace
         }
         State.Data[idx] = reg;
       }
-      State.Mask = data.Mask;
+      if (data.Mask & ((1 << DataChunk::REG_TONEA_L) | (1 << DataChunk::REG_TONEA_H)))
+      {
+        GenA.SetPeriod(GetToneA());
+      }
+      if (data.Mask & ((1 << DataChunk::REG_TONEB_L) | (1 << DataChunk::REG_TONEB_H)))
+      {
+        GenB.SetPeriod(GetToneB());
+      }
+      if (data.Mask & ((1 << DataChunk::REG_TONEC_L) | (1 << DataChunk::REG_TONEC_H)))
+      {
+        GenC.SetPeriod(GetToneC());
+      }
+      if (data.Mask & (1 << DataChunk::REG_TONEN))
+      {
+        GenN.SetPeriod(GetToneN());
+      }
+      if (data.Mask & ((1 << DataChunk::REG_TONEE_L) | (1 << DataChunk::REG_TONEE_H)))
+      {
+        GenE.SetPeriod(GetToneE());
+      }
     }
 
     virtual bool Tick()
     {
       bool res = false;
-      res |= GenA.Tick(GetToneA());
-      res |= GenB.Tick(GetToneB());
-      res |= GenC.Tick(GetToneC());
+      res |= GenA.Tick();
+      res |= GenB.Tick();
+      res |= GenC.Tick();
 
-      if (GenN.Tick(GetToneN()))
+      if (GenN.Tick())
       {
         Noise = (Noise * 2 + 1) ^ (((Noise >> 16) ^ (Noise >> 13)) & 1);
         res = true;
       }
-      if (GenE.Tick(GetToneE()))
+      if (GenE.Tick())
       {
         Envelope += Decay;
         if (Envelope & ~31u)
