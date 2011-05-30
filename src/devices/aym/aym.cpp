@@ -66,6 +66,7 @@ namespace
     Generator()
       : Counter()
       , Level()
+      , DutyCycle(NO_DUTYCYCLE)
     {
     }
 
@@ -73,17 +74,6 @@ namespace
     {
       Counter = 0;
       Level = 0;
-    }
-
-    bool Tick(uint_t period)
-    {
-      if (++Counter >= period)
-      {
-        Counter = 0;
-        Level = ~Level;
-        return true;
-      }
-      return false;
     }
 
     /*
@@ -97,21 +87,32 @@ namespace
 
     positive pulse width is 1/4 of period value
     */
-    bool Tick(uint_t period, uint_t dutyCycle)
+    bool Tick(uint_t period)
     {
-      assert(dutyCycle != NO_DUTYCYCLE);
-      assert(dutyCycle > 0 && dutyCycle < MAX_DUTYCYCLE);
-      const uint_t dutedPeriod = (Level ? MAX_DUTYCYCLE - dutyCycle : dutyCycle) * period * 2 / MAX_DUTYCYCLE;
-      return Tick(dutedPeriod);
+      const uint_t dutedPeriod = (Level ? MAX_DUTYCYCLE - DutyCycle : DutyCycle) * period * 2 / MAX_DUTYCYCLE;
+      if (++Counter >= dutedPeriod)
+      {
+        Counter = 0;
+        Level = ~Level;
+        return true;
+      }
+      return false;
     }
 
     uint_t GetLevel() const
     {
       return Level;
     }
+
+    void SetDutyCycle(uint_t dutyCycle)
+    {
+      assert(dutyCycle > 0 && dutyCycle < MAX_DUTYCYCLE);
+      DutyCycle = dutyCycle;
+    }
   private:
     uint_t Counter;
     uint_t Level;
+    uint_t DutyCycle;
   };
 
   class Renderer
@@ -132,7 +133,7 @@ namespace
       , Mixer(State.Data[DataChunk::REG_MIXER])
       , EnvType(State.Data[DataChunk::REG_ENV])
       , Envelope(), Decay(), Noise()
-      , IsYM(), DutyCycle(NO_DUTYCYCLE), DutyCycleMask(0)
+      , IsYM()
     {
       State.Data[DataChunk::REG_MIXER] = 0xff;
     }
@@ -144,8 +145,11 @@ namespace
 
     void SetDutyCycle(uint_t value, uint_t mask)
     {
-      DutyCycle = value;
-      DutyCycleMask = mask;
+      GenA.SetDutyCycle(0 != (mask & DataChunk::DUTY_CYCLE_MASK_A) ? value : NO_DUTYCYCLE);
+      GenB.SetDutyCycle(0 != (mask & DataChunk::DUTY_CYCLE_MASK_B) ? value : NO_DUTYCYCLE);
+      GenC.SetDutyCycle(0 != (mask & DataChunk::DUTY_CYCLE_MASK_C) ? value : NO_DUTYCYCLE);
+      GenN.SetDutyCycle(0 != (mask & DataChunk::DUTY_CYCLE_MASK_N) ? value : NO_DUTYCYCLE);
+      GenE.SetDutyCycle(0 != (mask & DataChunk::DUTY_CYCLE_MASK_E) ? value : NO_DUTYCYCLE);
     }
 
     virtual void Reset()
@@ -206,16 +210,16 @@ namespace
     virtual bool Tick()
     {
       bool res = false;
-      res |= DoCycle(0 != (DutyCycleMask & DataChunk::DUTY_CYCLE_MASK_A), GetToneA(), GenA);
-      res |= DoCycle(0 != (DutyCycleMask & DataChunk::DUTY_CYCLE_MASK_B), GetToneB(), GenB);
-      res |= DoCycle(0 != (DutyCycleMask & DataChunk::DUTY_CYCLE_MASK_C), GetToneC(), GenC);
+      res |= GenA.Tick(GetToneA());
+      res |= GenB.Tick(GetToneB());
+      res |= GenC.Tick(GetToneC());
 
-      if (DoCycle(0 != (DutyCycleMask & DataChunk::DUTY_CYCLE_MASK_N), GetToneN(), GenN))
+      if (GenN.Tick(GetToneN()))
       {
         Noise = (Noise * 2 + 1) ^ (((Noise >> 16) ^ (Noise >> 13)) & 1);
         res = true;
       }
-      if (DoCycle(0 != (DutyCycleMask & DataChunk::DUTY_CYCLE_MASK_E), GetToneE(), GenE))
+      if (GenE.Tick(GetToneE()))
       {
         Envelope += Decay;
         if (Envelope & ~31u)
@@ -378,13 +382,6 @@ namespace
     {
       return 256 * State.Data[DataChunk::REG_TONEE_H] + State.Data[DataChunk::REG_TONEE_L];
     }
-
-    bool DoCycle(bool useDutyCycle, uint_t tone, Generator& generator)
-    {
-      return (useDutyCycle && DutyCycle != NO_DUTYCYCLE)
-        ? generator.Tick(tone, DutyCycle)
-        : generator.Tick(tone);
-    }
   private:
     //registers state
     DataChunk State;
@@ -406,8 +403,6 @@ namespace
     uint32_t Noise;
     //parameters
     bool IsYM;
-    uint_t DutyCycle;
-    uint_t DutyCycleMask;
   };
 
   class InterpolatedRenderer : public Renderer
