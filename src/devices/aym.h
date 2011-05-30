@@ -86,19 +86,6 @@ namespace Devices
       boost::array<uint8_t, REG_LAST> Data;
     };
 
-    //layout mode
-    enum LayoutType
-    {
-      LAYOUT_ABC = 0,
-      LAYOUT_ACB = 1,
-      LAYOUT_BAC = 2,
-      LAYOUT_BCA = 3,
-      LAYOUT_CAB = 4,
-      LAYOUT_CBA = 5,
-
-      LAYOUT_LAST
-    };
-
     //channels state
     struct ChanState
     {
@@ -160,7 +147,6 @@ namespace Devices
       virtual bool Interpolate() const = 0;
       virtual uint_t DutyCycleValue() const = 0;
       virtual uint_t DutyCycleMask() const = 0;
-      virtual LayoutType Layout() const = 0;
     };
 
     /// Virtual constructors

@@ -403,7 +403,7 @@ namespace
   // tracker type
   typedef TrackingSupport<Devices::AYM::CHANNELS, CmdType, Sample, Ornament> ASCTrack;
 
-  Renderer::Ptr CreateASCRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, ASCTrack::ModuleData::Ptr data, Devices::AYM::Chip::Ptr device);
+  Renderer::Ptr CreateASCRenderer(AYM::TrackParameters::Ptr params, Information::Ptr info, ASCTrack::ModuleData::Ptr data, Devices::AYM::Chip::Ptr device);
 
   class ASCHolder : public Holder
                   , private ConversionFactory
@@ -704,10 +704,12 @@ namespace
     virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
     {
       const Parameters::Accessor::Ptr params = GetModuleProperties();
-      const Devices::AYM::Receiver::Ptr receiver = CreateAYMReceiver(target);
+
+      const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
+      const Devices::AYM::Receiver::Ptr receiver = CreateAYMReceiver(trackParams, target);
       const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
       const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateChip(chipParams, receiver);
-      return CreateASCRenderer(params, Info, Data, chip);
+      return CreateASCRenderer(trackParams, Info, Data, chip);
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -737,7 +739,10 @@ namespace
 
     virtual Renderer::Ptr CreateRenderer(Devices::AYM::Chip::Ptr chip) const
     {
-      return CreateASCRenderer(GetModuleProperties(), Info, Data, chip);
+      const Parameters::Accessor::Ptr params = GetModuleProperties();
+
+      const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
+      return CreateASCRenderer(trackParams, Info, Data, chip);
     }
   private:
     const ASCTrack::ModuleData::RWPtr Data;
@@ -1068,7 +1073,7 @@ namespace
     boost::array<ASCChannelState, Devices::AYM::CHANNELS> PlayerState;
   };
 
-  Renderer::Ptr CreateASCRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, ASCTrack::ModuleData::Ptr data, Devices::AYM::Chip::Ptr device)
+  Renderer::Ptr CreateASCRenderer(AYM::TrackParameters::Ptr params, Information::Ptr info, ASCTrack::ModuleData::Ptr data, Devices::AYM::Chip::Ptr device)
   {
     const AYMDataRenderer::Ptr renderer = boost::make_shared<ASCDataRenderer>(data);
     return CreateAYMTrackRenderer(params, info, data, renderer, device);

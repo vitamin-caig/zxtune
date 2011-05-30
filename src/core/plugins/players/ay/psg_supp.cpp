@@ -79,7 +79,7 @@ namespace
     std::vector<Devices::AYM::DataChunk> Dump;
   };
 
-  Renderer::Ptr CreatePSGRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, PSGData::Ptr data, Devices::AYM::Chip::Ptr device);
+  Renderer::Ptr CreatePSGRenderer(AYM::TrackParameters::Ptr params, Information::Ptr info, PSGData::Ptr data, Devices::AYM::Chip::Ptr device);
 
   class PSGHolder : public Holder
                   , private ConversionFactory
@@ -174,10 +174,12 @@ namespace
     virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
     {
       const Parameters::Accessor::Ptr params = GetModuleProperties();
-      const Devices::AYM::Receiver::Ptr receiver = CreateAYMReceiver(target);
+
+      const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
+      const Devices::AYM::Receiver::Ptr receiver = CreateAYMReceiver(trackParams, target);
       const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
       const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateChip(chipParams, receiver);
-      return CreatePSGRenderer(params, Info, Data, chip);
+      return CreatePSGRenderer(trackParams, Info, Data, chip);
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -208,7 +210,10 @@ namespace
 
     virtual Renderer::Ptr CreateRenderer(Devices::AYM::Chip::Ptr chip) const
     {
-      return CreatePSGRenderer(GetModuleProperties(), Info, Data, chip);
+      const Parameters::Accessor::Ptr params = GetModuleProperties();
+
+      const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
+      return CreatePSGRenderer(trackParams, Info, Data, chip);
     }
   private:
     const ModuleProperties::Ptr Properties;
@@ -253,7 +258,7 @@ namespace
     Devices::AYM::DataChunk PlayerState;
   };
 
-  Renderer::Ptr CreatePSGRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, PSGData::Ptr data, Devices::AYM::Chip::Ptr device)
+  Renderer::Ptr CreatePSGRenderer(AYM::TrackParameters::Ptr params, Information::Ptr info, PSGData::Ptr data, Devices::AYM::Chip::Ptr device)
   {
     const AYMDataRenderer::Ptr renderer = boost::make_shared<PSGDataRenderer>(data);
     return CreateAYMStreamRenderer(params, info, renderer, device);

@@ -28,18 +28,36 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Module;
 
+  typedef boost::array<uint_t, Devices::AYM::CHANNELS> LayoutData;
+  
+  const LayoutData LAYOUTS[] =
+  {
+    { {0, 1, 2} }, //ABC
+    { {0, 2, 1} }, //ACB
+    { {1, 0, 2} }, //BAC
+    { {2, 0, 1} }, //BCA
+    { {2, 1, 0} }, //CBA
+    { {1, 2, 0} }, //CAB
+  };
+
   class AYMReceiver : public Devices::AYM::Receiver
   {
   public:
-    explicit AYMReceiver(Sound::MultichannelReceiver::Ptr target)
-      : Target(target)
+    AYMReceiver(AYM::TrackParameters::Ptr params, Sound::MultichannelReceiver::Ptr target)
+      : Params(params)
+      , Target(target)
       , Data(Devices::AYM::CHANNELS)
     {
     }
 
     virtual void ApplyData(const Devices::AYM::MultiSample& data)
     {
-      std::transform(data.begin(), data.end(), Data.begin(), &AYMSampleToSoundSample);
+      const LayoutData& layout = LAYOUTS[Params->Layout()];
+      for (uint_t idx = 0; idx < Devices::AYM::CHANNELS; ++idx)
+      {
+        const uint_t chipChannel = layout[idx];
+        Data[idx] = AYMSampleToSoundSample(data[chipChannel]);
+      }
       Target->ApplyData(Data);
     }
 
@@ -53,6 +71,7 @@ namespace
       return in / 2;
     }
   private:
+    const AYM::TrackParameters::Ptr Params;
     const Sound::MultichannelReceiver::Ptr Target;
     std::vector<Sound::Sample> Data;
   };
@@ -175,9 +194,9 @@ namespace ZXTune
 {
   namespace Module
   {
-    Devices::AYM::Receiver::Ptr CreateAYMReceiver(Sound::MultichannelReceiver::Ptr target)
+    Devices::AYM::Receiver::Ptr CreateAYMReceiver(AYM::TrackParameters::Ptr params, Sound::MultichannelReceiver::Ptr target)
     {
-      return boost::make_shared<AYMReceiver>(target);
+      return boost::make_shared<AYMReceiver>(params, target);
     }
 
     Renderer::Ptr CreateAYMRenderer(AYM::ParametersHelper::Ptr params, StateIterator::Ptr iterator, AYMDataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device)
@@ -185,14 +204,14 @@ namespace ZXTune
       return boost::make_shared<AYMRenderer>(params, iterator, renderer, device);
     }
 
-    Renderer::Ptr CreateAYMStreamRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, AYMDataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device)
+    Renderer::Ptr CreateAYMStreamRenderer(AYM::TrackParameters::Ptr params, Information::Ptr info, AYMDataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device)
     {
       const AYM::ParametersHelper::Ptr ayParams = AYM::ParametersHelper::Create(params);
       const StateIterator::Ptr iterator = CreateStreamStateIterator(info);
       return CreateAYMRenderer(ayParams, iterator, renderer, device);
     }
 
-    Renderer::Ptr CreateAYMTrackRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, TrackModuleData::Ptr data, 
+    Renderer::Ptr CreateAYMTrackRenderer(AYM::TrackParameters::Ptr params, Information::Ptr info, TrackModuleData::Ptr data, 
       AYMDataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device)
     {
       const AYM::ParametersHelper::Ptr ayParams = AYM::ParametersHelper::Create(params);

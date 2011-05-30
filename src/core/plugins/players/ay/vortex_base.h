@@ -14,7 +14,7 @@ Author:
 #define __CORE_PLUGINS_PLAYERS_VORTEX_BASE_H_DEFINED__
 
 //local includes
-#include "../tracking.h"
+#include "ay_base.h"
 //library includes
 #include <core/module_holder.h>
 #include <devices/aym.h>
@@ -126,7 +126,7 @@ namespace ZXTune
       typedef TrackingSupport<Devices::AYM::CHANNELS, Commands, Sample, Ornament> Track;
 
       //creating simple player based on parsed data and parameters
-      Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, Track::ModuleData::Ptr data,
+      Renderer::Ptr CreateRenderer(AYM::TrackParameters::Ptr params, Information::Ptr info, Track::ModuleData::Ptr data,
          uint_t version, Devices::AYM::Chip::Ptr device);
     }
   }

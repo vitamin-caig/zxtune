@@ -435,7 +435,7 @@ namespace ZXTune
       }
 
 
-      Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, Track::ModuleData::Ptr data,
+      Renderer::Ptr CreateRenderer(AYM::TrackParameters::Ptr params, Information::Ptr info, Track::ModuleData::Ptr data,
          uint_t version, Devices::AYM::Chip::Ptr device)
       {
         const AYMDataRenderer::Ptr renderer = boost::make_shared<VortexDataRenderer>(data, version);

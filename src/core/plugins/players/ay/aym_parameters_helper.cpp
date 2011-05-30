@@ -54,31 +54,31 @@ namespace
     return val | MASKS[pos];
   }
 
-  Devices::AYM::LayoutType String2Layout(const String& str)
+  LayoutType String2Layout(const String& str)
   {
     if (str == Text::MODULE_LAYOUT_ABC)
     {
-      return Devices::AYM::LAYOUT_ABC;
+      return LAYOUT_ABC;
     }
     else if (str == Text::MODULE_LAYOUT_ACB)
     {
-      return Devices::AYM::LAYOUT_ACB;
+      return LAYOUT_ACB;
     }
     else if (str == Text::MODULE_LAYOUT_BAC)
     {
-      return Devices::AYM::LAYOUT_BAC;
+      return LAYOUT_BAC;
     }
     else if (str == Text::MODULE_LAYOUT_BCA)
     {
-      return Devices::AYM::LAYOUT_BCA;
+      return LAYOUT_BCA;
     }
     else if (str == Text::MODULE_LAYOUT_CBA)
     {
-      return Devices::AYM::LAYOUT_CBA;
+      return LAYOUT_CBA;
     }
     else if (str == Text::MODULE_LAYOUT_CAB)
     {
-      return Devices::AYM::LAYOUT_CAB;
+      return LAYOUT_CAB;
     }
     else
     {
@@ -139,24 +139,6 @@ namespace
       Params->FindIntValue(Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MASK, intVal);
       return static_cast<uint_t>(intVal);
     }
-
-    virtual Devices::AYM::LayoutType Layout() const
-    {
-      Parameters::StringType strVal;
-      if (Params->FindStringValue(Parameters::ZXTune::Core::AYM::LAYOUT, strVal))
-      {
-        return String2Layout(strVal);
-      }
-      Parameters::IntType intVal = Devices::AYM::LAYOUT_ABC;
-      const bool found = Params->FindIntValue(Parameters::ZXTune::Core::AYM::LAYOUT, intVal);
-      if (found && (intVal < static_cast<int_t>(Devices::AYM::LAYOUT_ABC) ||
-            intVal >= static_cast<int_t>(Devices::AYM::LAYOUT_LAST)))
-      {
-        throw MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,
-          Text::MODULE_ERROR_INVALID_LAYOUT, intVal);
-      }
-      return static_cast<Devices::AYM::LayoutType>(intVal);
-    }
   private:
     const Parameters::Accessor::Ptr Params;
     const Sound::RenderParameters::Ptr SoundParams;
@@ -174,6 +156,24 @@ namespace
     {
       UpdateTable();
       return Table;
+    }
+
+    virtual LayoutType Layout() const
+    {
+      Parameters::StringType strVal;
+      if (Params->FindStringValue(Parameters::ZXTune::Core::AYM::LAYOUT, strVal))
+      {
+        return String2Layout(strVal);
+      }
+      Parameters::IntType intVal = LAYOUT_ABC;
+      const bool found = Params->FindIntValue(Parameters::ZXTune::Core::AYM::LAYOUT, intVal);
+      if (found && (intVal < static_cast<int_t>(LAYOUT_ABC) ||
+            intVal >= static_cast<int_t>(LAYOUT_LAST)))
+      {
+        throw MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,
+          Text::MODULE_ERROR_INVALID_LAYOUT, intVal);
+      }
+      return static_cast<LayoutType>(intVal);
     }
   private:
     void UpdateTable() const
@@ -223,8 +223,8 @@ namespace
   class ParametersHelperImpl : public ParametersHelper
   {
   public:
-    ParametersHelperImpl(Parameters::Accessor::Ptr params)
-      : TrackParams(TrackParameters::Create(params))
+    explicit ParametersHelperImpl(TrackParameters::Ptr params)
+      : TrackParams(params)
     {
     }
 
@@ -258,7 +258,7 @@ namespace ZXTune
       return boost::make_shared<TrackParametersImpl>(params);
     }
 
-    ParametersHelper::Ptr ParametersHelper::Create(Parameters::Accessor::Ptr params)
+    ParametersHelper::Ptr ParametersHelper::Create(TrackParameters::Ptr params)
     {
       return ParametersHelper::Ptr(new ParametersHelperImpl(params));
     }

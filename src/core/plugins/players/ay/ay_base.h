@@ -40,13 +40,13 @@ namespace ZXTune
       virtual void Reset() = 0;
     };
 
-    Devices::AYM::Receiver::Ptr CreateAYMReceiver(Sound::MultichannelReceiver::Ptr target);
+    Devices::AYM::Receiver::Ptr CreateAYMReceiver(AYM::TrackParameters::Ptr params, Sound::MultichannelReceiver::Ptr target);
 
     Renderer::Ptr CreateAYMRenderer(AYM::ParametersHelper::Ptr params, StateIterator::Ptr iterator, AYMDataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device);
 
-    Renderer::Ptr CreateAYMStreamRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, AYMDataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device);
+    Renderer::Ptr CreateAYMStreamRenderer(AYM::TrackParameters::Ptr params, Information::Ptr info, AYMDataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device);
 
-    Renderer::Ptr CreateAYMTrackRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, TrackModuleData::Ptr data,
+    Renderer::Ptr CreateAYMTrackRenderer(AYM::TrackParameters::Ptr params, Information::Ptr info, TrackModuleData::Ptr data,
       AYMDataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device);
   }
 }

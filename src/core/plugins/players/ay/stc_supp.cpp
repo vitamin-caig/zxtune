@@ -536,7 +536,7 @@ namespace
     STCTransposition Transpositions;
   };
 
-  Renderer::Ptr CreateSTCRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, STCModuleData::Ptr data, Devices::AYM::Chip::Ptr device);
+  Renderer::Ptr CreateSTCRenderer(AYM::TrackParameters::Ptr params, Information::Ptr info, STCModuleData::Ptr data, Devices::AYM::Chip::Ptr device);
 
   class STCHolder : public Holder
                   , private ConversionFactory
@@ -587,10 +587,12 @@ namespace
     virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
     {
       const Parameters::Accessor::Ptr params = GetModuleProperties();
-      const Devices::AYM::Receiver::Ptr receiver = CreateAYMReceiver(target);
+
+      const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
+      const Devices::AYM::Receiver::Ptr receiver = CreateAYMReceiver(trackParams, target);
       const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
       const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateChip(chipParams, receiver);
-      return CreateSTCRenderer(params, Info, Data, chip);
+      return CreateSTCRenderer(trackParams, Info, Data, chip);
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -620,7 +622,10 @@ namespace
 
     virtual Renderer::Ptr CreateRenderer(Devices::AYM::Chip::Ptr chip) const
     {
-      return CreateSTCRenderer(GetModuleProperties(), Info, Data, chip);
+      const Parameters::Accessor::Ptr params = GetModuleProperties();
+
+      const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
+      return CreateSTCRenderer(trackParams, Info, Data, chip);
     }
   private:
     const STCModuleData::RWPtr Data;
@@ -928,7 +933,7 @@ namespace
     STCChannelState StateC;
   };
 
-  Renderer::Ptr CreateSTCRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, STCModuleData::Ptr data, Devices::AYM::Chip::Ptr device)
+  Renderer::Ptr CreateSTCRenderer(AYM::TrackParameters::Ptr params, Information::Ptr info, STCModuleData::Ptr data, Devices::AYM::Chip::Ptr device)
   {
     const AYMDataRenderer::Ptr renderer = boost::make_shared<STCDataRenderer>(data);
     return CreateAYMTrackRenderer(params, info, data, renderer, device);

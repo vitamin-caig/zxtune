@@ -27,6 +27,19 @@ namespace ZXTune
   {
     Devices::AYM::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params);
 
+    //layout mode
+    enum LayoutType
+    {
+      LAYOUT_ABC = 0,
+      LAYOUT_ACB = 1,
+      LAYOUT_BAC = 2,
+      LAYOUT_BCA = 3,
+      LAYOUT_CAB = 4,
+      LAYOUT_CBA = 5,
+
+      LAYOUT_LAST
+    };
+
     class TrackParameters
     {
     public:
@@ -35,6 +48,7 @@ namespace ZXTune
       virtual ~TrackParameters() {}
 
       virtual const Module::FrequencyTable& FreqTable() const = 0;
+      virtual LayoutType Layout() const = 0;
 
       static Ptr Create(Parameters::Accessor::Ptr params);
     };
@@ -52,7 +66,7 @@ namespace ZXTune
       //initial data chunk according to parameters
       virtual void GetDataChunk(Devices::AYM::DataChunk& dst) const = 0;
 
-      static Ptr Create(Parameters::Accessor::Ptr params);
+      static Ptr Create(TrackParameters::Ptr params);
     };
 
     class ChannelBuilder

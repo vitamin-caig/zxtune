@@ -54,19 +54,6 @@ namespace
     0x5502, 0x6620, 0x7730, 0x8844, 0xA1D2, 0xC102, 0xE0A2, 0xFFFF
   } };
 
-  typedef boost::array<uint_t, CHANNELS> LayoutData;
-  
-  const LayoutData LAYOUTS[] =
-  {
-    { {0, 1, 2} }, //ABC
-    { {0, 2, 1} }, //ACB
-    { {1, 0, 2} }, //BAC
-    { {2, 0, 1} }, //BCA
-    { {2, 1, 0} }, //CBA
-    { {1, 2, 0} }, //CAB
-  };
-
-
   const uint_t AYM_CLOCK_DIVISOR = 8;
 
   const uint_t MAX_DUTYCYCLE = 100;
@@ -280,12 +267,11 @@ namespace
       const uint_t noiseBitC = (Mixer & DataChunk::REG_MASK_NOISEC) ? HighLevel : GenN.GetLevel();
       const uint_t outC = (VolC & DataChunk::REG_MASK_ENV) ? Envelope : levelC;
 
-      const LayoutData& layout = LAYOUTS[Params.Layout()];
       const VolumeTable& table = Params.IsYM() ? YMVolumeTab : AYVolumeTab;
       assert(outA < 32 && outB < 32 && outC < 32);
-      result[layout[0]] = table[toneBitA & noiseBitA & outA];
-      result[layout[1]] = table[toneBitB & noiseBitB & outB];
-      result[layout[2]] = table[toneBitC & noiseBitC & outC];
+      result[0] = table[toneBitA & noiseBitA & outA];
+      result[1] = table[toneBitB & noiseBitB & outB];
+      result[2] = table[toneBitC & noiseBitC & outC];
     }
 
 
