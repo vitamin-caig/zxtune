@@ -94,6 +94,23 @@ namespace ZXTune
       //! Band => Level correspondence
       virtual void BandLevels(std::vector<BandAndLevel>& bandLevels) const = 0;
     };
+
+    // AYM modules-related types
+    namespace AYM
+    {
+      //layout mode
+      enum LayoutType
+      {
+        LAYOUT_ABC = 0,
+        LAYOUT_ACB = 1,
+        LAYOUT_BAC = 2,
+        LAYOUT_BCA = 3,
+        LAYOUT_CAB = 4,
+        LAYOUT_CBA = 5,
+
+        LAYOUT_LAST
+      };
+    }
   }
 }
 

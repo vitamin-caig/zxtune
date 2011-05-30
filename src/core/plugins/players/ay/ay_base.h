@@ -25,79 +25,79 @@ Author:
 
 namespace ZXTune
 {
-  namespace AYM
-  {
-    class ChannelBuilder
-    {
-    public:
-      ChannelBuilder(uint_t chan, const Module::FrequencyTable& table, Devices::AYM::DataChunk& chunk)
-        : Channel(chan)
-        , Table(table)
-        , Chunk(chunk)
-      {
-      }
-
-      void SetTone(int_t halfTones, int_t offset) const;
-      void SetLevel(int_t level) const;
-      void DisableTone() const;
-      void EnableEnvelope() const;
-      void DisableNoise() const;
-    private:
-      const uint_t Channel;
-      const Module::FrequencyTable& Table;
-      Devices::AYM::DataChunk& Chunk;
-    };
-
-    class TrackBuilder
-    {
-    public:
-      explicit TrackBuilder(const Module::FrequencyTable& table, Devices::AYM::DataChunk& chunk)
-        : Table(table)
-        , Chunk(chunk)
-      {
-      }
-
-      void SetNoise(uint_t level) const;
-      void SetEnvelopeType(uint_t type) const;
-      void SetEnvelopeTone(uint_t tone) const;
-
-      void SetRawChunk(const Devices::AYM::DataChunk& chunk) const;
-
-      int_t GetSlidingDifference(int_t halfToneFrom, int_t halfToneTo) const;
-
-      ChannelBuilder GetChannel(uint_t chan) const
-      {
-        return ChannelBuilder(chan, Table, Chunk);
-      }
-    private:
-      const Module::FrequencyTable& Table;
-      Devices::AYM::DataChunk& Chunk;
-    };
-  }
-
   namespace Module
   {
-    typedef PatternCursorSet<Devices::AYM::CHANNELS> AYMPatternCursors;
-
-    class AYMDataRenderer
+    namespace AYM
     {
-    public:
-      typedef boost::shared_ptr<AYMDataRenderer> Ptr;
+      class ChannelBuilder
+      {
+      public:
+        ChannelBuilder(uint_t chan, const FrequencyTable& table, Devices::AYM::DataChunk& chunk)
+          : Channel(chan)
+          , Table(table)
+          , Chunk(chunk)
+        {
+        }
 
-      virtual ~AYMDataRenderer() {}
+        void SetTone(int_t halfTones, int_t offset) const;
+        void SetLevel(int_t level) const;
+        void DisableTone() const;
+        void EnableEnvelope() const;
+        void DisableNoise() const;
+      private:
+        const uint_t Channel;
+        const FrequencyTable& Table;
+        Devices::AYM::DataChunk& Chunk;
+      };
 
-      virtual void SynthesizeData(const TrackState& state, const AYM::TrackBuilder& track) = 0;
-      virtual void Reset() = 0;
-    };
+      class TrackBuilder
+      {
+      public:
+        explicit TrackBuilder(const FrequencyTable& table, Devices::AYM::DataChunk& chunk)
+          : Table(table)
+          , Chunk(chunk)
+        {
+        }
 
-    Devices::AYM::Receiver::Ptr CreateAYMReceiver(AYM::TrackParameters::Ptr params, Sound::MultichannelReceiver::Ptr target);
+        void SetNoise(uint_t level) const;
+        void SetEnvelopeType(uint_t type) const;
+        void SetEnvelopeTone(uint_t tone) const;
 
-    Renderer::Ptr CreateAYMRenderer(AYM::TrackParameters::Ptr params, StateIterator::Ptr iterator, AYMDataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device);
+        void SetRawChunk(const Devices::AYM::DataChunk& chunk) const;
 
-    Renderer::Ptr CreateAYMStreamRenderer(AYM::TrackParameters::Ptr params, Information::Ptr info, AYMDataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device);
+        int_t GetSlidingDifference(int_t halfToneFrom, int_t halfToneTo) const;
 
-    Renderer::Ptr CreateAYMTrackRenderer(AYM::TrackParameters::Ptr params, Information::Ptr info, TrackModuleData::Ptr data,
-      AYMDataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device);
+        ChannelBuilder GetChannel(uint_t chan) const
+        {
+          return ChannelBuilder(chan, Table, Chunk);
+        }
+      private:
+        const FrequencyTable& Table;
+        Devices::AYM::DataChunk& Chunk;
+      };
+
+      typedef PatternCursorSet<Devices::AYM::CHANNELS> PatternCursors;
+
+      class DataRenderer
+      {
+      public:
+        typedef boost::shared_ptr<DataRenderer> Ptr;
+
+        virtual ~DataRenderer() {}
+
+        virtual void SynthesizeData(const TrackState& state, const TrackBuilder& track) = 0;
+        virtual void Reset() = 0;
+      };
+
+      Devices::AYM::Receiver::Ptr CreateReceiver(TrackParameters::Ptr params, Sound::MultichannelReceiver::Ptr target);
+
+      Renderer::Ptr CreateRenderer(TrackParameters::Ptr params, StateIterator::Ptr iterator, DataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device);
+
+      Renderer::Ptr CreateStreamRenderer(TrackParameters::Ptr params, Information::Ptr info, DataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device);
+
+      Renderer::Ptr CreateTrackRenderer(TrackParameters::Ptr params, Information::Ptr info, TrackModuleData::Ptr data,
+        DataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device);
+    }
   }
 }
 

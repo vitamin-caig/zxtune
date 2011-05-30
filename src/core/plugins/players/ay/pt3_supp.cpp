@@ -250,7 +250,7 @@ namespace
                   , private ConversionFactory
   {
     void ParsePattern(const IO::FastDump& data
-      , AYMPatternCursors& cursors
+      , AYM::PatternCursors& cursors
       , Vortex::Track::Line& line
       )
     {
@@ -258,7 +258,7 @@ namespace
       int_t noiseBase = -1;
       assert(line.Channels.size() == cursors.size());
       Vortex::Track::Line::ChannelsArray::iterator channel(line.Channels.begin());
-      for (AYMPatternCursors::iterator cur = cursors.begin(); cur != cursors.end(); ++cur, ++channel)
+      for (AYM::PatternCursors::iterator cur = cursors.begin(); cur != cursors.end(); ++cur, ++channel)
       {
         if (cur->Counter--)
         {
@@ -502,7 +502,7 @@ namespace
       {
         Vortex::Track::Pattern& pat(Data->Patterns[index]);
 
-        AYMPatternCursors cursors;
+        AYM::PatternCursors cursors;
         std::transform(pattern->Offsets.begin(), pattern->Offsets.end(), cursors.begin(), &fromLE<uint16_t>);
         uint_t& channelACursor = cursors.front().Offset;
         do
@@ -573,7 +573,7 @@ namespace
       const Parameters::Accessor::Ptr params = GetModuleProperties();
 
       const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
-      const Devices::AYM::Receiver::Ptr receiver = CreateAYMReceiver(trackParams, target);
+      const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(trackParams, target);
       const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
       const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateChip(chipParams, receiver);
       return Vortex::CreateRenderer(trackParams, Info, Data, Version, chip);
@@ -697,7 +697,7 @@ namespace
       const Parameters::Accessor::Ptr params = GetModuleProperties();
 
       const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
-      const Devices::AYM::Receiver::Ptr receiver = CreateAYMReceiver(trackParams, target);
+      const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(trackParams, target);
       const AYMTSMixer::Ptr mixer = CreateTSMixer(receiver);
       const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
       const Devices::AYM::Chip::Ptr chip1 = Devices::AYM::CreateChip(chipParams, mixer);

@@ -267,13 +267,13 @@ namespace
                   , private ConversionFactory
   {
     void ParsePattern(const IO::FastDump& data
-      , AYMPatternCursors& cursors
+      , AYM::PatternCursors& cursors
       , PT2Track::Line& line
       )
     {
       assert(line.Channels.size() == cursors.size());
       PT2Track::Line::ChannelsArray::iterator channel(line.Channels.begin());
-      for (AYMPatternCursors::iterator cur = cursors.begin(); cur != cursors.end(); ++cur, ++channel)
+      for (AYM::PatternCursors::iterator cur = cursors.begin(); cur != cursors.end(); ++cur, ++channel)
       {
         if (cur->Counter--)
         {
@@ -420,7 +420,7 @@ namespace
       {
         PT2Track::Pattern& pat = Data->Patterns[index];
 
-        AYMPatternCursors cursors;
+        AYM::PatternCursors cursors;
         std::transform(pattern->Offsets.begin(), pattern->Offsets.end(), cursors.begin(), &fromLE<uint16_t>);
         uint_t& channelACursor = cursors.front().Offset;
         do
@@ -484,7 +484,7 @@ namespace
       const Parameters::Accessor::Ptr params = GetModuleProperties();
 
       const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
-      const Devices::AYM::Receiver::Ptr receiver = CreateAYMReceiver(trackParams, target);
+      const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(trackParams, target);
       const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
       const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateChip(chipParams, receiver);
       return CreatePT2Renderer(trackParams, Info, Data, chip);
@@ -558,7 +558,7 @@ namespace
     int_t Glissade;
   };
 
-  class PT2DataRenderer : public AYMDataRenderer
+  class PT2DataRenderer : public AYM::DataRenderer
   {
   public:
     explicit PT2DataRenderer(PT2Track::ModuleData::Ptr data)
@@ -738,8 +738,8 @@ namespace
 
   Renderer::Ptr CreatePT2Renderer(AYM::TrackParameters::Ptr params, Information::Ptr info, PT2Track::ModuleData::Ptr data, Devices::AYM::Chip::Ptr device)
   {
-    const AYMDataRenderer::Ptr renderer = boost::make_shared<PT2DataRenderer>(data);
-    return CreateAYMTrackRenderer(params, info, data, renderer, device);
+    const AYM::DataRenderer::Ptr renderer = boost::make_shared<PT2DataRenderer>(data);
+    return AYM::CreateTrackRenderer(params, info, data, renderer, device);
   }
 
   //////////////////////////////////////////////////

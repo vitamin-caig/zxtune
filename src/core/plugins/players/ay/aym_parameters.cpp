@@ -30,7 +30,7 @@ Author:
 namespace
 {
   using namespace ZXTune;
-  using namespace ZXTune::AYM;
+  using namespace ZXTune::Module;
 
   //duty-cycle related parameter: accumulate letters to bitmask functor
   inline uint_t LetterToMask(uint_t val, const Char letter)
@@ -48,7 +48,7 @@ namespace
     const std::size_t pos = std::find(LETTERS, ArrayEnd(LETTERS), letter) - LETTERS;
     if (pos == ArraySize(LETTERS))
     {
-      throw MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,
+      throw MakeFormattedError(THIS_LINE, ERROR_INVALID_PARAMETERS,
         Text::MODULE_ERROR_INVALID_DUTY_CYCLE_MASK_ITEM, String(1, letter));
     }
     return val | MASKS[pos];
@@ -59,35 +59,35 @@ namespace
     return std::accumulate(str.begin(), str.end(), uint_t(0), LetterToMask);
   }
 
-  LayoutType String2Layout(const String& str)
+  AYM::LayoutType String2Layout(const String& str)
   {
     if (str == Text::MODULE_LAYOUT_ABC)
     {
-      return LAYOUT_ABC;
+      return AYM::LAYOUT_ABC;
     }
     else if (str == Text::MODULE_LAYOUT_ACB)
     {
-      return LAYOUT_ACB;
+      return AYM::LAYOUT_ACB;
     }
     else if (str == Text::MODULE_LAYOUT_BAC)
     {
-      return LAYOUT_BAC;
+      return AYM::LAYOUT_BAC;
     }
     else if (str == Text::MODULE_LAYOUT_BCA)
     {
-      return LAYOUT_BCA;
+      return AYM::LAYOUT_BCA;
     }
     else if (str == Text::MODULE_LAYOUT_CBA)
     {
-      return LAYOUT_CBA;
+      return AYM::LAYOUT_CBA;
     }
     else if (str == Text::MODULE_LAYOUT_CAB)
     {
-      return LAYOUT_CAB;
+      return AYM::LAYOUT_CAB;
     }
     else
     {
-      throw MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,
+      throw MakeFormattedError(THIS_LINE, ERROR_INVALID_PARAMETERS,
         Text::MODULE_ERROR_INVALID_LAYOUT, str);
     }
   }
@@ -132,7 +132,7 @@ namespace
       //duty cycle in percents should be in range 1..99 inc
       if (found && (intVal < 1 || intVal > 99))
       {
-        throw MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,
+        throw MakeFormattedError(THIS_LINE, ERROR_INVALID_PARAMETERS,
           Text::MODULE_ERROR_INVALID_DUTY_CYCLE, intVal);
       }
       return static_cast<uint_t>(intVal);
@@ -154,7 +154,7 @@ namespace
     const Sound::RenderParameters::Ptr SoundParams;
   };
 
-  class TrackParametersImpl : public TrackParameters
+  class TrackParametersImpl : public AYM::TrackParameters
   {
   public:
     explicit TrackParametersImpl(Parameters::Accessor::Ptr params)
@@ -162,28 +162,28 @@ namespace
     {
     }
 
-    virtual const Module::FrequencyTable& FreqTable() const
+    virtual const FrequencyTable& FreqTable() const
     {
       UpdateTable();
       return Table;
     }
 
-    virtual LayoutType Layout() const
+    virtual AYM::LayoutType Layout() const
     {
       Parameters::StringType strVal;
       if (Params->FindStringValue(Parameters::ZXTune::Core::AYM::LAYOUT, strVal))
       {
         return String2Layout(strVal);
       }
-      Parameters::IntType intVal = LAYOUT_ABC;
+      Parameters::IntType intVal = AYM::LAYOUT_ABC;
       const bool found = Params->FindIntValue(Parameters::ZXTune::Core::AYM::LAYOUT, intVal);
-      if (found && (intVal < static_cast<int_t>(LAYOUT_ABC) ||
-            intVal >= static_cast<int_t>(LAYOUT_LAST)))
+      if (found && (intVal < static_cast<int_t>(AYM::LAYOUT_ABC) ||
+            intVal >= static_cast<int_t>(AYM::LAYOUT_LAST)))
       {
-        throw MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,
+        throw MakeFormattedError(THIS_LINE, ERROR_INVALID_PARAMETERS,
           Text::MODULE_ERROR_INVALID_LAYOUT, intVal);
       }
-      return static_cast<LayoutType>(intVal);
+      return static_cast<AYM::LayoutType>(intVal);
     }
   private:
     void UpdateTable() const
@@ -193,7 +193,7 @@ namespace
       {
         if (newName != TableName)
         {
-          ThrowIfError(Module::GetFreqTable(newName, Table));
+          ThrowIfError(GetFreqTable(newName, Table));
         }
         return;
       }
@@ -203,7 +203,7 @@ namespace
         // as dump
         if (newData.size() != Table.size() * sizeof(Table.front()))
         {
-          throw MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,
+          throw MakeFormattedError(THIS_LINE, ERROR_INVALID_PARAMETERS,
             Text::MODULE_ERROR_INVALID_FREQ_TABLE_SIZE, newData.size());
         }
         std::memcpy(&Table.front(), &newData.front(), newData.size());
@@ -216,22 +216,25 @@ namespace
   private:
     const Parameters::Accessor::Ptr Params;
     mutable String TableName;
-    mutable Module::FrequencyTable Table;
+    mutable FrequencyTable Table;
   };
 }
 
 namespace ZXTune
 {
-  namespace AYM
+  namespace Module
   {
-    Devices::AYM::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params)
+    namespace AYM
     {
-      return boost::make_shared<ChipParametersImpl>(params);
-    }
+      Devices::AYM::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params)
+      {
+        return boost::make_shared<ChipParametersImpl>(params);
+      }
 
-    TrackParameters::Ptr TrackParameters::Create(Parameters::Accessor::Ptr params)
-    {
-      return boost::make_shared<TrackParametersImpl>(params);
+      TrackParameters::Ptr TrackParameters::Create(Parameters::Accessor::Ptr params)
+      {
+        return boost::make_shared<TrackParametersImpl>(params);
+      }
     }
   }
 }

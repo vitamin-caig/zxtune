@@ -409,7 +409,7 @@ namespace
                   , private ConversionFactory
   {
     static void ParsePattern(const IO::FastDump& data
-      , AYMPatternCursors& cursors
+      , AYM::PatternCursors& cursors
       , ASCTrack::Line& line
       , uint_t& envelopes
       )
@@ -417,7 +417,7 @@ namespace
       assert(line.Channels.size() == cursors.size());
       ASCTrack::Line::ChannelsArray::iterator channel = line.Channels.begin();
       uint_t envMask = 1;
-      for (AYMPatternCursors::iterator cur = cursors.begin(); cur != cursors.end(); ++cur, ++channel, envMask <<= 1)
+      for (AYM::PatternCursors::iterator cur = cursors.begin(); cur != cursors.end(); ++cur, ++channel, envMask <<= 1)
       {
         if (cur->Counter--)
         {
@@ -643,7 +643,7 @@ namespace
       {
         ASCTrack::Pattern& pat(Data->Patterns[patNum]);
 
-        AYMPatternCursors cursors;
+        AYM::PatternCursors cursors;
         std::transform(pattern->Offsets.begin(), pattern->Offsets.end(), cursors.begin(),
           boost::bind(std::plus<uint_t>(), patternsOff, boost::bind(&fromLE<uint16_t>, _1)));
         uint_t envelopes = 0;
@@ -706,7 +706,7 @@ namespace
       const Parameters::Accessor::Ptr params = GetModuleProperties();
 
       const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
-      const Devices::AYM::Receiver::Ptr receiver = CreateAYMReceiver(trackParams, target);
+      const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(trackParams, target);
       const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
       const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateChip(chipParams, receiver);
       return CreateASCRenderer(trackParams, Info, Data, chip);
@@ -794,7 +794,7 @@ namespace
     }
   };
 
-  class ASCDataRenderer : public AYMDataRenderer
+  class ASCDataRenderer : public AYM::DataRenderer
   {
   public:
     explicit ASCDataRenderer(ASCTrack::ModuleData::Ptr data)
@@ -1075,8 +1075,8 @@ namespace
 
   Renderer::Ptr CreateASCRenderer(AYM::TrackParameters::Ptr params, Information::Ptr info, ASCTrack::ModuleData::Ptr data, Devices::AYM::Chip::Ptr device)
   {
-    const AYMDataRenderer::Ptr renderer = boost::make_shared<ASCDataRenderer>(data);
-    return CreateAYMTrackRenderer(params, info, data, renderer, device);
+    const AYM::DataRenderer::Ptr renderer = boost::make_shared<ASCDataRenderer>(data);
+    return AYM::CreateTrackRenderer(params, info, data, renderer, device);
   }
 
   //////////////////////////////////////////////////////////////////////////

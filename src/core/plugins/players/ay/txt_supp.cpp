@@ -101,7 +101,7 @@ namespace
       const Parameters::Accessor::Ptr params = GetModuleProperties();
 
       const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
-      const Devices::AYM::Receiver::Ptr receiver = CreateAYMReceiver(trackParams, target);
+      const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(trackParams, target);
       const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
       const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateChip(chipParams, receiver);
       return Vortex::CreateRenderer(trackParams, Info, Data, Version, chip);

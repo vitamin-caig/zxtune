@@ -156,7 +156,7 @@ namespace
   };
 
   //simple player type
-  class VortexDataRenderer : public AYMDataRenderer
+  class VortexDataRenderer : public AYM::DataRenderer
   {
   public:
     VortexDataRenderer(Vortex::Track::ModuleData::Ptr data, uint_t version)
@@ -438,8 +438,8 @@ namespace ZXTune
       Renderer::Ptr CreateRenderer(AYM::TrackParameters::Ptr params, Information::Ptr info, Track::ModuleData::Ptr data,
          uint_t version, Devices::AYM::Chip::Ptr device)
       {
-        const AYMDataRenderer::Ptr renderer = boost::make_shared<VortexDataRenderer>(data, version);
-        return CreateAYMTrackRenderer(params, info, data, renderer, device);
+        const AYM::DataRenderer::Ptr renderer = boost::make_shared<VortexDataRenderer>(data, version);
+        return AYM::CreateTrackRenderer(params, info, data, renderer, device);
       }
     }
   }

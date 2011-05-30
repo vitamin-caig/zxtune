@@ -176,7 +176,7 @@ namespace
       const Parameters::Accessor::Ptr params = GetModuleProperties();
 
       const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
-      const Devices::AYM::Receiver::Ptr receiver = CreateAYMReceiver(trackParams, target);
+      const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(trackParams, target);
       const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
       const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateChip(chipParams, receiver);
       return CreatePSGRenderer(trackParams, Info, Data, chip);
@@ -222,7 +222,7 @@ namespace
     const Parameters::Accessor::Ptr Params;
   };
 
-  class PSGDataRenderer : public AYMDataRenderer
+  class PSGDataRenderer : public AYM::DataRenderer
   {
   public:
     explicit PSGDataRenderer(PSGData::Ptr data)
@@ -260,8 +260,8 @@ namespace
 
   Renderer::Ptr CreatePSGRenderer(AYM::TrackParameters::Ptr params, Information::Ptr info, PSGData::Ptr data, Devices::AYM::Chip::Ptr device)
   {
-    const AYMDataRenderer::Ptr renderer = boost::make_shared<PSGDataRenderer>(data);
-    return CreateAYMStreamRenderer(params, info, renderer, device);
+    const AYM::DataRenderer::Ptr renderer = boost::make_shared<PSGDataRenderer>(data);
+    return AYM::CreateStreamRenderer(params, info, renderer, device);
   }
 
   bool CheckPSG(const IO::DataContainer& inputData)

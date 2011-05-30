@@ -439,7 +439,7 @@ namespace
 
     uint_t ParsePattern(const IO::FastDump& data, const STCPattern& pattern, STCTrack::Pattern& dst)
     {
-      AYMPatternCursors cursors;
+      AYM::PatternCursors cursors;
       std::transform(pattern.Offsets.begin(), pattern.Offsets.end(), cursors.begin(), &fromLE<uint16_t>);
       uint_t& channelACursor = cursors.front().Offset;
       do
@@ -460,11 +460,11 @@ namespace
       return maxOffset;
     }
 
-    void ParsePatternLine(const IO::FastDump& data, AYMPatternCursors& cursors, STCTrack::Line& line)
+    void ParsePatternLine(const IO::FastDump& data, AYM::PatternCursors& cursors, STCTrack::Line& line)
     {
       assert(line.Channels.size() == cursors.size());
       STCTrack::Line::ChannelsArray::iterator channel(line.Channels.begin());
-      for (AYMPatternCursors::iterator cur = cursors.begin(); cur != cursors.end(); ++cur, ++channel)
+      for (AYM::PatternCursors::iterator cur = cursors.begin(); cur != cursors.end(); ++cur, ++channel)
       {
         ParsePatternLineChannel(data, *cur, *channel);
       }
@@ -589,7 +589,7 @@ namespace
       const Parameters::Accessor::Ptr params = GetModuleProperties();
 
       const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
-      const Devices::AYM::Receiver::Ptr receiver = CreateAYMReceiver(trackParams, target);
+      const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(trackParams, target);
       const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
       const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateChip(chipParams, receiver);
       return CreateSTCRenderer(trackParams, Info, Data, chip);
@@ -857,7 +857,7 @@ namespace
     }
   }
 
-  class STCDataRenderer : public AYMDataRenderer
+  class STCDataRenderer : public AYM::DataRenderer
   {
   public:
     explicit STCDataRenderer(STCModuleData::Ptr data)
@@ -935,8 +935,8 @@ namespace
 
   Renderer::Ptr CreateSTCRenderer(AYM::TrackParameters::Ptr params, Information::Ptr info, STCModuleData::Ptr data, Devices::AYM::Chip::Ptr device)
   {
-    const AYMDataRenderer::Ptr renderer = boost::make_shared<STCDataRenderer>(data);
-    return CreateAYMTrackRenderer(params, info, data, renderer, device);
+    const AYM::DataRenderer::Ptr renderer = boost::make_shared<STCDataRenderer>(data);
+    return AYM::CreateTrackRenderer(params, info, data, renderer, device);
   }
 
   class STCAreasChecker : public STCAreas
