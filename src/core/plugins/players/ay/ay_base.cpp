@@ -47,7 +47,8 @@ namespace
   {
   public:
     AYMReceiver(AYM::TrackParameters::Ptr params, Sound::MultichannelReceiver::Ptr target)
-      : Params(params)
+    //TODO: poll layout change
+      : Layout(LAYOUTS[params->Layout()])
       , Target(target)
       , Data(Devices::AYM::CHANNELS)
     {
@@ -55,10 +56,9 @@ namespace
 
     virtual void ApplyData(const Devices::AYM::MultiSample& data)
     {
-      const LayoutData& layout = LAYOUTS[Params->Layout()];
       for (uint_t idx = 0; idx < Devices::AYM::CHANNELS; ++idx)
       {
-        const uint_t chipChannel = layout[idx];
+        const uint_t chipChannel = Layout[idx];
         Data[idx] = AYMSampleToSoundSample(data[chipChannel]);
       }
       Target->ApplyData(Data);
@@ -74,7 +74,7 @@ namespace
       return in / 2;
     }
   private:
-    const AYM::TrackParameters::Ptr Params;
+    const LayoutData& Layout;
     const Sound::MultichannelReceiver::Ptr Target;
     std::vector<Sound::Sample> Data;
   };
