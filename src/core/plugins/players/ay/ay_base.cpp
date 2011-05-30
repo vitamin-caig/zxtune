@@ -11,6 +11,8 @@ Author:
 
 //local includes
 #include "ay_base.h"
+//common includes
+#include <tools.h>
 //library includes
 #include <core/error_codes.h>
 //std includes
@@ -108,17 +110,17 @@ namespace
   class AYMRenderer : public Renderer
   {
   public:
-    AYMRenderer(AYM::ParametersHelper::Ptr params, StateIterator::Ptr iterator, AYMDataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device)
+    AYMRenderer(AYM::TrackParameters::Ptr params, StateIterator::Ptr iterator, AYMDataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device)
       : Renderer(renderer)
       , Device(device)
-      , AYMHelper(params)
+      , TrackParams(params)
       , Iterator(iterator)
     {
 #ifndef NDEBUG
 //perform self-test
       Reset();
       Devices::AYM::DataChunk chunk;
-      const AYM::TrackBuilder track(AYMHelper->GetFreqTable(), chunk);
+      const AYM::TrackBuilder track(TrackParams->FreqTable(), chunk);
       do
       {
         Renderer->SynthesizeData(*Iterator, track);
@@ -143,9 +145,8 @@ namespace
       const uint64_t ticksDelta = params.ClocksPerFrame();
 
       Devices::AYM::DataChunk chunk;
-      AYMHelper->GetDataChunk(chunk);
       chunk.Tick = Iterator->AbsoluteTick() + ticksDelta;
-      const AYM::TrackBuilder track(AYMHelper->GetFreqTable(), chunk);
+      const AYM::TrackBuilder track(TrackParams->FreqTable(), chunk);
 
       Renderer->SynthesizeData(*Iterator, track);
 
@@ -171,7 +172,7 @@ namespace
       }
       //fast forward
       Devices::AYM::DataChunk chunk;
-      const AYM::TrackBuilder track(AYMHelper->GetFreqTable(), chunk);
+      const AYM::TrackBuilder track(TrackParams->FreqTable(), chunk);
       while (Iterator->Frame() < frame)
       {
         //do not update tick for proper rendering
@@ -185,13 +186,88 @@ namespace
   private:
     const AYMDataRenderer::Ptr Renderer;
     const Devices::AYM::Chip::Ptr Device;
-    const AYM::ParametersHelper::Ptr AYMHelper;
+    const AYM::TrackParameters::Ptr TrackParams;
     const StateIterator::Ptr Iterator;
   };
 }
 
 namespace ZXTune
 {
+  namespace AYM
+  {
+    void ChannelBuilder::SetTone(int_t halfTones, int_t offset) const
+    {
+      const int_t halftone = clamp<int_t>(halfTones, 0, static_cast<int_t>(Table.size()) - 1);
+      const uint_t tone = (Table[halftone] + offset) & 0xfff;
+
+      const uint_t reg = Devices::AYM::DataChunk::REG_TONEA_L + 2 * Channel;
+      Chunk.Data[reg] = static_cast<uint8_t>(tone & 0xff);
+      Chunk.Data[reg + 1] = static_cast<uint8_t>(tone >> 8);
+      Chunk.Mask |= (1 << reg) | (1 << (reg + 1));
+    }
+
+    void ChannelBuilder::SetLevel(int_t level) const
+    {
+      const uint_t reg = Devices::AYM::DataChunk::REG_VOLA + Channel;
+      Chunk.Data[reg] = static_cast<uint8_t>(clamp<int_t>(level, 0, 15));
+      Chunk.Mask |= 1 << reg;
+    }
+
+    void ChannelBuilder::DisableTone() const
+    {
+      Chunk.Data[Devices::AYM::DataChunk::REG_MIXER] |= (Devices::AYM::DataChunk::REG_MASK_TONEA << Channel);
+      Chunk.Mask |= 1 << Devices::AYM::DataChunk::REG_MIXER;
+    }
+
+    void ChannelBuilder::EnableEnvelope() const
+    {
+      const uint_t reg = Devices::AYM::DataChunk::REG_VOLA + Channel;
+      Chunk.Data[reg] |= Devices::AYM::DataChunk::REG_MASK_ENV;
+      Chunk.Mask |= 1 << reg;
+    }
+
+    void ChannelBuilder::DisableNoise() const
+    {
+      Chunk.Data[Devices::AYM::DataChunk::REG_MIXER] |= (Devices::AYM::DataChunk::REG_MASK_NOISEA << Channel);
+      Chunk.Mask |= 1 << Devices::AYM::DataChunk::REG_MIXER;
+    }
+
+    void TrackBuilder::SetNoise(uint_t level) const
+    {
+      Chunk.Data[Devices::AYM::DataChunk::REG_TONEN] = level & 31;
+      Chunk.Mask |= 1 << Devices::AYM::DataChunk::REG_TONEN;
+    }
+
+    void TrackBuilder::SetEnvelopeType(uint_t type) const
+    {
+      Chunk.Data[Devices::AYM::DataChunk::REG_ENV] = static_cast<uint8_t>(type);
+      Chunk.Mask |= 1 << Devices::AYM::DataChunk::REG_ENV;
+    }
+
+    void TrackBuilder::SetEnvelopeTone(uint_t tone) const
+    {
+      Chunk.Data[Devices::AYM::DataChunk::REG_TONEE_L] = static_cast<uint8_t>(tone & 0xff);
+      Chunk.Data[Devices::AYM::DataChunk::REG_TONEE_H] = static_cast<uint8_t>(tone >> 8);
+      Chunk.Mask |= (1 << Devices::AYM::DataChunk::REG_TONEE_L) | (1 << Devices::AYM::DataChunk::REG_TONEE_H);
+    }
+
+    int_t TrackBuilder::GetSlidingDifference(int_t halfToneFrom, int_t halfToneTo) const
+    {
+      const int_t halfFrom = clamp<int_t>(halfToneFrom, 0, static_cast<int_t>(Table.size()) - 1);
+      const int_t halfTo = clamp<int_t>(halfToneTo, 0, static_cast<int_t>(Table.size()) - 1);
+      const int_t toneFrom = Table[halfFrom];
+      const int_t toneTo = Table[halfTo];
+      return toneTo - toneFrom;
+    }
+
+    void TrackBuilder::SetRawChunk(const Devices::AYM::DataChunk& chunk) const
+    {
+      std::copy(chunk.Data.begin(), chunk.Data.end(), Chunk.Data.begin());
+      Chunk.Mask &= ~Devices::AYM::DataChunk::MASK_ALL_REGISTERS;
+      Chunk.Mask |= chunk.Mask & Devices::AYM::DataChunk::MASK_ALL_REGISTERS;
+    }
+  }
+
   namespace Module
   {
     Devices::AYM::Receiver::Ptr CreateAYMReceiver(AYM::TrackParameters::Ptr params, Sound::MultichannelReceiver::Ptr target)
@@ -199,24 +275,22 @@ namespace ZXTune
       return boost::make_shared<AYMReceiver>(params, target);
     }
 
-    Renderer::Ptr CreateAYMRenderer(AYM::ParametersHelper::Ptr params, StateIterator::Ptr iterator, AYMDataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device)
+    Renderer::Ptr CreateAYMRenderer(AYM::TrackParameters::Ptr params, StateIterator::Ptr iterator, AYMDataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device)
     {
       return boost::make_shared<AYMRenderer>(params, iterator, renderer, device);
     }
 
     Renderer::Ptr CreateAYMStreamRenderer(AYM::TrackParameters::Ptr params, Information::Ptr info, AYMDataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device)
     {
-      const AYM::ParametersHelper::Ptr ayParams = AYM::ParametersHelper::Create(params);
       const StateIterator::Ptr iterator = CreateStreamStateIterator(info);
-      return CreateAYMRenderer(ayParams, iterator, renderer, device);
+      return CreateAYMRenderer(params, iterator, renderer, device);
     }
 
     Renderer::Ptr CreateAYMTrackRenderer(AYM::TrackParameters::Ptr params, Information::Ptr info, TrackModuleData::Ptr data, 
       AYMDataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device)
     {
-      const AYM::ParametersHelper::Ptr ayParams = AYM::ParametersHelper::Create(params);
       const StateIterator::Ptr iterator = CreateTrackStateIterator(info, data);
-      return CreateAYMRenderer(ayParams, iterator, renderer, device);
+      return CreateAYMRenderer(params, iterator, renderer, device);
     }
   }
 }

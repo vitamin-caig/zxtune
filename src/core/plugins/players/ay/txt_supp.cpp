@@ -13,7 +13,6 @@ Author:
 #include "ay_base.h"
 #include "ay_conversion.h"
 #include "vortex_io.h"
-#include "aym_parameters_helper.h"
 #include "core/plugins/registrator.h"
 #include "core/plugins/players/creation_result.h"
 #include "core/plugins/players/module_properties.h"

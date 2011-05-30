@@ -12,7 +12,6 @@ Author:
 //local includes
 #include "ay_base.h"
 #include "ay_conversion.h"
-#include "aym_parameters_helper.h"
 #include "ts_base.h"
 #include "core/plugins/utils.h"
 #include "core/plugins/registrator.h"
