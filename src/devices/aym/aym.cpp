@@ -132,14 +132,25 @@ namespace
   class AYMRenderer : public Renderer
   {
   public:
-    explicit AYMRenderer(const ChipParameters& params)
-      : Params(params)
-      , VolA(State.Data[DataChunk::REG_VOLA]), VolB(State.Data[DataChunk::REG_VOLB]), VolC(State.Data[DataChunk::REG_VOLC])
+    AYMRenderer()
+      : VolA(State.Data[DataChunk::REG_VOLA]), VolB(State.Data[DataChunk::REG_VOLB]), VolC(State.Data[DataChunk::REG_VOLC])
       , Mixer(State.Data[DataChunk::REG_MIXER])
       , EnvType(State.Data[DataChunk::REG_ENV])
       , Envelope(), Decay(), Noise()
+      , IsYM(), DutyCycle(NO_DUTYCYCLE), DutyCycleMask(0)
     {
       State.Data[DataChunk::REG_MIXER] = 0xff;
+    }
+
+    void SetType(bool isYM)
+    {
+      IsYM = isYM;
+    }
+
+    void SetDutyCycle(uint_t value, uint_t mask)
+    {
+      DutyCycle = value;
+      DutyCycleMask = mask;
     }
 
     virtual void Reset()
@@ -200,20 +211,17 @@ namespace
     virtual bool Tick()
     {
       bool res = false;
-      const uint_t dutyCycleMask = Params.DutyCycleMask();
-      const uint_t dutyCycleVal = Params.DutyCycleValue();
+      res |= DoCycle(0 != (DutyCycleMask & DataChunk::DUTY_CYCLE_MASK_A), GetToneA(), GenA);
+      res |= DoCycle(0 != (DutyCycleMask & DataChunk::DUTY_CYCLE_MASK_B), GetToneB(), GenB);
+      res |= DoCycle(0 != (DutyCycleMask & DataChunk::DUTY_CYCLE_MASK_C), GetToneC(), GenC);
 
-      res |= DoCycle(0 != (dutyCycleMask & DataChunk::DUTY_CYCLE_MASK_A) ? dutyCycleVal : NO_DUTYCYCLE, GetToneA(), GenA);
-      res |= DoCycle(0 != (dutyCycleMask & DataChunk::DUTY_CYCLE_MASK_B) ? dutyCycleVal : NO_DUTYCYCLE, GetToneB(), GenB);
-      res |= DoCycle(0 != (dutyCycleMask & DataChunk::DUTY_CYCLE_MASK_C) ? dutyCycleVal : NO_DUTYCYCLE, GetToneC(), GenC);
-
-      if (DoCycle(0 != (dutyCycleMask & DataChunk::DUTY_CYCLE_MASK_N) ? dutyCycleVal : NO_DUTYCYCLE, GetToneN(), GenN))
+      if (DoCycle(0 != (DutyCycleMask & DataChunk::DUTY_CYCLE_MASK_N), GetToneN(), GenN))
       {
         Noise = (Noise * 2 + 1) ^ (((Noise >> 16) ^ (Noise >> 13)) & 1);
         GenN.SetLevel((Noise & 0x10000) ? ~0 : 0);
         res = true;
       }
-      if (DoCycle(0 != (dutyCycleMask & DataChunk::DUTY_CYCLE_MASK_E) ? dutyCycleVal : NO_DUTYCYCLE, GetToneE(), GenE))
+      if (DoCycle(0 != (DutyCycleMask & DataChunk::DUTY_CYCLE_MASK_E), GetToneE(), GenE))
       {
         Envelope += Decay;
         if (Envelope & ~31u)
@@ -267,7 +275,7 @@ namespace
       const uint_t noiseBitC = (Mixer & DataChunk::REG_MASK_NOISEC) ? HighLevel : GenN.GetLevel();
       const uint_t outC = (VolC & DataChunk::REG_MASK_ENV) ? Envelope : levelC;
 
-      const VolumeTable& table = Params.IsYM() ? YMVolumeTab : AYVolumeTab;
+      const VolumeTable& table = IsYM ? YMVolumeTab : AYVolumeTab;
       assert(outA < 32 && outB < 32 && outC < 32);
       result[0] = table[toneBitA & noiseBitA & outA];
       result[1] = table[toneBitB & noiseBitB & outB];
@@ -275,9 +283,8 @@ namespace
     }
 
 
-    virtual void GetState(ChannelsState& state) const
+    virtual void GetState(uint64_t ticksPerSec, ChannelsState& state) const
     {
-      const uint64_t ticksPerSec = Params.ClockFreq();
       const uint_t MAX_LEVEL = 100;
       //one channel is noise
       ChanState& noiseChan = state[CHANNELS];
@@ -377,16 +384,13 @@ namespace
       return 256 * State.Data[DataChunk::REG_TONEE_H] + State.Data[DataChunk::REG_TONEE_L];
     }
 
-    //perform one cycle
-    //return true if bit is updated (flipped)
-    static bool DoCycle(uint_t dutyCycle, uint_t tone, Generator& generator)
+    bool DoCycle(bool useDutyCycle, uint_t tone, Generator& generator)
     {
-      return dutyCycle != NO_DUTYCYCLE
-        ? generator.Tick(tone, dutyCycle)
+      return (useDutyCycle && DutyCycle != NO_DUTYCYCLE)
+        ? generator.Tick(tone, DutyCycle)
         : generator.Tick(tone);
     }
   private:
-    const ChipParameters& Params;
     //registers state
     DataChunk State;
     //aliases for registers
@@ -405,6 +409,10 @@ namespace
     uint_t Envelope;
     int_t Decay;
     uint32_t Noise;
+    //parameters
+    bool IsYM;
+    uint_t DutyCycle;
+    uint_t DutyCycleMask;
   };
 
   class InterpolatedRenderer : public Renderer
@@ -533,7 +541,6 @@ namespace
     ChipImpl(ChipParameters::Ptr params, Receiver::Ptr target)
       : Params(params)
       , Target(target)
-      , PSG(*Params)
       , Render(PSG)
       , Clock(*Params)
     {
@@ -543,6 +550,7 @@ namespace
     virtual void RenderData(const ZXTune::Sound::RenderParameters& /*params*/,
                             const DataChunk& src)
     {
+      ApplyParameters();
       PSG.ApplyData(src);
       Clock.ApplyData(src);
       Renderer& render = Params->Interpolate()
@@ -561,7 +569,7 @@ namespace
 
     virtual void GetState(ChannelsState& state) const
     {
-      return PSG.GetState(state);
+      return PSG.GetState(Params->ClockFreq(), state);
     }
 
     virtual void Reset()
@@ -569,8 +577,13 @@ namespace
       Render.Reset();
       Clock.Reset();
     }
-
-  protected:
+  private:
+    void ApplyParameters()
+    {
+      PSG.SetType(Params->IsYM());
+      PSG.SetDutyCycle(Params->DutyCycleValue(), Params->DutyCycleMask());
+    }
+  private:
     const ChipParameters::Ptr Params;
     const Receiver::Ptr Target;
     AYMRenderer PSG;

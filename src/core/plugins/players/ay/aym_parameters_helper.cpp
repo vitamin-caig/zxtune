@@ -33,10 +33,10 @@ namespace
   using namespace ZXTune::AYM;
 
   //duty-cycle related parameter: accumulate letters to bitmask functor
-  inline uint8_t LetterToMask(uint8_t val, const Char letter)
+  inline uint_t LetterToMask(uint_t val, const Char letter)
   {
     static const Char LETTERS[] = {'A', 'B', 'C', 'N', 'E'};
-    static const uint8_t MASKS[] =
+    static const uint_t MASKS[] =
     {
       Devices::AYM::DataChunk::DUTY_CYCLE_MASK_A,
       Devices::AYM::DataChunk::DUTY_CYCLE_MASK_B,
@@ -52,6 +52,11 @@ namespace
         Text::MODULE_ERROR_INVALID_DUTY_CYCLE_MASK_ITEM, String(1, letter));
     }
     return val | MASKS[pos];
+  }
+
+  uint_t String2Mask(const String& str)
+  {
+    return std::accumulate(str.begin(), str.end(), uint_t(0), LetterToMask);
   }
 
   LayoutType String2Layout(const String& str)
@@ -135,6 +140,11 @@ namespace
 
     virtual uint_t DutyCycleMask() const
     {
+      Parameters::StringType strVal;
+      if (Params->FindStringValue(Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MASK, strVal))
+      {
+        return String2Mask(strVal);
+      }
       Parameters::IntType intVal = 0;
       Params->FindIntValue(Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MASK, intVal);
       return static_cast<uint_t>(intVal);
@@ -208,17 +218,6 @@ namespace
     mutable String TableName;
     mutable Module::FrequencyTable Table;
   };
-
-  void ConvertChipParameters(Parameters::Container& params)
-  {
-    Parameters::StringType strParam;
-    //convert duty cycle mask
-    if (params.FindStringValue(Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MASK, strParam))
-    {
-      const Parameters::IntType numVal = std::accumulate(strParam.begin(), strParam.end(), 0, LetterToMask);
-      params.SetIntValue(Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MASK, numVal);
-    }
-  }
 
   class ParametersHelperImpl : public ParametersHelper
   {
