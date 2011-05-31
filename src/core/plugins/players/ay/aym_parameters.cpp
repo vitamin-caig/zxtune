@@ -18,6 +18,7 @@ Author:
 //library includes
 #include <core/error_codes.h>
 #include <core/core_parameters.h>
+#include <sound/render_params.h>
 //boost includes
 #include <boost/make_shared.hpp>
 //std includes

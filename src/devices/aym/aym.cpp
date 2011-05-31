@@ -579,8 +579,7 @@ namespace
       Reset();
     }
 
-    virtual void RenderData(const ZXTune::Sound::RenderParameters& /*params*/,
-                            const DataChunk& src)
+    virtual void RenderData(const DataChunk& src)
     {
       ApplyParameters();
       PSG.ApplyData(src);

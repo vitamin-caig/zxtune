@@ -32,8 +32,7 @@ namespace
       Reset();
     }
 
-    virtual void RenderData(const ZXTune::Sound::RenderParameters& /*params*/,
-                            const DataChunk& src)
+    virtual void RenderData(const DataChunk& src)
     {
       if (const uint_t intsPassed = static_cast<uint_t>((src.Tick - CurChunk.Tick) / ClocksPerFrame))
       {

@@ -16,9 +16,6 @@ Author:
 //common includes
 #include <data_streaming.h>
 #include <types.h>
-//library includes
-//TODO: remove
-#include <sound/render_params.h>
 //boost includes
 #include <boost/array.hpp>
 
@@ -118,8 +115,7 @@ namespace Devices
       virtual ~Chip() {}
 
       /// render single data chunk
-      virtual void RenderData(const ZXTune::Sound::RenderParameters& params,
-                              const DataChunk& src) = 0;
+      virtual void RenderData(const DataChunk& src) = 0;
 
       virtual void GetState(ChannelsState& state) const = 0;
 

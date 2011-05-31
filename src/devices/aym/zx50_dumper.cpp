@@ -31,8 +31,7 @@ namespace
       Reset();
     }
     
-    virtual void RenderData(const ZXTune::Sound::RenderParameters& /*params*/,
-                            const DataChunk& src)
+    virtual void RenderData(const DataChunk& src)
     {
       //no data check
       if (0 == (src.Mask & DataChunk::MASK_ALL_REGISTERS))

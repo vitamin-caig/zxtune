@@ -152,7 +152,7 @@ namespace
       Render->SynthesizeData(*Iterator, track);
 
       const bool res = Iterator->NextFrame(ticksDelta, params.Looped());
-      Device->RenderData(params, chunk);
+      Device->RenderData(chunk);
       return res;
     }
 
