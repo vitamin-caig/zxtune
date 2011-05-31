@@ -10,11 +10,14 @@ Author:
 */
 
 //local includes
-#include <devices/aym.h>
+#include "dump_builder.h"
 //common includes
 #include <tools.h>
+//boost includes
+#include <boost/make_shared.hpp>
 //std includes
 #include <algorithm>
+#include <iterator>
 
 namespace
 {
@@ -22,60 +25,45 @@ namespace
 
   const uint8_t NO_R13 = 0xff;
 
-  class RawStreamDumper : public Dumper
+  class RawDumpBuilder : public FramedDumpBuilder
   {
   public:
-    explicit RawStreamDumper(uint_t clocksPerFrame)
-      : ClocksPerFrame(clocksPerFrame)
-    {
-      Reset();
-    }
-
-    virtual void RenderData(const DataChunk& src)
-    {
-      if (const uint_t intsPassed = static_cast<uint_t>((src.Tick - CurChunk.Tick) / ClocksPerFrame))
-      {
-        for (uint_t reg = 0, mask = src.Mask & DataChunk::MASK_ALL_REGISTERS; mask; ++reg, mask >>= 1)
-        {
-          if ((mask & 1) && (reg == DataChunk::REG_ENV || src.Data[reg] != CurChunk.Data[reg]))
-          {
-            const uint_t data = src.Data[reg];
-            CurChunk.Data[reg] = data;
-          }
-        }
-        if (0 == (src.Mask & (1 << DataChunk::REG_ENV)))
-        {
-          CurChunk.Data[DataChunk::REG_ENV] = NO_R13;
-        }
-        CurChunk.Tick = src.Tick;
-        AddFrame();
-      }
-    }
-
-    virtual void GetState(ChannelsState& state) const
-    {
-      std::fill(state.begin(), state.end(), ChanState());
-    }
-
-    virtual void Reset()
+    virtual void Initialize()
     {
       Data.clear();
-      CurChunk = DataChunk();
     }
 
-    virtual void GetDump(Dump& result) const
+    virtual void GetResult(Dump& data) const
     {
-      result.assign(Data.begin(), Data.end());
+      data = Data;
+    }
+
+    virtual void WriteFrame(uint_t framesPassed, const DataChunk& state, const DataChunk& update)
+    {
+      assert(framesPassed);
+      std::back_insert_iterator<Dump> inserter(Data);
+      for (uint_t skips = 0; skips < framesPassed - 1; ++skips)
+      {
+        Dump dup;
+        if (Data.size() >= DataChunk::REG_LAST)
+        {
+          dup.assign(Data.end() - DataChunk::REG_LAST, Data.end());
+        }
+        else
+        {
+          dup.resize(DataChunk::REG_LAST);
+        }
+        std::copy(dup.begin(), dup.end(), inserter);
+      }
+      DataChunk fixedState(state);
+      if (0 == (update.Mask & (1 << DataChunk::REG_ENV)))
+      {
+        fixedState.Data[DataChunk::REG_ENV] = NO_R13;
+      }
+      std::copy(fixedState.Data.begin(), fixedState.Data.begin() + DataChunk::REG_LAST, inserter);
     }
   private:
-    void AddFrame()
-    {
-      std::copy(CurChunk.Data.begin(), CurChunk.Data.begin() + DataChunk::REG_ENV + 1, std::back_inserter(Data));
-    }
-  private:
-    const uint_t ClocksPerFrame;
     Dump Data;
-    DataChunk CurChunk;
   };
 }
 
@@ -85,7 +73,8 @@ namespace Devices
   {
     Dumper::Ptr CreateRawStreamDumper(uint_t clocksPerFrame)
     {
-      return Dumper::Ptr(new RawStreamDumper(clocksPerFrame));
+      const FramedDumpBuilder::Ptr builder = boost::make_shared<RawDumpBuilder>();
+      return CreateDumper(clocksPerFrame, builder);
     }
   }
 }

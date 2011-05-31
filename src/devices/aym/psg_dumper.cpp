@@ -10,9 +10,11 @@ Author:
 */
 
 //local includes
-#include <devices/aym.h>
+#include "dump_builder.h"
 //common includes
 #include <tools.h>
+//boost includes
+#include <boost/make_shared.hpp>
 //std includes
 #include <algorithm>
 #include <iterator>
@@ -28,100 +30,62 @@ namespace
     SKIP_INTS = 0xfe,
     END_MUS = 0xfd
   };
-  
-  class PSGDumper : public Dumper
+
+  class PSGDumpBuilder : public FramedDumpBuilder
   {
   public:
-    explicit PSGDumper(uint_t clocksPerFrame)
-      : ClocksPerFrame(clocksPerFrame)
-    {
-      Reset();
-    }
-    
-    virtual void RenderData(const DataChunk& src)
-    {
-      //no data check
-      if (0 == (src.Mask & DataChunk::MASK_ALL_REGISTERS))
-      {
-        return;
-      }
-      //check for difference
-      {
-        uint_t mask = src.Mask & DataChunk::MASK_ALL_REGISTERS;
-        for (uint_t reg = 0; mask; ++reg, mask >>= 1)
-        {
-          // apply chunk if some data changed or env register (even if not changed)
-          if ((mask & 1) && (reg == DataChunk::REG_ENV || src.Data[reg] != CurChunk.Data[reg]))
-          {
-            break;
-          }
-        }
-        if (!mask)
-        {
-          return;//no differences
-        }
-      }
-      if (const uint_t intsPassed = static_cast<uint_t>((src.Tick - CurChunk.Tick) / ClocksPerFrame))
-      {
-        Dump frame;
-        std::back_insert_iterator<Dump> inserter(frame);
-        //SKIP_INTS code groups 4 skipped interrupts
-        const uint_t SKIP_GROUP_SIZE = 4;
-        frame.reserve(intsPassed / SKIP_GROUP_SIZE + (intsPassed % SKIP_GROUP_SIZE) + 2 * CountBits(src.Mask & DataChunk::MASK_ALL_REGISTERS) + 1);
-        if (const uint_t fourSkips = intsPassed / SKIP_GROUP_SIZE)
-        {
-          *inserter = SKIP_INTS;
-          *inserter = static_cast<Dump::value_type>(fourSkips);
-        }
-        //fill remain interrupts
-        std::fill_n(inserter, intsPassed % SKIP_GROUP_SIZE, INTERRUPT);
-        //store data
-        for (uint_t reg = 0, mask = src.Mask & DataChunk::MASK_ALL_REGISTERS; mask; ++reg, mask >>= 1)
-        {
-          if ((mask & 1) && (reg == DataChunk::REG_ENV || src.Data[reg] != CurChunk.Data[reg]))
-          {
-            *inserter = static_cast<Dump::value_type>(reg);
-            *inserter = src.Data[reg];
-            CurChunk.Data[reg] = src.Data[reg];
-          }
-        }
-        *inserter = END_MUS;
-        assert(!Data.empty());
-        Data.pop_back();//delete limiter
-        std::copy(frame.begin(), frame.end(), std::back_inserter(Data));
-        CurChunk.Tick = src.Tick;
-      }
-    }
-
-    virtual void GetState(ChannelsState& state) const
-    {
-      std::fill(state.begin(), state.end(), ChanState());
-    }
-
-      /// reset internal state to initial
-    virtual void Reset()
+    virtual void Initialize()
     {
       static const uint8_t HEADER[] =
       {
         'P', 'S', 'G', 0x1a,
         0,//version
         0,//freq rate
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0//padding
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0,//padding
+        END_MUS
       };
-      BOOST_STATIC_ASSERT(sizeof(HEADER) == 16);
-      Data.resize(sizeof(HEADER) + 1);
-      *std::copy(HEADER, ArrayEnd(HEADER), Data.begin()) = END_MUS;
-      CurChunk = DataChunk();
+      BOOST_STATIC_ASSERT(sizeof(HEADER) == 16 + 1);
+      Data.assign(HEADER, ArrayEnd(HEADER));
     }
 
-    virtual void GetDump(Dump& result) const
+    virtual void GetResult(Dump& data) const
     {
-      result.assign(Data.begin(), Data.end());
+      data = Data;
+    }
+
+    virtual void WriteFrame(uint_t framesPassed, const DataChunk& /*state*/, const DataChunk& update)
+    {
+      assert(framesPassed);
+
+      Dump frame;
+      std::back_insert_iterator<Dump> inserter(frame);
+      //SKIP_INTS code groups 4 skipped interrupts
+      const uint_t SKIP_GROUP_SIZE = 4;
+      const uint_t groupsSkipped = framesPassed / SKIP_GROUP_SIZE;
+      const uint_t remainInts = framesPassed % SKIP_GROUP_SIZE;
+      frame.reserve(groupsSkipped + remainInts + 2 * CountBits(update.Mask) + 1);
+      if (groupsSkipped)
+      {
+        *inserter = SKIP_INTS;
+        *inserter = static_cast<Dump::value_type>(groupsSkipped);
+      }
+      std::fill_n(inserter, remainInts, INTERRUPT);
+      //store data
+      for (uint_t reg = 0, mask = update.Mask; mask; ++reg, mask >>= 1)
+      {
+        if (mask & 1)
+        {
+          *inserter = static_cast<Dump::value_type>(reg);
+          *inserter = update.Data[reg];
+        }
+      }
+      *inserter = END_MUS;
+      assert(!Data.empty());
+      Data.pop_back();//delete limiter
+      std::copy(frame.begin(), frame.end(), std::back_inserter(Data));
     }
   private:
-    const uint_t ClocksPerFrame;
     Dump Data;
-    DataChunk CurChunk;
   };
 }
 
@@ -131,7 +95,8 @@ namespace Devices
   {
     Dumper::Ptr CreatePSGDumper(uint_t clocksPerFrame)
     {
-      return Dumper::Ptr(new PSGDumper(clocksPerFrame));
+      const FramedDumpBuilder::Ptr builder = boost::make_shared<PSGDumpBuilder>();
+      return CreateDumper(clocksPerFrame, builder);
     }
   }
 }

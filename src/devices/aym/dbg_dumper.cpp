@@ -10,9 +10,11 @@ Author:
 */
 
 //local includes
-#include <devices/aym.h>
+#include "dump_builder.h"
 //common includes
 #include <tools.h>
+//boost includes
+#include <boost/make_shared.hpp>
 //std includes
 #include <algorithm>
 
@@ -25,86 +27,42 @@ namespace
     return sym >= 10 ? 'A' + sym - 10 : '0' + sym;
   }
 
-  class DebugDumper : public Dumper
+  class DebugDumpBuilder : public FramedDumpBuilder
   {
   public:
-    explicit DebugDumper(uint_t clocksPerFrame)
-      : ClocksPerFrame(clocksPerFrame)
-    {
-      Reset();
-    }
-
-    virtual void RenderData(const DataChunk& src)
-    {
-      //no data check
-      if (0 == (src.Mask & DataChunk::MASK_ALL_REGISTERS))
-      {
-        CurChunk.Tick = src.Tick;
-        AddNodataMessage();
-        return;
-      }
-      //check for difference
-      {
-        uint_t mask = src.Mask & DataChunk::MASK_ALL_REGISTERS;
-        for (uint_t reg = 0; mask; ++reg, mask >>= 1)
-        {
-          // apply chunk if some data changed or env register (even if not changed)
-          if ((mask & 1) && (reg == DataChunk::REG_ENV || src.Data[reg] != CurChunk.Data[reg]))
-          {
-            break;
-          }
-        }
-        if (!mask)
-        {
-          CurChunk.Tick = src.Tick;
-          AddNochangesMessage();
-          return;//no differences
-        }
-      }
-      if (const uint_t intsPassed = static_cast<uint_t>((src.Tick - CurChunk.Tick) / ClocksPerFrame))
-      {
-        assert(intsPassed);
-        for (uint_t reg = 0, mask = src.Mask & DataChunk::MASK_ALL_REGISTERS; mask; ++reg, mask >>= 1)
-        {
-          if ((mask & 1) && (reg == DataChunk::REG_ENV || src.Data[reg] != CurChunk.Data[reg]))
-          {
-            const uint_t data = src.Data[reg];
-            AddData(data);
-            CurChunk.Data[reg] = data;
-          }
-          else
-          {
-            AddNoData();
-          }
-        }
-        CurChunk.Tick = src.Tick;
-        AddEndOfFrame();
-      }
-    }
-
-    virtual void GetState(ChannelsState& state) const
-    {
-      std::fill(state.begin(), state.end(), ChanState());
-    }
-
-    virtual void Reset()
+    virtual void Initialize()
     {
       static const std::string HEADER("000102030405060708090a0b0c0d\n");
       Data.assign(HEADER.begin(), HEADER.end());
-      CurChunk = DataChunk();
     }
 
-    virtual void GetDump(Dump& result) const
+    virtual void GetResult(Dump& data) const
     {
-      result.assign(Data.begin(), Data.end());
+      data = Data;
     }
-  private:
-    void AddNodataMessage()
+
+    virtual void WriteFrame(uint_t framesPassed, const DataChunk& /*state*/, const DataChunk& update)
     {
-      Data.push_back('0');
+      assert(framesPassed);
+      for (uint_t skips = 0; skips < framesPassed - 1; ++skips)
+      {
+        AddNochangesMessage();
+      }
+      for (uint_t reg = 0, mask = update.Mask; mask; ++reg, mask >>= 1)
+      {
+        if (mask & 1)
+        {
+          const uint_t data = update.Data[reg];
+          AddData(data);
+        }
+        else
+        {
+          AddNoData();
+        }
+      }
       AddEndOfFrame();
     }
-
+  private:
     void AddNochangesMessage()
     {
       Data.push_back('=');
@@ -130,9 +88,7 @@ namespace
       Data.push_back('\n');
     }
   private:
-    const uint_t ClocksPerFrame;
     Dump Data;
-    DataChunk CurChunk;
   };
 }
 
@@ -142,7 +98,8 @@ namespace Devices
   {
     Dumper::Ptr CreateDebugDumper(uint_t clocksPerFrame)
     {
-      return Dumper::Ptr(new DebugDumper(clocksPerFrame));
+      const FramedDumpBuilder::Ptr builder = boost::make_shared<DebugDumpBuilder>();
+      return CreateDumper(clocksPerFrame, builder);
     }
   }
 }
