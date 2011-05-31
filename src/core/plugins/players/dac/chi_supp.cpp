@@ -177,7 +177,7 @@ namespace
   #define SELF_TEST
   #endif
 
-  Renderer::Ptr CreateCHIRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, CHITrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device);
+  Renderer::Ptr CreateCHIRenderer(Information::Ptr info, CHITrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device);
 
   class CHIHolder : public Holder
   {
@@ -320,7 +320,12 @@ namespace
     virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
     {
       const uint_t totalSamples = static_cast<uint_t>(Data->Samples.size());
-      const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(CHANNELS_COUNT, totalSamples, BASE_FREQ, target));
+
+      const Parameters::Accessor::Ptr params = GetModuleProperties();
+
+      const Devices::DAC::Receiver::Ptr receiver = DAC::CreateReceiver(target);
+      const Devices::DAC::ChipParameters::Ptr chipParams = DAC::CreateChipParameters(params);
+      const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(CHANNELS_COUNT, totalSamples, BASE_FREQ, chipParams, receiver));
       for (uint_t idx = 0; idx != totalSamples; ++idx)
       {
         const Sample& smp(Data->Samples[idx]);
@@ -329,7 +334,7 @@ namespace
           chip->SetSample(idx, smp.Data, smp.Loop);
         }
       }
-      return CreateCHIRenderer(GetModuleProperties(), Info, Data, chip);
+      return CreateCHIRenderer(Info, Data, chip);
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -368,13 +373,11 @@ namespace
       }
     };
   public:
-    CHIRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, CHITrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
+    CHIRenderer(Information::Ptr info, CHITrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
       : Data(data)
       , Device(device)
       , Iterator(CreateTrackStateIterator(info, Data))
-      , Interpolation(false)
     {
-      SetParameters(*params);
 #ifdef SELF_TEST
 //perform self-test
       Devices::DAC::DataChunk chunk;
@@ -395,7 +398,7 @@ namespace
 
     virtual Analyzer::Ptr GetAnalyzer() const
     {
-      return CreateDACAnalyzer(Device);
+      return DAC::CreateAnalyzer(Device);
     }
 
     virtual bool RenderFrame(const Sound::RenderParameters& params)
@@ -406,7 +409,6 @@ namespace
       const bool res = Iterator->NextFrame(params.ClocksPerFrame(), params.Looped());
 
       chunk.Tick = Iterator->AbsoluteTick();
-      chunk.Interpolate = Interpolation;
       Device->RenderData(params, chunk);
       return res;
     }
@@ -439,13 +441,6 @@ namespace
     }
 
   private:
-    void SetParameters(const Parameters::Accessor& params)
-    {
-      Parameters::IntType intVal = 0;
-      Interpolation = params.FindIntValue(Parameters::ZXTune::Core::DAC::INTERPOLATION, intVal) &&
-        intVal != 0;
-    }
-
     void RenderData(Devices::DAC::DataChunk& chunk)
     {
       std::vector<Devices::DAC::DataChunk::ChannelData> res;
@@ -517,9 +512,9 @@ namespace
     bool Interpolation;
   };
 
-  Renderer::Ptr CreateCHIRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, CHITrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
+  Renderer::Ptr CreateCHIRenderer(Information::Ptr info, CHITrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
   {
-    return Renderer::Ptr(new CHIRenderer(params, info, data, device));
+    return Renderer::Ptr(new CHIRenderer(info, data, device));
   }
 
   bool CheckCHI(const IO::DataContainer& data)

@@ -25,6 +25,8 @@ namespace
 {
   using namespace Devices::DAC;
 
+  const uint_t FIXED_POINT_PRECISION = 256;
+
   const uint_t MAX_LEVEL = 100;
 
   const int_t SILENT = 128;
@@ -57,7 +59,7 @@ namespace
 
   inline uint_t GetStepByFrequency(double note, uint_t soundFreq, uint_t sampleFreq)
   {
-    return static_cast<uint_t>(note * ZXTune::Sound::FIXED_POINT_PRECISION *
+    return static_cast<uint_t>(note * FIXED_POINT_PRECISION *
       sampleFreq / (FREQ_TABLE[0] * soundFreq * 2));
   }
 
@@ -66,20 +68,20 @@ namespace
     return sum + absolute(int_t(sample) - SILENT);
   }
 
-  inline ZXTune::Sound::Sample scale(uint8_t inSample)
+  inline Sample scale(uint8_t inSample)
   {
     //simply shift bits
-    return ZXTune::Sound::Sample(inSample) << (8 * (sizeof(ZXTune::Sound::Sample) - sizeof(inSample)) - 1);
+    return Sample(inSample) << (8 * (sizeof(Sample) - sizeof(inSample)) - 1);
   }
 
   //digital sample type
-  struct Sample
+  struct DigitalSample
   {
-    Sample() : Size(1), Loop(1), Data(1), Gain(0)//safe sample
+    DigitalSample() : Size(1), Loop(1), Data(1), Gain(0)//safe sample
     {
     }
 
-    Sample(const Dump& data, uint_t loop)
+    DigitalSample(const Dump& data, uint_t loop)
       : Size(static_cast<uint_t>(data.size())), Loop(loop), Data(data)
       , Gain(MAX_LEVEL * (std::accumulate(&Data[0], &Data[0] + Size, uint_t(0), GainAdder) / Size) / std::numeric_limits<Dump::value_type>::max())
     {
@@ -94,7 +96,7 @@ namespace
   //channel state type
   struct ChannelState
   {
-    explicit ChannelState(const Sample* sample = 0)
+    explicit ChannelState(const DigitalSample* sample = 0)
       : Enabled(), Note(), NoteSlide(), FreqSlide(), CurSample(sample), PosInSample(), SampleStep(1)
     {
     }
@@ -106,7 +108,7 @@ namespace
     //current slide in Hz
     int_t FreqSlide;
     //using pointer for performance
-    const Sample* CurSample;
+    const DigitalSample* CurSample;
     //in fixed point
     uint_t PosInSample;
     //in fixed point
@@ -116,7 +118,7 @@ namespace
     {
       assert(CurSample);
       PosInSample += SampleStep;
-      const uint_t pos = PosInSample / ZXTune::Sound::FIXED_POINT_PRECISION;
+      const uint_t pos = PosInSample / FIXED_POINT_PRECISION;
       if (pos >= CurSample->Size)
       {
         if (CurSample->Loop >= CurSample->Size)
@@ -125,16 +127,16 @@ namespace
         }
         else
         {
-          PosInSample = CurSample->Loop * ZXTune::Sound::FIXED_POINT_PRECISION;
+          PosInSample = CurSample->Loop * FIXED_POINT_PRECISION;
         }
       }
     }
 
-    ZXTune::Sound::Sample GetValue() const
+    Sample GetValue() const
     {
       if (Enabled)
       {
-        const uint_t pos = PosInSample / ZXTune::Sound::FIXED_POINT_PRECISION;
+        const uint_t pos = PosInSample / FIXED_POINT_PRECISION;
         assert(CurSample && pos < CurSample->Size);
         return scale(CurSample->Data[pos]);
       }
@@ -144,16 +146,16 @@ namespace
       }
     }
 
-    ZXTune::Sound::Sample GetInterpolatedValue() const
+    Sample GetInterpolatedValue() const
     {
       if (Enabled)
       {
-        const uint_t pos = PosInSample / ZXTune::Sound::FIXED_POINT_PRECISION;
+        const uint_t pos = PosInSample / FIXED_POINT_PRECISION;
         assert(CurSample && pos < CurSample->Size);
         const int_t cur = scale(CurSample->Data[pos]);
         const int_t next = pos + 1 >= CurSample->Size ? cur : scale(CurSample->Data[pos + 1]);
         const int_t delta = next - cur;
-        return static_cast<ZXTune::Sound::Sample>(cur + delta * (PosInSample % ZXTune::Sound::FIXED_POINT_PRECISION) / ZXTune::Sound::FIXED_POINT_PRECISION);
+        return static_cast<Sample>(cur + delta * (PosInSample % FIXED_POINT_PRECISION) / FIXED_POINT_PRECISION);
       }
       else
       {
@@ -178,8 +180,9 @@ namespace
   class ChipImpl : public Chip
   {
   public:
-    ChipImpl(uint_t samples, uint_t sampleFreq, ZXTune::Sound::MultichannelReceiver::Ptr target)
-      : Target(target)
+    ChipImpl(uint_t samples, uint_t sampleFreq, ChipParameters::Ptr params, Receiver::Ptr target)
+      : Params(params)
+      , Target(target)
       , Samples(samples), MaxGain(0), CurrentTick(0)
       , SampleFreq(sampleFreq)
       , TableFreq(0)
@@ -192,28 +195,31 @@ namespace
     {
       assert(idx < Samples.size());
       assert(!Samples[idx].Gain);
-      const Sample& res = Samples[idx] = Sample(data, loop);
+      const DigitalSample& res = Samples[idx] = DigitalSample(data, loop);
       // used for analyze level normalization prior to maximal
       MaxGain = std::max(MaxGain, res.Gain);
     }
 
-    virtual void RenderData(const ZXTune::Sound::RenderParameters& params,
+    virtual void RenderData(const ZXTune::Sound::RenderParameters& /*params*/,
                             const DataChunk& src)
     {
+      const uint_t soundFreq = Params->SoundFreq();
+      const uint64_t clockFreq = Params->ClockFreq();
+
       // update internal state
       std::for_each(src.Channels.begin(), src.Channels.end(),
         boost::bind(&ChipImpl::UpdateState, this, _1));
 
       // calculate new step
       std::for_each(State.begin(), State.end(),
-        boost::bind(&ChipImpl::CalcSampleStep, this, params.SoundFreq(), _1));
+        boost::bind(&ChipImpl::CalcSampleStep, this, soundFreq, _1));
 
       // samples to apply
-      const uint_t doSamples = static_cast<uint_t>(uint64_t(src.Tick - CurrentTick) * params.SoundFreq() / params.ClockFreq());
+      const uint_t doSamples = static_cast<uint_t>(uint64_t(src.Tick - CurrentTick) * soundFreq / clockFreq);
 
-      const std::const_mem_fun_ref_t<ZXTune::Sound::Sample, ChannelState> getter = src.Interpolate ?
+      const std::const_mem_fun_ref_t<Sample, ChannelState> getter = Params->Interpolate() ?
         std::mem_fun_ref(&ChannelState::GetInterpolatedValue) : std::mem_fun_ref(&ChannelState::GetValue);
-      std::vector<ZXTune::Sound::Sample> result(Channels);
+      MultiSample result(Channels);
       for (uint_t smp = 0; smp != doSamples; ++smp)
       {
         std::transform(State.begin(), State.end(), result.begin(), getter);
@@ -272,7 +278,7 @@ namespace
       if (0 != (state.Mask & DataChunk::ChannelData::MASK_POSITION))
       {
         assert(chan.CurSample);
-        chan.PosInSample = ZXTune::Sound::FIXED_POINT_PRECISION * std::min(state.PosInSample, chan.CurSample->Size - 1);
+        chan.PosInSample = FIXED_POINT_PRECISION * std::min(state.PosInSample, chan.CurSample->Size - 1);
       }
     }
 
@@ -296,8 +302,9 @@ namespace
       assert(state.SampleStep);
     }
   private:
-    const ZXTune::Sound::MultichannelReceiver::Ptr Target;
-    std::vector<Sample> Samples;
+    const ChipParameters::Ptr Params;
+    const Receiver::Ptr Target;
+    std::vector<DigitalSample> Samples;
     uint_t MaxGain;
     uint64_t CurrentTick;
     boost::array<ChannelState, Channels> State;
@@ -314,12 +321,12 @@ namespace Devices
 {
   namespace DAC
   {
-    Chip::Ptr CreateChip(uint_t channels, uint_t samples, uint_t sampleFreq, ZXTune::Sound::MultichannelReceiver::Ptr target)
+    Chip::Ptr CreateChip(uint_t channels, uint_t samples, uint_t sampleFreq, ChipParameters::Ptr params, Receiver::Ptr target)
     {
       switch (channels)
       {
       case 4:
-        return Chip::Ptr(new ChipImpl<4>(samples, sampleFreq, target));
+        return Chip::Ptr(new ChipImpl<4>(samples, sampleFreq, params, target));
       default:
         assert(!"Invalid channels count");
         return Chip::Ptr();

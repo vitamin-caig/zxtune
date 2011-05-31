@@ -225,7 +225,7 @@ namespace
   #define SELF_TEST
   #endif
 
-  Renderer::Ptr CreatePDTRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, PDTTrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device);
+  Renderer::Ptr CreatePDTRenderer(Information::Ptr info, PDTTrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device);
 
   class PDTHolder : public Holder
   {
@@ -375,7 +375,12 @@ namespace
     virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
     {
       const uint_t totalSamples = static_cast<uint_t>(Data->Samples.size());
-      const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(CHANNELS_COUNT, totalSamples, BASE_FREQ, target));
+
+      const Parameters::Accessor::Ptr params = GetModuleProperties();
+
+      const Devices::DAC::Receiver::Ptr receiver = DAC::CreateReceiver(target);
+      const Devices::DAC::ChipParameters::Ptr chipParams = DAC::CreateChipParameters(params);
+      const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(CHANNELS_COUNT, totalSamples, BASE_FREQ, chipParams, receiver));
       for (uint_t idx = 0; idx != totalSamples; ++idx)
       {
         const Sample& smp = Data->Samples[idx];
@@ -384,7 +389,7 @@ namespace
           chip->SetSample(idx, smp.Data, smp.Loop);
         }
       }
-      return CreatePDTRenderer(GetModuleProperties(), Info, Data, chip);
+      return CreatePDTRenderer(Info, Data, chip);
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -437,13 +442,11 @@ namespace
       }
     };
   public:
-    PDTRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, PDTTrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
+    PDTRenderer(Information::Ptr info, PDTTrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
       : Data(data)
       , Device(device)
       , Iterator(CreateTrackStateIterator(info, Data))
-      , Interpolation(false)
     {
-      SetParameters(*params);
 #ifdef SELF_TEST
 //perform self-test
       Devices::DAC::DataChunk chunk;
@@ -464,7 +467,7 @@ namespace
 
     virtual Analyzer::Ptr GetAnalyzer() const
     {
-      return CreateDACAnalyzer(Device);
+      return DAC::CreateAnalyzer(Device);
     }
 
     virtual bool RenderFrame(const Sound::RenderParameters& params)
@@ -475,7 +478,6 @@ namespace
       const bool res = Iterator->NextFrame(params.ClocksPerFrame(), params.Looped());
 
       chunk.Tick = Iterator->AbsoluteTick();
-      chunk.Interpolate = Interpolation;
       Device->RenderData(params, chunk);
       return res;
     }
@@ -508,13 +510,6 @@ namespace
     }
 
   private:
-    void SetParameters(const Parameters::Accessor& params)
-    {
-      Parameters::IntType intVal = 0;
-      Interpolation = params.FindIntValue(Parameters::ZXTune::Core::DAC::INTERPOLATION, intVal) &&
-        intVal != 0;
-    }
-
     void RenderData(Devices::DAC::DataChunk& chunk)
     {
       std::vector<Devices::DAC::DataChunk::ChannelData> res;
@@ -579,12 +574,11 @@ namespace
     const Devices::DAC::Chip::Ptr Device;
     const StateIterator::Ptr Iterator;
     boost::array<OrnamentState, CHANNELS_COUNT> Ornaments;
-    bool Interpolation;
   };
 
-  Renderer::Ptr CreatePDTRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, PDTTrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
+  Renderer::Ptr CreatePDTRenderer(Information::Ptr info, PDTTrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
   {
-    return Renderer::Ptr(new PDTRenderer(params, info, data, device));
+    return Renderer::Ptr(new PDTRenderer(info, data, device));
   }
 
   //////////////////////////////////////////////////////////////////////////

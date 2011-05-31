@@ -14,9 +14,10 @@ Author:
 #define __DEVICES_DAC_H_DEFINED__
 
 //common includes
+#include <data_streaming.h>
 #include <types.h>
 //library includes
-#include <sound/receiver.h>
+//TODO: remove
 #include <sound/render_params.h>
 
 //supporting for multichannel sample-based DAC
@@ -52,11 +53,10 @@ namespace Devices
         uint_t PosInSample;
       };
 
-      DataChunk() : Tick(), Interpolate()
+      DataChunk() : Tick()
       {
       }
       uint64_t Tick;
-      bool Interpolate;
       std::vector<ChannelData> Channels;
     };
 
@@ -97,8 +97,27 @@ namespace Devices
       virtual void Reset() = 0;
     };
 
+    // Sound is rendered in unsigned 16-bit values
+    typedef uint16_t Sample;
+    // Variable channels per sample
+    typedef std::vector<Sample> MultiSample;
+    // Result sound stream receiver
+    typedef DataReceiver<MultiSample> Receiver;
+
+    class ChipParameters
+    {
+    public:
+      typedef boost::shared_ptr<const ChipParameters> Ptr;
+
+      virtual ~ChipParameters() {}
+
+      virtual uint_t ClockFreq() const = 0;
+      virtual uint_t SoundFreq() const = 0;
+      virtual bool Interpolate() const = 0;
+    };
+
     /// Virtual constructors
-    Chip::Ptr CreateChip(uint_t channels, uint_t samples, uint_t sampleFreq, ZXTune::Sound::MultichannelReceiver::Ptr target);
+    Chip::Ptr CreateChip(uint_t channels, uint_t samples, uint_t sampleFreq, ChipParameters::Ptr params, Receiver::Ptr target);
   }
 }
 

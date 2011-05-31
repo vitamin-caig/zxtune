@@ -11,6 +11,8 @@ Author:
 
 //local includes
 #include "dac_base.h"
+//library includes
+#include <core/core_parameters.h>
 //std includes
 #include <limits>
 //boost includes
@@ -51,15 +53,59 @@ namespace
   private:
     const Devices::DAC::Chip::Ptr Device;
   };
+
+  class ChipParametersImpl : public Devices::DAC::ChipParameters
+  {
+  public:
+    explicit ChipParametersImpl(Parameters::Accessor::Ptr params)
+      : Params(params)
+      , SoundParams(Sound::RenderParameters::Create(params))
+    {
+    }
+
+    virtual uint_t ClockFreq() const
+    {
+      return SoundParams->ClockFreq();
+    }
+
+    virtual uint_t SoundFreq() const
+    {
+      return SoundParams->SoundFreq();
+    }
+
+    virtual bool Interpolate() const
+    {
+      Parameters::IntType intVal = 0;
+      Params->FindIntValue(Parameters::ZXTune::Core::DAC::INTERPOLATION, intVal);
+      return intVal != 0;
+    }
+  private:
+    const Parameters::Accessor::Ptr Params;
+    const Sound::RenderParameters::Ptr SoundParams;
+  };
 }
 
 namespace ZXTune
 {
   namespace Module
   {
-    Analyzer::Ptr CreateDACAnalyzer(Devices::DAC::Chip::Ptr device)
+    namespace DAC
     {
-      return boost::make_shared<DACAnalyzer>(device);
+      Devices::DAC::Receiver::Ptr CreateReceiver(Sound::MultichannelReceiver::Ptr target)
+      {
+        //DAC receiver now is equal to Sound::MultichannelReceiver
+        return target;
+      }
+
+      Analyzer::Ptr CreateAnalyzer(Devices::DAC::Chip::Ptr device)
+      {
+        return boost::make_shared<DACAnalyzer>(device);
+      }
+
+      Devices::DAC::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params)
+      {
+        return boost::make_shared<ChipParametersImpl>(params);
+      }
     }
   }
 }

@@ -16,12 +16,18 @@ Author:
 //library includes
 #include <core/module_types.h>
 #include <devices/dac.h>
+#include <sound/receiver.h>
 
 namespace ZXTune
 {
   namespace Module
   {
-    Analyzer::Ptr CreateDACAnalyzer(Devices::DAC::Chip::Ptr device);
+    namespace DAC
+    {
+      Devices::DAC::Receiver::Ptr CreateReceiver(Sound::MultichannelReceiver::Ptr target);
+      Analyzer::Ptr CreateAnalyzer(Devices::DAC::Chip::Ptr device);
+      Devices::DAC::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params);
+    }
   }
 }
 
