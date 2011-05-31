@@ -45,14 +45,13 @@ namespace
     {
       try
       {
-        Dump tmp;
         const Parameters::Accessor::Ptr props = factory.GetProperties();
         const Sound::RenderParameters::Ptr params = Sound::RenderParameters::Create(props);
-        const Devices::AYM::Chip::Ptr chip = CreateChip(params->ClocksPerFrame(), tmp);
-        const Renderer::Ptr renderer = factory.CreateRenderer(chip);
+        const Devices::AYM::Dumper::Ptr dumper = CreateDumper(params->ClocksPerFrame());
+        const Renderer::Ptr renderer = factory.CreateRenderer(dumper);
 
         while (renderer->RenderFrame(*params)) {}
-        dst.swap(tmp);
+        dumper->GetDump(dst);
         return Error();
       }
       catch (const Error& err)
@@ -61,16 +60,16 @@ namespace
       }
     }
   protected:
-    virtual Devices::AYM::Chip::Ptr CreateChip(uint_t clocksPerFrame, Dump& tmp) const = 0;
+    virtual Devices::AYM::Dumper::Ptr CreateDumper(uint_t clocksPerFrame) const = 0;
     virtual String GetErrorMessage() const = 0;
   };
 
   class PSGFormatConvertor : public SimpleAYMFormatConvertor
   {
   private:
-    virtual Devices::AYM::Chip::Ptr CreateChip(uint_t clocksPerFrame, Dump& tmp) const
+    virtual Devices::AYM::Dumper::Ptr CreateDumper(uint_t clocksPerFrame) const
     {
-      return Devices::AYM::CreatePSGDumper(clocksPerFrame, tmp);
+      return Devices::AYM::CreatePSGDumper(clocksPerFrame);
     }
 
     virtual String GetErrorMessage() const
@@ -82,9 +81,9 @@ namespace
   class ZX50FormatConvertor : public SimpleAYMFormatConvertor
   {
   private:
-    virtual Devices::AYM::Chip::Ptr CreateChip(uint_t clocksPerFrame, Dump& tmp) const
+    virtual Devices::AYM::Dumper::Ptr CreateDumper(uint_t clocksPerFrame) const
     {
-      return Devices::AYM::CreateZX50Dumper(clocksPerFrame, tmp);
+      return Devices::AYM::CreateZX50Dumper(clocksPerFrame);
     }
 
     virtual String GetErrorMessage() const
@@ -96,9 +95,9 @@ namespace
   class DebugAYFormatConvertor : public SimpleAYMFormatConvertor
   {
   private:
-    virtual Devices::AYM::Chip::Ptr CreateChip(uint_t clocksPerFrame, Dump& tmp) const
+    virtual Devices::AYM::Dumper::Ptr CreateDumper(uint_t clocksPerFrame) const
     {
-      return Devices::AYM::CreateDebugDumper(clocksPerFrame, tmp);
+      return Devices::AYM::CreateDebugDumper(clocksPerFrame);
     }
 
     virtual String GetErrorMessage() const
@@ -110,9 +109,9 @@ namespace
   class AYDumpFormatConvertor : public SimpleAYMFormatConvertor
   {
   private:
-    virtual Devices::AYM::Chip::Ptr CreateChip(uint_t clocksPerFrame, Dump& tmp) const
+    virtual Devices::AYM::Dumper::Ptr CreateDumper(uint_t clocksPerFrame) const
     {
-      return Devices::AYM::CreateRawStreamDumper(clocksPerFrame, tmp);
+      return Devices::AYM::CreateRawStreamDumper(clocksPerFrame);
     }
 
     virtual String GetErrorMessage() const
@@ -142,11 +141,10 @@ namespace
     {
       try
       {
-        Dump rawDump;
         const Parameters::Accessor::Ptr props = factory.GetProperties();
         const Sound::RenderParameters::Ptr params = Sound::RenderParameters::Create(props);
-        const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateRawStreamDumper(params->ClocksPerFrame(), rawDump);
-        const Renderer::Ptr renderer = factory.CreateRenderer(chip);
+        const Devices::AYM::Dumper::Ptr dumper = Devices::AYM::CreateRawStreamDumper(params->ClocksPerFrame());
+        const Renderer::Ptr renderer = factory.CreateRenderer(dumper);
 
         while (renderer->RenderFrame(*params)) {}
 
@@ -156,6 +154,8 @@ namespace
         const std::size_t headerSize = sizeof(FYMHeader) + (name.size() + 1) + (author.size() + 1);
 
         const Information::Ptr info = factory.GetInformation();
+        Dump rawDump;
+        dumper->GetDump(rawDump);
         Dump result(sizeof(FYMHeader));
         {
           FYMHeader* const header = safe_ptr_cast<FYMHeader*>(&result[0]);

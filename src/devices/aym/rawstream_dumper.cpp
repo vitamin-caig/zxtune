@@ -22,12 +22,11 @@ namespace
 
   const uint8_t NO_R13 = 0xff;
 
-  class RawStreamDumper : public Chip
+  class RawStreamDumper : public Dumper
   {
   public:
-    RawStreamDumper(uint_t clocksPerFrame, Dump& data)
+    explicit RawStreamDumper(uint_t clocksPerFrame)
       : ClocksPerFrame(clocksPerFrame)
-      , Data(data)
     {
       Reset();
     }
@@ -63,6 +62,11 @@ namespace
       Data.clear();
       CurChunk = DataChunk();
     }
+
+    virtual void GetDump(Dump& result) const
+    {
+      result.assign(Data.begin(), Data.end());
+    }
   private:
     void AddFrame()
     {
@@ -70,7 +74,7 @@ namespace
     }
   private:
     const uint_t ClocksPerFrame;
-    Dump& Data;
+    Dump Data;
     DataChunk CurChunk;
   };
 }
@@ -79,9 +83,9 @@ namespace Devices
 {
   namespace AYM
   {
-    Chip::Ptr CreateRawStreamDumper(uint_t clocksPerFrame, Dump& data)
+    Dumper::Ptr CreateRawStreamDumper(uint_t clocksPerFrame)
     {
-      return Chip::Ptr(new RawStreamDumper(clocksPerFrame, data));
+      return Dumper::Ptr(new RawStreamDumper(clocksPerFrame));
     }
   }
 }

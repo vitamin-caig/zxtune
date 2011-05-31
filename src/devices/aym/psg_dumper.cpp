@@ -29,12 +29,11 @@ namespace
     END_MUS = 0xfd
   };
   
-  class PSGDumper : public Chip
+  class PSGDumper : public Dumper
   {
   public:
-    PSGDumper(uint_t clocksPerFrame, Dump& data)
+    explicit PSGDumper(uint_t clocksPerFrame)
       : ClocksPerFrame(clocksPerFrame)
-      , Data(data)
     {
       Reset();
     }
@@ -115,9 +114,13 @@ namespace
       CurChunk = DataChunk();
     }
 
+    virtual void GetDump(Dump& result) const
+    {
+      result.assign(Data.begin(), Data.end());
+    }
   private:
     const uint_t ClocksPerFrame;
-    Dump& Data;
+    Dump Data;
     DataChunk CurChunk;
   };
 }
@@ -126,9 +129,9 @@ namespace Devices
 {
   namespace AYM
   {
-    Chip::Ptr CreatePSGDumper(uint_t clocksPerFrame, Dump& data)
+    Dumper::Ptr CreatePSGDumper(uint_t clocksPerFrame)
     {
-      return Chip::Ptr(new PSGDumper(clocksPerFrame, data));
+      return Dumper::Ptr(new PSGDumper(clocksPerFrame));
     }
   }
 }

@@ -83,6 +83,19 @@ namespace Devices
       boost::array<uint8_t, REG_LAST> Data;
     };
 
+    class Device
+    {
+    public:
+      typedef boost::shared_ptr<Device> Ptr;
+      virtual ~Device() {}
+
+      /// render single data chunk
+      virtual void RenderData(const DataChunk& src) = 0;
+
+      /// reset internal state to initial
+      virtual void Reset() = 0;
+    };
+
     //channels state
     struct ChanState
     {
@@ -107,20 +120,23 @@ namespace Devices
     };
     typedef boost::array<ChanState, VOICES> ChannelsState;
 
-    class Chip
+    // Describes real device
+    class Chip : public Device
     {
     public:
       typedef boost::shared_ptr<Chip> Ptr;
 
-      virtual ~Chip() {}
-
-      /// render single data chunk
-      virtual void RenderData(const DataChunk& src) = 0;
-
       virtual void GetState(ChannelsState& state) const = 0;
+    };
 
-      /// reset internal state to initial
-      virtual void Reset() = 0;
+    // Describes dump converter
+    // TODO: inherit from Device
+    class Dumper : public Chip
+    {
+    public:
+      typedef boost::shared_ptr<Dumper> Ptr;
+
+      virtual void GetDump(Dump& result) const = 0;
     };
 
     // Sound is rendered in unsigned 16-bit values
@@ -147,10 +163,10 @@ namespace Devices
 
     /// Virtual constructors
     Chip::Ptr CreateChip(ChipParameters::Ptr params, Receiver::Ptr target);
-    Chip::Ptr CreatePSGDumper(uint_t clocksPerFrame, Dump& data);
-    Chip::Ptr CreateZX50Dumper(uint_t clocksPerFrame, Dump& data);
-    Chip::Ptr CreateDebugDumper(uint_t clocksPerFrame, Dump& data);
-    Chip::Ptr CreateRawStreamDumper(uint_t clocksPerFrame, Dump& data);
+    Dumper::Ptr CreatePSGDumper(uint_t clocksPerFrame);
+    Dumper::Ptr CreateZX50Dumper(uint_t clocksPerFrame);
+    Dumper::Ptr CreateDebugDumper(uint_t clocksPerFrame);
+    Dumper::Ptr CreateRawStreamDumper(uint_t clocksPerFrame);
   }
 }
 

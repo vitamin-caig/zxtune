@@ -21,12 +21,11 @@ namespace
 {
   using namespace Devices::AYM;
   
-  class ZX50Dumper : public Chip
+  class ZX50Dumper : public Dumper
   {
   public:
-    ZX50Dumper(uint_t clocksPerFrame, Dump& data)
+    explicit ZX50Dumper(uint_t clocksPerFrame)
       : ClocksPerFrame(clocksPerFrame)
-      , Data(data)
     {
       Reset();
     }
@@ -91,9 +90,13 @@ namespace
       CurChunk = DataChunk();
     }
 
+    virtual void GetDump(Dump& result) const
+    {
+      result.assign(Data.begin(), Data.end());
+    }
   private:
     const uint_t ClocksPerFrame;
-    Dump& Data;
+    Dump Data;
     DataChunk CurChunk;
   };
 }
@@ -102,9 +105,9 @@ namespace Devices
 {
   namespace AYM
   {
-    Chip::Ptr CreateZX50Dumper(uint_t clocksPerFrame, Dump& data)
+    Dumper::Ptr CreateZX50Dumper(uint_t clocksPerFrame)
     {
-      return Chip::Ptr(new ZX50Dumper(clocksPerFrame, data));
+      return Dumper::Ptr(new ZX50Dumper(clocksPerFrame));
     }
   }
 }

@@ -25,12 +25,11 @@ namespace
     return sym >= 10 ? 'A' + sym - 10 : '0' + sym;
   }
 
-  class DebugDumper : public Chip
+  class DebugDumper : public Dumper
   {
   public:
-    DebugDumper(uint_t clocksPerFrame, Dump& data)
+    explicit DebugDumper(uint_t clocksPerFrame)
       : ClocksPerFrame(clocksPerFrame)
-      , Data(data)
     {
       Reset();
     }
@@ -94,6 +93,11 @@ namespace
       Data.assign(HEADER.begin(), HEADER.end());
       CurChunk = DataChunk();
     }
+
+    virtual void GetDump(Dump& result) const
+    {
+      result.assign(Data.begin(), Data.end());
+    }
   private:
     void AddNodataMessage()
     {
@@ -127,7 +131,7 @@ namespace
     }
   private:
     const uint_t ClocksPerFrame;
-    Dump& Data;
+    Dump Data;
     DataChunk CurChunk;
   };
 }
@@ -136,9 +140,9 @@ namespace Devices
 {
   namespace AYM
   {
-    Chip::Ptr CreateDebugDumper(uint_t clocksPerFrame, Dump& data)
+    Dumper::Ptr CreateDebugDumper(uint_t clocksPerFrame)
     {
-      return Chip::Ptr(new DebugDumper(clocksPerFrame, data));
+      return Dumper::Ptr(new DebugDumper(clocksPerFrame));
     }
   }
 }
