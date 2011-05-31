@@ -13,6 +13,7 @@ Author:
 #include "dac_base.h"
 //library includes
 #include <core/core_parameters.h>
+#include <sound/render_params.h>
 //std includes
 #include <limits>
 //boost includes

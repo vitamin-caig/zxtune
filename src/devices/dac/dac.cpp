@@ -11,7 +11,6 @@ Author:
 
 //local includes
 #include <devices/dac.h>
-#include <sound/impl/internal_types.h>
 //common includes
 #include <tools.h>
 //std includes
@@ -200,8 +199,7 @@ namespace
       MaxGain = std::max(MaxGain, res.Gain);
     }
 
-    virtual void RenderData(const ZXTune::Sound::RenderParameters& /*params*/,
-                            const DataChunk& src)
+    virtual void RenderData(const DataChunk& src)
     {
       const uint_t soundFreq = Params->SoundFreq();
       const uint64_t clockFreq = Params->ClockFreq();
@@ -249,36 +247,36 @@ namespace
       assert(state.Channel < State.size());
       ChannelState& chan(State[state.Channel]);
       //'enabled' field changed
-      if (0 != (state.Mask & DataChunk::ChannelData::MASK_ENABLED))
+      if (state.Enabled)
       {
-        chan.Enabled = state.Enabled;
+        chan.Enabled = *state.Enabled;
       }
       //note changed
-      if (0 != (state.Mask & DataChunk::ChannelData::MASK_NOTE))
+      if (state.Note)
       {
-        chan.Note = state.Note;
+        chan.Note = *state.Note;
       }
       //note slide changed
-      if (0 != (state.Mask & DataChunk::ChannelData::MASK_NOTESLIDE))
+      if (state.NoteSlide)
       {
-        chan.NoteSlide = state.NoteSlide;
+        chan.NoteSlide = *state.NoteSlide;
       }
       //frequency slide changed
-      if (0 != (state.Mask & DataChunk::ChannelData::MASK_FREQSLIDE))
+      if (state.FreqSlideHz)
       {
-        chan.FreqSlide = state.FreqSlideHz;
+        chan.FreqSlide = *state.FreqSlideHz;
       }
       //sample changed
-      if (0 != (state.Mask & DataChunk::ChannelData::MASK_SAMPLE))
+      if (state.SampleNum)
       {
-        assert(state.SampleNum < Samples.size());
-        chan.CurSample = &Samples[state.SampleNum];
+        assert(*state.SampleNum < Samples.size());
+        chan.CurSample = &Samples[*state.SampleNum];
       }
       //position in sample changed
-      if (0 != (state.Mask & DataChunk::ChannelData::MASK_POSITION))
+      if (state.PosInSample)
       {
         assert(chan.CurSample);
-        chan.PosInSample = FIXED_POINT_PRECISION * std::min(state.PosInSample, chan.CurSample->Size - 1);
+        chan.PosInSample = FIXED_POINT_PRECISION * std::min(*state.PosInSample, chan.CurSample->Size - 1);
       }
     }
 

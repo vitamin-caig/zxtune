@@ -16,9 +16,8 @@ Author:
 //common includes
 #include <data_streaming.h>
 #include <types.h>
-//library includes
-//TODO: remove
-#include <sound/render_params.h>
+//boost includes
+#include <boost/optional.hpp>
 
 //supporting for multichannel sample-based DAC
 namespace Devices
@@ -29,28 +28,17 @@ namespace Devices
     {
       struct ChannelData
       {
-        ChannelData() : Channel(), Mask(), Enabled(), Note(), FreqSlideHz(), SampleNum()
+        ChannelData() : Channel()
         {
         }
         uint_t Channel;
-        uint32_t Mask;
 
-        enum
-        {
-          MASK_ENABLED = 1,
-          MASK_NOTE = 2,
-          MASK_NOTESLIDE = 4,
-          MASK_FREQSLIDE = 8,
-          MASK_SAMPLE = 16,
-          MASK_POSITION = 32
-        };
-
-        bool Enabled;
-        uint_t Note;
-        int_t NoteSlide;
-        int_t FreqSlideHz;
-        uint_t SampleNum;
-        uint_t PosInSample;
+        boost::optional<bool> Enabled;
+        boost::optional<uint_t> Note;
+        boost::optional<int_t> NoteSlide;
+        boost::optional<int_t> FreqSlideHz;
+        boost::optional<uint_t> SampleNum;
+        boost::optional<uint_t> PosInSample;
       };
 
       DataChunk() : Tick()
@@ -88,8 +76,7 @@ namespace Devices
       virtual void SetSample(uint_t idx, const Dump& data, uint_t loop) = 0;
 
       /// render single data chunk
-      virtual void RenderData(const ZXTune::Sound::RenderParameters& params,
-                              const DataChunk& src) = 0;
+      virtual void RenderData(const DataChunk& src) = 0;
 
       virtual void GetState(ChannelsState& state) const = 0;
 

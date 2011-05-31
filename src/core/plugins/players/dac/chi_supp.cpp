@@ -409,7 +409,7 @@ namespace
       const bool res = Iterator->NextFrame(params.ClocksPerFrame(), params.Looped());
 
       chunk.Tick = Iterator->AbsoluteTick();
-      Device->RenderData(params, chunk);
+      Device->RenderData(chunk);
       return res;
     }
 
@@ -452,8 +452,8 @@ namespace
         dst.Channel = chan;
         if (gliss.Sliding)
         {
-          dst.FreqSlideHz = gliss.Sliding = gliss.Glissade = 0;
-          dst.Mask |= Devices::DAC::DataChunk::ChannelData::MASK_FREQSLIDE;
+          dst.FreqSlideHz = 0;
+          gliss.Sliding = gliss.Glissade = 0;
         }
         //begin note
         if (line && 0 == Iterator->Quirk())
@@ -464,21 +464,17 @@ namespace
             if (!(dst.Enabled = *src.Enabled))
             {
               dst.PosInSample = 0;
-              dst.Mask |= Devices::DAC::DataChunk::ChannelData::MASK_POSITION;
             }
-            dst.Mask |= Devices::DAC::DataChunk::ChannelData::MASK_ENABLED;
           }
           if (src.Note)
           {
             dst.Note = *src.Note;
             dst.PosInSample = 0;
-            dst.Mask |= Devices::DAC::DataChunk::ChannelData::MASK_NOTE | Devices::DAC::DataChunk::ChannelData::MASK_POSITION;
           }
           if (src.SampleNum)
           {
             dst.SampleNum = *src.SampleNum;
             dst.PosInSample = 0;
-            dst.Mask |= Devices::DAC::DataChunk::ChannelData::MASK_SAMPLE | Devices::DAC::DataChunk::ChannelData::MASK_POSITION;
           }
           for (CHITrack::CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
           {
@@ -486,7 +482,6 @@ namespace
             {
             case SAMPLE_OFFSET:
               dst.PosInSample = it->Param1;
-              dst.Mask |= Devices::DAC::DataChunk::ChannelData::MASK_POSITION;
               break;
             case SLIDE:
               gliss.Glissade = it->Param1;
@@ -497,7 +492,7 @@ namespace
           }
         }
         //store if smth new
-        if (dst.Mask)
+        if (dst.Enabled || dst.Note || dst.NoteSlide || dst.FreqSlideHz || dst.SampleNum || dst.PosInSample)
         {
           res.push_back(dst);
         }

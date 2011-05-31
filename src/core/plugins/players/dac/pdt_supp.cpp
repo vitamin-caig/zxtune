@@ -478,7 +478,7 @@ namespace
       const bool res = Iterator->NextFrame(params.ClocksPerFrame(), params.Looped());
 
       chunk.Tick = Iterator->AbsoluteTick();
-      Device->RenderData(params, chunk);
+      Device->RenderData(chunk);
       return res;
     }
 
@@ -531,9 +531,7 @@ namespace
             if ( !(dst.Enabled = *src.Enabled) )
             {
               dst.PosInSample = 0;
-              dst.Mask |= Devices::DAC::DataChunk::ChannelData::MASK_POSITION;
             }
-            dst.Mask |= Devices::DAC::DataChunk::ChannelData::MASK_ENABLED;
           }
 
           if (src.Note)
@@ -547,21 +545,18 @@ namespace
             if (src.SampleNum)
             {
               dst.SampleNum = *src.SampleNum;
-              dst.Mask |= Devices::DAC::DataChunk::ChannelData::MASK_SAMPLE;
             }
             dst.Note = *src.Note;
             dst.PosInSample = 0;
-            dst.Mask |= Devices::DAC::DataChunk::ChannelData::MASK_NOTE | Devices::DAC::DataChunk::ChannelData::MASK_POSITION;
           }
         }
         const int_t newOffset = ornament.GetOffset();
         if (newOffset != prevOffset)
         {
           dst.NoteSlide = newOffset;
-          dst.Mask |= Devices::DAC::DataChunk::ChannelData::MASK_NOTESLIDE;
         }
 
-        if (dst.Mask)
+        if (dst.Enabled || dst.Note || dst.NoteSlide || dst.FreqSlideHz || dst.SampleNum || dst.PosInSample)
         {
           res.push_back(dst);
         }
