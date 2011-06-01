@@ -637,47 +637,47 @@ namespace
   class STCChannelBuilder
   {
   public:
-    STCChannelBuilder(uint_t transposition, const AYM::TrackBuilder& track, uint_t chanNum)
+    STCChannelBuilder(uint_t transposition, AYM::TrackBuilder& track, uint_t chanNum)
       : Transposition(transposition)
       , Track(track)
       , Channel(Track.GetChannel(chanNum))
     {
     }
 
-    void SetLevel(uint_t level) const
+    void SetLevel(uint_t level)
     {
       Channel.SetLevel(level);
     }
 
-    void EnableEnvelope() const
+    void EnableEnvelope()
     {
       Channel.EnableEnvelope();
     }
 
-    void SetTone(int_t halftones, int_t offset) const
+    void SetTone(int_t halftones, int_t offset)
     {
       Channel.SetTone(halftones + Transposition, offset);
     }
 
-    void DisableTone() const
+    void DisableTone()
     {
       Channel.DisableTone();
     }
 
-    void SetNoise(int_t level) const
+    void SetNoise(int_t level)
     {
       Track.SetNoise(level);
     }
 
-    void DisableNoise() const
+    void DisableNoise()
     {
       Channel.DisableNoise();
     }
 
   private:
     const uint_t Transposition;
-    const AYM::TrackBuilder& Track;
-    const AYM::ChannelBuilder Channel;
+    AYM::TrackBuilder& Track;
+    AYM::ChannelBuilder Channel;
   };
 
   struct STCChannelState
@@ -726,7 +726,7 @@ namespace
       }
     }
 
-    void Synthesize(const STCChannelBuilder& channel) const
+    void Synthesize(STCChannelBuilder& channel) const
     {
       if (!Enabled)
       {
@@ -847,7 +847,7 @@ namespace
     const STCTrack::Ornament* CurOrnament;
   };
 
-  void ProcessEnvelopeCommands(const STCTrack::CommandsArray& commands, const AYM::TrackBuilder& track)
+  void ProcessEnvelopeCommands(const STCTrack::CommandsArray& commands, AYM::TrackBuilder& track)
   {
     const STCTrack::CommandsArray::const_iterator it = std::find(commands.begin(), commands.end(), ENVELOPE);
     if (it != commands.end())
@@ -875,7 +875,7 @@ namespace
       StateC.Reset();
     }
 
-    virtual void SynthesizeData(const TrackState& state, const AYM::TrackBuilder& track)
+    virtual void SynthesizeData(const TrackState& state, AYM::TrackBuilder& track)
     {
       if (0 == state.Quirk())
       {
@@ -888,7 +888,7 @@ namespace
     }
 
   private:
-    void GetNewLineState(const TrackState& state, const AYM::TrackBuilder& track)
+    void GetNewLineState(const TrackState& state, AYM::TrackBuilder& track)
     {
       if (const STCTrack::Line* line = Data->Patterns[state.Pattern()].GetLine(state.Line()))
       {
@@ -910,7 +910,7 @@ namespace
       }
     }
 
-    void SynthesizeChannelsData(const TrackState& state, const AYM::TrackBuilder& track)
+    void SynthesizeChannelsData(const TrackState& state, AYM::TrackBuilder& track)
     {
       const uint_t transposition = Data->Transpositions[state.Position()];
       {

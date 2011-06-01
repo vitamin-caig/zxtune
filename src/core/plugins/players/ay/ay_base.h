@@ -39,11 +39,11 @@ namespace ZXTune
         {
         }
 
-        void SetTone(int_t halfTones, int_t offset) const;
-        void SetLevel(int_t level) const;
-        void DisableTone() const;
-        void EnableEnvelope() const;
-        void DisableNoise() const;
+        void SetTone(int_t halfTones, int_t offset);
+        void SetLevel(int_t level);
+        void DisableTone();
+        void EnableEnvelope();
+        void DisableNoise();
       private:
         const uint_t Channel;
         const FrequencyTable& Table;
@@ -53,27 +53,31 @@ namespace ZXTune
       class TrackBuilder
       {
       public:
-        explicit TrackBuilder(const FrequencyTable& table, Devices::AYM::DataChunk& chunk)
+        explicit TrackBuilder(const FrequencyTable& table)
           : Table(table)
-          , Chunk(chunk)
         {
         }
 
-        void SetNoise(uint_t level) const;
-        void SetEnvelopeType(uint_t type) const;
-        void SetEnvelopeTone(uint_t tone) const;
+        void SetNoise(uint_t level);
+        void SetEnvelopeType(uint_t type);
+        void SetEnvelopeTone(uint_t tone);
 
-        void SetRawChunk(const Devices::AYM::DataChunk& chunk) const;
+        void SetRawChunk(const Devices::AYM::DataChunk& chunk);
 
         int_t GetSlidingDifference(int_t halfToneFrom, int_t halfToneTo) const;
 
-        ChannelBuilder GetChannel(uint_t chan) const
+        ChannelBuilder GetChannel(uint_t chan)
         {
           return ChannelBuilder(chan, Table, Chunk);
         }
+
+        void GetResult(Devices::AYM::DataChunk& result) const
+        {
+          result = Chunk;
+        }
       private:
         const FrequencyTable& Table;
-        Devices::AYM::DataChunk& Chunk;
+        Devices::AYM::DataChunk Chunk;
       };
 
       typedef PatternCursorSet<Devices::AYM::CHANNELS> PatternCursors;
@@ -85,7 +89,7 @@ namespace ZXTune
 
         virtual ~DataRenderer() {}
 
-        virtual void SynthesizeData(const TrackState& state, const TrackBuilder& track) = 0;
+        virtual void SynthesizeData(const TrackState& state, TrackBuilder& track) = 0;
         virtual void Reset() = 0;
       };
 

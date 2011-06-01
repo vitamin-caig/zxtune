@@ -120,8 +120,7 @@ namespace
 #ifndef NDEBUG
 //perform self-test
       Reset();
-      Devices::AYM::DataChunk chunk;
-      const AYM::TrackBuilder track(TrackParams->FreqTable(), chunk);
+      AYM::TrackBuilder track(TrackParams->FreqTable());
       do
       {
         Render->SynthesizeData(*Iterator, track);
@@ -143,15 +142,14 @@ namespace
 
     virtual bool RenderFrame(const Sound::RenderParameters& params)
     {
-      const uint64_t ticksDelta = params.ClocksPerFrame();
-
-      Devices::AYM::DataChunk chunk;
-      chunk.Tick = Iterator->AbsoluteTick() + ticksDelta;
-      const AYM::TrackBuilder track(TrackParams->FreqTable(), chunk);
+      AYM::TrackBuilder track(TrackParams->FreqTable());
 
       Render->SynthesizeData(*Iterator, track);
 
-      const bool res = Iterator->NextFrame(ticksDelta, params.Looped());
+      const bool res = Iterator->NextFrame(params.ClocksPerFrame(), params.Looped());
+      Devices::AYM::DataChunk chunk;
+      track.GetResult(chunk);
+      chunk.Tick = Iterator->AbsoluteTick();
       Device->RenderData(chunk);
       return res;
     }
@@ -172,8 +170,7 @@ namespace
         Render->Reset();
       }
       //fast forward
-      Devices::AYM::DataChunk chunk;
-      const AYM::TrackBuilder track(TrackParams->FreqTable(), chunk);
+      AYM::TrackBuilder track(TrackParams->FreqTable());
       while (Iterator->Frame() < frame)
       {
         //do not update tick for proper rendering
@@ -198,7 +195,7 @@ namespace ZXTune
   {
     namespace AYM
     {
-      void ChannelBuilder::SetTone(int_t halfTones, int_t offset) const
+      void ChannelBuilder::SetTone(int_t halfTones, int_t offset)
       {
         const int_t halftone = clamp<int_t>(halfTones, 0, static_cast<int_t>(Table.size()) - 1);
         const uint_t tone = (Table[halftone] + offset) & 0xfff;
@@ -209,45 +206,45 @@ namespace ZXTune
         Chunk.Mask |= (1 << reg) | (1 << (reg + 1));
       }
 
-      void ChannelBuilder::SetLevel(int_t level) const
+      void ChannelBuilder::SetLevel(int_t level)
       {
         const uint_t reg = Devices::AYM::DataChunk::REG_VOLA + Channel;
         Chunk.Data[reg] = static_cast<uint8_t>(clamp<int_t>(level, 0, 15));
         Chunk.Mask |= 1 << reg;
       }
 
-      void ChannelBuilder::DisableTone() const
+      void ChannelBuilder::DisableTone()
       {
         Chunk.Data[Devices::AYM::DataChunk::REG_MIXER] |= (Devices::AYM::DataChunk::REG_MASK_TONEA << Channel);
         Chunk.Mask |= 1 << Devices::AYM::DataChunk::REG_MIXER;
       }
 
-      void ChannelBuilder::EnableEnvelope() const
+      void ChannelBuilder::EnableEnvelope()
       {
         const uint_t reg = Devices::AYM::DataChunk::REG_VOLA + Channel;
         Chunk.Data[reg] |= Devices::AYM::DataChunk::REG_MASK_ENV;
         Chunk.Mask |= 1 << reg;
       }
 
-      void ChannelBuilder::DisableNoise() const
+      void ChannelBuilder::DisableNoise()
       {
         Chunk.Data[Devices::AYM::DataChunk::REG_MIXER] |= (Devices::AYM::DataChunk::REG_MASK_NOISEA << Channel);
         Chunk.Mask |= 1 << Devices::AYM::DataChunk::REG_MIXER;
       }
 
-      void TrackBuilder::SetNoise(uint_t level) const
+      void TrackBuilder::SetNoise(uint_t level)
       {
         Chunk.Data[Devices::AYM::DataChunk::REG_TONEN] = level & 31;
         Chunk.Mask |= 1 << Devices::AYM::DataChunk::REG_TONEN;
       }
 
-      void TrackBuilder::SetEnvelopeType(uint_t type) const
+      void TrackBuilder::SetEnvelopeType(uint_t type)
       {
         Chunk.Data[Devices::AYM::DataChunk::REG_ENV] = static_cast<uint8_t>(type);
         Chunk.Mask |= 1 << Devices::AYM::DataChunk::REG_ENV;
       }
 
-      void TrackBuilder::SetEnvelopeTone(uint_t tone) const
+      void TrackBuilder::SetEnvelopeTone(uint_t tone)
       {
         Chunk.Data[Devices::AYM::DataChunk::REG_TONEE_L] = static_cast<uint8_t>(tone & 0xff);
         Chunk.Data[Devices::AYM::DataChunk::REG_TONEE_H] = static_cast<uint8_t>(tone >> 8);
@@ -263,7 +260,7 @@ namespace ZXTune
         return toneTo - toneFrom;
       }
 
-      void TrackBuilder::SetRawChunk(const Devices::AYM::DataChunk& chunk) const
+      void TrackBuilder::SetRawChunk(const Devices::AYM::DataChunk& chunk)
       {
         std::copy(chunk.Data.begin(), chunk.Data.end(), Chunk.Data.begin());
         Chunk.Mask &= ~Devices::AYM::DataChunk::MASK_ALL_REGISTERS;

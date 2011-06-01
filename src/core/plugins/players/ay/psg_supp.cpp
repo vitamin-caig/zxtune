@@ -230,7 +230,7 @@ namespace
     {
     }
 
-    virtual void SynthesizeData(const TrackState& state, const AYM::TrackBuilder& track)
+    virtual void SynthesizeData(const TrackState& state, AYM::TrackBuilder& track)
     {
       const Devices::AYM::DataChunk& data = Data->Dump[state.Frame()];
       //collect state

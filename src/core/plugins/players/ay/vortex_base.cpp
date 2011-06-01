@@ -171,7 +171,7 @@ namespace
       PlayerState = VortexState();
     }
 
-    virtual void SynthesizeData(const TrackState& state, const AYM::TrackBuilder& track)
+    virtual void SynthesizeData(const TrackState& state, AYM::TrackBuilder& track)
     {
       if (0 == state.Quirk())
       {
@@ -180,7 +180,7 @@ namespace
       SynthesizeChannelsData(track);
     }
   private:
-    void GetNewLineState(const TrackState& state, const AYM::TrackBuilder& track)
+    void GetNewLineState(const TrackState& state, AYM::TrackBuilder& track)
     {
       if (0 == state.Line())
       {
@@ -201,7 +201,7 @@ namespace
       }
     }
 
-    void GetNewChannelState(const Vortex::Track::Line::Chan& src, ChannelState& dst, const AYM::TrackBuilder& track)
+    void GetNewChannelState(const Vortex::Track::Line::Chan& src, ChannelState& dst, AYM::TrackBuilder& track)
     {
       if (src.Enabled)
       {
@@ -293,12 +293,12 @@ namespace
       }
     }
 
-    void SynthesizeChannelsData(const AYM::TrackBuilder& track)
+    void SynthesizeChannelsData(AYM::TrackBuilder& track)
     {
       int_t envelopeAddon = 0;
       for (uint_t chan = 0; chan != PlayerState.ChanState.size(); ++chan)
       {
-        const AYM::ChannelBuilder& chanSynt = track.GetChannel(chan);
+        AYM::ChannelBuilder chanSynt = track.GetChannel(chan);
         ChannelState& dst = PlayerState.ChanState[chan];
         SynthesizeChannel(dst, chanSynt, track, envelopeAddon);
         //update vibrato
@@ -313,7 +313,7 @@ namespace
       PlayerState.CommState.EnvSlider.Update();
     }
 
-    void SynthesizeChannel(ChannelState& dst, const AYM::ChannelBuilder& channel, const AYM::TrackBuilder& track, int_t& envelopeAddon)
+    void SynthesizeChannel(ChannelState& dst, AYM::ChannelBuilder& channel, AYM::TrackBuilder& track, int_t& envelopeAddon)
     {
       if (!dst.Enabled)
       {

@@ -571,7 +571,7 @@ namespace
       std::fill(PlayerState.begin(), PlayerState.end(), PT2ChannelState());
     }
 
-    virtual void SynthesizeData(const TrackState& state, const AYM::TrackBuilder& track)
+    virtual void SynthesizeData(const TrackState& state, AYM::TrackBuilder& track)
     {
       if (0 == state.Quirk())
       {
@@ -580,7 +580,7 @@ namespace
       SynthesizeChannelsData(track);
     }
   private:
-    void GetNewLineState(const TrackState& state, const AYM::TrackBuilder& track)
+    void GetNewLineState(const TrackState& state, AYM::TrackBuilder& track)
     {
       if (const PT2Track::Line* line = Data->Patterns[state.Pattern()].GetLine(state.Line()))
       {
@@ -596,7 +596,7 @@ namespace
       }
     }
 
-    void GetNewChannelState(const PT2Track::Line::Chan& src, PT2ChannelState& dst, const AYM::TrackBuilder& track)
+    void GetNewChannelState(const PT2Track::Line::Chan& src, PT2ChannelState& dst, AYM::TrackBuilder& track)
     {
       if (src.Enabled)
       {
@@ -661,16 +661,16 @@ namespace
       }
     }
 
-    void SynthesizeChannelsData(const AYM::TrackBuilder& track)
+    void SynthesizeChannelsData(AYM::TrackBuilder& track)
     {
       for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
       {
-        const AYM::ChannelBuilder& channel = track.GetChannel(chan);
+        AYM::ChannelBuilder channel = track.GetChannel(chan);
         SynthesizeChannel(PlayerState[chan], channel, track);
       }
     }
 
-    void SynthesizeChannel(PT2ChannelState& dst, const AYM::ChannelBuilder& channel, const AYM::TrackBuilder& track)
+    void SynthesizeChannel(PT2ChannelState& dst, AYM::ChannelBuilder& channel, AYM::TrackBuilder& track)
     {
       if (!dst.Enabled)
       {
