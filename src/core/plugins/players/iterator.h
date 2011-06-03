@@ -39,7 +39,6 @@ namespace ZXTune
       typedef boost::shared_ptr<StateIterator> Ptr;
     };
 
-    //! @invariant iter.Frame() <= frameNum
     void SeekIterator(StateIterator& iter, uint_t frameNum);
   }
 }

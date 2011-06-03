@@ -58,6 +58,11 @@ namespace ZXTune
         {
         }
 
+        void Initialize()
+        {
+          Chunk = Devices::AYM::DataChunk();
+        }
+
         void SetNoise(uint_t level);
         void SetEnvelopeType(uint_t type);
         void SetEnvelopeTone(uint_t tone);
@@ -93,7 +98,20 @@ namespace ZXTune
         virtual void Reset() = 0;
       };
 
+      class DataIterator : public Iterator
+      {
+      public:
+        typedef boost::shared_ptr<DataIterator> Ptr;
+
+        virtual void GetData(Devices::AYM::DataChunk& chunk) const = 0;
+      };
+
+      DataIterator::Ptr CreateDataIterator(TrackParameters::Ptr trackParams, StateIterator::Ptr iterator, DataRenderer::Ptr renderer);
+
+      Renderer::Ptr CreateRenderer(TrackState::Ptr state, AYM::DataIterator::Ptr iterator, Devices::AYM::Chip::Ptr device);
+
       Devices::AYM::Receiver::Ptr CreateReceiver(TrackParameters::Ptr params, Sound::MultichannelReceiver::Ptr target);
+
 
       Renderer::Ptr CreateRenderer(TrackParameters::Ptr params, StateIterator::Ptr iterator, DataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device);
 

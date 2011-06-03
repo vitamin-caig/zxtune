@@ -31,6 +31,41 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Module;
 
+  class AYMDataIterator : public AYM::DataIterator
+  {
+  public:
+    AYMDataIterator(AYM::TrackParameters::Ptr trackParams, StateIterator::Ptr iterator, AYM::DataRenderer::Ptr renderer)
+      : TrackParams(trackParams)
+      , Iterator(iterator)
+      , Render(renderer)
+      , Builder(TrackParams->FreqTable())
+    {
+    }
+
+    virtual void Reset()
+    {
+      Iterator->Reset();
+      Render->Reset();
+    }
+
+    virtual bool NextFrame(bool looped)
+    {
+      Builder.Initialize();
+      Render->SynthesizeData(*Iterator, Builder);
+      return Iterator->NextFrame(looped);
+    }
+
+    virtual void GetData(Devices::AYM::DataChunk& chunk) const
+    {
+      Builder.GetResult(chunk);
+    }
+  private:
+    const AYM::TrackParameters::Ptr TrackParams;
+    const StateIterator::Ptr Iterator;
+    const AYM::DataRenderer::Ptr Render;
+    AYM::TrackBuilder Builder;
+  };
+
   typedef boost::array<uint_t, Devices::AYM::CHANNELS> LayoutData;
   
   const LayoutData LAYOUTS[] =
@@ -111,29 +146,22 @@ namespace
   class AYMRenderer : public Renderer
   {
   public:
-    AYMRenderer(AYM::TrackParameters::Ptr params, StateIterator::Ptr iterator, AYM::DataRenderer::Ptr render, Devices::AYM::Chip::Ptr device)
-      : Render(render)
-      , Device(device)
-      , TrackParams(params)
+    AYMRenderer(TrackState::Ptr state, AYM::DataIterator::Ptr iterator, Devices::AYM::Chip::Ptr device)
+      : State(state)
       , Iterator(iterator)
+      , Device(device)
       , LastRenderTick(0)
     {
 #ifndef NDEBUG
 //perform self-test
+      while (Iterator->NextFrame(false)) {}
       Reset();
-      AYM::TrackBuilder track(TrackParams->FreqTable());
-      do
-      {
-        Render->SynthesizeData(*Iterator, track);
-      }
-      while (Iterator->NextFrame(false));
 #endif
-      Reset();
     }
 
     virtual TrackState::Ptr GetTrackState() const
     {
-      return Iterator;
+      return State;
     }
 
     virtual Analyzer::Ptr GetAnalyzer() const
@@ -143,14 +171,11 @@ namespace
 
     virtual bool RenderFrame(const Sound::RenderParameters& params)
     {
-      AYM::TrackBuilder track(TrackParams->FreqTable());
-
-      Render->SynthesizeData(*Iterator, track);
-
       const bool res = Iterator->NextFrame(params.Looped());
-      Devices::AYM::DataChunk chunk;
-      track.GetResult(chunk);
       LastRenderTick += params.ClocksPerFrame();
+
+      Devices::AYM::DataChunk chunk;
+      Iterator->GetData(chunk);
       chunk.Tick = LastRenderTick;
       Device->RenderData(chunk);
       return res;
@@ -158,26 +183,19 @@ namespace
 
     virtual void Reset()
     {
-      Device->Reset();
       Iterator->Reset();
-      Render->Reset();
+      Device->Reset();
       LastRenderTick = 0;
     }
 
-    virtual void SetPosition(uint_t frame)
+    virtual void SetPosition(uint_t frameNum)
     {
-      if (frame < Iterator->Frame())
+      if (State->Frame() > frameNum)
       {
-        //reset to beginning in case of moving back
         Iterator->Reset();
-        Render->Reset();
       }
-      //fast forward
-      AYM::TrackBuilder track(TrackParams->FreqTable());
-      while (Iterator->Frame() < frame)
+      while (State->Frame() < frameNum)
       {
-        //do not update tick for proper rendering
-        Render->SynthesizeData(*Iterator, track);
         if (!Iterator->NextFrame(false))
         {
           break;
@@ -185,10 +203,9 @@ namespace
       }
     }
   private:
-    const AYM::DataRenderer::Ptr Render;
+    const TrackState::Ptr State;
+    const AYM::DataIterator::Ptr Iterator;
     const Devices::AYM::Chip::Ptr Device;
-    const AYM::TrackParameters::Ptr TrackParams;
-    const StateIterator::Ptr Iterator;
     uint64_t LastRenderTick;
   };
 }
@@ -271,6 +288,16 @@ namespace ZXTune
         Chunk.Mask |= chunk.Mask & Devices::AYM::DataChunk::MASK_ALL_REGISTERS;
       }
 
+      DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams, StateIterator::Ptr iterator, DataRenderer::Ptr renderer)
+      {
+        return boost::make_shared<AYMDataIterator>(trackParams, iterator, renderer);
+      }
+
+      Renderer::Ptr CreateRenderer(TrackState::Ptr state, AYM::DataIterator::Ptr iterator, Devices::AYM::Chip::Ptr device)
+      {
+        return boost::make_shared<AYMRenderer>(state, iterator, device);
+      }
+
       Devices::AYM::Receiver::Ptr CreateReceiver(TrackParameters::Ptr params, Sound::MultichannelReceiver::Ptr target)
       {
         return boost::make_shared<AYMReceiver>(params, target);
@@ -278,7 +305,8 @@ namespace ZXTune
 
       Renderer::Ptr CreateRenderer(AYM::TrackParameters::Ptr params, StateIterator::Ptr iterator, DataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device)
       {
-        return boost::make_shared<AYMRenderer>(params, iterator, renderer, device);
+        const DataIterator::Ptr dataIter = CreateDataIterator(params, iterator, renderer);
+        return CreateRenderer(iterator, dataIter, device);
       }
 
       Renderer::Ptr CreateStreamRenderer(TrackParameters::Ptr params, Information::Ptr info, DataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device)
