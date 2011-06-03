@@ -633,35 +633,34 @@ namespace
     {
     }
 
-    virtual uint_t GetCurrentPatternSize(const TrackState& state) const
+    virtual uint_t GetPatternSize(uint_t position) const
     {
-      const uint_t originalPattern = Vortex::Track::ModuleData::GetCurrentPattern(state);
-      const uint_t size1 = Patterns[originalPattern].GetSize();
-      const uint_t size2 = Patterns[Base - 1 - originalPattern].GetSize();
+      const uint_t size1 = Vortex::Track::ModuleData::GetPatternSize(position);
+      const uint_t size2 = GetSecondPatternByPosition(position).GetSize();
       return std::min(size1, size2);
     }
 
-    virtual uint_t GetNewTempo(const TrackState& state) const
+    virtual uint_t GetNewTempo(uint_t position, uint_t line) const
     {
-      const uint_t originalPattern = Vortex::Track::ModuleData::GetCurrentPattern(state);
-      const uint_t originalLine = state.Line();
-      if (const Vortex::Track::Line* line = Patterns[originalPattern].GetLine(originalLine))
+      if (uint_t originalTempo = Vortex::Track::ModuleData::GetNewTempo(position, line))
       {
-        if (const boost::optional<uint_t>& tempo = line->Tempo)
-        {
-          return *tempo;
-        }
+        return originalTempo;
       }
-      if (const Vortex::Track::Line* line = Patterns[Base - 1 - originalPattern].GetLine(originalLine))
+      if (const Vortex::Track::Line* lineObj = GetSecondPatternByPosition(position).GetLine(line))
       {
-        if (const boost::optional<uint_t>& tempo = line->Tempo)
+        if (const boost::optional<uint_t>& tempo = lineObj->Tempo)
         {
           return *tempo;
         }
       }
       return 0;
     }
-
+  private:
+    const Vortex::Track::Pattern& GetSecondPatternByPosition(uint_t position) const
+    {
+      const uint_t originalPattern = Vortex::Track::ModuleData::GetPatternIndex(position);
+      return Patterns[Base - 1 - originalPattern];
+    }
   private:
     const uint_t Base;
   };
@@ -675,9 +674,9 @@ namespace
     {
     }
 
-    virtual uint_t GetCurrentPattern(const TrackState& state) const
+    virtual uint_t GetPatternIndex(uint_t position) const
     {
-      return Base - 1 - Vortex::Track::ModuleData::GetCurrentPattern(state);
+      return Base - 1 - Vortex::Track::ModuleData::GetPatternIndex(position);
     }
   private:
     const uint_t Base;

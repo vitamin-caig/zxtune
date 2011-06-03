@@ -37,12 +37,12 @@ namespace
 
     virtual uint_t Pattern() const
     {
-      return Data->GetCurrentPattern(*this);
+      return Data->GetPatternIndex(Position());
     }
 
     virtual uint_t PatternSize() const
     {
-      return Data->GetCurrentPatternSize(*this);
+      return Data->GetPatternSize(Position());
     }
 
     virtual uint_t Line() const
@@ -67,7 +67,7 @@ namespace
 
     virtual uint_t Channels() const
     {
-      return Data->GetActiveChannels(*this);
+      return Data->GetActiveChannels(Position(), Line());
     }
 
     virtual uint_t AbsoluteFrame() const
@@ -142,7 +142,7 @@ namespace
   private:
     bool UpdateTempo()
     {
-      if (uint_t tempo = Data->GetNewTempo(*this))
+      if (uint_t tempo = Data->GetNewTempo(Position(), Line()))
       {
         CurTempo = tempo;
         return true;

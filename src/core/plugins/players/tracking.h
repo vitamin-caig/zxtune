@@ -84,10 +84,10 @@ namespace ZXTune
       virtual uint_t GetPositionsCount() const = 0;
       virtual uint_t GetPatternsCount() const = 0;
       //dynamic
-      virtual uint_t GetCurrentPattern(const TrackState& state) const = 0;
-      virtual uint_t GetCurrentPatternSize(const TrackState& state) const = 0;
-      virtual uint_t GetNewTempo(const TrackState& state) const = 0;
-      virtual uint_t GetActiveChannels(const TrackState& state) const = 0;
+      virtual uint_t GetPatternIndex(uint_t position) const = 0;
+      virtual uint_t GetPatternSize(uint_t position) const = 0;
+      virtual uint_t GetNewTempo(uint_t position, uint_t line) const = 0;
+      virtual uint_t GetActiveChannels(uint_t position, uint_t line) const = 0;
     };
 
     Information::Ptr CreateTrackInfo(TrackModuleData::Ptr data, uint_t logicalChannels);
@@ -296,21 +296,21 @@ namespace ZXTune
             !boost::bind(&Pattern::IsEmpty, _1)));
         }
 
-        virtual uint_t GetCurrentPattern(const TrackState& state) const
+        virtual uint_t GetPatternIndex(uint_t position) const
         {
-          return Positions[state.Position()];
+          return Positions[position];
         }
 
-        virtual uint_t GetCurrentPatternSize(const TrackState& state) const
+        virtual uint_t GetPatternSize(uint_t position) const
         {
-          return Patterns[GetCurrentPattern(state)].GetSize();
+          return Patterns[GetPatternIndex(position)].GetSize();
         }
 
-        virtual uint_t GetNewTempo(const TrackState& state) const
+        virtual uint_t GetNewTempo(uint_t position, uint_t line) const
         {
-          if (const Line* line = Patterns[GetCurrentPattern(state)].GetLine(state.Line()))
+          if (const Line* lineObj = Patterns[GetPatternIndex(position)].GetLine(line))
           {
-            if (const boost::optional<uint_t>& tempo = line->Tempo)
+            if (const boost::optional<uint_t>& tempo = lineObj->Tempo)
             {
               return *tempo;
             }
@@ -318,11 +318,11 @@ namespace ZXTune
           return 0;
         }
 
-        virtual uint_t GetActiveChannels(const TrackState& state) const
+        virtual uint_t GetActiveChannels(uint_t position, uint_t line) const
         {
-          if (const Line* line = Patterns[GetCurrentPattern(state)].GetLine(state.Line()))
+          if (const Line* lineObj = Patterns[GetPatternIndex(position)].GetLine(line))
           {
-            return static_cast<uint_t>(std::count_if(line->Channels.begin(), line->Channels.end(), !boost::bind(&Line::Chan::Empty, _1)));
+            return static_cast<uint_t>(std::count_if(lineObj->Channels.begin(), lineObj->Channels.end(), !boost::bind(&Line::Chan::Empty, _1)));
           }
           return 0;
         }
