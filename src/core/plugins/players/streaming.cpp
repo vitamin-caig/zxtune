@@ -116,38 +116,15 @@ namespace
       return STREAM_LOGICAL_CHANNELS;
     }
 
-    virtual uint_t AbsoluteFrame() const
-    {
-      return AbsFrame;
-    }
-
-    virtual uint64_t AbsoluteTick() const
-    {
-      return AbsTick;
-    }
-
     //iterator functions
     virtual void Reset()
     {
-      AbsFrame = 0;
-      AbsTick = 0;
       CurFrame = 0;
     }
 
-    virtual void Seek(uint_t frameNum)
-    {
-      CurFrame = 0;
-      if (frameNum)
-      {
-        SeekIterator(*this, frameNum);
-      }
-    }
-
-    virtual bool NextFrame(uint64_t ticksToSkip, bool looped)
+    virtual bool NextFrame(bool looped)
     {
       ++CurFrame;
-      ++AbsFrame;
-      AbsTick += ticksToSkip;
       if (CurFrame >= Info->FramesCount() &&
           !ProcessLoop(looped))
       {
@@ -166,13 +143,12 @@ namespace
     bool ProcessNormalLoop()
     {
       CurFrame = Info->LoopFrame();
-      //++CurLoopsCount;
       return true;
     }
 
     bool ProcessNoLoop()
     {
-      Seek(0);
+      Reset();
       return false;
     }
   private:
@@ -180,8 +156,6 @@ namespace
     const Information::Ptr Info;
     //state
     uint_t CurFrame;
-    uint_t AbsFrame;
-    uint64_t AbsTick;
   };
 }
 

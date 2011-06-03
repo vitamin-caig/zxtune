@@ -71,16 +71,6 @@ namespace
     {
       return First->Channels() + Second->Channels();
     }
-
-    virtual uint_t AbsoluteFrame() const
-    {
-      return First->AbsoluteFrame();
-    }
-
-    virtual uint64_t AbsoluteTick() const
-    {
-      return First->AbsoluteTick();
-    }
   private:
     const TrackState::Ptr First;
     const TrackState::Ptr Second;

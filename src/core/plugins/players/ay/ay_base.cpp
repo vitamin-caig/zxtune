@@ -116,6 +116,7 @@ namespace
       , Device(device)
       , TrackParams(params)
       , Iterator(iterator)
+      , LastRenderTick(0)
     {
 #ifndef NDEBUG
 //perform self-test
@@ -125,7 +126,7 @@ namespace
       {
         Render->SynthesizeData(*Iterator, track);
       }
-      while (Iterator->NextFrame(0, false));
+      while (Iterator->NextFrame(false));
 #endif
       Reset();
     }
@@ -146,10 +147,11 @@ namespace
 
       Render->SynthesizeData(*Iterator, track);
 
-      const bool res = Iterator->NextFrame(params.ClocksPerFrame(), params.Looped());
+      const bool res = Iterator->NextFrame(params.Looped());
       Devices::AYM::DataChunk chunk;
       track.GetResult(chunk);
-      chunk.Tick = Iterator->AbsoluteTick();
+      LastRenderTick += params.ClocksPerFrame();
+      chunk.Tick = LastRenderTick;
       Device->RenderData(chunk);
       return res;
     }
@@ -159,6 +161,7 @@ namespace
       Device->Reset();
       Iterator->Reset();
       Render->Reset();
+      LastRenderTick = 0;
     }
 
     virtual void SetPosition(uint_t frame)
@@ -166,7 +169,7 @@ namespace
       if (frame < Iterator->Frame())
       {
         //reset to beginning in case of moving back
-        Iterator->Seek(0);
+        Iterator->Reset();
         Render->Reset();
       }
       //fast forward
@@ -175,7 +178,7 @@ namespace
       {
         //do not update tick for proper rendering
         Render->SynthesizeData(*Iterator, track);
-        if (!Iterator->NextFrame(0, false))
+        if (!Iterator->NextFrame(false))
         {
           break;
         }
@@ -186,6 +189,7 @@ namespace
     const Devices::AYM::Chip::Ptr Device;
     const AYM::TrackParameters::Ptr TrackParams;
     const StateIterator::Ptr Iterator;
+    uint64_t LastRenderTick;
   };
 }
 

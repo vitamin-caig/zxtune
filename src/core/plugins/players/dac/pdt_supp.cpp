@@ -446,6 +446,7 @@ namespace
       : Data(data)
       , Device(device)
       , Iterator(CreateTrackStateIterator(info, Data))
+      , LastRenderTick(0)
     {
 #ifdef SELF_TEST
 //perform self-test
@@ -455,7 +456,7 @@ namespace
         assert(Data->Positions.size() > Iterator->Position());
         RenderData(chunk);
       }
-      while (Iterator->NextFrame(0, false));
+      while (Iterator->NextFrame(false));
       Reset();
 #endif
     }
@@ -475,9 +476,10 @@ namespace
       Devices::DAC::DataChunk chunk;
       RenderData(chunk);
 
-      const bool res = Iterator->NextFrame(params.ClocksPerFrame(), params.Looped());
+      const bool res = Iterator->NextFrame(params.Looped());
 
-      chunk.Tick = Iterator->AbsoluteTick();
+      LastRenderTick += params.ClocksPerFrame();
+      chunk.Tick = LastRenderTick;
       Device->RenderData(chunk);
       return res;
     }
@@ -494,7 +496,7 @@ namespace
       if (frame < Iterator->Frame())
       {
         //reset to beginning in case of moving back
-        Iterator->Seek(0);
+        Iterator->Reset();
       }
       //fast forward
       Devices::DAC::DataChunk chunk;
@@ -502,7 +504,7 @@ namespace
       {
         //do not update tick for proper rendering
         RenderData(chunk);
-        if (!Iterator->NextFrame(0, false))
+        if (!Iterator->NextFrame(false))
         {
           break;
         }
@@ -569,6 +571,7 @@ namespace
     const Devices::DAC::Chip::Ptr Device;
     const StateIterator::Ptr Iterator;
     boost::array<OrnamentState, CHANNELS_COUNT> Ornaments;
+    uint64_t LastRenderTick;
   };
 
   Renderer::Ptr CreatePDTRenderer(Information::Ptr info, PDTTrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)

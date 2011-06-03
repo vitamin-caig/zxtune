@@ -29,9 +29,7 @@ namespace ZXTune
 
       virtual void Reset() = 0;
 
-      virtual bool NextFrame(uint64_t ticksToSkip, bool looped) = 0;
-
-      virtual void Seek(uint_t frameNum) = 0;
+      virtual bool NextFrame(bool looped) = 0;
     };
 
     class StateIterator : public TrackState

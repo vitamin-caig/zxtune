@@ -45,10 +45,6 @@ namespace ZXTune
       virtual uint_t Frame() const = 0;
       //! Current active channels count (up to Information::LogicalChannels)
       virtual uint_t Channels() const = 0;
-      //! Absolute frame played till startup
-      virtual uint_t AbsoluteFrame() const = 0;
-      //! Absolute tick played till startup
-      virtual uint64_t AbsoluteTick() const = 0;
     };
 
     //! @brief Common module information

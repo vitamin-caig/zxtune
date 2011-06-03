@@ -70,25 +70,8 @@ namespace
       return Data->GetActiveChannels(Position(), Line());
     }
 
-    virtual uint_t AbsoluteFrame() const
-    {
-      return AbsFrame;
-    }
-
-    virtual uint64_t AbsoluteTick() const
-    {
-      return AbsTick;
-    }
-
     //iterator functions
     virtual void Reset()
-    {
-      AbsFrame = 0;
-      AbsTick = 0;
-      Seek(0);
-    }
-
-    virtual void Seek(uint_t frameNum)
     {
       CurFrame = 0;
       CurPosition = 0;
@@ -98,17 +81,11 @@ namespace
       {
         CurTempo = Info->Tempo();
       }
-      if (frameNum)
-      {
-        SeekIterator(*this, frameNum);
-      }
     }
 
-    virtual bool NextFrame(uint64_t ticksToSkip, bool looped)
+    virtual bool NextFrame(bool looped)
     {
       ++CurFrame;
-      ++AbsFrame;
-      AbsTick += ticksToSkip;
       if (++CurQuirk >= Tempo() &&
           !NextLine(looped))
       {
@@ -167,7 +144,7 @@ namespace
 
     bool ProcessNoLoop()
     {
-      Seek(0);
+      Reset();
       return false;
     }
   private:
@@ -180,8 +157,6 @@ namespace
     uint_t CurTempo;
     uint_t CurQuirk;
     uint_t CurFrame;
-    uint_t AbsFrame;
-    uint64_t AbsTick;
   };
 
   class InformationImpl : public Information
@@ -248,7 +223,7 @@ namespace
 
       const uint_t loopPosNum = Data->GetLoopPosition();
       StateIterator& iterator = *dummyIterator;
-      while (iterator.NextFrame(0, false))
+      while (iterator.NextFrame(false))
       {
         //check for loop
         if (0 == iterator.Line() &&

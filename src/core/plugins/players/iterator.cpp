@@ -18,10 +18,13 @@ namespace ZXTune
   {
     void SeekIterator(StateIterator& iter, uint_t frameNum)
     {
-      assert(iter.Frame() <= frameNum);
+      if (iter.Frame() > frameNum)
+      {
+        iter.Reset();
+      }
       while (iter.Frame() < frameNum)
       {
-        if (!iter.NextFrame(0, false))
+        if (!iter.NextFrame(false))
         {
           break;
         }
