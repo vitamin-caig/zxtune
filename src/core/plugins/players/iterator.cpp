@@ -18,11 +18,12 @@ namespace ZXTune
   {
     void SeekIterator(StateIterator& iter, uint_t frameNum)
     {
-      if (iter.Frame() > frameNum)
+      const TrackState::Ptr state = iter.GetStateObserver();
+      if (state->Frame() > frameNum)
       {
         iter.Reset();
       }
-      while (iter.Frame() < frameNum)
+      while (state->Frame() < frameNum)
       {
         if (!iter.NextFrame(false))
         {

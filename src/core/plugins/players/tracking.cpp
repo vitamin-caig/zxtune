@@ -20,11 +20,19 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Module;
 
-  class TrackStateIterator : public StateIterator
+  class TrackStateCursor : public TrackState
   {
   public:
-    TrackStateIterator(Information::Ptr info, TrackModuleData::Ptr data)
-      : Info(info), Data(data)
+    typedef boost::shared_ptr<TrackStateCursor> Ptr;
+
+    TrackStateCursor(Information::Ptr info, TrackModuleData::Ptr data)
+      : Info(info)
+      , Data(data)
+      , CurPosition()
+      , CurLine()
+      , CurTempo()
+      , CurQuirk()
+      , CurFrame()
     {
       Reset();
     }
@@ -70,11 +78,51 @@ namespace
       return Data->GetActiveChannels(Position(), Line());
     }
 
-    //iterator functions
-    virtual void Reset()
+    //navigation
+    void Reset()
     {
-      CurFrame = 0;
-      CurPosition = 0;
+      Reset(0, 0);
+    }
+
+    void ResetToLoop()
+    {
+      Reset(Info->LoopPosition(), Info->LoopFrame());
+    }
+
+    bool NextQuirk()
+    {
+      ++CurFrame;
+      return ++CurQuirk < Tempo();
+    }
+
+    bool NextLine()
+    {
+      CurQuirk = 0;
+      if (++CurLine >= PatternSize())
+      {
+        return false;
+      }
+      UpdateTempo();
+      return true;
+    }
+
+    bool NextPosition()
+    {
+      CurQuirk = 0;
+      CurLine = 0;
+      UpdateTempo();
+      if (++CurPosition >= Info->PositionsCount())
+      {
+        return false;
+      }
+      UpdateTempo();
+      return true;
+    }
+  private:
+    void Reset(uint_t pos, uint_t frame)
+    {
+      CurFrame = frame;
+      CurPosition = pos;
       CurLine = 0;
       CurQuirk = 0;
       if (!UpdateTempo())
@@ -83,40 +131,6 @@ namespace
       }
     }
 
-    virtual bool NextFrame(bool looped)
-    {
-      ++CurFrame;
-      if (++CurQuirk >= Tempo() &&
-          !NextLine(looped))
-      {
-        return false;
-      }
-      return true;
-    }
-  private:
-    bool NextLine(bool looped)
-    {
-      CurQuirk = 0;
-      if (++CurLine >= PatternSize() &&
-          !NextPosition(looped))
-      {
-        return false;
-      }
-      UpdateTempo();
-      return true;
-    }
-
-    bool NextPosition(bool looped)
-    {
-      CurLine = 0;
-      if (++CurPosition >= Info->PositionsCount() &&
-          !ProcessLoop(looped))
-      {
-        return false;
-      }
-      return true;
-    }
-  private:
     bool UpdateTempo()
     {
       if (uint_t tempo = Data->GetNewTempo(Position(), Line()))
@@ -124,27 +138,6 @@ namespace
         CurTempo = tempo;
         return true;
       }
-      return false;
-    }
-
-    bool ProcessLoop(bool looped)
-    {
-      return looped
-        ? ProcessNormalLoop()
-        : ProcessNoLoop();
-    }
-
-    bool ProcessNormalLoop()
-    {
-      CurFrame = Info->LoopFrame();
-      CurPosition = Info->LoopPosition();
-      //++CurLoopsCount;
-      return true;
-    }
-
-    bool ProcessNoLoop()
-    {
-      Reset();
       return false;
     }
   private:
@@ -157,6 +150,54 @@ namespace
     uint_t CurTempo;
     uint_t CurQuirk;
     uint_t CurFrame;
+  };
+
+  class TrackStateIterator : public StateIterator
+  {
+  public:
+    TrackStateIterator(Information::Ptr info, TrackModuleData::Ptr data)
+      : Cursor(boost::make_shared<TrackStateCursor>(info, data))
+    {
+    }
+
+    //iterator functions
+    virtual void Reset()
+    {
+      Cursor->Reset();
+    }
+
+    virtual bool NextFrame(bool looped)
+    {
+      if (Cursor->NextQuirk())
+      {
+        return true;
+      }
+      if (Cursor->NextLine())
+      {
+        return true;
+      }
+      if (Cursor->NextPosition())
+      {
+        return true;
+      }
+      if (looped)
+      {
+        Cursor->ResetToLoop();
+        return true;
+      }
+      else
+      {
+        Cursor->Reset();
+        return false;
+      }
+    }
+
+    virtual TrackState::Ptr GetStateObserver() const
+    {
+      return Cursor;
+    }
+  private:
+    const TrackStateCursor::Ptr Cursor;
   };
 
   class InformationImpl : public Information
@@ -220,20 +261,20 @@ namespace
       //emulate playback
       const Information::Ptr dummyInfo = boost::make_shared<InformationImpl>(*this);
       const TrackStateIterator::Ptr dummyIterator = CreateTrackStateIterator(dummyInfo, Data);
+      const TrackState::Ptr dummyState = dummyIterator->GetStateObserver();
 
       const uint_t loopPosNum = Data->GetLoopPosition();
-      StateIterator& iterator = *dummyIterator;
-      while (iterator.NextFrame(false))
+      while (dummyIterator->NextFrame(false))
       {
         //check for loop
-        if (0 == iterator.Line() &&
-            0 == iterator.Quirk() &&
-            loopPosNum == iterator.Position())
+        if (0 == dummyState->Line() &&
+            0 == dummyState->Quirk() &&
+            loopPosNum == dummyState->Position())
         {
-          LoopFrameNum = iterator.Frame();
+          LoopFrameNum = dummyState->Frame();
         }
         //to prevent reset
-        Frames = std::max(Frames, iterator.Frame());
+        Frames = std::max(Frames, dummyState->Frame());
       }
       ++Frames;
     }

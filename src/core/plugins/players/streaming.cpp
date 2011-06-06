@@ -21,6 +21,79 @@ namespace
 
   const uint_t STREAM_LOGICAL_CHANNELS = 1;
 
+  class StreamStateCursor : public TrackState
+  {
+  public:
+    typedef boost::shared_ptr<StreamStateCursor> Ptr;
+
+    explicit StreamStateCursor(Information::Ptr info)
+      : Info(info)
+      , CurFrame()
+    {
+      Reset();
+    }
+
+    //status functions
+    virtual uint_t Position() const
+    {
+      return 0;
+    }
+
+    virtual uint_t Pattern() const
+    {
+      return 0;
+    }
+
+    virtual uint_t PatternSize() const
+    {
+      return 0;
+    }
+
+    virtual uint_t Line() const
+    {
+      return 0;
+    }
+
+    virtual uint_t Tempo() const
+    {
+      return 1;
+    }
+
+    virtual uint_t Quirk() const
+    {
+      return 0;
+    }
+
+    virtual uint_t Frame() const
+    {
+      return CurFrame;
+    }
+
+    virtual uint_t Channels() const
+    {
+      return STREAM_LOGICAL_CHANNELS;
+    }
+
+    //navigation
+    void Reset()
+    {
+      CurFrame = 0;
+    }
+
+    void ResetToLoop()
+    {
+      CurFrame = Info->LoopFrame();
+    }
+
+    bool NextFrame()
+    {
+      return ++CurFrame < Info->FramesCount();
+    }
+  private:
+    const Information::Ptr Info;
+    uint_t CurFrame;
+  };
+
   class StreamInfo : public Information
   {
   public:
@@ -70,92 +143,40 @@ namespace
   {
   public:
     explicit StreamStateIterator(Information::Ptr info)
-      : Info(info)
+      : Cursor(boost::make_shared<StreamStateCursor>(info))
     {
-      Reset();
-    }
-
-    //status functions
-    virtual uint_t Position() const
-    {
-      return 0;
-    }
-
-    virtual uint_t Pattern() const
-    {
-      return 0;
-    }
-
-    virtual uint_t PatternSize() const
-    {
-      return 0;
-    }
-
-    virtual uint_t Line() const
-    {
-      return 0;
-    }
-
-    virtual uint_t Tempo() const
-    {
-      return 1;
-    }
-
-    virtual uint_t Quirk() const
-    {
-      return 0;
-    }
-
-    virtual uint_t Frame() const
-    {
-      return CurFrame;
-    }
-
-    virtual uint_t Channels() const
-    {
-      return STREAM_LOGICAL_CHANNELS;
     }
 
     //iterator functions
     virtual void Reset()
     {
-      CurFrame = 0;
+      Cursor->Reset();
     }
 
     virtual bool NextFrame(bool looped)
     {
-      ++CurFrame;
-      if (CurFrame >= Info->FramesCount() &&
-          !ProcessLoop(looped))
+      if (Cursor->NextFrame())
       {
+        return true;
+      }
+      if (looped)
+      {
+        Cursor->ResetToLoop();
+        return true;
+      }
+      else
+      {
+        Cursor->Reset();
         return false;
       }
-      return true;
-    }
-  private:
-    bool ProcessLoop(bool looped)
-    {
-      return looped
-        ? ProcessNormalLoop()
-        : ProcessNoLoop();
     }
 
-    bool ProcessNormalLoop()
+    virtual TrackState::Ptr GetStateObserver() const
     {
-      CurFrame = Info->LoopFrame();
-      return true;
-    }
-
-    bool ProcessNoLoop()
-    {
-      Reset();
-      return false;
+      return Cursor;
     }
   private:
-    //context
-    const Information::Ptr Info;
-    //state
-    uint_t CurFrame;
+    const StreamStateCursor::Ptr Cursor;
   };
 }
 

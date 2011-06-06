@@ -98,7 +98,7 @@ namespace ZXTune
         virtual void Reset() = 0;
       };
 
-      class DataIterator : public Iterator
+      class DataIterator : public StateIterator
       {
       public:
         typedef boost::shared_ptr<DataIterator> Ptr;
@@ -108,7 +108,7 @@ namespace ZXTune
 
       DataIterator::Ptr CreateDataIterator(TrackParameters::Ptr trackParams, StateIterator::Ptr iterator, DataRenderer::Ptr renderer);
 
-      Renderer::Ptr CreateRenderer(TrackState::Ptr state, AYM::DataIterator::Ptr iterator, Devices::AYM::Chip::Ptr device);
+      Renderer::Ptr CreateRenderer(AYM::DataIterator::Ptr iterator, Devices::AYM::Chip::Ptr device);
 
       Devices::AYM::Receiver::Ptr CreateReceiver(TrackParameters::Ptr params, Sound::MultichannelReceiver::Ptr target);
 

@@ -384,7 +384,6 @@ namespace
       Devices::DAC::DataChunk chunk;
       do
       {
-        assert(Data->Positions.size() > Iterator->Position());
         RenderData(chunk);
       }
       while (Iterator->NextFrame(false));
@@ -394,7 +393,7 @@ namespace
 
     virtual TrackState::Ptr GetTrackState() const
     {
-      return Iterator;
+      return Iterator->GetStateObserver();
     }
 
     virtual Analyzer::Ptr GetAnalyzer() const
@@ -425,14 +424,15 @@ namespace
 
     virtual void SetPosition(uint_t frame)
     {
-      if (frame < Iterator->Frame())
+      const TrackState::Ptr state = Iterator->GetStateObserver();
+      if (frame < state->Frame())
       {
         //reset to beginning in case of moving back
         Iterator->Reset();
       }
       //fast forward
       Devices::DAC::DataChunk chunk;
-      while (Iterator->Frame() < frame)
+      while (state->Frame() < frame)
       {
         //do not update tick for proper rendering
         RenderData(chunk);
@@ -447,7 +447,8 @@ namespace
     void RenderData(Devices::DAC::DataChunk& chunk)
     {
       std::vector<Devices::DAC::DataChunk::ChannelData> res;
-      const CHITrack::Line* const line = Data->Patterns[Iterator->Pattern()].GetLine(Iterator->Line());
+      const TrackState::Ptr state = Iterator->GetStateObserver();
+      const CHITrack::Line* const line = Data->Patterns[state->Pattern()].GetLine(state->Line());
       for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
       {
         GlissData& gliss(Gliss[chan]);
@@ -459,7 +460,7 @@ namespace
           gliss.Sliding = gliss.Glissade = 0;
         }
         //begin note
-        if (line && 0 == Iterator->Quirk())
+        if (line && 0 == state->Quirk())
         {
           const CHITrack::Line::Chan& src = line->Channels[chan];
           if (src.Enabled)

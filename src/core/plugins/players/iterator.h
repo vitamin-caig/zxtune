@@ -32,11 +32,12 @@ namespace ZXTune
       virtual bool NextFrame(bool looped) = 0;
     };
 
-    class StateIterator : public TrackState
-                        , public Iterator
+    class StateIterator : public Iterator
     {
     public:
       typedef boost::shared_ptr<StateIterator> Ptr;
+
+      virtual TrackState::Ptr GetStateObserver() const = 0;
     };
 
     void SeekIterator(StateIterator& iter, uint_t frameNum);
