@@ -536,104 +536,6 @@ namespace
     STCTransposition Transpositions;
   };
 
-  Renderer::Ptr CreateSTCRenderer(AYM::TrackParameters::Ptr params, Information::Ptr info, STCModuleData::Ptr data, Devices::AYM::Chip::Ptr device);
-
-  class STCHolder : public Holder
-                  , private ConversionFactory
-  {
-  public:
-    STCHolder(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr allData, std::size_t& usedSize)
-      : Data(boost::make_shared<STCModuleData>())
-      , Properties(properties)
-      , Info(CreateTrackInfo(Data, Devices::AYM::CHANNELS))
-      , Params(parameters)
-    {
-      //assume that data is ok
-      const IO::FastDump& data = IO::FastDump(*allData, 0, MAX_MODULE_SIZE);
-      const STCAreas areas(data);
-
-      Data->ParseInformation(areas, *Properties);
-      const uint_t smpLim = Data->ParseSamples(areas);
-      const uint_t ornLim = Data->ParseOrnaments(areas);
-      const uint_t patLim = Data->ParsePatterns(areas);
-      const uint_t posLim = Data->ParsePositions(areas);
-
-      const std::size_t maxLim = std::max(std::max(smpLim, ornLim), std::max(patLim, posLim));
-      usedSize = std::min(data.Size(), maxLim);
-
-      //meta properties
-      {
-        const ModuleRegion fixedRegion(sizeof(STCHeader), usedSize - sizeof(STCHeader));
-        Properties->SetSource(usedSize, fixedRegion);
-      }
-      Properties->SetFreqtable(TABLE_SOUNDTRACKER);
-    }
-
-    virtual Plugin::Ptr GetPlugin() const
-    {
-      return Properties->GetPlugin();
-    }
-
-    virtual Information::Ptr GetModuleInformation() const
-    {
-      return Info;
-    }
-
-    virtual Parameters::Accessor::Ptr GetModuleProperties() const
-    {
-      return Parameters::CreateMergedAccessor(Params, Properties);
-    }
-
-    virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
-    {
-      const Parameters::Accessor::Ptr params = GetModuleProperties();
-
-      const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
-      const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(trackParams, target);
-      const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
-      const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateChip(chipParams, receiver);
-      return CreateSTCRenderer(trackParams, Info, Data, chip);
-    }
-
-    virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
-    {
-      using namespace Conversion;
-      Error result;
-      if (parameter_cast<RawConvertParam>(&param))
-      {
-        Properties->GetData(dst);
-      }
-      else if (!ConvertAYMFormat(param, *this, dst, result))
-      {
-        return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
-      }
-      return result;
-    }
-  private:
-    virtual Information::Ptr GetInformation() const
-    {
-      return GetModuleInformation();
-    }
-
-    virtual Parameters::Accessor::Ptr GetProperties() const
-    {
-      return GetModuleProperties();
-    }
-
-    virtual Renderer::Ptr CreateRenderer(Devices::AYM::Chip::Ptr chip) const
-    {
-      const Parameters::Accessor::Ptr params = GetModuleProperties();
-
-      const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
-      return CreateSTCRenderer(trackParams, Info, Data, chip);
-    }
-  private:
-    const STCModuleData::RWPtr Data;
-    const ModuleProperties::RWPtr Properties;
-    const Information::Ptr Info;
-    const Parameters::Accessor::Ptr Params;
-  };
-
   class STCChannelBuilder
   {
   public:
@@ -857,11 +759,14 @@ namespace
     }
   }
 
-  class STCDataRenderer : public AYM::DataRenderer
+  class STCDataIterator : public AYM::DataIterator
   {
   public:
-    explicit STCDataRenderer(STCModuleData::Ptr data)
-      : Data(data)
+    STCDataIterator(AYM::TrackParameters::Ptr trackParams, StateIterator::Ptr delegate, STCModuleData::Ptr data)
+      : TrackParams(trackParams)
+      , Delegate(delegate)
+      , State(Delegate->GetStateObserver())
+      , Data(data)
       , StateA(Data)
       , StateB(Data)
       , StateC(Data)
@@ -873,24 +778,44 @@ namespace
       StateA.Reset();
       StateB.Reset();
       StateC.Reset();
+      CurrentChunk = Devices::AYM::DataChunk();
+      return Delegate->Reset();
     }
 
-    virtual void SynthesizeData(const TrackState& state, AYM::TrackBuilder& track)
+    virtual bool NextFrame(bool looped)
     {
-      if (0 == state.Quirk())
+      ApplyNextFrame();
+      return Delegate->NextFrame(looped);
+    }
+
+    virtual TrackState::Ptr GetStateObserver() const
+    {
+      return State;
+    }
+
+    virtual void GetData(Devices::AYM::DataChunk& chunk) const
+    {
+       chunk = CurrentChunk;
+    }
+  private:
+    void ApplyNextFrame()
+    {
+      AYM::TrackBuilder track(TrackParams->FreqTable());
+
+      if (0 == State->Quirk())
       {
-        GetNewLineState(state, track);
+        GetNewLineState(track);
       }
-      SynthesizeChannelsData(state, track);
+      SynthesizeChannelsData(track);
       StateA.Iterate();
       StateB.Iterate();
       StateC.Iterate();
+      track.GetResult(CurrentChunk);
     }
 
-  private:
-    void GetNewLineState(const TrackState& state, AYM::TrackBuilder& track)
+    void GetNewLineState(AYM::TrackBuilder& track)
     {
-      if (const STCTrack::Line* line = Data->Patterns[state.Pattern()].GetLine(state.Line()))
+      if (const STCTrack::Line* line = Data->Patterns[State->Pattern()].GetLine(State->Line()))
       {
         if (const STCTrack::Line::Chan& src = line->Channels[0])
         {
@@ -910,9 +835,9 @@ namespace
       }
     }
 
-    void SynthesizeChannelsData(const TrackState& state, AYM::TrackBuilder& track)
+    void SynthesizeChannelsData(AYM::TrackBuilder& track)
     {
-      const uint_t transposition = Data->Transpositions[state.Position()];
+      const uint_t transposition = Data->Transpositions[State->Position()];
       {
         STCChannelBuilder channel(transposition, track, 0);
         StateA.Synthesize(channel);
@@ -927,17 +852,47 @@ namespace
       }
     }
   private:
+    const AYM::TrackParameters::Ptr TrackParams;
+    const StateIterator::Ptr Delegate;
+    const TrackState::Ptr State;
     const STCModuleData::Ptr Data;
     STCChannelState StateA;
     STCChannelState StateB;
     STCChannelState StateC;
+    Devices::AYM::DataChunk CurrentChunk;
   };
 
-  Renderer::Ptr CreateSTCRenderer(AYM::TrackParameters::Ptr params, Information::Ptr info, STCModuleData::Ptr data, Devices::AYM::Chip::Ptr device)
+  class STCChiptune : public AYM::Chiptune
   {
-    const AYM::DataRenderer::Ptr renderer = boost::make_shared<STCDataRenderer>(data);
-    return AYM::CreateTrackRenderer(params, info, data, renderer, device);
-  }
+  public:
+    STCChiptune(STCModuleData::Ptr data, ModuleProperties::Ptr properties)
+      : Data(data)
+      , Properties(properties)
+      , Info(CreateTrackInfo(Data, Devices::AYM::CHANNELS))
+    {
+    }
+
+    virtual Information::Ptr GetInformation() const
+    {
+      return Info;
+    }
+
+    virtual ModuleProperties::Ptr GetProperties() const
+    {
+      return Properties;
+    }
+
+    virtual AYM::DataIterator::Ptr CreateDataIterator(Parameters::Accessor::Ptr params) const
+    {
+      const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
+      const StateIterator::Ptr iter = CreateTrackStateIterator(Info, Data);
+      return boost::make_shared<STCDataIterator>(trackParams, iter, Data);
+    }
+  private:
+    const STCModuleData::Ptr Data;
+    const ModuleProperties::Ptr Properties;
+    const Information::Ptr Info;
+  };
 
   class STCAreasChecker : public STCAreas
   {
@@ -1127,13 +1082,35 @@ namespace
       return Format;
     }
 
-    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize) const
+    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr allData, std::size_t& usedSize) const
     {
       try
       {
-        assert(Check(*data));
-        const Holder::Ptr holder(new STCHolder(properties, parameters, data, usedSize));
-        return holder;
+        assert(Check(*allData));
+
+        //assume that data is ok
+        const IO::FastDump& data = IO::FastDump(*allData, 0, MAX_MODULE_SIZE);
+        const STCAreas areas(data);
+
+        const STCModuleData::RWPtr parsedData = boost::make_shared<STCModuleData>();
+        parsedData->ParseInformation(areas, *properties);
+        const uint_t smpLim = parsedData->ParseSamples(areas);
+        const uint_t ornLim = parsedData->ParseOrnaments(areas);
+        const uint_t patLim = parsedData->ParsePatterns(areas);
+        const uint_t posLim = parsedData->ParsePositions(areas);
+
+        const std::size_t maxLim = std::max(std::max(smpLim, ornLim), std::max(patLim, posLim));
+        usedSize = std::min(data.Size(), maxLim);
+
+        //meta properties
+        {
+          const ModuleRegion fixedRegion(sizeof(STCHeader), usedSize - sizeof(STCHeader));
+          properties->SetSource(usedSize, fixedRegion);
+        }
+        properties->SetFreqtable(TABLE_SOUNDTRACKER);
+
+        const AYM::Chiptune::Ptr chiptune = boost::make_shared<STCChiptune>(parsedData, properties);
+        return AYM::CreateHolder(chiptune, parameters);
       }
       catch (const Error&/*e*/)
       {

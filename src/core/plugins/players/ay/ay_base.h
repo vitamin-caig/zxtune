@@ -67,8 +67,6 @@ namespace ZXTune
         void SetEnvelopeType(uint_t type);
         void SetEnvelopeTone(uint_t tone);
 
-        void SetRawChunk(const Devices::AYM::DataChunk& chunk);
-
         int_t GetSlidingDifference(int_t halfToneFrom, int_t halfToneTo) const;
 
         ChannelBuilder GetChannel(uint_t chan)
@@ -114,7 +112,7 @@ namespace ZXTune
 
         virtual Information::Ptr GetInformation() const = 0;
         virtual ModuleProperties::Ptr GetProperties() const = 0;
-        virtual AYM::DataIterator::Ptr CreateDataIterator() const = 0;
+        virtual AYM::DataIterator::Ptr CreateDataIterator(Parameters::Accessor::Ptr params) const = 0;
       };
 
       DataIterator::Ptr CreateDataIterator(TrackParameters::Ptr trackParams, StateIterator::Ptr iterator, DataRenderer::Ptr renderer);

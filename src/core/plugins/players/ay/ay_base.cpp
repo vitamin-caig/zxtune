@@ -239,7 +239,7 @@ namespace
       const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(trackParams, target);
       const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
       const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateChip(chipParams, receiver);
-      const AYM::DataIterator::Ptr iterator = Tune->CreateDataIterator();
+      const AYM::DataIterator::Ptr iterator = Tune->CreateDataIterator(params);
       return AYM::CreateRenderer(iterator, chip);
     }
 
@@ -270,7 +270,9 @@ namespace
 
     virtual Renderer::Ptr CreateRenderer(Devices::AYM::Chip::Ptr chip) const
     {
-      const AYM::DataIterator::Ptr iterator = Tune->CreateDataIterator();
+      const Parameters::Accessor::Ptr params = GetModuleProperties();
+
+      const AYM::DataIterator::Ptr iterator = Tune->CreateDataIterator(params);
       return AYM::CreateRenderer(iterator, chip);
     }
   private:
@@ -348,13 +350,6 @@ namespace ZXTune
         const int_t toneFrom = Table[halfFrom];
         const int_t toneTo = Table[halfTo];
         return toneTo - toneFrom;
-      }
-
-      void TrackBuilder::SetRawChunk(const Devices::AYM::DataChunk& chunk)
-      {
-        std::copy(chunk.Data.begin(), chunk.Data.end(), Chunk.Data.begin());
-        Chunk.Mask &= ~Devices::AYM::DataChunk::MASK_ALL_REGISTERS;
-        Chunk.Mask |= chunk.Mask & Devices::AYM::DataChunk::MASK_ALL_REGISTERS;
       }
 
       DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams, StateIterator::Ptr iterator, DataRenderer::Ptr renderer)

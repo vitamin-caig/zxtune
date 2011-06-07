@@ -261,7 +261,7 @@ namespace
       return Properties;
     }
 
-    virtual AYM::DataIterator::Ptr CreateDataIterator() const
+    virtual AYM::DataIterator::Ptr CreateDataIterator(Parameters::Accessor::Ptr /*params*/) const
     {
       const StateIterator::Ptr iter = CreateStreamStateIterator(Info);
       return boost::make_shared<PSGDataIterator>(iter, Data);
@@ -346,7 +346,6 @@ namespace
         properties->SetSource(parsedData->GetDataSize(), parsedData->GetFixedRegion());
 
         const AYM::Chiptune::Ptr chiptune = boost::make_shared<PSGChiptune>(parsedData, properties);
-
         return AYM::CreateHolder(chiptune, parameters);
       }
       catch (const Error&/*e*/)
