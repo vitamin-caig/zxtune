@@ -245,7 +245,7 @@ namespace
     }
 
   public:
-    CHIHolder(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr rawData, std::size_t& usedSize)
+    CHIHolder(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr rawData, std::size_t& usedSize)
       : Data(CHITrack::ModuleData::Create())
       , Properties(properties)
       , Info(CreateTrackInfo(Data, CHANNELS_COUNT))
@@ -352,7 +352,7 @@ namespace
     }
   private:
     const CHITrack::ModuleData::RWPtr Data;
-    const ModuleProperties::Ptr Properties;
+    const ModuleProperties::RWPtr Properties;
     const Information::Ptr Info;
     const Parameters::Accessor::Ptr Params;
   };
@@ -591,7 +591,7 @@ namespace
       return Format;
     }
 
-    virtual Holder::Ptr CreateModule(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize) const
+    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize) const
     {
       try
       {

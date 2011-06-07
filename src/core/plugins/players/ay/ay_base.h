@@ -15,8 +15,8 @@ Author:
 
 //local includes
 #include "aym_parameters.h"
-#include <core/plugins/players/streaming.h>
-#include <core/plugins/players/tracking.h>
+#include "core/plugins/players/module_properties.h"
+#include "core/plugins/players/tracking.h"
 //common includes
 #include <error.h>
 //library includes
@@ -106,16 +106,27 @@ namespace ZXTune
         virtual void GetData(Devices::AYM::DataChunk& chunk) const = 0;
       };
 
+      class Chiptune
+      {
+      public:
+        typedef boost::shared_ptr<const Chiptune> Ptr;
+        virtual ~Chiptune() {}
+
+        virtual Information::Ptr GetInformation() const = 0;
+        virtual ModuleProperties::Ptr GetProperties() const = 0;
+        virtual AYM::DataIterator::Ptr CreateDataIterator() const = 0;
+      };
+
       DataIterator::Ptr CreateDataIterator(TrackParameters::Ptr trackParams, StateIterator::Ptr iterator, DataRenderer::Ptr renderer);
 
       Renderer::Ptr CreateRenderer(AYM::DataIterator::Ptr iterator, Devices::AYM::Chip::Ptr device);
 
       Devices::AYM::Receiver::Ptr CreateReceiver(TrackParameters::Ptr params, Sound::MultichannelReceiver::Ptr target);
 
+      Holder::Ptr CreateHolder(Chiptune::Ptr chiptune, Parameters::Accessor::Ptr params);
+
 
       Renderer::Ptr CreateRenderer(TrackParameters::Ptr params, StateIterator::Ptr iterator, DataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device);
-
-      Renderer::Ptr CreateStreamRenderer(TrackParameters::Ptr params, Information::Ptr info, DataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device);
 
       Renderer::Ptr CreateTrackRenderer(TrackParameters::Ptr params, Information::Ptr info, TrackModuleData::Ptr data,
         DataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device);

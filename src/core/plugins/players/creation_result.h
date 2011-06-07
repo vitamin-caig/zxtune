@@ -28,7 +28,7 @@ namespace ZXTune
     virtual ~ModulesFactory() {}
 
     virtual DataFormat::Ptr GetFormat() const = 0;
-    virtual Module::Holder::Ptr CreateModule(Module::ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize) const = 0;
+    virtual Module::Holder::Ptr CreateModule(Module::ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize) const = 0;
   };
 
   namespace Module

@@ -211,7 +211,7 @@ namespace ZXTune
 {
   namespace Module
   {
-    ModuleProperties::Ptr ModuleProperties::Create(PlayerPlugin::Ptr plugin, DataLocation::Ptr location)
+    ModuleProperties::RWPtr ModuleProperties::Create(PlayerPlugin::Ptr plugin, DataLocation::Ptr location)
     {
       return boost::make_shared<ModulePropertiesImpl>(plugin, location);
     }

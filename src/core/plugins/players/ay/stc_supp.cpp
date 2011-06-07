@@ -542,7 +542,7 @@ namespace
                   , private ConversionFactory
   {
   public:
-    STCHolder(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr allData, std::size_t& usedSize)
+    STCHolder(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr allData, std::size_t& usedSize)
       : Data(boost::make_shared<STCModuleData>())
       , Properties(properties)
       , Info(CreateTrackInfo(Data, Devices::AYM::CHANNELS))
@@ -629,7 +629,7 @@ namespace
     }
   private:
     const STCModuleData::RWPtr Data;
-    const ModuleProperties::Ptr Properties;
+    const ModuleProperties::RWPtr Properties;
     const Information::Ptr Info;
     const Parameters::Accessor::Ptr Params;
   };
@@ -1127,7 +1127,7 @@ namespace
       return Format;
     }
 
-    virtual Holder::Ptr CreateModule(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize) const
+    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize) const
     {
       try
       {

@@ -61,7 +61,7 @@ namespace
                   , private ConversionFactory
   {
   public:
-    TXTHolder(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize)
+    TXTHolder(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize)
       : Data(Vortex::Track::ModuleData::Create())
       , Properties(properties)
       , Info(CreateTrackInfo(Data, Devices::AYM::CHANNELS))
@@ -146,7 +146,7 @@ namespace
     }
   private:
     const Vortex::Track::ModuleData::RWPtr Data;
-    const ModuleProperties::Ptr Properties;
+    const ModuleProperties::RWPtr Properties;
     const Information::Ptr Info;
     uint_t Version;
     const Parameters::Accessor::Ptr Params;
@@ -206,7 +206,7 @@ namespace
       return Format;
     }
 
-    virtual Holder::Ptr CreateModule(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize) const
+    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize) const
     {
       try
       {

@@ -392,7 +392,7 @@ namespace
     }
 
   public:
-    PT2Holder(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr rawData, std::size_t& usedSize)
+    PT2Holder(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr rawData, std::size_t& usedSize)
       : Data(PT2Track::ModuleData::Create())
       , Properties(properties)
       , Info(CreateTrackInfo(Data, Devices::AYM::CHANNELS))
@@ -524,7 +524,7 @@ namespace
     }
   private:
     const PT2Track::ModuleData::RWPtr Data;
-    const ModuleProperties::Ptr Properties;
+    const ModuleProperties::RWPtr Properties;
     const Information::Ptr Info;
     const Parameters::Accessor::Ptr Params;
   };
@@ -902,7 +902,7 @@ namespace
       return Format;
     }
 
-    virtual Holder::Ptr CreateModule(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize) const
+    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize) const
     {
       try
       {

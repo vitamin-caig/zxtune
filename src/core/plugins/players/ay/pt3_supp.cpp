@@ -471,7 +471,7 @@ namespace
       }
     }
   public:
-    PT3Holder(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, Vortex::Track::ModuleData::RWPtr moduleData,
+    PT3Holder(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, Vortex::Track::ModuleData::RWPtr moduleData,
       IO::DataContainer::Ptr rawData, unsigned logicalChannels, std::size_t& usedSize)
       : Data(moduleData)
       , Properties(properties)
@@ -618,7 +618,7 @@ namespace
     }
   protected:
     const Vortex::Track::ModuleData::RWPtr Data;
-    const ModuleProperties::Ptr Properties;
+    const ModuleProperties::RWPtr Properties;
     const Information::Ptr Info;
     uint_t Version;
     const Parameters::Accessor::Ptr Params;
@@ -685,7 +685,7 @@ namespace
   class PT3TSHolder : public PT3Holder
   {
   public:
-    PT3TSHolder(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, uint_t patOffset, IO::DataContainer::Ptr rawData, std::size_t& usedSize)
+    PT3TSHolder(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, uint_t patOffset, IO::DataContainer::Ptr rawData, std::size_t& usedSize)
       : PT3Holder(properties, parameters, boost::make_shared<TSModuleData>(patOffset), rawData, Devices::AYM::CHANNELS * 2, usedSize)
       , PatOffset(patOffset)
     {
@@ -890,7 +890,7 @@ namespace
       return Format;
     }
 
-    virtual Holder::Ptr CreateModule(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize) const
+    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize) const
     {
       try
       {

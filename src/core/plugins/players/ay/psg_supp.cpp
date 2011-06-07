@@ -20,7 +20,6 @@ Author:
 #include <tools.h>
 #include <logging.h>
 //library includes
-#include <core/convert_parameters.h>
 #include <core/error_codes.h>
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
@@ -73,196 +72,205 @@ namespace
   class PSGData
   {
   public:
-    typedef boost::shared_ptr<PSGData> RWPtr;
     typedef boost::shared_ptr<const PSGData> Ptr;
 
-    std::vector<Devices::AYM::DataChunk> Dump;
+    PSGData()
+      : RawDataSize()
+    {
+    }
+
+    void AddChunks(uint_t count)
+    {
+      std::fill_n(std::back_inserter(Data), count, Devices::AYM::DataChunk());
+    }
+
+    void SetRegister(uint_t reg, uint8_t val)
+    {
+      if (!Data.empty())
+      {
+        Devices::AYM::DataChunk& chunk = Data.back();
+        chunk.Data[reg] = val;
+        chunk.Mask |= uint_t(1) << reg;
+      }
+    }
+
+    void SetUsedSize(std::size_t usedSize)
+    {
+      RawDataSize = usedSize;
+    }
+
+    std::size_t GetDataSize() const
+    {
+      return RawDataSize;
+    }
+
+    ModuleRegion GetFixedRegion() const
+    {
+      return ModuleRegion(0, RawDataSize);
+    }
+
+    std::size_t GetSize() const
+    {
+      return Data.size();
+    }
+
+    const Devices::AYM::DataChunk& GetChunk(std::size_t frameNum) const
+    {
+      return Data[frameNum];
+    }
+  private:
+    std::vector<Devices::AYM::DataChunk> Data;
+    std::size_t RawDataSize;
   };
 
-  Renderer::Ptr CreatePSGRenderer(AYM::TrackParameters::Ptr params, Information::Ptr info, PSGData::Ptr data, Devices::AYM::Chip::Ptr device);
-
-  class PSGHolder : public Holder
-                  , private ConversionFactory
+  PSGData::Ptr ParsePSG(IO::DataContainer::Ptr rawData)
   {
-  public:
-    PSGHolder(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr rawData, std::size_t& usedSize)
-      : Properties(properties)
-      , Data(boost::make_shared<PSGData>())
-      , Params(parameters)
+    boost::shared_ptr<PSGData> result = boost::make_shared<PSGData>();
+
+    const IO::FastDump data(*rawData);
+    //workaround for some emulators
+    const std::size_t offset = (data[4] == INT_BEGIN) ? 4 : sizeof(PSGHeader);
+    std::size_t size = data.Size() - offset;
+    const uint8_t* bdata = &data[offset];
+    //detect as much chunks as possible, in despite of real format issues
+    while (size)
     {
-      const IO::FastDump data(*rawData);
-      //workaround for some emulators
-      const std::size_t offset = (data[4] == INT_BEGIN) ? 4 : sizeof(PSGHeader);
-      std::size_t size = data.Size() - offset;
-      const uint8_t* bdata = &data[offset];
-      //detect as much chunks as possible, in despite of real format issues
-      Devices::AYM::DataChunk dummy;
-      Devices::AYM::DataChunk* chunk = &dummy;
-      while (size)
+      const uint_t reg = *bdata;
+      ++bdata;
+      --size;
+      if (INT_BEGIN == reg)
       {
-        const uint_t reg = *bdata;
-        ++bdata;
-        --size;
-        if (INT_BEGIN == reg)
-        {
-          Data->Dump.push_back(dummy);
-          chunk = &Data->Dump.back();
-        }
-        else if (INT_SKIP == reg)
-        {
-          if (size < 1)
-          {
-            ++size;//put byte back
-            break;
-          }
-          std::size_t count = 4 * *bdata;
-          while (count--)
-          {
-            //empty chunk
-            Data->Dump.push_back(dummy);
-          }
-          chunk = &Data->Dump.back();
-          ++bdata;
-          --size;
-        }
-        else if (MUS_END == reg)
-        {
-          break;
-        }
-        else if (reg <= 15) //register
-        {
-          if (size < 1)
-          {
-            ++size;//put byte back
-            break;
-          }
-          chunk->Data[reg] = *bdata;
-          chunk->Mask |= uint_t(1) << reg;
-          ++bdata;
-          --size;
-        }
-        else
+        result->AddChunks(1);
+      }
+      else if (INT_SKIP == reg)
+      {
+        if (size < 1)
         {
           ++size;//put byte back
           break;
         }
+        result->AddChunks(4 * *bdata);
+        ++bdata;
+        --size;
       }
-
-      usedSize = data.Size() - size;
-
-      //meta properties
-      Properties->SetSource(usedSize, ModuleRegion(0, usedSize));
-      Properties->SetFreqtable(TABLE_SOUNDTRACKER);//TODO: remove
-      Info = CreateStreamInfo(static_cast<uint_t>(Data->Dump.size()), Devices::AYM::CHANNELS);
-    }
-
-    virtual Plugin::Ptr GetPlugin() const
-    {
-      return Properties->GetPlugin();
-    }
-
-    virtual Information::Ptr GetModuleInformation() const
-    {
-      return Info;
-    }
-
-    virtual Parameters::Accessor::Ptr GetModuleProperties() const
-    {
-      return Parameters::CreateMergedAccessor(Params, Properties);
-    }
-
-    virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
-    {
-      const Parameters::Accessor::Ptr params = GetModuleProperties();
-
-      const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
-      const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(trackParams, target);
-      const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
-      const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateChip(chipParams, receiver);
-      return CreatePSGRenderer(trackParams, Info, Data, chip);
-    }
-
-    virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
-    {
-      using namespace Conversion;
-      Error result;
-      //converting to PSG and raw ripping are the same
-      if (parameter_cast<RawConvertParam>(&param))
+      else if (MUS_END == reg)
       {
-        Properties->GetData(dst);
+        break;
       }
-      else if (!ConvertAYMFormat(param, *this, dst, result))
+      else if (reg <= 15) //register
       {
-        return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
+        if (size < 1)
+        {
+          ++size;//put byte back
+          break;
+        }
+        result->SetRegister(reg, *bdata);
+        ++bdata;
+        --size;
       }
-      return result;
+      else
+      {
+        ++size;//put byte back
+        break;
+      }
     }
-  private:
-    virtual Information::Ptr GetInformation() const
-    {
-      return GetModuleInformation();
-    }
+    result->SetUsedSize(data.Size() - size);
+    return result;
+  }
 
-    virtual Parameters::Accessor::Ptr GetProperties() const
-    {
-      return GetModuleProperties();
-    }
-
-    virtual Renderer::Ptr CreateRenderer(Devices::AYM::Chip::Ptr chip) const
-    {
-      const Parameters::Accessor::Ptr params = GetModuleProperties();
-
-      const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
-      return CreatePSGRenderer(trackParams, Info, Data, chip);
-    }
-  private:
-    const ModuleProperties::Ptr Properties;
-    const PSGData::RWPtr Data;
-    Information::Ptr Info;
-    const Parameters::Accessor::Ptr Params;
-  };
-
-  class PSGDataRenderer : public AYM::DataRenderer
+  class PSGDataIterator : public AYM::DataIterator
   {
   public:
-    explicit PSGDataRenderer(PSGData::Ptr data)
-      : Data(data)
+    PSGDataIterator(StateIterator::Ptr delegate, PSGData::Ptr data)
+      : Delegate(delegate)
+      , State(Delegate->GetStateObserver())
+      , Data(data)
     {
-    }
-
-    virtual void SynthesizeData(const TrackState& state, AYM::TrackBuilder& track)
-    {
-      const Devices::AYM::DataChunk& data = Data->Dump[state.Frame()];
-      //collect state
-      for (uint_t reg = 0, mask = (data.Mask & Devices::AYM::DataChunk::MASK_ALL_REGISTERS); mask; ++reg, mask >>= 1)
-      {
-        if (0 != (mask & 1))
-        {
-          PlayerState.Data[reg] = data.Data[reg];
-          PlayerState.Mask |= uint_t(1) << reg;
-        }
-      }
-      //apply result
-      track.SetRawChunk(PlayerState);
-      //reset envelope mask
-      PlayerState.Mask &= ~(uint_t(1) << Devices::AYM::DataChunk::REG_ENV);
     }
 
     virtual void Reset()
     {
-      PlayerState = Devices::AYM::DataChunk();
+      CurrentChunk = Devices::AYM::DataChunk();
+      return Delegate->Reset();
+    }
+
+    virtual bool NextFrame(bool looped)
+    {
+      ApplyNextFrame();
+      return Delegate->NextFrame(looped);
+    }
+
+    virtual TrackState::Ptr GetStateObserver() const
+    {
+      return State;
+    }
+
+    virtual void GetData(Devices::AYM::DataChunk& chunk) const
+    {
+       chunk = CurrentChunk;
+    }
+  private:
+    void ApplyNextFrame()
+    {
+      const uint_t frameNum = State->Frame();
+      const Devices::AYM::DataChunk& inChunk = Data->GetChunk(frameNum);
+      ResetEnvelopeChanges();
+      for (uint_t reg = 0, mask = inChunk.Mask; mask; ++reg, mask >>= 1)
+      {
+        if (0 != (mask & 1))
+        {
+          UpdateRegister(reg, inChunk.Data[reg]);
+        }
+      }
+    }
+
+    void ResetEnvelopeChanges()
+    {
+      CurrentChunk.Mask &= ~(uint_t(1) << Devices::AYM::DataChunk::REG_ENV);
+    }
+
+    void UpdateRegister(uint_t reg, uint8_t data)
+    {
+      CurrentChunk.Mask |= uint_t(1) << reg;
+      CurrentChunk.Data[reg] = data;
+    }
+  private:
+    const StateIterator::Ptr Delegate;
+    const TrackState::Ptr State;
+    const PSGData::Ptr Data;
+    Devices::AYM::DataChunk CurrentChunk;
+  };
+
+  class PSGChiptune : public AYM::Chiptune
+  {
+  public:
+    PSGChiptune(PSGData::Ptr data, ModuleProperties::Ptr properties)
+      : Data(data)
+      , Properties(properties)
+      , Info(CreateStreamInfo(Data->GetSize(), Devices::AYM::CHANNELS))
+    {
+    }
+
+    virtual Information::Ptr GetInformation() const
+    {
+      return Info;
+    }
+
+    virtual ModuleProperties::Ptr GetProperties() const
+    {
+      return Properties;
+    }
+
+    virtual AYM::DataIterator::Ptr CreateDataIterator() const
+    {
+      const StateIterator::Ptr iter = CreateStreamStateIterator(Info);
+      return boost::make_shared<PSGDataIterator>(iter, Data);
     }
   private:
     const PSGData::Ptr Data;
-    //internal state
-    Devices::AYM::DataChunk PlayerState;
+    const ModuleProperties::Ptr Properties;
+    const Information::Ptr Info;
   };
-
-  Renderer::Ptr CreatePSGRenderer(AYM::TrackParameters::Ptr params, Information::Ptr info, PSGData::Ptr data, Devices::AYM::Chip::Ptr device)
-  {
-    const AYM::DataRenderer::Ptr renderer = boost::make_shared<PSGDataRenderer>(data);
-    return AYM::CreateStreamRenderer(params, info, renderer, device);
-  }
 
   bool CheckPSG(const IO::DataContainer& inputData)
   {
@@ -327,13 +335,19 @@ namespace
       return Format;
     }
 
-    virtual Holder::Ptr CreateModule(ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize) const
+    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize) const
     {
       try
       {
         assert(Check(*data));
-        const Holder::Ptr holder(new PSGHolder(properties, parameters, data, usedSize));
-        return holder;
+
+        const PSGData::Ptr parsedData = ParsePSG(data);
+        usedSize = parsedData->GetDataSize();
+        properties->SetSource(parsedData->GetDataSize(), parsedData->GetFixedRegion());
+
+        const AYM::Chiptune::Ptr chiptune = boost::make_shared<PSGChiptune>(parsedData, properties);
+
+        return AYM::CreateHolder(chiptune, parameters);
       }
       catch (const Error&/*e*/)
       {

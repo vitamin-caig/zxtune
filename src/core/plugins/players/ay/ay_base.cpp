@@ -11,9 +11,11 @@ Author:
 
 //local includes
 #include "ay_base.h"
+#include "ay_conversion.h"
 //common includes
 #include <tools.h>
 //library includes
+#include <core/convert_parameters.h>
 #include <core/error_codes.h>
 #include <sound/receiver.h>
 //std includes
@@ -203,6 +205,78 @@ namespace
     const Devices::AYM::Chip::Ptr Device;
     uint64_t LastRenderTick;
   };
+
+  class AYMHolder : public Holder
+                  , private ConversionFactory
+  {
+  public:
+    explicit AYMHolder(AYM::Chiptune::Ptr chiptune, Parameters::Accessor::Ptr params)
+      : Tune(chiptune)
+      , Params(params)
+    {
+    }
+
+    virtual Plugin::Ptr GetPlugin() const
+    {
+      return Tune->GetProperties()->GetPlugin();
+    }
+
+    virtual Information::Ptr GetModuleInformation() const
+    {
+      return Tune->GetInformation();
+    }
+
+    virtual Parameters::Accessor::Ptr GetModuleProperties() const
+    {
+      return Parameters::CreateMergedAccessor(Params, Tune->GetProperties());
+    }
+
+    virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
+    {
+      const Parameters::Accessor::Ptr params = GetModuleProperties();
+
+      const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
+      const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(trackParams, target);
+      const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
+      const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateChip(chipParams, receiver);
+      const AYM::DataIterator::Ptr iterator = Tune->CreateDataIterator();
+      return AYM::CreateRenderer(iterator, chip);
+    }
+
+    virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
+    {
+      using namespace Conversion;
+      Error result;
+      if (parameter_cast<RawConvertParam>(&param))
+      {
+        Tune->GetProperties()->GetData(dst);
+      }
+      else if (!ConvertAYMFormat(param, *this, dst, result))
+      {
+        return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
+      }
+      return result;
+    }
+  private:
+    virtual Information::Ptr GetInformation() const
+    {
+      return GetModuleInformation();
+    }
+
+    virtual Parameters::Accessor::Ptr GetProperties() const
+    {
+      return GetModuleProperties();
+    }
+
+    virtual Renderer::Ptr CreateRenderer(Devices::AYM::Chip::Ptr chip) const
+    {
+      const AYM::DataIterator::Ptr iterator = Tune->CreateDataIterator();
+      return AYM::CreateRenderer(iterator, chip);
+    }
+  private:
+    const AYM::Chiptune::Ptr Tune;
+    const Parameters::Accessor::Ptr Params;
+  };
 }
 
 namespace ZXTune
@@ -298,16 +372,16 @@ namespace ZXTune
         return boost::make_shared<AYMReceiver>(params, target);
       }
 
+      Holder::Ptr CreateHolder(Chiptune::Ptr chiptune, Parameters::Accessor::Ptr params)
+      {
+        return boost::make_shared<AYMHolder>(chiptune, params);
+      }
+
+
       Renderer::Ptr CreateRenderer(AYM::TrackParameters::Ptr params, StateIterator::Ptr iterator, DataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device)
       {
         const DataIterator::Ptr dataIter = CreateDataIterator(params, iterator, renderer);
         return CreateRenderer(dataIter, device);
-      }
-
-      Renderer::Ptr CreateStreamRenderer(TrackParameters::Ptr params, Information::Ptr info, DataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device)
-      {
-        const StateIterator::Ptr iterator = CreateStreamStateIterator(info);
-        return CreateRenderer(params, iterator, renderer, device);
       }
 
       Renderer::Ptr CreateTrackRenderer(TrackParameters::Ptr params, Information::Ptr info, TrackModuleData::Ptr data, 

@@ -28,7 +28,8 @@ namespace ZXTune
     class ModuleProperties : public Parameters::Accessor
     {
     public:
-      typedef boost::shared_ptr<ModuleProperties> Ptr;
+      typedef boost::shared_ptr<const ModuleProperties> Ptr;
+      typedef boost::shared_ptr<ModuleProperties> RWPtr;
 
       virtual void SetTitle(const String& title) = 0;
       virtual void SetAuthor(const String& author) = 0;
@@ -40,7 +41,7 @@ namespace ZXTune
       virtual Plugin::Ptr GetPlugin() const = 0;
       virtual void GetData(Dump& dump) const = 0;
 
-      static Ptr Create(PlayerPlugin::Ptr plugin, DataLocation::Ptr location);
+      static RWPtr Create(PlayerPlugin::Ptr plugin, DataLocation::Ptr location);
     };
   }
 }
