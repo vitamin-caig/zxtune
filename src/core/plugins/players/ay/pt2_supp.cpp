@@ -261,12 +261,93 @@ namespace
 
   typedef TrackingSupport<Devices::AYM::CHANNELS, CmdType, Sample> PT2Track;
 
-  AYM::DataRenderer::Ptr CreatePT2Renderer(PT2Track::ModuleData::Ptr data);
-
-  class PT2Holder : public Holder
-                  , private AYM::Chiptune
+  class PT2ModuleData : public PT2Track::ModuleData
   {
-    void ParsePattern(const IO::FastDump& data
+  public:
+    typedef boost::shared_ptr<PT2ModuleData> Ptr;
+
+    PT2ModuleData()
+      : PT2Track::ModuleData()
+    {
+    }
+
+    void ParseInformation(const IO::FastDump& data, ModuleProperties& properties)
+    {
+      const PT2Header* const header = safe_ptr_cast<const PT2Header*>(&data[0]);
+
+      LoopPosition = header->Loop;
+      InitialTempo = header->Tempo;
+      properties.SetTitle(OptimizeString(FromCharArray(header->Name)));
+      properties.SetProgram(Text::PT2_EDITOR);
+      properties.SetFreqtable(TABLE_PROTRACKER2);
+    }
+
+    std::size_t ParseSamples(const IO::FastDump& data)
+    {
+      const PT2Header* const header = safe_ptr_cast<const PT2Header*>(&data[0]);
+      
+      std::size_t res = sizeof(*header);
+      Samples.reserve(header->SamplesOffsets.size());
+      std::transform(header->SamplesOffsets.begin(), header->SamplesOffsets.end(),
+        std::back_inserter(Samples), boost::bind(&ParseSample, boost::cref(data), _1, boost::ref(res)));
+      return res;
+    }
+
+    std::size_t ParseOrnaments(const IO::FastDump& data)
+    {
+      const PT2Header* const header = safe_ptr_cast<const PT2Header*>(&data[0]);
+      
+      std::size_t res = sizeof(*header);
+      Ornaments.reserve(header->OrnamentsOffsets.size());
+      std::transform(header->OrnamentsOffsets.begin(), header->OrnamentsOffsets.end(),
+        std::back_inserter(Ornaments), boost::bind(&ParseOrnament, boost::cref(data), _1, boost::ref(res)));
+      return res;
+    }
+
+    std::size_t ParsePatterns(const IO::FastDump& data)
+    {
+      const PT2Header* const header = safe_ptr_cast<const PT2Header*>(&data[0]);
+      
+      std::size_t res = sizeof(*header);
+      //fill patterns
+      const PT2Pattern* patterns = safe_ptr_cast<const PT2Pattern*>(&data[fromLE(header->PatternsOffset)]);
+      Patterns.resize(MAX_PATTERN_COUNT);
+      uint_t index(0);
+      for (const PT2Pattern* pattern = patterns; pattern->Check(); ++pattern, ++index)
+      {
+        PT2Track::Pattern& pat = Patterns[index];
+
+        AYM::PatternCursors cursors;
+        std::transform(pattern->Offsets.begin(), pattern->Offsets.end(), cursors.begin(), &fromLE<uint16_t>);
+        uint_t& channelACursor = cursors.front().Offset;
+        do
+        {
+          PT2Track::Line& line = pat.AddLine();
+          ParsePattern(data, cursors, line);
+          //skip lines
+          if (const uint_t linesToSkip = cursors.GetMinCounter())
+          {
+            cursors.SkipLines(linesToSkip);
+            pat.AddLines(linesToSkip);//add dummies
+          }
+        }
+        while (channelACursor < data.Size() &&
+          (0 != data[channelACursor] || 0 != cursors.front().Counter));
+        res = std::max<std::size_t>(res, 1 + cursors.GetMaxOffset());
+      }
+
+      //fill order
+      for (const uint8_t* curPos = header->Positions; POS_END_MARKER != *curPos; ++curPos)
+      {
+        if (!Patterns[*curPos].IsEmpty())
+        {
+          Positions.push_back(*curPos);
+        }
+      }
+      return res;
+    }
+  private:
+    static void ParsePattern(const IO::FastDump& data
       , AYM::PatternCursors& cursors
       , PT2Track::Line& line
       )
@@ -390,145 +471,6 @@ namespace
         cur->Counter = cur->Period;
       }
     }
-
-  public:
-    PT2Holder(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr rawData, std::size_t& usedSize)
-      : Data(PT2Track::ModuleData::Create())
-      , Properties(properties)
-      , Info(CreateTrackInfo(Data, Devices::AYM::CHANNELS))
-      , Params(parameters)
-    {
-      //assume all data is correct
-      const IO::FastDump& data = IO::FastDump(*rawData);
-      const PT2Header* const header = safe_ptr_cast<const PT2Header*>(&data[0]);
-      const PT2Pattern* patterns = safe_ptr_cast<const PT2Pattern*>(&data[fromLE(header->PatternsOffset)]);
-
-      std::size_t rawSize = 0;
-      //fill samples
-      Data->Samples.reserve(header->SamplesOffsets.size());
-      std::transform(header->SamplesOffsets.begin(), header->SamplesOffsets.end(),
-        std::back_inserter(Data->Samples), boost::bind(&ParseSample, boost::cref(data), _1, boost::ref(rawSize)));
-      //fill ornaments
-      Data->Ornaments.reserve(header->OrnamentsOffsets.size());
-      std::transform(header->OrnamentsOffsets.begin(), header->OrnamentsOffsets.end(),
-        std::back_inserter(Data->Ornaments), boost::bind(&ParseOrnament, boost::cref(data), _1, boost::ref(rawSize)));
-
-      //fill patterns
-      Data->Patterns.resize(MAX_PATTERN_COUNT);
-      uint_t index(0);
-      for (const PT2Pattern* pattern = patterns; pattern->Check(); ++pattern, ++index)
-      {
-        PT2Track::Pattern& pat = Data->Patterns[index];
-
-        AYM::PatternCursors cursors;
-        std::transform(pattern->Offsets.begin(), pattern->Offsets.end(), cursors.begin(), &fromLE<uint16_t>);
-        uint_t& channelACursor = cursors.front().Offset;
-        do
-        {
-          PT2Track::Line& line = pat.AddLine();
-          ParsePattern(data, cursors, line);
-          //skip lines
-          if (const uint_t linesToSkip = cursors.GetMinCounter())
-          {
-            cursors.SkipLines(linesToSkip);
-            pat.AddLines(linesToSkip);//add dummies
-          }
-        }
-        while (channelACursor < data.Size() &&
-          (0 != data[channelACursor] || 0 != cursors.front().Counter));
-        rawSize = std::max<std::size_t>(rawSize, 1 + cursors.GetMaxOffset());
-      }
-
-      //fill order
-      for (const uint8_t* curPos = header->Positions; POS_END_MARKER != *curPos; ++curPos)
-      {
-        if (!Data->Patterns[*curPos].IsEmpty())
-        {
-          Data->Positions.push_back(*curPos);
-        }
-      }
-      Data->LoopPosition = header->Loop;
-      Data->InitialTempo = header->Tempo;
-
-      //fill region
-      usedSize = std::min(rawSize, data.Size());
-
-      //meta properties
-      {
-        const std::size_t fixedOffset(sizeof(PT2Header) + header->Length - 1);
-        const ModuleRegion fixedRegion(fixedOffset, usedSize -  fixedOffset);
-        Properties->SetSource(usedSize, fixedRegion);
-      }
-      Properties->SetTitle(OptimizeString(FromCharArray(header->Name)));
-      Properties->SetProgram(Text::PT2_EDITOR);
-      Properties->SetFreqtable(TABLE_PROTRACKER2);
-    }
-
-    virtual Plugin::Ptr GetPlugin() const
-    {
-      return Properties->GetPlugin();
-    }
-
-    virtual Information::Ptr GetModuleInformation() const
-    {
-      return Info;
-    }
-
-    virtual Parameters::Accessor::Ptr GetModuleProperties() const
-    {
-      return Parameters::CreateMergedAccessor(Params, Properties);
-    }
-
-    virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
-    {
-      const Parameters::Accessor::Ptr params = GetModuleProperties();
-
-      const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
-      const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(trackParams, target);
-      const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
-      const Devices::AYM::Chip::Ptr device = Devices::AYM::CreateChip(chipParams, receiver);
-
-      const AYM::DataRenderer::Ptr renderer = CreatePT2Renderer(Data);
-      return AYM::CreateTrackRenderer(trackParams, Info, Data, renderer, device);
-    }
-
-    virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
-    {
-      using namespace Conversion;
-      Error result;
-      if (parameter_cast<RawConvertParam>(&param))
-      {
-        Properties->GetData(dst);
-      }
-      else if (!ConvertAYMFormat(param, *this, dst, result))
-      {
-        return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
-      }
-      return result;
-    }
-  private:
-    virtual Information::Ptr GetInformation() const
-    {
-      return Info;
-    }
-
-    virtual ModuleProperties::Ptr GetProperties() const
-    {
-      return Properties;
-    }
-
-    virtual AYM::DataIterator::Ptr CreateDataIterator(Parameters::Accessor::Ptr params) const
-    {
-      const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
-      const StateIterator::Ptr iterator = CreateTrackStateIterator(Info, Data);
-      const AYM::DataRenderer::Ptr renderer = CreatePT2Renderer(Data);
-      return AYM::CreateDataIterator(trackParams, iterator, renderer);
-    }
-  private:
-    const PT2Track::ModuleData::RWPtr Data;
-    const ModuleProperties::RWPtr Properties;
-    const Information::Ptr Info;
-    const Parameters::Accessor::Ptr Params;
   };
 
   inline uint_t GetVolume(uint_t volume, uint_t level)
@@ -738,10 +680,38 @@ namespace
     boost::array<PT2ChannelState, Devices::AYM::CHANNELS> PlayerState;
   };
 
-  AYM::DataRenderer::Ptr CreatePT2Renderer(PT2Track::ModuleData::Ptr data)
+  class PT2Chiptune : public AYM::Chiptune
   {
-    return boost::make_shared<PT2DataRenderer>(data);
-  }
+  public:
+    PT2Chiptune(PT2Track::ModuleData::Ptr data, ModuleProperties::Ptr properties)
+      : Data(data)
+      , Properties(properties)
+      , Info(CreateTrackInfo(Data, Devices::AYM::CHANNELS))
+    {
+    }
+
+    virtual Information::Ptr GetInformation() const
+    {
+      return Info;
+    }
+
+    virtual ModuleProperties::Ptr GetProperties() const
+    {
+      return Properties;
+    }
+
+    virtual AYM::DataIterator::Ptr CreateDataIterator(Parameters::Accessor::Ptr params) const
+    {
+      const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
+      const StateIterator::Ptr iterator = CreateTrackStateIterator(Info, Data);
+      const AYM::DataRenderer::Ptr renderer = boost::make_shared<PT2DataRenderer>(Data);
+      return AYM::CreateDataIterator(trackParams, iterator, renderer);
+    }
+  private:
+    const PT2Track::ModuleData::Ptr Data;
+    const ModuleProperties::Ptr Properties;
+    const Information::Ptr Info;
+  };
 
   //////////////////////////////////////////////////
   bool CheckPT2Module(const uint8_t* data, std::size_t size)
@@ -903,13 +873,36 @@ namespace
       return Format;
     }
 
-    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize) const
+    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr rawData, std::size_t& usedSize) const
     {
       try
       {
-        assert(Check(*data));
-        const Holder::Ptr holder(new PT2Holder(properties, parameters, data, usedSize));
-        return holder;
+        assert(Check(*rawData));
+
+        //assume all data is correct
+        const IO::FastDump& data = IO::FastDump(*rawData, 0, MAX_MODULE_SIZE);
+
+        const PT2ModuleData::Ptr parsedData = boost::make_shared<PT2ModuleData>();
+
+        parsedData->ParseInformation(data, *properties);
+        const std::size_t endOfSamples = parsedData->ParseSamples(data);
+        const std::size_t endOfOrnaments = parsedData->ParseOrnaments(data);
+        const std::size_t endOfPatterns = parsedData->ParsePatterns(data);
+
+        //fill region
+        const std::size_t rawSize = std::max(std::max(endOfSamples, endOfOrnaments), endOfPatterns);
+        usedSize = std::min(rawSize, data.Size());
+
+        //meta properties
+        {
+          const PT2Header* const header = safe_ptr_cast<const PT2Header*>(&data[0]);
+          const std::size_t fixedOffset(sizeof(PT2Header) + header->Length - 1);
+          const ModuleRegion fixedRegion(fixedOffset, usedSize -  fixedOffset);
+          properties->SetSource(usedSize, fixedRegion);
+        }
+
+        const AYM::Chiptune::Ptr chiptune = boost::make_shared<PT2Chiptune>(parsedData, properties);
+        return AYM::CreateHolder(chiptune, parameters);
       }
       catch (const Error&/*e*/)
       {

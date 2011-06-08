@@ -129,7 +129,9 @@ namespace ZXTune
       Renderer::Ptr CreateRenderer(AYM::TrackParameters::Ptr params, Information::Ptr info, Track::ModuleData::Ptr data,
          uint_t version, Devices::AYM::Chip::Ptr device);
 
-      AYM::DataRenderer::Ptr CreateRenderer(Track::ModuleData::Ptr data, uint_t version);
+      AYM::Chiptune::Ptr CreateChiptune(Track::ModuleData::Ptr data, uint_t version, ModuleProperties::Ptr properties, uint_t channels);
+
+      Holder::Ptr CreateHolder(Track::ModuleData::Ptr data, uint_t version, Holder::Ptr delegate);
     }
   }
 }

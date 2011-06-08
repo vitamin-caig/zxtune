@@ -354,17 +354,12 @@ namespace ZXTune
       }
 
 
-      Renderer::Ptr CreateRenderer(AYM::TrackParameters::Ptr params, StateIterator::Ptr iterator, DataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device)
-      {
-        const DataIterator::Ptr dataIter = CreateDataIterator(params, iterator, renderer);
-        return CreateRenderer(dataIter, device);
-      }
-
       Renderer::Ptr CreateTrackRenderer(TrackParameters::Ptr params, Information::Ptr info, TrackModuleData::Ptr data, 
         DataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device)
       {
         const StateIterator::Ptr iterator = CreateTrackStateIterator(info, data);
-        return CreateRenderer(params, iterator, renderer, device);
+        const DataIterator::Ptr dataIter = CreateDataIterator(params, iterator, renderer);
+        return CreateRenderer(dataIter, device);
       }
     }
   }

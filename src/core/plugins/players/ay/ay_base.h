@@ -124,8 +124,6 @@ namespace ZXTune
       Holder::Ptr CreateHolder(Chiptune::Ptr chiptune, Parameters::Accessor::Ptr params);
 
 
-      Renderer::Ptr CreateRenderer(TrackParameters::Ptr params, StateIterator::Ptr iterator, DataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device);
-
       Renderer::Ptr CreateTrackRenderer(TrackParameters::Ptr params, Information::Ptr info, TrackModuleData::Ptr data,
         DataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device);
     }

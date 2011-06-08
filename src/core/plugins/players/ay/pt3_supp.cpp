@@ -246,9 +246,94 @@ namespace
     return SimpleOrnament(ornament->Loop, ornament->Data, ornament->Data + ornament->Size);
   }
 
-  class PT3Holder : public Holder
-                  , private AYM::Chiptune
+  class VortexModuleData
   {
+  public:
+    explicit VortexModuleData(Vortex::Track::ModuleData& data)
+      : Data(data)
+    {
+    }
+
+    void ParseInformation(const IO::FastDump& data, ModuleProperties& properties)
+    {
+      const PT3Header* const header(safe_ptr_cast<const PT3Header*>(&data[0]));
+
+      Data.LoopPosition = header->Loop;
+      Data.InitialTempo = header->Tempo;
+
+      properties.SetTitle(OptimizeString(FromCharArray(header->TrackName)));
+      properties.SetAuthor(OptimizeString(FromCharArray(header->TrackAuthor)));
+      properties.SetProgram(OptimizeString(String(header->Id, header->Optional1)));
+      const uint_t version = std::isdigit(header->Subversion) ? header->Subversion - '0' : 6;
+      const String freqTable = Vortex::GetFreqTable(static_cast<Vortex::NoteTable>(header->FreqTableNum), version);
+      properties.SetFreqtable(freqTable);
+    }
+
+    std::size_t ParseSamples(const IO::FastDump& data)
+    {
+      const PT3Header* const header(safe_ptr_cast<const PT3Header*>(&data[0]));
+
+      std::size_t res = sizeof(*header);
+      Data.Samples.reserve(header->SamplesOffsets.size());
+      std::transform(header->SamplesOffsets.begin(), header->SamplesOffsets.end(),
+        std::back_inserter(Data.Samples), boost::bind(&ParseSample, boost::cref(data), _1, boost::ref(res)));
+      return res;
+    }
+
+    std::size_t ParseOrnaments(const IO::FastDump& data)
+    {
+      const PT3Header* const header(safe_ptr_cast<const PT3Header*>(&data[0]));
+
+      std::size_t res = sizeof(*header);
+      Data.Ornaments.reserve(header->OrnamentsOffsets.size());
+      std::transform(header->OrnamentsOffsets.begin(), header->OrnamentsOffsets.end(),
+        std::back_inserter(Data.Ornaments), boost::bind(&ParseOrnament, boost::cref(data), _1, boost::ref(res)));
+      return res;
+    }
+
+    std::size_t ParsePatterns(const IO::FastDump& data)
+    {
+      const PT3Header* const header(safe_ptr_cast<const PT3Header*>(&data[0]));
+
+      std::size_t res = sizeof(*header);
+
+      Data.Patterns.resize(MAX_PATTERNS_COUNT);
+      uint_t index(0);
+      Data.Patterns.resize(1 + *std::max_element(header->Positions, header->Positions + header->Length) / 3);
+      const PT3Pattern* patterns(safe_ptr_cast<const PT3Pattern*>(&data[fromLE(header->PatternsOffset)]));
+      for (const PT3Pattern* pattern = patterns; pattern->Check() && index < Data.Patterns.size(); ++pattern, ++index)
+      {
+        Vortex::Track::Pattern& pat(Data.Patterns[index]);
+
+        AYM::PatternCursors cursors;
+        std::transform(pattern->Offsets.begin(), pattern->Offsets.end(), cursors.begin(), &fromLE<uint16_t>);
+        uint_t& channelACursor = cursors.front().Offset;
+        do
+        {
+          Vortex::Track::Line& line = pat.AddLine();
+          ParsePattern(data, cursors, line);
+          //skip lines
+          if (const uint_t linesToSkip = cursors.GetMinCounter())
+          {
+            cursors.SkipLines(linesToSkip);
+            pat.AddLines(linesToSkip);
+          }
+        }
+        while (channelACursor < data.Size() &&
+          (0 != data[channelACursor] || 0 != cursors.front().Counter));
+        res = std::max<std::size_t>(res, 1 + cursors.GetMaxOffset());
+      }
+      //fill order
+      for (const uint8_t* curPos = header->Positions; curPos != header->Positions + header->Length; ++curPos)
+      {
+        if (0 == *curPos % 3 && !Data.Patterns[*curPos / 3].IsEmpty())
+        {
+          Data.Positions.push_back(*curPos / 3);
+        }
+      }
+      return res;
+    }
+  private:
     void ParsePattern(const IO::FastDump& data
       , AYM::PatternCursors& cursors
       , Vortex::Track::Line& line
@@ -428,7 +513,7 @@ namespace
             }
             const uint_t offset(data[cur->Offset++]);
             const bool isValid(offset < (channel->OrnamentNum ?
-              Data->Ornaments[*channel->OrnamentNum].GetSize() : MAX_ORNAMENT_SIZE));
+              Data.Ornaments[*channel->OrnamentNum].GetSize() : MAX_ORNAMENT_SIZE));
             it->Param1 = isValid ? offset : 0;
             break;
           }
@@ -441,7 +526,7 @@ namespace
               }
               const uint_t offset(data[cur->Offset++]);
               const bool isValid(offset < (channel->SampleNum ?
-                Data->Samples[*channel->SampleNum].GetSize() : MAX_SAMPLE_SIZE));
+                Data.Samples[*channel->SampleNum].GetSize() : MAX_SAMPLE_SIZE));
               it->Param1 = isValid ? offset : 0;
             }
             break;
@@ -468,163 +553,10 @@ namespace
         line.Channels[1].Commands.push_back(Vortex::Track::Command(Vortex::NOISEBASE, noiseBase));
       }
     }
-  public:
-    PT3Holder(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, Vortex::Track::ModuleData::RWPtr moduleData,
-      IO::DataContainer::Ptr rawData, unsigned logicalChannels, std::size_t& usedSize)
-      : Data(moduleData)
-      , Properties(properties)
-      , Info(CreateTrackInfo(Data, logicalChannels))
-      , Version()
-      , Params(parameters)
-    {
-      //assume all data is correct
-      const IO::FastDump& data = IO::FastDump(*rawData);
-      const PT3Header* const header(safe_ptr_cast<const PT3Header*>(&data[0]));
-
-      std::size_t rawSize(0);
-      //fill samples
-      Data->Samples.reserve(header->SamplesOffsets.size());
-      std::transform(header->SamplesOffsets.begin(), header->SamplesOffsets.end(),
-        std::back_inserter(Data->Samples), boost::bind(&ParseSample, boost::cref(data), _1, boost::ref(rawSize)));
-      //fill ornaments
-      Data->Ornaments.reserve(header->OrnamentsOffsets.size());
-      std::transform(header->OrnamentsOffsets.begin(), header->OrnamentsOffsets.end(),
-        std::back_inserter(Data->Ornaments), boost::bind(&ParseOrnament, boost::cref(data), _1, boost::ref(rawSize)));
-
-      //fill patterns
-      Data->Patterns.resize(MAX_PATTERNS_COUNT);
-      uint_t index(0);
-      Data->Patterns.resize(1 + *std::max_element(header->Positions, header->Positions + header->Length) / 3);
-      const PT3Pattern* patterns(safe_ptr_cast<const PT3Pattern*>(&data[fromLE(header->PatternsOffset)]));
-      for (const PT3Pattern* pattern = patterns; pattern->Check() && index < Data->Patterns.size(); ++pattern, ++index)
-      {
-        Vortex::Track::Pattern& pat(Data->Patterns[index]);
-
-        AYM::PatternCursors cursors;
-        std::transform(pattern->Offsets.begin(), pattern->Offsets.end(), cursors.begin(), &fromLE<uint16_t>);
-        uint_t& channelACursor = cursors.front().Offset;
-        do
-        {
-          Vortex::Track::Line& line = pat.AddLine();
-          ParsePattern(data, cursors, line);
-          //skip lines
-          if (const uint_t linesToSkip = cursors.GetMinCounter())
-          {
-            cursors.SkipLines(linesToSkip);
-            pat.AddLines(linesToSkip);
-          }
-        }
-        while (channelACursor < data.Size() &&
-          (0 != data[channelACursor] || 0 != cursors.front().Counter));
-        rawSize = std::max<std::size_t>(rawSize, 1 + cursors.GetMaxOffset());
-      }
-      //fill order
-      for (const uint8_t* curPos = header->Positions; curPos != header->Positions + header->Length; ++curPos)
-      {
-        if (0 == *curPos % 3 && !Data->Patterns[*curPos / 3].IsEmpty())
-        {
-          Data->Positions.push_back(*curPos / 3);
-        }
-      }
-      if (Data->Positions.empty())
-      {
-        throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
-      }
-      Data->LoopPosition = header->Loop;
-      Data->InitialTempo = header->Tempo;
-
-      usedSize = std::min(rawSize, data.Size());
-
-      //meta properties
-      {
-        const std::size_t fixedOffset(sizeof(PT3Header) + header->Length - 1);
-        const ModuleRegion fixedRegion(fixedOffset, usedSize -  fixedOffset);
-        Properties->SetSource(usedSize, fixedRegion);
-      }
-      Properties->SetTitle(OptimizeString(FromCharArray(header->TrackName)));
-      Properties->SetAuthor(OptimizeString(FromCharArray(header->TrackAuthor)));
-      Properties->SetProgram(OptimizeString(String(header->Id, header->Optional1)));
-
-      //tracking properties
-      Version = std::isdigit(header->Subversion) ? header->Subversion - '0' : 6;
-      const String freqTable = Vortex::GetFreqTable(static_cast<Vortex::NoteTable>(header->FreqTableNum), Version);
-      Properties->SetFreqtable(freqTable);
-    }
-
-    virtual Plugin::Ptr GetPlugin() const
-    {
-      return Properties->GetPlugin();
-    }
-
-    virtual Information::Ptr GetModuleInformation() const
-    {
-      return Info;
-    }
-
-    virtual Parameters::Accessor::Ptr GetModuleProperties() const
-    {
-      return Parameters::CreateMergedAccessor(Params, Properties);
-    }
-
-    virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
-    {
-      const Parameters::Accessor::Ptr params = GetModuleProperties();
-
-      const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
-      const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(trackParams, target);
-      const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
-      const Devices::AYM::Chip::Ptr device = Devices::AYM::CreateChip(chipParams, receiver);
-
-      const AYM::DataRenderer::Ptr renderer = Vortex::CreateRenderer(Data, Version);
-      return AYM::CreateTrackRenderer(trackParams, Info, Data, renderer, device);
-    }
-
-    virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
-    {
-      using namespace Conversion;
-      Error result;
-      if (parameter_cast<RawConvertParam>(&param))
-      {
-        Properties->GetData(dst);
-        return Error();
-      }
-      else if (ConvertAYMFormat(param, *this, dst, result))
-      {
-        return result;
-      }
-      else if (ConvertVortexFormat(*Data, *Info, *GetModuleProperties(), param, Version, dst, result))
-      {
-        return result;
-      }
-      return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
-    }
   private:
-    virtual Information::Ptr GetInformation() const
-    {
-      return Info;
-    }
-
-    virtual ModuleProperties::Ptr GetProperties() const
-    {
-      return Properties;
-    }
-
-    virtual AYM::DataIterator::Ptr CreateDataIterator(Parameters::Accessor::Ptr params) const
-    {
-      const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
-      const StateIterator::Ptr iterator = CreateTrackStateIterator(Info, Data);
-      const AYM::DataRenderer::Ptr renderer = Vortex::CreateRenderer(Data, Version);
-      return AYM::CreateDataIterator(trackParams, iterator, renderer);
-    }
-  protected:
-    const Vortex::Track::ModuleData::RWPtr Data;
-    const ModuleProperties::RWPtr Properties;
-    const Information::Ptr Info;
-    uint_t Version;
-    const Parameters::Accessor::Ptr Params;
+    Vortex::Track::ModuleData& Data;
   };
 
-  //TODO: remove inheritance
   class TSModuleData : public Vortex::Track::ModuleData
   {
   public:
@@ -682,13 +614,30 @@ namespace
     const uint_t Base;
   };
 
-  class PT3TSHolder : public PT3Holder
+  class PT3TSHolder : public Holder
   {
   public:
-    PT3TSHolder(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, uint_t patOffset, IO::DataContainer::Ptr rawData, std::size_t& usedSize)
-      : PT3Holder(properties, parameters, boost::make_shared<TSModuleData>(patOffset), rawData, Devices::AYM::CHANNELS * 2, usedSize)
+    PT3TSHolder(Vortex::Track::ModuleData::Ptr data, uint_t version, Holder::Ptr delegate, uint_t patOffset)
+      : Data(data)
+      , Version(version)
+      , Delegate(delegate)
       , PatOffset(patOffset)
     {
+    }
+
+    virtual Plugin::Ptr GetPlugin() const
+    {
+      return Delegate->GetPlugin();
+    } 
+
+    virtual Information::Ptr GetModuleInformation() const
+    {
+      return Delegate->GetModuleInformation();
+    }
+
+    virtual Parameters::Accessor::Ptr GetModuleProperties() const
+    {
+      return Delegate->GetModuleProperties();
     }
 
     virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
@@ -701,8 +650,10 @@ namespace
       const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
       const Devices::AYM::Chip::Ptr chip1 = Devices::AYM::CreateChip(chipParams, mixer);
       const Devices::AYM::Chip::Ptr chip2 = Devices::AYM::CreateChip(chipParams, mixer);
-      const Renderer::Ptr renderer1 = Vortex::CreateRenderer(trackParams, Info, Data, Version, chip1);
-      const Renderer::Ptr renderer2 = Vortex::CreateRenderer(trackParams, Info, boost::make_shared<MirroredModuleData>(PatOffset, *Data), Version, chip2);
+
+      const Information::Ptr info = GetModuleInformation();
+      const Renderer::Ptr renderer1 = Vortex::CreateRenderer(trackParams, info, Data, Version, chip1);
+      const Renderer::Ptr renderer2 = Vortex::CreateRenderer(trackParams, info, boost::make_shared<MirroredModuleData>(PatOffset, *Data), Version, chip2);
       return CreateTSRenderer(renderer1, renderer2, mixer);
     }
 
@@ -712,11 +663,14 @@ namespace
       Error result;
       if (parameter_cast<RawConvertParam>(&param))
       {
-        return PT3Holder::Convert(param, dst);
+        return Delegate->Convert(param, dst);
       }
       return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
     }
   private:
+    const Vortex::Track::ModuleData::Ptr Data;
+    const uint_t Version;
+    const Holder::Ptr Delegate;
     const uint_t PatOffset;
   };
 
@@ -804,9 +758,8 @@ namespace
     return true;
   }
 
-  uint_t GetTSModulePatternOffset(const IO::DataContainer& rawData)
+  uint_t GetTSModulePatternOffset(const IO::FastDump& data)
   {
-    const IO::FastDump& data = IO::FastDump(rawData);
     const PT3Header* const header(safe_ptr_cast<const PT3Header*>(&data[0]));
     const uint_t patOffset = header->Mode;
     const uint_t patternsCount = 1 + *std::max_element(header->Positions, header->Positions + header->Length) / 3;
@@ -890,17 +843,52 @@ namespace
       return Format;
     }
 
-    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize) const
+    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr rawData, std::size_t& usedSize) const
     {
       try
       {
-        assert(Check(*data));
-        const uint_t tsPatternOffset = GetTSModulePatternOffset(*data);
+        assert(Check(*rawData));
+
+        //assume all data is correct
+        const IO::FastDump& data = IO::FastDump(*rawData, 0, MAX_MODULE_SIZE);
+        const uint_t tsPatternOffset = GetTSModulePatternOffset(data);
         const bool isTSModule = AY_TRACK != tsPatternOffset;
-        const Holder::Ptr holder = isTSModule
-          ? Holder::Ptr(new PT3TSHolder(properties, parameters, tsPatternOffset, data, usedSize))
-          : Holder::Ptr(new PT3Holder(properties, parameters, Vortex::Track::ModuleData::Create(), data, Devices::AYM::CHANNELS, usedSize));
-        return holder;
+
+        const Vortex::Track::ModuleData::RWPtr moduleData = isTSModule
+          ? boost::make_shared<TSModuleData>(tsPatternOffset)
+          : Vortex::Track::ModuleData::Create();
+
+        VortexModuleData parsedData(*moduleData);
+
+        parsedData.ParseInformation(data, *properties);
+        const std::size_t endOfSamples = parsedData.ParseSamples(data);
+        const std::size_t endOfOrnaments = parsedData.ParseOrnaments(data);
+        const std::size_t endOfPatterns = parsedData.ParsePatterns(data);
+
+        const std::size_t rawSize = std::max(std::max(endOfSamples, endOfOrnaments), endOfPatterns);
+        usedSize = std::min(rawSize, data.Size());
+
+        const PT3Header* const header(safe_ptr_cast<const PT3Header*>(&data[0]));
+        {
+          const std::size_t fixedOffset(sizeof(PT3Header) + header->Length - 1);
+          const ModuleRegion fixedRegion(fixedOffset, usedSize -  fixedOffset);
+          properties->SetSource(usedSize, fixedRegion);
+        }
+        //tracking properties
+        const uint_t version = std::isdigit(header->Subversion) ? header->Subversion - '0' : 6;
+
+        const AYM::Chiptune::Ptr chiptune = Vortex::CreateChiptune(moduleData, version, properties, 
+          isTSModule ? 2 * Devices::AYM::CHANNELS : Devices::AYM::CHANNELS);
+        const Holder::Ptr nativeHolder = AYM::CreateHolder(chiptune, parameters);
+
+        if (isTSModule)
+        {
+          return boost::make_shared<PT3TSHolder>(moduleData, version, nativeHolder, tsPatternOffset);
+        }
+        else
+        {
+          return Vortex::CreateHolder(moduleData, version, nativeHolder);
+        }
       }
       catch (const Error&/*e*/)
       {

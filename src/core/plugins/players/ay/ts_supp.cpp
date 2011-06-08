@@ -259,7 +259,7 @@ namespace
 
   //////////////////////////////////////////////////////////////////////////
 
-  class TSHolder : public Holder, public boost::enable_shared_from_this<TSHolder>
+  class TSHolder : public Holder
   {
   public:
     TSHolder(PlayerPlugin::Ptr plugin, IO::DataContainer::Ptr data, const Holder::Ptr& holder1, const Holder::Ptr& holder2)

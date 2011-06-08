@@ -56,101 +56,6 @@ namespace
   {
     return !(sym >= ' ' || sym == '\r' || sym == '\n');
   }
-  
-  class TXTHolder : public Holder
-                  , private AYM::Chiptune
-  {
-  public:
-    TXTHolder(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize)
-      : Data(Vortex::Track::ModuleData::Create())
-      , Properties(properties)
-      , Info(CreateTrackInfo(Data, Devices::AYM::CHANNELS))
-      , Params(parameters)
-    {
-      const std::size_t dataSize = data->Size();
-      const char* const rawData = static_cast<const char*>(data->Data());
-      const char* const dataEnd = std::find_if(rawData, rawData + std::min(MAX_MODULE_SIZE, dataSize), &CheckSymbol);
-      const std::size_t limit = dataEnd - rawData;
-
-      ThrowIfError(Vortex::ConvertFromText(std::string(rawData, dataEnd),
-        *Data, *Properties, Version));
-
-      usedSize = limit;
-      //meta properties
-      //TODO: calculate fixed data in ConvertFromText
-      Properties->SetSource(usedSize, ModuleRegion(0, usedSize));
-    }
-
-    virtual Plugin::Ptr GetPlugin() const
-    {
-      return Properties->GetPlugin();
-    }
-
-    virtual Information::Ptr GetModuleInformation() const
-    {
-      return Info;
-    }
-
-    virtual Parameters::Accessor::Ptr GetModuleProperties() const
-    {
-      return Parameters::CreateMergedAccessor(Params, Properties);
-    }
-
-    virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
-    {
-      const Parameters::Accessor::Ptr params = GetModuleProperties();
-
-      const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
-      const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(trackParams, target);
-      const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
-      const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateChip(chipParams, receiver);
-      return Vortex::CreateRenderer(trackParams, Info, Data, Version, chip);
-    }
-
-    virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
-    {
-      using namespace Conversion;
-      Error result;
-      if (parameter_cast<RawConvertParam>(&param))
-      {
-        Properties->GetData(dst);
-        return result;
-      }
-      else if (ConvertAYMFormat(param, *this, dst, result))
-      {
-        return result;
-      }
-      else if (ConvertVortexFormat(*Data, *Info, *GetModuleProperties(), param, Version, dst, result))
-      {
-        return result;
-      }
-      return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
-    }
-  private:
-    virtual Information::Ptr GetInformation() const
-    {
-      return Info;
-    }
-
-    virtual ModuleProperties::Ptr GetProperties() const
-    {
-      return Properties;
-    }
-
-    virtual AYM::DataIterator::Ptr CreateDataIterator(Parameters::Accessor::Ptr params) const
-    {
-      const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
-      const StateIterator::Ptr iterator = CreateTrackStateIterator(Info, Data);
-      const AYM::DataRenderer::Ptr renderer = Vortex::CreateRenderer(Data, Version);
-      return AYM::CreateDataIterator(trackParams, iterator, renderer);
-    }
-  private:
-    const Vortex::Track::ModuleData::RWPtr Data;
-    const ModuleProperties::RWPtr Properties;
-    const Information::Ptr Info;
-    uint_t Version;
-    const Parameters::Accessor::Ptr Params;
-  };
 
   const std::string TXT_FORMAT(
     "'['M'o'd'u'l'e']" //[Module]
@@ -206,13 +111,31 @@ namespace
       return Format;
     }
 
-    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize) const
+    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr allData, std::size_t& usedSize) const
     {
       try
       {
-        assert(Check(*data));
-        const Holder::Ptr holder(new TXTHolder(properties, parameters, data, usedSize));
-        return holder;
+        assert(Check(*allData));
+
+        const std::size_t dataSize = allData->Size();
+        const char* const rawData = static_cast<const char*>(allData->Data());
+        const char* const dataEnd = std::find_if(rawData, rawData + std::min(MAX_MODULE_SIZE, dataSize), &CheckSymbol);
+        const std::size_t limit = dataEnd - rawData;
+
+        const Vortex::Track::ModuleData::RWPtr moduleData = Vortex::Track::ModuleData::Create();
+
+        uint_t version = 0;
+        ThrowIfError(Vortex::ConvertFromText(std::string(rawData, dataEnd),
+          *moduleData, *properties, version));
+
+        usedSize = limit;
+        //TODO: calculate fixed data in ConvertFromText
+        properties->SetSource(usedSize, ModuleRegion(0, usedSize));
+
+        const AYM::Chiptune::Ptr chiptune = Vortex::CreateChiptune(moduleData, version, properties, Devices::AYM::CHANNELS);
+        const Holder::Ptr nativeHolder = AYM::CreateHolder(chiptune, parameters);
+
+        return Vortex::CreateHolder(moduleData, version, nativeHolder);
       }
       catch (const Error& e)
       {
