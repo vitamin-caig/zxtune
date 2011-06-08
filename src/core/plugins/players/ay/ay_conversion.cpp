@@ -150,7 +150,7 @@ namespace
     {
       try
       {
-        const AYDumpFormatConvertor rawConvert;
+        const AYMFormatConvertor& rawConvert = AYDumpFormatConvertor();;
         Dump rawDump;
         rawConvert.Convert(chiptune, rawDump);
 

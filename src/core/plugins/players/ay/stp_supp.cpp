@@ -402,6 +402,7 @@ namespace
       {
         props.SetTitle(OptimizeString(FromCharArray(id.Title)));
       }
+      props.SetFreqtable(TABLE_SOUNDTRACKER);
     }
 
     uint_t ParseOrnaments(const STPAreas& areas)
@@ -603,108 +604,6 @@ namespace
     STPTransposition Transpositions;
   };
 
-  // forward declaration
-  AYM::DataRenderer::Ptr CreateSTPRenderer(STPModuleData::Ptr data);
-
-  class STPHolder : public Holder
-                  , private AYM::Chiptune
-  {
-  public:
-    STPHolder(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr rawData, std::size_t& usedSize)
-      : Data(boost::make_shared<STPModuleData>())
-      , Properties(properties)
-      , Info(CreateTrackInfo(Data, Devices::AYM::CHANNELS))
-      , Params(parameters)
-    {
-      //assume that data is ok
-      const IO::FastDump& data = IO::FastDump(*rawData, 0, MAX_MODULE_SIZE);
-      const STPAreas areas(data);
-
-      Data->ParseInformation(areas, *Properties);
-      const uint_t ornLim = Data->ParseOrnaments(areas);
-      const uint_t smpLim = Data->ParseSamples(areas);
-      const uint_t patLim = Data->ParsePatterns(areas);
-      const uint_t posLim = Data->ParsePositions(areas);
-
-      const std::size_t maxLim = std::max(std::max(smpLim, ornLim), std::max(patLim, posLim));
-      usedSize = std::min(data.Size(), maxLim);
-
-      //meta properties
-      {
-        const std::size_t fixedOffset = sizeof(STPHeader);
-        const ModuleRegion fixedRegion(fixedOffset, usedSize -  fixedOffset);
-        Properties->SetSource(usedSize, fixedRegion);
-      }
-      Properties->SetFreqtable(TABLE_SOUNDTRACKER);
-    }
-
-    virtual Plugin::Ptr GetPlugin() const
-    {
-      return Properties->GetPlugin();
-    }
-
-    virtual Information::Ptr GetModuleInformation() const
-    {
-      return Info;
-    }
-
-    virtual Parameters::Accessor::Ptr GetModuleProperties() const
-    {
-      return Parameters::CreateMergedAccessor(Params, Properties);
-    }
-
-    virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
-    {
-      const Parameters::Accessor::Ptr params = GetModuleProperties();
-
-      const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
-      const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(trackParams, target);
-      const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
-      const Devices::AYM::Chip::Ptr device = Devices::AYM::CreateChip(chipParams, receiver);
-
-      const AYM::DataRenderer::Ptr renderer = CreateSTPRenderer(Data);
-      return AYM::CreateTrackRenderer(trackParams, Info, Data, renderer, device);
-    }
-
-    virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
-    {
-      using namespace Conversion;
-      Error result;
-      if (parameter_cast<RawConvertParam>(&param))
-      {
-        Properties->GetData(dst);
-      }
-      else if (!ConvertAYMFormat(param, *this, dst, result))
-      {
-        return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
-      }
-      return result;
-    }
-  private:
-    virtual Information::Ptr GetInformation() const
-    {
-      return Info;
-    }
-
-    virtual ModuleProperties::Ptr GetProperties() const
-    {
-      return Properties;
-    }
-
-    virtual AYM::DataIterator::Ptr CreateDataIterator(Parameters::Accessor::Ptr params) const
-    {
-      const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
-      const StateIterator::Ptr iterator = CreateTrackStateIterator(Info, Data);
-      const AYM::DataRenderer::Ptr renderer = CreateSTPRenderer(Data);
-      return AYM::CreateDataIterator(trackParams, iterator, renderer);
-    }
-  private:
-    const STPModuleData::RWPtr Data;
-    const ModuleProperties::RWPtr Properties;
-    const Information::Ptr Info;
-    const Parameters::Accessor::Ptr Params;
-  };
-
   struct STPChannelState
   {
     STPChannelState()
@@ -729,7 +628,7 @@ namespace
   class STPDataRenderer : public AYM::DataRenderer
   {
   public:
-    STPDataRenderer(STPModuleData::Ptr data)
+    explicit STPDataRenderer(STPModuleData::Ptr data)
       : Data(data)
     {
     }
@@ -893,10 +792,38 @@ namespace
     boost::array<STPChannelState, Devices::AYM::CHANNELS> PlayerState;
   };
 
-  AYM::DataRenderer::Ptr CreateSTPRenderer(STPModuleData::Ptr data)
+  class STPChiptune : public AYM::Chiptune
   {
-    return boost::make_shared<STPDataRenderer>(data);
-  }
+  public:
+    STPChiptune(STPModuleData::Ptr data, ModuleProperties::Ptr properties)
+      : Data(data)
+      , Properties(properties)
+      , Info(CreateTrackInfo(Data, Devices::AYM::CHANNELS))
+    {
+    }
+
+    virtual Information::Ptr GetInformation() const
+    {
+      return Info;
+    }
+
+    virtual ModuleProperties::Ptr GetProperties() const
+    {
+      return Properties;
+    }
+
+    virtual AYM::DataIterator::Ptr CreateDataIterator(Parameters::Accessor::Ptr params) const
+    {
+      const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
+      const StateIterator::Ptr iterator = CreateTrackStateIterator(Info, Data);
+      const AYM::DataRenderer::Ptr renderer = boost::make_shared<STPDataRenderer>(Data);
+      return AYM::CreateDataIterator(trackParams, iterator, renderer);
+    }
+  private:
+    const STPModuleData::Ptr Data;
+    const ModuleProperties::Ptr Properties;
+    const Information::Ptr Info;
+  };
 
   class STPAreasChecker : public STPAreas
   {
@@ -1143,13 +1070,35 @@ namespace
       return Format;
     }
 
-    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize) const
+    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr rawData, std::size_t& usedSize) const
     {
       try
       {
-        assert(Check(*data));
-        const Holder::Ptr holder(new STPHolder(properties, parameters, data, usedSize));
-        return holder;
+        assert(Check(*rawData));
+
+        //assume that data is ok
+        const IO::FastDump& data = IO::FastDump(*rawData, 0, MAX_MODULE_SIZE);
+        const STPAreas areas(data);
+
+        const STPModuleData::RWPtr parsedData = boost::make_shared<STPModuleData>();
+        parsedData->ParseInformation(areas, *properties);
+        const uint_t ornLim = parsedData->ParseOrnaments(areas);
+        const uint_t smpLim = parsedData->ParseSamples(areas);
+        const uint_t patLim = parsedData->ParsePatterns(areas);
+        const uint_t posLim = parsedData->ParsePositions(areas);
+
+        const std::size_t maxLim = std::max(std::max(smpLim, ornLim), std::max(patLim, posLim));
+        usedSize = std::min(data.Size(), maxLim);
+
+        //meta properties
+        {
+          const std::size_t fixedOffset = sizeof(STPHeader);
+          const ModuleRegion fixedRegion(fixedOffset, usedSize -  fixedOffset);
+          properties->SetSource(usedSize, fixedRegion);
+        }
+
+        const AYM::Chiptune::Ptr chiptune = boost::make_shared<STPChiptune>(parsedData, properties);
+        return AYM::CreateHolder(chiptune, parameters);
       }
       catch (const Error&/*e*/)
       {

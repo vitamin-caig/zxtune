@@ -403,11 +403,117 @@ namespace
   // tracker type
   typedef TrackingSupport<Devices::AYM::CHANNELS, CmdType, Sample, Ornament> ASCTrack;
 
-  AYM::DataRenderer::Ptr CreateASCRenderer(ASCTrack::ModuleData::Ptr data);
-
-  class ASCHolder : public Holder
-                  , private AYM::Chiptune
+  class ASCModuleData : public ASCTrack::ModuleData
   {
+  public:
+    typedef boost::shared_ptr<ASCModuleData> Ptr;
+
+    ASCModuleData()
+      : ASCTrack::ModuleData()
+    {
+    }
+
+    void ParseInformation(const IO::FastDump& data, ModuleProperties& properties)
+    {
+      const ASCHeader* const header = safe_ptr_cast<const ASCHeader*>(&data[0]);
+
+      LoopPosition = header->Loop;
+      InitialTempo = header->Tempo;
+      //meta properties
+      const ASCID* const id = safe_ptr_cast<const ASCID*>(header->Positions + header->Length);
+      if (id->Check())
+      {
+        properties.SetTitle(OptimizeString(FromCharArray(id->Title)));
+        properties.SetAuthor(OptimizeString(FromCharArray(id->Author)));
+      }
+      properties.SetProgram(Text::ASC_EDITOR);
+      properties.SetFreqtable(TABLE_ASM);
+    }
+
+    std::size_t ParseSamples(const IO::FastDump& data)
+    {
+      const ASCHeader* const header = safe_ptr_cast<const ASCHeader*>(&data[0]);
+
+      std::size_t res = sizeof(*header);
+      const std::size_t samplesOff = fromLE(header->SamplesOffset);
+      const ASCSamples* const samples = safe_ptr_cast<const ASCSamples*>(&data[samplesOff]);
+      Samples.reserve(samples->Offsets.size());
+      uint_t index = 0;
+      for (const uint16_t* pSample = samples->Offsets.begin(); pSample != samples->Offsets.end();
+        ++pSample, ++index)
+      {
+        assert(*pSample && fromLE(*pSample) < data.Size());
+        const std::size_t sampleOffset = fromLE(*pSample);
+        const ASCSample* const sample = safe_ptr_cast<const ASCSample*>(&data[samplesOff + sampleOffset]);
+        Samples.push_back(Sample(*sample));
+        const Sample& smp = Samples.back();
+        res = std::max(res, samplesOff + sampleOffset + smp.GetSize() * sizeof(ASCSample::Line));
+      }
+      return res;
+    }
+
+    std::size_t ParseOrnaments(const IO::FastDump& data)
+    {
+      const ASCHeader* const header = safe_ptr_cast<const ASCHeader*>(&data[0]);
+
+      std::size_t res = sizeof(*header);
+      const std::size_t ornamentsOff = fromLE(header->OrnamentsOffset);
+      const ASCOrnaments* const ornaments = safe_ptr_cast<const ASCOrnaments*>(&data[ornamentsOff]);
+      Ornaments.reserve(ornaments->Offsets.size());
+      uint_t index = 0;
+      for (const uint16_t* pOrnament = ornaments->Offsets.begin(); pOrnament != ornaments->Offsets.end();
+        ++pOrnament, ++index)
+      {
+        assert(*pOrnament && fromLE(*pOrnament) < data.Size());
+        const std::size_t ornamentOffset = fromLE(*pOrnament);
+        const ASCOrnament* const ornament = safe_ptr_cast<const ASCOrnament*>(&data[ornamentsOff + ornamentOffset]);
+        Ornaments.push_back(ASCTrack::Ornament(*ornament));
+        const Ornament& orn = Ornaments.back();
+        res = std::max(res, ornamentsOff + ornamentOffset + orn.GetSize() * sizeof(ASCOrnament::Line));
+      }
+      return res;
+    }
+
+    std::size_t ParsePatterns(const IO::FastDump& data)
+    {
+      const ASCHeader* const header = safe_ptr_cast<const ASCHeader*>(&data[0]);
+
+      std::size_t res = sizeof(*header);
+      //fill order
+      Positions.assign(header->Positions, header->Positions + header->Length);
+      //parse patterns
+      const std::size_t patternsCount = 1 + *std::max_element(Positions.begin(), Positions.end());
+      const uint16_t patternsOff = fromLE(header->PatternsOffset);
+      const ASCPattern* pattern = safe_ptr_cast<const ASCPattern*>(&data[patternsOff]);
+      assert(patternsCount <= MAX_PATTERNS_COUNT);
+      Patterns.resize(patternsCount);
+      for (uint_t patNum = 0; patNum < patternsCount; ++patNum, ++pattern)
+      {
+        ASCTrack::Pattern& pat(Patterns[patNum]);
+
+        AYM::PatternCursors cursors;
+        std::transform(pattern->Offsets.begin(), pattern->Offsets.end(), cursors.begin(),
+          boost::bind(std::plus<uint_t>(), patternsOff, boost::bind(&fromLE<uint16_t>, _1)));
+        uint_t envelopes = 0;
+        uint_t& channelACursor = cursors.front().Offset;
+        do
+        {
+          ASCTrack::Line& line = pat.AddLine();
+          ParsePattern(data, cursors, line, envelopes);
+          //skip lines
+          if (const uint_t linesToSkip = cursors.GetMinCounter())
+          {
+            cursors.SkipLines(linesToSkip);
+            pat.AddLines(linesToSkip);
+          }
+        }
+        while (channelACursor < data.Size() &&
+          (0xff != data[channelACursor] || 0 != cursors.front().Counter));
+        res = std::max<std::size_t>(res, 1 + cursors.GetMaxOffset());
+      }
+      return res;
+    }
+  private:
     static void ParsePattern(const IO::FastDump& data
       , AYM::PatternCursors& cursors
       , ASCTrack::Line& line
@@ -582,175 +688,6 @@ namespace
         cur->Counter = cur->Period;
       }
     }
-  public:
-    ASCHolder(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr rawData, std::size_t& usedSize)
-      : Data(ASCTrack::ModuleData::Create())
-      , Properties(properties)
-      , Info(CreateTrackInfo(Data, Devices::AYM::CHANNELS))
-      , Params(parameters)
-    {
-      //assume all data is correct
-      const IO::FastDump& data = IO::FastDump(*rawData);
-
-      const ASCHeader* const header = safe_ptr_cast<const ASCHeader*>(&data[0]);
-
-      std::size_t rawSize = 0;
-      //parse samples
-      {
-        const std::size_t samplesOff = fromLE(header->SamplesOffset);
-        const ASCSamples* const samples = safe_ptr_cast<const ASCSamples*>(&data[samplesOff]);
-        Data->Samples.reserve(samples->Offsets.size());
-        uint_t index = 0;
-        for (const uint16_t* pSample = samples->Offsets.begin(); pSample != samples->Offsets.end();
-          ++pSample, ++index)
-        {
-          assert(*pSample && fromLE(*pSample) < data.Size());
-          const std::size_t sampleOffset = fromLE(*pSample);
-          const ASCSample* const sample = safe_ptr_cast<const ASCSample*>(&data[samplesOff + sampleOffset]);
-          Data->Samples.push_back(Sample(*sample));
-          const Sample& smp = Data->Samples.back();
-          rawSize = std::max(rawSize, samplesOff + sampleOffset + smp.GetSize() * sizeof(ASCSample::Line));
-        }
-      }
-
-      //parse ornaments
-      {
-        const std::size_t ornamentsOff = fromLE(header->OrnamentsOffset);
-        const ASCOrnaments* const ornaments = safe_ptr_cast<const ASCOrnaments*>(&data[ornamentsOff]);
-        Data->Ornaments.reserve(ornaments->Offsets.size());
-        uint_t index = 0;
-        for (const uint16_t* pOrnament = ornaments->Offsets.begin(); pOrnament != ornaments->Offsets.end();
-          ++pOrnament, ++index)
-        {
-          assert(*pOrnament && fromLE(*pOrnament) < data.Size());
-          const std::size_t ornamentOffset = fromLE(*pOrnament);
-          const ASCOrnament* const ornament = safe_ptr_cast<const ASCOrnament*>(&data[ornamentsOff + ornamentOffset]);
-          Data->Ornaments.push_back(ASCTrack::Ornament(*ornament));
-          const Ornament& orn = Data->Ornaments.back();
-          rawSize = std::max(rawSize, ornamentsOff + ornamentOffset + orn.GetSize() * sizeof(ASCOrnament::Line));
-        }
-      }
-
-      //fill order
-      Data->Positions.assign(header->Positions, header->Positions + header->Length);
-      //parse patterns
-      const std::size_t patternsCount = 1 + *std::max_element(Data->Positions.begin(), Data->Positions.end());
-      const uint16_t patternsOff = fromLE(header->PatternsOffset);
-      const ASCPattern* pattern = safe_ptr_cast<const ASCPattern*>(&data[patternsOff]);
-      assert(patternsCount <= MAX_PATTERNS_COUNT);
-      Data->Patterns.resize(patternsCount);
-      for (uint_t patNum = 0; patNum < patternsCount; ++patNum, ++pattern)
-      {
-        ASCTrack::Pattern& pat(Data->Patterns[patNum]);
-
-        AYM::PatternCursors cursors;
-        std::transform(pattern->Offsets.begin(), pattern->Offsets.end(), cursors.begin(),
-          boost::bind(std::plus<uint_t>(), patternsOff, boost::bind(&fromLE<uint16_t>, _1)));
-        uint_t envelopes = 0;
-        uint_t& channelACursor = cursors.front().Offset;
-        do
-        {
-          ASCTrack::Line& line = pat.AddLine();
-          ParsePattern(data, cursors, line, envelopes);
-          //skip lines
-          if (const uint_t linesToSkip = cursors.GetMinCounter())
-          {
-            cursors.SkipLines(linesToSkip);
-            pat.AddLines(linesToSkip);
-          }
-        }
-        while (channelACursor < data.Size() &&
-          (0xff != data[channelACursor] || 0 != cursors.front().Counter));
-        rawSize = std::max<std::size_t>(rawSize, 1 + cursors.GetMaxOffset());
-      }
-      Data->LoopPosition = header->Loop;
-      Data->InitialTempo = header->Tempo;
-
-      //fill region
-      usedSize = std::min(rawSize, data.Size());
-
-      //meta properties
-      {
-        const ASCID* const id = safe_ptr_cast<const ASCID*>(header->Positions + header->Length);
-        const bool validId = id->Check();
-        const std::size_t fixedOffset = sizeof(ASCHeader) + validId ? sizeof(*id) : 0;
-        const ModuleRegion fixedRegion(fixedOffset, usedSize - fixedOffset);
-        Properties->SetSource(usedSize, fixedRegion);
-        if (validId)
-        {
-          Properties->SetTitle(OptimizeString(FromCharArray(id->Title)));
-          Properties->SetAuthor(OptimizeString(FromCharArray(id->Author)));
-        }
-      }
-      Properties->SetProgram(Text::ASC_EDITOR);
-      Properties->SetFreqtable(TABLE_ASM);
-    }
-
-    virtual Plugin::Ptr GetPlugin() const
-    {
-      return Properties->GetPlugin();
-    }
-
-    virtual Information::Ptr GetModuleInformation() const
-    {
-      return Info;
-    }
-
-    virtual Parameters::Accessor::Ptr GetModuleProperties() const
-    {
-      return Parameters::CreateMergedAccessor(Params, Properties);
-    }
-
-    virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
-    {
-      const Parameters::Accessor::Ptr params = GetModuleProperties();
-
-      const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
-      const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(trackParams, target);
-      const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
-      const Devices::AYM::Chip::Ptr device = Devices::AYM::CreateChip(chipParams, receiver);
-
-      const AYM::DataRenderer::Ptr renderer = CreateASCRenderer(Data);
-      return AYM::CreateTrackRenderer(trackParams, Info, Data, renderer, device);
-    }
-
-    virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
-    {
-      using namespace Conversion;
-      Error result;
-      if (parameter_cast<RawConvertParam>(&param))
-      {
-        Properties->GetData(dst);
-      }
-      else if (!ConvertAYMFormat(param, *this, dst, result))
-      {
-        return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
-      }
-      return result;
-    }
-  private:
-    virtual Information::Ptr GetInformation() const
-    {
-      return Info;
-    }
-
-    virtual ModuleProperties::Ptr GetProperties() const
-    {
-      return Properties;
-    }
-
-    virtual AYM::DataIterator::Ptr CreateDataIterator(Parameters::Accessor::Ptr params) const
-    {
-      const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
-      const StateIterator::Ptr iterator = CreateTrackStateIterator(Info, Data);
-      const AYM::DataRenderer::Ptr renderer = CreateASCRenderer(Data);
-      return AYM::CreateDataIterator(trackParams, iterator, renderer);
-    }
-  private:
-    const ASCTrack::ModuleData::RWPtr Data;
-    const ModuleProperties::RWPtr Properties;
-    const Information::Ptr Info;
-    const Parameters::Accessor::Ptr Params;
   };
 
   struct ASCChannelState
@@ -1075,10 +1012,38 @@ namespace
     boost::array<ASCChannelState, Devices::AYM::CHANNELS> PlayerState;
   };
 
-  AYM::DataRenderer::Ptr CreateASCRenderer(ASCTrack::ModuleData::Ptr data)
+  class ASCChiptune : public AYM::Chiptune
   {
-    return boost::make_shared<ASCDataRenderer>(data);
-  }
+  public:
+    ASCChiptune(ASCTrack::ModuleData::Ptr data, ModuleProperties::Ptr properties)
+      : Data(data)
+      , Properties(properties)
+      , Info(CreateTrackInfo(Data, Devices::AYM::CHANNELS))
+    {
+    }
+
+    virtual Information::Ptr GetInformation() const
+    {
+      return Info;
+    }
+
+    virtual ModuleProperties::Ptr GetProperties() const
+    {
+      return Properties;
+    }
+
+    virtual AYM::DataIterator::Ptr CreateDataIterator(Parameters::Accessor::Ptr params) const
+    {
+      const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
+      const StateIterator::Ptr iterator = CreateTrackStateIterator(Info, Data);
+      const AYM::DataRenderer::Ptr renderer = boost::make_shared<ASCDataRenderer>(Data);
+      return AYM::CreateDataIterator(trackParams, iterator, renderer);
+    }
+  private:
+    const ASCTrack::ModuleData::Ptr Data;
+    const ModuleProperties::Ptr Properties;
+    const Information::Ptr Info;
+  };
 
   //////////////////////////////////////////////////////////////////////////
   bool CheckASCModule(const uint8_t* data, std::size_t size)
@@ -1225,13 +1190,37 @@ namespace
       return Format;
     }
 
-    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize) const
+    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr rawData, std::size_t& usedSize) const
     {
       try
       {
-        assert(Check(*data));
-        const Holder::Ptr holder(new ASCHolder(properties, parameters, data, usedSize));
-        return holder;
+        assert(Check(*rawData));
+
+        //assume all data is correct
+        const IO::FastDump& data = IO::FastDump(*rawData, 0, MAX_MODULE_SIZE);
+
+        const ASCModuleData::Ptr parsedData = boost::make_shared<ASCModuleData>();
+
+        parsedData->ParseInformation(data, *properties);
+        const std::size_t endOfSamples = parsedData->ParseSamples(data);
+        const std::size_t endOfOrnaments = parsedData->ParseOrnaments(data);
+        const std::size_t endOfPatterns = parsedData->ParsePatterns(data);
+
+        //fill region
+        const std::size_t rawSize = std::max(std::max(endOfSamples, endOfOrnaments), endOfPatterns);
+        usedSize = std::min(rawSize, data.Size());
+
+        //meta properties
+        {
+          const ASCHeader* const header = safe_ptr_cast<const ASCHeader*>(&data[0]);
+          const ASCID* const id = safe_ptr_cast<const ASCID*>(header->Positions + header->Length);
+          const std::size_t fixedOffset = sizeof(ASCHeader) + id->Check() ? sizeof(*id) : 0;
+          const ModuleRegion fixedRegion(fixedOffset, usedSize - fixedOffset);
+          properties->SetSource(usedSize, fixedRegion);
+        }
+
+        const AYM::Chiptune::Ptr chiptune = boost::make_shared<ASCChiptune>(parsedData, properties);
+        return AYM::CreateHolder(chiptune, parameters);
       }
       catch (const Error&/*e*/)
       {

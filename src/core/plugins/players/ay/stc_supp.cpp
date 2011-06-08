@@ -345,8 +345,8 @@ namespace
 
   struct STCModuleData : public STCTrack::ModuleData
   {
-    typedef boost::shared_ptr<STCModuleData> RWPtr;
     typedef boost::shared_ptr<const STCModuleData> Ptr;
+    typedef boost::shared_ptr<STCModuleData> RWPtr;
 
     STCModuleData()
       : STCTrack::ModuleData()
@@ -358,6 +358,7 @@ namespace
       const STCHeader& header = areas.GetHeader();
       InitialTempo = header.Tempo;
       properties.SetProgram(OptimizeString(FromCharArray(header.Identifier)));
+      properties.SetFreqtable(TABLE_SOUNDTRACKER);
     }
 
     uint_t ParseSamples(const STCAreas& areas)
@@ -1107,7 +1108,6 @@ namespace
           const ModuleRegion fixedRegion(sizeof(STCHeader), usedSize - sizeof(STCHeader));
           properties->SetSource(usedSize, fixedRegion);
         }
-        properties->SetFreqtable(TABLE_SOUNDTRACKER);
 
         const AYM::Chiptune::Ptr chiptune = boost::make_shared<STCChiptune>(parsedData, properties);
         return AYM::CreateHolder(chiptune, parameters);

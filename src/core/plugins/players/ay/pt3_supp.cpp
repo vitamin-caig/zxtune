@@ -254,7 +254,6 @@ namespace
       , Vortex::Track::Line& line
       )
     {
-      bool wasEnvelope(false);
       int_t noiseBase = -1;
       assert(line.Channels.size() == cursors.size());
       Vortex::Track::Line::ChannelsArray::iterator channel(line.Channels.begin());
@@ -315,7 +314,6 @@ namespace
               const uint_t envPeriod(data[cur->Offset + 1] + (uint_t(data[cur->Offset]) << 8));
               cur->Offset += 2;
               channel->Commands.push_back(Vortex::Track::Command(Vortex::ENVELOPE, cmd - (cmd >= 0xb2 ? 0xb1 : 0x10), envPeriod));
-              wasEnvelope = true;
             }
             else
             {
