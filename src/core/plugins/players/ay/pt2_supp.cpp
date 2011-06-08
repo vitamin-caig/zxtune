@@ -261,10 +261,10 @@ namespace
 
   typedef TrackingSupport<Devices::AYM::CHANNELS, CmdType, Sample> PT2Track;
 
-  Renderer::Ptr CreatePT2Renderer(AYM::TrackParameters::Ptr params, Information::Ptr info, PT2Track::ModuleData::Ptr data, Devices::AYM::Chip::Ptr device);
+  AYM::DataRenderer::Ptr CreatePT2Renderer(PT2Track::ModuleData::Ptr data);
 
   class PT2Holder : public Holder
-                  , private ConversionFactory
+                  , private AYM::Chiptune
   {
     void ParsePattern(const IO::FastDump& data
       , AYM::PatternCursors& cursors
@@ -486,8 +486,10 @@ namespace
       const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
       const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(trackParams, target);
       const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
-      const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateChip(chipParams, receiver);
-      return CreatePT2Renderer(trackParams, Info, Data, chip);
+      const Devices::AYM::Chip::Ptr device = Devices::AYM::CreateChip(chipParams, receiver);
+
+      const AYM::DataRenderer::Ptr renderer = CreatePT2Renderer(Data);
+      return AYM::CreateTrackRenderer(trackParams, Info, Data, renderer, device);
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -507,20 +509,20 @@ namespace
   private:
     virtual Information::Ptr GetInformation() const
     {
-      return GetModuleInformation();
+      return Info;
     }
 
-    virtual Parameters::Accessor::Ptr GetProperties() const
+    virtual ModuleProperties::Ptr GetProperties() const
     {
-      return GetModuleProperties();
+      return Properties;
     }
 
-    virtual Renderer::Ptr CreateRenderer(Devices::AYM::Chip::Ptr chip) const
+    virtual AYM::DataIterator::Ptr CreateDataIterator(Parameters::Accessor::Ptr params) const
     {
-      const Parameters::Accessor::Ptr params = GetModuleProperties();
-
       const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
-      return CreatePT2Renderer(trackParams, Info, Data, chip);
+      const StateIterator::Ptr iterator = CreateTrackStateIterator(Info, Data);
+      const AYM::DataRenderer::Ptr renderer = CreatePT2Renderer(Data);
+      return AYM::CreateDataIterator(trackParams, iterator, renderer);
     }
   private:
     const PT2Track::ModuleData::RWPtr Data;
@@ -736,10 +738,9 @@ namespace
     boost::array<PT2ChannelState, Devices::AYM::CHANNELS> PlayerState;
   };
 
-  Renderer::Ptr CreatePT2Renderer(AYM::TrackParameters::Ptr params, Information::Ptr info, PT2Track::ModuleData::Ptr data, Devices::AYM::Chip::Ptr device)
+  AYM::DataRenderer::Ptr CreatePT2Renderer(PT2Track::ModuleData::Ptr data)
   {
-    const AYM::DataRenderer::Ptr renderer = boost::make_shared<PT2DataRenderer>(data);
-    return AYM::CreateTrackRenderer(params, info, data, renderer, device);
+    return boost::make_shared<PT2DataRenderer>(data);
   }
 
   //////////////////////////////////////////////////

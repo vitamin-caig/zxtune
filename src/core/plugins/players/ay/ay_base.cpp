@@ -207,7 +207,6 @@ namespace
   };
 
   class AYMHolder : public Holder
-                  , private ConversionFactory
   {
   public:
     explicit AYMHolder(AYM::Chiptune::Ptr chiptune, Parameters::Accessor::Ptr params)
@@ -251,29 +250,11 @@ namespace
       {
         Tune->GetProperties()->GetData(dst);
       }
-      else if (!ConvertAYMFormat(param, *this, dst, result))
+      else if (!ConvertAYMFormat(param, *Tune, dst, result))
       {
         return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
       }
       return result;
-    }
-  private:
-    virtual Information::Ptr GetInformation() const
-    {
-      return GetModuleInformation();
-    }
-
-    virtual Parameters::Accessor::Ptr GetProperties() const
-    {
-      return GetModuleProperties();
-    }
-
-    virtual Renderer::Ptr CreateRenderer(Devices::AYM::Chip::Ptr chip) const
-    {
-      const Parameters::Accessor::Ptr params = GetModuleProperties();
-
-      const AYM::DataIterator::Ptr iterator = Tune->CreateDataIterator(params);
-      return AYM::CreateRenderer(iterator, chip);
     }
   private:
     const AYM::Chiptune::Ptr Tune;

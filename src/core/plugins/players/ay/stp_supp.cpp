@@ -604,10 +604,10 @@ namespace
   };
 
   // forward declaration
-  Renderer::Ptr CreateSTPRenderer(AYM::TrackParameters::Ptr params, Information::Ptr info, STPModuleData::Ptr data, Devices::AYM::Chip::Ptr device);
+  AYM::DataRenderer::Ptr CreateSTPRenderer(STPModuleData::Ptr data);
 
   class STPHolder : public Holder
-                  , private ConversionFactory
+                  , private AYM::Chiptune
   {
   public:
     STPHolder(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr rawData, std::size_t& usedSize)
@@ -660,8 +660,10 @@ namespace
       const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
       const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(trackParams, target);
       const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
-      const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateChip(chipParams, receiver);
-      return CreateSTPRenderer(trackParams, Info, Data, chip);
+      const Devices::AYM::Chip::Ptr device = Devices::AYM::CreateChip(chipParams, receiver);
+
+      const AYM::DataRenderer::Ptr renderer = CreateSTPRenderer(Data);
+      return AYM::CreateTrackRenderer(trackParams, Info, Data, renderer, device);
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -681,20 +683,20 @@ namespace
   private:
     virtual Information::Ptr GetInformation() const
     {
-      return GetModuleInformation();
+      return Info;
     }
 
-    virtual Parameters::Accessor::Ptr GetProperties() const
+    virtual ModuleProperties::Ptr GetProperties() const
     {
-      return GetModuleProperties();
+      return Properties;
     }
 
-    virtual Renderer::Ptr CreateRenderer(Devices::AYM::Chip::Ptr chip) const
+    virtual AYM::DataIterator::Ptr CreateDataIterator(Parameters::Accessor::Ptr params) const
     {
-      const Parameters::Accessor::Ptr params = GetModuleProperties();
-
       const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
-      return CreateSTPRenderer(trackParams, Info, Data, chip);
+      const StateIterator::Ptr iterator = CreateTrackStateIterator(Info, Data);
+      const AYM::DataRenderer::Ptr renderer = CreateSTPRenderer(Data);
+      return AYM::CreateDataIterator(trackParams, iterator, renderer);
     }
   private:
     const STPModuleData::RWPtr Data;
@@ -891,10 +893,9 @@ namespace
     boost::array<STPChannelState, Devices::AYM::CHANNELS> PlayerState;
   };
 
-  Renderer::Ptr CreateSTPRenderer(AYM::TrackParameters::Ptr params, Information::Ptr info, STPModuleData::Ptr data, Devices::AYM::Chip::Ptr device)
+  AYM::DataRenderer::Ptr CreateSTPRenderer(STPModuleData::Ptr data)
   {
-    const AYM::DataRenderer::Ptr renderer = boost::make_shared<STPDataRenderer>(data);
-    return AYM::CreateTrackRenderer(params, info, data, renderer, device);
+    return boost::make_shared<STPDataRenderer>(data);
   }
 
   class STPAreasChecker : public STPAreas

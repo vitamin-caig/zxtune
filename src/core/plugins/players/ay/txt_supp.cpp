@@ -58,7 +58,7 @@ namespace
   }
   
   class TXTHolder : public Holder
-                  , private ConversionFactory
+                  , private AYM::Chiptune
   {
   public:
     TXTHolder(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize)
@@ -129,20 +129,20 @@ namespace
   private:
     virtual Information::Ptr GetInformation() const
     {
-      return GetModuleInformation();
+      return Info;
     }
 
-    virtual Parameters::Accessor::Ptr GetProperties() const
+    virtual ModuleProperties::Ptr GetProperties() const
     {
-      return GetModuleProperties();
+      return Properties;
     }
 
-    virtual Renderer::Ptr CreateRenderer(Devices::AYM::Chip::Ptr chip) const
+    virtual AYM::DataIterator::Ptr CreateDataIterator(Parameters::Accessor::Ptr params) const
     {
-      const Parameters::Accessor::Ptr params = GetModuleProperties();
-
       const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
-      return Vortex::CreateRenderer(trackParams, Info, Data, Version, chip);
+      const StateIterator::Ptr iterator = CreateTrackStateIterator(Info, Data);
+      const AYM::DataRenderer::Ptr renderer = Vortex::CreateRenderer(Data, Version);
+      return AYM::CreateDataIterator(trackParams, iterator, renderer);
     }
   private:
     const Vortex::Track::ModuleData::RWPtr Data;

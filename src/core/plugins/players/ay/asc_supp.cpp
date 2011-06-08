@@ -403,10 +403,10 @@ namespace
   // tracker type
   typedef TrackingSupport<Devices::AYM::CHANNELS, CmdType, Sample, Ornament> ASCTrack;
 
-  Renderer::Ptr CreateASCRenderer(AYM::TrackParameters::Ptr params, Information::Ptr info, ASCTrack::ModuleData::Ptr data, Devices::AYM::Chip::Ptr device);
+  AYM::DataRenderer::Ptr CreateASCRenderer(ASCTrack::ModuleData::Ptr data);
 
   class ASCHolder : public Holder
-                  , private ConversionFactory
+                  , private AYM::Chiptune
   {
     static void ParsePattern(const IO::FastDump& data
       , AYM::PatternCursors& cursors
@@ -708,8 +708,10 @@ namespace
       const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
       const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(trackParams, target);
       const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
-      const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateChip(chipParams, receiver);
-      return CreateASCRenderer(trackParams, Info, Data, chip);
+      const Devices::AYM::Chip::Ptr device = Devices::AYM::CreateChip(chipParams, receiver);
+
+      const AYM::DataRenderer::Ptr renderer = CreateASCRenderer(Data);
+      return AYM::CreateTrackRenderer(trackParams, Info, Data, renderer, device);
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -729,20 +731,20 @@ namespace
   private:
     virtual Information::Ptr GetInformation() const
     {
-      return GetModuleInformation();
+      return Info;
     }
 
-    virtual Parameters::Accessor::Ptr GetProperties() const
+    virtual ModuleProperties::Ptr GetProperties() const
     {
-      return GetModuleProperties();
+      return Properties;
     }
 
-    virtual Renderer::Ptr CreateRenderer(Devices::AYM::Chip::Ptr chip) const
+    virtual AYM::DataIterator::Ptr CreateDataIterator(Parameters::Accessor::Ptr params) const
     {
-      const Parameters::Accessor::Ptr params = GetModuleProperties();
-
       const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
-      return CreateASCRenderer(trackParams, Info, Data, chip);
+      const StateIterator::Ptr iterator = CreateTrackStateIterator(Info, Data);
+      const AYM::DataRenderer::Ptr renderer = CreateASCRenderer(Data);
+      return AYM::CreateDataIterator(trackParams, iterator, renderer);
     }
   private:
     const ASCTrack::ModuleData::RWPtr Data;
@@ -1073,10 +1075,9 @@ namespace
     boost::array<ASCChannelState, Devices::AYM::CHANNELS> PlayerState;
   };
 
-  Renderer::Ptr CreateASCRenderer(AYM::TrackParameters::Ptr params, Information::Ptr info, ASCTrack::ModuleData::Ptr data, Devices::AYM::Chip::Ptr device)
+  AYM::DataRenderer::Ptr CreateASCRenderer(ASCTrack::ModuleData::Ptr data)
   {
-    const AYM::DataRenderer::Ptr renderer = boost::make_shared<ASCDataRenderer>(data);
-    return AYM::CreateTrackRenderer(params, info, data, renderer, device);
+    return boost::make_shared<ASCDataRenderer>(data);
   }
 
   //////////////////////////////////////////////////////////////////////////

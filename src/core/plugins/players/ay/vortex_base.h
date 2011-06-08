@@ -128,6 +128,8 @@ namespace ZXTune
       //creating simple player based on parsed data and parameters
       Renderer::Ptr CreateRenderer(AYM::TrackParameters::Ptr params, Information::Ptr info, Track::ModuleData::Ptr data,
          uint_t version, Devices::AYM::Chip::Ptr device);
+
+      AYM::DataRenderer::Ptr CreateRenderer(Track::ModuleData::Ptr data, uint_t version);
     }
   }
 }

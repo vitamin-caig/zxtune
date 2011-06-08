@@ -441,6 +441,11 @@ namespace ZXTune
         const AYM::DataRenderer::Ptr renderer = boost::make_shared<VortexDataRenderer>(data, version);
         return AYM::CreateTrackRenderer(params, info, data, renderer, device);
       }
+
+      AYM::DataRenderer::Ptr CreateRenderer(Track::ModuleData::Ptr data, uint_t version)
+      {
+        return boost::make_shared<VortexDataRenderer>(data, version);
+      }
     }
   }
 }

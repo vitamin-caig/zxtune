@@ -35,22 +35,31 @@ namespace
     typedef std::auto_ptr<const AYMFormatConvertor> Ptr;
     virtual ~AYMFormatConvertor() {}
 
-    virtual Error Convert(const ConversionFactory& factory, Dump& dst) const = 0;
+    virtual Error Convert(const AYM::Chiptune& chiptune, Dump& dst) const = 0;
   };
 
   class SimpleAYMFormatConvertor : public AYMFormatConvertor
   {
   public:
-    virtual Error Convert(const ConversionFactory& factory, Dump& dst) const
+    virtual Error Convert(const AYM::Chiptune& chiptune, Dump& dst) const
     {
       try
       {
-        const Parameters::Accessor::Ptr props = factory.GetProperties();
+        const Parameters::Accessor::Ptr props = chiptune.GetProperties();
         const Sound::RenderParameters::Ptr params = Sound::RenderParameters::Create(props);
-        const Devices::AYM::Dumper::Ptr dumper = CreateDumper(params->ClocksPerFrame());
-        const Renderer::Ptr renderer = factory.CreateRenderer(dumper);
+        const uint_t clocksPerFrame = params->ClocksPerFrame();
+        const Devices::AYM::Dumper::Ptr dumper = CreateDumper(clocksPerFrame);
 
-        while (renderer->RenderFrame(*params)) {}
+        const AYM::DataIterator::Ptr iterator = chiptune.CreateDataIterator(props);
+        uint64_t lastRenderTick = 0;
+        Devices::AYM::DataChunk chunk;
+        while (iterator->NextFrame(false))
+        {
+          iterator->GetData(chunk);
+          lastRenderTick += clocksPerFrame;
+          chunk.Tick = lastRenderTick;
+          dumper->RenderData(chunk);
+        }
         dumper->GetDump(dst);
         return Error();
       }
@@ -137,25 +146,23 @@ namespace
 #pragma pack(pop)
 #endif
   public:
-    virtual Error Convert(const ConversionFactory& factory, Dump& dst) const
+    virtual Error Convert(const AYM::Chiptune& chiptune, Dump& dst) const
     {
       try
       {
-        const Parameters::Accessor::Ptr props = factory.GetProperties();
-        const Sound::RenderParameters::Ptr params = Sound::RenderParameters::Create(props);
-        const Devices::AYM::Dumper::Ptr dumper = Devices::AYM::CreateRawStreamDumper(params->ClocksPerFrame());
-        const Renderer::Ptr renderer = factory.CreateRenderer(dumper);
+        const AYDumpFormatConvertor rawConvert;
+        Dump rawDump;
+        rawConvert.Convert(chiptune, rawDump);
 
-        while (renderer->RenderFrame(*params)) {}
+        const Information::Ptr info = chiptune.GetInformation();
+        const Parameters::Accessor::Ptr props = chiptune.GetProperties();
+        const Sound::RenderParameters::Ptr params = Sound::RenderParameters::Create(props);
 
         String name, author;
         props->FindStringValue(ATTR_TITLE, name);
         props->FindStringValue(ATTR_AUTHOR, author);
         const std::size_t headerSize = sizeof(FYMHeader) + (name.size() + 1) + (author.size() + 1);
 
-        const Information::Ptr info = factory.GetInformation();
-        Dump rawDump;
-        dumper->GetDump(rawDump);
         Dump result(sizeof(FYMHeader));
         {
           FYMHeader* const header = safe_ptr_cast<FYMHeader*>(&result[0]);
@@ -197,7 +204,7 @@ namespace ZXTune
   namespace Module
   {
     //aym-based conversion
-    bool ConvertAYMFormat(const Conversion::Parameter& spec, const ConversionFactory& factory, Dump& dst, Error& result)
+    bool ConvertAYMFormat(const Conversion::Parameter& spec, const AYM::Chiptune& chiptune, Dump& dst, Error& result)
     {
       using namespace Conversion;
       AYMFormatConvertor::Ptr convertor;
@@ -230,7 +237,7 @@ namespace ZXTune
 
       if (convertor.get())
       {
-        result = convertor->Convert(factory, dst);
+        result = convertor->Convert(chiptune, dst);
         return true;
       }
       return false;

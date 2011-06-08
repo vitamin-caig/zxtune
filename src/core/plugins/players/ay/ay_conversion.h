@@ -14,6 +14,7 @@ Author:
 #define __CORE_PLUGINS_PLAYERS_AY_CONVERSION_H_DEFINED__
 
 //local includes
+#include "ay_base.h"
 #include "vortex_base.h"
 #include "core/plugins/players/renderer.h"
 
@@ -29,22 +30,11 @@ namespace ZXTune
       struct Parameter;
     }
 
-    class ConversionFactory
-    {
-    public:
-      virtual ~ConversionFactory() {}
-
-      virtual Information::Ptr GetInformation() const = 0;
-      virtual Parameters::Accessor::Ptr GetProperties() const = 0;
-      virtual Renderer::Ptr CreateRenderer(Devices::AYM::Chip::Ptr chip) const = 0;
-    };
     //! @brief Simple helper for conversion to AYM-related formats
-    //! @param creator Function to create player based on specified device
-    //! @param param Input convertion parameter
-    //! @param dst Destination data
+    //! @param spec Input convertion parameter
     //! @param result Result state
     //! @return true if parameter is processed
-    bool ConvertAYMFormat(const Conversion::Parameter& spec, const ConversionFactory& factory, Dump& dst, Error& result);
+    bool ConvertAYMFormat(const Conversion::Parameter& spec, const AYM::Chiptune& chiptune, Dump& dst, Error& result);
 
     //! @brief Mask for supported AYM-related formats
     uint_t GetSupportedAYMFormatConvertors();
