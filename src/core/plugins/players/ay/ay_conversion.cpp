@@ -29,174 +29,46 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Module;
 
-  class AYMFormatConvertor
+  uint_t ClocksPerFrame(Parameters::Accessor::Ptr params)
   {
-  public:
-    typedef std::auto_ptr<const AYMFormatConvertor> Ptr;
-    virtual ~AYMFormatConvertor() {}
+    const Sound::RenderParameters::Ptr sndParams = Sound::RenderParameters::Create(params);
+    return sndParams->ClocksPerFrame();
+  }
 
-    virtual Error Convert(const AYM::Chiptune& chiptune, Dump& dst) const = 0;
-  };
-
-  class SimpleAYMFormatConvertor : public AYMFormatConvertor
+  Devices::AYM::Dumper::Ptr CreatePSGDumper(Parameters::Accessor::Ptr params)
   {
-  public:
-    virtual Error Convert(const AYM::Chiptune& chiptune, Dump& dst) const
-    {
-      try
-      {
-        const Parameters::Accessor::Ptr props = chiptune.GetProperties();
-        const Sound::RenderParameters::Ptr params = Sound::RenderParameters::Create(props);
-        const uint_t clocksPerFrame = params->ClocksPerFrame();
-        const Devices::AYM::Dumper::Ptr dumper = CreateDumper(clocksPerFrame);
+    const uint_t clocksPerFrame = ClocksPerFrame(params);
+    return Devices::AYM::CreatePSGDumper(clocksPerFrame);
+  }
 
-        const AYM::DataIterator::Ptr iterator = chiptune.CreateDataIterator(props);
-        uint64_t lastRenderTick = 0;
-        Devices::AYM::DataChunk chunk;
-        while (iterator->NextFrame(false))
-        {
-          iterator->GetData(chunk);
-          lastRenderTick += clocksPerFrame;
-          chunk.Tick = lastRenderTick;
-          dumper->RenderData(chunk);
-        }
-        dumper->GetDump(dst);
-        return Error();
-      }
-      catch (const Error& err)
-      {
-        return Error(THIS_LINE, ERROR_MODULE_CONVERT, GetErrorMessage()).AddSuberror(err);
-      }
-    }
-  protected:
-    virtual Devices::AYM::Dumper::Ptr CreateDumper(uint_t clocksPerFrame) const = 0;
-    virtual String GetErrorMessage() const = 0;
-  };
-
-  class PSGFormatConvertor : public SimpleAYMFormatConvertor
+  Devices::AYM::Dumper::Ptr CreateZX50Dumper(Parameters::Accessor::Ptr params)
   {
-  private:
-    virtual Devices::AYM::Dumper::Ptr CreateDumper(uint_t clocksPerFrame) const
-    {
-      return Devices::AYM::CreatePSGDumper(clocksPerFrame);
-    }
+    const uint_t clocksPerFrame = ClocksPerFrame(params);
+    return Devices::AYM::CreateZX50Dumper(clocksPerFrame);
+  }
 
-    virtual String GetErrorMessage() const
-    {
-      return Text::MODULE_ERROR_CONVERT_PSG;
-    }
-  };
-
-  class ZX50FormatConvertor : public SimpleAYMFormatConvertor
+  Devices::AYM::Dumper::Ptr CreateDebugDumper(Parameters::Accessor::Ptr params)
   {
-  private:
-    virtual Devices::AYM::Dumper::Ptr CreateDumper(uint_t clocksPerFrame) const
-    {
-      return Devices::AYM::CreateZX50Dumper(clocksPerFrame);
-    }
+    const uint_t clocksPerFrame = ClocksPerFrame(params);
+    return Devices::AYM::CreateDebugDumper(clocksPerFrame);
+  }
 
-    virtual String GetErrorMessage() const
-    {
-      return Text::MODULE_ERROR_CONVERT_ZX50;
-    }
-  };
-
-  class DebugAYFormatConvertor : public SimpleAYMFormatConvertor
+  Devices::AYM::Dumper::Ptr CreateRawStreamDumper(Parameters::Accessor::Ptr params)
   {
-  private:
-    virtual Devices::AYM::Dumper::Ptr CreateDumper(uint_t clocksPerFrame) const
-    {
-      return Devices::AYM::CreateDebugDumper(clocksPerFrame);
-    }
+    const uint_t clocksPerFrame = ClocksPerFrame(params);
+    return Devices::AYM::CreateRawStreamDumper(clocksPerFrame);
+  }
 
-    virtual String GetErrorMessage() const
-    {
-      return Text::MODULE_ERROR_CONVERT_DEBUGAY;
-    }
-  };
-
-  class AYDumpFormatConvertor : public SimpleAYMFormatConvertor
+  Devices::AYM::Dumper::Ptr CreateFYMDumper(Parameters::Accessor::Ptr params, const AYM::Chiptune& chiptune)
   {
-  private:
-    virtual Devices::AYM::Dumper::Ptr CreateDumper(uint_t clocksPerFrame) const
-    {
-      return Devices::AYM::CreateRawStreamDumper(clocksPerFrame);
-    }
-
-    virtual String GetErrorMessage() const
-    {
-      return Text::MODULE_ERROR_CONVERT_AYDUMP;
-    }
-  };
-
-  class FYMFormatConvertor : public AYMFormatConvertor
-  {
-#ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
-#endif
-    PACK_PRE struct FYMHeader
-    {
-      uint32_t HeaderSize;
-      uint32_t FramesCount;
-      uint32_t LoopFrame;
-      uint32_t PSGFreq;
-      uint32_t IntFreq;
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
-#endif
-  public:
-    virtual Error Convert(const AYM::Chiptune& chiptune, Dump& dst) const
-    {
-      try
-      {
-        const AYMFormatConvertor& rawConvert = AYDumpFormatConvertor();;
-        Dump rawDump;
-        rawConvert.Convert(chiptune, rawDump);
-
-        const Information::Ptr info = chiptune.GetInformation();
-        const Parameters::Accessor::Ptr props = chiptune.GetProperties();
-        const Sound::RenderParameters::Ptr params = Sound::RenderParameters::Create(props);
-
-        String name, author;
-        props->FindStringValue(ATTR_TITLE, name);
-        props->FindStringValue(ATTR_AUTHOR, author);
-        const std::size_t headerSize = sizeof(FYMHeader) + (name.size() + 1) + (author.size() + 1);
-
-        Dump result(sizeof(FYMHeader));
-        {
-          FYMHeader* const header = safe_ptr_cast<FYMHeader*>(&result[0]);
-          header->HeaderSize = static_cast<uint32_t>(headerSize);
-          header->FramesCount = info->FramesCount();
-          header->LoopFrame = info->LoopFrame();
-          header->PSGFreq = static_cast<uint32_t>(params->ClockFreq());
-          header->IntFreq = 1000000 / params->FrameDurationMicrosec();
-        }
-        std::copy(name.begin(), name.end(), std::back_inserter(result));
-        result.push_back(0);
-        std::copy(author.begin(), author.end(), std::back_inserter(result));
-        result.push_back(0);
-
-        result.resize(headerSize + rawDump.size());
-        //todo optimize
-        const uint_t frames = info->FramesCount();
-        assert(frames * 14 == rawDump.size());
-        for (uint_t reg = 0; reg < 14; ++reg)
-        {
-          for (uint_t frm = 0; frm < frames; ++frm)
-          {
-            result[headerSize + frames * reg + frm] = rawDump[14 * frm + reg];
-          }
-        }
-        dst.swap(result);
-        return Error();
-      }
-      catch (const Error& err)
-      {
-        return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERT_FYM).AddSuberror(err);
-      }
-    }
-  };
+    const Sound::RenderParameters::Ptr sndParams = Sound::RenderParameters::Create(params);
+    const Information::Ptr info = chiptune.GetInformation();
+    const Parameters::Accessor::Ptr props = chiptune.GetProperties();
+    String title, author;
+    props->FindStringValue(ATTR_TITLE, title);
+    props->FindStringValue(ATTR_AUTHOR, author);
+    return Devices::AYM::CreateFYMDumper(sndParams->ClocksPerFrame(), sndParams->ClockFreq(), title, author, info->LoopFrame());
+  }
 }
 
 namespace ZXTune
@@ -207,40 +79,75 @@ namespace ZXTune
     bool ConvertAYMFormat(const Conversion::Parameter& spec, const AYM::Chiptune& chiptune, Dump& dst, Error& result)
     {
       using namespace Conversion;
-      AYMFormatConvertor::Ptr convertor;
+
+      Devices::AYM::Dumper::Ptr dumper;
+      String errMessage;
+
+      const Parameters::Accessor::Ptr params = chiptune.GetProperties();
 
       //convert to PSG
       if (parameter_cast<PSGConvertParam>(&spec))
       {
-        convertor.reset(new PSGFormatConvertor());
+        dumper = CreatePSGDumper(params);
+        errMessage = Text::MODULE_ERROR_CONVERT_PSG;
       }
       //convert to ZX50
       else if (parameter_cast<ZX50ConvertParam>(&spec))
       {
-        convertor.reset(new ZX50FormatConvertor());
+        dumper = CreateZX50Dumper(params);
+        errMessage = Text::MODULE_ERROR_CONVERT_ZX50;
       }
       //convert to debugay
       else if (parameter_cast<DebugAYConvertParam>(&spec))
       {
-        convertor.reset(new DebugAYFormatConvertor());
+        dumper = CreateDebugDumper(params);
+        errMessage = Text::MODULE_ERROR_CONVERT_DEBUGAY;
       }
       //convert to aydump
       else if (parameter_cast<AYDumpConvertParam>(&spec))
       {
-        convertor.reset(new AYDumpFormatConvertor());
+        dumper = CreateRawStreamDumper(params);
+        errMessage = Text::MODULE_ERROR_CONVERT_AYDUMP;
       }
       //convert to fym
       else if (parameter_cast<FYMConvertParam>(&spec))
       {
-        convertor.reset(new FYMFormatConvertor());
+        dumper = CreateFYMDumper(params, chiptune);
+        errMessage = Text::MODULE_ERROR_CONVERT_PSG;
       }
 
-      if (convertor.get())
+      if (!dumper)
       {
-        result = convertor->Convert(chiptune, dst);
-        return true;
+        return false;
       }
-      return false;
+
+      try
+      {
+        const Sound::RenderParameters::Ptr sndParams = Sound::RenderParameters::Create(params);
+        const uint_t clocksPerFrame = sndParams->ClocksPerFrame();
+
+        const AYM::DataIterator::Ptr iterator = chiptune.CreateDataIterator(params);
+        
+        Devices::AYM::DataChunk chunk;
+        for (uint64_t lastRenderTick = clocksPerFrame; ; lastRenderTick += clocksPerFrame)
+        {
+          const bool res = iterator->NextFrame(false);
+          iterator->GetData(chunk);
+          chunk.Tick = lastRenderTick;
+          dumper->RenderData(chunk);
+          if (!res)
+          {
+            break;
+          }
+        }
+        dumper->GetDump(dst);
+        result = Error();
+      }
+      catch (const Error& err)
+      {
+        result = Error(THIS_LINE, ERROR_MODULE_CONVERT, errMessage).AddSuberror(err);
+      }
+      return true;
     }
 
     uint_t GetSupportedAYMFormatConvertors()

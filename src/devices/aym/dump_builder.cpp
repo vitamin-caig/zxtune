@@ -53,8 +53,8 @@ namespace
       }
       if (const uint_t framesPassed = static_cast<uint_t>((src.Tick - State.Tick) / ClocksPerFrame))
       {
-        Builder->WriteFrame(framesPassed, State, update);
         State.Tick = src.Tick;
+        Builder->WriteFrame(framesPassed, State, update);
       }
       else
       {

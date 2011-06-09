@@ -39,6 +39,9 @@ namespace Devices
     };
 
     Dumper::Ptr CreateDumper(uint_t clocksPerFrame, FramedDumpBuilder::Ptr builder);
+
+    //internal factories
+    FramedDumpBuilder::Ptr CreateRawDumpBuilder();
   }
 }
 

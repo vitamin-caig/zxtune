@@ -71,9 +71,14 @@ namespace Devices
 {
   namespace AYM
   {
+    FramedDumpBuilder::Ptr CreateRawDumpBuilder()
+    {
+      return boost::make_shared<RawDumpBuilder>();
+    }
+
     Dumper::Ptr CreateRawStreamDumper(uint_t clocksPerFrame)
     {
-      const FramedDumpBuilder::Ptr builder = boost::make_shared<RawDumpBuilder>();
+      const FramedDumpBuilder::Ptr builder = CreateRawDumpBuilder();
       return CreateDumper(clocksPerFrame, builder);
     }
   }

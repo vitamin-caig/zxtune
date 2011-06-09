@@ -153,7 +153,7 @@ namespace Devices
 
       virtual ~ChipParameters() {}
 
-      virtual uint_t ClockFreq() const = 0;
+      virtual uint64_t ClockFreq() const = 0;
       virtual uint_t SoundFreq() const = 0;
       virtual bool IsYM() const = 0;
       virtual bool Interpolate() const = 0;
@@ -167,6 +167,7 @@ namespace Devices
     Dumper::Ptr CreateZX50Dumper(uint_t clocksPerFrame);
     Dumper::Ptr CreateDebugDumper(uint_t clocksPerFrame);
     Dumper::Ptr CreateRawStreamDumper(uint_t clocksPerFrame);
+    Dumper::Ptr CreateFYMDumper(uint_t clocksPerFrame, uint64_t clockFreq, const String& title, const String& author, uint_t loopFrame);
   }
 }
 

@@ -179,10 +179,10 @@ namespace
 
     virtual bool RenderFrame(const Sound::RenderParameters& params)
     {
+      Devices::AYM::DataChunk chunk;
       const bool res = Iterator->NextFrame(params.Looped());
       LastRenderTick += params.ClocksPerFrame();
 
-      Devices::AYM::DataChunk chunk;
       Iterator->GetData(chunk);
       chunk.Tick = LastRenderTick;
       Device->RenderData(chunk);
