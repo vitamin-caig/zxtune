@@ -265,6 +265,7 @@ namespace
       properties.SetAuthor(OptimizeString(FromCharArray(header->TrackAuthor)));
       properties.SetProgram(OptimizeString(String(header->Id, header->Optional1)));
       const uint_t version = std::isdigit(header->Subversion) ? header->Subversion - '0' : 6;
+      properties.SetVersion(3, version);
       const String freqTable = Vortex::GetFreqTable(static_cast<Vortex::NoteTable>(header->FreqTableNum), version);
       properties.SetFreqtable(freqTable);
     }
@@ -617,9 +618,8 @@ namespace
   class PT3TSHolder : public Holder
   {
   public:
-    PT3TSHolder(Vortex::Track::ModuleData::Ptr data, uint_t version, Holder::Ptr delegate, uint_t patOffset)
+    PT3TSHolder(Vortex::Track::ModuleData::Ptr data, Holder::Ptr delegate, uint_t patOffset)
       : Data(data)
-      , Version(version)
       , Delegate(delegate)
       , PatOffset(patOffset)
     {
@@ -652,8 +652,9 @@ namespace
       const Devices::AYM::Chip::Ptr chip2 = Devices::AYM::CreateChip(chipParams, mixer);
 
       const Information::Ptr info = GetModuleInformation();
-      const Renderer::Ptr renderer1 = Vortex::CreateRenderer(trackParams, info, Data, Version, chip1);
-      const Renderer::Ptr renderer2 = Vortex::CreateRenderer(trackParams, info, boost::make_shared<MirroredModuleData>(PatOffset, *Data), Version, chip2);
+      const uint_t version = Vortex::ExtractVersion(*Delegate->GetModuleProperties());
+      const Renderer::Ptr renderer1 = Vortex::CreateRenderer(trackParams, info, Data, version, chip1);
+      const Renderer::Ptr renderer2 = Vortex::CreateRenderer(trackParams, info, boost::make_shared<MirroredModuleData>(PatOffset, *Data), version, chip2);
       return CreateTSRenderer(renderer1, renderer2, mixer);
     }
 
@@ -669,7 +670,6 @@ namespace
     }
   private:
     const Vortex::Track::ModuleData::Ptr Data;
-    const uint_t Version;
     const Holder::Ptr Delegate;
     const uint_t PatOffset;
   };
@@ -874,20 +874,18 @@ namespace
           const ModuleRegion fixedRegion(fixedOffset, usedSize -  fixedOffset);
           properties->SetSource(usedSize, fixedRegion);
         }
-        //tracking properties
-        const uint_t version = std::isdigit(header->Subversion) ? header->Subversion - '0' : 6;
 
-        const AYM::Chiptune::Ptr chiptune = Vortex::CreateChiptune(moduleData, version, properties, 
+        const AYM::Chiptune::Ptr chiptune = Vortex::CreateChiptune(moduleData, properties, 
           isTSModule ? 2 * Devices::AYM::CHANNELS : Devices::AYM::CHANNELS);
         const Holder::Ptr nativeHolder = AYM::CreateHolder(chiptune, parameters);
 
         if (isTSModule)
         {
-          return boost::make_shared<PT3TSHolder>(moduleData, version, nativeHolder, tsPatternOffset);
+          return boost::make_shared<PT3TSHolder>(moduleData, nativeHolder, tsPatternOffset);
         }
         else
         {
-          return Vortex::CreateHolder(moduleData, version, nativeHolder);
+          return Vortex::CreateHolder(moduleData, nativeHolder);
         }
       }
       catch (const Error&/*e*/)

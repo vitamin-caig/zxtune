@@ -67,6 +67,13 @@ namespace
       Container->SetStringValue(Parameters::ZXTune::Core::AYM::TABLE, table);
     }
 
+    virtual void SetVersion(uint_t major, uint_t minor)
+    {
+      assert(minor < 10);
+      const uint_t version = 10 * major + minor;
+      Container->SetIntValue(ATTR_VERSION, version);
+    }
+
     virtual void SetSource(std::size_t usedSize, const ModuleRegion& fixedRegion)
     {
       UsedRegion = ModuleRegion(0, usedSize);

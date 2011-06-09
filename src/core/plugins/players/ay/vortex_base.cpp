@@ -411,9 +411,8 @@ namespace
   class VortexChiptune : public AYM::Chiptune
   {
   public:
-    VortexChiptune(Vortex::Track::ModuleData::Ptr data, uint_t version, ModuleProperties::Ptr properties, uint_t channels)
+    VortexChiptune(Vortex::Track::ModuleData::Ptr data, ModuleProperties::Ptr properties, uint_t channels)
       : Data(data)
-      , Version(version)
       , Properties(properties)
       , Info(CreateTrackInfo(Data, channels))
     {
@@ -433,12 +432,12 @@ namespace
     {
       const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
       const StateIterator::Ptr iterator = CreateTrackStateIterator(Info, Data);
-      const AYM::DataRenderer::Ptr renderer = boost::make_shared<VortexDataRenderer>(Data, Version);
+      const uint_t version = Vortex::ExtractVersion(*Properties);
+      const AYM::DataRenderer::Ptr renderer = boost::make_shared<VortexDataRenderer>(Data, version);
       return AYM::CreateDataIterator(trackParams, iterator, renderer);
     }
   private:
     const Vortex::Track::ModuleData::Ptr Data;
-    const uint_t Version;
     const ModuleProperties::Ptr Properties;
     const Information::Ptr Info;
   };
@@ -446,9 +445,8 @@ namespace
   class VortexHolder : public Holder
   {
   public:
-    VortexHolder(Vortex::Track::ModuleData::Ptr data, uint_t version, Holder::Ptr delegate)
+    VortexHolder(Vortex::Track::ModuleData::Ptr data, Holder::Ptr delegate)
       : Data(data)
-      , Version(version)
       , Delegate(delegate)
     {
     }
@@ -476,7 +474,7 @@ namespace
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
     {
       Error result;
-      if (ConvertVortexFormat(*Data, *GetModuleInformation(), *GetModuleProperties(), param, Version, dst, result))
+      if (ConvertVortexFormat(*Data, *GetModuleInformation(), *GetModuleProperties(), param, dst, result))
       {
         return result;
       }
@@ -487,7 +485,6 @@ namespace
     }
   protected:
     const Vortex::Track::ModuleData::Ptr Data;
-    const uint_t Version;
     const Holder::Ptr Delegate;
   };
 }
@@ -518,21 +515,34 @@ namespace ZXTune
         }
       }
 
+      uint_t ExtractVersion(const Parameters::Accessor& props)
+      {
+        Parameters::IntType version = 6;
+        if (props.FindIntValue(ATTR_VERSION, version))
+        {
+          version %= 10;
+        }
+        assert(version);
+        return version;
+      }
+
       Renderer::Ptr CreateRenderer(AYM::TrackParameters::Ptr params, Information::Ptr info, Track::ModuleData::Ptr data,
          uint_t version, Devices::AYM::Chip::Ptr device)
       {
         const AYM::DataRenderer::Ptr renderer = boost::make_shared<VortexDataRenderer>(data, version);
-        return AYM::CreateTrackRenderer(params, info, data, renderer, device);
+        const StateIterator::Ptr iterator = CreateTrackStateIterator(info, data);
+        const AYM::DataIterator::Ptr dataIter = AYM::CreateDataIterator(params, iterator, renderer);
+        return AYM::CreateRenderer(dataIter, device);
       }
 
-      AYM::Chiptune::Ptr CreateChiptune(Track::ModuleData::Ptr data, uint_t version, ModuleProperties::Ptr properties, uint_t channels)
+      AYM::Chiptune::Ptr CreateChiptune(Track::ModuleData::Ptr data, ModuleProperties::Ptr properties, uint_t channels)
       {
-        return boost::make_shared<VortexChiptune>(data, version, properties, channels);
+        return boost::make_shared<VortexChiptune>(data, properties, channels);
       }
 
-      Holder::Ptr CreateHolder(Track::ModuleData::Ptr data, uint_t version, Holder::Ptr delegate)
+      Holder::Ptr CreateHolder(Track::ModuleData::Ptr data, Holder::Ptr delegate)
       {
-        return boost::make_shared<VortexHolder>(data, version, delegate);
+        return boost::make_shared<VortexHolder>(data, delegate);
       }
     }
   }

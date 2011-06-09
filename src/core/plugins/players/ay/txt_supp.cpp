@@ -124,18 +124,17 @@ namespace
 
         const Vortex::Track::ModuleData::RWPtr moduleData = Vortex::Track::ModuleData::Create();
 
-        uint_t version = 0;
         ThrowIfError(Vortex::ConvertFromText(std::string(rawData, dataEnd),
-          *moduleData, *properties, version));
+          *moduleData, *properties));
 
         usedSize = limit;
         //TODO: calculate fixed data in ConvertFromText
         properties->SetSource(usedSize, ModuleRegion(0, usedSize));
 
-        const AYM::Chiptune::Ptr chiptune = Vortex::CreateChiptune(moduleData, version, properties, Devices::AYM::CHANNELS);
+        const AYM::Chiptune::Ptr chiptune = Vortex::CreateChiptune(moduleData, properties, Devices::AYM::CHANNELS);
         const Holder::Ptr nativeHolder = AYM::CreateHolder(chiptune, parameters);
 
-        return Vortex::CreateHolder(moduleData, version, nativeHolder);
+        return Vortex::CreateHolder(moduleData, nativeHolder);
       }
       catch (const Error& e)
       {

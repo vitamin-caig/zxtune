@@ -352,15 +352,6 @@ namespace ZXTune
       {
         return boost::make_shared<AYMHolder>(chiptune, params);
       }
-
-
-      Renderer::Ptr CreateTrackRenderer(TrackParameters::Ptr params, Information::Ptr info, TrackModuleData::Ptr data, 
-        DataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device)
-      {
-        const StateIterator::Ptr iterator = CreateTrackStateIterator(info, data);
-        const DataIterator::Ptr dataIter = CreateDataIterator(params, iterator, renderer);
-        return CreateRenderer(dataIter, device);
-      }
     }
   }
 }

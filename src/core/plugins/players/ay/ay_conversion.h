@@ -43,12 +43,11 @@ namespace ZXTune
     //! @param data Source data for Vortex track
     //! @param info %Module information
     //! @param param Input convertion parameter
-    //! @param version Compatibility version
     //! @param dst Destination data
     //! @param result Result state
     //! @return true if parameter is processed
     bool ConvertVortexFormat(const Vortex::Track::ModuleData& data, const Information& info, const Parameters::Accessor& props, const Conversion::Parameter& param,
-      uint_t version, Dump& dst, Error& result);
+      Dump& dst, Error& result);
 
     //! @brief Mask for supported Vortex-related formats
     uint_t GetSupportedVortexFormatConvertors();

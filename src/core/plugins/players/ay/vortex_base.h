@@ -125,13 +125,15 @@ namespace ZXTune
 
       typedef TrackingSupport<Devices::AYM::CHANNELS, Commands, Sample, Ornament> Track;
 
+      uint_t ExtractVersion(const Parameters::Accessor& props);
+
       //creating simple player based on parsed data and parameters
       Renderer::Ptr CreateRenderer(AYM::TrackParameters::Ptr params, Information::Ptr info, Track::ModuleData::Ptr data,
          uint_t version, Devices::AYM::Chip::Ptr device);
 
-      AYM::Chiptune::Ptr CreateChiptune(Track::ModuleData::Ptr data, uint_t version, ModuleProperties::Ptr properties, uint_t channels);
+      AYM::Chiptune::Ptr CreateChiptune(Track::ModuleData::Ptr data, ModuleProperties::Ptr properties, uint_t channels);
 
-      Holder::Ptr CreateHolder(Track::ModuleData::Ptr data, uint_t version, Holder::Ptr delegate);
+      Holder::Ptr CreateHolder(Track::ModuleData::Ptr data, Holder::Ptr delegate);
     }
   }
 }

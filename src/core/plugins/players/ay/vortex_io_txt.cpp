@@ -792,7 +792,7 @@ namespace
       const std::string& value = str.substr(delim + 1);
       if (param == MODULE_VERSION)
       {
-        Version = uint_t(10 * std::atof(value.c_str()));
+        Version = uint_t(10 * std::atof(value.c_str()) + 0.5);
       }
       else if (param == MODULE_TITLE)
       {
@@ -852,8 +852,7 @@ namespace ZXTune
   {
     namespace Vortex
     {
-      Error ConvertFromText(const std::string& text, Vortex::Track::ModuleData& resData, ModuleProperties& resProps,
-        uint_t& resVersion)
+      Error ConvertFromText(const std::string& text, Vortex::Track::ModuleData& resData, ModuleProperties& resProps)
       {
         typedef std::vector<std::string> LinesArray;
         LinesArray lines;
@@ -864,7 +863,6 @@ namespace ZXTune
 
         //transactional result
         Vortex::Track::ModuleData data;
-        uint_t version = 0;
 
         for (LinesArray::const_iterator it = lines.begin(), lim = lines.end(); it != lim;)
         {
@@ -916,22 +914,22 @@ namespace ZXTune
 
         resProps.SetTitle(descr.Title);
         resProps.SetAuthor(descr.Author);
-        resProps.SetProgram(Strings::Format(Text::VORTEX_EDITOR, descr.Version / 10, descr.Version % 10));
-
+        const uint_t majorVer = descr.Version / 10;
+        const uint_t minorVer = descr.Version % 10;
+        resProps.SetProgram(Strings::Format(Text::VORTEX_EDITOR, majorVer, minorVer));
+        resProps.SetVersion(majorVer, minorVer);
         //tracking properties
-        version = descr.Version % 10;
-        const String& freqTable = Vortex::GetFreqTable(static_cast<Vortex::NoteTable>(descr.Notetable), version);
+        const String& freqTable = Vortex::GetFreqTable(static_cast<Vortex::NoteTable>(descr.Notetable), minorVer);
         resProps.SetFreqtable(freqTable);
 
         data.Positions.swap(descr.Order);
 
         //apply result
         resData = data;
-        resVersion = version;
         return Error();
       }
 
-      std::string ConvertToText(const Vortex::Track::ModuleData& data, const Information& info, const Parameters::Accessor& props, uint_t version)
+      std::string ConvertToText(const Vortex::Track::ModuleData& data, const Information& info, const Parameters::Accessor& props)
       {
         typedef std::vector<std::string> LinesArray;
         LinesArray asArray;
@@ -941,6 +939,7 @@ namespace ZXTune
         *iter = SECTION_MODULE;
         *iter = VORTEX_TRACKER_FLAG;
         //process version info
+        const uint_t version = ExtractVersion(props);
         String freqTable = TABLE_PROTRACKER3_3;
         props.FindStringValue(Parameters::ZXTune::Core::AYM::TABLE, freqTable);
         {

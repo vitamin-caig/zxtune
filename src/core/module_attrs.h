@@ -49,6 +49,8 @@ namespace ZXTune
     const Char ATTR_FIXEDCRC[] = {'F', 'i', 'x', 'e', 'd', 'C', 'R', 'C', '\0'};
     //! Raw module size in bytes
     const Char ATTR_SIZE[] = {'S', 'i', 'z', 'e', '\0'};
+    //! Internal format version 10 * major + minor
+    const Char ATTR_VERSION[] = {'V', 'e', 'r', 's', 'i', 'o', 'n', '\0'};
     //@}
 
     //@{

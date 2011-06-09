@@ -157,14 +157,14 @@ namespace ZXTune
 
     //vortex-based conversion
     bool ConvertVortexFormat(const Vortex::Track::ModuleData& data, const Information& info, const Parameters::Accessor& props, const Conversion::Parameter& param,
-      uint_t version, Dump& dst, Error& result)
+      Dump& dst, Error& result)
     {
       using namespace Conversion;
 
       //convert to TXT
       if (parameter_cast<TXTConvertParam>(&param))
       {
-        const std::string& asString = Vortex::ConvertToText(data, info, props, version);
+        const std::string& asString = Vortex::ConvertToText(data, info, props);
         dst.assign(asString.begin(), asString.end());
         result = Error();
         return true;

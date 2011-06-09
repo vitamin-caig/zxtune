@@ -122,10 +122,6 @@ namespace ZXTune
       Devices::AYM::Receiver::Ptr CreateReceiver(TrackParameters::Ptr params, Sound::MultichannelReceiver::Ptr target);
 
       Holder::Ptr CreateHolder(Chiptune::Ptr chiptune, Parameters::Accessor::Ptr params);
-
-
-      Renderer::Ptr CreateTrackRenderer(TrackParameters::Ptr params, Information::Ptr info, TrackModuleData::Ptr data,
-        DataRenderer::Ptr renderer, Devices::AYM::Chip::Ptr device);
     }
   }
 }
