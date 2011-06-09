@@ -19,6 +19,10 @@ Author:
 #include <algorithm>
 #include <iterator>
 
+#ifdef ZLIB_SUPPORT
+//platform includes
+#include <zlib.h>
+
 namespace
 {
   using namespace Devices::AYM;
@@ -42,6 +46,20 @@ namespace
   {
     std::copy(str.begin(), str.end(), std::back_inserter(res));
     res.push_back(0);
+  }
+
+  void CompressBlock(const Dump& input, Dump& output)
+  {
+    Dump result(input.size() * 2);
+    unsigned long dstLen = result.size();
+    if (compress2(&result[0], &dstLen, &input[0], input.size(), 9))
+    {
+      assert(!"Failed to compress");
+      output = input;
+      return;
+    }
+    result.resize(dstLen);
+    output.swap(result);
   }
 
   class FYMBuilder : public FramedDumpBuilder
@@ -96,7 +114,7 @@ namespace
           result[headerSize + framesCount * reg + frm] = rawDump[DataChunk::REG_LAST * frm + reg];
         }
       }
-      data.swap(result);
+      CompressBlock(result, data);
     }
 
     virtual void WriteFrame(uint_t framesPassed, const DataChunk& state, const DataChunk& update)
@@ -126,3 +144,15 @@ namespace Devices
     }
   }
 }
+#else
+namespace Devices
+{
+  namespace AYM
+  {
+    Dumper::Ptr CreateFYMDumper(uint_t /*clocksPerFrame*/, uint64_t /*clockFreq*/, const String& /*title*/, const String& /*author*/, uint_t /*loopFrame*/)
+    {
+      return Dumper::Ptr();
+    }
+  }
+}
+#endif

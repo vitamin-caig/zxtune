@@ -21,3 +21,8 @@ $(platform)_definitions += SDL_SUPPORT
 $(platform)_libraries += SDL
 mingw_libraries += winmm gdi32 dxguid
 endif
+
+ifdef support_zlib
+$(platform)_definitions += ZLIB_SUPPORT
+$(platform)_libraries += z
+endif

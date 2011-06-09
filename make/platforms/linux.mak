@@ -19,6 +19,7 @@ endif
 support_oss = 1
 support_alsa = 1
 #support_sdl = 1
+support_zlib = 1
 
 ifdef STATIC_BOOST_PATH
 include_dirs += $(STATIC_BOOST_PATH)/include
