@@ -34,7 +34,8 @@ namespace ZXTune
     //! @param spec Input convertion parameter
     //! @param result Result state
     //! @return true if parameter is processed
-    bool ConvertAYMFormat(const Conversion::Parameter& spec, const AYM::Chiptune& chiptune, Dump& dst, Error& result);
+    bool ConvertAYMFormat(const AYM::Chiptune& chiptune, const Conversion::Parameter& spec, Parameters::Accessor::Ptr params,
+      Dump& dst, Error& result);
 
     //! @brief Mask for supported AYM-related formats
     uint_t GetSupportedAYMFormatConvertors();

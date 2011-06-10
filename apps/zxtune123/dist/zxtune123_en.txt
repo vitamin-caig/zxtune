@@ -1,0 +1,183 @@
+$Revision: 849 $
+Quick reference for zxtune123
+
+
+SYNOPSIS
+
+	zxtune123 information keys
+	zxtune123 [parameters] [--file] file1 [file2 ...]
+
+
+DESCRIPTION
+zxtune123 is CLI utility to search, playback or convert chiptunes, basically, ZX Spectrum-related. Program is available at least on Linux and Windows platforms (both 32- and 64-bit).
+
+COMMON INFORMATIONAL KEYS
+
+	--help		Used to display brief help about supported options.
+	--version	Showing repository revision program build from.
+
+
+PARAMETERS CONCEPT
+Parameters are stored as an associative array: name => value. Name is just a string which is usually consists of "namespaces" and parameter name itself delimited by a dot. E.g.: aaa.bbb.ccc.ddd - describes parameter ddd which is located in nested namespaces, used to clarify scope of parameter. Usually, aaa - is the name of library/application. Value can be one of the next types: string, integer, blob.
+As far as parameters are passed via text input (command line), they should be encoded to determine actual types. Here the next assumptions (in regular expression notation):
+
+	#([:xdigit:][:xdigit])+		- blob data
+	[-+]?[:digit:]+			- integer value (64 bit signed integer)
+	any other			- string value
+
+To force value to be a string (even if it's looked as not a string), quote it with the "'" symbol. E.g.: "'123'" - is a string, but "123" is integer. If string already contains "'" symbol at the beginning and/or end, it should be escaped too.
+To pass multiple parameters they should be delimited by comma. If parameter's value already contains comma, it should be escaped (obviously, it's a string). E.g.:
+
+	aaa.bbb.ccc=1,aaa.bbb.ddd=#abcdef,aaa.bbb.eee='a,b,c,d'
+
+
+OPTIONS
+To show all the options, supported by zxtune123 application, run it with the --list-options parameter. As you will see, they can be simple grouped by quite long prefix which represents options' category. There are some of the specific keys which are used to specify options for one category only. E.g. --core-options key is used to setup options with "zxtune.core." prefix:
+
+	--core-options aym.type=1,dac.interpolation=1
+
+specifies options: zxtune.core.aym.type and zxtune.core.dac.interpolation.
+Some of the long options are duplicated by the short commandline options.
+
+CONFIGURATION
+To avoid specifying options each time you start the program, you can put some of them into configuration file which has the simple form:
+
+	#comment
+	some.option.parameter.name=value
+
+Pay attention, that configuration file options should be specified by the full name.
+Configuration file is searched according to the next sequence:
+- exactly specified file via --config name parameter. If file is not accessible, error occurred
+- zxtune.conf in current working directory
+- zxtune.conf in home directory (~/.zxtune/zxtune.conf in *nix systems, and %APPDATA%\zxtune\zxtune.conf in windows systems)
+
+INPUT/OUTPUT
+IO subsystem is used to provide source data to work with. It's implemented via "provider" abstraction. To list supported providers use --list-providers key. Here you can get the name of some provider to setup it using --providers-options key which adds "zxtune.io.providers." prefix to all the parameters specified.
+Input data path is usually consists of two parts- data path itself and optional virtual path inside the accessed data. First part is used to choose appropriate provider and get the data using the path. Second part is used to specify some of the subsequent data inside (e.g. path inside archive and so):
+
+	data/path/itself${delimiter}subdata/path/inside
+
+"file" provider.
+Used to get access to local file systems. Uses "?" symbol as a delimiter between path parts and system-dependent delimiter between path components. To force usage of this provider, prepend path with the "file://" scheme.
+Options:
+zxtune.io.providers.file.mmap_threshold - integer value which is used as a limit for simple reading. If file size is greater or equal to this value, it will be opened using memory mapping technology (which is usually faster, but locks write access to opened file during its processing).
+
+MODULES PROCESSING
+After the source data is opened, it's passed into library core to detect all of the supported chiptunes inside using plugin subsystem. To list all the currently supported plugins use --list-plugins key. Here you can get the plugin identifier, some of the additional information and supported capabilities. There are three categories of plugins.
+Multitrack plugins. Used to support "containers" - blocks of data with specific structure which are used for identification and getting access to subsequent data inside. Usually, it's filename. All of these plugins has stor_multitrack capability.
+Archive container plugins. They provides transformation of data block from one form to another without any possibility to identify subdata inside. Uses path component in form +un${Id}, where "Id" is plugin identifier. All of these plugins has stor_container capability.
+Module plugins. They are endpoint plugins used to perform interpretation and playback of input data. All of these plugins has stor_module capability. In addition to this, there're some clarification about module type supported:
+dev_*  - specified device used to playback (e.g. dev_aym, dev_dacN etc)
+conv_* - specified format module supported to convert at. See CONVERSION section below.
+
+There's one more plugin, which is formally "container", but has some specific meaning- raw scanner. It's used to search modules inside raw data dump. It has stor_multitrack and stor_scaner capabilities and uses +${number} virtual "filenames" to specify internal data path, where "number" is just an offset of data in bytes (BTW, zero offset can be specified, but never returned).
+Some of the container plugins has stor_plain capability, which means that processed data is stored inside container "as is" and can be found using raw scanner mentioned above.
+Internal module subpath consists of sequence of plugin-specific path components. E.g.:
+
+	FILE.trd?FILE1.C/+125
+
+in the simplest case means that there's some data inside file FILE1.C at offset of 125 bytes which is located in local file FILE.trd. Every container plugin should be addressed by at least one component.
+Archive containers' path components clarifies nesting and avoids ambiguity:
+	FILE.trd?FILE1.C/+125/+unHRIP1/+50
+
+While processing input data you can use --allow-plugins key to explicitly specify what plugins you want to use and/or --deny-plugins to explicitly disable some of them. Plugins' identifiers or capabilities can be specified as parameters. E.g.
+
+	--allow-plugins stor_module
+
+disables any containers processing, just searching modules itself in input data.
+
+	--deny-plugins PSG,stor_plain
+
+disables searching in plain containers and PSG modules. In common, there's the next algorithm to filter plugins:
+
+	IF PluginID IN EnabledList OR PluginCaps IN EnabledCaps
+	  ALLOW Plugin
+	ELSE
+	IF PluginID IN DisabledList OR PluginCaps IN DisabledCaps
+	  DENY Plugin
+	ELSE
+	IF EMPTY EnabledList AND EMPTY EnabledCaps
+	  ALLOW Plugin
+	ELSE
+	  DENY Plugin
+	ENDIF
+
+Filters are not applied for explicitly specified subpath. E.g. if the next path is specified:
+
+	FILE.trd?FILE1.C/+125/+unHRIP1/+50
+
+TRD, HRUST1 and Raw plugins will be used to resolve initial path even if they are disabled.
+
+ATTRIBUTES
+Every module has variable set of attributes which is filled while processing. To see all the supported attributes use --list-attributes key. Attributes are used to setup file-based backends and conversion (see below).
+progress key is used to display modules searching progress.
+
+SOUND
+To playback opened and detected module you should specify way to do it- specify backend and its optional parameters. To list currently supported backends use --list-backends key. After program is started, it tries different backends to playback and stops when attempt finished successfully. Specified backend forcing and parameters specifying can be done using key --${name}, where "name" is backend's identifier. Optional parameters are used to setup. E.g.:
+
+	--oss device=/dev/dsp1,mixer=/dev/mixer1
+
+forces OSS backend and applies options "zxtune.sound.backends.oss.device" and "zxtune.sound.backends.oss.mixer".
+By default, program tries standard system-specific backends and fallback --null backend when no one can be used. When backends are specified exactly, no additional checklist is affected. Null backend has no options and can be used to perform benchmark tests.
+
+FILE-BASED BACKENDS
+File-based backends (currently, "wav") cannot be used as a default since they should be tuned- use backend parameter "filename=..." to specify output file template. E.g.:
+
+	--wav filename=1/[Fullpath]
+
+and
+
+	--wav filename=[Author]-[Title].wav
+
+will produce files according to specified templates. Note that before substituting all fields are escaped to form valid file system path. E.g.
+
+	FILE.trd?FILE1.C/+125
+
+with 
+	--wav filename=1/[Fullpath]
+
+ template will produce
+
+	1/FILE_trd_FILE1_C_+125.wav
+
+file (if extension is not specified exactly, it's added automatically).
+Non-existing fields are skipped.
+
+OTHER SOUND OPTIONS
+--mixer used to specify mixer. It can be done by two ways- specifying symbolic channels layout or explicit matrix:
+	--mixer ABC
+
+specifies mixer for three channels modules (three letters in set). Every letter can be uppercase to use normal gain, lowercase to use lower gain or '-' to switch off the specified channel. Also letters can be duplicated.
+
+	--mixer 1-0,0.9-0.1,0.6-0.4,0.4-0.6,0.1-0.9,0-1
+
+specifies mixer for four channels modules (for stereo output - eight coefficients). Symbols ';', ',', '-' can be used as a delimiters without any restrictions- difference (as in sample) is just for usability.
+Multiple --mixer can be used to specify mixers for different channels count.
+--filter used to specify bandpass filter with specified order and frequency range.
+	--filter 30,20-20000
+
+specifies 30's order bandpass filter for range from 20Hz till 20kHz. Specifying order is not required (10 used by default).
+
+CONVERSION
+To convert chiptune(s) from initial format to another one, use --convert key with mandatory parameters which are used to specify working mode and target. Syntax is:
+	--convert mode=${mode},filename=${filename}
+
+where mode key is used to specify target format type and filename key is used to specify filename (same as described in FILE-BASED BACKENDS section).All of the supported conversion modes are listed in --convert key section in brief help message.In case of converting multiple files when some of then cannot be converted, proper message displayed. conv_* capabilities can be used to determine supported conversion format for each plugin (see MODULES PROCESSING section). raw mode means raw source module dump (without any players or additional supplementary data). It's supported by the all module plugins and can be used for ripping.
+
+OTHER PARAMETERS
+Additional keys can be used while working with program:
+--analyzer key is used to switch on spectrum analyzer while playback.
+--updatefps key specifies console update frequency for dynamic output.
+--seekstep key specifies seeking step in percents.
+--quiet key is used to switch off all the dynamic output while playback.
+--silent key switches off all the output.
+
+CONTROL KEYS
+The main control keys are:
+Left,Right - seeking upon the module (see --seekstep key)
+Up,Down - volume control (if specified backend support hardware volume changing)
+Esc,Q - exit
+Enter - pause/resume playback
+Space - search for the next module or exit in case of last one
+
+To be continued

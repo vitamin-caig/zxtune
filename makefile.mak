@@ -38,6 +38,9 @@ bins_dir = $(path_step)/bin/$(platform_pathname)/$(mode_pathname)
 #set platform-specific parameters
 include $(path_step)/make/platforms/$(platform).mak
 
+#set host-specific parameters
+include $(path_step)/make/hosts/$(host).mak
+
 #set features
 include $(path_step)/make/features.mak
 
@@ -148,26 +151,9 @@ clean_self:
 
 clean_deps: $(depends)
 
-include $(path_step)/make/codeblocks.mak
+install: install_$(platform)
 
-#show some help
-help:
-	@echo Targets:
-	@echo   all - build target (default)
-	@echo   clean - clean target with all the dependencies
-	@echo   clean_self - clean only target
-	@echo   package - create package
-	@echo   help - this page
-	@echo Accepted flags via flag=value options for make:
-	@echo   profile - enable profiling. Default no
-	@echo   release - enable release build. Default no
-	@echo   platform - selected platform. Default '$(platform)'
-	@echo   arch - selected architecture. Default is '$(arch)'
-	@echo   CXX - used compiler. Default '$(CXX)'
-	@echo   cxx_flags - some specific compilation flags. Default '$(cxx_flags)'
-	@echo   LD - used linker. Default '$(LD)'
-	@echo   ld_flags - some specific linking flags. Default '$(ld_flags)'
-	@echo   defines - additional defines.  Default '$(defines)'
+include $(path_step)/make/codeblocks.mak
 
 ifdef binary_name
 test: $(target)

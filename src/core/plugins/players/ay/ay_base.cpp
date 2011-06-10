@@ -242,15 +242,15 @@ namespace
       return AYM::CreateRenderer(iterator, chip);
     }
 
-    virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
+    virtual Error Convert(const Conversion::Parameter& spec, Dump& dst) const
     {
       using namespace Conversion;
       Error result;
-      if (parameter_cast<RawConvertParam>(&param))
+      if (parameter_cast<RawConvertParam>(&spec))
       {
         Tune->GetProperties()->GetData(dst);
       }
-      else if (!ConvertAYMFormat(param, *Tune, dst, result))
+      else if (!ConvertAYMFormat(*Tune, spec, GetModuleProperties(), dst, result))
       {
         return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
       }

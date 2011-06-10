@@ -22,19 +22,23 @@ boost_libraries = thread program_options
 
 manual_format := txt
 manual_file = $(binary_name)_$(pkg_lang).$(manual_format)
-pkg_additional_files = ../zxtune.conf
-ifeq ($(NO_TEXTATOR),)
-pkg_additional_files += $(output_dir)/$(manual_file)
-endif
+
 pkg_additional_files_dingux := $(wildcard dist/dingux/dmenu/*) $(wildcard dist/dingux/gmenu/*) dist/dingux/readme.txt dist/dingux/zxtune.png
 
 include $(path_step)/makefile.mak
 include $(path_step)/make/package.mak
 
-install: $(output_dir)/$(manual_file)
+install_linux: dist/$(manual_file)
 	install -D $(target) $(DESTDIR)/usr/bin/$(binary_name)
 	install -m644 -D ../zxtune.conf $(DESTDIR)/usr/share/zxtune/zxtune.conf
-	install -m644 -D $(output_dir)/$(manual_file) $(DESTDIR)/usr/share/zxtune/$(manual_file)
+	install -m644 -D dist/$(manual_file) $(DESTDIR)/usr/share/zxtune/$(manual_file)
 
-$(output_dir)/$(manual_file): dist/$(binary_name).txt | $(output_dir)
+install_windows install_mingw: dist/$(manual_file) install_samples
+	$(call copyfile_cmd,$(target),$(DESTDIR))
+	$(call copyfile_cmd,dist/$(manual_file),$(DESTDIR))
+	$(call copyfile_cmd,../zxtune.conf,$(DESTDIR))
+
+include $(path_step)/samples/samples.mak
+
+dist/$(manual_file): dist/$(binary_name).txt
 	$(TEXTATOR) --process --keys $(pkg_lang),$(manual_format) --asm --output $@ $<

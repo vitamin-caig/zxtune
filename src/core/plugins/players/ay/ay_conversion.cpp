@@ -76,14 +76,13 @@ namespace ZXTune
   namespace Module
   {
     //aym-based conversion
-    bool ConvertAYMFormat(const Conversion::Parameter& spec, const AYM::Chiptune& chiptune, Dump& dst, Error& result)
+    bool ConvertAYMFormat(const AYM::Chiptune& chiptune, const Conversion::Parameter& spec, Parameters::Accessor::Ptr params,
+      Dump& dst, Error& result)
     {
       using namespace Conversion;
 
       Devices::AYM::Dumper::Ptr dumper;
       String errMessage;
-
-      const Parameters::Accessor::Ptr params = chiptune.GetProperties();
 
       //convert to PSG
       if (parameter_cast<PSGConvertParam>(&spec))
