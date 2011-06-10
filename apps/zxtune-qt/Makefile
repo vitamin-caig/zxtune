@@ -41,7 +41,6 @@ endif
 theme_resources = res/theme_$(gui_theme)
 
 #packaging
-pkg_additional_files_linux := dist/linux/zxTune.desktop $(theme_resources)/zxtune.png
 pkg_additional_files_dingux := $(wildcard dist/dingux/dmenu/*) $(wildcard dist/dingux/gmenu/*) $(wildcard dist/dingux/fonts/*) \
                                dist/dingux/zxtune-wrapper.sh dist/dingux/readme.txt $(theme_resources)/zxtune32.png
 

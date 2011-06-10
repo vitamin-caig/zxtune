@@ -1,14 +1,13 @@
 #package generating
 pkg_revision := $(subst :,_,$(shell svnversion $(path_step)))
 pkg_subversion := $(if $(release),,_dbg)
-pkg_suffix := zip
 
 pkg_dir := $(path_step)/Builds/Revision$(pkg_revision)_$(platform)$(if $(arch),_$(arch),)
 pkg_filename := $(binary_name)_r$(pkg_revision)$(pkg_subversion)_$(platform)_$(arch).$(pkg_suffix)
 pkg_file := $(pkg_dir)/$(pkg_filename)
 pkg_log := $(pkg_dir)/packaging_$(binary_name).log
 pkg_build_log := $(pkg_dir)/$(binary_name).log
-pkg_debug := $(pkg_dir)/$(binary_name)_debug.$(pkg_suffix)
+pkg_debug := $(pkg_dir)/$(binary_name)_debug.zip
 
 temp_pkg = $(pkg_dir)/pkg
 
