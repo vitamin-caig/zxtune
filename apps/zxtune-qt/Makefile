@@ -40,10 +40,6 @@ endif
 
 theme_resources = res/theme_$(gui_theme)
 
-#packaging
-pkg_additional_files_dingux := $(wildcard dist/dingux/dmenu/*) $(wildcard dist/dingux/gmenu/*) $(wildcard dist/dingux/fonts/*) \
-                               dist/dingux/zxtune-wrapper.sh dist/dingux/readme.txt $(theme_resources)/zxtune32.png
-
 #qt-based resources
 qrc_files := res/icons $(theme_resources)/theme
 
@@ -65,5 +61,15 @@ install_linux:
 install_windows install_mingw: install_samples install_samples_playlist
 	$(call copyfile_cmd,$(target),$(DESTDIR))
 	$(call copyfile_cmd,../zxtune.conf,$(DESTDIR))
+
+install_dingux: dist/$(manual_file) install_samples install_samples_playlist
+	install -D $(target) $(DESTDIR)/local/apps/zxtune/$(binary_name)
+	install -m755 -D dist/dingux/zxtune-wrapper.sh $(DESTDIR)/local/apps/zxtune/zxtune-wrapper.sh
+	install -m644 -D disk/dingux/fonts/fixed_70_50.qpf $(DESTDIR)/local/share/fonts/fixed_70_50.qpf
+	install -m644 -D ../zxtune.conf $(DESTDIR)/local/apps/zxtune/zxtune.conf
+	install -m644 -D dist/dingux/dmenu/zxtune.cfg $(DESTDIR)/local/apps/zxtune/zxtune.cfg
+	install -m644 -D dist/dingux/gmenu/zxtune $(DESTDIR)/local/gmenu2x/sections/applications/zxtune
+	install -m644 -D $(theme_resources)/zxtune32.png $(DESTDIR)/local/apps/zxtune/zxtune32.png
+	install -m644 -D dist/dingux/readme.txt $(DESTDIR)/readme.txt
 
 include $(path_step)/samples/samples.mak
