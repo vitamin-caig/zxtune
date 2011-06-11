@@ -18,7 +18,11 @@ Author:
 //common includes
 #include <parameters.h>
 //qt includes
-#include <QtGui/QAction>
+#include <QtCore/QObject>
+
+class QAction;
+class QAbstractButton;
+class QComboBox;
 
 namespace Parameters
 {
@@ -29,8 +33,20 @@ namespace Parameters
     explicit BooleanValue(QObject& parent);
   public:
     static void Bind(QAction& action, Parameters::Container& ctr, const Parameters::NameType& name, bool defValue);
+    static void Bind(QAbstractButton& button, Parameters::Container& ctr, const Parameters::NameType& name, bool defValue);
   private slots:
     virtual void SetValue(bool value) = 0;
+  };
+
+  class IntegerValue : public QObject
+  {
+    Q_OBJECT
+  protected:
+    explicit IntegerValue(QObject& parent);
+  public:
+    static void Bind(QComboBox& combo, Parameters::Container& ctr, const Parameters::NameType& name, int defValue);
+  private slots:
+    virtual void SetValue(int value) = 0;
   };
 }
 

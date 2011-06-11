@@ -36,12 +36,13 @@ namespace
       DACOptions->setVisible(false);
 
       //common
-      Parameters::BooleanValue::Bind(*actionLoop, Params, Parameters::ZXTune::Sound::LOOPED, false);
+      Parameters::BooleanValue::Bind(*isLooped, Params, Parameters::ZXTune::Sound::LOOPED, false);
       //AYM
-      Parameters::BooleanValue::Bind(*actionAYMInterpolate, Params, Parameters::ZXTune::Core::AYM::INTERPOLATION, false);
-      Parameters::BooleanValue::Bind(*actionYM, Params, Parameters::ZXTune::Core::AYM::TYPE, false);
+      Parameters::BooleanValue::Bind(*isAYMInterpolated, Params, Parameters::ZXTune::Core::AYM::INTERPOLATION, false);
+      Parameters::BooleanValue::Bind(*isYM, Params, Parameters::ZXTune::Core::AYM::TYPE, false);
+      Parameters::IntegerValue::Bind(*aymLayout, Params, Parameters::ZXTune::Core::AYM::LAYOUT, 0);
       //DAC
-      Parameters::BooleanValue::Bind(*actionDACInterpolate, Params, Parameters::ZXTune::Core::DAC::INTERPOLATION, false);
+      Parameters::BooleanValue::Bind(*isDACInterpolated, Params, Parameters::ZXTune::Core::DAC::INTERPOLATION, false);
 
       this->connect(&supp, SIGNAL(OnStartModule(ZXTune::Sound::Backend::Ptr)), SLOT(InitState(ZXTune::Sound::Backend::Ptr)));
       this->connect(&supp, SIGNAL(OnStopModule()), SLOT(CloseState()));

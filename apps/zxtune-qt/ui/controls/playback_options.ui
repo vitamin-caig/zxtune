@@ -100,6 +100,40 @@
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="QComboBox" name="aymLayout">
+        <item>
+         <property name="text">
+          <string>ABC</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>ACB</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>BAC</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>BCA</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>CBA</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>CAB</string>
+         </property>
+        </item>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>
@@ -129,106 +163,9 @@
     </widget>
    </item>
   </layout>
-  <action name="actionLoop">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>actionLoop</string>
-   </property>
-  </action>
-  <action name="actionAYMInterpolate">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>actionAYMInterpolate</string>
-   </property>
-  </action>
-  <action name="actionDACInterpolate">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>actionDACInterpolate</string>
-   </property>
-  </action>
-  <action name="actionYM">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>actionYM</string>
-   </property>
-  </action>
  </widget>
  <resources>
   <include location="../../res/icons.qrc"/>
  </resources>
- <connections>
-  <connection>
-   <sender>isLooped</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>actionLoop</receiver>
-   <slot>setChecked(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>15</x>
-     <y>14</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>isAYMInterpolated</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>actionAYMInterpolate</receiver>
-   <slot>setChecked(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>74</x>
-     <y>14</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>isDACInterpolated</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>actionDACInterpolate</receiver>
-   <slot>setChecked(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>164</x>
-     <y>14</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>isYM</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>actionYM</receiver>
-   <slot>setChecked(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>154</x>
-     <y>14</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>
