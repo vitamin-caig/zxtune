@@ -58,11 +58,6 @@ namespace ZXTune
         {
         }
 
-        void Initialize()
-        {
-          Chunk = Devices::AYM::DataChunk();
-        }
-
         void SetNoise(uint_t level);
         void SetEnvelopeType(uint_t type);
         void SetEnvelopeTone(uint_t tone);
@@ -112,7 +107,7 @@ namespace ZXTune
 
         virtual Information::Ptr GetInformation() const = 0;
         virtual ModuleProperties::Ptr GetProperties() const = 0;
-        virtual AYM::DataIterator::Ptr CreateDataIterator(Parameters::Accessor::Ptr params) const = 0;
+        virtual AYM::DataIterator::Ptr CreateDataIterator(TrackParameters::Ptr trackParams) const = 0;
       };
 
       DataIterator::Ptr CreateDataIterator(TrackParameters::Ptr trackParams, StateIterator::Ptr iterator, DataRenderer::Ptr renderer);

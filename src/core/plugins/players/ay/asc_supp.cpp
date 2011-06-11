@@ -1032,9 +1032,8 @@ namespace
       return Properties;
     }
 
-    virtual AYM::DataIterator::Ptr CreateDataIterator(Parameters::Accessor::Ptr params) const
+    virtual AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const
     {
-      const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
       const StateIterator::Ptr iterator = CreateTrackStateIterator(Info, Data);
       const AYM::DataRenderer::Ptr renderer = boost::make_shared<ASCDataRenderer>(Data);
       return AYM::CreateDataIterator(trackParams, iterator, renderer);

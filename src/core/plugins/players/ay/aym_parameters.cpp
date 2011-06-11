@@ -161,32 +161,27 @@ namespace
     explicit TrackParametersImpl(Parameters::Accessor::Ptr params)
       : Params(params)
     {
+      UpdateParameters();
     }
 
     virtual const FrequencyTable& FreqTable() const
     {
-      UpdateTable();
+      //assume that FreqTable called quite rarely
+      UpdateParameters();
       return Table;
     }
 
     virtual AYM::LayoutType Layout() const
     {
-      Parameters::StringType strVal;
-      if (Params->FindStringValue(Parameters::ZXTune::Core::AYM::LAYOUT, strVal))
-      {
-        return String2Layout(strVal);
-      }
-      Parameters::IntType intVal = AYM::LAYOUT_ABC;
-      const bool found = Params->FindIntValue(Parameters::ZXTune::Core::AYM::LAYOUT, intVal);
-      if (found && (intVal < static_cast<int_t>(AYM::LAYOUT_ABC) ||
-            intVal >= static_cast<int_t>(AYM::LAYOUT_LAST)))
-      {
-        throw MakeFormattedError(THIS_LINE, ERROR_INVALID_PARAMETERS,
-          Text::MODULE_ERROR_INVALID_LAYOUT, intVal);
-      }
-      return static_cast<AYM::LayoutType>(intVal);
+      return LayoutValue;
     }
   private:
+    void UpdateParameters() const
+    {
+      UpdateTable();
+      UpdateLayout();
+    }
+
     void UpdateTable() const
     {
       Parameters::StringType newName;
@@ -209,15 +204,34 @@ namespace
         }
         std::memcpy(&Table.front(), &newData.front(), newData.size());
       }
-      else
+    }
+
+    void UpdateLayout() const
+    {
+      Parameters::IntType intVal = AYM::LAYOUT_ABC;
+      Parameters::StringType strVal;
+      if (Params->FindIntValue(Parameters::ZXTune::Core::AYM::LAYOUT, intVal))
       {
-        assert(!"Empty frequency table specified");
+        if (intVal < static_cast<int_t>(AYM::LAYOUT_ABC) ||
+            intVal >= static_cast<int_t>(AYM::LAYOUT_LAST))
+        {
+          throw MakeFormattedError(THIS_LINE, ERROR_INVALID_PARAMETERS,
+            Text::MODULE_ERROR_INVALID_LAYOUT, intVal);
+        }
       }
+      else if (Params->FindStringValue(Parameters::ZXTune::Core::AYM::LAYOUT, strVal))
+      {
+        intVal = String2Layout(strVal);
+      }
+      LayoutValue = static_cast<AYM::LayoutType>(intVal);
     }
   private:
     const Parameters::Accessor::Ptr Params;
+    //freqtable
     mutable String TableName;
     mutable FrequencyTable Table;
+    //layout
+    mutable AYM::LayoutType LayoutValue;
   };
 }
 

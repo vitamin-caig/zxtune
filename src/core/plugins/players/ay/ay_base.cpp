@@ -41,7 +41,6 @@ namespace
       , Delegate(delegate)
       , State(Delegate->GetStateObserver())
       , Render(renderer)
-      , Builder(TrackParams->FreqTable())
     {
     }
 
@@ -53,8 +52,9 @@ namespace
 
     virtual bool NextFrame(bool looped)
     {
-      Builder.Initialize();
-      Render->SynthesizeData(*State, Builder);
+      AYM::TrackBuilder builder(TrackParams->FreqTable());
+      Render->SynthesizeData(*State, builder);
+      builder.GetResult(Chunk);
       return Delegate->NextFrame(looped);
     }
 
@@ -65,14 +65,14 @@ namespace
 
     virtual void GetData(Devices::AYM::DataChunk& chunk) const
     {
-      Builder.GetResult(chunk);
+      chunk = Chunk;
     }
   private:
     const AYM::TrackParameters::Ptr TrackParams;
     const StateIterator::Ptr Delegate;
     const TrackState::Ptr State;
     const AYM::DataRenderer::Ptr Render;
-    AYM::TrackBuilder Builder;
+    Devices::AYM::DataChunk Chunk;
   };
 
   typedef boost::array<uint_t, Devices::AYM::CHANNELS> LayoutData;
@@ -91,8 +91,7 @@ namespace
   {
   public:
     AYMReceiver(AYM::TrackParameters::Ptr params, Sound::MultichannelReceiver::Ptr target)
-    //TODO: poll layout change
-      : Layout(LAYOUTS[params->Layout()])
+      : Params(params)
       , Target(target)
       , Data(Devices::AYM::CHANNELS)
     {
@@ -100,9 +99,10 @@ namespace
 
     virtual void ApplyData(const Devices::AYM::MultiSample& data)
     {
+      const LayoutData& curLayout = LAYOUTS[Params->Layout()];
       for (uint_t idx = 0; idx < Devices::AYM::CHANNELS; ++idx)
       {
-        const uint_t chipChannel = Layout[idx];
+        const uint_t chipChannel = curLayout[idx];
         Data[idx] = AYMSampleToSoundSample(data[chipChannel]);
       }
       Target->ApplyData(Data);
@@ -118,7 +118,7 @@ namespace
       return in / 2;
     }
   private:
-    const LayoutData& Layout;
+    const AYM::TrackParameters::Ptr Params;
     const Sound::MultichannelReceiver::Ptr Target;
     std::vector<Sound::Sample> Data;
   };
@@ -238,7 +238,7 @@ namespace
       const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(trackParams, target);
       const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
       const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateChip(chipParams, receiver);
-      const AYM::DataIterator::Ptr iterator = Tune->CreateDataIterator(params);
+      const AYM::DataIterator::Ptr iterator = Tune->CreateDataIterator(trackParams);
       return AYM::CreateRenderer(iterator, chip);
     }
 

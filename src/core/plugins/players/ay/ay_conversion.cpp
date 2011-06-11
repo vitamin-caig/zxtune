@@ -125,7 +125,8 @@ namespace ZXTune
         const Sound::RenderParameters::Ptr sndParams = Sound::RenderParameters::Create(params);
         const uint_t clocksPerFrame = sndParams->ClocksPerFrame();
 
-        const AYM::DataIterator::Ptr iterator = chiptune.CreateDataIterator(params);
+      const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
+        const AYM::DataIterator::Ptr iterator = chiptune.CreateDataIterator(trackParams);
         
         Devices::AYM::DataChunk chunk;
         for (uint64_t lastRenderTick = clocksPerFrame; ; lastRenderTick += clocksPerFrame)

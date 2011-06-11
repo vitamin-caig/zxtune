@@ -261,7 +261,7 @@ namespace
       return Properties;
     }
 
-    virtual AYM::DataIterator::Ptr CreateDataIterator(Parameters::Accessor::Ptr /*params*/) const
+    virtual AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr /*trackParams*/) const
     {
       const StateIterator::Ptr iter = CreateStreamStateIterator(Info);
       return boost::make_shared<PSGDataIterator>(iter, Data);
