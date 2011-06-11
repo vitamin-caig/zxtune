@@ -51,7 +51,7 @@ namespace
       , About(AboutDialog::Create(*this))
       , Components(ComponentsDialog::Create(*this))
       , Controls(PlaybackControls::Create(*this, *Playback))
-      , FastOptions(PlaybackOptions::Create(*this, *Options))
+      , FastOptions(PlaybackOptions::Create(*this, *Playback, *Options))
       , Volume(VolumeControl::Create(*this, *Playback))
       , Status(StatusControl::Create(*this, *Playback))
       , Seeking(SeekControls::Create(*this, *Playback))

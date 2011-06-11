@@ -15,10 +15,12 @@ Author:
 #ifndef ZXTUNE_QT_PLAYBACK_OPTIONS_H_DEFINED
 #define ZXTUNE_QT_PLAYBACK_OPTIONS_H_DEFINED
 
-//common includes
-#include <parameters.h>
+//library includes
+#include <sound/backend.h>
 //qt includes
 #include <QtGui/QWidget>
+
+class PlaybackSupport;
 
 class PlaybackOptions : public QWidget
 {
@@ -27,7 +29,10 @@ protected:
   explicit PlaybackOptions(QWidget& parent);
 public:
   //creator
-  static PlaybackOptions* Create(QWidget& parent, Parameters::Container& params);
+  static PlaybackOptions* Create(QWidget& parent, PlaybackSupport& supp, Parameters::Container& params);
+public slots:
+  virtual void InitState(ZXTune::Sound::Backend::Ptr) = 0;
+  virtual void CloseState() = 0;
 };
 
 #endif //ZXTUNE_QT_PLAYBACK_OPTIONS_H_DEFINED
