@@ -9,7 +9,8 @@ source_files = format \
 ui_files += controls/playback_controls \
             controls/seek_controls \
             controls/status_control \
-            controls/volume_control
+            controls/volume_control \
+            controls/playback_options
 
 moc_files += controls/analyzer_control
 

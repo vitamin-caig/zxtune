@@ -13,6 +13,8 @@ Author:
 
 //local includes
 #include "parameters_helpers.h"
+//common includes
+#include <logging.h>
 
 namespace
 {
@@ -33,6 +35,7 @@ namespace
 
     virtual void SetValue(bool value)
     {
+      Log::Debug("Parameters::Helper", "BooleanValue(%1%)=%2%", Name, value);
       Container.SetIntValue(Name, value);
     }
   private:

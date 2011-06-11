@@ -14,8 +14,9 @@
    </rect>
   </property>
   <property name="windowIcon">
-   <iconset resource="../res/icons.qrc">
-    <normaloff>:/zxtune.png</normaloff>:/zxtune.png</iconset>
+   <iconset>
+     :/zxtune.png
+   </iconset>
   </property>
   <property name="modal">
    <bool>true</bool>

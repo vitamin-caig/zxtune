@@ -18,6 +18,7 @@ Author:
 #include "ui/utils.h"
 #include "ui/controls/analyzer_control.h"
 #include "ui/controls/playback_controls.h"
+#include "ui/controls/playback_options.h"
 #include "ui/controls/seek_controls.h"
 #include "ui/controls/status_control.h"
 #include "ui/controls/volume_control.h"
@@ -50,6 +51,7 @@ namespace
       , About(AboutDialog::Create(*this))
       , Components(ComponentsDialog::Create(*this))
       , Controls(PlaybackControls::Create(*this, *Playback))
+      , FastOptions(PlaybackOptions::Create(*this, *Options))
       , Volume(VolumeControl::Create(*this, *Playback))
       , Status(StatusControl::Create(*this, *Playback))
       , Seeking(SeekControls::Create(*this, *Playback))
@@ -62,6 +64,7 @@ namespace
       menubar->addMenu(MultiPlaylist->GetActionsMenu());
       //fill toolbar and layout menu
       AddWidgetWithLayoutControl(AddWidgetOnToolbar(Controls, false));
+      AddWidgetWithLayoutControl(AddWidgetOnToolbar(FastOptions, false));
       AddWidgetWithLayoutControl(AddWidgetOnToolbar(Volume, true));
       AddWidgetWithLayoutControl(AddWidgetOnToolbar(Status, false));
       AddWidgetWithLayoutControl(AddWidgetOnToolbar(Seeking, true));
@@ -157,6 +160,7 @@ namespace
     AboutDialog* const About;
     ComponentsDialog* const Components;
     PlaybackControls* const Controls;
+    PlaybackOptions* const FastOptions;
     VolumeControl* const Volume;
     StatusControl* const Status;
     SeekControls* const Seeking;

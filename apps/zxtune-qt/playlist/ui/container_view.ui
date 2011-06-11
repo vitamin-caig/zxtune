@@ -111,8 +111,9 @@
    </property>
    <property name="icon">
     <iconset>
-     <normaloff>:/playlist/looped_off.png</normaloff>
-     <normalon>:/playlist/looped_on.png</normalon>:/playlist/looped_off.png</iconset>
+     <normalon>:/playlist/looped_on.png</normalon>
+     :/playlist/looped_off.png
+    </iconset>
    </property>
    <property name="text">
     <string>Loop</string>
@@ -124,8 +125,9 @@
    </property>
    <property name="icon">
     <iconset>
-     <normaloff>:/playlist/random_off.png</normaloff>
-     <normalon>:/playlist/random_on.png</normalon>:/playlist/random_off.png</iconset>
+     <normalon>:/playlist/random_on.png</normalon>
+     :/playlist/random_off.png
+    </iconset>
    </property>
    <property name="text">
     <string>Random</string>
