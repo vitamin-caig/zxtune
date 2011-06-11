@@ -36,7 +36,6 @@ namespace ZXTune
         virtual ~TrackParameters() {}
 
         virtual const Module::FrequencyTable& FreqTable() const = 0;
-        virtual LayoutType Layout() const = 0;
 
         static Ptr Create(Parameters::Accessor::Ptr params);
       };

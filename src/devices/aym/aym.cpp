@@ -54,6 +54,18 @@ namespace
     0x5502, 0x6620, 0x7730, 0x8844, 0xA1D2, 0xC102, 0xE0A2, 0xFFFF
   } };
 
+  typedef boost::array<uint_t, Devices::AYM::CHANNELS> LayoutData;
+
+  const LayoutData LAYOUTS[] =
+  {
+    { {0, 1, 2} }, //ABC
+    { {0, 2, 1} }, //ACB
+    { {1, 0, 2} }, //BAC
+    { {2, 0, 1} }, //BCA
+    { {2, 1, 0} }, //CBA
+    { {1, 2, 0} }, //CAB
+  };
+
   const uint_t AYM_CLOCK_DIVISOR = 8;
 
   const uint_t MAX_DUTYCYCLE = 100;
@@ -164,11 +176,11 @@ namespace
 
     void SetDutyCycle(uint_t value, uint_t mask)
     {
-      GenA.SetDutyCycle(0 != (mask & DataChunk::DUTY_CYCLE_MASK_A) ? value : NO_DUTYCYCLE);
-      GenB.SetDutyCycle(0 != (mask & DataChunk::DUTY_CYCLE_MASK_B) ? value : NO_DUTYCYCLE);
-      GenC.SetDutyCycle(0 != (mask & DataChunk::DUTY_CYCLE_MASK_C) ? value : NO_DUTYCYCLE);
-      GenN.SetDutyCycle(0 != (mask & DataChunk::DUTY_CYCLE_MASK_N) ? value : NO_DUTYCYCLE);
-      GenE.SetDutyCycle(0 != (mask & DataChunk::DUTY_CYCLE_MASK_E) ? value : NO_DUTYCYCLE);
+      GenA.SetDutyCycle(0 != (mask & DataChunk::CHANNEL_MASK_A) ? value : NO_DUTYCYCLE);
+      GenB.SetDutyCycle(0 != (mask & DataChunk::CHANNEL_MASK_B) ? value : NO_DUTYCYCLE);
+      GenC.SetDutyCycle(0 != (mask & DataChunk::CHANNEL_MASK_C) ? value : NO_DUTYCYCLE);
+      GenN.SetDutyCycle(0 != (mask & DataChunk::CHANNEL_MASK_N) ? value : NO_DUTYCYCLE);
+      GenE.SetDutyCycle(0 != (mask & DataChunk::CHANNEL_MASK_E) ? value : NO_DUTYCYCLE);
     }
 
     virtual void Reset()
@@ -488,6 +500,40 @@ namespace
     mutable uint_t AccumulatedSamples;
   };
 
+  class RelayoutRenderer : public Renderer
+  {
+  public:
+    RelayoutRenderer(Renderer& delegate, LayoutType layout)
+      : Delegate(delegate)
+      , Layout(LAYOUTS[layout])
+    {
+    }
+
+    virtual void Reset()
+    {
+      return Delegate.Reset();
+    }
+
+    virtual bool Tick()
+    {
+      return Delegate.Tick();
+    }
+
+    virtual void GetLevels(MultiSample& result) const
+    {
+      MultiSample tmp;
+      Delegate.GetLevels(tmp);
+      for (uint_t idx = 0; idx < Devices::AYM::CHANNELS; ++idx)
+      {
+        const uint_t chipChannel = Layout[idx];
+        result[idx] = tmp[chipChannel];
+      }
+    }
+  private:
+    Renderer& Delegate;
+    const LayoutData Layout;
+  };
+
   class ClockSource
   {
   public:
@@ -584,16 +630,18 @@ namespace
       ApplyParameters();
       PSG.ApplyData(src);
       Clock.ApplyData(src);
-      Renderer& render = Params->Interpolate()
+      Renderer& targetRender = Params->Interpolate()
         ? static_cast<Renderer&>(Render)
         : static_cast<Renderer&>(PSG);
+      RelayoutRenderer render(targetRender, Params->Layout());
+      MultiSample result;
       while (Clock.InFrame())
       {
         render.Tick();
         if (Clock.Tick())
         {
-          render.GetLevels(Result);
-          Target->ApplyData(Result);
+          render.GetLevels(result);
+          Target->ApplyData(result);
         }
       }
     }
@@ -620,8 +668,6 @@ namespace
     AYMRenderer PSG;
     InterpolatedRenderer Render;
     ClockSource Clock;
-    //context
-    MultiSample Result;
   };
 }
 

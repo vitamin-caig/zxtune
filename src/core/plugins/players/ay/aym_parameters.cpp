@@ -39,11 +39,11 @@ namespace
     static const Char LETTERS[] = {'A', 'B', 'C', 'N', 'E'};
     static const uint_t MASKS[] =
     {
-      Devices::AYM::DataChunk::DUTY_CYCLE_MASK_A,
-      Devices::AYM::DataChunk::DUTY_CYCLE_MASK_B,
-      Devices::AYM::DataChunk::DUTY_CYCLE_MASK_C,
-      Devices::AYM::DataChunk::DUTY_CYCLE_MASK_N,
-      Devices::AYM::DataChunk::DUTY_CYCLE_MASK_E
+      Devices::AYM::DataChunk::CHANNEL_MASK_A,
+      Devices::AYM::DataChunk::CHANNEL_MASK_B,
+      Devices::AYM::DataChunk::CHANNEL_MASK_C,
+      Devices::AYM::DataChunk::CHANNEL_MASK_N,
+      Devices::AYM::DataChunk::CHANNEL_MASK_E
     };
     BOOST_STATIC_ASSERT(sizeof(LETTERS) / sizeof(*LETTERS) == sizeof(MASKS) / sizeof(*MASKS));
     const std::size_t pos = std::find(LETTERS, ArrayEnd(LETTERS), letter) - LETTERS;
@@ -60,31 +60,31 @@ namespace
     return std::accumulate(str.begin(), str.end(), uint_t(0), LetterToMask);
   }
 
-  AYM::LayoutType String2Layout(const String& str)
+  Devices::AYM::LayoutType String2Layout(const String& str)
   {
     if (str == Text::MODULE_LAYOUT_ABC)
     {
-      return AYM::LAYOUT_ABC;
+      return Devices::AYM::LAYOUT_ABC;
     }
     else if (str == Text::MODULE_LAYOUT_ACB)
     {
-      return AYM::LAYOUT_ACB;
+      return Devices::AYM::LAYOUT_ACB;
     }
     else if (str == Text::MODULE_LAYOUT_BAC)
     {
-      return AYM::LAYOUT_BAC;
+      return Devices::AYM::LAYOUT_BAC;
     }
     else if (str == Text::MODULE_LAYOUT_BCA)
     {
-      return AYM::LAYOUT_BCA;
+      return Devices::AYM::LAYOUT_BCA;
     }
     else if (str == Text::MODULE_LAYOUT_CBA)
     {
-      return AYM::LAYOUT_CBA;
+      return Devices::AYM::LAYOUT_CBA;
     }
     else if (str == Text::MODULE_LAYOUT_CAB)
     {
-      return AYM::LAYOUT_CAB;
+      return Devices::AYM::LAYOUT_CAB;
     }
     else
     {
@@ -150,6 +150,26 @@ namespace
       Params->FindIntValue(Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MASK, intVal);
       return static_cast<uint_t>(intVal);
     }
+
+    virtual Devices::AYM::LayoutType Layout() const
+    {
+      Parameters::StringType strVal;
+      if (Params->FindStringValue(Parameters::ZXTune::Core::AYM::LAYOUT, strVal))
+      {
+        return String2Layout(strVal);
+      }
+      Parameters::IntType intVal = Devices::AYM::LAYOUT_ABC;
+      if (Params->FindIntValue(Parameters::ZXTune::Core::AYM::LAYOUT, intVal))
+      {
+        if (intVal < static_cast<int_t>(Devices::AYM::LAYOUT_ABC) ||
+            intVal >= static_cast<int_t>(Devices::AYM::LAYOUT_LAST))
+        {
+          throw MakeFormattedError(THIS_LINE, ERROR_INVALID_PARAMETERS,
+            Text::MODULE_ERROR_INVALID_LAYOUT, intVal);
+        }
+      }
+      return static_cast<Devices::AYM::LayoutType>(intVal);
+    }
   private:
     const Parameters::Accessor::Ptr Params;
     const Sound::RenderParameters::Ptr SoundParams;
@@ -170,16 +190,10 @@ namespace
       UpdateParameters();
       return Table;
     }
-
-    virtual AYM::LayoutType Layout() const
-    {
-      return LayoutValue;
-    }
   private:
     void UpdateParameters() const
     {
       UpdateTable();
-      UpdateLayout();
     }
 
     void UpdateTable() const
@@ -205,33 +219,11 @@ namespace
         std::memcpy(&Table.front(), &newData.front(), newData.size());
       }
     }
-
-    void UpdateLayout() const
-    {
-      Parameters::IntType intVal = AYM::LAYOUT_ABC;
-      Parameters::StringType strVal;
-      if (Params->FindIntValue(Parameters::ZXTune::Core::AYM::LAYOUT, intVal))
-      {
-        if (intVal < static_cast<int_t>(AYM::LAYOUT_ABC) ||
-            intVal >= static_cast<int_t>(AYM::LAYOUT_LAST))
-        {
-          throw MakeFormattedError(THIS_LINE, ERROR_INVALID_PARAMETERS,
-            Text::MODULE_ERROR_INVALID_LAYOUT, intVal);
-        }
-      }
-      else if (Params->FindStringValue(Parameters::ZXTune::Core::AYM::LAYOUT, strVal))
-      {
-        intVal = String2Layout(strVal);
-      }
-      LayoutValue = static_cast<AYM::LayoutType>(intVal);
-    }
   private:
     const Parameters::Accessor::Ptr Params;
     //freqtable
     mutable String TableName;
     mutable FrequencyTable Table;
-    //layout
-    mutable AYM::LayoutType LayoutValue;
   };
 }
 

@@ -75,36 +75,18 @@ namespace
     Devices::AYM::DataChunk Chunk;
   };
 
-  typedef boost::array<uint_t, Devices::AYM::CHANNELS> LayoutData;
-  
-  const LayoutData LAYOUTS[] =
-  {
-    { {0, 1, 2} }, //ABC
-    { {0, 2, 1} }, //ACB
-    { {1, 0, 2} }, //BAC
-    { {2, 0, 1} }, //BCA
-    { {2, 1, 0} }, //CBA
-    { {1, 2, 0} }, //CAB
-  };
-
   class AYMReceiver : public Devices::AYM::Receiver
   {
   public:
-    AYMReceiver(AYM::TrackParameters::Ptr params, Sound::MultichannelReceiver::Ptr target)
-      : Params(params)
-      , Target(target)
+    explicit AYMReceiver(Sound::MultichannelReceiver::Ptr target)
+      : Target(target)
       , Data(Devices::AYM::CHANNELS)
     {
     }
 
     virtual void ApplyData(const Devices::AYM::MultiSample& data)
     {
-      const LayoutData& curLayout = LAYOUTS[Params->Layout()];
-      for (uint_t idx = 0; idx < Devices::AYM::CHANNELS; ++idx)
-      {
-        const uint_t chipChannel = curLayout[idx];
-        Data[idx] = AYMSampleToSoundSample(data[chipChannel]);
-      }
+      std::transform(data.begin(), data.end(), Data.begin(), &AYMSampleToSoundSample);
       Target->ApplyData(Data);
     }
 
@@ -118,7 +100,6 @@ namespace
       return in / 2;
     }
   private:
-    const AYM::TrackParameters::Ptr Params;
     const Sound::MultichannelReceiver::Ptr Target;
     std::vector<Sound::Sample> Data;
   };
@@ -234,10 +215,10 @@ namespace
     {
       const Parameters::Accessor::Ptr params = GetModuleProperties();
 
-      const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
-      const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(trackParams, target);
+      const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(target);
       const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
       const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateChip(chipParams, receiver);
+      const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
       const AYM::DataIterator::Ptr iterator = Tune->CreateDataIterator(trackParams);
       return AYM::CreateRenderer(iterator, chip);
     }
@@ -343,9 +324,9 @@ namespace ZXTune
         return boost::make_shared<AYMRenderer>(iterator, device);
       }
 
-      Devices::AYM::Receiver::Ptr CreateReceiver(TrackParameters::Ptr params, Sound::MultichannelReceiver::Ptr target)
+      Devices::AYM::Receiver::Ptr CreateReceiver(Sound::MultichannelReceiver::Ptr target)
       {
-        return boost::make_shared<AYMReceiver>(params, target);
+        return boost::make_shared<AYMReceiver>(target);
       }
 
       Holder::Ptr CreateHolder(Chiptune::Ptr chiptune, Parameters::Accessor::Ptr params)

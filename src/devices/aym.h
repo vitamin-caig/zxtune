@@ -67,12 +67,15 @@ namespace Devices
         REG_MASK_NOISEB = 0x10,
         REG_MASK_TONEC = 0x04,
         REG_MASK_NOISEC = 0x20,
+      };
 
-        DUTY_CYCLE_MASK_A = 1,
-        DUTY_CYCLE_MASK_B = 2,
-        DUTY_CYCLE_MASK_C = 4,
-        DUTY_CYCLE_MASK_N = 8,
-        DUTY_CYCLE_MASK_E = 16,
+      enum
+      {
+        CHANNEL_MASK_A = 1,
+        CHANNEL_MASK_B = 2,
+        CHANNEL_MASK_C = 4,
+        CHANNEL_MASK_N = 8,
+        CHANNEL_MASK_E = 16,
       };
 
       DataChunk() : Tick(), Mask(), Data()
@@ -81,6 +84,18 @@ namespace Devices
       uint64_t Tick;
       uint_t Mask;
       boost::array<uint8_t, REG_LAST> Data;
+    };
+
+    enum LayoutType
+    {
+      LAYOUT_ABC = 0,
+      LAYOUT_ACB = 1,
+      LAYOUT_BAC = 2,
+      LAYOUT_BCA = 3,
+      LAYOUT_CAB = 4,
+      LAYOUT_CBA = 5,
+
+      LAYOUT_LAST
     };
 
     class Device
@@ -159,6 +174,7 @@ namespace Devices
       virtual bool Interpolate() const = 0;
       virtual uint_t DutyCycleValue() const = 0;
       virtual uint_t DutyCycleMask() const = 0;
+      virtual LayoutType Layout() const = 0;
     };
 
     /// Virtual constructors

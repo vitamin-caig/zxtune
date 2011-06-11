@@ -290,28 +290,28 @@ namespace
     {
       if (value == AYL::ACB)
       {
-        return ZXTune::Module::AYM::LAYOUT_ACB;
+        return Devices::AYM::LAYOUT_ACB;
       }
       else if (value == AYL::BAC)
       {
-        return ZXTune::Module::AYM::LAYOUT_BAC;
+        return Devices::AYM::LAYOUT_BAC;
       }
       else if (value == AYL::BCA)
       {
-        return ZXTune::Module::AYM::LAYOUT_BCA;
+        return Devices::AYM::LAYOUT_BCA;
       }
       else if (value == AYL::CAB)
       {
-        return ZXTune::Module::AYM::LAYOUT_CAB;
+        return Devices::AYM::LAYOUT_CAB;
       }
       else if (value == AYL::CBA)
       {
-        return ZXTune::Module::AYM::LAYOUT_CBA;
+        return Devices::AYM::LAYOUT_CBA;
       }
       else
       {
         //default fallback
-        return ZXTune::Module::AYM::LAYOUT_ABC;
+        return Devices::AYM::LAYOUT_ABC;
       }
     }
   private:

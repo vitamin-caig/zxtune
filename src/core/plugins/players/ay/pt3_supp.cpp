@@ -644,13 +644,13 @@ namespace
     {
       const Parameters::Accessor::Ptr params = GetModuleProperties();
 
-      const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
-      const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(trackParams, target);
+      const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(target);
       const AYMTSMixer::Ptr mixer = CreateTSMixer(receiver);
       const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
       const Devices::AYM::Chip::Ptr chip1 = Devices::AYM::CreateChip(chipParams, mixer);
       const Devices::AYM::Chip::Ptr chip2 = Devices::AYM::CreateChip(chipParams, mixer);
 
+      const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
       const Information::Ptr info = GetModuleInformation();
       const uint_t version = Vortex::ExtractVersion(*Delegate->GetModuleProperties());
       const Renderer::Ptr renderer1 = Vortex::CreateRenderer(trackParams, info, Data, version, chip1);
