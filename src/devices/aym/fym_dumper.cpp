@@ -9,6 +9,7 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+#ifdef ZLIB_SUPPORT
 //local includes
 #include "dump_builder.h"
 //common includes
@@ -19,7 +20,6 @@ Author:
 #include <algorithm>
 #include <iterator>
 
-#ifdef ZLIB_SUPPORT
 //platform includes
 #include <zlib.h>
 
@@ -51,8 +51,8 @@ namespace
   void CompressBlock(const Dump& input, Dump& output)
   {
     Dump result(input.size() * 2);
-    unsigned long dstLen = result.size();
-    if (compress2(&result[0], &dstLen, &input[0], input.size(), 9))
+    uLongf dstLen = static_cast<uLongf>(result.size());
+    if (compress2(&result[0], &dstLen, &input[0], static_cast<uLongf>(input.size()), Z_BEST_COMPRESSION))
     {
       assert(!"Failed to compress");
       output = input;
@@ -141,17 +141,6 @@ namespace Devices
     {
       const FramedDumpBuilder::Ptr builder = boost::make_shared<FYMBuilder>(clocksPerFrame, clockFreq, title, author, loopFrame);
       return CreateDumper(clocksPerFrame, builder);
-    }
-  }
-}
-#else
-namespace Devices
-{
-  namespace AYM
-  {
-    Dumper::Ptr CreateFYMDumper(uint_t /*clocksPerFrame*/, uint64_t /*clockFreq*/, const String& /*title*/, const String& /*author*/, uint_t /*loopFrame*/)
-    {
-      return Dumper::Ptr();
     }
   }
 }

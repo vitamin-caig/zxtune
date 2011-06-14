@@ -25,4 +25,5 @@ endif
 ifdef support_zlib
 $(platform)_definitions += ZLIB_SUPPORT
 $(platform)_libraries += z
+windows_3rdparty += zlib
 endif
