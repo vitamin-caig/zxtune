@@ -145,8 +145,7 @@ namespace Devices
     };
 
     // Describes dump converter
-    // TODO: inherit from Device
-    class Dumper : public Chip
+    class Dumper : public Device
     {
     public:
       typedef boost::shared_ptr<Dumper> Ptr;

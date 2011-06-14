@@ -61,9 +61,9 @@ namespace
     { {0, 1, 2} }, //ABC
     { {0, 2, 1} }, //ACB
     { {1, 0, 2} }, //BAC
-    { {2, 0, 1} }, //BCA
+    { {1, 2, 0} }, //BCA
     { {2, 1, 0} }, //CBA
-    { {1, 2, 0} }, //CAB
+    { {2, 0, 1} }, //CAB
   };
 
   const uint_t AYM_CLOCK_DIVISOR = 8;

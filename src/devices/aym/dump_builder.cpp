@@ -68,11 +68,6 @@ namespace
       State = DataChunk();
     }
 
-    virtual void GetState(ChannelsState& state) const
-    {
-      std::fill(state.begin(), state.end(), ChanState());
-    }
-
     virtual void GetDump(Dump& result) const
     {
       Builder->GetResult(result);
