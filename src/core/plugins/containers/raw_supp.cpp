@@ -305,12 +305,14 @@ namespace
     {
       return typename P::Iterator::Ptr(new IteratorImpl(Plugins.begin(), Plugins.end(), Offset));
     }
-    
-    bool HasPluginsToProcess() const
-    {
-      return std::find_if(Plugins.begin(), Plugins.end(), boost::bind(&OffsetAndPlugin::first, _1) <= Offset) != Plugins.end();
-    }
 
+    std::size_t GetMinimalPluginLookahead() const
+    {
+      const typename PluginsList::const_iterator it = std::min_element(Plugins.begin(), Plugins.end(), 
+        boost::bind(&OffsetAndPlugin::first, _1) < boost::bind(&OffsetAndPlugin::first, _2));
+      return it->first >= Offset ? it->first - Offset : 0;
+    }
+    
     void SetOffset(std::size_t offset)
     {
       Offset = offset;
@@ -344,15 +346,27 @@ namespace
 
     std::size_t Detect(DataLocation::Ptr input, const Module::DetectCallback& callback)
     {
-      if (std::size_t res = DetectIn(Containers, input, callback))
+      const DetectionResult::Ptr detectedContainers = DetectIn(Containers, input, callback);
+      if (std::size_t matched = detectedContainers->GetMatchedDataSize())
       {
-        return res;
+        return matched;
       }
-      if (std::size_t res = DetectIn(Archives, input, callback))
+      const DetectionResult::Ptr detectedArchives = DetectIn(Archives, input, callback);
+      if (std::size_t matched = detectedArchives->GetMatchedDataSize())
       {
-        return res;
+        return matched;
       }
-      return DetectIn(Players, input, callback);
+      const DetectionResult::Ptr detectedModules = DetectIn(Players, input, callback);
+      if (std::size_t matched = detectedModules->GetMatchedDataSize())
+      {
+        return matched;
+      }
+      const std::size_t containerLookahead = detectedContainers->GetLookaheadOffset();
+      const std::size_t archiveLookahead = detectedArchives->GetLookaheadOffset();
+      const std::size_t moduleLookahead = detectedModules->GetLookaheadOffset();
+      Log::Debug(THIS_MODULE, "No containers for nearest %1% bytes, archives for %2% bytes, modules for %3% bytes",
+        containerLookahead, archiveLookahead, moduleLookahead);
+      return std::min(std::min(containerLookahead, archiveLookahead), moduleLookahead);
     }
 
     void SetOffset(std::size_t offset)
@@ -363,25 +377,22 @@ namespace
     }
   private:
     template<class Type>
-    std::size_t DetectIn(LookaheadPluginsStorage<Type>& container, DataLocation::Ptr input, const Module::DetectCallback& callback) const
+    DetectionResult::Ptr DetectIn(LookaheadPluginsStorage<Type>& container, DataLocation::Ptr input, const Module::DetectCallback& callback) const
     {
-      if (!container.HasPluginsToProcess())
-      {
-        return 0;
-      }
       for (typename Type::Iterator::Ptr iter = container.Enumerate(); iter->IsValid(); iter->Next())
       {
         const typename Type::Ptr plugin = iter->Get();
         const DetectionResult::Ptr result = plugin->Detect(input, callback);
         if (std::size_t usedSize = result->GetMatchedDataSize())
         {
-          Log::Debug(THIS_MODULE, "Detected %1% in %2% bytes at %3%.", plugin->Id(), usedSize, input->GetPath());
-          return usedSize;
+          Log::Debug(THIS_MODULE, "Detected %1% in %2% bytes at %3%.", plugin->Id(), usedSize, input->GetPath()->AsString());
+          return result;
         }
         const std::size_t lookahead = result->GetLookaheadOffset();
         container.SetPluginLookahead(plugin, std::max<std::size_t>(lookahead, MIN_SCAN_STEP));
       }
-      return 0;
+      const std::size_t minLookahead = container.GetMinimalPluginLookahead();
+      return DetectionResult::CreateUnmatched(minLookahead);
     }
   private:
     LookaheadPluginsStorage<PlayerPlugin> Players;
@@ -447,8 +458,9 @@ namespace
         }
       }
 
-      Log::Debug(THIS_MODULE, "Detecting modules in raw data at '%1%'", input->GetPath());
-      const Log::ProgressCallback::Ptr progress(new RawProgressCallback(callback, static_cast<uint_t>(size), input->GetPath()->AsString()));
+      const String currentPath = input->GetPath()->AsString();
+      Log::Debug(THIS_MODULE, "Detecting modules in raw data at '%1%'", currentPath);
+      const Log::ProgressCallback::Ptr progress(new RawProgressCallback(callback, static_cast<uint_t>(size), currentPath));
       const Module::NoProgressDetectCallbackAdapter noProgressCallback(callback);
 
 
@@ -463,13 +475,13 @@ namespace
         const std::size_t offset = subLocation->GetOffset();
         progress->OnProgress(static_cast<uint_t>(offset));
         usedPlugins.SetOffset(offset);
-        const std::size_t usedSize = usedPlugins.Detect(subLocation, noProgressCallback);
+        const std::size_t bytesToSkip = usedPlugins.Detect(subLocation, noProgressCallback);
         if (!subLocation.unique())
         {
           Log::Debug(THIS_MODULE, "Sublocation is captured. Duplicate.");
           subLocation = boost::make_shared<ScanDataLocation>(input, thisPlugin, offset);
         }
-        subLocation->Move(std::max(usedSize, scanStep));
+        subLocation->Move(std::max(bytesToSkip, scanStep));
       }
       return DetectionResult::CreateMatched(size);
     }
