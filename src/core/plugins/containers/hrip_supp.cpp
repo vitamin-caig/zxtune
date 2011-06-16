@@ -382,7 +382,7 @@ namespace
     return CONTINUE;
   }
 
-  class HRIPPlugin : public ContainerPlugin
+  class HRIPPlugin : public ArchivePlugin
                    , public boost::enable_shared_from_this<HRIPPlugin>
   {
   public:
@@ -453,7 +453,7 @@ namespace ZXTune
 {
   void RegisterHRIPContainer(PluginsRegistrator& registrator)
   {
-    const ContainerPlugin::Ptr plugin(new HRIPPlugin());
+    const ArchivePlugin::Ptr plugin(new HRIPPlugin());
     registrator.RegisterPlugin(plugin);
   }
 }

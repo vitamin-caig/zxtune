@@ -39,8 +39,7 @@ namespace
   typedef std::vector<Plugin::Ptr> PluginsArray;
   typedef std::vector<PlayerPlugin::Ptr> PlayerPluginsArray;
   typedef std::vector<ArchivePlugin::Ptr> ArchivePluginsArray;
-  typedef std::vector<ContainerPlugin::Ptr> ContainerPluginsArray;
-
+ 
   class FilteredPluginsRegistrator : public PluginsRegistrator
   {
   public:
@@ -59,14 +58,6 @@ namespace
     }
 
     virtual void RegisterPlugin(ArchivePlugin::Ptr plugin)
-    {
-      if (Filter.IsPluginEnabled(*plugin))
-      {
-        Delegate.RegisterPlugin(plugin);
-      }
-    }
-
-    virtual void RegisterPlugin(ContainerPlugin::Ptr plugin)
     {
       if (Filter.IsPluginEnabled(*plugin))
       {
@@ -119,13 +110,6 @@ namespace
       Log::Debug(THIS_MODULE, "Registered archive container %1%", plugin->Id());
     }
 
-    virtual void RegisterPlugin(ContainerPlugin::Ptr plugin)
-    {
-      AllPlugins.push_back(plugin);
-      ContainerPlugins.push_back(plugin);
-      Log::Debug(THIS_MODULE, "Registered container %1%", plugin->Id());
-    }
-
     //public interface
     virtual Plugin::Iterator::Ptr Enumerate() const
     {
@@ -142,14 +126,8 @@ namespace
     {
       return CreateRangedObjectIteratorAdapter(ArchivePlugins.begin(), ArchivePlugins.end());
     }
-
-    virtual ContainerPlugin::Iterator::Ptr EnumerateContainers() const
-    {
-      return CreateRangedObjectIteratorAdapter(ContainerPlugins.begin(), ContainerPlugins.end());
-    }
   private:
     PluginsArray AllPlugins;
-    ContainerPluginsArray ContainerPlugins;
     ArchivePluginsArray ArchivePlugins;
     PlayerPluginsArray PlayerPlugins;
   };

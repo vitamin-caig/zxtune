@@ -111,14 +111,6 @@ namespace
         return result;
       }
     }
-    for (ContainerPlugin::Iterator::Ptr iter = plugins.EnumerateContainers(); iter->IsValid(); iter->Next())
-    {
-      const ContainerPlugin::Ptr plugin = iter->Get();
-      if (DataLocation::Ptr result = plugin->Open(coreParams, location, subPath))
-      {
-        return result;
-      }
-    }
     return DataLocation::Ptr();
   }
 }

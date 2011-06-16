@@ -336,21 +336,15 @@ namespace
   class RawDetectionPlugins
   {
   public:
-    RawDetectionPlugins(PluginsEnumerator::Ptr parent, ContainerPlugin::Ptr denied)
+    RawDetectionPlugins(PluginsEnumerator::Ptr parent, ArchivePlugin::Ptr denied)
       : Players(parent->EnumeratePlayers())
       , Archives(parent->EnumerateArchives())
-      , Containers(parent->EnumerateContainers())
     {
-      Containers.SetPluginLookahead(denied, ~std::size_t(0));
+      Archives.SetPluginLookahead(denied, ~std::size_t(0));
     }
 
     std::size_t Detect(DataLocation::Ptr input, const Module::DetectCallback& callback)
     {
-      const DetectionResult::Ptr detectedContainers = DetectIn(Containers, input, callback);
-      if (std::size_t matched = detectedContainers->GetMatchedDataSize())
-      {
-        return matched;
-      }
       const DetectionResult::Ptr detectedArchives = DetectIn(Archives, input, callback);
       if (std::size_t matched = detectedArchives->GetMatchedDataSize())
       {
@@ -361,17 +355,15 @@ namespace
       {
         return matched;
       }
-      const std::size_t containerLookahead = detectedContainers->GetLookaheadOffset();
       const std::size_t archiveLookahead = detectedArchives->GetLookaheadOffset();
       const std::size_t moduleLookahead = detectedModules->GetLookaheadOffset();
-      Log::Debug(THIS_MODULE, "No containers for nearest %1% bytes, archives for %2% bytes, modules for %3% bytes",
-        containerLookahead, archiveLookahead, moduleLookahead);
-      return std::min(std::min(containerLookahead, archiveLookahead), moduleLookahead);
+      Log::Debug(THIS_MODULE, "No archives for nearest %1% bytes, modules for %2% bytes",
+        archiveLookahead, moduleLookahead);
+      return std::min(archiveLookahead, moduleLookahead);
     }
 
     void SetOffset(std::size_t offset)
     {
-      Containers.SetOffset(offset);
       Archives.SetOffset(offset);
       Players.SetOffset(offset);
     }
@@ -397,10 +389,9 @@ namespace
   private:
     LookaheadPluginsStorage<PlayerPlugin> Players;
     LookaheadPluginsStorage<ArchivePlugin> Archives;
-    LookaheadPluginsStorage<ContainerPlugin> Containers;
   };
 
-  class RawScaner : public ContainerPlugin
+  class RawScaner : public ArchivePlugin
                   , public boost::enable_shared_from_this<RawScaner>
   {
   public:
@@ -465,7 +456,7 @@ namespace
 
 
       const PluginsEnumerator::Ptr availablePlugins = callback.GetUsedPlugins();
-      const ContainerPlugin::Ptr thisPlugin = shared_from_this();
+      const ArchivePlugin::Ptr thisPlugin = shared_from_this();
       RawDetectionPlugins usedPlugins(availablePlugins, thisPlugin);
 
       ScanDataLocation::Ptr subLocation = boost::make_shared<ScanDataLocation>(input, thisPlugin, 0);
@@ -506,7 +497,7 @@ namespace ZXTune
 {
   void RegisterRawContainer(PluginsRegistrator& registrator)
   {
-    const ContainerPlugin::Ptr plugin(new RawScaner());
+    const ArchivePlugin::Ptr plugin(new RawScaner());
     registrator.RegisterPlugin(plugin);
   }
 }

@@ -172,7 +172,7 @@ namespace
     const IO::DataContainer::Ptr RawData;
   };
 
-  class SCLPlugin : public ContainerPlugin
+  class SCLPlugin : public ArchivePlugin
                   , public boost::enable_shared_from_this<SCLPlugin>
   {
   public:
@@ -251,7 +251,7 @@ namespace ZXTune
 {
   void RegisterSCLContainer(PluginsRegistrator& registrator)
   {
-    const ContainerPlugin::Ptr plugin(new SCLPlugin());
+    const ArchivePlugin::Ptr plugin(new SCLPlugin());
     registrator.RegisterPlugin(plugin);
   }
 }

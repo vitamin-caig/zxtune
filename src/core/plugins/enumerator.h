@@ -27,7 +27,6 @@ namespace ZXTune
     virtual Plugin::Iterator::Ptr Enumerate() const = 0;
     virtual PlayerPlugin::Iterator::Ptr EnumeratePlayers() const = 0;
     virtual ArchivePlugin::Iterator::Ptr EnumerateArchives() const = 0;
-    virtual ContainerPlugin::Iterator::Ptr EnumerateContainers() const = 0;
 
     //! Enumerate all supported plugins
     static Ptr Create();

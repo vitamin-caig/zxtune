@@ -79,14 +79,6 @@ namespace ZXTune
                                    DataLocation::Ptr inputData,
                                    const DataPath& pathToOpen) const = 0; 
   };
-
-  //for compatibility
-  class ContainerPlugin : public ArchivePlugin
-  {
-  public:
-    typedef boost::shared_ptr<const ContainerPlugin> Ptr;
-    typedef ObjectIterator<ContainerPlugin::Ptr> Iterator;
-  };
 }
 
 #endif //__CORE_PLUGINS_TYPES_H_DEFINED__

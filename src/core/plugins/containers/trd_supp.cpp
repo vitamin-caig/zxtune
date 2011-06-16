@@ -221,7 +221,7 @@ namespace
   };
 
 
-  class TRDPlugin : public ContainerPlugin
+  class TRDPlugin : public ArchivePlugin
                   , public boost::enable_shared_from_this<TRDPlugin>
   {
   public:
@@ -300,7 +300,7 @@ namespace ZXTune
 {
   void RegisterTRDContainer(PluginsRegistrator& registrator)
   {
-    const ContainerPlugin::Ptr plugin(new TRDPlugin());
+    const ArchivePlugin::Ptr plugin(new TRDPlugin());
     registrator.RegisterPlugin(plugin);
   }
 }

@@ -170,10 +170,6 @@ namespace ZXTune
     std::size_t Detect(DataLocation::Ptr location, const DetectCallback& callback)
     {
       const PluginsEnumerator::Ptr usedPlugins = callback.GetUsedPlugins();
-      if (std::size_t usedSize = DetectByPlugins<ContainerPlugin>(usedPlugins->EnumerateContainers(), location, callback))
-      {
-        return usedSize;
-      }
       if (std::size_t usedSize = DetectByPlugins<ArchivePlugin>(usedPlugins->EnumerateArchives(), location, callback))
       {
         return usedSize;
