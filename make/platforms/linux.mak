@@ -20,12 +20,12 @@ support_zlib = 1
 
 ifdef STATIC_BOOST_PATH
 include_dirs += $(STATIC_BOOST_PATH)/include
-linux_libraries_dirs += $(STATIC_BOOST_PATH)/lib
+$(platform)_libraries_dirs += $(STATIC_BOOST_PATH)/lib
 boost_libs_model = -mt
 endif
 
 #multithread release libraries
-linux_libraries += $(foreach lib,$(boost_libraries),boost_$(lib)$(boost_libs_model))
+$(platform)_libraries += $(foreach lib,$(boost_libraries),boost_$(lib)$(boost_libs_model))
 
 #release libraries
-linux_libraries += $(foreach lib,$(qt_libraries),Qt$(lib))
+$(platform)_libraries += $(foreach lib,$(qt_libraries),Qt$(lib))

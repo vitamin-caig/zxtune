@@ -7,6 +7,8 @@ ifeq ($(platform),mingw)
 source_files += console_windows
 else ifeq ($(platform),macos)
 source_files += console_linux
+else ifeq ($(platform),ubuntu)
+source_files += console_linux
 else
 source_files += console_$(platform)
 endif
