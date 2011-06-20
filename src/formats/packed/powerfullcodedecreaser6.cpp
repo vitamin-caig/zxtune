@@ -381,38 +381,6 @@ namespace PowerfullCodeDecreaser6
     bool IsValid;
     const typename Version::RawHeader& Header;
   };
-
-  class MergedDataFormat : public DataFormat
-  {
-  public:
-    MergedDataFormat(DataFormat::Ptr v61, DataFormat::Ptr v62)
-      : Depacker61(v61)
-      , Depacker62(v62)
-    {
-    }
-
-    virtual bool Match(const void* data, std::size_t size) const
-    {
-      //TODO: do not make fast check if it's slow
-      const Container<Version61> container61(data, size);
-      if (container61.FastCheck() && Depacker61->Match(data, size))
-      {
-        return true;
-      }
-      const Container<Version62> container62(data, size);
-      return container62.FastCheck() && Depacker62->Match(data, size);
-    }
-
-    virtual std::size_t Search(const void* data, std::size_t size) const
-    {
-      const std::size_t firstOffset = Depacker61->Search(data, size);
-      const std::size_t secondOffset = Depacker62->Search(data, firstOffset);
-      return std::min(firstOffset, secondOffset);
-    }
-  private:
-    const DataFormat::Ptr Depacker61;
-    const DataFormat::Ptr Depacker62;
-  };
 }
 
 namespace Formats

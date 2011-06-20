@@ -23,11 +23,95 @@ Author:
 #include <iterator>
 #include <stdexcept>
 
-namespace CompressorCode4
+namespace CompressorCode
 {
   const std::size_t MAX_DECODED_SIZE = 0xc000;
 
-  const std::string DEPACKER_PATTERN(
+  struct Version4
+  {
+    static const std::string DEPACKER_PATTERN;
+
+#ifdef USE_PRAGMA_PACK
+#pragma pack(push,1)
+#endif
+    PACK_PRE struct RawHeader
+    {
+      //+0
+      uint8_t Padding1[0x0e];
+      //+0x0e
+      uint16_t RestDepackerSize;
+      //+0x10
+      uint8_t Padding2[0x0a];
+      //+0x1a
+      uint16_t ChunksCount;
+      //+0x1c
+    } PACK_POST;
+#ifdef USE_PRAGMA_PACK
+#pragma pack(pop)
+#endif
+
+    static bool FastCheck(const RawHeader& header, std::size_t size)
+    {
+      const uint_t depackerSize = 0x14 + fromLE(header.RestDepackerSize);
+      const uint_t chunksCount = fromLE(header.ChunksCount);
+      //at least one byte per chunk
+      if (chunksCount > MAX_DECODED_SIZE ||
+          depackerSize + chunksCount > size)
+      {
+        return false;
+      }
+      return header.Padding1[depackerSize - 1] == 0xc9;
+    }
+
+    BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0x1c);
+  };
+
+  struct Version4Plus
+  {
+    static const std::string DEPACKER_PATTERN;
+
+#ifdef USE_PRAGMA_PACK
+#pragma pack(push,1)
+#endif
+    PACK_PRE struct RawHeader
+    {
+      //+0
+      uint8_t Padding1[0x0e];
+      //+0x0e
+      uint16_t RestDepackerSize;
+      //+0x10
+      uint8_t Padding2[0x0d];
+      //+0x1d
+      uint16_t PackedDataSize;
+      //+0x1f
+      uint8_t Padding3[0x15];
+      //+0x34
+      uint16_t ChunksCount;
+      //+0x36
+    } PACK_POST;
+#ifdef USE_PRAGMA_PACK
+#pragma pack(pop)
+#endif
+
+    static bool FastCheck(const RawHeader& header, std::size_t size)
+    {
+      const uint_t depackerSize = 0x14 + fromLE(header.RestDepackerSize);
+      const uint_t chunksCount = fromLE(header.ChunksCount);
+      //at least one byte per chunk
+      if (chunksCount > MAX_DECODED_SIZE ||
+          depackerSize > size ||
+          !fromLE(header.PackedDataSize) ||
+          depackerSize < 257)
+      {
+        return false;
+      }
+      return header.Padding1[depackerSize - 256 - 1] == 0xc9;
+    }
+
+    BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0x36);
+  };
+
+  const std::string Version4::DEPACKER_PATTERN(
     "cd5200"  // call 0x52
     "3b"      // dec sp
     "3b"      // dec sp
@@ -48,27 +132,27 @@ namespace CompressorCode4
     "c5"      // push bc
   );
 
-#ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
-#endif
-  PACK_PRE struct RawHeader
-  {
-    //+0
-    uint8_t Padding1[0x0e];
-    //+0x0e
-    uint16_t RestDepackerSize;
-    //+0x10
-    uint8_t Padding2[0x0a];
-    //+0x1a
-    uint16_t ChunksCount;
-    //+0x1c
-  } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
-#endif
+  const std::string Version4Plus::DEPACKER_PATTERN(
+    "cd5200"  // call 0x52
+    "3b"      // dec sp
+    "3b"      // dec sp
+    "e1"      // pop hl
+    "011100"  // ld bc,0x0011 ;0x07
+    "09"      // add hl,bc
+    "11??"    // ld de,xxxx ;depacker addr
+    "01??"    // ld bc,xxxx ;depacker size +e
+    "d5"      // push de
+    "edb0"    // ldir
+    "c9"      // ret
+    //add hl,bc points here +14
+    "fde5"    // push iy
+    "e5"      // push hl
+    "dde1"    // pop ix
+    "11??"    // ld de,xxxx ;dst addr
+    "01??"    // ld bc,xxxx ;huffman packed size +1d
+  );
 
-  BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0x1c);
-
+  template<class Version>
   class Container
   {
   public:
@@ -80,20 +164,12 @@ namespace CompressorCode4
 
     bool FastCheck() const
     {
-      if (Size < sizeof(RawHeader))
+      if (Size < sizeof(typename Version::RawHeader))
       {
         return false;
       }
-      const RawHeader& header = GetHeader();
-      const uint_t depackerSize = 0x14 + fromLE(header.RestDepackerSize);
-      const uint_t chunksCount = fromLE(header.ChunksCount);
-      //at least one byte per chunk
-      if (chunksCount > MAX_DECODED_SIZE ||
-          depackerSize + chunksCount > Size)
-      {
-        return false;
-      }
-      return Data[depackerSize - 1] == 0xc9;
+      const typename Version::RawHeader& header = GetHeader();
+      return Version::FastCheck(header, Size);
     }
 
     uint_t GetAvailableData() const
@@ -101,21 +177,21 @@ namespace CompressorCode4
       return Size;
     }
 
-    const RawHeader& GetHeader() const
+    const typename Version::RawHeader& GetHeader() const
     {
-      assert(Size >= sizeof(RawHeader));
-      return *safe_ptr_cast<const RawHeader*>(Data);
+      assert(Size >= sizeof(typename Version::RawHeader));
+      return *safe_ptr_cast<const typename Version::RawHeader*>(Data);
     }
   private:
     const uint8_t* const Data;
     const std::size_t Size;
   };
 
-  class StreamAdapter
+  class StreamAdapter : public ByteStream
   {
   public:
     StreamAdapter(const uint8_t* data, std::size_t size)
-      : Delegate(data, size)
+      : ByteStream(data, size)
       , UsedData(0)
     {
     }
@@ -127,12 +203,12 @@ namespace CompressorCode4
 
     uint8_t operator * ()
     {
-      if (Delegate.Eof())
+      if (Eof())
       {
         throw std::exception();
       }
       ++UsedData;
-      return Delegate.GetByte();
+      return GetByte();
     }
 
     StreamAdapter& operator ++ (int)
@@ -140,25 +216,19 @@ namespace CompressorCode4
       return *this;
     }
 
-    bool Eof() const
-    {
-      return Delegate.Eof();
-    }
   private:
-    ByteStream Delegate;
     uint_t UsedData;
   };
 
-  class DataDecoder
+  class RawDataDecoder
   {
   public:
-    explicit DataDecoder(const Container& container)
-      : IsValid(container.FastCheck())
-      , Header(container.GetHeader())
-      , DataOffset(0x14 + fromLE(Header.RestDepackerSize))
-      , Stream(Header.Padding1 + DataOffset, container.GetAvailableData() - DataOffset)
+    RawDataDecoder(const uint8_t* data, std::size_t size, uint_t chunksCount)
+      : IsValid(true)
+      , Stream(data, size)
+      , ChunksCount(chunksCount)
     {
-      assert(IsValid && !Stream.Eof());
+      assert(!Stream.Eof());
     }
 
     Dump* GetDecodedData()
@@ -172,14 +242,14 @@ namespace CompressorCode4
 
     uint_t GetUsedSize() const
     {
-      return Stream.GetUsedData() + DataOffset;
+      return Stream.GetUsedData();
     }
   private:
     bool DecodeData()
     {
       try
       {
-        uint_t chunksCount = fromLE(Header.ChunksCount);
+        uint_t chunksCount = ChunksCount;
         Decoded.reserve(2 * chunksCount);
         StreamAdapter& source(Stream);
         std::back_insert_iterator<Dump> target(Decoded);
@@ -311,10 +381,153 @@ namespace CompressorCode4
     }
   private:
     bool IsValid;
-    const RawHeader& Header;
-    const uint_t DataOffset;
     StreamAdapter Stream;
+    const uint_t ChunksCount;
     Dump Decoded;
+  };
+
+  template<class Version>
+  class DataDecoder;
+
+  template<>
+  class DataDecoder<Version4>
+  {
+  public:
+    explicit DataDecoder(const Container<Version4>& container)
+      : Header(container.GetHeader())
+      , DataOffset(0x14 + fromLE(Header.RestDepackerSize))
+      , Delegate(container.FastCheck()
+        ? new RawDataDecoder(Header.Padding1 + DataOffset, container.GetAvailableData() - DataOffset, fromLE(Header.ChunksCount))
+        : 0)
+    {
+      assert(Delegate.get());
+    }
+
+    Dump* GetDecodedData()
+    {
+      return Delegate.get()
+        ? Delegate->GetDecodedData()
+        : 0;
+    }
+
+    uint_t GetUsedSize() const
+    {
+      return Delegate.get()
+        ? DataOffset + Delegate->GetUsedSize()
+        : 0;
+    }
+  private:
+    const Version4::RawHeader& Header;
+    const uint_t DataOffset;
+    const std::auto_ptr<RawDataDecoder> Delegate;
+  };
+
+
+  class Bitstream
+  {
+  public:
+    Bitstream(const uint8_t* data, std::size_t size)
+      : Source(data, size)
+      , Bits(), Mask(0)
+    {
+    }
+
+    uint_t GetUsedData() const
+    {
+      return Source.GetUsedData();
+    }
+
+    uint_t GetBit()
+    {
+      if (!(Mask >>= 1))
+      {
+        Bits = *Source;
+        Mask = 0x80;
+      }
+      return Bits & Mask ? 1 : 0;
+    }
+
+    uint_t GetBits(unsigned count)
+    {
+      uint_t result = 0;
+      while (count--)
+      {
+        result = 2 * result | GetBit();
+      }
+      return result;
+    }
+
+    uint_t GetIndex()
+    {
+      if (uint_t len = GetBits(3))
+      {
+        return GetBits(len) | (1 << len);
+      }
+      else
+      {
+        return GetBit();
+      }
+    }
+  private:
+    StreamAdapter Source;
+    uint_t Bits;
+    uint_t Mask;
+  };
+
+  template<>
+  class DataDecoder<Version4Plus>
+  {
+  public:
+    explicit DataDecoder(const Container<Version4Plus>& container)
+      : Header(container.GetHeader())
+      , DataOffset(0x14 + fromLE(Header.RestDepackerSize))
+      , DataSize(0)
+    {
+      if (container.FastCheck() && DecodeHuffman(container.GetAvailableData() - DataOffset))
+      {
+        Delegate.reset(new RawDataDecoder(&UnhuffmanData[0], UnhuffmanData.size(), fromLE(Header.ChunksCount)));
+      }
+    }
+  
+    Dump* GetDecodedData()
+    {
+      return Delegate.get()
+        ? Delegate->GetDecodedData()
+        : 0;
+    }
+
+    uint_t GetUsedSize() const
+    {
+      return Delegate.get()
+        ? DataOffset + DataSize
+        : 0;
+    }
+  private:
+    bool DecodeHuffman(std::size_t availableSize)
+    {
+      try
+      {
+        Bitstream stream(Header.Padding1 + DataOffset, availableSize);
+        const uint8_t* const table = Header.Padding1 + DataOffset - 256;
+        for (uint_t packedBytes = fromLE(Header.PackedDataSize); packedBytes; --packedBytes)
+        {
+          const uint_t idx = stream.GetIndex();
+          UnhuffmanData.push_back(table[idx]);
+        }
+        DataSize = stream.GetUsedData();
+        return true;
+      }
+      catch (const std::exception&)
+      {
+        return false;
+      }
+    }
+  private:
+    const Version4Plus::RawHeader& Header;
+    const uint_t DataOffset;
+    uint_t DataSize;
+    Dump UnhuffmanData;
+    std::auto_ptr<RawDataDecoder> Delegate;
   };
 }
 
@@ -322,11 +535,12 @@ namespace Formats
 {
   namespace Packed
   {
-    class CompressorCode4Decoder : public Decoder
+    template<class Version>
+    class CompressorCodeDecoder : public Decoder
     {
     public:
-      CompressorCode4Decoder()
-        : Depacker(DataFormat::Create(CompressorCode4::DEPACKER_PATTERN))
+      CompressorCodeDecoder()
+        : Depacker(DataFormat::Create(Version::DEPACKER_PATTERN))
       {
       }
 
@@ -337,18 +551,18 @@ namespace Formats
 
       virtual bool Check(const void* data, std::size_t availSize) const
       {
-        const CompressorCode4::Container container(data, availSize);
+        const CompressorCode::Container<Version> container(data, availSize);
         return container.FastCheck() && Depacker->Match(data, availSize);
       }
 
       virtual std::auto_ptr<Dump> Decode(const void* data, std::size_t availSize, std::size_t& usedSize) const
       {
-        const CompressorCode4::Container container(data, availSize);
+        const CompressorCode::Container<Version> container(data, availSize);
         if (!container.FastCheck() || !Depacker->Match(data, availSize))
         {
           return std::auto_ptr<Dump>();
         }
-        CompressorCode4::DataDecoder decoder(container);
+        CompressorCode::DataDecoder<Version> decoder(container);
         if (Dump* decoded = decoder.GetDecodedData())
         {
           usedSize = decoder.GetUsedSize();
@@ -364,7 +578,12 @@ namespace Formats
 
     Decoder::Ptr CreateCompressorCode4Decoder()
     {
-      return Decoder::Ptr(new CompressorCode4Decoder());
+      return Decoder::Ptr(new CompressorCodeDecoder<CompressorCode::Version4>());
+    }
+
+    Decoder::Ptr CreateCompressorCode4PlusDecoder()
+    {
+      return Decoder::Ptr(new CompressorCodeDecoder<CompressorCode::Version4Plus>());
     }
   }
 }

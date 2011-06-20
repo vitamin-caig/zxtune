@@ -20,6 +20,7 @@ namespace Formats
   {
     Decoder::Ptr CreateCodeCruncher3Decoder();
     Decoder::Ptr CreateCompressorCode4Decoder();
+    Decoder::Ptr CreateCompressorCode4PlusDecoder();
     Decoder::Ptr CreateDataSquieezerDecoder();
     Decoder::Ptr CreateESVCruncherDecoder();
     Decoder::Ptr CreateHrumDecoder();
