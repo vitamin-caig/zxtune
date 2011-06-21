@@ -98,7 +98,7 @@ namespace Devices
 
       virtual ~ChipParameters() {}
 
-      virtual uint_t ClockFreq() const = 0;
+      virtual uint64_t ClockFreq() const = 0;
       virtual uint_t SoundFreq() const = 0;
       virtual bool Interpolate() const = 0;
     };

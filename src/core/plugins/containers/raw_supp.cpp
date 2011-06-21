@@ -61,7 +61,7 @@ namespace
         0 == str.find(PREFIX) &&
         Parameters::ConvertFromString(str.substr(PREFIX.size()), res))
     {
-      offset = res;
+      offset = static_cast<std::size_t>(res);
       return true;
     }
     return false;

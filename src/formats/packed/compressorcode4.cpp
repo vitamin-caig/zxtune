@@ -60,7 +60,7 @@ namespace CompressorCode
       {
         return false;
       }
-      return header.Padding1[depackerSize - 1] == 0xc9;
+      return *(header.Padding1 + depackerSize - 1) == 0xc9;
     }
 
     BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0x1c);
@@ -105,7 +105,7 @@ namespace CompressorCode
       {
         return false;
       }
-      return header.Padding1[depackerSize - 256 - 1] == 0xc9;
+      return *(header.Padding1 + depackerSize - 256 - 1) == 0xc9;
     }
 
     BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0x36);

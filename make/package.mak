@@ -15,8 +15,9 @@ pkg_root = $(pkg_dir)/root
 package: package_$(distro)
 
 package_any:
-	@-$(call rmfile_cmd,$(pkg_file).$(pkg_suffix) $(pkg_log))
+	@-$(call rmfiles_cmd,$(pkg_file).$(pkg_suffix) $(pkg_log))
 	@$(call makedir_cmd,$(pkg_dir))
+	@$(info Creating package $(pkg_filename))
 	@$(MAKE) $(pkg_file).$(pkg_suffix) > $(pkg_log) 2>&1
 
 $(pkg_file).$(pkg_suffix): $(pkg_debug)
@@ -45,7 +46,7 @@ $(pkg_build_log):
 pkg_debian = $(pkg_dir)/debian
 
 package_ubuntu:
-	$-$(call rmfile_cmd,$(pkg_file).deb $(pkg_log))
+	@$-$(call rmfiles_cmd,$(pkg_file).deb $(pkg_log))
 	@$(call makedir_cmd,$(pkg_dir))
 	@$(MAKE) $(pkg_file).deb > $(pkg_log) 2>&1
 
@@ -109,7 +110,7 @@ $(pkg_debian)/changelog: | $(pkg_debian)
 pkg_archlinux = $(pkg_dir)/archlinux
 
 package_archlinux:
-	$-$(call rmfile_cmd,$(pkg_file).deb $(pkg_log))
+	@$-$(call rmfiles_cmd,$(pkg_file).deb $(pkg_log))
 	@$(call makedir_cmd,$(pkg_dir))
 	@$(MAKE) $(pkg_file).tar.xz > $(pkg_log) 2>&1
 

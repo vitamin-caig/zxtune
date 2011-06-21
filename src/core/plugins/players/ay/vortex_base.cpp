@@ -522,7 +522,7 @@ namespace ZXTune
           version %= 10;
         }
         assert(version);
-        return version;
+        return static_cast<uint_t>(version);
       }
 
       Renderer::Ptr CreateRenderer(AYM::TrackParameters::Ptr params, Information::Ptr info, Track::ModuleData::Ptr data,
