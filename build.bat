@@ -9,7 +9,7 @@ ECHO Cleaning
 make clean_package release=1 -C apps > NUL || GOTO Error
 make clean release=1 -C apps > NUL || GOTO Error
 
-make -j package release=1 -C apps && GOTO Exit
+make -j package distro=any release=1 -C apps && GOTO Exit
 :Error
 ECHO Failed
 SET

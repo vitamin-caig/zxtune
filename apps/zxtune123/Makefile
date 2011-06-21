@@ -5,7 +5,7 @@ include $(path_step)/make/default.mak
 source_files := information sound source display cli_app
 ifneq ($(findstring $(platform),windows mingw),)
 source_files += console_windows
-else ifneq ($(findstring $(platform),linux macos ubuntu archlinux),)
+else ifneq ($(findstring $(platform),linux macos),)
 source_files += console_linux
 else
 source_files += console_$(platform)
