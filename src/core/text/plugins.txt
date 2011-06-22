@@ -193,3 +193,7 @@ __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 
 < TXT_ERROR_INVALID_STRING
 > "Invalid string while parsing: '%1%'."
+
+#ZXZIP
+< ZXZIP_PLUGIN_INFO
+> "ZXZip" CONTAINER_DESCRIPTION

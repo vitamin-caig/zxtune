@@ -87,7 +87,7 @@ namespace
       const DetectionResult::Ptr result = plugin->Detect(location, callback);
       if (std::size_t usedSize = result->GetMatchedDataSize())
       {
-        Log::Debug(THIS_MODULE, "Detected %1% in %2% bytes at %3%.", plugin->Id(), usedSize, location->GetPath());
+        Log::Debug(THIS_MODULE, "Detected %1% in %2% bytes at %3%.", plugin->Id(), usedSize, location->GetPath()->AsString());
         return usedSize;
       }
     }
