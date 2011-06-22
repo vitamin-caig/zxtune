@@ -38,4 +38,12 @@
     <file alias="delete.png">app_exit.png</file>
     <file alias="crop.png">list_crop.png</file>
   </qresource>
+  <qresource prefix="/setup">
+    <file alias="loop_off.png">list_looped.png</file>
+    <file alias="loop_on.png">list_looped.png</file>
+    <file alias="interpolation_off.png">setup_interpolation_off.png</file>
+    <file alias="interpolation_on.png">setup_interpolation_on.png</file>
+    <file alias="type_ay.png">setup_type_ay.png</file>
+    <file alias="type_ym.png">setup_type_ym.png</file>
+  </qresource>
 </RCC>
