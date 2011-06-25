@@ -50,7 +50,7 @@ namespace
   const uint_t LIMITER(~uint_t(0));
 
   //hints
-  const std::size_t MAX_MODULE_SIZE = 16384;
+  const std::size_t MAX_MODULE_SIZE = 0x3800;
   const uint_t SAMPLES_COUNT = 32;
   const uint_t MAX_SAMPLE_SIZE = 150;
   const uint_t ORNAMENTS_COUNT = 32;
@@ -1131,9 +1131,9 @@ namespace
   const std::string ASC_FORMAT(
     "03-32"         // uint8_t Tempo; 3..50
     "00-63"         // uint8_t Loop; 0..99
-    "?00-3f"        // uint16_t PatternsOffset; 0..3fff
-    "?00-3f"        // uint16_t SamplesOffset; 0..3fff
-    "?00-3f"        // uint16_t OrnamentsOffset; 0..3fff
+    "?00-38"        // uint16_t PatternsOffset; 0..MAX_MODULE_SIZE
+    "?00-38"        // uint16_t SamplesOffset; 0..MAX_MODULE_SIZE
+    "?00-38"        // uint16_t OrnamentsOffset; 0..MAX_MODULE_SIZE
     "01-64"         // uint8_t Length; 1..100
     "00-1f"         // uint8_t Positions[1]; 0..31
   );

@@ -49,7 +49,7 @@ namespace
   const String STC_PLUGIN_VERSION(FromStdString("$Rev$"));
 
   //hints
-  const std::size_t MAX_MODULE_SIZE = 16384;
+  const std::size_t MAX_MODULE_SIZE = 0x2500;
   const uint_t MAX_SAMPLES_COUNT = 16;
   const uint_t MAX_ORNAMENTS_COUNT = 16;
   const uint_t MAX_PATTERN_SIZE = 64;
@@ -1026,9 +1026,9 @@ namespace
 
   const std::string STC_FORMAT(
     "01-0f"       // uint8_t Tempo; 1..15
-    "?00-3f"      // uint16_t PositionsOffset; 0..3fff
-    "?00-3f"      // uint16_t OrnamentsOffset; 0..3fff
-    "?00-3f"      // uint16_t PatternsOffset; 0..3fff
+    "?00-25"      // uint16_t PositionsOffset; 0..MAX_MODULE_SIZE
+    "?00-25"      // uint16_t OrnamentsOffset; 0..MAX_MODULE_SIZE
+    "?00-25"      // uint16_t PatternsOffset; 0..MAX_MODULE_SIZE
   );
 
   //////////////////////////////////////////////////////////////////////////

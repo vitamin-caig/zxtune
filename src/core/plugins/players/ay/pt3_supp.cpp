@@ -48,7 +48,7 @@ namespace
   const Char PT3_PLUGIN_ID[] = {'P', 'T', '3', 0};
   const String PT3_PLUGIN_VERSION(FromStdString("$Rev$"));
 
-  const std::size_t MAX_MODULE_SIZE = 16384;
+  const std::size_t MAX_MODULE_SIZE = 0x3a00;
   const uint_t MAX_PATTERNS_COUNT = 85;
   const uint_t MAX_PATTERN_SIZE = 256;//really no limit for PT3.58+
   const uint_t MAX_SAMPLES_COUNT = 32;
@@ -780,15 +780,15 @@ namespace
     "01-3f"      // uint8_t Tempo;
     "?"          // uint8_t Length;
     "?"          // uint8_t Loop;
-    "?00-3f"     // uint16_t PatternsOffset;
+    "?00-3a"     // uint16_t PatternsOffset;
     //boost::array<uint16_t, MAX_SAMPLES_COUNT> SamplesOffsets;
-    "?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f"
-    "?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f"
-    "?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f"
-    "?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f"
+    "?00-3a?00-3a?00-3a?00-3a?00-3a?00-3a?00-3a?00-3a"
+    "?00-3a?00-3a?00-3a?00-3a?00-3a?00-3a?00-3a?00-3a"
+    "?00-3a?00-3a?00-3a?00-3a?00-3a?00-3a?00-3a?00-3a"
+    "?00-3a?00-3a?00-3a?00-3a?00-3a?00-3a?00-3a?00-3a"
     //boost::array<uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
-    "?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f"
-    "?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f?00-3f"
+    "?00-3a?00-3a?00-3a?00-3a?00-3a?00-3a?00-3a?00-3a"
+    "?00-3a?00-3a?00-3a?00-3a?00-3a?00-3a?00-3a?00-3a"
   );
 
   //////////////////////////////////////////////////////////////////////////

@@ -49,7 +49,7 @@ namespace
   const String STP_PLUGIN_VERSION(FromStdString("$Rev$"));
 
   //hints
-  const std::size_t MAX_MODULE_SIZE = 16384;
+  const std::size_t MAX_MODULE_SIZE = 0x2800;
   const uint_t MAX_PATTERNS_COUNT = 256;
   const uint_t MAX_SAMPLES_COUNT = 15;
   const uint_t MAX_ORNAMENTS_COUNT = 16;
@@ -996,10 +996,10 @@ namespace
 
   const std::string STP_FORMAT(
     "01-0f"  // uint8_t Tempo; 0..15
-    "?00-3f" // uint16_t PositionsOffset; 0..3fff
-    "?00-3f" // uint16_t PatternsOffset; 0..3fff
-    "?00-3f" // uint16_t OrnamentsOffset; 0..3fff
-    "?00-3f" // uint16_t SamplesOffset; 0..3fff
+    "?00-28" // uint16_t PositionsOffset; 0..MAX_MODULE_SIZE
+    "?00-28" // uint16_t PatternsOffset; 0..MAX_MODULE_SIZE
+    "?00-28" // uint16_t OrnamentsOffset; 0..MAX_MODULE_SIZE
+    "?00-28" // uint16_t SamplesOffset; 0..MAX_MODULE_SIZE
   );
 
   class STPFormat : public DataFormat
