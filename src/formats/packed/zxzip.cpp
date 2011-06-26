@@ -381,7 +381,7 @@ namespace ZXZip
             len += minMatchLen;
             if (dist > result.size())
             {
-              const uint_t zeroes = std::min(dist - result.size(), len);
+              const uint_t zeroes = std::min<uint_t>(dist - result.size(), len);
               std::fill_n(std::back_inserter(result), zeroes, 0);
               len -= zeroes;
             }
