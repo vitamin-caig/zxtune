@@ -5,6 +5,7 @@ install_samples:
 	$(call copyfile_cmd,$(path_step)/samples/pt3/Speccy2.pt3,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(path_step)/samples/stc/stracker.stc,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(path_step)/samples/ts/long_day.pt3,$(DESTDIR)/Samples)
+	$(call copyfile_cmd,$(path_step)/samples/pdt/TechCent.M,$(DESTDIR)/Samples)
 
 install_samples_playlist: 
 	$(call copyfile_cmd,$(path_step)/samples/samples.xspf,$(DESTDIR))

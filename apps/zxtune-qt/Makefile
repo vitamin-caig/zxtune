@@ -65,7 +65,7 @@ install_windows install_mingw: install_samples install_samples_playlist
 install_dingux: dist/$(manual_file) install_samples install_samples_playlist
 	install -D $(target) $(DESTDIR)/local/apps/zxtune/$(binary_name)
 	install -m755 -D dist/dingux/zxtune-wrapper.sh $(DESTDIR)/local/apps/zxtune/zxtune-wrapper.sh
-	install -m644 -D disk/dingux/fonts/fixed_70_50.qpf $(DESTDIR)/local/share/fonts/fixed_70_50.qpf
+	install -m644 -D dist/dingux/fonts/fixed_70_50.qpf $(DESTDIR)/local/share/fonts/fixed_70_50.qpf
 	install -m644 -D ../zxtune.conf $(DESTDIR)/local/apps/zxtune/zxtune.conf
 	install -m644 -D dist/dingux/dmenu/zxtune.cfg $(DESTDIR)/local/apps/zxtune/zxtune.cfg
 	install -m644 -D dist/dingux/gmenu/zxtune $(DESTDIR)/local/gmenu2x/sections/applications/zxtune
