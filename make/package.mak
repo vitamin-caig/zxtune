@@ -10,7 +10,8 @@ pkg_debug := $(pkg_dir)/$(binary_name)_debug.zip
 
 pkg_root = $(pkg_dir)/root
 
-package: package_$(distro) | $(pkg_root)
+package: $(pkg_root)
+	@$(MAKE) $(if $(distro),package_$(distro),package_any)
 	@$(call rmdir_cmd,$(pkg_root))
 
 $(pkg_debug): $(pkg_build_log)
