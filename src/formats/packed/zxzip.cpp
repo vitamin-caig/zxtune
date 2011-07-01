@@ -19,6 +19,8 @@ Author:
 #include <tools.h>
 //library includes
 #include <formats/packed.h>
+//boost includes
+#include <boost/array.hpp>
 //std includes
 #include <cstring>
 #include <stdexcept>
@@ -133,7 +135,7 @@ namespace ZXZip
   {
     STORE = 0,
     LZPRESS = 1,
-    SHRUNK = 2,
+    SHRINK = 2,
     IMPLODE = 3
   };
 
@@ -444,6 +446,143 @@ namespace ZXZip
     Dump Decoded;
   };
 
+  struct LZWEntry
+  {
+    static const uint_t LIMITER = 256;
+
+    uint_t Value;
+    uint_t Parent;
+    bool IsFree;
+
+    LZWEntry()
+      : Value()
+      , Parent()
+      , IsFree()
+    {
+    }
+
+    explicit LZWEntry(uint_t value)
+      : Value(value < LIMITER ? value : 0)
+      , Parent(LIMITER)
+      , IsFree(value >= LIMITER)
+    {
+    }
+  };
+
+  typedef boost::array<LZWEntry, 8192> LZWTree;
+
+  class ShrinkDataDecoder : public DataDecoder
+  {
+  public:
+    explicit ShrinkDataDecoder(const RawHeader& header)
+      : Header(header)
+    {
+      assert(SHRINK == Header.Method);
+    }
+
+    virtual Dump* GetDecodedData()
+    {
+      try
+      {
+        Bitstream stream(safe_ptr_cast<const uint8_t*>(&Header + 1), fromLE(Header.PackedSize));
+        Dump result;
+
+        LZWTree tree;
+        ResetTree(tree);
+
+        LZWTree::iterator lastFree = tree.begin() + LZWEntry::LIMITER;
+
+        uint_t codeSize = 9;
+        uint_t oldCode = stream.GetBits(codeSize);
+        result.push_back(oldCode);
+        while (!stream.Eof())
+        {
+          const uint_t code = stream.GetBits(codeSize);
+          if (LZWEntry::LIMITER == code)
+          {
+            const uint_t subCode = stream.GetBits(codeSize);
+            if (1 == subCode)
+            {
+              ++codeSize;
+            }
+            else if (2 == subCode)
+            {
+              PartialResetTree(tree);
+              lastFree = tree.begin() + LZWEntry::LIMITER;
+            }
+          }
+          else
+          {
+            const bool isFree = tree[code].IsFree;
+            Dump substring(isFree ? 1 : 0);
+            for (uint_t curCode = isFree ? oldCode : code; curCode != LZWEntry::LIMITER; curCode = tree[curCode].Parent)
+            {
+              if (curCode == tree[curCode].Parent || substring.size() > tree.size())
+              {
+                throw std::exception();
+              }
+              substring.push_back(tree[curCode].Value);
+            }
+            if (isFree)
+            {
+              substring.front() = substring.back();
+            }
+            std::copy(substring.rbegin(), substring.rend(), std::back_inserter(result));
+            for (++lastFree; lastFree != tree.end() && !lastFree->IsFree; ++lastFree) {}
+            if (lastFree == tree.end())
+            {
+              throw std::exception();
+            }
+            lastFree->Value = substring.back();
+            lastFree->Parent = oldCode;
+            lastFree->IsFree = false;
+            oldCode = code;
+          }
+        }
+        Decoded.swap(result);
+        return &Decoded;
+      }
+      catch (const std::exception&)
+      {
+        return 0;
+      }
+    }
+  private:
+    static void ResetTree(LZWTree& tree)
+    {
+      for (uint_t idx = 0; idx < tree.size(); ++idx)
+      {
+        tree[idx] = LZWEntry(idx);
+      }
+    }
+
+    static void PartialResetTree(LZWTree& tree)
+    {
+      const uint_t parentsCount = tree.size() - LZWEntry::LIMITER;
+      std::vector<bool> hasChilds(parentsCount);
+      for (uint_t idx = 0; idx < parentsCount; ++idx)
+      {
+        if (!tree[idx + LZWEntry::LIMITER].IsFree &&
+            tree[idx + LZWEntry::LIMITER].Parent > LZWEntry::LIMITER)
+        {
+          const uint_t parent = tree[idx + LZWEntry::LIMITER].Parent - LZWEntry::LIMITER;
+          hasChilds[parent] = true;
+        }
+      }
+      for (uint_t idx = 0; idx < parentsCount; ++idx)
+      {
+        if (!hasChilds[idx])
+        {
+          tree[idx + LZWEntry::LIMITER].IsFree = true;
+          tree[idx + LZWEntry::LIMITER].Parent = LZWEntry::LIMITER;
+        }
+      }
+    }
+  private:
+    const RawHeader& Header;
+    Dump Decoded;
+  };
+
   std::auto_ptr<DataDecoder> CreateDecoder(const RawHeader& header)
   {
     switch (header.Method)
@@ -452,8 +591,9 @@ namespace ZXZip
       return std::auto_ptr<DataDecoder>(new StoreDataDecoder(header));
     case IMPLODE:
       return std::auto_ptr<DataDecoder>(new ImplodeDataDecoder(header));
+    case SHRINK:
+      return std::auto_ptr<DataDecoder>(new ShrinkDataDecoder(header));
     default:
-      assert(!"Unsupported ZXZip packing method");
       return std::auto_ptr<DataDecoder>();
     };
   };

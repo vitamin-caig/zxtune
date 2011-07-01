@@ -1,4 +1,4 @@
-binary_name := formats_test_cc3
+binary_name := formats_test_zip
 path_step := ../../../..
 source_files := test
 
