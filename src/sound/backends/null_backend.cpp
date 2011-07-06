@@ -11,13 +11,12 @@ Author:
 
 //local includes
 #include "backend_impl.h"
-#include "backend_wrapper.h"
 #include "enumerator.h"
+//common includes
+#include <error_tools.h>
 //library includes
 #include <sound/backend_attrs.h>
 #include <sound/error_codes.h>
-//boost includes
-#include <boost/noncopyable.hpp>
 //text includes
 #include <sound/text/backends.h>
 #include <sound/text/sound.h>
@@ -32,19 +31,11 @@ namespace
   const Char NULL_BACKEND_ID[] = {'n', 'u', 'l', 'l', 0};
   const String NULL_BACKEND_VERSION(FromStdString("$Rev$"));
 
-  // dummy backend with no functionality except informational
-  class NullBackend : public BackendImpl
-                    , private boost::noncopyable
+  class NullBackendWorker : public BackendWorker
   {
   public:
-    explicit NullBackend(CreateBackendParameters::Ptr params)
-      : BackendImpl(params)
+    virtual void Test()
     {
-    }
-
-    VolumeControl::Ptr GetVolumeControl() const
-    {
-      return VolumeControl::Ptr();
     }
 
     virtual void OnStartup()
@@ -69,6 +60,11 @@ namespace
 
     virtual void OnBufferReady(std::vector<MultiSample>& /*buffer*/)
     {
+    }
+
+    VolumeControl::Ptr GetVolumeControl() const
+    {
+      return VolumeControl::Ptr();
     }
   };
 
@@ -97,7 +93,22 @@ namespace
 
     virtual Error CreateBackend(CreateBackendParameters::Ptr params, Backend::Ptr& result) const
     {
-      return SafeBackendWrapper<NullBackend>::Create(Id(), params, result, THIS_LINE);
+      try
+      {
+        const Parameters::Accessor::Ptr allParams = params->GetParameters();
+        const BackendWorker::Ptr worker(new NullBackendWorker());
+        result = Sound::CreateBackend(params, worker);
+        return Error();
+      }
+      catch (const Error& e)
+      {
+        return MakeFormattedError(THIS_LINE, BACKEND_FAILED_CREATE,
+          Text::SOUND_ERROR_BACKEND_FAILED, Id()).AddSuberror(e);
+      }
+      catch (const std::bad_alloc&)
+      {
+        return Error(THIS_LINE, BACKEND_NO_MEMORY, Text::SOUND_ERROR_BACKEND_NO_MEMORY);
+      }
     }
   };
 }

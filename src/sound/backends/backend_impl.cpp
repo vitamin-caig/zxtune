@@ -695,6 +695,7 @@ namespace ZXTune
   {
     Backend::Ptr CreateBackend(CreateBackendParameters::Ptr params, BackendWorker::Ptr worker)
     {
+      worker->Test();
       return boost::make_shared<BackendInternal>(params, worker);
     }
   }

@@ -13,7 +13,6 @@ Author:
 
 //local includes
 #include "backend_impl.h"
-#include "backend_wrapper.h"
 #include "enumerator.h"
 //common includes
 #include <tools.h>
@@ -357,7 +356,6 @@ namespace
       {
         const Parameters::Accessor::Ptr allParams = params->GetParameters();
         const BackendWorker::Ptr worker(new Win32BackendWorker(allParams));
-        worker->Test();
         result = Sound::CreateBackend(params, worker);
         return Error();
       }
