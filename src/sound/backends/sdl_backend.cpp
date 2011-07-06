@@ -13,7 +13,6 @@ Author:
 
 //local includes
 #include "backend_impl.h"
-#include "backend_wrapper.h"
 #include "enumerator.h"
 //common includes
 #include <byteorder.h>
@@ -84,18 +83,91 @@ namespace
     const Parameters::Accessor& Accessor;
   };
 
-  class SDLBackend : public BackendImpl
-                   , private boost::noncopyable
+  class BuffersQueue
   {
   public:
-    explicit SDLBackend(CreateBackendParameters::Ptr params)
-      : BackendImpl(params)
-      , WasInitialized(::SDL_WasInit(SDL_INIT_EVERYTHING))
-      , BuffersCount(Parameters::ZXTune::Sound::Backends::SDL::BUFFERS_DEFAULT)
-      , Buffers(BuffersCount)
+    explicit BuffersQueue(uint_t size)
+      : Buffers(size)
       , FillIter(&Buffers.front(), &Buffers.back() + 1)
       , PlayIter(FillIter)
-      , Samplerate(0)
+    {
+    }
+
+    void AddData(std::vector<MultiSample>& buffer)
+    {
+      boost::mutex::scoped_lock locker(BufferMutex);
+      while (FillIter->BytesToPlay)
+      {
+        PlayedEvent.wait(locker);
+      }
+      FillIter->Data.swap(buffer);
+      FillIter->BytesToPlay = FillIter->Data.size() * sizeof(FillIter->Data.front());
+      ++FillIter;
+      FilledEvent.notify_one();
+    }
+
+    void GetData(uint8_t* stream, uint_t len)
+    {
+      boost::mutex::scoped_lock locker(BufferMutex);
+      while (len)
+      {
+        //wait for data
+        while (!PlayIter->BytesToPlay)
+        {
+          FilledEvent.wait(locker);
+        }
+        const uint_t inBuffer = PlayIter->Data.size() * sizeof(PlayIter->Data.front());
+        const uint_t toCopy = std::min<uint_t>(len, PlayIter->BytesToPlay);
+        const uint8_t* const src = safe_ptr_cast<const uint8_t*>(&PlayIter->Data.front());
+        std::memcpy(stream, src + (inBuffer - PlayIter->BytesToPlay), toCopy);
+        PlayIter->BytesToPlay -= toCopy;
+        stream += toCopy;
+        len -= toCopy;
+        if (!PlayIter->BytesToPlay)
+        {
+          //buffer is played
+          ++PlayIter;
+          PlayedEvent.notify_one();
+        }
+      }
+    }
+
+    void SetSize(uint_t size)
+    {
+      Log::Debug(THIS_MODULE, "Change buffers count %1% -> %2%", Buffers.size(), size);
+      Buffers.resize(size);
+      FillIter = CycledIterator<Buffer*>(&Buffers.front(), &Buffers.back() + 1);
+      PlayIter = FillIter;
+    }
+
+    uint_t GetSize() const
+    {
+      return Buffers.size();
+    }
+  private:
+    boost::mutex BufferMutex;
+    boost::condition_variable FilledEvent, PlayedEvent;
+    struct Buffer
+    {
+      Buffer() : BytesToPlay()
+      {
+      }
+      uint_t BytesToPlay;
+      std::vector<MultiSample> Data;
+    };
+    std::vector<Buffer> Buffers;
+    CycledIterator<Buffer*> FillIter, PlayIter;
+  };
+
+  class SDLBackendWorker : public BackendWorker
+                         , private boost::noncopyable
+  {
+  public:
+    explicit SDLBackendWorker(Parameters::Accessor::Ptr params)
+      : BackendParams(params)
+      , RenderingParameters(RenderParameters::Create(BackendParams))
+      , WasInitialized(::SDL_WasInit(SDL_INIT_EVERYTHING))
+      , Queue(Parameters::ZXTune::Sound::Backends::SDL::BUFFERS_DEFAULT)
     {
       if (0 == WasInitialized)
       {
@@ -107,10 +179,9 @@ namespace
         Log::Debug(THIS_MODULE, "Initializing sound subsystem");
         CheckCall(::SDL_InitSubSystem(SDL_INIT_AUDIO) == 0, THIS_LINE);
       }
-      OnParametersChanged(*SoundParameters);
     }
 
-    virtual ~SDLBackend()
+    virtual ~SDLBackendWorker()
     {
       if (0 == WasInitialized)
       {
@@ -129,71 +200,11 @@ namespace
       return VolumeControl::Ptr();
     }
 
+    virtual void Test()
+    {
+    }
+
     virtual void OnStartup()
-    {
-      DoStartup();
-    }
-
-    virtual void OnShutdown()
-    {
-      ::SDL_CloseAudio();
-    }
-
-    virtual void OnPause()
-    {
-      ::SDL_PauseAudio(1);
-    }
-
-    virtual void OnResume()
-    {
-      ::SDL_PauseAudio(0);
-    }
-
-    void OnParametersChanged(const Parameters::Accessor& updates)
-    {
-      const SDLBackendParameters curParams(updates);
-      //check for parameters requires restarting
-      const uint_t newBuffers = curParams.GetBuffersCount();
-      const uint_t newFreq = RenderingParameters->SoundFreq();
-
-      const bool buffersChanged = newBuffers != BuffersCount;
-      const bool freqChanged = newFreq != Samplerate;
-      if (buffersChanged || freqChanged)
-      {
-        const bool needStartup = SDL_AUDIO_STOPPED != ::SDL_GetAudioStatus();
-        if (needStartup)
-        {
-          ::SDL_CloseAudio();
-        }
-        BuffersCount = newBuffers;
-        Samplerate = newFreq;
-
-        if (needStartup)
-        {
-          DoStartup();
-        }
-      }
-    }
-
-    virtual void OnFrame()
-    {
-    }
-
-
-    virtual void OnBufferReady(std::vector<MultiSample>& buffer)
-    {
-      boost::unique_lock<boost::mutex> locker(BufferMutex);
-      while (FillIter->ToPlay)
-      {
-        PlayedEvent.wait(locker);
-      }
-      FillIter->Data.swap(buffer);
-      FillIter->ToPlay = FillIter->Data.size() * sizeof(FillIter->Data.front());
-      ++FillIter;
-      FilledEvent.notify_one();
-    }
-  private:
-    void DoStartup()
     {
       Log::Debug(THIS_MODULE, "Starting playback");
 
@@ -211,9 +222,9 @@ namespace
         assert(!"Invalid format");
       }
 
-      format.freq = Samplerate;
+      format.freq = RenderingParameters->SoundFreq();
       format.channels = static_cast< ::Uint8>(OUTPUT_CHANNELS);
-      format.samples = BuffersCount * RenderingParameters->SamplesPerFrame();
+      format.samples = RenderingParameters->SamplesPerFrame();
       //fix if size is not power of 2
       if (0 != (format.samples & (format.samples - 1)))
       {
@@ -225,56 +236,51 @@ namespace
         format.samples = msk;
       }
       format.callback = OnBuffer;
-      format.userdata = this;
-      Buffers.resize(BuffersCount);
-      FillIter = CycledIterator<Buffer*>(&Buffers.front(), &Buffers.back() + 1);
-      PlayIter = FillIter;
+      format.userdata = &Queue;
+      const SDLBackendParameters params(*BackendParams);
+      Queue.SetSize(params.GetBuffersCount());
       CheckCall(::SDL_OpenAudio(&format, 0) >= 0, THIS_LINE);
       ::SDL_PauseAudio(0);
     }
 
-    static void OnBuffer(void* param, ::Uint8* stream, int len)
+    virtual void OnShutdown()
     {
-      SDLBackend* const self = static_cast<SDLBackend*>(param);
-      boost::unique_lock<boost::mutex> locker(self->BufferMutex);
-      while (len)
-      {
-        //wait for data
-        while (!self->PlayIter->ToPlay)
-        {
-          self->FilledEvent.wait(locker);
-        }
-        const uint_t inBuffer = self->PlayIter->Data.size() * sizeof(self->PlayIter->Data.front());
-        const uint_t toCopy = std::min<uint_t>(len, self->PlayIter->ToPlay);
-        const uint8_t* const src = safe_ptr_cast<const uint8_t*>(&self->PlayIter->Data.front());
-        std::memcpy(stream, src + (inBuffer - self->PlayIter->ToPlay), toCopy);
-        self->PlayIter->ToPlay -= toCopy;
-        stream += toCopy;
-        len -= toCopy;
-        if (!self->PlayIter->ToPlay)
-        {
-          //buffer is played
-          ++self->PlayIter;
-          self->PlayedEvent.notify_one();
-        }
-      }
+      Log::Debug(THIS_MODULE, "Shutdown");
+      ::SDL_CloseAudio();
+    }
+
+    virtual void OnPause()
+    {
+      Log::Debug(THIS_MODULE, "Pause");
+      ::SDL_PauseAudio(1);
+    }
+
+    virtual void OnResume()
+    {
+      Log::Debug(THIS_MODULE, "Resume");
+      ::SDL_PauseAudio(0);
+    }
+
+    virtual void OnFrame()
+    {
+    }
+
+
+    virtual void OnBufferReady(std::vector<MultiSample>& buffer)
+    {
+      Queue.AddData(buffer);
     }
   private:
-    const ::Uint32 WasInitialized;
-    boost::mutex BufferMutex;
-    boost::condition_variable FilledEvent, PlayedEvent;
-    struct Buffer
+    static void OnBuffer(void* param, ::Uint8* stream, int len)
     {
-      Buffer() : ToPlay()
-      {
-      }
-      uint_t ToPlay;
-      std::vector<MultiSample> Data;
-    };
-    uint_t BuffersCount;
-    std::vector<Buffer> Buffers;
-    CycledIterator<Buffer*> FillIter, PlayIter;
-    uint_t Samplerate;
+      BuffersQueue* const queue = static_cast<BuffersQueue*>(param);
+      queue->GetData(stream, len);
+    }
+  private:
+    const Parameters::Accessor::Ptr BackendParams;
+    const RenderParameters::Ptr RenderingParameters;
+    const ::Uint32 WasInitialized;
+    BuffersQueue Queue;
   };
 
   class SDLBackendCreator : public BackendCreator
@@ -302,7 +308,22 @@ namespace
 
     virtual Error CreateBackend(CreateBackendParameters::Ptr params, Backend::Ptr& result) const
     {
-      return SafeBackendWrapper<SDLBackend>::Create(Id(), params, result, THIS_LINE);
+      try
+      {
+        const Parameters::Accessor::Ptr allParams = params->GetParameters();
+        const BackendWorker::Ptr worker(new SDLBackendWorker(allParams));
+        result = Sound::CreateBackend(params, worker);
+        return Error();
+      }
+      catch (const Error& e)
+      {
+        return MakeFormattedError(THIS_LINE, BACKEND_FAILED_CREATE,
+          Text::SOUND_ERROR_BACKEND_FAILED, Id()).AddSuberror(e);
+      }
+      catch (const std::bad_alloc&)
+      {
+        return Error(THIS_LINE, BACKEND_NO_MEMORY, Text::SOUND_ERROR_BACKEND_NO_MEMORY);
+      }
     }
   };
 }
