@@ -32,6 +32,7 @@ namespace ZXTune
       typedef boost::shared_ptr<BackendWorker> Ptr;
       virtual ~BackendWorker() {}
 
+      virtual void Test() = 0;
       virtual void OnStartup() = 0;
       virtual void OnShutdown() = 0;
       virtual void OnPause() = 0;
@@ -62,6 +63,12 @@ namespace ZXTune
       Backend::State GetCurrentState() const;
 
       Async::Signals::Collector::Ptr CreateSignalsCollector(uint_t signalsMask) const;
+
+      virtual void Test()
+      {
+        OnStartup();
+        OnShutdown();
+      }
     private:
       void DoStartup();
       void DoShutdown();

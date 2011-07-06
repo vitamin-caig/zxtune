@@ -35,8 +35,7 @@ namespace ZXTune
         : Delegate(new Impl(params))
       {
         //perform fast test to detect if parameters are correct
-        Delegate->OnStartup();
-        Delegate->OnShutdown();
+        Delegate->Test();
       }
     public:
       static Error Create(const String& id, CreateBackendParameters::Ptr params,

@@ -243,6 +243,12 @@ namespace
       ::CloseHandle(Event);
     }
 
+    virtual void Test()
+    {
+      OnStartup();
+      OnShutdown();
+    }
+
     virtual void OnStartup()
     {
       assert(0 == WaveHandle);
@@ -351,8 +357,7 @@ namespace
       {
         const Parameters::Accessor::Ptr allParams = params->GetParameters();
         const BackendWorker::Ptr worker(new Win32BackendWorker(allParams));
-        worker->OnStartup();
-        worker->OnShutdown();
+        worker->Test();
         result = Sound::CreateBackend(params, worker);
         return Error();
       }

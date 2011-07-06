@@ -300,6 +300,11 @@ namespace
       return VolumeControl::Ptr();
     }
 
+    virtual void Test()
+    {
+      //TODO: check for write permissions
+    }
+
     virtual void OnStartup()
     {
       assert(!Processor.get());
