@@ -13,7 +13,6 @@ Author:
 
 //local includes
 #include "backend_impl.h"
-#include "backend_wrapper.h"
 #include "enumerator.h"
 //common includes
 #include <tools.h>
@@ -36,6 +35,7 @@ Author:
 #include <algorithm>
 //boost includes
 #include <boost/noncopyable.hpp>
+#include <boost/thread/thread.hpp>
 //text includes
 #include <sound/text/backends.h>
 #include <sound/text/sound.h>

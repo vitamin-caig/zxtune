@@ -26,6 +26,8 @@ Author:
 #include <sound/error_codes.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
+//boost includes
+#include <boost/thread/thread.hpp>
 //platform-specific includes
 #include <alsa/asoundlib.h>
 #include <alsa/pcm.h>

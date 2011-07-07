@@ -29,6 +29,7 @@ Author:
 #include <SDL/SDL.h>
 //boost includes
 #include <boost/noncopyable.hpp>
+#include <boost/thread/thread.hpp>
 //text includes
 #include <sound/text/backends.h>
 #include <sound/text/sound.h>
