@@ -13,7 +13,6 @@ Author:
 
 //local includes
 #include "backend_impl.h"
-#include "backend_wrapper.h"
 #include "enumerator.h"
 //common includes
 #include <byteorder.h>
@@ -83,6 +82,14 @@ namespace
       return Handle;
     }
 
+    T* Release()
+    {
+      T* tmp = 0;
+      std::swap(tmp, Handle);
+      Name.clear();
+      return tmp;
+    }
+
     void CheckedCall(int (*func)(T*), Error::LocationRef loc) const
     {
       CheckResult(func(Handle), loc);
@@ -130,17 +137,19 @@ namespace
     explicit AutoDevice(const String& name)
       : AutoHandle<snd_pcm_t>(name)
     {
+      Log::Debug(THIS_MODULE, "Opening device '%1%'", name);
       CheckResult(::snd_pcm_open(&Handle, IO::ConvertToFilename(name).c_str(),
         SND_PCM_STREAM_PLAYBACK, 0), THIS_LINE);
     }
 
     ~AutoDevice()
     {
-      if (Handle)
+      try
       {
-        ::snd_pcm_hw_free(Handle);
-        ::snd_pcm_close(Handle);
-        Handle = 0;
+        Close();
+      }
+      catch (const Error&)
+      {
       }
     }
 
@@ -150,9 +159,9 @@ namespace
       {
         //do not break if error while drain- we need to close
         ::snd_pcm_drain(Handle);
-        CheckResult(::snd_pcm_close(Handle), THIS_LINE);
-        Handle = 0;
-        Name.clear();
+        Log::Debug(THIS_MODULE, "Closing device '%1%'", Name);
+        ::snd_pcm_hw_free(Handle);
+        CheckResult(::snd_pcm_close(Release()), THIS_LINE);
       }
     }
   };
@@ -170,15 +179,16 @@ namespace
       , MixerName(mixerName)
       , MixerElement(0)
     {
+      Log::Debug(THIS_MODULE, "Opening mixer '%1%' for device '%2%'", mixerName, deviceName);
       CheckResult(::snd_mixer_open(&Handle, 0), THIS_LINE);
-      CheckResult(::snd_mixer_attach(Handle, IO::ConvertToFilename(Name).c_str()), THIS_LINE);
-      CheckResult(::snd_mixer_selem_register(Handle, 0, 0), THIS_LINE);
-      CheckResult(::snd_mixer_load(Handle), THIS_LINE);
+      CheckedCall(&::snd_mixer_attach, IO::ConvertToFilename(Name).c_str(), THIS_LINE);
+      CheckedCall(&::snd_mixer_selem_register, static_cast<snd_mixer_selem_regopt*>(0), static_cast<snd_mixer_class_t**>(0), THIS_LINE);
+      CheckedCall(&::snd_mixer_load, THIS_LINE);
       //find mixer element
-      snd_mixer_elem_t* elem = ::snd_mixer_first_elem(Handle);
+
       snd_mixer_selem_id_t* sid = 0;
       snd_mixer_selem_id_alloca(&sid);
-      while (elem)
+      for (snd_mixer_elem_t* elem = ::snd_mixer_first_elem(Handle); elem; elem = ::snd_mixer_elem_next(elem))
       {
         const snd_mixer_elem_type_t type = ::snd_mixer_elem_get_type(elem);
         if (type == SND_MIXER_ELEM_SIMPLE &&
@@ -191,39 +201,38 @@ namespace
           {
             Log::Debug(THIS_MODULE, "Using first mixer: %1%", mixName);
             MixerName = mixName;
+            MixerElement = elem;
             break;
           }
           else if (MixerName == mixName)
           {
             Log::Debug(THIS_MODULE, "Found mixer: %1%", mixName);
+            MixerElement = elem;
             break;
           }
         }
-        elem = ::snd_mixer_elem_next(elem);
       }
-      if (!elem)
+      if (!MixerElement)
       {
         throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
           Text::SOUND_ERROR_ALSA_BACKEND_NO_MIXER, MixerName);
       }
-      MixerElement = elem;
     }
 
     ~AutoMixer()
     {
-      if (Handle)
+      try
       {
-        ::snd_mixer_detach(Handle, IO::ConvertToFilename(Name).c_str());
-        ::snd_mixer_close(Handle);
-        Handle = 0;
-        MixerElement = 0;
+        Close();
+      }
+      catch (const Error&)
+      {
       }
     }
 
     void Swap(AutoMixer& rh)
     {
-      std::swap(rh.Handle, Handle);
-      std::swap(rh.Name, Name);
+      AutoHandle<snd_mixer_t>::Swap(rh);
       std::swap(rh.MixerName, MixerName);
       std::swap(rh.MixerElement, MixerElement);
     }
@@ -232,13 +241,12 @@ namespace
     {
       if (Handle)
       {
+        Log::Debug(THIS_MODULE, "Closing mixer for device '%1%'", Name);
         //do not break while detach
         ::snd_mixer_detach(Handle, IO::ConvertToFilename(Name).c_str());
-        CheckResult(::snd_mixer_close(Handle), THIS_LINE);
-        Handle = 0;
         MixerElement = 0;
-        Name.clear();
         MixerName.clear();
+        CheckResult(::snd_mixer_close(Release()), THIS_LINE);
       }
     }
 
@@ -367,118 +375,44 @@ namespace
     const Parameters::Accessor& Accessor;
   };
 
-  class AlsaBackend : public BackendImpl
-                    , private boost::noncopyable
+  class AlsaBackendWorker : public BackendWorker
+                          , private boost::noncopyable
   {
   public:
-    explicit AlsaBackend(CreateBackendParameters::Ptr params)
-      : BackendImpl(params)
-      , DeviceName(Parameters::ZXTune::Sound::Backends::ALSA::DEVICE_DEFAULT)
-      , Buffers(Parameters::ZXTune::Sound::Backends::ALSA::BUFFERS_DEFAULT)
-      , Samplerate(RenderingParameters->SoundFreq())
+    explicit AlsaBackendWorker(Parameters::Accessor::Ptr params)
+      : BackendParams(params)
+      , RenderingParameters(RenderParameters::Create(BackendParams))
       , DevHandle()
       , MixHandle()
       , CanPause(0)
       , VolumeController(new AlsaVolumeControl(StateMutex, MixHandle))
     {
-      OnParametersChanged(*SoundParameters);
     }
 
-    virtual ~AlsaBackend()
+    virtual ~AlsaBackendWorker()
     {
       assert(!DevHandle.Get() || !"AlsaBackend was destroyed without stopping");
     }
 
-    VolumeControl::Ptr GetVolumeControl() const
+    virtual void Test()
+    {
+      OnStartup();
+      OnShutdown();
+      MixHandle.Close();
+    }
+
+    virtual VolumeControl::Ptr GetVolumeControl() const
     {
       return VolumeController;
     }
 
     virtual void OnStartup()
     {
-      DoStartup();
-    }
+      const AlsaBackendParameters params(*BackendParams);
 
-    virtual void OnShutdown()
-    {
-      DoShutdown();
-    }
-
-    virtual void OnPause()
-    {
-      if (CanPause)
-      {
-        DevHandle.CheckedCall(&::snd_pcm_pause, 1, THIS_LINE);
-      }
-    }
-
-    virtual void OnResume()
-    {
-      if (CanPause)
-      {
-        DevHandle.CheckedCall(&::snd_pcm_pause, 0, THIS_LINE);
-      }
-    }
-
-    void OnParametersChanged(const Parameters::Accessor& updates)
-    {
-      const AlsaBackendParameters curParams(updates);
-
-      //check for parameters requires restarting
-      const String& newDevice = curParams.GetDeviceName();
-      const String& newMixer = curParams.GetMixerName();
-      const uint_t newBuffers = curParams.GetBuffersCount();
-      const uint_t newFreq = RenderingParameters->SoundFreq();
-
-      const bool deviceChanged = newDevice != DeviceName;
-      const bool mixerChanged = newMixer != MixerName;
-      const bool buffersChanged = newBuffers != Buffers;
-      const bool freqChanged = newFreq != Samplerate;
-      if (deviceChanged || mixerChanged || buffersChanged || freqChanged)
-      {
-        const boost::mutex::scoped_lock lock(StateMutex);
-        const bool needStartup(DevHandle.Get() != 0);
-        DoShutdown();
-        DeviceName = newDevice;
-        MixerName = newMixer;
-        Buffers = static_cast<unsigned>(newBuffers);
-        Samplerate = newFreq;
-
-        if (needStartup)
-        {
-          DoStartup();
-        }
-      }
-    }
-
-    virtual void OnFrame()
-    {
-    }
-
-    virtual void OnBufferReady(std::vector<MultiSample>& buffer)
-    {
-      assert(0 != DevHandle.Get());
-      const MultiSample* data = &buffer[0];
-      std::size_t size = buffer.size();
-      while (size)
-      {
-        const snd_pcm_sframes_t res = ::snd_pcm_writei(DevHandle.Get(), data, size);
-        if (res < 0)
-        {
-          DevHandle.CheckedCall(&::snd_pcm_prepare, THIS_LINE);
-          continue;
-        }
-        data += res;
-        size -= res;
-      }
-    }
-  private:
-    void DoStartup()
-    {
       assert(!DevHandle.Get());
-      Log::Debug(THIS_MODULE, "Opening device '%1%'", DeviceName);
-
-      AutoDevice tmpDevice(DeviceName);
+      const String deviceName = params.GetDeviceName();
+      AutoDevice tmpDevice(deviceName);
 
       snd_pcm_format_t fmt(SND_PCM_FORMAT_UNKNOWN);
       switch (sizeof(Sample))
@@ -506,14 +440,16 @@ namespace
       tmpDevice.CheckedCall(&::snd_pcm_hw_params_set_format, hwParams, fmt, THIS_LINE);
       Log::Debug(THIS_MODULE, "Setting channels");
       tmpDevice.CheckedCall(&::snd_pcm_hw_params_set_channels, hwParams, unsigned(OUTPUT_CHANNELS), THIS_LINE);
-      Log::Debug(THIS_MODULE, "Setting frequency to %1%", Samplerate);
-      tmpDevice.CheckedCall(&::snd_pcm_hw_params_set_rate, hwParams, Samplerate, 0, THIS_LINE);
-      Log::Debug(THIS_MODULE, "Setting buffers count to %1%", Buffers);
+      const uint_t samplerate = RenderingParameters->SoundFreq();
+      Log::Debug(THIS_MODULE, "Setting frequency to %1%", samplerate);
+      tmpDevice.CheckedCall(&::snd_pcm_hw_params_set_rate, hwParams, samplerate, 0, THIS_LINE);
+      unsigned buffersCount = params.GetBuffersCount();
+      Log::Debug(THIS_MODULE, "Setting buffers count to %1%", buffersCount);
       int dir = 0;
-      tmpDevice.CheckedCall(&::snd_pcm_hw_params_set_periods_near, hwParams, &Buffers, &dir, THIS_LINE);
-      Log::Debug(THIS_MODULE, "Actually set to %1%", Buffers);
+      tmpDevice.CheckedCall(&::snd_pcm_hw_params_set_periods_near, hwParams, &buffersCount, &dir, THIS_LINE);
+      Log::Debug(THIS_MODULE, "Actually set to %1%", buffersCount);
 
-      snd_pcm_uframes_t minBufSize(Buffers * RenderingParameters->SamplesPerFrame());
+      snd_pcm_uframes_t minBufSize(buffersCount * RenderingParameters->SamplesPerFrame());
       Log::Debug(THIS_MODULE, "Setting buffer size to %1% frames", minBufSize);
       tmpDevice.CheckedCall(&::snd_pcm_hw_params_set_buffer_size_near, hwParams, &minBufSize, THIS_LINE);
       Log::Debug(THIS_MODULE, "Actually set %1% frames", minBufSize);
@@ -524,31 +460,67 @@ namespace
       CanPause = ::snd_pcm_hw_params_can_pause(hwParams) != 0;
       Log::Debug(THIS_MODULE, CanPause ? "Hardware support pause" : "Hardware doesn't support pause");
       tmpDevice.CheckedCall(&::snd_pcm_prepare, THIS_LINE);
-      AutoMixer tmpMixer(DeviceName, MixerName);
+      const String mixerName = params.GetMixerName();
+      AutoMixer tmpMixer(deviceName, mixerName);
 
       DevHandle.Swap(tmpDevice);
       MixHandle.Swap(tmpMixer);
       Log::Debug(THIS_MODULE, "Successfully opened");
     }
 
-    void DoShutdown()
+    virtual void OnShutdown()
     {
-      Log::Debug(THIS_MODULE, "Closing all the devices");
       DevHandle.Close();
+      //Do not close mixer
       CheckResult(snd_config_update_free_global(), THIS_LINE);
       Log::Debug(THIS_MODULE, "Successfully closed");
     }
 
+    virtual void OnPause()
+    {
+      if (CanPause)
+      {
+        DevHandle.CheckedCall(&::snd_pcm_pause, 1, THIS_LINE);
+      }
+    }
+
+    virtual void OnResume()
+    {
+      if (CanPause)
+      {
+        DevHandle.CheckedCall(&::snd_pcm_pause, 0, THIS_LINE);
+      }
+    }
+
+    virtual void OnFrame()
+    {
+    }
+
+    virtual void OnBufferReady(std::vector<MultiSample>& buffer)
+    {
+      assert(0 != DevHandle.Get());
+      const MultiSample* data = &buffer[0];
+      std::size_t size = buffer.size();
+      while (size)
+      {
+        const snd_pcm_sframes_t res = ::snd_pcm_writei(DevHandle.Get(), data, size);
+        if (res < 0)
+        {
+          DevHandle.CheckedCall(&::snd_pcm_prepare, THIS_LINE);
+          continue;
+        }
+        data += res;
+        size -= res;
+      }
+    }
   private:
+    const Parameters::Accessor::Ptr BackendParams;
+    const RenderParameters::Ptr RenderingParameters;
     boost::mutex StateMutex;
-    String DeviceName;
-    String MixerName;
-    unsigned Buffers;
-    unsigned Samplerate;
     AutoDevice DevHandle;
     AutoMixer MixHandle;
     bool CanPause;
-    VolumeControl::Ptr VolumeController;
+    const VolumeControl::Ptr VolumeController;
   };
 
   class AlsaBackendCreator : public BackendCreator
@@ -576,7 +548,22 @@ namespace
 
     virtual Error CreateBackend(CreateBackendParameters::Ptr params, Backend::Ptr& result) const
     {
-      return SafeBackendWrapper<AlsaBackend>::Create(Id(), params, result, THIS_LINE);
+      try
+      {
+        const Parameters::Accessor::Ptr allParams = params->GetParameters();
+        const BackendWorker::Ptr worker(new AlsaBackendWorker(allParams));
+        result = Sound::CreateBackend(params, worker);
+        return Error();
+      }
+      catch (const Error& e)
+      {
+        return MakeFormattedError(THIS_LINE, BACKEND_FAILED_CREATE,
+          Text::SOUND_ERROR_BACKEND_FAILED, Id()).AddSuberror(e);
+      }
+      catch (const std::bad_alloc&)
+      {
+        return Error(THIS_LINE, BACKEND_NO_MEMORY, Text::SOUND_ERROR_BACKEND_NO_MEMORY);
+      }
     }
   };
 }
