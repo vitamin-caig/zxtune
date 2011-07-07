@@ -38,7 +38,7 @@ namespace
     {
     }
 
-    virtual void OnStartup()
+    virtual void OnStartup(const Module::Holder& /*module*/)
     {
     }
 
@@ -54,7 +54,7 @@ namespace
     {
     }
 
-    virtual void OnFrame()
+    virtual void OnFrame(const Module::TrackState& /*state*/)
     {
     }
 

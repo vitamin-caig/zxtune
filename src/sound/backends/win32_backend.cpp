@@ -244,11 +244,17 @@ namespace
 
     virtual void Test()
     {
-      OnStartup();
-      OnShutdown();
+      ::WAVEFORMATEX format;
+      SetupFormat(format);
+      const Win32BackendParameters params(*BackendParams);
+      const int_t device = params.GetDevice();
+      ::HWAVEOUT handle;
+      CheckMMResult(::waveOutOpen(&handle, static_cast< ::UINT>(device), &format, 0, 0,
+        WAVE_FORMAT_DIRECT), THIS_LINE);
+      CheckMMResult(::waveOutClose(handle), THIS_LINE);
     }
 
-    virtual void OnStartup()
+    virtual void OnStartup(const Module::Holder& /*module*/)
     {
       assert(0 == WaveHandle);
 
@@ -258,14 +264,7 @@ namespace
       Buffers.resize(params.GetBuffers());
       CurrentBuffer = CycledIterator<WaveBuffer*>(&Buffers.front(), &Buffers.back() + 1);
 
-      std::memset(&Format, 0, sizeof(Format));
-      Format.wFormatTag = WAVE_FORMAT_PCM;
-      Format.nChannels = OUTPUT_CHANNELS;
-      Format.nSamplesPerSec = static_cast< ::DWORD>(RenderingParameters->SoundFreq());
-      Format.nBlockAlign = sizeof(MultiSample);
-      Format.nAvgBytesPerSec = Format.nSamplesPerSec * Format.nBlockAlign;
-      Format.wBitsPerSample = 8 * sizeof(Sample);
-
+      SetupFormat(Format);
       CheckMMResult(::waveOutOpen(&WaveHandle, static_cast< ::UINT>(Device), &Format, DWORD_PTR(Event), 0,
         CALLBACK_EVENT | WAVE_FORMAT_DIRECT), THIS_LINE);
       std::for_each(Buffers.begin(), Buffers.end(), boost::bind(&WaveBuffer::Allocate, _1, WaveHandle, Event, boost::cref(*RenderingParameters)));
@@ -299,7 +298,7 @@ namespace
       }
     }
 
-    virtual void OnFrame()
+    virtual void OnFrame(const Module::TrackState& /*state*/)
     {
     }
 
@@ -313,6 +312,17 @@ namespace
     virtual VolumeControl::Ptr GetVolumeControl() const
     {
       return VolumeController;
+    }
+  private:
+    void SetupFormat(::WAVEFORMATEX& format) const
+    {
+      std::memset(&format, 0, sizeof(format));
+      format.wFormatTag = WAVE_FORMAT_PCM;
+      format.nChannels = OUTPUT_CHANNELS;
+      format.nSamplesPerSec = static_cast< ::DWORD>(RenderingParameters->SoundFreq());
+      format.nBlockAlign = sizeof(MultiSample);
+      format.nAvgBytesPerSec = format.nSamplesPerSec * format.nBlockAlign;
+      format.wBitsPerSample = 8 * sizeof(Sample);
     }
   private:
     const Parameters::Accessor::Ptr BackendParams;

@@ -202,9 +202,10 @@ namespace
 
     virtual void Test()
     {
+      //TODO: implement
     }
 
-    virtual void OnStartup()
+    virtual void OnStartup(const Module::Holder& /*module*/)
     {
       Log::Debug(THIS_MODULE, "Starting playback");
 
@@ -261,7 +262,7 @@ namespace
       ::SDL_PauseAudio(0);
     }
 
-    virtual void OnFrame()
+    virtual void OnFrame(const Module::TrackState& /*state*/)
     {
     }
 

@@ -127,6 +127,7 @@ namespace ZXTune
       : CurrentMixer(params->GetMixer())
       , Holder(params->GetModule())
       , Player(new SafeRendererWrapper(Holder->CreateRenderer(CurrentMixer)))
+      , State(Player->GetTrackState())
       , SoundParameters(params->GetParameters())
       , RenderingParameters(RenderParameters::Create(SoundParameters))
       , Signaller(Async::Signals::Dispatcher::Create())
@@ -278,7 +279,7 @@ namespace ZXTune
     //internal functions
     void BackendImpl::DoStartup()
     {
-      OnStartup();
+      OnStartup(*Holder);
       SendSignal(Backend::MODULE_START);
     }
 
@@ -331,7 +332,7 @@ namespace ZXTune
     bool BackendImpl::RenderFrame()
     {
       bool res = false;
-      OnFrame();
+      OnFrame(*State);
       {
         Locker lock(PlayerMutex);
         Buffer.reserve(RenderingParameters->SamplesPerFrame());
@@ -465,6 +466,7 @@ namespace
     Renderer(RenderParameters::Ptr renderParams, Module::Renderer::Ptr renderer, Mixer::Ptr mixer)
       : RenderingParameters(renderParams)
       , Source(renderer)
+      , State(Source->GetTrackState())
       , Mix(mixer)
     {
       const Receiver::Ptr target(new BufferRenderer(Buffer));
@@ -495,9 +497,15 @@ namespace
     {
       return Buffer;
     }
+
+    const Module::TrackState& GetState() const
+    {
+      return *State;
+    }
   private:
     const RenderParameters::Ptr RenderingParameters;
     const Module::Renderer::Ptr Source;
+    const Module::TrackState::Ptr State;
     const Mixer::Ptr Mix;
     std::vector<MultiSample> Buffer;
   };
@@ -505,8 +513,9 @@ namespace
   class AsyncWrapper : public Async::Job::Worker
   {
   public:
-    AsyncWrapper(BackendWorker::Ptr worker, Async::Signals::Dispatcher& signaller, Renderer::Ptr render)
-      : Delegate(worker)
+    AsyncWrapper(Module::Holder::Ptr holder, BackendWorker::Ptr worker, Async::Signals::Dispatcher& signaller, Renderer::Ptr render)
+      : Holder(holder)
+      , Delegate(worker)
       , Signaller(signaller)
       , Render(render)
       , Playing(false)
@@ -517,7 +526,7 @@ namespace
     {
       try
       {
-        Delegate->OnStartup();
+        Delegate->OnStartup(*Holder);
         Playing = true;
         Signaller.Notify(Backend::MODULE_START);
         return Error();
@@ -575,7 +584,7 @@ namespace
     {
       try
       {
-        Delegate->OnFrame();
+        Delegate->OnFrame(Render->GetState());
         Playing = Render->ApplyFrame();
         Delegate->OnBufferReady(Render->GetBuffer());
         if (IsFinished())
@@ -595,6 +604,7 @@ namespace
       return !Playing;
     }
   private:
+    const Module::Holder::Ptr Holder;
     const BackendWorker::Ptr Delegate;
     Async::Signals::Dispatcher& Signaller;
     const Renderer::Ptr Render;
@@ -610,7 +620,7 @@ namespace
       , Mix(CreateMixer(*params))
       , Holder(params->GetModule())
       , Renderer(new SafeRendererWrapper(Holder->CreateRenderer(Mix)))
-      , Job(Async::Job::Create(Async::Job::Worker::Ptr(new AsyncWrapper(Worker, *Signaller, Renderer::Create(*params, Renderer, Mix)))))
+      , Job(Async::Job::Create(Async::Job::Worker::Ptr(new AsyncWrapper(Holder, Worker, *Signaller, Renderer::Create(*params, Renderer, Mix)))))
     {
     }
 

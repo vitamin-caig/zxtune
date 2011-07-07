@@ -1,6 +1,6 @@
 library_name := sound
 path_step := ../..
-source_dirs := impl backends backends/aylpt_supp
+source_dirs := impl backends
 
 text_files := text/sound text/backends
 

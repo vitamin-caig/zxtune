@@ -281,15 +281,17 @@ namespace
     TrackProcessor::Ptr Writer;
   };
 
-  class WAVBackend : public BackendImpl
-                   , private boost::noncopyable
+  class WAVBackendWorker : public BackendWorker
+                         , private boost::noncopyable
   {
   public:
-    explicit WAVBackend(CreateBackendParameters::Ptr params)
-      : BackendImpl(params)
+    explicit WAVBackendWorker(Parameters::Accessor::Ptr params)
+      : BackendParams(params)
+      , RenderingParameters(RenderParameters::Create(BackendParams))
     {
     }
-    virtual ~WAVBackend()
+
+    virtual ~WAVBackendWorker()
     {
       assert(!Processor.get() || !"FileBackend::Stop should be called before exit");
     }
@@ -305,14 +307,13 @@ namespace
       //TODO: check for write permissions
     }
 
-    virtual void OnStartup()
+    virtual void OnStartup(const Module::Holder& module)
     {
       assert(!Processor.get());
 
-      const Parameters::Accessor::Ptr props = Holder->GetModuleProperties();
-      const WavBackendParameters backendParameters(*SoundParameters);
+      const Parameters::Accessor::Ptr props = module.GetModuleProperties();
+      const WavBackendParameters backendParameters(*BackendParams);
       Processor.reset(new ComplexTrackProcessor(*RenderingParameters, backendParameters, *props));
-      State = Player->GetTrackState();
     }
 
     virtual void OnShutdown()
@@ -328,9 +329,9 @@ namespace
     {
     }
 
-    virtual void OnFrame()
+    virtual void OnFrame(const Module::TrackState& state)
     {
-      Processor->BeginFrame(*State);
+      Processor->BeginFrame(state);
     }
 
     virtual void OnBufferReady(std::vector<MultiSample>& buffer)
@@ -345,8 +346,9 @@ namespace
 #endif
     }
   private:
+    const Parameters::Accessor::Ptr BackendParams;
+    const RenderParameters::Ptr RenderingParameters;
     TrackProcessor::Ptr Processor;
-    Module::TrackState::Ptr State;
 #ifdef BOOST_BIG_ENDIAN
     std::vector<MultiSample> Buffer;
 #endif
@@ -377,7 +379,22 @@ namespace
 
     virtual Error CreateBackend(CreateBackendParameters::Ptr params, Backend::Ptr& result) const
     {
-      return SafeBackendWrapper<WAVBackend>::Create(Id(), params, result, THIS_LINE);
+      try
+      {
+        const Parameters::Accessor::Ptr allParams = params->GetParameters();
+        const BackendWorker::Ptr worker(new WAVBackendWorker(allParams));
+        result = Sound::CreateBackend(params, worker);
+        return Error();
+      }
+      catch (const Error& e)
+      {
+        return MakeFormattedError(THIS_LINE, BACKEND_FAILED_CREATE,
+          Text::SOUND_ERROR_BACKEND_FAILED, Id()).AddSuberror(e);
+      }
+      catch (const std::bad_alloc&)
+      {
+        return Error(THIS_LINE, BACKEND_NO_MEMORY, Text::SOUND_ERROR_BACKEND_NO_MEMORY);
+      }
     }
   };
 }

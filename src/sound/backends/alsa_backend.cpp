@@ -406,11 +406,63 @@ namespace
       return VolumeController;
     }
 
-    virtual void OnStartup()
+    virtual void OnStartup(const Module::Holder& /*module*/)
+    {
+      assert(!DevHandle.Get());
+      OpenDevices(DevHandle, MixHandle);
+      Log::Debug(THIS_MODULE, "Successfully opened");
+    }
+
+    virtual void OnShutdown()
+    {
+      DevHandle.Close();
+      //Do not close mixer
+      CheckResult(snd_config_update_free_global(), THIS_LINE);
+      Log::Debug(THIS_MODULE, "Successfully closed");
+    }
+
+    virtual void OnPause()
+    {
+      if (CanPause)
+      {
+        DevHandle.CheckedCall(&::snd_pcm_pause, 1, THIS_LINE);
+      }
+    }
+
+    virtual void OnResume()
+    {
+      if (CanPause)
+      {
+        DevHandle.CheckedCall(&::snd_pcm_pause, 0, THIS_LINE);
+      }
+    }
+
+    virtual void OnFrame(const Module::TrackState& /*state*/)
+    {
+    }
+
+    virtual void OnBufferReady(std::vector<MultiSample>& buffer)
+    {
+      assert(0 != DevHandle.Get());
+      const MultiSample* data = &buffer[0];
+      std::size_t size = buffer.size();
+      while (size)
+      {
+        const snd_pcm_sframes_t res = ::snd_pcm_writei(DevHandle.Get(), data, size);
+        if (res < 0)
+        {
+          DevHandle.CheckedCall(&::snd_pcm_prepare, THIS_LINE);
+          continue;
+        }
+        data += res;
+        size -= res;
+      }
+    }
+  private:
+    void OpenDevices(AutoDevice& device, AutoDevice& mixer) const
     {
       const AlsaBackendParameters params(*BackendParams);
 
-      assert(!DevHandle.Get());
       const String deviceName = params.GetDeviceName();
       AutoDevice tmpDevice(deviceName);
 
@@ -463,55 +515,8 @@ namespace
       const String mixerName = params.GetMixerName();
       AutoMixer tmpMixer(deviceName, mixerName);
 
-      DevHandle.Swap(tmpDevice);
-      MixHandle.Swap(tmpMixer);
-      Log::Debug(THIS_MODULE, "Successfully opened");
-    }
-
-    virtual void OnShutdown()
-    {
-      DevHandle.Close();
-      //Do not close mixer
-      CheckResult(snd_config_update_free_global(), THIS_LINE);
-      Log::Debug(THIS_MODULE, "Successfully closed");
-    }
-
-    virtual void OnPause()
-    {
-      if (CanPause)
-      {
-        DevHandle.CheckedCall(&::snd_pcm_pause, 1, THIS_LINE);
-      }
-    }
-
-    virtual void OnResume()
-    {
-      if (CanPause)
-      {
-        DevHandle.CheckedCall(&::snd_pcm_pause, 0, THIS_LINE);
-      }
-    }
-
-    virtual void OnFrame()
-    {
-    }
-
-    virtual void OnBufferReady(std::vector<MultiSample>& buffer)
-    {
-      assert(0 != DevHandle.Get());
-      const MultiSample* data = &buffer[0];
-      std::size_t size = buffer.size();
-      while (size)
-      {
-        const snd_pcm_sframes_t res = ::snd_pcm_writei(DevHandle.Get(), data, size);
-        if (res < 0)
-        {
-          DevHandle.CheckedCall(&::snd_pcm_prepare, THIS_LINE);
-          continue;
-        }
-        data += res;
-        size -= res;
-      }
+      device.Swap(tmpDevice);
+      mixer.Swap(tmpMixer);
     }
   private:
     const Parameters::Accessor::Ptr BackendParams;

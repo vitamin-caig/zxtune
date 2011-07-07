@@ -33,11 +33,11 @@ namespace ZXTune
       virtual ~BackendWorker() {}
 
       virtual void Test() = 0;
-      virtual void OnStartup() = 0;
+      virtual void OnStartup(const Module::Holder& module) = 0;
       virtual void OnShutdown() = 0;
       virtual void OnPause() = 0;
       virtual void OnResume() = 0;
-      virtual void OnFrame() = 0;
+      virtual void OnFrame(const Module::TrackState& state) = 0;
       virtual void OnBufferReady(std::vector<MultiSample>& buffer) = 0;
       virtual VolumeControl::Ptr GetVolumeControl() const = 0;
     };
@@ -66,8 +66,6 @@ namespace ZXTune
 
       virtual void Test()
       {
-        OnStartup();
-        OnShutdown();
       }
     private:
       void DoStartup();
@@ -85,6 +83,7 @@ namespace ZXTune
       const Mixer::Ptr CurrentMixer;
       const Module::Holder::Ptr Holder;
       const Module::Renderer::Ptr Player;
+      const Module::TrackState::Ptr State;
       const Parameters::Accessor::Ptr SoundParameters;
       RenderParameters::Ptr RenderingParameters;
     private:

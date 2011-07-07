@@ -224,8 +224,10 @@ namespace
 
     virtual void Test()
     {
-      OnStartup();
-      OnShutdown();
+      AutoDescriptor tmpMixer;
+      AutoDescriptor tmpDevice;
+      OpenDevices(tmpDevice, tmpMixer);
+      Log::Debug(THIS_MODULE, "Tested!");
     }
 
     virtual VolumeControl::Ptr GetVolumeControl() const
@@ -233,30 +235,10 @@ namespace
       return VolumeController;
     }
 
-    virtual void OnStartup()
+    virtual void OnStartup(const Module::Holder& /*module*/)
     {
       assert(-1 == MixHandle.Get() && -1 == DevHandle.Get());
-
-      const OSSBackendParameters params(*BackendParams);
-
-      AutoDescriptor tmpMixer(params.GetMixerName(), O_RDWR);
-      AutoDescriptor tmpDevice(params.GetDeviceName(), O_WRONLY);
-
-      BOOST_STATIC_ASSERT(1 == sizeof(Sample) || 2 == sizeof(Sample));
-      int tmp(2 == sizeof(Sample) ? AFMT_S16_NE : AFMT_S8);
-      Log::Debug(THIS_MODULE, "Setting format to %1%", tmp);
-      tmpDevice.CheckResult(-1 != ::ioctl(tmpDevice.Get(), SNDCTL_DSP_SETFMT, &tmp), THIS_LINE);
-
-      tmp = OUTPUT_CHANNELS;
-      Log::Debug(THIS_MODULE, "Setting channels to %1%", tmp);
-      tmpDevice.CheckResult(-1 != ::ioctl(tmpDevice.Get(), SNDCTL_DSP_CHANNELS, &tmp), THIS_LINE);
-
-      tmp = RenderingParameters->SoundFreq();
-      Log::Debug(THIS_MODULE, "Setting frequency to %1%", tmp);
-      tmpDevice.CheckResult(-1 != ::ioctl(tmpDevice.Get(), SNDCTL_DSP_SPEED, &tmp), THIS_LINE);
-
-      DevHandle.Swap(tmpDevice);
-      MixHandle.Swap(tmpMixer);
+      SetupDevices(DevHandle, MixHandle);
       Log::Debug(THIS_MODULE, "Successfully opened");
     }
 
@@ -275,7 +257,7 @@ namespace
     {
     }
 
-    virtual void OnFrame()
+    virtual void OnFrame(const Module::TrackState& /*state*/)
     {
     }
 
@@ -294,6 +276,29 @@ namespace
         data += res;
       }
       ++CurrentBuffer;
+    }
+  private:
+    void SetupDevices(AutoDescriptor& device, AutoDescriptor& mixer) const
+    {
+      const OSSBackendParameters params(*BackendParams);
+
+      AutoDescriptor tmpMixer(params.GetMixerName(), O_RDWR);
+      AutoDescriptor tmpDevice(params.GetDeviceName(), O_WRONLY);
+      BOOST_STATIC_ASSERT(1 == sizeof(Sample) || 2 == sizeof(Sample));
+      int tmp(2 == sizeof(Sample) ? AFMT_S16_NE : AFMT_S8);
+      Log::Debug(THIS_MODULE, "Setting format to %1%", tmp);
+      tmpDevice.CheckResult(-1 != ::ioctl(tmpDevice.Get(), SNDCTL_DSP_SETFMT, &tmp), THIS_LINE);
+
+      tmp = OUTPUT_CHANNELS;
+      Log::Debug(THIS_MODULE, "Setting channels to %1%", tmp);
+      tmpDevice.CheckResult(-1 != ::ioctl(tmpDevice.Get(), SNDCTL_DSP_CHANNELS, &tmp), THIS_LINE);
+
+      tmp = RenderingParameters->SoundFreq();
+      Log::Debug(THIS_MODULE, "Setting frequency to %1%", tmp);
+      tmpDevice.CheckResult(-1 != ::ioctl(tmpDevice.Get(), SNDCTL_DSP_SPEED, &tmp), THIS_LINE);
+
+      device.Swap(tmpDevice);
+      mixer.Swap(tmpMixer);
     }
   private:
     const Parameters::Accessor::Ptr BackendParams;
