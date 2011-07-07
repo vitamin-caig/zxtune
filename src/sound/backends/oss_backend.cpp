@@ -65,13 +65,17 @@ namespace
       , Handle(::open(IO::ConvertToFilename(name).c_str(), mode, 0))
     {
       CheckResult(-1 != Handle, THIS_LINE);
+      Log::Debug(THIS_MODULE, "Opened device '%1%'", Name);
     }
 
     ~AutoDescriptor()
     {
-      if (-1 != Handle)
+      try
       {
-        ::close(Handle);
+        Close();
+      }
+      catch (const Error&)
+      {
       }
     }
 
@@ -94,9 +98,11 @@ namespace
     {
       if (-1 != Handle)
       {
-        CheckResult(0 == ::close(Handle), THIS_LINE);
-        Handle = -1;
+        Log::Debug(THIS_MODULE, "Close device '%1%'", Name);
+        int tmpHandle = -1;
+        std::swap(Handle, tmpHandle);
         Name.clear();
+        CheckResult(0 == ::close(tmpHandle), THIS_LINE);
       }
     }
 
@@ -199,40 +205,66 @@ namespace
     const Parameters::Accessor& Accessor;
   };
 
-
-  class OSSBackend : public BackendImpl
-                   , private boost::noncopyable
+  class OSSBackendWorker : public BackendWorker
+                         , private boost::noncopyable
   {
   public:
-    explicit OSSBackend(CreateBackendParameters::Ptr params)
-      : BackendImpl(params)
-      , MixerName(Parameters::ZXTune::Sound::Backends::OSS::MIXER_DEFAULT)
-      , DeviceName(Parameters::ZXTune::Sound::Backends::OSS::DEVICE_DEFAULT)
+    explicit OSSBackendWorker(Parameters::Accessor::Ptr params)
+      : BackendParams(params)
+      , RenderingParameters(RenderParameters::Create(BackendParams))
       , CurrentBuffer(Buffers.begin(), Buffers.end())
-      , Samplerate(RenderingParameters->SoundFreq())
       , VolumeController(new OSSVolumeControl(StateMutex, MixHandle))
     {
-      OnParametersChanged(*SoundParameters);
     }
 
-    virtual ~OSSBackend()
+    virtual ~OSSBackendWorker()
     {
       assert(-1 == DevHandle.Get() || !"OSSBackend should be stopped before destruction.");
     }
 
-    VolumeControl::Ptr GetVolumeControl() const
+    virtual void Test()
+    {
+      OnStartup();
+      OnShutdown();
+    }
+
+    virtual VolumeControl::Ptr GetVolumeControl() const
     {
       return VolumeController;
     }
 
     virtual void OnStartup()
     {
-      DoStartup();
+      assert(-1 == MixHandle.Get() && -1 == DevHandle.Get());
+
+      const OSSBackendParameters params(*BackendParams);
+
+      AutoDescriptor tmpMixer(params.GetMixerName(), O_RDWR);
+      AutoDescriptor tmpDevice(params.GetDeviceName(), O_WRONLY);
+
+      BOOST_STATIC_ASSERT(1 == sizeof(Sample) || 2 == sizeof(Sample));
+      int tmp(2 == sizeof(Sample) ? AFMT_S16_NE : AFMT_S8);
+      Log::Debug(THIS_MODULE, "Setting format to %1%", tmp);
+      tmpDevice.CheckResult(-1 != ::ioctl(tmpDevice.Get(), SNDCTL_DSP_SETFMT, &tmp), THIS_LINE);
+
+      tmp = OUTPUT_CHANNELS;
+      Log::Debug(THIS_MODULE, "Setting channels to %1%", tmp);
+      tmpDevice.CheckResult(-1 != ::ioctl(tmpDevice.Get(), SNDCTL_DSP_CHANNELS, &tmp), THIS_LINE);
+
+      tmp = RenderingParameters->SoundFreq();
+      Log::Debug(THIS_MODULE, "Setting frequency to %1%", tmp);
+      tmpDevice.CheckResult(-1 != ::ioctl(tmpDevice.Get(), SNDCTL_DSP_SPEED, &tmp), THIS_LINE);
+
+      DevHandle.Swap(tmpDevice);
+      MixHandle.Swap(tmpMixer);
+      Log::Debug(THIS_MODULE, "Successfully opened");
     }
 
     virtual void OnShutdown()
     {
-      DoShutdown();
+      DevHandle.Close();
+      MixHandle.Close();
+      Log::Debug(THIS_MODULE, "Successfully closed");
     }
 
     virtual void OnPause()
@@ -241,37 +273,6 @@ namespace
 
     virtual void OnResume()
     {
-    }
-
-    void OnParametersChanged(const Parameters::Accessor& updates)
-    {
-      const OSSBackendParameters curParams(updates);
-
-      //check for parameters requires restarting
-      const String& newDevice = curParams.GetDeviceName();
-      const String& newMixer = curParams.GetMixerName();
-      const uint_t newFreq = RenderingParameters->SoundFreq();
-
-      const bool deviceChanged = newDevice != DeviceName;
-      const bool mixerChanged = newMixer != MixerName;
-      const bool freqChanged = newFreq != Samplerate;
-      if (deviceChanged || mixerChanged || freqChanged)
-      {
-        boost::mutex::scoped_lock lock(StateMutex);
-        const bool needStartup(-1 != DevHandle.Get());
-        DoShutdown();
-        Log::Debug(THIS_MODULE, "Device %1% => %2%", DeviceName, newDevice);
-        DeviceName = newDevice;
-        Log::Debug(THIS_MODULE, "Mixer %1% => %2%", MixerName, newMixer);
-        MixerName = newMixer;
-        Log::Debug(THIS_MODULE, "Samplerate %1% => %2%", Samplerate, newFreq);
-        Samplerate = newFreq;
-
-        if (needStartup)
-        {
-          DoStartup();
-        }
-      }
     }
 
     virtual void OnFrame()
@@ -295,49 +296,14 @@ namespace
       ++CurrentBuffer;
     }
   private:
-    void DoStartup()
-    {
-      Log::Debug(THIS_MODULE, "Opening mixer='%1%' and device='%2%'", MixerName, DeviceName);
-      assert(-1 == MixHandle.Get() && -1 == DevHandle.Get());
-
-      AutoDescriptor tmpMixer(MixerName, O_RDWR);
-      AutoDescriptor tmpDevice(DeviceName, O_WRONLY);
-
-      BOOST_STATIC_ASSERT(1 == sizeof(Sample) || 2 == sizeof(Sample));
-      int tmp(2 == sizeof(Sample) ? AFMT_S16_NE : AFMT_S8);
-      Log::Debug(THIS_MODULE, "Setting format to %1%", tmp);
-      tmpDevice.CheckResult(-1 != ::ioctl(tmpDevice.Get(), SNDCTL_DSP_SETFMT, &tmp), THIS_LINE);
-
-      tmp = OUTPUT_CHANNELS;
-      Log::Debug(THIS_MODULE, "Setting channels to %1%", tmp);
-      tmpDevice.CheckResult(-1 != ::ioctl(tmpDevice.Get(), SNDCTL_DSP_CHANNELS, &tmp), THIS_LINE);
-
-      tmp = Samplerate;
-      Log::Debug(THIS_MODULE, "Setting frequency to %1%", tmp);
-      tmpDevice.CheckResult(-1 != ::ioctl(tmpDevice.Get(), SNDCTL_DSP_SPEED, &tmp), THIS_LINE);
-
-      DevHandle.Swap(tmpDevice);
-      MixHandle.Swap(tmpMixer);
-      Log::Debug(THIS_MODULE, "Successfully opened");
-    }
-
-    void DoShutdown()
-    {
-      Log::Debug(THIS_MODULE, "Closing all the devices");
-      DevHandle.Close();
-      MixHandle.Close();
-      Log::Debug(THIS_MODULE, "Successfully closed");
-    }
-  private:
+    const Parameters::Accessor::Ptr BackendParams;
+    const RenderParameters::Ptr RenderingParameters;
     boost::mutex StateMutex;
-    String MixerName;
     AutoDescriptor MixHandle;
-    String DeviceName;
     AutoDescriptor DevHandle;
     boost::array<std::vector<MultiSample>, 2> Buffers;
     CycledIterator<std::vector<MultiSample>*> CurrentBuffer;
-    uint_t Samplerate;
-    VolumeControl::Ptr VolumeController;
+    const VolumeControl::Ptr VolumeController;
   };
 
   class OSSBackendCreator : public BackendCreator
@@ -365,7 +331,22 @@ namespace
 
     virtual Error CreateBackend(CreateBackendParameters::Ptr params, Backend::Ptr& result) const
     {
-      return SafeBackendWrapper<OSSBackend>::Create(Id(), params, result, THIS_LINE);
+      try
+      {
+        const Parameters::Accessor::Ptr allParams = params->GetParameters();
+        const BackendWorker::Ptr worker(new OSSBackendWorker(allParams));
+        result = Sound::CreateBackend(params, worker);
+        return Error();
+      }
+      catch (const Error& e)
+      {
+        return MakeFormattedError(THIS_LINE, BACKEND_FAILED_CREATE,
+          Text::SOUND_ERROR_BACKEND_FAILED, Id()).AddSuberror(e);
+      }
+      catch (const std::bad_alloc&)
+      {
+        return Error(THIS_LINE, BACKEND_NO_MEMORY, Text::SOUND_ERROR_BACKEND_NO_MEMORY);
+      }
     }
   };
 }
