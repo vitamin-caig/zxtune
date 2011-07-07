@@ -226,7 +226,7 @@ namespace
     {
       AutoDescriptor tmpMixer;
       AutoDescriptor tmpDevice;
-      OpenDevices(tmpDevice, tmpMixer);
+      SetupDevices(tmpDevice, tmpMixer);
       Log::Debug(THIS_MODULE, "Tested!");
     }
 

@@ -396,9 +396,11 @@ namespace
 
     virtual void Test()
     {
-      OnStartup();
-      OnShutdown();
-      MixHandle.Close();
+      AutoDevice device;
+      AutoMixer mixer;
+      bool canPause = false;
+      OpenDevices(device, mixer, canPause);
+      Log::Debug(THIS_MODULE, "Checked!");
     }
 
     virtual VolumeControl::Ptr GetVolumeControl() const
@@ -409,7 +411,7 @@ namespace
     virtual void OnStartup(const Module::Holder& /*module*/)
     {
       assert(!DevHandle.Get());
-      OpenDevices(DevHandle, MixHandle);
+      OpenDevices(DevHandle, MixHandle, CanPause);
       Log::Debug(THIS_MODULE, "Successfully opened");
     }
 
@@ -459,7 +461,7 @@ namespace
       }
     }
   private:
-    void OpenDevices(AutoDevice& device, AutoDevice& mixer) const
+    void OpenDevices(AutoDevice& device, AutoMixer& mixer, bool& canPause) const
     {
       const AlsaBackendParameters params(*BackendParams);
 
@@ -509,8 +511,8 @@ namespace
       Log::Debug(THIS_MODULE, "Applying parameters");
       tmpDevice.CheckedCall(&::snd_pcm_hw_params, hwParams, THIS_LINE);
 
-      CanPause = ::snd_pcm_hw_params_can_pause(hwParams) != 0;
-      Log::Debug(THIS_MODULE, CanPause ? "Hardware support pause" : "Hardware doesn't support pause");
+      canPause = ::snd_pcm_hw_params_can_pause(hwParams) != 0;
+      Log::Debug(THIS_MODULE, canPause ? "Hardware support pause" : "Hardware doesn't support pause");
       tmpDevice.CheckedCall(&::snd_pcm_prepare, THIS_LINE);
       const String mixerName = params.GetMixerName();
       AutoMixer tmpMixer(deviceName, mixerName);
