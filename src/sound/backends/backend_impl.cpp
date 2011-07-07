@@ -18,9 +18,11 @@ Author:
 //library includes
 #include <async/job.h>
 #include <sound/error_codes.h>
+#include <sound/render_params.h>
 #include <sound/sound_parameters.h>
 //boost includes
 #include <boost/make_shared.hpp>
+#include <boost/thread/thread.hpp>
 //text includes
 #include <sound/text/sound.h>
 
@@ -32,11 +34,6 @@ namespace
   using namespace ZXTune::Sound;
 
   const std::string THIS_MODULE("BackendBase");
-
-  typedef boost::lock_guard<boost::mutex> Locker;
-
-  //playing thread and starting/stopping thread
-  const std::size_t TOTAL_WORKING_THREADS = 2;
 
   class SafeRendererWrapper : public Module::Renderer
   {
@@ -52,51 +49,36 @@ namespace
 
     virtual Module::TrackState::Ptr GetTrackState() const
     {
-      Locker lock(Mutex);
+      const boost::mutex::scoped_lock lock(Mutex);
       return Delegate->GetTrackState();
     }
 
     virtual Module::Analyzer::Ptr GetAnalyzer() const
     {
-      Locker lock(Mutex);
+      const boost::mutex::scoped_lock lock(Mutex);
       return Delegate->GetAnalyzer();
     }
 
     virtual bool RenderFrame(const Sound::RenderParameters& params)
     {
-      Locker lock(Mutex);
+      const boost::mutex::scoped_lock lock(Mutex);
       return Delegate->RenderFrame(params);
     }
 
     virtual void Reset()
     {
-      Locker lock(Mutex);
+      const boost::mutex::scoped_lock lock(Mutex);
       return Delegate->Reset();
     }
 
     virtual void SetPosition(uint_t frame)
     {
-      Locker lock(Mutex);
+      const boost::mutex::scoped_lock lock(Mutex);
       return Delegate->SetPosition(frame);
     }
   private:
     const Module::Renderer::Ptr Delegate;
     mutable boost::mutex Mutex;
-  };
-
-  class Unlocker
-  {
-  public:
-    explicit Unlocker(boost::mutex& mtx) : Obj(mtx)
-    {
-      Obj.unlock();
-    }
-    ~Unlocker()
-    {
-      Obj.lock();
-    }
-  private:
-    boost::mutex& Obj;
   };
 
   class BufferRenderer : public Receiver
@@ -117,308 +99,6 @@ namespace
   private:
     std::vector<MultiSample>& Buffer;
   };
-}
-
-namespace ZXTune
-{
-  namespace Sound
-  {
-    BackendImpl::BackendImpl(CreateBackendParameters::Ptr params)
-      : CurrentMixer(params->GetMixer())
-      , Holder(params->GetModule())
-      , Player(new SafeRendererWrapper(Holder->CreateRenderer(CurrentMixer)))
-      , State(Player->GetTrackState())
-      , SoundParameters(params->GetParameters())
-      , RenderingParameters(RenderParameters::Create(SoundParameters))
-      , Signaller(Async::Signals::Dispatcher::Create())
-      , SyncBarrier(TOTAL_WORKING_THREADS)
-      , CurrentState(Backend::STOPPED), InProcess(false)
-      , Renderer(new BufferRenderer(Buffer))
-    {
-      if (Converter::Ptr filter = params->GetFilter())
-      {
-        filter->SetTarget(Renderer);
-        CurrentMixer->SetTarget(filter);
-      }
-      else
-      {
-        CurrentMixer->SetTarget(Renderer);
-      }
-    }
-
-    BackendImpl::~BackendImpl()
-    {
-      assert(Backend::STOPPED == CurrentState);
-    }
-
-    Module::Information::Ptr BackendImpl::GetModuleInformation() const
-    {
-      return Holder->GetModuleInformation();
-    }
-
-    Parameters::Accessor::Ptr BackendImpl::GetModuleProperties() const
-    {
-      return Holder->GetModuleProperties();
-    }
-
-    Module::TrackState::Ptr BackendImpl::GetTrackState() const
-    {
-      return Player->GetTrackState();
-    }
-
-    Module::Analyzer::Ptr BackendImpl::GetAnalyzer() const
-    {
-      return Player->GetAnalyzer();
-    }
-
-    Error BackendImpl::Play()
-    {
-      try
-      {
-        Locker lock(PlayerMutex);
-
-        const Backend::State prevState = CurrentState;
-        if (Backend::STOPPED == prevState)
-        {
-          Log::Debug(THIS_MODULE, "Starting playback");
-          Player->Reset();
-          RenderThread = boost::thread(std::mem_fun(&BackendImpl::RenderFunc), this);
-          SyncBarrier.wait();//wait until real start
-          if (Backend::STARTED != CurrentState)
-          {
-            ThrowIfError(RenderError);
-          }
-          Log::Debug(THIS_MODULE, "Started");
-        }
-        else if (Backend::PAUSED == prevState)
-        {
-          Log::Debug(THIS_MODULE, "Resuming playback");
-          boost::unique_lock<boost::mutex> locker(PauseMutex);
-          PauseEvent.notify_one();
-          //wait until really resumed
-          PauseEvent.wait(locker);
-          Log::Debug(THIS_MODULE, "Resumed");
-        }
-        return Error();
-      }
-      catch (const Error& e)
-      {
-        return Error(THIS_LINE, BACKEND_CONTROL_ERROR, Text::SOUND_ERROR_BACKEND_PLAYBACK).AddSuberror(e);
-      }
-      catch (const boost::thread_resource_error&)
-      {
-        return Error(THIS_LINE, BACKEND_NO_MEMORY, Text::SOUND_ERROR_BACKEND_NO_MEMORY);
-      }
-    }
-
-    Error BackendImpl::Pause()
-    {
-      try
-      {
-        Locker lock(PlayerMutex);
-        if (Backend::STARTED == CurrentState)
-        {
-          Log::Debug(THIS_MODULE, "Pausing playback");
-          boost::unique_lock<boost::mutex> locker(PauseMutex);
-          CurrentState = Backend::PAUSED;
-          //wait until really Backend::PAUSED
-          PauseEvent.wait(locker);
-          Log::Debug(THIS_MODULE, "Paused");
-        }
-        return Error();
-      }
-      catch (const Error& e)
-      {
-        return Error(THIS_LINE, BACKEND_CONTROL_ERROR, Text::SOUND_ERROR_BACKEND_PAUSE).AddSuberror(e);
-      }
-    }
-
-    Error BackendImpl::Stop()
-    {
-      try
-      {
-        Locker lock(PlayerMutex);
-        StopPlayback();
-        return Error();
-      }
-      catch (const Error& e)
-      {
-        return Error(THIS_LINE, BACKEND_CONTROL_ERROR, Text::SOUND_ERROR_BACKEND_STOP).AddSuberror(e);
-      }
-    }
-
-    Error BackendImpl::SetPosition(uint_t frame)
-    {
-      try
-      {
-        Locker lock(PlayerMutex);
-        if (Backend::STOPPED == CurrentState)
-        {
-          return Error();
-        }
-        Player->SetPosition(frame);
-        SendSignal(Backend::MODULE_SEEK);
-        return Error();
-      }
-      catch (const Error& e)
-      {
-        return Error(THIS_LINE, BACKEND_CONTROL_ERROR, Text::SOUND_ERROR_BACKEND_SEEK).AddSuberror(e);
-      }
-    }
-
-    Backend::State BackendImpl::GetCurrentState() const
-    {
-      return CurrentState;
-    }
-
-    Async::Signals::Collector::Ptr BackendImpl::CreateSignalsCollector(uint_t signalsMask) const
-    {
-      return Signaller->CreateCollector(signalsMask);
-    }
-
-    //internal functions
-    void BackendImpl::DoStartup()
-    {
-      OnStartup(*Holder);
-      SendSignal(Backend::MODULE_START);
-    }
-
-    void BackendImpl::DoShutdown()
-    {
-      OnShutdown();
-      SendSignal(Backend::MODULE_STOP);
-    }
-
-    void BackendImpl::DoPause()
-    {
-      OnPause();
-      SendSignal(Backend::MODULE_PAUSE);
-    }
-
-    void BackendImpl::DoResume()
-    {
-      OnResume();
-      SendSignal(Backend::MODULE_RESUME);
-    }
-
-    void BackendImpl::StopPlayback()
-    {
-      const Backend::State curState = CurrentState;
-      if (Backend::STARTED == curState ||
-          Backend::PAUSED == curState ||
-          (Backend::STOPPED == curState && InProcess))
-      {
-        Log::Debug(THIS_MODULE, "Stopping playback");
-        if (Backend::PAUSED == curState)
-        {
-          boost::unique_lock<boost::mutex> locker(PauseMutex);
-          PauseEvent.notify_one();
-          //wait until really resumed
-          PauseEvent.wait(locker);
-        }
-        CurrentState = Backend::STOPPED;
-        InProcess = true;//stopping now
-        {
-          assert(!PlayerMutex.try_lock());
-          Unlocker unlock(PlayerMutex);
-          SyncBarrier.wait();//wait for thread stop
-          RenderThread.join();//cleanup thread
-        }
-        Log::Debug(THIS_MODULE, "Stopped");
-        ThrowIfError(RenderError);
-      }
-    }
-
-    bool BackendImpl::RenderFrame()
-    {
-      bool res = false;
-      OnFrame(*State);
-      {
-        Locker lock(PlayerMutex);
-        Buffer.reserve(RenderingParameters->SamplesPerFrame());
-        Buffer.clear();
-        res = Player->RenderFrame(*RenderingParameters);
-        if (!res)
-        {
-          CurrentMixer->Flush();
-        }
-      }
-      OnBufferReady(Buffer);
-      return res;
-    }
-
-    void BackendImpl::RenderFunc()
-    {
-      Log::Debug(THIS_MODULE, "Started playback thread");
-      try
-      {
-        CurrentState = Backend::STARTED;
-        InProcess = true;//starting begin
-        DoStartup();//throw
-        SyncBarrier.wait();
-        InProcess = false;//starting finished
-        for (;;)
-        {
-          const Backend::State curState = CurrentState;
-          if (Backend::STOPPED == curState)
-          {
-            break;
-          }
-          else if (Backend::STARTED == curState)
-          {
-            if (!RenderFrame())
-            {
-              CurrentState = Backend::STOPPED;
-              InProcess = true; //stopping begin
-              SendSignal(Backend::MODULE_FINISH);
-              break;
-            }
-          }
-          else if (Backend::PAUSED == curState)
-          {
-            boost::unique_lock<boost::mutex> locker(PauseMutex);
-            DoPause();
-            //pausing finished
-            PauseEvent.notify_one();
-            //wait until unpause
-            PauseEvent.wait(locker);
-            DoResume();
-            CurrentState = Backend::STARTED;
-            //unpausing finished
-            PauseEvent.notify_one();
-          }
-        }
-        Log::Debug(THIS_MODULE, "Stopping playback thread");
-        DoShutdown();//throw
-        SyncBarrier.wait();
-        InProcess = false; //stopping finished
-      }
-      catch (const Error& e)
-      {
-        RenderError = e;
-        //if any...
-        PauseEvent.notify_all();
-        Log::Debug(THIS_MODULE, "Stopping playback thread by error");
-        CurrentState = Backend::STOPPED;
-        SendSignal(Backend::MODULE_STOP);
-        SyncBarrier.wait();
-        InProcess = false;
-      }
-      Log::Debug(THIS_MODULE, "Stopped playback thread");
-    }
-
-    void BackendImpl::SendSignal(uint_t sig)
-    {
-      Signaller->Notify(sig);
-    }
-  }
-}
-
-//new interface
-namespace
-{
-  using namespace ZXTune;
-  using namespace Sound;
 
   class MixerWithFilter : public Mixer
   {

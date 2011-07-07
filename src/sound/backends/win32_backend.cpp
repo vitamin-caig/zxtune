@@ -21,6 +21,7 @@ Author:
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/error_codes.h>
+#include <sound/render_params.h>
 #include <sound/sound_parameters.h>
 //platform-dependent includes
 #include <windows.h>
@@ -30,6 +31,7 @@ Author:
 #include <boost/bind.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/ref.hpp>
+#include <boost/thread/thread.hpp>
 //text includes
 #include <sound/text/backends.h>
 #include <sound/text/sound.h>

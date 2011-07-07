@@ -17,6 +17,7 @@ Author:
 //library includes
 #include <sound/backend_attrs.h>
 #include <sound/error_codes.h>
+#include <sound/render_params.h>
 //text includes
 #include <sound/text/backends.h>
 #include <sound/text/sound.h>

@@ -11,7 +11,6 @@ Author:
 
 //local includes
 #include "backend_impl.h"
-#include "backend_wrapper.h"
 #include "enumerator.h"
 //common includes
 #include <byteorder.h>
@@ -25,6 +24,7 @@ Author:
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/error_codes.h>
+#include <sound/render_params.h>
 //std includes
 #include <algorithm>
 #include <fstream>

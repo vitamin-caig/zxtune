@@ -24,6 +24,7 @@ Author:
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/error_codes.h>
+#include <sound/render_params.h>
 #include <sound/sound_parameters.h>
 //platform-specific includes
 #include <alsa/asoundlib.h>
