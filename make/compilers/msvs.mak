@@ -38,6 +38,7 @@ LDFLAGS = /NOLOGO $(LD_PLATFORM_FLAGS) $(LD_MODE_FLAGS) $(ld_flags) \
 
 build_obj_cmd = $(CXX) $(CXXFLAGS) /Fo$2 $1
 build_obj_cmd_nodeps = $(build_obj_cmd)
+build_obj_cmd_cc = $(build_obj_cmd)
 build_lib_cmd = $(AR) $(ARFLAGS) /OUT:$2 $1
 #ignore some warnings for Qt
 link_cmd = $(LDD) $(LDFLAGS) /OUT:$@ $(OBJECTS) $(RESOURCES) \

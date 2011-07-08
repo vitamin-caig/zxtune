@@ -3,9 +3,12 @@ include $(path_step)/make/default.mak
 .SUFFIXES:
 
 src_suffix := .cpp
+src_suffix_cc := .c
 res_suffix := .rc
 
 %$(src_suffix) :
+
+%$(src_suffix_cc) :
 
 %$(res_suffix) :
 
@@ -92,11 +95,11 @@ endif
 
 GENERATED_HEADERS = $(addsuffix .h,$(generated_headers))
 
-SOURCES = $(addsuffix $(src_suffix),$(source_files))
+SOURCES = $(addsuffix $(src_suffix),$(source_files)) $(addsuffix $(src_suffix_cc),$(source_files_cc))
 GENERATED_SOURCES = $(addsuffix $(src_suffix),$(generated_sources))
 
 #calculate object files from sources
-OBJECTS = $(foreach src, $(notdir $(source_files) $(generated_sources)), $(objects_dir)/$(call makeobj_name,$(src)))
+OBJECTS = $(foreach src, $(notdir $(source_files) $(source_files_cc) $(generated_sources)), $(objects_dir)/$(call makeobj_name,$(src)))
 
 #calculate object files from windows resources
 RESOURCES += $(foreach res,$(notdir $($(platform)_resources)), $(objects_dir)/$(call makeres_name,$(res)))
@@ -125,9 +128,9 @@ $(target): $(OBJECTS) $(RESOURCES) $(LIBS) | $(output_dir)
 
 $(LIBS): deps
 
-deps: $(depends)
+deps: $(depends) $($(platform)_depends)
 
-$(depends):
+$(depends) $($(platform)_depends):
 	$(MAKE) -C $(addprefix $(path_step)/,$@) $(MAKECMDGOALS)
 endif
 
@@ -136,10 +139,14 @@ $(OBJECTS): | $(GENERATED_HEADERS) $(objects_dir)
 $(RESOURCES): | $(objects_dir)
 
 vpath %$(src_suffix) $(sort $(dir $(source_files) $(generated_source_files)))
+vpath %$(src_suffix_cc) $(sort $(dir $(source_files_cc)))
 vpath %$(res_suffix) $(sort $(dir $($(platform)_resources)))
 
 $(objects_dir)/%$(call makeobj_name,): %$(src_suffix)
 	$(call build_obj_cmd,$(CURDIR)/$<,$@)
+
+$(objects_dir)/%$(call makeobj_name,): %$(src_suffix_cc)
+	$(call build_obj_cmd_cc,$(CURDIR)/$<,$@)
 
 $(objects_dir)/%$(call makeres_name,): %$(res_suffix)
 	$(call makeres_cmd,$<,$@)

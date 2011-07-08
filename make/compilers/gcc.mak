@@ -1,5 +1,6 @@
 #basic definitions for tools
 CXX ?= g++
+CC ?= gcc
 LDD ?= g++
 AR ?= ar
 OBJCOPY ?= objcopy
@@ -58,6 +59,7 @@ LDFLAGS = $(LD_PLATFORM_FLAGS) $(LD_MODE_FLAGS) $(ld_flags)
 #specify endpoint commands
 build_obj_cmd_nodeps = $(CXX) $(CXXFLAGS) -c $1 -o $2
 build_obj_cmd = $(build_obj_cmd_nodeps) -MMD
+build_obj_cmd_cc = $(CC) $(CXXFLAGS) -c $1 -o $2
 build_lib_cmd = $(AR) $(ARFLAGS) $2 $1
 link_cmd = $(LDD) $(LDFLAGS) -o $@ $(OBJECTS) $(RESOURCES) \
 	$(if $(libraries),-L$(libs_dir)\
