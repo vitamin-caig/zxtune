@@ -110,6 +110,8 @@ namespace ZXTune
         virtual AYM::DataIterator::Ptr CreateDataIterator(TrackParameters::Ptr trackParams) const = 0;
       };
 
+      Analyzer::Ptr CreateAnalyzer(Devices::AYM::Chip::Ptr device);
+
       DataIterator::Ptr CreateDataIterator(TrackParameters::Ptr trackParams, StateIterator::Ptr iterator, DataRenderer::Ptr renderer);
 
       Renderer::Ptr CreateRenderer(AYM::DataIterator::Ptr iterator, Devices::AYM::Chip::Ptr device);

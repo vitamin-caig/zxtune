@@ -1,0 +1,24 @@
+Building with GNU toolset:
+--------------------------------------------------------
+
+for build using GNU C (GCC,mingw,cygwin,DJGPP),
+issue 'gmake'. static and shared libraries will appear in "./lib".
+alternatively you may do "gmake static" for building static libries only
+(use that with DJGPP 'coz it doesn't support shared libs),
+or "gmake shared" for building shared library only.
+
+you may override some build parameters by editing the Makefile, or by
+giving command line arguments to gmake, e.g. "gmake parameter=value"
+these are:
+* ENDIANNESS -- CPU endianness, one of WORDS_LITTLE_ENDIAN, WORDS_BIG_ENDIAN
+* OPSTEP_FAST_AND_ROUGH -- fast and rough opcode step emulation mode (0 - off, 1 - on)
+	when this mode is on, timings of internal I/O operations are ignored,
+	and tstate callback feature is disabled
+
+
+Installing (UNIX/MacOS X):
+--------------------------
+
+issue "gmake install" as superuser.
+(default install prefix is /usr/local, which may be changed in Makefile.)
+then do "/sbin/ldconfig" as superuser to update DSO links and cache

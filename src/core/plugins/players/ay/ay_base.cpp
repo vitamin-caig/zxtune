@@ -155,7 +155,7 @@ namespace
 
     virtual Analyzer::Ptr GetAnalyzer() const
     {
-      return boost::make_shared<AYMAnalyzer>(Device);
+      return AYM::CreateAnalyzer(Device);
     }
 
     virtual bool RenderFrame(const Sound::RenderParameters& params)
@@ -312,6 +312,11 @@ namespace ZXTune
         const int_t toneFrom = Table[halfFrom];
         const int_t toneTo = Table[halfTo];
         return toneTo - toneFrom;
+      }
+
+      Analyzer::Ptr CreateAnalyzer(Devices::AYM::Chip::Ptr device)
+      {
+        return boost::make_shared<AYMAnalyzer>(device);
       }
 
       DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams, StateIterator::Ptr iterator, DataRenderer::Ptr renderer)

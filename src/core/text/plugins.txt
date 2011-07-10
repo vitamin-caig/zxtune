@@ -35,6 +35,10 @@ __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 < ASC_EDITOR
 > "ASC Sound Master"
 
+#AY
+< AY_PLUGIN_INFO
+> "AY" PLAYER_DESCRIPTION
+
 #CC3
 < CC3_PLUGIN_INFO
 > "CodeCruncher v3" CONTAINER_DESCRIPTION

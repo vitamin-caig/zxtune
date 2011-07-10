@@ -15,6 +15,9 @@ extern const Char ASC_PLUGIN_INFO[] = {
   'A','S','C',' ','S','o','u','n','d',' ','M','a','s','t','e','r',' ','m','o','d','u','l','e','s',' ','s','u',
   'p','p','o','r','t',0
 };
+extern const Char AY_PLUGIN_INFO[] = {
+  'A','Y',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
+};
 extern const Char CC3_PLUGIN_INFO[] = {
   'C','o','d','e','C','r','u','n','c','h','e','r',' ','v','3',' ','f','o','r','m','a','t',' ','s','u','p','p',
   'o','r','t',0
