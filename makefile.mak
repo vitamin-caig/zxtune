@@ -74,9 +74,6 @@ include $(path_step)/make/compilers/$(compiler).mak
 #set default environment
 $(platform)_definitions += "BUILD_PLATFORM=$(platform)"
 $(platform)_definitions += "BUILD_ARCH=$(arch)"
-ifdef $(platform)_3rdparty
-include_dirs += $(addprefix $(path_step)/3rdparty/include/,$($(platform)_3rdparty))
-endif
 
 #calculate input source files
 ifdef source_dirs
