@@ -167,6 +167,7 @@ namespace
       Iterator->GetData(chunk);
       chunk.Tick = LastRenderTick;
       Device->RenderData(chunk);
+      Device->Flush();
       return res;
     }
 

@@ -107,6 +107,9 @@ namespace Devices
       /// render single data chunk
       virtual void RenderData(const DataChunk& src) = 0;
 
+      /// flush any collected data
+      virtual void Flush() = 0;
+
       /// reset internal state to initial
       virtual void Reset() = 0;
     };

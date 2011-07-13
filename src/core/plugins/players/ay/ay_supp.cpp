@@ -212,6 +212,7 @@ namespace
     virtual bool RenderFrame(const Sound::RenderParameters& params)
     {
       CPU->NextFrame();
+      Device->Flush();
       return Iterator->NextFrame(params.Looped());
     }
 

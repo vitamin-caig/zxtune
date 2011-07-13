@@ -62,6 +62,10 @@ namespace
       }
     }
 
+    virtual void Flush()
+    {
+    }
+
     virtual void Reset()
     {
       Builder->Initialize();

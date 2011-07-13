@@ -20,6 +20,8 @@ Author:
 #include <functional>
 #include <limits>
 #include <memory>
+//boost includes
+#include <boost/bind.hpp>
 
 namespace
 {
@@ -627,22 +629,24 @@ namespace
 
     virtual void RenderData(const DataChunk& src)
     {
+      BufferedData.push_back(src);
+    }
+
+    virtual void Flush()
+    {
       ApplyParameters();
-      PSG.ApplyData(src);
-      Clock.ApplyData(src);
       Renderer& targetRender = Params->Interpolate()
         ? static_cast<Renderer&>(Render)
         : static_cast<Renderer&>(PSG);
-      RelayoutRenderer render(targetRender, Params->Layout());
-      MultiSample result;
-      while (Clock.InFrame())
+      const LayoutType layout = Params->Layout();
+      if (LAYOUT_ABC == layout)
       {
-        render.Tick();
-        if (Clock.Tick())
-        {
-          render.GetLevels(result);
-          Target->ApplyData(result);
-        }
+        RenderChunks(targetRender);
+      }
+      else
+      {
+        RelayoutRenderer relayoutRender(targetRender, layout);
+        RenderChunks(relayoutRender);
       }
     }
 
@@ -655,6 +659,7 @@ namespace
     {
       Render.Reset();
       Clock.Reset();
+      BufferedData.clear();
     }
   private:
     void ApplyParameters()
@@ -662,12 +667,35 @@ namespace
       PSG.SetType(Params->IsYM());
       PSG.SetDutyCycle(Params->DutyCycleValue(), Params->DutyCycleMask());
     }
+
+    void RenderChunks(Renderer& render)
+    {
+      std::for_each(BufferedData.begin(), BufferedData.end(), boost::bind(&ChipImpl::RenderSingleChunk, this, _1, boost::ref(render)));
+      BufferedData.clear();
+    }
+
+    void RenderSingleChunk(const DataChunk& src, Renderer& render)
+    {
+      PSG.ApplyData(src);
+      Clock.ApplyData(src);
+      MultiSample result;
+      while (Clock.InFrame())
+      {
+        render.Tick();
+        if (Clock.Tick())
+        {
+          render.GetLevels(result);
+          Target->ApplyData(result);
+        }
+      }
+    }
   private:
     const ChipParameters::Ptr Params;
     const Receiver::Ptr Target;
     AYMRenderer PSG;
     InterpolatedRenderer Render;
     ClockSource Clock;
+    std::vector<DataChunk> BufferedData;
   };
 }
 
