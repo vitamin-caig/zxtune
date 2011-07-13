@@ -129,11 +129,99 @@ namespace
     Dump Data;
   };
 
+  class AYDataChannel
+  {
+  public:
+    typedef boost::shared_ptr<AYDataChannel> Ptr;
+
+    AYDataChannel(Devices::Z80::ChipParameters::Ptr cpuParams, Devices::AYM::Chip::Ptr chip)
+      : CpuParams(cpuParams)
+      , Chip(chip)
+      , LastRenderTick()
+      , Reg()
+    {
+    }
+
+    void Reset()
+    {
+      Chip->Reset();
+      LastRenderTick = 0;
+      Reg = 0;
+      Data.clear();
+    }
+
+    void SelectRegister(uint_t reg)
+    {
+      Reg = reg;
+    }
+
+    void SetValue(uint64_t cpuTick, uint_t val)
+    {
+      Data.push_back(Chunk(cpuTick, Reg, val));
+    }
+
+    void RenderFrame(const Sound::RenderParameters& sndParams)
+    {
+      std::for_each(Data.begin(), Data.end(), boost::bind(&AYDataChannel::SendChunk, this, _1, CpuParams->TicksPerFrame(), sndParams.ClocksPerFrame()));
+      Data.clear();
+      LastRenderTick += sndParams.ClocksPerFrame();
+      Devices::AYM::DataChunk stub;
+      stub.Tick = LastRenderTick;
+      Chip->RenderData(stub);
+      Chip->Flush();
+    }
+
+    Analyzer::Ptr GetAnalyzer() const
+    {
+      return AYM::CreateAnalyzer(Chip);
+    }
+  private:
+    struct Chunk
+    {
+      uint64_t CpuTick;
+      uint_t Reg;
+      uint_t Value;
+
+      Chunk()
+        : CpuTick(), Reg(), Value()
+      {
+      }
+
+      Chunk(uint64_t tick, uint_t reg, uint_t val)
+        : CpuTick(tick), Reg(reg), Value(val)
+      {
+      }
+    };
+
+    void SendChunk(const Chunk& chunk, uint64_t inTicksPerFrame, uint64_t outTicksPerFrame)
+    {
+      Devices::AYM::DataChunk result;
+      result.Mask = 1 << chunk.Reg;
+      result.Data[chunk.Reg] = chunk.Value;
+      result.Tick = ScaleTick(chunk.CpuTick, inTicksPerFrame, outTicksPerFrame);
+      Chip->RenderData(result);
+    }
+
+    static uint64_t ScaleTick(uint64_t tick, uint64_t inScale, uint64_t outScale)
+    {
+      //return tick * outScale / inScale;
+      const uint64_t baseTick = outScale * (tick / inScale);
+      const uint64_t corrTick = (outScale * (tick % inScale)) / inScale;
+      return baseTick + corrTick;
+    }
+  private:
+    const Devices::Z80::ChipParameters::Ptr CpuParams;
+    const Devices::AYM::Chip::Ptr Chip;
+    uint64_t LastRenderTick;
+    uint_t Reg;
+    std::vector<Chunk> Data;
+  };
+
   class Ports : public Devices::Z80::ChipIO
   {
   public:
-    explicit Ports(Devices::AYM::Chip::Ptr chip)
-      : Chip(chip)
+    explicit Ports(AYDataChannel::Ptr ayData)
+      : AyData(ayData)
     {
     }
 
@@ -146,28 +234,15 @@ namespace
     {
       if (0xc0fd == (port & 0xc0ff))
       {
-        SelectReg(data);
+        AyData->SelectRegister(data);
       }
       else if (0x80fd == (port & 0xc0ff))
       {
-        SendData(tick, data);
+        AyData->SetValue(tick, data);
       }
     }
   private:
-    void SelectReg(uint_t reg)
-    {
-      Data.Mask = 1 << reg;
-    }
-
-    void SendData(uint64_t tick, uint_t val)
-    {
-      std::fill(Data.Data.begin(), Data.Data.end(), val);
-      Data.Tick = tick / 2;//TODO
-      Chip->RenderData(Data);
-    }
-  private:
-    const Devices::AYM::Chip::Ptr Chip;
-    Devices::AYM::DataChunk Data;
+    const AYDataChannel::Ptr AyData;
   };
 
   class CPUParameters : public Devices::Z80::ChipParameters
@@ -191,7 +266,7 @@ namespace
   class AYRenderer : public Renderer
   {
   public:
-    AYRenderer(StateIterator::Ptr iterator, Devices::Z80::Chip::Ptr cpu, Devices::AYM::Chip::Ptr device)
+    AYRenderer(StateIterator::Ptr iterator, Devices::Z80::Chip::Ptr cpu, AYDataChannel::Ptr device)
       : Iterator(iterator)
       , CPU(cpu)
       , Device(device)
@@ -206,13 +281,13 @@ namespace
 
     virtual Analyzer::Ptr GetAnalyzer() const
     {
-      return AYM::CreateAnalyzer(Device);
+      return Device->GetAnalyzer();
     }
 
     virtual bool RenderFrame(const Sound::RenderParameters& params)
     {
       CPU->NextFrame();
-      Device->Flush();
+      Device->RenderFrame(params);
       return Iterator->NextFrame(params.Looped());
     }
 
@@ -229,7 +304,7 @@ namespace
   private:
     const StateIterator::Ptr Iterator;
     const Devices::Z80::Chip::Ptr CPU;
-    const Devices::AYM::Chip::Ptr Device;
+    const AYDataChannel::Ptr Device;
     const TrackState::Ptr State;
   };
 
@@ -436,9 +511,10 @@ namespace
       const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
       const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateChip(chipParams, receiver);
       const Devices::Z80::ChipParameters::Ptr cpuParams = boost::make_shared<CPUParameters>(params);
-      const Devices::Z80::ChipIO::Ptr cpuPorts = boost::make_shared<Ports>(chip);
+      const AYDataChannel::Ptr ayChannel = boost::make_shared<AYDataChannel>(cpuParams, chip);
+      const Devices::Z80::ChipIO::Ptr cpuPorts = boost::make_shared<Ports>(ayChannel);
       const Devices::Z80::Chip::Ptr cpu = Data->CreateCPU(cpuParams, cpuPorts);
-      return boost::make_shared<AYRenderer>(iterator, cpu, chip);
+      return boost::make_shared<AYRenderer>(iterator, cpu, ayChannel);
     }
 
     virtual Error Convert(const Conversion::Parameter& spec, Dump& dst) const

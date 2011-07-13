@@ -539,9 +539,8 @@ namespace
   class ClockSource
   {
   public:
-    explicit ClockSource(const ChipParameters& params)
-      : Params(params)
-      , CurrentTick()
+    ClockSource()
+      : CurrentTick()
       , NextSoundTick()
       , LastTick()
       , TicksPerSec()
@@ -549,6 +548,20 @@ namespace
       , SoundFreq()
       , SamplesDone()
     {
+    }
+
+    void SetFrequency(uint64_t clockFreq, uint_t soundFreq)
+    {
+      //for more precise rendering
+      if (TicksPerSec != clockFreq ||
+          SoundFreq != soundFreq)
+      {
+        RenderStartTick = CurrentTick;
+        TicksPerSec = clockFreq;
+        SoundFreq = soundFreq;
+        SamplesDone = 1;
+        CalcNextSoundTick();
+      }
     }
 
     void Reset()
@@ -564,18 +577,6 @@ namespace
 
     void ApplyData(const DataChunk& data)
     {
-      const uint64_t newClocks = Params.ClockFreq();
-      const uint_t newSound = Params.SoundFreq();
-      //for more precise rendering
-      if (TicksPerSec != newClocks ||
-          SoundFreq != newSound)
-      {
-        RenderStartTick = CurrentTick;
-        TicksPerSec = newClocks;
-        SoundFreq = newSound;
-        SamplesDone = 1;
-        CalcNextSoundTick();
-      }
       LastTick = data.Tick;
     }
 
@@ -603,7 +604,6 @@ namespace
       assert(NextSoundTick > CurrentTick);
     }
   private:
-    const ChipParameters& Params;
     //context
     uint64_t CurrentTick;
     uint64_t NextSoundTick;
@@ -622,7 +622,7 @@ namespace
       : Params(params)
       , Target(target)
       , Render(PSG)
-      , Clock(*Params)
+      , Clock()
     {
       Reset();
     }
@@ -666,6 +666,7 @@ namespace
     {
       PSG.SetType(Params->IsYM());
       PSG.SetDutyCycle(Params->DutyCycleValue(), Params->DutyCycleMask());
+      Clock.SetFrequency(Params->ClockFreq(), Params->SoundFreq());
     }
 
     void RenderChunks(Renderer& render)
