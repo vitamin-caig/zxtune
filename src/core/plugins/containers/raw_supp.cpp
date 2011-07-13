@@ -415,12 +415,6 @@ namespace
       return CAP_STOR_MULTITRACK | CAP_STOR_SCANER;
     }
 
-    virtual bool Check(const IO::DataContainer& inputData) const
-    {
-      //check only size restrictions
-      return inputData.Size() >= MIN_MINIMAL_RAW_SIZE;
-    }
-
     virtual DetectionResult::Ptr Detect(DataLocation::Ptr input, const Module::DetectCallback& callback) const
     {
       const IO::DataContainer::Ptr rawData = input->GetData();

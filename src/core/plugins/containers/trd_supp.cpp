@@ -245,12 +245,6 @@ namespace
       return CAP_STOR_MULTITRACK | CAP_STOR_PLAIN;
     }
 
-    virtual bool Check(const IO::DataContainer& inputData) const
-    {
-      const IO::FastDump dump(inputData);
-      return CheckTRDFile(dump);
-    }
-
     virtual DetectionResult::Ptr Detect(DataLocation::Ptr input, const Module::DetectCallback& callback) const
     {
       const IO::DataContainer::Ptr rawData = input->GetData();
