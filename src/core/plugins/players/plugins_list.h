@@ -19,6 +19,7 @@ namespace ZXTune
   class PluginsRegistrator;
 
   void RegisterTSSupport(PluginsRegistrator& enumerator);
+  void RegisterAYSupport(PluginsRegistrator& enumerator);
   void RegisterPSGSupport(PluginsRegistrator& enumerator);
   void RegisterSTCSupport(PluginsRegistrator& enumerator);
   void RegisterPT2Support(PluginsRegistrator& enumerator);
@@ -28,12 +29,12 @@ namespace ZXTune
   void RegisterTXTSupport(PluginsRegistrator& enumerator);
   void RegisterPDTSupport(PluginsRegistrator& enumerator);
   void RegisterCHISupport(PluginsRegistrator& enumerator);
-  void RegisterAYSupport(PluginsRegistrator& enumerator);
 
   void RegisterPlayerPlugins(PluginsRegistrator& enumerator)
   {
-    //try TS first
+    //try TS & AY first
     RegisterTSSupport(enumerator);
+    RegisterAYSupport(enumerator);
     RegisterPT3Support(enumerator);
     RegisterPT2Support(enumerator);
     RegisterSTCSupport(enumerator);
@@ -43,7 +44,6 @@ namespace ZXTune
     RegisterPSGSupport(enumerator);
     RegisterPDTSupport(enumerator);
     RegisterCHISupport(enumerator);
-    RegisterAYSupport(enumerator);
   }
 }
 

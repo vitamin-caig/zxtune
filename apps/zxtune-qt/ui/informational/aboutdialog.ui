@@ -37,6 +37,8 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
 &lt;li&gt;Used AYEmul sources by &lt;b&gt;S.Bulba&lt;/b&gt;&lt;/li&gt;
 &lt;li&gt;Used AYFly sources by &lt;b&gt;Ander&lt;/b&gt;&lt;/li&gt;
 &lt;li&gt;Packer plugins are based on the xPlugins sources by &lt;b&gt;elf/2&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Used zlib library by &lt;b&gt;Jean-loup Gailly&lt;/b&gt; and &lt;b&gt;Mark Adler&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Used z80ex library by &lt;b&gt;Boo-boo&lt;/b&gt;&lt;/li&gt;
 &lt;/ul&gt;&lt;br/&gt;
 
 &lt;center&gt;&lt;b&gt;Support credits:&lt;/b&gt;&lt;/center&gt;
