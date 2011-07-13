@@ -26,6 +26,7 @@ Author:
 #include <core/error_codes.h>
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
+#include <core/plugins_parameters.h>
 #include <devices/z80.h>
 #include <io/container.h>
 //boost includes
@@ -398,13 +399,13 @@ namespace
       return lastUsed - &data[0];
     }
 
-    std::size_t ParseData(uint_t idx, const IO::FastDump& data)
+    std::size_t ParseData(uint_t idx, uint_t defaultDuration, const IO::FastDump& data)
     {
       const uint8_t* lastUsed = &data[0];
       const AYHeader* const header = safe_ptr_cast<const AYHeader*>(&data[0]);
       const ModuleDescription* const description = GetPointer<ModuleDescription>(*header, &AYHeader::DescriptionsOffset) + idx;
       const ModuleDataEMUL* const moddata = GetPointer<ModuleDataEMUL>(*description, &ModuleDescription::DataOffset);
-      Frames = fromBE(moddata->TotalLength);
+      Frames = moddata->TotalLength ? fromBE(moddata->TotalLength) : defaultDuration;
       Registers = fromBE(moddata->RegValue);
       const ModuleBlockEMUL* block = GetPointer<ModuleBlockEMUL>(*moddata, &ModuleDataEMUL::BlocksOffset);
       {
@@ -605,10 +606,13 @@ namespace
       {
         assert(Check(*rawData));
 
+        Parameters::IntType defaultDuration = Parameters::ZXTune::Core::Plugins::AY::DEFAULT_DURATION_FRAMES_DEFAULT;
+        parameters->FindIntValue(Parameters::ZXTune::Core::Plugins::AY::DEFAULT_DURATION_FRAMES, defaultDuration);
+
         const boost::shared_ptr<AYData> result = boost::make_shared<AYData>();
         const IO::FastDump data(*rawData);
         const std::size_t lastInfo = result->ParseInfo(0, data, *properties);
-        const std::size_t lastData = result->ParseData(0, data);
+        const std::size_t lastData = result->ParseData(0, defaultDuration, data);
 
         usedSize = std::max(lastInfo, lastData);
         properties->SetSource(usedSize, ModuleRegion(0, usedSize));
