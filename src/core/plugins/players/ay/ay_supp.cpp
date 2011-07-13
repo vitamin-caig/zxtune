@@ -382,19 +382,26 @@ namespace
     std::size_t ParseInfo(uint_t idx, const IO::FastDump& data, ModuleProperties& properties)
     {
       const uint8_t* lastUsed = &data[0];
+      const uint8_t* const limit = &data[0] + data.Size();
       const AYHeader* const header = safe_ptr_cast<const AYHeader*>(&data[0]);
       const ModuleDescription* const description = GetPointer<ModuleDescription>(*header, &AYHeader::DescriptionsOffset) + idx;
       {
         const uint8_t* const titleBegin = GetPointer<uint8_t>(*description, &ModuleDescription::TitleOffset);
-        const uint8_t* const titleEnd = std::find(titleBegin, &data[0] + data.Size(), 0);
+        const uint8_t* const titleEnd = std::find(titleBegin, limit, 0);
         properties.SetTitle(OptimizeString(String(titleBegin, titleEnd)));
         lastUsed = std::max(lastUsed, titleEnd);
       }
       {
         const uint8_t* const authorBegin = GetPointer<uint8_t>(*header, &AYHeader::AuthorOffset);
-        const uint8_t* const authorEnd = std::find(authorBegin, &data[0] + data.Size(), 0);
+        const uint8_t* const authorEnd = std::find(authorBegin, limit, 0);
         properties.SetAuthor(OptimizeString(String(authorBegin, authorEnd)));
         lastUsed = std::max(lastUsed, authorEnd);
+      }
+      {
+        const uint8_t* const miscBegin = GetPointer<uint8_t>(*header, &AYHeader::MiscOffset);
+        const uint8_t* const miscEnd = std::find(miscBegin, limit, 0);
+        properties.SetComment(OptimizeString(String(miscBegin, miscEnd)));
+        lastUsed = std::max(lastUsed, miscEnd);
       }
       return lastUsed - &data[0];
     }
@@ -535,15 +542,23 @@ namespace
     const Parameters::Accessor::Ptr Params;
   };
 
-  bool CheckAY(const IO::DataContainer& inputData)
+  bool CheckAYModule(const IO::DataContainer& inputData)
   {
     if (inputData.Size() <= sizeof(AYHeader))
     {
       return false;
     }
     const AYHeader* const header = safe_ptr_cast<const AYHeader*>(inputData.Data());
-    return 0 == std::memcmp(header->Signature, AY_SIGNATURE, sizeof(AY_SIGNATURE)) &&
-      (0 == std::memcmp(header->Type, TYPE_EMUL, sizeof(TYPE_EMUL)));
+    if (0 != std::memcmp(header->Signature, AY_SIGNATURE, sizeof(AY_SIGNATURE)))
+    {
+      return false;
+    }
+    if (0 != std::memcmp(header->Type, TYPE_EMUL, sizeof(TYPE_EMUL)))
+    {
+      return false;
+    }
+    return 0 == header->FirstModuleIndex &&
+           0 == header->LastModuleIndex;
   }
 
   const std::string AY_FORMAT(
@@ -586,7 +601,7 @@ namespace
 
     virtual bool Check(const IO::DataContainer& inputData) const
     {
-      return CheckAY(inputData);
+      return CheckAYModule(inputData);
     }
 
     virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const

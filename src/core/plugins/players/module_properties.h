@@ -33,6 +33,7 @@ namespace ZXTune
 
       virtual void SetTitle(const String& title) = 0;
       virtual void SetAuthor(const String& author) = 0;
+      virtual void SetComment(const String& comment) = 0;
       virtual void SetProgram(const String& program) = 0;
       virtual void SetWarnings(Log::MessagesCollector::Ptr warns) = 0;
       virtual void SetFreqtable(const String& table) = 0;

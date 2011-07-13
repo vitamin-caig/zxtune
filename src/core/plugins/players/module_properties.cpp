@@ -48,6 +48,14 @@ namespace
       }
     }
 
+    virtual void SetComment(const String& comment)
+    {
+      if (!comment.empty())
+      {
+        Container->SetStringValue(ATTR_COMMENT, comment);
+      }
+    }
+
     virtual void SetProgram(const String& program)
     {
       if (!program.empty())
