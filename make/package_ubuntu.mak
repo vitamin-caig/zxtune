@@ -4,6 +4,8 @@ ifneq ($(findstring $(arch),i386 i486 i586 i686),)
 arch_deb = i386
 else ifneq ($(findstring $(arch),x86_64 amd64),)
 arch_deb = amd64
+else ifneq ($(findstring $(arch),ppc powerpc),)
+arch_deb = ppc
 else
 $(warning Unknown debian package architecture)
 arch_deb = $(arch)
@@ -34,19 +36,11 @@ $(pkg_debian)/md5sums: $(pkg_debian)/copyright $(pkg_debian)/changelog | $(pkg_d
 	gzip --best $(pkg_root)/usr/share/doc/$(binary_name)/changelog
 	md5sum `find $(pkg_root) -type f` | sed 's| .*$(pkg_root)\/| |' > $@
 
-ifneq ($(findstring $(arch),i386 i486 i586 i686),)
-arch_debian := i386
-else ifneq ($(findstring $(arch),x86_64),)
-arch_debian := amd64
-else
-arch_debian := unknown
-endif
-
 $(pkg_debian)/control: | $(pkg_debian)
 	@echo -e "\
 	Package: $(binary_name)\n\
 	Version: $(pkg_revision)\n\
-	Architecture: $(arch_debian)\n\
+	Architecture: $(arch_deb)\n\
 	Priority: optional\n\
 	Section: sound\n\
 	Maintainer: Vitamin <vitamin.caig@gmail.com>\n\

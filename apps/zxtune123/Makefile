@@ -39,7 +39,7 @@ install_windows install_mingw: dist/$(manual_file) install_samples
 	$(call copyfile_cmd,../zxtune.conf,$(DESTDIR))
 
 install_dingux: dist/$(manual_file) install_samples
-	install -D $(target) $(DESTDIR)/local/apps/zxtune123/$(binary_name)
+	install -D $(target) $(DESTDIR)/local/apps/zxtune123/$(notdir $(target))
 	install -m644 -D ../zxtune.conf $(DESTDIR)/local/apps/zxtune123/zxtune.conf
 	install -m644 -D dist/$(manual_file) $(DESTDIR)/local/apps/zxtune123/$(manual_file)
 	install -m644 -D dist/dingux/dmenu/zxtune123.cfg $(DESTDIR)/local/apps/zxtune123/zxtune123.cfg
