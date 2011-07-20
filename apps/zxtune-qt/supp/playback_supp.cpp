@@ -152,6 +152,7 @@ namespace
 
     virtual void SetItem(const Playlist::Item::Data& item)
     {
+      Backend.reset();
       Backend = CreateBackend(Params, item.GetModule());
       if (Backend)
       {
