@@ -532,7 +532,7 @@ namespace ZXTune
         const StateIterator::Ptr iterator = CreateTrackStateIterator(info, data);
         const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
         const AYM::DataIterator::Ptr dataIter = AYM::CreateDataIterator(trackParams, iterator, renderer);
-        return AYM::CreateRenderer(params, dataIter, device);
+        return AYM::CreateRenderer(trackParams, dataIter, device);
       }
 
       AYM::Chiptune::Ptr CreateChiptune(Track::ModuleData::Ptr data, ModuleProperties::Ptr properties, uint_t channels)

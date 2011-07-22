@@ -30,7 +30,6 @@ Author:
 #include <core/plugin_attrs.h>
 #include <devices/aym.h>
 #include <io/container.h>
-#include <sound/render_params.h>
 //std includes
 #include <set>
 //boost includes

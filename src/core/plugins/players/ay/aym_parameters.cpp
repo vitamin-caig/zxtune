@@ -180,8 +180,19 @@ namespace
   public:
     explicit TrackParametersImpl(Parameters::Accessor::Ptr params)
       : Params(params)
+      , Delegate(Sound::RenderParameters::Create(params))
     {
       UpdateParameters();
+    }
+
+    virtual uint_t ClocksPerFrame() const
+    {
+      return Delegate->ClocksPerFrame();
+    }
+
+    virtual bool Looped() const
+    {
+      return Delegate->Looped();
     }
 
     virtual const FrequencyTable& FreqTable() const
@@ -221,6 +232,7 @@ namespace
     }
   private:
     const Parameters::Accessor::Ptr Params;
+    const Sound::RenderParameters::Ptr Delegate;
     //freqtable
     mutable String TableName;
     mutable FrequencyTable Table;

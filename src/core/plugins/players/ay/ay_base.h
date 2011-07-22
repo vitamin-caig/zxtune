@@ -21,7 +21,6 @@ Author:
 #include <error.h>
 //library includes
 #include <devices/aym.h>
-#include <sound/render_params.h>
 
 namespace ZXTune
 {
@@ -114,7 +113,7 @@ namespace ZXTune
 
       DataIterator::Ptr CreateDataIterator(TrackParameters::Ptr trackParams, StateIterator::Ptr iterator, DataRenderer::Ptr renderer);
 
-      Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, AYM::DataIterator::Ptr iterator, Devices::AYM::Chip::Ptr device);
+      Renderer::Ptr CreateRenderer(TrackParameters::Ptr trackParams, AYM::DataIterator::Ptr iterator, Devices::AYM::Chip::Ptr device);
 
       Devices::AYM::Receiver::Ptr CreateReceiver(Sound::MultichannelReceiver::Ptr target);
 
