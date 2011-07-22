@@ -175,6 +175,8 @@ namespace
     }
   };
 
+  const uint_t MICROSECONDS_PER_SECOND = 1000000;
+
   template<uint_t Channels>
   class ChipImpl : public Chip
   {
@@ -182,7 +184,7 @@ namespace
     ChipImpl(uint_t samples, uint_t sampleFreq, ChipParameters::Ptr params, Receiver::Ptr target)
       : Params(params)
       , Target(target)
-      , Samples(samples), MaxGain(0), CurrentTick(0)
+      , Samples(samples), MaxGain(0), CurrentTime(0)
       , SampleFreq(sampleFreq)
       , TableFreq(0)
     {
@@ -202,7 +204,6 @@ namespace
     virtual void RenderData(const DataChunk& src)
     {
       const uint_t soundFreq = Params->SoundFreq();
-      const uint64_t clockFreq = Params->ClockFreq();
 
       // update internal state
       std::for_each(src.Channels.begin(), src.Channels.end(),
@@ -213,7 +214,7 @@ namespace
         boost::bind(&ChipImpl::CalcSampleStep, this, soundFreq, _1));
 
       // samples to apply
-      const uint_t doSamples = static_cast<uint_t>(uint64_t(src.Tick - CurrentTick) * soundFreq / clockFreq);
+      const uint_t doSamples = static_cast<uint_t>(uint64_t(src.TimeInUs - CurrentTime) * soundFreq / MICROSECONDS_PER_SECOND);
 
       const std::const_mem_fun_ref_t<Sample, ChannelState> getter = Params->Interpolate() ?
         std::mem_fun_ref(&ChannelState::GetInterpolatedValue) : std::mem_fun_ref(&ChannelState::GetValue);
@@ -224,7 +225,7 @@ namespace
         std::for_each(State.begin(), State.end(), std::mem_fun_ref(&ChannelState::SkipStep));
         Target->ApplyData(result);
       }
-      CurrentTick = src.Tick;
+      CurrentTime = src.TimeInUs;
     }
 
     virtual void GetState(ChannelsState& state) const
@@ -237,7 +238,7 @@ namespace
     /// reset internal state to initial
     virtual void Reset()
     {
-      CurrentTick = 0;
+      CurrentTime = 0;
       std::fill(State.begin(), State.end(), ChannelState(&Samples.front()));
     }
 
@@ -304,7 +305,7 @@ namespace
     const Receiver::Ptr Target;
     std::vector<DigitalSample> Samples;
     uint_t MaxGain;
-    uint64_t CurrentTick;
+    uint64_t CurrentTime;
     boost::array<ChannelState, Channels> State;
 
     const uint_t SampleFreq;

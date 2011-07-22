@@ -376,7 +376,7 @@ namespace
       , Params(Sound::RenderParameters::Create(params))
       , Device(device)
       , Iterator(CreateTrackStateIterator(info, Data))
-      , LastRenderTick(0)
+      , LastRenderTime(0)
     {
 #ifdef SELF_TEST
 //perform self-test
@@ -407,8 +407,8 @@ namespace
 
       const bool res = Iterator->NextFrame(Params->Looped());
 
-      LastRenderTick += Params->ClocksPerFrame();
-      chunk.Tick = LastRenderTick;
+      LastRenderTime += Params->FrameDurationMicrosec();
+      chunk.TimeInUs = LastRenderTime;
       Device->RenderData(chunk);
       return res;
     }
@@ -418,7 +418,7 @@ namespace
       Device->Reset();
       Iterator->Reset();
       std::fill(Gliss.begin(), Gliss.end(), GlissData());
-      LastRenderTick = 0;
+      LastRenderTime = 0;
     }
 
     virtual void SetPosition(uint_t frame)
@@ -508,7 +508,7 @@ namespace
     const Devices::DAC::Chip::Ptr Device;
     const StateIterator::Ptr Iterator;
     boost::array<GlissData, CHANNELS_COUNT> Gliss;
-    uint64_t LastRenderTick;
+    uint64_t LastRenderTime;
   };
 
   Renderer::Ptr CreateCHIRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, CHITrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)

@@ -161,11 +161,11 @@ namespace
       Data.push_back(Chunk(cpuTick, Reg, val));
     }
 
-    void RenderFrame(const Sound::RenderParameters& sndParams)
+    void RenderFrame(uint_t clocksPerFrame)
     {
-      std::for_each(Data.begin(), Data.end(), boost::bind(&AYDataChannel::SendChunk, this, _1, CpuParams->TicksPerFrame(), sndParams.ClocksPerFrame()));
+      std::for_each(Data.begin(), Data.end(), boost::bind(&AYDataChannel::SendChunk, this, _1, CpuParams->TicksPerFrame(), clocksPerFrame));
       Data.clear();
-      LastRenderTick += sndParams.ClocksPerFrame();
+      LastRenderTick += clocksPerFrame;
       Devices::AYM::DataChunk stub;
       stub.Tick = LastRenderTick;
       Chip->RenderData(stub);
@@ -194,12 +194,12 @@ namespace
       }
     };
 
-    void SendChunk(const Chunk& chunk, uint64_t inTicksPerFrame, uint64_t outTicksPerFrame)
+    void SendChunk(const Chunk& chunk, uint64_t cpuTicksPerFrame, uint64_t psgTicksPerFrame)
     {
       Devices::AYM::DataChunk result;
       result.Mask = 1 << chunk.Reg;
       result.Data[chunk.Reg] = chunk.Value;
-      result.Tick = ScaleTick(chunk.CpuTick, inTicksPerFrame, outTicksPerFrame);
+      result.Tick = ScaleTick(chunk.CpuTick, cpuTicksPerFrame, psgTicksPerFrame);
       Chip->RenderData(result);
     }
 
@@ -289,7 +289,7 @@ namespace
     virtual bool RenderFrame()
     {
       CPU->NextFrame();
-      Device->RenderFrame(*Params);
+      Device->RenderFrame(Params->ClocksPerFrame());
       return Iterator->NextFrame(Params->Looped());
     }
 

@@ -64,11 +64,6 @@ namespace
     {
     }
 
-    virtual uint64_t ClockFreq() const
-    {
-      return SoundParams->ClockFreq();
-    }
-
     virtual uint_t SoundFreq() const
     {
       return SoundParams->SoundFreq();

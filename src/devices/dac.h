@@ -41,10 +41,10 @@ namespace Devices
         boost::optional<uint_t> PosInSample;
       };
 
-      DataChunk() : Tick()
+      DataChunk() : TimeInUs()
       {
       }
-      uint64_t Tick;
+      uint64_t TimeInUs;
       std::vector<ChannelData> Channels;
     };
 
@@ -98,7 +98,6 @@ namespace Devices
 
       virtual ~ChipParameters() {}
 
-      virtual uint64_t ClockFreq() const = 0;
       virtual uint_t SoundFreq() const = 0;
       virtual bool Interpolate() const = 0;
     };
