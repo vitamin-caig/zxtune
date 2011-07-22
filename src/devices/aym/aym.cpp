@@ -81,13 +81,15 @@ namespace
       : Counter()
       , Level()
       , DutyCycle(NO_DUTYCYCLE)
+      , Masked(true)
     {
     }
 
     void Reset()
     {
       Counter = 0;
-      Level = 0;
+      Level = false;
+      Masked = true;
     }
 
     /*
@@ -107,20 +109,25 @@ namespace
       if (Counter >= FullPeriod)
       {
         Counter = 0;
-        Level = ~Level;
+        Level = !Level;
         return true;
       }
       else if (Counter == HalfPeriod)
       {
-        Level = ~Level;
+        Level = !Level;
         return true;
       }
       return false;
     }
 
-    uint_t GetLevel() const
+    bool GetLevel() const
     {
-      return Level;
+      return Masked || Level;
+    }
+
+    bool IsMasked() const
+    {
+      return Masked;
     }
 
     void SetDutyCycle(uint_t dutyCycle)
@@ -135,6 +142,11 @@ namespace
       FullPeriod = period * 2;
       UpdateHalfPeriod();
     }
+    
+    void SetMask(bool masked)
+    {
+      Masked = masked;
+    }
   private:
     void UpdateHalfPeriod()
     {
@@ -142,10 +154,11 @@ namespace
     }
   private:
     uint_t Counter;
-    uint_t Level;
+    bool Level;
     uint_t DutyCycle;
     uint_t HalfPeriod;
     uint_t FullPeriod;
+    bool Masked;
   };
 
   class Renderer
@@ -166,6 +179,7 @@ namespace
       , Mixer(State.Data[DataChunk::REG_MIXER])
       , EnvType(State.Data[DataChunk::REG_ENV])
       , Envelope(), Decay(), Noise()
+      , ChangedFromLastTick()
       , IsYM()
     {
       State.Data[DataChunk::REG_MIXER] = 0xff;
@@ -202,6 +216,7 @@ namespace
       Envelope = 0;
       Decay = 0;
       Noise = 0;
+      ChangedFromLastTick = false;
     }
 
     void ApplyData(const DataChunk& data)
@@ -241,6 +256,19 @@ namespace
         }
         State.Data[idx] = reg;
       }
+      if (data.Mask & (1 << DataChunk::REG_MIXER))
+      {
+        const bool newMaskA = 0 != (Mixer & DataChunk::REG_MASK_TONEA);
+        const bool newMaskB = 0 != (Mixer & DataChunk::REG_MASK_TONEB);
+        const bool newMaskC = 0 != (Mixer & DataChunk::REG_MASK_TONEC);
+        const bool newMaskN = 0 == (~Mixer & (DataChunk::REG_MASK_NOISEA | DataChunk::REG_MASK_NOISEB | DataChunk::REG_MASK_NOISEC));
+        ChangedFromLastTick = newMaskA != GenA.IsMasked() ||
+          newMaskB != GenB.IsMasked() || newMaskC != GenC.IsMasked() || newMaskN != GenN.IsMasked();
+        GenA.SetMask(newMaskA);
+        GenB.SetMask(newMaskB);
+        GenC.SetMask(newMaskC);
+        GenN.SetMask(newMaskN);
+      }
       if (data.Mask & ((1 << DataChunk::REG_TONEA_L) | (1 << DataChunk::REG_TONEA_H)))
       {
         GenA.SetPeriod(GetToneA());
@@ -261,19 +289,24 @@ namespace
       {
         GenE.SetPeriod(GetToneE());
       }
+      if (data.Mask & REGS_5BIT_SET)
+      {
+        GenE.SetMask(0 == ((VolA | VolB | VolC) & DataChunk::REG_MASK_ENV));
+        ChangedFromLastTick = true;
+      }
     }
 
     virtual bool Tick()
     {
-      bool res = false;
-      res |= GenA.Tick();
-      res |= GenB.Tick();
-      res |= GenC.Tick();
+      bool res = ChangedFromLastTick;
+      res |= GenA.Tick() && !GenA.IsMasked();
+      res |= GenB.Tick() && !GenB.IsMasked();
+      res |= GenC.Tick() && !GenC.IsMasked();
 
       if (GenN.Tick())
       {
         Noise = (Noise * 2 + 1) ^ (((Noise >> 16) ^ (Noise >> 13)) & 1);
-        res = true;
+        res |= !GenN.IsMasked();
       }
       if (GenE.Tick())
       {
@@ -307,34 +340,31 @@ namespace
             }
           }
         }
-        res = true;
+        res |= !GenE.IsMasked();
       }//envelope
+      ChangedFromLastTick = false;
       return res;
     }
 
     virtual void GetLevels(MultiSample& result) const
     {
-      const uint_t HighLevel = ~0u;
-      const uint_t noiseBit = (Noise & 0x10000) ? HighLevel : 0;
+      const bool triggeredNoise = 0 != (Noise & 0x10000);
       //references to mixered bits. updated automatically
       const uint_t levelA = (((VolA & DataChunk::REG_MASK_VOL) << 1) + 1);
       const uint_t levelB = (((VolB & DataChunk::REG_MASK_VOL) << 1) + 1);
       const uint_t levelC = (((VolC & DataChunk::REG_MASK_VOL) << 1) + 1);
-      const uint_t toneBitA = (Mixer & DataChunk::REG_MASK_TONEA) ? HighLevel : GenA.GetLevel();
-      const uint_t noiseBitA = (Mixer & DataChunk::REG_MASK_NOISEA) ? HighLevel : noiseBit;
+      const bool maskedNoiseA = triggeredNoise || 0 != (Mixer & DataChunk::REG_MASK_NOISEA);
       const uint_t outA = (VolA & DataChunk::REG_MASK_ENV) ? Envelope : levelA;
-      const uint_t toneBitB = (Mixer & DataChunk::REG_MASK_TONEB) ? HighLevel : GenB.GetLevel();
-      const uint_t noiseBitB = (Mixer & DataChunk::REG_MASK_NOISEB) ? HighLevel : noiseBit;
+      const bool maskedNoiseB = triggeredNoise || 0 != (Mixer & DataChunk::REG_MASK_NOISEB);
       const uint_t outB = (VolB & DataChunk::REG_MASK_ENV) ? Envelope : levelB;
-      const uint_t toneBitC = (Mixer & DataChunk::REG_MASK_TONEC) ? HighLevel : GenC.GetLevel();
-      const uint_t noiseBitC = (Mixer & DataChunk::REG_MASK_NOISEC) ? HighLevel : noiseBit;
+      const bool maskedNoiseC = triggeredNoise || 0 != (Mixer & DataChunk::REG_MASK_NOISEC);
       const uint_t outC = (VolC & DataChunk::REG_MASK_ENV) ? Envelope : levelC;
 
       const VolumeTable& table = IsYM ? YMVolumeTab : AYVolumeTab;
       assert(outA < 32 && outB < 32 && outC < 32);
-      result[0] = table[toneBitA & noiseBitA & outA];
-      result[1] = table[toneBitB & noiseBitB & outB];
-      result[2] = table[toneBitC & noiseBitC & outC];
+      result[0] = maskedNoiseA && GenA.GetLevel() ? table[outA] : 0;
+      result[1] = maskedNoiseB && GenB.GetLevel() ? table[outB] : 0;
+      result[2] = maskedNoiseC && GenC.GetLevel() ? table[outC] : 0;
     }
 
 
@@ -457,6 +487,7 @@ namespace
     uint_t Envelope;
     int_t Decay;
     uint32_t Noise;
+    bool ChangedFromLastTick;
     //parameters
     bool IsYM;
   };
@@ -484,7 +515,7 @@ namespace
       {
         Delegate.GetLevels(Levels);
       }
-      std::transform(Levels.begin(), Levels.end(), Accumulators.begin(), Accumulators.begin(), std::plus<uint_t>());
+      std::transform(Accumulators.begin(), Accumulators.end(), Levels.begin(), Accumulators.begin(), std::plus<uint_t>());
       ++AccumulatedSamples;
       return true;
     }
@@ -648,6 +679,7 @@ namespace
         RelayoutRenderer relayoutRender(targetRender, layout);
         RenderChunks(relayoutRender);
       }
+      BufferedData.clear();
     }
 
     virtual void GetState(ChannelsState& state) const
@@ -672,7 +704,6 @@ namespace
     void RenderChunks(Renderer& render)
     {
       std::for_each(BufferedData.begin(), BufferedData.end(), boost::bind(&ChipImpl::RenderSingleChunk, this, _1, boost::ref(render)));
-      BufferedData.clear();
     }
 
     void RenderSingleChunk(const DataChunk& src, Renderer& render)
