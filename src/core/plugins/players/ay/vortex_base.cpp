@@ -525,13 +525,14 @@ namespace ZXTune
         return static_cast<uint_t>(version);
       }
 
-      Renderer::Ptr CreateRenderer(AYM::TrackParameters::Ptr params, Information::Ptr info, Track::ModuleData::Ptr data,
+      Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, Track::ModuleData::Ptr data,
          uint_t version, Devices::AYM::Chip::Ptr device)
       {
         const AYM::DataRenderer::Ptr renderer = boost::make_shared<VortexDataRenderer>(data, version);
         const StateIterator::Ptr iterator = CreateTrackStateIterator(info, data);
-        const AYM::DataIterator::Ptr dataIter = AYM::CreateDataIterator(params, iterator, renderer);
-        return AYM::CreateRenderer(dataIter, device);
+        const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
+        const AYM::DataIterator::Ptr dataIter = AYM::CreateDataIterator(trackParams, iterator, renderer);
+        return AYM::CreateRenderer(params, dataIter, device);
       }
 
       AYM::Chiptune::Ptr CreateChiptune(Track::ModuleData::Ptr data, ModuleProperties::Ptr properties, uint_t channels)

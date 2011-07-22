@@ -249,8 +249,8 @@ namespace
   class CPUParameters : public Devices::Z80::ChipParameters
   {
   public:
-    explicit CPUParameters(Parameters::Accessor::Ptr params)
-      : Params(Sound::RenderParameters::Create(params))
+    explicit CPUParameters(Sound::RenderParameters::Ptr params)
+      : Params(params)
     {
     }
 
@@ -267,8 +267,9 @@ namespace
   class AYRenderer : public Renderer
   {
   public:
-    AYRenderer(StateIterator::Ptr iterator, Devices::Z80::Chip::Ptr cpu, AYDataChannel::Ptr device)
-      : Iterator(iterator)
+    AYRenderer(Sound::RenderParameters::Ptr params, StateIterator::Ptr iterator, Devices::Z80::Chip::Ptr cpu, AYDataChannel::Ptr device)
+      : Params(params)
+      , Iterator(iterator)
       , CPU(cpu)
       , Device(device)
       , State(Iterator->GetStateObserver())
@@ -285,11 +286,11 @@ namespace
       return Device->GetAnalyzer();
     }
 
-    virtual bool RenderFrame(const Sound::RenderParameters& params)
+    virtual bool RenderFrame()
     {
       CPU->NextFrame();
-      Device->RenderFrame(params);
-      return Iterator->NextFrame(params.Looped());
+      Device->RenderFrame(*Params);
+      return Iterator->NextFrame(Params->Looped());
     }
 
     virtual void Reset()
@@ -303,6 +304,7 @@ namespace
     {
     }
   private:
+    const Sound::RenderParameters::Ptr Params;
     const StateIterator::Ptr Iterator;
     const Devices::Z80::Chip::Ptr CPU;
     const AYDataChannel::Ptr Device;
@@ -516,11 +518,12 @@ namespace
       const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(target);
       const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
       const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateChip(chipParams, receiver);
-      const Devices::Z80::ChipParameters::Ptr cpuParams = boost::make_shared<CPUParameters>(params);
+      const Sound::RenderParameters::Ptr sndParams = Sound::RenderParameters::Create(params);
+      const Devices::Z80::ChipParameters::Ptr cpuParams = boost::make_shared<CPUParameters>(sndParams);
       const AYDataChannel::Ptr ayChannel = boost::make_shared<AYDataChannel>(cpuParams, chip);
       const Devices::Z80::ChipIO::Ptr cpuPorts = boost::make_shared<Ports>(ayChannel);
       const Devices::Z80::Chip::Ptr cpu = Data->CreateCPU(cpuParams, cpuPorts);
-      return boost::make_shared<AYRenderer>(iterator, cpu, ayChannel);
+      return boost::make_shared<AYRenderer>(sndParams, iterator, cpu, ayChannel);
     }
 
     virtual Error Convert(const Conversion::Parameter& spec, Dump& dst) const

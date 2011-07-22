@@ -59,10 +59,10 @@ namespace
       return Delegate->GetAnalyzer();
     }
 
-    virtual bool RenderFrame(const Sound::RenderParameters& params)
+    virtual bool RenderFrame()
     {
       const boost::mutex::scoped_lock lock(Mutex);
-      return Delegate->RenderFrame(params);
+      return Delegate->RenderFrame();
     }
 
     virtual void Reset()
@@ -143,9 +143,8 @@ namespace
 
   class Renderer
   {
-    Renderer(RenderParameters::Ptr renderParams, Module::Renderer::Ptr renderer, Mixer::Ptr mixer)
-      : RenderingParameters(renderParams)
-      , Source(renderer)
+    Renderer(Module::Renderer::Ptr renderer, Mixer::Ptr mixer)
+      : Source(renderer)
       , State(Source->GetTrackState())
       , Mix(mixer)
     {
@@ -155,17 +154,16 @@ namespace
   public:
     typedef boost::shared_ptr<Renderer> Ptr;
 
-    static Ptr Create(const CreateBackendParameters& params, Module::Renderer::Ptr renderer, Mixer::Ptr mixer)
+    static Ptr Create(Module::Renderer::Ptr renderer, Mixer::Ptr mixer)
     {
-      const RenderParameters::Ptr renderParams = RenderParameters::Create(params.GetParameters());
-      return Renderer::Ptr(new Renderer(renderParams, renderer, mixer));
+      return Renderer::Ptr(new Renderer(renderer, mixer));
     }
 
     bool ApplyFrame()
     {
-      Buffer.reserve(RenderingParameters->SamplesPerFrame());
       Buffer.clear();
-      const bool res = Source->RenderFrame(*RenderingParameters);
+      Buffer.reserve(1000);//seems to be enough in most cases
+      const bool res = Source->RenderFrame();
       if (!res)
       {
         Mix->Flush();
@@ -183,7 +181,6 @@ namespace
       return *State;
     }
   private:
-    const RenderParameters::Ptr RenderingParameters;
     const Module::Renderer::Ptr Source;
     const Module::TrackState::Ptr State;
     const Mixer::Ptr Mix;
@@ -300,7 +297,7 @@ namespace
       , Mix(CreateMixer(*params))
       , Holder(params->GetModule())
       , Renderer(new SafeRendererWrapper(Holder->CreateRenderer(Holder->GetModuleProperties(), Mix)))
-      , Job(Async::Job::Create(Async::Job::Worker::Ptr(new AsyncWrapper(Holder, Worker, *Signaller, Renderer::Create(*params, Renderer, Mix)))))
+      , Job(Async::Job::Create(Async::Job::Worker::Ptr(new AsyncWrapper(Holder, Worker, *Signaller, Renderer::Create(Renderer, Mix)))))
     {
     }
 

@@ -225,7 +225,7 @@ namespace
   #define SELF_TEST
   #endif
 
-  Renderer::Ptr CreatePDTRenderer(Information::Ptr info, PDTTrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device);
+  Renderer::Ptr CreatePDTRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, PDTTrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device);
 
   class PDTHolder : public Holder
   {
@@ -387,7 +387,7 @@ namespace
           chip->SetSample(idx, smp.Data, smp.Loop);
         }
       }
-      return CreatePDTRenderer(Info, Data, chip);
+      return CreatePDTRenderer(params, Info, Data, chip);
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -440,8 +440,9 @@ namespace
       }
     };
   public:
-    PDTRenderer(Information::Ptr info, PDTTrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
+    PDTRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, PDTTrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
       : Data(data)
+      , Params(Sound::RenderParameters::Create(params))
       , Device(device)
       , Iterator(CreateTrackStateIterator(info, Data))
       , LastRenderTick(0)
@@ -468,14 +469,14 @@ namespace
       return DAC::CreateAnalyzer(Device);
     }
 
-    virtual bool RenderFrame(const Sound::RenderParameters& params)
+    virtual bool RenderFrame()
     {
       Devices::DAC::DataChunk chunk;
       RenderData(chunk);
 
-      const bool res = Iterator->NextFrame(params.Looped());
+      const bool res = Iterator->NextFrame(Params->Looped());
 
-      LastRenderTick += params.ClocksPerFrame();
+      LastRenderTick += Params->ClocksPerFrame();
       chunk.Tick = LastRenderTick;
       Device->RenderData(chunk);
       return res;
@@ -567,15 +568,16 @@ namespace
   private:
     const Information::Ptr Info;
     const PDTTrack::ModuleData::Ptr Data;
+    const Sound::RenderParameters::Ptr Params;
     const Devices::DAC::Chip::Ptr Device;
     const StateIterator::Ptr Iterator;
     boost::array<OrnamentState, CHANNELS_COUNT> Ornaments;
     uint64_t LastRenderTick;
   };
 
-  Renderer::Ptr CreatePDTRenderer(Information::Ptr info, PDTTrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
+  Renderer::Ptr CreatePDTRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, PDTTrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
   {
-    return Renderer::Ptr(new PDTRenderer(info, data, device));
+    return Renderer::Ptr(new PDTRenderer(params, info, data, device));
   }
 
   //////////////////////////////////////////////////////////////////////////

@@ -193,12 +193,12 @@ namespace
       return CreateTSAnalyzer(Renderer1->GetAnalyzer(), Renderer2->GetAnalyzer());
     }
 
-    virtual bool RenderFrame(const Sound::RenderParameters& params)
+    virtual bool RenderFrame()
     {
       Mixer->SetStream(0);
-      const bool res1 = Renderer1->RenderFrame(params);
+      const bool res1 = Renderer1->RenderFrame();
       Mixer->SetStream(1);
-      const bool res2 = Renderer2->RenderFrame(params);
+      const bool res2 = Renderer2->RenderFrame();
       return res1 && res2;
     }
 

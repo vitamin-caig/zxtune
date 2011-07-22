@@ -177,7 +177,7 @@ namespace
   #define SELF_TEST
   #endif
 
-  Renderer::Ptr CreateCHIRenderer(Information::Ptr info, CHITrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device);
+  Renderer::Ptr CreateCHIRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, CHITrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device);
 
   class CHIHolder : public Holder
   {
@@ -332,7 +332,7 @@ namespace
           chip->SetSample(idx, smp.Data, smp.Loop);
         }
       }
-      return CreateCHIRenderer(Info, Data, chip);
+      return CreateCHIRenderer(params, Info, Data, chip);
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
@@ -371,8 +371,9 @@ namespace
       }
     };
   public:
-    CHIRenderer(Information::Ptr info, CHITrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
+    CHIRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, CHITrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
       : Data(data)
+      , Params(Sound::RenderParameters::Create(params))
       , Device(device)
       , Iterator(CreateTrackStateIterator(info, Data))
       , LastRenderTick(0)
@@ -399,14 +400,14 @@ namespace
       return DAC::CreateAnalyzer(Device);
     }
 
-    virtual bool RenderFrame(const Sound::RenderParameters& params)
+    virtual bool RenderFrame()
     {
       Devices::DAC::DataChunk chunk;
       RenderData(chunk);
 
-      const bool res = Iterator->NextFrame(params.Looped());
+      const bool res = Iterator->NextFrame(Params->Looped());
 
-      LastRenderTick += params.ClocksPerFrame();
+      LastRenderTick += Params->ClocksPerFrame();
       chunk.Tick = LastRenderTick;
       Device->RenderData(chunk);
       return res;
@@ -503,15 +504,16 @@ namespace
     }
   private:
     const CHITrack::ModuleData::Ptr Data;
+    const Sound::RenderParameters::Ptr Params;
     const Devices::DAC::Chip::Ptr Device;
     const StateIterator::Ptr Iterator;
     boost::array<GlissData, CHANNELS_COUNT> Gliss;
     uint64_t LastRenderTick;
   };
 
-  Renderer::Ptr CreateCHIRenderer(Information::Ptr info, CHITrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
+  Renderer::Ptr CreateCHIRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, CHITrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
   {
-    return Renderer::Ptr(new CHIRenderer(info, data, device));
+    return Renderer::Ptr(new CHIRenderer(params, info, data, device));
   }
 
   bool CheckCHI(const IO::DataContainer& data)

@@ -136,8 +136,9 @@ namespace
   class AYMRenderer : public Renderer
   {
   public:
-    AYMRenderer(AYM::DataIterator::Ptr iterator, Devices::AYM::Chip::Ptr device)
-      : Iterator(iterator)
+    AYMRenderer(Parameters::Accessor::Ptr params, AYM::DataIterator::Ptr iterator, Devices::AYM::Chip::Ptr device)
+      : Params(Sound::RenderParameters::Create(params))
+      , Iterator(iterator)
       , Device(device)
       , LastRenderTick(0)
     {
@@ -158,11 +159,11 @@ namespace
       return AYM::CreateAnalyzer(Device);
     }
 
-    virtual bool RenderFrame(const Sound::RenderParameters& params)
+    virtual bool RenderFrame()
     {
       Devices::AYM::DataChunk chunk;
-      const bool res = Iterator->NextFrame(params.Looped());
-      LastRenderTick += params.ClocksPerFrame();
+      const bool res = Iterator->NextFrame(Params->Looped());
+      LastRenderTick += Params->ClocksPerFrame();
 
       Iterator->GetData(chunk);
       chunk.Tick = LastRenderTick;
@@ -183,6 +184,7 @@ namespace
       SeekIterator(*Iterator, frameNum);
     }
   private:
+    const Sound::RenderParameters::Ptr Params;
     const AYM::DataIterator::Ptr Iterator;
     const Devices::AYM::Chip::Ptr Device;
     uint64_t LastRenderTick;
@@ -219,7 +221,7 @@ namespace
       const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateChip(chipParams, receiver);
       const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
       const AYM::DataIterator::Ptr iterator = Tune->CreateDataIterator(trackParams);
-      return AYM::CreateRenderer(iterator, chip);
+      return AYM::CreateRenderer(params, iterator, chip);
     }
 
     virtual Error Convert(const Conversion::Parameter& spec, Dump& dst) const
@@ -323,9 +325,9 @@ namespace ZXTune
         return boost::make_shared<AYMDataIterator>(trackParams, iterator, renderer);
       }
 
-      Renderer::Ptr CreateRenderer(AYM::DataIterator::Ptr iterator, Devices::AYM::Chip::Ptr device)
+      Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, AYM::DataIterator::Ptr iterator, Devices::AYM::Chip::Ptr device)
       {
-        return boost::make_shared<AYMRenderer>(iterator, device);
+        return boost::make_shared<AYMRenderer>(params, iterator, device);
       }
 
       Devices::AYM::Receiver::Ptr CreateReceiver(Sound::MultichannelReceiver::Ptr target)

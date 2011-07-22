@@ -47,9 +47,8 @@ namespace ZXTune
       virtual Analyzer::Ptr GetAnalyzer() const = 0;
 
       //! @brief Rendering single frame and modifying internal state
-      //! @param params %Sound rendering-related parameters
       //! @return true if next frame can be rendered
-      virtual bool RenderFrame(const Sound::RenderParameters& params) = 0;
+      virtual bool RenderFrame() = 0;
 
       //! @brief Performing reset to initial state
       virtual void Reset() = 0;
