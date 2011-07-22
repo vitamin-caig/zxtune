@@ -299,7 +299,7 @@ namespace
       , Signaller(Async::Signals::Dispatcher::Create())
       , Mix(CreateMixer(*params))
       , Holder(params->GetModule())
-      , Renderer(new SafeRendererWrapper(Holder->CreateRenderer(Mix)))
+      , Renderer(new SafeRendererWrapper(Holder->CreateRenderer(Holder->GetModuleProperties(), Mix)))
       , Job(Async::Job::Create(Async::Job::Worker::Ptr(new AsyncWrapper(Holder, Worker, *Signaller, Renderer::Create(*params, Renderer, Mix)))))
     {
     }

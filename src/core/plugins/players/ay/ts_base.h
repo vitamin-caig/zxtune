@@ -38,7 +38,7 @@ namespace ZXTune
     Analyzer::Ptr CreateTSAnalyzer(Analyzer::Ptr first, Analyzer::Ptr second);
     TSMixer::Ptr CreateTSMixer(Sound::MultichannelReceiver::Ptr delegate);
     AYMTSMixer::Ptr CreateTSMixer(Devices::AYM::Receiver::Ptr delegate);
-    Renderer::Ptr CreateTSRenderer(Holder::Ptr first, Holder::Ptr second, Sound::MultichannelReceiver::Ptr target);
+    Renderer::Ptr CreateTSRenderer(Parameters::Accessor::Ptr params, Holder::Ptr first, Holder::Ptr second, Sound::MultichannelReceiver::Ptr target);
     Renderer::Ptr CreateTSRenderer(Renderer::Ptr first, Renderer::Ptr second, AYMTSMixer::Ptr mixer);
   }
 }

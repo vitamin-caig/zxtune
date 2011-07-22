@@ -317,11 +317,9 @@ namespace
       return Parameters::CreateMergedAccessor(Params, Properties);
     }
 
-    virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
+    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::MultichannelReceiver::Ptr target) const
     {
       const uint_t totalSamples = static_cast<uint_t>(Data->Samples.size());
-
-      const Parameters::Accessor::Ptr params = GetModuleProperties();
 
       const Devices::DAC::Receiver::Ptr receiver = DAC::CreateReceiver(target);
       const Devices::DAC::ChipParameters::Ptr chipParams = DAC::CreateChipParameters(params);

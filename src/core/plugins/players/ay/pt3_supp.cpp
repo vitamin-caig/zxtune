@@ -640,10 +640,8 @@ namespace
       return Delegate->GetModuleProperties();
     }
 
-    virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
+    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::MultichannelReceiver::Ptr target) const
     {
-      const Parameters::Accessor::Ptr params = GetModuleProperties();
-
       const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(target);
       const AYMTSMixer::Ptr mixer = CreateTSMixer(receiver);
       const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);

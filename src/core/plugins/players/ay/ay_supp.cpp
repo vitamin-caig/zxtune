@@ -510,10 +510,8 @@ namespace
       return Parameters::CreateMergedAccessor(Params, Properties);
     }
 
-    virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
+    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::MultichannelReceiver::Ptr target) const
     {
-      const Parameters::Accessor::Ptr params = GetModuleProperties();
-
       const StateIterator::Ptr iterator = CreateStreamStateIterator(Info);
       const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(target);
       const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);

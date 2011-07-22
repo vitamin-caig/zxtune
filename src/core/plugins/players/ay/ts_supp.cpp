@@ -288,9 +288,9 @@ namespace
       return Parameters::CreateMergedAccessor(tsProps, mixProps);
     }
 
-    virtual Renderer::Ptr CreateRenderer(Sound::MultichannelReceiver::Ptr target) const
+    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::MultichannelReceiver::Ptr target) const
     {
-      return CreateTSRenderer(Holder1, Holder2, target);
+      return CreateTSRenderer(params, Holder1, Holder2, target);
     }
 
     virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const

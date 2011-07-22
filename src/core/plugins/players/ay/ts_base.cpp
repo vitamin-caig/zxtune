@@ -246,11 +246,11 @@ namespace ZXTune
       return boost::make_shared<Impl>(delegate);
     }
 
-    Renderer::Ptr CreateTSRenderer(Holder::Ptr first, Holder::Ptr second, Sound::MultichannelReceiver::Ptr target)
+    Renderer::Ptr CreateTSRenderer(Parameters::Accessor::Ptr params, Holder::Ptr first, Holder::Ptr second, Sound::MultichannelReceiver::Ptr target)
     {
       const TSMixer::Ptr mixer = CreateTSMixer(target);
       typedef TSRenderer<std::vector<Sound::Sample> > Impl;
-      return boost::make_shared<Impl>(first->CreateRenderer(mixer), second->CreateRenderer(mixer), mixer);
+      return boost::make_shared<Impl>(first->CreateRenderer(params, mixer), second->CreateRenderer(params, mixer), mixer);
     }
 
     Renderer::Ptr CreateTSRenderer(Renderer::Ptr first, Renderer::Ptr second, AYMTSMixer::Ptr mixer)
