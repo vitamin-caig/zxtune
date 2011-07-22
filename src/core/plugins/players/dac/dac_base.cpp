@@ -26,6 +26,27 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Module;
 
+  class TrackParametersImpl : public DAC::TrackParameters
+  {
+  public:
+    explicit TrackParametersImpl(Parameters::Accessor::Ptr params)
+      : Delegate(Sound::RenderParameters::Create(params))
+    {
+    }
+
+    virtual bool Looped() const
+    {
+      return Delegate->Looped();
+    }
+
+    virtual uint_t FrameDurationMicrosec() const
+    {
+      return Delegate->FrameDurationMicrosec();
+    }
+  private:
+    const Sound::RenderParameters::Ptr Delegate;
+  };
+
   class DACAnalyzer : public Analyzer
   {
   public:
@@ -87,6 +108,11 @@ namespace ZXTune
   {
     namespace DAC
     {
+      TrackParameters::Ptr TrackParameters::Create(Parameters::Accessor::Ptr params)
+      {
+        return boost::make_shared<TrackParametersImpl>(params);
+      }
+
       Devices::DAC::Receiver::Ptr CreateReceiver(Sound::MultichannelReceiver::Ptr target)
       {
         //DAC receiver now is equal to Sound::MultichannelReceiver

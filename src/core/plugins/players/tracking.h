@@ -21,7 +21,6 @@ Author:
 //library includes
 #include <core/module_attrs.h>
 #include <core/module_types.h>
-#include <sound/render_params.h>// for LoopMode
 //std includes
 #include <vector>
 //boost includes

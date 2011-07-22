@@ -373,7 +373,7 @@ namespace
   public:
     CHIRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, CHITrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
       : Data(data)
-      , Params(Sound::RenderParameters::Create(params))
+      , Params(DAC::TrackParameters::Create(params))
       , Device(device)
       , Iterator(CreateTrackStateIterator(info, Data))
       , LastRenderTime(0)
@@ -504,7 +504,7 @@ namespace
     }
   private:
     const CHITrack::ModuleData::Ptr Data;
-    const Sound::RenderParameters::Ptr Params;
+    const DAC::TrackParameters::Ptr Params;
     const Devices::DAC::Chip::Ptr Device;
     const StateIterator::Ptr Iterator;
     boost::array<GlissData, CHANNELS_COUNT> Gliss;

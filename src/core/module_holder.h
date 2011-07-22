@@ -14,6 +14,10 @@
 //library includes
 #include "plugins/players/renderer.h"
 #include <core/plugin.h>
+#include <sound/receiver.h>
+
+//forward declaration
+class Error;
 
 namespace ZXTune
 {

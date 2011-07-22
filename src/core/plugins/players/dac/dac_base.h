@@ -24,6 +24,18 @@ namespace ZXTune
   {
     namespace DAC
     {
+      class TrackParameters
+      {
+      public:
+        typedef boost::shared_ptr<const TrackParameters> Ptr;
+        virtual ~TrackParameters() {}
+
+        virtual bool Looped() const = 0;
+        virtual uint_t FrameDurationMicrosec() const = 0;
+
+        static Ptr Create(Parameters::Accessor::Ptr params);
+      };
+
       Devices::DAC::Receiver::Ptr CreateReceiver(Sound::MultichannelReceiver::Ptr target);
       Analyzer::Ptr CreateAnalyzer(Devices::DAC::Chip::Ptr device);
       Devices::DAC::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params);

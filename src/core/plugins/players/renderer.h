@@ -14,21 +14,12 @@ Author:
 #define __CORE_PLUGINS_PLAYERS_RENDERER_H_DEFINED__
 
 //library includes
-#include <core/module_types.h> //for Module::Analyze::ChannelsState
-#include <sound/receiver.h>    //for Sound::MultichannelReceiver
+#include <core/module_types.h>
 //boost includes
 #include <boost/weak_ptr.hpp>
 
-//forward declarations
-class Error;
-
 namespace ZXTune
 {
-  namespace Sound
-  {
-    class RenderParameters;
-  }
-
   namespace Module
   {
     //! @brief %Module player interface
