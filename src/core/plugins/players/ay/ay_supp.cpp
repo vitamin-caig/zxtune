@@ -23,6 +23,7 @@ Author:
 #include <logging.h>
 //library includes
 #include <core/convert_parameters.h>
+#include <core/core_parameters.h>
 #include <core/error_codes.h>
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
@@ -254,14 +255,24 @@ namespace
       : Params(params)
     {
     }
+    
+    virtual uint_t IntTicks() const
+    {
+      using namespace Parameters::ZXTune::Core::Z80;
+      Parameters::IntType intTicks = INT_TICKS_DEFAULT;
+      Params->FindIntValue(INT_TICKS, intTicks);
+      return static_cast<uint_t>(intTicks);
+    }
 
     virtual uint_t TicksPerFrame() const
     {
+      using namespace Parameters::ZXTune::Core;
       using namespace Parameters::ZXTune::Sound;
+      Parameters::IntType cpuClock = Z80::CLOCKRATE_DEFAULT;
+      Params->FindIntValue(Z80::CLOCKRATE, cpuClock);
       Parameters::IntType frameDuration = FRAMEDURATION_DEFAULT;
       Params->FindIntValue(FRAMEDURATION, frameDuration);
-      const uint64_t clock = 3500000;
-      return static_cast<uint_t>(clock * frameDuration / 1000000); 
+      return static_cast<uint_t>(cpuClock * frameDuration / 1000000); 
     }
   private:
     const Parameters::Accessor::Ptr Params;

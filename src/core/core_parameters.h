@@ -68,7 +68,7 @@ namespace Parameters
         };
       }
 
-      //! @brief DAC-realated parameters namespace
+      //! @brief DAC-related parameters namespace
       namespace DAC
       {
         //! @brief Use interpolation
@@ -77,6 +77,34 @@ namespace Parameters
         {
           'z','x','t','u','n','e','.','c','o','r','e','.','d','a','c','.','i','n','t','e','r','p','o','l','a','t','i','o','n','\0'
         };
+      }
+
+      //! @brief Z80-related parameters namespace
+      namespace Z80
+      {
+        //@{
+        //! @name CPU int duration in ticks
+
+        //! Default value
+        const IntType INT_TICKS_DEFAULT = 24;
+        //! Parameter name
+        const Char INT_TICKS[] =
+        {
+          'z','x','t','u','n','e','.','c','o','r','e','.','z','8','0','.','i','n','t','_','t','i','c','k','s','\0'
+        };
+        //@}
+
+          //@{
+        //! @name CPU clockrate in Hz
+
+        //! Default value- 3.5MHz
+        const IntType CLOCKRATE_DEFAULT = 3500000;
+        //! Parameter name
+        const Char CLOCKRATE[] =
+        {
+          'z','x','t','u','n','e','.','c','o','r','e','.','z','8','0','.','c','l','o','c','k','r','a','t','e','\0'
+        };
+        //@}
       }
     }
   }

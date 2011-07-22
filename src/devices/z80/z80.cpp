@@ -45,13 +45,8 @@ namespace
 
     virtual void NextFrame()
     {
-      const uint64_t ticksPerFrame = Params->TicksPerFrame();
-      AdviceTicks(z80ex_int(Context.get()));
-      while (IntTick < ticksPerFrame)
-      {
-        AdviceTicks(z80ex_step(Context.get()));
-      }
-      IntTick -= ticksPerFrame;
+      ProcessIntSignal();
+      ProcessRestFrame();
     }
 
     virtual void SetState(const Registers& state)
@@ -133,6 +128,30 @@ namespace
       state.swap(tmp);
     }
   private:
+    void ProcessIntSignal()
+    {
+      const uint64_t intTicks = Params->IntTicks();
+      while (IntTick < intTicks)
+      {
+        if (uint_t tick = z80ex_int(Context.get()))
+        {
+          AdviceTicks(tick);
+          break;
+        }
+        AdviceTicks(z80ex_step(Context.get()));
+      }
+    }
+
+    void ProcessRestFrame()
+    {
+      const uint64_t ticksPerFrame = Params->TicksPerFrame();
+      while (IntTick < ticksPerFrame)
+      {
+        AdviceTicks(z80ex_step(Context.get()));
+      }
+      IntTick -= ticksPerFrame;
+    }
+
     void AdviceTicks(uint_t delta)
     {
       IntTick += delta;
