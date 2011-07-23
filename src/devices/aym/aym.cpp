@@ -80,8 +80,9 @@ namespace
     Generator()
       : Counter()
       , Level()
-      , DutyCycle(NO_DUTYCYCLE)
       , Masked(true)
+      , DutyCycle(NO_DUTYCYCLE)
+      , HalfPeriod(), FullPeriod()
     {
     }
 
@@ -90,6 +91,13 @@ namespace
       Counter = 0;
       Level = false;
       Masked = true;
+      DutyCycle = NO_DUTYCYCLE;
+      SetPeriod(0);
+    }
+
+    void ResetCounter()
+    {
+      Counter = 0;
     }
 
     /*
@@ -155,10 +163,126 @@ namespace
   private:
     uint_t Counter;
     bool Level;
+    bool Masked;
     uint_t DutyCycle;
     uint_t HalfPeriod;
     uint_t FullPeriod;
-    bool Masked;
+  };
+
+  class NoiseGenerator : public Generator
+  {
+  public:
+    NoiseGenerator()
+      : Seed()
+    {
+    }
+
+    void Reset()
+    {
+      Seed = 0;
+      Generator::Reset();
+    }
+
+    bool Tick()
+    {
+      if (Generator::Tick())
+      {
+        Seed = (Seed * 2 + 1) ^ (((Seed >> 16) ^ (Seed >> 13)) & 1);
+        return true;
+      }
+      return false;
+    }
+
+    bool GetLevel() const
+    {
+      return 0 != (Seed & 0x10000);
+    }
+  private:
+    uint_t Seed;
+  };
+
+  class EnvelopeGenerator : public Generator
+  {
+  public:
+    EnvelopeGenerator()
+      : Type()
+      , Level()
+      , Decay()
+    {
+    }
+
+    void Reset()
+    {
+      Type = 0;
+      Level = 0;
+      Decay = 0;
+      Generator::Reset();
+    }
+
+    bool Tick()
+    {
+      if (!Generator::Tick())
+      {
+        return false;
+      }
+      Level += Decay;
+      if (0 == (Level & ~31u))
+      {
+        return true;
+      }
+      const uint_t envTypeMask = 1 << Type;
+      if (envTypeMask & ((1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) |
+                         (1 << 5) | (1 << 6) | (1 << 7) | (1 << 9) | (1 << 15)))
+      {
+        Level = Decay = 0;
+      }
+      else
+      {
+        if (envTypeMask & ((1 << 8) | (1 << 12)))
+        {
+          Level &= 31;
+        }
+        else
+        {
+          if (envTypeMask & ((1 << 10) | (1 << 14)))
+          {
+            Decay = -Decay;
+            Level += Decay;
+          }
+          else
+          {
+            Level = 31;
+            Decay = 0; //11, 13
+          }
+        }
+      }
+      return true;
+    }
+
+    void SetType(uint_t type)
+    {
+      Generator::ResetCounter();
+      Type = type;
+      if (Type & 4) //down-up envelopes
+      {
+        Level = 0;
+        Decay = 1;
+      }
+      else //up-down envelopes
+      {
+        Level = 31;
+        Decay = -1;
+      }
+    }
+
+    uint_t GetValue() const
+    {
+      return Level;
+    }
+  private:
+    uint_t Type;
+    uint_t Level;
+    int_t Decay;
   };
 
   class Renderer
@@ -177,8 +301,6 @@ namespace
     AYMRenderer()
       : VolA(State.Data[DataChunk::REG_VOLA]), VolB(State.Data[DataChunk::REG_VOLB]), VolC(State.Data[DataChunk::REG_VOLC])
       , Mixer(State.Data[DataChunk::REG_MIXER])
-      , EnvType(State.Data[DataChunk::REG_ENV])
-      , Envelope(), Decay(), Noise()
       , ChangedFromLastTick()
       , IsYM()
     {
@@ -204,18 +326,10 @@ namespace
       State = DataChunk();
       State.Data[DataChunk::REG_MIXER] = 0xff;
       GenA.Reset();
-      GenA.SetPeriod(0);
       GenB.Reset();
-      GenB.SetPeriod(0);
       GenC.Reset();
-      GenC.SetPeriod(0);
       GenN.Reset();
-      GenN.SetPeriod(0);
       GenE.Reset();
-      GenE.SetPeriod(0);
-      Envelope = 0;
-      Decay = 0;
-      Noise = 0;
       ChangedFromLastTick = false;
     }
 
@@ -242,17 +356,8 @@ namespace
         //update r13 
         if (DataChunk::REG_ENV == idx)
         {
-          GenE.Reset();
-          if (reg & 4) //down-up envelopes
-          {
-            Envelope = 0;
-            Decay = 1;
-          }
-          else //up-down envelopes
-          {
-            Envelope = 31;
-            Decay = -1;
-          }
+          GenE.SetType(reg);
+          ChangedFromLastTick = true;
         }
         State.Data[idx] = reg;
       }
@@ -302,63 +407,26 @@ namespace
       res |= GenA.Tick() && !GenA.IsMasked();
       res |= GenB.Tick() && !GenB.IsMasked();
       res |= GenC.Tick() && !GenC.IsMasked();
-
-      if (GenN.Tick())
-      {
-        Noise = (Noise * 2 + 1) ^ (((Noise >> 16) ^ (Noise >> 13)) & 1);
-        res |= !GenN.IsMasked();
-      }
-      if (GenE.Tick())
-      {
-        Envelope += Decay;
-        if (Envelope & ~31u)
-        {
-          const uint_t envTypeMask = 1 << EnvType;
-          if (envTypeMask & ((1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) |
-                             (1 << 5) | (1 << 6) | (1 << 7) | (1 << 9) | (1 << 15)))
-          {
-            Envelope = Decay = 0;
-          }
-          else
-          {
-            if (envTypeMask & ((1 << 8) | (1 << 12)))
-            {
-              Envelope &= 31;
-            }
-            else
-            {
-              if (envTypeMask & ((1 << 10) | (1 << 14)))
-              {
-                Decay = -Decay;
-                Envelope += Decay;
-              }
-              else
-              {
-                Envelope = 31;
-                Decay = 0; //11, 13
-              }
-            }
-          }
-        }
-        res |= !GenE.IsMasked();
-      }//envelope
+      res |= GenN.Tick() && !GenN.IsMasked();
+      res |= GenE.Tick() && !GenE.IsMasked();
       ChangedFromLastTick = false;
       return res;
     }
 
     virtual void GetLevels(MultiSample& result) const
     {
-      const bool triggeredNoise = 0 != (Noise & 0x10000);
+      const bool triggeredNoise = GenN.GetLevel();
+      const uint_t envelope = GenE.GetValue();
       //references to mixered bits. updated automatically
       const uint_t levelA = (((VolA & DataChunk::REG_MASK_VOL) << 1) + 1);
       const uint_t levelB = (((VolB & DataChunk::REG_MASK_VOL) << 1) + 1);
       const uint_t levelC = (((VolC & DataChunk::REG_MASK_VOL) << 1) + 1);
       const bool maskedNoiseA = triggeredNoise || 0 != (Mixer & DataChunk::REG_MASK_NOISEA);
-      const uint_t outA = (VolA & DataChunk::REG_MASK_ENV) ? Envelope : levelA;
+      const uint_t outA = (VolA & DataChunk::REG_MASK_ENV) ? envelope : levelA;
       const bool maskedNoiseB = triggeredNoise || 0 != (Mixer & DataChunk::REG_MASK_NOISEB);
-      const uint_t outB = (VolB & DataChunk::REG_MASK_ENV) ? Envelope : levelB;
+      const uint_t outB = (VolB & DataChunk::REG_MASK_ENV) ? envelope : levelB;
       const bool maskedNoiseC = triggeredNoise || 0 != (Mixer & DataChunk::REG_MASK_NOISEC);
-      const uint_t outC = (VolC & DataChunk::REG_MASK_ENV) ? Envelope : levelC;
+      const uint_t outC = (VolC & DataChunk::REG_MASK_ENV) ? envelope : levelC;
 
       const VolumeTable& table = IsYM ? YMVolumeTab : AYVolumeTab;
       assert(outA < 32 && outB < 32 && outC < 32);
@@ -366,7 +434,6 @@ namespace
       result[1] = maskedNoiseB && GenB.GetLevel() ? table[outB] : 0;
       result[2] = maskedNoiseC && GenC.GetLevel() ? table[outC] : 0;
     }
-
 
     virtual void GetState(uint64_t ticksPerSec, ChannelsState& state) const
     {
@@ -476,17 +543,13 @@ namespace
     uint8_t& VolB;
     uint8_t& VolC;
     uint8_t& Mixer;
-    uint8_t& EnvType;
     //generators
     Generator GenA;
     Generator GenB;
     Generator GenC;
-    Generator GenN;
-    Generator GenE;
+    NoiseGenerator GenN;
+    EnvelopeGenerator GenE;
     //state
-    uint_t Envelope;
-    int_t Decay;
-    uint32_t Noise;
     bool ChangedFromLastTick;
     //parameters
     bool IsYM;
