@@ -47,11 +47,13 @@ DEFINITIONS = $(defines) $($(platform)_definitions) __STDC_CONSTANT_MACROS
 INCLUDES = $(sort $(include_dirs) $($(platform)_include_dirs))
 
 #setup flags
-CXXFLAGS = -g3 $(CXX_PLATFORM_FLAGS) $(CXX_MODE_FLAGS) $(cxx_flags) \
+CCFLAGS = -g3 $(CXX_PLATFORM_FLAGS) $(CXX_MODE_FLAGS) $(cxx_flags) \
 	$(addprefix -D,$(DEFINITIONS)) \
 	-funsigned-char -fno-strict-aliasing \
-	-W -Wall -Wextra -ansi -pipe \
+	-W -Wall -Wextra -pipe \
 	$(addprefix -I,$(INCLUDES))
+
+CXXFLAGS = $(CCFLAGS) -ansi
 
 ARFLAGS := cru
 LDFLAGS = $(LD_PLATFORM_FLAGS) $(LD_MODE_FLAGS) $(ld_flags)
@@ -59,7 +61,7 @@ LDFLAGS = $(LD_PLATFORM_FLAGS) $(LD_MODE_FLAGS) $(ld_flags)
 #specify endpoint commands
 build_obj_cmd_nodeps = $(CXX) $(CXXFLAGS) -c $1 -o $2
 build_obj_cmd = $(build_obj_cmd_nodeps) -MMD
-build_obj_cmd_cc = $(CC) $(CXXFLAGS) -c $1 -o $2
+build_obj_cmd_cc = $(CC) $(CCFLAGS) -c $1 -o $2
 build_lib_cmd = $(AR) $(ARFLAGS) $2 $1
 link_cmd = $(LDD) $(LDFLAGS) -o $@ $(OBJECTS) $(RESOURCES) \
 	$(if $(libraries),-L$(libs_dir)\
