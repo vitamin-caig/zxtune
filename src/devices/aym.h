@@ -46,7 +46,9 @@ namespace Devices
         REG_TONEE_L,
         REG_TONEE_H,
         REG_ENV,
-
+        //Due to performance issues, lets AY emulate also beeper.
+        //Register is like a volume registers. If it's not zero, it overrides all channels output
+        REG_BEEPER,
         //limiter
         REG_LAST,
       };

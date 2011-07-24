@@ -243,6 +243,12 @@ namespace
       {
         AyData->SetValue(tick, data);
       }
+      else if (0 == (port & 0x0001))
+      {
+        const uint_t value = 0 != (data & 16) ? 15 : 0;
+        AyData->SelectRegister(Devices::AYM::DataChunk::REG_BEEPER);
+        AyData->SetValue(tick, value);
+      }
     }
   private:
     const AYDataChannel::Ptr AyData;

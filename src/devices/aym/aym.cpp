@@ -31,7 +31,7 @@ namespace
   {
     // set of registers which required input data masking (4 or 5 lsb)
     REGS_4BIT_SET = (1 << DataChunk::REG_TONEA_H) | (1 << DataChunk::REG_TONEB_H) |
-                    (1 << DataChunk::REG_TONEC_H) | (1 << DataChunk::REG_ENV),
+                    (1 << DataChunk::REG_TONEC_H) | (1 << DataChunk::REG_ENV) | (1 << DataChunk::REG_BEEPER),
     REGS_5BIT_SET = (1 << DataChunk::REG_TONEN) | (1 << DataChunk::REG_VOLA) |
                     (1 << DataChunk::REG_VOLB) | (1 << DataChunk::REG_VOLC),
   };
@@ -300,7 +300,7 @@ namespace
   public:
     AYMRenderer()
       : VolA(State.Data[DataChunk::REG_VOLA]), VolB(State.Data[DataChunk::REG_VOLB]), VolC(State.Data[DataChunk::REG_VOLC])
-      , Mixer(State.Data[DataChunk::REG_MIXER])
+      , Mixer(State.Data[DataChunk::REG_MIXER]), Beeper(State.Data[DataChunk::REG_BEEPER])
       , ChangedFromLastTick()
       , IsYM()
     {
@@ -353,12 +353,6 @@ namespace
         {
           reg &= 0x1f;
         }
-        //update r13 
-        if (DataChunk::REG_ENV == idx)
-        {
-          GenE.SetType(reg);
-          ChangedFromLastTick = true;
-        }
         State.Data[idx] = reg;
       }
       if (data.Mask & (1 << DataChunk::REG_MIXER))
@@ -394,9 +388,19 @@ namespace
       {
         GenE.SetPeriod(GetToneE());
       }
+      if (data.Mask & (1 << DataChunk::REG_ENV))
+      {
+        //update r13
+        GenE.SetType(GetEnvType());
+        ChangedFromLastTick = true;
+      }
       if (data.Mask & REGS_5BIT_SET)
       {
         GenE.SetMask(0 == ((VolA | VolB | VolC) & DataChunk::REG_MASK_ENV));
+        ChangedFromLastTick = true;
+      }
+      if (data.Mask & DataChunk::REG_BEEPER)
+      {
         ChangedFromLastTick = true;
       }
     }
@@ -415,6 +419,13 @@ namespace
 
     virtual void GetLevels(MultiSample& result) const
     {
+      const VolumeTable& table = IsYM ? YMVolumeTab : AYVolumeTab;
+      if (Beeper)
+      {
+        assert(Beeper < 16);
+        result[0] = result[1] = result[2] = table[(Beeper << 1) + 1];
+        return;
+      }
       const bool triggeredNoise = GenN.GetLevel();
       const uint_t envelope = GenE.GetValue();
       //references to mixered bits. updated automatically
@@ -428,7 +439,6 @@ namespace
       const bool maskedNoiseC = triggeredNoise || 0 != (Mixer & DataChunk::REG_MASK_NOISEC);
       const uint_t outC = (VolC & DataChunk::REG_MASK_ENV) ? envelope : levelC;
 
-      const VolumeTable& table = IsYM ? YMVolumeTab : AYVolumeTab;
       assert(outA < 32 && outB < 32 && outC < 32);
       result[0] = maskedNoiseA && GenA.GetLevel() ? table[outA] : 0;
       result[1] = maskedNoiseB && GenB.GetLevel() ? table[outB] : 0;
@@ -535,6 +545,11 @@ namespace
     {
       return 256 * State.Data[DataChunk::REG_TONEE_H] + State.Data[DataChunk::REG_TONEE_L];
     }
+
+    uint_t GetEnvType() const
+    {
+      return State.Data[DataChunk::REG_ENV];
+    }
   private:
     //registers state
     DataChunk State;
@@ -543,6 +558,7 @@ namespace
     uint8_t& VolB;
     uint8_t& VolC;
     uint8_t& Mixer;
+    uint8_t& Beeper;
     //generators
     Generator GenA;
     Generator GenB;
