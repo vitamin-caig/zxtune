@@ -39,19 +39,25 @@ namespace
       : Mask(mask)
       , Signals(0)
     {
+      Log::Debug(THIS_MODULE, "Created collector %1$#x", this);
     }
 
-    virtual bool WaitForSignals(uint_t& sigmask, uint_t timeoutMs)
+    virtual ~CollectorImpl()
     {
+      Log::Debug(THIS_MODULE, "Destroyed collector %1$#x", this);
+    }
+
+    virtual uint_t WaitForSignals(uint_t timeoutMs)
+    {
+      uint_t result = 0;
       boost::mutex::scoped_lock locker(Mutex);
       if (Event.timed_wait(locker, boost::posix_time::milliseconds(timeoutMs)))
       {
         assert(Signals);
-        sigmask = Signals;
-        Signals = 0;
-        return true;
+        Log::Debug(THIS_MODULE, "Catched collector %1$#x with %2$#x", this, Signals);
       }
-      return false;
+      std::swap(Signals, result);
+      return result;
     }
 
     void Notify(uint_t sigmask)
@@ -61,6 +67,7 @@ namespace
         const boost::mutex::scoped_lock locker(Mutex);
         Signals |= sigmask;
         Event.notify_one();
+        Log::Debug(THIS_MODULE, "Notified collector %1$#x with %2$#x", this, sigmask);
       }
     }
   private:
@@ -107,7 +114,6 @@ namespace
         : Delegate(ptr)
         , Id(ptr.get())
       {
-        Log::Debug(THIS_MODULE, "Created collector %1$#x", Id);
       }
 
       bool Expired() const
@@ -119,7 +125,7 @@ namespace
       {
         if (Id)
         {
-          Log::Debug(THIS_MODULE, "Destroyed collector %1$#x", Id);
+          Log::Debug(THIS_MODULE, "Untied collector %1$#x", Id);
         }
         Delegate.reset();
         Id = 0;

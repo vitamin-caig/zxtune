@@ -31,7 +31,7 @@ namespace
       //setup self
       setupUi(this);
       timePosition->setRange(0, 0);
-      this->connect(timePosition, SIGNAL(valueChanged(int)), SIGNAL(OnSeeking(int)));
+      this->connect(timePosition, SIGNAL(sliderMoved(int)), SIGNAL(OnSeeking(int)));
 
       this->connect(&supp, SIGNAL(OnStartModule(ZXTune::Sound::Backend::Ptr)), SLOT(InitState(ZXTune::Sound::Backend::Ptr)));
       this->connect(&supp, SIGNAL(OnUpdateState()), SLOT(UpdateState()));

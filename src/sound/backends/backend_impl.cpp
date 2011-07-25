@@ -33,7 +33,7 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Sound;
 
-  const std::string THIS_MODULE("BackendBase");
+  const std::string THIS_MODULE("Sound::Backend::Base");
 
   class SafeRendererWrapper : public Module::Renderer
   {
@@ -203,9 +203,11 @@ namespace
     {
       try
       {
+        Log::Debug(THIS_MODULE, "Initializing");
         Delegate->OnStartup(*Holder);
         Playing = true;
         Signaller.Notify(Backend::MODULE_START);
+        Log::Debug(THIS_MODULE, "Initialized");
         return Error();
       }
       catch (const Error& e)
@@ -218,9 +220,11 @@ namespace
     {
       try
       {
+        Log::Debug(THIS_MODULE, "Finalizing");
         Playing = false;
         Signaller.Notify(Backend::MODULE_STOP);
         Delegate->OnShutdown();
+        Log::Debug(THIS_MODULE, "Finalized");
         return Error();
       }
       catch (const Error& e)
@@ -233,8 +237,10 @@ namespace
     {
       try
       {
+        Log::Debug(THIS_MODULE, "Suspending");
         Delegate->OnPause();
         Signaller.Notify(Backend::MODULE_PAUSE);
+        Log::Debug(THIS_MODULE, "Suspended");
         return Error();
       }
       catch (const Error& e)
@@ -247,8 +253,10 @@ namespace
     {
       try
       {
+        Log::Debug(THIS_MODULE, "Resuming");
         Delegate->OnResume();
         Signaller.Notify(Backend::MODULE_RESUME);
+        Log::Debug(THIS_MODULE, "Resumed");
         return Error();
       }
       catch (const Error& e)

@@ -152,6 +152,7 @@ namespace
 
     virtual void SetItem(const Playlist::Item::Data& item)
     {
+      Stop();
       Backend.reset();
       Backend = CreateBackend(Params, item.GetModule());
       if (Backend)
@@ -219,8 +220,7 @@ namespace
         Sound::Backend::MODULE_STOP | Sound::Backend::MODULE_FINISH);
       for (;;)
       {
-        uint_t sigmask = 0;
-        if (signaller->WaitForSignals(sigmask, 100/*10fps*/))
+        if (uint_t sigmask = signaller->WaitForSignals(100/*10fps*/))
         {
           if (sigmask & (Sound::Backend::MODULE_STOP | Sound::Backend::MODULE_FINISH))
           {

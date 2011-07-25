@@ -34,9 +34,8 @@ namespace Async
       //! @brief Waiting for signals or gathering already collected between calls
       //! @param sigmask Reference to result
       //! @param timeoutMs Timeout in specified milliseconds
-      //! @return false if timeout reached before any signal collected, true otherwise
-      //! @invariant If return true, signals is not empty
-      virtual bool WaitForSignals(uint_t& sigmask, uint_t timeoutMs) = 0;
+      //! @return 0 if timeout reached before any signal collected, result events mask otherwise
+      virtual uint_t WaitForSignals(uint_t timeoutMs) = 0;
     };
 
     //! @brief Signals managing interface
