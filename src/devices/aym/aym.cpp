@@ -399,7 +399,7 @@ namespace
         GenE.SetMask(0 == ((VolA | VolB | VolC) & DataChunk::REG_MASK_ENV));
         ChangedFromLastTick = true;
       }
-      if (data.Mask & DataChunk::REG_BEEPER)
+      if (data.Mask & (1 << DataChunk::REG_BEEPER))
       {
         ChangedFromLastTick = true;
       }
@@ -419,13 +419,6 @@ namespace
 
     virtual void GetLevels(MultiSample& result) const
     {
-      const VolumeTable& table = IsYM ? YMVolumeTab : AYVolumeTab;
-      if (Beeper)
-      {
-        assert(Beeper < 16);
-        result[0] = result[1] = result[2] = table[(Beeper << 1) + 1];
-        return;
-      }
       const bool triggeredNoise = GenN.GetLevel();
       const uint_t envelope = GenE.GetValue();
       //references to mixered bits. updated automatically
@@ -439,10 +432,20 @@ namespace
       const bool maskedNoiseC = triggeredNoise || 0 != (Mixer & DataChunk::REG_MASK_NOISEC);
       const uint_t outC = (VolC & DataChunk::REG_MASK_ENV) ? envelope : levelC;
 
+      const VolumeTable& table = IsYM ? YMVolumeTab : AYVolumeTab;
       assert(outA < 32 && outB < 32 && outC < 32);
       result[0] = maskedNoiseA && GenA.GetLevel() ? table[outA] : 0;
       result[1] = maskedNoiseB && GenB.GetLevel() ? table[outB] : 0;
       result[2] = maskedNoiseC && GenC.GetLevel() ? table[outC] : 0;
+      if (Beeper)
+      {
+        assert(Beeper < 16);
+        const uint_t levelBeeper = table[(Beeper << 1) + 1] / 2;
+        result[0] = result[0] / 2 + levelBeeper;
+        result[1] = result[1] / 2 + levelBeeper;
+        result[2] = result[2] / 2 + levelBeeper;
+        return;
+      }
     }
 
     virtual void GetState(uint64_t ticksPerSec, ChannelsState& state) const

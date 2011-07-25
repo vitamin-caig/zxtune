@@ -141,7 +141,6 @@ namespace
       : CpuParams(cpuParams)
       , Chip(chip)
       , LastRenderTick()
-      , Reg()
     {
     }
 
@@ -149,18 +148,25 @@ namespace
     {
       Chip->Reset();
       LastRenderTick = 0;
-      Reg = 0;
+      Operational = Chunk();
       Data.clear();
     }
 
     void SelectRegister(uint_t reg)
     {
-      Reg = reg;
+      Operational.Reg = reg;
     }
 
-    void SetValue(uint64_t cpuTick, uint_t val)
+    void SetValue(uint_t val)
     {
-      Data.push_back(Chunk(cpuTick, Reg, val));
+      Operational.Value = val;
+    }
+
+    void Commit(uint64_t cpuTick)
+    {
+      Operational.CpuTick = cpuTick;
+      Data.push_back(Operational);
+      Operational = Chunk();
     }
 
     void RenderFrame(uint_t clocksPerFrame)
@@ -216,14 +222,14 @@ namespace
     const Devices::Z80::ChipParameters::Ptr CpuParams;
     const Devices::AYM::Chip::Ptr Chip;
     uint64_t LastRenderTick;
-    uint_t Reg;
+    Chunk Operational;
     std::vector<Chunk> Data;
   };
 
-  class Ports : public Devices::Z80::ChipIO
+  class ZXPorts : public Devices::Z80::ChipIO
   {
   public:
-    explicit Ports(AYDataChannel::Ptr ayData)
+    explicit ZXPorts(AYDataChannel::Ptr ayData)
       : AyData(ayData)
     {
     }
@@ -235,23 +241,99 @@ namespace
 
     virtual void Write(uint64_t tick, uint16_t port, uint8_t data)
     {
-      if (0xc0fd == (port & 0xc0ff))
+      if (0xc0fd == (port & 0xc0ff) && data < Devices::AYM::DataChunk::REG_BEEPER)
       {
         AyData->SelectRegister(data);
       }
       else if (0x80fd == (port & 0xc0ff))
       {
-        AyData->SetValue(tick, data);
+        AyData->SetValue(data);
+        AyData->Commit(tick);
       }
       else if (0 == (port & 0x0001))
       {
         const uint_t value = 0 != (data & 16) ? 15 : 0;
         AyData->SelectRegister(Devices::AYM::DataChunk::REG_BEEPER);
-        AyData->SetValue(tick, value);
+        AyData->SetValue(value);
+        AyData->Commit(tick);
       }
     }
   private:
     const AYDataChannel::Ptr AyData;
+  };
+
+  class CPCPorts : public Devices::Z80::ChipIO
+  {
+  public:
+    explicit CPCPorts(AYDataChannel::Ptr ayData)
+      : AyData(ayData)
+      , Data()
+      , Selector()
+    {
+    }
+
+    virtual uint8_t Read(uint16_t /*port*/)
+    {
+      return 0xff;
+    }
+
+    virtual void Write(uint64_t tick, uint16_t port, uint8_t data)
+    {
+      if (0xf400 == (port & 0xff00))
+      {
+        Data = data;
+      }
+      else if (0xf600 == (port & 0xff00))
+      {
+        data &= 0xc0;
+        if (!Selector)
+        {
+          Selector = data;
+        }
+        else if (!data)
+        {
+          switch (Selector & 0xc0)
+          {
+          case 0xc0:
+            AyData->SelectRegister(Data);
+            break;
+          case 0x80:
+            AyData->SetValue(Data);
+            AyData->Commit(tick);
+            break;
+          }
+          Selector = 0;
+        }
+      }
+    }
+  private:
+    const AYDataChannel::Ptr AyData;
+    uint_t Data;
+    uint_t Selector;
+  };
+
+  class PlexerPorts : public Devices::Z80::ChipIO
+  {
+  public:
+    explicit PlexerPorts(AYDataChannel::Ptr ayData)
+      : ZX(boost::make_shared<ZXPorts>(ayData))
+      , CPC(boost::make_shared<CPCPorts>(ayData))
+    {
+    }
+
+    virtual uint8_t Read(uint16_t /*port*/)
+    {
+      return 0xff;
+    }
+
+    virtual void Write(uint64_t tick, uint16_t port, uint8_t data)
+    {
+      ZX->Write(tick, port, data);
+      CPC->Write(tick, port, data);
+    }
+  private:
+    const Devices::Z80::ChipIO::Ptr ZX;
+    const Devices::Z80::ChipIO::Ptr CPC;
   };
 
   class CPUParameters : public Devices::Z80::ChipParameters
@@ -540,7 +622,7 @@ namespace
       const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateChip(chipParams, receiver);
       const Devices::Z80::ChipParameters::Ptr cpuParams = boost::make_shared<CPUParameters>(params);
       const AYDataChannel::Ptr ayChannel = boost::make_shared<AYDataChannel>(cpuParams, chip);
-      const Devices::Z80::ChipIO::Ptr cpuPorts = boost::make_shared<Ports>(ayChannel);
+      const Devices::Z80::ChipIO::Ptr cpuPorts = boost::make_shared<PlexerPorts>(ayChannel);
       const Devices::Z80::Chip::Ptr cpu = Data->CreateCPU(cpuParams, cpuPorts);
       const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
       return boost::make_shared<AYRenderer>(trackParams, iterator, cpu, ayChannel);
