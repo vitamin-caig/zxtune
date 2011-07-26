@@ -55,6 +55,7 @@ namespace ZXTune
         explicit TrackBuilder(const FrequencyTable& table)
           : Table(table)
         {
+          Chunk.Mask |= 1 << Devices::AYM::DataChunk::REG_MIXER;
         }
 
         void SetNoise(uint_t level);

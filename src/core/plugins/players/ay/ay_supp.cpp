@@ -252,7 +252,8 @@ namespace
       }
       else if (0 == (port & 0x0001))
       {
-        const uint_t value = 0 != (data & 16) ? 15 : 0;
+        static const uint_t REG_VALUES[] = {0, 14, 14, 15};
+        const uint_t value = REG_VALUES[(data & 24) >> 3];
         AyData->SelectRegister(Devices::AYM::DataChunk::REG_BEEPER);
         AyData->SetValue(value);
         AyData->Commit(tick);

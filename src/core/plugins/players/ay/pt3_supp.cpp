@@ -220,7 +220,7 @@ namespace
   {
     const uint_t off(fromLE(offset));
     const PT3Sample* const sample(safe_ptr_cast<const PT3Sample*>(&data[off]));
-    if (0 == offset || !sample->Size)
+    if (!sample->Size)
     {
       static const Vortex::Sample::Line STUB_LINE = Vortex::Sample::Line();
       return Vortex::Sample(0, &STUB_LINE, &STUB_LINE + 1);//safe
@@ -236,7 +236,7 @@ namespace
   {
     const uint_t off(fromLE(offset));
     const PT3Ornament* const ornament(safe_ptr_cast<const PT3Ornament*>(&data[off]));
-    if (0 == offset || !ornament->Size)
+    if (!ornament->Size)
     {
       static const int_t STUB_LINE = 0;
       return SimpleOrnament(0, &STUB_LINE, &STUB_LINE + 1);//safe version

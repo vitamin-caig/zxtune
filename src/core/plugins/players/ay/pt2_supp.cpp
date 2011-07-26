@@ -219,9 +219,16 @@ namespace
   {
     const uint_t off = fromLE(offset);
     const PT2Sample* const sample = safe_ptr_cast<const PT2Sample*>(&data[off]);
-    if (0 == offset || !sample->Size)
+    if (!off)
     {
-      return Sample();//safe
+      //emulate invalid data
+      const PT2Sample::Line* const dataAsSample = safe_ptr_cast<const PT2Sample::Line*>(&data[off]);
+      return Sample(0, dataAsSample, dataAsSample + 1);
+    }
+    if (!sample->Size)
+    {
+      rawSize = std::max<std::size_t>(rawSize, off + sample->GetMinimalSize());
+      return Sample();
     }
     Sample tmp(sample->Loop, sample->Data, sample->Data + sample->Size);
     rawSize = std::max<std::size_t>(rawSize, off + sample->GetSize());
@@ -232,9 +239,16 @@ namespace
   {
     const uint_t off = fromLE(offset);
     const PT2Ornament* const ornament = safe_ptr_cast<const PT2Ornament*>(&data[off]);
-    if (0 == offset || !ornament->Size)
+    if (!off)
     {
-      return SimpleOrnament();//safe version
+      //emulate invalid data
+      const int8_t* const dataAsOrnament = safe_ptr_cast<const int8_t*>(&data[off]);
+      return SimpleOrnament(0, dataAsOrnament, dataAsOrnament + 1);
+    }
+    if (!ornament->Size)
+    {
+      rawSize = std::max<std::size_t>(rawSize, off + ornament->GetMinimalSize());
+      return SimpleOrnament();
     }
     rawSize = std::max<std::size_t>(rawSize, off + ornament->GetSize());
     return SimpleOrnament(ornament->Loop, ornament->Data, ornament->Data + ornament->Size);
