@@ -143,6 +143,8 @@ namespace
       AddCapability(caps, ZXTune::CAP_CONV_YM, root, QT_TR_NOOP("Streamed .ym format"));
       AddCapability(caps, ZXTune::CAP_CONV_ZX50, root, QT_TR_NOOP("Streamed .zx50 format"));
       AddCapability(caps, ZXTune::CAP_CONV_TXT, root, QT_TR_NOOP("Vortex .txt format"));
+      AddCapability(caps, ZXTune::CAP_CONV_AYDUMP, root, QT_TR_NOOP("Raw aydump format"));
+      AddCapability(caps, ZXTune::CAP_CONV_FYM, root, QT_TR_NOOP("Compressed .fym format"));
     }
 
     void AddStoragePlugin(const ZXTune::Plugin& plugin)

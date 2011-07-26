@@ -399,6 +399,11 @@ extern const Char INFO_OPTIONS_CORE_DAC_INTERPOLATION[] = {
   'u','s','e',' ','i','n','t','e','r','p','o','l','a','t','i','o','n',' ','f','o','r',' ','D','A','C',' ','r',
   'e','n','d','e','r','i','n','g',0
 };
+extern const Char INFO_OPTIONS_CORE_PLUGINS_AY_DEFAULT_DURATION_FRAMES[] = {
+  'd','e','f','a','u','l','t',' ','.','a','y',' ','m','o','d','u','l','e','s',' ','d','u','r','a','t','i','o',
+  'n',' ','i','n',' ','f','r','a','m','e','s',' ','(','i','f',' ','n','o','t',' ','f','o','u','n','d',' ','i',
+  'n',' ','m','o','d','u','l','e',')',0
+};
 extern const Char INFO_OPTIONS_CORE_PLUGINS_HRIP_IGNORE_CORRUPTED[] = {
   'i','g','n','o','r','e',' ','c','o','r','r','u','p','t','e','d',' ','b','l','o','c','k','s',' ','i','n',' ',
   'H','R','i','P',' ','a','r','c','h','i','v','e',0
@@ -415,6 +420,13 @@ extern const Char INFO_OPTIONS_CORE_PLUGINS_TITLE[] = {
 };
 extern const Char INFO_OPTIONS_CORE_TITLE[] = {
   ' ','C','o','r','e',' ','o','p','t','i','o','n','s',':',0
+};
+extern const Char INFO_OPTIONS_CORE_Z80_CLOCKRATE[] = {
+  'Z','8','0',' ','p','r','o','c','e','s','s','o','r',' ','c','l','o','c','k','r','a','t','e',0
+};
+extern const Char INFO_OPTIONS_CORE_Z80_INT_TICKS[] = {
+  'Z','8','0',' ','p','r','o','c','e','s','s','o','r',' ','I','N','T',' ','s','i','g','n','a','l',' ','d','u',
+  'r','a','t','i','o','n',' ','i','n',' ','t','i','c','k','s',0
 };
 extern const Char INFO_OPTIONS_IO_PROVIDERS_FILE_MMAP_THRESHOLD[] = {
   'm','i','n','i','m','a','l',' ','s','i','z','e',' ','f','o','r',' ','u','s','e',' ','m','e','m','o','r','y',
@@ -443,6 +455,10 @@ extern const Char INFO_OPTIONS_SOUND_BACKENDS_OSS_DEVICE[] = {
 extern const Char INFO_OPTIONS_SOUND_BACKENDS_OSS_MIXER[] = {
   'm','i','x','e','r',' ','d','e','v','i','c','e',' ','f','o','r',' ','O','S','S',' ','b','a','c','k','e','n',
   'd',0
+};
+extern const Char INFO_OPTIONS_SOUND_BACKENDS_SDL_BUFFERS[] = {
+  'b','u','f','f','e','r','s',' ','c','o','u','n','t',' ','f','o','r',' ','S','D','L',' ','b','a','c','k','e',
+  'n','d',0
 };
 extern const Char INFO_OPTIONS_SOUND_BACKENDS_TITLE[] = {
   ' ','S','o','u','n','d',' ','b','a','c','k','e','n','d','s',' ','o','p','t','i','o','n','s',':',0

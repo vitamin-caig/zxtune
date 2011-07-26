@@ -189,10 +189,12 @@ namespace
     
     static const OptionDesc OPTIONS[] =
     {
+      //IO parameters
       OptionDesc(Text::INFO_OPTIONS_IO_PROVIDERS_TITLE, EMPTY, 0),
       OptionDesc(Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD,
                  Text::INFO_OPTIONS_IO_PROVIDERS_FILE_MMAP_THRESHOLD,
                  Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD_DEFAULT),
+      //Sound parameters
       OptionDesc(Text::INFO_OPTIONS_SOUND_TITLE, EMPTY, 0),
       OptionDesc(Parameters::ZXTune::Sound::FREQUENCY,
                  Text::INFO_OPTIONS_SOUND_FREQUENCY,
@@ -206,6 +208,7 @@ namespace
       OptionDesc(Parameters::ZXTune::Sound::LOOPED,
                  Text::INFO_OPTIONS_SOUND_LOOPED,
                  EMPTY),
+      //Sound backend parameters
       OptionDesc(Text::INFO_OPTIONS_SOUND_BACKENDS_TITLE, EMPTY, 0),
       OptionDesc(Parameters::ZXTune::Sound::Backends::Wav::FILENAME,
                  Text::INFO_OPTIONS_SOUND_BACKENDS_WAV_FILENAME,
@@ -234,6 +237,10 @@ namespace
       OptionDesc(Parameters::ZXTune::Sound::Backends::ALSA::BUFFERS,
                  Text::INFO_OPTIONS_SOUND_BACKENDS_ALSA_BUFFERS,
                  Parameters::ZXTune::Sound::Backends::ALSA::BUFFERS_DEFAULT),
+      OptionDesc(Parameters::ZXTune::Sound::Backends::SDL::BUFFERS,
+                 Text::INFO_OPTIONS_SOUND_BACKENDS_SDL_BUFFERS,
+                 Parameters::ZXTune::Sound::Backends::SDL::BUFFERS_DEFAULT),
+      //Core options
       OptionDesc(Text::INFO_OPTIONS_CORE_TITLE, EMPTY, 0),
       OptionDesc(Parameters::ZXTune::Core::AYM::TYPE,
                  Text::INFO_OPTIONS_CORE_AYM_TYPE,
@@ -256,6 +263,12 @@ namespace
       OptionDesc(Parameters::ZXTune::Core::DAC::INTERPOLATION,
                  Text::INFO_OPTIONS_CORE_DAC_INTERPOLATION,
                  EMPTY),
+      OptionDesc(Parameters::ZXTune::Core::Z80::INT_TICKS,
+                 Text::INFO_OPTIONS_CORE_Z80_INT_TICKS,
+                 Parameters::ZXTune::Core::Z80::INT_TICKS_DEFAULT),
+      OptionDesc(Parameters::ZXTune::Core::Z80::CLOCKRATE,
+                 Text::INFO_OPTIONS_CORE_Z80_CLOCKRATE,
+                 Parameters::ZXTune::Core::Z80::CLOCKRATE_DEFAULT),
       OptionDesc(Text::INFO_OPTIONS_CORE_PLUGINS_TITLE, EMPTY,0),
       OptionDesc(Parameters::ZXTune::Core::Plugins::Raw::SCAN_STEP,
                  Text::INFO_OPTIONS_CORE_PLUGINS_RAW_SCAN_STEP,
@@ -265,7 +278,10 @@ namespace
                  Parameters::ZXTune::Core::Plugins::Raw::MIN_SIZE_DEFAULT),
       OptionDesc(Parameters::ZXTune::Core::Plugins::Hrip::IGNORE_CORRUPTED,
                  Text::INFO_OPTIONS_CORE_PLUGINS_HRIP_IGNORE_CORRUPTED,
-                 EMPTY)
+                 EMPTY),
+      OptionDesc(Parameters::ZXTune::Core::Plugins::AY::DEFAULT_DURATION_FRAMES,
+                 Text::INFO_OPTIONS_CORE_PLUGINS_AY_DEFAULT_DURATION_FRAMES,
+                 Parameters::ZXTune::Core::Plugins::AY::DEFAULT_DURATION_FRAMES_DEFAULT)
     };
     StdOut << Text::INFO_LIST_OPTIONS_TITLE << std::endl;
     std::for_each(OPTIONS, ArrayEnd(OPTIONS), ShowOption);
