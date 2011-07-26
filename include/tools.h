@@ -119,4 +119,14 @@ class NullDeleter
 public:
   void operator()(T*) {}
 };
+
+//! @brief return mult1 * mult2 / divider
+template<class T>
+T BigMulDiv(T mult1, T mult2, T divider)
+{
+  const T base = mult1 * (mult2 / divider);
+  const T correction = (mult1 * (mult2 % divider)) / divider;
+  return base + correction;
+}
+
 #endif //__TOOLS_H_DEFINED__

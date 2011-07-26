@@ -14,7 +14,7 @@ Author:
 //local includes
 #include <devices/aym.h>
 //common includes
-#include <tools.h>
+#include <time_tools.h>
 //std includes
 #include <cassert>
 #include <functional>
@@ -653,39 +653,21 @@ namespace
   {
   public:
     ClockSource()
-      : CurrentTick()
-      , NextSoundTick()
-      , LastTick()
-      , TicksPerSec()
-      , RenderStartTick()
-      , SoundFreq()
-      , SamplesDone()
+      : LastTick()
     {
     }
 
     void SetFrequency(uint64_t clockFreq, uint_t soundFreq)
     {
-      //for more precise rendering
-      if (TicksPerSec != clockFreq ||
-          SoundFreq != soundFreq)
-      {
-        RenderStartTick = CurrentTick;
-        TicksPerSec = clockFreq;
-        SoundFreq = soundFreq;
-        SamplesDone = 1;
-        CalcNextSoundTick();
-      }
+      PsgScaler.SetFrequency(clockFreq);
+      SndScaler.SetFrequency(soundFreq);
     }
 
     void Reset()
     {
-      CurrentTick = 0;
-      NextSoundTick = 0;
       LastTick = 0;
-      TicksPerSec = 0;
-      RenderStartTick = 0;
-      SoundFreq = 0;
-      SamplesDone = 0;
+      PsgScaler.Reset();
+      SndScaler.Reset();
     }
 
     void ApplyData(const DataChunk& data)
@@ -695,12 +677,10 @@ namespace
 
     bool Tick()
     {
-      assert(CurrentTick < LastTick);
-      CurrentTick += AYM_CLOCK_DIVISOR;
-      if (CurrentTick >= NextSoundTick)
+      PsgScaler.AdviceTick(AYM_CLOCK_DIVISOR);
+      if (PsgScaler.GetTime() > SndScaler.GetTime())
       {
-        ++SamplesDone;
-        CalcNextSoundTick();
+        SndScaler.AdviceTick(1);
         return true;
       }
       return false;
@@ -708,24 +688,12 @@ namespace
 
     bool InFrame() const
     {
-      return CurrentTick < LastTick;
+      return PsgScaler.GetTick() < LastTick;
     }
   private:
-    void CalcNextSoundTick()
-    {
-      NextSoundTick = RenderStartTick + TicksPerSec * SamplesDone / SoundFreq;
-      assert(NextSoundTick > CurrentTick);
-    }
-  private:
-    //context
-    uint64_t CurrentTick;
-    uint64_t NextSoundTick;
     uint64_t LastTick;
-    //parameters
-    uint64_t TicksPerSec;
-    uint64_t RenderStartTick;
-    uint_t SoundFreq;
-    uint_t SamplesDone;
+    Time::NanosecFreqScaler PsgScaler;
+    Time::NanosecFreqScaler SndScaler;
   };
 
   class ChipImpl : public Chip
