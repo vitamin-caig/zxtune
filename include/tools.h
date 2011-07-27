@@ -90,10 +90,10 @@ inline T align(T val, T alignment)
 
 //! @brief Counting set bits in integer value
 template<class T>
-inline T CountBits(T val)
+inline std::size_t CountBits(T val)
 {
   BOOST_STATIC_ASSERT(boost::is_integral<T>::value);
-  T res = 0;
+  std::size_t res = 0;
   while (val)
   {
     if (val & 1)
@@ -101,6 +101,19 @@ inline T CountBits(T val)
       ++res;
     }
     val >>= 1;
+  }
+  return res;
+}
+
+//! @brief Counting significant bits count
+template<class T>
+inline std::size_t Log2(T val)
+{
+  BOOST_STATIC_ASSERT(boost::is_integral<T>::value);
+  std::size_t res = 0;
+  while (val >>= 1)
+  {
+    ++res;
   }
   return res;
 }
@@ -120,13 +133,52 @@ public:
   void operator()(T*) {}
 };
 
-//! @brief return mult1 * mult2 / divider
-template<class T>
-T BigMulDiv(T mult1, T mult2, T divider)
+//! @brief Scales value in range of inRange to value in outRange
+inline uint8_t Scale(uint8_t value, uint8_t inRange, uint8_t outRange)
 {
-  const T base = mult1 * (mult2 / divider);
-  const T correction = (mult1 * (mult2 % divider)) / divider;
-  return base + correction;
+  return static_cast<uint8_t>(uint16_t(value) * outRange / inRange);
+}
+
+inline uint16_t Scale(uint16_t value, uint16_t inRange, uint16_t outRange)
+{
+  return static_cast<uint16_t>(uint32_t(value) * outRange / inRange);
+}
+
+inline uint32_t Scale(uint32_t value, uint32_t inRange, uint32_t outRange)
+{
+  return static_cast<uint32_t>(uint64_t(value) * outRange / inRange);
+}
+
+inline uint64_t Scale(uint64_t value, uint64_t inRange, uint64_t outRange)
+{
+  const uint_t valBits = Log2(value);
+  const uint_t outBits = Log2(outRange);
+  const uint_t availBits = 8 * sizeof(uint64_t);
+  if (valBits + outBits < availBits)
+  {
+    return (value * outRange) / inRange;
+  }
+  if (valBits + outBits - Log2(inRange) > availBits)
+  {
+    return ~uint64_t(0);//maximal value
+  }
+  bool optimized = false;
+  while (0 == ((value | inRange) & 1))
+  {
+    inRange >>= 1;
+    value >>= 1;
+    optimized = true;
+  }
+  while (0 == ((outRange | inRange) & 1))
+  {
+    inRange >>= 1;
+    outRange >>= 1;
+    optimized = true;
+  }
+  //assert(!"TODO: implement");
+  return optimized 
+    ? Scale(value, inRange, outRange)
+    : static_cast<uint64_t>(double(value) * outRange / inRange);
 }
 
 #endif //__TOOLS_H_DEFINED__

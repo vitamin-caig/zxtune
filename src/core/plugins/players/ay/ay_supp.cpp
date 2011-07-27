@@ -123,8 +123,8 @@ namespace
     {
       return Data[addr];
     }
-
-    virtual void Write(uint64_t /*tick*/, uint16_t addr, uint8_t data)
+    
+    virtual void Write(const Time::Nanoseconds& /*timeStamp*/, uint16_t addr, uint8_t data)
     {
       Data[addr] = data;
     }
@@ -140,43 +140,35 @@ namespace
     AYDataChannel(Devices::Z80::ChipParameters::Ptr cpuParams, Devices::AYM::Chip::Ptr chip)
       : CpuParams(cpuParams)
       , Chip(chip)
-      , LastRenderTick()
+      , Register()
     {
     }
 
     void Reset()
     {
       Chip->Reset();
-      LastRenderTick = 0;
-      Operational = Chunk();
-      Data.clear();
+      Register = 0;
+      FrameStub = Devices::AYM::DataChunk();
     }
 
     void SelectRegister(uint_t reg)
     {
-      Operational.Reg = reg;
+      Register = reg;
     }
 
-    void SetValue(uint_t val)
+    void SetValue(const Time::Nanoseconds& timeStamp, uint_t val)
     {
-      Operational.Value = val;
+      Devices::AYM::DataChunk data;
+      data.TimeStamp = timeStamp;
+      data.Mask = 1 << Register;
+      data.Data[Register] = val;
+      Chip->RenderData(data);
     }
 
-    void Commit(uint64_t cpuTick)
+    void RenderFrame(const Time::Nanoseconds& till)
     {
-      Operational.CpuTick = cpuTick;
-      Data.push_back(Operational);
-      Operational = Chunk();
-    }
-
-    void RenderFrame(uint_t clocksPerFrame)
-    {
-      std::for_each(Data.begin(), Data.end(), boost::bind(&AYDataChannel::SendChunk, this, _1, CpuParams->TicksPerFrame(), clocksPerFrame));
-      Data.clear();
-      LastRenderTick += clocksPerFrame;
-      Devices::AYM::DataChunk stub;
-      stub.Tick = LastRenderTick;
-      Chip->RenderData(stub);
+      FrameStub.TimeStamp = till;
+      Chip->RenderData(FrameStub);
       Chip->Flush();
     }
 
@@ -185,45 +177,10 @@ namespace
       return AYM::CreateAnalyzer(Chip);
     }
   private:
-    struct Chunk
-    {
-      uint64_t CpuTick;
-      uint_t Reg;
-      uint_t Value;
-
-      Chunk()
-        : CpuTick(), Reg(), Value()
-      {
-      }
-
-      Chunk(uint64_t tick, uint_t reg, uint_t val)
-        : CpuTick(tick), Reg(reg), Value(val)
-      {
-      }
-    };
-
-    void SendChunk(const Chunk& chunk, uint64_t cpuTicksPerFrame, uint64_t psgTicksPerFrame)
-    {
-      Devices::AYM::DataChunk result;
-      result.Mask = 1 << chunk.Reg;
-      result.Data[chunk.Reg] = chunk.Value;
-      result.Tick = ScaleTick(chunk.CpuTick, cpuTicksPerFrame, psgTicksPerFrame);
-      Chip->RenderData(result);
-    }
-
-    static uint64_t ScaleTick(uint64_t tick, uint64_t inScale, uint64_t outScale)
-    {
-      //return tick * outScale / inScale;
-      const uint64_t baseTick = outScale * (tick / inScale);
-      const uint64_t corrTick = (outScale * (tick % inScale)) / inScale;
-      return baseTick + corrTick;
-    }
-  private:
     const Devices::Z80::ChipParameters::Ptr CpuParams;
     const Devices::AYM::Chip::Ptr Chip;
-    uint64_t LastRenderTick;
-    Chunk Operational;
-    std::vector<Chunk> Data;
+    uint_t Register;
+    Devices::AYM::DataChunk FrameStub;
   };
 
   class ZXPorts : public Devices::Z80::ChipIO
@@ -239,7 +196,7 @@ namespace
       return 0xff;
     }
 
-    virtual void Write(uint64_t tick, uint16_t port, uint8_t data)
+    virtual void Write(const Time::Nanoseconds& timeStamp, uint16_t port, uint8_t data)
     {
       if (0xc0fd == (port & 0xc0ff) && data < Devices::AYM::DataChunk::REG_BEEPER)
       {
@@ -247,16 +204,14 @@ namespace
       }
       else if (0x80fd == (port & 0xc0ff))
       {
-        AyData->SetValue(data);
-        AyData->Commit(tick);
+        AyData->SetValue(timeStamp, data);
       }
       else if (0 == (port & 0x0001))
       {
         static const uint_t REG_VALUES[] = {0, 14, 14, 15};
         const uint_t value = REG_VALUES[(data & 24) >> 3];
         AyData->SelectRegister(Devices::AYM::DataChunk::REG_BEEPER);
-        AyData->SetValue(value);
-        AyData->Commit(tick);
+        AyData->SetValue(timeStamp, value);
       }
     }
   private:
@@ -278,7 +233,7 @@ namespace
       return 0xff;
     }
 
-    virtual void Write(uint64_t tick, uint16_t port, uint8_t data)
+    virtual void Write(const Time::Nanoseconds& timeStamp, uint16_t port, uint8_t data)
     {
       if (0xf400 == (port & 0xff00))
       {
@@ -299,8 +254,7 @@ namespace
             AyData->SelectRegister(Data);
             break;
           case 0x80:
-            AyData->SetValue(Data);
-            AyData->Commit(tick);
+            AyData->SetValue(timeStamp, Data);
             break;
           }
           Selector = 0;
@@ -327,10 +281,10 @@ namespace
       return 0xff;
     }
 
-    virtual void Write(uint64_t tick, uint16_t port, uint8_t data)
+    virtual void Write(const Time::Nanoseconds& timeStamp, uint16_t port, uint8_t data)
     {
-      ZX->Write(tick, port, data);
-      CPC->Write(tick, port, data);
+      ZX->Write(timeStamp, port, data);
+      CPC->Write(timeStamp, port, data);
     }
   private:
     const Devices::Z80::ChipIO::Ptr ZX;
@@ -353,15 +307,12 @@ namespace
       return static_cast<uint_t>(intTicks);
     }
 
-    virtual uint_t TicksPerFrame() const
+    virtual uint64_t ClockFreq() const
     {
       using namespace Parameters::ZXTune::Core;
-      using namespace Parameters::ZXTune::Sound;
       Parameters::IntType cpuClock = Z80::CLOCKRATE_DEFAULT;
       Params->FindIntValue(Z80::CLOCKRATE, cpuClock);
-      Parameters::IntType frameDuration = FRAMEDURATION_DEFAULT;
-      Params->FindIntValue(FRAMEDURATION, frameDuration);
-      return static_cast<uint_t>(cpuClock * frameDuration / 1000000); 
+      return static_cast<uint_t>(cpuClock); 
     }
   private:
     const Parameters::Accessor::Ptr Params;
@@ -391,8 +342,10 @@ namespace
 
     virtual bool RenderFrame()
     {
-      CPU->NextFrame();
-      Device->RenderFrame(Params->ClocksPerFrame());
+      LastTime += Time::Microseconds(Params->FrameDurationMicrosec());
+      CPU->Interrupt();
+      CPU->Execute(LastTime);
+      Device->RenderFrame(LastTime);
       return Iterator->NextFrame(Params->Looped());
     }
 
@@ -401,6 +354,7 @@ namespace
       Iterator->Reset();
       CPU->Reset();
       Device->Reset();
+      LastTime = Time::Nanoseconds();
     }
 
     virtual void SetPosition(uint_t /*frame*/)
@@ -412,6 +366,7 @@ namespace
     const Devices::Z80::Chip::Ptr CPU;
     const AYDataChannel::Ptr Device;
     const TrackState::Ptr State;
+    Time::Nanoseconds LastTime;
   };
 
   const uint8_t IM1_PLAYER_TEMPLATE[] = 
@@ -731,7 +686,7 @@ namespace
         const boost::shared_ptr<AYData> result = boost::make_shared<AYData>();
         const IO::FastDump data(*rawData);
         const std::size_t lastInfo = result->ParseInfo(0, data, *properties);
-        const std::size_t lastData = result->ParseData(0, defaultDuration, data);
+        const std::size_t lastData = result->ParseData(0, static_cast<uint_t>(defaultDuration), data);
 
         usedSize = std::max(lastInfo, lastData);
         properties->SetSource(usedSize, ModuleRegion(0, usedSize));

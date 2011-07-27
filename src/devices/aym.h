@@ -16,6 +16,7 @@ Author:
 //common includes
 #include <data_streaming.h>
 #include <types.h>
+#include <time_tools.h>
 //boost includes
 #include <boost/array.hpp>
 
@@ -80,10 +81,10 @@ namespace Devices
         CHANNEL_MASK_E = 16,
       };
 
-      DataChunk() : Tick(), Mask(), Data()
+      DataChunk() : TimeStamp(), Mask(), Data()
       {
       }
-      uint64_t Tick;
+      Time::Nanoseconds TimeStamp;
       uint_t Mask;
       boost::array<uint8_t, REG_LAST> Data;
     };
@@ -183,11 +184,11 @@ namespace Devices
 
     /// Virtual constructors
     Chip::Ptr CreateChip(ChipParameters::Ptr params, Receiver::Ptr target);
-    Dumper::Ptr CreatePSGDumper(uint_t clocksPerFrame);
-    Dumper::Ptr CreateZX50Dumper(uint_t clocksPerFrame);
-    Dumper::Ptr CreateDebugDumper(uint_t clocksPerFrame);
-    Dumper::Ptr CreateRawStreamDumper(uint_t clocksPerFrame);
-    Dumper::Ptr CreateFYMDumper(uint_t clocksPerFrame, uint64_t clockFreq, const String& title, const String& author, uint_t loopFrame);
+    Dumper::Ptr CreatePSGDumper(const Time::Microseconds& frameDuration);
+    Dumper::Ptr CreateZX50Dumper(const Time::Microseconds& frameDuration);
+    Dumper::Ptr CreateDebugDumper(const Time::Microseconds& frameDuration);
+    Dumper::Ptr CreateRawStreamDumper(const Time::Microseconds& frameDuration);
+    Dumper::Ptr CreateFYMDumper(const Time::Microseconds& frameDuration, uint64_t clockFreq, const String& title, const String& author, uint_t loopFrame);
   }
 }
 

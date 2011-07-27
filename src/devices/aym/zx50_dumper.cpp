@@ -69,10 +69,10 @@ namespace Devices
 {
   namespace AYM
   {
-    Dumper::Ptr CreateZX50Dumper(uint_t clocksPerFrame)
+    Dumper::Ptr CreateZX50Dumper(const Time::Microseconds& frameDuration)
     {
       const FramedDumpBuilder::Ptr builder = boost::make_shared<ZX50DumpBuilder>();
-      return CreateDumper(clocksPerFrame, builder);
+      return CreateDumper(frameDuration, builder);
     }
   }
 }

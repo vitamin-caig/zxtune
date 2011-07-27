@@ -24,53 +24,6 @@ Author:
 
 #define FILE_TAG ED36600C
 
-namespace
-{
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
-  uint_t ClocksPerFrame(Parameters::Accessor::Ptr params)
-  {
-    const Sound::RenderParameters::Ptr sndParams = Sound::RenderParameters::Create(params);
-    return sndParams->ClocksPerFrame();
-  }
-
-  Devices::AYM::Dumper::Ptr CreatePSGDumper(Parameters::Accessor::Ptr params)
-  {
-    const uint_t clocksPerFrame = ClocksPerFrame(params);
-    return Devices::AYM::CreatePSGDumper(clocksPerFrame);
-  }
-
-  Devices::AYM::Dumper::Ptr CreateZX50Dumper(Parameters::Accessor::Ptr params)
-  {
-    const uint_t clocksPerFrame = ClocksPerFrame(params);
-    return Devices::AYM::CreateZX50Dumper(clocksPerFrame);
-  }
-
-  Devices::AYM::Dumper::Ptr CreateDebugDumper(Parameters::Accessor::Ptr params)
-  {
-    const uint_t clocksPerFrame = ClocksPerFrame(params);
-    return Devices::AYM::CreateDebugDumper(clocksPerFrame);
-  }
-
-  Devices::AYM::Dumper::Ptr CreateRawStreamDumper(Parameters::Accessor::Ptr params)
-  {
-    const uint_t clocksPerFrame = ClocksPerFrame(params);
-    return Devices::AYM::CreateRawStreamDumper(clocksPerFrame);
-  }
-
-  Devices::AYM::Dumper::Ptr CreateFYMDumper(Parameters::Accessor::Ptr params, const AYM::Chiptune& chiptune)
-  {
-    const Sound::RenderParameters::Ptr sndParams = Sound::RenderParameters::Create(params);
-    const Information::Ptr info = chiptune.GetInformation();
-    const Parameters::Accessor::Ptr props = chiptune.GetProperties();
-    String title, author;
-    props->FindStringValue(ATTR_TITLE, title);
-    props->FindStringValue(ATTR_AUTHOR, author);
-    return Devices::AYM::CreateFYMDumper(sndParams->ClocksPerFrame(), sndParams->ClockFreq(), title, author, info->LoopFrame());
-  }
-}
-
 namespace ZXTune
 {
   namespace Module
@@ -84,34 +37,41 @@ namespace ZXTune
       Devices::AYM::Dumper::Ptr dumper;
       String errMessage;
 
+      const Sound::RenderParameters::Ptr sndParams = Sound::RenderParameters::Create(params);
+      const Time::Microseconds frameDuration(sndParams->FrameDurationMicrosec());
       //convert to PSG
       if (parameter_cast<PSGConvertParam>(&spec))
       {
-        dumper = CreatePSGDumper(params);
+        dumper = Devices::AYM::CreatePSGDumper(frameDuration);
         errMessage = Text::MODULE_ERROR_CONVERT_PSG;
       }
       //convert to ZX50
       else if (parameter_cast<ZX50ConvertParam>(&spec))
       {
-        dumper = CreateZX50Dumper(params);
+        dumper = Devices::AYM::CreateZX50Dumper(frameDuration);
         errMessage = Text::MODULE_ERROR_CONVERT_ZX50;
       }
       //convert to debugay
       else if (parameter_cast<DebugAYConvertParam>(&spec))
       {
-        dumper = CreateDebugDumper(params);
+        dumper = Devices::AYM::CreateDebugDumper(frameDuration);
         errMessage = Text::MODULE_ERROR_CONVERT_DEBUGAY;
       }
       //convert to aydump
       else if (parameter_cast<AYDumpConvertParam>(&spec))
       {
-        dumper = CreateRawStreamDumper(params);
+        dumper = Devices::AYM::CreateRawStreamDumper(frameDuration);
         errMessage = Text::MODULE_ERROR_CONVERT_AYDUMP;
       }
       //convert to fym
       else if (parameter_cast<FYMConvertParam>(&spec))
       {
-        dumper = CreateFYMDumper(params, chiptune);
+        const Information::Ptr info = chiptune.GetInformation();
+        const Parameters::Accessor::Ptr props = chiptune.GetProperties();
+        String title, author;
+        props->FindStringValue(ATTR_TITLE, title);
+        props->FindStringValue(ATTR_AUTHOR, author);
+        dumper = Devices::AYM::CreateFYMDumper(frameDuration, sndParams->ClockFreq(), title, author, info->LoopFrame());
         errMessage = Text::MODULE_ERROR_CONVERT_PSG;
       }
 
@@ -122,18 +82,15 @@ namespace ZXTune
 
       try
       {
-        const Sound::RenderParameters::Ptr sndParams = Sound::RenderParameters::Create(params);
-        const uint_t clocksPerFrame = sndParams->ClocksPerFrame();
-
-      const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
+        const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
         const AYM::DataIterator::Ptr iterator = chiptune.CreateDataIterator(trackParams);
         
         Devices::AYM::DataChunk chunk;
-        for (uint64_t lastRenderTick = clocksPerFrame; ; lastRenderTick += clocksPerFrame)
+        for (Time::Nanoseconds lastRenderTime = frameDuration; ; lastRenderTime += frameDuration)
         {
           const bool res = iterator->NextFrame(false);
           iterator->GetData(chunk);
-          chunk.Tick = lastRenderTick;
+          chunk.TimeStamp = lastRenderTime;
           dumper->RenderData(chunk);
           if (!res)
           {

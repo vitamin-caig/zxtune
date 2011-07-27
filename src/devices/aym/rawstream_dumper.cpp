@@ -76,10 +76,10 @@ namespace Devices
       return boost::make_shared<RawDumpBuilder>();
     }
 
-    Dumper::Ptr CreateRawStreamDumper(uint_t clocksPerFrame)
+    Dumper::Ptr CreateRawStreamDumper(const Time::Microseconds& frameDuration)
     {
       const FramedDumpBuilder::Ptr builder = CreateRawDumpBuilder();
-      return CreateDumper(clocksPerFrame, builder);
+      return CreateDumper(frameDuration, builder);
     }
   }
 }

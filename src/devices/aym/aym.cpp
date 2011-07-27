@@ -654,33 +654,37 @@ namespace
   public:
     ClockSource()
       : LastTick()
+      , NextSoundTick()
     {
     }
 
     void SetFrequency(uint64_t clockFreq, uint_t soundFreq)
     {
-      PsgScaler.SetFrequency(clockFreq);
-      SndScaler.SetFrequency(soundFreq);
+      PsgOscillator.SetFrequency(clockFreq);
+      SndOscillator.SetFrequency(soundFreq);
+      UpdateSoundTick();
     }
 
     void Reset()
     {
       LastTick = 0;
-      PsgScaler.Reset();
-      SndScaler.Reset();
+      PsgOscillator.Reset();
+      SndOscillator.Reset();
+      NextSoundTick = 0;
     }
 
     void ApplyData(const DataChunk& data)
     {
-      LastTick = data.Tick;
+      LastTick = PsgOscillator.GetTickAtTime(data.TimeStamp);
     }
 
     bool Tick()
     {
-      PsgScaler.AdviceTick(AYM_CLOCK_DIVISOR);
-      if (PsgScaler.GetTime() > SndScaler.GetTime())
+      PsgOscillator.AdvanceTick(AYM_CLOCK_DIVISOR);
+      if (NextSoundTick < PsgOscillator.GetCurrentTick())
       {
-        SndScaler.AdviceTick(1);
+        SndOscillator.AdvanceTick(1);
+        UpdateSoundTick();
         return true;
       }
       return false;
@@ -688,12 +692,19 @@ namespace
 
     bool InFrame() const
     {
-      return PsgScaler.GetTick() < LastTick;
+      return PsgOscillator.GetCurrentTick() < LastTick;
+    }
+  private:
+    void UpdateSoundTick()
+    {
+      const Time::Nanoseconds nextSoundTime = SndOscillator.GetCurrentTime();
+      NextSoundTick = PsgOscillator.GetTickAtTime(nextSoundTime); 
     }
   private:
     uint64_t LastTick;
-    Time::NanosecFreqScaler PsgScaler;
-    Time::NanosecFreqScaler SndScaler;
+    Time::NanosecOscillator PsgOscillator;
+    Time::NanosecOscillator SndOscillator;
+    uint64_t NextSoundTick;
   };
 
   class ChipImpl : public Chip

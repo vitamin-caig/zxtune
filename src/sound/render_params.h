@@ -34,8 +34,6 @@ namespace ZXTune
       virtual uint_t FrameDurationMicrosec() const = 0;
       //! Loop mode
       virtual bool Looped() const = 0;
-      //! PSG clocks count per one frame
-      virtual uint_t ClocksPerFrame() const = 0;
       //! Sound samples count per one frame
       virtual uint_t SamplesPerFrame() const = 0;
 

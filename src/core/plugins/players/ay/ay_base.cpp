@@ -140,7 +140,6 @@ namespace
       : Params(params)
       , Iterator(iterator)
       , Device(device)
-      , LastRenderTick(0)
     {
 #ifndef NDEBUG
 //perform self-test
@@ -163,10 +162,10 @@ namespace
     {
       Devices::AYM::DataChunk chunk;
       const bool res = Iterator->NextFrame(Params->Looped());
-      LastRenderTick += Params->ClocksPerFrame();
+      LastRenderTime += Time::Microseconds(Params->FrameDurationMicrosec());
 
       Iterator->GetData(chunk);
-      chunk.Tick = LastRenderTick;
+      chunk.TimeStamp = LastRenderTime;
       Device->RenderData(chunk);
       Device->Flush();
       return res;
@@ -176,7 +175,7 @@ namespace
     {
       Iterator->Reset();
       Device->Reset();
-      LastRenderTick = 0;
+      LastRenderTime = Time::Nanoseconds();
     }
 
     virtual void SetPosition(uint_t frameNum)
@@ -187,7 +186,7 @@ namespace
     const AYM::TrackParameters::Ptr Params;
     const AYM::DataIterator::Ptr Iterator;
     const Devices::AYM::Chip::Ptr Device;
-    uint64_t LastRenderTick;
+    Time::Nanoseconds LastRenderTime;
   };
 
   class AYMHolder : public Holder

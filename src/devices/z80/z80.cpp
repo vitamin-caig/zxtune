@@ -32,21 +32,38 @@ namespace
       , Context(z80ex_create(&ReadByte, this, &WriteByte, this,
                              &InByte, this, &OutByte, this,
                              &IntRead, this), std::ptr_fun(&z80ex_destroy))
-      , Tick()
-      , IntTick()
     {
     }
 
     virtual void Reset()
     {
       z80ex_reset(Context.get());
-      Tick = IntTick = 0;
+      Oscillator.Reset();
     }
 
-    virtual void NextFrame()
+    virtual void Interrupt()
     {
-      ProcessIntSignal();
-      ProcessRestFrame();
+      Oscillator.SetFrequency(Params->ClockFreq());
+      const uint64_t limit = Oscillator.GetCurrentTick() + Params->IntTicks();
+      while (Oscillator.GetCurrentTick() < limit)
+      {
+        if (uint_t tick = z80ex_int(Context.get()))
+        {
+          Oscillator.AdvanceTick(tick);
+          break;
+        }
+        Oscillator.AdvanceTick(z80ex_step(Context.get()));
+      }
+    }
+
+    virtual void Execute(const Time::Nanoseconds& till)
+    {
+      Oscillator.SetFrequency(Params->ClockFreq());
+      const uint64_t endTick = Oscillator.GetTickAtTime(till);
+      while (Oscillator.GetCurrentTick() < endTick)
+      {
+        Oscillator.AdvanceTick(z80ex_step(Context.get()));
+      }
     }
 
     virtual void SetState(const Registers& state)
@@ -127,72 +144,62 @@ namespace
       tmp[Registers::REG_SP] = z80ex_get_reg(Context.get(), regSP);
       state.swap(tmp);
     }
-  private:
-    void ProcessIntSignal()
+
+    virtual Time::Nanoseconds GetTime() const
     {
-      const uint64_t intTicks = Params->IntTicks();
-      while (IntTick < intTicks)
-      {
-        if (uint_t tick = z80ex_int(Context.get()))
-        {
-          AdviceTicks(tick);
-          break;
-        }
-        AdviceTicks(z80ex_step(Context.get()));
-      }
+      return Oscillator.GetCurrentTime();
     }
 
-    void ProcessRestFrame()
+    virtual uint64_t GetTick() const
     {
-      const uint64_t ticksPerFrame = Params->TicksPerFrame();
-      while (IntTick < ticksPerFrame)
-      {
-        AdviceTicks(z80ex_step(Context.get()));
-      }
-      IntTick -= ticksPerFrame;
-    }
-
-    void AdviceTicks(uint_t delta)
-    {
-      IntTick += delta;
-      Tick += delta;
+      return Oscillator.GetCurrentTick();
     }
   private:
     static Z80EX_BYTE ReadByte(Z80EX_CONTEXT* /*cpu*/, Z80EX_WORD addr, int /*m1_state*/, void* userData)
     {
       ChipImpl* const self = static_cast<ChipImpl*>(userData);
-      return self->Memory->Read(addr);
+      return self->Read(*self->Memory, addr);
     }
 
     static void WriteByte(Z80EX_CONTEXT* /*cpu*/, Z80EX_WORD addr, Z80EX_BYTE value, void* userData)
     {
       ChipImpl* const self = static_cast<ChipImpl*>(userData);
-      return self->Memory->Write(self->Tick, addr, value);
+      return self->Write(*self->Memory, addr, value);
     }
 
     static Z80EX_BYTE InByte(Z80EX_CONTEXT* /*cpu*/, Z80EX_WORD port, void* userData)
     {
       ChipImpl* const self = static_cast<ChipImpl*>(userData);
-      return self->Ports->Read(port);
+      return self->Read(*self->Ports, port);
     }
 
     static void OutByte(Z80EX_CONTEXT* /*cpu*/, Z80EX_WORD port, Z80EX_BYTE value, void* userData)
     {
       ChipImpl* const self = static_cast<ChipImpl*>(userData);
-      return self->Ports->Write(self->Tick, port, value);
+      return self->Write(*self->Ports, port, value);
     }
 
     static Z80EX_BYTE IntRead(Z80EX_CONTEXT* /*cpu*/, void* /*userData*/)
     {
       return 0xff;
     }
+
+    Z80EX_BYTE Read(ChipIO& io, Z80EX_WORD addr)
+    {
+      return io.Read(addr);
+    }
+
+    void Write(ChipIO& io, Z80EX_WORD addr, Z80EX_BYTE value)
+    {
+      const Time::Nanoseconds time = Oscillator.GetCurrentTime();
+      return io.Write(time, addr, value);
+    }
   private:
     const ChipParameters::Ptr Params;
     const ChipIO::Ptr Memory;
     const ChipIO::Ptr Ports;
     const boost::shared_ptr<Z80EX_CONTEXT> Context;
-    uint64_t Tick;
-    uint64_t IntTick;
+    Time::NanosecOscillator Oscillator;
   };
 }
 

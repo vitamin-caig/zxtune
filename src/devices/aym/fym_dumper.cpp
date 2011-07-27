@@ -65,20 +65,19 @@ namespace
   class FYMBuilder : public FramedDumpBuilder
   {
   public:
-    FYMBuilder(uint_t clocksPerFrame, uint64_t clockFreq, const String& title, const String& author, uint_t loopFrame)
-      : ClocksPerFrame(clocksPerFrame)
+    FYMBuilder(const Time::Microseconds& frameDuration, uint64_t clockFreq, const String& title, const String& author, uint_t loopFrame)
+      : FrameDuration(frameDuration)
       , ClockFreq(clockFreq)
       , Title(title)
       , Author(author)
       , LoopFrame(loopFrame)
       , Delegate(CreateRawDumpBuilder())
-      , LastTick(1)
     {
     }
 
     virtual void Initialize()
     {
-      LastTick = 1;
+      LastTime = Time::Nanoseconds();
       return Delegate->Initialize();
     }
 
@@ -87,9 +86,9 @@ namespace
       Dump rawDump;
       Delegate->GetResult(rawDump);
 
-      assert(0 == LastTick % ClocksPerFrame);
+      assert(0 == LastTime.Get() % FrameDuration.Get());
       //calculate frames count by timing due to mutable size
-      const uint_t framesCount = static_cast<uint_t>(LastTick / ClocksPerFrame);
+      const uint_t framesCount = static_cast<uint_t>(LastTime.Get() / FrameDuration.Get());
       const std::size_t headerSize = sizeof(FYMHeader) + (Title.size() + 1) + (Author.size() + 1);
 
       Dump result(sizeof(FYMHeader));
@@ -99,7 +98,7 @@ namespace
         header->FramesCount = framesCount;
         header->LoopFrame = LoopFrame;
         header->PSGFreq = static_cast<uint32_t>(ClockFreq);
-        header->IntFreq = static_cast<uint32_t>(ClockFreq * framesCount / LastTick);
+        header->IntFreq = static_cast<uint32_t>(Time::GetFrequencyForPeriod(FrameDuration));
       }
       StoreString(result, Title);
       StoreString(result, Author);
@@ -119,17 +118,17 @@ namespace
 
     virtual void WriteFrame(uint_t framesPassed, const DataChunk& state, const DataChunk& update)
     {
-      LastTick = state.Tick;
+      LastTime = state.TimeStamp;
       return Delegate->WriteFrame(framesPassed, state, update);
     }
   private:
-    const uint_t ClocksPerFrame;
+    const Time::Nanoseconds FrameDuration;
     const uint64_t ClockFreq;
     const String Title;
     const String Author;
     const uint_t LoopFrame;
     const FramedDumpBuilder::Ptr Delegate;
-    uint64_t LastTick;
+    Time::Nanoseconds LastTime;
   };
 }
 
@@ -137,10 +136,10 @@ namespace Devices
 {
   namespace AYM
   {
-    Dumper::Ptr CreateFYMDumper(uint_t clocksPerFrame, uint64_t clockFreq, const String& title, const String& author, uint_t loopFrame)
+    Dumper::Ptr CreateFYMDumper(const Time::Microseconds& frameDuration, uint64_t clockFreq, const String& title, const String& author, uint_t loopFrame)
     {
-      const FramedDumpBuilder::Ptr builder = boost::make_shared<FYMBuilder>(clocksPerFrame, clockFreq, title, author, loopFrame);
-      return CreateDumper(clocksPerFrame, builder);
+      const FramedDumpBuilder::Ptr builder = boost::make_shared<FYMBuilder>(frameDuration, clockFreq, title, author, loopFrame);
+      return CreateDumper(frameDuration, builder);
     }
   }
 }

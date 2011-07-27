@@ -5,6 +5,7 @@
 #include <range_checker.h>
 #include <messages_collector.h>
 #include <detector.h>
+#include <time_tools.h>
 #include <tools.h>
 
 #include <iostream>
@@ -109,6 +110,12 @@ namespace
     Test("Check for " + test + " match", matched == format->Match(SAMPLE, ArraySize(SAMPLE)));
     const std::size_t lookahead = format->Search(SAMPLE, ArraySize(SAMPLE));
     Test("Check for " + test + " lookahead", lookahead, lookAhead);
+  }
+
+  template<class T>
+  void TestScale(const std::string& test, T val, T inScale, T outScale, T result)
+  {
+    Test<T>("Scale " + test, Scale(val, inScale, outScale), result);
   }
 }
 
@@ -245,6 +252,77 @@ int main()
     TestDetector("unmatched with skip at begin", "?0302", false, 32);
     TestDetector("partially matched at end", "1d1e1f20", false, 32);
     TestDetector("partially matched at end with skipping", "?1d1e1f202122", false, 32);
+  }
+  std::cout << "---- Test for Scale -----" << std::endl;
+  {
+    TestScale<uint32_t>("uint32_t small up", 1000, 3000, 2000, 666);
+    TestScale<uint32_t>("uint32_t small up overhead", 4000, 3000, 2000, 2666);
+    TestScale<uint32_t>("uint32_t small down", 1000, 2000, 3000, 1500);
+    TestScale<uint32_t>("uint32_t small down overhead", 4000, 2000, 3000, 6000);
+    TestScale<uint32_t>("uint32_t medium up", 10000, 30000, 20000, 6666);
+    TestScale<uint32_t>("uint32_t medium up overhead", 40000, 30000, 20000, 26666);
+    TestScale<uint32_t>("uint32_t medium down", 10000, 20000, 30000, 15000);
+    TestScale<uint32_t>("uint32_t medium down overhead", 40000, 20000, 30000, 60000);
+    TestScale<uint32_t>("uint32_t big up", 1000000, 3000000, 2000000, 666666);
+    TestScale<uint32_t>("uint32_t big up overhead", 4000000, 3000000, 2000000, 2666666);
+
+    TestScale<uint64_t>("uint64_t small up", 1000, 3000, 2000, 666);
+    TestScale<uint64_t>("uint64_t small up overhead", 4000, 3000, 2000, 2666);
+    TestScale<uint64_t>("uint64_t small down", 1000, 2000, 3000, 1500);
+    TestScale<uint64_t>("uint64_t small down overhead", 4000, 2000, 3000, 6000);
+    TestScale<uint64_t>("uint64_t medium up", 10000, 30000, 20000, 6666);
+    TestScale<uint64_t>("uint64_t medium up overhead", 40000, 30000, 20000, 26666);
+    TestScale<uint64_t>("uint64_t medium down", 10000, 20000, 30000, 15000);
+    TestScale<uint64_t>("uint64_t medium down overhead", 40000, 20000, 30000, 60000);
+    TestScale<uint64_t>("uint64_t big up", 1000000, 3000000, 2000000, 666666);
+    TestScale<uint64_t>("uint64_t big up overhead", 4000000, 3000000, 2000000, 2666666);
+    TestScale<uint64_t>("uint64_t big down", 1000000, 2000000, 3000000, 1500000);
+    TestScale<uint64_t>("uint64_t big down overhead", 4000000, 2000000, 3000000, 6000000);
+    TestScale<uint64_t>("uint64_t giant up", UINT64_C(10000000000), UINT64_C(30000000000), UINT64_C(20000000000), UINT64_C(6666666666));
+    TestScale<uint64_t>("uint64_t giant up overhead", UINT64_C(4000000000), UINT64_C(3000000000), UINT64_C(20000000000), UINT64_C(26666666666));
+    TestScale<uint64_t>("uint64_t giant down", UINT64_C(10000000000), UINT64_C(20000000000), UINT64_C(30000000000), UINT64_C(15000000000));
+    TestScale<uint64_t>("uint64_t giant down overhead", UINT64_C(4000000000), UINT64_C(2000000000), UINT64_C(3000000000), UINT64_C(6000000000));
+  }
+  std::cout << "---- Test for time tools ----" << std::endl;
+  {
+    Time::Nanoseconds ns(UINT64_C(10000000));
+    {
+      const Time::Nanoseconds ons(ns);
+      Test<uint64_t>("Ns => Ns", ons.Get(), ns.Get());
+      const Time::Microseconds ous(ns);
+      Test<uint64_t>("Ns => Us", ous.Get(), ns.Get() / 1000);
+      const Time::Milliseconds oms(ns);
+      Test<uint64_t>("Ns => Ms", oms.Get(), ns.Get() / 1000000);
+    }
+    Time::Microseconds us(2000000);
+    {
+      const Time::Nanoseconds ons(us);
+      Test<uint64_t>("Us => Ns", ons.Get(), uint64_t(us.Get()) * 1000);
+      const Time::Microseconds ous(us);
+      Test<uint64_t>("Us => Us", ous.Get(), us.Get());
+      const Time::Milliseconds oms(us);
+      Test<uint64_t>("Us => Ms", oms.Get(), us.Get() / 1000);
+    }
+    Time::Milliseconds ms(3000000);
+    {
+      const Time::Nanoseconds ons(ms);                         
+      Test<uint64_t>("Ms => Ns", ons.Get(), uint64_t(ms.Get()) * 1000000);
+      const Time::Microseconds ous(ms);
+      Test<uint64_t>("Ms => Us", ous.Get(), ms.Get() * 1000);
+      const Time::Milliseconds oms(ms);
+      Test<uint64_t>("Ms => Ms", oms.Get(), ms.Get());
+    }
+    /*
+    Time::Stamp<uint32_t, 1> s(10000);
+    {
+      const Time::Nanoseconds ons(s);                         
+      Test<uint64_t>("S => Ns", ons.Get(), uint64_t(s.Get()) * UINT64_C(1000000000));
+      const Time::Microseconds ous(s);
+      Test<uint64_t>("S => Us", ous.Get(), uint64_t(s.Get()) * 1000000);
+      const Time::Milliseconds oms(s);
+      Test<uint64_t>("S => Ms", oms.Get(), s.Get() * 1000);
+    }
+    */
   }
   }
   catch (int code)

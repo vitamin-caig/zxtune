@@ -21,8 +21,8 @@ namespace
   class FrameDumper : public Dumper
   {
   public:
-    FrameDumper(uint_t clocksPerFrame, FramedDumpBuilder::Ptr builder)
-      : ClocksPerFrame(clocksPerFrame)
+    FrameDumper(const Time::Microseconds& frameDuration, FramedDumpBuilder::Ptr builder)
+      : FrameDuration(frameDuration)
       , Builder(builder)
     {
       Reset();
@@ -51,9 +51,9 @@ namespace
       {
         return;
       }
-      if (const uint_t framesPassed = static_cast<uint_t>((src.Tick - State.Tick) / ClocksPerFrame))
+      if (const uint_t framesPassed = static_cast<uint_t>((src.TimeStamp.Get() - State.TimeStamp.Get()) / FrameDuration.Get()))
       {
-        State.Tick = src.Tick;
+        State.TimeStamp = src.TimeStamp;
         Builder->WriteFrame(framesPassed, State, update);
       }
       else
@@ -77,7 +77,7 @@ namespace
       Builder->GetResult(result);
     }
   private:
-    const uint_t ClocksPerFrame;
+    const Time::Nanoseconds FrameDuration;
     const FramedDumpBuilder::Ptr Builder;
     DataChunk State;
   };
@@ -87,9 +87,9 @@ namespace Devices
 {
   namespace AYM
   {
-    Dumper::Ptr CreateDumper(uint_t clocksPerFrame, FramedDumpBuilder::Ptr builder)
+    Dumper::Ptr CreateDumper(const Time::Microseconds& frameDuration, FramedDumpBuilder::Ptr builder)
     {
-      return boost::make_shared<FrameDumper>(clocksPerFrame, builder);
+      return boost::make_shared<FrameDumper>(frameDuration, builder);
     }
   }
 }

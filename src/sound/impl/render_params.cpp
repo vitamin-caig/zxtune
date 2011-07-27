@@ -49,13 +49,6 @@ namespace
       return 0 != FoundProperty(LOOPED, 0);
     }
 
-    virtual uint_t ClocksPerFrame() const
-    {
-      const uint64_t clock = ClockFreq();
-      const uint_t frameDuration = FrameDurationMicrosec();
-      return static_cast<uint_t>(clock * frameDuration / 1000000); 
-    }
-
     virtual uint_t SamplesPerFrame() const
     {
       const uint_t sound = SoundFreq();

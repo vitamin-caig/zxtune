@@ -185,9 +185,9 @@ namespace
       UpdateParameters();
     }
 
-    virtual uint_t ClocksPerFrame() const
+    virtual uint_t FrameDurationMicrosec() const
     {
-      return Delegate->ClocksPerFrame();
+      return Delegate->FrameDurationMicrosec();
     }
 
     virtual bool Looped() const

@@ -96,10 +96,10 @@ namespace Devices
 {
   namespace AYM
   {
-    Dumper::Ptr CreateDebugDumper(uint_t clocksPerFrame)
+    Dumper::Ptr CreateDebugDumper(const Time::Microseconds& frameDuration)
     {
       const FramedDumpBuilder::Ptr builder = boost::make_shared<DebugDumpBuilder>();
-      return CreateDumper(clocksPerFrame, builder);
+      return CreateDumper(frameDuration, builder);
     }
   }
 }
