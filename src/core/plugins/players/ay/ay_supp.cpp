@@ -369,6 +369,72 @@ namespace
     Time::Nanoseconds LastTime;
   };
 
+  class AYDataTarget
+  {
+  public:
+    virtual ~AYDataTarget() {}
+
+    virtual void SetTitle(const String& title) = 0;
+    virtual void SetAuthor(const String& author) = 0;
+    virtual void SetComment(const String& comment) = 0;
+    virtual void SetDuration(uint_t duration) = 0;
+    virtual void SetRegisters(uint_t reg, uint_t sp) = 0;
+    virtual void SetRoutines(uint_t init, uint_t play) = 0;
+    virtual void AddBlock(uint_t addr, const void* data, std::size_t size) = 0;
+  };
+
+  std::size_t ParseAY(uint_t idx, const IO::FastDump& data, AYDataTarget& target)
+  {
+    const uint8_t* lastUsed = &data[0];
+    const uint8_t* const limit = &data[0] + data.Size();
+    const AYHeader* const header = safe_ptr_cast<const AYHeader*>(&data[0]);
+    const ModuleDescription* const description = GetPointer<ModuleDescription>(*header, &AYHeader::DescriptionsOffset) + idx;
+    {
+      const uint8_t* const titleBegin = GetPointer<uint8_t>(*description, &ModuleDescription::TitleOffset);
+      const uint8_t* const titleEnd = std::find(titleBegin, limit, 0);
+      target.SetTitle(OptimizeString(String(titleBegin, titleEnd)));
+      lastUsed = std::max(lastUsed, titleEnd);
+    }
+    {
+      const uint8_t* const authorBegin = GetPointer<uint8_t>(*header, &AYHeader::AuthorOffset);
+      const uint8_t* const authorEnd = std::find(authorBegin, limit, 0);
+      target.SetAuthor(OptimizeString(String(authorBegin, authorEnd)));
+      lastUsed = std::max(lastUsed, authorEnd);
+    }
+    {
+      const uint8_t* const miscBegin = GetPointer<uint8_t>(*header, &AYHeader::MiscOffset);
+      const uint8_t* const miscEnd = std::find(miscBegin, limit, 0);
+      target.SetComment(OptimizeString(String(miscBegin, miscEnd)));
+      lastUsed = std::max(lastUsed, miscEnd);
+    }
+    const ModuleDataEMUL* const moddata = GetPointer<ModuleDataEMUL>(*description, &ModuleDescription::DataOffset);
+    if (moddata->TotalLength)
+    {
+      target.SetDuration(fromBE(moddata->TotalLength));
+    }
+    const ModuleBlockEMUL* block = GetPointer<ModuleBlockEMUL>(*moddata, &ModuleDataEMUL::BlocksOffset);
+    {
+      const ModulePointersEMUL* const modptrs = GetPointer<ModulePointersEMUL>(*moddata, &ModuleDataEMUL::PointersOffset);
+      target.SetRegisters(fromBE(moddata->RegValue), fromBE(modptrs->SP));
+      target.SetRoutines(fromBE(modptrs->InitAddr ? modptrs->InitAddr : block->Address), fromBE(modptrs->PlayAddr));
+      for (; block->Address; ++block)
+      {
+        const uint8_t* const src = GetPointer<uint8_t>(*block, &ModuleBlockEMUL::Offset);
+        const std::size_t offset = src - &data[0];
+        if (offset >= data.Size())
+        {
+          continue;
+        }
+        const std::size_t size = fromBE(block->Size);
+        const std::size_t addr = fromBE(block->Address);
+        const std::size_t toCopy = std::min(size, data.Size() - offset);
+        target.AddBlock(addr, src, toCopy);
+        lastUsed = std::max(lastUsed, src + toCopy);
+      }
+    }
+    return lastUsed - &data[0];
+  }
+
   const uint8_t IM1_PLAYER_TEMPLATE[] = 
   {
     0xf3, //di
@@ -422,14 +488,16 @@ namespace
 
   BOOST_STATIC_ASSERT(sizeof(Im2Player) == sizeof(IM2_PLAYER_TEMPLATE));
 
-  class AYData
+
+  class AYData : public AYDataTarget
   {
   public:
     typedef boost::shared_ptr<const AYData> Ptr;
 
-    AYData()
-      : Data(65536)
-      , Frames()
+    AYData(ModuleProperties::RWPtr properties, uint_t defaultDuration)
+      : Properties(properties)
+      , Data(65536)
+      , Frames(defaultDuration)
       , Registers()
       , StackPointer()
     {
@@ -439,72 +507,9 @@ namespace
       Data[0x38] = 0xfb;
     }
 
-    std::size_t ParseInfo(uint_t idx, const IO::FastDump& data, ModuleProperties& properties)
+    ModuleProperties::Ptr GetProperties() const
     {
-      const uint8_t* lastUsed = &data[0];
-      const uint8_t* const limit = &data[0] + data.Size();
-      const AYHeader* const header = safe_ptr_cast<const AYHeader*>(&data[0]);
-      const ModuleDescription* const description = GetPointer<ModuleDescription>(*header, &AYHeader::DescriptionsOffset) + idx;
-      {
-        const uint8_t* const titleBegin = GetPointer<uint8_t>(*description, &ModuleDescription::TitleOffset);
-        const uint8_t* const titleEnd = std::find(titleBegin, limit, 0);
-        properties.SetTitle(OptimizeString(String(titleBegin, titleEnd)));
-        lastUsed = std::max(lastUsed, titleEnd);
-      }
-      {
-        const uint8_t* const authorBegin = GetPointer<uint8_t>(*header, &AYHeader::AuthorOffset);
-        const uint8_t* const authorEnd = std::find(authorBegin, limit, 0);
-        properties.SetAuthor(OptimizeString(String(authorBegin, authorEnd)));
-        lastUsed = std::max(lastUsed, authorEnd);
-      }
-      {
-        const uint8_t* const miscBegin = GetPointer<uint8_t>(*header, &AYHeader::MiscOffset);
-        const uint8_t* const miscEnd = std::find(miscBegin, limit, 0);
-        properties.SetComment(OptimizeString(String(miscBegin, miscEnd)));
-        lastUsed = std::max(lastUsed, miscEnd);
-      }
-      return lastUsed - &data[0];
-    }
-
-    std::size_t ParseData(uint_t idx, uint_t defaultDuration, const IO::FastDump& data)
-    {
-      const uint8_t* lastUsed = &data[0];
-      const AYHeader* const header = safe_ptr_cast<const AYHeader*>(&data[0]);
-      const ModuleDescription* const description = GetPointer<ModuleDescription>(*header, &AYHeader::DescriptionsOffset) + idx;
-      const ModuleDataEMUL* const moddata = GetPointer<ModuleDataEMUL>(*description, &ModuleDescription::DataOffset);
-      Frames = moddata->TotalLength ? fromBE(moddata->TotalLength) : defaultDuration;
-      Registers = fromBE(moddata->RegValue);
-      const ModuleBlockEMUL* block = GetPointer<ModuleBlockEMUL>(*moddata, &ModuleDataEMUL::BlocksOffset);
-      {
-        const ModulePointersEMUL* const modptrs = GetPointer<ModulePointersEMUL>(*moddata, &ModuleDataEMUL::PointersOffset);
-        const std::size_t initRoutine = fromBE(modptrs->InitAddr ? modptrs->InitAddr : block->Address);
-        if (std::size_t intRoutine = fromBE(modptrs->PlayAddr))
-        {
-          Im1Player player(initRoutine, intRoutine);
-          InitializeBlock(&player, 0, sizeof(player));
-        }
-        else
-        {
-          Im2Player player(initRoutine);
-          InitializeBlock(&player, 0, sizeof(player));
-        }
-        StackPointer = fromBE(modptrs->SP);
-      }
-      for (; block->Address; ++block)
-      {
-        const uint8_t* const src = GetPointer<uint8_t>(*block, &ModuleBlockEMUL::Offset);
-        const std::size_t offset = src - &data[0];
-        if (offset >= data.Size())
-        {
-          continue;
-        }
-        const std::size_t size = fromBE(block->Size);
-        const std::size_t addr = fromBE(block->Address);
-        const std::size_t toCopy = std::min(size, data.Size() - offset);
-        InitializeBlock(src, addr, toCopy);
-        lastUsed = std::max(lastUsed, src + toCopy);
-      }
-      return lastUsed - &data[0];
+      return Properties;
     }
 
     uint_t GetFramesCount() const
@@ -525,19 +530,63 @@ namespace
       result->SetState(state);
       return result;
     }
+
+    //AYDataTarget
+    virtual void SetTitle(const String& title)
+    {
+      Properties->SetTitle(title);
+    }
+
+    virtual void SetAuthor(const String& author)
+    {
+      Properties->SetAuthor(author);
+    }
+
+    virtual void SetComment(const String& comment)
+    {
+      Properties->SetComment(comment);
+    }
+
+    virtual void SetDuration(uint_t duration)
+    {
+      Frames = duration;
+    }
+
+    virtual void SetRegisters(uint_t reg, uint_t sp)
+    {
+      Registers = reg;
+      StackPointer = sp;
+    }
+
+    virtual void SetRoutines(uint_t init, uint_t play)
+    {
+      assert(init);
+      if (play)
+      {
+        Im1Player player(init, play);
+        AddBlock(0, &player, sizeof(player));
+      }
+      else
+      {
+        Im2Player player(init);
+        AddBlock(0, &player, sizeof(player));
+      }
+    }
+
+    virtual void AddBlock(uint_t addr, const void* src, std::size_t size)
+    {
+      const std::size_t toCopy = std::min(size, Data.size() - addr);
+      std::memcpy(&Data[addr], src, toCopy);
+    }
+
   private:
     void InitializeBlock(uint8_t src, std::size_t offset, std::size_t size)
     {
       const std::size_t toFill = std::min(size, Data.size() - offset);
       std::memset(&Data[offset], src, toFill);
     }
-
-    void InitializeBlock(const void* src, std::size_t offset, std::size_t size)
-    {
-      const std::size_t toCopy = std::min(size, Data.size() - offset);
-      std::memcpy(&Data[offset], src, toCopy);
-    }
   private:
+    const ModuleProperties::RWPtr Properties;
     Dump Data;
     uint_t Frames;
     uint16_t Registers;
@@ -547,17 +596,16 @@ namespace
   class AYHolder : public Holder
   {
   public:
-    AYHolder(AYData::Ptr data, ModuleProperties::Ptr properties, Parameters::Accessor::Ptr parameters)
+    AYHolder(AYData::Ptr data, Parameters::Accessor::Ptr parameters)
       : Data(data)
       , Info(CreateStreamInfo(Data->GetFramesCount(), Devices::AYM::CHANNELS))
-      , Properties(properties)
       , Params(parameters)
     {
     }
 
     virtual Plugin::Ptr GetPlugin() const
     {
-      return Properties->GetPlugin();
+      return Data->GetProperties()->GetPlugin();
     }
 
     virtual Information::Ptr GetModuleInformation() const
@@ -567,7 +615,7 @@ namespace
 
     virtual Parameters::Accessor::Ptr GetModuleProperties() const
     {
-      return Parameters::CreateMergedAccessor(Params, Properties);
+      return Parameters::CreateMergedAccessor(Params, Data->GetProperties());
     }
 
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::MultichannelReceiver::Ptr target) const
@@ -590,14 +638,13 @@ namespace
       Error result;
       if (parameter_cast<RawConvertParam>(&spec))
       {
-        Properties->GetData(dst);
+        Data->GetProperties()->GetData(dst);
       }
       return result;
     }
   private:
     const AYData::Ptr Data;
     const Information::Ptr Info;
-    const ModuleProperties::Ptr Properties;
     const Parameters::Accessor::Ptr Params;
   };
 
@@ -624,7 +671,6 @@ namespace
     "'Z'X'A'Y" // uint8_t Signature[4];
     "'E'M'U'L" // only one type is supported now
   );
-
 
   class AYPlugin : public PlayerPlugin
                  , public ModulesFactory
@@ -683,14 +729,11 @@ namespace
         Parameters::IntType defaultDuration = Parameters::ZXTune::Core::Plugins::AY::DEFAULT_DURATION_FRAMES_DEFAULT;
         parameters->FindIntValue(Parameters::ZXTune::Core::Plugins::AY::DEFAULT_DURATION_FRAMES, defaultDuration);
 
-        const boost::shared_ptr<AYData> result = boost::make_shared<AYData>();
+        const boost::shared_ptr<AYData> result = boost::make_shared<AYData>(properties, defaultDuration);
         const IO::FastDump data(*rawData);
-        const std::size_t lastInfo = result->ParseInfo(0, data, *properties);
-        const std::size_t lastData = result->ParseData(0, static_cast<uint_t>(defaultDuration), data);
-
-        usedSize = std::max(lastInfo, lastData);
+        usedSize = ParseAY(0, data, *result);
         properties->SetSource(usedSize, ModuleRegion(0, usedSize));
-        return boost::make_shared<AYHolder>(result, properties, parameters);
+        return boost::make_shared<AYHolder>(result, parameters);
       }
       catch (const Error&/*e*/)
       {
