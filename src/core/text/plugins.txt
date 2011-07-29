@@ -21,6 +21,15 @@ __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 < ARCHIVE_PLUGIN_PREFIX
 > "+un"
 
+< RAW_PLUGIN_PREFIX
+> "+"
+
+< AY_PLUGIN_PREFIX
+> "#"
+
+< AY_RAW_PLUGIN_PREFIX
+> "@"
+
 #common
 < CONTAINER_PLUGIN_PROGRESS_NOPATH
 > "%1% container processing for '%2%'"

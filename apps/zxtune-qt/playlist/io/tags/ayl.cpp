@@ -44,6 +44,9 @@ extern const Char COMPUTER[] = {
 extern const Char DATE[] = {
   'D','a','t','e',0
 };
+extern const Char FORMAT_SPECIFIC[] = {
+  'F','o','r','m','a','t','S','p','e','c',0
+};
 extern const Char NAME[] = {
   'N','a','m','e',0
 };

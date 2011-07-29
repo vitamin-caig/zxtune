@@ -23,10 +23,13 @@ Author:
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
 #include <devices/aym.h>
+#include <io/provider.h>
 #include <sound/sound_parameters.h>
+#include <core/plugins/utils.h>
 //std includes
 #include <cctype>
 //boost includes
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/make_shared.hpp>
 //qt includes
 #include <QtCore/QDir>
@@ -34,6 +37,8 @@ Author:
 #include <QtCore/QFileInfo>
 #include <QtCore/QTextCodec>
 #include <QtCore/QTextStream>
+//text includes
+#include <core/text/plugins.h>
 
 namespace
 {
@@ -216,7 +221,13 @@ namespace
     ParametersFilter(const VersionLayer& version, Parameters::Visitor& delegate)
       : Version(version)
       , Delegate(delegate)
+      , FormatSpec()
     {
+    }
+
+    std::size_t GetFormatSpec() const
+    {
+      return FormatSpec;
     }
 
     virtual void SetIntValue(const Parameters::NameType& name, Parameters::IntType val)
@@ -230,6 +241,10 @@ namespace
       {
         Delegate.SetIntValue(Parameters::ZXTune::Sound::FRAMEDURATION,
           Version.DecodeFrameduration(val));
+      }
+      else if (name == AYL::FORMAT_SPECIFIC)
+      {
+        FormatSpec = static_cast<std::size_t>(val);
       }
       //ignore "Loop", "Length", "Time"
     }
@@ -317,6 +332,7 @@ namespace
   private:
     const VersionLayer& Version;
     Parameters::Visitor& Delegate;
+    std::size_t FormatSpec;
   };
 
   Parameters::Container::Ptr CreateProperties(const VersionLayer& version, const AYLContainer& aylItems)
@@ -328,6 +344,16 @@ namespace
     return properties;
   }
 
+  void ApplyFormatSpecificData(std::size_t formatSpec, Playlist::IO::ContainerItem& item)
+  {
+    //for AY files FormatSpec is subtune index
+    if (boost::algorithm::iends_with(item.Path, FromStdString(".ay")))
+    {
+      const String subPath = IndexPathComponent(Text::AY_PLUGIN_PREFIX).Build(formatSpec);
+      ZXTune::IO::CombineUri(item.Path, subPath, item.Path);
+    }
+  }
+
   Playlist::IO::ContainerItemsPtr CreateItems(const QString& basePath, const VersionLayer& version, const AYLContainer& aylItems)
   {
     const QDir baseDir(basePath);
@@ -337,13 +363,17 @@ namespace
       const String& itemPath = iter.GetPath();
       Log::Debug(THIS_MODULE, "Processing '%1%'", itemPath);
       Playlist::IO::ContainerItem item;
-      const QString absItemPath = baseDir.absoluteFilePath(ToQString(itemPath));
-      item.Path = FromQString(baseDir.cleanPath(absItemPath));
       const Parameters::Container::Ptr adjustedParams = Parameters::Container::Create();
       ParametersFilter filter(version, *adjustedParams);
       const StringMap& itemParams = iter.GetParameters();
       Parameters::ParseStringMap(itemParams, filter);
       item.AdjustedParameters = adjustedParams;
+      const QString absItemPath = baseDir.absoluteFilePath(ToQString(itemPath));
+      item.Path = FromQString(baseDir.cleanPath(absItemPath));
+      if (std::size_t formatSpec = filter.GetFormatSpec())
+      {
+        ApplyFormatSpecificData(formatSpec, item);
+      }
       items->push_back(item);
     }
     return items;

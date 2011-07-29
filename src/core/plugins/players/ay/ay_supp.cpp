@@ -64,9 +64,11 @@ namespace
   }
 
   template<class T>
-  void SetPointer(int16_t* ptr, const T& obj)
+  void SetPointer(int16_t* ptr, const T obj)
   {
-    const std::ptrdiff_t offset = safe_ptr_cast<const uint8_t*>(&obj) - safe_ptr_cast<const uint8_t*>(ptr);
+    BOOST_STATIC_ASSERT(boost::is_pointer<T>::value);
+    const std::ptrdiff_t offset = safe_ptr_cast<const uint8_t*>(obj) - safe_ptr_cast<const uint8_t*>(ptr);
+    assert(offset > 0);//layout data sequentally
     *ptr = fromBE<int16_t>(offset);
   }
 
@@ -678,8 +680,7 @@ namespace
     {
       return false;
     }
-    return 0 == header->FirstModuleIndex &&
-           0 == header->LastModuleIndex;
+    return true;
   }
 
   const std::string AY_FORMAT(
@@ -770,21 +771,16 @@ namespace
     }
 
     template<class T>
-    T& Add(const T& obj)
+    T* Add(const T& obj)
     {
-      return *static_cast<T*>(Add(&obj, sizeof(obj)));
+      return static_cast<T*>(Add(&obj, sizeof(obj)));
     }
 
-    char& Add(const String& str)
+    char* Add(const String& str)
     {
-      return *static_cast<char*>(Add(str.c_str(), str.size() + 1));
+      return static_cast<char*>(Add(str.c_str(), str.size() + 1));
     }
 
-    uint8_t& Add(const Dump& data)
-    {
-      return *static_cast<uint8_t*>(Add(&data[0], data.size()));
-    }
-  private:
     void* Add(const void* src, std::size_t srcSize)
     {
       const std::size_t prevSize = size();
@@ -802,6 +798,7 @@ namespace
       : Duration()
       , Register(), StackPointer()
       , InitRoutine(), PlayRoutine()
+      , Memory(65536)
     {
     }
 
@@ -839,50 +836,57 @@ namespace
 
     virtual void AddBlock(uint_t addr, const void* data, std::size_t size)
     {
-      const uint8_t* const typedData = static_cast<const uint8_t*>(data);
-      Blocks.push_back(BlocksList::value_type(addr, Dump(typedData, typedData + size)));
+      const std::size_t toCopy = std::min(size, Memory.size() - addr);
+      std::memcpy(&Memory[addr], data, toCopy);
+      Blocks.push_back(BlocksList::value_type(addr, toCopy));
     }
 
-    IO::DataContainer::Ptr GetResult() const
+    IO::DataContainer::Ptr GetAy() const
     {
       VariableDump result;
       //init header
-      AYHeader& header = result.Add(AYHeader());
-      std::copy(AY_SIGNATURE, ArrayEnd(AY_SIGNATURE), header.Signature);
-      std::copy(TYPE_EMUL, ArrayEnd(TYPE_EMUL), header.Type);
-      SetPointer(&header.AuthorOffset, result.Add(Author));
-      SetPointer(&header.MiscOffset, result.Add(Comment));
+      AYHeader* const header = result.Add(AYHeader());
+      std::copy(AY_SIGNATURE, ArrayEnd(AY_SIGNATURE), header->Signature);
+      std::copy(TYPE_EMUL, ArrayEnd(TYPE_EMUL), header->Type);
+      SetPointer(&header->AuthorOffset, result.Add(Author));
+      SetPointer(&header->MiscOffset, result.Add(Comment));
       //init descr
-      ModuleDescription& descr = result.Add(ModuleDescription());
-      SetPointer(&header.DescriptionsOffset, descr);
-      SetPointer(&descr.TitleOffset, result.Add(Title));
+      ModuleDescription* const descr = result.Add(ModuleDescription());
+      SetPointer(&header->DescriptionsOffset, descr);
+      SetPointer(&descr->TitleOffset, result.Add(Title));
       //init data
-      ModuleDataEMUL& data = result.Add(ModuleDataEMUL());
-      SetPointer(&descr.DataOffset, data);
-      data.TotalLength = fromBE(Duration);
-      data.RegValue = fromBE(Register);
+      ModuleDataEMUL* const data = result.Add(ModuleDataEMUL());
+      SetPointer(&descr->DataOffset, data);
+      data->TotalLength = fromBE(Duration);
+      data->RegValue = fromBE(Register);
       //init pointers
-      ModulePointersEMUL& pointers = result.Add(ModulePointersEMUL());
-      SetPointer(&data.PointersOffset, pointers);
-      pointers.SP = fromBE(StackPointer);
-      pointers.InitAddr = fromBE(InitRoutine);
-      pointers.PlayAddr = fromBE(PlayRoutine);
+      ModulePointersEMUL* const pointers = result.Add(ModulePointersEMUL());
+      SetPointer(&data->PointersOffset, pointers);
+      pointers->SP = fromBE(StackPointer);
+      pointers->InitAddr = fromBE(InitRoutine);
+      pointers->PlayAddr = fromBE(PlayRoutine);
       //init blocks
       std::list<ModuleBlockEMUL*> blockPtrs;
       for (BlocksList::const_iterator it = Blocks.begin(), lim = Blocks.end(); it != lim; ++it)
       {
-        blockPtrs.push_back(&result.Add(ModuleBlockEMUL()));
+        blockPtrs.push_back(result.Add(ModuleBlockEMUL()));
       }
-      result.Add(ModuleBlockEMUL());
-      SetPointer(&data.BlocksOffset, *blockPtrs.front());
+      result.Add(ModuleBlockEMUL());//limiter
+      SetPointer(&data->BlocksOffset, blockPtrs.front());
+      //fill blocks
       for (BlocksList::const_iterator it = Blocks.begin(), lim = Blocks.end(); it != lim; ++it, blockPtrs.pop_front())
       {
         ModuleBlockEMUL* const dst = blockPtrs.front();
-        dst->Address = fromBE(it->first);
-        dst->Size = fromBE<uint16_t>(it->second.size());
-        SetPointer(&dst->Offset, result.Add(it->second));
+        dst->Address = fromBE<uint16_t>(it->first);
+        dst->Size = fromBE<uint16_t>(it->second);
+        SetPointer(&dst->Offset, result.Add(&Memory[it->first], it->second));
       }
       return IO::CreateDataContainer(result);
+    }
+
+    IO::DataContainer::Ptr GetRaw() const
+    {
+      return IO::CreateDataContainer(Memory);
     }
   private:
     String Title;
@@ -893,7 +897,8 @@ namespace
     uint16_t StackPointer;
     uint16_t InitRoutine;
     uint16_t PlayRoutine;
-    typedef std::list<std::pair<uint16_t, Dump> > BlocksList;
+    Dump Memory;
+    typedef std::list<std::pair<std::size_t, std::size_t> > BlocksList;
     BlocksList Blocks;
   };
 
@@ -913,24 +918,8 @@ namespace
       return 0;
     }
     return header->FirstModuleIndex <= header->LastModuleIndex
-      ? header->LastModuleIndex
+      ? header->LastModuleIndex + 1
       : 0;    
-  }
-
-  bool CheckIfAySubpath(const String& path, std::size_t& idx)
-  {
-    Parameters::IntType res = 0;
-    if (Parameters::ConvertFromString(path, res))
-    {
-      idx = static_cast<std::size_t>(res);
-      return true;
-    }
-    return false;
-  }
-
-  String MakeAySubpath(std::size_t idx)
-  {
-    return Parameters::ConvertToString(idx);
   }
 
   //TODO: extract to common place
@@ -968,6 +957,8 @@ namespace
   public:
     AYContainerPlugin()
       : Format(DataFormat::Create(AY_FORMAT))
+      , AyPath(Text::AY_PLUGIN_PREFIX)
+      , RawPath(Text::AY_RAW_PLUGIN_PREFIX)
     {
     }
 
@@ -995,7 +986,7 @@ namespace
     {
       const IO::DataContainer::Ptr rawData = input->GetData();
       const std::size_t subModules = GetAYSubmodules(*rawData);
-      if (!subModules)
+      if (subModules < 2)
       {
         return DetectionResult::CreateUnmatched(Format, rawData);
       }
@@ -1009,7 +1000,7 @@ namespace
       const IO::FastDump dump(*rawData);
       for (std::size_t idx = 0; idx < subModules; ++idx)
       {
-        const String subPath = MakeAySubpath(idx);
+        const String subPath = AyPath.Build(idx);
         AYBuilder builder;
         const std::size_t parsedLimit = ParseAY(idx, dump, builder);
         logger(subPath);
@@ -1017,8 +1008,10 @@ namespace
         {
           continue;
         }
-        const IO::DataContainer::Ptr subData = builder.GetResult();
-        const ZXTune::DataLocation::Ptr subLocation = CreateNestedLocation(input, subData, plugin, subPath);
+        const IO::DataContainer::Ptr subData = builder.GetAy();
+        const ZXTune::DataLocation::Ptr subLocation = idx 
+          ? CreateNestedLocation(input, subData, plugin, subPath)
+          : CreateNestedLocation(input, subData);
         ZXTune::Module::Detect(subLocation, noProgressCallback);
         usedData = std::max(usedData, parsedLimit);
       }
@@ -1031,7 +1024,8 @@ namespace
     {
       const String& pathComp = inPath.GetFirstComponent();
       std::size_t index = 0;
-      if (!CheckIfAySubpath(pathComp, index))
+      const bool asRaw = RawPath.GetIndex(pathComp, index);
+      if (!asRaw && !AyPath.GetIndex(pathComp, index))
       {
         return DataLocation::Ptr();
       }
@@ -1048,11 +1042,15 @@ namespace
         return DataLocation::Ptr();
       }
       const Plugin::Ptr subPlugin = shared_from_this();
-      const IO::DataContainer::Ptr subData = builder.GetResult();
+      const IO::DataContainer::Ptr subData = asRaw
+        ? builder.GetRaw()
+        : builder.GetAy();
       return CreateNestedLocation(location, subData, subPlugin, pathComp); 
     }
   private:
     const DataFormat::Ptr Format;
+    const IndexPathComponent AyPath;
+    const IndexPathComponent RawPath;
   };
 }
 

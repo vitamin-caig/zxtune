@@ -51,6 +51,9 @@ __cpp> "#endif //ZXTUNE_QT_PLAYLIST_AYL_TAGS_H_DEFINED\n"
 < COMMENT
 > "Comment"
 
+< FORMAT_SPECIFIC
+> "FormatSpec"
+
 < YM
 > "YM"
 

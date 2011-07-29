@@ -18,6 +18,12 @@ extern const Char ASC_PLUGIN_INFO[] = {
 extern const Char AY_PLUGIN_INFO[] = {
   'A','Y',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
 };
+extern const Char AY_PLUGIN_PREFIX[] = {
+  '#',0
+};
+extern const Char AY_RAW_PLUGIN_PREFIX[] = {
+  '@',0
+};
 extern const Char CC3_PLUGIN_INFO[] = {
   'C','o','d','e','C','r','u','n','c','h','e','r',' ','v','3',' ','f','o','r','m','a','t',' ','s','u','p','p',
   'o','r','t',0
@@ -128,6 +134,9 @@ extern const Char RAW_ERROR_INVALID_STEP[] = {
 };
 extern const Char RAW_PLUGIN_INFO[] = {
   'R','a','w',' ','m','o','d','u','l','e','s',' ','s','c','a','n','e','r',0
+};
+extern const Char RAW_PLUGIN_PREFIX[] = {
+  '+',0
 };
 extern const Char SCL_PLUGIN_INFO[] = {
   'S','C','L',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0

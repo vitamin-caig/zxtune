@@ -49,30 +49,7 @@ namespace
   const uint_t MAX_SCAN_STEP = 256;
   const std::size_t MIN_MINIMAL_RAW_SIZE = 128;
 
-  const Char RAW_PREFIX[] = {'+', 0};
-
-  //\+\d+
-  inline bool CheckIfRawPart(const String& str, std::size_t& offset)
-  {
-    static const String PREFIX(RAW_PREFIX);
-
-    Parameters::IntType res = 0;
-    if (!str.empty() && 
-        0 == str.find(PREFIX) &&
-        Parameters::ConvertFromString(str.substr(PREFIX.size()), res))
-    {
-      offset = static_cast<std::size_t>(res);
-      return true;
-    }
-    return false;
-  }
-
-  inline String CreateRawPart(std::size_t offset)
-  {
-    String res(RAW_PREFIX);
-    res += Parameters::ConvertToString(offset);
-    return res;
-  }
+  const IndexPathComponent RawPath(Text::RAW_PLUGIN_PREFIX);
 
   class RawPluginParameters
   {
@@ -207,7 +184,7 @@ namespace
       const DataPath::Ptr parentPath = Parent->GetPath();
       if (std::size_t offset = Subdata->GetOffset())
       {
-        const String subPath = CreateRawPart(offset);
+        const String subPath = RawPath.Build(offset);
         return CreateMergedDataPath(parentPath, subPath);
       }
       return parentPath;
@@ -475,7 +452,7 @@ namespace
     {
       const String& pathComp = inPath.GetFirstComponent();
       std::size_t offset = 0;
-      if (CheckIfRawPart(pathComp, offset))
+      if (RawPath.GetIndex(pathComp, offset))
       {
         const IO::DataContainer::Ptr inData = location->GetData();
         const Plugin::Ptr subPlugin = shared_from_this();
