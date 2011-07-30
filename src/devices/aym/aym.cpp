@@ -22,6 +22,7 @@ Author:
 #include <memory>
 //boost includes
 #include <boost/bind.hpp>
+#include <boost/function.hpp>
 
 namespace
 {
@@ -79,7 +80,7 @@ namespace
   public:
     Generator()
       : Counter()
-      , Level()
+      , Flipped()
       , Masked(true)
       , DutyCycle(NO_DUTYCYCLE)
       , HalfPeriod(), FullPeriod()
@@ -89,7 +90,7 @@ namespace
     void Reset()
     {
       Counter = 0;
-      Level = false;
+      Flipped = false;
       Masked = true;
       DutyCycle = NO_DUTYCYCLE;
       SetPeriod(0);
@@ -117,20 +118,20 @@ namespace
       if (Counter >= FullPeriod)
       {
         Counter = 0;
-        Level = !Level;
+        Flipped = !Flipped;
         return true;
       }
       else if (Counter == HalfPeriod)
       {
-        Level = !Level;
+        Flipped = !Flipped;
         return true;
       }
       return false;
     }
 
-    bool GetLevel() const
+    bool GetFlip() const
     {
-      return Masked || Level;
+      return Flipped;
     }
 
     bool IsMasked() const
@@ -162,11 +163,25 @@ namespace
     }
   private:
     uint_t Counter;
-    bool Level;
+    bool Flipped;
     bool Masked;
     uint_t DutyCycle;
     uint_t HalfPeriod;
     uint_t FullPeriod;
+  };
+  
+  class ToneGenerator : public Generator
+  {
+  public:
+    bool Tick()
+    {
+      return Generator::Tick();
+    }
+
+    bool GetLevel() const
+    {
+      return IsMasked() || GetFlip();
+    }
   };
 
   class NoiseGenerator : public Generator
@@ -221,7 +236,7 @@ namespace
 
     bool Tick()
     {
-      if (!Generator::Tick())
+      if (!Generator::Tick() || !Decay)
       {
         return false;
       }
@@ -236,25 +251,19 @@ namespace
       {
         Level = Decay = 0;
       }
+      else if (envTypeMask & ((1 << 8) | (1 << 12)))
+      {
+        Level &= 31;
+      }
+      else if (envTypeMask & ((1 << 10) | (1 << 14)))
+      {
+        Decay = -Decay;
+        Level += Decay;
+      }
       else
       {
-        if (envTypeMask & ((1 << 8) | (1 << 12)))
-        {
-          Level &= 31;
-        }
-        else
-        {
-          if (envTypeMask & ((1 << 10) | (1 << 14)))
-          {
-            Decay = -Decay;
-            Level += Decay;
-          }
-          else
-          {
-            Level = 31;
-            Decay = 0; //11, 13
-          }
-        }
+        Level = 31;
+        Decay = 0; //11, 13
       }
       return true;
     }
@@ -275,7 +284,7 @@ namespace
       }
     }
 
-    uint_t GetValue() const
+    uint_t GetLevel() const
     {
       return Level;
     }
@@ -291,6 +300,7 @@ namespace
     virtual ~Renderer() {}
 
     virtual void Reset() = 0;
+    virtual void SetNewData(const DataChunk& data) = 0;
     virtual bool Tick() = 0;
     virtual void GetLevels(MultiSample& result) const = 0;
   };
@@ -300,8 +310,8 @@ namespace
   public:
     AYMRenderer()
       : VolA(State.Data[DataChunk::REG_VOLA]), VolB(State.Data[DataChunk::REG_VOLB]), VolC(State.Data[DataChunk::REG_VOLC])
-      , Mixer(State.Data[DataChunk::REG_MIXER]), Beeper(State.Data[DataChunk::REG_BEEPER])
-      , ChangedFromLastTick()
+      , Mixer(State.Data[DataChunk::REG_MIXER])
+      , LevelA(), LevelB(), LevelC()
       , IsYM()
     {
       State.Data[DataChunk::REG_MIXER] = 0xff;
@@ -330,10 +340,10 @@ namespace
       GenC.Reset();
       GenN.Reset();
       GenE.Reset();
-      ChangedFromLastTick = false;
+      LevelA = LevelB = LevelC = 0;
     }
 
-    void ApplyData(const DataChunk& data)
+    virtual void SetNewData(const DataChunk& data)
     {
       for (uint_t idx = 0, mask = 1; idx != data.Data.size(); ++idx, mask <<= 1)
       {
@@ -357,16 +367,10 @@ namespace
       }
       if (data.Mask & (1 << DataChunk::REG_MIXER))
       {
-        const bool newMaskA = 0 != (Mixer & DataChunk::REG_MASK_TONEA);
-        const bool newMaskB = 0 != (Mixer & DataChunk::REG_MASK_TONEB);
-        const bool newMaskC = 0 != (Mixer & DataChunk::REG_MASK_TONEC);
-        const bool newMaskN = 0 == (~Mixer & (DataChunk::REG_MASK_NOISEA | DataChunk::REG_MASK_NOISEB | DataChunk::REG_MASK_NOISEC));
-        ChangedFromLastTick = newMaskA != GenA.IsMasked() ||
-          newMaskB != GenB.IsMasked() || newMaskC != GenC.IsMasked() || newMaskN != GenN.IsMasked();
-        GenA.SetMask(newMaskA);
-        GenB.SetMask(newMaskB);
-        GenC.SetMask(newMaskC);
-        GenN.SetMask(newMaskN);
+        GenA.SetMask(0 != (Mixer & DataChunk::REG_MASK_TONEA));
+        GenB.SetMask(0 != (Mixer & DataChunk::REG_MASK_TONEB));
+        GenC.SetMask(0 != (Mixer & DataChunk::REG_MASK_TONEC));
+        GenN.SetMask(0 == (~Mixer & (DataChunk::REG_MASK_NOISEA | DataChunk::REG_MASK_NOISEB | DataChunk::REG_MASK_NOISEC)));
       }
       if (data.Mask & ((1 << DataChunk::REG_TONEA_L) | (1 << DataChunk::REG_TONEA_H)))
       {
@@ -392,63 +396,57 @@ namespace
       {
         //update r13
         GenE.SetType(GetEnvType());
-        ChangedFromLastTick = true;
       }
-      if (data.Mask & REGS_5BIT_SET)
+      if (data.Mask & ((1 << DataChunk::REG_VOLA) | (1 << DataChunk::REG_VOLB) | (1 << DataChunk::REG_VOLC)))
       {
         GenE.SetMask(0 == ((VolA | VolB | VolC) & DataChunk::REG_MASK_ENV));
-        ChangedFromLastTick = true;
-      }
-      if (data.Mask & (1 << DataChunk::REG_BEEPER))
-      {
-        ChangedFromLastTick = true;
+
+        if (data.Mask & (1 << DataChunk::REG_VOLA))
+        {
+          LevelA = ((VolA & DataChunk::REG_MASK_VOL) << 1) + 1;
+        }
+        if (data.Mask & (1 << DataChunk::REG_VOLB))
+        {
+          LevelB = ((VolB & DataChunk::REG_MASK_VOL) << 1) + 1;
+        }
+        if (data.Mask & (1 << DataChunk::REG_VOLC))
+        {
+          LevelC = ((VolC & DataChunk::REG_MASK_VOL) << 1) + 1;
+        }
       }
     }
 
     virtual bool Tick()
     {
-      bool res = ChangedFromLastTick;
+      bool res = false;
       res |= GenA.Tick() && !GenA.IsMasked();
       res |= GenB.Tick() && !GenB.IsMasked();
       res |= GenC.Tick() && !GenC.IsMasked();
       res |= GenN.Tick() && !GenN.IsMasked();
       res |= GenE.Tick() && !GenE.IsMasked();
-      ChangedFromLastTick = false;
       return res;
     }
 
     virtual void GetLevels(MultiSample& result) const
     {
       const bool triggeredNoise = GenN.GetLevel();
-      const uint_t envelope = GenE.GetValue();
+      const uint_t envelope = GenE.GetLevel();
       //references to mixered bits. updated automatically
-      const uint_t levelA = (((VolA & DataChunk::REG_MASK_VOL) << 1) + 1);
-      const uint_t levelB = (((VolB & DataChunk::REG_MASK_VOL) << 1) + 1);
-      const uint_t levelC = (((VolC & DataChunk::REG_MASK_VOL) << 1) + 1);
       const bool maskedNoiseA = triggeredNoise || 0 != (Mixer & DataChunk::REG_MASK_NOISEA);
-      const uint_t outA = (VolA & DataChunk::REG_MASK_ENV) ? envelope : levelA;
+      const uint_t outA = (VolA & DataChunk::REG_MASK_ENV) ? envelope : LevelA;
       const bool maskedNoiseB = triggeredNoise || 0 != (Mixer & DataChunk::REG_MASK_NOISEB);
-      const uint_t outB = (VolB & DataChunk::REG_MASK_ENV) ? envelope : levelB;
+      const uint_t outB = (VolB & DataChunk::REG_MASK_ENV) ? envelope : LevelB;
       const bool maskedNoiseC = triggeredNoise || 0 != (Mixer & DataChunk::REG_MASK_NOISEC);
-      const uint_t outC = (VolC & DataChunk::REG_MASK_ENV) ? envelope : levelC;
+      const uint_t outC = (VolC & DataChunk::REG_MASK_ENV) ? envelope : LevelC;
 
       const VolumeTable& table = IsYM ? YMVolumeTab : AYVolumeTab;
       assert(outA < 32 && outB < 32 && outC < 32);
       result[0] = maskedNoiseA && GenA.GetLevel() ? table[outA] : 0;
       result[1] = maskedNoiseB && GenB.GetLevel() ? table[outB] : 0;
       result[2] = maskedNoiseC && GenC.GetLevel() ? table[outC] : 0;
-      if (Beeper)
-      {
-        assert(Beeper < 16);
-        const uint_t levelBeeper = table[(Beeper << 1) + 1] / 2;
-        result[0] = result[0] / 2 + levelBeeper;
-        result[1] = result[1] / 2 + levelBeeper;
-        result[2] = result[2] / 2 + levelBeeper;
-        return;
-      }
     }
 
-    virtual void GetState(uint64_t ticksPerSec, ChannelsState& state) const
+    void GetState(uint64_t ticksPerSec, ChannelsState& state) const
     {
       const uint_t MAX_LEVEL = 100;
       //one channel is noise
@@ -561,44 +559,146 @@ namespace
     uint8_t& VolB;
     uint8_t& VolC;
     uint8_t& Mixer;
-    uint8_t& Beeper;
     //generators
-    Generator GenA;
-    Generator GenB;
-    Generator GenC;
+    ToneGenerator GenA;
+    ToneGenerator GenB;
+    ToneGenerator GenC;
     NoiseGenerator GenN;
     EnvelopeGenerator GenE;
     //state
-    bool ChangedFromLastTick;
+    uint_t LevelA;
+    uint_t LevelB;
+    uint_t LevelC;
     //parameters
     bool IsYM;
   };
 
-  class InterpolatedRenderer : public Renderer
+  class BeeperRenderer : public Renderer
   {
   public:
-    explicit InterpolatedRenderer(Renderer& delegate)
-      : Delegate(delegate)
-      , Levels()
-      , AccumulatedSamples()
+    BeeperRenderer()
+      : Beeper()
     {
     }
 
     virtual void Reset()
     {
-      std::fill(Levels.begin(), Levels.end(), 0);
-      AccumulatedSamples = 0;
-      Delegate.Reset();
+      Beeper = 0;
+    }
+
+    virtual void SetNewData(const DataChunk& data)
+    {
+      if (data.Mask & (1 << DataChunk::REG_BEEPER))
+      {
+        Beeper = ((data.Data[DataChunk::REG_BEEPER] & DataChunk::REG_MASK_VOL) << 1) + 1;
+      }
     }
 
     virtual bool Tick()
     {
-      if (Delegate.Tick())
+      return false;
+    }
+
+    virtual void GetLevels(MultiSample& result) const
+    {
+      assert(Beeper < 32);
+      const uint_t levelBeeper = AYVolumeTab[Beeper];
+      std::fill(result.begin(), result.end(), levelBeeper);
+    }
+  private:
+    uint_t Beeper;
+  };
+
+  class MixedRenderer : public Renderer
+  {
+  public:
+    MixedRenderer(Renderer& first, Renderer& second)
+      : First(first)
+      , Second(second)
+    {
+    }
+
+    virtual void Reset()
+    {
+      First.Reset();
+      Second.Reset();
+    }
+
+    virtual void SetNewData(const DataChunk& data)
+    {
+      First.SetNewData(data);
+      Second.SetNewData(data);
+    }
+
+    virtual bool Tick()
+    {
+      const bool first = First.Tick();
+      const bool second = Second.Tick();
+      return first || second;
+    }
+
+    virtual void GetLevels(MultiSample& result) const
+    {
+      MultiSample firstResult;
+      MultiSample secondResult;
+      First.GetLevels(firstResult);
+      Second.GetLevels(secondResult);
+      std::transform(firstResult.begin(), firstResult.end(), secondResult.begin(), result.begin(), &Average);
+    }
+  private:
+    static Sample Average(Sample first, Sample second)
+    {
+      return static_cast<Sample>((uint_t(first) + second) / 2);
+    }
+  private:
+    Renderer& First;
+    Renderer& Second;
+  };
+
+  class InterpolatedRenderer : public Renderer
+  {
+  public:
+    InterpolatedRenderer()
+      : Delegate()
+      , Levels()
+      , AccumulatedSamples()
+      , NewData()
+    {
+    }
+
+    void SetSource(Renderer* delegate)
+    {
+      assert(delegate);
+      Delegate = delegate;
+    }
+
+    virtual void Reset()
+    {
+      if (Delegate)
       {
-        Delegate.GetLevels(Levels);
+        Delegate->Reset();
       }
+      std::fill(Levels.begin(), Levels.end(), 0);
+      AccumulatedSamples = 0;
+      NewData = false;
+    }
+
+    virtual void SetNewData(const DataChunk &data)
+    {
+      Delegate->SetNewData(data);
+      NewData = true;
+      Delegate->GetLevels(Levels);
+    }
+
+    virtual bool Tick()
+    {
       std::transform(Accumulators.begin(), Accumulators.end(), Levels.begin(), Accumulators.begin(), std::plus<uint_t>());
       ++AccumulatedSamples;
+      if (Delegate->Tick() || NewData)
+      {
+        Delegate->GetLevels(Levels);
+        NewData = false;
+      }
       return true;
     }
 
@@ -609,10 +709,11 @@ namespace
       AccumulatedSamples = 0;
     }
   private:
-    Renderer& Delegate;
+    Renderer* Delegate;
     MultiSample Levels;
     mutable boost::array<uint_t, CHANNELS> Accumulators;
     mutable uint_t AccumulatedSamples;
+    bool NewData;
   };
 
   class RelayoutRenderer : public Renderer
@@ -627,6 +728,11 @@ namespace
     virtual void Reset()
     {
       return Delegate.Reset();
+    }
+
+    virtual void SetNewData(const DataChunk &data)
+    {
+      return Delegate.SetNewData(data);
     }
 
     virtual bool Tick()
@@ -673,18 +779,19 @@ namespace
       NextSoundTick = 0;
     }
 
-    void ApplyData(const DataChunk& data)
+    void SetFrameEnd(const Time::Nanoseconds& time)
     {
-      LastTick = PsgOscillator.GetTickAtTime(data.TimeStamp);
+      LastTick = PsgOscillator.GetTickAtTime(time);
     }
 
     bool Tick()
     {
       PsgOscillator.AdvanceTick(AYM_CLOCK_DIVISOR);
-      if (NextSoundTick < PsgOscillator.GetCurrentTick())
+      if (PsgOscillator.GetCurrentTick() > NextSoundTick)
       {
         SndOscillator.AdvanceTick(1);
         UpdateSoundTick();
+        assert(PsgOscillator.GetCurrentTick() < NextSoundTick);
         return true;
       }
       return false;
@@ -707,13 +814,55 @@ namespace
     uint64_t NextSoundTick;
   };
 
-  class ChipImpl : public Chip
+  class DataCache
   {
   public:
-    ChipImpl(ChipParameters::Ptr params, Receiver::Ptr target)
+    void Add(const DataChunk& src)
+    {
+      Buffer.push_back(src);
+    }
+
+    void ForEachElement(boost::function<void(const DataChunk&)> cb)
+    {
+      std::for_each(Buffer.begin(), Buffer.end(), cb);
+      Reset();
+    };
+
+    void Reset()
+    {
+      Buffer.clear();
+    }
+
+    bool HasBeeperData() const
+    {
+      return Buffer.end() != std::find_if(Buffer.begin(), Buffer.end(), &IsBeeperData);
+    }
+
+    bool HasPSGData() const
+    {
+      return Buffer.end() != std::find_if(Buffer.begin(), Buffer.end(), &IsPSGData);
+    }
+  private:
+    static bool IsBeeperData(const DataChunk& data)
+    {
+      return 0 != (data.Mask & (1 << DataChunk::REG_BEEPER));
+    }
+
+    static bool IsPSGData(const DataChunk& data)
+    {
+      return 0 != (data.Mask & ((1 << DataChunk::REG_BEEPER) - 1));
+    }
+  private:
+    std::vector<DataChunk> Buffer;
+  };
+
+  class RegularAYMChip : public Chip
+  {
+  public:
+    RegularAYMChip(ChipParameters::Ptr params, Receiver::Ptr target)
       : Params(params)
       , Target(target)
-      , Render(PSG)
+      , PSGWithBeeper(PSG, Beeper)
       , Clock()
     {
       Reset();
@@ -721,15 +870,17 @@ namespace
 
     virtual void RenderData(const DataChunk& src)
     {
-      BufferedData.push_back(src);
+      BufferedData.Add(src);
     }
 
     virtual void Flush()
     {
       ApplyParameters();
+      Renderer& targetDevice = GetTargetDevice();
+      Filter.SetSource(&targetDevice);
       Renderer& targetRender = Params->Interpolate()
-        ? static_cast<Renderer&>(Render)
-        : static_cast<Renderer&>(PSG);
+        ? static_cast<Renderer&>(Filter)
+        : targetDevice;
       const LayoutType layout = Params->Layout();
       if (LAYOUT_ABC == layout)
       {
@@ -740,7 +891,6 @@ namespace
         RelayoutRenderer relayoutRender(targetRender, layout);
         RenderChunks(relayoutRender);
       }
-      BufferedData.clear();
     }
 
     virtual void GetState(ChannelsState& state) const
@@ -750,9 +900,10 @@ namespace
 
     virtual void Reset()
     {
-      Render.Reset();
+      Filter.Reset();
+      PSGWithBeeper.Reset();
       Clock.Reset();
-      BufferedData.clear();
+      BufferedData.Reset();
     }
   private:
     void ApplyParameters()
@@ -762,16 +913,28 @@ namespace
       Clock.SetFrequency(Params->ClockFreq(), Params->SoundFreq());
     }
 
+    Renderer& GetTargetDevice()
+    {
+      const bool hasPSG = BufferedData.HasPSGData();
+      const bool hasBeeper = BufferedData.HasBeeperData();
+      return hasBeeper
+      ? (hasPSG
+         ? static_cast<Renderer&>(PSGWithBeeper)
+         : static_cast<Renderer&>(Beeper)
+         )
+      : static_cast<Renderer&>(PSG);
+    }
+
     void RenderChunks(Renderer& render)
     {
-      std::for_each(BufferedData.begin(), BufferedData.end(), boost::bind(&ChipImpl::RenderSingleChunk, this, _1, boost::ref(render)));
+      BufferedData.ForEachElement(boost::bind(&RegularAYMChip::RenderSingleChunk, this, _1, boost::ref(render)));
     }
 
     void RenderSingleChunk(const DataChunk& src, Renderer& render)
     {
-      PSG.ApplyData(src);
-      Clock.ApplyData(src);
+      render.SetNewData(src);
       MultiSample result;
+      Clock.SetFrameEnd(src.TimeStamp);
       while (Clock.InFrame())
       {
         render.Tick();
@@ -786,9 +949,11 @@ namespace
     const ChipParameters::Ptr Params;
     const Receiver::Ptr Target;
     AYMRenderer PSG;
-    InterpolatedRenderer Render;
+    BeeperRenderer Beeper;
+    MixedRenderer PSGWithBeeper;
+    InterpolatedRenderer Filter;
     ClockSource Clock;
-    std::vector<DataChunk> BufferedData;
+    DataCache BufferedData;
   };
 }
 
@@ -798,7 +963,7 @@ namespace Devices
   {
     Chip::Ptr CreateChip(ChipParameters::Ptr params, Receiver::Ptr target)
     {
-      return Chip::Ptr(new ChipImpl(params, target));
+      return Chip::Ptr(new RegularAYMChip(params, target));
     }
   }
 }
