@@ -83,7 +83,7 @@ namespace
       , Flipped()
       , Masked(true)
       , DutyCycle(NO_DUTYCYCLE)
-      , HalfPeriod(), FullPeriod()
+      , FullPeriod(), FirstHalfPeriod(), SecondHalfPeriod()
     {
     }
 
@@ -115,14 +115,10 @@ namespace
     bool Tick()
     {
       ++Counter;
-      if (Counter >= FullPeriod)
+      const uint_t halfPeriod = Flipped ? FirstHalfPeriod : SecondHalfPeriod;
+      if (Counter >= halfPeriod)
       {
         Counter = 0;
-        Flipped = !Flipped;
-        return true;
-      }
-      else if (Counter == HalfPeriod)
-      {
         Flipped = !Flipped;
         return true;
       }
@@ -143,13 +139,13 @@ namespace
     {
       assert(dutyCycle > 0 && dutyCycle < MAX_DUTYCYCLE);
       DutyCycle = dutyCycle;
-      UpdateHalfPeriod();
+      UpdateHalfPeriods();
     }
 
     void SetPeriod(uint_t period)
     {
       FullPeriod = period * 2;
-      UpdateHalfPeriod();
+      UpdateHalfPeriods();
     }
     
     void SetMask(bool masked)
@@ -157,17 +153,19 @@ namespace
       Masked = masked;
     }
   private:
-    void UpdateHalfPeriod()
+    void UpdateHalfPeriods()
     {
-      HalfPeriod = DutyCycle * FullPeriod / MAX_DUTYCYCLE;
+      FirstHalfPeriod = DutyCycle * FullPeriod / MAX_DUTYCYCLE;
+      SecondHalfPeriod = FullPeriod - FirstHalfPeriod;
     }
   private:
     uint_t Counter;
     bool Flipped;
     bool Masked;
     uint_t DutyCycle;
-    uint_t HalfPeriod;
     uint_t FullPeriod;
+    uint_t FirstHalfPeriod;
+    uint_t SecondHalfPeriod;
   };
   
   class ToneGenerator : public Generator

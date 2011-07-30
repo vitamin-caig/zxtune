@@ -106,6 +106,34 @@ inline std::size_t CountBits(T val)
 }
 
 //! @brief Counting significant bits count
+inline std::size_t Log2(uint32_t val)
+{
+  const std::size_t shift4 = (val > 0xffff) << 4;
+  val >>= shift4;
+  const std::size_t shift3 = (val > 0xff) << 3;
+  val >>= shift3;
+  const std::size_t shift2 = (val > 0xf) << 2;
+  val >>= shift2;
+  const std::size_t shift1 = (val > 0x3) << 1;
+  val >>= shift1;
+  return 1 + (shift4 | shift3 | shift2 | shift1 | (val >> 1));
+}
+
+inline std::size_t Log2(uint64_t val)
+{
+  const std::size_t shift5 = (val > 0xffffffff) << 5;
+  val >>= shift5;
+  const std::size_t shift4 = (val > 0xffff) << 4;
+  val >>= shift4;
+  const std::size_t shift3 = (val > 0xff) << 3;
+  val >>= shift3;
+  const std::size_t shift2 = (val > 0xf) << 2;
+  val >>= shift2;
+  const std::size_t shift1 = (val > 0x3) << 1;
+  val >>= shift1;
+  return 1 + (shift5 | shift4 | shift3 | shift2 | shift1 | (val >> 1));
+}
+
 template<class T>
 inline std::size_t Log2(T val)
 {
@@ -115,7 +143,7 @@ inline std::size_t Log2(T val)
   {
     ++res;
   }
-  return res;
+  return 1 + res;
 }
 
 //! @brief Universal replacement of bunch abs/fabs/labs and other

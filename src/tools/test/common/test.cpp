@@ -255,6 +255,10 @@ int main()
   }
   std::cout << "---- Test for Scale -----" << std::endl;
   {
+    Test<uint8_t>("Log2(uint8_t)", Log2(uint8_t(0xff)), 8);
+    Test<uint16_t>("Log2(uint16_t)", Log2(uint16_t(0xffff)), 16);
+    Test<uint32_t>("Log2(uint32_t)", Log2(uint32_t(0xffffffff)), 32);
+    Test<uint64_t>("Log2(uint64_t)", Log2(UINT64_C(0xffffffffffffffff)), 64);
     TestScale<uint32_t>("uint32_t small up", 1000, 3000, 2000, 666);
     TestScale<uint32_t>("uint32_t small up overhead", 4000, 3000, 2000, 2666);
     TestScale<uint32_t>("uint32_t small down", 1000, 2000, 3000, 1500);
