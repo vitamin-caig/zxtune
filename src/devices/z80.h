@@ -31,7 +31,7 @@ namespace Devices
       virtual ~ChipIO() {}
 
       virtual uint8_t Read(uint16_t addr) = 0;
-      virtual void Write(const Time::Nanoseconds& timeStamp, uint16_t addr, uint8_t data) = 0;
+      virtual void Write(const Time::NanosecOscillator& timeStamp, uint16_t addr, uint8_t data) = 0;
     };
 
     struct Registers

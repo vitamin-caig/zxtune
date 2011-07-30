@@ -47,19 +47,19 @@ namespace Time
         : Scale(T(rh.Get()), T(OtherResolution), Resolution))
     {
     }
-    /*
-    template<class T1, T1 OtherResolution>
-    const Stamp<T, Resolution>& operator = (const Stamp<T1, OtherResolution>& rh)
-    {
-      Value = Stamp<T, Resolution>(rh).Get();
-      return *this;
-    }
-    */
+
     template<class T1, T1 OtherResolution>
     const Stamp<T, Resolution>& operator += (const Stamp<T1, OtherResolution>& rh)
     {
       Value += Stamp<T, Resolution>(rh).Get();
+      assert(Resolution >= OtherResolution || !"It's unsafe to add timestamp with lesser resolution");
       return *this;
+    }
+
+    template<class T1, T1 OtherResolution>
+    bool operator < (const Stamp<T1, OtherResolution>& rh) const
+    {
+      return Value < Stamp<T, Resolution>(rh).Get();
     }
 
     T Get() const

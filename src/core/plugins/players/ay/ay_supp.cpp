@@ -137,7 +137,7 @@ namespace
       return Data[addr];
     }
     
-    virtual void Write(const Time::Nanoseconds& /*timeStamp*/, uint16_t addr, uint8_t data)
+    virtual void Write(const Time::NanosecOscillator& /*timeStamp*/, uint16_t addr, uint8_t data)
     {
       Data[addr] = data;
     }
@@ -209,7 +209,7 @@ namespace
       return 0xff;
     }
 
-    virtual void Write(const Time::Nanoseconds& timeStamp, uint16_t port, uint8_t data)
+    virtual void Write(const Time::NanosecOscillator& timeStamp, uint16_t port, uint8_t data)
     {
       if (0xc0fd == (port & 0xc0ff) && data < Devices::AYM::DataChunk::REG_BEEPER)
       {
@@ -217,14 +217,14 @@ namespace
       }
       else if (0x80fd == (port & 0xc0ff))
       {
-        AyData->SetValue(timeStamp, data);
+        AyData->SetValue(timeStamp.GetCurrentTime(), data);
       }
       else if (0 == (port & 0x0001))
       {
         static const uint_t REG_VALUES[] = {0, 14, 14, 15};
         const uint_t value = REG_VALUES[(data & 24) >> 3];
         AyData->SelectRegister(Devices::AYM::DataChunk::REG_BEEPER);
-        AyData->SetValue(timeStamp, value);
+        AyData->SetValue(timeStamp.GetCurrentTime(), value);
       }
     }
   private:
@@ -246,7 +246,7 @@ namespace
       return 0xff;
     }
 
-    virtual void Write(const Time::Nanoseconds& timeStamp, uint16_t port, uint8_t data)
+    virtual void Write(const Time::NanosecOscillator& timeStamp, uint16_t port, uint8_t data)
     {
       if (0xf400 == (port & 0xff00))
       {
@@ -267,7 +267,7 @@ namespace
             AyData->SelectRegister(Data);
             break;
           case 0x80:
-            AyData->SetValue(timeStamp, Data);
+            AyData->SetValue(timeStamp.GetCurrentTime(), Data);
             break;
           }
           Selector = 0;
@@ -294,7 +294,7 @@ namespace
       return 0xff;
     }
 
-    virtual void Write(const Time::Nanoseconds& timeStamp, uint16_t port, uint8_t data)
+    virtual void Write(const Time::NanosecOscillator& timeStamp, uint16_t port, uint8_t data)
     {
       ZX->Write(timeStamp, port, data);
       CPC->Write(timeStamp, port, data);

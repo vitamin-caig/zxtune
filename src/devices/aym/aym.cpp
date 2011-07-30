@@ -779,6 +779,11 @@ namespace
       NextSoundTick = 0;
     }
 
+    bool HasOutputBefore(const Time::Nanoseconds& time) const
+    {
+      return SndOscillator.GetCurrentTime() < time;
+    }
+
     void SetFrameEnd(const Time::Nanoseconds& time)
     {
       LastTick = PsgOscillator.GetTickAtTime(time);
@@ -933,8 +938,12 @@ namespace
     void RenderSingleChunk(const DataChunk& src, Renderer& render)
     {
       render.SetNewData(src);
-      MultiSample result;
+      if (!Clock.HasOutputBefore(src.TimeStamp))
+      {
+        return;
+      }
       Clock.SetFrameEnd(src.TimeStamp);
+      MultiSample result;
       while (Clock.InFrame())
       {
         render.Tick();

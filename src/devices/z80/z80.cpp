@@ -191,8 +191,7 @@ namespace
 
     void Write(ChipIO& io, Z80EX_WORD addr, Z80EX_BYTE value)
     {
-      const Time::Nanoseconds time = Oscillator.GetCurrentTime();
-      return io.Write(time, addr, value);
+      return io.Write(Oscillator, addr, value);
     }
   private:
     const ChipParameters::Ptr Params;
