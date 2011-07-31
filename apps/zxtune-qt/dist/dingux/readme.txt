@@ -4,6 +4,6 @@ To install ZXTune to dingux
 2) In case of DMenu:
   Edit local/dmenu/themes/${ThemeName}/menu_media.cfg:
 
-  include("/usr/local/apps/zxtune/zxtune.cfg")
+  include("/usr/local/apps/zxtune-qt/dmenu.cfg")
 
   in any place inside 'Menu' section (NOT inside 'MenuItem'!!!)

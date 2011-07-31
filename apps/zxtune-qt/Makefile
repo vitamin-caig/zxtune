@@ -62,14 +62,43 @@ install_windows install_mingw: install_samples install_samples_playlist
 	$(call copyfile_cmd,$(target),$(DESTDIR))
 	$(call copyfile_cmd,../zxtune.conf,$(DESTDIR))
 
-install_dingux: dist/$(manual_file) install_samples install_samples_playlist
-	install -D $(target) $(DESTDIR)/local/apps/zxtune/$(notdir $(target))
-	install -m755 -D dist/dingux/zxtune-wrapper.sh $(DESTDIR)/local/apps/zxtune/zxtune-wrapper.sh
+dingux_dir = local/apps/$(binary_name)
+
+install_dingux: dist/$(manual_file) install_samples install_samples_playlist $(pkg_root)/wrapper.sh $(pkg_root)/dmenu.cfg $(pkg_root)/gmenu.cfg
+	install -D $(target) $(DESTDIR)/$(dingux_dir)/$(notdir $(target))
+	install -m755 -D $(pkg_root)/wrapper.sh $(DESTDIR)/$(dingux_dir)/$(binary_name).sh
+	install -m644 -D $(pkg_root)/dmenu.cfg $(DESTDIR)/$(dingux_dir)/dmenu.cfg
+	install -m644 -D $(pkg_root)/gmenu.cfg $(DESTDIR)/local/gmenu2x/sections/applications/$(binary_name)
 	install -m644 -D dist/dingux/fonts/fixed_70_50.qpf $(DESTDIR)/local/share/fonts/fixed_70_50.qpf
-	install -m644 -D ../zxtune.conf $(DESTDIR)/local/apps/zxtune/zxtune.conf
-	install -m644 -D dist/dingux/dmenu/zxtune.cfg $(DESTDIR)/local/apps/zxtune/zxtune.cfg
-	install -m644 -D dist/dingux/gmenu/zxtune $(DESTDIR)/local/gmenu2x/sections/applications/zxtune
-	install -m644 -D $(theme_resources)/zxtune32.png $(DESTDIR)/local/apps/zxtune/zxtune32.png
+	install -m644 -D ../zxtune.conf $(DESTDIR)/$(dingux_dir)/zxtune.conf
+	install -m644 -D $(theme_resources)/zxtune32.png $(DESTDIR)/$(dingux_dir)/zxtune32.png
 	install -m644 -D dist/dingux/readme.txt $(DESTDIR)/readme.txt
+	$(call rmfiles_cmd,$(pkg_root)/wrapper.sh $(pkg_root)/dmenu.cfg $(pkg_root)/gmenu.cfg)
+
+$(pkg_root)/wrapper.sh:
+	@echo -e "\
+	#!/bin/sh\n\
+	QT_QWS_FONTDIR=/usr/local/share/fonts QWS_KEYBOARD=USB:/dev/event0 ./$(notdir $(target)) -qws -nomouse\n\
+	" > $@
+
+$(pkg_root)/dmenu.cfg:
+	@echo -e "\
+	MenuItem ZXTuneQT\n\
+	{\n\
+	  Icon = \"/usr/$(dingux_dir)/zxtune32.png\"\n\
+	  Name = \"ZXTuneQT\"\n\
+	  Executable = \"./$(binary_name).sh\"\n\
+	  WorkDir = \"/usr/$(dingux_dir)/\"\n\
+	}\n\
+	" > $@
+
+$(pkg_root)/gmenu.cfg:
+	@echo -e "\
+	title=ZXTuneQT\n\
+	icon=/usr/$(dingux_dir)/zxtune32.png\n\
+	exec=/usr/$(dingux_dir)/$(binary_name).sh\n\
+	clock=430\n\
+	backlight=100\n\
+	" > $@
 
 include $(path_step)/samples/samples.mak

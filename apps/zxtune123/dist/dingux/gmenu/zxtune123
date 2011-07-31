@@ -1,8 +1,0 @@
-title=ZXTune123
-icon=/boot/local/apps/zxtune123/zxtune.png
-exec=/boot/local/apps/zxtune123/zxtune123.dge --progress --analyzer --oss --file
-clock=336
-gamma=147301782
-backlight=100
-selectordir=/boot/local/apps/zxtune123/
-selectorbrowser=true

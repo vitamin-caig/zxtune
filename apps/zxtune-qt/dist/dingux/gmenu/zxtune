@@ -1,6 +1,0 @@
-title=ZXTune
-icon=/boot/local/apps/zxtune/zxtune32.png
-exec=/boot/local/apps/zxtune/zxtune-wrapper.sh
-clock=336
-gamma=147301782
-backlight=100
