@@ -23,6 +23,7 @@ Author:
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
+#include <boost/scoped_ptr.hpp>
 
 namespace
 {
@@ -75,15 +76,13 @@ namespace
   const uint_t NO_DUTYCYCLE = MAX_DUTYCYCLE / 2;
 
   //PSG-related functionality
-  class Generator
+  class BaseGenerator
   {
   public:
-    Generator()
+    BaseGenerator()
       : Counter()
       , Flipped()
       , Masked(true)
-      , DutyCycle(NO_DUTYCYCLE)
-      , FullPeriod(), FirstHalfPeriod(), SecondHalfPeriod()
     {
     }
 
@@ -92,13 +91,60 @@ namespace
       Counter = 0;
       Flipped = false;
       Masked = true;
-      DutyCycle = NO_DUTYCYCLE;
-      SetPeriod(0);
+    }
+
+    void Tick(uint_t period)
+    {
+      if (++Counter >= period)
+      {
+        Counter = 0;
+        Flipped = !Flipped;
+      }
+    }
+
+    uint_t GetCounter() const
+    {
+      return Counter;
     }
 
     void ResetCounter()
     {
       Counter = 0;
+    }
+
+    bool GetFlip() const
+    {
+      return Flipped;
+    }
+
+    bool IsMasked() const
+    {
+      return Masked;
+    }
+
+    void SetMask(bool masked)
+    {
+      Masked = masked;
+    }
+  private:
+    uint_t Counter;
+    bool Flipped;
+    bool Masked;
+  };
+
+  class DutedGenerator : public BaseGenerator
+  {
+  public:
+    DutedGenerator()
+      : DutyCycle(NO_DUTYCYCLE)
+      , FullPeriod(), FirstHalfPeriod(), SecondHalfPeriod()
+    {
+    }
+
+    void Reset()
+    {
+      SetPeriod(0);
+      BaseGenerator::Reset();
     }
 
     /*
@@ -112,27 +158,9 @@ namespace
 
     positive pulse width is 1/4 of period value
     */
-    bool Tick()
+    void Tick()
     {
-      ++Counter;
-      const uint_t halfPeriod = Flipped ? FirstHalfPeriod : SecondHalfPeriod;
-      if (Counter >= halfPeriod)
-      {
-        Counter = 0;
-        Flipped = !Flipped;
-        return true;
-      }
-      return false;
-    }
-
-    bool GetFlip() const
-    {
-      return Flipped;
-    }
-
-    bool IsMasked() const
-    {
-      return Masked;
+      BaseGenerator::Tick(GetFlip() ? FirstHalfPeriod : SecondHalfPeriod);
     }
 
     void SetDutyCycle(uint_t dutyCycle)
@@ -147,11 +175,6 @@ namespace
       FullPeriod = period * 2;
       UpdateHalfPeriods();
     }
-    
-    void SetMask(bool masked)
-    {
-      Masked = masked;
-    }
   private:
     void UpdateHalfPeriods()
     {
@@ -159,29 +182,54 @@ namespace
       SecondHalfPeriod = FullPeriod - FirstHalfPeriod;
     }
   private:
-    uint_t Counter;
-    bool Flipped;
-    bool Masked;
     uint_t DutyCycle;
     uint_t FullPeriod;
     uint_t FirstHalfPeriod;
     uint_t SecondHalfPeriod;
   };
+
+  class SimpleGenerator : public BaseGenerator
+  {
+  public:
+    SimpleGenerator()
+      : Period()
+    {
+    }
+
+    void Reset()
+    {
+      SetPeriod(0);
+      BaseGenerator::Reset();
+    }
+
+    void Tick()
+    {
+      BaseGenerator::Tick(Period);
+    }
+
+    void SetPeriod(uint_t period)
+    {
+      Period = period;
+    }
+
+    void SetDutyCycle(uint_t /*dutyCycle*/)
+    {
+    }
+  private:
+    uint_t Period;
+  };
   
+  template<class Generator>
   class ToneGenerator : public Generator
   {
   public:
-    bool Tick()
-    {
-      return Generator::Tick();
-    }
-
     bool GetLevel() const
     {
-      return IsMasked() || GetFlip();
+      return Generator::IsMasked() || Generator::GetFlip();
     }
   };
 
+  template<class Generator>
   class NoiseGenerator : public Generator
   {
   public:
@@ -196,14 +244,13 @@ namespace
       Generator::Reset();
     }
 
-    bool Tick()
+    void Tick()
     {
-      if (Generator::Tick())
+      Generator::Tick();
+      if (!Generator::GetCounter())
       {
         Seed = (Seed * 2 + 1) ^ (((Seed >> 16) ^ (Seed >> 13)) & 1);
-        return true;
       }
-      return false;
     }
 
     bool GetLevel() const
@@ -214,6 +261,7 @@ namespace
     uint_t Seed;
   };
 
+  template<class Generator>
   class EnvelopeGenerator : public Generator
   {
   public:
@@ -232,16 +280,17 @@ namespace
       Generator::Reset();
     }
 
-    bool Tick()
+    void Tick()
     {
-      if (!Generator::Tick() || !Decay)
+      Generator::Tick();
+      if (Generator::GetCounter() || !Decay)
       {
-        return false;
+        return;
       }
       Level += Decay;
       if (0 == (Level & ~31u))
       {
-        return true;
+        return;
       }
       const uint_t envTypeMask = 1 << Type;
       if (envTypeMask & ((1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) |
@@ -263,7 +312,6 @@ namespace
         Level = 31;
         Decay = 0; //11, 13
       }
-      return true;
     }
 
     void SetType(uint_t type)
@@ -299,28 +347,46 @@ namespace
 
     virtual void Reset() = 0;
     virtual void SetNewData(const DataChunk& data) = 0;
-    virtual bool Tick() = 0;
+    virtual void Tick() = 0;
+    virtual bool HasLevelChanges() const = 0;
     virtual void GetLevels(MultiSample& result) const = 0;
   };
 
-  class AYMRenderer : public Renderer
+  class AYMDevice
   {
   public:
-    AYMRenderer()
-      : VolA(State.Data[DataChunk::REG_VOLA]), VolB(State.Data[DataChunk::REG_VOLB]), VolC(State.Data[DataChunk::REG_VOLC])
-      , Mixer(State.Data[DataChunk::REG_MIXER])
-      , LevelA(), LevelB(), LevelC()
-      , IsYM()
+    virtual ~AYMDevice() {}
+
+    virtual void SetType(bool isYM) = 0;
+    virtual void SetDutyCycle(uint_t value, uint_t mask) = 0;
+    virtual void SetMixer(uint_t mixer) = 0;
+    virtual void SetPeriods(uint_t toneA, uint_t toneB, uint_t toneC, uint_t toneN, uint_t toneE) = 0;
+    virtual void SetEnvType(uint_t type) = 0;
+    virtual void SetLevel(uint_t levelA, uint_t levelB, uint_t levelC) = 0;
+    virtual void Reset() = 0;
+    virtual void Tick() = 0;
+    virtual bool HasLevelChanges() const = 0;
+    virtual void GetLevels(MultiSample& result) const = 0;
+  };
+
+  template<class Generator>
+  class AYMBaseDevice : public AYMDevice
+  {
+  public:
+    AYMBaseDevice()
+      : LevelA(), LevelB(), LevelC()
+      , MaskNoiseA(true), MaskNoiseB(true), MaskNoiseC(true)
+      , MaskEnvA(true), MaskEnvB(true), MaskEnvC(true)
+      , VolTable(&AYVolumeTab)
     {
-      State.Data[DataChunk::REG_MIXER] = 0xff;
     }
 
-    void SetType(bool isYM)
+    virtual void SetType(bool isYM)
     {
-      IsYM = isYM;
+      VolTable = isYM ? &AYVolumeTab : &YMVolumeTab;
     }
 
-    void SetDutyCycle(uint_t value, uint_t mask)
+    virtual void SetDutyCycle(uint_t value, uint_t mask)
     {
       GenA.SetDutyCycle(0 != (mask & DataChunk::CHANNEL_MASK_A) ? value : NO_DUTYCYCLE);
       GenB.SetDutyCycle(0 != (mask & DataChunk::CHANNEL_MASK_B) ? value : NO_DUTYCYCLE);
@@ -329,16 +395,150 @@ namespace
       GenE.SetDutyCycle(0 != (mask & DataChunk::CHANNEL_MASK_E) ? value : NO_DUTYCYCLE);
     }
 
+    virtual void SetMixer(uint_t mixer)
+    {
+      GenA.SetMask(0 != (mixer & DataChunk::REG_MASK_TONEA));
+      GenB.SetMask(0 != (mixer & DataChunk::REG_MASK_TONEB));
+      GenC.SetMask(0 != (mixer & DataChunk::REG_MASK_TONEC));
+      MaskNoiseA = 0 != (mixer & DataChunk::REG_MASK_NOISEA);
+      MaskNoiseB = 0 != (mixer & DataChunk::REG_MASK_NOISEB);
+      MaskNoiseC = 0 != (mixer & DataChunk::REG_MASK_NOISEC);
+      GenN.SetMask(MaskNoiseA && MaskNoiseB && MaskNoiseC);
+    }
+
+    virtual void SetPeriods(uint_t toneA, uint_t toneB, uint_t toneC, uint_t toneN, uint_t toneE)
+    {
+      GenA.SetPeriod(toneA);
+      GenB.SetPeriod(toneB);
+      GenC.SetPeriod(toneC);
+      GenN.SetPeriod(toneN);
+      GenE.SetPeriod(toneE);
+    }
+
+    virtual void SetEnvType(uint_t type)
+    {
+      GenE.SetType(type);
+    }
+
+    virtual void SetLevel(uint_t levelA, uint_t levelB, uint_t levelC)
+    {
+      MaskEnvA = 0 == (levelA & DataChunk::REG_MASK_ENV);
+      MaskEnvB = 0 == (levelB & DataChunk::REG_MASK_ENV);
+      MaskEnvC = 0 == (levelC & DataChunk::REG_MASK_ENV);
+      GenE.SetMask(MaskEnvA && MaskEnvB && MaskEnvC);
+      LevelA = ((levelA & DataChunk::REG_MASK_VOL) << 1) + 1;
+      LevelB = ((levelB & DataChunk::REG_MASK_VOL) << 1) + 1;
+      LevelC = ((levelC & DataChunk::REG_MASK_VOL) << 1) + 1;
+    }
+
     virtual void Reset()
     {
-      State = DataChunk();
-      State.Data[DataChunk::REG_MIXER] = 0xff;
       GenA.Reset();
       GenB.Reset();
       GenC.Reset();
       GenN.Reset();
       GenE.Reset();
       LevelA = LevelB = LevelC = 0;
+      MaskNoiseA = MaskNoiseB = MaskNoiseC = true;
+      MaskEnvA = MaskEnvB = MaskEnvC = true;
+      VolTable = &AYVolumeTab;
+    }
+
+    virtual void Tick()
+    {
+      GenA.Tick();
+      GenB.Tick();
+      GenC.Tick();
+      GenN.Tick();
+      GenE.Tick();
+    }
+
+    virtual bool HasLevelChanges() const
+    {
+      return (!GenA.IsMasked() && !GenA.GetCounter())
+          || (!GenB.IsMasked() && !GenB.GetCounter())
+          || (!GenC.IsMasked() && !GenC.GetCounter())
+          || (!GenN.IsMasked() && !GenN.GetCounter())
+          || (!GenE.IsMasked() && !GenE.GetCounter())
+      ;
+    }
+
+    virtual void GetLevels(MultiSample& result) const
+    {
+      const bool triggeredNoise = GenN.GetLevel();
+      const uint_t envelope = GenE.GetLevel();
+      //references to mixered bits. updated automatically
+      const bool maskedNoiseA = triggeredNoise || MaskNoiseA;
+      const uint_t outA = MaskEnvA ? LevelA : envelope;
+      const bool maskedNoiseB = triggeredNoise || MaskNoiseB;
+      const uint_t outB = MaskEnvB ? LevelB : envelope;
+      const bool maskedNoiseC = triggeredNoise || MaskNoiseC;
+      const uint_t outC = MaskEnvC ? LevelC : envelope;
+
+      const VolumeTable& table = *VolTable;
+      assert(outA < 32 && outB < 32 && outC < 32);
+      result[0] = maskedNoiseA && GenA.GetLevel() ? table[outA] : 0;
+      result[1] = maskedNoiseB && GenB.GetLevel() ? table[outB] : 0;
+      result[2] = maskedNoiseC && GenC.GetLevel() ? table[outC] : 0;
+    }
+  private:
+    ToneGenerator<Generator> GenA;
+    ToneGenerator<Generator> GenB;
+    ToneGenerator<Generator> GenC;
+    NoiseGenerator<Generator> GenN;
+    EnvelopeGenerator<Generator> GenE;
+    uint_t LevelA;
+    uint_t LevelB;
+    uint_t LevelC;
+    bool MaskNoiseA;
+    bool MaskNoiseB;
+    bool MaskNoiseC;
+    bool MaskEnvA;
+    bool MaskEnvB;
+    bool MaskEnvC;
+    const VolumeTable* VolTable;
+  };
+
+  class AYMRenderer : public Renderer
+  {
+  public:
+    AYMRenderer()
+      : Mixer(State.Data[DataChunk::REG_MIXER])
+      , VolA(State.Data[DataChunk::REG_VOLA]), VolB(State.Data[DataChunk::REG_VOLB]), VolC(State.Data[DataChunk::REG_VOLC])
+      , IsDuted(false)
+      , Device(new AYMBaseDevice<SimpleGenerator>())
+    {
+      Mixer = 0xff;
+    }
+
+    void SetType(bool isYM)
+    {
+      Device->SetType(isYM);
+    }
+
+    void SetDutyCycle(uint_t value, uint_t mask)
+    {
+      const bool newDuted = mask && value != NO_DUTYCYCLE;
+      if (newDuted != IsDuted)
+      {
+        if (newDuted)
+        {
+          Device.reset(new AYMBaseDevice<DutedGenerator>());
+        }
+        else
+        {
+          Device.reset(new AYMBaseDevice<SimpleGenerator>());
+        }
+        IsDuted = newDuted;
+      }
+      Device->SetDutyCycle(value, mask);
+    }
+
+    virtual void Reset()
+    {
+      State = DataChunk();
+      Mixer = 0xff;
+      Device->Reset();
     }
 
     virtual void SetNewData(const DataChunk& data)
@@ -365,83 +565,40 @@ namespace
       }
       if (data.Mask & (1 << DataChunk::REG_MIXER))
       {
-        GenA.SetMask(0 != (Mixer & DataChunk::REG_MASK_TONEA));
-        GenB.SetMask(0 != (Mixer & DataChunk::REG_MASK_TONEB));
-        GenC.SetMask(0 != (Mixer & DataChunk::REG_MASK_TONEC));
-        GenN.SetMask(0 == (~Mixer & (DataChunk::REG_MASK_NOISEA | DataChunk::REG_MASK_NOISEB | DataChunk::REG_MASK_NOISEC)));
+        Device->SetMixer(Mixer);
       }
-      if (data.Mask & ((1 << DataChunk::REG_TONEA_L) | (1 << DataChunk::REG_TONEA_H)))
+      if (data.Mask & ((1 << DataChunk::REG_TONEA_L) | (1 << DataChunk::REG_TONEA_H) |
+                       (1 << DataChunk::REG_TONEB_L) | (1 << DataChunk::REG_TONEB_H) |
+                       (1 << DataChunk::REG_TONEC_L) | (1 << DataChunk::REG_TONEC_H) |
+                       (1 << DataChunk::REG_TONEN) |
+                       (1 << DataChunk::REG_TONEE_L) | (1 << DataChunk::REG_TONEE_H)
+                       ))
       {
-        GenA.SetPeriod(GetToneA());
-      }
-      if (data.Mask & ((1 << DataChunk::REG_TONEB_L) | (1 << DataChunk::REG_TONEB_H)))
-      {
-        GenB.SetPeriod(GetToneB());
-      }
-      if (data.Mask & ((1 << DataChunk::REG_TONEC_L) | (1 << DataChunk::REG_TONEC_H)))
-      {
-        GenC.SetPeriod(GetToneC());
-      }
-      if (data.Mask & (1 << DataChunk::REG_TONEN))
-      {
-        GenN.SetPeriod(GetToneN());
-      }
-      if (data.Mask & ((1 << DataChunk::REG_TONEE_L) | (1 << DataChunk::REG_TONEE_H)))
-      {
-        GenE.SetPeriod(GetToneE());
+        Device->SetPeriods(GetToneA(), GetToneB(), GetToneC(), GetToneN(), GetToneE());
       }
       if (data.Mask & (1 << DataChunk::REG_ENV))
       {
-        //update r13
-        GenE.SetType(GetEnvType());
+        Device->SetEnvType(GetEnvType());
       }
       if (data.Mask & ((1 << DataChunk::REG_VOLA) | (1 << DataChunk::REG_VOLB) | (1 << DataChunk::REG_VOLC)))
       {
-        GenE.SetMask(0 == ((VolA | VolB | VolC) & DataChunk::REG_MASK_ENV));
-
-        if (data.Mask & (1 << DataChunk::REG_VOLA))
-        {
-          LevelA = ((VolA & DataChunk::REG_MASK_VOL) << 1) + 1;
-        }
-        if (data.Mask & (1 << DataChunk::REG_VOLB))
-        {
-          LevelB = ((VolB & DataChunk::REG_MASK_VOL) << 1) + 1;
-        }
-        if (data.Mask & (1 << DataChunk::REG_VOLC))
-        {
-          LevelC = ((VolC & DataChunk::REG_MASK_VOL) << 1) + 1;
-        }
+        Device->SetLevel(VolA, VolB, VolC);
       }
     }
 
-    virtual bool Tick()
+    virtual void Tick()
     {
-      bool res = false;
-      res |= GenA.Tick() && !GenA.IsMasked();
-      res |= GenB.Tick() && !GenB.IsMasked();
-      res |= GenC.Tick() && !GenC.IsMasked();
-      res |= GenN.Tick() && !GenN.IsMasked();
-      res |= GenE.Tick() && !GenE.IsMasked();
-      return res;
+      Device->Tick();
+    }
+
+    virtual bool HasLevelChanges() const
+    {
+      return Device->HasLevelChanges();
     }
 
     virtual void GetLevels(MultiSample& result) const
     {
-      const bool triggeredNoise = GenN.GetLevel();
-      const uint_t envelope = GenE.GetLevel();
-      //references to mixered bits. updated automatically
-      const bool maskedNoiseA = triggeredNoise || 0 != (Mixer & DataChunk::REG_MASK_NOISEA);
-      const uint_t outA = (VolA & DataChunk::REG_MASK_ENV) ? envelope : LevelA;
-      const bool maskedNoiseB = triggeredNoise || 0 != (Mixer & DataChunk::REG_MASK_NOISEB);
-      const uint_t outB = (VolB & DataChunk::REG_MASK_ENV) ? envelope : LevelB;
-      const bool maskedNoiseC = triggeredNoise || 0 != (Mixer & DataChunk::REG_MASK_NOISEC);
-      const uint_t outC = (VolC & DataChunk::REG_MASK_ENV) ? envelope : LevelC;
-
-      const VolumeTable& table = IsYM ? YMVolumeTab : AYVolumeTab;
-      assert(outA < 32 && outB < 32 && outC < 32);
-      result[0] = maskedNoiseA && GenA.GetLevel() ? table[outA] : 0;
-      result[1] = maskedNoiseB && GenB.GetLevel() ? table[outB] : 0;
-      result[2] = maskedNoiseC && GenC.GetLevel() ? table[outC] : 0;
+      return Device->GetLevels(result);
     }
 
     void GetState(uint64_t ticksPerSec, ChannelsState& state) const
@@ -553,22 +710,13 @@ namespace
     //registers state
     DataChunk State;
     //aliases for registers
+    uint8_t& Mixer;
     uint8_t& VolA;
     uint8_t& VolB;
     uint8_t& VolC;
-    uint8_t& Mixer;
-    //generators
-    ToneGenerator GenA;
-    ToneGenerator GenB;
-    ToneGenerator GenC;
-    NoiseGenerator GenN;
-    EnvelopeGenerator GenE;
-    //state
-    uint_t LevelA;
-    uint_t LevelB;
-    uint_t LevelC;
-    //parameters
-    bool IsYM;
+    //device
+    bool IsDuted;
+    boost::scoped_ptr<AYMDevice> Device;
   };
 
   class BeeperRenderer : public Renderer
@@ -592,7 +740,11 @@ namespace
       }
     }
 
-    virtual bool Tick()
+    virtual void Tick()
+    {
+    }
+
+    virtual bool HasLevelChanges() const
     {
       return false;
     }
@@ -628,11 +780,15 @@ namespace
       Second.SetNewData(data);
     }
 
-    virtual bool Tick()
+    virtual void Tick()
     {
-      const bool first = First.Tick();
-      const bool second = Second.Tick();
-      return first || second;
+      First.Tick();
+      Second.Tick();
+    }
+
+    virtual bool HasLevelChanges() const
+    {
+      return First.HasLevelChanges() || Second.HasLevelChanges();
     }
 
     virtual void GetLevels(MultiSample& result) const
@@ -688,15 +844,20 @@ namespace
       Delegate->GetLevels(Levels);
     }
 
-    virtual bool Tick()
+    virtual void Tick()
     {
       std::transform(Accumulators.begin(), Accumulators.end(), Levels.begin(), Accumulators.begin(), std::plus<uint_t>());
       ++AccumulatedSamples;
-      if (Delegate->Tick() || NewData)
+      Delegate->Tick();
+      if (Delegate->HasLevelChanges() || NewData)
       {
         Delegate->GetLevels(Levels);
         NewData = false;
       }
+    }
+
+    bool HasLevelChanges() const
+    {
       return true;
     }
 
@@ -733,9 +894,14 @@ namespace
       return Delegate.SetNewData(data);
     }
 
-    virtual bool Tick()
+    virtual void Tick()
     {
       return Delegate.Tick();
+    }
+
+    virtual bool HasLevelChanges() const
+    {
+      return Delegate.HasLevelChanges();
     }
 
     virtual void GetLevels(MultiSample& result) const
