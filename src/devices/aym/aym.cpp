@@ -736,7 +736,8 @@ namespace
     {
       if (data.Mask & (1 << DataChunk::REG_BEEPER))
       {
-        Beeper = ((data.Data[DataChunk::REG_BEEPER] & DataChunk::REG_MASK_VOL) << 1) + 1;
+        const uint_t inLevel = ((data.Data[DataChunk::REG_BEEPER] & DataChunk::REG_MASK_VOL) << 1) + 1;
+        Beeper = AYVolumeTab[inLevel];
       }
     }
 
@@ -751,8 +752,7 @@ namespace
 
     virtual void GetLevels(MultiSample& result) const
     {
-      assert(Beeper < 32);
-      const uint_t levelBeeper = AYVolumeTab[Beeper];
+      const uint_t levelBeeper = Beeper;
       std::fill(result.begin(), result.end(), levelBeeper);
     }
   private:
@@ -816,7 +816,6 @@ namespace
       : Delegate()
       , Levels()
       , AccumulatedSamples()
-      , NewData()
     {
     }
 
@@ -834,13 +833,11 @@ namespace
       }
       std::fill(Levels.begin(), Levels.end(), 0);
       AccumulatedSamples = 0;
-      NewData = false;
     }
 
     virtual void SetNewData(const DataChunk &data)
     {
       Delegate->SetNewData(data);
-      NewData = true;
       Delegate->GetLevels(Levels);
     }
 
@@ -849,10 +846,9 @@ namespace
       std::transform(Accumulators.begin(), Accumulators.end(), Levels.begin(), Accumulators.begin(), std::plus<uint_t>());
       ++AccumulatedSamples;
       Delegate->Tick();
-      if (Delegate->HasLevelChanges() || NewData)
+      if (Delegate->HasLevelChanges())
       {
         Delegate->GetLevels(Levels);
-        NewData = false;
       }
     }
 
@@ -872,7 +868,6 @@ namespace
     MultiSample Levels;
     mutable boost::array<uint_t, CHANNELS> Accumulators;
     mutable uint_t AccumulatedSamples;
-    bool NewData;
   };
 
   class RelayoutRenderer : public Renderer

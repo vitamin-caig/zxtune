@@ -169,12 +169,26 @@ namespace
       Register = reg;
     }
 
-    void SetValue(const Time::Nanoseconds& timeStamp, uint_t val)
+    bool SetValue(const Time::Nanoseconds& timeStamp, uint_t val)
+    {
+      if (Register < Devices::AYM::DataChunk::REG_BEEPER)
+      {
+        Devices::AYM::DataChunk data;
+        data.TimeStamp = timeStamp;
+        data.Mask = 1 << Register;
+        data.Data[Register] = val;
+        Chip->RenderData(data);
+        return true;
+      }
+      return false;
+    }
+
+    void SetBeeper(const Time::Nanoseconds& timeStamp, uint_t val)
     {
       Devices::AYM::DataChunk data;
       data.TimeStamp = timeStamp;
-      data.Mask = 1 << Register;
-      data.Data[Register] = val;
+      data.Mask = 1 << Devices::AYM::DataChunk::REG_BEEPER;
+      data.Data[Devices::AYM::DataChunk::REG_BEEPER] = val;
       Chip->RenderData(data);
     }
 
@@ -196,65 +210,88 @@ namespace
     Devices::AYM::DataChunk FrameStub;
   };
 
-  class ZXPorts : public Devices::Z80::ChipIO
+  class SoundPort
   {
   public:
-    explicit ZXPorts(AYDataChannel::Ptr ayData)
+    typedef boost::shared_ptr<SoundPort> Ptr;
+
+    virtual ~SoundPort() {}
+
+    virtual bool Write(const Time::NanosecOscillator& timeStamp, uint16_t port, uint8_t data) = 0;
+  };
+
+  class ZXAYPort : public SoundPort
+  {
+  public:
+    explicit ZXAYPort(AYDataChannel::Ptr ayData)
       : AyData(ayData)
     {
     }
 
-    virtual uint8_t Read(uint16_t /*port*/)
+    virtual bool Write(const Time::NanosecOscillator& timeStamp, uint16_t port, uint8_t data)
     {
-      return 0xff;
-    }
-
-    virtual void Write(const Time::NanosecOscillator& timeStamp, uint16_t port, uint8_t data)
-    {
-      if (0xc0fd == (port & 0xc0ff) && data < Devices::AYM::DataChunk::REG_BEEPER)
+      if (IsSelRegPort(port))
       {
         AyData->SelectRegister(data);
+        return true;
       }
-      else if (0x80fd == (port & 0xc0ff))
+      else if (IsSetValPort(port))
       {
-        AyData->SetValue(timeStamp.GetCurrentTime(), data);
+        return AyData->SetValue(timeStamp.GetCurrentTime(), data);
       }
-      else if (0 == (port & 0x0001))
+      else if (IsBeeperPort(port))
       {
         static const uint_t REG_VALUES[] = {0, 14, 14, 15};
         const uint_t value = REG_VALUES[(data & 24) >> 3];
-        AyData->SelectRegister(Devices::AYM::DataChunk::REG_BEEPER);
-        AyData->SetValue(timeStamp.GetCurrentTime(), value);
+        AyData->SetBeeper(timeStamp.GetCurrentTime(), value);
+        //beeper means nothing
       }
+      return false;
+    }
+  private:
+    static const uint16_t ZX_AY_PORT_MASK = 0xc002;
+
+    static bool IsSelRegPort(uint16_t port)
+    {
+      const uint16_t SEL_REG_PORT = 0xfffd;
+      return (ZX_AY_PORT_MASK & SEL_REG_PORT) == (ZX_AY_PORT_MASK & port);
+    }
+
+    static bool IsSetValPort(uint16_t port)
+    {
+      const uint16_t SET_VAL_PORT = 0xbffd;
+      return (ZX_AY_PORT_MASK & SET_VAL_PORT) == (ZX_AY_PORT_MASK & port);
+    }
+
+    static bool IsBeeperPort(uint16_t port)
+    {
+      return 0 == (port & 0x0001);
     }
   private:
     const AYDataChannel::Ptr AyData;
   };
 
-  class CPCPorts : public Devices::Z80::ChipIO
+  class CPCAYPort : public SoundPort
   {
   public:
-    explicit CPCPorts(AYDataChannel::Ptr ayData)
+    explicit CPCAYPort(AYDataChannel::Ptr ayData)
       : AyData(ayData)
       , Data()
       , Selector()
     {
     }
 
-    virtual uint8_t Read(uint16_t /*port*/)
+    virtual bool Write(const Time::NanosecOscillator& timeStamp, uint16_t port, uint8_t data)
     {
-      return 0xff;
-    }
-
-    virtual void Write(const Time::NanosecOscillator& timeStamp, uint16_t port, uint8_t data)
-    {
-      if (0xf400 == (port & 0xff00))
+      if (IsDataPort(port))
       {
         Data = data;
+        //data means nothing
       }
-      else if (0xf600 == (port & 0xff00))
+      else if (IsControlPort(port))
       {
         data &= 0xc0;
+        bool res = false;
         if (!Selector)
         {
           Selector = data;
@@ -267,12 +304,24 @@ namespace
             AyData->SelectRegister(Data);
             break;
           case 0x80:
-            AyData->SetValue(timeStamp.GetCurrentTime(), Data);
+            res = AyData->SetValue(timeStamp.GetCurrentTime(), Data);
             break;
           }
           Selector = 0;
         }
+        return res;
       }
+      return false;
+    }
+  private:
+    static bool IsDataPort(uint16_t port)
+    {
+      return 0xf400 == (port & 0xff00);
+    }
+
+    static bool IsControlPort(uint16_t port)
+    {
+      return 0xf600 == (port & 0xff00); 
     }
   private:
     const AYDataChannel::Ptr AyData;
@@ -284,8 +333,8 @@ namespace
   {
   public:
     explicit PlexerPorts(AYDataChannel::Ptr ayData)
-      : ZX(boost::make_shared<ZXPorts>(ayData))
-      , CPC(boost::make_shared<CPCPorts>(ayData))
+      : ZX(boost::make_shared<ZXAYPort>(ayData))
+      , CPC(boost::make_shared<CPCAYPort>(ayData))
     {
     }
 
@@ -296,12 +345,25 @@ namespace
 
     virtual void Write(const Time::NanosecOscillator& timeStamp, uint16_t port, uint8_t data)
     {
-      ZX->Write(timeStamp, port, data);
-      CPC->Write(timeStamp, port, data);
+      if (Current)
+      {
+        Current->Write(timeStamp, port, data);
+      }
+      //check CPC first
+      else if (CPC->Write(timeStamp, port, data))
+      {
+        Current = CPC;
+      }
+      else
+      {
+        //ZX is fallback that will never become current :(
+        ZX->Write(timeStamp, port, data);
+      }
     }
   private:
-    const Devices::Z80::ChipIO::Ptr ZX;
-    const Devices::Z80::ChipIO::Ptr CPC;
+    const SoundPort::Ptr ZX;
+    const SoundPort::Ptr CPC;
+    SoundPort::Ptr Current;
   };
 
   class CPUParameters : public Devices::Z80::ChipParameters
