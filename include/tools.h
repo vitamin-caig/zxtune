@@ -116,7 +116,8 @@ inline std::size_t Log2(uint32_t val)
   val >>= shift2;
   const std::size_t shift1 = (val > 0x3) << 1;
   val >>= shift1;
-  return 1 + (shift4 | shift3 | shift2 | shift1 | (val >> 1));
+  const std::size_t shift0 = val >> 1;
+  return 1 + (shift4 | shift3 | shift2 | shift1 | shift0);
 }
 
 inline std::size_t Log2(uint64_t val)
@@ -131,7 +132,8 @@ inline std::size_t Log2(uint64_t val)
   val >>= shift2;
   const std::size_t shift1 = (val > 0x3) << 1;
   val >>= shift1;
-  return 1 + (shift5 | shift4 | shift3 | shift2 | shift1 | (val >> 1));
+  const std::size_t shift0 = static_cast<std::size_t>(val >> 1);
+  return 1 + (shift5 | shift4 | shift3 | shift2 | shift1 | shift0);
 }
 
 template<class T>
@@ -179,9 +181,9 @@ inline uint32_t Scale(uint32_t value, uint32_t inRange, uint32_t outRange)
 
 inline uint64_t Scale(uint64_t value, uint64_t inRange, uint64_t outRange)
 {
-  const uint_t valBits = Log2(value);
-  const uint_t outBits = Log2(outRange);
-  const uint_t availBits = 8 * sizeof(uint64_t);
+  const std::size_t valBits = Log2(value);
+  const std::size_t outBits = Log2(outRange);
+  const std::size_t availBits = 8 * sizeof(uint64_t);
   if (valBits + outBits < availBits)
   {
     return (value * outRange) / inRange;

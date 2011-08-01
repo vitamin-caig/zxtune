@@ -383,7 +383,7 @@ namespace
 
     virtual void SetType(bool isYM)
     {
-      VolTable = isYM ? &AYVolumeTab : &YMVolumeTab;
+      VolTable = isYM ? &YMVolumeTab : &AYVolumeTab;
     }
 
     virtual void SetDutyCycle(uint_t value, uint_t mask)
