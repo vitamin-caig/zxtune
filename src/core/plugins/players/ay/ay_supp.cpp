@@ -124,27 +124,6 @@ namespace
 
   BOOST_STATIC_ASSERT(sizeof(AYHeader) == 0x14);
                                                      
-  class Memory : public Devices::Z80::ChipIO
-  {
-  public:
-    explicit Memory(const Dump& data)
-      : Data(data)
-    {
-    }
-
-    virtual uint8_t Read(uint16_t addr)
-    {
-      return Data[addr];
-    }
-    
-    virtual void Write(const Time::NanosecOscillator& /*timeStamp*/, uint16_t addr, uint8_t data)
-    {
-      Data[addr] = data;
-    }
-  private:
-    Dump Data;
-  };
-
   class AYDataChannel
   {
   public:
@@ -662,15 +641,14 @@ namespace
 
     Devices::Z80::Chip::Ptr CreateCPU(Devices::Z80::ChipParameters::Ptr params, Devices::Z80::ChipIO::Ptr ports) const
     {
-      const Devices::Z80::ChipIO::Ptr memory(new Memory(Data));
-      const Devices::Z80::Chip::Ptr result = Devices::Z80::CreateChip(params, memory, ports);
-      Devices::Z80::Registers state;
-      state.Mask = ~0;
-      std::fill(state.Data.begin(), state.Data.end(), Registers);
-      state.Data[Devices::Z80::Registers::REG_SP] = StackPointer;
-      state.Data[Devices::Z80::Registers::REG_IR] = Registers & 0xff;
-      state.Data[Devices::Z80::Registers::REG_PC] = 0;
-      result->SetState(state);
+      const Devices::Z80::Chip::Ptr result = Devices::Z80::CreateChip(params, Data, ports);
+      Devices::Z80::Registers regs;
+      regs.Mask = ~0;
+      std::fill(regs.Data.begin(), regs.Data.end(), Registers);
+      regs.Data[Devices::Z80::Registers::REG_SP] = StackPointer;
+      regs.Data[Devices::Z80::Registers::REG_IR] = Registers & 0xff;
+      regs.Data[Devices::Z80::Registers::REG_PC] = 0;
+      result->SetRegisters(regs);
       return result;
     }
 

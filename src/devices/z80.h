@@ -69,8 +69,8 @@ namespace Devices
       virtual void Reset() = 0;
       virtual void Interrupt() = 0;
       virtual void Execute(const Time::Nanoseconds& till) = 0;
-      virtual void SetState(const Registers& state) = 0;
-      virtual void GetState(Registers::Dump& state) const = 0;
+      virtual void SetRegisters(const Registers& regs) = 0;
+      virtual void GetRegisters(Registers::Dump& regs) const = 0;
       virtual Time::Nanoseconds GetTime() const = 0;
       virtual uint64_t GetTick() const = 0;
       virtual void SetTime(const Time::Nanoseconds& time) = 0;
@@ -87,6 +87,7 @@ namespace Devices
     };
 
     Chip::Ptr CreateChip(ChipParameters::Ptr params, ChipIO::Ptr memory, ChipIO::Ptr ports);
+    Chip::Ptr CreateChip(ChipParameters::Ptr params, const Dump& memory, ChipIO::Ptr ports);
   }
 }
 
