@@ -35,6 +35,8 @@ public slots:
   virtual void InitState(ZXTune::Sound::Backend::Ptr) = 0;
   virtual void UpdateState() = 0;
   virtual void CloseState() = 0;
+private slots:
+  virtual void EndSeeking() = 0;
 signals:
   void OnSeeking(int);
 };
