@@ -22,6 +22,69 @@ namespace
 {
   using namespace Devices::Z80;
 
+  class IOMapper
+  {
+  public:
+    IOMapper(const Time::NanosecOscillator& oscillator, ChipIO& memory, ChipIO& ports)
+      : Oscillator(oscillator)
+      , Memory(memory)
+      , Ports(ports)
+    {
+    }
+
+    boost::shared_ptr<Z80EX_CONTEXT> CreateContext() const
+    {
+      IOMapper* const self = const_cast<IOMapper*>(this);
+      return boost::shared_ptr<Z80EX_CONTEXT>(
+        z80ex_create(&ReadByte, self, &WriteByte, self,
+                     &InByte, self, &OutByte, self,
+                     &IntRead, self), std::ptr_fun(&z80ex_destroy));
+    }
+  private:
+    static Z80EX_BYTE ReadByte(Z80EX_CONTEXT* /*cpu*/, Z80EX_WORD addr, int /*m1_state*/, void* userData)
+    {
+      const IOMapper* const self = static_cast<const IOMapper*>(userData);
+      return self->Read(self->Memory, addr);
+    }
+
+    static void WriteByte(Z80EX_CONTEXT* /*cpu*/, Z80EX_WORD addr, Z80EX_BYTE value, void* userData)
+    {
+      const IOMapper* const self = static_cast<const IOMapper*>(userData);
+      return self->Write(self->Memory, addr, value);
+    }
+
+    static Z80EX_BYTE InByte(Z80EX_CONTEXT* /*cpu*/, Z80EX_WORD port, void* userData)
+    {
+      const IOMapper* const self = static_cast<const IOMapper*>(userData);
+      return self->Read(self->Ports, port);
+    }
+
+    static void OutByte(Z80EX_CONTEXT* /*cpu*/, Z80EX_WORD port, Z80EX_BYTE value, void* userData)
+    {
+      const IOMapper* const self = static_cast<const IOMapper*>(userData);
+      return self->Write(self->Ports, port, value);
+    }
+
+    static Z80EX_BYTE IntRead(Z80EX_CONTEXT* /*cpu*/, void* /*userData*/)
+    {
+      return 0xff;
+    }
+
+    Z80EX_BYTE Read(ChipIO& io, Z80EX_WORD addr) const
+    {
+      return io.Read(addr);
+    }
+
+    void Write(ChipIO& io, Z80EX_WORD addr, Z80EX_BYTE value) const
+    {
+      return io.Write(Oscillator, addr, value);
+    }
+  private:
+    const Time::NanosecOscillator& Oscillator;
+    ChipIO& Memory;
+    ChipIO& Ports;
+  };
+
   class ChipImpl : public Chip
   {
   public:
@@ -29,9 +92,8 @@ namespace
       : Params(params)
       , Memory(memory)
       , Ports(ports)
-      , Context(z80ex_create(&ReadByte, this, &WriteByte, this,
-                             &InByte, this, &OutByte, this,
-                             &IntRead, this), std::ptr_fun(&z80ex_destroy))
+      , Mapper(Oscillator, *Memory, *Ports)
+      , Context(Mapper.CreateContext())
     {
     }
 
@@ -154,49 +216,19 @@ namespace
     {
       return Oscillator.GetCurrentTick();
     }
-  private:
-    static Z80EX_BYTE ReadByte(Z80EX_CONTEXT* /*cpu*/, Z80EX_WORD addr, int /*m1_state*/, void* userData)
-    {
-      ChipImpl* const self = static_cast<ChipImpl*>(userData);
-      return self->Read(*self->Memory, addr);
-    }
 
-    static void WriteByte(Z80EX_CONTEXT* /*cpu*/, Z80EX_WORD addr, Z80EX_BYTE value, void* userData)
+    virtual void SetTime(const Time::Nanoseconds& time)
     {
-      ChipImpl* const self = static_cast<ChipImpl*>(userData);
-      return self->Write(*self->Memory, addr, value);
-    }
-
-    static Z80EX_BYTE InByte(Z80EX_CONTEXT* /*cpu*/, Z80EX_WORD port, void* userData)
-    {
-      ChipImpl* const self = static_cast<ChipImpl*>(userData);
-      return self->Read(*self->Ports, port);
-    }
-
-    static void OutByte(Z80EX_CONTEXT* /*cpu*/, Z80EX_WORD port, Z80EX_BYTE value, void* userData)
-    {
-      ChipImpl* const self = static_cast<ChipImpl*>(userData);
-      return self->Write(*self->Ports, port, value);
-    }
-
-    static Z80EX_BYTE IntRead(Z80EX_CONTEXT* /*cpu*/, void* /*userData*/)
-    {
-      return 0xff;
-    }
-
-    Z80EX_BYTE Read(ChipIO& io, Z80EX_WORD addr)
-    {
-      return io.Read(addr);
-    }
-
-    void Write(ChipIO& io, Z80EX_WORD addr, Z80EX_BYTE value)
-    {
-      return io.Write(Oscillator, addr, value);
+      Oscillator.Reset();
+      const uint64_t tick = Oscillator.GetTickAtTime(time);
+      Oscillator.SetFrequency(Params->ClockFreq());
+      Oscillator.AdvanceTick(tick);
     }
   private:
     const ChipParameters::Ptr Params;
     const ChipIO::Ptr Memory;
     const ChipIO::Ptr Ports;
+    IOMapper Mapper;
     const boost::shared_ptr<Z80EX_CONTEXT> Context;
     Time::NanosecOscillator Oscillator;
   };

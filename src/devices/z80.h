@@ -73,6 +73,7 @@ namespace Devices
       virtual void GetState(Registers::Dump& state) const = 0;
       virtual Time::Nanoseconds GetTime() const = 0;
       virtual uint64_t GetTick() const = 0;
+      virtual void SetTime(const Time::Nanoseconds& time) = 0;
     };
 
     class ChipParameters

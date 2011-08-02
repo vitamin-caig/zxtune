@@ -150,11 +150,15 @@ namespace
   public:
     typedef boost::shared_ptr<AYDataChannel> Ptr;
 
-    AYDataChannel(Devices::Z80::ChipParameters::Ptr cpuParams, Devices::AYM::Chip::Ptr chip)
-      : CpuParams(cpuParams)
-      , Chip(chip)
+    explicit AYDataChannel(Devices::AYM::Chip::Ptr chip)
+      : Chip(chip)
       , Register()
     {
+    }
+
+    static Ptr Create(Devices::AYM::Chip::Ptr chip)
+    {
+      return boost::make_shared<AYDataChannel>(chip);
     }
 
     void Reset()
@@ -204,7 +208,6 @@ namespace
       return AYM::CreateAnalyzer(Chip);
     }
   private:
-    const Devices::Z80::ChipParameters::Ptr CpuParams;
     const Devices::AYM::Chip::Ptr Chip;
     uint_t Register;
     Devices::AYM::DataChunk FrameStub;
@@ -217,6 +220,7 @@ namespace
 
     virtual ~SoundPort() {}
 
+    virtual void Reset() = 0;
     virtual bool Write(const Time::NanosecOscillator& timeStamp, uint16_t port, uint8_t data) = 0;
   };
 
@@ -226,6 +230,11 @@ namespace
     explicit ZXAYPort(AYDataChannel::Ptr ayData)
       : AyData(ayData)
     {
+    }
+
+    virtual void Reset()
+    {
+      AyData->SelectRegister(0);
     }
 
     virtual bool Write(const Time::NanosecOscillator& timeStamp, uint16_t port, uint8_t data)
@@ -281,6 +290,12 @@ namespace
     {
     }
 
+    virtual void Reset()
+    {
+      AyData->SelectRegister(0);
+      Data = Selector = 0;
+    }
+
     virtual bool Write(const Time::NanosecOscillator& timeStamp, uint16_t port, uint8_t data)
     {
       if (IsDataPort(port))
@@ -329,13 +344,31 @@ namespace
     uint_t Selector;
   };
 
-  class PlexerPorts : public Devices::Z80::ChipIO
+  class PortsPlexer : public Devices::Z80::ChipIO
   {
   public:
-    explicit PlexerPorts(AYDataChannel::Ptr ayData)
+    explicit PortsPlexer(AYDataChannel::Ptr ayData)
       : ZX(boost::make_shared<ZXAYPort>(ayData))
       , CPC(boost::make_shared<CPCAYPort>(ayData))
+      , Blocked(false)
     {
+    }
+    typedef boost::shared_ptr<PortsPlexer> Ptr;
+
+    static Ptr Create(AYDataChannel::Ptr ayData)
+    {
+      return boost::make_shared<PortsPlexer>(ayData);
+    }
+
+    void SetBlocked(bool blocked)
+    {
+      Blocked = blocked;
+    }
+
+    void Reset()
+    {
+      ZX->Reset();
+      CPC->Reset();
     }
 
     virtual uint8_t Read(uint16_t /*port*/)
@@ -345,6 +378,10 @@ namespace
 
     virtual void Write(const Time::NanosecOscillator& timeStamp, uint16_t port, uint8_t data)
     {
+      if (Blocked)
+      {
+        return;
+      }
       if (Current)
       {
         Current->Write(timeStamp, port, data);
@@ -364,6 +401,7 @@ namespace
     const SoundPort::Ptr ZX;
     const SoundPort::Ptr CPC;
     SoundPort::Ptr Current;
+    bool Blocked;
   };
 
   class CPUParameters : public Devices::Z80::ChipParameters
@@ -393,13 +431,25 @@ namespace
     const Parameters::Accessor::Ptr Params;
   };
 
+  class Computer
+  {
+  public:
+    typedef boost::shared_ptr<Computer> Ptr; 
+
+    virtual ~Computer() {}
+
+    virtual void Reset() = 0;
+    virtual void NextFrame(const Time::Nanoseconds& til) = 0;
+    virtual void SeekState(const Time::Nanoseconds& til, const Time::Nanoseconds& frameStep) = 0;
+  };
+
   class AYRenderer : public Renderer
   {
   public:
-    AYRenderer(AYM::TrackParameters::Ptr params, StateIterator::Ptr iterator, Devices::Z80::Chip::Ptr cpu, AYDataChannel::Ptr device)
+    AYRenderer(AYM::TrackParameters::Ptr params, StateIterator::Ptr iterator, Computer::Ptr comp, AYDataChannel::Ptr device)
       : Params(params)
       , Iterator(iterator)
-      , CPU(cpu)
+      , Comp(comp)
       , Device(device)
       , State(Iterator->GetStateObserver())
     {
@@ -418,8 +468,7 @@ namespace
     virtual bool RenderFrame()
     {
       LastTime += Time::Microseconds(Params->FrameDurationMicrosec());
-      CPU->Interrupt();
-      CPU->Execute(LastTime);
+      Comp->NextFrame(LastTime);
       Device->RenderFrame(LastTime);
       return Iterator->NextFrame(Params->Looped());
     }
@@ -427,18 +476,34 @@ namespace
     virtual void Reset()
     {
       Iterator->Reset();
-      CPU->Reset();
+      Comp->Reset();
       Device->Reset();
       LastTime = Time::Nanoseconds();
     }
 
-    virtual void SetPosition(uint_t /*frame*/)
+    virtual void SetPosition(uint_t frame)
     {
+      if (State->Frame() > frame)
+      {
+        //rewind
+        Iterator->Reset();
+      }
+      const Time::Nanoseconds period = Time::Microseconds(Params->FrameDurationMicrosec());
+      Time::Nanoseconds newTime = LastTime; 
+      while (State->Frame() < frame)
+      {
+        newTime += period;
+        if (!Iterator->NextFrame(false))
+        {
+          break;
+        }
+      }
+      Comp->SeekState(newTime, period);
     }
   private:
     const AYM::TrackParameters::Ptr Params;
     const StateIterator::Ptr Iterator;
-    const Devices::Z80::Chip::Ptr CPU;
+    const Computer::Ptr Comp;
     const AYDataChannel::Ptr Device;
     const TrackState::Ptr State;
     Time::Nanoseconds LastTime;
@@ -567,7 +632,6 @@ namespace
 
   BOOST_STATIC_ASSERT(sizeof(Im2Player) == sizeof(IM2_PLAYER_TEMPLATE));
 
-
   class AYData : public AYDataTarget
   {
   public:
@@ -672,6 +736,53 @@ namespace
     uint16_t StackPointer;
   };
 
+  class ComputerImpl : public Computer
+  {
+  public:
+    ComputerImpl(AYData::Ptr data, Devices::Z80::ChipParameters::Ptr params, PortsPlexer::Ptr cpuPorts)
+      : Data(data)
+      , Params(params)
+      , CPUPorts(cpuPorts)
+      , CPU(Data->CreateCPU(Params, CPUPorts))
+    {
+    }
+
+    void Reset()
+    {
+      CPU = Data->CreateCPU(Params, CPUPorts);
+      CPUPorts->Reset();
+    }
+
+    void NextFrame(const Time::Nanoseconds& til)
+    {
+      CPU->Interrupt();
+      CPU->Execute(til);
+    }
+
+    void SeekState(const Time::Nanoseconds& til, const Time::Nanoseconds& frameStep)
+    {
+      const Time::Nanoseconds curTime = CPU->GetTime();
+      if (til < curTime)
+      {
+        Reset();
+      }
+      CPUPorts->SetBlocked(true);
+      Time::Nanoseconds pos = curTime;
+      while ((pos += frameStep) < til)
+      {
+        CPU->Interrupt();
+        CPU->Execute(pos);
+      }
+      CPUPorts->SetBlocked(false);
+      CPU->SetTime(curTime);
+    }
+  private:
+    const AYData::Ptr Data;
+    const Devices::Z80::ChipParameters::Ptr Params;
+    const PortsPlexer::Ptr CPUPorts;
+    Devices::Z80::Chip::Ptr CPU;
+  };
+
   class AYHolder : public Holder
   {
   public:
@@ -704,11 +815,11 @@ namespace
       const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
       const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateChip(chipParams, receiver);
       const Devices::Z80::ChipParameters::Ptr cpuParams = boost::make_shared<CPUParameters>(params);
-      const AYDataChannel::Ptr ayChannel = boost::make_shared<AYDataChannel>(cpuParams, chip);
-      const Devices::Z80::ChipIO::Ptr cpuPorts = boost::make_shared<PlexerPorts>(ayChannel);
-      const Devices::Z80::Chip::Ptr cpu = Data->CreateCPU(cpuParams, cpuPorts);
+      const AYDataChannel::Ptr ayChannel = AYDataChannel::Create(chip);
+      const PortsPlexer::Ptr cpuPorts = PortsPlexer::Create(ayChannel);
+      const Computer::Ptr comp = boost::make_shared<ComputerImpl>(Data, cpuParams, cpuPorts);
       const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
-      return boost::make_shared<AYRenderer>(trackParams, iterator, cpu, ayChannel);
+      return boost::make_shared<AYRenderer>(trackParams, iterator, comp, ayChannel);
     }
 
     virtual Error Convert(const Conversion::Parameter& spec, Dump& dst) const
