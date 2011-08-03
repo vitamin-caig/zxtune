@@ -35,11 +35,18 @@ namespace Time
     {
     }
 
+    //from the same type
     Stamp(const Stamp<T, Resolution>& rh)
       : Value(rh.Value)
     {
     }
+
+    bool operator < (const Stamp<T, Resolution>& rh) const
+    {
+      return Value < rh.Value;
+    }
     
+    //from the other types
     template<class T1, T1 OtherResolution>
     Stamp(const Stamp<T1, OtherResolution>& rh)
       : Value(sizeof(T1) >= sizeof(T)
@@ -89,6 +96,8 @@ namespace Time
       , LastFreqChangeTick()
       , Frequency()
       , CurTick()
+      , ScaleToTime(0, TimeStamp::PER_SECOND)
+      , ScaleToTick(TimeStamp::PER_SECOND, 0)
       , CurTimeCache()
     {
     }
@@ -97,6 +106,8 @@ namespace Time
     {
       LastFreqChangeTime = CurTimeCache = 0;
       Frequency = 0;
+      ScaleToTime = ScaleFunctor<typename TimeStamp::ValueType>(0, TimeStamp::PER_SECOND);
+      ScaleToTick = ScaleFunctor<typename TimeStamp::ValueType>(TimeStamp::PER_SECOND, 0);
       LastFreqChangeTick = CurTick = 0;
     }
 
@@ -107,6 +118,8 @@ namespace Time
         LastFreqChangeTime = GetCurrentTime().Get();
         LastFreqChangeTick = GetCurrentTick();
         Frequency = freq;
+        ScaleToTime = ScaleFunctor<typename TimeStamp::ValueType>(Frequency, TimeStamp::PER_SECOND);
+        ScaleToTick = ScaleFunctor<typename TimeStamp::ValueType>(TimeStamp::PER_SECOND, Frequency);
       }
     }
 
@@ -126,7 +139,7 @@ namespace Time
       if (!CurTimeCache && CurTick)
       {
         const T relTick = CurTick - LastFreqChangeTick;
-        const typename TimeStamp::ValueType relTime = Scale(relTick, Frequency, TimeStamp::PER_SECOND);
+        const typename TimeStamp::ValueType relTime = ScaleToTime(relTick);
         CurTimeCache = LastFreqChangeTime + relTime;
       }
       return TimeStamp(CurTimeCache);
@@ -135,7 +148,7 @@ namespace Time
     T GetTickAtTime(const TimeStamp& time) const
     {
       const typename TimeStamp::ValueType relTime = time.Get() - LastFreqChangeTime;
-      const T relTick = Scale(relTime, TimeStamp::PER_SECOND, Frequency);
+      const T relTick = ScaleToTick(relTime);
       return LastFreqChangeTick + relTick;
     }
   private:
@@ -143,6 +156,8 @@ namespace Time
     T LastFreqChangeTick;
     T Frequency;
     T CurTick;
+    ScaleFunctor<typename TimeStamp::ValueType> ScaleToTime;
+    ScaleFunctor<typename TimeStamp::ValueType> ScaleToTick;
     mutable typename TimeStamp::ValueType CurTimeCache;
   };
 

@@ -116,6 +116,8 @@ namespace
   void TestScale(const std::string& test, T val, T inScale, T outScale, T result)
   {
     Test<T>("Scale " + test, Scale(val, inScale, outScale), result);
+    const ScaleFunctor<T> scaler(inScale, outScale);
+    Test<T>("ScaleFunctor " + test, scaler(val), result);
   }
 }
 
@@ -316,7 +318,7 @@ int main()
       const Time::Milliseconds oms(ms);
       Test<uint64_t>("Ms => Ms", oms.Get(), ms.Get());
     }
-    /*
+    /*disabled due to float calculation threshold
     Time::Stamp<uint32_t, 1> s(10000);
     {
       const Time::Nanoseconds ons(s);                         

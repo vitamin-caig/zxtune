@@ -107,13 +107,22 @@ namespace
     virtual boost::shared_ptr<Z80EX_CONTEXT> ConnectCPU() const
     {
       SimpleIOBus* const self = const_cast<SimpleIOBus*>(this);
+      const bool isLimited = Memory.size() < 65536;
+      const z80ex_mread_cb read = isLimited ? &ReadByteLimited : &ReadByteUnlimited;
+      const z80ex_mwrite_cb write = isLimited ? &WriteByteLimited : &WriteByteUnlimited;
       return boost::shared_ptr<Z80EX_CONTEXT>(
-        z80ex_create(&ReadByte, self, &WriteByte, self,
+        z80ex_create(read, self, write, self,
                      &InByte, self, &OutByte, self,
                      &IntRead, self), std::ptr_fun(&z80ex_destroy));
     }
   private:
-    static Z80EX_BYTE ReadByte(Z80EX_CONTEXT* /*cpu*/, Z80EX_WORD addr, int /*m1_state*/, void* userData)
+    static Z80EX_BYTE ReadByteUnlimited(Z80EX_CONTEXT* /*cpu*/, Z80EX_WORD addr, int /*m1_state*/, void* userData)
+    {
+      const SimpleIOBus* const self = static_cast<const SimpleIOBus*>(userData);
+      return self->Memory[addr];
+    }
+
+    static Z80EX_BYTE ReadByteLimited(Z80EX_CONTEXT* /*cpu*/, Z80EX_WORD addr, int /*m1_state*/, void* userData)
     {
       const SimpleIOBus* const self = static_cast<const SimpleIOBus*>(userData);
       return addr < self->Memory.size()
@@ -121,7 +130,13 @@ namespace
         : 0xff;
     }
 
-    static void WriteByte(Z80EX_CONTEXT* /*cpu*/, Z80EX_WORD addr, Z80EX_BYTE value, void* userData)
+    static void WriteByteUnlimited(Z80EX_CONTEXT* /*cpu*/, Z80EX_WORD addr, Z80EX_BYTE value, void* userData)
+    {
+      SimpleIOBus* const self = static_cast<SimpleIOBus*>(userData);
+      self->Memory[addr] = value;
+    }
+
+    static void WriteByteLimited(Z80EX_CONTEXT* /*cpu*/, Z80EX_WORD addr, Z80EX_BYTE value, void* userData)
     {
       SimpleIOBus* const self = static_cast<SimpleIOBus*>(userData);
       if (addr < self->Memory.size())
