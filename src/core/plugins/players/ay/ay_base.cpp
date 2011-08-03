@@ -48,14 +48,18 @@ namespace
     {
       Delegate->Reset();
       Render->Reset();
+      FillCurrentChunk();
     }
 
-    virtual bool NextFrame(bool looped)
+    virtual bool IsValid() const
     {
-      AYM::TrackBuilder builder(TrackParams->FreqTable());
-      Render->SynthesizeData(*State, builder);
-      builder.GetResult(Chunk);
-      return Delegate->NextFrame(looped);
+      return Delegate->IsValid();
+    }
+
+    virtual void NextFrame(bool looped)
+    {
+      Delegate->NextFrame(looped);
+      FillCurrentChunk();
     }
 
     virtual TrackState::Ptr GetStateObserver() const
@@ -65,14 +69,24 @@ namespace
 
     virtual void GetData(Devices::AYM::DataChunk& chunk) const
     {
-      chunk = Chunk;
+      chunk = CurrentChunk;
+    }
+  private:
+    void FillCurrentChunk()
+    {
+      if (Delegate->IsValid())
+      {
+        AYM::TrackBuilder builder(TrackParams->FreqTable());
+        Render->SynthesizeData(*State, builder);
+        builder.GetResult(CurrentChunk);
+      }
     }
   private:
     const AYM::TrackParameters::Ptr TrackParams;
     const StateIterator::Ptr Delegate;
     const TrackState::Ptr State;
     const AYM::DataRenderer::Ptr Render;
-    Devices::AYM::DataChunk Chunk;
+    Devices::AYM::DataChunk CurrentChunk;
   };
 
   class AYMReceiver : public Devices::AYM::Receiver
@@ -143,7 +157,7 @@ namespace
     {
 #ifndef NDEBUG
 //perform self-test
-      while (Iterator->NextFrame(false)) {}
+      for (; Iterator->IsValid(); Iterator->NextFrame(false));
       Iterator->Reset();
 #endif
     }
@@ -160,15 +174,17 @@ namespace
 
     virtual bool RenderFrame()
     {
-      Devices::AYM::DataChunk chunk;
-      const bool res = Iterator->NextFrame(Params->Looped());
-      LastRenderTime += Time::Microseconds(Params->FrameDurationMicrosec());
-
-      Iterator->GetData(chunk);
-      chunk.TimeStamp = LastRenderTime;
-      Device->RenderData(chunk);
-      Device->Flush();
-      return res;
+      if (Iterator->IsValid())
+      {
+        LastRenderTime += Time::Microseconds(Params->FrameDurationMicrosec());
+        Devices::AYM::DataChunk chunk;
+        Iterator->GetData(chunk);
+        chunk.TimeStamp = LastRenderTime;
+        Device->RenderData(chunk);
+        Device->Flush();
+        Iterator->NextFrame(Params->Looped());
+      }
+      return Iterator->IsValid();
     }
 
     virtual void Reset()

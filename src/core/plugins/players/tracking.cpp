@@ -45,12 +45,12 @@ namespace
 
     virtual uint_t Pattern() const
     {
-      return Data->GetPatternIndex(Position());
+      return IsValid() ? Data->GetPatternIndex(Position()) : 0;
     }
 
     virtual uint_t PatternSize() const
     {
-      return Data->GetPatternSize(Position());
+      return IsValid() ? Data->GetPatternSize(Position()) : 0;
     }
 
     virtual uint_t Line() const
@@ -75,10 +75,15 @@ namespace
 
     virtual uint_t Channels() const
     {
-      return Data->GetActiveChannels(Position(), Line());
+      return IsValid() ? Data->GetActiveChannels(Position(), Line()) : 0;
     }
 
     //navigation
+    bool IsValid() const
+    {
+      return CurPosition < Info->PositionsCount();
+    }
+
     void Reset()
     {
       Reset(0, 0);
@@ -110,8 +115,8 @@ namespace
     {
       CurQuirk = 0;
       CurLine = 0;
-      UpdateTempo();
-      if (++CurPosition >= Info->PositionsCount())
+      ++CurPosition;
+      if (!IsValid())
       {
         return false;
       }
@@ -166,29 +171,32 @@ namespace
       Cursor->Reset();
     }
 
-    virtual bool NextFrame(bool looped)
+    virtual bool IsValid() const
     {
+      return Cursor->IsValid();
+    }
+
+    virtual void NextFrame(bool looped)
+    {
+      if (!Cursor->IsValid())
+      {
+        return;
+      }
       if (Cursor->NextQuirk())
       {
-        return true;
+        return;
       }
       if (Cursor->NextLine())
       {
-        return true;
+        return;
       }
       if (Cursor->NextPosition())
       {
-        return true;
+        return;
       }
       if (looped)
       {
         Cursor->ResetToLoop();
-        return true;
-      }
-      else
-      {
-        Cursor->Reset();
-        return false;
       }
     }
 
@@ -264,7 +272,7 @@ namespace
       const TrackState::Ptr dummyState = dummyIterator->GetStateObserver();
 
       const uint_t loopPosNum = Data->GetLoopPosition();
-      while (dummyIterator->NextFrame(false))
+      while (dummyIterator->IsValid())
       {
         //check for loop
         if (0 == dummyState->Line() &&
@@ -273,10 +281,9 @@ namespace
         {
           LoopFrameNum = dummyState->Frame();
         }
-        //to prevent reset
-        Frames = std::max(Frames, dummyState->Frame());
+        dummyIterator->NextFrame(false);
       }
-      ++Frames;
+      Frames = dummyState->Frame();
     }
   private:
     const TrackModuleData::Ptr Data;

@@ -23,12 +23,9 @@ namespace ZXTune
       {
         iter.Reset();
       }
-      while (state->Frame() < frameNum)
+      while (state->Frame() < frameNum && iter.IsValid())
       {
-        if (!iter.NextFrame(false))
-        {
-          break;
-        }
+        iter.NextFrame(false);
       }
     }
   }

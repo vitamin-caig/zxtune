@@ -28,8 +28,8 @@ namespace ZXTune
       virtual ~Iterator() {}
 
       virtual void Reset() = 0;
-
-      virtual bool NextFrame(bool looped) = 0;
+      virtual bool IsValid() const = 0;
+      virtual void NextFrame(bool looped) = 0;
     };
 
     class StateIterator : public Iterator

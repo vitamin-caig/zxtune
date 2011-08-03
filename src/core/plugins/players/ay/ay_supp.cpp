@@ -446,10 +446,14 @@ namespace
 
     virtual bool RenderFrame()
     {
-      LastTime += Time::Microseconds(Params->FrameDurationMicrosec());
-      Comp->NextFrame(LastTime);
-      Device->RenderFrame(LastTime);
-      return Iterator->NextFrame(Params->Looped());
+      if (Iterator->IsValid())
+      {
+        LastTime += Time::Microseconds(Params->FrameDurationMicrosec());
+        Comp->NextFrame(LastTime);
+        Device->RenderFrame(LastTime);
+        Iterator->NextFrame(Params->Looped());
+      }
+      return Iterator->IsValid();
     }
 
     virtual void Reset()
@@ -469,13 +473,10 @@ namespace
       }
       const Time::Nanoseconds period = Time::Microseconds(Params->FrameDurationMicrosec());
       Time::Nanoseconds newTime = LastTime; 
-      while (State->Frame() < frame)
+      while (State->Frame() < frame && Iterator->IsValid())
       {
         newTime += period;
-        if (!Iterator->NextFrame(false))
-        {
-          break;
-        }
+        Iterator->NextFrame(false);
       }
       Comp->SeekState(newTime, period);
     }

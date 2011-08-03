@@ -86,16 +86,12 @@ namespace ZXTune
         const AYM::DataIterator::Ptr iterator = chiptune.CreateDataIterator(trackParams);
         
         Devices::AYM::DataChunk chunk;
-        for (Time::Nanoseconds lastRenderTime = frameDuration; ; lastRenderTime += frameDuration)
+        for (Time::Nanoseconds lastRenderTime = frameDuration; iterator->IsValid(); lastRenderTime += frameDuration)
         {
-          const bool res = iterator->NextFrame(false);
           iterator->GetData(chunk);
           chunk.TimeStamp = lastRenderTime;
           dumper->RenderData(chunk);
-          if (!res)
-          {
-            break;
-          }
+          iterator->NextFrame(false);
         }
         dumper->GetDump(dst);
         result = Error();

@@ -776,17 +776,31 @@ namespace
 
     virtual void Reset()
     {
+      Delegate->Reset();
       StateA.Reset();
       StateB.Reset();
       StateC.Reset();
-      CurrentChunk = Devices::AYM::DataChunk();
-      return Delegate->Reset();
+      SwitchToNewLine();
     }
 
-    virtual bool NextFrame(bool looped)
+    virtual bool IsValid() const
     {
-      ApplyNextFrame();
-      return Delegate->NextFrame(looped);
+      return Delegate->IsValid();
+    }
+
+    virtual void NextFrame(bool looped)
+    {
+      if (Delegate->IsValid())
+      {
+        Delegate->NextFrame(looped);
+        StateA.Iterate();
+        StateB.Iterate();
+        StateC.Iterate();
+        if (Delegate->IsValid() && 0 == State->Quirk())
+        {
+          SwitchToNewLine();
+        }
+      }
     }
 
     virtual TrackState::Ptr GetStateObserver() const
@@ -796,47 +810,64 @@ namespace
 
     virtual void GetData(Devices::AYM::DataChunk& chunk) const
     {
-       chunk = CurrentChunk;
+      if (Delegate->IsValid())
+      {
+        AYM::TrackBuilder track(TrackParams->FreqTable());
+
+        if (0 == State->Quirk())
+        {
+          GetNewLineState(track);
+        }
+        SynthesizeChannelsData(track);
+        track.GetResult(chunk);
+      }
+      else
+      {
+        assert(!"STC: invalid iterator access");
+        chunk = Devices::AYM::DataChunk();
+      }
     }
   private:
-    void ApplyNextFrame()
+    void SwitchToNewLine()
     {
-      AYM::TrackBuilder track(TrackParams->FreqTable());
-
-      if (0 == State->Quirk())
-      {
-        GetNewLineState(track);
-      }
-      SynthesizeChannelsData(track);
-      StateA.Iterate();
-      StateB.Iterate();
-      StateC.Iterate();
-      track.GetResult(CurrentChunk);
-    }
-
-    void GetNewLineState(AYM::TrackBuilder& track)
-    {
+      assert(0 == State->Quirk());
       if (const STCTrack::Line* line = Data->Patterns[State->Pattern()].GetLine(State->Line()))
       {
         if (const STCTrack::Line::Chan& src = line->Channels[0])
         {
           StateA.SetNewState(src);
-          ProcessEnvelopeCommands(src.Commands, track);
         }
         if (const STCTrack::Line::Chan& src = line->Channels[1])
         {
           StateB.SetNewState(src);
-          ProcessEnvelopeCommands(src.Commands, track);
         }
         if (const STCTrack::Line::Chan& src = line->Channels[2])
         {
           StateC.SetNewState(src);
+        }
+      }
+    }
+
+    void GetNewLineState(AYM::TrackBuilder& track) const
+    {
+      if (const STCTrack::Line* line = Data->Patterns[State->Pattern()].GetLine(State->Line()))
+      {
+        if (const STCTrack::Line::Chan& src = line->Channels[0])
+        {
+          ProcessEnvelopeCommands(src.Commands, track);
+        }
+        if (const STCTrack::Line::Chan& src = line->Channels[1])
+        {
+          ProcessEnvelopeCommands(src.Commands, track);
+        }
+        if (const STCTrack::Line::Chan& src = line->Channels[2])
+        {
           ProcessEnvelopeCommands(src.Commands, track);
         }
       }
     }
 
-    void SynthesizeChannelsData(AYM::TrackBuilder& track)
+    void SynthesizeChannelsData(AYM::TrackBuilder& track) const
     {
       const uint_t transposition = Data->Transpositions[State->Position()];
       {
@@ -860,7 +891,6 @@ namespace
     STCChannelState StateA;
     STCChannelState StateB;
     STCChannelState StateC;
-    Devices::AYM::DataChunk CurrentChunk;
   };
 
   class STCChiptune : public AYM::Chiptune

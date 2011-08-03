@@ -381,11 +381,11 @@ namespace
 #ifdef SELF_TEST
 //perform self-test
       Devices::DAC::DataChunk chunk;
-      do
+      while (Iterator->IsValid())
       {
         RenderData(chunk);
+        Iterator->NextFrame(false);
       }
-      while (Iterator->NextFrame(false));
       Reset();
 #endif
     }
@@ -402,15 +402,16 @@ namespace
 
     virtual bool RenderFrame()
     {
-      Devices::DAC::DataChunk chunk;
-      RenderData(chunk);
-
-      const bool res = Iterator->NextFrame(Params->Looped());
-
-      LastRenderTime += Params->FrameDurationMicrosec();
-      chunk.TimeInUs = LastRenderTime;
-      Device->RenderData(chunk);
-      return res;
+      if (Iterator->IsValid())
+      {
+        LastRenderTime += Params->FrameDurationMicrosec();
+        Devices::DAC::DataChunk chunk;
+        RenderData(chunk);
+        chunk.TimeInUs = LastRenderTime;
+        Device->RenderData(chunk);
+        Iterator->NextFrame(Params->Looped());
+      }
+      return Iterator->IsValid();
     }
 
     virtual void Reset()
@@ -431,14 +432,11 @@ namespace
       }
       //fast forward
       Devices::DAC::DataChunk chunk;
-      while (state->Frame() < frame)
+      while (state->Frame() < frame && Iterator->IsValid())
       {
         //do not update tick for proper rendering
         RenderData(chunk);
-        if (!Iterator->NextFrame(false))
-        {
-          break;
-        }
+        Iterator->NextFrame(false);
       }
     }
 

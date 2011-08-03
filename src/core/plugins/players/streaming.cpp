@@ -75,6 +75,11 @@ namespace
     }
 
     //navigation
+    bool IsValid() const
+    {
+      return CurFrame < Info->FramesCount();
+    }
+
     void Reset()
     {
       CurFrame = 0;
@@ -85,9 +90,12 @@ namespace
       CurFrame = Info->LoopFrame();
     }
 
-    bool NextFrame()
+    void NextFrame()
     {
-      return ++CurFrame < Info->FramesCount();
+      if (IsValid())
+      {
+        ++CurFrame;
+      }
     }
   private:
     const Information::Ptr Info;
@@ -153,21 +161,17 @@ namespace
       Cursor->Reset();
     }
 
-    virtual bool NextFrame(bool looped)
+    virtual bool IsValid() const
     {
-      if (Cursor->NextFrame())
-      {
-        return true;
-      }
-      if (looped)
+      return Cursor->IsValid();
+    }
+
+    virtual void NextFrame(bool looped)
+    {
+      Cursor->NextFrame();
+      if (!Cursor->IsValid() && looped)
       {
         Cursor->ResetToLoop();
-        return true;
-      }
-      else
-      {
-        Cursor->Reset();
-        return false;
       }
     }
 

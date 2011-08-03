@@ -191,13 +191,19 @@ namespace
     virtual void Reset()
     {
       CurrentChunk = Devices::AYM::DataChunk();
-      return Delegate->Reset();
+      Delegate->Reset();
+      UpdateCurrentState();
     }
 
-    virtual bool NextFrame(bool looped)
+    virtual bool IsValid() const
     {
-      ApplyNextFrame();
-      return Delegate->NextFrame(looped);
+      return Delegate->IsValid();
+    }
+
+    virtual void NextFrame(bool looped)
+    {
+      Delegate->NextFrame(looped);
+      UpdateCurrentState();
     }
 
     virtual TrackState::Ptr GetStateObserver() const
@@ -210,16 +216,19 @@ namespace
        chunk = CurrentChunk;
     }
   private:
-    void ApplyNextFrame()
+    void UpdateCurrentState()
     {
-      const uint_t frameNum = State->Frame();
-      const Devices::AYM::DataChunk& inChunk = Data->GetChunk(frameNum);
-      ResetEnvelopeChanges();
-      for (uint_t reg = 0, mask = inChunk.Mask; mask; ++reg, mask >>= 1)
+      if (Delegate->IsValid())
       {
-        if (0 != (mask & 1))
+        const uint_t frameNum = State->Frame();
+        const Devices::AYM::DataChunk& inChunk = Data->GetChunk(frameNum);
+        ResetEnvelopeChanges();
+        for (uint_t reg = 0, mask = inChunk.Mask; mask; ++reg, mask >>= 1)
         {
-          UpdateRegister(reg, inChunk.Data[reg]);
+          if (0 != (mask & 1))
+          {
+            UpdateRegister(reg, inChunk.Data[reg]);
+          }
         }
       }
     }
