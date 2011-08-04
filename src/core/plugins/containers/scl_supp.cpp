@@ -134,7 +134,7 @@ namespace
       const SCLEntry& entry = header->Blocks[idx];
       const std::size_t nextOffset = offset + entry.Size();
       const String entryName = TRDos::GetEntryName(entry.Name, entry.Type);
-      const TRDos::FileEntry& newOne = TRDos::FileEntry(entryName, offset, entry.Size());
+      const TRDos::FileEntry::Ptr newOne = TRDos::FileEntry::Create(entryName, offset, entry.Size());
       res->AddEntry(newOne);
       offset = nextOffset;
     }
@@ -227,15 +227,15 @@ namespace
       }
       std::size_t parsedSize = 0;
       const TRDos::FilesSet::Ptr files = ParseSCLFile(dump, parsedSize);
-      const TRDos::FileEntry* const entryToOpen = files.get()
+      const TRDos::FileEntry::Ptr entryToOpen = files.get()
         ? files->FindEntry(pathComp)
-        : 0;
+        : TRDos::FileEntry::Ptr();
       if (!entryToOpen)
       {
         return DataLocation::Ptr();
       }
       const Plugin::Ptr subPlugin = shared_from_this();
-      const IO::DataContainer::Ptr subData = inData->GetSubcontainer(entryToOpen->Offset, entryToOpen->Size);
+      const IO::DataContainer::Ptr subData = inData->GetSubcontainer(entryToOpen->GetOffset(), entryToOpen->GetSize());
       return CreateNestedLocation(location, subData, subPlugin, pathComp); 
     }
   };

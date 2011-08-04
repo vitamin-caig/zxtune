@@ -16,6 +16,7 @@ Author:
 #include <format.h>
 //boost includes
 #include <boost/bind.hpp>
+#include <boost/make_shared.hpp>
 
 namespace
 {
@@ -23,29 +24,80 @@ namespace
 
   bool AreEntriesMergeable(const FileEntry& lh, const FileEntry& rh)
   {
+    const std::size_t firstSize = lh.GetSize();
     //merge if files are sequental
-    if (lh.Offset + lh.Size != rh.Offset)
+    if (lh.GetOffset() + firstSize != rh.GetOffset())
     {
       return false;
     }
     //and previous file size is multiplication of 255 sectors
-    if (0 == (lh.Size % 0xff00))
+    if (0 == (firstSize % 0xff00))
     {
       return true;
     }
     //xxx.x and
     //xxx    '.x should be merged
     static const Char SATTELITE_SEQ[] = {'\'', '.', '\0'};
-    const String::size_type apPos(rh.Name.find(SATTELITE_SEQ));
+    const String::size_type apPos(rh.GetName().find(SATTELITE_SEQ));
     return apPos != String::npos &&
-      (lh.Size == 0xc300 && rh.Size == 0xc000); //PDT sattelites sizes
+      (firstSize == 0xc300 && rh.GetSize() == 0xc000); //PDT sattelites sizes
   }
 
-  void MergeEntry(FileEntry& lh, const FileEntry& rh)
+  class MergedFileEntry : public FileEntry
   {
-    assert(AreEntriesMergeable(lh, rh));
-    lh.Size += rh.Size;
-  }
+  public:
+    MergedFileEntry(FileEntry::Ptr first, FileEntry::Ptr second)
+      : First(first)
+      , Second(second)
+    {
+    }
+
+    virtual String GetName() const
+    {
+      return First->GetName();
+    }
+
+    virtual std::size_t GetOffset() const
+    {
+      return First->GetOffset();
+    }
+
+    virtual std::size_t GetSize() const
+    {
+      return First->GetSize() + Second->GetSize();
+    }
+  private:
+    const FileEntry::Ptr First;
+    const FileEntry::Ptr Second;
+  };
+
+  class FixedFileEntry : public FileEntry
+  {
+  public:
+    FixedFileEntry(const String& newName, FileEntry::Ptr delegate)
+      : NewName(newName)
+      , Delegate(delegate)
+    {
+    }
+
+    virtual String GetName() const
+    {
+      return NewName;
+    }
+
+    virtual std::size_t GetOffset() const
+    {
+      return Delegate->GetOffset();
+    }
+
+    virtual std::size_t GetSize() const
+    {
+      return Delegate->GetSize();
+    }
+  private:
+    const String NewName;
+    const FileEntry::Ptr Delegate;
+  };
 
   class NamesGenerator
   {
@@ -80,7 +132,7 @@ namespace
     unsigned Idx;
   };
 
-  typedef std::vector<FileEntry> EntriesList;
+  typedef std::vector<FileEntry::Ptr> EntriesList;
 
   class FileEntriesIterator : public FilesSet::Iterator
   {
@@ -96,7 +148,7 @@ namespace
       return Current != Limit;
     }
 
-    virtual FileEntry Get() const
+    virtual FileEntry::Ptr Get() const
     {
       assert(IsValid());
       return *Current;
@@ -115,9 +167,9 @@ namespace
   class FilesSetImpl : public FilesSet
   {
   public:
-    virtual void AddEntry(const FileEntry& newOne)
+    virtual void AddEntry(FileEntry::Ptr newOne)
     {
-      if (IsPossibleToMerge(newOne))
+      if (IsPossibleToMerge(*newOne))
       {
         MergeWithLast(newOne);
       }
@@ -137,30 +189,30 @@ namespace
       return static_cast<uint_t>(Entries.size());
     }
 
-    virtual const FileEntry* FindEntry(const String& name) const
+    virtual FileEntry::Ptr FindEntry(const String& name) const
     {
-      const EntriesList::const_iterator it = std::find_if(Entries.begin(), Entries.end(), boost::bind(&FileEntry::Name, _1) == name);
+      const EntriesList::const_iterator it = std::find_if(Entries.begin(), Entries.end(), boost::bind(&FileEntry::GetName, _1) == name);
       if (it == Entries.end())
       {
-        return 0;
+        return FileEntry::Ptr();
       }
-      return &*it;
+      return *it;
     }
   private:
     bool IsPossibleToMerge(const FileEntry& newOne) const
     {
       return !Entries.empty() &&
-             AreEntriesMergeable(Entries.back(), newOne);
+             AreEntriesMergeable(*Entries.back(), newOne);
     }
 
-    void MergeWithLast(const FileEntry& newOne)
+    void MergeWithLast(FileEntry::Ptr newOne)
     {
-      MergeEntry(Entries.back(), newOne);
+      Entries.back() = boost::make_shared<MergedFileEntry>(Entries.back(), newOne);
     }
 
-    void AddNewOne(const FileEntry& newOne)
+    void AddNewOne(FileEntry::Ptr newOne)
     {
-      const String originalName(newOne.Name);
+      const String originalName(newOne->GetName());
       if (!originalName.empty() &&
           !FindEntry(originalName))
       {
@@ -172,8 +224,7 @@ namespace
         const String newName = gen();
         if (!FindEntry(newName))
         {
-          FileEntry fixedEntry(newOne);
-          fixedEntry.Name = newName;
+          const FileEntry::Ptr fixedEntry = boost::make_shared<FixedFileEntry>(newName, newOne);
           Entries.push_back(fixedEntry);
           return;
         }
@@ -181,6 +232,36 @@ namespace
     }
   private:
     EntriesList Entries;
+  };
+
+  class SimpleFileEntry : public FileEntry
+  {
+  public:
+    SimpleFileEntry(const String& name, std::size_t off, std::size_t size)
+      : Name(name)
+      , Offset(off)
+      , Size(size)
+    {
+    }
+
+    virtual String GetName() const
+    {
+      return Name;
+    }
+
+    virtual std::size_t GetOffset() const
+    {
+      return Offset;
+    }
+
+    virtual std::size_t GetSize() const
+    {
+      return Size;
+    }
+  private:
+    const String Name;
+    const std::size_t Offset;
+    const std::size_t Size;
   };
 }
 
@@ -201,6 +282,11 @@ namespace TRDos
     const char* const invalidSym = std::find_if(type, ArrayEnd(type), !boost::algorithm::is_alnum());
     fname += String(type, invalidSym);
     return fname;
+  }
+
+  FileEntry::Ptr FileEntry::Create(const String& name, std::size_t off, std::size_t size)
+  {
+    return boost::make_shared<SimpleFileEntry>(name, off, size);
   }
 
   FilesSet::Ptr FilesSet::Create()

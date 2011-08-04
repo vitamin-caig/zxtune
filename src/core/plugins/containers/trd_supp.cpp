@@ -179,7 +179,7 @@ namespace
         {
           entryName.insert(0, 1, '~');
         }
-        const TRDos::FileEntry& newOne = TRDos::FileEntry(entryName, catEntry->Offset(), catEntry->Size());
+        const TRDos::FileEntry::Ptr newOne = TRDos::FileEntry::Create(entryName, catEntry->Offset(), catEntry->Size());
         res->AddEntry(newOne);
       }
     }
@@ -276,15 +276,15 @@ namespace
         return DataLocation::Ptr();
       }
       const TRDos::FilesSet::Ptr files = ParseTRDFile(dump);
-      const TRDos::FileEntry* const entryToOpen = files.get()
+      const TRDos::FileEntry::Ptr entryToOpen = files.get()
         ? files->FindEntry(pathComp)
-        : 0;
+        : TRDos::FileEntry::Ptr();
       if (!entryToOpen)
       {
         return DataLocation::Ptr();
       }
       const Plugin::Ptr subPlugin = shared_from_this();
-      const IO::DataContainer::Ptr subData = inData->GetSubcontainer(entryToOpen->Offset, entryToOpen->Size);
+      const IO::DataContainer::Ptr subData = inData->GetSubcontainer(entryToOpen->GetOffset(), entryToOpen->GetSize());
       return CreateNestedLocation(location, subData, subPlugin, pathComp); 
     }
   };

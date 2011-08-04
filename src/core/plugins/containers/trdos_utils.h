@@ -16,39 +16,38 @@ Author:
 //common includes
 #include <iterator.h>
 #include <types.h>
+//boost includes
+#include <boost/shared_ptr.hpp>
 
 namespace TRDos
 {
   String GetEntryName(const char (&name)[8], const char (&type)[3]);
 
-  struct FileEntry
+  class FileEntry
   {
-    FileEntry()
-      : Name(), Offset(), Size()
-    {
-    }
+  public:
+    typedef boost::shared_ptr<const FileEntry> Ptr;
 
-    FileEntry(const String& name, std::size_t off, std::size_t sz)
-      : Name(name), Offset(off), Size(sz)
-    {
-    }
+    virtual ~FileEntry() {}
 
-    String Name;
-    std::size_t Offset;
-    std::size_t Size;
+    virtual String GetName() const = 0;
+    virtual std::size_t GetOffset() const = 0;
+    virtual std::size_t GetSize() const = 0;
+
+    static Ptr Create(const String& name, std::size_t off, std::size_t size);
   };
 
   class FilesSet
   {
   public:
     typedef std::auto_ptr<FilesSet> Ptr;
-    typedef ObjectIterator<FileEntry> Iterator;
+    typedef ObjectIterator<FileEntry::Ptr> Iterator;
     virtual ~FilesSet() {}
 
-    virtual void AddEntry(const FileEntry& entry) = 0;
+    virtual void AddEntry(FileEntry::Ptr entry) = 0;
     virtual Iterator::Ptr GetEntries() const = 0;
     virtual uint_t GetEntriesCount() const = 0;
-    virtual const FileEntry* FindEntry(const String& name) const = 0;
+    virtual FileEntry::Ptr FindEntry(const String& name) const = 0;
 
     static Ptr Create();
   };

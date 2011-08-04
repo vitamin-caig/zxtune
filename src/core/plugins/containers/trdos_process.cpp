@@ -41,8 +41,8 @@ namespace
       if (Callback)
       {
         const String text = Path.empty()
-          ? Strings::Format(Text::CONTAINER_PLUGIN_PROGRESS_NOPATH, Id, cur.Name)
-          : Strings::Format(Text::CONTAINER_PLUGIN_PROGRESS, Id, cur.Name, Path);
+          ? Strings::Format(Text::CONTAINER_PLUGIN_PROGRESS_NOPATH, Id, cur.GetName())
+          : Strings::Format(Text::CONTAINER_PLUGIN_PROGRESS, Id, cur.GetName(), Path);
         Callback->OnProgress(Current++, text);
       }
     }
@@ -64,11 +64,11 @@ namespace TRDos
     const ZXTune::Module::NoProgressDetectCallbackAdapter noProgressCallback(callback);
     for (TRDos::FilesSet::Iterator::Ptr it = files.GetEntries(); it->IsValid(); it->Next())
     {
-      const TRDos::FileEntry& entry = it->Get();
-      const IO::DataContainer::Ptr subData = data->GetSubcontainer(entry.Offset, entry.Size);
-      const String subPath = entry.Name;
+      const TRDos::FileEntry::Ptr entry = it->Get();
+      const IO::DataContainer::Ptr subData = data->GetSubcontainer(entry->GetOffset(), entry->GetSize());
+      const String subPath = entry->GetName();
       const ZXTune::DataLocation::Ptr subLocation = CreateNestedLocation(location, subData, plugin, subPath);
-      logger(entry);
+      logger(*entry);
       ZXTune::Module::Detect(subLocation, noProgressCallback);
     }
   }
