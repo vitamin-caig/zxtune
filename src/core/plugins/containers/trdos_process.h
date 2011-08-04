@@ -19,7 +19,7 @@ Author:
 
 namespace TRDos
 {
-  void ProcessEntries(ZXTune::DataLocation::Ptr location, const ZXTune::Module::DetectCallback& callback, ZXTune::Plugin::Ptr plugin, const FilesSet& files);
+  void ProcessEntries(ZXTune::DataLocation::Ptr location, const ZXTune::Module::DetectCallback& callback, ZXTune::Plugin::Ptr plugin, const Catalogue& files);
 }
 
 #endif //__CORE_PLUGINS_CONTAINERS_TRDOS_PROCESS_H_DEFINED__

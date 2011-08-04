@@ -16,6 +16,8 @@ Author:
 //common includes
 #include <iterator.h>
 #include <types.h>
+//library includes
+#include <io/container.h>
 //boost includes
 #include <boost/shared_ptr.hpp>
 
@@ -23,33 +25,46 @@ namespace TRDos
 {
   String GetEntryName(const char (&name)[8], const char (&type)[3]);
 
-  class FileEntry
+  class File
   {
   public:
-    typedef boost::shared_ptr<const FileEntry> Ptr;
+    typedef boost::shared_ptr<const File> Ptr;
 
-    virtual ~FileEntry() {}
+    virtual ~File() {}
 
     virtual String GetName() const = 0;
     virtual std::size_t GetOffset() const = 0;
     virtual std::size_t GetSize() const = 0;
+    virtual ZXTune::IO::DataContainer::Ptr GetData() const = 0;
 
-    static Ptr Create(const String& name, std::size_t off, std::size_t size);
+    static Ptr Create(ZXTune::IO::DataContainer::Ptr data, const String& name, std::size_t off, std::size_t size);
   };
 
-  class FilesSet
+  class Catalogue
   {
   public:
-    typedef std::auto_ptr<FilesSet> Ptr;
-    typedef ObjectIterator<FileEntry::Ptr> Iterator;
-    virtual ~FilesSet() {}
+    typedef std::auto_ptr<const Catalogue> Ptr;
+    typedef ObjectIterator<File::Ptr> Iterator;
+    virtual ~Catalogue() {}
 
-    virtual void AddEntry(FileEntry::Ptr entry) = 0;
-    virtual Iterator::Ptr GetEntries() const = 0;
-    virtual uint_t GetEntriesCount() const = 0;
-    virtual FileEntry::Ptr FindEntry(const String& name) const = 0;
+    virtual Iterator::Ptr GetFiles() const = 0;
+    virtual uint_t GetFilesCount() const = 0;
+    virtual File::Ptr FindFile(const String& name) const = 0;
+    virtual std::size_t GetUsedSize() const = 0;
+  };
 
-    static Ptr Create();
+  class CatalogueBuilder
+  {
+  public:
+    typedef std::auto_ptr<CatalogueBuilder> Ptr;
+    virtual ~CatalogueBuilder() {}
+
+    virtual void SetUsedSize(std::size_t size) = 0;
+    virtual void AddFile(File::Ptr file) = 0;
+
+    virtual Catalogue::Ptr GetResult() const = 0;
+
+    static Ptr CreateGeneric();
   };
 }
 #endif //__CORE_PLUGINS_CONTAINERS_TRDOS_UTILS_H_DEFINED__

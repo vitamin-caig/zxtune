@@ -155,15 +155,15 @@ namespace
     return idx > 0;
   }
 
-  TRDos::FilesSet::Ptr ParseTRDFile(const IO::FastDump& data)
+  TRDos::Catalogue::Ptr ParseTRDFile(IO::DataContainer::Ptr data)
   {
-    assert(CheckTRDFile(data));
+    assert(CheckTRDFile(IO::FastDump(*data)));
 
-    TRDos::FilesSet::Ptr res = TRDos::FilesSet::Create();
+    const TRDos::CatalogueBuilder::Ptr builder = TRDos::CatalogueBuilder::CreateGeneric();
 
-    const ServiceSector* const sector = safe_ptr_cast<const ServiceSector*>(&data[SERVICE_SECTOR_NUM * BYTES_PER_SECTOR]);
+    const ServiceSector* const sector = safe_ptr_cast<const ServiceSector*>(data->Data()) + SERVICE_SECTOR_NUM;
     uint_t deleted = 0;
-    const CatEntry* catEntry = safe_ptr_cast<const CatEntry*>(data.Data());
+    const CatEntry* catEntry = safe_ptr_cast<const CatEntry*>(data->Data());
     for (uint_t idx = 0; idx != MAX_FILES_COUNT && NOENTRY != catEntry->Name[0]; ++idx, ++catEntry)
     {
       //TODO: parametrize this
@@ -179,15 +179,16 @@ namespace
         {
           entryName.insert(0, 1, '~');
         }
-        const TRDos::FileEntry::Ptr newOne = TRDos::FileEntry::Create(entryName, catEntry->Offset(), catEntry->Size());
-        res->AddEntry(newOne);
+        const TRDos::File::Ptr newOne = TRDos::File::Create(data, entryName, catEntry->Offset(), catEntry->Size());
+        builder->AddFile(newOne);
       }
     }
     if (deleted != sector->DeletedFiles)
     {
       Log::Debug("Core::TRDSupp", "Deleted files count is differs from calculated");
     }
-    return res;
+    builder->SetUsedSize(TRD_MODULE_SIZE);
+    return builder->GetResult();
   }
 
   class TRDDetectionResult : public DetectionResult
@@ -252,11 +253,11 @@ namespace
       std::size_t parsedSize = 0;
       if (CheckTRDFile(dump))
       {
-        const TRDos::FilesSet::Ptr files = ParseTRDFile(dump);
-        if (files->GetEntriesCount())
+        const TRDos::Catalogue::Ptr files = ParseTRDFile(rawData);
+        if (files->GetFilesCount())
         {
           ProcessEntries(input, callback, shared_from_this(), *files);
-          parsedSize = TRD_MODULE_SIZE;
+          parsedSize = files->GetUsedSize();
         }
       }
       return boost::make_shared<TRDDetectionResult>(parsedSize, rawData);
@@ -275,17 +276,14 @@ namespace
       {
         return DataLocation::Ptr();
       }
-      const TRDos::FilesSet::Ptr files = ParseTRDFile(dump);
-      const TRDos::FileEntry::Ptr entryToOpen = files.get()
-        ? files->FindEntry(pathComp)
-        : TRDos::FileEntry::Ptr();
-      if (!entryToOpen)
+      const TRDos::Catalogue::Ptr files = ParseTRDFile(inData);
+      if (const TRDos::File::Ptr fileToOpen = files->FindFile(pathComp))
       {
-        return DataLocation::Ptr();
+        const Plugin::Ptr subPlugin = shared_from_this();
+        const IO::DataContainer::Ptr subData = fileToOpen->GetData();
+        return CreateNestedLocation(location, subData, subPlugin, pathComp); 
       }
-      const Plugin::Ptr subPlugin = shared_from_this();
-      const IO::DataContainer::Ptr subData = inData->GetSubcontainer(entryToOpen->GetOffset(), entryToOpen->GetSize());
-      return CreateNestedLocation(location, subData, subPlugin, pathComp); 
+      return DataLocation::Ptr();
     }
   };
 }

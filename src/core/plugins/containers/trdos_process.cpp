@@ -36,7 +36,7 @@ namespace
     {
     }
 
-    void operator()(const TRDos::FileEntry& cur)
+    void operator()(const TRDos::File& cur)
     {
       if (Callback)
       {
@@ -56,19 +56,19 @@ namespace
 
 namespace TRDos
 {
-  void ProcessEntries(ZXTune::DataLocation::Ptr location, const ZXTune::Module::DetectCallback& callback, ZXTune::Plugin::Ptr plugin, const FilesSet& files)
+  void ProcessEntries(ZXTune::DataLocation::Ptr location, const ZXTune::Module::DetectCallback& callback, ZXTune::Plugin::Ptr plugin, const Catalogue& files)
   {
     const ZXTune::IO::DataContainer::Ptr data = location->GetData();
-    const Log::ProgressCallback::Ptr progress = CreateProgressCallback(callback, files.GetEntriesCount());
+    const Log::ProgressCallback::Ptr progress = CreateProgressCallback(callback, files.GetFilesCount());
     LoggerHelper logger(progress.get(), *plugin, location->GetPath()->AsString());
     const ZXTune::Module::NoProgressDetectCallbackAdapter noProgressCallback(callback);
-    for (TRDos::FilesSet::Iterator::Ptr it = files.GetEntries(); it->IsValid(); it->Next())
+    for (Catalogue::Iterator::Ptr it = files.GetFiles(); it->IsValid(); it->Next())
     {
-      const TRDos::FileEntry::Ptr entry = it->Get();
-      const IO::DataContainer::Ptr subData = data->GetSubcontainer(entry->GetOffset(), entry->GetSize());
-      const String subPath = entry->GetName();
+      const TRDos::File::Ptr file = it->Get();
+      const IO::DataContainer::Ptr subData = file->GetData();
+      const String subPath = file->GetName();
       const ZXTune::DataLocation::Ptr subLocation = CreateNestedLocation(location, subData, plugin, subPath);
-      logger(*entry);
+      logger(*file);
       ZXTune::Module::Detect(subLocation, noProgressCallback);
     }
   }

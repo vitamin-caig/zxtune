@@ -14,15 +14,18 @@ Author:
 #include <core/plugins/utils.h>
 //common includes
 #include <format.h>
+//std includes
+#include <numeric>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
 
 namespace
 {
+  using namespace ZXTune;
   using namespace TRDos;
 
-  bool AreEntriesMergeable(const FileEntry& lh, const FileEntry& rh)
+  bool AreFilesMergeable(const File& lh, const File& rh)
   {
     const std::size_t firstSize = lh.GetSize();
     //merge if files are sequental
@@ -43,38 +46,20 @@ namespace
       (firstSize == 0xc300 && rh.GetSize() == 0xc000); //PDT sattelites sizes
   }
 
-  class MergedFileEntry : public FileEntry
+  typedef std::vector<File::Ptr> FilesList;
+
+  class MultiFile : public File
   {
   public:
-    MergedFileEntry(FileEntry::Ptr first, FileEntry::Ptr second)
-      : First(first)
-      , Second(second)
-    {
-    }
+    typedef boost::shared_ptr<MultiFile> Ptr;
 
-    virtual String GetName() const
-    {
-      return First->GetName();
-    }
-
-    virtual std::size_t GetOffset() const
-    {
-      return First->GetOffset();
-    }
-
-    virtual std::size_t GetSize() const
-    {
-      return First->GetSize() + Second->GetSize();
-    }
-  private:
-    const FileEntry::Ptr First;
-    const FileEntry::Ptr Second;
+    virtual bool Merge(File::Ptr other) = 0;
   };
 
-  class FixedFileEntry : public FileEntry
+  class FixedNameFile : public File
   {
   public:
-    FixedFileEntry(const String& newName, FileEntry::Ptr delegate)
+    FixedNameFile(const String& newName, File::Ptr delegate)
       : NewName(newName)
       , Delegate(delegate)
     {
@@ -94,9 +79,14 @@ namespace
     {
       return Delegate->GetSize();
     }
+
+    virtual IO::DataContainer::Ptr GetData() const
+    {
+      return Delegate->GetData();
+    }
   private:
     const String NewName;
-    const FileEntry::Ptr Delegate;
+    const File::Ptr Delegate;
   };
 
   class NamesGenerator
@@ -132,14 +122,12 @@ namespace
     unsigned Idx;
   };
 
-  typedef std::vector<FileEntry::Ptr> EntriesList;
-
-  class FileEntriesIterator : public FilesSet::Iterator
+  class FilesIterator : public Catalogue::Iterator
   {
   public:
-    explicit FileEntriesIterator(const EntriesList& entries)
-      : Current(entries.begin())
-      , Limit(entries.end())
+    explicit FilesIterator(const FilesList& files)
+      : Current(files.begin())
+      , Limit(files.end())
     {
     }
 
@@ -148,7 +136,7 @@ namespace
       return Current != Limit;
     }
 
-    virtual FileEntry::Ptr Get() const
+    virtual File::Ptr Get() const
     {
       assert(IsValid());
       return *Current;
@@ -160,85 +148,179 @@ namespace
       ++Current;
     }
   private:
-    EntriesList::const_iterator Current;
-    const EntriesList::const_iterator Limit;
+    FilesList::const_iterator Current;
+    const FilesList::const_iterator Limit;
   };
 
-  class FilesSetImpl : public FilesSet
+  class CommonCatalogue : public Catalogue
   {
   public:
-    virtual void AddEntry(FileEntry::Ptr newOne)
+    template<class T>
+    CommonCatalogue(T from, T to, std::size_t usedSize)
+      : Files(from, to)
+      , UsedSize(usedSize)
     {
-      if (IsPossibleToMerge(*newOne))
+      assert(UsedSize);
+    }
+
+    virtual Iterator::Ptr GetFiles() const
+    {
+      return Iterator::Ptr(new FilesIterator(Files));
+    }
+
+    virtual uint_t GetFilesCount() const
+    {
+      return static_cast<uint_t>(Files.size());
+    }
+
+    virtual File::Ptr FindFile(const String& name) const
+    {
+      const FilesList::const_iterator it = std::find_if(Files.begin(), Files.end(), boost::bind(&File::GetName, _1) == name);
+      if (it == Files.end())
       {
-        MergeWithLast(newOne);
+        return File::Ptr();
       }
-      else
+      return *it;
+    }
+
+    virtual std::size_t GetUsedSize() const
+    {
+      return UsedSize;
+    }
+  private:
+    const FilesList Files;
+    const std::size_t UsedSize;
+  };
+
+  typedef std::vector<MultiFile::Ptr> MultiFilesList;
+
+  class BaseCatalogueBuilder : public CatalogueBuilder
+  {
+  public:
+    BaseCatalogueBuilder()
+      : UsedSize()
+    {
+    }
+
+    virtual void SetUsedSize(std::size_t size)
+    {
+      UsedSize = size;
+    }
+
+    virtual void AddFile(File::Ptr newOne)
+    {
+      if (!Merge(newOne))
       {
         AddNewOne(newOne);
       }
     }
 
-    virtual Iterator::Ptr GetEntries() const
+    virtual Catalogue::Ptr GetResult() const
     {
-      return Iterator::Ptr(new FileEntriesIterator(Entries));
+      return Catalogue::Ptr(new CommonCatalogue(Files.begin(), Files.end(), UsedSize));
     }
-
-    virtual uint_t GetEntriesCount() const
-    {
-      return static_cast<uint_t>(Entries.size());
-    }
-
-    virtual FileEntry::Ptr FindEntry(const String& name) const
-    {
-      const EntriesList::const_iterator it = std::find_if(Entries.begin(), Entries.end(), boost::bind(&FileEntry::GetName, _1) == name);
-      if (it == Entries.end())
-      {
-        return FileEntry::Ptr();
-      }
-      return *it;
-    }
+  protected:
+    virtual MultiFile::Ptr CreateMultiFile(File::Ptr inFile) = 0;
   private:
-    bool IsPossibleToMerge(const FileEntry& newOne) const
+    bool Merge(File::Ptr newOne) const
     {
-      return !Entries.empty() &&
-             AreEntriesMergeable(*Entries.back(), newOne);
+      return !Files.empty() && Files.back()->Merge(newOne);
     }
 
-    void MergeWithLast(FileEntry::Ptr newOne)
+    void AddNewOne(File::Ptr newOne)
     {
-      Entries.back() = boost::make_shared<MergedFileEntry>(Entries.back(), newOne);
+      const File::Ptr fixed = CreateUniqueNameFile(newOne);
+      const MultiFile::Ptr res = CreateMultiFile(fixed);
+      Files.push_back(res);
     }
 
-    void AddNewOne(FileEntry::Ptr newOne)
+    File::Ptr CreateUniqueNameFile(File::Ptr newOne)
     {
       const String originalName(newOne->GetName());
       if (!originalName.empty() &&
-          !FindEntry(originalName))
+          !HasFile(originalName))
       {
-        Entries.push_back(newOne);
-        return;
+        return newOne;
       }
       for (NamesGenerator gen(originalName); ; ++gen)
       {
         const String newName = gen();
-        if (!FindEntry(newName))
+        if (!HasFile(newName))
         {
-          const FileEntry::Ptr fixedEntry = boost::make_shared<FixedFileEntry>(newName, newOne);
-          Entries.push_back(fixedEntry);
-          return;
+          return boost::make_shared<FixedNameFile>(newName, newOne);
         }
       }
     }
+
+    bool HasFile(const String& name) const
+    {
+      const MultiFilesList::const_iterator it = std::find_if(Files.begin(), Files.end(), boost::bind(&File::GetName, _1) == name);
+      return it != Files.end();
+    }
   private:
-    EntriesList Entries;
+    MultiFilesList Files;
+    std::size_t UsedSize;
   };
 
-  class SimpleFileEntry : public FileEntry
+  class GenericMultiFile : public MultiFile
   {
   public:
-    SimpleFileEntry(const String& name, std::size_t off, std::size_t size)
-      : Name(name)
+    explicit GenericMultiFile(File::Ptr delegate)
+    {
+      Subfiles.push_back(delegate);
+    }
+
+    virtual String GetName() const
+    {
+      return Subfiles.front()->GetName();
+    }
+
+    virtual std::size_t GetOffset() const
+    {
+      return Subfiles.front()->GetOffset();
+    }
+
+    virtual std::size_t GetSize() const
+    {
+      return std::accumulate(Subfiles.begin(), Subfiles.end(), std::size_t(0), 
+        boost::bind(std::plus<std::size_t>(), _1, boost::bind(&File::GetSize, _2)));
+    }
+
+    virtual IO::DataContainer::Ptr GetData() const
+    {
+      std::auto_ptr<Dump> res(new Dump(GetSize()));
+      uint8_t* dst = &res->front();
+      for (FilesList::const_iterator it = Subfiles.begin(), lim = Subfiles.end(); it != lim; ++it)
+      {
+        const File::Ptr file = *it;
+        const IO::DataContainer::Ptr data = file->GetData();
+        const std::size_t size = data->Size();
+        assert(size == file->GetSize());
+        std::memcpy(dst, data->Data(), size);
+        dst += size;
+      }
+      return IO::CreateDataContainer(res);
+    }
+
+    virtual bool Merge(File::Ptr rh)
+    {
+      if (AreFilesMergeable(*Subfiles.back(), *rh))
+      {
+        Subfiles.push_back(rh);
+        return true;
+      }
+      return false;
+    }
+  private:
+    FilesList Subfiles;
+  };
+
+  class GenericFile : public File
+  {
+  public:
+    GenericFile(IO::DataContainer::Ptr data, const String& name, std::size_t off, std::size_t size)
+      : Data(data)
+      , Name(name)
       , Offset(off)
       , Size(size)
     {
@@ -258,10 +340,26 @@ namespace
     {
       return Size;
     }
+
+    virtual IO::DataContainer::Ptr GetData() const
+    {
+      return Data->GetSubcontainer(Offset, Size);
+    }
   private:
+    const IO::DataContainer::Ptr Data;
     const String Name;
     const std::size_t Offset;
     const std::size_t Size;
+  };
+
+  //TODO: remove implementation inheritance
+  class GenericCatalogueBuilder : public BaseCatalogueBuilder
+  {
+  public:
+    virtual MultiFile::Ptr CreateMultiFile(File::Ptr inFile)
+    {
+      return boost::make_shared<GenericMultiFile>(inFile);
+    }
   };
 }
 
@@ -284,13 +382,13 @@ namespace TRDos
     return fname;
   }
 
-  FileEntry::Ptr FileEntry::Create(const String& name, std::size_t off, std::size_t size)
+  File::Ptr File::Create(ZXTune::IO::DataContainer::Ptr data, const String& name, std::size_t off, std::size_t size)
   {
-    return boost::make_shared<SimpleFileEntry>(name, off, size);
+    return boost::make_shared<GenericFile>(data, name, off, size);
   }
 
-  FilesSet::Ptr FilesSet::Create()
+  CatalogueBuilder::Ptr CatalogueBuilder::CreateGeneric()
   {
-    return FilesSet::Ptr(new FilesSetImpl());
+    return CatalogueBuilder::Ptr(new GenericCatalogueBuilder());
   }
 }

@@ -120,13 +120,12 @@ namespace
   }
 
   //fill descriptors array and return actual container size
-  TRDos::FilesSet::Ptr ParseSCLFile(const IO::FastDump& data, std::size_t& parsedSize)
+  TRDos::Catalogue::Ptr ParseSCLFile(IO::DataContainer::Ptr data)
   {
-    assert(CheckSCLFile(data));
-    const SCLHeader* const header = safe_ptr_cast<const SCLHeader*>(data.Data());
+    assert(CheckSCLFile(IO::FastDump(*data)));
+    const SCLHeader* const header = safe_ptr_cast<const SCLHeader*>(data->Data());
 
-    TRDos::FilesSet::Ptr res = TRDos::FilesSet::Create();
-    //res.reserve(header->BlocksCount);
+    const TRDos::CatalogueBuilder::Ptr builder = TRDos::CatalogueBuilder::CreateGeneric();
     std::size_t offset = safe_ptr_cast<const uint8_t*>(header->Blocks + header->BlocksCount) -
                     safe_ptr_cast<const uint8_t*>(header);
     for (uint_t idx = 0; idx != header->BlocksCount; ++idx)
@@ -134,12 +133,12 @@ namespace
       const SCLEntry& entry = header->Blocks[idx];
       const std::size_t nextOffset = offset + entry.Size();
       const String entryName = TRDos::GetEntryName(entry.Name, entry.Type);
-      const TRDos::FileEntry::Ptr newOne = TRDos::FileEntry::Create(entryName, offset, entry.Size());
-      res->AddEntry(newOne);
+      const TRDos::File::Ptr newOne = TRDos::File::Create(data, entryName, offset, entry.Size());
+      builder->AddFile(newOne);
       offset = nextOffset;
     }
-    parsedSize = offset;
-    return res;
+    builder->SetUsedSize(offset);
+    return builder->GetResult();
   }
 
   class SCLDetectionResult : public DetectionResult
@@ -203,11 +202,12 @@ namespace
       std::size_t parsedSize = 0;
       if (CheckSCLFile(dump))
       {
-        const TRDos::FilesSet::Ptr files = ParseSCLFile(dump, parsedSize);
-        if (files->GetEntriesCount())
+        const TRDos::Catalogue::Ptr files = ParseSCLFile(rawData);
+        if (files->GetFilesCount())
         {
           ProcessEntries(input, callback, shared_from_this(), *files);
         }
+        parsedSize = files->GetUsedSize();
       }
       return boost::make_shared<SCLDetectionResult>(parsedSize, rawData);
     }
@@ -225,18 +225,14 @@ namespace
       {
         return DataLocation::Ptr();
       }
-      std::size_t parsedSize = 0;
-      const TRDos::FilesSet::Ptr files = ParseSCLFile(dump, parsedSize);
-      const TRDos::FileEntry::Ptr entryToOpen = files.get()
-        ? files->FindEntry(pathComp)
-        : TRDos::FileEntry::Ptr();
-      if (!entryToOpen)
+      const TRDos::Catalogue::Ptr files = ParseSCLFile(inData);
+      if (const TRDos::File::Ptr fileToOpen = files->FindFile(pathComp))
       {
-        return DataLocation::Ptr();
+        const Plugin::Ptr subPlugin = shared_from_this();
+        const IO::DataContainer::Ptr subData = fileToOpen->GetData();
+        return CreateNestedLocation(location, subData, subPlugin, pathComp); 
       }
-      const Plugin::Ptr subPlugin = shared_from_this();
-      const IO::DataContainer::Ptr subData = inData->GetSubcontainer(entryToOpen->GetOffset(), entryToOpen->GetSize());
-      return CreateNestedLocation(location, subData, subPlugin, pathComp); 
+      return DataLocation::Ptr();
     }
   };
 }
