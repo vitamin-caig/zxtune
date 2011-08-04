@@ -227,7 +227,7 @@ namespace PowerfullCodeDecreaser6
       return (Bits & Mask) != 0 ? 1 : 0;
     }
 
-    uint_t GetBits(unsigned count)
+    uint_t GetBits(uint_t count)
     {
       uint_t result = 0;
       while (count--)

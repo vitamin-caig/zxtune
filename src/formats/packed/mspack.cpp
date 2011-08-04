@@ -131,9 +131,9 @@ namespace MSPack
   private:
     bool DecodeData()
     {
-      const unsigned lastBytesCount = fromLE(Header.LastSrcRestBytes) - fromLE(Header.LastSrcPacked);
+      const uint_t lastBytesCount = fromLE(Header.LastSrcRestBytes) - fromLE(Header.LastSrcPacked);
       const uint_t packedSize = fromLE(Header.SizeOfPacked);
-      const unsigned unpackedSize = fromLE(Header.LastDstPacked) - fromLE(Header.DstAddress) + 1;
+      const uint_t unpackedSize = fromLE(Header.LastDstPacked) - fromLE(Header.DstAddress) + 1;
 
       Decoded.reserve(unpackedSize);
 
@@ -149,7 +149,7 @@ namespace MSPack
         len += 2;
         if (2 == len)
         {
-          const unsigned disp = Stream.GetByte() + 1;
+          const uint_t disp = Stream.GetByte() + 1;
           if (!CopyFromBack(disp, Decoded, 2))
           {
             return false;

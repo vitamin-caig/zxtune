@@ -39,7 +39,7 @@ public:
     return result;
   }
 
-  uint_t GetBits(unsigned count)
+  uint_t GetBits(uint_t count)
   {
     uint_t result = 0;
     while (count--)

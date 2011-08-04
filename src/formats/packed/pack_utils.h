@@ -67,7 +67,7 @@ void RecursiveCopy(ConstIterator srcBegin, ConstIterator srcEnd, Iterator dstBeg
 }
 
 //offset to back
-inline bool CopyFromBack(uint_t offset, Dump& dst, uint_t count)
+inline bool CopyFromBack(std::size_t offset, Dump& dst, std::size_t count)
 {
   const std::size_t size = dst.size();
   if (offset > size)
@@ -102,24 +102,6 @@ public:
   {
     return Forward || Backward;
     //do not check other due to overlap possibility
-    /*
-    if (Forward)
-    {
-      //while (Size--) *Target++ = *Source++
-      return Source > Target &&
-        Source + Size <= 0x10000;
-    }
-    else if (Backward)
-    {
-      //while (Size--) *Target-- = Source--
-      return Source < Target &&
-        Source >= Size;
-    }
-    else
-    {
-      return false;
-    }
-    */
   }
 
   uint_t FirstOfMovedData() const

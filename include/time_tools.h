@@ -50,7 +50,7 @@ namespace Time
     template<class T1, T1 OtherResolution>
     Stamp(const Stamp<T1, OtherResolution>& rh)
       : Value(sizeof(T1) >= sizeof(T)
-        ? Scale(rh.Get(), OtherResolution, T1(Resolution))
+        ? static_cast<T>(Scale(rh.Get(), OtherResolution, T1(Resolution)))
         : Scale(T(rh.Get()), T(OtherResolution), Resolution))
     {
     }

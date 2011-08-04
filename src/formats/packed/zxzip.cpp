@@ -81,12 +81,12 @@ namespace ZXZip
 
   BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0x16);
 
-  uint_t GetSourceFileSize(const RawHeader& header)
+  std::size_t GetSourceFileSize(const RawHeader& header)
   {
     const uint_t calcSize = header.Type == 'B' || header.Type == 'b'
       ? 4 + fromLE(header.StartOrSize)
       : fromLE(header.SourceSize);
-    const uint_t calcSectors = align(calcSize, uint_t(256)) / 256;
+    const std::size_t calcSectors = align(calcSize, uint_t(256)) / 256;
     return calcSectors == header.SourceSectors
       ? calcSize
       : 256 * header.SourceSectors;
@@ -108,14 +108,19 @@ namespace ZXZip
         return false;
       }
       const RawHeader& header = GetHeader();
-      if (GetSourceFileSize(header) < fromLE(header.PackedSize))
+      const std::size_t packedSize = fromLE(header.PackedSize);
+      if (!packedSize)
+      {
+        return false;
+      }
+      if (GetSourceFileSize(header) < packedSize)
       {
         return false;
       }
       return GetUsedSize() <= Size;
     }
 
-    uint_t GetUsedSize() const
+    std::size_t GetUsedSize() const
     {
       const RawHeader& header = GetHeader();
       return sizeof(header) + fromLE(header.PackedSize);
@@ -270,17 +275,17 @@ namespace ZXZip
     {
     }
 
-    uint_t GetBit()
+    bool GetBit()
     {
       if ((Mask <<= 1) > 255)
       {
         Bits = GetByte();
         Mask = 0x1;
       }
-      return Bits & Mask ? 1 : 0;
+      return 0 != (Bits & Mask);
     }
 
-    uint_t GetBits(unsigned count)
+    uint_t GetBits(uint_t count)
     {
       uint_t result = 0;
       for (uint_t idx = 0; idx < count; ++idx)
@@ -326,7 +331,7 @@ namespace ZXZip
 
     virtual Dump* GetDecodedData()
     {
-      const uint_t dataSize = GetSourceFileSize(Header);
+      const std::size_t dataSize = GetSourceFileSize(Header);
       const bool isBigFile = dataSize >= 0x1600;
       const bool isTextFile = 0 != (Header.Flags & 1);
       const bool isBigTextFile = isBigFile && isTextFile;
@@ -367,15 +372,15 @@ namespace ZXZip
             const uint_t data = isBigTextFile
               ? stream.ReadByTree(SFT1)
               : stream.GetBits(8);
-            result.push_back(data);
+            result.push_back(static_cast<uint8_t>(data));
           }
           else
           {
             const uint_t loDist = stream.GetBits(distBits);
             const uint_t hiDist = stream.ReadByTree(SFT3);
-            const uint_t dist = (loDist | (hiDist << distBits)) + 1;
+            const std::size_t dist = (loDist | (hiDist << distBits)) + 1;
 
-            uint_t len = stream.ReadByTree(SFT2);
+            std::size_t len = stream.ReadByTree(SFT2);
             if (63 == len)
             {
               len += stream.GetBits(8);
@@ -383,7 +388,7 @@ namespace ZXZip
             len += minMatchLen;
             if (dist > result.size())
             {
-              const uint_t zeroes = std::min<uint_t>(dist - result.size(), len);
+              const std::size_t zeroes = std::min<std::size_t>(dist - result.size(), len);
               std::fill_n(std::back_inserter(result), zeroes, 0);
               len -= zeroes;
             }
@@ -450,20 +455,20 @@ namespace ZXZip
   {
     static const uint_t LIMITER = 256;
 
-    uint_t Value;
     uint_t Parent;
+    uint8_t Value;
     bool IsFree;
 
     LZWEntry()
-      : Value()
-      , Parent()
+      : Parent()
+      , Value()
       , IsFree()
     {
     }
 
     explicit LZWEntry(uint_t value)
-      : Value(value < LIMITER ? value : 0)
-      , Parent(LIMITER)
+      : Parent(LIMITER)
+      , Value(static_cast<uint8_t>(value < LIMITER ? value : 0))
       , IsFree(value >= LIMITER)
     {
     }
@@ -494,7 +499,7 @@ namespace ZXZip
 
         uint_t codeSize = 9;
         uint_t oldCode = stream.GetBits(codeSize);
-        result.push_back(oldCode);
+        result.push_back(static_cast<uint8_t>(oldCode));
         while (!stream.Eof())
         {
           const uint_t code = stream.GetBits(codeSize);
@@ -558,18 +563,18 @@ namespace ZXZip
 
     static void PartialResetTree(LZWTree& tree)
     {
-      const uint_t parentsCount = tree.size() - LZWEntry::LIMITER;
+      const std::size_t parentsCount = tree.size() - LZWEntry::LIMITER;
       std::vector<bool> hasChilds(parentsCount);
-      for (uint_t idx = 0; idx < parentsCount; ++idx)
+      for (std::size_t idx = 0; idx < parentsCount; ++idx)
       {
         if (!tree[idx + LZWEntry::LIMITER].IsFree &&
             tree[idx + LZWEntry::LIMITER].Parent > LZWEntry::LIMITER)
         {
-          const uint_t parent = tree[idx + LZWEntry::LIMITER].Parent - LZWEntry::LIMITER;
+          const std::size_t parent = tree[idx + LZWEntry::LIMITER].Parent - LZWEntry::LIMITER;
           hasChilds[parent] = true;
         }
       }
-      for (uint_t idx = 0; idx < parentsCount; ++idx)
+      for (std::size_t idx = 0; idx < parentsCount; ++idx)
       {
         if (!hasChilds[idx])
         {
@@ -616,7 +621,7 @@ namespace ZXZip
       }
       while (Dump* result = Delegate->GetDecodedData())
       {
-        const uint_t dataSize = GetSourceFileSize(Header);
+        const std::size_t dataSize = GetSourceFileSize(Header);
         if (dataSize != result->size())
         {
           break;

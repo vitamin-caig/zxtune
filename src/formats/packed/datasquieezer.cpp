@@ -213,11 +213,6 @@ namespace DataSquieezer
       return Pos < Data;
     }
 
-    uint8_t GetByte()
-    {
-      return Eof() ? 0 : *--Pos;
-    }
-
     uint_t GetBit()
     {
       if (!(Mask >>= 1))
@@ -228,7 +223,7 @@ namespace DataSquieezer
       return Bits & Mask ? 1 : 0;
     }
 
-    uint_t GetBits(unsigned count)
+    uint_t GetBits(uint_t count)
     {
       uint_t result = 0;
       while (count--)
@@ -237,6 +232,17 @@ namespace DataSquieezer
       }
       return result;
     }
+
+    uint8_t Get8Bits()
+    {
+      return static_cast<uint8_t>(GetBits(8));
+    }
+  private:
+    uint8_t GetByte()
+    {
+      return Eof() ? 0 : *--Pos;
+    }
+
   private:
     const uint8_t* const Data;
     const uint8_t* Pos;
@@ -330,7 +336,7 @@ namespace DataSquieezer
       {
         if (!Stream.GetBit())
         {
-          Decoded.push_back(Stream.GetBits(8));
+          Decoded.push_back(Stream.Get8Bits());
         }
         else if (!DecodeCmd())
         {
@@ -403,7 +409,7 @@ namespace DataSquieezer
     void CopySingleBytes()
     {
       const uint_t count = 14 + Stream.GetBits(5);
-      std::generate_n(std::back_inserter(Decoded), count, boost::bind(&Bitstream::GetBits, &Stream, 8));
+      std::generate_n(std::back_inserter(Decoded), count, boost::bind(&Bitstream::Get8Bits, &Stream));
     }
   private:
     bool IsValid;

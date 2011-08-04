@@ -172,7 +172,7 @@ namespace CompressorCode
       return Version::FastCheck(header, Size);
     }
 
-    uint_t GetAvailableData() const
+    std::size_t GetAvailableData() const
     {
       return Size;
     }
@@ -196,7 +196,7 @@ namespace CompressorCode
     {
     }
 
-    uint_t GetUsedData() const
+    std::size_t GetUsedData() const
     {
       return UsedData;
     }
@@ -217,7 +217,7 @@ namespace CompressorCode
     }
 
   private:
-    uint_t UsedData;
+    std::size_t UsedData;
   };
 
   class RawDataDecoder
@@ -240,7 +240,7 @@ namespace CompressorCode
       return IsValid ? &Decoded : 0;
     }
 
-    uint_t GetUsedSize() const
+    std::size_t GetUsedSize() const
     {
       return Stream.GetUsedData();
     }
@@ -256,7 +256,7 @@ namespace CompressorCode
         //assume that first byte always exists due to header format
         while (chunksCount-- && Decoded.size() < MAX_DECODED_SIZE)
         {
-          const uint_t data = *source;
+          const uint8_t data = *source;
           const uint_t count = (data >> 5);
           if (24 == (data & 24))
           {
@@ -297,7 +297,7 @@ namespace CompressorCode
           case 8:
             ++len;
           case 9:
-            for (uint_t data = *source, delta = *source; len; --len, data += delta)
+            for (uint8_t data = *source, delta = *source; len; --len, data += delta)
             {
               *target = data;
             }
@@ -305,7 +305,7 @@ namespace CompressorCode
           case 0xa:
             --len;
           case 0xb:
-            for (const uint_t data1 = *source, data2 = *source; len; --len)
+            for (const uint8_t data1 = *source, data2 = *source; len; --len)
             {
               *target = data1;
               *target = data2;
@@ -314,7 +314,7 @@ namespace CompressorCode
           case 0xc:
             --len;
           case 0xd:
-            for (const uint_t data1 = *source, data2 = *source, data3 = *source; len; --len)
+            for (const uint8_t data1 = *source, data2 = *source, data3 = *source; len; --len)
             {
               *target = data1;
               *target = data2;
@@ -323,7 +323,7 @@ namespace CompressorCode
             break;
           case 0xe:
           case 0xf:
-            for (const uint_t data = *source; len; --len)
+            for (const uint8_t data = *source; len; --len)
             {
                 *target = data;
                 *target = *source;
@@ -331,7 +331,7 @@ namespace CompressorCode
             break;
           case 0x10:
           case 0x11:
-            for (const uint_t data = *source; len; --len)
+            for (const uint8_t data = *source; len; --len)
             {
                 *target = data;
                 *target = *source;
@@ -340,9 +340,9 @@ namespace CompressorCode
             break;
           case 0x12:
           case 0x13:
-            for (const uint_t base = *source; len; --len)
+            for (const uint8_t base = *source; len; --len)
             {
-              const uint_t data = *source;
+              const uint8_t data = *source;
               *target = base + (data >> 4);
               *target = base + (data & 0x0f);
             }
@@ -410,7 +410,7 @@ namespace CompressorCode
         : 0;
     }
 
-    uint_t GetUsedSize() const
+    std::size_t GetUsedSize() const
     {
       return Delegate.get()
         ? DataOffset + Delegate->GetUsedSize()
@@ -418,7 +418,7 @@ namespace CompressorCode
     }
   private:
     const Version4::RawHeader& Header;
-    const uint_t DataOffset;
+    const std::size_t DataOffset;
     const std::auto_ptr<RawDataDecoder> Delegate;
   };
 
@@ -432,7 +432,7 @@ namespace CompressorCode
     {
     }
 
-    uint_t GetUsedData() const
+    std::size_t GetUsedData() const
     {
       return Source.GetUsedData();
     }
@@ -447,7 +447,7 @@ namespace CompressorCode
       return Bits & Mask ? 1 : 0;
     }
 
-    uint_t GetBits(unsigned count)
+    uint_t GetBits(uint_t count)
     {
       uint_t result = 0;
       while (count--)
@@ -496,7 +496,7 @@ namespace CompressorCode
         : 0;
     }
 
-    uint_t GetUsedSize() const
+    std::size_t GetUsedSize() const
     {
       return Delegate.get()
         ? DataOffset + DataSize
@@ -525,7 +525,7 @@ namespace CompressorCode
   private:
     const Version4Plus::RawHeader& Header;
     const uint_t DataOffset;
-    uint_t DataSize;
+    std::size_t DataSize;
     Dump UnhuffmanData;
     std::auto_ptr<RawDataDecoder> Delegate;
   };

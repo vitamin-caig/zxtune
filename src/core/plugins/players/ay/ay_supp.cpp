@@ -69,7 +69,7 @@ namespace
     BOOST_STATIC_ASSERT(boost::is_pointer<T>::value);
     const std::ptrdiff_t offset = safe_ptr_cast<const uint8_t*>(obj) - safe_ptr_cast<const uint8_t*>(ptr);
     assert(offset > 0);//layout data sequentally
-    *ptr = fromBE<int16_t>(offset);
+    *ptr = fromBE<int16_t>(static_cast<uint16_t>(offset));
   }
 
 #ifdef USE_PRAGMA_PACK
@@ -152,7 +152,7 @@ namespace
       Register = reg;
     }
 
-    bool SetValue(const Time::Nanoseconds& timeStamp, uint_t val)
+    bool SetValue(const Time::Nanoseconds& timeStamp, uint8_t val)
     {
       if (Register < Devices::AYM::DataChunk::REG_BEEPER)
       {
@@ -166,7 +166,7 @@ namespace
       return false;
     }
 
-    void SetBeeper(const Time::Nanoseconds& timeStamp, uint_t val)
+    void SetBeeper(const Time::Nanoseconds& timeStamp, uint8_t val)
     {
       Devices::AYM::DataChunk data;
       data.TimeStamp = timeStamp;
@@ -229,8 +229,8 @@ namespace
       }
       else if (IsBeeperPort(port))
       {
-        static const uint_t REG_VALUES[] = {0, 14, 14, 15};
-        const uint_t value = REG_VALUES[(data & 24) >> 3];
+        static const uint8_t REG_VALUES[] = {0, 14, 14, 15};
+        const uint8_t value = REG_VALUES[(data & 24) >> 3];
         AyData->SetBeeper(timeStamp.GetCurrentTime(), value);
         //beeper means nothing
       }
@@ -272,7 +272,8 @@ namespace
     virtual void Reset()
     {
       AyData->SelectRegister(0);
-      Data = Selector = 0;
+      Data = 0;
+      Selector = 0;
     }
 
     virtual bool Write(const Time::NanosecOscillator& timeStamp, uint16_t port, uint8_t data)
@@ -319,7 +320,7 @@ namespace
     }
   private:
     const AYDataChannel::Ptr AyData;
-    uint_t Data;
+    uint8_t Data;
     uint_t Selector;
   };
 
@@ -498,9 +499,9 @@ namespace
     virtual void SetAuthor(const String& author) = 0;
     virtual void SetComment(const String& comment) = 0;
     virtual void SetDuration(uint_t duration) = 0;
-    virtual void SetRegisters(uint_t reg, uint_t sp) = 0;
-    virtual void SetRoutines(uint_t init, uint_t play) = 0;
-    virtual void AddBlock(uint_t addr, const void* data, std::size_t size) = 0;
+    virtual void SetRegisters(uint16_t reg, uint16_t sp) = 0;
+    virtual void SetRoutines(uint16_t init, uint16_t play) = 0;
+    virtual void AddBlock(uint16_t addr, const void* data, std::size_t size) = 0;
   };
 
   std::size_t ParseAY(uint_t idx, const IO::FastDump& data, AYDataTarget& target)
@@ -550,7 +551,7 @@ namespace
           continue;
         }
         const std::size_t size = fromBE(block->Size);
-        const std::size_t addr = fromBE(block->Address);
+        const uint16_t addr = fromBE(block->Address);
         const std::size_t toCopy = std::min(size, data.Size() - offset);
         target.AddBlock(addr, src, toCopy);
         lastUsed = std::max(lastUsed, src + toCopy);
@@ -674,13 +675,13 @@ namespace
       Frames = duration;
     }
 
-    virtual void SetRegisters(uint_t reg, uint_t sp)
+    virtual void SetRegisters(uint16_t reg, uint16_t sp)
     {
       Registers = reg;
       StackPointer = sp;
     }
 
-    virtual void SetRoutines(uint_t init, uint_t play)
+    virtual void SetRoutines(uint16_t init, uint16_t play)
     {
       assert(init);
       if (play)
@@ -695,7 +696,7 @@ namespace
       }
     }
 
-    virtual void AddBlock(uint_t addr, const void* src, std::size_t size)
+    virtual void AddBlock(uint16_t addr, const void* src, std::size_t size)
     {
       const std::size_t toCopy = std::min(size, Data.size() - addr);
       std::memcpy(&Data[addr], src, toCopy);
@@ -971,26 +972,26 @@ namespace
 
     virtual void SetDuration(uint_t duration)
     {
-      Duration = duration;
+      Duration = static_cast<uint16_t>(duration);
     }
 
-    virtual void SetRegisters(uint_t reg, uint_t sp)
+    virtual void SetRegisters(uint16_t reg, uint16_t sp)
     {
       Register = reg;
       StackPointer = sp;
     }
 
-    virtual void SetRoutines(uint_t init, uint_t play)
+    virtual void SetRoutines(uint16_t init, uint16_t play)
     {
       InitRoutine = init;
       PlayRoutine = play;
     }
 
-    virtual void AddBlock(uint_t addr, const void* data, std::size_t size)
+    virtual void AddBlock(uint16_t addr, const void* data, std::size_t size)
     {
       const std::size_t toCopy = std::min(size, Memory.size() - addr);
       std::memcpy(&Memory[addr], data, toCopy);
-      Blocks.push_back(BlocksList::value_type(addr, toCopy));
+      Blocks.push_back(BlocksList::value_type(addr, static_cast<uint16_t>(toCopy)));
     }
 
     IO::DataContainer::Ptr GetAy() const
@@ -1050,11 +1051,11 @@ namespace
     uint16_t InitRoutine;
     uint16_t PlayRoutine;
     Dump Memory;
-    typedef std::list<std::pair<std::size_t, std::size_t> > BlocksList;
+    typedef std::list<std::pair<uint16_t, uint16_t> > BlocksList;
     BlocksList Blocks;
   };
 
-  std::size_t GetAYSubmodules(const IO::DataContainer& inputData)
+  uint_t GetAYSubmodules(const IO::DataContainer& inputData)
   {
     if (inputData.Size() <= sizeof(AYHeader))
     {
@@ -1137,7 +1138,7 @@ namespace
     virtual DetectionResult::Ptr Detect(DataLocation::Ptr input, const Module::DetectCallback& callback) const
     {
       const IO::DataContainer::Ptr rawData = input->GetData();
-      const std::size_t subModules = GetAYSubmodules(*rawData);
+      const uint_t subModules = GetAYSubmodules(*rawData);
       if (subModules < 2)
       {
         return DetectionResult::CreateUnmatched(Format, rawData);
@@ -1150,7 +1151,7 @@ namespace
 
       std::size_t usedData = 0;
       const IO::FastDump dump(*rawData);
-      for (std::size_t idx = 0; idx < subModules; ++idx)
+      for (uint_t idx = 0; idx < subModules; ++idx)
       {
         const String subPath = AyPath.Build(idx);
         AYBuilder builder;
@@ -1175,14 +1176,14 @@ namespace
     virtual DataLocation::Ptr Open(const Parameters::Accessor& /*commonParams*/, DataLocation::Ptr location, const DataPath& inPath) const
     {
       const String& pathComp = inPath.GetFirstComponent();
-      std::size_t index = 0;
+      uint_t index = 0;
       const bool asRaw = RawPath.GetIndex(pathComp, index);
       if (!asRaw && !AyPath.GetIndex(pathComp, index))
       {
         return DataLocation::Ptr();
       }
       const IO::DataContainer::Ptr inData = location->GetData();
-      const std::size_t subModules = GetAYSubmodules(*inData);
+      const uint_t subModules = GetAYSubmodules(*inData);
       if (subModules < index)
       {
         return DataLocation::Ptr();

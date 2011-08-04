@@ -22,7 +22,7 @@ namespace
 {
   using namespace Devices::AYM;
 
-  char HexSymbol(uint_t sym)
+  char HexSymbol(uint8_t sym)
   {
     return sym >= 10 ? 'A' + sym - 10 : '0' + sym;
   }
@@ -52,7 +52,7 @@ namespace
       {
         if (mask & 1)
         {
-          const uint_t data = update.Data[reg];
+          const uint8_t data = update.Data[reg];
           AddData(data);
         }
         else
@@ -69,10 +69,10 @@ namespace
       AddEndOfFrame();
     }
 
-    void AddData(uint_t data)
+    void AddData(uint8_t data)
     {
-      const uint_t hiNibble = data >> 4;
-      const uint_t loNibble = data & 0x0f;
+      const uint8_t hiNibble = data >> 4;
+      const uint8_t loNibble = data & 0x0f;
       Data.push_back(HexSymbol(hiNibble));
       Data.push_back(HexSymbol(loNibble));
     }

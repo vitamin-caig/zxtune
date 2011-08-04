@@ -11,6 +11,8 @@
 #ifndef __TOOLS_H_DEFINED__
 #define __TOOLS_H_DEFINED__
 
+//local includes
+#include <types.h>
 //std includes
 #include <algorithm>
 //boost includes

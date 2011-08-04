@@ -633,7 +633,7 @@ namespace
         }
         //calculate tone channel
         ChanState& channel = state[chan];
-        channel.Name = 'A' + chan;
+        channel.Name = static_cast<Char>('A' + chan);
         if (hasTone)
         {
           channel.Enabled = true;
@@ -736,7 +736,7 @@ namespace
     {
       if (data.Mask & (1 << DataChunk::REG_BEEPER))
       {
-        const uint_t inLevel = ((data.Data[DataChunk::REG_BEEPER] & DataChunk::REG_MASK_VOL) << 1) + 1;
+        const std::size_t inLevel = ((data.Data[DataChunk::REG_BEEPER] & DataChunk::REG_MASK_VOL) << 1) + 1;
         Beeper = AYVolumeTab[inLevel];
       }
     }
@@ -752,11 +752,10 @@ namespace
 
     virtual void GetLevels(MultiSample& result) const
     {
-      const uint_t levelBeeper = Beeper;
-      std::fill(result.begin(), result.end(), levelBeeper);
+      std::fill(result.begin(), result.end(), Beeper);
     }
   private:
-    uint_t Beeper;
+    Sample Beeper;
   };
 
   class MixedRenderer : public Renderer

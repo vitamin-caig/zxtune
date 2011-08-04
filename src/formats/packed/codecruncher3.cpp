@@ -299,28 +299,29 @@ namespace CodeCruncher3
       const uint_t loNibble = data & 0x0f;
       const uint_t hiNibble = (data & 0xf0) >> 4;
 
+      std::back_insert_iterator<Dump> dst(Decoded);
       switch (loNibble)
       {
       case 0x01://long RLE
         {
           const uint_t len = 256 * hiNibble + Stream.GetByte() + 3;
-          std::fill_n(std::back_inserter(Decoded), len, Stream.GetByte());
+          std::fill_n(dst, len, Stream.GetByte());
         }
         return true;
       //case 0x03://exit
       case 0x05://short copy
-        std::generate_n(std::back_inserter(Decoded), hiNibble + 1, boost::bind(&ByteStream::GetByte, &Stream));
+        std::generate_n(dst, hiNibble + 1, boost::bind(&ByteStream::GetByte, &Stream));
         return true;
       case 0x09://short RLE
-        std::fill_n(std::back_inserter(Decoded), hiNibble + 3, Stream.GetByte());
+        std::fill_n(dst, hiNibble + 3, Stream.GetByte());
         return true;
       case 0x0b://2 bytes
-        std::fill_n(std::back_inserter(Decoded), 2, hiNibble - 1);
+        std::fill_n(dst, 2, static_cast<uint8_t>(hiNibble - 1));
         return true;
       case 0x0d://long copy
         {
           const uint_t len = 256 * hiNibble + Stream.GetByte() + 1;
-          std::generate_n(std::back_inserter(Decoded), len, boost::bind(&ByteStream::GetByte, &Stream));
+          std::generate_n(dst, len, boost::bind(&ByteStream::GetByte, &Stream));
         }
         return true;
       default://short backref

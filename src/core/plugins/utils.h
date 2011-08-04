@@ -49,19 +49,21 @@ public:
   {
   }
 
-  bool GetIndex(const String& str, std::size_t& index) const
+  template<class IndexType>
+  bool GetIndex(const String& str, IndexType& index) const
   {
     Parameters::IntType res = 0;
     if (0 == str.find(Prefix) && 
         Parameters::ConvertFromString(str.substr(Prefix.size()), res))
     {
-      index = static_cast<std::size_t>(res);
+      index = static_cast<IndexType>(res);
       return true;
     }
     return false;
   }
 
-  String Build(std::size_t idx) const
+  template<class IndexType>
+  String Build(IndexType idx) const
   {
     return Prefix + Parameters::ConvertToString(idx);
   }

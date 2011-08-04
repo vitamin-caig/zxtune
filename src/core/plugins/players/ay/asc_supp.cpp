@@ -447,7 +447,7 @@ namespace
         const ASCSample* const sample = safe_ptr_cast<const ASCSample*>(&data[samplesOff + sampleOffset]);
         Samples.push_back(Sample(*sample));
         const Sample& smp = Samples.back();
-        res = std::max(res, samplesOff + sampleOffset + smp.GetSize() * sizeof(ASCSample::Line));
+        res = std::max<std::size_t>(res, samplesOff + sampleOffset + smp.GetSize() * sizeof(ASCSample::Line));
       }
       return res;
     }
@@ -469,7 +469,7 @@ namespace
         const ASCOrnament* const ornament = safe_ptr_cast<const ASCOrnament*>(&data[ornamentsOff + ornamentOffset]);
         Ornaments.push_back(ASCTrack::Ornament(*ornament));
         const Ornament& orn = Ornaments.back();
-        res = std::max(res, ornamentsOff + ornamentOffset + orn.GetSize() * sizeof(ASCOrnament::Line));
+        res = std::max<std::size_t>(res, ornamentsOff + ornamentOffset + orn.GetSize() * sizeof(ASCOrnament::Line));
       }
       return res;
     }

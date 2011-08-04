@@ -305,7 +305,7 @@ namespace ZXTune
 
       void TrackBuilder::SetNoise(uint_t level)
       {
-        Chunk.Data[Devices::AYM::DataChunk::REG_TONEN] = level & 31;
+        Chunk.Data[Devices::AYM::DataChunk::REG_TONEN] = static_cast<uint8_t>(level & 31);
         Chunk.Mask |= 1 << Devices::AYM::DataChunk::REG_TONEN;
       }
 

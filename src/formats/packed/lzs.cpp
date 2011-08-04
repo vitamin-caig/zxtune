@@ -243,13 +243,13 @@ namespace LZS
         }
         else if (0xc0 == code)
         {
-          const uint_t len = (data & 0x3f) + 3;
-          const uint_t data = Stream.GetByte();
+          const std::size_t len = (data & 0x3f) + 3;
+          const uint8_t data = Stream.GetByte();
           std::fill_n(std::back_inserter(Decoded), len, data);
         }
         else
         {
-          const uint_t len = ((data & 0xf0) >> 4) + 3;
+          const std::size_t len = ((data & 0xf0) >> 4) + 3;
           const uint_t offset = 256 * (data & 0x0f) + Stream.GetByte();
           if (!CopyFromBack(offset, Decoded, len))
           {

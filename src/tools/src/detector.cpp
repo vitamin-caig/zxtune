@@ -256,7 +256,7 @@ namespace
       PatternEntry val;
       for (uint_t idx = 0; idx < 256; ++idx)
       {
-        val[idx] = Traits::Match(pat, idx);
+        val[idx] = Traits::Match(pat, static_cast<uint8_t>(idx));
       }
       return val;
     }
