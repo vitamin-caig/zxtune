@@ -497,7 +497,7 @@ namespace
       tmpDevice.CheckedCall(&::snd_pcm_hw_params_set_format, hwParams, fmt, THIS_LINE);
       Log::Debug(THIS_MODULE, "Setting channels");
       tmpDevice.CheckedCall(&::snd_pcm_hw_params_set_channels, hwParams, unsigned(OUTPUT_CHANNELS), THIS_LINE);
-      const uint_t samplerate = RenderingParameters->SoundFreq();
+      const unsigned samplerate = RenderingParameters->SoundFreq();
       Log::Debug(THIS_MODULE, "Setting frequency to %1%", samplerate);
       tmpDevice.CheckedCall(&::snd_pcm_hw_params_set_rate, hwParams, samplerate, 0, THIS_LINE);
       unsigned buffersCount = params.GetBuffersCount();

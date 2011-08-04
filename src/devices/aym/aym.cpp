@@ -258,7 +258,7 @@ namespace
       return 0 != (Seed & 0x10000);
     }
   private:
-    uint_t Seed;
+    uint32_t Seed;
   };
 
   template<class Generator>

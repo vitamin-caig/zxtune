@@ -95,11 +95,7 @@ namespace
 
     virtual void ApplyData(const std::vector<Sample>& inData)
     {
-      if (inData.size() != InChannels)
-      {
-        assert(!"Mixer::ApplySample channels mismatch");
-        return;//do not do anything
-      }
+      assert(inData.size() == InChannels || !"Mixer::ApplyData channels mismatch");
       // pass along input channels due to input data structure
       MultiBigSample res = { {0} };
       for (uint_t inChan = 0; inChan != InChannels; ++inChan)

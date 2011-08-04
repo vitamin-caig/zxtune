@@ -34,9 +34,9 @@ using boost::uint64_t;
 #endif
 
 /// Unsigned integer type
-typedef unsigned uint_t;
+typedef boost::uint_fast32_t uint_t;
 /// Signed integer type
-typedef signed int_t;
+typedef boost::int_fast32_t int_t;
 //@}
 
 /// String-related types

@@ -85,7 +85,7 @@ namespace Devices
       {
       }
       Time::Nanoseconds TimeStamp;
-      uint_t Mask;
+      uint32_t Mask;
       boost::array<uint8_t, REG_LAST> Data;
     };
 
