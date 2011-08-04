@@ -186,6 +186,7 @@ namespace
       , State(Delegate->GetStateObserver())
       , Data(data)
     {
+      UpdateCurrentState();
     }
 
     virtual void Reset()

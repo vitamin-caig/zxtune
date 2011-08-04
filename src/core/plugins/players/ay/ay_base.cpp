@@ -42,6 +42,7 @@ namespace
       , State(Delegate->GetStateObserver())
       , Render(renderer)
     {
+      FillCurrentChunk();
     }
 
     virtual void Reset()

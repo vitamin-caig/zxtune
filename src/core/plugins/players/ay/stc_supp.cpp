@@ -772,6 +772,7 @@ namespace
       , StateB(Data)
       , StateC(Data)
     {
+      SwitchToNewLine();
     }
 
     virtual void Reset()
