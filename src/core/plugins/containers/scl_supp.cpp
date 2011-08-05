@@ -90,7 +90,7 @@ namespace
     return prevSize + entry.Size();
   }
 
-  bool CheckSCLFile(const IO::FastDump& data)
+  bool CheckSCLFile(const IO::DataContainer& data)
   {
     const std::size_t limit = data.Size();
     if (limit < SCL_MIN_SIZE)
@@ -114,15 +114,19 @@ namespace
       return false;
     }
     const std::size_t checksumOffset = descriptionsSize + dataSize;
-    const uint32_t storedChecksum = fromLE(*safe_ptr_cast<const uint32_t*>(data.Data() + checksumOffset));
-    const uint32_t checksum = std::accumulate(data.Data(), data.Data() + checksumOffset, uint32_t(0));
+    const uint8_t* const dump = static_cast<const uint8_t*>(data.Data());
+    const uint32_t storedChecksum = fromLE(*safe_ptr_cast<const uint32_t*>(dump + checksumOffset));
+    const uint32_t checksum = std::accumulate(dump, dump + checksumOffset, uint32_t(0));
     return storedChecksum == checksum;
   }
 
   //fill descriptors array and return actual container size
   TRDos::Catalogue::Ptr ParseSCLFile(IO::DataContainer::Ptr data)
   {
-    assert(CheckSCLFile(IO::FastDump(*data)));
+    if (!CheckSCLFile(*data))
+    {
+      return TRDos::Catalogue::Ptr();
+    }
     const SCLHeader* const header = safe_ptr_cast<const SCLHeader*>(data->Data());
 
     const TRDos::CatalogueBuilder::Ptr builder = TRDos::CatalogueBuilder::CreateFlat(data);
@@ -141,40 +145,20 @@ namespace
     return builder->GetResult();
   }
 
-  class SCLDetectionResult : public DetectionResult
-  {
-  public:
-    SCLDetectionResult(std::size_t parsedSize, IO::DataContainer::Ptr rawData)
-      : ParsedSize(parsedSize)
-      , RawData(rawData)
-    {
-    }
-
-    virtual std::size_t GetMatchedDataSize() const
-    {
-      return ParsedSize;
-    }
-
-    virtual std::size_t GetLookaheadOffset() const
-    {
-      const std::size_t size = RawData->Size();
-      if (size < SCL_MIN_SIZE)
-      {
-        return size;
-      }
-      const uint8_t* const begin = static_cast<const uint8_t*>(RawData->Data());
-      const uint8_t* const end = begin + size;
-      return std::search(begin, end, SINCLAIR_ID, ArrayEnd(SINCLAIR_ID)) - begin;
-    }
-  private:
-    const std::size_t ParsedSize;
-    const IO::DataContainer::Ptr RawData;
-  };
+  const std::string SCL_FORMAT(
+    "'S'I'N'C'L'A'I'R"
+    "01-ff"
+  );
 
   class SCLPlugin : public ArchivePlugin
                   , public boost::enable_shared_from_this<SCLPlugin>
   {
   public:
+    SCLPlugin()
+      : Format(DataFormat::Create(SCL_FORMAT))
+    {
+    }
+
     virtual String Id() const
     {
       return SCL_PLUGIN_ID;
@@ -198,18 +182,15 @@ namespace
     virtual DetectionResult::Ptr Detect(DataLocation::Ptr input, const Module::DetectCallback& callback) const
     {
       const IO::DataContainer::Ptr rawData = input->GetData();
-      const IO::FastDump dump(*rawData);
-      std::size_t parsedSize = 0;
-      if (CheckSCLFile(dump))
+      if (const TRDos::Catalogue::Ptr files = ParseSCLFile(rawData))
       {
-        const TRDos::Catalogue::Ptr files = ParseSCLFile(rawData);
         if (files->GetFilesCount())
         {
           ProcessEntries(input, callback, shared_from_this(), *files);
         }
-        parsedSize = files->GetUsedSize();
+        return DetectionResult::CreateMatched(files->GetUsedSize());
       }
-      return boost::make_shared<SCLDetectionResult>(parsedSize, rawData);
+      return DetectionResult::CreateUnmatched(Format, rawData);
     }
 
     virtual DataLocation::Ptr Open(const Parameters::Accessor& /*commonParams*/, DataLocation::Ptr location, const DataPath& inPath) const
@@ -220,20 +201,19 @@ namespace
         return DataLocation::Ptr();
       }
       const IO::DataContainer::Ptr inData = location->GetData();
-      const IO::FastDump dump(*inData); 
-      if (!CheckSCLFile(dump))
+      if (const TRDos::Catalogue::Ptr files = ParseSCLFile(inData))
       {
-        return DataLocation::Ptr();
-      }
-      const TRDos::Catalogue::Ptr files = ParseSCLFile(inData);
-      if (const TRDos::File::Ptr fileToOpen = files->FindFile(pathComp))
-      {
-        const Plugin::Ptr subPlugin = shared_from_this();
-        const IO::DataContainer::Ptr subData = fileToOpen->GetData();
-        return CreateNestedLocation(location, subData, subPlugin, pathComp); 
+        if (const TRDos::File::Ptr fileToOpen = files->FindFile(pathComp))
+        {
+          const Plugin::Ptr subPlugin = shared_from_this();
+          const IO::DataContainer::Ptr subData = fileToOpen->GetData();
+          return CreateNestedLocation(location, subData, subPlugin, pathComp); 
+        }
       }
       return DataLocation::Ptr();
     }
+  private:
+    const DataFormat::Ptr Format;
   };
 }
 

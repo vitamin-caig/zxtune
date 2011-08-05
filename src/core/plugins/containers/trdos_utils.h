@@ -44,7 +44,7 @@ namespace TRDos
   class Catalogue
   {
   public:
-    typedef std::auto_ptr<const Catalogue> Ptr;
+    typedef boost::shared_ptr<const Catalogue> Ptr;
     typedef ObjectIterator<File::Ptr> Iterator;
     virtual ~Catalogue() {}
 

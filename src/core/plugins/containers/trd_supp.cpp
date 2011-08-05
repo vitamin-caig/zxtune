@@ -114,23 +114,14 @@ namespace
   BOOST_STATIC_ASSERT(sizeof(CatEntry) == 16);
   BOOST_STATIC_ASSERT(sizeof(ServiceSector) == 256);
 
-  const std::string TRD_SERVICE_SECTOR_PATTERN = 
-    "16"            //type DS_DD
-    "?"             //files
-    "?%00000xxx"    //free sectors
-    "10"            //ID
-  ;
-
-  const DataFormat::Ptr ServiceSectorFormat = DataFormat::Create(TRD_SERVICE_SECTOR_PATTERN);
-
-  bool CheckTRDFile(const IO::FastDump& data)
+  bool CheckTRDFile(const IO::DataContainer& data)
   {
     //it's meaningless to support trunkated files
     if (data.Size() < TRD_MODULE_SIZE)
     {
       return false;
     }
-    const ServiceSector* const sector = safe_ptr_cast<const ServiceSector*>(&data[SERVICE_SECTOR_NUM * BYTES_PER_SECTOR]);
+    const ServiceSector* const sector = safe_ptr_cast<const ServiceSector*>(data.Data()) + SERVICE_SECTOR_NUM;
     if (sector->ID != TRDOS_ID || sector->Type != DS_DD || 0 != sector->Zero)
     {
       return false;
@@ -157,7 +148,10 @@ namespace
 
   TRDos::Catalogue::Ptr ParseTRDFile(IO::DataContainer::Ptr data)
   {
-    assert(CheckTRDFile(IO::FastDump(*data)));
+    if (!CheckTRDFile(*data))
+    {
+      return TRDos::Catalogue::Ptr();
+    }
 
     const TRDos::CatalogueBuilder::Ptr builder = TRDos::CatalogueBuilder::CreateFlat(data);
 
@@ -191,41 +185,24 @@ namespace
     return builder->GetResult();
   }
 
-  class TRDDetectionResult : public DetectionResult
-  {
-  public:
-    TRDDetectionResult(std::size_t parsedSize, IO::DataContainer::Ptr rawData)
-      : ParsedSize(parsedSize)
-      , RawData(rawData)
-    {
-    }
-
-    virtual std::size_t GetMatchedDataSize() const
-    {
-      return ParsedSize;
-    }
-
-    virtual std::size_t GetLookaheadOffset() const
-    {
-      const std::size_t size = RawData->Size();
-      if (size < TRD_MODULE_SIZE)
-      {
-        return size;
-      }
-      const std::size_t skipBytes = SERVICE_SECTOR_NUM * BYTES_PER_SECTOR + offsetof(ServiceSector, Type);
-      const uint8_t* const begin = static_cast<const uint8_t*>(RawData->Data()) + skipBytes;
-      return ServiceSectorFormat->Search(begin, size - skipBytes);
-    }
-  private:
-    const std::size_t ParsedSize;
-    const IO::DataContainer::Ptr RawData;
-  };
-
+  const std::string TRD_FORMAT(
+    "+2048+"//skip to service sector
+    "+227+"//skip zeroes in service sector
+    "16"            //type DS_DD
+    "?"             //files
+    "?%00000xxx"    //free sectors
+    "10"            //ID
+  );
 
   class TRDPlugin : public ArchivePlugin
                   , public boost::enable_shared_from_this<TRDPlugin>
   {
   public:
+    TRDPlugin()
+      : Format(DataFormat::Create(TRD_FORMAT))
+    {
+    }
+
     virtual String Id() const
     {
       return TRD_PLUGIN_ID;
@@ -249,18 +226,15 @@ namespace
     virtual DetectionResult::Ptr Detect(DataLocation::Ptr input, const Module::DetectCallback& callback) const
     {
       const IO::DataContainer::Ptr rawData = input->GetData();
-      const IO::FastDump dump(*rawData);
-      std::size_t parsedSize = 0;
-      if (CheckTRDFile(dump))
+      if (const TRDos::Catalogue::Ptr files = ParseTRDFile(rawData))
       {
-        const TRDos::Catalogue::Ptr files = ParseTRDFile(rawData);
         if (files->GetFilesCount())
         {
           ProcessEntries(input, callback, shared_from_this(), *files);
-          parsedSize = files->GetUsedSize();
+          return DetectionResult::CreateMatched(files->GetUsedSize());
         }
       }
-      return boost::make_shared<TRDDetectionResult>(parsedSize, rawData);
+      return DetectionResult::CreateUnmatched(Format, rawData);
     }
 
     virtual DataLocation::Ptr Open(const Parameters::Accessor& /*commonParams*/, DataLocation::Ptr location, const DataPath& inPath) const
@@ -271,20 +245,19 @@ namespace
         return DataLocation::Ptr();
       }
       const IO::DataContainer::Ptr inData = location->GetData();
-      const IO::FastDump dump(*inData); 
-      if (!CheckTRDFile(dump))
+      if (const TRDos::Catalogue::Ptr files = ParseTRDFile(inData))
       {
-        return DataLocation::Ptr();
-      }
-      const TRDos::Catalogue::Ptr files = ParseTRDFile(inData);
-      if (const TRDos::File::Ptr fileToOpen = files->FindFile(pathComp))
-      {
-        const Plugin::Ptr subPlugin = shared_from_this();
-        const IO::DataContainer::Ptr subData = fileToOpen->GetData();
-        return CreateNestedLocation(location, subData, subPlugin, pathComp); 
+        if (const TRDos::File::Ptr fileToOpen = files->FindFile(pathComp))
+        {
+          const Plugin::Ptr subPlugin = shared_from_this();
+          const IO::DataContainer::Ptr subData = fileToOpen->GetData();
+          return CreateNestedLocation(location, subData, subPlugin, pathComp); 
+        }
       }
       return DataLocation::Ptr();
     }
+  private:
+    const DataFormat::Ptr Format;
   };
 }
 
