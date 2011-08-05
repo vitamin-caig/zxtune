@@ -38,6 +38,7 @@ namespace TRDos
     virtual ZXTune::IO::DataContainer::Ptr GetData() const = 0;
 
     static Ptr Create(ZXTune::IO::DataContainer::Ptr data, const String& name, std::size_t off, std::size_t size);
+    static Ptr CreateReference(const String& name, std::size_t off, std::size_t size);
   };
 
   class Catalogue
@@ -65,6 +66,7 @@ namespace TRDos
     virtual Catalogue::Ptr GetResult() const = 0;
 
     static Ptr CreateGeneric();
+    static Ptr CreateFlat(ZXTune::IO::DataContainer::Ptr data);
   };
 }
 #endif //__CORE_PLUGINS_CONTAINERS_TRDOS_UTILS_H_DEFINED__

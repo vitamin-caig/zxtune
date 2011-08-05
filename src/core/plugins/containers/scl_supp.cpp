@@ -125,7 +125,7 @@ namespace
     assert(CheckSCLFile(IO::FastDump(*data)));
     const SCLHeader* const header = safe_ptr_cast<const SCLHeader*>(data->Data());
 
-    const TRDos::CatalogueBuilder::Ptr builder = TRDos::CatalogueBuilder::CreateGeneric();
+    const TRDos::CatalogueBuilder::Ptr builder = TRDos::CatalogueBuilder::CreateFlat(data);
     std::size_t offset = safe_ptr_cast<const uint8_t*>(header->Blocks + header->BlocksCount) -
                     safe_ptr_cast<const uint8_t*>(header);
     for (uint_t idx = 0; idx != header->BlocksCount; ++idx)
@@ -133,7 +133,7 @@ namespace
       const SCLEntry& entry = header->Blocks[idx];
       const std::size_t nextOffset = offset + entry.Size();
       const String entryName = TRDos::GetEntryName(entry.Name, entry.Type);
-      const TRDos::File::Ptr newOne = TRDos::File::Create(data, entryName, offset, entry.Size());
+      const TRDos::File::Ptr newOne = TRDos::File::CreateReference(entryName, offset, entry.Size());
       builder->AddFile(newOne);
       offset = nextOffset;
     }

@@ -262,6 +262,45 @@ namespace
     std::size_t UsedSize;
   };
 
+
+  // generic files support
+  class GenericFile : public File
+  {
+  public:
+    GenericFile(IO::DataContainer::Ptr data, const String& name, std::size_t off, std::size_t size)
+      : Data(data)
+      , Name(name)
+      , Offset(off)
+      , Size(size)
+    {
+    }
+
+    virtual String GetName() const
+    {
+      return Name;
+    }
+
+    virtual std::size_t GetOffset() const
+    {
+      return Offset;
+    }
+
+    virtual std::size_t GetSize() const
+    {
+      return Size;
+    }
+
+    virtual IO::DataContainer::Ptr GetData() const
+    {
+      return Data->GetSubcontainer(Offset, Size);
+    }
+  private:
+    const IO::DataContainer::Ptr Data;
+    const String Name;
+    const std::size_t Offset;
+    const std::size_t Size;
+  };
+
   class GenericMultiFile : public MultiFile
   {
   public:
@@ -315,12 +354,22 @@ namespace
     FilesList Subfiles;
   };
 
-  class GenericFile : public File
+  //TODO: remove implementation inheritance
+  class GenericCatalogueBuilder : public BaseCatalogueBuilder
   {
   public:
-    GenericFile(IO::DataContainer::Ptr data, const String& name, std::size_t off, std::size_t size)
-      : Data(data)
-      , Name(name)
+    virtual MultiFile::Ptr CreateMultiFile(File::Ptr inFile)
+    {
+      return boost::make_shared<GenericMultiFile>(inFile);
+    }
+  };
+
+  //flat files support
+  class FlatFile : public File
+  {
+  public:
+    FlatFile(const String& name, std::size_t off, std::size_t size)
+      : Name(name)
       , Offset(off)
       , Size(size)
     {
@@ -343,23 +392,75 @@ namespace
 
     virtual IO::DataContainer::Ptr GetData() const
     {
-      return Data->GetSubcontainer(Offset, Size);
+      assert(!"Should not be called");
+      return IO::DataContainer::Ptr();
     }
   private:
-    const IO::DataContainer::Ptr Data;
     const String Name;
     const std::size_t Offset;
     const std::size_t Size;
   };
 
-  //TODO: remove implementation inheritance
-  class GenericCatalogueBuilder : public BaseCatalogueBuilder
+  class FlatMultiFile : public MultiFile
   {
   public:
+    FlatMultiFile(IO::DataContainer::Ptr data, File::Ptr delegate)
+      : Data(data)
+      , Delegate(delegate)
+      , Size(delegate->GetSize())
+    {
+    }
+
+    virtual String GetName() const
+    {
+      return Delegate->GetName();
+    }
+
+    virtual std::size_t GetOffset() const
+    {
+      return Delegate->GetOffset();
+    }
+
+    virtual std::size_t GetSize() const
+    {
+      return Size;
+    }
+
+    virtual IO::DataContainer::Ptr GetData() const
+    {
+      return Data->GetSubcontainer(GetOffset(), Size);
+    }
+
+    virtual bool Merge(File::Ptr rh)
+    {
+      if (AreFilesMergeable(*this, *rh))
+      {
+        Size += rh->GetSize();
+        return true;
+      }
+      return false;
+    }
+  private:
+    const IO::DataContainer::Ptr Data;
+    const File::Ptr Delegate;
+    std::size_t Size;
+  };
+
+  //TODO: remove implementation inheritance
+  class FlatCatalogueBuilder : public BaseCatalogueBuilder
+  {
+  public:
+    explicit FlatCatalogueBuilder(IO::DataContainer::Ptr data)
+      : Data(data)
+    {
+    }
+
     virtual MultiFile::Ptr CreateMultiFile(File::Ptr inFile)
     {
-      return boost::make_shared<GenericMultiFile>(inFile);
+      return boost::make_shared<FlatMultiFile>(Data, inFile);
     }
+  private:
+    const IO::DataContainer::Ptr Data;
   };
 }
 
@@ -387,8 +488,18 @@ namespace TRDos
     return boost::make_shared<GenericFile>(data, name, off, size);
   }
 
+  File::Ptr File::CreateReference(const String& name, std::size_t off, std::size_t size)
+  {
+    return boost::make_shared<FlatFile>(name, off, size);
+  }
+
   CatalogueBuilder::Ptr CatalogueBuilder::CreateGeneric()
   {
     return CatalogueBuilder::Ptr(new GenericCatalogueBuilder());
+  }
+
+  CatalogueBuilder::Ptr CatalogueBuilder::CreateFlat(ZXTune::IO::DataContainer::Ptr data)
+  {
+    return CatalogueBuilder::Ptr(new FlatCatalogueBuilder(data));
   }
 }
