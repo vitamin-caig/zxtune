@@ -37,7 +37,6 @@ Author:
 //std includes
 #include <list>
 //boost includes
-#include <boost/enable_shared_from_this.hpp>
 #include <boost/make_shared.hpp>
 //text includes
 #include <core/text/core.h>
@@ -49,11 +48,6 @@ namespace
 {
   using namespace ZXTune;
   using namespace ZXTune::Module;
-
-  const Char ID[] = {'A', 'Y', 0};
-  const String VERSION(FromStdString("$Rev$"));
-  const Char* const INFO = Text::AY_PLUGIN_INFO;
-  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW;
 
   const uint8_t AY_SIGNATURE[] = {'Z', 'X', 'A', 'Y'};
   const uint8_t TYPE_EMUL[] = {'E', 'M', 'U', 'L'};
@@ -837,42 +831,29 @@ namespace
     }
     return true;
   }
+}
+
+namespace
+{
+  using namespace ZXTune;
+
+  //plugin attributes
+  const Char ID[] = {'A', 'Y', 0};
+  const String VERSION(FromStdString("$Rev$"));
+  const Char* const INFO = Text::AY_PLUGIN_INFO;
+  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW;
 
   const std::string AY_FORMAT(
     "'Z'X'A'Y" // uint8_t Signature[4];
     "'E'M'U'L" // only one type is supported now
   );
 
-  class AYPlayerPlugin : public PlayerPlugin
-                       , public ModulesFactory
-                       , public boost::enable_shared_from_this<AYPlayerPlugin>
+  class AYModulesFactory : public ModulesFactory
   {
   public:
-    typedef boost::shared_ptr<const AYPlayerPlugin> Ptr;
-    
-    AYPlayerPlugin()
+    AYModulesFactory()
       : Format(DataFormat::Create(AY_FORMAT))
     {
-    }
-
-    virtual String Id() const
-    {
-      return ID;
-    }
-
-    virtual String Description() const
-    {
-      return INFO;
-    }
-
-    virtual String Version() const
-    {
-      return VERSION;
-    }
-
-    virtual uint_t Capabilities() const
-    {
-      return CAPS;
     }
 
     virtual bool Check(const IO::DataContainer& inputData) const
@@ -880,12 +861,6 @@ namespace
       return CheckAYModule(inputData);
     }
 
-    virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
-    {
-      const AYPlayerPlugin::Ptr self = shared_from_this();
-      return DetectModuleInLocation(self, self, inputData, callback);
-    }
-  private:
     virtual DataFormat::Ptr GetFormat() const
     {
       return Format;
@@ -1208,7 +1183,8 @@ namespace ZXTune
 {
   void RegisterAYSupport(PluginsRegistrator& registrator)
   {
-    const PlayerPlugin::Ptr playerPlugin(new AYPlayerPlugin());
+    const ModulesFactory::Ptr factory = boost::make_shared<AYModulesFactory>();
+    const PlayerPlugin::Ptr playerPlugin = CreatePlayerPlugin(ID, INFO, VERSION, CAPS, factory);
     const ArchivePlugin::Ptr archivePlugin(new AYContainerPlugin());
     registrator.RegisterPlugin(playerPlugin);
     registrator.RegisterPlugin(archivePlugin);

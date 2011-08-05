@@ -30,7 +30,6 @@ Author:
 #include <core/plugin_attrs.h>
 #include <io/container.h>
 //boost includes
-#include <boost/enable_shared_from_this.hpp>
 #include <boost/make_shared.hpp>
 //text includes
 #include <core/text/core.h>
@@ -43,10 +42,6 @@ namespace
 {
   using namespace ZXTune;
   using namespace ZXTune::Module;
-
-  //plugin attributes
-  const Char STC_PLUGIN_ID[] = {'S', 'T', 'C', 0};
-  const String STC_PLUGIN_VERSION(FromStdString("$Rev$"));
 
   //hints
   const std::size_t MAX_MODULE_SIZE = 0x2500;
@@ -1054,6 +1049,17 @@ namespace
     }
     return true;
   }
+}
+
+namespace
+{
+  using namespace ZXTune;
+
+  //plugin attributes
+  const Char ID[] = {'S', 'T', 'C', 0};
+  const Char* const INFO = Text::STC_PLUGIN_INFO;
+  const String VERSION(FromStdString("$Rev$"));
+  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
 
   const std::string STC_FORMAT(
     "01-0f"       // uint8_t Tempo; 1..15
@@ -1063,36 +1069,12 @@ namespace
   );
 
   //////////////////////////////////////////////////////////////////////////
-  class STCPlugin : public PlayerPlugin
-                  , public ModulesFactory
-                  , public boost::enable_shared_from_this<STCPlugin>
+  class STCModulesFactory : public ModulesFactory
   {
   public:
-    typedef boost::shared_ptr<const STCPlugin> Ptr;
-    
-    STCPlugin()
+    STCModulesFactory()
       : Format(DataFormat::Create(STC_FORMAT))
     {
-    }
-
-    virtual String Id() const
-    {
-      return STC_PLUGIN_ID;
-    }
-
-    virtual String Description() const
-    {
-      return Text::STC_PLUGIN_INFO;
-    }
-
-    virtual String Version() const
-    {
-      return STC_PLUGIN_VERSION;
-    }
-
-    virtual uint_t Capabilities() const
-    {
-      return CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
     }
 
     virtual bool Check(const IO::DataContainer& inputData) const
@@ -1102,12 +1084,6 @@ namespace
       return Format->Match(data, size) && CheckSTCModule(data, size);
     }
 
-    virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
-    {
-      const STCPlugin::Ptr self = shared_from_this();
-      return DetectModuleInLocation(self, self, inputData, callback);
-    }
-  private:
     virtual DataFormat::Ptr GetFormat() const
     {
       return Format;
@@ -1157,7 +1133,8 @@ namespace ZXTune
 {
   void RegisterSTCSupport(PluginsRegistrator& registrator)
   {
-    const PlayerPlugin::Ptr plugin(new STCPlugin());
+    const ModulesFactory::Ptr factory = boost::make_shared<STCModulesFactory>();
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, INFO, VERSION, CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

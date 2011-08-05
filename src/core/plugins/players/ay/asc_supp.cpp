@@ -29,8 +29,6 @@ Author:
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
 #include <io/container.h>
-//boost includes
-#include <boost/enable_shared_from_this.hpp>
 //text includes
 #include <core/text/core.h>
 #include <core/text/plugins.h>
@@ -42,10 +40,6 @@ namespace
 {
   using namespace ZXTune;
   using namespace ZXTune::Module;
-
-  //plugin attributes
-  const Char ASC_PLUGIN_ID[] = {'A', 'S', 'C', 0};
-  const String ASC_PLUGIN_VERSION(FromStdString("$Rev$"));
 
   const uint_t LIMITER(~uint_t(0));
 
@@ -1127,6 +1121,18 @@ namespace
     }
     return true;
   }
+}
+
+namespace
+{
+  using namespace ZXTune;
+
+  //plugin attributes
+  const Char ID[] = {'A', 'S', 'C', 0};
+  const Char* const INFO = Text::ASC_PLUGIN_INFO;
+  const String VERSION(FromStdString("$Rev$"));
+  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
+
 
   const std::string ASC_FORMAT(
     "03-32"         // uint8_t Tempo; 3..50
@@ -1139,36 +1145,12 @@ namespace
   );
 
   //////////////////////////////////////////////////////////////////////////
-  class ASCPlugin : public PlayerPlugin
-                  , public ModulesFactory
-                  , public boost::enable_shared_from_this<ASCPlugin>
+  class ASCModulesFactory : public ModulesFactory
   {
   public:
-    typedef boost::shared_ptr<const ASCPlugin> Ptr;
-    
-    ASCPlugin()
+    ASCModulesFactory()
       : Format(DataFormat::Create(ASC_FORMAT))
     {
-    }
-
-    virtual String Id() const
-    {
-      return ASC_PLUGIN_ID;
-    }
-
-    virtual String Description() const
-    {
-      return Text::ASC_PLUGIN_INFO;
-    }
-
-    virtual String Version() const
-    {
-      return ASC_PLUGIN_VERSION;
-    }
-
-    virtual uint_t Capabilities() const
-    {
-      return CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
     }
 
     virtual bool Check(const IO::DataContainer& inputData) const
@@ -1178,12 +1160,6 @@ namespace
       return Format->Match(data, limit) && CheckASCModule(data, limit);
     }
 
-    virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
-    {
-      const ASCPlugin::Ptr self = shared_from_this();
-      return DetectModuleInLocation(self, self, inputData, callback);
-    }
-  private:
     virtual DataFormat::Ptr GetFormat() const
     {
       return Format;
@@ -1236,7 +1212,8 @@ namespace ZXTune
 {
   void RegisterASCSupport(PluginsRegistrator& registrator)
   {
-    const PlayerPlugin::Ptr plugin(new ASCPlugin());
+    const ModulesFactory::Ptr factory = boost::make_shared<ASCModulesFactory>();
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, INFO, VERSION, CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

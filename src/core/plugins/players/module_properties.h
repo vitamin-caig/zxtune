@@ -43,7 +43,7 @@ namespace ZXTune
       virtual Plugin::Ptr GetPlugin() const = 0;
       virtual void GetData(Dump& dump) const = 0;
 
-      static RWPtr Create(PlayerPlugin::Ptr plugin, DataLocation::Ptr location);
+      static RWPtr Create(Plugin::Ptr plugin, DataLocation::Ptr location);
     };
   }
 }

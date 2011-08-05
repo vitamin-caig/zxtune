@@ -29,7 +29,6 @@ Author:
 #include <core/plugin_attrs.h>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/enable_shared_from_this.hpp>
 //text includes
 #include <core/text/core.h>
 #include <core/text/plugins.h>
@@ -41,10 +40,6 @@ namespace
 {
   using namespace ZXTune;
   using namespace ZXTune::Module;
-
-  //plugin attributes
-  const Char PDT_PLUGIN_ID[] = {'P', 'D', 'T', 0};
-  const String PDT_PLUGIN_VERSION(FromStdString("$Rev$"));
 
   //hints
   const uint_t ORNAMENTS_COUNT = 11;
@@ -626,6 +621,17 @@ namespace
     //TODO
     return true;
   }
+}
+
+namespace
+{
+  using namespace ZXTune;
+
+  //plugin attributes
+  const Char ID[] = {'P', 'D', 'T', 0};
+  const Char* const INFO = Text::PDT_PLUGIN_INFO;
+  const String VERSION(FromStdString("$Rev$"));
+  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_4DAC | CAP_CONV_RAW;
 
   const std::string PDT_FORMAT(
     //boost::array<PDTOrnament, ORNAMENTS_COUNT> Ornaments;
@@ -679,49 +685,19 @@ namespace
     */
   );
 
-  class PDTPlugin : public PlayerPlugin
-                  , public ModulesFactory
-                  , public boost::enable_shared_from_this<PDTPlugin>
+  class PDTModulesFactory : public ModulesFactory
   {
   public:
-    typedef boost::shared_ptr<const PDTPlugin> Ptr;
-
-    PDTPlugin()
+    PDTModulesFactory()
       : Format(DataFormat::Create(PDT_FORMAT))
     {
     }
     
-    virtual String Id() const
-    {
-      return PDT_PLUGIN_ID;
-    }
-
-    virtual String Description() const
-    {
-      return Text::PDT_PLUGIN_INFO;
-    }
-
-    virtual String Version() const
-    {
-      return PDT_PLUGIN_VERSION;
-    }
-
-    virtual uint_t Capabilities() const
-    {
-      return CAP_STOR_MODULE | CAP_DEV_4DAC | CAP_CONV_RAW;
-    }
-
     virtual bool Check(const IO::DataContainer& inputData) const
     {
       return Format->Match(inputData.Data(), inputData.Size()) && CheckPDT(inputData);
     }
 
-    virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
-    {
-      const PDTPlugin::Ptr self = shared_from_this();
-      return DetectModuleInLocation(self, self, inputData, callback);
-    }
-  private:
     virtual DataFormat::Ptr GetFormat() const
     {
       return Format;
@@ -750,7 +726,8 @@ namespace ZXTune
 {
   void RegisterPDTSupport(PluginsRegistrator& registrator)
   {
-    const PlayerPlugin::Ptr plugin(new PDTPlugin());
+    const ModulesFactory::Ptr factory = boost::make_shared<PDTModulesFactory>();
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, INFO, VERSION, CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

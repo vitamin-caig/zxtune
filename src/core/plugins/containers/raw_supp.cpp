@@ -225,16 +225,9 @@ namespace
       String Id;
       std::size_t Offset;
 
-      explicit PluginEntry(ArchivePlugin::Ptr plugin)
+      explicit PluginEntry(typename P::Ptr plugin)
         : Plugin(plugin)
         , Id(Plugin->GetDescription()->Id())
-        , Offset()
-      {
-      }
-
-      explicit PluginEntry(PlayerPlugin::Ptr plugin)
-        : Plugin(plugin)
-        , Id(Plugin->Id())
         , Offset()
       {
       }
@@ -365,30 +358,12 @@ namespace
       Players.SetOffset(offset);
     }
   private:
-    DetectionResult::Ptr DetectIn(LookaheadPluginsStorage<PlayerPlugin>& container, DataLocation::Ptr input, const Module::DetectCallback& callback) const
+    template<class T>
+    DetectionResult::Ptr DetectIn(LookaheadPluginsStorage<T>& container, DataLocation::Ptr input, const Module::DetectCallback& callback) const
     {
-      for (PlayerPlugin::Iterator::Ptr iter = container.Enumerate(); iter->IsValid(); iter->Next())
+      for (typename T::Iterator::Ptr iter = container.Enumerate(); iter->IsValid(); iter->Next())
       {
-        const PlayerPlugin::Ptr plugin = iter->Get();
-        const DetectionResult::Ptr result = plugin->Detect(input, callback);
-        const String id = plugin->Id();
-        if (std::size_t usedSize = result->GetMatchedDataSize())
-        {
-          Log::Debug(THIS_MODULE, "Detected %1% in %2% bytes at %3%.", id, usedSize, input->GetPath()->AsString());
-          return result;
-        }
-        const std::size_t lookahead = result->GetLookaheadOffset();
-        container.SetPluginLookahead(id, std::max<std::size_t>(lookahead, MIN_SCAN_STEP));
-      }
-      const std::size_t minLookahead = container.GetMinimalPluginLookahead();
-      return DetectionResult::CreateUnmatched(minLookahead);
-    }
-
-    DetectionResult::Ptr DetectIn(LookaheadPluginsStorage<ArchivePlugin>& container, DataLocation::Ptr input, const Module::DetectCallback& callback) const
-    {
-      for (ArchivePlugin::Iterator::Ptr iter = container.Enumerate(); iter->IsValid(); iter->Next())
-      {
-        const ArchivePlugin::Ptr plugin = iter->Get();
+        const typename T::Ptr plugin = iter->Get();
         const DetectionResult::Ptr result = plugin->Detect(input, callback);
         const String id = plugin->GetDescription()->Id();
         if (std::size_t usedSize = result->GetMatchedDataSize())

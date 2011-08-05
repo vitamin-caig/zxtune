@@ -31,7 +31,6 @@ Author:
 //std includes
 #include <cctype>
 //boost includes
-#include <boost/enable_shared_from_this.hpp>
 #include <boost/algorithm/string.hpp>
 //text includes
 #include <core/text/core.h>
@@ -45,9 +44,6 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Module;
 
-  const Char TXT_PLUGIN_ID[] = {'T', 'X', 'T', 0};
-  const String TXT_PLUGIN_VERSION(FromStdString("$Rev$"));
-
   const std::size_t MIN_MODULE_SIZE = 256;
   const std::size_t MAX_MODULE_SIZE = 524288;//512k is more than enough
 
@@ -56,43 +52,30 @@ namespace
   {
     return !(sym >= ' ' || sym == '\r' || sym == '\n');
   }
+}
+
+namespace
+{
+  using namespace ZXTune;
+
+  //plugin attributes
+  const Char ID[] = {'T', 'X', 'T', 0};
+  const Char* const INFO = Text::TXT_PLUGIN_INFO;
+  const String VERSION(FromStdString("$Rev$"));
+  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors() | GetSupportedVortexFormatConvertors();
+
 
   const std::string TXT_FORMAT(
     "'['M'o'd'u'l'e']" //[Module]
   );
 
   //////////////////////////////////////////////////////////////////////////
-  class TXTPlugin : public PlayerPlugin
-                  , public ModulesFactory
-                  , public boost::enable_shared_from_this<TXTPlugin>
+  class TXTModulesFactory : public ModulesFactory
   {
   public:
-    typedef boost::shared_ptr<const TXTPlugin> Ptr;
-
-    TXTPlugin()
+    TXTModulesFactory()
       : Format(DataFormat::Create(TXT_FORMAT))
     {
-    }
-
-    virtual String Id() const
-    {
-      return TXT_PLUGIN_ID;
-    }
-
-    virtual String Description() const
-    {
-      return Text::TXT_PLUGIN_INFO;
-    }
-
-    virtual String Version() const
-    {
-      return TXT_PLUGIN_VERSION;
-    }
-
-    virtual uint_t Capabilities() const
-    {
-      return CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW |
-      GetSupportedAYMFormatConvertors() | GetSupportedVortexFormatConvertors();
     }
 
     virtual bool Check(const IO::DataContainer& inputData) const
@@ -100,12 +83,6 @@ namespace
       return inputData.Size() > MIN_MODULE_SIZE && Format->Match(inputData.Data(), inputData.Size());
     }
 
-    virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
-    {
-      const TXTPlugin::Ptr self = shared_from_this();
-      return DetectModuleInLocation(self, self, inputData, callback);
-    }
-  private:
     virtual DataFormat::Ptr GetFormat() const
     {
       return Format;
@@ -151,7 +128,8 @@ namespace ZXTune
 {
   void RegisterTXTSupport(PluginsRegistrator& registrator)
   {
-    const PlayerPlugin::Ptr plugin(new TXTPlugin());
+    const ModulesFactory::Ptr factory = boost::make_shared<TXTModulesFactory>();
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, INFO, VERSION, CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

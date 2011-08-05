@@ -30,7 +30,6 @@ Author:
 #include <core/plugin_attrs.h>
 #include <io/container.h>
 //boost includes
-#include <boost/enable_shared_from_this.hpp>
 #include <boost/make_shared.hpp>
 //text includes
 #include <core/text/core.h>
@@ -43,10 +42,6 @@ namespace
 {
   using namespace ZXTune;
   using namespace ZXTune::Module;
-
-  //plugin attributes
-  const Char STP_PLUGIN_ID[] = {'S', 'T', 'P', 0};
-  const String STP_PLUGIN_VERSION(FromStdString("$Rev$"));
 
   //hints
   const std::size_t MAX_MODULE_SIZE = 0x2800;
@@ -993,6 +988,17 @@ namespace
     }
     return true;
   }
+}
+
+namespace
+{
+  using namespace ZXTune;
+
+  //plugin attributes
+  const Char ID[] = {'S', 'T', 'P', 0};
+  const Char* const INFO = Text::STP_PLUGIN_INFO;
+  const String VERSION(FromStdString("$Rev$"));
+  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
 
   const std::string STP_FORMAT(
     "01-0f"  // uint8_t Tempo; 0..15
@@ -1002,55 +1008,14 @@ namespace
     "?00-28" // uint16_t SamplesOffset; 0..MAX_MODULE_SIZE
   );
 
-  class STPFormat : public DataFormat
-  {
-  public:
-    virtual bool Match(const void* data, std::size_t size) const
-    {
-      return CheckSTPModule(static_cast<const uint8_t*>(data), size);
-    }
-
-    virtual std::size_t Search(const void* data, std::size_t size) const
-    {
-      //TODO: more precise matching
-      const uint8_t* const rawData = static_cast<const uint8_t*>(data);
-      return std::find_if(rawData, rawData + size, boost::bind(&in_range<uint8_t>, _1, 1, 15)) - rawData;
-    }
-  };
-
   //////////////////////////////////////////////////////////////////////////
-  class STPPlugin : public PlayerPlugin
-                  , public ModulesFactory
-                  , public boost::enable_shared_from_this<STPPlugin>
+  class STPModulesFactory : public ModulesFactory
   {
   public:
-    typedef boost::shared_ptr<const STPPlugin> Ptr;
-
-    STPPlugin()
+    STPModulesFactory()
       : Format(DataFormat::Create(STP_FORMAT))
     {
     }
-
-    virtual String Id() const
-    {
-      return STP_PLUGIN_ID;
-    }
-
-    virtual String Description() const
-    {
-      return Text::STP_PLUGIN_INFO;
-    }
-
-    virtual String Version() const
-    {
-      return STP_PLUGIN_VERSION;
-    }
-
-    virtual uint_t Capabilities() const
-    {
-      return CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
-    }
-
     virtual bool Check(const IO::DataContainer& inputData) const
     {
       const uint8_t* const data = static_cast<const uint8_t*>(inputData.Data());
@@ -1058,12 +1023,6 @@ namespace
       return Format->Match(data, size) && CheckSTPModule(data, size);
     }
 
-    virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
-    {
-      const STPPlugin::Ptr self = shared_from_this();
-      return DetectModuleInLocation(self, self, inputData, callback);
-    }
-  private:
     virtual DataFormat::Ptr GetFormat() const
     {
       return Format;
@@ -1114,7 +1073,8 @@ namespace ZXTune
 {
   void RegisterSTPSupport(PluginsRegistrator& registrator)
   {
-    const PlayerPlugin::Ptr plugin(new STPPlugin());
+    const ModulesFactory::Ptr factory = boost::make_shared<STPModulesFactory>();
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, INFO, VERSION, CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

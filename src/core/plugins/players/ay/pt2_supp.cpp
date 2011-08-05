@@ -29,8 +29,6 @@ Author:
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
 #include <io/container.h>
-//boost includes
-#include <boost/enable_shared_from_this.hpp>
 //text includes
 #include <core/text/core.h>
 #include <core/text/plugins.h>
@@ -42,9 +40,6 @@ namespace
 {
   using namespace ZXTune;
   using namespace ZXTune::Module;
-
-  const Char PT2_PLUGIN_ID[] = {'P', 'T', '2', 0};
-  const String PT2_PLUGIN_VERSION(FromStdString("$Rev$"));
 
   const uint_t LIMITER = ~uint_t(0);
 
@@ -819,6 +814,17 @@ namespace
     }
     return true;
   }
+}
+
+namespace
+{
+  using namespace ZXTune;
+
+  //plugin attributes
+  const Char ID[] = {'P', 'T', '2', 0};
+  const Char* const INFO = Text::PT2_PLUGIN_INFO;
+  const String VERSION(FromStdString("$Rev$"));
+  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
 
   const std::string PT2_FORMAT(
     "02-0f"      // uint8_t Tempo; 2..15
@@ -836,36 +842,12 @@ namespace
   );
 
   //////////////////////////////////////////////////////////////////////////
-  class PT2Plugin : public PlayerPlugin
-                  , public ModulesFactory
-                  , public boost::enable_shared_from_this<PT2Plugin>
+  class PT2ModulesFactory : public ModulesFactory
   {
   public:
-    typedef boost::shared_ptr<const PT2Plugin> Ptr;
-    
-    PT2Plugin()
+    PT2ModulesFactory()
       : Format(DataFormat::Create(PT2_FORMAT))
     {
-    }
-
-    virtual String Id() const
-    {
-      return PT2_PLUGIN_ID;
-    }
-
-    virtual String Description() const
-    {
-      return Text::PT2_PLUGIN_INFO;
-    }
-
-    virtual String Version() const
-    {
-      return PT2_PLUGIN_VERSION;
-    }
-
-    virtual uint_t Capabilities() const
-    {
-      return CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
     }
 
     virtual bool Check(const IO::DataContainer& inputData) const
@@ -875,12 +857,6 @@ namespace
       return Format->Match(data, size) && CheckPT2Module(data, size);
     }
 
-    virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
-    {
-      const PT2Plugin::Ptr self = shared_from_this();
-      return DetectModuleInLocation(self, self, inputData, callback);
-    }
-  private:
     virtual DataFormat::Ptr GetFormat() const
     {
       return Format;
@@ -932,7 +908,8 @@ namespace ZXTune
 {
   void RegisterPT2Support(PluginsRegistrator& registrator)
   {
-    const PlayerPlugin::Ptr plugin(new PT2Plugin());
+    const ModulesFactory::Ptr factory = boost::make_shared<PT2ModulesFactory>();
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, INFO, VERSION, CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

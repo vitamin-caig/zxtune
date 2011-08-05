@@ -34,7 +34,6 @@ Author:
 #include <set>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/enable_shared_from_this.hpp>
 #include <boost/make_shared.hpp>
 //text includes
 #include <core/text/core.h>
@@ -51,7 +50,6 @@ namespace
 
   //plugin attributes
   const Char TS_PLUGIN_ID[] = {'T', 'S', 0};
-  const String TS_PLUGIN_VERSION(FromStdString("$Rev$"));
 
   const std::size_t TS_MIN_SIZE = 256;
   const std::size_t MAX_MODULE_SIZE = 16384;
@@ -261,7 +259,7 @@ namespace
   class TSHolder : public Holder
   {
   public:
-    TSHolder(PlayerPlugin::Ptr plugin, IO::DataContainer::Ptr data, const Holder::Ptr& holder1, const Holder::Ptr& holder2)
+    TSHolder(Plugin::Ptr plugin, IO::DataContainer::Ptr data, const Holder::Ptr& holder1, const Holder::Ptr& holder2)
       : Plug(plugin)
       , RawData(data)
       , Holder1(holder1), Holder2(holder2)
@@ -307,22 +305,13 @@ namespace
       }
     }
   private:
-    const PlayerPlugin::Ptr Plug;
+    const Plugin::Ptr Plug;
     const IO::DataContainer::Ptr RawData;
     const Holder::Ptr Holder1;
     const Holder::Ptr Holder2;
     const Information::Ptr Info;
   };
 
-  const std::string TS_FOOTER_FORMAT(
-    "%0xxxxxxx%0xxxxxxx%0xxxxxxx21"  // uint8_t ID1[4];//'PT3!' or other type
-    "?%00xxxxxx"                     // uint16_t Size1;
-    "%0xxxxxxx%0xxxxxxx%0xxxxxxx21"  // uint8_t ID2[4];//same
-    "?%00xxxxxx"                     // uint16_t Size2;
-    "'0'2'T'S"                       // uint8_t ID3[4];//'02TS'
-  );
-
-  /////////////////////////////////////////////////////////////////////////////
   inline bool InvalidHolder(Module::Holder::Ptr holder)
   {
     if (!holder)
@@ -333,53 +322,42 @@ namespace
     return 0 != (caps & (CAP_STORAGE_MASK ^ CAP_STOR_MODULE)) ||
            0 != (caps & (CAP_DEVICE_MASK ^ CAP_DEV_AYM));
   }
+}
 
+namespace
+{
+  using namespace ::ZXTune;
+
+  //plugin attributes
+  const Char* const ID = TS_PLUGIN_ID;
+  const Char* const INFO = Text::TS_PLUGIN_INFO;
+  const String VERSION(FromStdString("$Rev$"));
+  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_TS | CAP_CONV_RAW;
+
+
+  const std::string TS_FOOTER_FORMAT(
+    "%0xxxxxxx%0xxxxxxx%0xxxxxxx21"  // uint8_t ID1[4];//'PT3!' or other type
+    "?%00xxxxxx"                     // uint16_t Size1;
+    "%0xxxxxxx%0xxxxxxx%0xxxxxxx21"  // uint8_t ID2[4];//same
+    "?%00xxxxxx"                     // uint16_t Size2;
+    "'0'2'T'S"                       // uint8_t ID3[4];//'02TS'
+  );
+
+  /////////////////////////////////////////////////////////////////////////////
   class TSPlugin : public PlayerPlugin
-                 , public boost::enable_shared_from_this<TSPlugin>
   {
   public:
     typedef boost::shared_ptr<const TSPlugin> Ptr;
 
     TSPlugin()
-      : FooterFormat(DataFormat::Create(TS_FOOTER_FORMAT))
+      : Description(CreatePluginDescription(ID, INFO, VERSION, CAPS))
+      , FooterFormat(DataFormat::Create(TS_FOOTER_FORMAT))
     {
     }
 
-    virtual String Id() const
+    virtual Plugin::Ptr GetDescription() const
     {
-      return TS_PLUGIN_ID;
-    }
-
-    virtual String Description() const
-    {
-      return Text::TS_PLUGIN_INFO;
-    }
-
-    virtual String Version() const
-    {
-      return TS_PLUGIN_VERSION;
-    }
-
-    virtual uint_t Capabilities() const
-    {
-      return CAP_STOR_MODULE | CAP_DEV_TS | CAP_CONV_RAW;
-    }
-
-    virtual bool Check(const IO::DataContainer& inputData) const
-    {
-      const uint8_t* const rawData = static_cast<const uint8_t*>(inputData.Data());
-      const std::size_t size = inputData.Size();
-      const std::size_t footerOffset = FooterFormat->Search(rawData, size);
-      //no footer in nearest data
-      if (footerOffset == size)
-      {
-        return false;
-      }
-      const Footer& footer = *safe_ptr_cast<const Footer*>(rawData + footerOffset);
-      const std::size_t firstModuleSize = fromLE(footer.Size1);
-      const std::size_t secondModuleSize = fromLE(footer.Size2);
-      const std::size_t totalModulesSize = firstModuleSize + secondModuleSize;
-      return totalModulesSize == footerOffset;
+      return Description;
     }
 
     virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
@@ -426,12 +404,13 @@ namespace
       //try to create merged holder
       const IO::DataContainer::Ptr tsData = data->GetSubcontainer(0, dataSize);
 
-      const Module::Holder::Ptr holder(new TSHolder(shared_from_this(), tsData, holder1, holder2));
+      const Module::Holder::Ptr holder(new TSHolder(Description, tsData, holder1, holder2));
       //TODO: proper data attributes calculation
       ThrowIfError(callback.ProcessModule(*inputData, holder));
       return DetectionResult::CreateMatched(dataSize);
     }
   private:
+    const Plugin::Ptr Description;
     const DataFormat::Ptr FooterFormat;
   };
 }

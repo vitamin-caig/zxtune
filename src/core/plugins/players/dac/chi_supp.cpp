@@ -31,7 +31,6 @@ Author:
 #include <utility>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/enable_shared_from_this.hpp>
 //text includes
 #include <core/text/core.h>
 #include <core/text/plugins.h>
@@ -43,10 +42,6 @@ namespace
 {
   using namespace ZXTune;
   using namespace ZXTune::Module;
-
-  //plugin attributes
-  const Char CHI_PLUGIN_ID[] = {'C', 'H', 'I', 0};
-  const String CHI_PLUGIN_VERSION(FromStdString("$Rev$"));
 
   //////////////////////////////////////////////////////////////////////////
   const uint8_t CHI_SIGNATURE[] = {'C', 'H', 'I', 'P', 'v'};
@@ -535,42 +530,30 @@ namespace
     //TODO: additional checks
     return true;
   }
+}
+
+namespace
+{
+  using namespace ZXTune;
+
+  //plugin attributes
+  const Char ID[] = {'C', 'H', 'I', 0};
+  const Char* const INFO = Text::CHI_PLUGIN_INFO;
+  const String VERSION(FromStdString("$Rev$"));
+  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_4DAC | CAP_CONV_RAW;
+
 
   const std::string CHI_FORMAT(
     "4348495076"    // uint8_t Signature[5];
     "3x2e3x"        // char Version[3];
   );
 
-  class CHIPlugin : public PlayerPlugin
-                  , public ModulesFactory
-                  , public boost::enable_shared_from_this<CHIPlugin>
+  class CHIModulesFactory : public ModulesFactory
   {
   public:
-    typedef boost::shared_ptr<const CHIPlugin> Ptr;
-    
-    CHIPlugin()
+    CHIModulesFactory()
       : Format(DataFormat::Create(CHI_FORMAT))
     {
-    }
-
-    virtual String Id() const
-    {
-      return CHI_PLUGIN_ID;
-    }
-
-    virtual String Description() const
-    {
-      return Text::CHI_PLUGIN_INFO;
-    }
-
-    virtual String Version() const
-    {
-      return CHI_PLUGIN_VERSION;
-    }
-
-    virtual uint_t Capabilities() const
-    {
-      return CAP_STOR_MODULE | CAP_DEV_4DAC | CAP_CONV_RAW;
     }
 
     virtual bool Check(const IO::DataContainer& inputData) const
@@ -578,12 +561,6 @@ namespace
       return CheckCHI(inputData);
     }
 
-    virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
-    {
-      const CHIPlugin::Ptr self = shared_from_this();
-      return DetectModuleInLocation(self, self, inputData, callback);
-    }
-  private:
     virtual DataFormat::Ptr GetFormat() const
     {
       return Format;
@@ -612,7 +589,8 @@ namespace ZXTune
 {
   void RegisterCHISupport(PluginsRegistrator& registrator)
   {
-    const PlayerPlugin::Ptr plugin(new CHIPlugin());
+    const ModulesFactory::Ptr factory = boost::make_shared<CHIModulesFactory>();
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, INFO, VERSION, CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

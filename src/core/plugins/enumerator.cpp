@@ -53,7 +53,7 @@ namespace
 
     virtual void RegisterPlugin(PlayerPlugin::Ptr plugin)
     {
-      if (Filter.IsPluginEnabled(*plugin))
+      if (Filter.IsPluginEnabled(*plugin->GetDescription()))
       {
         Delegate.RegisterPlugin(plugin);
       }
@@ -100,9 +100,10 @@ namespace
 
     virtual void RegisterPlugin(PlayerPlugin::Ptr plugin)
     {
-      AllPlugins.push_back(plugin);
+      const Plugin::Ptr description = plugin->GetDescription();
+      AllPlugins.push_back(description);
       PlayerPlugins.push_back(plugin);
-      Log::Debug(THIS_MODULE, "Registered player %1%", plugin->Id());
+      Log::Debug(THIS_MODULE, "Registered player %1%", description->Id());
     }
 
     virtual void RegisterPlugin(ArchivePlugin::Ptr plugin)

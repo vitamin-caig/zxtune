@@ -15,13 +15,41 @@ Author:
 //boost includes
 #include <boost/make_shared.hpp>
 
+namespace
+{
+  using namespace ZXTune;
+
+  class CommonPlayerPlugin : public PlayerPlugin
+  {
+  public:
+    CommonPlayerPlugin(Plugin::Ptr descr, ModulesFactory::Ptr factory)
+      : Description(descr)
+      , Factory(factory)
+    {
+    }
+
+    virtual Plugin::Ptr GetDescription() const
+    {
+      return Description;
+    }
+
+    virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
+    {
+      return DetectModuleInLocation(Factory, Description, inputData, callback);
+    }
+  private:
+    const Plugin::Ptr Description;
+    const ModulesFactory::Ptr Factory;
+  };
+}
+
 namespace ZXTune
 {
-  DetectionResult::Ptr DetectModuleInLocation(ModulesFactory::Ptr factory, PlayerPlugin::Ptr plugin, DataLocation::Ptr inputData, const Module::DetectCallback& callback)
+  DetectionResult::Ptr DetectModuleInLocation(ModulesFactory::Ptr factory, Plugin::Ptr plugin, DataLocation::Ptr inputData, const Module::DetectCallback& callback)
   {
     const IO::DataContainer::Ptr data = inputData->GetData();
     const DataFormat::Ptr format = factory->GetFormat();
-    if (!plugin->Check(*data))
+    if (!factory->Check(*data))
     {
       return DetectionResult::CreateUnmatched(format, data);
     }
@@ -34,5 +62,12 @@ namespace ZXTune
       return DetectionResult::CreateMatched(usedSize);
     }
     return DetectionResult::CreateUnmatched(format, data);
+  }
+
+  PlayerPlugin::Ptr CreatePlayerPlugin(const String& id, const String& info, const String& version, uint_t caps,
+    ModulesFactory::Ptr factory)
+  {
+    const Plugin::Ptr description = CreatePluginDescription(id, info, version, caps);
+    return PlayerPlugin::Ptr(new CommonPlayerPlugin(description, factory));
   }
 }

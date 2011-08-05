@@ -52,15 +52,14 @@ namespace ZXTune
     static Ptr CreateUnmatched(std::size_t unmatchedSize);
   };
 
-  class PlayerPlugin : public Plugin
+  class PlayerPlugin
   {
   public:
     typedef boost::shared_ptr<const PlayerPlugin> Ptr;
     typedef ObjectIterator<PlayerPlugin::Ptr> Iterator;
+    virtual ~PlayerPlugin() {}
 
-    //! @brief Checking if data contains module
-    //! @return true if possibly yes, false if defenitely no
-    virtual bool Check(const IO::DataContainer& inputData) const = 0;
+    virtual Plugin::Ptr GetDescription() const = 0; 
 
     //! @brief Detect modules in data
     virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const = 0;

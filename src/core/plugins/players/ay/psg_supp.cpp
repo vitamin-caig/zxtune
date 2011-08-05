@@ -25,7 +25,6 @@ Author:
 #include <core/plugin_attrs.h>
 #include <io/container.h>
 //boost includes
-#include <boost/enable_shared_from_this.hpp>
 #include <boost/make_shared.hpp>
 //text includes
 #include <core/text/core.h>
@@ -37,9 +36,6 @@ namespace
 {
   using namespace ZXTune;
   using namespace ZXTune::Module;
-
-  const Char PSG_PLUGIN_ID[] = {'P', 'S', 'G', 0};
-  const String PSG_PLUGIN_VERSION(FromStdString("$Rev$"));
 
   const uint8_t PSG_SIGNATURE[] = {'P', 'S', 'G'};
 
@@ -292,54 +288,38 @@ namespace
     return 0 == std::memcmp(header->Sign, PSG_SIGNATURE, sizeof(PSG_SIGNATURE)) &&
        PSG_MARKER == header->Marker;
   }
+}
+
+namespace
+{
+  using namespace ZXTune;
+
+  //plugin attributes
+  const Char ID[] = {'P', 'S', 'G', 0};
+  const Char* const INFO = Text::PSG_PLUGIN_INFO;
+  const String VERSION(FromStdString("$Rev$"));
+  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
 
   const std::string PSG_FORMAT(
     "'P'S'G" // uint8_t Sign[3];
+    "1a"
   );
 
-  class PSGPlugin : public PlayerPlugin
-                  , public ModulesFactory
-                  , public boost::enable_shared_from_this<PSGPlugin>
+  class PSGModulesFactory : public ModulesFactory
   {
   public:
-    typedef boost::shared_ptr<const PSGPlugin> Ptr;
-    
-    PSGPlugin()
+    PSGModulesFactory()
       : Format(DataFormat::Create(PSG_FORMAT))
     {
     }
 
-    virtual String Id() const
-    {
-      return PSG_PLUGIN_ID;
-    }
-
-    virtual String Description() const
-    {
-      return Text::PSG_PLUGIN_INFO;
-    }
-
-    virtual String Version() const
-    {
-      return PSG_PLUGIN_VERSION;
-    }
-
-    virtual uint_t Capabilities() const
-    {
-      return CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
-    }
-
     virtual bool Check(const IO::DataContainer& inputData) const
     {
-      return CheckPSG(inputData);
+      const uint8_t* const data = static_cast<const uint8_t*>(inputData.Data());
+      const std::size_t size = inputData.Size();
+      return Format->Match(data, size) && CheckPSG(inputData);
     }
 
-    virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
-    {
-      const PSGPlugin::Ptr self = shared_from_this();
-      return DetectModuleInLocation(self, self, inputData, callback);
-    }
-  private:
     virtual DataFormat::Ptr GetFormat() const
     {
       return Format;
@@ -373,7 +353,8 @@ namespace ZXTune
 {
   void RegisterPSGSupport(PluginsRegistrator& registrator)
   {
-    const PlayerPlugin::Ptr plugin(new PSGPlugin());
+    const ModulesFactory::Ptr factory = boost::make_shared<PSGModulesFactory>();
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, INFO, VERSION, CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }
