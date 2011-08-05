@@ -50,8 +50,10 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Module;
 
-  const Char AY_PLUGIN_ID[] = {'A', 'Y', 0};
-  const String AY_PLUGIN_VERSION(FromStdString("$Rev$"));
+  const Char ID[] = {'A', 'Y', 0};
+  const String VERSION(FromStdString("$Rev$"));
+  const Char* const INFO = Text::AY_PLUGIN_INFO;
+  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW;
 
   const uint8_t AY_SIGNATURE[] = {'Z', 'X', 'A', 'Y'};
   const uint8_t TYPE_EMUL[] = {'E', 'M', 'U', 'L'};
@@ -855,22 +857,22 @@ namespace
 
     virtual String Id() const
     {
-      return AY_PLUGIN_ID;
+      return ID;
     }
 
     virtual String Description() const
     {
-      return Text::AY_PLUGIN_INFO;
+      return INFO;
     }
 
     virtual String Version() const
     {
-      return AY_PLUGIN_VERSION;
+      return VERSION;
     }
 
     virtual uint_t Capabilities() const
     {
-      return CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW;
+      return CAPS;
     }
 
     virtual bool Check(const IO::DataContainer& inputData) const
@@ -1103,36 +1105,32 @@ namespace
     const String Path;
     uint_t Current;
   };
+}
+
+namespace
+{
+  using namespace ZXTune;
+
+  //TODO: extract
+  const Char ID1[] = {'A', 'Y', 0};
+  const String VERSION1(FromStdString("$Rev$"));
+  const Char* const INFO1 = Text::AY_PLUGIN_INFO;
+  const uint_t CAPS1 = CAP_STOR_MULTITRACK;
 
   class AYContainerPlugin : public ArchivePlugin
-                          , public boost::enable_shared_from_this<AYContainerPlugin>
   {
   public:
     AYContainerPlugin()
-      : Format(DataFormat::Create(AY_FORMAT))
+      : Description(CreatePluginDescription(ID1, INFO1, VERSION1, CAPS1))
+      , Format(DataFormat::Create(AY_FORMAT))
       , AyPath(Text::AY_PLUGIN_PREFIX)
       , RawPath(Text::AY_RAW_PLUGIN_PREFIX)
     {
     }
 
-    virtual String Id() const
+    virtual Plugin::Ptr GetDescription() const
     {
-      return AY_PLUGIN_ID;
-    }
-
-    virtual String Description() const
-    {
-      return Text::AY_PLUGIN_INFO;
-    }
-
-    virtual String Version() const
-    {
-      return AY_PLUGIN_VERSION;
-    }
-
-    virtual uint_t Capabilities() const
-    {
-      return CAP_STOR_MULTITRACK;
+      return Description;
     }
 
     virtual DetectionResult::Ptr Detect(DataLocation::Ptr input, const Module::DetectCallback& callback) const
@@ -1144,10 +1142,9 @@ namespace
         return DetectionResult::CreateUnmatched(Format, rawData);
       }
 
-      const Plugin::Ptr plugin = shared_from_this();
       const Log::ProgressCallback::Ptr progress = CreateProgressCallback(callback, subModules);
       const ZXTune::Module::NoProgressDetectCallbackAdapter noProgressCallback(callback);
-      LoggerHelper logger(progress.get(), *plugin, input->GetPath()->AsString());
+      LoggerHelper logger(progress.get(), *Description, input->GetPath()->AsString());
 
       std::size_t usedData = 0;
       const IO::FastDump dump(*rawData);
@@ -1163,7 +1160,7 @@ namespace
         }
         const IO::DataContainer::Ptr subData = builder.GetAy();
         const ZXTune::DataLocation::Ptr subLocation = idx 
-          ? CreateNestedLocation(input, subData, plugin, subPath)
+          ? CreateNestedLocation(input, subData, Description, subPath)
           : CreateNestedLocation(input, subData);
         ZXTune::Module::Detect(subLocation, noProgressCallback);
         usedData = std::max(usedData, parsedLimit);
@@ -1194,13 +1191,13 @@ namespace
       {
         return DataLocation::Ptr();
       }
-      const Plugin::Ptr subPlugin = shared_from_this();
       const IO::DataContainer::Ptr subData = asRaw
         ? builder.GetRaw()
         : builder.GetAy();
-      return CreateNestedLocation(location, subData, subPlugin, pathComp); 
+      return CreateNestedLocation(location, subData, Description, pathComp); 
     }
   private:
+    const Plugin::Ptr Description;
     const DataFormat::Ptr Format;
     const IndexPathComponent AyPath;
     const IndexPathComponent RawPath;

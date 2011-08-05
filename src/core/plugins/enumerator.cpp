@@ -25,6 +25,8 @@ Author:
 #include <core/module_detect.h>
 //std includes
 #include <list>
+//boost includes
+#include <boost/make_shared.hpp>
 //text includes
 #include <core/text/core.h>
 
@@ -59,7 +61,7 @@ namespace
 
     virtual void RegisterPlugin(ArchivePlugin::Ptr plugin)
     {
-      if (Filter.IsPluginEnabled(*plugin))
+      if (Filter.IsPluginEnabled(*plugin->GetDescription()))
       {
         Delegate.RegisterPlugin(plugin);
       }
@@ -105,9 +107,10 @@ namespace
 
     virtual void RegisterPlugin(ArchivePlugin::Ptr plugin)
     {
-      AllPlugins.push_back(plugin);
+      const Plugin::Ptr description = plugin->GetDescription();
+      AllPlugins.push_back(description);
       ArchivePlugins.push_back(plugin);
-      Log::Debug(THIS_MODULE, "Registered archive container %1%", plugin->Id());
+      Log::Debug(THIS_MODULE, "Registered archive container %1%", description->Id());
     }
 
     //public interface
@@ -179,6 +182,43 @@ namespace
     const Parameters::Accessor::Ptr CoreParams;
     PluginsEnumerator::Ptr Plugins;
   };
+
+  class SimplePluginDescription : public Plugin
+  {
+  public:
+    SimplePluginDescription(const String& id, const String& info, const String& version, uint_t capabilities)
+      : ID(id)
+      , Info(info)
+      , Vers(version)
+      , Caps(capabilities)
+    {
+    }
+
+    virtual String Id() const
+    {
+      return ID;
+    }
+
+    virtual String Description() const
+    {
+      return Info;
+    }
+
+    virtual String Version() const
+    {
+      return Vers;
+    }
+
+    virtual uint_t Capabilities() const
+    {
+      return Caps;
+    }
+  private:
+    const String ID;
+    const String Info;
+    const String Vers;
+    const uint_t Caps;
+  };
 }
 
 namespace ZXTune
@@ -198,6 +238,11 @@ namespace ZXTune
   {
     //TODO: remove
     return PluginsEnumerator::Create()->Enumerate();
+  }
+
+  Plugin::Ptr CreatePluginDescription(const String& id, const String& info, const String& version, uint_t capabilities)
+  {
+    return boost::make_shared<SimplePluginDescription>(id, info, version, capabilities);
   }
 
   Error DetectModules(Parameters::Accessor::Ptr moduleParams, const DetectParameters& detectParams,

@@ -28,7 +28,6 @@ Author:
 #include <list>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/enable_shared_from_this.hpp>
 #include <boost/make_shared.hpp>
 //text includes
 #include <core/text/core.h>
@@ -41,9 +40,6 @@ namespace
   using namespace ZXTune;
 
   const std::string THIS_MODULE("Core::RawScaner");
-
-  const Char RAW_PLUGIN_ID[] = {'R', 'A', 'W', 0};
-  const String RAW_PLUGIN_VERSION(FromStdString("$Rev$"));
 
   const uint_t MIN_SCAN_STEP = 1;
   const uint_t MAX_SCAN_STEP = 256;
@@ -223,8 +219,32 @@ namespace
   template<class P>
   class LookaheadPluginsStorage
   {
-    typedef typename std::pair<std::size_t, typename P::Ptr> OffsetAndPlugin;
-    typedef typename std::list<OffsetAndPlugin> PluginsList;
+    struct PluginEntry
+    {
+      typename P::Ptr Plugin;
+      String Id;
+      std::size_t Offset;
+
+      explicit PluginEntry(ArchivePlugin::Ptr plugin)
+        : Plugin(plugin)
+        , Id(Plugin->GetDescription()->Id())
+        , Offset()
+      {
+      }
+
+      explicit PluginEntry(PlayerPlugin::Ptr plugin)
+        : Plugin(plugin)
+        , Id(Plugin->Id())
+        , Offset()
+      {
+      }
+
+      PluginEntry()
+        : Offset()
+      {
+      }
+    };
+    typedef typename std::list<PluginEntry> PluginsList;
 
     class IteratorImpl : public P::Iterator
     {
@@ -245,7 +265,7 @@ namespace
       virtual typename P::Ptr Get() const
       {
         assert(Cur != Lim);
-        return Cur->second;
+        return Cur->Plugin;
       }
 
       virtual void Next()
@@ -257,7 +277,7 @@ namespace
     private:
       void SkipUnaffected()
       {
-        while (Cur != Lim && Cur->first > Offset)
+        while (Cur != Lim && Cur->Offset > Offset)
         {
           ++Cur;
         }
@@ -274,7 +294,7 @@ namespace
       for (; iterator->IsValid(); iterator->Next())
       {
         const typename P::Ptr plugin = iterator->Get();
-        Plugins.push_back(OffsetAndPlugin(Offset, plugin));
+        Plugins.push_back(PluginEntry(plugin));
       }
     }
 
@@ -286,8 +306,8 @@ namespace
     std::size_t GetMinimalPluginLookahead() const
     {
       const typename PluginsList::const_iterator it = std::min_element(Plugins.begin(), Plugins.end(), 
-        boost::bind(&OffsetAndPlugin::first, _1) < boost::bind(&OffsetAndPlugin::first, _2));
-      return it->first >= Offset ? it->first - Offset : 0;
+        boost::bind(&PluginEntry::Offset, _1) < boost::bind(&PluginEntry::Offset, _2));
+      return it->Offset >= Offset ? it->Offset - Offset : 0;
     }
     
     void SetOffset(std::size_t offset)
@@ -295,14 +315,14 @@ namespace
       Offset = offset;
     }
 
-    void SetPluginLookahead(Plugin::Ptr plugin, std::size_t lookahead)
+    void SetPluginLookahead(const String& id, std::size_t lookahead)
     {
       const typename PluginsList::iterator it = std::find_if(Plugins.begin(), Plugins.end(),
-        boost::bind(&OffsetAndPlugin::second, _1) == plugin);
+        boost::bind(&PluginEntry::Id, _1) == id);
       if (it != Plugins.end())
       {
-        Log::Debug(THIS_MODULE, "Disabling check of %1% for neareast %2% bytes starting from %3%", plugin->Id(), lookahead, Offset);
-        it->first += lookahead;
+        Log::Debug(THIS_MODULE, "Disabling check of %1% for neareast %2% bytes starting from %3%", id, lookahead, Offset);
+        it->Offset += lookahead;
       }
     }
   private:
@@ -313,7 +333,7 @@ namespace
   class RawDetectionPlugins
   {
   public:
-    RawDetectionPlugins(PluginsEnumerator::Ptr parent, ArchivePlugin::Ptr denied)
+    RawDetectionPlugins(PluginsEnumerator::Ptr parent, const String& denied)
       : Players(parent->EnumeratePlayers())
       , Archives(parent->EnumerateArchives())
     {
@@ -345,20 +365,39 @@ namespace
       Players.SetOffset(offset);
     }
   private:
-    template<class Type>
-    DetectionResult::Ptr DetectIn(LookaheadPluginsStorage<Type>& container, DataLocation::Ptr input, const Module::DetectCallback& callback) const
+    DetectionResult::Ptr DetectIn(LookaheadPluginsStorage<PlayerPlugin>& container, DataLocation::Ptr input, const Module::DetectCallback& callback) const
     {
-      for (typename Type::Iterator::Ptr iter = container.Enumerate(); iter->IsValid(); iter->Next())
+      for (PlayerPlugin::Iterator::Ptr iter = container.Enumerate(); iter->IsValid(); iter->Next())
       {
-        const typename Type::Ptr plugin = iter->Get();
+        const PlayerPlugin::Ptr plugin = iter->Get();
         const DetectionResult::Ptr result = plugin->Detect(input, callback);
+        const String id = plugin->Id();
         if (std::size_t usedSize = result->GetMatchedDataSize())
         {
-          Log::Debug(THIS_MODULE, "Detected %1% in %2% bytes at %3%.", plugin->Id(), usedSize, input->GetPath()->AsString());
+          Log::Debug(THIS_MODULE, "Detected %1% in %2% bytes at %3%.", id, usedSize, input->GetPath()->AsString());
           return result;
         }
         const std::size_t lookahead = result->GetLookaheadOffset();
-        container.SetPluginLookahead(plugin, std::max<std::size_t>(lookahead, MIN_SCAN_STEP));
+        container.SetPluginLookahead(id, std::max<std::size_t>(lookahead, MIN_SCAN_STEP));
+      }
+      const std::size_t minLookahead = container.GetMinimalPluginLookahead();
+      return DetectionResult::CreateUnmatched(minLookahead);
+    }
+
+    DetectionResult::Ptr DetectIn(LookaheadPluginsStorage<ArchivePlugin>& container, DataLocation::Ptr input, const Module::DetectCallback& callback) const
+    {
+      for (ArchivePlugin::Iterator::Ptr iter = container.Enumerate(); iter->IsValid(); iter->Next())
+      {
+        const ArchivePlugin::Ptr plugin = iter->Get();
+        const DetectionResult::Ptr result = plugin->Detect(input, callback);
+        const String id = plugin->GetDescription()->Id();
+        if (std::size_t usedSize = result->GetMatchedDataSize())
+        {
+          Log::Debug(THIS_MODULE, "Detected %1% in %2% bytes at %3%.", id, usedSize, input->GetPath()->AsString());
+          return result;
+        }
+        const std::size_t lookahead = result->GetLookaheadOffset();
+        container.SetPluginLookahead(id, std::max<std::size_t>(lookahead, MIN_SCAN_STEP));
       }
       const std::size_t minLookahead = container.GetMinimalPluginLookahead();
       return DetectionResult::CreateUnmatched(minLookahead);
@@ -367,29 +406,28 @@ namespace
     LookaheadPluginsStorage<PlayerPlugin> Players;
     LookaheadPluginsStorage<ArchivePlugin> Archives;
   };
+}
+
+namespace
+{
+  using namespace ZXTune;
+
+  const Char ID[] = {'R', 'A', 'W', 0};
+  const String VERSION(FromStdString("$Rev$"));
+  const Char* const INFO = Text::RAW_PLUGIN_INFO;
+  const uint_t CAPS = CAP_STOR_MULTITRACK | CAP_STOR_SCANER;
 
   class RawScaner : public ArchivePlugin
-                  , public boost::enable_shared_from_this<RawScaner>
   {
   public:
-    virtual String Id() const
+    RawScaner()
+      : Description(CreatePluginDescription(ID, INFO, VERSION, CAPS))
     {
-      return RAW_PLUGIN_ID;
     }
 
-    virtual String Description() const
+    virtual Plugin::Ptr GetDescription() const
     {
-      return Text::RAW_PLUGIN_INFO;
-    }
-
-    virtual String Version() const
-    {
-      return RAW_PLUGIN_VERSION;
-    }
-
-    virtual uint_t Capabilities() const
-    {
-      return CAP_STOR_MULTITRACK | CAP_STOR_SCANER;
+      return Description;
     }
 
     virtual DetectionResult::Ptr Detect(DataLocation::Ptr input, const Module::DetectCallback& callback) const
@@ -413,7 +451,7 @@ namespace
       }
       if (const Plugin::Ptr lastPlugin = input->GetPlugins()->GetLast())
       {
-        if (lastPlugin->Id() == RAW_PLUGIN_ID)
+        if (lastPlugin->Id() == Description->Id())
         {
           Log::Debug(THIS_MODULE, "Recursive raw. Skipping.");
           return DetectionResult::CreateUnmatched(size);
@@ -427,10 +465,9 @@ namespace
 
 
       const PluginsEnumerator::Ptr availablePlugins = callback.GetUsedPlugins();
-      const ArchivePlugin::Ptr thisPlugin = shared_from_this();
-      RawDetectionPlugins usedPlugins(availablePlugins, thisPlugin);
+      RawDetectionPlugins usedPlugins(availablePlugins, Description->Id());
 
-      ScanDataLocation::Ptr subLocation = boost::make_shared<ScanDataLocation>(input, thisPlugin, 0);
+      ScanDataLocation::Ptr subLocation = boost::make_shared<ScanDataLocation>(input, Description, 0);
 
       while (subLocation->HasToScan(minRawSize))
       {
@@ -441,7 +478,7 @@ namespace
         if (!subLocation.unique())
         {
           Log::Debug(THIS_MODULE, "Sublocation is captured. Duplicate.");
-          subLocation = boost::make_shared<ScanDataLocation>(input, thisPlugin, offset);
+          subLocation = boost::make_shared<ScanDataLocation>(input, Description, offset);
         }
         subLocation->Move(std::max(bytesToSkip, scanStep));
       }
@@ -455,12 +492,13 @@ namespace
       if (RawPath.GetIndex(pathComp, offset))
       {
         const IO::DataContainer::Ptr inData = location->GetData();
-        const Plugin::Ptr subPlugin = shared_from_this();
         const IO::DataContainer::Ptr subData = inData->GetSubcontainer(offset, inData->Size() - offset);
-        return CreateNestedLocation(location, subData, subPlugin, pathComp); 
+        return CreateNestedLocation(location, subData, Description, pathComp); 
       }
       return DataLocation::Ptr();
     }
+  private:
+    const Plugin::Ptr Description;
   };
 }
 

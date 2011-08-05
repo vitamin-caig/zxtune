@@ -10,14 +10,11 @@ Author:
 */
 
 //local includes
-#include "extraction_result.h"
+#include "archive_supp_common.h"
 #include <core/plugins/registrator.h>
 //library includes
 #include <core/plugin_attrs.h>
 #include <formats/packed_decoders.h>
-#include <io/container.h>
-//boost includes
-#include <boost/enable_shared_from_this.hpp>
 //text includes
 #include <core/text/plugins.h>
 
@@ -25,106 +22,33 @@ namespace
 {
   using namespace ZXTune;
 
-  const Char PCD61_PLUGIN_ID[] = {'P', 'C', 'D', '6', '1', '\0'};
-  const Char PCD62_PLUGIN_ID[] = {'P', 'C', 'D', '6', '2', '\0'};
-  const String PCD_PLUGIN_VERSION(FromStdString("$Rev$"));
+  const Char ID61[] = {'P', 'C', 'D', '6', '1', '\0'};
+  const Char ID62[] = {'P', 'C', 'D', '6', '2', '\0'};
+  const String VERSION(FromStdString("$Rev$"));
+  const Char* const INFO61 = Text::PCD61_PLUGIN_INFO;
+  const Char* const INFO62 = Text::PCD62_PLUGIN_INFO;
+  const uint_t CAPS = CAP_STOR_CONTAINER;
 
-  class PCD61Plugin : public ArchivePlugin
-                    , public boost::enable_shared_from_this<PCD61Plugin>
+  void RegisterPCD61Support(PluginsRegistrator& registrator)
   {
-  public:
-    PCD61Plugin()
-      : Decoder(Formats::Packed::CreatePowerfullCodeDecreaser61Decoder())
-    {
-    }
-    
-    virtual String Id() const
-    {
-      return PCD61_PLUGIN_ID;
-    }
+    Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreatePowerfullCodeDecreaser61Decoder();
+    const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ID61, INFO61, VERSION, CAPS, decoder);
+    registrator.RegisterPlugin(plugin);
+  }
 
-    virtual String Description() const
-    {
-      return Text::PCD61_PLUGIN_INFO;
-    }
-
-    virtual String Version() const
-    {
-      return PCD_PLUGIN_VERSION;
-    }
-
-    virtual uint_t Capabilities() const
-    {
-      return CAP_STOR_CONTAINER;
-    }
-
-    virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
-    {
-      return DetectModulesInArchive(shared_from_this(), *Decoder, inputData, callback);
-    }
-
-    virtual DataLocation::Ptr Open(const Parameters::Accessor& /*parameters*/,
-                                   DataLocation::Ptr inputData,
-                                   const DataPath& pathToOpen) const
-    {
-      return OpenDataFromArchive(shared_from_this(), *Decoder, inputData, pathToOpen);
-    }
-  private:
-    const Formats::Packed::Decoder::Ptr Decoder;
-  };
-
-  class PCD62Plugin : public ArchivePlugin
-                    , public boost::enable_shared_from_this<PCD62Plugin>
+  void RegisterPCD62Support(PluginsRegistrator& registrator)
   {
-  public:
-    PCD62Plugin()
-      : Decoder(Formats::Packed::CreatePowerfullCodeDecreaser62Decoder())
-    {
-    }
-    
-    virtual String Id() const
-    {
-      return PCD62_PLUGIN_ID;
-    }
-
-    virtual String Description() const
-    {
-      return Text::PCD62_PLUGIN_INFO;
-    }
-
-    virtual String Version() const
-    {
-      return PCD_PLUGIN_VERSION;
-    }
-
-    virtual uint_t Capabilities() const
-    {
-      return CAP_STOR_CONTAINER;
-    }
-
-    virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
-    {
-      return DetectModulesInArchive(shared_from_this(), *Decoder, inputData, callback);
-    }
-
-    virtual DataLocation::Ptr Open(const Parameters::Accessor& /*parameters*/,
-                                   DataLocation::Ptr inputData,
-                                   const DataPath& pathToOpen) const
-    {
-      return OpenDataFromArchive(shared_from_this(), *Decoder, inputData, pathToOpen);
-    }
-  private:
-    const Formats::Packed::Decoder::Ptr Decoder;
-  };
+    Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreatePowerfullCodeDecreaser62Decoder();
+    const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ID62, INFO62, VERSION, CAPS, decoder);
+    registrator.RegisterPlugin(plugin);
+  }
 }
 
 namespace ZXTune
 {
   void RegisterPCDConvertor(PluginsRegistrator& registrator)
   {
-    const ArchivePlugin::Ptr plugin61(new PCD61Plugin());
-    const ArchivePlugin::Ptr plugin62(new PCD62Plugin());
-    registrator.RegisterPlugin(plugin61);
-    registrator.RegisterPlugin(plugin62);
+    RegisterPCD61Support(registrator);
+    RegisterPCD62Support(registrator);
   }
 }

@@ -66,11 +66,14 @@ namespace ZXTune
     virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const = 0;
   };
 
-  class ArchivePlugin : public Plugin
+  class ArchivePlugin
   {
   public:
     typedef boost::shared_ptr<const ArchivePlugin> Ptr;
     typedef ObjectIterator<ArchivePlugin::Ptr> Iterator;
+    virtual ~ArchivePlugin() {}
+
+    virtual Plugin::Ptr GetDescription() const = 0;
 
     //! @brief Detect modules in data
     virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const = 0;
@@ -79,6 +82,8 @@ namespace ZXTune
                                    DataLocation::Ptr inputData,
                                    const DataPath& pathToOpen) const = 0; 
   };
+
+  Plugin::Ptr CreatePluginDescription(const String& id, const String& info, const String& version, uint_t capabilities);
 }
 
 #endif //__CORE_PLUGINS_TYPES_H_DEFINED__

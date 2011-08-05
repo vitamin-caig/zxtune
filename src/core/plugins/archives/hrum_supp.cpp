@@ -10,14 +10,11 @@ Author:
 */
 
 //local includes
-#include "extraction_result.h"
+#include "archive_supp_common.h"
 #include <core/plugins/registrator.h>
 //library includes
 #include <core/plugin_attrs.h>
 #include <formats/packed_decoders.h>
-#include <io/container.h>
-//boost includes
-#include <boost/enable_shared_from_this.hpp>
 //text includes
 #include <core/text/plugins.h>
 
@@ -25,60 +22,18 @@ namespace
 {
   using namespace ZXTune;
 
-  const Char HRUM_PLUGIN_ID[] = {'H', 'R', 'U', 'M', '\0'};
-  const String HRUM_PLUGIN_VERSION(FromStdString("$Rev$"));
-
-  //////////////////////////////////////////////////////////////////////////
-  class HrumPlugin : public ArchivePlugin
-                   , public boost::enable_shared_from_this<HrumPlugin>
-  {
-  public:
-    HrumPlugin()
-      : Decoder(Formats::Packed::CreateHrumDecoder())
-    {
-    }
-    
-    virtual String Id() const
-    {
-      return HRUM_PLUGIN_ID;
-    }
-
-    virtual String Description() const
-    {
-      return Text::HRUM_PLUGIN_INFO;
-    }
-
-    virtual String Version() const
-    {
-      return HRUM_PLUGIN_VERSION;
-    }
-
-    virtual uint_t Capabilities() const
-    {
-      return CAP_STOR_CONTAINER;
-    }
-
-    virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
-    {
-      return DetectModulesInArchive(shared_from_this(), *Decoder, inputData, callback);
-    }
-
-    virtual DataLocation::Ptr Open(const Parameters::Accessor& /*parameters*/,
-                                   DataLocation::Ptr inputData,
-                                   const DataPath& pathToOpen) const
-    {
-      return OpenDataFromArchive(shared_from_this(), *Decoder, inputData, pathToOpen);
-    }
-  private:
-    const Formats::Packed::Decoder::Ptr Decoder;
-  };
+  const Char ID[] = {'H', 'R', 'U', 'M', '\0'};
+  const String VERSION(FromStdString("$Rev$"));
+  const Char* const INFO = Text::HRUM_PLUGIN_INFO;
+  const uint_t CAPS = CAP_STOR_CONTAINER;
 }
 
 namespace ZXTune
 {
   void RegisterHrumConvertor(PluginsRegistrator& registrator)
   {
-    const ArchivePlugin::Ptr plugin(new HrumPlugin());
+    Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateHrumDecoder();
+    const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ID, INFO, VERSION, CAPS, decoder);
     registrator.RegisterPlugin(plugin);
   }
 }

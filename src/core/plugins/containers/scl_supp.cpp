@@ -28,22 +28,13 @@ Author:
 #include <io/container.h>
 //std includes
 #include <numeric>
-//boost includes
-#include <boost/bind.hpp>
-#include <boost/enable_shared_from_this.hpp>
-#include <boost/make_shared.hpp>
 //text includes
 #include <core/text/core.h>
 #include <core/text/plugins.h>
 
-#define FILE_TAG 10F03BAF
-
 namespace
 {
   using namespace ZXTune;
-
-  const Char SCL_PLUGIN_ID[] = {'S', 'C', 'L', 0};
-  const String SCL_PLUGIN_VERSION(FromStdString("$Rev$"));
 
   const std::size_t BYTES_PER_SECTOR = 256;
 
@@ -144,6 +135,16 @@ namespace
     builder->SetUsedSize(offset);
     return builder->GetResult();
   }
+}
+
+namespace
+{
+  using namespace ZXTune;
+
+  const Char ID[] = {'S', 'C', 'L', 0};
+  const String VERSION(FromStdString("$Rev$"));
+  const Char* const INFO = Text::SCL_PLUGIN_INFO;
+  const uint_t CAPS = CAP_STOR_MULTITRACK | CAP_STOR_PLAIN;
 
   const std::string SCL_FORMAT(
     "'S'I'N'C'L'A'I'R"
@@ -151,32 +152,17 @@ namespace
   );
 
   class SCLPlugin : public ArchivePlugin
-                  , public boost::enable_shared_from_this<SCLPlugin>
   {
   public:
     SCLPlugin()
-      : Format(DataFormat::Create(SCL_FORMAT))
+      : Description(CreatePluginDescription(ID, INFO, VERSION, CAPS))
+      , Format(DataFormat::Create(SCL_FORMAT))
     {
     }
 
-    virtual String Id() const
+    virtual Plugin::Ptr GetDescription() const
     {
-      return SCL_PLUGIN_ID;
-    }
-
-    virtual String Description() const
-    {
-      return Text::SCL_PLUGIN_INFO;
-    }
-
-    virtual String Version() const
-    {
-      return SCL_PLUGIN_VERSION;
-    }
-
-    virtual uint_t Capabilities() const
-    {
-      return CAP_STOR_MULTITRACK | CAP_STOR_PLAIN;
+      return Description;
     }
 
     virtual DetectionResult::Ptr Detect(DataLocation::Ptr input, const Module::DetectCallback& callback) const
@@ -186,7 +172,7 @@ namespace
       {
         if (files->GetFilesCount())
         {
-          ProcessEntries(input, callback, shared_from_this(), *files);
+          ProcessEntries(input, callback, Description, *files);
         }
         return DetectionResult::CreateMatched(files->GetUsedSize());
       }
@@ -205,14 +191,14 @@ namespace
       {
         if (const TRDos::File::Ptr fileToOpen = files->FindFile(pathComp))
         {
-          const Plugin::Ptr subPlugin = shared_from_this();
           const IO::DataContainer::Ptr subData = fileToOpen->GetData();
-          return CreateNestedLocation(location, subData, subPlugin, pathComp); 
+          return CreateNestedLocation(location, subData, Description, pathComp); 
         }
       }
       return DataLocation::Ptr();
     }
   private:
+    const Plugin::Ptr Description;
     const DataFormat::Ptr Format;
   };
 }

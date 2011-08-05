@@ -10,10 +10,8 @@ Author:
 */
 
 //local includes
-#include "extraction_result.h"
+#include "archive_supp_common.h"
 #include "core/plugins/registrator.h"
-#include "core/src/callback.h"
-#include "core/src/core.h"
 //common includes
 #include <byteorder.h>
 #include <tools.h>
@@ -25,12 +23,9 @@ Author:
 #include <cstring>
 #include <numeric>
 //boost includes
-#include <boost/enable_shared_from_this.hpp>
-#include <boost/make_shared.hpp>
+#include <boost/bind.hpp>
 //text includes
 #include <core/text/plugins.h>
-
-#define FILE_TAG 42F35DB2
 
 namespace FullDiskImage
 {
@@ -246,7 +241,7 @@ namespace FullDiskImage
   };
 
   const std::string FORMAT_PATTERN(
-    "464449"      // uint8_t ID[3]
+    "'F'D'I"      // uint8_t ID[3]
     "%0000000x"   // uint8_t ReadOnly;
     "%0xxxxxxx"   // uint16_t Cylinders;
     "%000000xx"   // uint16_t Sides;
@@ -303,59 +298,18 @@ namespace
 {
   using namespace ZXTune;
 
-  const Char FDI_PLUGIN_ID[] = {'F', 'D', 'I', 0};
-  const String FDI_PLUGIN_VERSION(FromStdString("$Rev$"));
-
-  class FDIPlugin : public ArchivePlugin
-                  , public boost::enable_shared_from_this<FDIPlugin>
-  {
-  public:
-    FDIPlugin()
-      : Decoder(new Formats::Packed::FullDiskImageDecoder())
-    {
-    }
-
-    virtual String Id() const
-    {
-      return FDI_PLUGIN_ID;
-    }
-
-    virtual String Description() const
-    {
-      return Text::FDI_PLUGIN_INFO;
-    }
-
-    virtual String Version() const
-    {
-      return FDI_PLUGIN_VERSION;
-    }
-
-    virtual uint_t Capabilities() const
-    {
-      return CAP_STOR_CONTAINER;
-    }
-
-    virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
-    {
-      return DetectModulesInArchive(shared_from_this(), *Decoder, inputData, callback);
-    }
-
-    virtual DataLocation::Ptr Open(const Parameters::Accessor& /*parameters*/,
-                                   DataLocation::Ptr inputData,
-                                   const DataPath& pathToOpen) const
-    {
-      return OpenDataFromArchive(shared_from_this(), *Decoder, inputData, pathToOpen);
-    }
-  private:
-    const Formats::Packed::Decoder::Ptr Decoder;
-  };
+  const Char ID[] = {'F', 'D', 'I', 0};
+  const String VERSION(FromStdString("$Rev$"));
+  const Char* const INFO = Text::FDI_PLUGIN_INFO;
+  const uint_t CAPS = CAP_STOR_CONTAINER;
 }
 
 namespace ZXTune
 {
   void RegisterFDIConvertor(PluginsRegistrator& registrator)
   {
-    const ArchivePlugin::Ptr plugin(new FDIPlugin());
+    Formats::Packed::Decoder::Ptr decoder(new Formats::Packed::FullDiskImageDecoder());
+    const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ID, INFO, VERSION, CAPS, decoder);
     registrator.RegisterPlugin(plugin);
   }
 }

@@ -78,16 +78,30 @@ namespace
     mutable Module::Holder::Ptr Result;
   };
   
-  template<class Type>
-  std::size_t DetectByPlugins(typename Type::Iterator::Ptr plugins, DataLocation::Ptr location, const Module::DetectCallback& callback)
+  std::size_t DetectByPlugins(PlayerPlugin::Iterator::Ptr plugins, DataLocation::Ptr location, const Module::DetectCallback& callback)
   {
     for (; plugins->IsValid(); plugins->Next())
     {
-      const typename Type::Ptr plugin = plugins->Get();
+      const PlayerPlugin::Ptr plugin = plugins->Get();
       const DetectionResult::Ptr result = plugin->Detect(location, callback);
       if (std::size_t usedSize = result->GetMatchedDataSize())
       {
         Log::Debug(THIS_MODULE, "Detected %1% in %2% bytes at %3%.", plugin->Id(), usedSize, location->GetPath()->AsString());
+        return usedSize;
+      }
+    }
+    return 0;
+  }
+
+  std::size_t DetectByPlugins(ArchivePlugin::Iterator::Ptr plugins, DataLocation::Ptr location, const Module::DetectCallback& callback)
+  {
+    for (; plugins->IsValid(); plugins->Next())
+    {
+      const ArchivePlugin::Ptr plugin = plugins->Get();
+      const DetectionResult::Ptr result = plugin->Detect(location, callback);
+      if (std::size_t usedSize = result->GetMatchedDataSize())
+      {
+        Log::Debug(THIS_MODULE, "Detected %1% in %2% bytes at %3%.", plugin->GetDescription()->Id(), usedSize, location->GetPath()->AsString());
         return usedSize;
       }
     }
@@ -163,18 +177,18 @@ namespace ZXTune
     Holder::Ptr Open(DataLocation::Ptr location, PluginsEnumerator::Ptr usedPlugins, Parameters::Accessor::Ptr moduleParams)
     {
       const OpenModuleCallback callback(moduleParams);
-      DetectByPlugins<PlayerPlugin>(usedPlugins->EnumeratePlayers(), location, callback);
+      DetectByPlugins(usedPlugins->EnumeratePlayers(), location, callback);
       return callback.GetResult();
     }
 
     std::size_t Detect(DataLocation::Ptr location, const DetectCallback& callback)
     {
       const PluginsEnumerator::Ptr usedPlugins = callback.GetUsedPlugins();
-      if (std::size_t usedSize = DetectByPlugins<ArchivePlugin>(usedPlugins->EnumerateArchives(), location, callback))
+      if (std::size_t usedSize = DetectByPlugins(usedPlugins->EnumerateArchives(), location, callback))
       {
         return usedSize;
       }
-      return DetectByPlugins<PlayerPlugin>(usedPlugins->EnumeratePlayers(), location, callback);
+      return DetectByPlugins(usedPlugins->EnumeratePlayers(), location, callback);
     }
   }
 }

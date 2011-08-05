@@ -10,77 +10,30 @@ Author:
 */
 
 //local includes
-#include "extraction_result.h"
+#include "archive_supp_common.h"
 #include <core/plugins/registrator.h>
-//common includes
-#include <tools.h>
 //library includes
 #include <core/plugin_attrs.h>
 #include <formats/packed_decoders.h>
-//boost includes
-#include <boost/enable_shared_from_this.hpp>
 //text includes
 #include <core/text/plugins.h>
-
-#define FILE_TAG 047CB563
 
 namespace
 {
   using namespace ZXTune;
 
-  const Char HRUST1X_PLUGIN_ID[] = {'H', 'R', 'U', 'S', 'T', '1', '\0'};
-  const String HRUST1X_PLUGIN_VERSION(FromStdString("$Rev$"));
-
-  class Hrust1xPlugin : public ArchivePlugin
-                      , public boost::enable_shared_from_this<Hrust1xPlugin>
-  {
-  public:
-    Hrust1xPlugin()
-      : Decoder(Formats::Packed::CreateHrust1Decoder())
-    {
-    }
-
-    virtual String Id() const
-    {
-      return HRUST1X_PLUGIN_ID;
-    }
-
-    virtual String Description() const
-    {
-      return Text::HRUST1X_PLUGIN_INFO;
-    }
-
-    virtual String Version() const
-    {
-      return HRUST1X_PLUGIN_VERSION;
-    }
-
-    virtual uint_t Capabilities() const
-    {
-      return CAP_STOR_CONTAINER;
-    }
-
-    virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
-    {
-      return DetectModulesInArchive(shared_from_this(), *Decoder, inputData, callback);
-    }
-
-    virtual DataLocation::Ptr Open(const Parameters::Accessor& /*parameters*/,
-                                   DataLocation::Ptr inputData,
-                                   const DataPath& pathToOpen) const
-    {
-      return OpenDataFromArchive(shared_from_this(), *Decoder, inputData, pathToOpen);
-    }
-  private:
-    const Formats::Packed::Decoder::Ptr Decoder;
-  };
+  const Char ID[] = {'H', 'R', 'U', 'S', 'T', '1', '\0'};
+  const String VERSION(FromStdString("$Rev$"));
+  const Char* const INFO = Text::HRUST1X_PLUGIN_INFO;
+  const uint_t CAPS = CAP_STOR_CONTAINER;
 }
 
 namespace ZXTune
 {
   void RegisterHrust1xConvertor(PluginsRegistrator& registrator)
   {
-    const ArchivePlugin::Ptr plugin(new Hrust1xPlugin());
+    Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateHrust1Decoder();
+    const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ID, INFO, VERSION, CAPS, decoder);
     registrator.RegisterPlugin(plugin);
   }
 }

@@ -32,7 +32,6 @@ Author:
 #include <numeric>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/enable_shared_from_this.hpp>
 #include <boost/make_shared.hpp>
 //text includes
 #include <core/text/core.h>
@@ -43,9 +42,6 @@ Author:
 namespace
 {
   using namespace ZXTune;
-
-  const Char HRIP_PLUGIN_ID[] = {'H', 'R', 'I', 'P', 0};
-  const String HRIP_PLUGIN_VERSION(FromStdString("$Rev$"));
 
   const std::size_t HRP_MODULE_SIZE = 655360;
 
@@ -325,6 +321,16 @@ namespace
     builder->SetUsedSize(archiveSize);
     return builder->GetResult();
   }
+}
+
+namespace
+{
+  using namespace ZXTune;
+
+  const Char ID[] = {'H', 'R', 'I', 'P', 0};
+  const String VERSION(FromStdString("$Rev$"));
+  const Char* const INFO = Text::HRIP_PLUGIN_INFO;
+  const uint_t CAPS = CAP_STOR_MULTITRACK;
 
   const std::string HRIP_FORMAT(
     "'H'R'i" //uint8_t ID[3];//'HRi'
@@ -335,32 +341,17 @@ namespace
   );
 
   class HRIPPlugin : public ArchivePlugin
-                   , public boost::enable_shared_from_this<HRIPPlugin>
   {
   public:
     HRIPPlugin()
-      : Format(DataFormat::Create(HRIP_FORMAT))
+      : Description(CreatePluginDescription(ID, INFO, VERSION, CAPS))
+      , Format(DataFormat::Create(HRIP_FORMAT))
     {
     }
 
-    virtual String Id() const
+    virtual Plugin::Ptr GetDescription() const
     {
-      return HRIP_PLUGIN_ID;
-    }
-
-    virtual String Description() const
-    {
-      return Text::HRIP_PLUGIN_INFO;
-    }
-
-    virtual String Version() const
-    {
-      return HRIP_PLUGIN_VERSION;
-    }
-
-    virtual uint_t Capabilities() const
-    {
-      return CAP_STOR_MULTITRACK;
+      return Description;
     }
 
     virtual DetectionResult::Ptr Detect(DataLocation::Ptr input, const Module::DetectCallback& callback) const
@@ -370,7 +361,7 @@ namespace
       {
         if (files->GetFilesCount())
         {
-          TRDos::ProcessEntries(input, callback, shared_from_this(), *files);
+          TRDos::ProcessEntries(input, callback, Description, *files);
           return DetectionResult::CreateMatched(files->GetUsedSize());
         }
       }
@@ -390,14 +381,14 @@ namespace
       {
         if (const TRDos::File::Ptr fileToOpen = files->FindFile(pathComp))
         {
-          const Plugin::Ptr subPlugin = shared_from_this();
           const IO::DataContainer::Ptr subData = fileToOpen->GetData();
-          return CreateNestedLocation(location, subData, subPlugin, pathComp); 
+          return CreateNestedLocation(location, subData, Description, pathComp); 
         }
       }
       return DataLocation::Ptr();
     }
   private:
+    const Plugin::Ptr Description;
     const DataFormat::Ptr Format;
   };
 }

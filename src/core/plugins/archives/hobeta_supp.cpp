@@ -10,10 +10,8 @@ Author:
 */
 
 //local includes
-#include "extraction_result.h"
+#include "archive_supp_common.h"
 #include "core/plugins/registrator.h"
-#include "core/src/callback.h"
-#include "core/src/core.h"
 //common includes
 #include <byteorder.h>
 #include <tools.h>
@@ -25,19 +23,12 @@ Author:
 #include <numeric>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/enable_shared_from_this.hpp>
-#include <boost/make_shared.hpp>
 //text includes
 #include <core/text/plugins.h>
-
-#define FILE_TAG 1CF1A62A
 
 namespace
 {
   using namespace ZXTune;
-
-  const Char HOBETA_PLUGIN_ID[] = {'H', 'O', 'B', 'E', 'T', 'A', '\0'};
-  const String HOBETA_PLUGIN_VERSION(FromStdString("$Rev$"));
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -132,58 +123,24 @@ namespace
   private:
     const DataFormat::Ptr Format;
   };
+}
 
-  //////////////////////////////////////////////////////////////////////////
-  class HobetaPlugin : public ArchivePlugin
-                     , public boost::enable_shared_from_this<HobetaPlugin>
-  {
-  public:
-    HobetaPlugin()
-      : Decoder(new HobetaDecoder())
-    {
-    }
+namespace
+{
+  using namespace ZXTune;
 
-    virtual String Id() const
-    {
-      return HOBETA_PLUGIN_ID;
-    }
-
-    virtual String Description() const
-    {
-      return Text::HOBETA_PLUGIN_INFO;
-    }
-
-    virtual String Version() const
-    {
-      return HOBETA_PLUGIN_VERSION;
-    }
-    
-    virtual uint_t Capabilities() const
-    {
-      return CAP_STOR_CONTAINER | CAP_STOR_PLAIN;
-    }
-
-    virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
-    {
-      return DetectModulesInArchive(shared_from_this(), *Decoder, inputData, callback);
-    }
-
-    virtual DataLocation::Ptr Open(const Parameters::Accessor& /*parameters*/,
-                                   DataLocation::Ptr inputData,
-                                   const DataPath& pathToOpen) const
-    {
-      return OpenDataFromArchive(shared_from_this(), *Decoder, inputData, pathToOpen);
-    }
-  private:
-    const Formats::Packed::Decoder::Ptr Decoder;
-  };
+  const Char ID[] = {'H', 'O', 'B', 'E', 'T', 'A', '\0'};
+  const String VERSION(FromStdString("$Rev$"));
+  const Char* const INFO = Text::HOBETA_PLUGIN_INFO;
+  const uint_t CAPS = CAP_STOR_CONTAINER | CAP_STOR_PLAIN;
 }
 
 namespace ZXTune
 {
   void RegisterHobetaConvertor(PluginsRegistrator& registrator)
   {
-    const ArchivePlugin::Ptr plugin(new HobetaPlugin());
+    Formats::Packed::Decoder::Ptr decoder(new HobetaDecoder());
+    const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ID, INFO, VERSION, CAPS, decoder);
     registrator.RegisterPlugin(plugin);
   }
 }
