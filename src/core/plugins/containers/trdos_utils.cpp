@@ -321,12 +321,18 @@ namespace
 
     virtual std::size_t GetSize() const
     {
-      return std::accumulate(Subfiles.begin(), Subfiles.end(), std::size_t(0), 
-        boost::bind(std::plus<std::size_t>(), _1, boost::bind(&File::GetSize, _2)));
+      return 1 == Subfiles.size()
+        ? Subfiles.front()->GetSize()
+        : std::accumulate(Subfiles.begin(), Subfiles.end(), std::size_t(0), 
+          boost::bind(std::plus<std::size_t>(), _1, boost::bind(&File::GetSize, _2)));
     }
 
     virtual IO::DataContainer::Ptr GetData() const
     {
+      if (1 == Subfiles.size())
+      {
+        return Subfiles.front()->GetData();
+      }
       std::auto_ptr<Dump> res(new Dump(GetSize()));
       uint8_t* dst = &res->front();
       for (FilesList::const_iterator it = Subfiles.begin(), lim = Subfiles.end(); it != lim; ++it)

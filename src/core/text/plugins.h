@@ -32,8 +32,6 @@ extern const Char PCD61_PLUGIN_INFO[];
 extern const Char PCD62_PLUGIN_INFO[];
 extern const Char PDT_EDITOR[];
 extern const Char PDT_PLUGIN_INFO[];
-extern const Char PLUGIN_HRIP_PROGRESS[];
-extern const Char PLUGIN_HRIP_PROGRESS_NOPATH[];
 extern const Char PLUGIN_RAW_PROGRESS[];
 extern const Char PLUGIN_RAW_PROGRESS_NOPATH[];
 extern const Char PSG_PLUGIN_INFO[];

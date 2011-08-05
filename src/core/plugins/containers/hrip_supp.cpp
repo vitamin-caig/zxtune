@@ -10,7 +10,7 @@ Author:
 */
 
 //local includes
-#include "trdos_utils.h"
+#include "trdos_process.h"
 #include <core/src/callback.h>
 #include <core/src/core.h>
 #include <core/plugins/registrator.h>
@@ -28,6 +28,8 @@ Author:
 #include <core/plugins_parameters.h>
 #include <formats/packed_decoders.h>
 #include <io/container.h>
+//std includes
+#include <numeric>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/enable_shared_from_this.hpp>
@@ -112,36 +114,141 @@ namespace
     return result & 0xffff;
   }
 
-  enum HripResult
+  class DataSource
   {
-    OK,
-    INVALID,
-    CORRUPTED
-  };
+  public:
+    typedef boost::shared_ptr<const DataSource> Ptr;
 
-  enum CallbackState
-  {
-    CONTINUE,
-    EXIT,
-    ERROR,
+    explicit DataSource(IO::DataContainer::Ptr data)
+      : Decoder(Formats::Packed::CreateHrust2RawDecoder())
+      , Data(data)
+    {
+    }
+
+    Dump DecodeBlock(const HripBlockHeader* block) const
+    {
+      const uint8_t* const packedData = safe_ptr_cast<const uint8_t*>(&block->PackedCRC) + block->AdditionalSize;
+      const std::size_t packedSize = fromLE(block->PackedSize);
+      const std::size_t unpackedSize = fromLE(block->DataSize);
+      Dump res;
+      if (0 != (block->Flag & HripBlockHeader::NO_COMPRESSION))
+      {
+        //just copy
+        res.assign(packedData, packedData + packedSize);
+      }
+      else if (Decoder->Check(packedData, packedSize))
+      {
+        std::size_t usedSize = 0;
+        std::auto_ptr<Dump> result = Decoder->Decode(packedData, packedSize, usedSize);
+        if (result.get())
+        {
+          result->swap(res);
+        }
+      }
+      if (unpackedSize != res.size())
+      {
+        res.resize(unpackedSize);
+      }
+      return res;
+    }
+  private:
+    const Formats::Packed::Decoder::Ptr Decoder;
+    const IO::DataContainer::Ptr Data;
   };
 
   typedef std::vector<const HripBlockHeader*> HripBlockHeadersList;
-  typedef boost::function<CallbackState(uint_t, const HripBlockHeadersList&)> HripCallback;
+
+  class HripFile : public TRDos::File
+  {
+  public:
+    HripFile(DataSource::Ptr data, std::size_t offset, const HripBlockHeadersList& blocks)
+      : Data(data)
+      , Offset(offset)
+      , Blocks(blocks)
+      , FirstBlock(*Blocks.front())
+    {
+    }
+
+    virtual String GetName() const
+    {
+      if (FirstBlock.AdditionalSize > 15)
+      {
+        return TRDos::GetEntryName(FirstBlock.Name, FirstBlock.Type);
+      }
+      else
+      {
+        assert(!"Hrip file without name");
+        static const Char DEFAULT_HRIP_FILENAME[] = {'N','O','N','A','M','E',0};
+        return DEFAULT_HRIP_FILENAME;
+      }
+    }
+
+    virtual std::size_t GetOffset() const
+    {
+      return Offset;
+    }
+
+    virtual std::size_t GetSize() const
+    {
+      return std::accumulate(Blocks.begin(), Blocks.end(), std::size_t(0), 
+        boost::bind(std::plus<std::size_t>(), _1,
+          boost::bind(&fromLE<uint16_t>, boost::bind(&HripBlockHeader::DataSize, _2))));
+    }
+
+    virtual IO::DataContainer::Ptr GetData() const
+    {
+      return Result;
+    }
+
+    bool Decode(bool ignoreCorrupted)
+    {
+      std::auto_ptr<Dump> result(new Dump(GetSize()));
+      Dump::iterator dst = result->begin();
+      for (HripBlockHeadersList::const_iterator it = Blocks.begin(), lim = Blocks.end(); it != lim; ++it)
+      {
+        const HripBlockHeader* const block = *it;
+        const Dump& data = Data->DecodeBlock(block);
+        if (!ignoreCorrupted)
+        {
+          const uint8_t* const packedData = safe_ptr_cast<const uint8_t*>(&block->PackedCRC) + block->AdditionalSize;
+          //check if block CRC is available and check it if required
+          if (block->AdditionalSize >= 2 &&
+              fromLE(block->PackedCRC) != CalcCRC(packedData, fromLE(block->PackedSize)))
+          {
+            return false;
+          }
+          if (block->AdditionalSize >= 4 &&
+              fromLE(block->DataCRC) != CalcCRC(&data[0], data.size()))
+          {
+            return false;
+          }
+        }
+        dst = std::copy(data.begin(), data.end(), dst);
+      }
+      Result = IO::CreateDataContainer(result);
+      return true;
+    }
+  private:
+    const DataSource::Ptr Data;
+    const std::size_t Offset;
+    const HripBlockHeadersList Blocks;
+    const HripBlockHeader& FirstBlock;
+    mutable IO::DataContainer::Ptr Result;
+  };
 
   //check archive header and calculate files count and total size
-  HripResult CheckHrip(const void* data, std::size_t dataSize, uint_t& files, uint_t& archiveSize)
+  bool CheckHrip(const void* data, std::size_t dataSize, uint_t& files, std::size_t& archiveSize)
   {
     if (dataSize < sizeof(HripHeader))
     {
-      return INVALID;
+      return false;
     }
     const HripHeader* const hripHeader = static_cast<const HripHeader*>(data);
     if (0 != std::memcmp(hripHeader->ID, HRIP_ID, sizeof(HRIP_ID)) ||
        !(0 == hripHeader->Catalogue || 1 == hripHeader->Catalogue) ||
        !hripHeader->ArchiveSectors || !hripHeader->FilesCount)
     {
-      return INVALID;
+      return false;
     }
     files = hripHeader->FilesCount;
     if (hripHeader->Catalogue)
@@ -152,19 +259,32 @@ namespace
     {
       archiveSize = 256 * (fromLE(hripHeader->ArchiveSectors) - 1) + hripHeader->UsedInLastSector;
     }
-    return OK;
+    return true;
   }
 
-  //process all the archive performing callback call on each file
-  HripResult ParseHrip(const void* data, std::size_t size, const HripCallback& callback, bool ignoreCorrupted)
+  inline bool CheckIgnoreCorrupted(const Parameters::Accessor& params)
   {
-    uint_t files = 0, archiveSize = 0;
-    const HripResult checkRes = CheckHrip(data, size, files, archiveSize);
-    if (checkRes != OK)
+    Parameters::IntType val;
+    return params.FindIntValue(Parameters::ZXTune::Core::Plugins::Hrip::IGNORE_CORRUPTED, val) && val != 0;
+  }
+
+
+  TRDos::Catalogue::Ptr ParseHripFile(IO::DataContainer::Ptr data, const Parameters::Accessor& params)
+  {
+    uint_t files = 0;
+    std::size_t archiveSize = 0;
+    const uint8_t* const ptr = static_cast<const uint8_t*>(data->Data());
+    const std::size_t size = data->Size();
+    if (!CheckHrip(ptr, size, files, archiveSize))
     {
-      return checkRes;
+      return TRDos::Catalogue::Ptr();
     }
-    const uint8_t* const ptr = static_cast<const uint8_t*>(data);
+    const bool ignoreCorrupted = CheckIgnoreCorrupted(params);
+
+    const TRDos::CatalogueBuilder::Ptr builder = TRDos::CatalogueBuilder::CreateGeneric();
+    const DataSource::Ptr source = boost::make_shared<DataSource>(data);
+
+    std::size_t flatOffset = 0;
     std::size_t offset = sizeof(HripHeader);
     for (uint_t fileNum = 0; fileNum < files; ++fileNum)
     {
@@ -177,215 +297,52 @@ namespace
           blockHdr->AdditionalSize;
         if (0 != std::memcmp(blockHdr->ID, HRIP_BLOCK_ID, sizeof(HRIP_BLOCK_ID)))
         {
-          return CORRUPTED;
+          break;
         }
         //archive may be trunkated- just stop processing in this case
         if (packedData + fromLE(blockHdr->PackedSize) > ptr + std::min<std::size_t>(size, archiveSize))
         {
           break;
         }
-        //check if block CRC is available and check it if required
-        if (blockHdr->AdditionalSize > 2 &&
-            !ignoreCorrupted &&
-            fromLE(blockHdr->PackedCRC) != CalcCRC(packedData, fromLE(blockHdr->PackedSize)))
-        {
-          return CORRUPTED;
-        }
         blocks.push_back(blockHdr);
         offset += fromLE(blockHdr->PackedSize) + (packedData - ptr - offset);
-        if (0 != (blockHdr->Flag & blockHdr->LAST_BLOCK))
+        if (0 != (blockHdr->Flag & HripBlockHeader::LAST_BLOCK))
         {
           break;
         }
       }
-      //perform callback call
-      switch (callback(fileNum, blocks))
+      if (blocks.empty() || 0 == (blocks.back()->Flag & HripBlockHeader::LAST_BLOCK))
       {
-      case ERROR:
-        return CORRUPTED;
-      case EXIT:
-        return OK;
-      default:
-        break;
+        continue;
+      }
+      std::auto_ptr<HripFile> file(new HripFile(source, flatOffset, blocks));
+      flatOffset += file->GetSize();
+      if (file->Decode(ignoreCorrupted))
+      {
+        builder->AddFile(TRDos::File::Ptr(file.release()));
       }
     }
-    return OK;
+    builder->SetUsedSize(archiveSize);
+    return builder->GetResult();
   }
 
-  //append to dst
-  bool DecodeHripBlock(const Formats::Packed::Decoder& decoder, const HripBlockHeader* header, Dump& dst)
-  {
-    const void* const packedData = safe_ptr_cast<const uint8_t*>(&header->PackedCRC) + header->AdditionalSize;
-    const uint_t packedSize = fromLE(header->PackedSize);
-    if (0 != (header->Flag & header->NO_COMPRESSION))
-    {
-      //just copy
-      dst.resize(fromLE(header->DataSize));
-      std::memcpy(&dst[0], packedData, packedSize);
-      return true;
-    }
-    else if (decoder.Check(packedData, packedSize))
-    {
-      std::size_t usedSize = 0;
-      std::auto_ptr<Dump> result = decoder.Decode(packedData, packedSize, usedSize);
-      if (result.get() && result->size() == fromLE(header->DataSize))
-      {
-        result->swap(dst);
-        return true;
-      }
-    }
-    Log::Debug("Core::HRiPSupp", "Failed to decode block");
-    return false;
-  }
-
-  //replace dst
-  bool DecodeHripFile(const HripBlockHeadersList& headers, bool ignoreCorrupted, Dump& dst)
-  {
-    const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateHrust2RawDecoder();
-    Dump result;
-    for (HripBlockHeadersList::const_iterator it = headers.begin(), lim = headers.end(); it != lim; ++it)
-    {
-      Dump block;
-      const bool isDecoded = DecodeHripBlock(*decoder, *it, block);
-      const bool isValid = fromLE((*it)->DataCRC) == CalcCRC(&block[0], block.size());
-      if (!(isDecoded && isValid) && !ignoreCorrupted)
-      {
-        return false;
-      }
-      const std::size_t sizeBefore = result.size();
-      result.resize(sizeBefore + block.size());
-      std::copy(block.begin(), block.end(), result.begin() + sizeBefore);
-    }
-    dst.swap(result);
-    return true;
-  }
-
-  inline bool CheckIgnoreCorrupted(const Parameters::Accessor& params)
-  {
-    Parameters::IntType val;
-    return params.FindIntValue(Parameters::ZXTune::Core::Plugins::Hrip::IGNORE_CORRUPTED, val) && val != 0;
-  }
-
-  class HripDetectionResult : public DetectionResult
-  {
-  public:
-    HripDetectionResult(std::size_t parsedSize, IO::DataContainer::Ptr rawData)
-      : ParsedSize(parsedSize)
-      , RawData(rawData)
-    {
-    }
-
-    virtual std::size_t GetMatchedDataSize() const
-    {
-      return ParsedSize;
-    }
-
-    virtual std::size_t GetLookaheadOffset() const
-    {
-      const std::size_t size = RawData->Size();
-
-      if (size < sizeof(HripHeader))
-      {
-        return size;
-      }
-      const uint8_t* const begin = static_cast<const uint8_t*>(RawData->Data());
-      const uint8_t* const end = begin + size;
-      return std::search(begin, end, HRIP_ID, ArrayEnd(HRIP_ID)) - begin;
-    }
-  private:
-    const std::size_t ParsedSize;
-    const IO::DataContainer::Ptr RawData;
-  };
-
-  //files enumeration purposes wrapper
-  class Enumerator
-  {
-  public:
-    Enumerator(DataLocation::Ptr location, Plugin::Ptr plugin, const Module::DetectCallback& callback)
-      : Location(location)
-      , HripPlugin(plugin)
-      , Callback(callback)
-      , IgnoreCorrupted(CheckIgnoreCorrupted(*Callback.GetPluginsParameters()))
-    {
-    }
-
-    //main entry
-    DetectionResult::Ptr Process()
-    {
-      const IO::DataContainer::Ptr rawData = Location->GetData();
-
-      uint_t totalFiles = 0, archiveSize = 0;
-      while (OK == CheckHrip(rawData->Data(), rawData->Size(), totalFiles, archiveSize))
-      {
-        if (ParseHrip(rawData->Data(), archiveSize,
-            boost::bind(&Enumerator::ProcessFile, this, totalFiles, _1, _2), IgnoreCorrupted) != OK)
-        {
-          Log::Debug("Core::HRiPSupp", "Failed to parse archive, possible corrupted");
-          archiveSize = 0;
-        }
-        break;
-      }
-      return boost::make_shared<HripDetectionResult>(archiveSize, rawData);
-    }
-
-  private:
-    CallbackState ProcessFile(uint_t totalFiles, uint_t fileNum, const HripBlockHeadersList& headers)
-    {
-      if (headers.empty())
-      {
-        return ERROR;
-      }
-      const HripBlockHeader& header = *headers.front();
-      if (header.AdditionalSize < 15)
-      {
-        return ERROR;
-      }
-      const String& subPath = TRDos::GetEntryName(header.Name, header.Type);
-      //decode
-      std::auto_ptr<Dump> decodedData(new Dump());
-      if (!DecodeHripFile(headers, IgnoreCorrupted, *decodedData))
-      {
-        return ERROR;
-      }
-      const IO::DataContainer::Ptr subData = IO::CreateDataContainer(decodedData);
-
-      if (Log::ProgressCallback* cb = Callback.GetProgress())
-      {
-        const uint_t progress = 100 * (fileNum + 1) / totalFiles;
-        const String path = Location->GetPath()->AsString();
-        const String text = path.empty()
-          ? Strings::Format(Text::PLUGIN_HRIP_PROGRESS_NOPATH, subPath)
-          : Strings::Format(Text::PLUGIN_HRIP_PROGRESS, subPath, path);
-        cb->OnProgress(progress, text);
-      }
-
-      const DataLocation::Ptr subLocation = CreateNestedLocation(Location, subData, HripPlugin, subPath);
-      const Module::NoProgressDetectCallbackAdapter noProgressCallback(Callback);
-      Module::Detect(subLocation, noProgressCallback);
-      return CONTINUE;
-    }
-  private:
-    const DataLocation::Ptr Location;
-    const Plugin::Ptr HripPlugin;
-    const Module::DetectCallback& Callback;
-    const bool IgnoreCorrupted;
-  };
-
-  CallbackState FindFileCallback(const String& filename, bool ignoreCorrupted, uint_t /*fileNum*/,
-    const HripBlockHeadersList& headers, Dump& dst)
-  {
-    if (!headers.empty() &&
-        filename == TRDos::GetEntryName(headers.front()->Name, headers.front()->Type))//found file
-    {
-      return DecodeHripFile(headers, ignoreCorrupted, dst) ? EXIT : ERROR;
-    }
-    return CONTINUE;
-  }
+  const std::string HRIP_FORMAT(
+    "'H'R'i" //uint8_t ID[3];//'HRi'
+    "01-ff"  //uint8_t FilesCount;
+    "?"      //uint8_t UsedInLastSector;
+    "??"     //uint16_t ArchiveSectors;
+    "%0000000x"//uint8_t Catalogue;
+  );
 
   class HRIPPlugin : public ArchivePlugin
                    , public boost::enable_shared_from_this<HRIPPlugin>
   {
   public:
+    HRIPPlugin()
+      : Format(DataFormat::Create(HRIP_FORMAT))
+    {
+    }
+
     virtual String Id() const
     {
       return HRIP_PLUGIN_ID;
@@ -408,8 +365,16 @@ namespace
 
     virtual DetectionResult::Ptr Detect(DataLocation::Ptr input, const Module::DetectCallback& callback) const
     {
-      Enumerator cb(input, shared_from_this(), callback);
-      return cb.Process();
+      const IO::DataContainer::Ptr rawData = input->GetData();
+      if (const TRDos::Catalogue::Ptr files = ParseHripFile(rawData, *callback.GetPluginsParameters()))
+      {
+        if (files->GetFilesCount())
+        {
+          TRDos::ProcessEntries(input, callback, shared_from_this(), *files);
+          return DetectionResult::CreateMatched(files->GetUsedSize());
+        }
+      }
+      return DetectionResult::CreateUnmatched(Format, rawData);
     }
 
     virtual DataLocation::Ptr Open(const Parameters::Accessor& commonParams, DataLocation::Ptr location, const DataPath& inPath) const
@@ -421,23 +386,19 @@ namespace
         return DataLocation::Ptr();
       }
       const IO::DataContainer::Ptr inData = location->GetData();
-      std::auto_ptr<Dump> dmp(new Dump()); 
-      const bool ignoreCorrupted = CheckIgnoreCorrupted(commonParams);
-      //ignore corrupted blocks while searching, but try to decode it using proper parameters
-      if (OK != ParseHrip(inData->Data(), inData->Size(),
-            boost::bind(&FindFileCallback, pathComp, ignoreCorrupted, _1, _2, boost::ref(*dmp)), true))
+      if (const TRDos::Catalogue::Ptr files = ParseHripFile(inData, commonParams))
       {
-        Log::Debug("Core::HRiPSupp", "Failed to parse archive, possible corrupted");
-        return DataLocation::Ptr();
+        if (const TRDos::File::Ptr fileToOpen = files->FindFile(pathComp))
+        {
+          const Plugin::Ptr subPlugin = shared_from_this();
+          const IO::DataContainer::Ptr subData = fileToOpen->GetData();
+          return CreateNestedLocation(location, subData, subPlugin, pathComp); 
+        }
       }
-      if (dmp->empty())
-      {
-        return DataLocation::Ptr();
-      }
-      const Plugin::Ptr subPlugin = shared_from_this();
-      const IO::DataContainer::Ptr subData = IO::CreateDataContainer(dmp);
-      return CreateNestedLocation(location, subData, subPlugin, pathComp); 
+      return DataLocation::Ptr();
     }
+  private:
+    const DataFormat::Ptr Format;
   };
 }
 
