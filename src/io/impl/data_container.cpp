@@ -29,6 +29,7 @@ namespace
     DataContainerImpl(const SharedDump& arr, std::size_t offset, std::size_t size)
       : Buffer(arr), Offset(offset), Length(size)
     {
+      assert(Length);
     }
 
     virtual std::size_t Size() const

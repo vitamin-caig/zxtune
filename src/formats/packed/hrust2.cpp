@@ -138,7 +138,7 @@ namespace Hrust2
 
     bool FastCheck() const
     {
-      if (Size < sizeof(RawHeader))
+      if (Size < sizeof(FormatHeader))
       {
         return false;
       }

@@ -100,7 +100,7 @@ public:
 
   bool IsValid() const
   {
-    return Forward || Backward;
+    return Size && (Forward || Backward);
     //do not check other due to overlap possibility
   }
 
