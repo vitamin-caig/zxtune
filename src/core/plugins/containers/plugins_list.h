@@ -22,6 +22,7 @@ namespace ZXTune
   void RegisterTRDContainer(PluginsRegistrator& registrator);
   void RegisterSCLContainer(PluginsRegistrator& registrator);
   void RegisterHRIPContainer(PluginsRegistrator& registrator);
+  void RegisterZXZipContainer(PluginsRegistrator& registrator);
 
   void RegisterContainerPlugins(PluginsRegistrator& registrator)
   {
@@ -30,6 +31,7 @@ namespace ZXTune
     RegisterTRDContainer(registrator);
     RegisterSCLContainer(registrator);
     RegisterHRIPContainer(registrator);
+    RegisterZXZipContainer(registrator);
   }
 }
 

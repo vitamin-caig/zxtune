@@ -11,14 +11,11 @@ Author:
 
 //local includes
 #include "trdos_process.h"
-#include <core/src/callback.h>
-#include <core/src/core.h>
-#include <core/plugins/registrator.h>
-#include <core/plugins/utils.h>
+#include "core/src/callback.h"
+#include "core/plugins/registrator.h"
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
-#include <logging.h>
 #include <parameters.h>
 #include <tools.h>
 //library includes

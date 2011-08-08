@@ -217,7 +217,14 @@ namespace
 
     virtual Catalogue::Ptr GetResult() const
     {
-      return Catalogue::Ptr(new CommonCatalogue(Files.begin(), Files.end(), UsedSize));
+      if (UsedSize && !Files.empty())
+      {
+        return Catalogue::Ptr(new CommonCatalogue(Files.begin(), Files.end(), UsedSize));
+      }
+      else
+      {
+        return Catalogue::Ptr();
+      }
     }
   protected:
     virtual MultiFile::Ptr CreateMultiFile(File::Ptr inFile) = 0;
@@ -292,7 +299,7 @@ namespace
 
     virtual IO::DataContainer::Ptr GetData() const
     {
-      return Data->GetSubcontainer(Offset, Size);
+      return Data;
     }
   private:
     const IO::DataContainer::Ptr Data;
