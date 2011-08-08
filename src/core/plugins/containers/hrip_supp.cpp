@@ -154,11 +154,12 @@ namespace
   class HripFile : public TRDos::File
   {
   public:
-    HripFile(DataSource::Ptr data, std::size_t offset, const HripBlockHeadersList& blocks)
+    HripFile(DataSource::Ptr data, std::size_t offset, const HripBlockHeadersList& blocks, bool ignoreCorrupted)
       : Data(data)
       , Offset(offset)
       , Blocks(blocks)
       , FirstBlock(*Blocks.front())
+      , IgnoreCorrupted(ignoreCorrupted)
     {
     }
 
@@ -190,43 +191,37 @@ namespace
 
     virtual IO::DataContainer::Ptr GetData() const
     {
-      return Result;
-    }
-
-    bool Decode(bool ignoreCorrupted)
-    {
       std::auto_ptr<Dump> result(new Dump(GetSize()));
       Dump::iterator dst = result->begin();
       for (HripBlockHeadersList::const_iterator it = Blocks.begin(), lim = Blocks.end(); it != lim; ++it)
       {
         const HripBlockHeader* const block = *it;
         const Dump& data = Data->DecodeBlock(block);
-        if (!ignoreCorrupted)
+        if (!IgnoreCorrupted)
         {
           const uint8_t* const packedData = safe_ptr_cast<const uint8_t*>(&block->PackedCRC) + block->AdditionalSize;
           //check if block CRC is available and check it if required
           if (block->AdditionalSize >= 2 &&
               fromLE(block->PackedCRC) != CalcCRC(packedData, fromLE(block->PackedSize)))
           {
-            return false;
+            return IO::DataContainer::Ptr();
           }
           if (block->AdditionalSize >= 4 &&
               fromLE(block->DataCRC) != CalcCRC(&data[0], data.size()))
           {
-            return false;
+            return IO::DataContainer::Ptr();
           }
         }
         dst = std::copy(data.begin(), data.end(), dst);
       }
-      Result = IO::CreateDataContainer(result);
-      return true;
+      return IO::CreateDataContainer(result);
     }
   private:
     const DataSource::Ptr Data;
     const std::size_t Offset;
     const HripBlockHeadersList Blocks;
     const HripBlockHeader& FirstBlock;
-    mutable IO::DataContainer::Ptr Result;
+    const bool IgnoreCorrupted;
   };
 
   //check archive header and calculate files count and total size
@@ -308,12 +303,9 @@ namespace
       {
         continue;
       }
-      std::auto_ptr<HripFile> file(new HripFile(source, flatOffset, blocks));
+      std::auto_ptr<TRDos::File> file(new HripFile(source, flatOffset, blocks, ignoreCorrupted));
       flatOffset += file->GetSize();
-      if (file->Decode(ignoreCorrupted))
-      {
-        builder->AddFile(TRDos::File::Ptr(file.release()));
-      }
+      builder->AddFile(TRDos::File::Ptr(file.release()));
     }
     builder->SetUsedSize(archiveSize);
     return builder->GetResult();
@@ -378,8 +370,10 @@ namespace
       {
         if (const TRDos::File::Ptr fileToOpen = files->FindFile(pathComp))
         {
-          const IO::DataContainer::Ptr subData = fileToOpen->GetData();
-          return CreateNestedLocation(location, subData, Description, pathComp); 
+          if (const IO::DataContainer::Ptr subData = fileToOpen->GetData())
+          {
+            return CreateNestedLocation(location, subData, Description, pathComp); 
+          }
         }
       }
       return DataLocation::Ptr();

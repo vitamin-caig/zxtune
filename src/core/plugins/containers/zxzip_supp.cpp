@@ -120,8 +120,10 @@ namespace
       {
         if (const TRDos::File::Ptr fileToOpen = files->FindFile(pathComp))
         {
-          const IO::DataContainer::Ptr subData = fileToOpen->GetData();
-          return CreateNestedLocation(location, subData, Description, pathComp); 
+          if (const IO::DataContainer::Ptr subData = fileToOpen->GetData())
+          {
+            return CreateNestedLocation(location, subData, Description, pathComp); 
+          }
         }
       }
       return DataLocation::Ptr();

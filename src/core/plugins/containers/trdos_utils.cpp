@@ -346,6 +346,10 @@ namespace
       {
         const File::Ptr file = *it;
         const IO::DataContainer::Ptr data = file->GetData();
+        if (!data)
+        {
+          return data;
+        }
         const std::size_t size = data->Size();
         assert(size == file->GetSize());
         std::memcpy(dst, data->Data(), size);

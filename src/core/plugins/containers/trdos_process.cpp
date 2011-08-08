@@ -65,11 +65,13 @@ namespace TRDos
     for (Catalogue::Iterator::Ptr it = files.GetFiles(); it->IsValid(); it->Next())
     {
       const TRDos::File::Ptr file = it->Get();
-      const IO::DataContainer::Ptr subData = file->GetData();
-      const String subPath = file->GetName();
-      const ZXTune::DataLocation::Ptr subLocation = CreateNestedLocation(location, subData, plugin, subPath);
       logger(*file);
-      ZXTune::Module::Detect(subLocation, noProgressCallback);
+      if (const IO::DataContainer::Ptr subData = file->GetData())
+      {
+        const String subPath = file->GetName();
+        const ZXTune::DataLocation::Ptr subLocation = CreateNestedLocation(location, subData, plugin, subPath);
+        ZXTune::Module::Detect(subLocation, noProgressCallback);
+      }
     }
   }
 }
