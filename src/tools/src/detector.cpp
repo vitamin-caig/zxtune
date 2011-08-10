@@ -31,23 +31,14 @@ namespace
   const char BINARY_MASK_TEXT = '%';
   const char SYMBOL_TEXT = '\'';
   const char RANGE_TEXT = '-';
+  const char QUANTOR_BEGIN = '{';
+  const char QUANTOR_END = '}';
 
   const char ANY_BIT_TEXT = 'x';
   const char ZERO_BIT_TEXT = '0';
   const char ONE_BIT_TEXT = '1';
 
   typedef RangeIterator<std::string::const_iterator> PatternIterator;
-
-  inline std::size_t ParseSkipBytes(PatternIterator& it)
-  {
-    std::size_t skip = 0;
-    while (SKIP_BYTES_TEXT != *++it)
-    {
-      assert((it && std::isdigit(*it)) || !"Invalid pattern format");
-      skip = skip * 10 + (*it - '0');
-    }
-    return skip;
-  }
 
   void Check(const PatternIterator& it)
   {
@@ -63,6 +54,30 @@ namespace
     {
       throw std::invalid_argument(msg);
     }
+  }
+
+  inline std::size_t ParseSkipBytes(PatternIterator& it)
+  {
+    std::size_t skip = 0;
+    while (SKIP_BYTES_TEXT != *++it)
+    {
+      Check(it);
+      CheckParam(0 != std::isdigit(*it), "Skip bytes pattern supports only decimal numbers");
+      skip = skip * 10 + (*it - '0');
+    }
+    return skip;
+  }
+
+  inline std::size_t ParseQuantor(PatternIterator& it)
+  {
+    std::size_t mult = 0;
+    while (QUANTOR_END != *++it)
+    {
+      Check(it);
+      CheckParam(0 != std::isdigit(*it), "Quantor supports only decimal numbers");
+      mult = mult * 10 + (*it - '0');
+    }
+    return mult;
   }
 
   struct BinaryTraits
@@ -296,6 +311,16 @@ namespace
           CheckParam(!result.empty(), "Invalid range format");
           typename Traits::PatternEntry& last = result.back();
           last = Traits::ParseRange(last, it);
+        }
+        break;
+      case QUANTOR_BEGIN:
+        {
+          CheckParam(!result.empty(), "Invalid quantor format");
+          if (const std::size_t mult = ParseQuantor(it))
+          {
+            const typename Traits::PatternEntry last = result.back();
+            std::fill_n(std::back_inserter(result), mult - 1, last);
+          }
         }
         break;
       case ' ':

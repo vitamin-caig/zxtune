@@ -254,6 +254,8 @@ int main()
     TestDetector("unmatched with skip at begin", "?0302", false, 32);
     TestDetector("partially matched at end", "1d1e1f20", false, 32);
     TestDetector("partially matched at end with skipping", "?1d1e1f202122", false, 32);
+    TestDetector("quantor matched", "0x{10}", true, 0);
+    TestDetector("quantor unmatched", "1x{15}", false, 16);
   }
   std::cout << "---- Test for Scale -----" << std::endl;
   {
