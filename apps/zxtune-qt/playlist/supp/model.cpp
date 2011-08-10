@@ -229,7 +229,7 @@ namespace
   public:
     void AddItem(Playlist::Item::Data::Ptr item)
     {
-      const IndexedItem idxItem(item, static_cast<uint_t>(Items.size()));
+      const IndexedItem idxItem(item, static_cast<unsigned>(Items.size()));
       Items.push_back(idxItem);
     }
 
@@ -264,6 +264,19 @@ namespace
       std::transform(choosenIterators.begin(), choosenIterators.end(), choosenItems.begin(),
         boost::bind(&ItemsContainer::value_type::first, boost::bind(&ItemsContainer::const_iterator::operator ->, _1)));
       return Playlist::Item::Data::Iterator::Ptr(new PlayitemIteratorImpl(choosenItems));
+    }
+
+    QSet<unsigned> GetItemIndices(const Playlist::Item::Filter& filter) const
+    {
+      QSet<unsigned> result;
+      for (ItemsContainer::const_iterator it = Items.begin(), lim = Items.end(); it != lim; ++it)
+      {
+        if (filter.OnItem(*it->first))
+        {
+          result.insert(it->second);
+        }
+      }
+      return result;
     }
 
     void RemoveItems(const QSet<unsigned>& indexes)
@@ -458,6 +471,12 @@ namespace
     {
       QMutexLocker locker(&Synchronizer);
       return Container->GetItems(items);
+    }
+
+    virtual QSet<unsigned> GetItemIndices(const Playlist::Item::Filter& filter) const
+    {
+      QMutexLocker locker(&Synchronizer);
+      return Container->GetItemIndices(filter);
     }
 
     virtual void AddItems(Playlist::Item::Data::Iterator::Ptr iter)

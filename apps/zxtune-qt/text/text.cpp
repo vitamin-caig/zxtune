@@ -5,6 +5,9 @@
 
 namespace Text
 {
+extern const Char CONTEXTMENU_STATUS[] = {
+  '%','1','%',' ','i','t','e','m','s',0
+};
 extern const Char FEEDBACK_TEXT[] = {
   '<','a',' ','h','r','e','f','=','\"','m','a','i','l','t','o',':','v','i','t','a','m','i','n','.','c','a','i',
   'g','@','g','m','a','i','l','.','c','o','m','\?','s','u','b','j','e','c','t','=','F','e','e','d','b','a','c',

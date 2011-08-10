@@ -50,6 +50,7 @@ namespace Playlist
     virtual Item::Data::Ptr GetItem(unsigned index) const = 0;
     virtual Item::Data::Iterator::Ptr GetItems() const = 0;
     virtual Item::Data::Iterator::Ptr GetItems(const QSet<unsigned>& items) const = 0;
+    virtual QSet<unsigned> GetItemIndices(const Item::Filter& filter) const = 0;
     //modifiers
     virtual void AddItems(Item::Data::Iterator::Ptr iter) = 0;
     virtual void Clear() = 0;

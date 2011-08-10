@@ -105,7 +105,7 @@ namespace
       , Layout(new QVBoxLayout(this))
       , ScannerView(Playlist::UI::ScannerView::Create(*this, Controller->GetScanner()))
       , View(Playlist::UI::TableView::Create(*this, State, Controller->GetModel()))
-      , PlaylistMenu(Playlist::UI::ContextMenu::Create(*View, playlist))
+      , ItemsMenu(Playlist::UI::ItemsContextMenu::Create(*this, playlist))
     {
       //setup ui
       setAcceptDrops(true);
@@ -227,7 +227,10 @@ namespace
       const int curKey = event->key();
       if (curKey == Qt::Key_Delete || curKey == Qt::Key_Backspace)
       {
-        PlaylistMenu->RemoveSelected();
+        QSet<unsigned> items;
+        View->GetSelectedItems(items);
+        const Playlist::Model::Ptr model = Controller->GetModel();
+        model->RemoveItems(items);
       }
       else
       {
@@ -237,7 +240,12 @@ namespace
 
     virtual void contextMenuEvent(QContextMenuEvent* event)
     {
-      PlaylistMenu->exec(event->globalPos());
+      QSet<unsigned> items;
+      View->GetSelectedItems(items);
+      if (!items.empty())
+      {
+        ItemsMenu->Exec(items, event->globalPos());
+      }
     }
 
     virtual void dragEnterEvent(QDragEnterEvent* event)
@@ -278,7 +286,7 @@ namespace
     QVBoxLayout* const Layout;
     Playlist::UI::ScannerView* const ScannerView;
     Playlist::UI::TableView* const View;
-    Playlist::UI::ContextMenu* const PlaylistMenu;
+    Playlist::UI::ItemsContextMenu* const ItemsMenu;
   };
 }
 

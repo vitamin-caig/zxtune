@@ -96,6 +96,8 @@ namespace
     {
       const QItemSelectionModel* const selection = selectionModel();
       const QModelIndexList& items = selection->selectedRows();
+      //QSet does not support swap functionality
+      indices.clear();
       std::for_each(items.begin(), items.end(),
         boost::bind(&QSet<unsigned>::insert, &indices,
           boost::bind(&QModelIndex::row, _1)));

@@ -46,3 +46,6 @@ __cpp> "#endif //__TEXT_TEXT_H_DEFINED__\n"
 > "<b>Program:</b> [Program]<br/>"
 > "[Comment]"
 > "</html>"
+
+< CONTEXTMENU_STATUS
+> "%1% items"

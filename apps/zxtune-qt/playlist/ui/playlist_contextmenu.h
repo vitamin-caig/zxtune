@@ -24,15 +24,15 @@ namespace Playlist
 {
   namespace UI
   {
-    class TableView;
-
-    class ContextMenu : public QMenu
+    class ItemsContextMenu : public QMenu
     {
       Q_OBJECT
     protected:
-      explicit ContextMenu(QWidget& parent);
+      explicit ItemsContextMenu(QWidget& parent);
     public:
-      static ContextMenu* Create(TableView& view, Playlist::Controller::Ptr playlist);
+      static ItemsContextMenu* Create(QWidget& parent, Playlist::Controller::Ptr playlist);
+
+      virtual void Exec(const QSet<unsigned>& items, const QPoint& pos) = 0;
     public slots:
       virtual void PlaySelected() const = 0;
       virtual void RemoveSelected() const = 0;

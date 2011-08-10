@@ -46,6 +46,14 @@ namespace Playlist
       virtual String GetDurationString() const = 0;
       virtual String GetTooltip() const = 0;
     };
+
+    class Filter
+    {
+    public:
+      virtual ~Filter() {}
+
+      virtual bool OnItem(const Data& data) const = 0;
+    };
   }
 }
 
