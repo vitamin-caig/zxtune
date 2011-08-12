@@ -256,6 +256,8 @@ int main()
     TestDetector("partially matched at end with skipping", "?1d1e1f202122", false, 32);
     TestDetector("quantor matched", "0x{10}", true, 0);
     TestDetector("quantor unmatched", "1x{15}", false, 16);
+    TestDetector("quanted group matched", "(%xxxxxxx0%xxxxxxx1){3}", true, 0);
+    TestDetector("quanted group unmatched", "(%xxxxxxx1%xxxxxxx0){5}", false, 1);
   }
   std::cout << "---- Test for Scale -----" << std::endl;
   {

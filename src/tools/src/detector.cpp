@@ -20,6 +20,7 @@ Author:
 #include <bitset>
 #include <cassert>
 #include <cctype>
+#include <stack>
 #include <stdexcept>
 #include <vector>
 
@@ -33,6 +34,8 @@ namespace
   const char RANGE_TEXT = '-';
   const char QUANTOR_BEGIN = '{';
   const char QUANTOR_END = '}';
+  const char GROUP_BEGIN = '(';
+  const char GROUP_END = ')';
 
   const char ANY_BIT_TEXT = 'x';
   const char ZERO_BIT_TEXT = '0';
@@ -280,6 +283,8 @@ namespace
   template<class Traits>
   void CompilePattern(const std::string& textPattern, typename Traits::Pattern& compiled)
   {
+    std::stack<std::size_t> groupBegins;
+    std::stack<std::pair<std::size_t, std::size_t> > groups;
     typename Traits::Pattern result;
     for (PatternIterator it(textPattern.begin(), textPattern.end()); it; ++it)
     {
@@ -318,11 +323,33 @@ namespace
           CheckParam(!result.empty(), "Invalid quantor format");
           if (const std::size_t mult = ParseQuantor(it))
           {
-            const typename Traits::PatternEntry last = result.back();
-            std::fill_n(std::back_inserter(result), mult - 1, last);
+            typename Traits::Pattern dup;
+            if (!groups.empty() && groups.top().second == result.size())
+            {
+              dup.assign(result.begin() + groups.top().first, result.end());
+              groups.pop();
+            }
+            else
+            {
+              dup.push_back(result.back());
+            }
+            for (std::size_t idx = 0; idx < mult - 1; ++idx)
+            {
+              std::copy(dup.begin(), dup.end(), std::back_inserter(result));
+            }
           }
         }
         break;
+      case GROUP_BEGIN:
+        groupBegins.push(result.size());
+        break;
+      case GROUP_END:
+        {
+          CheckParam(!groupBegins.empty(), "Group end without beginning");
+          const std::pair<std::size_t, std::size_t> newGroup = std::make_pair(groupBegins.top(), result.size());
+          groupBegins.pop();
+          groups.push(newGroup);
+        }
       case ' ':
       case '\n':
       case '\r':
