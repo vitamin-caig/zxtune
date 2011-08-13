@@ -373,12 +373,37 @@ namespace ST1
     "01-40"
   );
 
+  //addon for ZXAYST11 header
+  const std::size_t MAX_SEARCH_WINDOW = 48 + sizeof(ST1::Header) + (SoundTracker::MAX_PATTERNS_COUNT - 1) * sizeof(ST1::Pattern);
+
+  class OptimizedFormat : public DataFormat
+  {
+  public:
+    OptimizedFormat()
+      : Delegate(DataFormat::Create(ST11_FORMAT))
+    {
+    }
+    
+    virtual bool Match(const void* data, std::size_t size) const
+    {
+      return Delegate->Match(data, size);
+    }
+    
+    virtual std::size_t Search(const void* data, std::size_t size) const
+    {
+      return size > MAX_SEARCH_WINDOW
+        ? size
+        : Delegate->Search(data, size);
+    }
+  private:
+    const DataFormat::Ptr Delegate;
+  };
   //////////////////////////////////////////////////////////////////////////
   class Factory : public ModulesFactory
   {
   public:
     Factory()
-      : Format(DataFormat::Create(ST11_FORMAT))
+      : Format(boost::make_shared<OptimizedFormat>())
     {
     }
 
