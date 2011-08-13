@@ -858,6 +858,10 @@ namespace ZXTune
         LinesArray lines;
         boost::algorithm::split(lines, text, boost::algorithm::is_cntrl(),
           boost::algorithm::token_compress_on);
+        if (std::count_if(lines.begin(), lines.end(), &FindSection) < 4)
+        {
+          return MakeFormattedError(THIS_LINE, ERROR_INVALID_FORMAT, Text::TXT_ERROR_INVALID_STRING, text);
+        }
 
         Description descr;
 
@@ -905,10 +909,15 @@ namespace ZXTune
           }
           else
           {
-              return MakeFormattedError(THIS_LINE, ERROR_INVALID_FORMAT, Text::TXT_ERROR_INVALID_STRING, string);
+            return MakeFormattedError(THIS_LINE, ERROR_INVALID_FORMAT, Text::TXT_ERROR_INVALID_STRING, string);
           }
           it = next;
         }
+        if (descr.Order.empty() || 0 == descr.Tempo || 0 == descr.Version)
+        {
+          return MakeFormattedError(THIS_LINE, ERROR_INVALID_FORMAT, Text::TXT_ERROR_INVALID_STRING, text);
+        }
+
         data.LoopPosition = descr.Loop;
         data.InitialTempo = descr.Tempo;
 
