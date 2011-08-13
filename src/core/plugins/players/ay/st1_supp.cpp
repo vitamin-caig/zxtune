@@ -72,7 +72,27 @@ namespace ST1
 
         bool IsEmpty() const
         {
-          return 0 == (Note & 128) && 0 == (Note & 0x70) && 0 == EffectSample;
+          return 0 == (Note & 128) && 0 == (Note & 0x78) && 0 == EffectSample;
+        }
+
+        uint_t GetEffect() const
+        {
+          return EffectSample & 15;
+        }
+
+        uint_t GetEffectParam() const
+        {
+          return EffectOrnament;
+        }
+
+        uint_t GetSample() const
+        {
+          return EffectSample >> 4;
+        }
+
+        uint_t GetOrnament() const
+        {
+          return EffectOrnament & 15;
         }
       } PACK_POST;
 
@@ -135,11 +155,19 @@ namespace ST1
       std::for_each(header.Ornaments, ArrayEnd(header.Ornaments), boost::bind(&ModuleData::AddOrnament, this, _1));
     }
 
-    std::size_t ParsePositionsAndPatterns(const Header& header)
+    std::size_t ParsePositionsAndPatterns(const Header& header, std::size_t size)
     {
       const uint_t patternsCount = ParsePositions(header);
-      ParsePatterns(header, patternsCount);
-      return sizeof(Header) + (patternsCount - 1) * sizeof(Pattern);
+      const uint_t realPatternsCount = 1 + (size - sizeof(header)) / sizeof(Pattern);
+      const uint_t patternsToParse = std::min(patternsCount, realPatternsCount);
+      ParsePatterns(header, patternsToParse);
+      for (uint_t emptyPatterns = patternsToParse; emptyPatterns != patternsCount; ++emptyPatterns)
+      {
+        SoundTracker::Track::Pattern empty;
+        empty.AddLines(header.PatternsSize);
+        Patterns.push_back(empty);
+      }
+      return sizeof(Header) + (patternsToParse - 1) * sizeof(Pattern);
     }
   private:
     void AddSample(const Sample& sample)
@@ -204,6 +232,10 @@ namespace ST1
         SoundTracker::Track::Line& dstLine = result.AddLine();
         ConvertLine(srcLine, dstLine);
       }
+      if (linesToSkip)
+      {
+        result.AddLines(linesToSkip);
+      }
       Patterns.push_back(result);
     }
 
@@ -226,7 +258,7 @@ namespace ST1
         dstChan.SetEnabled(false);
         return;
       }
-      else if (srcChan.Note)
+      else if (0 != (srcChan.Note & 0x78))
       {
         dstChan.SetNote(ConvertNote(srcChan.Note));
         dstChan.SetEnabled(true);
@@ -235,17 +267,17 @@ namespace ST1
       {
         dstChan.SetSample(sample);
       }
-      switch (const uint_t effect = (srcChan.EffectSample & 15))
+      switch (const uint_t effect = srcChan.GetEffect())
       {
       case 15:
-        dstChan.SetOrnament(srcChan.EffectOrnament & 15);
+        dstChan.SetOrnament(srcChan.GetOrnament());
         dstChan.Commands.push_back(SoundTracker::Track::Command(SoundTracker::NOENVELOPE));
         break;
       default:
-        if (effect && srcChan.EffectOrnament)
+        if (effect && srcChan.GetEffectParam())
         {
           dstChan.SetOrnament(0);
-          dstChan.Commands.push_back(SoundTracker::Track::Command(SoundTracker::ENVELOPE, effect, srcChan.EffectOrnament));
+          dstChan.Commands.push_back(SoundTracker::Track::Command(SoundTracker::ENVELOPE, effect, srcChan.GetEffectParam()));
         }
         break;
       }
@@ -253,14 +285,30 @@ namespace ST1
 
     uint_t ConvertNote(uint8_t note)
     {
-      //                                 A   B  C  D  E  F  G
-      static const uint_t halftones[] = {9, 11, 0, 2, 4, 5, 7};
+      static const uint_t HALFTONES[] = 
+      {
+        -1, //invalid
+        -1, //invalid#
+        9,  //A
+        10, //A#
+        11, //B
+        -1, //B#,invalid
+        0,  //C
+        1,  //C#
+        2,  //D
+        3,  //D#
+        4,  //E
+        -1, //E#,invalid
+        5,  //F
+        6,  //F#
+        7,  //G
+        8,  //G#
+      };
+
       const uint_t NOTES_PER_OCTAVE = 12;
       const uint_t octave = note & 7;
-      const bool flat = 0 != (note & 8);
-      const uint_t name = (note & 0x70) >> 4;
-      assert(name);
-      return halftones[name - 1] + flat + NOTES_PER_OCTAVE * octave;
+      const uint_t halftone = (note & 0x78) >> 3;
+      return HALFTONES[halftone] + NOTES_PER_OCTAVE * octave;
     }
   };
 
@@ -273,17 +321,11 @@ namespace ST1
     const Header& header = *static_cast<const Header*>(data);
     std::vector<uint_t> positions(header.Lenght + 1);
     std::transform(header.Positions, header.Positions + positions.size(), positions.begin(), boost::mem_fn(&PosEntry::Pattern));
-    if (0 == *std::min_element(positions.begin(), positions.end()))
-    {
-      return false;
-    }
-    const std::size_t patternsCount = *std::max_element(positions.begin(), positions.end());
-    if (size < sizeof(Header) + sizeof(Pattern) * (patternsCount - 1))
-    {
-      return false;
-    }
+    const uint_t patternsCount = *std::max_element(positions.begin(), positions.end());
+    const uint_t availablePatterns = 1 + (size - sizeof(header)) / sizeof(Pattern);
+    const uint_t patternsToCheck = std::min(patternsCount, availablePatterns);
     const uint_t patSize = header.PatternsSize;
-    for (std::size_t idx = 0; idx < patternsCount; ++idx)
+    for (std::size_t idx = 0; idx < patternsToCheck; ++idx)
     {
       const Pattern& pat = header.Patterns[idx];
       const Pattern::Line* const endOfPattern = ArrayEnd(pat.Lines);
@@ -365,7 +407,7 @@ namespace ST1
         parsedData->ParseInformation(header, *properties);
         parsedData->ParseSamples(header);
         parsedData->ParseOrnaments(header);
-        usedSize = parsedData->ParsePositionsAndPatterns(header);
+        usedSize = parsedData->ParsePositionsAndPatterns(header, allData->Size());
         //meta properties
         {
           const std::size_t fixedOffset = sizeof(ST1::Header) - sizeof(ST1::Pattern);
