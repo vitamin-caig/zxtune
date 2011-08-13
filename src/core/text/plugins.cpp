@@ -133,13 +133,13 @@ extern const Char RAW_PLUGIN_PREFIX[] = {
 extern const Char SCL_PLUGIN_INFO[] = {
   'S','C','L',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
 };
-extern const Char ST11_PLUGIN_INFO[] = {
-  'S','o','u','n','d','T','r','a','c','k','e','r',' ','u','n','c','o','m','p','i','l','e','d',' ',' ','m','o',
-  'd','u','l','e','s',' ','s','u','p','p','o','r','t',0
+extern const Char ST1_PLUGIN_INFO[] = {
+  'S','o','u','n','d','T','r','a','c','k','e','r',' ','v','1','.','x',' ','u','n','c','o','m','p','i','l','e',
+  'd',' ',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
 };
 extern const Char STC_PLUGIN_INFO[] = {
-  'S','o','u','n','d','T','r','a','c','k','e','r',' ','c','o','m','p','i','l','e','d',' ',' ','m','o','d','u',
-  'l','e','s',' ','s','u','p','p','o','r','t',0
+  'S','o','u','n','d','T','r','a','c','k','e','r',' ','v','1','.','x',' ','c','o','m','p','i','l','e','d',' ',
+  ' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
 };
 extern const Char STP_EDITOR[] = {
   'S','o','u','n','d','T','r','a','c','k','e','r','P','r','o',0
@@ -149,7 +149,7 @@ extern const Char STP_PLUGIN_INFO[] = {
   'p','o','r','t',0
 };
 extern const Char ST_EDITOR[] = {
-  'S','o','u','n','d','T','r','a','c','k','e','r',0
+  'S','o','u','n','d','T','r','a','c','k','e','r',' ','v','1','.','x',0
 };
 extern const Char TRD_PLUGIN_INFO[] = {
   'T','R','D',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0

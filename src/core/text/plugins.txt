@@ -165,8 +165,8 @@ __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 < SCL_PLUGIN_INFO
 > "SCL" CONTAINER_DESCRIPTION
 
-#ST11
-< ST11_PLUGIN_INFO
+#ST1x
+< ST1_PLUGIN_INFO
 > ST_EDITOR " uncompiled " PLAYER_DESCRIPTION
 
 #STC
@@ -174,7 +174,7 @@ __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 > ST_EDITOR " compiled " PLAYER_DESCRIPTION
 
 < ST_EDITOR
-> "SoundTracker"
+> "SoundTracker v1.x"
 
 #STP
 < STP_PLUGIN_INFO

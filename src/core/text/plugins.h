@@ -43,7 +43,7 @@ extern const Char RAW_ERROR_INVALID_STEP[];
 extern const Char RAW_PLUGIN_INFO[];
 extern const Char RAW_PLUGIN_PREFIX[];
 extern const Char SCL_PLUGIN_INFO[];
-extern const Char ST11_PLUGIN_INFO[];
+extern const Char ST1_PLUGIN_INFO[];
 extern const Char STC_PLUGIN_INFO[];
 extern const Char STP_EDITOR[];
 extern const Char STP_PLUGIN_INFO[];
