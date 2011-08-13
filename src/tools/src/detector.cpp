@@ -14,8 +14,6 @@ Author:
 #include "iterator.h"
 //common includes
 #include <types.h>
-//boost includes
-#include <boost/array.hpp>
 //std includes
 #include <bitset>
 #include <cassert>
@@ -85,8 +83,7 @@ namespace
 
   struct BinaryTraits
   {
-    typedef std::pair<uint8_t, uint8_t> PatternEntry;
-    BOOST_STATIC_ASSERT(sizeof(PatternEntry) == 2);
+    typedef std::pair<uint_t, uint_t> PatternEntry;
     typedef std::vector<PatternEntry> Pattern;
 
     inline static PatternEntry GetAnyByte()
@@ -94,7 +91,7 @@ namespace
       return PatternEntry(0, 0);
     }
 
-    inline static bool Match(const PatternEntry& lh, uint8_t rh)
+    inline static bool Match(const PatternEntry& lh, uint_t rh)
     {
       return lh.first ? ((lh.first & rh) == lh.second) : true;
     }
@@ -106,15 +103,15 @@ namespace
       ++it;
       Check(it);
       const char loNibble(*it);
-      const uint8_t mask = NibbleToMask(hiNibble) * 16 + NibbleToMask(loNibble);
-      const uint8_t value = NibbleToValue(hiNibble) * 16 + NibbleToValue(loNibble);
+      const uint_t mask = NibbleToMask(hiNibble) * 16 + NibbleToMask(loNibble);
+      const uint_t value = NibbleToValue(hiNibble) * 16 + NibbleToValue(loNibble);
       return PatternEntry(mask, value);
     }
 
     inline static PatternEntry ParseBinary(PatternIterator& it)
     {
-      uint8_t mask = 0;
-      uint8_t value = 0;
+      uint_t mask = 0;
+      uint_t value = 0;
       for (uint_t bitmask = 128; bitmask; bitmask >>= 1)
       {
         ++it;
@@ -148,14 +145,14 @@ namespace
       throw std::domain_error("Binary pattern doesn't support ranges");
     }
   private:
-    inline static uint8_t NibbleToMask(char c)
+    inline static uint_t NibbleToMask(char c)
     {
       CheckParam(std::isxdigit(c) || ANY_NIBBLE_TEXT == c, "Invalid binary nibble format");
       return ANY_NIBBLE_TEXT == c
         ? 0 : 0xf;
     }
 
-    inline static uint8_t NibbleToValue(char c)
+    inline static uint_t NibbleToValue(char c)
     {
       CheckParam(std::isxdigit(c) || ANY_NIBBLE_TEXT == c, "Invalid binary nibble format");
       return ANY_NIBBLE_TEXT == c
@@ -165,8 +162,7 @@ namespace
 
   struct RangedTraits
   {
-    typedef std::pair<uint8_t, uint8_t> PatternEntry;
-    BOOST_STATIC_ASSERT(sizeof(PatternEntry) == 2);
+    typedef std::pair<uint_t, uint_t> PatternEntry;
     typedef std::vector<PatternEntry> Pattern;
 
     inline static PatternEntry GetAnyByte()
@@ -174,7 +170,7 @@ namespace
       return PatternEntry(0, 255);
     }
 
-    inline static bool Match(const PatternEntry& lh, uint8_t rh)
+    inline static bool Match(const PatternEntry& lh, uint_t rh)
     {
       return lh.first <= rh && rh <= lh.second;
     }
@@ -186,7 +182,7 @@ namespace
       ++it;
       Check(it);
       const char loNibble(*it);
-      const uint8_t val = NibbleToValue(hiNibble) * 16 + NibbleToValue(loNibble);
+      const uint_t val = NibbleToValue(hiNibble) * 16 + NibbleToValue(loNibble);
       return PatternEntry(val, val);
     }
 
@@ -211,7 +207,7 @@ namespace
       return PatternEntry(prev.first, next.second);
     }
   private:
-    inline static uint8_t NibbleToValue(char c)
+    inline static uint_t NibbleToValue(char c)
     {
       CheckParam(0 != std::isxdigit(c), "Invalid range nibble value");
       return (std::isdigit(c) ? c - '0' : std::toupper(c) - 'A' + 10);
@@ -228,7 +224,7 @@ namespace
       return ~PatternEntry();
     }
 
-    inline static bool Match(const PatternEntry& lh, uint8_t rh)
+    inline static bool Match(const PatternEntry& lh, uint_t rh)
     {
       return lh.test(rh);
     }
@@ -274,7 +270,7 @@ namespace
       PatternEntry val;
       for (uint_t idx = 0; idx < 256; ++idx)
       {
-        val[idx] = Traits::Match(pat, static_cast<uint8_t>(idx));
+        val[idx] = Traits::Match(pat, idx);
       }
       return val;
     }
@@ -366,7 +362,7 @@ namespace
   }
 
   template<class Traits>
-  bool MatchByte(uint8_t lh, const typename Traits::PatternEntry& rh)
+  bool MatchByte(uint_t lh, const typename Traits::PatternEntry& rh)
   {
     return Traits::Match(rh, lh);
   }
