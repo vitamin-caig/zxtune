@@ -78,10 +78,18 @@ namespace
     RegisterPlayerPlugins(registrator);
   }
 
-  void RegisterPlugins(PluginsRegistrator& registrator, const PluginsEnumerator::Filter& filter)
+  void FilterPlugins(const PluginsEnumerator& enumerator, const PluginsEnumerator::Filter& filter, PluginsRegistrator& registrator)
   {
     FilteredPluginsRegistrator filtered(registrator, filter);
-    RegisterAllPlugins(filtered);
+    PluginsRegistrator& target = filtered;
+    for (PlayerPlugin::Iterator::Ptr players = enumerator.EnumeratePlayers(); players->IsValid(); players->Next())
+    {
+      target.RegisterPlugin(players->Get());
+    }
+    for (ArchivePlugin::Iterator::Ptr archives = enumerator.EnumerateArchives(); archives->IsValid(); archives->Next())
+    {
+      target.RegisterPlugin(archives->Get());
+    }
   }
 
   class PluginsContainer : public PluginsRegistrator
@@ -93,9 +101,9 @@ namespace
       RegisterAllPlugins(*this);
     }
 
-    explicit PluginsContainer(const PluginsEnumerator::Filter& filter)
+    PluginsContainer(const PluginsEnumerator& enumerator, const PluginsEnumerator::Filter& filter)
     {
-      RegisterPlugins(*this, filter);
+      FilterPlugins(enumerator, filter, *this);
     }
 
     virtual void RegisterPlugin(PlayerPlugin::Ptr plugin)
@@ -232,7 +240,8 @@ namespace ZXTune
 
   PluginsEnumerator::Ptr PluginsEnumerator::Create(const PluginsEnumerator::Filter& filter)
   {
-    return PluginsEnumerator::Ptr(new PluginsContainer(filter));
+    const PluginsEnumerator::Ptr allPlugins = PluginsEnumerator::Create();
+    return PluginsEnumerator::Ptr(new PluginsContainer(*allPlugins, filter));
   }
 
   Plugin::Iterator::Ptr EnumeratePlugins()
