@@ -835,6 +835,8 @@ namespace
     //boost::array<uint16_t, 16> OrnamentsOffsets;
     "(?00-36){16}"
     "?00-36" // uint16_t PatternsOffset;
+    "+30+"   // char Name[30];
+    "00-fe"  // uint8_t Positions[1]; at least one
   );
 
   //////////////////////////////////////////////////////////////////////////

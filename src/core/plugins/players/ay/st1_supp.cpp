@@ -158,7 +158,7 @@ namespace ST1
     std::size_t ParsePositionsAndPatterns(const Header& header, std::size_t size)
     {
       const uint_t patternsCount = ParsePositions(header);
-      const uint_t realPatternsCount = 1 + (size - sizeof(header)) / sizeof(Pattern);
+      const uint_t realPatternsCount = std::min<uint_t>(1 + (size - sizeof(header)) / sizeof(Pattern), SoundTracker::MAX_PATTERNS_COUNT);
       const uint_t patternsToParse = std::min(patternsCount, realPatternsCount);
       ParsePatterns(header, patternsToParse);
       for (uint_t emptyPatterns = patternsToParse; emptyPatterns != patternsCount; ++emptyPatterns)
@@ -322,7 +322,7 @@ namespace ST1
     std::vector<uint_t> positions(header.Lenght + 1);
     std::transform(header.Positions, header.Positions + positions.size(), positions.begin(), boost::mem_fn(&PosEntry::Pattern));
     const uint_t patternsCount = *std::max_element(positions.begin(), positions.end());
-    const uint_t availablePatterns = 1 + (size - sizeof(header)) / sizeof(Pattern);
+    const uint_t availablePatterns = std::min<uint_t>(1 + (size - sizeof(header)) / sizeof(Pattern), SoundTracker::MAX_PATTERNS_COUNT);
     const uint_t patternsToCheck = std::min(patternsCount, availablePatterns);
     const uint_t patSize = header.PatternsSize;
     for (std::size_t idx = 0; idx < patternsToCheck; ++idx)
@@ -353,24 +353,26 @@ namespace ST1
     //samples
     "("
       //levels
-      "0x{32}"
-      //noises
-      "%xx0xxxxx{32}"
+      "00-0f{32}"
+      //noises. Bit 5 should be empty, but due to detector performance lack keep only ranges
+      "?{32}"
       //additions
-      "(?%000xxxxx){32}"
+      "(?00-1f){32}"
       //loop, loop limit
       "00-1f{2}"
     "){15}"
     //positions
     "(01-20?){256}"
     //length
-    "?"
+    "00-7f"
     //ornaments
     "(?{32}){17}"
     //delay
-    "01-0f"
+    //Real delay may be from 01 but I don't know any module with such little delay
+    "02-0f"
     //patterns size
-    "01-40"
+    //Real pattern size may be from 01 but I don't know any modules with such patterns size
+    "20-40"
   );
 
   //addon for ZXAYST11 header

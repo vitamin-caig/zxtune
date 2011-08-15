@@ -380,6 +380,7 @@ namespace STC
         }
       }
       while (channelACursor < data.Size() &&
+             dst.GetSize() <= SoundTracker::MAX_PATTERN_SIZE &&
              (0xff != data[channelACursor] ||
              0 != cursors.front().Counter));
       const uint_t maxOffset = 1 + cursors.GetMaxOffset();
@@ -602,7 +603,7 @@ namespace STC
   const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | Module::GetSupportedAYMFormatConvertors();
 
   const std::string STC_FORMAT(
-    "01-0f"       // uint8_t Tempo; 1..15
+    "02-0f"       // uint8_t Tempo; 1..15
     "?00-25"      // uint16_t PositionsOffset; 0..MAX_MODULE_SIZE
     "?00-25"      // uint16_t OrnamentsOffset; 0..MAX_MODULE_SIZE
     "?00-25"      // uint16_t PatternsOffset; 0..MAX_MODULE_SIZE
