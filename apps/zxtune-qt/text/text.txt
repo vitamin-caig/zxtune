@@ -24,6 +24,9 @@ __cpp> "#endif //__TEXT_TEXT_H_DEFINED__\n"
 < FEEDBACK_TEXT
 > "<a href=\"mailto:" FEEDBACK_EMAIL "?subject=Feedback for %1%\">Send feedback</a>"
 
+< HOMEPAGE_TEXT
+> "<a href=\"" PROGRAM_SITE "\">Visit homepage</a>"
+
 # 1- program name, 2- song name
 < TITLE_FORMAT
 > "%2% [%1%]"

@@ -9,12 +9,18 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>382</width>
-    <height>318</height>
+    <width>422</width>
+    <height>371</height>
    </rect>
+  </property>
+  <property name="windowTitle">
+   <string>About</string>
   </property>
   <property name="windowIcon">
    <iconset>
+    <normaloff>
+     :/zxtune.png
+   </normaloff>
      :/zxtune.png
    </iconset>
   </property>
@@ -23,14 +29,43 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QLabel" name="staticText">
+    <widget class="QLabel" name="logo">
+     <property name="text">
+      <string notr="true"/>
+     </property>
+     <property name="textFormat">
+      <enum>Qt::PlainText</enum>
+     </property>
+     <property name="pixmap">
+      <pixmap>:/logo.png</pixmap>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="buildLabel">
+     <property name="text">
+      <string>${Build}</string>
+     </property>
+     <property name="textFormat">
+      <enum>Qt::PlainText</enum>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="text">
      <property name="text">
       <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;/head&gt;&lt;body&gt;
-&lt;center&gt;&lt;img src=&quot;:/logo.png&quot; /&gt;&lt;br/&gt;
+&lt;center&gt;
 Idea, project, code and gfx: &lt;b&gt;Vitamin/CAIG&lt;/b&gt;&lt;br/&gt;
 Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
-&lt;/center&gt;&lt;br/&gt;
+&lt;/center&gt;
 &lt;center&gt;&lt;b&gt;Technical credits:&lt;/b&gt;&lt;/center&gt;
 &lt;ul&gt;
 &lt;li&gt;AY/YM engine is based on Unreal Speccy sources by &lt;b&gt;SMT&lt;/b&gt;&lt;/li&gt;
@@ -39,10 +74,12 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
 &lt;li&gt;Packer plugins are based on the xPlugins sources by &lt;b&gt;elf/2&lt;/b&gt;&lt;/li&gt;
 &lt;li&gt;Used zlib library by &lt;b&gt;Jean-loup Gailly&lt;/b&gt; and &lt;b&gt;Mark Adler&lt;/b&gt;&lt;/li&gt;
 &lt;li&gt;Used z80ex library by &lt;b&gt;Boo-boo&lt;/b&gt;&lt;/li&gt;
-&lt;/ul&gt;&lt;br/&gt;
+&lt;/ul&gt;
 
 &lt;center&gt;&lt;b&gt;Support credits:&lt;/b&gt;&lt;/center&gt;
 &lt;ul&gt;F0lken, Q-Master, Siril&lt;/ul&gt;
+
+&lt;center&gt;Dedicated to &lt;b&gt;Lizzi&lt;/b&gt;&lt;/center&gt;
 &lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="openExternalLinks">
@@ -74,8 +111,7 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
         </sizepolicy>
        </property>
        <property name="text">
-        <string>&lt;a href=&quot;http://zxtune.googlecode.com&quot;&gt;Visit homepage&lt;/a&gt;
-</string>
+        <string>${Homepage}</string>
        </property>
        <property name="textFormat">
         <enum>Qt::RichText</enum>
@@ -97,7 +133,7 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
         </sizepolicy>
        </property>
        <property name="text">
-        <string/>
+        <string>${Fedback}</string>
        </property>
        <property name="textFormat">
         <enum>Qt::RichText</enum>

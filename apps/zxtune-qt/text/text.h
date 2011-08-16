@@ -7,6 +7,7 @@ namespace Text
 {
 extern const Char CONTEXTMENU_STATUS[];
 extern const Char FEEDBACK_TEXT[];
+extern const Char HOMEPAGE_TEXT[];
 extern const Char MODULE_PLAYLIST_FORMAT[];
 extern const Char MODULE_TITLE_FORMAT[];
 extern const Char PROGRAM_NAME[];

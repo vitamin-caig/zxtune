@@ -33,8 +33,9 @@ namespace
       //do not set parent
       setupUi(this);
       const String appVersion = GetProgramVersionString();
+      buildLabel->setText(ToQString(appVersion));
+      homepageLabel->setText(ToQString(Text::HOMEPAGE_TEXT));
       const String feedbackText = Strings::Format(Text::FEEDBACK_TEXT, appVersion);
-      setWindowTitle(ToQString(appVersion));
       feedbackLabel->setText(ToQString(feedbackText));
     }
 
