@@ -72,7 +72,17 @@ namespace ST1
 
         bool IsEmpty() const
         {
-          return 0 == (Note & 128) && 0 == (Note & 0x78) && 0 == EffectSample;
+          return !IsRest() && !HasNote() && 0 == EffectSample;
+        }
+
+        bool IsRest() const
+        {
+          return 0 != (Note & 128);
+        }
+
+        bool HasNote() const
+        {
+          return 0 != (Note & 0x78);
         }
 
         uint_t GetEffect() const
@@ -212,10 +222,25 @@ namespace ST1
       std::for_each(header.Patterns, header.Patterns + count, boost::bind(&ModuleData::AddPattern, this, _1, patSize));
     }
 
+    struct ChanState
+    {
+      uint_t Sample;
+      uint_t Ornament;
+      uint_t EnvType;
+      uint_t EnvTone;
+
+      ChanState()
+        : Sample(), Ornament()
+        , EnvType(), EnvTone()
+      {
+      }
+    };
+
     void AddPattern(const Pattern& pattern, uint_t patSize)
     {
       SoundTracker::Track::Pattern result;
       uint_t linesToSkip = 0;
+      boost::array<ChanState, 3> state;
       for (uint_t idx = 0; idx < patSize; ++idx)
       {
         const Pattern::Line& srcLine = pattern.Lines[idx];
@@ -230,7 +255,7 @@ namespace ST1
           linesToSkip = 0;
         }
         SoundTracker::Track::Line& dstLine = result.AddLine();
-        ConvertLine(srcLine, dstLine);
+        ConvertLine(srcLine, dstLine, state);
       }
       if (linesToSkip)
       {
@@ -239,51 +264,78 @@ namespace ST1
       Patterns.push_back(result);
     }
 
-    void ConvertLine(const Pattern::Line& srcLine, SoundTracker::Track::Line& dstLine)
+    static void ConvertLine(const Pattern::Line& srcLine, SoundTracker::Track::Line& dstLine, boost::array<ChanState, 3>& state)
     {
       for (uint_t chan = 0; chan < dstLine.Channels.size(); ++chan)
       {
-        ConvertChannel(srcLine.Channels[chan], dstLine.Channels[chan]);
+        ConvertChannel(srcLine.Channels[chan], dstLine.Channels[chan], state[chan]);
       }
     }
 
-    void ConvertChannel(const Pattern::Line::Channel& srcChan, SoundTracker::Track::Line::Chan& dstChan)
+    static void ConvertChannel(const Pattern::Line::Channel& srcChan, SoundTracker::Track::Line::Chan& dstChan, ChanState& state)
     {
       if (srcChan.IsEmpty())
       {
         return;
       }
-      if (0 != (srcChan.Note & 128))
+      if (srcChan.IsRest())
       {
         dstChan.SetEnabled(false);
         return;
       }
-      else if (0 != (srcChan.Note & 0x78))
+      else if (!srcChan.HasNote())
       {
-        dstChan.SetNote(ConvertNote(srcChan.Note));
-        dstChan.SetEnabled(true);
+        return;
       }
-      if (uint_t sample = srcChan.EffectSample >> 4)
+      dstChan.SetNote(ConvertNote(srcChan.Note));
+      dstChan.SetEnabled(true);
       {
-        dstChan.SetSample(sample);
+        const uint_t sample = srcChan.GetSample();
+        if (sample && sample != state.Sample)
+        {
+          dstChan.SetSample(sample);
+        }
+        state.Sample = sample;
       }
       switch (const uint_t effect = srcChan.GetEffect())
       {
       case 15:
-        dstChan.SetOrnament(srcChan.GetOrnament());
-        dstChan.Commands.push_back(SoundTracker::Track::Command(SoundTracker::NOENVELOPE));
+        {
+          const uint_t ornament = srcChan.GetOrnament();
+          if (ornament != state.Ornament)
+          {
+            dstChan.SetOrnament(ornament);
+            state.Ornament = ornament;
+          }
+          dstChan.Commands.push_back(SoundTracker::Track::Command(SoundTracker::NOENVELOPE));
+          state.EnvType = 0;
+        }
+        break;
+      case 8:
+      case 10:
+      case 12:
+      case 14:
+        {
+          const uint_t envType = effect;
+          const uint_t envTone = srcChan.GetEffectParam();
+          if (envType != state.EnvType || envTone != state.EnvTone)
+          {
+            dstChan.SetOrnament(0);
+            dstChan.Commands.push_back(SoundTracker::Track::Command(SoundTracker::ENVELOPE, envType, envTone));
+            state.Ornament = 0;
+            state.EnvType = envType;
+            state.EnvTone = envTone;
+          }
+        }
         break;
       default:
-        if (effect && srcChan.GetEffectParam())
-        {
-          dstChan.SetOrnament(0);
-          dstChan.Commands.push_back(SoundTracker::Track::Command(SoundTracker::ENVELOPE, effect, srcChan.GetEffectParam()));
-        }
+        state.EnvType = effect;
+        dstChan.Commands.push_back(SoundTracker::Track::Command(SoundTracker::NOENVELOPE));
         break;
       }
     }
 
-    uint_t ConvertNote(uint8_t note)
+    static uint_t ConvertNote(uint8_t note)
     {
       static const uint_t HALFTONES[] = 
       {
