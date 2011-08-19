@@ -436,8 +436,7 @@ namespace
       const String currentPath = input->GetPath()->AsString();
       Log::Debug(THIS_MODULE, "Detecting modules in raw data at '%1%'", currentPath);
       const Log::ProgressCallback::Ptr progress(new RawProgressCallback(callback, static_cast<uint_t>(size), currentPath));
-      const Module::NoProgressDetectCallbackAdapter noProgressCallback(callback);
-
+      const Module::DetectCallback& noProgressCallback = Module::NoProgressDetectCallbackAdapter(callback);
 
       const PluginsEnumerator::Ptr availablePlugins = callback.GetUsedPlugins();
       RawDetectionPlugins usedPlugins(availablePlugins, Description->Id());
@@ -449,7 +448,8 @@ namespace
         const std::size_t offset = subLocation->GetOffset();
         progress->OnProgress(static_cast<uint_t>(offset));
         usedPlugins.SetOffset(offset);
-        const std::size_t bytesToSkip = usedPlugins.Detect(subLocation, offset ? noProgressCallback : callback);
+        const Module::DetectCallback& curCallback = offset ? noProgressCallback : callback;
+        const std::size_t bytesToSkip = usedPlugins.Detect(subLocation, curCallback);
         if (!subLocation.unique())
         {
           Log::Debug(THIS_MODULE, "Sublocation is captured. Duplicate.");
