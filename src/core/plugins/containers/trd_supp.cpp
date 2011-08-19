@@ -10,11 +10,8 @@ Author:
 */
 
 //local includes
-#include "trdos_process.h"
-#include "core/src/callback.h"
+#include "container_supp_common.h"
 #include "core/plugins/registrator.h"
-#include "core/plugins/utils.h"
-#include "core/src/core.h"
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
@@ -22,11 +19,9 @@ Author:
 #include <range_checker.h>
 #include <tools.h>
 //library includes
-#include <core/error_codes.h>
-#include <core/module_detect.h>
 #include <core/plugin_attrs.h>
-#include <core/plugins_parameters.h>
-#include <io/container.h>
+//boost includes
+#include <boost/make_shared.hpp>
 //text includes
 #include <core/text/core.h>
 #include <core/text/plugins.h>
@@ -195,54 +190,27 @@ namespace
     "10"            //ID
   );
 
-  class TRDPlugin : public ArchivePlugin
+  class TRDFactory : public ContainerFactory
   {
   public:
-    TRDPlugin()
-      : Description(CreatePluginDescription(ID, INFO, VERSION, CAPS))
-      , Format(DataFormat::Create(TRD_FORMAT))
+    TRDFactory()
+      : Format(DataFormat::Create(TRD_FORMAT))
     {
     }
 
-    virtual Plugin::Ptr GetDescription() const
+    virtual DataFormat::Ptr GetFormat() const
     {
-      return Description;
+      return Format;
     }
 
-    virtual DetectionResult::Ptr Detect(DataLocation::Ptr input, const Module::DetectCallback& callback) const
+    virtual TRDos::Catalogue::Ptr CreateContainer(const Parameters::Accessor& /*parameters*/, IO::DataContainer::Ptr data) const
     {
-      const IO::DataContainer::Ptr rawData = input->GetData();
-      if (const TRDos::Catalogue::Ptr files = ParseTRDFile(rawData))
-      {
-        if (files->GetFilesCount())
-        {
-          ProcessEntries(input, callback, Description, *files);
-          return DetectionResult::CreateMatched(files->GetUsedSize());
-        }
-      }
-      return DetectionResult::CreateUnmatched(Format, rawData);
-    }
-
-    virtual DataLocation::Ptr Open(const Parameters::Accessor& /*commonParams*/, DataLocation::Ptr location, const DataPath& inPath) const
-    {
-      const String& pathComp = inPath.GetFirstComponent();
-      if (pathComp.empty())
-      {
-        return DataLocation::Ptr();
-      }
-      const IO::DataContainer::Ptr inData = location->GetData();
-      if (const TRDos::Catalogue::Ptr files = ParseTRDFile(inData))
-      {
-        if (const TRDos::File::Ptr fileToOpen = files->FindFile(pathComp))
-        {
-          const IO::DataContainer::Ptr subData = fileToOpen->GetData();
-          return CreateNestedLocation(location, subData, Description, pathComp); 
-        }
-      }
-      return DataLocation::Ptr();
+      const TRDos::Catalogue::Ptr res = ParseTRDFile(data);
+      return res->GetFilesCount()
+        ? res
+        : TRDos::Catalogue::Ptr();
     }
   private:
-    const Plugin::Ptr Description;
     const DataFormat::Ptr Format;
   };
 }
@@ -251,7 +219,8 @@ namespace ZXTune
 {
   void RegisterTRDContainer(PluginsRegistrator& registrator)
   {
-    const ArchivePlugin::Ptr plugin(new TRDPlugin());
+    const ContainerFactory::Ptr factory = boost::make_shared<TRDFactory>();
+    const ArchivePlugin::Ptr plugin = CreateContainerPlugin(ID, INFO, VERSION, CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

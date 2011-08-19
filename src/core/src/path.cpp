@@ -32,7 +32,8 @@ namespace
   void SplitPath(const String& str, StringArray& res)
   {
     StringArray parts;
-    boost::algorithm::split(res, str, boost::algorithm::is_any_of(DELIMITER));
+    boost::algorithm::split(parts, str, boost::algorithm::is_any_of(DELIMITER), boost::algorithm::token_compress_on);
+    res.swap(parts);
   }
 
   class DataPathImpl : public DataPath
@@ -107,7 +108,6 @@ namespace ZXTune
 
   DataPath::Ptr CreateMergedDataPath(DataPath::Ptr lh, const String& component)
   {
-    assert(String::npos == component.find(DELIMITER[0]));
     return boost::make_shared<MergedDataPath>(lh, component);
   }
 

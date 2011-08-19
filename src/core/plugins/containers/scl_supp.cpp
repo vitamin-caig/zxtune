@@ -10,24 +10,19 @@ Author:
 */
 
 //local includes
-#include "trdos_process.h"
-#include "core/src/callback.h"
+#include "container_supp_common.h"
 #include "core/plugins/registrator.h"
-#include "core/plugins/utils.h"
-#include "core/src/core.h"
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
 #include <logging.h>
 #include <tools.h>
 //library includes
-#include <core/error_codes.h>
-#include <core/module_detect.h>
 #include <core/plugin_attrs.h>
-#include <core/plugins_parameters.h>
-#include <io/container.h>
 //std includes
 #include <numeric>
+//boost includes
+#include <boost/make_shared.hpp>
 //text includes
 #include <core/text/core.h>
 #include <core/text/plugins.h>
@@ -151,54 +146,24 @@ namespace
     "01-ff"
   );
 
-  class SCLPlugin : public ArchivePlugin
+  class SCLFactory : public ContainerFactory
   {
   public:
-    SCLPlugin()
-      : Description(CreatePluginDescription(ID, INFO, VERSION, CAPS))
-      , Format(DataFormat::Create(SCL_FORMAT))
+    SCLFactory()
+      : Format(DataFormat::Create(SCL_FORMAT))
     {
     }
 
-    virtual Plugin::Ptr GetDescription() const
+    virtual DataFormat::Ptr GetFormat() const
     {
-      return Description;
+      return Format;
     }
 
-    virtual DetectionResult::Ptr Detect(DataLocation::Ptr input, const Module::DetectCallback& callback) const
+    virtual TRDos::Catalogue::Ptr CreateContainer(const Parameters::Accessor& /*parameters*/, IO::DataContainer::Ptr data) const
     {
-      const IO::DataContainer::Ptr rawData = input->GetData();
-      if (const TRDos::Catalogue::Ptr files = ParseSCLFile(rawData))
-      {
-        if (files->GetFilesCount())
-        {
-          ProcessEntries(input, callback, Description, *files);
-        }
-        return DetectionResult::CreateMatched(files->GetUsedSize());
-      }
-      return DetectionResult::CreateUnmatched(Format, rawData);
-    }
-
-    virtual DataLocation::Ptr Open(const Parameters::Accessor& /*commonParams*/, DataLocation::Ptr location, const DataPath& inPath) const
-    {
-      const String& pathComp = inPath.GetFirstComponent();
-      if (pathComp.empty())
-      {
-        return DataLocation::Ptr();
-      }
-      const IO::DataContainer::Ptr inData = location->GetData();
-      if (const TRDos::Catalogue::Ptr files = ParseSCLFile(inData))
-      {
-        if (const TRDos::File::Ptr fileToOpen = files->FindFile(pathComp))
-        {
-          const IO::DataContainer::Ptr subData = fileToOpen->GetData();
-          return CreateNestedLocation(location, subData, Description, pathComp); 
-        }
-      }
-      return DataLocation::Ptr();
+      return ParseSCLFile(data);
     }
   private:
-    const Plugin::Ptr Description;
     const DataFormat::Ptr Format;
   };
 }
@@ -207,7 +172,8 @@ namespace ZXTune
 {
   void RegisterSCLContainer(PluginsRegistrator& registrator)
   {
-    const ArchivePlugin::Ptr plugin(new SCLPlugin());
+    const ContainerFactory::Ptr factory = boost::make_shared<SCLFactory>();
+    const ArchivePlugin::Ptr plugin = CreateContainerPlugin(ID, INFO, VERSION, CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

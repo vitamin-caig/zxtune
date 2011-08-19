@@ -10,11 +10,13 @@ Author:
 */
 
 //local includes
+#include "container_supp_common.h"
 #include "core/plugins/registrator.h"
-#include "core/plugins/containers/trdos_process.h"
 //library includes
 #include <core/plugin_attrs.h>
 #include <formats/packed_decoders.h>
+//boost includes
+#include <boost/make_shared.hpp>
 //text includes
 #include <core/text/plugins.h>
 
@@ -79,54 +81,25 @@ namespace
     return builder->GetResult();
   }
 
-  class ZXZipPlugin : public ArchivePlugin
+  class ZXZipFactory : public ContainerFactory
   {
   public:
-    ZXZipPlugin()
-      : Description(CreatePluginDescription(ID, INFO, VERSION, CAPS))
-      , Decoder(Formats::Packed::CreateZXZipDecoder())
+    ZXZipFactory()
+      : Decoder(Formats::Packed::CreateZXZipDecoder())
     {
     }
 
-    virtual Plugin::Ptr GetDescription() const
+    virtual DataFormat::Ptr GetFormat() const
     {
-      return Description;
+      return Decoder->GetFormat();
     }
 
-    virtual DetectionResult::Ptr Detect(DataLocation::Ptr input, const Module::DetectCallback& callback) const
+    virtual TRDos::Catalogue::Ptr CreateContainer(const Parameters::Accessor& /*parameters*/, IO::DataContainer::Ptr data) const
     {
-      const IO::DataContainer::Ptr rawData = input->GetData();
-      if (const TRDos::Catalogue::Ptr files = ParseZXZipFile(*Decoder, rawData))
-      {
-        if (files->GetFilesCount())
-        {
-          ProcessEntries(input, callback, Description, *files);
-          return DetectionResult::CreateMatched(files->GetUsedSize());
-        }
-      }
-      const DataFormat::Ptr format = Decoder->GetFormat();
-      return DetectionResult::CreateUnmatched(format, rawData);
-    }
-
-    virtual DataLocation::Ptr Open(const Parameters::Accessor& /*commonParams*/, DataLocation::Ptr location, const DataPath& inPath) const
-    {
-      const String& pathComp = inPath.GetFirstComponent();
-      if (pathComp.empty())
-      {
-        return DataLocation::Ptr();
-      }
-      const IO::DataContainer::Ptr inData = location->GetData();
-      if (const TRDos::Catalogue::Ptr files = ParseZXZipFile(*Decoder, inData))
-      {
-        if (const TRDos::File::Ptr fileToOpen = files->FindFile(pathComp))
-        {
-          if (const IO::DataContainer::Ptr subData = fileToOpen->GetData())
-          {
-            return CreateNestedLocation(location, subData, Description, pathComp); 
-          }
-        }
-      }
-      return DataLocation::Ptr();
+      const TRDos::Catalogue::Ptr files = ParseZXZipFile(*Decoder, data);
+      return files->GetFilesCount()
+        ? files
+        : TRDos::Catalogue::Ptr();
     }
   private:
     const Plugin::Ptr Description;
@@ -138,7 +111,8 @@ namespace ZXTune
 {
   void RegisterZXZipContainer(PluginsRegistrator& registrator)
   {
-    const ArchivePlugin::Ptr plugin(new ZXZipPlugin());
+    const ContainerFactory::Ptr factory = boost::make_shared<ZXZipFactory>();
+    const ArchivePlugin::Ptr plugin = CreateContainerPlugin(ID, INFO, VERSION, CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }
