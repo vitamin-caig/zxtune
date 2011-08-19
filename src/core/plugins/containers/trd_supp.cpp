@@ -11,6 +11,7 @@ Author:
 
 //local includes
 #include "container_supp_common.h"
+#include "trdos_utils.h"
 #include "core/plugins/registrator.h"
 //common includes
 #include <byteorder.h>
@@ -132,14 +133,14 @@ namespace
     return idx > 0;
   }
 
-  TRDos::Catalogue::Ptr ParseTRDFile(IO::DataContainer::Ptr data)
+  Container::Catalogue::Ptr ParseTRDFile(IO::DataContainer::Ptr data)
   {
     if (!CheckTRDFile(*data))
     {
-      return TRDos::Catalogue::Ptr();
+      return Container::Catalogue::Ptr();
     }
 
-    const TRDos::CatalogueBuilder::Ptr builder = TRDos::CatalogueBuilder::CreateFlat(data);
+    const Container::CatalogueBuilder::Ptr builder = Container::CatalogueBuilder::CreateFlat(data);
 
     const ServiceSector* const sector = safe_ptr_cast<const ServiceSector*>(data->Data()) + SERVICE_SECTOR_NUM;
     uint_t deleted = 0;
@@ -159,7 +160,7 @@ namespace
         {
           entryName.insert(0, 1, '~');
         }
-        const TRDos::File::Ptr newOne = TRDos::File::CreateReference(entryName, catEntry->Offset(), catEntry->Size());
+        const Container::File::Ptr newOne = Container::File::CreateReference(entryName, catEntry->Offset(), catEntry->Size());
         builder->AddFile(newOne);
       }
     }
@@ -203,12 +204,12 @@ namespace
       return Format;
     }
 
-    virtual TRDos::Catalogue::Ptr CreateContainer(const Parameters::Accessor& /*parameters*/, IO::DataContainer::Ptr data) const
+    virtual Container::Catalogue::Ptr CreateContainer(const Parameters::Accessor& /*parameters*/, IO::DataContainer::Ptr data) const
     {
-      const TRDos::Catalogue::Ptr res = ParseTRDFile(data);
-      return res->GetFilesCount()
+      const Container::Catalogue::Ptr res = ParseTRDFile(data);
+      return res && res->GetFilesCount()
         ? res
-        : TRDos::Catalogue::Ptr();
+        : Container::Catalogue::Ptr();
     }
   private:
     const DataFormat::Ptr Format;

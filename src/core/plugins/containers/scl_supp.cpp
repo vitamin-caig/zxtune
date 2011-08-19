@@ -11,6 +11,7 @@ Author:
 
 //local includes
 #include "container_supp_common.h"
+#include "trdos_utils.h"
 #include "core/plugins/registrator.h"
 //common includes
 #include <byteorder.h>
@@ -107,15 +108,15 @@ namespace
   }
 
   //fill descriptors array and return actual container size
-  TRDos::Catalogue::Ptr ParseSCLFile(IO::DataContainer::Ptr data)
+  Container::Catalogue::Ptr ParseSCLFile(IO::DataContainer::Ptr data)
   {
     if (!CheckSCLFile(*data))
     {
-      return TRDos::Catalogue::Ptr();
+      return Container::Catalogue::Ptr();
     }
     const SCLHeader* const header = safe_ptr_cast<const SCLHeader*>(data->Data());
 
-    const TRDos::CatalogueBuilder::Ptr builder = TRDos::CatalogueBuilder::CreateFlat(data);
+    const Container::CatalogueBuilder::Ptr builder = Container::CatalogueBuilder::CreateFlat(data);
     std::size_t offset = safe_ptr_cast<const uint8_t*>(header->Blocks + header->BlocksCount) -
                     safe_ptr_cast<const uint8_t*>(header);
     for (uint_t idx = 0; idx != header->BlocksCount; ++idx)
@@ -123,7 +124,7 @@ namespace
       const SCLEntry& entry = header->Blocks[idx];
       const std::size_t nextOffset = offset + entry.Size();
       const String entryName = TRDos::GetEntryName(entry.Name, entry.Type);
-      const TRDos::File::Ptr newOne = TRDos::File::CreateReference(entryName, offset, entry.Size());
+      const Container::File::Ptr newOne = Container::File::CreateReference(entryName, offset, entry.Size());
       builder->AddFile(newOne);
       offset = nextOffset;
     }
@@ -159,7 +160,7 @@ namespace
       return Format;
     }
 
-    virtual TRDos::Catalogue::Ptr CreateContainer(const Parameters::Accessor& /*parameters*/, IO::DataContainer::Ptr data) const
+    virtual Container::Catalogue::Ptr CreateContainer(const Parameters::Accessor& /*parameters*/, IO::DataContainer::Ptr data) const
     {
       return ParseSCLFile(data);
     }

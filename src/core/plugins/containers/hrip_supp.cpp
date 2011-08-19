@@ -11,6 +11,7 @@ Author:
 
 //local includes
 #include "container_supp_common.h"
+#include "trdos_utils.h"
 #include "core/plugins/registrator.h"
 #include "core/src/core.h"
 //common includes
@@ -148,7 +149,7 @@ namespace
 
   typedef std::vector<const HripBlockHeader*> HripBlockHeadersList;
 
-  class HripFile : public TRDos::File
+  class HripFile : public Container::File
   {
   public:
     HripFile(DataSource::Ptr data, std::size_t offset, const HripBlockHeadersList& blocks, bool ignoreCorrupted)
@@ -254,7 +255,7 @@ namespace
   }
 
 
-  TRDos::Catalogue::Ptr ParseHripFile(IO::DataContainer::Ptr data, const Parameters::Accessor& params)
+  Container::Catalogue::Ptr ParseHripFile(IO::DataContainer::Ptr data, const Parameters::Accessor& params)
   {
     uint_t files = 0;
     std::size_t archiveSize = 0;
@@ -262,11 +263,11 @@ namespace
     const std::size_t size = data->Size();
     if (!CheckHrip(ptr, size, files, archiveSize))
     {
-      return TRDos::Catalogue::Ptr();
+      return Container::Catalogue::Ptr();
     }
     const bool ignoreCorrupted = CheckIgnoreCorrupted(params);
 
-    const TRDos::CatalogueBuilder::Ptr builder = TRDos::CatalogueBuilder::CreateGeneric();
+    const Container::CatalogueBuilder::Ptr builder = Container::CatalogueBuilder::CreateGeneric();
     const DataSource::Ptr source = boost::make_shared<DataSource>(data);
 
     std::size_t flatOffset = 0;
@@ -300,9 +301,9 @@ namespace
       {
         continue;
       }
-      std::auto_ptr<TRDos::File> file(new HripFile(source, flatOffset, blocks, ignoreCorrupted));
+      std::auto_ptr<Container::File> file(new HripFile(source, flatOffset, blocks, ignoreCorrupted));
       flatOffset += file->GetSize();
-      builder->AddFile(TRDos::File::Ptr(file.release()));
+      builder->AddFile(Container::File::Ptr(file.release()));
     }
     builder->SetUsedSize(archiveSize);
     return builder->GetResult();
@@ -339,7 +340,7 @@ namespace
       return Format;
     }
 
-    virtual TRDos::Catalogue::Ptr CreateContainer(const Parameters::Accessor& parameters, IO::DataContainer::Ptr data) const
+    virtual Container::Catalogue::Ptr CreateContainer(const Parameters::Accessor& parameters, IO::DataContainer::Ptr data) const
     {
       return ParseHripFile(data, parameters);
     }

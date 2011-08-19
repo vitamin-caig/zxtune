@@ -449,7 +449,7 @@ namespace
         const std::size_t offset = subLocation->GetOffset();
         progress->OnProgress(static_cast<uint_t>(offset));
         usedPlugins.SetOffset(offset);
-        const std::size_t bytesToSkip = usedPlugins.Detect(subLocation, noProgressCallback);
+        const std::size_t bytesToSkip = usedPlugins.Detect(subLocation, offset ? noProgressCallback : callback);
         if (!subLocation.unique())
         {
           Log::Debug(THIS_MODULE, "Sublocation is captured. Duplicate.");

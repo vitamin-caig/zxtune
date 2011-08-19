@@ -11,8 +11,8 @@ Author:
 
 #ifdef ZLIB_SUPPORT
 //local includes
+#include "container_supp_common.h"
 #include "core/plugins/registrator.h"
-#include "core/plugins/containers/trdos_process.h"
 //common includes
 #include <byteorder.h>
 #include <logging.h>
@@ -20,6 +20,8 @@ Author:
 //library includes
 #include <core/plugin_attrs.h>
 #include <formats/packed_decoders.h>
+//boost includes
+#include <boost/make_shared.hpp>
 //text includes
 #include <core/text/plugins.h>
 
@@ -92,6 +94,11 @@ namespace
     {
       return sizeof(*this) - 1 + fromLE(NameSize) + fromLE(ExtraSize);
     }
+
+    std::size_t GetTotalFileSize() const
+    {
+      return GetSize() + fromLE(Attributes.CompressedSize);
+    }
   } PACK_POST;
 
   PACK_PRE struct LocalFileFooter
@@ -133,6 +140,7 @@ namespace
       }
       else
       {
+        Log::Debug(THIS_MODULE, "Restore");
         return std::auto_ptr<Dump>(new Dump(Start, Start + DestSize));
       }
     }
@@ -141,25 +149,6 @@ namespace
     const std::size_t Size;
     const std::size_t DestSize;
   };
-
-  int Uncompress(const uint8_t* src, std::size_t srcSize, uint8_t* dst, std::size_t dstSize)
-  {
-    z_stream stream = z_stream();
-    int res = inflateInit2(&stream, -15);
-    if (Z_OK != res)
-    {
-      return res;
-    }
-    stream.next_in = const_cast<uint8_t*>(src);
-    stream.avail_in = srcSize;
-    stream.next_out = dst;
-    stream.avail_out = dstSize;
-    res = inflate(&stream, Z_FINISH);
-    inflateEnd(&stream);
-    return res == Z_STREAM_END
-      ? Z_OK
-      : res;
-  }
 
   class InflatedFile : public CompressedFile
   {
@@ -173,9 +162,9 @@ namespace
 
     virtual std::auto_ptr<Dump> Decompress() const
     {
-      Log::Debug(THIS_MODULE, "Decompressing %1% -> %2%", Size, DestSize);
+      Log::Debug(THIS_MODULE, "Inflate %1% -> %2%", Size, DestSize);
       std::auto_ptr<Dump> res(new Dump(DestSize));
-      switch (const int err = Uncompress(Start, Size, &res->front(), DestSize))
+      switch (const int err = Uncompress(*res))
       {
       case Z_OK:
         return res;
@@ -192,6 +181,25 @@ namespace
         Log::Debug(THIS_MODULE, "Unknown error (%1%)", err);
       }
       return std::auto_ptr<Dump>();
+    }
+  private:
+    int Uncompress(Dump& dst) const
+    {
+      z_stream stream = z_stream();
+      int res = inflateInit2(&stream, -15);
+      if (Z_OK != res)
+      {
+        return res;
+      }
+      stream.next_in = const_cast<uint8_t*>(Start);
+      stream.avail_in = Size;
+      stream.next_out = &dst[0];
+      stream.avail_out = DestSize;
+      res = inflate(&stream, Z_FINISH);
+      inflateEnd(&stream);
+      return res == Z_STREAM_END
+        ? Z_OK
+        : res;
     }
   private:
     const uint8_t* const Start;
@@ -229,6 +237,47 @@ namespace
     std::auto_ptr<CompressedFile> Delegate;
   };
 
+  class ZIPContainerFile : public Container::File
+  {
+  public:
+    explicit ZIPContainerFile(IO::DataContainer::Ptr data)
+      : Data(data)
+      , Header(*static_cast<const LocalFileHeader*>(Data->Data()))
+    {
+      assert(Data->Size() >= Header.GetTotalFileSize());
+    }
+
+    virtual String GetName() const
+    {
+      return String(Header.Name, Header.Name + fromLE(Header.NameSize));
+    }
+
+    virtual std::size_t GetOffset() const
+    {
+      return ~std::size_t(0);
+    }
+
+    virtual std::size_t GetSize() const
+    {
+      return fromLE(Header.Attributes.UncompressedSize);
+    }
+
+    virtual ZXTune::IO::DataContainer::Ptr GetData() const
+    {
+      Log::Debug(THIS_MODULE, "Decompressing '%1%'", GetName());
+      const CompressedFile::Ptr file(new ZippedFile(Header));
+      std::auto_ptr<Dump> decoded = file->Decompress();
+      if (!decoded.get())
+      {
+        return IO::DataContainer::Ptr();
+      }
+      return IO::CreateDataContainer(decoded);
+    }
+  private:
+    const IO::DataContainer::Ptr Data;
+    const LocalFileHeader& Header;
+  };
+
   class FileIterator
   {
   public:
@@ -251,7 +300,7 @@ namespace
       {
         return true;
       }
-      if (dataRest < header.GetSize())
+      if (dataRest < header.GetTotalFileSize())
       {
         return true;
       }
@@ -289,40 +338,17 @@ namespace
       return String(header.Name, header.Name + fromLE(header.NameSize));
     }
 
-    std::size_t GetArchivedSize() const
-    {
-      assert(!IsEof());
-      const LocalFileHeader& header = GetHeader();
-      assert(0 == (fromLE(header.Flags) & FILE_ATTRIBUTES_IN_FOOTER));
-      return header.GetSize() + fromLE(header.Attributes.CompressedSize);
-    }
-
-    std::size_t GetUncompressedSize() const
-    {
-      assert(!IsEof());
-      const LocalFileHeader& header = GetHeader();
-      assert(0 == (fromLE(header.Flags) & FILE_ATTRIBUTES_IN_FOOTER));
-      return fromLE(header.Attributes.UncompressedSize);
-    }
-
-    IO::DataContainer::Ptr Extract() const
+    Container::File::Ptr GetFile() const
     {
       assert(IsValid());
-      const LocalFileHeader& header = GetHeader();
-      assert(0 == (fromLE(header.Flags) & FILE_ATTRIBUTES_IN_FOOTER));
-      const CompressedFile::Ptr file(new ZippedFile(header));
-      std::auto_ptr<Dump> decoded = file->Decompress();
-      if (!decoded.get())
-      {
-        return IO::DataContainer::Ptr();
-      }
-      return IO::CreateDataContainer(decoded);
+      const std::size_t size = GetHeader().GetTotalFileSize();
+      return boost::make_shared<ZIPContainerFile>(Data->GetSubcontainer(Offset, size));
     }
 
     void Next()
     {
       assert(!IsEof());
-      Offset += GetArchivedSize();
+      Offset += GetHeader().GetTotalFileSize();
     }
 
     std::size_t GetOffset() const
@@ -332,7 +358,7 @@ namespace
   private:
     const LocalFileHeader& GetHeader() const
     {
-      assert(Limit - Offset > sizeof(LocalFileHeader));
+      assert(Limit - Offset >= sizeof(LocalFileHeader));
       return *safe_ptr_cast<const LocalFileHeader*>(static_cast<const uint8_t*>(Data->Data()) + Offset);
     }
   private:
@@ -341,9 +367,9 @@ namespace
     std::size_t Offset;
   };
 
-  TRDos::Catalogue::Ptr ParseZipFile(IO::DataContainer::Ptr data)
+  Container::Catalogue::Ptr ParseZipFile(IO::DataContainer::Ptr data)
   {
-    TRDos::CatalogueBuilder::Ptr builder = TRDos::CatalogueBuilder::CreateGeneric();
+    Container::CatalogueBuilder::Ptr builder = Container::CatalogueBuilder::CreateGeneric();
     FileIterator iter(data);
     for (; !iter.IsEof(); iter.Next())
     {
@@ -353,10 +379,8 @@ namespace
         Log::Debug(THIS_MODULE, "Invalid file '%1%'", fileName);
         continue;
       }
-      const std::size_t fileSize = iter.GetUncompressedSize();
       Log::Debug(THIS_MODULE, "Found file '%1%'", fileName);
-      const IO::DataContainer::Ptr fileData = iter.Extract();
-      const TRDos::File::Ptr file = TRDos::File::Create(fileData, fileName, ~std::size_t(0), fileSize);
+      const Container::File::Ptr file = iter.GetFile();
       builder->AddFile(file);
     }
     builder->SetUsedSize(iter.GetOffset());
@@ -364,62 +388,30 @@ namespace
   }
 
   const std::string ZIP_FORMAT(
-    "504b0304" //uint32_t Signature;
-    "?00"     // uint16_t VersionToExtract;
-    "%00000xx0 00"          // uint16_t Flags;
-    "%0000x00x"     //CompressionMethod;
+    "504b0304"      //uint32_t Signature;
+    "?00"           //uint16_t VersionToExtract;
+    "%00000xx0 00"  //uint16_t Flags;
+    "%0000x00x 00"  //uint16_t CompressionMethod;
   );
 
-  class ZipPlugin : public ArchivePlugin
+  class ZipFactory : public ContainerFactory
   {
   public:
-    ZipPlugin()
-      : Description(CreatePluginDescription(ID, INFO, VERSION, CAPS))
-      , Format(DataFormat::Create(ZIP_FORMAT))
+    ZipFactory()
+      : Format(DataFormat::Create(ZIP_FORMAT))
     {
     }
 
-    virtual Plugin::Ptr GetDescription() const
+    virtual DataFormat::Ptr GetFormat() const
     {
-      return Description;
+      return Format;
     }
 
-    virtual DetectionResult::Ptr Detect(DataLocation::Ptr input, const Module::DetectCallback& callback) const
+    virtual Container::Catalogue::Ptr CreateContainer(const Parameters::Accessor& /*parameters*/, IO::DataContainer::Ptr data) const
     {
-      const IO::DataContainer::Ptr rawData = input->GetData();
-      if (const TRDos::Catalogue::Ptr files = ParseZipFile(rawData))
-      {
-        if (files->GetFilesCount())
-        {
-          ProcessEntries(input, callback, Description, *files);
-          return DetectionResult::CreateMatched(files->GetUsedSize());
-        }
-      }
-      return DetectionResult::CreateUnmatched(Format, rawData);
-    }
-
-    virtual DataLocation::Ptr Open(const Parameters::Accessor& /*commonParams*/, DataLocation::Ptr location, const DataPath& inPath) const
-    {
-      const String& pathComp = inPath.GetFirstComponent();
-      if (pathComp.empty())
-      {
-        return DataLocation::Ptr();
-      }
-      const IO::DataContainer::Ptr inData = location->GetData();
-      if (const TRDos::Catalogue::Ptr files = ParseZipFile(inData))
-      {
-        if (const TRDos::File::Ptr fileToOpen = files->FindFile(pathComp))
-        {
-          if (const IO::DataContainer::Ptr subData = fileToOpen->GetData())
-          {
-            return CreateNestedLocation(location, subData, Description, pathComp); 
-          }
-        }
-      }
-      return DataLocation::Ptr();
+      return ParseZipFile(data);
     }
   private:
-    const Plugin::Ptr Description;
     const DataFormat::Ptr Format;
   };
 }
@@ -428,7 +420,8 @@ namespace ZXTune
 {
   void RegisterZipContainer(PluginsRegistrator& registrator)
   {
-    const ArchivePlugin::Ptr plugin(new ZipPlugin());
+    const ContainerFactory::Ptr factory = boost::make_shared<ZipFactory>();
+    const ArchivePlugin::Ptr plugin = CreateContainerPlugin(ID, INFO, VERSION, CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

@@ -11,6 +11,7 @@ Author:
 
 //local includes
 #include "container_supp_common.h"
+#include "trdos_utils.h"
 #include "core/plugins/registrator.h"
 //library includes
 #include <core/plugin_attrs.h>
@@ -49,9 +50,9 @@ namespace
     return TRDos::GetEntryName(header->Name, header->Type);
   }
 
-  TRDos::Catalogue::Ptr ParseZXZipFile(const Formats::Packed::Decoder& decoder, IO::DataContainer::Ptr data)
+  Container::Catalogue::Ptr ParseZXZipFile(const Formats::Packed::Decoder& decoder, IO::DataContainer::Ptr data)
   {
-    TRDos::CatalogueBuilder::Ptr builder = TRDos::CatalogueBuilder::CreateGeneric();
+    Container::CatalogueBuilder::Ptr builder = Container::CatalogueBuilder::CreateGeneric();
     const uint8_t* const archData = static_cast<const uint8_t*>(data->Data());
     const std::size_t archSize = data->Size();
     std::size_t rawOffset = 0;
@@ -72,7 +73,7 @@ namespace
       const IO::DataContainer::Ptr fileData = IO::CreateDataContainer(decoded);
       const String fileName = ExtractFileName(rawData);
       const std::size_t fileSize = fileData->Size();
-      const TRDos::File::Ptr file = TRDos::File::Create(fileData, fileName, flatOffset, fileSize);
+      const Container::File::Ptr file = Container::File::Create(fileData, fileName, flatOffset, fileSize);
       builder->AddFile(file);
       rawOffset += usedSize;
       flatOffset += fileSize;
@@ -94,12 +95,12 @@ namespace
       return Decoder->GetFormat();
     }
 
-    virtual TRDos::Catalogue::Ptr CreateContainer(const Parameters::Accessor& /*parameters*/, IO::DataContainer::Ptr data) const
+    virtual Container::Catalogue::Ptr CreateContainer(const Parameters::Accessor& /*parameters*/, IO::DataContainer::Ptr data) const
     {
-      const TRDos::Catalogue::Ptr files = ParseZXZipFile(*Decoder, data);
-      return files->GetFilesCount()
+      const Container::Catalogue::Ptr files = ParseZXZipFile(*Decoder, data);
+      return files && files->GetFilesCount()
         ? files
-        : TRDos::Catalogue::Ptr();
+        : Container::Catalogue::Ptr();
     }
   private:
     const Plugin::Ptr Description;
