@@ -172,6 +172,9 @@ extern const Char VORTEX_EDITOR[] = {
   'V','o','r','t','e','x','T','r','a','c','k','e','r',' ','(','P','r','o','T','r','a','c','k','e','r',' ','v',
   '%','1','%','.','%','2','%',' ','c','o','m','p','a','t','i','b','l','e',')',0
 };
+extern const Char ZIP_PLUGIN_INFO[] = {
+  'Z','I','P',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
+};
 extern const Char ZXZIP_PLUGIN_INFO[] = {
   'Z','X','Z','i','p',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
 };

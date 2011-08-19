@@ -54,6 +54,7 @@ extern const Char TS_PLUGIN_INFO[];
 extern const Char TXT_ERROR_INVALID_STRING[];
 extern const Char TXT_PLUGIN_INFO[];
 extern const Char VORTEX_EDITOR[];
+extern const Char ZIP_PLUGIN_INFO[];
 extern const Char ZXZIP_PLUGIN_INFO[];
 }//namespace Text
 #endif //__TEXT_PLUGINS_H_DEFINED__
