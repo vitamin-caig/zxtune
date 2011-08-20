@@ -152,9 +152,14 @@ namespace
 
     virtual void SetItem(const Playlist::Item::Data& item)
     {
+      const ZXTune::Module::Holder::Ptr module = item.GetModule();
+      if (!module)
+      {
+        return;
+      }
       Stop();
       Backend.reset();
-      Backend = CreateBackend(Params, item.GetModule());
+      Backend = CreateBackend(Params, module);
       if (Backend)
       {
         OnSetBackend(Backend);
