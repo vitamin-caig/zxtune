@@ -97,18 +97,15 @@ namespace
 
     virtual DataLocation::Ptr Open(const Parameters::Accessor& commonParams, DataLocation::Ptr location, const DataPath& inPath) const
     {
-      const String& pathComp = inPath.GetFirstComponent();
-      if (pathComp.empty())
-      {
-        return DataLocation::Ptr();
-      }
       const IO::DataContainer::Ptr inData = location->GetData();
       if (const Container::Catalogue::Ptr files = Factory->CreateContainer(commonParams, inData))
       {
-        if (const Container::File::Ptr fileToOpen = files->FindFile(pathComp))
+        if (const Container::File::Ptr fileToOpen = files->FindFile(inPath))
         {
-          const IO::DataContainer::Ptr subData = fileToOpen->GetData();
-          return CreateNestedLocation(location, subData, Description, pathComp); 
+          if (const IO::DataContainer::Ptr subData = fileToOpen->GetData())
+          {
+            return CreateNestedLocation(location, subData, Description, fileToOpen->GetName());
+          }
         }
       }
       return DataLocation::Ptr();

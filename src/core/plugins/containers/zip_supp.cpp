@@ -13,6 +13,7 @@ Author:
 //local includes
 #include "container_supp_common.h"
 #include "core/plugins/registrator.h"
+#include "core/src/path.h"
 //common includes
 #include <byteorder.h>
 #include <logging.h>
@@ -418,13 +419,32 @@ namespace
       return Files.size();
     }
 
-    virtual Container::File::Ptr FindFile(const String& name) const
+    virtual Container::File::Ptr FindFile(const DataPath& path) const
     {
-      if (Container::File::Ptr file = FindCachedFile(name))
+      const String inPath = path.AsString();
+      const String firstComponent = path.GetFirstComponent();
+      if (inPath == firstComponent)
       {
-        return file;
+        return FindFile(firstComponent);
       }
-      return FindNonCachedFile(name);
+      Log::Debug(THIS_MODULE, "Opening '%1%'", inPath);
+      DataPath::Ptr resolved = CreateDataPath(firstComponent);
+      for (;;)
+      {
+        const String filename = resolved->AsString();
+        Log::Debug(THIS_MODULE, "Trying '%1%'", filename);
+        if (Container::File::Ptr file = FindFile(filename))
+        {
+          Log::Debug(THIS_MODULE, "Found");
+          return file;
+        }
+        if (filename == inPath)
+        {
+          return Container::File::Ptr();
+        }
+        const DataPath::Ptr unresolved = SubstractDataPath(path, *resolved);
+        resolved = CreateMergedDataPath(resolved, unresolved->GetFirstComponent());
+      }
     }
 
     virtual std::size_t GetSize() const
@@ -437,6 +457,15 @@ namespace
     void FillCache() const
     {
       FindNonCachedFile(String());
+    }
+
+    Container::File::Ptr FindFile(const String& name) const
+    {
+      if (Container::File::Ptr file = FindCachedFile(name))
+      {
+        return file;
+      }
+      return FindNonCachedFile(name);
     }
 
     Container::File::Ptr FindCachedFile(const String& name) const

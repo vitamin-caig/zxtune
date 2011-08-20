@@ -21,6 +21,11 @@ Author:
 //boost includes
 #include <boost/shared_ptr.hpp>
 
+namespace ZXTune
+{
+  class DataPath;
+}
+
 namespace Container
 {
   class File
@@ -44,7 +49,7 @@ namespace Container
 
     virtual Iterator::Ptr GetFiles() const = 0;
     virtual uint_t GetFilesCount() const = 0;
-    virtual File::Ptr FindFile(const String& name) const = 0;
+    virtual File::Ptr FindFile(const ZXTune::DataPath& path) const = 0;
     virtual std::size_t GetSize() const = 0;
   };
 }

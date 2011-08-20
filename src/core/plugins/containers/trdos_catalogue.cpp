@@ -11,7 +11,8 @@ Author:
 
 //local includes
 #include "trdos_catalogue.h"
-#include <core/plugins/utils.h>
+#include "core/plugins/utils.h"
+#include "core/src/path.h"
 //common includes
 #include <format.h>
 //std includes
@@ -60,19 +61,14 @@ namespace
   {
   public:
     FixedNameFile(const String& newName, File::Ptr delegate)
-      : NewName(newName)
+      : FixedName(newName)
       , Delegate(delegate)
     {
     }
 
     virtual String GetName() const
     {
-      return NewName;
-    }
-
-    virtual std::size_t GetOffset() const
-    {
-      return Delegate->GetOffset();
+      return FixedName;
     }
 
     virtual std::size_t GetSize() const
@@ -84,8 +80,13 @@ namespace
     {
       return Delegate->GetData();
     }
+
+    virtual std::size_t GetOffset() const
+    {
+      return Delegate->GetOffset();
+    }
   private:
-    const String NewName;
+    const String FixedName;
     const File::Ptr Delegate;
   };
 
@@ -173,9 +174,14 @@ namespace
       return static_cast<uint_t>(Files.size());
     }
 
-    virtual Container::File::Ptr FindFile(const String& name) const
+    virtual Container::File::Ptr FindFile(const DataPath& path) const
     {
-      const FilesList::const_iterator it = std::find_if(Files.begin(), Files.end(), boost::bind(&File::GetName, _1) == name);
+      const String filename = path.GetFirstComponent();
+      if (filename.empty())
+      {
+        return Container::File::Ptr();
+      }
+      const FilesList::const_iterator it = std::find_if(Files.begin(), Files.end(), boost::bind(&File::GetName, _1) == filename);
       if (it == Files.end())
       {
         return Container::File::Ptr();
