@@ -77,9 +77,14 @@ namespace
   using namespace Parameters;
   class MergedModuleProperties : public Accessor
   {
-    static void MergeString(String& lh, const String& rh)
+    static bool IsSingleProperty(const NameType& propName)
     {
-      if (lh != rh)
+      return propName == Parameters::ZXTune::Core::AYM::TABLE;
+    }
+
+    static void MergeStringProperty(const NameType& propName, String& lh, const String& rh)
+    {
+      if (!IsSingleProperty(propName) && lh != rh)
       {
         lh += '/';
         lh += rh;
@@ -111,7 +116,7 @@ namespace
         }
         else
         {
-          MergeString(it->second, val);
+          MergeStringProperty(name, it->second, val);
         }
       }
 
@@ -153,7 +158,7 @@ namespace
       const bool res2 = Second->FindStringValue(name, val2);
       if (res1 && res2)
       {
-        MergeString(val1, val2);
+        MergeStringProperty(name, val1, val2);
         val = val1;
       }
       else if (res1 != res2)

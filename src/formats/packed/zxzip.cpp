@@ -518,15 +518,17 @@ namespace ZXZip
           }
           else
           {
-            const bool isFree = tree[code].IsFree;
+            const bool isFree = tree.at(code).IsFree;
             Dump substring(isFree ? 1 : 0);
-            for (uint_t curCode = isFree ? oldCode : code; curCode != LZWEntry::LIMITER; curCode = tree[curCode].Parent)
+            for (uint_t curCode = isFree ? oldCode : code; curCode != LZWEntry::LIMITER; )
             {
-              if (curCode >= tree.size() || curCode == tree[curCode].Parent || substring.size() > tree.size())
+              const LZWEntry& curEntry = tree.at(curCode);
+              if (curCode == curEntry.Parent || substring.size() > tree.size())
               {
                 throw std::exception();
               }
-              substring.push_back(tree[curCode].Value);
+              substring.push_back(curEntry.Value);
+              curCode = curEntry.Parent;
             }
             if (isFree)
             {
