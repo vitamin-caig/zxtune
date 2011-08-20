@@ -11,6 +11,7 @@ Author:
 
 //local includes
 #include "container_supp_common.h"
+#include "trdos_catalogue.h"
 #include "trdos_utils.h"
 #include "core/plugins/registrator.h"
 //library includes
@@ -52,7 +53,7 @@ namespace
 
   Container::Catalogue::Ptr ParseZXZipFile(const Formats::Packed::Decoder& decoder, IO::DataContainer::Ptr data)
   {
-    Container::CatalogueBuilder::Ptr builder = Container::CatalogueBuilder::CreateGeneric();
+    TRDos::CatalogueBuilder::Ptr builder = TRDos::CatalogueBuilder::CreateGeneric();
     const uint8_t* const archData = static_cast<const uint8_t*>(data->Data());
     const std::size_t archSize = data->Size();
     std::size_t rawOffset = 0;
@@ -73,7 +74,7 @@ namespace
       const IO::DataContainer::Ptr fileData = IO::CreateDataContainer(decoded);
       const String fileName = ExtractFileName(rawData);
       const std::size_t fileSize = fileData->Size();
-      const Container::File::Ptr file = Container::File::Create(fileData, fileName, flatOffset, fileSize);
+      const TRDos::File::Ptr file = TRDos::File::Create(fileData, fileName, flatOffset, fileSize);
       builder->AddFile(file);
       rawOffset += usedSize;
       flatOffset += fileSize;

@@ -90,7 +90,7 @@ namespace
             }
           }
         }
-        return DetectionResult::CreateMatched(files->GetUsedSize());
+        return DetectionResult::CreateMatched(files->GetSize());
       }
       return DetectionResult::CreateUnmatched(Factory->GetFormat(), rawData);
     }

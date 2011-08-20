@@ -11,6 +11,7 @@ Author:
 
 //local includes
 #include "container_supp_common.h"
+#include "trdos_catalogue.h"
 #include "trdos_utils.h"
 #include "core/plugins/registrator.h"
 //common includes
@@ -140,7 +141,7 @@ namespace
       return Container::Catalogue::Ptr();
     }
 
-    const Container::CatalogueBuilder::Ptr builder = Container::CatalogueBuilder::CreateFlat(data);
+    const TRDos::CatalogueBuilder::Ptr builder = TRDos::CatalogueBuilder::CreateFlat(data);
 
     const ServiceSector* const sector = safe_ptr_cast<const ServiceSector*>(data->Data()) + SERVICE_SECTOR_NUM;
     uint_t deleted = 0;
@@ -160,7 +161,7 @@ namespace
         {
           entryName.insert(0, 1, '~');
         }
-        const Container::File::Ptr newOne = Container::File::CreateReference(entryName, catEntry->Offset(), catEntry->Size());
+        const TRDos::File::Ptr newOne = TRDos::File::CreateReference(entryName, catEntry->Offset(), catEntry->Size());
         builder->AddFile(newOne);
       }
     }

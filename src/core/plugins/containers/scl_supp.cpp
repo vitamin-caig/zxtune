@@ -11,6 +11,7 @@ Author:
 
 //local includes
 #include "container_supp_common.h"
+#include "trdos_catalogue.h"
 #include "trdos_utils.h"
 #include "core/plugins/registrator.h"
 //common includes
@@ -116,7 +117,7 @@ namespace
     }
     const SCLHeader* const header = safe_ptr_cast<const SCLHeader*>(data->Data());
 
-    const Container::CatalogueBuilder::Ptr builder = Container::CatalogueBuilder::CreateFlat(data);
+    const TRDos::CatalogueBuilder::Ptr builder = TRDos::CatalogueBuilder::CreateFlat(data);
     std::size_t offset = safe_ptr_cast<const uint8_t*>(header->Blocks + header->BlocksCount) -
                     safe_ptr_cast<const uint8_t*>(header);
     for (uint_t idx = 0; idx != header->BlocksCount; ++idx)
@@ -124,7 +125,7 @@ namespace
       const SCLEntry& entry = header->Blocks[idx];
       const std::size_t nextOffset = offset + entry.Size();
       const String entryName = TRDos::GetEntryName(entry.Name, entry.Type);
-      const Container::File::Ptr newOne = Container::File::CreateReference(entryName, offset, entry.Size());
+      const TRDos::File::Ptr newOne = TRDos::File::CreateReference(entryName, offset, entry.Size());
       builder->AddFile(newOne);
       offset = nextOffset;
     }

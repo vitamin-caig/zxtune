@@ -1,6 +1,6 @@
 /*
 Abstract:
-  TrDOS utils implementation
+  TrDOS catalogue support
 
 Last changed:
   $Id$
@@ -10,8 +10,7 @@ Author:
 */
 
 //local includes
-#include "container_catalogue.h"
-#include "trdos_utils.h"
+#include "trdos_catalogue.h"
 #include <core/plugins/utils.h>
 //common includes
 #include <format.h>
@@ -24,7 +23,28 @@ Author:
 namespace
 {
   using namespace ZXTune;
-  using namespace Container;
+  using namespace TRDos;
+
+  bool AreFilesMergeable(const File& lh, const File& rh)
+  {
+    const std::size_t firstSize = lh.GetSize();
+    //merge if files are sequental
+    if (lh.GetOffset() + firstSize != rh.GetOffset())
+    {
+      return false;
+    }
+    //and previous file size is multiplication of 255 sectors
+    if (0 == (firstSize % 0xff00))
+    {
+      return true;
+    }
+    //xxx.x and
+    //xxx    '.x should be merged
+    static const Char SATTELITE_SEQ[] = {'\'', '.', '\0'};
+    const String::size_type apPos(rh.GetName().find(SATTELITE_SEQ));
+    return apPos != String::npos &&
+      (firstSize == 0xc300 && rh.GetSize() == 0xc000); //PDT sattelites sizes
+  }
 
   typedef std::vector<File::Ptr> FilesList;
 
@@ -102,7 +122,7 @@ namespace
     unsigned Idx;
   };
 
-  class FilesIterator : public Catalogue::Iterator
+  class FilesIterator : public Container::Catalogue::Iterator
   {
   public:
     explicit FilesIterator(const FilesList& files)
@@ -116,7 +136,7 @@ namespace
       return Current != Limit;
     }
 
-    virtual File::Ptr Get() const
+    virtual Container::File::Ptr Get() const
     {
       assert(IsValid());
       return *Current;
@@ -132,7 +152,7 @@ namespace
     const FilesList::const_iterator Limit;
   };
 
-  class CommonCatalogue : public Catalogue
+  class CommonCatalogue : public Container::Catalogue
   {
   public:
     template<class T>
@@ -153,17 +173,17 @@ namespace
       return static_cast<uint_t>(Files.size());
     }
 
-    virtual File::Ptr FindFile(const String& name) const
+    virtual Container::File::Ptr FindFile(const String& name) const
     {
       const FilesList::const_iterator it = std::find_if(Files.begin(), Files.end(), boost::bind(&File::GetName, _1) == name);
       if (it == Files.end())
       {
-        return File::Ptr();
+        return Container::File::Ptr();
       }
       return *it;
     }
 
-    virtual std::size_t GetUsedSize() const
+    virtual std::size_t GetSize() const
     {
       return UsedSize;
     }
@@ -195,15 +215,15 @@ namespace
       }
     }
 
-    virtual Catalogue::Ptr GetResult() const
+    virtual Container::Catalogue::Ptr GetResult() const
     {
       if (UsedSize && !Files.empty())
       {
-        return Catalogue::Ptr(new CommonCatalogue(Files.begin(), Files.end(), UsedSize));
+        return Container::Catalogue::Ptr(new CommonCatalogue(Files.begin(), Files.end(), UsedSize));
       }
       else
       {
-        return Catalogue::Ptr();
+        return Container::Catalogue::Ptr();
       }
     }
   protected:
@@ -340,7 +360,7 @@ namespace
 
     virtual bool Merge(File::Ptr rh)
     {
-      if (TRDos::AreFilesMergeable(*Subfiles.back(), *rh))
+      if (AreFilesMergeable(*Subfiles.back(), *rh))
       {
         Subfiles.push_back(rh);
         return true;
@@ -430,7 +450,7 @@ namespace
 
     virtual bool Merge(File::Ptr rh)
     {
-      if (TRDos::AreFilesMergeable(*this, *rh))
+      if (AreFilesMergeable(*this, *rh))
       {
         Size += rh->GetSize();
         return true;
@@ -461,7 +481,7 @@ namespace
   };
 }
 
-namespace Container
+namespace TRDos
 {
   File::Ptr File::Create(ZXTune::IO::DataContainer::Ptr data, const String& name, std::size_t off, std::size_t size)
   {

@@ -278,10 +278,10 @@ namespace
     const LocalFileHeader& Header;
   };
 
-  class FileIterator
+  class ZipIterator
   {
   public:
-    explicit FileIterator(IO::DataContainer::Ptr data)
+    explicit ZipIterator(IO::DataContainer::Ptr data)
       : Data(data)
       , Limit(Data->Size())
       , Offset(0)
@@ -367,25 +367,128 @@ namespace
     std::size_t Offset;
   };
 
-  Container::Catalogue::Ptr ParseZipFile(IO::DataContainer::Ptr data)
+  template<class It>
+  class ZipFilesIterator : public Container::Catalogue::Iterator
   {
-    Container::CatalogueBuilder::Ptr builder = Container::CatalogueBuilder::CreateGeneric();
-    FileIterator iter(data);
-    for (; !iter.IsEof(); iter.Next())
+  public:
+    ZipFilesIterator(It begin, It limit)
+      : Current(begin)
+      , Limit(limit)
     {
-      const String fileName = iter.GetName();
-      if (!iter.IsValid())
-      {
-        Log::Debug(THIS_MODULE, "Invalid file '%1%'", fileName);
-        continue;
-      }
-      Log::Debug(THIS_MODULE, "Found file '%1%'", fileName);
-      const Container::File::Ptr file = iter.GetFile();
-      builder->AddFile(file);
     }
-    builder->SetUsedSize(iter.GetOffset());
-    return builder->GetResult();
-  }
+
+    virtual bool IsValid() const
+    {
+      return Current != Limit;
+    }
+
+    virtual Container::File::Ptr Get() const
+    {
+      assert(IsValid());
+      return Current->second;
+    }
+
+    virtual void Next()
+    {
+      assert(IsValid());
+      ++Current;
+    }
+  private:
+    It Current;
+    const It Limit;
+  };
+
+  class ZipCatalogue : public Container::Catalogue
+  {
+  public:
+    explicit ZipCatalogue(IO::DataContainer::Ptr data)
+      : Data(data)
+    {
+    }
+
+    virtual Iterator::Ptr GetFiles() const
+    {
+      FillCache();
+      return Iterator::Ptr(new ZipFilesIterator<FilesMap::const_iterator>(Files.begin(), Files.end()));
+    }
+
+    virtual uint_t GetFilesCount() const
+    {
+      FillCache();
+      return Files.size();
+    }
+
+    virtual Container::File::Ptr FindFile(const String& name) const
+    {
+      if (Container::File::Ptr file = FindCachedFile(name))
+      {
+        return file;
+      }
+      return FindNonCachedFile(name);
+    }
+
+    virtual std::size_t GetSize() const
+    {
+      FillCache();
+      assert(Iter->IsEof());
+      return Iter->GetOffset();
+    }
+  private:
+    void FillCache() const
+    {
+      FindNonCachedFile(String());
+    }
+
+    Container::File::Ptr FindCachedFile(const String& name) const
+    {
+      if (Iter.get())
+      {
+        const FilesMap::const_iterator it = Files.find(name);
+        if (it != Files.end())
+        {
+          return it->second;
+        }
+      }
+      return Container::File::Ptr();
+    }
+
+    Container::File::Ptr FindNonCachedFile(const String& name) const
+    {
+      CreateIterator();
+      while (!Iter->IsEof())
+      {
+        const String fileName = Iter->GetName();
+        if (!Iter->IsValid())
+        {
+          Log::Debug(THIS_MODULE, "Invalid file '%1%'", fileName);
+          Iter->Next();
+          continue;
+        }
+        Log::Debug(THIS_MODULE, "Found file '%1%'", fileName);
+        const Container::File::Ptr fileObject = Iter->GetFile();
+        Iter->Next();
+        Files.insert(FilesMap::value_type(fileName, fileObject));
+        if (fileName == name)
+        {
+          return fileObject;
+        }
+      }
+      return Container::File::Ptr();
+    }
+
+    void CreateIterator() const
+    {
+      if (!Iter.get())
+      {
+        Iter.reset(new ZipIterator(Data));
+      }
+    }
+  private:
+    const IO::DataContainer::Ptr Data;
+    mutable std::auto_ptr<ZipIterator> Iter;
+    typedef std::map<String, Container::File::Ptr> FilesMap;
+    mutable FilesMap Files;
+  };
 
   const std::string ZIP_FORMAT(
     "504b0304"      //uint32_t Signature;
@@ -409,7 +512,9 @@ namespace
 
     virtual Container::Catalogue::Ptr CreateContainer(const Parameters::Accessor& /*parameters*/, IO::DataContainer::Ptr data) const
     {
-      return ParseZipFile(data);
+      return Format->Match(data->Data(), data->Size())
+        ? boost::make_shared<ZipCatalogue>(data)
+        : Container::Catalogue::Ptr();
     }
   private:
     const DataFormat::Ptr Format;

@@ -11,6 +11,7 @@ Author:
 
 //local includes
 #include "container_supp_common.h"
+#include "trdos_catalogue.h"
 #include "trdos_utils.h"
 #include "core/plugins/registrator.h"
 #include "core/src/core.h"
@@ -149,7 +150,7 @@ namespace
 
   typedef std::vector<const HripBlockHeader*> HripBlockHeadersList;
 
-  class HripFile : public Container::File
+  class HripFile : public TRDos::File
   {
   public:
     HripFile(DataSource::Ptr data, std::size_t offset, const HripBlockHeadersList& blocks, bool ignoreCorrupted)
@@ -267,7 +268,7 @@ namespace
     }
     const bool ignoreCorrupted = CheckIgnoreCorrupted(params);
 
-    const Container::CatalogueBuilder::Ptr builder = Container::CatalogueBuilder::CreateGeneric();
+    const TRDos::CatalogueBuilder::Ptr builder = TRDos::CatalogueBuilder::CreateGeneric();
     const DataSource::Ptr source = boost::make_shared<DataSource>(data);
 
     std::size_t flatOffset = 0;
@@ -301,9 +302,9 @@ namespace
       {
         continue;
       }
-      std::auto_ptr<Container::File> file(new HripFile(source, flatOffset, blocks, ignoreCorrupted));
+      const TRDos::File::Ptr file = boost::make_shared<HripFile>(source, flatOffset, blocks, ignoreCorrupted);
       flatOffset += file->GetSize();
-      builder->AddFile(Container::File::Ptr(file.release()));
+      builder->AddFile(file);
     }
     builder->SetUsedSize(archiveSize);
     return builder->GetResult();
