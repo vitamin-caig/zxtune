@@ -522,7 +522,7 @@ namespace ZXZip
             Dump substring(isFree ? 1 : 0);
             for (uint_t curCode = isFree ? oldCode : code; curCode != LZWEntry::LIMITER; curCode = tree[curCode].Parent)
             {
-              if (curCode == tree[curCode].Parent || substring.size() > tree.size())
+              if (curCode >= tree.size() || curCode == tree[curCode].Parent || substring.size() > tree.size())
               {
                 throw std::exception();
               }
