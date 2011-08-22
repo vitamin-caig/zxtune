@@ -170,6 +170,10 @@ namespace
         break;
       }
     }
+    if (!result->GetSize())
+    {
+      return PSGData::Ptr();
+    }
     result->SetUsedSize(data.Size() - size);
     return result;
   }
@@ -331,12 +335,14 @@ namespace
       {
         assert(Check(*data));
 
-        const PSGData::Ptr parsedData = ParsePSG(data);
-        usedSize = parsedData->GetDataSize();
-        properties->SetSource(parsedData->GetDataSize(), parsedData->GetFixedRegion());
+        if (const PSGData::Ptr parsedData = ParsePSG(data))
+        {
+          usedSize = parsedData->GetDataSize();
+          properties->SetSource(parsedData->GetDataSize(), parsedData->GetFixedRegion());
 
-        const AYM::Chiptune::Ptr chiptune = boost::make_shared<PSGChiptune>(parsedData, properties);
-        return AYM::CreateHolder(chiptune, parameters);
+          const AYM::Chiptune::Ptr chiptune = boost::make_shared<PSGChiptune>(parsedData, properties);
+          return AYM::CreateHolder(chiptune, parameters);
+        }
       }
       catch (const Error&/*e*/)
       {

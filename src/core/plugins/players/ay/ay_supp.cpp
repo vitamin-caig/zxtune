@@ -21,6 +21,7 @@ Author:
 //common includes
 #include <byteorder.h>
 #include <format.h>
+#include <range_checker.h>
 #include <tools.h>
 #include <logging.h>
 //library includes
@@ -502,46 +503,78 @@ namespace
 
   std::size_t ParseAY(uint_t idx, const IO::FastDump& data, AYDataTarget& target)
   {
-    const uint8_t* lastUsed = &data[0];
+    const uint8_t* const start = &data[0];
     const uint8_t* const limit = &data[0] + data.Size();
     const AYHeader& header = *safe_ptr_cast<const AYHeader*>(&data[0]);
     if (idx > header.LastModuleIndex)
     {
       return 0;
     }
-    const ModuleDescription& description = GetPointer<ModuleDescription>(&header.DescriptionsOffset)[idx];
+    const RangeChecker::Ptr checker = RangeChecker::CreateShared(data.Size());
+    checker->AddRange(0, sizeof(header));
+    const ModuleDescription* const descriptions = GetPointer<ModuleDescription>(&header.DescriptionsOffset);
+    if (!checker->AddRange(safe_ptr_cast<const uint8_t*>(descriptions) - start, (idx + 1) * sizeof(ModuleDescription)))
+    {
+      return 0;
+    }
+    const ModuleDescription& description = descriptions[idx];
     {
       const uint8_t* const titleBegin = GetPointer<uint8_t>(&description.TitleOffset);
       const uint8_t* const titleEnd = std::find(titleBegin, limit, 0);
+      if (!checker->AddRange(titleBegin - start, titleEnd - titleBegin + 1))
+      {
+        return 0;
+      }
       target.SetTitle(OptimizeString(String(titleBegin, titleEnd)));
-      lastUsed = std::max(lastUsed, titleEnd);
     }
     {
       const uint8_t* const authorBegin = GetPointer<uint8_t>(&header.AuthorOffset);
       const uint8_t* const authorEnd = std::find(authorBegin, limit, 0);
+      if (!checker->AddRange(authorBegin - start, authorEnd - authorBegin + 1))
+      {
+        return 0;
+      }
       target.SetAuthor(OptimizeString(String(authorBegin, authorEnd)));
-      lastUsed = std::max(lastUsed, authorEnd);
     }
     {
       const uint8_t* const miscBegin = GetPointer<uint8_t>(&header.MiscOffset);
       const uint8_t* const miscEnd = std::find(miscBegin, limit, 0);
+      if (!checker->AddRange(miscBegin - start, miscEnd - miscBegin + 1))
+      {
+        return 0;
+      }
       target.SetComment(OptimizeString(String(miscBegin, miscEnd)));
-      lastUsed = std::max(lastUsed, miscEnd);
     }
-    const ModuleDataEMUL& moddata = *GetPointer<ModuleDataEMUL>(&description.DataOffset);
-    if (moddata.TotalLength)
+    const ModuleDataEMUL* const moddata = GetPointer<ModuleDataEMUL>(&description.DataOffset);
+    if (!checker->AddRange(safe_ptr_cast<const uint8_t*>(moddata) - start, sizeof(*moddata)))
     {
-      target.SetDuration(fromBE(moddata.TotalLength));
+      return 0;
     }
-    const ModuleBlockEMUL* block = GetPointer<ModuleBlockEMUL>(&moddata.BlocksOffset);
+    if (moddata->TotalLength)
     {
-      const ModulePointersEMUL& modptrs = *GetPointer<ModulePointersEMUL>(&moddata.PointersOffset);
-      target.SetRegisters(fromBE(moddata.RegValue), fromBE(modptrs.SP));
-      target.SetRoutines(fromBE(modptrs.InitAddr ? modptrs.InitAddr : block->Address), fromBE(modptrs.PlayAddr));
+      target.SetDuration(fromBE(moddata->TotalLength));
+    }
+    const ModuleBlockEMUL* block = GetPointer<ModuleBlockEMUL>(&moddata->BlocksOffset);
+    if (!checker->AddRange(safe_ptr_cast<const uint8_t*>(block) - start, sizeof(*block)))
+    {
+      return 0;
+    }
+    {
+      const ModulePointersEMUL* const modptrs = GetPointer<ModulePointersEMUL>(&moddata->PointersOffset);
+      if (!checker->AddRange(safe_ptr_cast<const uint8_t*>(modptrs) - start, sizeof(*modptrs)))
+      {
+        return 0;
+      }
+      target.SetRegisters(fromBE(moddata->RegValue), fromBE(modptrs->SP));
+      target.SetRoutines(fromBE(modptrs->InitAddr ? modptrs->InitAddr : block->Address), fromBE(modptrs->PlayAddr));
       for (; block->Address; ++block)
       {
+        if (!checker->AddRange(safe_ptr_cast<const uint8_t*>(block) - start, sizeof(*block)))
+        {
+          return 0;
+        }
         const uint8_t* const src = GetPointer<uint8_t>(&block->Offset);
-        const std::size_t offset = src - &data[0];
+        const std::size_t offset = src - start;
         if (offset >= data.Size())
         {
           continue;
@@ -549,11 +582,14 @@ namespace
         const std::size_t size = fromBE(block->Size);
         const uint16_t addr = fromBE(block->Address);
         const std::size_t toCopy = std::min(size, data.Size() - offset);
+        if (!checker->AddRange(src - start, toCopy))
+        {
+          return 0;
+        }
         target.AddBlock(addr, src, toCopy);
-        lastUsed = std::max(lastUsed, src + toCopy);
       }
     }
-    return lastUsed - &data[0];
+    return checker->GetAffectedRange().second;
   }
 
   const uint8_t IM1_PLAYER_TEMPLATE[] = 
@@ -997,11 +1033,11 @@ namespace
       pointers->PlayAddr = fromBE(PlayRoutine);
       //init blocks
       std::list<ModuleBlockEMUL*> blockPtrs;
-      for (BlocksList::const_iterator it = Blocks.begin(), lim = Blocks.end(); it != lim; ++it)
+      //all blocks + limiter
+      for (uint_t block = 0; block != Blocks.size() + 1; ++block)
       {
         blockPtrs.push_back(result.Add(ModuleBlockEMUL()));
       }
-      result.Add(ModuleBlockEMUL());//limiter
       SetPointer(&data->BlocksOffset, blockPtrs.front());
       //fill blocks
       for (BlocksList::const_iterator it = Blocks.begin(), lim = Blocks.end(); it != lim; ++it, blockPtrs.pop_front())

@@ -221,7 +221,10 @@ namespace ZXTune
 
         const Line* GetLine(uint_t row) const
         {
-          assert(row < Size);
+          if (row >= Size)
+          {
+            return 0;
+          }
           const typename LinesList::const_iterator it = std::lower_bound(Lines.begin(), Lines.end(), LineWithNumber(row));
           return it == Lines.end() || it->Number != row
             ? 0

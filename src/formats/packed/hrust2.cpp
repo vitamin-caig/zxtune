@@ -149,6 +149,11 @@ namespace Hrust2
       {
         return false;
       }
+      if (0 != (header.Flag & header.NO_COMPRESSION) &&
+          header.PackedSize != header.DataSize)
+      {
+        return false;
+      }
       const std::size_t usedSize = GetUsedSize();
       return in_range(usedSize, sizeof(header), Size);
     }

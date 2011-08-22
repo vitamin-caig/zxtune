@@ -46,7 +46,7 @@ namespace
     const IO::DataContainer::Ptr rawData = inputData->GetData();
     std::size_t packedSize = 0;
     std::auto_ptr<Dump> res = decoder.Decode(rawData->Data(), rawData->Size(), packedSize);
-    if (res.get())
+    if (res.get() && !res->empty())
     {
       const ZXTune::Module::NoProgressDetectCallbackAdapter noProgressCallback(callback);
       const IO::DataContainer::Ptr subData = IO::CreateDataContainer(res);
