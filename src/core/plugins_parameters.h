@@ -77,6 +77,22 @@ namespace Parameters
           };
           //@}
         }
+
+        //! @brief ZIP container parameters namespace
+        namespace ZIP
+        {
+          //@{
+          //! @name Maximal file size to be depacked in Mb
+
+          //! Default value
+          const IntType MAX_DEPACKED_FILE_SIZE_MB_DEFAULT = 32;
+          //! Parameter name
+          const Char MAX_DEPACKED_FILE_SIZE_MB[] =
+          {
+            'z','x','t','u','n','e','.','c','o','r','e','.','p','l','u','g','i','n','s','.','z','i','p','.','m','a','x','_','d','e','p','a','c','k','e','d','_','s','i','z','e','_','m','b','\0'
+          };
+          //@}
+        }
       }
     }
   }

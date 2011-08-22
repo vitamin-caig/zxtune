@@ -20,7 +20,10 @@ Author:
 #include <tools.h>
 //library includes
 #include <core/plugin_attrs.h>
+#include <core/plugins_parameters.h>
 #include <formats/packed_decoders.h>
+//std includes
+#include <numeric>
 //boost includes
 #include <boost/make_shared.hpp>
 //text includes
@@ -402,8 +405,9 @@ namespace
   class ZipCatalogue : public Container::Catalogue
   {
   public:
-    explicit ZipCatalogue(IO::DataContainer::Ptr data)
+    ZipCatalogue(std::size_t maxFileSize, IO::DataContainer::Ptr data)
       : Data(data)
+      , MaxFileSize(maxFileSize)
     {
     }
 
@@ -496,6 +500,11 @@ namespace
         Log::Debug(THIS_MODULE, "Found file '%1%'", fileName);
         const Container::File::Ptr fileObject = Iter->GetFile();
         Iter->Next();
+        if (fileObject->GetSize() > MaxFileSize)
+        {
+          Log::Debug(THIS_MODULE, "File is too big (%1% bytes)", fileObject->GetSize());
+          continue;
+        }
         Files.insert(FilesMap::value_type(fileName, fileObject));
         if (fileName == name)
         {
@@ -514,6 +523,7 @@ namespace
     }
   private:
     const IO::DataContainer::Ptr Data;
+    const std::size_t MaxFileSize;
     mutable std::auto_ptr<ZipIterator> Iter;
     typedef std::map<String, Container::File::Ptr> FilesMap;
     mutable FilesMap Files;
@@ -539,11 +549,20 @@ namespace
       return Format;
     }
 
-    virtual Container::Catalogue::Ptr CreateContainer(const Parameters::Accessor& /*parameters*/, IO::DataContainer::Ptr data) const
+    virtual Container::Catalogue::Ptr CreateContainer(const Parameters::Accessor& parameters, IO::DataContainer::Ptr data) const
     {
-      return Format->Match(data->Data(), data->Size())
-        ? boost::make_shared<ZipCatalogue>(data)
-        : Container::Catalogue::Ptr();
+      if (!Format->Match(data->Data(), data->Size()))
+      {
+        return Container::Catalogue::Ptr();
+      }
+      Parameters::IntType maxFileSize = Parameters::ZXTune::Core::Plugins::ZIP::MAX_DEPACKED_FILE_SIZE_MB_DEFAULT;
+      parameters.FindIntValue(Parameters::ZXTune::Core::Plugins::ZIP::MAX_DEPACKED_FILE_SIZE_MB, maxFileSize);
+      maxFileSize *= 1 << 20;
+      if (maxFileSize > std::numeric_limits<std::size_t>::max())
+      {
+        maxFileSize = std::numeric_limits<std::size_t>::max();
+      }
+      return boost::make_shared<ZipCatalogue>(static_cast<std::size_t>(maxFileSize), data);
     }
   private:
     const DataFormat::Ptr Format;
