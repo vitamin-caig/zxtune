@@ -269,6 +269,7 @@ namespace
       OptionDesc(Parameters::ZXTune::Core::Z80::CLOCKRATE,
                  Text::INFO_OPTIONS_CORE_Z80_CLOCKRATE,
                  Parameters::ZXTune::Core::Z80::CLOCKRATE_DEFAULT),
+      //Core plugins options
       OptionDesc(Text::INFO_OPTIONS_CORE_PLUGINS_TITLE, EMPTY,0),
       OptionDesc(Parameters::ZXTune::Core::Plugins::Raw::SCAN_STEP,
                  Text::INFO_OPTIONS_CORE_PLUGINS_RAW_SCAN_STEP,
@@ -281,7 +282,10 @@ namespace
                  EMPTY),
       OptionDesc(Parameters::ZXTune::Core::Plugins::AY::DEFAULT_DURATION_FRAMES,
                  Text::INFO_OPTIONS_CORE_PLUGINS_AY_DEFAULT_DURATION_FRAMES,
-                 Parameters::ZXTune::Core::Plugins::AY::DEFAULT_DURATION_FRAMES_DEFAULT)
+                 Parameters::ZXTune::Core::Plugins::AY::DEFAULT_DURATION_FRAMES_DEFAULT),
+      OptionDesc(Parameters::ZXTune::Core::Plugins::ZIP::MAX_DEPACKED_FILE_SIZE_MB,
+                 Text::INFO_OPTIONS_CORE_PLUGINS_ZIP_MAX_DEPACKED_FILE_SIZE_MB,
+                 Parameters::ZXTune::Core::Plugins::ZIP::MAX_DEPACKED_FILE_SIZE_MB_DEFAULT),
     };
     StdOut << Text::INFO_LIST_OPTIONS_TITLE << std::endl;
     std::for_each(OPTIONS, ArrayEnd(OPTIONS), ShowOption);

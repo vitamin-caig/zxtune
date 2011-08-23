@@ -418,6 +418,10 @@ extern const Char INFO_OPTIONS_CORE_PLUGINS_RAW_SCAN_STEP[] = {
 extern const Char INFO_OPTIONS_CORE_PLUGINS_TITLE[] = {
   ' ','C','o','r','e',' ','p','l','u','g','i','n','s',' ','o','p','t','i','o','n','s',':',0
 };
+extern const Char INFO_OPTIONS_CORE_PLUGINS_ZIP_MAX_DEPACKED_FILE_SIZE_MB[] = {
+  'm','a','x','i','m','a','l',' ','f','i','l','e',' ','s','i','z','e',' ','t','o',' ','b','e',' ','d','e','p',
+  'a','c','k','e','d',' ','f','r','o','m',' ','.','z','i','p',' ','a','r','c','h','i','v','e',0
+};
 extern const Char INFO_OPTIONS_CORE_TITLE[] = {
   ' ','C','o','r','e',' ','o','p','t','i','o','n','s',':',0
 };
