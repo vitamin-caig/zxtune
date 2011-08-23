@@ -103,6 +103,14 @@ namespace
           boost::bind(&QModelIndex::row, _1)));
     }
 
+    virtual void SelectItems(const QSet<unsigned>& indices)
+    {
+      clearSelection();
+      setSelectionMode(QAbstractItemView::MultiSelection);
+      std::for_each(indices.begin(), indices.end(), boost::bind(&QTableView::selectRow, this, _1));
+      setSelectionMode(QAbstractItemView::ExtendedSelection);
+    }
+
     virtual void ActivateTableRow(unsigned index)
     {
       QAbstractItemModel* const curModel = model();

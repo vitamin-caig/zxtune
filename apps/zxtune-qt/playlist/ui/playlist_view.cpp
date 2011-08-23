@@ -105,7 +105,7 @@ namespace
       , Layout(new QVBoxLayout(this))
       , ScannerView(Playlist::UI::ScannerView::Create(*this, Controller->GetScanner()))
       , View(Playlist::UI::TableView::Create(*this, State, Controller->GetModel()))
-      , ItemsMenu(Playlist::UI::ItemsContextMenu::Create(*this, playlist))
+      , ItemsMenu(Playlist::UI::ItemsContextMenu::Create(*View, playlist))
     {
       //setup ui
       setAcceptDrops(true);
@@ -240,12 +240,7 @@ namespace
 
     virtual void contextMenuEvent(QContextMenuEvent* event)
     {
-      QSet<unsigned> items;
-      View->GetSelectedItems(items);
-      if (!items.empty())
-      {
-        ItemsMenu->Exec(items, event->globalPos());
-      }
+      ItemsMenu->Exec(event->globalPos());
     }
 
     virtual void dragEnterEvent(QDragEnterEvent* event)
