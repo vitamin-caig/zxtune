@@ -31,7 +31,7 @@ namespace boost
   }
 }
 
-typedef boost::function<bool(ZXTune::Module::Holder::Ptr)> OnItemCallback;
+typedef boost::function<void(ZXTune::Module::Holder::Ptr)> OnItemCallback;
 
 class SourceComponent
 {

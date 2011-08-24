@@ -391,7 +391,7 @@ namespace
 
       const PluginsEnumerator::Ptr usedPlugins = PluginsEnumerator::Create();
       const DataLocation::Ptr firstSubLocation = CreateNestedLocation(inputData, data->GetSubcontainer(0, firstModuleSize));
-      const Parameters::Accessor::Ptr parameters = callback.CreateModuleParameters(*inputData);
+      const Parameters::Accessor::Ptr parameters = callback.CreateModuleParameters(inputData);
 
       const Module::Holder::Ptr holder1 = Module::Open(firstSubLocation, usedPlugins, parameters);
       if (InvalidHolder(holder1))
@@ -411,7 +411,7 @@ namespace
 
       const Module::Holder::Ptr holder(new TSHolder(Description, tsData, holder1, holder2));
       //TODO: proper data attributes calculation
-      ThrowIfError(callback.ProcessModule(*inputData, holder));
+      callback.ProcessModule(inputData, holder);
       return DetectionResult::CreateMatched(dataSize);
     }
   private:

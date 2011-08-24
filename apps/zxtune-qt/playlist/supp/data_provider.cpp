@@ -419,7 +419,7 @@ namespace
       return CreatePathProperties(DataPath, subPath);
     }
 
-    virtual Error ProcessModule(const String& subPath, ZXTune::Module::Holder::Ptr holder) const
+    virtual void ProcessModule(const String& subPath, ZXTune::Module::Holder::Ptr holder) const
     {
       const Parameters::Container::Ptr adjustedParams = Delegate.CreateInitialAdjustedParameters();
       const Parameters::Accessor::Ptr perItemParameters = Parameters::CreateMergedAccessor(adjustedParams, CoreParams);
@@ -430,7 +430,7 @@ namespace
       const Parameters::Accessor::Ptr lookupModuleProps = Parameters::CreateMergedAccessor(adjustedParams, moduleProps);
       const Playlist::Item::Data::Ptr playitem = boost::make_shared<DataImpl>(Attributes, itemSource, adjustedParams,
         info->FramesCount(), *lookupModuleProps);
-      return Delegate.ProcessItem(playitem) ? Error() : Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
+      Delegate.ProcessItem(playitem);
     }
 
     virtual Log::ProgressCallback* GetProgressCallback() const
@@ -485,7 +485,7 @@ namespace
         const DetectParametersAdapter params(detectParams, Attributes, Provider, CoreParams, dataPath);
         ZXTune::Module::Holder::Ptr result;
         ThrowIfError(ZXTune::OpenModule(CoreParams, data, subPath, result));
-        ThrowIfError(params.ProcessModule(subPath, result));
+        params.ProcessModule(subPath, result);
         return Error();
       }
       catch (const Error& e)

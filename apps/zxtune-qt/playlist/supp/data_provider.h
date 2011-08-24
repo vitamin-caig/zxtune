@@ -28,7 +28,7 @@ namespace Playlist
       virtual ~DetectParameters() {}
 
       virtual Parameters::Container::Ptr CreateInitialAdjustedParameters() const = 0;
-      virtual bool ProcessItem(Data::Ptr item) = 0;
+      virtual void ProcessItem(Data::Ptr item) = 0;
       virtual void ShowProgress(unsigned progress) = 0;
       virtual void ShowMessage(const String& message) = 0;
     };

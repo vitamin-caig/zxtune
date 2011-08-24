@@ -39,11 +39,10 @@ namespace
       return res;
     }
 
-    virtual bool ProcessItem(Playlist::Item::Data::Ptr item)
+    virtual void ProcessItem(Playlist::Item::Data::Ptr item)
     {
       assert(!Item);
       Item = item;
-      return false;
     }
 
     virtual void ShowProgress(unsigned /*progress*/)
@@ -136,7 +135,7 @@ namespace
     Playlist::Item::Data::Ptr OpenItem() const
     {
       CollectorStub collector(*Params);
-      Provider->DetectModules(Path, collector);
+      Provider->OpenModule(Path, collector);
       return collector.GetItem();
     }
 

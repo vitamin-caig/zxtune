@@ -53,15 +53,14 @@ namespace
       return Parameters::Container::Create();
     }
 
-    virtual Parameters::Accessor::Ptr CreateModuleParameters(const DataLocation& /*location*/) const
+    virtual Parameters::Accessor::Ptr CreateModuleParameters(DataLocation::Ptr /*location*/) const
     {
       return ModuleParams;
     }
 
-    virtual Error ProcessModule(const DataLocation& /*location*/, Module::Holder::Ptr holder) const
+    virtual void ProcessModule(DataLocation::Ptr /*location*/, Module::Holder::Ptr holder) const
     {
       Result = holder;
-      return Error();
     }
 
     virtual Log::ProgressCallback* GetProgress() const

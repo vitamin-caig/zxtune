@@ -37,9 +37,9 @@ namespace ZXTune
       //! @brief Returns plugins parameters
       virtual Parameters::Accessor::Ptr GetPluginsParameters() const = 0;
       //! @brief Returns parameters for future module
-      virtual Parameters::Accessor::Ptr CreateModuleParameters(const DataLocation& location) const = 0;
+      virtual Parameters::Accessor::Ptr CreateModuleParameters(DataLocation::Ptr location) const = 0;
       //! @brief Process module
-      virtual Error ProcessModule(const DataLocation& location, Module::Holder::Ptr holder) const = 0;
+      virtual void ProcessModule(DataLocation::Ptr location, Module::Holder::Ptr holder) const = 0;
       //! @brief Logging callback
       virtual Log::ProgressCallback* GetProgress() const = 0;
     };
@@ -63,12 +63,12 @@ namespace ZXTune
         return Delegate.GetPluginsParameters();
       }
 
-      virtual Parameters::Accessor::Ptr CreateModuleParameters(const DataLocation& location) const
+      virtual Parameters::Accessor::Ptr CreateModuleParameters(DataLocation::Ptr location) const
       {
         return Delegate.CreateModuleParameters(location);
       }
 
-      virtual Error ProcessModule(const DataLocation& location, Module::Holder::Ptr holder) const
+      virtual void ProcessModule(DataLocation::Ptr location, Module::Holder::Ptr holder) const
       {
         return Delegate.ProcessModule(location, holder);
       }

@@ -165,15 +165,15 @@ namespace
       return CoreParams;
     }
 
-    virtual Parameters::Accessor::Ptr CreateModuleParameters(const DataLocation& location) const
+    virtual Parameters::Accessor::Ptr CreateModuleParameters(DataLocation::Ptr location) const
     {
-      const DataPath::Ptr subPath = location.GetPath();
+      const DataPath::Ptr subPath = location->GetPath();
       return DetectParams.CreateModuleParams(subPath->AsString());
     }
 
-    virtual Error ProcessModule(const DataLocation& location, Module::Holder::Ptr holder) const
+    virtual void ProcessModule(DataLocation::Ptr location, Module::Holder::Ptr holder) const
     {
-      const DataPath::Ptr subPath = location.GetPath();
+      const DataPath::Ptr subPath = location->GetPath();
       return DetectParams.ProcessModule(subPath->AsString(), holder);
     }
 
@@ -274,8 +274,7 @@ namespace ZXTune
     }
     catch (const Error& e)
     {
-      Error err(THIS_LINE, Module::ERROR_DETECT_CANCELED, Text::MODULE_ERROR_CANCELED);
-      return err.AddSuberror(e);
+      return e;
     }
     catch (const std::bad_alloc&)
     {

@@ -53,12 +53,12 @@ namespace ZXTune
     {
       return DetectionResult::CreateUnmatched(format, data);
     }
-    const Parameters::Accessor::Ptr moduleParams = callback.CreateModuleParameters(*inputData);
+    const Parameters::Accessor::Ptr moduleParams = callback.CreateModuleParameters(inputData);
     const Module::ModuleProperties::RWPtr properties = Module::ModuleProperties::Create(plugin, inputData);
     std::size_t usedSize = 0;
     if (Module::Holder::Ptr holder = factory->CreateModule(properties, moduleParams, data, usedSize))
     {
-      ThrowIfError(callback.ProcessModule(*inputData, holder));
+      callback.ProcessModule(inputData, holder);
       return DetectionResult::CreateMatched(usedSize);
     }
     return DetectionResult::CreateUnmatched(format, data);

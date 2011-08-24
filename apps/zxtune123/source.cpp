@@ -232,16 +232,9 @@ namespace
       return Parameters::CreateMergedAccessor(CreatePathProperties(Path, subpath), Params);
     }
 
-    virtual Error ProcessModule(const String& /*subpath*/, ZXTune::Module::Holder::Ptr holder) const
+    virtual void ProcessModule(const String& /*subpath*/, ZXTune::Module::Holder::Ptr holder) const
     {
-      try
-      {
-        return Callback(holder) ? Error() : Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
-      }
-      catch (const Error& e)
-      {
-        return e;
-      }
+      Callback(holder);
     }
 
     virtual Log::ProgressCallback* GetProgressCallback() const

@@ -18,9 +18,13 @@ Author:
 //common includes
 #include <error.h>
 #include <logging.h>
+//library includes
+#include <core/error_codes.h>
 //qt includes
 #include <QtCore/QDirIterator>
 #include <QtCore/QFileInfo>
+
+#define FILE_TAG 4D987852
 
 namespace
 {
@@ -81,21 +85,30 @@ namespace
       return Parameters::Container::Create();
     }
 
-    virtual bool ProcessItem(Playlist::Item::Data::Ptr item)
+    virtual void ProcessItem(Playlist::Item::Data::Ptr item)
     {
       Callback.OnItem(item);
-      return !Callback.IsCanceled();
+      ThrowIfCanceled();
     }
 
     virtual void ShowProgress(unsigned progress)
     {
       Callback.OnProgress(progress, CurrentItemNum);
+      ThrowIfCanceled();
     }
 
     virtual void ShowMessage(const String& message)
     {
       const QString text = ToQString(message);
       Callback.OnReport(text, CurrentItem);
+    }
+  private:
+    void ThrowIfCanceled()
+    {
+      if (Callback.IsCanceled())
+      {
+        throw Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
+      }
     }
   private:
     Playlist::ScannerCallback& Callback;

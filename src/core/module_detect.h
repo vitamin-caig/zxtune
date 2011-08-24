@@ -47,8 +47,7 @@ namespace ZXTune
     //! @brief Called on each detected module.
     //! @param subpath Subpath for processed module
     //! @param holder Found module
-    //! @return Error() to continue, else to cancel.
-    virtual Error ProcessModule(const String& subpath, Module::Holder::Ptr holder) const = 0;
+    virtual void ProcessModule(const String& subpath, Module::Holder::Ptr holder) const = 0;
 
     //! @brief Request for progress callback
     //! @return 0 if client doesn't want to receive progress notifications
@@ -61,7 +60,7 @@ namespace ZXTune
   //! @param data Input data container
   //! @param startSubpath Path in input data to start detecting
   //! @return Error() in case of success
-  //! @return ERROR_DETECT_CANCELED with suberror, returned from DetectParameters#Callback
+  //! @return ERROR_DETECT_CANCELED with suberror, throwed from DetectParameters#Callback
   Error DetectModules(Parameters::Accessor::Ptr modulesParams, const DetectParameters& detectParams,
     IO::DataContainer::Ptr data, const String& startSubpath);
 
