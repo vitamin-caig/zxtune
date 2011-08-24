@@ -913,9 +913,12 @@ namespace
 
         const boost::shared_ptr<AYData> result = boost::make_shared<AYData>(properties, static_cast<uint_t>(defaultDuration));
         const IO::FastDump data(*rawData);
-        usedSize = ParseAY(0, data, *result);
-        properties->SetSource(usedSize, ModuleRegion(0, usedSize));
-        return boost::make_shared<AYHolder>(result, parameters);
+        if (const std::size_t aySize = ParseAY(0, data, *result))
+        {
+          usedSize = aySize;
+          properties->SetSource(usedSize, ModuleRegion(0, usedSize));
+          return boost::make_shared<AYHolder>(result, parameters);
+        }
       }
       catch (const Error&/*e*/)
       {
