@@ -162,7 +162,7 @@ namespace
   };
 
   template<class Container, class Iterators>
-  void GetChoosenItems(Container& items, const QSet<unsigned>& indexes, Iterators& result)
+  void GetChoosenItems(Container& items, const Playlist::Model::IndexSet& indexes, Iterators& result)
   {
     typedef typename Iterators::value_type Iterator;
     Iterators choosenItems;
@@ -170,7 +170,7 @@ namespace
     {
       unsigned lastIndex = 0;
       Iterator lastIterator = items.begin();
-      for (QSet<unsigned>::const_iterator idxIt = indexes.begin(), idxLim = indexes.end(); idxIt != idxLim; ++idxIt)
+      for (Playlist::Model::IndexSet::const_iterator idxIt = indexes.begin(), idxLim = indexes.end(); idxIt != idxLim; ++idxIt)
       {
         const unsigned curIndex = *idxIt;
         const unsigned delta = curIndex - lastIndex;
@@ -255,7 +255,7 @@ namespace
       return Playlist::Item::Data::Iterator::Ptr(new PlayitemIteratorImpl(allItems));
     }
 
-    Playlist::Item::Data::Iterator::Ptr GetItems(const QSet<unsigned>& indexes) const
+    Playlist::Item::Data::Iterator::Ptr GetItems(const Playlist::Model::IndexSet& indexes) const
     {
       std::vector<ItemsContainer::const_iterator> choosenIterators;
       GetChoosenItems(Items, indexes, choosenIterators);
@@ -266,9 +266,9 @@ namespace
       return Playlist::Item::Data::Iterator::Ptr(new PlayitemIteratorImpl(choosenItems));
     }
 
-    QSet<unsigned> GetItemIndices(const Playlist::Item::Filter& filter) const
+    Playlist::Model::IndexSet GetItemIndices(const Playlist::Item::Filter& filter) const
     {
-      QSet<unsigned> result;
+      Playlist::Model::IndexSet result;
       for (ItemsContainer::const_iterator it = Items.begin(), lim = Items.end(); it != lim; ++it)
       {
         if (filter.OnItem(*it->first))
@@ -279,7 +279,7 @@ namespace
       return result;
     }
 
-    void RemoveItems(const QSet<unsigned>& indexes)
+    void RemoveItems(const Playlist::Model::IndexSet& indexes)
     {
       if (indexes.empty())
       {
@@ -292,28 +292,25 @@ namespace
         boost::bind(&ItemsContainer::erase, &Items, _1));
     }
 
-    void MoveItems(const QSet<unsigned>& indexes, unsigned destination)
+    void MoveItems(const Playlist::Model::IndexSet& indexes, unsigned destination)
     {
-      if (indexes.empty())
+      if (!indexes.count(destination))
       {
-        return;
+        MoveItemsInternal(indexes, destination);
       }
-      ItemsContainer::iterator delimiter = GetIteratorByIndex(destination);
-
-      std::vector<ItemsContainer::iterator> movedIters;
-      GetChoosenItems(Items, indexes, movedIters);
-      assert(unsigned(indexes.size()) == movedIters.size());
-
-      ItemsContainer movedItems;
-      std::for_each(movedIters.begin(), movedIters.end(), 
-        boost::bind(&ItemsContainer::splice, &movedItems, movedItems.end(), boost::ref(Items), _1));
-      
-      ItemsContainer afterItems;
-      afterItems.splice(afterItems.begin(), Items, delimiter, Items.end());
-
-      //gathering back
-      Items.splice(Items.end(), movedItems);
-      Items.splice(Items.end(), afterItems);
+      else
+      {
+        //try to move at the first nonselected and place before it
+        for (unsigned moveAfter = destination; moveAfter != Items.size(); ++moveAfter)
+        {
+          if (!indexes.count(moveAfter))
+          {
+            MoveItemsInternal(indexes, moveAfter);
+            return;
+          }
+        }
+        MoveItemsInternal(indexes, static_cast<unsigned>(Items.size()));
+      }
     }
 
     class Comparer
@@ -385,6 +382,31 @@ namespace
       ItemsContainer::iterator it = Items.begin();
       std::advance(it, idx);
       return it;
+    }
+
+    void MoveItemsInternal(const Playlist::Model::IndexSet& indexes, unsigned destination)
+    {
+      if (indexes.empty())
+      {
+        return;
+      }
+      assert(!indexes.count(destination));
+      ItemsContainer::iterator delimiter = GetIteratorByIndex(destination);
+
+      std::vector<ItemsContainer::iterator> movedIters;
+      GetChoosenItems(Items, indexes, movedIters);
+      assert(unsigned(indexes.size()) == movedIters.size());
+
+      ItemsContainer movedItems;
+      std::for_each(movedIters.begin(), movedIters.end(), 
+        boost::bind(&ItemsContainer::splice, &movedItems, movedItems.end(), boost::ref(Items), _1));
+      
+      ItemsContainer afterItems;
+      afterItems.splice(afterItems.begin(), Items, delimiter, Items.end());
+
+      //gathering back
+      Items.splice(Items.end(), movedItems);
+      Items.splice(Items.end(), afterItems);
     }
   private:
     ItemsContainer Items;
@@ -467,13 +489,13 @@ namespace
       return Container->GetAllItems();
     }
 
-    virtual Playlist::Item::Data::Iterator::Ptr GetItems(const QSet<unsigned>& items) const
+    virtual Playlist::Item::Data::Iterator::Ptr GetItems(const Playlist::Model::IndexSet& items) const
     {
       QMutexLocker locker(&Synchronizer);
       return Container->GetItems(items);
     }
 
-    virtual QSet<unsigned> GetItemIndices(const Playlist::Item::Filter& filter) const
+    virtual Playlist::Model::IndexSet GetItemIndices(const Playlist::Item::Filter& filter) const
     {
       QMutexLocker locker(&Synchronizer);
       return Container->GetItemIndices(filter);
@@ -497,12 +519,20 @@ namespace
       FetchedItemsCount = 0;
     }
 
-    virtual void RemoveItems(const QSet<unsigned>& items)
+    virtual void RemoveItems(const Playlist::Model::IndexSet& items)
     {
       QMutexLocker locker(&Synchronizer);
       Container->RemoveItems(items);
       NotifyAboutIndexChanged();
       FetchedItemsCount = static_cast<int>(Container->CountItems());
+    }
+
+    virtual void MoveItems(const IndexSet& items, unsigned target)
+    {
+      Log::Debug(THIS_MODULE, "Moving %1% items to row %2%", items.size(), target);
+      QMutexLocker locker(&Synchronizer);
+      Container->MoveItems(items, target);
+      NotifyAboutIndexChanged();
     }
 
     virtual void AddItem(Playlist::Item::Data::Ptr item)
@@ -579,7 +609,7 @@ namespace
 
       QByteArray encodedData = data->data(ITEMS_MIMETYPE);
       QDataStream stream(&encodedData, QIODevice::ReadOnly);
-      QSet<unsigned> movedItems;
+      Playlist::Model::IndexSet movedItems;
       while (!stream.atEnd())
       {
         unsigned idx;
@@ -590,10 +620,7 @@ namespace
       {
         return false;
       }
-      Log::Debug(THIS_MODULE, "Moving %1% items to row %2%", movedItems.size(), beginRow);
-      QMutexLocker locker(&Synchronizer);
-      Container->MoveItems(movedItems, beginRow);
-      NotifyAboutIndexChanged();
+      MoveItems(movedItems, beginRow);
       return true;
     }
 

@@ -41,11 +41,11 @@ namespace
     for (; items->IsValid(); items->Next())
     {
       const Playlist::Item::Data::Ptr item = items->Get();
-      if (!item->IsValid())
+      const ZXTune::Module::Holder::Ptr holder = item->GetModule();
+      if (!holder)
       {
         continue;
       }
-      const ZXTune::Module::Holder::Ptr holder = item->GetModule();
       const Parameters::Accessor::Ptr props = holder->GetModuleProperties();
       T val = T();
       if (GetParam(*props, propName, val))
@@ -103,6 +103,7 @@ namespace
       , PlayAction(QIcon(":/playback/play.png"), tr("Play"), this)
       , DeleteAction(QIcon(":/playlist/delete.png"), tr("Delete"), this)
       , CropAction(QIcon(":/playlist/crop.png"), tr("Crop"), this)
+      , GroupAction(tr("Group together"), this)
       , OrganizeSubmenu(tr("Organize"))
       , DelDupsAction(tr("Remove duplicates"), &OrganizeSubmenu)
     {
@@ -113,14 +114,14 @@ namespace
       this->connect(&PlayAction, SIGNAL(triggered()), SLOT(PlaySelected()));
       this->connect(&DeleteAction, SIGNAL(triggered()), SLOT(RemoveSelected()));
       this->connect(&CropAction, SIGNAL(triggered()), SLOT(CropSelected()));
+      this->connect(&GroupAction, SIGNAL(triggered()), SLOT(GroupSelected()));
       //organize
-      
       this->connect(&DelDupsAction, SIGNAL(triggered()), SLOT(RemoveDuplicates()));
     }
 
     virtual void Exec(const QPoint& pos)
     {
-      View.GetSelectedItems(SelectedItems);
+      View.GetSelectedItems().swap(SelectedItems);
       if (SelectedItems.empty())
       {
         return;
@@ -145,15 +146,21 @@ namespace
     virtual void CropSelected() const
     {
       const Playlist::Model::Ptr model = Controller->GetModel();
-      QSet<unsigned> unselected;
+      Playlist::Model::IndexSet unselected;
       for (unsigned idx = 0, total = model->CountItems(); idx < total; ++idx)
       {
-        if (!SelectedItems.contains(idx))
+        if (!SelectedItems.count(idx))
         {
           unselected.insert(idx);
         }
       }
       model->RemoveItems(unselected);
+    }
+
+    virtual void GroupSelected() const
+    {
+      const Playlist::Model::Ptr model = Controller->GetModel();
+      model->MoveItems(SelectedItems, *SelectedItems.begin());
     }
 
     virtual void RemoveDuplicates() const
@@ -163,7 +170,7 @@ namespace
       QSet<Parameters::IntType> checksumms;
       SelectItemsProperties(items, checksumms, ZXTune::Module::ATTR_CRC);
       const UniqueItemsFilter<Parameters::IntType> filter(checksumms, ZXTune::Module::ATTR_CRC);
-      const QSet<unsigned> toRemove = model->GetItemIndices(filter);
+      const Playlist::Model::IndexSet toRemove = model->GetItemIndices(filter);
       model->RemoveItems(toRemove);
     }
   private:
@@ -173,6 +180,7 @@ namespace
       addAction(&PlayAction);
       addAction(&DeleteAction);
       addAction(&CropAction);
+      addAction(&GroupAction);
       addMenu(&OrganizeSubmenu);
       OrganizeSubmenu.addAction(&DelDupsAction);
     }
@@ -194,6 +202,7 @@ namespace
     {
       InfoAction.setVisible(false);
       PlayAction.setEnabled(true);
+      GroupAction.setEnabled(false);
       SetupPlayitemMenu();
     }
 
@@ -202,6 +211,7 @@ namespace
       InfoAction.setVisible(true);
       InfoAction.setText(ToQString(Strings::Format(Text::CONTEXTMENU_STATUS, count)));
       PlayAction.setEnabled(false);
+      GroupAction.setEnabled(true);
       SetupPlayitemMenu();
     }
 
@@ -217,10 +227,11 @@ namespace
     QAction PlayAction;
     QAction DeleteAction;
     QAction CropAction;
+    QAction GroupAction;
     QMenu OrganizeSubmenu;
     QAction DelDupsAction;
     //data
-    QSet<unsigned> SelectedItems;
+    Playlist::Model::IndexSet SelectedItems;
   };
 }
 

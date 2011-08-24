@@ -39,6 +39,7 @@ namespace Playlist
       virtual void PlaySelected() const = 0;
       virtual void RemoveSelected() const = 0;
       virtual void CropSelected() const = 0;
+      virtual void GroupSelected() const = 0;
       virtual void RemoveDuplicates() const = 0;
     };
   }

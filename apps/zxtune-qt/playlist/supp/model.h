@@ -19,6 +19,7 @@ Author:
 #include "data.h"
 //std includes
 #include <map>
+#include <set>
 //qt includes
 #include <QtCore/QAbstractItemModel>
 
@@ -40,6 +41,7 @@ namespace Playlist
     };
 
     typedef Model* Ptr;
+    typedef std::set<unsigned> IndexSet;
     typedef std::map<unsigned, unsigned> OldToNewIndexMap;
 
     //creator
@@ -49,12 +51,13 @@ namespace Playlist
     virtual unsigned CountItems() const = 0;
     virtual Item::Data::Ptr GetItem(unsigned index) const = 0;
     virtual Item::Data::Iterator::Ptr GetItems() const = 0;
-    virtual Item::Data::Iterator::Ptr GetItems(const QSet<unsigned>& items) const = 0;
-    virtual QSet<unsigned> GetItemIndices(const Item::Filter& filter) const = 0;
+    virtual Item::Data::Iterator::Ptr GetItems(const IndexSet& items) const = 0;
+    virtual IndexSet GetItemIndices(const Item::Filter& filter) const = 0;
     //modifiers
     virtual void AddItems(Item::Data::Iterator::Ptr iter) = 0;
     virtual void Clear() = 0;
-    virtual void RemoveItems(const QSet<unsigned>& items) = 0;
+    virtual void RemoveItems(const IndexSet& items) = 0;
+    virtual void MoveItems(const IndexSet& items, unsigned target) = 0;
   public slots:
     virtual void AddItem(Playlist::Item::Data::Ptr item) = 0;
   signals:

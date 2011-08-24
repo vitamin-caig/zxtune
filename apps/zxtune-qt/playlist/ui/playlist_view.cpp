@@ -227,8 +227,7 @@ namespace
       const int curKey = event->key();
       if (curKey == Qt::Key_Delete || curKey == Qt::Key_Backspace)
       {
-        QSet<unsigned> items;
-        View->GetSelectedItems(items);
+        const Playlist::Model::IndexSet& items = View->GetSelectedItems();
         const Playlist::Model::Ptr model = Controller->GetModel();
         model->RemoveItems(items);
       }

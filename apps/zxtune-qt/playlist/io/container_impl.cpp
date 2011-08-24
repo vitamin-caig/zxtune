@@ -70,8 +70,6 @@ namespace
       , Params(Parameters::Container::Create())
     {
       params.Process(*Params);
-      const Parameters::Accessor::Ptr pathProps = CreatePathProperties(path);
-      pathProps->Process(*Params);
     }
 
     //common
@@ -127,7 +125,7 @@ namespace
 
     DelayLoadItemProvider(Playlist::Item::DataProvider::Ptr provider, Parameters::Accessor::Ptr playlistParams, const Playlist::IO::ContainerItem& item)
       : Provider(provider)
-      , Params(Parameters::CreateMergedAccessor(item.AdjustedParameters, playlistParams))
+      , Params(Parameters::CreateMergedAccessor(CreatePathProperties(item.Path), item.AdjustedParameters, playlistParams))
       , Path(item.Path)
     {
     }

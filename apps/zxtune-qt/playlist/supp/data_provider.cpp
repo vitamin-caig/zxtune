@@ -174,12 +174,11 @@ namespace
         boost::bind(&Item::Id, _1) == id);
       if (it != Items.end())
       {
-        Item* const result = &*it;
         if (Items.size() > 1)
         {
           std::iter_swap(it, Items.begin());
         }
-        return result;
+        return &Items.front();
       }
       return 0;
     }
@@ -332,7 +331,10 @@ namespace
       String result = TitleTemplate->Instantiate(adapter);
       if (result == DummyTitle)
       {
-        properties.FindStringValue(ZXTune::Module::ATTR_FULLPATH, result);
+        if (!properties.FindStringValue(ZXTune::Module::ATTR_FULLPATH, result))
+        {
+          result.clear();
+        }
       }
       return result;
     }

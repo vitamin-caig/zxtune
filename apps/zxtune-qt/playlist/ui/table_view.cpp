@@ -92,18 +92,18 @@ namespace
       Log::Debug(THIS_MODULE, "Destroyed at %1%", this);
     }
 
-    virtual void GetSelectedItems(QSet<unsigned>& indices) const
+    virtual Playlist::Model::IndexSet GetSelectedItems() const
     {
       const QItemSelectionModel* const selection = selectionModel();
       const QModelIndexList& items = selection->selectedRows();
-      //QSet does not support swap functionality
-      indices.clear();
+      Playlist::Model::IndexSet result;
       std::for_each(items.begin(), items.end(),
-        boost::bind(&QSet<unsigned>::insert, &indices,
+        boost::bind(boost::mem_fn<std::pair<Playlist::Model::IndexSet::iterator, bool>, Playlist::Model::IndexSet, const Playlist::Model::IndexSet::value_type&>(&Playlist::Model::IndexSet::insert), &result,
           boost::bind(&QModelIndex::row, _1)));
+      return result;
     }
 
-    virtual void SelectItems(const QSet<unsigned>& indices)
+    virtual void SelectItems(const Playlist::Model::IndexSet& indices)
     {
       clearSelection();
       setSelectionMode(QAbstractItemView::MultiSelection);

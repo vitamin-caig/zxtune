@@ -17,6 +17,8 @@ Author:
 
 //local includes
 #include "playlist/supp/model.h"
+//std includes
+#include <set>
 //qt includes
 #include <QtGui/QItemDelegate>
 #include <QtGui/QTableView>
@@ -28,7 +30,6 @@ namespace Playlist
     class Data;
     class StateCallback;
   }
-  class Model;
 
   namespace UI
   {
@@ -51,8 +52,8 @@ namespace Playlist
       //creator
       static TableView* Create(QWidget& parent, const Item::StateCallback& callback, Playlist::Model::Ptr model);
 
-      virtual void GetSelectedItems(QSet<unsigned>& indices) const = 0;
-      virtual void SelectItems(const QSet<unsigned>& indices) = 0;
+      virtual Model::IndexSet GetSelectedItems() const = 0;
+      virtual void SelectItems(const Playlist::Model::IndexSet& indices) = 0;
       virtual void ActivateTableRow(unsigned index) = 0;
     private slots:
       virtual void ActivateItem(const QModelIndex&) = 0;
