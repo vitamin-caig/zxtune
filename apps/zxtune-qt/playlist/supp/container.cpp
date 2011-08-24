@@ -39,31 +39,33 @@ namespace
   public:
     ContainerImpl(QObject& parent, Parameters::Accessor::Ptr parameters)
       : Playlist::Container(parent)
-      , Provider(Playlist::Item::DataProvider::Create(parameters))
+      , Params(parameters)
     {
     }
 
     virtual Playlist::Controller::Ptr CreatePlaylist(const QString& name)
     {
-      return Playlist::Controller::Create(*this, name, Provider);
+      const Playlist::Item::DataProvider::Ptr provider = Playlist::Item::DataProvider::Create(Params);
+      return Playlist::Controller::Create(*this, name, provider);
     }
 
     virtual Playlist::Controller::Ptr OpenPlaylist(const QString& filename)
     {
-      if (Playlist::IO::Container::Ptr container = Playlist::IO::Open(Provider, filename))
+      const Playlist::Item::DataProvider::Ptr provider = Playlist::Item::DataProvider::Create(Params);
+      if (Playlist::IO::Container::Ptr container = Playlist::IO::Open(provider, filename))
       {
         const Parameters::Accessor::Ptr plParams = container->GetProperties();
-        const QString plName = GetPlaylistName(*plParams);
-        const unsigned plSize = container->GetItemsCount();
-        const Playlist::Controller::Ptr playlist = CreatePlaylist(plName);
+        const QString name = GetPlaylistName(*plParams);
+        const unsigned size = container->GetItemsCount();
+        const Playlist::Controller::Ptr playlist = Playlist::Controller::Create(*this, name, provider);
         const Playlist::Scanner::Ptr scanner = playlist->GetScanner();
-        scanner->AddItems(container->GetItems(), plSize);
+        scanner->AddItems(container->GetItems(), size);
         return playlist;
       }
       return Playlist::Controller::Ptr();
     }
   private:
-    const Playlist::Item::DataProvider::Ptr Provider;
+    const Parameters::Accessor::Ptr Params;
   };
 }
 

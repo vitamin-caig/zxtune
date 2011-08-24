@@ -43,12 +43,154 @@ namespace
 {
   const std::string THIS_MODULE("Playlist::DataProvider");
 
-  //cached data provider
-  class CachedDataProvider
+  class DataProvider
   {
-    typedef std::pair<String, ZXTune::IO::DataContainer::Ptr> CacheEntry;
-    typedef std::list<CacheEntry> CacheList;
-    typedef boost::unique_lock<boost::mutex> Locker;
+  public:
+    typedef boost::shared_ptr<const DataProvider> Ptr;
+
+    virtual ~DataProvider() {}
+
+    virtual ZXTune::IO::DataContainer::Ptr GetData(const String& dataPath) const = 0;
+  };
+
+  class SimpleDataProvider : public DataProvider
+  {
+  public:
+    explicit SimpleDataProvider(Parameters::Accessor::Ptr ioParams)
+      : Params(ioParams)
+    {
+    }
+
+    virtual ZXTune::IO::DataContainer::Ptr GetData(const String& dataPath) const
+    {
+      ZXTune::IO::DataContainer::Ptr data;
+      ThrowIfError(ZXTune::IO::OpenData(dataPath, *Params, ZXTune::IO::ProgressCallback(), data));
+      return data;
+    }
+  private:
+    const Parameters::Accessor::Ptr Params;
+  };
+
+  DataProvider::Ptr CreateSimpleDataProvider(Parameters::Accessor::Ptr ioParams)
+  {
+    return boost::make_shared<SimpleDataProvider>(ioParams);
+  }
+
+  template<class T>
+  struct ObjectTraits;
+
+  template<>
+  struct ObjectTraits<ZXTune::IO::DataContainer::Ptr>
+  {
+    typedef std::size_t WeigthType;
+
+    static WeigthType Weigth(ZXTune::IO::DataContainer::Ptr obj)
+    {
+      return obj->Size();
+    }
+  };
+
+  template<class T, class W = typename ObjectTraits<T>::WeigthType>
+  class ObjectsCache
+  {
+    struct Item
+    {
+      String Id;
+      T Value;
+      W Weigth;
+
+      Item()
+        : Id()
+        , Value()
+        , Weigth()
+      {
+      }
+
+      Item(const String& id, T val)
+        : Id(id)
+        , Value(val)
+        , Weigth(ObjectTraits<T>::Weigth(val))
+      {
+      }
+    };
+
+    typedef std::list<Item> ItemsList;
+  public:
+    ObjectsCache()
+      : TotalWeigth()
+    {
+    }
+
+    T Find(const String& id)
+    {
+      if (Item* res = FindItem(id))
+      {
+        return res->Value;
+      }
+      return T();
+    }
+
+    void Add(const String& id, T val)
+    {
+      if (Item* res = FindItem(id))
+      {
+        const W weigth = ObjectTraits<T>::Weigth(val);
+        TotalWeigth = TotalWeigth + weigth - res->Weigth;
+        res->Value = val;
+        res->Weigth = weigth;
+      }
+      else
+      {
+        const Item item(id, val);
+        Items.push_front(item);
+        TotalWeigth += item.Weigth;
+      }
+    }
+
+    void Del(const String& id)
+    {
+      const typename ItemsList::iterator it = std::find_if(Items.begin(), Items.end(),
+        boost::bind(&Item::Id, _1) == id);
+      if (it != Items.end())
+      {
+        Items.erase(it);
+      }
+    }
+
+    void Fit(std::size_t maxCount, W maxWeight)
+    {
+      while (Items.size() > maxCount ||
+             TotalWeigth > maxWeight)
+      {
+        const Item entry = Items.back();
+        Items.pop_back();
+        TotalWeigth -= entry.Weigth;
+      }
+    }
+  private:
+    Item* FindItem(const String& id)
+    {
+      const typename ItemsList::iterator it = std::find_if(Items.begin(), Items.end(),
+        boost::bind(&Item::Id, _1) == id);
+      if (it != Items.end())
+      {
+        Item* const result = &*it;
+        if (Items.size() > 1)
+        {
+          std::iter_swap(it, Items.begin());
+        }
+        return result;
+      }
+      return 0;
+    }
+  private:
+    ItemsList Items;
+    W TotalWeigth;
+  };
+
+  //cached data provider
+  class CachedDataProvider : public DataProvider
+  {
     //TODO: parametrize
     static const uint64_t MAX_CACHE_SIZE = 1048576 * 10;//10Mb
     static const uint_t MAX_CACHE_ITEMS = 1000;
@@ -56,95 +198,32 @@ namespace
     typedef boost::shared_ptr<CachedDataProvider> Ptr;
 
     explicit CachedDataProvider(Parameters::Accessor::Ptr ioParams)
-      : Params(ioParams)
-      , CacheSize(0)
+      : Delegate(CreateSimpleDataProvider(ioParams))
     {
     }
 
-    ZXTune::IO::DataContainer::Ptr GetData(const String& dataPath)
+    virtual ZXTune::IO::DataContainer::Ptr GetData(const String& dataPath) const
     {
+      const boost::mutex::scoped_lock lock(Mutex);
+      if (const ZXTune::IO::DataContainer::Ptr cached = Cache.Find(dataPath))
       {
-        Locker lock(Mutex);
-        if (const ZXTune::IO::DataContainer::Ptr cached = FindCachedData(dataPath))
-        {
-          return cached;
-        }
+        return cached;
       }
-      const ZXTune::IO::DataContainer::Ptr data = OpenNewData(dataPath);
-      //store to cache
-      Locker lock(Mutex);
-      StoreToCache(dataPath, data);
-      FitCache();
+      const ZXTune::IO::DataContainer::Ptr data = Delegate->GetData(dataPath);
+      Cache.Add(dataPath, data);
+      Cache.Fit(MAX_CACHE_ITEMS, MAX_CACHE_SIZE);
       return data;
     }
 
     void FlushCachedData(const String& dataPath)
     {
-      Locker lock(Mutex);
-      const CacheList::iterator cacheIt = std::find_if(Cache.begin(), Cache.end(),
-        boost::bind(&CacheList::value_type::first, _1) == dataPath);
-      if (cacheIt != Cache.end())
-      {
-        const CacheEntry entry = *cacheIt;
-        Cache.erase(cacheIt);
-        RemoveEntry(entry);
-      }
+      const boost::mutex::scoped_lock lock(Mutex);
+      Cache.Del(dataPath);
     }
   private:
-    ZXTune::IO::DataContainer::Ptr FindCachedData(const String& dataPath) const
-    {
-      const CacheList::iterator cacheIt = std::find_if(Cache.begin(), Cache.end(),
-        boost::bind(&CacheList::value_type::first, _1) == dataPath);
-      if (cacheIt != Cache.end())//has cache
-      {
-        const ZXTune::IO::DataContainer::Ptr result = cacheIt->second;
-        Log::Debug(THIS_MODULE, "Getting '%1%' (%2% bytes) from cache", dataPath, result->Size());
-        if (Cache.size() > 1)
-        {
-          std::swap(Cache.front(), *cacheIt);
-        }
-        return result;
-      }
-      return ZXTune::IO::DataContainer::Ptr();
-    }
-
-    ZXTune::IO::DataContainer::Ptr OpenNewData(const String& dataPath) const
-    {
-      ZXTune::IO::DataContainer::Ptr data;
-      ThrowIfError(ZXTune::IO::OpenData(dataPath, *Params, ZXTune::IO::ProgressCallback(), data));
-      return data;
-    }
-
-    void StoreToCache(const String& dataPath, const ZXTune::IO::DataContainer::Ptr& data) const
-    {
-      Cache.push_front(CacheList::value_type(dataPath, data));
-      const uint64_t size = data->Size();
-      CacheSize += size;
-      Log::Debug(THIS_MODULE, "Stored '%1%' (size %2%) to cache (cache size %3%/%4% bytes)", dataPath, size, Cache.size(), CacheSize);
-    }
-
-    void FitCache()
-    {
-      while (CacheSize > MAX_CACHE_SIZE ||
-             Cache.size() > MAX_CACHE_ITEMS)
-      {
-        const CacheEntry entry = Cache.back();
-        Cache.pop_back();
-        RemoveEntry(entry);
-      }
-    }
-
-    void RemoveEntry(const CacheEntry& entry)
-    {
-      const uint64_t size = entry.second->Size();
-      CacheSize -= size;
-      Log::Debug(THIS_MODULE, "Removed '%1%' (%2% bytes) from cache (cache size is %3%/%4% bytes)", entry.first, size, Cache.size(), CacheSize);
-    }
-  private:
-    const Parameters::Accessor::Ptr Params;
+    const DataProvider::Ptr Delegate;
     mutable boost::mutex Mutex;
-    mutable CacheList Cache;
-    mutable uint64_t CacheSize;
+    mutable ObjectsCache<ZXTune::IO::DataContainer::Ptr> Cache;
   };
 
   class DataSource
