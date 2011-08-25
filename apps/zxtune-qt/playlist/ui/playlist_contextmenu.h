@@ -41,6 +41,7 @@ namespace Playlist
       virtual void CropSelected() const = 0;
       virtual void GroupSelected() const = 0;
       virtual void RemoveDuplicates() const = 0;
+      virtual void SelectRipOffs() const = 0;
     };
   }
 }

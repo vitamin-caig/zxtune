@@ -291,6 +291,17 @@ namespace
     return String();
   }
 
+  Parameters::IntType GetIntProperty(const Parameters::Accessor& props, const Parameters::NameType& propName)
+  {
+    Parameters::IntType val = 0;
+    if (props.FindIntValue(propName, val))
+    {
+      return val;
+    }
+    assert(!"Failed to get property");
+    return 0;
+  }
+
   class HTMLEscapedFieldsSourceAdapter : public Parameters::FieldsSourceAdapter<SkipFieldsSource>
   {
     typedef Parameters::FieldsSourceAdapter<SkipFieldsSource> Parent;
@@ -364,6 +375,8 @@ namespace
       , Type(GetModuleType(moduleProps))
       , Title(Attributes->GetTitle(moduleProps))
       , DurationInFrames(duration)
+      , Checksum(static_cast<uint32_t>(GetIntProperty(moduleProps, ZXTune::Module::ATTR_CRC)))
+      , CoreChecksum(static_cast<uint32_t>(GetIntProperty(moduleProps, ZXTune::Module::ATTR_FIXEDCRC)))
       , Valid(true)
     {
     }
@@ -419,6 +432,16 @@ namespace
       }
       return String();
     }
+
+    virtual uint32_t GetChecksum() const
+    {
+      return Checksum;
+    }
+
+    virtual uint32_t GetCoreChecksum() const
+    {
+      return CoreChecksum;
+    }
   private:
     void AcquireTitle() const
     {
@@ -448,6 +471,8 @@ namespace
     const String Type;
     mutable String Title;
     const unsigned DurationInFrames;
+    const uint32_t Checksum;
+    const uint32_t CoreChecksum;
     mutable bool Valid;
   };
 

@@ -113,6 +113,15 @@ namespace
     {
       return Path;
     }
+
+    virtual uint32_t GetChecksum() const
+    {
+      return 0;
+    }
+    virtual uint32_t GetCoreChecksum() const
+    {
+      return 0;
+    }
   private:
     const String Path;
     const Parameters::Container::Ptr Params;
@@ -210,6 +219,18 @@ namespace
     {
       AcquireDelegate();
       return Delegate->GetTooltip();
+    }
+
+    virtual uint32_t GetChecksum() const
+    {
+      AcquireDelegate();
+      return Delegate->GetChecksum();
+    }
+
+    virtual uint32_t GetCoreChecksum() const
+    {
+      AcquireDelegate();
+      return Delegate->GetCoreChecksum();
     }
   private:
     void AcquireDelegate() const

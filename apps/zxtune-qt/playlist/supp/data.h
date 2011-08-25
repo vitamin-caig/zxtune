@@ -45,6 +45,8 @@ namespace Playlist
       virtual unsigned GetDurationValue() const = 0;
       virtual String GetDurationString() const = 0;
       virtual String GetTooltip() const = 0;
+      virtual uint32_t GetChecksum() const = 0;
+      virtual uint32_t GetCoreChecksum() const = 0;
     };
 
     class Filter
