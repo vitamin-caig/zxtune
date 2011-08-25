@@ -20,6 +20,7 @@ Author:
 //common includes
 #include <error.h>
 //library includes
+#include <core/module_holder.h>
 #include <devices/aym.h>
 
 namespace ZXTune

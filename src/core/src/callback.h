@@ -15,6 +15,8 @@ Author:
 
 //local includes
 #include "core/plugins/enumerator.h"
+//core includes
+#include <core/module_holder.h>
 //common includes
 #include <error.h>
 

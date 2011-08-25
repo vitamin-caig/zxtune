@@ -17,6 +17,7 @@ Author:
 #include "module_properties.h"
 #include "core/plugins/plugins_types.h"
 //library includes
+#include <core/module_holder.h>
 #include <io/container.h>
 
 namespace ZXTune

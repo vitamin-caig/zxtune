@@ -14,14 +14,10 @@ Author:
 #define __CORE_PLUGINS_TYPES_H_DEFINED__
 
 //local includes
+#include "detection_result.h"
 #include "core/src/location.h"
-//common includes
-#include <detector.h>
-#include <types.h>
 //library includes
-#include <core/module_holder.h>
 #include <core/plugin.h>
-#include <io/container.h>
 
 namespace ZXTune
 {
@@ -29,29 +25,6 @@ namespace ZXTune
   {
     class DetectCallback;
   }
-
-  //! Abstract data detection result
-  class DetectionResult
-  {
-  public:
-    typedef boost::shared_ptr<const DetectionResult> Ptr;
-    virtual ~DetectionResult() {}
-
-    //! @brief Returns data size that is processed in current data position
-    //! @return Size of input data format detected
-    //! @invariant Return 0 if data is not matched at the beginning
-    virtual std::size_t GetMatchedDataSize() const = 0;
-    //! @brief Search format in forward data
-    //! @return Offset in input data where perform next checking
-    //! @invariant Return 0 if current data matches format
-    //! @invariant Return input data size if no data at all
-    virtual std::size_t GetLookaheadOffset() const = 0;
-
-    static Ptr CreateMatched(std::size_t matchedSize);
-    static Ptr CreateUnmatched(DataFormat::Ptr format, IO::DataContainer::Ptr data);
-    static Ptr CreateUnmatched(std::size_t unmatchedSize);
-  };
-
   class PlayerPlugin
   {
   public:
