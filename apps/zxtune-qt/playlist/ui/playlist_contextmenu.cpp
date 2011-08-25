@@ -25,51 +25,26 @@ Author:
 namespace
 {
   template<class T>
-  void SelectItemsProperties(Playlist::Item::Data::Iterator::Ptr items, std::set<T>& result, T (Playlist::Item::Data::*getter)() const)
+  void SelectItemsProperties(Playlist::Item::Data::Iterator::Ptr items, std::map<T, std::size_t>& result, T (Playlist::Item::Data::*getter)() const)
   {
-    std::set<T> res;
+    std::map<T, std::size_t> res;
     for (; items->IsValid(); items->Next())
     {
       const Playlist::Item::Data::Ptr item = items->Get();
       const T val = ((*item).*getter)();
       if (item->IsValid())
       {
-        res.insert(val);
+        ++res[val];
       }
     }
     res.swap(result);
   }
 
   template<class T>
-  class SimilarItemsFilter : public Playlist::Item::Filter
-  {
-  public:
-    SimilarItemsFilter(const std::set<T>& props, T (Playlist::Item::Data::*getter)() const)
-      : Props(props)
-      , Getter(getter)
-    {
-    }
-
-    virtual bool OnItem(const Playlist::Item::Data& data) const
-    {
-      const T val = (data.*Getter)();
-      if (!data.IsValid())
-      {
-        return false;
-      }
-      return 0 != Props.count(val);
-    }
-  private:
-    const std::set<T>& Props;
-    typedef T (Playlist::Item::Data::*GetFunc)() const;
-    const GetFunc Getter;
-  };
-
-  template<class T>
   class DuplicatedItemsFilter : public Playlist::Item::Filter
   {
   public:
-    DuplicatedItemsFilter(const std::set<T>& props, T (Playlist::Item::Data::*getter)() const)
+    DuplicatedItemsFilter(const std::map<T, std::size_t>& props, T (Playlist::Item::Data::*getter)() const)
       : Props(props)
       , Getter(getter)
     {
@@ -94,10 +69,38 @@ namespace
       return false;
     }
   private:
-    const std::set<T>& Props;
+    const std::map<T, std::size_t>& Props;
     typedef T (Playlist::Item::Data::*GetFunc)() const;
     const GetFunc Getter;
     mutable std::set<T> Visited;
+  };
+
+  template<class T>
+  class SimilarItemsFilter : public Playlist::Item::Filter
+  {
+  public:
+    SimilarItemsFilter(const std::map<T, std::size_t>& props, T (Playlist::Item::Data::*getter)() const, std::size_t minCount)
+      : Props(props)
+      , Getter(getter)
+      , MinCount(minCount)
+    {
+    }
+
+    virtual bool OnItem(const Playlist::Item::Data& data) const
+    {
+      const T val = (data.*Getter)();
+      if (!data.IsValid())
+      {
+        return false;
+      }
+      const typename std::map<T, std::size_t>::const_iterator it = Props.find(val);
+      return it != Props.end() && it->second >= MinCount;
+    }
+  private:
+    const std::map<T, std::size_t>& Props;
+    typedef T (Playlist::Item::Data::*GetFunc)() const;
+    const GetFunc Getter;
+    const std::size_t MinCount;
   };
 
   class ItemsContextMenuImpl : public Playlist::UI::ItemsContextMenu
@@ -112,9 +115,8 @@ namespace
       , DeleteAction(QIcon(":/playlist/delete.png"), tr("Delete"), this)
       , CropAction(QIcon(":/playlist/crop.png"), tr("Crop"), this)
       , GroupAction(tr("Group together"), this)
-      , OrganizeSubmenu(tr("Organize"))
-      , DelDupsAction(tr("Remove duplicates"), &OrganizeSubmenu)
-      , SelRipOffsAction(tr("Select rip-offs"), &OrganizeSubmenu)
+      , DelDupsAction(tr("Remove duplicates"), this)
+      , SelRipOffsAction(tr("Select rip-offs"), this)
     {
       AddActions();
 
@@ -132,10 +134,6 @@ namespace
     virtual void Exec(const QPoint& pos)
     {
       View.GetSelectedItems().swap(SelectedItems);
-      if (SelectedItems.empty())
-      {
-        return;
-      }
       SetupMenu();
       exec(pos);
     }
@@ -183,23 +181,40 @@ namespace
     virtual void RemoveDuplicates() const
     {
       const Playlist::Model::Ptr model = Controller->GetModel();
-      Playlist::Item::Data::Iterator::Ptr items = model->GetItems(SelectedItems);
-      std::set<uint32_t> checksumms;
+      Playlist::Item::Data::Iterator::Ptr items = SelectedItems.empty()
+        ? model->GetItems()
+        : model->GetItems(SelectedItems);
+      std::map<uint32_t, std::size_t> checksumms;
       SelectItemsProperties(items, checksumms, &Playlist::Item::Data::GetChecksum);
       const DuplicatedItemsFilter<uint32_t> filter(checksumms, &Playlist::Item::Data::GetChecksum);
-      const Playlist::Model::IndexSet toRemove = model->GetItemIndices(filter);
+      const Playlist::Model::IndexSet toRemove = SelectedItems.empty() 
+        ? model->GetItemIndices(filter)
+        : model->GetItemIndices(SelectedItems, filter);
       model->RemoveItems(toRemove);
     }
 
     virtual void SelectRipOffs() const
     {
       const Playlist::Model::Ptr model = Controller->GetModel();
-      Playlist::Item::Data::Iterator::Ptr items = model->GetItems(SelectedItems);
-      std::set<uint32_t> checksumms;
+      Playlist::Item::Data::Iterator::Ptr items = SelectedItems.empty()
+        ? model->GetItems()
+        : model->GetItems(SelectedItems);
+      std::map<uint32_t, std::size_t> checksumms;
       SelectItemsProperties(items, checksumms, &Playlist::Item::Data::GetCoreChecksum);
-      const SimilarItemsFilter<uint32_t> filter(checksumms, &Playlist::Item::Data::GetCoreChecksum);
-      const Playlist::Model::IndexSet toSelect = model->GetItemIndices(filter);
-      View.SelectItems(toSelect);
+      if (1 == SelectedItems.size())
+      {
+        const SimilarItemsFilter<uint32_t> filter(checksumms, &Playlist::Item::Data::GetCoreChecksum, 1);
+        const Playlist::Model::IndexSet toSelect = model->GetItemIndices(filter);
+        View.SelectItems(toSelect);
+      }
+      else
+      {
+        const SimilarItemsFilter<uint32_t> filter(checksumms, &Playlist::Item::Data::GetCoreChecksum, 2);
+        const Playlist::Model::IndexSet toSelect = SelectedItems.empty() 
+          ? model->GetItemIndices(filter)
+          : model->GetItemIndices(SelectedItems, filter);
+        View.SelectItems(toSelect);
+      }
     }
   private:
     void AddActions()
@@ -209,15 +224,19 @@ namespace
       addAction(&DeleteAction);
       addAction(&CropAction);
       addAction(&GroupAction);
-      addMenu(&OrganizeSubmenu);
-      OrganizeSubmenu.addAction(&DelDupsAction);
-      OrganizeSubmenu.addAction(&SelRipOffsAction);
+      addSeparator();
+      addAction(&DelDupsAction);
+      addAction(&SelRipOffsAction);
     }
 
     void SetupMenu()
     {
       const std::size_t items = SelectedItems.size();
-      if (1 == items)
+      if (0 == items)
+      {
+        SetupWholePlaylistMenu();
+      }
+      else if (1 == items)
       {
         SetupSinglePlayitemMenu();
       }
@@ -227,11 +246,22 @@ namespace
       }
     }
 
+    void SetupWholePlaylistMenu()
+    {
+      InfoAction.setVisible(false);
+      PlayAction.setVisible(false);
+      DeleteAction.setVisible(false);
+      CropAction.setVisible(false);
+      GroupAction.setVisible(false);
+      DelDupsAction.setVisible(true);
+    }
+
     void SetupSinglePlayitemMenu()
     {
       InfoAction.setVisible(false);
-      PlayAction.setEnabled(true);
-      GroupAction.setEnabled(false);
+      PlayAction.setVisible(true);
+      GroupAction.setVisible(false);
+      DelDupsAction.setVisible(false);
       SetupPlayitemMenu();
     }
 
@@ -239,15 +269,16 @@ namespace
     {
       InfoAction.setVisible(true);
       InfoAction.setText(ToQString(Strings::Format(Text::CONTEXTMENU_STATUS, count)));
-      PlayAction.setEnabled(false);
-      GroupAction.setEnabled(true);
+      PlayAction.setVisible(false);
+      GroupAction.setVisible(true);
+      DelDupsAction.setVisible(true);
       SetupPlayitemMenu();
     }
 
     void SetupPlayitemMenu()
     {
-      DeleteAction.setEnabled(true);
-      CropAction.setEnabled(true);
+      DeleteAction.setVisible(true);
+      CropAction.setVisible(true);
     }
   private:
     Playlist::UI::TableView& View;
@@ -257,7 +288,6 @@ namespace
     QAction DeleteAction;
     QAction CropAction;
     QAction GroupAction;
-    QMenu OrganizeSubmenu;
     QAction DelDupsAction;
     QAction SelRipOffsAction;
     //data

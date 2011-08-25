@@ -53,6 +53,7 @@ namespace Playlist
     virtual Item::Data::Iterator::Ptr GetItems() const = 0;
     virtual Item::Data::Iterator::Ptr GetItems(const IndexSet& items) const = 0;
     virtual IndexSet GetItemIndices(const Item::Filter& filter) const = 0;
+    virtual IndexSet GetItemIndices(const IndexSet& items, const Item::Filter& filter) const = 0;
     //modifiers
     virtual void AddItems(Item::Data::Iterator::Ptr iter) = 0;
     virtual void Clear() = 0;

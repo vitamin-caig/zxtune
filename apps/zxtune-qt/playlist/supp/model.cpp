@@ -266,6 +266,26 @@ namespace
       return Playlist::Item::Data::Iterator::Ptr(new PlayitemIteratorImpl(choosenItems));
     }
 
+    Playlist::Model::IndexSet GetItemIndices(const Playlist::Model::IndexSet& indexes, const Playlist::Item::Filter& filter) const
+    {
+      std::vector<ItemsContainer::const_iterator> choosenIterators;
+      GetChoosenItems(Items, indexes, choosenIterators);
+      assert(unsigned(indexes.size()) == choosenIterators.size());
+      Playlist::Model::IndexSet result;
+      std::vector<ItemsContainer::const_iterator>::const_iterator itIt = choosenIterators.begin(), itLim = choosenIterators.end();
+      Playlist::Model::IndexSet::const_iterator indIt = indexes.begin(), indLim = indexes.end();
+      while (itIt != itLim)
+      {
+        if (filter.OnItem(*(*itIt)->first))
+        {
+          result.insert(*indIt);
+        }
+        ++itIt;
+        ++indIt;
+      }
+      return result;
+    }
+
     Playlist::Model::IndexSet GetItemIndices(const Playlist::Item::Filter& filter) const
     {
       Playlist::Model::IndexSet result;
@@ -499,6 +519,12 @@ namespace
     {
       QMutexLocker locker(&Synchronizer);
       return Container->GetItemIndices(filter);
+    }
+
+    virtual Playlist::Model::IndexSet GetItemIndices(const Playlist::Model::IndexSet& items, const Playlist::Item::Filter& filter) const
+    {
+      QMutexLocker locker(&Synchronizer);
+      return Container->GetItemIndices(items, filter);
     }
 
     virtual void AddItems(Playlist::Item::Data::Iterator::Ptr iter)
