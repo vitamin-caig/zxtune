@@ -18,7 +18,7 @@ Author:
 //local includes
 #include "playlist/supp/controller.h"
 //qt includes
-#include <QtGui/QMenu>
+#include <QtCore/QObject>
 
 namespace Playlist
 {
@@ -26,16 +26,16 @@ namespace Playlist
   {
     class TableView;
 
-    class ItemsContextMenu : public QWidget
+    class ItemsContextMenu : public QObject
     {
       Q_OBJECT
     protected:
-      explicit ItemsContextMenu(QWidget& parent);
+      explicit ItemsContextMenu(QObject& parent);
     public:
       static ItemsContextMenu* Create(TableView& view, Playlist::Controller::Ptr playlist);
 
       virtual void Exec(const QPoint& pos) = 0;
-    public slots:
+    private slots:
       virtual void PlaySelected() const = 0;
       virtual void RemoveSelected() const = 0;
       virtual void CropSelected() const = 0;

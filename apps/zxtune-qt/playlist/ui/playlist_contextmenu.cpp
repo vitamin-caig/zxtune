@@ -19,6 +19,8 @@ Author:
 #include <format.h>
 //library includes
 #include <core/module_attrs.h>
+//qt includes
+#include <QtGui/QMenu>
 //text includes
 #include "text/text.h"
 
@@ -30,13 +32,13 @@ namespace
   class NoItemsContextMenu : public QMenu
   {
   public:
-    explicit NoItemsContextMenu(Playlist::UI::ItemsContextMenu& parent)
+    NoItemsContextMenu(QWidget& parent, Playlist::UI::ItemsContextMenu& receiver)
       : QMenu(&parent)
       , DelDupsAction(addAction(tr("Remove all duplicates")))
       , SelRipOffsAction(addAction(tr("Select all rip-offs")))
     {
-      parent.connect(DelDupsAction, SIGNAL(triggered()), SLOT(RemoveAllDuplicates()));
-      parent.connect(SelRipOffsAction, SIGNAL(triggered()), SLOT(SelectAllRipOffs()));
+      receiver.connect(DelDupsAction, SIGNAL(triggered()), SLOT(RemoveAllDuplicates()));
+      receiver.connect(SelRipOffsAction, SIGNAL(triggered()), SLOT(SelectAllRipOffs()));
     }
   private:
     QAction* const DelDupsAction;
@@ -52,7 +54,7 @@ namespace
   class SingleItemContextMenu : public QMenu
   {
   public:
-    explicit SingleItemContextMenu(Playlist::UI::ItemsContextMenu& parent)
+    SingleItemContextMenu(QWidget& parent, Playlist::UI::ItemsContextMenu& receiver)
       : QMenu(&parent)
       , PlayAction(addAction(QIcon(":/playback/play.png"), tr("Play")))
       , DeleteAction(addAction(QIcon(":/playlist/delete.png"), tr("Delete")))
@@ -60,11 +62,12 @@ namespace
       , DelDupsAction(addAction(tr("Remove duplicates of")))
       , SelRipOffsAction(addAction(tr("Select rip-offs of")))
     {
-      parent.connect(PlayAction, SIGNAL(triggered()), SLOT(PlaySelected()));
-      parent.connect(DeleteAction, SIGNAL(triggered()), SLOT(RemoveSelected()));
-      parent.connect(CropAction, SIGNAL(triggered()), SLOT(CropSelected()));
-      parent.connect(DelDupsAction, SIGNAL(triggered()), SLOT(RemoveDuplicatesOfSelected()));
-      parent.connect(SelRipOffsAction, SIGNAL(triggered()), SLOT(SelectRipOffsOfSelected()));
+      insertSeparator(DelDupsAction);
+      receiver.connect(PlayAction, SIGNAL(triggered()), SLOT(PlaySelected()));
+      receiver.connect(DeleteAction, SIGNAL(triggered()), SLOT(RemoveSelected()));
+      receiver.connect(CropAction, SIGNAL(triggered()), SLOT(CropSelected()));
+      receiver.connect(DelDupsAction, SIGNAL(triggered()), SLOT(RemoveDuplicatesOfSelected()));
+      receiver.connect(SelRipOffsAction, SIGNAL(triggered()), SLOT(SelectRipOffsOfSelected()));
     }
   private:
     QAction* const PlayAction;
@@ -84,7 +87,7 @@ namespace
   class MultipleItemsContextMenu : public QMenu
   {
   public:
-    MultipleItemsContextMenu(Playlist::UI::ItemsContextMenu& parent, std::size_t count)
+    MultipleItemsContextMenu(QWidget& parent, Playlist::UI::ItemsContextMenu& receiver, std::size_t count)
       : QMenu(&parent)
       , InfoAction(addAction(ToQString(Strings::Format(Text::CONTEXTMENU_STATUS, count))))
       , DeleteAction(addAction(QIcon(":/playlist/delete.png"), tr("Delete")))
@@ -94,11 +97,12 @@ namespace
       , SelRipOffsAction(addAction(tr("Select rip-offs in")))
     {
       InfoAction->setEnabled(false);
-      parent.connect(DeleteAction, SIGNAL(triggered()), SLOT(RemoveSelected()));
-      parent.connect(CropAction, SIGNAL(triggered()), SLOT(CropSelected()));
-      parent.connect(GroupAction, SIGNAL(triggered()), SLOT(GroupSelected()));
-      parent.connect(DelDupsAction, SIGNAL(triggered()), SLOT(RemoveDuplicatesInSelected()));
-      parent.connect(SelRipOffsAction, SIGNAL(triggered()), SLOT(SelectRipOffsInSelected()));
+      insertSeparator(DelDupsAction);
+      receiver.connect(DeleteAction, SIGNAL(triggered()), SLOT(RemoveSelected()));
+      receiver.connect(CropAction, SIGNAL(triggered()), SLOT(CropSelected()));
+      receiver.connect(GroupAction, SIGNAL(triggered()), SLOT(GroupSelected()));
+      receiver.connect(DelDupsAction, SIGNAL(triggered()), SLOT(RemoveDuplicatesInSelected()));
+      receiver.connect(SelRipOffsAction, SIGNAL(triggered()), SLOT(SelectRipOffsInSelected()));
     }
   private:
     QAction* const InfoAction;
@@ -317,18 +321,14 @@ namespace
   private:
     std::auto_ptr<QMenu> CreateMenu()
     {
-      const std::size_t items = SelectedItems.size();
-      if (0 == items)
+      switch (const std::size_t items = SelectedItems.size())
       {
-        return std::auto_ptr<QMenu>(new NoItemsContextMenu(*this));
-      }
-      else if (1 == items)
-      {
-        return std::auto_ptr<QMenu>(new SingleItemContextMenu(*this));
-      }
-      else
-      {
-        return std::auto_ptr<QMenu>(new MultipleItemsContextMenu(*this, items));
+      case 0:
+        return std::auto_ptr<QMenu>(new NoItemsContextMenu(View, *this));
+      case 1:
+        return std::auto_ptr<QMenu>(new SingleItemContextMenu(View, *this));
+      default:
+        return std::auto_ptr<QMenu>(new MultipleItemsContextMenu(View, *this, items));
       }
     }
   private:
@@ -343,7 +343,7 @@ namespace Playlist
 {
   namespace UI
   {
-    ItemsContextMenu::ItemsContextMenu(QWidget& parent) : QWidget(&parent)
+    ItemsContextMenu::ItemsContextMenu(QObject& parent) : QObject(&parent)
     {
     }
 
