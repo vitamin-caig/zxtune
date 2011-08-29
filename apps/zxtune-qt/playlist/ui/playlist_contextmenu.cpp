@@ -24,6 +24,91 @@ Author:
 
 namespace
 {
+  //nofiles contextmenu
+  // DeleteAllDups
+  // SelectAllRipOffs
+  class NoItemsContextMenu : public QMenu
+  {
+  public:
+    explicit NoItemsContextMenu(Playlist::UI::ItemsContextMenu& parent)
+      : QMenu(&parent)
+      , DelDupsAction(addAction(tr("Remove all duplicates")))
+      , SelRipOffsAction(addAction(tr("Select all rip-offs")))
+    {
+      parent.connect(DelDupsAction, SIGNAL(triggered()), SLOT(RemoveAllDuplicates()));
+      parent.connect(SelRipOffsAction, SIGNAL(triggered()), SLOT(SelectAllRipOffs()));
+    }
+  private:
+    QAction* const DelDupsAction;
+    QAction* const SelRipOffsAction;
+  };
+
+  //single item contextmenu
+  // Play
+  // Delete
+  // Crop
+  // DeleteDupsOf
+  // SelectRipOffsOf
+  class SingleItemContextMenu : public QMenu
+  {
+  public:
+    explicit SingleItemContextMenu(Playlist::UI::ItemsContextMenu& parent)
+      : QMenu(&parent)
+      , PlayAction(addAction(QIcon(":/playback/play.png"), tr("Play")))
+      , DeleteAction(addAction(QIcon(":/playlist/delete.png"), tr("Delete")))
+      , CropAction(addAction(QIcon(":/playlist/crop.png"), tr("Crop")))
+      , DelDupsAction(addAction(tr("Remove duplicates of")))
+      , SelRipOffsAction(addAction(tr("Select rip-offs of")))
+    {
+      parent.connect(PlayAction, SIGNAL(triggered()), SLOT(PlaySelected()));
+      parent.connect(DeleteAction, SIGNAL(triggered()), SLOT(RemoveSelected()));
+      parent.connect(CropAction, SIGNAL(triggered()), SLOT(CropSelected()));
+      parent.connect(DelDupsAction, SIGNAL(triggered()), SLOT(RemoveDuplicatesOfSelected()));
+      parent.connect(SelRipOffsAction, SIGNAL(triggered()), SLOT(SelectRipOffsOfSelected()));
+    }
+  private:
+    QAction* const PlayAction;
+    QAction* const DeleteAction;
+    QAction* const CropAction;
+    QAction* const DelDupsAction;
+    QAction* const SelRipOffsAction;
+  };
+
+  //multiple items contextmenu
+  // <count>
+  // Delete
+  // Crop
+  // Group
+  // DeleteDupsIn
+  // SelectRipOffsIn
+  class MultipleItemsContextMenu : public QMenu
+  {
+  public:
+    MultipleItemsContextMenu(Playlist::UI::ItemsContextMenu& parent, std::size_t count)
+      : QMenu(&parent)
+      , InfoAction(addAction(ToQString(Strings::Format(Text::CONTEXTMENU_STATUS, count))))
+      , DeleteAction(addAction(QIcon(":/playlist/delete.png"), tr("Delete")))
+      , CropAction(addAction(QIcon(":/playlist/crop.png"), tr("Crop")))
+      , GroupAction(addAction(tr("Group together")))
+      , DelDupsAction(addAction(tr("Remove duplicates in")))
+      , SelRipOffsAction(addAction(tr("Select rip-offs in")))
+    {
+      InfoAction->setEnabled(false);
+      parent.connect(DeleteAction, SIGNAL(triggered()), SLOT(RemoveSelected()));
+      parent.connect(CropAction, SIGNAL(triggered()), SLOT(CropSelected()));
+      parent.connect(GroupAction, SIGNAL(triggered()), SLOT(GroupSelected()));
+      parent.connect(DelDupsAction, SIGNAL(triggered()), SLOT(RemoveDuplicatesInSelected()));
+      parent.connect(SelRipOffsAction, SIGNAL(triggered()), SLOT(SelectRipOffsInSelected()));
+    }
+  private:
+    QAction* const InfoAction;
+    QAction* const DeleteAction;
+    QAction* const CropAction;
+    QAction* const GroupAction;
+    QAction* const DelDupsAction;
+    QAction* const SelRipOffsAction;
+  };
+
   template<class T>
   void SelectItemsProperties(Playlist::Item::Data::Iterator::Ptr items, std::map<T, std::size_t>& result, T (Playlist::Item::Data::*getter)() const)
   {
@@ -110,32 +195,14 @@ namespace
       : Playlist::UI::ItemsContextMenu(view)
       , View(view)
       , Controller(playlist)
-      , InfoAction(this)
-      , PlayAction(QIcon(":/playback/play.png"), tr("Play"), this)
-      , DeleteAction(QIcon(":/playlist/delete.png"), tr("Delete"), this)
-      , CropAction(QIcon(":/playlist/crop.png"), tr("Crop"), this)
-      , GroupAction(tr("Group together"), this)
-      , DelDupsAction(tr("Remove duplicates"), this)
-      , SelRipOffsAction(tr("Select rip-offs"), this)
     {
-      AddActions();
-
-      //common
-      InfoAction.setEnabled(false);
-      this->connect(&PlayAction, SIGNAL(triggered()), SLOT(PlaySelected()));
-      this->connect(&DeleteAction, SIGNAL(triggered()), SLOT(RemoveSelected()));
-      this->connect(&CropAction, SIGNAL(triggered()), SLOT(CropSelected()));
-      this->connect(&GroupAction, SIGNAL(triggered()), SLOT(GroupSelected()));
-      //organize
-      this->connect(&DelDupsAction, SIGNAL(triggered()), SLOT(RemoveDuplicates()));
-      this->connect(&SelRipOffsAction, SIGNAL(triggered()), SLOT(SelectRipOffs()));
     }
 
     virtual void Exec(const QPoint& pos)
     {
       View.GetSelectedItems().swap(SelectedItems);
-      SetupMenu();
-      exec(pos);
+      const std::auto_ptr<QMenu> delegate = CreateMenu();
+      delegate->exec(pos);
     }
 
     virtual void PlaySelected() const
@@ -178,118 +245,95 @@ namespace
       View.SelectItems(toSelect);
     }
 
-    virtual void RemoveDuplicates() const
+    virtual void RemoveAllDuplicates() const
     {
       const Playlist::Model::Ptr model = Controller->GetModel();
-      Playlist::Item::Data::Iterator::Ptr items = SelectedItems.empty()
-        ? model->GetItems()
-        : model->GetItems(SelectedItems);
+      Playlist::Item::Data::Iterator::Ptr items = model->GetItems();
       std::map<uint32_t, std::size_t> checksumms;
       SelectItemsProperties(items, checksumms, &Playlist::Item::Data::GetChecksum);
       const DuplicatedItemsFilter<uint32_t> filter(checksumms, &Playlist::Item::Data::GetChecksum);
-      const Playlist::Model::IndexSet toRemove = SelectedItems.empty() 
-        ? model->GetItemIndices(filter)
-        : model->GetItemIndices(SelectedItems, filter);
+      const Playlist::Model::IndexSet toRemove = model->GetItemIndices(filter);
       model->RemoveItems(toRemove);
     }
 
-    virtual void SelectRipOffs() const
+    virtual void RemoveDuplicatesOfSelected() const
     {
       const Playlist::Model::Ptr model = Controller->GetModel();
-      Playlist::Item::Data::Iterator::Ptr items = SelectedItems.empty()
-        ? model->GetItems()
-        : model->GetItems(SelectedItems);
+      assert(!SelectedItems.empty());
+      Playlist::Item::Data::Iterator::Ptr items = model->GetItems(SelectedItems);
       std::map<uint32_t, std::size_t> checksumms;
-      SelectItemsProperties(items, checksumms, &Playlist::Item::Data::GetCoreChecksum);
-      if (1 == SelectedItems.size())
-      {
-        const SimilarItemsFilter<uint32_t> filter(checksumms, &Playlist::Item::Data::GetCoreChecksum, 1);
-        const Playlist::Model::IndexSet toSelect = model->GetItemIndices(filter);
-        View.SelectItems(toSelect);
-      }
-      else
-      {
-        const SimilarItemsFilter<uint32_t> filter(checksumms, &Playlist::Item::Data::GetCoreChecksum, 2);
-        const Playlist::Model::IndexSet toSelect = SelectedItems.empty() 
-          ? model->GetItemIndices(filter)
-          : model->GetItemIndices(SelectedItems, filter);
-        View.SelectItems(toSelect);
-      }
-    }
-  private:
-    void AddActions()
-    {
-      addAction(&InfoAction);
-      addAction(&PlayAction);
-      addAction(&DeleteAction);
-      addAction(&CropAction);
-      addAction(&GroupAction);
-      addSeparator();
-      addAction(&DelDupsAction);
-      addAction(&SelRipOffsAction);
+      SelectItemsProperties(items, checksumms, &Playlist::Item::Data::GetChecksum);
+      const DuplicatedItemsFilter<uint32_t> filter(checksumms, &Playlist::Item::Data::GetChecksum);
+      const Playlist::Model::IndexSet toRemove = model->GetItemIndices(filter);
+      model->RemoveItems(toRemove);
     }
 
-    void SetupMenu()
+    virtual void RemoveDuplicatesInSelected() const
+    {
+      const Playlist::Model::Ptr model = Controller->GetModel();
+      assert(!SelectedItems.empty());
+      Playlist::Item::Data::Iterator::Ptr items = model->GetItems(SelectedItems);
+      std::map<uint32_t, std::size_t> checksumms;
+      SelectItemsProperties(items, checksumms, &Playlist::Item::Data::GetChecksum);
+      const DuplicatedItemsFilter<uint32_t> filter(checksumms, &Playlist::Item::Data::GetChecksum);
+      const Playlist::Model::IndexSet toRemove = model->GetItemIndices(SelectedItems, filter);
+      model->RemoveItems(toRemove);
+    }
+
+    virtual void SelectAllRipOffs() const
+    {
+      const Playlist::Model::Ptr model = Controller->GetModel();
+      Playlist::Item::Data::Iterator::Ptr items = model->GetItems();
+      std::map<uint32_t, std::size_t> checksumms;
+      SelectItemsProperties(items, checksumms, &Playlist::Item::Data::GetCoreChecksum);
+      const SimilarItemsFilter<uint32_t> filter(checksumms, &Playlist::Item::Data::GetCoreChecksum, 2);
+      const Playlist::Model::IndexSet toSelect = model->GetItemIndices(filter);
+      View.SelectItems(toSelect);
+    }
+
+    virtual void SelectRipOffsOfSelected() const
+    {
+      const Playlist::Model::Ptr model = Controller->GetModel();
+      assert(!SelectedItems.empty());
+      Playlist::Item::Data::Iterator::Ptr items = model->GetItems(SelectedItems);
+      std::map<uint32_t, std::size_t> checksumms;
+      SelectItemsProperties(items, checksumms, &Playlist::Item::Data::GetCoreChecksum);
+      const SimilarItemsFilter<uint32_t> filter(checksumms, &Playlist::Item::Data::GetCoreChecksum, 1);
+      const Playlist::Model::IndexSet toSelect = model->GetItemIndices(filter);
+      View.SelectItems(toSelect);
+    }
+
+    virtual void SelectRipOffsInSelected() const
+    {
+      const Playlist::Model::Ptr model = Controller->GetModel();
+      assert(!SelectedItems.empty());
+      Playlist::Item::Data::Iterator::Ptr items = model->GetItems(SelectedItems);
+      std::map<uint32_t, std::size_t> checksumms;
+      SelectItemsProperties(items, checksumms, &Playlist::Item::Data::GetCoreChecksum);
+      const SimilarItemsFilter<uint32_t> filter(checksumms, &Playlist::Item::Data::GetCoreChecksum, 1);
+      const Playlist::Model::IndexSet toSelect = model->GetItemIndices(SelectedItems, filter);
+      View.SelectItems(toSelect);
+    }
+  private:
+    std::auto_ptr<QMenu> CreateMenu()
     {
       const std::size_t items = SelectedItems.size();
       if (0 == items)
       {
-        SetupWholePlaylistMenu();
+        return std::auto_ptr<QMenu>(new NoItemsContextMenu(*this));
       }
       else if (1 == items)
       {
-        SetupSinglePlayitemMenu();
+        return std::auto_ptr<QMenu>(new SingleItemContextMenu(*this));
       }
       else
       {
-        SetupMultiplePlayitemsMenu(items);
+        return std::auto_ptr<QMenu>(new MultipleItemsContextMenu(*this, items));
       }
-    }
-
-    void SetupWholePlaylistMenu()
-    {
-      InfoAction.setVisible(false);
-      PlayAction.setVisible(false);
-      DeleteAction.setVisible(false);
-      CropAction.setVisible(false);
-      GroupAction.setVisible(false);
-      DelDupsAction.setVisible(true);
-    }
-
-    void SetupSinglePlayitemMenu()
-    {
-      InfoAction.setVisible(false);
-      PlayAction.setVisible(true);
-      GroupAction.setVisible(false);
-      DelDupsAction.setVisible(false);
-      SetupPlayitemMenu();
-    }
-
-    void SetupMultiplePlayitemsMenu(int count)
-    {
-      InfoAction.setVisible(true);
-      InfoAction.setText(ToQString(Strings::Format(Text::CONTEXTMENU_STATUS, count)));
-      PlayAction.setVisible(false);
-      GroupAction.setVisible(true);
-      DelDupsAction.setVisible(true);
-      SetupPlayitemMenu();
-    }
-
-    void SetupPlayitemMenu()
-    {
-      DeleteAction.setVisible(true);
-      CropAction.setVisible(true);
     }
   private:
     Playlist::UI::TableView& View;
     const Playlist::Controller::Ptr Controller;
-    QAction InfoAction;
-    QAction PlayAction;
-    QAction DeleteAction;
-    QAction CropAction;
-    QAction GroupAction;
-    QAction DelDupsAction;
-    QAction SelRipOffsAction;
     //data
     Playlist::Model::IndexSet SelectedItems;
   };
@@ -299,7 +343,7 @@ namespace Playlist
 {
   namespace UI
   {
-    ItemsContextMenu::ItemsContextMenu(QWidget& parent) : QMenu(&parent)
+    ItemsContextMenu::ItemsContextMenu(QWidget& parent) : QWidget(&parent)
     {
     }
 

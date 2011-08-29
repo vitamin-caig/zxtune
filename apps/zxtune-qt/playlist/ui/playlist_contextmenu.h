@@ -26,7 +26,7 @@ namespace Playlist
   {
     class TableView;
 
-    class ItemsContextMenu : public QMenu
+    class ItemsContextMenu : public QWidget
     {
       Q_OBJECT
     protected:
@@ -40,8 +40,12 @@ namespace Playlist
       virtual void RemoveSelected() const = 0;
       virtual void CropSelected() const = 0;
       virtual void GroupSelected() const = 0;
-      virtual void RemoveDuplicates() const = 0;
-      virtual void SelectRipOffs() const = 0;
+      virtual void RemoveAllDuplicates() const = 0;
+      virtual void RemoveDuplicatesOfSelected() const = 0;
+      virtual void RemoveDuplicatesInSelected() const = 0;
+      virtual void SelectAllRipOffs() const = 0;
+      virtual void SelectRipOffsOfSelected() const = 0;
+      virtual void SelectRipOffsInSelected() const = 0;
     };
   }
 }
