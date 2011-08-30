@@ -201,46 +201,6 @@ namespace
 
   typedef std::vector<Playlist::Item::Data::Ptr> ItemsArray;
 
-  class PlayitemIteratorImpl : public Playlist::Item::Data::Iterator
-  {
-  public:
-    explicit PlayitemIteratorImpl(ItemsArray& items)
-    {
-      Items.swap(items);
-      Current = Items.begin();
-    }
-
-    virtual bool IsValid() const
-    {
-      return Current != Items.end();
-    }
-
-    virtual Playlist::Item::Data::Ptr Get() const
-    {
-      if (Current != Items.end())
-      {
-        return *Current;
-      }
-      assert(!"Playitems iterator is out of range");
-      return Playlist::Item::Data::Ptr();
-    }
-
-    virtual void Next()
-    {
-      if (Current != Items.end())
-      {
-        ++Current;
-      }
-      else
-      {
-        assert(!"Playitems iterator is out of range");
-      }
-    }
-  private:
-    ItemsArray Items;
-    ItemsArray::const_iterator Current;
-  };
-
   class PlayitemsContainer
   {
   public:
@@ -269,7 +229,7 @@ namespace
     {
       for (ItemsContainer::const_iterator it = Items.begin(), lim = Items.end(); it != lim; ++it)
       {
-        visitor.OnItem(it->second, *it->first);
+        visitor.OnItem(it->second, it->first);
       }
     }
 
@@ -280,15 +240,8 @@ namespace
       for (std::vector<ItemsContainer::const_iterator>::const_iterator it = choosenIterators.begin(), lim = choosenIterators.end(); it != lim; ++it)
       {
         const IndexedItem& item = **it;
-        visitor.OnItem(item.second, *item.first);
+        visitor.OnItem(item.second, item.first);
       }
-    }
-
-    Playlist::Item::Data::Iterator::Ptr GetAllItems() const
-    {
-      ItemsArray allItems(Items.size());
-      std::transform(Items.begin(), Items.end(), allItems.begin(), boost::mem_fn(&IndexedItem::first));
-      return Playlist::Item::Data::Iterator::Ptr(new PlayitemIteratorImpl(allItems));
     }
 
     void RemoveItems(const Playlist::Model::IndexSet& indexes)
@@ -505,22 +458,6 @@ namespace
     {
       QMutexLocker locker(&Synchronizer);
       return Container->ForSpecifiedItems(items, visitor);
-    }
-
-    virtual Playlist::Item::Data::Iterator::Ptr GetItems() const
-    {
-      QMutexLocker locker(&Synchronizer);
-      return Container->GetAllItems();
-    }
-
-    virtual void AddItems(Playlist::Item::Data::Iterator::Ptr iter)
-    {
-      QMutexLocker locker(&Synchronizer);
-      for (; iter->IsValid(); iter->Next())
-      {
-        const Playlist::Item::Data::Ptr item = iter->Get();
-        Container->AddItem(item);
-      }
     }
 
     virtual void Clear()

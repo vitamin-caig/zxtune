@@ -61,12 +61,7 @@ namespace
     {
       return false;
     }
-    const Playlist::Item::Data::Iterator::Ptr iter = playlist->GetItems();
-    for (; !callback.IsCanceled() && iter->IsValid(); iter->Next())
-    {
-      const Playlist::Item::Data::Ptr item = iter->Get();
-      callback.OnItem(item);
-    }
+    playlist->ForAllItems(callback);
     return true;
   }
 

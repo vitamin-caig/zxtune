@@ -46,8 +46,8 @@ namespace Playlist
       virtual ~Container() {}
 
       virtual Parameters::Accessor::Ptr GetProperties() const = 0;
-      virtual Item::Data::Iterator::Ptr GetItems() const = 0;
       virtual unsigned GetItemsCount() const = 0;
+      virtual void ForAllItems(Item::Callback& callback) const = 0;
     };
   }
 }

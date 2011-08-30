@@ -153,13 +153,13 @@ namespace
     {
     }
 
-    virtual void OnItem(Playlist::Model::IndexType index, const Playlist::Item::Data& data)
+    virtual void OnItem(Playlist::Model::IndexType index, Playlist::Item::Data::Ptr data)
     {
-      if (!data.IsValid())
+      if (!data->IsValid())
       {
         return;
       }
-      const T val = (data.*Getter)();
+      const T val = ((*data).*Getter)();
       Delegate.OnItem(index, val);
     }
 

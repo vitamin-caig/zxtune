@@ -17,6 +17,7 @@ Author:
 
 //local includes
 #include "data_provider.h"
+#include "playlist/io/container.h"
 //qt includes
 #include <QtCore/QThread>
 
@@ -33,7 +34,7 @@ namespace Playlist
     static Ptr Create(QObject& parent, Item::DataProvider::Ptr provider);
 
     virtual void AddItems(const QStringList& items, bool deepScan) = 0;
-    virtual void AddItems(Item::Data::Iterator::Ptr items, int countHint = -1) = 0;
+    virtual void AddItems(Playlist::IO::Container::Ptr container) = 0;
   public slots:
     //asynchronous, doesn't wait until real stop
     virtual void Cancel() = 0;

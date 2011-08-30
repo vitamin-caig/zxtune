@@ -259,42 +259,6 @@ namespace
     mutable Playlist::Item::Data::Ptr Delegate;
   };
 
-  class PlayitemIteratorImpl : public Playlist::Item::Data::Iterator
-  {
-  public:
-    PlayitemIteratorImpl(Playlist::Item::DataProvider::Ptr provider,
-      Parameters::Accessor::Ptr properties,
-      Playlist::IO::ContainerItemsPtr items)
-      : Provider(provider)
-      , Properties(properties)
-      , Items(items)
-      , Current(Items->begin())
-    {
-    }
-
-    virtual bool IsValid() const
-    {
-      return Current != Items->end();
-    }
-
-    virtual Playlist::Item::Data::Ptr Get() const
-    {
-      DelayLoadItemProvider::Ptr provider(new DelayLoadItemProvider(Provider, Properties, *Current));
-      return boost::make_shared<DelayLoadItemData>(boost::ref(provider));
-    }
-
-    virtual void Next()
-    {
-      assert(IsValid() || !"Invalid playitems iterator");
-      ++Current;
-    }
-  private:
-    const Playlist::Item::DataProvider::Ptr Provider;
-    const Parameters::Accessor::Ptr Properties;
-    const Playlist::IO::ContainerItemsPtr Items;
-    Playlist::IO::ContainerItems::const_iterator Current;
-  };
-
   class ContainerImpl : public Playlist::IO::Container
   {
   public:
@@ -312,14 +276,19 @@ namespace
       return Properties;
     }
 
-    virtual Playlist::Item::Data::Iterator::Ptr GetItems() const
-    {
-      return Playlist::Item::Data::Iterator::Ptr(new PlayitemIteratorImpl(Provider, Properties, Items));
-    }
-
     virtual unsigned GetItemsCount() const
     {
       return static_cast<unsigned>(Items->size());
+    }
+
+    virtual void ForAllItems(Playlist::Item::Callback& callback) const
+    {
+      for (Playlist::IO::ContainerItems::const_iterator it = Items->begin(), lim = Items->end(); it != lim; ++it)
+      {
+        DelayLoadItemProvider::Ptr provider(new DelayLoadItemProvider(Provider, Properties, *it));
+        const Playlist::Item::Data::Ptr item = boost::make_shared<DelayLoadItemData>(boost::ref(provider));
+        callback.OnItem(item);
+      }
     }
   private:
     const Playlist::Item::DataProvider::Ptr Provider;

@@ -56,10 +56,9 @@ namespace
       {
         const Parameters::Accessor::Ptr plParams = container->GetProperties();
         const QString name = GetPlaylistName(*plParams);
-        const unsigned size = container->GetItemsCount();
         const Playlist::Controller::Ptr playlist = Playlist::Controller::Create(*this, name, provider);
         const Playlist::Scanner::Ptr scanner = playlist->GetScanner();
-        scanner->AddItems(container->GetItems(), size);
+        scanner->AddItems(container);
         return playlist;
       }
       return Playlist::Controller::Ptr();

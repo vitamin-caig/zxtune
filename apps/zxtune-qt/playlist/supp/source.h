@@ -17,19 +17,19 @@ Author:
 
 //local includes
 #include "data_provider.h"
+#include "playlist/io/container.h"
 //qt includes
 #include <QtCore/QStringList>
 
 namespace Playlist
 {
-  class ScannerCallback
+  class ScannerCallback : public Item::Callback
   {
   public:
     virtual ~ScannerCallback() {}
 
     virtual bool IsCanceled() const = 0;
 
-    virtual void OnItem(const Item::Data::Ptr& item) = 0;
     virtual void OnProgress(unsigned progress, unsigned curItem) = 0;
     virtual void OnReport(const QString& report, const QString& item) = 0;
     virtual void OnError(const class Error& err) = 0;
@@ -47,7 +47,7 @@ namespace Playlist
 
     static Ptr CreateOpenFileSource(Item::DataProvider::Ptr provider, ScannerCallback& callback, const QStringList& items);
     static Ptr CreateDetectFileSource(Item::DataProvider::Ptr provider, ScannerCallback& callback, const QStringList& items);
-    static Ptr CreateIteratorSource(ScannerCallback& callback, Item::Data::Iterator::Ptr iterator, int countHint = -1);
+    static Ptr CreateContainerSource(ScannerCallback& callback, IO::Container::Ptr container);
   };
 }
 

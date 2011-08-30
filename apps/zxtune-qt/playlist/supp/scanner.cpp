@@ -87,7 +87,7 @@ namespace
       this->start();
     }
 
-    virtual void AddItems(Playlist::Item::Data::Iterator::Ptr items, int countHint)
+    virtual void AddItems(Playlist::IO::Container::Ptr container)
     {
       QMutexLocker lock(&QueueLock);
       if (Canceled)
@@ -95,7 +95,7 @@ namespace
         this->wait();
       }
       const Playlist::ScannerSource::Ptr scanner = 
-        Playlist::ScannerSource::CreateIteratorSource(*this, items, countHint);
+        Playlist::ScannerSource::CreateContainerSource(*this, container);
       Queue.append(scanner);
       this->start();
     }
@@ -139,7 +139,7 @@ namespace
       return Canceled;
     }
 
-    virtual void OnItem(const Playlist::Item::Data::Ptr& item)
+    virtual void OnItem(Playlist::Item::Data::Ptr item)
     {
       OnGetItem(item);
     }

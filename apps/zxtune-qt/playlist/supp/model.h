@@ -57,14 +57,14 @@ namespace Playlist
     public:
       virtual ~Visitor() {}
 
-      virtual void OnItem(IndexType index, const Item::Data& data) = 0;
+      virtual void OnItem(IndexType index, Item::Data::Ptr data) = 0;
     };
     virtual void ForAllItems(Visitor& visitor) const = 0;
     virtual void ForSpecifiedItems(const IndexSet& items, Visitor& visitor) const = 0;
 
-    virtual Item::Data::Iterator::Ptr GetItems() const = 0;
+    //virtual Item::Data::Iterator::Ptr GetItems() const = 0;
     //modifiers
-    virtual void AddItems(Item::Data::Iterator::Ptr iter) = 0;
+    //virtual void AddItems(Item::Data::Iterator::Ptr iter) = 0;
     virtual void Clear() = 0;
     virtual void RemoveItems(const IndexSet& items) = 0;
     virtual void MoveItems(const IndexSet& items, IndexType target) = 0;

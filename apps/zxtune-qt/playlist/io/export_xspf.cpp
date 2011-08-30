@@ -257,7 +257,28 @@ namespace
     QXmlStreamWriter& XML;
   };
 
-  class XSPFWriter
+  class CallbackAdapter : public Playlist::Item::Callback
+  {
+  public:
+    CallbackAdapter(Playlist::Item::Callback& delegate, Playlist::IO::ExportCallback& cb)
+      : Delegate(delegate)
+      , Report(cb)
+      , DoneItems()
+    {
+    }
+
+    virtual void OnItem(Playlist::Item::Data::Ptr data)
+    {
+      Delegate.OnItem(data);
+      Report.Progress(++DoneItems);
+    }
+  private:
+    Playlist::Item::Callback& Delegate;
+    Playlist::IO::ExportCallback& Report;
+    unsigned DoneItems;
+  };
+
+  class XSPFWriter : private Playlist::Item::Callback
   {
   public:
     explicit XSPFWriter(QIODevice& device)
@@ -278,15 +299,11 @@ namespace
       saver.SetIntValue(Playlist::ATTRIBUTE_VERSION, XSPF_VERSION);
     }
 
-    void WriteItems(Playlist::Item::Data::Iterator::Ptr iter, Playlist::IO::ExportCallback& cb)
+    void WriteItems(const Playlist::IO::Container& container, Playlist::IO::ExportCallback& cb)
     {
       XML.writeStartElement(XSPF::TRACKLIST_TAG);
-      for (unsigned doneItems = 0; iter->IsValid() && !cb.IsCanceled(); iter->Next())
-      {
-        const Playlist::Item::Data::Ptr item = iter->Get();
-        WriteItem(*item);
-        cb.Progress(++doneItems);
-      }
+      CallbackAdapter adapter(*this, cb);
+      container.ForAllItems(adapter);
       XML.writeEndElement();
     }
 
@@ -295,12 +312,12 @@ namespace
       XML.writeEndDocument();
     }
   private:
-    void WriteItem(const Playlist::Item::Data& item)
+    virtual void OnItem(Playlist::Item::Data::Ptr item)
     {
       Log::Debug(THIS_MODULE, "Save playitem");
       ItemPropertiesSaver saver(XML);
-      const Parameters::Accessor::Ptr adjustedParams = item.GetAdjustedParameters();
-      if (const ZXTune::Module::Holder::Ptr holder = item.GetModule())
+      const Parameters::Accessor::Ptr adjustedParams = item->GetAdjustedParameters();
+      if (const ZXTune::Module::Holder::Ptr holder = item->GetModule())
       {
         const ZXTune::Module::Information::Ptr info = holder->GetModuleInformation();
         const Parameters::Accessor::Ptr props = holder->GetModuleProperties();
@@ -367,7 +384,7 @@ namespace Playlist
         writer.WriteProperties(*playlistProperties);
         const unsigned itemsCount = container->GetItemsCount();
         ProgressCallbackWrapper progress(itemsCount, cb);
-        writer.WriteItems(container->GetItems(), progress);
+        writer.WriteItems(*container, progress);
         return Error();
       }
       catch (const Error& e)

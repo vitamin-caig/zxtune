@@ -217,15 +217,32 @@ namespace
       return Properties;
     }
 
-    virtual Playlist::Item::Data::Iterator::Ptr GetItems() const
-    {
-      return Model->GetItems();
-    }
-
     virtual unsigned GetItemsCount() const
     {
       return Model->CountItems();
     }
+
+    virtual void ForAllItems(Playlist::Item::Callback& callback) const
+    {
+      ItemCallbackAdapter adapter(callback);
+      Model->ForAllItems(adapter);
+    }
+  private:
+    class ItemCallbackAdapter : public Playlist::Model::Visitor
+    {
+    public:
+      explicit ItemCallbackAdapter(Playlist::Item::Callback& delegate)
+        : Delegate(delegate)
+      {
+      }
+
+      virtual void OnItem(Playlist::Model::IndexType /*index*/, Playlist::Item::Data::Ptr data)
+      {
+        return Delegate.OnItem(data);
+      }
+    private:
+      Playlist::Item::Callback& Delegate;
+    };
   private:
     const Parameters::Container::Ptr Properties;
     const Playlist::Model::Ptr Model;

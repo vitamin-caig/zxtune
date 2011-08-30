@@ -16,7 +16,6 @@ Author:
 #define ZXTUNE_QT_PLAYLIST_SUPP_DATA_H_DEFINED
 
 //common includes
-#include <iterator.h>
 #include <parameters.h>
 //library includes
 #include <core/module_holder.h>
@@ -31,7 +30,6 @@ namespace Playlist
     {
     public:
       typedef boost::shared_ptr<const Data> Ptr;
-      typedef ObjectIterator<Data::Ptr> Iterator;
 
       virtual ~Data() {}
 
@@ -47,6 +45,14 @@ namespace Playlist
       virtual String GetTooltip() const = 0;
       virtual uint32_t GetChecksum() const = 0;
       virtual uint32_t GetCoreChecksum() const = 0;
+    };
+
+    class Callback
+    {
+    public:
+      virtual ~Callback() {}
+
+      virtual void OnItem(Item::Data::Ptr data) = 0;
     };
   }
 }
