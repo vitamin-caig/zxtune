@@ -36,8 +36,8 @@ namespace
   public:
     NoItemsContextMenu(QWidget& parent, Playlist::UI::ItemsContextMenu& receiver)
       : QMenu(&parent)
-      , DelDupsAction(addAction(tr("Remove all duplicates")))
-      , SelRipOffsAction(addAction(tr("Select all rip-offs")))
+      , DelDupsAction(addAction(QIcon(":/playlist/delduplicates.png"), tr("Remove all duplicates")))
+      , SelRipOffsAction(addAction(QIcon(":/playlist/selripoffs.png"), tr("Select all rip-offs")))
     {
       receiver.connect(DelDupsAction, SIGNAL(triggered()), SLOT(RemoveAllDuplicates()));
       receiver.connect(SelRipOffsAction, SIGNAL(triggered()), SLOT(SelectAllRipOffs()));
@@ -61,8 +61,8 @@ namespace
       , PlayAction(addAction(QIcon(":/playback/play.png"), tr("Play")))
       , DeleteAction(addAction(QIcon(":/playlist/delete.png"), tr("Delete")))
       , CropAction(addAction(QIcon(":/playlist/crop.png"), tr("Crop")))
-      , DelDupsAction(addAction(tr("Remove duplicates of")))
-      , SelRipOffsAction(addAction(tr("Select rip-offs of")))
+      , DelDupsAction(addAction(QIcon(":/playlist/delduplicates.png"), tr("Remove duplicates of")))
+      , SelRipOffsAction(addAction(QIcon(":/playlist/selripoffs.png"), tr("Select rip-offs of")))
     {
       insertSeparator(DelDupsAction);
       receiver.connect(PlayAction, SIGNAL(triggered()), SLOT(PlaySelected()));
@@ -91,12 +91,12 @@ namespace
   public:
     MultipleItemsContextMenu(QWidget& parent, Playlist::UI::ItemsContextMenu& receiver, std::size_t count)
       : QMenu(&parent)
-      , InfoAction(addAction(ToQString(Strings::Format(Text::CONTEXTMENU_STATUS, count))))
+      , InfoAction(addAction(QIcon(":/playlist/info.png"), ToQString(Strings::Format(Text::CONTEXTMENU_STATUS, count))))
       , DeleteAction(addAction(QIcon(":/playlist/delete.png"), tr("Delete")))
       , CropAction(addAction(QIcon(":/playlist/crop.png"), tr("Crop")))
-      , GroupAction(addAction(tr("Group together")))
-      , DelDupsAction(addAction(tr("Remove duplicates in")))
-      , SelRipOffsAction(addAction(tr("Select rip-offs in")))
+      , GroupAction(addAction(QIcon(":/playlist/group.png"), tr("Group together")))
+      , DelDupsAction(addAction(QIcon(":/playlist/delduplicates.png"), tr("Remove duplicates in")))
+      , SelRipOffsAction(addAction(QIcon(":/playlist/selripoffs.png"), tr("Select rip-offs in")))
     {
       InfoAction->setEnabled(false);
       insertSeparator(DelDupsAction);

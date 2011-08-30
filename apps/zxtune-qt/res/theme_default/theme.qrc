@@ -37,6 +37,10 @@
     <file alias="random_off.png">list_random.png</file>
     <file alias="delete.png">app_exit.png</file>
     <file alias="crop.png">list_crop.png</file>
+    <file alias="group.png">list_group.png</file>
+    <file alias="delduplicates.png">list_delduplicates.png</file>
+    <file alias="selripoffs.png">list_selripoffs.png</file>
+    <file alias="info.png">app_about.png</file>
   </qresource>
   <qresource prefix="/setup">
     <file alias="loop_off.png">list_looped.png</file>

@@ -5,7 +5,7 @@ include $(path_step)/make/default.mak
 source_files = qt_app
 
 #ui-related
-gui_theme ?= restorer
+gui_theme ?= default
 
 #other
 moc_files += supp/playback_supp
