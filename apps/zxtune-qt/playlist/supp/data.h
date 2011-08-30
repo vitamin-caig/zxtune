@@ -48,14 +48,6 @@ namespace Playlist
       virtual uint32_t GetChecksum() const = 0;
       virtual uint32_t GetCoreChecksum() const = 0;
     };
-
-    class Filter
-    {
-    public:
-      virtual ~Filter() {}
-
-      virtual bool OnItem(const Data& data) const = 0;
-    };
   }
 }
 

@@ -19,6 +19,8 @@ Author:
 #include <format.h>
 //library includes
 #include <core/module_attrs.h>
+//boost includes
+#include <boost/bind.hpp>
 //qt includes
 #include <QtGui/QMenu>
 //text includes
@@ -114,82 +116,156 @@ namespace
   };
 
   template<class T>
-  void SelectItemsProperties(Playlist::Item::Data::Iterator::Ptr items, std::map<T, std::size_t>& result, T (Playlist::Item::Data::*getter)() const)
-  {
-    std::map<T, std::size_t> res;
-    for (; items->IsValid(); items->Next())
-    {
-      const Playlist::Item::Data::Ptr item = items->Get();
-      const T val = ((*item).*getter)();
-      if (item->IsValid())
-      {
-        ++res[val];
-      }
-    }
-    res.swap(result);
-  }
-
-  template<class T>
-  class DuplicatedItemsFilter : public Playlist::Item::Filter
+  class PropertyModel
   {
   public:
-    DuplicatedItemsFilter(const std::map<T, std::size_t>& props, T (Playlist::Item::Data::*getter)() const)
-      : Props(props)
+    typedef T (Playlist::Item::Data::*GetFunctionType)() const;
+
+    PropertyModel(const Playlist::Model& model, const GetFunctionType getter)
+      : Model(model)
       , Getter(getter)
     {
     }
 
-    virtual bool OnItem(const Playlist::Item::Data& data) const
+    class Visitor
     {
-      const T val = (data.*Getter)();
+    public:
+      virtual ~Visitor() {}
+
+      virtual void OnItem(Playlist::Model::IndexType index, const T& val) = 0;
+    };
+
+    void ForAllItems(Visitor& visitor) const;
+
+    void ForSpecifiedItems(const Playlist::Model::IndexSet& items, Visitor& visitor) const;
+  private:
+    const Playlist::Model& Model;
+    const GetFunctionType Getter;
+  }; 
+
+  template<class T>
+  class VisitorAdapter : public Playlist::Model::Visitor
+  {
+  public:
+    VisitorAdapter(const typename PropertyModel<T>::GetFunctionType getter, typename PropertyModel<T>::Visitor& delegate)
+      : Getter(getter)
+      , Delegate(delegate)
+    {
+    }
+
+    virtual void OnItem(Playlist::Model::IndexType index, const Playlist::Item::Data& data)
+    {
       if (!data.IsValid())
       {
-        return false;
+        return;
       }
-      if (!Props.count(val))
-      {
-        return false;
-      }
-      if (Visited.count(val))
-      {
-        return true;
-      }
-      Visited.insert(val);
-      return false;
+      const T val = (data.*Getter)();
+      Delegate.OnItem(index, val);
     }
+
   private:
-    const std::map<T, std::size_t>& Props;
-    typedef T (Playlist::Item::Data::*GetFunc)() const;
-    const GetFunc Getter;
-    mutable std::set<T> Visited;
+    const typename PropertyModel<T>::GetFunctionType Getter;
+    typename PropertyModel<T>::Visitor& Delegate;
   };
 
   template<class T>
-  class SimilarItemsFilter : public Playlist::Item::Filter
+  void PropertyModel<T>::ForAllItems(PropertyModel<T>::Visitor& visitor) const
+  {
+    VisitorAdapter<T> adapter(Getter, visitor);
+    Model.ForAllItems(adapter);
+  }
+
+  template<class T>
+  void PropertyModel<T>::ForSpecifiedItems(const Playlist::Model::IndexSet& items, PropertyModel<T>::Visitor& visitor) const
+  {
+    assert(!items.empty());
+    VisitorAdapter<T> adapter(Getter, visitor);
+    Model.ForSpecifiedItems(items, adapter);
+  }
+
+
+  template<class T>
+  class PropertiesFilter : public PropertyModel<T>::Visitor
   {
   public:
-    SimilarItemsFilter(const std::map<T, std::size_t>& props, T (Playlist::Item::Data::*getter)() const, std::size_t minCount)
-      : Props(props)
-      , Getter(getter)
-      , MinCount(minCount)
+    PropertiesFilter(typename PropertyModel<T>::Visitor& delegate, const std::set<T>& filter)
+      : Delegate(delegate)
+      , Filter(filter)
     {
     }
 
-    virtual bool OnItem(const Playlist::Item::Data& data) const
+    virtual void OnItem(Playlist::Model::IndexType index, const T& val)
     {
-      const T val = (data.*Getter)();
-      if (!data.IsValid())
+      if (Filter.count(val))
       {
-        return false;
+        Delegate.OnItem(index, val);
       }
-      const typename std::map<T, std::size_t>::const_iterator it = Props.find(val);
-      return it != Props.end() && it->second >= MinCount;
     }
   private:
-    const std::map<T, std::size_t>& Props;
-    typedef T (Playlist::Item::Data::*GetFunc)() const;
-    const GetFunc Getter;
-    const std::size_t MinCount;
+    typename PropertyModel<T>::Visitor& Delegate;
+    const std::set<T>& Filter;
+  };
+
+  template<class T>
+  class PropertiesCollector : public PropertyModel<T>::Visitor
+  {
+  public:
+    virtual void OnItem(Playlist::Model::IndexType /*index*/, const T& val)
+    {
+      Result.insert(val);
+    }
+
+    const std::set<T>& GetResult() const
+    {
+      return Result;
+    }
+  private:
+    std::set<T> Result;
+  };
+
+  template<class T>
+  class DuplicatesCollector : public PropertyModel<T>::Visitor
+  {
+  public:
+    virtual void OnItem(Playlist::Model::IndexType index, const T& val)
+    {
+      if (!Visited.insert(val).second)
+      {
+        Result.insert(index);
+      }
+    }
+
+    const Playlist::Model::IndexSet& GetResult() const
+    {
+      return Result;
+    }
+  private:
+    std::set<T> Visited;
+    Playlist::Model::IndexSet Result;
+  };
+
+  template<class T>
+  class RipOffsCollector : public PropertyModel<T>::Visitor
+  {
+  public:
+    virtual void OnItem(Playlist::Model::IndexType index, const T& val)
+    {
+      const std::pair<typename PropToIndex::iterator, bool> result = Visited.insert(typename PropToIndex::value_type(val, index));
+      if (!result.second)
+      {
+        Result.insert(result.first->second);
+        Result.insert(index);
+      }
+    }
+
+    const Playlist::Model::IndexSet& GetResult() const
+    {
+      return Result;
+    }
+  private:
+    typedef typename std::map<T, Playlist::Model::IndexType> PropToIndex;
+    PropToIndex Visited;
+    Playlist::Model::IndexSet Result;
   };
 
   class ItemsContextMenuImpl : public Playlist::UI::ItemsContextMenu
@@ -252,70 +328,72 @@ namespace
     virtual void RemoveAllDuplicates() const
     {
       const Playlist::Model::Ptr model = Controller->GetModel();
-      Playlist::Item::Data::Iterator::Ptr items = model->GetItems();
-      std::map<uint32_t, std::size_t> checksumms;
-      SelectItemsProperties(items, checksumms, &Playlist::Item::Data::GetChecksum);
-      const DuplicatedItemsFilter<uint32_t> filter(checksumms, &Playlist::Item::Data::GetChecksum);
-      const Playlist::Model::IndexSet toRemove = model->GetItemIndices(filter);
+      const PropertyModel<uint32_t> propertyModel(*model, &Playlist::Item::Data::GetChecksum);
+      DuplicatesCollector<uint32_t> dups;
+      propertyModel.ForAllItems(dups);
+      const Playlist::Model::IndexSet& toRemove = dups.GetResult();
       model->RemoveItems(toRemove);
     }
 
     virtual void RemoveDuplicatesOfSelected() const
     {
       const Playlist::Model::Ptr model = Controller->GetModel();
-      assert(!SelectedItems.empty());
-      Playlist::Item::Data::Iterator::Ptr items = model->GetItems(SelectedItems);
-      std::map<uint32_t, std::size_t> checksumms;
-      SelectItemsProperties(items, checksumms, &Playlist::Item::Data::GetChecksum);
-      const DuplicatedItemsFilter<uint32_t> filter(checksumms, &Playlist::Item::Data::GetChecksum);
-      const Playlist::Model::IndexSet toRemove = model->GetItemIndices(filter);
+      const PropertyModel<uint32_t> propertyModel(*model, &Playlist::Item::Data::GetChecksum);
+      //select all rips but delete only nonselected
+      RipOffsCollector<uint32_t> dups;
+      {
+        PropertiesCollector<uint32_t> selectedProps;
+        propertyModel.ForSpecifiedItems(SelectedItems, selectedProps);
+        PropertiesFilter<uint32_t> filter(dups, selectedProps.GetResult());
+        propertyModel.ForAllItems(filter);
+      }
+      Playlist::Model::IndexSet toRemove = dups.GetResult();
+      std::for_each(SelectedItems.begin(), SelectedItems.end(), boost::bind<Playlist::Model::IndexSet::size_type>(&Playlist::Model::IndexSet::erase, &toRemove, _1));
       model->RemoveItems(toRemove);
     }
 
     virtual void RemoveDuplicatesInSelected() const
     {
       const Playlist::Model::Ptr model = Controller->GetModel();
-      assert(!SelectedItems.empty());
-      Playlist::Item::Data::Iterator::Ptr items = model->GetItems(SelectedItems);
-      std::map<uint32_t, std::size_t> checksumms;
-      SelectItemsProperties(items, checksumms, &Playlist::Item::Data::GetChecksum);
-      const DuplicatedItemsFilter<uint32_t> filter(checksumms, &Playlist::Item::Data::GetChecksum);
-      const Playlist::Model::IndexSet toRemove = model->GetItemIndices(SelectedItems, filter);
+      const PropertyModel<uint32_t> propertyModel(*model, &Playlist::Item::Data::GetChecksum);
+      DuplicatesCollector<uint32_t> dups;
+      propertyModel.ForSpecifiedItems(SelectedItems, dups);
+      const Playlist::Model::IndexSet& toRemove = dups.GetResult();
       model->RemoveItems(toRemove);
     }
 
     virtual void SelectAllRipOffs() const
     {
       const Playlist::Model::Ptr model = Controller->GetModel();
-      Playlist::Item::Data::Iterator::Ptr items = model->GetItems();
-      std::map<uint32_t, std::size_t> checksumms;
-      SelectItemsProperties(items, checksumms, &Playlist::Item::Data::GetCoreChecksum);
-      const SimilarItemsFilter<uint32_t> filter(checksumms, &Playlist::Item::Data::GetCoreChecksum, 2);
-      const Playlist::Model::IndexSet toSelect = model->GetItemIndices(filter);
+      const PropertyModel<uint32_t> propertyModel(*model, &Playlist::Item::Data::GetCoreChecksum);
+      RipOffsCollector<uint32_t> rips;
+      propertyModel.ForAllItems(rips);
+      const Playlist::Model::IndexSet& toSelect = rips.GetResult();
       View.SelectItems(toSelect);
     }
 
     virtual void SelectRipOffsOfSelected() const
     {
       const Playlist::Model::Ptr model = Controller->GetModel();
-      assert(!SelectedItems.empty());
-      Playlist::Item::Data::Iterator::Ptr items = model->GetItems(SelectedItems);
-      std::map<uint32_t, std::size_t> checksumms;
-      SelectItemsProperties(items, checksumms, &Playlist::Item::Data::GetCoreChecksum);
-      const SimilarItemsFilter<uint32_t> filter(checksumms, &Playlist::Item::Data::GetCoreChecksum, 1);
-      const Playlist::Model::IndexSet toSelect = model->GetItemIndices(filter);
+      const PropertyModel<uint32_t> propertyModel(*model, &Playlist::Item::Data::GetCoreChecksum);
+      RipOffsCollector<uint32_t> rips;
+      {
+        PropertiesCollector<uint32_t> selectedProps;
+        propertyModel.ForSpecifiedItems(SelectedItems, selectedProps);
+        PropertiesFilter<uint32_t> filter(rips, selectedProps.GetResult());
+        propertyModel.ForAllItems(filter);
+      }
+      const Playlist::Model::IndexSet toSelect = rips.GetResult();
       View.SelectItems(toSelect);
     }
 
     virtual void SelectRipOffsInSelected() const
     {
       const Playlist::Model::Ptr model = Controller->GetModel();
-      assert(!SelectedItems.empty());
-      Playlist::Item::Data::Iterator::Ptr items = model->GetItems(SelectedItems);
-      std::map<uint32_t, std::size_t> checksumms;
-      SelectItemsProperties(items, checksumms, &Playlist::Item::Data::GetCoreChecksum);
-      const SimilarItemsFilter<uint32_t> filter(checksumms, &Playlist::Item::Data::GetCoreChecksum, 1);
-      const Playlist::Model::IndexSet toSelect = model->GetItemIndices(SelectedItems, filter);
+      const PropertyModel<uint32_t> propertyModel(*model, &Playlist::Item::Data::GetCoreChecksum);
+      RipOffsCollector<uint32_t> rips;
+      propertyModel.ForSpecifiedItems(SelectedItems, rips);
+      const Playlist::Model::IndexSet toSelect = rips.GetResult();
       View.SelectItems(toSelect);
     }
   private:

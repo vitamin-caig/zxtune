@@ -161,20 +161,37 @@ namespace
     const DummyDataProvider Dummy;
   };
 
-  template<class Container, class Iterators>
-  void GetChoosenItems(Container& items, const Playlist::Model::IndexSet& indexes, Iterators& result)
+  template<class Container, class IteratorType>
+  void GetChoosenItems(Container& items, const Playlist::Model::IndexSet& indexes, std::vector<IteratorType>& result)
   {
-    typedef typename Iterators::value_type Iterator;
-    Iterators choosenItems;
-    if (!items.empty())
+    if (items.empty() || indexes.empty())
     {
-      unsigned lastIndex = 0;
-      Iterator lastIterator = items.begin();
+      result.clear();
+      return;
+    }
+    assert(*indexes.rbegin() < items.size());
+    std::vector<IteratorType> choosenItems;
+    choosenItems.reserve(indexes.size());
+    if (indexes.size() == items.size())
+    {
+      //all items
+      for (IteratorType it = items.begin(), lim = items.end(); it != lim; ++it)
+      {
+        choosenItems.push_back(it);
+      }
+    }
+    else
+    {
+      Playlist::Model::IndexType lastIndex = 0;
+      IteratorType lastIterator = items.begin();
       for (Playlist::Model::IndexSet::const_iterator idxIt = indexes.begin(), idxLim = indexes.end(); idxIt != idxLim; ++idxIt)
       {
-        const unsigned curIndex = *idxIt;
-        const unsigned delta = curIndex - lastIndex;
-        std::advance(lastIterator, delta);
+        const Playlist::Model::IndexType curIndex = *idxIt;
+        assert(curIndex >= lastIndex);
+        if (const Playlist::Model::IndexType delta = curIndex - lastIndex)
+        {
+          std::advance(lastIterator, delta);
+        }
         choosenItems.push_back(lastIterator);
         lastIndex = curIndex;
       }
@@ -229,7 +246,7 @@ namespace
   public:
     void AddItem(Playlist::Item::Data::Ptr item)
     {
-      const IndexedItem idxItem(item, static_cast<unsigned>(Items.size()));
+      const IndexedItem idxItem(item, static_cast<Playlist::Model::IndexType>(Items.size()));
       Items.push_back(idxItem);
     }
 
@@ -238,9 +255,9 @@ namespace
       return Items.size();
     }
 
-    Playlist::Item::Data::Ptr GetItemByIndex(int idx) const
+    Playlist::Item::Data::Ptr GetItemByIndex(Playlist::Model::IndexType idx) const
     {
-      if (idx >= int(Items.size()) || idx < 0)
+      if (idx >= Playlist::Model::IndexType(Items.size()))
       {
         return Playlist::Item::Data::Ptr();
       }
@@ -248,55 +265,30 @@ namespace
       return it->first;
     }
 
+    void ForAllItems(Playlist::Model::Visitor& visitor) const
+    {
+      for (ItemsContainer::const_iterator it = Items.begin(), lim = Items.end(); it != lim; ++it)
+      {
+        visitor.OnItem(it->second, *it->first);
+      }
+    }
+
+    virtual void ForSpecifiedItems(const Playlist::Model::IndexSet& indices, Playlist::Model::Visitor& visitor) const
+    {
+      std::vector<ItemsContainer::const_iterator> choosenIterators;
+      GetChoosenItems(Items, indices, choosenIterators);
+      for (std::vector<ItemsContainer::const_iterator>::const_iterator it = choosenIterators.begin(), lim = choosenIterators.end(); it != lim; ++it)
+      {
+        const IndexedItem& item = **it;
+        visitor.OnItem(item.second, *item.first);
+      }
+    }
+
     Playlist::Item::Data::Iterator::Ptr GetAllItems() const
     {
       ItemsArray allItems(Items.size());
       std::transform(Items.begin(), Items.end(), allItems.begin(), boost::mem_fn(&IndexedItem::first));
       return Playlist::Item::Data::Iterator::Ptr(new PlayitemIteratorImpl(allItems));
-    }
-
-    Playlist::Item::Data::Iterator::Ptr GetItems(const Playlist::Model::IndexSet& indexes) const
-    {
-      std::vector<ItemsContainer::const_iterator> choosenIterators;
-      GetChoosenItems(Items, indexes, choosenIterators);
-      assert(unsigned(indexes.size()) == choosenIterators.size());
-      ItemsArray choosenItems(choosenIterators.size());
-      std::transform(choosenIterators.begin(), choosenIterators.end(), choosenItems.begin(),
-        boost::bind(&ItemsContainer::value_type::first, boost::bind(&ItemsContainer::const_iterator::operator ->, _1)));
-      return Playlist::Item::Data::Iterator::Ptr(new PlayitemIteratorImpl(choosenItems));
-    }
-
-    Playlist::Model::IndexSet GetItemIndices(const Playlist::Model::IndexSet& indexes, const Playlist::Item::Filter& filter) const
-    {
-      std::vector<ItemsContainer::const_iterator> choosenIterators;
-      GetChoosenItems(Items, indexes, choosenIterators);
-      assert(unsigned(indexes.size()) == choosenIterators.size());
-      Playlist::Model::IndexSet result;
-      std::vector<ItemsContainer::const_iterator>::const_iterator itIt = choosenIterators.begin(), itLim = choosenIterators.end();
-      Playlist::Model::IndexSet::const_iterator indIt = indexes.begin(), indLim = indexes.end();
-      while (itIt != itLim)
-      {
-        if (filter.OnItem(*(*itIt)->first))
-        {
-          result.insert(*indIt);
-        }
-        ++itIt;
-        ++indIt;
-      }
-      return result;
-    }
-
-    Playlist::Model::IndexSet GetItemIndices(const Playlist::Item::Filter& filter) const
-    {
-      Playlist::Model::IndexSet result;
-      for (ItemsContainer::const_iterator it = Items.begin(), lim = Items.end(); it != lim; ++it)
-      {
-        if (filter.OnItem(*it->first))
-        {
-          result.insert(it->second);
-        }
-      }
-      return result;
     }
 
     void RemoveItems(const Playlist::Model::IndexSet& indexes)
@@ -307,12 +299,12 @@ namespace
       }
       std::vector<ItemsContainer::iterator> itersToRemove;
       GetChoosenItems(Items, indexes, itersToRemove);
-      assert(unsigned(indexes.size()) == itersToRemove.size());
+      assert(indexes.size() == itersToRemove.size());
       std::for_each(itersToRemove.begin(), itersToRemove.end(),
         boost::bind(&ItemsContainer::erase, &Items, _1));
     }
 
-    void MoveItems(const Playlist::Model::IndexSet& indexes, unsigned destination)
+    void MoveItems(const Playlist::Model::IndexSet& indexes, Playlist::Model::IndexType destination)
     {
       if (!indexes.count(destination))
       {
@@ -321,7 +313,7 @@ namespace
       else
       {
         //try to move at the first nonselected and place before it
-        for (unsigned moveAfter = destination; moveAfter != Items.size(); ++moveAfter)
+        for (Playlist::Model::IndexType moveAfter = destination; moveAfter != Items.size(); ++moveAfter)
         {
           if (!indexes.count(moveAfter))
           {
@@ -329,7 +321,7 @@ namespace
             return;
           }
         }
-        MoveItemsInternal(indexes, static_cast<unsigned>(Items.size()));
+        MoveItemsInternal(indexes, static_cast<Playlist::Model::IndexType>(Items.size()));
       }
     }
 
@@ -350,26 +342,26 @@ namespace
     void GetIndexRemapping(Playlist::Model::OldToNewIndexMap& idxMap) const
     {
       Playlist::Model::OldToNewIndexMap result;
-      std::transform(Items.begin(), Items.end(), boost::counting_iterator<unsigned>(0), std::inserter(result, result.end()),
+      std::transform(Items.begin(), Items.end(), boost::counting_iterator<Playlist::Model::IndexType>(0), std::inserter(result, result.end()),
         boost::bind(&MakeIndexPair, _1, _2));
       idxMap.swap(result);
     }
 
     void ResetIndexes()
     {
-      std::transform(Items.begin(), Items.end(), boost::counting_iterator<unsigned>(0), Items.begin(),
+      std::transform(Items.begin(), Items.end(), boost::counting_iterator<Playlist::Model::IndexType>(0), Items.begin(),
         boost::bind(&UpdateItemIndex, _1, _2));
     }
   private:
-    typedef std::pair<Playlist::Item::Data::Ptr, unsigned> IndexedItem;
+    typedef std::pair<Playlist::Item::Data::Ptr, Playlist::Model::IndexType> IndexedItem;
     typedef std::list<IndexedItem> ItemsContainer;
 
-    static Playlist::Model::OldToNewIndexMap::value_type MakeIndexPair(const IndexedItem& item, unsigned idx)
+    static Playlist::Model::OldToNewIndexMap::value_type MakeIndexPair(const IndexedItem& item, Playlist::Model::IndexType idx)
     {
       return Playlist::Model::OldToNewIndexMap::value_type(item.second, idx);
     }
 
-    static IndexedItem UpdateItemIndex(const IndexedItem& item, unsigned idx)
+    static IndexedItem UpdateItemIndex(const IndexedItem& item, Playlist::Model::IndexType idx)
     {
       return IndexedItem(item.first, idx);
     }
@@ -390,21 +382,21 @@ namespace
       const Comparer& Cmp;
     };
 
-    ItemsContainer::const_iterator GetIteratorByIndex(unsigned idx) const
+    ItemsContainer::const_iterator GetIteratorByIndex(Playlist::Model::IndexType idx) const
     {
       ItemsContainer::const_iterator it = Items.begin();
       std::advance(it, idx);
       return it;
     }
 
-    ItemsContainer::iterator GetIteratorByIndex(unsigned idx)
+    ItemsContainer::iterator GetIteratorByIndex(Playlist::Model::IndexType idx)
     {
       ItemsContainer::iterator it = Items.begin();
       std::advance(it, idx);
       return it;
     }
 
-    void MoveItemsInternal(const Playlist::Model::IndexSet& indexes, unsigned destination)
+    void MoveItemsInternal(const Playlist::Model::IndexSet& indexes, Playlist::Model::IndexType destination)
     {
       if (indexes.empty())
       {
@@ -415,7 +407,7 @@ namespace
 
       std::vector<ItemsContainer::iterator> movedIters;
       GetChoosenItems(Items, indexes, movedIters);
-      assert(unsigned(indexes.size()) == movedIters.size());
+      assert(indexes.size() == movedIters.size());
 
       ItemsContainer movedItems;
       std::for_each(movedIters.begin(), movedIters.end(), 
@@ -497,34 +489,28 @@ namespace
       return static_cast<unsigned>(Container->CountItems());
     }
 
-    virtual Playlist::Item::Data::Ptr GetItem(unsigned index) const
+    virtual Playlist::Item::Data::Ptr GetItem(IndexType index) const
     {
       QMutexLocker locker(&Synchronizer);
       return Container->GetItemByIndex(index);
+    }
+
+    virtual void ForAllItems(Visitor& visitor) const
+    {
+      QMutexLocker locker(&Synchronizer);
+      return Container->ForAllItems(visitor);
+    }
+
+    virtual void ForSpecifiedItems(const IndexSet& items, Visitor& visitor) const
+    {
+      QMutexLocker locker(&Synchronizer);
+      return Container->ForSpecifiedItems(items, visitor);
     }
 
     virtual Playlist::Item::Data::Iterator::Ptr GetItems() const
     {
       QMutexLocker locker(&Synchronizer);
       return Container->GetAllItems();
-    }
-
-    virtual Playlist::Item::Data::Iterator::Ptr GetItems(const Playlist::Model::IndexSet& items) const
-    {
-      QMutexLocker locker(&Synchronizer);
-      return Container->GetItems(items);
-    }
-
-    virtual Playlist::Model::IndexSet GetItemIndices(const Playlist::Item::Filter& filter) const
-    {
-      QMutexLocker locker(&Synchronizer);
-      return Container->GetItemIndices(filter);
-    }
-
-    virtual Playlist::Model::IndexSet GetItemIndices(const Playlist::Model::IndexSet& items, const Playlist::Item::Filter& filter) const
-    {
-      QMutexLocker locker(&Synchronizer);
-      return Container->GetItemIndices(items, filter);
     }
 
     virtual void AddItems(Playlist::Item::Data::Iterator::Ptr iter)
@@ -553,7 +539,7 @@ namespace
       FetchedItemsCount = static_cast<int>(Container->CountItems());
     }
 
-    virtual void MoveItems(const IndexSet& items, unsigned target)
+    virtual void MoveItems(const IndexSet& items, IndexType target)
     {
       Log::Debug(THIS_MODULE, "Moving %1% items to row %2%", items.size(), target);
       QMutexLocker locker(&Synchronizer);
@@ -638,7 +624,7 @@ namespace
       Playlist::Model::IndexSet movedItems;
       while (!stream.atEnd())
       {
-        unsigned idx;
+        IndexType idx;
         stream >> idx;
         movedItems.insert(idx);
       }

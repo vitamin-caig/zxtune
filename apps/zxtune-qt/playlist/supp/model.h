@@ -41,24 +41,33 @@ namespace Playlist
     };
 
     typedef Model* Ptr;
-    typedef std::set<unsigned> IndexSet;
-    typedef std::map<unsigned, unsigned> OldToNewIndexMap;
+    typedef unsigned IndexType;
+    typedef std::set<IndexType> IndexSet;
+    typedef std::map<IndexType, IndexType> OldToNewIndexMap;
 
     //creator
     static Ptr Create(QObject& parent);
 
     //accessors
     virtual unsigned CountItems() const = 0;
-    virtual Item::Data::Ptr GetItem(unsigned index) const = 0;
+    virtual Item::Data::Ptr GetItem(IndexType index) const = 0;
+
+    class Visitor
+    {
+    public:
+      virtual ~Visitor() {}
+
+      virtual void OnItem(IndexType index, const Item::Data& data) = 0;
+    };
+    virtual void ForAllItems(Visitor& visitor) const = 0;
+    virtual void ForSpecifiedItems(const IndexSet& items, Visitor& visitor) const = 0;
+
     virtual Item::Data::Iterator::Ptr GetItems() const = 0;
-    virtual Item::Data::Iterator::Ptr GetItems(const IndexSet& items) const = 0;
-    virtual IndexSet GetItemIndices(const Item::Filter& filter) const = 0;
-    virtual IndexSet GetItemIndices(const IndexSet& items, const Item::Filter& filter) const = 0;
     //modifiers
     virtual void AddItems(Item::Data::Iterator::Ptr iter) = 0;
     virtual void Clear() = 0;
     virtual void RemoveItems(const IndexSet& items) = 0;
-    virtual void MoveItems(const IndexSet& items, unsigned target) = 0;
+    virtual void MoveItems(const IndexSet& items, IndexType target) = 0;
   public slots:
     virtual void AddItem(Playlist::Item::Data::Ptr item) = 0;
   signals:
