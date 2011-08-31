@@ -121,8 +121,8 @@ namespace
       View->connect(Controller->GetScanner(), SIGNAL(OnScanStop()), SLOT(updateGeometries()));
 
       const Playlist::Model::Ptr model = Controller->GetModel();
-      this->connect(model, SIGNAL(OnSortStart()), SLOT(Disable()));
-      this->connect(model, SIGNAL(OnSortStop()), SLOT(Enable()));
+      this->connect(model, SIGNAL(OnLongOperationStart()), SLOT(Disable()));
+      this->connect(model, SIGNAL(OnLongOperationStop()), SLOT(Enable()));
 
       Log::Debug(THIS_MODULE, "Created at %1%", this);
     }

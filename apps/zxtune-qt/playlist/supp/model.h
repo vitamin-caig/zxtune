@@ -62,9 +62,7 @@ namespace Playlist
     virtual void ForAllItems(Visitor& visitor) const = 0;
     virtual void ForSpecifiedItems(const IndexSet& items, Visitor& visitor) const = 0;
 
-    //virtual Item::Data::Iterator::Ptr GetItems() const = 0;
     //modifiers
-    //virtual void AddItems(Item::Data::Iterator::Ptr iter) = 0;
     virtual void Clear() = 0;
     virtual void RemoveItems(const IndexSet& items) = 0;
     virtual void MoveItems(const IndexSet& items, IndexType target) = 0;
@@ -72,8 +70,8 @@ namespace Playlist
     virtual void AddItem(Playlist::Item::Data::Ptr item) = 0;
   signals:
     void OnIndexesChanged(const Playlist::Model::OldToNewIndexMap& map);
-    void OnSortStart();
-    void OnSortStop();
+    void OnLongOperationStart();
+    void OnLongOperationStop();
   };
 }
 
