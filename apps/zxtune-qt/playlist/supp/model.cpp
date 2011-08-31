@@ -275,7 +275,6 @@ namespace
       QMutexLocker locker(&SyncModification);
       Container = Playlist::Item::Storage::Create();
       NotifyAboutIndexChanged();
-      FetchedItemsCount = 0;
     }
 
     virtual void RemoveItems(const Playlist::Model::IndexSet& items)
@@ -283,7 +282,6 @@ namespace
       QMutexLocker locker(&SyncModification);
       Container->RemoveItems(items);
       NotifyAboutIndexChanged();
-      FetchedItemsCount = static_cast<int>(Container->CountItems());
     }
 
     virtual void MoveItems(const IndexSet& items, IndexType target)
@@ -508,6 +506,7 @@ namespace
 
     void NotifyAboutIndexChanged()
     {
+      FetchedItemsCount = static_cast<int>(Container->CountItems());
       Playlist::Model::OldToNewIndexMap remapping;
       Container->GetIndexRemapping(remapping);
       Container->ResetIndices();

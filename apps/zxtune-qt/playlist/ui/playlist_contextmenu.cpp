@@ -18,6 +18,7 @@ Author:
 #include "no_items_contextmenu.ui.h"
 #include "single_item_contextmenu.ui.h"
 #include "multiple_items_contextmenu.ui.h"
+#include "playlist/supp/storage.h"
 //common includes
 #include <format.h>
 //library includes
@@ -89,7 +90,7 @@ namespace
   public:
     typedef T (Playlist::Item::Data::*GetFunctionType)() const;
 
-    PropertyModel(const Playlist::Model& model, const GetFunctionType getter)
+    PropertyModel(const Playlist::Item::Storage& model, const GetFunctionType getter)
       : Model(model)
       , Getter(getter)
     {
@@ -107,7 +108,7 @@ namespace
 
     void ForSpecifiedItems(const Playlist::Model::IndexSet& items, Visitor& visitor) const;
   private:
-    const Playlist::Model& Model;
+    const Playlist::Item::Storage& Model;
     const GetFunctionType Getter;
   }; 
 
@@ -236,6 +237,138 @@ namespace
     Playlist::Model::IndexSet Result;
   };
 
+  class RemoveAllDupsOperation : public Playlist::Item::StorageModifyOperation
+  {
+  public:
+    virtual void Execute(Playlist::Item::Storage& stor)
+    {
+      const PropertyModel<uint32_t> propertyModel(stor, &Playlist::Item::Data::GetChecksum);
+      DuplicatesCollector<uint32_t> dups;
+      propertyModel.ForAllItems(dups);
+      const Playlist::Model::IndexSet& toRemove = dups.GetResult();
+      stor.RemoveItems(toRemove);
+    }
+  };
+
+
+  class RemoveDupsOfSelectedOperation : public Playlist::Item::StorageModifyOperation
+  {
+  public:
+    explicit RemoveDupsOfSelectedOperation(const Playlist::Model::IndexSet& items)
+      : SelectedItems(items)
+    {
+    }
+
+    virtual void Execute(Playlist::Item::Storage& stor)
+    {
+      const PropertyModel<uint32_t> propertyModel(stor, &Playlist::Item::Data::GetChecksum);
+      //select all rips but delete only nonselected
+      RipOffsCollector<uint32_t> dups;
+      {
+        PropertiesCollector<uint32_t> selectedProps;
+        propertyModel.ForSpecifiedItems(SelectedItems, selectedProps);
+        PropertiesFilter<uint32_t> filter(dups, selectedProps.GetResult());
+        propertyModel.ForAllItems(filter);
+      }
+      Playlist::Model::IndexSet toRemove = dups.GetResult();
+      std::for_each(SelectedItems.begin(), SelectedItems.end(), boost::bind<Playlist::Model::IndexSet::size_type>(&Playlist::Model::IndexSet::erase, &toRemove, _1));
+      stor.RemoveItems(toRemove);
+    }
+  private:
+    const Playlist::Model::IndexSet& SelectedItems;
+  };
+
+  class RemoveDupsInSelectedOperation : public Playlist::Item::StorageModifyOperation
+  {
+  public:
+  public:
+    explicit RemoveDupsInSelectedOperation(const Playlist::Model::IndexSet& items)
+      : SelectedItems(items)
+    {
+    }
+
+    virtual void Execute(Playlist::Item::Storage& stor)
+    {
+      const PropertyModel<uint32_t> propertyModel(stor, &Playlist::Item::Data::GetChecksum);
+      DuplicatesCollector<uint32_t> dups;
+      propertyModel.ForSpecifiedItems(SelectedItems, dups);
+      const Playlist::Model::IndexSet& toRemove = dups.GetResult();
+      stor.RemoveItems(toRemove);
+    }
+  private:
+    const Playlist::Model::IndexSet& SelectedItems;
+  };
+
+  class SelectAllRipOffsOperation : public Playlist::Item::StorageAccessOperation
+  {
+  public:
+    SelectAllRipOffsOperation(Playlist::UI::TableView& view)
+      : View(view)
+    {
+    }
+
+    virtual void Execute(const Playlist::Item::Storage& stor)
+    {
+      const PropertyModel<uint32_t> propertyModel(stor, &Playlist::Item::Data::GetCoreChecksum);
+      RipOffsCollector<uint32_t> rips;
+      propertyModel.ForAllItems(rips);
+      const Playlist::Model::IndexSet& toSelect = rips.GetResult();
+      View.SelectItems(toSelect);
+    }
+  private:
+    Playlist::UI::TableView& View;
+  };
+
+  class SelectRipOffsOfSelectedOperation : public Playlist::Item::StorageAccessOperation
+  {
+  public:
+    SelectRipOffsOfSelectedOperation(const Playlist::Model::IndexSet& items, Playlist::UI::TableView& view)
+      : SelectedItems(items)
+      , View(view)
+    {
+    }
+
+    virtual void Execute(const Playlist::Item::Storage& stor)
+    {
+      const PropertyModel<uint32_t> propertyModel(stor, &Playlist::Item::Data::GetCoreChecksum);
+      RipOffsCollector<uint32_t> rips;
+      {
+        PropertiesCollector<uint32_t> selectedProps;
+        propertyModel.ForSpecifiedItems(SelectedItems, selectedProps);
+        PropertiesFilter<uint32_t> filter(rips, selectedProps.GetResult());
+        propertyModel.ForAllItems(filter);
+      }
+      const Playlist::Model::IndexSet toSelect = rips.GetResult();
+      View.SelectItems(toSelect);
+    }
+  private:
+    const Playlist::Model::IndexSet& SelectedItems;
+    Playlist::UI::TableView& View;
+  };
+
+
+  class SelectRipOffsInSelectedOperation : public Playlist::Item::StorageAccessOperation
+  {
+  public:
+    SelectRipOffsInSelectedOperation(const Playlist::Model::IndexSet& items, Playlist::UI::TableView& view)
+      : SelectedItems(items)
+      , View(view)
+    {
+    }
+
+    virtual void Execute(const Playlist::Item::Storage& stor)
+    {
+      const PropertyModel<uint32_t> propertyModel(stor, &Playlist::Item::Data::GetCoreChecksum);
+      RipOffsCollector<uint32_t> rips;
+      propertyModel.ForSpecifiedItems(SelectedItems, rips);
+      const Playlist::Model::IndexSet toSelect = rips.GetResult();
+      View.SelectItems(toSelect);
+    }
+  private:
+    const Playlist::Model::IndexSet& SelectedItems;
+    Playlist::UI::TableView& View;
+  };
+
   class ItemsContextMenuImpl : public Playlist::UI::ItemsContextMenu
   {
   public:
@@ -295,74 +428,44 @@ namespace
 
     virtual void RemoveAllDuplicates() const
     {
+      const Playlist::Item::StorageModifyOperation::Ptr op(new RemoveAllDupsOperation());
       const Playlist::Model::Ptr model = Controller->GetModel();
-      const PropertyModel<uint32_t> propertyModel(*model, &Playlist::Item::Data::GetChecksum);
-      DuplicatesCollector<uint32_t> dups;
-      propertyModel.ForAllItems(dups);
-      const Playlist::Model::IndexSet& toRemove = dups.GetResult();
-      model->RemoveItems(toRemove);
+      model->PerformOperation(op);
     }
 
     virtual void RemoveDuplicatesOfSelected() const
     {
+      const Playlist::Item::StorageModifyOperation::Ptr op(new RemoveDupsOfSelectedOperation(SelectedItems));
       const Playlist::Model::Ptr model = Controller->GetModel();
-      const PropertyModel<uint32_t> propertyModel(*model, &Playlist::Item::Data::GetChecksum);
-      //select all rips but delete only nonselected
-      RipOffsCollector<uint32_t> dups;
-      {
-        PropertiesCollector<uint32_t> selectedProps;
-        propertyModel.ForSpecifiedItems(SelectedItems, selectedProps);
-        PropertiesFilter<uint32_t> filter(dups, selectedProps.GetResult());
-        propertyModel.ForAllItems(filter);
-      }
-      Playlist::Model::IndexSet toRemove = dups.GetResult();
-      std::for_each(SelectedItems.begin(), SelectedItems.end(), boost::bind<Playlist::Model::IndexSet::size_type>(&Playlist::Model::IndexSet::erase, &toRemove, _1));
-      model->RemoveItems(toRemove);
+      model->PerformOperation(op);
     }
 
     virtual void RemoveDuplicatesInSelected() const
     {
+      const Playlist::Item::StorageModifyOperation::Ptr op(new RemoveDupsInSelectedOperation(SelectedItems));
       const Playlist::Model::Ptr model = Controller->GetModel();
-      const PropertyModel<uint32_t> propertyModel(*model, &Playlist::Item::Data::GetChecksum);
-      DuplicatesCollector<uint32_t> dups;
-      propertyModel.ForSpecifiedItems(SelectedItems, dups);
-      const Playlist::Model::IndexSet& toRemove = dups.GetResult();
-      model->RemoveItems(toRemove);
+      model->PerformOperation(op);
     }
 
     virtual void SelectAllRipOffs() const
     {
+      const Playlist::Item::StorageAccessOperation::Ptr op(new SelectAllRipOffsOperation(View));
       const Playlist::Model::Ptr model = Controller->GetModel();
-      const PropertyModel<uint32_t> propertyModel(*model, &Playlist::Item::Data::GetCoreChecksum);
-      RipOffsCollector<uint32_t> rips;
-      propertyModel.ForAllItems(rips);
-      const Playlist::Model::IndexSet& toSelect = rips.GetResult();
-      View.SelectItems(toSelect);
+      model->PerformOperation(op);
     }
 
     virtual void SelectRipOffsOfSelected() const
     {
+      const Playlist::Item::StorageAccessOperation::Ptr op(new SelectRipOffsOfSelectedOperation(SelectedItems, View));
       const Playlist::Model::Ptr model = Controller->GetModel();
-      const PropertyModel<uint32_t> propertyModel(*model, &Playlist::Item::Data::GetCoreChecksum);
-      RipOffsCollector<uint32_t> rips;
-      {
-        PropertiesCollector<uint32_t> selectedProps;
-        propertyModel.ForSpecifiedItems(SelectedItems, selectedProps);
-        PropertiesFilter<uint32_t> filter(rips, selectedProps.GetResult());
-        propertyModel.ForAllItems(filter);
-      }
-      const Playlist::Model::IndexSet toSelect = rips.GetResult();
-      View.SelectItems(toSelect);
+      model->PerformOperation(op);
     }
 
     virtual void SelectRipOffsInSelected() const
     {
+      const Playlist::Item::StorageAccessOperation::Ptr op(new SelectRipOffsInSelectedOperation(SelectedItems, View));
       const Playlist::Model::Ptr model = Controller->GetModel();
-      const PropertyModel<uint32_t> propertyModel(*model, &Playlist::Item::Data::GetCoreChecksum);
-      RipOffsCollector<uint32_t> rips;
-      propertyModel.ForSpecifiedItems(SelectedItems, rips);
-      const Playlist::Model::IndexSet toSelect = rips.GetResult();
-      View.SelectItems(toSelect);
+      model->PerformOperation(op);
     }
   private:
     std::auto_ptr<QMenu> CreateMenu()

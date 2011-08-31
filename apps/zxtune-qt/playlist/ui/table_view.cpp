@@ -105,10 +105,22 @@ namespace
 
     virtual void SelectItems(const Playlist::Model::IndexSet& indices)
     {
-      clearSelection();
-      setSelectionMode(QAbstractItemView::MultiSelection);
-      std::for_each(indices.begin(), indices.end(), boost::bind(&QTableView::selectRow, this, _1));
-      setSelectionMode(QAbstractItemView::ExtendedSelection);
+      setEnabled(true);
+      QAbstractItemModel* const curModel = model();
+      QItemSelectionModel* const selectModel = selectionModel();
+      QItemSelection selection;
+      for (Playlist::Model::IndexSet::const_iterator it = indices.begin(), lim = indices.end(); it != lim; ++it)
+      {
+        const QModelIndex left = curModel->index(*it, 0);
+        const QModelIndex right = curModel->index(*it, Playlist::Model::COLUMNS_COUNT - 1);
+        const QItemSelection sel(left, right);
+        selection.merge(sel, QItemSelectionModel::Select);
+      }
+      selectModel->select(selection, QItemSelectionModel::ClearAndSelect);
+      if (!indices.empty())
+      {
+        ActivateTableRow(*indices.rbegin());
+      }
     }
 
     virtual void ActivateTableRow(unsigned index)
