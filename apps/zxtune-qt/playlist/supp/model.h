@@ -25,6 +25,29 @@ Author:
 
 namespace Playlist
 {
+  namespace Item
+  {
+    class Storage;
+
+    class StorageAccessOperation
+    {
+    public:
+      typedef boost::shared_ptr<StorageAccessOperation> Ptr;
+      virtual ~StorageAccessOperation() {}
+
+      virtual void Execute(const Storage& storage) = 0;
+    };
+
+    class StorageModifyOperation
+    {
+    public:
+      typedef boost::shared_ptr<StorageModifyOperation> Ptr;
+      virtual ~StorageModifyOperation() {}
+
+      virtual void Execute(Storage& storage) = 0;
+    };
+  }
+
   class Model : public QAbstractItemModel
   {
     Q_OBJECT
@@ -47,6 +70,9 @@ namespace Playlist
 
     //creator
     static Ptr Create(QObject& parent);
+
+    virtual void PerformOperation(Item::StorageAccessOperation::Ptr operation) = 0;
+    virtual void PerformOperation(Item::StorageModifyOperation::Ptr operation) = 0;
 
     //accessors
     virtual unsigned CountItems() const = 0;

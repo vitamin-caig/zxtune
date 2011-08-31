@@ -21,6 +21,7 @@ Author:
 //library includes
 #include <core/module_attrs.h>
 //boost includes
+#include <boost/make_shared.hpp>
 #include <boost/thread.hpp>
 //qt includes
 #include <QtCore/QMimeData>
@@ -198,6 +199,22 @@ namespace
     }
   }
 
+  class SortOperation : public Playlist::Item::StorageModifyOperation
+  {
+  public:
+    explicit SortOperation(Playlist::Item::Comparer::Ptr comparer)
+      : Comparer(comparer)
+    {
+    }
+
+    virtual void Execute(Playlist::Item::Storage& storage)
+    {
+      storage.Sort(*Comparer);
+    }
+  private:
+    const Playlist::Item::Comparer::Ptr Comparer;
+  };
+
   const char ITEMS_MIMETYPE[] = "application/playlist.indices";
 
   class ModelImpl : public Playlist::Model
@@ -217,6 +234,16 @@ namespace
     virtual ~ModelImpl()
     {
       Log::Debug(THIS_MODULE, "Destroyed at %1%", this);
+    }
+
+    virtual void PerformOperation(Playlist::Item::StorageAccessOperation::Ptr operation)
+    {
+      AsyncExecution = boost::thread(&ModelImpl::PerformAccessOperation, this, operation);
+    }
+
+    virtual void PerformOperation(Playlist::Item::StorageModifyOperation::Ptr operation)
+    {
+      AsyncExecution = boost::thread(&ModelImpl::PerformModifyOperation, this, operation);
     }
 
     //new virtuals
@@ -448,11 +475,20 @@ namespace
       const bool ascending = order == Qt::AscendingOrder;
       if (Playlist::Item::Comparer::Ptr comparer = CreateComparerByColumn(column, ascending))
       {
-        AsyncSorter = boost::thread(std::mem_fun(&ModelImpl::PerformSort), this, comparer);
+        const Playlist::Item::StorageModifyOperation::Ptr op = boost::make_shared<SortOperation>(comparer);
+        PerformOperation(op);
       }
     }
   private:
-    void PerformSort(Playlist::Item::Comparer::Ptr comparer)
+    void PerformAccessOperation(Playlist::Item::StorageAccessOperation::Ptr operation)
+    {
+      QMutexLocker rwLock(&SyncModification);
+      OnLongOperationStart();
+      operation->Execute(*Container);
+      OnLongOperationStop();
+    }
+
+    void PerformModifyOperation(Playlist::Item::StorageModifyOperation::Ptr operation)
     {
       QMutexLocker rwLock(&SyncModification);
       OnLongOperationStart();
@@ -461,7 +497,7 @@ namespace
         QMutexLocker roLock(&SyncAccess);
         tmpStorage = Container->Clone();
       }
-      tmpStorage->Sort(*comparer);
+      operation->Execute(*tmpStorage);
       {
         QMutexLocker roLock(&SyncAccess);
         Container = tmpStorage;
@@ -484,7 +520,7 @@ namespace
     mutable QMutex SyncModification;
     int FetchedItemsCount;
     Playlist::Item::Storage::Ptr Container;
-    mutable boost::thread AsyncSorter;
+    mutable boost::thread AsyncExecution;
   };
 }
 
