@@ -169,14 +169,14 @@ namespace
   };
 
   template<class T>
-  void PropertyModel<T>::ForAllItems(PropertyModel<T>::Visitor& visitor) const
+  void PropertyModel<T>::ForAllItems(typename PropertyModel<T>::Visitor& visitor) const
   {
     VisitorAdapter<T> adapter(Getter, visitor);
     Model.ForAllItems(adapter);
   }
 
   template<class T>
-  void PropertyModel<T>::ForSpecifiedItems(const Playlist::Model::IndexSet& items, PropertyModel<T>::Visitor& visitor) const
+  void PropertyModel<T>::ForSpecifiedItems(const Playlist::Model::IndexSet& items, typename PropertyModel<T>::Visitor& visitor) const
   {
     assert(!items.empty());
     VisitorAdapter<T> adapter(Getter, visitor);
