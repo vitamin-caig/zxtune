@@ -1,5 +1,5 @@
 ui_dir = $(objects_dir)/.ui
-ui_headers = $(addprefix $(ui_dir)/,$(notdir $(ui_files:=.ui)))
+ui_headers = $(addprefix $(ui_dir)/,$(notdir $(ui_files:=.ui) $(ui_headeronly:=.ui)))
 moc_sources = $(ui_files:=.moc) $(moc_files:=.moc)
 
 source_files += $(ui_files) $(moc_files)

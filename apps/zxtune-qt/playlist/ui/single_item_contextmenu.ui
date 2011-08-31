@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>SingleItemContextMenu</class>
+ <widget class="QMenu" name="SingleItemContextMenu">
+  <addaction name="PlayAction"/>
+  <addaction name="DeleteAction"/>
+  <addaction name="CropAction"/>
+  <addaction name="separator"/>
+  <addaction name="DelDupsAction"/>
+  <addaction name="SelRipOffsAction"/>
+  <action name="PlayAction">
+   <property name="icon">
+    <iconset>
+     <normalon>:/playback/play.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Play</string>
+   </property>
+  </action>
+  <action name="DeleteAction">
+   <property name="icon">
+    <iconset>
+     <normalon>:/playlist/delete.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Delete</string>
+   </property>
+  </action>
+  <action name="CropAction">
+   <property name="icon">
+    <iconset>
+     <normalon>:/playlist/crop.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Crop</string>
+   </property>
+  </action>
+  <action name="DelDupsAction">
+   <property name="icon">
+    <iconset>
+     <normalon>:/playlist/delduplicates.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Remove duplicates of</string>
+   </property>
+  </action>
+  <action name="SelRipOffsAction">
+   <property name="icon">
+    <iconset>
+     <normalon>:/playlist/selripoffs.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Select rip-offs of</string>
+   </property>
+  </action>
+ </widget>
+</ui>

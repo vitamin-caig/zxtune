@@ -15,6 +15,9 @@ Author:
 #include "playlist_contextmenu.h"
 #include "table_view.h"
 #include "ui/utils.h"
+#include "no_items_contextmenu.ui.h"
+#include "single_item_contextmenu.ui.h"
+#include "multiple_items_contextmenu.ui.h"
 //common includes
 #include <format.h>
 //library includes
@@ -28,91 +31,56 @@ Author:
 
 namespace
 {
-  //nofiles contextmenu
-  // DeleteAllDups
-  // SelectAllRipOffs
   class NoItemsContextMenu : public QMenu
+                           , private Ui::NoItemsContextMenu
   {
   public:
     NoItemsContextMenu(QWidget& parent, Playlist::UI::ItemsContextMenu& receiver)
       : QMenu(&parent)
-      , DelDupsAction(addAction(QIcon(":/playlist/delduplicates.png"), tr("Remove all duplicates")))
-      , SelRipOffsAction(addAction(QIcon(":/playlist/selripoffs.png"), tr("Select all rip-offs")))
     {
+      //setup self
+      setupUi(this);
+
       receiver.connect(DelDupsAction, SIGNAL(triggered()), SLOT(RemoveAllDuplicates()));
       receiver.connect(SelRipOffsAction, SIGNAL(triggered()), SLOT(SelectAllRipOffs()));
     }
-  private:
-    QAction* const DelDupsAction;
-    QAction* const SelRipOffsAction;
   };
 
-  //single item contextmenu
-  // Play
-  // Delete
-  // Crop
-  // DeleteDupsOf
-  // SelectRipOffsOf
   class SingleItemContextMenu : public QMenu
+                              , private Ui::SingleItemContextMenu
   {
   public:
     SingleItemContextMenu(QWidget& parent, Playlist::UI::ItemsContextMenu& receiver)
       : QMenu(&parent)
-      , PlayAction(addAction(QIcon(":/playback/play.png"), tr("Play")))
-      , DeleteAction(addAction(QIcon(":/playlist/delete.png"), tr("Delete")))
-      , CropAction(addAction(QIcon(":/playlist/crop.png"), tr("Crop")))
-      , DelDupsAction(addAction(QIcon(":/playlist/delduplicates.png"), tr("Remove duplicates of")))
-      , SelRipOffsAction(addAction(QIcon(":/playlist/selripoffs.png"), tr("Select rip-offs of")))
     {
-      insertSeparator(DelDupsAction);
+      //setup self
+      setupUi(this);
+
       receiver.connect(PlayAction, SIGNAL(triggered()), SLOT(PlaySelected()));
       receiver.connect(DeleteAction, SIGNAL(triggered()), SLOT(RemoveSelected()));
       receiver.connect(CropAction, SIGNAL(triggered()), SLOT(CropSelected()));
       receiver.connect(DelDupsAction, SIGNAL(triggered()), SLOT(RemoveDuplicatesOfSelected()));
       receiver.connect(SelRipOffsAction, SIGNAL(triggered()), SLOT(SelectRipOffsOfSelected()));
     }
-  private:
-    QAction* const PlayAction;
-    QAction* const DeleteAction;
-    QAction* const CropAction;
-    QAction* const DelDupsAction;
-    QAction* const SelRipOffsAction;
   };
 
-  //multiple items contextmenu
-  // <count>
-  // Delete
-  // Crop
-  // Group
-  // DeleteDupsIn
-  // SelectRipOffsIn
   class MultipleItemsContextMenu : public QMenu
+                                 , private Ui::MultipleItemsContextMenu
   {
   public:
     MultipleItemsContextMenu(QWidget& parent, Playlist::UI::ItemsContextMenu& receiver, std::size_t count)
       : QMenu(&parent)
-      , InfoAction(addAction(QIcon(":/playlist/info.png"), ToQString(Strings::Format(Text::CONTEXTMENU_STATUS, count))))
-      , DeleteAction(addAction(QIcon(":/playlist/delete.png"), tr("Delete")))
-      , CropAction(addAction(QIcon(":/playlist/crop.png"), tr("Crop")))
-      , GroupAction(addAction(QIcon(":/playlist/group.png"), tr("Group together")))
-      , DelDupsAction(addAction(QIcon(":/playlist/delduplicates.png"), tr("Remove duplicates in")))
-      , SelRipOffsAction(addAction(QIcon(":/playlist/selripoffs.png"), tr("Select rip-offs in")))
     {
-      InfoAction->setEnabled(false);
-      insertSeparator(DelDupsAction);
+      //setup self
+      setupUi(this);
+      InfoAction->setText(ToQString(Strings::Format(Text::CONTEXTMENU_STATUS, count)));
+
       receiver.connect(DeleteAction, SIGNAL(triggered()), SLOT(RemoveSelected()));
       receiver.connect(CropAction, SIGNAL(triggered()), SLOT(CropSelected()));
       receiver.connect(GroupAction, SIGNAL(triggered()), SLOT(GroupSelected()));
       receiver.connect(DelDupsAction, SIGNAL(triggered()), SLOT(RemoveDuplicatesInSelected()));
       receiver.connect(SelRipOffsAction, SIGNAL(triggered()), SLOT(SelectRipOffsInSelected()));
     }
-  private:
-    QAction* const InfoAction;
-    QAction* const DeleteAction;
-    QAction* const CropAction;
-    QAction* const GroupAction;
-    QAction* const DelDupsAction;
-    QAction* const SelRipOffsAction;
   };
 
   template<class T>

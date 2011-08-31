@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>NoItemsContextMenu</class>
+ <widget class="QMenu" name="NoItemsContextMenu">
+  <addaction name="DelDupsAction"/>
+  <addaction name="SelRipOffsAction"/>
+  <action name="DelDupsAction">
+   <property name="icon">
+    <iconset>
+     <normalon>:/playlist/delduplicates.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Remove all duplicates</string>
+   </property>
+  </action>
+  <action name="SelRipOffsAction">
+   <property name="icon">
+    <iconset>
+     <normalon>:/playlist/selripoffs.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Select all rip-offs</string>
+   </property>
+  </action>
+ </widget>
+</ui>
