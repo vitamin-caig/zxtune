@@ -647,12 +647,14 @@ namespace STC
         const uint_t patLim = parsedData->ParsePatterns(areas);
         const uint_t posLim = parsedData->ParsePositions(areas);
 
+        const std::size_t minLim = std::min(std::min(smpLim, ornLim), std::min(patLim, posLim));
         const std::size_t maxLim = std::max(std::max(smpLim, ornLim), std::max(patLim, posLim));
         usedSize = std::min(data.Size(), maxLim);
 
         //meta properties
         {
-          const ModuleRegion fixedRegion(sizeof(STC::Header), usedSize - sizeof(STC::Header));
+          const std::size_t fixedStart = posLim == minLim ? posLim : sizeof(STC::Header);
+          const ModuleRegion fixedRegion(fixedStart, usedSize - fixedStart);
           properties->SetSource(usedSize, fixedRegion);
         }
 

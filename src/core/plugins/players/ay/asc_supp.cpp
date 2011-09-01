@@ -1189,7 +1189,8 @@ namespace
         {
           const ASCHeader* const header = safe_ptr_cast<const ASCHeader*>(&data[0]);
           const ASCID* const id = safe_ptr_cast<const ASCID*>(header->Positions + header->Length);
-          const std::size_t fixedOffset = sizeof(ASCHeader) + id->Check() ? sizeof(*id) : 0;
+          const std::size_t fixedOffset = (safe_ptr_cast<const uint8_t*>(id) - safe_ptr_cast<const uint8_t*>(header))
+            + (id->Check() ? sizeof(*id) : 0);
           const ModuleRegion fixedRegion(fixedOffset, usedSize - fixedOffset);
           properties->SetSource(usedSize, fixedRegion);
         }

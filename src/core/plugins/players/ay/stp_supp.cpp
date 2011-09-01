@@ -1045,12 +1045,13 @@ namespace
         const uint_t patLim = parsedData->ParsePatterns(areas);
         const uint_t posLim = parsedData->ParsePositions(areas);
 
+        const std::size_t minLim = std::min(std::min(smpLim, ornLim), std::min(patLim, posLim));
         const std::size_t maxLim = std::max(std::max(smpLim, ornLim), std::max(patLim, posLim));
         usedSize = std::min(data.Size(), maxLim);
 
         //meta properties
         {
-          const std::size_t fixedOffset = sizeof(STPHeader);
+          const std::size_t fixedOffset = posLim == minLim ? posLim : sizeof(STPHeader);
           const ModuleRegion fixedRegion(fixedOffset, usedSize -  fixedOffset);
           properties->SetSource(usedSize, fixedRegion);
         }
