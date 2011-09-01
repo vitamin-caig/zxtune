@@ -780,8 +780,8 @@ namespace
     "?"          // uint8_t Mode;
     "00-06"      // uint8_t FreqTableNum;
     "01-3f"      // uint8_t Tempo;
-    "01-b0"      // uint8_t Length;
-    "00-af"      // uint8_t Loop;
+    "01-ff"      // uint8_t Length;
+    "00-ff"      // uint8_t Loop;
     "?00-3a"     // uint16_t PatternsOffset;
     //boost::array<uint16_t, MAX_SAMPLES_COUNT> SamplesOffsets;
     "(?00-3a){32}"
