@@ -274,6 +274,13 @@ namespace
       ZXTune::OpenModule(moduleParams, data, SubPath, module);
       return module;
     }
+
+    String GetFullPath() const
+    {
+      String result;
+      ThrowIfError(ZXTune::IO::CombineUri(Source->GetDataPath(), SubPath, result));
+      return result;
+    }
   private:
     const DataSource::Ptr Source;
     const String SubPath;
@@ -398,6 +405,11 @@ namespace
     virtual bool IsValid() const
     {
       return Valid;
+    }
+
+    virtual String GetFullPath() const
+    {
+      return Source.GetFullPath();
     }
 
     virtual String GetType() const

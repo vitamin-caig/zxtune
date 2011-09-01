@@ -89,6 +89,11 @@ namespace
       return false;
     }
 
+    virtual String GetFullPath() const
+    {
+      return Path;
+    }
+
     virtual String GetType() const
     {
       return String();
@@ -189,6 +194,11 @@ namespace
     virtual bool IsValid() const
     {
       return Valid;
+    }
+
+    virtual String GetFullPath() const
+    {
+      return Provider->GetPath();
     }
 
     virtual String GetType() const

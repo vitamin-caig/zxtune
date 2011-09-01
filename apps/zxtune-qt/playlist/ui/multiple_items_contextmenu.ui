@@ -9,6 +9,8 @@
   <addaction name="separator"/>
   <addaction name="DelDupsAction"/>
   <addaction name="SelRipOffsAction"/>
+  <addaction name="separator"/>
+  <addaction name="CopyToClipboardAction"/>
   <action name="InfoAction">
    <property name="icon">
     <iconset>
@@ -67,6 +69,11 @@
    </property>
    <property name="text">
     <string>Select rip-offs in</string>
+   </property>
+  </action>
+  <action name="CopyToClipboardAction">
+   <property name="text">
+    <string>Copy all pathes</string>
    </property>
   </action>
  </widget>

@@ -38,6 +38,7 @@ namespace Playlist
       virtual Parameters::Container::Ptr GetAdjustedParameters() const = 0;
       //playlist-related
       virtual bool IsValid() const = 0;
+      virtual String GetFullPath() const = 0;
       virtual String GetType() const = 0;
       virtual String GetTitle() const = 0;
       virtual unsigned GetDurationValue() const = 0;

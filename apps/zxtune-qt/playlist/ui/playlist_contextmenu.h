@@ -46,6 +46,7 @@ namespace Playlist
       virtual void SelectAllRipOffs() const = 0;
       virtual void SelectRipOffsOfSelected() const = 0;
       virtual void SelectRipOffsInSelected() const = 0;
+      virtual void CopyPathToClipboard() const = 0;
     };
   }
 }

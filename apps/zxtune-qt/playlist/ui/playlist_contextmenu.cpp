@@ -25,7 +25,9 @@ Author:
 #include <core/module_attrs.h>
 //boost includes
 #include <boost/bind.hpp>
+#include <boost/algorithm/string/join.hpp>
 //qt includes
+#include <QtGui/QClipboard>
 #include <QtGui/QMenu>
 //text includes
 #include "text/text.h"
@@ -62,6 +64,7 @@ namespace
       receiver.connect(CropAction, SIGNAL(triggered()), SLOT(CropSelected()));
       receiver.connect(DelDupsAction, SIGNAL(triggered()), SLOT(RemoveDuplicatesOfSelected()));
       receiver.connect(SelRipOffsAction, SIGNAL(triggered()), SLOT(SelectRipOffsOfSelected()));
+      receiver.connect(CopyToClipboardAction, SIGNAL(triggered()), SLOT(CopyPathToClipboard()));
     }
   };
 
@@ -81,6 +84,7 @@ namespace
       receiver.connect(GroupAction, SIGNAL(triggered()), SLOT(GroupSelected()));
       receiver.connect(DelDupsAction, SIGNAL(triggered()), SLOT(RemoveDuplicatesInSelected()));
       receiver.connect(SelRipOffsAction, SIGNAL(triggered()), SLOT(SelectRipOffsInSelected()));
+      receiver.connect(CopyToClipboardAction, SIGNAL(triggered()), SLOT(CopyPathToClipboard()));
     }
   };
 
@@ -135,6 +139,28 @@ namespace
   private:
     const typename PropertyModel<T>::GetFunctionType Getter;
     typename PropertyModel<T>::Visitor& Delegate;
+  };
+
+  class PathesCollector : public Playlist::Model::Visitor
+  {
+  public:
+    virtual void OnItem(Playlist::Model::IndexType /*index*/, Playlist::Item::Data::Ptr data)
+    {
+      if (!data->IsValid())
+      {
+        return;
+      }
+      const String path = data->GetFullPath();
+      Result.push_back(path);
+    }
+
+    String GetResult() const
+    {
+      static const Char PATHES_DELIMITER[] = {'\n', 0};
+      return boost::algorithm::join(Result, PATHES_DELIMITER);
+    }
+  private:
+    StringArray Result;
   };
 
   template<class T>
@@ -466,6 +492,15 @@ namespace
       const Playlist::Item::StorageAccessOperation::Ptr op(new SelectRipOffsInSelectedOperation(SelectedItems, View));
       const Playlist::Model::Ptr model = Controller->GetModel();
       model->PerformOperation(op);
+    }
+
+    virtual void CopyPathToClipboard() const
+    {
+      const Playlist::Model::Ptr model = Controller->GetModel();
+      PathesCollector collector;
+      model->ForSpecifiedItems(SelectedItems, collector);
+      const String result = collector.GetResult();
+      QApplication::clipboard()->setText(ToQString(result));
     }
   private:
     std::auto_ptr<QMenu> CreateMenu()
