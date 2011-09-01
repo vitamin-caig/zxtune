@@ -198,7 +198,7 @@ namespace
 
     virtual String GetFullPath() const
     {
-      return Provider->GetPath();
+      return Provider.get() ? Provider->GetPath() : Delegate->GetFullPath();
     }
 
     virtual String GetType() const
