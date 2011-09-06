@@ -9,7 +9,6 @@ endif
 
 ifdef support_alsa
 $(platform)_definitions += ALSA_SUPPORT
-$(platform)_libraries += asound
 endif
 
 ifdef support_aylpt_dlportio

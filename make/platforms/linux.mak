@@ -18,6 +18,8 @@ support_alsa = 1
 #support_sdl = 1
 support_zlib = 1
 
+linux_libraries += dl
+
 ifdef STATIC_BOOST_PATH
 include_dirs += $(STATIC_BOOST_PATH)/include
 $(platform)_libraries_dirs += $(STATIC_BOOST_PATH)/lib
