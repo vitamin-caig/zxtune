@@ -116,6 +116,9 @@ extern const Char PT3_PLUGIN_INFO[] = {
   'P','r','o','T','r','a','c','k','e','r',' ','v','3','.','x',' ','m','o','d','u','l','e','s',' ','s','u','p',
   'p','o','r','t',0
 };
+extern const Char RAR_PLUGIN_INFO[] = {
+  'R','A','R',' ','v','2',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
+};
 extern const Char RAW_ERROR_INVALID_MIN_SIZE[] = {
   'S','p','e','c','i','f','i','e','d',' ','m','i','n','i','m','a','l',' ','s','c','a','n',' ','s','i','z','e',
   ' ','(','%','1','%',')',' ','s','h','o','u','l','d',' ','b','e',' ','>','=',' ','%','2','%','.',0

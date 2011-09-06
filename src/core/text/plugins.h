@@ -38,6 +38,7 @@ extern const Char PSG_PLUGIN_INFO[];
 extern const Char PT2_EDITOR[];
 extern const Char PT2_PLUGIN_INFO[];
 extern const Char PT3_PLUGIN_INFO[];
+extern const Char RAR_PLUGIN_INFO[];
 extern const Char RAW_ERROR_INVALID_MIN_SIZE[];
 extern const Char RAW_ERROR_INVALID_STEP[];
 extern const Char RAW_PLUGIN_INFO[];
