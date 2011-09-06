@@ -27,3 +27,9 @@ __cpp> "#endif //__TEXT_TOOLS_H_DEFINED__\n"
 
 < TIME_FORMAT_HOURS
 > "%1%:%2$02u:%3$02u.%4$02u"
+
+< FAILED_LOAD_DYNAMIC_LIBRARY
+> "Failed to load dynamic library '%1%' (%2%)."
+
+< FAILED_FIND_DYNAMIC_LIBRARY_SYMBOL
+> "Failed to find symbol '%1%' in dynamic library."
