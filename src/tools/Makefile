@@ -1,10 +1,12 @@
 library_name := tools
 path_step := ../..
 source_dirs := src
+
+include $(path_step)/make/default.mak
 ifneq ($(findstring $(platform),windows mingw),)
-source_files += platform/shared_library_linux
-else ifneq ($(findstring $(platform),linux macos),)
 #source_files += platform/shared_library_windows
+else ifneq ($(findstring $(platform),linux macos),)
+source_files += platform/shared_library_linux
 else
 source_files += platform/shared_library_$(platform)
 endif
