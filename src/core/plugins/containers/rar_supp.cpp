@@ -233,12 +233,40 @@ namespace
       : ByteStream(data, size)
       , LRange()
       , LCode()
-      , BitField()
     {
-      AddBits(0);
+      FetchBits(0);
     }
 
-    void AddBits(uint_t bits)
+    uint32_t ReadBits(uint_t bits)
+    {
+      const uint32_t result = PeekBits(bits);
+      FetchBits(bits);
+      return result;
+    }
+
+    uint32_t PeekBits(uint_t bits)
+    {
+      static const boost::array<uint32_t, 16> BitMask =
+      {
+        {
+         1, 3, 7, 15, 31, 63, 127, 255,
+         511, 1023, 2047, 4095, 8191, 16383, 32767, 65535
+        }
+      };
+      assert(LRange >= bits);
+      return BitMask[bits - 1] & (LCode >> (LRange - bits));
+    }
+
+    template<uint_t numSize>
+    uint_t DecodeNumber(const DecodeTree<numSize>& tree)
+    {
+      const uint_t idx = DecodeNumIndex(tree);
+      return idx < numSize
+        ? tree.DecodeNum[idx]
+        : 0;
+    }
+  private:
+    void FetchBits(uint_t bits)
     {
       LRange -= bits;
       while (LRange < 24)
@@ -248,45 +276,20 @@ namespace
       }
     }
 
-    void GetBits(uint_t bits)
-    {
-      GetBits();
-      AddBits(bits);
-    }
-
-    void GetBits()
-    {
-      BitField = LCode << (32 - LRange);
-    }
-
-    uint32_t GetBitField() const
-    {
-      return BitField;
-    }
-
-    template<uint_t numSize>
-    uint_t DecodeNumber(const DecodeTree<numSize>& tree)
-    {
-      const uint_t idx = DecodeNumIndex(tree);
-      return tree.DecodeNum[idx];
-    }
-  private:
     uint_t DecodeNumIndex(const BaseDecodeTree& tree)
     {
-      GetBits();
-      const uint_t len = (GetBitField() >> 16) & 0xfffe;
+      const uint_t len = PeekBits(16) & 0xfffe;
       uint_t bits = 1;
       while (bits < 15 && len >= tree.DecodeLen[bits])
       {
         ++bits;
       }
-      AddBits(bits);
+      FetchBits(bits);
       return tree.DecodePos[bits] + ((len - tree.DecodeLen[bits - 1]) >> (16 - bits));
     }
   private:
     uint32_t LRange;
     uint32_t LCode;
-    uint32_t BitField;
   };
 
   class RarDecoder
@@ -348,25 +351,20 @@ namespace
         if (num < 256)
         {
           Decoded.push_back(static_cast<uint8_t>(num));
-          continue;
         }
-        if (num > 269)
+        else if (num > 269)
         {
           const uint_t lenIdx = num - 270;
           uint_t len = LDecode[lenIdx] + 3;
           if (const uint_t lenBits = LBits[lenIdx])
           {
-            Stream.GetBits();
-            len += Stream.GetBitField() >> (32 - lenBits);
-            Stream.AddBits(lenBits);
+            len += Stream.ReadBits(lenBits);
           }
           const uint_t distIdx = Stream.DecodeNumber(DD);
           uint_t dist = DDecode[distIdx] + 1;
           if (const uint_t distBits = DBits[distIdx])
           {
-            Stream.GetBits();
-            dist += Stream.GetBitField() >> (32 - distBits);
-            Stream.AddBits(distBits);
+            dist += Stream.ReadBits(distBits);
           }
           if (dist >= 0x40000L)
           {
@@ -377,28 +375,23 @@ namespace
             ++len;
           }
           CopyString(dist, len);
-          continue;
         }
-        if (num == 269)
+        else if (num == 269)
         {
           ReadTables();
-          continue;
         }
-        if (num == 256)
+        else if (num == 256)
         {
           CopyString(History.LastDist, History.LastCount);
-          continue;
         }
-        if (num < 261)
+        else if (num < 261)
         {
           const uint_t dist = History.GetDist(num - 256);
           const uint_t lenIdx = Stream.DecodeNumber(RD);
           uint_t len = LDecode[lenIdx] + 2;
           if (const uint_t lenBits = LBits[lenIdx])
           {
-            Stream.GetBits();
-            len += Stream.GetBitField() >> (32 - lenBits);
-            Stream.AddBits(lenBits);
+            len += Stream.ReadBits(lenBits);
           }
           if (dist >= 0x40000L)
           {
@@ -413,20 +406,16 @@ namespace
             ++len;
           }
           CopyString(dist, len);
-          continue;
         }
-        if (num < 270)
+        else if (num < 270)
         {
           const uint_t distIdx = num - 261;
           uint_t dist = SDDecode[distIdx] + 1;
           if (const uint_t distBits = SDBits[distIdx])
           {
-            Stream.GetBits();
-            dist += Stream.GetBitField() >> (32 - distBits);
-            Stream.AddBits(distBits);
+            dist += Stream.ReadBits(distBits);
           }
           CopyString(dist, 2);
-          continue;
         }
       }
       ReadLastTables();
@@ -434,17 +423,17 @@ namespace
 
     void ReadTables()
     {
-      Stream.GetBits(2);
-      Audio.Unpack = 0 != (Stream.GetBitField() & 0x80000000);
-      if (0 == (Stream.GetBitField() & 0x40000000))
+      const uint_t flags = Stream.ReadBits(2);
+      Audio.Unpack = 0 != (flags & 2);
+      if (0 == (flags & 1))
       {
         UnpOldTable.assign(0);
       }
 
       if (Audio.Unpack)
       {
-        Audio.SetChannels(((Stream.GetBitField() >> 28) & 3) + 1);
-        Stream.AddBits(2);
+        const uint_t channels = Stream.ReadBits(2) + 1;
+        Audio.SetChannels(channels);
       }
       const uint_t tableSize = Audio.Unpack
         ? MC * Audio.Channels
@@ -453,8 +442,7 @@ namespace
       boost::array<uint_t, BC> bitCount =  { {0} };
       for (uint_t i = 0; i < bitCount.size(); ++i)
       {
-        Stream.GetBits(4);
-        bitCount[i] = Stream.GetBitField() >> 28;
+        bitCount[i] = Stream.ReadBits(4);
       }
       MakeDecodeTable(&bitCount[0], BD);
       boost::array<uint_t, MC * 4> table = { {0} };
@@ -469,18 +457,23 @@ namespace
         }
         else if (number == 16)
         {
-          Stream.GetBits(2);
-          for (uint_t n = (Stream.GetBitField() >> 30) + 3; n && i < tableSize; ++i, --n)
+          uint_t n = Stream.ReadBits(2) + 3;
+          if (!i)
+          {
+            ++i;
+            --n;
+          }
+          for (; n && i < tableSize; ++i, --n)
           {
             table[i] = table[i - 1];
           }
         }
         else
         {
-          int_t n = 17 == number
-            ? (Stream.GetBits(3), (Stream.GetBitField() >> 29) + 3)
-            : (Stream.GetBits(7), (Stream.GetBitField() >> 25) + 11);
-          for (; n-- > 0 && i < tableSize; ++i)
+          uint_t n = 17 == number
+            ? (Stream.ReadBits(3) + 3)
+            : (Stream.ReadBits(7) + 11);
+          for (; n && i < tableSize; ++i, --n)
           {
             table[i] = 0;
           }
@@ -723,9 +716,13 @@ namespace
     virtual std::auto_ptr<Dump> Decompress() const
     {
       Log::Debug(THIS_MODULE, "Depack %1% -> %2%", Size, DestSize);
+      const std::clock_t startTick = std::clock();
       RarDecoder decoder(Start, Size, DestSize);
       if (Dump* decoded = decoder.GetDecodedData())
       {
+        const uint_t timeSpent = std::clock() - startTick;
+        const uint_t speed = timeSpent ? (decoded->size() * CLOCKS_PER_SEC / timeSpent) : 0;
+        Log::Debug(THIS_MODULE, "Depacking speed is %1% b/s", speed);
         std::auto_ptr<Dump> res(new Dump());
         res->swap(*decoded);
         return res;
