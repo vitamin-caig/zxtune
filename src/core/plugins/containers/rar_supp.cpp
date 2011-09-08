@@ -493,6 +493,7 @@ namespace
         MakeDecodeTable(&table[NC], DD);
         MakeDecodeTable(&table[NC + DC], RD);
       }
+      UnpOldTable = table;
     }
 
     void ReadLastTables()
@@ -564,13 +565,13 @@ namespace
       var.D[1] = var.LastDelta - var.D[0];
       var.D[0] = var.LastDelta;
       const int predicted = 
-        ((8 * var.LastChar + 
+        ((var.LastChar * 8 + 
           var.K[0] * var.D[0] + 
           var.K[1] * var.D[1] + 
           var.K[2] * var.D[2] + 
           var.K[3] * var.D[3] +
           var.K[4] * Audio.ChannelDelta) >> 3) & 0xff;
-      const int_t val = predicted - delta;
+      const uint_t val = predicted - delta;
       const int_t idx = static_cast<int8_t>(delta) << 3;
       var.Dif[0] += absolute(idx);
       var.Dif[1] += absolute(idx - var.D[0]);
@@ -618,11 +619,6 @@ namespace
   
     struct MultimediaCompression
     {
-      bool Unpack;
-      uint_t Channels;
-      uint_t CurChannel;
-      int_t ChannelDelta;
-
       struct VarType
       {
         boost::array<int_t, 5> K;
@@ -641,13 +637,20 @@ namespace
           , LastChar()
         {
         }
-      } Variables[4];
+      };
+
+      bool Unpack;
+      uint_t Channels;
+      uint_t CurChannel;
+      int_t ChannelDelta;
+      boost::array<VarType, 4> Variables;
 
       MultimediaCompression()
         : Unpack()
         , Channels()
         , CurChannel()
         , ChannelDelta()
+        , Variables()
       {
       }
 
@@ -694,12 +697,12 @@ namespace
         return OldDistances[(CurHistory - depth) & 3];
       }
     } History;
-    boost::array<uint8_t, MC * 4> UnpOldTable;
+    boost::array<uint_t, MC * 4> UnpOldTable;
     RepDecodeTree RD;
     BitDecodeTree BD;
     LitDecodeTree LD;
     DistDecodeTree DD;
-    MultDecodeTree MD[4];
+    boost::array<MultDecodeTree, 4> MD;
     Dump Decoded;
   };
 
