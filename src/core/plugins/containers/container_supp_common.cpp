@@ -29,8 +29,10 @@ namespace
   class LoggerHelper
   {
   public:
-    LoggerHelper(Log::ProgressCallback* callback, const Plugin& plugin, const String& path)
-      : Callback(callback)
+    LoggerHelper(uint_t total, const Module::DetectCallback& delegate, const Plugin& plugin, const String& path)
+      : Total(total)
+      , Delegate(delegate)
+      , Progress(CreateProgressCallback(delegate, Total))
       , Id(plugin.Id())
       , Path(path)
       , Current()
@@ -39,16 +41,37 @@ namespace
 
     void operator()(const Container::File& cur)
     {
-      if (Callback)
+      if (Progress.get())
       {
         const String text = Path.empty()
           ? Strings::Format(Text::CONTAINER_PLUGIN_PROGRESS_NOPATH, Id, cur.GetName())
           : Strings::Format(Text::CONTAINER_PLUGIN_PROGRESS, Id, cur.GetName(), Path);
-        Callback->OnProgress(Current++, text);
+        Progress->OnProgress(Current, text);
       }
     }
+
+    std::auto_ptr<Module::DetectCallback> CreateNestedCallback() const
+    {
+      Log::ProgressCallback* const parentProgress = Delegate.GetProgress();
+      if (parentProgress && Total < 50)
+      {
+        Log::ProgressCallback::Ptr nestedProgress = CreateNestedPercentProgressCallback(Total, Current, *parentProgress);
+        return std::auto_ptr<Module::DetectCallback>(new Module::CustomProgressDetectCallbackAdapter(Delegate, nestedProgress));
+      }
+      else
+      {
+        return std::auto_ptr<Module::DetectCallback>(new Module::CustomProgressDetectCallbackAdapter(Delegate));
+      }
+    }
+
+    void Next()
+    {
+      ++Current;
+    }
   private:
-    Log::ProgressCallback* const Callback;
+    const uint_t Total;
+    const Module::DetectCallback& Delegate;
+    const Log::ProgressCallback::Ptr Progress;
     const String Id;
     const String Path;
     uint_t Current;
@@ -75,10 +98,8 @@ namespace
       {
         if (const uint_t count = files->GetFilesCount())
         {
-          const Log::ProgressCallback::Ptr progress = CreateProgressCallback(callback, count);
-          LoggerHelper logger(progress.get(), *Description, input->GetPath()->AsString());
-          const ZXTune::Module::NoProgressDetectCallbackAdapter noProgressCallback(callback);
-          for (Container::Catalogue::Iterator::Ptr it = files->GetFiles(); it->IsValid(); it->Next())
+          LoggerHelper logger(count, callback, *Description, input->GetPath()->AsString());
+          for (Container::Catalogue::Iterator::Ptr it = files->GetFiles(); it->IsValid(); it->Next(), logger.Next())
           {
             const Container::File::Ptr file = it->Get();
             logger(*file);
@@ -86,7 +107,8 @@ namespace
             {
               const String subPath = file->GetName();
               const ZXTune::DataLocation::Ptr subLocation = CreateNestedLocation(input, subData, Description, subPath);
-              ZXTune::Module::Detect(subLocation, noProgressCallback);
+              const std::auto_ptr<Module::DetectCallback> nestedProgressCallback = logger.CreateNestedCallback();
+              ZXTune::Module::Detect(subLocation, *nestedProgressCallback);
             }
           }
         }

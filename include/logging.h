@@ -35,6 +35,7 @@ namespace Log
   };
 
   ProgressCallback::Ptr CreatePercentProgressCallback(uint_t total, ProgressCallback& delegate);
+  ProgressCallback::Ptr CreateNestedPercentProgressCallback(uint_t total, uint_t current, ProgressCallback& delegate);
 
   //! @brief Checks if debugging messages output for specified module is enabled
   bool IsDebuggingEnabled(const std::string& module);

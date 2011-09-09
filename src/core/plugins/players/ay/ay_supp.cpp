@@ -1157,7 +1157,7 @@ namespace
       }
 
       const Log::ProgressCallback::Ptr progress = CreateProgressCallback(callback, subModules);
-      const ZXTune::Module::NoProgressDetectCallbackAdapter noProgressCallback(callback);
+      const ZXTune::Module::CustomProgressDetectCallbackAdapter noProgressCallback(callback);
       LoggerHelper logger(progress.get(), *Description, input->GetPath()->AsString());
 
       std::size_t usedData = 0;

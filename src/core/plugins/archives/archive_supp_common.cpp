@@ -48,7 +48,7 @@ namespace
     std::auto_ptr<Dump> res = decoder.Decode(rawData->Data(), rawData->Size(), packedSize);
     if (res.get() && !res->empty())
     {
-      const ZXTune::Module::NoProgressDetectCallbackAdapter noProgressCallback(callback);
+      const ZXTune::Module::CustomProgressDetectCallbackAdapter noProgressCallback(callback);
       const IO::DataContainer::Ptr subData = IO::CreateDataContainer(res);
       const String subPath = EncodeArchivePluginToPath(plugin->Id());
       const ZXTune::DataLocation::Ptr subLocation = CreateNestedLocation(inputData, subData, plugin, subPath);

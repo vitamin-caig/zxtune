@@ -19,11 +19,7 @@ Author:
 #include <core/module_holder.h>
 //common includes
 #include <error.h>
-
-namespace Log
-{
-  class ProgressCallback;
-}
+#include <logging.h>
 
 namespace ZXTune
 {
@@ -83,18 +79,26 @@ namespace ZXTune
       const DetectCallback& Delegate;
     };
 
-    class NoProgressDetectCallbackAdapter : public DetectCallbackDelegate
+    class CustomProgressDetectCallbackAdapter : public DetectCallbackDelegate
     {
     public:
-      explicit NoProgressDetectCallbackAdapter(const DetectCallback& delegate)
+      CustomProgressDetectCallbackAdapter(const DetectCallback& delegate, Log::ProgressCallback::Ptr progress)
+        : DetectCallbackDelegate(delegate)
+        , Progress(progress)
+      {
+      }
+
+      CustomProgressDetectCallbackAdapter(const DetectCallback& delegate)
         : DetectCallbackDelegate(delegate)
       {
       }
 
       virtual Log::ProgressCallback* GetProgress() const
       {
-        return 0;
+        return Progress.get();
       }
+    private:
+      const Log::ProgressCallback::Ptr Progress;
     };
   }
 }

@@ -436,7 +436,7 @@ namespace
       const String currentPath = input->GetPath()->AsString();
       Log::Debug(THIS_MODULE, "Detecting modules in raw data at '%1%'", currentPath);
       const Log::ProgressCallback::Ptr progress(new RawProgressCallback(callback, static_cast<uint_t>(size), currentPath));
-      const Module::DetectCallback& noProgressCallback = Module::NoProgressDetectCallbackAdapter(callback);
+      const Module::DetectCallback& noProgressCallback = Module::CustomProgressDetectCallbackAdapter(callback);
 
       const PluginsEnumerator::Ptr availablePlugins = callback.GetUsedPlugins();
       RawDetectionPlugins usedPlugins(availablePlugins, Description->Id());
