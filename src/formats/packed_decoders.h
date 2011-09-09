@@ -33,6 +33,7 @@ namespace Formats
     Decoder::Ptr CreatePowerfullCodeDecreaser62Decoder();
     Decoder::Ptr CreateTRUSHDecoder();
     Decoder::Ptr CreateZXZipDecoder();
+    Decoder::Ptr CreateZipDecoder();
   }
 }
 
