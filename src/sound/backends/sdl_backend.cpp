@@ -18,6 +18,7 @@ Author:
 #include <byteorder.h>
 #include <error_tools.h>
 #include <logging.h>
+#include <shared_library_gate.h>
 #include <tools.h>
 //library includes
 #include <sound/backend_attrs.h>
@@ -48,6 +49,26 @@ namespace
 
   const uint_t BUFFERS_MIN = 2;
   const uint_t BUFFERS_MAX = 10;
+
+  struct SDLLibraryTraits
+  {
+    static std::string GetName()
+    {
+      return "SDL";
+    }
+
+    static void Startup()
+    {
+      Log::Debug(THIS_MODULE, "Library loaded");
+    }
+
+    static void Shutdown()
+    {
+      Log::Debug(THIS_MODULE, "Library unloaded");
+    }
+  };
+
+  typedef SharedLibraryGate<SDLLibraryTraits> SDLLibrary;
 
   void CheckCall(bool ok, Error::LocationRef loc)
   {
@@ -341,6 +362,55 @@ namespace ZXTune
       enumerator.RegisterCreator(creator);
     }
   }
+}
+
+//global namespace
+#define STR(a) #a
+#define SDL_CALL(func, ...) SDLLibrary::Instance().GetSymbol(&func, STR(func))(__VA_ARGS__)
+
+char* SDL_GetError(void)
+{
+  return SDL_CALL(SDL_GetError);
+}
+
+int SDL_Init(Uint32 flags)
+{
+  return SDL_CALL(SDL_Init, flags);
+}
+
+int SDL_InitSubSystem(Uint32 flags)
+{
+  return SDL_CALL(SDL_InitSubSystem, flags);
+}
+
+void SDL_QuitSubSystem(Uint32 flags)
+{
+  return SDL_CALL(SDL_QuitSubSystem, flags);
+}
+
+Uint32 SDL_WasInit(Uint32 flags)
+{
+  return SDL_CALL(SDL_WasInit, flags);
+}
+
+void SDL_Quit(void)
+{
+  return SDL_CALL(SDL_Quit);
+}
+
+int SDL_OpenAudio(SDL_AudioSpec *desired, SDL_AudioSpec *obtained)
+{
+  return SDL_CALL(SDL_OpenAudio, desired, obtained);
+}
+
+void SDL_PauseAudio(int pause_on)
+{
+  return SDL_CALL(SDL_PauseAudio, pause_on);
+}
+
+void SDL_CloseAudio(void)
+{
+  return SDL_CALL(SDL_CloseAudio);
 }
 
 #else //not supported
