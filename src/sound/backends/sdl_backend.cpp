@@ -30,7 +30,7 @@ Author:
 #include <SDL/SDL.h>
 //boost includes
 #include <boost/noncopyable.hpp>
-#include <boost/thread/thread.hpp>
+#include <boost/thread/condition_variable.hpp>
 //text includes
 #include <sound/text/backends.h>
 #include <sound/text/sound.h>
@@ -358,8 +358,13 @@ namespace ZXTune
   {
     void RegisterSDLBackend(BackendsEnumerator& enumerator)
     {
-      const BackendCreator::Ptr creator(new SDLBackendCreator());
-      enumerator.RegisterCreator(creator);
+      if (SDLLibrary::Instance().IsAccessible())
+      {
+        const SDL_version* const vers = ::SDL_Linked_Version();
+        Log::Debug(THIS_MODULE, "Detected SDL %1%.%2%.%3%", unsigned(vers->major), unsigned(vers->minor), unsigned(vers->patch));
+        const BackendCreator::Ptr creator(new SDLBackendCreator());
+        enumerator.RegisterCreator(creator);
+      }
     }
   }
 }
@@ -371,6 +376,11 @@ namespace ZXTune
 char* SDL_GetError(void)
 {
   return SDL_CALL(SDL_GetError);
+}
+
+const SDL_version* SDL_Linked_Version(void)
+{
+  return SDL_CALL(SDL_Linked_Version);
 }
 
 int SDL_Init(Uint32 flags)

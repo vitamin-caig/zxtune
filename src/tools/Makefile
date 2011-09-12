@@ -4,7 +4,7 @@ source_dirs := src
 
 include $(path_step)/make/default.mak
 ifneq ($(findstring $(platform),windows mingw),)
-#source_files += platform/shared_library_windows
+source_files += platform/shared_library_windows
 else ifneq ($(findstring $(platform),linux dingux macos),)
 source_files += platform/shared_library_linux
 else

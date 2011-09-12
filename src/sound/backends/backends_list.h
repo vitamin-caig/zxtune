@@ -33,8 +33,8 @@ namespace ZXTune
       //potentially unsafe backends
       RegisterOSSBackend(enumerator);
       RegisterAlsaBackend(enumerator);
-      RegisterSDLBackend(enumerator);
       RegisterWin32Backend(enumerator);
+      RegisterSDLBackend(enumerator);
       //stub
       RegisterNullBackend(enumerator);
       //never default backends
