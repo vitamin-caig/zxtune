@@ -34,6 +34,7 @@ namespace Formats
     Decoder::Ptr CreateTRUSHDecoder();
     Decoder::Ptr CreateZXZipDecoder();
     Decoder::Ptr CreateZipDecoder();
+    Decoder::Ptr CreateRarDecoder();
   }
 }
 
