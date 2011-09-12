@@ -6,8 +6,9 @@ pkgdesc="ZX Spectrum sound chiptunes playback support"
 arch=('i686' 'x86_64')
 url="http://zxtune.googlecode.com"
 license=('GPL3')
-depends=('boost-libs>=1.40' 'qt>=4.5.0' 'textator')
-makedepends=('subversion')
+depends=('boost-libs>=1.40' 'qt>=4.7.0')
+optdepends=('alsa-lib: for ALSA output support' 'sdl: for SDL output support')
+makedepends=('subversion' 'textator')
 provides=('zxtune')
 options=(!strip !docs !libtool !emptydirs !zipman makeflags)
 _svntrunk="http://zxtune.googlecode.com/svn/tags/ver3"

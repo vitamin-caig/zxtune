@@ -30,6 +30,7 @@ $(pkg_archlinux)/PKGBUILD: | $(pkg_archlinux)
 	url=\"http://zxtune.googlecode.com\"\n\
 	license=('GPL3')\n\
 	depends=('zlib')\n\
+	optdepends=('alsa-lib: for ALSA output support' 'sdl: for SDL output support')\n\
 	provides=('$(binary_name)')\n\
 	options=(!strip !docs !libtool !emptydirs !zipman makeflags)\n\n\
 	package() {\n\
