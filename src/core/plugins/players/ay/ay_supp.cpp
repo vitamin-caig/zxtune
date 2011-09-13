@@ -513,6 +513,10 @@ namespace
     const RangeChecker::Ptr checker = RangeChecker::CreateShared(data.Size());
     checker->AddRange(0, sizeof(header));
     const ModuleDescription* const descriptions = GetPointer<ModuleDescription>(&header.DescriptionsOffset);
+    if (safe_ptr_cast<const uint8_t*>(descriptions) < start)
+    {
+      return 0;
+    }
     if (!checker->AddRange(safe_ptr_cast<const uint8_t*>(descriptions) - start, (idx + 1) * sizeof(ModuleDescription)))
     {
       return 0;
@@ -520,6 +524,10 @@ namespace
     const ModuleDescription& description = descriptions[idx];
     {
       const uint8_t* const titleBegin = GetPointer<uint8_t>(&description.TitleOffset);
+      if (titleBegin < start)
+      {
+        return 0;
+      }
       const uint8_t* const titleEnd = std::find(titleBegin, limit, 0);
       if (!checker->AddRange(titleBegin - start, titleEnd - titleBegin + 1))
       {
@@ -529,6 +537,10 @@ namespace
     }
     {
       const uint8_t* const authorBegin = GetPointer<uint8_t>(&header.AuthorOffset);
+      if (authorBegin < start)
+      {
+        return 0;
+      }
       const uint8_t* const authorEnd = std::find(authorBegin, limit, 0);
       if (!checker->AddRange(authorBegin - start, authorEnd - authorBegin + 1))
       {
@@ -538,6 +550,10 @@ namespace
     }
     {
       const uint8_t* const miscBegin = GetPointer<uint8_t>(&header.MiscOffset);
+      if (miscBegin < start)
+      {
+        return 0;
+      }
       const uint8_t* const miscEnd = std::find(miscBegin, limit, 0);
       if (!checker->AddRange(miscBegin - start, miscEnd - miscBegin + 1))
       {
@@ -546,6 +562,10 @@ namespace
       target.SetComment(OptimizeString(String(miscBegin, miscEnd)));
     }
     const ModuleDataEMUL* const moddata = GetPointer<ModuleDataEMUL>(&description.DataOffset);
+    if (safe_ptr_cast<const uint8_t*>(moddata) < start)
+    {
+      return 0;
+    }
     if (!checker->AddRange(safe_ptr_cast<const uint8_t*>(moddata) - start, sizeof(*moddata)))
     {
       return 0;
@@ -555,12 +575,20 @@ namespace
       target.SetDuration(fromBE(moddata->TotalLength));
     }
     const ModuleBlockEMUL* block = GetPointer<ModuleBlockEMUL>(&moddata->BlocksOffset);
+    if (safe_ptr_cast<const uint8_t*>(block) < start)
+    {
+      return 0;
+    }
     if (!checker->AddRange(safe_ptr_cast<const uint8_t*>(block) - start, sizeof(*block)))
     {
       return 0;
     }
     {
       const ModulePointersEMUL* const modptrs = GetPointer<ModulePointersEMUL>(&moddata->PointersOffset);
+      if (safe_ptr_cast<const uint8_t*>(modptrs) < start)
+      {
+        return 0;
+      }
       if (!checker->AddRange(safe_ptr_cast<const uint8_t*>(modptrs) - start, sizeof(*modptrs)))
       {
         return 0;

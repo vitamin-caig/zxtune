@@ -281,7 +281,7 @@ namespace Formats
       virtual bool Check(const void* data, std::size_t availSize) const
       {
         const ::Zip::Container container(data, availSize);
-        return Depacker->Match(data, availSize) && container.FastCheck();
+        return Depacker->Match(data, availSize);
       }
 
       virtual std::auto_ptr<Dump> Decode(const void* data, std::size_t availSize, std::size_t& usedSize) const
