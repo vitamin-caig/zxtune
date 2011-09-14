@@ -11,7 +11,9 @@ CXX_PLATFORM_FLAGS = -mthreads -march=i686 -mtune=generic -m32 -mmmx
 LD_PLATFORM_FLAGS = -mthreads -static 
 ifdef release
 CXX_PLATFORM_FLAGS += -minline-all-stringops
+ifndef profile
 LD_PLATFORM_FLAGS += -Wl,-O3,-x,--gc-sections,--relax,--kill-at
+endif
 endif
 
 ifdef use_qt

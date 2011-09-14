@@ -72,7 +72,7 @@ namespace Rar
         const Formats::Packed::Rar::BigFileBlockHeader& bigFile = *safe_ptr_cast<const Formats::Packed::Rar::BigFileBlockHeader*>(Data);
         res += uint64_t(fromLE(bigFile.PackedSizeHi)) << (8 * sizeof(uint32_t));
       }
-      return res;
+      return static_cast<std::size_t>(res);
     }
 
     const Formats::Packed::Rar::FileBlockHeader& GetHeader() const
@@ -132,12 +132,22 @@ namespace Rar
   struct BaseDecodeTree
   {
     boost::array<uint_t, 16> DecodeLen;
-    boost::array<uint_t, 16>  DecodePos;
+    boost::array<uint_t, 16> DecodePos;
 
     BaseDecodeTree()
       : DecodeLen()
       , DecodePos()
     {
+    }
+
+    uint_t GetBitsForLen(uint_t len) const
+    {
+      uint_t bits = 1;
+      while (bits < 15 && len >= DecodeLen[bits])
+      {
+        ++bits;
+      }
+      return bits;
     }
   };
 
@@ -164,8 +174,8 @@ namespace Rar
   public:
     RarBitstream(const uint8_t* data, std::size_t size)
       : ByteStream(data, size)
-      , LRange()
-      , LCode()
+      , ValidBits()
+      , BitsBuffer()
     {
       FetchBits(0);
     }
@@ -177,19 +187,6 @@ namespace Rar
       return result;
     }
 
-    uint32_t PeekBits(uint_t bits)
-    {
-      static const boost::array<uint32_t, 16> BitMask =
-      {
-        {
-         1, 3, 7, 15, 31, 63, 127, 255,
-         511, 1023, 2047, 4095, 8191, 16383, 32767, 65535
-        }
-      };
-      assert(LRange >= bits);
-      return BitMask[bits - 1] & (LCode >> (LRange - bits));
-    }
-
     template<uint_t numSize>
     uint_t DecodeNumber(const DecodeTree<numSize>& tree)
     {
@@ -199,30 +196,94 @@ namespace Rar
         : 0;
     }
   private:
+    uint32_t PeekBits(uint_t bits)
+    {
+      static const boost::array<uint32_t, 17> BitMask =
+      {
+        {
+          0,
+          1, 3, 7, 15, 31, 63, 127, 255,
+          511, 1023, 2047, 4095, 8191, 16383, 32767, 65535
+        }
+      };
+      assert(ValidBits >= bits);
+      assert(bits < BitMask.size());
+      return BitMask[bits] & (BitsBuffer >> (ValidBits - bits));
+    }
+
     void FetchBits(uint_t bits)
     {
-      LRange -= bits;
-      while (LRange < 24)
+      ValidBits -= bits;
+      while (ValidBits < 24)
       {
-        LCode = (LCode << 8) | GetByte();
-        LRange += 8;
+        BitsBuffer = (BitsBuffer << 8) | GetByte();
+        ValidBits += 8;
       }
     }
 
     uint_t DecodeNumIndex(const BaseDecodeTree& tree)
     {
       const uint_t len = PeekBits(16) & 0xfffe;
-      uint_t bits = 1;
-      while (bits < 15 && len >= tree.DecodeLen[bits])
-      {
-        ++bits;
-      }
+      const uint_t bits = tree.GetBitsForLen(len);
       FetchBits(bits);
       return tree.DecodePos[bits] + ((len - tree.DecodeLen[bits - 1]) >> (16 - bits));
     }
   private:
-    uint32_t LRange;
-    uint32_t LCode;
+    uint32_t ValidBits;
+    uint32_t BitsBuffer;
+  };
+
+  class DecodeTarget
+  {
+  public:
+    DecodeTarget()
+      : Cursor(Result.end())
+      , Rest(0)
+    {
+    }
+
+    void Reserve(std::size_t size)
+    {
+      const std::size_t prevSize = Result.size();
+      Result.resize(prevSize + size);
+      Cursor = Result.begin() + prevSize;
+      Rest = size;
+    }
+
+    bool Full() const
+    {
+      return 0 == Rest;
+    }
+
+    void Add(uint8_t data)
+    {
+      *Cursor = data;
+      ++Cursor;
+      --Rest;
+    }
+
+    bool CopyFromBack(uint_t offset, uint_t count)
+    {
+      if (offset > static_cast<uint_t>(Cursor - Result.begin()) || count > Rest)
+      {
+        return false;
+      }
+      const Dump::const_iterator srcStart = Cursor - offset;
+      const Dump::const_iterator srcEnd = srcStart + count;
+      RecursiveCopy(srcStart, srcEnd, Cursor);
+      Cursor += count;
+      Rest -= count;
+      return true;
+    }
+
+    Dump* Get()
+    {
+      return &Result;
+    }
+  private:
+    Dump Result;
+    Dump::iterator Cursor;
+    std::size_t Rest;
   };
 
   class RarDecoder
@@ -230,125 +291,31 @@ namespace Rar
   public:
     RarDecoder(const uint8_t* const start, std::size_t size, std::size_t destSize)
       : Stream(start, size)
-      , TargetSize(destSize)
     {
+      Decoded.Reserve(destSize);
     }
 
     Dump* GetDecodedData()
     {
-      if (Decoded.empty())
+      if (!Decoded.Full())
       {
         Decode();
       }
-      return !Decoded.empty()
-        ? &Decoded
-        : 0;
+      return Decoded.Get();
     }
   private:
     void Decode()
     {
-      static const uint_t LDecode[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 16, 20, 24, 28, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224}; 
-      static const uint_t LBits[] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4,  4,  5,  5,  5,  5};
-      static const uint_t DDecode[] = 
-      {
-        0, 1, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384, 512, 768, 1024, 1536, 2048, 3072, 4096, 6144, 8192, 12288, 16384, 24576, 32768,
-        49152, 65536, 98304, 131072, 196608, 262144, 327680, 393216, 458752, 524288, 589824, 655360, 720896, 786432, 851968, 917504, 983040
-      }; 
-      static const uint_t DBits[] =
-      {
-        0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15,
-        16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16
-      };
-      static const uint_t SDDecode[] = {0, 4, 8, 16, 32, 64, 128, 192};
-      static const uint_t SDBits[] = {2, 2, 3, 4, 5, 6, 6, 6};
-
-      const std::size_t prevSize = Decoded.size();
-      const std::size_t requiredSize = prevSize + TargetSize;
-      Decoded.reserve(requiredSize);
       ReadTables();
-      while (Decoded.size() < requiredSize)
+      while (!Decoded.Full())
       {
         if (Audio.Unpack)
         {
-          const uint_t num = Stream.DecodeNumber(MD[Audio.CurChannel]);
-          if (256 == num)
-          {
-            ReadTables();
-            continue;
-          }
-          Decoded.push_back(DecodeAudio(num));
-          Audio.NextChannel();
-          continue;
+          DecodeAudioBlock();
         }
-        const uint_t num = Stream.DecodeNumber(LD);
-        if (num < 256)
+        else
         {
-          Decoded.push_back(static_cast<uint8_t>(num));
-        }
-        else if (num > 269)
-        {
-          const uint_t lenIdx = num - 270;
-          uint_t len = LDecode[lenIdx] + 3;
-          if (const uint_t lenBits = LBits[lenIdx])
-          {
-            len += Stream.ReadBits(lenBits);
-          }
-          const uint_t distIdx = Stream.DecodeNumber(DD);
-          uint_t dist = DDecode[distIdx] + 1;
-          if (const uint_t distBits = DBits[distIdx])
-          {
-            dist += Stream.ReadBits(distBits);
-          }
-          if (dist >= 0x40000L)
-          {
-            ++len;
-          }
-          if (dist >= 0x2000L)
-          {
-            ++len;
-          }
-          CopyString(dist, len);
-        }
-        else if (num == 269)
-        {
-          ReadTables();
-        }
-        else if (num == 256)
-        {
-          CopyString(History.LastDist, History.LastCount);
-        }
-        else if (num < 261)
-        {
-          const uint_t dist = History.GetDist(num - 256);
-          const uint_t lenIdx = Stream.DecodeNumber(RD);
-          uint_t len = LDecode[lenIdx] + 2;
-          if (const uint_t lenBits = LBits[lenIdx])
-          {
-            len += Stream.ReadBits(lenBits);
-          }
-          if (dist >= 0x40000L)
-          {
-            ++len;
-          }
-          if (dist >= 0x2000)
-          {
-            ++len;
-          }
-          if (dist >= 0x101)
-          {
-            ++len;
-          }
-          CopyString(dist, len);
-        }
-        else if (num < 270)
-        {
-          const uint_t distIdx = num - 261;
-          uint_t dist = SDDecode[distIdx] + 1;
-          if (const uint_t distBits = SDBits[distIdx])
-          {
-            dist += Stream.ReadBits(distBits);
-          }
-          CopyString(dist, 2);
+          DecodeDataBlock();
         }
       }
       ReadLastTables();
@@ -483,10 +450,112 @@ namespace Rar
       }
     }
 
-    void CopyString(uint_t dist, uint_t count)
+    void DecodeAudioBlock()
     {
-      CopyFromBack(dist, Decoded, count);
-      History.Store(dist, count);
+      while (!Decoded.Full())
+      {
+        const uint_t num = Stream.DecodeNumber(MD[Audio.CurChannel]);
+        if (256 == num)
+        {
+          ReadTables();
+          break;
+        }
+        Decoded.Add(DecodeAudio(num));
+        Audio.NextChannel();
+      }
+    }
+
+    void DecodeDataBlock()
+    {
+      static const uint_t LDecode[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 16, 20, 24, 28, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224}; 
+      static const uint_t LBits[] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4,  4,  5,  5,  5,  5};
+      static const uint_t DDecode[] = 
+      {
+        0, 1, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384, 512, 768, 1024, 1536, 2048, 3072, 4096, 6144, 8192, 12288, 16384, 24576,
+        32768, 49152, 65536, 98304, 131072, 196608, 262144, 327680, 393216, 458752, 524288, 589824, 655360, 720896, 786432, 851968, 917504, 983040
+      }; 
+      static const uint_t DBits[] =
+      {
+        0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15,
+        16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16
+      };
+      static const uint_t SDDecode[] = {0, 4, 8, 16, 32, 64, 128, 192};
+      static const uint_t SDBits[] = {2, 2, 3, 4, 5, 6, 6, 6};
+
+      while (!Decoded.Full())
+      {
+        const uint_t num = Stream.DecodeNumber(LD);
+        if (num < 256)
+        {
+          Decoded.Add(static_cast<uint8_t>(num));
+        }
+        else if (num > 269)
+        {
+          const uint_t lenIdx = num - 270;
+          uint_t len = LDecode[lenIdx] + 3;
+          if (const uint_t lenBits = LBits[lenIdx])
+          {
+            len += Stream.ReadBits(lenBits);
+          }
+          const uint_t distIdx = Stream.DecodeNumber(DD);
+          uint_t dist = DDecode[distIdx] + 1;
+          if (const uint_t distBits = DBits[distIdx])
+          {
+            dist += Stream.ReadBits(distBits);
+          }
+          if (dist >= 0x40000L)
+          {
+            ++len;
+          }
+          if (dist >= 0x2000L)
+          {
+            ++len;
+          }
+          CopyString(dist, len);
+        }
+        else if (num == 269)
+        {
+          ReadTables();
+          break;
+        }
+        else if (num == 256)
+        {
+          CopyString(History.LastDist, History.LastCount);
+        }
+        else if (num < 261)
+        {
+          const uint_t dist = History.GetDist(num - 256);
+          const uint_t lenIdx = Stream.DecodeNumber(RD);
+          uint_t len = LDecode[lenIdx] + 2;
+          if (const uint_t lenBits = LBits[lenIdx])
+          {
+            len += Stream.ReadBits(lenBits);
+          }
+          if (dist >= 0x40000L)
+          {
+            ++len;
+          }
+          if (dist >= 0x2000)
+          {
+            ++len;
+          }
+          if (dist >= 0x101)
+          {
+            ++len;
+          }
+          CopyString(dist, len);
+        }
+        else if (num < 270)
+        {
+          const uint_t distIdx = num - 261;
+          uint_t dist = SDDecode[distIdx] + 1;
+          if (const uint_t distBits = SDBits[distIdx])
+          {
+            dist += Stream.ReadBits(distBits);
+          }
+          CopyString(dist, 2);
+        }
+      }
     }
 
     uint8_t DecodeAudio(int_t delta)
@@ -546,9 +615,17 @@ namespace Rar
       }
       return static_cast<uint8_t>(val);
     }
+
+    void CopyString(uint_t dist, uint_t count)
+    {
+      if (!Decoded.CopyFromBack(dist, count))
+      {
+        Log::Debug(THIS_MODULE, "Invalid backreference!");
+      }
+      History.Store(dist, count);
+    }
   private:
     RarBitstream Stream;
-    const std::size_t TargetSize;
   
     struct MultimediaCompression
     {
@@ -636,7 +713,7 @@ namespace Rar
     LitDecodeTree LD;
     DistDecodeTree DD;
     boost::array<MultDecodeTree, 4> MD;
-    Dump Decoded;
+    DecodeTarget Decoded;
   };
 
   class PackedFile : public CompressedFile
