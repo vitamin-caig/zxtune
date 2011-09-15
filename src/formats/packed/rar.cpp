@@ -277,9 +277,9 @@ namespace Rar
       return true;
     }
 
-    Dump* Get()
+    const Dump& Get() const
     {
-      return &Result;
+      return Result;
     }
   private:
     Dump Result;
@@ -287,27 +287,57 @@ namespace Rar
     std::size_t Rest;
   };
 
+  class SpeedMeasure
+  {
+  public:
+    explicit SpeedMeasure(std::size_t targetSize)
+      : TargetSize(targetSize)
+      , StartTick(std::clock())
+    {
+    }
+
+    ~SpeedMeasure()
+    {
+      const uint_t timeSpent = std::clock() - StartTick;
+      if (timeSpent)
+      {
+        const uint_t speed = (TargetSize * CLOCKS_PER_SEC / timeSpent);
+        Log::Debug(THIS_MODULE, "Depacking speed is %1% b/s", speed);
+      }
+      else
+      {
+        Log::Debug(THIS_MODULE, "Unable to determine depacking speed.");
+      }
+    }
+  private:
+    const std::size_t TargetSize;
+    const std::clock_t StartTick;
+  };
+
   class RarDecoder
   {
   public:
-    RarDecoder(const uint8_t* const start, std::size_t size, std::size_t destSize)
+    RarDecoder(const uint8_t* const start, std::size_t size)
       : Stream(start, size)
     {
-      Decoded.Reserve(destSize);
+      ReadTables();
     }
 
-    Dump* GetDecodedData()
+    std::auto_ptr<Dump> Decode(std::size_t destSize)
     {
-      if (!Decoded.Full())
+      Decoded.Reserve(destSize);
       {
+        const SpeedMeasure measure(destSize);
         Decode();
       }
-      return Decoded.Get();
+      const Dump& res = Decoded.Get();
+      const Dump::const_iterator src = res.begin() + res.size() - destSize;
+      //TODO: remove unneed copying
+      return std::auto_ptr<Dump>(new Dump(src, res.end()));
     }
   private:
     void Decode()
     {
-      ReadTables();
       while (!Decoded.Full())
       {
         if (Audio.Unpack)
@@ -730,18 +760,8 @@ namespace Rar
     virtual std::auto_ptr<Dump> Decompress() const
     {
       Log::Debug(THIS_MODULE, "Depack %1% -> %2%", Size, DestSize);
-      const std::clock_t startTick = std::clock();
-      RarDecoder decoder(Start, Size, DestSize);
-      if (Dump* decoded = decoder.GetDecodedData())
-      {
-        const uint_t timeSpent = std::clock() - startTick;
-        const uint_t speed = timeSpent ? (decoded->size() * CLOCKS_PER_SEC / timeSpent) : 0;
-        Log::Debug(THIS_MODULE, "Depacking speed is %1% b/s", speed);
-        std::auto_ptr<Dump> res(new Dump());
-        res->swap(*decoded);
-        return res;
-      }
-      return std::auto_ptr<Dump>();
+      RarDecoder decoder(Start, Size);
+      return decoder.Decode(DestSize);
     }
   private:
     const uint8_t* const Start;

@@ -103,6 +103,11 @@ namespace Formats
           return 0 != (fromLE(Flags) & FLAG_BIG_FILE);
         }
 
+        bool IsSolid() const
+        {
+          return 0 != (fromLE(Flags) & FLAG_SOLID);
+        }
+
         bool IsValid() const;
 
         bool IsSupported() const;
