@@ -11,6 +11,8 @@ Author:
 
 #ifdef SDL_SUPPORT
 
+#define DECLSPEC
+
 //local includes
 #include "backend_impl.h"
 #include "enumerator.h"
