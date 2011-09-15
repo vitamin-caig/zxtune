@@ -24,6 +24,8 @@ Author:
 //std includes
 #include <cstring>
 #include <stdexcept>
+//boost includes
+#include <boost/make_shared.hpp>
 //text includes
 #include <core/text/plugins.h>
 
@@ -692,7 +694,7 @@ namespace Formats
 
     Decoder::Ptr CreateZXZipDecoder()
     {
-      return Decoder::Ptr(new ZXZipDecoder());
+      return boost::make_shared<ZXZipDecoder>();
     }
   }
 }

@@ -429,12 +429,12 @@ namespace Formats
 
     Decoder::Ptr CreatePowerfullCodeDecreaser61Decoder()
     {
-      return Decoder::Ptr(new PowerfullCodeDecreaser6Decoder<PowerfullCodeDecreaser6::Version61>());
+      return boost::make_shared<PowerfullCodeDecreaser6Decoder<PowerfullCodeDecreaser6::Version61> >();
     }
 
     Decoder::Ptr CreatePowerfullCodeDecreaser62Decoder()
     {
-      return Decoder::Ptr(new PowerfullCodeDecreaser6Decoder<PowerfullCodeDecreaser6::Version62>());
+      return boost::make_shared<PowerfullCodeDecreaser6Decoder<PowerfullCodeDecreaser6::Version62> >();
     }
   }
 }

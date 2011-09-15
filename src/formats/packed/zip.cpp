@@ -21,6 +21,8 @@ Author:
 //std includes
 #include <cassert>
 #include <memory>
+//boost includes
+#include <boost/make_shared.hpp>
 
 #ifdef ZLIB_SUPPORT
 //platform includes
@@ -305,7 +307,7 @@ namespace Formats
 
     Decoder::Ptr CreateZipDecoder()
     {
-      return Decoder::Ptr(new ZipDecoder());
+      return boost::make_shared<ZipDecoder>();
     }
   }
 }

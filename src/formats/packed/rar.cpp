@@ -24,6 +24,7 @@ Author:
 #include <memory>
 //boost includes
 #include <boost/array.hpp>
+#include <boost/make_shared.hpp>
 
 namespace Rar
 {
@@ -890,7 +891,7 @@ namespace Formats
 
     Decoder::Ptr CreateRarDecoder()
     {
-      return Decoder::Ptr(new RarDecoder());
+      return boost::make_shared<RarDecoder>();
     }
   }
 }

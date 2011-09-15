@@ -24,6 +24,7 @@ Author:
 #include <numeric>
 //boost includes
 #include <boost/bind.hpp>
+#include <boost/make_shared.hpp>
 
 namespace DataSquieezer
 {
@@ -465,7 +466,7 @@ namespace Formats
 
     Decoder::Ptr CreateDataSquieezerDecoder()
     {
-      return Decoder::Ptr(new DataSquieezerDecoder());
+      return boost::make_shared<DataSquieezerDecoder>();
     }
   }
 }

@@ -21,6 +21,8 @@ Author:
 //std includes
 #include <algorithm>
 #include <iterator>
+//boost includes
+#include <boost/make_shared.hpp>
 
 namespace LZS
 {
@@ -317,7 +319,7 @@ namespace Formats
 
     Decoder::Ptr CreateLZSDecoder()
     {
-      return Decoder::Ptr(new LZSDecoder());
+      return boost::make_shared<LZSDecoder>();
     }
   }
 }

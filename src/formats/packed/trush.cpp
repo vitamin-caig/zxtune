@@ -283,7 +283,7 @@ namespace Formats
 
     Decoder::Ptr CreateTRUSHDecoder()
     {
-      return Decoder::Ptr(new TRUSHDecoder());
+      return boost::make_shared<TRUSHDecoder>();
     }
   }
 }

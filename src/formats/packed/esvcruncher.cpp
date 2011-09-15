@@ -24,6 +24,7 @@ Author:
 #include <numeric>
 //boost includes
 #include <boost/bind.hpp>
+#include <boost/make_shared.hpp>
 
 namespace ESVCruncher
 {
@@ -450,7 +451,7 @@ namespace Formats
 
     Decoder::Ptr CreateESVCruncherDecoder()
     {
-      return Decoder::Ptr(new ESVCruncherDecoder());
+      return boost::make_shared<ESVCruncherDecoder>();
     }
   }
 }

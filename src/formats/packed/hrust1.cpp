@@ -359,7 +359,7 @@ namespace Formats
 
     Decoder::Ptr CreateHrust1Decoder()
     {
-      return Decoder::Ptr(new Hrust1Decoder());
+      return boost::make_shared<Hrust1Decoder>();
     }
   }
 }

@@ -22,6 +22,8 @@ Author:
 #include <algorithm>
 #include <iterator>
 #include <stdexcept>
+//boost includes
+#include <boost/make_shared.hpp>
 
 namespace CompressorCode
 {
@@ -578,12 +580,12 @@ namespace Formats
 
     Decoder::Ptr CreateCompressorCode4Decoder()
     {
-      return Decoder::Ptr(new CompressorCodeDecoder<CompressorCode::Version4>());
+      return boost::make_shared<CompressorCodeDecoder<CompressorCode::Version4> >();
     }
 
     Decoder::Ptr CreateCompressorCode4PlusDecoder()
     {
-      return Decoder::Ptr(new CompressorCodeDecoder<CompressorCode::Version4Plus>());
+      return boost::make_shared<CompressorCodeDecoder<CompressorCode::Version4Plus> >();
     }
   }
 }

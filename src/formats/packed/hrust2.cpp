@@ -419,7 +419,7 @@ namespace Formats
 
     Decoder::Ptr CreateHrust2RawDecoder()
     {
-      return Decoder::Ptr(new Hrust2RawDecoder());
+      return boost::make_shared<Hrust2RawDecoder>();
     }
   }
 }

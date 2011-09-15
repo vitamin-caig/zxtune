@@ -22,6 +22,7 @@ Author:
 #include <iterator>
 //boost includes
 #include <boost/bind.hpp>
+#include <boost/make_shared.hpp>
 
 namespace CodeCruncher3
 {
@@ -382,7 +383,7 @@ namespace Formats
 
     Decoder::Ptr CreateCodeCruncher3Decoder()
     {
-      return Decoder::Ptr(new CodeCruncher3Decoder());
+      return boost::make_shared<CodeCruncher3Decoder>();
     }
   }
 }

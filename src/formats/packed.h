@@ -23,7 +23,7 @@ namespace Formats
     class Decoder
     {
     public:
-      typedef std::auto_ptr<const Decoder> Ptr;
+      typedef boost::shared_ptr<const Decoder> Ptr;
       virtual ~Decoder() {}
 
       virtual DataFormat::Ptr GetFormat() const = 0;

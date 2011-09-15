@@ -287,7 +287,7 @@ namespace Formats
 
     Decoder::Ptr CreateMSPackDecoder()
     {
-      return Decoder::Ptr(new MSPackDecoder());
+      return boost::make_shared<MSPackDecoder>();
     }
   }
 }

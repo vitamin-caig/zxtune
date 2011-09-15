@@ -21,6 +21,8 @@ Author:
 #include <formats/packed.h>
 //std includes
 #include <numeric>
+//boost includes
+#include <boost/make_shared.hpp>
 //text includes
 #include <core/text/plugins.h>
 
@@ -292,7 +294,7 @@ namespace Formats
 
     Decoder::Ptr CreateHrumDecoder()
     {
-      return Decoder::Ptr(new HrumDecoder());
+      return boost::make_shared<HrumDecoder>();
     }
   }
 }
