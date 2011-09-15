@@ -21,13 +21,13 @@ namespace
   class NestedDataLocation : public DataLocation
   {
   public:
-    NestedDataLocation(DataLocation::Ptr parent, IO::DataContainer::Ptr subData)
+    NestedDataLocation(DataLocation::Ptr parent, Binary::Container::Ptr subData)
       : Parent(parent)
       , SubData(subData)
     {
     }
 
-    virtual IO::DataContainer::Ptr GetData() const
+    virtual Binary::Container::Ptr GetData() const
     {
       return SubData;
     }
@@ -43,13 +43,13 @@ namespace
     }
   private:
     const DataLocation::Ptr Parent;
-    const IO::DataContainer::Ptr SubData;
+    const Binary::Container::Ptr SubData;
   };
 
   class NestedLocation : public DataLocation
   {
   public:
-    NestedLocation(DataLocation::Ptr parent, Plugin::Ptr subPlugin, IO::DataContainer::Ptr subData, const String& subPath)
+    NestedLocation(DataLocation::Ptr parent, Plugin::Ptr subPlugin, Binary::Container::Ptr subData, const String& subPath)
       : Parent(parent)
       , SubData(subData)
       , SubPlugin(subPlugin)
@@ -57,7 +57,7 @@ namespace
     {
     }
 
-    virtual IO::DataContainer::Ptr GetData() const
+    virtual Binary::Container::Ptr GetData() const
     {
       return SubData;
     }
@@ -73,7 +73,7 @@ namespace
     }
   private:
     const DataLocation::Ptr Parent;
-    const IO::DataContainer::Ptr SubData;
+    const Binary::Container::Ptr SubData;
     const Plugin::Ptr SubPlugin;
     const String Subpath;
   };
@@ -81,12 +81,12 @@ namespace
 
 namespace ZXTune
 {
-  DataLocation::Ptr CreateNestedLocation(DataLocation::Ptr parent, IO::DataContainer::Ptr subData)
+  DataLocation::Ptr CreateNestedLocation(DataLocation::Ptr parent, Binary::Container::Ptr subData)
   {
     return boost::make_shared<NestedDataLocation>(parent, subData);
   }
 
-  DataLocation::Ptr CreateNestedLocation(DataLocation::Ptr parent, IO::DataContainer::Ptr subData, Plugin::Ptr subPlugin, const String& subPath)
+  DataLocation::Ptr CreateNestedLocation(DataLocation::Ptr parent, Binary::Container::Ptr subData, Plugin::Ptr subPlugin, const String& subPath)
   {
     return boost::make_shared<NestedLocation>(parent, subPlugin, subData, subPath);
   }

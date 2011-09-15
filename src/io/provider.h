@@ -14,7 +14,7 @@
 //common includes
 #include <iterator.h>
 //library includes
-#include <io/container.h>   // for IO::DataContainer::Ptr
+#include <binary/container.h>
 //std includes
 #include <vector>
 //boost includes
@@ -40,7 +40,7 @@ namespace ZXTune
     //! @param cb Callback for long-time controlable operations
     //! @param data Reference to result data container
     //! @return Error() in case of success
-    Error OpenData(const String& path, const Parameters::Accessor& params, const ProgressCallback& cb, DataContainer::Ptr& data);
+    Error OpenData(const String& path, const Parameters::Accessor& params, const ProgressCallback& cb, Binary::Container::Ptr& data);
 
     //! @brief Performs splitting specified uri to filesystem and internal parts
     //! @param uri Full path

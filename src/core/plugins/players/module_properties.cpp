@@ -95,7 +95,7 @@ namespace
 
     virtual void GetData(Dump& dump) const
     {
-      const IO::DataContainer::Ptr data = Location.get()
+      const Binary::Container::Ptr data = Location.get()
         ? UsedRegion.Extract(*Location->GetData())
         : Data;
       const uint8_t* const rawData = static_cast<const uint8_t*>(data->Data());
@@ -192,7 +192,7 @@ namespace
         return;
       }
       //data
-      const IO::DataContainer::Ptr allData = Location->GetData();
+      const Binary::Container::Ptr allData = Location->GetData();
       Data = UsedRegion.Extract(*allData);
       Container->SetIntValue(ATTR_CRC, UsedRegion.Checksum(*allData)); 
       Container->SetIntValue(ATTR_FIXEDCRC, FixedRegion.Checksum(*allData));
@@ -218,7 +218,7 @@ namespace
     mutable DataLocation::Ptr Location;
     ModuleRegion UsedRegion;
     ModuleRegion FixedRegion;
-    mutable IO::DataContainer::Ptr Data;
+    mutable Binary::Container::Ptr Data;
    };
 }
 

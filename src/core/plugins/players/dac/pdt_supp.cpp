@@ -289,7 +289,7 @@ namespace
     }
 
   public:
-    PDTHolder(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr rawData, std::size_t& usedSize)
+    PDTHolder(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, Binary::Container::Ptr rawData, std::size_t& usedSize)
       : Data(PDTTrack::ModuleData::Create())
       , Properties(properties)
       , Info(CreateTrackInfo(Data, CHANNELS_COUNT))
@@ -587,7 +587,7 @@ namespace
       !(samp.Page == 1 || samp.Page == 3 || samp.Page == 4 || samp.Page == 6 || samp.Page == 7));
   }
 
-  bool CheckPDT(const IO::DataContainer& data)
+  bool CheckPDT(const Binary::Container& data)
   {
     //check for header
     const std::size_t size = data.Size();
@@ -693,7 +693,7 @@ namespace
     {
     }
     
-    virtual bool Check(const IO::DataContainer& inputData) const
+    virtual bool Check(const Binary::Container& inputData) const
     {
       return Format->Match(inputData.Data(), inputData.Size()) && CheckPDT(inputData);
     }
@@ -703,7 +703,7 @@ namespace
       return Format;
     }
 
-    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize) const
+    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, Binary::Container::Ptr data, std::size_t& usedSize) const
     {
       try
       {

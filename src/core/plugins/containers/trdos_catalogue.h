@@ -27,7 +27,7 @@ namespace TRDos
 
     virtual std::size_t GetOffset() const = 0;
 
-    static Ptr Create(ZXTune::IO::DataContainer::Ptr data, const String& name, std::size_t off, std::size_t size);
+    static Ptr Create(Binary::Container::Ptr data, const String& name, std::size_t off, std::size_t size);
     static Ptr CreateReference(const String& name, std::size_t off, std::size_t size);
   };
 
@@ -43,7 +43,7 @@ namespace TRDos
     virtual Container::Catalogue::Ptr GetResult() const = 0;
 
     static Ptr CreateGeneric();
-    static Ptr CreateFlat(ZXTune::IO::DataContainer::Ptr data);
+    static Ptr CreateFlat(Binary::Container::Ptr data);
   };
 }
 #endif //__CORE_PLUGINS_CONTAINERS_TRDOS_CATALOGUE_H_DEFINED__

@@ -264,7 +264,7 @@ namespace
   class TSHolder : public Holder
   {
   public:
-    TSHolder(Plugin::Ptr plugin, IO::DataContainer::Ptr data, const Holder::Ptr& holder1, const Holder::Ptr& holder2)
+    TSHolder(Plugin::Ptr plugin, Binary::Container::Ptr data, const Holder::Ptr& holder1, const Holder::Ptr& holder2)
       : Plug(plugin)
       , RawData(data)
       , Holder1(holder1), Holder2(holder2)
@@ -311,7 +311,7 @@ namespace
     }
   private:
     const Plugin::Ptr Plug;
-    const IO::DataContainer::Ptr RawData;
+    const Binary::Container::Ptr RawData;
     const Holder::Ptr Holder1;
     const Holder::Ptr Holder2;
     const Information::Ptr Info;
@@ -367,7 +367,7 @@ namespace
 
     virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
     {
-      const IO::DataContainer::Ptr data = inputData->GetData();
+      const Binary::Container::Ptr data = inputData->GetData();
       const uint8_t* const rawData = static_cast<const uint8_t*>(data->Data());
       const std::size_t size = data->Size();
       const std::size_t footerOffset = FooterFormat->Search(rawData, size);
@@ -407,7 +407,7 @@ namespace
         return DetectionResult::CreateUnmatched(dataSize);
       }
       //try to create merged holder
-      const IO::DataContainer::Ptr tsData = data->GetSubcontainer(0, dataSize);
+      const Binary::Container::Ptr tsData = data->GetSubcontainer(0, dataSize);
 
       const Module::Holder::Ptr holder(new TSHolder(Description, tsData, holder1, holder2));
       //TODO: proper data attributes calculation

@@ -44,7 +44,7 @@ namespace
   class UnmatchedDetectionResult : public DetectionResult
   {
   public:
-    UnmatchedDetectionResult(Binary::Format::Ptr format, IO::DataContainer::Ptr data)
+    UnmatchedDetectionResult(Binary::Format::Ptr format, Binary::Container::Ptr data)
       : Format(format)
       , RawData(data)
     {
@@ -61,7 +61,7 @@ namespace
     }
   private:
     const Binary::Format::Ptr Format;
-    const IO::DataContainer::Ptr RawData;
+    const Binary::Container::Ptr RawData;
   };
 }
 
@@ -72,7 +72,7 @@ namespace ZXTune
     return boost::make_shared<DetectionResultImpl>(matchedSize, 0);
   }
 
-  DetectionResult::Ptr DetectionResult::CreateUnmatched(Binary::Format::Ptr format, IO::DataContainer::Ptr data)
+  DetectionResult::Ptr DetectionResult::CreateUnmatched(Binary::Format::Ptr format, Binary::Container::Ptr data)
   {
     return boost::make_shared<UnmatchedDetectionResult>(format, data);
   }

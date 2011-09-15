@@ -30,7 +30,7 @@ namespace ZXTune
     typedef boost::shared_ptr<const DataLocation> Ptr;
     virtual ~DataLocation() {}
 
-    virtual IO::DataContainer::Ptr GetData() const = 0;
+    virtual Binary::Container::Ptr GetData() const = 0;
     virtual DataPath::Ptr GetPath() const = 0;
     virtual PluginsChain::Ptr GetPlugins() const = 0;
   };
@@ -39,11 +39,11 @@ namespace ZXTune
   //! @param data Source data to be processed
   //! @param subpath Subpath in source data to be resolved
   //! @return Object if path is valid. No object elsewhere
-  DataLocation::Ptr CreateLocation(Parameters::Accessor::Ptr coreParams, IO::DataContainer::Ptr data);
-  DataLocation::Ptr OpenLocation(Parameters::Accessor::Ptr coreParams, IO::DataContainer::Ptr data, const String& subpath);
+  DataLocation::Ptr CreateLocation(Parameters::Accessor::Ptr coreParams, Binary::Container::Ptr data);
+  DataLocation::Ptr OpenLocation(Parameters::Accessor::Ptr coreParams, Binary::Container::Ptr data, const String& subpath);
 
-  DataLocation::Ptr CreateNestedLocation(DataLocation::Ptr parent, IO::DataContainer::Ptr subData);
-  DataLocation::Ptr CreateNestedLocation(DataLocation::Ptr parent, IO::DataContainer::Ptr subData, Plugin::Ptr subPlugin, const String& subPath);
+  DataLocation::Ptr CreateNestedLocation(DataLocation::Ptr parent, Binary::Container::Ptr subData);
+  DataLocation::Ptr CreateNestedLocation(DataLocation::Ptr parent, Binary::Container::Ptr subData, Plugin::Ptr subPlugin, const String& subPath);
 }
 
 #endif //__CORE_DATA_LOCATION_H_DEFINED__

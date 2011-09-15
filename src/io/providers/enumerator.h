@@ -34,7 +34,7 @@ namespace ZXTune
       virtual Error Combine(const String& path, const String& subPath, String& uri) const = 0;
       // Open data
       virtual Error Open(const String& path, const Parameters::Accessor& parameters,
-                         const ProgressCallback& callback, DataContainer::Ptr& result) const = 0;
+                         const ProgressCallback& callback, Binary::Container::Ptr& result) const = 0;
     };
 
     // internal enumerator interface
@@ -46,7 +46,7 @@ namespace ZXTune
       virtual void RegisterProvider(DataProvider::Ptr provider) = 0;
 
       virtual Error OpenData(const String& path, const Parameters::Accessor& params, const ProgressCallback& cb,
-                            DataContainer::Ptr& result) const = 0;
+                            Binary::Container::Ptr& result) const = 0;
       virtual Error SplitUri(const String& uri, String& path, String& subpath) const = 0;
       virtual Error CombineUri(const String& path, const String& subpath, String& uri) const = 0;
 

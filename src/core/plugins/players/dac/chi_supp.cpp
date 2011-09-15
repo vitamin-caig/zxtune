@@ -240,7 +240,7 @@ namespace
     }
 
   public:
-    CHIHolder(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr rawData, std::size_t& usedSize)
+    CHIHolder(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, Binary::Container::Ptr rawData, std::size_t& usedSize)
       : Data(CHITrack::ModuleData::Create())
       , Properties(properties)
       , Info(CreateTrackInfo(Data, CHANNELS_COUNT))
@@ -509,7 +509,7 @@ namespace
     return Renderer::Ptr(new CHIRenderer(params, info, data, device));
   }
 
-  bool CheckCHI(const IO::DataContainer& data)
+  bool CheckCHI(const Binary::Container& data)
   {
     //check for header
     const std::size_t size(data.Size());
@@ -556,7 +556,7 @@ namespace
     {
     }
 
-    virtual bool Check(const IO::DataContainer& inputData) const
+    virtual bool Check(const Binary::Container& inputData) const
     {
       return CheckCHI(inputData);
     }
@@ -566,7 +566,7 @@ namespace
       return Format;
     }
 
-    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize) const
+    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, Binary::Container::Ptr data, std::size_t& usedSize) const
     {
       try
       {

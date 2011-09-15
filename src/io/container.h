@@ -11,42 +11,18 @@
 #ifndef __IO_CONTAINER_H_DEFINED__
 #define __IO_CONTAINER_H_DEFINED__
 
-//common includes
-#include <types.h>
-//boost includes
-#include <boost/shared_ptr.hpp>
+//library includes
+#include <binary/container.h>
 
 namespace ZXTune
 {
   namespace IO
   {
-    //! @brief Data container abstraction interface
-    class DataContainer
-    {
-    public:
-      //! @brief Pointer type
-      typedef boost::shared_ptr<DataContainer> Ptr;
-
-      virtual ~DataContainer() {}
-
-      //! @brief Getting data size in bytes
-      virtual std::size_t Size() const = 0;
-      //! @brief Getting raw data accessible for at least Size() bytes
-      virtual const void* Data() const = 0;
-      //! @brief Provides isolated access to nested subcontainers should be able even after parent container destruction
-      virtual Ptr GetSubcontainer(std::size_t offset, std::size_t size) const = 0;
-    };
-
-    //! @brief Creating data container based on raw data
-    DataContainer::Ptr CreateDataContainer(const Dump& data);
-    DataContainer::Ptr CreateDataContainer(const void* data, std::size_t size);
-    DataContainer::Ptr CreateDataContainer(std::auto_ptr<Dump> data);
-
     //! @brief Fast std::vector-alike wrapper around DataContainer
     class FastDump
     {
     public:
-      FastDump(const DataContainer& data, std::size_t offset = 0, std::size_t lenght = ~0)
+      FastDump(const Binary::Container& data, std::size_t offset = 0, std::size_t lenght = ~0)
         : Ptr(static_cast<const uint8_t*>(data.Data()) + offset)
         , Lenght(std::min(lenght, data.Size() - offset))
       {

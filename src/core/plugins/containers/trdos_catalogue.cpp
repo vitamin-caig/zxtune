@@ -76,7 +76,7 @@ namespace
       return Delegate->GetSize();
     }
 
-    virtual IO::DataContainer::Ptr GetData() const
+    virtual Binary::Container::Ptr GetData() const
     {
       return Delegate->GetData();
     }
@@ -280,7 +280,7 @@ namespace
   class GenericFile : public File
   {
   public:
-    GenericFile(IO::DataContainer::Ptr data, const String& name, std::size_t off, std::size_t size)
+    GenericFile(Binary::Container::Ptr data, const String& name, std::size_t off, std::size_t size)
       : Data(data)
       , Name(name)
       , Offset(off)
@@ -303,12 +303,12 @@ namespace
       return Size;
     }
 
-    virtual IO::DataContainer::Ptr GetData() const
+    virtual Binary::Container::Ptr GetData() const
     {
       return Data;
     }
   private:
-    const IO::DataContainer::Ptr Data;
+    const Binary::Container::Ptr Data;
     const String Name;
     const std::size_t Offset;
     const std::size_t Size;
@@ -340,7 +340,7 @@ namespace
           boost::bind(std::plus<std::size_t>(), _1, boost::bind(&File::GetSize, _2)));
     }
 
-    virtual IO::DataContainer::Ptr GetData() const
+    virtual Binary::Container::Ptr GetData() const
     {
       if (1 == Subfiles.size())
       {
@@ -351,7 +351,7 @@ namespace
       for (FilesList::const_iterator it = Subfiles.begin(), lim = Subfiles.end(); it != lim; ++it)
       {
         const File::Ptr file = *it;
-        const IO::DataContainer::Ptr data = file->GetData();
+        const Binary::Container::Ptr data = file->GetData();
         if (!data)
         {
           return data;
@@ -361,7 +361,7 @@ namespace
         std::memcpy(dst, data->Data(), size);
         dst += size;
       }
-      return IO::CreateDataContainer(res);
+      return Binary::CreateContainer(res);
     }
 
     virtual bool Merge(File::Ptr rh)
@@ -413,10 +413,10 @@ namespace
       return Size;
     }
 
-    virtual IO::DataContainer::Ptr GetData() const
+    virtual Binary::Container::Ptr GetData() const
     {
       assert(!"Should not be called");
-      return IO::DataContainer::Ptr();
+      return Binary::Container::Ptr();
     }
   private:
     const String Name;
@@ -427,7 +427,7 @@ namespace
   class FlatMultiFile : public MultiFile
   {
   public:
-    FlatMultiFile(IO::DataContainer::Ptr data, File::Ptr delegate)
+    FlatMultiFile(Binary::Container::Ptr data, File::Ptr delegate)
       : Data(data)
       , Delegate(delegate)
       , Size(delegate->GetSize())
@@ -449,7 +449,7 @@ namespace
       return Size;
     }
 
-    virtual IO::DataContainer::Ptr GetData() const
+    virtual Binary::Container::Ptr GetData() const
     {
       return Data->GetSubcontainer(GetOffset(), Size);
     }
@@ -464,7 +464,7 @@ namespace
       return false;
     }
   private:
-    const IO::DataContainer::Ptr Data;
+    const Binary::Container::Ptr Data;
     const File::Ptr Delegate;
     std::size_t Size;
   };
@@ -473,7 +473,7 @@ namespace
   class FlatCatalogueBuilder : public BaseCatalogueBuilder
   {
   public:
-    explicit FlatCatalogueBuilder(IO::DataContainer::Ptr data)
+    explicit FlatCatalogueBuilder(Binary::Container::Ptr data)
       : Data(data)
     {
     }
@@ -483,13 +483,13 @@ namespace
       return boost::make_shared<FlatMultiFile>(Data, inFile);
     }
   private:
-    const IO::DataContainer::Ptr Data;
+    const Binary::Container::Ptr Data;
   };
 }
 
 namespace TRDos
 {
-  File::Ptr File::Create(ZXTune::IO::DataContainer::Ptr data, const String& name, std::size_t off, std::size_t size)
+  File::Ptr File::Create(Binary::Container::Ptr data, const String& name, std::size_t off, std::size_t size)
   {
     return boost::make_shared<GenericFile>(data, name, off, size);
   }
@@ -504,7 +504,7 @@ namespace TRDos
     return CatalogueBuilder::Ptr(new GenericCatalogueBuilder());
   }
 
-  CatalogueBuilder::Ptr CatalogueBuilder::CreateFlat(ZXTune::IO::DataContainer::Ptr data)
+  CatalogueBuilder::Ptr CatalogueBuilder::CreateFlat(Binary::Container::Ptr data)
   {
     return CatalogueBuilder::Ptr(new FlatCatalogueBuilder(data));
   }

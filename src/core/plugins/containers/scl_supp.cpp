@@ -78,7 +78,7 @@ namespace
     return prevSize + entry.Size();
   }
 
-  bool CheckSCLFile(const IO::DataContainer& data)
+  bool CheckSCLFile(const Binary::Container& data)
   {
     const std::size_t limit = data.Size();
     if (limit < SCL_MIN_SIZE)
@@ -109,7 +109,7 @@ namespace
   }
 
   //fill descriptors array and return actual container size
-  Container::Catalogue::Ptr ParseSCLFile(IO::DataContainer::Ptr data)
+  Container::Catalogue::Ptr ParseSCLFile(Binary::Container::Ptr data)
   {
     if (!CheckSCLFile(*data))
     {
@@ -161,7 +161,7 @@ namespace
       return Format;
     }
 
-    virtual Container::Catalogue::Ptr CreateContainer(const Parameters::Accessor& /*parameters*/, IO::DataContainer::Ptr data) const
+    virtual Container::Catalogue::Ptr CreateContainer(const Parameters::Accessor& /*parameters*/, Binary::Container::Ptr data) const
     {
       return ParseSCLFile(data);
     }

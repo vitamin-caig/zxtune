@@ -42,7 +42,7 @@ namespace
   class ZipContainerFile : public Container::File
   {
   public:
-    ZipContainerFile(const Formats::Packed::Decoder& decoder, IO::DataContainer::Ptr data, const String& name, std::size_t size)
+    ZipContainerFile(const Formats::Packed::Decoder& decoder, Binary::Container::Ptr data, const String& name, std::size_t size)
       : Decoder(decoder)
       , Data(data)
       , Name(name)
@@ -65,20 +65,20 @@ namespace
       return Size;
     }
 
-    virtual ZXTune::IO::DataContainer::Ptr GetData() const
+    virtual Binary::Container::Ptr GetData() const
     {
       Log::Debug(THIS_MODULE, "Decompressing '%1%'", Name);
       std::size_t usedSize = 0;
       std::auto_ptr<Dump> decoded = Decoder.Decode(Data->Data(), Data->Size(), usedSize);
       if (!decoded.get())
       {
-        return IO::DataContainer::Ptr();
+        return Binary::Container::Ptr();
       }
-      return IO::CreateDataContainer(decoded);
+      return Binary::CreateContainer(decoded);
     }
   private:
     const Formats::Packed::Decoder& Decoder;
-    const IO::DataContainer::Ptr Data;
+    const Binary::Container::Ptr Data;
     const String Name;
     const std::size_t Size;
   };
@@ -86,7 +86,7 @@ namespace
   class ZipIterator
   {
   public:
-    explicit ZipIterator(const Formats::Packed::Decoder& decoder, IO::DataContainer::Ptr data)
+    explicit ZipIterator(const Formats::Packed::Decoder& decoder, Binary::Container::Ptr data)
       : Decoder(decoder)
       , Data(data)
       , Limit(Data->Size())
@@ -131,7 +131,7 @@ namespace
     {
       assert(IsValid());
       const Formats::Packed::Zip::LocalFileHeader& header = GetHeader();
-      const IO::DataContainer::Ptr data = Data->GetSubcontainer(Offset, header.GetTotalFileSize());
+      const Binary::Container::Ptr data = Data->GetSubcontainer(Offset, header.GetTotalFileSize());
       return boost::make_shared<ZipContainerFile>(Decoder, data, GetName(), fromLE(header.Attributes.UncompressedSize));
     }
 
@@ -153,7 +153,7 @@ namespace
     }
   private:
     const Formats::Packed::Decoder& Decoder;
-    const IO::DataContainer::Ptr Data;
+    const Binary::Container::Ptr Data;
     const std::size_t Limit;
     std::size_t Offset;
   };
@@ -192,7 +192,7 @@ namespace
   class ZipCatalogue : public Container::Catalogue
   {
   public:
-    ZipCatalogue(const Formats::Packed::Decoder& decoder, std::size_t maxFileSize, IO::DataContainer::Ptr data)
+    ZipCatalogue(const Formats::Packed::Decoder& decoder, std::size_t maxFileSize, Binary::Container::Ptr data)
       : Decoder(decoder)
       , Data(data)
       , MaxFileSize(maxFileSize)
@@ -311,7 +311,7 @@ namespace
     }
   private:
     const Formats::Packed::Decoder& Decoder;
-    const IO::DataContainer::Ptr Data;
+    const Binary::Container::Ptr Data;
     const std::size_t MaxFileSize;
     mutable std::auto_ptr<ZipIterator> Iter;
     typedef std::map<String, Container::File::Ptr> FilesMap;
@@ -331,7 +331,7 @@ namespace
       return Decoder->GetFormat();
     }
 
-    virtual Container::Catalogue::Ptr CreateContainer(const Parameters::Accessor& parameters, IO::DataContainer::Ptr data) const
+    virtual Container::Catalogue::Ptr CreateContainer(const Parameters::Accessor& parameters, Binary::Container::Ptr data) const
     {
       if (!Decoder->Check(data->Data(), data->Size()))
       {

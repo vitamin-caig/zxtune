@@ -14,7 +14,7 @@
 //common includes
 #include <logging.h>
 //library includes
-#include <io/container.h>//for IO::DataContainer::Ptr
+#include <binary/container.h>
 #include <core/module_holder.h>//for Module::Holder::Ptr
 
 //forward declarations
@@ -62,7 +62,7 @@ namespace ZXTune
   //! @return Error() in case of success
   //! @return ERROR_DETECT_CANCELED with suberror, throwed from DetectParameters#Callback
   Error DetectModules(Parameters::Accessor::Ptr modulesParams, const DetectParameters& detectParams,
-    IO::DataContainer::Ptr data, const String& startSubpath);
+    Binary::Container::Ptr data, const String& startSubpath);
 
   //! @brief Perform single module opening
   //! @param moduleParams Opening and module's construction parameters
@@ -71,7 +71,7 @@ namespace ZXTune
   //! @param result Reference to result module
   //! @return Error() in case of success and module is found
   //! @return ERROR_FIND_SUBMODULE in case if module is not found
-  Error OpenModule(Parameters::Accessor::Ptr moduleParams, IO::DataContainer::Ptr data, const String& subpath,
+  Error OpenModule(Parameters::Accessor::Ptr moduleParams, Binary::Container::Ptr data, const String& subpath,
     Module::Holder::Ptr& result);
 }
 

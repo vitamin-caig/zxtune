@@ -111,7 +111,7 @@ namespace
   public:
     typedef boost::shared_ptr<const DataSource> Ptr;
 
-    explicit DataSource(IO::DataContainer::Ptr data)
+    explicit DataSource(Binary::Container::Ptr data)
       : Decoder(Formats::Packed::CreateHrust2RawDecoder())
       , Data(data)
     {
@@ -145,7 +145,7 @@ namespace
     }
   private:
     const Formats::Packed::Decoder::Ptr Decoder;
-    const IO::DataContainer::Ptr Data;
+    const Binary::Container::Ptr Data;
   };
 
   typedef std::vector<const HripBlockHeader*> HripBlockHeadersList;
@@ -188,7 +188,7 @@ namespace
           boost::bind(&fromLE<uint16_t>, boost::bind(&HripBlockHeader::DataSize, _2))));
     }
 
-    virtual IO::DataContainer::Ptr GetData() const
+    virtual Binary::Container::Ptr GetData() const
     {
       std::auto_ptr<Dump> result(new Dump(GetSize()));
       Dump::iterator dst = result->begin();
@@ -203,17 +203,17 @@ namespace
           if (block->AdditionalSize >= 2 &&
               fromLE(block->PackedCRC) != CalcCRC(packedData, fromLE(block->PackedSize)))
           {
-            return IO::DataContainer::Ptr();
+            return Binary::Container::Ptr();
           }
           if (block->AdditionalSize >= 4 &&
               fromLE(block->DataCRC) != CalcCRC(&data[0], data.size()))
           {
-            return IO::DataContainer::Ptr();
+            return Binary::Container::Ptr();
           }
         }
         dst = std::copy(data.begin(), data.end(), dst);
       }
-      return IO::CreateDataContainer(result);
+      return Binary::CreateContainer(result);
     }
   private:
     const DataSource::Ptr Data;
@@ -256,7 +256,7 @@ namespace
   }
 
 
-  Container::Catalogue::Ptr ParseHripFile(IO::DataContainer::Ptr data, const Parameters::Accessor& params)
+  Container::Catalogue::Ptr ParseHripFile(Binary::Container::Ptr data, const Parameters::Accessor& params)
   {
     uint_t files = 0;
     std::size_t archiveSize = 0;
@@ -341,7 +341,7 @@ namespace
       return Format;
     }
 
-    virtual Container::Catalogue::Ptr CreateContainer(const Parameters::Accessor& parameters, IO::DataContainer::Ptr data) const
+    virtual Container::Catalogue::Ptr CreateContainer(const Parameters::Accessor& parameters, Binary::Container::Ptr data) const
     {
       return ParseHripFile(data, parameters);
     }

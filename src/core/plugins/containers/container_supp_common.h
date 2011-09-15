@@ -16,8 +16,6 @@ Author:
 //local includes
 #include "container_catalogue.h"
 #include "core/plugins/plugins_types.h"
-//library includes
-#include <io/container.h>
 
 namespace ZXTune
 {
@@ -29,7 +27,7 @@ namespace ZXTune
 
     virtual Binary::Format::Ptr GetFormat() const = 0;
 
-    virtual Container::Catalogue::Ptr CreateContainer(const Parameters::Accessor& parameters, IO::DataContainer::Ptr data) const = 0;
+    virtual Container::Catalogue::Ptr CreateContainer(const Parameters::Accessor& parameters, Binary::Container::Ptr data) const = 0;
   };
 
   ArchivePlugin::Ptr CreateContainerPlugin(const String& id, const String& info, const String& version, uint_t caps,

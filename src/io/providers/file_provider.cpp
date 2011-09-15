@@ -59,7 +59,7 @@ namespace
   const Char SCHEME_FILE[] = {'f', 'i', 'l', 'e', 0};
   const Char SUBPATH_DELIMITER = '\?';
 
-  class FileDataContainer : public DataContainer
+  class FileDataContainer : public Binary::Container
   {
     // basic interface for internal data storing
     class Holder
@@ -261,11 +261,11 @@ namespace
   
     //no callback
     virtual Error Open(const String& path, const Parameters::Accessor& params, const ProgressCallback& /*cb*/,
-      DataContainer::Ptr& result) const
+      Binary::Container::Ptr& result) const
     {
       try
       {
-        result = DataContainer::Ptr(new FileDataContainer(path, params));
+        result = Binary::Container::Ptr(new FileDataContainer(path, params));
         return Error();
       }
       catch (const Error& e)

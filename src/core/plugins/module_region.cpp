@@ -17,14 +17,14 @@ Author:
 
 namespace ZXTune
 {
-  uint_t ModuleRegion::Checksum(const IO::DataContainer& container) const
+  uint_t ModuleRegion::Checksum(const Binary::Container& container) const
   {
     const uint8_t* const data = static_cast<const uint8_t*>(container.Data());
     assert(Offset + Size <= container.Size());
     return Crc32(data + Offset, Size);
   }
 
-  IO::DataContainer::Ptr ModuleRegion::Extract(const IO::DataContainer& container) const
+  Binary::Container::Ptr ModuleRegion::Extract(const Binary::Container& container) const
   {
     return container.GetSubcontainer(Offset, Size);
   }

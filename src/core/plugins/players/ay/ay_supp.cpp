@@ -878,7 +878,7 @@ namespace
     const Parameters::Accessor::Ptr Params;
   };
 
-  bool CheckAYModule(const IO::DataContainer& inputData)
+  bool CheckAYModule(const Binary::Container& inputData)
   {
     if (inputData.Size() <= sizeof(AYHeader))
     {
@@ -920,7 +920,7 @@ namespace
     {
     }
 
-    virtual bool Check(const IO::DataContainer& inputData) const
+    virtual bool Check(const Binary::Container& inputData) const
     {
       return CheckAYModule(inputData);
     }
@@ -930,7 +930,7 @@ namespace
       return Format;
     }
 
-    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr rawData, std::size_t& usedSize) const
+    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, Binary::Container::Ptr rawData, std::size_t& usedSize) const
     {
       try
       {
@@ -1038,7 +1038,7 @@ namespace
       Blocks.push_back(BlocksList::value_type(addr, static_cast<uint16_t>(toCopy)));
     }
 
-    IO::DataContainer::Ptr GetAy() const
+    Binary::Container::Ptr GetAy() const
     {
       VariableDump result;
       //init header
@@ -1078,12 +1078,12 @@ namespace
         dst->Size = fromBE<uint16_t>(it->second);
         SetPointer(&dst->Offset, result.Add(&Memory[it->first], it->second));
       }
-      return IO::CreateDataContainer(result);
+      return Binary::CreateContainer(result);
     }
 
-    IO::DataContainer::Ptr GetRaw() const
+    Binary::Container::Ptr GetRaw() const
     {
-      return IO::CreateDataContainer(Memory);
+      return Binary::CreateContainer(Memory);
     }
   private:
     String Title;
@@ -1099,7 +1099,7 @@ namespace
     BlocksList Blocks;
   };
 
-  uint_t GetAYSubmodules(const IO::DataContainer& inputData)
+  uint_t GetAYSubmodules(const Binary::Container& inputData)
   {
     if (inputData.Size() <= sizeof(AYHeader))
     {
@@ -1177,7 +1177,7 @@ namespace
 
     virtual DetectionResult::Ptr Detect(DataLocation::Ptr input, const Module::DetectCallback& callback) const
     {
-      const IO::DataContainer::Ptr rawData = input->GetData();
+      const Binary::Container::Ptr rawData = input->GetData();
       const uint_t subModules = GetAYSubmodules(*rawData);
       if (subModules < 2)
       {
@@ -1200,7 +1200,7 @@ namespace
         {
           continue;
         }
-        const IO::DataContainer::Ptr subData = builder.GetAy();
+        const Binary::Container::Ptr subData = builder.GetAy();
         const ZXTune::DataLocation::Ptr subLocation = idx 
           ? CreateNestedLocation(input, subData, Description, subPath)
           : CreateNestedLocation(input, subData);
@@ -1221,7 +1221,7 @@ namespace
       {
         return DataLocation::Ptr();
       }
-      const IO::DataContainer::Ptr inData = location->GetData();
+      const Binary::Container::Ptr inData = location->GetData();
       const uint_t subModules = GetAYSubmodules(*inData);
       if (subModules < index)
       {
@@ -1233,7 +1233,7 @@ namespace
       {
         return DataLocation::Ptr();
       }
-      const IO::DataContainer::Ptr subData = asRaw
+      const Binary::Container::Ptr subData = asRaw
         ? builder.GetRaw()
         : builder.GetAy();
       return CreateNestedLocation(location, subData, Description, pathComp); 

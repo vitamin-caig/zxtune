@@ -17,8 +17,8 @@ Author:
 #include "module_properties.h"
 #include "core/plugins/plugins_types.h"
 //library includes
+#include <binary/container.h>
 #include <core/module_holder.h>
-#include <io/container.h>
 
 namespace ZXTune
 {
@@ -30,11 +30,11 @@ namespace ZXTune
 
     //! @brief Checking if data contains module
     //! @return true if possibly yes, false if defenitely no
-    virtual bool Check(const IO::DataContainer& inputData) const = 0;
+    virtual bool Check(const Binary::Container& inputData) const = 0;
 
     virtual Binary::Format::Ptr GetFormat() const = 0;
 
-    virtual Module::Holder::Ptr CreateModule(Module::ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize) const = 0;
+    virtual Module::Holder::Ptr CreateModule(Module::ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, Binary::Container::Ptr data, std::size_t& usedSize) const = 0;
   };
 
   namespace Module

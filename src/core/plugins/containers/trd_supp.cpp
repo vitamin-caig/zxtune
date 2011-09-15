@@ -102,7 +102,7 @@ namespace
   BOOST_STATIC_ASSERT(sizeof(CatEntry) == 16);
   BOOST_STATIC_ASSERT(sizeof(ServiceSector) == 256);
 
-  bool CheckTRDFile(const IO::DataContainer& data)
+  bool CheckTRDFile(const Binary::Container& data)
   {
     //it's meaningless to support trunkated files
     if (data.Size() < TRD_MODULE_SIZE)
@@ -134,7 +134,7 @@ namespace
     return idx > 0;
   }
 
-  Container::Catalogue::Ptr ParseTRDFile(IO::DataContainer::Ptr data)
+  Container::Catalogue::Ptr ParseTRDFile(Binary::Container::Ptr data)
   {
     if (!CheckTRDFile(*data))
     {
@@ -205,7 +205,7 @@ namespace
       return Format;
     }
 
-    virtual Container::Catalogue::Ptr CreateContainer(const Parameters::Accessor& /*parameters*/, IO::DataContainer::Ptr data) const
+    virtual Container::Catalogue::Ptr CreateContainer(const Parameters::Accessor& /*parameters*/, Binary::Container::Ptr data) const
     {
       const Container::Catalogue::Ptr res = ParseTRDFile(data);
       return res && res->GetFilesCount()

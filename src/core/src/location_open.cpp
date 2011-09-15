@@ -78,12 +78,12 @@ namespace
   class UnresolvedLocation : public DataLocation
   {
   public:
-    explicit UnresolvedLocation(IO::DataContainer::Ptr data)
+    explicit UnresolvedLocation(Binary::Container::Ptr data)
       : Data(data)
     {
     }
 
-    virtual IO::DataContainer::Ptr GetData() const
+    virtual Binary::Container::Ptr GetData() const
     {
       return Data;
     }
@@ -98,7 +98,7 @@ namespace
       return EmptyPluginsChain::Create();
     }
   private:
-    const IO::DataContainer::Ptr Data;
+    const Binary::Container::Ptr Data;
   };
 
   DataLocation::Ptr TryToOpenLocation(const PluginsEnumerator& plugins, const Parameters::Accessor& coreParams, DataLocation::Ptr location, const DataPath& subPath)
@@ -117,12 +117,12 @@ namespace
 
 namespace ZXTune
 {
-  DataLocation::Ptr CreateLocation(Parameters::Accessor::Ptr /*coreParams*/, IO::DataContainer::Ptr data)
+  DataLocation::Ptr CreateLocation(Parameters::Accessor::Ptr /*coreParams*/, Binary::Container::Ptr data)
   {
     return boost::make_shared<UnresolvedLocation>(data);
   }
 
-  DataLocation::Ptr OpenLocation(Parameters::Accessor::Ptr coreParams, IO::DataContainer::Ptr data, const String& subpath)
+  DataLocation::Ptr OpenLocation(Parameters::Accessor::Ptr coreParams, Binary::Container::Ptr data, const String& subpath)
   {
     const DataLocation::Ptr initialLocation = boost::make_shared<UnresolvedLocation>(data);
     if (subpath.empty())

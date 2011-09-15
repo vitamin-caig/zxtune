@@ -618,7 +618,7 @@ namespace STC
     {
     }
 
-    virtual bool Check(const IO::DataContainer& inputData) const
+    virtual bool Check(const Binary::Container& inputData) const
     {
       const uint8_t* const data = static_cast<const uint8_t*>(inputData.Data());
       const std::size_t size = inputData.Size();
@@ -630,7 +630,7 @@ namespace STC
       return Format;
     }
 
-    virtual Module::Holder::Ptr CreateModule(Module::ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr allData, std::size_t& usedSize) const
+    virtual Module::Holder::Ptr CreateModule(Module::ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, Binary::Container::Ptr allData, std::size_t& usedSize) const
     {
       try
       {

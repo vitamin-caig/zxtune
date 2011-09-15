@@ -256,7 +256,7 @@ namespace ZXTune
   }
 
   Error DetectModules(Parameters::Accessor::Ptr moduleParams, const DetectParameters& detectParams,
-    IO::DataContainer::Ptr data, const String& startSubpath)
+    Binary::Container::Ptr data, const String& startSubpath)
   {
     if (!data.get())
     {
@@ -282,7 +282,7 @@ namespace ZXTune
     }
   }
 
-  Error OpenModule(Parameters::Accessor::Ptr moduleParams, IO::DataContainer::Ptr data, const String& subpath,
+  Error OpenModule(Parameters::Accessor::Ptr moduleParams, Binary::Container::Ptr data, const String& subpath,
       Module::Holder::Ptr& result)
   {
     if (!data.get())

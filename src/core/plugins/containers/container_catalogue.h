@@ -17,7 +17,7 @@ Author:
 #include <iterator.h>
 #include <types.h>
 //library includes
-#include <io/container.h>
+#include <binary/container.h>
 //boost includes
 #include <boost/shared_ptr.hpp>
 
@@ -37,7 +37,7 @@ namespace Container
 
     virtual String GetName() const = 0;
     virtual std::size_t GetSize() const = 0;
-    virtual ZXTune::IO::DataContainer::Ptr GetData() const = 0;
+    virtual Binary::Container::Ptr GetData() const = 0;
   };
 
   class Catalogue

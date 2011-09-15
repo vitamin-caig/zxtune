@@ -93,7 +93,7 @@ namespace
 
     virtual DetectionResult::Ptr Detect(DataLocation::Ptr input, const Module::DetectCallback& callback) const
     {
-      const IO::DataContainer::Ptr rawData = input->GetData();
+      const Binary::Container::Ptr rawData = input->GetData();
       if (const Container::Catalogue::Ptr files = Factory->CreateContainer(*callback.GetPluginsParameters(), rawData))
       {
         if (const uint_t count = files->GetFilesCount())
@@ -103,7 +103,7 @@ namespace
           {
             const Container::File::Ptr file = it->Get();
             logger(*file);
-            if (const IO::DataContainer::Ptr subData = file->GetData())
+            if (const Binary::Container::Ptr subData = file->GetData())
             {
               const String subPath = file->GetName();
               const ZXTune::DataLocation::Ptr subLocation = CreateNestedLocation(input, subData, Description, subPath);
@@ -119,12 +119,12 @@ namespace
 
     virtual DataLocation::Ptr Open(const Parameters::Accessor& commonParams, DataLocation::Ptr location, const DataPath& inPath) const
     {
-      const IO::DataContainer::Ptr inData = location->GetData();
+      const Binary::Container::Ptr inData = location->GetData();
       if (const Container::Catalogue::Ptr files = Factory->CreateContainer(commonParams, inData))
       {
         if (const Container::File::Ptr fileToOpen = files->FindFile(inPath))
         {
-          if (const IO::DataContainer::Ptr subData = fileToOpen->GetData())
+          if (const Binary::Container::Ptr subData = fileToOpen->GetData())
           {
             return CreateNestedLocation(location, subData, Description, fileToOpen->GetName());
           }

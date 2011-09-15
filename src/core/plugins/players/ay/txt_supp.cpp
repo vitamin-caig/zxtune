@@ -78,7 +78,7 @@ namespace
     {
     }
 
-    virtual bool Check(const IO::DataContainer& inputData) const
+    virtual bool Check(const Binary::Container& inputData) const
     {
       return inputData.Size() > MIN_MODULE_SIZE && Format->Match(inputData.Data(), inputData.Size());
     }
@@ -88,7 +88,7 @@ namespace
       return Format;
     }
 
-    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr allData, std::size_t& usedSize) const
+    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, Binary::Container::Ptr allData, std::size_t& usedSize) const
     {
       try
       {

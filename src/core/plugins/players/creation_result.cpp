@@ -47,7 +47,7 @@ namespace ZXTune
 {
   DetectionResult::Ptr DetectModuleInLocation(ModulesFactory::Ptr factory, Plugin::Ptr plugin, DataLocation::Ptr inputData, const Module::DetectCallback& callback)
   {
-    const IO::DataContainer::Ptr data = inputData->GetData();
+    const Binary::Container::Ptr data = inputData->GetData();
     const Binary::Format::Ptr format = factory->GetFormat();
     if (!factory->Check(*data))
     {

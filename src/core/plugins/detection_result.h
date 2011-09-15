@@ -37,7 +37,7 @@ namespace ZXTune
     virtual std::size_t GetLookaheadOffset() const = 0;
 
     static Ptr CreateMatched(std::size_t matchedSize);
-    static Ptr CreateUnmatched(Binary::Format::Ptr format, IO::DataContainer::Ptr data);
+    static Ptr CreateUnmatched(Binary::Format::Ptr format, Binary::Container::Ptr data);
     static Ptr CreateUnmatched(std::size_t unmatchedSize);
   };
 }

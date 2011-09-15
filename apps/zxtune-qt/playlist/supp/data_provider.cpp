@@ -50,7 +50,7 @@ namespace
 
     virtual ~DataProvider() {}
 
-    virtual ZXTune::IO::DataContainer::Ptr GetData(const String& dataPath) const = 0;
+    virtual Binary::Container::Ptr GetData(const String& dataPath) const = 0;
   };
 
   class SimpleDataProvider : public DataProvider
@@ -61,9 +61,9 @@ namespace
     {
     }
 
-    virtual ZXTune::IO::DataContainer::Ptr GetData(const String& dataPath) const
+    virtual Binary::Container::Ptr GetData(const String& dataPath) const
     {
-      ZXTune::IO::DataContainer::Ptr data;
+      Binary::Container::Ptr data;
       ThrowIfError(ZXTune::IO::OpenData(dataPath, *Params, ZXTune::IO::ProgressCallback(), data));
       return data;
     }
@@ -80,11 +80,11 @@ namespace
   struct ObjectTraits;
 
   template<>
-  struct ObjectTraits<ZXTune::IO::DataContainer::Ptr>
+  struct ObjectTraits<Binary::Container::Ptr>
   {
     typedef std::size_t WeigthType;
 
-    static WeigthType Weigth(ZXTune::IO::DataContainer::Ptr obj)
+    static WeigthType Weigth(Binary::Container::Ptr obj)
     {
       return obj->Size();
     }
@@ -201,14 +201,14 @@ namespace
     {
     }
 
-    virtual ZXTune::IO::DataContainer::Ptr GetData(const String& dataPath) const
+    virtual Binary::Container::Ptr GetData(const String& dataPath) const
     {
       const boost::mutex::scoped_lock lock(Mutex);
-      if (const ZXTune::IO::DataContainer::Ptr cached = Cache.Find(dataPath))
+      if (const Binary::Container::Ptr cached = Cache.Find(dataPath))
       {
         return cached;
       }
-      const ZXTune::IO::DataContainer::Ptr data = Delegate->GetData(dataPath);
+      const Binary::Container::Ptr data = Delegate->GetData(dataPath);
       Cache.Add(dataPath, data);
       Cache.Fit(MAX_CACHE_ITEMS, MAX_CACHE_SIZE);
       return data;
@@ -222,7 +222,7 @@ namespace
   private:
     const DataProvider::Ptr Delegate;
     mutable boost::mutex Mutex;
-    mutable ObjectsCache<ZXTune::IO::DataContainer::Ptr> Cache;
+    mutable ObjectsCache<Binary::Container::Ptr> Cache;
   };
 
   class DataSource
@@ -241,7 +241,7 @@ namespace
       Provider->FlushCachedData(DataPath);
     }
 
-    ZXTune::IO::DataContainer::Ptr GetData() const
+    Binary::Container::Ptr GetData() const
     {
       return Provider->GetData(DataPath);
     }
@@ -267,7 +267,7 @@ namespace
 
     ZXTune::Module::Holder::Ptr GetModule() const
     {
-      const ZXTune::IO::DataContainer::Ptr data = Source->GetData();
+      const Binary::Container::Ptr data = Source->GetData();
       const Parameters::Accessor::Ptr pathParams = CreatePathProperties(Source->GetDataPath(), SubPath);
       const Parameters::Accessor::Ptr moduleParams = Parameters::CreateMergedAccessor(pathParams, AdjustedParams);
       ZXTune::Module::Holder::Ptr module;
@@ -580,7 +580,7 @@ namespace
       {
         String dataPath, subPath;
         ThrowIfError(ZXTune::IO::SplitUri(path, dataPath, subPath));
-        const ZXTune::IO::DataContainer::Ptr data = Provider->GetData(dataPath);
+        const Binary::Container::Ptr data = Provider->GetData(dataPath);
 
         const DetectParametersAdapter params(detectParams, Attributes, Provider, CoreParams, dataPath);
         ThrowIfError(ZXTune::DetectModules(CoreParams, params, data, subPath));
@@ -598,7 +598,7 @@ namespace
       {
         String dataPath, subPath;
         ThrowIfError(ZXTune::IO::SplitUri(path, dataPath, subPath));
-        const ZXTune::IO::DataContainer::Ptr data = Provider->GetData(dataPath);
+        const Binary::Container::Ptr data = Provider->GetData(dataPath);
 
         const DetectParametersAdapter params(detectParams, Attributes, Provider, CoreParams, dataPath);
         ZXTune::Module::Holder::Ptr result;

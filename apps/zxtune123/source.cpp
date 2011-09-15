@@ -316,7 +316,7 @@ namespace
 
       for (StringArray::const_iterator it = Files.begin(), lim = Files.end(); it != lim; ++it)
       {
-        ZXTune::IO::DataContainer::Ptr data;
+        Binary::Container::Ptr data;
         String path, subpath;
         ThrowIfError(ZXTune::IO::SplitUri(*it, path, subpath));
         ThrowIfError(ZXTune::IO::OpenData(path, *Params, 0, data));

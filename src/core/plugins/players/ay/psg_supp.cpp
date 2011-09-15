@@ -119,7 +119,7 @@ namespace
     std::size_t RawDataSize;
   };
 
-  PSGData::Ptr ParsePSG(IO::DataContainer::Ptr rawData)
+  PSGData::Ptr ParsePSG(Binary::Container::Ptr rawData)
   {
     boost::shared_ptr<PSGData> result = boost::make_shared<PSGData>();
 
@@ -282,7 +282,7 @@ namespace
     const Information::Ptr Info;
   };
 
-  bool CheckPSG(const IO::DataContainer& inputData)
+  bool CheckPSG(const Binary::Container& inputData)
   {
     if (inputData.Size() <= sizeof(PSGHeader))
     {
@@ -317,7 +317,7 @@ namespace
     {
     }
 
-    virtual bool Check(const IO::DataContainer& inputData) const
+    virtual bool Check(const Binary::Container& inputData) const
     {
       const uint8_t* const data = static_cast<const uint8_t*>(inputData.Data());
       const std::size_t size = inputData.Size();
@@ -329,7 +329,7 @@ namespace
       return Format;
     }
 
-    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize) const
+    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, Binary::Container::Ptr data, std::size_t& usedSize) const
     {
       try
       {

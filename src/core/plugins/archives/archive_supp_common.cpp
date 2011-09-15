@@ -43,13 +43,13 @@ namespace
   DetectionResult::Ptr DetectModulesInArchive(Plugin::Ptr plugin, const Formats::Packed::Decoder& decoder, 
     DataLocation::Ptr inputData, const Module::DetectCallback& callback)
   {
-    const IO::DataContainer::Ptr rawData = inputData->GetData();
+    const Binary::Container::Ptr rawData = inputData->GetData();
     std::size_t packedSize = 0;
     std::auto_ptr<Dump> res = decoder.Decode(rawData->Data(), rawData->Size(), packedSize);
     if (res.get() && !res->empty())
     {
       const ZXTune::Module::CustomProgressDetectCallbackAdapter noProgressCallback(callback);
-      const IO::DataContainer::Ptr subData = IO::CreateDataContainer(res);
+      const Binary::Container::Ptr subData = Binary::CreateContainer(res);
       const String subPath = EncodeArchivePluginToPath(plugin->Id());
       const ZXTune::DataLocation::Ptr subLocation = CreateNestedLocation(inputData, subData, plugin, subPath);
       ZXTune::Module::Detect(subLocation, noProgressCallback);
@@ -72,12 +72,12 @@ namespace
     {
       return DataLocation::Ptr();
     }
-    const IO::DataContainer::Ptr rawData = inputData->GetData();
+    const Binary::Container::Ptr rawData = inputData->GetData();
     std::size_t packedSize = 0;
     std::auto_ptr<Dump> res = decoder.Decode(rawData->Data(), rawData->Size(), packedSize);
     if (res.get())
     {
-      const IO::DataContainer::Ptr subData = IO::CreateDataContainer(res);
+      const Binary::Container::Ptr subData = Binary::CreateContainer(res);
       return CreateNestedLocation(inputData, subData, plugin, pathComponent);
     }
     return DataLocation::Ptr();

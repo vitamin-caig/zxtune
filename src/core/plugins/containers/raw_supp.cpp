@@ -19,11 +19,11 @@ Author:
 #include <logging.h>
 #include <tools.h>
 //library includes
+#include <binary/container.h>
 #include <core/error_codes.h>
 #include <core/module_detect.h>
 #include <core/plugin_attrs.h>
 #include <core/plugins_parameters.h>
-#include <io/container.h>
 //std includes
 #include <list>
 //boost includes
@@ -109,12 +109,12 @@ namespace
     const String Text;
   };
 
-  class ScanDataContainer : public IO::DataContainer
+  class ScanDataContainer : public Binary::Container
   {
   public:
     typedef boost::shared_ptr<ScanDataContainer> Ptr;
 
-    ScanDataContainer(IO::DataContainer::Ptr delegate, std::size_t offset)
+    ScanDataContainer(Binary::Container::Ptr delegate, std::size_t offset)
       : Delegate(delegate)
       , OriginalSize(delegate->Size())
       , OriginalData(static_cast<const uint8_t*>(delegate->Data()))
@@ -132,7 +132,7 @@ namespace
       return OriginalData + Offset;
     }
 
-    virtual IO::DataContainer::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
+    virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
     {
       return Delegate->GetSubcontainer(offset + Offset, size);
     }
@@ -152,7 +152,7 @@ namespace
       Offset += step;
     }
   private:
-    const IO::DataContainer::Ptr Delegate;
+    const Binary::Container::Ptr Delegate;
     const std::size_t OriginalSize;
     const uint8_t* const OriginalData;
     std::size_t Offset;
@@ -170,7 +170,7 @@ namespace
     {
     }
 
-    virtual IO::DataContainer::Ptr GetData() const
+    virtual Binary::Container::Ptr GetData() const
     {
       return Subdata;
     }
@@ -407,7 +407,7 @@ namespace
 
     virtual DetectionResult::Ptr Detect(DataLocation::Ptr input, const Module::DetectCallback& callback) const
     {
-      const IO::DataContainer::Ptr rawData = input->GetData();
+      const Binary::Container::Ptr rawData = input->GetData();
       const std::size_t size = rawData->Size();
       if (size < MIN_MINIMAL_RAW_SIZE)
       {
@@ -466,8 +466,8 @@ namespace
       std::size_t offset = 0;
       if (RawPath.GetIndex(pathComp, offset))
       {
-        const IO::DataContainer::Ptr inData = location->GetData();
-        const IO::DataContainer::Ptr subData = inData->GetSubcontainer(offset, inData->Size() - offset);
+        const Binary::Container::Ptr inData = location->GetData();
+        const Binary::Container::Ptr subData = inData->GetSubcontainer(offset, inData->Size() - offset);
         return CreateNestedLocation(location, subData, Description, pathComp); 
       }
       return DataLocation::Ptr();
