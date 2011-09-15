@@ -614,7 +614,7 @@ namespace STC
   {
   public:
     Factory()
-      : Format(DataFormat::Create(STC_FORMAT))
+      : Format(Binary::Format::Create(STC_FORMAT))
     {
     }
 
@@ -625,7 +625,7 @@ namespace STC
       return Format->Match(data, size) && STC::CheckModule(data, size);
     }
 
-    virtual DataFormat::Ptr GetFormat() const
+    virtual Binary::Format::Ptr GetFormat() const
     {
       return Format;
     }
@@ -668,7 +668,7 @@ namespace STC
       return Module::Holder::Ptr();
     }
   private:
-    const DataFormat::Ptr Format;
+    const Binary::Format::Ptr Format;
   };
 }
 

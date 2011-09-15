@@ -916,7 +916,7 @@ namespace
   {
   public:
     AYModulesFactory()
-      : Format(DataFormat::Create(AY_FORMAT))
+      : Format(Binary::Format::Create(AY_FORMAT))
     {
     }
 
@@ -925,7 +925,7 @@ namespace
       return CheckAYModule(inputData);
     }
 
-    virtual DataFormat::Ptr GetFormat() const
+    virtual Binary::Format::Ptr GetFormat() const
     {
       return Format;
     }
@@ -955,7 +955,7 @@ namespace
       return Holder::Ptr();
     }
   private:
-    const DataFormat::Ptr Format;
+    const Binary::Format::Ptr Format;
   };
 
   //as a container
@@ -1164,7 +1164,7 @@ namespace
   public:
     AYContainerPlugin()
       : Description(CreatePluginDescription(ID1, INFO1, VERSION1, CAPS1))
-      , Format(DataFormat::Create(AY_FORMAT))
+      , Format(Binary::Format::Create(AY_FORMAT))
       , AyPath(Text::AY_PLUGIN_PREFIX)
       , RawPath(Text::AY_RAW_PLUGIN_PREFIX)
     {
@@ -1240,7 +1240,7 @@ namespace
     }
   private:
     const Plugin::Ptr Description;
-    const DataFormat::Ptr Format;
+    const Binary::Format::Ptr Format;
     const IndexPathComponent AyPath;
     const IndexPathComponent RawPath;
   };

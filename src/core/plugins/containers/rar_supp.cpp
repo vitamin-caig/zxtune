@@ -454,12 +454,12 @@ namespace
   {
   public:
     RarFactory()
-      : Format(DataFormat::Create(RAR_FORMAT))
+      : Format(Binary::Format::Create(RAR_FORMAT))
       , Decoder(Formats::Packed::CreateRarDecoder())
     {
     }
 
-    virtual DataFormat::Ptr GetFormat() const
+    virtual Binary::Format::Ptr GetFormat() const
     {
       return Format;
     }
@@ -481,7 +481,7 @@ namespace
       return boost::make_shared<RarCatalogue>(*Decoder, static_cast<std::size_t>(maxFileSize), data);
     }
   private:
-    const DataFormat::Ptr Format;
+    const Binary::Format::Ptr Format;
     const Formats::Packed::Decoder::Ptr Decoder;
   };
 }

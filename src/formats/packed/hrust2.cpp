@@ -305,7 +305,7 @@ namespace Hrust2
     Dump Decoded;
   };
 
-  class RawFormat : public DataFormat
+  class RawFormat : public Binary::Format
   {
   public:
     virtual bool Match(const void* /*data*/, std::size_t size) const
@@ -319,7 +319,7 @@ namespace Hrust2
     }
   };
 
-  class Format : public DataFormat
+  class Format : public Binary::Format
   {
   public:
     virtual bool Match(const void* data, std::size_t size) const
@@ -350,7 +350,7 @@ namespace Formats
     class Hrust2RawDecoder : public Decoder
     {
     public:
-      virtual DataFormat::Ptr GetFormat() const
+      virtual Binary::Format::Ptr GetFormat() const
       {
         return boost::make_shared<Hrust2::RawFormat>();
       }
@@ -382,7 +382,7 @@ namespace Formats
     class Hrust2Decoder : public Decoder
     {
     public:
-      virtual DataFormat::Ptr GetFormat() const
+      virtual Binary::Format::Ptr GetFormat() const
       {
         return boost::make_shared<Hrust2::Format>();
       }

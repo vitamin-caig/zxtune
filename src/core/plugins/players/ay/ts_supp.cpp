@@ -356,7 +356,7 @@ namespace
 
     TSPlugin()
       : Description(CreatePluginDescription(ID, INFO, VERSION, CAPS))
-      , FooterFormat(DataFormat::Create(TS_FOOTER_FORMAT))
+      , FooterFormat(Binary::Format::Create(TS_FOOTER_FORMAT))
     {
     }
 
@@ -416,7 +416,7 @@ namespace
     }
   private:
     const Plugin::Ptr Description;
-    const DataFormat::Ptr FooterFormat;
+    const Binary::Format::Ptr FooterFormat;
   };
 }
 

@@ -32,7 +32,7 @@ namespace ZXTune
     //! @return true if possibly yes, false if defenitely no
     virtual bool Check(const IO::DataContainer& inputData) const = 0;
 
-    virtual DataFormat::Ptr GetFormat() const = 0;
+    virtual Binary::Format::Ptr GetFormat() const = 0;
 
     virtual Module::Holder::Ptr CreateModule(Module::ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, IO::DataContainer::Ptr data, std::size_t& usedSize) const = 0;
   };

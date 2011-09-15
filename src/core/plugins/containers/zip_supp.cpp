@@ -326,7 +326,7 @@ namespace
     {
     }
 
-    virtual DataFormat::Ptr GetFormat() const
+    virtual Binary::Format::Ptr GetFormat() const
     {
       return Decoder->GetFormat();
     }

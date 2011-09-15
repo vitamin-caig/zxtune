@@ -14,7 +14,6 @@ Author:
 #include "rar_supp.h"
 #include "pack_utils.h"
 //common includes
-#include <detector.h>
 #include <logging.h>
 #include <tools.h>
 //library includes
@@ -875,11 +874,11 @@ namespace Formats
     {
     public:
       RarDecoder()
-        : Depacker(DataFormat::Create(::Rar::HEADER_PATTERN))
+        : Depacker(Binary::Format::Create(::Rar::HEADER_PATTERN))
       {
       }
 
-      virtual DataFormat::Ptr GetFormat() const
+      virtual Binary::Format::Ptr GetFormat() const
       {
         return Depacker;
       }
@@ -906,7 +905,7 @@ namespace Formats
         return decoded;
       }
     private:
-      const DataFormat::Ptr Depacker;
+      const Binary::Format::Ptr Depacker;
     };
 
     Decoder::Ptr CreateRarDecoder()

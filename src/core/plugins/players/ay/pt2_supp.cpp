@@ -844,7 +844,7 @@ namespace
   {
   public:
     PT2ModulesFactory()
-      : Format(DataFormat::Create(PT2_FORMAT))
+      : Format(Binary::Format::Create(PT2_FORMAT))
     {
     }
 
@@ -855,7 +855,7 @@ namespace
       return Format->Match(data, size) && CheckPT2Module(data, size);
     }
 
-    virtual DataFormat::Ptr GetFormat() const
+    virtual Binary::Format::Ptr GetFormat() const
     {
       return Format;
     }
@@ -898,7 +898,7 @@ namespace
       return Holder::Ptr();
     }
   private:
-    const DataFormat::Ptr Format;
+    const Binary::Format::Ptr Format;
   };
 }
 

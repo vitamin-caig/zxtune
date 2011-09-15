@@ -332,11 +332,11 @@ namespace
   {
   public:
     HRIPFactory()
-      : Format(DataFormat::Create(HRIP_FORMAT))
+      : Format(Binary::Format::Create(HRIP_FORMAT))
     {
     }
 
-    virtual DataFormat::Ptr GetFormat() const
+    virtual Binary::Format::Ptr GetFormat() const
     {
       return Format;
     }
@@ -346,7 +346,7 @@ namespace
       return ParseHripFile(data, parameters);
     }
   private:
-    const DataFormat::Ptr Format;
+    const Binary::Format::Ptr Format;
   };
 }
 

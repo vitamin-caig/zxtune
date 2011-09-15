@@ -430,11 +430,11 @@ namespace ST1
   //addon for ZXAYST11 header
   const std::size_t MAX_SEARCH_WINDOW = 48 + sizeof(ST1::Header) + (SoundTracker::MAX_PATTERNS_COUNT - 1) * sizeof(ST1::Pattern);
 
-  class OptimizedFormat : public DataFormat
+  class OptimizedFormat : public Binary::Format
   {
   public:
     OptimizedFormat()
-      : Delegate(DataFormat::Create(ST11_FORMAT))
+      : Delegate(Binary::Format::Create(ST11_FORMAT))
     {
     }
     
@@ -450,7 +450,7 @@ namespace ST1
         : Delegate->Search(data, size);
     }
   private:
-    const DataFormat::Ptr Delegate;
+    const Binary::Format::Ptr Delegate;
   };
   //////////////////////////////////////////////////////////////////////////
   class Factory : public ModulesFactory
@@ -468,7 +468,7 @@ namespace ST1
       return Format->Match(data, size) && ST1::CheckModule(data, size);
     }
 
-    virtual DataFormat::Ptr GetFormat() const
+    virtual Binary::Format::Ptr GetFormat() const
     {
       return Format;
     }
@@ -503,7 +503,7 @@ namespace ST1
       return Module::Holder::Ptr();
     }
   private:
-    const DataFormat::Ptr Format;
+    const Binary::Format::Ptr Format;
   };
 }
 

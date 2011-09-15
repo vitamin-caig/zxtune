@@ -1149,7 +1149,7 @@ namespace
   {
   public:
     ASCModulesFactory()
-      : Format(DataFormat::Create(ASC_FORMAT))
+      : Format(Binary::Format::Create(ASC_FORMAT))
     {
     }
 
@@ -1160,7 +1160,7 @@ namespace
       return Format->Match(data, limit) && CheckASCModule(data, limit);
     }
 
-    virtual DataFormat::Ptr GetFormat() const
+    virtual Binary::Format::Ptr GetFormat() const
     {
       return Format;
     }
@@ -1205,7 +1205,7 @@ namespace
       return Holder::Ptr();
     }
   private:
-    const DataFormat::Ptr Format;
+    const Binary::Format::Ptr Format;
   };
 }
 

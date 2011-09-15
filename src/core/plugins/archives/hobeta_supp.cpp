@@ -93,11 +93,11 @@ namespace
   {
   public:
     HobetaDecoder()
-      : Format(DataFormat::Create(HOBETA_FORMAT))
+      : Format(Binary::Format::Create(HOBETA_FORMAT))
     {
     }
 
-    virtual DataFormat::Ptr GetFormat() const
+    virtual Binary::Format::Ptr GetFormat() const
     {
       return Format;
     }
@@ -121,7 +121,7 @@ namespace
       return std::auto_ptr<Dump>(new Dump(data + sizeof(*header), data + sizeof(*header) + dataSize));
     }
   private:
-    const DataFormat::Ptr Format;
+    const Binary::Format::Ptr Format;
   };
 }
 

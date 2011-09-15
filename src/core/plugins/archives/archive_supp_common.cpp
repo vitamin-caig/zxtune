@@ -55,7 +55,7 @@ namespace
       ZXTune::Module::Detect(subLocation, noProgressCallback);
       return DetectionResult::CreateMatched(packedSize);
     }
-    const DataFormat::Ptr format = decoder.GetFormat();
+    const Binary::Format::Ptr format = decoder.GetFormat();
     return DetectionResult::CreateUnmatched(format, rawData);
   }
 

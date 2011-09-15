@@ -15,7 +15,6 @@ Author:
 //common includes
 #include <byteorder.h>
 #include <crc.h>
-#include <detector.h>
 #include <tools.h>
 //library includes
 #include <formats/packed.h>
@@ -656,11 +655,11 @@ namespace Formats
     {
     public:
       ZXZipDecoder()
-        : Depacker(DataFormat::Create(ZXZip::HEADER_PATTERN))
+        : Depacker(Binary::Format::Create(ZXZip::HEADER_PATTERN))
       {
       }
 
-      virtual DataFormat::Ptr GetFormat() const
+      virtual Binary::Format::Ptr GetFormat() const
       {
         return Depacker;
       }
@@ -689,7 +688,7 @@ namespace Formats
         return std::auto_ptr<Dump>();
       }
     private:
-      const DataFormat::Ptr Depacker;
+      const Binary::Format::Ptr Depacker;
     };
 
     Decoder::Ptr CreateZXZipDecoder()

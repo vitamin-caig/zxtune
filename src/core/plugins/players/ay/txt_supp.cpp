@@ -74,7 +74,7 @@ namespace
   {
   public:
     TXTModulesFactory()
-      : Format(DataFormat::Create(TXT_FORMAT))
+      : Format(Binary::Format::Create(TXT_FORMAT))
     {
     }
 
@@ -83,7 +83,7 @@ namespace
       return inputData.Size() > MIN_MODULE_SIZE && Format->Match(inputData.Data(), inputData.Size());
     }
 
-    virtual DataFormat::Ptr GetFormat() const
+    virtual Binary::Format::Ptr GetFormat() const
     {
       return Format;
     }
@@ -120,7 +120,7 @@ namespace
       return Holder::Ptr();
     }
   private:
-    const DataFormat::Ptr Format;
+    const Binary::Format::Ptr Format;
   };
 }
 

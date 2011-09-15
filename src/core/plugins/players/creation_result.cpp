@@ -48,7 +48,7 @@ namespace ZXTune
   DetectionResult::Ptr DetectModuleInLocation(ModulesFactory::Ptr factory, Plugin::Ptr plugin, DataLocation::Ptr inputData, const Module::DetectCallback& callback)
   {
     const IO::DataContainer::Ptr data = inputData->GetData();
-    const DataFormat::Ptr format = factory->GetFormat();
+    const Binary::Format::Ptr format = factory->GetFormat();
     if (!factory->Check(*data))
     {
       return DetectionResult::CreateUnmatched(format, data);

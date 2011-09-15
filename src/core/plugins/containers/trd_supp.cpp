@@ -196,11 +196,11 @@ namespace
   {
   public:
     TRDFactory()
-      : Format(DataFormat::Create(TRD_FORMAT))
+      : Format(Binary::Format::Create(TRD_FORMAT))
     {
     }
 
-    virtual DataFormat::Ptr GetFormat() const
+    virtual Binary::Format::Ptr GetFormat() const
     {
       return Format;
     }
@@ -213,7 +213,7 @@ namespace
         : Container::Catalogue::Ptr();
     }
   private:
-    const DataFormat::Ptr Format;
+    const Binary::Format::Ptr Format;
   };
 }
 

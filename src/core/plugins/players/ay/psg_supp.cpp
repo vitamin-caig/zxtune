@@ -313,7 +313,7 @@ namespace
   {
   public:
     PSGModulesFactory()
-      : Format(DataFormat::Create(PSG_FORMAT))
+      : Format(Binary::Format::Create(PSG_FORMAT))
     {
     }
 
@@ -324,7 +324,7 @@ namespace
       return Format->Match(data, size) && CheckPSG(inputData);
     }
 
-    virtual DataFormat::Ptr GetFormat() const
+    virtual Binary::Format::Ptr GetFormat() const
     {
       return Format;
     }
@@ -351,7 +351,7 @@ namespace
       return Holder::Ptr();
     }
   private:
-    const DataFormat::Ptr Format;
+    const Binary::Format::Ptr Format;
   };
 }
 

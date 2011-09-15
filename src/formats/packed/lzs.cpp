@@ -14,7 +14,6 @@ Author:
 #include "pack_utils.h"
 //common includes
 #include <byteorder.h>
-#include <detector.h>
 #include <tools.h>
 //library includes
 #include <formats/packed.h>
@@ -281,11 +280,11 @@ namespace Formats
     {
     public:
       LZSDecoder()
-        : Depacker(DataFormat::Create(LZS::DEPACKER_PATTERN))
+        : Depacker(Binary::Format::Create(LZS::DEPACKER_PATTERN))
       {
       }
 
-      virtual DataFormat::Ptr GetFormat() const
+      virtual Binary::Format::Ptr GetFormat() const
       {
         return Depacker;
       }
@@ -314,7 +313,7 @@ namespace Formats
         return std::auto_ptr<Dump>();
       }
     private:
-      const DataFormat::Ptr Depacker;
+      const Binary::Format::Ptr Depacker;
     };
 
     Decoder::Ptr CreateLZSDecoder()

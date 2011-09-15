@@ -552,7 +552,7 @@ namespace
   {
   public:
     CHIModulesFactory()
-      : Format(DataFormat::Create(CHI_FORMAT))
+      : Format(Binary::Format::Create(CHI_FORMAT))
     {
     }
 
@@ -561,7 +561,7 @@ namespace
       return CheckCHI(inputData);
     }
 
-    virtual DataFormat::Ptr GetFormat() const
+    virtual Binary::Format::Ptr GetFormat() const
     {
       return Format;
     }
@@ -581,7 +581,7 @@ namespace
       return Holder::Ptr();
     }
   private:
-    const DataFormat::Ptr Format;
+    const Binary::Format::Ptr Format;
   };
 }
 

@@ -35,7 +35,7 @@ namespace Test
       const std::string& testname = it->first;
       const Dump& testdata = it->second;
       std::cout << " testing " << testname << std::endl;
-      const DataFormat::Ptr format = decoder.GetFormat();
+      const Binary::Format::Ptr format = decoder.GetFormat();
       if (!format->Match(&testdata[0], testdata.size()))
       {
         throw std::runtime_error("Failed to check for sanity.");

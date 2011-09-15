@@ -15,7 +15,6 @@ Author:
 #include "pack_utils.h"
 //common includes
 #include <byteorder.h>
-#include <detector.h>
 #include <tools.h>
 //library includes
 #include <formats/packed.h>
@@ -217,7 +216,7 @@ namespace TRUSH
     Dump Decoded;
   };
 
-  class Format : public DataFormat
+  class Format : public Binary::Format
   {
   public:
     virtual bool Match(const void* data, std::size_t size) const
@@ -251,7 +250,7 @@ namespace Formats
     class TRUSHDecoder : public Decoder
     {
     public:
-      virtual DataFormat::Ptr GetFormat() const
+      virtual Binary::Format::Ptr GetFormat() const
       {
         return boost::make_shared<TRUSH::Format>();
       }

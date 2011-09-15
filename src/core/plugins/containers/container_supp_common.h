@@ -27,7 +27,7 @@ namespace ZXTune
     typedef boost::shared_ptr<const ContainerFactory> Ptr;
     virtual ~ContainerFactory() {}
 
-    virtual DataFormat::Ptr GetFormat() const = 0;
+    virtual Binary::Format::Ptr GetFormat() const = 0;
 
     virtual Container::Catalogue::Ptr CreateContainer(const Parameters::Accessor& parameters, IO::DataContainer::Ptr data) const = 0;
   };

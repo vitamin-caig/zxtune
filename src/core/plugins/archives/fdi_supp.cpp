@@ -256,11 +256,11 @@ namespace Formats
     {
     public:
       FullDiskImageDecoder()
-        : Format(DataFormat::Create(FullDiskImage::FORMAT_PATTERN))
+        : Format(Binary::Format::Create(FullDiskImage::FORMAT_PATTERN))
       {
       }
 
-      virtual DataFormat::Ptr GetFormat() const
+      virtual Binary::Format::Ptr GetFormat() const
       {
         return Format;
       }
@@ -289,7 +289,7 @@ namespace Formats
         return std::auto_ptr<Dump>();
       }
     private:
-      const DataFormat::Ptr Format;
+      const Binary::Format::Ptr Format;
     };
   }
 }

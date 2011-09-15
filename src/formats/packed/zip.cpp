@@ -13,7 +13,6 @@ Author:
 //local includes
 #include "zip_supp.h"
 //common includes
-#include <detector.h>
 #include <logging.h>
 #include <tools.h>
 //library includes
@@ -271,11 +270,11 @@ namespace Formats
     {
     public:
       ZipDecoder()
-        : Depacker(DataFormat::Create(::Zip::HEADER_PATTERN))
+        : Depacker(Binary::Format::Create(::Zip::HEADER_PATTERN))
       {
       }
 
-      virtual DataFormat::Ptr GetFormat() const
+      virtual Binary::Format::Ptr GetFormat() const
       {
         return Depacker;
       }
@@ -302,7 +301,7 @@ namespace Formats
         return decoded;
       }
     private:
-      const DataFormat::Ptr Depacker;
+      const Binary::Format::Ptr Depacker;
     };
 
     Decoder::Ptr CreateZipDecoder()

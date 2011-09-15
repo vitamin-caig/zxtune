@@ -1013,7 +1013,7 @@ namespace
   {
   public:
     STPModulesFactory()
-      : Format(DataFormat::Create(STP_FORMAT))
+      : Format(Binary::Format::Create(STP_FORMAT))
     {
     }
     virtual bool Check(const IO::DataContainer& inputData) const
@@ -1023,7 +1023,7 @@ namespace
       return Format->Match(data, size) && CheckSTPModule(data, size);
     }
 
-    virtual DataFormat::Ptr GetFormat() const
+    virtual Binary::Format::Ptr GetFormat() const
     {
       return Format;
     }
@@ -1066,7 +1066,7 @@ namespace
       return Holder::Ptr();
     }
   private:
-    const DataFormat::Ptr Format;
+    const Binary::Format::Ptr Format;
   };
 }
 

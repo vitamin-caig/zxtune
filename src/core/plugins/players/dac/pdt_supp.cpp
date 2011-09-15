@@ -689,7 +689,7 @@ namespace
   {
   public:
     PDTModulesFactory()
-      : Format(DataFormat::Create(PDT_FORMAT))
+      : Format(Binary::Format::Create(PDT_FORMAT))
     {
     }
     
@@ -698,7 +698,7 @@ namespace
       return Format->Match(inputData.Data(), inputData.Size()) && CheckPDT(inputData);
     }
 
-    virtual DataFormat::Ptr GetFormat() const
+    virtual Binary::Format::Ptr GetFormat() const
     {
       return Format;
     }
@@ -718,7 +718,7 @@ namespace
       return Holder::Ptr();
     }
   private:
-    const DataFormat::Ptr Format;
+    const Binary::Format::Ptr Format;
   };
 }
 

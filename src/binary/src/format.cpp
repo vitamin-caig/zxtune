@@ -9,11 +9,11 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-//local includes
-#include "detector.h"
-#include "iterator.h"
 //common includes
+#include <iterator.h>
 #include <types.h>
+//library includes
+#include <binary/format.h>
 //std includes
 #include <bitset>
 #include <cassert>
@@ -24,6 +24,8 @@ Author:
 
 namespace
 {
+  using namespace Binary;
+
   const char ANY_BYTE_TEXT = '?';
   const char ANY_NIBBLE_TEXT = 'x';
   const char SKIP_BYTES_TEXT = '+';
@@ -368,10 +370,10 @@ namespace
   }
 
   template<class Traits>
-  class Format : public DataFormat
+  class TypedFormat : public Format
   {
   public:
-    Format(typename Traits::Pattern::const_iterator from, typename Traits::Pattern::const_iterator to, std::size_t offset)
+    TypedFormat(typename Traits::Pattern::const_iterator from, typename Traits::Pattern::const_iterator to, std::size_t offset)
       : Pat(from, to)
       , Offset(offset)
     {
@@ -407,7 +409,7 @@ namespace
     const std::size_t Offset;
   };
 
-  class AlwaysMatchFormat : public DataFormat
+  class AlwaysMatchFormat : public Format
   {
   public:
     explicit AlwaysMatchFormat(std::size_t offset)
@@ -431,7 +433,7 @@ namespace
   };
 
   template<class Traits>
-  static DataFormat::Ptr CreateDataFormat(const std::string& pattern)
+  static Format::Ptr CreateFormat(const std::string& pattern)
   {
     typename Traits::Pattern pat;
     CompilePattern<Traits>(pattern, pat);
@@ -441,23 +443,26 @@ namespace
       std::bind2nd(std::not_equal_to<typename Traits::PatternEntry>(), Traits::GetAnyByte()));
     const std::size_t offset = std::distance(first, firstNotAny);
     return firstNotAny != last
-      ? DataFormat::Ptr(new Format<Traits>(firstNotAny, last, offset))
-      : DataFormat::Ptr(new AlwaysMatchFormat(offset));
+      ? Format::Ptr(new TypedFormat<Traits>(firstNotAny, last, offset))
+      : Format::Ptr(new AlwaysMatchFormat(offset));
   }
 }
 
-DataFormat::Ptr DataFormat::Create(const std::string& pattern)
+namespace Binary
 {
-  const bool hasBinaryMasks = pattern.find(BINARY_MASK_TEXT) != std::string::npos ||
-                              pattern.find(ANY_NIBBLE_TEXT) != std::string::npos;
-  const bool hasRanges = pattern.find(RANGE_TEXT) != std::string::npos;
-  if (!hasRanges)
+  Format::Ptr Format::Create(const std::string& pattern)
   {
-    return CreateDataFormat<BinaryTraits>(pattern);
+    const bool hasBinaryMasks = pattern.find(BINARY_MASK_TEXT) != std::string::npos ||
+                                pattern.find(ANY_NIBBLE_TEXT) != std::string::npos;
+    const bool hasRanges = pattern.find(RANGE_TEXT) != std::string::npos;
+    if (!hasRanges)
+    {
+      return CreateFormat<BinaryTraits>(pattern);
+    }
+    else if (hasRanges && !hasBinaryMasks)
+    {
+      return CreateFormat<RangedTraits>(pattern);
+    }
+    return CreateFormat<BitmapTraits>(pattern);
   }
-  else if (hasRanges && !hasBinaryMasks)
-  {
-    return CreateDataFormat<RangedTraits>(pattern);
-  }
-  return CreateDataFormat<BitmapTraits>(pattern);
 }

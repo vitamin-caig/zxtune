@@ -2,8 +2,8 @@ binary_name := formats_test_cc3
 path_step := ../../../..
 source_files := test
 
-libraries := io formats tools
-depends := src/formats src/io src/tools
+libraries := io formats binary
+depends := src/formats src/binary src/io
 
 windows_libraries := advapi32
 
