@@ -38,6 +38,7 @@ namespace Binary
   //! @brief Creating data container based on raw data
   Container::Ptr CreateContainer(const void* data, std::size_t size);
   Container::Ptr CreateContainer(std::auto_ptr<Dump> data);
+  Container::Ptr CreateContainer(boost::shared_ptr<const Dump> data, std::size_t offset, std::size_t size);
 }
 
 #endif //__BINARY_CONTAINER_H_DEFINED__

@@ -58,4 +58,11 @@ inline PackedContainer::Ptr CreatePackedContainer(std::auto_ptr<Dump> data, std:
     : PackedContainer::Ptr();
 }
 
+inline PackedContainer::Ptr CreatePackedContainer(Binary::Container::Ptr data, std::size_t origSize)
+{
+  return data && origSize
+    ? boost::make_shared<PackedContainer>(data, origSize)
+    : PackedContainer::Ptr();
+}
+
 #endif //__FORMATS_PACKED_CONTAINER_H_DEFINED__

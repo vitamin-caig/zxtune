@@ -122,7 +122,7 @@ namespace
       const std::size_t dataSize = fromLE(header->Length);
       const std::size_t fullSize = fromLE(header->FullLength);
       const Binary::Container::Ptr subdata = rawData.GetSubcontainer(sizeof(*header), dataSize);
-      return boost::make_shared<PackedContainer>(subdata, fullSize + sizeof(*header));
+      return CreatePackedContainer(subdata, fullSize + sizeof(*header));
     }
   private:
     const Binary::Format::Ptr Format;

@@ -18,6 +18,7 @@ Author:
 #include <logging.h>
 #include <tools.h>
 //library includes
+#include <binary/typed_container.h>
 #include <formats/packed.h>
 //std includes
 #include <cassert>
@@ -36,54 +37,64 @@ namespace Rar
     "?%1xxxxxxx"  // uint16_t Flags;
   ;
 
-  class Container
+  class Container : public Binary::TypedContainer
   {
   public:
-    Container(const void* data, std::size_t size)
-      : Data(static_cast<const uint8_t*>(data))
-      , Size(size)
+    explicit Container(const Binary::Container& data)
+      : Binary::TypedContainer(data)
+      , Data(data)
     {
     }
 
     bool FastCheck() const
     {
-      if (Size < sizeof(Formats::Packed::Rar::FileBlockHeader))
+      if (std::size_t usedSize = GetUsedSize())
       {
-        return false;
+        return usedSize <= Data.Size();
       }
-      const Formats::Packed::Rar::FileBlockHeader& header = GetHeader();
-      if (header.IsBigFile() && Size < sizeof(Formats::Packed::Rar::BigFileBlockHeader))
-      {
-        return false;
-      }
-      if (!header.IsValid() || !header.IsSupported())
-      {
-        return false;
-      }
-      return GetUsedSize() <= Size;
+      return false;
     }
 
     std::size_t GetUsedSize() const
     {
-      const Formats::Packed::Rar::FileBlockHeader& header = GetHeader();
-      uint64_t res = fromLE(header.Size);
-      res += fromLE(header.AdditionalSize);
-      if (header.IsBigFile())
+      if (const Formats::Packed::Rar::FileBlockHeader* header = GetField<Formats::Packed::Rar::FileBlockHeader>(0))
       {
-        const Formats::Packed::Rar::BigFileBlockHeader& bigFile = *safe_ptr_cast<const Formats::Packed::Rar::BigFileBlockHeader*>(Data);
-        res += uint64_t(fromLE(bigFile.PackedSizeHi)) << (8 * sizeof(uint32_t));
+        if (!header->IsValid() || !header->IsSupported())
+        {
+          return 0;
+        }
+        uint64_t res = fromLE(header->Size);
+        res += fromLE(header->AdditionalSize);
+        if (header->IsBigFile())
+        {
+          if (const Formats::Packed::Rar::BigFileBlockHeader* bigHeader = GetField<Formats::Packed::Rar::BigFileBlockHeader>(0))
+          {
+            res += uint64_t(fromLE(bigHeader->PackedSizeHi)) << (8 * sizeof(uint32_t));
+          }
+          else
+          {
+            return 0;
+          }
+        }
+        const std::size_t maximum = std::numeric_limits<std::size_t>::max();
+        return res > maximum
+          ? maximum
+          : static_cast<std::size_t>(res);
       }
-      return static_cast<std::size_t>(res);
+      return false;
     }
 
     const Formats::Packed::Rar::FileBlockHeader& GetHeader() const
     {
-      assert(Size >= sizeof(Formats::Packed::Rar::FileBlockHeader));
-      return *safe_ptr_cast<const Formats::Packed::Rar::FileBlockHeader*>(Data);
+      return *GetField<Formats::Packed::Rar::FileBlockHeader>(0);
+    }
+
+    const Binary::Container& GetData() const
+    {
+      return Data;
     }
   private:
-    const uint8_t* const Data;
-    const std::size_t Size;
+    const Binary::Container& Data;
   };
 
   class CompressedFile
@@ -92,35 +103,33 @@ namespace Rar
     typedef std::auto_ptr<const CompressedFile> Ptr;
     virtual ~CompressedFile() {}
 
-    virtual std::auto_ptr<Dump> Decompress() const = 0;
+    virtual Binary::Container::Ptr Decompress() const = 0;
   };
 
   class NoCompressedFile : public CompressedFile
   {
   public:
-    NoCompressedFile(const uint8_t* const start, std::size_t size, std::size_t destSize)
-      : Start(start)
-      , Size(size)
+    NoCompressedFile(Binary::Container::Ptr data, std::size_t destSize)
+      : Data(data)
       , DestSize(destSize)
     {
     }
 
-    virtual std::auto_ptr<Dump> Decompress() const
+    virtual Binary::Container::Ptr Decompress() const
     {
-      if (Size != DestSize)
+      if (Data->Size() != DestSize)
       {
         Log::Debug(THIS_MODULE, "Stored file sizes mismatch");
-        return std::auto_ptr<Dump>();
+        return Binary::Container::Ptr();
       }
       else
       {
         Log::Debug(THIS_MODULE, "Restore");
-        return std::auto_ptr<Dump>(new Dump(Start, Start + DestSize));
+        return Data;
       }
     }
   private:
-    const uint8_t* const Start;
-    const std::size_t Size;
+    const Binary::Container::Ptr Data;
     const std::size_t DestSize;
   };
 
@@ -234,21 +243,37 @@ namespace Rar
     uint32_t BitsBuffer;
   };
 
+  const std::size_t MAX_WINDOW_SIZE = 0x400000;
+
   class DecodeTarget
   {
   public:
     DecodeTarget()
-      : Cursor(Result.end())
-      , Rest(0)
+      : Rest(0)
     {
     }
 
-    void Reserve(std::size_t size)
+    Binary::Container::Ptr Allocate(std::size_t size)
     {
-      const std::size_t prevSize = Result.size();
-      Result.resize(prevSize + size);
-      Cursor = Result.begin() + prevSize;
-      Rest = size;
+      if (Data)
+      {
+        const std::size_t prevSize = Data->size();
+        const std::size_t toCopy = std::min(MAX_WINDOW_SIZE, prevSize);
+        const boost::shared_ptr<Dump> newData = boost::make_shared<Dump>(toCopy + size);
+        const std::size_t toSkip = prevSize - toCopy;
+        std::copy(Data->begin() + toSkip, Data->end(), newData->begin());
+        Data = newData;
+        Cursor = Data->begin() + toSkip;
+        Rest = size;
+        return Binary::CreateContainer(Data, toCopy, size);
+      }
+      else
+      {
+        Data = boost::make_shared<Dump>(size);
+        Cursor = Data->begin();
+        Rest = size;
+        return Binary::CreateContainer(Data, 0, size);
+      }
     }
 
     bool Full() const
@@ -265,7 +290,7 @@ namespace Rar
 
     bool CopyFromBack(uint_t offset, std::size_t count)
     {
-      if (offset > static_cast<uint_t>(Cursor - Result.begin()))
+      if (offset > (Cursor - Data->begin()))
       {
         return false;
       }
@@ -277,13 +302,9 @@ namespace Rar
       Rest -= realSize;
       return true;
     }
-
-    const Dump& Get() const
-    {
-      return Result;
-    }
   private:
-    Dump Result;
+    boost::shared_ptr<Dump> Data;
+    //std::size_t Done;
     Dump::iterator Cursor;
     std::size_t Rest;
   };
@@ -324,17 +345,14 @@ namespace Rar
       ReadTables();
     }
 
-    std::auto_ptr<Dump> Decode(std::size_t destSize)
+    Binary::Container::Ptr Decode(std::size_t destSize)
     {
-      Decoded.Reserve(destSize);
+      const Binary::Container::Ptr res = Decoded.Allocate(destSize);
       {
         const SpeedMeasure measure(destSize);
         Decode();
       }
-      const Dump& res = Decoded.Get();
-      const Dump::const_iterator src = res.begin() + res.size() - destSize;
-      //TODO: remove unneed copying
-      return std::auto_ptr<Dump>(new Dump(src, res.end()));
+      return res;
     }
   private:
     void Decode()
@@ -758,7 +776,7 @@ namespace Rar
     {
     }
 
-    virtual std::auto_ptr<Dump> Decompress() const
+    virtual Binary::Container::Ptr Decompress() const
     {
       Log::Debug(THIS_MODULE, "Depack %1% -> %2%", Size, DestSize);
       RarDecoder decoder(Start, Size);
@@ -770,17 +788,18 @@ namespace Rar
     const std::size_t DestSize;
   };
 
-  std::auto_ptr<CompressedFile> CreateDecoder(const Formats::Packed::Rar::FileBlockHeader& header)
+  std::auto_ptr<CompressedFile> CreateDecoder(const Container& container)
   {
-    const uint8_t* const start = safe_ptr_cast<const uint8_t*>(&header) + fromLE(header.Size);
+    const Formats::Packed::Rar::FileBlockHeader& header = container.GetHeader();
+    const std::size_t offset = fromLE(header.Size);
     const std::size_t size = fromLE(header.AdditionalSize);
     const std::size_t outSize = fromLE(header.UnpackedSize);
     switch (header.Method)
     {
     case 0x30:
-      return std::auto_ptr<CompressedFile>(new NoCompressedFile(start, size, outSize));
+      return std::auto_ptr<CompressedFile>(new NoCompressedFile(container.GetData().GetSubcontainer(offset, size), outSize));
     default:
-      return std::auto_ptr<CompressedFile>(new PackedFile(start, size, outSize));
+      return std::auto_ptr<CompressedFile>(new PackedFile(container.GetField<uint8_t>(offset), size, outSize));
     }
     return std::auto_ptr<CompressedFile>();
   }
@@ -789,26 +808,22 @@ namespace Rar
   {
   public:
     explicit DispatchedCompressedFile(const Container& container)
-      : Header(container.GetHeader())
-      , Delegate(CreateDecoder(Header))
+      : Delegate(CreateDecoder(container))
       , IsValid(container.FastCheck() && Delegate.get())
     {
     }
 
-    virtual std::auto_ptr<Dump> Decompress() const
+    virtual Binary::Container::Ptr Decompress() const
     {
       if (!IsValid)
       {
-        return std::auto_ptr<Dump>();
+        return Binary::Container::Ptr();
       }
-      std::auto_ptr<Dump> result = Delegate->Decompress();
-      IsValid = result.get() && result->size() == fromLE(Header.UnpackedSize);
-      return IsValid
-        ? result
-        : std::auto_ptr<Dump>();
+      const Binary::Container::Ptr result = Delegate->Decompress();
+      IsValid = result;
+      return result;
     }
   private:
-    const Formats::Packed::Rar::FileBlockHeader& Header;
     const std::auto_ptr<CompressedFile> Delegate;
     mutable bool IsValid;
   };
@@ -889,17 +904,13 @@ namespace Formats
 
       virtual bool Check(const Binary::Container& rawData) const
       {
-        const void* const data = rawData.Data();
-        const std::size_t availSize = rawData.Size();
-        const ::Rar::Container container(data, availSize);
+        const ::Rar::Container container(rawData);
         return container.FastCheck();
       }
 
       virtual Container::Ptr Decode(const Binary::Container& rawData) const
       {
-        const void* const data = rawData.Data();
-        const std::size_t availSize = rawData.Size();
-        const ::Rar::Container container(data, availSize);
+        const ::Rar::Container container(rawData);
         if (!container.FastCheck())
         {
           return Container::Ptr();
