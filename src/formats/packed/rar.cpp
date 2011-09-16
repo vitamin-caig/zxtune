@@ -263,17 +263,18 @@ namespace Rar
       --Rest;
     }
 
-    bool CopyFromBack(uint_t offset, uint_t count)
+    bool CopyFromBack(uint_t offset, std::size_t count)
     {
-      if (offset > static_cast<uint_t>(Cursor - Result.begin()) || count > Rest)
+      if (offset > static_cast<uint_t>(Cursor - Result.begin()))
       {
         return false;
       }
+      const std::size_t realSize = std::min(count, Rest);
       const Dump::const_iterator srcStart = Cursor - offset;
-      const Dump::const_iterator srcEnd = srcStart + count;
+      const Dump::const_iterator srcEnd = srcStart + realSize;
       RecursiveCopy(srcStart, srcEnd, Cursor);
-      Cursor += count;
-      Rest -= count;
+      Cursor += realSize;
+      Rest -= realSize;
       return true;
     }
 

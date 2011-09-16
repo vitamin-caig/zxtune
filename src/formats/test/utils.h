@@ -73,7 +73,6 @@ namespace Test
       {
         std::cout << "  passed negative" << std::endl;
       }
-      /*
       Dump corrupted(testdata);
       corrupted[corrupted.size() / 4] ^= 0xff;
       corrupted[corrupted.size() / 2] ^= 0xff;
@@ -82,7 +81,6 @@ namespace Test
       {
         std::cout << "  failed corrupted" << std::endl;
       }
-      */
     }
   }
 
