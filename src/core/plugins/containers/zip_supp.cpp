@@ -68,7 +68,7 @@ namespace
     virtual Binary::Container::Ptr GetData() const
     {
       Log::Debug(THIS_MODULE, "Decompressing '%1%'", Name);
-      return Decoder.Decode(Data->Data(), Data->Size());
+      return Decoder.Decode(*Data);
     }
   private:
     const Formats::Packed::Decoder& Decoder;
@@ -327,7 +327,7 @@ namespace
 
     virtual Container::Catalogue::Ptr CreateContainer(const Parameters::Accessor& parameters, Binary::Container::Ptr data) const
     {
-      if (!Decoder->Check(data->Data(), data->Size()))
+      if (!Decoder->Check(*data))
       {
         return Container::Catalogue::Ptr();
       }

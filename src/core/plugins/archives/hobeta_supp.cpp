@@ -103,22 +103,26 @@ namespace
       return Format;
     }
 
-    virtual bool Check(const void* data, std::size_t availSize) const
+    virtual bool Check(const Binary::Container& rawData) const
     {
+      const void* const data = rawData.Data();
+      const std::size_t availSize = rawData.Size();
       return Format->Match(data, availSize) && CheckHobeta(data, availSize);
     }
 
-    virtual Formats::Packed::Container::Ptr Decode(const void* rawData, std::size_t availSize) const
+    virtual Formats::Packed::Container::Ptr Decode(const Binary::Container& rawData) const
     {
-      if (!CheckHobeta(rawData, availSize))
+      const uint8_t* const data = static_cast<const uint8_t*>(rawData.Data());
+      const std::size_t availSize = rawData.Size();
+      if (!CheckHobeta(data, availSize))
       {
         return Formats::Packed::Container::Ptr();
       }
-      const uint8_t* const data = static_cast<const uint8_t*>(rawData);
-      const Header* const header = safe_ptr_cast<const Header*>(rawData);
+      const Header* const header = safe_ptr_cast<const Header*>(data);
       const std::size_t dataSize = fromLE(header->Length);
       const std::size_t fullSize = fromLE(header->FullLength);
-      return CreatePackedContainer(std::auto_ptr<Dump>(new Dump(data + sizeof(*header), data + sizeof(*header) + dataSize)), fullSize + sizeof(*header));
+      const Binary::Container::Ptr subdata = rawData.GetSubcontainer(sizeof(*header), dataSize);
+      return boost::make_shared<PackedContainer>(subdata, fullSize + sizeof(*header));
     }
   private:
     const Binary::Format::Ptr Format;

@@ -337,14 +337,18 @@ namespace Formats
         return boost::make_shared<Hrust1::Format>();
       }
 
-      virtual bool Check(const void* data, std::size_t availSize) const
+      virtual bool Check(const Binary::Container& rawData) const
       {
+        const void* const data = rawData.Data();
+        const std::size_t availSize = rawData.Size();
         const Hrust1::Container container(data, availSize);
         return container.FastCheck();
       }
 
-      virtual Container::Ptr Decode(const void* data, std::size_t availSize) const
+      virtual Container::Ptr Decode(const Binary::Container& rawData) const
       {
+        const void* const data = rawData.Data();
+        const std::size_t availSize = rawData.Size();
         const Hrust1::Container container(data, availSize);
         if (!container.FastCheck())
         {

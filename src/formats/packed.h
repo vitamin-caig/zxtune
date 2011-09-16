@@ -36,8 +36,8 @@ namespace Formats
       virtual ~Decoder() {}
 
       virtual Binary::Format::Ptr GetFormat() const = 0;
-      virtual bool Check(const void* data, std::size_t availSize) const = 0;
-      virtual Container::Ptr Decode(const void* data, std::size_t availSize) const = 0;
+      virtual bool Check(const Binary::Container& rawData) const = 0;
+      virtual Container::Ptr Decode(const Binary::Container& rawData) const = 0;
     };
   }
 }

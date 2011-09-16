@@ -29,33 +29,35 @@ namespace Test
     //std::cout << "Read " << size << " bytes from " << name << std::endl;
   }
 
-  void TestPacked(const Formats::Packed::Decoder& decoder, const Dump& etalon, const std::map<std::string, Dump>& tests)
+  void TestPacked(const Formats::Packed::Decoder& decoder, const Dump& etalonDump, const std::map<std::string, Dump>& tests)
   {
+    const Binary::Container::Ptr etalon = Binary::CreateContainer(&etalonDump[0], etalonDump.size());
     for (std::map<std::string, Dump>::const_iterator it = tests.begin(), lim = tests.end(); it != lim; ++it)
     {
       const std::string& testname = it->first;
-      const Dump& testdata = it->second;
+      const Dump& testdataDump = it->second;
+      const Binary::Container::Ptr testdata = Binary::CreateContainer(&testdataDump[0], testdataDump.size());
       std::cout << " testing " << testname << std::endl;
       const Binary::Format::Ptr format = decoder.GetFormat();
-      if (!format->Match(&testdata[0], testdata.size()))
+      if (!format->Match(testdata->Data(), testdata->Size()))
       {
         throw std::runtime_error("Failed to check for sanity.");
       }
       //positive test
-      if (const Formats::Packed::Container::Ptr unpacked = decoder.Decode(&testdata[0], testdata.size()))
+      if (const Formats::Packed::Container::Ptr unpacked = decoder.Decode(*testdata))
       {
-        if (unpacked->Size() != etalon.size() &&
-            0 != std::memcmp(&etalon[0], unpacked->Data(), etalon.size()))
+        if (unpacked->Size() != etalon->Size() &&
+            0 != std::memcmp(etalon->Data(), unpacked->Data(), etalon->Size()))
         {
           std::ofstream output((testname + "_decoded").c_str(), std::ios::binary);
           output.write(static_cast<const char*>(unpacked->Data()), unpacked->Size());
           std::ostringstream str;
           str << "Invalid decode:\n"
-            "ref size=" << etalon.size() << "\n"
+            "ref size=" << etalon->Size() << "\n"
             "unpacked size=" << unpacked->Size();
           throw std::runtime_error(str.str());
         }
-        if (unpacked->PackedSize() != testdata.size())
+        if (unpacked->PackedSize() != testdata->Size())
         {
           throw std::runtime_error("Invalid used data size");
         }
@@ -65,7 +67,7 @@ namespace Test
       {
         throw std::runtime_error("Failed to decode");
       }
-      if (const Formats::Packed::Container::Ptr nonunpacked = decoder.Decode(&etalon[0], etalon.size()))
+      if (const Formats::Packed::Container::Ptr nonunpacked = decoder.Decode(*etalon))
       {
         throw std::runtime_error("Unexpected success for invalid data");
       }
@@ -73,13 +75,18 @@ namespace Test
       {
         std::cout << "  passed negative" << std::endl;
       }
-      Dump corrupted(testdata);
-      corrupted[corrupted.size() / 4] ^= 0xff;
-      corrupted[corrupted.size() / 2] ^= 0xff;
-      corrupted[3 * corrupted.size() / 4] ^= 0xff;
-      if (const Formats::Packed::Container::Ptr nonunpacked = decoder.Decode(&corrupted[0], corrupted.size()))
+      std::auto_ptr<Dump> corruptedDump(new Dump(testdataDump));
+      corruptedDump->at(corruptedDump->size() / 4) ^= 0xff;
+      corruptedDump->at(corruptedDump->size() / 2) ^= 0xff;
+      corruptedDump->at(3 * corruptedDump->size() / 4) ^= 0xff;
+      const Binary::Container::Ptr corrupted = Binary::CreateContainer(corruptedDump);
+      if (const Formats::Packed::Container::Ptr nonunpacked = decoder.Decode(*corrupted))
       {
         std::cout << "  failed corrupted" << std::endl;
+      }
+      else
+      {
+        std::cout << "  passed corrupted" << std::endl;
       }
     }
   }

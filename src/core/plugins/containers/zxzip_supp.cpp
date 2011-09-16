@@ -51,26 +51,24 @@ namespace
     return TRDos::GetEntryName(header->Name, header->Type);
   }
 
-  Container::Catalogue::Ptr ParseZXZipFile(const Formats::Packed::Decoder& decoder, Binary::Container::Ptr data)
+  Container::Catalogue::Ptr ParseZXZipFile(const Formats::Packed::Decoder& decoder, const Binary::Container& data)
   {
     TRDos::CatalogueBuilder::Ptr builder = TRDos::CatalogueBuilder::CreateGeneric();
-    const uint8_t* const archData = static_cast<const uint8_t*>(data->Data());
-    const std::size_t archSize = data->Size();
+    const std::size_t archSize = data.Size();
     std::size_t rawOffset = 0;
     for (std::size_t flatOffset = 0; rawOffset < archSize;)
     {
-      const uint8_t* const rawData = archData + rawOffset;
-      const std::size_t rawSize = archSize - rawOffset;
-      if (!decoder.Check(rawData, rawSize))
+      const Binary::Container::Ptr rawData = data.GetSubcontainer(rawOffset, archSize - rawOffset);
+      if (!decoder.Check(*rawData))
       {
         break;
       }
-      const Formats::Packed::Container::Ptr fileData = decoder.Decode(rawData, rawSize);
+      const Formats::Packed::Container::Ptr fileData = decoder.Decode(*rawData);
       if (!fileData)
       {
         break;
       }
-      const String fileName = ExtractFileName(rawData);
+      const String fileName = ExtractFileName(rawData->Data());
       const std::size_t fileSize = fileData->Size();
       const std::size_t usedSize = fileData->PackedSize();
       const TRDos::File::Ptr file = TRDos::File::Create(fileData, fileName, flatOffset, fileSize);
@@ -97,7 +95,7 @@ namespace
 
     virtual Container::Catalogue::Ptr CreateContainer(const Parameters::Accessor& /*parameters*/, Binary::Container::Ptr data) const
     {
-      const Container::Catalogue::Ptr files = ParseZXZipFile(*Decoder, data);
+      const Container::Catalogue::Ptr files = ParseZXZipFile(*Decoder, *data);
       return files && files->GetFilesCount()
         ? files
         : Container::Catalogue::Ptr();

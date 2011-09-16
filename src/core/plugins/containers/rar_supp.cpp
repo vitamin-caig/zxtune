@@ -79,7 +79,7 @@ namespace
     virtual Binary::Container::Ptr GetData() const
     {
       Log::Debug(THIS_MODULE, "Decompressing '%1%'", Name);
-      return Decoder.Decode(Data->Data(), Data->Size());
+      return Decoder.Decode(*Data);
     }
   private:
     const Formats::Packed::Decoder& Decoder;

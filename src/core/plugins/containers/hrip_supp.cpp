@@ -120,17 +120,17 @@ namespace
     Binary::Container::Ptr DecodeBlock(const HripBlockHeader* block) const
     {
       const uint8_t* const packedData = safe_ptr_cast<const uint8_t*>(&block->PackedCRC) + block->AdditionalSize;
+      const std::size_t offset = packedData - static_cast<const uint8_t*>(Data->Data());
       const std::size_t packedSize = fromLE(block->PackedSize);
+      const Binary::Container::Ptr dataBlock = Data->GetSubcontainer(offset, packedSize);
       if (0 != (block->Flag & HripBlockHeader::NO_COMPRESSION))
       {
-        const std::size_t offset = packedData - static_cast<const uint8_t*>(Data->Data());
-        return Data->GetSubcontainer(offset, packedSize);
+        return dataBlock;
       }
-      else if (Decoder->Check(packedData, packedSize))
+      else
       {
-        return Decoder->Decode(packedData, packedSize);
+        return Decoder->Decode(*dataBlock);
       }
-      return Binary::Container::Ptr();
     }
   private:
     const Formats::Packed::Decoder::Ptr Decoder;

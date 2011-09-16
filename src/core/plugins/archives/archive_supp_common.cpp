@@ -44,7 +44,7 @@ namespace
     DataLocation::Ptr inputData, const Module::DetectCallback& callback)
   {
     const Binary::Container::Ptr rawData = inputData->GetData();
-    if (Formats::Packed::Container::Ptr subData = decoder.Decode(rawData->Data(), rawData->Size()))
+    if (Formats::Packed::Container::Ptr subData = decoder.Decode(*rawData))
     {
       const ZXTune::Module::CustomProgressDetectCallbackAdapter noProgressCallback(callback);
       const String subPath = EncodeArchivePluginToPath(plugin->Id());
@@ -70,7 +70,7 @@ namespace
       return DataLocation::Ptr();
     }
     const Binary::Container::Ptr rawData = inputData->GetData();
-    if (Formats::Packed::Container::Ptr subData = decoder.Decode(rawData->Data(), rawData->Size()))
+    if (Formats::Packed::Container::Ptr subData = decoder.Decode(*rawData))
     {
       return CreateNestedLocation(inputData, subData, plugin, pathComponent);
     }

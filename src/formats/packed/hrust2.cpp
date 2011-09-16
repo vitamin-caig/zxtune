@@ -356,13 +356,16 @@ namespace Formats
         return boost::make_shared<Hrust2::RawFormat>();
       }
 
-      virtual bool Check(const void* /*data*/, std::size_t availSize) const
+      virtual bool Check(const Binary::Container& rawData) const
       {
+        const std::size_t availSize = rawData.Size();
         return availSize >= sizeof(Hrust2::RawHeader);
       }
 
-      virtual Container::Ptr Decode(const void* data, std::size_t availSize) const
+      virtual Container::Ptr Decode(const Binary::Container& rawData) const
       {
+        const void* const data = rawData.Data();
+        const std::size_t availSize = rawData.Size();
         if (availSize < sizeof(Hrust2::RawHeader))
         {
           return Container::Ptr();
@@ -381,14 +384,18 @@ namespace Formats
         return boost::make_shared<Hrust2::Format>();
       }
 
-      virtual bool Check(const void* data, std::size_t availSize) const
+      virtual bool Check(const Binary::Container& rawData) const
       {
+        const void* const data = rawData.Data();
+        const std::size_t availSize = rawData.Size();
         const Hrust2::Container container(data, availSize);
         return container.FastCheck();
       }
 
-      virtual Container::Ptr Decode(const void* data, std::size_t availSize) const
+      virtual Container::Ptr Decode(const Binary::Container& rawData) const
       {
+        const void* const data = rawData.Data();
+        const std::size_t availSize = rawData.Size();
         const Hrust2::Container container(data, availSize);
         if (!container.FastCheck())
         {
