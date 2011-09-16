@@ -12,6 +12,7 @@ Author:
 //local includes
 #include "archive_supp_common.h"
 #include "core/plugins/registrator.h"
+#include "formats/packed/container.h"
 //common includes
 #include <byteorder.h>
 #include <tools.h>
@@ -154,17 +155,18 @@ namespace FullDiskImage
       : IsValid(container.FastCheck())
       , Header(container.GetHeader())
       , Limit(container.GetSize())
+      , Result(new Dump())
+      , Decoded(*Result)
       , UsedSize(0)
     {
+      IsValid = DecodeData();
     }
 
-    Dump* GetDecodedData()
+    std::auto_ptr<Dump> GetResult()
     {
-      if (IsValid && Decoded.empty())
-      {
-        IsValid = DecodeData();
-      }
-      return IsValid ? &Decoded : 0;
+      return IsValid
+        ? Result
+        : std::auto_ptr<Dump>();
     }
 
     std::size_t GetUsedSize()
@@ -236,7 +238,8 @@ namespace FullDiskImage
     bool IsValid;
     const RawHeader& Header;
     const std::size_t Limit;
-    Dump Decoded;
+    std::auto_ptr<Dump> Result;
+    Dump& Decoded;
     std::size_t UsedSize;
   };
 
@@ -271,22 +274,15 @@ namespace Formats
         return container.FastCheck();
       }
 
-      virtual std::auto_ptr<Dump> Decode(const void* data, std::size_t availSize, std::size_t& usedSize) const
+      virtual Container::Ptr Decode(const void* data, std::size_t availSize) const
       {
         const FullDiskImage::Container container(data, availSize);
         if (!container.FastCheck())
         {
-          return std::auto_ptr<Dump>();
+          return Container::Ptr();
         }
         FullDiskImage::Decoder decoder(container);
-        if (Dump* decoded = decoder.GetDecodedData())
-        {
-          usedSize = decoder.GetUsedSize();
-          std::auto_ptr<Dump> res(new Dump());
-          res->swap(*decoded);
-          return res;
-        }
-        return std::auto_ptr<Dump>();
+        return CreatePackedContainer(decoder.GetResult(), decoder.GetUsedSize());
       }
     private:
       const Binary::Format::Ptr Format;

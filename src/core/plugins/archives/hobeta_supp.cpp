@@ -12,6 +12,7 @@ Author:
 //local includes
 #include "archive_supp_common.h"
 #include "core/plugins/registrator.h"
+#include "formats/packed/container.h"
 //common includes
 #include <byteorder.h>
 #include <tools.h>
@@ -107,18 +108,17 @@ namespace
       return Format->Match(data, availSize) && CheckHobeta(data, availSize);
     }
 
-    virtual std::auto_ptr<Dump> Decode(const void* rawData, std::size_t availSize, std::size_t& usedSize) const
+    virtual Formats::Packed::Container::Ptr Decode(const void* rawData, std::size_t availSize) const
     {
       if (!CheckHobeta(rawData, availSize))
       {
-        return std::auto_ptr<Dump>();
+        return Formats::Packed::Container::Ptr();
       }
       const uint8_t* const data = static_cast<const uint8_t*>(rawData);
       const Header* const header = safe_ptr_cast<const Header*>(rawData);
       const std::size_t dataSize = fromLE(header->Length);
       const std::size_t fullSize = fromLE(header->FullLength);
-      usedSize = fullSize + sizeof(*header);
-      return std::auto_ptr<Dump>(new Dump(data + sizeof(*header), data + sizeof(*header) + dataSize));
+      return CreatePackedContainer(std::auto_ptr<Dump>(new Dump(data + sizeof(*header), data + sizeof(*header) + dataSize)), fullSize + sizeof(*header));
     }
   private:
     const Binary::Format::Ptr Format;

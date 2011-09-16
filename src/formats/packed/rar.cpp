@@ -11,6 +11,7 @@ Author:
 */
 
 //local includes
+#include "container.h"
 #include "rar_supp.h"
 #include "pack_utils.h"
 //common includes
@@ -801,7 +802,9 @@ namespace Rar
       }
       std::auto_ptr<Dump> result = Delegate->Decompress();
       IsValid = result.get() && result->size() == fromLE(Header.UnpackedSize);
-      return result;
+      return IsValid
+        ? result
+        : std::auto_ptr<Dump>();
     }
   private:
     const Formats::Packed::Rar::FileBlockHeader& Header;
@@ -889,20 +892,15 @@ namespace Formats
         return container.FastCheck();
       }
 
-      virtual std::auto_ptr<Dump> Decode(const void* data, std::size_t availSize, std::size_t& usedSize) const
+      virtual Container::Ptr Decode(const void* data, std::size_t availSize) const
       {
         const ::Rar::Container container(data, availSize);
         if (!container.FastCheck())
         {
-          return std::auto_ptr<Dump>();
+          return Container::Ptr();
         }
         ::Rar::DispatchedCompressedFile decoder(container);
-        std::auto_ptr<Dump> decoded = decoder.Decompress();
-        if (decoded.get())
-        {
-          usedSize = container.GetUsedSize();
-        }
-        return decoded;
+        return CreatePackedContainer(decoder.Decompress(), container.GetUsedSize());
       }
     private:
       const Binary::Format::Ptr Depacker;

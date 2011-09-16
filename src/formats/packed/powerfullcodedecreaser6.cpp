@@ -11,6 +11,7 @@ Author:
 */
 
 //local includes
+#include "container.h"
 #include "hrust1_bitstream.h"
 #include "pack_utils.h"
 //common includes
@@ -246,6 +247,8 @@ namespace PowerfullCodeDecreaser6
     template<class Header>
     explicit BitstreamDecoder(const Header& header)
       : Stream(header.Bitstream, fromLE(header.SizeOfPacked) - sizeof(header.LastBytes))
+      , Result(new Dump())
+      , Decoded(*Result)
     {
       assert(!Stream.Eof());
     }
@@ -341,7 +344,8 @@ namespace PowerfullCodeDecreaser6
     }
   protected:
     Bitstream Stream;
-    Dump Decoded;
+    std::auto_ptr<Dump> Result;
+    Dump& Decoded;
   };
 
   template<class Version>
@@ -353,16 +357,17 @@ namespace PowerfullCodeDecreaser6
       , IsValid(container.FastCheck())
       , Header(container.GetHeader())
     {
-      assert(IsValid && !Stream.Eof());
-    }
-
-    Dump* GetDecodedData()
-    {
-      if (IsValid && !Stream.Eof() && Decoded.empty())
+      if (IsValid && !Stream.Eof())
       {
         IsValid = DecodeData();
       }
-      return IsValid ? &Decoded : 0;
+    }
+
+    std::auto_ptr<Dump> GetResult()
+    {
+      return IsValid
+        ? Result
+        : std::auto_ptr<Dump>();
     }
   private:
     bool DecodeData()
@@ -406,21 +411,15 @@ namespace Formats
         return container.FastCheck() && Depacker->Match(data, availSize);
       }
 
-      virtual std::auto_ptr<Dump> Decode(const void* data, std::size_t availSize, std::size_t& usedSize) const
+      virtual Container::Ptr Decode(const void* data, std::size_t availSize) const
       {
         const PowerfullCodeDecreaser6::Container<Version> container(data, availSize);
-        if (container.FastCheck() && Depacker->Match(data, availSize))
+        if (!container.FastCheck() || !Depacker->Match(data, availSize))
         {
-          PowerfullCodeDecreaser6::DataDecoder<Version> decoder(container);
-          if (Dump* decoded = decoder.GetDecodedData())
-          {
-            usedSize = container.GetUsedSize();
-            std::auto_ptr<Dump> res(new Dump());
-            res->swap(*decoded);
-            return res;
-          }
+          return Container::Ptr();
         }
-        return std::auto_ptr<Dump>();
+        PowerfullCodeDecreaser6::DataDecoder<Version> decoder(container);
+        return CreatePackedContainer(decoder.GetResult(), container.GetUsedSize());
       }
     private:
       const Binary::Format::Ptr Depacker;

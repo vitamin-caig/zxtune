@@ -65,15 +65,14 @@ namespace
       {
         break;
       }
-      std::size_t usedSize = 0;
-      std::auto_ptr<Dump> decoded = decoder.Decode(rawData, rawSize, usedSize);
-      if (!decoded.get() || !usedSize)
+      const Formats::Packed::Container::Ptr fileData = decoder.Decode(rawData, rawSize);
+      if (!fileData)
       {
         break;
       }
-      const Binary::Container::Ptr fileData = Binary::CreateContainer(decoded);
       const String fileName = ExtractFileName(rawData);
       const std::size_t fileSize = fileData->Size();
+      const std::size_t usedSize = fileData->PackedSize();
       const TRDos::File::Ptr file = TRDos::File::Create(fileData, fileName, flatOffset, fileSize);
       builder->AddFile(file);
       rawOffset += usedSize;

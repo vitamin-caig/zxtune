@@ -59,24 +59,31 @@ namespace
 namespace Binary
 {
   //construct container from data dump. Use memcpy since shared_array is less usable in common code
-  Container::Ptr CreateContainer(const Dump& data)
-  {
-    const SharedDump buffer(new Dump(data));
-    const std::size_t size = data.size() * sizeof(data.front());
-    return boost::make_shared<SharedDumpContainer>(buffer, 0, size);
-  }
-
   Container::Ptr CreateContainer(const void* data, std::size_t size)
   {
-    const SharedDump buffer(new Dump(size / sizeof(Dump::value_type)));
-    std::memcpy(&buffer->front(), data, size);
-    return boost::make_shared<SharedDumpContainer>(buffer, 0, size);
+    if (data)
+    {
+      const SharedDump buffer(new Dump(size / sizeof(Dump::value_type)));
+      std::memcpy(&buffer->front(), data, size);
+      return boost::make_shared<SharedDumpContainer>(buffer, 0, size);
+    }
+    else
+    {
+      return Container::Ptr();
+    }
   }
 
   Container::Ptr CreateContainer(std::auto_ptr<Dump> data)
   {
-    const SharedDump buffer(data);
-    const std::size_t size = buffer->size() * sizeof(buffer->front());
-    return boost::make_shared<SharedDumpContainer>(buffer, 0, size);
+    if (data.get())
+    {
+      const SharedDump buffer(data);
+      const std::size_t size = buffer->size() * sizeof(buffer->front());
+      return boost::make_shared<SharedDumpContainer>(buffer, 0, size);
+    }
+    else
+    {
+      return Container::Ptr();
+    }
   }
 }

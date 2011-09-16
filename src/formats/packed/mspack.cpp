@@ -11,6 +11,7 @@ Author:
 */
 
 //local includes
+#include "container.h"
 #include "hrust1_bitstream.h"
 #include "pack_utils.h"
 //common includes
@@ -115,17 +116,20 @@ namespace MSPack
       : IsValid(container.Check())
       , Header(container.GetHeader())
       , Stream(Header.BitStream, fromLE(Header.SizeOfPacked))
-    {
-      assert(IsValid && !Stream.Eof());
-    }
-
-    Dump* GetDecodedData()
+      , Result(new Dump())
+      , Decoded(*Result)
     {
       if (IsValid && !Stream.Eof())
       {
         IsValid = DecodeData();
       }
-      return IsValid ? &Decoded : 0;
+    }
+
+    std::auto_ptr<Dump> GetResult()
+    {
+      return IsValid
+        ? Result
+        : std::auto_ptr<Dump>();
     }
   private:
     bool DecodeData()
@@ -220,7 +224,8 @@ namespace MSPack
     bool IsValid;
     const RawHeader& Header;
     Hrust1Bitstream Stream;
-    Dump Decoded;
+    std::auto_ptr<Dump> Result;
+    Dump& Decoded;
   };
 
   class Format : public Binary::Format
@@ -265,22 +270,15 @@ namespace Formats
         return container.Check();
       }
 
-      virtual std::auto_ptr<Dump> Decode(const void* data, std::size_t availSize, std::size_t& usedSize) const
+      virtual Container::Ptr Decode(const void* data, std::size_t availSize) const
       {
         const MSPack::Container container(data, availSize);
         if (!container.Check())
         {
-          return std::auto_ptr<Dump>();
+          return Container::Ptr();
         }
         MSPack::DataDecoder decoder(container);
-        if (Dump* decoded = decoder.GetDecodedData())
-        {
-          usedSize = container.GetUsedSize();
-          std::auto_ptr<Dump> res(new Dump());
-          res->swap(*decoded);
-          return res;
-        }
-        return std::auto_ptr<Dump>();
+        return CreatePackedContainer(decoder.GetResult(), container.GetUsedSize());
       }
     };
 

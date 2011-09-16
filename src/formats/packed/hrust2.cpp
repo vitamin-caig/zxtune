@@ -11,6 +11,7 @@ Author:
 */
 
 //local includes
+#include "container.h"
 #include "hrust1_bitstream.h"
 #include "pack_utils.h"
 //common includes
@@ -181,17 +182,21 @@ namespace Hrust2
       : Header(header)
       , Stream(Header.BitStream, rawSize)
       , IsValid(!Stream.Eof())
-    {
-      Decoded.reserve(rawSize * 2);
-    }
-
-    Dump* GetDecodedData()
+      , Result(new Dump())
+      , Decoded(*Result)
     {
       if (IsValid)
       {
+        Decoded.reserve(rawSize * 2);
         IsValid = DecodeData();
       }
-      return IsValid ? &Decoded : 0;
+    }
+
+    std::auto_ptr<Dump> GetResult()
+    {
+      return IsValid
+        ? Result
+        : std::auto_ptr<Dump>();
     }
   private:
     bool DecodeData()
@@ -259,7 +264,8 @@ namespace Hrust2
     const RawHeader& Header;
     Bitstream Stream;
     bool IsValid;
-    Dump Decoded;
+    std::auto_ptr<Dump> Result;
+    Dump& Decoded;
   };
 
   class DataDecoder
@@ -268,17 +274,16 @@ namespace Hrust2
     explicit DataDecoder(const Container& container)
       : IsValid(container.FastCheck())
       , Header(container.GetHeader())
+      , Result(new Dump())
     {
-      assert(IsValid);
+      IsValid = IsValid && DecodeData();
     }
 
-    Dump* GetDecodedData()
+    std::auto_ptr<Dump> GetResult()
     {
-      if (IsValid)
-      {
-        IsValid = DecodeData();
-      }
-      return IsValid ? &Decoded : 0;
+      return IsValid
+        ? Result
+        : std::auto_ptr<Dump>();
     }
   private:
     bool DecodeData()
@@ -287,22 +292,18 @@ namespace Hrust2
       if (0 != (Header.Flag & Header.NO_COMPRESSION))
       {
         //just copy
-        Decoded.resize(size);
-        std::memcpy(&Decoded[0], &Header.Stream, size);
+        Result->resize(size);
+        std::memcpy(&(*Result)[0], &Header.Stream, size);
         return true;
       }
       RawDataDecoder decoder(Header.Stream, fromLE(Header.PackedSize));
-      if (Dump* res = decoder.GetDecodedData())
-      {
-        Decoded.swap(*res);
-        return true;
-      }
-      return false;
+      Result = decoder.GetResult();
+      return 0 != Result.get();
     }
   private:
     bool IsValid;
     const FormatHeader& Header;
-    Dump Decoded;
+    std::auto_ptr<Dump> Result;
   };
 
   class RawFormat : public Binary::Format
@@ -360,22 +361,15 @@ namespace Formats
         return availSize >= sizeof(Hrust2::RawHeader);
       }
 
-      virtual std::auto_ptr<Dump> Decode(const void* data, std::size_t availSize, std::size_t& usedSize) const
+      virtual Container::Ptr Decode(const void* data, std::size_t availSize) const
       {
         if (availSize < sizeof(Hrust2::RawHeader))
         {
-          return std::auto_ptr<Dump>();
+          return Container::Ptr();
         }
         const Hrust2::RawHeader& header = *static_cast<const Hrust2::RawHeader*>(data);
         Hrust2::RawDataDecoder decoder(header, availSize);
-        if (Dump* decoded = decoder.GetDecodedData())
-        {
-          usedSize = availSize;
-          std::auto_ptr<Dump> res(new Dump());
-          res->swap(*decoded);
-          return res;
-        }
-        return std::auto_ptr<Dump>();
+        return CreatePackedContainer(decoder.GetResult(), availSize);
       }
     };
 
@@ -393,22 +387,15 @@ namespace Formats
         return container.FastCheck();
       }
 
-      virtual std::auto_ptr<Dump> Decode(const void* data, std::size_t availSize, std::size_t& usedSize) const
+      virtual Container::Ptr Decode(const void* data, std::size_t availSize) const
       {
         const Hrust2::Container container(data, availSize);
         if (!container.FastCheck())
         {
-          return std::auto_ptr<Dump>();
+          return Container::Ptr();
         }
         Hrust2::DataDecoder decoder(container);
-        if (Dump* decoded = decoder.GetDecodedData())
-        {
-          usedSize = container.GetUsedSize();
-          std::auto_ptr<Dump> res(new Dump());
-          res->swap(*decoded);
-          return res;
-        }
-        return std::auto_ptr<Dump>();
+        return CreatePackedContainer(decoder.GetResult(), container.GetUsedSize());
       }
     };
 

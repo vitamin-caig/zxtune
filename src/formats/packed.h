@@ -12,6 +12,7 @@
 #define __FORMATS_PACKED_H_DEFINED__
 
 //library includes
+#include <binary/container.h>
 #include <binary/format.h>
 //std includes
 #include <memory>
@@ -20,6 +21,14 @@ namespace Formats
 {
   namespace Packed
   {
+    class Container : public Binary::Container
+    {
+    public:
+      typedef boost::shared_ptr<const Container> Ptr;
+
+      virtual std::size_t PackedSize() const = 0;
+    };
+
     class Decoder
     {
     public:
@@ -28,7 +37,7 @@ namespace Formats
 
       virtual Binary::Format::Ptr GetFormat() const = 0;
       virtual bool Check(const void* data, std::size_t availSize) const = 0;
-      virtual std::auto_ptr<Dump> Decode(const void* data, std::size_t availSize, std::size_t& usedSize) const = 0;
+      virtual Container::Ptr Decode(const void* data, std::size_t availSize) const = 0;
     };
   }
 }

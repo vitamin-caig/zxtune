@@ -11,6 +11,7 @@ Author:
 */
 
 //local includes
+#include "container.h"
 #include "zip_supp.h"
 //common includes
 #include <logging.h>
@@ -285,20 +286,15 @@ namespace Formats
         return Depacker->Match(data, availSize);
       }
 
-      virtual std::auto_ptr<Dump> Decode(const void* data, std::size_t availSize, std::size_t& usedSize) const
+      virtual Container::Ptr Decode(const void* data, std::size_t availSize) const
       {
         const ::Zip::Container container(data, availSize);
         if (!container.FastCheck() || !Depacker->Match(data, availSize))
         {
-          return std::auto_ptr<Dump>();
+          return Container::Ptr();
         }
         ::Zip::DispatchedDataDecoder decoder(container);
-        std::auto_ptr<Dump> decoded = decoder.Decompress();
-        if (decoded.get())
-        {
-          usedSize = container.GetUsedSize();
-        }
-        return decoded;
+        return CreatePackedContainer(decoder.Decompress(), container.GetUsedSize());
       }
     private:
       const Binary::Format::Ptr Depacker;

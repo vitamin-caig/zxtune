@@ -1040,24 +1040,24 @@ namespace
 
     Binary::Container::Ptr GetAy() const
     {
-      VariableDump result;
+      std::auto_ptr<VariableDump> result(new VariableDump());
       //init header
-      AYHeader* const header = result.Add(AYHeader());
+      AYHeader* const header = result->Add(AYHeader());
       std::copy(AY_SIGNATURE, ArrayEnd(AY_SIGNATURE), header->Signature);
       std::copy(TYPE_EMUL, ArrayEnd(TYPE_EMUL), header->Type);
-      SetPointer(&header->AuthorOffset, result.Add(Author));
-      SetPointer(&header->MiscOffset, result.Add(Comment));
+      SetPointer(&header->AuthorOffset, result->Add(Author));
+      SetPointer(&header->MiscOffset, result->Add(Comment));
       //init descr
-      ModuleDescription* const descr = result.Add(ModuleDescription());
+      ModuleDescription* const descr = result->Add(ModuleDescription());
       SetPointer(&header->DescriptionsOffset, descr);
-      SetPointer(&descr->TitleOffset, result.Add(Title));
+      SetPointer(&descr->TitleOffset, result->Add(Title));
       //init data
-      ModuleDataEMUL* const data = result.Add(ModuleDataEMUL());
+      ModuleDataEMUL* const data = result->Add(ModuleDataEMUL());
       SetPointer(&descr->DataOffset, data);
       data->TotalLength = fromBE(Duration);
       data->RegValue = fromBE(Register);
       //init pointers
-      ModulePointersEMUL* const pointers = result.Add(ModulePointersEMUL());
+      ModulePointersEMUL* const pointers = result->Add(ModulePointersEMUL());
       SetPointer(&data->PointersOffset, pointers);
       pointers->SP = fromBE(StackPointer);
       pointers->InitAddr = fromBE(InitRoutine);
@@ -1067,7 +1067,7 @@ namespace
       //all blocks + limiter
       for (uint_t block = 0; block != Blocks.size() + 1; ++block)
       {
-        blockPtrs.push_back(result.Add(ModuleBlockEMUL()));
+        blockPtrs.push_back(result->Add(ModuleBlockEMUL()));
       }
       SetPointer(&data->BlocksOffset, blockPtrs.front());
       //fill blocks
@@ -1076,14 +1076,14 @@ namespace
         ModuleBlockEMUL* const dst = blockPtrs.front();
         dst->Address = fromBE<uint16_t>(it->first);
         dst->Size = fromBE<uint16_t>(it->second);
-        SetPointer(&dst->Offset, result.Add(&Memory[it->first], it->second));
+        SetPointer(&dst->Offset, result->Add(&Memory[it->first], it->second));
       }
-      return Binary::CreateContainer(result);
+      return Binary::CreateContainer(std::auto_ptr<Dump>(result));
     }
 
     Binary::Container::Ptr GetRaw() const
     {
-      return Binary::CreateContainer(Memory);
+      return Binary::CreateContainer(&Memory[0], Memory.size());
     }
   private:
     String Title;

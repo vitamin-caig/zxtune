@@ -11,6 +11,7 @@ Author:
 */
 
 //local includes
+#include "container.h"
 #include "pack_utils.h"
 //common includes
 #include <byteorder.h>
@@ -228,17 +229,20 @@ namespace CompressorCode
       : IsValid(true)
       , Stream(data, size)
       , ChunksCount(chunksCount)
-    {
-      assert(!Stream.Eof());
-    }
-
-    Dump* GetDecodedData()
+      , Result(new Dump())
+      , Decoded(*Result)
     {
       if (IsValid && !Stream.Eof())
       {
         IsValid = DecodeData();
       }
-      return IsValid ? &Decoded : 0;
+    }
+
+    std::auto_ptr<Dump> GetResult()
+    {
+      return IsValid
+        ? Result
+        : std::auto_ptr<Dump>();
     }
 
     std::size_t GetUsedSize() const
@@ -384,7 +388,8 @@ namespace CompressorCode
     bool IsValid;
     StreamAdapter Stream;
     const uint_t ChunksCount;
-    Dump Decoded;
+    std::auto_ptr<Dump> Result;
+    Dump& Decoded;
   };
 
   template<class Version>
@@ -401,14 +406,13 @@ namespace CompressorCode
         ? new RawDataDecoder(Header.Padding1 + DataOffset, container.GetAvailableData() - DataOffset, fromLE(Header.ChunksCount))
         : 0)
     {
-      assert(Delegate.get());
     }
 
-    Dump* GetDecodedData()
+    std::auto_ptr<Dump> GetResult()
     {
       return Delegate.get()
-        ? Delegate->GetDecodedData()
-        : 0;
+        ? Delegate->GetResult()
+        : std::auto_ptr<Dump>();
     }
 
     std::size_t GetUsedSize() const
@@ -489,12 +493,12 @@ namespace CompressorCode
         Delegate.reset(new RawDataDecoder(&UnhuffmanData[0], UnhuffmanData.size(), fromLE(Header.ChunksCount)));
       }
     }
-  
-    Dump* GetDecodedData()
+
+    std::auto_ptr<Dump> GetResult()
     {
       return Delegate.get()
-        ? Delegate->GetDecodedData()
-        : 0;
+        ? Delegate->GetResult()
+        : std::auto_ptr<Dump>();
     }
 
     std::size_t GetUsedSize() const
@@ -556,22 +560,15 @@ namespace Formats
         return container.FastCheck() && Depacker->Match(data, availSize);
       }
 
-      virtual std::auto_ptr<Dump> Decode(const void* data, std::size_t availSize, std::size_t& usedSize) const
+      virtual Container::Ptr Decode(const void* data, std::size_t availSize) const
       {
         const CompressorCode::Container<Version> container(data, availSize);
         if (!container.FastCheck() || !Depacker->Match(data, availSize))
         {
-          return std::auto_ptr<Dump>();
+          return Container::Ptr();
         }
         CompressorCode::DataDecoder<Version> decoder(container);
-        if (Dump* decoded = decoder.GetDecodedData())
-        {
-          usedSize = decoder.GetUsedSize();
-          std::auto_ptr<Dump> res(new Dump());
-          res->swap(*decoded);
-          return res;
-        }
-        return std::auto_ptr<Dump>();
+        return CreatePackedContainer(decoder.GetResult(), decoder.GetUsedSize());
       }
     private:
       const Binary::Format::Ptr Depacker;

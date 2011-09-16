@@ -11,6 +11,7 @@ Author:
 */
 
 //local includes
+#include "container.h"
 #include "pack_utils.h"
 //common includes
 #include <byteorder.h>
@@ -236,17 +237,20 @@ namespace CodeCruncher3
       : IsValid(container.FastCheck())
       , Header(container.GetHeader())
       , Stream(Header.Data, fromLE(Header.SizeOfPacked))
-    {
-      assert(IsValid && !Stream.Eof());
-    }
-
-    Dump* GetDecodedData()
+      , Result(new Dump())
+      , Decoded(*Result)
     {
       if (IsValid && !Stream.Eof())
       {
         IsValid = DecodeData();
       }
-      return IsValid ? &Decoded : 0;
+    }
+
+    std::auto_ptr<Dump> GetResult()
+    {
+      return IsValid
+        ? Result
+        : std::auto_ptr<Dump>();
     }
   private:
     bool DecodeData()
@@ -332,7 +336,8 @@ namespace CodeCruncher3
     bool IsValid;
     const RawHeader& Header;
     ByteStream Stream;
-    Dump Decoded;
+    std::auto_ptr<Dump> Result;
+    Dump& Decoded;
   };
 }
 
@@ -359,22 +364,15 @@ namespace Formats
         return container.FastCheck() && Depacker->Match(data, availSize);
       }
 
-      virtual std::auto_ptr<Dump> Decode(const void* data, std::size_t availSize, std::size_t& usedSize) const
+      virtual Container::Ptr Decode(const void* data, std::size_t availSize) const
       {
         const CodeCruncher3::Container container(data, availSize);
         if (!container.FastCheck() || !Depacker->Match(data, availSize))
         {
-          return std::auto_ptr<Dump>();
+          return Container::Ptr();
         }
         CodeCruncher3::DataDecoder decoder(container);
-        if (Dump* decoded = decoder.GetDecodedData())
-        {
-          usedSize = container.GetUsedSize();
-          std::auto_ptr<Dump> res(new Dump());
-          res->swap(*decoded);
-          return res;
-        }
-        return std::auto_ptr<Dump>();
+        return CreatePackedContainer(decoder.GetResult(), container.GetUsedSize());
       }
     private:
       const Binary::Format::Ptr Depacker;

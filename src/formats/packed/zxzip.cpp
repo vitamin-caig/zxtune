@@ -11,6 +11,7 @@ Author:
 */
 
 //local includes
+#include "container.h"
 #include "pack_utils.h"
 //common includes
 #include <byteorder.h>
@@ -150,7 +151,7 @@ namespace ZXZip
   public:
     virtual ~DataDecoder() {}
 
-    virtual Dump* GetDecodedData() = 0;
+    virtual std::auto_ptr<Dump> GetDecodedData() = 0;
   };
 
   class StoreDataDecoder : public DataDecoder
@@ -162,17 +163,16 @@ namespace ZXZip
       assert(STORE == Header.Method);
     }
 
-    virtual Dump* GetDecodedData()
+    virtual std::auto_ptr<Dump> GetDecodedData()
     {
       const uint_t packedSize = fromLE(Header.PackedSize);
       const uint8_t* const sourceData = safe_ptr_cast<const uint8_t*>(&Header + 1);
-      Decoded.resize(packedSize);
-      std::memcpy(&Decoded[0], sourceData, packedSize);
-      return &Decoded;
+      std::auto_ptr<Dump> res(new Dump(packedSize));
+      std::memcpy(&(*res)[0], sourceData, packedSize);
+      return res;
     }
   private:
     const RawHeader& Header;
-    Dump Decoded;
   };
 
   const uint8_t SFT_64_1[] =
@@ -330,7 +330,7 @@ namespace ZXZip
       assert(IMPLODE == Header.Method);
     }
 
-    virtual Dump* GetDecodedData()
+    virtual std::auto_ptr<Dump> GetDecodedData()
     {
       const std::size_t dataSize = GetSourceFileSize(Header);
       const bool isBigFile = dataSize >= 0x1600;
@@ -399,12 +399,13 @@ namespace ZXZip
             }
           }
         }
-        Decoded.swap(result);
-        return &Decoded;
+        std::auto_ptr<Dump> res(new Dump());
+        res->swap(result);
+        return res;
       }
       catch (const std::exception&)
       {
-        return 0;
+        return std::auto_ptr<Dump>();
       }
     }
   private:
@@ -449,7 +450,6 @@ namespace ZXZip
     }
   private:
     const RawHeader& Header;
-    Dump Decoded;
   };
 
   struct LZWEntry
@@ -486,7 +486,7 @@ namespace ZXZip
       assert(SHRINK == Header.Method);
     }
 
-    virtual Dump* GetDecodedData()
+    virtual std::auto_ptr<Dump> GetDecodedData()
     {
       try
       {
@@ -547,12 +547,13 @@ namespace ZXZip
             oldCode = code;
           }
         }
-        Decoded.swap(result);
-        return &Decoded;
+        std::auto_ptr<Dump> res(new Dump());
+        res->swap(result);
+        return res;
       }
       catch (const std::exception&)
       {
-        return 0;
+        return std::auto_ptr<Dump>();
       }
     }
   private:
@@ -588,7 +589,6 @@ namespace ZXZip
     }
   private:
     const RawHeader& Header;
-    Dump Decoded;
   };
 
   std::auto_ptr<DataDecoder> CreateDecoder(const RawHeader& header)
@@ -606,7 +606,7 @@ namespace ZXZip
     };
   };
 
-  class DispatchedDataDecoder
+  class DispatchedDataDecoder : public DataDecoder
   {
   public:
     explicit DispatchedDataDecoder(const Container& container)
@@ -616,13 +616,14 @@ namespace ZXZip
     {
     }
 
-    Dump* GetDecodedData()
+    std::auto_ptr<Dump> GetDecodedData()
     {
       if (!IsValid)
       {
-        return 0;
+        return std::auto_ptr<Dump>();
       }
-      while (Dump* result = Delegate->GetDecodedData())
+      std::auto_ptr<Dump> result = Delegate->GetDecodedData();
+      while (result.get())
       {
         const std::size_t dataSize = GetSourceFileSize(Header);
         if (dataSize != result->size())
@@ -638,7 +639,7 @@ namespace ZXZip
         return result;
       }
       IsValid = false;
-      return 0;
+      return std::auto_ptr<Dump>();
     }
   private:
     const RawHeader& Header;
@@ -670,22 +671,15 @@ namespace Formats
         return container.FastCheck() && Depacker->Match(data, availSize);
       }
 
-      virtual std::auto_ptr<Dump> Decode(const void* data, std::size_t availSize, std::size_t& usedSize) const
+      virtual Container::Ptr Decode(const void* data, std::size_t availSize) const
       {
         const ZXZip::Container container(data, availSize);
         if (!container.FastCheck() || !Depacker->Match(data, availSize))
         {
-          return std::auto_ptr<Dump>();
+          return Container::Ptr();
         }
         ZXZip::DispatchedDataDecoder decoder(container);
-        if (Dump* decoded = decoder.GetDecodedData())
-        {
-          usedSize = container.GetUsedSize();
-          std::auto_ptr<Dump> res(new Dump());
-          res->swap(*decoded);
-          return res;
-        }
-        return std::auto_ptr<Dump>();
+        return CreatePackedContainer(decoder.GetDecodedData(), container.GetUsedSize());
       }
     private:
       const Binary::Format::Ptr Depacker;

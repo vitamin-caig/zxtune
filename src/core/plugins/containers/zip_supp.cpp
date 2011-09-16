@@ -68,13 +68,7 @@ namespace
     virtual Binary::Container::Ptr GetData() const
     {
       Log::Debug(THIS_MODULE, "Decompressing '%1%'", Name);
-      std::size_t usedSize = 0;
-      std::auto_ptr<Dump> decoded = Decoder.Decode(Data->Data(), Data->Size(), usedSize);
-      if (!decoded.get())
-      {
-        return Binary::Container::Ptr();
-      }
-      return Binary::CreateContainer(decoded);
+      return Decoder.Decode(Data->Data(), Data->Size());
     }
   private:
     const Formats::Packed::Decoder& Decoder;

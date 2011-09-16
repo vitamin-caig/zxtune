@@ -117,31 +117,20 @@ namespace
     {
     }
 
-    Dump DecodeBlock(const HripBlockHeader* block) const
+    Binary::Container::Ptr DecodeBlock(const HripBlockHeader* block) const
     {
       const uint8_t* const packedData = safe_ptr_cast<const uint8_t*>(&block->PackedCRC) + block->AdditionalSize;
       const std::size_t packedSize = fromLE(block->PackedSize);
-      const std::size_t unpackedSize = fromLE(block->DataSize);
-      Dump res;
       if (0 != (block->Flag & HripBlockHeader::NO_COMPRESSION))
       {
-        //just copy
-        res.assign(packedData, packedData + packedSize);
+        const std::size_t offset = packedData - static_cast<const uint8_t*>(Data->Data());
+        return Data->GetSubcontainer(offset, packedSize);
       }
       else if (Decoder->Check(packedData, packedSize))
       {
-        std::size_t usedSize = 0;
-        std::auto_ptr<Dump> result = Decoder->Decode(packedData, packedSize, usedSize);
-        if (result.get())
-        {
-          result->swap(res);
-        }
+        return Decoder->Decode(packedData, packedSize);
       }
-      if (unpackedSize != res.size())
-      {
-        res.resize(unpackedSize);
-      }
-      return res;
+      return Binary::Container::Ptr();
     }
   private:
     const Formats::Packed::Decoder::Ptr Decoder;
@@ -195,23 +184,33 @@ namespace
       for (HripBlockHeadersList::const_iterator it = Blocks.begin(), lim = Blocks.end(); it != lim; ++it)
       {
         const HripBlockHeader* const block = *it;
-        const Dump& data = Data->DecodeBlock(block);
-        if (!IgnoreCorrupted)
+        const uint8_t* const packedData = safe_ptr_cast<const uint8_t*>(&block->PackedCRC) + block->AdditionalSize;
+        const std::size_t packedSize = fromLE(block->PackedSize);
+        if (!IgnoreCorrupted &&
+            (block->AdditionalSize >= 2 && fromLE(block->PackedCRC) != CalcCRC(packedData, packedSize)))
         {
-          const uint8_t* const packedData = safe_ptr_cast<const uint8_t*>(&block->PackedCRC) + block->AdditionalSize;
-          //check if block CRC is available and check it if required
-          if (block->AdditionalSize >= 2 &&
-              fromLE(block->PackedCRC) != CalcCRC(packedData, fromLE(block->PackedSize)))
-          {
-            return Binary::Container::Ptr();
-          }
-          if (block->AdditionalSize >= 4 &&
-              fromLE(block->DataCRC) != CalcCRC(&data[0], data.size()))
-          {
-            return Binary::Container::Ptr();
-          }
+          return Binary::Container::Ptr();
         }
-        dst = std::copy(data.begin(), data.end(), dst);
+        if (Binary::Container::Ptr decodedBlock = Data->DecodeBlock(block))
+        {
+          const uint8_t* const blockData = static_cast<const uint8_t*>(decodedBlock->Data());
+          const std::size_t blockSize = decodedBlock->Size();
+          if (!IgnoreCorrupted &&
+              (block->AdditionalSize >= 4 && fromLE(block->DataCRC) != CalcCRC(blockData, blockSize)))
+          {
+            return Binary::Container::Ptr();
+          }
+          //single block
+          if (1 == Blocks.size())
+          {
+            return decodedBlock;
+          }
+          dst = std::copy(blockData, blockData + blockSize, dst);
+        }
+        else if (!IgnoreCorrupted)
+        {
+          return Binary::Container::Ptr();
+        }
       }
       return Binary::CreateContainer(result);
     }

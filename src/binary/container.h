@@ -36,7 +36,6 @@ namespace Binary
   };
 
   //! @brief Creating data container based on raw data
-  Container::Ptr CreateContainer(const Dump& data);
   Container::Ptr CreateContainer(const void* data, std::size_t size);
   Container::Ptr CreateContainer(std::auto_ptr<Dump> data);
 }

@@ -5,6 +5,7 @@
 #include <types.h>
 #include <formats/packed_decoders.h>
 #include <map>
+#include <cstring>
 #include <stdexcept>
 #include <fstream>
 #include <iostream>
@@ -40,26 +41,48 @@ namespace Test
       {
         throw std::runtime_error("Failed to check for sanity.");
       }
-      std::size_t usedSize = 0;
-      std::auto_ptr<Dump> unpacked = decoder.Decode(&testdata[0], testdata.size(), usedSize);
-      if (!unpacked.get())
+      //positive test
+      if (const Formats::Packed::Container::Ptr unpacked = decoder.Decode(&testdata[0], testdata.size()))
+      {
+        if (unpacked->Size() != etalon.size() &&
+            0 != std::memcmp(&etalon[0], unpacked->Data(), etalon.size()))
+        {
+          std::ofstream output((testname + "_decoded").c_str(), std::ios::binary);
+          output.write(static_cast<const char*>(unpacked->Data()), unpacked->Size());
+          std::ostringstream str;
+          str << "Invalid decode:\n"
+            "ref size=" << etalon.size() << "\n"
+            "unpacked size=" << unpacked->Size();
+          throw std::runtime_error(str.str());
+        }
+        if (unpacked->PackedSize() != testdata.size())
+        {
+          throw std::runtime_error("Invalid used data size");
+        }
+        std::cout << "  passed positive" << std::endl;
+      }
+      else
       {
         throw std::runtime_error("Failed to decode");
       }
-      if (etalon != *unpacked)
+      if (const Formats::Packed::Container::Ptr nonunpacked = decoder.Decode(&etalon[0], etalon.size()))
       {
-        std::ofstream output((testname + "_decoded").c_str(), std::ios::binary);
-        output.write(safe_ptr_cast<const char*>(&unpacked->front()), unpacked->size());
-        std::ostringstream str;
-        str << "Invalid decode:\n"
-          "ref size=" << etalon.size() << "\n"
-          "unpacked size=" << unpacked->size();
-        throw std::runtime_error(str.str());
+        throw std::runtime_error("Unexpected success for invalid data");
       }
-      if (usedSize != testdata.size())
+      else
       {
-        throw std::runtime_error("Invalid used data size");
+        std::cout << "  passed negative" << std::endl;
       }
+      /*
+      Dump corrupted(testdata);
+      corrupted[corrupted.size() / 4] ^= 0xff;
+      corrupted[corrupted.size() / 2] ^= 0xff;
+      corrupted[3 * corrupted.size() / 4] ^= 0xff;
+      if (const Formats::Packed::Container::Ptr nonunpacked = decoder.Decode(&corrupted[0], corrupted.size()))
+      {
+        std::cout << "  failed corrupted" << std::endl;
+      }
+      */
     }
   }
 
