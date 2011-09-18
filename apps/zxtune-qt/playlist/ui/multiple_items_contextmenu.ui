@@ -73,7 +73,7 @@
   </action>
   <action name="CopyToClipboardAction">
    <property name="text">
-    <string>Copy all pathes</string>
+    <string>Copy all paths</string>
    </property>
   </action>
  </widget>

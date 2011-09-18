@@ -15,6 +15,7 @@ Author:
 #include "scanner.h"
 #include "source.h"
 #include "ui/utils.h"
+#include "ui/tools/errordialog.h"
 //common includes
 #include <error.h>
 #include <logging.h>
@@ -111,17 +112,25 @@ namespace
     {
       Canceled = false;
       ItemsDone = ItemsTotal = 0;
-      OnScanStart();
-      while (Playlist::ScannerSource::Ptr scanner = GetNextScanner())
+      //RAII usage is complicated by On* signals visibility (protected)
+      try
       {
-        OnResolvingStart();
-        const unsigned newItems = scanner->Resolve();
-        OnResolvingStop();
-        ItemsTotal += newItems;
-        scanner->Process();
-        ItemsDone += newItems;
+        OnScanStart();
+        while (Playlist::ScannerSource::Ptr scanner = GetNextScanner())
+        {
+          OnResolvingStart();
+          const unsigned newItems = scanner->Resolve();
+          OnResolvingStop();
+          ItemsTotal += newItems;
+          scanner->Process();
+          ItemsDone += newItems;
+        }
+        OnScanStop();
       }
-      OnScanStop();
+      catch (const Error& err)
+      {
+        OnScanStop();
+      }
     }
   private:
     Playlist::ScannerSource::Ptr GetNextScanner()
