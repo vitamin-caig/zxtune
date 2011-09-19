@@ -50,14 +50,45 @@ namespace
     fromLE(0x0007)
   };
 
+  class StubContainerFile : public Container::File
+  {
+  public:
+    virtual String GetName() const
+    {
+      return String();
+    }
+
+    virtual std::size_t GetOffset() const
+    {
+      return ~std::size_t(0);
+    }
+
+    virtual std::size_t GetSize() const
+    {
+      return 0;
+    }
+
+    virtual Binary::Container::Ptr GetData() const
+    {
+      return Binary::Container::Ptr();
+    }
+
+    static Ptr Create()
+    {
+      static StubContainerFile stub;
+      return Ptr(&stub, NullDeleter<StubContainerFile>());
+    }
+  };
+
   class RarContainerFile : public Container::File
   {
   public:
-    RarContainerFile(const Formats::Packed::Decoder& decoder, Binary::Container::Ptr data, const String& name, std::size_t size)
+    RarContainerFile(Formats::Packed::Decoder::Ptr decoder, Binary::Container::Ptr data, const String& name, std::size_t size, Container::File::Ptr parent)
       : Decoder(decoder)
       , Data(data)
       , Name(name)
       , Size(size)
+      , Parent(parent)
     {
     }
 
@@ -78,14 +109,16 @@ namespace
 
     virtual Binary::Container::Ptr GetData() const
     {
+      Parent->GetData();
       Log::Debug(THIS_MODULE, "Decompressing '%1%'", Name);
-      return Decoder.Decode(*Data);
+      return Decoder->Decode(*Data);
     }
   private:
-    const Formats::Packed::Decoder& Decoder;
+    const Formats::Packed::Decoder::Ptr Decoder;
     const Binary::Container::Ptr Data;
     const String Name;
     const std::size_t Size;
+    const Container::File::Ptr Parent;
   };
 
   class RarBlocksIterator
@@ -208,10 +241,11 @@ namespace
   class RarFilesIterator
   {
   public:
-    RarFilesIterator(const Formats::Packed::Decoder& decoder, Binary::Container::Ptr data)
+    RarFilesIterator(Formats::Packed::Decoder::Ptr decoder, Binary::Container::Ptr data)
       : Decoder(decoder)
       , Data(data)
       , Blocks(data)
+      , Previous(StubContainerFile::Create())
     {
       SkipNonFileBlocks();
     }
@@ -238,16 +272,26 @@ namespace
 
     Container::File::Ptr GetFile() const
     {
-      assert(IsValid());
-      const std::size_t offset = Blocks.GetOffset();
-      const std::size_t size = Blocks.GetBlockSize();
-      const Binary::Container::Ptr fileBlock = Data->GetSubcontainer(offset, size);
-      const Formats::Packed::Rar::FileBlockHeader& file = *Blocks.GetFileHeader();
-      return boost::make_shared<RarContainerFile>(Decoder, fileBlock, GetName(), fromLE(file.UnpackedSize));
+      if (!IsValid())
+      {
+        return StubContainerFile::Create();
+      }
+      if (!Current)
+      {
+        const std::size_t offset = Blocks.GetOffset();
+        const std::size_t size = Blocks.GetBlockSize();
+        const Binary::Container::Ptr fileBlock = Data->GetSubcontainer(offset, size);
+        const Formats::Packed::Rar::FileBlockHeader& file = *Blocks.GetFileHeader();
+        const Container::File::Ptr prev = file.IsSolid() ? Previous : StubContainerFile::Create();
+        Current = boost::make_shared<RarContainerFile>(Decoder, fileBlock, GetName(), fromLE(file.UnpackedSize), prev);
+      }
+      return Current;
     }
 
     void Next()
     {
+      Previous = GetFile();
+      Current.reset();
       assert(!IsEof());
       Blocks.Next();
       SkipNonFileBlocks();
@@ -266,9 +310,11 @@ namespace
       }
     }
   private:
-    const Formats::Packed::Decoder& Decoder;
+    const Formats::Packed::Decoder::Ptr Decoder;
     const Binary::Container::Ptr Data;
     RarBlocksIterator Blocks;
+    mutable Container::File::Ptr Current;
+    Container::File::Ptr Previous;
   };
 
   template<class It>
@@ -305,8 +351,8 @@ namespace
   class RarCatalogue : public Container::Catalogue
   {
   public:
-    RarCatalogue(const Formats::Packed::Decoder& decoder, std::size_t maxFileSize, Binary::Container::Ptr data)
-      : Decoder(decoder)
+    RarCatalogue(std::size_t maxFileSize, Binary::Container::Ptr data)
+      : Decoder(Formats::Packed::CreateRarDecoder())
       , Data(data)
       , MaxFileSize(maxFileSize)
     {
@@ -423,7 +469,7 @@ namespace
       }
     }
   private:
-    const Formats::Packed::Decoder& Decoder;
+    const Formats::Packed::Decoder::Ptr Decoder;
     const Binary::Container::Ptr Data;
     const std::size_t MaxFileSize;
     mutable std::auto_ptr<RarFilesIterator> Iter;
@@ -440,7 +486,7 @@ namespace
     //archive header
     "??"         //uint16_t CRC;
     "73"         //uint8_t Type;
-    "%xxxx0xxx?" //uint16_t Flags; skip Solid archives
+    "??"         //uint16_t Flags;
     "0d00"       //uint16_t Size
   );
 
@@ -449,7 +495,6 @@ namespace
   public:
     RarFactory()
       : Format(Binary::Format::Create(RAR_FORMAT))
-      , Decoder(Formats::Packed::CreateRarDecoder())
     {
     }
 
@@ -472,11 +517,10 @@ namespace
       {
         maxFileSize = std::numeric_limits<std::size_t>::max();
       }
-      return boost::make_shared<RarCatalogue>(*Decoder, static_cast<std::size_t>(maxFileSize), data);
+      return boost::make_shared<RarCatalogue>(static_cast<std::size_t>(maxFileSize), data);
     }
   private:
     const Binary::Format::Ptr Format;
-    const Formats::Packed::Decoder::Ptr Decoder;
   };
 }
 

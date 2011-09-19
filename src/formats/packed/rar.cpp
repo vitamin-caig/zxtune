@@ -97,42 +97,6 @@ namespace Rar
     const Binary::Container& Data;
   };
 
-  class CompressedFile
-  {
-  public:
-    typedef std::auto_ptr<const CompressedFile> Ptr;
-    virtual ~CompressedFile() {}
-
-    virtual Binary::Container::Ptr Decompress() const = 0;
-  };
-
-  class NoCompressedFile : public CompressedFile
-  {
-  public:
-    NoCompressedFile(Binary::Container::Ptr data, std::size_t destSize)
-      : Data(data)
-      , DestSize(destSize)
-    {
-    }
-
-    virtual Binary::Container::Ptr Decompress() const
-    {
-      if (Data->Size() != DestSize)
-      {
-        Log::Debug(THIS_MODULE, "Stored file sizes mismatch");
-        return Binary::Container::Ptr();
-      }
-      else
-      {
-        Log::Debug(THIS_MODULE, "Restore");
-        return Data;
-      }
-    }
-  private:
-    const Binary::Container::Ptr Data;
-    const std::size_t DestSize;
-  };
-
   const uint_t NC = 298;
   const uint_t DC = 48;
   const uint_t RC = 28;
@@ -253,7 +217,7 @@ namespace Rar
     {
     }
 
-    Binary::Container::Ptr Allocate(std::size_t size)
+    Binary::Container::Ptr Reallocate(std::size_t size)
     {
       if (Data)
       {
@@ -261,19 +225,25 @@ namespace Rar
         const std::size_t toCopy = std::min(MAX_WINDOW_SIZE, prevSize);
         const boost::shared_ptr<Dump> newData = boost::make_shared<Dump>(toCopy + size);
         const std::size_t toSkip = prevSize - toCopy;
-        std::copy(Data->begin() + toSkip, Data->end(), newData->begin());
+        Cursor = std::copy(Data->begin() + toSkip, Data->end(), newData->begin());
         Data = newData;
-        Cursor = Data->begin() + toSkip;
         Rest = size;
+        Log::Debug(THIS_MODULE, "Reallocate memory %1% -> %2% (%3% in context)", prevSize, size, toCopy);
         return Binary::CreateContainer(Data, toCopy, size);
       }
       else
       {
-        Data = boost::make_shared<Dump>(size);
-        Cursor = Data->begin();
-        Rest = size;
-        return Binary::CreateContainer(Data, 0, size);
+        return Allocate(size);
       }
+    }
+
+    Binary::Container::Ptr Allocate(std::size_t size)
+    {
+      Data = boost::make_shared<Dump>(size);
+      Cursor = Data->begin();
+      Rest = size;
+      Log::Debug(THIS_MODULE, "Allocated memory %1%", size);
+      return Binary::CreateContainer(Data, 0, size);
     }
 
     bool Full() const
@@ -339,41 +309,31 @@ namespace Rar
   class RarDecoder
   {
   public:
-    RarDecoder(const uint8_t* const start, std::size_t size)
-      : Stream(start, size)
+    Binary::Container::Ptr Decode(RarBitstream& source, std::size_t destSize, bool solid)
     {
-      ReadTables();
-    }
-
-    Binary::Container::Ptr Decode(std::size_t destSize)
-    {
-      const Binary::Container::Ptr res = Decoded.Allocate(destSize);
+      if (!solid)
+      {
+        Reset();
+        ReadTables(source);
+      }
+      const Binary::Container::Ptr res = solid ? Decoded.Reallocate(destSize) : Decoded.Allocate(destSize);
       {
         const SpeedMeasure measure(destSize);
-        Decode();
+        Decode(source);
       }
       return res;
     }
   private:
-    void Decode()
+    void Reset()
     {
-      while (!Decoded.Full())
-      {
-        if (Audio.Unpack)
-        {
-          DecodeAudioBlock();
-        }
-        else
-        {
-          DecodeDataBlock();
-        }
-      }
-      ReadLastTables();
+      Audio = MultimediaCompression();
+      History = RefHistory();
+      UnpOldTable.assign(0);
     }
 
-    void ReadTables()
+    void ReadTables(RarBitstream& stream)
     {
-      const uint_t flags = Stream.ReadBits(2);
+      const uint_t flags = stream.ReadBits(2);
       Audio.Unpack = 0 != (flags & 2);
       if (0 == (flags & 1))
       {
@@ -382,7 +342,7 @@ namespace Rar
 
       if (Audio.Unpack)
       {
-        const uint_t channels = Stream.ReadBits(2) + 1;
+        const uint_t channels = stream.ReadBits(2) + 1;
         Audio.SetChannels(channels);
       }
       const uint_t tableSize = Audio.Unpack
@@ -392,14 +352,14 @@ namespace Rar
       boost::array<uint_t, BC> bitCount =  { {0} };
       for (uint_t i = 0; i < bitCount.size(); ++i)
       {
-        bitCount[i] = Stream.ReadBits(4);
+        bitCount[i] = stream.ReadBits(4);
       }
       MakeDecodeTable(&bitCount[0], BD);
       boost::array<uint_t, MC * 4> table = { {0} };
       assert(tableSize <= table.size());
       for (uint_t i = 0; i < tableSize; )
       {
-        const uint_t number = Stream.DecodeNumber(BD);
+        const uint_t number = stream.DecodeNumber(BD);
         if (number < 16)
         {
           table[i] = (number + UnpOldTable[i]) & 0xf;
@@ -407,7 +367,7 @@ namespace Rar
         }
         else if (number == 16)
         {
-          uint_t n = Stream.ReadBits(2) + 3;
+          uint_t n = stream.ReadBits(2) + 3;
           if (!i)
           {
             ++i;
@@ -421,8 +381,8 @@ namespace Rar
         else
         {
           uint_t n = 17 == number
-            ? (Stream.ReadBits(3) + 3)
-            : (Stream.ReadBits(7) + 11);
+            ? (stream.ReadBits(3) + 3)
+            : (stream.ReadBits(7) + 11);
           for (; n && i < tableSize; ++i, --n)
           {
             table[i] = 0;
@@ -446,22 +406,38 @@ namespace Rar
       UnpOldTable = table;
     }
 
-    void ReadLastTables()
+    void Decode(RarBitstream& source)
+    {
+      while (!Decoded.Full())
+      {
+        if (Audio.Unpack)
+        {
+          DecodeAudioBlock(source);
+        }
+        else
+        {
+          DecodeDataBlock(source);
+        }
+      }
+      ReadLastTables(source);
+    }
+
+    void ReadLastTables(RarBitstream& stream)
     {
       if (Audio.Unpack)
       {
-        const uint_t num = Stream.DecodeNumber(MD[Audio.CurChannel]);
+        const uint_t num = stream.DecodeNumber(MD[Audio.CurChannel]);
         if (256 == num)
         {
-          ReadTables();
+          ReadTables(stream);
         }
       }
       else
       {
-        const uint_t num = Stream.DecodeNumber(LD);
+        const uint_t num = stream.DecodeNumber(LD);
         if (269 == num)
         {
-          ReadTables();
+          ReadTables(stream);
         }
       }
     }
@@ -500,14 +476,14 @@ namespace Rar
       }
     }
 
-    void DecodeAudioBlock()
+    void DecodeAudioBlock(RarBitstream& source)
     {
       while (!Decoded.Full())
       {
-        const uint_t num = Stream.DecodeNumber(MD[Audio.CurChannel]);
+        const uint_t num = source.DecodeNumber(MD[Audio.CurChannel]);
         if (256 == num)
         {
-          ReadTables();
+          ReadTables(source);
           break;
         }
         Decoded.Add(DecodeAudio(num));
@@ -515,7 +491,7 @@ namespace Rar
       }
     }
 
-    void DecodeDataBlock()
+    void DecodeDataBlock(RarBitstream& source)
     {
       static const uint_t LDecode[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 16, 20, 24, 28, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224}; 
       static const uint_t LBits[] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4,  4,  5,  5,  5,  5};
@@ -534,7 +510,7 @@ namespace Rar
 
       while (!Decoded.Full())
       {
-        const uint_t num = Stream.DecodeNumber(LD);
+        const uint_t num = source.DecodeNumber(LD);
         if (num < 256)
         {
           Decoded.Add(static_cast<uint8_t>(num));
@@ -545,13 +521,13 @@ namespace Rar
           uint_t len = LDecode[lenIdx] + 3;
           if (const uint_t lenBits = LBits[lenIdx])
           {
-            len += Stream.ReadBits(lenBits);
+            len += source.ReadBits(lenBits);
           }
-          const uint_t distIdx = Stream.DecodeNumber(DD);
+          const uint_t distIdx = source.DecodeNumber(DD);
           uint_t dist = DDecode[distIdx] + 1;
           if (const uint_t distBits = DBits[distIdx])
           {
-            dist += Stream.ReadBits(distBits);
+            dist += source.ReadBits(distBits);
           }
           if (dist >= 0x40000L)
           {
@@ -565,7 +541,7 @@ namespace Rar
         }
         else if (num == 269)
         {
-          ReadTables();
+          ReadTables(source);
           break;
         }
         else if (num == 256)
@@ -575,11 +551,11 @@ namespace Rar
         else if (num < 261)
         {
           const uint_t dist = History.GetDist(num - 256);
-          const uint_t lenIdx = Stream.DecodeNumber(RD);
+          const uint_t lenIdx = source.DecodeNumber(RD);
           uint_t len = LDecode[lenIdx] + 2;
           if (const uint_t lenBits = LBits[lenIdx])
           {
-            len += Stream.ReadBits(lenBits);
+            len += source.ReadBits(lenBits);
           }
           if (dist >= 0x40000L)
           {
@@ -601,7 +577,7 @@ namespace Rar
           uint_t dist = SDDecode[distIdx] + 1;
           if (const uint_t distBits = SDBits[distIdx])
           {
-            dist += Stream.ReadBits(distBits);
+            dist += source.ReadBits(distBits);
           }
           CopyString(dist, 2);
         }
@@ -675,8 +651,6 @@ namespace Rar
       History.Store(dist, count);
     }
   private:
-    RarBitstream Stream;
-  
     struct MultimediaCompression
     {
       struct VarType
@@ -763,69 +737,90 @@ namespace Rar
     LitDecodeTree LD;
     DistDecodeTree DD;
     boost::array<MultDecodeTree, 4> MD;
+    //target
     DecodeTarget Decoded;
   };
+
+  class CompressedFile
+  {
+  public:
+    typedef std::auto_ptr<const CompressedFile> Ptr;
+    virtual ~CompressedFile() {}
+
+    virtual Binary::Container::Ptr Decompress(const Container& container) const = 0;
+  };
+
+  class StoredFile : public CompressedFile
+  {
+  public:
+    virtual Binary::Container::Ptr Decompress(const Container& container) const
+    {
+      const Formats::Packed::Rar::FileBlockHeader& header = container.GetHeader();
+      const std::size_t offset = fromLE(header.Size);
+      const std::size_t size = fromLE(header.AdditionalSize);
+      const std::size_t outSize = fromLE(header.UnpackedSize);
+      assert(0x30 == header.Method);
+      if (size != outSize)
+      {
+        Log::Debug(THIS_MODULE, "Stored file sizes mismatch");
+        return Binary::Container::Ptr();
+      }
+      else
+      {
+        Log::Debug(THIS_MODULE, "Restore");
+        return container.GetData().GetSubcontainer(offset, size);
+      }
+    }
+  };
+
 
   class PackedFile : public CompressedFile
   {
   public:
-    PackedFile(const uint8_t* const start, std::size_t size, std::size_t destSize)
-      : Start(start)
-      , Size(size)
-      , DestSize(destSize)
+    virtual Binary::Container::Ptr Decompress(const Container& container) const
     {
-    }
-
-    virtual Binary::Container::Ptr Decompress() const
-    {
-      Log::Debug(THIS_MODULE, "Depack %1% -> %2%", Size, DestSize);
-      RarDecoder decoder(Start, Size);
-      return decoder.Decode(DestSize);
+      const Formats::Packed::Rar::FileBlockHeader& header = container.GetHeader();
+      const std::size_t offset = fromLE(header.Size);
+      const std::size_t size = fromLE(header.AdditionalSize);
+      const std::size_t outSize = fromLE(header.UnpackedSize);
+      assert(0x30 != header.Method);
+      RarBitstream stream(container.GetField<uint8_t>(offset), size);
+      Log::Debug(THIS_MODULE, "Depack %1% -> %2%", size, outSize);
+      const bool isSolid = header.IsSolid();
+      if (isSolid)
+      {
+        Log::Debug(THIS_MODULE, "solid mode on");
+      }
+      return Decoder.Decode(stream, outSize, isSolid);
     }
   private:
-    const uint8_t* const Start;
-    const std::size_t Size;
-    const std::size_t DestSize;
+    mutable RarDecoder Decoder;
   };
 
-  std::auto_ptr<CompressedFile> CreateDecoder(const Container& container)
-  {
-    const Formats::Packed::Rar::FileBlockHeader& header = container.GetHeader();
-    const std::size_t offset = fromLE(header.Size);
-    const std::size_t size = fromLE(header.AdditionalSize);
-    const std::size_t outSize = fromLE(header.UnpackedSize);
-    switch (header.Method)
-    {
-    case 0x30:
-      return std::auto_ptr<CompressedFile>(new NoCompressedFile(container.GetData().GetSubcontainer(offset, size), outSize));
-    default:
-      return std::auto_ptr<CompressedFile>(new PackedFile(container.GetField<uint8_t>(offset), size, outSize));
-    }
-    return std::auto_ptr<CompressedFile>();
-  }
- 
   class DispatchedCompressedFile : public CompressedFile
   {
   public:
-    explicit DispatchedCompressedFile(const Container& container)
-      : Delegate(CreateDecoder(container))
-      , IsValid(container.FastCheck() && Delegate.get())
+    DispatchedCompressedFile()
+      : Packed(new PackedFile())
+      , Stored(new StoredFile())
     {
     }
 
-    virtual Binary::Container::Ptr Decompress() const
+    virtual Binary::Container::Ptr Decompress(const Container& container) const
     {
-      if (!IsValid)
+      const Formats::Packed::Rar::FileBlockHeader& header = container.GetHeader();
+      if (0x30 == header.Method)
       {
-        return Binary::Container::Ptr();
+        return Stored->Decompress(container);
       }
-      const Binary::Container::Ptr result = Delegate->Decompress();
-      IsValid = result;
-      return result;
+      else
+      {
+        return Packed->Decompress(container);
+      }
     }
   private:
-    const std::auto_ptr<CompressedFile> Delegate;
-    mutable bool IsValid;
+    const std::auto_ptr<CompressedFile> Packed;
+    const std::auto_ptr<CompressedFile> Stored;
   };
 }
 
@@ -860,11 +855,6 @@ namespace Formats
         {
           return false;
         }
-        //solid files are not supported
-        if (0 != (flags & FileBlockHeader::FLAG_SOLID))
-        {
-          return false;
-        }
         //big files are not supported
         if (IsBigFile())
         {
@@ -893,13 +883,14 @@ namespace Formats
     {
     public:
       RarDecoder()
-        : Depacker(Binary::Format::Create(::Rar::HEADER_PATTERN))
+        : Format(Binary::Format::Create(::Rar::HEADER_PATTERN))
+        , Decoder(new ::Rar::DispatchedCompressedFile())
       {
       }
 
       virtual Binary::Format::Ptr GetFormat() const
       {
-        return Depacker;
+        return Format;
       }
 
       virtual bool Check(const Binary::Container& rawData) const
@@ -915,11 +906,11 @@ namespace Formats
         {
           return Container::Ptr();
         }
-        ::Rar::DispatchedCompressedFile decoder(container);
-        return CreatePackedContainer(decoder.Decompress(), container.GetUsedSize());
+        return CreatePackedContainer(Decoder->Decompress(container), container.GetUsedSize());
       }
     private:
-      const Binary::Format::Ptr Depacker;
+      const Binary::Format::Ptr Format;
+      const ::Rar::CompressedFile::Ptr Decoder;
     };
 
     Decoder::Ptr CreateRarDecoder()

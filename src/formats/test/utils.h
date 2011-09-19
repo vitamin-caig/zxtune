@@ -29,7 +29,7 @@ namespace Test
     //std::cout << "Read " << size << " bytes from " << name << std::endl;
   }
 
-  void TestPacked(const Formats::Packed::Decoder& decoder, const Dump& etalonDump, const std::map<std::string, Dump>& tests)
+  void TestPacked(const Formats::Packed::Decoder& decoder, const Dump& etalonDump, const std::map<std::string, Dump>& tests, bool checkCorrupted = true)
   {
     const Binary::Container::Ptr etalon = Binary::CreateContainer(&etalonDump[0], etalonDump.size());
     for (std::map<std::string, Dump>::const_iterator it = tests.begin(), lim = tests.end(); it != lim; ++it)
@@ -75,18 +75,21 @@ namespace Test
       {
         std::cout << "  passed negative" << std::endl;
       }
-      std::auto_ptr<Dump> corruptedDump(new Dump(testdataDump));
-      corruptedDump->at(corruptedDump->size() / 4) ^= 0xff;
-      corruptedDump->at(corruptedDump->size() / 2) ^= 0xff;
-      corruptedDump->at(3 * corruptedDump->size() / 4) ^= 0xff;
-      const Binary::Container::Ptr corrupted = Binary::CreateContainer(corruptedDump);
-      if (const Formats::Packed::Container::Ptr nonunpacked = decoder.Decode(*corrupted))
+      if (checkCorrupted)
       {
-        std::cout << "  failed corrupted" << std::endl;
-      }
-      else
-      {
-        std::cout << "  passed corrupted" << std::endl;
+        std::auto_ptr<Dump> corruptedDump(new Dump(testdataDump));
+        corruptedDump->at(corruptedDump->size() / 4) ^= 0xff;
+        corruptedDump->at(corruptedDump->size() / 2) ^= 0xff;
+        corruptedDump->at(3 * corruptedDump->size() / 4) ^= 0xff;
+        const Binary::Container::Ptr corrupted = Binary::CreateContainer(corruptedDump);
+        if (const Formats::Packed::Container::Ptr nonunpacked = decoder.Decode(*corrupted))
+        {
+          std::cout << "  failed corrupted" << std::endl;
+        }
+        else
+        {
+          std::cout << "  passed corrupted" << std::endl;
+        }
       }
     }
   }
