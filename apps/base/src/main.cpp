@@ -13,6 +13,8 @@ Author:
 #include <apps/base/app.h>
 //common includes
 #include <format.h>
+//std includes
+#include <locale>
 //text includes
 #include "../text/base_text.h"
 
@@ -72,6 +74,7 @@ namespace boost
 
 int main(int argc, char* argv[])
 {
+  std::locale::global(std::locale(""));
   std::auto_ptr<Application> app(Application::Create());
   return app->Run(argc, argv);
 }
