@@ -25,6 +25,7 @@ public:
     : Delegate(delegate)
     , OriginalSize(origSize)
   {
+    assert(origSize && delegate && delegate->Size());
   }
 
   virtual std::size_t Size() const
@@ -51,18 +52,17 @@ private:
   const std::size_t OriginalSize;
 };
 
-inline PackedContainer::Ptr CreatePackedContainer(std::auto_ptr<Dump> data, std::size_t origSize)
+inline PackedContainer::Ptr CreatePackedContainer(Binary::Container::Ptr data, std::size_t origSize)
 {
-  return data.get() && origSize
-    ? boost::make_shared<PackedContainer>(Binary::CreateContainer(data), origSize)
+  return origSize && data && data->Size()
+    ? boost::make_shared<PackedContainer>(data, origSize)
     : PackedContainer::Ptr();
 }
 
-inline PackedContainer::Ptr CreatePackedContainer(Binary::Container::Ptr data, std::size_t origSize)
+inline PackedContainer::Ptr CreatePackedContainer(std::auto_ptr<Dump> data, std::size_t origSize)
 {
-  return data && origSize
-    ? boost::make_shared<PackedContainer>(data, origSize)
-    : PackedContainer::Ptr();
+  const Binary::Container::Ptr container = Binary::CreateContainer(data);
+  return CreatePackedContainer(container, origSize);
 }
 
 #endif //__FORMATS_PACKED_CONTAINER_H_DEFINED__

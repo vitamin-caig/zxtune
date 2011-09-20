@@ -77,20 +77,14 @@ namespace Binary
 
   Container::Ptr CreateContainer(std::auto_ptr<Dump> data)
   {
-    if (data.get())
-    {
-      const DumpPtr buffer(data);
-      return CreateContainer(buffer, 0, buffer->size());
-    }
-    else
-    {
-      return Container::Ptr();
-    }
+    const DumpPtr buffer(data);
+    const std::size_t size = buffer ? buffer->size() : 0;
+    return CreateContainer(buffer, 0, size);
   }
 
   Container::Ptr CreateContainer(boost::shared_ptr<const Dump> data, std::size_t offset, std::size_t size)
   {
-    if (data && data->size() >= offset + size)
+    if (size && data && data->size() >= offset + size)
     {
       return boost::make_shared<SharedDumpContainer>(data, offset, size);
     }
