@@ -165,6 +165,10 @@ namespace
   public:
     PluginsFilter(const String& allowed, const String& denied)
     {
+      if (allowed.empty() && denied.empty())
+      {
+        return;
+      }
       std::map<String, uint_t> plug2Cap;
       StringSet allplugs;
       for (ZXTune::Plugin::Iterator::Ptr plugs = ZXTune::EnumeratePlugins(); plugs->IsValid(); plugs->Next())
@@ -179,6 +183,7 @@ namespace
       StringSet disabledPlugins;
       Parse(allplugs, allowed, enabledPlugins, enabledCaps);
       Parse(allplugs, denied, disabledPlugins, disabledCaps);
+      enabledCaps |= ZXTune::CAP_STOR_MODULE;
       for (std::map<String, uint_t>::const_iterator it = plug2Cap.begin(), lim = plug2Cap.end(); it != lim; ++it)
       {
         const String id = it->first;
