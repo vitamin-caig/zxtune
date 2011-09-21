@@ -21,6 +21,7 @@ extern const Char CONTAINER_PLUGIN_PROGRESS_NOPATH[];
 extern const Char DSQ_PLUGIN_INFO[];
 extern const Char ESV_PLUGIN_INFO[];
 extern const Char FDI_PLUGIN_INFO[];
+extern const Char GAMPLUS_PLUGIN_INFO[];
 extern const Char GAM_PLUGIN_INFO[];
 extern const Char HOBETA_PLUGIN_INFO[];
 extern const Char HRIP_PLUGIN_INFO[];

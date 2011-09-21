@@ -24,6 +24,7 @@ class ByteStream
 public:
   ByteStream(const uint8_t* data, std::size_t size)
     : Data(data), End(Data + size)
+    , Size(size)
   {
   }
 
@@ -43,9 +44,20 @@ public:
     const uint_t hi = GetByte();
     return 256 * hi + lo;
   }
+
+  std::size_t GetRestBytes() const
+  {
+    return End - Data;
+  }
+
+  std::size_t GetProcessedBytes() const
+  {
+    return Size - GetRestBytes();
+  }
 private:
   const uint8_t* Data;
   const uint8_t* const End;
+  const std::size_t Size;
 };
 
 template<class Iterator, class ConstIterator>

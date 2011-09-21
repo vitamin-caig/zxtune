@@ -36,6 +36,7 @@ namespace Formats
     Decoder::Ptr CreateZipDecoder();
     Decoder::Ptr CreateRarDecoder();
     Decoder::Ptr CreateGamePackerDecoder();
+    Decoder::Ptr CreateGamePackerPlusDecoder();
   }
 }
 
