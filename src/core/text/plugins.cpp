@@ -59,6 +59,9 @@ extern const Char ESV_PLUGIN_INFO[] = {
 extern const Char FDI_PLUGIN_INFO[] = {
   'F','D','I',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
 };
+extern const Char GAM_PLUGIN_INFO[] = {
+  'G','a','m','e','P','a','c','k','e','r',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
+};
 extern const Char HOBETA_PLUGIN_INFO[] = {
   'H','o','b','e','t','a',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
 };
