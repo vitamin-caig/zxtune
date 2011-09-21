@@ -292,11 +292,12 @@ namespace
       XML.writeAttribute(XSPF::XMLNS_ATTR, XSPF::XMLNS_VALUE);
     }
 
-    void WriteProperties(const Parameters::Accessor& props)
+    void WriteProperties(const Parameters::Accessor& props, uint_t items)
     {
       ExtendedPropertiesSaver saver(XML);
       props.Process(saver);
       saver.SetIntValue(Playlist::ATTRIBUTE_VERSION, XSPF_VERSION);
+      saver.SetIntValue(Playlist::ATTRIBUTE_ITEMS, items);
     }
 
     void WriteItems(const Playlist::IO::Container& container, Playlist::IO::ExportCallback& cb)
@@ -381,8 +382,8 @@ namespace Playlist
       {
         XSPFWriter writer(device);
         const Parameters::Accessor::Ptr playlistProperties = container->GetProperties();
-        writer.WriteProperties(*playlistProperties);
         const unsigned itemsCount = container->GetItemsCount();
+        writer.WriteProperties(*playlistProperties, itemsCount);
         ProgressCallbackWrapper progress(itemsCount, cb);
         writer.WriteItems(*container, progress);
         return Error();

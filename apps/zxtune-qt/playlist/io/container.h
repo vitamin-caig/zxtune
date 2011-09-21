@@ -35,6 +35,14 @@ namespace Playlist
   {
     'z','x','t','u','n','e','.','a','p','p','.','p','l','a','y','l','i','s','t','.','v','e','r','s','i','o','n',0
   };
+  const Char ATTRIBUTE_CREATOR[] =
+  {
+    'z','x','t','u','n','e','.','a','p','p','.','p','l','a','y','l','i','s','t','.','c','r','e','a','t','o','r',0
+  };
+  const Char ATTRIBUTE_ITEMS[] =
+  {
+    'z','x','t','u','n','e','.','a','p','p','.','p','l','a','y','l','i','s','t','.','i','t','e','m','s',0
+  };
 
   namespace IO
   {

@@ -16,6 +16,7 @@ Author:
 #include "model.h"
 #include "scanner.h"
 #include "ui/utils.h"
+#include "apps/base/app.h"
 //common includes
 #include <logging.h>
 //boost includes
@@ -210,6 +211,7 @@ namespace
       , Model(model)
     {
       Properties->SetStringValue(Playlist::ATTRIBUTE_NAME, FromQString(name));
+      Properties->SetStringValue(Playlist::ATTRIBUTE_CREATOR, GetProgramVersionString());
     }
 
     virtual Parameters::Accessor::Ptr GetProperties() const
