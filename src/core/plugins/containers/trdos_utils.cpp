@@ -27,7 +27,8 @@ namespace TRDos
       return fname;
     }
     fname += '.';
-    const char* const invalidSym = std::find_if(type, ArrayEnd(type), !boost::algorithm::is_alnum());
+    const char* const invalidSym = std::find_if(type, ArrayEnd(type), 
+      !(boost::is_from_range('0', '9') || boost::is_from_range('A', 'Z') || boost::is_from_range('a', 'z')));
     fname += String(type, invalidSym);
     return fname;
   }
