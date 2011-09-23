@@ -32,6 +32,7 @@ namespace ZXTune
   void RegisterCC4Convertor(PluginsRegistrator& registrator);
   void RegisterESVConvertor(PluginsRegistrator& registrator);
   void RegisterGAMConvertor(PluginsRegistrator& registrator);
+  void RegisterTLZConvertor(PluginsRegistrator& registrator);
 
   void RegisterArchivePlugins(PluginsRegistrator& registrator)
   {
@@ -49,6 +50,7 @@ namespace ZXTune
     RegisterCC4Convertor(registrator);
     RegisterESVConvertor(registrator);
     RegisterGAMConvertor(registrator);
+    RegisterTLZConvertor(registrator);
   }
 }
 

@@ -194,6 +194,14 @@ __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 < STP_EDITOR
 > "SoundTrackerPro"
 
+#TLZ
+< TLZ_PLUGIN_INFO
+> "Turbo-LZ v1.x" CONTAINER_DESCRIPTION
+
+#TLZP
+< TLZP_PLUGIN_INFO
+> "Turbo#LZ v1.x (for internal usage only)" CONTAINER_DESCRIPTION
+
 #TRD
 < TRD_PLUGIN_INFO
 > "TRD" CONTAINER_DESCRIPTION

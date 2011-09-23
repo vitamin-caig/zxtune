@@ -59,6 +59,7 @@ namespace Test
         }
         if (unpacked->PackedSize() != testdata->Size())
         {
+          std::cout << "unpacked(" << unpacked->PackedSize() << ") != testdata(" << testdata->Size() << ")\n";
           throw std::runtime_error("Invalid used data size");
         }
         std::cout << "  passed positive" << std::endl;

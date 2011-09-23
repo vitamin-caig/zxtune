@@ -51,6 +51,8 @@ extern const Char STC_PLUGIN_INFO[];
 extern const Char STP_EDITOR[];
 extern const Char STP_PLUGIN_INFO[];
 extern const Char ST_EDITOR[];
+extern const Char TLZP_PLUGIN_INFO[];
+extern const Char TLZ_PLUGIN_INFO[];
 extern const Char TRD_PLUGIN_INFO[];
 extern const Char TRUSH_PLUGIN_INFO[];
 extern const Char TS_PLUGIN_INFO[];

@@ -160,6 +160,14 @@ extern const Char STP_PLUGIN_INFO[] = {
 extern const Char ST_EDITOR[] = {
   'S','o','u','n','d','T','r','a','c','k','e','r',' ','v','1','.','x',0
 };
+extern const Char TLZP_PLUGIN_INFO[] = {
+  'T','u','r','b','o','#','L','Z',' ','v','1','.','x',' ','(','f','o','r',' ','i','n','t','e','r','n','a','l',
+  ' ','u','s','a','g','e',' ','o','n','l','y',')',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
+};
+extern const Char TLZ_PLUGIN_INFO[] = {
+  'T','u','r','b','o','-','L','Z',' ','v','1','.','x',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r',
+  't',0
+};
 extern const Char TRD_PLUGIN_INFO[] = {
   'T','R','D',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
 };
