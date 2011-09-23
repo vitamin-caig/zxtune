@@ -14,7 +14,6 @@ Author:
 #include "pack_utils.h"
 //common includes
 #include <byteorder.h>
-#include <iterator.h>
 #include <tools.h>
 //library includes
 #include <formats/packed.h>
@@ -83,11 +82,17 @@ namespace TurboLZ
     uint8_t LastByte;
     //+0x44
 
-    Dump GetKey() const
+    struct KeyFunc : public std::unary_function<void, uint8_t>
     {
-      Dump result(1);
-      return result;
-    }
+      explicit KeyFunc(const RawHeader&)
+      {
+      }
+
+      uint8_t operator() ()
+      {
+        return 0;
+      }
+    };
   } PACK_POST;
 #ifdef USE_PRAGMA_PACK
 #pragma pack(pop)
@@ -150,18 +155,27 @@ namespace TurboLZ
     //+0x4d
     char Padding11[0x3a];
     //+0x87
-    int8_t InitialCryptoKeyIndex;
+    uint8_t InitialCryptoKeyIndex;
     //+0x88
 
-    Dump GetKey() const
+    struct KeyFunc : public std::unary_function<void, uint8_t>
     {
-      const uint8_t keyIdx = static_cast<uint8_t>(InitialCryptoKeyIndex + 1) & 0x7f;
-      Dump result(128);
-      std::copy(DepackerBody, DepackerBody + keyIdx,
-        std::copy(DepackerBody + keyIdx, DepackerBody + 128, 
-          result.begin()));
-      return result;
-    }
+      explicit KeyFunc(const RawHeader& header)
+        : Key(header.DepackerBody, header.DepackerBody + 128)
+        , Index(Key[offsetof(RawHeader, InitialCryptoKeyIndex) - offsetof(RawHeader, DepackerBody)])
+      {
+      }
+
+      uint8_t operator() ()
+      {
+        ++Index;
+        Index &= 0x7f;
+        return Key[Index];
+      }
+    private:
+      Dump Key;
+      uint8_t& Index;
+    };
   } PACK_POST;
 #ifdef USE_PRAGMA_PACK
 #pragma pack(pop)
@@ -313,8 +327,7 @@ namespace TurboLZ
   private:
     bool DecodeData()
     {
-      const Dump& cryptKey = Header.GetKey();
-      CycledIterator<Dump::const_iterator> keyIter(cryptKey.begin(), cryptKey.end());
+      typename Version::RawHeader::KeyFunc keyFunctor(Header);
 
       while (!Stream.Eof() && Decoded.size() < MAX_DECODED_SIZE)
       {
@@ -367,7 +380,7 @@ namespace TurboLZ
           uint8_t incMarker = 63;
           for (uint_t len = initCount; len; )
           {
-            if (!CopyNonPacked(len, keyIter))
+            if (!CopyNonPacked(len, keyFunctor))
             {
               //just exit, decode as much data as possible
               return true;
@@ -384,13 +397,12 @@ namespace TurboLZ
       return true;
     }
   private:
-    template<class KeyIterator>
-    bool CopyNonPacked(std::size_t len, KeyIterator& keyIter)
+    bool CopyNonPacked(std::size_t len, typename Version::RawHeader::KeyFunc& keyFunctor)
     {
-      for (; len && !Stream.Eof(); --len, ++keyIter)
+      for (; len && !Stream.Eof(); --len)
       {
         const uint8_t data = Stream.GetByte();
-        const uint8_t key = *keyIter;
+        const uint8_t key = keyFunctor();
         Decoded.push_back(data ^ key);
       }
       return len == 0;
