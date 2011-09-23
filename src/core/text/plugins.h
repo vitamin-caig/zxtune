@@ -14,6 +14,7 @@ extern const Char AY_RAW_PLUGIN_PREFIX[];
 extern const Char CC3_PLUGIN_INFO[];
 extern const Char CC4PLUS_PLUGIN_INFO[];
 extern const Char CC4_PLUGIN_INFO[];
+extern const Char CHARPRES_PLUGIN_INFO[];
 extern const Char CHI_EDITOR[];
 extern const Char CHI_PLUGIN_INFO[];
 extern const Char CONTAINER_PLUGIN_PROGRESS[];

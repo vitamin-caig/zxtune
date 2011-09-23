@@ -39,6 +39,7 @@ namespace Formats
     Decoder::Ptr CreateGamePackerPlusDecoder();
     Decoder::Ptr CreateTurboLZDecoder();
     Decoder::Ptr CreateTurboLZProtectedDecoder();
+    Decoder::Ptr CreateCharPresDecoder();
   }
 }
 

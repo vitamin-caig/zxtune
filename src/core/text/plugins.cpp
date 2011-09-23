@@ -36,6 +36,9 @@ extern const Char CC4_PLUGIN_INFO[] = {
   'C','o','m','p','r','e','s','s','o','r','C','o','d','e',' ','v','4',' ','f','o','r','m','a','t',' ','s','u',
   'p','p','o','r','t',0
 };
+extern const Char CHARPRES_PLUGIN_INFO[] = {
+  'C','h','a','r','P','r','e','s',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
+};
 extern const Char CHI_EDITOR[] = {
   'C','h','i','p','T','r','a','c','k','e','r',' ','v','%','1','%',0
 };
