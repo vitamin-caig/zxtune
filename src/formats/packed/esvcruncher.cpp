@@ -258,7 +258,7 @@ namespace ESVCruncher
       {
         return false;
       }
-      if (fromLE(header.LastOfDepacked) < fromLE(header.DepackedLimit))
+      if (fromLE(header.LastOfDepacked) <= ((fromLE(header.DepackedLimit) + 1) & 0xffff))
       {
         return false;
       }
@@ -320,7 +320,7 @@ namespace ESVCruncher
   private:
     bool DecodeData()
     {
-      const uint_t unpackedSize = fromLE(Header.LastOfDepacked) - fromLE(Header.DepackedLimit);
+      const uint_t unpackedSize = 1 + fromLE(Header.LastOfDepacked) - ((fromLE(Header.DepackedLimit) + 1) & 0xffff);
       Decoded.reserve(unpackedSize);
       while (!Stream.Eof() &&
              Decoded.size() < unpackedSize)
