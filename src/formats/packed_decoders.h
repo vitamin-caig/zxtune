@@ -40,6 +40,7 @@ namespace Formats
     Decoder::Ptr CreateTurboLZDecoder();
     Decoder::Ptr CreateTurboLZProtectedDecoder();
     Decoder::Ptr CreateCharPresDecoder();
+    Decoder::Ptr CreatePack2Decoder();
   }
 }
 

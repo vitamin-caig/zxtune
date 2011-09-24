@@ -34,6 +34,7 @@ namespace ZXTune
   void RegisterGAMConvertor(PluginsRegistrator& registrator);
   void RegisterTLZConvertor(PluginsRegistrator& registrator);
   void RegisterCharPresConvertor(PluginsRegistrator& registrator);
+  void RegisterPack2Convertor(PluginsRegistrator& registrator);
 
   void RegisterArchivePlugins(PluginsRegistrator& registrator)
   {
@@ -53,6 +54,7 @@ namespace ZXTune
     RegisterGAMConvertor(registrator);
     RegisterTLZConvertor(registrator);
     RegisterCharPresConvertor(registrator);
+    RegisterPack2Convertor(registrator);
   }
 }
 

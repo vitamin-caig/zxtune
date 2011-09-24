@@ -89,6 +89,9 @@ extern const Char LZS_PLUGIN_INFO[] = {
 extern const Char MSP_PLUGIN_INFO[] = {
   'M','s','P','a','c','k',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
 };
+extern const Char PACK2_PLUGIN_INFO[] = {
+  'P','a','c','k',' ','v','2','.','x',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
+};
 extern const Char PCD61_PLUGIN_INFO[] = {
   'P','o','w','e','r','f','u','l','l',' ','C','o','d','e',' ','D','e','c','r','e','a','s','e','r',' ','v','6',
   '.','1',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
