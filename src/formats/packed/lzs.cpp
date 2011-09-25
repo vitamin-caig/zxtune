@@ -178,7 +178,12 @@ namespace LZS
     uint_t GetUsedSize() const
     {
       const RawHeader& header = GetHeader();
-      return sizeof(header) + fromLE(header.SizeOfPacked) - sizeof(header.Data);
+      const std::size_t defSize = sizeof(header) + fromLE(header.SizeOfPacked) - sizeof(header.Data);
+      if (defSize < Size && 0xc9 == Data[defSize])
+      {
+        return defSize + 1;
+      }
+      return defSize;
     }
 
     const RawHeader& GetHeader() const
