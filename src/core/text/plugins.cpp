@@ -83,6 +83,14 @@ extern const Char HRUST1X_PLUGIN_INFO[] = {
 extern const Char HRUST2X_PLUGIN_INFO[] = {
   'H','r','u','s','t','2','.','x',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
 };
+extern const Char LZH1_PLUGIN_INFO[] = {
+  'L','Z','H',' ','C','o','m','p','r','e','s','s','o','r',' ','v','1','.','4',' ','f','o','r','m','a','t',' ',
+  's','u','p','p','o','r','t',0
+};
+extern const Char LZH2_PLUGIN_INFO[] = {
+  'L','Z','H',' ','C','o','m','p','r','e','s','s','o','r',' ','v','2','.','4',' ','f','o','r','m','a','t',' ',
+  's','u','p','p','o','r','t',0
+};
 extern const Char LZS_PLUGIN_INFO[] = {
   'L','Z','S',' ','P','a','c','k',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
 };

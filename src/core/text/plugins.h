@@ -29,6 +29,8 @@ extern const Char HRIP_PLUGIN_INFO[];
 extern const Char HRUM_PLUGIN_INFO[];
 extern const Char HRUST1X_PLUGIN_INFO[];
 extern const Char HRUST2X_PLUGIN_INFO[];
+extern const Char LZH1_PLUGIN_INFO[];
+extern const Char LZH2_PLUGIN_INFO[];
 extern const Char LZS_PLUGIN_INFO[];
 extern const Char MSP_PLUGIN_INFO[];
 extern const Char PACK2_PLUGIN_INFO[];
