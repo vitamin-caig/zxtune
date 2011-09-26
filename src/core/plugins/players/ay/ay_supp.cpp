@@ -14,6 +14,7 @@ Author:
 #include "ay_conversion.h"
 #include "core/plugins/registrator.h"
 #include "core/plugins/utils.h"
+#include "core/plugins/containers/container_supp_common.h"
 #include "core/plugins/players/creation_result.h"
 #include "core/plugins/players/module_properties.h"
 #include "core/plugins/players/streaming.h"
@@ -897,26 +898,30 @@ namespace
   }
 }
 
-namespace
+namespace AY
+{
+  const Char ID[] = {'A', 'Y', 0};
+  const String VERSION(FromStdString("$Rev$"));
+  const Char* const INFO = Text::AY_PLUGIN_INFO;
+}
+
+namespace AYModule
 {
   using namespace ZXTune;
 
   //plugin attributes
-  const Char ID[] = {'A', 'Y', 0};
-  const String VERSION(FromStdString("$Rev$"));
-  const Char* const INFO = Text::AY_PLUGIN_INFO;
   const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW;
 
-  const std::string AY_FORMAT(
+  const std::string HEADER_FORMAT(
     "'Z'X'A'Y" // uint8_t Signature[4];
     "'E'M'U'L" // only one type is supported now
   );
 
-  class AYModulesFactory : public ModulesFactory
+  class Factory : public ModulesFactory
   {
   public:
-    AYModulesFactory()
-      : Format(Binary::Format::Create(AY_FORMAT))
+    Factory()
+      : Format(Binary::Format::Create(HEADER_FORMAT))
     {
     }
 
@@ -957,6 +962,13 @@ namespace
   private:
     const Binary::Format::Ptr Format;
   };
+}
+
+namespace AYContainer
+{
+  using namespace ZXTune;
+
+  const uint_t CAPS = CAP_STOR_MULTITRACK;
 
   //as a container
   class VariableDump : public Dump
@@ -988,10 +1000,10 @@ namespace
     }
   };
 
-  class AYBuilder : public AYDataTarget
+  class Builder : public AYDataTarget
   {
   public:
-    AYBuilder()
+    Builder()
       : Duration()
       , Register(), StackPointer()
       , InitRoutine(), PlayRoutine()
@@ -1119,130 +1131,149 @@ namespace
       : 0;    
   }
 
-  //TODO: extract to common place
-  class LoggerHelper
+  class StubBuilder : public AYDataTarget
   {
   public:
-    LoggerHelper(Log::ProgressCallback* callback, const Plugin& plugin, const String& path)
-      : Callback(callback)
-      , Id(plugin.Id())
-      , Path(path)
-      , Current()
+    virtual void SetTitle(const String& /*title*/) {}
+    virtual void SetAuthor(const String& /*author*/) {}
+    virtual void SetComment(const String& /*comment*/) {}
+    virtual void SetDuration(uint_t /*duration*/) {}
+    virtual void SetRegisters(uint16_t /*reg*/, uint16_t /*sp*/) {}
+    virtual void SetRoutines(uint16_t /*init*/, uint16_t /*play*/) {}
+    virtual void AddBlock(uint16_t /*addr*/, const void* /*data*/, std::size_t /*size*/) {}
+  };
+
+  class File : public Container::File
+  {
+  public:
+    File(const String& name, Binary::Container::Ptr data)
+      : Name(name)
+      , Data(data)
     {
     }
 
-    void operator()(const String& cur)
+    virtual String GetName() const
     {
-      if (Callback)
-      {
-        const String text = Path.empty()
-          ? Strings::Format(Text::CONTAINER_PLUGIN_PROGRESS_NOPATH, Id, cur)
-          : Strings::Format(Text::CONTAINER_PLUGIN_PROGRESS, Id, cur, Path);
-        Callback->OnProgress(Current++, text);
-      }
+      return Name;
+    }
+
+    virtual std::size_t GetSize() const
+    {
+      return Data->Size();
+    }
+
+    virtual Binary::Container::Ptr GetData() const
+    {
+      return Data;
     }
   private:
-    Log::ProgressCallback* const Callback;
-    const String Id;
-    const String Path;
-    uint_t Current;
+    const String Name;
+    const Binary::Container::Ptr Data;
   };
-}
 
-namespace
-{
-  using namespace ZXTune;
-
-  //TODO: extract
-  const Char ID1[] = {'A', 'Y', 0};
-  const String VERSION1(FromStdString("$Rev$"));
-  const Char* const INFO1 = Text::AY_PLUGIN_INFO;
-  const uint_t CAPS1 = CAP_STOR_MULTITRACK;
-
-  class AYContainerPlugin : public ArchivePlugin
+  class Catalogue : public Container::Catalogue
   {
   public:
-    AYContainerPlugin()
-      : Description(CreatePluginDescription(ID1, INFO1, VERSION1, CAPS1))
-      , Format(Binary::Format::Create(AY_FORMAT))
+    explicit Catalogue(Binary::Container::Ptr data)
+      : Data(data)
       , AyPath(Text::AY_PLUGIN_PREFIX)
       , RawPath(Text::AY_RAW_PLUGIN_PREFIX)
     {
     }
 
-    virtual Plugin::Ptr GetDescription() const
+    virtual uint_t GetFilesCount() const
     {
-      return Description;
+      return GetAYSubmodules(*Data);
     }
 
-    virtual DetectionResult::Ptr Detect(DataLocation::Ptr input, const Module::DetectCallback& callback) const
+    virtual Container::File::Ptr FindFile(const ZXTune::DataPath& path) const
     {
-      const Binary::Container::Ptr rawData = input->GetData();
-      const uint_t subModules = GetAYSubmodules(*rawData);
-      if (subModules < 2)
-      {
-        return DetectionResult::CreateUnmatched(Format, rawData);
-      }
-
-      const Log::ProgressCallback::Ptr progress = CreateProgressCallback(callback, subModules);
-      const ZXTune::Module::CustomProgressDetectCallbackAdapter noProgressCallback(callback);
-      LoggerHelper logger(progress.get(), *Description, input->GetPath()->AsString());
-
-      std::size_t usedData = 0;
-      const IO::FastDump dump(*rawData);
-      for (uint_t idx = 0; idx < subModules; ++idx)
-      {
-        const String subPath = AyPath.Build(idx);
-        AYBuilder builder;
-        const std::size_t parsedLimit = ParseAY(idx, dump, builder);
-        logger(subPath);
-        if (!parsedLimit)
-        {
-          continue;
-        }
-        const Binary::Container::Ptr subData = builder.GetAy();
-        const ZXTune::DataLocation::Ptr subLocation = idx 
-          ? CreateNestedLocation(input, subData, Description, subPath)
-          : CreateNestedLocation(input, subData);
-        ZXTune::Module::Detect(subLocation, noProgressCallback);
-        usedData = std::max(usedData, parsedLimit);
-      }
-      return usedData
-        ? DetectionResult::CreateMatched(usedData)
-        : DetectionResult::CreateUnmatched(Format, rawData);
-    }
-
-    virtual DataLocation::Ptr Open(const Parameters::Accessor& /*commonParams*/, DataLocation::Ptr location, const DataPath& inPath) const
-    {
-      const String& pathComp = inPath.GetFirstComponent();
+      const String& pathComp = path.GetFirstComponent();
       uint_t index = 0;
       const bool asRaw = RawPath.GetIndex(pathComp, index);
       if (!asRaw && !AyPath.GetIndex(pathComp, index))
       {
-        return DataLocation::Ptr();
+        return Container::File::Ptr();
       }
-      const Binary::Container::Ptr inData = location->GetData();
-      const uint_t subModules = GetAYSubmodules(*inData);
+      const uint_t subModules = GetAYSubmodules(*Data);
       if (subModules < index)
       {
-        return DataLocation::Ptr();
+        return Container::File::Ptr();
       }
-      const IO::FastDump dump(*inData);
-      AYBuilder builder;
+      const IO::FastDump dump(*Data);
+      Builder builder;
       if (!ParseAY(index, dump, builder))
       {
-        return DataLocation::Ptr();
+        return Container::File::Ptr();
       }
-      const Binary::Container::Ptr subData = asRaw
+      const Binary::Container::Ptr data = asRaw
         ? builder.GetRaw()
         : builder.GetAy();
-      return CreateNestedLocation(location, subData, Description, pathComp); 
+      return boost::make_shared<File>(pathComp, data);
+    }
+
+    virtual void ForEachFile(const Container::Catalogue::Callback& cb) const
+    {
+      const IO::FastDump dump(*Data);
+      for (uint_t idx = 0, total = GetFilesCount(); idx < total; ++idx)
+      {
+        Builder builder;
+        const std::size_t parsedLimit = ParseAY(idx, dump, builder);
+        if (!parsedLimit)
+        {
+          continue;
+        }
+        const String subPath = AyPath.Build(idx);
+        const Binary::Container::Ptr subData = builder.GetAy();
+        const File file(subPath, subData);
+        cb.OnFile(file);
+      }
+    }
+
+    virtual std::size_t GetSize() const
+    {
+      static StubBuilder STUB;
+      const IO::FastDump dump(*Data);
+      for (uint_t idx = GetFilesCount(); idx; --idx)
+      {
+        //assume that files are layed out sequentally
+        if (const std::size_t limit = ParseAY(idx - 1, dump, STUB))
+        {
+          return limit;
+        }
+      }
+      return 0;
     }
   private:
-    const Plugin::Ptr Description;
-    const Binary::Format::Ptr Format;
+    const Binary::Container::Ptr Data;
     const IndexPathComponent AyPath;
     const IndexPathComponent RawPath;
+  };
+
+  class Factory : public ContainerFactory
+  {
+  public:
+    Factory()
+      : Format(Binary::Format::Create(AYModule::HEADER_FORMAT))
+    {
+    }
+
+    virtual Binary::Format::Ptr GetFormat() const
+    {
+      return Format;
+    }
+
+    virtual Container::Catalogue::Ptr CreateContainer(const Parameters::Accessor& /*parameters*/, Binary::Container::Ptr data) const
+    {
+      const uint_t subModules = GetAYSubmodules(*data);
+      if (subModules < 2)
+      {
+        return Container::Catalogue::Ptr();
+      }
+      return boost::make_shared<Catalogue>(data);
+    }
+  private:
+    const Binary::Format::Ptr Format;
   };
 }
 
@@ -1250,10 +1281,17 @@ namespace ZXTune
 {
   void RegisterAYSupport(PluginsRegistrator& registrator)
   {
-    const ModulesFactory::Ptr factory = boost::make_shared<AYModulesFactory>();
-    const PlayerPlugin::Ptr playerPlugin = CreatePlayerPlugin(ID, INFO, VERSION, CAPS, factory);
-    const ArchivePlugin::Ptr archivePlugin(new AYContainerPlugin());
-    registrator.RegisterPlugin(playerPlugin);
-    registrator.RegisterPlugin(archivePlugin);
+    //module
+    {
+      const ModulesFactory::Ptr factory = boost::make_shared<AYModule::Factory>();
+      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(AY::ID, AY::INFO, AY::VERSION, AYModule::CAPS, factory);
+      registrator.RegisterPlugin(plugin);
+    }
+    //container
+    {
+      const ContainerFactory::Ptr factory = boost::make_shared<AYContainer::Factory>();
+      const ArchivePlugin::Ptr plugin = CreateContainerPlugin(AY::ID, AY::INFO, AY::VERSION, AYContainer::CAPS, factory);
+      registrator.RegisterPlugin(plugin);
+    }
   }
 }
