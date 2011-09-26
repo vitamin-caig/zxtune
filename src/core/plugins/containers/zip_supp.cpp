@@ -152,37 +152,6 @@ namespace
     std::size_t Offset;
   };
 
-  template<class It>
-  class ZipFilesIterator : public Container::Catalogue::Iterator
-  {
-  public:
-    ZipFilesIterator(It begin, It limit)
-      : Current(begin)
-      , Limit(limit)
-    {
-    }
-
-    virtual bool IsValid() const
-    {
-      return Current != Limit;
-    }
-
-    virtual Container::File::Ptr Get() const
-    {
-      assert(IsValid());
-      return Current->second;
-    }
-
-    virtual void Next()
-    {
-      assert(IsValid());
-      ++Current;
-    }
-  private:
-    It Current;
-    const It Limit;
-  };
-
   class ZipCatalogue : public Container::Catalogue
   {
   public:
@@ -191,12 +160,6 @@ namespace
       , Data(data)
       , MaxFileSize(maxFileSize)
     {
-    }
-
-    virtual Iterator::Ptr GetFiles() const
-    {
-      FillCache();
-      return Iterator::Ptr(new ZipFilesIterator<FilesMap::const_iterator>(Files.begin(), Files.end()));
     }
 
     virtual uint_t GetFilesCount() const
@@ -230,6 +193,15 @@ namespace
         }
         const DataPath::Ptr unresolved = SubstractDataPath(path, *resolved);
         resolved = CreateMergedDataPath(resolved, unresolved->GetFirstComponent());
+      }
+    }
+
+    virtual void ForEachFile(const Container::Catalogue::Callback& cb) const
+    {
+      FillCache();
+      for (FilesMap::const_iterator it = Files.begin(), lim = Files.end(); it != lim; ++it)
+      {
+        cb.OnFile(*it->second);
       }
     }
 

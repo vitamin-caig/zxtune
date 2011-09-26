@@ -14,7 +14,6 @@ Author:
 #define __CORE_PLUGINS_CONTAINERS_CONTAINER_CATALOGUE_H_DEFINED__
 
 //common includes
-#include <iterator.h>
 #include <types.h>
 //library includes
 #include <binary/container.h>
@@ -44,12 +43,20 @@ namespace Container
   {
   public:
     typedef boost::shared_ptr<const Catalogue> Ptr;
-    typedef ObjectIterator<File::Ptr> Iterator;
     virtual ~Catalogue() {}
 
-    virtual Iterator::Ptr GetFiles() const = 0;
     virtual uint_t GetFilesCount() const = 0;
     virtual File::Ptr FindFile(const ZXTune::DataPath& path) const = 0;
+
+    class Callback
+    {
+    public:
+      virtual ~Callback() {}
+
+      virtual void OnFile(const File& file) const = 0;
+    };
+
+    virtual void ForEachFile(const Callback& cb) const = 0;
     virtual std::size_t GetSize() const = 0;
   };
 }

@@ -123,36 +123,6 @@ namespace
     unsigned Idx;
   };
 
-  class FilesIterator : public Container::Catalogue::Iterator
-  {
-  public:
-    explicit FilesIterator(const FilesList& files)
-      : Current(files.begin())
-      , Limit(files.end())
-    {
-    }
-
-    virtual bool IsValid() const
-    {
-      return Current != Limit;
-    }
-
-    virtual Container::File::Ptr Get() const
-    {
-      assert(IsValid());
-      return *Current;
-    }
-
-    virtual void Next()
-    {
-      assert(IsValid());
-      ++Current;
-    }
-  private:
-    FilesList::const_iterator Current;
-    const FilesList::const_iterator Limit;
-  };
-
   class CommonCatalogue : public Container::Catalogue
   {
   public:
@@ -162,11 +132,6 @@ namespace
       , UsedSize(usedSize)
     {
       assert(UsedSize);
-    }
-
-    virtual Iterator::Ptr GetFiles() const
-    {
-      return Iterator::Ptr(new FilesIterator(Files));
     }
 
     virtual uint_t GetFilesCount() const
@@ -187,6 +152,14 @@ namespace
         return Container::File::Ptr();
       }
       return *it;
+    }
+
+    virtual void ForEachFile(const Container::Catalogue::Callback& cb) const
+    {
+      for (FilesList::const_iterator it = Files.begin(), lim = Files.end(); it != lim; ++it)
+      {
+        cb.OnFile(**it);
+      }
     }
 
     virtual std::size_t GetSize() const

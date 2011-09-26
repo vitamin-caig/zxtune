@@ -349,37 +349,6 @@ namespace
     Container::File::Ptr Previous;
   };
 
-  template<class It>
-  class FilesIterator : public Container::Catalogue::Iterator
-  {
-  public:
-    FilesIterator(It begin, It limit)
-      : Current(begin)
-      , Limit(limit)
-    {
-    }
-
-    virtual bool IsValid() const
-    {
-      return Current != Limit;
-    }
-
-    virtual Container::File::Ptr Get() const
-    {
-      assert(IsValid());
-      return *Current;
-    }
-
-    virtual void Next()
-    {
-      assert(IsValid());
-      ++Current;
-    }
-  private:
-    It Current;
-    const It Limit;
-  };
-
   class RarCatalogue : public Container::Catalogue
   {
   public:
@@ -388,12 +357,6 @@ namespace
       , Data(data)
       , MaxFileSize(maxFileSize)
     {
-    }
-
-    virtual Iterator::Ptr GetFiles() const
-    {
-      FillCache();
-      return Iterator::Ptr(new FilesIterator<FilesList::const_iterator>(Files.begin(), Files.end()));
     }
 
     virtual uint_t GetFilesCount() const
@@ -427,6 +390,15 @@ namespace
         }
         const DataPath::Ptr unresolved = SubstractDataPath(path, *resolved);
         resolved = CreateMergedDataPath(resolved, unresolved->GetFirstComponent());
+      }
+    }
+
+    virtual void ForEachFile(const Container::Catalogue::Callback& cb) const
+    {
+      FillCache();
+      for (FilesList::const_iterator it = Files.begin(), lim = Files.end(); it != lim; ++it)
+      {
+        cb.OnFile(**it);
       }
     }
 

@@ -77,6 +77,33 @@ namespace
     uint_t Current;
   };
 
+  class ContainerDetectCallback : public Container::Catalogue::Callback
+  {
+  public:
+    ContainerDetectCallback(Plugin::Ptr descr, DataLocation::Ptr location, uint_t count, const Module::DetectCallback& callback)
+      : BaseLocation(location)
+      , Description(descr)
+      , Logger(count, callback, *Description, BaseLocation->GetPath()->AsString())
+    {
+    }
+
+    virtual void OnFile(const Container::File& file) const
+    {
+      Logger(file);
+      if (const Binary::Container::Ptr subData = file.GetData())
+      {
+        const String subPath = file.GetName();
+        const ZXTune::DataLocation::Ptr subLocation = CreateNestedLocation(BaseLocation, subData, Description, subPath);
+        const std::auto_ptr<Module::DetectCallback> nestedProgressCallback = Logger.CreateNestedCallback();
+        ZXTune::Module::Detect(subLocation, *nestedProgressCallback);
+      }
+    }
+  private:
+    const DataLocation::Ptr BaseLocation;
+    const Plugin::Ptr Description;
+    mutable LoggerHelper Logger;
+  };
+
   class CommonContainerPlugin : public ArchivePlugin
   {
   public:
@@ -98,19 +125,8 @@ namespace
       {
         if (const uint_t count = files->GetFilesCount())
         {
-          LoggerHelper logger(count, callback, *Description, input->GetPath()->AsString());
-          for (Container::Catalogue::Iterator::Ptr it = files->GetFiles(); it->IsValid(); it->Next(), logger.Next())
-          {
-            const Container::File::Ptr file = it->Get();
-            logger(*file);
-            if (const Binary::Container::Ptr subData = file->GetData())
-            {
-              const String subPath = file->GetName();
-              const ZXTune::DataLocation::Ptr subLocation = CreateNestedLocation(input, subData, Description, subPath);
-              const std::auto_ptr<Module::DetectCallback> nestedProgressCallback = logger.CreateNestedCallback();
-              ZXTune::Module::Detect(subLocation, *nestedProgressCallback);
-            }
-          }
+          ContainerDetectCallback detect(Description, input, count, callback);
+          files->ForEachFile(detect);
         }
         return DetectionResult::CreateMatched(files->GetSize());
       }
