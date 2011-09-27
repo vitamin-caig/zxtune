@@ -33,7 +33,7 @@ namespace GAM
 
   void RegisterConvertor(PluginsRegistrator& registrator)
   {
-    Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateGamePackerDecoder();
+    const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateGamePackerDecoder();
     const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ID, INFO, VERSION, CAPS, decoder);
     registrator.RegisterPlugin(plugin);
   }
@@ -46,7 +46,7 @@ namespace GAMPlus
 
   void RegisterConvertor(PluginsRegistrator& registrator)
   {
-    Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateGamePackerPlusDecoder();
+    const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateGamePackerPlusDecoder();
     const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ID, INFO, VERSION, CAPS, decoder);
     registrator.RegisterPlugin(plugin);
   }

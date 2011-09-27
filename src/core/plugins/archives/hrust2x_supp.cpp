@@ -32,7 +32,7 @@ namespace ZXTune
 {
   void RegisterHrust2xConvertor(PluginsRegistrator& registrator)
   {
-    Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateHrust2Decoder();
+    const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateHrust2Decoder();
     const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ID, INFO, VERSION, CAPS, decoder);
     registrator.RegisterPlugin(plugin);
   }

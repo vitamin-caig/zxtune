@@ -31,14 +31,14 @@ namespace
 
   void RegisterPCD61Support(PluginsRegistrator& registrator)
   {
-    Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreatePowerfullCodeDecreaser61Decoder();
+    const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreatePowerfullCodeDecreaser61Decoder();
     const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ID61, INFO61, VERSION, CAPS, decoder);
     registrator.RegisterPlugin(plugin);
   }
 
   void RegisterPCD62Support(PluginsRegistrator& registrator)
   {
-    Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreatePowerfullCodeDecreaser62Decoder();
+    const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreatePowerfullCodeDecreaser62Decoder();
     const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ID62, INFO62, VERSION, CAPS, decoder);
     registrator.RegisterPlugin(plugin);
   }

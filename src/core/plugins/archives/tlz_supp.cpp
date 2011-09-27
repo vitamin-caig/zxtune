@@ -33,7 +33,7 @@ namespace TLZ
 
   void RegisterConverter(PluginsRegistrator& registrator)
   {
-    Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateTurboLZDecoder();
+    const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateTurboLZDecoder();
     const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ID, INFO, VERSION, CAPS, decoder);
     registrator.RegisterPlugin(plugin);
   }
@@ -46,7 +46,7 @@ namespace TLZP
 
   void RegisterConverter(PluginsRegistrator& registrator)
   {
-    Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateTurboLZProtectedDecoder();
+    const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateTurboLZProtectedDecoder();
     const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ID, INFO, VERSION, CAPS, decoder);
     registrator.RegisterPlugin(plugin);
   }

@@ -32,7 +32,7 @@ namespace ZXTune
 {
   void RegisterDSQConvertor(PluginsRegistrator& registrator)
   {
-    Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateDataSquieezerDecoder();
+    const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateDataSquieezerDecoder();
     const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ID, INFO, VERSION, CAPS, decoder);
     registrator.RegisterPlugin(plugin);
   }

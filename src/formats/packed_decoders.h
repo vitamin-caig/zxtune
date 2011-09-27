@@ -43,6 +43,8 @@ namespace Formats
     Decoder::Ptr CreatePack2Decoder();
     Decoder::Ptr CreateLZH1Decoder();
     Decoder::Ptr CreateLZH2Decoder();
+    Decoder::Ptr CreateFullDiskImageDecoder();
+    Decoder::Ptr CreateHobetaDecoder();
   }
 }
 

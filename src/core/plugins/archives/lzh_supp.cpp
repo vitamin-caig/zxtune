@@ -33,7 +33,7 @@ namespace LZH1
 
   void RegisterConverter(PluginsRegistrator& registrator)
   {
-    Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateLZH1Decoder();
+    const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateLZH1Decoder();
     const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ID, INFO, VERSION, CAPS, decoder);
     registrator.RegisterPlugin(plugin);
   }
@@ -46,7 +46,7 @@ namespace LZH2
 
   void RegisterConverter(PluginsRegistrator& registrator)
   {
-    Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateLZH2Decoder();
+    const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateLZH2Decoder();
     const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ID, INFO, VERSION, CAPS, decoder);
     registrator.RegisterPlugin(plugin);
   }

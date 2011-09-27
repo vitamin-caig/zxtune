@@ -38,7 +38,7 @@ namespace
 
   void RegisterCC4PlusSupport(PluginsRegistrator& registrator)
   {
-    Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateCompressorCode4PlusDecoder();
+    const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateCompressorCode4PlusDecoder();
     const ArchivePlugin::Ptr plugin = CreateArchivePlugin(IDPLUS, INFOPLUS, VERSION, CAPS, decoder);
     registrator.RegisterPlugin(plugin);
   }

@@ -32,7 +32,7 @@ namespace ZXTune
 {
   void RegisterESVConvertor(PluginsRegistrator& registrator)
   {
-    Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateESVCruncherDecoder();
+    const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateESVCruncherDecoder();
     const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ID, INFO, VERSION, CAPS, decoder);
     registrator.RegisterPlugin(plugin);
   }
