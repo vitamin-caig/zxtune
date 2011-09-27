@@ -33,22 +33,13 @@ namespace
     {
     }
 
-    virtual Plugin::Ptr GetLast() const
-    {
-      return NewPlug;
-    }
-
-    virtual uint_t Count() const
-    {
-      return Parent->Count() + 1;
-    }
-
     virtual String AsString() const
     {
       const String thisId = NewPlug->Id();
-      if (Parent->Count())
+      const String parentId = Parent->AsString();
+      if (!parentId.empty())
       {
-        return Parent->AsString() + Text::MODULE_CONTAINERS_DELIMITER + thisId;
+        return parentId + Text::MODULE_CONTAINERS_DELIMITER + thisId;
       }
       else
       {

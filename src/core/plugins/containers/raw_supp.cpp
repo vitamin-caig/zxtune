@@ -424,14 +424,6 @@ namespace
         Log::Debug(THIS_MODULE, "Size is too small (%1%)", size);
         return DetectionResult::CreateUnmatched(size);
       }
-      if (const Plugin::Ptr lastPlugin = input->GetPlugins()->GetLast())
-      {
-        if (lastPlugin->Id() == Description->Id())
-        {
-          Log::Debug(THIS_MODULE, "Recursive raw. Skipping.");
-          return DetectionResult::CreateUnmatched(size);
-        }
-      }
 
       const String currentPath = input->GetPath()->AsString();
       Log::Debug(THIS_MODULE, "Detecting modules in raw data at '%1%'", currentPath);
