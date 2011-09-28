@@ -35,7 +35,6 @@ namespace Container
     virtual ~File() {}
 
     virtual String GetName() const = 0;
-    virtual std::size_t GetSize() const = 0;
     virtual Binary::Container::Ptr GetData() const = 0;
   };
 

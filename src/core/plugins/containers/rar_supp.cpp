@@ -59,16 +59,6 @@ namespace
       return String();
     }
 
-    virtual std::size_t GetOffset() const
-    {
-      return ~std::size_t(0);
-    }
-
-    virtual std::size_t GetSize() const
-    {
-      return 0;
-    }
-
     virtual Binary::Container::Ptr GetData() const
     {
       return Binary::Container::Ptr();
@@ -109,6 +99,8 @@ namespace
   class RarContainerFile : public Container::File
   {
   public:
+    typedef boost::shared_ptr<RarContainerFile> Ptr;
+
     RarContainerFile(ChainDecoder::Ptr decoder, Binary::Container::Ptr data, const String& name, std::size_t size, Container::File::Ptr parent)
       : Decoder(decoder)
       , Data(data)
@@ -123,16 +115,6 @@ namespace
       return Name;
     }
 
-    virtual std::size_t GetOffset() const
-    {
-      return ~std::size_t(0);
-    }
-
-    virtual std::size_t GetSize() const
-    {
-      return Size;
-    }
-
     virtual Binary::Container::Ptr GetData() const
     {
       Log::Debug(THIS_MODULE, "Decompressing '%1%'", Name);
@@ -143,6 +125,11 @@ namespace
         Parent->GetData();
       }
       return Decoder->Decode(*Data, Name);
+    }
+
+    std::size_t GetSize() const
+    {
+      return Size;
     }
   private:
     const ChainDecoder::Ptr Decoder;
@@ -301,12 +288,9 @@ namespace
       return name;
     }
 
-    Container::File::Ptr GetFile() const
+    RarContainerFile::Ptr GetFile() const
     {
-      if (!IsValid())
-      {
-        return StubContainerFile::Create();
-      }
+      assert(IsValid());
       if (!Current)
       {
         const std::size_t offset = Blocks.GetOffset();
@@ -322,7 +306,9 @@ namespace
     void Next()
     {
       assert(!IsEof());
-      Previous = GetFile();
+      Previous = IsValid()
+        ? GetFile()
+        : StubContainerFile::Create();
       Current.reset();
       Blocks.Next();
       SkipNonFileBlocks();
@@ -344,7 +330,7 @@ namespace
     const ChainDecoder::Ptr Decoder;
     const Binary::Container::Ptr Data;
     RarBlocksIterator Blocks;
-    mutable Container::File::Ptr Current;
+    mutable RarContainerFile::Ptr Current;
     Container::File::Ptr Previous;
   };
 
@@ -449,7 +435,7 @@ namespace
           continue;
         }
         Log::Debug(THIS_MODULE, "Found file '%1%'", fileName);
-        const Container::File::Ptr fileObject = Iter->GetFile();
+        const RarContainerFile::Ptr fileObject = Iter->GetFile();
         Iter->Next();
         if (fileObject->GetSize() > MaxFileSize)
         {

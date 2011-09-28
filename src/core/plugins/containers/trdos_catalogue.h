@@ -25,6 +25,7 @@ namespace TRDos
   public:
     typedef boost::shared_ptr<const File> Ptr;
 
+    virtual std::size_t GetSize() const = 0;
     virtual std::size_t GetOffset() const = 0;
 
     static Ptr Create(Binary::Container::Ptr data, const String& name, std::size_t off, std::size_t size);

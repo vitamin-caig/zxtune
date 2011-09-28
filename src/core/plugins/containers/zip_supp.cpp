@@ -41,6 +41,8 @@ namespace
   class ZipContainerFile : public Container::File
   {
   public:
+    typedef boost::shared_ptr<const ZipContainerFile> Ptr;
+
     ZipContainerFile(const Formats::Packed::Decoder& decoder, Binary::Container::Ptr data, const String& name, std::size_t size)
       : Decoder(decoder)
       , Data(data)
@@ -54,20 +56,15 @@ namespace
       return Name;
     }
 
-    virtual std::size_t GetOffset() const
-    {
-      return ~std::size_t(0);
-    }
-
-    virtual std::size_t GetSize() const
-    {
-      return Size;
-    }
-
     virtual Binary::Container::Ptr GetData() const
     {
       Log::Debug(THIS_MODULE, "Decompressing '%1%'", Name);
       return Decoder.Decode(*Data);
+    }
+
+    std::size_t GetSize() const
+    {
+      return Size;
     }
   private:
     const Formats::Packed::Decoder& Decoder;
@@ -120,7 +117,7 @@ namespace
       return String(header.Name, header.Name + fromLE(header.NameSize));
     }
 
-    Container::File::Ptr GetFile() const
+    ZipContainerFile::Ptr GetFile() const
     {
       assert(IsValid());
       const Formats::Packed::Zip::LocalFileHeader& header = GetHeader();
@@ -251,7 +248,7 @@ namespace
           continue;
         }
         Log::Debug(THIS_MODULE, "Found file '%1%'", fileName);
-        const Container::File::Ptr fileObject = Iter->GetFile();
+        const ZipContainerFile::Ptr fileObject = Iter->GetFile();
         Iter->Next();
         if (fileObject->GetSize() > MaxFileSize)
         {
