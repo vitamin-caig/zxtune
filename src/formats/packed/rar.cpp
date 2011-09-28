@@ -26,6 +26,8 @@ Author:
 //boost includes
 #include <boost/array.hpp>
 #include <boost/make_shared.hpp>
+//text includes
+#include <formats/text/packed.h>
 
 namespace Rar
 {
@@ -886,6 +888,11 @@ namespace Formats
         : Format(Binary::Format::Create(::Rar::HEADER_PATTERN))
         , Decoder(new ::Rar::DispatchedCompressedFile())
       {
+      }
+
+      virtual String GetDescription() const
+      {
+        return Text::RAR_DECODER_DESCRIPTION;
       }
 
       virtual Binary::Format::Ptr GetFormat() const

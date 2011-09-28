@@ -27,7 +27,7 @@ Author:
 //boost includes
 #include <boost/make_shared.hpp>
 //text includes
-#include <core/text/plugins.h>
+#include <formats/text/packed.h>
 
 namespace ZXZip
 {
@@ -658,6 +658,11 @@ namespace Formats
       ZXZipDecoder()
         : Depacker(Binary::Format::Create(ZXZip::HEADER_PATTERN))
       {
+      }
+
+      virtual String GetDescription() const
+      {
+        return Text::ZXZIP_DECODER_DESCRIPTION;
       }
 
       virtual Binary::Format::Ptr GetFormat() const

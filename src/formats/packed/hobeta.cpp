@@ -18,6 +18,8 @@ Author:
 #include <formats/packed.h>
 //std includes
 #include <numeric>
+//text includes
+#include <formats/text/packed.h>
 
 namespace Hobeta
 {
@@ -91,6 +93,11 @@ namespace Formats
       HobetaDecoder()
         : Format(Binary::Format::Create(Hobeta::FORMAT))
       {
+      }
+
+      virtual String GetDescription() const
+      {
+        return Text::HOBETA_DECODER_DESCRIPTION;
       }
 
       virtual Binary::Format::Ptr GetFormat() const

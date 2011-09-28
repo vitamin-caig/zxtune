@@ -22,6 +22,8 @@ Author:
 #include <iterator>
 //boost includes
 #include <boost/make_shared.hpp>
+//text includes
+#include <formats/text/packed.h>
 
 namespace LZH
 {
@@ -29,6 +31,7 @@ namespace LZH
 
   struct Version1
   {
+    static const String DESCRIPTION;
     static const std::string DEPACKER_PATTERN;
 
 #ifdef USE_PRAGMA_PACK
@@ -93,6 +96,7 @@ namespace LZH
 
   struct Version2
   {
+    static const String DESCRIPTION;
     static const std::string DEPACKER_PATTERN;
 
 #ifdef USE_PRAGMA_PACK
@@ -155,6 +159,7 @@ namespace LZH
     }
   };
 
+  const String Version1::DESCRIPTION = Text::LZH1_DECODER_DESCRIPTION;
   const std::string Version1::DEPACKER_PATTERN(
     "?"             // di/ei
     "21??"          // ld hl,xxxx depacker body src
@@ -187,6 +192,7 @@ namespace LZH
     "6f"            // ld l,a
   );
 
+  const String Version2::DESCRIPTION = Text::LZH2_DECODER_DESCRIPTION;
   const std::string Version2::DEPACKER_PATTERN(
     "?"             // di/ei
     "21??"          // ld hl,xxxx depacker body src
@@ -367,6 +373,11 @@ namespace Formats
       LZHDecoder()
         : Depacker(Binary::Format::Create(Version::DEPACKER_PATTERN))
       {
+      }
+
+      virtual String GetDescription() const
+      {
+        return Version::DESCRIPTION;
       }
 
       virtual Binary::Format::Ptr GetFormat() const

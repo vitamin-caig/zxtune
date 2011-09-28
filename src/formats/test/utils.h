@@ -31,6 +31,7 @@ namespace Test
 
   void TestPacked(const Formats::Packed::Decoder& decoder, const Dump& etalonDump, const std::map<std::string, Dump>& tests, bool checkCorrupted = true)
   {
+    std::cout << "Test for '" << decoder.GetDescription() << "'" << std::endl;
     const Binary::Container::Ptr etalon = Binary::CreateContainer(&etalonDump[0], etalonDump.size());
     for (std::map<std::string, Dump>::const_iterator it = tests.begin(), lim = tests.end(); it != lim; ++it)
     {

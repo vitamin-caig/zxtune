@@ -25,6 +25,8 @@ Author:
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
+//text includes
+#include <formats/text/packed.h>
 
 namespace DataSquieezer
 {
@@ -434,6 +436,11 @@ namespace Formats
       DataSquieezerDecoder()
         : Depacker(Binary::Format::Create(DataSquieezer::DEPACKER_PATTERN))
       {
+      }
+
+      virtual String GetDescription() const
+      {
+        return Text::DSQ_DECODER_DESCRIPTION;
       }
 
       virtual Binary::Format::Ptr GetFormat() const

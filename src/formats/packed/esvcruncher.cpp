@@ -25,6 +25,8 @@ Author:
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
+//text includes
+#include <formats/text/packed.h>
 
 namespace ESVCruncher
 {
@@ -419,6 +421,11 @@ namespace Formats
       ESVCruncherDecoder()
         : Depacker(Binary::Format::Create(ESVCruncher::DEPACKER_PATTERN))
       {
+      }
+
+      virtual String GetDescription() const
+      {
+        return Text::ESV_DECODER_DESCRIPTION;
       }
 
       virtual Binary::Format::Ptr GetFormat() const

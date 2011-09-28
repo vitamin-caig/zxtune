@@ -24,6 +24,8 @@ Author:
 #include <stdexcept>
 //boost includes
 #include <boost/make_shared.hpp>
+//text includes
+#include <formats/text/packed.h>
 
 namespace CompressorCode
 {
@@ -31,6 +33,7 @@ namespace CompressorCode
 
   struct Version4
   {
+    static const String DESCRIPTION;
     static const std::string DEPACKER_PATTERN;
 
 #ifdef USE_PRAGMA_PACK
@@ -70,6 +73,7 @@ namespace CompressorCode
 
   struct Version4Plus
   {
+    static const String DESCRIPTION;
     static const std::string DEPACKER_PATTERN;
 
 #ifdef USE_PRAGMA_PACK
@@ -113,6 +117,7 @@ namespace CompressorCode
     BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0x36);
   };
 
+  const String Version4::DESCRIPTION = Text::CC4_DECODER_DESCRIPTION;
   const std::string Version4::DEPACKER_PATTERN(
     "cd5200"  // call 0x52
     "3b"      // dec sp
@@ -134,6 +139,7 @@ namespace CompressorCode
     "c5"      // push bc
   );
 
+  const String Version4Plus::DESCRIPTION = Text::CC4PLUS_DECODER_DESCRIPTION;
   const std::string Version4Plus::DEPACKER_PATTERN(
     "cd5200"  // call 0x52
     "3b"      // dec sp
@@ -547,6 +553,11 @@ namespace Formats
       CompressorCodeDecoder()
         : Depacker(Binary::Format::Create(Version::DEPACKER_PATTERN))
       {
+      }
+
+      virtual String GetDescription() const
+      {
+        return Version::DESCRIPTION;
       }
 
       virtual Binary::Format::Ptr GetFormat() const

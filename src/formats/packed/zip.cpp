@@ -23,6 +23,8 @@ Author:
 #include <memory>
 //boost includes
 #include <boost/make_shared.hpp>
+//text includes
+#include <formats/text/packed.h>
 
 #ifdef ZLIB_SUPPORT
 //platform includes
@@ -273,6 +275,11 @@ namespace Formats
       ZipDecoder()
         : Depacker(Binary::Format::Create(::Zip::HEADER_PATTERN))
       {
+      }
+
+      virtual String GetDescription() const
+      {
+        return Text::ZIP_DECODER_DESCRIPTION;
       }
 
       virtual Binary::Format::Ptr GetFormat() const

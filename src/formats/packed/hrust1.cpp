@@ -23,6 +23,8 @@ Author:
 #include <numeric>
 //boost includes
 #include <boost/make_shared.hpp>
+//text includes
+#include <formats/text/packed.h>
 
 namespace Hrust1
 {
@@ -332,6 +334,11 @@ namespace Formats
     class Hrust1Decoder : public Decoder
     {
     public:
+      virtual String GetDescription() const
+      {
+        return Text::HRUST1_DECODER_DESCRIPTION;
+      }
+
       virtual Binary::Format::Ptr GetFormat() const
       {
         return boost::make_shared<Hrust1::Format>();

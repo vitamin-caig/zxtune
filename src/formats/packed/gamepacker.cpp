@@ -22,6 +22,8 @@ Author:
 #include <cstring>
 //boost includes
 #include <boost/make_shared.hpp>
+//text includes
+#include <formats/text/packed.h>
 
 namespace GamePacker
 {
@@ -29,6 +31,7 @@ namespace GamePacker
 
   struct Version1
   {
+    static const String DESCRIPTION;
     static const std::string DEPACKER_PATTERN;
 
 #ifdef USE_PRAGMA_PACK
@@ -73,6 +76,7 @@ namespace GamePacker
 
   struct Version2
   {
+    static const String DESCRIPTION;
     static const std::string DEPACKER_PATTERN;
 
 #ifdef USE_PRAGMA_PACK
@@ -109,7 +113,8 @@ namespace GamePacker
 #pragma pack(pop)
 #endif
   };
-  
+
+  const String Version1::DESCRIPTION = Text::GAM_DECODER_DESCRIPTION; 
   const std::string Version1::DEPACKER_PATTERN =
     "21??"   // ld hl,xxxx depacker body src
     "11??"   // ld de,xxxx depacker body dst
@@ -129,6 +134,7 @@ namespace GamePacker
     "b5"     // or l
   ;
 
+  const String Version2::DESCRIPTION = Text::GAMPLUS_DECODER_DESCRIPTION;
   const std::string Version2::DEPACKER_PATTERN =
     "21??"   // ld hl,xxxx depacker body src
     "11??"   // ld de,xxxx depacker body dst
@@ -295,6 +301,11 @@ namespace Formats
       GamePackerDecoder()
         : Depacker(Binary::Format::Create(Version::DEPACKER_PATTERN))
       {
+      }
+
+      virtual String GetDescription() const
+      {
+        return Version::DESCRIPTION;
       }
 
       virtual Binary::Format::Ptr GetFormat() const

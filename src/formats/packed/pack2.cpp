@@ -22,6 +22,8 @@ Author:
 #include <iterator>
 //boost includes
 #include <boost/make_shared.hpp>
+//text includes
+#include <formats/text/packed.h>
 
 namespace Pack2
 {
@@ -266,6 +268,11 @@ namespace Formats
       Pack2Decoder()
         : Depacker(Binary::Format::Create(Pack2::DEPACKER_PATTERN))
       {
+      }
+
+      virtual String GetDescription() const
+      {
+        return Text::PACK2_DECODER_DESCRIPTION;
       }
 
       virtual Binary::Format::Ptr GetFormat() const

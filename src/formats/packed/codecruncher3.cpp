@@ -23,6 +23,8 @@ Author:
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
+//text includes
+#include <formats/text/packed.h>
 
 namespace CodeCruncher3
 {
@@ -351,6 +353,11 @@ namespace Formats
       CodeCruncher3Decoder()
         : Depacker(Binary::Format::Create(CodeCruncher3::DEPACKER_PATTERN))
       {
+      }
+
+      virtual String GetDescription() const
+      {
+        return Text::CC3_DECODER_DESCRIPTION;
       }
 
       virtual Binary::Format::Ptr GetFormat() const

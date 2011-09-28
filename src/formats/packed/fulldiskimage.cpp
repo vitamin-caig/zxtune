@@ -21,6 +21,8 @@ Author:
 #include <numeric>
 //boost includes
 #include <boost/bind.hpp>
+//text includes
+#include <formats/text/packed.h>
 
 namespace FullDiskImage
 {
@@ -255,6 +257,11 @@ namespace Formats
       FullDiskImageDecoder()
         : Format(Binary::Format::Create(FullDiskImage::FORMAT_PATTERN))
       {
+      }
+
+      virtual String GetDescription() const
+      {
+        return Text::FDI_DECODER_DESCRIPTION;
       }
 
       virtual Binary::Format::Ptr GetFormat() const

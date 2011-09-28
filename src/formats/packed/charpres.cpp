@@ -22,6 +22,8 @@ Author:
 #include <iterator>
 //boost includes
 #include <boost/make_shared.hpp>
+//text include
+#include <formats/text/packed.h>
 
 namespace CharPres
 {
@@ -249,6 +251,11 @@ namespace Formats
       CharPresDecoder()
         : Depacker(Binary::Format::Create(CharPres::DEPACKER_PATTERN))
       {
+      }
+
+      virtual String GetDescription() const
+      {
+        return Text::CHARPRES_DECODER_DESCRIPTION;
       }
 
       virtual Binary::Format::Ptr GetFormat() const

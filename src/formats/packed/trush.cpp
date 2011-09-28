@@ -23,6 +23,8 @@ Author:
 #include <cstring>
 //boost includes
 #include <boost/make_shared.hpp>
+//text includes
+#include <formats/text/packed.h>
 
 namespace TRUSH
 {
@@ -255,6 +257,11 @@ namespace Formats
     class TRUSHDecoder : public Decoder
     {
     public:
+      virtual String GetDescription() const
+      {
+        return Text::TRUSH_DECODER_DESCRIPTION;
+      }
+
       virtual Binary::Format::Ptr GetFormat() const
       {
         return boost::make_shared<TRUSH::Format>();

@@ -15,8 +15,6 @@ Author:
 //library includes
 #include <core/plugin_attrs.h>
 #include <formats/packed_decoders.h>
-//text includes
-#include <core/text/plugins.h>
 
 namespace
 {
@@ -28,12 +26,11 @@ namespace
 namespace LZH1
 {
   const Char ID[] = {'L', 'Z', 'H', '1', '\0'};
-  const Char* const INFO = Text::LZH1_PLUGIN_INFO;
 
   void RegisterConverter(PluginsRegistrator& registrator)
   {
     const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateLZH1Decoder();
-    const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ID, INFO, CAPS, decoder);
+    const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ID, CAPS, decoder);
     registrator.RegisterPlugin(plugin);
   }
 }
@@ -41,12 +38,11 @@ namespace LZH1
 namespace LZH2
 {
   const Char ID[] = {'L', 'Z', 'H', '2', '\0'};
-  const Char* const INFO = Text::LZH2_PLUGIN_INFO;
 
   void RegisterConverter(PluginsRegistrator& registrator)
   {
     const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateLZH2Decoder();
-    const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ID, INFO, CAPS, decoder);
+    const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ID, CAPS, decoder);
     registrator.RegisterPlugin(plugin);
   }
 }

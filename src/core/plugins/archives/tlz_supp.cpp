@@ -15,8 +15,6 @@ Author:
 //library includes
 #include <core/plugin_attrs.h>
 #include <formats/packed_decoders.h>
-//text includes
-#include <core/text/plugins.h>
 
 namespace
 {
@@ -28,12 +26,11 @@ namespace
 namespace TLZ
 {
   const Char ID[] = {'T', 'L', 'Z', '\0'};
-  const Char* const INFO = Text::TLZ_PLUGIN_INFO;
 
   void RegisterConverter(PluginsRegistrator& registrator)
   {
     const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateTurboLZDecoder();
-    const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ID, INFO, CAPS, decoder);
+    const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ID, CAPS, decoder);
     registrator.RegisterPlugin(plugin);
   }
 }
@@ -41,12 +38,11 @@ namespace TLZ
 namespace TLZP
 {
   const Char ID[] = {'T', 'L', 'Z', 'P', '\0'};
-  const Char* const INFO = Text::TLZP_PLUGIN_INFO;
 
   void RegisterConverter(PluginsRegistrator& registrator)
   {
     const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateTurboLZProtectedDecoder();
-    const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ID, INFO, CAPS, decoder);
+    const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ID, CAPS, decoder);
     registrator.RegisterPlugin(plugin);
   }
 }

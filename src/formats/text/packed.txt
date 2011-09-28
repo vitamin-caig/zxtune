@@ -1,0 +1,118 @@
+< __HEADER__
+> "Generated from '$Id: plugins.txt 1346 2011-09-26 13:15:55Z vitamin.caig $'"
+
+< __RAWHEADER__
+__cpp> "#ifndef __TEXT_PACKED_H_DEFINED__\n"
+__cpp> "#define __TEXT_PACKED_H_DEFINED__\n"
+__cpp> "#include <char_type.h>\n\n"
+__cpp> "namespace Text\n"
+__cpp> "{\n"
+
+< __RAWFOOTER__
+__cpp> "}//namespace Text\n"
+__cpp> "#endif //__TEXT_PACKED_H_DEFINED__\n"
+
+#CC3
+< CC3_DECODER_DESCRIPTION
+> "CodeCruncher v3.x"
+
+#CC4
+< CC4_DECODER_DESCRIPTION
+> "CompressorCode v.4 by ZYX"
+
+#CC4PLUS
+< CC4PLUS_DECODER_DESCRIPTION
+> "CompressorCode v.4+ by ZYX"
+
+#CHARPRES
+< CHARPRES_DECODER_DESCRIPTION
+> "CharPres"
+
+#DSQ
+< DSQ_DECODER_DESCRIPTION
+> "DataSqueezer v4.x"
+
+#ESV
+< ESV_DECODER_DESCRIPTION
+> "ESV Cruncher"
+
+#FDI
+< FDI_DECODER_DESCRIPTION
+> "FullDiskImage (FDI)"
+
+#Hobeta
+< HOBETA_DECODER_DESCRIPTION
+> "Hobeta"
+
+#Hrum
+< HRUM_DECODER_DESCRIPTION
+> "Hrum v3.x"
+
+#Hrust1
+< HRUST1_DECODER_DESCRIPTION
+> "Hrust v1.x"
+
+#Hrust21
+< HRUST21_DECODER_DESCRIPTION
+> "Hrust v2.1"
+
+#Hrust2x
+< HRUST2X_DECODER_DESCRIPTION
+> "Hrust v2.x"
+
+#GamePacker
+< GAM_DECODER_DESCRIPTION
+> "GamePacker"
+
+< GAMPLUS_DECODER_DESCRIPTION
+> "GamePacker+"
+
+#LZH
+< LZH1_DECODER_DESCRIPTION
+> "LZH Compressor v1.4"
+
+< LZH2_DECODER_DESCRIPTION
+> "LZH Compressor v2.4"
+
+#LZS
+< LZS_DECODER_DESCRIPTION
+> "ASC LZS Pack"
+
+#MsPack
+< MSP_DECODER_DESCRIPTION
+> "MicroSpace Packer v1.x"
+
+#Pack2
+< PACK2_DECODER_DESCRIPTION
+> "Pack v2.x"
+
+#PCD
+< PCD61_DECODER_DESCRIPTION
+> "Powerfull Code Decreaser v6.1"
+
+< PCD62_DECODER_DESCRIPTION
+> "Powerfull Code Decreaser v6.2"
+
+#RAR
+< RAR_DECODER_DESCRIPTION
+> "RAR v2.x archiver"
+
+#TLZ
+< TLZ_DECODER_DESCRIPTION
+> "Turbo-LZ v1.x"
+
+#TLZP
+< TLZP_DECODER_DESCRIPTION
+> "Turbo#LZ v1.x (for internal usage only)"
+
+#TRUSH
+< TRUSH_DECODER_DESCRIPTION
+> "Trush Compressor v3.x"
+
+#ZIP
+< ZIP_DECODER_DESCRIPTION
+> "ZIP archiver"
+
+#ZXZIP
+< ZXZIP_DECODER_DESCRIPTION
+> "ZXZip archiver"

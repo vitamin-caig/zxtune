@@ -24,7 +24,7 @@ Author:
 //boost includes
 #include <boost/make_shared.hpp>
 //text includes
-#include <core/text/plugins.h>
+#include <formats/text/packed.h>
 
 namespace Hrum
 {
@@ -262,6 +262,11 @@ namespace Formats
       HrumDecoder()
         : Depacker(Binary::Format::Create(Hrum::DEPACKER_PATTERN))
       {
+      }
+
+      virtual String GetDescription() const
+      {
+        return Text::HRUM_DECODER_DESCRIPTION;
       }
 
       virtual Binary::Format::Ptr GetFormat() const

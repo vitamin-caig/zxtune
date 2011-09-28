@@ -24,6 +24,8 @@ Author:
 #include <cstring>
 //boost includes
 #include <boost/make_shared.hpp>
+//text includes
+#include <formats/text/packed.h>
 
 namespace Hrust2
 {
@@ -351,6 +353,11 @@ namespace Formats
     class Hrust2RawDecoder : public Decoder
     {
     public:
+      virtual String GetDescription() const
+      {
+        return Text::HRUST2X_DECODER_DESCRIPTION;
+      }
+
       virtual Binary::Format::Ptr GetFormat() const
       {
         return boost::make_shared<Hrust2::RawFormat>();
@@ -376,9 +383,14 @@ namespace Formats
       }
     };
 
-    class Hrust2Decoder : public Decoder
+    class Hrust21Decoder : public Decoder
     {
     public:
+      virtual String GetDescription() const
+      {
+        return Text::HRUST21_DECODER_DESCRIPTION;
+      }
+
       virtual Binary::Format::Ptr GetFormat() const
       {
         return boost::make_shared<Hrust2::Format>();
@@ -406,9 +418,9 @@ namespace Formats
       }
     };
 
-    Decoder::Ptr CreateHrust2Decoder()
+    Decoder::Ptr CreateHrust21Decoder()
     {
-      return Decoder::Ptr(new Hrust2Decoder());
+      return Decoder::Ptr(new Hrust21Decoder());
     }
 
     Decoder::Ptr CreateHrust2RawDecoder()

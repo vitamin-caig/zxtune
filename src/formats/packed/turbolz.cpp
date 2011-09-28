@@ -22,6 +22,8 @@ Author:
 #include <iterator>
 //boost includes
 #include <boost/make_shared.hpp>
+//text includes
+#include <formats/text/packed.h>
 
 namespace TurboLZ
 {
@@ -29,71 +31,72 @@ namespace TurboLZ
 
   struct Simple
   {
+    static const String DESCRIPTION;
     static const std::string DEPACKER_PATTERN;
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif
-  PACK_PRE struct RawHeader
-  {
-    static const std::size_t FIXED_PART_SIZE = 0x16;
-
-    //+0
-    char Padding1;
-    //+1
-    uint16_t DepackerBodySrc;
-    //+3
-    char Padding2;
-    //+4
-    uint16_t DepackerBodyDst;
-    //+6
-    char Padding3;
-    //+7
-    uint16_t DepackerBodySize;
-    //+0x9
-    char Padding4[4];
-    //+0xd
-    uint16_t PackedDataSrc;
-    //+0x0f
-    char Padding5;
-    //+0x10
-    uint16_t PackedDataDst;
-    //+0x12
-    char Padding6;
-    //+0x13
-    uint16_t PackedDataSize;
-    //+0x15
-    char Padding7;
-    //+0x16
-    char DepackerBody[1];
-    //+0x17
-    uint8_t PackedDataCopyDirection;
-    //+0x18
-    char Padding8;
-    //+0x19
-    uint16_t DepackTarget;
-    //+0x1b
-    char Padding9;
-    //+0x1c
-    uint16_t DepackPreSource;
-    //+0x1e
-    char Padding10[0x25];
-    //+0x43
-    uint8_t LastByte;
-    //+0x44
-
-    struct KeyFunc : public std::unary_function<void, uint8_t>
+    PACK_PRE struct RawHeader
     {
-      explicit KeyFunc(const RawHeader&)
-      {
-      }
+      static const std::size_t FIXED_PART_SIZE = 0x16;
 
-      uint8_t operator() ()
+      //+0
+      char Padding1;
+      //+1
+      uint16_t DepackerBodySrc;
+      //+3
+      char Padding2;
+      //+4
+      uint16_t DepackerBodyDst;
+      //+6
+      char Padding3;
+      //+7
+      uint16_t DepackerBodySize;
+      //+0x9
+      char Padding4[4];
+      //+0xd
+      uint16_t PackedDataSrc;
+      //+0x0f
+      char Padding5;
+      //+0x10
+      uint16_t PackedDataDst;
+      //+0x12
+      char Padding6;
+      //+0x13
+      uint16_t PackedDataSize;
+      //+0x15
+      char Padding7;
+      //+0x16
+      char DepackerBody[1];
+      //+0x17
+      uint8_t PackedDataCopyDirection;
+      //+0x18
+      char Padding8;
+      //+0x19
+      uint16_t DepackTarget;
+      //+0x1b
+      char Padding9;
+      //+0x1c
+      uint16_t DepackPreSource;
+      //+0x1e
+      char Padding10[0x25];
+      //+0x43
+      uint8_t LastByte;
+      //+0x44
+
+      struct KeyFunc : public std::unary_function<void, uint8_t>
       {
-        return 0;
-      }
-    };
-  } PACK_POST;
+        explicit KeyFunc(const RawHeader&)
+        {
+        }
+
+        uint8_t operator() ()
+        {
+          return 0;
+        }
+      };
+    } PACK_POST;
 #ifdef USE_PRAGMA_PACK
 #pragma pack(pop)
 #endif
@@ -101,6 +104,7 @@ namespace TurboLZ
 
   struct Protected
   {
+    static const String DESCRIPTION;
     static const std::string DEPACKER_PATTERN;
 
 #ifdef USE_PRAGMA_PACK
@@ -182,6 +186,7 @@ namespace TurboLZ
 #endif
   };
 
+  const String Simple::DESCRIPTION = Text::TLZ_DECODER_DESCRIPTION;
   const std::string Simple::DEPACKER_PATTERN(
     "21??"          // ld hl,xxxx depacker body src
     "11??"          // ld de,xxxx depacker body dst
@@ -204,6 +209,7 @@ namespace TurboLZ
     "e60f"          // and 0xf
   );
 
+  const String Protected::DESCRIPTION = Text::TLZP_DECODER_DESCRIPTION;
   const std::string Protected::DEPACKER_PATTERN(
     "21??"          // ld hl,xxxx depacker body src
     "11??"          // ld de,xxxx depacker body dst
@@ -427,6 +433,11 @@ namespace Formats
       TurboLZDecoder()
         : Depacker(Binary::Format::Create(Version::DEPACKER_PATTERN))
       {
+      }
+
+      virtual String GetDescription() const
+      {
+        return Version::DESCRIPTION;
       }
 
       virtual Binary::Format::Ptr GetFormat() const

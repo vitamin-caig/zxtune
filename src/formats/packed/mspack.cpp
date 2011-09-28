@@ -25,6 +25,8 @@ Author:
 #include <cstring>
 //boost includes
 #include <boost/make_shared.hpp>
+//text includes
+#include <formats/text/packed.h>
 
 namespace MSPack
 {
@@ -259,6 +261,11 @@ namespace Formats
     class MSPackDecoder : public Decoder
     {
     public:
+      virtual String GetDescription() const
+      {
+        return Text::MSP_DECODER_DESCRIPTION;
+      }
+
       virtual Binary::Format::Ptr GetFormat() const
       {
         return boost::make_shared<MSPack::Format>();

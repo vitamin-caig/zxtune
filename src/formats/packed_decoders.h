@@ -25,7 +25,7 @@ namespace Formats
     Decoder::Ptr CreateESVCruncherDecoder();
     Decoder::Ptr CreateHrumDecoder();
     Decoder::Ptr CreateHrust1Decoder();
-    Decoder::Ptr CreateHrust2Decoder();
+    Decoder::Ptr CreateHrust21Decoder();
     Decoder::Ptr CreateHrust2RawDecoder();
     Decoder::Ptr CreateLZSDecoder();
     Decoder::Ptr CreateMSPackDecoder();

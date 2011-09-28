@@ -24,6 +24,8 @@ Author:
 #include <iterator>
 //boost includes
 #include <boost/make_shared.hpp>
+//text includes
+#include <formats/text/packed.h>
 
 namespace PowerfullCodeDecreaser6
 {
@@ -31,6 +33,7 @@ namespace PowerfullCodeDecreaser6
 
   struct Version61
   {
+    static const String DESCRIPTION;
     static const std::string DEPACKER_PATTERN;
 
 #ifdef USE_PRAGMA_PACK
@@ -65,6 +68,7 @@ namespace PowerfullCodeDecreaser6
 
   struct Version62
   {
+    static const String DESCRIPTION;
     static const std::string DEPACKER_PATTERN;
 
 #ifdef USE_PRAGMA_PACK
@@ -97,6 +101,7 @@ namespace PowerfullCodeDecreaser6
     BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0xc4 + 5 + 2);
   };
 
+  const String Version61::DESCRIPTION = Text::PCD61_DECODER_DESCRIPTION;
   const std::string Version61::DEPACKER_PATTERN =
     "?"       // di/nop
     "21??"    // ld hl,xxxx 0xc017   depacker src
@@ -135,6 +140,7 @@ namespace PowerfullCodeDecreaser6
     "18f1"    // jr ...
   ;
 
+  const String Version62::DESCRIPTION = Text::PCD62_DECODER_DESCRIPTION;
   const std::string Version62::DEPACKER_PATTERN =
     "?"       // di/nop
     "21??"    // ld hl,xxxx 0x6026   depacker src
@@ -398,6 +404,11 @@ namespace Formats
       PowerfullCodeDecreaser6Decoder()
         : Depacker(Binary::Format::Create(Version::DEPACKER_PATTERN))
       {
+      }
+
+      virtual String GetDescription() const
+      {
+        return Version::DESCRIPTION;
       }
 
       virtual Binary::Format::Ptr GetFormat() const

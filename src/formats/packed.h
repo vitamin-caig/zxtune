@@ -35,7 +35,10 @@ namespace Formats
       typedef boost::shared_ptr<const Decoder> Ptr;
       virtual ~Decoder() {}
 
+      virtual String GetDescription() const = 0;
+
       virtual Binary::Format::Ptr GetFormat() const = 0;
+
       virtual bool Check(const Binary::Container& rawData) const = 0;
       virtual Container::Ptr Decode(const Binary::Container& rawData) const = 0;
     };

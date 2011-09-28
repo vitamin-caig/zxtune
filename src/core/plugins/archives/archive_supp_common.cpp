@@ -110,10 +110,9 @@ namespace
 
 namespace ZXTune
 {
-  ArchivePlugin::Ptr CreateArchivePlugin(const String& id, const String& info, uint_t caps,
-    Formats::Packed::Decoder::Ptr decoder)
+  ArchivePlugin::Ptr CreateArchivePlugin(const String& id, uint_t caps, Formats::Packed::Decoder::Ptr decoder)
   {
-    const Plugin::Ptr description = CreatePluginDescription(id, info, caps);
+    const Plugin::Ptr description = CreatePluginDescription(id, decoder->GetDescription() + Text::CONTAINER_DESCRIPTION_SUFFIX, caps);
     return ArchivePlugin::Ptr(new CommonArchivePlugin(description, decoder));
   }
 }

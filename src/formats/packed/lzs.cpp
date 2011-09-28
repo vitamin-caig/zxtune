@@ -23,6 +23,8 @@ Author:
 #include <iterator>
 //boost includes
 #include <boost/make_shared.hpp>
+//text includes
+#include <formats/text/packed.h>
 
 namespace LZS
 {
@@ -292,6 +294,11 @@ namespace Formats
       LZSDecoder()
         : Depacker(Binary::Format::Create(LZS::DEPACKER_PATTERN))
       {
+      }
+
+      virtual String GetDescription() const
+      {
+        return Text::LZS_DECODER_DESCRIPTION;
       }
 
       virtual Binary::Format::Ptr GetFormat() const
