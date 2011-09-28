@@ -103,10 +103,12 @@ namespace
       StoreString(result, Title);
       StoreString(result, Author);
 
-      result.resize(headerSize + rawDump.size());
 
       assert(0 == rawDump.size() % DataChunk::REG_LAST);
-      for (uint_t reg = 0; reg < DataChunk::REG_LAST; ++reg)
+      const bool storeBeeper = false;
+      const uint_t storedRegisters = storeBeeper ? (DataChunk::REG_BEEPER + 1) : (DataChunk::REG_ENV + 1);
+      result.resize(headerSize + framesCount * storedRegisters);
+      for (uint_t reg = 0; reg < storedRegisters; ++reg)
       {
         for (uint_t frm = 0; frm < framesCount; ++frm)
         {
