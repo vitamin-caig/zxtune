@@ -44,7 +44,7 @@ namespace ZXTune
 
   DetectionResult::Ptr DetectModuleInLocation(ModulesFactory::Ptr factory, Plugin::Ptr plugin, DataLocation::Ptr inputData, const Module::DetectCallback& callback);
 
-  PlayerPlugin::Ptr CreatePlayerPlugin(const String& id, const String& info, const String& version, uint_t caps,
+  PlayerPlugin::Ptr CreatePlayerPlugin(const String& id, const String& info, uint_t caps,
     ModulesFactory::Ptr factory);
 }
 

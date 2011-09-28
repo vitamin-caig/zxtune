@@ -34,7 +34,6 @@ namespace
   using namespace ZXTune::Sound;
 
   const Char AYLPT_BACKEND_ID[] = {'a', 'y', 'l', 'p', 't', 0};
-  const String AYLPT_BACKEND_VERSION(FromStdString("$Rev$"));
 
   class AYLPTBackend : public BackendImpl
                      , private boost::noncopyable
@@ -152,11 +151,6 @@ namespace
     virtual String Description() const
     {
       return Text::AYLPT_BACKEND_DESCRIPTION;
-    }
-
-    virtual String Version() const
-    {
-      return AYLPT_BACKEND_VERSION;
     }
 
     virtual uint_t Capabilities() const

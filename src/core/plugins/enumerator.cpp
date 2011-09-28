@@ -195,10 +195,9 @@ namespace
   class SimplePluginDescription : public Plugin
   {
   public:
-    SimplePluginDescription(const String& id, const String& info, const String& version, uint_t capabilities)
+    SimplePluginDescription(const String& id, const String& info, uint_t capabilities)
       : ID(id)
       , Info(info)
-      , Vers(version)
       , Caps(capabilities)
     {
     }
@@ -213,11 +212,6 @@ namespace
       return Info;
     }
 
-    virtual String Version() const
-    {
-      return Vers;
-    }
-
     virtual uint_t Capabilities() const
     {
       return Caps;
@@ -225,7 +219,6 @@ namespace
   private:
     const String ID;
     const String Info;
-    const String Vers;
     const uint_t Caps;
   };
 }
@@ -250,9 +243,9 @@ namespace ZXTune
     return PluginsEnumerator::Create()->Enumerate();
   }
 
-  Plugin::Ptr CreatePluginDescription(const String& id, const String& info, const String& version, uint_t capabilities)
+  Plugin::Ptr CreatePluginDescription(const String& id, const String& info, uint_t capabilities)
   {
-    return boost::make_shared<SimplePluginDescription>(id, info, version, capabilities);
+    return boost::make_shared<SimplePluginDescription>(id, info, capabilities);
   }
 
   Error DetectModules(Parameters::Accessor::Ptr moduleParams, const DetectParameters& detectParams,

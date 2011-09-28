@@ -46,7 +46,6 @@ namespace
   const std::string THIS_MODULE("Sound::Backend::ALSA");
 
   const Char ALSA_BACKEND_ID[] = {'a', 'l', 's', 'a', 0};
-  const String ALSA_BACKEND_VERSION(FromStdString("$Rev$"));
 
   const uint_t BUFFERS_MIN = 2;
   const uint_t BUFFERS_MAX = 10;
@@ -566,11 +565,6 @@ namespace
     virtual String Description() const
     {
       return Text::ALSA_BACKEND_DESCRIPTION;
-    }
-
-    virtual String Version() const
-    {
-      return ALSA_BACKEND_VERSION;
     }
 
     virtual uint_t Capabilities() const

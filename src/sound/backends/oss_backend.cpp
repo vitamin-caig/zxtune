@@ -52,7 +52,6 @@ namespace
   const uint_t MAX_OSS_VOLUME = 100;
 
   const Char OSS_BACKEND_ID[] = {'o', 's', 's', 0};
-  const String OSS_BACKEND_VERSION(FromStdString("$Rev$"));
 
   class AutoDescriptor : public boost::noncopyable
   {
@@ -323,11 +322,6 @@ namespace
     virtual String Description() const
     {
       return Text::OSS_BACKEND_DESCRIPTION;
-    }
-
-    virtual String Version() const
-    {
-      return OSS_BACKEND_VERSION;
     }
 
     virtual uint_t Capabilities() const

@@ -37,8 +37,6 @@ namespace ZXTune
     virtual String Id() const = 0;
     //! Textual description
     virtual String Description() const = 0;
-    //! Current version string
-    virtual String Version() const = 0;
     //! Plugin capabilities @see plugin_attrs.h
     virtual uint_t Capabilities() const = 0;
   };

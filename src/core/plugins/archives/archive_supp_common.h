@@ -21,7 +21,7 @@ Author:
 
 namespace ZXTune
 {
-  ArchivePlugin::Ptr CreateArchivePlugin(const String& id, const String& info, const String& version, uint_t caps,
+  ArchivePlugin::Ptr CreateArchivePlugin(const String& id, const String& info, uint_t caps,
     Formats::Packed::Decoder::Ptr decoder);
 }
 

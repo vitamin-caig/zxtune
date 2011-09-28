@@ -301,7 +301,6 @@ namespace
   //plugin attributes
   const Char ID[] = {'P', 'S', 'G', 0};
   const Char* const INFO = Text::PSG_PLUGIN_INFO;
-  const String VERSION(FromStdString("$Rev$"));
   const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
 
   const std::string PSG_FORMAT(
@@ -360,7 +359,7 @@ namespace ZXTune
   void RegisterPSGSupport(PluginsRegistrator& registrator)
   {
     const ModulesFactory::Ptr factory = boost::make_shared<PSGModulesFactory>();
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, INFO, VERSION, CAPS, factory);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, INFO, CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

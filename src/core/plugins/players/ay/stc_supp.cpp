@@ -599,7 +599,6 @@ namespace STC
   //plugin attributes
   const Char ID[] = {'S', 'T', 'C', 0};
   const Char* const INFO = Text::STC_PLUGIN_INFO;
-  const String VERSION(FromStdString("$Rev$"));
   const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | Module::GetSupportedAYMFormatConvertors();
 
   const std::string STC_FORMAT(
@@ -677,7 +676,7 @@ namespace ZXTune
   void RegisterSTCSupport(PluginsRegistrator& registrator)
   {
     const ModulesFactory::Ptr factory = boost::make_shared<STC::Factory>();
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(STC::ID, STC::INFO, STC::VERSION, STC::CAPS, factory);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(STC::ID, STC::INFO, STC::CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

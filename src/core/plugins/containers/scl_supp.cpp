@@ -139,7 +139,6 @@ namespace
   using namespace ZXTune;
 
   const Char ID[] = {'S', 'C', 'L', 0};
-  const String VERSION(FromStdString("$Rev$"));
   const Char* const INFO = Text::SCL_PLUGIN_INFO;
   const uint_t CAPS = CAP_STOR_MULTITRACK | CAP_STOR_PLAIN;
 
@@ -175,7 +174,7 @@ namespace ZXTune
   void RegisterSCLContainer(PluginsRegistrator& registrator)
   {
     const ContainerFactory::Ptr factory = boost::make_shared<SCLFactory>();
-    const ArchivePlugin::Ptr plugin = CreateContainerPlugin(ID, INFO, VERSION, CAPS, factory);
+    const ArchivePlugin::Ptr plugin = CreateContainerPlugin(ID, INFO, CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

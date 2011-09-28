@@ -398,7 +398,6 @@ namespace ST1
   //plugin attributes
   const Char ID[] = {'S', 'T', '1', 0};
   const Char* const INFO = Text::ST1_PLUGIN_INFO;
-  const String VERSION(FromStdString("$Rev$"));
   const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | Module::GetSupportedAYMFormatConvertors();
 
   const std::string ST11_FORMAT(
@@ -512,7 +511,7 @@ namespace ZXTune
   void RegisterST1Support(PluginsRegistrator& registrator)
   {
     const ModulesFactory::Ptr factory = boost::make_shared<ST1::Factory>();
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ST1::ID, ST1::INFO, ST1::VERSION, ST1::CAPS, factory);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ST1::ID, ST1::INFO, ST1::CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

@@ -767,7 +767,6 @@ namespace
   //plugin attributes
   const Char ID[] = {'P', 'T', '3', 0};
   const Char* const INFO = Text::PT3_PLUGIN_INFO;
-  const String VERSION(FromStdString("$Rev$"));
   const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors() | GetSupportedVortexFormatConvertors();
 
   const std::string PT3_FORMAT(
@@ -871,7 +870,7 @@ namespace ZXTune
   void RegisterPT3Support(PluginsRegistrator& registrator)
   {
     const ModulesFactory::Ptr factory = boost::make_shared<PT3ModulesFactory>();
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, INFO, VERSION, CAPS, factory);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, INFO, CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

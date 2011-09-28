@@ -23,7 +23,6 @@ namespace
   using namespace ZXTune;
 
   const Char ID[] = {'H', 'R', 'U', 'M', '\0'};
-  const String VERSION(FromStdString("$Rev$"));
   const Char* const INFO = Text::HRUM_PLUGIN_INFO;
   const uint_t CAPS = CAP_STOR_CONTAINER;
 }
@@ -33,7 +32,7 @@ namespace ZXTune
   void RegisterHrumConvertor(PluginsRegistrator& registrator)
   {
     const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateHrumDecoder();
-    const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ID, INFO, VERSION, CAPS, decoder);
+    const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ID, INFO, CAPS, decoder);
     registrator.RegisterPlugin(plugin);
   }
 }

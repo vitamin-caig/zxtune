@@ -110,7 +110,7 @@ namespace
   inline void ShowPlugin(const ZXTune::Plugin& plugin)
   {
     StdOut << Strings::Format(Text::INFO_PLUGIN_INFO,
-      plugin.Id(), plugin.Description(), plugin.Version(), PluginCaps(plugin.Capabilities()));
+      plugin.Id(), plugin.Description(), PluginCaps(plugin.Capabilities()));
   }
 
   inline void ShowPlugins()
@@ -125,7 +125,7 @@ namespace
   inline void ShowBackend(const ZXTune::Sound::BackendInformation& info)
   {
     StdOut << Strings::Format(Text::INFO_BACKEND_INFO,
-      info.Id(), info.Description(), info.Version(), BackendCaps(info.Capabilities()));
+      info.Id(), info.Description(), BackendCaps(info.Capabilities()));
   }
   
   inline void ShowBackends()
@@ -141,7 +141,7 @@ namespace
   inline void ShowProvider(const ZXTune::IO::Provider& provider)
   {
     StdOut << Strings::Format(Text::INFO_PROVIDER_INFO,
-      provider.Id(), provider.Description(), provider.Version());
+      provider.Id(), provider.Description());
   }
   
   inline void ShowProviders()

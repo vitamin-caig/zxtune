@@ -156,10 +156,10 @@ namespace
 
 namespace ZXTune
 {
-  ArchivePlugin::Ptr CreateContainerPlugin(const String& id, const String& info, const String& version, uint_t caps,
+  ArchivePlugin::Ptr CreateContainerPlugin(const String& id, const String& info, uint_t caps,
     ContainerFactory::Ptr factory)
   {
-    const Plugin::Ptr description = CreatePluginDescription(id, info, version, caps);
+    const Plugin::Ptr description = CreatePluginDescription(id, info, caps);
     return ArchivePlugin::Ptr(new CommonContainerPlugin(description, factory));
   }
 }

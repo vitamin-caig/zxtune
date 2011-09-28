@@ -24,7 +24,6 @@ namespace
 
   const Char ID61[] = {'P', 'C', 'D', '6', '1', '\0'};
   const Char ID62[] = {'P', 'C', 'D', '6', '2', '\0'};
-  const String VERSION(FromStdString("$Rev$"));
   const Char* const INFO61 = Text::PCD61_PLUGIN_INFO;
   const Char* const INFO62 = Text::PCD62_PLUGIN_INFO;
   const uint_t CAPS = CAP_STOR_CONTAINER;
@@ -32,14 +31,14 @@ namespace
   void RegisterPCD61Support(PluginsRegistrator& registrator)
   {
     const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreatePowerfullCodeDecreaser61Decoder();
-    const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ID61, INFO61, VERSION, CAPS, decoder);
+    const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ID61, INFO61, CAPS, decoder);
     registrator.RegisterPlugin(plugin);
   }
 
   void RegisterPCD62Support(PluginsRegistrator& registrator)
   {
     const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreatePowerfullCodeDecreaser62Decoder();
-    const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ID62, INFO62, VERSION, CAPS, decoder);
+    const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ID62, INFO62, CAPS, decoder);
     registrator.RegisterPlugin(plugin);
   }
 }

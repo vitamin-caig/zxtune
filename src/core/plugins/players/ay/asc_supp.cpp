@@ -1130,7 +1130,6 @@ namespace
   //plugin attributes
   const Char ID[] = {'A', 'S', 'C', 0};
   const Char* const INFO = Text::ASC_PLUGIN_INFO;
-  const String VERSION(FromStdString("$Rev$"));
   const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
 
 
@@ -1214,7 +1213,7 @@ namespace ZXTune
   void RegisterASCSupport(PluginsRegistrator& registrator)
   {
     const ModulesFactory::Ptr factory = boost::make_shared<ASCModulesFactory>();
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, INFO, VERSION, CAPS, factory);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, INFO, CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

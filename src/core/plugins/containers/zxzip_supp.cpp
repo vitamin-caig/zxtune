@@ -27,7 +27,6 @@ namespace
   using namespace ZXTune;
 
   const Char ID[] = {'Z', 'X', 'Z', 'I', 'P', '\0'};
-  const String VERSION(FromStdString("$Rev$"));
   const Char* const INFO = Text::ZXZIP_PLUGIN_INFO;
   const uint_t CAPS = CAP_STOR_MULTITRACK;
 
@@ -111,7 +110,7 @@ namespace ZXTune
   void RegisterZXZipContainer(PluginsRegistrator& registrator)
   {
     const ContainerFactory::Ptr factory = boost::make_shared<ZXZipFactory>();
-    const ArchivePlugin::Ptr plugin = CreateContainerPlugin(ID, INFO, VERSION, CAPS, factory);
+    const ArchivePlugin::Ptr plugin = CreateContainerPlugin(ID, INFO, CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

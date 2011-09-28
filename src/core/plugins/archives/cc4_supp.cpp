@@ -24,7 +24,6 @@ namespace
 
   const Char ID[] = {'C', 'C', '4', '\0'};
   const Char IDPLUS[] = {'C', 'C', '4', 'P', 'L', 'U', 'S', '\0'};
-  const String VERSION(FromStdString("$Rev$"));
   const Char* const INFO = Text::CC4_PLUGIN_INFO;
   const Char* const INFOPLUS = Text::CC4PLUS_PLUGIN_INFO;
   const uint_t CAPS = CAP_STOR_CONTAINER;
@@ -32,14 +31,14 @@ namespace
   void RegisterCC4Support(PluginsRegistrator& registrator)
   {
     Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateCompressorCode4Decoder();
-    const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ID, INFO, VERSION, CAPS, decoder);
+    const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ID, INFO, CAPS, decoder);
     registrator.RegisterPlugin(plugin);
   }
 
   void RegisterCC4PlusSupport(PluginsRegistrator& registrator)
   {
     const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateCompressorCode4PlusDecoder();
-    const ArchivePlugin::Ptr plugin = CreateArchivePlugin(IDPLUS, INFOPLUS, VERSION, CAPS, decoder);
+    const ArchivePlugin::Ptr plugin = CreateArchivePlugin(IDPLUS, INFOPLUS, CAPS, decoder);
     registrator.RegisterPlugin(plugin);
   }
 }

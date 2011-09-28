@@ -22,7 +22,6 @@ namespace
 {
   using namespace ZXTune;
 
-  const String VERSION(FromStdString("$Rev$"));
   const uint_t CAPS = CAP_STOR_CONTAINER;
 }
 
@@ -34,7 +33,7 @@ namespace TLZ
   void RegisterConverter(PluginsRegistrator& registrator)
   {
     const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateTurboLZDecoder();
-    const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ID, INFO, VERSION, CAPS, decoder);
+    const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ID, INFO, CAPS, decoder);
     registrator.RegisterPlugin(plugin);
   }
 }
@@ -47,7 +46,7 @@ namespace TLZP
   void RegisterConverter(PluginsRegistrator& registrator)
   {
     const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateTurboLZProtectedDecoder();
-    const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ID, INFO, VERSION, CAPS, decoder);
+    const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ID, INFO, CAPS, decoder);
     registrator.RegisterPlugin(plugin);
   }
 }

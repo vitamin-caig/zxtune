@@ -50,11 +50,6 @@ namespace
         return String();
       }
 
-      virtual String Version() const
-      {
-        return String();
-      }
-
       static void Deleter(Provider*)
       {
       }

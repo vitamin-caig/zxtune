@@ -64,10 +64,10 @@ namespace ZXTune
     return DetectionResult::CreateUnmatched(format, data);
   }
 
-  PlayerPlugin::Ptr CreatePlayerPlugin(const String& id, const String& info, const String& version, uint_t caps,
+  PlayerPlugin::Ptr CreatePlayerPlugin(const String& id, const String& info, uint_t caps,
     ModulesFactory::Ptr factory)
   {
-    const Plugin::Ptr description = CreatePluginDescription(id, info, version, caps);
+    const Plugin::Ptr description = CreatePluginDescription(id, info, caps);
     return PlayerPlugin::Ptr(new CommonPlayerPlugin(description, factory));
   }
 }

@@ -44,7 +44,6 @@ namespace
   const std::string THIS_MODULE("Sound::Backend::Wav");
 
   const Char WAV_BACKEND_ID[] = {'w', 'a', 'v', 0};
-  const String WAV_BACKEND_VERSION(FromStdString("$Rev$"));
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -365,11 +364,6 @@ namespace
     virtual String Description() const
     {
       return Text::WAV_BACKEND_DESCRIPTION;
-    }
-
-    virtual String Version() const
-    {
-      return WAV_BACKEND_VERSION;
     }
 
     virtual uint_t Capabilities() const

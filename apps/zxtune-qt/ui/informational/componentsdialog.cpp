@@ -55,13 +55,6 @@ namespace
     return ZXTune::CAP_STOR_CONTAINER == (plugin.Capabilities() & ZXTune::CAP_STOR_CONTAINER);
   }
 
-  void AddVersion(const String& version, QTreeWidgetItem& root)
-  {
-    QString str = ComponentsDialog::tr("Version: ");
-    str += ToQString(version);
-    new QTreeWidgetItem(&root, QStringList(str));
-  }
-
   void AddCapability(uint_t caps, uint_t mask, QTreeWidgetItem& root, const char* notation)
   {
     if (mask == (caps & mask))
@@ -125,8 +118,6 @@ namespace
       String iconPath = Text::TYPEICONS_RESOURCE_PREFIX;
       iconPath += id;
       pluginItem->setIcon(0, QIcon(ToQString(iconPath)));
-      //version
-      AddVersion(plugin.Version(), *pluginItem);
       //conversion
       if (uint_t convCaps = plugin.Capabilities() & ZXTune::CAP_CONVERSION_MASK)
       {
@@ -171,8 +162,6 @@ namespace
 
       //root
       QTreeWidgetItem* const pluginItem = new QTreeWidgetItem(&root, QStringList(ToQString(description)));
-      //version
-      AddVersion(plugin.Version(), *pluginItem);
       //capabilities
       const uint_t otherCapsMask = ZXTune::CAP_STORAGE_MASK & ~(ZXTune::CAP_STOR_MULTITRACK | ZXTune::CAP_STOR_CONTAINER);
       if (uint_t caps = plugin.Capabilities() & otherCapsMask)
@@ -256,8 +245,6 @@ namespace
 
       //root
       QTreeWidgetItem* const backendItem = new QTreeWidgetItem(&root, QStringList(ToQString(description)));
-      //version
-      AddVersion(backend.Version(), *backendItem);
       //features
       if (uint_t features = backend.Capabilities() & ZXTune::Sound::CAP_FEAT_MASK)
       {
@@ -293,8 +280,6 @@ namespace
 
       //root
       QTreeWidgetItem* const providerItem = new QTreeWidgetItem(&Widget, QStringList(ToQString(description)));
-      //version
-      AddVersion(provider.Version(), *providerItem);
     }
   private:
     QTreeWidget& Widget;

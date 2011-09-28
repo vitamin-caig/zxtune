@@ -55,7 +55,7 @@ namespace ZXTune
                                    const DataPath& pathToOpen) const = 0; 
   };
 
-  Plugin::Ptr CreatePluginDescription(const String& id, const String& info, const String& version, uint_t capabilities);
+  Plugin::Ptr CreatePluginDescription(const String& id, const String& info, uint_t capabilities);
 }
 
 #endif //__CORE_PLUGINS_TYPES_H_DEFINED__

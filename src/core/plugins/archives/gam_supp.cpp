@@ -22,7 +22,6 @@ namespace
 {
   using namespace ZXTune;
 
-  const String VERSION(FromStdString("$Rev$"));
   const uint_t CAPS = CAP_STOR_CONTAINER;
 }
 
@@ -34,7 +33,7 @@ namespace GAM
   void RegisterConvertor(PluginsRegistrator& registrator)
   {
     const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateGamePackerDecoder();
-    const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ID, INFO, VERSION, CAPS, decoder);
+    const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ID, INFO, CAPS, decoder);
     registrator.RegisterPlugin(plugin);
   }
 }
@@ -47,7 +46,7 @@ namespace GAMPlus
   void RegisterConvertor(PluginsRegistrator& registrator)
   {
     const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateGamePackerPlusDecoder();
-    const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ID, INFO, VERSION, CAPS, decoder);
+    const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ID, INFO, CAPS, decoder);
     registrator.RegisterPlugin(plugin);
   }
 }

@@ -49,11 +49,6 @@ namespace
         return String();
       }
 
-      virtual String Version() const
-      {
-        return String();
-      }
-
       virtual uint_t Capabilities() const
       {
         return 0;

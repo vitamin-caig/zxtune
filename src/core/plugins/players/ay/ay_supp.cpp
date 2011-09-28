@@ -901,7 +901,6 @@ namespace
 namespace AY
 {
   const Char ID[] = {'A', 'Y', 0};
-  const String VERSION(FromStdString("$Rev$"));
   const Char* const INFO = Text::AY_PLUGIN_INFO;
 }
 
@@ -1284,13 +1283,13 @@ namespace ZXTune
     //module
     {
       const ModulesFactory::Ptr factory = boost::make_shared<AYModule::Factory>();
-      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(AY::ID, AY::INFO, AY::VERSION, AYModule::CAPS, factory);
+      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(AY::ID, AY::INFO, AYModule::CAPS, factory);
       registrator.RegisterPlugin(plugin);
     }
     //container
     {
       const ContainerFactory::Ptr factory = boost::make_shared<AYContainer::Factory>();
-      const ArchivePlugin::Ptr plugin = CreateContainerPlugin(AY::ID, AY::INFO, AY::VERSION, AYContainer::CAPS, factory);
+      const ArchivePlugin::Ptr plugin = CreateContainerPlugin(AY::ID, AY::INFO, AYContainer::CAPS, factory);
       registrator.RegisterPlugin(plugin);
     }
   }

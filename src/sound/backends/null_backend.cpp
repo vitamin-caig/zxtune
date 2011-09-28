@@ -30,7 +30,6 @@ namespace
   using namespace ZXTune::Sound;
 
   const Char NULL_BACKEND_ID[] = {'n', 'u', 'l', 'l', 0};
-  const String NULL_BACKEND_VERSION(FromStdString("$Rev$"));
 
   class NullBackendWorker : public BackendWorker
   {
@@ -80,11 +79,6 @@ namespace
     virtual String Description() const
     {
       return Text::NULL_BACKEND_DESCRIPTION;
-    }
-
-    virtual String Version() const
-    {
-      return NULL_BACKEND_VERSION;
     }
 
     virtual uint_t Capabilities() const

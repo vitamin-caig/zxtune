@@ -76,8 +76,7 @@ namespace
   {
     std::cout << 
       "Provider: " << info->Id() << std::endl <<
-      "Description: " << info->Description() << std::endl <<
-      "Version: " << info->Version() << std::endl;
+      "Description: " << info->Description() << std::endl;
   }
   
   void TestSplitUri(const String& uri, const String& baseEq, const String& subEq, const String& type)

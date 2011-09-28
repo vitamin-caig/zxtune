@@ -336,7 +336,6 @@ namespace
   //plugin attributes
   const Char* const ID = TS_PLUGIN_ID;
   const Char* const INFO = Text::TS_PLUGIN_INFO;
-  const String VERSION(FromStdString("$Rev$"));
   const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_TS | CAP_CONV_RAW;
 
 
@@ -355,7 +354,7 @@ namespace
     typedef boost::shared_ptr<const TSPlugin> Ptr;
 
     TSPlugin()
-      : Description(CreatePluginDescription(ID, INFO, VERSION, CAPS))
+      : Description(CreatePluginDescription(ID, INFO, CAPS))
       , FooterFormat(Binary::Format::Create(TS_FOOTER_FORMAT))
     {
     }

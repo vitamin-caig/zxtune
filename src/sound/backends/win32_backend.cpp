@@ -48,7 +48,6 @@ namespace
   const uint_t BUFFERS_MAX = 10;
 
   const Char WIN32_BACKEND_ID[] = {'w', 'i', 'n', '3', '2', 0};
-  const String WIN32_BACKEND_VERSION(FromStdString("$Rev$"));
 
   inline void CheckMMResult(::MMRESULT res, Error::LocationRef loc)
   {
@@ -350,11 +349,6 @@ namespace
     virtual String Description() const
     {
       return Text::WIN32_BACKEND_DESCRIPTION;
-    }
-
-    virtual String Version() const
-    {
-      return WIN32_BACKEND_VERSION;
     }
 
     virtual uint_t Capabilities() const

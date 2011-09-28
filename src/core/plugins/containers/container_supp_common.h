@@ -30,7 +30,7 @@ namespace ZXTune
     virtual Container::Catalogue::Ptr CreateContainer(const Parameters::Accessor& parameters, Binary::Container::Ptr data) const = 0;
   };
 
-  ArchivePlugin::Ptr CreateContainerPlugin(const String& id, const String& info, const String& version, uint_t caps,
+  ArchivePlugin::Ptr CreateContainerPlugin(const String& id, const String& info, uint_t caps,
     ContainerFactory::Ptr factory);
 }
 

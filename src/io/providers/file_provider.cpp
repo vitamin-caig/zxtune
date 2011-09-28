@@ -34,8 +34,6 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::IO;
 
-  const String PROVIDER_VERSION(FromStdString("$Rev$"));
-
   class FileProviderParameters
   {
   public:
@@ -204,11 +202,6 @@ namespace
     virtual String Description() const
     {
       return Text::IO_FILE_PROVIDER_DESCRIPTION;
-    }
-
-    virtual String Version() const
-    {
-      return PROVIDER_VERSION;
     }
 
     virtual bool Check(const String& uri) const

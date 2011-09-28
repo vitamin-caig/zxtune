@@ -179,7 +179,6 @@ namespace
   using namespace ZXTune;
 
   const Char ID[] = {'T', 'R', 'D', 0};
-  const String VERSION(FromStdString("$Rev$"));
   const Char* const INFO = Text::TRD_PLUGIN_INFO;
   const uint_t CAPS = CAP_STOR_MULTITRACK | CAP_STOR_PLAIN;
 
@@ -222,7 +221,7 @@ namespace ZXTune
   void RegisterTRDContainer(PluginsRegistrator& registrator)
   {
     const ContainerFactory::Ptr factory = boost::make_shared<TRDFactory>();
-    const ArchivePlugin::Ptr plugin = CreateContainerPlugin(ID, INFO, VERSION, CAPS, factory);
+    const ArchivePlugin::Ptr plugin = CreateContainerPlugin(ID, INFO, CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

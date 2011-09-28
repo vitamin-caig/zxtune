@@ -67,8 +67,7 @@
 < INFO_PLUGIN_INFO
 > "Plugin:       %1%\n"
 > "Description:  %2%\n"
-> "Version:      %3%\n"
-> "Capabilities: %4%\n"
+> "Capabilities: %3%\n"
 > "\n"
 
 = INFO_TYPE_PREFIX
@@ -95,14 +94,12 @@
 < INFO_BACKEND_INFO
 > "Backend:      %1%\n"
 > "Description:  %2%\n"
-> "Version:      %3%\n"
-> "Capabilities: %4%\n"
+> "Capabilities: %3%\n"
 > "\n"
 
 < INFO_PROVIDER_INFO
 > "Provider:    %1%\n"
 > "Description: %2%\n"
-> "Version:     %3%\n"
 > "\n"
 
 < INFO_OPTION_INFO

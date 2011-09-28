@@ -823,7 +823,6 @@ namespace
   //plugin attributes
   const Char ID[] = {'P', 'T', '2', 0};
   const Char* const INFO = Text::PT2_PLUGIN_INFO;
-  const String VERSION(FromStdString("$Rev$"));
   const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
 
   const std::string PT2_FORMAT(
@@ -907,7 +906,7 @@ namespace ZXTune
   void RegisterPT2Support(PluginsRegistrator& registrator)
   {
     const ModulesFactory::Ptr factory = boost::make_shared<PT2ModulesFactory>();
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, INFO, VERSION, CAPS, factory);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, INFO, CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

@@ -38,7 +38,6 @@ namespace
   using namespace ZXTune;
 
   const Char ID[] = {'R', 'A', 'R', '\0'};
-  const String VERSION(FromStdString("$Rev$"));
   const Char* const INFO = Text::RAR_PLUGIN_INFO;
   const uint_t CAPS = CAP_STOR_MULTITRACK;
 
@@ -534,7 +533,7 @@ namespace ZXTune
   void RegisterRarContainer(PluginsRegistrator& registrator)
   {
     const ContainerFactory::Ptr factory = boost::make_shared<RarFactory>();
-    const ArchivePlugin::Ptr plugin = CreateContainerPlugin(ID, INFO, VERSION, CAPS, factory);
+    const ArchivePlugin::Ptr plugin = CreateContainerPlugin(ID, INFO, CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

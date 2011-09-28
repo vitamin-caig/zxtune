@@ -388,7 +388,6 @@ namespace
   using namespace ZXTune;
 
   const Char ID[] = {'R', 'A', 'W', 0};
-  const String VERSION(FromStdString("$Rev$"));
   const Char* const INFO = Text::RAW_PLUGIN_INFO;
   const uint_t CAPS = CAP_STOR_MULTITRACK | CAP_STOR_SCANER;
 
@@ -396,7 +395,7 @@ namespace
   {
   public:
     RawScaner()
-      : Description(CreatePluginDescription(ID, INFO, VERSION, CAPS))
+      : Description(CreatePluginDescription(ID, INFO, CAPS))
     {
     }
 
