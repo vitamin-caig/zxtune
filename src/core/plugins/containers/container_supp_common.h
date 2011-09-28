@@ -16,6 +16,8 @@ Author:
 //local includes
 #include "container_catalogue.h"
 #include "core/plugins/plugins_types.h"
+//library includes
+#include <formats/archived_decoders.h>
 
 namespace ZXTune
 {
@@ -32,6 +34,8 @@ namespace ZXTune
 
   ArchivePlugin::Ptr CreateContainerPlugin(const String& id, const String& info, uint_t caps,
     ContainerFactory::Ptr factory);
+
+  ArchivePlugin::Ptr CreateContainerPlugin(const String& id, const String& info, uint_t caps, Formats::Archived::Decoder::Ptr decoder);
 }
 
 #endif //__CORE_PLUGINS_CONTAINER_SUPP_COMMON_H_DEFINED__

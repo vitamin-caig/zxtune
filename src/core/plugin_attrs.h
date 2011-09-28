@@ -47,6 +47,8 @@ namespace ZXTune
     CAP_STOR_SCANER     = 0x0800,
     //! Use plain transformation, can be covered by scaner
     CAP_STOR_PLAIN      = 0x1000,
+    //! Supporting for directories in paths
+    CAP_STOR_DIRS       = 0x2000,
 
     //! Conversion-related capabilities
     CAP_CONVERSION_MASK = 0xffff0000,
