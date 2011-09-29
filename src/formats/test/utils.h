@@ -121,7 +121,7 @@ namespace Test
 
     virtual void OnFile(const Formats::Archived::File& file) const
     {
-      std::cout << "Checking " << file.GetName() << std::endl;
+      std::cout << " checking " << file.GetName() << std::endl;
       if (Files.empty() || file.GetName() != Files.front())
       {
         throw std::runtime_error("Invalid files order");

@@ -19,6 +19,7 @@ namespace Formats
   namespace Archived
   {
     Decoder::Ptr CreateZipDecoder();
+    Decoder::Ptr CreateRarDecoder();
   }
 }
 
