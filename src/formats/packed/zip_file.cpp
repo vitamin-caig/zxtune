@@ -233,7 +233,7 @@ namespace Formats
     {
       bool LocalFileHeader::IsValid() const
       {
-        return fromLE(Signature) == 0x04034b50;
+        return fromLE(Signature) == SIGNATURE;
       }
 
       std::size_t LocalFileHeader::GetSize() const
@@ -267,6 +267,26 @@ namespace Formats
         }
         return true;
       }
+
+      std::size_t ExtraDataRecord::GetSize() const
+      {
+        return sizeof(*this) - 1 + fromLE(DataSize);
+      }
+
+      std::size_t CentralDirectoryFileHeader::GetSize() const
+      {
+        return sizeof(*this) - 1 + fromLE(NameSize) + fromLE(ExtraSize) + fromLE(CommentSize);
+      }
+
+      std::size_t CentralDirectoryEnd::GetSize() const
+      {
+        return sizeof(*this) - 1 + fromLE(CommentSize);
+      }
+
+      std::size_t DigitalSignature::GetSize() const
+      {
+        return sizeof(*this) - 1 + fromLE(DataSize);
+      }
     }
 
     class ZipDecoder : public Decoder
@@ -291,7 +311,6 @@ namespace Formats
       {
         const void* const data = rawData.Data();
         const std::size_t availSize = rawData.Size();
-        const ::Zip::Container container(data, availSize);
         return Depacker->Match(data, availSize);
       }
 

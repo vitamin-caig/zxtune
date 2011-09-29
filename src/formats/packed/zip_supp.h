@@ -24,6 +24,14 @@ namespace Formats
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif
+      PACK_PRE struct GenericHeader
+      {
+        static const uint16_t SIGNATURE = 0x4b50;
+
+        //+0
+        uint16_t Signature;
+      } PACK_POST;
+
       PACK_PRE struct FileAttributes
       {
         uint32_t CRC;
@@ -45,8 +53,10 @@ namespace Formats
 
       PACK_PRE struct LocalFileHeader
       {
+        static const uint32_t SIGNATURE = 0x04034b50;
+
         //+0
-        uint32_t Signature; //0x04034b50
+        uint32_t Signature;
         //+4
         uint16_t VersionToExtract;
         //+6
@@ -78,10 +88,104 @@ namespace Formats
 
       PACK_PRE struct LocalFileFooter
       {
+        static const uint32_t SIGNATURE = 0x08074b50;
+
         //+0
-        uint32_t Signature; //0x08074b50
+        uint32_t Signature;
         //+4
         FileAttributes Attributes;
+      } PACK_POST;
+
+      PACK_PRE struct ExtraDataRecord
+      {
+        static const uint32_t SIGNATURE = 0x08064b50;
+
+        //+0
+        uint32_t Signature;
+        //+4
+        uint32_t DataSize;
+        //+8
+        uint8_t Data[1];
+
+        std::size_t GetSize() const;
+      } PACK_POST;
+
+      PACK_PRE struct CentralDirectoryFileHeader
+      {
+        static const uint32_t SIGNATURE = 0x02014b50;
+
+        //+0
+        uint32_t Signature;
+        //+4
+        uint16_t VersionMadeBy;
+        //+6
+        uint16_t VersionToExtract;
+        //+8
+        uint16_t Flags;
+        //+a
+        uint16_t CompressionMethod;
+        //+c
+        uint16_t ModificationTime;
+        //+e
+        uint16_t ModificationDate;
+        //+10
+        FileAttributes Attributes;
+        //+1c
+        uint16_t NameSize;
+        //+1e
+        uint16_t ExtraSize;
+        //+20
+        uint16_t CommentSize;
+        //+22
+        uint16_t StartDiskNumber;
+        //+24
+        uint16_t InternalFileAttributes;
+        //+26
+        uint32_t ExternalFileAttributes;
+        //+2a
+        uint32_t LocalHeaderRelOffset;
+        //+2e
+        uint8_t Name[1];
+
+        std::size_t GetSize() const;
+      } PACK_POST;
+
+      PACK_PRE struct CentralDirectoryEnd
+      {
+        static const uint32_t SIGNATURE = 0x06054b50;
+
+        //+0
+        uint32_t Signature;
+        //+4
+        uint16_t ThisDiskNumber;
+        //+6
+        uint16_t StartDiskNumber;
+        //+8
+        uint16_t ThisDiskCentralDirectoriesCount;
+        //+a
+        uint32_t CentralDirectorySize;
+        //+e
+        uint32_t CentralDirectoryOffset;
+        //+12
+        uint32_t CommentSize;
+        //+16
+        //uint8_t Comment[0];
+
+        std::size_t GetSize() const;
+      } PACK_POST;
+
+      PACK_PRE struct DigitalSignature
+      {
+        static const uint32_t SIGNATURE = 0x05054b50;
+
+        //+0
+        uint32_t Signature;
+        //+4
+        uint16_t DataSize;
+        //+6
+        uint8_t Data[1];
+
+        std::size_t GetSize() const;
       } PACK_POST;
 #ifdef USE_PRAGMA_PACK
 #pragma pack(pop)

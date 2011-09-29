@@ -13,6 +13,7 @@ Author:
 #include <logging.h>
 #include <tools.h>
 //library includes
+#include <binary/typed_container.h>
 #include <formats/archived.h>
 #include <formats/packed_decoders.h>
 #include <formats/packed/zip_supp.h>
@@ -61,6 +62,91 @@ namespace Zip
     const Binary::Container::Ptr Data;
   };
 
+  class BlocksIterator
+  {
+  public:
+    explicit BlocksIterator(const Binary::Container& data)
+      : Container(data)
+      , Limit(data.Size())
+      , Offset(0)
+    {
+    }
+
+    bool IsEof() const
+    {
+      if (!GetBlock<Packed::Zip::GenericHeader>())
+      {
+        return true;
+      }
+      if (const std::size_t size = GetBlockSize())
+      {
+        return Offset + size > Limit;
+      }
+      return true;
+    }
+
+    template<class T>
+    const T* GetBlock() const
+    {
+      if (const T* rawBlock = Container.GetField<T>(Offset))
+      {
+        return fromLE(rawBlock->Signature) == T::SIGNATURE
+          ? rawBlock
+          : 0;
+      }
+      return 0;
+    }
+
+    std::size_t GetOffset() const
+    {
+      return Offset;
+    }
+
+    void Next()
+    {
+      const std::size_t size = GetBlockSize();
+      Offset += size;
+    }
+  private:
+    std::size_t GetBlockSize() const
+    {
+      using namespace Packed::Zip;
+      if (const LocalFileHeader* file = GetBlock<LocalFileHeader>())
+      {
+        return file->GetTotalFileSize();
+      }
+      else if (const LocalFileFooter* footer = GetBlock<LocalFileFooter>())
+      {
+        return sizeof(*footer);
+      }
+      else if (const ExtraDataRecord* extra = GetBlock<ExtraDataRecord>())
+      {
+        return extra->GetSize();
+      }
+      else if (const CentralDirectoryFileHeader* centralHeader = GetBlock<CentralDirectoryFileHeader>())
+      {
+        return centralHeader->GetSize();
+      }
+      else if (const CentralDirectoryEnd* centralFooter = GetBlock<CentralDirectoryEnd>())
+      {
+        return centralFooter->GetSize();
+      }
+      else if (const DigitalSignature* signature = GetBlock<DigitalSignature>())
+      {
+        return signature->GetSize();
+      }
+      else
+      {
+        Log::Debug(THIS_MODULE, "Unknown block");
+        return 0;
+      }
+    }
+  private:
+    const Binary::TypedContainer Container;
+    const std::size_t Limit;
+    std::size_t Offset;
+  };
+
   //TODO: make BlocksIterator
   class FileIterator
   {
@@ -68,73 +154,72 @@ namespace Zip
     explicit FileIterator(const Packed::Decoder& decoder, const Binary::Container& data)
       : Decoder(decoder)
       , Data(data)
-      , Limit(Data.Size())
-      , Offset(0)
+      , Blocks(data)
     {
+      SkipNonFileHeaders();
     }
 
     bool IsEof() const
     {
-      const std::size_t dataRest = Limit - Offset;
-      if (dataRest < sizeof(Packed::Zip::LocalFileHeader))
-      {
-        return true;
-      }
-      const Packed::Zip::LocalFileHeader& header = GetHeader();
-      if (!header.IsValid())
-      {
-        return true;
-      }
-      if (dataRest < header.GetTotalFileSize())
-      {
-        return true;
-      }
-      return false;
+      return Blocks.IsEof();
     }
 
     bool IsValid() const
     {
       assert(!IsEof());
-      const Packed::Zip::LocalFileHeader& header = GetHeader();
-      return header.IsSupported();
+      if (const Packed::Zip::LocalFileHeader* header = Blocks.GetBlock<Packed::Zip::LocalFileHeader>())
+      {
+        return header->IsSupported();
+      }
+      return false;
     }
 
     String GetName() const
     {
       assert(!IsEof());
-      const Packed::Zip::LocalFileHeader& header = GetHeader();
-      return String(header.Name, header.Name + fromLE(header.NameSize));
+      if (const Packed::Zip::LocalFileHeader* header = Blocks.GetBlock<Packed::Zip::LocalFileHeader>())
+      {
+        return String(header->Name, header->Name + fromLE(header->NameSize));
+      }
+      assert(!"Failed to get name");
+      return String();
     }
 
     Archived::File::Ptr GetFile() const
     {
       assert(IsValid());
-      const Packed::Zip::LocalFileHeader& header = GetHeader();
-      const Binary::Container::Ptr data = Data.GetSubcontainer(Offset, header.GetTotalFileSize());
-      return boost::make_shared<File>(Decoder, GetName(), fromLE(header.Attributes.UncompressedSize), data);
+      if (const Packed::Zip::LocalFileHeader* header = Blocks.GetBlock<Packed::Zip::LocalFileHeader>())
+      {
+        const Binary::Container::Ptr data = Data.GetSubcontainer(Blocks.GetOffset(), header->GetTotalFileSize());
+        return boost::make_shared<File>(Decoder, GetName(), fromLE(header->Attributes.UncompressedSize), data);
+      }
+      assert(!"Failed to get file");
+      return Archived::File::Ptr();
     }
 
     void Next()
     {
       assert(!IsEof());
-      Offset += GetHeader().GetTotalFileSize();
+      Blocks.Next();
+      SkipNonFileHeaders();
     }
 
     std::size_t GetOffset() const
     {
-      return Offset;
+      return Blocks.GetOffset();
     }
   private:
-    const Packed::Zip::LocalFileHeader& GetHeader() const
+    void SkipNonFileHeaders()
     {
-      assert(Limit - Offset >= sizeof(Packed::Zip::LocalFileHeader));
-      return *safe_ptr_cast<const Packed::Zip::LocalFileHeader*>(static_cast<const uint8_t*>(Data.Data()) + Offset);
+      while (!Blocks.IsEof() && !Blocks.GetBlock<Packed::Zip::LocalFileHeader>())
+      {
+        Blocks.Next();
+      }
     }
   private:
     const Packed::Decoder& Decoder;
     const Binary::Container& Data;
-    const std::size_t Limit;
-    std::size_t Offset;
+    BlocksIterator Blocks;
   };
 
   class Container : public Archived::Container
@@ -145,7 +230,7 @@ namespace Zip
       , Delegate(data)
       , FilesCount(filesCount)
     {
-      Log::Debug(THIS_MODULE, "Found %1% files", filesCount);
+      Log::Debug(THIS_MODULE, "Found %1% files. Size is %2%", filesCount, Delegate->Size());
     }
 
     //Binary::Container
@@ -280,16 +365,19 @@ namespace Formats
         {
           return Container::Ptr();
         }
-        //TODO: calculate using blocks iterator and central dir
+
         uint_t filesCount = 0;
-        const std::auto_ptr<Zip::FileIterator> iter(new Zip::FileIterator(*FileDecoder, data));
-        for (; !iter->IsEof(); iter->Next())
+        Zip::BlocksIterator iter(data);
+        for (; !iter.IsEof(); iter.Next())
         {
-          filesCount += iter->IsValid();
+          if (const Packed::Zip::LocalFileHeader* file = iter.GetBlock<Packed::Zip::LocalFileHeader>())
+          {
+            filesCount += file->IsSupported();
+          }
         }
-        if (filesCount)
+        if (const std::size_t totalSize = iter.GetOffset())
         {
-          const Binary::Container::Ptr archive = data.GetSubcontainer(0, iter->GetOffset());
+          const Binary::Container::Ptr archive = data.GetSubcontainer(0, totalSize);
           return boost::make_shared<Zip::Container>(*FileDecoder, archive, filesCount);
         }
         else

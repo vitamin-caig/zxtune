@@ -124,6 +124,7 @@ namespace
         const std::auto_ptr<Module::DetectCallback> nestedProgressCallback = Logger.CreateNestedCallback();
         ZXTune::Module::Detect(subLocation, *nestedProgressCallback);
       }
+      Logger.Next();
     }
   private:
     const std::size_t MaxSize;

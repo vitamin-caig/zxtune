@@ -20,7 +20,7 @@ int main()
 
   try
   {
-    const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateZipDecoder();
+    const Formats::Packed::Decoder::Ptr packed = Formats::Packed::CreateZipDecoder();
     std::map<std::string, Dump> tests;
     const uint8_t* const data = &zip[0];
     tests["-p0"] = Dump(data, data + 0x4035);
@@ -33,7 +33,21 @@ int main()
     tests["-p7"] = Dump(data + 0x105a2, data + 0x1265a);
     tests["-p8"] = Dump(data + 0x1265a, data + 0x1470b);
     tests["-p9"] = Dump(data + 0x1470b, data + 0x167bc);
-    Test::TestPacked(*decoder, etalon, tests);
+    Test::TestPacked(*packed, etalon, tests);
+
+    const Formats::Archived::Decoder::Ptr archived = Formats::Archived::CreateZipDecoder();
+    std::vector<std::string> files;
+    files.push_back("p0.bin");
+    files.push_back("p1.bin");
+    files.push_back("p2.bin");
+    files.push_back("p3.bin");
+    files.push_back("p4.bin");
+    files.push_back("p5.bin");
+    files.push_back("p6.bin");
+    files.push_back("p7.bin");
+    files.push_back("p8.bin");
+    files.push_back("p9.bin");
+    Test::TestArchived(*archived, "etalon.bin", "test.zip", files);
   }
   catch (const std::exception& e)
   {
