@@ -43,6 +43,9 @@
 < INFO_CAP_PLAIN
 > INFO_STOR_PREFIX "plain"
 
+< INFO_CAP_DIRS
+> INFO_STOR_PREFIX "dirs"
+
 = INFO_CONV_PREFIX
 > "conv_"
 

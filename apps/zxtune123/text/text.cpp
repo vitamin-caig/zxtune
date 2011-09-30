@@ -249,6 +249,9 @@ extern const Char INFO_CAP_DAC2[] = {
 extern const Char INFO_CAP_DAC4[] = {
   'd','e','v','_','d','a','c','4',0
 };
+extern const Char INFO_CAP_DIRS[] = {
+  's','t','o','r','_','d','i','r','s',0
+};
 extern const Char INFO_CAP_FILE[] = {
   't','y','p','e','_','f','i','l','e',0
 };

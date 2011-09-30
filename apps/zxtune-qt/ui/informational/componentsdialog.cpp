@@ -175,6 +175,7 @@ namespace
     {
       AddCapability(caps, ZXTune::CAP_STOR_SCANER, root, QT_TR_NOOP("Data scanner"));
       AddCapability(caps, ZXTune::CAP_STOR_PLAIN, root, QT_TR_NOOP("Plain data structure format"));
+      AddCapability(caps, ZXTune::CAP_STOR_DIRS, root, QT_TR_NOOP("Directories support"));
     }
   private:
     QTreeWidget& Widget;
@@ -279,7 +280,7 @@ namespace
       const String& description = provider.Description();
 
       //root
-      QTreeWidgetItem* const providerItem = new QTreeWidgetItem(&Widget, QStringList(ToQString(description)));
+      new QTreeWidgetItem(&Widget, QStringList(ToQString(description)));
     }
   private:
     QTreeWidget& Widget;

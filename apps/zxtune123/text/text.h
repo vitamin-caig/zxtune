@@ -73,6 +73,7 @@ extern const Char INFO_CAP_DAC[];
 extern const Char INFO_CAP_DAC1[];
 extern const Char INFO_CAP_DAC2[];
 extern const Char INFO_CAP_DAC4[];
+extern const Char INFO_CAP_DIRS[];
 extern const Char INFO_CAP_FILE[];
 extern const Char INFO_CAP_FM[];
 extern const Char INFO_CAP_HARDWARE[];

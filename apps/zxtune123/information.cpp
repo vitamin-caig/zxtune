@@ -77,6 +77,7 @@ namespace
       CapsPair(ZXTune::CAP_STOR_MULTITRACK, Text::INFO_CAP_MULTITRACK),
       CapsPair(ZXTune::CAP_STOR_SCANER, Text::INFO_CAP_SCANER),
       CapsPair(ZXTune::CAP_STOR_PLAIN, Text::INFO_CAP_PLAIN),
+      CapsPair(ZXTune::CAP_STOR_DIRS, Text::INFO_CAP_DIRS),
       //conversion caps
       CapsPair(ZXTune::CAP_CONV_RAW, Text::INFO_CONV_RAW),
       CapsPair(ZXTune::CAP_CONV_PSG, Text::INFO_CONV_PSG),
