@@ -1,0 +1,26 @@
+< __HEADER__
+> "Generated from '$Id: plugins.txt 1346 2011-09-26 13:15:55Z vitamin.caig $'"
+
+< __RAWHEADER__
+__cpp> "#ifndef __TEXT_ARCHIVED_H_DEFINED__\n"
+__cpp> "#define __TEXT_ARCHIVED_H_DEFINED__\n"
+__cpp> "#include <char_type.h>\n\n"
+__cpp> "namespace Text\n"
+__cpp> "{\n"
+
+< __RAWFOOTER__
+__cpp> "}//namespace Text\n"
+__cpp> "#endif //__TEXT_ARCHIVED_H_DEFINED__\n"
+
+#HRIP
+< HRIP_DECODER_DESCRIPTION
+> "Hrip archive"
+
+
+#SCL
+< SCL_DECODER_DESCRIPTION
+> "SCL files container"
+
+#TRD
+< TRD_DECODER_DESCRIPTION
+> "TR-Dos disks image"

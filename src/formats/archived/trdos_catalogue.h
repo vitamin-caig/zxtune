@@ -10,22 +10,21 @@ Author:
 */
 
 #pragma once
-#ifndef __CORE_PLUGINS_CONTAINERS_TRDOS_CATALOGUE_H_DEFINED__
-#define __CORE_PLUGINS_CONTAINERS_TRDOS_CATALOGUE_H_DEFINED__
+#ifndef __FORMATS_ARCHIVED_TRDOS_CATALOGUE_H_DEFINED__
+#define __FORMATS_ARCHIVED_TRDOS_CATALOGUE_H_DEFINED__
 
-//local includes
-#include "container_catalogue.h"
 //common includes
 #include <types.h>
+//library includes
+#include <formats/archived.h>
 
 namespace TRDos
 {
-  class File : public Container::File
+  class File : public Formats::Archived::File
   {
   public:
     typedef boost::shared_ptr<const File> Ptr;
 
-    virtual std::size_t GetSize() const = 0;
     virtual std::size_t GetOffset() const = 0;
 
     static Ptr Create(Binary::Container::Ptr data, const String& name, std::size_t off, std::size_t size);
@@ -38,13 +37,14 @@ namespace TRDos
     typedef std::auto_ptr<CatalogueBuilder> Ptr;
     virtual ~CatalogueBuilder() {}
 
-    virtual void SetUsedSize(std::size_t size) = 0;
+    virtual void SetRawData(Binary::Container::Ptr data) = 0;
     virtual void AddFile(File::Ptr file) = 0;
 
-    virtual Container::Catalogue::Ptr GetResult() const = 0;
+    virtual Formats::Archived::Container::Ptr GetResult() const = 0;
 
     static Ptr CreateGeneric();
-    static Ptr CreateFlat(Binary::Container::Ptr data);
+    static Ptr CreateFlat();
   };
 }
-#endif //__CORE_PLUGINS_CONTAINERS_TRDOS_CATALOGUE_H_DEFINED__
+
+#endif //__FORMATS_ARCHIVED_TRDOS_CATALOGUE_H_DEFINED__

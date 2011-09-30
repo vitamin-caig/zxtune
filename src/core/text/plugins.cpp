@@ -41,9 +41,6 @@ extern const Char CONTAINER_PLUGIN_PROGRESS_NOPATH[] = {
   '%','1','%',' ','c','o','n','t','a','i','n','e','r',' ','p','r','o','c','e','s','s','i','n','g',' ','f','o',
   'r',' ','\'','%','2','%','\'',0
 };
-extern const Char HRIP_PLUGIN_INFO[] = {
-  'H','R','i','P',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
-};
 extern const Char PDT_EDITOR[] = {
   'P','r','o','D','i','g','i',' ','T','r','a','c','k','e','r',' ','v','0','.','0','x',0
 };
@@ -72,9 +69,6 @@ extern const Char PT3_PLUGIN_INFO[] = {
   'P','r','o','T','r','a','c','k','e','r',' ','v','3','.','x',' ','m','o','d','u','l','e','s',' ','s','u','p',
   'p','o','r','t',0
 };
-extern const Char RAR_PLUGIN_INFO[] = {
-  'R','A','R',' ','v','2','.','x',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
-};
 extern const Char RAW_ERROR_INVALID_MIN_SIZE[] = {
   'S','p','e','c','i','f','i','e','d',' ','m','i','n','i','m','a','l',' ','s','c','a','n',' ','s','i','z','e',
   ' ','(','%','1','%',')',' ','s','h','o','u','l','d',' ','b','e',' ','>','=',' ','%','2','%','.',0
@@ -88,9 +82,6 @@ extern const Char RAW_PLUGIN_INFO[] = {
 };
 extern const Char RAW_PLUGIN_PREFIX[] = {
   '+',0
-};
-extern const Char SCL_PLUGIN_INFO[] = {
-  'S','C','L',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
 };
 extern const Char ST1_PLUGIN_INFO[] = {
   'S','o','u','n','d','T','r','a','c','k','e','r',' ','v','1','.','x',' ','u','n','c','o','m','p','i','l','e',
@@ -110,9 +101,6 @@ extern const Char STP_PLUGIN_INFO[] = {
 extern const Char ST_EDITOR[] = {
   'S','o','u','n','d','T','r','a','c','k','e','r',' ','v','1','.','x',0
 };
-extern const Char TRD_PLUGIN_INFO[] = {
-  'T','R','D',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
-};
 extern const Char TS_PLUGIN_INFO[] = {
   'T','u','r','b','o','S','o','u','n','d',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
 };
@@ -127,12 +115,6 @@ extern const Char TXT_PLUGIN_INFO[] = {
 extern const Char VORTEX_EDITOR[] = {
   'V','o','r','t','e','x','T','r','a','c','k','e','r',' ','(','P','r','o','T','r','a','c','k','e','r',' ','v',
   '%','1','%','.','%','2','%',' ','c','o','m','p','a','t','i','b','l','e',')',0
-};
-extern const Char ZIP_PLUGIN_INFO[] = {
-  'Z','I','P',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
-};
-extern const Char ZXZIP_PLUGIN_INFO[] = {
-  'Z','X','Z','i','p',' ','f','o','r','m','a','t',' ','s','u','p','p','o','r','t',0
 };
 }//namespace Text
 #endif //__TEXT_PLUGINS_H_DEFINED__

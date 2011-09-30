@@ -20,6 +20,10 @@ namespace Formats
   {
     Decoder::Ptr CreateZipDecoder();
     Decoder::Ptr CreateRarDecoder();
+    Decoder::Ptr CreateZXZipDecoder();
+    Decoder::Ptr CreateSCLDecoder();
+    Decoder::Ptr CreateTRDDecoder();
+    Decoder::Ptr CreateHripDecoder();
   }
 }
 

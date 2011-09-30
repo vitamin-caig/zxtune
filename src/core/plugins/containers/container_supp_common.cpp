@@ -271,9 +271,9 @@ namespace ZXTune
     return ArchivePlugin::Ptr(new CommonContainerPlugin(description, factory));
   }
 
-  ArchivePlugin::Ptr CreateContainerPlugin(const String& id, const String& info, uint_t caps, Formats::Archived::Decoder::Ptr decoder)
+  ArchivePlugin::Ptr CreateContainerPlugin(const String& id, uint_t caps, Formats::Archived::Decoder::Ptr decoder)
   {
-    const Plugin::Ptr description = CreatePluginDescription(id, info, caps);
+    const Plugin::Ptr description = CreatePluginDescription(id, decoder->GetDescription() + Text::CONTAINER_DESCRIPTION_SUFFIX, caps);
     return ArchivePlugin::Ptr(new ArchivedContainerPlugin(description, decoder));
   }
 }
