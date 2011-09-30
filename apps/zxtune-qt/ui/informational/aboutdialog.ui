@@ -74,6 +74,9 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
 &lt;li&gt;Packer plugins are based on the xPlugins sources by &lt;b&gt;elf/2&lt;/b&gt;&lt;/li&gt;
 &lt;li&gt;Used zlib library by &lt;b&gt;Jean-loup Gailly&lt;/b&gt; and &lt;b&gt;Mark Adler&lt;/b&gt;&lt;/li&gt;
 &lt;li&gt;Used z80ex library by &lt;b&gt;Boo-boo&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Used &lt;a href=&quot;http://boost.org&quot;&gt;boost&lt;/a&gt; library&lt;/li&gt;
+&lt;li&gt;Used Pusher sources by &lt;b&gt;Himik/ZxZ&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Used sunrar sources&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;center&gt;&lt;b&gt;Support credits:&lt;/b&gt;&lt;/center&gt;
