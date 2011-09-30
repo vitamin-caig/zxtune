@@ -18,7 +18,7 @@ extern const Char HOBETA_DECODER_DESCRIPTION[];
 extern const Char HRUM_DECODER_DESCRIPTION[];
 extern const Char HRUST1_DECODER_DESCRIPTION[];
 extern const Char HRUST21_DECODER_DESCRIPTION[];
-extern const Char HRUST2X_DECODER_DESCRIPTION[];
+extern const Char HRUST23_DECODER_DESCRIPTION[];
 extern const Char LZH1_DECODER_DESCRIPTION[];
 extern const Char LZH2_DECODER_DESCRIPTION[];
 extern const Char LZS_DECODER_DESCRIPTION[];

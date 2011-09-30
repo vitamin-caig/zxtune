@@ -55,7 +55,6 @@ namespace
     uint8_t Catalogue;
   } PACK_POST;
 
-  const uint8_t HRIP_BLOCK_ID[] = {'H', 'r', 's', 't', '2'};
   PACK_PRE struct HripBlockHeader
   {
     uint8_t ID[5];//'Hrst2'
@@ -70,6 +69,8 @@ namespace
     char Type[3];
     uint16_t Filesize;
     uint8_t Filesectors;
+    uint8_t Subdir;
+    char Comment[1];
 
     //flag bits
     enum
@@ -84,7 +85,7 @@ namespace
 #endif
 
   BOOST_STATIC_ASSERT(sizeof(HripHeader) == 8);
-  BOOST_STATIC_ASSERT(sizeof(HripBlockHeader) == 29);
+  BOOST_STATIC_ASSERT(offsetof(HripBlockHeader, PackedCRC) == 11);
 
   // crc16 calculating routine
   inline uint_t CalcCRC(const uint8_t* data, std::size_t size)
@@ -105,122 +106,6 @@ namespace
     }
     return result & 0xffff;
   }
-
-  class DataSource
-  {
-  public:
-    typedef boost::shared_ptr<const DataSource> Ptr;
-
-    explicit DataSource(Binary::Container::Ptr data)
-      : Decoder(Formats::Packed::CreateHrust2RawDecoder())
-      , Data(data)
-    {
-    }
-
-    Binary::Container::Ptr DecodeBlock(const HripBlockHeader* block) const
-    {
-      const uint8_t* const packedData = safe_ptr_cast<const uint8_t*>(&block->PackedCRC) + block->AdditionalSize;
-      const std::size_t offset = packedData - static_cast<const uint8_t*>(Data->Data());
-      const std::size_t packedSize = fromLE(block->PackedSize);
-      const Binary::Container::Ptr dataBlock = Data->GetSubcontainer(offset, packedSize);
-      if (0 != (block->Flag & HripBlockHeader::NO_COMPRESSION))
-      {
-        return dataBlock;
-      }
-      else
-      {
-        return Decoder->Decode(*dataBlock);
-      }
-    }
-  private:
-    const Formats::Packed::Decoder::Ptr Decoder;
-    const Binary::Container::Ptr Data;
-  };
-
-  typedef std::vector<const HripBlockHeader*> HripBlockHeadersList;
-
-  class HripFile : public TRDos::File
-  {
-  public:
-    HripFile(DataSource::Ptr data, std::size_t offset, const HripBlockHeadersList& blocks, bool ignoreCorrupted)
-      : Data(data)
-      , Offset(offset)
-      , Blocks(blocks)
-      , FirstBlock(*Blocks.front())
-      , IgnoreCorrupted(ignoreCorrupted)
-    {
-    }
-
-    virtual String GetName() const
-    {
-      if (FirstBlock.AdditionalSize > 15)
-      {
-        return TRDos::GetEntryName(FirstBlock.Name, FirstBlock.Type);
-      }
-      else
-      {
-        assert(!"Hrip file without name");
-        static const Char DEFAULT_HRIP_FILENAME[] = {'N','O','N','A','M','E',0};
-        return DEFAULT_HRIP_FILENAME;
-      }
-    }
-
-    virtual std::size_t GetOffset() const
-    {
-      return Offset;
-    }
-
-    virtual std::size_t GetSize() const
-    {
-      return std::accumulate(Blocks.begin(), Blocks.end(), std::size_t(0), 
-        boost::bind(std::plus<std::size_t>(), _1,
-          boost::bind(&fromLE<uint16_t>, boost::bind(&HripBlockHeader::DataSize, _2))));
-    }
-
-    virtual Binary::Container::Ptr GetData() const
-    {
-      std::auto_ptr<Dump> result(new Dump(GetSize()));
-      Dump::iterator dst = result->begin();
-      for (HripBlockHeadersList::const_iterator it = Blocks.begin(), lim = Blocks.end(); it != lim; ++it)
-      {
-        const HripBlockHeader* const block = *it;
-        const uint8_t* const packedData = safe_ptr_cast<const uint8_t*>(&block->PackedCRC) + block->AdditionalSize;
-        const std::size_t packedSize = fromLE(block->PackedSize);
-        if (!IgnoreCorrupted &&
-            (block->AdditionalSize >= 2 && fromLE(block->PackedCRC) != CalcCRC(packedData, packedSize)))
-        {
-          return Binary::Container::Ptr();
-        }
-        if (Binary::Container::Ptr decodedBlock = Data->DecodeBlock(block))
-        {
-          const uint8_t* const blockData = static_cast<const uint8_t*>(decodedBlock->Data());
-          const std::size_t blockSize = decodedBlock->Size();
-          if (!IgnoreCorrupted &&
-              (block->AdditionalSize >= 4 && fromLE(block->DataCRC) != CalcCRC(blockData, blockSize)))
-          {
-            return Binary::Container::Ptr();
-          }
-          //single block
-          if (1 == Blocks.size())
-          {
-            return decodedBlock;
-          }
-          dst = std::copy(blockData, blockData + blockSize, dst);
-        }
-        else if (!IgnoreCorrupted)
-        {
-          return Binary::Container::Ptr();
-        }
-      }
-      return Binary::CreateContainer(result);
-    }
-  private:
-    const DataSource::Ptr Data;
-    const std::size_t Offset;
-    const HripBlockHeadersList Blocks;
-    const HripBlockHeader& FirstBlock;
-    const bool IgnoreCorrupted;
-  };
 
   //check archive header and calculate files count and total size
   bool CheckHrip(const void* data, std::size_t dataSize, uint_t& files, std::size_t& archiveSize)
@@ -254,13 +139,27 @@ namespace
     return params.FindIntValue(Parameters::ZXTune::Core::Plugins::Hrip::IGNORE_CORRUPTED, val) && val != 0;
   }
 
+  String ExtractFileName(const void* data)
+  {
+    const HripBlockHeader* const header = static_cast<const HripBlockHeader*>(data);
+    if (header->AdditionalSize >= 18)
+    {
+      return TRDos::GetEntryName(header->Name, header->Type);
+    }
+    else
+    {
+      assert(!"Hrip file without name");
+      static const Char DEFAULT_HRIP_FILENAME[] = {'N','O','N','A','M','E',0};
+      return DEFAULT_HRIP_FILENAME;
+    }
+  }
 
-  Container::Catalogue::Ptr ParseHripFile(Binary::Container::Ptr data, const Parameters::Accessor& params)
+  Container::Catalogue::Ptr ParseHripFile(const Binary::Container& data, const Parameters::Accessor& params)
   {
     uint_t files = 0;
     std::size_t archiveSize = 0;
-    const uint8_t* const ptr = static_cast<const uint8_t*>(data->Data());
-    const std::size_t size = data->Size();
+    const uint8_t* const ptr = static_cast<const uint8_t*>(data.Data());
+    const std::size_t size = data.Size();
     if (!CheckHrip(ptr, size, files, archiveSize))
     {
       return Container::Catalogue::Ptr();
@@ -268,42 +167,25 @@ namespace
     const bool ignoreCorrupted = CheckIgnoreCorrupted(params);
 
     const TRDos::CatalogueBuilder::Ptr builder = TRDos::CatalogueBuilder::CreateGeneric();
-    const DataSource::Ptr source = boost::make_shared<DataSource>(data);
-
-    std::size_t flatOffset = 0;
-    std::size_t offset = sizeof(HripHeader);
-    for (uint_t fileNum = 0; fileNum < files; ++fileNum)
+    const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateHrust23Decoder();
+    for (std::size_t rawOffset = sizeof(HripHeader), flatOffset = 0, fileNum = 0; fileNum < files; ++fileNum)
     {
-      //collect file's blocks
-      HripBlockHeadersList blocks;
-      for (;;)
+      const Binary::Container::Ptr source = data.GetSubcontainer(rawOffset, size);
+      if (const Formats::Packed::Container::Ptr target = decoder->Decode(*source))
       {
-        const HripBlockHeader* const blockHdr = safe_ptr_cast<const HripBlockHeader*>(ptr + offset);
-        const uint8_t* const packedData = safe_ptr_cast<const uint8_t*>(&blockHdr->PackedCRC) +
-          blockHdr->AdditionalSize;
-        if (0 != std::memcmp(blockHdr->ID, HRIP_BLOCK_ID, sizeof(HRIP_BLOCK_ID)))
-        {
-          break;
-        }
-        //archive may be trunkated- just stop processing in this case
-        if (packedData + fromLE(blockHdr->PackedSize) > ptr + std::min<std::size_t>(size, archiveSize))
-        {
-          break;
-        }
-        blocks.push_back(blockHdr);
-        offset += fromLE(blockHdr->PackedSize) + (packedData - ptr - offset);
-        if (0 != (blockHdr->Flag & HripBlockHeader::LAST_BLOCK))
-        {
-          break;
-        }
+        const String fileName = ExtractFileName(source->Data());
+        const std::size_t fileSize = target->Size();
+        const std::size_t usedSize = target->PackedSize();
+        const TRDos::File::Ptr file = TRDos::File::Create(target, fileName, flatOffset, fileSize);
+        builder->AddFile(file);
+        rawOffset += usedSize;
+        flatOffset += fileSize;
       }
-      if (blocks.empty() || 0 == (blocks.back()->Flag & HripBlockHeader::LAST_BLOCK))
+      else
       {
-        continue;
+        //TODO: process catalogue
+        break;
       }
-      const TRDos::File::Ptr file = boost::make_shared<HripFile>(source, flatOffset, blocks, ignoreCorrupted);
-      flatOffset += file->GetSize();
-      builder->AddFile(file);
     }
     builder->SetUsedSize(archiveSize);
     return builder->GetResult();
@@ -341,7 +223,7 @@ namespace
 
     virtual Container::Catalogue::Ptr CreateContainer(const Parameters::Accessor& parameters, Binary::Container::Ptr data) const
     {
-      return ParseHripFile(data, parameters);
+      return ParseHripFile(*data, parameters);
     }
   private:
     const Binary::Format::Ptr Format;

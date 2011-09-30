@@ -44,8 +44,8 @@ extern const Char HRUST1_DECODER_DESCRIPTION[] = {
 extern const Char HRUST21_DECODER_DESCRIPTION[] = {
   'H','r','u','s','t',' ','v','2','.','1',0
 };
-extern const Char HRUST2X_DECODER_DESCRIPTION[] = {
-  'H','r','u','s','t',' ','v','2','.','x',0
+extern const Char HRUST23_DECODER_DESCRIPTION[] = {
+  'H','r','u','s','t',' ','v','2','.','3',0
 };
 extern const Char LZH1_DECODER_DESCRIPTION[] = {
   'L','Z','H',' ','C','o','m','p','r','e','s','s','o','r',' ','v','1','.','4',0
