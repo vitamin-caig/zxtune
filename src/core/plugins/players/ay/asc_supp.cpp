@@ -1164,7 +1164,7 @@ namespace
       return Format;
     }
 
-    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, Binary::Container::Ptr rawData, std::size_t& usedSize) const
+    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr rawData, std::size_t& usedSize) const
     {
       try
       {
@@ -1195,7 +1195,7 @@ namespace
         }
 
         const AYM::Chiptune::Ptr chiptune = boost::make_shared<ASCChiptune>(parsedData, properties);
-        return AYM::CreateHolder(chiptune, parameters);
+        return AYM::CreateHolder(chiptune);
       }
       catch (const Error&/*e*/)
       {

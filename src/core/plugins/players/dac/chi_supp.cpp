@@ -240,11 +240,10 @@ namespace
     }
 
   public:
-    CHIHolder(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, Binary::Container::Ptr rawData, std::size_t& usedSize)
+    CHIHolder(ModuleProperties::RWPtr properties, Binary::Container::Ptr rawData, std::size_t& usedSize)
       : Data(CHITrack::ModuleData::Create())
       , Properties(properties)
       , Info(CreateTrackInfo(Data, CHANNELS_COUNT))
-      , Params(parameters)
     {
       //assume data is correct
       const IO::FastDump& data(*rawData);
@@ -309,7 +308,7 @@ namespace
 
     virtual Parameters::Accessor::Ptr GetModuleProperties() const
     {
-      return Parameters::CreateMergedAccessor(Params, Properties);
+      return Properties;
     }
 
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::MultichannelReceiver::Ptr target) const
@@ -330,10 +329,10 @@ namespace
       return CreateCHIRenderer(params, Info, Data, chip);
     }
 
-    virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
+    virtual Error Convert(const Conversion::Parameter& spec, Parameters::Accessor::Ptr /*params*/, Dump& dst) const
     {
       using namespace Conversion;
-      if (parameter_cast<RawConvertParam>(&param))
+      if (parameter_cast<RawConvertParam>(&spec))
       {
         Properties->GetData(dst);
       }
@@ -347,7 +346,6 @@ namespace
     const CHITrack::ModuleData::RWPtr Data;
     const ModuleProperties::RWPtr Properties;
     const Information::Ptr Info;
-    const Parameters::Accessor::Ptr Params;
   };
 
   class CHIRenderer : public Renderer
@@ -565,12 +563,12 @@ namespace
       return Format;
     }
 
-    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, Binary::Container::Ptr data, std::size_t& usedSize) const
+    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr data, std::size_t& usedSize) const
     {
       try
       {
         assert(Check(*data));
-        const Holder::Ptr holder(new CHIHolder(properties, parameters, data, usedSize));
+        const Holder::Ptr holder(new CHIHolder(properties, data, usedSize));
         return holder;
       }
       catch (const Error&/*e*/)

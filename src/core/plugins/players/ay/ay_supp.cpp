@@ -827,10 +827,9 @@ namespace
   class AYHolder : public Holder
   {
   public:
-    AYHolder(AYData::Ptr data, Parameters::Accessor::Ptr parameters)
+    explicit AYHolder(AYData::Ptr data)
       : Data(data)
       , Info(CreateStreamInfo(Data->GetFramesCount(), Devices::AYM::CHANNELS))
-      , Params(parameters)
     {
     }
 
@@ -846,7 +845,7 @@ namespace
 
     virtual Parameters::Accessor::Ptr GetModuleProperties() const
     {
-      return Parameters::CreateMergedAccessor(Params, Data->GetProperties());
+      return Data->GetProperties();
     }
 
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::MultichannelReceiver::Ptr target) const
@@ -863,7 +862,7 @@ namespace
       return boost::make_shared<AYRenderer>(trackParams, iterator, comp, ayChannel);
     }
 
-    virtual Error Convert(const Conversion::Parameter& spec, Dump& dst) const
+    virtual Error Convert(const Conversion::Parameter& spec, Parameters::Accessor::Ptr /*params*/, Dump& dst) const
     {
       using namespace Conversion;
       Error result;
@@ -876,7 +875,6 @@ namespace
   private:
     const AYData::Ptr Data;
     const Information::Ptr Info;
-    const Parameters::Accessor::Ptr Params;
   };
 
   bool CheckAYModule(const Binary::Container& inputData)
@@ -934,14 +932,14 @@ namespace AYModule
       return Format;
     }
 
-    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, Binary::Container::Ptr rawData, std::size_t& usedSize) const
+    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr rawData, std::size_t& usedSize) const
     {
       try
       {
         assert(Check(*rawData));
 
         Parameters::IntType defaultDuration = Parameters::ZXTune::Core::Plugins::AY::DEFAULT_DURATION_FRAMES_DEFAULT;
-        parameters->FindIntValue(Parameters::ZXTune::Core::Plugins::AY::DEFAULT_DURATION_FRAMES, defaultDuration);
+        //parameters->FindIntValue(Parameters::ZXTune::Core::Plugins::AY::DEFAULT_DURATION_FRAMES, defaultDuration);
 
         const boost::shared_ptr<AYData> result = boost::make_shared<AYData>(properties, static_cast<uint_t>(defaultDuration));
         const IO::FastDump data(*rawData);
@@ -949,7 +947,7 @@ namespace AYModule
         {
           usedSize = aySize;
           properties->SetSource(usedSize, ModuleRegion(0, usedSize));
-          return boost::make_shared<AYHolder>(result, parameters);
+          return boost::make_shared<AYHolder>(result);
         }
       }
       catch (const Error&/*e*/)

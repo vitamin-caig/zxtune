@@ -472,7 +472,7 @@ namespace ST1
       return Format;
     }
 
-    virtual Module::Holder::Ptr CreateModule(Module::ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, Binary::Container::Ptr allData, std::size_t& usedSize) const
+    virtual Module::Holder::Ptr CreateModule(Module::ModuleProperties::RWPtr properties, Binary::Container::Ptr allData, std::size_t& usedSize) const
     {
       try
       {
@@ -493,7 +493,7 @@ namespace ST1
           properties->SetSource(usedSize, fixedRegion);
         }
         const Module::AYM::Chiptune::Ptr chiptune = SoundTracker::CreateChiptune(parsedData, properties);
-        return Module::AYM::CreateHolder(chiptune, parameters);
+        return Module::AYM::CreateHolder(chiptune);
       }
       catch (const Error& /*e*/)
       {

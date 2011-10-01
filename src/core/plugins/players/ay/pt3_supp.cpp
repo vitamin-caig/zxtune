@@ -649,13 +649,12 @@ namespace
       return CreateTSRenderer(renderer1, renderer2, mixer);
     }
 
-    virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
+    virtual Error Convert(const Conversion::Parameter& spec, Parameters::Accessor::Ptr params, Dump& dst) const
     {
       using namespace Conversion;
-      Error result;
-      if (parameter_cast<RawConvertParam>(&param))
+      if (parameter_cast<RawConvertParam>(&spec))
       {
-        return Delegate->Convert(param, dst);
+        return Delegate->Convert(spec, params, dst);
       }
       return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
     }
@@ -809,7 +808,7 @@ namespace
       return Format;
     }
 
-    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, Binary::Container::Ptr rawData, std::size_t& usedSize) const
+    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr rawData, std::size_t& usedSize) const
     {
       try
       {
@@ -843,7 +842,7 @@ namespace
 
         const AYM::Chiptune::Ptr chiptune = Vortex::CreateChiptune(moduleData, properties, 
           isTSModule ? 2 * Devices::AYM::CHANNELS : Devices::AYM::CHANNELS);
-        const Holder::Ptr nativeHolder = AYM::CreateHolder(chiptune, parameters);
+        const Holder::Ptr nativeHolder = AYM::CreateHolder(chiptune);
 
         if (isTSModule)
         {

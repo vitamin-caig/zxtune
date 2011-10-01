@@ -470,16 +470,16 @@ namespace
       return Delegate->CreateRenderer(params, target);
     }
 
-    virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
+    virtual Error Convert(const Conversion::Parameter& spec, Parameters::Accessor::Ptr params, Dump& dst) const
     {
       Error result;
-      if (ConvertVortexFormat(*Data, *GetModuleInformation(), *GetModuleProperties(), param, dst, result))
+      if (ConvertVortexFormat(*Data, *GetModuleInformation(), *Parameters::CreateMergedAccessor(params, Delegate->GetModuleProperties()), spec, dst, result))
       {
         return result;
       }
       else
       {
-        return Delegate->Convert(param, dst);
+        return Delegate->Convert(spec, params, dst);
       }
     }
   protected:

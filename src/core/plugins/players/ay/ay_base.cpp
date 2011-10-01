@@ -209,9 +209,8 @@ namespace
   class AYMHolder : public Holder
   {
   public:
-    explicit AYMHolder(AYM::Chiptune::Ptr chiptune, Parameters::Accessor::Ptr params)
+    explicit AYMHolder(AYM::Chiptune::Ptr chiptune)
       : Tune(chiptune)
-      , Params(params)
     {
     }
 
@@ -227,7 +226,7 @@ namespace
 
     virtual Parameters::Accessor::Ptr GetModuleProperties() const
     {
-      return Parameters::CreateMergedAccessor(Params, Tune->GetProperties());
+      return Tune->GetProperties();
     }
 
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::MultichannelReceiver::Ptr target) const
@@ -240,7 +239,7 @@ namespace
       return AYM::CreateRenderer(trackParams, iterator, chip);
     }
 
-    virtual Error Convert(const Conversion::Parameter& spec, Dump& dst) const
+    virtual Error Convert(const Conversion::Parameter& spec, Parameters::Accessor::Ptr params, Dump& dst) const
     {
       using namespace Conversion;
       Error result;
@@ -248,7 +247,7 @@ namespace
       {
         Tune->GetProperties()->GetData(dst);
       }
-      else if (!ConvertAYMFormat(*Tune, spec, GetModuleProperties(), dst, result))
+      else if (!ConvertAYMFormat(*Tune, spec, Parameters::CreateMergedAccessor(params, Tune->GetProperties()), dst, result))
       {
         return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
       }
@@ -256,7 +255,6 @@ namespace
     }
   private:
     const AYM::Chiptune::Ptr Tune;
-    const Parameters::Accessor::Ptr Params;
   };
 }
 
@@ -351,9 +349,9 @@ namespace ZXTune
         return boost::make_shared<AYMReceiver>(target);
       }
 
-      Holder::Ptr CreateHolder(Chiptune::Ptr chiptune, Parameters::Accessor::Ptr params)
+      Holder::Ptr CreateHolder(Chiptune::Ptr chiptune)
       {
-        return boost::make_shared<AYMHolder>(chiptune, params);
+        return boost::make_shared<AYMHolder>(chiptune);
       }
     }
   }

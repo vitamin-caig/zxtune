@@ -131,7 +131,7 @@ namespace
       : Delegate(data)
       , Files(from, to)
     {
-      assert(Data);
+      assert(Delegate);
     }
 
     //Binary::Container

@@ -295,10 +295,10 @@ namespace
       return CreateTSRenderer(params, Holder1, Holder2, target);
     }
 
-    virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const
+    virtual Error Convert(const Conversion::Parameter& spec, Parameters::Accessor::Ptr /*params*/, Dump& dst) const
     {
       using namespace Conversion;
-      if (parameter_cast<RawConvertParam>(&param))
+      if (parameter_cast<RawConvertParam>(&spec))
       {
         const uint8_t* const data = static_cast<const uint8_t*>(RawData->Data());
         dst.assign(data, data + RawData->Size());

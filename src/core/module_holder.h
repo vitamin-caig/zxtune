@@ -54,8 +54,10 @@ namespace ZXTune
       //! @param param Specify format to convert
       //! @param dst Result data
       //! @return Error() in case of success
-      virtual Error Convert(const Conversion::Parameter& param, Dump& dst) const = 0;
+      virtual Error Convert(const Conversion::Parameter& param, Parameters::Accessor::Ptr params, Dump& dst) const = 0;
     };
+
+    Holder::Ptr CreateMixedPropertiesHolder(Holder::Ptr delegate, Parameters::Accessor::Ptr props);
   }
 }
 

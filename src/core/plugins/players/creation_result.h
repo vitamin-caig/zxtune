@@ -34,7 +34,7 @@ namespace ZXTune
 
     virtual Binary::Format::Ptr GetFormat() const = 0;
 
-    virtual Module::Holder::Ptr CreateModule(Module::ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, Binary::Container::Ptr data, std::size_t& usedSize) const = 0;
+    virtual Module::Holder::Ptr CreateModule(Module::ModuleProperties::RWPtr properties, Binary::Container::Ptr data, std::size_t& usedSize) const = 0;
   };
 
   namespace Module

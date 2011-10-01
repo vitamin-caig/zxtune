@@ -18,6 +18,7 @@ Author:
 #include <formats/packed_decoders.h>
 #include <formats/packed/rar_supp.h>
 //std includes
+#include <cstring>
 #include <list>
 #include <numeric>
 //boost includes

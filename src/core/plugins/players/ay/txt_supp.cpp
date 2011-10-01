@@ -87,7 +87,7 @@ namespace
       return Format;
     }
 
-    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Parameters::Accessor::Ptr parameters, Binary::Container::Ptr allData, std::size_t& usedSize) const
+    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr allData, std::size_t& usedSize) const
     {
       try
       {
@@ -108,7 +108,7 @@ namespace
         properties->SetSource(usedSize, ModuleRegion(0, usedSize));
 
         const AYM::Chiptune::Ptr chiptune = Vortex::CreateChiptune(moduleData, properties, Devices::AYM::CHANNELS);
-        const Holder::Ptr nativeHolder = AYM::CreateHolder(chiptune, parameters);
+        const Holder::Ptr nativeHolder = AYM::CreateHolder(chiptune);
 
         return Vortex::CreateHolder(moduleData, nativeHolder);
       }

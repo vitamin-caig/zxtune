@@ -149,7 +149,7 @@ namespace
         }
       }
       Dump result;
-      ThrowIfError(holder->Convert(*ConversionParameter, result));
+      ThrowIfError(holder->Convert(*ConversionParameter, props, result));
       //prepare result filename
       const String& filename = FileNameTemplate->Instantiate(ModuleFieldsSource(*props));
       std::ofstream file(filename.c_str(), std::ios::binary);

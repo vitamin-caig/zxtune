@@ -92,6 +92,44 @@ namespace
     }
     return 0;
   }
+
+  class MixedPropertiesHolder : public Module::Holder
+  {
+  public:
+    MixedPropertiesHolder(Module::Holder::Ptr delegate, Parameters::Accessor::Ptr props)
+      : Delegate(delegate)
+      , Properties(props)
+    {
+    }
+
+    virtual Plugin::Ptr GetPlugin() const
+    {
+      return Delegate->GetPlugin();
+    }
+
+    virtual Module::Information::Ptr GetModuleInformation() const
+    {
+      return Delegate->GetModuleInformation();
+    }
+
+    virtual Parameters::Accessor::Ptr GetModuleProperties() const
+    {
+      return Parameters::CreateMergedAccessor(Properties, Delegate->GetModuleProperties());
+    }
+
+    virtual Module::Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::MultichannelReceiver::Ptr target) const
+    {
+      return Delegate->CreateRenderer(Parameters::CreateMergedAccessor(params, Properties), target);
+    }
+
+    virtual Error Convert(const Module::Conversion::Parameter& spec, Parameters::Accessor::Ptr params, Dump& dst) const
+    {
+      return Delegate->Convert(spec, Parameters::CreateMergedAccessor(params, Properties), dst);
+    }
+  private:
+    const Module::Holder::Ptr Delegate;
+    const Parameters::Accessor::Ptr Properties;
+  };
 }
 
 namespace ZXTune
@@ -113,6 +151,11 @@ namespace ZXTune
         return usedSize;
       }
       return DetectByPlugins<PlayerPlugin>(usedPlugins->EnumeratePlayers(), location, callback);
+    }
+
+    Holder::Ptr CreateMixedPropertiesHolder(Holder::Ptr delegate, Parameters::Accessor::Ptr props)
+    {
+      return boost::make_shared<MixedPropertiesHolder>(delegate, props);
     }
   }
 }
