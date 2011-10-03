@@ -30,8 +30,6 @@ namespace ZXTune
     public:
       virtual ~DetectCallback() {}
 
-      //! @brief Returns list of plugins enabled to be processed
-      virtual PluginsEnumerator::Ptr GetUsedPlugins() const = 0;
       //! @brief Returns plugins parameters
       virtual Parameters::Accessor::Ptr GetPluginsParameters() const = 0;
       //! @brief Returns parameters for future module
@@ -51,11 +49,6 @@ namespace ZXTune
       {
       }
 
-      virtual PluginsEnumerator::Ptr GetUsedPlugins() const
-      {
-        return Delegate.GetUsedPlugins();
-      }
-      
       virtual Parameters::Accessor::Ptr GetPluginsParameters() const
       {
         return Delegate.GetPluginsParameters();

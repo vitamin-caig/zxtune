@@ -30,16 +30,6 @@ namespace ZXTune
 
     //! Enumerate all supported plugins
     static Ptr Create();
-
-    class Filter
-    {
-    public:
-      virtual ~Filter() {}
-
-      virtual bool IsPluginEnabled(const Plugin& plugin) const = 0;
-    };
-    //enumerate only plugins supported by filter
-    static Ptr Create(const Filter& filter);
   };
 
   //TODO: remove

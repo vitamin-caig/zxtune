@@ -82,31 +82,6 @@ html> "</pre>\n"
 > SAMPLE_BEGIN "FILE.trd?FILE1.C/+125/+unHRIP1/+50" SAMPLE_END
 > SAMPLE_SECT_END
 
-= SAMPLE_PLUGIN_ALLOW
-> SAMPLE_SECT_BEGIN
-> SAMPLE_BEGIN "--" CMD_INPUT_ALLOW_PLUGIN_KEY " stor_module" SAMPLE_END
-> SAMPLE_SECT_END
-
-= SAMPLE_PLUGIN_DENY
-> SAMPLE_SECT_BEGIN
-> SAMPLE_BEGIN "--" CMD_INPUT_DENY_PLUGIN_KEY " PSG,stor_plain" SAMPLE_END
-> SAMPLE_SECT_END
-
-= SAMPLE_FILTER_PLUGIN
-> SAMPLE_SECT_BEGIN
-> SAMPLE_BEGIN "IF PluginID IN EnabledList OR PluginCaps IN EnabledCaps" SAMPLE_END
-> SAMPLE_BEGIN "  ALLOW Plugin" SAMPLE_END
-> SAMPLE_BEGIN "ELSE" SAMPLE_END
-> SAMPLE_BEGIN "IF PluginID IN DisabledList OR PluginCaps IN DisabledCaps" SAMPLE_END
-> SAMPLE_BEGIN "  DENY Plugin" SAMPLE_END
-> SAMPLE_BEGIN "ELSE" SAMPLE_END
-> SAMPLE_BEGIN "IF EMPTY EnabledList AND EMPTY EnabledCaps" SAMPLE_END
-> SAMPLE_BEGIN "  ALLOW Plugin" SAMPLE_END
-> SAMPLE_BEGIN "ELSE" SAMPLE_END
-> SAMPLE_BEGIN "  DENY Plugin" SAMPLE_END
-> SAMPLE_BEGIN "ENDIF" SAMPLE_END
-> SAMPLE_SECT_END
-
 = SAMPLE_BACKEND_OPTS
 > SAMPLE_SECT_BEGIN
 > SAMPLE_BEGIN "--oss device=/dev/dsp1,mixer=/dev/mixer1" SAMPLE_END
@@ -292,30 +267,6 @@ en> "plugin should be addressed by at least one component.\n"
 en> "Archive containers' path components clarifies nesting and avoids ambiguity:"
 
 en> SAMPLE_PATH_1_1
-
-en> "While processing input data you can use " PRE_BEGIN "--" CMD_INPUT_ALLOW_PLUGIN_KEY PRE_END " key to explicitly "
-en> "specify what plugins you want to use and/or " PRE_BEGIN "--" CMD_INPUT_DENY_PLUGIN_KEY PRE_END " to explicitly "
-en> "disable some of them. Plugins' identifiers or capabilities can be specified as "
-en> "parameters. E.g.\n"
-
-en> SAMPLE_PLUGIN_ALLOW
-
-en> "disables any containers processing, just searching modules itself in input "
-en> "data.\n"
-
-en> SAMPLE_PLUGIN_DENY
-
-en> "disables searching in plain containers and PSG modules. In common, there's "
-en> "the next algorithm to filter plugins:\n"
-
-en> SAMPLE_FILTER_PLUGIN
-
-en> "Filters are not applied for explicitly specified subpath. E.g. if the next "
-en> "path is specified:\n"
-
-en> SAMPLE_PATH_1_1
-
-en> "TRD, HRUST1 and Raw plugins will be used to resolve initial path even if they are disabled.\n"
 
 en> HEAD_BEGIN "ATTRIBUTES" HEAD_END
 en> "Every module has variable set of attributes which is filled while processing. "

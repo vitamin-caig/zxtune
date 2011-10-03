@@ -526,12 +526,6 @@ namespace
     {
     }
 
-    virtual bool FilterPlugin(const ZXTune::Plugin& /*plugin*/) const
-    {
-      //TODO: from parameters
-      return false;
-    }
-    
     virtual Parameters::Accessor::Ptr CreateModuleParams(const String& subPath) const
     {
       return CreatePathProperties(DataPath, subPath);

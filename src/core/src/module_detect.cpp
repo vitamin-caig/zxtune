@@ -42,12 +42,6 @@ namespace
     {
     }
 
-    virtual PluginsEnumerator::Ptr GetUsedPlugins() const
-    {
-      assert(!"Should not be called");
-      return PluginsEnumerator::Ptr();
-    }
-
     virtual Parameters::Accessor::Ptr GetPluginsParameters() const
     {
       return Parameters::Container::Create();
@@ -145,7 +139,7 @@ namespace ZXTune
 
     std::size_t Detect(DataLocation::Ptr location, const DetectCallback& callback)
     {
-      const PluginsEnumerator::Ptr usedPlugins = callback.GetUsedPlugins();
+      const PluginsEnumerator::Ptr usedPlugins = PluginsEnumerator::Create();
       if (std::size_t usedSize = DetectByPlugins<ArchivePlugin>(usedPlugins->EnumerateArchives(), location, callback))
       {
         return usedSize;

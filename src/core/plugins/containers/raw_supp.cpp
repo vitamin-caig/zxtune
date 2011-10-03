@@ -429,7 +429,7 @@ namespace
       const Log::ProgressCallback::Ptr progress(new RawProgressCallback(callback, static_cast<uint_t>(size), currentPath));
       const Module::DetectCallback& noProgressCallback = Module::CustomProgressDetectCallbackAdapter(callback);
 
-      const PluginsEnumerator::Ptr availablePlugins = callback.GetUsedPlugins();
+      const PluginsEnumerator::Ptr availablePlugins = PluginsEnumerator::Create();
       RawDetectionPlugins usedPlugins(availablePlugins, Description->Id());
 
       ScanDataLocation::Ptr subLocation = boost::make_shared<ScanDataLocation>(input, Description, 0);

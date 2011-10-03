@@ -161,78 +161,17 @@ namespace
     caps = tmpCaps;
   }
 
-  class PluginsFilter
-  {
-  public:
-    PluginsFilter(const String& allowed, const String& denied)
-    {
-      if (allowed.empty() && denied.empty())
-      {
-        return;
-      }
-      std::map<String, uint_t> plug2Cap;
-      StringSet allplugs;
-      for (ZXTune::Plugin::Iterator::Ptr plugs = ZXTune::EnumeratePlugins(); plugs->IsValid(); plugs->Next())
-      {
-        const ZXTune::Plugin::Ptr plugin = plugs->Get();
-        allplugs.insert(plugin->Id());
-        plug2Cap[plugin->Id()] = plugin->Capabilities();
-      }
-      uint_t enabledCaps = 0;
-      StringSet enabledPlugins;
-      uint_t disabledCaps = 0;
-      StringSet disabledPlugins;
-      Parse(allplugs, allowed, enabledPlugins, enabledCaps);
-      Parse(allplugs, denied, disabledPlugins, disabledCaps);
-      enabledCaps |= ZXTune::CAP_STOR_MODULE;
-      for (std::map<String, uint_t>::const_iterator it = plug2Cap.begin(), lim = plug2Cap.end(); it != lim; ++it)
-      {
-        const String id = it->first;
-        const uint_t caps = it->second;
-        if (enabledPlugins.count(id) || 0 != (caps & enabledCaps))
-        {
-          //enabled explicitly
-          continue;
-        }
-        else if (disabledPlugins.count(id) || 0 != (caps & disabledCaps))
-        {
-          //disabled explicitly
-          FilteredPlugins.insert(id);
-        }
-        //enable all if there're no explicit enables
-        if (!(enabledPlugins.empty() && !enabledCaps))
-        {
-          FilteredPlugins.insert(id);
-        }
-      }
-    }
-
-    bool IsPluginFiltered(const ZXTune::Plugin& plugin) const
-    {
-      return !FilteredPlugins.empty() && 
-             0 != FilteredPlugins.count(plugin.Id());
-    }
-  private:
-    boost::unordered_set<String> FilteredPlugins;
-  };
-
   class DetectParametersImpl : public ZXTune::DetectParameters
   {
   public:
-    DetectParametersImpl(Parameters::Accessor::Ptr params, const PluginsFilter& filter, const String& path, const OnItemCallback& callback, bool showLogs)
+    DetectParametersImpl(Parameters::Accessor::Ptr params, const String& path, const OnItemCallback& callback, bool showLogs)
       : Params(params)
-      , Filter(filter)
       , Path(path)
       , Callback(callback)
       , ProgressCallback(showLogs ? new ProgressCallbackImpl() : 0)
     {
     }
 
-    virtual bool FilterPlugin(const ZXTune::Plugin& plugin) const
-    {
-      return Filter.IsPluginFiltered(plugin);
-    }
-    
     virtual Parameters::Accessor::Ptr CreateModuleParams(const String& subpath) const
     {
       return Parameters::CreateMergedAccessor(CreatePathProperties(Path, subpath), Params);
@@ -249,7 +188,6 @@ namespace
     }
   private:
     const Parameters::Accessor::Ptr Params;
-    const PluginsFilter& Filter;
     const String Path;
     const OnItemCallback& Callback;
     const Log::ProgressCallback::Ptr ProgressCallback;
@@ -267,8 +205,6 @@ namespace
       OptionsDescription.add_options()
         (Text::INPUT_FILE_KEY, boost::program_options::value<StringArray>(&Files), Text::INPUT_FILE_DESC)
         (Text::IO_PROVIDERS_OPTS_KEY, boost::program_options::value<String>(&ProvidersOptions), Text::IO_PROVIDERS_OPTS_DESC)
-        (Text::INPUT_ALLOW_PLUGIN_KEY, boost::program_options::value<String>(&Allowed), Text::INPUT_ALLOW_PLUGIN_DESC)
-        (Text::INPUT_DENY_PLUGIN_KEY, boost::program_options::value<String>(&Denied), Text::INPUT_DENY_PLUGIN_DESC)
         (Text::INPUT_PROGRESS_KEY, boost::program_options::bool_switch(&ShowProgress), Text::INPUT_PROGRESS_DESC)
         (Text::CORE_OPTS_KEY, boost::program_options::value<String>(&CoreOptions), Text::CORE_OPTS_DESC)
         (Text::YM_KEY, boost::program_options::bool_switch(&YM), Text::YM_DESC)
@@ -313,7 +249,6 @@ namespace
       {
         throw Error(THIS_LINE, NO_INPUT_FILES, Text::INPUT_ERROR_NO_FILES);
       }
-      Filter.reset(new PluginsFilter(Allowed, Denied));
     }
 
     virtual void ProcessItems(const OnItemCallback& callback)
@@ -327,7 +262,7 @@ namespace
         ThrowIfError(ZXTune::IO::SplitUri(*it, path, subpath));
         ThrowIfError(ZXTune::IO::OpenData(path, *Params, 0, data));
 
-        const DetectParametersImpl params(Params, *Filter, path, callback, ShowProgress);
+        const DetectParametersImpl params(Params, path, callback, ShowProgress);
         ThrowIfError(ZXTune::DetectModules(Params, params, data, subpath));
       }
     }
@@ -336,9 +271,6 @@ namespace
     boost::program_options::options_description OptionsDescription;
     StringArray Files;
     String ProvidersOptions;
-    String Allowed;
-    String Denied;
-    std::auto_ptr<PluginsFilter> Filter;
     bool ShowProgress;
     String CoreOptions;
     bool YM;

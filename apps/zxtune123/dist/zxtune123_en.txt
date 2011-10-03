@@ -80,33 +80,6 @@ in the simplest case means that there's some data inside file FILE1.C at offset 
 Archive containers' path components clarifies nesting and avoids ambiguity:
 	FILE.trd?FILE1.C/+125/+unHRIP1/+50
 
-While processing input data you can use --allow-plugins key to explicitly specify what plugins you want to use and/or --deny-plugins to explicitly disable some of them. Plugins' identifiers or capabilities can be specified as parameters. E.g.
-
-	--allow-plugins stor_module
-
-disables any containers processing, just searching modules itself in input data.
-
-	--deny-plugins PSG,stor_plain
-
-disables searching in plain containers and PSG modules. In common, there's the next algorithm to filter plugins:
-
-	IF PluginID IN EnabledList OR PluginCaps IN EnabledCaps
-	  ALLOW Plugin
-	ELSE
-	IF PluginID IN DisabledList OR PluginCaps IN DisabledCaps
-	  DENY Plugin
-	ELSE
-	IF EMPTY EnabledList AND EMPTY EnabledCaps
-	  ALLOW Plugin
-	ELSE
-	  DENY Plugin
-	ENDIF
-
-Filters are not applied for explicitly specified subpath. E.g. if the next path is specified:
-
-	FILE.trd?FILE1.C/+125/+unHRIP1/+50
-
-TRD, HRUST1 and Raw plugins will be used to resolve initial path even if they are disabled.
 
 ATTRIBUTES
 Every module has variable set of attributes which is filled while processing. To see all the supported attributes use --list-attributes key. Attributes are used to setup file-based backends and conversion (see below).

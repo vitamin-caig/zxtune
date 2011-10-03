@@ -61,12 +61,6 @@
 = CMD_INPUT_FILE_KEY
 > "file"
 
-= CMD_INPUT_ALLOW_PLUGIN_KEY
-> "allow-plugins"
-
-= CMD_INPUT_DENY_PLUGIN_KEY
-> "deny-plugins"
-
 = CMD_INPUT_PROGRESS_KEY
 > "progress"
 

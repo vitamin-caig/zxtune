@@ -42,54 +42,11 @@ namespace
   typedef std::vector<PlayerPlugin::Ptr> PlayerPluginsArray;
   typedef std::vector<ArchivePlugin::Ptr> ArchivePluginsArray;
  
-  class FilteredPluginsRegistrator : public PluginsRegistrator
-  {
-  public:
-    FilteredPluginsRegistrator(PluginsRegistrator& delegate, const PluginsEnumerator::Filter& filter)
-      : Delegate(delegate)
-      , Filter(filter)
-    {
-    }
-
-    virtual void RegisterPlugin(PlayerPlugin::Ptr plugin)
-    {
-      if (Filter.IsPluginEnabled(*plugin->GetDescription()))
-      {
-        Delegate.RegisterPlugin(plugin);
-      }
-    }
-
-    virtual void RegisterPlugin(ArchivePlugin::Ptr plugin)
-    {
-      if (Filter.IsPluginEnabled(*plugin->GetDescription()))
-      {
-        Delegate.RegisterPlugin(plugin);
-      }
-    }
-  private:
-    PluginsRegistrator& Delegate;
-    const PluginsEnumerator::Filter& Filter;
-  };
-
   void RegisterAllPlugins(PluginsRegistrator& registrator)
   {
     RegisterContainerPlugins(registrator);
     RegisterArchivePlugins(registrator);
     RegisterPlayerPlugins(registrator);
-  }
-
-  void FilterPlugins(const PluginsEnumerator& enumerator, const PluginsEnumerator::Filter& filter, PluginsRegistrator& registrator)
-  {
-    FilteredPluginsRegistrator filtered(registrator, filter);
-    PluginsRegistrator& target = filtered;
-    for (PlayerPlugin::Iterator::Ptr players = enumerator.EnumeratePlayers(); players->IsValid(); players->Next())
-    {
-      target.RegisterPlugin(players->Get());
-    }
-    for (ArchivePlugin::Iterator::Ptr archives = enumerator.EnumerateArchives(); archives->IsValid(); archives->Next())
-    {
-      target.RegisterPlugin(archives->Get());
-    }
   }
 
   class PluginsContainer : public PluginsRegistrator
@@ -99,11 +56,6 @@ namespace
     PluginsContainer()
     {
       RegisterAllPlugins(*this);
-    }
-
-    PluginsContainer(const PluginsEnumerator& enumerator, const PluginsEnumerator::Filter& filter)
-    {
-      FilterPlugins(enumerator, filter, *this);
     }
 
     virtual void RegisterPlugin(PlayerPlugin::Ptr plugin)
@@ -145,19 +97,12 @@ namespace
   };
 
   class DetectCallbackAdapter : public Module::DetectCallback
-                              , private PluginsEnumerator::Filter
   {
   public:
     DetectCallbackAdapter(const DetectParameters& detectParams, Parameters::Accessor::Ptr coreParams)
       : DetectParams(detectParams)
       , CoreParams(coreParams)
     {
-      Plugins = PluginsEnumerator::Create(*this);
-    }
-
-    virtual PluginsEnumerator::Ptr GetUsedPlugins() const
-    {
-      return Plugins;
     }
 
     virtual Parameters::Accessor::Ptr GetPluginsParameters() const
@@ -181,15 +126,9 @@ namespace
     {
       return DetectParams.GetProgressCallback();
     }
-
-    virtual bool IsPluginEnabled(const Plugin& plugin) const
-    {
-      return !DetectParams.FilterPlugin(plugin);
-    }
   private:
     const DetectParameters& DetectParams;
     const Parameters::Accessor::Ptr CoreParams;
-    PluginsEnumerator::Ptr Plugins;
   };
 
   class SimplePluginDescription : public Plugin
@@ -229,12 +168,6 @@ namespace ZXTune
   {
     static PluginsContainer instance;
     return PluginsEnumerator::Ptr(&instance, NullDeleter<PluginsEnumerator>());
-  }
-
-  PluginsEnumerator::Ptr PluginsEnumerator::Create(const PluginsEnumerator::Filter& filter)
-  {
-    const PluginsEnumerator::Ptr allPlugins = PluginsEnumerator::Create();
-    return PluginsEnumerator::Ptr(new PluginsContainer(*allPlugins, filter));
   }
 
   Plugin::Iterator::Ptr EnumeratePlugins()
