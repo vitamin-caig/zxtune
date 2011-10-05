@@ -1140,7 +1140,7 @@ namespace AYContainer
     virtual void AddBlock(uint16_t /*addr*/, const void* /*data*/, std::size_t /*size*/) {}
   };
 
-  class File : public Container::File
+  class File : public Formats::Archived::File
   {
   public:
     File(const String& name, Binary::Container::Ptr data)
@@ -1168,51 +1168,37 @@ namespace AYContainer
     const Binary::Container::Ptr Data;
   };
 
-  class Catalogue : public Container::Catalogue
+  class Container : public Formats::Archived::Container
   {
   public:
-    explicit Catalogue(Binary::Container::Ptr data)
-      : Data(data)
+    explicit Container(Binary::Container::Ptr data)
+      : Delegate(data)
       , AyPath(Text::AY_PLUGIN_PREFIX)
       , RawPath(Text::AY_RAW_PLUGIN_PREFIX)
     {
     }
 
-    virtual uint_t GetFilesCount() const
+    //Binary::Container
+    virtual std::size_t Size() const
     {
-      return GetAYSubmodules(*Data);
+      return Delegate->Size();
     }
 
-    virtual Container::File::Ptr FindFile(const ZXTune::DataPath& path) const
+    virtual const void* Data() const
     {
-      const String& pathComp = path.GetFirstComponent();
-      uint_t index = 0;
-      const bool asRaw = RawPath.GetIndex(pathComp, index);
-      if (!asRaw && !AyPath.GetIndex(pathComp, index))
-      {
-        return Container::File::Ptr();
-      }
-      const uint_t subModules = GetAYSubmodules(*Data);
-      if (subModules < index)
-      {
-        return Container::File::Ptr();
-      }
-      const IO::FastDump dump(*Data);
-      Builder builder;
-      if (!ParseAY(index, dump, builder))
-      {
-        return Container::File::Ptr();
-      }
-      const Binary::Container::Ptr data = asRaw
-        ? builder.GetRaw()
-        : builder.GetAy();
-      return boost::make_shared<File>(pathComp, data);
+      return Delegate->Data();
     }
 
-    virtual void ForEachFile(const Container::Catalogue::Callback& cb) const
+    virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
     {
-      const IO::FastDump dump(*Data);
-      for (uint_t idx = 0, total = GetFilesCount(); idx < total; ++idx)
+      return Delegate->GetSubcontainer(offset, size);
+    }
+
+    //Container
+    virtual void ExploreFiles(const Formats::Archived::Container::Walker& walker) const
+    {
+      const IO::FastDump dump(*Delegate);
+      for (uint_t idx = 0, total = CountFiles(); idx < total; ++idx)
       {
         Builder builder;
         const std::size_t parsedLimit = ParseAY(idx, dump, builder);
@@ -1223,36 +1209,56 @@ namespace AYContainer
         const String subPath = AyPath.Build(idx);
         const Binary::Container::Ptr subData = builder.GetAy();
         const File file(subPath, subData);
-        cb.OnFile(file);
+        walker.OnFile(file);
       }
     }
 
-    virtual std::size_t GetSize() const
+    virtual Formats::Archived::File::Ptr FindFile(const String& name) const
     {
-      static StubBuilder STUB;
-      const IO::FastDump dump(*Data);
-      for (uint_t idx = GetFilesCount(); idx; --idx)
+      uint_t index = 0;
+      const bool asRaw = RawPath.GetIndex(name, index);
+      if (!asRaw && !AyPath.GetIndex(name, index))
       {
-        //assume that files are layed out sequentally
-        if (const std::size_t limit = ParseAY(idx - 1, dump, STUB))
-        {
-          return limit;
-        }
+        return Formats::Archived::File::Ptr();
       }
-      return 0;
+      const uint_t subModules = GetAYSubmodules(*Delegate);
+      if (subModules < index)
+      {
+        return Formats::Archived::File::Ptr();
+      }
+      const IO::FastDump dump(*Delegate);
+      Builder builder;
+      if (!ParseAY(index, dump, builder))
+      {
+        return Formats::Archived::File::Ptr();
+      }
+      const Binary::Container::Ptr data = asRaw
+        ? builder.GetRaw()
+        : builder.GetAy();
+      return boost::make_shared<File>(name, data);
+    }
+
+    virtual uint_t CountFiles() const
+    {
+      return GetAYSubmodules(*Delegate);
     }
   private:
-    const Binary::Container::Ptr Data;
+    const Binary::Container::Ptr Delegate;
     const IndexPathComponent AyPath;
     const IndexPathComponent RawPath;
   };
 
-  class Factory : public ContainerFactory
+  class Decoder : public Formats::Archived::Decoder
   {
   public:
-    Factory()
+    Decoder()
       : Format(Binary::Format::Create(AYModule::HEADER_FORMAT))
     {
+    }
+
+    virtual String GetDescription() const
+    {
+      return Text::AY_DECODER_DESCRIPTION;
     }
 
     virtual Binary::Format::Ptr GetFormat() const
@@ -1260,14 +1266,31 @@ namespace AYContainer
       return Format;
     }
 
-    virtual Container::Catalogue::Ptr CreateContainer(const Parameters::Accessor& /*parameters*/, Binary::Container::Ptr data) const
+    virtual bool Check(const Binary::Container& rawData) const
     {
-      const uint_t subModules = GetAYSubmodules(*data);
+      return GetAYSubmodules(rawData) >= 2;
+    }
+
+    virtual Container::Ptr Decode(const Binary::Container& rawData) const
+    {
+      const uint_t subModules = GetAYSubmodules(rawData);
       if (subModules < 2)
       {
-        return Container::Catalogue::Ptr();
+        return Container::Ptr();
       }
-      return boost::make_shared<Catalogue>(data);
+
+      static StubBuilder STUB;
+      const IO::FastDump dump(rawData);
+      for (uint_t idx = subModules; idx; --idx)
+      {
+        //assume that files are layed out sequentally
+        if (const std::size_t limit = ParseAY(idx - 1, dump, STUB))
+        {
+          const Binary::Container::Ptr ayData = rawData.GetSubcontainer(0, limit);
+          return boost::make_shared<Container>(ayData);
+        }
+      }
+      return Container::Ptr();
     }
   private:
     const Binary::Format::Ptr Format;
@@ -1286,8 +1309,8 @@ namespace ZXTune
     }
     //container
     {
-      const ContainerFactory::Ptr factory = boost::make_shared<AYContainer::Factory>();
-      const ArchivePlugin::Ptr plugin = CreateContainerPlugin(AY::ID, AY::INFO, AYContainer::CAPS, factory);
+      const Formats::Archived::Decoder::Ptr decoder = boost::make_shared<AYContainer::Decoder>();
+      const ArchivePlugin::Ptr plugin = CreateContainerPlugin(AY::ID, AYContainer::CAPS, decoder);
       registrator.RegisterPlugin(plugin);
     }
   }

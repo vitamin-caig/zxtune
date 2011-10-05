@@ -48,6 +48,9 @@ __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 < AY_PLUGIN_INFO
 > "AY" PLAYER_DESCRIPTION
 
+< AY_DECODER_DESCRIPTION
+> "AY multifile"
+
 #CHI
 = CHI_EDITOR_NOVER
 > "ChipTracker"

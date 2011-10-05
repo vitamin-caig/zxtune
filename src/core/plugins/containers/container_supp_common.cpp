@@ -43,8 +43,7 @@ namespace
     {
     }
 
-    template<class T>
-    void operator()(const T& cur)
+    void operator()(const Formats::Archived::File& cur)
     {
       if (Progress.get())
       {
@@ -82,8 +81,7 @@ namespace
     uint_t Current;
   };
 
-  class ContainerDetectCallback : public Container::Catalogue::Callback
-                                , public Formats::Archived::Container::Walker
+  class ContainerDetectCallback : public Formats::Archived::Container::Walker
   {
   public:
     ContainerDetectCallback(std::size_t maxSize, Plugin::Ptr descr, DataLocation::Ptr location, uint_t count, const Module::DetectCallback& callback)
@@ -92,11 +90,6 @@ namespace
       , Description(descr)
       , Logger(count, callback, *Description, BaseLocation->GetPath()->AsString())
     {
-    }
-
-    void OnFile(const Container::File& file) const
-    {
-      ProcessFile(file);
     }
 
     void OnFile(const Formats::Archived::File& file) const
@@ -113,8 +106,7 @@ namespace
       }
     }
   private:
-    template<class Type>
-    void ProcessFile(const Type& file) const
+    void ProcessFile(const Formats::Archived::File& file) const
     {
       Logger(file);
       if (const Binary::Container::Ptr subData = file.GetData())
@@ -131,55 +123,6 @@ namespace
     const DataLocation::Ptr BaseLocation;
     const Plugin::Ptr Description;
     mutable LoggerHelper Logger;
-  };
-
-  class CommonContainerPlugin : public ArchivePlugin
-  {
-  public:
-    CommonContainerPlugin(Plugin::Ptr descr, ContainerFactory::Ptr factory)
-      : Description(descr)
-      , Factory(factory)
-    {
-    }
-
-    virtual Plugin::Ptr GetDescription() const
-    {
-      return Description;
-    }
-
-    virtual DetectionResult::Ptr Detect(DataLocation::Ptr input, const Module::DetectCallback& callback) const
-    {
-      const Binary::Container::Ptr rawData = input->GetData();
-      if (const Container::Catalogue::Ptr files = Factory->CreateContainer(*callback.GetPluginsParameters(), rawData))
-      {
-        if (const uint_t count = files->GetFilesCount())
-        {
-          ContainerDetectCallback detect(~std::size_t(0), Description, input, count, callback);
-          files->ForEachFile(detect);
-        }
-        return DetectionResult::CreateMatched(files->GetSize());
-      }
-      return DetectionResult::CreateUnmatched(Factory->GetFormat(), rawData);
-    }
-
-    virtual DataLocation::Ptr Open(const Parameters::Accessor& commonParams, DataLocation::Ptr location, const DataPath& inPath) const
-    {
-      const Binary::Container::Ptr inData = location->GetData();
-      if (const Container::Catalogue::Ptr files = Factory->CreateContainer(commonParams, inData))
-      {
-        if (const Container::File::Ptr fileToOpen = files->FindFile(inPath))
-        {
-          if (const Binary::Container::Ptr subData = fileToOpen->GetData())
-          {
-            return CreateNestedLocation(location, subData, Description, fileToOpen->GetName());
-          }
-        }
-      }
-      return DataLocation::Ptr();
-    }
-  private:
-    const Plugin::Ptr Description;
-    const ContainerFactory::Ptr Factory;
   };
 
   class ArchivedContainerPlugin : public ArchivePlugin
@@ -264,13 +207,6 @@ namespace
 
 namespace ZXTune
 {
-  ArchivePlugin::Ptr CreateContainerPlugin(const String& id, const String& info, uint_t caps,
-    ContainerFactory::Ptr factory)
-  {
-    const Plugin::Ptr description = CreatePluginDescription(id, info, caps);
-    return ArchivePlugin::Ptr(new CommonContainerPlugin(description, factory));
-  }
-
   ArchivePlugin::Ptr CreateContainerPlugin(const String& id, uint_t caps, Formats::Archived::Decoder::Ptr decoder)
   {
     const Plugin::Ptr description = CreatePluginDescription(id, decoder->GetDescription() + Text::CONTAINER_DESCRIPTION_SUFFIX, caps);

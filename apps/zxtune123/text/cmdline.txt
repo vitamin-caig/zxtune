@@ -167,12 +167,6 @@
 < INPUT_FILE_DESC
 > "file to process"
 
-< INPUT_ALLOW_PLUGIN_DESC
-> "plugins and/or attributes to allow (ids and/or capabilities)"
-
-< INPUT_DENY_PLUGIN_DESC
-> "plugins and/or attributes to deny"
-
 < INPUT_PROGRESS_KEY
 > CMD_INPUT_PROGRESS_KEY
 

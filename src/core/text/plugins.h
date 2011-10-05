@@ -8,6 +8,7 @@ namespace Text
 extern const Char ARCHIVE_PLUGIN_PREFIX[];
 extern const Char ASC_EDITOR[];
 extern const Char ASC_PLUGIN_INFO[];
+extern const Char AY_DECODER_DESCRIPTION[];
 extern const Char AY_PLUGIN_INFO[];
 extern const Char AY_PLUGIN_PREFIX[];
 extern const Char AY_RAW_PLUGIN_PREFIX[];
