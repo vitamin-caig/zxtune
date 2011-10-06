@@ -140,7 +140,7 @@ namespace
       return Description;
     }
 
-    virtual DetectionResult::Ptr Detect(DataLocation::Ptr input, const Module::DetectCallback& callback) const
+    virtual Analysis::Result::Ptr Detect(DataLocation::Ptr input, const Module::DetectCallback& callback) const
     {
       const Binary::Container::Ptr rawData = input->GetData();
       if (const Formats::Archived::Container::Ptr archive = Decoder->Decode(*rawData))
@@ -150,9 +150,9 @@ namespace
           ContainerDetectCallback detect(~std::size_t(0), Description, input, count, callback);
           archive->ExploreFiles(detect);
         }
-        return DetectionResult::CreateMatched(archive->Size());
+        return Analysis::CreateMatchedResult(archive->Size());
       }
-      return DetectionResult::CreateUnmatched(Decoder->GetFormat(), rawData);
+      return Analysis::CreateUnmatchedResult(Decoder->GetFormat(), rawData);
     }
 
     virtual DataLocation::Ptr Open(const Parameters::Accessor& /*commonParams*/, DataLocation::Ptr location, const Analysis::Path& inPath) const

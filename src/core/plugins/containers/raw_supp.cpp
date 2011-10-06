@@ -335,12 +335,12 @@ namespace
 
     std::size_t Detect(DataLocation::Ptr input, const Module::DetectCallback& callback)
     {
-      const DetectionResult::Ptr detectedArchives = DetectIn(Archives, input, callback);
+      const Analysis::Result::Ptr detectedArchives = DetectIn(Archives, input, callback);
       if (std::size_t matched = detectedArchives->GetMatchedDataSize())
       {
         return matched;
       }
-      const DetectionResult::Ptr detectedModules = DetectIn(Players, input, callback);
+      const Analysis::Result::Ptr detectedModules = DetectIn(Players, input, callback);
       if (std::size_t matched = detectedModules->GetMatchedDataSize())
       {
         return matched;
@@ -359,12 +359,12 @@ namespace
     }
   private:
     template<class T>
-    DetectionResult::Ptr DetectIn(LookaheadPluginsStorage<T>& container, DataLocation::Ptr input, const Module::DetectCallback& callback) const
+    Analysis::Result::Ptr DetectIn(LookaheadPluginsStorage<T>& container, DataLocation::Ptr input, const Module::DetectCallback& callback) const
     {
       for (typename T::Iterator::Ptr iter = container.Enumerate(); iter->IsValid(); iter->Next())
       {
         const typename T::Ptr plugin = iter->Get();
-        const DetectionResult::Ptr result = plugin->Detect(input, callback);
+        const Analysis::Result::Ptr result = plugin->Detect(input, callback);
         const String id = plugin->GetDescription()->Id();
         if (std::size_t usedSize = result->GetMatchedDataSize())
         {
@@ -375,7 +375,7 @@ namespace
         container.SetPluginLookahead(id, std::max<std::size_t>(lookahead, MIN_SCAN_STEP));
       }
       const std::size_t minLookahead = container.GetMinimalPluginLookahead();
-      return DetectionResult::CreateUnmatched(minLookahead);
+      return Analysis::CreateUnmatchedResult(minLookahead);
     }
   private:
     LookaheadPluginsStorage<PlayerPlugin> Players;
@@ -404,14 +404,14 @@ namespace
       return Description;
     }
 
-    virtual DetectionResult::Ptr Detect(DataLocation::Ptr input, const Module::DetectCallback& callback) const
+    virtual Analysis::Result::Ptr Detect(DataLocation::Ptr input, const Module::DetectCallback& callback) const
     {
       const Binary::Container::Ptr rawData = input->GetData();
       const std::size_t size = rawData->Size();
       if (size < MIN_MINIMAL_RAW_SIZE)
       {
         Log::Debug(THIS_MODULE, "Size is too small (%1%)", size);
-        return DetectionResult::CreateUnmatched(size);
+        return Analysis::CreateUnmatchedResult(size);
       }
 
       const Parameters::Accessor::Ptr pluginParams = callback.GetPluginsParameters();
@@ -421,7 +421,7 @@ namespace
       if (size < minRawSize + scanStep)
       {
         Log::Debug(THIS_MODULE, "Size is too small (%1%)", size);
-        return DetectionResult::CreateUnmatched(size);
+        return Analysis::CreateUnmatchedResult(size);
       }
 
       const String currentPath = input->GetPath()->AsString();
@@ -448,7 +448,7 @@ namespace
         }
         subLocation->Move(std::max(bytesToSkip, scanStep));
       }
-      return DetectionResult::CreateMatched(size);
+      return Analysis::CreateMatchedResult(size);
     }
 
     virtual DataLocation::Ptr Open(const Parameters::Accessor& /*commonParams*/, DataLocation::Ptr location, const Analysis::Path& inPath) const

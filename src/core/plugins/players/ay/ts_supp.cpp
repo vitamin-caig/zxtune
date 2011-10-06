@@ -364,7 +364,7 @@ namespace
       return Description;
     }
 
-    virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
+    virtual Analysis::Result::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
     {
       const Binary::Container::Ptr data = inputData->GetData();
       const uint8_t* const rawData = static_cast<const uint8_t*>(data->Data());
@@ -373,7 +373,7 @@ namespace
       //no footer in nearest data
       if (footerOffset == size)
       {
-        return DetectionResult::CreateUnmatched(size);
+        return Analysis::CreateUnmatchedResult(size);
       }
       const Footer& footer = *safe_ptr_cast<const Footer*>(rawData + footerOffset);
       const std::size_t firstModuleSize = fromLE(footer.Size1);
@@ -385,7 +385,7 @@ namespace
         const std::size_t lookahead = totalModulesSize > footerOffset
           ? dataSize
           : footerOffset - totalModulesSize;
-        return DetectionResult::CreateUnmatched(lookahead);
+        return Analysis::CreateUnmatchedResult(lookahead);
       }
 
       const PluginsEnumerator::Ptr usedPlugins = PluginsEnumerator::Create();
@@ -396,14 +396,14 @@ namespace
       if (InvalidHolder(holder1))
       {
         Log::Debug(THIS_MODULE, "Invalid first module holder");
-        return DetectionResult::CreateUnmatched(dataSize);
+        return Analysis::CreateUnmatchedResult(dataSize);
       }
       const DataLocation::Ptr secondSubLocation = CreateNestedLocation(inputData, data->GetSubcontainer(firstModuleSize, footerOffset - firstModuleSize));
       const Module::Holder::Ptr holder2 = Module::Open(secondSubLocation, usedPlugins, parameters);
       if (InvalidHolder(holder2))
       {
         Log::Debug(THIS_MODULE, "Failed to create second module holder");
-        return DetectionResult::CreateUnmatched(dataSize);
+        return Analysis::CreateUnmatchedResult(dataSize);
       }
       //try to create merged holder
       const Binary::Container::Ptr tsData = data->GetSubcontainer(0, dataSize);
@@ -411,7 +411,7 @@ namespace
       const Module::Holder::Ptr holder(new TSHolder(Description, tsData, holder1, holder2));
       //TODO: proper data attributes calculation
       callback.ProcessModule(inputData, holder);
-      return DetectionResult::CreateMatched(dataSize);
+      return Analysis::CreateMatchedResult(dataSize);
     }
   private:
     const Plugin::Ptr Description;

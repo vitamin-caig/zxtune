@@ -19,6 +19,26 @@ namespace
 {
   using namespace ZXTune;
 
+  Analysis::Result::Ptr DetectModuleInLocation(ModulesFactory::Ptr factory, Plugin::Ptr plugin, DataLocation::Ptr inputData, const Module::DetectCallback& callback)
+  {
+    const Binary::Container::Ptr data = inputData->GetData();
+    const Binary::Format::Ptr format = factory->GetFormat();
+    if (!factory->Check(*data))
+    {
+      return Analysis::CreateUnmatchedResult(format, data);
+    }
+    const Module::ModuleProperties::RWPtr properties = Module::ModuleProperties::Create(plugin, inputData);
+    std::size_t usedSize = 0;
+    if (Module::Holder::Ptr holder = factory->CreateModule(properties, data, usedSize))
+    {
+      const Parameters::Accessor::Ptr moduleParams = callback.CreateModuleParameters(inputData);
+      const Module::Holder::Ptr result = Module::CreateMixedPropertiesHolder(holder, moduleParams);
+      callback.ProcessModule(inputData, result);
+      return Analysis::CreateMatchedResult(usedSize);
+    }
+    return Analysis::CreateUnmatchedResult(format, data);
+  }
+
   class CommonPlayerPlugin : public PlayerPlugin
   {
   public:
@@ -33,7 +53,7 @@ namespace
       return Description;
     }
 
-    virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
+    virtual Analysis::Result::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
     {
       return DetectModuleInLocation(Factory, Description, inputData, callback);
     }
@@ -45,26 +65,6 @@ namespace
 
 namespace ZXTune
 {
-  DetectionResult::Ptr DetectModuleInLocation(ModulesFactory::Ptr factory, Plugin::Ptr plugin, DataLocation::Ptr inputData, const Module::DetectCallback& callback)
-  {
-    const Binary::Container::Ptr data = inputData->GetData();
-    const Binary::Format::Ptr format = factory->GetFormat();
-    if (!factory->Check(*data))
-    {
-      return DetectionResult::CreateUnmatched(format, data);
-    }
-    const Module::ModuleProperties::RWPtr properties = Module::ModuleProperties::Create(plugin, inputData);
-    std::size_t usedSize = 0;
-    if (Module::Holder::Ptr holder = factory->CreateModule(properties, data, usedSize))
-    {
-      const Parameters::Accessor::Ptr moduleParams = callback.CreateModuleParameters(inputData);
-      const Module::Holder::Ptr result = Module::CreateMixedPropertiesHolder(holder, moduleParams);
-      callback.ProcessModule(inputData, result);
-      return DetectionResult::CreateMatched(usedSize);
-    }
-    return DetectionResult::CreateUnmatched(format, data);
-  }
-
   PlayerPlugin::Ptr CreatePlayerPlugin(const String& id, const String& info, uint_t caps,
     ModulesFactory::Ptr factory)
   {

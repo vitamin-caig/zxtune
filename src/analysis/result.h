@@ -1,30 +1,28 @@
-/*
-Abstract:
-  Data detection result interface
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file     analysis/result.h
+* @brief    Interface for analyzed result
+* @version  $Id$
+* @author   (C) Vitamin/CAIG/2001
+*
+**/
 
 #pragma once
-#ifndef __CORE_PLUGINS_DETECTION_RESULT_H_DEFINED__
-#define __CORE_PLUGINS_DETECTION_RESULT_H_DEFINED__
+#ifndef ANALYSIS_RESULT_H_DEFINED
+#define ANALYSIS_RESULT_H_DEFINED
 
 //library includes
 #include <binary/format.h>
-#include <io/container.h>
+#include <binary/container.h>
 
-namespace ZXTune
+namespace Analysis
 {
   //! Abstract data detection result
-  class DetectionResult
+  class Result
   {
   public:
-    typedef boost::shared_ptr<const DetectionResult> Ptr;
-    virtual ~DetectionResult() {}
+    typedef boost::shared_ptr<const Result> Ptr;
+    virtual ~Result() {}
 
     //! @brief Returns data size that is processed in current data position
     //! @return Size of input data format detected
@@ -35,11 +33,12 @@ namespace ZXTune
     //! @invariant Return 0 if current data matches format
     //! @invariant Return input data size if no data at all
     virtual std::size_t GetLookaheadOffset() const = 0;
-
-    static Ptr CreateMatched(std::size_t matchedSize);
-    static Ptr CreateUnmatched(Binary::Format::Ptr format, Binary::Container::Ptr data);
-    static Ptr CreateUnmatched(std::size_t unmatchedSize);
   };
+
+
+  Result::Ptr CreateMatchedResult(std::size_t matchedSize);
+  Result::Ptr CreateUnmatchedResult(Binary::Format::Ptr format, Binary::Container::Ptr data);
+  Result::Ptr CreateUnmatchedResult(std::size_t unmatchedSize);
 }
 
-#endif //__CORE_PLUGINS_DETECTION_RESULT_H_DEFINED__
+#endif //ANALYSIS_RESULT_H_DEFINED

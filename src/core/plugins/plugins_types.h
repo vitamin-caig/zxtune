@@ -14,9 +14,9 @@ Author:
 #define __CORE_PLUGINS_TYPES_H_DEFINED__
 
 //local includes
-#include "detection_result.h"
 #include "core/src/location.h"
 //library includes
+#include <analysis/result.h>
 #include <core/plugin.h>
 
 namespace ZXTune
@@ -35,7 +35,7 @@ namespace ZXTune
     virtual Plugin::Ptr GetDescription() const = 0; 
 
     //! @brief Detect modules in data
-    virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const = 0;
+    virtual Analysis::Result::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const = 0;
   };
 
   class ArchivePlugin
@@ -48,7 +48,7 @@ namespace ZXTune
     virtual Plugin::Ptr GetDescription() const = 0;
 
     //! @brief Detect modules in data
-    virtual DetectionResult::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const = 0;
+    virtual Analysis::Result::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const = 0;
 
     virtual DataLocation::Ptr Open(const Parameters::Accessor& parameters,
                                    DataLocation::Ptr inputData,

@@ -37,15 +37,7 @@ namespace ZXTune
     virtual Module::Holder::Ptr CreateModule(Module::ModuleProperties::RWPtr properties, Binary::Container::Ptr data, std::size_t& usedSize) const = 0;
   };
 
-  namespace Module
-  {
-    class DetectCallback;
-  }
-
-  DetectionResult::Ptr DetectModuleInLocation(ModulesFactory::Ptr factory, Plugin::Ptr plugin, DataLocation::Ptr inputData, const Module::DetectCallback& callback);
-
-  PlayerPlugin::Ptr CreatePlayerPlugin(const String& id, const String& info, uint_t caps,
-    ModulesFactory::Ptr factory);
+  PlayerPlugin::Ptr CreatePlayerPlugin(const String& id, const String& info, uint_t caps, ModulesFactory::Ptr factory);
 }
 
 #endif //__CORE_PLUGINS_PLAYER_CREATION_RESULT_H_DEFINED__

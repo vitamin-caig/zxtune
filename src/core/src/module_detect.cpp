@@ -77,7 +77,7 @@ namespace
     for (; plugins->IsValid(); plugins->Next())
     {
       const typename T::Ptr plugin = plugins->Get();
-      const DetectionResult::Ptr result = plugin->Detect(location, callback);
+      const Analysis::Result::Ptr result = plugin->Detect(location, callback);
       if (std::size_t usedSize = result->GetMatchedDataSize())
       {
         Log::Debug(THIS_MODULE, "Detected %1% in %2% bytes at %3%.", plugin->GetDescription()->Id(), usedSize, location->GetPath()->AsString());

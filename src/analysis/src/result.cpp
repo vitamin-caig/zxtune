@@ -1,6 +1,6 @@
 /*
 Abstract:
-  Detection result implementation
+  Analysis result implementation
 
 Last changed:
   $Id$
@@ -9,19 +9,17 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-//local includes
-#include "detection_result.h"
+//library includes
+#include <analysis/result.h>
 //boost includes
 #include <boost/make_shared.hpp>
 
 namespace
 {
-  using namespace ZXTune;
-
-  class DetectionResultImpl : public DetectionResult
+  class CalculatedResult : public Analysis::Result
   {
   public:
-    explicit DetectionResultImpl(std::size_t matchedSize, std::size_t unmatchedSize)
+    explicit CalculatedResult(std::size_t matchedSize, std::size_t unmatchedSize)
       : MatchedSize(matchedSize)
       , UnmatchedSize(unmatchedSize)
     {
@@ -41,10 +39,10 @@ namespace
     const std::size_t UnmatchedSize;
   };
 
-  class UnmatchedDetectionResult : public DetectionResult
+  class UnmatchedResult : public Analysis::Result
   {
   public:
-    UnmatchedDetectionResult(Binary::Format::Ptr format, Binary::Container::Ptr data)
+    UnmatchedResult(Binary::Format::Ptr format, Binary::Container::Ptr data)
       : Format(format)
       , RawData(data)
     {
@@ -65,20 +63,20 @@ namespace
   };
 }
 
-namespace ZXTune
+namespace Analysis
 {
-  DetectionResult::Ptr DetectionResult::CreateMatched(std::size_t matchedSize)
+  Result::Ptr CreateMatchedResult(std::size_t matchedSize)
   {
-    return boost::make_shared<DetectionResultImpl>(matchedSize, 0);
+    return boost::make_shared<CalculatedResult>(matchedSize, 0);
   }
 
-  DetectionResult::Ptr DetectionResult::CreateUnmatched(Binary::Format::Ptr format, Binary::Container::Ptr data)
+  Result::Ptr CreateUnmatchedResult(Binary::Format::Ptr format, Binary::Container::Ptr data)
   {
-    return boost::make_shared<UnmatchedDetectionResult>(format, data);
+    return boost::make_shared<UnmatchedResult>(format, data);
   }
 
-  DetectionResult::Ptr DetectionResult::CreateUnmatched(std::size_t unmatchedSize)
+  Result::Ptr CreateUnmatchedResult(std::size_t unmatchedSize)
   {
-    return boost::make_shared<DetectionResultImpl>(0, unmatchedSize);
+    return boost::make_shared<CalculatedResult>(0, unmatchedSize);
   }
 }
