@@ -14,8 +14,8 @@ endif
 text_files := text/text
 other_text_files := text/cmdline text/messages text/conversion text/cmd_keys_local
 
-libraries := async binary core devices formats sound tools io zxtune_app_base z80ex
-depends := src/async src/binary src/tools src/core src/devices src/formats src/sound src/io apps/base 3rdparty/z80ex
+libraries := analysis async binary core devices formats sound tools io zxtune_app_base z80ex
+depends := src/analysis src/async src/binary src/tools src/core src/devices src/formats src/sound src/io apps/base 3rdparty/z80ex
 
 windows_libraries = advapi32
 boost_libraries = thread program_options

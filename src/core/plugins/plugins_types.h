@@ -52,7 +52,7 @@ namespace ZXTune
 
     virtual DataLocation::Ptr Open(const Parameters::Accessor& parameters,
                                    DataLocation::Ptr inputData,
-                                   const DataPath& pathToOpen) const = 0; 
+                                   const Analysis::Path& pathToOpen) const = 0; 
   };
 
   Plugin::Ptr CreatePluginDescription(const String& id, const String& info, uint_t capabilities);

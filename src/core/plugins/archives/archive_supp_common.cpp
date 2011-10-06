@@ -57,9 +57,9 @@ namespace
   }
 
   DataLocation::Ptr OpenDataFromArchive(Plugin::Ptr plugin, const Formats::Packed::Decoder& decoder,
-    DataLocation::Ptr inputData, const DataPath& pathToOpen)
+    DataLocation::Ptr inputData, const Analysis::Path& pathToOpen)
   {
-    const String pathComponent = pathToOpen.GetFirstComponent();
+    const String pathComponent = pathToOpen.GetIterator()->Get();
     if (!IsArchivePluginPathComponent(pathComponent))
     {
       return DataLocation::Ptr();
@@ -98,7 +98,7 @@ namespace
 
     virtual DataLocation::Ptr Open(const Parameters::Accessor& /*parameters*/,
                                    DataLocation::Ptr inputData,
-                                   const DataPath& pathToOpen) const
+                                   const Analysis::Path& pathToOpen) const
     {
       return OpenDataFromArchive(Description, *Decoder, inputData, pathToOpen);
     }

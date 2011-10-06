@@ -175,13 +175,13 @@ namespace
       return Subdata;
     }
 
-    virtual DataPath::Ptr GetPath() const
+    virtual Analysis::Path::Ptr GetPath() const
     {
-      const DataPath::Ptr parentPath = Parent->GetPath();
+      const Analysis::Path::Ptr parentPath = Parent->GetPath();
       if (std::size_t offset = Subdata->GetOffset())
       {
         const String subPath = RawPath.Build(offset);
-        return CreateMergedDataPath(parentPath, subPath);
+        return parentPath->Append(subPath);
       }
       return parentPath;
     }
@@ -451,9 +451,9 @@ namespace
       return DetectionResult::CreateMatched(size);
     }
 
-    virtual DataLocation::Ptr Open(const Parameters::Accessor& /*commonParams*/, DataLocation::Ptr location, const DataPath& inPath) const
+    virtual DataLocation::Ptr Open(const Parameters::Accessor& /*commonParams*/, DataLocation::Ptr location, const Analysis::Path& inPath) const
     {
-      const String& pathComp = inPath.GetFirstComponent();
+      const String& pathComp = inPath.GetIterator()->Get();
       std::size_t offset = 0;
       if (RawPath.GetIndex(pathComp, offset))
       {

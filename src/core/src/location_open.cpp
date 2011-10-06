@@ -24,29 +24,6 @@ namespace
 
   const std::string THIS_MODULE("Core");
 
-  class EmptyDataPath : public DataPath
-  {
-    EmptyDataPath()
-    {
-    }
-  public:
-    static Ptr Create()
-    {
-      static EmptyDataPath instance;
-      return Ptr(&instance, NullDeleter<EmptyDataPath>());
-    }
-
-    virtual String AsString() const
-    {
-      return String();
-    }
-
-    virtual String GetFirstComponent() const
-    {
-      return String();
-    }
-  };
-
   class EmptyPluginsChain : public PluginsChain
   {
     EmptyPluginsChain()
@@ -78,9 +55,9 @@ namespace
       return Data;
     }
 
-    virtual DataPath::Ptr GetPath() const
+    virtual Analysis::Path::Ptr GetPath() const
     {
-      return EmptyDataPath::Create();
+      return Analysis::ParsePath(String());
     }
 
     virtual PluginsChain::Ptr GetPlugins() const
@@ -91,7 +68,7 @@ namespace
     const Binary::Container::Ptr Data;
   };
 
-  DataLocation::Ptr TryToOpenLocation(const PluginsEnumerator& plugins, const Parameters::Accessor& coreParams, DataLocation::Ptr location, const DataPath& subPath)
+  DataLocation::Ptr TryToOpenLocation(const PluginsEnumerator& plugins, const Parameters::Accessor& coreParams, DataLocation::Ptr location, const Analysis::Path& subPath)
   {
     for (ArchivePlugin::Iterator::Ptr iter = plugins.EnumerateArchives(); iter->IsValid(); iter->Next())
     {
@@ -114,16 +91,10 @@ namespace ZXTune
 
   DataLocation::Ptr OpenLocation(Parameters::Accessor::Ptr coreParams, Binary::Container::Ptr data, const String& subpath)
   {
-    const DataLocation::Ptr initialLocation = boost::make_shared<UnresolvedLocation>(data);
-    if (subpath.empty())
-    {
-      return initialLocation;
-    }
-
-    const DataPath::Ptr pathToResolve = CreateDataPath(subpath);
     const PluginsEnumerator::Ptr usedPlugins = PluginsEnumerator::Create();
-    DataLocation::Ptr resolvedLocation = initialLocation;
-    for (DataPath::Ptr unresolved = pathToResolve; unresolved; unresolved = SubstractDataPath(*pathToResolve, *resolvedLocation->GetPath()))
+    DataLocation::Ptr resolvedLocation = boost::make_shared<UnresolvedLocation>(data);
+    const Analysis::Path::Ptr sourcePath = Analysis::ParsePath(subpath);
+    for (Analysis::Path::Ptr unresolved = sourcePath; !unresolved->Empty(); unresolved = sourcePath->Extract(resolvedLocation->GetPath()->AsString()))
     {
       const String toResolve = unresolved->AsString();
       Log::Debug(THIS_MODULE, "Resolving '%1%'", toResolve);
@@ -133,7 +104,7 @@ namespace ZXTune
         return DataLocation::Ptr();
       }
     }
-    Log::Debug(THIS_MODULE, "Resolved '%1%'", resolvedLocation->GetPath()->AsString());
+    Log::Debug(THIS_MODULE, "Resolved '%1%'", subpath);
     return resolvedLocation;
   }
 }

@@ -32,7 +32,7 @@ namespace
       return SubData;
     }
 
-    virtual DataPath::Ptr GetPath() const
+    virtual Analysis::Path::Ptr GetPath() const
     {
       return Parent->GetPath();
     }
@@ -62,9 +62,9 @@ namespace
       return SubData;
     }
 
-    virtual DataPath::Ptr GetPath() const
+    virtual Analysis::Path::Ptr GetPath() const
     {
-      return CreateMergedDataPath(Parent->GetPath(), Subpath);
+      return Parent->GetPath()->Append(Subpath);
     }
 
     virtual PluginsChain::Ptr GetPlugins() const

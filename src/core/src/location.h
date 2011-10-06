@@ -15,10 +15,10 @@ Author:
 
 //local includes
 #include "core/plugins/plugins_chain.h"
-#include "core/src/path.h"
 //common includes
 #include <parameters.h>
 //library includes
+#include <analysis/path.h>
 #include <io/container.h>
 
 namespace ZXTune
@@ -31,7 +31,7 @@ namespace ZXTune
     virtual ~DataLocation() {}
 
     virtual Binary::Container::Ptr GetData() const = 0;
-    virtual DataPath::Ptr GetPath() const = 0;
+    virtual Analysis::Path::Ptr GetPath() const = 0;
     virtual PluginsChain::Ptr GetPlugins() const = 0;
   };
 

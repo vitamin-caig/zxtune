@@ -112,13 +112,13 @@ namespace
 
     virtual Parameters::Accessor::Ptr CreateModuleParameters(DataLocation::Ptr location) const
     {
-      const DataPath::Ptr subPath = location->GetPath();
+      const Analysis::Path::Ptr subPath = location->GetPath();
       return DetectParams.CreateModuleParams(subPath->AsString());
     }
 
     virtual void ProcessModule(DataLocation::Ptr location, Module::Holder::Ptr holder) const
     {
-      const DataPath::Ptr subPath = location->GetPath();
+      const Analysis::Path::Ptr subPath = location->GetPath();
       return DetectParams.ProcessModule(subPath->AsString(), holder);
     }
 

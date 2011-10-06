@@ -155,7 +155,7 @@ namespace
       return DetectionResult::CreateUnmatched(Decoder->GetFormat(), rawData);
     }
 
-    virtual DataLocation::Ptr Open(const Parameters::Accessor& /*commonParams*/, DataLocation::Ptr location, const DataPath& inPath) const
+    virtual DataLocation::Ptr Open(const Parameters::Accessor& /*commonParams*/, DataLocation::Ptr location, const Analysis::Path& inPath) const
     {
       const Binary::Container::Ptr rawData = location->GetData();
       if (const Formats::Archived::Container::Ptr archive = Decoder->Decode(*rawData))
@@ -171,18 +171,13 @@ namespace
       return DataLocation::Ptr();
     }
   private:
-    Formats::Archived::File::Ptr FindFile(const Formats::Archived::Container& container, const DataPath& path) const
+    Formats::Archived::File::Ptr FindFile(const Formats::Archived::Container& container, const Analysis::Path& path) const
     {
-      const String inPath = path.AsString();
-      const String firstComponent = path.GetFirstComponent();
-      if (inPath == firstComponent || !SupportDirectories)
+      Analysis::Path::Ptr resolved = Analysis::ParsePath(String());
+      for (const Analysis::Path::Iterator::Ptr components = path.GetIterator();
+           components->IsValid(); components->Next())
       {
-        return container.FindFile(firstComponent);
-      }
-      Log::Debug(THIS_MODULE, "Resolving '%1%'", inPath);
-      DataPath::Ptr resolved = CreateDataPath(firstComponent);
-      for (;;)
-      {
+        resolved = resolved->Append(components->Get());
         const String filename = resolved->AsString();
         Log::Debug(THIS_MODULE, "Trying '%1%'", filename);
         if (Formats::Archived::File::Ptr file = container.FindFile(filename))
@@ -190,13 +185,12 @@ namespace
           Log::Debug(THIS_MODULE, "Found");
           return file;
         }
-        if (filename == inPath)
+        if (!SupportDirectories)
         {
-          return Formats::Archived::File::Ptr();
+          break;
         }
-        const DataPath::Ptr unresolved = SubstractDataPath(path, *resolved);
-        resolved = CreateMergedDataPath(resolved, unresolved->GetFirstComponent());
       }
+      return Formats::Archived::File::Ptr();
     }
   private:
     const Plugin::Ptr Description;
