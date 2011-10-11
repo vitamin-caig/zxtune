@@ -51,15 +51,15 @@ extern const Char PDT_PLUGIN_INFO[] = {
   'P','r','o','D','i','g','i',' ','T','r','a','c','k','e','r',' ','m','o','d','u','l','e','s',' ','s','u','p',
   'p','o','r','t',0
 };
+extern const Char PLAYER_DESCRIPTION_SUFFIX[] = {
+  ' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
+};
 extern const Char PLUGIN_RAW_PROGRESS[] = {
   'R','a','w',' ','s','c','a','n','e','r',' ','p','r','o','c','e','s','s','i','n','g',' ','a','t',' ','s','u',
   'b','p','a','t','h',' ','\'','%','1','%','\'',0
 };
 extern const Char PLUGIN_RAW_PROGRESS_NOPATH[] = {
   'R','a','w',' ','s','c','a','n','e','r',' ','p','r','o','c','e','s','s','i','n','g',0
-};
-extern const Char PSG_PLUGIN_INFO[] = {
-  'P','S','G',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
 };
 extern const Char PT2_EDITOR[] = {
   'P','r','o','T','r','a','c','k','e','r',' ','v','2','.','x',0
