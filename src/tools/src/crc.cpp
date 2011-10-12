@@ -83,9 +83,9 @@ namespace
   };
 }
  
-uint32_t Crc32(const uint8_t* buf, std::size_t len)
+uint32_t Crc32(const uint8_t* buf, std::size_t len, uint32_t initial)
 {
-  uint32_t crc = 0xFFFFFFFF;
+  uint32_t crc = initial ^ 0xFFFFFFFF;
   for (std::size_t idx = 0; idx != len; ++idx)
   {
     const uint32_t data = buf[idx];
