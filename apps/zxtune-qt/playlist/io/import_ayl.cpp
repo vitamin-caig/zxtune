@@ -38,7 +38,7 @@ Author:
 #include <QtCore/QTextCodec>
 #include <QtCore/QTextStream>
 //text includes
-#include <core/text/plugins.h>
+#include <formats/text/archived.h>
 
 namespace
 {
@@ -349,7 +349,7 @@ namespace
     //for AY files FormatSpec is subtune index
     if (boost::algorithm::iends_with(item.Path, FromStdString(".ay")))
     {
-      const String subPath = IndexPathComponent(Text::AY_PLUGIN_PREFIX).Build(formatSpec);
+      const String subPath = IndexPathComponent(Text::AY_FILENAME_PREFIX).Build(formatSpec);
       ZXTune::IO::CombineUri(item.Path, subPath, item.Path);
     }
   }

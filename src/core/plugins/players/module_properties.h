@@ -19,7 +19,7 @@ Author:
 #include <messages_collector.h>
 #include <parameters.h>
 //library includes
-#include <io/container.h>
+#include <formats/chiptune.h>
 
 namespace ZXTune
 {
@@ -39,6 +39,7 @@ namespace ZXTune
       virtual void SetFreqtable(const String& table) = 0;
       virtual void SetVersion(uint_t major, uint_t minor) = 0;
       virtual void SetSource(std::size_t usedSize, const struct ModuleRegion& fixedRegion) = 0;
+      virtual void SetSource(Formats::Chiptune::Container::Ptr source) = 0;
 
       virtual Plugin::Ptr GetPlugin() const = 0;
       virtual void GetData(Dump& dump) const = 0;

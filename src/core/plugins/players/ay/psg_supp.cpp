@@ -174,7 +174,7 @@ namespace
       if (const Container::Ptr container = PSG::Parse(*data, *builder))
       {
         usedSize = container->Size();
-        properties->SetSource(usedSize, ModuleRegion(0, usedSize));
+        properties->SetSource(container);
         const PSG::ChunksSet::Ptr data = builder->Result();
         const AYM::Chiptune::Ptr chiptune = boost::make_shared<PSGChiptune>(data, properties);
         return AYM::CreateHolder(chiptune);

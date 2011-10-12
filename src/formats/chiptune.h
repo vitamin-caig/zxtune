@@ -28,7 +28,7 @@ namespace Formats
     public:
       typedef boost::shared_ptr<const Container> Ptr;
 
-      virtual Parameters::Accessor::Ptr GetProperties() const = 0;
+      virtual uint_t FixedChecksum() const = 0;
     };
 
     class Decoder

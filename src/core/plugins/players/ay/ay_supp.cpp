@@ -20,21 +20,18 @@ Author:
 #include "core/plugins/players/streaming.h"
 #include "core/src/core.h"
 //common includes
-#include <byteorder.h>
 #include <format.h>
-#include <range_checker.h>
 #include <tools.h>
 #include <logging.h>
 //library includes
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
-#include <core/error_codes.h>
 #include <core/module_attrs.h>
 #include <core/module_detect.h>
 #include <core/plugin_attrs.h>
 #include <core/plugins_parameters.h>
 #include <devices/z80.h>
-#include <io/container.h>
+#include <formats/chiptune/ay.h>
 #include <sound/sound_parameters.h>
 //std includes
 #include <list>
@@ -50,77 +47,6 @@ namespace
 {
   using namespace ZXTune;
   using namespace ZXTune::Module;
-
-  const uint8_t AY_SIGNATURE[] = {'Z', 'X', 'A', 'Y'};
-  const uint8_t TYPE_EMUL[] = {'E', 'M', 'U', 'L'};
-
-  template<class T>
-  const T* GetPointer(const int16_t* field)
-  {
-    const int16_t offset = fromBE(*field);
-    return safe_ptr_cast<const T*>(safe_ptr_cast<const uint8_t*>(field) + offset);
-  }
-
-  template<class T>
-  void SetPointer(int16_t* ptr, const T obj)
-  {
-    BOOST_STATIC_ASSERT(boost::is_pointer<T>::value);
-    const std::ptrdiff_t offset = safe_ptr_cast<const uint8_t*>(obj) - safe_ptr_cast<const uint8_t*>(ptr);
-    assert(offset > 0);//layout data sequentally
-    *ptr = fromBE<int16_t>(static_cast<uint16_t>(offset));
-  }
-
-#ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
-#endif
-  PACK_PRE struct AYHeader
-  {
-    uint8_t Signature[4];//ZXAY
-    uint8_t Type[4];
-    uint8_t FileVersion;
-    uint8_t PlayerVersion;
-    int16_t SpecialPlayerOffset;
-    int16_t AuthorOffset;
-    int16_t MiscOffset;
-    uint8_t LastModuleIndex;
-    uint8_t FirstModuleIndex;
-    int16_t DescriptionsOffset;
-  } PACK_POST;
-
-  PACK_PRE struct ModuleDescription
-  {
-    int16_t TitleOffset;
-    int16_t DataOffset;
-  } PACK_POST;
-
-  PACK_PRE struct ModuleDataEMUL
-  {
-    uint8_t AmigaChannelsMapping[4];
-    uint16_t TotalLength;
-    uint16_t FadeLength;
-    uint16_t RegValue;
-    int16_t PointersOffset;
-    int16_t BlocksOffset;
-  } PACK_POST;
-
-  PACK_PRE struct ModulePointersEMUL
-  {
-    uint16_t SP;
-    uint16_t InitAddr;
-    uint16_t PlayAddr;
-  } PACK_POST;
-
-  PACK_PRE struct ModuleBlockEMUL
-  {
-    uint16_t Address;
-    uint16_t Size;
-    int16_t Offset;
-  } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
-#endif
-
-  BOOST_STATIC_ASSERT(sizeof(AYHeader) == 0x14);
                                                      
   class AYDataChannel
   {
@@ -488,208 +414,18 @@ namespace
     Time::Nanoseconds LastTime;
   };
 
-  class AYDataTarget
-  {
-  public:
-    virtual ~AYDataTarget() {}
-
-    virtual void SetTitle(const String& title) = 0;
-    virtual void SetAuthor(const String& author) = 0;
-    virtual void SetComment(const String& comment) = 0;
-    virtual void SetDuration(uint_t duration) = 0;
-    virtual void SetRegisters(uint16_t reg, uint16_t sp) = 0;
-    virtual void SetRoutines(uint16_t init, uint16_t play) = 0;
-    virtual void AddBlock(uint16_t addr, const void* data, std::size_t size) = 0;
-  };
-
-  std::size_t ParseAY(uint_t idx, const IO::FastDump& data, AYDataTarget& target)
-  {
-    const uint8_t* const start = &data[0];
-    const uint8_t* const limit = &data[0] + data.Size();
-    const AYHeader& header = *safe_ptr_cast<const AYHeader*>(&data[0]);
-    if (idx > header.LastModuleIndex)
-    {
-      return 0;
-    }
-    const RangeChecker::Ptr checker = RangeChecker::CreateShared(data.Size());
-    checker->AddRange(0, sizeof(header));
-    const ModuleDescription* const descriptions = GetPointer<ModuleDescription>(&header.DescriptionsOffset);
-    if (safe_ptr_cast<const uint8_t*>(descriptions) < start)
-    {
-      return 0;
-    }
-    if (!checker->AddRange(safe_ptr_cast<const uint8_t*>(descriptions) - start, (idx + 1) * sizeof(ModuleDescription)))
-    {
-      return 0;
-    }
-    const ModuleDescription& description = descriptions[idx];
-    {
-      const uint8_t* const titleBegin = GetPointer<uint8_t>(&description.TitleOffset);
-      if (titleBegin < start)
-      {
-        return 0;
-      }
-      const uint8_t* const titleEnd = std::find(titleBegin, limit, 0);
-      if (!checker->AddRange(titleBegin - start, titleEnd - titleBegin + 1))
-      {
-        return 0;
-      }
-      target.SetTitle(OptimizeString(String(titleBegin, titleEnd)));
-    }
-    {
-      const uint8_t* const authorBegin = GetPointer<uint8_t>(&header.AuthorOffset);
-      if (authorBegin < start)
-      {
-        return 0;
-      }
-      const uint8_t* const authorEnd = std::find(authorBegin, limit, 0);
-      if (!checker->AddRange(authorBegin - start, authorEnd - authorBegin + 1))
-      {
-        return 0;
-      }
-      target.SetAuthor(OptimizeString(String(authorBegin, authorEnd)));
-    }
-    {
-      const uint8_t* const miscBegin = GetPointer<uint8_t>(&header.MiscOffset);
-      if (miscBegin < start)
-      {
-        return 0;
-      }
-      const uint8_t* const miscEnd = std::find(miscBegin, limit, 0);
-      if (!checker->AddRange(miscBegin - start, miscEnd - miscBegin + 1))
-      {
-        return 0;
-      }
-      target.SetComment(OptimizeString(String(miscBegin, miscEnd)));
-    }
-    const ModuleDataEMUL* const moddata = GetPointer<ModuleDataEMUL>(&description.DataOffset);
-    if (safe_ptr_cast<const uint8_t*>(moddata) < start)
-    {
-      return 0;
-    }
-    if (!checker->AddRange(safe_ptr_cast<const uint8_t*>(moddata) - start, sizeof(*moddata)))
-    {
-      return 0;
-    }
-    if (moddata->TotalLength)
-    {
-      target.SetDuration(fromBE(moddata->TotalLength));
-    }
-    const ModuleBlockEMUL* block = GetPointer<ModuleBlockEMUL>(&moddata->BlocksOffset);
-    if (safe_ptr_cast<const uint8_t*>(block) < start)
-    {
-      return 0;
-    }
-    if (!checker->AddRange(safe_ptr_cast<const uint8_t*>(block) - start, sizeof(*block)))
-    {
-      return 0;
-    }
-    {
-      const ModulePointersEMUL* const modptrs = GetPointer<ModulePointersEMUL>(&moddata->PointersOffset);
-      if (safe_ptr_cast<const uint8_t*>(modptrs) < start)
-      {
-        return 0;
-      }
-      if (!checker->AddRange(safe_ptr_cast<const uint8_t*>(modptrs) - start, sizeof(*modptrs)))
-      {
-        return 0;
-      }
-      target.SetRegisters(fromBE(moddata->RegValue), fromBE(modptrs->SP));
-      target.SetRoutines(fromBE(modptrs->InitAddr ? modptrs->InitAddr : block->Address), fromBE(modptrs->PlayAddr));
-      for (; block->Address; ++block)
-      {
-        if (!checker->AddRange(safe_ptr_cast<const uint8_t*>(block) - start, sizeof(*block)))
-        {
-          return 0;
-        }
-        const uint8_t* const src = GetPointer<uint8_t>(&block->Offset);
-        const std::size_t offset = src - start;
-        if (offset >= data.Size())
-        {
-          continue;
-        }
-        const std::size_t size = fromBE(block->Size);
-        const uint16_t addr = fromBE(block->Address);
-        const std::size_t toCopy = std::min(size, data.Size() - offset);
-        if (!checker->AddRange(src - start, toCopy))
-        {
-          return 0;
-        }
-        target.AddBlock(addr, src, toCopy);
-      }
-    }
-    return checker->GetAffectedRange().second;
-  }
-
-  const uint8_t IM1_PLAYER_TEMPLATE[] = 
-  {
-    0xf3, //di
-    0xcd, 0, 0, //call init (+2)
-    0xed, 0x56, //loop: im 1
-    0xfb, //ei
-    0x76, //halt
-    0xcd, 0, 0, //call routine (+9)
-    0x18, 0xf7 //jr loop
-  };
-
-  const uint8_t IM2_PLAYER_TEMPLATE[] = 
-  {
-    0xf3, //di
-    0xcd, 0, 0, //call init (+2)
-    0xed, 0x5e, //loop: im 2
-    0xfb, //ei
-    0x76, //halt
-    0x18, 0xfa //jr loop
-  };
-
-  class Im1Player
-  {
-  public:
-    Im1Player(uint16_t init, uint16_t introutine)
-    {
-      std::copy(IM1_PLAYER_TEMPLATE, ArrayEnd(IM1_PLAYER_TEMPLATE), Data.begin());
-      Data[0x2] = init & 0xff;
-      Data[0x3] = init >> 8;
-      Data[0x9] = introutine & 0xff; 
-      Data[0xa] = introutine >> 8; //call routine
-    }
-  private:
-    boost::array<uint8_t, 13> Data;
-  };
-
-  BOOST_STATIC_ASSERT(sizeof(Im1Player) == sizeof(IM1_PLAYER_TEMPLATE));
-
-  class Im2Player
-  {
-  public:
-    explicit Im2Player(uint16_t init)
-    {
-      std::copy(IM2_PLAYER_TEMPLATE, ArrayEnd(IM2_PLAYER_TEMPLATE), Data.begin());
-      Data[0x2] = init & 0xff;
-      Data[0x3] = init >> 8;
-    }
-  private:
-    boost::array<uint8_t, 10> Data;
-  };
-
-  BOOST_STATIC_ASSERT(sizeof(Im2Player) == sizeof(IM2_PLAYER_TEMPLATE));
-
-  class AYData : public AYDataTarget
+  class AYData : public Formats::Chiptune::AY::Builder
   {
   public:
     typedef boost::shared_ptr<const AYData> Ptr;
 
     AYData(ModuleProperties::RWPtr properties, uint_t defaultDuration)
       : Properties(properties)
-      , Data(65536)
+      , Delegate(Formats::Chiptune::AY::CreateMemoryDumpBuilder())
       , Frames(defaultDuration)
       , Registers()
       , StackPointer()
     {
-      InitializeBlock(0xc9, 0, 0x100);
-      InitializeBlock(0xff, 0x100, 0x3f00);
-      InitializeBlock(uint8_t(0x00), 0x4000, 0xc000);
-      Data[0x38] = 0xfb;
     }
 
     ModuleProperties::Ptr GetProperties() const
@@ -704,7 +440,9 @@ namespace
 
     Devices::Z80::Chip::Ptr CreateCPU(Devices::Z80::ChipParameters::Ptr params, Devices::Z80::ChipIO::Ptr ports) const
     {
-      const Devices::Z80::Chip::Ptr result = Devices::Z80::CreateChip(params, Data, ports);
+      const Binary::Container::Ptr memory = Delegate->Result();
+      const uint8_t* const rawMemory = static_cast<const uint8_t*>(memory->Data());
+      const Devices::Z80::Chip::Ptr result = Devices::Z80::CreateChip(params, Dump(rawMemory, rawMemory + memory->Size()), ports);
       Devices::Z80::Registers regs;
       regs.Mask = ~0;
       std::fill(regs.Data.begin(), regs.Data.end(), Registers);
@@ -744,34 +482,22 @@ namespace
 
     virtual void SetRoutines(uint16_t init, uint16_t play)
     {
-      assert(init);
-      if (play)
-      {
-        Im1Player player(init, play);
-        AddBlock(0, &player, sizeof(player));
-      }
-      else
-      {
-        Im2Player player(init);
-        AddBlock(0, &player, sizeof(player));
-      }
+      Delegate->SetRoutines(init, play);
     }
 
     virtual void AddBlock(uint16_t addr, const void* src, std::size_t size)
     {
-      const std::size_t toCopy = std::min(size, Data.size() - addr);
-      std::memcpy(&Data[addr], src, toCopy);
+      Delegate->AddBlock(addr, src, size);
     }
 
-  private:
-    void InitializeBlock(uint8_t src, std::size_t offset, std::size_t size)
+    virtual Binary::Container::Ptr Result() const
     {
-      const std::size_t toFill = std::min(size, Data.size() - offset);
-      std::memset(&Data[offset], src, toFill);
+      assert(!"Should not be called");
+      return Binary::Container::Ptr();
     }
   private:
     const ModuleProperties::RWPtr Properties;
-    Dump Data;
+    const Formats::Chiptune::AY::Builder::Ptr Delegate;
     uint_t Frames;
     uint16_t Registers;
     uint16_t StackPointer;
@@ -876,27 +602,9 @@ namespace
     const AYData::Ptr Data;
     const Information::Ptr Info;
   };
-
-  bool CheckAYModule(const Binary::Container& inputData)
-  {
-    if (inputData.Size() <= sizeof(AYHeader))
-    {
-      return false;
-    }
-    const AYHeader* const header = safe_ptr_cast<const AYHeader*>(inputData.Data());
-    if (0 != std::memcmp(header->Signature, AY_SIGNATURE, sizeof(AY_SIGNATURE)))
-    {
-      return false;
-    }
-    if (0 != std::memcmp(header->Type, TYPE_EMUL, sizeof(TYPE_EMUL)))
-    {
-      return false;
-    }
-    return true;
-  }
 }
 
-namespace AY
+namespace AYPlugin
 {
   const Char ID[] = {'A', 'Y', 0};
   const Char* const INFO = Text::AY_PLUGIN_INFO;
@@ -924,7 +632,7 @@ namespace AYModule
 
     virtual bool Check(const Binary::Container& inputData) const
     {
-      return CheckAYModule(inputData);
+      return Formats::Chiptune::AY::GetModulesCount(inputData) > 0;
     }
 
     virtual Binary::Format::Ptr GetFormat() const
@@ -936,17 +644,16 @@ namespace AYModule
     {
       try
       {
-        assert(Check(*rawData));
+        assert(Formats::Chiptune::AY::GetModulesCount(*rawData) > 0);
 
         Parameters::IntType defaultDuration = Parameters::ZXTune::Core::Plugins::AY::DEFAULT_DURATION_FRAMES_DEFAULT;
         //parameters->FindIntValue(Parameters::ZXTune::Core::Plugins::AY::DEFAULT_DURATION_FRAMES, defaultDuration);
 
         const boost::shared_ptr<AYData> result = boost::make_shared<AYData>(properties, static_cast<uint_t>(defaultDuration));
-        const IO::FastDump data(*rawData);
-        if (const std::size_t aySize = ParseAY(0, data, *result))
+        if (Formats::Chiptune::Container::Ptr container = Formats::Chiptune::AY::Parse(*rawData, 0, *result))
         {
-          usedSize = aySize;
-          properties->SetSource(usedSize, ModuleRegion(0, usedSize));
+          usedSize = container->Size();
+          properties->SetSource(container);
           return boost::make_shared<AYHolder>(result);
         }
       }
@@ -966,335 +673,6 @@ namespace AYContainer
   using namespace ZXTune;
 
   const uint_t CAPS = CAP_STOR_MULTITRACK;
-
-  //as a container
-  class VariableDump : public Dump
-  {
-  public:
-    VariableDump()
-    {
-      reserve(1000000);
-    }
-
-    template<class T>
-    T* Add(const T& obj)
-    {
-      return static_cast<T*>(Add(&obj, sizeof(obj)));
-    }
-
-    char* Add(const String& str)
-    {
-      return static_cast<char*>(Add(str.c_str(), str.size() + 1));
-    }
-
-    void* Add(const void* src, std::size_t srcSize)
-    {
-      const std::size_t prevSize = size();
-      resize(prevSize + srcSize);
-      void* const dst = &front() + prevSize;
-      std::memcpy(dst, src, srcSize);
-      return dst;
-    }
-  };
-
-  class Builder : public AYDataTarget
-  {
-  public:
-    Builder()
-      : Duration()
-      , Register(), StackPointer()
-      , InitRoutine(), PlayRoutine()
-      , Memory(65536)
-    {
-    }
-
-    virtual void SetTitle(const String& title)
-    {
-      Title = title;
-    }
-
-    virtual void SetAuthor(const String& author)
-    {
-      Author = author;
-    }
-
-    virtual void SetComment(const String& comment)
-    {
-      Comment = comment;
-    }
-
-    virtual void SetDuration(uint_t duration)
-    {
-      Duration = static_cast<uint16_t>(duration);
-    }
-
-    virtual void SetRegisters(uint16_t reg, uint16_t sp)
-    {
-      Register = reg;
-      StackPointer = sp;
-    }
-
-    virtual void SetRoutines(uint16_t init, uint16_t play)
-    {
-      InitRoutine = init;
-      PlayRoutine = play;
-    }
-
-    virtual void AddBlock(uint16_t addr, const void* data, std::size_t size)
-    {
-      const std::size_t toCopy = std::min(size, Memory.size() - addr);
-      std::memcpy(&Memory[addr], data, toCopy);
-      Blocks.push_back(BlocksList::value_type(addr, static_cast<uint16_t>(toCopy)));
-    }
-
-    Binary::Container::Ptr GetAy() const
-    {
-      std::auto_ptr<VariableDump> result(new VariableDump());
-      //init header
-      AYHeader* const header = result->Add(AYHeader());
-      std::copy(AY_SIGNATURE, ArrayEnd(AY_SIGNATURE), header->Signature);
-      std::copy(TYPE_EMUL, ArrayEnd(TYPE_EMUL), header->Type);
-      SetPointer(&header->AuthorOffset, result->Add(Author));
-      SetPointer(&header->MiscOffset, result->Add(Comment));
-      //init descr
-      ModuleDescription* const descr = result->Add(ModuleDescription());
-      SetPointer(&header->DescriptionsOffset, descr);
-      SetPointer(&descr->TitleOffset, result->Add(Title));
-      //init data
-      ModuleDataEMUL* const data = result->Add(ModuleDataEMUL());
-      SetPointer(&descr->DataOffset, data);
-      data->TotalLength = fromBE(Duration);
-      data->RegValue = fromBE(Register);
-      //init pointers
-      ModulePointersEMUL* const pointers = result->Add(ModulePointersEMUL());
-      SetPointer(&data->PointersOffset, pointers);
-      pointers->SP = fromBE(StackPointer);
-      pointers->InitAddr = fromBE(InitRoutine);
-      pointers->PlayAddr = fromBE(PlayRoutine);
-      //init blocks
-      std::list<ModuleBlockEMUL*> blockPtrs;
-      //all blocks + limiter
-      for (uint_t block = 0; block != Blocks.size() + 1; ++block)
-      {
-        blockPtrs.push_back(result->Add(ModuleBlockEMUL()));
-      }
-      SetPointer(&data->BlocksOffset, blockPtrs.front());
-      //fill blocks
-      for (BlocksList::const_iterator it = Blocks.begin(), lim = Blocks.end(); it != lim; ++it, blockPtrs.pop_front())
-      {
-        ModuleBlockEMUL* const dst = blockPtrs.front();
-        dst->Address = fromBE<uint16_t>(it->first);
-        dst->Size = fromBE<uint16_t>(it->second);
-        SetPointer(&dst->Offset, result->Add(&Memory[it->first], it->second));
-      }
-      return Binary::CreateContainer(std::auto_ptr<Dump>(result));
-    }
-
-    Binary::Container::Ptr GetRaw() const
-    {
-      return Binary::CreateContainer(&Memory[0], Memory.size());
-    }
-  private:
-    String Title;
-    String Author;
-    String Comment;
-    uint16_t Duration;
-    uint16_t Register;
-    uint16_t StackPointer;
-    uint16_t InitRoutine;
-    uint16_t PlayRoutine;
-    Dump Memory;
-    typedef std::list<std::pair<uint16_t, uint16_t> > BlocksList;
-    BlocksList Blocks;
-  };
-
-  uint_t GetAYSubmodules(const Binary::Container& inputData)
-  {
-    if (inputData.Size() <= sizeof(AYHeader))
-    {
-      return 0;
-    }
-    const AYHeader* const header = safe_ptr_cast<const AYHeader*>(inputData.Data());
-    if (0 != std::memcmp(header->Signature, AY_SIGNATURE, sizeof(AY_SIGNATURE)))
-    {
-      return 0;
-    }
-    if (0 != std::memcmp(header->Type, TYPE_EMUL, sizeof(TYPE_EMUL)))
-    {
-      return 0;
-    }
-    return header->FirstModuleIndex <= header->LastModuleIndex
-      ? header->LastModuleIndex + 1
-      : 0;    
-  }
-
-  class StubBuilder : public AYDataTarget
-  {
-  public:
-    virtual void SetTitle(const String& /*title*/) {}
-    virtual void SetAuthor(const String& /*author*/) {}
-    virtual void SetComment(const String& /*comment*/) {}
-    virtual void SetDuration(uint_t /*duration*/) {}
-    virtual void SetRegisters(uint16_t /*reg*/, uint16_t /*sp*/) {}
-    virtual void SetRoutines(uint16_t /*init*/, uint16_t /*play*/) {}
-    virtual void AddBlock(uint16_t /*addr*/, const void* /*data*/, std::size_t /*size*/) {}
-  };
-
-  class File : public Formats::Archived::File
-  {
-  public:
-    File(const String& name, Binary::Container::Ptr data)
-      : Name(name)
-      , Data(data)
-    {
-    }
-
-    virtual String GetName() const
-    {
-      return Name;
-    }
-
-    virtual std::size_t GetSize() const
-    {
-      return Data->Size();
-    }
-
-    virtual Binary::Container::Ptr GetData() const
-    {
-      return Data;
-    }
-  private:
-    const String Name;
-    const Binary::Container::Ptr Data;
-  };
-
-  class Container : public Formats::Archived::Container
-  {
-  public:
-    explicit Container(Binary::Container::Ptr data)
-      : Delegate(data)
-      , AyPath(Text::AY_PLUGIN_PREFIX)
-      , RawPath(Text::AY_RAW_PLUGIN_PREFIX)
-    {
-    }
-
-    //Binary::Container
-    virtual std::size_t Size() const
-    {
-      return Delegate->Size();
-    }
-
-    virtual const void* Data() const
-    {
-      return Delegate->Data();
-    }
-
-    virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
-    {
-      return Delegate->GetSubcontainer(offset, size);
-    }
-
-    //Container
-    virtual void ExploreFiles(const Formats::Archived::Container::Walker& walker) const
-    {
-      const IO::FastDump dump(*Delegate);
-      for (uint_t idx = 0, total = CountFiles(); idx < total; ++idx)
-      {
-        Builder builder;
-        const std::size_t parsedLimit = ParseAY(idx, dump, builder);
-        if (!parsedLimit)
-        {
-          continue;
-        }
-        const String subPath = AyPath.Build(idx);
-        const Binary::Container::Ptr subData = builder.GetAy();
-        const File file(subPath, subData);
-        walker.OnFile(file);
-      }
-    }
-
-    virtual Formats::Archived::File::Ptr FindFile(const String& name) const
-    {
-      uint_t index = 0;
-      const bool asRaw = RawPath.GetIndex(name, index);
-      if (!asRaw && !AyPath.GetIndex(name, index))
-      {
-        return Formats::Archived::File::Ptr();
-      }
-      const uint_t subModules = GetAYSubmodules(*Delegate);
-      if (subModules < index)
-      {
-        return Formats::Archived::File::Ptr();
-      }
-      const IO::FastDump dump(*Delegate);
-      Builder builder;
-      if (!ParseAY(index, dump, builder))
-      {
-        return Formats::Archived::File::Ptr();
-      }
-      const Binary::Container::Ptr data = asRaw
-        ? builder.GetRaw()
-        : builder.GetAy();
-      return boost::make_shared<File>(name, data);
-    }
-
-    virtual uint_t CountFiles() const
-    {
-      return GetAYSubmodules(*Delegate);
-    }
-  private:
-    const Binary::Container::Ptr Delegate;
-    const IndexPathComponent AyPath;
-    const IndexPathComponent RawPath;
-  };
-
-  class Decoder : public Formats::Archived::Decoder
-  {
-  public:
-    Decoder()
-      : Format(Binary::Format::Create(AYModule::HEADER_FORMAT))
-    {
-    }
-
-    virtual String GetDescription() const
-    {
-      return Text::AY_DECODER_DESCRIPTION;
-    }
-
-    virtual Binary::Format::Ptr GetFormat() const
-    {
-      return Format;
-    }
-
-    virtual bool Check(const Binary::Container& rawData) const
-    {
-      return GetAYSubmodules(rawData) >= 2;
-    }
-
-    virtual Container::Ptr Decode(const Binary::Container& rawData) const
-    {
-      const uint_t subModules = GetAYSubmodules(rawData);
-      if (subModules < 2)
-      {
-        return Container::Ptr();
-      }
-
-      static StubBuilder STUB;
-      const IO::FastDump dump(rawData);
-      for (uint_t idx = subModules; idx; --idx)
-      {
-        //assume that files are layed out sequentally
-        if (const std::size_t limit = ParseAY(idx - 1, dump, STUB))
-        {
-          const Binary::Container::Ptr ayData = rawData.GetSubcontainer(0, limit);
-          return boost::make_shared<Container>(ayData);
-        }
-      }
-      return Container::Ptr();
-    }
-  private:
-    const Binary::Format::Ptr Format;
-  };
 }
 
 namespace ZXTune
@@ -1304,13 +682,13 @@ namespace ZXTune
     //module
     {
       const ModulesFactory::Ptr factory = boost::make_shared<AYModule::Factory>();
-      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(AY::ID, AY::INFO, AYModule::CAPS, factory);
+      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(AYPlugin::ID, AYPlugin::INFO, AYModule::CAPS, factory);
       registrator.RegisterPlugin(plugin);
     }
     //container
     {
-      const Formats::Archived::Decoder::Ptr decoder = boost::make_shared<AYContainer::Decoder>();
-      const ArchivePlugin::Ptr plugin = CreateContainerPlugin(AY::ID, AYContainer::CAPS, decoder);
+      const Formats::Archived::Decoder::Ptr decoder = Formats::Archived::CreateAYDecoder();
+      const ArchivePlugin::Ptr plugin = CreateContainerPlugin(AYPlugin::ID, AYContainer::CAPS, decoder);
       registrator.RegisterPlugin(plugin);
     }
   }

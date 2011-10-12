@@ -88,6 +88,12 @@ namespace
       FixedRegion = fixedRegion;
     }
 
+    virtual void SetSource(Formats::Chiptune::Container::Ptr source)
+    {
+      UsedRegion = ModuleRegion(0, source->Size());
+      Source = source;
+    }
+
     virtual Plugin::Ptr GetPlugin() const
     {
       return Plug;
@@ -195,7 +201,15 @@ namespace
       const Binary::Container::Ptr allData = Location->GetData();
       Data = UsedRegion.Extract(*allData);
       Container->SetIntValue(ATTR_CRC, UsedRegion.Checksum(*allData)); 
-      Container->SetIntValue(ATTR_FIXEDCRC, FixedRegion.Checksum(*allData));
+      if (Source)
+      {
+        Container->SetIntValue(ATTR_FIXEDCRC, Source->FixedChecksum());
+        Source.reset();
+      }
+      else
+      {
+        Container->SetIntValue(ATTR_FIXEDCRC, FixedRegion.Checksum(*allData));
+      }
       //plugins
       const PluginsChain::Ptr plugins = Location->GetPlugins();
       const String& container = plugins->AsString();
@@ -216,6 +230,7 @@ namespace
     const Plugin::Ptr Plug;
     mutable Log::MessagesCollector::Ptr Warnings;
     mutable DataLocation::Ptr Location;
+    mutable Formats::Chiptune::Container::Ptr Source;
     ModuleRegion UsedRegion;
     ModuleRegion FixedRegion;
     mutable Binary::Container::Ptr Data;

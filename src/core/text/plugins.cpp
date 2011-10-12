@@ -15,17 +15,8 @@ extern const Char ASC_PLUGIN_INFO[] = {
   'A','S','C',' ','S','o','u','n','d',' ','M','a','s','t','e','r',' ','m','o','d','u','l','e','s',' ','s','u',
   'p','p','o','r','t',0
 };
-extern const Char AY_DECODER_DESCRIPTION[] = {
-  'A','Y',' ','m','u','l','t','i','f','i','l','e',0
-};
 extern const Char AY_PLUGIN_INFO[] = {
   'A','Y',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
-};
-extern const Char AY_PLUGIN_PREFIX[] = {
-  '#',0
-};
-extern const Char AY_RAW_PLUGIN_PREFIX[] = {
-  '@',0
 };
 extern const Char CHI_EDITOR[] = {
   'C','h','i','p','T','r','a','c','k','e','r',' ','v','%','1','%',0

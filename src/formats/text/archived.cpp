@@ -5,6 +5,15 @@
 
 namespace Text
 {
+extern const Char AY_ARCHIVE_DECODER_DESCRIPTION[] = {
+  'M','u','l','t','i','m','o','d','u','l','e',' ','A','Y',' ','c','o','n','t','a','i','n','e','r',0
+};
+extern const Char AY_FILENAME_PREFIX[] = {
+  '#',0
+};
+extern const Char AY_RAW_FILENAME_PREFIX[] = {
+  '@',0
+};
 extern const Char HRIP_DECODER_DESCRIPTION[] = {
   'H','r','i','p',' ','a','r','c','h','i','v','e',0
 };

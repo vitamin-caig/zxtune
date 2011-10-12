@@ -12,10 +12,19 @@ __cpp> "{\n"
 __cpp> "}//namespace Text\n"
 __cpp> "#endif //__TEXT_ARCHIVED_H_DEFINED__\n"
 
+#AY
+< AY_ARCHIVE_DECODER_DESCRIPTION
+> "Multimodule AY container"
+
+< AY_FILENAME_PREFIX
+> "#"
+
+< AY_RAW_FILENAME_PREFIX
+> "@"
+
 #HRIP
 < HRIP_DECODER_DESCRIPTION
 > "Hrip archive"
-
 
 #SCL
 < SCL_DECODER_DESCRIPTION

@@ -29,7 +29,9 @@ namespace
   {
     StringArray parts;
     boost::algorithm::split(parts, str, boost::algorithm::is_any_of(DELIMITER), boost::algorithm::token_compress_on);
-    return parts;
+    const StringArray::iterator newEnd = std::remove_if(parts.begin(), parts.end(),
+      std::mem_fun_ref(&String::empty));
+    return StringArray(parts.begin(), newEnd);
   }
 
   String JoinPath(const StringArray& arr)

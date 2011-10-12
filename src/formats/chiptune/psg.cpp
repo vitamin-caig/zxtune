@@ -122,68 +122,6 @@ namespace PSG
     mutable std::auto_ptr<ChunksArray> Data;
   };
 
-  class StubBuilder : public Formats::Chiptune::PSG::Builder
-  {
-  public:
-    virtual void AddChunks(std::size_t /*count*/)
-    {
-    }
-
-    virtual void SetRegister(uint_t /*reg*/, uint_t /*val*/)
-    {
-    }
-
-    virtual Formats::Chiptune::PSG::ChunksSet::Ptr Result() const
-    {
-      return Formats::Chiptune::PSG::ChunksSet::Ptr();
-    }
-  };
-
-  class Properties : public Parameters::Accessor
-  {
-  public:
-    explicit Properties(Binary::Container::Ptr data)
-      : Data(data)
-    {
-    }
-
-    virtual bool FindIntValue(const Parameters::NameType& name, Parameters::IntType& val) const
-    {
-      if (name == ZXTune::Module::ATTR_CRC ||
-          name == ZXTune::Module::ATTR_FIXEDCRC)
-      {
-        val = Crc32(static_cast<const uint8_t*>(Data->Data()), Data->Size());
-        return true;
-      }
-      else if (name == ZXTune::Module::ATTR_SIZE)
-      {
-        val = Data->Size();
-        return true;
-      }
-      return false;
-    }
-
-    virtual bool FindStringValue(const Parameters::NameType& /*name*/, Parameters::StringType& /*val*/) const
-    {
-      return false;
-    }
-
-    virtual bool FindDataValue(const Parameters::NameType& /*name*/, Parameters::DataType& /*val*/) const
-    {
-      return false;
-    }
-
-    virtual void Process(Parameters::Visitor& visitor) const
-    {
-      const uint32_t crc = Crc32(static_cast<const uint8_t*>(Data->Data()), Data->Size());
-      visitor.SetIntValue(ZXTune::Module::ATTR_CRC, crc);
-      visitor.SetIntValue(ZXTune::Module::ATTR_FIXEDCRC, crc);
-      visitor.SetIntValue(ZXTune::Module::ATTR_SIZE, Data->Size());
-    }
-  private:
-    const Binary::Container::Ptr Data;
-  };
-
   class Container : public Formats::Chiptune::Container
   {
   public:
@@ -207,12 +145,27 @@ namespace PSG
       return Delegate->GetSubcontainer(offset, size);
     }
 
-    virtual Parameters::Accessor::Ptr GetProperties() const
+    virtual uint_t FixedChecksum() const
     {
-      return boost::make_shared<Properties>(Delegate);
+      const Binary::TypedContainer& data(*Delegate);
+      const ::PSG::Header& header = *data.GetField< ::PSG::Header>(0);
+      const std::size_t dataOffset = (header.Version == ::PSG::INT_BEGIN) ? offsetof(::PSG::Header, Version) : sizeof(header);
+      return Crc32(data.GetField<uint8_t>(dataOffset), Delegate->Size() - dataOffset);
     }
   private:
     const Binary::Container::Ptr Delegate;
+  };
+
+  class StubBuilder : public Formats::Chiptune::PSG::Builder
+  {
+  public:
+    virtual void AddChunks(std::size_t /*count*/) {}
+    virtual void SetRegister(uint_t /*reg*/, uint_t /*val*/) {}
+
+    virtual Formats::Chiptune::PSG::ChunksSet::Ptr Result() const
+    {
+      return Formats::Chiptune::PSG::ChunksSet::Ptr();
+    }
   };
 
   bool Check(const Binary::Container& rawData)
