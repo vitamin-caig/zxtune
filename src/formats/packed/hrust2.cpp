@@ -481,10 +481,15 @@ namespace Hrust2
             const std::size_t packedOffset = offset + hdr->GetSize();
             const std::size_t packedSize = blockEnd - packedOffset;
             const Binary::Container::Ptr packedData = Data.GetSubcontainer(packedOffset, packedSize);
-            const Binary::Container::Ptr unpackedData = (0 != (hdr->Flag & FormatHeader::STORED_BLOCK))
-              ? packedData
-              : DecodeBlock(*packedData);
-            target.AddBlock(unpackedData);
+            const bool storedBlock = (0 != (hdr->Flag & FormatHeader::STORED_BLOCK));
+            if (const Binary::Container::Ptr unpackedData = storedBlock ? packedData : DecodeBlock(*packedData))
+            {
+              target.AddBlock(unpackedData);
+            }
+            else
+            {
+              break;
+            }
             offset = blockEnd;
             if (0 != (hdr->Flag & FormatHeader::LAST_BLOCK))
             {

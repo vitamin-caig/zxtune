@@ -176,8 +176,11 @@ namespace
         usedSize = container->Size();
         properties->SetSource(container);
         const PSG::ChunksSet::Ptr data = builder->Result();
-        const AYM::Chiptune::Ptr chiptune = boost::make_shared<PSGChiptune>(data, properties);
-        return AYM::CreateHolder(chiptune);
+        if (data->Count())
+        {
+          const AYM::Chiptune::Ptr chiptune = boost::make_shared<PSGChiptune>(data, properties);
+          return AYM::CreateHolder(chiptune);
+        }
       }
       return Holder::Ptr();
     }

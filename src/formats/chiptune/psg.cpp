@@ -101,10 +101,11 @@ namespace PSG
 
     virtual Formats::Chiptune::PSG::ChunksSet::Ptr Result() const
     {
+      Allocate(0);
       return Formats::Chiptune::PSG::ChunksSet::Ptr(new ChunksSet(Data));
     }
   private:
-    bool Allocate(std::size_t count)
+    bool Allocate(std::size_t count) const
     {
       if (!Data.get())
       {
