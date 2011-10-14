@@ -38,11 +38,11 @@ namespace
       //common
       Parameters::BooleanValue::Bind(*isLooped, Params, Parameters::ZXTune::Sound::LOOPED, false);
       //AYM
-      Parameters::BooleanValue::Bind(*isAYMInterpolated, Params, Parameters::ZXTune::Core::AYM::INTERPOLATION, false);
+      Parameters::BooleanValue::Bind(*isInterpolated, Params, Parameters::ZXTune::Core::AYM::INTERPOLATION, false);
       Parameters::BooleanValue::Bind(*isYM, Params, Parameters::ZXTune::Core::AYM::TYPE, false);
       Parameters::IntegerValue::Bind(*aymLayout, Params, Parameters::ZXTune::Core::AYM::LAYOUT, 0);
       //DAC
-      Parameters::BooleanValue::Bind(*isDACInterpolated, Params, Parameters::ZXTune::Core::DAC::INTERPOLATION, false);
+      Parameters::BooleanValue::Bind(*isInterpolated, Params, Parameters::ZXTune::Core::DAC::INTERPOLATION, false);
 
       this->connect(&supp, SIGNAL(OnStartModule(ZXTune::Sound::Backend::Ptr)), SLOT(InitState(ZXTune::Sound::Backend::Ptr)));
       this->connect(&supp, SIGNAL(OnStopModule()), SLOT(CloseState()));
