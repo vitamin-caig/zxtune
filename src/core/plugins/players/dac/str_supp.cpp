@@ -161,7 +161,13 @@ namespace
           case STR::SAMPLE_EMPTY:
             break;
           default:
-            dstChan.SampleNum = sample - STR::SAMPLE_BASE;
+            {
+              const uint_t sampleNum = sample - STR::SAMPLE_BASE;
+              if (sampleNum < STR::SAMPLES_COUNT)
+              {
+                dstChan.SampleNum = sampleNum;
+              }
+            }
           }
         }
       }
