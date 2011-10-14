@@ -30,6 +30,8 @@ extern const Char ST1_PLUGIN_INFO[];
 extern const Char STC_PLUGIN_INFO[];
 extern const Char STP_EDITOR[];
 extern const Char STP_PLUGIN_INFO[];
+extern const Char STR_EDITOR[];
+extern const Char STR_PLUGIN_INFO[];
 extern const Char ST_EDITOR[];
 extern const Char TS_PLUGIN_INFO[];
 extern const Char TXT_ERROR_INVALID_STRING[];

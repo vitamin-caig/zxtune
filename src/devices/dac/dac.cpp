@@ -324,6 +324,8 @@ namespace Devices
     {
       switch (channels)
       {
+      case 3:
+        return Chip::Ptr(new ChipImpl<3>(samples, sampleFreq, params, target));
       case 4:
         return Chip::Ptr(new ChipImpl<4>(samples, sampleFreq, params, target));
       default:

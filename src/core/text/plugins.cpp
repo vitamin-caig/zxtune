@@ -92,6 +92,13 @@ extern const Char STP_PLUGIN_INFO[] = {
   'S','o','u','n','d','T','r','a','c','k','e','r','P','r','o',' ','m','o','d','u','l','e','s',' ','s','u','p',
   'p','o','r','t',0
 };
+extern const Char STR_EDITOR[] = {
+  'S','a','m','p','l','e',' ','T','r','a','c','k','e','r',' ','v','2','.','x',0
+};
+extern const Char STR_PLUGIN_INFO[] = {
+  'S','a','m','p','l','e',' ','T','r','a','c','k','e','r',' ','v','2','.','x',' ','m','o','d','u','l','e','s',
+  ' ','s','u','p','p','o','r','t',0
+};
 extern const Char ST_EDITOR[] = {
   'S','o','u','n','d','T','r','a','c','k','e','r',' ','v','1','.','x',0
 };
