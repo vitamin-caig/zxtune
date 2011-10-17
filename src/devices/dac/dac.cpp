@@ -14,6 +14,7 @@ Author:
 //common includes
 #include <tools.h>
 //std includes
+#include <cmath>
 #include <limits>
 #include <numeric>
 //boost includes
@@ -92,6 +93,43 @@ namespace
     uint_t Gain;
   };
 
+  struct LinearInterpolation
+  {
+    static uint_t MapInterpolation(uint_t fract)
+    {
+      return fract;
+    }
+  };
+
+  struct CosineInterpolation
+  {
+    static uint_t MapInterpolation(uint_t fract)
+    {
+      static const CosineTable TABLE;
+      return TABLE[fract];
+    }
+  private:
+    class CosineTable
+    {
+    public:
+      CosineTable()
+      {
+        for (uint_t idx = 0; idx != FIXED_POINT_PRECISION; ++idx)
+        {
+          const double rad = idx * 3.14159265358 / FIXED_POINT_PRECISION;
+          Table[idx] = static_cast<uint_t>(FIXED_POINT_PRECISION * (1 - cos(rad)) / 2);
+        }
+      }
+
+      uint_t operator[](uint_t idx) const
+      {
+        return Table[idx];
+      }
+    private:
+      boost::array<uint_t, FIXED_POINT_PRECISION> Table;
+    };
+  };
+
   //channel state type
   struct ChannelState
   {
@@ -145,6 +183,7 @@ namespace
       }
     }
 
+    template<class Policy>
     Sample GetInterpolatedValue() const
     {
       if (Enabled)
@@ -152,9 +191,17 @@ namespace
         const uint_t pos = PosInSample / FIXED_POINT_PRECISION;
         assert(CurSample && pos < CurSample->Size);
         const int_t cur = scale(CurSample->Data[pos]);
-        const int_t next = pos + 1 >= CurSample->Size ? cur : scale(CurSample->Data[pos + 1]);
-        const int_t delta = next - cur;
-        return static_cast<Sample>(cur + delta * (PosInSample % FIXED_POINT_PRECISION) / FIXED_POINT_PRECISION);
+        if (const uint_t fract = PosInSample % FIXED_POINT_PRECISION)
+        {
+          const int_t next = pos + 1 >= CurSample->Size ? cur : scale(CurSample->Data[pos + 1]);
+          const int_t delta = next - cur;
+          const uint_t mappedFract = Policy::MapInterpolation(fract);
+          return static_cast<Sample>(cur + delta * mappedFract / FIXED_POINT_PRECISION);
+        }
+        else
+        {
+          return static_cast<Sample>(cur);
+        }
       }
       else
       {
@@ -217,7 +264,7 @@ namespace
       const uint_t doSamples = static_cast<uint_t>(uint64_t(src.TimeInUs - CurrentTime) * soundFreq / MICROSECONDS_PER_SECOND);
 
       const std::const_mem_fun_ref_t<Sample, ChannelState> getter = Params->Interpolate() ?
-        std::mem_fun_ref(&ChannelState::GetInterpolatedValue) : std::mem_fun_ref(&ChannelState::GetValue);
+        std::mem_fun_ref(&ChannelState::GetInterpolatedValue<CosineInterpolation>) : std::mem_fun_ref(&ChannelState::GetValue);
       MultiSample result(Channels);
       for (uint_t smp = 0; smp != doSamples; ++smp)
       {
