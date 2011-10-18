@@ -6,10 +6,16 @@
 </extension>
 <trackList>
   <track>
+    <location>Samples/SANDRA.asc</location>
+  </track>
+  <track>
     <location>Samples/AYMD39.ay</location>
   </track>
   <track>
-    <location>Samples/SANDRA.asc</location>
+    <location>Samples/ducktale.chi</location>
+  </track>
+  <track>
+    <location>Samples/TechCent.M</location>
   </track>
   <track>
     <location>Samples/Illusion.pt2</location>
@@ -18,13 +24,19 @@
     <location>Samples/Speccy2.pt3</location>
   </track>
   <track>
+    <location>Samples/SHOCK4.S</location>
+  </track>
+  <track>
     <location>Samples/stracker.stc</location>
   </track>
   <track>
-    <location>Samples/long_day.pt3</location>
+    <location>Samples/ZXGuide3_07.stp</location>
   </track>
   <track>
-    <location>Samples/TechCent.M</location>
+    <location>Samples/COMETDAY.str</location>
+  </track>
+  <track>
+    <location>Samples/long_day.pt3</location>
   </track>
 </trackList>
 </playlist>
