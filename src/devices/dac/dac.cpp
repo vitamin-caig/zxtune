@@ -263,8 +263,9 @@ namespace
       // samples to apply
       const uint_t doSamples = static_cast<uint_t>(uint64_t(src.TimeInUs - CurrentTime) * soundFreq / MICROSECONDS_PER_SECOND);
 
-      const std::const_mem_fun_ref_t<Sample, ChannelState> getter = Params->Interpolate() ?
-        std::mem_fun_ref(&ChannelState::GetInterpolatedValue<CosineInterpolation>) : std::mem_fun_ref(&ChannelState::GetValue);
+      const std::const_mem_fun_ref_t<Sample, ChannelState> getter = Params->Interpolate()
+        ? std::const_mem_fun_ref_t<Sample, ChannelState>(&ChannelState::GetInterpolatedValue<CosineInterpolation>)
+        : std::mem_fun_ref(&ChannelState::GetValue);
       MultiSample result(Channels);
       for (uint_t smp = 0; smp != doSamples; ++smp)
       {
