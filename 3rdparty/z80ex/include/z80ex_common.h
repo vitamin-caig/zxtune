@@ -10,7 +10,7 @@
 #ifndef _Z80EX_COMMON_H_INCLUDED
 #define _Z80EX_COMMON_H_INCLUDED
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && defined(Z80EX_DLLEXPORT)
 #define LIB_EXPORT __declspec(dllexport)
 #else
 #define LIB_EXPORT
