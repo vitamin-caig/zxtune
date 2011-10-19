@@ -35,6 +35,16 @@ extern const Char CONTAINER_PLUGIN_PROGRESS_NOPATH[] = {
   '%','1','%',' ','c','o','n','t','a','i','n','e','r',' ','p','r','o','c','e','s','s','i','n','g',' ','f','o',
   'r',' ','\'','%','2','%','\'',0
 };
+extern const Char DST_EDITOR_AY[] = {
+  'D','i','g','i','t','a','l','S','t','u','d','i','o',' ','f','o','r',' ','A','Y',0
+};
+extern const Char DST_EDITOR_DAC[] = {
+  'D','i','g','i','t','a','l','S','t','u','d','i','o',' ','f','o','r',' ','C','o','v','o','x','/','S','D',0
+};
+extern const Char DST_PLUGIN_INFO[] = {
+  'D','i','g','i','t','a','l','S','t','u','d','i','o',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o',
+  'r','t',0
+};
 extern const Char PDT_EDITOR[] = {
   'P','r','o','D','i','g','i',' ','T','r','a','c','k','e','r',' ','v','0','.','0','x',0
 };

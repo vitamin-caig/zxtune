@@ -41,8 +41,23 @@ namespace
     //xxx    '.x should be merged
     static const Char SATTELITE_SEQ[] = {'\'', '.', '\0'};
     const String::size_type apPos(rh.GetName().find(SATTELITE_SEQ));
-    return apPos != String::npos &&
-      (firstSize == 0xc300 && rh.GetSize() == 0xc000); //PDT sattelites sizes
+    const bool isSatelite = apPos != String::npos;
+    if (!isSatelite)
+    {
+      return false;
+    }
+    const std::size_t secondSize = rh.GetSize();
+    //ProDigiTracker
+    if (firstSize == 0xc300 && secondSize == 0xc000)
+    {
+      return true;
+    }
+    //DigitalStudio
+    if (firstSize == 0xf200 && secondSize == 0xc000)
+    {
+      return true;
+    }
+    return false;
   }
 
   typedef std::vector<File::Ptr> FilesList;
