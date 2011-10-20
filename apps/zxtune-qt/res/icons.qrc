@@ -3,6 +3,7 @@
     <file alias="AY">type_ay.png</file>
     <file alias="ASC">type_asc.png</file>
     <file alias="CHI">type_chi.png</file>
+    <file alias="DST">type_dst.png</file>
     <file alias="PDT">type_pdt.png</file>
     <file alias="PSG">type_psg.png</file>
     <file alias="PT2">type_pt2.png</file>
