@@ -87,6 +87,13 @@ extern const Char RAW_PLUGIN_INFO[] = {
 extern const Char RAW_PLUGIN_PREFIX[] = {
   '+',0
 };
+extern const Char SQD_EDITOR[] = {
+  'S','Q',' ','D','i','g','i','t','a','l',' ','T','r','a','c','k','e','r',0
+};
+extern const Char SQD_PLUGIN_INFO[] = {
+  'S','Q',' ','D','i','g','i','t','a','l',' ','T','r','a','c','k','e','r',' ','m','o','d','u','l','e','s',' ',
+  's','u','p','p','o','r','t',0
+};
 extern const Char ST1_PLUGIN_INFO[] = {
   'S','o','u','n','d','T','r','a','c','k','e','r',' ','v','1','.','x',' ','u','n','c','o','m','p','i','l','e',
   'd',' ',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0

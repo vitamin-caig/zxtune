@@ -29,6 +29,8 @@ extern const Char RAW_ERROR_INVALID_MIN_SIZE[];
 extern const Char RAW_ERROR_INVALID_STEP[];
 extern const Char RAW_PLUGIN_INFO[];
 extern const Char RAW_PLUGIN_PREFIX[];
+extern const Char SQD_EDITOR[];
+extern const Char SQD_PLUGIN_INFO[];
 extern const Char ST1_PLUGIN_INFO[];
 extern const Char STC_PLUGIN_INFO[];
 extern const Char STP_EDITOR[];
