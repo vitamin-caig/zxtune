@@ -8,6 +8,7 @@
     <file alias="PSG">type_psg.png</file>
     <file alias="PT2">type_pt2.png</file>
     <file alias="PT3">type_pt3.png</file>
+    <file alias="SQD">type_sqd.png</file>
     <file alias="ST1">type_st1.png</file>
     <file alias="STC">type_stc.png</file>
     <file alias="STP">type_stp.png</file>
