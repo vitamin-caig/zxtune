@@ -134,11 +134,12 @@ namespace
   struct ChannelState
   {
     explicit ChannelState(const DigitalSample* sample = 0)
-      : Enabled(), Note(), NoteSlide(), FreqSlide(), CurSample(sample), PosInSample(), SampleStep(1)
+      : Enabled(), Level(MAX_LEVEL), Note(), NoteSlide(), FreqSlide(), CurSample(sample), PosInSample(), SampleStep(1)
     {
     }
 
     bool Enabled;
+    uint_t Level;
     uint_t Note;
     //current slide in halftones
     int_t NoteSlide;
@@ -175,7 +176,7 @@ namespace
       {
         const uint_t pos = PosInSample / FIXED_POINT_PRECISION;
         assert(CurSample && pos < CurSample->Size);
-        return scale(CurSample->Data[pos]);
+        return Amplify(scale(CurSample->Data[pos]));
       }
       else
       {
@@ -190,17 +191,18 @@ namespace
       {
         const uint_t pos = PosInSample / FIXED_POINT_PRECISION;
         assert(CurSample && pos < CurSample->Size);
-        const int_t cur = scale(CurSample->Data[pos]);
+        const Sample cur = scale(CurSample->Data[pos]);
         if (const uint_t fract = PosInSample % FIXED_POINT_PRECISION)
         {
-          const int_t next = pos + 1 >= CurSample->Size ? cur : scale(CurSample->Data[pos + 1]);
-          const int_t delta = next - cur;
-          const uint_t mappedFract = Policy::MapInterpolation(fract);
-          return static_cast<Sample>(cur + delta * mappedFract / FIXED_POINT_PRECISION);
+          const Sample next = pos + 1 >= CurSample->Size ? cur : scale(CurSample->Data[pos + 1]);
+          const int_t delta = int_t(next) - int_t(cur);
+          const int_t mappedFract = Policy::MapInterpolation(fract);
+          const Sample value = static_cast<Sample>(int_t(cur) + delta * mappedFract / int_t(FIXED_POINT_PRECISION));
+          return Amplify(value);
         }
         else
         {
-          return static_cast<Sample>(cur);
+          return Amplify(cur);
         }
       }
       else
@@ -216,9 +218,19 @@ namespace
       {
         result.Band = Note;
         assert(CurSample);
-        result.LevelInPercents = CurSample->Gain * MAX_LEVEL / maxGain;
+        result.LevelInPercents = CurSample->Gain * Level / maxGain;
       }
       return result;
+    }
+  private:
+    Sample Amplify(Sample val) const
+    {
+      assert(Level <= MAX_LEVEL);
+      const int_t mid = scale(SILENT);
+      const int64_t delta = int_t(val) - mid;
+      const int_t scaledDelta = static_cast<int_t>(delta * int_t(Level) / int_t(MAX_LEVEL));
+      assert(absolute(scaledDelta) <= absolute(delta));
+      return static_cast<Sample>(mid + scaledDelta);
     }
   };
 
@@ -326,6 +338,12 @@ namespace
       {
         assert(chan.CurSample);
         chan.PosInSample = FIXED_POINT_PRECISION * std::min(*state.PosInSample, chan.CurSample->Size - 1);
+      }
+      //level changed
+      if (state.LevelInPercents)
+      {
+        assert(*state.LevelInPercents <= MAX_LEVEL);
+        chan.Level = *state.LevelInPercents;
       }
     }
 

@@ -39,6 +39,7 @@ namespace Devices
         boost::optional<int_t> FreqSlideHz;
         boost::optional<uint_t> SampleNum;
         boost::optional<uint_t> PosInSample;
+        boost::optional<uint_t> LevelInPercents;
       };
 
       DataChunk() : TimeInUs()
