@@ -546,7 +546,7 @@ namespace
   inline uint_t GetVortexNotetable(const String& freqTable)
   {
     using namespace ZXTune::Module;
-    if (freqTable == TABLE_SOUNDTRACKER)
+    if (freqTable == TABLE_PROTRACKER3_ST)
     {
       return Vortex::SOUNDTRACKER;
     }

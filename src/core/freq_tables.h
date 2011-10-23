@@ -31,6 +31,8 @@ namespace ZXTune
     const Char TABLE_PROTRACKER3_3[] = {'P','r','o','T','r','a','c','k','e','r','3','.','3','\0'};
     //! Pro Tracker v3.4 native frequency table
     const Char TABLE_PROTRACKER3_4[] = {'P','r','o','T','r','a','c','k','e','r','3','.','4','\0'};
+    //! Pro Tracker v3.x ST frequency table
+    const Char TABLE_PROTRACKER3_ST[] = {'P','r','o','T','r','a','c','k','e','r','3','_','S','T','\0'};
     //! Pro Tracker v3.3 ASM frequency table
     const Char TABLE_PROTRACKER3_3_ASM[] = {'P','r','o','T','r','a','c','k','e','r','3','.','3','_','A','S','M','\0'};
     //! Pro Tracker v3.4 ASM frequency table

@@ -501,7 +501,7 @@ namespace ZXTune
         case Vortex::PROTRACKER:
           return version <= 3 ? TABLE_PROTRACKER3_3 : TABLE_PROTRACKER3_4;
         case Vortex::SOUNDTRACKER:
-          return TABLE_SOUNDTRACKER;
+          return TABLE_PROTRACKER3_ST;
         case Vortex::ASM:
           return version <= 3 ? TABLE_PROTRACKER3_3_ASM : TABLE_PROTRACKER3_4_ASM;
         case Vortex::REAL:
