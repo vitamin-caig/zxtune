@@ -384,6 +384,7 @@ namespace
       , DurationInFrames(duration)
       , Checksum(static_cast<uint32_t>(GetIntProperty(moduleProps, ZXTune::Module::ATTR_CRC)))
       , CoreChecksum(static_cast<uint32_t>(GetIntProperty(moduleProps, ZXTune::Module::ATTR_FIXEDCRC)))
+      , Size(static_cast<std::size_t>(GetIntProperty(moduleProps, ZXTune::Module::ATTR_SIZE)))
       , Valid(true)
     {
     }
@@ -426,9 +427,11 @@ namespace
       return Title;
     }
 
-    virtual unsigned GetDurationValue() const
+    virtual Time::Milliseconds GetDuration() const
     {
-      return DurationInFrames;
+      //TODO:
+      const unsigned FRAME_DURATION_MS = 20;
+      return Time::Milliseconds(DurationInFrames * FRAME_DURATION_MS);
     }
 
     virtual String GetDurationString() const
@@ -453,6 +456,11 @@ namespace
     virtual uint32_t GetCoreChecksum() const
     {
       return CoreChecksum;
+    }
+
+    virtual std::size_t GetSize() const
+    {
+      return Size;
     }
   private:
     void AcquireTitle() const
@@ -485,6 +493,7 @@ namespace
     const unsigned DurationInFrames;
     const uint32_t Checksum;
     const uint32_t CoreChecksum;
+    const std::size_t Size;
     mutable bool Valid;
   };
 

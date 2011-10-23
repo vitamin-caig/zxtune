@@ -177,7 +177,7 @@ namespace
       const T val2 = (rh.*Getter)();
       return Ascending
         ? val1 < val2
-        : val1 > val2;
+        : val2 < val1;
     }
   private:
     const Functor Getter;
@@ -193,7 +193,7 @@ namespace
     case Playlist::Model::COLUMN_TITLE:
       return Playlist::Item::Comparer::Ptr(new TypedPlayitemsComparer<String>(&Playlist::Item::Data::GetTitle, ascending));
     case Playlist::Model::COLUMN_DURATION:
-      return Playlist::Item::Comparer::Ptr(new TypedPlayitemsComparer<unsigned>(&Playlist::Item::Data::GetDurationValue, ascending));
+      return Playlist::Item::Comparer::Ptr(new TypedPlayitemsComparer<Time::Milliseconds>(&Playlist::Item::Data::GetDuration, ascending));
     default:
       return Playlist::Item::Comparer::Ptr();
     }

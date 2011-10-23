@@ -4,6 +4,7 @@
  <widget class="QMenu" name="NoItemsContextMenu">
   <addaction name="DelDupsAction"/>
   <addaction name="SelRipOffsAction"/>
+  <addaction name="ShowStatisticAction"/>
   <action name="DelDupsAction">
    <property name="icon">
     <iconset>
@@ -22,6 +23,16 @@
    </property>
    <property name="text">
     <string>Select all rip-offs</string>
+   </property>
+  </action>
+  <action name="ShowStatisticAction">
+   <property name="icon">
+    <iconset>
+     <normalon>:/playlist/statistic.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Show total statistic</string>
    </property>
   </action>
  </widget>

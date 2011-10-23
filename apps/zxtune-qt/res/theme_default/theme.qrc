@@ -41,6 +41,7 @@
     <file alias="delduplicates.png">list_delduplicates.png</file>
     <file alias="selripoffs.png">list_selripoffs.png</file>
     <file alias="info.png">app_about.png</file>
+    <file alias="statistic.png">list_statistic.png</file>
   </qresource>
   <qresource prefix="/setup">
     <file alias="loop_off.png">list_looped.png</file>

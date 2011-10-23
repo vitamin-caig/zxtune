@@ -11,6 +11,7 @@
   <addaction name="SelRipOffsAction"/>
   <addaction name="separator"/>
   <addaction name="CopyToClipboardAction"/>
+  <addaction name="ShowStatisticAction"/>
   <action name="InfoAction">
    <property name="icon">
     <iconset>
@@ -74,6 +75,16 @@
   <action name="CopyToClipboardAction">
    <property name="text">
     <string>Copy all paths</string>
+   </property>
+  </action>
+  <action name="ShowStatisticAction">
+   <property name="icon">
+    <iconset>
+     <normalon>:/playlist/statistic.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Show statistic</string>
    </property>
   </action>
  </widget>

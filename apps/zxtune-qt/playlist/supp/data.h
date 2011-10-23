@@ -17,6 +17,7 @@ Author:
 
 //common includes
 #include <parameters.h>
+#include <time_tools.h>
 //library includes
 #include <core/module_holder.h>
 //boost includes
@@ -41,11 +42,12 @@ namespace Playlist
       virtual String GetFullPath() const = 0;
       virtual String GetType() const = 0;
       virtual String GetTitle() const = 0;
-      virtual unsigned GetDurationValue() const = 0;
+      virtual Time::Milliseconds GetDuration() const = 0;
       virtual String GetDurationString() const = 0;
       virtual String GetTooltip() const = 0;
       virtual uint32_t GetChecksum() const = 0;
       virtual uint32_t GetCoreChecksum() const = 0;
+      virtual std::size_t GetSize() const = 0;
     };
 
     class Callback

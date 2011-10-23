@@ -52,3 +52,12 @@ __cpp> "#endif //__TEXT_TEXT_H_DEFINED__\n"
 
 < CONTEXTMENU_STATUS
 > "%1% items"
+
+< BASIC_STATISTIC_TEMPLATE
+> "%1% items total (%2% are invalid(s))\n"
+> "Total duration: %3%\n"
+> "Total size: %4% bytes\n"
+> "%5% different modules types"
+
+< TYPE_STATISTIC_TEMPLATE
+> "%1%: %2% item(s)"

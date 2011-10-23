@@ -104,9 +104,9 @@ namespace
       return Path;
     }
 
-    virtual unsigned GetDurationValue() const
+    virtual Time::Milliseconds GetDuration() const
     {
-      return 0;
+      return Time::Milliseconds();
     }
 
     virtual String GetDurationString() const
@@ -123,7 +123,13 @@ namespace
     {
       return 0;
     }
+
     virtual uint32_t GetCoreChecksum() const
+    {
+      return 0;
+    }
+
+    virtual std::size_t GetSize() const
     {
       return 0;
     }
@@ -213,10 +219,10 @@ namespace
       return Delegate->GetTitle();
     }
 
-    virtual unsigned GetDurationValue() const
+    virtual Time::Milliseconds GetDuration() const
     {
       AcquireDelegate();
-      return Delegate->GetDurationValue();
+      return Delegate->GetDuration();
     }
 
     virtual String GetDurationString() const
@@ -241,6 +247,12 @@ namespace
     {
       AcquireDelegate();
       return Delegate->GetCoreChecksum();
+    }
+
+    virtual std::size_t GetSize() const
+    {
+      AcquireDelegate();
+      return Delegate->GetSize();
     }
   private:
     void AcquireDelegate() const

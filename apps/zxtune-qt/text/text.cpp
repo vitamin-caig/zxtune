@@ -5,6 +5,13 @@
 
 namespace Text
 {
+extern const Char BASIC_STATISTIC_TEMPLATE[] = {
+  '%','1','%',' ','i','t','e','m','s',' ','t','o','t','a','l',' ','(','%','2','%',' ','a','r','e',' ','i','n',
+  'v','a','l','i','d','(','s',')',')','\n',
+  'T','o','t','a','l',' ','d','u','r','a','t','i','o','n',':',' ','%','3','%','\n',
+  'T','o','t','a','l',' ','s','i','z','e',':',' ','%','4','%',' ','b','y','t','e','s','\n',
+  '%','5','%',' ','d','i','f','f','e','r','e','n','t',' ','m','o','d','u','l','e','s',' ','t','y','p','e','s',0
+};
 extern const Char CONTEXTMENU_STATUS[] = {
   '%','1','%',' ','i','t','e','m','s',0
 };
@@ -45,6 +52,9 @@ extern const Char TOOLTIP_TEMPLATE[] = {
 };
 extern const Char TYPEICONS_RESOURCE_PREFIX[] = {
   ':','/','t','y','p','e','s','/',0
+};
+extern const Char TYPE_STATISTIC_TEMPLATE[] = {
+  '%','1','%',':',' ','%','2','%',' ','i','t','e','m','(','s',')',0
 };
 }//namespace Text
 #endif //__TEXT_TEXT_H_DEFINED__

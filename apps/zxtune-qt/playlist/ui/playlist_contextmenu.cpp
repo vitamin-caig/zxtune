@@ -22,13 +22,17 @@ Author:
 //common includes
 #include <format.h>
 //library includes
+#include <async/signals_collector.h>
 #include <core/module_attrs.h>
+//std includes
+#include <numeric>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/algorithm/string/join.hpp>
 //qt includes
 #include <QtGui/QClipboard>
 #include <QtGui/QMenu>
+#include <QtGui/QMessageBox>
 //text includes
 #include "text/text.h"
 
@@ -46,6 +50,7 @@ namespace
 
       receiver.connect(DelDupsAction, SIGNAL(triggered()), SLOT(RemoveAllDuplicates()));
       receiver.connect(SelRipOffsAction, SIGNAL(triggered()), SLOT(SelectAllRipOffs()));
+      receiver.connect(ShowStatisticAction, SIGNAL(triggered()), SLOT(ShowAllStatistic()));
     }
   };
 
@@ -85,6 +90,7 @@ namespace
       receiver.connect(DelDupsAction, SIGNAL(triggered()), SLOT(RemoveDuplicatesInSelected()));
       receiver.connect(SelRipOffsAction, SIGNAL(triggered()), SLOT(SelectRipOffsInSelected()));
       receiver.connect(CopyToClipboardAction, SIGNAL(triggered()), SLOT(CopyPathToClipboard()));
+      receiver.connect(ShowStatisticAction, SIGNAL(triggered()), SLOT(ShowStatisticOfSelected()));
     }
   };
 
@@ -161,6 +167,83 @@ namespace
     }
   private:
     StringArray Result;
+  };
+
+  class StatisticSource
+  {
+  public:
+    typedef boost::shared_ptr<const StatisticSource> Ptr;
+    virtual ~StatisticSource() {}
+
+    virtual String GetBasicStatistic() const = 0;
+    virtual String GetDetailedStatistic() const = 0;
+  };
+
+  void ShowStatistic(const StatisticSource& src, QWidget& parent)
+  {
+    QMessageBox msgBox(QMessageBox::Information, QString::fromUtf8("Statistic:"), ToQString(src.GetBasicStatistic()),
+      QMessageBox::Ok, &parent);
+    msgBox.setDetailedText(ToQString(src.GetDetailedStatistic()));
+    msgBox.exec();
+  }
+
+  class StatisticCollector : public Playlist::Model::Visitor
+                           , public StatisticSource
+  {
+  public:
+    StatisticCollector()
+      : Processed()
+      , Invalids()
+      , Duration()
+      , Size()
+    {
+    }
+
+    virtual void OnItem(Playlist::Model::IndexType /*index*/, Playlist::Item::Data::Ptr data)
+    {
+      //check for the data first to define is data valid or not
+      const String type = data->GetType();
+      if (!data->IsValid())
+      {
+        ++Invalids;
+        return;
+      }
+      assert(!type.empty());
+      ++Processed;
+      Duration += data->GetDuration();
+      Size += data->GetSize();
+      ++Types[type];
+    }
+
+    virtual String GetBasicStatistic() const
+    {
+      const String duration = Strings::FormatTime(Duration.Get(), 1000);
+      return Strings::Format(Text::BASIC_STATISTIC_TEMPLATE,
+        Processed, Invalids,
+        duration,
+        Size,
+        Types.size()
+        );
+    }
+
+    virtual String GetDetailedStatistic() const
+    {
+      return std::accumulate(Types.begin(), Types.end(), String(), &TypeStatisticToString);
+    }
+  private:
+    static String TypeStatisticToString(const String& prev, const std::pair<String, std::size_t>& item)
+    {
+      const String& next = Strings::Format(Text::TYPE_STATISTIC_TEMPLATE, item.first, item.second);
+      return prev.empty()
+        ? next
+        : prev + '\n' + next;
+    }
+  private:
+    std::size_t Processed;
+    std::size_t Invalids;
+    Time::Stamp<uint64_t, 1000> Duration;
+    uint64_t Size;
+    std::map<String, std::size_t> Types;
   };
 
   template<class T>
@@ -276,7 +359,6 @@ namespace
     }
   };
 
-
   class RemoveDupsOfSelectedOperation : public Playlist::Item::StorageModifyOperation
   {
   public:
@@ -306,7 +388,6 @@ namespace
 
   class RemoveDupsInSelectedOperation : public Playlist::Item::StorageModifyOperation
   {
-  public:
   public:
     explicit RemoveDupsInSelectedOperation(const Playlist::Model::IndexSet& items)
       : SelectedItems(items)
@@ -372,7 +453,6 @@ namespace
     Playlist::UI::TableView& View;
   };
 
-
   class SelectRipOffsInSelectedOperation : public Playlist::Item::StorageAccessOperation
   {
   public:
@@ -393,6 +473,73 @@ namespace
   private:
     const Playlist::Model::IndexSet& SelectedItems;
     Playlist::UI::TableView& View;
+  };
+
+  class CollectClipboardPathsOperation : public Playlist::Item::StorageAccessOperation
+  {
+  public:
+    explicit CollectClipboardPathsOperation(const Playlist::Model::IndexSet& items)
+      : SelectedItems(items)
+    {
+    }
+
+    virtual void Execute(const Playlist::Item::Storage& stor)
+    {
+      PathesCollector collector;
+      stor.ForSpecifiedItems(SelectedItems, collector);
+      const String result = collector.GetResult();
+      QApplication::clipboard()->setText(ToQString(result));
+    }
+  private:
+    const Playlist::Model::IndexSet& SelectedItems;
+  };
+
+  class CollectStatisticOperation : public Playlist::Item::StorageAccessOperation
+  {
+  public:
+    typedef boost::shared_ptr<CollectStatisticOperation> Ptr;
+
+    CollectStatisticOperation()
+      : SelectedItems()
+      , Signals(Async::Signals::Dispatcher::Create())
+    {
+    }
+
+    explicit CollectStatisticOperation(const Playlist::Model::IndexSet& items)
+      : SelectedItems(&items)
+      , Signals(Async::Signals::Dispatcher::Create())
+    {
+    }
+
+    virtual void Execute(const Playlist::Item::Storage& stor)
+    {
+      Collector.reset(new StatisticCollector());
+      if (SelectedItems)
+      {
+        stor.ForSpecifiedItems(*SelectedItems, *Collector);
+      }
+      else
+      {
+        stor.ForAllItems(*Collector);
+      }
+      Signals->Notify(1);
+    }
+
+    StatisticSource::Ptr GetResult() const
+    {
+      //TODO: use promise/future
+      const Async::Signals::Collector::Ptr collector = Signals->CreateCollector(1);
+      while (!collector->WaitForSignals(100))
+      {
+        QCoreApplication::processEvents();
+      }
+      assert(Collector);
+      return Collector;
+    }
+  private:
+    const Playlist::Model::IndexSet* const SelectedItems;
+    const Async::Signals::Dispatcher::Ptr Signals;
+    boost::shared_ptr<StatisticCollector> Collector;
   };
 
   class ItemsContextMenuImpl : public Playlist::UI::ItemsContextMenu
@@ -496,11 +643,27 @@ namespace
 
     virtual void CopyPathToClipboard() const
     {
+      const Playlist::Item::StorageAccessOperation::Ptr op(new CollectClipboardPathsOperation(SelectedItems));
       const Playlist::Model::Ptr model = Controller->GetModel();
-      PathesCollector collector;
-      model->ForSpecifiedItems(SelectedItems, collector);
-      const String result = collector.GetResult();
-      QApplication::clipboard()->setText(ToQString(result));
+      model->PerformOperation(op);
+    }
+
+    virtual void ShowAllStatistic() const
+    {
+      const CollectStatisticOperation::Ptr op(new CollectStatisticOperation());
+      const Playlist::Model::Ptr model = Controller->GetModel();
+      model->PerformOperation(op);
+      const StatisticSource::Ptr res = op->GetResult();
+      ShowStatistic(*res, View);
+    }
+
+    virtual void ShowStatisticOfSelected() const
+    {
+      const CollectStatisticOperation::Ptr op(new CollectStatisticOperation(SelectedItems));
+      const Playlist::Model::Ptr model = Controller->GetModel();
+      model->PerformOperation(op);
+      const StatisticSource::Ptr res = op->GetResult();
+      ShowStatistic(*res, View);
     }
   private:
     std::auto_ptr<QMenu> CreateMenu()
