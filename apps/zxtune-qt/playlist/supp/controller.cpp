@@ -62,6 +62,11 @@ namespace
       return Item.get();
     }
 
+    virtual unsigned GetIndex() const
+    {
+      return Index;
+    }
+
     virtual Playlist::Item::State GetState() const
     {
       return State;

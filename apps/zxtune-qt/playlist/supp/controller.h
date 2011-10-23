@@ -60,6 +60,7 @@ namespace Playlist
 
       //access
       virtual const Data* GetData() const = 0;
+      virtual unsigned GetIndex() const = 0;
       virtual State GetState() const = 0;
       //change
       virtual void SetState(State state) = 0;

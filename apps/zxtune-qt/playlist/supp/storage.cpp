@@ -20,6 +20,79 @@ Author:
 
 namespace
 {
+  typedef std::pair<Playlist::Item::Data::Ptr, Playlist::Model::IndexType> IndexedItem;
+
+  //simple std::list wrapper that guarantees contstant complexivity of size() method
+  class ItemsContainer : private std::list<IndexedItem>
+  {
+    typedef std::list<IndexedItem> Parent;
+  public:
+    using Parent::value_type;
+    using Parent::const_iterator;
+    using Parent::iterator;
+
+    using Parent::begin;
+    using Parent::end;
+    using Parent::sort;
+
+    ItemsContainer()
+      : Size()
+    {
+    }
+
+    ItemsContainer(const ItemsContainer& rh)
+      : Parent(rh)
+      , Size(rh.Size)
+    {
+    }
+
+    Parent::size_type size() const
+    {
+      return Size;
+    }
+
+    bool empty() const
+    {
+      return 0 == Size;
+    }
+
+    void push_back(const value_type& val)
+    {
+      Parent::push_back(val);
+      ++Size;
+    }
+
+    void erase(iterator it)
+    {
+      Parent::erase(it);
+      --Size;
+    }
+
+    void splice(iterator position, ItemsContainer& x, iterator i)
+    {
+      Parent::splice(position, x, i);
+      ++Size;
+      --x.Size;
+    }
+
+    void splice(iterator position, ItemsContainer& x, iterator first, iterator last)
+    {
+      const std::size_t count = std::distance(first, last);
+      Parent::splice(position, x, first, last);
+      Size += count;
+      x.Size -= count;
+    }
+
+    void splice(iterator position, ItemsContainer& x)
+    {
+      Parent::splice(position, x);
+      Size += x.Size;
+      x.Size = 0;
+    }
+  private:
+    std::size_t Size;
+  };
+
   template<class Container, class IteratorType>
   void GetChoosenItems(Container& items, const Playlist::Model::IndexSet& indices, std::vector<IteratorType>& result)
   {
@@ -63,6 +136,17 @@ namespace
   class LinearStorage : public Item::Storage
   {
   public:
+    LinearStorage()
+      : Version(0)
+    {
+    }
+
+    LinearStorage(const LinearStorage& rh)
+      : Items(rh.Items)
+      , Version(0)
+    {
+    }
+
     virtual Item::Storage::Ptr Clone() const
     {
       return Item::Storage::Ptr(new LinearStorage(*this));
@@ -82,10 +166,16 @@ namespace
         boost::bind(&UpdateItemIndex, _1, _2));
     }
 
+    virtual unsigned GetVersion() const
+    {
+      return Version;
+    }
+
     virtual void AddItem(Item::Data::Ptr item)
     {
       const IndexedItem idxItem(item, static_cast<Model::IndexType>(Items.size()));
       Items.push_back(idxItem);
+      Modify();
     }
 
     virtual std::size_t CountItems() const
@@ -146,6 +236,7 @@ namespace
     virtual void Sort(const Item::Comparer& cmp)
     {
       Items.sort(ComparerWrapper(cmp));
+      Modify();
     }
 
     virtual void RemoveItems(const Model::IndexSet& indices)
@@ -159,11 +250,9 @@ namespace
       assert(indices.size() == itersToRemove.size());
       std::for_each(itersToRemove.begin(), itersToRemove.end(),
         boost::bind(&ItemsContainer::erase, &Items, _1));
+      Modify();
     }
   private:
-    typedef std::pair<Item::Data::Ptr, Model::IndexType> IndexedItem;
-    typedef std::list<IndexedItem> ItemsContainer;
-
     static Model::OldToNewIndexMap::value_type MakeIndexPair(const IndexedItem& item, Model::IndexType idx)
     {
       return Model::OldToNewIndexMap::value_type(item.second, idx);
@@ -227,9 +316,17 @@ namespace
       //gathering back
       Items.splice(Items.end(), movedItems);
       Items.splice(Items.end(), afterItems);
+      Modify();
     }
+
+    void Modify()
+    {
+      ++Version;
+    }
+
   private:
     ItemsContainer Items;
+    unsigned Version;
   };
 }
 

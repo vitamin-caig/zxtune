@@ -258,6 +258,11 @@ namespace
       return Container->GetItem(index);
     }
 
+    virtual unsigned GetVersion() const
+    {
+      return Container->GetVersion();
+    }
+
     virtual void ForAllItems(Visitor& visitor) const
     {
       QMutexLocker locker(&SyncAccess);
@@ -309,18 +314,17 @@ namespace
     virtual Qt::ItemFlags flags(const QModelIndex& index) const
     {
       const Qt::ItemFlags defaultFlags = Playlist::Model::flags(index);
-
-      const Playlist::Item::Data* const indexItem = index.isValid()
-        ? static_cast<const Playlist::Item::Data*>(index.internalPointer())
-        : 0;
-      if (indexItem && indexItem->IsValid())
+      const Qt::ItemFlags validFlags = Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled | defaultFlags;
+      const Qt::ItemFlags invalidFlags = Qt::ItemIsDropEnabled | defaultFlags;
+      if (index.internalId() != Container->GetVersion())
       {
-         return Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled | defaultFlags;
+        return invalidFlags;
       }
-      else
-      {
-        return Qt::ItemIsDropEnabled | defaultFlags;
-      }
+      //TODO: do not access item
+      const Playlist::Item::Data::Ptr item = GetItem(index.row());
+      return item && item->IsValid()
+        ? validFlags
+        : invalidFlags;
     }
 
     virtual QStringList mimeTypes() const
@@ -386,14 +390,14 @@ namespace
     virtual bool canFetchMore(const QModelIndex& /*index*/) const
     {
       QMutexLocker locker(&SyncAccess);
-      return FetchedItemsCount < static_cast<int>(Container->CountItems());
+      return FetchedItemsCount < Container->CountItems();
     }
 
     virtual void fetchMore(const QModelIndex& /*index*/)
     {
       QMutexLocker locker(&SyncAccess);
-      const int nextCount = static_cast<int>(Container->CountItems());
-      beginInsertRows(EMPTY_INDEX, FetchedItemsCount, nextCount - 1);
+      const std::size_t nextCount = Container->CountItems();
+      beginInsertRows(EMPTY_INDEX, static_cast<int>(FetchedItemsCount), nextCount - 1);
       FetchedItemsCount = nextCount;
       endInsertRows();
     }
@@ -405,10 +409,9 @@ namespace
         return EMPTY_INDEX;
       }
       QMutexLocker locker(&SyncAccess);
-      if (const Playlist::Item::Data::Ptr item = Container->GetItem(row))
+      if (row < static_cast<int>(Container->CountItems()))
       {
-        const void* const data = static_cast<const void*>(item.get());
-        return createIndex(row, column, const_cast<void*>(data));
+        return createIndex(row, column, Container->GetVersion());
       }
       return EMPTY_INDEX;
     }
@@ -423,7 +426,7 @@ namespace
       QMutexLocker locker(&SyncAccess);
       return index.isValid()
         ? 0
-        : FetchedItemsCount;
+        : static_cast<int>(FetchedItemsCount);
     }
 
     virtual int columnCount(const QModelIndex& index) const
@@ -460,7 +463,6 @@ namespace
       if (const Playlist::Item::Data::Ptr item = Container->GetItem(itemNum))
       {
         const RowDataProvider& provider = Providers.GetProvider(role);
-        //assert(static_cast<const void*>(item.get()) == index.internalPointer());
         return provider.GetData(*item, fieldNum);
       }
       return QVariant();
@@ -506,7 +508,7 @@ namespace
 
     void NotifyAboutIndexChanged()
     {
-      FetchedItemsCount = static_cast<int>(Container->CountItems());
+      FetchedItemsCount = Container->CountItems();
       Playlist::Model::OldToNewIndexMap remapping;
       Container->GetIndexRemapping(remapping);
       Container->ResetIndices();
@@ -517,7 +519,7 @@ namespace
     const DataProvidersSet Providers;
     mutable QMutex SyncAccess;
     mutable QMutex SyncModification;
-    int FetchedItemsCount;
+    std::size_t FetchedItemsCount;
     Playlist::Item::Storage::Ptr Container;
     mutable boost::thread AsyncExecution;
   };

@@ -38,22 +38,25 @@ namespace
   class PlayitemStateCallbackImpl : public Playlist::Item::StateCallback
   {
   public:
-    explicit PlayitemStateCallbackImpl(Playlist::Item::Iterator& iter)
-      : Iterator(iter)
+    PlayitemStateCallbackImpl(Playlist::Model& model, Playlist::Item::Iterator& iter)
+      : Model(model)
+      , Iterator(iter)
     {
     }
 
     virtual Playlist::Item::State GetState(const QModelIndex& index) const
     {
       assert(index.isValid());
-      if (const Playlist::Item::Data* const indexItem = static_cast<const Playlist::Item::Data*>(index.internalPointer()))
+      if (index.internalId() == Model.GetVersion())
       {
-        const Playlist::Item::Data* operationalItem = Iterator.GetData();
-        if (indexItem == operationalItem)
+        const Playlist::Model::IndexType row = index.row();
+        if (row == Iterator.GetIndex())
         {
           return Iterator.GetState();
         }
-        else if (indexItem->IsValid())
+        //TODO: do not access item
+        const Playlist::Item::Data::Ptr item = Model.GetItem(row);
+        if (item && item->IsValid())
         {
           return Playlist::Item::STOPPED;
         }
@@ -61,6 +64,7 @@ namespace
       return Playlist::Item::ERROR;
     }
   private:
+    const Playlist::Model& Model;
     const Playlist::Item::Iterator& Iterator;
   };
 
@@ -101,7 +105,7 @@ namespace
       : Playlist::UI::View(parent)
       , Controller(playlist)
       , Options(PlaylistOptionsWrapper(params))
-      , State(*Controller->GetIterator())
+      , State(*Controller->GetModel(), *Controller->GetIterator())
       , Layout(new QVBoxLayout(this))
       , ScannerView(Playlist::UI::ScannerView::Create(*this, Controller->GetScanner()))
       , View(Playlist::UI::TableView::Create(*this, State, Controller->GetModel()))
