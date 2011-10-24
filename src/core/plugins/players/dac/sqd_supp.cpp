@@ -187,6 +187,7 @@ namespace SQD
     VOLUME_SLIDE,
   };
 
+  const std::size_t BIG_SAMPLE_ADDR = 0x8000;
   const std::size_t SAMPLES_ADDR = 0xc000;
   const std::size_t SAMPLES_LIMIT = 0x10000;
 
@@ -304,7 +305,7 @@ namespace
         const SQD::LayoutInfo& layout = header->Layouts[layIdx];
         const std::size_t addr = fromLE(layout.Address);
         const std::size_t size = 256 * layout.Sectors;
-        if (addr >= SQD::SAMPLES_ADDR && addr + size <= SQD::SAMPLES_LIMIT)
+        if (addr >= SQD::BIG_SAMPLE_ADDR && addr + size <= SQD::SAMPLES_LIMIT)
         {
           regions[layout.Bank] = std::make_pair(lastData, size);
         }
@@ -317,10 +318,13 @@ namespace
       {
         const SQD::SampleInfo& srcSample = header->Samples[samIdx];
         const std::size_t addr = fromLE(srcSample.Start);
-        if (addr < SQD::SAMPLES_ADDR)
+        if (addr < SQD::BIG_SAMPLE_ADDR)
         {
           continue;
         }
+        const std::size_t sampleBase = addr < SQD::SAMPLES_ADDR
+          ? SQD::BIG_SAMPLE_ADDR
+          : SQD::SAMPLES_ADDR;
         const std::size_t loop = fromLE(srcSample.Loop);
         if (loop < addr)
         {
@@ -332,12 +336,12 @@ namespace
           continue;
         }
         const std::size_t size = std::min(SQD::SAMPLES_LIMIT - addr, it->second.second);//TODO: get from samples layout
-        const std::size_t sampleOffset = it->second.first + addr - SQD::SAMPLES_ADDR;
+        const std::size_t sampleOffset = it->second.first + addr - sampleBase;
         const uint8_t* const sampleStart = &data[sampleOffset];
         const uint8_t* const sampleEnd = sampleStart + size;
         SQD::Sample& dstSample = Data->Samples[samIdx];
         dstSample.Data.assign(sampleStart, std::find(sampleStart, sampleEnd, 0));
-        dstSample.Loop = srcSample.IsLooped ? loop - SQD::SAMPLES_ADDR : dstSample.Data.size();
+        dstSample.Loop = srcSample.IsLooped ? loop - sampleBase : dstSample.Data.size();
       }
       Data->LoopPosition = header->Loop;
       Data->InitialTempo = header->Tempo;
@@ -598,19 +602,31 @@ namespace
     const SQD::Header* const header(safe_ptr_cast<const SQD::Header*>(data.Data()));
     //check layout
     std::size_t lastData = sizeof(*header);
-    std::set<uint_t> banks;
+    std::set<uint_t> banks, bigBanks;
     for (std::size_t layIdx = 0; layIdx != header->Layouts.size(); ++layIdx)
     {
       const SQD::LayoutInfo& layout = header->Layouts[layIdx];
       const std::size_t addr = fromLE(layout.Address);
       const std::size_t size = 256 * layout.Sectors;
-      if (addr >= SQD::SAMPLES_ADDR && addr + size <= SQD::SAMPLES_LIMIT)
+      if (addr + size > SQD::SAMPLES_LIMIT)
+      {
+        continue;
+      }
+      if (addr >= SQD::SAMPLES_ADDR)
       {
         banks.insert(layout.Bank);
+      }
+      else if (addr >= SQD::BIG_SAMPLE_ADDR)
+      {
+        bigBanks.insert(layout.Bank);
       }
       lastData += size;
     }
     if (lastData > size)
+    {
+      return false;
+    }
+    if (bigBanks.size() > 1)
     {
       return false;
     }
@@ -620,7 +636,7 @@ namespace
     {
       const SQD::SampleInfo& srcSample = header->Samples[samIdx];
       const std::size_t addr = fromLE(srcSample.Start);
-      if (addr < SQD::SAMPLES_ADDR)
+      if (addr < SQD::BIG_SAMPLE_ADDR)
       {
         continue;
       }
@@ -629,7 +645,8 @@ namespace
       {
         return false;
       }
-      if (!banks.count(srcSample.Bank))
+      const bool bigSample = addr < SQD::SAMPLES_ADDR;
+      if (!(bigSample ? bigBanks : banks).count(srcSample.Bank))
       {
         return false;
       }
@@ -651,7 +668,7 @@ namespace
   const std::string SQD_FORMAT(
     "+192+"
     //layouts
-    "(0080-c0 58-5f 01-40){8}"
+    "(0080-c0 58-5f 01-80){8}"
     "+32+"
     //title
     "20-7f{32}"

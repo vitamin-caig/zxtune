@@ -7,6 +7,7 @@ install_samples:
 	$(call copyfile_cmd,$(path_step)/samples/pdt/TechCent.M,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(path_step)/samples/pt2/Illusion.pt2,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(path_step)/samples/pt3/Speccy2.pt3,$(DESTDIR)/Samples)
+	$(call copyfile_cmd,$(path_step)/samples/sqd/Maskarad.sqd,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(path_step)/samples/st11/SHOCK4.S,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(path_step)/samples/stc/stracker.stc,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(path_step)/samples/stp/ZXGuide3_07.stp,$(DESTDIR)/Samples)
