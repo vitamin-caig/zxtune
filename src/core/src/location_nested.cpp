@@ -83,11 +83,13 @@ namespace ZXTune
 {
   DataLocation::Ptr CreateNestedLocation(DataLocation::Ptr parent, Binary::Container::Ptr subData)
   {
+    assert(subData);
     return boost::make_shared<NestedDataLocation>(parent, subData);
   }
 
   DataLocation::Ptr CreateNestedLocation(DataLocation::Ptr parent, Binary::Container::Ptr subData, Plugin::Ptr subPlugin, const String& subPath)
   {
+    assert(subData);
     return boost::make_shared<NestedLocation>(parent, subPlugin, subData, subPath);
   }
 }

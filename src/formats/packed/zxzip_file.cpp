@@ -531,6 +531,10 @@ namespace ZXZip
               substring.push_back(curEntry.Value);
               curCode = curEntry.Parent;
             }
+            if (substring.empty())
+            {
+              throw std::exception();
+            }
             if (isFree)
             {
               substring.front() = substring.back();

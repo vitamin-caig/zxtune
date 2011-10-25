@@ -792,7 +792,14 @@ namespace
       const std::string& value = str.substr(delim + 1);
       if (param == MODULE_VERSION)
       {
-        Version = uint_t(10 * std::atof(value.c_str()) + 0.5);
+        static const uint64_t PATTERN[] =
+        {
+          Range<'0', '9'>::Mask, Symbol<'.'>::Mask, Range<'0', '9'>::Mask, 0
+        };
+        if (Match(PATTERN, value))
+        {
+          Version = 10 * FromHex(value[0]) + FromHex(value[2]);
+        }
       }
       else if (param == MODULE_TITLE)
       {

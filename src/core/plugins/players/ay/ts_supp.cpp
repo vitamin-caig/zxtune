@@ -380,9 +380,9 @@ namespace
       const std::size_t secondModuleSize = fromLE(footer.Size2);
       const std::size_t totalModulesSize = firstModuleSize + secondModuleSize;
       const std::size_t dataSize = footerOffset + sizeof(footer);
-      if (totalModulesSize != footerOffset)
+      if (!totalModulesSize || totalModulesSize != footerOffset)
       {
-        const std::size_t lookahead = totalModulesSize > footerOffset
+        const std::size_t lookahead = !totalModulesSize || totalModulesSize > footerOffset
           ? dataSize
           : footerOffset - totalModulesSize;
         return Analysis::CreateUnmatchedResult(lookahead);

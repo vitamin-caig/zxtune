@@ -326,6 +326,10 @@ namespace
           Data.Positions.push_back(*curPos / 3);
         }
       }
+      if (Data.Positions.empty())
+      {
+        throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
+      }
       return res;
     }
   private:
