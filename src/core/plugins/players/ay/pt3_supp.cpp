@@ -42,7 +42,7 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Module;
 
-  const std::size_t MAX_MODULE_SIZE = 0x3a00;
+  const std::size_t MAX_MODULE_SIZE = 0xc000;
   const uint_t MAX_PATTERNS_COUNT = 85;
   const uint_t MAX_PATTERN_SIZE = 256;//really no limit for PT3.58+
   const uint_t MAX_SAMPLES_COUNT = 32;
@@ -785,10 +785,6 @@ namespace
     "01-ff"      // uint8_t Length;
     "00-ff"      // uint8_t Loop;
     "?00-3a"     // uint16_t PatternsOffset;
-    //boost::array<uint16_t, MAX_SAMPLES_COUNT> SamplesOffsets;
-    "(?00-3a){32}"
-    //boost::array<uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
-    "(?00-3a){16}"
   );
 
   //////////////////////////////////////////////////////////////////////////
