@@ -1,25 +1,25 @@
 #include "../utils.h"
 
-int main()
+namespace
 {
-  Dump etalon;
-  Test::OpenFile("etalon.bin", etalon);
-  Dump zip;
-  //0ffsets:
-  //0
-  //0x4035
-  //0x6160
-  //0x826e
-  //0xa36e
-  //0xc433
-  //0xe4e9
-  //0x105a2
-  //0x1265a
-  //0x1470b
-  Test::OpenFile("test.zip", zip);
-
-  try
+  void TestRegularFiles()
   {
+    Dump etalon;
+    Test::OpenFile("etalon.bin", etalon);
+    Dump zip;
+    //0ffsets:
+    //0
+    //0x4035
+    //0x6160
+    //0x826e
+    //0xa36e
+    //0xc433
+    //0xe4e9
+    //0x105a2
+    //0x1265a
+    //0x1470b
+    Test::OpenFile("test.zip", zip);
+
     const Formats::Packed::Decoder::Ptr packed = Formats::Packed::CreateZipDecoder();
     std::map<std::string, Dump> tests;
     const uint8_t* const data = &zip[0];
@@ -34,7 +34,10 @@ int main()
     tests["-p8"] = Dump(data + 0x1265a, data + 0x1470b);
     tests["-p9"] = Dump(data + 0x1470b, data + 0x167bc);
     Test::TestPacked(*packed, etalon, tests);
+  }
 
+  void TestRegularArchive()
+  {
     const Formats::Archived::Decoder::Ptr archived = Formats::Archived::CreateZipDecoder();
     std::vector<std::string> files;
     files.push_back("p0.bin");
@@ -48,6 +51,36 @@ int main()
     files.push_back("p8.bin");
     files.push_back("p9.bin");
     Test::TestArchived(*archived, "etalon.bin", "test.zip", files);
+  }
+
+  void TestStreamed()
+  {
+    const Formats::Archived::Decoder::Ptr archived = Formats::Archived::CreateZipDecoder();
+    {
+      std::vector<std::string> files;
+      files.push_back("p0.bin");
+      Test::TestArchived(*archived, "etalon.bin", "streamed_p0.zip", files);
+    }
+    {
+      std::vector<std::string> files;
+      files.push_back("p9.bin");
+      Test::TestArchived(*archived, "etalon.bin", "streamed_p9.zip", files);
+    }
+    {
+      std::vector<std::string> files;
+      files.push_back("p9.zip");
+      Test::TestArchived(*archived, "streamed_p9.zip", "streamed_p9_p0.zip", files);
+    }
+  }
+}
+
+int main()
+{
+  try
+  {
+    TestRegularFiles();
+    TestRegularArchive();
+    TestStreamed();
   }
   catch (const std::exception& e)
   {

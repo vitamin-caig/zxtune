@@ -97,6 +97,16 @@ namespace Zip
       return 0;
     }
 
+    std::auto_ptr<const Packed::Zip::CompressedFile> GetFile() const
+    {
+      using namespace Packed::Zip;
+      if (const LocalFileHeader* header = GetBlock<LocalFileHeader>())
+      {
+        return CompressedFile::Create(*header, Limit - Offset);
+      }
+      return std::auto_ptr<const CompressedFile>();
+    }
+
     std::size_t GetOffset() const
     {
       return Offset;
@@ -111,9 +121,12 @@ namespace Zip
     std::size_t GetBlockSize() const
     {
       using namespace Packed::Zip;
-      if (const LocalFileHeader* file = GetBlock<LocalFileHeader>())
+      if (const LocalFileHeader* header = GetBlock<LocalFileHeader>())
       {
-        return file->GetTotalFileSize();
+        const std::auto_ptr<const CompressedFile> file = CompressedFile::Create(*header, Limit - Offset);
+        return file.get()
+          ? file->GetPackedSize()
+          : 0;
       }
       else if (const LocalFileFooter* footer = GetBlock<LocalFileFooter>())
       {
@@ -147,6 +160,12 @@ namespace Zip
     std::size_t Offset;
   };
 
+  String DecodeUtf8String(const std::string& str)
+  {
+    //TODO:
+    return String(str.begin(), str.end());
+  }
+
   //TODO: make BlocksIterator
   class FileIterator
   {
@@ -179,7 +198,11 @@ namespace Zip
       assert(!IsEof());
       if (const Packed::Zip::LocalFileHeader* header = Blocks.GetBlock<Packed::Zip::LocalFileHeader>())
       {
-        return String(header->Name, header->Name + fromLE(header->NameSize));
+        const std::string rawName = std::string(header->Name, header->Name + fromLE(header->NameSize));
+        const bool isUtf8 = 0 != (fromLE(header->Flags) & Packed::Zip::FILE_UTF8);
+        return isUtf8
+          ? DecodeUtf8String(rawName)
+          : String(rawName.begin(), rawName.end());
       }
       assert(!"Failed to get name");
       return String();
@@ -188,10 +211,11 @@ namespace Zip
     Archived::File::Ptr GetFile() const
     {
       assert(IsValid());
-      if (const Packed::Zip::LocalFileHeader* header = Blocks.GetBlock<Packed::Zip::LocalFileHeader>())
+      const std::auto_ptr<const Packed::Zip::CompressedFile> file = Blocks.GetFile();
+      if (file.get())
       {
-        const Binary::Container::Ptr data = Data.GetSubcontainer(Blocks.GetOffset(), header->GetTotalFileSize());
-        return boost::make_shared<File>(Decoder, GetName(), fromLE(header->Attributes.UncompressedSize), data);
+        const Binary::Container::Ptr data = Data.GetSubcontainer(Blocks.GetOffset(), file->GetPackedSize());
+        return boost::make_shared<File>(Decoder, GetName(), file->GetUnpackedSize(), data);
       }
       assert(!"Failed to get file");
       return Archived::File::Ptr();

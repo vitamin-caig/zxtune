@@ -154,6 +154,7 @@ namespace Test
     Dump reference;
     OpenFile(etalon, reference);
     std::cout << "Test for container '" << decoder.GetDescription() << "'" << std::endl;
+    std::cout << " test " << test << " etalon is " << etalon << std::endl;
     Dump archive;
     OpenFile(test, archive);
     const Binary::Container::Ptr testData = Binary::CreateContainer(&archive[0], archive.size());
@@ -169,11 +170,15 @@ namespace Test
     {
       if (container->CountFiles() != testNames.size())
       {
-        throw std::runtime_error("Files count mismatch");
+        std::ostringstream res;
+        res << "Files count mismatch (expected " << testNames.size() << " real " << container->CountFiles() << ")";
+        throw std::runtime_error(res.str());
       }
       if (container->Size() != archive.size())
       {
-        throw std::runtime_error("Archive size mismatch");
+        std::ostringstream res;
+        res << "Archive size mismatch (expected " << archive.size() << " real " << container->Size() << ")";
+        throw std::runtime_error(res.str());
       }
       ArchiveWalker walker(testNames, reference);
       container->ExploreFiles(walker);

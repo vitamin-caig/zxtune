@@ -81,8 +81,6 @@ namespace Formats
 
         std::size_t GetSize() const;
 
-        std::size_t GetTotalFileSize() const;
-
         bool IsSupported() const;
       } PACK_POST;
 
@@ -163,12 +161,14 @@ namespace Formats
         //+8
         uint16_t ThisDiskCentralDirectoriesCount;
         //+a
+        uint16_t TotalDirectoriesCount;
+        //+c
         uint32_t CentralDirectorySize;
-        //+e
+        //+10
         uint32_t CentralDirectoryOffset;
         //+12
-        uint32_t CommentSize;
-        //+16
+        uint16_t CommentSize;
+        //+14
         //uint8_t Comment[0];
 
         std::size_t GetSize() const;
@@ -187,6 +187,17 @@ namespace Formats
 
         std::size_t GetSize() const;
       } PACK_POST;
+
+      class CompressedFile
+      {
+      public:
+        virtual ~CompressedFile() {}
+
+        virtual std::size_t GetPackedSize() const = 0;
+        virtual std::size_t GetUnpackedSize() const = 0;
+
+        static std::auto_ptr<const CompressedFile> Create(const LocalFileHeader& hdr, std::size_t availSize);
+      };
 #ifdef USE_PRAGMA_PACK
 #pragma pack(pop)
 #endif
