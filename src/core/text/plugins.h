@@ -14,6 +14,8 @@ extern const Char CHI_PLUGIN_INFO[];
 extern const Char CONTAINER_DESCRIPTION_SUFFIX[];
 extern const Char CONTAINER_PLUGIN_PROGRESS[];
 extern const Char CONTAINER_PLUGIN_PROGRESS_NOPATH[];
+extern const Char DMM_EDITOR[];
+extern const Char DMM_PLUGIN_INFO[];
 extern const Char DST_EDITOR_AY[];
 extern const Char DST_EDITOR_DAC[];
 extern const Char DST_PLUGIN_INFO[];

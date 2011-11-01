@@ -35,6 +35,13 @@ extern const Char CONTAINER_PLUGIN_PROGRESS_NOPATH[] = {
   '%','1','%',' ','c','o','n','t','a','i','n','e','r',' ','p','r','o','c','e','s','s','i','n','g',' ','f','o',
   'r',' ','\'','%','2','%','\'',0
 };
+extern const Char DMM_EDITOR[] = {
+  'D','i','g','i','t','a','l','M','u','s','i','c','M','a','k','e','r',' ','v','1','.','x',0
+};
+extern const Char DMM_PLUGIN_INFO[] = {
+  'D','i','g','i','t','a','l','M','u','s','i','c','M','a','k','e','r',' ','m','o','d','u','l','e','s',' ','s',
+  'u','p','p','o','r','t',0
+};
 extern const Char DST_EDITOR_AY[] = {
   'D','i','g','i','t','a','l','S','t','u','d','i','o',' ','f','o','r',' ','A','Y',0
 };

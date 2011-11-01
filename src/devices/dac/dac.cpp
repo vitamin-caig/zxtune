@@ -162,6 +162,7 @@ namespace
         if (CurSample->Loop >= CurSample->Size)
         {
           Enabled = false;
+          PosInSample = 0;
         }
         else
         {
@@ -288,6 +289,18 @@ namespace
       CurrentTime = src.TimeInUs;
     }
 
+    virtual void GetChannelState(uint_t chan, DataChunk::ChannelData& dst) const
+    {
+      const ChannelState& src = State[chan];
+      dst.Enabled = src.Enabled;
+      dst.Note = src.Note;
+      dst.NoteSlide = src.NoteSlide;
+      dst.FreqSlideHz = src.FreqSlide;
+      dst.SampleNum = src.CurSample - &Samples.front();
+      dst.PosInSample = src.PosInSample / FIXED_POINT_PRECISION;
+      dst.LevelInPercents = src.Level;
+    }
+
     virtual void GetState(ChannelsState& state) const
     {
       state.resize(State.size());
@@ -332,6 +345,7 @@ namespace
       {
         assert(*state.SampleNum < Samples.size());
         chan.CurSample = &Samples[*state.SampleNum];
+        chan.PosInSample = std::min(chan.PosInSample, FIXED_POINT_PRECISION * chan.CurSample->Size - 1);
       }
       //position in sample changed
       if (state.PosInSample)

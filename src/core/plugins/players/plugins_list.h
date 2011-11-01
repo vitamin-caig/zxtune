@@ -33,6 +33,7 @@ namespace ZXTune
   void RegisterSTRSupport(PluginsRegistrator& enumerator);
   void RegisterDSTSupport(PluginsRegistrator& enumerator);
   void RegisterSQDSupport(PluginsRegistrator& enumerator);
+  void RegisterDMMSupport(PluginsRegistrator& enumerator);
 
   void RegisterPlayerPlugins(PluginsRegistrator& enumerator)
   {
@@ -52,6 +53,7 @@ namespace ZXTune
     RegisterSTRSupport(enumerator);
     RegisterDSTSupport(enumerator);
     RegisterSQDSupport(enumerator);
+    RegisterDMMSupport(enumerator);
   }
 }
 
