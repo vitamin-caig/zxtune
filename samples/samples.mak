@@ -3,6 +3,7 @@ install_samples:
 	$(call copyfile_cmd,$(path_step)/samples/asc/SANDRA.asc,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(path_step)/samples/ay/AYMD39.ay,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(path_step)/samples/chi/ducktale.chi,$(DESTDIR)/Samples)
+	$(call copyfile_cmd,$(path_step)/samples/dmm/popcorn.dmm,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(path_step)/samples/dst/EchoDreams.dst,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(path_step)/samples/pdt/TechCent.M,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(path_step)/samples/pt2/Illusion.pt2,$(DESTDIR)/Samples)
