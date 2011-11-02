@@ -161,23 +161,24 @@ namespace DMM
 
     Dump Data;
     std::size_t Loop;
-
-    void ConvertFrom4Bit()
-    {
-      Dump res(Data.size() * 2);
-      for (std::size_t idx = 0, lim = Data.size(); idx != lim; ++idx)
-      {
-        res[idx * 2] = (Data[idx] & 15) << 4;
-        res[idx * 2 + 1] = Data[idx] & 240;
-      }
-      Data.swap(res);
-    }
   };
+
+  void ConvertFrom4Bit(Dump& data)
+  {
+    Dump res(data.size() * 2);
+    for (std::size_t idx = 0, lim = data.size(); idx != lim; ++idx)
+    {
+      res[idx * 2] = (data[idx] & 15) << 4;
+      res[idx * 2 + 1] = data[idx] & 240;
+    }
+    data.swap(res);
+  }
 
   enum
   {
     NOTE_BASE = 1,
     NO_DATA = 70,
+    REST_NOTE = 61,
     SET_TEMPO = 62,
     SET_FREQ_FLOAT = 63,
     SET_VIBRATO = 64,
@@ -243,8 +244,15 @@ namespace DMM
     {
       if (note)
       {
-        dstChan.SetEnabled(true);
-        dstChan.SetNote(note - NOTE_BASE);
+        if (note != REST_NOTE)
+        {
+          dstChan.SetEnabled(true);
+          dstChan.SetNote(note - NOTE_BASE);
+        }
+        else
+        {
+          dstChan.SetEnabled(false);
+        }
       }
       const uint_t params = srcChan.SampleParam;
       if (const uint_t sample = params >> 4)
@@ -287,7 +295,7 @@ namespace DMM
         dstChan.Commands.push_back(Track::Command(VOL_DECAY, true));
         break;
       case FX_DISABLE:
-        dstChan.SetEnabled(false);
+        dstChan.Commands.push_back(Track::Command(EMPTY_CMD));
         break;
       default:
         {
@@ -354,7 +362,8 @@ namespace
         for (uint_t chanNum = 0; chanNum != DMM::CHANNELS_COUNT; ++chanNum)
         {
           const DMM::Pattern::Line::Channel& srcChan = srcLine.Channels[chanNum];
-          DMM::ParseChannel(srcChan, dstLine.Channels[chanNum]);
+          DMM::Track::Line::Chan& dstChan = dstLine.Channels[chanNum];
+          DMM::ParseChannel(srcChan, dstChan);
           if (srcChan.NoteCommand == DMM::SET_TEMPO && srcChan.SampleParam)
           {
             dstLine.SetTempo(srcChan.SampleParam);
@@ -404,8 +413,8 @@ namespace
       std::size_t lastData = 256 * header->HeaderSizeSectors;
 
       //bank => <offset, size>
-      typedef std::map<std::size_t, std::pair<std::size_t, std::size_t> > Bank2OffsetAndSize;
-      Bank2OffsetAndSize regions;
+      typedef std::map<std::size_t, Dump> Bank2Data;
+      Bank2Data regions;
       for (std::size_t layIdx = 0; layIdx != header->EndOfBanks.size(); ++layIdx)
       {
         static const std::size_t BANKS[] = {0x50, 0x51, 0x53, 0x54, 0x56, 0x57};
@@ -415,14 +424,19 @@ namespace
         if (bankEnd <= DMM::SAMPLES_ADDR)
         {
           Log::Debug(THIS_MODULE, "Skipping bank #%1$02x (end=#%2$04x)", bankNum, bankEnd);
-          continue;
+          break;
         }
         const std::size_t bankSize = bankEnd - DMM::SAMPLES_ADDR;
         const std::size_t alignedBankSize = align<std::size_t>(bankSize, 256);
         const std::size_t realSize = is4bitSamples
           ? 256 * (1 + alignedBankSize / 512)
           : alignedBankSize;
-        regions[bankNum] = std::make_pair(lastData, realSize);
+        const uint8_t* const bankStart = &data[lastData];
+        regions[bankNum] = Dump(bankStart, bankStart + realSize);
+        if (is4bitSamples)
+        {
+          DMM::ConvertFrom4Bit(regions[bankNum]);
+        }
         Log::Debug(THIS_MODULE, "Added bank #%1$02x (end=#%2$04x, size=#%3$04x) offset=#%4$05x", bankNum, bankEnd, realSize, lastData);
         lastData += realSize;
       }
@@ -452,26 +466,19 @@ namespace
           Log::Debug(THIS_MODULE, "Skipped. No data");
           continue;
         }
+        const Dump& bankData = regions[srcSample.Bank];
         const std::size_t offsetInBank = sampleStart - DMM::SAMPLES_ADDR;
         const std::size_t limitInBank = sampleEnd - DMM::SAMPLES_ADDR;
         const std::size_t sampleSize = limitInBank - offsetInBank;
-        const std::size_t rawSampleSize = is4bitSamples ? sampleSize / 2 : sampleSize;
-        if (rawSampleSize > regions[srcSample.Bank].second)
+        if (limitInBank > bankData.size())
         {
           Log::Debug(THIS_MODULE, "Skipped. Not enough data");
           continue;
         }
-        const std::size_t sampleOffset = regions[srcSample.Bank].first + 
-          (is4bitSamples ? offsetInBank / 2 : offsetInBank);
-        Log::Debug(THIS_MODULE, "  Located at #%1$05x..#%2$05x", sampleOffset, sampleOffset + rawSampleSize);
-        const uint8_t* const sampleDataStart = &data[sampleOffset];
-        const uint8_t* const sampleDataEnd = sampleDataStart + rawSampleSize;
+        const uint8_t* const sampleDataStart = &bankData[offsetInBank];
+        const uint8_t* const sampleDataEnd = sampleDataStart + sampleSize;
         DMM::Sample& dstSample = Data->Samples[samIdx];
         dstSample.Data.assign(sampleDataStart, sampleDataEnd);
-        if (is4bitSamples)
-        {
-          dstSample.ConvertFrom4Bit();
-        }
         if (dstSample.Data.size() >= 12)
         {
           dstSample.Data.resize(dstSample.Data.size() - 12);
@@ -661,7 +668,8 @@ namespace
 
       void OnNote(const DMM::Track::Line::Chan& src, const DMM::ModuleData& data, Devices::DAC::DataChunk::ChannelData& dst)
       {
-        const uint_t oldPos = *dst.PosInSample;
+        //if has new sample, start from it, else use previous sample
+        const uint_t oldPos = src.SampleNum ? 0 : *dst.PosInSample;
         ParseNote(src, dst);
         if (src.Commands.empty())
         {
@@ -673,6 +681,9 @@ namespace
         {
           switch (it->Type)
           {
+          case DMM::EMPTY_CMD:
+            DisableEffect();
+            break;
           case DMM::FREQ_FLOAT:
             if (it->Param1)
             {
@@ -698,12 +709,12 @@ namespace
           case DMM::ARPEGGIO:
             if (it->Param1)
             {
-              Effect = &ChannelState::Vibrato;
+              Effect = &ChannelState::Arpeggio;
             }
             else
             {
-              VibratoStep = it->Param2;
-              VibratoPeriod = it->Param3;
+              ArpeggioStep = it->Param2;
+              ArpeggioPeriod = it->Param3;
             }
             break;
           case DMM::TONE_SLIDE:
@@ -778,9 +789,9 @@ namespace
           Volume = *src.Volume;
         }
         dst.Enabled = src.Enabled;
-        if (src.Enabled && !*src.Enabled)
+        if (dst.Enabled && !*dst.Enabled)
         {
-          DisableEffect();
+          NoteSlide = FreqSlide = 0;
         }
         if (src.SampleNum)
         {
@@ -794,8 +805,8 @@ namespace
 
         dst.Note = Note;
         dst.NoteSlide = NoteSlide;
-        //3305 ticks per channel
-        dst.FreqSlideHz = 3305 * FreqSlide / 256;
+        //FreqSlide in 1/256 steps
+        dst.FreqSlideHz = DMM::BASE_FREQ * FreqSlide / 256;
         dst.SampleNum = Sample;
         dst.LevelInPercents = 100 * Volume / 15;
       }
@@ -877,7 +888,7 @@ namespace
           ParseNote(OldData, dst);
           dst = DacState;
           //restore all
-          const uint_t prevStep = GetStep() - FreqSlide;
+          const uint_t prevStep = GetStep() + FreqSlide;
           dst.PosInSample = *dst.PosInSample + MixPeriod * prevStep;
 
           DisableEffect();
@@ -896,8 +907,8 @@ namespace
 
       void SlideFreq(int_t step)
       {
-        const int_t nextStep = GetStep() - (FreqSlide + step);
-        if (nextStep <= 0 || nextStep >= 0x1200)
+        const int_t nextStep = GetStep() + FreqSlide + step;
+        if (nextStep <= 0 || nextStep >= 0x0c00)
         {
           DisableEffect();
         }
@@ -912,11 +923,11 @@ namespace
       {
         static const uint_t STEPS[] =
         {
-          44,47,50,53,56,59,63,66,70,74,79,83,
-          88,94,99,105,111,118,125,133,140,149,158,167,
-          177,187,199,210,223,236,250,265,281,297,315,334,
-          354,375,397,421,446,472,500,530,561,595,630,668,
-          707,749,794,841,891,944,1001,1060,1123,1189,1216,1335
+          44, 47, 50, 53, 56, 59, 63, 66, 70, 74, 79, 83,
+          88, 94, 99, 105, 111, 118, 125, 133, 140, 149, 158, 167,
+          177, 187, 199, 210, 223, 236, 250, 265, 281, 297, 315, 334,
+          354, 375, 397, 421, 446, 472, 500, 530, 561, 595, 630, 668,
+          707, 749, 794, 841, 891, 944, 1001, 1060, 1123, 1189, 1216, 1335
         };
         return STEPS[Note + NoteSlide];
       }
