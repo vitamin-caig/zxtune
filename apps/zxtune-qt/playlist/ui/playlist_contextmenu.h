@@ -49,6 +49,8 @@ namespace Playlist
       virtual void CopyPathToClipboard() const = 0;
       virtual void ShowAllStatistic() const = 0;
       virtual void ShowStatisticOfSelected() const = 0;
+      virtual void ExportAll() const = 0;
+      virtual void ExportSelected() const = 0;
     };
   }
 }

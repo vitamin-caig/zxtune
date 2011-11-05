@@ -12,6 +12,7 @@
   <addaction name="separator"/>
   <addaction name="CopyToClipboardAction"/>
   <addaction name="ShowStatisticAction"/>
+  <addaction name="ExportAction"/>
   <action name="InfoAction">
    <property name="icon">
     <iconset>
@@ -85,6 +86,16 @@
    </property>
    <property name="text">
     <string>Show statistic</string>
+   </property>
+  </action>
+  <action name="ExportAction">
+   <property name="icon">
+    <iconset>
+     <normalon>:/playlist/export.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Export selected</string>
    </property>
   </action>
  </widget>

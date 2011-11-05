@@ -7,6 +7,10 @@ namespace Text
 {
 extern const Char BASIC_STATISTIC_TEMPLATE[];
 extern const Char CONTEXTMENU_STATUS[];
+extern const Char CONVERT_FAILED[];
+extern const Char CONVERT_FAILED_OPEN[];
+extern const Char CONVERT_STATUS[];
+extern const Char CONVERT_SUCCEED[];
 extern const Char FEEDBACK_TEXT[];
 extern const Char HOMEPAGE_TEXT[];
 extern const Char MODULE_PLAYLIST_FORMAT[];

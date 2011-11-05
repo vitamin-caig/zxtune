@@ -5,6 +5,7 @@
   <addaction name="DelDupsAction"/>
   <addaction name="SelRipOffsAction"/>
   <addaction name="ShowStatisticAction"/>
+  <addaction name="ExportAction"/>
   <action name="DelDupsAction">
    <property name="icon">
     <iconset>
@@ -33,6 +34,16 @@
    </property>
    <property name="text">
     <string>Show total statistic</string>
+   </property>
+  </action>
+  <action name="ExportAction">
+   <property name="icon">
+    <iconset>
+     <normalon>:/playlist/export.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Export all</string>
    </property>
   </action>
  </widget>

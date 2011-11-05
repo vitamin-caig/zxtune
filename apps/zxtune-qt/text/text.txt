@@ -61,3 +61,15 @@ __cpp> "#endif //__TEXT_TEXT_H_DEFINED__\n"
 
 < TYPE_STATISTIC_TEMPLATE
 > "%1%: %2% item(s)"
+
+< CONVERT_FAILED_OPEN
+> "Failed to open '%1%' for conversion."
+
+< CONVERT_FAILED
+> "Failed to convert '%1%': %2%."
+
+< CONVERT_STATUS
+> "Converted: %1% Failed: %2%"
+
+< CONVERT_SUCCEED
+> "Converted '%1%' => '%2%'"

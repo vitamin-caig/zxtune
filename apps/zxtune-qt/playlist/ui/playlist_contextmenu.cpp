@@ -15,19 +15,27 @@ Author:
 #include "playlist_contextmenu.h"
 #include "table_view.h"
 #include "ui/utils.h"
+#include "filename_template.h"
 #include "no_items_contextmenu.ui.h"
 #include "single_item_contextmenu.ui.h"
 #include "multiple_items_contextmenu.ui.h"
 #include "playlist/supp/storage.h"
 //common includes
+#include <error.h>
 #include <format.h>
+#include <messages_collector.h>
+#include <template.h>
+#include <template_parameters.h>
 //library includes
 #include <async/signals_collector.h>
 #include <core/module_attrs.h>
+#include <core/convert_parameters.h>
+#include <io/fs_tools.h>
 //std includes
 #include <numeric>
 //boost includes
 #include <boost/bind.hpp>
+#include <boost/make_shared.hpp>
 #include <boost/algorithm/string/join.hpp>
 //qt includes
 #include <QtGui/QClipboard>
@@ -51,6 +59,7 @@ namespace
       receiver.connect(DelDupsAction, SIGNAL(triggered()), SLOT(RemoveAllDuplicates()));
       receiver.connect(SelRipOffsAction, SIGNAL(triggered()), SLOT(SelectAllRipOffs()));
       receiver.connect(ShowStatisticAction, SIGNAL(triggered()), SLOT(ShowAllStatistic()));
+      receiver.connect(ExportAction, SIGNAL(triggered()), SLOT(ExportAll()));
     }
   };
 
@@ -70,6 +79,7 @@ namespace
       receiver.connect(DelDupsAction, SIGNAL(triggered()), SLOT(RemoveDuplicatesOfSelected()));
       receiver.connect(SelRipOffsAction, SIGNAL(triggered()), SLOT(SelectRipOffsOfSelected()));
       receiver.connect(CopyToClipboardAction, SIGNAL(triggered()), SLOT(CopyPathToClipboard()));
+      receiver.connect(ExportAction, SIGNAL(triggered()), SLOT(ExportSelected()));
     }
   };
 
@@ -91,6 +101,7 @@ namespace
       receiver.connect(SelRipOffsAction, SIGNAL(triggered()), SLOT(SelectRipOffsInSelected()));
       receiver.connect(CopyToClipboardAction, SIGNAL(triggered()), SLOT(CopyPathToClipboard()));
       receiver.connect(ShowStatisticAction, SIGNAL(triggered()), SLOT(ShowStatisticOfSelected()));
+      receiver.connect(ExportAction, SIGNAL(triggered()), SLOT(ExportSelected()));
     }
   };
 
@@ -169,26 +180,18 @@ namespace
     StringArray Result;
   };
 
-  class StatisticSource
+  class OperationResult
   {
   public:
-    typedef boost::shared_ptr<const StatisticSource> Ptr;
-    virtual ~StatisticSource() {}
+    typedef boost::shared_ptr<const OperationResult> Ptr;
+    virtual ~OperationResult() {}
 
-    virtual String GetBasicStatistic() const = 0;
-    virtual String GetDetailedStatistic() const = 0;
+    virtual String GetBasicResult() const = 0;
+    virtual String GetDetailedResult() const = 0;
   };
 
-  void ShowStatistic(const StatisticSource& src, QWidget& parent)
-  {
-    QMessageBox msgBox(QMessageBox::Information, QString::fromUtf8("Statistic:"), ToQString(src.GetBasicStatistic()),
-      QMessageBox::Ok, &parent);
-    msgBox.setDetailedText(ToQString(src.GetDetailedStatistic()));
-    msgBox.exec();
-  }
-
   class StatisticCollector : public Playlist::Model::Visitor
-                           , public StatisticSource
+                           , public OperationResult
   {
   public:
     StatisticCollector()
@@ -215,7 +218,7 @@ namespace
       ++Types[type];
     }
 
-    virtual String GetBasicStatistic() const
+    virtual String GetBasicResult() const
     {
       const String duration = Strings::FormatTime(Duration.Get(), 1000);
       return Strings::Format(Text::BASIC_STATISTIC_TEMPLATE,
@@ -226,7 +229,7 @@ namespace
         );
     }
 
-    virtual String GetDetailedStatistic() const
+    virtual String GetDetailedResult() const
     {
       return std::accumulate(Types.begin(), Types.end(), String(), &TypeStatisticToString);
     }
@@ -244,6 +247,102 @@ namespace
     Time::Stamp<uint64_t, 1000> Duration;
     uint64_t Size;
     std::map<String, std::size_t> Types;
+  };
+
+  class ExportVisitor : public Playlist::Model::Visitor
+                      , public OperationResult
+  {
+  public:
+    ExportVisitor(const String& nameTemplate, bool overwrite)
+      : NameTemplate(StringTemplate::Create(nameTemplate))
+      , Overwrite(overwrite)
+      , Messages(Log::MessagesCollector::Create())
+      , SucceedConvertions(0)
+      , FailedConvertions(0)
+    {
+    }
+
+    virtual void OnItem(Playlist::Model::IndexType /*index*/, Playlist::Item::Data::Ptr data)
+    {
+      const String path = data->GetFullPath();
+      if (ZXTune::Module::Holder::Ptr holder = data->GetModule())
+      {
+        ExportItem(path, *holder);
+      }
+      else
+      {
+        Failed(Strings::Format(Text::CONVERT_FAILED_OPEN, path));
+      }
+    }
+
+    virtual String GetBasicResult() const
+    {
+      return Strings::Format(Text::CONVERT_STATUS, SucceedConvertions, FailedConvertions);
+    }
+
+    virtual String GetDetailedResult() const
+    {
+      return Messages->GetMessages('\n');
+    }
+  private:
+    class ModuleFieldsSource : public Parameters::FieldsSourceAdapter<SkipFieldsSource>
+    {
+    public:
+      typedef Parameters::FieldsSourceAdapter<SkipFieldsSource> Parent;
+      explicit ModuleFieldsSource(const Parameters::Accessor& params)
+        : Parent(params)
+      {
+      }
+
+      String GetFieldValue(const String& fieldName) const
+      {
+        return ZXTune::IO::MakePathFromString(Parent::GetFieldValue(fieldName), '_');
+      }
+    };
+
+    void ExportItem(const String& path, const ZXTune::Module::Holder& item)
+    {
+      static const ZXTune::Module::Conversion::RawConvertParam RAW_CONVERSION;
+      try
+      {
+        const Parameters::Accessor::Ptr props = item.GetModuleProperties();
+        Dump result;
+        ThrowIfError(item.Convert(RAW_CONVERSION, props, result));
+        const String filename = NameTemplate->Instantiate(ModuleFieldsSource(*props));
+        Save(result, filename);
+        Succeed(Strings::Format(Text::CONVERT_SUCCEED, path, filename));
+      }
+      catch (const Error& err)
+      {
+        Failed(Strings::Format(Text::CONVERT_FAILED, path, err.GetText()));
+      }
+    }
+
+    void Save(const Dump& data, const String& filename) const
+    {
+      const std::auto_ptr<std::ofstream> stream = ZXTune::IO::CreateFile(filename, Overwrite);
+      stream->write(safe_ptr_cast<const char*>(&data[0]), static_cast<std::streamsize>(data.size() * sizeof(data.front())));
+      //TODO: handle possible errors
+    }
+
+    void Failed(const String& status)
+    {
+      ++FailedConvertions;
+      Messages->AddMessage(status);
+    }
+
+    void Succeed(const String& status)
+    {
+      ++SucceedConvertions;
+      Messages->AddMessage(status);
+    }
+
+  private:
+    const StringTemplate::Ptr NameTemplate;
+    const bool Overwrite;
+    const Log::MessagesCollector::Ptr Messages;
+    std::size_t SucceedConvertions;
+    std::size_t FailedConvertions;
   };
 
   template<class T>
@@ -494,18 +593,25 @@ namespace
     const Playlist::Model::IndexSet& SelectedItems;
   };
 
-  class CollectStatisticOperation : public Playlist::Item::StorageAccessOperation
+  class PromisedResultOperation : public Playlist::Item::StorageAccessOperation
   {
   public:
-    typedef boost::shared_ptr<CollectStatisticOperation> Ptr;
+    typedef boost::shared_ptr<PromisedResultOperation> Ptr;
 
-    CollectStatisticOperation()
+    virtual OperationResult::Ptr GetResult() const = 0;
+  };
+
+  template<class ResultCollector>
+  class TemplatePromisedResultOperation : public PromisedResultOperation
+  {
+  public:
+    TemplatePromisedResultOperation()
       : SelectedItems()
       , Signals(Async::Signals::Dispatcher::Create())
     {
     }
 
-    explicit CollectStatisticOperation(const Playlist::Model::IndexSet& items)
+    explicit TemplatePromisedResultOperation(const Playlist::Model::IndexSet& items)
       : SelectedItems(&items)
       , Signals(Async::Signals::Dispatcher::Create())
     {
@@ -513,19 +619,20 @@ namespace
 
     virtual void Execute(const Playlist::Item::Storage& stor)
     {
-      Collector.reset(new StatisticCollector());
+      typename boost::shared_ptr<ResultCollector> tmp = CreateCollector();
       if (SelectedItems)
       {
-        stor.ForSpecifiedItems(*SelectedItems, *Collector);
+        stor.ForSpecifiedItems(*SelectedItems, *tmp);
       }
       else
       {
-        stor.ForAllItems(*Collector);
+        stor.ForAllItems(*tmp);
       }
+      Collector.swap(tmp);
       Signals->Notify(1);
     }
 
-    StatisticSource::Ptr GetResult() const
+    OperationResult::Ptr GetResult() const
     {
       //TODO: use promise/future
       const Async::Signals::Collector::Ptr collector = Signals->CreateCollector(1);
@@ -536,10 +643,56 @@ namespace
       assert(Collector);
       return Collector;
     }
+  protected:
+    virtual typename boost::shared_ptr<ResultCollector> CreateCollector() const = 0;
   private:
     const Playlist::Model::IndexSet* const SelectedItems;
     const Async::Signals::Dispatcher::Ptr Signals;
-    boost::shared_ptr<StatisticCollector> Collector;
+    typename boost::shared_ptr<ResultCollector> Collector;
+  };
+
+  class CollectStatisticOperation : public TemplatePromisedResultOperation<StatisticCollector>
+  {
+    typedef TemplatePromisedResultOperation<StatisticCollector> Parent;
+  public:
+    CollectStatisticOperation()
+      : Parent()
+    {
+    }
+
+    explicit CollectStatisticOperation(const Playlist::Model::IndexSet& items)
+      : Parent(items)
+    {
+    }
+  protected:
+    virtual boost::shared_ptr<StatisticCollector> CreateCollector() const
+    {
+      return boost::make_shared<StatisticCollector>();
+    }
+  };
+
+  class ExportOperation : public TemplatePromisedResultOperation<ExportVisitor>
+  {
+    typedef TemplatePromisedResultOperation<ExportVisitor> Parent;
+  public:
+    explicit ExportOperation(const String& nameTemplate)
+      : Parent()
+      , NameTemplate(nameTemplate)
+    {
+    }
+
+    ExportOperation(const Playlist::Model::IndexSet& items, const String& nameTemplate)
+      : Parent(items)
+      , NameTemplate(nameTemplate)
+    {
+    }
+  protected:
+    virtual boost::shared_ptr<ExportVisitor> CreateCollector() const
+    {
+      return boost::make_shared<ExportVisitor>(NameTemplate, true);
+    }
+  private:
+    const String NameTemplate;
   };
 
   class ItemsContextMenuImpl : public Playlist::UI::ItemsContextMenu
@@ -650,20 +803,34 @@ namespace
 
     virtual void ShowAllStatistic() const
     {
-      const CollectStatisticOperation::Ptr op(new CollectStatisticOperation());
-      const Playlist::Model::Ptr model = Controller->GetModel();
-      model->PerformOperation(op);
-      const StatisticSource::Ptr res = op->GetResult();
-      ShowStatistic(*res, View);
+      const PromisedResultOperation::Ptr op(new CollectStatisticOperation());
+      ShowPromisedResult(QString::fromUtf8("Statistic:"), op);
     }
 
     virtual void ShowStatisticOfSelected() const
     {
-      const CollectStatisticOperation::Ptr op(new CollectStatisticOperation(SelectedItems));
-      const Playlist::Model::Ptr model = Controller->GetModel();
-      model->PerformOperation(op);
-      const StatisticSource::Ptr res = op->GetResult();
-      ShowStatistic(*res, View);
+      const PromisedResultOperation::Ptr op(new CollectStatisticOperation(SelectedItems));
+      ShowPromisedResult(QString::fromUtf8("Statistic:"), op);
+    }
+
+    virtual void ExportAll() const
+    {
+      QString nameTemplate;
+      if (Playlist::UI::GetFilenameTemplate(View, nameTemplate))
+      {
+        const PromisedResultOperation::Ptr op(new ExportOperation(FromQString(nameTemplate)));
+        ShowPromisedResult(QString::fromUtf8("Export"), op);
+      }
+    }
+
+    virtual void ExportSelected() const
+    {
+      QString nameTemplate;
+      if (Playlist::UI::GetFilenameTemplate(View, nameTemplate))
+      {
+        const PromisedResultOperation::Ptr op(new ExportOperation(SelectedItems, FromQString(nameTemplate)));
+        ShowPromisedResult(QString::fromUtf8("Export"), op);
+      }
     }
   private:
     std::auto_ptr<QMenu> CreateMenu()
@@ -677,6 +844,17 @@ namespace
       default:
         return std::auto_ptr<QMenu>(new MultipleItemsContextMenu(View, *this, items));
       }
+    }
+
+    void ShowPromisedResult(const QString& title, PromisedResultOperation::Ptr op) const
+    {
+      const Playlist::Model::Ptr model = Controller->GetModel();
+      model->PerformOperation(op);
+      const OperationResult::Ptr res = op->GetResult();
+      QMessageBox msgBox(QMessageBox::Information, title, ToQString(res->GetBasicResult()),
+        QMessageBox::Ok, &View);
+      msgBox.setDetailedText(ToQString(res->GetDetailedResult()));
+      msgBox.exec();
     }
   private:
     Playlist::UI::TableView& View;

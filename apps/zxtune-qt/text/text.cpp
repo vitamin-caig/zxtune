@@ -15,6 +15,20 @@ extern const Char BASIC_STATISTIC_TEMPLATE[] = {
 extern const Char CONTEXTMENU_STATUS[] = {
   '%','1','%',' ','i','t','e','m','s',0
 };
+extern const Char CONVERT_FAILED[] = {
+  'F','a','i','l','e','d',' ','t','o',' ','c','o','n','v','e','r','t',' ','\'','%','1','%','\'',':',' ','%','2',
+  '%','.',0
+};
+extern const Char CONVERT_FAILED_OPEN[] = {
+  'F','a','i','l','e','d',' ','t','o',' ','o','p','e','n',' ','\'','%','1','%','\'',' ','f','o','r',' ','c','o',
+  'n','v','e','r','s','i','o','n','.',0
+};
+extern const Char CONVERT_STATUS[] = {
+  'C','o','n','v','e','r','t','e','d',':',' ','%','1','%',' ','F','a','i','l','e','d',':',' ','%','2','%',0
+};
+extern const Char CONVERT_SUCCEED[] = {
+  'C','o','n','v','e','r','t','e','d',' ','\'','%','1','%','\'',' ','=','>',' ','\'','%','2','%','\'',0
+};
 extern const Char FEEDBACK_TEXT[] = {
   '<','a',' ','h','r','e','f','=','\"','m','a','i','l','t','o',':','v','i','t','a','m','i','n','.','c','a','i',
   'g','@','g','m','a','i','l','.','c','o','m','\?','s','u','b','j','e','c','t','=','F','e','e','d','b','a','c',

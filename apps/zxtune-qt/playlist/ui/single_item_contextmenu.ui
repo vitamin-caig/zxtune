@@ -10,6 +10,7 @@
   <addaction name="SelRipOffsAction"/>
   <addaction name="separator"/>
   <addaction name="CopyToClipboardAction"/>
+  <addaction name="ExportAction"/>
   <action name="PlayAction">
    <property name="icon">
     <iconset>
@@ -63,6 +64,16 @@
   <action name="CopyToClipboardAction">
    <property name="text">
     <string>Copy full path</string>
+   </property>
+  </action>
+  <action name="ExportAction">
+   <property name="icon">
+    <iconset>
+     <normalon>:/playlist/export.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Export to file</string>
    </property>
   </action>
  </widget>
