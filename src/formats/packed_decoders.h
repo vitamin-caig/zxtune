@@ -45,6 +45,7 @@ namespace Formats
     Decoder::Ptr CreateLZH2Decoder();
     Decoder::Ptr CreateFullDiskImageDecoder();
     Decoder::Ptr CreateHobetaDecoder();
+    Decoder::Ptr CreateSna128Decoder();
   }
 }
 

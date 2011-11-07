@@ -97,6 +97,10 @@ __cpp> "#endif //__TEXT_PACKED_H_DEFINED__\n"
 < RAR_DECODER_DESCRIPTION
 > "RAR v2.x archiver"
 
+#SNA128
+< SNA128_DECODER_DESCRIPTION
+> "SNA 128k snapshot"
+
 #TLZ
 < TLZ_DECODER_DESCRIPTION
 > "Turbo-LZ v1.x"

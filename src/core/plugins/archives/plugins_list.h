@@ -36,6 +36,7 @@ namespace ZXTune
   void RegisterCharPresConvertor(PluginsRegistrator& registrator);
   void RegisterPack2Convertor(PluginsRegistrator& registrator);
   void RegisterLZHConvertor(PluginsRegistrator& registrator);
+  void RegisterSna128Convertor(PluginsRegistrator& registrator);
 
   void RegisterArchivePlugins(PluginsRegistrator& registrator)
   {
@@ -57,6 +58,7 @@ namespace ZXTune
     RegisterCharPresConvertor(registrator);
     RegisterPack2Convertor(registrator);
     RegisterLZHConvertor(registrator);
+    RegisterSna128Convertor(registrator);
   }
 }
 
