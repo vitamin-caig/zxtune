@@ -42,13 +42,7 @@ namespace
   class PropertyModel
   {
   public:
-    typedef T (Playlist::Item::Data::*GetFunctionType)() const;
-
-    PropertyModel(const Playlist::Item::Storage& model, const GetFunctionType getter)
-      : Model(model)
-      , Getter(getter)
-    {
-    }
+    virtual ~PropertyModel() {}
 
     class Visitor
     {
@@ -58,19 +52,20 @@ namespace
       virtual void OnItem(Playlist::Model::IndexType index, const T& val) = 0;
     };
 
-    void ForAllItems(Visitor& visitor) const;
+    virtual std::size_t CountItems() const = 0;
 
-    void ForSpecifiedItems(const Playlist::Model::IndexSet& items, Visitor& visitor) const;
-  private:
-    const Playlist::Item::Storage& Model;
-    const GetFunctionType Getter;
+    virtual void ForAllItems(Visitor& visitor) const = 0;
+
+    virtual void ForSpecifiedItems(const Playlist::Model::IndexSet& items, Visitor& visitor) const = 0;
   }; 
 
   template<class T>
   class VisitorAdapter : public Playlist::Model::Visitor
   {
   public:
-    VisitorAdapter(const typename PropertyModel<T>::GetFunctionType getter, typename PropertyModel<T>::Visitor& delegate)
+    typedef T (Playlist::Item::Data::*GetFunctionType)() const;
+
+    VisitorAdapter(const GetFunctionType getter, typename PropertyModel<T>::Visitor& delegate)
       : Getter(getter)
       , Delegate(delegate)
     {
@@ -87,25 +82,95 @@ namespace
     }
 
   private:
-    const typename PropertyModel<T>::GetFunctionType Getter;
+    const GetFunctionType Getter;
     typename PropertyModel<T>::Visitor& Delegate;
   };
 
   template<class T>
-  void PropertyModel<T>::ForAllItems(typename PropertyModel<T>::Visitor& visitor) const
+  class TypedPropertyModel : public PropertyModel<T>
   {
-    VisitorAdapter<T> adapter(Getter, visitor);
-    Model.ForAllItems(adapter);
-  }
+  public:
+    TypedPropertyModel(const Playlist::Item::Storage& model, const typename VisitorAdapter<T>::GetFunctionType getter)
+      : Model(model)
+      , Getter(getter)
+    {
+    }
+
+    virtual std::size_t CountItems() const
+    {
+      return Model.CountItems();
+    }
+
+    virtual void ForAllItems(typename PropertyModel<T>::Visitor& visitor) const
+    {
+      VisitorAdapter<T> adapter(Getter, visitor);
+      Model.ForAllItems(adapter);
+    }
+
+    virtual void ForSpecifiedItems(const Playlist::Model::IndexSet& items, typename PropertyModel<T>::Visitor& visitor) const
+    {
+      assert(!items.empty());
+      VisitorAdapter<T> adapter(Getter, visitor);
+      Model.ForSpecifiedItems(items, adapter);
+    }
+  private:
+    const Playlist::Item::Storage& Model;
+    const typename VisitorAdapter<T>::GetFunctionType Getter;
+  };
 
   template<class T>
-  void PropertyModel<T>::ForSpecifiedItems(const Playlist::Model::IndexSet& items, typename PropertyModel<T>::Visitor& visitor) const
+  class PropertyModelWithProgress : public PropertyModel<T>
   {
-    assert(!items.empty());
-    VisitorAdapter<T> adapter(Getter, visitor);
-    Model.ForSpecifiedItems(items, adapter);
-  }
+  public:
+    PropertyModelWithProgress(const PropertyModel<T>& delegate, Log::ProgressCallback& cb)
+      : Delegate(delegate)
+      , Callback(cb)
+      , Done(0)
+    {
+    }
 
+    virtual std::size_t CountItems() const
+    {
+      return Delegate.CountItems();
+    }
+
+    virtual void ForAllItems(typename PropertyModel<T>::Visitor& visitor) const
+    {
+      ProgressVisitorWrapper wrapper(visitor, Callback, Done);
+      Delegate.ForAllItems(wrapper);
+    }
+
+    virtual void ForSpecifiedItems(const Playlist::Model::IndexSet& items, typename PropertyModel<T>::Visitor& visitor) const
+    {
+      ProgressVisitorWrapper wrapper(visitor, Callback, Done);
+      Delegate.ForSpecifiedItems(items, wrapper);
+    }
+  private:
+    class ProgressVisitorWrapper : public PropertyModel<T>::Visitor
+    {
+    public:
+      ProgressVisitorWrapper(typename PropertyModel<T>::Visitor& delegate, Log::ProgressCallback& cb, uint_t& done)
+        : Delegate(delegate)
+        , Callback(cb)
+        , Done(done)
+      {
+      }
+
+      virtual void OnItem(Playlist::Model::IndexType index, const T& val)
+      {
+        Delegate.OnItem(index, val);
+        Callback.OnProgress(++Done);
+      }
+    private:
+      typename PropertyModel<T>::Visitor& Delegate;
+      Log::ProgressCallback& Callback;
+      uint_t& Done;
+    };
+  private:
+    const PropertyModel<T>& Delegate;
+    Log::ProgressCallback& Callback;
+    mutable uint_t Done;
+  };
 
   template<class T>
   class PropertiesFilter : public PropertyModel<T>::Visitor
@@ -191,15 +256,48 @@ namespace
     Playlist::Model::IndexSet Result;
   };
 
+  template<class T>
+  void VisitAllItems(const PropertyModel<T>& model, Log::ProgressCallback& cb, typename PropertyModel<T>::Visitor& visitor)
+  {
+    const uint_t totalItems = model.CountItems();
+    const Log::ProgressCallback::Ptr progress = Log::CreatePercentProgressCallback(totalItems, cb);
+    const PropertyModelWithProgress<T> modelWrapper(model, *progress);
+    modelWrapper.ForAllItems(visitor);
+  }
+
+  template<class T>
+  void VisitAsSelectedItems(const PropertyModel<T>& model, const Playlist::Model::IndexSet& selectedItems, Log::ProgressCallback& cb, typename PropertyModel<T>::Visitor& visitor)
+  {
+    const uint_t totalItems = model.CountItems() + selectedItems.size();
+    const Log::ProgressCallback::Ptr progress = Log::CreatePercentProgressCallback(totalItems, cb);
+    const PropertyModelWithProgress<T> modelWrapper(model, *progress);
+
+    PropertiesCollector<T> selectedProps;
+    modelWrapper.ForSpecifiedItems(selectedItems, selectedProps);
+    PropertiesFilter<T> filter(visitor, selectedProps.GetResult());
+    modelWrapper.ForAllItems(filter);
+  }
+
+  template<class T>
+  void VisitOnlySelectedItems(const PropertyModel<T>& model, const Playlist::Model::IndexSet& selectedItems, Log::ProgressCallback& cb, typename PropertyModel<T>::Visitor& visitor)
+  {
+    const uint_t totalItems = selectedItems.size();
+    const Log::ProgressCallback::Ptr progress = Log::CreatePercentProgressCallback(totalItems, cb);
+    const PropertyModelWithProgress<uint32_t> modelWrapper(model, *progress);
+    modelWrapper.ForSpecifiedItems(selectedItems, visitor);
+  }
+
   // Remove dups
   class RemoveAllDupsOperation : public Playlist::Item::StorageModifyOperation
   {
   public:
-    virtual void Execute(Playlist::Item::Storage& stor, Log::ProgressCallback& /*cb*/)
+    virtual void Execute(Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
     {
-      const PropertyModel<uint32_t> propertyModel(stor, &Playlist::Item::Data::GetChecksum);
       DuplicatesCollector<uint32_t> dups;
-      propertyModel.ForAllItems(dups);
+      {
+        const TypedPropertyModel<uint32_t> propertyModel(stor, &Playlist::Item::Data::GetChecksum);
+        VisitAllItems(propertyModel, cb, dups);
+      }
       const Playlist::Model::IndexSet& toRemove = dups.GetResult();
       stor.RemoveItems(toRemove);
     }
@@ -215,15 +313,12 @@ namespace
 
     virtual void Execute(Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
     {
-      const PropertyModel<uint32_t> propertyModel(stor, &Playlist::Item::Data::GetChecksum);
-      //select all rips but delete only nonselected
       RipOffsCollector<uint32_t> dups;
       {
-        PropertiesCollector<uint32_t> selectedProps;
-        propertyModel.ForSpecifiedItems(SelectedItems, selectedProps);
-        PropertiesFilter<uint32_t> filter(dups, selectedProps.GetResult());
-        propertyModel.ForAllItems(filter);
+        const TypedPropertyModel<uint32_t> propertyModel(stor, &Playlist::Item::Data::GetChecksum);
+        VisitAsSelectedItems(propertyModel, SelectedItems, cb, dups);
       }
+      //select all rips but delete only nonselected
       Playlist::Model::IndexSet toRemove = dups.GetResult();
       std::for_each(SelectedItems.begin(), SelectedItems.end(), boost::bind<Playlist::Model::IndexSet::size_type>(&Playlist::Model::IndexSet::erase, &toRemove, _1));
       stor.RemoveItems(toRemove);
@@ -242,9 +337,11 @@ namespace
 
     virtual void Execute(Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
     {
-      const PropertyModel<uint32_t> propertyModel(stor, &Playlist::Item::Data::GetChecksum);
       DuplicatesCollector<uint32_t> dups;
-      propertyModel.ForSpecifiedItems(SelectedItems, dups);
+      {
+        const TypedPropertyModel<uint32_t> propertyModel(stor, &Playlist::Item::Data::GetChecksum);
+        VisitOnlySelectedItems(propertyModel, SelectedItems, cb, dups);
+      }
       const Playlist::Model::IndexSet& toRemove = dups.GetResult();
       stor.RemoveItems(toRemove);
     }
@@ -288,9 +385,11 @@ namespace
   public:
     virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
     {
-      const PropertyModel<uint32_t> propertyModel(stor, &Playlist::Item::Data::GetCoreChecksum);
       RipOffsCollector<uint32_t> rips;
-      propertyModel.ForAllItems(rips);
+      {
+        const TypedPropertyModel<uint32_t> propertyModel(stor, &Playlist::Item::Data::GetCoreChecksum);
+        VisitAllItems(propertyModel, cb, rips);
+      }
       Result.Set(boost::make_shared<Playlist::Model::IndexSet>(rips.GetResult()));
     }
 
@@ -312,13 +411,10 @@ namespace
 
     virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
     {
-      const PropertyModel<uint32_t> propertyModel(stor, &Playlist::Item::Data::GetCoreChecksum);
       RipOffsCollector<uint32_t> rips;
       {
-        PropertiesCollector<uint32_t> selectedProps;
-        propertyModel.ForSpecifiedItems(SelectedItems, selectedProps);
-        PropertiesFilter<uint32_t> filter(rips, selectedProps.GetResult());
-        propertyModel.ForAllItems(filter);
+        const TypedPropertyModel<uint32_t> propertyModel(stor, &Playlist::Item::Data::GetCoreChecksum);
+        VisitAsSelectedItems(propertyModel, SelectedItems, cb, rips);
       }
       Result.Set(boost::make_shared<Playlist::Model::IndexSet>(rips.GetResult()));
     }
@@ -342,10 +438,11 @@ namespace
 
     virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
     {
-      const PropertyModel<uint32_t> propertyModel(stor, &Playlist::Item::Data::GetCoreChecksum);
       RipOffsCollector<uint32_t> rips;
-      propertyModel.ForSpecifiedItems(SelectedItems, rips);
-      const Playlist::Model::IndexSet toSelect = rips.GetResult();
+      {
+        const TypedPropertyModel<uint32_t> propertyModel(stor, &Playlist::Item::Data::GetCoreChecksum);
+        VisitOnlySelectedItems(propertyModel, SelectedItems, cb, rips);
+      }
       Result.Set(boost::make_shared<Playlist::Model::IndexSet>(rips.GetResult()));
     }
 
@@ -365,6 +462,27 @@ namespace
     typedef boost::shared_ptr<CollectingVisitor> Ptr;
   };
 
+  class ProgressModelVisitor : public Playlist::Model::Visitor
+  {
+  public:
+    ProgressModelVisitor(Playlist::Model::Visitor& delegate, Log::ProgressCallback& cb)
+      : Delegate(delegate)
+      , Callback(cb)
+      , Done(0)
+    {
+    }
+
+    virtual void OnItem(Playlist::Model::IndexType index, Playlist::Item::Data::Ptr data)
+    {
+      Delegate.OnItem(index, data);
+      Callback.OnProgress(++Done);
+    }
+  private:
+    Playlist::Model::Visitor& Delegate;
+    Log::ProgressCallback& Callback;
+    uint_t Done;
+  };
+
   class PromisedTextResultOperationBase : public Playlist::Item::PromisedTextResultOperation
   {
   public:
@@ -381,13 +499,16 @@ namespace
     virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
     {
       CollectingVisitor::Ptr tmp = CreateCollector();
+      const std::size_t totalItems = SelectedItems ? SelectedItems->size() : stor.CountItems();
+      const Log::ProgressCallback::Ptr progress = Log::CreatePercentProgressCallback(totalItems, cb);
+      ProgressModelVisitor progressed(*tmp, *progress);
       if (SelectedItems)
       {
-        stor.ForSpecifiedItems(*SelectedItems, *tmp);
+        stor.ForSpecifiedItems(*SelectedItems, progressed);
       }
       else
       {
-        stor.ForAllItems(*tmp);
+        stor.ForAllItems(progressed);
       }
       Result.Set(tmp);
     }
