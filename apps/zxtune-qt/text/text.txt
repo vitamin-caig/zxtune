@@ -59,6 +59,9 @@ __cpp> "#endif //__TEXT_TEXT_H_DEFINED__\n"
 > "Total size: %4% bytes\n"
 > "%5% different modules types"
 
+< PATHS_COLLECTING_STATUS
+> "Copied %1% paths to clipboard."
+
 < TYPE_STATISTIC_TEMPLATE
 > "%1%: %2% item(s)"
 

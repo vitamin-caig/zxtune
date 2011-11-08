@@ -29,6 +29,7 @@ Author:
 #include <QtGui/QDragEnterEvent>
 #include <QtGui/QHeaderView>
 #include <QtGui/QKeyEvent>
+#include <QtGui/QProgressBar>
 #include <QtGui/QVBoxLayout>
 
 namespace
@@ -109,6 +110,7 @@ namespace
       , Layout(new QVBoxLayout(this))
       , ScannerView(Playlist::UI::ScannerView::Create(*this, Controller->GetScanner()))
       , View(Playlist::UI::TableView::Create(*this, State, Controller->GetModel()))
+      , OperationProgress(new QProgressBar(this))
       , ItemsMenu(Playlist::UI::ItemsContextMenu::Create(*View, playlist))
     {
       //setup ui
@@ -116,6 +118,9 @@ namespace
       Layout->setSpacing(0);
       Layout->setMargin(0);
       Layout->addWidget(View);
+      Layout->addWidget(OperationProgress);
+      OperationProgress->setMaximum(100);
+      OperationProgress->setVisible(false);
       Layout->addWidget(ScannerView);
       //setup connections
       const Playlist::Item::Iterator::Ptr iter = Controller->GetIterator();
@@ -125,8 +130,9 @@ namespace
       View->connect(Controller->GetScanner(), SIGNAL(OnScanStop()), SLOT(updateGeometries()));
 
       const Playlist::Model::Ptr model = Controller->GetModel();
-      this->connect(model, SIGNAL(OnLongOperationStart()), SLOT(Disable()));
-      this->connect(model, SIGNAL(OnLongOperationStop()), SLOT(Enable()));
+      this->connect(model, SIGNAL(OnLongOperationStart()), SLOT(LongOperationStart()));
+      OperationProgress->connect(model, SIGNAL(OnLongOperationProgress(int)), SLOT(setValue(int)));
+      this->connect(model, SIGNAL(OnLongOperationStop()), SLOT(LongOperationStop()));
 
       Log::Debug(THIS_MODULE, "Created at %1%", this);
     }
@@ -215,14 +221,16 @@ namespace
       OnItemActivated(data);
     }
 
-    virtual void Enable()
-    {
-      setEnabled(true);
-    }
-
-    virtual void Disable()
+    virtual void LongOperationStart()
     {
       setEnabled(false);
+      OperationProgress->setVisible(true);
+    }
+
+    virtual void LongOperationStop()
+    {
+      OperationProgress->setVisible(false);
+      setEnabled(true);
     }
 
     //qwidget virtuals
@@ -284,6 +292,7 @@ namespace
     QVBoxLayout* const Layout;
     Playlist::UI::ScannerView* const ScannerView;
     Playlist::UI::TableView* const View;
+    QProgressBar* const OperationProgress;
     Playlist::UI::ItemsContextMenu* const ItemsMenu;
   };
 }

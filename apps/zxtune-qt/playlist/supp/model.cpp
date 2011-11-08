@@ -199,6 +199,27 @@ namespace
     }
   }
 
+  class ComparisonsCounter : public Playlist::Item::Comparer
+  {
+  public:
+    ComparisonsCounter(const Playlist::Item::Comparer& delegate, Log::ProgressCallback& cb)
+      : Delegate(delegate)
+      , Callback(cb)
+      , Done(0)
+    {
+    }
+
+    bool CompareItems(const Playlist::Item::Data& lh, const Playlist::Item::Data& rh) const
+    {
+      Callback.OnProgress(++Done);
+      return Delegate.CompareItems(lh, rh);
+    }
+  private:
+    const Playlist::Item::Comparer& Delegate;
+    Log::ProgressCallback& Callback;
+    mutable uint_t Done;
+  };
+
   class SortOperation : public Playlist::Item::StorageModifyOperation
   {
   public:
@@ -207,9 +228,13 @@ namespace
     {
     }
 
-    virtual void Execute(Playlist::Item::Storage& storage)
+    virtual void Execute(Playlist::Item::Storage& storage, Log::ProgressCallback& cb)
     {
-      storage.Sort(*Comparer);
+      const uint_t totalItems = storage.CountItems();
+      //according to STL spec: The number of comparisons is approximately N log N, where N is the list's size. Assume that log is binary.
+      const Log::ProgressCallback::Ptr progress = Log::CreatePercentProgressCallback(totalItems * Log2(totalItems), cb);
+      const ComparisonsCounter countingComparer(*Comparer, *progress);
+      storage.Sort(countingComparer);
     }
   private:
     const Playlist::Item::Comparer::Ptr Comparer;
@@ -218,6 +243,7 @@ namespace
   const char ITEMS_MIMETYPE[] = "application/playlist.indices";
 
   class ModelImpl : public Playlist::Model
+                  , private Log::ProgressCallback
   {
   public:
     explicit ModelImpl(QObject& parent)
@@ -484,7 +510,7 @@ namespace
     {
       QMutexLocker rwLock(&SyncModification);
       OnLongOperationStart();
-      operation->Execute(*Container);
+      operation->Execute(*Container, *this);
       OnLongOperationStop();
     }
 
@@ -497,7 +523,7 @@ namespace
         QMutexLocker roLock(&SyncAccess);
         tmpStorage = Container->Clone();
       }
-      operation->Execute(*tmpStorage);
+      operation->Execute(*tmpStorage, *this);
       {
         QMutexLocker roLock(&SyncAccess);
         Container = tmpStorage;
@@ -514,6 +540,16 @@ namespace
       Container->ResetIndices();
       OnIndexesChanged(remapping);
       reset();
+    }
+
+    virtual void OnProgress(uint_t current)
+    {
+      OnLongOperationProgress(current);
+    }
+
+    virtual void OnProgress(uint_t current, const String& message)
+    {
+      OnLongOperationProgress(current);
     }
   private:
     const DataProvidersSet Providers;

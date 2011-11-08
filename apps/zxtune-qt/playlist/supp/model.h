@@ -17,6 +17,8 @@ Author:
 
 //local includes
 #include "data.h"
+//common includes
+#include <logging.h>
 //std includes
 #include <map>
 #include <set>
@@ -35,7 +37,7 @@ namespace Playlist
       typedef boost::shared_ptr<StorageAccessOperation> Ptr;
       virtual ~StorageAccessOperation() {}
 
-      virtual void Execute(const Storage& storage) = 0;
+      virtual void Execute(const Storage& storage, Log::ProgressCallback& cb) = 0;
     };
 
     class StorageModifyOperation
@@ -44,7 +46,7 @@ namespace Playlist
       typedef boost::shared_ptr<StorageModifyOperation> Ptr;
       virtual ~StorageModifyOperation() {}
 
-      virtual void Execute(Storage& storage) = 0;
+      virtual void Execute(Storage& storage, Log::ProgressCallback& cb) = 0;
     };
   }
 
@@ -98,6 +100,7 @@ namespace Playlist
   signals:
     void OnIndexesChanged(const Playlist::Model::OldToNewIndexMap& map);
     void OnLongOperationStart();
+    void OnLongOperationProgress(int progress);
     void OnLongOperationStop();
   };
 }

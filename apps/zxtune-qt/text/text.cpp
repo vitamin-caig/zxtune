@@ -46,6 +46,10 @@ extern const Char MODULE_PLAYLIST_FORMAT[] = {
 extern const Char MODULE_TITLE_FORMAT[] = {
   '[','A','u','t','h','o','r',']',' ','-',' ','[','T','i','t','l','e',']',0
 };
+extern const Char PATHS_COLLECTING_STATUS[] = {
+  'C','o','p','i','e','d',' ','%','1','%',' ','p','a','t','h','s',' ','t','o',' ','c','l','i','p','b','o','a',
+  'r','d','.',0
+};
 extern const Char PROGRAM_NAME[] = {
   'z','x','t','u','n','e','-','q','t',0
 };
