@@ -28,6 +28,7 @@ Author:
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
 //std includes
+#include <set>
 #include <utility>
 //boost includes
 #include <boost/bind.hpp>
@@ -38,8 +39,14 @@ Author:
 
 #define FILE_TAG 3226C730
 
+namespace
+{
+  const std::string THIS_MODULE("Core::DSTSupp");
+}
+
 namespace DST
 {
+  const std::size_t COMPILED_MODULE_SIZE = 0x1c200;
   const std::size_t MODULE_SIZE = 0x1b200;
   const std::size_t MAX_POSITIONS_COUNT = 99;
   const std::size_t MAX_PATTERN_SIZE = 64;
@@ -92,7 +99,9 @@ namespace DST
     //+0x66
     char Title[28];
     //+0x82
-    uint8_t Unknown[0x7e];
+    uint8_t Unknown[0x46];
+    //+0xc8
+    uint8_t Zeroes[0x38];
     //+0x100
     SampleInfo Samples[SAMPLES_COUNT];
     //+0x200
@@ -126,6 +135,10 @@ namespace DST
 
     bool Is4Bit() const
     {
+      if (Data.empty())
+      {
+        return false;
+      }
       for (Dump::const_iterator it = Data.begin(), lim = Data.end(); it != lim; ++it)
       {
         const uint_t hiVal = *it >> 4;
@@ -151,6 +164,7 @@ namespace DST
   };
 
   static const std::size_t SAMPLES_OFFSETS[8] = {0x200, 0x7200, 0x0, 0xb200, 0xf200, 0x0, 0x13200, 0x17200};
+  static const std::size_t SAMPLES_OFFSETS_COMPILED[8] = {0x200, 0x8200, 0x0, 0xc200, 0x10200, 0x0, 0x14200, 0x18200};
 }
 
 namespace
@@ -244,6 +258,9 @@ namespace
       //fill samples
       Data->Samples.resize(DST::SAMPLES_COUNT);
 
+      const bool isCompiled = ArrayEnd(header->Zeroes) != std::find_if(header->Zeroes, ArrayEnd(header->Zeroes), std::bind1st(std::not_equal_to<uint8_t>(), 0));
+      const std::size_t* const offsets = isCompiled ? DST::SAMPLES_OFFSETS_COMPILED : DST::SAMPLES_OFFSETS;
+
       std::size_t fourBitSamples = 0;
       std::size_t eightBitSamples = 0;
       for (uint_t samIdx = 0; samIdx != DST::SAMPLES_COUNT; ++samIdx)
@@ -251,11 +268,13 @@ namespace
         const DST::SampleInfo& srcSample = header->Samples[samIdx];
         if (!srcSample.Size)
         {
+          Log::Debug(THIS_MODULE, "Empty sample %1%", samIdx);
           continue;
         }
 
-        if (srcSample.Page < 0x51 || srcSample.Page > 0x57 || !DST::SAMPLES_OFFSETS[srcSample.Page & 0xf])
+        if (srcSample.Page < 0x51 || srcSample.Page > 0x57 || !offsets[srcSample.Page & 0xf])
         {
+          Log::Debug(THIS_MODULE, "Skipped sample %1%", samIdx);
           continue;
         }
 
@@ -270,6 +289,7 @@ namespace
             fromLE(srcSample.Loop) < BASE_ADDR ||
             sampleSize > MAX_SIZE)
         {
+          Log::Debug(THIS_MODULE, "Skipped invalid sample %1%", samIdx);
           continue;
         }
         const std::size_t sampleOffsetInPage = fromLE(srcSample.Start) - BASE_ADDR;
@@ -282,38 +302,45 @@ namespace
           {
             continue;//invalid sample
           }
-          const uint8_t* const firstBegin = &data[DST::SAMPLES_OFFSETS[0] + sampleOffsetInPage];
+          const std::size_t firstOffset = offsets[0] + sampleOffsetInPage;
+          const uint8_t* const firstBegin = &data[firstOffset];
           const std::size_t firstCopy = PAGE_SIZE - sampleOffsetInPage;
-          const uint8_t* const secondBegin = &data[DST::SAMPLES_OFFSETS[7]];
+          const std::size_t secondOffset = offsets[7];
+          const uint8_t* const secondBegin = &data[secondOffset];
           const std::size_t secondCopy = sampleOffsetInPage + sampleSize - PAGE_SIZE;
           dstSample.Data.resize(sampleSize);
           std::copy(secondBegin, secondBegin + secondCopy,
             std::copy(firstBegin, firstBegin + firstCopy, dstSample.Data.begin()));
           dstSample.Loop = fromLE(srcSample.Loop) - BASE_ADDR;
+          Log::Debug(THIS_MODULE, "Sample %1% splitted: #%2$05x..#%3$05x + #%4$05x..#%5$05x", samIdx, 
+            firstOffset, firstOffset + firstCopy, secondOffset, secondOffset + secondCopy);
         }
         else
         {
           const std::size_t dataOffset = (loMemPage
             ? (sampleOffsetInPage < PAGE_SIZE
-               ? DST::SAMPLES_OFFSETS[0]
-               : DST::SAMPLES_OFFSETS[7] - PAGE_SIZE
+               ? offsets[0]
+               : offsets[7] - PAGE_SIZE
               )
-            : DST::SAMPLES_OFFSETS[srcSample.Page & 0x0f]) + sampleOffsetInPage;
+            : offsets[srcSample.Page & 0x0f]) + sampleOffsetInPage;
           const uint8_t* const begin = &data[dataOffset];
           dstSample.Data.assign(begin, begin + sampleSize);
           dstSample.Loop = fromLE(srcSample.Loop) - BASE_ADDR;
+          Log::Debug(THIS_MODULE, "Sample %1%: #%2$05x..#%3$05x", samIdx, dataOffset, dataOffset + sampleSize);
         }
+        dstSample.Truncate();
         if (dstSample.Is4Bit())
         {
+          Log::Debug(THIS_MODULE, "Sample %1% is 4 bit", samIdx);
           ++fourBitSamples;
         }
         else
         {
+          Log::Debug(THIS_MODULE, "Sample %1% is 8 bit", samIdx);
           ++eightBitSamples;
         }
-        dstSample.Truncate();
       }
-      const bool oldVersion = fourBitSamples > eightBitSamples;
+      const bool oldVersion = fourBitSamples != 0;
       if (oldVersion)
       {
         assert(0 == eightBitSamples);
@@ -327,7 +354,7 @@ namespace
       Data->LoopPosition = header->Loop;
       Data->InitialTempo = header->Tempo;
 
-      usedSize = DST::MODULE_SIZE;
+      usedSize = isCompiled ? DST::COMPILED_MODULE_SIZE : DST::MODULE_SIZE;
 
       //meta properties
       {
@@ -514,16 +541,67 @@ namespace
     return Renderer::Ptr(new DSTRenderer(params, info, data, device));
   }
 
+  bool IsValidPattern(const DST::Pattern& src)
+  {
+    bool end = false;
+    for (uint_t lineNum = 0; !end && lineNum != DST::MAX_PATTERN_SIZE; ++lineNum)
+    {
+      const DST::Pattern::Line& srcLine = src.Lines[lineNum];
+      for (uint_t chanNum = 0; chanNum != DST::CHANNELS_COUNT; ++chanNum)
+      {
+        const DST::Pattern::Line::Channel& srcChan = srcLine.Channels[chanNum];
+        const uint_t note = srcChan.Note;
+        if (note >= DST::NOTE_PAUSE)
+        {
+          if (note > DST::NOTE_END)
+          {
+            return false;
+          }
+          else if (DST::NOTE_END == note)
+          {
+            end = true;
+            break;
+          }
+        }
+        else if (DST::NOTE_EMPTY != note)
+        {
+          if (srcChan.Sample >= DST::SAMPLES_COUNT || srcChan.Note > DST::NOTE_BASE + 48)
+          {
+            return false;
+          }
+        }
+      }
+    }
+    return true;
+  }
+
   bool CheckDST(const Binary::Container& data)
   {
     //check for header
     const std::size_t size(data.Size());
-    if (DST::MODULE_SIZE > size)
+    if (size < sizeof(DST::Header))
     {
       return false;
     }
     const DST::Header* const header(safe_ptr_cast<const DST::Header*>(data.Data()));
+    const bool isCompiled = ArrayEnd(header->Zeroes) != std::find_if(header->Zeroes, ArrayEnd(header->Zeroes), std::bind1st(std::not_equal_to<uint8_t>(), 0));
+    const std::size_t moduleSize = isCompiled ? DST::COMPILED_MODULE_SIZE : DST::MODULE_SIZE;
+    if (size < moduleSize)
+    {
+      return false;
+    }
+    //check patterns
+    const std::set<std::size_t> patNums = std::set<std::size_t>(header->Positions.begin(), header->Positions.begin() + header->Length);
+    for (std::set<std::size_t>::const_iterator it = patNums.begin(), lim = patNums.end(); it != lim; ++it)
+    {
+      const DST::Pattern& pat = header->Patterns[*it];
+      if (!IsValidPattern(pat))
+      {
+        return false;
+      }
+    }
     //check samples
+    const std::size_t* const offsets = isCompiled ? DST::SAMPLES_OFFSETS_COMPILED : DST::SAMPLES_OFFSETS;
     for (uint_t samIdx = 0; samIdx != DST::SAMPLES_COUNT; ++samIdx)
     {
       const DST::SampleInfo& srcSample = header->Samples[samIdx];
@@ -532,7 +610,7 @@ namespace
         continue;
       }
 
-      if (srcSample.Page < 0x51 || srcSample.Page > 0x57 || !DST::SAMPLES_OFFSETS[srcSample.Page & 0xf])
+      if (srcSample.Page < 0x51 || srcSample.Page > 0x57 || !offsets[srcSample.Page & 0xf])
       {
         return false;
       }
@@ -582,8 +660,9 @@ namespace
     //skip compiled
     "+44+"
     "ff{10}"
-    "ae7eae7e51000000"
-    "20{8}00{56}"
+    "+8+"//"ae7eae7e51000000"
+    "20{8}"
+    //"00{56}"
   );
 
   class DSTModulesFactory : public ModulesFactory

@@ -83,13 +83,14 @@ namespace Sna128
     }
     const uint_t curPage = header.Port7FFD & 7;
     const bool pageDuped = curPage == 2 || curPage == 5;
+    const std::size_t origSize = pageDuped ? sizeof(header) + sizeof(PageData) : sizeof(header);
+    if (limit != origSize)
+    {
+      return false;
+    }
     //in case of duped one more page
     if (pageDuped)
     {
-      if (limit < sizeof(header) + sizeof(PageData))
-      {
-        return false;
-      }
       const PageData& cmpPage = curPage == 2 ? header.Page2 : header.Page5;
       if (cmpPage != header.ActivePage)
       {
