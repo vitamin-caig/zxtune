@@ -85,6 +85,16 @@
     <string>Save playlist</string>
    </property>
   </action>
+  <action name="actionRenamePlaylist">
+   <property name="icon">
+    <iconset>
+     <normalon>:/playlist/rename.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Rename playlist</string>
+   </property>
+  </action>
   <action name="actionClosePlaylist">
    <property name="icon">
     <iconset>

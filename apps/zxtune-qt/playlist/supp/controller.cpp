@@ -286,6 +286,11 @@ namespace
       return Name;
     }
 
+    virtual void SetName(const QString& name)
+    {
+      Name = name;
+    }
+
     virtual Playlist::Scanner::Ptr GetScanner() const
     {
       return Scanner;
@@ -306,7 +311,7 @@ namespace
       return boost::make_shared<ContainerImpl>(Name, Model);
     }
   private:
-    const QString Name;
+    QString Name;
     Playlist::Item::DataProvider::Ptr Provider;
     const Playlist::Scanner::Ptr Scanner;
     const Playlist::Model::Ptr Model;

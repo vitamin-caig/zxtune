@@ -38,17 +38,6 @@ namespace
 {
   const std::string THIS_MODULE("Playlist::UI::ContainerView");
 
-  QString ExtractPlaylistName(const Playlist::IO::Container& container, const QString& defVal)
-  {
-    const Parameters::Accessor::Ptr params = container.GetProperties();
-    Parameters::StringType val;
-    if (params->FindStringValue(Playlist::ATTRIBUTE_NAME, val))
-    {
-      return ToQString(val);
-    }
-    return defVal;
-  }
-
   class CallbackWrapper : public Playlist::IO::ExportCallback
   {
   public:
@@ -104,6 +93,7 @@ namespace
       this->connect(actionCreatePlaylist, SIGNAL(triggered()), SLOT(CreatePlaylist()));
       this->connect(actionLoadPlaylist, SIGNAL(triggered()), SLOT(LoadPlaylist()));
       this->connect(actionSavePlaylist, SIGNAL(triggered()), SLOT(SavePlaylist()));
+      this->connect(actionRenamePlaylist, SIGNAL(triggered()), SLOT(RenamePlaylist()));
       this->connect(actionClosePlaylist, SIGNAL(triggered()), SLOT(CloseCurrentPlaylist()));
       this->connect(actionClearPlaylist, SIGNAL(triggered()), SLOT(Clear()));
 
@@ -217,7 +207,7 @@ namespace
       Playlist::UI::View& pl = GetVisiblePlaylist();
       const Playlist::Controller& controller = pl.GetPlaylist();
       const Playlist::IO::Container::Ptr container = controller.GetContainer();
-      QString filename = ExtractPlaylistName(*container, controller.GetName());
+      QString filename = controller.GetName();
       if (Filer->SaveFile(actionSavePlaylist->text(),
         QString::fromUtf8("xspf"),
         QString::fromUtf8("Playlist files (*.xspf)"),
@@ -225,6 +215,14 @@ namespace
       {
         SavePlaylistWithProgress(*this, container, filename);
       }
+    }
+
+    virtual void RenamePlaylist()
+    {
+      Playlist::UI::View& pl = GetVisiblePlaylist();
+      pl.Rename();
+      const Playlist::Controller& controller = pl.GetPlaylist();
+      widgetsContainer->setTabText(widgetsContainer->currentIndex(), controller.GetName());
     }
 
     virtual void CloseCurrentPlaylist()
@@ -277,6 +275,7 @@ namespace
       ActionsMenu->addAction(actionCreatePlaylist);
       ActionsMenu->addAction(actionLoadPlaylist);
       ActionsMenu->addAction(actionSavePlaylist);
+      ActionsMenu->addAction(actionRenamePlaylist);
       ActionsMenu->addAction(actionClosePlaylist);
       ActionsMenu->addAction(actionClearPlaylist);
       ActionsMenu->addSeparator();

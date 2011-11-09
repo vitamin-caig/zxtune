@@ -60,6 +60,7 @@ namespace Playlist
       virtual void CreatePlaylist() = 0;
       virtual void LoadPlaylist() = 0;
       virtual void SavePlaylist() = 0;
+      virtual void RenamePlaylist() = 0;
 
       virtual void CloseCurrentPlaylist() = 0;
       virtual void ClosePlaylist(int index) = 0;

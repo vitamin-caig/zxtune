@@ -29,6 +29,7 @@ Author:
 #include <QtCore/QUrl>
 #include <QtGui/QDragEnterEvent>
 #include <QtGui/QHeaderView>
+#include <QtGui/QInputDialog>
 #include <QtGui/QKeyEvent>
 #include <QtGui/QProgressBar>
 #include <QtGui/QVBoxLayout>
@@ -212,6 +213,17 @@ namespace
       const Playlist::Model::Ptr model = Controller->GetModel();
       model->Clear();
       Update();
+    }
+
+    virtual void Rename()
+    {
+      const QString oldName = Controller->GetName();
+      bool ok = false;
+      const QString newName = QInputDialog::getText(this, QString::fromUtf8("Rename playlist"), QString(), QLineEdit::Normal, oldName, &ok);
+      if (ok && !newName.isEmpty())
+      {
+        Controller->SetName(newName);
+      }
     }
 
     virtual void ListItemActivated(unsigned idx, const Playlist::Item::Data& data)

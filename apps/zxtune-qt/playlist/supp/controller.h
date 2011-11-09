@@ -83,11 +83,12 @@ namespace Playlist
   protected:
     explicit Controller(QObject& parent);
   public:
-    typedef boost::shared_ptr<const Controller> Ptr;
+    typedef boost::shared_ptr<Controller> Ptr;
 
     static Ptr Create(QObject& parent, const QString& name, Item::DataProvider::Ptr provider);
 
     virtual QString GetName() const = 0;
+    virtual void SetName(const QString& name) = 0;
     virtual Scanner::Ptr GetScanner() const = 0;
     virtual Model::Ptr GetModel() const = 0;
     virtual Item::Iterator::Ptr GetIterator() const = 0;
