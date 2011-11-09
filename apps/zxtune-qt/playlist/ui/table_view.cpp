@@ -47,6 +47,7 @@ namespace
       setModel(model);
       setItemDelegate(Playlist::UI::TableViewItem::Create(*this, callback));
       setFont(Font);
+      setMinimumSize(256, 128);
       //setup ui
       setAcceptDrops(true);
       setDragEnabled(true);

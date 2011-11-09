@@ -20,6 +20,7 @@ Author:
 #include "playlist/supp/model.h"
 #include "playlist/supp/controller.h"
 #include "playlist/supp/scanner.h"
+#include "ui/controls/overlay_progress.h"
 //local includes
 #include <logging.h>
 //boost includes
@@ -110,7 +111,7 @@ namespace
       , Layout(new QVBoxLayout(this))
       , ScannerView(Playlist::UI::ScannerView::Create(*this, Controller->GetScanner()))
       , View(Playlist::UI::TableView::Create(*this, State, Controller->GetModel()))
-      , OperationProgress(new QProgressBar(this))
+      , OperationProgress(OverlayProgress::Create(*this))
       , ItemsMenu(Playlist::UI::ItemsContextMenu::Create(*View, playlist))
     {
       //setup ui
@@ -118,8 +119,6 @@ namespace
       Layout->setSpacing(0);
       Layout->setMargin(0);
       Layout->addWidget(View);
-      Layout->addWidget(OperationProgress);
-      OperationProgress->setMaximum(100);
       OperationProgress->setVisible(false);
       Layout->addWidget(ScannerView);
       //setup connections
@@ -131,7 +130,7 @@ namespace
 
       const Playlist::Model::Ptr model = Controller->GetModel();
       this->connect(model, SIGNAL(OnLongOperationStart()), SLOT(LongOperationStart()));
-      OperationProgress->connect(model, SIGNAL(OnLongOperationProgress(int)), SLOT(setValue(int)));
+      OperationProgress->connect(model, SIGNAL(OnLongOperationProgress(int)), SLOT(UpdateProgress(int)));
       this->connect(model, SIGNAL(OnLongOperationStop()), SLOT(LongOperationStop()));
 
       Log::Debug(THIS_MODULE, "Created at %1%", this);
@@ -272,6 +271,15 @@ namespace
         AddItems(files);
       }
     }
+
+    virtual void resizeEvent(QResizeEvent* event)
+    {
+      const QSize& newSize = event->size();
+      const QSize& opSize = OperationProgress->size();
+      const QSize& newPos = (newSize - opSize) / 2;
+      OperationProgress->move(newPos.width(), newPos.height());
+      event->accept();
+    }
   private:
     void UpdateState(Playlist::Item::State state)
     {
@@ -292,7 +300,7 @@ namespace
     QVBoxLayout* const Layout;
     Playlist::UI::ScannerView* const ScannerView;
     Playlist::UI::TableView* const View;
-    QProgressBar* const OperationProgress;
+    OverlayProgress* const OperationProgress;
     Playlist::UI::ItemsContextMenu* const ItemsMenu;
   };
 }

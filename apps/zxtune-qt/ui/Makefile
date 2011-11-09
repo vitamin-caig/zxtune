@@ -12,7 +12,7 @@ ui_files += controls/playback_controls \
             controls/volume_control \
             controls/playback_options
 
-moc_files += controls/analyzer_control
+moc_files += controls/analyzer_control controls/overlay_progress
 
 #informational
 ui_files += informational/aboutdialog \
