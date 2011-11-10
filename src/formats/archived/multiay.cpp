@@ -80,7 +80,7 @@ namespace MultiAY
     {
       for (uint_t idx = 0, total = CountFiles(); idx < total; ++idx)
       {
-        const Formats::Chiptune::AY::Builder::Ptr builder = Formats::Chiptune::AY::CreateFileBuilder();
+        const Formats::Chiptune::AY::BlobBuilder::Ptr builder = Formats::Chiptune::AY::CreateFileBuilder();
         if (const Formats::Chiptune::Container::Ptr parsed = Formats::Chiptune::AY::Parse(*Delegate, idx, *builder))
         {
           const String subPath = AyPath.Build(idx);
@@ -104,7 +104,7 @@ namespace MultiAY
       {
         return Formats::Archived::File::Ptr();
       }
-      const Formats::Chiptune::AY::Builder::Ptr builder = asRaw
+      const Formats::Chiptune::AY::BlobBuilder::Ptr builder = asRaw
         ? Formats::Chiptune::AY::CreateMemoryDumpBuilder()
         : Formats::Chiptune::AY::CreateFileBuilder();
       if (!Formats::Chiptune::AY::Parse(*Delegate, index, *builder))

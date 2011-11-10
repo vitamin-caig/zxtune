@@ -489,15 +489,9 @@ namespace
     {
       Delegate->AddBlock(addr, src, size);
     }
-
-    virtual Binary::Container::Ptr Result() const
-    {
-      assert(!"Should not be called");
-      return Binary::Container::Ptr();
-    }
   private:
     const ModuleProperties::RWPtr Properties;
-    const Formats::Chiptune::AY::Builder::Ptr Delegate;
+    const Formats::Chiptune::AY::BlobBuilder::Ptr Delegate;
     uint_t Frames;
     uint16_t Registers;
     uint16_t StackPointer;

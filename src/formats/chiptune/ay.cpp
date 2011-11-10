@@ -228,14 +228,9 @@ namespace AY
     virtual void SetRegisters(uint16_t /*reg*/, uint16_t /*sp*/) {}
     virtual void SetRoutines(uint16_t /*init*/, uint16_t /*play*/) {}
     virtual void AddBlock(uint16_t /*addr*/, const void* /*data*/, std::size_t /*size*/) {}
-
-    virtual Binary::Container::Ptr Result() const
-    {
-      return Binary::Container::Ptr();
-    }
   };
 
-  class MemoryDumpBuilder : public Formats::Chiptune::AY::Builder
+  class MemoryDumpBuilder : public Formats::Chiptune::AY::BlobBuilder
   {
     class Im1Player
     {
@@ -354,7 +349,7 @@ namespace AY
     mutable std::auto_ptr<Dump> Data;
   };
 
-  class FileBuilder : public Formats::Chiptune::AY::Builder
+  class FileBuilder : public Formats::Chiptune::AY::BlobBuilder
   {
     //as a container
     class VariableDump : public Dump
@@ -578,12 +573,12 @@ namespace Formats
         return stub;
       }
 
-      Builder::Ptr CreateMemoryDumpBuilder()
+      BlobBuilder::Ptr CreateMemoryDumpBuilder()
       {
         return boost::make_shared< ::AY::MemoryDumpBuilder>();
       }
 
-      Builder::Ptr CreateFileBuilder()
+      BlobBuilder::Ptr CreateFileBuilder()
       {
         return boost::make_shared< ::AY::FileBuilder>();
       }

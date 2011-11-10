@@ -16,7 +16,6 @@ Author:
 #include <tools.h>
 //library includes
 #include <binary/typed_container.h>
-#include <core/module_attrs.h>
 #include <devices/aym.h>
 //std includes
 #include <cstring>
@@ -54,74 +53,6 @@ namespace PSG
 #endif
 
   BOOST_STATIC_ASSERT(sizeof(Header) == 16);
-
-  typedef std::vector<Devices::AYM::DataChunk> ChunksArray;
-
-  class ChunksSet : public Formats::Chiptune::PSG::ChunksSet
-  {
-  public:
-    explicit ChunksSet(std::auto_ptr<ChunksArray> data)
-      : Data(data)
-    {
-    }
-
-    virtual std::size_t Count() const
-    {
-      return Data->size();
-    }
-
-    virtual const Devices::AYM::DataChunk& Get(std::size_t frameNum) const
-    {
-      return Data->at(frameNum);
-    }
-  private:
-    const std::auto_ptr<ChunksArray> Data;  
-  };
-
-  class Builder : public Formats::Chiptune::PSG::Builder
-  {
-  public:
-    virtual void AddChunks(std::size_t count)
-    {
-      if (!Allocate(count))
-      {
-        Append(count);
-      }
-    }
-
-    virtual void SetRegister(uint_t reg, uint_t val)
-    {
-      if (Data.get() && !Data->empty())
-      {
-        Devices::AYM::DataChunk& chunk = Data->back();
-        chunk.Data[reg] = val;
-        chunk.Mask |= uint_t(1) << reg;
-      }
-    }
-
-    virtual Formats::Chiptune::PSG::ChunksSet::Ptr Result() const
-    {
-      Allocate(0);
-      return Formats::Chiptune::PSG::ChunksSet::Ptr(new ChunksSet(Data));
-    }
-  private:
-    bool Allocate(std::size_t count) const
-    {
-      if (!Data.get())
-      {
-        Data.reset(new ChunksArray(count));
-        return true;
-      }
-      return false;
-    }
-
-    void Append(std::size_t count)
-    {
-      std::fill_n(std::back_inserter(*Data), count, Devices::AYM::DataChunk());
-    }
-  private:
-    mutable std::auto_ptr<ChunksArray> Data;
-  };
 
   class Container : public Formats::Chiptune::Container
   {
@@ -162,11 +93,6 @@ namespace PSG
   public:
     virtual void AddChunks(std::size_t /*count*/) {}
     virtual void SetRegister(uint_t /*reg*/, uint_t /*val*/) {}
-
-    virtual Formats::Chiptune::PSG::ChunksSet::Ptr Result() const
-    {
-      return Formats::Chiptune::PSG::ChunksSet::Ptr();
-    }
   };
 
   bool Check(const Binary::Container& rawData)
@@ -287,11 +213,6 @@ namespace Formats
       {
         static ::PSG::StubBuilder stub;
         return stub;
-      }
-
-      Builder::Ptr CreateBuilder()
-      {
-        return boost::make_shared< ::PSG::Builder>();
       }
     }
 

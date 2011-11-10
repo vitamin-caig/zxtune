@@ -36,10 +36,81 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Module;
 
+  typedef std::vector<Devices::AYM::DataChunk> ChunksArray;
+
+  class ChunksSet
+  {
+  public:
+    typedef boost::shared_ptr<const ChunksSet> Ptr;
+
+    explicit ChunksSet(std::auto_ptr<ChunksArray> data)
+      : Data(data)
+    {
+    }
+
+    std::size_t Count() const
+    {
+      return Data->size();
+    }
+
+    const Devices::AYM::DataChunk& Get(std::size_t frameNum) const
+    {
+      return Data->at(frameNum);
+    }
+  private:
+    const std::auto_ptr<ChunksArray> Data;  
+  };
+
+  class Builder : public Formats::Chiptune::PSG::Builder
+  {
+  public:
+    virtual void AddChunks(std::size_t count)
+    {
+      if (!Allocate(count))
+      {
+        Append(count);
+      }
+    }
+
+    virtual void SetRegister(uint_t reg, uint_t val)
+    {
+      if (Data.get() && !Data->empty())
+      {
+        Devices::AYM::DataChunk& chunk = Data->back();
+        chunk.Data[reg] = val;
+        chunk.Mask |= uint_t(1) << reg;
+      }
+    }
+
+    ChunksSet::Ptr Result() const
+    {
+      Allocate(0);
+      return ChunksSet::Ptr(new ChunksSet(Data));
+    }
+  private:
+    bool Allocate(std::size_t count) const
+    {
+      if (!Data.get())
+      {
+        Data.reset(new ChunksArray(count));
+        return true;
+      }
+      return false;
+    }
+
+    void Append(std::size_t count)
+    {
+      std::fill_n(std::back_inserter(*Data), count, Devices::AYM::DataChunk());
+    }
+  private:
+    mutable std::auto_ptr<ChunksArray> Data;
+  };
+
+
   class PSGDataIterator : public AYM::DataIterator
   {
   public:
-    PSGDataIterator(StateIterator::Ptr delegate, Formats::Chiptune::PSG::ChunksSet::Ptr data)
+    PSGDataIterator(StateIterator::Ptr delegate, ChunksSet::Ptr data)
       : Delegate(delegate)
       , State(Delegate->GetStateObserver())
       , Data(data)
@@ -105,14 +176,14 @@ namespace
   private:
     const StateIterator::Ptr Delegate;
     const TrackState::Ptr State;
-    const Formats::Chiptune::PSG::ChunksSet::Ptr Data;
+    const ChunksSet::Ptr Data;
     Devices::AYM::DataChunk CurrentChunk;
   };
 
   class PSGChiptune : public AYM::Chiptune
   {
   public:
-    PSGChiptune(Formats::Chiptune::PSG::ChunksSet::Ptr data, ModuleProperties::Ptr properties)
+    PSGChiptune(ChunksSet::Ptr data, ModuleProperties::Ptr properties)
       : Data(data)
       , Properties(properties)
       , Info(CreateStreamInfo(Data->Count(), Devices::AYM::CHANNELS))
@@ -135,7 +206,7 @@ namespace
       return boost::make_shared<PSGDataIterator>(iter, Data);
     }
   private:
-    const Formats::Chiptune::PSG::ChunksSet::Ptr Data;
+    const ChunksSet::Ptr Data;
     const ModuleProperties::Ptr Properties;
     const Information::Ptr Info;
   };
@@ -170,12 +241,12 @@ namespace
     virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr data, std::size_t& usedSize) const
     {
       using namespace Formats::Chiptune;
-      const PSG::Builder::Ptr builder = PSG::CreateBuilder();
-      if (const Container::Ptr container = PSG::Parse(*data, *builder))
+      Builder builder;
+      if (const Container::Ptr container = PSG::Parse(*data, builder))
       {
         usedSize = container->Size();
         properties->SetSource(container);
-        const PSG::ChunksSet::Ptr data = builder->Result();
+        const ChunksSet::Ptr data = builder.Result();
         if (data->Count())
         {
           const AYM::Chiptune::Ptr chiptune = boost::make_shared<PSGChiptune>(data, properties);
