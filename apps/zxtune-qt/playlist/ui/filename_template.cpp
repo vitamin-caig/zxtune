@@ -28,7 +28,6 @@ namespace
   public:
     explicit FilenameTemplateWidgetImpl(QWidget& parent)
       : Playlist::UI::FilenameTemplateWidget(parent)
-      , Filer(FileDialog::Create(*this))
     {
       //setup self
       setupUi(this);
@@ -54,7 +53,7 @@ namespace
     virtual void OnBrowseDirectory()
     {
       QString dir = directoryName->text();
-      if (Filer->OpenFolder(QString::fromUtf8("Select target directory"), dir))
+      if (FileDialog::Instance().OpenFolder(QString::fromUtf8("Select target directory"), dir))
       {
         directoryName->setText(dir);
       }
@@ -65,9 +64,6 @@ namespace
       QLineEdit* const editor = fileTemplate->lineEdit();
       editor->setText(editor->text() + hint);
     }
-
-  private:
-    const FileDialog::Ptr Filer;
   };
 
   class FilenameTemplateDialog : public QDialog

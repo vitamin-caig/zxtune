@@ -45,7 +45,6 @@ namespace
       , Options(parameters)
       , Container(Playlist::Container::Create(*this, parameters))
       , ActionsMenu(new QMenu(tr("Playlist"), this))
-      , Filer(FileDialog::Create(*this))
       , ActivePlaylistView(0)
     {
       //setup self
@@ -133,7 +132,7 @@ namespace
     virtual void AddFiles()
     {
       QStringList files;
-      if (Filer->OpenMultipleFiles(actionAddFiles->text(),
+      if (FileDialog::Instance().OpenMultipleFiles(actionAddFiles->text(),
         tr("All files (*.*)"), files))
       {
         AddItemsToVisiblePlaylist(files);
@@ -144,7 +143,7 @@ namespace
     {
       QStringList folders;
       folders += QString();
-      if (Filer->OpenFolder(actionAddFolder->text(), folders.front()))
+      if (FileDialog::Instance().OpenFolder(actionAddFolder->text(), folders.front()))
       {
         AddItemsToVisiblePlaylist(folders);
       }
@@ -158,7 +157,7 @@ namespace
     virtual void LoadPlaylist()
     {
       QString file;
-      if (Filer->OpenSingleFile(actionLoadPlaylist->text(),
+      if (FileDialog::Instance().OpenSingleFile(actionLoadPlaylist->text(),
          tr("Playlist files (*.xspf *.ayl)"), file))
       {
         if (Playlist::Controller::Ptr pl = Container->OpenPlaylist(file))
@@ -310,7 +309,6 @@ namespace
     const Parameters::Container::Ptr Options;
     const Playlist::Container::Ptr Container;
     QMenu* const ActionsMenu;
-    const FileDialog::Ptr Filer;
     //state context
     Playlist::UI::View* ActivePlaylistView;
   };

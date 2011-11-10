@@ -212,7 +212,6 @@ namespace
       , View(Playlist::UI::TableView::Create(*this, State, Controller->GetModel()))
       , OperationProgress(OverlayProgress::Create(*this))
       , ItemsMenu(Playlist::UI::ItemsContextMenu::Create(*View, playlist))
-      , Filer(FileDialog::Create(*this))
     {
       //setup ui
       setAcceptDrops(true);
@@ -329,7 +328,7 @@ namespace
     {
       const QString name = Controller->GetName();
       QString filename = name;
-      if (Filer->SaveFile(QString::fromUtf8("Save playlist"),
+      if (FileDialog::Instance().SaveFile(QString::fromUtf8("Save playlist"),
         QString::fromUtf8("xspf"),
         QString::fromUtf8("Playlist files (*.xspf)"),
         filename))
@@ -427,7 +426,6 @@ namespace
     Playlist::UI::TableView* const View;
     OverlayProgress* const OperationProgress;
     Playlist::UI::ItemsContextMenu* const ItemsMenu;
-    const FileDialog::Ptr Filer;
   };
 }
 

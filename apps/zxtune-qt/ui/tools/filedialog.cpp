@@ -13,9 +13,6 @@ Author:
 
 //local includes
 #include "filedialog.h"
-//boost includes
-#include <boost/make_shared.hpp>
-#include <boost/ref.hpp>
 //qt includes
 #include <QtGui/QFileDialog>
 
@@ -24,9 +21,9 @@ namespace
   class FileDialogImpl : public FileDialog
   {
   public:
-    explicit FileDialogImpl(QWidget& parent)
-      : Dialog(&parent, QString(), QDir::currentPath())
+    FileDialogImpl()
     {
+      Dialog.setDirectory(QDir::currentPath());
       Dialog.setViewMode(QFileDialog::Detail);
       Dialog.setOption(QFileDialog::DontUseNativeDialog, true);
       Dialog.setOption(QFileDialog::HideNameFilterDetails, true);
@@ -120,7 +117,8 @@ namespace
   };
 }
 
-FileDialog::Ptr FileDialog::Create(QWidget& parent)
+FileDialog& FileDialog::Instance()
 {
-  return boost::make_shared<FileDialogImpl>(boost::ref(parent));
+  static FileDialogImpl instance;
+  return instance;
 }
