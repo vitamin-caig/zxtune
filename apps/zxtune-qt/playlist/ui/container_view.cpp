@@ -21,7 +21,6 @@ Author:
 #include "playlist/supp/container.h"
 #include "playlist/supp/scanner.h"
 #include "ui/utils.h"
-#include "ui/tools/errordialog.h"
 #include "ui/tools/filedialog.h"
 #include "ui/tools/parameters_helpers.h"
 //common includes
@@ -32,43 +31,10 @@ Author:
 //qt includes
 #include <QtGui/QContextMenuEvent>
 #include <QtGui/QMenu>
-#include <QtGui/QProgressDialog>
 
 namespace
 {
   const std::string THIS_MODULE("Playlist::UI::ContainerView");
-
-  class CallbackWrapper : public Playlist::IO::ExportCallback
-  {
-  public:
-    CallbackWrapper(QProgressDialog& dlg)
-      : Dialog(dlg)
-    {
-    }
-
-    virtual void Progress(unsigned current)
-    {
-      Dialog.setValue(current);
-    }
-
-    virtual bool IsCanceled() const
-    {
-      return Dialog.wasCanceled();
-    }
-  private:
-    QProgressDialog& Dialog;
-  };
-
-  void SavePlaylistWithProgress(QWidget& owner, Playlist::IO::Container::Ptr container, const QString& filename)
-  {
-    QProgressDialog dlg(Playlist::UI::ContainerView::tr("Saving playlist"), Playlist::UI::ContainerView::tr("Cancel"), 0, 100, &owner);
-    dlg.setWindowModality(Qt::WindowModal);
-    CallbackWrapper callbackWrapper(dlg);
-    if (const Error& err = Playlist::IO::SaveXSPF(container, filename, callbackWrapper))
-    {
-      ShowErrorMessage(Playlist::UI::ContainerView::tr("Failed to save playlist"), err);
-    }
-  }
 
   class ContainerViewImpl : public Playlist::UI::ContainerView
                           , public Ui::PlaylistContainerView
@@ -205,16 +171,7 @@ namespace
     virtual void SavePlaylist()
     {
       Playlist::UI::View& pl = GetVisiblePlaylist();
-      const Playlist::Controller& controller = pl.GetPlaylist();
-      const Playlist::IO::Container::Ptr container = controller.GetContainer();
-      QString filename = controller.GetName();
-      if (Filer->SaveFile(actionSavePlaylist->text(),
-        QString::fromUtf8("xspf"),
-        QString::fromUtf8("Playlist files (*.xspf)"),
-        filename))
-      {
-        SavePlaylistWithProgress(*this, container, filename);
-      }
+      pl.Save();
     }
 
     virtual void RenamePlaylist()

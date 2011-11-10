@@ -92,8 +92,6 @@ namespace Playlist
     virtual Scanner::Ptr GetScanner() const = 0;
     virtual Model::Ptr GetModel() const = 0;
     virtual Item::Iterator::Ptr GetIterator() const = 0;
-
-    virtual IO::Container::Ptr GetContainer() const = 0;
   };
 }
 

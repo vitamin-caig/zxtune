@@ -16,7 +16,6 @@ Author:
 #include "model.h"
 #include "scanner.h"
 #include "ui/utils.h"
-#include "apps/base/app.h"
 //common includes
 #include <logging.h>
 //boost includes
@@ -208,53 +207,6 @@ namespace
     Playlist::Item::State State;
   };
 
-  class ContainerImpl : public Playlist::IO::Container
-  {
-  public:
-    ContainerImpl(const QString& name, Playlist::Model::Ptr model)
-      : Properties(Parameters::Container::Create())
-      , Model(model)
-    {
-      Properties->SetStringValue(Playlist::ATTRIBUTE_NAME, FromQString(name));
-      Properties->SetStringValue(Playlist::ATTRIBUTE_CREATOR, GetProgramVersionString());
-    }
-
-    virtual Parameters::Accessor::Ptr GetProperties() const
-    {
-      return Properties;
-    }
-
-    virtual unsigned GetItemsCount() const
-    {
-      return Model->CountItems();
-    }
-
-    virtual void ForAllItems(Playlist::Item::Callback& callback) const
-    {
-      ItemCallbackAdapter adapter(callback);
-      Model->ForAllItems(adapter);
-    }
-  private:
-    class ItemCallbackAdapter : public Playlist::Model::Visitor
-    {
-    public:
-      explicit ItemCallbackAdapter(Playlist::Item::Callback& delegate)
-        : Delegate(delegate)
-      {
-      }
-
-      virtual void OnItem(Playlist::Model::IndexType /*index*/, Playlist::Item::Data::Ptr data)
-      {
-        return Delegate.OnItem(data);
-      }
-    private:
-      Playlist::Item::Callback& Delegate;
-    };
-  private:
-    const Parameters::Container::Ptr Properties;
-    const Playlist::Model::Ptr Model;
-  };
-
   class ControllerImpl : public Playlist::Controller
   {
   public:
@@ -304,11 +256,6 @@ namespace
     virtual Playlist::Item::Iterator::Ptr GetIterator() const
     {
       return Iterator;
-    }
-
-    virtual Playlist::IO::Container::Ptr GetContainer() const
-    {
-      return boost::make_shared<ContainerImpl>(Name, Model);
     }
   private:
     QString Name;

@@ -49,6 +49,7 @@ namespace Playlist
       virtual void Prev() = 0;
       virtual void Clear() = 0;
       virtual void Rename() = 0;
+      virtual void Save() = 0;
     private slots:
       virtual void ListItemActivated(unsigned idx, const Playlist::Item::Data& data) = 0;
       virtual void LongOperationStart() = 0;

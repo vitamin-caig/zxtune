@@ -14,17 +14,24 @@ Author:
 //local includes
 #include "scanner_view.h"
 #include "table_view.h"
+#include "apps/base/app.h"
 #include "playlist_contextmenu.h"
 #include "playlist_view.h"
 #include "playlist/playlist_parameters.h"
-#include "playlist/supp/model.h"
+#include "playlist/io/export.h"
 #include "playlist/supp/controller.h"
+#include "playlist/supp/model.h"
 #include "playlist/supp/scanner.h"
+#include "playlist/supp/storage.h"
+#include "ui/utils.h"
 #include "ui/controls/overlay_progress.h"
+#include "ui/tools/filedialog.h"
 //local includes
+#include <error.h>
 #include <logging.h>
 //boost includes
 #include <boost/bind.hpp>
+#include <boost/make_shared.hpp>
 //qt includes
 #include <QtCore/QUrl>
 #include <QtGui/QDragEnterEvent>
@@ -37,6 +44,97 @@ Author:
 namespace
 {
   const std::string THIS_MODULE("Playlist::UI::View");
+
+  class ContainerImpl : public Playlist::IO::Container
+  {
+  public:
+    ContainerImpl(const String& name, const Playlist::Item::Storage& storage)
+      : Properties(Parameters::Container::Create())
+      , Storage(storage)
+    {
+      Properties->SetStringValue(Playlist::ATTRIBUTE_NAME, name);
+      Properties->SetStringValue(Playlist::ATTRIBUTE_CREATOR, GetProgramVersionString());
+    }
+
+    virtual Parameters::Accessor::Ptr GetProperties() const
+    {
+      return Properties;
+    }
+
+    virtual unsigned GetItemsCount() const
+    {
+      return Storage.CountItems();
+    }
+
+    virtual void ForAllItems(Playlist::Item::Callback& callback) const
+    {
+      ItemCallbackAdapter adapter(callback);
+      Storage.ForAllItems(adapter);
+    }
+  private:
+    class ItemCallbackAdapter : public Playlist::Model::Visitor
+    {
+    public:
+      explicit ItemCallbackAdapter(Playlist::Item::Callback& delegate)
+        : Delegate(delegate)
+      {
+      }
+
+      virtual void OnItem(Playlist::Model::IndexType /*index*/, Playlist::Item::Data::Ptr data)
+      {
+        return Delegate.OnItem(data);
+      }
+    private:
+      Playlist::Item::Callback& Delegate;
+    };
+  private:
+    const Parameters::Container::Ptr Properties;
+    const Playlist::Item::Storage& Storage;
+  };
+
+  class CallbackWrapper : public Playlist::IO::ExportCallback
+  {
+  public:
+    explicit CallbackWrapper(Log::ProgressCallback& cb)
+      : Delegate(cb)
+    {
+    }
+
+    virtual void Progress(unsigned current)
+    {
+      Delegate.OnProgress(current);
+    }
+
+    virtual bool IsCanceled() const
+    {
+      return false;
+    }
+  private:
+    Log::ProgressCallback& Delegate;
+  };
+
+  class SavePlaylistOperation : public Playlist::Item::StorageAccessOperation
+  {
+  public:
+    explicit SavePlaylistOperation(const QString& name, const QString& filename)
+      : Name(FromQString(name))
+      , Filename(filename)
+    {
+    }
+
+    virtual void Execute(const Playlist::Item::Storage& storage, Log::ProgressCallback& cb)
+    {
+      const Playlist::IO::Container::Ptr container = boost::make_shared<ContainerImpl>(Name, storage);
+      CallbackWrapper callback(cb);
+      if (const Error& err = Playlist::IO::SaveXSPF(container, Filename, callback))
+      {
+        //TODO: handle error
+      }
+    }
+  private:
+    const String Name;
+    const QString Filename;
+  };
 
   class PlayitemStateCallbackImpl : public Playlist::Item::StateCallback
   {
@@ -114,6 +212,7 @@ namespace
       , View(Playlist::UI::TableView::Create(*this, State, Controller->GetModel()))
       , OperationProgress(OverlayProgress::Create(*this))
       , ItemsMenu(Playlist::UI::ItemsContextMenu::Create(*View, playlist))
+      , Filer(FileDialog::Create(*this))
     {
       //setup ui
       setAcceptDrops(true);
@@ -226,6 +325,20 @@ namespace
       }
     }
 
+    virtual void Save()
+    {
+      const QString name = Controller->GetName();
+      QString filename = name;
+      if (Filer->SaveFile(QString::fromUtf8("Save playlist"),
+        QString::fromUtf8("xspf"),
+        QString::fromUtf8("Playlist files (*.xspf)"),
+        filename))
+      {
+        const Playlist::Item::StorageAccessOperation::Ptr op = boost::make_shared<SavePlaylistOperation>(name, filename);
+        Controller->GetModel()->PerformOperation(op);
+      }
+    }
+
     virtual void ListItemActivated(unsigned idx, const Playlist::Item::Data& data)
     {
       View->ActivateTableRow(idx);
@@ -314,6 +427,7 @@ namespace
     Playlist::UI::TableView* const View;
     OverlayProgress* const OperationProgress;
     Playlist::UI::ItemsContextMenu* const ItemsMenu;
+    const FileDialog::Ptr Filer;
   };
 }
 
