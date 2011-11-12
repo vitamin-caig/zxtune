@@ -13,6 +13,8 @@
 
 //library includes
 #include <binary/container.h>
+//common includes
+#include <tools.h>
 
 namespace Binary
 {

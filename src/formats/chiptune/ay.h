@@ -9,6 +9,10 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+#pragma once
+#ifndef FORMATS_CHIPTUNE_AY_H_DEFINED
+#define FORMATS_CHIPTUNE_AY_H_DEFINED
+
 //library includes
 #include <formats/chiptune.h>
 
@@ -49,3 +53,5 @@ namespace Formats
     }
   }
 }
+
+#endif //FORMATS_CHIPTUNE_AY_H_DEFINED

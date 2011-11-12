@@ -5,6 +5,7 @@
 
 namespace Text
 {
+extern const Char DIGITALSTUDIO_DECODER_DESCRIPTION[];
 extern const Char PSG_DECODER_DESCRIPTION[];
 }//namespace Text
 #endif //__TEXT_CHIPTUNE_H_DEFINED__

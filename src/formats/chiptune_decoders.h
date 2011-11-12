@@ -19,6 +19,7 @@ namespace Formats
   namespace Chiptune
   {
     Decoder::Ptr CreatePSGDecoder();
+    Decoder::Ptr CreateDigitalStudioDecoder();
   }
 }
 

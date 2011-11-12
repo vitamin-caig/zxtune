@@ -12,6 +12,10 @@ __cpp> "{\n"
 __cpp> "}//namespace Text\n"
 __cpp> "#endif //__TEXT_CHIPTUNE_H_DEFINED__\n"
 
+#DigitalStudio
+< DIGITALSTUDIO_DECODER_DESCRIPTION
+> "Digital Studio"
+
 #PSG
 < PSG_DECODER_DESCRIPTION
 > "Programmable Sound Generator (PSG)"
