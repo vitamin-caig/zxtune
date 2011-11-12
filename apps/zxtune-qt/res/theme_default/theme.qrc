@@ -29,6 +29,7 @@
     <file alias="create.png">list_create.png</file>
     <file alias="open.png">list_open.png</file>
     <file alias="save.png">list_save.png</file>
+    <file alias="rename.png">list_rename.png</file>
     <file alias="close.png">list_close.png</file>
     <file alias="clear.png">list_clear.png</file>
     <file alias="looped_on.png">list_looped.png</file>
