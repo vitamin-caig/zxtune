@@ -13,17 +13,25 @@ Author:
 
 //local includes
 #include "filedialog.h"
+#include "supp/options.h"
+#include "ui/utils.h"
+//common includes
+#include <parameters.h>
+//boost includes
+#include <boost/make_shared.hpp>
 //qt includes
 #include <QtGui/QFileDialog>
 
 namespace
 {
-  class FileDialogImpl : public FileDialog
+  const Char CURRENT_DIR_PARAMETER[] = {'z', 'x', 't', 'u', 'n', 'e', '-', 'q', 't', '.', 'u', 'i', '.', 'b', 'r', 'o', 'w', 's', 'e', '_', 'd', 'i', 'r', '\0'};
+
+  class GuiFileDialog : public FileDialog
   {
   public:
-    FileDialogImpl()
+    explicit GuiFileDialog(Parameters::Container::Ptr params)
+      : Params(params)
     {
-      Dialog.setDirectory(QDir::currentPath());
       Dialog.setViewMode(QFileDialog::Detail);
       Dialog.setOption(QFileDialog::DontUseNativeDialog, true);
       Dialog.setOption(QFileDialog::HideNameFilterDetails, true);
@@ -98,7 +106,13 @@ namespace
   private:
     bool ProcessDialog()
     {
-      return QDialog::Accepted == Dialog.exec();
+      Dialog.setDirectory(RestoreDir());
+      if (QDialog::Accepted == Dialog.exec())
+      {
+        StoreDir(Dialog.directory().absolutePath());
+        return true;
+      }
+      return false;
     }
 
     void SetROMode()
@@ -112,13 +126,59 @@ namespace
       Dialog.setOption(QFileDialog::ReadOnly, false);
       Dialog.setAcceptMode(QFileDialog::AcceptSave);
     }
+
+    QString RestoreDir() const
+    {
+      String dir;
+      if (Params->FindStringValue(CURRENT_DIR_PARAMETER, dir))
+      {
+        return ToQString(dir);
+      }
+      return QDir::currentPath();
+    }
+
+    void StoreDir(const QString& dir)
+    {
+      Params->SetStringValue(CURRENT_DIR_PARAMETER, FromQString(dir));
+    }
   private:
+    const Parameters::Container::Ptr Params;
     QFileDialog Dialog;
+  };
+
+  //TODO: temporary workaround
+  class DynamicFileDialog : public FileDialog
+  {
+  public:
+    virtual bool OpenSingleFile(const QString& title, const QString& filters, QString& file)
+    {
+      return GetDelegate()->OpenSingleFile(title, filters, file);
+    }
+
+    virtual bool OpenMultipleFiles(const QString& title, const QString& filters, QStringList& files)
+    {
+      return GetDelegate()->OpenMultipleFiles(title, filters, files);
+    }
+
+    virtual bool OpenFolder(const QString& title, QString& folder)
+    {
+      return GetDelegate()->OpenFolder(title, folder);
+    }
+
+    virtual bool SaveFile(const QString& title, const QString& suffix, const QString& filter, QString& filename)
+    {
+      return GetDelegate()->SaveFile(title, suffix, filter, filename);
+    }
+  private:
+    boost::shared_ptr<FileDialog> GetDelegate()
+    {
+      return boost::make_shared<GuiFileDialog>(GlobalOptions::Instance().Get());
+    }
   };
 }
 
 FileDialog& FileDialog::Instance()
 {
-  static FileDialogImpl instance;
+  static DynamicFileDialog instance;
   return instance;
 }
