@@ -15,6 +15,8 @@ Author:
 #ifndef ZXTUNE_QT_PLAYLIST_UI_CONTAINER_VIEW_H_DEFINED
 #define ZXTUNE_QT_PLAYLIST_UI_CONTAINER_VIEW_H_DEFINED
 
+//local includes
+#include "playlist/supp/data.h"
 //common includes
 #include <parameters.h>
 //qt includes
@@ -25,11 +27,6 @@ class QStringList;
 
 namespace Playlist
 {
-  namespace Item
-  {
-    class Data;
-  }
-
   namespace UI
   {
     class ContainerView : public QWidget
@@ -65,9 +62,9 @@ namespace Playlist
       virtual void CloseCurrentPlaylist() = 0;
       virtual void ClosePlaylist(int index) = 0;
     private slots:
-      virtual void PlaylistItemActivated(const Playlist::Item::Data&) = 0;
+      virtual void PlaylistItemActivated(Playlist::Item::Data::Ptr) = 0;
     signals:
-      void OnItemActivated(const Playlist::Item::Data&);
+      void OnItemActivated(Playlist::Item::Data::Ptr);
     };
   }
 }

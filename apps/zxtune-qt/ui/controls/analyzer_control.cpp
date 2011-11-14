@@ -58,7 +58,8 @@ namespace
       setMinimumSize(64, 32);
       setWindowTitle(tr("Analyzer"));
 
-      this->connect(&supp, SIGNAL(OnStartModule(ZXTune::Sound::Backend::Ptr)), SLOT(InitState(ZXTune::Sound::Backend::Ptr)));
+      this->connect(&supp, SIGNAL(OnStartModule(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr)),
+        SLOT(InitState(ZXTune::Sound::Backend::Ptr)));
       this->connect(&supp, SIGNAL(OnStopModule()), SLOT(CloseState()));
       this->connect(&supp, SIGNAL(OnUpdateState()), SLOT(UpdateState()));
     }

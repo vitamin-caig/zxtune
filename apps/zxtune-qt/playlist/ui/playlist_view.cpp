@@ -223,8 +223,8 @@ namespace
       //setup connections
       const Playlist::Item::Iterator::Ptr iter = Controller->GetIterator();
       iter->connect(View, SIGNAL(OnTableRowActivated(unsigned)), SLOT(Reset(unsigned)));
-      this->connect(iter, SIGNAL(OnListItemActivated(unsigned, const Playlist::Item::Data&)), 
-        SLOT(ListItemActivated(unsigned, const Playlist::Item::Data&)));
+      this->connect(iter, SIGNAL(OnListItemActivated(unsigned, Playlist::Item::Data::Ptr)),
+        SLOT(ListItemActivated(unsigned, Playlist::Item::Data::Ptr)));
       View->connect(Controller->GetScanner(), SIGNAL(OnScanStop()), SLOT(updateGeometries()));
 
       const Playlist::Model::Ptr model = Controller->GetModel();
@@ -338,7 +338,7 @@ namespace
       }
     }
 
-    virtual void ListItemActivated(unsigned idx, const Playlist::Item::Data& data)
+    virtual void ListItemActivated(unsigned idx, Playlist::Item::Data::Ptr data)
     {
       View->ActivateTableRow(idx);
       OnItemActivated(data);

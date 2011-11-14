@@ -14,7 +14,7 @@ Author:
 //local includes
 #include "ui/factory.h"
 #include <apps/base/app.h>
-#include <apps/base/parsing.h>
+#include "supp/options.h"
 //qt includes
 #include <QtGui/QApplication>
 
@@ -25,13 +25,6 @@ inline void InitResources()
 
 namespace
 {
-  Parameters::Container::Ptr OpenConfigFile()
-  {
-    const Parameters::Container::Ptr result = Parameters::Container::Create();
-    ParseConfigFile(String(), *result);
-    return result;
-  }
-
   class QTApplication : public Application
   {
   public:
@@ -44,10 +37,9 @@ namespace
       QApplication qapp(argc, argv);
       InitResources();
       //main ui
-      const Parameters::Container::Ptr options = OpenConfigFile();
       StringArray cmdline(argc - 1);
       std::transform(argv + 1, argv + argc, cmdline.begin(), &FromStdString);
-      const QPointer<QMainWindow> win = WidgetsFactory::Instance().CreateMainWindow(options, cmdline);
+      const QPointer<QMainWindow> win = WidgetsFactory::Instance().CreateMainWindow(GlobalOptions::Instance().Get(), cmdline);
       return qapp.exec();
     }
   };

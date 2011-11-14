@@ -51,7 +51,7 @@ namespace
       , About(AboutDialog::Create(*this))
       , Components(ComponentsDialog::Create(*this))
       , Controls(PlaybackControls::Create(*this, *Playback))
-      , FastOptions(PlaybackOptions::Create(*this, *Playback, *Options))
+      , FastOptions(PlaybackOptions::Create(*this, *Playback, Options))
       , Volume(VolumeControl::Create(*this, *Playback))
       , Status(StatusControl::Create(*this, *Playback))
       , Seeking(SeekControls::Create(*this, *Playback))
@@ -78,13 +78,14 @@ namespace
 
       MultiPlaylist->connect(Controls, SIGNAL(OnPrevious()), SLOT(Prev()));
       MultiPlaylist->connect(Controls, SIGNAL(OnNext()), SLOT(Next()));
-      MultiPlaylist->connect(Playback, SIGNAL(OnStartModule(ZXTune::Sound::Backend::Ptr)), SLOT(Play()));
+      MultiPlaylist->connect(Playback, SIGNAL(OnStartModule(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr)), SLOT(Play()));
       MultiPlaylist->connect(Playback, SIGNAL(OnResumeModule()), SLOT(Play()));
       MultiPlaylist->connect(Playback, SIGNAL(OnPauseModule()), SLOT(Pause()));
       MultiPlaylist->connect(Playback, SIGNAL(OnStopModule()), SLOT(Stop()));
       MultiPlaylist->connect(Playback, SIGNAL(OnFinishModule()), SLOT(Finish()));
-      Playback->connect(MultiPlaylist, SIGNAL(OnItemActivated(const Playlist::Item::Data&)), SLOT(SetItem(const Playlist::Item::Data&)));
-      this->connect(Playback, SIGNAL(OnStartModule(ZXTune::Sound::Backend::Ptr)), SLOT(StartModule(ZXTune::Sound::Backend::Ptr)));
+      Playback->connect(MultiPlaylist, SIGNAL(OnItemActivated(Playlist::Item::Data::Ptr)), SLOT(SetItem(Playlist::Item::Data::Ptr)));
+      this->connect(Playback, SIGNAL(OnStartModule(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr)),
+        SLOT(StartModule(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr)));
       this->connect(Playback, SIGNAL(OnStopModule()), SLOT(StopModule()));
 
       StopModule();
@@ -98,12 +99,11 @@ namespace
       }
     }
 
-    virtual void StartModule(ZXTune::Sound::Backend::Ptr player)
+    virtual void StartModule(ZXTune::Sound::Backend::Ptr /*player*/, Playlist::Item::Data::Ptr item)
     {
-      const Parameters::Accessor::Ptr props = player->GetModuleProperties();
       setWindowTitle(ToQString(Strings::Format(Text::TITLE_FORMAT,
         GetProgramTitle(),
-        GetModuleTitle(Text::MODULE_TITLE_FORMAT, *props))));
+        item->GetTitle())));
     }
 
     virtual void StopModule()

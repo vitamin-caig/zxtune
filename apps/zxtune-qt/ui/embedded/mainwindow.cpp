@@ -52,12 +52,12 @@ namespace
       //connect root actions
       Playlist->connect(Controls, SIGNAL(OnPrevious()), SLOT(Prev()));
       Playlist->connect(Controls, SIGNAL(OnNext()), SLOT(Next()));
-      Playlist->connect(Playback, SIGNAL(OnStartModule(ZXTune::Sound::Backend::Ptr)), SLOT(Play()));
+      Playlist->connect(Playback, SIGNAL(OnStartModule(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr)), SLOT(Play()));
       Playlist->connect(Playback, SIGNAL(OnResumeModule()), SLOT(Play()));
       Playlist->connect(Playback, SIGNAL(OnPauseModule()), SLOT(Pause()));
       Playlist->connect(Playback, SIGNAL(OnStopModule()), SLOT(Stop()));
       Playlist->connect(Playback, SIGNAL(OnFinishModule()), SLOT(Finish()));
-      Playback->connect(Playlist, SIGNAL(OnItemActivated(const Playlist::Item::Data&)), SLOT(SetItem(const Playlist::Item::Data&)));
+      Playback->connect(Playlist, SIGNAL(OnItemActivated(Playlist::Item::Data::Ptr)), SLOT(SetItem(Playlist::Item::Data::Ptr)));
     }
   private:
     void AddWidgetWithLayoutControl(QWidget* widget)

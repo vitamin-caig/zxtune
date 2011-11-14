@@ -15,6 +15,8 @@ Author:
 #ifndef ZXTUNE_QT_PLAYBACK_OPTIONS_H_DEFINED
 #define ZXTUNE_QT_PLAYBACK_OPTIONS_H_DEFINED
 
+//local includes
+#include "playlist/supp/data.h"
 //library includes
 #include <sound/backend.h>
 //qt includes
@@ -29,9 +31,9 @@ protected:
   explicit PlaybackOptions(QWidget& parent);
 public:
   //creator
-  static PlaybackOptions* Create(QWidget& parent, PlaybackSupport& supp, Parameters::Container& params);
+  static PlaybackOptions* Create(QWidget& parent, PlaybackSupport& supp, Parameters::Container::Ptr params);
 public slots:
-  virtual void InitState(ZXTune::Sound::Backend::Ptr) = 0;
+  virtual void InitState(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr) = 0;
   virtual void CloseState() = 0;
 };
 

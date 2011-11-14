@@ -2,7 +2,7 @@ binary_name := zxtune-qt
 path_step := ../..
 include $(path_step)/make/default.mak
 
-source_files = qt_app
+source_files = qt_app supp/options
 
 #ui-related
 gui_theme ?= default

@@ -150,9 +150,9 @@ namespace
       this->wait();
     }
 
-    virtual void SetItem(const Playlist::Item::Data& item)
+    virtual void SetItem(Playlist::Item::Data::Ptr item)
     {
-      const ZXTune::Module::Holder::Ptr module = item.GetModule();
+      const ZXTune::Module::Holder::Ptr module = item->GetModule();
       if (!module)
       {
         return;
@@ -162,6 +162,7 @@ namespace
       Backend = CreateBackend(Params, module);
       if (Backend)
       {
+        Item = item;
         OnSetBackend(Backend);
         this->wait();
         Backend->Play();
@@ -218,7 +219,7 @@ namespace
       using namespace ZXTune;
 
       //notify about start
-      OnStartModule(Backend);
+      OnStartModule(Backend, Item);
 
       const Async::Signals::Collector::Ptr signaller = Backend->CreateSignalsCollector(
         Sound::Backend::MODULE_RESUME | Sound::Backend::MODULE_PAUSE |
@@ -260,6 +261,7 @@ namespace
     }
   private:
     const Parameters::Accessor::Ptr Params;
+    Playlist::Item::Data::Ptr Item;
     ZXTune::Sound::Backend::Ptr Backend;
   };
 }

@@ -33,7 +33,8 @@ namespace
       timePosition->setRange(0, 0);
       this->connect(timePosition, SIGNAL(sliderReleased()), SLOT(EndSeeking()));
 
-      this->connect(&supp, SIGNAL(OnStartModule(ZXTune::Sound::Backend::Ptr)), SLOT(InitState(ZXTune::Sound::Backend::Ptr)));
+      this->connect(&supp, SIGNAL(OnStartModule(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr)),
+        SLOT(InitState(ZXTune::Sound::Backend::Ptr)));
       this->connect(&supp, SIGNAL(OnUpdateState()), SLOT(UpdateState()));
       this->connect(&supp, SIGNAL(OnStopModule()), SLOT(CloseState()));
       supp.connect(this, SIGNAL(OnSeeking(int)), SLOT(Seek(int)));

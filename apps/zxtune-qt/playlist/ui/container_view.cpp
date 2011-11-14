@@ -206,7 +206,7 @@ namespace
       ActionsMenu->exec(event->globalPos());
     }
   private:
-    void PlaylistItemActivated(const Playlist::Item::Data& item)
+    void PlaylistItemActivated(Playlist::Item::Data::Ptr item)
     {
       if (QObject* sender = this->sender())
       {
@@ -250,8 +250,7 @@ namespace
     {
       Playlist::UI::View* const plView = Playlist::UI::View::Create(*this, playlist, Options);
       widgetsContainer->addTab(plView, playlist->GetName());
-      this->connect(plView, SIGNAL(OnItemActivated(const Playlist::Item::Data&)),
-        SLOT(PlaylistItemActivated(const Playlist::Item::Data&)));
+      this->connect(plView, SIGNAL(OnItemActivated(Playlist::Item::Data::Ptr)), SLOT(PlaylistItemActivated(Playlist::Item::Data::Ptr)));
       if (!ActivePlaylistView)
       {
         ActivePlaylistView = plView;

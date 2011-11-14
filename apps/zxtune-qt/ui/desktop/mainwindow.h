@@ -15,6 +15,8 @@ Author:
 #ifndef ZXTUNE_QT_MAINWINDOW_H_DEFINED
 #define ZXTUNE_QT_MAINWINDOW_H_DEFINED
 
+//local includes
+#include "playlist/supp/data.h"
 //library includes
 #include <sound/backend.h>
 //qt includes
@@ -28,7 +30,7 @@ public:
   static QPointer<MainWindow> Create(Parameters::Container::Ptr options, const StringArray& cmdline);
 
 public slots:
-  virtual void StartModule(ZXTune::Sound::Backend::Ptr) = 0;
+  virtual void StartModule(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr) = 0;
   virtual void StopModule() = 0;
 
   virtual void ShowAboutQt() = 0;

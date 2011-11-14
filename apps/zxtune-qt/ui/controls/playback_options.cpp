@@ -18,6 +18,7 @@ Author:
 #include "ui/tools/parameters_helpers.h"
 //library includes
 #include <core/core_parameters.h>
+#include <core/plugin_attrs.h>
 #include <sound/sound_parameters.h>
 
 namespace
@@ -26,7 +27,7 @@ namespace
                             , private Ui::PlaybackOptions
   {
   public:
-    PlaybackOptionsImpl(QWidget& parent, PlaybackSupport& supp, Parameters::Container& params)
+    PlaybackOptionsImpl(QWidget& parent, PlaybackSupport& supp, Parameters::Container::Ptr params)
       : ::PlaybackOptions(parent)
       , Params(params)
     {
@@ -36,24 +37,24 @@ namespace
       DACOptions->setVisible(false);
 
       //common
-      Parameters::BooleanValue::Bind(*isLooped, Params, Parameters::ZXTune::Sound::LOOPED, false);
+      Parameters::BooleanValue::Bind(*isLooped, *Params, Parameters::ZXTune::Sound::LOOPED, false);
       //AYM
-      Parameters::BooleanValue::Bind(*isInterpolated, Params, Parameters::ZXTune::Core::AYM::INTERPOLATION, false);
-      Parameters::BooleanValue::Bind(*isYM, Params, Parameters::ZXTune::Core::AYM::TYPE, false);
-      Parameters::IntegerValue::Bind(*aymLayout, Params, Parameters::ZXTune::Core::AYM::LAYOUT, 0);
+      Parameters::BooleanValue::Bind(*isInterpolated, *Params, Parameters::ZXTune::Core::AYM::INTERPOLATION, false);
+      Parameters::BooleanValue::Bind(*isYM, *Params, Parameters::ZXTune::Core::AYM::TYPE, false);
+      Parameters::IntegerValue::Bind(*aymLayout, *Params, Parameters::ZXTune::Core::AYM::LAYOUT, 0);
       //DAC
-      Parameters::BooleanValue::Bind(*isInterpolated, Params, Parameters::ZXTune::Core::DAC::INTERPOLATION, false);
+      Parameters::BooleanValue::Bind(*isInterpolated, *Params, Parameters::ZXTune::Core::DAC::INTERPOLATION, false);
 
-      this->connect(&supp, SIGNAL(OnStartModule(ZXTune::Sound::Backend::Ptr)), SLOT(InitState(ZXTune::Sound::Backend::Ptr)));
+      this->connect(&supp, SIGNAL(OnStartModule(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr)),
+        SLOT(InitState(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr)));
       this->connect(&supp, SIGNAL(OnStopModule()), SLOT(CloseState()));
     }
 
-    virtual void InitState(ZXTune::Sound::Backend::Ptr player)
+    virtual void InitState(ZXTune::Sound::Backend::Ptr /*player*/, Playlist::Item::Data::Ptr item)
     {
-      const ZXTune::Module::Information::Ptr info = player->GetModuleInformation();
+      const ZXTune::Plugin::Ptr plugin = item->GetModule()->GetPlugin();
 
-      //TODO
-      const bool isAYM = info->PhysicalChannels() == 3;
+      const bool isAYM = 0 != (plugin->Capabilities() & ZXTune::CAP_DEV_AYM_MASK);
       AYMOptions->setVisible(isAYM);
       DACOptions->setVisible(!isAYM);
       (isAYM ? AYMOptions : DACOptions)->setEnabled(true);
@@ -65,7 +66,7 @@ namespace
       DACOptions->setEnabled(false);
     }
   private:
-    Parameters::Container& Params;
+    const Parameters::Container::Ptr Params;
   };
 }
 
@@ -73,7 +74,7 @@ PlaybackOptions::PlaybackOptions(QWidget& parent) : QWidget(&parent)
 {
 }
 
-PlaybackOptions* PlaybackOptions::Create(QWidget& parent, PlaybackSupport& supp, Parameters::Container& params)
+PlaybackOptions* PlaybackOptions::Create(QWidget& parent, PlaybackSupport& supp, Parameters::Container::Ptr params)
 {
   return new PlaybackOptionsImpl(parent, supp, params);
 }
