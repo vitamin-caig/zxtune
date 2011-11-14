@@ -325,10 +325,22 @@ namespace DigitalStudio
       return IsCompiled ? COMPILED_MODULE_SIZE : MODULE_SIZE;
     }
   private:
-    Binary::Container::Ptr GetData(std::size_t offset, std::size_t size) const
+    //truncate samples here due to possible samples overlap in descriptions
+    Binary::Container::Ptr GetSampleData(std::size_t offset, std::size_t size) const
     {
-      Require(Ranges->AddRange(offset, size));
-      return RawData.GetSubcontainer(offset, size);
+      const Binary::Container::Ptr total = RawData.GetSubcontainer(offset, size);
+      const uint8_t* const start = static_cast<const uint8_t*>(total->Data());
+      const uint8_t* const end = start + total->Size();
+      const uint8_t* const sampleEnd = std::find(start, end, 0xff);
+      if (const std::size_t newSize = sampleEnd - start)
+      {
+        Require(Ranges->AddRange(offset, newSize));
+        return RawData.GetSubcontainer(offset, newSize);
+      }
+      else
+      {
+        return Binary::Container::Ptr();
+      }
     }
 
     static void ParsePattern(const Pattern& src, Formats::Chiptune::DigitalStudio::Builder& target)
@@ -400,9 +412,12 @@ namespace DigitalStudio
       static const std::size_t SAMPLES_OFFSETS_COMPILED[8] = {0x200, 0x8200, 0x0, 0xc200, 0x10200, 0x0, 0x14200, 0x18200};
 
       Log::Debug(THIS_MODULE, "Sample %1%: start=#%2$04x loop=#%3$04x page=#%4$02x size=#%5$04x", 
-        idx, fromLE(info.Start), fromLE(info.Loop), info.Page, fromLE(info.Size));
+        idx, fromLE(info.Start), fromLE(info.Loop), unsigned(info.Page), fromLE(info.Size));
 
-      Require(info.Size != 0);
+      if (info.Size == 0)
+      {
+        return;
+      }
       Require(info.Page >= 0x51 && info.Page <= 0x57);
 
       const std::size_t* const offsets = IsCompiled ? SAMPLES_OFFSETS_COMPILED : SAMPLES_OFFSETS;
@@ -432,32 +447,42 @@ namespace DigitalStudio
         {
           const std::size_t firstOffset = offsets[0] + sampleOffsetInPage;
           const std::size_t firstCopy = PAGE_SIZE - sampleOffsetInPage;
-          const Binary::Container::Ptr part1 = GetData(firstOffset, firstCopy);
+          const Binary::Container::Ptr part1 = GetSampleData(firstOffset, firstCopy);
 
           const std::size_t secondOffset = offsets[7];
           const std::size_t secondCopy = sampleOffsetInPage + sampleSize - PAGE_SIZE;
-          const Binary::Container::Ptr part2 = GetData(secondOffset, secondCopy);
           Log::Debug(THIS_MODULE, " Two parts in low memory: #%1$05x..#%2$05x + #%3$05x..#%4$05x", 
             firstOffset, firstOffset + firstCopy, secondOffset, secondOffset + secondCopy);
-          return target.SetSample(idx, sampleLoop, part1, part2);
+          if (const Binary::Container::Ptr part2 = GetSampleData(secondOffset, secondCopy))
+          {
+            Log::Debug(THIS_MODULE, " Using two parts with sizes #%1$05x + #%2$05x", part1->Size(), part2->Size());
+            return target.SetSample(idx, sampleLoop, part1, part2);
+          }
+          else
+          {
+            Log::Debug(THIS_MODULE, " Using first part with size #%1$05x", part1->Size());
+            return target.SetSample(idx, sampleLoop, part1);
+          }
         }
         else
         {
           const std::size_t dataOffset = isLoMemSampleInPage 
             ? (offsets[7] + (sampleOffsetInPage - PAGE_SIZE))
             : offsets[0] + sampleOffsetInPage;
-          const Binary::Container::Ptr data = GetData(dataOffset, sampleSize);
           Log::Debug(THIS_MODULE, " One part in low memory: #%1$05x..#%2$05x", 
             dataOffset, dataOffset + sampleSize);
+          const Binary::Container::Ptr data = GetSampleData(dataOffset, sampleSize);
+          Log::Debug(THIS_MODULE, " Using size #%1$05x", data->Size());
           return target.SetSample(idx, sampleLoop, data);
         }
       }
       else
       {
         const std::size_t dataOffset = offsets[pageNumber] + sampleOffsetInPage;
-        const Binary::Container::Ptr data = GetData(dataOffset, sampleSize);
         Log::Debug(THIS_MODULE, " Hi memory: #%1$05x..#%2$05x", 
           dataOffset, dataOffset + sampleSize);
+        const Binary::Container::Ptr data = GetSampleData(dataOffset, sampleSize);
+        Log::Debug(THIS_MODULE, " Using size #%1$05x", data->Size());
         return target.SetSample(idx, sampleLoop, data);
       }
     }
@@ -551,6 +576,7 @@ namespace Formats
         }
         catch (const std::exception&)
         {
+          Log::Debug(THIS_MODULE, "Failed to create");
           return Formats::Chiptune::Container::Ptr();
         }
       }

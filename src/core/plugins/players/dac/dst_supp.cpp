@@ -69,7 +69,7 @@ namespace DST
       for (Dump::const_iterator it = Data.begin(), lim = Data.end(); it != lim; ++it)
       {
         const uint_t hiVal = *it >> 4;
-        if (hiVal != 0xa && hiVal != 0xf)
+        if (hiVal != 0xa)
         {
           return false;
         }
@@ -77,15 +77,8 @@ namespace DST
       return true;
     }
 
-    void Truncate()
-    {
-      Dump::iterator const endOf = std::find(Data.begin(), Data.end(), 0xff);
-      Data.erase(endOf, Data.end());
-    }
-
     void Convert4bitTo8Bit()
     {
-      assert(Is4Bit());
       std::transform(Data.begin(), Data.end(), Data.begin(), std::bind2nd(std::multiplies<uint8_t>(), 16));
     }
   };
@@ -114,18 +107,17 @@ namespace
     {
     }
 
-    //TODO: explicit call
-    virtual ~Builder()
+    void ApplyVersionParticularities()
     {
       const bool oldVersion = FourBitSamples != 0;
       if (oldVersion)
       {
-        assert(0 == EightBitSamples);
+        assert(FourBitSamples > EightBitSamples);
         std::for_each(Data->Samples.begin(), Data->Samples.end(), std::mem_fun_ref(&DST::Sample::Convert4bitTo8Bit));
       }
       else
       {
-        assert(0 == FourBitSamples);
+        assert(EightBitSamples > FourBitSamples);
       }
       Properties->SetProgram(oldVersion ? Text::DST_EDITOR_AY : Text::DST_EDITOR_DAC);
     }
@@ -160,7 +152,6 @@ namespace
         res.Data.resize(size);
         std::memcpy(&res.Data[0], part1->Data(), size);
       }
-      res.Truncate();
       ++(res.Is4Bit() ? FourBitSamples : EightBitSamples);
     }
 
@@ -484,6 +475,7 @@ namespace
       {
         usedSize = container->Size();
         properties->SetSource(container);
+        builder.ApplyVersionParticularities();
         return boost::make_shared<DSTHolder>(modData, properties);
       }
       return Holder::Ptr();
