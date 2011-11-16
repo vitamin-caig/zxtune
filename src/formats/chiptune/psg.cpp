@@ -24,201 +24,198 @@ Author:
 //text includes
 #include <formats/text/chiptune.h>
 
-namespace PSG
+namespace Formats
 {
-  enum
+namespace Chiptune
+{
+  namespace PSG
   {
-    MARKER = 0x1a,
+    enum
+    {
+      MARKER = 0x1a,
 
-    INT_BEGIN = 0xff,
-    INT_SKIP = 0xfe,
-    MUS_END = 0xfd
-  };
+      INT_BEGIN = 0xff,
+      INT_SKIP = 0xfe,
+      MUS_END = 0xfd
+    };
 
-  const uint8_t SIGNATURE[] = {'P', 'S', 'G'};
+    const uint8_t SIGNATURE[] = {'P', 'S', 'G'};
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif
-  PACK_PRE struct Header
-  {
-    uint8_t Sign[3];
-    uint8_t Marker;
-    uint8_t Version;
-    uint8_t Interrupt;
-    uint8_t Padding[10];
-  } PACK_POST;
+    PACK_PRE struct Header
+    {
+      uint8_t Sign[3];
+      uint8_t Marker;
+      uint8_t Version;
+      uint8_t Interrupt;
+      uint8_t Padding[10];
+    } PACK_POST;
 #ifdef USE_PRAGMA_PACK
 #pragma pack(pop)
 #endif
 
-  BOOST_STATIC_ASSERT(sizeof(Header) == 16);
+    BOOST_STATIC_ASSERT(sizeof(Header) == 16);
 
-  class Container : public Formats::Chiptune::Container
-  {
-  public:
-    explicit Container(Binary::Container::Ptr delegate)
-      : Delegate(delegate)
+    class Container : public Formats::Chiptune::Container
     {
-    }
-
-    virtual std::size_t Size() const
-    {
-      return Delegate->Size();
-    }
-
-    virtual const void* Data() const
-    {
-      return Delegate->Data();
-    }
-
-    virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
-    {
-      return Delegate->GetSubcontainer(offset, size);
-    }
-
-    virtual uint_t FixedChecksum() const
-    {
-      const Binary::TypedContainer& data(*Delegate);
-      const ::PSG::Header& header = *data.GetField< ::PSG::Header>(0);
-      const std::size_t dataOffset = (header.Version == ::PSG::INT_BEGIN) ? offsetof(::PSG::Header, Version) : sizeof(header);
-      return Crc32(data.GetField<uint8_t>(dataOffset), Delegate->Size() - dataOffset);
-    }
-  private:
-    const Binary::Container::Ptr Delegate;
-  };
-
-  class StubBuilder : public Formats::Chiptune::PSG::Builder
-  {
-  public:
-    virtual void AddChunks(std::size_t /*count*/) {}
-    virtual void SetRegister(uint_t /*reg*/, uint_t /*val*/) {}
-  };
-
-  bool Check(const Binary::Container& rawData)
-  {
-    if (rawData.Size() <= sizeof(Header))
-    {
-      return false;
-    }
-    const Header* const header = safe_ptr_cast<const Header*>(rawData.Data());
-    return 0 == std::memcmp(header->Sign, SIGNATURE, sizeof(SIGNATURE)) &&
-       MARKER == header->Marker;
-  }
-
-  const std::string FORMAT(
-    "'P'S'G" // uint8_t Sign[3];
-    "1a"     // uint8_t Marker;
-  );
-
-  class Decoder : public Formats::Chiptune::Decoder
-  {
-  public:
-    Decoder()
-      : Format(Binary::Format::Create(FORMAT))
-    {
-    }
-
-    virtual String GetDescription() const
-    {
-      return Text::PSG_DECODER_DESCRIPTION;
-    }
-
-    virtual Binary::Format::Ptr GetFormat() const
-    {
-      return Format;
-    }
-
-    virtual bool Check(const Binary::Container& rawData) const
-    {
-      return ::PSG::Check(rawData);
-    }
-
-    virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
-    {
-      Formats::Chiptune::PSG::Builder& stub = Formats::Chiptune::PSG::GetStubBuilder();
-      return Formats::Chiptune::PSG::Parse(rawData, stub);
-    }
-  private:
-    const Binary::Format::Ptr Format;
-  };
-}
-
-namespace Formats
-{
-  namespace Chiptune
-  {
-    namespace PSG
-    {
-      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, Builder& target)
+    public:
+      explicit Container(Binary::Container::Ptr delegate)
+        : Delegate(delegate)
       {
-        if (!::PSG::Check(rawData))
-        {
-          return Formats::Chiptune::Container::Ptr();
-        }
+      }
 
-        const Binary::TypedContainer& data(rawData);
-        const ::PSG::Header& header = *data.GetField< ::PSG::Header>(0);
-        //workaround for some emulators
-        const std::size_t offset = (header.Version == ::PSG::INT_BEGIN) ? offsetof(::PSG::Header, Version) : sizeof(header);
-        std::size_t size = rawData.Size() - offset;
-        const uint8_t* bdata = data.GetField<uint8_t>(offset);
-        //detect as much chunks as possible, in despite of real format issues
-        while (size)
+      virtual std::size_t Size() const
+      {
+        return Delegate->Size();
+      }
+
+      virtual const void* Data() const
+      {
+        return Delegate->Data();
+      }
+
+      virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
+      {
+        return Delegate->GetSubcontainer(offset, size);
+      }
+
+      virtual uint_t FixedChecksum() const
+      {
+        const Binary::TypedContainer& data(*Delegate);
+        const Header& header = *data.GetField<Header>(0);
+        const std::size_t dataOffset = (header.Version == INT_BEGIN) ? offsetof(Header, Version) : sizeof(header);
+        return Crc32(data.GetField<uint8_t>(dataOffset), Delegate->Size() - dataOffset);
+      }
+    private:
+      const Binary::Container::Ptr Delegate;
+    };
+
+    class StubBuilder : public Builder
+    {
+    public:
+      virtual void AddChunks(std::size_t /*count*/) {}
+      virtual void SetRegister(uint_t /*reg*/, uint_t /*val*/) {}
+    };
+
+    bool FastCheck(const Binary::Container& rawData)
+    {
+      if (rawData.Size() <= sizeof(Header))
+      {
+        return false;
+      }
+      const Header* const header = safe_ptr_cast<const Header*>(rawData.Data());
+      return 0 == std::memcmp(header->Sign, SIGNATURE, sizeof(SIGNATURE)) &&
+         MARKER == header->Marker;
+    }
+
+    const std::string FORMAT(
+      "'P'S'G" // uint8_t Sign[3];
+      "1a"     // uint8_t Marker;
+    );
+
+    class Decoder : public Formats::Chiptune::Decoder
+    {
+    public:
+      Decoder()
+        : Format(Binary::Format::Create(FORMAT))
+      {
+      }
+
+      virtual String GetDescription() const
+      {
+        return Text::PSG_DECODER_DESCRIPTION;
+      }
+
+      virtual Binary::Format::Ptr GetFormat() const
+      {
+        return Format;
+      }
+
+      virtual bool Check(const Binary::Container& rawData) const
+      {
+        return FastCheck(rawData);
+      }
+
+      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+      {
+        Builder& stub = GetStubBuilder();
+        return Parse(rawData, stub);
+      }
+    private:
+      const Binary::Format::Ptr Format;
+    };
+
+    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, Builder& target)
+    {
+      if (!FastCheck(rawData))
+      {
+        return Formats::Chiptune::Container::Ptr();
+      }
+
+      const Binary::TypedContainer& data(rawData);
+      const Header& header = *data.GetField<Header>(0);
+      //workaround for some emulators
+      const std::size_t offset = (header.Version == INT_BEGIN) ? offsetof(Header, Version) : sizeof(header);
+      std::size_t size = rawData.Size() - offset;
+      const uint8_t* bdata = data.GetField<uint8_t>(offset);
+      //detect as much chunks as possible, in despite of real format issues
+      while (size)
+      {
+        const uint_t reg = *bdata;
+        ++bdata;
+        --size;
+        if (INT_BEGIN == reg)
         {
-          const uint_t reg = *bdata;
-          ++bdata;
-          --size;
-          if (::PSG::INT_BEGIN == reg)
-          {
-            target.AddChunks(1);
-          }
-          else if (::PSG::INT_SKIP == reg)
-          {
-            if (size < 1)
-            {
-              ++size;//put byte back
-              break;
-            }
-            target.AddChunks(4 * *bdata);
-            ++bdata;
-            --size;
-          }
-          else if (::PSG::MUS_END == reg)
-          {
-            break;
-          }
-          else if (reg <= 15) //register
-          {
-            if (size < 1)
-            {
-              ++size;//put byte back
-              break;
-            }
-            target.SetRegister(reg, *bdata);
-            ++bdata;
-            --size;
-          }
-          else
+          target.AddChunks(1);
+        }
+        else if (INT_SKIP == reg)
+        {
+          if (size < 1)
           {
             ++size;//put byte back
             break;
           }
+          target.AddChunks(4 * *bdata);
+          ++bdata;
+          --size;
         }
-        const Binary::Container::Ptr containerData = rawData.GetSubcontainer(0, rawData.Size() - size);
-        return boost::make_shared< ::PSG::Container>(containerData);
+        else if (MUS_END == reg)
+        {
+          break;
+        }
+        else if (reg <= 15) //register
+        {
+          if (size < 1)
+          {
+            ++size;//put byte back
+            break;
+          }
+          target.SetRegister(reg, *bdata);
+          ++bdata;
+          --size;
+        }
+        else
+        {
+          ++size;//put byte back
+          break;
+        }
       }
-
-      Builder& GetStubBuilder()
-      {
-        static ::PSG::StubBuilder stub;
-        return stub;
-      }
+      const Binary::Container::Ptr containerData = rawData.GetSubcontainer(0, rawData.Size() - size);
+      return boost::make_shared<Container>(containerData);
     }
 
-    Decoder::Ptr CreatePSGDecoder()
+    Builder& GetStubBuilder()
     {
-      return boost::make_shared< ::PSG::Decoder>();
+      static StubBuilder stub;
+      return stub;
     }
+  }//namespace PSG
+
+  Decoder::Ptr CreatePSGDecoder()
+  {
+    return boost::make_shared<PSG::Decoder>();
   }
-}
+}//namespace Chiptune
+}//namespace Formats

@@ -13,6 +13,7 @@ Author:
 #include "ay.h"
 //common includes
 #include <byteorder.h>
+#include <contract.h>
 #include <crc.h>
 #include <range_checker.h>
 #include <tools.h>
@@ -25,6 +26,10 @@ Author:
 //boost includes
 #include <boost/make_shared.hpp>
 
+namespace Formats
+{
+namespace Chiptune
+{
 namespace AY
 {
   const uint8_t SIGNATURE[] = {'Z', 'X', 'A', 'Y'};
@@ -100,14 +105,10 @@ namespace AY
     template<class T>
     const T& GetField(std::size_t offset) const
     {
-      if (const T* res = Delegate.GetField<T>(offset))
-      {
-        if (Ranges->AddRange(offset, sizeof(T)))
-        {
-          return *res;
-        }
-      }
-      throw std::exception();
+      const T* const res = Delegate.GetField<T>(offset);
+      Require(res != 0);
+      Require(Ranges->AddRange(offset, sizeof(T)));
+      return *res;
     }
 
     template<class T>
@@ -122,22 +123,16 @@ namespace AY
     {
       const uint8_t* const result = GetPointer(beField) + sizeof(T) * idx;
       const std::size_t offset = result - Start;
-      if (Ranges->AddRange(offset, sizeof(T)))
-      {
-        return *safe_ptr_cast<const T*>(result);
-      }
-      throw std::exception();
+      Require(Ranges->AddRange(offset, sizeof(T)));
+      return *safe_ptr_cast<const T*>(result);
     }
 
     String GetString(const int16_t* beOffset) const
     {
       const uint8_t* const strStart = GetPointer(beOffset);
       const uint8_t* const strEnd = std::find(strStart, Finish, 0);
-      if (Ranges->AddRange(strStart - Start, strEnd - strStart + 1))
-      {
-        return String(strStart, strEnd);
-      }
-      throw std::exception();
+      Require(Ranges->AddRange(strStart - Start, strEnd - strStart + 1));
+      return String(strStart, strEnd);
     }
 
     Binary::Container::Ptr GetBlob(const int16_t* beOffset, std::size_t size) const
@@ -150,11 +145,8 @@ namespace AY
       const std::size_t offset = ptr - Start;
       const std::size_t maxSize = Finish - ptr;
       const std::size_t effectiveSize = std::min(size, maxSize);
-      if (Ranges->AddRange(offset, effectiveSize))
-      {
-        return RawData.GetSubcontainer(offset, effectiveSize);
-      }
-      throw std::exception();
+      Require(Ranges->AddRange(offset, effectiveSize));
+      return RawData.GetSubcontainer(offset, effectiveSize);
     }
 
     std::size_t GetSize() const
@@ -171,10 +163,7 @@ namespace AY
     const uint8_t* GetPointer(const int16_t* beField) const
     {
       const uint8_t* const result = GetPointerNocheck(beField);
-      if (result < Start)
-      {
-        throw std::exception();
-      }
+      Require(result >= Start);
       return result;
     }
   private:
@@ -218,7 +207,7 @@ namespace AY
     const uint_t Checksum;
   };
 
-  class StubBuilder : public Formats::Chiptune::AY::Builder
+  class StubBuilder : public Builder
   {
   public:
     virtual void SetTitle(const String& /*title*/) {}
@@ -230,7 +219,7 @@ namespace AY
     virtual void AddBlock(uint16_t /*addr*/, const void* /*data*/, std::size_t /*size*/) {}
   };
 
-  class MemoryDumpBuilder : public Formats::Chiptune::AY::BlobBuilder
+  class MemoryDumpBuilder : public BlobBuilder
   {
     class Im1Player
     {
@@ -349,7 +338,7 @@ namespace AY
     mutable std::auto_ptr<Dump> Data;
   };
 
-  class FileBuilder : public Formats::Chiptune::AY::BlobBuilder
+  class FileBuilder : public BlobBuilder
   {
     //as a container
     class VariableDump : public Dump
@@ -490,98 +479,91 @@ namespace AY
     typedef std::list<std::pair<uint16_t, Dump> > BlocksList;
     BlocksList Blocks;
   };
-}
 
-namespace Formats
-{
-  namespace Chiptune
+  std::size_t GetModulesCount(const Binary::Container& rawData)
   {
-    namespace AY
+    const Binary::TypedContainer data(rawData);
+    if (const Header* header = data.GetField<Header>(0))
     {
-      std::size_t GetModulesCount(const Binary::Container& rawData)
+      if (0 != std::memcmp(header->Signature, SIGNATURE, sizeof(SIGNATURE)))
       {
-        const Binary::TypedContainer data(rawData);
-        if (const ::AY::Header* header = data.GetField< ::AY::Header>(0))
-        {
-          if (0 != std::memcmp(header->Signature, ::AY::SIGNATURE, sizeof(::AY::SIGNATURE)))
-          {
-            return 0;
-          }
-          if (0 != std::memcmp(header->Type, ::AY::EMUL::SIGNATURE, sizeof(::AY::EMUL::SIGNATURE)))
-          {
-            return 0;
-          }
-          return header->FirstModuleIndex <= header->LastModuleIndex
-            ? header->LastModuleIndex + 1
-            : 0;    
-        }
         return 0;
       }
-
-      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, std::size_t idx, Builder& target)
+      if (0 != std::memcmp(header->Type, EMUL::SIGNATURE, sizeof(EMUL::SIGNATURE)))
       {
-        if (idx >= GetModulesCount(rawData))
+        return 0;
+      }
+      return header->FirstModuleIndex <= header->LastModuleIndex
+        ? header->LastModuleIndex + 1
+        : 0;    
+    }
+    return 0;
+  }
+
+  Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, std::size_t idx, Builder& target)
+  {
+    if (idx >= GetModulesCount(rawData))
+    {
+      return Formats::Chiptune::Container::Ptr();
+    }
+    try
+    {
+      const Parser data(rawData);
+      const Header& header = data.GetField<Header>(std::size_t(0));
+      target.SetAuthor(data.GetString(&header.AuthorOffset));
+      target.SetComment(data.GetString(&header.MiscOffset));
+      const ModuleDescription& description = data.GetField<ModuleDescription>(&header.DescriptionsOffset, idx);
+      target.SetTitle(data.GetString(&description.TitleOffset));
+
+      const EMUL::ModuleData& moddata = data.GetField<EMUL::ModuleData>(&description.DataOffset);
+      if (const uint_t duration = fromBE(moddata.TotalLength))
+      {
+        target.SetDuration(duration);
+      }
+      const EMUL::ModulePointers& modpointers = data.GetField<EMUL::ModulePointers>(&moddata.PointersOffset);
+      target.SetRegisters(fromBE(moddata.RegValue), fromBE(modpointers.SP));
+      const EMUL::ModuleBlock& firstBlock = data.GetField<EMUL::ModuleBlock>(&moddata.BlocksOffset);
+      target.SetRoutines(fromBE(modpointers.InitAddr ? modpointers.InitAddr : firstBlock.Address), fromBE(modpointers.PlayAddr));
+      uint32_t crc = 0;
+      for (std::size_t blockIdx = 0; ; ++blockIdx)
+      {
+        if (!data.PeekField<uint16_t>(&moddata.BlocksOffset, 3 * blockIdx))
         {
-          return Formats::Chiptune::Container::Ptr();
+          break;
         }
-        try
+        const EMUL::ModuleBlock& block = data.GetField<EMUL::ModuleBlock>(&moddata.BlocksOffset, blockIdx);
+        const uint16_t blockAddr = fromBE(block.Address);
+        const std::size_t blockSize = fromBE(block.Size);
+        if (Binary::Container::Ptr blockData = data.GetBlob(&block.Offset, blockSize))
         {
-          const ::AY::Parser data(rawData);
-          const ::AY::Header& header = data.GetField< ::AY::Header>(std::size_t(0));
-          target.SetAuthor(data.GetString(&header.AuthorOffset));
-          target.SetComment(data.GetString(&header.MiscOffset));
-          const ::AY::ModuleDescription& description = data.GetField< ::AY::ModuleDescription>(&header.DescriptionsOffset, idx);
-          target.SetTitle(data.GetString(&description.TitleOffset));
-
-          const ::AY::EMUL::ModuleData& moddata = data.GetField< ::AY::EMUL::ModuleData>(&description.DataOffset);
-          if (const uint_t duration = fromBE(moddata.TotalLength))
-          {
-            target.SetDuration(duration);
-          }
-          const ::AY::EMUL::ModulePointers& modpointers = data.GetField< ::AY::EMUL::ModulePointers>(&moddata.PointersOffset);
-          target.SetRegisters(fromBE(moddata.RegValue), fromBE(modpointers.SP));
-          const ::AY::EMUL::ModuleBlock& firstBlock = data.GetField< ::AY::EMUL::ModuleBlock>(&moddata.BlocksOffset);
-          target.SetRoutines(fromBE(modpointers.InitAddr ? modpointers.InitAddr : firstBlock.Address), fromBE(modpointers.PlayAddr));
-          uint32_t crc = 0;
-          for (std::size_t blockIdx = 0; ; ++blockIdx)
-          {
-            if (!data.PeekField<uint16_t>(&moddata.BlocksOffset, 3 * blockIdx))
-            {
-              break;
-            }
-            const ::AY::EMUL::ModuleBlock& block = data.GetField< ::AY::EMUL::ModuleBlock>(&moddata.BlocksOffset, blockIdx);
-            const uint16_t blockAddr = fromBE(block.Address);
-            const std::size_t blockSize = fromBE(block.Size);
-            if (Binary::Container::Ptr blockData = data.GetBlob(&block.Offset, blockSize))
-            {
-              target.AddBlock(blockAddr, blockData->Data(), blockData->Size());
-              crc = Crc32(static_cast<const uint8_t*>(blockData->Data()), blockData->Size(), crc);
-            }
-          }
-          const Binary::Container::Ptr containerData = rawData.GetSubcontainer(0, data.GetSize());
-          return boost::make_shared< ::AY::Container>(containerData, crc);
-        }
-        catch (const std::exception&)
-        {
-          return Formats::Chiptune::Container::Ptr();
+          target.AddBlock(blockAddr, blockData->Data(), blockData->Size());
+          crc = Crc32(static_cast<const uint8_t*>(blockData->Data()), blockData->Size(), crc);
         }
       }
-
-      Builder& GetStubBuilder()
-      {
-        static ::AY::StubBuilder stub;
-        return stub;
-      }
-
-      BlobBuilder::Ptr CreateMemoryDumpBuilder()
-      {
-        return boost::make_shared< ::AY::MemoryDumpBuilder>();
-      }
-
-      BlobBuilder::Ptr CreateFileBuilder()
-      {
-        return boost::make_shared< ::AY::FileBuilder>();
-      }
+      const Binary::Container::Ptr containerData = rawData.GetSubcontainer(0, data.GetSize());
+      return boost::make_shared<Container>(containerData, crc);
+    }
+    catch (const std::exception&)
+    {
+      return Formats::Chiptune::Container::Ptr();
     }
   }
-}
+
+  Builder& GetStubBuilder()
+  {
+    static StubBuilder stub;
+    return stub;
+  }
+
+  BlobBuilder::Ptr CreateMemoryDumpBuilder()
+  {
+    return boost::make_shared<MemoryDumpBuilder>();
+  }
+
+  BlobBuilder::Ptr CreateFileBuilder()
+  {
+    return boost::make_shared<FileBuilder>();
+  }
+} //namespace AY
+} //namespace Chiptune
+} //namespace Formats

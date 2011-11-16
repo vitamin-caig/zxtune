@@ -15,6 +15,7 @@ Author:
 #include "pack_utils.h"
 //common includes
 #include <byteorder.h>
+#include <contract.h>
 #include <crc.h>
 #include <tools.h>
 //library includes
@@ -23,7 +24,6 @@ Author:
 #include <boost/array.hpp>
 //std includes
 #include <cstring>
-#include <stdexcept>
 //boost includes
 #include <boost/make_shared.hpp>
 //text includes
@@ -259,10 +259,7 @@ namespace ZXZip
 
     uint8_t GetByte()
     {
-      if (Eof())
-      {
-        throw std::exception();
-      }
+      Require(!Eof());
       return ByteStream::GetByte();
     }
   };
@@ -304,10 +301,7 @@ namespace ZXZip
         result |= GetBit() << bits++;
         for (; it->Bits <= bits; ++it)
         {
-          if (it == tree.end())
-          {
-            throw std::exception();
-          }
+          Require(it != tree.end());
           if (it->Bits == bits && it->Code == result)
           {
             return it->Value;
@@ -524,27 +518,19 @@ namespace ZXZip
             for (uint_t curCode = isFree ? oldCode : code; curCode != LZWEntry::LIMITER; )
             {
               const LZWEntry& curEntry = tree.at(curCode);
-              if (curCode == curEntry.Parent || substring.size() > tree.size())
-              {
-                throw std::exception();
-              }
+              Require(curCode != curEntry.Parent);
+              Require(substring.size() <= tree.size());
               substring.push_back(curEntry.Value);
               curCode = curEntry.Parent;
             }
-            if (substring.empty())
-            {
-              throw std::exception();
-            }
+            Require(!substring.empty());
             if (isFree)
             {
               substring.front() = substring.back();
             }
             std::copy(substring.rbegin(), substring.rend(), std::back_inserter(result));
             for (++lastFree; lastFree != tree.end() && !lastFree->IsFree; ++lastFree) {}
-            if (lastFree == tree.end())
-            {
-              throw std::exception();
-            }
+            Require(lastFree != tree.end());
             lastFree->Value = substring.back();
             lastFree->Parent = oldCode;
             lastFree->IsFree = false;

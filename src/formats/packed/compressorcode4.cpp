@@ -15,13 +15,13 @@ Author:
 #include "pack_utils.h"
 //common includes
 #include <byteorder.h>
+#include <contract.h>
 #include <tools.h>
 //library includes
 #include <formats/packed.h>
 //std includes
 #include <algorithm>
 #include <iterator>
-#include <stdexcept>
 //boost includes
 #include <boost/make_shared.hpp>
 //text includes
@@ -211,10 +211,7 @@ namespace CompressorCode
 
     uint8_t operator * ()
     {
-      if (Eof())
-      {
-        throw std::exception();
-      }
+      Require(!Eof());
       ++UsedData;
       return GetByte();
     }
