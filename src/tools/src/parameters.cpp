@@ -124,7 +124,7 @@ namespace
 
   inline bool IsQuoted(const String& str)
   {
-    return !str.empty() && STRING_QUOTE == *str.begin()  && STRING_QUOTE == *str.rbegin();
+    return str.size() >= 2 && STRING_QUOTE == *str.begin()  && STRING_QUOTE == *str.rbegin();
   }
                     
   inline StringType StringFromString(const String& val)
@@ -464,17 +464,17 @@ namespace
 
 namespace Parameters
 {
-  String ConvertToString(IntType val)
+  String ConvertToString(const IntType& val)
   {
     return IntegerToString(val);
   }
 
-  String ConvertToString(StringType val)
+  String ConvertToString(const StringType& val)
   {
     return StringToString(val);
   }
 
-  String ConvertToString(DataType val)
+  String ConvertToString(const DataType& val)
   {
     return DataToString(val);
   }

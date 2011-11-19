@@ -39,9 +39,11 @@ public:
   //! @return Cumulative range
   virtual Range GetAffectedRange() const = 0;
 
-  //! @brief Create simple checker with upper limit
+  //! @brief Create simple checker with only size limit
+  static Ptr CreateSimple(std::size_t limit);
+  //! @brief Create checker with upper limit and overlapping possibility check
   static Ptr Create(std::size_t limit);
-  //! @brief Create shared checker with upper limit.
+  //! @brief Create shared checker with upper limit and overlapping possibility check.
   //! @note Supports multiple adding for same range (equal start and size)
   static Ptr CreateShared(std::size_t limit);
 };

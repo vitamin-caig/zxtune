@@ -19,11 +19,12 @@ Author:
 namespace
 {
   //simple range checker implementation
-  class RangeCheckerImpl : public RangeChecker
+  class SimpleRangeChecker : public RangeChecker
   {
-    typedef std::map<std::size_t, std::size_t> RangeMap;
   public:
-    explicit RangeCheckerImpl(std::size_t limit) : Limit(limit)
+    explicit SimpleRangeChecker(std::size_t limit)
+      : Limit(limit)
+      , Result(Limit, 0)
     {
     }
 
@@ -31,6 +32,37 @@ namespace
     {
       const std::size_t endPos = offset + size;
       if (endPos > Limit)
+      {
+        return false;
+      }
+      Result.first = std::min(Result.first, offset);
+      Result.second = std::max(Result.second, endPos);
+      return true;
+    }
+
+    virtual Range GetAffectedRange() const
+    {
+      return Result.first == Limit
+        ? Range(0, 0)
+        : Result;
+    }
+  private:
+    const std::size_t Limit;
+    Range Result;
+  };
+
+  //range checker implementation
+  class RangeCheckerImpl : public RangeChecker
+  {
+    typedef std::map<std::size_t, std::size_t> RangeMap;
+  public:
+    explicit RangeCheckerImpl(std::size_t limit) : Base(limit)
+    {
+    }
+
+    virtual bool AddRange(std::size_t offset, std::size_t size)
+    {
+      if (!Base.AddRange(offset, size))
       {
         return false;
       }
@@ -108,7 +140,7 @@ namespace
       }
     }
   private:
-    const std::size_t Limit;
+    SimpleRangeChecker Base;
     RangeMap Ranges;
   };
 
@@ -116,18 +148,17 @@ namespace
   {
     typedef std::map<std::size_t, std::size_t> RangeMap;
   public:
-    explicit SharedRangeChecker(std::size_t limit)
-      : Limit(limit)
+    explicit SharedRangeChecker(std::size_t limit) : Base(limit)
     {
     }
 
     virtual bool AddRange(std::size_t offset, std::size_t size)
     {
-      const std::size_t endPos = offset + size;
-      if (endPos > Limit)
+      if (!Base.AddRange(offset, size))
       {
         return false;
       }
+      const std::size_t endPos = offset + size;
       RangeMap::iterator bound = Ranges.upper_bound(offset);
       if (bound != Ranges.end() &&
           endPos > bound->first)
@@ -170,9 +201,14 @@ namespace
         : Range(Ranges.begin()->first, Ranges.rbegin()->first + Ranges.rbegin()->second);
     }
   private:
-    const std::size_t Limit;
+    SimpleRangeChecker Base;
     RangeMap Ranges;
   };
+}
+
+RangeChecker::Ptr RangeChecker::CreateSimple(std::size_t limit)
+{
+  return RangeChecker::Ptr(new SimpleRangeChecker(limit));
 }
 
 RangeChecker::Ptr RangeChecker::Create(std::size_t limit)
