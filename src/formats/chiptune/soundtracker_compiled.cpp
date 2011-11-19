@@ -172,6 +172,7 @@ namespace Chiptune
 
       void ParsePatterns(const Indices& pats, Builder& builder) const
       {
+        Require(!pats.empty());
         Indices restPats(pats);
         for (uint_t patEntryIdx = 0; patEntryIdx < MAX_PATTERNS_COUNT && !restPats.empty(); ++patEntryIdx)
         {
@@ -197,6 +198,7 @@ namespace Chiptune
 
       void ParseSamples(const Indices& samples, Builder& builder) const
       {
+        Require(!samples.empty());
         Indices restSams(samples);
         for (uint_t samEntryIdx = 0; samEntryIdx < MAX_SAMPLES_COUNT && !restSams.empty(); ++samEntryIdx)
         {
@@ -224,6 +226,11 @@ namespace Chiptune
 
       void ParseOrnaments(const Indices& ornaments, Builder& builder) const
       {
+        if (ornaments.empty())
+        {
+          Log::Debug(THIS_MODULE, "No ornaments used");
+          return;
+        }
         Indices restOrns(ornaments);
         for (uint_t ornEntryIdx = 0; ornEntryIdx < MAX_ORNAMENTS_COUNT && !restOrns.empty(); ++ornEntryIdx)
         {

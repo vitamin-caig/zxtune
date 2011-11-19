@@ -130,7 +130,7 @@ namespace Sna128
 
   const std::string FORMAT(
     "+19+"
-    "00-03" //iff
+    "?" //iff. US saves 0x00/0xff instead of normal 0x00..0x03 flags
     "+3+"
     "? 40-ff" //sp
     "00-02" //im mode

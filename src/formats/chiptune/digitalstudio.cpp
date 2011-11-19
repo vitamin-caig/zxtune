@@ -275,6 +275,7 @@ namespace Chiptune
 
       void ParsePatterns(const Indices& pats, Builder& target) const
       {
+        Require(!pats.empty());
         for (Indices::const_iterator it = pats.begin(), lim = pats.end(); it != lim; ++it)
         {
           const uint_t patIndex = *it;
@@ -287,6 +288,7 @@ namespace Chiptune
 
       void ParseSamples(const Indices& sams, Builder& target) const
       {
+        Require(!sams.empty());
         for (Indices::const_iterator it = sams.begin(), lim = sams.end(); it != lim; ++it)
         {
           const uint_t samIdx = *it;
@@ -392,7 +394,8 @@ namespace Chiptune
 
         if (info.Size == 0)
         {
-          return;
+          Log::Debug(THIS_MODULE, " Stub sample");
+          return target.SetSample(idx, 0, Binary::CreateContainer(&info.Size, 1));
         }
         Require(info.Page >= 0x51 && info.Page <= 0x57);
 
