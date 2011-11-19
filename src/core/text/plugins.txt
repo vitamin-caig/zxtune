@@ -1,5 +1,4 @@
-< __HEADER__
-> "Generated from '$Id$'"
+# $Id$
 
 < __RAWHEADER__
 __cpp> "#ifndef __TEXT_PLUGINS_H_DEFINED__\n"
@@ -121,17 +120,6 @@ __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 
 < SQD_PLUGIN_INFO
 > SQD_EDITOR PLAYER_DESCRIPTION_SUFFIX
-
-#ST1x
-< ST1_PLUGIN_INFO
-> ST_EDITOR " uncompiled " PLAYER_DESCRIPTION_SUFFIX
-
-#STC
-< STC_PLUGIN_INFO
-> ST_EDITOR " compiled " PLAYER_DESCRIPTION_SUFFIX
-
-< ST_EDITOR
-> "SoundTracker v1.x"
 
 #STP
 < STP_PLUGIN_INFO

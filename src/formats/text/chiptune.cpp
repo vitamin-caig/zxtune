@@ -1,4 +1,4 @@
-// Generated from '$Id$'
+// This file was automatically generated
 #ifndef __TEXT_CHIPTUNE_H_DEFINED__
 #define __TEXT_CHIPTUNE_H_DEFINED__
 #include <char_type.h>
@@ -11,6 +11,12 @@ extern const Char DIGITALSTUDIO_DECODER_DESCRIPTION[] = {
 extern const Char PSG_DECODER_DESCRIPTION[] = {
   'P','r','o','g','r','a','m','m','a','b','l','e',' ','S','o','u','n','d',' ','G','e','n','e','r','a','t','o',
   'r',' ','(','P','S','G',')',0
+};
+extern const Char SOUNDTRACKERCOMPILED_DECODER_DESCRIPTION[] = {
+  'S','o','u','n','d',' ','T','r','a','c','k','e','r',' ','C','o','m','p','i','l','e','d',0
+};
+extern const Char SOUNDTRACKER_DECODER_DESCRIPTION[] = {
+  'S','o','u','n','d',' ','T','r','a','c','k','e','r',' ','v','1','.','x',0
 };
 }//namespace Text
 #endif //__TEXT_CHIPTUNE_H_DEFINED__

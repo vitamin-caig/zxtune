@@ -1,4 +1,4 @@
-// Generated from '$Id$'
+// This file was automatically generated
 #ifndef __TEXT_PLUGINS_H_DEFINED__
 #define __TEXT_PLUGINS_H_DEFINED__
 #include <char_type.h>
@@ -101,14 +101,6 @@ extern const Char SQD_PLUGIN_INFO[] = {
   'S','Q',' ','D','i','g','i','t','a','l',' ','T','r','a','c','k','e','r',' ','m','o','d','u','l','e','s',' ',
   's','u','p','p','o','r','t',0
 };
-extern const Char ST1_PLUGIN_INFO[] = {
-  'S','o','u','n','d','T','r','a','c','k','e','r',' ','v','1','.','x',' ','u','n','c','o','m','p','i','l','e',
-  'd',' ',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
-};
-extern const Char STC_PLUGIN_INFO[] = {
-  'S','o','u','n','d','T','r','a','c','k','e','r',' ','v','1','.','x',' ','c','o','m','p','i','l','e','d',' ',
-  ' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
-};
 extern const Char STP_EDITOR[] = {
   'S','o','u','n','d','T','r','a','c','k','e','r','P','r','o',0
 };
@@ -122,9 +114,6 @@ extern const Char STR_EDITOR[] = {
 extern const Char STR_PLUGIN_INFO[] = {
   'S','a','m','p','l','e',' ','T','r','a','c','k','e','r',' ','v','2','.','x',' ','m','o','d','u','l','e','s',
   ' ','s','u','p','p','o','r','t',0
-};
-extern const Char ST_EDITOR[] = {
-  'S','o','u','n','d','T','r','a','c','k','e','r',' ','v','1','.','x',0
 };
 extern const Char TS_PLUGIN_INFO[] = {
   'T','u','r','b','o','S','o','u','n','d',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0

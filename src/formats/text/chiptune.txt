@@ -1,5 +1,4 @@
-< __HEADER__
-> "Generated from '$Id: plugins.txt 1346 2011-09-26 13:15:55Z vitamin.caig $'"
+# $Id:$
 
 < __RAWHEADER__
 __cpp> "#ifndef __TEXT_CHIPTUNE_H_DEFINED__\n"
@@ -19,3 +18,11 @@ __cpp> "#endif //__TEXT_CHIPTUNE_H_DEFINED__\n"
 #PSG
 < PSG_DECODER_DESCRIPTION
 > "Programmable Sound Generator (PSG)"
+
+#SoundTracker
+< SOUNDTRACKER_DECODER_DESCRIPTION
+> "Sound Tracker v1.x"
+
+#SoundTrackerCompiled
+< SOUNDTRACKERCOMPILED_DECODER_DESCRIPTION
+> "Sound Tracker Compiled"

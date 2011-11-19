@@ -13,6 +13,8 @@ Author:
 #include "soundtracker.h"
 #include "ay_base.h"
 #include "ay_conversion.h"
+//library includes
+#include <formats/chiptune/soundtracker.h>
 //boost includes
 #include <boost/make_shared.hpp>
 
@@ -20,6 +22,151 @@ namespace SoundTracker
 {
   using namespace ZXTune;
   using namespace ZXTune::Module;
+
+  class DataBuilder : public Formats::Chiptune::SoundTracker::Builder
+  {
+  public:
+    DataBuilder(SoundTracker::ModuleData::RWPtr data, ModuleProperties::RWPtr props)
+      : Data(data)
+      , Properties(props)
+      , Context(*Data)
+    {
+    }
+
+    virtual void SetProgram(const String& program)
+    {
+      Properties->SetProgram(program);
+      Properties->SetFreqtable(TABLE_SOUNDTRACKER);
+    }
+
+    virtual void SetInitialTempo(uint_t tempo)
+    {
+      Data->InitialTempo = tempo;
+    }
+
+    virtual void SetSample(uint_t index, const Formats::Chiptune::SoundTracker::Sample& sample)
+    {
+      Data->Samples.resize(index + 1, sample);
+    }
+
+    virtual void SetOrnament(uint_t index, const Formats::Chiptune::SoundTracker::Ornament& ornament)
+    {
+      Data->Ornaments.resize(index + 1, ornament);
+    }
+
+    virtual void SetPositions(const std::vector<Formats::Chiptune::SoundTracker::PositionEntry>& positions)
+    {
+      Data->Positions.resize(positions.size());
+      Data->Transpositions.resize(positions.size());
+      std::transform(positions.begin(), positions.end(), Data->Positions.begin(), boost::mem_fn(&Formats::Chiptune::SoundTracker::PositionEntry::PatternIndex));
+      std::transform(positions.begin(), positions.end(), Data->Transpositions.begin(), boost::mem_fn(&Formats::Chiptune::SoundTracker::PositionEntry::Transposition));
+    }
+
+    virtual void StartPattern(uint_t index)
+    {
+      Context.SetPattern(index);
+    }
+
+    virtual void FinishPattern(uint_t size)
+    {
+      Context.FinishPattern(size);
+    }
+
+    virtual void StartLine(uint_t index)
+    {
+      Context.SetLine(index);
+    }
+
+    virtual void StartChannel(uint_t index)
+    {
+      Context.SetChannel(index);
+    }
+
+    virtual void SetRest()
+    {
+      Context.CurChannel->SetEnabled(false);
+    }
+
+    virtual void SetNote(uint_t note)
+    {
+      Context.CurChannel->SetEnabled(true);
+      Context.CurChannel->SetNote(note);
+    }
+
+    virtual void SetSample(uint_t sample)
+    {
+      Context.CurChannel->SetSample(sample);
+    }
+
+    virtual void SetOrnament(uint_t ornament)
+    {
+      Context.CurChannel->SetOrnament(ornament);
+    }
+
+    virtual void SetEnvelope(uint_t type, uint_t value)
+    {
+      Context.CurChannel->Commands.push_back(SoundTracker::Track::Command(SoundTracker::ENVELOPE, type, value));
+    }
+
+    virtual void SetNoEnvelope()
+    {
+      Context.CurChannel->Commands.push_back(SoundTracker::Track::Command(SoundTracker::NOENVELOPE));
+    }
+  private:
+    struct BuildContext
+    {
+      SoundTracker::Track::ModuleData& Data;
+      SoundTracker::Track::Pattern* CurPattern;
+      SoundTracker::Track::Line* CurLine;
+      SoundTracker::Track::Line::Chan* CurChannel;
+
+      explicit BuildContext(SoundTracker::Track::ModuleData& data)
+        : Data(data)
+        , CurPattern()
+        , CurLine()
+        , CurChannel()
+      {
+      }
+
+      void SetPattern(uint_t idx)
+      {
+        Data.Patterns.resize(std::max<std::size_t>(idx + 1, Data.Patterns.size()));
+        CurPattern = &Data.Patterns[idx];
+        CurLine = 0;
+        CurChannel = 0;
+      }
+
+      void SetLine(uint_t idx)
+      {
+        if (const std::size_t skipped = idx - CurPattern->GetSize())
+        {
+          CurPattern->AddLines(skipped);
+        }
+        CurLine = &CurPattern->AddLine();
+        CurChannel = 0;
+      }
+
+      void SetChannel(uint_t idx)
+      {
+        CurChannel = &CurLine->Channels[idx];
+      }
+
+      void FinishPattern(uint_t size)
+      {
+        if (const std::size_t skipped = size - CurPattern->GetSize())
+        {
+          CurPattern->AddLines(skipped);
+        }
+        CurLine = 0;
+        CurPattern = 0;
+      }
+    };
+  private:
+    const SoundTracker::ModuleData::RWPtr Data;
+    const ModuleProperties::RWPtr Properties;
+
+    BuildContext Context;
+  };
 
   class ChannelBuilder
   {
@@ -412,6 +559,11 @@ namespace SoundTracker
  
 namespace SoundTracker
 {
+  std::auto_ptr<Formats::Chiptune::SoundTracker::Builder> CreateDataBuilder(ModuleData::RWPtr data, ModuleProperties::RWPtr props)
+  {
+    return std::auto_ptr<Formats::Chiptune::SoundTracker::Builder>(new DataBuilder(data, props));
+  }
+
   ZXTune::Module::AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, ZXTune::Module::ModuleProperties::Ptr properties)
   {
     return boost::make_shared<SoundTracker::Chiptune>(data, properties);

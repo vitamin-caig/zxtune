@@ -1,4 +1,4 @@
-// Generated from '$Id$'
+// This file was automatically generated
 #ifndef __TEXT_PLUGINS_H_DEFINED__
 #define __TEXT_PLUGINS_H_DEFINED__
 #include <char_type.h>
@@ -33,13 +33,10 @@ extern const Char RAW_PLUGIN_INFO[];
 extern const Char RAW_PLUGIN_PREFIX[];
 extern const Char SQD_EDITOR[];
 extern const Char SQD_PLUGIN_INFO[];
-extern const Char ST1_PLUGIN_INFO[];
-extern const Char STC_PLUGIN_INFO[];
 extern const Char STP_EDITOR[];
 extern const Char STP_PLUGIN_INFO[];
 extern const Char STR_EDITOR[];
 extern const Char STR_PLUGIN_INFO[];
-extern const Char ST_EDITOR[];
 extern const Char TS_PLUGIN_INFO[];
 extern const Char TXT_ERROR_INVALID_STRING[];
 extern const Char TXT_PLUGIN_INFO[];

@@ -15,42 +15,29 @@ Author:
 
 //local includes
 #include "ay_base.h"
+//library includes
+#include <formats/chiptune/soundtracker.h>
 
 namespace SoundTracker
 {
-  const uint_t MAX_SAMPLES_COUNT = 16;
-  const uint_t MAX_ORNAMENTS_COUNT = 16;
-  const uint_t MAX_PATTERN_SIZE = 64;
-  const uint_t MAX_PATTERNS_COUNT = 32;
-  const uint_t SAMPLE_ORNAMENT_SIZE = 32;
-
-  // currently used sample
-  struct Sample
+  enum CmdType
   {
-    Sample() : Loop(), LoopLimit(), Lines()
+    EMPTY,
+    ENVELOPE,     //2p
+    NOENVELOPE,   //0p
+  };
+
+  struct Sample : public Formats::Chiptune::SoundTracker::Sample
+  {
+    Sample()
+      : Formats::Chiptune::SoundTracker::Sample()
     {
     }
 
-    template<class T>
-    Sample(uint_t loop, uint_t loopLimit, T from, T to)
-      : Loop(loop)
-      , LoopLimit(loopLimit)
-      , Lines(from, to)
+    Sample(const Formats::Chiptune::SoundTracker::Sample& rh)
+      : Formats::Chiptune::SoundTracker::Sample(rh)
     {
     }
-
-    struct Line
-    {
-      Line() : Level(), Noise(), NoiseMask(), EnvelopeMask(), Effect()
-      {
-      }
-
-      uint_t Level;//0-15
-      uint_t Noise;//0-31
-      bool NoiseMask;
-      bool EnvelopeMask;
-      int_t Effect;
-    };
 
     uint_t GetLoop() const
     {
@@ -72,28 +59,43 @@ namespace SoundTracker
       static const Line STUB;
       return Lines.size() > idx ? Lines[idx] : STUB;
     }
-  private:
-    uint_t Loop;
-    uint_t LoopLimit;
-    std::vector<Line> Lines;
   };
 
-  enum CmdType
+  struct Ornament : public Formats::Chiptune::SoundTracker::Ornament
   {
-    EMPTY,
-    ENVELOPE,     //2p
-    NOENVELOPE,   //0p
+    Ornament() 
+      : Formats::Chiptune::SoundTracker::Ornament()
+    {
+    }
+
+    Ornament(const Formats::Chiptune::SoundTracker::Ornament& rh)
+      : Formats::Chiptune::SoundTracker::Ornament(rh)
+    {
+    }
+
+    uint_t GetSize() const
+    {
+      return static_cast<uint_t>(size());
+    }
+
+    int_t GetLine(uint_t pos) const
+    {
+      return size() > pos ? at(pos) : 0;
+    }
   };
 
-  typedef ZXTune::Module::TrackingSupport<Devices::AYM::CHANNELS, CmdType, Sample> Track;
+  typedef ZXTune::Module::TrackingSupport<Devices::AYM::CHANNELS, CmdType, Sample, Ornament> Track;
 
   class ModuleData : public Track::ModuleData
   {
   public:
+    typedef boost::shared_ptr<ModuleData> RWPtr;
     typedef boost::shared_ptr<const ModuleData> Ptr;
 
     std::vector<int_t> Transpositions;
   };
+
+  std::auto_ptr<Formats::Chiptune::SoundTracker::Builder> CreateDataBuilder(ModuleData::RWPtr data, ZXTune::Module::ModuleProperties::RWPtr props);
 
   ZXTune::Module::AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, ZXTune::Module::ModuleProperties::Ptr properties);
 }

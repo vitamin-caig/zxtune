@@ -20,6 +20,8 @@ namespace Formats
   {
     Decoder::Ptr CreatePSGDecoder();
     Decoder::Ptr CreateDigitalStudioDecoder();
+    Decoder::Ptr CreateSoundTrackerDecoder();
+    Decoder::Ptr CreateSoundTrackerCompiledDecoder();
   }
 }
 

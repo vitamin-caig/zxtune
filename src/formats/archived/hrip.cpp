@@ -146,9 +146,10 @@ namespace Hrip
 
   Archived::Container::Ptr ParseArchive(const Binary::Container& data)
   {
+    const std::size_t availSize = data.Size();
     uint_t files = 0;
     std::size_t archiveSize = 0;
-    if (!FastCheck(data.Data(), data.Size(), files, archiveSize))
+    if (!FastCheck(data.Data(), availSize, files, archiveSize))
     {
       return Archived::Container::Ptr();
     }
@@ -156,7 +157,8 @@ namespace Hrip
     const Formats::Packed::Decoder::Ptr decoder = Packed::CreateHrust23Decoder();
     for (std::size_t rawOffset = sizeof(Header), flatOffset = 0, fileNum = 0; fileNum < files; ++fileNum)
     {
-      const Binary::Container::Ptr source = data.GetSubcontainer(rawOffset, MAX_MODULE_SIZE);
+      const std::size_t sourceSize = std::min(MAX_MODULE_SIZE, availSize - rawOffset);
+      const Binary::Container::Ptr source = data.GetSubcontainer(rawOffset, sourceSize);
       if (const Formats::Packed::Container::Ptr target = decoder->Decode(*source))
       {
         const String fileName = ExtractFileName(source->Data());
