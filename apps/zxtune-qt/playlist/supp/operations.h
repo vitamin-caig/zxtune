@@ -53,6 +53,7 @@ namespace Playlist
     PromisedSelectionOperation::Ptr CreateSelectAllRipOffsOperation();
     PromisedSelectionOperation::Ptr CreateSelectRipOffsOfSelectedOperation(const Playlist::Model::IndexSet& items);
     PromisedSelectionOperation::Ptr CreateSelectRipOffsInSelectedOperation(const Playlist::Model::IndexSet& items);
+    PromisedSelectionOperation::Ptr CreateSelectTypesOfSelectedOperation(const Playlist::Model::IndexSet& items);
     StorageModifyOperation::Ptr CreateRemoveAllDuplicatesOperation();
     StorageModifyOperation::Ptr CreateRemoveDuplicatesOfSelectedOperation(const Playlist::Model::IndexSet& items);
     StorageModifyOperation::Ptr CreateRemoveDuplicatesInSelectedOperation(const Playlist::Model::IndexSet& items);

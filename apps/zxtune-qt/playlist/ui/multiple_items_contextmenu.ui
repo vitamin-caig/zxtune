@@ -9,6 +9,7 @@
   <addaction name="separator"/>
   <addaction name="DelDupsAction"/>
   <addaction name="SelRipOffsAction"/>
+  <addaction name="SelSameTypesAction"/>
   <addaction name="separator"/>
   <addaction name="CopyToClipboardAction"/>
   <addaction name="ShowStatisticAction"/>
@@ -71,6 +72,16 @@
    </property>
    <property name="text">
     <string>Select rip-offs in</string>
+   </property>
+  </action>
+  <action name="SelSameTypesAction">
+   <property name="icon">
+    <iconset>
+     <normalon>:/playlist/selsametypes.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Select modules with same types</string>
    </property>
   </action>
   <action name="CopyToClipboardAction">

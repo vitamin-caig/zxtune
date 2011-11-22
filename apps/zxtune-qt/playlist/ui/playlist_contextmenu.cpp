@@ -66,6 +66,7 @@ namespace
       receiver.connect(CropAction, SIGNAL(triggered()), SLOT(CropSelected()));
       receiver.connect(DelDupsAction, SIGNAL(triggered()), SLOT(RemoveDuplicatesOfSelected()));
       receiver.connect(SelRipOffsAction, SIGNAL(triggered()), SLOT(SelectRipOffsOfSelected()));
+      receiver.connect(SelSameTypesAction, SIGNAL(triggered()), SLOT(SelectSameTypesOfSelected()));
       receiver.connect(CopyToClipboardAction, SIGNAL(triggered()), SLOT(CopyPathToClipboard()));
       receiver.connect(ExportAction, SIGNAL(triggered()), SLOT(ExportSelected()));
     }
@@ -87,6 +88,7 @@ namespace
       receiver.connect(GroupAction, SIGNAL(triggered()), SLOT(GroupSelected()));
       receiver.connect(DelDupsAction, SIGNAL(triggered()), SLOT(RemoveDuplicatesInSelected()));
       receiver.connect(SelRipOffsAction, SIGNAL(triggered()), SLOT(SelectRipOffsInSelected()));
+      receiver.connect(SelSameTypesAction, SIGNAL(triggered()), SLOT(SelectSameTypesOfSelected()));
       receiver.connect(CopyToClipboardAction, SIGNAL(triggered()), SLOT(CopyPathToClipboard()));
       receiver.connect(ShowStatisticAction, SIGNAL(triggered()), SLOT(ShowStatisticOfSelected()));
       receiver.connect(ExportAction, SIGNAL(triggered()), SLOT(ExportSelected()));
@@ -186,6 +188,12 @@ namespace
     virtual void SelectRipOffsInSelected() const
     {
       const Playlist::Item::PromisedSelectionOperation::Ptr op = Playlist::Item::CreateSelectRipOffsInSelectedOperation(SelectedItems);
+      View.SelectItems(*GetResult(op));
+    }
+
+    virtual void SelectSameTypesOfSelected() const
+    {
+      const Playlist::Item::PromisedSelectionOperation::Ptr op = Playlist::Item::CreateSelectTypesOfSelectedOperation(SelectedItems);
       View.SelectItems(*GetResult(op));
     }
 

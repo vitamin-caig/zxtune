@@ -455,6 +455,33 @@ namespace
     Promise<Playlist::Item::SelectionPtr> Result;
   };
 
+  class SelectTypesOfSelectedOperation : public Playlist::Item::PromisedSelectionOperation
+  {
+  public:
+    explicit SelectTypesOfSelectedOperation(const Playlist::Model::IndexSet& items)
+      : SelectedItems(items)
+    {
+    }
+
+    virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
+    {
+      RipOffsCollector<String> types;
+      {
+        const TypedPropertyModel<String> propertyModel(stor, &Playlist::Item::Data::GetType);
+        VisitAsSelectedItems(propertyModel, SelectedItems, cb, types);
+      }
+      Result.Set(boost::make_shared<Playlist::Model::IndexSet>(types.GetResult()));
+    }
+
+    virtual Playlist::Item::SelectionPtr GetResult() const
+    {
+      return Result.Get();
+    }
+  private:
+    const Playlist::Model::IndexSet& SelectedItems;
+    Promise<Playlist::Item::SelectionPtr> Result;
+  };
+
   class CollectingVisitor : public Playlist::Model::Visitor
                           , public Playlist::Item::TextOperationResult
   {
@@ -785,6 +812,11 @@ namespace Playlist
     PromisedSelectionOperation::Ptr CreateSelectRipOffsInSelectedOperation(const Playlist::Model::IndexSet& items)
     {
       return boost::make_shared<SelectRipOffsInSelectedOperation>(boost::cref(items));
+    }
+
+    PromisedSelectionOperation::Ptr CreateSelectTypesOfSelectedOperation(const Playlist::Model::IndexSet& items)
+    {
+      return boost::make_shared<SelectTypesOfSelectedOperation>(boost::cref(items));
     }
 
     StorageModifyOperation::Ptr CreateRemoveAllDuplicatesOperation()
