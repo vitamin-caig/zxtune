@@ -375,6 +375,8 @@ namespace
   public:
     TypedFormat(typename Traits::Pattern::const_iterator from, typename Traits::Pattern::const_iterator to, std::size_t offset)
       : Pat(from, to)
+      , PatternBegin(&Pat[0])
+      , PatternEnd(PatternBegin + Pat.size())
       , Offset(offset)
     {
     }
@@ -386,7 +388,7 @@ namespace
         return false;
       }
       const uint8_t* const typedData = static_cast<const uint8_t*>(data) + Offset;
-      return std::equal(Pat.begin(), Pat.end(), typedData, &Traits::Match);
+      return std::equal(PatternBegin, PatternEnd, typedData, &Traits::Match);
     }
 
     virtual std::size_t Search(const void* data, std::size_t size) const
@@ -397,7 +399,7 @@ namespace
       }
       const uint8_t* const typedData = static_cast<const uint8_t*>(data);
       const uint8_t* const typedEnd = typedData + size;
-      const uint8_t* const result = std::search(typedData + Offset, typedEnd, Pat.begin(), Pat.end(), &MatchByte<Traits>);
+      const uint8_t* const result = std::search(typedData + Offset, typedEnd, PatternBegin, PatternEnd, &MatchByte<Traits>);
       if (result == typedEnd)
       {
         return size;
@@ -406,6 +408,8 @@ namespace
     }
   private:
     const typename Traits::Pattern Pat;
+    const typename Traits::Pattern::value_type* const PatternBegin;
+    const typename Traits::Pattern::value_type* const PatternEnd;
     const std::size_t Offset;
   };
 

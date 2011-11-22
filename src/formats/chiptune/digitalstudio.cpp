@@ -294,7 +294,12 @@ namespace Chiptune
           const uint_t samIdx = *it;
           Require(in_range<uint_t>(samIdx + 1, 1, SAMPLES_COUNT));
           const SampleInfo& info = Source.Samples[samIdx];
-          ParseSample(samIdx, info, target);
+          if (!ParseSample(samIdx, info, target))
+          {
+            Log::Debug(THIS_MODULE, " Stub sample");
+            const std::size_t size = 0;
+            target.SetSample(samIdx, 0, Binary::CreateContainer(&size, 1));
+          }
         }
       }
 
@@ -381,7 +386,7 @@ namespace Chiptune
             && srcLine.Channels[2].Note == NOTE_EMPTY;
       }
 
-      void ParseSample(std::size_t idx, const SampleInfo& info, Builder& target) const
+      bool ParseSample(std::size_t idx, const SampleInfo& info, Builder& target) const
       {
         const std::size_t PAGE_SIZE = 0x4000;
         const std::size_t LO_MEM_ADDR = 0x8000;
@@ -394,8 +399,7 @@ namespace Chiptune
 
         if (info.Size == 0)
         {
-          Log::Debug(THIS_MODULE, " Stub sample");
-          return target.SetSample(idx, 0, Binary::CreateContainer(&info.Size, 1));
+          return false;
         }
         Require(info.Page >= 0x51 && info.Page <= 0x57);
 
@@ -427,7 +431,7 @@ namespace Chiptune
             const std::size_t firstOffset = offsets[0] + sampleOffsetInPage;
             const std::size_t firstCopy = PAGE_SIZE - sampleOffsetInPage;
             const Binary::Container::Ptr part1 = GetSampleData(firstOffset, firstCopy);
-
+            Require(part1);
             const std::size_t secondOffset = offsets[7];
             const std::size_t secondCopy = sampleOffsetInPage + sampleSize - PAGE_SIZE;
             Log::Debug(THIS_MODULE, " Two parts in low memory: #%1$05x..#%2$05x + #%3$05x..#%4$05x", 
@@ -435,13 +439,14 @@ namespace Chiptune
             if (const Binary::Container::Ptr part2 = GetSampleData(secondOffset, secondCopy))
             {
               Log::Debug(THIS_MODULE, " Using two parts with sizes #%1$05x + #%2$05x", part1->Size(), part2->Size());
-              return target.SetSample(idx, sampleLoop, part1, part2);
+              target.SetSample(idx, sampleLoop, part1, part2);
             }
             else
             {
               Log::Debug(THIS_MODULE, " Using first part with size #%1$05x", part1->Size());
-              return target.SetSample(idx, sampleLoop, part1);
+              target.SetSample(idx, sampleLoop, part1);
             }
+            return true;
           }
           else
           {
@@ -450,9 +455,12 @@ namespace Chiptune
               : offsets[0] + sampleOffsetInPage;
             Log::Debug(THIS_MODULE, " One part in low memory: #%1$05x..#%2$05x", 
               dataOffset, dataOffset + sampleSize);
-            const Binary::Container::Ptr data = GetSampleData(dataOffset, sampleSize);
-            Log::Debug(THIS_MODULE, " Using size #%1$05x", data->Size());
-            return target.SetSample(idx, sampleLoop, data);
+            if (const Binary::Container::Ptr data = GetSampleData(dataOffset, sampleSize))
+            {
+              Log::Debug(THIS_MODULE, " Using size #%1$05x", data->Size());
+              target.SetSample(idx, sampleLoop, data);
+              return true;
+            }
           }
         }
         else
@@ -460,10 +468,14 @@ namespace Chiptune
           const std::size_t dataOffset = offsets[pageNumber] + sampleOffsetInPage;
           Log::Debug(THIS_MODULE, " Hi memory: #%1$05x..#%2$05x", 
             dataOffset, dataOffset + sampleSize);
-          const Binary::Container::Ptr data = GetSampleData(dataOffset, sampleSize);
-          Log::Debug(THIS_MODULE, " Using size #%1$05x", data->Size());
-          return target.SetSample(idx, sampleLoop, data);
+          if (const Binary::Container::Ptr data = GetSampleData(dataOffset, sampleSize))
+          {
+            Log::Debug(THIS_MODULE, " Using size #%1$05x", data->Size());
+            target.SetSample(idx, sampleLoop, data);
+            return true;
+          }
         }
+        return false;
       }
     private:
       const Binary::Container& RawData;
