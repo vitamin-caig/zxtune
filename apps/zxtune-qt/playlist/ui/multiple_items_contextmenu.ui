@@ -8,8 +8,7 @@
   <addaction name="GroupAction"/>
   <addaction name="separator"/>
   <addaction name="DelDupsAction"/>
-  <addaction name="SelRipOffsAction"/>
-  <addaction name="SelSameTypesAction"/>
+  <addaction name="SelectionSubmenu"/>
   <addaction name="separator"/>
   <addaction name="CopyToClipboardAction"/>
   <addaction name="ShowStatisticAction"/>
@@ -64,24 +63,26 @@
     <string>Remove duplicates in</string>
    </property>
   </action>
-  <action name="SelRipOffsAction">
+  <widget class="QMenu" name="SelectionSubmenu">
+   <property name="title">
+    <string>Select</string>
+   </property>
    <property name="icon">
     <iconset>
-     <normalon>:/playlist/selripoffs.png</normalon>
+     <normalon>:/playlist/select.png</normalon>
     </iconset>
    </property>
+   <addaction name="SelRipOffsAction"/>
+   <addaction name="SelSameTypesAction"/>
+  </widget>
+  <action name="SelRipOffsAction">
    <property name="text">
-    <string>Select rip-offs in</string>
+    <string>Rip-offs of this items</string>
    </property>
   </action>
   <action name="SelSameTypesAction">
-   <property name="icon">
-    <iconset>
-     <normalon>:/playlist/selsametypes.png</normalon>
-    </iconset>
-   </property>
    <property name="text">
-    <string>Select modules with same types</string>
+    <string>Items with the same types</string>
    </property>
   </action>
   <action name="CopyToClipboardAction">

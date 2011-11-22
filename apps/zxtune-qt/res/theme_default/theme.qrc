@@ -40,7 +40,7 @@
     <file alias="crop.png">list_crop.png</file>
     <file alias="group.png">list_group.png</file>
     <file alias="delduplicates.png">list_delduplicates.png</file>
-    <file alias="selripoffs.png">list_selripoffs.png</file>
+    <file alias="select.png">list_select.png</file>
     <file alias="info.png">app_about.png</file>
     <file alias="statistic.png">list_statistic.png</file>
     <file alias="export.png">list_export.png</file>

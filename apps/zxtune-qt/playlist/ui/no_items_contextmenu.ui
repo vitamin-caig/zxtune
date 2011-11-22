@@ -19,7 +19,7 @@
   <action name="SelRipOffsAction">
    <property name="icon">
     <iconset>
-     <normalon>:/playlist/selripoffs.png</normalon>
+     <normalon>:/playlist/select.png</normalon>
     </iconset>
    </property>
    <property name="text">
