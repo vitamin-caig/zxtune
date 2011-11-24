@@ -109,13 +109,16 @@ namespace ZXTune
         virtual Information::Ptr GetInformation() const = 0;
         virtual ModuleProperties::Ptr GetProperties() const = 0;
         virtual AYM::DataIterator::Ptr CreateDataIterator(TrackParameters::Ptr trackParams) const = 0;
+
+        //TODO: temporary solution
+        virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Device::Ptr chip) const;
       };
 
-      Analyzer::Ptr CreateAnalyzer(Devices::AYM::Chip::Ptr device);
+      Analyzer::Ptr CreateAnalyzer(Devices::AYM::Device::Ptr device);
 
       DataIterator::Ptr CreateDataIterator(TrackParameters::Ptr trackParams, StateIterator::Ptr iterator, DataRenderer::Ptr renderer);
 
-      Renderer::Ptr CreateRenderer(TrackParameters::Ptr trackParams, AYM::DataIterator::Ptr iterator, Devices::AYM::Chip::Ptr device);
+      Renderer::Ptr CreateRenderer(TrackParameters::Ptr trackParams, AYM::DataIterator::Ptr iterator, Devices::AYM::Device::Ptr device);
 
       Devices::AYM::Receiver::Ptr CreateReceiver(Sound::MultichannelReceiver::Ptr target);
 

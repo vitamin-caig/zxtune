@@ -82,17 +82,8 @@ namespace ZXTune
 
       try
       {
-        const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
-        const AYM::DataIterator::Ptr iterator = chiptune.CreateDataIterator(trackParams);
-        
-        Devices::AYM::DataChunk chunk;
-        for (Time::Nanoseconds lastRenderTime = frameDuration; iterator->IsValid(); lastRenderTime += frameDuration)
-        {
-          iterator->GetData(chunk);
-          chunk.TimeStamp = lastRenderTime;
-          dumper->RenderData(chunk);
-          iterator->NextFrame(false);
-        }
+        const Renderer::Ptr renderer = chiptune.CreateRenderer(params, dumper);
+        while (renderer->RenderFrame()) {}
         dumper->GetDump(dst);
         result = Error();
       }

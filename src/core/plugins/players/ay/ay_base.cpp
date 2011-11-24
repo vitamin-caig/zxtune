@@ -151,7 +151,7 @@ namespace
   class AYMRenderer : public Renderer
   {
   public:
-    AYMRenderer(AYM::TrackParameters::Ptr params, AYM::DataIterator::Ptr iterator, Devices::AYM::Chip::Ptr device)
+    AYMRenderer(AYM::TrackParameters::Ptr params, AYM::DataIterator::Ptr iterator, Devices::AYM::Device::Ptr device)
       : Params(params)
       , Iterator(iterator)
       , Device(device)
@@ -177,13 +177,13 @@ namespace
     {
       if (Iterator->IsValid())
       {
-        LastRenderTime += Time::Microseconds(Params->FrameDurationMicrosec());
         Devices::AYM::DataChunk chunk;
         Iterator->GetData(chunk);
         chunk.TimeStamp = LastRenderTime;
         Device->RenderData(chunk);
         Device->Flush();
         Iterator->NextFrame(Params->Looped());
+        LastRenderTime += Time::Microseconds(Params->FrameDurationMicrosec());
       }
       return Iterator->IsValid();
     }
@@ -202,7 +202,7 @@ namespace
   private:
     const AYM::TrackParameters::Ptr Params;
     const AYM::DataIterator::Ptr Iterator;
-    const Devices::AYM::Chip::Ptr Device;
+    const Devices::AYM::Device::Ptr Device;
     Time::Nanoseconds LastRenderTime;
   };
 
@@ -234,9 +234,7 @@ namespace
       const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(target);
       const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
       const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateChip(chipParams, receiver);
-      const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
-      const AYM::DataIterator::Ptr iterator = Tune->CreateDataIterator(trackParams);
-      return AYM::CreateRenderer(trackParams, iterator, chip);
+      return Tune->CreateRenderer(params, chip);
     }
 
     virtual Error Convert(const Conversion::Parameter& spec, Parameters::Accessor::Ptr params, Dump& dst) const
@@ -329,9 +327,20 @@ namespace ZXTune
         return toneTo - toneFrom;
       }
 
-      Analyzer::Ptr CreateAnalyzer(Devices::AYM::Chip::Ptr device)
+      Renderer::Ptr Chiptune::CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Device::Ptr chip) const
       {
-        return boost::make_shared<AYMAnalyzer>(device);
+        const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
+        const AYM::DataIterator::Ptr iterator = CreateDataIterator(trackParams);
+        return AYM::CreateRenderer(trackParams, iterator, chip);
+      }
+
+      Analyzer::Ptr CreateAnalyzer(Devices::AYM::Device::Ptr device)
+      {
+        if (Devices::AYM::Chip::Ptr chip = boost::dynamic_pointer_cast<Devices::AYM::Chip>(device))
+        {
+          return boost::make_shared<AYMAnalyzer>(chip);
+        }
+        return Analyzer::Ptr();
       }
 
       DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams, StateIterator::Ptr iterator, DataRenderer::Ptr renderer)
@@ -339,7 +348,7 @@ namespace ZXTune
         return boost::make_shared<AYMDataIterator>(trackParams, iterator, renderer);
       }
 
-      Renderer::Ptr CreateRenderer(TrackParameters::Ptr trackParams, AYM::DataIterator::Ptr iterator, Devices::AYM::Chip::Ptr device)
+      Renderer::Ptr CreateRenderer(TrackParameters::Ptr trackParams, AYM::DataIterator::Ptr iterator, Devices::AYM::Device::Ptr device)
       {
         return boost::make_shared<AYMRenderer>(trackParams, iterator, device);
       }

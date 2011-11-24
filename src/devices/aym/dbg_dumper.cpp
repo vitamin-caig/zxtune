@@ -40,7 +40,8 @@ namespace
     
     virtual void Initialize()
     {
-      static const std::string HEADER("##### 000102030405060708090a0b0c0d\n");
+      //static const std::string HEADER("##### 000102030405060708090a0b0c0d\n");
+      static const std::string HEADER("000102030405060708090a0b0c0d\n");
       Data.assign(HEADER.begin(), HEADER.end());
       FrameNumber = 0;
     }
@@ -83,7 +84,7 @@ namespace
     void AddFrameNumber()
     {
       const String number = Strings::Format(FRAME_NUMBER_FORMAT, FrameNumber);
-      std::copy(number.begin(), number.end(), std::back_inserter(Data));
+      //std::copy(number.begin(), number.end(), std::back_inserter(Data));
     }
 
     void AddData(uint8_t data)

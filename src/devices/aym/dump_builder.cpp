@@ -30,7 +30,8 @@ namespace
 
     virtual void RenderData(const DataChunk& src)
     {
-      DataChunk update;
+      const Time::Nanoseconds::ValueType nextTime = src.TimeStamp.Get();
+      FlushFinishedFrame(nextTime);
       //calculate difference
       for (uint_t reg = 0, mask = 1; reg < DataChunk::REG_LAST; ++reg, mask <<= 1)
       {
@@ -41,24 +42,12 @@ namespace
           const uint8_t newReg = src.Data[reg];
           if (reg == DataChunk::REG_ENV || oldReg != newReg)
           {
-            update.Mask |= mask;
-            update.Data[reg] = newReg;
+            Update.Mask |= mask;
+            Update.Data[reg] = newReg;
             State.Data[reg] = newReg;
+            Update.TimeStamp = src.TimeStamp;
           }
         }
-      }
-      if (!update.Mask)
-      {
-        return;
-      }
-      if (const uint_t framesPassed = static_cast<uint_t>((src.TimeStamp.Get() - State.TimeStamp.Get()) / FrameDuration.Get()))
-      {
-        State.TimeStamp = src.TimeStamp;
-        Builder->WriteFrame(framesPassed, State, update);
-      }
-      else
-      {
-        assert(!"Not a frame-divided AYM stream");
       }
     }
 
@@ -70,6 +59,7 @@ namespace
     {
       Builder->Initialize();
       State = DataChunk();
+      Update = DataChunk();
     }
 
     virtual void GetDump(Dump& result) const
@@ -77,9 +67,22 @@ namespace
       Builder->GetResult(result);
     }
   private:
+    void FlushFinishedFrame(Time::Nanoseconds::ValueType nextTime)
+    {
+      const Time::Nanoseconds::ValueType curTime = State.TimeStamp.Get();
+      const Time::Nanoseconds::ValueType frameDuration = FrameDuration.Get();
+      if (const uint_t framesPassed = static_cast<uint_t>((nextTime - curTime) / frameDuration))
+      {
+        Builder->WriteFrame(framesPassed, State, Update);
+        Update = DataChunk();
+        State.TimeStamp += Time::Nanoseconds(framesPassed * frameDuration);
+      }
+    }
+  private:
     const Time::Nanoseconds FrameDuration;
     const FramedDumpBuilder::Ptr Builder;
     DataChunk State;
+    DataChunk Update;
   };
 }
 

@@ -26,7 +26,7 @@ CXXFLAGS = /nologo /c $(CXX_PLATFORM_FLAGS) $(CXX_MODE_FLAGS) $(cxx_flags) \
 	/W3 \
 	$(addprefix /D, $(DEFINITIONS)) \
 	/J /Zc:wchar_t,forScope /Z7 /Zl /EHsc \
-	/GA /GF /Gy /Y- \
+	/GA /GF /Gy /Y- /GR \
 	$(addprefix /I, $(INCLUDES))
 
 ARFLAGS = /NOLOGO /NODEFAULTLIB

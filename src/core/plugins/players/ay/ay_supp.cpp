@@ -53,13 +53,13 @@ namespace
   public:
     typedef boost::shared_ptr<AYDataChannel> Ptr;
 
-    explicit AYDataChannel(Devices::AYM::Chip::Ptr chip)
+    explicit AYDataChannel(Devices::AYM::Device::Ptr chip)
       : Chip(chip)
       , Register()
     {
     }
 
-    static Ptr Create(Devices::AYM::Chip::Ptr chip)
+    static Ptr Create(Devices::AYM::Device::Ptr chip)
     {
       return boost::make_shared<AYDataChannel>(chip);
     }
@@ -111,7 +111,7 @@ namespace
       return AYM::CreateAnalyzer(Chip);
     }
   private:
-    const Devices::AYM::Chip::Ptr Chip;
+    const Devices::AYM::Device::Ptr Chip;
     uint_t Register;
     Devices::AYM::DataChunk FrameStub;
   };
@@ -544,53 +544,40 @@ namespace
     Devices::Z80::Chip::Ptr CPU;
   };
 
-  class AYHolder : public Holder
+  class AYChiptune : public AYM::Chiptune
   {
   public:
-    explicit AYHolder(AYData::Ptr data)
+    explicit AYChiptune(AYData::Ptr data)
       : Data(data)
       , Info(CreateStreamInfo(Data->GetFramesCount(), Devices::AYM::CHANNELS))
     {
     }
 
-    virtual Plugin::Ptr GetPlugin() const
-    {
-      return Data->GetProperties()->GetPlugin();
-    }
-
-    virtual Information::Ptr GetModuleInformation() const
+    virtual Information::Ptr GetInformation() const
     {
       return Info;
     }
 
-    virtual Parameters::Accessor::Ptr GetModuleProperties() const
+    virtual ModuleProperties::Ptr GetProperties() const
     {
       return Data->GetProperties();
     }
 
-    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::MultichannelReceiver::Ptr target) const
+    virtual AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr /*trackParams*/) const
+    {
+      assert(!"Should not be called");
+      return AYM::DataIterator::Ptr();
+    }
+
+    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Device::Ptr chip) const
     {
       const StateIterator::Ptr iterator = CreateStreamStateIterator(Info);
-      const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(target);
-      const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
-      const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateChip(chipParams, receiver);
       const Devices::Z80::ChipParameters::Ptr cpuParams = boost::make_shared<CPUParameters>(params);
       const AYDataChannel::Ptr ayChannel = AYDataChannel::Create(chip);
       const PortsPlexer::Ptr cpuPorts = PortsPlexer::Create(ayChannel);
       const Computer::Ptr comp = boost::make_shared<ComputerImpl>(Data, cpuParams, cpuPorts);
       const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
       return boost::make_shared<AYRenderer>(trackParams, iterator, comp, ayChannel);
-    }
-
-    virtual Error Convert(const Conversion::Parameter& spec, Parameters::Accessor::Ptr /*params*/, Dump& dst) const
-    {
-      using namespace Conversion;
-      Error result;
-      if (parameter_cast<RawConvertParam>(&spec))
-      {
-        Data->GetProperties()->GetData(dst);
-      }
-      return result;
     }
   private:
     const AYData::Ptr Data;
@@ -609,7 +596,7 @@ namespace AYModule
   using namespace ZXTune;
 
   //plugin attributes
-  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW;
+  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
 
   const std::string HEADER_FORMAT(
     "'Z'X'A'Y" // uint8_t Signature[4];
@@ -648,7 +635,8 @@ namespace AYModule
         {
           usedSize = container->Size();
           properties->SetSource(container);
-          return boost::make_shared<AYHolder>(result);
+          const AYM::Chiptune::Ptr chiptune = boost::make_shared<AYChiptune>(result);
+          return AYM::CreateHolder(chiptune);
         }
       }
       catch (const Error&/*e*/)

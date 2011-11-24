@@ -207,33 +207,132 @@ namespace SoundTracker
     {
       Channel.DisableNoise();
     }
-
   private:
     const uint_t Transposition;
     AYM::TrackBuilder& Track;
     AYM::ChannelBuilder Channel;
   };
 
-  struct ChannelState
+  struct EnvelopeState
   {
-    explicit ChannelState(ModuleData::Ptr data)
-      : Data(data)
-      , Enabled(false), Envelope(false)
-      , Note()
-      , CurSample(GetStubSample()), PosInSample(0), LoopedInSample(false)
-      , CurOrnament(GetStubOrnament())
+    explicit EnvelopeState(uint_t& type, uint_t& tone)
+      : Type(type)
+      , Tone(tone)
+      , Enabled(0)
     {
     }
 
     void Reset()
     {
-      Enabled = false;
-      Envelope = false;
+      Enabled = 0;
+    }
+
+    void SetNewState(const Track::Line::Chan& src)
+    {
+      if (!src.Commands.empty())
+      {
+        ApplyCommands(src.Commands);
+      }
+    }
+
+    void Iterate()
+    {
+      if (2 == Enabled)
+      {
+        Type = 0;
+      }
+      else if (1 == Enabled)
+      {
+        Enabled = 2;
+        Type = 0;
+      }
+    }
+
+    void Synthesize(ChannelBuilder& channel) const
+    {
+      if (Enabled)
+      {
+        channel.EnableEnvelope();
+      }
+    } 
+  private:
+    void ApplyCommands(const Track::CommandsArray& commands)
+    {
+      std::for_each(commands.begin(), commands.end(), boost::bind(&EnvelopeState::ApplyCommand, this, _1));
+    }
+
+    void ApplyCommand(const Track::Command& command)
+    {
+      if (command == ENVELOPE)
+      {
+        Type = command.Param1;
+        Tone = command.Param2;
+        Enabled = 1;
+      }
+      else if (command == NOENVELOPE)
+      {
+        Enabled = 0;
+      }
+    }
+  private:
+    uint_t& Type;
+    uint_t& Tone;
+    uint_t Enabled;
+  };
+
+  struct StateCursor
+  {
+    int_t CountDown;
+    uint_t Position;
+
+    StateCursor()
+      : CountDown(-1)
+      , Position(0)
+    {
+    }
+
+    void Next(const Track::Sample& sample)
+    {
+      --CountDown;
+      Position = (Position + 1) & 0x1f;
+      if (0 == CountDown)
+      {
+        if (const uint_t loop = sample.GetLoop())
+        {
+          Position = loop & 0x1f;
+          CountDown = sample.GetLoopLimit() + 1;
+        }
+        else
+        {
+          CountDown = -1;
+        }
+      }
+    }
+
+    bool IsValid() const
+    {
+      return CountDown >= 0;
+    }
+  };
+
+  struct ChannelState
+  {
+    explicit ChannelState(ModuleData::Ptr data, uint_t& envType, uint_t& envTone)
+      : Data(data)
+      , Note()
+      , CurSample(GetStubSample())
+      , CurOrnament(GetStubOrnament())
+      , EnvState(envType, envTone)
+    {
+    }
+
+    void Reset()
+    {
       Note = 0;
+      Cursor = StateCursor();
       CurSample = GetStubSample();
-      PosInSample = 0;
-      LoopedInSample = false;
       CurOrnament = GetStubOrnament();
+      EnvState.Reset();
     }
 
     void SetNewState(const Track::Line::Chan& src)
@@ -254,36 +353,27 @@ namespace SoundTracker
       {
         SetOrnament(*src.OrnamentNum);
       }
-      if (!src.Commands.empty())
-      {
-        ApplyCommands(src.Commands);
-      }
+      EnvState.SetNewState(src);
     }
 
     void Synthesize(ChannelBuilder& channel) const
     {
-      if (!Enabled)
+      StateCursor nextCursor(Cursor);
+      nextCursor.Next(*CurSample);
+      if (!nextCursor.IsValid())
       {
         channel.SetLevel(0);
         return;
       }
 
-      const Track::Sample::Line& curSampleLine = CurSample->GetLine(PosInSample);
-
+      const uint_t nextPosition = (nextCursor.Position - 1) & 0x1f;
+      const Track::Sample::Line& curSampleLine = CurSample->GetLine(nextPosition);
       //apply level
       channel.SetLevel(curSampleLine.Level);
-      //apply envelope
-      if (Envelope)
-      {
-        channel.EnableEnvelope();
-      }
       //apply tone
-      const int_t halftones = int_t(Note) + CurOrnament->GetLine(PosInSample);
-      if (!curSampleLine.EnvelopeMask)
-      {
-        channel.SetTone(halftones, curSampleLine.Effect);
-      }
-      else
+      const int_t halftones = int_t(Note) + CurOrnament->GetLine(nextPosition);
+      channel.SetTone(halftones, curSampleLine.Effect);
+      if (curSampleLine.EnvelopeMask)
       {
         channel.DisableTone();
       }
@@ -296,21 +386,15 @@ namespace SoundTracker
       {
         channel.DisableNoise();
       }
+      EnvState.Synthesize(channel);
     }
 
     void Iterate()
     {
-      if (++PosInSample >= (LoopedInSample ? CurSample->GetLoopLimit() : CurSample->GetSize()))
+      Cursor.Next(*CurSample);
+      if (Cursor.IsValid())
       {
-        if (CurSample->GetLoop() && CurSample->GetLoop() < CurSample->GetSize())
-        {
-          PosInSample = CurSample->GetLoop();
-          LoopedInSample = true;
-        }
-        else
-        {
-          Enabled = false;
-        }
+        EnvState.Iterate();
       }
     }
   private:
@@ -328,68 +412,32 @@ namespace SoundTracker
 
     void SetEnabled(bool enabled)
     {
-      Enabled = enabled;
-      if (!Enabled)
-      {
-        PosInSample = 0;
-      }
+      Cursor.CountDown = enabled ? 32 : -1;
     }
 
     void SetNote(uint_t note)
     {
       Note = note;
-      PosInSample = 0;
-      LoopedInSample = false;
+      Cursor.Position = 0;
     }
 
     void SetSample(uint_t sampleNum)
     {
       CurSample = sampleNum < Data->Samples.size() ? &Data->Samples[sampleNum] : GetStubSample();
-      PosInSample = 0;
     }
 
     void SetOrnament(uint_t ornamentNum)
     {
       CurOrnament = ornamentNum < Data->Ornaments.size() ? &Data->Ornaments[ornamentNum] : GetStubOrnament();
-      PosInSample = 0;
-    }
-
-    void ApplyCommands(const Track::CommandsArray& commands)
-    {
-      std::for_each(commands.begin(), commands.end(), boost::bind(&ChannelState::ApplyCommand, this, _1));
-    }
-
-    void ApplyCommand(const Track::Command& command)
-    {
-      if (command == ENVELOPE)
-      {
-        Envelope = true;
-      }
-      else if (command == NOENVELOPE)
-      {
-        Envelope = false;
-      }
     }
   private:
     const ModuleData::Ptr Data;
-    bool Enabled;
-    bool Envelope;
     uint_t Note;
+    StateCursor Cursor;
     const Track::Sample* CurSample;
-    uint_t PosInSample;
-    bool LoopedInSample;
     const Track::Ornament* CurOrnament;
+    EnvelopeState EnvState;
   };
-
-  void ProcessEnvelopeCommands(const Track::CommandsArray& commands, AYM::TrackBuilder& track)
-  {
-    const Track::CommandsArray::const_iterator it = std::find(commands.begin(), commands.end(), ENVELOPE);
-    if (it != commands.end())
-    {
-      track.SetEnvelopeType(it->Param1);
-      track.SetEnvelopeTone(it->Param2);
-    }
-  }
 
   class DataIterator : public AYM::DataIterator
   {
@@ -399,9 +447,11 @@ namespace SoundTracker
       , Delegate(delegate)
       , State(Delegate->GetStateObserver())
       , Data(data)
-      , StateA(Data)
-      , StateB(Data)
-      , StateC(Data)
+      , StateA(Data, EnvType, EnvTone)
+      , StateB(Data, EnvType, EnvTone)
+      , StateC(Data, EnvType, EnvTone)
+      , EnvType(0)
+      , EnvTone(0)
     {
       SwitchToNewLine();
     }
@@ -412,6 +462,7 @@ namespace SoundTracker
       StateA.Reset();
       StateB.Reset();
       StateC.Reset();
+      EnvType = EnvTone = 0;
       SwitchToNewLine();
     }
 
@@ -446,10 +497,6 @@ namespace SoundTracker
       {
         AYM::TrackBuilder track(TrackParams->FreqTable());
 
-        if (0 == State->Quirk())
-        {
-          GetNewLineState(track);
-        }
         SynthesizeChannelsData(track);
         track.GetResult(chunk);
       }
@@ -480,25 +527,6 @@ namespace SoundTracker
       }
     }
 
-    void GetNewLineState(AYM::TrackBuilder& track) const
-    {
-      if (const Track::Line* line = Data->Patterns[State->Pattern()].GetLine(State->Line()))
-      {
-        if (const Track::Line::Chan& src = line->Channels[0])
-        {
-          ProcessEnvelopeCommands(src.Commands, track);
-        }
-        if (const Track::Line::Chan& src = line->Channels[1])
-        {
-          ProcessEnvelopeCommands(src.Commands, track);
-        }
-        if (const Track::Line::Chan& src = line->Channels[2])
-        {
-          ProcessEnvelopeCommands(src.Commands, track);
-        }
-      }
-    }
-
     void SynthesizeChannelsData(AYM::TrackBuilder& track) const
     {
       const uint_t transposition = Data->Transpositions[State->Position()];
@@ -514,6 +542,11 @@ namespace SoundTracker
         ChannelBuilder channel(transposition, track, 2);
         StateC.Synthesize(channel);
       }
+      if (EnvType)
+      {
+        track.SetEnvelopeType(EnvType);
+        track.SetEnvelopeTone(EnvTone);
+      }
     }
   private:
     const AYM::TrackParameters::Ptr TrackParams;
@@ -523,6 +556,7 @@ namespace SoundTracker
     ChannelState StateA;
     ChannelState StateB;
     ChannelState StateC;
+    uint_t EnvType, EnvTone;
   };
 
   class Chiptune : public AYM::Chiptune
