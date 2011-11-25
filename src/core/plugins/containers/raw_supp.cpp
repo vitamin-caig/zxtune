@@ -37,6 +37,58 @@ Author:
 
 namespace
 {
+  class Statistic
+  {
+  public:
+    Statistic()
+      : Start(std::time(0))
+      , TotalData(0)
+      , ArchivedData(0)
+      , ModulesData(0)
+    {
+    }
+
+    ~Statistic()
+    {
+      const std::string THIS_MODULE("Core::RawScaner::Statistic");
+      const std::time_t spent = std::time(0) - Start;
+      Log::Debug(THIS_MODULE, "Total processed: %1%", TotalData);
+      const uint64_t useful = ArchivedData + ModulesData;
+      Log::Debug(THIS_MODULE, "Useful detected: %1% (%2% archived + %3% modules)", useful, ArchivedData, ModulesData);
+      Log::Debug(THIS_MODULE, "Coverage: %1%%%", useful * 100 / TotalData);
+      Log::Debug(THIS_MODULE, "Speed is %1% b/s", spent ? (TotalData / spent) : TotalData);
+    }
+
+    void Enqueue(std::size_t size)
+    {
+      TotalData += size;
+    }
+
+    void AddArchived(std::size_t size)
+    {
+      ArchivedData += size;
+    }
+
+    void AddModule(std::size_t size)
+    {
+      ModulesData += size;
+    }
+
+    static Statistic& Self()
+    {
+      static Statistic self;
+      return self;
+    }
+  private:
+    const std::time_t Start;
+    uint64_t TotalData;
+    uint64_t ArchivedData;
+    uint64_t ModulesData;
+  };
+}
+
+namespace
+{
   using namespace ZXTune;
 
   const std::string THIS_MODULE("Core::RawScaner");
@@ -338,11 +390,13 @@ namespace
       const Analysis::Result::Ptr detectedArchives = DetectIn(Archives, input, callback);
       if (std::size_t matched = detectedArchives->GetMatchedDataSize())
       {
+        Statistic::Self().AddArchived(matched);
         return matched;
       }
       const Analysis::Result::Ptr detectedModules = DetectIn(Players, input, callback);
       if (std::size_t matched = detectedModules->GetMatchedDataSize())
       {
+        Statistic::Self().AddModule(matched);
         return matched;
       }
       const std::size_t archiveLookahead = detectedArchives->GetLookaheadOffset();
@@ -408,6 +462,7 @@ namespace
     {
       const Binary::Container::Ptr rawData = input->GetData();
       const std::size_t size = rawData->Size();
+      Statistic::Self().Enqueue(size);
       if (size < MIN_MINIMAL_RAW_SIZE)
       {
         Log::Debug(THIS_MODULE, "Size is too small (%1%)", size);
