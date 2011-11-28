@@ -179,11 +179,9 @@ namespace
       {
         Devices::AYM::DataChunk chunk;
         Iterator->GetData(chunk);
-        chunk.TimeStamp = LastRenderTime;
-        Device->RenderData(chunk);
-        Device->Flush();
+        chunk.TimeStamp = FlushChunk.TimeStamp;
+        CommitChunk(chunk);
         Iterator->NextFrame(Params->Looped());
-        LastRenderTime += Time::Microseconds(Params->FrameDurationMicrosec());
       }
       return Iterator->IsValid();
     }
@@ -192,7 +190,7 @@ namespace
     {
       Iterator->Reset();
       Device->Reset();
-      LastRenderTime = Time::Nanoseconds();
+      FlushChunk = Devices::AYM::DataChunk();
     }
 
     virtual void SetPosition(uint_t frameNum)
@@ -200,10 +198,18 @@ namespace
       SeekIterator(*Iterator, frameNum);
     }
   private:
+    void CommitChunk(const Devices::AYM::DataChunk& chunk)
+    {
+      Device->RenderData(chunk);
+      FlushChunk.TimeStamp += Time::Microseconds(Params->FrameDurationMicrosec());
+      Device->RenderData(FlushChunk);
+      Device->Flush();
+    }
+  private:
     const AYM::TrackParameters::Ptr Params;
     const AYM::DataIterator::Ptr Iterator;
     const Devices::AYM::Device::Ptr Device;
-    Time::Nanoseconds LastRenderTime;
+    Devices::AYM::DataChunk FlushChunk;
   };
 
   class AYMHolder : public Holder
