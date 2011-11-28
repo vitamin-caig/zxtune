@@ -13,6 +13,7 @@ Author:
 #include "soundtracker.h"
 #include "ay_base.h"
 #include "ay_conversion.h"
+#include "core/plugins/utils.h"
 //library includes
 #include <formats/chiptune/soundtracker.h>
 //boost includes
@@ -35,7 +36,7 @@ namespace SoundTracker
 
     virtual void SetProgram(const String& program)
     {
-      Properties->SetProgram(program);
+      Properties->SetProgram(OptimizeString(program));
       Properties->SetFreqtable(TABLE_SOUNDTRACKER);
     }
 

@@ -33,8 +33,6 @@ extern const Char RAW_PLUGIN_INFO[];
 extern const Char RAW_PLUGIN_PREFIX[];
 extern const Char SQD_EDITOR[];
 extern const Char SQD_PLUGIN_INFO[];
-extern const Char STP_EDITOR[];
-extern const Char STP_PLUGIN_INFO[];
 extern const Char STR_EDITOR[];
 extern const Char STR_PLUGIN_INFO[];
 extern const Char TS_PLUGIN_INFO[];

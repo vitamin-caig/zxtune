@@ -101,13 +101,6 @@ extern const Char SQD_PLUGIN_INFO[] = {
   'S','Q',' ','D','i','g','i','t','a','l',' ','T','r','a','c','k','e','r',' ','m','o','d','u','l','e','s',' ',
   's','u','p','p','o','r','t',0
 };
-extern const Char STP_EDITOR[] = {
-  'S','o','u','n','d','T','r','a','c','k','e','r','P','r','o',0
-};
-extern const Char STP_PLUGIN_INFO[] = {
-  'S','o','u','n','d','T','r','a','c','k','e','r','P','r','o',' ','m','o','d','u','l','e','s',' ','s','u','p',
-  'p','o','r','t',0
-};
 extern const Char STR_EDITOR[] = {
   'S','a','m','p','l','e',' ','T','r','a','c','k','e','r',' ','v','2','.','x',0
 };

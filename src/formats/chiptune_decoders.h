@@ -22,6 +22,7 @@ namespace Formats
     Decoder::Ptr CreateDigitalStudioDecoder();
     Decoder::Ptr CreateSoundTrackerDecoder();
     Decoder::Ptr CreateSoundTrackerCompiledDecoder();
+    Decoder::Ptr CreateSoundTrackerProCompiledDecoder();
   }
 }
 
