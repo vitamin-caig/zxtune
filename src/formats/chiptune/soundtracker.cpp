@@ -326,7 +326,7 @@ namespace Chiptune
 
       static void ParsePattern(const RawPattern& src, uint_t patSize, Builder& builder)
       {
-        EnvState env;
+        boost::array<EnvState, 3> env;
         boost::array<ChanState, 3> state;
         for (uint_t idx = 0; idx < MAX_PATTERN_SIZE; ++idx)
         {
@@ -342,7 +342,7 @@ namespace Chiptune
         builder.FinishPattern(patSize);
       }
 
-      static void ParseLine(const RawPattern::Line& srcLine, Builder& builder, boost::array<ChanState, 3>& state, EnvState& env)
+      static void ParseLine(const RawPattern::Line& srcLine, Builder& builder, boost::array<ChanState, 3>& state, boost::array<EnvState, 3>& env)
       {
         for (uint_t chan = 0; chan < state.size(); ++chan)
         {
@@ -351,7 +351,7 @@ namespace Chiptune
             continue;
           }
           builder.StartChannel(chan);
-          ParseChannel(srcLine.Channels[chan], builder, state[chan], env);
+          ParseChannel(srcLine.Channels[chan], builder, state[chan], env[chan]);
         }
       }
 
@@ -380,11 +380,8 @@ namespace Chiptune
         case 15:
           {
             const uint_t ornament = srcChan.GetOrnament();
-            if (ornament != state.Ornament)
-            {
-              builder.SetOrnament(ornament);
-              state.Ornament = ornament;
-            }
+            builder.SetOrnament(ornament);
+            state.Ornament = ornament;
             builder.SetNoEnvelope();
             env.Type = 0;
           }
@@ -392,23 +389,25 @@ namespace Chiptune
         case 8:
         case 10:
         case 12:
+        case 13:
         case 14:
           {
-            const uint_t envType = effect;
-            const uint_t envTone = srcChan.GetEffectParam();
-            if (envType != env.Type || envTone != env.Tone)
+            const uint_t tone = srcChan.GetEffectParam();
+            if (effect != env.Type || tone != env.Tone)
             {
+              env.Type = effect;
+              env.Tone = tone;
               builder.SetOrnament(0);
-              builder.SetEnvelope(envType, envTone);
+              builder.SetEnvelope(env.Type, env.Tone);
               state.Ornament = 0;
-              env.Type = envType;
-              env.Tone = envTone;
             }
           }
           break;
-        default:
-          //env.Type = effect;
-          //builder.SetNoEnvelope();
+        case 1:
+          builder.SetNoEnvelope();
+          builder.SetOrnament(0);
+        //default:
+          env.Type = 0;
           break;
         }
       }

@@ -294,6 +294,10 @@ namespace SoundTracker
 
     void Next(const Track::Sample& sample)
     {
+      if (!IsValid())
+      {
+        return;
+      }
       --CountDown;
       Position = (Position + 1) & 0x1f;
       if (0 == CountDown)
@@ -301,7 +305,7 @@ namespace SoundTracker
         if (const uint_t loop = sample.GetLoop())
         {
           Position = loop & 0x1f;
-          CountDown = sample.GetLoopLimit() + 1;
+          CountDown = sample.GetLoopLimit() - loop;
         }
         else
         {
@@ -359,15 +363,15 @@ namespace SoundTracker
 
     void Synthesize(ChannelBuilder& channel) const
     {
-      StateCursor nextCursor(Cursor);
-      nextCursor.Next(*CurSample);
-      if (!nextCursor.IsValid())
+      StateCursor nextState(Cursor);
+      nextState.Next(*CurSample);
+      if (!nextState.IsValid())
       {
         channel.SetLevel(0);
         return;
       }
 
-      const uint_t nextPosition = (nextCursor.Position - 1) & 0x1f;
+      const uint_t nextPosition = (nextState.Position - 1) & 0x1f;
       const Track::Sample::Line& curSampleLine = CurSample->GetLine(nextPosition);
       //apply level
       channel.SetLevel(curSampleLine.Level);

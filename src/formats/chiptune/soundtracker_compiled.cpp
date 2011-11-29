@@ -345,7 +345,8 @@ namespace Chiptune
       {
         const DataCursors rangesStarts(src);
         ParserState state(rangesStarts);
-        for (uint_t lineIdx = 0; lineIdx < MAX_PATTERN_SIZE; ++lineIdx)
+        uint_t lineIdx = 0;
+        for (; lineIdx < MAX_PATTERN_SIZE; ++lineIdx)
         {
           //skip lines if required
           if (const uint_t linesToSkip = state.GetMinCounter())
@@ -355,12 +356,12 @@ namespace Chiptune
           }
           if (!HasLine(state))
           {
-            builder.FinishPattern(lineIdx);
             break;
           }
           builder.StartLine(lineIdx);
           ParseLine(state, builder);
         }
+        builder.FinishPattern(lineIdx);
         for (uint_t chanNum = 0; chanNum != rangesStarts.size(); ++chanNum)
         {
           const std::size_t start = rangesStarts[chanNum];
