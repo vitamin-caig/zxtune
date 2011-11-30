@@ -25,6 +25,7 @@ Author:
 #include <cstring>
 //boost includes
 #include <boost/array.hpp>
+#include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
 //text includes
 #include <formats/text/chiptune.h>
@@ -91,15 +92,26 @@ namespace Chiptune
       boost::array<uint16_t, 3> Offsets;
     } PACK_POST;
 
-    PACK_PRE struct RawOrnament
+    PACK_PRE struct RawObject
     {
       int8_t Loop;
-      uint8_t Size;
+      int8_t Size;
+
+      uint_t GetSize() const
+      {
+        return Size < 0
+          ? 0
+          : Size;
+      }
+    } PACK_POST;
+
+    PACK_PRE struct RawOrnament : RawObject
+    {
       int8_t Data[1];
 
-      uint_t GetUsedSize() const
+      std::size_t GetUsedSize() const
       {
-        return sizeof(Loop) + sizeof(Size) + Size * sizeof(Data[0]);
+        return sizeof(RawObject) + Size * sizeof(Data[0]);
       }
     } PACK_POST;
 
@@ -108,23 +120,8 @@ namespace Chiptune
       boost::array<uint16_t, MAX_ORNAMENTS_COUNT> Offsets;
     } PACK_POST;
 
-    PACK_PRE struct RawSample
+    PACK_PRE struct RawSample : RawObject
     {
-      int8_t Loop;
-      uint8_t Size;
-
-      uint_t GetSize() const
-      {
-        return Size > MAX_SAMPLE_SIZE
-          ? 0
-          : Size;
-      }
-
-      uint_t GetUsedSize() const
-      {
-        return sizeof(Loop) + sizeof(Size) + GetSize() * sizeof(Data[0]);
-      }
-
       PACK_PRE struct Line
       {
         // NxxTaaaa
@@ -172,7 +169,13 @@ namespace Chiptune
           return fromLE(Vibrato);
         }
       } PACK_POST;
+
       Line Data[1];
+
+      std::size_t GetUsedSize() const
+      {
+        return sizeof(RawObject) + GetSize() * sizeof(Data[0]);
+      }
     } PACK_POST;
 
     PACK_PRE struct RawSamples
@@ -184,6 +187,7 @@ namespace Chiptune
 #endif
 
     BOOST_STATIC_ASSERT(sizeof(RawHeader) == 10);
+    BOOST_STATIC_ASSERT(sizeof(RawId) == 53);
     BOOST_STATIC_ASSERT(sizeof(RawPositions) == 4);
     BOOST_STATIC_ASSERT(sizeof(RawPattern) == 6);
     BOOST_STATIC_ASSERT(sizeof(RawOrnament) == 3);
@@ -214,30 +218,48 @@ namespace Chiptune
       virtual void SetVolume(uint_t /*vol*/) {}
     };
 
+    uint_t GetUnfixDelta(const RawHeader& hdr, const RawId& id, const RawPattern& firstPattern)
+    {
+      if (hdr.FixesCount)
+      {
+        return 0;
+      }
+      const std::size_t hdrSize = sizeof(hdr) + (id.Check() ? sizeof(id) : 0);
+      const std::size_t firstData = fromLE(firstPattern.Offsets[0]);
+      Require(firstData >= hdrSize);
+      return firstData - hdrSize;
+    }
+
     class Format
     {
     public:
       explicit Format(const Binary::Container& data)
         : Limit(std::min(data.Size(), MAX_MODULE_SIZE))
         , Delegate(data, Limit)
-        , Source(*Delegate.GetField<RawHeader>(0))
+        , ServiceRanges(RangeChecker::CreateShared(Limit))
         , TotalRanges(RangeChecker::CreateSimple(Limit))
         , FixedRanges(RangeChecker::CreateSimple(Limit))
+        , Source(GetServiceObject<RawHeader>(0))
+        , Id(GetObject<RawId>(0, sizeof(Source)))
+        , UnfixDelta(GetUnfixDelta(Source, Id, GetPattern(0)))
       {
-        AddRange(0, sizeof(Source));
+        if (Id.Check())
+        {
+          AddServiceRange(sizeof(Source), sizeof(Id));
+        }
+        if (UnfixDelta)
+        {
+          Log::Debug(THIS_MODULE, "Unfix delta is %1%", UnfixDelta);
+        }
       }
 
       void ParseCommonProperties(Builder& builder) const
       {
         builder.SetInitialTempo(Source.Tempo);
         builder.SetProgram(Text::SOUNDTRACKERPRO_DECODER_DESCRIPTION);
-        if (const RawId* id = Delegate.GetField<RawId>(sizeof(Source)))
+        if (Id.Check())
         {
-          if (id->Check())
-          {
-            builder.SetTitle(FromCharArray(id->Title));
-            AddRange(sizeof(Source), sizeof(*id));
-          }
+          builder.SetTitle(FromCharArray(Id.Title));
         }
       }
 
@@ -278,7 +300,7 @@ namespace Chiptune
       {
         Require(!samples.empty());
         Log::Debug(THIS_MODULE, "Samples: %1% to parse", samples.size());
-        const RawSamples& samPtrs = GetObject<RawSamples>(0, fromLE(Source.SamplesOffset));
+        const RawSamples& samPtrs = GetServiceObject<RawSamples>(fromLE(Source.SamplesOffset));
         for (Indices::const_iterator it = samples.begin(), lim = samples.end(); it != lim; ++it)
         {
           const uint_t samIdx = *it;
@@ -295,7 +317,7 @@ namespace Chiptune
       {
         Require(!ornaments.empty() && 0 == *ornaments.begin());
         Log::Debug(THIS_MODULE, "Ornaments: %1% to parse", ornaments.size());
-        const RawOrnaments& ornPtrs = GetObject<RawOrnaments>(0, fromLE(Source.OrnamentsOffset));
+        const RawOrnaments& ornPtrs = GetServiceObject<RawOrnaments>(fromLE(Source.OrnamentsOffset));
         for (Indices::const_iterator it = ornaments.begin(), lim = ornaments.end(); it != lim; ++it)
         {
           const uint_t ornIdx = *it;
@@ -325,7 +347,7 @@ namespace Chiptune
         Require(positions != 0);
         const uint_t length = positions->Lenght;
         Require(length != 0);
-        AddRange(offset, sizeof(*positions) + (length - 1) * sizeof(RawPositions::PosEntry));
+        AddServiceRange(offset, sizeof(*positions) + (length - 1) * sizeof(RawPositions::PosEntry));
         const RawPositions::PosEntry* const firstEntry = positions->Data;
         const RawPositions::PosEntry* const lastEntry = firstEntry + length;
         return RangeIterator<const RawPositions::PosEntry*>(firstEntry, lastEntry);
@@ -333,21 +355,23 @@ namespace Chiptune
 
       const RawPattern& GetPattern(uint_t index) const
       {
-        return GetObject<RawPattern>(index, fromLE(Source.PatternsOffset));
+        return GetServiceObject<RawPattern>(fromLE(Source.PatternsOffset) + index * sizeof(RawPattern));
       }
 
       const RawSample& GetSample(uint_t offset) const
       {
-        const RawSample* const res = Delegate.GetField<RawSample>(offset);
-        Require(res != 0);
+        const RawObject* const obj = Delegate.GetField<RawObject>(offset);
+        Require(obj != 0);
+        const RawSample* const res = safe_ptr_cast<const RawSample*>(obj);
         AddRange(offset, res->GetUsedSize());
         return *res;
       }
 
       const RawOrnament& GetOrnament(uint_t offset) const
       {
-        const RawOrnament* const res = Delegate.GetField<RawOrnament>(offset);
-        Require(res != 0);
+        const RawObject* const obj = Delegate.GetField<RawObject>(offset);
+        Require(obj != 0);
+        const RawOrnament* const res = safe_ptr_cast<const RawOrnament*>(obj);
         AddRange(offset, res->GetUsedSize());
         return *res;
       }
@@ -362,6 +386,15 @@ namespace Chiptune
         return *src;
       }
 
+      template<class T>
+      const T& GetServiceObject(std::size_t offset) const
+      {
+        const T* const src = Delegate.GetField<T>(offset);
+        Require(src != 0);
+        AddServiceRange(offset, sizeof(T));
+        return *src;
+      }
+
       uint8_t PeekByte(std::size_t offset) const
       {
         const uint8_t* const data = Delegate.GetField<uint8_t>(offset);
@@ -371,9 +404,9 @@ namespace Chiptune
 
       struct DataCursors : public boost::array<std::size_t, 3>
       {
-        explicit DataCursors(const RawPattern& src)
+        DataCursors(const RawPattern& src, uint_t unfixDelta)
         {
-          std::transform(src.Offsets.begin(), src.Offsets.end(), begin(), &fromLE<uint16_t>);
+          std::transform(src.Offsets.begin(), src.Offsets.end(), begin(), boost::bind(std::minus<uint_t>(), boost::bind(&fromLE<uint16_t>, _1), unfixDelta));
         }
       };
 
@@ -403,7 +436,7 @@ namespace Chiptune
 
       void ParsePattern(const RawPattern& src, Builder& builder) const
       {
-        const DataCursors rangesStarts(src);
+        const DataCursors rangesStarts(src, UnfixDelta);
         ParserState state(rangesStarts);
         for (uint_t lineIdx = 0; lineIdx < MAX_PATTERN_SIZE; ++lineIdx)
         {
@@ -555,23 +588,32 @@ namespace Chiptune
         dst.Loop = std::min<int_t>(src.Loop, size);
       }
 
+      void AddServiceRange(std::size_t offset, std::size_t size) const
+      {
+        Require(ServiceRanges->AddRange(offset, size));
+        AddRange(offset, size);
+      }
+
+      void AddFixedRange(std::size_t offset, std::size_t size) const
+      {
+        Require(FixedRanges->AddRange(offset, size));
+        AddRange(offset, size);
+      }
+
       void AddRange(std::size_t offset, std::size_t size) const
       {
         Log::Debug(THIS_MODULE, " Affected range %1%..%2%", offset, offset + size);
         Require(TotalRanges->AddRange(offset, size));
       }
-
-      void AddFixedRange(std::size_t offset, std::size_t size) const
-      {
-        AddRange(offset, size);
-        Require(FixedRanges->AddRange(offset, size));
-      }
     private:
       const std::size_t Limit;
       const Binary::TypedContainer Delegate;
-      const RawHeader& Source;
+      const RangeChecker::Ptr ServiceRanges;
       const RangeChecker::Ptr TotalRanges;
       const RangeChecker::Ptr FixedRanges;
+      const RawHeader& Source;
+      const RawId& Id;
+      const uint_t UnfixDelta;
     };
 
     class Container : public Formats::Chiptune::Container
