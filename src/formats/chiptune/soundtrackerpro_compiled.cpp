@@ -111,7 +111,7 @@ namespace Chiptune
 
       std::size_t GetUsedSize() const
       {
-        return sizeof(RawObject) + Size * sizeof(Data[0]);
+        return sizeof(RawObject) + GetSize() * sizeof(Data[0]);
       }
     } PACK_POST;
 
@@ -583,7 +583,7 @@ namespace Chiptune
 
       static void ParseOrnament(const RawOrnament& src, Ornament& dst)
       {
-        const uint_t size = src.Size;
+        const uint_t size = src.GetSize();
         dst.Lines.assign(src.Data, src.Data + size);
         dst.Loop = std::min<int_t>(src.Loop, size);
       }
@@ -771,10 +771,10 @@ namespace Chiptune
 
     const std::string FORMAT(
       "03-0f"  // uint8_t Tempo; 3..15
-      "?00-28" // uint16_t PositionsOffset; 0..MAX_MODULE_SIZE
-      "?00-28" // uint16_t PatternsOffset; 0..MAX_MODULE_SIZE
-      "?00-28" // uint16_t OrnamentsOffset; 0..MAX_MODULE_SIZE
-      "?00-28" // uint16_t SamplesOffset; 0..MAX_MODULE_SIZE
+      "?00-27" // uint16_t PositionsOffset; 0..MAX_MODULE_SIZE
+      "?00-27" // uint16_t PatternsOffset; 0..MAX_MODULE_SIZE
+      "?00-27" // uint16_t OrnamentsOffset; 0..MAX_MODULE_SIZE
+      "?00-27" // uint16_t SamplesOffset; 0..MAX_MODULE_SIZE
     );
 
     class Decoder : public Formats::Chiptune::Decoder
