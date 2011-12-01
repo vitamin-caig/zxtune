@@ -110,6 +110,10 @@ namespace TRD
   BOOST_STATIC_ASSERT(sizeof(CatEntry) == 16);
   BOOST_STATIC_ASSERT(sizeof(ServiceSector) == 256);
 
+  const Char TRACK0_FILENAME[] = {'$', 'T', 'r', 'a', 'c', 'k', '0', 0};
+  const Char HIDDEN_FILENAME[] = {'$', 'H', 'i', 'd', 'd', 'e', 'n', 0};
+  const Char UNALLOCATED_FILENAME[] = {'$', 'U', 'n', 'a', 'l', 'l', 'o', 'c', 'a', 't', 'e', 'd', 0};
+
   bool FastCheck(const Binary::Container& data)
   {
     //it's meaningless to support trunkated files
@@ -149,10 +153,14 @@ namespace TRD
       return Archived::Container::Ptr();
     }
     const TRDos::CatalogueBuilder::Ptr builder = TRDos::CatalogueBuilder::CreateFlat();
-
     const ServiceSector* const sector = safe_ptr_cast<const ServiceSector*>(data.Data()) + SERVICE_SECTOR_NUM;
     uint_t deleted = 0;
     const CatEntry* catEntry = safe_ptr_cast<const CatEntry*>(data.Data());
+    std::size_t lastOffset = SECTORS_IN_TRACK * BYTES_PER_SECTOR;
+    if (const TRDos::File::Ptr track0 = TRDos::File::CreateReference(TRACK0_FILENAME, 0, lastOffset))
+    {
+      builder->AddFile(track0);
+    }
     for (uint_t idx = 0; idx != MAX_FILES_COUNT && NOENTRY != catEntry->Name[0]; ++idx, ++catEntry)
     {
       //TODO: parametrize this
@@ -160,6 +168,11 @@ namespace TRD
       if (isDeleted)
       {
         ++deleted;
+      }
+      if (lastOffset != catEntry->Offset())
+      {
+        const TRDos::File::Ptr hidden = TRDos::File::CreateReference(HIDDEN_FILENAME, lastOffset, catEntry->Offset() - lastOffset);
+        builder->AddFile(hidden);
       }
       if (catEntry->SizeInSectors)
       {
@@ -170,11 +183,24 @@ namespace TRD
         }
         const TRDos::File::Ptr newOne = TRDos::File::CreateReference(entryName, catEntry->Offset(), catEntry->Size());
         builder->AddFile(newOne);
+        lastOffset = catEntry->Offset() + catEntry->Size();
       }
     }
     if (deleted != sector->DeletedFiles)
     {
       Log::Debug(THIS_MODULE, "Deleted files count is differs from calculated");
+    }
+    const std::size_t freeArea = BYTES_PER_SECTOR * (SECTORS_IN_TRACK * sector->FreeSpaceTrack + sector->FreeSpaceSect);
+    if (lastOffset < freeArea)
+    {
+      const TRDos::File::Ptr hidden = TRDos::File::CreateReference(HIDDEN_FILENAME, lastOffset, freeArea - lastOffset);
+      builder->AddFile(hidden);
+      lastOffset = freeArea;
+    }
+    if (lastOffset < MODULE_SIZE)
+    {
+      const TRDos::File::Ptr unallocated = TRDos::File::CreateReference(UNALLOCATED_FILENAME, lastOffset, MODULE_SIZE - lastOffset);
+      builder->AddFile(unallocated);
     }
     builder->SetRawData(data.GetSubcontainer(0, MODULE_SIZE));
     return builder->GetResult();
