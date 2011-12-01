@@ -46,6 +46,7 @@ namespace Formats
     Decoder::Ptr CreateFullDiskImageDecoder();
     Decoder::Ptr CreateHobetaDecoder();
     Decoder::Ptr CreateSna128Decoder();
+    Decoder::Ptr CreateTeleDiskImageDecoder();
   }
 }
 

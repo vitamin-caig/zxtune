@@ -28,6 +28,7 @@ extern const Char PCD61_DECODER_DESCRIPTION[];
 extern const Char PCD62_DECODER_DESCRIPTION[];
 extern const Char RAR_DECODER_DESCRIPTION[];
 extern const Char SNA128_DECODER_DESCRIPTION[];
+extern const Char TELEDISKIMAGE_DECODER_DESCRIPTION[];
 extern const Char TLZP_DECODER_DESCRIPTION[];
 extern const Char TLZ_DECODER_DESCRIPTION[];
 extern const Char TRUSH_DECODER_DESCRIPTION[];

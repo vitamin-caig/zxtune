@@ -76,6 +76,9 @@ extern const Char RAR_DECODER_DESCRIPTION[] = {
 extern const Char SNA128_DECODER_DESCRIPTION[] = {
   'S','N','A',' ','1','2','8','k',' ','s','n','a','p','s','h','o','t',0
 };
+extern const Char TELEDISKIMAGE_DECODER_DESCRIPTION[] = {
+  'T','e','l','e','D','i','s','k',' ','I','m','a','g','e',' ','(','T','D','0',')',0
+};
 extern const Char TLZP_DECODER_DESCRIPTION[] = {
   'T','u','r','b','o','#','L','Z',' ','v','1','.','x',' ','(','f','o','r',' ','i','n','t','e','r','n','a','l',
   ' ','u','s','a','g','e',' ','o','n','l','y',')',0
