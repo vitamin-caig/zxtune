@@ -18,6 +18,7 @@
 
 namespace Binary
 {
+  //! @brief Simple data access wrapper around Binary::Container with limitation support
   class TypedContainer
   {
   public:
@@ -27,6 +28,9 @@ namespace Binary
     {
     }
 
+    //! @brief Getting field with specfieid type on specified offset
+    //! @param offset Offset of field in bytes
+    //! @return 0 if data cannot be accessed (no place)
     template<class T>
     const T* GetField(std::size_t offset) const
     {

@@ -25,6 +25,8 @@ namespace Binary
   //  %[01x]{8}    - match byte by bits
   //  '.           - match symbol
   //  [0-9]{2}-[0-9]{2} - match byte by range
+  //  \{[0-9]+\}   - quantor
+  //  \(.*\)       - group subpatterns (useful with quantors), may be nested
 
   //! Data format description
   class Format
