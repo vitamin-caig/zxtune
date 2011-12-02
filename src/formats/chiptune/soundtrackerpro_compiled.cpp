@@ -220,15 +220,62 @@ namespace Chiptune
 
     uint_t GetUnfixDelta(const RawHeader& hdr, const RawId& id, const RawPattern& firstPattern)
     {
-      if (hdr.FixesCount)
-      {
-        return 0;
-      }
+      //first pattern is always placed after the header (and optional id);
       const std::size_t hdrSize = sizeof(hdr) + (id.Check() ? sizeof(id) : 0);
       const std::size_t firstData = fromLE(firstPattern.Offsets[0]);
-      Require(firstData >= hdrSize);
-      return firstData - hdrSize;
+      if (0 == hdr.FixesCount)
+      {
+        Require(firstData == hdrSize);
+      }
+      else
+      {
+        Require(firstData >= hdrSize);
+      }
+      return static_cast<uint_t>(firstData - hdrSize);
     }
+
+    class RangesMap
+    {
+    public:
+      explicit RangesMap(std::size_t limit)
+        : ServiceRanges(RangeChecker::CreateShared(limit))
+        , TotalRanges(RangeChecker::CreateSimple(limit))
+        , FixedRanges(RangeChecker::CreateSimple(limit))
+      {
+      }
+
+      void AddService(std::size_t offset, std::size_t size) const
+      {
+        Require(ServiceRanges->AddRange(offset, size));
+        Add(offset, size);
+      }
+
+      void AddFixed(std::size_t offset, std::size_t size) const
+      {
+        Require(FixedRanges->AddRange(offset, size));
+        Add(offset, size);
+      }
+
+      void Add(std::size_t offset, std::size_t size) const
+      {
+        Log::Debug(THIS_MODULE, " Affected range %1%..%2%", offset, offset + size);
+        Require(TotalRanges->AddRange(offset, size));
+      }
+
+      std::size_t GetSize() const
+      {
+        return TotalRanges->GetAffectedRange().second;
+      }
+
+      RangeChecker::Range GetFixedArea() const
+      {
+        return FixedRanges->GetAffectedRange();
+      }
+    private:
+      const RangeChecker::Ptr ServiceRanges;
+      const RangeChecker::Ptr TotalRanges;
+      const RangeChecker::Ptr FixedRanges;
+    };
 
     class Format
     {
@@ -236,16 +283,14 @@ namespace Chiptune
       explicit Format(const Binary::Container& data)
         : Limit(std::min(data.Size(), MAX_MODULE_SIZE))
         , Delegate(data, Limit)
-        , ServiceRanges(RangeChecker::CreateShared(Limit))
-        , TotalRanges(RangeChecker::CreateSimple(Limit))
-        , FixedRanges(RangeChecker::CreateSimple(Limit))
+        , Ranges(Limit)
         , Source(GetServiceObject<RawHeader>(0))
         , Id(GetObject<RawId>(0, sizeof(Source)))
         , UnfixDelta(GetUnfixDelta(Source, Id, GetPattern(0)))
       {
         if (Id.Check())
         {
-          AddServiceRange(sizeof(Source), sizeof(Id));
+          Ranges.AddService(sizeof(Source), sizeof(Id));
         }
         if (UnfixDelta)
         {
@@ -332,12 +377,14 @@ namespace Chiptune
 
       std::size_t GetSize() const
       {
-        return TotalRanges->GetAffectedRange().second;
+        const std::size_t result = Ranges.GetSize();
+        Require(result + UnfixDelta <= 0x10000);
+        return result;
       }
 
       RangeChecker::Range GetFixedArea() const
       {
-        return FixedRanges->GetAffectedRange();
+        return Ranges.GetFixedArea();
       }
     private:
       RangeIterator<const RawPositions::PosEntry*> GetPositions() const
@@ -347,7 +394,7 @@ namespace Chiptune
         Require(positions != 0);
         const uint_t length = positions->Lenght;
         Require(length != 0);
-        AddServiceRange(offset, sizeof(*positions) + (length - 1) * sizeof(RawPositions::PosEntry));
+        Ranges.AddService(offset, sizeof(*positions) + (length - 1) * sizeof(RawPositions::PosEntry));
         const RawPositions::PosEntry* const firstEntry = positions->Data;
         const RawPositions::PosEntry* const lastEntry = firstEntry + length;
         return RangeIterator<const RawPositions::PosEntry*>(firstEntry, lastEntry);
@@ -363,7 +410,7 @@ namespace Chiptune
         const RawObject* const obj = Delegate.GetField<RawObject>(offset);
         Require(obj != 0);
         const RawSample* const res = safe_ptr_cast<const RawSample*>(obj);
-        AddRange(offset, res->GetUsedSize());
+        Ranges.Add(offset, res->GetUsedSize());
         return *res;
       }
 
@@ -372,7 +419,7 @@ namespace Chiptune
         const RawObject* const obj = Delegate.GetField<RawObject>(offset);
         Require(obj != 0);
         const RawOrnament* const res = safe_ptr_cast<const RawOrnament*>(obj);
-        AddRange(offset, res->GetUsedSize());
+        Ranges.Add(offset, res->GetUsedSize());
         return *res;
       }
 
@@ -382,7 +429,7 @@ namespace Chiptune
         const std::size_t offset = baseOffset + index * sizeof(T);
         const T* const src = Delegate.GetField<T>(offset);
         Require(src != 0);
-        AddRange(offset, sizeof(T));
+        Ranges.Add(offset, sizeof(T));
         return *src;
       }
 
@@ -391,7 +438,7 @@ namespace Chiptune
       {
         const T* const src = Delegate.GetField<T>(offset);
         Require(src != 0);
-        AddServiceRange(offset, sizeof(T));
+        Ranges.AddService(offset, sizeof(T));
         return *src;
       }
 
@@ -460,7 +507,7 @@ namespace Chiptune
           const std::size_t start = rangesStarts[chanNum];
           //TODO: improve size detection
           const std::size_t stop = std::min(Limit, state.Offsets[chanNum] + 1);
-          AddFixedRange(start, stop - start);
+          Ranges.AddFixed(start, stop - start);
         }
       }
 
@@ -587,30 +634,10 @@ namespace Chiptune
         dst.Lines.assign(src.Data, src.Data + size);
         dst.Loop = std::min<int_t>(src.Loop, size);
       }
-
-      void AddServiceRange(std::size_t offset, std::size_t size) const
-      {
-        Require(ServiceRanges->AddRange(offset, size));
-        AddRange(offset, size);
-      }
-
-      void AddFixedRange(std::size_t offset, std::size_t size) const
-      {
-        Require(FixedRanges->AddRange(offset, size));
-        AddRange(offset, size);
-      }
-
-      void AddRange(std::size_t offset, std::size_t size) const
-      {
-        Log::Debug(THIS_MODULE, " Affected range %1%..%2%", offset, offset + size);
-        Require(TotalRanges->AddRange(offset, size));
-      }
     private:
       const std::size_t Limit;
       const Binary::TypedContainer Delegate;
-      const RangeChecker::Ptr ServiceRanges;
-      const RangeChecker::Ptr TotalRanges;
-      const RangeChecker::Ptr FixedRanges;
+      RangesMap Ranges;
       const RawHeader& Source;
       const RawId& Id;
       const uint_t UnfixDelta;
