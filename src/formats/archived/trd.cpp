@@ -64,17 +64,6 @@ namespace TRD
     uint8_t SizeInSectors;
     uint8_t Sector;
     uint8_t Track;
-
-    uint_t Offset() const
-    {
-      return BYTES_PER_SECTOR * (SECTORS_IN_TRACK * Track + Sector);
-    }
-
-    uint_t Size() const
-    {
-      //use rounded file size for better compatibility
-      return BYTES_PER_SECTOR * SizeInSectors;
-    }
   } PACK_POST;
 
   enum
@@ -114,9 +103,16 @@ namespace TRD
   const Char HIDDEN_FILENAME[] = {'$', 'H', 'i', 'd', 'd', 'e', 'n', 0};
   const Char UNALLOCATED_FILENAME[] = {'$', 'U', 'n', 'a', 'l', 'l', 'o', 'c', 'a', 't', 'e', 'd', 0};
 
-  bool FastCheck(const Binary::Container& data)
+  class Visitor
   {
-    //it's meaningless to support trunkated files
+  public:
+    virtual ~Visitor() {}
+
+    virtual void OnFile(const String& name, std::size_t offset, std::size_t size) = 0;
+  };
+
+  bool Parse(const Binary::Container& data, Visitor& visitor)
+  {
     if (data.Size() < MODULE_SIZE)
     {
       return false;
@@ -127,8 +123,10 @@ namespace TRD
       return false;
     }
     const CatEntry* catEntry = safe_ptr_cast<const CatEntry*>(data.Data());
-    const RangeChecker::Ptr checker = RangeChecker::Create(MODULE_SIZE);
-    checker->AddRange(0, SECTORS_IN_TRACK * BYTES_PER_SECTOR);
+
+    const std::size_t totalSectors = MODULE_SIZE / BYTES_PER_SECTOR;
+    std::vector<bool> usedSectors(totalSectors);
+    std::fill_n(usedSectors.begin(), SECTORS_IN_TRACK, true);
     uint_t idx = 0;
     for (; idx != MAX_FILES_COUNT && NOENTRY != catEntry->Name[0]; ++idx, ++catEntry)
     {
@@ -136,75 +134,79 @@ namespace TRD
       {
         continue;
       }
-      const uint_t offset = catEntry->Offset();
-      const uint_t size = catEntry->Size();
-      if (!checker->AddRange(offset, size))
+      const uint_t offset = SECTORS_IN_TRACK * catEntry->Track + catEntry->Sector;
+      const uint_t size = catEntry->SizeInSectors;
+      if (offset + size > totalSectors)
       {
-        return false;
+        return false;//out of bounds
+      }
+      const std::vector<bool>::iterator begin = usedSectors.begin() + offset;
+      const std::vector<bool>::iterator end = begin + size;
+      if (end != std::find(begin, end, true))
+      {
+        return false;//overlap
+      }
+      std::fill(begin, end, true);
+      String entryName = TRDos::GetEntryName(catEntry->Name, catEntry->Type);
+      if (DELETED == catEntry->Name[0])
+      {
+        entryName.insert(0, 1, '~');
+      }
+      visitor.OnFile(entryName, offset * BYTES_PER_SECTOR, size * BYTES_PER_SECTOR);
+    }
+    if (!idx)
+    {
+      return false;
+    }
+    visitor.OnFile(TRACK0_FILENAME, 0, SECTORS_IN_TRACK * BYTES_PER_SECTOR);
+
+    const std::vector<bool>::iterator begin = usedSectors.begin();
+    const std::vector<bool>::iterator limit = usedSectors.end();
+    const std::size_t freeArea = (SECTORS_IN_TRACK * sector->FreeSpaceTrack + sector->FreeSpaceSect);
+    if (freeArea > SECTORS_IN_TRACK && freeArea < totalSectors)
+    {
+      const std::vector<bool>::iterator freeBegin = usedSectors.begin() + freeArea;
+      if (usedSectors.end() == std::find(freeBegin, limit, true))
+      {
+        std::fill(freeBegin, limit, true);
+        visitor.OnFile(UNALLOCATED_FILENAME, freeArea * BYTES_PER_SECTOR, (totalSectors - freeArea) * BYTES_PER_SECTOR);
       }
     }
-    return idx > 0;
+    for (std::vector<bool>::iterator empty = std::find(begin, limit, false); 
+         empty != limit;
+         )
+    {
+      const std::vector<bool>::iterator emptyEnd = std::find(empty, limit, true);
+      const std::size_t offset = BYTES_PER_SECTOR * (empty - begin);
+      const std::size_t size = BYTES_PER_SECTOR * (emptyEnd - empty);
+      visitor.OnFile(HIDDEN_FILENAME, offset, size);
+      empty = std::find(emptyEnd, limit, false);
+    }
+    return true;
   }
 
-  Archived::Container::Ptr ParseArchive(const Binary::Container& data)
+  class StubVisitor : public Visitor
   {
-    if (!FastCheck(data))
+  public:
+    virtual void OnFile(const String& /*filename*/, std::size_t /*offset*/, std::size_t /*size*/) {}
+  };
+
+  class BuildVisitorAdapter : public Visitor
+  {
+  public:
+    explicit BuildVisitorAdapter(TRDos::CatalogueBuilder& builder)
+      : Builder(builder)
     {
-      return Archived::Container::Ptr();
     }
-    const TRDos::CatalogueBuilder::Ptr builder = TRDos::CatalogueBuilder::CreateFlat();
-    const ServiceSector* const sector = safe_ptr_cast<const ServiceSector*>(data.Data()) + SERVICE_SECTOR_NUM;
-    uint_t deleted = 0;
-    const CatEntry* catEntry = safe_ptr_cast<const CatEntry*>(data.Data());
-    std::size_t lastOffset = SECTORS_IN_TRACK * BYTES_PER_SECTOR;
-    if (const TRDos::File::Ptr track0 = TRDos::File::CreateReference(TRACK0_FILENAME, 0, lastOffset))
+
+    virtual void OnFile(const String& filename, std::size_t offset, std::size_t size)
     {
-      builder->AddFile(track0);
+      const TRDos::File::Ptr file = TRDos::File::CreateReference(filename, offset, size);
+      Builder.AddFile(file);
     }
-    for (uint_t idx = 0; idx != MAX_FILES_COUNT && NOENTRY != catEntry->Name[0]; ++idx, ++catEntry)
-    {
-      //TODO: parametrize this
-      const bool isDeleted = DELETED == catEntry->Name[0];
-      if (isDeleted)
-      {
-        ++deleted;
-      }
-      if (lastOffset != catEntry->Offset())
-      {
-        const TRDos::File::Ptr hidden = TRDos::File::CreateReference(HIDDEN_FILENAME, lastOffset, catEntry->Offset() - lastOffset);
-        builder->AddFile(hidden);
-      }
-      if (catEntry->SizeInSectors)
-      {
-        String entryName = TRDos::GetEntryName(catEntry->Name, catEntry->Type);
-        if (isDeleted)
-        {
-          entryName.insert(0, 1, '~');
-        }
-        const TRDos::File::Ptr newOne = TRDos::File::CreateReference(entryName, catEntry->Offset(), catEntry->Size());
-        builder->AddFile(newOne);
-        lastOffset = catEntry->Offset() + catEntry->Size();
-      }
-    }
-    if (deleted != sector->DeletedFiles)
-    {
-      Log::Debug(THIS_MODULE, "Deleted files count is differs from calculated");
-    }
-    const std::size_t freeArea = BYTES_PER_SECTOR * (SECTORS_IN_TRACK * sector->FreeSpaceTrack + sector->FreeSpaceSect);
-    if (lastOffset < freeArea)
-    {
-      const TRDos::File::Ptr hidden = TRDos::File::CreateReference(HIDDEN_FILENAME, lastOffset, freeArea - lastOffset);
-      builder->AddFile(hidden);
-      lastOffset = freeArea;
-    }
-    if (lastOffset < MODULE_SIZE)
-    {
-      const TRDos::File::Ptr unallocated = TRDos::File::CreateReference(UNALLOCATED_FILENAME, lastOffset, MODULE_SIZE - lastOffset);
-      builder->AddFile(unallocated);
-    }
-    builder->SetRawData(data.GetSubcontainer(0, MODULE_SIZE));
-    return builder->GetResult();
-  }
+  private:
+    TRDos::CatalogueBuilder& Builder;
+  };
 }
 
 namespace Formats
@@ -231,12 +233,20 @@ namespace Formats
 
       virtual bool Check(const Binary::Container& data) const
       {
-        return TRD::FastCheck(data);
+        static TRD::StubVisitor STUB;
+        return TRD::Parse(data, STUB);
       }
 
       virtual Container::Ptr Decode(const Binary::Container& data) const
       {
-        return TRD::ParseArchive(data);
+        const TRDos::CatalogueBuilder::Ptr builder = TRDos::CatalogueBuilder::CreateFlat();
+        TRD::BuildVisitorAdapter visitor(*builder);
+        if (TRD::Parse(data, visitor))
+        {
+          builder->SetRawData(data.GetSubcontainer(0, TRD::MODULE_SIZE));
+          return builder->GetResult();
+        }
+        return Container::Ptr();
       }
     private:
       const Binary::Format::Ptr Format;
