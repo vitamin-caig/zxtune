@@ -362,9 +362,26 @@ namespace
       const int curKey = event->key();
       if (curKey == Qt::Key_Delete || curKey == Qt::Key_Backspace)
       {
-        const Playlist::Model::IndexSet& items = View->GetSelectedItems();
         const Playlist::Model::Ptr model = Controller->GetModel();
-        model->RemoveItems(items);
+        if (const std::size_t itemsCount = model->CountItems())
+        {
+          const Playlist::Model::IndexSet& items = View->GetSelectedItems();
+          model->RemoveItems(items);
+          if (1 == items.size())
+          {
+            View->SelectItems(items);
+            const Playlist::Model::IndexType itemToSelect = *items.begin();
+            //not last
+            if (itemToSelect != itemsCount - 1)
+            {
+              View->selectRow(itemToSelect);
+            }
+            else if (itemToSelect)
+            {
+              View->selectRow(itemToSelect - 1);
+            }
+          }
+        }
       }
       else
       {

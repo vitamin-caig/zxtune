@@ -310,6 +310,10 @@ namespace
 
     virtual void RemoveItems(const Playlist::Model::IndexSet& items)
     {
+      if (items.empty())
+      {
+        return;
+      }
       QMutexLocker locker(&SyncModification);
       Container->RemoveItems(items);
       NotifyAboutIndexChanged();
@@ -547,7 +551,7 @@ namespace
       OnLongOperationProgress(current);
     }
 
-    virtual void OnProgress(uint_t current, const String& message)
+    virtual void OnProgress(uint_t current, const String& /*message*/)
     {
       OnLongOperationProgress(current);
     }
@@ -571,5 +575,45 @@ namespace Playlist
   {
     REGISTER_METATYPE(Playlist::Model::OldToNewIndexMap);
     return new ModelImpl(parent);
+  }
+
+  const Model::IndexType* Model::OldToNewIndexMap::FindNewIndex(IndexType oldIdx) const
+  {
+    const const_iterator it = find(oldIdx);
+    if (it != end())
+    {
+      return &it->second;
+    }
+    return 0;
+  }
+
+  const Model::IndexType* Model::OldToNewIndexMap::FindNewSuitableIndex(IndexType oldIdx) const
+  {
+    if (empty())
+    {
+      return 0;
+    }
+    if (const Model::IndexType* direct = FindNewIndex(oldIdx))
+    {
+      return direct;
+    }
+    //try to find next one
+    for (unsigned nextIdx = oldIdx + 1, totalOldItems = rbegin()->first + 1; nextIdx < totalOldItems; ++nextIdx)
+    {
+      if (const Model::IndexType* afterRemoved = FindNewIndex(nextIdx))
+      {
+        return afterRemoved;
+      }
+    }
+    //try to find previous one
+    for (unsigned prevIdx = oldIdx; prevIdx; --prevIdx)
+    {
+      if (const Model::IndexType* beforeRemoved = FindNewIndex(prevIdx - 1))
+      {
+        return beforeRemoved;
+      }
+    }
+    assert(!"Invalid case");
+    return 0;
   }
 }

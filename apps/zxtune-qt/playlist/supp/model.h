@@ -68,7 +68,15 @@ namespace Playlist
     typedef Model* Ptr;
     typedef unsigned IndexType;
     typedef std::set<IndexType> IndexSet;
-    typedef std::map<IndexType, IndexType> OldToNewIndexMap;
+
+    class OldToNewIndexMap : public std::map<IndexType, IndexType>
+    {
+    public:
+      //! Finds new index after remapping
+      const IndexType* FindNewIndex(IndexType oldIdx) const;
+      //! Tryes to search any suitable mapping
+      const IndexType* FindNewSuitableIndex(IndexType oldIdx) const;
+    };
 
     //creator
     static Ptr Create(QObject& parent);
