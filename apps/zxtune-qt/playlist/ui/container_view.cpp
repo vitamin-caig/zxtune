@@ -205,6 +205,11 @@ namespace
     {
       ActionsMenu->exec(event->globalPos());
     }
+
+    virtual void mouseDoubleClickEvent(QMouseEvent* event)
+    {
+      CreatePlaylist();
+    }
   private:
     void PlaylistItemActivated(Playlist::Item::Data::Ptr item)
     {
