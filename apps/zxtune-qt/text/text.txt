@@ -18,14 +18,20 @@ __cpp> "#endif //__TEXT_TEXT_H_DEFINED__\n"
 < PROGRAM_SITE
 > "http://zxtune.googlecode.com"
 
+< HOMEPAGE_URL
+> "http://code.google.com/p/zxtune"
+
+< FAQ_URL
+> HOMEPAGE_URL "/wiki/FAQ"
+
+< REPORT_BUG_URL
+> HOMEPAGE_URL "/issues/entry"
+
 = FEEDBACK_EMAIL
 > "vitamin.caig@gmail.com"
 
 < FEEDBACK_TEXT
 > "<a href=\"mailto:" FEEDBACK_EMAIL "?subject=Feedback for %1%\">Send feedback</a>"
-
-< HOMEPAGE_TEXT
-> "<a href=\"" PROGRAM_SITE "\">Visit homepage</a>"
 
 # 1- program name, 2- song name
 < TITLE_FORMAT

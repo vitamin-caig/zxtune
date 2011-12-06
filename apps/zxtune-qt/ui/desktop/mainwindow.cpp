@@ -33,7 +33,9 @@ Author:
 //library includes
 #include <core/module_attrs.h>
 //qt includes
+#include <QtCore/QUrl>
 #include <QtGui/QApplication>
+#include <QtGui/QDesktopServices>
 #include <QtGui/QMessageBox>
 #include <QtGui/QToolBar>
 //text includes
@@ -75,6 +77,9 @@ namespace
       //connect root actions
       Components->connect(actionComponents, SIGNAL(triggered()), SLOT(Show()));
       About->connect(actionAbout, SIGNAL(triggered()), SLOT(Show()));
+      this->connect(actionWebSite, SIGNAL(triggered()), SLOT(VisitSite()));
+      this->connect(actionOnlineFAQ, SIGNAL(triggered()), SLOT(VisitFAQ()));
+      this->connect(actionReportBug, SIGNAL(triggered()), SLOT(ReportIssue()));
       this->connect(actionAboutQt, SIGNAL(triggered()), SLOT(ShowAboutQt()));
 
       MultiPlaylist->connect(Controls, SIGNAL(OnPrevious()), SLOT(Prev()));
@@ -112,6 +117,24 @@ namespace
     virtual void StopModule()
     {
       setWindowTitle(ToQString(GetProgramTitle()));
+    }
+
+    virtual void VisitSite()
+    {
+      const QString siteUrl(Text::HOMEPAGE_URL);
+      QDesktopServices::openUrl(QUrl(siteUrl));
+    }
+
+    virtual void VisitFAQ()
+    {
+      const QString faqUrl(Text::FAQ_URL);
+      QDesktopServices::openUrl(QUrl(faqUrl));
+    }
+
+    virtual void ReportIssue()
+    {
+      const QString faqUrl(Text::REPORT_BUG_URL);
+      QDesktopServices::openUrl(QUrl(faqUrl));
     }
 
     virtual void ShowAboutQt()

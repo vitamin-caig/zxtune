@@ -29,16 +29,19 @@ extern const Char CONVERT_STATUS[] = {
 extern const Char CONVERT_SUCCEED[] = {
   'C','o','n','v','e','r','t','e','d',' ','\'','%','1','%','\'',' ','=','>',' ','\'','%','2','%','\'',0
 };
+extern const Char FAQ_URL[] = {
+  'h','t','t','p',':','/','/','c','o','d','e','.','g','o','o','g','l','e','.','c','o','m','/','p','/','z','x',
+  't','u','n','e','/','w','i','k','i','/','F','A','Q',0
+};
 extern const Char FEEDBACK_TEXT[] = {
   '<','a',' ','h','r','e','f','=','\"','m','a','i','l','t','o',':','v','i','t','a','m','i','n','.','c','a','i',
   'g','@','g','m','a','i','l','.','c','o','m','\?','s','u','b','j','e','c','t','=','F','e','e','d','b','a','c',
   'k',' ','f','o','r',' ','%','1','%','\"','>','S','e','n','d',' ','f','e','e','d','b','a','c','k','<','/','a',
   '>',0
 };
-extern const Char HOMEPAGE_TEXT[] = {
-  '<','a',' ','h','r','e','f','=','\"','h','t','t','p',':','/','/','z','x','t','u','n','e','.','g','o','o','g',
-  'l','e','c','o','d','e','.','c','o','m','\"','>','V','i','s','i','t',' ','h','o','m','e','p','a','g','e','<',
-  '/','a','>',0
+extern const Char HOMEPAGE_URL[] = {
+  'h','t','t','p',':','/','/','c','o','d','e','.','g','o','o','g','l','e','.','c','o','m','/','p','/','z','x',
+  't','u','n','e',0
 };
 extern const Char MODULE_PLAYLIST_FORMAT[] = {
   '[','A','u','t','h','o','r',']',' ','-',' ','[','T','i','t','l','e',']',0
@@ -56,6 +59,10 @@ extern const Char PROGRAM_NAME[] = {
 extern const Char PROGRAM_SITE[] = {
   'h','t','t','p',':','/','/','z','x','t','u','n','e','.','g','o','o','g','l','e','c','o','d','e','.','c','o',
   'm',0
+};
+extern const Char REPORT_BUG_URL[] = {
+  'h','t','t','p',':','/','/','c','o','d','e','.','g','o','o','g','l','e','.','c','o','m','/','p','/','z','x',
+  't','u','n','e','/','i','s','s','u','e','s','/','e','n','t','r','y',0
 };
 extern const Char TITLE_FORMAT[] = {
   '%','2','%',' ','[','%','1','%',']',0

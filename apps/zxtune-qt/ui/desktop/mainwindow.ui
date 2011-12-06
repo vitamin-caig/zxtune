@@ -70,6 +70,10 @@
     <addaction name="actionComponents"/>
     <addaction name="actionAbout"/>
     <addaction name="actionAboutQt"/>
+    <addaction name="separator"/>
+    <addaction name="actionWebSite"/>
+    <addaction name="actionOnlineFAQ"/>
+    <addaction name="actionReportBug"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuLayout"/>
@@ -102,6 +106,36 @@
    </property>
    <property name="text">
     <string>Quit</string>
+   </property>
+  </action>
+  <action name="actionWebSite">
+   <property name="icon">
+    <iconset>
+     <normalon>:/application/website.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Visit web site</string>
+   </property>
+  </action>
+  <action name="actionOnlineFAQ">
+   <property name="icon">
+    <iconset>
+     <normalon>:/application/webfaq.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Online FAQ</string>
+   </property>
+  </action>
+  <action name="actionReportBug">
+   <property name="icon">
+    <iconset>
+     <normalon>:/application/reportbug.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Report bug online</string>
    </property>
   </action>
   <action name="actionComponents">

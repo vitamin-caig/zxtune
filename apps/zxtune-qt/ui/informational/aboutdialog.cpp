@@ -34,7 +34,6 @@ namespace
       setupUi(this);
       const String appVersion = GetProgramVersionString();
       buildLabel->setText(ToQString(appVersion));
-      homepageLabel->setText(ToQString(Text::HOMEPAGE_TEXT));
       const String feedbackText = Strings::Format(Text::FEEDBACK_TEXT, appVersion);
       feedbackLabel->setText(ToQString(feedbackText));
     }

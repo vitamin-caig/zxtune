@@ -106,28 +106,6 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="QLabel" name="homepageLabel">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>${Homepage}</string>
-       </property>
-       <property name="textFormat">
-        <enum>Qt::RichText</enum>
-       </property>
-       <property name="margin">
-        <number>6</number>
-       </property>
-       <property name="openExternalLinks">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
       <widget class="QLabel" name="feedbackLabel">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Maximum" vsizetype="Preferred">

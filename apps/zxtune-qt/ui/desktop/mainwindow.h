@@ -33,6 +33,9 @@ public slots:
   virtual void StartModule(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr) = 0;
   virtual void StopModule() = 0;
 
+  virtual void VisitSite() = 0;
+  virtual void VisitFAQ() = 0;
+  virtual void ReportIssue() = 0;
   virtual void ShowAboutQt() = 0;
 };
 
