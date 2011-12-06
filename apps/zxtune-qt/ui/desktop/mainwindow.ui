@@ -54,19 +54,46 @@
      <string notr="true">Layout</string>
     </property>
    </widget>
-   <widget class="QMenu" name="menuApplication">
+   <widget class="QMenu" name="menuFile">
     <property name="title">
-     <string>Application</string>
+     <string>File</string>
+    </property>
+    <addaction name="actionAddFiles"/>
+    <addaction name="actionAddFolder"/>
+    <addaction name="separator"/>
+    <addaction name="actionQuit"/>
+   </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
     </property>
     <addaction name="actionComponents"/>
     <addaction name="actionAbout"/>
     <addaction name="actionAboutQt"/>
-    <addaction name="separator"/>
-    <addaction name="actionQuit"/>
    </widget>
-   <addaction name="menuApplication"/>
+   <addaction name="menuFile"/>
    <addaction name="menuLayout"/>
   </widget>
+  <action name="actionAddFiles">
+   <property name="icon">
+    <iconset>
+     <normalon>:/playlist/addfiles.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Add files</string>
+   </property>
+  </action>
+  <action name="actionAddFolder">
+   <property name="icon">
+    <iconset>
+     <normalon>:/playlist/addfolder.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Add folder</string>
+   </property>
+  </action>
   <action name="actionQuit">
    <property name="icon">
     <iconset>

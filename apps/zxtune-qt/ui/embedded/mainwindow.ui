@@ -43,15 +43,13 @@
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
-   <widget class="QMenu" name="menuPlayer">
+   <widget class="QMenu" name="menuFile">
     <property name="title">
-     <string>Player</string>
+     <string>File</string>
     </property>
-    <property name="icon">
-     <iconset>
-      <normalon>:/zxtune.png</normalon>
-     </iconset>
-    </property>
+    <addaction name="actionAddFiles"/>
+    <addaction name="actionAddFolder"/>
+    <addaction name="separator"/>
     <addaction name="actionQuit"/>
    </widget>
    <widget class="QMenu" name="menuLayout">
@@ -59,9 +57,29 @@
      <string notr="true">Layout</string>
     </property>
    </widget>
-   <addaction name="menuPlayer"/>
+   <addaction name="menuFile"/>
    <addaction name="menuLayout"/>
   </widget>
+  <action name="actionAddFiles">
+   <property name="icon">
+    <iconset>
+     <normalon>:/playlist/addfiles.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Add files</string>
+   </property>
+  </action>
+  <action name="actionAddFolder">
+   <property name="icon">
+    <iconset>
+     <normalon>:/playlist/addfolder.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Add folder</string>
+   </property>
+  </action>
   <action name="actionQuit">
    <property name="icon">
     <iconset>

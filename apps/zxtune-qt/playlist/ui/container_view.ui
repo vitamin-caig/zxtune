@@ -34,27 +34,6 @@
     </widget>
    </item>
   </layout>
-  <action name="actionAddFiles">
-   <property name="icon">
-    <iconset>
-     <normalon>:/playlist/addfiles.png</normalon>
-    </iconset>
-   </property>
-   <property name="text">
-    <string>Add files</string>
-   </property>
-  </action>
-  <action name="actionDeepScan">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Deep scanning</string>
-   </property>
-  </action>
   <action name="actionCreatePlaylist">
    <property name="icon">
     <iconset>
@@ -143,14 +122,15 @@
     <string>Random</string>
    </property>
   </action>
-  <action name="actionAddFolder">
-   <property name="icon">
-    <iconset>
-     <normalon>:/playlist/addfolder.png</normalon>
-    </iconset>
+  <action name="actionDeepScan">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
    </property>
    <property name="text">
-    <string>Add folder</string>
+    <string>Deep scanning</string>
    </property>
   </action>
  </widget>

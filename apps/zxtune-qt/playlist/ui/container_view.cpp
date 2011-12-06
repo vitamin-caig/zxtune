@@ -51,9 +51,6 @@ namespace
       setupUi(this);
       SetupMenu();
 
-      //connect actions
-      this->connect(actionAddFiles, SIGNAL(triggered()), SLOT(AddFiles()));
-      this->connect(actionAddFolder, SIGNAL(triggered()), SLOT(AddFolder()));
       //playlist actions
       this->connect(actionCreatePlaylist, SIGNAL(triggered()), SLOT(CreatePlaylist()));
       this->connect(actionLoadPlaylist, SIGNAL(triggered()), SLOT(LoadPlaylist()));
@@ -132,7 +129,7 @@ namespace
     virtual void AddFiles()
     {
       QStringList files;
-      if (FileDialog::Instance().OpenMultipleFiles(actionAddFiles->text(),
+      if (FileDialog::Instance().OpenMultipleFiles(tr("Add files"),
         tr("All files (*.*)"), files))
       {
         AddItemsToVisiblePlaylist(files);
@@ -143,7 +140,7 @@ namespace
     {
       QStringList folders;
       folders += QString();
-      if (FileDialog::Instance().OpenFolder(actionAddFolder->text(), folders.front()))
+      if (FileDialog::Instance().OpenFolder(tr("Add folder"), folders.front()))
       {
         AddItemsToVisiblePlaylist(folders);
       }
@@ -206,7 +203,7 @@ namespace
       ActionsMenu->exec(event->globalPos());
     }
 
-    virtual void mouseDoubleClickEvent(QMouseEvent* event)
+    virtual void mouseDoubleClickEvent(QMouseEvent* /*event*/)
     {
       CreatePlaylist();
     }
@@ -229,10 +226,6 @@ namespace
   private:
     void SetupMenu()
     {
-      ActionsMenu->addAction(actionAddFiles);
-      ActionsMenu->addAction(actionAddFolder);
-      ActionsMenu->addAction(actionDeepScan);
-      ActionsMenu->addSeparator();
       ActionsMenu->addAction(actionCreatePlaylist);
       ActionsMenu->addAction(actionLoadPlaylist);
       ActionsMenu->addAction(actionSavePlaylist);
@@ -242,6 +235,7 @@ namespace
       ActionsMenu->addSeparator();
       ActionsMenu->addAction(actionLoop);
       ActionsMenu->addAction(actionRandom);
+      ActionsMenu->addAction(actionDeepScan);
     }
 
     Playlist::UI::View& CreateAnonymousPlaylist()

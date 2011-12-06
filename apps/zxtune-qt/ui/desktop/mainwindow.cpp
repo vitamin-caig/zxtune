@@ -62,6 +62,7 @@ namespace
       //fill menu
       menubar->addMenu(Controls->GetActionsMenu());
       menubar->addMenu(MultiPlaylist->GetActionsMenu());
+      menubar->addMenu(menuHelp);
       //fill toolbar and layout menu
       AddWidgetWithLayoutControl(AddWidgetOnToolbar(Controls, false));
       AddWidgetWithLayoutControl(AddWidgetOnToolbar(FastOptions, false));
@@ -87,6 +88,8 @@ namespace
       this->connect(Playback, SIGNAL(OnStartModule(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr)),
         SLOT(StartModule(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr)));
       this->connect(Playback, SIGNAL(OnStopModule()), SLOT(StopModule()));
+      this->connect(actionAddFiles, SIGNAL(triggered()), MultiPlaylist, SLOT(AddFiles()));
+      this->connect(actionAddFolder, SIGNAL(triggered()), MultiPlaylist, SLOT(AddFolder()));
 
       StopModule();
 
