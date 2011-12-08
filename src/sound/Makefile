@@ -25,3 +25,7 @@ endif
 ifdef support_sdl
 $(platform)_definitions += SDL_SUPPORT
 endif
+
+ifdef support_directsound
+$(platform)_definitions += DIRECTSOUND_SUPPORT
+endif

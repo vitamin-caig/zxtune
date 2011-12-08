@@ -75,3 +75,13 @@ __cpp> "#endif //__TEXT_BACKENDS_H_DEFINED__\n"
 
 < SOUND_ERROR_SDL_BACKEND_INVALID_BUFFERS
 > "SDL backend error: buffers count (%1%) is out of range (%2%..%3%)."
+
+#dsound backend
+< DSOUND_BACKEND_DESCRIPTION
+> "DirectSound support backend."
+
+< SOUND_ERROR_DSOUND_BACKEND_ERROR
+> "Error in DirectSound backend: %1%."
+
+< SOUND_ERROR_DSOUND_BACKEND_INVALID_LATENCY
+> "DirectSound backend error: latency (%1%) is out of range (%2%..%3%)."

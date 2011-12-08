@@ -11,6 +11,10 @@ extern const Char ALSA_BACKEND_DESCRIPTION[] = {
 extern const Char AYLPT_BACKEND_DESCRIPTION[] = {
   'A','Y','L','P','T',' ','s','u','p','p','o','r','t',' ','b','a','c','k','e','n','d',0
 };
+extern const Char DSOUND_BACKEND_DESCRIPTION[] = {
+  'D','i','r','e','c','t','S','o','u','n','d',' ','s','u','p','p','o','r','t',' ','b','a','c','k','e','n','d',
+  '.',0
+};
 extern const Char NULL_BACKEND_DESCRIPTION[] = {
   'N','u','l','l',' ','o','u','t','p','u','t',' ','b','a','c','k','e','n','d',0
 };
@@ -41,6 +45,15 @@ extern const Char SOUND_ERROR_AYLPT_BACKEND_DUMP[] = {
   'S','p','e','c','i','f','i','e','d',' ','m','o','d','u','l','e',' ','d','o','e','s',' ','n','o','t',' ','s',
   'u','p','p','o','r','t','s',' ','d','u','m','p','i','n','g',' ','t','o',' ','A','Y','-','L','P','T',' ','d',
   'e','v','i','c','e','.',0
+};
+extern const Char SOUND_ERROR_DSOUND_BACKEND_ERROR[] = {
+  'E','r','r','o','r',' ','i','n',' ','D','i','r','e','c','t','S','o','u','n','d',' ','b','a','c','k','e','n',
+  'd',':',' ','%','1','%','.',0
+};
+extern const Char SOUND_ERROR_DSOUND_BACKEND_INVALID_LATENCY[] = {
+  'D','i','r','e','c','t','S','o','u','n','d',' ','b','a','c','k','e','n','d',' ','e','r','r','o','r',':',' ',
+  'l','a','t','e','n','c','y',' ','(','%','1','%',')',' ','i','s',' ','o','u','t',' ','o','f',' ','r','a','n',
+  'g','e',' ','(','%','2','%','.','.','%','3','%',')','.',0
 };
 extern const Char SOUND_ERROR_OSS_BACKEND_ERROR[] = {
   'E','r','r','o','r',' ','i','n',' ','O','S','S',' ','b','a','c','k','e','n','d',' ','w','h','i','l','e',' ',

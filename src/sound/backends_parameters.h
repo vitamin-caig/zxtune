@@ -144,6 +144,22 @@ namespace Parameters
           };
           //@}
         }
+
+        //! @brief %DirectSound backend parameters
+        namespace DirectSound
+        {
+          //@{
+          //! @name DirectSound backend parameters
+
+          //! Default value
+          const IntType LATENCY_DEFAULT = 100;
+          //! Buffers count
+          const Char LATENCY[] =
+          {
+            'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','d','s','o','u','n','d','.','l','a','t','e','n','c','y','\0'
+          };
+          //@}
+        }
       }
     }
   }
