@@ -25,8 +25,8 @@ dingux_libraries += z
 endif
 endif
 ifneq (,$(findstring Gui,$(qt_libraries)))
-windows_libraries += gdi32 comdlg32 oleaut32 imm32 winmm winspool ws2_32 ole32 user32 advapi32 oldnames
-mingw_libraries += gdi32 comdlg32 oleaut32 imm32 winmm winspool ws2_32 ole32 uuid user32 advapi32 png z
+windows_libraries += gdi32 comdlg32 imm32 winspool ws2_32 ole32 user32 advapi32 oldnames
+mingw_libraries +=   gdi32 comdlg32 imm32 winspool ws2_32 ole32 uuid user32 advapi32 png z
 ifdef STATIC_QT_PATH
 linux_libraries += freetype SM ICE Xrender fontconfig Xext X11 z
 dingux_libraries += png z

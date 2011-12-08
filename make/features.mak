@@ -1,9 +1,5 @@
-ifdef support_waveout
-$(platform)_libraries += winmm
-endif
-
 ifdef support_directsound
-$(platform)_libraries += dsound dxguid user32
+windows_libraries += user32
 endif
 
 ifdef support_zlib

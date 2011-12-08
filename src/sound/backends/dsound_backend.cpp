@@ -17,6 +17,7 @@ Author:
 //common includes
 #include <error_tools.h>
 #include <logging.h>
+#include <shared_library_gate.h>
 #include <tools.h>
 //library includes
 #include <sound/backend_attrs.h>
@@ -49,6 +50,26 @@ namespace
 
   const uint_t LATENCY_MIN = 20;
   const uint_t LATENCY_MAX = 10000;
+
+  struct DirectSoundLibraryTraits
+  {
+    static std::string GetName()
+    {
+      return "dsound";
+    }
+
+    static void Startup()
+    {
+      Log::Debug(THIS_MODULE, "Library loaded");
+    }
+
+    static void Shutdown()
+    {
+      Log::Debug(THIS_MODULE, "Library unloaded");
+    }
+  };
+
+  typedef SharedLibraryGate<DirectSoundLibraryTraits> DirectSoundLibrary;
 
   HWND GetWindowHandle()
   {
@@ -460,6 +481,14 @@ namespace
       }
     }
   };
+
+  BOOL CALLBACK EnumerateDevicesCallback(LPGUID /*guid*/, LPCSTR descr, LPCSTR /*module*/, LPVOID param)
+  {
+    Log::Debug(THIS_MODULE, "Detected device '%1%'", descr);
+    uint_t& devices = *safe_ptr_cast<uint_t*>(param);
+    ++devices;
+    return TRUE;
+  }
 }
 
 namespace ZXTune
@@ -468,10 +497,46 @@ namespace ZXTune
   {
     void RegisterDirectSoundBackend(BackendsEnumerator& enumerator)
     {
-      const BackendCreator::Ptr creator(new DirectSoundBackendCreator());
-      enumerator.RegisterCreator(creator);
+      if (DirectSoundLibrary::Instance().IsAccessible())
+      {
+        uint_t devices = 0;
+        if (DS_OK != ::DirectSoundEnumerate(&EnumerateDevicesCallback, &devices))
+        {
+          Log::Debug(THIS_MODULE, "Failed to enumerate devices. Skip backend.");
+          return;
+        }
+        if (0 == devices)
+        {
+          Log::Debug(THIS_MODULE, "No devices to output. Skip backend");
+          return;
+        }
+        Log::Debug(THIS_MODULE, "Detected %1% devices to output.", devices);
+        const BackendCreator::Ptr creator(new DirectSoundBackendCreator());
+        enumerator.RegisterCreator(creator);
+      }
     }
   }
+}
+
+//global namespace
+#define STR(a) #a
+//MSVS2003 does not support variadic macros
+#define DIRECTSOUND_CALL2(func, p1, p2) DirectSoundLibrary::Instance().GetSymbol(&func, STR(func))(p1, p2)
+#define DIRECTSOUND_CALL3(func, p1, p2, p3) DirectSoundLibrary::Instance().GetSymbol(&func, STR(func))(p1, p2, p3)
+
+HRESULT WINAPI DirectSoundEnumerateA(LPDSENUMCALLBACKA cb, LPVOID param)
+{
+  return DIRECTSOUND_CALL2(DirectSoundEnumerateA, cb, param);
+}
+
+//MSVS has different prototype comparing to mingw one
+#ifdef _MSC_VER
+HRESULT WINAPI DirectSoundCreate(LPCGUID pcGuidDevice, LPDIRECTSOUND* ppDS, LPUNKNOWN pUnkOuter)
+#else
+HRESULT WINAPI DirectSoundCreate(LPGUID pcGuidDevice, LPDIRECTSOUND* ppDS, LPUNKNOWN pUnkOuter)
+#endif
+{
+  return DIRECTSOUND_CALL3(DirectSoundCreate, pcGuidDevice, ppDS, pUnkOuter);
 }
 
 #else //not supported

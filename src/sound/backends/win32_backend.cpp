@@ -15,8 +15,10 @@ Author:
 #include "backend_impl.h"
 #include "enumerator.h"
 //common includes
-#include <tools.h>
 #include <error_tools.h>
+#include <logging.h>
+#include <shared_library_gate.h>
+#include <tools.h>
 //library includes
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
@@ -43,11 +45,33 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Sound;
 
+  const std::string THIS_MODULE("Sound::Backend::Win32");
+
+  const Char WIN32_BACKEND_ID[] = {'w', 'i', 'n', '3', '2', 0};
+
   const uint_t MAX_WIN32_VOLUME = 0xffff;
   const uint_t BUFFERS_MIN = 3;
   const uint_t BUFFERS_MAX = 10;
 
-  const Char WIN32_BACKEND_ID[] = {'w', 'i', 'n', '3', '2', 0};
+  struct WaveOutLibraryTraits
+  {
+    static std::string GetName()
+    {
+      return "winmm";
+    }
+
+    static void Startup()
+    {
+      Log::Debug(THIS_MODULE, "Library loaded");
+    }
+
+    static void Shutdown()
+    {
+      Log::Debug(THIS_MODULE, "Library unloaded");
+    }
+  };
+
+  typedef SharedLibraryGate<WaveOutLibraryTraits> WaveOutLibrary;
 
   inline void CheckMMResult(::MMRESULT res, Error::LocationRef loc)
   {
@@ -384,10 +408,90 @@ namespace ZXTune
   {
     void RegisterWin32Backend(BackendsEnumerator& enumerator)
     {
-      const BackendCreator::Ptr creator(new Win32BackendCreator());
-      enumerator.RegisterCreator(creator);
+      if (WaveOutLibrary::Instance().IsAccessible())
+      {
+        if (const uint_t devices = ::waveOutGetNumDevs())
+        {
+          Log::Debug(THIS_MODULE, "Found %1% devices", devices);
+          const BackendCreator::Ptr creator(new Win32BackendCreator());
+          enumerator.RegisterCreator(creator);
+        }
+        else
+        {
+          Log::Debug(THIS_MODULE, "No devices detected. Disable backend.");
+        }
+      }
     }
   }
+}
+
+//global namespace
+#define STR(a) #a
+//MSVS2003 does not support variadic macros
+#define WAVEOUT_CALL(func) WaveOutLibrary::Instance().GetSymbol(&func, STR(func))()
+#define WAVEOUT_CALL1(func, p1) WaveOutLibrary::Instance().GetSymbol(&func, STR(func))(p1)
+#define WAVEOUT_CALL2(func, p1, p2) WaveOutLibrary::Instance().GetSymbol(&func, STR(func))(p1, p2)
+#define WAVEOUT_CALL3(func, p1, p2, p3) WaveOutLibrary::Instance().GetSymbol(&func, STR(func))(p1, p2, p3)
+#define WAVEOUT_CALL6(func, p1, p2, p3, p4, p5, p6) WaveOutLibrary::Instance().GetSymbol(&func, STR(func))(p1, p2, p3, p4, p5, p6)
+
+UINT WINAPI waveOutGetNumDevs()
+{
+  return WAVEOUT_CALL(waveOutGetNumDevs);
+}
+
+MMRESULT WINAPI waveOutOpen(LPHWAVEOUT phwo, UINT uDeviceID, LPCWAVEFORMATEX pwfx, DWORD_PTR dwCallback, DWORD_PTR dwInstance, DWORD fdwOpen)
+{
+  return WAVEOUT_CALL6(waveOutOpen, phwo, uDeviceID, pwfx, dwCallback, dwInstance, fdwOpen);
+}
+
+MMRESULT WINAPI waveOutClose(HWAVEOUT hwo)
+{
+  return WAVEOUT_CALL1(waveOutClose, hwo);
+}
+
+MMRESULT WINAPI waveOutPrepareHeader(HWAVEOUT hwo, LPWAVEHDR pwh, UINT cbwh)
+{
+  return WAVEOUT_CALL3(waveOutPrepareHeader, hwo, pwh, cbwh);
+}
+
+MMRESULT WINAPI waveOutUnprepareHeader(HWAVEOUT hwo, LPWAVEHDR pwh, UINT cbwh)
+{
+  return WAVEOUT_CALL3(waveOutUnprepareHeader, hwo, pwh, cbwh);
+}
+
+MMRESULT WINAPI waveOutWrite(HWAVEOUT hwo, LPWAVEHDR pwh, IN UINT cbwh)
+{
+  return WAVEOUT_CALL3(waveOutWrite, hwo, pwh, cbwh);
+}
+
+MMRESULT WINAPI waveOutGetErrorText(MMRESULT mmrError, LPSTR pszText, UINT cchText)
+{
+  return WAVEOUT_CALL3(waveOutGetErrorText, mmrError, pszText, cchText);
+}
+
+MMRESULT WINAPI waveOutPause(HWAVEOUT hwo)
+{
+  return WAVEOUT_CALL1(waveOutPause, hwo);
+}
+
+MMRESULT WINAPI waveOutRestart(HWAVEOUT hwo)
+{
+  return WAVEOUT_CALL1(waveOutRestart, hwo);
+}
+
+MMRESULT WINAPI waveOutReset(HWAVEOUT hwo)
+{
+  return WAVEOUT_CALL1(waveOutReset, hwo);
+}
+
+MMRESULT WINAPI waveOutGetVolume(HWAVEOUT hwo, LPDWORD pdwVolume)
+{
+  return WAVEOUT_CALL2(waveOutGetVolume, hwo, pdwVolume);
+}
+
+MMRESULT WINAPI waveOutSetVolume(HWAVEOUT hwo, DWORD dwVolume)
+{
+  return WAVEOUT_CALL2(waveOutSetVolume, hwo, dwVolume);
 }
 
 #else //not supported
