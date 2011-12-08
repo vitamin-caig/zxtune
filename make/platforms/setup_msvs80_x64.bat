@@ -13,5 +13,6 @@ SET self=%0%
 call %self:setup_msvs80_x64=setup_build%
 call %self:setup_msvs80_x64=setup_boost% 64
 call %self:setup_msvs80_x64=setup_qt% 64
+call %self:setup_msvs80_x64=setup_directx% 64
 SET self=
 :Quit

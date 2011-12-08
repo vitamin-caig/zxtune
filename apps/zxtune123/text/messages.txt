@@ -170,6 +170,9 @@
 < INFO_OPTIONS_SOUND_BACKENDS_SDL_BUFFERS
 > "buffers count for SDL backend"
 
+< INFO_OPTIONS_SOUND_BACKENDS_DIRECTSOUND_LATENCY
+> "latency in ms for DirectSound backend"
+
 < INFO_OPTIONS_CORE_TITLE
 > " Core options:"
 

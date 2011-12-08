@@ -241,6 +241,9 @@ namespace
       OptionDesc(Parameters::ZXTune::Sound::Backends::SDL::BUFFERS,
                  Text::INFO_OPTIONS_SOUND_BACKENDS_SDL_BUFFERS,
                  Parameters::ZXTune::Sound::Backends::SDL::BUFFERS_DEFAULT),
+      OptionDesc(Parameters::ZXTune::Sound::Backends::DirectSound::LATENCY,
+                 Text::INFO_OPTIONS_SOUND_BACKENDS_DIRECTSOUND_LATENCY,
+                 Parameters::ZXTune::Sound::Backends::DirectSound::LATENCY_DEFAULT),
       //Core options
       OptionDesc(Text::INFO_OPTIONS_CORE_TITLE, EMPTY, 0),
       OptionDesc(Parameters::ZXTune::Core::AYM::TYPE,

@@ -454,6 +454,10 @@ extern const Char INFO_OPTIONS_SOUND_BACKENDS_ALSA_MIXER[] = {
   'i','n','g',' ','t','h','e',' ','f','i','r','s','t',' ','o','n','e',' ','i','f',' ','n','o','t',' ','s','p',
   'e','c','i','f','i','e','d',')',0
 };
+extern const Char INFO_OPTIONS_SOUND_BACKENDS_DIRECTSOUND_LATENCY[] = {
+  'l','a','t','e','n','c','y',' ','i','n',' ','m','s',' ','f','o','r',' ','D','i','r','e','c','t','S','o','u',
+  'n','d',' ','b','a','c','k','e','n','d',0
+};
 extern const Char INFO_OPTIONS_SOUND_BACKENDS_OSS_DEVICE[] = {
   'p','l','a','y','b','a','c','k',' ','d','e','v','i','c','e',' ','f','o','r',' ','O','S','S',' ','b','a','c',
   'k','e','n','d',0
