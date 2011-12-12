@@ -18,11 +18,29 @@ Author:
 #include <formats/chiptune/soundtracker.h>
 //boost includes
 #include <boost/make_shared.hpp>
+//text includes
+#include <formats/text/chiptune.h>
 
 namespace SoundTracker
 {
   using namespace ZXTune;
   using namespace ZXTune::Module;
+
+  bool IsProgramName(const String& name)
+  {
+    static const std::string STANDARD_PROGRAMS[] = 
+    {
+      "SONG BY ST COMPILE",
+      "SONG BY MB COMPILE",
+      "SONG BY ST-COMPILE",
+      "SOUND TRACKER v1.1",
+      "SOUND TRACKER v1.3",
+      "SOUND TRACKER v3.0",
+      "S.T.FULL EDITION  ",
+      "S.T.FULL EDITION \x7f",
+    };
+    return ArrayEnd(STANDARD_PROGRAMS) != std::find(STANDARD_PROGRAMS, ArrayEnd(STANDARD_PROGRAMS), ToStdString(name));
+  }
 
   class DataBuilder : public Formats::Chiptune::SoundTracker::Builder
   {
@@ -36,7 +54,15 @@ namespace SoundTracker
 
     virtual void SetProgram(const String& program)
     {
-      Properties->SetProgram(OptimizeString(program));
+      if (IsProgramName(program))
+      {
+        Properties->SetProgram(OptimizeString(program));
+      }
+      else
+      {
+        Properties->SetTitle(OptimizeString(program));
+        Properties->SetProgram(Text::SOUNDTRACKER_DECODER_DESCRIPTION);
+      }
       Properties->SetFreqtable(TABLE_SOUNDTRACKER);
     }
 
