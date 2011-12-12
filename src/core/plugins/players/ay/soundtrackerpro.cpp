@@ -62,9 +62,10 @@ namespace SoundTrackerPro
 
     virtual void SetPositions(const std::vector<Formats::Chiptune::SoundTrackerPro::PositionEntry>& positions, uint_t loop)
     {
-      Data->LoopPosition = loop;
-      Data->Positions.resize(positions.size());
-      Data->Transpositions.resize(positions.size());
+      const std::size_t posCount = positions.size();
+      Data->LoopPosition = loop >= posCount ? 0 : loop;
+      Data->Positions.resize(posCount);
+      Data->Transpositions.resize(posCount);
       std::transform(positions.begin(), positions.end(), Data->Positions.begin(), boost::mem_fn(&Formats::Chiptune::SoundTrackerPro::PositionEntry::PatternIndex));
       std::transform(positions.begin(), positions.end(), Data->Transpositions.begin(), boost::mem_fn(&Formats::Chiptune::SoundTrackerPro::PositionEntry::Transposition));
     }
