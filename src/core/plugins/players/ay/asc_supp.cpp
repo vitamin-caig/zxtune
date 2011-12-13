@@ -687,7 +687,7 @@ namespace
   struct ASCChannelState
   {
     ASCChannelState()
-      : Enabled(false), Envelope(false), EnvelopeTone(0)
+      : Enabled(false), Envelope(false), BreakSample(false)
       , Volume(15), VolumeAddon(0), VolSlideDelay(0), VolSlideAddon(), VolSlideCounter(0)
       , BaseNoise(0), CurrentNoise(0)
       , Note(0), NoteAddon(0)
@@ -699,7 +699,7 @@ namespace
     }
     bool Enabled;
     bool Envelope;
-    uint_t EnvelopeTone;
+    bool BreakSample;
     uint_t Volume;
     int_t VolumeAddon;
     uint_t VolSlideDelay;
@@ -732,6 +732,7 @@ namespace
   public:
     explicit ASCDataRenderer(ASCTrack::ModuleData::Ptr data)
       : Data(data)
+      , EnvelopeTone(0)
     {
     }
 
@@ -742,15 +743,14 @@ namespace
 
     virtual void SynthesizeData(const TrackState& state, AYM::TrackBuilder& track)
     {
-      uint_t breakSamples = 0;
       if (0 == state.Quirk())
       {
-        GetNewLineState(state, track, breakSamples);
+        GetNewLineState(state, track);
       }
-      SynthesizeChannelsData(track, breakSamples);
+      SynthesizeChannelsData(track);
     }
   private:
-    void GetNewLineState(const TrackState& state, AYM::TrackBuilder& track, uint_t& breakSamples)
+    void GetNewLineState(const TrackState& state, AYM::TrackBuilder& track)
     {
       if (0 == state.Line())
       {
@@ -766,10 +766,6 @@ namespace
             continue;
           }
           GetNewChannelState(src, PlayerState[chan], track);
-          if (src.FindCommand(BREAK_SAMPLE))
-          {
-            breakSamples |= 1 << chan;
-          }
         }
       }
     }
@@ -795,8 +791,8 @@ namespace
           }
           if (-1 != it->Param2)
           {
-            dst.EnvelopeTone = it->Param2;
-            track.SetEnvelopeTone(dst.EnvelopeTone);
+            EnvelopeTone = it->Param2;
+            track.SetEnvelopeTone(EnvelopeTone);
           }
           break;
         case ENVELOPE_ON:
@@ -840,6 +836,7 @@ namespace
           dst.VolSlideAddon = it->Param2;
           break;
         case BREAK_SAMPLE:
+          dst.BreakSample = true;
           break;
         default:
           assert(!"Invalid cmd");
@@ -868,6 +865,7 @@ namespace
           dst.PosInSample = 0;
           dst.VolumeAddon = 0;
           dst.ToneDeviation = 0;
+          dst.BreakSample = false;
         }
         if (!contOrnament)
         {
@@ -882,17 +880,16 @@ namespace
       }
     }
 
-    void SynthesizeChannelsData(AYM::TrackBuilder& track, uint_t breakSamples)
+    void SynthesizeChannelsData(AYM::TrackBuilder& track)
     {
       for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
       {
-        const bool breakSample = 0 != (breakSamples & (1 << chan));
         AYM::ChannelBuilder channel = track.GetChannel(chan);
-        SynthesizeChannel(PlayerState[chan], breakSample, channel, track);
+        SynthesizeChannel(PlayerState[chan], channel, track);
       }
     }
 
-    void SynthesizeChannel(ASCChannelState& dst, bool breakSample, AYM::ChannelBuilder& channel, AYM::TrackBuilder& track)
+    void SynthesizeChannel(ASCChannelState& dst, AYM::ChannelBuilder& channel, AYM::TrackBuilder& track)
     {
       if (!dst.Enabled)
       {
@@ -952,8 +949,8 @@ namespace
       }
       if (curSampleLine.NoiseMask && sampleEnvelope)
       {
-        dst.EnvelopeTone += curSampleLine.Adding;
-        track.SetEnvelopeTone(dst.EnvelopeTone);
+        EnvelopeTone += curSampleLine.Adding;
+        track.SetEnvelopeTone(EnvelopeTone);
       }
       else
       {
@@ -987,7 +984,7 @@ namespace
 
       if (dst.PosInSample++ >= curSample.GetLoopLimit())
       {
-        if (!breakSample)
+        if (!dst.BreakSample)
         {
           dst.PosInSample = curSample.GetLoop();
         }
@@ -1003,6 +1000,7 @@ namespace
     }
   private:
     const ASCTrack::ModuleData::Ptr Data;
+    uint_t EnvelopeTone;
     boost::array<ASCChannelState, Devices::AYM::CHANNELS> PlayerState;
   };
 
