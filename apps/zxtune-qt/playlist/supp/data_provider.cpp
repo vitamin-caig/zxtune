@@ -82,34 +82,34 @@ namespace
   template<>
   struct ObjectTraits<Binary::Container::Ptr>
   {
-    typedef std::size_t WeigthType;
+    typedef std::size_t WeightType;
 
-    static WeigthType Weigth(Binary::Container::Ptr obj)
+    static WeightType Weight(Binary::Container::Ptr obj)
     {
       return obj->Size();
     }
   };
 
-  template<class T, class W = typename ObjectTraits<T>::WeigthType>
+  template<class T, class W = typename ObjectTraits<T>::WeightType>
   class ObjectsCache
   {
     struct Item
     {
       String Id;
       T Value;
-      W Weigth;
+      W Weight;
 
       Item()
         : Id()
         , Value()
-        , Weigth()
+        , Weight()
       {
       }
 
       Item(const String& id, T val)
         : Id(id)
         , Value(val)
-        , Weigth(ObjectTraits<T>::Weigth(val))
+        , Weight(ObjectTraits<T>::Weight(val))
       {
       }
     };
@@ -117,7 +117,7 @@ namespace
     typedef std::list<Item> ItemsList;
   public:
     ObjectsCache()
-      : TotalWeigth()
+      : TotalWeight()
     {
     }
 
@@ -134,16 +134,16 @@ namespace
     {
       if (Item* res = FindItem(id))
       {
-        const W weigth = ObjectTraits<T>::Weigth(val);
-        TotalWeigth = TotalWeigth + weigth - res->Weigth;
+        const W weight = ObjectTraits<T>::Weight(val);
+        TotalWeight = TotalWeight + weight - res->Weight;
         res->Value = val;
-        res->Weigth = weigth;
+        res->Weight = weight;
       }
       else
       {
         const Item item(id, val);
         Items.push_front(item);
-        TotalWeigth += item.Weigth;
+        TotalWeight += item.Weight;
       }
     }
 
@@ -160,11 +160,11 @@ namespace
     void Fit(std::size_t maxCount, W maxWeight)
     {
       while (Items.size() > maxCount ||
-             TotalWeigth > maxWeight)
+             TotalWeight > maxWeight)
       {
         const Item entry = Items.back();
         Items.pop_back();
-        TotalWeigth -= entry.Weigth;
+        TotalWeight -= entry.Weight;
       }
     }
   private:
@@ -184,7 +184,7 @@ namespace
     }
   private:
     ItemsList Items;
-    W TotalWeigth;
+    W TotalWeight;
   };
 
   //cached data provider

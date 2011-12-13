@@ -57,7 +57,7 @@ namespace Chiptune
 
     PACK_PRE struct RawPositions
     {
-      uint8_t Lenght;
+      uint8_t Length;
       PACK_PRE struct PosEntry
       {
         uint8_t PatternNum;
@@ -270,7 +270,7 @@ namespace Chiptune
         const std::size_t offset = fromLE(Source.PositionsOffset);
         const RawPositions* const positions = Delegate.GetField<RawPositions>(offset);
         Require(positions != 0);
-        const uint_t length = positions->Lenght + 1;
+        const uint_t length = positions->Length + 1;
         AddRange(offset, sizeof(*positions) + (length - 1) * sizeof(RawPositions::PosEntry));
         const RawPositions::PosEntry* const firstEntry = positions->Data;
         const RawPositions::PosEntry* const lastEntry = firstEntry + length;
@@ -621,7 +621,7 @@ namespace Chiptune
       }
       if (const RawPositions* positions = data.GetField<RawPositions>(areas.GetAreaAddress(POSITIONS)))
       {
-        if (!areas.CheckPositions(positions->Lenght))
+        if (!areas.CheckPositions(positions->Length))
         {
           return false;
         }

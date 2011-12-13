@@ -137,7 +137,7 @@ namespace
     uint8_t Tempo;
     uint8_t Start;
     uint8_t Loop;
-    uint8_t Lenght;
+    uint8_t Length;
     uint8_t Padding2[16];
     boost::array<PDTSample, SAMPLES_COUNT> Samples;
     boost::array<uint8_t, POSITIONS_COUNT> Positions;
@@ -299,8 +299,8 @@ namespace
       const PDTHeader* const header(safe_ptr_cast<const PDTHeader*>(data.Data()));
 
       //fill order
-      Data->Positions.resize(header->Lenght);
-      std::copy(header->Positions.begin(), header->Positions.begin() + header->Lenght, Data->Positions.begin());
+      Data->Positions.resize(header->Length);
+      std::copy(header->Positions.begin(), header->Positions.begin() + header->Length, Data->Positions.begin());
 
       //fill patterns
       Data->Patterns.resize(header->Patterns.size());
@@ -595,7 +595,7 @@ namespace
     }
     //check in header
     const PDTHeader* const header = safe_ptr_cast<const PDTHeader*>(data.Data());
-    if (!header->Lenght || header->Loop > header->Lenght || !header->Tempo)
+    if (!header->Length || header->Loop > header->Length || !header->Tempo)
     {
       return false;
     }
@@ -645,7 +645,7 @@ namespace
     "00-ef"
     //uint8_t Loop;
     "00-ef"
-    //uint8_t Lenght;
+    //uint8_t Length;
     "01-f0"
     //uint8_t Padding2[16];
     "00000000000000000000000000000000"

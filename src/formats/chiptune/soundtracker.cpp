@@ -123,7 +123,7 @@ namespace Chiptune
     {
       RawSample Samples[MAX_SAMPLES_COUNT - 1];
       RawPosEntry Positions[MAX_POSITIONS_COUNT];
-      uint8_t Lenght;
+      uint8_t Length;
       RawOrnament Ornaments[MAX_ORNAMENTS_COUNT + 1];
       uint8_t Tempo;
       uint8_t PatternsSize;
@@ -140,7 +140,7 @@ namespace Chiptune
     BOOST_STATIC_ASSERT(sizeof(RawPattern) == 576);
     BOOST_STATIC_ASSERT(sizeof(RawHeader) == 3009 + 576);
     BOOST_STATIC_ASSERT(offsetof(RawHeader, Positions) == 1950);
-    BOOST_STATIC_ASSERT(offsetof(RawHeader, Lenght) == 2462);
+    BOOST_STATIC_ASSERT(offsetof(RawHeader, Length) == 2462);
     BOOST_STATIC_ASSERT(offsetof(RawHeader, Tempo) == 3007);
     BOOST_STATIC_ASSERT(offsetof(RawHeader, Patterns) == 3009);
 
@@ -215,7 +215,7 @@ namespace Chiptune
 
       void ParsePositions(Builder& builder) const
       {
-        const std::size_t posCount = Source.Lenght + 1;
+        const std::size_t posCount = Source.Length + 1;
         std::vector<PositionEntry> positions(posCount);
         for (uint_t idx = 0; idx != posCount; ++idx)
         {

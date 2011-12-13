@@ -22,29 +22,29 @@ namespace ZXTune
     class FastDump
     {
     public:
-      FastDump(const Binary::Container& data, std::size_t offset = 0, std::size_t lenght = ~0)
+      FastDump(const Binary::Container& data, std::size_t offset = 0, std::size_t length = ~0)
         : Ptr(static_cast<const uint8_t*>(data.Data()) + offset)
-        , Lenght(std::min(lenght, data.Size() - offset))
+        , Length(std::min(length, data.Size() - offset))
       {
       }
 
       FastDump(const void* data, std::size_t size)
         : Ptr(static_cast<const uint8_t*>(data))
-        , Lenght(size)
+        , Length(size)
       {
       }
 
       //! @brief Accessing elements by index
       const uint8_t& operator [] (std::size_t idx) const
       {
-        assert(idx < Lenght);
+        assert(idx < Length);
         return Ptr[idx];
       }
 
       //! @brief Getting size
       std::size_t Size() const
       {
-        return Lenght;
+        return Length;
       }
 
       //! @brief Getting raw data pointer
@@ -54,7 +54,7 @@ namespace ZXTune
       }
     private:
       const uint8_t* const Ptr;
-      const std::size_t Lenght;
+      const std::size_t Length;
     };
   }
 }

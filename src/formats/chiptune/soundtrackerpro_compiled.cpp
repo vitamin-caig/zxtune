@@ -77,7 +77,7 @@ namespace Chiptune
 
     PACK_PRE struct RawPositions
     {
-      uint8_t Lenght;
+      uint8_t Length;
       uint8_t Loop;
       PACK_PRE struct PosEntry
       {
@@ -392,7 +392,7 @@ namespace Chiptune
         const std::size_t offset = fromLE(Source.PositionsOffset);
         const RawPositions* const positions = Delegate.GetField<RawPositions>(offset);
         Require(positions != 0);
-        const uint_t length = positions->Lenght;
+        const uint_t length = positions->Length;
         Require(length != 0);
         Ranges.AddService(offset, sizeof(*positions) + (length - 1) * sizeof(RawPositions::PosEntry));
         const RawPositions::PosEntry* const firstEntry = positions->Data;
@@ -776,7 +776,7 @@ namespace Chiptune
       }
       if (const RawPositions* positions = data.GetField<RawPositions>(areas.GetAreaAddress(POSITIONS)))
       {
-        if (!areas.CheckPositions(positions->Lenght))
+        if (!areas.CheckPositions(positions->Length))
         {
           return false;
         }
