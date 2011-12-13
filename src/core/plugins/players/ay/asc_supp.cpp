@@ -71,10 +71,6 @@ namespace
   {
     'A', 'S', 'M', ' ', 'C', 'O', 'M', 'P', 'I', 'L', 'A', 'T', 'I', 'O', 'N', ' ', 'O', 'F', ' '
   };
-  const uint8_t ASC_ID_2[] =
-  {
-    ' ', 'B', 'Y', ' '
-  };
 
   PACK_PRE struct ASCID
   {
@@ -86,9 +82,7 @@ namespace
     bool Check() const
     {
       BOOST_STATIC_ASSERT(sizeof(ASC_ID_1) == sizeof(Identifier1));
-      BOOST_STATIC_ASSERT(sizeof(ASC_ID_2) == sizeof(Identifier2));
-      return 0 == std::memcmp(Identifier1, ASC_ID_1, sizeof(Identifier1)) &&
-             0 == std::memcmp(Identifier2, ASC_ID_2, sizeof(Identifier2));
+      return 0 == std::memcmp(Identifier1, ASC_ID_1, sizeof(Identifier1));
     }
   } PACK_POST;
 
