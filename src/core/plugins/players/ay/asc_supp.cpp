@@ -12,15 +12,13 @@ Author:
 //local includes
 #include "ay_base.h"
 #include "ay_conversion.h"
-#include "core/plugins/utils.h"
 #include "core/plugins/registrator.h"
+#include "core/plugins/utils.h"
 #include "core/plugins/players/creation_result.h"
 #include "core/plugins/players/module_properties.h"
 //common includes
-#include <byteorder.h>
 #include <error_tools.h>
 #include <logging.h>
-#include <range_checker.h>
 #include <tools.h>
 //library includes
 #include <core/convert_parameters.h>
@@ -28,337 +26,21 @@ Author:
 #include <core/error_codes.h>
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
-#include <io/container.h>
+#include <formats/chiptune_decoders.h>
+#include <formats/chiptune/ascsoundmaster.h>
 //text includes
 #include <core/text/core.h>
 #include <core/text/plugins.h>
-#include <core/text/warnings.h>
 
 #define FILE_TAG 45B26E38
 
 namespace
 {
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
+  const std::string THIS_MODULE("Core::ASCSupp");
+}
 
-  const uint_t LIMITER(~uint_t(0));
-
-  //hints
-  const std::size_t MAX_MODULE_SIZE = 0x3800;
-  const uint_t SAMPLES_COUNT = 32;
-  const uint_t MAX_SAMPLE_SIZE = 150;
-  const uint_t ORNAMENTS_COUNT = 32;
-  const uint_t MAX_ORNAMENT_SIZE = 30;
-  const uint_t MAX_PATTERN_SIZE = 64;//???
-  const uint_t MAX_PATTERNS_COUNT = 32;//TODO
-
-  //////////////////////////////////////////////////////////////////////////
-#ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
-#endif
-  PACK_PRE struct ASCHeader
-  {
-    uint8_t Tempo;
-    uint8_t Loop;
-    uint16_t PatternsOffset;
-    uint16_t SamplesOffset;
-    uint16_t OrnamentsOffset;
-    uint8_t Length;
-    uint8_t Positions[1];
-  } PACK_POST;
-
-  const uint8_t ASC_ID_1[] =
-  {
-    'A', 'S', 'M', ' ', 'C', 'O', 'M', 'P', 'I', 'L', 'A', 'T', 'I', 'O', 'N', ' ', 'O', 'F', ' '
-  };
-
-  PACK_PRE struct ASCID
-  {
-    uint8_t Identifier1[19];//'ASM COMPILATION OF '
-    char Title[20];
-    uint8_t Identifier2[4];//' BY '
-    char Author[20];
-
-    bool Check() const
-    {
-      BOOST_STATIC_ASSERT(sizeof(ASC_ID_1) == sizeof(Identifier1));
-      return 0 == std::memcmp(Identifier1, ASC_ID_1, sizeof(Identifier1));
-    }
-  } PACK_POST;
-
-  PACK_PRE struct ASCPattern
-  {
-    boost::array<uint16_t, 3> Offsets;//from start of patterns
-  } PACK_POST;
-
-  PACK_PRE struct ASCOrnaments
-  {
-    boost::array<uint16_t, ORNAMENTS_COUNT> Offsets;
-  } PACK_POST;
-
-  PACK_PRE struct ASCOrnament
-  {
-    PACK_PRE struct Line
-    {
-      //BEFooooo
-      //OOOOOOOO
-
-      //o - noise offset (signed)
-      //B - loop begin
-      //E - loop end
-      //F - finished
-      //O - note offset (signed)
-      uint8_t LoopAndNoiseOffset;
-      int8_t NoteOffset;
-
-      bool IsLoopBegin() const
-      {
-        return 0 != (LoopAndNoiseOffset & 128);
-      }
-
-      bool IsLoopEnd() const
-      {
-        return 0 != (LoopAndNoiseOffset & 64);
-      }
-
-      bool IsFinished() const
-      {
-        return 0 != (LoopAndNoiseOffset & 32);
-      }
-
-      int_t GetNoiseOffset() const
-      {
-        return static_cast<int8_t>(LoopAndNoiseOffset * 8) / 8;
-      }
-    } PACK_POST;
-    Line Data[1];
-  } PACK_POST;
-
-  PACK_PRE struct ASCSamples
-  {
-    boost::array<uint16_t, SAMPLES_COUNT> Offsets;
-  } PACK_POST;
-
-  PACK_PRE struct ASCSample
-  {
-    PACK_PRE struct Line
-    {
-      //BEFaaaaa
-      //TTTTTTTT
-      //LLLLnCCt
-      //a - adding
-      //B - loop begin
-      //E - loop end
-      //F - finished
-      //T - tone deviation
-      //L - level
-      //n - noise mask
-      //C - command
-      //t - tone mask
-
-      uint8_t LoopAndAdding;
-      int8_t ToneDeviation;
-      uint8_t LevelAndMasks;
-
-      bool IsLoopBegin() const
-      {
-        return 0 != (LoopAndAdding & 128);
-      }
-
-      bool IsLoopEnd() const
-      {
-        return 0 != (LoopAndAdding & 64);
-      }
-
-      bool IsFinished() const
-      {
-        return 0 != (LoopAndAdding & 32);
-      }
-
-      int_t GetAdding() const
-      {
-        return static_cast<int8_t>(LoopAndAdding * 8) / 8;
-      }
-
-      uint_t GetLevel() const
-      {
-        return LevelAndMasks >> 4;
-      }
-
-      bool GetNoiseMask() const
-      {
-        return 0 != (LevelAndMasks & 8);
-      }
-
-      uint_t GetCommand() const
-      {
-        return (LevelAndMasks & 6) >> 1;
-      }
-
-      bool GetToneMask() const
-      {
-        return 0 != (LevelAndMasks & 1);
-      }
-    } PACK_POST;
-
-    enum
-    {
-      EMPTY,
-      ENVELOPE,
-      DECVOLADD,
-      INCVOLADD
-    };
-    Line Data[1];
-  } PACK_POST;
-
-#ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
-#endif
-
-  BOOST_STATIC_ASSERT(sizeof(ASCHeader) == 10);
-  BOOST_STATIC_ASSERT(sizeof(ASCPattern) == 6);
-  BOOST_STATIC_ASSERT(sizeof(ASCOrnament) == 2);
-  BOOST_STATIC_ASSERT(sizeof(ASCSample) == 3);
-
-  struct Sample
-  {
-    explicit Sample(const ASCSample& sample)
-      : Loop(), LoopLimit(), Lines()
-    {
-      Lines.reserve(MAX_SAMPLE_SIZE);
-      for (uint_t sline = 0; sline != MAX_SAMPLE_SIZE; ++sline)
-      {
-        const ASCSample::Line& line = sample.Data[sline];
-        Lines.push_back(Line(line));
-        if (line.IsLoopBegin())
-        {
-          Loop = sline;
-        }
-        if (line.IsLoopEnd())
-        {
-          LoopLimit = sline;
-        }
-        if (line.IsFinished())
-        {
-          break;
-        }
-      }
-    }
-
-    struct Line
-    {
-      Line()
-        : Level(), ToneDeviation(), ToneMask(), NoiseMask(), Adding(), Command()
-      {
-      }
-
-      explicit Line(const ASCSample::Line& line)
-        : Level(line.GetLevel()), ToneDeviation(line.ToneDeviation)
-        , ToneMask(line.GetToneMask()), NoiseMask(line.GetNoiseMask())
-        , Adding(line.GetAdding()), Command(line.GetCommand())
-      {
-      }
-      uint_t Level;//0-15
-      int_t ToneDeviation;
-      bool ToneMask;
-      bool NoiseMask;
-      int_t Adding;
-      uint_t Command;
-    };
-
-    uint_t GetLoop() const
-    {
-      return Loop;
-    }
-
-    uint_t GetLoopLimit() const
-    {
-      return LoopLimit;
-    }
-
-    uint_t GetSize() const
-    {
-      return static_cast<uint_t>(Lines.size());
-    }
-
-    const Line& GetLine(uint_t idx) const
-    {
-      static const Line STUB;
-      return Lines.size() > idx ? Lines[idx] : STUB;
-    }
-  private:
-    uint_t Loop;
-    uint_t LoopLimit;
-    std::vector<Line> Lines;
-  };
-
-  struct Ornament
-  {
-    explicit Ornament(const ASCOrnament& ornament)
-      : Loop(), LoopLimit(), Lines()
-    {
-      Lines.reserve(MAX_ORNAMENT_SIZE);
-      for (uint_t sline = 0; sline != MAX_ORNAMENT_SIZE; ++sline)
-      {
-        const ASCOrnament::Line& line = ornament.Data[sline];
-        Lines.push_back(Line(line));
-        if (line.IsLoopBegin())
-        {
-          Loop = sline;
-        }
-        if (line.IsLoopEnd())
-        {
-          LoopLimit = sline;
-        }
-        if (line.IsFinished())
-        {
-          break;
-        }
-      }
-    }
-
-    struct Line
-    {
-      Line()
-        : NoteAddon(), NoiseAddon()
-      {
-      }
-
-      explicit Line(const ASCOrnament::Line& line)
-        : NoteAddon(line.NoteOffset)
-        , NoiseAddon(line.GetNoiseOffset())
-      {
-      }
-      int_t NoteAddon;
-      int_t NoiseAddon;
-    };
-
-    uint_t GetLoop() const
-    {
-      return Loop;
-    }
-
-    uint_t GetLoopLimit() const
-    {
-      return LoopLimit;
-    }
-
-    uint_t GetSize() const
-    {
-      return static_cast<uint_t>(Lines.size());
-    }
-
-    const Line& GetLine(uint_t idx) const
-    {
-      static const Line STUB;
-      return Lines.size() > idx ? Lines[idx] : STUB;
-    }
-  private:
-    uint_t Loop;
-    uint_t LoopLimit;
-    std::vector<Line> Lines;
-  };
-
+namespace ASCSoundMaster
+{
   //supported commands and their parameters
   enum CmdType
   {
@@ -388,299 +70,330 @@ namespace
     BREAK_SAMPLE
   };
 
-  // tracker type
-  typedef TrackingSupport<Devices::AYM::CHANNELS, CmdType, Sample, Ornament> ASCTrack;
-
-  class ASCModuleData : public ASCTrack::ModuleData
+  struct Sample : public Formats::Chiptune::ASCSoundMaster::Sample
   {
-  public:
-    typedef boost::shared_ptr<ASCModuleData> Ptr;
-
-    ASCModuleData()
-      : ASCTrack::ModuleData()
+    Sample()
+      : Formats::Chiptune::ASCSoundMaster::Sample()
     {
     }
 
-    void ParseInformation(const IO::FastDump& data, ModuleProperties& properties)
+    Sample(const Formats::Chiptune::ASCSoundMaster::Sample& rh)
+      : Formats::Chiptune::ASCSoundMaster::Sample(rh)
     {
-      const ASCHeader* const header = safe_ptr_cast<const ASCHeader*>(&data[0]);
-
-      LoopPosition = header->Loop;
-      InitialTempo = header->Tempo;
-      //meta properties
-      const ASCID* const id = safe_ptr_cast<const ASCID*>(header->Positions + header->Length);
-      if (id->Check())
-      {
-        properties.SetTitle(OptimizeString(FromCharArray(id->Title)));
-        properties.SetAuthor(OptimizeString(FromCharArray(id->Author)));
-      }
-      properties.SetProgram(Text::ASC_EDITOR);
-      properties.SetFreqtable(TABLE_ASM);
     }
 
-    std::size_t ParseSamples(const IO::FastDump& data)
+    uint_t GetLoop() const
     {
-      const ASCHeader* const header = safe_ptr_cast<const ASCHeader*>(&data[0]);
-
-      std::size_t res = sizeof(*header);
-      const std::size_t samplesOff = fromLE(header->SamplesOffset);
-      const ASCSamples* const samples = safe_ptr_cast<const ASCSamples*>(&data[samplesOff]);
-      Samples.reserve(samples->Offsets.size());
-      uint_t index = 0;
-      for (const uint16_t* pSample = samples->Offsets.begin(); pSample != samples->Offsets.end();
-        ++pSample, ++index)
-      {
-        assert(*pSample && fromLE(*pSample) < data.Size());
-        const std::size_t sampleOffset = fromLE(*pSample);
-        const ASCSample* const sample = safe_ptr_cast<const ASCSample*>(&data[samplesOff + sampleOffset]);
-        Samples.push_back(Sample(*sample));
-        const Sample& smp = Samples.back();
-        res = std::max<std::size_t>(res, samplesOff + sampleOffset + smp.GetSize() * sizeof(ASCSample::Line));
-      }
-      return res;
+      return Loop;
     }
 
-    std::size_t ParseOrnaments(const IO::FastDump& data)
+    uint_t GetLoopLimit() const
     {
-      const ASCHeader* const header = safe_ptr_cast<const ASCHeader*>(&data[0]);
-
-      std::size_t res = sizeof(*header);
-      const std::size_t ornamentsOff = fromLE(header->OrnamentsOffset);
-      const ASCOrnaments* const ornaments = safe_ptr_cast<const ASCOrnaments*>(&data[ornamentsOff]);
-      Ornaments.reserve(ornaments->Offsets.size());
-      uint_t index = 0;
-      for (const uint16_t* pOrnament = ornaments->Offsets.begin(); pOrnament != ornaments->Offsets.end();
-        ++pOrnament, ++index)
-      {
-        assert(*pOrnament && fromLE(*pOrnament) < data.Size());
-        const std::size_t ornamentOffset = fromLE(*pOrnament);
-        const ASCOrnament* const ornament = safe_ptr_cast<const ASCOrnament*>(&data[ornamentsOff + ornamentOffset]);
-        Ornaments.push_back(ASCTrack::Ornament(*ornament));
-        const Ornament& orn = Ornaments.back();
-        res = std::max<std::size_t>(res, ornamentsOff + ornamentOffset + orn.GetSize() * sizeof(ASCOrnament::Line));
-      }
-      return res;
+      return LoopLimit;
     }
 
-    std::size_t ParsePatterns(const IO::FastDump& data)
+    uint_t GetSize() const
     {
-      const ASCHeader* const header = safe_ptr_cast<const ASCHeader*>(&data[0]);
-
-      std::size_t res = sizeof(*header);
-      //fill order
-      Positions.assign(header->Positions, header->Positions + header->Length);
-      //parse patterns
-      const std::size_t patternsCount = 1 + *std::max_element(Positions.begin(), Positions.end());
-      const uint16_t patternsOff = fromLE(header->PatternsOffset);
-      const ASCPattern* pattern = safe_ptr_cast<const ASCPattern*>(&data[patternsOff]);
-      assert(patternsCount <= MAX_PATTERNS_COUNT);
-      Patterns.resize(patternsCount);
-      for (uint_t patNum = 0; patNum < patternsCount; ++patNum, ++pattern)
-      {
-        ASCTrack::Pattern& pat(Patterns[patNum]);
-
-        AYM::PatternCursors cursors;
-        std::transform(pattern->Offsets.begin(), pattern->Offsets.end(), cursors.begin(),
-          boost::bind(std::plus<uint_t>(), patternsOff, boost::bind(&fromLE<uint16_t>, _1)));
-        uint_t envelopes = 0;
-        uint_t& channelACursor = cursors.front().Offset;
-        do
-        {
-          ASCTrack::Line& line = pat.AddLine();
-          ParsePattern(data, cursors, line, envelopes);
-          //skip lines
-          if (const uint_t linesToSkip = cursors.GetMinCounter())
-          {
-            cursors.SkipLines(linesToSkip);
-            pat.AddLines(linesToSkip);
-          }
-        }
-        while (channelACursor < data.Size() &&
-          (0xff != data[channelACursor] || 0 != cursors.front().Counter));
-        res = std::max<std::size_t>(res, 1 + cursors.GetMaxOffset());
-      }
-      return res;
+      return static_cast<uint_t>(Lines.size());
     }
-  private:
-    static void ParsePattern(const IO::FastDump& data
-      , AYM::PatternCursors& cursors
-      , ASCTrack::Line& line
-      , uint_t& envelopes
-      )
-    {
-      assert(line.Channels.size() == cursors.size());
-      ASCTrack::Line::ChannelsArray::iterator channel = line.Channels.begin();
-      uint_t envMask = 1;
-      for (AYM::PatternCursors::iterator cur = cursors.begin(); cur != cursors.end(); ++cur, ++channel, envMask <<= 1)
-      {
-        if (cur->Counter--)
-        {
-          continue;//has to skip
-        }
 
-        bool continueSample = false;
-        for (const std::size_t dataSize = data.Size(); cur->Offset < dataSize;)
-        {
-          const uint_t cmd = data[cur->Offset++];
-          const std::size_t restbytes = dataSize - cur->Offset;
-          if (cmd <= 0x55)//note
-          {
-            if (!continueSample)
-            {
-              channel->SetEnabled(true);
-            }
-            if (!channel->Commands.empty() &&
-                SLIDE == channel->Commands.back().Type)
-            {
-              //set slide to note
-              ASCTrack::Command& command = channel->Commands.back();
-              command.Type = SLIDE_NOTE;
-              command.Param2 = cmd;
-            }
-            else
-            {
-              channel->SetNote(cmd);
-            }
-            if (envelopes & envMask)
-            {
-              //modify existing
-              ASCTrack::CommandsArray::iterator cmdIt = std::find(channel->Commands.begin(),
-                channel->Commands.end(), ENVELOPE);
-              if (restbytes < 1)
-              {
-                throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
-              }
-              const uint_t param = data[cur->Offset++];
-              if (channel->Commands.end() == cmdIt)
-              {
-                channel->Commands.push_back(ASCTrack::Command(ENVELOPE, -1, param));
-              }
-              else
-              {
-                cmdIt->Param2 = param;
-              }
-            }
-            break;
-          }
-          else if (cmd >= 0x56 && cmd <= 0x5d) //stop
-          {
-            break;
-          }
-          else if (cmd == 0x5e) //break sample loop
-          {
-            channel->Commands.push_back(ASCTrack::Command(BREAK_SAMPLE));
-            break;
-          }
-          else if (cmd == 0x5f) //shut
-          {
-            channel->SetEnabled(false);
-            break;
-          }
-          else if (cmd >= 0x60 && cmd <= 0x9f) //skip
-          {
-            cur->Period = cmd - 0x60;
-          }
-          else if (cmd >= 0xa0 && cmd <= 0xbf) //sample
-          {
-            channel->SetSample(cmd - 0xa0);
-          }
-          else if (cmd >= 0xc0 && cmd <= 0xdf) //ornament
-          {
-            channel->SetOrnament(cmd - 0xc0);
-          }
-          else if (cmd == 0xe0) // envelope full vol
-          {
-            channel->SetVolume(15);
-            channel->Commands.push_back(ASCTrack::Command(ENVELOPE_ON));
-            envelopes |= envMask;
-          }
-          else if (cmd >= 0xe1 && cmd <= 0xef) // noenvelope vol
-          {
-            channel->SetVolume(cmd - 0xe0);
-            channel->Commands.push_back(ASCTrack::Command(ENVELOPE_OFF));
-            envelopes &= ~envMask;
-          }
-          else if (cmd == 0xf0) //initial noise
-          {
-            if (restbytes < 1)
-            {
-              throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
-            }
-            channel->Commands.push_back(ASCTrack::Command(NOISE, data[cur->Offset++]));
-          }
-          else if ((cmd & 0xfc) == 0xf0) //0xf1, 0xf2, 0xf3- continue sample or ornament
-          {
-            if (cmd & 1)
-            {
-              continueSample = true;
-              channel->Commands.push_back(ASCTrack::Command(CONT_SAMPLE));
-            }
-            if (cmd & 2)
-            {
-              channel->Commands.push_back(ASCTrack::Command(CONT_ORNAMENT));
-            }
-          }
-          else if (cmd == 0xf4) //tempo
-          {
-            if (restbytes < 1)
-            {
-              throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
-            }
-            line.SetTempo(data[cur->Offset++]);
-          }
-          else if (cmd == 0xf5 || cmd == 0xf6) //slide
-          {
-            if (restbytes < 1)
-            {
-              throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
-            }
-            channel->Commands.push_back(ASCTrack::Command(GLISS,
-              ((cmd == 0xf5) ? -16 : 16) * static_cast<int8_t>(data[cur->Offset++])));
-          }
-          else if (cmd == 0xf7 || cmd == 0xf9) //stepped slide
-          {
-            if (cmd == 0xf7)
-            {
-              channel->Commands.push_back(ASCTrack::Command(CONT_SAMPLE));
-            }
-            if (restbytes < 1)
-            {
-              throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
-            }
-            channel->Commands.push_back(ASCTrack::Command(SLIDE, static_cast<int8_t>(data[cur->Offset++])));
-          }
-          else if ((cmd & 0xf9) == 0xf8) //0xf8, 0xfa, 0xfc, 0xfe- envelope
-          {
-            ASCTrack::CommandsArray::iterator cmdIt = std::find(channel->Commands.begin(), channel->Commands.end(),
-              ENVELOPE);
-            if (channel->Commands.end() == cmdIt)
-            {
-              channel->Commands.push_back(ASCTrack::Command(ENVELOPE, cmd & 0xf, -1));
-            }
-            else
-            {
-              //strange situation...
-              cmdIt->Param1 = cmd & 0xf;
-            }
-          }
-          else if (cmd == 0xfb) //amplitude delay
-          {
-            if (restbytes < 1)
-            {
-              throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
-            }
-            const uint_t step = data[cur->Offset++];
-            channel->Commands.push_back(ASCTrack::Command(AMPLITUDE_SLIDE, step & 31, step & 32 ? -1 : 1));
-          }
-        }
-        cur->Counter = cur->Period;
-      }
+    const Line& GetLine(uint_t idx) const
+    {
+      static const Line STUB;
+      return Lines.size() > idx ? Lines[idx] : STUB;
     }
   };
 
-  struct ASCChannelState
+  struct Ornament : public Formats::Chiptune::ASCSoundMaster::Ornament
   {
-    ASCChannelState()
+    Ornament()
+      : Formats::Chiptune::ASCSoundMaster::Ornament()
+    {
+    }
+
+    Ornament(const Formats::Chiptune::ASCSoundMaster::Ornament& rh)
+      : Formats::Chiptune::ASCSoundMaster::Ornament(rh)
+    {
+    }
+
+    uint_t GetLoop() const
+    {
+      return Loop;
+    }
+
+    uint_t GetLoopLimit() const
+    {
+      return LoopLimit;
+    }
+
+    uint_t GetSize() const
+    {
+      return static_cast<uint_t>(Lines.size());
+    }
+
+    const Line& GetLine(uint_t idx) const
+    {
+      static const Line STUB;
+      return Lines.size() > idx ? Lines[idx] : STUB;
+    }
+  };
+
+  typedef ZXTune::Module::TrackingSupport<Devices::AYM::CHANNELS, CmdType, Sample, Ornament> Track;
+
+  std::auto_ptr<Formats::Chiptune::ASCSoundMaster::Builder> CreateDataBuilder(Track::ModuleData::RWPtr data, ZXTune::Module::ModuleProperties::RWPtr props);
+  ZXTune::Module::AYM::Chiptune::Ptr CreateChiptune(Track::ModuleData::Ptr data, ZXTune::Module::ModuleProperties::Ptr properties);
+}
+
+namespace ASCSoundMaster
+{
+  using namespace ZXTune;
+  using namespace ZXTune::Module;
+
+  class DataBuilder : public Formats::Chiptune::ASCSoundMaster::Builder
+  {
+  public:
+    DataBuilder(Track::ModuleData::RWPtr data, ZXTune::Module::ModuleProperties::RWPtr props)
+      : Data(data)
+      , Properties(props)
+      , Context(*Data)
+    {
+    }
+
+    virtual void SetProgram(const String& program)
+    {
+      Properties->SetProgram(program);
+      Properties->SetFreqtable(TABLE_ASM);
+    }
+
+    virtual void SetTitleAndAuthor(const String& title, const String& author)
+    {
+      Properties->SetTitle(OptimizeString(title));
+      Properties->SetAuthor(OptimizeString(author));
+    }
+
+    virtual void SetInitialTempo(uint_t tempo)
+    {
+      Data->InitialTempo = tempo;
+    }
+
+    virtual void SetSample(uint_t index, const Formats::Chiptune::ASCSoundMaster::Sample& sample)
+    {
+      Data->Samples.resize(index + 1);
+      Data->Samples[index] = Sample(sample);
+    }
+
+    virtual void SetOrnament(uint_t index, const Formats::Chiptune::ASCSoundMaster::Ornament& ornament)
+    {
+      Data->Ornaments.resize(index + 1);
+      Data->Ornaments[index] = Ornament(ornament);
+    }
+
+    virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
+    {
+      Data->Positions.assign(positions.begin(), positions.end());
+      Data->LoopPosition = loop;
+    }
+
+    virtual void StartPattern(uint_t index)
+    {
+      Context.SetPattern(index);
+    }
+
+    virtual void FinishPattern(uint_t size)
+    {
+      Context.FinishPattern(size);
+    }
+
+    virtual void StartLine(uint_t index)
+    {
+      Context.SetLine(index);
+    }
+
+    virtual void SetTempo(uint_t tempo)
+    {
+      Context.CurLine->SetTempo(tempo);
+    }
+
+    virtual void StartChannel(uint_t index)
+    {
+      Context.SetChannel(index);
+    }
+
+    virtual void SetRest()
+    {
+      Context.CurChannel->SetEnabled(false);
+    }
+
+    virtual void SetNote(uint_t note)
+    {
+      Track::Line::Chan* const channel = Context.CurChannel;
+      if (!channel->FindCommand(BREAK_SAMPLE))
+      {
+        channel->SetEnabled(true);
+      }
+      if (!channel->Commands.empty() &&
+          SLIDE == channel->Commands.back().Type)
+      {
+        //set slide to note
+        Track::Command& command = channel->Commands.back();
+        command.Type = SLIDE_NOTE;
+        command.Param2 = note;
+      }
+      else
+      {
+        channel->SetNote(note);
+      }
+    }
+
+    virtual void SetSample(uint_t sample)
+    {
+      Context.CurChannel->SetSample(sample);
+    }
+
+    virtual void SetOrnament(uint_t ornament)
+    {
+      Context.CurChannel->SetOrnament(ornament);
+    }
+
+    virtual void SetVolume(uint_t vol)
+    {
+      Context.CurChannel->SetVolume(vol);
+    }
+
+    virtual void SetEnvelopeType(uint_t type)
+    {
+      Track::Line::Chan* const channel = Context.CurChannel;
+      const Track::CommandsArray::iterator cmd = std::find(channel->Commands.begin(), channel->Commands.end(), ENVELOPE);
+      if (cmd != channel->Commands.end())
+      {
+        cmd->Param1 = type;
+      }
+      else
+      {
+        channel->Commands.push_back(Track::Command(ENVELOPE, type, -1));
+      }
+    }
+
+    virtual void SetEnvelopeTone(uint_t tone)
+    {
+      Track::Line::Chan* const channel = Context.CurChannel;
+      const Track::CommandsArray::iterator cmd = std::find(channel->Commands.begin(), channel->Commands.end(), ENVELOPE);
+      if (cmd != channel->Commands.end())
+      {
+        cmd->Param2 = tone;
+      }
+      else
+      {
+        //strange situation
+        channel->Commands.push_back(Track::Command(ENVELOPE, -1, tone));
+      }
+    }
+
+    virtual void SetEnvelope()
+    {
+      Context.CurChannel->Commands.push_back(Track::Command(ENVELOPE_ON));
+    }
+
+    virtual void SetNoEnvelope()
+    {
+      Context.CurChannel->Commands.push_back(Track::Command(ENVELOPE_OFF));
+    }
+
+    virtual void SetNoise(uint_t val)
+    {
+      Context.CurChannel->Commands.push_back(Track::Command(NOISE, val));
+    }
+
+    virtual void SetContinueSample()
+    {
+      Context.CurChannel->Commands.push_back(Track::Command(CONT_SAMPLE));
+    }
+
+    virtual void SetContinueOrnament()
+    {
+      Context.CurChannel->Commands.push_back(Track::Command(CONT_ORNAMENT));
+    }
+
+    virtual void SetGlissade(int_t val)
+    {
+      Context.CurChannel->Commands.push_back(Track::Command(GLISS, val));
+    }
+
+    virtual void SetSlide(int_t steps)
+    {
+      Context.CurChannel->Commands.push_back(Track::Command(SLIDE, steps));
+    }
+
+    virtual void SetVolumeSlide(uint_t period, int_t delta)
+    {
+      Context.CurChannel->Commands.push_back(Track::Command(AMPLITUDE_SLIDE, period, delta));
+    }
+
+    virtual void SetBreakSample()
+    {
+      Context.CurChannel->Commands.push_back(Track::Command(BREAK_SAMPLE));
+    }
+  private:
+    struct BuildContext
+    {
+      Track::ModuleData& Data;
+      Track::Pattern* CurPattern;
+      Track::Line* CurLine;
+      Track::Line::Chan* CurChannel;
+
+      explicit BuildContext(Track::ModuleData& data)
+        : Data(data)
+        , CurPattern()
+        , CurLine()
+        , CurChannel()
+      {
+      }
+
+      void SetPattern(uint_t idx)
+      {
+        Data.Patterns.resize(std::max<std::size_t>(idx + 1, Data.Patterns.size()));
+        CurPattern = &Data.Patterns[idx];
+        CurLine = 0;
+        CurChannel = 0;
+      }
+
+      void SetLine(uint_t idx)
+      {
+        if (const std::size_t skipped = idx - CurPattern->GetSize())
+        {
+          CurPattern->AddLines(skipped);
+        }
+        CurLine = &CurPattern->AddLine();
+        CurChannel = 0;
+      }
+
+      void SetChannel(uint_t idx)
+      {
+        CurChannel = &CurLine->Channels[idx];
+      }
+
+      void FinishPattern(uint_t size)
+      {
+        if (const std::size_t skipped = size - CurPattern->GetSize())
+        {
+          CurPattern->AddLines(skipped);
+        }
+        CurLine = 0;
+        CurPattern = 0;
+      }
+    };
+  private:
+    const Track::ModuleData::RWPtr Data;
+    const ModuleProperties::RWPtr Properties;
+
+    BuildContext Context;
+  };
+
+  const uint_t LIMITER(~uint_t(0));
+
+  struct ChannelState
+  {
+    ChannelState()
       : Enabled(false), Envelope(false), BreakSample(false)
       , Volume(15), VolumeAddon(0), VolSlideDelay(0), VolSlideAddon(), VolSlideCounter(0)
       , BaseNoise(0), CurrentNoise(0)
@@ -721,10 +434,10 @@ namespace
     }
   };
 
-  class ASCDataRenderer : public AYM::DataRenderer
+  class DataRenderer : public AYM::DataRenderer
   {
   public:
-    explicit ASCDataRenderer(ASCTrack::ModuleData::Ptr data)
+    explicit DataRenderer(Track::ModuleData::Ptr data)
       : Data(data)
       , EnvelopeTone(0)
     {
@@ -732,7 +445,7 @@ namespace
 
     virtual void Reset()
     {
-      std::fill(PlayerState.begin(), PlayerState.end(), ASCChannelState());
+      std::fill(PlayerState.begin(), PlayerState.end(), ChannelState());
     }
 
     virtual void SynthesizeData(const TrackState& state, AYM::TrackBuilder& track)
@@ -748,13 +461,13 @@ namespace
     {
       if (0 == state.Line())
       {
-        std::for_each(PlayerState.begin(), PlayerState.end(), std::mem_fun_ref(&ASCChannelState::ResetBaseNoise));
+        std::for_each(PlayerState.begin(), PlayerState.end(), std::mem_fun_ref(&ChannelState::ResetBaseNoise));
       }
-      if (const ASCTrack::Line* line = Data->Patterns[state.Pattern()].GetLine(state.Line()))
+      if (const Track::Line* line = Data->Patterns[state.Pattern()].GetLine(state.Line()))
       {
         for (uint_t chan = 0; chan != line->Channels.size(); ++chan)
         {
-          const ASCTrack::Line::Chan& src = line->Channels[chan];
+          const Track::Line::Chan& src = line->Channels[chan];
           if (src.Empty())
           {
             continue;
@@ -764,7 +477,7 @@ namespace
       }
     }
 
-    void GetNewChannelState(const ASCTrack::Line::Chan& src, ASCChannelState& dst, AYM::TrackBuilder& track)
+    void GetNewChannelState(const Track::Line::Chan& src, ChannelState& dst, AYM::TrackBuilder& track)
     {
       if (src.Enabled)
       {
@@ -773,7 +486,7 @@ namespace
       dst.VolSlideCounter = 0;
       dst.SlidingSteps = 0;
       bool contSample = false, contOrnament = false;
-      for (ASCTrack::CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end();
+      for (Track::CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end();
         it != lim; ++it)
       {
         switch (it->Type)
@@ -812,7 +525,7 @@ namespace
         {
           dst.SlidingSteps = it->Param1;
           const int_t newSliding = (dst.Sliding | 0xf) ^ 0xf;
-          dst.Glissade = -newSliding / dst.SlidingSteps;
+          dst.Glissade = -newSliding / (dst.SlidingSteps ? dst.SlidingSteps : 1);
           dst.Sliding = dst.Glissade * dst.SlidingSteps;
           break;
         }
@@ -822,7 +535,7 @@ namespace
           dst.SlidingTargetNote = it->Param2;
           const int_t absoluteSliding = track.GetSlidingDifference(dst.Note, dst.SlidingTargetNote);
           const int_t newSliding = absoluteSliding - (contSample ? dst.Sliding / 16 : 0);
-          dst.Glissade = 16 * newSliding / dst.SlidingSteps;
+          dst.Glissade = 16 * newSliding / (dst.SlidingSteps ? dst.SlidingSteps : 1);
           break;
         }
         case AMPLITUDE_SLIDE:
@@ -883,7 +596,7 @@ namespace
       }
     }
 
-    void SynthesizeChannel(ASCChannelState& dst, AYM::ChannelBuilder& channel, AYM::TrackBuilder& track)
+    void SynthesizeChannel(ChannelState& dst, AYM::ChannelBuilder& channel, AYM::TrackBuilder& track)
     {
       if (!dst.Enabled)
       {
@@ -906,14 +619,7 @@ namespace
         dst.VolumeAddon += dst.VolSlideAddon;
         dst.VolSlideCounter = dst.VolSlideDelay;
       }
-      if (ASCSample::INCVOLADD == curSampleLine.Command)
-      {
-        dst.VolumeAddon++;
-      }
-      else if (ASCSample::DECVOLADD == curSampleLine.Command)
-      {
-        dst.VolumeAddon--;
-      }
+      dst.VolumeAddon += curSampleLine.VolSlide;
       dst.VolumeAddon = clamp<int_t>(dst.VolumeAddon, -15, 15);
 
       //calculate tone
@@ -927,8 +633,7 @@ namespace
       //apply level
       channel.SetLevel((dst.Volume + 1) * clamp<int_t>(dst.VolumeAddon + curSampleLine.Level, 0, 15) / 16);
       //apply envelope
-      const bool sampleEnvelope = ASCSample::ENVELOPE == curSampleLine.Command;
-      if (dst.Envelope && sampleEnvelope)
+      if (dst.Envelope && curSampleLine.EnableEnvelope)
       {
         channel.EnableEnvelope();
       }
@@ -941,7 +646,7 @@ namespace
       {
         channel.DisableTone();
       }
-      if (curSampleLine.NoiseMask && sampleEnvelope)
+      if (curSampleLine.NoiseMask && curSampleLine.EnableEnvelope)
       {
         EnvelopeTone += curSampleLine.Adding;
         track.SetEnvelopeTone(EnvelopeTone);
@@ -993,15 +698,15 @@ namespace
       }
     }
   private:
-    const ASCTrack::ModuleData::Ptr Data;
+    const Track::ModuleData::Ptr Data;
     uint_t EnvelopeTone;
-    boost::array<ASCChannelState, Devices::AYM::CHANNELS> PlayerState;
+    boost::array<ChannelState, Devices::AYM::CHANNELS> PlayerState;
   };
 
-  class ASCChiptune : public AYM::Chiptune
+  class Chiptune : public AYM::Chiptune
   {
   public:
-    ASCChiptune(ASCTrack::ModuleData::Ptr data, ModuleProperties::Ptr properties)
+    Chiptune(Track::ModuleData::Ptr data, ModuleProperties::Ptr properties)
       : Data(data)
       , Properties(properties)
       , Info(CreateTrackInfo(Data, Devices::AYM::CHANNELS))
@@ -1021,182 +726,71 @@ namespace
     virtual AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const
     {
       const StateIterator::Ptr iterator = CreateTrackStateIterator(Info, Data);
-      const AYM::DataRenderer::Ptr renderer = boost::make_shared<ASCDataRenderer>(Data);
+      const AYM::DataRenderer::Ptr renderer = boost::make_shared<DataRenderer>(Data);
       return AYM::CreateDataIterator(trackParams, iterator, renderer);
     }
   private:
-    const ASCTrack::ModuleData::Ptr Data;
+    const Track::ModuleData::Ptr Data;
     const ModuleProperties::Ptr Properties;
     const Information::Ptr Info;
   };
+}
 
-  //////////////////////////////////////////////////////////////////////////
-  bool CheckASCModule(const uint8_t* data, std::size_t size)
+namespace ASCSoundMaster
+{
+  std::auto_ptr<Formats::Chiptune::ASCSoundMaster::Builder> CreateDataBuilder(Track::ModuleData::RWPtr data, ModuleProperties::RWPtr props)
   {
-    if (size < sizeof(ASCHeader))
-    {
-      return false;
-    }
+    return std::auto_ptr<Formats::Chiptune::ASCSoundMaster::Builder>(new DataBuilder(data, props));
+  }
 
-    const std::size_t limit = std::min(size, MAX_MODULE_SIZE);
-    const ASCHeader* const header = safe_ptr_cast<const ASCHeader*>(data);
-    const std::size_t headerBusy = sizeof(*header) + header->Length - 1;
-
-    if (!header->Length || limit < headerBusy)
-    {
-      return false;
-    }
-
-    const std::size_t samplesOffset = fromLE(header->SamplesOffset);
-    const std::size_t ornamentsOffset = fromLE(header->OrnamentsOffset);
-    const std::size_t patternsOffset = fromLE(header->PatternsOffset);
-    const uint_t patternsCount = 1 + *std::max_element(header->Positions, header->Positions + header->Length);
-
-    //check patterns count and length
-    if (!patternsCount || patternsCount > MAX_PATTERNS_COUNT ||
-        header->Positions + header->Length !=
-        std::find_if(header->Positions, header->Positions + header->Length,
-          std::bind2nd(std::greater_equal<uint_t>(), patternsCount)))
-    {
-      return false;
-    }
-
-    RangeChecker::Ptr checker = RangeChecker::Create(limit);
-    checker->AddRange(0, headerBusy);
-    //check common ranges
-    if (!checker->AddRange(patternsOffset, sizeof(ASCPattern) * patternsCount) ||
-        !checker->AddRange(samplesOffset, sizeof(ASCSamples)) ||
-        !checker->AddRange(ornamentsOffset, sizeof(ASCOrnaments))
-        )
-    {
-      return false;
-    }
-    //check samples
-    {
-      const ASCSamples* const samples = safe_ptr_cast<const ASCSamples*>(data + samplesOffset);
-      if (samples->Offsets.end() !=
-        std::find_if(samples->Offsets.begin(), samples->Offsets.end(),
-          !boost::bind(&RangeChecker::AddRange, checker.get(),
-             boost::bind(std::plus<std::size_t>(), samplesOffset, boost::bind(&fromLE<uint16_t>, _1)),
-             sizeof(ASCSample::Line))))
-      {
-        return false;
-      }
-    }
-    //check ornaments
-    {
-      const ASCOrnaments* const ornaments = safe_ptr_cast<const ASCOrnaments*>(data + ornamentsOffset);
-      if (ornaments->Offsets.end() !=
-        std::find_if(ornaments->Offsets.begin(), ornaments->Offsets.end(),
-          !boost::bind(&RangeChecker::AddRange, checker.get(),
-            boost::bind(std::plus<std::size_t>(), ornamentsOffset, boost::bind(&fromLE<uint16_t>, _1)),
-            sizeof(ASCOrnament::Line))))
-      {
-        return false;
-      }
-    }
-    //check patterns
-    {
-      const ASCPattern* pattern = safe_ptr_cast<const ASCPattern*>(data + patternsOffset);
-      for (uint_t patternNum = 0 ; patternNum < patternsCount; ++patternNum, ++pattern)
-      {
-        //at least 1 byte
-        if (pattern->Offsets.end() !=
-          std::find_if(pattern->Offsets.begin(), pattern->Offsets.end(),
-          !boost::bind(&RangeChecker::AddRange, checker.get(),
-             boost::bind(std::plus<std::size_t>(), patternsOffset, boost::bind(&fromLE<uint16_t>, _1)),
-             1)))
-        {
-          return false;
-        }
-      }
-    }
-    return true;
+  ZXTune::Module::AYM::Chiptune::Ptr CreateChiptune(Track::ModuleData::Ptr data, ZXTune::Module::ModuleProperties::Ptr properties)
+  {
+    return boost::make_shared<Chiptune>(data, properties);
   }
 }
 
-namespace
+namespace ASC
 {
   using namespace ZXTune;
+  using namespace ZXTune::Module;
 
   //plugin attributes
   const Char ID[] = {'A', 'S', 'C', 0};
-  const Char* const INFO = Text::ASC_PLUGIN_INFO;
   const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
 
-
-  const std::string ASC_FORMAT(
-    "03-32"         // uint8_t Tempo; 3..50
-    "00-63"         // uint8_t Loop; 0..99
-    "?00-38"        // uint16_t PatternsOffset; 0..MAX_MODULE_SIZE
-    "?00-38"        // uint16_t SamplesOffset; 0..MAX_MODULE_SIZE
-    "?00-38"        // uint16_t OrnamentsOffset; 0..MAX_MODULE_SIZE
-    "01-64"         // uint8_t Length; 1..100
-    "00-1f"         // uint8_t Positions[1]; 0..31
-  );
-
-  //////////////////////////////////////////////////////////////////////////
-  class ASCModulesFactory : public ModulesFactory
+  class Factory : public ModulesFactory
   {
   public:
-    ASCModulesFactory()
-      : Format(Binary::Format::Create(ASC_FORMAT))
+    explicit Factory(Formats::Chiptune::Decoder::Ptr decoder)
+      : Decoder(decoder)
     {
     }
 
-    virtual bool Check(const Binary::Container& inputData) const
+    virtual bool Check(const Binary::Container& data) const
     {
-      const uint8_t* const data = static_cast<const uint8_t*>(inputData.Data());
-      const std::size_t limit = inputData.Size();
-      return Format->Match(data, limit) && CheckASCModule(data, limit);
+      return Decoder->Check(data);
     }
 
     virtual Binary::Format::Ptr GetFormat() const
     {
-      return Format;
+      return Decoder->GetFormat();
     }
 
     virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr rawData, std::size_t& usedSize) const
     {
-      try
+      const ::ASCSoundMaster::Track::ModuleData::RWPtr modData = ::ASCSoundMaster::Track::ModuleData::Create();
+      const std::auto_ptr<Formats::Chiptune::ASCSoundMaster::Builder> dataBuilder = ::ASCSoundMaster::CreateDataBuilder(modData, properties);
+      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ASCSoundMaster::ParseVersion1x(*rawData, *dataBuilder))
       {
-        assert(Check(*rawData));
-
-        //assume all data is correct
-        const IO::FastDump& data = IO::FastDump(*rawData, 0, MAX_MODULE_SIZE);
-
-        const ASCModuleData::Ptr parsedData = boost::make_shared<ASCModuleData>();
-
-        parsedData->ParseInformation(data, *properties);
-        const std::size_t endOfSamples = parsedData->ParseSamples(data);
-        const std::size_t endOfOrnaments = parsedData->ParseOrnaments(data);
-        const std::size_t endOfPatterns = parsedData->ParsePatterns(data);
-
-        //fill region
-        const std::size_t rawSize = std::max(std::max(endOfSamples, endOfOrnaments), endOfPatterns);
-        usedSize = std::min(rawSize, data.Size());
-
-        //meta properties
-        {
-          const ASCHeader* const header = safe_ptr_cast<const ASCHeader*>(&data[0]);
-          const ASCID* const id = safe_ptr_cast<const ASCID*>(header->Positions + header->Length);
-          const std::size_t fixedOffset = (safe_ptr_cast<const uint8_t*>(id) - safe_ptr_cast<const uint8_t*>(header))
-            + (id->Check() ? sizeof(*id) : 0);
-          const ModuleRegion fixedRegion(fixedOffset, usedSize - fixedOffset);
-          properties->SetSource(usedSize, fixedRegion);
-        }
-
-        const AYM::Chiptune::Ptr chiptune = boost::make_shared<ASCChiptune>(parsedData, properties);
+        usedSize = container->Size();
+        properties->SetSource(container);
+        const Module::AYM::Chiptune::Ptr chiptune = ::ASCSoundMaster::CreateChiptune(modData, properties);
         return AYM::CreateHolder(chiptune);
-      }
-      catch (const Error&/*e*/)
-      {
-        Log::Debug("Core::ASCSupp", "Failed to create holder");
       }
       return Holder::Ptr();
     }
   private:
-    const Binary::Format::Ptr Format;
+    const Formats::Chiptune::Decoder::Ptr Decoder;
   };
 }
 
@@ -1204,8 +798,9 @@ namespace ZXTune
 {
   void RegisterASCSupport(PluginsRegistrator& registrator)
   {
-    const ModulesFactory::Ptr factory = boost::make_shared<ASCModulesFactory>();
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, INFO, CAPS, factory);
+    const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateASCSoundMaster1xDecoder();
+    const ModulesFactory::Ptr factory = boost::make_shared<ASC::Factory>(decoder);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ASC::ID, decoder->GetDescription() + Text::PLAYER_DESCRIPTION_SUFFIX, ASC::CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

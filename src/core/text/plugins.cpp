@@ -8,13 +8,6 @@ namespace Text
 extern const Char ARCHIVE_PLUGIN_PREFIX[] = {
   '+','u','n',0
 };
-extern const Char ASC_EDITOR[] = {
-  'A','S','C',' ','S','o','u','n','d',' ','M','a','s','t','e','r',0
-};
-extern const Char ASC_PLUGIN_INFO[] = {
-  'A','S','C',' ','S','o','u','n','d',' ','M','a','s','t','e','r',' ','m','o','d','u','l','e','s',' ','s','u',
-  'p','p','o','r','t',0
-};
 extern const Char AY_PLUGIN_INFO[] = {
   'A','Y',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
 };

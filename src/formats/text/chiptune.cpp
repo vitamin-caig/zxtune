@@ -5,6 +5,12 @@
 
 namespace Text
 {
+extern const Char ASCSOUNDMASTER0_DECODER_DESCRIPTION[] = {
+  'A','S','C',' ','S','o','u','n','d',' ','M','a','s','t','e','r',' ','v','0','.','x',0
+};
+extern const Char ASCSOUNDMASTER1_DECODER_DESCRIPTION[] = {
+  'A','S','C',' ','S','o','u','n','d',' ','M','a','s','t','e','r',' ','v','1','.','x',0
+};
 extern const Char DIGITALSTUDIO_DECODER_DESCRIPTION[] = {
   'D','i','g','i','t','a','l',' ','S','t','u','d','i','o',0
 };
