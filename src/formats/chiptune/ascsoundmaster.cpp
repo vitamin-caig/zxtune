@@ -86,15 +86,14 @@ namespace Chiptune
 
     const String Version1::DESCRIPTION = Text::ASCSOUNDMASTER1_DECODER_DESCRIPTION;
     const std::string Version1::FORMAT(
-        "03-32"   //tempo
-        "00-63"   //loop
-        "? 00-13" //patterns
-        "? 00-33" //samples
-        "? 00-37" //ornaments
-        "01-64"   //length
-        "00-1f"   //first position
-      );
-
+      "03-32"   //tempo
+      "00-63"   //loop
+      "? 00-13" //patterns
+      "? 00-33" //samples
+      "? 00-37" //ornaments
+      "01-64"   //length
+      "00-1f"   //first position
+    );
 
     const uint8_t ASC_ID_1[] =
     {
@@ -547,6 +546,7 @@ namespace Chiptune
         for (Indices::const_iterator it = pats.begin(), lim = pats.end(); it != lim; ++it)
         {
           const uint_t patIndex = *it;
+          Require(in_range<uint_t>(patIndex + 1, 1, MAX_PATTERNS_COUNT));
           Log::Debug(THIS_MODULE, "Parse pattern %1%", patIndex);
           const RawPattern& src = GetServiceObject<RawPattern>(baseOffset + patIndex * sizeof(RawPattern));
           builder.StartPattern(patIndex);
@@ -670,8 +670,7 @@ namespace Chiptune
           }
           if (!HasLine(state))
           {
-            Require(lineIdx >= MIN_PATTERN_SIZE);
-            builder.FinishPattern(lineIdx);
+            builder.FinishPattern(std::max<uint_t>(lineIdx, MIN_PATTERN_SIZE));
             break;
           }
           builder.StartLine(lineIdx);
@@ -793,7 +792,9 @@ namespace Chiptune
           }
           else if (cmd == 0xf4) //tempo
           {
-            builder.SetTempo(PeekByte(offset++));
+            const uint_t newTempo = PeekByte(offset++);
+            Require(in_range<uint_t>(newTempo, 3, 50));
+            builder.SetTempo(newTempo);
           }
           else if (cmd <= 0xf6) //slide
           {
@@ -844,7 +845,7 @@ namespace Chiptune
             break;
           }
         }
-        Ranges.AddService(offset, result.Lines.size() * sizeof(RawSample::Line));
+        Ranges.Add(offset, result.Lines.size() * sizeof(RawSample::Line));
         return result;
       }
 
@@ -897,7 +898,7 @@ namespace Chiptune
             break;
           }
         }
-        Ranges.AddService(offset, result.Lines.size() * sizeof(RawOrnament::Line));
+        Ranges.Add(offset, result.Lines.size() * sizeof(RawOrnament::Line));
         return result;
       }
 
@@ -982,7 +983,12 @@ namespace Chiptune
 
       bool CheckHeader() const
       {
-        return sizeof(typename Version::RawHeader) <= GetAreaSize(HEADER) && Undefined == GetAreaSize(END);
+        if (sizeof(typename Version::RawHeader) > GetAreaSize(HEADER) || Undefined != GetAreaSize(END))
+        {
+          return false;
+        }
+        const std::size_t idSize = GetAreaSize(IDENTIFIER);
+        return idSize == 0 || idSize >= sizeof(RawId);
       }
 
       bool CheckSamples() const
@@ -1006,8 +1012,22 @@ namespace Chiptune
         const std::size_t requiredSize = sizeof(RawOrnamentsList);
         return requiredSize <= size;
       }
-  };
+    };
 
+    bool AreSequenced(uint16_t lh, uint16_t rh, std::size_t multiply)
+    {
+      const std::size_t lhNorm = fromLE(lh);
+      const std::size_t rhNorm = fromLE(rh);
+      if (lhNorm > rhNorm)
+      {
+        return false;
+      }
+      else if (lhNorm < rhNorm)
+      {
+        return 0 == (rhNorm - lhNorm) % multiply;
+      }
+      return true;
+    }
     template<class Version>
     bool FastCheck(const Binary::Container& rawData)
     {
@@ -1027,7 +1047,39 @@ namespace Chiptune
       {
         return false;
       }
+      if (const RawSamplesList* samplesList = data.GetField<RawSamplesList>(areas.GetAreaAddress(SAMPLES)))
+      {
+        if (fromLE(samplesList->Offsets[0]) < sizeof(*samplesList))
+        {
+          return false;
+        }
+        if (samplesList->Offsets.end() != std::adjacent_find(samplesList->Offsets.begin(), samplesList->Offsets.end(),
+          !boost::bind(&AreSequenced, _1, _2, sizeof(RawSample::Line))))
+        {
+          return false;
+        }
+      }
+      else
+      {
+        return false;
+      }
       if (!areas.CheckOrnaments())
+      {
+        return false;
+      }
+      if (const RawOrnamentsList* ornamentsList = data.GetField<RawOrnamentsList>(areas.GetAreaAddress(ORNAMENTS)))
+      {
+        if (fromLE(ornamentsList->Offsets[0]) < sizeof(*ornamentsList))
+        {
+          return false;
+        }
+        if (ornamentsList->Offsets.end() != std::adjacent_find(ornamentsList->Offsets.begin(), ornamentsList->Offsets.end(),
+          !boost::bind(&AreSequenced, _1, _2, sizeof(RawOrnament::Line))))
+        {
+          return false;
+        }
+      }
+      else
       {
         return false;
       }
@@ -1099,7 +1151,7 @@ namespace Chiptune
 
       virtual bool Check(const Binary::Container& rawData) const
       {
-        return FastCheck<Version>(rawData) && Format->Match(rawData.Data(), rawData.Size());
+        return Format->Match(rawData.Data(), rawData.Size()) && FastCheck<Version>(rawData);
       }
 
       virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
