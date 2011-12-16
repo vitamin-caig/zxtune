@@ -30,14 +30,18 @@ namespace SoundTracker
   {
     static const std::string STANDARD_PROGRAMS[] = 
     {
+      "SONG BY ST COMPIL\x01",
       "SONG BY ST COMPILE",
       "SONG BY MB COMPILE",
       "SONG BY ST-COMPILE",
+      "SONG ST BY COMPILE"
       "SOUND TRACKER v1.1",
       "SOUND TRACKER v1.3",
       "SOUND TRACKER v3.0",
       "S.T.FULL EDITION  ",
       "S.T.FULL EDITION \x7f",
+      "S.W.COMPILE V2.0  ",
+      "STU SONG COMPILER ",
     };
     return ArrayEnd(STANDARD_PROGRAMS) != std::find(STANDARD_PROGRAMS, ArrayEnd(STANDARD_PROGRAMS), ToStdString(name));
   }

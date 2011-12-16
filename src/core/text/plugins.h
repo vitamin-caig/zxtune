@@ -16,7 +16,6 @@ extern const Char DMM_EDITOR[];
 extern const Char DMM_PLUGIN_INFO[];
 extern const Char DST_EDITOR_AY[];
 extern const Char DST_EDITOR_DAC[];
-extern const Char DST_PLUGIN_INFO[];
 extern const Char PDT_EDITOR[];
 extern const Char PDT_PLUGIN_INFO[];
 extern const Char PLAYER_DESCRIPTION_SUFFIX[];

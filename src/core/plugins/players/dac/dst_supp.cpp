@@ -107,19 +107,15 @@ namespace
     {
     }
 
-    void ApplyVersionParticularities()
+    bool IsOldVersion() const
     {
-      const bool oldVersion = FourBitSamples != 0;
-      if (oldVersion)
-      {
-        assert(FourBitSamples > EightBitSamples);
-        std::for_each(Data->Samples.begin(), Data->Samples.end(), std::mem_fun_ref(&DST::Sample::Convert4bitTo8Bit));
-      }
-      else
-      {
-        assert(EightBitSamples > FourBitSamples);
-      }
-      Properties->SetProgram(oldVersion ? Text::DST_EDITOR_AY : Text::DST_EDITOR_DAC);
+      return FourBitSamples != 0;
+    }
+
+    void ConvertSamples()
+    {
+      assert(FourBitSamples > EightBitSamples);
+      std::for_each(Data->Samples.begin(), Data->Samples.end(), std::mem_fun_ref(&DST::Sample::Convert4bitTo8Bit));
     }
 
     virtual void SetTitle(const String& title)
@@ -445,7 +441,6 @@ namespace
 
   //plugin attributes
   const Char ID[] = {'D', 'S', 'T', 0};
-  const Char* const INFO = Text::DST_PLUGIN_INFO;
   const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_3DAC | CAP_CONV_RAW;
 
   class DSTModulesFactory : public ModulesFactory
@@ -475,7 +470,15 @@ namespace
       {
         usedSize = container->Size();
         properties->SetSource(container);
-        builder.ApplyVersionParticularities();
+        if (builder.IsOldVersion())
+        {
+          properties->SetProgram(Decoder->GetDescription() + Text::DST_EDITOR_AY);
+          builder.ConvertSamples();
+        }
+        else
+        {
+          properties->SetProgram(Decoder->GetDescription() + Text::DST_EDITOR_DAC);
+        }
         return boost::make_shared<DSTHolder>(modData, properties);
       }
       return Holder::Ptr();
