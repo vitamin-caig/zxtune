@@ -53,6 +53,9 @@ namespace Chiptune
 #endif
     struct Version0
     {
+      static const String DESCRIPTION;
+      static const std::string FORMAT;
+
       PACK_PRE struct RawHeader
       {
         uint8_t Tempo;
@@ -84,15 +87,25 @@ namespace Chiptune
       } PACK_POST;
     };
 
+    const String Version0::DESCRIPTION = Text::ASCSOUNDMASTER0_DECODER_DESCRIPTION;
+    const std::string Version0::FORMAT(
+      "03-32"    //tempo
+      "09-ff 00" //patterns
+      "? 00-33"  //samples
+      "? 00-37"  //ornaments
+      "01-64"    //length
+      "00-1f"    //first position
+    );
+
     const String Version1::DESCRIPTION = Text::ASCSOUNDMASTER1_DECODER_DESCRIPTION;
     const std::string Version1::FORMAT(
-      "03-32"   //tempo
-      "00-63"   //loop
-      "? 00-13" //patterns
-      "? 00-33" //samples
-      "? 00-37" //ornaments
-      "01-64"   //length
-      "00-1f"   //first position
+      "03-32"    //tempo
+      "00-63"    //loop
+      "0a-ff 00" //patterns
+      "? 00-33"  //samples
+      "? 00-37"  //ornaments
+      "01-64"    //length
+      "00-1f"    //first position
     );
 
     const uint8_t ASC_ID_1[] =
@@ -242,6 +255,7 @@ namespace Chiptune
 #pragma pack(pop)
 #endif
 
+    BOOST_STATIC_ASSERT(sizeof(Version0::RawHeader) == 9);
     BOOST_STATIC_ASSERT(sizeof(Version1::RawHeader) == 10);
     BOOST_STATIC_ASSERT(sizeof(RawId) == 63);
     BOOST_STATIC_ASSERT(sizeof(RawPattern) == 6);
@@ -543,16 +557,12 @@ namespace Chiptune
         Require(!pats.empty());
         Log::Debug(THIS_MODULE, "Patterns: %1% to parse", pats.size());
         const std::size_t baseOffset = fromLE(Source.PatternsOffset);
-        const std::size_t lastUsedPattern = *pats.rbegin();
-        const std::size_t minPatternsOffset = lastUsedPattern * sizeof(RawPattern);
         for (Indices::const_iterator it = pats.begin(), lim = pats.end(); it != lim; ++it)
         {
           const uint_t patIndex = *it;
           Require(in_range<uint_t>(patIndex + 1, 1, MAX_PATTERNS_COUNT));
           Log::Debug(THIS_MODULE, "Parse pattern %1%", patIndex);
           const RawPattern& src = GetServiceObject<RawPattern>(baseOffset + patIndex * sizeof(RawPattern));
-          Require(src.Offsets.end() == std::find_if(src.Offsets.begin(), src.Offsets.end(),
-            boost::bind(&fromLE<uint16_t>, _1) < minPatternsOffset));
           builder.StartPattern(patIndex);
           ParsePattern(baseOffset, src, builder);
         }
@@ -1123,6 +1133,11 @@ namespace Chiptune
       }
     }
 
+    Formats::Chiptune::Container::Ptr ParseVersion0x(const Binary::Container& data, Builder& target)
+    {
+      return Parse<Version0>(data, target);
+    }
+
     Formats::Chiptune::Container::Ptr ParseVersion1x(const Binary::Container& data, Builder& target)
     {
       return Parse<Version1>(data, target);
@@ -1168,6 +1183,11 @@ namespace Chiptune
     };
   }//namespace ASCSoundMaster
 
+
+  Decoder::Ptr CreateASCSoundMaster0xDecoder()
+  {
+    return boost::make_shared<ASCSoundMaster::Decoder<ASCSoundMaster::Version0> >();
+  }
 
   Decoder::Ptr CreateASCSoundMaster1xDecoder()
   {

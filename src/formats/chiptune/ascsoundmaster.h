@@ -117,6 +117,7 @@ namespace Formats
         virtual void SetBreakSample() = 0;
       };
 
+      Formats::Chiptune::Container::Ptr ParseVersion0x(const Binary::Container& data, Builder& target);
       Formats::Chiptune::Container::Ptr ParseVersion1x(const Binary::Container& data, Builder& target);
       Builder& GetStubBuilder();
     }
