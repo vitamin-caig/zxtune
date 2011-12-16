@@ -543,12 +543,16 @@ namespace Chiptune
         Require(!pats.empty());
         Log::Debug(THIS_MODULE, "Patterns: %1% to parse", pats.size());
         const std::size_t baseOffset = fromLE(Source.PatternsOffset);
+        const std::size_t lastUsedPattern = *pats.rbegin();
+        const std::size_t minPatternsOffset = lastUsedPattern * sizeof(RawPattern);
         for (Indices::const_iterator it = pats.begin(), lim = pats.end(); it != lim; ++it)
         {
           const uint_t patIndex = *it;
           Require(in_range<uint_t>(patIndex + 1, 1, MAX_PATTERNS_COUNT));
           Log::Debug(THIS_MODULE, "Parse pattern %1%", patIndex);
           const RawPattern& src = GetServiceObject<RawPattern>(baseOffset + patIndex * sizeof(RawPattern));
+          Require(src.Offsets.end() == std::find_if(src.Offsets.begin(), src.Offsets.end(),
+            boost::bind(&fromLE<uint16_t>, _1) < minPatternsOffset));
           builder.StartPattern(patIndex);
           ParsePattern(baseOffset, src, builder);
         }

@@ -127,7 +127,8 @@ namespace
     void Reset(uint_t pos, uint_t frame)
     {
       CurFrame = frame;
-      CurPosition = pos;
+      //in case if frame is 0, positions should be 0 too
+      CurPosition = frame != 0 ? pos : 0;
       CurLine = 0;
       CurQuirk = 0;
       if (!UpdateTempo())
