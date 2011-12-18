@@ -1,6 +1,7 @@
 <RCC>
   <qresource prefix="/types">
     <file alias="AY">type_ay.png</file>
+    <file alias="AS0">type_as0.png</file>
     <file alias="ASC">type_asc.png</file>
     <file alias="CHI">type_chi.png</file>
     <file alias="DMM">type_dmm.png</file>
