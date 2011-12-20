@@ -36,7 +36,4 @@ public:
   static std::auto_ptr<Application> Create();
 };
 
-String GetProgramTitle();
-String GetProgramVersionString();
-
 #endif //BASE_APP_H_DEFINED

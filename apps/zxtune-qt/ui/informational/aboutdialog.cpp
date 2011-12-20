@@ -15,7 +15,7 @@ Author:
 #include "aboutdialog.h"
 #include "aboutdialog.ui.h"
 #include "ui/utils.h"
-#include <apps/base/app.h>
+#include <apps/version/api.h>
 //common includes
 #include <format.h>
 //text includes

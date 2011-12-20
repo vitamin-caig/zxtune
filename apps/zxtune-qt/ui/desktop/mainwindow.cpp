@@ -26,7 +26,7 @@ Author:
 #include "ui/informational/componentsdialog.h"
 #include "playlist/ui/container_view.h"
 #include "supp/playback_supp.h"
-#include <apps/base/app.h>
+#include <apps/version/api.h>
 //common includes
 #include <format.h>
 #include <logging.h>

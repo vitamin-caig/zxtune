@@ -1,4 +1,4 @@
-// Generated from '$Id
+// This file was automatically generated
 #ifndef __BASE_TEXT_H_DEFINED__
 #define __BASE_TEXT_H_DEFINED__
 #include <char_type.h>
@@ -27,9 +27,6 @@ extern const Char ERROR_CONFIG_FILE[] = {
 extern const Char ERROR_INVALID_FORMAT[] = {
   'I','n','v','a','l','i','d',' ','p','a','r','a','m','e','t','e','r',' ','f','o','r','m','a','t',' ','\'','%',
   '1','%','\'','.',0
-};
-extern const Char PROGRAM_VERSION_STRING[] = {
-  '%','1','%',' ','%','2','%',' ','f','r','o','m',' ','%','3','%',' ','%','4','%','-','%','5','%',0
 };
 }//namespace Text
 #endif //__BASE_TEXT_H_DEFINED__

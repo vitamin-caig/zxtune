@@ -20,6 +20,7 @@ Author:
 #include <apps/base/app.h>
 #include <apps/base/error_codes.h>
 #include <apps/base/parsing.h>
+#include <apps/version/api.h>
 //common includes
 #include <error_tools.h>
 #include <template_parameters.h>

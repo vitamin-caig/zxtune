@@ -15,6 +15,7 @@ Author:
 #include "scanner_view.h"
 #include "table_view.h"
 #include "apps/base/app.h"
+#include "apps/version/api.h"
 #include "playlist_contextmenu.h"
 #include "playlist_view.h"
 #include "playlist/playlist_parameters.h"
