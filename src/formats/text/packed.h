@@ -26,6 +26,7 @@ extern const Char MSP_DECODER_DESCRIPTION[];
 extern const Char PACK2_DECODER_DESCRIPTION[];
 extern const Char PCD61_DECODER_DESCRIPTION[];
 extern const Char PCD62_DECODER_DESCRIPTION[];
+extern const Char PLAYER_SUFFIX[];
 extern const Char RAR_DECODER_DESCRIPTION[];
 extern const Char SNA128_DECODER_DESCRIPTION[];
 extern const Char TELEDISKIMAGE_DECODER_DESCRIPTION[];

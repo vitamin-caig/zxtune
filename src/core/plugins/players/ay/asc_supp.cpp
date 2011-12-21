@@ -14,6 +14,7 @@ Author:
 #include "ay_conversion.h"
 #include "core/plugins/registrator.h"
 #include "core/plugins/utils.h"
+#include "core/plugins/archives/archive_supp_common.h"
 #include "core/plugins/players/creation_result.h"
 #include "core/plugins/players/module_properties.h"
 //common includes
@@ -27,6 +28,7 @@ Author:
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
 #include <formats/chiptune_decoders.h>
+#include <formats/packed_decoders.h>
 #include <formats/chiptune/ascsoundmaster.h>
 //text includes
 #include <core/text/core.h>
@@ -799,10 +801,29 @@ namespace ASC
   };
 }
 
+namespace ASC
+{
+  const Char IDC_0[] = {'C', 'O', 'M', 'P', 'I', 'L', 'E', 'D', 'A', 'S', 'C', '0', 0};
+  const Char IDC_1[] = {'C', 'O', 'M', 'P', 'I', 'L', 'E', 'D', 'A', 'S', 'C', 0};
+  const uint_t CCAPS = CAP_STOR_CONTAINER;
+}
+
 namespace ZXTune
 {
   void RegisterASCSupport(PluginsRegistrator& registrator)
   {
+    //modules with players
+    {
+      const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateCompiledASC0Decoder();
+      const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ASC::IDC_0, ASC::CCAPS, decoder);
+      registrator.RegisterPlugin(plugin);
+    }
+    {
+      const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateCompiledASCDecoder();
+      const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ASC::IDC_1, ASC::CCAPS, decoder);
+      registrator.RegisterPlugin(plugin);
+    }
+    //direct modules
     {
       const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateASCSoundMaster0xDecoder();
       const ModulesFactory::Ptr factory = boost::make_shared<ASC::Factory>(decoder, &Formats::Chiptune::ASCSoundMaster::ParseVersion0x);

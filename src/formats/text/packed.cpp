@@ -70,6 +70,9 @@ extern const Char PCD62_DECODER_DESCRIPTION[] = {
   'P','o','w','e','r','f','u','l','l',' ','C','o','d','e',' ','D','e','c','r','e','a','s','e','r',' ','v','6',
   '.','2',0
 };
+extern const Char PLAYER_SUFFIX[] = {
+  ' ','p','l','a','y','e','r',0
+};
 extern const Char RAR_DECODER_DESCRIPTION[] = {
   'R','A','R',' ','v','2','.','x',' ','a','r','c','h','i','v','e','r',0
 };
