@@ -36,22 +36,6 @@ namespace CompiledASC
 #endif
   typedef boost::array<uint8_t, 63> InfoData;
 
-  PACK_PRE struct PlayerStruct
-  {
-    uint8_t Padding1[12];
-    uint16_t InitAddr;
-    uint8_t Padding2;
-    uint16_t PlayAddr;
-    uint8_t Padding3;
-    uint16_t ShutAddr;
-    //+20
-    InfoData Information;
-    //+83
-    uint8_t Initialization;
-    uint8_t Padding4[29];
-    uint16_t DataAddr;
-  } PACK_POST;
-
   struct Version0
   {
     static const String DESCRIPTION;
@@ -62,7 +46,28 @@ namespace CompiledASC
       return Formats::Chiptune::ASCSoundMaster::ParseVersion0x(data, target);
     }
 
-    typedef PlayerStruct Player;
+    PACK_PRE struct Player
+    {
+      uint8_t Padding1[12];
+      uint16_t InitAddr;
+      uint8_t Padding2;
+      uint16_t PlayAddr;
+      uint8_t Padding3;
+      uint16_t ShutAddr;
+      //+20
+      InfoData Information;
+      //+83
+      uint8_t Initialization;
+      uint8_t Padding4[29];
+      uint16_t DataAddr;
+
+      std::size_t GetSize() const
+      {
+        const uint_t initAddr = fromLE(InitAddr);
+        const uint_t compileAddr = initAddr - offsetof(Player, Initialization);
+        return fromLE(DataAddr) - compileAddr;
+      }
+    } PACK_POST;
 
     PACK_PRE struct Header
     {
@@ -75,7 +80,7 @@ namespace CompiledASC
     } PACK_POST;
   };
 
-  struct Version1
+  struct Version1 : Version0
   {
     static const String DESCRIPTION;
     static const std::string FORMAT;
@@ -84,8 +89,6 @@ namespace CompiledASC
     {
       return Formats::Chiptune::ASCSoundMaster::ParseVersion1x(data, target);
     }
-
-    typedef PlayerStruct Player;
 
     PACK_PRE struct Header
     {
@@ -98,15 +101,41 @@ namespace CompiledASC
       uint8_t Positions[1];
     } PACK_POST;
   };
+
+  struct Version2 : Version1
+  {
+    static const String DESCRIPTION;
+    static const std::string FORMAT;
+
+    PACK_PRE struct Player
+    {
+      uint8_t Padding1[20];
+      //+20
+      InfoData Information;
+      //+83
+      uint8_t Initialization;
+      uint8_t Padding2[40];
+      //+124
+      uint16_t DataOffset;
+
+      std::size_t GetSize() const
+      {
+        return DataOffset;
+      }
+    } PACK_POST;
+  };
 #ifdef USE_PRAGMA_PACK
 #pragma pack(pop)
 #endif
 
-  BOOST_STATIC_ASSERT(offsetof(PlayerStruct, Information) == 20);
-  BOOST_STATIC_ASSERT(offsetof(PlayerStruct, Initialization) == 83);
+  BOOST_STATIC_ASSERT(offsetof(Version1::Player, Information) == 20);
+  BOOST_STATIC_ASSERT(offsetof(Version1::Player, Initialization) == 83);
+  BOOST_STATIC_ASSERT(offsetof(Version2::Player, Initialization) == 83);
+  BOOST_STATIC_ASSERT(offsetof(Version2::Player, DataOffset) == 124);
 
   const String Version0::DESCRIPTION = String(Text::ASCSOUNDMASTER0_DECODER_DESCRIPTION) + Text::PLAYER_SUFFIX;
   const String Version1::DESCRIPTION = String(Text::ASCSOUNDMASTER1_DECODER_DESCRIPTION) + Text::PLAYER_SUFFIX;
+  const String Version2::DESCRIPTION = String(Text::ASCSOUNDMASTER2_DECODER_DESCRIPTION) + Text::PLAYER_SUFFIX;
 
   const std::string BASE_FORMAT(
     "+11+"  //unknown
@@ -144,6 +173,22 @@ namespace CompiledASC
     "13"       //inc de
     "32??"     //ld (xxx),a
   ;
+
+  const std::string Version2::FORMAT(
+    "+11+"     //padding
+    "184600"
+    "c3??"
+    "c3??"
+    "'A'S'M' 'C'O'M'P'I'L'A'T'I'O'N' 'O'F' "
+    //+0x27
+    "+44+"
+    //+0x53 init
+    "cd??"
+    "3b3b"
+    "+35+"
+    //+123
+    "11??" //data offset
+  );
 
   template<class T, class D>
   T AddLE(T val, D delta)
@@ -183,13 +228,13 @@ namespace CompiledASC
 
     bool FastCheck() const
     {
-      return GetModuleOffset() < Data.Size();
+      return Header.GetSize() < Data.Size();
     }
 
     Formats::Packed::Container::Ptr GetResult() const
     {
       assert(FastCheck());
-      const std::size_t modOffset = GetModuleOffset();
+      const std::size_t modOffset = Header.GetSize();
       const Binary::Container::Ptr modData = Data.GetSubcontainer(modOffset, Data.Size() - modOffset);
       if (Formats::Chiptune::Container::Ptr module = Version::Parse(*modData, Formats::Chiptune::ASCSoundMaster::GetStubBuilder()))
       {
@@ -198,13 +243,6 @@ namespace CompiledASC
       }
       Log::Debug(THIS_MODULE, "Failed to find module after player");
       return Formats::Packed::Container::Ptr();
-    }
-  private:
-    std::size_t GetModuleOffset() const
-    {
-      const uint_t initAddr = fromLE(Header.InitAddr);
-      const uint_t compileAddr = initAddr - offsetof(typename Version::Player, Initialization);
-      return fromLE(Header.DataAddr) - compileAddr;
     }
   private:
     const Binary::Container& Data;
@@ -267,9 +305,14 @@ namespace Formats
       return boost::make_shared<CompiledASCDecoder<CompiledASC::Version0> >();
     }
 
-    Decoder::Ptr CreateCompiledASCDecoder()
+    Decoder::Ptr CreateCompiledASC1Decoder()
     {
       return boost::make_shared<CompiledASCDecoder<CompiledASC::Version1> >();
+    }
+
+    Decoder::Ptr CreateCompiledASC2Decoder()
+    {
+      return boost::make_shared<CompiledASCDecoder<CompiledASC::Version2> >();
     }
   }//namespace Packed
 }//namespace Formats

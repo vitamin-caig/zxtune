@@ -804,7 +804,8 @@ namespace ASC
 namespace ASC
 {
   const Char IDC_0[] = {'C', 'O', 'M', 'P', 'I', 'L', 'E', 'D', 'A', 'S', 'C', '0', 0};
-  const Char IDC_1[] = {'C', 'O', 'M', 'P', 'I', 'L', 'E', 'D', 'A', 'S', 'C', 0};
+  const Char IDC_1[] = {'C', 'O', 'M', 'P', 'I', 'L', 'E', 'D', 'A', 'S', 'C', '1', 0};
+  const Char IDC_2[] = {'C', 'O', 'M', 'P', 'I', 'L', 'E', 'D', 'A', 'S', 'C', '2', 0};
   const uint_t CCAPS = CAP_STOR_CONTAINER;
 }
 
@@ -819,8 +820,13 @@ namespace ZXTune
       registrator.RegisterPlugin(plugin);
     }
     {
-      const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateCompiledASCDecoder();
+      const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateCompiledASC1Decoder();
       const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ASC::IDC_1, ASC::CCAPS, decoder);
+      registrator.RegisterPlugin(plugin);
+    }
+    {
+      const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateCompiledASC2Decoder();
+      const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ASC::IDC_2, ASC::CCAPS, decoder);
       registrator.RegisterPlugin(plugin);
     }
     //direct modules
