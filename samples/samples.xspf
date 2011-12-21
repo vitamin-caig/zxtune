@@ -6,6 +6,9 @@
 </extension>
 <trackList>
   <track>
+    <location>Samples/Samba.as0</location>
+  </track>
+  <track>
     <location>Samples/SANDRA.asc</location>
   </track>
   <track>
