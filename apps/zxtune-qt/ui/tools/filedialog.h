@@ -28,7 +28,7 @@ public:
   virtual bool OpenSingleFile(const QString& title, const QString& filters, QString& file) = 0;
   virtual bool OpenMultipleFiles(const QString& title, const QString& filters, QStringList& files) = 0;
   virtual bool OpenFolder(const QString& title, QString& folder) = 0;
-  virtual bool SaveFile(const QString& title, const QString& suffix, const QString& filter, QString& filename) = 0;
+  virtual bool SaveFile(const QString& title, const QString& suffix, const QStringList& filters, QString& filename, int* usedFilter = 0) = 0;
 
   static FileDialog& Instance();
 };

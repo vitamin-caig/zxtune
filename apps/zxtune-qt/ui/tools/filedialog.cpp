@@ -26,6 +26,18 @@ namespace
 {
   const Char CURRENT_DIR_PARAMETER[] = {'z', 'x', 't', 'u', 'n', 'e', '-', 'q', 't', '.', 'u', 'i', '.', 'b', 'r', 'o', 'w', 's', 'e', '_', 'd', 'i', 'r', '\0'};
 
+  int GetFilterIndex(const QStringList& filters, const QString& filter)
+  {
+    for (int idx = 0; idx != filters.length(); ++idx)
+    {
+      if (filters[idx].startsWith(filter))
+      {
+        return idx;
+      }
+    }
+    return -1;
+  }
+
   class GuiFileDialog : public FileDialog
   {
   public:
@@ -86,11 +98,11 @@ namespace
       return false;
     }
 
-    virtual bool SaveFile(const QString& title, const QString& suffix, const QString& filter, QString& filename)
+    virtual bool SaveFile(const QString& title, const QString& suffix, const QStringList& filters, QString& filename, int* usedFilter)
     {
       Dialog.setWindowTitle(title);
       Dialog.setDefaultSuffix(suffix);
-      Dialog.setNameFilter(filter);
+      Dialog.setNameFilters(filters);
       Dialog.selectFile(filename);
       Dialog.setFileMode(QFileDialog::AnyFile);
       Dialog.setOption(QFileDialog::ShowDirsOnly, false);
@@ -99,6 +111,12 @@ namespace
       {
         const QStringList& files = Dialog.selectedFiles();
         filename = files.front();
+        if (usedFilter)
+        {
+          const QString& selectedFilter = Dialog.selectedNameFilter();
+          const QStringList& availableFilters = Dialog.nameFilters();
+          *usedFilter = GetFilterIndex(availableFilters, selectedFilter);
+        }
         return true;
       }
       return false;
@@ -165,9 +183,9 @@ namespace
       return GetDelegate()->OpenFolder(title, folder);
     }
 
-    virtual bool SaveFile(const QString& title, const QString& suffix, const QString& filter, QString& filename)
+    virtual bool SaveFile(const QString& title, const QString& suffix, const QStringList& filters, QString& filename, int* usedFilter)
     {
-      return GetDelegate()->SaveFile(title, suffix, filter, filename);
+      return GetDelegate()->SaveFile(title, suffix, filters, filename, usedFilter);
     }
   private:
     boost::shared_ptr<FileDialog> GetDelegate()

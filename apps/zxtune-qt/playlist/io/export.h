@@ -32,7 +32,14 @@ namespace Playlist
       virtual bool IsCanceled() const = 0;
     };
 
-    Error SaveXSPF(Container::Ptr container, const QString& filename, ExportCallback& cb);
+    enum ExportFlagValues
+    {
+      SAVE_ATTRIBUTES = 1,
+    };
+
+    typedef uint_t ExportFlags;
+
+    Error SaveXSPF(Container::Ptr container, const QString& filename, ExportCallback& cb, ExportFlags flags);
   }
 }
 

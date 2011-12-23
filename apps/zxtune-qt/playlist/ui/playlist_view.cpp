@@ -117,9 +117,10 @@ namespace
   class SavePlaylistOperation : public Playlist::Item::StorageAccessOperation
   {
   public:
-    explicit SavePlaylistOperation(const QString& name, const QString& filename)
+    SavePlaylistOperation(const QString& name, const QString& filename, Playlist::IO::ExportFlags flags)
       : Name(FromQString(name))
       , Filename(filename)
+      , Flags(flags)
     {
     }
 
@@ -127,7 +128,7 @@ namespace
     {
       const Playlist::IO::Container::Ptr container = boost::make_shared<ContainerImpl>(Name, storage);
       CallbackWrapper callback(cb);
-      if (const Error& err = Playlist::IO::SaveXSPF(container, Filename, callback))
+      if (const Error& err = Playlist::IO::SaveXSPF(container, Filename, callback, Flags))
       {
         //TODO: handle error
       }
@@ -135,6 +136,7 @@ namespace
   private:
     const String Name;
     const QString Filename;
+    const Playlist::IO::ExportFlags Flags;
   };
 
   class PlayitemStateCallbackImpl : public Playlist::Item::StateCallback
@@ -328,13 +330,21 @@ namespace
     virtual void Save()
     {
       const QString name = Controller->GetName();
+      QStringList filters;
+      filters << "Simple playlist (*.xspf)";
+      filters << "Playlist with module's attributes (*.xspf)";
+
       QString filename = name;
+      int usedFilter = 0;
       if (FileDialog::Instance().SaveFile(QString::fromUtf8("Save playlist"),
-        QString::fromUtf8("xspf"),
-        QString::fromUtf8("Playlist files (*.xspf)"),
-        filename))
+        QString::fromUtf8("xspf"), filters, filename, &usedFilter))
       {
-        const Playlist::Item::StorageAccessOperation::Ptr op = boost::make_shared<SavePlaylistOperation>(name, filename);
+        Playlist::IO::ExportFlags flags = 0;
+        if (1 == usedFilter)
+        {
+          flags |= Playlist::IO::SAVE_ATTRIBUTES;
+        }
+        const Playlist::Item::StorageAccessOperation::Ptr op = boost::make_shared<SavePlaylistOperation>(name, filename, flags);
         Controller->GetModel()->PerformOperation(op);
       }
     }

@@ -143,6 +143,13 @@ namespace
       XML.writeEndElement();
     }
 
+    void SaveModuleLocation(const String& location)
+    {
+      Log::Debug(THIS_MODULE, "  saving item location %1%", location);
+      const QUrl url(ToQString(location));
+      XML.writeTextElement(XSPF::ITEM_LOCATION_TAG, url.toEncoded());
+    }
+
     void SaveModuleProperties(const ZXTune::Module::Information& info, const Parameters::Accessor& props)
     {
       //save common properties
@@ -176,13 +183,7 @@ namespace
     {
       const String value = Parameters::ConvertToString(val);
       const QString valStr = ConvertString(value);
-      if (name == ZXTune::Module::ATTR_FULLPATH)
-      {
-        Log::Debug(THIS_MODULE, "  saving item attribute %1%='%2%'", name, val);
-        const QUrl url(ToQString(value));
-        XML.writeTextElement(XSPF::ITEM_LOCATION_TAG, url.toEncoded());
-      }
-      else if (name == ZXTune::Module::ATTR_TITLE)
+      if (name == ZXTune::Module::ATTR_TITLE)
       {
         Log::Debug(THIS_MODULE, "  saving item attribute %1%='%2%'", name, val);
         SaveText(XSPF::ITEM_TITLE_TAG, valStr);
@@ -281,8 +282,9 @@ namespace
   class XSPFWriter : private Playlist::Item::Callback
   {
   public:
-    explicit XSPFWriter(QIODevice& device)
+    XSPFWriter(QIODevice& device, bool saveAttributes)
       : XML(&device)
+      , SaveAttributes(saveAttributes)
     {
       XML.setAutoFormatting(true);
       XML.setAutoFormattingIndent(2);
@@ -317,8 +319,9 @@ namespace
     {
       Log::Debug(THIS_MODULE, "Save playitem");
       ItemPropertiesSaver saver(XML);
+      saver.SaveModuleLocation(item->GetFullPath());
       const Parameters::Accessor::Ptr adjustedParams = item->GetAdjustedParameters();
-      if (const ZXTune::Module::Holder::Ptr holder = item->GetModule())
+      if (const ZXTune::Module::Holder::Ptr holder = SaveAttributes ? item->GetModule() : ZXTune::Module::Holder::Ptr())
       {
         const ZXTune::Module::Information::Ptr info = holder->GetModuleInformation();
         const Parameters::Accessor::Ptr props = holder->GetModuleProperties();
@@ -332,6 +335,7 @@ namespace
     }
   private:
     QXmlStreamWriter XML;
+    const bool SaveAttributes;
   };
 
   class ProgressCallbackWrapper : public Playlist::IO::ExportCallback
@@ -371,7 +375,7 @@ namespace Playlist
 {
   namespace IO
   {
-    Error SaveXSPF(Container::Ptr container, const QString& filename, ExportCallback& cb)
+    Error SaveXSPF(Container::Ptr container, const QString& filename, ExportCallback& cb, ExportFlags flags)
     {
       QFile device(filename);
       if (!device.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))
@@ -380,7 +384,7 @@ namespace Playlist
       }
       try
       {
-        XSPFWriter writer(device);
+        XSPFWriter writer(device, 0 != (flags & SAVE_ATTRIBUTES));
         const Parameters::Accessor::Ptr playlistProperties = container->GetProperties();
         const unsigned itemsCount = container->GetItemsCount();
         writer.WriteProperties(*playlistProperties, itemsCount);
