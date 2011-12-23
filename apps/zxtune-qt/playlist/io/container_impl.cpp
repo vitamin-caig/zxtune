@@ -166,6 +166,13 @@ namespace
     {
       return Path;
     }
+
+    Parameters::Container::Ptr GetParameters() const
+    {
+      const Parameters::Container::Ptr res = Parameters::Container::Create();
+      Params->Process(*res);
+      return res;
+    }
   private:
     const Playlist::Item::DataProvider::Ptr Provider;
     const Parameters::Accessor::Ptr Params;
@@ -192,8 +199,7 @@ namespace
 
     virtual Parameters::Container::Ptr GetAdjustedParameters() const
     {
-      AcquireDelegate();
-      return Delegate->GetAdjustedParameters();
+      return Provider.get() ? Provider->GetParameters() : Delegate->GetAdjustedParameters();
     }
 
     //playlist-related
