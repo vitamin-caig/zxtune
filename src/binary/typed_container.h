@@ -38,6 +38,11 @@ namespace Binary
         ? safe_ptr_cast<const T*>(Data + offset)
         : 0;
     }
+
+    std::size_t GetSize() const
+    {
+      return Size;
+    }
   private:
     const uint8_t* const Data;
     const std::size_t Size;

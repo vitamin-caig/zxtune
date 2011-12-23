@@ -31,6 +31,8 @@ namespace
 
 namespace CompiledASC
 {
+  const std::size_t MAX_PLAYER_SIZE = 1700;
+
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif
@@ -137,18 +139,23 @@ namespace CompiledASC
   const String Version1::DESCRIPTION = String(Text::ASCSOUNDMASTER1_DECODER_DESCRIPTION) + Text::PLAYER_SUFFIX;
   const String Version2::DESCRIPTION = String(Text::ASCSOUNDMASTER2_DECODER_DESCRIPTION) + Text::PLAYER_SUFFIX;
 
-  const std::string BASE_FORMAT(
+  const std::string ID_FORMAT(
+    "'A'S'M' 'C'O'M'P'I'L'A'T'I'O'N' 'O'F' "
+    "+20+" //title
+    "+4+"  //any text
+    "+20+" //author
+  );
+
+  const std::string BASE_FORMAT = 
     "+11+"  //unknown
     "c3??"  //init
     "c3??"  //play
     "c3??"  //silent
-    "'A'S'M' 'C'O'M'P'I'L'A'T'I'O'N' 'O'F' "
-    //+0x27
-    "+44+"
+    + ID_FORMAT +
     //+0x53    init
     "af"       //xor a
     "+28+"
-  );
+  ;
 
   const std::string Version0::FORMAT = BASE_FORMAT +
     //+0x70
@@ -174,21 +181,19 @@ namespace CompiledASC
     "32??"     //ld (xxx),a
   ;
 
-  const std::string Version2::FORMAT(
+  const std::string Version2::FORMAT =
     "+11+"     //padding
     "184600"
     "c3??"
     "c3??"
-    "'A'S'M' 'C'O'M'P'I'L'A'T'I'O'N' 'O'F' "
-    //+0x27
-    "+44+"
+    + ID_FORMAT +
     //+0x53 init
     "cd??"
     "3b3b"
     "+35+"
     //+123
     "11??" //data offset
-  );
+  ;
 
   template<class T, class D>
   T AddLE(T val, D delta)
@@ -228,18 +233,24 @@ namespace CompiledASC
 
     bool FastCheck() const
     {
-      return Header.GetSize() < Data.Size();
+      return Header.GetSize() < std::min(Data.Size(), MAX_PLAYER_SIZE);
     }
 
     Formats::Packed::Container::Ptr GetResult() const
     {
       assert(FastCheck());
       const std::size_t modOffset = Header.GetSize();
+      Log::Debug(THIS_MODULE, "Detected player in first %1% bytes", modOffset);
       const Binary::Container::Ptr modData = Data.GetSubcontainer(modOffset, Data.Size() - modOffset);
-      if (Formats::Chiptune::Container::Ptr module = Version::Parse(*modData, Formats::Chiptune::ASCSoundMaster::GetStubBuilder()))
+      Formats::Chiptune::ASCSoundMaster::Builder& builder = Formats::Chiptune::ASCSoundMaster::GetStubBuilder();
+      if (Formats::Chiptune::Container::Ptr module = Version::Parse(*modData, builder))
       {
         const Binary::Container::Ptr result = BuildFixedModule<Version>(*module, Header.Information);
-        return CreatePackedContainer(result, modOffset + module->Size());
+        if (Version::Parse(*result, builder))
+        {
+          return CreatePackedContainer(result, modOffset + module->Size());
+        }
+        Log::Debug(THIS_MODULE, "Failed to parse fixed module");
       }
       Log::Debug(THIS_MODULE, "Failed to find module after player");
       return Formats::Packed::Container::Ptr();

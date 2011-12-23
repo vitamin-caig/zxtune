@@ -39,7 +39,7 @@ namespace Chiptune
 {
   namespace ASCSoundMaster
   {
-    const std::size_t MAX_MODULE_SIZE = 0x3800;
+    const std::size_t MAX_MODULE_SIZE = 0x3a00;
     const std::size_t SAMPLES_COUNT = 32;
     const std::size_t MAX_SAMPLE_SIZE = 150;
     const std::size_t ORNAMENTS_COUNT = 32;
@@ -91,8 +91,8 @@ namespace Chiptune
     const std::string Version0::FORMAT(
       "03-32"    //tempo
       "09-ff 00" //patterns
-      "? 00-33"  //samples
-      "? 00-37"  //ornaments
+      "? 00-39"  //samples
+      "? 00-3a"  //ornaments
       "01-64"    //length
       "00-1f"    //first position
     );
@@ -102,8 +102,8 @@ namespace Chiptune
       "03-32"    //tempo
       "00-63"    //loop
       "0a-ff 00" //patterns
-      "? 00-33"  //samples
-      "? 00-37"  //ornaments
+      "? 00-39"  //samples
+      "? 00-3a"  //ornaments
       "01-64"    //length
       "00-1f"    //first position
     );
@@ -511,33 +511,116 @@ namespace Chiptune
       const RangeChecker::Ptr FixedRanges;
     };
 
+    class Header
+    {
+    public:
+      typedef std::auto_ptr<const Header> Ptr;
+      virtual ~Header() {}
+
+      virtual std::size_t GetSize() const = 0;
+      virtual String GetProgram() const = 0;
+
+      virtual std::size_t GetPatternsOffset() const = 0;
+      virtual std::size_t GetSamplesOffset() const = 0;
+      virtual std::size_t GetOrnamentsOffset() const = 0;
+      virtual uint_t GetTempo() const = 0;
+      virtual uint_t GetLoop() const = 0;
+      virtual std::vector<uint_t> GetPositions() const = 0;
+    };
+
     template<class HeaderType>
     std::size_t GetHeaderSize(const HeaderType& hdr)
     {
       return offsetof(HeaderType, Positions) + hdr.Length;
     }
 
+    void CheckTempo(uint_t tempo)
+    {
+      Require(in_range<uint_t>(tempo, 3, 50));
+    }
+
     template<class Version>
+    class TypedHeader : public Header
+    {
+    public:
+      explicit TypedHeader(const Binary::TypedContainer& data)
+        : Delegate(*data.GetField<typename Version::RawHeader>(0))
+        , Size(GetHeaderSize(Delegate))
+      {
+        Require(data.GetSize() >= Size);
+      }
+
+      virtual std::size_t GetSize() const
+      {
+        return Size;
+      }
+
+      virtual String GetProgram() const
+      {
+        return Version::DESCRIPTION;
+      }
+
+      virtual std::size_t GetPatternsOffset() const
+      {
+        return fromLE(Delegate.PatternsOffset);
+      }
+
+      virtual std::size_t GetSamplesOffset() const
+      {
+        return fromLE(Delegate.SamplesOffset);
+      }
+
+      virtual std::size_t GetOrnamentsOffset() const
+      {
+        return fromLE(Delegate.OrnamentsOffset);
+      }
+
+      virtual uint_t GetTempo() const
+      {
+        return Delegate.Tempo;
+      }
+
+      virtual uint_t GetLoop() const
+      {
+        return Delegate.Loop;
+      }
+
+      virtual std::vector<uint_t> GetPositions() const
+      {
+        return std::vector<uint_t>(Delegate.Positions, Delegate.Positions + Delegate.Length);
+      }
+
+      static Ptr Create(const Binary::TypedContainer& data)
+      {
+        return Ptr(new TypedHeader(data));
+      }
+    private:
+      const typename Version::RawHeader& Delegate;
+      const std::size_t Size;
+    };
+
     class Format
     {
     public:
-      explicit Format(const Binary::Container& data)
-        : Limit(std::min(data.Size(), MAX_MODULE_SIZE))
-        , Delegate(data, Limit)
-        , Ranges(Limit)
-        , Source(GetServiceObject<typename Version::RawHeader>(0))
-        , Id(GetObject<RawId>(GetHeaderSize(Source)))
+      Format(const Binary::TypedContainer& data, Header::Ptr header)
+        : Delegate(data)
+        , Ranges(data.GetSize())
+        , Source(header)
+        , Id(GetObject<RawId>(Source->GetSize()))
       {
+        Ranges.AddService(0, Source->GetSize());
         if (Id.Check())
         {
-          Ranges.AddService(sizeof(Source), GetHeaderSize(Source));
+          Ranges.AddService(Source->GetSize(), sizeof(Id));
         }
       }
 
       void ParseCommonProperties(Builder& builder) const
       {
-        builder.SetInitialTempo(Source.Tempo);
-        builder.SetProgram(Version::DESCRIPTION);
+        const uint_t tempo = Source->GetTempo();
+        CheckTempo(tempo);
+        builder.SetInitialTempo(tempo);
+        builder.SetProgram(Source->GetProgram());
         if (Id.Check())
         {
           builder.SetTitleAndAuthor(FromCharArray(Id.Title), FromCharArray(Id.Author));
@@ -546,8 +629,8 @@ namespace Chiptune
 
       void ParsePositions(Builder& builder) const
       {
-        const std::vector<uint_t> positions(Source.Positions, Source.Positions + Source.Length);
-        const uint_t loop = Source.Loop;
+        const std::vector<uint_t> positions = Source->GetPositions();
+        const uint_t loop = Source->GetLoop();
         builder.SetPositions(positions, loop);
         Log::Debug(THIS_MODULE, "Positions: %1% entries, loop to %2%", positions.size(), loop);
       }
@@ -556,7 +639,7 @@ namespace Chiptune
       {
         Require(!pats.empty());
         Log::Debug(THIS_MODULE, "Patterns: %1% to parse", pats.size());
-        const std::size_t baseOffset = fromLE(Source.PatternsOffset);
+        const std::size_t baseOffset = Source->GetPatternsOffset();
         for (Indices::const_iterator it = pats.begin(), lim = pats.end(); it != lim; ++it)
         {
           const uint_t patIndex = *it;
@@ -572,7 +655,7 @@ namespace Chiptune
       {
         Require(!samples.empty());
         Log::Debug(THIS_MODULE, "Samples: %1% to parse", samples.size());
-        const std::size_t baseOffset = fromLE(Source.SamplesOffset);
+        const std::size_t baseOffset = Source->GetSamplesOffset();
         const RawSamplesList& list = GetServiceObject<RawSamplesList>(baseOffset);
         for (Indices::const_iterator it = samples.begin(), lim = samples.end(); it != lim; ++it)
         {
@@ -588,7 +671,7 @@ namespace Chiptune
       {
         Require(!ornaments.empty() && 0 == *ornaments.begin());
         Log::Debug(THIS_MODULE, "Ornaments: %1% to parse", ornaments.size());
-        const std::size_t baseOffset = fromLE(Source.OrnamentsOffset);
+        const std::size_t baseOffset = Source->GetOrnamentsOffset();
         const RawOrnamentsList& list = GetServiceObject<RawOrnamentsList>(baseOffset);
         for (Indices::const_iterator it = ornaments.begin(), lim = ornaments.end(); it != lim; ++it)
         {
@@ -694,7 +777,7 @@ namespace Chiptune
         {
           const std::size_t start = rangesStarts[chanNum];
           //TODO: improve size detection
-          const std::size_t stop = std::min(Limit, state.Offsets[chanNum] + 1);
+          const std::size_t stop = std::min(Delegate.GetSize(), state.Offsets[chanNum] + 1);
           Ranges.AddFixed(start, stop - start);
         }
       }
@@ -708,7 +791,7 @@ namespace Chiptune
             continue;
           }
           std::size_t& offset = src.Offsets[chan];
-          if (offset >= Limit)
+          if (offset >= Delegate.GetSize())
           {
             return false;
           }
@@ -739,7 +822,7 @@ namespace Chiptune
 
       void ParseChannel(std::size_t& offset, uint_t& period, bool& envelope, Builder& builder) const
       {
-        while (offset < Limit)
+        while (offset < Delegate.GetSize())
         {
           const uint_t cmd = PeekByte(offset++);
           if (cmd <= 0x55)//note
@@ -807,7 +890,7 @@ namespace Chiptune
           else if (cmd == 0xf4) //tempo
           {
             const uint_t newTempo = PeekByte(offset++);
-            Require(in_range<uint_t>(newTempo, 3, 50));
+            CheckTempo(newTempo);
             builder.SetTempo(newTempo);
           }
           else if (cmd <= 0xf6) //slide
@@ -837,10 +920,9 @@ namespace Chiptune
 
       Sample ParseSample(std::size_t offset) const
       {
-        Require(offset < Limit);
         const RawSample& src = GetObject<RawSample>(offset);
         Sample result;
-        const std::size_t availSize = (Limit - offset) / sizeof(RawSample::Line);
+        const std::size_t availSize = (Delegate.GetSize() - offset) / sizeof(RawSample::Line);
         for (std::size_t idx = 0, lim = std::min(availSize, MAX_SAMPLE_SIZE); idx != lim; ++idx)
         {
           const RawSample::Line& srcLine = src.Data[idx];
@@ -890,10 +972,9 @@ namespace Chiptune
 
       Ornament ParseOrnament(std::size_t offset) const
       {
-        Require(offset < Limit);
         const RawOrnament& src = GetObject<RawOrnament>(offset);
         Ornament result;
-        const std::size_t availSize = (Limit - offset) / sizeof(RawOrnament::Line);
+        const std::size_t availSize = (Delegate.GetSize() - offset) / sizeof(RawOrnament::Line);
         for (std::size_t idx = 0, lim = std::min(availSize, MAX_ORNAMENT_SIZE); idx != lim; ++idx)
         {
           const RawOrnament::Line& srcLine = src.Data[idx];
@@ -924,10 +1005,9 @@ namespace Chiptune
         return result;
       }
     private:
-      const std::size_t Limit;
-      const Binary::TypedContainer Delegate;
+      const Binary::TypedContainer& Delegate;
       RangesMap Ranges;
-      const typename Version::RawHeader& Source;
+      const Header::Ptr Source;
       const RawId& Id;
     };
 
@@ -974,19 +1054,19 @@ namespace Chiptune
       END
     };
 
-    template<class Version>
     struct Areas : public AreaController<AreaTypes, 1 + END, std::size_t>
     {
-      Areas(const typename Version::RawHeader& header, std::size_t size)
+      template<class HeaderType>
+      Areas(const HeaderType& header, std::size_t size)
+        : HeaderSize(GetHeaderSize(header))
       {
         AddArea(HEADER, 0);
-        const std::size_t idOffset = GetHeaderSize(header);
-        if (idOffset + sizeof(RawId) <= size)
+        if (HeaderSize + sizeof(RawId) <= size)
         {
-          const RawId* const id = safe_ptr_cast<const RawId*>(safe_ptr_cast<const uint8_t*>(&header) + idOffset);
+          const RawId* const id = safe_ptr_cast<const RawId*>(safe_ptr_cast<const uint8_t*>(&header) + HeaderSize);
           if (id->Check())
           {
-            AddArea(IDENTIFIER, idOffset);
+            AddArea(IDENTIFIER, HeaderSize);
           }
         }
         AddArea(PATTERNS, fromLE(header.PatternsOffset));
@@ -997,7 +1077,7 @@ namespace Chiptune
 
       bool CheckHeader() const
       {
-        if (sizeof(typename Version::RawHeader) > GetAreaSize(HEADER) || Undefined != GetAreaSize(END))
+        if (HeaderSize > GetAreaSize(HEADER) || Undefined != GetAreaSize(END))
         {
           return false;
         }
@@ -1026,6 +1106,8 @@ namespace Chiptune
         const std::size_t requiredSize = sizeof(RawOrnamentsList);
         return requiredSize <= size;
       }
+    private:
+      const std::size_t HeaderSize;
     };
 
     bool AreSequenced(uint16_t lh, uint16_t rh, std::size_t multiply)
@@ -1042,17 +1124,9 @@ namespace Chiptune
       }
       return true;
     }
-    template<class Version>
-    bool FastCheck(const Binary::Container& rawData)
+
+    bool FastCheck(const Binary::TypedContainer& data, const Areas& areas)
     {
-      const std::size_t size = std::min(rawData.Size(), MAX_MODULE_SIZE);
-      const Binary::TypedContainer data(rawData, size);
-      const typename Version::RawHeader* const hdr = data.GetField<typename Version::RawHeader>(0);
-      if (0 == hdr)
-      {
-        return false;
-      }
-      const Areas<Version> areas(*hdr, size);
       if (!areas.CheckHeader())
       {
         return false;
@@ -1101,30 +1175,51 @@ namespace Chiptune
     }
 
     template<class Version>
-    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target)
+    bool FastCheck(const Binary::TypedContainer& data)
     {
+      const typename Version::RawHeader* const hdr = data.GetField<typename Version::RawHeader>(0);
+      if (0 == hdr)
+      {
+        return false;
+      }
+      const Areas areas(*hdr, data.GetSize());
+      return FastCheck(data, areas);
+    }
+
+    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, const Format& format, Builder& target)
+    {
+      format.ParseCommonProperties(target);
+
+      StatisticCollectingBuilder statistic(target);
+      format.ParsePositions(statistic);
+      const Indices& usedPatterns = statistic.GetUsedPatterns();
+      format.ParsePatterns(usedPatterns, statistic);
+      const Indices& usedSamples = statistic.GetUsedSamples();
+      format.ParseSamples(usedSamples, target);
+      Indices usedOrnaments = statistic.GetUsedOrnaments();
+      usedOrnaments.insert(0);
+      format.ParseOrnaments(usedOrnaments, target);
+
+      return boost::make_shared<Container>(rawData, format.GetSize(), format.GetFixedArea());
+    }
+
+    Binary::TypedContainer CreateContainer(const Binary::Container& data)
+    {
+      return Binary::TypedContainer(data, std::min(data.Size(), MAX_MODULE_SIZE));
+    }
+
+    template<class Version>
+    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, Builder& target)
+    {
+      const Binary::TypedContainer data = CreateContainer(rawData);
       if (!FastCheck<Version>(data))
       {
         return Formats::Chiptune::Container::Ptr();
       }
-
       try
       {
-        const Format<Version> format(data);
-
-        format.ParseCommonProperties(target);
-
-        StatisticCollectingBuilder statistic(target);
-        format.ParsePositions(statistic);
-        const Indices& usedPatterns = statistic.GetUsedPatterns();
-        format.ParsePatterns(usedPatterns, statistic);
-        const Indices& usedSamples = statistic.GetUsedSamples();
-        format.ParseSamples(usedSamples, target);
-        Indices usedOrnaments = statistic.GetUsedOrnaments();
-        usedOrnaments.insert(0);
-        format.ParseOrnaments(usedOrnaments, target);
-
-        return boost::make_shared<Container>(data, format.GetSize(), format.GetFixedArea());
+        const Format format(data, TypedHeader<Version>::Create(data));
+        return Parse(rawData, format, target);
       }
       catch (const std::exception&)
       {
@@ -1133,14 +1228,14 @@ namespace Chiptune
       }
     }
 
-    Formats::Chiptune::Container::Ptr ParseVersion0x(const Binary::Container& data, Builder& target)
+    Formats::Chiptune::Container::Ptr ParseVersion0x(const Binary::Container& rawData, Builder& target)
     {
-      return Parse<Version0>(data, target);
+      return Parse<Version0>(rawData, target);
     }
 
-    Formats::Chiptune::Container::Ptr ParseVersion1x(const Binary::Container& data, Builder& target)
+    Formats::Chiptune::Container::Ptr ParseVersion1x(const Binary::Container& rawData, Builder& target)
     {
-      return Parse<Version1>(data, target);
+      return Parse<Version1>(rawData, target);
     }
 
     Builder& GetStubBuilder()
@@ -1170,11 +1265,15 @@ namespace Chiptune
 
       virtual bool Check(const Binary::Container& rawData) const
       {
-        return Format->Match(rawData.Data(), rawData.Size()) && FastCheck<Version>(rawData);
+        return Format->Match(rawData.Data(), rawData.Size()) && FastCheck<Version>(CreateContainer(rawData));
       }
 
       virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
       {
+        if (!Format->Match(rawData.Data(), rawData.Size()))
+        {
+          return Formats::Chiptune::Container::Ptr();
+        }
         Builder& stub = GetStubBuilder();
         return Parse<Version>(rawData, stub);
       }
