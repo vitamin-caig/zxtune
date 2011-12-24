@@ -263,14 +263,6 @@ namespace Formats
         return Depacker;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
-      {
-        const void* const data = rawData.Data();
-        const std::size_t availSize = rawData.Size();
-        const CharPres::Container container(data, availSize);
-        return container.FastCheck() && Depacker->Match(data, availSize);
-      }
-
       virtual Container::Ptr Decode(const Binary::Container& rawData) const
       {
         const void* const data = rawData.Data();

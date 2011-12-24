@@ -57,6 +57,10 @@ namespace
       Log::Debug(THIS_MODULE, "Useful detected: %1% (%2% archived + %3% modules)", useful, ArchivedData, ModulesData);
       Log::Debug(THIS_MODULE, "Coverage: %1%%%", useful * 100 / TotalData);
       Log::Debug(THIS_MODULE, "Speed is %1% b/s", spent ? (TotalData / spent) : TotalData);
+      for (std::map<String, std::size_t>::const_iterator it = Missed.begin(), lim = Missed.end(); it != lim; ++it)
+      {
+        Log::Debug(THIS_MODULE, "Missed %1%: %2% times", it->first, it->second);
+      }
     }
 
     void Enqueue(std::size_t size)
@@ -74,6 +78,11 @@ namespace
       ModulesData += size;
     }
 
+    void AddMissed(const String& type)
+    {
+      ++Missed[type];
+    }
+
     static Statistic& Self()
     {
       static Statistic self;
@@ -84,6 +93,7 @@ namespace
     uint64_t TotalData;
     uint64_t ArchivedData;
     uint64_t ModulesData;
+    std::map<String, std::size_t> Missed;
   };
 }
 
@@ -426,6 +436,10 @@ namespace
           return result;
         }
         const std::size_t lookahead = result->GetLookaheadOffset();
+        if (0 == lookahead)
+        {
+          Statistic::Self().AddMissed(id);
+        }
         container.SetPluginLookahead(id, std::max<std::size_t>(lookahead, MIN_SCAN_STEP));
       }
       const std::size_t minLookahead = container.GetMinimalPluginLookahead();
