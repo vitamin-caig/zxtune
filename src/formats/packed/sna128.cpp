@@ -160,13 +160,6 @@ namespace Formats
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
-      {
-        const void* const data = rawData.Data();
-        const std::size_t availSize = rawData.Size();
-        return Format->Match(data, availSize) && Sna128::Check(data, availSize);
-      }
-
       virtual Formats::Packed::Container::Ptr Decode(const Binary::Container& rawData) const
       {
         const uint8_t* const data = static_cast<const uint8_t*>(rawData.Data());

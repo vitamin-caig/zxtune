@@ -313,14 +313,6 @@ namespace Formats
         return Depacker;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
-      {
-        const void* const data = rawData.Data();
-        const std::size_t availSize = rawData.Size();
-        const GamePacker::Container<Version> container(data, availSize);
-        return container.Check() && Depacker->Match(data, availSize);
-      }
-
       virtual Container::Ptr Decode(const Binary::Container& rawData) const
       {
         const void* const data = rawData.Data();

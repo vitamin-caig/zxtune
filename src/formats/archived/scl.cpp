@@ -155,13 +155,9 @@ namespace Formats
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& data) const
-      {
-        return SCL::FastCheck(data);
-      }
-
       virtual Container::Ptr Decode(const Binary::Container& data) const
       {
+        //implies SCL::FastCheck
         return SCL::ParseArchive(data);
       }
     private:

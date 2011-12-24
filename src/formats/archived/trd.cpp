@@ -231,12 +231,6 @@ namespace Formats
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& data) const
-      {
-        static TRD::StubVisitor STUB;
-        return TRD::Parse(data, STUB);
-      }
-
       virtual Container::Ptr Decode(const Binary::Container& data) const
       {
         const TRDos::CatalogueBuilder::Ptr builder = TRDos::CatalogueBuilder::CreateFlat();

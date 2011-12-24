@@ -452,11 +452,6 @@ namespace Formats
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& data) const
-      {
-        return Format->Match(data.Data(), data.Size());
-      }
-
       virtual Container::Ptr Decode(const Binary::Container& data) const
       {
         if (!Format->Match(data.Data(), data.Size()))

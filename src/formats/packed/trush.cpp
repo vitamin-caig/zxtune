@@ -30,11 +30,10 @@ namespace TRUSH
 {
   const std::size_t MAX_DECODED_SIZE = 0xc000;
 
-  const char SIGNATURE[] =
-  {
-    'C', 'O', 'M', 'P', 'R', 'E', 'S', 'S', 'O', 'R', ' ', 'B', 'Y', ' ',
-    'A', 'L', 'E', 'X', 'A', 'N', 'D', 'E', 'R', ' ', 'T', 'R', 'U', 'S', 'H', ' ', 'O', 'D', 'E', 'S', 'S', 'A'
-  };
+  const std::string DEPACKER_PATTERN(
+    "+39+"
+    "'C'O'M'P'R'E'S'S'O'R' 'B'Y' 'A'L'E'X'A'N'D'E'R' 'T'R'U'S'H' 'O'D'E'S'S'A"
+  );
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -69,18 +68,13 @@ namespace TRUSH
     {
     }
 
-    bool Check() const
+    bool FastCheck() const
     {
       if (Size <= sizeof(RawHeader))
       {
         return false;
       }
       const RawHeader& header = GetHeader();
-      BOOST_STATIC_ASSERT(sizeof(header.Signature) == sizeof(SIGNATURE));
-      if (0 != std::memcmp(header.Signature, SIGNATURE, sizeof(header.Signature)))
-      {
-        return false;
-      }
       const std::size_t usedSize = GetUsedSize();
       return in_range(usedSize, sizeof(header), Size);
     }
@@ -105,7 +99,7 @@ namespace TRUSH
   {
   public:
     explicit DataDecoder(const Container& container)
-      : IsValid(container.Check())
+      : IsValid(container.FastCheck())
       , Header(container.GetHeader())
       , Stream(Header.BitStream, fromLE(Header.SizeOfPacked))
       , Result(new Dump())
@@ -222,31 +216,6 @@ namespace TRUSH
     std::auto_ptr<Dump> Result;
     Dump& Decoded;
   };
-
-  class Format : public Binary::Format
-  {
-  public:
-    virtual bool Match(const void* data, std::size_t size) const
-    {
-      const std::size_t signatureOffset = offsetof(RawHeader, Signature);
-      if (signatureOffset + ArraySize(SIGNATURE) > size)
-      {
-        return false;
-      }
-      return std::equal(SIGNATURE, ArrayEnd(SIGNATURE), static_cast<const uint8_t*>(data) + signatureOffset);
-    }
-
-    virtual std::size_t Search(const void* data, std::size_t size) const
-    {
-      const std::size_t signatureOffset = offsetof(RawHeader, Signature);
-      if (signatureOffset + ArraySize(SIGNATURE) > size)
-      {
-        return size;
-      }
-      const uint8_t* const rawData = static_cast<const uint8_t*>(data) + signatureOffset;
-      return std::search(rawData, rawData + size - signatureOffset, SIGNATURE, ArrayEnd(SIGNATURE)) - rawData;
-    }
-  };
 }
 
 
@@ -257,6 +226,11 @@ namespace Formats
     class TRUSHDecoder : public Decoder
     {
     public:
+      TRUSHDecoder()
+        : Depacker(Binary::Format::Create(TRUSH::DEPACKER_PATTERN))
+      {
+      }
+
       virtual String GetDescription() const
       {
         return Text::TRUSH_DECODER_DESCRIPTION;
@@ -264,15 +238,7 @@ namespace Formats
 
       virtual Binary::Format::Ptr GetFormat() const
       {
-        return boost::make_shared<TRUSH::Format>();
-      }
-
-      virtual bool Check(const Binary::Container& rawData) const
-      {
-        const void* const data = rawData.Data();
-        const std::size_t availSize = rawData.Size();
-        const TRUSH::Container container(data, availSize);
-        return container.Check();
+        return Depacker;
       }
 
       virtual Container::Ptr Decode(const Binary::Container& rawData) const
@@ -280,13 +246,15 @@ namespace Formats
         const void* const data = rawData.Data();
         const std::size_t availSize = rawData.Size();
         const TRUSH::Container container(data, availSize);
-        if (!container.Check())
+        if (!Depacker->Match(data, availSize) || !container.FastCheck())
         {
           return Container::Ptr();
         }
         TRUSH::DataDecoder decoder(container);
         return CreatePackedContainer(decoder.GetResult(), container.GetUsedSize());
       }
+    private:
+      const Binary::Format::Ptr Depacker;
     };
 
     Decoder::Ptr CreateTRUSHDecoder()

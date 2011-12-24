@@ -49,10 +49,6 @@ namespace ZXZip
     for (std::size_t flatOffset = 0; rawOffset < archSize;)
     {
       const Binary::Container::Ptr rawData = data.GetSubcontainer(rawOffset, archSize - rawOffset);
-      if (!decoder.Check(*rawData))
-      {
-        break;
-      }
       const Formats::Packed::Container::Ptr fileData = decoder.Decode(*rawData);
       if (!fileData)
       {
@@ -93,14 +89,9 @@ namespace Formats
         return FileDecoder->GetFormat();
       }
 
-      virtual bool Check(const Binary::Container& data) const
-      {
-        return FileDecoder->Check(data);
-      }
-
       virtual Container::Ptr Decode(const Binary::Container& data) const
       {
-        if (!FileDecoder->Check(data))
+        if (!FileDecoder->GetFormat()->Match(data.Data(), data.Size()))
         {
           return Container::Ptr();
         }

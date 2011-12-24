@@ -105,18 +105,11 @@ namespace Formats
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
-      {
-        const void* const data = rawData.Data();
-        const std::size_t availSize = rawData.Size();
-        return Format->Match(data, availSize) && Hobeta::Check(data, availSize);
-      }
-
       virtual Formats::Packed::Container::Ptr Decode(const Binary::Container& rawData) const
       {
         const uint8_t* const data = static_cast<const uint8_t*>(rawData.Data());
         const std::size_t availSize = rawData.Size();
-        if (!Hobeta::Check(data, availSize))
+        if (Format->Match(data, availSize) || !Hobeta::Check(data, availSize))
         {
           return Formats::Packed::Container::Ptr();
         }

@@ -536,14 +536,6 @@ namespace Formats
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
-      {
-        const void* const data = rawData.Data();
-        const std::size_t availSize = rawData.Size();
-        const Hrust2::Version1::Container container(data, availSize);
-        return container.FastCheck() && Format->Match(data, availSize);
-      }
-
       virtual Container::Ptr Decode(const Binary::Container& rawData) const
       {
         const void* const data = rawData.Data();
@@ -578,19 +570,12 @@ namespace Formats
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
-      {
-        const void* const data = rawData.Data();
-        const std::size_t availSize = rawData.Size();
-        const Hrust2::Version3::Container container(data, availSize);
-        return container.FastCheck() && Format->Match(data, availSize);
-      }
-
       virtual Container::Ptr Decode(const Binary::Container& rawData) const
       {
         const void* const data = rawData.Data();
         const std::size_t availSize = rawData.Size();
-        if (!Format->Match(data, availSize))
+        const Hrust2::Version3::Container container(data, availSize);
+        if (!container.FastCheck() || !Format->Match(data, availSize))
         {
           return Container::Ptr();
         }

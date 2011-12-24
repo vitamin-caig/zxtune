@@ -285,13 +285,6 @@ namespace Formats
         return Player;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
-      {
-        const void* const data = rawData.Data();
-        const std::size_t availSize = rawData.Size();
-        return Player->Match(data, availSize) && CompiledASC::ModuleDecoder<Version>(rawData).FastCheck();
-      }
-
       virtual Container::Ptr Decode(const Binary::Container& rawData) const
       {
         const void* const data = rawData.Data();

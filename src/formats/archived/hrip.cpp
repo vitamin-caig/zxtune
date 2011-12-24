@@ -202,15 +202,9 @@ namespace Formats
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& data) const
-      {
-        uint_t files = 0;
-        std::size_t archiveSize = 0;
-        return Hrip::FastCheck(data.Data(), data.Size(), files, archiveSize);
-      }
-
       virtual Container::Ptr Decode(const Binary::Container& data) const
       {
+        //implies FastCheck
         return Hrip::ParseArchive(data);
       }
     private:

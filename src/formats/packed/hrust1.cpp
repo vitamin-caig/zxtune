@@ -30,7 +30,9 @@ namespace Hrust1
 {
   const std::size_t MAX_DECODED_SIZE = 0xc000;
 
-  const uint8_t SIGNATURE[] = {'H', 'R'};
+  const std::string FORMAT(
+    "'H'R"
+  );
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -64,11 +66,6 @@ namespace Hrust1
         return false;
       }
       const RawHeader& header = GetHeader();
-      if (header.ID[0] != SIGNATURE[0] ||
-          header.ID[1] != SIGNATURE[1])
-      {
-        return false;
-      }
       const std::size_t usedSize = GetUsedSize();
       return in_range(usedSize, sizeof(header), Size);
     }
@@ -302,29 +299,6 @@ namespace Hrust1
     std::auto_ptr<Dump> Result;
     Dump& Decoded;
   };
-
-  class Format : public Binary::Format
-  {
-  public:
-    virtual bool Match(const void* data, std::size_t size) const
-    {
-      if (ArraySize(SIGNATURE) > size)
-      {
-        return false;
-      }
-      return std::equal(SIGNATURE, ArrayEnd(SIGNATURE), static_cast<const uint8_t*>(data));
-    }
-
-    virtual std::size_t Search(const void* data, std::size_t size) const
-    {
-      if (ArraySize(SIGNATURE) > size)
-      {
-        return size;
-      }
-      const uint8_t* const rawData = static_cast<const uint8_t*>(data);
-      return std::search(rawData, rawData + size, SIGNATURE, ArrayEnd(SIGNATURE)) - rawData;
-    }
-  };
 }
 
 namespace Formats
@@ -334,6 +308,11 @@ namespace Formats
     class Hrust1Decoder : public Decoder
     {
     public:
+      Hrust1Decoder()
+        : Format(Binary::Format::Create(Hrust1::FORMAT))
+      {
+      }
+
       virtual String GetDescription() const
       {
         return Text::HRUST1_DECODER_DESCRIPTION;
@@ -341,15 +320,7 @@ namespace Formats
 
       virtual Binary::Format::Ptr GetFormat() const
       {
-        return boost::make_shared<Hrust1::Format>();
-      }
-
-      virtual bool Check(const Binary::Container& rawData) const
-      {
-        const void* const data = rawData.Data();
-        const std::size_t availSize = rawData.Size();
-        const Hrust1::Container container(data, availSize);
-        return container.FastCheck();
+        return Format;
       }
 
       virtual Container::Ptr Decode(const Binary::Container& rawData) const
@@ -357,13 +328,15 @@ namespace Formats
         const void* const data = rawData.Data();
         const std::size_t availSize = rawData.Size();
         const Hrust1::Container container(data, availSize);
-        if (!container.FastCheck())
+        if (!Format->Match(data, availSize) || !container.FastCheck())
         {
           return Container::Ptr();
         }
         Hrust1::DataDecoder decoder(container);
         return CreatePackedContainer(decoder.GetResult(), container.GetUsedSize());
       }
+    private:
+      const Binary::Format::Ptr Format;
     };
 
     Decoder::Ptr CreateHrust1Decoder()

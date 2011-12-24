@@ -378,14 +378,9 @@ namespace Formats
         return FileDecoder->GetFormat();
       }
 
-      virtual bool Check(const Binary::Container& data) const
-      {
-        return FileDecoder->Check(data);
-      }
-
       virtual Container::Ptr Decode(const Binary::Container& data) const
       {
-        if (!FileDecoder->Check(data))
+        if (!FileDecoder->GetFormat()->Match(data.Data(), data.Size()))
         {
           return Container::Ptr();
         }

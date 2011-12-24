@@ -32,7 +32,9 @@ namespace MSPack
 {
   const std::size_t MAX_DECODED_SIZE = 0xc000;
 
-  const char SIGNATURE[] = {'M', 's', 'P', 'k'};
+  const std::string DEPACKER_PATTERN(
+    "'M's'P'k"
+  );
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -69,18 +71,13 @@ namespace MSPack
     {
     }
 
-    bool Check() const
+    bool FastCheck() const
     {
       if (Size <= sizeof(RawHeader))
       {
         return false;
       }
       const RawHeader& header = GetHeader();
-      BOOST_STATIC_ASSERT(sizeof(header.Signature) == sizeof(SIGNATURE));
-      if (0 != std::memcmp(header.Signature, SIGNATURE, sizeof(header.Signature)))
-      {
-        return false;
-      }
       if (fromLE(header.LastSrcRestBytes) <= fromLE(header.LastSrcPacked) ||
           fromLE(header.LastDstPacked) <= fromLE(header.DstAddress))
       {
@@ -115,7 +112,7 @@ namespace MSPack
   {
   public:
     explicit DataDecoder(const Container& container)
-      : IsValid(container.Check())
+      : IsValid(container.FastCheck())
       , Header(container.GetHeader())
       , Stream(Header.BitStream, fromLE(Header.SizeOfPacked))
       , Result(new Dump())
@@ -229,29 +226,6 @@ namespace MSPack
     std::auto_ptr<Dump> Result;
     Dump& Decoded;
   };
-
-  class Format : public Binary::Format
-  {
-  public:
-    virtual bool Match(const void* data, std::size_t size) const
-    {
-      if (ArraySize(SIGNATURE) > size)
-      {
-        return false;
-      }
-      return std::equal(SIGNATURE, ArrayEnd(SIGNATURE), static_cast<const uint8_t*>(data));
-    }
-
-    virtual std::size_t Search(const void* data, std::size_t size) const
-    {
-      if (ArraySize(SIGNATURE) > size)
-      {
-        return size;
-      }
-      const uint8_t* const rawData = static_cast<const uint8_t*>(data);
-      return std::search(rawData, rawData + size, SIGNATURE, ArrayEnd(SIGNATURE)) - rawData;
-    }
-  };
 }
 
 namespace Formats
@@ -261,6 +235,11 @@ namespace Formats
     class MSPackDecoder : public Decoder
     {
     public:
+      MSPackDecoder()
+        : Depacker(Binary::Format::Create(MSPack::DEPACKER_PATTERN))
+      {
+      }
+
       virtual String GetDescription() const
       {
         return Text::MSP_DECODER_DESCRIPTION;
@@ -268,15 +247,7 @@ namespace Formats
 
       virtual Binary::Format::Ptr GetFormat() const
       {
-        return boost::make_shared<MSPack::Format>();
-      }
-
-      virtual bool Check(const Binary::Container& rawData) const
-      {
-        const void* const data = rawData.Data();
-        const std::size_t availSize = rawData.Size();
-        const MSPack::Container container(data, availSize);
-        return container.Check();
+        return Depacker;
       }
 
       virtual Container::Ptr Decode(const Binary::Container& rawData) const
@@ -284,13 +255,15 @@ namespace Formats
         const void* const data = rawData.Data();
         const std::size_t availSize = rawData.Size();
         const MSPack::Container container(data, availSize);
-        if (!container.Check())
+        if (!Depacker->Match(data, availSize) || !container.FastCheck())
         {
           return Container::Ptr();
         }
         MSPack::DataDecoder decoder(container);
         return CreatePackedContainer(decoder.GetResult(), container.GetUsedSize());
       }
+    private:
+    const Binary::Format::Ptr Depacker;
     };
 
     Decoder::Ptr CreateMSPackDecoder()

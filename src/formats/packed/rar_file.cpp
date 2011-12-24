@@ -900,12 +900,6 @@ namespace Formats
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
-      {
-        const ::Rar::Container container(rawData);
-        return container.FastCheck();
-      }
-
       virtual Container::Ptr Decode(const Binary::Container& rawData) const
       {
         const ::Rar::Container container(rawData);

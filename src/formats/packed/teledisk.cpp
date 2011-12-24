@@ -331,12 +331,6 @@ namespace TeleDiskImage
     }
   }
 
-  bool FastCheck(const Binary::Container& rawData)
-  {
-    static StubImageVisitor STUB;
-    return 0 != Parse(rawData, STUB);
-  }
-
   const std::string FORMAT_PATTERN(
     "'T'D"        // uint8_t ID[2]
     "00"          // uint8_t Sequence;
@@ -373,13 +367,6 @@ namespace Formats
       virtual Binary::Format::Ptr GetFormat() const
       {
         return Format;
-      }
-
-      virtual bool Check(const Binary::Container& rawData) const
-      {
-        const void* const data = rawData.Data();
-        const std::size_t availSize = rawData.Size();
-        return Format->Match(data, availSize) && TeleDiskImage::FastCheck(rawData);
       }
 
       virtual Container::Ptr Decode(const Binary::Container& rawData) const

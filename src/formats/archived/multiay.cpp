@@ -153,11 +153,6 @@ namespace Formats
         return Format;
       }
 
-      virtual bool Check(const Binary::Container& rawData) const
-      {
-        return Formats::Chiptune::AY::GetModulesCount(rawData) >= 2;
-      }
-
       virtual Container::Ptr Decode(const Binary::Container& rawData) const
       {
         const uint_t subModules = Formats::Chiptune::AY::GetModulesCount(rawData);
