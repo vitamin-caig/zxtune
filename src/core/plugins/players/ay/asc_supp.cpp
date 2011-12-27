@@ -167,9 +167,13 @@ namespace ASCSoundMaster
       Properties->SetFreqtable(TABLE_ASM);
     }
 
-    virtual void SetTitleAndAuthor(const String& title, const String& author)
+    virtual void SetTitle(const String& title)
     {
       Properties->SetTitle(OptimizeString(title));
+    }
+
+    virtual void SetAuthor(const String& author)
+    {
       Properties->SetAuthor(OptimizeString(author));
     }
 

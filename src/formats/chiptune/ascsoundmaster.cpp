@@ -25,6 +25,9 @@ Author:
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/predicate.hpp>
+#include <boost/algorithm/string/trim.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -113,17 +116,29 @@ namespace Chiptune
       'A', 'S', 'M', ' ', 'C', 'O', 'M', 'P', 'I', 'L', 'A', 'T', 'I', 'O', 'N', ' ', 'O', 'F', ' '
     };
 
+    const Char BY_DELIMITER[] =
+    {
+      'B', 'Y', 0
+    };
+
     PACK_PRE struct RawId
     {
       uint8_t Identifier1[19];//'ASM COMPILATION OF '
       char Title[20];
-      uint8_t Identifier2[4];//' BY ' or smth similar
+      char Identifier2[4];//' BY ' or smth similar
       char Author[20];
 
       bool Check() const
       {
         BOOST_STATIC_ASSERT(sizeof(ASC_ID_1) == sizeof(Identifier1));
         return 0 == std::memcmp(Identifier1, ASC_ID_1, sizeof(Identifier1));
+      }
+
+      bool HasAuthor() const
+      {
+        const String id(FromCharArray(Identifier2));
+        const String trimId(boost::algorithm::trim_copy_if(id, boost::algorithm::is_from_range(' ', ' ')));
+        return boost::algorithm::iequals(trimId, BY_DELIMITER);
       }
     } PACK_POST;
 
@@ -268,7 +283,8 @@ namespace Chiptune
     {
     public:
       virtual void SetProgram(const String& /*program*/) {}
-      virtual void SetTitleAndAuthor(const String& /*title*/, const String& /*author*/) {}
+      virtual void SetTitle(const String& /*title*/) {}
+      virtual void SetAuthor(const String& /*author*/) {}
       virtual void SetInitialTempo(uint_t /*tempo*/) {}
       virtual void SetSample(uint_t /*index*/, const Sample& /*sample*/) {}
       virtual void SetOrnament(uint_t /*index*/, const Ornament& /*ornament*/) {}
@@ -311,9 +327,14 @@ namespace Chiptune
         return Delegate.SetProgram(program);
       }
 
-      virtual void SetTitleAndAuthor(const String& title, const String& author)
+      virtual void SetTitle(const String& title)
       {
-        return Delegate.SetTitleAndAuthor(title, author);
+        return Delegate.SetTitle(title);
+      }
+
+      virtual void SetAuthor(const String& author)
+      {
+        return Delegate.SetAuthor(author);
       }
 
       virtual void SetInitialTempo(uint_t tempo)
@@ -623,7 +644,15 @@ namespace Chiptune
         builder.SetProgram(Source->GetProgram());
         if (Id.Check())
         {
-          builder.SetTitleAndAuthor(FromCharArray(Id.Title), FromCharArray(Id.Author));
+          if (Id.HasAuthor())
+          {
+            builder.SetTitle(FromCharArray(Id.Title));
+            builder.SetAuthor(FromCharArray(Id.Author));
+          }
+          else
+          {
+            builder.SetTitle(String(Id.Title, ArrayEnd(Id.Author)));
+          }
         }
       }
 

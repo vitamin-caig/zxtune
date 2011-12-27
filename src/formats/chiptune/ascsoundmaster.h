@@ -82,7 +82,8 @@ namespace Formats
 
         //common properties
         virtual void SetProgram(const String& program) = 0;
-        virtual void SetTitleAndAuthor(const String& title, const String& author) = 0;
+        virtual void SetTitle(const String& title) = 0;
+        virtual void SetAuthor(const String& author) = 0;
         virtual void SetInitialTempo(uint_t tempo) = 0;
         //samples+ornaments
         virtual void SetSample(uint_t index, const Sample& sample) = 0;
