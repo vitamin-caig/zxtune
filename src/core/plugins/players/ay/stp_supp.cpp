@@ -38,7 +38,7 @@ namespace STP
   class Factory : public ModulesFactory
   {
   public:
-    explicit Factory(Formats::Chiptune::Decoder::Ptr decoder)
+    explicit Factory(Formats::Chiptune::SoundTrackerPro::Decoder::Ptr decoder)
       : Decoder(decoder)
     {
     }
@@ -57,7 +57,7 @@ namespace STP
     {
       const ::SoundTrackerPro::ModuleData::RWPtr modData = boost::make_shared< ::SoundTrackerPro::ModuleData>();
       const std::auto_ptr<Formats::Chiptune::SoundTrackerPro::Builder> dataBuilder = ::SoundTrackerPro::CreateDataBuilder(modData, properties);
-      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::SoundTrackerPro::ParseCompiled(*data, *dataBuilder))
+      if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(*data, *dataBuilder))
       {
         usedSize = container->Size();
         properties->SetSource(container);
@@ -67,7 +67,7 @@ namespace STP
       return Holder::Ptr();
     }
   private:
-    const Formats::Chiptune::Decoder::Ptr Decoder;
+    const Formats::Chiptune::SoundTrackerPro::Decoder::Ptr Decoder;
   };
 }
 
@@ -90,7 +90,7 @@ namespace ZXTune
     }
     //direct modules
     {
-      const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateSoundTrackerProCompiledDecoder();
+      const Formats::Chiptune::SoundTrackerPro::Decoder::Ptr decoder = Formats::Chiptune::SoundTrackerPro::CreateCompiledModulesDecoder();
       const ModulesFactory::Ptr factory = boost::make_shared<STP::Factory>(decoder);
       const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(STP::ID, decoder->GetDescription() + Text::PLAYER_DESCRIPTION_SUFFIX, STP::CAPS, factory);
       registrator.RegisterPlugin(plugin);

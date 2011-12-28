@@ -100,8 +100,18 @@ namespace Formats
         virtual void SetVolume(uint_t vol) = 0;
       };
 
-      Formats::Chiptune::Container::Ptr ParseCompiled(const Binary::Container& data, Builder& target);
       Builder& GetStubBuilder();
+
+      class Decoder : public Formats::Chiptune::Decoder
+      {
+      public:
+        typedef boost::shared_ptr<const Decoder> Ptr;
+
+        virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const = 0;
+        virtual Binary::Container::Ptr InsertMetainformation(const Binary::Container& data, const Dump& info) const = 0;
+      };
+
+      Decoder::Ptr CreateCompiledModulesDecoder();
     }
   }
 }

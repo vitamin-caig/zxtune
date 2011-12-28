@@ -1259,13 +1259,13 @@ namespace Chiptune
 
       virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, Builder& target) const
       {
-        const Binary::TypedContainer data = CreateContainer(rawData);
         if (!Check(rawData))
         {
           return Formats::Chiptune::Container::Ptr();
         }
         try
         {
+          const Binary::TypedContainer data = CreateContainer(rawData);
           const Format format(data, TypedHeader<Version>::Create(data));
           format.ParseCommonProperties(target);
 
@@ -1290,14 +1290,18 @@ namespace Chiptune
 
       virtual Binary::Container::Ptr InsertMetainformation(const Binary::Container& rawData, const Dump& info) const
       {
-        const PatchedDataBuilder::Ptr patch = PatchedDataBuilder::Create(rawData);
-        const typename Version::RawHeader& header = *safe_ptr_cast<const typename Version::RawHeader*>(rawData.Data());
-        patch->InsertData(GetHeaderSize(header), info);
-        const int_t delta = info.size();
-        patch->AddLEWordToFix(offsetof(typename Version::RawHeader, PatternsOffset), delta);
-        patch->AddLEWordToFix(offsetof(typename Version::RawHeader, SamplesOffset), delta);
-        patch->AddLEWordToFix(offsetof(typename Version::RawHeader, OrnamentsOffset), delta);
-        return patch->GetResult();
+        if (Binary::Container::Ptr parsed = Decode(rawData))
+        {
+          const PatchedDataBuilder::Ptr patch = PatchedDataBuilder::Create(*parsed);
+          const typename Version::RawHeader& header = *safe_ptr_cast<const typename Version::RawHeader*>(parsed->Data());
+          patch->InsertData(GetHeaderSize(header), info);
+          const int_t delta = info.size();
+          patch->AddLEWordToFix(offsetof(typename Version::RawHeader, PatternsOffset), delta);
+          patch->AddLEWordToFix(offsetof(typename Version::RawHeader, SamplesOffset), delta);
+          patch->AddLEWordToFix(offsetof(typename Version::RawHeader, OrnamentsOffset), delta);
+          return patch->GetResult();
+        }
+        return Binary::Container::Ptr();
       }
     private:
       const Binary::Format::Ptr Header;

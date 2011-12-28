@@ -216,13 +216,13 @@ namespace Formats
         }
         Log::Debug(THIS_MODULE, "Detected player in first %1% bytes", playerSize);
         const Binary::Container::Ptr modData = rawData.GetSubcontainer(playerSize, availSize - playerSize);
-        if (Formats::Chiptune::Container::Ptr module = Decoder->Decode(*modData))
+        const Dump metainfo(rawPlayer.Information.begin(), rawPlayer.Information.end());
+        if (const Binary::Container::Ptr fixedModule = Decoder->InsertMetainformation(*modData, metainfo))
         {
-          const Dump metainfo(rawPlayer.Information.begin(), rawPlayer.Information.end());
-          const Binary::Container::Ptr fixedModule = Decoder->InsertMetainformation(*module, metainfo);
           if (Decoder->Decode(*fixedModule))
           {
-            return CreatePackedContainer(fixedModule, playerSize + module->Size());
+            const std::size_t originalSize = fixedModule->Size() - metainfo.size();
+            return CreatePackedContainer(fixedModule, playerSize + originalSize);
           }
           Log::Debug(THIS_MODULE, "Failed to parse fixed module");
         }

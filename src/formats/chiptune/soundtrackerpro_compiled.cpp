@@ -10,6 +10,7 @@ Author:
 */
 
 //local includes
+#include "metainfo.h"
 #include "soundtrackerpro.h"
 #include "soundtrackerpro_detail.h"
 //common includes
@@ -804,11 +805,11 @@ namespace Chiptune
       "?00-27" // uint16_t SamplesOffset; 0..MAX_MODULE_SIZE
     );
 
-    class Decoder : public Formats::Chiptune::Decoder
+    class Decoder : public Formats::Chiptune::SoundTrackerPro::Decoder
     {
     public:
       Decoder()
-        : Format(Binary::Format::Create(FORMAT))
+        : Header(Binary::Format::Create(FORMAT))
       {
       }
 
@@ -819,70 +820,117 @@ namespace Chiptune
 
       virtual Binary::Format::Ptr GetFormat() const
       {
-        return Format;
+        return Header;
       }
 
       virtual bool Check(const Binary::Container& rawData) const
       {
-        return FastCheck(rawData) && Format->Match(rawData.Data(), rawData.Size());
+        return Header->Match(rawData.Data(), rawData.Size()) && FastCheck(rawData);
       }
 
       virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
       {
         Builder& stub = GetStubBuilder();
-        return ParseCompiled(rawData, stub);
+        return Parse(rawData, stub);
+      }
+
+      virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, Builder& target) const
+      {
+        if (!Check(rawData))
+        {
+          return Formats::Chiptune::Container::Ptr();
+        }
+        try
+        {
+          const Format format(rawData);
+
+          format.ParseCommonProperties(target);
+
+          StatisticCollectingBuilder statistic(target);
+          format.ParsePositions(statistic);
+          const Indices& usedPatterns = statistic.GetUsedPatterns();
+          format.ParsePatterns(usedPatterns, statistic);
+          const Indices& usedSamples = statistic.GetUsedSamples();
+          format.ParseSamples(usedSamples, target);
+          Indices usedOrnaments = statistic.GetUsedOrnaments();
+          usedOrnaments.insert(0);
+          format.ParseOrnaments(usedOrnaments, target);
+
+          return boost::make_shared<Container>(rawData, format);
+        }
+        catch (const std::exception&)
+        {
+          Log::Debug(THIS_MODULE, "Failed to create");
+          return Formats::Chiptune::Container::Ptr();
+        }
+      }
+
+      virtual Binary::Container::Ptr InsertMetainformation(const Binary::Container& rawData, const Dump& info) const
+      {
+        StatisticCollectingBuilder statistic(GetStubBuilder());
+        if (Binary::Container::Ptr parsed = Parse(rawData, statistic))
+        {
+          const PatchedDataBuilder::Ptr patch = PatchedDataBuilder::Create(*parsed);
+          const RawHeader& header = *safe_ptr_cast<const RawHeader*>(parsed->Data());
+          patch->InsertData(sizeof(header), info);
+          const int_t delta = info.size();
+          patch->AddLEWordToFix(offsetof(RawHeader, PositionsOffset), delta);
+          patch->AddLEWordToFix(offsetof(RawHeader, PatternsOffset), delta);
+          patch->AddLEWordToFix(offsetof(RawHeader, OrnamentsOffset), delta);
+          patch->AddLEWordToFix(offsetof(RawHeader, SamplesOffset), delta);
+          const std::size_t patternsStart = fromLE(header.PatternsOffset);
+          Indices usedPatterns = statistic.GetUsedPatterns();
+          //first pattern is used to detect fixdelta
+          usedPatterns.insert(0);
+          for (Indices::const_iterator it = usedPatterns.begin(), lim = usedPatterns.end(); it != lim; ++it)
+          {
+            const std::size_t patOffsets = patternsStart + *it * sizeof(RawPattern);
+            patch->AddLEWordToFix(patOffsets + 0, delta);
+            patch->AddLEWordToFix(patOffsets + 2, delta);
+            patch->AddLEWordToFix(patOffsets + 4, delta);
+          }
+          const std::size_t ornamentsStart = fromLE(header.OrnamentsOffset);
+          Indices usedOrnaments = statistic.GetUsedOrnaments();
+          //first ornament is mandatory
+          usedOrnaments.insert(0);
+          for (Indices::const_iterator it = usedOrnaments.begin(), lim = usedOrnaments.end(); it != lim; ++it)
+          {
+            const std::size_t ornOffset = ornamentsStart + *it * sizeof(uint16_t);
+            patch->AddLEWordToFix(ornOffset, delta);
+          }
+          const std::size_t samplesStart = fromLE(header.SamplesOffset);
+          const Indices& usedSamples = statistic.GetUsedSamples();
+          for (Indices::const_iterator it = usedSamples.begin(), lim = usedSamples.end(); it != lim; ++it)
+          {
+            const std::size_t samOffset = samplesStart + *it * sizeof(uint16_t);
+            patch->AddLEWordToFix(samOffset, delta);
+          }
+          return patch->GetResult();
+        }
+        return Binary::Container::Ptr();
       }
     private:
-      const Binary::Format::Ptr Format;
+      const Binary::Format::Ptr Header;
     };
   }//SoundTrackerProCompiled
 
   namespace SoundTrackerPro
   {
-    Formats::Chiptune::Container::Ptr ParseCompiled(const Binary::Container& data, Builder& target)
-    {
-      using namespace SoundTrackerProCompiled;
-
-      if (!FastCheck(data))
-      {
-        return Formats::Chiptune::Container::Ptr();
-      }
-
-      try
-      {
-        const Format format(data);
-
-        format.ParseCommonProperties(target);
-
-        StatisticCollectingBuilder statistic(target);
-        format.ParsePositions(statistic);
-        const Indices& usedPatterns = statistic.GetUsedPatterns();
-        format.ParsePatterns(usedPatterns, statistic);
-        const Indices& usedSamples = statistic.GetUsedSamples();
-        format.ParseSamples(usedSamples, target);
-        Indices usedOrnaments = statistic.GetUsedOrnaments();
-        usedOrnaments.insert(0);
-        format.ParseOrnaments(usedOrnaments, target);
-
-        return boost::make_shared<SoundTrackerProCompiled::Container>(data, format);
-      }
-      catch (const std::exception&)
-      {
-        Log::Debug(THIS_MODULE, "Failed to create");
-        return Formats::Chiptune::Container::Ptr();
-      }
-    }
-
     Builder& GetStubBuilder()
     {
       static SoundTrackerProCompiled::StubBuilder stub;
       return stub;
     }
+
+    Decoder::Ptr CreateCompiledModulesDecoder()
+    {
+      return boost::make_shared<SoundTrackerProCompiled::Decoder>();
+    }
   }// namespace SoundTrackerPro
 
-  Decoder::Ptr CreateSoundTrackerProCompiledDecoder()
+  Formats::Chiptune::Decoder::Ptr CreateSoundTrackerProCompiledDecoder()
   {
-    return boost::make_shared<SoundTrackerProCompiled::Decoder>();
+    return SoundTrackerPro::CreateCompiledModulesDecoder();
   }
 }// namespace Chiptune
 }// namespace Formats
