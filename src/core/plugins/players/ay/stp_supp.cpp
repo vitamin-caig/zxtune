@@ -75,6 +75,7 @@ namespace STP
 namespace STP
 {
   const Char IDC_1[] = {'C', 'O', 'M', 'P', 'I', 'L', 'E', 'D', 'S', 'T', 'P', '1', 0};
+  const Char IDC_2[] = {'C', 'O', 'M', 'P', 'I', 'L', 'E', 'D', 'S', 'T', 'P', '2', 0};
   const uint_t CCAPS = CAP_STOR_CONTAINER;
 }
 
@@ -86,6 +87,11 @@ namespace ZXTune
     {
       const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateCompiledSTP1Decoder();
       const ArchivePlugin::Ptr plugin = CreateArchivePlugin(STP::IDC_1, STP::CCAPS, decoder);
+      registrator.RegisterPlugin(plugin);
+    }
+    {
+      const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateCompiledSTP2Decoder();
+      const ArchivePlugin::Ptr plugin = CreateArchivePlugin(STP::IDC_2, STP::CCAPS, decoder);
       registrator.RegisterPlugin(plugin);
     }
     //direct modules

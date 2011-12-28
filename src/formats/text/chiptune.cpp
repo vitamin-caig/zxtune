@@ -24,6 +24,9 @@ extern const Char PSG_DECODER_DESCRIPTION[] = {
 extern const Char SOUNDTRACKERCOMPILED_DECODER_DESCRIPTION[] = {
   'S','o','u','n','d',' ','T','r','a','c','k','e','r',' ','C','o','m','p','i','l','e','d',0
 };
+extern const Char SOUNDTRACKERPRO2_DECODER_DESCRIPTION[] = {
+  'S','o','u','n','d',' ','T','r','a','c','k','e','r',' ','P','r','o',' ','v','2','.','x',0
+};
 extern const Char SOUNDTRACKERPROCOMPILED_DECODER_DESCRIPTION[] = {
   'S','o','u','n','d',' ','T','r','a','c','k','e','r',' ','P','r','o',' ','C','o','m','p','i','l','e','d',0
 };

@@ -19,7 +19,7 @@ Author:
 //library includes
 #include <binary/typed_container.h>
 //std includes
-#include <set>
+#include <cstring>
 //boost includes
 #include <boost/array.hpp>
 //text includes
@@ -38,8 +38,6 @@ namespace CompiledSTP
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif
-  typedef boost::array<uint8_t, 53> InfoData;
-
   struct Version1
   {
     static const String DESCRIPTION;
@@ -55,7 +53,7 @@ namespace CompiledSTP
       uint16_t PlayAddr;
       uint8_t Padding4[8];
       //+17
-      InfoData Information;
+      uint8_t Information[53];
       uint8_t Padding5[8];
       //+78
       uint8_t Initialization;
@@ -66,6 +64,50 @@ namespace CompiledSTP
         const uint_t compileAddr = initAddr - offsetof(Player, Initialization);
         return fromLE(DataAddr) - compileAddr;
       }
+
+      Dump GetInfo() const
+      {
+        return Dump(&Information[0], ArrayEnd(Information));
+      }
+    } PACK_POST;
+  };
+
+  struct Version2
+  {
+    static const String DESCRIPTION;
+    static const std::string FORMAT;
+
+    PACK_PRE struct Player
+    {
+      uint8_t Padding1;
+      uint16_t InitAddr;
+      uint8_t Padding2;
+      uint16_t PlayAddr;
+      uint8_t Padding3[2];
+      //+8
+      uint8_t Information[56];
+      uint8_t Padding4[8];
+      //+0x48
+      uint8_t Initialization[2];
+      uint16_t DataAddr;
+
+      std::size_t GetSize() const
+      {
+        const uint_t initAddr = fromLE(InitAddr);
+        const uint_t compileAddr = initAddr - offsetof(Player, Initialization);
+        return fromLE(DataAddr) - compileAddr;
+      }
+
+      Dump GetInfo() const
+      {
+        Dump result(53);
+        const uint8_t* const src = Information;
+        uint8_t* const dst = &result[0];
+        std::memcpy(dst, src, 24);
+        std::memcpy(dst + 24, src + 26, 4);
+        std::memcpy(dst + 27, src + 31, 25);
+        return result;
+      }
     } PACK_POST;
   };
 #ifdef USE_PRAGMA_PACK
@@ -74,13 +116,11 @@ namespace CompiledSTP
 
   BOOST_STATIC_ASSERT(offsetof(Version1::Player, Information) == 17);
   BOOST_STATIC_ASSERT(offsetof(Version1::Player, Initialization) == 78);
+  BOOST_STATIC_ASSERT(offsetof(Version2::Player, Information) == 8);
+  BOOST_STATIC_ASSERT(offsetof(Version2::Player, Initialization) == 72);
 
   const String Version1::DESCRIPTION = String(Text::SOUNDTRACKERPRO_DECODER_DESCRIPTION) + Text::PLAYER_SUFFIX;
-
-  const std::string ID_FORMAT(
-    "'K'S'A' 'S'O'F'T'W'A'R'E' 'C'O'M'P'I'L'A'T'I'O'N' 'O'F' "
-    "+25+" //title
-  );
+  const String Version2::DESCRIPTION = String(Text::SOUNDTRACKERPRO2_DECODER_DESCRIPTION) + Text::PLAYER_SUFFIX;
 
   const std::string Version1::FORMAT =
     "21??"     //ld hl,ModuleAddr
@@ -89,9 +129,30 @@ namespace CompiledSTP
     "ed4b??"   //ld bc,(xxxx)
     "c3??"     //jp xxxx
     "?"        //nop?
-    + ID_FORMAT +
+    "'K'S'A' 'S'O'F'T'W'A'R'E' 'C'O'M'P'I'L'A'T'I'O'N' 'O'F' "
+    "+25+"
     "+8+"
     "f3"       //di
+    "22??"     //ld (xxxx),hl
+    "3e?"      //ld a,xx
+    "32??"     //ld (xxxx),a
+    "32??"     //ld (xxxx),a
+    "32??"     //ld (xxxx),a
+    "7e"       //ld a,(hl)
+    "23"       //inc hl
+    "32??"     //ld (xxxx),a
+  ;
+
+  const std::string Version2::FORMAT =
+    "c3??"     //jp InitAddr
+    "c3??"     //jp PlayAddr
+    "??"       //nop,nop
+    "'K'S'A' 'S'O'F'T'W'A'R'E' 'C'O'M'P'I'L'A'T'I'O'N' ' ' 'O'F' ' ' "
+    "+24+"
+    "+8+"
+    //+0x48
+    "f3"       //di
+    "21??"     //ld hl,ModuleAddr
     "22??"     //ld (xxxx),hl
     "3e?"      //ld a,xx
     "32??"     //ld (xxxx),a
@@ -144,7 +205,7 @@ namespace Formats
         }
         Log::Debug(THIS_MODULE, "Detected player in first %1% bytes", playerSize);
         const Binary::Container::Ptr modData = rawData.GetSubcontainer(playerSize, availSize - playerSize);
-        const Dump metainfo(rawPlayer.Information.begin(), rawPlayer.Information.end());
+        const Dump metainfo = rawPlayer.GetInfo();
         if (const Binary::Container::Ptr fixedModule = Decoder->InsertMetainformation(*modData, metainfo))
         {
           if (Decoder->Decode(*fixedModule))
@@ -165,6 +226,11 @@ namespace Formats
     Decoder::Ptr CreateCompiledSTP1Decoder()
     {
       return boost::make_shared<CompiledSTPDecoder<CompiledSTP::Version1> >();
+    }
+
+    Decoder::Ptr CreateCompiledSTP2Decoder()
+    {
+      return boost::make_shared<CompiledSTPDecoder<CompiledSTP::Version2> >();
     }
   }//namespace Packed
 }//namespace Formats
