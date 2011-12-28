@@ -118,9 +118,26 @@ namespace Formats
         virtual void SetBreakSample() = 0;
       };
 
-      Formats::Chiptune::Container::Ptr ParseVersion0x(const Binary::Container& data, Builder& target);
-      Formats::Chiptune::Container::Ptr ParseVersion1x(const Binary::Container& data, Builder& target);
       Builder& GetStubBuilder();
+
+      class Decoder : public Formats::Chiptune::Decoder
+      {
+      public:
+        typedef boost::shared_ptr<const Decoder> Ptr;
+
+        virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const = 0;
+        virtual Binary::Container::Ptr InsertMetainformation(const Binary::Container& data, const Dump& info) const = 0;
+      };
+
+      namespace Ver0
+      {
+        Decoder::Ptr CreateDecoder();
+      }
+
+      namespace Ver1
+      {
+        Decoder::Ptr CreateDecoder();
+      }
     }
   }
 }

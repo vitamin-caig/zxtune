@@ -43,9 +43,9 @@ namespace CompiledASC
     static const String DESCRIPTION;
     static const std::string FORMAT;
 
-    static Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Formats::Chiptune::ASCSoundMaster::Builder& target)
+    static Formats::Chiptune::ASCSoundMaster::Decoder::Ptr CreateDecoder()
     {
-      return Formats::Chiptune::ASCSoundMaster::ParseVersion0x(data, target);
+      return Formats::Chiptune::ASCSoundMaster::Ver0::CreateDecoder();
     }
 
     PACK_PRE struct Player
@@ -70,16 +70,6 @@ namespace CompiledASC
         return fromLE(DataAddr) - compileAddr;
       }
     } PACK_POST;
-
-    PACK_PRE struct Header
-    {
-      uint8_t Tempo;
-      uint16_t PatternsOffset;
-      uint16_t SamplesOffset;
-      uint16_t OrnamentsOffset;
-      uint8_t Length;
-      uint8_t Positions[1];
-    } PACK_POST;
   };
 
   struct Version1 : Version0
@@ -87,21 +77,10 @@ namespace CompiledASC
     static const String DESCRIPTION;
     static const std::string FORMAT;
 
-    static Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Formats::Chiptune::ASCSoundMaster::Builder& target)
+    static Formats::Chiptune::ASCSoundMaster::Decoder::Ptr CreateDecoder()
     {
-      return Formats::Chiptune::ASCSoundMaster::ParseVersion1x(data, target);
+      return Formats::Chiptune::ASCSoundMaster::Ver1::CreateDecoder();
     }
-
-    PACK_PRE struct Header
-    {
-      uint8_t Tempo;
-      uint8_t Loop;
-      uint16_t PatternsOffset;
-      uint16_t SamplesOffset;
-      uint16_t OrnamentsOffset;
-      uint8_t Length;
-      uint8_t Positions[1];
-    } PACK_POST;
   };
 
   struct Version2 : Version1
@@ -194,72 +173,6 @@ namespace CompiledASC
     //+123
     "11??" //data offset
   ;
-
-  template<class T, class D>
-  T AddLE(T val, D delta)
-  {
-    return fromLE(static_cast<T>(fromLE(val) + delta));
-  }
-
-  template<class Version>
-  Binary::Container::Ptr BuildFixedModule(const Formats::Chiptune::Container& module, const InfoData& info)
-  {
-    const std::size_t srcSize = module.Size();
-    const std::size_t sizeAddon = sizeof(InfoData);
-    std::auto_ptr<Dump> result(new Dump(srcSize + sizeAddon));
-    const uint8_t* const srcData = safe_ptr_cast<const uint8_t*>(module.Data());
-    const typename Version::Header& srcMod = *safe_ptr_cast<const typename Version::Header*>(srcData);
-    const std::size_t hdrSize = offsetof(typename Version::Header, Positions) + srcMod.Length;
-    const Dump::iterator endOfHeader = std::copy(srcData, srcData + hdrSize, result->begin());
-    const Dump::iterator endOfInformation = std::copy(info.begin(), info.end(), endOfHeader);
-    std::copy(srcData + hdrSize, srcData + srcSize, endOfInformation);
-    typename Version::Header& dstMod = *safe_ptr_cast<typename Version::Header*>(&result->at(0));
-    dstMod.PatternsOffset = AddLE(dstMod.PatternsOffset, sizeAddon);
-    dstMod.SamplesOffset = AddLE(dstMod.SamplesOffset, sizeAddon);
-    dstMod.OrnamentsOffset = AddLE(dstMod.OrnamentsOffset, sizeAddon);
-    return Binary::CreateContainer(result);
-  }
-
-  template<class Version>
-  class ModuleDecoder
-  {
-  public:
-    explicit ModuleDecoder(const Binary::Container& data)
-      : Data(data)
-      , Delegate(Data)
-      , Header(*Delegate.GetField<typename Version::Player>(0))
-    {
-    }
-
-    bool FastCheck() const
-    {
-      return Header.GetSize() < std::min(Data.Size(), MAX_PLAYER_SIZE);
-    }
-
-    Formats::Packed::Container::Ptr GetResult() const
-    {
-      assert(FastCheck());
-      const std::size_t modOffset = Header.GetSize();
-      Log::Debug(THIS_MODULE, "Detected player in first %1% bytes", modOffset);
-      const Binary::Container::Ptr modData = Data.GetSubcontainer(modOffset, Data.Size() - modOffset);
-      Formats::Chiptune::ASCSoundMaster::Builder& builder = Formats::Chiptune::ASCSoundMaster::GetStubBuilder();
-      if (Formats::Chiptune::Container::Ptr module = Version::Parse(*modData, builder))
-      {
-        const Binary::Container::Ptr result = BuildFixedModule<Version>(*module, Header.Information);
-        if (Version::Parse(*result, builder))
-        {
-          return CreatePackedContainer(result, modOffset + module->Size());
-        }
-        Log::Debug(THIS_MODULE, "Failed to parse fixed module");
-      }
-      Log::Debug(THIS_MODULE, "Failed to find module after player");
-      return Formats::Packed::Container::Ptr();
-    }
-  private:
-    const Binary::Container& Data;
-    const Binary::TypedContainer Delegate;
-    const typename Version::Player& Header;
-  };
 }//CompiledASC
 
 namespace Formats
@@ -272,6 +185,7 @@ namespace Formats
     public:
       CompiledASCDecoder()
         : Player(Binary::Format::Create(Version::FORMAT))
+        , Decoder(Version::CreateDecoder())
       {
       }
 
@@ -289,19 +203,35 @@ namespace Formats
       {
         const void* const data = rawData.Data();
         const std::size_t availSize = rawData.Size();
-        if (!Player->Match(data, availSize))
+        if (!Player->Match(data, availSize) || availSize < sizeof(typename Version::Player))
         {
           return Container::Ptr();
         }
-        const CompiledASC::ModuleDecoder<Version> decoder(rawData);
-        if (!decoder.FastCheck())
+        const typename Version::Player& rawPlayer = *safe_ptr_cast<const typename Version::Player*>(data);
+        const std::size_t playerSize = rawPlayer.GetSize();
+        if (playerSize >= std::min(availSize, CompiledASC::MAX_PLAYER_SIZE))
         {
+          Log::Debug(THIS_MODULE, "Invalid player");
           return Container::Ptr();
         }
-        return decoder.GetResult();
+        Log::Debug(THIS_MODULE, "Detected player in first %1% bytes", playerSize);
+        const Binary::Container::Ptr modData = rawData.GetSubcontainer(playerSize, availSize - playerSize);
+        if (Formats::Chiptune::Container::Ptr module = Decoder->Decode(*modData))
+        {
+          const Dump metainfo(rawPlayer.Information.begin(), rawPlayer.Information.end());
+          const Binary::Container::Ptr fixedModule = Decoder->InsertMetainformation(*module, metainfo);
+          if (Decoder->Decode(*fixedModule))
+          {
+            return CreatePackedContainer(fixedModule, playerSize + module->Size());
+          }
+          Log::Debug(THIS_MODULE, "Failed to parse fixed module");
+        }
+        Log::Debug(THIS_MODULE, "Failed to find module after player");
+        return Container::Ptr();
       }
     private:
       const Binary::Format::Ptr Player;
+      const Formats::Chiptune::ASCSoundMaster::Decoder::Ptr Decoder;
     };
 
     Decoder::Ptr CreateCompiledASC0Decoder()

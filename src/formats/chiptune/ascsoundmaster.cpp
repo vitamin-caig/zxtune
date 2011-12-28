@@ -11,6 +11,7 @@ Author:
 
 //local includes
 #include "ascsoundmaster.h"
+#include "metainfo.h"
 //common includes
 #include <byteorder.h>
 #include <contract.h>
@@ -1215,56 +1216,9 @@ namespace Chiptune
       return FastCheck(data, areas);
     }
 
-    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, const Format& format, Builder& target)
-    {
-      format.ParseCommonProperties(target);
-
-      StatisticCollectingBuilder statistic(target);
-      format.ParsePositions(statistic);
-      const Indices& usedPatterns = statistic.GetUsedPatterns();
-      format.ParsePatterns(usedPatterns, statistic);
-      const Indices& usedSamples = statistic.GetUsedSamples();
-      format.ParseSamples(usedSamples, target);
-      Indices usedOrnaments = statistic.GetUsedOrnaments();
-      usedOrnaments.insert(0);
-      format.ParseOrnaments(usedOrnaments, target);
-
-      return boost::make_shared<Container>(rawData, format.GetSize(), format.GetFixedArea());
-    }
-
     Binary::TypedContainer CreateContainer(const Binary::Container& data)
     {
       return Binary::TypedContainer(data, std::min(data.Size(), MAX_MODULE_SIZE));
-    }
-
-    template<class Version>
-    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, Builder& target)
-    {
-      const Binary::TypedContainer data = CreateContainer(rawData);
-      if (!FastCheck<Version>(data))
-      {
-        return Formats::Chiptune::Container::Ptr();
-      }
-      try
-      {
-        const Format format(data, TypedHeader<Version>::Create(data));
-        return Parse(rawData, format, target);
-      }
-      catch (const std::exception&)
-      {
-        Log::Debug(THIS_MODULE, "Failed to create");
-        return Formats::Chiptune::Container::Ptr();
-      }
-    }
-
-    Formats::Chiptune::Container::Ptr ParseVersion0x(const Binary::Container& rawData, Builder& target)
-    {
-      return Parse<Version0>(rawData, target);
-    }
-
-    Formats::Chiptune::Container::Ptr ParseVersion1x(const Binary::Container& rawData, Builder& target)
-    {
-      return Parse<Version1>(rawData, target);
     }
 
     Builder& GetStubBuilder()
@@ -1274,11 +1228,11 @@ namespace Chiptune
     }
 
     template<class Version>
-    class Decoder : public Formats::Chiptune::Decoder
+    class VersionedDecoder : public Decoder
     {
     public:
-      Decoder()
-        : Format(Binary::Format::Create(Version::FORMAT))
+      VersionedDecoder()
+        : Header(Binary::Format::Create(Version::FORMAT))
       {
       }
 
@@ -1289,37 +1243,92 @@ namespace Chiptune
 
       virtual Binary::Format::Ptr GetFormat() const
       {
-        return Format;
+        return Header;
       }
 
       virtual bool Check(const Binary::Container& rawData) const
       {
-        return Format->Match(rawData.Data(), rawData.Size()) && FastCheck<Version>(CreateContainer(rawData));
+        return Header->Match(rawData.Data(), rawData.Size()) && FastCheck<Version>(CreateContainer(rawData));
       }
 
       virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
       {
-        if (!Format->Match(rawData.Data(), rawData.Size()))
+        Builder& stub = GetStubBuilder();
+        return Parse(rawData, stub);
+      }
+
+      virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, Builder& target) const
+      {
+        const Binary::TypedContainer data = CreateContainer(rawData);
+        if (!Check(rawData))
         {
           return Formats::Chiptune::Container::Ptr();
         }
-        Builder& stub = GetStubBuilder();
-        return Parse<Version>(rawData, stub);
+        try
+        {
+          const Format format(data, TypedHeader<Version>::Create(data));
+          format.ParseCommonProperties(target);
+
+          StatisticCollectingBuilder statistic(target);
+          format.ParsePositions(statistic);
+          const Indices& usedPatterns = statistic.GetUsedPatterns();
+          format.ParsePatterns(usedPatterns, statistic);
+          const Indices& usedSamples = statistic.GetUsedSamples();
+          format.ParseSamples(usedSamples, target);
+          Indices usedOrnaments = statistic.GetUsedOrnaments();
+          usedOrnaments.insert(0);
+          format.ParseOrnaments(usedOrnaments, target);
+
+          return boost::make_shared<Container>(rawData, format.GetSize(), format.GetFixedArea());
+        }
+        catch (const std::exception&)
+        {
+          Log::Debug(THIS_MODULE, "Failed to create");
+          return Formats::Chiptune::Container::Ptr();
+        }
+      }
+
+      virtual Binary::Container::Ptr InsertMetainformation(const Binary::Container& rawData, const Dump& info) const
+      {
+        const PatchedDataBuilder::Ptr patch = PatchedDataBuilder::Create(rawData);
+        const typename Version::RawHeader& header = *safe_ptr_cast<const typename Version::RawHeader*>(rawData.Data());
+        patch->InsertData(GetHeaderSize(header), info);
+        const int_t delta = info.size();
+        patch->AddLEWordToFix(offsetof(typename Version::RawHeader, PatternsOffset), delta);
+        patch->AddLEWordToFix(offsetof(typename Version::RawHeader, SamplesOffset), delta);
+        patch->AddLEWordToFix(offsetof(typename Version::RawHeader, OrnamentsOffset), delta);
+        return patch->GetResult();
       }
     private:
-      const Binary::Format::Ptr Format;
+      const Binary::Format::Ptr Header;
     };
+
+    namespace Ver0
+    {
+      Decoder::Ptr CreateDecoder()
+      {
+        return boost::make_shared<VersionedDecoder<Version0> >();
+      }
+    }
+
+    namespace Ver1
+    {
+      Decoder::Ptr CreateDecoder()
+      {
+        return boost::make_shared<VersionedDecoder<Version1> >();
+      }
+    }
   }//namespace ASCSoundMaster
 
 
   Decoder::Ptr CreateASCSoundMaster0xDecoder()
   {
-    return boost::make_shared<ASCSoundMaster::Decoder<ASCSoundMaster::Version0> >();
+    return ASCSoundMaster::Ver0::CreateDecoder();
   }
 
   Decoder::Ptr CreateASCSoundMaster1xDecoder()
   {
-    return boost::make_shared<ASCSoundMaster::Decoder<ASCSoundMaster::Version1> >();
+    return ASCSoundMaster::Ver1::CreateDecoder();
   }
 }//namespace Chiptune
 }//namespace Formats

@@ -27,7 +27,7 @@ Author:
 #include <core/error_codes.h>
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
-#include <formats/chiptune_decoders.h>
+#include <formats/chiptune/ascsoundmaster.h>
 #include <formats/packed_decoders.h>
 #include <formats/chiptune/ascsoundmaster.h>
 //text includes
@@ -765,14 +765,11 @@ namespace ASC
   const Char ID_1[] = {'A', 'S', 'C', 0};
   const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
 
-  typedef Formats::Chiptune::Container::Ptr (*ParseFuncType)(const Binary::Container&, Formats::Chiptune::ASCSoundMaster::Builder&);
-
   class Factory : public ModulesFactory
   {
   public:
-    Factory(Formats::Chiptune::Decoder::Ptr decoder, ParseFuncType parse)
+    explicit Factory(Formats::Chiptune::ASCSoundMaster::Decoder::Ptr decoder)
       : Decoder(decoder)
-      , Parse(parse)
     {
     }
 
@@ -790,7 +787,7 @@ namespace ASC
     {
       const ::ASCSoundMaster::Track::ModuleData::RWPtr modData = ::ASCSoundMaster::Track::ModuleData::Create();
       const std::auto_ptr<Formats::Chiptune::ASCSoundMaster::Builder> dataBuilder = ::ASCSoundMaster::CreateDataBuilder(modData, properties);
-      if (const Formats::Chiptune::Container::Ptr container = Parse(*rawData, *dataBuilder))
+      if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(*rawData, *dataBuilder))
       {
         usedSize = container->Size();
         properties->SetSource(container);
@@ -800,8 +797,7 @@ namespace ASC
       return Holder::Ptr();
     }
   private:
-    const Formats::Chiptune::Decoder::Ptr Decoder;
-    const ParseFuncType Parse;
+    const Formats::Chiptune::ASCSoundMaster::Decoder::Ptr Decoder;
   };
 }
 
@@ -835,14 +831,14 @@ namespace ZXTune
     }
     //direct modules
     {
-      const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateASCSoundMaster0xDecoder();
-      const ModulesFactory::Ptr factory = boost::make_shared<ASC::Factory>(decoder, &Formats::Chiptune::ASCSoundMaster::ParseVersion0x);
+      const Formats::Chiptune::ASCSoundMaster::Decoder::Ptr decoder = Formats::Chiptune::ASCSoundMaster::Ver0::CreateDecoder();
+      const ModulesFactory::Ptr factory = boost::make_shared<ASC::Factory>(decoder);
       const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ASC::ID_0, decoder->GetDescription() + Text::PLAYER_DESCRIPTION_SUFFIX, ASC::CAPS, factory);
       registrator.RegisterPlugin(plugin);
     }
     {
-      const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateASCSoundMaster1xDecoder();
-      const ModulesFactory::Ptr factory = boost::make_shared<ASC::Factory>(decoder, &Formats::Chiptune::ASCSoundMaster::ParseVersion1x);
+      const Formats::Chiptune::ASCSoundMaster::Decoder::Ptr decoder = Formats::Chiptune::ASCSoundMaster::Ver1::CreateDecoder();
+      const ModulesFactory::Ptr factory = boost::make_shared<ASC::Factory>(decoder);
       const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ASC::ID_1, decoder->GetDescription() + Text::PLAYER_DESCRIPTION_SUFFIX, ASC::CAPS, factory);
       registrator.RegisterPlugin(plugin);
     }
