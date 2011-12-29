@@ -550,7 +550,7 @@ namespace
           dst.NoteSlide = newOffset;
         }
 
-        if (dst.Enabled || dst.Note || dst.NoteSlide || dst.FreqSlideHz || dst.SampleNum || dst.PosInSample)
+        if (dst.Enabled || dst.Note || dst.NoteSlide || dst.SampleNum || dst.PosInSample)
         {
           res.push_back(dst);
         }

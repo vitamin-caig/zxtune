@@ -51,8 +51,8 @@ namespace
   const uint_t CHANNELS_COUNT = 4;
   const uint_t SAMPLES_COUNT = 16;
 
-  //all samples has base freq at 8kHz (C-1)
-  const uint_t BASE_FREQ = 8448;
+  //all samples has base freq at 4kHz (C-1)
+  const uint_t BASE_FREQ = 4000;
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -213,13 +213,13 @@ namespace
           case SLIDEDN:
             if (const uint_t sld = param.GetParameter())
             {
-              dstChan.Commands.push_back(CHITrack::Command(SLIDE, -static_cast<int8_t>(sld)));
+              dstChan.Commands.push_back(CHITrack::Command(SLIDE, -static_cast<int8_t>(2 * sld)));
             }
             break;
           case SLIDEUP:
             if (const uint_t sld = param.GetParameter())
             {
-              dstChan.Commands.push_back(CHITrack::Command(SLIDE, static_cast<int8_t>(sld)));
+              dstChan.Commands.push_back(CHITrack::Command(SLIDE, static_cast<int8_t>(2 * sld)));
             }
             break;
           case SPECIAL:
@@ -439,18 +439,19 @@ namespace
       std::vector<Devices::DAC::DataChunk::ChannelData> res;
       const TrackState::Ptr state = Iterator->GetStateObserver();
       const CHITrack::Line* const line = Data->Patterns[state->Pattern()].GetLine(state->Line());
+      const bool newLine = 0 == state->Quirk();
       for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
       {
         GlissData& gliss(Gliss[chan]);
         Devices::DAC::DataChunk::ChannelData dst;
         dst.Channel = chan;
-        if (gliss.Sliding)
-        {
-          dst.FreqSlideHz = 0;
-          gliss.Sliding = gliss.Glissade = 0;
-        }
+        gliss.Update();
         //begin note
-        if (line && 0 == state->Quirk())
+        if (newLine)
+        {
+          gliss = GlissData();
+        }
+        if (line && newLine)
         {
           const CHITrack::Line::Chan& src = line->Channels[chan];
           if (src.Enabled)
@@ -462,7 +463,8 @@ namespace
           }
           if (src.Note)
           {
-            dst.Note = *src.Note;
+            //start from octave 2
+            dst.Note = *src.Note + 12;
             dst.PosInSample = 0;
           }
           if (src.SampleNum)
@@ -485,6 +487,9 @@ namespace
             }
           }
         }
+        //step 72 is C-1@3.5MHz for SounDrive player
+        //C-1 is 65.41Hz (real C-2)
+        dst.FreqSlideHz = gliss.Sliding * 6541 / 7200;
         //store if smth new
         if (dst.Enabled || dst.Note || dst.NoteSlide || dst.FreqSlideHz || dst.SampleNum || dst.PosInSample)
         {

@@ -53,7 +53,7 @@ namespace DMM
   const std::size_t SAMPLES_COUNT = 16;//15 really
 
   //all samples has base freq at 4kHz (C-1)
-  const uint_t BASE_FREQ = 3500;
+  const uint_t BASE_FREQ = 4000;
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -806,7 +806,9 @@ namespace
         dst.Note = Note;
         dst.NoteSlide = NoteSlide;
         //FreqSlide in 1/256 steps
-        dst.FreqSlideHz = DMM::BASE_FREQ * FreqSlide / 256;
+        //step 44 is C-1@3.5Mhz AY
+        //C-1 is 32.7 Hz
+        dst.FreqSlideHz = FreqSlide * 327 / 440;
         dst.SampleNum = Sample;
         dst.LevelInPercents = 100 * Volume / 15;
       }
@@ -862,8 +864,9 @@ namespace
         if (Step(AttackPeriod))
         {
           ++Volume;
-          if (AttackLimit <= Volume)
+          if (AttackLimit < Volume)
           {
+            --Volume;
             DisableEffect();
           }
         }
@@ -874,8 +877,9 @@ namespace
         if (Step(DecayPeriod))
         {
           --Volume;
-          if (DecayLimit >= Volume)
+          if (DecayLimit > Volume)
           {
+            ++Volume;
             DisableEffect();
           }
         }
@@ -889,13 +893,20 @@ namespace
           dst = DacState;
           //restore all
           const uint_t prevStep = GetStep() + FreqSlide;
-          dst.PosInSample = *dst.PosInSample + MixPeriod * prevStep;
+          /*
+            Player: 353 ticks/cycle, 9915 cycles/sec, 3305 cycles/chan
+            C-1 = 44 * 3305 / 256 = 568Hz
+          */
+          const uint_t RENDERS_PER_SEC = 3305;
+          const uint_t FPS = 50;//TODO
+          const uint_t skipped = MixPeriod * prevStep * RENDERS_PER_SEC / (256 * FPS);
+          dst.PosInSample = *dst.PosInSample + skipped;
 
           DisableEffect();
         }
       }
 
-      bool Step(uint_t& period)
+      bool Step(uint_t period)
       {
         if (++Counter == period)
         {
