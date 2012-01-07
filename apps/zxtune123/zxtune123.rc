@@ -1,7 +1,3 @@
-#ifndef GUI_THEME
-#define GUI_THEME default
-#endif
-
 #ifndef ZXTUNE_VERSION
 #define ZXTUNE_VERSION develop
 #endif
@@ -14,12 +10,6 @@
 
 #define TOSTRING(a) #a
 #define STR(a) TOSTRING(a)
-#define STRCAT(a, b) a##b
-#define DIRPATH(a, b) a/b
-
-#define APPLICATION_ICON(STYLE) DIRPATH(STRCAT(theme_, STYLE), zxtune.ico)
-
-IDI_ICON1	ICON	DISCARDABLE	STR(APPLICATION_ICON(GUI_THEME))
 
 #include <windows.h>
 
@@ -42,9 +32,9 @@ BLOCK "StringFileInfo"
       VALUE "ProductName", "ZXTune library\0"
       VALUE "ProductVersion", STR(ZXTUNE_VERSION) " " STR(BUILD_PLATFORM) "-" STR(BUILD_ARCH) "\0"
       VALUE "LegalCopyright", "(C) Vitamin/CAIG\0"
-      VALUE "OriginalFilename", "zxtune-qt.exe\0"
-      VALUE "FileDescription", "QT-based chiptunes player application\0"
-      VALUE "Comments", "zxtune-qt application\0"
+      VALUE "OriginalFilename", "zxtune123.exe\0"
+      VALUE "FileDescription", "Commandline chiptunes player application\0"
+      VALUE "Comments", "zxtune123 application\0"
     END
   END
   BLOCK "VarFileInfo"
