@@ -341,7 +341,16 @@ namespace
 
     virtual Error Stop()
     {
-      return Job->Stop();
+      try
+      {
+        ThrowIfError(Job->Stop());
+        Renderer->Reset();
+        return Error();
+      }
+      catch (const Error& e)
+      {
+        return Error(THIS_LINE, BACKEND_CONTROL_ERROR, Text::SOUND_ERROR_BACKEND_SEEK).AddSuberror(e);
+      }
     }
 
     virtual Error SetPosition(uint_t frame)

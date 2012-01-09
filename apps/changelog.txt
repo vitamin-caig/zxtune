@@ -7,9 +7,11 @@ Annotation:
 
 --- $Rev$ from $Date$
 
-[+] Supported STP 2.0 player analysis (COMPILEDSTP2) to retreive metainformation
+[+] Supported STP 2.0 player analysis (COMPILEDSTP2) to retreive metainformation (COMPILEDSTP became COMPILEDSTP1)
 [*] DigitalMusicMaker: fixed volume slide effect
 [*] ChipTracker: fixed microslide effect
+[*] Scan speedup for Linux-based builds
+[*] Fix for position reset while playback stop
 
 --- Rev1487 from 27.12.2011
 
