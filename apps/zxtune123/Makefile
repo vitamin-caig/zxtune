@@ -33,12 +33,14 @@ include $(path_step)/make/package.mak
 install_linux: dist/$(manual_file)
 	install -D $(target) $(DESTDIR)/usr/bin/$(binary_name)
 	install -m644 -D ../zxtune.conf $(DESTDIR)/usr/share/zxtune/zxtune.conf
+	install -m644 -D ../changelog.txt $(DESTDIR)/usr/share/zxtune/changelog.txt
 	install -m644 -D dist/$(manual_file) $(DESTDIR)/usr/share/zxtune/$(manual_file)
 
 install_windows install_mingw: dist/$(manual_file) install_samples
 	$(call copyfile_cmd,$(target),$(DESTDIR))
 	$(call copyfile_cmd,dist/$(manual_file),$(DESTDIR))
 	$(call copyfile_cmd,../zxtune.conf,$(DESTDIR))
+	$(call copyfile_cmd,../changelog.txt,$(DESTDIR))
 
 dingux_dir = local/apps/$(binary_name)
 
@@ -48,6 +50,7 @@ install_dingux: dist/$(manual_file) install_samples $(pkg_root)/wrapper.sh $(pkg
 	install -m644 -D $(pkg_root)/dmenu.cfg $(DESTDIR)/$(dingux_dir)/dmenu.cfg
 	install -m644 -D $(pkg_root)/gmenu.cfg $(DESTDIR)/local/gmenu2x/sections/applications/$(binary_name)
 	install -m644 -D ../zxtune.conf $(DESTDIR)/$(dingux_dir)/zxtune.conf
+	install -m644 -D ../changelog.txt $(DESTDIR)/changelog.txt
 	install -m644 -D dist/$(manual_file) $(DESTDIR)/$(dingux_dir)/$(manual_file)
 	install -m644 -D dist/dingux/readme.txt $(DESTDIR)/readme.txt
 	install -m644 -D dist/dingux/zxtune.png $(DESTDIR)/$(dingux_dir)/zxtune.png

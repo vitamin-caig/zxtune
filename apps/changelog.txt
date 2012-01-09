@@ -1,0 +1,329 @@
+ZXTune library and distributed applications changelog.
+
+Annotation:
+[+] - new feature
+[-] - removed feature/rudiment
+[*] - fix/improvement
+
+--- $Rev$ from $Date$
+
+[+] Supported STP 2.0 player analysis (COMPILEDSTP2) to retreive metainformation
+[*] DigitalMusicMaker: fixed volume slide effect
+[*] ChipTracker: fixed microslide effect
+
+--- Rev1487 from 27.12.2011
+
+[+] Supported AS0/ASC players analysis (COMPILEDASC0, COMPILEDASC1, COMPILEDASC2) to retreive metainformation
+[+] Supported STP player analysis (COMPILEDSTP) to retreive metainformation
+[*] Improved metainformation analysis for AS0/ASC modules
+[*] zxtune-qt: support for enlighted playlist saving
+
+--- Rev1472 from 19.12.2011
+
+[+] ASC Sound Master 0.xx format support (AS0)
+[*] Improved ASC detection
+[*] Improved STC/ST1 metainformation retreive
+
+--- Rev1460 from 13.12.2011
+
+[+] DirectSound backend support
+[*] Fixed STP playback with invalid loop information
+[*] Fixed ASC playback
+[*] Fixed metainformation retreive from ASC modules
+[*] zxtune-qt: main menu reworked
+
+--- Rev1450 from 05.12.2011
+
+[+] Uncompressed TeleDisk images support (TD0)
+[*] Improved TRD images processing
+[*] Improved STP detection
+[*] zxtune-qt: new playlist by double-click on tabs area
+[*] zxtune-qt: much comfortable 'del' key behaviour
+
+--- Rev1439 from 30.11.2011
+
+[+] Supported AY conversion to all supported formats (PSG, ZX50, FYM)
+[*] STC detection speedup
+[*] Fixed STC/ST1 playback
+[*] Fixed crash on some DST files
+[*] Reworked STP detection
+[+] zxtune-qt: added modules selecting by type
+[*] zxtune-qt: reworked context menu
+
+--- Rev1428 from 21.11.2011
+
+[*] Fixed DST, SNA128, STC and ST1 detection
+[*] zxtune-qt: new icons from Restorer
+[*] zxtune-qt: fixed some crashes while loading playlists
+
+--- Rev1421 from 15.11.2011
+
+[*] zxtune-qt: all playlist operations are asynchronous
+[*] zxtune-qt: web-style operations progress status
+[*] zxtune-qt: playlist renaming support
+[*] zxtune-qt: proper runtime options controls (different for AY and DAC)
+
+--- Rev1408 from 08.11.2011
+
+[+] Snapshots (.sna) format support (SNA128)
+[*] Fixes in DST detection
+[+] zxtune-qt: initial modules export support
+
+--- Rev1403 from 02.11.2011
+
+[+] DMM format support (DigitalMusicMaker)
+[*] Streamed ZIP archives support
+[*] Fixed PT3 modules detect created using Vortex Tracker
+[*] Fixed some crash while processing PT3 and ZXZip data
+
+--- Rev1394 from 24.10.2011
+
+[+] DST format support (DigitalStudio)
+[+] SQD format support (SQ Digital Tracker)
+[*] Fixed SoundTracker note table for ProTracker3 player
+[*] Fixed multiple runtime requirement for 64-bit builds
+[*] zxtune-qt: statistic collecting support
+[*] zxtune-qt: playlist processing speedup
+
+--- Rev1380 from 18.10.2011
+
+[+] STR format support (SampleTracker)
+[*] Using cosine interpolation instead of linear for DAC output
+[*] Fixed FYM conversion
+[*] Much detailed ZIP analysis
+[*] Changed FixedCRC calculation for AY and PSG modules for better rip-offs searching
+[-] Removed components version information
+[-] zxtune123: removed plugins filtering possibility
+
+--- Rev1349 from 27.09.2011
+
+[+] GamePacker (2 versions) compressor support (GAM and GAMPLUS respectively)
+[+] Turbo-LZ (2 versions) compressor support (TLZ and TLZP respectively)
+[+] CharPres compressor support (CHARPRES)
+[+] LZH Packer (2 versions) compressor support (LZH1 and LZH2 respectively)
+[*] Fixed crash for some packed blocks processing
+[*] Fixed TRDos fixes extension for 64-bit builds
+[+] zxtune-qt: application version and items count is saved to playlist
+
+--- Rev1333 from 20.09.2011
+
+[*] RAR depacking speedup for 30%
+[*] RAR solid archives support
+[*] zxtune-qt: fixed crash while scan canceling
+[*] zxtune-qt: fixed localized paths processing (http://code.google.com/p/zxtune/issues/detail?id=25)
+
+--- Rev1316 from 13.09.2011
+
+[+] RAR v2.x archives support (non-solid)
+[+] Optional dependency from asound and SDL for Linux builds
+[*] Much smooth progress while big files processing
+[*] Fixed AY detection and crashes
+
+--- Rev1299 from 06.09.2011
+
+[*] Fixed rip-offs detection for ASC/STC/STP modules
+[*] Fixed regression in PT3/STC detection
+[+] zxtune-qt: asynchronous rip-offs and duplicates searching
+[+] zxtune-qt: support for chiptunes paths copying to clipboard
+
+--- Rev1286 from 30.08.2011
+
+[*] Fix for AY modules detection
+[*] zxtune-qt: added possibility to group selected items in playlist
+[*] zxtune-qt: added possibility to delete duplicates in playlist
+[*] zxtune-qt: added possibility to search rip-offs in playlist
+
+--- Rev1274 from 23.08.2011
+
+[+] ZIP archives support
+[*] Fixed some crashes
+
+--- Rev1262 from 16.08.2011
+
+[+] ST1 format support (noncompiled SoundTracker modules) with the next limitations:
+    - in big data arrays searching is applied only for first 32k (due to format particularities)
+    - sound may be different from official player (format is reverse engineered)
+[*] Fixed crash while Vortex TXT files analysis
+[*] zxtune-qt: playlist context menu changed
+[*] zxtune-qt: changed 'About' menu
+
+
+--- Rev1246 from 09.08.2011
+
+[*] AY rendering speedup
+[*] 64-bit binaries speedup
+[*] TRDos files located in archives are consolidated
+[*] Support names for ZXZip archived files
+
+--- Rev1229 from 02.08.2011
+
+[+] Multitrack AY modules support
+[+] Initial support of AY modules seeking
+[*] AY/YM rendering speedup
+[*] Dingux builds fix
+[*] PT3 playback fix
+[*] Fixed AY modules for CPC hardware playback
+[*] zxtune-qt: changed seeking control behaviour (apply only after release)
+
+--- Rev1214 from 26.07.2011
+
+[+] Beeper support in AY tracks
+[+] CPC hardware support in AY tracks
+[*] Fixes for big-endian platforms
+[*] Fixed z80 emulation (INT duration)
+[*] AY/YM rendering speedup
+[*] Fixed playback of corrupted PT2 modules
+[*] zxtune-qt: fixed information about plugins' converting capabilities
+[*] zxtune-qt: fixed new module playback start before currently played ends (actual for OSS backend)
+[*] zxtune123: updated options information
+
+--- Rev1194 from 14.07.2011
+
+[+] Support for one more ZXZip compression method. 3 of 4 methods are supported now (besides 'slow')
+[+] Initial AY format support. The next limitations are applied:
+    - only EMUL format
+    - no beeper support
+    - no seeking support
+    - multimodule files are not supported at all due to possible compatibility problems.
+[*] zxtune-qt: playback hanging after playlist finish is fixed for all backend types
+[*] zxtune123: fixed wav conversion that required 'overwrite=1' option to be mandatory
+
+--- Rev1170 from 30.06.2011
+
+[*] Enhanced PT2/PT3/ASC/STC/STP modules detection.
+[*] Detection speedup for 10%
+[+] Initial Ubuntu/Archlinux builds
+
+--- Rev1162 from 23.06.2011
+
+[+] CompressorCode4 and CompressorCode4+ support (CC4 and CC4PLUS respectively)
+[+] Initial ZXZip support (2 compression methods of 4)
+[*] Detection speedup for 25%
+[*] zxtune-qt: updated theme icons
+
+--- Rev1146 from 15.06.2011
+
+[*] Removed MSVS version tag from package filename
+[-] Remove cuesheets support while wav conversion
+[*] 'Channels' field means nonempty notes count in current line
+[*] Much precise AY/YM noise generating in case of duty cycle is not 50%
+[+] FYM conversion support
+[*] Fixed ZX50 conversion
+[*] Fixed invalid channels layout CBA/CAB
+[*] zxtune-qt: playback hanging after playlist finish is fixed for win32 backend
+[+] zxtune-qt: on-fly options- looping, interpolation, channels layout
+    (http://code.google.com/p/zxtune/issues/detail?id=10 http://code.google.com/p/zxtune/issues/detail?id=19)
+[*] zxtune123: some options didn't work
+
+--- Rev1063 from 11.04.2011
+
+[*] Detection speedup for 50%
+[*] Improved TS modules detection in raw data
+[*] PCD support is splitted on two plugins- PCD61 and PCD62. Causes backward compatibility problems with .xspf playlists.
+[*] Binary players and depackers are ignored now and skipped while scanning
+[*] zxtune-qt: fixed crash on playlist cleanup (http://code.google.com/p/zxtune/issues/detail?id=23)
+[*] zxtune123: fix in 64-bit version
+
+--- Rev1021 from 22.03.2011
+
+[*] Detection speedup for 25%
+[*] Improved TRD containers detection
+[*] Fixed stored hrust2 data processing
+
+--- Rev996 from 13.03.2011
+
+[*] Fixed empty PSG files detection
+[*] Detection speedup for 10%
+[*] Some builds fixes
+[*] zxtune-qt: html symbols escaping in tooltips
+[*] zxtune123: conversion fixes
+
+--- Rev984 from 08.03.2011
+
+[*] Improved STP/TS detection
+[*] Detection speedup for 40%
+
+--- Rev972 from 01.03.2011
+
+[*] Improved STC/STP detection
+[*] zxtune-qt: improved memory usage
+[*] zxtune-qt: fixes in .ayl playlists import
+[*] zxtune-qt: reduced size of .xspf playlists
+
+--- Rev958 from 22.02.2011
+
+[*] Improved HRUST1/HOBETA detection
+[*] zxtune-qt: fixed playback order in case of playlist changes (http://code.google.com/p/zxtune/issues/detail?id=22)
+[*] zxtune-qt: asynchronous playlist processing
+[*] zxtune-qt: improved memory usage
+
+--- Rev938 from 09.02.2011
+
+[*] Fixed modules parsing errors
+[*] zxtune-qt: improved errors processing
+[+] zxtune-qt: new icons theme
+
+--- Rev915 from 01.02.2011
+
+[+] CodeCruncher3 support (CC3)
+[+] ESV Cruncher support (ESV)
+[*] Improved detection support
+
+--- Rev904 from 25.01.2011
+
+[+] Hrum support (HRUM)
+[+] PCD support (PCD)
+[*] Fixed TRD/SCL processing in case of similar files inside
+[*] Fixed CRC calculation
+[+] zxtune-qt: progress is displayed while playlist saving
+
+--- Rev885 from 18.01.2011
+
+[+] MsPack support (MSP)
+[+] LZSPack support (LZS)
+[+] Trush support (TRUSH)
+[*] Fixed HRUST1 detection
+[*] zxtune-qt: fixed playlist saving
+
+--- Rev868 from 11.01.2011
+
+[*] Fixed some crashes while modules searching
+[*] AY render is optimized for slow PCs
+[*] Fixed MinGW builds
+
+--- Rev852 from 30.12.2010
+
+[*] Changed internal modules path format
+[*] Statically linked linux binaries
+[*] zxtune-qt: playlist processing fixes
+
+--- Rev832 from 07.12.2010
+
+[+] zxtune-qt: delayed playlist items loading
+[+] zxtune-qt: config file is used to get settings
+[+] zxtunq-qt: playlist drag'n'drop support
+
+--- Rev808 from 23.11.2010
+
+[+] zxtune-qt: playlist save/load in .xspf format
+
+--- Rev784 from 16.11.2010
+
+[+] zxtune-qt: playlist import from .ayl support
+[+] zxtune-qt: multiple playlists
+
+--- Rev770 from 09.11.2010
+
+[*] zxtune-qt: moving to QT4.7.0
+
+--- Rev749 from 02.11.2010
+
+[*] zxtune-qt: brand new playlist
+[+] zxtune-qt: recursive folders processing
+[+] zxtune-qt: informational windows (about and components)
+
+--- Rev614 from 10.09.2010
+
+[+] DataSqueezer support (DSQ)
+[+] 64-bit windows builds
+[+] MinGW builds
