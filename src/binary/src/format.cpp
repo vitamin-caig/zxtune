@@ -21,6 +21,9 @@ Author:
 #include <stack>
 #include <stdexcept>
 #include <vector>
+//boost includes
+#include <boost/array.hpp>
+#include <boost/make_shared.hpp>
 
 namespace
 {
@@ -363,21 +366,17 @@ namespace
     compiled.swap(result);
   }
 
-  template<class Traits>
-  bool MatchByte(uint_t lh, const typename Traits::PatternEntry& rh)
-  {
-    return Traits::Match(rh, lh);
-  }
-
-  template<class Traits>
-  class TypedFormat : public Format
+  class FastSearchFormat : public Format
   {
   public:
-    TypedFormat(typename Traits::Pattern::const_iterator from, typename Traits::Pattern::const_iterator to, std::size_t offset)
-      : Pat(from, to)
-      , PatternBegin(&Pat[0])
-      , PatternEnd(PatternBegin + Pat.size())
-      , Offset(offset)
+    typedef boost::array<std::size_t, 256> PatternRow;
+    typedef std::vector<PatternRow> PatternMatrix;
+
+    FastSearchFormat(const PatternMatrix& mtx, std::size_t offset)
+      : Offset(offset)
+      , Pat(mtx)
+      , PatBegin(&Pat[0])
+      , PatEnd(PatBegin + Pat.size())
     {
     }
 
@@ -387,8 +386,8 @@ namespace
       {
         return false;
       }
-      const uint8_t* const typedData = static_cast<const uint8_t*>(data) + Offset;
-      return std::equal(PatternBegin, PatternEnd, typedData, &Traits::Match);
+      const uint8_t* typedData = static_cast<const uint8_t*>(data) + Offset;
+      return 0 == Search(typedData);
     }
 
     virtual std::size_t Search(const void* data, std::size_t size) const
@@ -398,19 +397,71 @@ namespace
         return size;
       }
       const uint8_t* const typedData = static_cast<const uint8_t*>(data);
-      const uint8_t* const typedEnd = typedData + size;
-      const uint8_t* const result = std::search(typedData + Offset, typedEnd, PatternBegin, PatternEnd, &MatchByte<Traits>);
-      if (result == typedEnd)
+      for (std::size_t cursor = Offset; cursor <= size - Pat.size(); )
       {
-        return size;
+        if (const std::size_t offset = Search(typedData + cursor))
+        {
+          cursor += offset;
+        }
+        else
+        {
+          return cursor - Offset;
+        }
       }
-      return result - typedData - Offset;
+      return size;
+    }
+
+    template<class Traits>
+    static Ptr Create(typename Traits::Pattern::const_iterator from, typename Traits::Pattern::const_iterator to, std::size_t offset)
+    {
+      //Pass1
+      //matrix[pos][char] = Pattern.At(pos).IsMatchedFor(char)
+      PatternMatrix tmp;
+      for (typename Traits::Pattern::const_iterator it = from; it != to; ++it)
+      {
+        PatternRow row;
+        for (uint_t idx = 0; idx != 256; ++idx)
+        {
+          row[idx] = Traits::Match(*it, idx);
+        }
+        tmp.push_back(row);
+      }
+      //Pass2
+      //matrix[pos][char] = delta, Pattern.At(pos - delta).IsMatchedFor(char)
+      for (uint_t idx = 0; idx != 256; ++idx)
+      {
+        std::size_t offset = 1;//default offset
+        for (PatternMatrix::iterator it = tmp.begin(), lim = tmp.end(); it != lim; ++it, ++offset)
+        {
+          PatternRow& row = *it;
+          if (row[idx])
+          {
+            offset = 0;
+          }
+          row[idx] = offset;
+        }
+      }
+      return boost::make_shared<FastSearchFormat>(tmp, offset);
     }
   private:
-    const typename Traits::Pattern Pat;
-    const typename Traits::Pattern::value_type* const PatternBegin;
-    const typename Traits::Pattern::value_type* const PatternEnd;
+    std::size_t Search(const uint8_t* data) const
+    {
+      const uint8_t* dataEnd = data + Pat.size();
+      for (const PatternRow* it = PatEnd; it != PatBegin; )
+      {
+        const PatternRow& row = *--it;
+        if (std::size_t offset = row[*--dataEnd])
+        {
+          return offset;
+        }
+      }
+      return 0;
+    }
+  private:
     const std::size_t Offset;
+    const PatternMatrix Pat;
+    const PatternRow* const PatBegin;
+    const PatternRow* const PatEnd;
   };
 
   class AlwaysMatchFormat : public Format
@@ -432,6 +483,12 @@ namespace
         ? 0
         : size;
     }
+
+    static Ptr Create(std::size_t offset)
+    {
+      return boost::make_shared<AlwaysMatchFormat>(offset);
+    }
+
   private:
     const std::size_t Offset;
   };
@@ -447,8 +504,8 @@ namespace
       std::bind2nd(std::not_equal_to<typename Traits::PatternEntry>(), Traits::GetAnyByte()));
     const std::size_t offset = std::distance(first, firstNotAny);
     return firstNotAny != last
-      ? Format::Ptr(new TypedFormat<Traits>(firstNotAny, last, offset))
-      : Format::Ptr(new AlwaysMatchFormat(offset));
+      ? FastSearchFormat::Create<Traits>(firstNotAny, last, offset)
+      : AlwaysMatchFormat::Create(offset);
   }
 }
 
