@@ -23,6 +23,7 @@ Author:
 #include <core/module_attrs.h>
 //std includes
 #include <cctype>
+#include <set>
 //boost includes
 #include <boost/make_shared.hpp>
 //qt includes
@@ -42,6 +43,68 @@ namespace
   enum
   {
     VERSION_WITH_TEXT_FIELDS_ESCAPING = 1
+  };
+
+  const Char* PLAYLIST_ENABLED_PROPERTIES[] =
+  {
+    Playlist::ATTRIBUTE_VERSION,
+    Playlist::ATTRIBUTE_NAME,
+  };
+
+  const Char* ITEM_DISABLED_PROPERTIES[] =
+  {
+    ZXTune::Module::ATTR_CRC,
+    ZXTune::Module::ATTR_FIXEDCRC,
+    ZXTune::Module::ATTR_SIZE,
+    ZXTune::Module::ATTR_CONTAINER,
+    ZXTune::Module::ATTR_TYPE,
+    ZXTune::Module::ATTR_VERSION,
+    ZXTune::Module::ATTR_PROGRAM
+  };
+
+  class PropertiesFilter : public Parameters::Visitor
+  {
+  public:
+    template<class T>
+    PropertiesFilter(Parameters::Visitor& delegate, T propFrom, T propTo, bool match)
+      : Delegate(delegate)
+      , Filter(propFrom, propTo)
+      , Match(match)
+    {
+    }
+
+    virtual void SetIntValue(const Parameters::NameType& name, Parameters::IntType val)
+    {
+      if (Pass(name))
+      {
+        Delegate.SetIntValue(name, val);
+      }
+    }
+
+    virtual void SetStringValue(const Parameters::NameType& name, const Parameters::StringType& val)
+    {
+      if (Pass(name))
+      {
+        Delegate.SetStringValue(name, val);
+      }
+    }
+
+    virtual void SetDataValue(const Parameters::NameType& name, const Parameters::DataType& val)
+    {
+      if (Pass(name))
+      {
+        Delegate.SetDataValue(name, val);
+      }
+    }
+  private:
+    bool Pass(const String& name) const
+    {
+      return Match == (0 != Filter.count(name));
+    }
+  private:
+    Parameters::Visitor& Delegate;
+    const std::set<String> Filter;
+    const bool Match;
   };
 
   class XSPFReader
@@ -95,7 +158,8 @@ namespace
         if (tagName == XSPF::EXTENSION_TAG)
         {
           Log::Debug(THIS_MODULE, " Parsing playlist extension");
-          ParseExtension(*Properties);
+          PropertiesFilter filter(*Properties, PLAYLIST_ENABLED_PROPERTIES, ArrayEnd(PLAYLIST_ENABLED_PROPERTIES), true);
+          ParseExtension(filter);
           Properties->FindIntValue(Playlist::ATTRIBUTE_VERSION, Version);
         }
         else if (tagName == XSPF::TRACKLIST_TAG)
@@ -174,7 +238,7 @@ namespace
       return FromQString(BaseDir.cleanPath(itemLocation));
     }
 
-    void ParseTrackitemParameters(const QStringRef& attr, Parameters::Modifier& props)
+    void ParseTrackitemParameters(const QStringRef& attr, Parameters::Visitor& props)
     {
       assert(XML.isStartElement() && XML.name() == attr);
       if (attr == XSPF::ITEM_CREATOR_TAG)
@@ -198,7 +262,8 @@ namespace
       else if (attr == XSPF::EXTENSION_TAG)
       {
         Log::Debug(THIS_MODULE, "  parsing extension");
-        ParseExtension(props);
+        PropertiesFilter filter(*Properties, ITEM_DISABLED_PROPERTIES, ArrayEnd(ITEM_DISABLED_PROPERTIES), false);
+        ParseExtension(filter);
       }
       else
       {
@@ -210,7 +275,7 @@ namespace
       }
     }
 
-    void ParseExtension(Parameters::Modifier& props)
+    void ParseExtension(Parameters::Visitor& props)
     {
       assert(XML.isStartElement() && XML.name() == XSPF::EXTENSION_TAG);
       if (!CheckForZXTuneExtension())

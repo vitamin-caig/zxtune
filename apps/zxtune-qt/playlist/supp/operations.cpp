@@ -736,7 +736,7 @@ namespace
         ThrowIfError(item.Convert(RAW_CONVERSION, props, result));
         const String filename = NameTemplate->Instantiate(ModuleFieldsSource(*props));
         Save(result, filename);
-        Succeed(Strings::Format(Text::CONVERT_SUCCEED, path, filename));
+        Succeed();
       }
       catch (const Error& err)
       {
@@ -757,10 +757,10 @@ namespace
       Messages->AddMessage(status);
     }
 
-    void Succeed(const String& status)
+    void Succeed()
     {
       ++SucceedConvertions;
-      Messages->AddMessage(status);
+      //Do not add text about succeed convertion
     }
 
   private:

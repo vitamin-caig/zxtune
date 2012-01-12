@@ -10,7 +10,6 @@ extern const Char CONTEXTMENU_STATUS[];
 extern const Char CONVERT_FAILED[];
 extern const Char CONVERT_FAILED_OPEN[];
 extern const Char CONVERT_STATUS[];
-extern const Char CONVERT_SUCCEED[];
 extern const Char FAQ_URL[];
 extern const Char FEEDBACK_TEXT[];
 extern const Char HOMEPAGE_URL[];

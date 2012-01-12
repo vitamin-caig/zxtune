@@ -26,9 +26,6 @@ extern const Char CONVERT_FAILED_OPEN[] = {
 extern const Char CONVERT_STATUS[] = {
   'C','o','n','v','e','r','t','e','d',':',' ','%','1','%',' ','F','a','i','l','e','d',':',' ','%','2','%',0
 };
-extern const Char CONVERT_SUCCEED[] = {
-  'C','o','n','v','e','r','t','e','d',' ','\'','%','1','%','\'',' ','=','>',' ','\'','%','2','%','\'',0
-};
 extern const Char FAQ_URL[] = {
   'h','t','t','p',':','/','/','c','o','d','e','.','g','o','o','g','l','e','.','c','o','m','/','p','/','z','x',
   't','u','n','e','/','w','i','k','i','/','F','A','Q',0
