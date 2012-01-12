@@ -20,7 +20,8 @@ namespace
 {
   using namespace ZXTune;
 
-  const Char ID[] = {'H', 'R', 'U', 'S', 'T', '2', '\0'};
+  const Char ID1[] = {'H', 'R', 'U', 'S', 'T', '2', '\0'};
+  const Char ID3[] = {'H', 'R', 'U', 'S', 'T', '2', '3', '\0'};
   const uint_t CAPS = CAP_STOR_CONTAINER;
 }
 
@@ -28,8 +29,17 @@ namespace ZXTune
 {
   void RegisterHrust2xConvertor(PluginsRegistrator& registrator)
   {
-    const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateHrust21Decoder();
-    const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ID, CAPS, decoder);
-    registrator.RegisterPlugin(plugin);
+    //hrust2.1
+    {
+      const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateHrust21Decoder();
+      const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ID1, CAPS, decoder);
+      registrator.RegisterPlugin(plugin);
+    }
+    //hrust2.3
+    {
+      const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateHrust23Decoder();
+      const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ID3, CAPS, decoder);
+      registrator.RegisterPlugin(plugin);
+    }
   }
 }
