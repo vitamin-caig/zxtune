@@ -114,7 +114,7 @@ namespace
 
     void ConvertSamples()
     {
-      assert(FourBitSamples > EightBitSamples);
+      assert(IsOldVersion());
       std::for_each(Data->Samples.begin(), Data->Samples.end(), std::mem_fun_ref(&DST::Sample::Convert4bitTo8Bit));
     }
 

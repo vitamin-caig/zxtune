@@ -175,7 +175,7 @@ namespace Hrip
         break;
       }
     }
-    builder->SetRawData(data.GetSubcontainer(0, archiveSize));
+    builder->SetRawData(data.GetSubcontainer(0, std::min(archiveSize, availSize)));
     return builder->GetResult();
   }
 }

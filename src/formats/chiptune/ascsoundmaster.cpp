@@ -351,7 +351,7 @@ namespace Chiptune
 
       virtual void SetOrnament(uint_t index, const Ornament& ornament)
       {
-        assert(UsedOrnaments.count(index));
+        assert(index == 0 || UsedOrnaments.count(index));
         return Delegate.SetOrnament(index, ornament);
       }
 

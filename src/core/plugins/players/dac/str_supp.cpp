@@ -421,6 +421,7 @@ namespace
       return false;
     }
     //check samples
+    std::size_t validSamples = 0;
     for (uint_t samIdx = 0; samIdx != STR::SAMPLES_COUNT; ++samIdx)
     {
       const uint_t absAddr = 256 * header->SampleDescriptions[samIdx].AddrHi;
@@ -441,8 +442,9 @@ namespace
       {
         return false;
       }
+      ++validSamples;
     }
-    return true;
+    return 0 != validSamples;
   }
 }
 
