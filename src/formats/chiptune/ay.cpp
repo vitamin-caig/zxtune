@@ -307,42 +307,39 @@ namespace AY
 
     virtual void AddBlock(uint16_t addr, const void* src, std::size_t size)
     {
-      AllocateData();
-      const std::size_t toCopy = std::min(size, Data.size() - addr);
-      std::memcpy(&Data[addr], src, toCopy);
+      Dump& data = AllocateData();
+      const std::size_t toCopy = std::min(size, data.size() - addr);
+      std::memcpy(&data[addr], src, toCopy);
     }
 
     virtual Binary::Container::Ptr Result() const
     {
-      if (Data.empty())
-      {
-        return Binary::Container::Ptr();
-      }
-      else
-      {
-        return Binary::CreateContainer(&Data[0], Data.size());
-      }
+      return Data
+        ? Binary::CreateContainer(Data, 0, Data->size())
+        : Binary::Container::Ptr();
     }
   private:
-    void AllocateData()
+    Dump& AllocateData()
     {
-      if (Data.empty())
+      if (!Data)
       {
-        Data.resize(65536);
+        Data.reset(new Dump(65536));
         InitializeBlock(0xc9, 0, 0x100);
         InitializeBlock(0xff, 0x100, 0x3f00);
         InitializeBlock(uint8_t(0x00), 0x4000, 0xc000);
-        Data[0x38] = 0xfb;
+        Data->at(0x38) = 0xfb;
       }
+      return *Data;
     }
 
     void InitializeBlock(uint8_t src, std::size_t offset, std::size_t size)
     {
-      const std::size_t toFill = std::min(size, Data.size() - offset);
-      std::memset(&Data[offset], src, toFill);
+      Dump& data = *Data;
+      const std::size_t toFill = std::min(size, data.size() - offset);
+      std::memset(&data[offset], src, toFill);
     }
   private:
-    Dump Data;
+    boost::shared_ptr<Dump> Data;
   };
 
   class FileBuilder : public BlobBuilder
