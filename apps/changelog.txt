@@ -7,6 +7,12 @@ Annotation:
 
 --- $Rev$ from $Date$
 
+[+] Supported Hrust2.3 packer (also used in Hrip archiver)
+[*] Fixed crash while STR detect
+[*] Fixed crash after AY playback stop
+
+--- Rev1497 from 09.01.2012
+
 [+] Supported STP 2.0 player analysis (COMPILEDSTP2) to retreive metainformation (COMPILEDSTP became COMPILEDSTP1)
 [*] DigitalMusicMaker: fixed volume slide effect
 [*] ChipTracker: fixed microslide effect
