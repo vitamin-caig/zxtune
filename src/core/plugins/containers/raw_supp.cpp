@@ -57,9 +57,11 @@ namespace
       Log::Debug(THIS_MODULE, "Useful detected: %1% (%2% archived + %3% modules)", useful, ArchivedData, ModulesData);
       Log::Debug(THIS_MODULE, "Coverage: %1%%%", useful * 100 / TotalData);
       Log::Debug(THIS_MODULE, "Speed is %1% b/s", spent ? (TotalData / spent) : TotalData);
-      for (std::map<String, std::size_t>::const_iterator it = Missed.begin(), lim = Missed.end(); it != lim; ++it)
+      for (DetectMap::const_iterator it = Detection.begin(), lim = Detection.end(); it != lim; ++it)
       {
-        Log::Debug(THIS_MODULE, "Missed %1%: %2% times", it->first, it->second);
+        const std::size_t used = it->second.first;
+        const std::size_t missed = it->second.second;
+        Log::Debug(THIS_MODULE, "Detector %1%: %2%/%3% missed/used (%4%%% effeciency)", it->first, missed, used, uint64_t(100) * (used - missed) / used);
       }
     }
 
@@ -78,9 +80,14 @@ namespace
       ModulesData += size;
     }
 
+    void AddUsed(const String& type)
+    {
+      ++Detection[type].first;
+    }
+
     void AddMissed(const String& type)
     {
-      ++Missed[type];
+      ++Detection[type].second;
     }
 
     static Statistic& Self()
@@ -93,7 +100,8 @@ namespace
     uint64_t TotalData;
     uint64_t ArchivedData;
     uint64_t ModulesData;
-    std::map<String, std::size_t> Missed;
+    typedef std::map<String, std::pair<std::size_t, std::size_t> > DetectMap;
+    DetectMap Detection;
   };
 }
 
@@ -430,6 +438,7 @@ namespace
         const typename T::Ptr plugin = iter->Get();
         const Analysis::Result::Ptr result = plugin->Detect(input, callback);
         const String id = plugin->GetDescription()->Id();
+        Statistic::Self().AddUsed(id);
         if (std::size_t usedSize = result->GetMatchedDataSize())
         {
           Log::Debug(THIS_MODULE, "Detected %1% in %2% bytes at %3%.", id, usedSize, input->GetPath()->AsString());
