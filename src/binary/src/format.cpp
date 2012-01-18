@@ -18,6 +18,7 @@ Author:
 #include <bitset>
 #include <cassert>
 #include <cctype>
+#include <limits>
 #include <stack>
 #include <stdexcept>
 #include <vector>
@@ -369,43 +370,47 @@ namespace
   class FastSearchFormat : public Format
   {
   public:
-    typedef boost::array<std::size_t, 256> PatternRow;
+    typedef boost::array<uint8_t, 256> PatternRow;
     typedef std::vector<PatternRow> PatternMatrix;
 
     FastSearchFormat(const PatternMatrix& mtx, std::size_t offset)
       : Offset(offset)
-      , Pat(mtx)
-      , PatBegin(&Pat[0])
-      , PatEnd(PatBegin + Pat.size())
+      , Pat(mtx.rbegin(), mtx.rend())
+      , PatRBegin(&Pat[0])
+      , PatREnd(PatRBegin + Pat.size())
     {
     }
 
     virtual bool Match(const void* data, std::size_t size) const
     {
-      if (Offset + Pat.size() > size)
+      const std::size_t endOfPat = Offset + Pat.size();
+      if (endOfPat > size)
       {
         return false;
       }
-      const uint8_t* typedData = static_cast<const uint8_t*>(data) + Offset;
-      return 0 == Search(typedData);
+      const uint8_t* typedDataLast = static_cast<const uint8_t*>(data) + endOfPat - 1;
+      return 0 == SearchBackward(typedDataLast);
     }
 
     virtual std::size_t Search(const void* data, std::size_t size) const
     {
-      if (Offset + Pat.size() > size)
+      const std::size_t endOfPat = Offset + Pat.size();
+      if (endOfPat > size)
       {
         return size;
       }
       const uint8_t* const typedData = static_cast<const uint8_t*>(data);
-      for (std::size_t cursor = Offset; cursor <= size - Pat.size(); )
+      const uint8_t* const scanStart = typedData + endOfPat - 1;
+      const uint8_t* const scanStop = typedData + size;
+      for (const uint8_t* scanPos = scanStart; scanPos < scanStop; )
       {
-        if (const std::size_t offset = Search(typedData + cursor))
+        if (const std::size_t offset = SearchBackward(scanPos))
         {
-          cursor += offset;
+          scanPos += offset;
         }
         else
         {
-          return cursor - Offset;
+          return scanPos - scanStart;
         }
       }
       return size;
@@ -438,19 +443,19 @@ namespace
           {
             offset = 0;
           }
-          row[idx] = offset;
+          CheckParam(offset <= std::numeric_limits<PatternRow::value_type>::max(), "Invalid type for matrix");
+          row[idx] = static_cast<PatternRow::value_type>(offset);
         }
       }
       return boost::make_shared<FastSearchFormat>(tmp, offset);
     }
   private:
-    std::size_t Search(const uint8_t* data) const
+    std::size_t SearchBackward(const uint8_t* data) const
     {
-      const uint8_t* dataEnd = data + Pat.size();
-      for (const PatternRow* it = PatEnd; it != PatBegin; )
+      for (const PatternRow* it = PatRBegin; it != PatREnd; ++it, --data)
       {
-        const PatternRow& row = *--it;
-        if (std::size_t offset = row[*--dataEnd])
+        const PatternRow& row = *it;
+        if (std::size_t offset = row[*data])
         {
           return offset;
         }
@@ -460,8 +465,8 @@ namespace
   private:
     const std::size_t Offset;
     const PatternMatrix Pat;
-    const PatternRow* const PatBegin;
-    const PatternRow* const PatEnd;
+    const PatternRow* const PatRBegin;
+    const PatternRow* const PatREnd;
   };
 
   class AlwaysMatchFormat : public Format
