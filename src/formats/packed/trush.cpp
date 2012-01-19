@@ -31,8 +31,34 @@ namespace TRUSH
   const std::size_t MAX_DECODED_SIZE = 0xc000;
 
   const std::string DEPACKER_PATTERN(
-    "+39+"
-    "'C'O'M'P'R'E'S'S'O'R' 'B'Y' 'A'L'E'X'A'N'D'E'R' 'T'R'U'S'H' 'O'D'E'S'S'A"
+    /*
+    "?"     //di/ei
+    "0610"  //ld b,0x10
+    "d9"    //exx
+    "e5"    //push hl
+    "21??"  //ld hl,xxxx
+    "11??"  //ld de,xxxx
+    "01??"  //ld bc,xxxx
+    //+0xe
+    "+11+"
+    //+0x19
+    "f9"    //ld sp,hl
+    "21??"  //ld hl,xxxx
+    "11??"  //ld de,xxxx
+    "01??"  //ld bc,xxxx
+    */
+    "+75+"
+    "d9"    //exx
+    "e1"    //pop hl
+    "1806"  //jr xx
+    "3b"    //dec sp
+    "f1"    //pop af
+    "d9"    //exx
+    "12"    //ld (de),a
+    "13"    //inc de
+    "d9"    //exx
+    "29"    //add hl,hl
+    "1003"  //djnz xx
   );
 
 #ifdef USE_PRAGMA_PACK
