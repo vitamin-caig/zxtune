@@ -17,6 +17,9 @@ extern const Char ASCSOUNDMASTER2_DECODER_DESCRIPTION[] = {
 extern const Char DIGITALSTUDIO_DECODER_DESCRIPTION[] = {
   'D','i','g','i','t','a','l',' ','S','t','u','d','i','o',0
 };
+extern const Char PROTRACKER2_DECODER_DESCRIPTION[] = {
+  'P','r','o',' ','T','r','a','c','k','e','r',' ','v','2','.','x',0
+};
 extern const Char PSG_DECODER_DESCRIPTION[] = {
   'P','r','o','g','r','a','m','m','a','b','l','e',' ','S','o','u','n','d',' ','G','e','n','e','r','a','t','o',
   'r',' ','(','P','S','G',')',0

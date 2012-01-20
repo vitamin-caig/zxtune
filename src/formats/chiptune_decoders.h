@@ -25,6 +25,7 @@ namespace Formats
     Decoder::Ptr CreateSoundTrackerProCompiledDecoder();
     Decoder::Ptr CreateASCSoundMaster0xDecoder();
     Decoder::Ptr CreateASCSoundMaster1xDecoder();
+    Decoder::Ptr CreateProTracker2Decoder();
   }
 }
 
