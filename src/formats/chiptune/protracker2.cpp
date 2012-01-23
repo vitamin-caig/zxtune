@@ -119,11 +119,22 @@ namespace Chiptune
           return (NoiseAndFlags & 4) ? val : -val;
         }
       } PACK_POST;
-      Line Data[1];
 
-      uint_t GetUsedSize() const
+      std::size_t GetUsedSize() const
       {
-        return sizeof(RawObject) + GetSize() * sizeof(Data[0]);
+        return sizeof(RawObject) + std::min<std::size_t>(GetSize() * sizeof(Line), 256);
+      }
+
+      Line GetLine(uint_t idx) const
+      {
+        const uint8_t* const src = safe_ptr_cast<const uint8_t*>(this + 1);
+        //using 8-bit offsets
+        uint8_t offset = static_cast<uint8_t>(idx * sizeof(Line));
+        Line res;
+        res.NoiseAndFlags = src[offset++];
+        res.LevelHiVibrato = src[offset++];
+        res.LoVibrato = src[offset++];
+        return res;
       }
     } PACK_POST;
 
@@ -131,11 +142,17 @@ namespace Chiptune
     {
       typedef int8_t Line;
 
-      Line Data[1];
-
-      uint_t GetUsedSize() const
+      std::size_t GetUsedSize() const
       {
-        return sizeof(RawObject) + GetSize() * sizeof(Data[0]);
+        return sizeof(RawObject) + GetSize() * sizeof(Line);
+      }
+
+      Line GetLine(uint_t idx) const
+      {
+        const int8_t* const src = safe_ptr_cast<const int8_t*>(this + 1);
+        //using 8-bit offsets
+        uint8_t offset = static_cast<uint8_t>(idx * sizeof(Line));
+        return src[offset];
       }
     } PACK_POST;
 
@@ -153,8 +170,8 @@ namespace Chiptune
 #endif
 
     BOOST_STATIC_ASSERT(sizeof(RawHeader) == 132);
-    BOOST_STATIC_ASSERT(sizeof(RawSample) == 5);
-    BOOST_STATIC_ASSERT(sizeof(RawOrnament) == 3);
+    BOOST_STATIC_ASSERT(sizeof(RawSample) == 2);
+    BOOST_STATIC_ASSERT(sizeof(RawOrnament) == 2);
 
     class StubBuilder : public Builder
     {
@@ -391,7 +408,7 @@ namespace Chiptune
 
     void CheckTempo(uint_t tempo)
     {
-      Require(tempo > 2);
+      Require(tempo >= 2);
     }
 
     class Format
@@ -452,16 +469,17 @@ namespace Chiptune
         {
           const uint_t samIdx = *it;
           Require(in_range<uint_t>(samIdx, 0, MAX_SAMPLES_COUNT - 1));
-          Log::Debug(THIS_MODULE, "Parse sample %1%", samIdx);
           Sample result;
-          if (const RawSample* src = GetObject<RawSample>(fromLE(Source.SamplesOffsets[samIdx])))
+          if (const RawSample* src = GetSample(fromLE(Source.SamplesOffsets[samIdx])))
           {
+            Log::Debug(THIS_MODULE, "Parse sample %1%", samIdx);
             ParseSample(*src, result);
           }
           else
           {
-            const RawSample& stub = GetInvalidObject<RawSample>();
-            ParseSample(stub, result);
+            Log::Debug(THIS_MODULE, "Parse invalid sample %1%", samIdx);
+            const RawSample::Line& invalidLine = *Delegate.GetField<RawSample::Line>(0);
+            result.Lines.push_back(ParseSampleLine(invalidLine));
           }
           builder.SetSample(samIdx, result);
         }
@@ -475,16 +493,36 @@ namespace Chiptune
         {
           const uint_t ornIdx = *it;
           Require(in_range<uint_t>(ornIdx, 0, MAX_ORNAMENTS_COUNT - 1));
-          Log::Debug(THIS_MODULE, "Parse ornament %1%", ornIdx);
           Ornament result;
-          if (const RawOrnament* src = GetObject<RawOrnament>(fromLE(Source.OrnamentsOffsets[ornIdx])))
+          if (const std::size_t ornOffset = fromLE(Source.OrnamentsOffsets[ornIdx]))
           {
-            ParseOrnament(*src, result);
+            const std::size_t availSize = Delegate.GetSize() - ornOffset;
+            if (const RawOrnament* src = Delegate.GetField<RawOrnament>(ornOffset))
+            {
+              const std::size_t usedSize = src->GetUsedSize();
+              if (usedSize <= availSize)
+              {
+                Log::Debug(THIS_MODULE, "Parse ornament %1%", ornIdx);
+                Ranges.Add(ornOffset, usedSize);
+                ParseOrnament(*src, src->GetSize(), result);
+              }
+              else
+              {
+                Log::Debug(THIS_MODULE, "Parse partial ornament %1%", ornIdx);
+                Ranges.Add(ornOffset, availSize);
+                const uint_t availLines = (availSize - sizeof(*src)) / sizeof(RawOrnament::Line);
+                ParseOrnament(*src, availLines, result);
+              }
+            }
+            else
+            {
+              Log::Debug(THIS_MODULE, "Stub ornament %1%", ornIdx);
+            }
           }
           else
           {
-            const RawOrnament& stub = GetInvalidObject<RawOrnament>();
-            ParseOrnament(stub, result);
+            Log::Debug(THIS_MODULE, "Parse invalid ornament %1%", ornIdx);
+            result.Lines.push_back(*Delegate.GetField<RawOrnament::Line>(0));
           }
           builder.SetOrnament(ornIdx, result);
         }
@@ -507,28 +545,15 @@ namespace Chiptune
         return *Delegate.GetField<RawPattern>(patOffset);
       }
 
-      template<class T>
-      const T* GetObject(std::size_t offset) const
+      const RawSample* GetSample(std::size_t offset) const
       {
         if (!offset)
         {
           return 0;
         }
-        const RawObject* const obj = Delegate.GetField<RawObject>(offset);
-        Require(obj != 0);
-        const T* const res = safe_ptr_cast<const T*>(obj);
+        const RawSample* const res = Delegate.GetField<RawSample>(offset);
+        Require(res != 0);
         Ranges.Add(offset, res->GetUsedSize());
-        return res;
-      }
-
-      template<class T>
-      T GetInvalidObject() const
-      {
-        //emulate invalid data
-        const typename T::Line* const line = Delegate.GetField<typename T::Line>(0);
-        T res;
-        res.Size = 1;
-        res.Data[0] = *line;
         return res;
       }
 
@@ -728,22 +753,31 @@ namespace Chiptune
         dst.Lines.resize(size);
         for (uint_t idx = 0; idx < size; ++idx)
         {
-          const RawSample::Line& line = src.Data[idx];
-          Sample::Line& res = dst.Lines[idx];
-          res.Level = line.GetLevel();
-          res.Noise = line.GetNoise();
-          res.ToneMask = line.GetToneMask();
-          res.NoiseMask = line.GetNoiseMask();
-          res.Vibrato = line.GetVibrato();
+          const RawSample::Line& line = src.GetLine(idx);
+          dst.Lines[idx] = ParseSampleLine(line);
         }
-        dst.Loop = std::min<int_t>(src.Loop, size);
+        dst.Loop = std::min<uint_t>(src.Loop, dst.Lines.size());
       }
 
-      static void ParseOrnament(const RawOrnament& src, Ornament& dst)
+      static Sample::Line ParseSampleLine(const RawSample::Line& line)
       {
-        const uint_t size = src.GetSize();
-        dst.Lines.assign(src.Data, src.Data + size);
-        dst.Loop = std::min<int_t>(src.Loop, size);
+        Sample::Line res;
+        res.Level = line.GetLevel();
+        res.Noise = line.GetNoise();
+        res.ToneMask = line.GetToneMask();
+        res.NoiseMask = line.GetNoiseMask();
+        res.Vibrato = line.GetVibrato();
+        return res;
+      }
+
+      static void ParseOrnament(const RawOrnament& src, uint_t size, Ornament& dst)
+      {
+        dst.Lines.resize(src.GetSize());
+        for (uint_t idx = 0; idx < size; ++idx)
+        {
+          dst.Lines[idx] = src.GetLine(idx);
+        }
+        dst.Loop = std::min<uint_t>(src.Loop, dst.Lines.size());
       }
     private:
       const Binary::TypedContainer& Delegate;

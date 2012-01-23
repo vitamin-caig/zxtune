@@ -108,11 +108,18 @@ namespace Chiptune
 
     PACK_PRE struct RawOrnament : RawObject
     {
-      int8_t Data[1];
+      typedef int8_t Line;
+
+      Line GetLine(uint_t idx) const
+      {
+        const int8_t* const src = safe_ptr_cast<const int8_t*>(this + 1);
+        uint8_t offset = static_cast<uint8_t>(idx * sizeof(Line));
+        return src[offset];
+      }
 
       std::size_t GetUsedSize() const
       {
-        return sizeof(RawObject) + GetSize() * sizeof(Data[0]);
+        return sizeof(RawObject) + std::min<std::size_t>(GetSize() * sizeof(Line), 256);
       }
     } PACK_POST;
 
@@ -171,11 +178,17 @@ namespace Chiptune
         }
       } PACK_POST;
 
-      Line Data[1];
+      Line GetLine(uint_t idx) const
+      {
+        BOOST_STATIC_ASSERT(0 == (sizeof(Line) & (sizeof(Line) - 1)));
+        const uint_t maxLines = 256 / sizeof(Line);
+        const Line* const src = safe_ptr_cast<const Line*>(this + 1);
+        return src[idx % maxLines];
+      }
 
       std::size_t GetUsedSize() const
       {
-        return sizeof(RawObject) + GetSize() * sizeof(Data[0]);
+        return sizeof(RawObject) + std::min<std::size_t>(GetSize() * sizeof(Line), 256);
       }
     } PACK_POST;
 
@@ -191,9 +204,9 @@ namespace Chiptune
     BOOST_STATIC_ASSERT(sizeof(RawId) == 53);
     BOOST_STATIC_ASSERT(sizeof(RawPositions) == 4);
     BOOST_STATIC_ASSERT(sizeof(RawPattern) == 6);
-    BOOST_STATIC_ASSERT(sizeof(RawOrnament) == 3);
+    BOOST_STATIC_ASSERT(sizeof(RawOrnament) == 2);
     BOOST_STATIC_ASSERT(sizeof(RawOrnaments) == 32);
-    BOOST_STATIC_ASSERT(sizeof(RawSample) == 6);
+    BOOST_STATIC_ASSERT(sizeof(RawSample) == 2);
     BOOST_STATIC_ASSERT(sizeof(RawSamples) == 30);
 
     class StubBuilder : public Builder
@@ -617,7 +630,7 @@ namespace Chiptune
         dst.Lines.resize(size);
         for (uint_t idx = 0; idx < size; ++idx)
         {
-          const RawSample::Line& line = src.Data[idx];
+          const RawSample::Line& line = src.GetLine(idx);
           Sample::Line& res = dst.Lines[idx];
           res.Level = line.GetLevel();
           res.Noise = line.GetNoise();
@@ -632,7 +645,11 @@ namespace Chiptune
       static void ParseOrnament(const RawOrnament& src, Ornament& dst)
       {
         const uint_t size = src.GetSize();
-        dst.Lines.assign(src.Data, src.Data + size);
+        dst.Lines.resize(size);
+        for (uint_t idx = 0; idx < size; ++idx)
+        {
+          dst.Lines[idx] = src.GetLine(idx);
+        }
         dst.Loop = std::min<int_t>(src.Loop, size);
       }
     private:
@@ -873,7 +890,7 @@ namespace Chiptune
           const PatchedDataBuilder::Ptr patch = PatchedDataBuilder::Create(*parsed);
           const RawHeader& header = *safe_ptr_cast<const RawHeader*>(parsed->Data());
           patch->InsertData(sizeof(header), info);
-          const int_t delta = info.size();
+          const int_t delta = static_cast<int_t>(info.size());
           patch->AddLEWordToFix(offsetof(RawHeader, PositionsOffset), delta);
           patch->AddLEWordToFix(offsetof(RawHeader, PatternsOffset), delta);
           patch->AddLEWordToFix(offsetof(RawHeader, OrnamentsOffset), delta);
