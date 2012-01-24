@@ -12,6 +12,8 @@ Author:
 //local includes
 #include "trdos_utils.h"
 #include "core/plugins/utils.h"
+//common includes
+#include <locale_helpers.h>
 
 namespace TRDos
 {
@@ -22,13 +24,12 @@ namespace TRDos
     const String& strName = FromCharArray(name);
     String fname(OptimizeString(strName, TRDOS_REPLACER));
     std::replace_if(fname.begin(), fname.end(), boost::algorithm::is_any_of(FORBIDDEN_SYMBOLS), TRDOS_REPLACER);
-    if (!std::isalnum(type[0]))
+    if (!IsAlNum(type[0]))
     {
       return fname;
     }
     fname += '.';
-    const char* const invalidSym = std::find_if(type, ArrayEnd(type), 
-      !(boost::is_from_range('0', '9') || boost::is_from_range('A', 'Z') || boost::is_from_range('a', 'z')));
+    const char* const invalidSym = std::find_if(type, ArrayEnd(type), std::not1(std::ptr_fun(&IsAlNum)));
     fname += String(type, invalidSym);
     return fname;
   }
