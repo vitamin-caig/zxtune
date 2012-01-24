@@ -450,6 +450,7 @@ namespace Chiptune
       {
         Require(!pats.empty());
         Log::Debug(THIS_MODULE, "Patterns: %1% to parse", pats.size());
+        const std::size_t minOffset = fromLE(Source.PatternsOffset) + *pats.rbegin() * sizeof(RawPattern);
         for (Indices::const_iterator it = pats.begin(), lim = pats.end(); it != lim; ++it)
         {
           const uint_t patIndex = *it;
@@ -457,7 +458,7 @@ namespace Chiptune
           Log::Debug(THIS_MODULE, "Parse pattern %1%", patIndex);
           const RawPattern& src = GetPattern(patIndex);
           builder.StartPattern(patIndex);
-          ParsePattern(src, builder);
+          ParsePattern(src, minOffset, builder);
         }
       }
 
@@ -596,9 +597,11 @@ namespace Chiptune
         }
       };
 
-      void ParsePattern(const RawPattern& pat, Builder& builder) const
+      void ParsePattern(const RawPattern& pat, std::size_t minOffset, Builder& builder) const
       {
         const DataCursors rangesStarts(pat);
+        Require(rangesStarts.end() == std::find_if(rangesStarts.begin(), rangesStarts.end(), !boost::bind(&in_range<std::size_t>, _1, minOffset, Delegate.GetSize() - 1)));
+
         ParserState state(rangesStarts);
         for (uint_t lineIdx = 0; lineIdx < MAX_PATTERN_SIZE; ++lineIdx)
         {
