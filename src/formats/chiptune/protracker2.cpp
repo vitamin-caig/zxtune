@@ -47,6 +47,17 @@ namespace Chiptune
     const std::size_t MAX_SAMPLES_COUNT = 32;
     const std::size_t MAX_ORNAMENTS_COUNT = 16;
 
+    /*
+      Typical module structure
+
+      Header
+      Positions,0xff
+      Patterns (6 bytes each)
+      Patterns data
+      Samples
+      Ornaments
+    */
+
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif

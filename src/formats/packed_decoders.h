@@ -52,6 +52,7 @@ namespace Formats
     Decoder::Ptr CreateCompiledASC2Decoder();
     Decoder::Ptr CreateCompiledSTP1Decoder();
     Decoder::Ptr CreateCompiledSTP2Decoder();
+    Decoder::Ptr CreateCompiledPT24Decoder();
   }
 }
 

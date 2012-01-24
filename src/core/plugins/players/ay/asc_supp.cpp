@@ -29,7 +29,6 @@ Author:
 #include <core/plugin_attrs.h>
 #include <formats/chiptune/ascsoundmaster.h>
 #include <formats/packed_decoders.h>
-#include <formats/chiptune/ascsoundmaster.h>
 //text includes
 #include <core/text/core.h>
 #include <core/text/plugins.h>

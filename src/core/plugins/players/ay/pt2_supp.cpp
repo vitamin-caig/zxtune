@@ -14,6 +14,7 @@ Author:
 #include "ay_conversion.h"
 #include "core/plugins/utils.h"
 #include "core/plugins/registrator.h"
+#include "core/plugins/archives/archive_supp_common.h"
 #include "core/plugins/players/creation_result.h"
 #include "core/plugins/players/module_properties.h"
 //common includes
@@ -29,6 +30,7 @@ Author:
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
 #include <formats/chiptune_decoders.h>
+#include <formats/packed_decoders.h>
 #include <formats/chiptune/protracker2.h>
 //text includes
 #include <core/text/core.h>
@@ -620,13 +622,28 @@ namespace PT2
   };
 }
 
+namespace PT2
+{
+  const Char IDC_24[] = {'C', 'O', 'M', 'P', 'I', 'L', 'E', 'D', 'P', 'T', '2', '4', 0};
+  const uint_t CCAPS = CAP_STOR_CONTAINER;
+}
+
 namespace ZXTune
 {
   void RegisterPT2Support(PluginsRegistrator& registrator)
   {
-    const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateProTracker2Decoder();
-    const ModulesFactory::Ptr factory = boost::make_shared<PT2::Factory>(decoder);
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(PT2::ID, decoder->GetDescription() + Text::PLAYER_DESCRIPTION_SUFFIX, PT2::CAPS, factory);
-    registrator.RegisterPlugin(plugin);
+    //modules with players
+    {
+      const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateCompiledPT24Decoder();
+      const ArchivePlugin::Ptr plugin = CreateArchivePlugin(PT2::IDC_24, PT2::CCAPS, decoder);
+      registrator.RegisterPlugin(plugin);
+    }
+    //direct modules
+    {
+      const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateProTracker2Decoder();
+      const ModulesFactory::Ptr factory = boost::make_shared<PT2::Factory>(decoder);
+      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(PT2::ID, decoder->GetDescription() + Text::PLAYER_DESCRIPTION_SUFFIX, PT2::CAPS, factory);
+      registrator.RegisterPlugin(plugin);
+    }
   }
 }

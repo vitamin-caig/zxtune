@@ -36,6 +36,10 @@ __cpp> "#endif //__TEXT_CHIPTUNE_H_DEFINED__\n"
 < PSG_DECODER_DESCRIPTION
 > "Programmable Sound Generator (PSG)"
 
+#PT24
+< PROTRACKER24_DECODER_DESCRIPTION
+> "Pro Tracker v2.40 Phantom Family"
+
 #SoundTracker
 < SOUNDTRACKER_DECODER_DESCRIPTION
 > "Sound Tracker v1.x"
