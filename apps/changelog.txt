@@ -7,6 +7,14 @@ Annotation:
 
 --- $Rev$ from $Date$
 
+[*] Scan speedup for 10%
+[*] Improved TRUSH detection
+[*] Improved STP detection
+[*] Reworked PT2 detection
+[*] Fixes in TRDos filenames processing difference between msvs and mingw builds
+
+--- Rev1504 from 16.01.2012
+
 [+] Supported Hrust2.3 packer (also used in Hrip archiver)
 [*] Fixed crash while STR detect
 [*] Fixed crash after AY playback stop
