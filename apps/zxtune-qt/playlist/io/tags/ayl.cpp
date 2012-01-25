@@ -50,6 +50,9 @@ extern const Char FORMAT_SPECIFIC[] = {
 extern const Char NAME[] = {
   'N','a','m','e',0
 };
+extern const Char OFFSET[] = {
+  'O','f','f','s','e','t',0
+};
 extern const Char PLAYER_FREQUENCY[] = {
   'P','l','a','y','e','r','F','r','e','q','u','e','n','c','y',0
 };

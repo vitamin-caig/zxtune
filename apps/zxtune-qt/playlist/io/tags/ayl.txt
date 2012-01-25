@@ -54,6 +54,9 @@ __cpp> "#endif //ZXTUNE_QT_PLAYLIST_AYL_TAGS_H_DEFINED\n"
 < FORMAT_SPECIFIC
 > "FormatSpec"
 
+< OFFSET
+> "Offset"
+
 < YM
 > "YM"
 

@@ -38,6 +38,7 @@ Author:
 #include <QtCore/QTextCodec>
 #include <QtCore/QTextStream>
 //text includes
+#include <core/text/plugins.h>
 #include <formats/text/archived.h>
 
 namespace
@@ -222,12 +223,18 @@ namespace
       : Version(version)
       , Delegate(delegate)
       , FormatSpec()
+      , Offset()
     {
     }
 
     std::size_t GetFormatSpec() const
     {
       return FormatSpec;
+    }
+
+    std::size_t GetOffset() const
+    {
+      return Offset;
     }
 
     virtual void SetIntValue(const Parameters::NameType& name, Parameters::IntType val)
@@ -246,6 +253,10 @@ namespace
       {
         FormatSpec = static_cast<std::size_t>(val);
       }
+      else if (name == AYL::OFFSET)
+      {
+        Offset = static_cast<std::size_t>(val);
+      }
       //ignore "Loop", "Length", "Time"
     }
 
@@ -261,7 +272,7 @@ namespace
       {
         Delegate.SetIntValue(Parameters::ZXTune::Core::AYM::LAYOUT, DecodeChipLayout(val));
       }
-      //ignore "Offset", "Length", "Address", "Loop", "Time", "Original"
+      //ignore "Length", "Address", "Loop", "Time", "Original"
       else if (name == AYL::NAME)
       {
         Delegate.SetStringValue(ZXTune::Module::ATTR_TITLE, Version.DecodeString(val));
@@ -333,6 +344,7 @@ namespace
     const VersionLayer& Version;
     Parameters::Visitor& Delegate;
     std::size_t FormatSpec;
+    std::size_t Offset;
   };
 
   Parameters::Container::Ptr CreateProperties(const VersionLayer& version, const AYLContainer& aylItems)
@@ -354,6 +366,13 @@ namespace
     }
   }
 
+  void ApplyOffset(std::size_t offset, Playlist::IO::ContainerItem& item)
+  {
+    assert(offset);
+    const String subPath = IndexPathComponent(Text::RAW_PLUGIN_PREFIX).Build(offset);
+    ZXTune::IO::CombineUri(item.Path, subPath, item.Path);
+  }
+
   Playlist::IO::ContainerItemsPtr CreateItems(const QString& basePath, const VersionLayer& version, const AYLContainer& aylItems)
   {
     const QDir baseDir(basePath);
@@ -373,6 +392,10 @@ namespace
       if (std::size_t formatSpec = filter.GetFormatSpec())
       {
         ApplyFormatSpecificData(formatSpec, item);
+      }
+      if (std::size_t offset = filter.GetOffset())
+      {
+        ApplyOffset(offset, item);
       }
       items->push_back(item);
     }

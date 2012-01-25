@@ -20,6 +20,7 @@ extern const Char COMPUTER[];
 extern const Char DATE[];
 extern const Char FORMAT_SPECIFIC[];
 extern const Char NAME[];
+extern const Char OFFSET[];
 extern const Char PLAYER_FREQUENCY[];
 extern const Char PROGRAM[];
 extern const Char SIGNATURE[];
