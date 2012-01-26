@@ -162,6 +162,15 @@ namespace CompiledSTP
     "23"       //inc hl
     "32??"     //ld (xxxx),a
   ;
+
+  bool IsInfoEmpty(const Dump& info)
+  {
+    assert(info.size() == 53);
+    //28 is fixed
+    //25 is title
+    const Dump::const_iterator titleStart = info.begin() + 28;
+    return info.end() == std::find_if(titleStart, info.end(), std::bind2nd(std::greater<Char>(), Char(' ')));
+  }
 }//CompiledSTP
 
 namespace Formats
@@ -206,7 +215,16 @@ namespace Formats
         Log::Debug(THIS_MODULE, "Detected player in first %1% bytes", playerSize);
         const Binary::Container::Ptr modData = rawData.GetSubcontainer(playerSize, availSize - playerSize);
         const Dump metainfo = rawPlayer.GetInfo();
-        if (const Binary::Container::Ptr fixedModule = Decoder->InsertMetainformation(*modData, metainfo))
+        if (CompiledSTP::IsInfoEmpty(metainfo))
+        {
+          Log::Debug(THIS_MODULE, "Player has empty metainfo");
+          if (const Binary::Container::Ptr originalModule = Decoder->Decode(*modData))
+          {
+            const std::size_t originalSize = originalModule->Size();
+            return CreatePackedContainer(originalModule, playerSize + originalSize);
+          }
+        }
+        else if (const Binary::Container::Ptr fixedModule = Decoder->InsertMetainformation(*modData, metainfo))
         {
           if (Decoder->Decode(*fixedModule))
           {

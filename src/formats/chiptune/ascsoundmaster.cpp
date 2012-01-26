@@ -94,7 +94,7 @@ namespace Chiptune
     const String Version0::DESCRIPTION = Text::ASCSOUNDMASTER0_DECODER_DESCRIPTION;
     const std::string Version0::FORMAT(
       "03-32"    //tempo
-      "09-ff 00" //patterns
+      "09-ab 00" //patterns
       "? 00-39"  //samples
       "? 00-3a"  //ornaments
       "01-64"    //length
@@ -105,7 +105,7 @@ namespace Chiptune
     const std::string Version1::FORMAT(
       "03-32"    //tempo
       "00-63"    //loop
-      "0a-ff 00" //patterns
+      "0a-ac 00" //patterns
       "? 00-39"  //samples
       "? 00-3a"  //ornaments
       "01-64"    //length
@@ -920,7 +920,7 @@ namespace Chiptune
           else if (cmd == 0xf4) //tempo
           {
             const uint_t newTempo = PeekByte(offset++);
-            CheckTempo(newTempo);
+            //do not check tempo
             builder.SetTempo(newTempo);
           }
           else if (cmd <= 0xf6) //slide
@@ -1292,13 +1292,23 @@ namespace Chiptune
       {
         if (Binary::Container::Ptr parsed = Decode(rawData))
         {
+          const Binary::TypedContainer typedHelper(CreateContainer(*parsed));
+          const typename Version::RawHeader& header = *typedHelper.GetField<typename Version::RawHeader>(0);
+          const std::size_t headerSize = GetHeaderSize(header);
+          const std::size_t infoSize = info.size();
           const PatchedDataBuilder::Ptr patch = PatchedDataBuilder::Create(*parsed);
-          const typename Version::RawHeader& header = *safe_ptr_cast<const typename Version::RawHeader*>(parsed->Data());
-          patch->InsertData(GetHeaderSize(header), info);
-          const int_t delta = info.size();
-          patch->AddLEWordToFix(offsetof(typename Version::RawHeader, PatternsOffset), delta);
-          patch->AddLEWordToFix(offsetof(typename Version::RawHeader, SamplesOffset), delta);
-          patch->AddLEWordToFix(offsetof(typename Version::RawHeader, OrnamentsOffset), delta);
+          const RawId* const id = typedHelper.GetField<RawId>(headerSize);
+          if (id && id->Check())
+          {
+            patch->OverwriteData(headerSize, info);
+          }
+          else
+          {
+            patch->InsertData(headerSize, info);
+            patch->AddLEWordToFix(offsetof(typename Version::RawHeader, PatternsOffset), infoSize);
+            patch->AddLEWordToFix(offsetof(typename Version::RawHeader, SamplesOffset), infoSize);
+            patch->AddLEWordToFix(offsetof(typename Version::RawHeader, OrnamentsOffset), infoSize);
+          }
           return patch->GetResult();
         }
         return Binary::Container::Ptr();

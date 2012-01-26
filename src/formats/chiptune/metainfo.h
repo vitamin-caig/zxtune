@@ -31,6 +31,7 @@ namespace Formats
       virtual ~PatchedDataBuilder() {}
 
       virtual void InsertData(std::size_t offset, const Dump& data) = 0;
+      virtual void OverwriteData(std::size_t offset, const Dump& data) = 0;
       //offset in original, non-patched data
       virtual void AddLEWordToFix(std::size_t offset, int_t delta) = 0;
       virtual Binary::Container::Ptr GetResult() const = 0;

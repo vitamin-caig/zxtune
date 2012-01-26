@@ -40,8 +40,14 @@ namespace
 
     virtual void InsertData(std::size_t offset, const Dump& data)
     {
-      Require(Insertions.insert(InsertionsMap::value_type(offset, data)).second);
+      Require(Insertions.insert(BlobsMap::value_type(offset, data)).second);
       SizeAddon += data.size();
+    }
+
+    virtual void OverwriteData(std::size_t offset, const Dump& data)
+    {
+      Require(offset + data.size() <= Source.Size());
+      Require(Overwrites.insert(BlobsMap::value_type(offset, data)).second);
     }
 
     virtual void AddLEWordToFix(std::size_t offset, int_t delta)
@@ -55,6 +61,7 @@ namespace
       const uint8_t* const srcData = static_cast<const uint8_t*>(Source.Data());
       std::auto_ptr<Dump> result(new Dump(srcData, srcData + Source.Size()));
       ApplyFixes(*result);
+      ApplyOverwrites(*result);
       ApplyInsertions(*result);
       return Binary::CreateContainer(result);
     }
@@ -64,6 +71,14 @@ namespace
       for (FixesMap::const_iterator it = LEWordFixes.begin(), lim = LEWordFixes.end(); it != lim; ++it)
       {
         Fix<uint16_t>(static_cast<void*>(&result[it->first]), it->second);
+      }
+    }
+
+    void ApplyOverwrites(Dump& result) const
+    {
+      for (BlobsMap::const_iterator it = Overwrites.begin(), lim = Overwrites.end(); it != lim; ++it)
+      {
+        std::copy(it->second.begin(), it->second.end(), result.begin() + it->first);
       }
     }
 
@@ -78,7 +93,7 @@ namespace
       const Dump::const_iterator srcEnd = result.end();
       Dump::iterator dst = tmp.begin();
       std::size_t oldOffset = 0;
-      for (InsertionsMap::const_iterator it = Insertions.begin(), lim = Insertions.end(); it != lim; ++it)
+      for (BlobsMap::const_iterator it = Insertions.begin(), lim = Insertions.end(); it != lim; ++it)
       {
         if (const std::size_t toCopy = it->first - oldOffset)
         {
@@ -94,9 +109,10 @@ namespace
     }
   private:
     const Binary::Container& Source;
-    typedef std::map<std::size_t, Dump> InsertionsMap;
+    typedef std::map<std::size_t, Dump> BlobsMap;
     typedef std::map<std::size_t, int_t> FixesMap;
-    InsertionsMap Insertions;
+    BlobsMap Insertions;
+    BlobsMap Overwrites;
     FixesMap LEWordFixes;
     std::size_t SizeAddon;
   };

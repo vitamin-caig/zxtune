@@ -173,6 +173,19 @@ namespace CompiledASC
     //+123
     "11??" //data offset
   ;
+
+  bool IsInfoEmpty(const InfoData& info)
+  {
+    //19 - fixed
+    //20 - author
+    //4  - ignore
+    //20 - title
+    const uint8_t* const authorStart = info.begin() + 19;
+    const uint8_t* const ignoreStart = authorStart + 20;
+    const uint8_t* const titleStart = ignoreStart + 4;
+    return ignoreStart == std::find_if(authorStart, ignoreStart, std::bind2nd(std::greater<Char>(), Char(' ')))
+        && info.end() == std::find_if(titleStart, info.end(), std::bind2nd(std::greater<Char>(), Char(' ')));
+  }
 }//CompiledASC
 
 namespace Formats
@@ -217,7 +230,16 @@ namespace Formats
         Log::Debug(THIS_MODULE, "Detected player in first %1% bytes", playerSize);
         const Binary::Container::Ptr modData = rawData.GetSubcontainer(playerSize, availSize - playerSize);
         const Dump metainfo(rawPlayer.Information.begin(), rawPlayer.Information.end());
-        if (const Binary::Container::Ptr fixedModule = Decoder->InsertMetainformation(*modData, metainfo))
+        if (CompiledASC::IsInfoEmpty(rawPlayer.Information))
+        {
+          Log::Debug(THIS_MODULE, "Player has empty metainfo");
+          if (const Binary::Container::Ptr originalModule = Decoder->Decode(*modData))
+          {
+            const std::size_t originalSize = originalModule->Size();
+            return CreatePackedContainer(originalModule, playerSize + originalSize);
+          }
+        }
+        else if (const Binary::Container::Ptr fixedModule = Decoder->InsertMetainformation(*modData, metainfo))
         {
           if (Decoder->Decode(*fixedModule))
           {
