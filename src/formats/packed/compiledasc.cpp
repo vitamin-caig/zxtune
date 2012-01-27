@@ -31,6 +31,7 @@ namespace
 
 namespace CompiledASC
 {
+  const std::size_t MAX_MODULE_SIZE = 0x3a00;
   const std::size_t MAX_PLAYER_SIZE = 1700;
 
 #ifdef USE_PRAGMA_PACK
@@ -228,7 +229,8 @@ namespace Formats
           return Container::Ptr();
         }
         Log::Debug(THIS_MODULE, "Detected player in first %1% bytes", playerSize);
-        const Binary::Container::Ptr modData = rawData.GetSubcontainer(playerSize, availSize - playerSize);
+        const std::size_t modDataSize = std::min(CompiledASC::MAX_MODULE_SIZE, availSize - playerSize);
+        const Binary::Container::Ptr modData = rawData.GetSubcontainer(playerSize, modDataSize);
         const Dump metainfo(rawPlayer.Information.begin(), rawPlayer.Information.end());
         if (CompiledASC::IsInfoEmpty(rawPlayer.Information))
         {

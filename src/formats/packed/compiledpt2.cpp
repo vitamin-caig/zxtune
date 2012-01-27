@@ -33,6 +33,7 @@ namespace
 
 namespace CompiledPT24
 {
+  const std::size_t MAX_MODULE_SIZE = 0x3600;
   const std::size_t PLAYER_SIZE = 0xa45;
   const std::size_t MAX_PATTERNS_COUNT = 32;
   const std::size_t MAX_SAMPLES_COUNT = 32;
@@ -150,7 +151,8 @@ namespace Formats
         }
         const uint_t compileAddr = dataAddr - playerSize;
         Log::Debug(THIS_MODULE, "Detected player compiled at %1% (#%1$04x) with %2% patterns", compileAddr, patternsCount);
-        const Binary::Container::Ptr modData = rawData.GetSubcontainer(playerSize, availSize - playerSize);
+        const std::size_t modDataSize = std::min(CompiledPT24::MAX_MODULE_SIZE, availSize - playerSize);
+        const Binary::Container::Ptr modData = rawData.GetSubcontainer(playerSize, modDataSize);
         const Formats::Chiptune::PatchedDataBuilder::Ptr builder = Formats::Chiptune::PatchedDataBuilder::Create(*modData);
         //fix samples/ornaments offsets
         for (uint_t idx = offsetof(CompiledPT24::RawHeader, SamplesOffsets); idx != offsetof(CompiledPT24::RawHeader, PatternsOffset); idx += 2)
