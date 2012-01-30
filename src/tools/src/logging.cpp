@@ -13,6 +13,7 @@ Author:
 #include <logging.h>
 //std includes
 #include <cstdio>
+#include <cstring>
 #include <iostream>
 
 namespace
@@ -32,7 +33,7 @@ namespace
     bool IsDebuggingEnabled(const std::string& module)
     {
       return Variable &&
-        (*Variable == DEBUG_ALL || 0 == module.find(Variable));
+        (*Variable == DEBUG_ALL || 0 == module.compare(0, VariableSize, Variable));
     }
     
     void Message(const std::string& module, const std::string& msg)
@@ -48,11 +49,13 @@ namespace
   private:
     Logger()
       : Variable(::getenv(DEBUG_LOG_VARIABLE))
+      , VariableSize(Variable ? std::strlen(Variable) : 0)
     {
     }
     
   private:
     const char* const Variable;
+    const std::size_t VariableSize;
   };
 
   class FilteredProgressCallback : public ProgressCallback
