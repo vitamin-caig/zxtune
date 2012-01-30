@@ -25,6 +25,7 @@ Author:
 #include <error_tools.h>
 #include <template_parameters.h>
 //library includes
+#include <async/data_receiver.h>
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
 #include <core/error_codes.h>
@@ -79,65 +80,18 @@ namespace
     }
   };
 
-  class Convertor
+  class ConvertEndpoint : public DataReceiver<ZXTune::Module::Holder::Ptr>
   {
   public:
-    Convertor(const Parameters::Accessor& params, DisplayComponent& display)
+    ConvertEndpoint(DisplayComponent& display, std::auto_ptr<ZXTune::Module::Conversion::Parameter> param, uint_t capMask, StringTemplate::Ptr templ)
       : Display(display)
+      , ConversionParameter(param)
+      , CapabilityMask(capMask)
+      , FileNameTemplate(templ)
     {
-      Parameters::StringType mode;
-      if (!params.FindStringValue(Text::CONVERSION_PARAM_MODE, mode))
-      {
-        throw Error(THIS_LINE, CONVERT_PARAMETERS, Text::CONVERT_ERROR_NO_MODE);
-      }
-      String nameTemplate;
-      if (!params.FindStringValue(Text::CONVERSION_PARAM_FILENAME, nameTemplate))
-      {
-        throw Error(THIS_LINE, CONVERT_PARAMETERS, Text::CONVERT_ERROR_NO_FILENAME);
-      }
-      if (mode == Text::CONVERSION_MODE_RAW)
-      {
-        ConversionParameter.reset(new ZXTune::Module::Conversion::RawConvertParam());
-        CapabilityMask = ZXTune::CAP_CONV_RAW;
-      }
-      else if (mode == Text::CONVERSION_MODE_PSG)
-      {
-        ConversionParameter.reset(new ZXTune::Module::Conversion::PSGConvertParam());
-        CapabilityMask = ZXTune::CAP_CONV_PSG;
-      }
-      else if (mode == Text::CONVERSION_MODE_ZX50)
-      {
-        ConversionParameter.reset(new ZXTune::Module::Conversion::ZX50ConvertParam());
-        CapabilityMask = ZXTune::CAP_CONV_ZX50;
-      }
-      else if (mode == Text::CONVERSION_MODE_TXT)
-      {
-        ConversionParameter.reset(new ZXTune::Module::Conversion::TXTConvertParam());
-        CapabilityMask = ZXTune::CAP_CONV_TXT;
-      }
-      else if (mode == Text::CONVERSION_MODE_DEBUGAY)
-      {
-        ConversionParameter.reset(new ZXTune::Module::Conversion::DebugAYConvertParam());
-        CapabilityMask = ZXTune::CAP_CONV_AYDUMP;
-      }
-      else if (mode == Text::CONVERSION_MODE_AYDUMP)
-      {
-        ConversionParameter.reset(new ZXTune::Module::Conversion::AYDumpConvertParam());
-        CapabilityMask = ZXTune::CAP_CONV_AYDUMP;
-      }
-      else if (mode == Text::CONVERSION_MODE_FYM)
-      {
-        ConversionParameter.reset(new ZXTune::Module::Conversion::FYMConvertParam());
-        CapabilityMask = ZXTune::CAP_CONV_FYM;
-      }
-      else
-      {
-        throw Error(THIS_LINE, CONVERT_PARAMETERS, Text::CONVERT_ERROR_INVALID_MODE);
-      }
-      FileNameTemplate = StringTemplate::Create(nameTemplate);
     }
 
-    void ProcessItem(ZXTune::Module::Holder::Ptr holder) const
+    virtual void ApplyData(const ZXTune::Module::Holder::Ptr& holder)
     {
       const Parameters::Accessor::Ptr props = holder->GetModuleProperties();
       const String id = GetModuleId(*props);
@@ -161,13 +115,92 @@ namespace
           Text::CONVERT_ERROR_WRITE_FILE, filename);
       }
       Display.Message(Strings::Format(Text::CONVERT_DONE, id, filename));
-      return;
+    }
+
+    virtual void Flush()
+    {
     }
   private:
     DisplayComponent& Display;
-    std::auto_ptr<ZXTune::Module::Conversion::Parameter> ConversionParameter;
-    uint_t CapabilityMask;
-    StringTemplate::Ptr FileNameTemplate;
+    const std::auto_ptr<ZXTune::Module::Conversion::Parameter> ConversionParameter;
+    const uint_t CapabilityMask;
+    const StringTemplate::Ptr FileNameTemplate;
+  };
+
+
+  class Convertor
+  {
+  public:
+    Convertor(const Parameters::Accessor& params, DisplayComponent& display)
+      : Pipe(DataReceiver<ZXTune::Module::Holder::Ptr>::CreateStub())
+    {
+      Parameters::StringType mode;
+      if (!params.FindStringValue(Text::CONVERSION_PARAM_MODE, mode))
+      {
+        throw Error(THIS_LINE, CONVERT_PARAMETERS, Text::CONVERT_ERROR_NO_MODE);
+      }
+      String nameTemplate;
+      if (!params.FindStringValue(Text::CONVERSION_PARAM_FILENAME, nameTemplate))
+      {
+        throw Error(THIS_LINE, CONVERT_PARAMETERS, Text::CONVERT_ERROR_NO_FILENAME);
+      }
+      std::auto_ptr<ZXTune::Module::Conversion::Parameter> param;
+      uint_t mask = 0;
+      if (mode == Text::CONVERSION_MODE_RAW)
+      {
+        param.reset(new ZXTune::Module::Conversion::RawConvertParam());
+        mask = ZXTune::CAP_CONV_RAW;
+      }
+      else if (mode == Text::CONVERSION_MODE_PSG)
+      {
+        param.reset(new ZXTune::Module::Conversion::PSGConvertParam());
+        mask = ZXTune::CAP_CONV_PSG;
+      }
+      else if (mode == Text::CONVERSION_MODE_ZX50)
+      {
+        param.reset(new ZXTune::Module::Conversion::ZX50ConvertParam());
+        mask = ZXTune::CAP_CONV_ZX50;
+      }
+      else if (mode == Text::CONVERSION_MODE_TXT)
+      {
+        param.reset(new ZXTune::Module::Conversion::TXTConvertParam());
+        mask = ZXTune::CAP_CONV_TXT;
+      }
+      else if (mode == Text::CONVERSION_MODE_DEBUGAY)
+      {
+        param.reset(new ZXTune::Module::Conversion::DebugAYConvertParam());
+        mask = ZXTune::CAP_CONV_AYDUMP;
+      }
+      else if (mode == Text::CONVERSION_MODE_AYDUMP)
+      {
+        param.reset(new ZXTune::Module::Conversion::AYDumpConvertParam());
+        mask = ZXTune::CAP_CONV_AYDUMP;
+      }
+      else if (mode == Text::CONVERSION_MODE_FYM)
+      {
+        param.reset(new ZXTune::Module::Conversion::FYMConvertParam());
+        mask = ZXTune::CAP_CONV_FYM;
+      }
+      else
+      {
+        throw Error(THIS_LINE, CONVERT_PARAMETERS, Text::CONVERT_ERROR_INVALID_MODE);
+      }
+
+      const DataReceiver<ZXTune::Module::Holder::Ptr>::Ptr target(new ConvertEndpoint(display, param, mask, StringTemplate::Create(nameTemplate)));
+      Pipe = Async::DataReceiver<ZXTune::Module::Holder::Ptr>::Create(1, target);
+    }
+
+    ~Convertor()
+    {
+      Pipe->Flush();
+    }
+
+    void ProcessItem(ZXTune::Module::Holder::Ptr holder) const
+    {
+      Pipe->ApplyData(holder);
+    }
+  private:
+    DataReceiver<ZXTune::Module::Holder::Ptr>::Ptr Pipe;
   };
 
   class CLIApplication : public Application
