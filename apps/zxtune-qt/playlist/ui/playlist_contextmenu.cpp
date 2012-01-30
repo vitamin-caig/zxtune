@@ -154,23 +154,26 @@ namespace
 
     virtual void RemoveAllDuplicates() const
     {
-      const Playlist::Item::StorageModifyOperation::Ptr op = Playlist::Item::CreateRemoveAllDuplicatesOperation();
+      const Playlist::Item::PromisedSelectionOperation::Ptr op = Playlist::Item::CreateSelectAllDuplicatesOperation();
+      const Playlist::Item::SelectionPtr result = GetResult(op);
       const Playlist::Model::Ptr model = Controller->GetModel();
-      model->PerformOperation(op);
+      model->RemoveItems(*result);
     }
 
     virtual void RemoveDuplicatesOfSelected() const
     {
-      const Playlist::Item::StorageModifyOperation::Ptr op = Playlist::Item::CreateRemoveDuplicatesOfSelectedOperation(SelectedItems);
+      const Playlist::Item::PromisedSelectionOperation::Ptr op = Playlist::Item::CreateSelectDuplicatesOfSelectedOperation(SelectedItems);
+      const Playlist::Item::SelectionPtr result = GetResult(op);
       const Playlist::Model::Ptr model = Controller->GetModel();
-      model->PerformOperation(op);
+      model->RemoveItems(*result);
     }
 
     virtual void RemoveDuplicatesInSelected() const
     {
-      const Playlist::Item::StorageModifyOperation::Ptr op = Playlist::Item::CreateRemoveDuplicatesInSelectedOperation(SelectedItems);
+      const Playlist::Item::PromisedSelectionOperation::Ptr op = Playlist::Item::CreateSelectDuplicatesInSelectedOperation(SelectedItems);
+      const Playlist::Item::SelectionPtr result = GetResult(op);
       const Playlist::Model::Ptr model = Controller->GetModel();
-      model->PerformOperation(op);
+      model->RemoveItems(*result);
     }
 
     virtual void SelectAllRipOffs() const

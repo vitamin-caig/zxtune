@@ -215,45 +215,55 @@ namespace
   class DuplicatesCollector : public PropertyModel<T>::Visitor
   {
   public:
+    DuplicatesCollector()
+      : Result(boost::make_shared<Playlist::Model::IndexSet>())
+    {
+    }
+
     virtual void OnItem(Playlist::Model::IndexType index, const T& val)
     {
       if (!Visited.insert(val).second)
       {
-        Result.insert(index);
+        Result->insert(index);
       }
     }
 
-    const Playlist::Model::IndexSet& GetResult() const
+    boost::shared_ptr<Playlist::Model::IndexSet> GetResult() const
     {
       return Result;
     }
   private:
     std::set<T> Visited;
-    Playlist::Model::IndexSet Result;
+    const boost::shared_ptr<Playlist::Model::IndexSet> Result;
   };
 
   template<class T>
   class RipOffsCollector : public PropertyModel<T>::Visitor
   {
   public:
+    RipOffsCollector()
+      : Result(boost::make_shared<Playlist::Model::IndexSet>())
+    {
+    }
+
     virtual void OnItem(Playlist::Model::IndexType index, const T& val)
     {
       const std::pair<typename PropToIndex::iterator, bool> result = Visited.insert(typename PropToIndex::value_type(val, index));
       if (!result.second)
       {
-        Result.insert(result.first->second);
-        Result.insert(index);
+        Result->insert(result.first->second);
+        Result->insert(index);
       }
     }
 
-    const Playlist::Model::IndexSet& GetResult() const
+    boost::shared_ptr<Playlist::Model::IndexSet> GetResult() const
     {
       return Result;
     }
   private:
     typedef typename std::map<T, Playlist::Model::IndexType> PropToIndex;
     PropToIndex Visited;
-    Playlist::Model::IndexSet Result;
+    const boost::shared_ptr<Playlist::Model::IndexSet> Result;
   };
 
   template<class T>
@@ -287,68 +297,6 @@ namespace
     modelWrapper.ForSpecifiedItems(selectedItems, visitor);
   }
 
-  // Remove dups
-  class RemoveAllDupsOperation : public Playlist::Item::StorageModifyOperation
-  {
-  public:
-    virtual void Execute(Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
-    {
-      DuplicatesCollector<uint32_t> dups;
-      {
-        const TypedPropertyModel<uint32_t> propertyModel(stor, &Playlist::Item::Data::GetChecksum);
-        VisitAllItems(propertyModel, cb, dups);
-      }
-      const Playlist::Model::IndexSet& toRemove = dups.GetResult();
-      stor.RemoveItems(toRemove);
-    }
-  };
-
-  class RemoveDupsOfSelectedOperation : public Playlist::Item::StorageModifyOperation
-  {
-  public:
-    explicit RemoveDupsOfSelectedOperation(const Playlist::Model::IndexSet& items)
-      : SelectedItems(items)
-    {
-    }
-
-    virtual void Execute(Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
-    {
-      RipOffsCollector<uint32_t> dups;
-      {
-        const TypedPropertyModel<uint32_t> propertyModel(stor, &Playlist::Item::Data::GetChecksum);
-        VisitAsSelectedItems(propertyModel, SelectedItems, cb, dups);
-      }
-      //select all rips but delete only nonselected
-      Playlist::Model::IndexSet toRemove = dups.GetResult();
-      std::for_each(SelectedItems.begin(), SelectedItems.end(), boost::bind<Playlist::Model::IndexSet::size_type>(&Playlist::Model::IndexSet::erase, &toRemove, _1));
-      stor.RemoveItems(toRemove);
-    }
-  private:
-    const Playlist::Model::IndexSet& SelectedItems;
-  };
-
-  class RemoveDupsInSelectedOperation : public Playlist::Item::StorageModifyOperation
-  {
-  public:
-    explicit RemoveDupsInSelectedOperation(const Playlist::Model::IndexSet& items)
-      : SelectedItems(items)
-    {
-    }
-
-    virtual void Execute(Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
-    {
-      DuplicatesCollector<uint32_t> dups;
-      {
-        const TypedPropertyModel<uint32_t> propertyModel(stor, &Playlist::Item::Data::GetChecksum);
-        VisitOnlySelectedItems(propertyModel, SelectedItems, cb, dups);
-      }
-      const Playlist::Model::IndexSet& toRemove = dups.GetResult();
-      stor.RemoveItems(toRemove);
-    }
-  private:
-    const Playlist::Model::IndexSet& SelectedItems;
-  };
-
   template<class ResultType>
   class Promise
   {
@@ -379,6 +327,85 @@ namespace
     ResultType Result;
   };
 
+  // Remove dups
+  class SelectAllDupsOperation : public Playlist::Item::PromisedSelectionOperation
+  {
+  public:
+    virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
+    {
+      DuplicatesCollector<uint32_t> dups;
+      {
+        const TypedPropertyModel<uint32_t> propertyModel(stor, &Playlist::Item::Data::GetChecksum);
+        VisitAllItems(propertyModel, cb, dups);
+      }
+      Result.Set(dups.GetResult());
+    }
+
+    virtual Playlist::Item::SelectionPtr GetResult() const
+    {
+      return Result.Get();
+    }
+  private:
+    Promise<Playlist::Item::SelectionPtr> Result;
+  };
+
+  class SelectDupsOfSelectedOperation : public Playlist::Item::PromisedSelectionOperation
+  {
+  public:
+    explicit SelectDupsOfSelectedOperation(const Playlist::Model::IndexSet& items)
+      : SelectedItems(items)
+    {
+    }
+
+    virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
+    {
+      RipOffsCollector<uint32_t> dups;
+      {
+        const TypedPropertyModel<uint32_t> propertyModel(stor, &Playlist::Item::Data::GetChecksum);
+        VisitAsSelectedItems(propertyModel, SelectedItems, cb, dups);
+      }
+      //select all rips but delete only nonselected
+      const boost::shared_ptr<Playlist::Model::IndexSet> toRemove = dups.GetResult();
+      std::for_each(SelectedItems.begin(), SelectedItems.end(), boost::bind<Playlist::Model::IndexSet::size_type>(&Playlist::Model::IndexSet::erase, toRemove.get(), _1));
+      Result.Set(toRemove);
+    }
+
+    virtual Playlist::Item::SelectionPtr GetResult() const
+    {
+      return Result.Get();
+    }
+  private:
+    const Playlist::Model::IndexSet& SelectedItems;
+    Promise<Playlist::Item::SelectionPtr> Result;
+  };
+
+  class SelectDupsInSelectedOperation : public Playlist::Item::PromisedSelectionOperation
+  {
+  public:
+    explicit SelectDupsInSelectedOperation(const Playlist::Model::IndexSet& items)
+      : SelectedItems(items)
+    {
+    }
+
+    virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
+    {
+      DuplicatesCollector<uint32_t> dups;
+      {
+        const TypedPropertyModel<uint32_t> propertyModel(stor, &Playlist::Item::Data::GetChecksum);
+        VisitOnlySelectedItems(propertyModel, SelectedItems, cb, dups);
+      }
+      Result.Set(dups.GetResult());
+    }
+
+    virtual Playlist::Item::SelectionPtr GetResult() const
+    {
+      return Result.Get();
+    }
+  private:
+    const Playlist::Model::IndexSet& SelectedItems;
+    Promise<Playlist::Item::SelectionPtr> Result;
+  };
+
   // Select  ripoffs
   class SelectAllRipOffsOperation : public Playlist::Item::PromisedSelectionOperation
   {
@@ -390,7 +417,7 @@ namespace
         const TypedPropertyModel<uint32_t> propertyModel(stor, &Playlist::Item::Data::GetCoreChecksum);
         VisitAllItems(propertyModel, cb, rips);
       }
-      Result.Set(boost::make_shared<Playlist::Model::IndexSet>(rips.GetResult()));
+      Result.Set(rips.GetResult());
     }
 
     virtual Playlist::Item::SelectionPtr GetResult() const
@@ -416,7 +443,7 @@ namespace
         const TypedPropertyModel<uint32_t> propertyModel(stor, &Playlist::Item::Data::GetCoreChecksum);
         VisitAsSelectedItems(propertyModel, SelectedItems, cb, rips);
       }
-      Result.Set(boost::make_shared<Playlist::Model::IndexSet>(rips.GetResult()));
+      Result.Set(rips.GetResult());
     }
 
     virtual Playlist::Item::SelectionPtr GetResult() const
@@ -443,7 +470,7 @@ namespace
         const TypedPropertyModel<uint32_t> propertyModel(stor, &Playlist::Item::Data::GetCoreChecksum);
         VisitOnlySelectedItems(propertyModel, SelectedItems, cb, rips);
       }
-      Result.Set(boost::make_shared<Playlist::Model::IndexSet>(rips.GetResult()));
+      Result.Set(rips.GetResult());
     }
 
     virtual Playlist::Item::SelectionPtr GetResult() const
@@ -470,7 +497,7 @@ namespace
         const TypedPropertyModel<String> propertyModel(stor, &Playlist::Item::Data::GetType);
         VisitAsSelectedItems(propertyModel, SelectedItems, cb, types);
       }
-      Result.Set(boost::make_shared<Playlist::Model::IndexSet>(types.GetResult()));
+      Result.Set(types.GetResult());
     }
 
     virtual Playlist::Item::SelectionPtr GetResult() const
@@ -819,19 +846,19 @@ namespace Playlist
       return boost::make_shared<SelectTypesOfSelectedOperation>(boost::cref(items));
     }
 
-    StorageModifyOperation::Ptr CreateRemoveAllDuplicatesOperation()
+    PromisedSelectionOperation::Ptr CreateSelectAllDuplicatesOperation()
     {
-      return boost::make_shared<RemoveAllDupsOperation>();
+      return boost::make_shared<SelectAllDupsOperation>();
     }
 
-    StorageModifyOperation::Ptr CreateRemoveDuplicatesOfSelectedOperation(const Playlist::Model::IndexSet& items)
+    PromisedSelectionOperation::Ptr CreateSelectDuplicatesOfSelectedOperation(const Playlist::Model::IndexSet& items)
     {
-      return boost::make_shared<RemoveDupsOfSelectedOperation>(boost::cref(items));
+      return boost::make_shared<SelectDupsOfSelectedOperation>(boost::cref(items));
     }
 
-    StorageModifyOperation::Ptr CreateRemoveDuplicatesInSelectedOperation(const Playlist::Model::IndexSet& items)
+    PromisedSelectionOperation::Ptr CreateSelectDuplicatesInSelectedOperation(const Playlist::Model::IndexSet& items)
     {
-      return boost::make_shared<RemoveDupsInSelectedOperation>(boost::cref(items));
+      return boost::make_shared<SelectDupsInSelectedOperation>(boost::cref(items));
     }
 
     PromisedTextResultOperation::Ptr CreateCollectPathsOperation(const Playlist::Model::IndexSet& items)
