@@ -81,26 +81,26 @@ namespace
 	void TestInvalidActivity()
 	{
 		std::cout << "Test for invalid activity" << std::endl;
-		Activity::Ptr result;
-		if (const Error& err = Activity::Create(boost::make_shared<InvalidOperation>(), result))
+		try
+		{
+		  const Activity::Ptr result = Activity::Create(boost::make_shared<InvalidOperation>());
+		}
+		catch (const Error& err)
 		{
 			if (err != FailedToPrepareError())
 			{
 				throw Error(THIS_LINE, 4, "Invalid error returned").AddSuberror(err);
 			}
 			std::cout << "Succeed\n";
+			return;
 		}
-		else
-		{
-			throw Error(THIS_LINE, 5, "Should not create activity");
-		}
+    throw Error(THIS_LINE, 5, "Should not create activity");
 	}
 	
 	void TestActivityErrorResult()
 	{
 		std::cout << "Test for valid activity error result" << std::endl;
-		Activity::Ptr result;
-		ThrowIfError(Activity::Create(boost::make_shared<ErrorResultOperation>(), result));
+		const Activity::Ptr result = Activity::Create(boost::make_shared<ErrorResultOperation>());
     boost::this_thread::sleep(boost::posix_time::milliseconds(100));
     if (result->IsExecuted())
     {
@@ -123,8 +123,7 @@ namespace
 	void TestLongActivity()
   {
     std::cout << "Test for valid long activity" << std::endl;
-    Activity::Ptr result;
-    ThrowIfError(Activity::Create(boost::make_shared<LongOperation>(), result));
+    const Activity::Ptr result = Activity::Create(boost::make_shared<LongOperation>());
     if (!result->IsExecuted())
     {
       throw Error(THIS_LINE, 9, "Activity should be executed now");

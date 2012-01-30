@@ -35,7 +35,8 @@ namespace Async
     virtual bool IsExecuted() const = 0;
     virtual Error Wait() = 0;
 
-    static Error Create(Operation::Ptr operation, Activity::Ptr& result);
+    static Ptr Create(Operation::Ptr operation);
+    static Ptr CreateStub();
   };
 }
 

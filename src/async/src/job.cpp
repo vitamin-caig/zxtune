@@ -123,22 +123,26 @@ namespace
 
     virtual Error Start()
     {
-      const boost::mutex::scoped_lock lock(Mutex);
-      if (Act)
+      try
       {
-        if (Act->IsExecuted())
+        const boost::mutex::scoped_lock lock(Mutex);
+        if (Act)
         {
-          return StartExecutingAction();
+          if (Act->IsExecuted())
+          {
+            return StartExecutingAction();
+          }
+          FinishAction();
         }
-        FinishAction();
+        const Operation::Ptr jobOper = boost::make_shared<JobOperation>(Work, boost::ref(Signal), boost::ref(State));
+        Act = Activity::Create(jobOper);
+        Signal.Set(START);
+        return Error();
       }
-      const Operation::Ptr jobOper = boost::make_shared<JobOperation>(Work, boost::ref(Signal), boost::ref(State));
-      if (const Error& err = Activity::Create(jobOper, Act))
+      catch (const Error& err)
       {
-        return err;//TODO: wrap
+        return err;
       }
-      Signal.Set(START);
-      return Error();
     }
     
     virtual Error Pause()

@@ -87,18 +87,33 @@ namespace
     Event<ActivityState> State;
     Error LastError;
   };
+
+  class StubActivity : public Async::Activity
+  {
+  public:
+    virtual bool IsExecuted() const
+    {
+      return false;
+    }
+
+    virtual Error Wait()
+    {
+      return Error();
+    }
+  };
 }
 
 namespace Async
 {
-  Error Activity::Create(Operation::Ptr operation, Activity::Ptr& result)
+  Activity::Ptr Activity::Create(Operation::Ptr operation)
   {
-    const ActivityImpl::Ptr activity(new ActivityImpl(operation));
-    if (const Error& err = activity->Start())
-    {
-      return err;
-    }
-    result = activity;
-    return Error();
+    const ActivityImpl::Ptr result = boost::make_shared<ActivityImpl>(operation);
+    ThrowIfError(result->Start());
+    return result;
+  }
+
+  Activity::Ptr Activity::CreateStub()
+  {
+    return boost::make_shared<StubActivity>();
   }
 }
