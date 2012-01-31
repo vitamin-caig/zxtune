@@ -37,9 +37,6 @@ namespace ZXTune
   public:
     virtual ~DetectParameters() {}
 
-    //! @brief Called before module creating
-    //! @param subpath Subpath for processed module
-    virtual Parameters::Accessor::Ptr CreateModuleParams(const String& subpath) const = 0;
     //! @brief Called on each detected module.
     //! @param subpath Subpath for processed module
     //! @param holder Found module
@@ -51,23 +48,23 @@ namespace ZXTune
   };
 
   //! @brief Perform module detection
-  //! @param modulesParams Detection and modules' construction parameters
+  //! @param pluginsParams Detection parameters
   //! @param detectParams %Parameters set
   //! @param data Input data container
   //! @param startSubpath Path in input data to start detecting
   //! @return Error() in case of success
   //! @return ERROR_DETECT_CANCELED with suberror, throwed from DetectParameters#Callback
-  Error DetectModules(Parameters::Accessor::Ptr modulesParams, const DetectParameters& detectParams,
+  Error DetectModules(Parameters::Accessor::Ptr pluginsParams, const DetectParameters& detectParams,
     Binary::Container::Ptr data, const String& startSubpath);
 
   //! @brief Perform single module opening
-  //! @param moduleParams Opening and module's construction parameters
+  //! @param pluginsParams Opening parameters
   //! @param data Input data container
   //! @param subpath Path in input data to open
   //! @param result Reference to result module
   //! @return Error() in case of success and module is found
   //! @return ERROR_FIND_SUBMODULE in case if module is not found
-  Error OpenModule(Parameters::Accessor::Ptr moduleParams, Binary::Container::Ptr data, const String& subpath,
+  Error OpenModule(Parameters::Accessor::Ptr pluginsParams, Binary::Container::Ptr data, const String& subpath,
     Module::Holder::Ptr& result);
 }
 

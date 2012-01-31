@@ -31,10 +31,8 @@ namespace ZXTune
   namespace Module
   {
     //! @param location Source data location
-    //! @param usedPlugins Plugins that can be used for opening
-    //! @param moduleParams Parameters to be passed in module
     //! @return Object is exists. No object elsewhere
-    Holder::Ptr Open(DataLocation::Ptr location, PluginsEnumerator::Ptr usedPlugins, Parameters::Accessor::Ptr moduleParams);
+    Holder::Ptr Open(DataLocation::Ptr location);
 
     //! @param location Start data location
     //! @param params Detect callback

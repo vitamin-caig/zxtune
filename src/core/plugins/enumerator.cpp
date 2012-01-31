@@ -110,12 +110,6 @@ namespace
       return CoreParams;
     }
 
-    virtual Parameters::Accessor::Ptr CreateModuleParameters(DataLocation::Ptr location) const
-    {
-      const Analysis::Path::Ptr subPath = location->GetPath();
-      return DetectParams.CreateModuleParams(subPath->AsString());
-    }
-
     virtual void ProcessModule(DataLocation::Ptr location, Module::Holder::Ptr holder) const
     {
       const Analysis::Path::Ptr subPath = location->GetPath();
@@ -181,7 +175,7 @@ namespace ZXTune
     return boost::make_shared<SimplePluginDescription>(id, info, capabilities);
   }
 
-  Error DetectModules(Parameters::Accessor::Ptr moduleParams, const DetectParameters& detectParams,
+  Error DetectModules(Parameters::Accessor::Ptr pluginsParams, const DetectParameters& detectParams,
     Binary::Container::Ptr data, const String& startSubpath)
   {
     if (!data.get())
@@ -190,9 +184,9 @@ namespace ZXTune
     }
     try
     {
-      if (const DataLocation::Ptr location = OpenLocation(moduleParams, data, startSubpath))
+      if (const DataLocation::Ptr location = OpenLocation(pluginsParams, data, startSubpath))
       {
-        const DetectCallbackAdapter callback(detectParams, moduleParams);
+        const DetectCallbackAdapter callback(detectParams, pluginsParams);
         Module::Detect(location, callback);
         return Error();
       }
@@ -208,7 +202,7 @@ namespace ZXTune
     }
   }
 
-  Error OpenModule(Parameters::Accessor::Ptr moduleParams, Binary::Container::Ptr data, const String& subpath,
+  Error OpenModule(Parameters::Accessor::Ptr pluginsParams, Binary::Container::Ptr data, const String& subpath,
       Module::Holder::Ptr& result)
   {
     if (!data.get())
@@ -217,10 +211,9 @@ namespace ZXTune
     }
     try
     {
-      if (const DataLocation::Ptr location = OpenLocation(moduleParams, data, subpath))
+      if (const DataLocation::Ptr location = OpenLocation(pluginsParams, data, subpath))
       {
-        const PluginsEnumerator::Ptr plugins = PluginsEnumerator::Create();
-        if (Module::Holder::Ptr holder = Module::Open(location, plugins, moduleParams))
+        if (Module::Holder::Ptr holder = Module::Open(location))
         {
           result = holder;
           return Error();

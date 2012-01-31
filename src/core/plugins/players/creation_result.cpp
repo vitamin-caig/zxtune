@@ -31,9 +31,7 @@ namespace
     std::size_t usedSize = 0;
     if (Module::Holder::Ptr holder = factory->CreateModule(properties, data, usedSize))
     {
-      const Parameters::Accessor::Ptr moduleParams = callback.CreateModuleParameters(inputData);
-      const Module::Holder::Ptr result = Module::CreateMixedPropertiesHolder(holder, moduleParams);
-      callback.ProcessModule(inputData, result);
+      callback.ProcessModule(inputData, holder);
       return Analysis::CreateMatchedResult(usedSize);
     }
     return Analysis::CreateUnmatchedResult(format, data);

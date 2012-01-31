@@ -172,14 +172,11 @@ namespace
     {
     }
 
-    virtual Parameters::Accessor::Ptr CreateModuleParams(const String& subpath) const
+    virtual void ProcessModule(const String& subpath, ZXTune::Module::Holder::Ptr holder) const
     {
-      return Parameters::CreateMergedAccessor(CreatePathProperties(Path, subpath), Params);
-    }
-
-    virtual void ProcessModule(const String& /*subpath*/, ZXTune::Module::Holder::Ptr holder) const
-    {
-      Callback(holder);
+      const Parameters::Accessor::Ptr moduleParams = Parameters::CreateMergedAccessor(CreatePathProperties(Path, subpath), Params);
+      const ZXTune::Module::Holder::Ptr result = ZXTune::Module::CreateMixedPropertiesHolder(holder, moduleParams);
+      Callback(result);
     }
 
     virtual Log::ProgressCallback* GetProgressCallback() const

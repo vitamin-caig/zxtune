@@ -37,19 +37,9 @@ namespace
   class OpenModuleCallback : public Module::DetectCallback
   {
   public:
-    OpenModuleCallback(Parameters::Accessor::Ptr moduleParams)
-      : ModuleParams(moduleParams)
-    {
-    }
-
     virtual Parameters::Accessor::Ptr GetPluginsParameters() const
     {
       return Parameters::Container::Create();
-    }
-
-    virtual Parameters::Accessor::Ptr CreateModuleParameters(DataLocation::Ptr /*location*/) const
-    {
-      return ModuleParams;
     }
 
     virtual void ProcessModule(DataLocation::Ptr /*location*/, Module::Holder::Ptr holder) const
@@ -67,7 +57,6 @@ namespace
       return Result;
     }
   private:
-    const Parameters::Accessor::Ptr ModuleParams;
     mutable Module::Holder::Ptr Result;
   };
   
@@ -130,9 +119,10 @@ namespace ZXTune
 {
   namespace Module
   {
-    Holder::Ptr Open(DataLocation::Ptr location, PluginsEnumerator::Ptr usedPlugins, Parameters::Accessor::Ptr moduleParams)
+    Holder::Ptr Open(DataLocation::Ptr location)
     {
-      const OpenModuleCallback callback(moduleParams);
+      const PluginsEnumerator::Ptr usedPlugins = PluginsEnumerator::Create();
+      const OpenModuleCallback callback;
       DetectByPlugins<PlayerPlugin>(usedPlugins->EnumeratePlayers(), location, callback);
       return callback.GetResult();
     }

@@ -258,20 +258,24 @@ namespace
   class ModuleSource
   {
   public:
-    ModuleSource(DataSource::Ptr source, const String& subPath, Parameters::Accessor::Ptr adjustedParams)
-      : Source(source)
+    ModuleSource(Parameters::Accessor::Ptr coreParams, DataSource::Ptr source, const String& subPath)
+      : CoreParams(coreParams)
+      , Source(source)
       , SubPath(subPath)
-      , AdjustedParams(adjustedParams)
     {
     }
 
-    ZXTune::Module::Holder::Ptr GetModule() const
+    ZXTune::Module::Holder::Ptr GetModule(Parameters::Accessor::Ptr adjustedParams) const
     {
       const Binary::Container::Ptr data = Source->GetData();
-      const Parameters::Accessor::Ptr pathParams = CreatePathProperties(Source->GetDataPath(), SubPath);
-      const Parameters::Accessor::Ptr moduleParams = Parameters::CreateMergedAccessor(pathParams, AdjustedParams);
       ZXTune::Module::Holder::Ptr module;
-      ZXTune::OpenModule(moduleParams, data, SubPath, module);
+      ZXTune::OpenModule(CoreParams, data, SubPath, module);
+      if (module)
+      {
+        const Parameters::Accessor::Ptr pathParams = CreatePathProperties(Source->GetDataPath(), SubPath);
+        const Parameters::Accessor::Ptr moduleParams = Parameters::CreateMergedAccessor(pathParams, adjustedParams, CoreParams);
+        return ZXTune::Module::CreateMixedPropertiesHolder(module, moduleParams);
+      }
       return module;
     }
 
@@ -282,9 +286,9 @@ namespace
       return result;
     }
   private:
+    const Parameters::Accessor::Ptr CoreParams;
     const DataSource::Ptr Source;
     const String SubPath;
-    const Parameters::Accessor::Ptr AdjustedParams;
   };
 
   String GetModuleType(const Parameters::Accessor& props)
@@ -391,7 +395,7 @@ namespace
 
     virtual ZXTune::Module::Holder::Ptr GetModule() const
     {
-      const ZXTune::Module::Holder::Ptr res = Source.GetModule();
+      const ZXTune::Module::Holder::Ptr res = Source.GetModule(AdjustedParams);
       Valid = res;
       return res;
     }
@@ -535,20 +539,14 @@ namespace
     {
     }
 
-    virtual Parameters::Accessor::Ptr CreateModuleParams(const String& subPath) const
-    {
-      return CreatePathProperties(DataPath, subPath);
-    }
-
     virtual void ProcessModule(const String& subPath, ZXTune::Module::Holder::Ptr holder) const
     {
       const Parameters::Container::Ptr adjustedParams = Delegate.CreateInitialAdjustedParameters();
-      const Parameters::Accessor::Ptr perItemParameters = Parameters::CreateMergedAccessor(adjustedParams, CoreParams);
-
-      const ModuleSource itemSource(Source, subPath, perItemParameters);
       const ZXTune::Module::Information::Ptr info = holder->GetModuleInformation();
       const Parameters::Accessor::Ptr moduleProps = holder->GetModuleProperties();
-      const Parameters::Accessor::Ptr lookupModuleProps = Parameters::CreateMergedAccessor(adjustedParams, moduleProps);
+      const Parameters::Accessor::Ptr pathProps = CreatePathProperties(DataPath, subPath);
+      const Parameters::Accessor::Ptr lookupModuleProps = Parameters::CreateMergedAccessor(pathProps, adjustedParams, moduleProps);
+      const ModuleSource itemSource(CoreParams, Source, subPath);
       const Playlist::Item::Data::Ptr playitem = boost::make_shared<DataImpl>(Attributes, itemSource, adjustedParams,
         info->FramesCount(), *lookupModuleProps);
       Delegate.ProcessItem(playitem);
