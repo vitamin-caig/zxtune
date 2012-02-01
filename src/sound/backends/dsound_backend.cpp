@@ -126,7 +126,7 @@ namespace
     DSBUFFERDESC buffer;
     std::memset(&buffer, 0, sizeof(buffer));
     buffer.dwSize = sizeof(buffer);
-    buffer.dwFlags = DSBCAPS_CTRLPAN | DSBCAPS_CTRLVOLUME | DSBCAPS_GLOBALFOCUS;
+    buffer.dwFlags = DSBCAPS_PRIMARYBUFFER | DSBCAPS_CTRLPAN | DSBCAPS_CTRLVOLUME | DSBCAPS_GLOBALFOCUS;
     buffer.dwBufferBytes = format.nAvgBytesPerSec * bufferInMs / 1000;
     buffer.lpwfxFormat = &format;
 
