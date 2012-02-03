@@ -32,6 +32,10 @@ __cpp> "#endif //__TEXT_CHIPTUNE_H_DEFINED__\n"
 < PROTRACKER2_DECODER_DESCRIPTION
 > "Pro Tracker v2.x"
 
+#ProTracker3
+< PROTRACKER3_DECODER_DESCRIPTION
+> "Pro Tracker v3.x"
+
 #PSG
 < PSG_DECODER_DESCRIPTION
 > "Programmable Sound Generator (PSG)"

@@ -58,16 +58,8 @@ extern const Char PLUGIN_RAW_PROGRESS[] = {
 extern const Char PLUGIN_RAW_PROGRESS_NOPATH[] = {
   'R','a','w',' ','s','c','a','n','e','r',' ','p','r','o','c','e','s','s','i','n','g',0
 };
-extern const Char PT2_EDITOR[] = {
-  'P','r','o','T','r','a','c','k','e','r',' ','v','2','.','x',0
-};
-extern const Char PT2_PLUGIN_INFO[] = {
-  'P','r','o','T','r','a','c','k','e','r',' ','v','2','.','x',' ','m','o','d','u','l','e','s',' ','s','u','p',
-  'p','o','r','t',0
-};
-extern const Char PT3_PLUGIN_INFO[] = {
-  'P','r','o','T','r','a','c','k','e','r',' ','v','3','.','x',' ','m','o','d','u','l','e','s',' ','s','u','p',
-  'p','o','r','t',0
+extern const Char PT3_TURBOSOUND_MODULE[] = {
+  'T','u','r','b','o','S','o','u','n','d',' ','m','o','d','u','l','e',0
 };
 extern const Char RAW_ERROR_INVALID_MIN_SIZE[] = {
   'S','p','e','c','i','f','i','e','d',' ','m','i','n','i','m','a','l',' ','s','c','a','n',' ','s','i','z','e',

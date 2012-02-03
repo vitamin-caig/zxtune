@@ -24,6 +24,9 @@ extern const Char PROTRACKER24_DECODER_DESCRIPTION[] = {
 extern const Char PROTRACKER2_DECODER_DESCRIPTION[] = {
   'P','r','o',' ','T','r','a','c','k','e','r',' ','v','2','.','x',0
 };
+extern const Char PROTRACKER3_DECODER_DESCRIPTION[] = {
+  'P','r','o',' ','T','r','a','c','k','e','r',' ','v','3','.','x',0
+};
 extern const Char PSG_DECODER_DESCRIPTION[] = {
   'P','r','o','g','r','a','m','m','a','b','l','e',' ','S','o','u','n','d',' ','G','e','n','e','r','a','t','o',
   'r',' ','(','P','S','G',')',0

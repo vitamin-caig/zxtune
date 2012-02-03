@@ -18,6 +18,7 @@ Author:
 //library includes
 #include <core/module_holder.h>
 #include <devices/aym.h>
+#include <formats/chiptune/protracker3.h>
 
 namespace ZXTune
 {
@@ -39,39 +40,23 @@ namespace ZXTune
       String GetFreqTable(NoteTable table, uint_t version);
 
       //sample type
-      struct Sample
+      struct Sample : public Formats::Chiptune::ProTracker3::Sample
       {
-        Sample() : Loop(), Lines()
+        Sample() : Formats::Chiptune::ProTracker3::Sample()
+        {
+        }
+
+        Sample(const Formats::Chiptune::ProTracker3::Sample& rh)
+          : Formats::Chiptune::ProTracker3::Sample(rh)
         {
         }
 
         template<class Iterator>
         Sample(uint_t loop, Iterator from, Iterator to)
-          : Loop(loop), Lines(from, to)
         {
+          Loop = loop;
+          Lines.assign(from, to);
         }
-
-        struct Line
-        {
-          Line()
-           : Level(), VolumeSlideAddon(), ToneMask(true), ToneOffset(), KeepToneOffset()
-           , NoiseMask(true), EnvMask(true), NoiseOrEnvelopeOffset(), KeepNoiseOrEnvelopeOffset()
-          {
-          }
-
-          // level-related
-          uint_t Level;//0-15
-          int_t VolumeSlideAddon;
-          // tone-related
-          bool ToneMask;
-          int_t ToneOffset;
-          bool KeepToneOffset;
-          // noise/enelope-related
-          bool NoiseMask;
-          bool EnvMask;
-          int_t NoiseOrEnvelopeOffset;
-          bool KeepNoiseOrEnvelopeOffset;
-        };
 
         uint_t GetLoop() const
         {
@@ -88,9 +73,41 @@ namespace ZXTune
           static const Line STUB;
           return Lines.size() > idx ? Lines[idx] : STUB;
         }
-      private:
-        uint_t Loop;
-        std::vector<Line> Lines;
+      };
+
+      //ornament type
+      struct Ornament : public Formats::Chiptune::ProTracker3::Ornament
+      {
+        Ornament() : Formats::Chiptune::ProTracker3::Ornament()
+        {
+        }
+
+        Ornament(const Formats::Chiptune::ProTracker3::Ornament& rh)
+          : Formats::Chiptune::ProTracker3::Ornament(rh)
+        {
+        }
+
+        template<class It>
+        Ornament(uint_t loop, It from, It to)
+        {
+          Loop = loop;
+          Lines.assign(from, to);
+        }
+
+        uint_t GetLoop() const
+        {
+          return Loop;
+        }
+
+        uint_t GetSize() const
+        {
+          return static_cast<uint_t>(Lines.size());
+        }
+
+        int_t GetLine(uint_t pos) const
+        {
+          return Lines.size() > pos ? Lines[pos] : 0;
+        }
       };
 
       //supported commands set and their parameters
@@ -119,9 +136,6 @@ namespace ZXTune
         //tempo
         TEMPO
       };
-
-      //for unification
-      typedef SimpleOrnament Ornament;
 
       typedef TrackingSupport<Devices::AYM::CHANNELS, Commands, Sample, Ornament> Track;
 

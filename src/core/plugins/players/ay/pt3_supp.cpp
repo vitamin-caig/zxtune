@@ -29,7 +29,8 @@ Author:
 #include <core/error_codes.h>
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
-#include <io/container.h>
+#include <formats/chiptune_decoders.h>
+#include <formats/chiptune/protracker3.h>
 //text includes
 #include <core/text/core.h>
 #include <core/text/plugins.h>
@@ -39,528 +40,279 @@ Author:
 
 namespace
 {
+  const std::string THIS_MODULE("Core::PT3Supp");
+}
+
+namespace ProTracker3
+{
+  typedef ZXTune::Module::Vortex::Track Track;
+
+  std::auto_ptr<Formats::Chiptune::ProTracker3::Builder> CreateDataBuilder(Track::ModuleData::RWPtr data, ZXTune::Module::ModuleProperties::RWPtr props, uint_t& patOffset);
+}
+
+namespace ProTracker3
+{
   using namespace ZXTune;
   using namespace ZXTune::Module;
 
-  const std::size_t MAX_MODULE_SIZE = 0xc000;
-  const uint_t MAX_PATTERNS_COUNT = 85;
-  const uint_t MAX_PATTERN_SIZE = 256;//really no limit for PT3.58+
-  const uint_t MAX_SAMPLES_COUNT = 32;
-  const uint_t MAX_SAMPLE_SIZE = 64;
-  const uint_t MAX_ORNAMENTS_COUNT = 16;
-  const uint_t MAX_ORNAMENT_SIZE = 64;
-
-  //////////////////////////////////////////////////////////////////////////
-  //possible values for Mode field
-  const uint_t AY_TRACK = 0x20;
-  //all other are TS patterns count
-
-#ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
-#endif
-  PACK_PRE struct PT3Header
+  void ConvertSample(const Formats::Chiptune::ProTracker3::Sample& src, Track::Sample& dst)
   {
-    uint8_t Id[13];        //'ProTracker 3.'
-    uint8_t Subversion;
-    uint8_t Optional1[16]; //' compilation of '
-    char TrackName[32];
-    uint8_t Optional2[4]; //' by '
-    char TrackAuthor[32];
-    uint8_t Mode;
-    uint8_t FreqTableNum;
-    uint8_t Tempo;
-    uint8_t Length;
-    uint8_t Loop;
-    uint16_t PatternsOffset;
-    boost::array<uint16_t, MAX_SAMPLES_COUNT> SamplesOffsets;
-    boost::array<uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
-    uint8_t Positions[1]; //finished by marker
-  } PACK_POST;
-
-  PACK_PRE struct PT3Pattern
-  {
-    boost::array<uint16_t, 3> Offsets;
-
-    bool Check() const
-    {
-      return Offsets[0] && Offsets[1] && Offsets[2];
-    }
-  } PACK_POST;
-
-  PACK_PRE struct PT3Sample
-  {
-    uint8_t Loop;
-    uint8_t Size;
-
-    uint_t GetSize() const
-    {
-      return sizeof(*this) + (Size - 1) * sizeof(Data[0]);
-    }
-
-    static uint_t GetMinimalSize()
-    {
-      return sizeof(PT3Sample) - sizeof(PT3Sample::Line);
-    }
-
-    PACK_PRE struct Line
-    {
-      //SUoooooE
-      //NkKTLLLL
-      //OOOOOOOO
-      //OOOOOOOO
-      // S - vol slide
-      // U - vol slide up
-      // o - noise or env offset
-      // E - env mask
-      // L - level
-      // T - tone mask
-      // K - keep noise or env offset
-      // k - keep tone offset
-      // N - noise mask
-      // O - tone offset
-      uint8_t VolSlideEnv;
-      uint8_t LevelKeepers;
-      int16_t ToneOffset;
-
-      bool GetEnvelopeMask() const
-      {
-        return 0 != (VolSlideEnv & 1);
-      }
-
-      int_t GetNoiseOrEnvelopeOffset() const
-      {
-        const uint8_t noeoff = (VolSlideEnv & 62) >> 1;
-        return static_cast<int8_t>(noeoff & 16 ? noeoff | 0xf0 : noeoff);
-      }
-
-      int_t GetVolSlide() const
-      {
-        return (VolSlideEnv & 128) ? ((VolSlideEnv & 64) ? +1 : -1) : 0;
-      }
-
-      uint_t GetLevel() const
-      {
-        return LevelKeepers & 15;
-      }
-
-      bool GetToneMask() const
-      {
-        return 0 != (LevelKeepers & 16);
-      }
-
-      bool GetKeepNoiseOrEnvelopeOffset() const
-      {
-        return 0 != (LevelKeepers & 32);
-      }
-
-      bool GetKeepToneOffset() const
-      {
-        return 0 != (LevelKeepers & 64);
-      }
-
-      bool GetNoiseMask() const
-      {
-        return 0 != (LevelKeepers & 128);
-      }
-
-      int_t GetToneOffset() const
-      {
-        return fromLE(ToneOffset);
-      }
-    } PACK_POST;
-    Line Data[1];
-  } PACK_POST;
-
-  PACK_PRE struct PT3Ornament
-  {
-    uint8_t Loop;
-    uint8_t Size;
-    int8_t Data[1];
-
-    uint_t GetSize() const
-    {
-      return sizeof(*this) + (Size - 1) * sizeof(Data[0]);
-    }
-
-    static uint_t GetMinimalSize()
-    {
-      return sizeof(PT3Ornament) - sizeof(int8_t);
-    }
-  } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
-#endif
-
-  BOOST_STATIC_ASSERT(sizeof(PT3Header) == 202);
-  BOOST_STATIC_ASSERT(sizeof(PT3Pattern) == 6);
-  BOOST_STATIC_ASSERT(sizeof(PT3Sample) == 6);
-  BOOST_STATIC_ASSERT(sizeof(PT3Ornament) == 3);
-
-  inline Vortex::Sample::Line ParseSampleLine(const PT3Sample::Line& line)
-  {
-    Vortex::Sample::Line res;
-    res.Level = line.GetLevel();
-    res.VolumeSlideAddon = line.GetVolSlide();
-    res.ToneMask = line.GetToneMask();
-    res.ToneOffset = line.GetToneOffset();
-    res.KeepToneOffset = line.GetKeepToneOffset();
-    res.NoiseMask = line.GetNoiseMask();
-    res.EnvMask = line.GetEnvelopeMask();
-    res.NoiseOrEnvelopeOffset = line.GetNoiseOrEnvelopeOffset();
-    res.KeepNoiseOrEnvelopeOffset = line.GetKeepNoiseOrEnvelopeOffset();
-    return res;
+    dst = Track::Sample(src.Loop, src.Lines.begin(), src.Lines.end());
   }
 
-  inline Vortex::Sample ParseSample(const IO::FastDump& data, uint16_t offset, std::size_t& rawSize)
+  void ConvertOrnament(const Formats::Chiptune::ProTracker3::Ornament& src, Track::Ornament& dst)
   {
-    const uint_t off(fromLE(offset));
-    const PT3Sample* const sample(safe_ptr_cast<const PT3Sample*>(&data[off]));
-    if (!off || !sample->Size)
-    {
-      static const Vortex::Sample::Line STUB_LINE = Vortex::Sample::Line();
-      return Vortex::Sample(0, &STUB_LINE, &STUB_LINE + 1);//safe
-    }
-    std::vector<Vortex::Sample::Line> tmpData(sample->Size);
-    std::transform(sample->Data, sample->Data + sample->Size, tmpData.begin(), ParseSampleLine);
-    Vortex::Sample tmp(sample->Loop, tmpData.begin(), tmpData.end());
-    rawSize = std::max<std::size_t>(rawSize, off + sample->GetSize());
-    return tmp;
+    dst = Track::Ornament(src.Loop, src.Lines.begin(), src.Lines.end());
   }
 
-  inline SimpleOrnament ParseOrnament(const IO::FastDump& data, uint16_t offset, std::size_t& rawSize)
-  {
-    const uint_t off(fromLE(offset));
-    const PT3Ornament* const ornament(safe_ptr_cast<const PT3Ornament*>(&data[off]));
-    if (!off || !ornament->Size)
-    {
-      static const int_t STUB_LINE = 0;
-      return SimpleOrnament(0, &STUB_LINE, &STUB_LINE + 1);//safe version
-    }
-    rawSize = std::max<std::size_t>(rawSize, off + ornament->GetSize());
-    return SimpleOrnament(ornament->Loop, ornament->Data, ornament->Data + ornament->Size);
-  }
-
-  class VortexModuleData
+  class DataBuilder : public Formats::Chiptune::ProTracker3::Builder
   {
   public:
-    explicit VortexModuleData(Vortex::Track::ModuleData& data)
+    DataBuilder(Track::ModuleData::RWPtr data, ZXTune::Module::ModuleProperties::RWPtr props, uint_t& patOffset)
       : Data(data)
+      , Properties(props)
+      , PatOffset(patOffset)
+      , Context(*Data)
     {
     }
 
-    void ParseInformation(const IO::FastDump& data, ModuleProperties& properties)
+    virtual void SetProgram(const String& program)
     {
-      const PT3Header* const header(safe_ptr_cast<const PT3Header*>(&data[0]));
-
-      Data.LoopPosition = header->Loop;
-      Data.InitialTempo = header->Tempo;
-
-      properties.SetTitle(OptimizeString(FromCharArray(header->TrackName)));
-      properties.SetAuthor(OptimizeString(FromCharArray(header->TrackAuthor)));
-      properties.SetProgram(OptimizeString(String(header->Id, header->Optional1)));
-      const uint_t version = std::isdigit(header->Subversion) ? header->Subversion - '0' : 6;
-      properties.SetVersion(3, version);
-      const String freqTable = Vortex::GetFreqTable(static_cast<Vortex::NoteTable>(header->FreqTableNum), version);
-      properties.SetFreqtable(freqTable);
+      Properties->SetProgram(OptimizeString(program));
     }
 
-    std::size_t ParseSamples(const IO::FastDump& data)
+    virtual void SetTitle(const String& title)
     {
-      const PT3Header* const header(safe_ptr_cast<const PT3Header*>(&data[0]));
-
-      std::size_t res = sizeof(*header);
-      Data.Samples.reserve(header->SamplesOffsets.size());
-      std::transform(header->SamplesOffsets.begin(), header->SamplesOffsets.end(),
-        std::back_inserter(Data.Samples), boost::bind(&ParseSample, boost::cref(data), _1, boost::ref(res)));
-      return res;
+      Properties->SetTitle(OptimizeString(title));
     }
 
-    std::size_t ParseOrnaments(const IO::FastDump& data)
+    virtual void SetAuthor(const String& author)
     {
-      const PT3Header* const header(safe_ptr_cast<const PT3Header*>(&data[0]));
-
-      std::size_t res = sizeof(*header);
-      Data.Ornaments.reserve(header->OrnamentsOffsets.size());
-      std::transform(header->OrnamentsOffsets.begin(), header->OrnamentsOffsets.end(),
-        std::back_inserter(Data.Ornaments), boost::bind(&ParseOrnament, boost::cref(data), _1, boost::ref(res)));
-      return res;
+      Properties->SetAuthor(OptimizeString(author));
     }
 
-    std::size_t ParsePatterns(const IO::FastDump& data)
+    virtual void SetVersion(uint_t version)
     {
-      const PT3Header* const header(safe_ptr_cast<const PT3Header*>(&data[0]));
+      Properties->SetVersion(3, version);
+    }
 
-      std::size_t res = sizeof(*header);
+    virtual void SetNoteTable(Formats::Chiptune::ProTracker3::NoteTable table)
+    {
+      const String freqTable = Vortex::GetFreqTable(static_cast<Vortex::NoteTable>(table), Vortex::ExtractVersion(*Properties));
+      Properties->SetFreqtable(freqTable);
+    }
 
-      Data.Patterns.resize(MAX_PATTERNS_COUNT);
-      uint_t index(0);
-      Data.Patterns.resize(1 + *std::max_element(header->Positions, header->Positions + header->Length) / 3);
-      const PT3Pattern* patterns(safe_ptr_cast<const PT3Pattern*>(&data[fromLE(header->PatternsOffset)]));
-      for (const PT3Pattern* pattern = patterns; pattern->Check() && index < Data.Patterns.size(); ++pattern, ++index)
+    virtual void SetMode(uint_t mode)
+    {
+      PatOffset = mode;
+    }
+
+    virtual void SetInitialTempo(uint_t tempo)
+    {
+      Data->InitialTempo = tempo;
+    }
+
+    virtual void SetSample(uint_t index, const Formats::Chiptune::ProTracker3::Sample& sample)
+    {
+      //TODO: use common types
+      Data->Samples.resize(index + 1);
+      ConvertSample(sample, Data->Samples[index]);
+    }
+
+    virtual void SetOrnament(uint_t index, const Formats::Chiptune::ProTracker3::Ornament& ornament)
+    {
+      Data->Ornaments.resize(index + 1);
+      ConvertOrnament(ornament, Data->Ornaments[index]);
+    }
+
+    virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
+    {
+      Data->Positions.assign(positions.begin(), positions.end());
+      Data->LoopPosition = loop;
+    }
+
+    virtual void StartPattern(uint_t index)
+    {
+      Context.SetPattern(index);
+    }
+
+    virtual void FinishPattern(uint_t size)
+    {
+      Context.FinishPattern(size);
+    }
+
+    virtual void StartLine(uint_t index)
+    {
+      Context.SetLine(index);
+    }
+
+    virtual void SetTempo(uint_t tempo)
+    {
+      Context.CurLine->SetTempo(tempo);
+    }
+
+    virtual void StartChannel(uint_t index)
+    {
+      Context.SetChannel(index);
+    }
+
+    virtual void SetRest()
+    {
+      Context.CurChannel->SetEnabled(false);
+    }
+
+    virtual void SetNote(uint_t note)
+    {
+      Track::Line::Chan* const channel = Context.CurChannel;
+      channel->SetEnabled(true);
+      const Track::CommandsArray::iterator cmd = std::find(channel->Commands.begin(), channel->Commands.end(), Vortex::GLISS_NOTE);
+      if (cmd != channel->Commands.end())
       {
-        Vortex::Track::Pattern& pat(Data.Patterns[index]);
+        cmd->Param3 = int_t(note);
+      }
+      else
+      {
+        channel->SetNote(note);
+      }
+    }
 
-        AYM::PatternCursors cursors;
-        std::transform(pattern->Offsets.begin(), pattern->Offsets.end(), cursors.begin(), &fromLE<uint16_t>);
-        uint_t& channelACursor = cursors.front().Offset;
-        do
-        {
-          Vortex::Track::Line& line = pat.AddLine();
-          ParsePattern(data, cursors, line);
-          //skip lines
-          if (const uint_t linesToSkip = cursors.GetMinCounter())
-          {
-            cursors.SkipLines(linesToSkip);
-            pat.AddLines(linesToSkip);
-          }
-        }
-        while (channelACursor < data.Size() &&
-          (0 != data[channelACursor] || 0 != cursors.front().Counter));
-        res = std::max<std::size_t>(res, 1 + cursors.GetMaxOffset());
-      }
-      //fill order
-      for (const uint8_t* curPos = header->Positions; curPos != header->Positions + header->Length; ++curPos)
-      {
-        if (0 == *curPos % 3 && !Data.Patterns[*curPos / 3].IsEmpty())
-        {
-          Data.Positions.push_back(*curPos / 3);
-        }
-      }
-      if (Data.Positions.empty())
-      {
-        throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
-      }
-      return res;
+    virtual void SetSample(uint_t sample)
+    {
+      Context.CurChannel->SetSample(sample);
+    }
+
+    virtual void SetOrnament(uint_t ornament)
+    {
+      Context.CurChannel->SetOrnament(ornament);
+    }
+
+    virtual void SetVolume(uint_t vol)
+    {
+      Context.CurChannel->SetVolume(vol);
+    }
+
+    virtual void SetGlissade(uint_t period, int_t val)
+    {
+      Context.CurChannel->Commands.push_back(Track::Command(Vortex::GLISS, period, val));
+    }
+
+    virtual void SetNoteGliss(uint_t period, int_t val, uint_t /*limit*/)
+    {
+      //ignore limit
+      Context.CurChannel->Commands.push_back(Track::Command(Vortex::GLISS_NOTE, period, val));
+    }
+
+    virtual void SetSampleOffset(uint_t offset)
+    {
+      Context.CurChannel->Commands.push_back(Track::Command(Vortex::SAMPLEOFFSET, offset));
+    }
+
+    virtual void SetOrnamentOffset(uint_t offset)
+    {
+      Context.CurChannel->Commands.push_back(Track::Command(Vortex::ORNAMENTOFFSET, offset));
+    }
+
+    virtual void SetVibrate(uint_t ontime, uint_t offtime)
+    {
+      Context.CurChannel->Commands.push_back(Track::Command(Vortex::VIBRATE, ontime, offtime));
+    }
+
+    virtual void SetEnvelopeSlide(uint_t period, int_t val)
+    {
+      Context.CurChannel->Commands.push_back(Track::Command(Vortex::SAMPLEOFFSET, period, val));
+    }
+
+    virtual void SetEnvelope(uint_t type, uint_t value)
+    {
+      Context.CurChannel->Commands.push_back(Track::Command(Vortex::ENVELOPE, type, value));
+    }
+
+    virtual void SetNoEnvelope()
+    {
+      Context.CurChannel->Commands.push_back(Track::Command(Vortex::NOENVELOPE));
+    }
+
+    virtual void SetNoiseBase(uint_t val)
+    {
+      Context.CurChannel->Commands.push_back(Track::Command(Vortex::NOISEBASE, val));
     }
   private:
-    void ParsePattern(const IO::FastDump& data
-      , AYM::PatternCursors& cursors
-      , Vortex::Track::Line& line
-      )
+    struct BuildContext
     {
-      int_t noiseBase = -1;
-      assert(line.Channels.size() == cursors.size());
-      Vortex::Track::Line::ChannelsArray::iterator channel(line.Channels.begin());
-      for (AYM::PatternCursors::iterator cur = cursors.begin(); cur != cursors.end(); ++cur, ++channel)
+      Track::ModuleData& Data;
+      Track::Pattern* CurPattern;
+      Track::Line* CurLine;
+      Track::Line::Chan* CurChannel;
+
+      explicit BuildContext(Track::ModuleData& data)
+        : Data(data)
+        , CurPattern()
+        , CurLine()
+        , CurChannel()
       {
-        if (cur->Counter--)
-        {
-          continue;//has to skip
-        }
-
-        for (const std::size_t dataSize = data.Size(); cur->Offset < dataSize;)
-        {
-          const uint_t cmd(data[cur->Offset++]);
-          const std::size_t restbytes = dataSize - cur->Offset;
-          if (cmd == 1)//gliss
-          {
-            channel->Commands.push_back(Vortex::Track::Command(Vortex::GLISS));
-          }
-          else if (cmd == 2)//portamento
-          {
-            channel->Commands.push_back(Vortex::Track::Command(Vortex::GLISS_NOTE));
-          }
-          else if (cmd == 3)//sample offset
-          {
-            channel->Commands.push_back(Vortex::Track::Command(Vortex::SAMPLEOFFSET, -1));
-          }
-          else if (cmd == 4)//ornament offset
-          {
-            channel->Commands.push_back(Vortex::Track::Command(Vortex::ORNAMENTOFFSET));
-          }
-          else if (cmd == 5)//vibrate
-          {
-            channel->Commands.push_back(Vortex::Track::Command(Vortex::VIBRATE));
-          }
-          else if (cmd == 8)//slide envelope
-          {
-            channel->Commands.push_back(Vortex::Track::Command(Vortex::SLIDEENV));
-          }
-          else if (cmd == 9)//tempo
-          {
-            channel->Commands.push_back(Vortex::Track::Command(Vortex::TEMPO));
-          }
-          else if ((cmd >= 0x10 && cmd <= 0x1f) ||
-                   (cmd >= 0xb2 && cmd <= 0xbf) ||
-                    cmd >= 0xf0)
-          {
-            const bool hasEnv(cmd >= 0x11 && cmd <= 0xbf);
-            const bool hasOrn(cmd >= 0xf0);
-            const bool hasSmp(cmd < 0xb2 || cmd > 0xbf);
-
-            if (restbytes < std::size_t(2 * hasEnv + hasSmp))
-            {
-              throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
-            }
-
-            if (hasEnv) //has envelope command
-            {
-              const uint_t envPeriod(data[cur->Offset + 1] + (uint_t(data[cur->Offset]) << 8));
-              cur->Offset += 2;
-              channel->Commands.push_back(Vortex::Track::Command(Vortex::ENVELOPE, cmd - (cmd >= 0xb2 ? 0xb1 : 0x10), envPeriod));
-            }
-            else
-            {
-              channel->Commands.push_back(Vortex::Track::Command(Vortex::NOENVELOPE));
-            }
-
-            if (hasOrn) //has ornament command
-            {
-              const uint_t num(cmd - 0xf0);
-              channel->SetOrnament(num);
-            }
-
-            if (hasSmp)
-            {
-              const uint_t doubleSampNum(data[cur->Offset++]);
-              const bool sampValid(doubleSampNum < MAX_SAMPLES_COUNT * 2 && 0 == (doubleSampNum & 1));
-              channel->SetSample(sampValid ? (doubleSampNum / 2) : 0);
-            }
-          }
-          else if (cmd >= 0x20 && cmd <= 0x3f)
-          {
-            noiseBase = cmd - 0x20;
-          }
-          else if (cmd >= 0x40 && cmd <= 0x4f)
-          {
-            const uint_t num(cmd - 0x40);
-            channel->SetOrnament(num);
-          }
-          else if (cmd >= 0x50 && cmd <= 0xaf)
-          {
-            const uint_t note(cmd - 0x50);
-            Vortex::Track::CommandsArray::iterator it(std::find(channel->Commands.begin(), channel->Commands.end(), Vortex::GLISS_NOTE));
-            if (channel->Commands.end() != it)
-            {
-              it->Param3 = note;
-            }
-            else
-            {
-              channel->SetNote(note);
-            }
-            channel->SetEnabled(true);
-            break;
-          }
-          else if (cmd == 0xb0)
-          {
-            channel->Commands.push_back(Vortex::Track::Command(Vortex::NOENVELOPE));
-          }
-          else if (cmd == 0xb1)
-          {
-            if (restbytes < 1)
-            {
-              throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
-            }
-            cur->Period = data[cur->Offset++] - 1;
-          }
-          else if (cmd == 0xc0)
-          {
-            channel->SetEnabled(false);
-            break;
-          }
-          else if (cmd >= 0xc1 && cmd <= 0xcf)
-          {
-            channel->SetVolume(cmd - 0xc0);
-          }
-          else if (cmd == 0xd0)
-          {
-            break;
-          }
-          else if (cmd >= 0xd1 && cmd <= 0xef)
-          {
-            //TODO: check for empty sample
-            channel->SetSample(cmd - 0xd0);
-          }
-        }
-        //parse parameters
-        const std::size_t restbytes = data.Size() - cur->Offset;
-        for (Vortex::Track::CommandsArray::reverse_iterator it = channel->Commands.rbegin(), lim = channel->Commands.rend();
-          it != lim; ++it)
-        {
-          switch (it->Type)
-          {
-          case Vortex::TEMPO:
-            if (restbytes < 1)
-            {
-              throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
-            }
-            line.SetTempo(data[cur->Offset++]);
-            break;
-          case Vortex::SLIDEENV:
-          case Vortex::GLISS:
-            if (restbytes < 3)
-            {
-              throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
-            }
-            it->Param1 = data[cur->Offset++];
-            it->Param2 = static_cast<int16_t>(256 * data[cur->Offset + 1] + data[cur->Offset]);
-            cur->Offset += 2;
-            break;
-          case Vortex::VIBRATE:
-            if (restbytes < 2)
-            {
-              throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
-            }
-            it->Param1 = data[cur->Offset++];
-            it->Param2 = data[cur->Offset++];
-            break;
-          case Vortex::ORNAMENTOFFSET:
-          {
-            if (restbytes < 1)
-            {
-              throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
-            }
-            const uint_t offset(data[cur->Offset++]);
-            const bool isValid(offset < (channel->OrnamentNum ?
-              Data.Ornaments[*channel->OrnamentNum].GetSize() : MAX_ORNAMENT_SIZE));
-            it->Param1 = isValid ? offset : 0;
-            break;
-          }
-          case Vortex::SAMPLEOFFSET:
-            if (-1 == it->Param1)
-            {
-              if (restbytes < 1)
-              {
-                throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
-              }
-              const uint_t offset(data[cur->Offset++]);
-              const bool isValid(offset < (channel->SampleNum ?
-                Data.Samples[*channel->SampleNum].GetSize() : MAX_SAMPLE_SIZE));
-              it->Param1 = isValid ? offset : 0;
-            }
-            break;
-          case Vortex::GLISS_NOTE:
-            if (restbytes < 5)
-            {
-              throw Error(THIS_LINE, ERROR_INVALID_FORMAT);//no details
-            }
-            it->Param1 = data[cur->Offset++];
-            //skip limiter
-            cur->Offset += 2;
-            it->Param2 = static_cast<int16_t>(256 * data[cur->Offset + 1] + data[cur->Offset]);
-            cur->Offset += 2;
-            break;
-          default:
-            break;
-          }
-        }
-        cur->Counter = cur->Period;
       }
-      if (noiseBase != -1)
+
+      void SetPattern(uint_t idx)
       {
-        //place to channel B
-        line.Channels[1].Commands.push_back(Vortex::Track::Command(Vortex::NOISEBASE, noiseBase));
+        Data.Patterns.resize(std::max<std::size_t>(idx + 1, Data.Patterns.size()));
+        CurPattern = &Data.Patterns[idx];
+        CurLine = 0;
+        CurChannel = 0;
       }
-    }
+
+      void SetLine(uint_t idx)
+      {
+        if (const std::size_t skipped = idx - CurPattern->GetSize())
+        {
+          CurPattern->AddLines(skipped);
+        }
+        CurLine = &CurPattern->AddLine();
+        CurChannel = 0;
+      }
+
+      void SetChannel(uint_t idx)
+      {
+        CurChannel = &CurLine->Channels[idx];
+      }
+
+      void FinishPattern(uint_t size)
+      {
+        if (const std::size_t skipped = size - CurPattern->GetSize())
+        {
+          CurPattern->AddLines(skipped);
+        }
+        CurLine = 0;
+        CurPattern = 0;
+      }
+    };
   private:
-    Vortex::Track::ModuleData& Data;
+    const Track::ModuleData::RWPtr Data;
+    const ModuleProperties::RWPtr Properties;
+    uint_t& PatOffset;
+
+    BuildContext Context;
   };
+}
+
+namespace ProTracker3
+{
+  std::auto_ptr<Formats::Chiptune::ProTracker3::Builder> CreateDataBuilder(Track::ModuleData::RWPtr data, ZXTune::Module::ModuleProperties::RWPtr props, uint_t& patOffset)
+  {
+    return std::auto_ptr<Formats::Chiptune::ProTracker3::Builder>(new DataBuilder(data, props, patOffset));
+  }
+}
+
+namespace PT3
+{
+  using namespace ZXTune;
+  using namespace ZXTune::Module;
 
   class TSModuleData : public Vortex::Track::ModuleData
   {
   public:
-    explicit TSModuleData(uint_t base)
-      : Base(base)
+    TSModuleData(uint_t base, Vortex::Track::ModuleData::Ptr delegate)
+      : Vortex::Track::ModuleData(*delegate)
+      , Base(base)
     {
     }
 
@@ -613,10 +365,10 @@ namespace
     const uint_t Base;
   };
 
-  class PT3TSHolder : public Holder
+  class TSHolder : public Holder
   {
   public:
-    PT3TSHolder(Vortex::Track::ModuleData::Ptr data, Holder::Ptr delegate, uint_t patOffset)
+    TSHolder(Vortex::Track::ModuleData::Ptr data, Holder::Ptr delegate, uint_t patOffset)
       : Data(data)
       , Delegate(delegate)
       , PatOffset(patOffset)
@@ -667,200 +419,63 @@ namespace
     const Holder::Ptr Delegate;
     const uint_t PatOffset;
   };
-
-  //////////////////////////////////////////////////
-  bool CheckPT3Module(const uint8_t* data, std::size_t size)
-  {
-    const PT3Header* const header(safe_ptr_cast<const PT3Header*>(data));
-    if (size < sizeof(*header))
-    {
-      return false;
-    }
-    if (!header->Length)
-    {
-      return false;
-    }
-    const std::size_t patOff(fromLE(header->PatternsOffset));
-    if (patOff >= size || patOff < sizeof(*header))
-    {
-      return false;
-    }
-    if (0xff != data[patOff - 1] ||
-        &header->Positions[header->Length] != data + patOff - 1 ||
-        &data[patOff - 1] != std::find_if(header->Positions, data + patOff - 1,
-          std::bind2nd(std::modulus<uint8_t>(), 3))
-       )
-    {
-      return false;
-    }
-    //check patterns
-    const uint_t patternsCount = 1 + *std::max_element(header->Positions, header->Positions + header->Length) / 3;
-    if (!patternsCount || patternsCount > MAX_PATTERNS_COUNT)
-    {
-      return false;
-    }
-    //patOff is start of patterns and other data
-    RangeChecker::Ptr checker(RangeChecker::CreateShared(size));
-    checker->AddRange(0, patOff);
-
-    //check samples
-    for (const uint16_t* sampOff = header->SamplesOffsets.begin(); sampOff != header->SamplesOffsets.end(); ++sampOff)
-    {
-      if (const uint_t offset = fromLE(*sampOff))
-      {
-        if (offset + PT3Sample::GetMinimalSize() > size)
-        {
-          return false;
-        }
-        const PT3Sample* const sample(safe_ptr_cast<const PT3Sample*>(data + offset));
-        if (!checker->AddRange(offset, sample->GetSize()))
-        {
-          return false;
-        }
-      }
-    }
-    //check ornaments
-    for (const uint16_t* ornOff = header->OrnamentsOffsets.begin(); ornOff != header->OrnamentsOffsets.end(); ++ornOff)
-    {
-      if (const uint_t offset = fromLE(*ornOff))
-      {
-        if (offset + PT3Ornament::GetMinimalSize() > size)
-        {
-          return false;
-        }
-        const PT3Ornament* const ornament(safe_ptr_cast<const PT3Ornament*>(data + offset));
-        if (!checker->AddRange(offset, ornament->GetSize()))
-        {
-          return false;
-        }
-      }
-    }
-    const PT3Pattern* patPos(safe_ptr_cast<const PT3Pattern*>(data + patOff));
-    for (uint_t patIdx = 0; patPos->Check() && patIdx < patternsCount; ++patPos, ++patIdx)
-    {
-      if (!checker->AddRange(patOff + sizeof(PT3Pattern) * patIdx, sizeof(PT3Pattern)))
-      {
-        return false;
-      }
-      //at least 1 byte for pattern
-      if (patPos->Offsets.end() != std::find_if(patPos->Offsets.begin(), patPos->Offsets.end(),
-        !boost::bind(&RangeChecker::AddRange, checker.get(), boost::bind(&fromLE<uint16_t>, _1), 1)))
-      {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  uint_t GetTSModulePatternOffset(const IO::FastDump& data)
-  {
-    const PT3Header* const header(safe_ptr_cast<const PT3Header*>(&data[0]));
-    const uint_t patOffset = header->Mode;
-    const uint_t patternsCount = 1 + *std::max_element(header->Positions, header->Positions + header->Length) / 3;
-    return patOffset >= patternsCount && patOffset < patternsCount * 2
-      ? patOffset
-      : AY_TRACK;
-  }
 }
 
-namespace
+namespace PT3
 {
   using namespace ZXTune;
 
   //plugin attributes
   const Char ID[] = {'P', 'T', '3', 0};
-  const Char* const INFO = Text::PT3_PLUGIN_INFO;
   const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors() | GetSupportedVortexFormatConvertors();
 
-  const std::string PT3_FORMAT(
-    "+13+"       // uint8_t Id[13];        //'ProTracker 3.'
-    "?"          // uint8_t Subversion;
-    "+16+"       // uint8_t Optional1[16]; //' compilation of '
-    "+32+"       // char TrackName[32];
-    "+4+"        // uint8_t Optional2[4]; //' by '
-    "+32+"       // char TrackAuthor[32];
-    "?"          // uint8_t Mode;
-    "00-06"      // uint8_t FreqTableNum;
-    "01-3f"      // uint8_t Tempo;
-    "01-ff"      // uint8_t Length;
-    "00-ff"      // uint8_t Loop;
-    "?00-3a"     // uint16_t PatternsOffset;
-  );
-
-  //////////////////////////////////////////////////////////////////////////
-  class PT3ModulesFactory : public ModulesFactory
+  class Factory : public ModulesFactory
   {
   public:
-    PT3ModulesFactory()
-      : Format(Binary::Format::Create(PT3_FORMAT))
+    explicit Factory(Formats::Chiptune::Decoder::Ptr decoder)
+      : Decoder(decoder)
     {
     }
 
     virtual bool Check(const Binary::Container& inputData) const
     {
-      const uint8_t* const data = static_cast<const uint8_t*>(inputData.Data());
-      const std::size_t size = inputData.Size();
-      return Format->Match(data, size) && CheckPT3Module(data, size);
+      return Decoder->Check(inputData);
     }
 
     virtual Binary::Format::Ptr GetFormat() const
     {
-      return Format;
+      return Decoder->GetFormat();
     }
 
     virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr rawData, std::size_t& usedSize) const
     {
-      try
+      const ::ProTracker3::Track::ModuleData::RWPtr modData = ::ProTracker3::Track::ModuleData::Create();
+      uint_t patOffset = 0;
+      const std::auto_ptr<Formats::Chiptune::ProTracker3::Builder> dataBuilder = ::ProTracker3::CreateDataBuilder(modData, properties, patOffset);
+      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ProTracker3::ParseCompiled(*rawData, *dataBuilder))
       {
-        assert(Check(*rawData));
-
-        //assume all data is correct
-        const IO::FastDump& data = IO::FastDump(*rawData, 0, MAX_MODULE_SIZE);
-        const uint_t tsPatternOffset = GetTSModulePatternOffset(data);
-        const bool isTSModule = AY_TRACK != tsPatternOffset;
-
-        const Vortex::Track::ModuleData::RWPtr moduleData = isTSModule
-          ? boost::make_shared<TSModuleData>(tsPatternOffset)
-          : Vortex::Track::ModuleData::Create();
-
-        VortexModuleData parsedData(*moduleData);
-
-        parsedData.ParseInformation(data, *properties);
-        const std::size_t endOfSamples = parsedData.ParseSamples(data);
-        const std::size_t endOfOrnaments = parsedData.ParseOrnaments(data);
-        const std::size_t endOfPatterns = parsedData.ParsePatterns(data);
-
-        const std::size_t rawSize = std::max(std::max(endOfSamples, endOfOrnaments), endOfPatterns);
-        usedSize = std::min(rawSize, data.Size());
-
-        const PT3Header* const header(safe_ptr_cast<const PT3Header*>(&data[0]));
+        usedSize = container->Size();
+        properties->SetSource(container);
+        if (patOffset != Formats::Chiptune::ProTracker3::SINGLE_AY_MODE)
         {
-          const std::size_t fixedOffset(sizeof(PT3Header) + header->Length - 1);
-          const ModuleRegion fixedRegion(fixedOffset, usedSize -  fixedOffset);
-          properties->SetSource(usedSize, fixedRegion);
-        }
-
-        const AYM::Chiptune::Ptr chiptune = Vortex::CreateChiptune(moduleData, properties, 
-          isTSModule ? 2 * Devices::AYM::CHANNELS : Devices::AYM::CHANNELS);
-        const Holder::Ptr nativeHolder = AYM::CreateHolder(chiptune);
-
-        if (isTSModule)
-        {
-          return boost::make_shared<PT3TSHolder>(moduleData, nativeHolder, tsPatternOffset);
+          //TurboSound modules
+          properties->SetComment(Text::PT3_TURBOSOUND_MODULE);
+          const Vortex::Track::ModuleData::Ptr fixedModData = boost::make_shared<TSModuleData>(patOffset, modData);
+          const AYM::Chiptune::Ptr chiptune = Vortex::CreateChiptune(fixedModData, properties,  2 * Devices::AYM::CHANNELS);
+          const Holder::Ptr nativeHolder = AYM::CreateHolder(chiptune);
+          return boost::make_shared<TSHolder>(fixedModData, nativeHolder, patOffset);
         }
         else
         {
-          return Vortex::CreateHolder(moduleData, nativeHolder);
+          const AYM::Chiptune::Ptr chiptune = Vortex::CreateChiptune(modData, properties,  Devices::AYM::CHANNELS);
+          const Holder::Ptr nativeHolder = AYM::CreateHolder(chiptune);
+          return Vortex::CreateHolder(modData, nativeHolder);
         }
-      }
-      catch (const Error&/*e*/)
-      {
-        Log::Debug("Core::PT3Supp", "Failed to create holder");
       }
       return Holder::Ptr();
     }
   private:
-    const Binary::Format::Ptr Format;
+    const Formats::Chiptune::Decoder::Ptr Decoder;
   };
 }
 
@@ -868,8 +483,9 @@ namespace ZXTune
 {
   void RegisterPT3Support(PluginsRegistrator& registrator)
   {
-    const ModulesFactory::Ptr factory = boost::make_shared<PT3ModulesFactory>();
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, INFO, CAPS, factory);
+    const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateProTracker3Decoder();
+    const ModulesFactory::Ptr factory = boost::make_shared<PT3::Factory>(decoder);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(PT3::ID, decoder->GetDescription() + Text::PLAYER_DESCRIPTION_SUFFIX, PT3::CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }
