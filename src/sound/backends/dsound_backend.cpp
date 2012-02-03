@@ -27,8 +27,6 @@ Author:
 //platform-dependent includes
 #define NOMINMAX
 #include <dsound.h>
-//std includes
-#include <cmath>
 //boost includes
 #include <boost/make_shared.hpp>
 #include <boost/thread/thread.hpp>
@@ -110,9 +108,9 @@ namespace
     return result;
   }
 
-  DirectSoundBufferPtr CreateBuffer(DirectSoundDevicePtr device, uint_t sampleRate, uint_t bufferInMs)
+  DirectSoundBufferPtr CreateSecondaryBuffer(DirectSoundDevicePtr device, uint_t sampleRate, uint_t bufferInMs)
   {
-    Log::Debug(THIS_MODULE, "CreateBuffer");
+    Log::Debug(THIS_MODULE, "CreateSecondaryBuffer");
     WAVEFORMATEX format;
     std::memset(&format, 0, sizeof(format));
     format.cbSize = sizeof(format);
@@ -126,9 +124,25 @@ namespace
     DSBUFFERDESC buffer;
     std::memset(&buffer, 0, sizeof(buffer));
     buffer.dwSize = sizeof(buffer);
-    buffer.dwFlags = DSBCAPS_PRIMARYBUFFER | DSBCAPS_CTRLPAN | DSBCAPS_CTRLVOLUME | DSBCAPS_GLOBALFOCUS;
+    buffer.dwFlags = DSBCAPS_GLOBALFOCUS;
     buffer.dwBufferBytes = format.nAvgBytesPerSec * bufferInMs / 1000;
     buffer.lpwfxFormat = &format;
+
+    LPDIRECTSOUNDBUFFER rawSecondary = 0;
+    CheckWin32Error(device->CreateSoundBuffer(&buffer, &rawSecondary, NULL), THIS_LINE);
+    assert(rawSecondary);
+    const boost::shared_ptr<IDirectSoundBuffer> secondary(rawSecondary, &ReleaseRef);
+    Log::Debug(THIS_MODULE, "Created");
+    return secondary;
+  }
+
+  DirectSoundBufferPtr CreatePrimaryBuffer(DirectSoundDevicePtr device)
+  {
+    Log::Debug(THIS_MODULE, "CreatePrimaryBuffer");
+    DSBUFFERDESC buffer;
+    std::memset(&buffer, 0, sizeof(buffer));
+    buffer.dwSize = sizeof(buffer);
+    buffer.dwFlags = DSBCAPS_CTRLPAN | DSBCAPS_CTRLVOLUME | DSBCAPS_PRIMARYBUFFER;
 
     LPDIRECTSOUNDBUFFER rawPrimary = 0;
     CheckWin32Error(device->CreateSoundBuffer(&buffer, &rawPrimary, NULL), THIS_LINE);
@@ -228,11 +242,6 @@ namespace
         Wait();
       }
     }
-
-    DirectSoundBufferPtr GetBuffer() const
-    {
-      return Buff;
-    }
   private:
     bool WaitForFree(std::size_t srcSize) const
     {
@@ -279,35 +288,39 @@ namespace
     std::size_t Cursor;
   };
 
+  //in centidecibell
+  //use simple scale method due to less error in forward and backward conversion
+  Gain AttenuationToGain(int_t cdB)
+  {
+    return 1.0 - Gain(cdB) / DSBVOLUME_MIN;
+  }
+
+  int_t GainToAttenuation(Gain level)
+  {
+    return static_cast<int_t>((1.0 - level) * DSBVOLUME_MIN);
+  }
+
   class DirectSoundVolumeControl : public VolumeControl
   {
   public:
-    explicit DirectSoundVolumeControl(const StreamBuffer::Ptr& stream)
-      : Stream(stream)
+    explicit DirectSoundVolumeControl(DirectSoundBufferPtr buffer)
+      : Buffer(buffer)
     {
     }
 
     virtual Error GetVolume(MultiGain& volume) const
     {
-      if (!Stream)
-      {
-        volume = MultiGain();
-        return Error();
-      }
       try
       {
-        Log::Debug(THIS_MODULE, "GetVolume");
-        const DirectSoundBufferPtr buf = Stream->GetBuffer();
-        LONG pan = 0, vol = 0;
-        CheckWin32Error(buf->GetPan(&pan), THIS_LINE);
-        CheckWin32Error(buf->GetVolume(&vol), THIS_LINE);
+        const VolPan vols = GetVolume();
         BOOST_STATIC_ASSERT(OUTPUT_CHANNELS == 2);
         //in hundredths of a decibel
-        const double attLeftDb = double(vol - (pan > 0 ? pan : 0)) / 100;
-        const double attRightDb = double(vol - (pan < 0 ? -pan : 0)) / 100;
-        //attenuation = 20 log10 volume, vol = 10^^(att/20)
-        volume[0] = std::pow(10.0, attLeftDb / 20);
-        volume[1] = std::pow(10.0, attRightDb / 20);
+        const int_t attLeft = vols.first - (vols.second > 0 ? vols.second : 0);
+        const int_t attRight = vols.first - (vols.second < 0 ? -vols.second : 0);
+        volume[0] = AttenuationToGain(attLeft);
+        volume[1] = AttenuationToGain(attRight);
+        Log::Debug(THIS_MODULE, "GetVolume(vol=%1% pan=%2%) = {%3%, %4%}", 
+          vols.first, vols.second, volume[0], volume[1]);
         return Error();
       }
       catch (const Error& err)
@@ -322,21 +335,15 @@ namespace
       {
         return Error(THIS_LINE, BACKEND_INVALID_PARAMETER, Text::SOUND_ERROR_BACKEND_INVALID_GAIN);
       }
-      if (!Stream)
-      {
-        return Error();
-      }
       try
       {
-        Log::Debug(THIS_MODULE, "SetVolume");
-        const DirectSoundBufferPtr buf = Stream->GetBuffer();
-        const int_t volLeft = static_cast<uint_t>(std::log10(volume[0]) * 20 * 100);
-        const int_t volRight = static_cast<uint_t>(std::log10(volume[1]) * 20 * 100);
-        const LONG vol = std::max(volLeft, volRight);
+        const int_t attLeft = GainToAttenuation(volume[0]);
+        const int_t attRight = GainToAttenuation(volume[1]);
+        const LONG vol = std::max(attLeft, attRight);
         //pan is negative for left
-        const LONG pan = volLeft < vol ? vol - volLeft : vol - volRight;
-        CheckWin32Error(buf->SetVolume(vol), THIS_LINE);
-        CheckWin32Error(buf->SetPan(pan), THIS_LINE);
+        const LONG pan = attLeft < vol ? vol - attLeft : vol - attRight;
+        Log::Debug(THIS_MODULE, "SetVolume(%1%, %2%) => vol=%3% pan=%4%", volume[0], volume[1], vol, pan);
+        SetVolume(VolPan(vol, pan));
         return Error();
       }
       catch (const Error& err)
@@ -345,7 +352,52 @@ namespace
       }
     }
   private:
-    const StreamBuffer::Ptr& Stream;
+    typedef std::pair<LONG, LONG> VolPan;
+
+    VolPan GetVolume() const
+    {
+      VolPan res;
+      CheckWin32Error(Buffer->GetVolume(&res.first), THIS_LINE);
+      CheckWin32Error(Buffer->GetPan(&res.second), THIS_LINE);
+      return res;
+    }
+
+    void SetVolume(const VolPan& vols) const
+    {
+      CheckWin32Error(Buffer->SetVolume(vols.first), THIS_LINE);
+      CheckWin32Error(Buffer->SetPan(vols.second), THIS_LINE);
+    }
+  private:
+    const DirectSoundBufferPtr Buffer;
+  };
+
+  class VolumeControlDelegate : public VolumeControl
+  {
+  public:
+    explicit VolumeControlDelegate(const VolumeControl::Ptr& delegate)
+      : Delegate(delegate)
+    {
+    }
+
+    virtual Error GetVolume(MultiGain& volume) const
+    {
+      if (VolumeControl::Ptr delegate = Delegate)
+      {
+        return delegate->GetVolume(volume);
+      }
+      return Error(THIS_LINE, BACKEND_CONTROL_ERROR, Text::SOUND_ERROR_BACKEND_INVALID_STATE);
+    }
+
+    virtual Error SetVolume(const MultiGain& volume)
+    {
+      if (VolumeControl::Ptr delegate = Delegate)
+      {
+        return delegate->SetVolume(volume);
+      }
+      return Error(THIS_LINE, BACKEND_CONTROL_ERROR, Text::SOUND_ERROR_BACKEND_INVALID_STATE);
+    }
+  private:
+    const VolumeControl::Ptr& Delegate;
   };
 
   class DirectSoundBackendParameters
@@ -356,7 +408,7 @@ namespace
     {
     }
 
-    std::size_t GetLatency() const
+    uint_t GetLatency() const
     {
       Parameters::IntType latency = Parameters::ZXTune::Sound::Backends::DirectSound::LATENCY_DEFAULT;
       if (Accessor.FindIntValue(Parameters::ZXTune::Sound::Backends::DirectSound::LATENCY, latency) &&
@@ -365,7 +417,7 @@ namespace
         throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
           Text::SOUND_ERROR_DSOUND_BACKEND_INVALID_LATENCY, static_cast<int_t>(latency), LATENCY_MIN, LATENCY_MAX);
       }
-      return static_cast<std::size_t>(latency);
+      return static_cast<uint_t>(latency);
     }
   private:
     const Parameters::Accessor& Accessor;
@@ -382,30 +434,29 @@ namespace
 
     virtual void Test()
     {
-      OpenDeviceAndBuffer();
+      OpenDevices();
     }
 
     virtual void OnStartup(const Module::Holder& /*module*/)
     {
       Log::Debug(THIS_MODULE, "Starting");
-      const std::pair<DirectSoundDevicePtr, StreamBuffer::Ptr> result = OpenDeviceAndBuffer();
-      Stream = result.second;
-      Device = result.first;
+      Objects = OpenDevices();
       Log::Debug(THIS_MODULE, "Started");
     }
 
     virtual void OnShutdown()
     {
       Log::Debug(THIS_MODULE, "Stopping");
-      Stream->Stop();
-      Stream.reset();
-      Device = DirectSoundDevicePtr();
+      Objects.Stream->Stop();
+      Objects.Volume.reset();
+      Objects.Stream.reset();
+      Objects.Device.reset();
       Log::Debug(THIS_MODULE, "Stopped");
     }
 
     virtual void OnPause()
     {
-      Stream->Pause();
+      Objects.Stream->Pause();
     }
 
     virtual void OnResume()
@@ -418,29 +469,38 @@ namespace
 
     virtual void OnBufferReady(std::vector<MultiSample>& buffer)
     {
-      Stream->Add(buffer);
+      Objects.Stream->Add(buffer);
     }
 
     VolumeControl::Ptr GetVolumeControl() const
     {
-      return boost::make_shared<DirectSoundVolumeControl>(Stream);
+      return boost::make_shared<VolumeControlDelegate>(boost::cref(Objects.Volume));
     }
   private:
-    std::pair<DirectSoundDevicePtr, StreamBuffer::Ptr> OpenDeviceAndBuffer()
+    struct DSObjects
+    {
+      DirectSoundDevicePtr Device;
+      StreamBuffer::Ptr Stream;
+      VolumeControl::Ptr Volume;
+    };
+
+    DSObjects OpenDevices()
     {
       const DirectSoundBackendParameters params(*BackendParams);
-      const DirectSoundDevicePtr device = OpenDevice();
+      DSObjects res;
+      res.Device = OpenDevice();
       const uint_t latency = params.GetLatency();
-      const DirectSoundBufferPtr buffer = CreateBuffer(device, RenderingParameters->SoundFreq(), latency);
+      const DirectSoundBufferPtr buffer = CreateSecondaryBuffer(res.Device, RenderingParameters->SoundFreq(), latency);
       const uint_t frameDurationMs = RenderingParameters->FrameDurationMicrosec() / 1000;
-      const StreamBuffer::Ptr stream = boost::make_shared<StreamBuffer>(buffer, boost::posix_time::millisec(frameDurationMs));
-      return std::make_pair(device, stream);
+      res.Stream = boost::make_shared<StreamBuffer>(buffer, boost::posix_time::millisec(frameDurationMs));
+      const DirectSoundBufferPtr primary = CreatePrimaryBuffer(res.Device);
+      res.Volume = boost::make_shared<DirectSoundVolumeControl>(primary);
+      return res;
     }
   private:
     const Parameters::Accessor::Ptr BackendParams;
     const RenderParameters::Ptr RenderingParameters;
-    DirectSoundDevicePtr Device;
-    StreamBuffer::Ptr Stream;
+    DSObjects Objects; 
   };
 
   class DirectSoundBackendCreator : public BackendCreator
