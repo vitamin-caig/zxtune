@@ -462,6 +462,7 @@ namespace Chiptune
         Require(!pats.empty());
         Log::Debug(THIS_MODULE, "Patterns: %1% to parse", pats.size());
         const std::size_t minOffset = fromLE(Source.PatternsOffset) + *pats.rbegin() * sizeof(RawPattern);
+        bool hasValidPatterns = false;
         for (Indices::const_iterator it = pats.begin(), lim = pats.end(); it != lim; ++it)
         {
           const uint_t patIndex = *it;
@@ -469,14 +470,19 @@ namespace Chiptune
           Log::Debug(THIS_MODULE, "Parse pattern %1%", patIndex);
           const RawPattern& src = GetPattern(patIndex);
           builder.StartPattern(patIndex);
-          ParsePattern(src, minOffset, builder);
+          if (ParsePattern(src, minOffset, builder))
+          {
+            hasValidPatterns = true;
+          }
         }
+        Require(hasValidPatterns);
       }
 
       void ParseSamples(const Indices& samples, Builder& builder) const
       {
         Require(!samples.empty());
         Log::Debug(THIS_MODULE, "Samples: %1% to parse", samples.size());
+        bool hasValidSamples = false;
         for (Indices::const_iterator it = samples.begin(), lim = samples.end(); it != lim; ++it)
         {
           const uint_t samIdx = *it;
@@ -486,6 +492,7 @@ namespace Chiptune
           {
             Log::Debug(THIS_MODULE, "Parse sample %1%", samIdx);
             ParseSample(*src, result);
+            hasValidSamples = true;
           }
           else
           {
@@ -495,6 +502,7 @@ namespace Chiptune
           }
           builder.SetSample(samIdx, result);
         }
+        Require(hasValidSamples);
       }
 
       void ParseOrnaments(const Indices& ornaments, Builder& builder) const
@@ -608,13 +616,14 @@ namespace Chiptune
         }
       };
 
-      void ParsePattern(const RawPattern& pat, std::size_t minOffset, Builder& builder) const
+      bool ParsePattern(const RawPattern& pat, std::size_t minOffset, Builder& builder) const
       {
         const DataCursors rangesStarts(pat);
         Require(rangesStarts.end() == std::find_if(rangesStarts.begin(), rangesStarts.end(), !boost::bind(&in_range<std::size_t>, _1, minOffset, Delegate.GetSize() - 1)));
 
         ParserState state(rangesStarts);
-        for (uint_t lineIdx = 0; lineIdx < MAX_PATTERN_SIZE; ++lineIdx)
+        uint_t lineIdx = 0;
+        for (; lineIdx < MAX_PATTERN_SIZE; ++lineIdx)
         {
           //skip lines if required
           if (const uint_t linesToSkip = state.GetMinCounter())
@@ -637,6 +646,7 @@ namespace Chiptune
           const std::size_t stop = std::min(Delegate.GetSize(), state.Offsets[chanNum] + 1);
           Ranges.AddFixed(start, stop - start);
         }
+        return lineIdx >= MIN_PATTERN_SIZE;
       }
 
       bool HasLine(ParserState& src) const

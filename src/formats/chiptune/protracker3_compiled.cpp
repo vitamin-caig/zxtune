@@ -27,6 +27,9 @@ Author:
 #include <boost/array.hpp>
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/predicate.hpp>
+#include <boost/algorithm/string/trim.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -52,14 +55,31 @@ namespace Chiptune
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif
+    PACK_PRE struct RawId
+    {
+      char TrackName[32];
+      char Optional2[4]; //' by '
+      char TrackAuthor[32];
+
+      bool HasAuthor() const
+      {
+        const Char BY_DELIMITER[] =
+        {
+          'B', 'Y', 0
+        };
+
+        const String id(FromCharArray(Optional2));
+        const String trimId(boost::algorithm::trim_copy_if(id, boost::algorithm::is_from_range(' ', ' ')));
+        return boost::algorithm::iequals(trimId, BY_DELIMITER);
+      }
+    } PACK_POST;
+
     PACK_PRE struct RawHeader
     {
       uint8_t Id[13];        //'ProTracker 3.'
       uint8_t Subversion;
       uint8_t Optional1[16]; //' compilation of '
-      char TrackName[32];
-      uint8_t Optional2[4]; //' by '
-      char TrackAuthor[32];
+      RawId Metainfo;
       uint8_t Mode;
       uint8_t FreqTableNum;
       uint8_t Tempo;
@@ -315,8 +335,16 @@ namespace Chiptune
       void ParseCommonProperties(Builder& builder) const
       {
         builder.SetProgram(String(Source.Id, Source.Optional1));
-        builder.SetTitle(FromCharArray(Source.TrackName));
-        builder.SetAuthor(FromCharArray(Source.TrackAuthor));
+        const RawId& meta = Source.Metainfo;
+        if (meta.HasAuthor())
+        {
+          builder.SetTitle(FromCharArray(meta.TrackName));
+          builder.SetAuthor(FromCharArray(meta.TrackAuthor));
+        }
+        else
+        {
+          builder.SetTitle(String(meta.TrackName, ArrayEnd(meta.TrackAuthor)));
+        }
         const uint_t version = std::isdigit(Source.Subversion) ? Source.Subversion - '0' : 6;
         builder.SetVersion(version);
         if (in_range<uint_t>(Source.FreqTableNum, PROTRACKER, NATURAL))
@@ -353,6 +381,7 @@ namespace Chiptune
         Require(!pats.empty());
         Log::Debug(THIS_MODULE, "Patterns: %1% to parse", pats.size());
         const std::size_t minOffset = fromLE(Source.PatternsOffset) + *pats.rbegin() * sizeof(RawPattern);
+        bool hasValidPatterns = false;
         for (Indices::const_iterator it = pats.begin(), lim = pats.end(); it != lim; ++it)
         {
           const uint_t patIndex = *it;
@@ -360,14 +389,20 @@ namespace Chiptune
           Log::Debug(THIS_MODULE, "Parse pattern %1%", patIndex);
           const RawPattern& src = GetPattern(patIndex);
           builder.StartPattern(patIndex);
-          ParsePattern(src, minOffset, builder);
+          if (ParsePattern(src, minOffset, builder))
+          {
+            hasValidPatterns = true;
+          }
         }
+        Require(hasValidPatterns);
       }
 
       void ParseSamples(const Indices& samples, Builder& builder) const
       {
         Require(!samples.empty() && 0 == *samples.begin());
         Log::Debug(THIS_MODULE, "Samples: %1% to parse", samples.size());
+        //samples are mandatory
+        bool hasValidSamples = false, hasPartialSamples = false;
         for (Indices::const_iterator it = samples.begin(), lim = samples.end(); it != lim; ++it)
         {
           const uint_t samIdx = *it;
@@ -384,6 +419,7 @@ namespace Chiptune
                 Log::Debug(THIS_MODULE, "Parse sample %1%", samIdx);
                 Ranges.Add(samOffset, usedSize);
                 ParseSample(*src, src->GetSize(), result);
+                hasValidSamples = true;
               }
               else
               {
@@ -391,6 +427,7 @@ namespace Chiptune
                 Ranges.Add(samOffset, availSize);
                 const uint_t availLines = (availSize - sizeof(*src)) / sizeof(RawSample::Line);
                 ParseSample(*src, availLines, result);
+                hasPartialSamples = true;
               }
             }
             else
@@ -406,12 +443,14 @@ namespace Chiptune
           }
           builder.SetSample(samIdx, result);
         }
+        Require(hasValidSamples || hasPartialSamples);
       }
 
       void ParseOrnaments(const Indices& ornaments, Builder& builder) const
       {
         Require(!ornaments.empty() && 0 == *ornaments.begin());
         Log::Debug(THIS_MODULE, "Ornaments: %1% to parse", ornaments.size());
+        //ornaments are not mandatory
         for (Indices::const_iterator it = ornaments.begin(), lim = ornaments.end(); it != lim; ++it)
         {
           const uint_t ornIdx = *it;
@@ -514,13 +553,14 @@ namespace Chiptune
         }
       };
 
-      void ParsePattern(const RawPattern& pat, std::size_t minOffset, Builder& builder) const
+      bool ParsePattern(const RawPattern& pat, std::size_t minOffset, Builder& builder) const
       {
         const DataCursors rangesStarts(pat);
         Require(rangesStarts.end() == std::find_if(rangesStarts.begin(), rangesStarts.end(), !boost::bind(&in_range<std::size_t>, _1, minOffset, Delegate.GetSize() - 1)));
 
         ParserState state(rangesStarts);
-        for (uint_t lineIdx = 0; lineIdx < MAX_PATTERN_SIZE; ++lineIdx)
+        uint_t lineIdx = 0;
+        for (; lineIdx < MAX_PATTERN_SIZE; ++lineIdx)
         {
           //skip lines if required
           if (const uint_t linesToSkip = state.GetMinCounter())
@@ -543,6 +583,7 @@ namespace Chiptune
           const std::size_t stop = std::min(Delegate.GetSize(), state.Offsets[chanNum] + 1);
           Ranges.AddFixed(start, stop - start);
         }
+        return lineIdx >= MIN_PATTERN_SIZE;
       }
 
       bool HasLine(ParserState& src) const
@@ -887,10 +928,14 @@ namespace Chiptune
       "+32+"       // char TrackAuthor[32];
       "?"          // uint8_t Mode;
       "?"          // uint8_t FreqTableNum;
-      "01-3f"      // uint8_t Tempo;
-      "01-ff"      // uint8_t Length;
+      "01-ff"      // uint8_t Tempo;
+      "?"          // uint8_t Length;
       "00-ff"      // uint8_t Loop;
-      "?00-3a"     // uint16_t PatternsOffset;
+      "?00-01"     // uint16_t PatternsOffset;
+      "(?00-bf){32}" //boost::array<uint16_t, MAX_SAMPLES_COUNT> SamplesOffsets;
+      //some of the modules has invalid offsets
+      "(?00-d9){16}" //boost::array<uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
+      "00-fe"      // at least one position
     );
 
     class Decoder : public Formats::Chiptune::Decoder

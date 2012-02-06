@@ -231,6 +231,7 @@ namespace Chiptune
       void ParsePatterns(const Indices& pats, Builder& builder) const
       {
         Require(!pats.empty());
+        bool hasValidPatterns = false;
         for (Indices::const_iterator it = pats.begin(), lim = pats.end(); it != lim; ++it)
         {
           const uint_t patIndex = *it;
@@ -241,6 +242,7 @@ namespace Chiptune
             const RawPattern& src = GetPattern(patIndex);
             builder.StartPattern(patIndex);
             ParsePattern(src, Source.PatternsSize, builder);
+            hasValidPatterns = true;
           }
           else
           {
@@ -249,6 +251,7 @@ namespace Chiptune
             builder.FinishPattern(Source.PatternsSize);
           }
         }
+        Require(hasValidPatterns);
       }
 
       void ParseSamples(const Indices& samples, Builder& builder) const

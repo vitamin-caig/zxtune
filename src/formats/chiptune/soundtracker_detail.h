@@ -30,6 +30,7 @@ namespace Formats
 
       const uint_t SAMPLE_SIZE = 32;
       const uint_t ORNAMENT_SIZE = 32;
+      const uint_t MIN_PATTERN_SIZE = 5;
       const uint_t MAX_PATTERN_SIZE = 64;
       const uint_t MAX_POSITIONS_COUNT = 256;
       const uint_t MAX_PATTERNS_COUNT = 32;
