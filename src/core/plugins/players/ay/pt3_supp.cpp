@@ -15,6 +15,7 @@ Author:
 #include "ts_base.h"
 #include "core/plugins/utils.h"
 #include "core/plugins/registrator.h"
+#include "core/plugins/archives/archive_supp_common.h"
 #include "core/plugins/players/creation_result.h"
 #include "core/plugins/players/module_properties.h"
 //common includes
@@ -30,6 +31,7 @@ Author:
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
 #include <formats/chiptune_decoders.h>
+#include <formats/packed_decoders.h>
 #include <formats/chiptune/protracker3.h>
 //text includes
 #include <core/text/core.h>
@@ -479,13 +481,28 @@ namespace PT3
   };
 }
 
+namespace PT3
+{
+  const Char IDC_PTU13[] = {'C', 'O', 'M', 'P', 'I', 'L', 'E', 'D', 'P', 'T', 'U', '1', '3', 0};
+  const uint_t CCAPS = CAP_STOR_CONTAINER;
+}
+
 namespace ZXTune
 {
   void RegisterPT3Support(PluginsRegistrator& registrator)
   {
-    const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateProTracker3Decoder();
-    const ModulesFactory::Ptr factory = boost::make_shared<PT3::Factory>(decoder);
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(PT3::ID, decoder->GetDescription() + Text::PLAYER_DESCRIPTION_SUFFIX, PT3::CAPS, factory);
-    registrator.RegisterPlugin(plugin);
+    //modules with players
+    {
+      const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateCompiledPTU13Decoder();
+      const ArchivePlugin::Ptr plugin = CreateArchivePlugin(PT3::IDC_PTU13, PT3::CCAPS, decoder);
+      registrator.RegisterPlugin(plugin);
+    }
+    //direct modules
+    {
+      const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateProTracker3Decoder();
+      const ModulesFactory::Ptr factory = boost::make_shared<PT3::Factory>(decoder);
+      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(PT3::ID, decoder->GetDescription() + Text::PLAYER_DESCRIPTION_SUFFIX, PT3::CAPS, factory);
+      registrator.RegisterPlugin(plugin);
+    }
   }
 }

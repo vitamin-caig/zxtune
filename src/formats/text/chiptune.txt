@@ -44,6 +44,10 @@ __cpp> "#endif //__TEXT_CHIPTUNE_H_DEFINED__\n"
 < PROTRACKER24_DECODER_DESCRIPTION
 > "Pro Tracker v2.40 Phantom Family"
 
+#PTU13
+< PROTRACKERUTILITY13_DECODER_DESCRIPTION
+> "Pro Tracker Utility v1.3"
+
 #SoundTracker
 < SOUNDTRACKER_DECODER_DESCRIPTION
 > "Sound Tracker v1.x"

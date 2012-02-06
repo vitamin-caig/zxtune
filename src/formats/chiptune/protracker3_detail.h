@@ -24,6 +24,13 @@ namespace Formats
   {
     namespace ProTracker3
     {
+      const std::size_t MAX_PATTERNS_COUNT = 85;
+      const std::size_t MAX_POSITIONS_COUNT = 255;
+      const std::size_t MIN_PATTERN_SIZE = 1;
+      const std::size_t MAX_PATTERN_SIZE = 256;//really no limit for PT3.58+
+      const std::size_t MAX_SAMPLES_COUNT = 32;
+      const std::size_t MAX_ORNAMENTS_COUNT = 16;
+
       typedef std::set<uint_t> Indices;
 
       class StatisticCollectingBuilder : public Builder
