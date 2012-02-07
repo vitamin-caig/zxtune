@@ -14,7 +14,7 @@
 //common includes
 #include <contract.h>
 //std includes
-#include <list>
+#include <deque>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
@@ -73,8 +73,8 @@ namespace Async
       if (Active)
       {
         Require(!Container.empty());
-        res = Container.back();
-        Container.pop_back();
+        res = Container.front();
+        Container.pop_front();
         CanPutDataEvent.notify_one();
         return true;
       }
@@ -93,7 +93,7 @@ namespace Async
     virtual void Flush()
     {
       boost::mutex::scoped_lock lock(Locker);
-      CanPutDataEvent.wait(lock, boost::bind(&std::list<T>::empty, &Container));
+      CanPutDataEvent.wait(lock, boost::bind(&ContainerType::empty, &Container));
     }
 
     static typename Queue<T>::Ptr Create(std::size_t size)
@@ -116,7 +116,8 @@ namespace Async
     boost::mutex Locker;
     boost::condition_variable CanPutDataEvent;
     boost::condition_variable CanGetDataEvent;
-    std::list<T> Container;
+    typedef std::deque<T> ContainerType;
+    ContainerType Container;
   };
 
   template<class T>
