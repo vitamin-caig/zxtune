@@ -346,13 +346,14 @@ namespace Chiptune
         Require(!pats.empty());
         Log::Debug(THIS_MODULE, "Patterns: %1% to parse", pats.size());
         bool hasValidPatterns = false;
+        const uint_t minPatternsOffset = sizeof(Source) + (Id.Check() ? sizeof(Id) : 0);
         for (Indices::const_iterator it = pats.begin(), lim = pats.end(); it != lim; ++it)
         {
           const uint_t patIndex = *it;
           Log::Debug(THIS_MODULE, "Parse pattern %1%", patIndex);
           const RawPattern& src = GetPattern(patIndex);
           builder.StartPattern(patIndex);
-          if (ParsePattern(src, builder))
+          if (ParsePattern(src, minPatternsOffset, builder))
           {
             hasValidPatterns = true;
           }
@@ -470,9 +471,11 @@ namespace Chiptune
 
       struct DataCursors : public boost::array<std::size_t, 3>
       {
-        DataCursors(const RawPattern& src, uint_t unfixDelta)
+        DataCursors(const RawPattern& src, uint_t minOffset, uint_t unfixDelta)
         {
-          std::transform(src.Offsets.begin(), src.Offsets.end(), begin(), boost::bind(std::minus<uint_t>(), boost::bind(&fromLE<uint16_t>, _1), unfixDelta));
+          std::transform(src.Offsets.begin(), src.Offsets.end(), begin(), std::ptr_fun(&fromLE<uint16_t>));
+          Require(end() == std::find_if(begin(), end(), std::bind2nd(std::less<uint_t>(), minOffset + unfixDelta)));
+          std::transform(begin(), end(), begin(), std::bind2nd(std::minus<uint_t>(), unfixDelta));
         }
       };
 
@@ -500,9 +503,9 @@ namespace Chiptune
         }
       };
 
-      bool ParsePattern(const RawPattern& src, Builder& builder) const
+      bool ParsePattern(const RawPattern& src, uint_t minOffset, Builder& builder) const
       {
-        const DataCursors rangesStarts(src, UnfixDelta);
+        const DataCursors rangesStarts(src, minOffset, UnfixDelta);
         ParserState state(rangesStarts);
         uint_t lineIdx = 0;
         for (; lineIdx < MAX_PATTERN_SIZE; ++lineIdx)
