@@ -7,6 +7,18 @@ Annotation:
 
 --- $Rev$ from $Date$
 
+[*] Reworked PT3 detection
+[*] All modules without samples are ignored
+[*] Improved PT2 detection
+[*] Fixed metainfo insertion to AS0/ASC/STP
+[*] Fixed memory usage
+[*] Fixed volume level reset after new module start while playback via DirectSound
+[*] zxtune123: asynchronous rip/conversion result saving
+[*] zxtune-qt: improved .ayl playlists support
+
+
+--- Rev1504 from 25.01.2012
+
 [*] Scan speedup for 10%
 [*] Improved TRUSH detection
 [*] Improved STP detection
