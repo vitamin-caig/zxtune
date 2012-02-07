@@ -482,17 +482,38 @@ namespace Chiptune
       {
         Require(!samples.empty());
         Log::Debug(THIS_MODULE, "Samples: %1% to parse", samples.size());
-        bool hasValidSamples = false;
+        bool hasValidSamples = false, hasPartialSamples = false;
         for (Indices::const_iterator it = samples.begin(), lim = samples.end(); it != lim; ++it)
         {
           const uint_t samIdx = *it;
           Require(in_range<uint_t>(samIdx, 0, MAX_SAMPLES_COUNT - 1));
           Sample result;
-          if (const RawSample* src = GetSample(fromLE(Source.SamplesOffsets[samIdx])))
+          if (const std::size_t samOffset = fromLE(Source.SamplesOffsets[samIdx]))
           {
-            Log::Debug(THIS_MODULE, "Parse sample %1%", samIdx);
-            ParseSample(*src, result);
-            hasValidSamples = true;
+            const std::size_t availSize = Delegate.GetSize() - samOffset;
+            if (const RawSample* src = Delegate.GetField<RawSample>(samOffset))
+            {
+              const std::size_t usedSize = src->GetUsedSize();
+              if (usedSize <= availSize)
+              {
+                Log::Debug(THIS_MODULE, "Parse sample %1%", samIdx);
+                Ranges.Add(samOffset, usedSize);
+                ParseSample(*src, src->GetSize(), result);
+                hasValidSamples = true;
+              }
+              else
+              {
+                Log::Debug(THIS_MODULE, "Parse partial sample %1%", samIdx);
+                Ranges.Add(samOffset, availSize);
+                const uint_t availLines = (availSize - sizeof(*src)) / sizeof(RawSample::Line);
+                ParseSample(*src, availLines, result);
+                hasPartialSamples = true;
+              }
+            }
+            else
+            {
+              Log::Debug(THIS_MODULE, "Stub sample %1%", samIdx);
+            }
           }
           else
           {
@@ -502,7 +523,7 @@ namespace Chiptune
           }
           builder.SetSample(samIdx, result);
         }
-        Require(hasValidSamples);
+        Require(hasValidSamples || hasPartialSamples);
       }
 
       void ParseOrnaments(const Indices& ornaments, Builder& builder) const
@@ -563,18 +584,6 @@ namespace Chiptune
         const std::size_t patOffset = fromLE(Source.PatternsOffset) + patIdx * sizeof(RawPattern);
         Ranges.AddService(patOffset, sizeof(RawPattern));
         return *Delegate.GetField<RawPattern>(patOffset);
-      }
-
-      const RawSample* GetSample(std::size_t offset) const
-      {
-        if (!offset)
-        {
-          return 0;
-        }
-        const RawSample* const res = Delegate.GetField<RawSample>(offset);
-        Require(res != 0);
-        Ranges.Add(offset, res->GetUsedSize());
-        return res;
       }
 
       uint8_t PeekByte(std::size_t offset) const
@@ -771,10 +780,9 @@ namespace Chiptune
         }
       }
 
-      static void ParseSample(const RawSample& src, Sample& dst)
+      static void ParseSample(const RawSample& src, uint_t size, Sample& dst)
       {
-        const uint_t size = src.GetSize();
-        dst.Lines.resize(size);
+        dst.Lines.resize(src.GetSize());
         for (uint_t idx = 0; idx < size; ++idx)
         {
           const RawSample::Line& line = src.GetLine(idx);
