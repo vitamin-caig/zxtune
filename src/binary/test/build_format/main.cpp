@@ -26,7 +26,7 @@ namespace
 
     bool IsThis() const
     {
-      return Min <= Max && 0 != Min && 255 != Max;
+      return Min <= Max && (Max - Min < 255);
     }
     
     std::size_t CountCatches() const
