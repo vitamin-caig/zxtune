@@ -429,12 +429,6 @@ namespace Chiptune
               Log::Debug(THIS_MODULE, "Stub sample %1%", samIdx);
             }
           }
-          else
-          {
-            Log::Debug(THIS_MODULE, "Parse invalid sample %1%", samIdx);
-            const RawSample::Line& invalidLine = *Delegate.GetField<RawSample::Line>(0);
-            result.Lines.push_back(ParseSampleLine(invalidLine));
-          }
           builder.SetSample(samIdx, result);
         }
         Require(hasValidSamples || hasPartialSamples);
@@ -474,11 +468,6 @@ namespace Chiptune
             {
               Log::Debug(THIS_MODULE, "Stub ornament %1%", ornIdx);
             }
-          }
-          else
-          {
-            Log::Debug(THIS_MODULE, "Parse invalid ornament %1%", ornIdx);
-            result.Lines.push_back(*Delegate.GetField<RawOrnament::Line>(0));
           }
           builder.SetOrnament(ornIdx, result);
         }

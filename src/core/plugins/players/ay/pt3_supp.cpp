@@ -221,7 +221,7 @@ namespace ProTracker3
 
     virtual void SetEnvelopeSlide(uint_t period, int_t val)
     {
-      Context.CurChannel->Commands.push_back(Track::Command(Vortex::SAMPLEOFFSET, period, val));
+      Context.CurChannel->Commands.push_back(Track::Command(Vortex::SLIDEENV, period, val));
     }
 
     virtual void SetEnvelope(uint_t type, uint_t value)
