@@ -40,7 +40,18 @@ namespace Chiptune
   {
     using namespace SoundTracker;
 
-    const std::size_t MAX_MODULE_SIZE = 0x2500;
+    const std::size_t MAX_MODULE_SIZE = 0x2600;
+
+    /*
+      Typical module structure
+
+      Header            27
+      Samples           up to 16*99=1584 (0x630)
+      Positions         up to 513 (0x201)
+      Patterns offsets  up to 32*7=224 (0xe0)
+      0xff
+      Patterns data     max offset = 2348 (0x92c) max size ~32pat*64lin*3chan*2byte=0x3000
+    */
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -178,6 +189,10 @@ namespace Chiptune
         for (uint_t patEntryIdx = 0; patEntryIdx < MAX_PATTERNS_COUNT && !restPats.empty(); ++patEntryIdx)
         {
           const RawPattern& src = GetPattern(patEntryIdx);
+          if (!in_range<uint_t>(src.Number, 1, MAX_PATTERNS_COUNT))
+          {
+            break;
+          }
           const uint_t patIndex = src.Number - 1;
           if (restPats.count(patIndex))
           {
@@ -349,6 +364,7 @@ namespace Chiptune
       bool ParsePattern(const RawPattern& src, Builder& builder) const
       {
         const DataCursors rangesStarts(src);
+
         ParserState state(rangesStarts);
         uint_t lineIdx = 0;
         for (; lineIdx < MAX_PATTERN_SIZE; ++lineIdx)
@@ -648,7 +664,7 @@ namespace Chiptune
     }
 
     const std::string FORMAT(
-    "01-0f"       // uint8_t Tempo; 1..15
+    "01-32"       // uint8_t Tempo; 1..50
     "?00-09"      // uint16_t PositionsOffset;
     "?00-09"      // uint16_t OrnamentsOffset;
     "?00-09"      // uint16_t PatternsOffset;
