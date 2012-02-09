@@ -46,6 +46,21 @@ namespace Chiptune
 
     const std::size_t MAX_MODULE_SIZE = 0x2800;
 
+    /*
+      Typical module structure
+
+      Header
+      Optional Id
+      PatternsData
+      Ornaments
+      Samples
+      Positions
+      <possible gap due to invalid length>
+      PatternsOffsets
+      OrnamentsOffsets
+      SamplesOffsets
+    */
+
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif
@@ -753,7 +768,13 @@ namespace Chiptune
           return false;
         }
         const std::size_t requiredSize = sizeof(RawPositions) + (positions - 1) * sizeof(RawPositions::PosEntry);
-        return requiredSize <= size;
+        if (requiredSize > size)
+        {
+          //no place
+          return false;
+        }
+        //check for possible invalid length in header- real positions should fit place
+        return 0 == (size - requiredSize) % sizeof(RawPositions::PosEntry);
       }
 
       bool CheckSamples() const
@@ -764,7 +785,7 @@ namespace Chiptune
           return false;
         }
         const std::size_t requiredSize = sizeof(RawSamples);
-        return requiredSize <= size;
+        return requiredSize == size;
       }
 
       bool CheckOrnaments() const
@@ -775,7 +796,7 @@ namespace Chiptune
           return false;
         }
         const std::size_t requiredSize = sizeof(RawOrnaments);
-        return requiredSize <= size;
+        return requiredSize == size;
       }
     };
 
