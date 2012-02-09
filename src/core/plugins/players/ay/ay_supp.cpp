@@ -71,9 +71,10 @@ namespace
       FrameStub = Devices::AYM::DataChunk();
     }
 
-    void SelectRegister(uint_t reg)
+    bool SelectRegister(uint_t reg)
     {
       Register = reg;
+      return Register < Devices::AYM::DataChunk::REG_BEEPER;
     }
 
     bool SetValue(const Time::Nanoseconds& timeStamp, uint8_t val)
@@ -144,8 +145,7 @@ namespace
     {
       if (IsSelRegPort(port))
       {
-        AyData->SelectRegister(data);
-        return true;
+        return AyData->SelectRegister(data);
       }
       else if (IsSetValPort(port))
       {
@@ -220,7 +220,7 @@ namespace
           switch (Selector & 0xc0)
           {
           case 0xc0:
-            AyData->SelectRegister(Data);
+            res = AyData->SelectRegister(Data);
             break;
           case 0x80:
             res = AyData->SetValue(timeStamp.GetCurrentTime(), Data);
@@ -295,7 +295,7 @@ namespace
       {
         Current = CPC;
       }
-      else
+      else 
       {
         //ZX is fallback that will never become current :(
         ZX->Write(timeStamp, port, data);
